@@ -1,13 +1,12 @@
-From: Mike Waychison <Michael.Waychison@Sun.COM>
-Subject: Re: multiple servers per automount
-Date: Thu, 09 Oct 2003 14:23:39 -0400
+From: "Ogden, Aaron A." <aogden@unocal.com>
+Subject: RE: multiple servers per automount
+Date: Thu, 9 Oct 2003 13:45:59 -0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <3F85A7AB.8070307@sun.com>
-References: <Pine.LNX.4.33.0310091104250.16859-100000@wombat.indigo.net.au>
+Message-ID: <6AB920CC10586340BE1674976E0A991D5955F1@slexch2.sugarland.unocal.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-reply-to: <Pine.LNX.4.33.0310091104250.16859-100000@wombat.indigo.net.au>
+content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,9 +16,25 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; format="flowed"; charset="us-ascii"
-To: Ian Kent <raven@themaw.net>
+Content-Type: text/plain; charset="us-ascii"
+To: Mike Waychison <Michael.Waychison@Sun.COM>, Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
+
+
+Ouch.  As you may know, the limit is *much* lower in linux.  Something
+that I've been struggling with recently...
+
+Under normal circumstances I would not be concerned with 'limitations'
+of a few hundred active NFS mounts, but such limitations certainly limit
+scalability for the extreme cases.
+
+-----Original Message-----
+From: Mike Waychison [mailto:Michael.Waychison@Sun.COM] 
+Sent: Thursday, October 09, 2003 1:24 PM
+To: Ian Kent
+Cc: autofs@linux.kernel.org
+Subject: Re: [autofs] multiple servers per automount
+
 
 Ian Kent wrote:
 
@@ -35,3 +50,8 @@ having enough memory).  I'm told that more recent Solaris releases have
 been tested up to around 260,000 concurrent NFS mounts.
 
 Mike Waychison
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
