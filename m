@@ -1,14 +1,14 @@
 From: Mike Waychison <Michael.Waychison@Sun.COM>
-Subject: Re: autofs no_local_binds option (nfs <-> bind mounts)
-Date: Tue, 13 Jan 2004 12:48:37 -0500
+Subject: Re: [RFC] Towards a Modern Autofs
+Date: Tue, 13 Jan 2004 13:46:49 -0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <40042F75.9040304@sun.com>
-References: <F3123864FB69D411946000D0B77FBBDF0D5E13EF@haendel.bbn.hp.com>
- <40042774.7070003@zytor.com>
+Message-ID: <40043D19.3010608@sun.com>
+References: <Pine.LNX.4.33.0401101325280.2403-100000@wombat.indigo.net.au>
+ <40029C19.409@sun.com> <Pine.LNX.4.58.0401122356100.6362@raven.themaw.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============31425238736437389=="
+Content-Type: multipart/mixed; boundary="===============78994977434453695=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-reply-to: <40042774.7070003@zytor.com>
+In-reply-to: <Pine.LNX.4.58.0401122356100.6362@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,48 +18,86 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: "MARX,ALEXANDER (HP-Germany,ex1)" <alexander.marx@hp.com>, autofs@linux.kernel.org
+To: raven@themaw.net
+Cc: autofs mailing list <autofs@linux.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
 This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---===============31425238736437389==
+--===============78994977434453695==
 Content-type: multipart/signed;
- boundary=------------enig45D20319BB9CCCAA187A8140;
+ boundary=------------enig5E7A436193FFFE5FA916DA2B;
  protocol="application/pgp-signature"; micalg=pgp-sha1
 
 This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig45D20319BB9CCCAA187A8140
-Content-Type: multipart/mixed;
- boundary="------------060703050209020200010505"
-
-This is a multi-part message in MIME format.
---------------060703050209020200010505
+--------------enig5E7A436193FFFE5FA916DA2B
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
-H. Peter Anvin wrote:
+raven@themaw.net wrote:
 
-> MARX,ALEXANDER (HP-Germany,ex1) wrote:
+>On Mon, 12 Jan 2004, Mike Waychison wrote:
 >
+>  
+>
+>>>Transparency of an autofs filesystem (as I'm calling it) is the situation
+>>>where, given a map
+>>>
+>>>/usr	/man1	server:/usr/man1
+>>>	/man2	server:/usr/man2
+>>>
+>>>where the filesystem /usr contains, say a directory lib, that needs to be
+>>>available while also seeing the automounted directories.
+>>>
+>>> 
+>>>
+>>>      
+>>>
+>>I see.  This requires direct mount triggers to do properly.  Trying to 
+>>do it with some sort of passthrough to the underlying filesystem is a 
+>>nightmare waiting to happen..
 >>
->> In some scenarios (e.g. HA), the nfs server could switch from local to
->> remote, therefore having local binds is not a desirable scenario, there
->> should always be nfs mounts.
+>>    
 >>
 >
-> How would you expect this to work?  The local bind only happens when 
-> local and destination address are the same, therefore keeping anything 
-> from going across the network no matter how you slice it.
+>So what are we saying here?
 >
-This is policy made by the daemon that IMHO may be trying to be too 
-smart about what the user wants. I've attached a quick patch, compiled 
-not tested that shows how you can add a no_local_binds option to entries 
-(written against 4.0.0pre10 because that's what I have on my laptop atm).
+>We install triggers at /usr/man1 and /usr/man2.
+>Then suppose the map had a nobrowse option.
+>  
+>
+This is a direct map.  The browse / nobrowse options do not apply to 
+direct maps.
 
-Doing local binds may not be the right thing to do in the first place.  
-It makes assumptions that the local nfs server is serving the same 
-namespace/filesystems as the current application and it will break NFS 
-v4 replication and migration when it's ready.
+>Does the trigger also take care of hiding man1 and man2?
+>
+>  
+>
+No.  man1 and man2 appear as directories to anyone doing an lstat on 
+them.  Traversing *into* them will cause filesystems to be mounted on 
+them.  This appears to be similar to browsing of an indirect map at 
+first, however it is a different beast.  With indirect maps, we are 
+given the right to cover up /usr to help us detects stats and traversals 
+into its sub-directories.  With direct entries, we don't have these 
+leisure.  Everything in /usr most be accessible at all times. 
+
+Your need for 'transparency' comes from the fact that you convert direct 
+maps into indirect maps, which require the covering of /usr.
+
+>Is there some definition of these triggers?
+>
+>  
+>
+This question is up in the air. 
+
+I propose using a magic filesystem, whose root dentry has a follow_link 
+callback defined.  When somebody walks into the filesystem, the 
+follow_link is called, which does the mount onto a different dentry, and 
+then forwards the original caller to the new vfsmount/dentry pair. 
+
+HPA and Viro believe this is better done in the VFS layer directly by 
+using special vfsmounts without super_blocks.  The path walking code 
+would be modified to know of these 'traps' or 'triggers' natively.
+
+Which solution is best is left as an exercise.
 
 -- 
 Mike Waychison
@@ -75,61 +113,22 @@ and may not represent the views of Sun Microsystems, Inc.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
 
 
---------------060703050209020200010505
-Content-Type: text/plain;
- name="nolocalbinds.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="nolocalbinds.patch"
-
-diff -ru orig/modules/mount_nfs.c autofs-4.0.0pre10/modules/mount_nfs.c
---- orig/modules/mount_nfs.c	2004-01-13 09:29:27.000000000 -0800
-+++ autofs-4.0.0pre10/modules/mount_nfs.c	2004-01-13 09:30:06.000000000 -0800
-@@ -73,6 +73,7 @@
-   struct sockaddr_in saddr, laddr;
-   int sock, local, err;
-   int nosymlink = 0;
-+  int nolocalbinds = 0;
-   size_t len;
- 
-   syslog(LOG_DEBUG, MODPREFIX " root=%s name=%s what=%s, fstype=%s, options=%s",
-@@ -113,6 +114,8 @@
- #endif
-       if (strncmp("nosymlink", cp, comma-cp-1) == 0)
- 	nosymlink = 1;
-+      if (strncmp("no_local_binds", cp, comma-cp-1) == 0)
-+	nolocalbinds = 1;
-       else {
- 	memcpy(nfsp, cp, comma-cp+1);
- 	nfsp += comma-cp+1;
-@@ -205,7 +208,7 @@
-   }
-   sprintf(fullpath, "%s/%s", root, name);
-   
--  if ( local ) {
-+  if ( local && !nolocalbinds ) {
-     /* Local host -- do a "bind" */
-   
-     syslog(LOG_DEBUG, MODPREFIX "%s is local, doing bind", name);
-
---------------060703050209020200010505--
-
---------------enig45D20319BB9CCCAA187A8140
+--------------enig5E7A436193FFFE5FA916DA2B
 Content-Type: application/pgp-signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.2 (GNU/Linux)
 Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
 
-iD8DBQFABC94dQs4kOxk3/MRAgUzAJ4+AZZnIXFXufzGmIBm9IQKJhu96gCff3Yw
-hIDYQfmn++QhYickKlJrNos=
-=nLqQ
+iD8DBQFABD0cdQs4kOxk3/MRAl02AJ9DeLf53/wgbXORk2P/11UkCKKRHgCfYQ4j
+Jsl0hzwGpzEN0Cyy26d8+oc=
+=6X1I
 -----END PGP SIGNATURE-----
 
---------------enig45D20319BB9CCCAA187A8140--
+--------------enig5E7A436193FFFE5FA916DA2B--
 
 
---===============31425238736437389==
+--===============78994977434453695==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -140,5 +139,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---===============31425238736437389==--
+--===============78994977434453695==--
 
