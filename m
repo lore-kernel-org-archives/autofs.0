@@ -1,118 +1,144 @@
-From: Greg Banks <gnb@melbourne.sgi.com>
-Subject: [PATCH 2.4] SGI 932676 link_path_walk refcount problem allows
- umount of active filesystem
-Date: Tue, 22 Mar 2005 12:24:37 +1100
-Message-ID: <1111454677.1991.766.camel@hole.melbourne.sgi.com>
+From: devnull@adc.idt.com
+Subject: Re: Re: unacceptable bug in autofs kernel module
+Date: Tue, 22 Mar 2005 16:00:06 -0500 (EST)
+Message-ID: <Pine.LNX.4.61.0503221500170.8797@pod.adc.idt.com>
+References: <Pine.LNX.4.61.0503211425190.29378@pod.adc.idt.com>
+	<Pine.LNX.4.58.0503220858230.4244@wombat.indigo.net.au>
+Reply-To: devnull@adc.idt.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-fPp/ESy58Gj/36RjsLWj"
-Sender: nfs-admin@lists.sourceforge.net
-Errors-To: nfs-admin@lists.sourceforge.net
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=unsubscribe>
+In-Reply-To: <Pine.LNX.4.58.0503220858230.4244@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
-List-Post: <mailto:nfs@lists.sourceforge.net>
-List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
-To: Marcelo Tosatti <marcelo.tosatti@cyclades.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux NFS Mailing List <nfs@lists.sourceforge.net>, Linux AutoFS Mailing List <autofs@linux.kernel.org>
-
-
---=-fPp/ESy58Gj/36RjsLWj
-Content-Type: text/plain
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
+To: Ian Kent <raven@themaw.net>
+Cc: AutoFS on Linux Kernel <autofs@linux.kernel.org>, devnull@adc.idt.com
 
-G'day,
+>> can run the job locally on the machine and reproduce it.
+>>
+>> The application I run creates a directory to store certain results, and to
+>> make sure that I am not looking at older results, my script deletes that
+>> directory at the very beginning of the job.
+>
+> Interesting!
+>
+> So this is not a directory in the autofs filesystem but one in the mounted
+> filesystem?
 
-The attached patch fixes a bug in the VFS code which causes
-"Busy inodes after unmount" and a subsequent oops.
+root      9708     1  0 15:07 ?        00:00:00 /usr/sbin/automount --ghost -v --debug /home yp auto.home nobrowse
 
-Greg.
--- 
-Greg Banks, R&D Software Engineer, SGI Australian Software Group.
-I don't speak for SGI.
-
-
---=-fPp/ESy58Gj/36RjsLWj
-Content-Disposition: attachment; filename=sgi932676-fix-link-following-vfsmount-refcount-bug.patch
-Content-Type: text/x-patch; name=sgi932676-fix-link-following-vfsmount-refcount-bug.patch; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-Following an absolute symlink opens a window during which the
-filesystem containing the symlink has an outstanding dentry count
-and no outstanding vfsmount count.  A umount() of the filesystem can
-(incorrectly) proceed, resulting in the "Busy inodes after unmount"
-message and an oops shortly thereafter.
-
-Systems using autofs-controlled NFS mounts are especially vulnerable,
-as autofs both increases the number of unmounts happening and does NFS
-mounting in response to lookups which can result in multiple-second
-vulnerability windows.  However the bug could happen on any filesystem.
-
-This patch adds a mntget()/mntput() pair around the link following code
-(as the 2.6 code does).  Attempts to umount() during link following
-now return EBUSY.
+We use YP with ghosting enabled.
 
 
-Signed-off-by: Greg Banks <gnb@melbourne.sgi.com>
----
- linux/linux/fs/namei.c |    7 +++++++
- 1 files changed, 7 insertions(+)
+Now under /home/me I run this perl script
 
---- a/linux/linux/fs/namei.c	2005-03-21 12:53:48 +11:00
-+++ b/linux/linux/fs/namei.c	2005-03-21 12:16:46 +11:00
-@@ -541,8 +541,10 @@
- 			goto out_dput;
- 
- 		if (inode->i_op->follow_link) {
-+			struct vfsmount *mnt = mntget(nd->mnt);
- 			err = do_follow_link(dentry, nd);
- 			dput(dentry);
-+			mntput(mnt);
- 			if (err)
- 				goto return_err;
- 			err = -ENOENT;
-@@ -596,8 +598,10 @@
- 		inode = dentry->d_inode;
- 		if ((lookup_flags & LOOKUP_FOLLOW)
- 		    && inode && inode->i_op && inode->i_op->follow_link) {
-+			struct vfsmount *mnt = mntget(nd->mnt);
- 			err = do_follow_link(dentry, nd);
- 			dput(dentry);
-+			mntput(mnt);
- 			if (err)
- 				goto return_err;
- 			inode = nd->dentry->d_inode;
-@@ -1002,6 +1006,7 @@
- 	int acc_mode, error = 0;
- 	struct inode *inode;
- 	struct dentry *dentry;
-+	struct vfsmount *mnt;
- 	struct dentry *dir;
- 	int count = 0;
- 
-@@ -1185,8 +1190,10 @@
- 	 * are done. Procfs-like symlinks just set LAST_BIND.
- 	 */
- 	UPDATE_ATIME(dentry->d_inode);
-+	mnt = mntget(nd->mnt);
- 	error = dentry->d_inode->i_op->follow_link(dentry, nd);
- 	dput(dentry);
-+	mntput(mnt);
- 	if (error)
- 		return error;
- 	if (nd->last_type == LAST_BIND) {
+SNIP
 
---=-fPp/ESy58Gj/36RjsLWj--
+#!/usr/local/bin/perl
+use File::Path;
+
+open HANDLE1, file1 ;
+open HANDLE2, file2 ;
+
+$line1 = <HANDLE1>;
+$line2 = <HANDLE2>;
+
+rmtree "run_details";
+
+# system("bsub -q normal -I mkdirhier run_details/me");
+# You need to change MachineName to something else here.
+system("rsh MachineName mkdirhier /home/me/run_details/me");
+
+# DO NOT REMOVE -- have to have this to make x86_64 work
+# If you comment this line out, the script fails.
+my $touchret = `/bin/touch run_details`;
+open HANDLE3, ">>run_details/file3" or die "No run_details dir found";
+print HANDLE3 $line1;
+print HANDLE3 $line2;
+
+opendir DIR, "run_details" or die "1. couldn't open run_details ($!)\n";
+my @dirlist = readdir DIR;
+printf "@dirlist\n";
+
+/SNIP
+
+I have tried, but a simple 
+/var/log/messages has this relevant stuff
 
 
+Mar 22 15:07:36 pod automount[9507]: starting automounter version 4.1.4_beta2, path = /misc, maptype = file, mapname = /etc/auto.misc
+Mar 22 15:07:36 pod automount[9519]: starting automounter version 4.1.4_beta2, path = /net, maptype = program, mapname = /etc/auto.net
+Mar 22 15:07:36 pod automount[9519]: using kernel protocol version 4.05
+Mar 22 15:07:36 pod automount[9519]: using timeout 300 seconds; freq 75 secs
+Mar 22 15:07:36 pod automount[9507]: using kernel protocol version 4.05
+Mar 22 15:07:36 pod automount[9507]: using timeout 300 seconds; freq 75 secs
+Mar 22 15:07:36 pod automount[9507]: ghosting enabled
+Mar 22 15:07:36 pod automount[9708]: starting automounter version 4.1.4_beta2, path = /home, maptype = yp, mapname = auto.home
+Mar 22 15:07:36 pod automount[9708]: ghosting enabled
+Mar 22 15:07:36 pod automount[9708]: ghosting enabled
+Mar 22 15:07:39 pod automount[9708]: attempting to mount entry /home/x86_64linuxlocal
+Mar 22 15:07:39 pod kernel: nfs warning: mount version older than kernel
+Mar 22 15:08:05 pod udev[9755]: removing device node '/udev/vcs2'
+Mar 22 15:08:05 pod udev[9766]: removing device node '/udev/vcsa2'
+Mar 22 15:08:05 pod login(pam_unix)[3067]: session closed for user root
+Mar 22 15:08:06 pod udev[9778]: creating device node '/udev/vcs2'
+Mar 22 15:08:06 pod udev[9785]: creating device node '/udev/vcsa2'
+Mar 22 15:08:06 pod udev[9814]: removing device node '/udev/vcs2'
+Mar 22 15:08:06 pod udev[9823]: removing device node '/udev/vcsa2'
+Mar 22 15:08:06 pod udev[9828]: creating device node '/udev/vcs2'
+Mar 22 15:08:06 pod udev[9829]: creating device node '/udev/vcsa2'
+Mar 22 15:08:08 pod login(pam_unix)[8863]: session closed for user root
+Mar 22 15:08:12 pod login(pam_unix)[9839]: session opened for user ram by LOGIN(uid=0)
+Mar 22 15:08:12 pod automount[9708]: attempting to mount entry /home/ram
+Mar 22 15:08:12 pod kernel: nfs warning: mount version older than kernel
+Mar 22 15:08:12 pod  -- ram[9839]: LOGIN ON tty1 BY ram
+Mar 22 15:08:12 pod automount[9708]: attempting to mount entry /home/allmail
+Mar 22 15:08:12 pod kernel: nfs warning: mount version older than kernel
+Mar 22 15:08:12 pod automount[9708]: attempting to mount entry /home/icdag
+Mar 22 15:08:12 pod kernel: nfs warning: mount version older than kernel
+Mar 22 15:08:12 pod automount[9708]: attempting to mount entry /home/dag
+Mar 22 15:08:12 pod kernel: nfs warning: mount version older than kernel
+Mar 22 15:08:12 pod automount[9708]: attempting to mount entry /home/lsf6.0
+Mar 22 15:08:12 pod kernel: nfs warning: mount version older than kernel
+Mar 22 15:08:12 pod kernel: agpgart: Found an AGP 3.5 compliant device at 0000:00:00.0.
+Mar 22 15:08:12 pod kernel: agpgart: Putting AGP V3 device at 0000:00:00.0 into 8x mode
+Mar 22 15:08:12 pod kernel: agpgart: Putting AGP V3 device at 0000:01:00.0 into 8x mode
+Mar 22 15:08:13 pod kernel: agpgart: Found an AGP 3.5 compliant device at 0000:00:00.0.
+Mar 22 15:08:13 pod kernel: agpgart: Putting AGP V3 device at 0000:00:00.0 into 8x mode
+Mar 22 15:08:13 pod kernel: agpgart: Putting AGP V3 device at 0000:01:00.0 into 8x mode
+Mar 22 15:08:13 pod udev[9903]: creating device node '/udev/vcs7'
+Mar 22 15:08:13 pod udev[9910]: creating device node '/udev/vcsa7'
+Mar 22 15:08:31 pod su(pam_unix)[9953]: session opened for user root by ram(uid=3147)
 
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
-_______________________________________________
-NFS maillist  -  NFS@lists.sourceforge.net
-https://lists.sourceforge.net/lists/listinfo/nfs
+enabled x86_64 workaround
+and no more messages.
+
+
+
+>>
+>> Somehow this causes a problem, the directory is always reported
+>> missing, however if i remove the directory by hand, then run the script,
+>> everything works great.
+>>
+>> Where would I need to look to see what process is caching the contents of
+>> the directory.
+>
+> An example first.
+> When you reproduce the problem give the map (master and entry maps).
+> The steps to reproduce.
+> The syslog output with the "--debug" option on the master map entry.
+>
+> Ian
+>
+>
+Thanks for taking a look at this Ian, I really appreciate this.
+
+Thanks.
