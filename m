@@ -1,8 +1,8 @@
 From: Greg Bradner <gregb@rhythm.com>
-Subject: expired program mounts
-Date: Wed, 22 Oct 2003 06:11:43 -0700
+Subject: autofs v4
+Date: Thu, 23 Oct 2003 09:05:34 -0700
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <3F96820F.6030406@rhythm.com>
+Message-ID: <3F97FC4E.5070809@rhythm.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
@@ -18,24 +18,36 @@ Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"; format="flowed"
 To: autofs@linux.kernel.org
 
-Is there a way to get expired program mounts to umount?
+It is not making the mount  points for program mounts. Any ideas?
 
-In auto_master:
-/nfs/hosts3   /etc/auto_maps/autofs_host_mount.pl vers=3,mountvers=2
+This is from /etc/auto_maps/autofs_host_mount.pl, my program for program 
+mounts.
+PARGS /usr/sbin/automount --timeout 60 /n program 
+/etc/auto_maps/autofs_host_mount.pl vers=2,mountvers=2 
+rsize=32768,wsize=32768
+TEST = --timeout
+TEST = 60
+TEST = /n
+BASEDIR = /n (2)
+MOUNT OPTS: -o  vers=2,mountvers=2,rsize=32768,wsize=32768
+am_mount -o  vers=2,mountvers=2,rsize=32768,wsize=32768 linn:/etc 
+/n/linn/etc
+am_mount -o  vers=2,mountvers=2,rsize=32768,wsize=32768 linn:/usr 
+/n/linn/usr
+am_mount -o  vers=2,mountvers=2,rsize=32768,wsize=32768 linn:/local/b 
+/n/linn/local/b
+am_mount -o  vers=2,mountvers=2,rsize=32768,wsize=32768 linn:/local/a 
+/n/linn/local/a
+/n/linn
 
-In /var/log/messages:
-Oct 22 06:07:51 lid2 automount[2693]: expired /nfs/hosts3/lid0
-
-When I run a df:
-lid0:/local/a         71370008  28701972  39042572  43% 
-/nfs/hosts3/lid0/local/a
-
-The mount has not been used in weeks. This is a big problem since 
-machines hang if the the mounted host goes down.
-
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-                           Rhythm & Hues
-              5404 Jandy Place, Los Angeles, CA 90066
-    gregb@rhythm.com, Voice: 310 448-7763, Fax: 310 448-7600
+[34] lid2:/# tail /var/log/messages
+Oct 23 08:55:50 lid2 am_mount[11720]: am_mount /n/linn/usr
+Oct 23 08:55:50 lid2 automount[2281]: attempting to mount entry /n/linn
+Oct 23 08:55:50 lid2 am_mount[11725]: am_mount /n/linn/etc
+Oct 23 08:55:50 lid2 am_mount[11726]: am_mount /n/linn/usr
+Oct 23 08:55:50 lid2 am_mount[11727]: am_mount /n/linn/local/b
+Oct 23 08:55:50 lid2 am_mount[11728]: am_mount /n/linn/local/a
+Oct 23 08:55:50 lid2 automount[11722]: >> mount: wrong fs type, bad 
+option, bad superblock on ,
+Oct 23 08:55:50 lid2 automount[11722]: >>        or too many mounted 
+file systems
