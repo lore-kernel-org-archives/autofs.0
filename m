@@ -1,10 +1,13 @@
-From: "MARX,ALEXANDER (HP-Germany,ex1)" <alexander.marx@hp.com>
-Subject: autofs no_local_binds option (nfs <-> bind mounts)
-Date: Tue, 13 Jan 2004 15:26:52 +0100
+From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: autofs no_local_binds option (nfs <-> bind mounts)
+Date: Tue, 13 Jan 2004 09:14:28 -0800
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <F3123864FB69D411946000D0B77FBBDF0D5E13EF@haendel.bbn.hp.com>
+Message-ID: <40042774.7070003@zytor.com>
+References: <F3123864FB69D411946000D0B77FBBDF0D5E13EF@haendel.bbn.hp.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <F3123864FB69D411946000D0B77FBBDF0D5E13EF@haendel.bbn.hp.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -14,33 +17,25 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: "MARX,ALEXANDER (HP-Germany,ex1)" <alexander.marx@hp.com>
+Cc: autofs@linux.kernel.org
 
-Hi list,
+MARX,ALEXANDER (HP-Germany,ex1) wrote:
+> 
+> In some scenarios (e.g. HA), the nfs server could switch from local to
+> remote, therefore having local binds is not a desirable scenario, there
+> should always be nfs mounts.
+> 
 
-autofs (v4,3.1.7-425) is too intelligent ... 
+How would you expect this to work?  The local bind only happens when 
+local and destination address are the same, therefore keeping anything 
+from going across the network no matter how you slice it.
 
-Directory 'test' is exported via the nfs server on host 'foo' and imported
-again via the linux automounter locally as soon as 'test' is accessed
-(corresponding entry in automounter map). The automounter recognizes that
-'test' is a local directory and performs a bind mount. 
+Changing the DNS name of the NFS server has no effect, since once the 
+mount has happened the name was already resolved, and it can't be 
+redirected.
 
-Great feature - BUT, there is no way to turn off this functionality. I would
-need to always have nfs mounts regardless of having the exported directory
-locally or remotely.
+Changing the IP address runs into the problem that local == remote.
 
-In some scenarios (e.g. HA), the nfs server could switch from local to
-remote, therefore having local binds is not a desirable scenario, there
-should always be nfs mounts.
-
-Is there some kind of workaround or possibiliy to perform such actions, or
-will the automounter always be smarter that me :-) ?
-
-Thanks,
-
-Alex
-
--
-Alexander Marx
+	-hpa
