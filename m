@@ -1,13 +1,11 @@
-From: raven@themaw.net
-Subject: Re: fast mounting problems
-Date: Sat, 4 Sep 2004 14:11:19 +0800 (WST)
+From: "Arthur Korn" <arthur@korn.ch>
+Subject: Debian diff remaining in autofs 4.1.3
+Date: Sat, 4 Sep 2004 22:06:54 +0200
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0409041404480.8861@donald.themaw.net>
-References: <E1C2Bv4-0002u8-7T@www.linux.org.uk>
+Message-ID: <20040904200654.GA26488@turing>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="2277544-239841120-1094278279=:8861"
+Content-Type: multipart/mixed; boundary="===============12526041208551497=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <E1C2Bv4-0002u8-7T@www.linux.org.uk>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,110 +15,251 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-To: Bryce as root <root@www.linux.org.uk>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+To: autofs@linux.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-  Send mail to mime@docserver.cac.washington.edu for more info.
 
---2277544-239841120-1094278279=:8861
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+--===============12526041208551497==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Qxx1br4bt0+wmkIi"
+Content-Disposition: inline
 
-On Tue, 31 Aug 2004, Bryce as root wrote:
 
-> Relating to Autofs 4.1
-> 
-> This relates to a bug I've filed with RHAT
-> ( https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=128966 )
-> 
-> In our testing enviroment we use autofs a lot and have been experiancing
-> problems of being unable to mount directories every now and again
-> 
-> To this end I build a test script to exercise the autofs daemon which
-> nicely exposes the problem (again covered in the bugzilla report)
-> 
-> What appears to be happening is that autofs is spawning forked copies of
-> itself to help facilitate loading FS's
-> however, initially when debugging it seemed like the first batch of NFS
-> directories were mounted before the second forked process times out
-> trying to rpc_ping the server because the initial process never bothered to
-> close the socket.
-> 
-> Now Jeff Moyer at RedHat spotted that and gave me a patch for rpc_stubs.c
-> which alleviates the problem slightly, however, while the parent and then
-> the first child process play nice, any further forked processes also run
-> into this rpc_ping port being held open and consequently fail to mount and
-> you'd see something like this in the system messages log
-> 
-> Aug 18 18:59:12 localhost automount[8746]: attempting to mount entry/test/947
-> Aug 18 18:59:12 localhost automount[9050]: >> nfs bindresvport: Address already in use
-> Aug 18 18:59:12 localhost automount[9050]: mount(nfs): nfs: mount failure 192.168.1.100:/compile/nfs/947 on /test/947
-> 
-> soooooo,.... ideas on how to make the other children processes play nice?
+--Qxx1br4bt0+wmkIi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I've read the bugzilla report.
+Hi
 
-Thanks for you huge effort in profiling this problem Phil.
+I'm the new Debian autofs Maintainer. As such, I had the
+privilege to merge 1092 lines of many small patches when
+updating to 4.1.3 ...
 
-After investigating it looks like Jeffs' original patch was not 
-quite right. Can you try the attached patch and let me know how it goes 
-please. It assumes that Jeffs' original sock leak fix patch has been 
-applied.
+Here the updated patches that address issues that I couldn't see
+fixed otherwise.
 
-Ian
 
---2277544-239841120-1094278279=:8861
-Content-Type: TEXT/PLAIN; charset=US-ASCII;
-	name="autofs-4.1.3-auto_close.patch"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.58.0409041411190.8861@donald.themaw.net>
-Content-Description: sock leak fix fix
-Content-Disposition: attachment; filename="autofs-4.1.3-auto_close.patch"
 
-LS0tIGF1dG9mcy00LjEuMy9saWIvcnBjX3N1YnMuYy5hdXRvX2Nsb3NlCTIw
-MDQtMDktMDQgMTM6MjE6MzkuMDAwMDAwMDAwICswODAwDQorKysgYXV0b2Zz
-LTQuMS4zL2xpYi9ycGNfc3Vicy5jCTIwMDQtMDktMDQgMTM6NTk6NDguMDAw
-MDAwMDAwICswODAwDQpAQCAtMzIsOSArMzIsMjcgQEANCiAjZGVmaW5lIFBN
-QVBfVE9VVF9VRFAJMg0KICNkZWZpbmUgUE1BUF9UT1VUX1RDUAkzDQogDQor
-LyoNCisgKiBUQ1AgUlBDIHByaXZhdGUgZGF0YSBzdHJ1Y3QgLSBmcm9tIHN1
-bnJwYy9jbG50X3RjcC5jLg0KKyAqIEhvcGVmdWxseSBpdCB3b24ndCBiZSBj
-aGFuZ2luZyBhbnkgdGltZSBzb29uLg0KKyAqLw0KKw0KKyNkZWZpbmUgTUNB
-TExfTVNHX1NJWkUgMjQNCisNCitzdHJ1Y3QgY3RfZGF0YSB7DQorCWludCBj
-dF9zb2NrOw0KKwlib29sX3QgY3RfY2xvc2VpdDsNCisJc3RydWN0IHRpbWV2
-YWwgY3Rfd2FpdDsNCisJYm9vbF90IGN0X3dhaXRzZXQ7DQorCXN0cnVjdCBz
-b2NrYWRkcl9pbiBjdF9hZGRyOw0KKwlzdHJ1Y3QgcnBjX2VyciBjdF9lcnJv
-cjsNCisJY2hhciBjdF9tY2FsbFtNQ0FMTF9NU0dfU0laRV07DQorCXVfaW50
-IGN0X21wb3M7DQorCVhEUiBjdF94ZHJzOw0KK307DQorDQogc3RydWN0IGNv
-bm5faW5mbyB7DQogCWNvbnN0IGNoYXIgKmhvc3Q7DQotCWludCBmZDsNCiAJ
-dW5zaWduZWQgc2hvcnQgcG9ydDsNCiAJdW5zaWduZWQgbG9uZyBwcm9ncmFt
-Ow0KIAl1bnNpZ25lZCBsb25nIHZlcnNpb247DQpAQCAtNDksNiArNjcsNyBA
-QA0KICAqLw0KIHN0YXRpYyBDTElFTlQqIGNyZWF0ZV91ZHBfY2xpZW50KHN0
-cnVjdCBjb25uX2luZm8gKmluZm8pDQogew0KKwlpbnQgZmQgPSBSUENfQU5Z
-U09DSzsNCiAJQ0xJRU5UICpjbGllbnQ7DQogCXN0cnVjdCBzb2NrYWRkcl9p
-biBhZGRyOw0KIAlzdHJ1Y3QgaG9zdGVudCAqaHA7DQpAQCAtNjIsMTQgKzgx
-LDEzIEBADQogCWlmICghaHApDQogCQlyZXR1cm4gTlVMTDsNCiANCi0JaW5m
-by0+ZmQgPSBSUENfQU5ZU09DSzsNCiAJYWRkci5zaW5fZmFtaWx5ID0gQUZf
-SU5FVDsNCiAJYWRkci5zaW5fcG9ydCA9IGh0b25zKGluZm8tPnBvcnQpOw0K
-IAltZW1jcHkoJmFkZHIuc2luX2FkZHIuc19hZGRyLCBocC0+aF9hZGRyLCBo
-cC0+aF9sZW5ndGgpOw0KIA0KIAljbGllbnQgPSBjbG50dWRwX2J1ZmNyZWF0
-ZSgmYWRkciwNCiAJCQkJICAgaW5mby0+cHJvZ3JhbSwgaW5mby0+dmVyc2lv
-biwNCi0JCQkJICAgaW5mby0+dGltZW91dCwgJmluZm8tPmZkLA0KKwkJCQkg
-ICBpbmZvLT50aW1lb3V0LCAmZmQsDQogCQkJCSAgIGluZm8tPnNlbmRfc3os
-IGluZm8tPnJlY3Zfc3opOw0KIA0KIAlyZXR1cm4gY2xpZW50Ow0KQEAgLTE0
-OSw2ICsxNjcsNyBAQA0KIHsNCiAJaW50IGZkOw0KIAlDTElFTlQgKmNsaWVu
-dDsNCisJc3RydWN0IGN0X2RhdGEgKmN0Ow0KIAlzdHJ1Y3Qgc29ja2FkZHJf
-aW4gYWRkcjsNCiAJc3RydWN0IGhvc3RlbnQgKmhwOw0KIAlpbnQgcmV0Ow0K
-QEAgLTE4MCw3ICsxOTksOSBAQA0KIAlpZiAoIWNsaWVudCkNCiAJCWdvdG8g
-b3V0X2Nsb3NlOw0KIA0KLQlpbmZvLT5mZCA9IGZkOw0KKwljdCA9IChzdHJ1
-Y3QgY3RfZGF0YSAqKSBjbGllbnQtPmNsX3ByaXZhdGU7DQorCWN0LT5jdF9j
-bG9zZWl0ID0gMTsNCisNCiAJcmV0dXJuIGNsaWVudDsNCiANCiBvdXRfY2xv
-c2U6DQpAQCAtMjI2LDcgKzI0Nyw2IEBADQogCQkJIHBtYXBfaW5mby50aW1l
-b3V0KTsNCiANCiAJY2xudF9kZXN0cm95KGNsaWVudCk7DQotCWNsb3NlKHBt
-YXBfaW5mby5mZCk7DQogDQogCWlmIChzdGF0ICE9IFJQQ19TVUNDRVNTKQ0K
-IAkJcmV0dXJuIDA7DQo=
 
---2277544-239841120-1094278279=:8861
+Mount is called like this "mount -t fstype -o what fullpath"
+because options is allocated but empty.
+
+--- autofs-4.1.3/modules/mount_changer.c.orig	2004-05-10 14:44:30.000000000=
+ +0200
++++ autofs-4.1.3/modules/mount_changer.c	2004-09-03 23:49:18.000000000 +0200
+@@ -94,7 +94,7 @@
+ 	}
+=20
+ 	wait_for_lock();
+-	if (options) {
++	if (options && options[0]) {
+ 		debug(MODPREFIX "calling mount -t %s " SLOPPY "-o %s %s %s",
+ 		    fstype, options, what, fullpath);
+=20
+--- autofs-4.1.3/modules/mount_ext2.c.orig	2004-05-10 14:44:30.000000000 +0=
+200
++++ autofs-4.1.3/modules/mount_ext2.c	2004-09-03 23:49:47.000000000 +0200
+@@ -73,7 +73,7 @@
+ 		return 0;
+ 	}
+=20
+-	if (options) {
++	if (options && options[0]) {
+ 		for (p =3D options; (p1 =3D strchr(p, ',')); p =3D p1)
+ 			if (!strncmp(p, "ro", p1 - p) && ++p1 - p =3D=3D sizeof("ro"))
+ 				ro =3D 1;
+--- autofs-4.1.3/modules/mount_generic.c.orig	2004-05-10 14:44:30.000000000=
+ +0200
++++ autofs-4.1.3/modules/mount_generic.c	2004-09-03 23:50:19.000000000 +0200
+@@ -72,7 +72,7 @@
+ 	}
+=20
+ 	wait_for_lock();
+-	if (options) {
++	if (options && options[0]) {
+ 		debug(MODPREFIX "calling mount -t %s " SLOPPY "-o %s %s %s",
+ 		      fstype, options, what, fullpath);
+=20
+
+
+
+
+
+
+For program-maps, last character read from STDIN was being
+doubled (pretty strange experience).
+
+
+diff -ruN autofs-4.1.3.orig/modules/lookup_program.c autofs-4.1.3/modules/l=
+ookup_program.c
+--- autofs-4.1.3.orig/modules/lookup_program.c	2004-01-29 17:01:22.00000000=
+0 +0100
++++ autofs-4.1.3/modules/lookup_program.c	2004-09-03 23:58:42.000000000 +02=
+00
+@@ -159,6 +159,7 @@
+ 			if (read(pipefd[0], &ch, 1) < 1) {
+ 				FD_CLR(pipefd[0], &ourfds);
+ 				files_left--;
++				state =3D st_done;
+ 			}
+=20
+ 			if (!quoted && ch =3D=3D '\\') {
+
+
+
+
+
+
+
+Add crude support for hesiod priorities.
+
+--- autofs-4.1.3/modules/lookup_hesiod.c.orig	2004-09-03 23:18:31.000000000=
+ +0200
++++ autofs-4.1.3/modules/lookup_hesiod.c	2004-09-03 23:18:35.000000000 +0200
+@@ -9,6 +9,7 @@
+=20
+ #include <sys/types.h>
+ #include <ctype.h>
++#include <limits.h>
+ #include <string.h>
+ #include <syslog.h>
+ #include <unistd.h>
+@@ -70,6 +71,8 @@ int lookup_mount(const char *root, const
+ 	char **hes_result;
+ 	struct lookup_context *ctxt =3D (struct lookup_context *) context;
+ 	int rv;
++	char **record, *best_record =3D NULL, *p;
++	int priority, lowest_priority =3D INT_MAX;=09
+=20
+ 	debug(MODPREFIX "looking up root=3D\"%s\", name=3D\"%s\"", root, name);
+=20
+@@ -78,14 +81,30 @@ int lookup_mount(const char *root, const
+=20
+ 	hes_result =3D hes_resolve(name, "filsys");
+=20
+-	if (!hes_result) {
++	if (!hes_result || !hes_result[0]) {
+ 		warn(MODPREFIX "entry \"%s\" not found in map\n", name);
+ 		return 1;
+ 	}
+=20
+-	debug(MODPREFIX "lookup for \"%s\" gave \"%s\"", name, hes_result[0]);
++	/* autofs doesn't support falling back to alternate records, so just
++	   find the record with the lowest priority and hope it works.
++	   -- Aaron Ucko <amu@alum.mit.edu> 2002-03-11 */
++	for (record =3D hes_result; *record; ++record) {
++	    p =3D strrchr(*record, ' ');
++	    if ( p && isdigit(p[1]) ) {
++		priority =3D atoi(p+1);
++	    } else {
++		priority =3D INT_MAX - 1;
++	    }
++	    if (priority < lowest_priority) {
++		lowest_priority =3D priority;
++		best_record =3D *record;
++	    }
++	}
+=20
+-	rv =3D ctxt->parser->parse_mount(root, name, name_len, hes_result[0],
++	debug(MODPREFIX "lookup for \"%s\" gave \"%s\"", name, best_record);
++
++	rv =3D ctxt->parser->parse_mount(root, name, name_len, best_record,
+ 				       ctxt->parser->context);
+ 	free(hes_result);
+ 	return rv;
+
+
+
+
+The comment says it.
+
+--- bak/modules/mount_afs.c.orig	2004-01-29 17:01:22.000000000 +0100
++++ bak/modules/mount_afs.c	2004-09-03 23:03:04.000000000 +0200
+@@ -39,6 +39,10 @@
+ 	strncat(dest, "/", sizeof(dest));
+ 	strncat(dest, name, sizeof(dest));
+=20
++	/* remove trailing slash (http://bugs.debian.org/141775) */
++	if (dest[strlen(dest)-1] =3D=3D '/')
++	    dest[strlen(dest)-1] =3D '\0';
++
+ 	debug(MODPREFIX "mounting AFS %s -> %s", dest, what);
+=20
+ 	return symlink(what, dest);	/* Try it.  If it fails, return the error. */
+
+
+
+
+
+
+Rather cosmetic: When there are errors in subdirectories on
+build, make will continue. I need this so build-daemons can't
+upload incomplete binary packages:
+
+diff -ruN autofs-4.1.3.orig/Makefile autofs-4.1.3/Makefile
+--- autofs-4.1.3.orig/Makefile	2003-09-29 10:22:35.000000000 +0200
++++ autofs-4.1.3/Makefile	2004-09-04 20:23:42.000000000 +0200
+@@ -13,26 +13,26 @@
+ all:	daemon samples
+=20
+ daemon:
+-	for i in $(SUBDIRS); do $(MAKE) -C $$i all; done=20
++	set -e; for i in $(SUBDIRS); do $(MAKE) -C $$i all; done=20
+=20
+ kernel:
+-	if [ -d kernel ]; then $(MAKE) -C kernel all; fi
++	set -e; if [ -d kernel ]; then $(MAKE) -C kernel all; fi
+=20
+ samples:
+-	if [ -d samples ]; then $(MAKE) -C samples all; fi
++	set -e; if [ -d samples ]; then $(MAKE) -C samples all; fi
+=20
+ clean:
+ 	for i in $(SUBDIRS) samples kernel; do \
+ 		if [ -d $$i ]; then $(MAKE) -C $$i clean; fi; done =09
+=20
+ install:
+-	for i in $(SUBDIRS); do $(MAKE) -C $$i install; done =09
++	set -e; for i in $(SUBDIRS); do $(MAKE) -C $$i install; done =09
+=20
+ install_kernel:
+-	if [ -d kernel ]; then $(MAKE) -C kernel install; fi
++	set -e; if [ -d kernel ]; then $(MAKE) -C kernel install; fi
+=20
+ install_samples:
+-	if [ -d samples ]; then $(MAKE) -C samples install; fi
++	set -e; if [ -d samples ]; then $(MAKE) -C samples install; fi
+=20
+ mrproper distclean: clean
+ 	find . -noleaf \( -name '*~' -o -name '#*' -o -name '*.orig' -o -name '*.=
+rej' -o -name '*.old' \) -print0 | xargs -0 rm -f
+
+
+
+HTH, 2ri
+--=20
+Help securing email, spread GPG, clearsign all mail. http://www.gnupg.org
+=2E
+					/\ .__|_|_    ._ |/ _ ._._ =20
+				       /--\|  |_| ||_||  |\(_)| | |
+
+--Qxx1br4bt0+wmkIi
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQFBOiBeNgpsykSg/LgRAvRsAJ42Aq6meF+JC/BFMqV4qq1iR/eAEgCfaGIA
+hP6vIuDOstp62ySkV9Tz8K4=
+=3W+Q
+-----END PGP SIGNATURE-----
+
+--Qxx1br4bt0+wmkIi--
+
+
+--===============12526041208551497==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -131,5 +270,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---2277544-239841120-1094278279=:8861--
+--===============12526041208551497==--
 
