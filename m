@@ -1,29 +1,37 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: [autofs] [RFC] Towards a Modern Autofs
-Date: Thu, 8 Jan 2004 20:52:31 +0800 (WST)
+Date: Thu, 8 Jan 2004 21:08:08 +0800 (WST)
 Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <Pine.LNX.4.44.0401082050210.354-100000@donald.themaw.net>
-References: <3FFC96FE.9050002@zytor.com>
+Message-ID: <Pine.LNX.4.44.0401082106500.354-100000@donald.themaw.net>
+References: <Pine.LNX.4.44.0401082026340.354-100000@donald.themaw.net>
 Mime-Version: 1.0
 Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-In-Reply-To: <3FFC96FE.9050002@zytor.com>
+In-Reply-To: <Pine.LNX.4.44.0401082026340.354-100000@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Jim Carter <jimc@math.ucla.edu>, "Ogden, Aaron A." <aogden@unocal.com>, thockin@sun.com, autofs mailing list <autofs@linux.kernel.org>, Mike Waychison <Michael.Waychison@sun.com>, Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Mike Waychison <Michael.Waychison@Sun.COM>
+Cc: Jim Carter <jimc@math.ucla.edu>, autofs mailing list <autofs@linux.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Wed, 7 Jan 2004, H. Peter Anvin wrote:
+On Thu, 8 Jan 2004, Ian Kent wrote:
 
+Oh! This should have related to the comments about removing autofs from
+the kernel.
+
+Sorry about the confusion.
+
+> On Wed, 7 Jan 2004, Mike Waychison wrote:
 >
-> These are the mount traps Al Viro has been architecting.
+> >
+> > This is a good example of why this stuff should probably be merged into
+> > VFS,  autofs4 has yet to be updated to use this lock.  This comes with
+> > the decision to a) no longer support it as a module, only built in, or
+> > b) make vfsmount_lock accessible to modules.
 >
-
-Please tell me about these.
-
-I have`nt seen any discussion on the implementation.
-
-Just a few sentences ....
-
-Ian
+> Please don't say it this way.
+>
+> A new implementation may mean current autofs becomes depricated but
+> this is a deprecation process, not a slash and burn, and needs to be
+> managed.
+>
 
