@@ -1,12 +1,13 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Autofs4 still in testing?
-Date: Sun, 21 Mar 2004 23:32:35 +0800 (WST)
+From: "surya " <surya_prabhakar@linuxmail.org>
+Subject: Re: Err:multiple hostnames not supported(migration from
+	solaris toLinux)
+Date: Mon, 22 Mar 2004 20:42:21 +0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0403212331380.4690@raven.themaw.net>
-References: <Pine.LNX.4.58.0403211359270.875@dsl-hkigw4n53.dial.inet.fi>
+Message-ID: <20040322154222.5E60921B32F@ws5-6.us4.outblaze.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0403211359270.875@dsl-hkigw4n53.dial.inet.fi>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,42 +17,50 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: "Petri T. Koistinen" <petri.koistinen@iki.fi>
+Content-Type: text/plain; charset="us-ascii"
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-On Sun, 21 Mar 2004, Petri T. Koistinen wrote:
+hi ,
+   I am using 3.1.7 on some machines and some have 4.1.0 . It is coming on the latest version also .
 
-> Hi!
-> 
-> On Linux 2.6.5-rc2 you can see this on fs/Kconfig file:
-> 
-> config AUTOFS4_FS
->         tristate "Kernel automounter version 4 support (also supports v3)"
->         help
->           The automounter is a tool to automatically mount remote file systems
->           on demand. This implementation is partially kernel-based to reduce
->           overhead in the already-mounted case; this is unlike the BSD
->           automounter (amd), which is a pure user space daemon.
-> 
->           To use the automounter you need the user-space tools from
->           <ftp://ftp.kernel.org/pub/linux/daemons/autofs/testing-v4/>; you also
->           want to answer Y to "NFS file system support", below.
-> 
->           To compile this support as a module, choose M here: the module will be
->           called autofs4.  You will need to add "alias autofs autofs4" to your
->           modules configuration file.
-> 
->           If you are not a part of a fairly large, distributed network or
->           don't have a laptop which needs to dynamically reconfigure to the
->           local network, you probably do not need an automounter, and can say
->           N here.
-> 
-> 
-> I wonder if <ftp://ftp.kernel.org/pub/linux/daemons/autofs/v4/> is a better
-> link?
+rgds
+surya
 
-Good call. I'll put an update in my 2.6 patches.
 
-Ian
+----- Original Message -----
+From: Ian Kent <raven@themaw.net>
+Date: Sun, 21 Mar 2004 23:09:31 +0800 (WST)
+To: surya <surya_prabhakar@linuxmail.org>
+Subject: Re: Err:multiple hostnames not supported(migration from solaris toLinux)
+
+> On Sun, 21 Mar 2004, surya  wrote:
+> 
+> >
+> > hi all / Ian ,
+> >    I mount from 2 different nfs mount points ( that is from a filer ) , It works perfectly fine in solaris but linux autofs dumps these in /var/log/messages .
+> >
+> > error
+> >
+> > automount[19109]: >> mount: warning: multiple hostnames not supported
+> >
+> > Any solution for this .
+> >
+> 
+> What version of autofs are you using?
+> 
+> Ian
+> 
+
+
+
+rgds
+surya
+
+-- 
+______________________________________________
+Check out the latest SMS services @ http://www.linuxmail.org 
+This allows you to send and receive SMS through your mailbox.
+
+
+Powered by Outblaze
