@@ -1,44 +1,98 @@
-From: Ian Kent <raven@themaw.net>
+From: Mike Waychison <michael.waychison@sun.com>
 Subject: Re: [PATCH] autofs4 deadlock during expire - kernel 2.6
-Date: Wed, 24 Sep 2003 22:46:43 +0800 (WST)
+Date: Wed, 24 Sep 2003 11:54:37 -0400
 Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <Pine.LNX.4.44.0309242240500.6956-100000@raven.themaw.net>
-References: <20030924155720.C31236@devserv.devel.redhat.com>
+Message-ID: <3F71BE3D.6030501@sun.com>
+References: <1064408962.5074.2.camel@laptop.fenrus.com> <Pine.LNX.4.44.0309242136080.6713-100000@raven.themaw.net>
 Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------050604060400060505010602"
 Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-In-Reply-To: <20030924155720.C31236@devserv.devel.redhat.com>
+In-Reply-To: <Pine.LNX.4.44.0309242136080.6713-100000@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+To: Ian Kent <raven@themaw.net>
+Cc: Arjan van de Ven <arjanv@redhat.com>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Maneesh Soni <maneesh@in.ibm.com>, autofs mailing list <autofs@linux.kernel.org>, Jeremy Fitzhardinge <jeremy@goop.org>
+
+This is a multi-part message in MIME format.
+--------------050604060400060505010602
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-To: Arjan van de Ven <arjanv@redhat.com>
-Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, Maneesh Soni <maneesh@in.ibm.com>, autofs mailing list <autofs@linux.kernel.org>, Jeremy Fitzhardinge <jeremy@goop.org>
 
-On Wed, 24 Sep 2003, Arjan van de Ven wrote:
-
-> On Wed, Sep 24, 2003 at 09:38:16PM +0800, Ian Kent wrote:
-> > > interruptible_sleep_on ?
-> > > 
-> > 
-> > OK so maybe I should have suggestions instead of comments.
+Ian Kent wrote:
+> On Wed, 24 Sep 2003, Arjan van de Ven wrote:
 > 
-> instead of interruptible_sleep_on(), it looks like you really want
-> to use completions for this code..
-> see kernel/workqueue.c for how those are used
+> 
+>>On Wed, 2003-09-24 at 15:01, Ian Kent wrote:
+>>
+>>>This is a corrected patch for the autofs4 daedlock problem I posted about 
+>>>@@ -206,6 +207,11 @@
+>>> 
+>>> 		interruptible_sleep_on(&wq->queue);
+>>> 
+>>>+		if (waitqueue_active(&wq->queue) && current != wq->owner) {
+>>>+			set_current_state(TASK_INTERRUPTIBLE);
+>>>+			schedule_timeout(wq->wait_ctr * (HZ/10));
+>>>+		}
+>>>+
+>>
+>>this really really looks like you're trying to pamper over a bug by
+>>changing the timing somewhere instead of fixing it...
+> 
+> 
+> Agreed.
+> 
+> 
+>>also are you sure the deadlock isn't because of the racey use of
+>>interruptible_sleep_on ?
+>>
+
+I think the deadlock itself needs to be properly identified.
+
+Could you explain where the deadlock is actually occuring?  I briefed 
+over the automount 4 code as well as autofs4 and I don't see the 
+deadlock.  The 'owner' in the case of an expiry will be a child process 
+of the daemon, within a call to ioctl(EXPIRE_MULTI), correct?  Having it 
+be released from the waitqueue first should not affect flow of execution 
+and released from deadlock.
+
+I don't see how having it wake up before before any other racing 
+processes solves anything.
+
+I think Arjan is right in that the race is do to the nautilus process 
+entering the sleep_on after the a call to wake_up(&wq->queue).  I don't 
+know if a change to using a workqueue is best..   how about refactoring 
+that chunk of code to use wait_event_interruptible on the queue, which 
+should be clear of any waitqueue/sleep_on races.
+
+> 
+> 
+> OK so maybe I should have suggestions instead of comments.
+> 
+> Please elaborate.
 > 
 
-I did try that but thinking again ...
+How about you try out this quick patch I threw together.
 
-The actual expire really needs to be interrutible.
-I didn't like the idea that the additional waiters would be 
-uninterruptible but perhaps I have no choice.
+Mike Waychison
 
-Given that do you think that using an interruptible_sleep_on for the 
-expire and a completion for the additional waiters could give an 
-acceptable solution?
+--------------050604060400060505010602
+Content-Type: text/plain;
+ name="autofs4_wait_event.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="autofs4_wait_event.patch"
 
--- 
+===== waitq.c 1.6 vs edited =====
+--- 1.6/fs/autofs4/waitq.c	Fri Feb  7 12:25:20 2003
++++ edited/waitq.c	Wed Sep 24 15:48:30 2003
+@@ -204,7 +204,7 @@
+ 		recalc_sigpending();
+ 		spin_unlock_irqrestore(&current->sighand->siglock, irqflags);
+ 
+-		interruptible_sleep_on(&wq->queue);
++		wait_event_interruptible(wq->queue, wq->name == NULL);
+ 
+ 		spin_lock_irqsave(&current->sighand->siglock, irqflags);
+ 		current->blocked = oldset;
 
-   ,-._|\    Ian Kent
-  /      \   Perth, Western Australia
-  *_.--._/   E-mail: raven@themaw.net
-        v    Web: http://themaw.net/
+--------------050604060400060505010602--
