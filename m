@@ -1,10 +1,10 @@
-From: Dan Cox <dcox@wep.net>
+From: Dan Cox <dan@wep.net>
 Subject: [PATCH] LDAP Network Timeout
-Date: Tue,  8 Feb 2005 13:53:05 -0600
-Message-ID: <20050208135305.rehg3vgyogwogsg8@home.wep.net>
+Date: Wed,  9 Feb 2005 01:01:21 -0600
+Message-ID: <20050209010121.685u92nh4cs88kws@home.wep.net>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
-	boundary="=_49pvtfkjeoys"
+	boundary="=_3hpz5uk1rrk0"
 Content-Transfer-Encoding: 7bit
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -20,7 +20,7 @@ To: autofs@linux.kernel.org
 
 This message is in MIME format.
 
---=_49pvtfkjeoys
+--=_3hpz5uk1rrk0
 Content-Type: text/plain;
 	charset=ISO-8859-1
 Content-Disposition: inline
@@ -29,8 +29,8 @@ Content-Transfer-Encoding: 7bit
 Currently, autofs doesn't set LDAP_OPT_NETWORK_TIMEOUT for the LDAP connection.
 This means, among other things, that an LDAP failover operation to a secondary
 server can take as much as a full TCP timeout (~180 seconds) to occur. Of
-course, this is bad :) Attached is a patch which sets the timeout to something
-a bit more reasonable at 5 seconds.
+course, this is bad :) Attached is a patch for autofs 4.1.3 which sets the
+timeout to something a bit more reasonable at 5 seconds.
 
 I've been using this patch in production for several months, and its working
 great.
@@ -38,7 +38,7 @@ great.
 -- 
 Dan-
 
---=_49pvtfkjeoys
+--=_3hpz5uk1rrk0
 Content-Type: text/x-patch; charset=UTF-8;
 	name="autofs-4.1.3-ldap-timeout.patch"
 Content-Disposition: attachment;
@@ -93,7 +93,7 @@ diff -Naur autofs-4.1.3.orig/modules/lookup_ldap.c autofs-4.1.3/modules/lookup_l
  	if (version == 2)
  		rv = ldap_simple_bind_s(ldap, ctxt->base, NULL);
 
---=_49pvtfkjeoys
+--=_3hpz5uk1rrk0
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -104,5 +104,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---=_49pvtfkjeoys--
+--=_3hpz5uk1rrk0--
 
