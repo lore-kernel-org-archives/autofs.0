@@ -1,8 +1,8 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: automount
-Date: Tue, 3 Feb 2004 20:41:12 +0800 (WST)
+Date: Tue, 3 Feb 2004 20:43:56 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0402032038390.4761@raven.themaw.net>
+Message-ID: <Pine.LNX.4.58.0402032041570.4761@raven.themaw.net>
 References: <200402022049.10239.Joerg.Fichter@gmx.de>
 Mime-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
@@ -30,13 +30,7 @@ his=20
 > terminal! So I modified the auto.master file like this:
 >=20
 > /misc	/etc/auto.misc		user, exec, uid=3D700, gid=3D500
+>=20
 
-Can't at the moment.
-
-The user option is only supported by mount when present in the fstab.
-
-I posted a message to the util-linux list but haven't followed up on this=
-.=20
-I've been to busy.
-
-Ian
+In any case the user option allows a user to mount/umount the filesystem=20
+which is not applicable to automount as all mounts are caried out as root.
