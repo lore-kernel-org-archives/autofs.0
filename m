@@ -1,12 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH] autofs4 deadlock during expire - kernel 2.6
-Date: Thu, 25 Sep 2003 09:44:16 +0800 (WST)
+Subject: Re: Re: [PATCH] autofs4 deadlock during expire - kernel
+ 2.6
+Date: Thu, 25 Sep 2003 19:59:44 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.33.0309250924160.18646-100000@wombat.indigo.net.au>
-References: <3F71BE3D.6030501@sun.com>
+Message-ID: <Pine.LNX.4.44.0309251933590.1548-100000@raven.themaw.net>
+References: <Pine.LNX.4.33.0309250924160.18646-100000@wombat.indigo.net.au>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <3F71BE3D.6030501@sun.com>
+In-Reply-To: <Pine.LNX.4.33.0309250924160.18646-100000@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,65 +22,77 @@ Content-Transfer-Encoding: 7bit
 To: Mike Waychison <michael.waychison@sun.com>
 Cc: autofs mailing list <autofs@linux.kernel.org>, Arjan van de Ven <arjanv@redhat.com>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Jeremy Fitzhardinge <jeremy@goop.org>
 
-On Wed, 24 Sep 2003, Mike Waychison wrote:
+On Thu, 25 Sep 2003, Ian Kent wrote:
 
->
-> I think the deadlock itself needs to be properly identified.
->
-> Could you explain where the deadlock is actually occuring?  I briefed
-> over the automount 4 code as well as autofs4 and I don't see the
-> deadlock.  The 'owner' in the case of an expiry will be a child process
-> of the daemon, within a call to ioctl(EXPIRE_MULTI), correct?  Having it
-> be released from the waitqueue first should not affect flow of execution
-> and released from deadlock.
+Seem to have lost the original message.
+Please forgive the double indent.
 
-Yes. I am having trouble defining the actual problem also.
+I have tried the patch you recommended and have exactly the same symptoms.
 
-I believe that the deadlock occures because of the sequence of calls
-between the expire and Naultilus, each execution path taking and releasing
-the BKL.
-
-I will try and get more evidence as I work on it.
-
->
-> I don't see how having it wake up before before any other racing
-> processes solves anything.
-
-I thought this was a side effect of the O(1) scheduler and that the
-design of the wait handling left it open to a sequence of calls problem.
-I first got the impression that it was related to the scheduler (and
-felt that it was a deadlock) when I bumped the priority of the expire to
-see what would happen and it work fine every time I tried it.
-
->
-> I think Arjan is right in that the race is do to the nautilus process
-> entering the sleep_on after the a call to wake_up(&wq->queue).  I don't
-
-That needs fixing for sure, apart from anything else.
-
-> know if a change to using a workqueue is best..   how about refactoring
-> that chunk of code to use wait_event_interruptible on the queue, which
-> should be clear of any waitqueue/sleep_on races.
-
-Exaclty what I thought after pondering Arjans' mail last night.
-The expire must be interruptible.
-This will show if there actually is a timing problem (I hope).
-
->
+> On Wed, 24 Sep 2003, Mike Waychison wrote:
+> 
 > >
+> > I think the deadlock itself needs to be properly identified.
 > >
-> > OK so maybe I should have suggestions instead of comments.
+> > Could you explain where the deadlock is actually occuring?  I briefed
+> > over the automount 4 code as well as autofs4 and I don't see the
+> > deadlock.  The 'owner' in the case of an expiry will be a child process
+> > of the daemon, within a call to ioctl(EXPIRE_MULTI), correct?  Having it
+> > be released from the waitqueue first should not affect flow of execution
+> > and released from deadlock.
+
+I have had some time to clear my thoughts on this now.
+
+First, the expire is done using a while in the daemon. It continues until 
+the ioctl returns non zero.
+
+I believe the sequence of events is:
+
+Expire locates an expireable dentry and sends a message to the daemon to 
+do the umount and returns 0. The ioctl runs with the BKL.
+The Naultilus process triggers a revalidate during the expire and waits 
+till that iteration of the expire finishes before continuing. The 
+revalidate leads to a lookup which takes the BKL.
+Meanwhile the expire enters the ioctl again but is blocked on the BKL.
+The lookup sends a mount request to the daemon which it cannot hear 
+because it is still waiting for the expire to finish.
+
+While this is a plausible description with the code as it is, I 
+have found that even if I bracket the revalidate with a BKL the problem 
+still occurs. 
+So there is something else I am missing. I don't know what it is.
+
+> > I don't see how having it wake up before before any other racing
+> > processes solves anything.
+
+If my description above where correct then forcing the expire to finish 
+would lead to the correct behaviour.
+
+> 
+> I thought this was a side effect of the O(1) scheduler and that the
+> design of the wait handling left it open to a sequence of calls problem.
+> I first got the impression that it was related to the scheduler (and
+> felt that it was a deadlock) when I bumped the priority of the expire to
+> see what would happen and it work fine every time I tried it.
+> 
+
+I still think that it is a O(1) effect. When the sleeping processes awake 
+it is possible that the scheduler does not pick the expire process as it 
+was the most recent of the processes to run.
+
 > >
-> > Please elaborate.
-> >
->
-> How about you try out this quick patch I threw together.
+> > I think Arjan is right in that the race is do to the nautilus process
+> > entering the sleep_on after the a call to wake_up(&wq->queue).  I don't
+> 
+> That needs fixing for sure, apart from anything else.
+> 
+> > know if a change to using a workqueue is best..   how about refactoring
+> > that chunk of code to use wait_event_interruptible on the queue, which
+> > should be clear of any waitqueue/sleep_on races.
 
-Oops. Replied without looking at the patch.
-
-I'll check it out after work tonight.
-
-Thanks to all for the help.
+Again if my explanation is close to correct then the question is what is 
+the proper way to force the execution order? Using a completion as well as 
+the wait perhaps?
 
 -- 
 
