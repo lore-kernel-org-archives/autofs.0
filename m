@@ -1,7 +1,7 @@
 From: "Lever, Charles" <Charles.Lever@netapp.com>
 Subject: RE: [autofs] [PATCH/RFC 0/2] Userspace RPC proxying
-Date: Tue, 8 Mar 2005 07:04:52 -0800
-Message-ID: <482A3FA0050D21419C269D13989C611307CF4C10@lavender-fe.eng.netapp.com>
+Date: Tue, 8 Mar 2005 12:27:34 -0800
+Message-ID: <482A3FA0050D21419C269D13989C611307CF4C14@lavender-fe.eng.netapp.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
 Content-class: urn:content-classes:message
@@ -19,52 +19,98 @@ Content-Type: text/plain; charset="us-ascii"
 To: mike@waychison.com
 Cc: linux-nfs <nfs@lists.sourceforge.net>, autofs mailing list <autofs@linux.kernel.org>
 
-hi mike-
+> It's less unsafe than SO_REUSEADDR, however it completely ignores
+> TIME_WAIT,  which has two purposes (according to W.R. Stevens):
+>=20
+> - If the client performs the active close, it allows the socket to
+> remember to resend the final ACK in response to the server's FIN.=20
+> Otherwise the client would respond with a RST.
+>=20
+> - It ensures that no re-incarnations of the same four-tuple=20
+> occur within 2
+> * MSL, ensuring that no packets that were lost on the network from the
+> first incarnation get used as part of the new incarnation.
+>=20
+> Avoiding TIME_WAIT altogether keeps TCP from doing a proper=20
+> full-duplex
+> close and also allows old packets to screw up TCP state.
 
-> Every once in a while, we see complaints that nfs mounts are=20
-> failing due
-> to there being no more reserved ports available for outbound rpc
-> communication.  This often happens when using TCP transports,=20
-> because all
-> outbound connections that are closed go into a TIME_WAIT state.
+right, there are cases where proper connection close processing is
+required.  and you don't need to worry much about duplicate request
+caching for the services we're talking about here, so it's probably not
+as critical for rpcproxyd.
 
-i know that steved has also been looking at this problem.  he found that
-user-land uses TCP connections with abandon and has put it on a diet.
-and, the client side should take care to avoid using reserved ports
-unless it is absolutely necessary.
+> Which timeout is 5 minutes? (sparing me the trouble of finding it
+myself).
 
-> For various reasons, avoiding the TIME_WAIT state using connect(fd,
-> {AF_UNSPEC}, ...) or doing SO_REUSEADDR may not be the safest way to
-> handle things.
+the RPC client side idle timeout is 5 minutes in the reference
+implementation (Solaris).
 
-i have a patch for the kernel RPC client to use AF_UNSPEC to reuse the
-port number on connections.  before i head into the wilderness, what's
-unsafe about that?
+> I figured 30 for caching un-used tcp connections sounded like a good
+> number as it means that if TIME_WAIT period is 2 minutes,=20
+> that the most
+> TIME_WAIT connections that you can have to a given remote=20
+> service at any time is 4.
+>=20
+> A bit more thought could be had for timeouts (wishlist):
+> - TCP connect()s aren't timedout. (uses EINPROGRESS, but will wait
+> indefinitely, which I think is bounded by the kernel anyway).
 
-> rpcproxyd will create outbound connections and multiplex the=20
-> transports
-> with any number of simultaneous clients.  There is no support for
-> re-binding your transport once created.  It will also cache outbound
-> server connections for 30 seconds after last use, which=20
-> greatly helps keep the number of ports used down in a mount-storm
-situation.
+there is a SYN retry limit controllable via sysctl for all sockets on
+the system.  by default the active end tries sending SYN 6 times with
+exponential backoff.  eventually the connection attempt will time out if
+the remote peer doesn't respond with SYN,ACK after the last SYN is sent.
+i think it's on the order of a couple of minutes.
 
-the typical RPC client-side connection timeout is 5 minutes.  any reason
-not to use that value instead of 30 seconds?
+> - UDP retransmission occurs in the proxy itself, which is currently
+> hardcoded to retry 5 times, once every two seconds.  I can=20
+> trivially set it up so that it gets the actual timeout values from the
 
-you will also need a unique connection for each program/version number
-combination to a given server; ie you can't share a single socket among
-different program/version numbers (even though some implementations try
-to do this, it is a bad practice, in my opinion).
+> client though and use those parameters.
 
-to support IPv6 you will need support for rpcbind versions 3 and 4; but
-that may be an issue outside of rpcproxyd.
+that should probably have exponential backoff, but it probably isn't
+critical.
 
-> rpcproxyd is written as a single-threaded/no-signals/select-based
-daemon.
+> > you will also need a unique connection for each=20
+> program/version number
+> > combination to a given server; ie you can't share a single=20
+> socket among
+> > different program/version numbers (even though some=20
+> implementations try
+> > to do this, it is a bad practice, in my opinion).
+> >
+>=20
+> So, I know I discussed this with you last week, however I was=20
+> under the
+> impression that that was needed for the case where you=20
+> support re-binding
+> of the transport.  I'm not up to speed of who are the users of such a
+> thing (I'm assuming NFSv4).
 
-will using select be a scalability issue?  you might be better off with
-something like libevent or using epoll.
+if you expect to cache these associations for a long time, you will need
+to rebind every so often in case the server decides to move the service
+to another port.  with UDP, anyway.
+
+you also can't assume that all the services you need to talk to
+(PORTMAP, NFS, MOUNTD, etc) will live on the same port.  for a truly
+general implementation you will need to use a separate connection for
+each service.
+
+but you said "assuming NFSv4," so maybe none of this matters.  i would
+hope that a connection cache would be good for any application using
+RPC.
+
+> > to support IPv6 you will need support for rpcbind versions=20
+> 3 and 4; but
+> > that may be an issue outside of rpcproxyd.
+> >
+>=20
+> Okay.  I'm not so familiar with RPCB, but it is just a PMAP=20
+> on steroids, right?
+
+the later versions of the rpcbind protocol support additional operations
+that allow IPv6-style information to be returned.  version 2 does not
+support IPv6, as far as i know, but i'm no expert.
 
 
 -------------------------------------------------------
