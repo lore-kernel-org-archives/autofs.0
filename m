@@ -1,12 +1,13 @@
 From: raven@themaw.net
-Subject: Re: Program map and submount problem
-Date: Sat, 24 Jan 2004 11:48:58 +0800 (WST)
+Subject: Re: Repeated Meessages
+Date: Sat, 24 Jan 2004 13:34:31 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0401241139160.1751@raven.themaw.net>
-References: <F573AEE6-4DE9-11D8-9249-000A95A011F0@qualcomm.com>
+Message-ID: <Pine.LNX.4.58.0401241328060.1810@raven.themaw.net>
+References: <200401231716.28763.autofs@dylan.me.uk>
+	<4011FEF3.3080403@zytor.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <F573AEE6-4DE9-11D8-9249-000A95A011F0@qualcomm.com>
+In-Reply-To: <4011FEF3.3080403@zytor.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,89 +19,29 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Marion <mmarion@qualcomm.com>
+To: "H. Peter Anvin" <hpa@zytor.com>
 Cc: autofs@linux.kernel.org
 
-On Fri, 23 Jan 2004, Mike Marion wrote:
+On Fri, 23 Jan 2004, H. Peter Anvin wrote:
 
+> Dylan wrote:
+> > Hi all,
+> > 
+> > Is anyone else getting multiple messages? Specifically from Ian at 12:52 
+> > today?
+> > 
 > 
-> Ok, I did a strace of the dameons on
-> /usr/local/projects/some/automount and ./submount
-> It appears that the daemon on .../submount does, in fact, try to umount 
-> itself after the NFS mounts are expired, without checking to see if 
-> it's path is busy, and when the umount fails, it simply tries to do an 
-> rmdir and then exits, even though this bit of code in automount.c seems 
-> to indicate that if umount fails it should stay runnnig:
-> 
-> ~line 562:
->                         case ST_PRUNE:
->                                  /* If we're a submount and we've just
->                                     pruned or expired everything away,
->                                     try to shut down */
->                                  if (submount && success && ap.state != 
-> ST_SHUTDOWN) {
->                                          next = ST_SHUTDOWN_PENDING;
->                                          break;
->                                  }
->                                  /* FALLTHROUGH */
-> 
->                          case ST_READY:
->                                  next = ST_READY;
->                                  break;
-> 
->                          case ST_SHUTDOWN_PENDING:
->                                  next = ST_SHUTDOWN;
-> 
-> [This doesn't appear to be happening, even though umount fails]
->                            /* Failed shutdown returns to ready */
->                                  if (!success) {
->                                          syslog(LOG_WARNING,
->                                                 "shutdown failed: 
-> filesystem %s still busy",
->                                                 ap.path);
->                                          alarm(ap.exp_runfreq);
->                                          next = ST_READY;
->                                  }
->                                  break;
+> Yes, from the headers it looks like Ian's mailserver sent it to our 
+> mailserver multiple times...
 
-Good work Mike. This will help me alot. However I don't think the daemon 
-actually gets to this point. Checking ....
+Have called ISP.
 
+I have been having problems with their qmail mail server for some time 
+now.
 
-> 
-> ====
-> 
-> This subroutine appears to be called, even though the submount wasn't 
-> umounted, since it's where the log entry
-> Jan 23 12:46:22 linux-glab-1 automount[31939]: failed to remove dir 
-> /usr/local/projects/some/automount/submount: Device or resource busy
-> seems to be coming from:
-> 
-> static void cleanup_exit(const char *path, int exit_code)
-> {
->          if (ap.lookup)
->                  close_lookup(ap.lookup);
-> 
->          if (pid_file)
->                  unlink(pid_file);
-> 
->          closelog();
-> 
->          if ((!ap.ghost || !submount) && *(path + 1) != '-')
->                  if (rmdir(path) == -1)
->                          syslog(LOG_WARNING, "failed to remove dir %s: 
-> %m", path);
-> 
->          exit(exit_code);
-> }
+Am now relaying through my server temporarily. 
 
-Called when the daemon pops out of the event loop.
-
-Can be caused by umount failure. I saw something like this the other day 
-and I've been meaning to return to it to try and find it.
-
-Jim Carter would like this. I caused it by an incorect return from buffer 
-overflow checking code. I think this problem is hitting the same bad error 
-handling code. Looking ...
+I can't work out how to sufficiently restrict relaying in sendmail, for my 
+dynamic ADSL IP, to continue this for long. Any sendmail people out there?
 
 Ian
