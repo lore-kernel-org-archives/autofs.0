@@ -1,15 +1,13 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: autofs and 2.6.x
-Date: Tue, 11 May 2004 17:08:48 -0400
+From: Daniel Lutz <danlutz@debian.org>
+Subject: Re: Debian: Init script confused by options
+Date: Wed, 12 May 2004 11:29:07 +0200
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <16545.16608.781482.171319@segfault.boston.redhat.com>
-References: <16545.13671.458946.559520@segfault.boston.redhat.com>
-	<Pine.LNX.4.44.0405111654280.7668-100000@who.adc.idt.com>
-Reply-To: jmoyer@redhat.com
+Message-ID: <20040512092907.GB28873@majestix.home.watz.ch>
+References: <16541.33862.63334.177007@Psilocybe.Update.UU.SE>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.44.0405111654280.7668-100000@who.adc.idt.com>
+Content-Disposition: inline
+In-Reply-To: <16541.33862.63334.177007@Psilocybe.Update.UU.SE>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,24 +18,27 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: devnull@adc.idt.com
-Cc: AutoFS on Linux Kernel <autofs@linux.kernel.org>
+Content-Transfer-Encoding: 7bit
+To: Thorild Selen <thorild@Update.UU.SE>
+Cc: autofs@linux.kernel.org
 
-==> Regarding Re: [autofs] autofs and 2.6.x; devnull@adc.idt.com adds:
+> Starting the automounter in Debian:
+> 
+> > [Psilocybe] update # /etc/init.d/autofs start
+> > Starting automounter: --ghost.
 
-devnull> Apologies for not sending this out earlier. autofs4 + ghosting +
-devnull> FC1 WORKS on X86_64
+[...]
 
-devnull> I recompiled the kernel again this morning and everything works
-devnull> fine.
+The init script used by the official Debian package isn't yet
+included in the upstream sources, i. e. the Debian-specific
+parts of the init script contained in the upstream sources
+is out of date. The init script of the official Debian package
+is currently generated from the init script contianed in the
+upstream sources by applying a lot of patches.
 
-Ok, good news.  Curious, but good news none the less.
+I recommend you to take the init script from the latest official
+Debian package. 
 
-[snip]
+Correct creation of pid files should also work with this script.
 
-BTW> Is FC2 for x86_64 out ?
-
-heh.  Not quite yet.  I suppose you could call what I'm running a release
-candidate.
-
--Jeff
+-Daniel
