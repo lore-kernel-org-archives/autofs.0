@@ -1,13 +1,15 @@
-From: raven@themaw.net
-Subject: Re: umount() and NFS races in 2.4.26
-Date: Sun, 11 Jul 2004 18:16:05 +0800 (WST)
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: csh/cd not getting the right cwd at the mount point
+Date: Mon, 12 Jul 2004 08:35:31 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0407111812460.1900@donald.themaw.net>
-References: <20040708180709.GA7704@timesink.dyndns.org>
-	<20040710181912.GA800@timesink.dyndns.org>
+Message-ID: <16626.34195.267988.648284@segfault.boston.redhat.com>
+References: <BA0E4392AD99D040885C414D992C24BE08264B56@us-bv-m11.bv.tek.com>
+	<Pine.LNX.4.58.0407101248510.1378@donald.themaw.net>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20040710181912.GA800@timesink.dyndns.org>
+In-Reply-To: <Pine.LNX.4.58.0407101248510.1378@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,26 +19,110 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Thomas Moestl <moestl@ibr.cs.tu-bs.de>
-Cc: autofs mailing list <autofs@linux.kernel.org>, nfs@lists.sourceforge.net, Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="iso-8859-1"
+To: raven@themaw.net
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
-On Sat, 10 Jul 2004, Thomas Moestl wrote:
+=3D=3D> Regarding Re: [autofs] csh/cd not getting the right cwd at the mo=
+unt point; raven@themaw.net adds:
 
-> > Never the less I'm sure there is a race in waitq.c of autofs4 in 
-> > 2.4 that seems to cause this problem. This is one of the things 
-> > addressed by my patch.
-> 
-> The system in question still uses autofs3. While I believe that the
-> waitq race is also present there (it could probably cause directory
-> lookups to hang, if I understand it correctly), I do not think that
-> any autofs3 code could cause exactly those symptoms that I have
-> observed. For that, it would have to obtain dentries of the file
-> systems that it has mounted, but the old code never does that.
+raven> On Fri, 9 Jul 2004 peter.a.harris@exgate.tek.com wrote: I'm having
+raven> difficulty understanding the problem you describe.
 
-I don't think autofs v3 has this race. It uses the BKL everywhere to 
-serialise execution. Never the less people seem to see the "busy inode" 
-messages sometimes.
+>> We have a problem.  Here are the conditions:
+>>=20
+>> 1. Shell is (t)csh (does not happen under (ba)sh) 2. cd to an autofs
+>> fa=E7ade (e.g. /tools in our case) 3. cd relatively to the subdirector=
+y
+>> that is the mount point.
+NOTE> The mount must not yet be made. (e.g. perl5.8.3)
+>> 4. cd relatively to a subdirectory in the mounted files system (e.g. b=
+in
+>> or lib)
 
-Ian
+[snip]
+
+raven> I recommend you try autofs4 release 20040508. Unfortuneately this
+raven> release requires a kernel rebuild as there is a small mandatory
+raven> change outside of the autofs4 module needed for correct
+raven> operation. This release is the one that should be used as it
+raven> addresses all known problems and works best with the latest autofs
+raven> release.
+
+raven> You should be using autofs-4.1.3. There is an additional patch tha=
+t
+raven> I have recommened a couple of times now, without adverse feedback,
+raven> that my fix your problem. I've uploaded it to kernel.org and it ca=
+n
+raven> be found at:
+
+[snip]
+
+NOTE: I was not able to reproduce the problem in my environment, which
+included our next update kernel that is fully patched with Ian's latest
+kernel patch kit.  I'm using autofs-4.1.3-10, which will appear on my
+people page soon.
+
+raven> As a RHEL user visiting Jeff Moyers autofs page is a must as there
+raven> are patches included their that have not yet been included in an
+raven> autofs release
+
+
+raven> http://people.redhat.com/~jmoyer
+
+raven> Jeff, would it be possible to include the two patches mentioned
+raven> above in your rpms please.
+
+Sure thing.  I'm doing builds for this now.  I'm currently tracking the
+following patches that I _think_ are queued for the next release.  Please
+correct me if I'm wrong, or if you want me to resend anything.
+
+
+Patch12: autofs-4.1.2-option-parsing.patch
+- Make regular expressiosn for options parsing a bit more strict.  Fixes
+  bugs I have filed on the package for false matches of either mount poin=
+ts
+  or other fs options.
+
+Patch14: autofs-4.1.3-underlinei18n.patch
+- This is a patch which makes translation prettier (AFAIUI).  Note, I
+  didn't write this, and didn't send it to you.  I've attached it to this
+  mail.
+
+Patch15: autofs-4.1.3-rpc-ping.patch
+- Ian, you know very well what this is.  ;)
+
+And, the two you just had me put in:
+
+Patch16: autofs-4.1.3-bad_chdir.patch
+Patch17: autofs-4.1.3-mtab_lock.patch
+
+-Jeff
+
+--- autofs-4.1.3/samples/rc.autofs.in.i18n	2004-06-21 13:22:12.000000000 =
+-0400
++++ autofs-4.1.3/samples/rc.autofs.in	2004-06-21 13:31:29.000000000 -0400
+@@ -244,12 +244,10 @@
+ #
+ function status()
+ {
+-	echo $"Configured Mount Points:"
+-	echo  "------------------------"
++	echo -e $"Configured Mount Points:\n------------------------"
+ 	getmounts
+ 	echo ""
+-	echo $"Active Mount Points:"
+-	echo  "--------------------"
++	echo -e $"Active Mount Points:\n--------------------"
+ 	ps axwww|grep "[0-9]:[0-9][0-9] $DAEMON " | (
+ 		while read pid tt stat time command; do echo $command; done
+ 	)
+@@ -356,7 +354,7 @@
+ 	    fi
+ 	    [ $RETVAL =3D 0 ] && touch /var/lock/subsys/autofs
+ 	else
+-	    echo -n "" $"No Mountpoints Defined"
++	    echo -n $"No Mountpoints Defined"
+ 	    success "$prog startup"
+ 	fi
+ 	rm -f $TMP
