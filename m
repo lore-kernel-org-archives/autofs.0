@@ -1,10 +1,9 @@
-From: Christian Vogel <vogelchr@vogel.cx>
-Subject: PATCH: autofs initscript: SuSE
-Date: Tue, 30 Dec 2003 12:16:31 +0100
+From: Paul Raines <raines@nmr.mgh.harvard.edu>
+Subject: rm hangs on symlinks to down mount points
+Date: Tue, 30 Dec 2003 16:47:24 -0500 (EST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <20031230121631.3cb0d8f4.vogelchr@vogel.cx>
+Message-ID: <Pine.LNX.4.44.0312301639450.24097-100000@gate.nmr.mgh.harvard.edu>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -15,76 +14,38 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: autofs@linux.kernel.org
 
-Hi,
 
-I changed the autofs init script supplied with 4.1.0 to work with SuSE
-(V7.2 tested). SuSE has /sbin/startproc and /sbin/killproc to start and
-stop daemons. I could not use startproc because startproc tries to avoid
-having duplicate processes running (/usr/sbin/automount), and if you
-have several automounters running, this is not what you want. killproc
-behaves correctly as long as we provide the correct pidfile (does not
-work with startproc, I tried). 
+I have RedHat7.3 and RedHat9 systems with autofs-3.1.7 and
+2.4.20 kernels on all.
 
-	Chris
+Lets say for instance that /autofs/foobar is an automounted mount point
+on server foobar and foobar is down.  On your client box you have
+a symlink on your local disk as such:
 
---- autofs      2003/12/29 14:08:46     1.1
-+++ autofs      2003/12/30 11:11:08
-@@ -41,6 +41,8 @@
-     system=debian
- elif [ -f /etc/redhat-release ]; then
-     system=redhat
-+elif [ -f /etc/SuSE-release ] ; then
-+    system=SuSE
- else
-     echo "$0: Unknown system, please port and contact autofs@linux.kernel.org" 1>&2
-     exit 1
-@@ -402,11 +404,46 @@
- esac
- }
- 
-+function SuSE()
-+{
-+       case "$1" in
-+               start)
-+                       echo -n "Starting automounter: "
-+                       getmounts | while read cmd mnt rest
-+                       do
-+                               echo -n " $mnt"
-+                               pidfile=/var/run/autofs${mnt//\//.}.pid
-+
-+                               $DAEMON -p $pidfile \
-+                                       $daemonoptions -- $mnt $rest
-+
-+                       done
-+                       echo " ."
-+               ;;
-+               stop)
-+                       echo -n "Stopping automounter:"
-+                       getmounts | while read cmd mnt rest
-+                       do
-+                               echo -n " $mnt"
-+                               pidfile=/var/run/autofs${mnt//\//.}.pid
-+                               killproc -p $pidfile $DAEMON
-+                       done
-+                       echo " ."
-+               ;;
-+               *)
-+                       echo "Usage: $0 start|stop" >&2
-+                       exit 1
-+               ;;
-+       esac
-+}
-+
- RETVAL=0
- if [ $system = debian ]; then
-        debian "$@"
- elif [ $system = redhat ]; then
-        redhat "$@"
-+elif [ $system = SuSE ] ; then
-+       SuSE "$@"
- fi
- 
- exit $RETVAL
+  linkfile -> /autofs/foobar/somefile
+
+If you try to delete linkfile, it hangs forever.  Seems to never timeout
+or work.   Doing a strace shows it hanging to a system stat() call
+on the pointed to file.
+
+First, it seems fundamentally wrong that doing an unlink() on a symlink
+causes a stat() call on the pointed to file.  Seems a huge waste.
+
+One interesting thing, on RH7.3 if the above linkfile is an a directory
+and you do a 'rm -rf' on that directory, it works.  On RH9, it still
+hangs.
+
+BTW, is there anyway outside a kernel recompile to configure how
+long it takes for an access to a mount point on a down server to
+timeout?
+
+
+-- 
+---------------------------------------------------------------
+Paul Raines                   email: raines@nmr.mgh.harvard.edu
+MGH/MIT/HMS Athinoula A. Martinos Center for Biomedical Imaging
+149 (2301) 13th Street        Charlestown, MA 02129	USA   
