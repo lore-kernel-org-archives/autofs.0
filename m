@@ -1,15 +1,13 @@
-From: Mike Waychison <Michael.Waychison@Sun.COM>
+From: "H. Peter Anvin" <hpa@zytor.com>
 Subject: Re: autofs no_local_binds option (nfs <-> bind mounts)
-Date: Tue, 13 Jan 2004 15:58:43 -0500
+Date: Tue, 13 Jan 2004 13:04:51 -0800
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <40045C03.7020405@sun.com>
-References: <200401131958.i0DJwlV0001078000@anw.zk3.dec.com>
- <40044F2A.9080305@zytor.com> <200401132023.49657.autofs@dylan.me.uk>
- <4004544C.7030904@zytor.com>
+Message-ID: <40045D73.4010103@zytor.com>
+References: <200401132042.i0DKgDR0001085265@anw.zk3.dec.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============58097944038240756=="
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-reply-to: <4004544C.7030904@zytor.com>
+In-Reply-To: <200401132042.i0DKgDR0001085265@anw.zk3.dec.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,94 +17,51 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: autofs@linux.kernel.org, Eric Werme USG <werme@alpha.zk3.dec.com>
-
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---===============58097944038240756==
-Content-type: multipart/signed;
- boundary=------------enig9199E617F590C39C0F2FF355;
- protocol="application/pgp-signature"; micalg=pgp-sha1
-
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig9199E617F590C39C0F2FF355
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-
-H. Peter Anvin wrote:
-
->Dylan wrote:
->  
->
->>On Tuesday 13 January 2004 20:03 pm, H. Peter Anvin wrote:
->>
->>
->>    
->>
->>>However, this doesn't address the issue of the client being *the same
->>>system*, in which case you can't just move the IP address away from
->>>it, since local == remote; you can no longer send packets to the
->>>server and get a response back.  You can do it if you can get the
->>>client and the server sides to bind to *different* IP addresses, in
->>>which case the current autofs behaviour will correctly see them as
->>>being separate and mount NFS.
->>>      
->>>
->>Would binding an alias address to the interface be sufficient?
->>
->>    
->>
->
->No, you have to force the local port to not be bound to the same
->address.  I think this can be done with iptables rules, but I'm not
->sure... I'm not a networking wizard.
->
->  
->
-I know you can do this using chbind from the vserver toolset and kernel 
-patch.
-
-http://www.13thfloor.at/vserver/s_release/v1.23/
-
--- 
-Mike Waychison
-Sun Microsystems, Inc.
-1 (650) 352-5299 voice
-1 (416) 202-8336 voice
-mailto: Michael.Waychison@Sun.COM
-http://www.sun.com
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NOTICE:  The opinions expressed in this email are held by me, 
-and may not represent the views of Sun Microsystems, Inc.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
-
-
---------------enig9199E617F590C39C0F2FF355
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
-Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
-
-iD8DBQFABFwGdQs4kOxk3/MRAtbNAKCNi94tossdCAsNiENLZ4TbDtEYfwCdGxrk
-O1uVzyNZampEMzHOz4hWV3o=
-=6jXp
------END PGP SIGNATURE-----
-
---------------enig9199E617F590C39C0F2FF355--
-
-
---===============58097944038240756==
 Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: Eric Werme USG <werme@zk3.dec.com>
+Cc: autofs@linux.kernel.org, alexander.marx@hp.com
 
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
+Eric Werme USG wrote:
+> 
+> Ah.  Back to automount/autofs.  I made many fixes to Sun's old automount,
+> one of them was to rummage among all the NICs looking to see if the
+> FS was really a local mount and provide the appropriate symlink.  The
+> cluster folks didn't realize I also checked the alias addresses too,
+> so I had to add an option to disable that to force a real NFS call.
+> 
 
---===============58097944038240756==--
+Perhaps I should clarify the algorithm used by autofs: it actually goes
+through and creates a socket and connects it to each of the IP addresses
+for a server (it uses a UDP socket, so it doesn't actually cause any
+network traffic.)  Then it queries that socket to see what the local and
+remote addresses the kernel chose for the socket.  If for any of the
+possible addresses <local address == remote address> then the address is
+deemed local and autofs will bind-mount.  It is thus strictly based on
+what the kernel would choose as the local address.  If you can force the
+local address to be something other than the remote address -- as you
+need for relocatability anyway -- then autofs will quite correctly avoid
+bind-mounting it.
 
+Mike raised the at least theoretical issue of what about synthetic NFS
+servers in userspace and similar issues.  I'm not convinced this is an
+issue in practice, but we came up with the suggestion of making an
+*explicit* -fstype=nfs force NFS mounting regardless.  This has the
+advantage that it cleans up the daemon somewhat; instead of:
+
+
+	parse_sun
+	    |
+	mount_nfs
+            |
+	mount_bind
+
+one would have:
+
+	parse_sun
+	    |
+	mount_default
+	/	\
+   mount_nfs  mount_bind
+
+
+	-hpa
