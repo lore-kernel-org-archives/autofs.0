@@ -1,14 +1,13 @@
-From: Greg Bradner <gregb@rhythm.com>
-Subject: 4.1.4?
-Date: Fri, 17 Dec 2004 09:35:36 -0800
-Message-ID: <41C318E8.4090605@rhythm.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: 4.1.4?
+Date: Sat, 18 Dec 2004 11:22:30 +0800 (WST)
+Message-ID: <Pine.LNX.4.58.0412181116130.3330@raven-wl.themaw.net>
 References: <21502.1103178424@kao2.melbourne.sgi.com>
 	<Pine.LNX.4.58.0412171422280.22350@wombat.indigo.net.au>
-	<16834.63746.614567.523947@segfault.boston.redhat.com>
+	<41C318E8.4090605@rhythm.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <16834.63746.614567.523947@segfault.boston.redhat.com>
+In-Reply-To: <41C318E8.4090605@rhythm.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,23 +18,34 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: autofs@linux.kernel.org
-Cc: Ian Kent <raven@themaw.net>
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Greg Bradner <gregb@rhythm.com>
+Cc: autofs@linux.kernel.org
 
-I'm curious too.
+On Fri, 17 Dec 2004, Greg Bradner wrote:
 
->Ian, when is 4.1.4 coming out.   ;-) 
->
->-Jeff
+> I'm curious too.
+> 
+> >Ian, when is 4.1.4 coming out.   ;-) 
+> >
+> >-Jeff
 
+I'm working kernel patch updates now.
 
+I have a couple of difficult daemon patches to merge.
+In particular init script patches.
 
--- 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Rhythm & Hues
-5404 Jandy Place
-Los Angeles, CA 90066
-Voice: 310 448-7763
-Fax:   310 448-7600
-gregb@rhythm.com
+A couple of patches that have been submitted have not been applied, 
+largely because of the large number of changes already added. In 
+particular the debug info to standard out. I must point out that this is 
+not because of problems with the patch but because of the number of 
+changes. I don't want to add additional function until this lot has 
+settled.
+
+So when?
+
+I should be able to finish over Xmass and get something out in the first 
+or second week of Jan.
+
+Ian
