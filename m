@@ -1,14 +1,11 @@
-From: Greg Bradner <gregb@rhythm.com>
-Subject: Re: [ANNOUNCE] autofs v4 beta3 (fwd)
-Date: Thu, 13 Nov 2003 09:42:16 -0800
+From: Alexander Macdonald <alexandermacdonald@yahoo.com>
+Subject: making the mountpoints visible all the time
+Date: Thu, 13 Nov 2003 17:52:04 +0000
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <3FB3C278.6080102@rhythm.com>
-References: <Pine.LNX.4.33.0311131542180.11228-100000@wombat.indigo.net.au>
-	<3FB397B9.9010600@rhythm.com> <3FB3BC61.8060005@intel.com>
+Message-ID: <3FB3C4C4.4030605@yahoo.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <3FB3BC61.8060005@intel.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,24 +16,12 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: "Taylor, ForrestX" <forrestx.taylor@intel.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-Can you spell it out for me? With what program is the nonstrict option 
-associated? What man page?
-Thank.
+Hi
 
-Taylor, ForrestX wrote:
-
-> Greg Bradner wrote:
->
->> I have multiple mount points on a NetApp, but I don't have 'access' 
->> permissions to all of them.  When autofs encountered a permission 
->> denied on one of the mount points, it didn't mount any of them.  
->> Shouldn't it just skip over the permission denied one and still mount 
->> the others?
->
->
-> That is what the nonstrict option is for.
->
-> Forrest
+I've currently got automount setup so that i can cd into a directory 
+like /mnt/someplace and someplace will be automatically created and 
+mounted... it would be quite usefull if that directory was allways 
+visible so that i could browse to it in gui applications... how do i do 
+that?
