@@ -1,14 +1,14 @@
-From: Tom Georgoulias <tom.georgoulias@motorola.com>
-Subject: Re: autofs reload
-Date: Mon, 29 Mar 2004 09:17:48 -0600
+From: Jim Carter <jimc@math.ucla.edu>
+Subject: Re: Looking for infor on executable map format
+Date: Mon, 29 Mar 2004 11:42:55 -0800 (PST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <40683E1C.7030202@motorola.com>
-References: <200403270053.i2R0rUt3013696@miguelito.qualcomm.com>
-	<Pine.LNX.4.58.0403290957560.22486@vulture.rentec.com>
+Message-ID: <Pine.LNX.4.53.0403291129590.3206@fafnir.cft.ca.us>
+References: <200403261040.08085.krienke@uni-koblenz.de>
+	<Pine.LNX.4.58.0403291450290.18783@wombat.indigo.net.au>
+	<Pine.LNX.4.58.0403291822090.26549@raven.themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0403290957560.22486@vulture.rentec.com>
+In-Reply-To: <Pine.LNX.4.58.0403291822090.26549@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,30 +18,49 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: autofs@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org, Jim Carter <jimc@krienke.org>
 
-Ryan Go wrote:
+> On Mon, 29 Mar 2004, Rainer Krienke wrote:
 
->>BTW, doing that with 4.0.0 (is anyone still running it?) it'll just kill the
->>daemon.  Found that out the hard way. :-/
-> 
-> 
-> Yeap. We still are. 4.0.0pre10-x (at least SuSe's version).
+> > This outputs eg something like
+> >
+> > -fstype=nfs,hard,intr,nodev,nosuid,nonstrict,rsize=8192,wsize=8192 \
+> >         /export/user serverhost:/export/user
+> > 	.....
+> >
+> > So there are options, a qouted newline and then the map entry without
+> > the key.
 
-I had considered reverting back to the 4.0.0pre10 version many times 
-because it doesn't require me to manually HUP daemons to put map updates 
-into effect. Now that some patches are showing up my reversion 
-tendencies are reducing.  ;)
+Hmmm, the daemon code that handles executable maps likes to see
+    [-mount-options] [mapkey] mapreferent
+([] indicating optional), whereas the file map handler wants
+    mapkey [-mount-options] mapreferent
+It's rather surprising that the mapkey is legal in the middle position -- I
+would expect it to always be in the same place and to never be optioal -- I
+can understand that it's mandatory in a file map, and if it were forbidden
+in an executable map, but optional?
 
-I'm glad to see Jeff Moyer posting to the list and submitting patches. 
-Good to know that Red Hat is listening to its customers who need more 
-than autofs v3.
+I suspect that the ugly parser code never even looks at it; the parser uses
+the last whitespace-separated field as the referent, and the first or
+second as the mount options, depending on the type of map and whether the
+field beings with a hyphen.
 
-Tom
--- 
-Tom Georgoulias
-POPI Classification
-[x] General Business Information
-[] Motorola Internal Use
-[] Motorola Confidential Proprietary
+In any case, a comment in the man page (even if not representing the
+parser's complete range of behavior bug for bug :-) would be helpful for
+people writing executable maps.  Answering Reiner's first question, I said,
+"what's it likely that /sbin/automount needs to know?  Either an imitation
+file map (wrong, rejected), or the same minus the key (acceptable when I
+tried it)."
+
+That also ties in with the formst which you would get with a NIS map if you
+could get NIS maps to work on your system.  (I haven't worked on that one
+for a long time; maybe it's fixed in recent updates and I can lose the
+executable home map.)
+
+
+James F. Carter          Voice 310 825 2897    FAX 310 206 6673
+UCLA-Mathnet;  6115 MSA; 405 Hilgard Ave.; Los Angeles, CA, USA  90095-1555
+Email: jimc@math.ucla.edu    http://www.math.ucla.edu/~jimc (q.v. for PGP key)
