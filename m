@@ -1,12 +1,12 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: fsck and already mounted filesystems
-Date: Wed, 26 May 2004 13:24:58 +0800 (WST)
+Subject: Re: Performance of autofs/amd-managed directory
+Date: Wed, 26 May 2004 13:28:58 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0405261319580.20880@wombat.indigo.net.au>
-References: <200405242236.i4OMaWqR027104@pookie.nersc.gov>
+Message-ID: <Pine.LNX.4.58.0405261326040.20880@wombat.indigo.net.au>
+References: <20040526030234.47115.qmail@web20025.mail.yahoo.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200405242236.i4OMaWqR027104@pookie.nersc.gov>
+In-Reply-To: <20040526030234.47115.qmail@web20025.mail.yahoo.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,28 +18,29 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: canon@nersc.gov
+To: Kenny Simpson <theonetruekenny@yahoo.com>
 Cc: autofs@linux.kernel.org
 
-On Mon, 24 May 2004 canon@nersc.gov wrote:
+On Tue, 25 May 2004, Kenny Simpson wrote:
+
+> What is the performance penalty for write access to files in a managed
+> directory vs. a fstab entry?
+> I have a program that is very sensitive to write latency, and am being
+> pressured to use amd or automount to access a NAS instead of my trusty fstab
+> entry.
+
+autofs only performes the mounts on demand not much more.
+
+Once the mount is done autofs knows is completely out of the way as far as 
+mounted filesystem access is concerned.
 
 > 
-> Greetings,
-> 
-> We perform multiple mounts of local file systems for
-> use in a chroot environment.  It looks like this latest
-> autofs breaks this since the fsck fails.  The fix
-> would be to skip the fsck if the file system is already
-> mounted.  There is code in libext2fs that does this.
-> I can propose a patch if it would be helpful.
->
+> My app uses a transactional log file that resides on a NAS.  I'd prefer to keep
+> a simple fstab entry and use O_DIRECT to access the file, but if there is no
+> penalty, I would switch.  Does O_DIRECT have meaning for automount or
+> amd-managed files?  (isn't amd user-space, so it would need to copy data
+> anyway?)
 
-Could you be a little more specific regarding the version please.
-
-I assume you mean 4.1.2 -> 4.1.3. Did it work before that. If so how far 
-back?
-
-The main change here was a correction to spawn function parameters when 
-calling fsck.
+I don't know about the amd design and its overhead, sorry.
 
 Ian
