@@ -1,12 +1,14 @@
-From: Robin Rosenberg <robin.rosenberg.lists@dewire.com>
-Subject: Autofs question
-Date: Wed, 14 Jan 2004 17:23:28 +0100
+From: Greg Bradner <gregb@rhythm.com>
+Subject: running out of mount points
+Date: Wed, 14 Jan 2004 11:32:20 -0800
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <200401141723.28338.robin.rosenberg.lists@dewire.com>
+Message-ID: <40059944.4060901@rhythm.com>
+References: <Pine.LNX.4.33.0401130932460.10047-100000@wombat.indigo.net.au>
+	<4004409C.6040900@sun.com> <Pine.LNX.4.58.0401142351470.1783@raven.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.58.0401142351470.1783@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,36 +18,23 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
 To: autofs@linux.kernel.org
 
-Hi,
+I have run into a problem of running out of mount points.  I have over 
+600 users and their home dirs are listed in auto.home and they are all 
+stored on the same nfs server.  If I list the dirs, automount will 
+create a seperate mount point for each user, and at ~256 mount points, 
+no more home dirs can be mounted.
+Is there a work around?
 
-1) I grabbed the Dieter Demerre's auto.smb script for mounting samba/windows shares making life hellofalot simpler
-when it comes to accessing Windows shares.
+Here is the auto.master and snip of auto.home
 
-One of the flaws is that I'd like to get around is that it must be configured as root, as opposed to by the user who
-wants to access a share, and most importantly  that I don't see who is requesting the mount. I was thinking along 
-the line of mounting shares in /cifs/$USER/servers/share or simply mounting the share for the first user using the mount 
-point (essentially single user or one-user-at-a-time machines anyway).
 
-the auto.smb script is running as root and I printed some info in root.c at the revalidate
+auto.master:
+/home                   /etc/auto.maps/auto.home
+        vers=3,hard,intr,nosuid,nodev,rw,retrans=4,timeo=15,mountvers=2
 
-Jan 12 18:49:06 h6n2fls33o811 kernel: autofs4_root_revalidate, uid=505 name=10.1.1.4
-Jan 12 18:49:06 h6n2fls33o811 automount[22233]: attempting to mount entry /cifs/10.1.1.4
-Jan 12 18:49:06 h6n2fls33o811 kernel: autofs4_root_revalidate, uid=0 name=10.1.1.4
-Jan 12 18:49:06 h6n2fls33o811 logger: uid=0(root) gid=0(root) grupper=0(root)
-Jan 12 18:49:07 h6n2fls33o811 kernel: autofs4_root_revalidate, uid=0 name=10.1.1.4
-Jan 12 18:49:08 h6n2fls33o811 last message repeated 10 times
-and lots more from mounting with uid=0
 
-Is there any simple way of passing the first uid to the automounter daemon?
-
-2) Another anoying thing with autofs is that it mounts all shares on the machine which is a problem
-when I don't have access to all.
-
-3) How can the returned map handle spaces in the share names?
-
-I'm using vanilla kernel 2.6.1 and autofs tools 4.0.0 as they come on Mandrake Cooker.
-
--- robin
+auto.home:
+gregb ntap:/vol/vol0/u/&
