@@ -1,14 +1,14 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs not unmounting mount points?
-Date: Thu, 18 Mar 2004 09:23:04 +0800 (WST)
+Subject: Re: autofs not mounting directories
+Date: Thu, 18 Mar 2004 09:30:39 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0403180918420.28728@wombat.indigo.net.au>
-References: <4051DB39.4060905@astro.wisc.edu>
-	<Pine.LNX.4.58.0403141018340.4585@raven.themaw.net>
-	<40588FDC.5020909@intel.com>
+Message-ID: <Pine.LNX.4.58.0403180924490.28728@wombat.indigo.net.au>
+References: <200403160358.MAA25667@tk3p108pos.tky.swissbank.com>
+ <Pine.LNX.4.58.0403171118120.6566@wombat.indigo.net.au>
+ <20040317204829.GD12204@vprau.lsil.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <40588FDC.5020909@intel.com>
+In-Reply-To: <20040317204829.GD12204@vprau.lsil.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,54 +20,38 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Taylor, ForrestX" <forrestx.taylor@intel.com>
+To: Robert Au <rau@lsil.com>
 Cc: autofs@linux.kernel.org
 
-On Wed, 17 Mar 2004, Taylor, ForrestX wrote:
+On Wed, 17 Mar 2004, Robert Au wrote:
 
-> Ian Kent wrote:
-> > On Fri, 12 Mar 2004, jansen wrote:
 > > 
-> > 
-> >>Hi,
-> >>
-> >>I've been struggling to figure out why autofs does not appear
-> >>to unmount many mount points.  I have more than 150 entries in
-> >>a map file and most of these entries get mounted when I log into
-> >>a Gnome session and never seem to ever get unmounted.  This
-> >>happened under RedHat 8.0 (autofs-3.1.7-33) and still happens on
-> >>SuSE 9.0 (autofs-3.1.7-717).  I'm guessing that Nautilus is doing
-> >>this.  Is anyone else seeing this?  Any suggestions on how to prevent
-> >>or debug this?  I can provide more details if anyone is interested.
-> > 
-> > 
-> > Bit unfortunate they never umount.
-> > 
-> > The problem is that Nautilus scans the directory if/when it notices umount 
-> > activity. This causes a remount. I couldn't find a way to trun it off. The 
-> > list of directories to scan is help in a file (I can't remember where now) 
-> > and I was able to stop it, to some extent, by cleaning it out and changing 
-> > the modes on the file (for non-root login anyway).
-> > 
-> > I started working on this some time ago but did not get anywhere before 
-> > other things took priority. To fix this means digging into Nautilius. A 
-> > significant task in itself. The people on the Nautilus list would probably 
-> > help but they would need a significant time investment from an autofs 
-> > development person. Any volunteers?
+> > Sounds like you may be suffering from the same problem that was reported 
+> > by Michael Blandford. I'm mystified I haven't seen the problem before as 
+> > it is so fundamental to proper operation.
 > 
-> Although I am not really an autofs development person, I would really 
-> like this remedied, so I will volunteer.  Where can I get started?
+> I don't see Michael's original report in the list archives. Did he send it
+> to the list?
+
+No.
+
+It was reported when he was testing changes he had requested for 4.1.1. 
+
+>  
+> > I'll be looking to get a test group together from the list in a couple of 
+> > days.
 > 
+> I think we are seeing something similar here; sporadically, listing a file
+> with ls will fail until a process changes working directory to that file's
+> directory. I'd like to help out in the testing. We are seeing this problem
+> with Red Hat 7.2 (kernel 2.4.7-10), autofs 4.1.0, and kernel module
+> autofs4-2.4-module-20031201.
 
-Could be an interesting time.
+2.4.7. I wonder if the patch I'm creating against 2.4.20 will work for 
+you.
 
-I started by subscribing to the Nautilus list.
-
-I'll forward you the mails I have and put together as much as I know about 
-this.
-
-Short is that Nautilus probably needs to be changed. We are most likey to 
-succeed if we can put together at least a proof of concept path, after all 
-we aren't Nautilus developers.
+Strange this has gone un-noticed for over 18 months and then suddenly 
+reports are popping up everywhere. Maybe it's just the focus at the moment 
+so everything seems to be caused by it.
 
 Ian
