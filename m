@@ -1,11 +1,12 @@
-From: raven@themaw.net
-Subject: [ANNOUNCE] autofs 4.1.3 another bug fix release + kernel module
- update
-Date: Wed, 19 May 2004 21:39:29 +0800 (WST)
+From: "Murata, Dennis W (SAIC)" <muratadw@bp.com>
+Subject: RE: Server IP address change screws up active mounts
+Date: Wed, 19 May 2004 15:05:23 -0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0405192132160.15255@donald.themaw.net>
+Message-ID: <134FC8D9C1F126488E3D123A9B2607370105E0FC@bp1houex002.bp1.ad.bp.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
+content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -15,112 +16,40 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: autofs mailing list <autofs@linux.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: autofs@linux.kernel.org, David Meleedy <david.meleedy@analog.com>, Ian Kent <raven@themaw.net>
+
+The nfs server not responding is indeed an NFS problem, however, using
+autofs 3.x, if you tried to stop and restart the automounter or reboot
+the workstation it would hang trying to kill automount.  Only a power
+cycle would reboot the workstation.  When we switched to
+autofs-4.0.0pre10, you will getting messages about trying to unmount
+directories, but eventually (~30 seconds) autofs would timeout(?) then
+continue the reboot, or allow you to start the service back up again.
+The only change was the upgrade to autofs-4.0.0pre10.
+
+Wayne
+
+-----Original Message-----
+From: H. Peter Anvin [mailto:hpa@zytor.com]
+Sent: Tuesday, May 18, 2004 7:15 PM
+To: Murata, Dennis W (SAIC)
+Cc: Ian Kent; David Meleedy; autofs@linux.kernel.org
+Subject: Re: [autofs] Server IP address change screws up active mounts
 
 
-Hi all,
+Murata, Dennis W (SAIC) wrote:
+> We experienced similar problems using autofs-3.x with both RedHat(7.3,
+> 8.0, 2.1, 9.0) and Slackware(9.0).  This seems to be fixed with
+> autofs-4.x.  We have used 4.0.0-pre10 for a couple of years without
+> problem and are now trying 4.1.2.
+> The problems we were seeing dealt with and automounted nfs server not
+> responding, the mount would hang, autofs would not timeout and would
+> hang, only a hard reset would reboot the computer.
+> 
 
-It's release time.
+It wouldn't have anything to do with autofs, though.  Rather, it's an 
+NFS problem.
 
-Things have settled down and it's seems like a good time to put together a 
-release. I know there are a few things outstanding but I'd like to start 
-that work from what seems to be a fairly stable base.
-
-autofs
-======
-
-As usual the package can be found at:
-
-ftp://ftp.kernel.org/pub/linux/daemons/autofs/v4
-
-It is autofs-4.1.3.tar.[gz|bz2]
-
-No source rpm is there as it can be produced by using:
-
-rpmbuild -ts autofs-4.1.3.tar.gz
-
-and the binary rpm by using:
-
-rpmbuild -tb autofs-4.1.3.tar.gz
-
-Changes (taken from the CHANGELOG):
-
-- fixed bug processing --verbose option in init scripts.
-- added missing parameter in call to run fsck on ext2 module (Jeff Moyer).
-- added check for executable existance in getldapmounts in init script.
-- updated comment about option handling in getmounts in init script.
-- updated kernel module patches.
-- fix to init script for reload option (Michael Blandford).
-- autofs now requires autoconf later than 2.5.
-- replicated server fixup.
-- fix segv in NIS lookup module (Jeff Moyer).
-- init script fix for Debian (Thorild Selen).
-- fix pie option not checking for runable executable.
-- add NFS V3 and TCP to rpc discovery.
-- make nonstrict the default for multi-mount map entries.
-
-
-Kernel module build kit
-======================
-
-The kernel module build kit for kernel 2.4 is back. There is one
-requirement. If you wish to use it there is a mandatory patch that
-must be aplied to the kernel and a recomile done for it to work.
-On the other hand it only needs be applied once. Subsequent updates
-can then be done without recompiling your kernel. The patches in the
-module-patches directory do not have this patch. If you are using the
-kit and you wish to patch the kernel source tree both patches in the
-kernel-patches and the patch in the module-pathes directories are
-required.
-
-NOTE: The kernel module WILL NOT WORK unless, at least, the mandatory
-      patch that lives in the kernel-patches and the approiate patch
-      from module-pathes directory are applied.
-
-The kernel module build kit is:
-
-autofs4-2.4-module-20040508.tar.[gz|bz2]
-
-
-Kernel patches
-==============
-
-These kernel module patches include the mandatory patch
-mentioned above and the optional doco patch from the module
-build kit.
-
-The latest kernel patches are:
-
-autofs4-2.4.18-20040508.patch
-  current autofs4 patch for kernel 2.4.18 and below.
-
-autofs4-2.4.20-20040508.patch
-  current autofs4 patch for kernel 2.4.19 through 2.4.21
-
-autofs4-2.4.20-redhat9-20040508.patch
-  current autofs4 patch for RedHat 9 kernel 2.4.20 series.
-
-autofs4-2.4.22-20040508.patch
-  current autofs4 patch for kernel 2.4.22 and above.
-
-autofs4-2.4.22-fc1-20040508.patch
-  current autofs4 patch for Fedora 1 kernels. If there
-  are problems with earlier kernel versions please let
-  me know.
-
-autofs4-2.6.0-20040508.patch
-  current autofs4 patch for vanila kernels 2.4.0 through
-  2.6.3.
-
-autofs4-2.6.4-20040508.patch
-  current autofs4 patch for vanila kernels 2.4.4 and
-  above. If there are problems with later kernels let
-  me know.
-
-I'm hoping that these updates will make it into the mainline kernel
-soon. They have been in  the mm tree for a while now and have been
-passed on to Linus by Andrew Morten the other day.
-
-Ian
+	-hpa
