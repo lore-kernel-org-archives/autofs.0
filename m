@@ -1,14 +1,12 @@
-From: Mike Waychison <Michael.Waychison@Sun.COM>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: multiple servers per automount
-Date: Wed, 08 Oct 2003 17:28:03 -0400
+Date: Thu, 9 Oct 2003 11:07:28 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <3F848163.2050803@sun.com>
-References: <20031008172451.GA1775@born2.midworld.org>
- <3F845E0C.7020801@zytor.com>
+Message-ID: <Pine.LNX.4.33.0310091104250.16859-100000@wombat.indigo.net.au>
+References: <3F848163.2050803@sun.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-reply-to: <3F845E0C.7020801@zytor.com>
+In-Reply-To: <3F848163.2050803@sun.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,25 +16,42 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; format="flowed"; charset="us-ascii"
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: autofs@linux.kernel.org, Rich Sahlender <rsahlen@voicenet.com>
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Mike Waychison <Michael.Waychison@Sun.COM>
+Cc: autofs@linux.kernel.org, "H. Peter Anvin" <hpa@zytor.com>
 
-H. Peter Anvin wrote:
+On Wed, 8 Oct 2003, Mike Waychison wrote:
 
->This should not be an autofs feature but an NFS feature, for obvious
->reasons: it's equally applicable for static mounts.
+> H. Peter Anvin wrote:
 >
->Furhtermore, failover HAS to be done at the NFS layer.
+> >This should not be an autofs feature but an NFS feature, for obvious
+> >reasons: it's equally applicable for static mounts.
+> >
+> >Furhtermore, failover HAS to be done at the NFS layer.
+> >
+> >The fact that Slowlaris does it in autofs is not a good motivation --
+> >it's idiotic design.
+
+Ohh .. Nasty .... mmmmaaahhh.
+
+> >
+> >
 >
->The fact that Slowlaris does it in autofs is not a good motivation --
->it's idiotic design.
->  
+> *Ahem*.  Solaris has had NFS client failover since 2.6.   Linux is still
+> playing catch up in this arena.
+> Failover is not handled in the automount layer, but rather passed on to
+> nfs layer itself.  man mount_nfs.
 >
 
-*Ahem*.  Solaris has had NFS client failover since 2.6.   Linux is still 
-playing catch up in this arena.
-Failover is not handled in the automount layer, but rather passed on to 
-nfs layer itself.  man mount_nfs.
+On a related not Mike.
 
-Mike Waychison
+Is the number of NFS mounts on Solaris unlimited or is it table driven?
+I can't find a reference to it anywhere.
+
+-- 
+
+   ,-._|\    Ian Kent
+  /      \   Perth, Western Australia
+  *_.--._/   E-mail: raven@themaw.net
+        v    Web: http://themaw.net/
