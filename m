@@ -1,13 +1,11 @@
-From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
-Subject: Re: automount 4.1.3: unmount timeout not working
-Date: Wed, 26 Jan 2005 17:22:35 +0100
-Message-ID: <20050126162235.GB9417@uio.no>
-References: <20050122215228.GA14303@tangens.sinus.cz>
-	<20050126152037.GX21479@debian-server.aei.mpg.de>
+From: "Rigler, Stephen C." <srigler@marathonoil.com>
+Subject: RE: [ANNOUNCE] autofs 4.1.4 beta1 release
+Date: Wed, 26 Jan 2005 10:33:34 -0600
+Message-ID: <C3CDA0E3AC8B4E438E94F37D0A20FE7101B291B1@HOUEXC210.mgroupnet.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20050126152037.GX21479@debian-server.aei.mpg.de>
+Content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,28 +17,31 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: steffen.grunewald@aei.mpg.de
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Wed, Jan 26, 2005 at 04:20:37PM +0100, Steffen Grunewald wrote:
-> I also see this (Debian Sarge, installation done some weeks ago, package
-> version is 4.1.3-4). WIth an older installation (another Sarge), still using
-> 3.9.99-4.0.0pre10-16, this doesn't show up.
+ 
 
-4.1.3-4 is old, there has bene _lots_ of changes since then. The latest
-version in sarge is 4.1.3-8; 4.1.3-9 (latest in sid) is broken due to a build
-problem, and only fixes a minor issue anyhow.
+> -----Original Message-----
+> From: autofs-bounces@linux.kernel.org 
+> [mailto:autofs-bounces@linux.kernel.org] On Behalf Of raven@themaw.net
+> Sent: Wednesday, January 26, 2005 9:35 AM
+> To: Steinar H. Gunderson
+> Cc: autofs@linux.kernel.org
+> Subject: Re: [autofs] [ANNOUNCE] autofs 4.1.4 beta1 release
+> 
+> I see.
+> 
+> What if autofs[4] is not compiled as a module?
+> 
+> This might need some more work.
+> 
 
-> An upgrade to 4.1.3-8 apparently cured the problem; I don't know how
-> close the Debian package maintainer Steiner Gundersson works with autofs
-> people, and whether he's introduced some patches that have not been in
-> the previous version (and may have found their way into 4.1.4).
+Just to contribute to this, on Altix running SGI's variant of RHEL 3,
+they compile autofs (3 and 4) into the kernel and not as modules.
+We've had problems with automount defaulting to version 3 in this case.
+It works fine when compiled as a module.  I opened a case with SGI
+asking
+them to ship their kernel with it compiled as a module, but I haven't
+heard their stance on that yet.
 
-I'm at least here on the list, and we're currently trying to sync most of the
-Debian packages into 4.1.4 (upstream has already done most of them); see the
-other discussion today. :-)
-
-/* Steinar */
--- 
-Homepage: http://www.sesse.net/
+-Steve
