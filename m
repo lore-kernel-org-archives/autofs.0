@@ -1,11 +1,13 @@
-From: raven@themaw.net
+From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
 Subject: Re: [weasel@debian.org: Bug#296238: autofs breaks nis
 	auto.master when there is a tab in nsswitch]
-Date: Tue, 22 Feb 2005 00:41:41 +0800 (WST)
-Message-ID: <Pine.LNX.4.61.0502220039110.20458@donald.themaw.net>
+Date: Mon, 21 Feb 2005 18:15:09 +0100
+Message-ID: <20050221171509.GA31256@uio.no>
 References: <20050221112243.GA18164@uio.no>
+	<Pine.LNX.4.61.0502220039110.20458@donald.themaw.net>
 Mime-Version: 1.0
-In-Reply-To: <20050221112243.GA18164@uio.no>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.61.0502220039110.20458@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,26 +18,17 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Mon, 21 Feb 2005, Steinar H. Gunderson wrote:
+On Tue, Feb 22, 2005 at 12:41:41AM +0800, raven@themaw.net wrote:
+> Strange, I just tested it again and I it works fine for me.
+> What am I missing in this I wonder?
 
-> FYI: Looks like the change done in the init script for 4.1.4beta2 broke this
-> again; I'll revert to the 4.1.3 version and upload.
+Probably a different version of grep or something? I've had three separate
+bug reports on this, so I guess it _is_ indeed broken. :-)
 
-Strange, I just tested it again and I it works fine for me.
-What am I missing in this I wonder?
-
-Any more info. would be great.
-
->
-> BTW, there's also multiple people complaining about the new auto.* scripts
-> (see the Debian BTS), but I haven't had time to look into it yet.
-
-It would be good if you could check it out.
-I'm keen to know what's is broken.
-
-Ian
+/* Steinar */
+-- 
+Homepage: http://www.sesse.net/
