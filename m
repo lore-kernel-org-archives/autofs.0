@@ -1,49 +1,37 @@
-From: Herbert Poetzl <herbert@13thfloor.at>
-Subject: Re: [Patch 2/6] Bind Mount Extensions 0.06
-Date: Thu, 24 Feb 2005 22:17:27 +0100
-Message-ID: <20050224211727.GD4981@mail.13thfloor.at>
-References: <20050222121129.GC3682@mail.13thfloor.at> <20050223230105.GD21383@infradead.org>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: Use of egrep without "|| true" in the init.d script
+Date: Fri, 25 Feb 2005 09:20:21 +0800 (WST)
+Message-ID: <Pine.LNX.4.58.0502250919500.1291@wombat.indigo.net.au>
+References: <20050224131844.GA5150@uio.no>
 Mime-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20050223230105.GD21383@infradead.org>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <20050224131844.GA5150@uio.no>
 List-Id: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christoph Hellwig <hch@infradead.org>, Andrew Morton <akpm@osdl.org>, Al Viro <viro@parcelfarce.linux.theplanet.co.uk>, Linux Kernel ML <linux-kernel@vger.kernel.org>
-Cc: raven@themaw.net, autofs@linux.kernel.org
+To: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
+Cc: autofs@linux.kernel.org
 
-On Wed, Feb 23, 2005 at 11:01:05PM +0000, Christoph Hellwig wrote:
-> On Tue, Feb 22, 2005 at 01:11:29PM +0100, Herbert Poetzl wrote:
-> > 
-> > 
-> > ;
-> > ; Bind Mount Extensions
-> > ;
-> > ; This part adds the required checks for touch_atime() to allow
-> > ; for vfsmount based NOATIME and NODIRATIME
-> > ; autofs4 update_atime is the only exception (ignored on purpose)
+On Thu, 24 Feb 2005, Steinar H. Gunderson wrote:
+
+> Ian,
 > 
-> and that purpose is?  
+> Would you like to take a look at
+> http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=295480 ?
+> 
+> The problem looks real enough to me (although I don't see the specific
+> circumstances where it would break), and it should probably be fixed for
+> beta3.
+> 
 
-this is based on a statement from Al Viro:
+I'll see what I can come up with.
 
-| autofs4 use - AFAICS there we want atime updated unconditionally, 
-| so calling update_atime() (update atime after checking 
-| noatime/nodiratime/readonly flags) is wrong.
-
-agreed, maybe a proper fix would be better ...
-
-> Did you discuss this with the autofs maintainers?
-
-not yet!
-(cc-ed to automounter maintainer and list)
-
-thanks,
-Herbert
-
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+Ian
