@@ -1,13 +1,12 @@
-From: "Arthur Korn" <arthur@korn.ch>
-Subject: Re: autofs init script doesn't support exclude
-Date: Tue, 21 Sep 2004 22:39:20 +0200
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [patch] retrieve LDAP error message string
+Date: Wed, 22 Sep 2004 15:33:06 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <20040921203920.GA9988@turing>
-References: <20040920224949.GL23879@merlins.org>
+Message-ID: <Pine.LNX.4.58.0409221532330.25785@wombat.indigo.net.au>
+References: <414E8ED1.6040505@featia.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============12651624509252457=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20040920224949.GL23879@merlins.org>
+In-Reply-To: <414E8ED1.6040505@featia.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,70 +16,66 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
-
-
---===============12651624509252457==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="u3/rZRmxL6MmkK24"
-Content-Disposition: inline
-
-
---u3/rZRmxL6MmkK24
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi
-
-Marc MERLIN schrieb:
-> >From https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=3D91559
-
-> --- autofs.FCS  2003-01-27 20:22:54.000000000 -0800
-> +++ autofs      2003-05-23 18:38:27.000000000 -0700
-> @@ -34,6 +34,11 @@
->  initdir=3D/etc/init.d
-> =20
->  #
-> +# Read configuration options
-> +#
-> +[ -f /etc/sysconfig/autofs ] && . /etc/sysconfig/autofs
-
-This would be /etc/default/autofs for Debian then ...
-
-ciao, 2ri
---=20
-Secure email, spread GPG, clearsign all mail. http://www.gnupg.org
-=2E
-Options are optional.
- -- autofs(5)
-
---u3/rZRmxL6MmkK24
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQFBUJF4NgpsykSg/LgRAiGXAJ9KijmrMeg6BLKKXgelH8SurkX+1ACeM24J
-NNesfxdeMpE6pcAnXxRWkuM=
-=0rMD
------END PGP SIGNATURE-----
-
---u3/rZRmxL6MmkK24--
-
-
---===============12651624509252457==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: Jun Futagawa <jfut@featia.net>
+Cc: autofs@linux.kernel.org
 
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
 
---===============12651624509252457==--
+Thanks. I'll merge this.
 
+On Mon, 20 Sep 2004, Jun Futagawa wrote:
+
+> Hi,
+> 
+> When I updated to v4 from v3, I encountered the following error message.
+> 
+> automount[26411]: lookup(ldap): query failed for (&(objectclass=automount))
+> automount[26411]: failed to load map, exiting
+> 
+> Since the details of the error were not found, I applied the following patch.
+> 
+> --- autofs-4.1.3/modules/lookup_ldap.c.orig	2004-04-03 16:14:33.000000000 +0900
+> +++ autofs-4.1.3/modules/lookup_ldap.c	2004-09-20 13:36:53.193400776 +0900
+> @@ -222,7 +222,7 @@
+>  			   query, attrs, 0, &result);
+>  
+>  	if ((rv != LDAP_SUCCESS) || (result == NULL)) {
+> -		crit(MODPREFIX "query failed for %s", query);
+> +		crit(MODPREFIX "query failed for %s: %s", query, ldap_err2string(rv));
+>  		return 0;
+>  	}
+>  
+> 
+> The patched error message in the case of using OpenLDAP is as follows.
+> 
+> automount[29790]: lookup(ldap): query failed for (&(objectclass=automount)): Size limit exceeded
+> automount[29790]: failed to load map, exiting
+> 
+> It was because the search query to LDAP was changed by v3 and v4.
+> # query for user1 map
+> v4: (&(objectclass=automount))
+> v3: (&(objectclass=automount)(cn=user1))
+> 
+> I solved this problem by specifying the sizelimit directive to the
+> configuration file of OpenLDAP server for your reference.
+> http://www.openldap.org/doc/admin22/slapdconfig.html
+> 
+> # /etc/openldap/slapd.conf
+> sizelimit 5000
+> (The default is 500. But, I have many entries more than it.)
+> 
+> I want this patch to be merged so that the cause of an error can be
+> identified.
+> 
+> -- 
+> Jun Futagawa
+> SMBLDAP-TOOLS Addons http://smbldap-addons.sourceforge.net/
+> The smbldap-autofs-tools provides a anagement function of automount and 
+> automountMap entries defined by autofs.schema.
+> 
+> _______________________________________________
+> autofs mailing list
+> autofs@linux.kernel.org
+> http://linux.kernel.org/mailman/listinfo/autofs
+> 
