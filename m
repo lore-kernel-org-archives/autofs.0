@@ -1,12 +1,13 @@
-From: Phy Prabab <phyprabab@yahoo.com>
+From: raven@themaw.net
 Subject: Re: Possbile issue with ghost and timeout
-Date: Mon, 28 Jun 2004 18:10:45 -0700 (PDT)
+Date: Tue, 29 Jun 2004 20:57:53 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <20040629011045.49409.qmail@web51810.mail.yahoo.com>
-References: <Pine.LNX.4.58.0406290905300.5546@wombat.indigo.net.au>
+Message-ID: <Pine.LNX.4.58.0406292051300.14746@donald.themaw.net>
+References: <20040629011045.49409.qmail@web51810.mail.yahoo.com>
 Mime-Version: 1.0
+Content-Type: MULTIPART/MIXED; BOUNDARY="19054760-127125582-1088513873=:14746"
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0406290905300.5546@wombat.indigo.net.au>
+In-Reply-To: <20040629011045.49409.qmail@web51810.mail.yahoo.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,50 +17,203 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
+To: Phy Prabab <phyprabab@yahoo.com>
+Cc: autofs mailing list <autofs@linux.kernel.org>
+
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+  Send mail to mime@docserver.cac.washington.edu for more info.
+
+--19054760-127125582-1088513873=:14746
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+
+On Mon, 28 Jun 2004, Phy Prabab wrote:
+
+> Ian,
+> 
+> Of course I am willing to test out patches.  Please
+> post location and I can try to test it out
+> tonight/tomrrow morning US time.
+
+Cool.
+
+Attached is the patch that may help with the problem you describe.
+
+I recommend that you first also apply the patches:
+
+autofs-4.1.3-strict.patch
+autofs-4.1.3-mtab_lock.patch
+
+located at http://www.kernel.org/pub/linux/daemons/autofs/v4.
+
+Ian
+
+--19054760-127125582-1088513873=:14746
+Content-Type: TEXT/PLAIN; charset=US-ASCII;
+	name="autofs-4.1.3-bad_chdir.patch"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.58.0406292057530.14746@donald.themaw.net>
+Content-Description: this may address your problem
+Content-Disposition: attachment; filename="autofs-4.1.3-bad_chdir.patch"
+
+ZGlmZiAtTnVyIGF1dG9mcy00LjEuMy5vcmlnL2RhZW1vbi9hdXRvbW91bnQu
+YyBhdXRvZnMtNC4xLjMvZGFlbW9uL2F1dG9tb3VudC5jDQotLS0gYXV0b2Zz
+LTQuMS4zLm9yaWcvZGFlbW9uL2F1dG9tb3VudC5jCTIwMDQtMDQtMDUgMjE6
+MTQ6MTAuMDAwMDAwMDAwICswODAwDQorKysgYXV0b2ZzLTQuMS4zL2RhZW1v
+bi9hdXRvbW91bnQuYwkyMDA0LTA2LTA1IDIxOjEzOjI4LjAwMDAwMDAwMCAr
+MDgwMA0KQEAgLTk5LDggKzk5LDExIEBADQogDQogCQkJCQlpZiAoc3RhdChi
+dWYsICZzdCkgPT0gMCAmJiAhU19JU0RJUihzdC5zdF9tb2RlKSkNCiAJCQkJ
+CQllcnJubyA9IEVOT1RESVI7DQotCQkJCQllbHNlDQotCQkJCQkJY29udGlu
+dWU7DQorCQkJCQllbHNlIHsNCisJCQkJCQkvKiBsYXN0IGNvbXBvbmVudCwg
+cmV0dXJuIC0xICovDQorCQkJCQkJaWYgKCpjcCAhPSAnXDAnKQ0KKwkJCQkJ
+CQljb250aW51ZTsNCisJCQkJCX0NCiAJCQkJfQ0KIAkJCQlyZXR1cm4gLTE7
+DQogCQkJfQ0KQEAgLTEwODgsOSArMTA5MSwxMSBAQA0KIAkJCWNsb3NlKGFw
+LnN0YXRlX3BpcGVbMF0pOw0KIAkJCWNsb3NlKGFwLnN0YXRlX3BpcGVbMV0p
+Ow0KIA0KKwkJCWNoZGlyKGFwLnBhdGgpOw0KIAkJCWVyciA9IGFwLmxvb2t1
+cC0+bG9va3VwX21vdW50KGFwLnBhdGgsDQogCQkJCQkJICAgICAgcGt0LT5u
+YW1lLCBwa3QtPmxlbiwNCiAJCQkJCQkgICAgICBhcC5sb29rdXAtPmNvbnRl
+eHQpOw0KKwkJCWNoZGlyKCIvIik7DQogDQogCQkJLyoNCiAJCQkgKiBJZiBh
+dCBmaXJzdCB5b3UgZG9uJ3Qgc3VjY2VlZCwgaGlkZSBhbGwNCkBAIC0xMTYz
+LDggKzExNjgsMTEgQEANCiAJCSAgIGl0Lg0KIAkJICovDQogDQorCQljaGRp
+cihhcC5wYXRoKTsNCiAJCXJldCA9IGFwLmxvb2t1cC0+bG9va3VwX21vdW50
+KGFwLnBhdGgsIA0KIAkJCQkJbmFtZSwgbmFtZWxlbiwgYXAubG9va3VwLT5j
+b250ZXh0KTsNCisJCWNoZGlyKCIvIik7DQorDQogCQlpZiAocmV0KQ0KIAkJ
+CWVycm9yKCJmYWlsZWQgdG8gcmVjb3ZlciBmcm9tIHBhcnRpYWwgZXhwaXJ5
+IG9mICVzXG4iLA0KIAkJCSAgICAgICBidWYpOw0KZGlmZiAtTnVyIGF1dG9m
+cy00LjEuMy5vcmlnL21vZHVsZXMvbW91bnRfYmluZC5jIGF1dG9mcy00LjEu
+My9tb2R1bGVzL21vdW50X2JpbmQuYw0KLS0tIGF1dG9mcy00LjEuMy5vcmln
+L21vZHVsZXMvbW91bnRfYmluZC5jCTIwMDQtMDUtMTAgMjA6NDQ6MzAuMDAw
+MDAwMDAwICswODAwDQorKysgYXV0b2ZzLTQuMS4zL21vZHVsZXMvbW91bnRf
+YmluZC5jCTIwMDQtMDYtMDUgMTg6MTI6MzguMDAwMDAwMDAwICswODAwDQpA
+QCAtMTA3LDE1ICsxMDcsMTkgQEANCiAJCWZ1bGxwYXRoW2ldID0gJ1wwJzsN
+CiANCiAJaWYgKGJpbmRfd29ya3MpIHsNCi0JCWludCBzdGF0dXM7DQorCQlp
+bnQgc3RhdHVzLCBleGlzdGVkID0gMTsNCiANCiAJCWRlYnVnKE1PRFBSRUZJ
+WCAiY2FsbGluZyBta2Rpcl9wYXRoICVzIiwgZnVsbHBhdGgpOw0KIA0KLQkJ
+aWYgKChzdGF0dXMgPSBta2Rpcl9wYXRoKGZ1bGxwYXRoLCAwNTU1KSkgJiYg
+ZXJybm8gIT0gRUVYSVNUKSB7DQorCQlzdGF0dXMgPSBta2Rpcl9wYXRoKGZ1
+bGxwYXRoLCAwNTU1KTsNCisJCWlmIChzdGF0dXMgJiYgZXJybm8gIT0gRUVY
+SVNUKSB7DQogCQkJZXJyb3IoTU9EUFJFRklYICJta2Rpcl9wYXRoICVzIGZh
+aWxlZDogJW0iLCBmdWxscGF0aCk7DQogCQkJcmV0dXJuIDE7DQogCQl9DQog
+DQorCQlpZiAoIXN0YXR1cykNCisJCQlleGlzdGVkID0gMDsNCisNCiAJCWlm
+IChpc19tb3VudGVkKGZ1bGxwYXRoKSkgew0KIAkJCXdhcm4oIkJVRzogJXMg
+YWxyZWFkeSBtb3VudGVkIiwgZnVsbHBhdGgpOw0KIAkJCXJldHVybiAwOw0K
+QEAgLTEzMCw3ICsxMzQsNyBAQA0KIAkJdW5saW5rKEFVVE9GU19MT0NLKTsN
+CiANCiAJCWlmIChlcnIpIHsNCi0JCQlpZiAoIWFwLmdob3N0ICYmIG5hbWVf
+bGVuKQ0KKwkJCWlmICgoIWFwLmdob3N0ICYmIG5hbWVfbGVuKSB8fCAhZXhp
+c3RlZCkNCiAJCQkJcm1kaXJfcGF0aChuYW1lKTsNCiAJCQlyZXR1cm4gMTsN
+CiAJCX0gZWxzZSB7DQpkaWZmIC1OdXIgYXV0b2ZzLTQuMS4zLm9yaWcvbW9k
+dWxlcy9tb3VudF9jaGFuZ2VyLmMgYXV0b2ZzLTQuMS4zL21vZHVsZXMvbW91
+bnRfY2hhbmdlci5jDQotLS0gYXV0b2ZzLTQuMS4zLm9yaWcvbW9kdWxlcy9t
+b3VudF9jaGFuZ2VyLmMJMjAwNC0wNS0xMCAyMDo0NDozMC4wMDAwMDAwMDAg
+KzA4MDANCisrKyBhdXRvZnMtNC4xLjMvbW9kdWxlcy9tb3VudF9jaGFuZ2Vy
+LmMJMjAwNC0wNi0wNSAxODoxODowNC4wMDAwMDAwMDAgKzA4MDANCkBAIC01
+Miw3ICs1Miw3IEBADQogew0KIAljaGFyICpmdWxscGF0aDsNCiAJaW50IGVy
+cjsNCi0JaW50IHN0YXR1czsNCisJaW50IHN0YXR1cywgZXhpc3RlZCA9IDE7
+DQogDQogCWZzdHlwZSA9ICJpc285NjYwIjsNCiANCkBAIC04MCwxMSArODAs
+MTUgQEANCiANCiAJZGVidWcoTU9EUFJFRklYICJjYWxsaW5nIG1rZGlyX3Bh
+dGggJXMiLCBmdWxscGF0aCk7DQogDQotCWlmICgoc3RhdHVzID0gbWtkaXJf
+cGF0aChmdWxscGF0aCwgMDU1NSkpICYmIGVycm5vICE9IEVFWElTVCkgew0K
+KwlzdGF0dXMgPSBta2Rpcl9wYXRoKGZ1bGxwYXRoLCAwNTU1KTsNCisJaWYg
+KHN0YXR1cyAmJiBlcnJubyAhPSBFRVhJU1QpIHsNCiAJCWVycm9yKE1PRFBS
+RUZJWCAibWtkaXJfcGF0aCAlcyBmYWlsZWQ6ICVtIiwgZnVsbHBhdGgpOw0K
+IAkJcmV0dXJuIDE7DQogCX0NCiANCisJaWYgKCFzdGF0dXMpDQorCQlleGlz
+dGVkID0gMDsNCisNCiAJZGVidWcoTU9EUFJFRklYICJTd2FwcGluZyBDRCB0
+byBzbG90ICVzIiwgbmFtZSk7DQogDQogCWVyciA9IHN3YXBDRCh3aGF0LCBu
+YW1lKTsNCkBAIC0xMTEsNyArMTE1LDcgQEANCiAJdW5saW5rKEFVVE9GU19M
+T0NLKTsNCiANCiAJaWYgKGVycikgew0KLQkJaWYgKCFhcC5naG9zdCAmJiBu
+YW1lX2xlbikNCisJCWlmICgoIWFwLmdob3N0ICYmIG5hbWVfbGVuKSB8fCAh
+ZXhpc3RlZCkNCiAJCQlybWRpcl9wYXRoKG5hbWUpOw0KIA0KIAkJZXJyb3Io
+TU9EUFJFRklYICJmYWlsZWQgdG8gbW91bnQgJXMgKHR5cGUgJXMpIG9uICVz
+IiwNCmRpZmYgLU51ciBhdXRvZnMtNC4xLjMub3JpZy9tb2R1bGVzL21vdW50
+X2V4dDIuYyBhdXRvZnMtNC4xLjMvbW9kdWxlcy9tb3VudF9leHQyLmMNCi0t
+LSBhdXRvZnMtNC4xLjMub3JpZy9tb2R1bGVzL21vdW50X2V4dDIuYwkyMDA0
+LTA1LTEwIDIwOjQ0OjMwLjAwMDAwMDAwMCArMDgwMA0KKysrIGF1dG9mcy00
+LjEuMy9tb2R1bGVzL21vdW50X2V4dDIuYwkyMDA0LTA2LTA1IDE4OjIzOjA5
+LjAwMDAwMDAwMCArMDgwMA0KQEAgLTQwLDcgKzQwLDYgQEANCiAJcmV0dXJu
+IDA7DQogfQ0KIA0KLQ0KIGludCBtb3VudF9tb3VudChjb25zdCBjaGFyICpy
+b290LCBjb25zdCBjaGFyICpuYW1lLCBpbnQgbmFtZV9sZW4sDQogCQljb25z
+dCBjaGFyICp3aGF0LCBjb25zdCBjaGFyICpmc3R5cGUsIGNvbnN0IGNoYXIg
+Km9wdGlvbnMsIHZvaWQgKmNvbnRleHQpDQogew0KQEAgLTQ4LDcgKzQ3LDcg
+QEANCiAJY29uc3QgY2hhciAqcCwgKnAxOw0KIAlpbnQgZXJyLCBybyA9IDA7
+DQogCWNvbnN0IGNoYXIgKmZzY2tfcHJvZzsNCi0JaW50IHN0YXR1czsNCisJ
+aW50IHN0YXR1cywgZXhpc3RlZCA9IDE7DQogDQogCWZ1bGxwYXRoID0gYWxs
+b2NhKHN0cmxlbihyb290KSArIG5hbWVfbGVuICsgMik7DQogCWlmICghZnVs
+bHBhdGgpIHsNCkBAIC02MywxMSArNjIsMTUgQEANCiANCiAJZGVidWcoTU9E
+UFJFRklYICJjYWxsaW5nIG1rZGlyX3BhdGggJXMiLCBmdWxscGF0aCk7DQog
+DQotCWlmICgoc3RhdHVzID0gbWtkaXJfcGF0aChmdWxscGF0aCwgMDU1NSkp
+ICYmIGVycm5vICE9IEVFWElTVCkgew0KKwlzdGF0dXMgPSBta2Rpcl9wYXRo
+KGZ1bGxwYXRoLCAwNTU1KTsNCisJaWYgKHN0YXR1cyAmJiBlcnJubyAhPSBF
+RVhJU1QpIHsNCiAJCWVycm9yKE1PRFBSRUZJWCAibWtkaXJfcGF0aCAlcyBm
+YWlsZWQ6ICVtIiwgZnVsbHBhdGgpOw0KIAkJcmV0dXJuIDE7DQogCX0NCiAN
+CisJaWYgKCFzdGF0dXMpDQorCQlleGlzdGVkID0gMDsNCisNCiAJaWYgKGlz
+X21vdW50ZWQoZnVsbHBhdGgpKSB7DQogCQllcnJvcigiQlVHOiAlcyBhbHJl
+YWR5IG1vdW50ZWQiLCBmdWxscGF0aCk7DQogCQlyZXR1cm4gMDsNCkBAIC0x
+MjAsNyArMTIzLDcgQEANCiAJdW5saW5rKEFVVE9GU19MT0NLKTsNCiANCiAJ
+aWYgKGVycikgew0KLQkJaWYgKCFhcC5naG9zdCAmJiBuYW1lX2xlbikNCisJ
+CWlmICgoIWFwLmdob3N0ICYmIG5hbWVfbGVuKSB8fCAhZXhpc3RlZCkNCiAJ
+CQlybWRpcl9wYXRoKG5hbWUpOw0KIAkJZXJyb3IoTU9EUFJFRklYICJmYWls
+ZWQgdG8gbW91bnQgJXMgKHR5cGUgJXMpIG9uICVzIiwNCiAJCSAgICAgIHdo
+YXQsIGZzdHlwZSwgZnVsbHBhdGgpOw0KZGlmZiAtTnVyIGF1dG9mcy00LjEu
+My5vcmlnL21vZHVsZXMvbW91bnRfZ2VuZXJpYy5jIGF1dG9mcy00LjEuMy9t
+b2R1bGVzL21vdW50X2dlbmVyaWMuYw0KLS0tIGF1dG9mcy00LjEuMy5vcmln
+L21vZHVsZXMvbW91bnRfZ2VuZXJpYy5jCTIwMDQtMDUtMTAgMjA6NDQ6MzAu
+MDAwMDAwMDAwICswODAwDQorKysgYXV0b2ZzLTQuMS4zL21vZHVsZXMvbW91
+bnRfZ2VuZXJpYy5jCTIwMDQtMDYtMDUgMTg6MjI6MTAuMDAwMDAwMDAwICsw
+ODAwDQpAQCAtNDYsNyArNDYsNyBAQA0KIHsNCiAJY2hhciAqZnVsbHBhdGg7
+DQogCWludCBlcnI7DQotCWludCBzdGF0dXM7DQorCWludCBzdGF0dXMsIGV4
+aXN0ZWQgPSAxOw0KIA0KIAlmdWxscGF0aCA9IGFsbG9jYShzdHJsZW4ocm9v
+dCkgKyBuYW1lX2xlbiArIDIpOw0KIAlpZiAoIWZ1bGxwYXRoKSB7DQpAQCAt
+NjEsMTEgKzYxLDE1IEBADQogDQogCWRlYnVnKE1PRFBSRUZJWCAiY2FsbGlu
+ZyBta2Rpcl9wYXRoICVzIiwgZnVsbHBhdGgpOw0KIA0KLQlpZiAoKHN0YXR1
+cyA9IG1rZGlyX3BhdGgoZnVsbHBhdGgsIDA1NTUpKSAmJiBlcnJubyAhPSBF
+RVhJU1QpIHsNCisJc3RhdHVzID0gbWtkaXJfcGF0aChmdWxscGF0aCwgMDU1
+NSk7DQorCWlmIChzdGF0dXMgJiYgZXJybm8gIT0gRUVYSVNUKSB7DQogCQll
+cnJvcihNT0RQUkVGSVggIm1rZGlyX3BhdGggJXMgZmFpbGVkOiAlbSIsIGZ1
+bGxwYXRoKTsNCiAJCXJldHVybiAxOw0KIAl9DQogDQorCWlmICghc3RhdHVz
+KQ0KKwkJZXhpc3RlZCA9IDA7DQorDQogCWlmIChpc19tb3VudGVkKGZ1bGxw
+YXRoKSkgew0KIAkJZXJyb3IoIkJVRzogJXMgYWxyZWFkeSBtb3VudGVkIiwg
+ZnVsbHBhdGgpOw0KIAkJcmV0dXJuIDA7DQpAQCAtODksNyArOTMsNyBAQA0K
+IAl1bmxpbmsoQVVUT0ZTX0xPQ0spOw0KIA0KIAlpZiAoZXJyKSB7DQotCQlp
+ZiAoIWFwLmdob3N0ICYmIG5hbWVfbGVuKQ0KKwkJaWYgKCghYXAuZ2hvc3Qg
+JiYgbmFtZV9sZW4pIHx8ICFleGlzdGVkKQ0KIAkJCXJtZGlyX3BhdGgobmFt
+ZSk7DQogDQogCQllcnJvcihNT0RQUkVGSVggImZhaWxlZCB0byBtb3VudCAl
+cyAodHlwZSAlcykgb24gJXMiLA0KZGlmZiAtTnVyIGF1dG9mcy00LjEuMy5v
+cmlnL21vZHVsZXMvbW91bnRfbmZzLmMgYXV0b2ZzLTQuMS4zL21vZHVsZXMv
+bW91bnRfbmZzLmMNCi0tLSBhdXRvZnMtNC4xLjMub3JpZy9tb2R1bGVzL21v
+dW50X25mcy5jCTIwMDQtMDYtMDUgMTQ6MjQ6NTguMDAwMDAwMDAwICswODAw
+DQorKysgYXV0b2ZzLTQuMS4zL21vZHVsZXMvbW91bnRfbmZzLmMJMjAwNC0w
+Ni0wNSAyMToxMDoxNy4wMDAwMDAwMDAgKzA4MDANCkBAIC00NDUsMTQgKzQ0
+NSwxOSBAQA0KIAkJCSAgICAgICB3aGF0c3RyLCAiYmluZCIsIE5VTEwsIG1v
+dW50X2JpbmQtPmNvbnRleHQpOw0KIAl9IGVsc2Ugew0KIAkJLyogTm90IGEg
+bG9jYWwgaG9zdCAtIGRvIGFuIE5GUyBtb3VudCAqLw0KLQkJaW50IHN0YXR1
+czsNCisJCWludCBzdGF0dXMsIGV4aXN0ZWQgPSAxOw0KIA0KIAkJZGVidWco
+TU9EUFJFRklYICJjYWxsaW5nIG1rZGlyX3BhdGggJXMiLCBmdWxscGF0aCk7
+DQotCQlpZiAoKHN0YXR1cyA9IG1rZGlyX3BhdGgoZnVsbHBhdGgsIDA1NTUp
+KSAmJiBlcnJubyAhPSBFRVhJU1QpIHsNCisNCisJCXN0YXR1cyA9IG1rZGly
+X3BhdGgoZnVsbHBhdGgsIDA1NTUpOw0KKwkJaWYgKHN0YXR1cyAmJiBlcnJu
+byAhPSBFRVhJU1QpIHsNCiAJCQllcnJvcihNT0RQUkVGSVggIm1rZGlyX3Bh
+dGggJXMgZmFpbGVkOiAlbSIsIGZ1bGxwYXRoKTsNCiAJCQlyZXR1cm4gMTsN
+CiAJCX0NCiANCisJCWlmICghc3RhdHVzKQ0KKwkJCWV4aXN0ZWQgPSAwOw0K
+Kw0KIAkJaWYgKGlzX21vdW50ZWQoZnVsbHBhdGgpKSB7DQogCQkJZXJyb3Io
+IkJVRzogJXMgYWxyZWFkeSBtb3VudGVkIiwgZnVsbHBhdGgpOw0KIAkJCXJl
+dHVybiAwOw0KQEAgLTQ3Nyw4ICs0ODIsOSBAQA0KIAkJdW5saW5rKEFVVE9G
+U19MT0NLKTsNCiANCiAJCWlmIChlcnIpIHsNCi0JCQlpZiAoIWFwLmdob3N0
+ICYmIG5hbWVfbGVuKQ0KKwkJCWlmICgoIWFwLmdob3N0ICYmIG5hbWVfbGVu
+KSB8fCAhZXhpc3RlZCkNCiAJCQkJcm1kaXJfcGF0aChuYW1lKTsNCisNCiAJ
+CQllcnJvcihNT0RQUkVGSVggIm5mczogbW91bnQgZmFpbHVyZSAlcyBvbiAl
+cyIsDQogCQkJICAgICAgd2hhdHN0ciwgZnVsbHBhdGgpOw0KIAkJCXJldHVy
+biAxOw0K
+
+--19054760-127125582-1088513873=:14746
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+Content-Disposition: inline
 
-Ian,
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
 
-Of course I am willing to test out patches.  Please
-post location and I can try to test it out
-tonight/tomrrow morning US time.
+--19054760-127125582-1088513873=:14746--
 
-Thanks!
-Phy
-
---- Ian Kent <raven@themaw.net> wrote:
-> On Mon, 28 Jun 2004, Phy Prabab wrote:
-> 
-> > Ian et al,
-> > 
-> > > Have you applied the kernel module update?
-> > > What release?
-> > 
-> > Using 2.6.7 (also tried various bk's) with
-> > autofs-4.1.3 on x86.  I do not use modules and did
-> not
-> > see any patches that were applicable.
-> > 
-> 
-> 2.6.7 has the autofs updates included.
-> 
-> I'll have to compile a 2.6.7 and test this out.
-> There is a patch for 4.1.3 that might address this.
-> I don't have it with 
-> me now so I'll send it tonight. Will you be willing
-> to try it out?
-> 
-> Ian
-> 
-> 
-
-
-
-		
-__________________________________
-Do you Yahoo!?
-New and Improved Yahoo! Mail - Send 10MB messages!
-http://promotions.yahoo.com/new_mail 
