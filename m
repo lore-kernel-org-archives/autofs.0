@@ -1,10 +1,11 @@
-From: Greg Bradner <gregb@rhythm.com>
-Subject: shut down path
-Date: Fri, 26 Mar 2004 05:53:03 -0800
+From: =?koi8-r?Q?=22?=Peter Lojkin=?koi8-r?Q?=22=20?= <ia6432@inbox.ru>
+Subject: autofs reload
+Date: Fri, 26 Mar 2004 18:41:00 +0300
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <406435BF.4090801@rhythm.com>
+Message-ID: <E1B6tS8-0009vh-00.ia6432-inbox-ru@f10.mail.ru>
+Reply-To: =?koi8-r?Q?=22?=Peter Lojkin=?koi8-r?Q?=22=20?= <ia6432@inbox.ru>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -15,29 +16,29 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 To: autofs@linux.kernel.org
 
-Why or what would cause autofs to 'shut down' a path?
-from /var/log/messages:
-Mar 24 16:41:16 lid2 automount[992]: shut down, path = /ntap12
+Hello,
 
-I am running autofs-4.1.0.
-redhat 7.3
-kernel 2.4.25
+how to do correct autofs map reload?
+with older (3.9.99-4.0.0pre10) autofs updating nis maps works ok.
+for example changing in auto.home:
+host1:/export/home/user
+to
+host2:/export/home/user
+and doing ls /home/user leads to mounting new users home.
 
-I am using the autofs4 module that ships which 7.3
-# modinfo autofs4
-filename:    /lib/modules/2.4.25/kernel/fs/autofs4/autofs4.o
-description: <none>
-author:      <none>
-license:     "GPL"
+in autofs 4.1.0 (autofs4-20031201 in kernel) it tries to mount host1
+even after 5 hours wait and nscd/nis restart.
 
--- 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Rhythm & Hues
-5404 Jandy Place
-Los Angeles, CA 90066
-Voice: 310 448-7763
-Fax:   310 448-7600
-gregb@rhythm.com
+if i do /etc/init.d/autofs reload it rereads nis maps but starts _new_
+automount processes for all maps i.e. i get 2 automount for each map.
+after another reload i get 3 etc. and if i understand it correctly they
+all try to manage mount points...
+
+if i do /etc/init.d/autofs restart (or stop/start) i get all directories
+that were mounted prior to restart empty. all of them are mounted but
+ls gives empty directory.
+
+so how to do correct autofs map reload?
