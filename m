@@ -1,16 +1,16 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: BUG: autofs4 + cd /net/<Netapp>/vol/vol[0-3] = port 
 	usage problems
-Date: Wed, 19 Jan 2005 01:00:28 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0501190058540.5388@raven-wl.themaw.net>
+Date: Wed, 19 Jan 2005 01:04:37 +0800 (WST)
+Message-ID: <Pine.LNX.4.58.0501190101000.5388@raven-wl.themaw.net>
 References: <200501142238.j0EMcbOT002214@jetcar.spd.analog.com>
 	<Pine.LNX.4.61.0501151035230.1597@donald.themaw.net>
 	<16875.53538.836665.652032@segfault.boston.redhat.com>
 	<Pine.LNX.4.58.0501180922310.32570@wombat.indigo.net.au>
-	<16877.6865.609132.621298@segfault.boston.redhat.com>
+	<16877.6946.710259.562902@segfault.boston.redhat.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <16877.6865.609132.621298@segfault.boston.redhat.com>
+In-Reply-To: <16877.6946.710259.562902@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -72,24 +72,23 @@ On Tue, 18 Jan 2005, Jeff Moyer wrote:
 > raven> I looked at the code in an FC2 mount and found that it did quite a
 > raven> bit of probing.
 > 
-> raven> In itself this is probably a good thing as it's more comprehensive
-> raven> than what I do for replicated server mount entries and it may be a
-> raven> precursor to providing that functionality in mount. This just means
-> raven> that we need to get a handle on the objections to RPC transport
-> raven> multiplexing and get it done.
+> [snip]
 > 
-> Umm, you want mount to support replicated servers?  Interesting idea, but
-> I'm not sure I like it.
+> raven> This just means that we need to get a handle on the objections to
+> raven> RPC transport multiplexing and get it done.
 > 
-> raven> Using non-priveledged ports has other dependencies. For example, on
-> raven> Debian with 2.4.27 mountd rejects connections from non-priveledged
-> raven> ports. I didn't spend much time to find out if I could work around
-> raven> it but never the less it likely will generate a bit of noise.
-> 
-> Right.  But you can still try to connect using non-priveledged ports, and
-> fallback to the current code path if that fails.
+> I forwarded Mike's patch off to Steve Dickson.  However, with the caveats
+> he listed, I'm not optimistic.
 
-But mount doesn't work (in this case) when the kernel on the server end 
-doesn't support non-priveledged ports but the client does.
+Neither am I. The patch that Trond originally did is probably a better 
+starting point.
+
+There's quite a bit to do meantime such as, general testing, scalability 
+testing, dynamically allocating a new transport if a request slot can't be 
+allocated and so on.
+
+There will be quite a bit more discussion on this I expect.
+
+What is Steves responsibility here?
 
 Ian
