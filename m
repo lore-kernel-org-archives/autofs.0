@@ -1,14 +1,13 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Re[4]: autofs reload
-Date: Sat, 27 Mar 2004 09:37:00 +0800 (WST)
+From: Greg Bradner <gregb@rhythm.com>
+Subject: Re: shut down path
+Date: Sat, 27 Mar 2004 11:55:47 -0800 (PST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0403270930210.28173@wombat.indigo.net.au>
-References: <16484.25454.659035.551208@segfault.boston.redhat.com>
- <E1B6v3m-0000cJ-00.ia6432-inbox-ru@f25.mail.ru>
- <16484.27293.279258.40887@segfault.boston.redhat.com>
+Message-ID: <Pine.LNX.4.53.0403271153050.2637@lid2.rhythm.com>
+References: <406435BF.4090801@rhythm.com>
+	<Pine.LNX.4.58.0403270922350.28173@wombat.indigo.net.au>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <16484.27293.279258.40887@segfault.boston.redhat.com>
+In-Reply-To: <Pine.LNX.4.58.0403270922350.28173@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,23 +19,31 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jeff Moyer <jmoyer@redhat.com>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-On Fri, 26 Mar 2004, Jeff Moyer wrote:
+One of the other admins found the kernel is killing processes, which ask
+for memory, under heavy load.
 
-> 
-> It may even be beneficial to change autofs reload to send a HUP to all
-> automount daemons.  Ian, what do you think?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Rhythm & Hues
+5404 Jandy Place
+Los Angeles, CA 90066
+Voice: 310 448-7763
+Fax:   310 448-7600
+gregb@rhythm.com
 
-Oops. My bad. Implemented HUP signal for cached maps but forgot all about 
-init script. I'll put together a patch for that and post it. I'm working 
-all day today (Saturday) so it won't be till tomorrow.
+On Sat, 27 Mar 2004, Ian Kent wrote:
 
-I see you added that prevent over mount patch to the rpm as well. I like 
-that one to I'm going to add it also. I'm guessing that's OK with you 
-Jeff.
-
-I'm thinking there will be a 4.1.2 bug fix release soon.
-
-Ian
+> On Fri, 26 Mar 2004, Greg Bradner wrote:
+>
+> > Why or what would cause autofs to 'shut down' a path?
+> > from /var/log/messages:
+> > Mar 24 16:41:16 lid2 automount[992]: shut down, path = /ntap12
+>
+> Usually an uncaught signal.
+>
+> Need a bit more info about you situation.
+>
+> Ian
+>
