@@ -1,46 +1,49 @@
-From: "atlantos41" <atlantos41@yandex.ru>
-Subject: Is autofs4 8-bit compatible?
-Date: Thu, 24 Feb 2005 23:54:29 +0300 (MSK)
-Message-ID: <421E3F05.00006A.08775@mfront7.yandex.ru>
-Reply-To: atlantos41@yandex.ru
+From: Herbert Poetzl <herbert@13thfloor.at>
+Subject: Re: [Patch 2/6] Bind Mount Extensions 0.06
+Date: Thu, 24 Feb 2005 22:17:27 +0100
+Message-ID: <20050224211727.GD4981@mail.13thfloor.at>
+References: <20050222121129.GC3682@mail.13thfloor.at> <20050223230105.GD21383@infradead.org>
 Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+In-Reply-To: <20050223230105.GD21383@infradead.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="iso-8859-1"
-To: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Christoph Hellwig <hch@infradead.org>, Andrew Morton <akpm@osdl.org>, Al Viro <viro@parcelfarce.linux.theplanet.co.uk>, Linux Kernel ML <linux-kernel@vger.kernel.org>
+Cc: raven@themaw.net, autofs@linux.kernel.org
 
-Hi.
-I start automount with command:
-automount --timeout=3D60 /smb file /etc/auto.smb
+On Wed, Feb 23, 2005 at 11:01:05PM +0000, Christoph Hellwig wrote:
+> On Tue, Feb 22, 2005 at 01:11:29PM +0100, Herbert Poetzl wrote:
+> > 
+> > 
+> > ;
+> > ; Bind Mount Extensions
+> > ;
+> > ; This part adds the required checks for touch_atime() to allow
+> > ; for vfsmount based NOATIME and NODIRATIME
+> > ; autofs4 update_atime is the only exception (ignored on purpose)
+> 
+> and that purpose is?  
 
-where /etc/auto.smb is
-test_data<cyrchar>est    -fstype=3Dsmbfs    ://test/data<cyrchar>est
+this is based on a statement from Al Viro:
 
-where <cyrchar> is one cyrillic char, for example "=D4", i. e.
-~ echo -n <cyrchar> | hexdump
-0000000 00d4                                  =20
-0000001
+| autofs4 use - AFAICS there we want atime updated unconditionally, 
+| so calling update_atime() (update atime after checking 
+| noatime/nodiratime/readonly flags) is wrong.
 
-When I try to change directory to /smb/test_data<cyrchar>est, then autofs=
-=20
-fails with messages in syslog:
-automount[13111]: failed to mount /smb/test_data
+agreed, maybe a proper fix would be better ...
 
-But if I change key in /etc/auto.smb to 7-bit, for example=20
-"test_data<cyrchar>est" to "test_datatest":
-test_datatest    -fstype=3Dsmbfs    ://test/data<cyrchar>est
+> Did you discuss this with the autofs maintainers?
 
-and then restart automount, autofs works as it should be.
+not yet!
+(cc-ed to automounter maintainer and list)
 
-This problem appears to be in autofs 4.1.3 and autofs 4.1.4_beta1, but no=
-t in=20
-autofs 3.1.7.
+thanks,
+Herbert
+
+> -
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
