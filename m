@@ -1,11 +1,13 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Remove autofs v3?
-Date: Sat, 12 Jun 2004 17:00:01 -0700
+From: "Dimitry V. Ketov" <Dimitry.Ketov@avalon.ru>
+Subject: RE: Another (stupid) question: autofs vs nfs for
+	automounting purposes
+Date: Mon, 14 Jun 2004 11:59:24 +0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <40CB9901.20300@zytor.com>
+Message-ID: <E1B7C89B8DCB084C809A22D7FEB90B3841AF@frodo.avalon.ru>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
+content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -15,18 +17,29 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: autofs <autofs@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: autofs@linux.kernel.org
 
-I have not been actively maintaining autofs v3 for years, and Ian seems 
-to have done a great job shoring up autofs v4 to the point where it 
-should be able to take over at least in all scenarios where autofs v3 
-was useful.
+> -----Original Message-----
+> From: raven@themaw.net [mailto:raven@themaw.net] 
+> 
+> On Fri, 11 Jun 2004, Dimitry V. Ketov wrote:
+> 
+> > - Which reasons (besides simplicity) led developers to the autofs 
+> > solution?
+> > - What's wrong with nfs for the same things?
+> 
+> I don't understand your question.
+> 
+> What has NFS to do with automounting?
+Sorry, if I'm unclear.
+I really meant communication protocol between kernel and the userspace
+for automounting purposes.
+As I know, early automounting solutions was (and current am-utils is)
+based on userspace nfs server daemon that mount itself on the autmomount
+points and then listen for filesystem traverses that trigger mounting.
+I understand that nfs was designed for different purposes, but anyway
+what reason to design new communication protocol and to complicate
+kernel instead using already in-kernel nfs code?
 
-In other words, I don't think there is a reason to deal with the 
-confusion between autofs v3 and v4 anymore.
-
-DOES ANYONE OBJECT TO ME ASKING LINUS AND ANDREW TO DELETE AUTOFS V3 
-FROM THE 2.6 KERNEL?
-
-	-hpa
+Dimitry.
