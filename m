@@ -1,13 +1,13 @@
 From: raven@themaw.net
-Subject: Re: Local mounts without NFS server
-Date: Sat, 1 May 2004 11:54:15 +0800 (WST)
+Subject: Re: Autofs picking first server from the automounter map
+ all the time
+Date: Sat, 1 May 2004 12:15:20 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0405011152290.5768@donald.themaw.net>
-References: <ufa65bi8qxv.fsf@epithumia.math.uh.edu>
-	<ufa65bh1pjj.fsf@epithumia.math.uh.edu>
+Message-ID: <Pine.LNX.4.58.0405011212050.5768@donald.themaw.net>
+References: <D85B695BF793684EA72C8E481FB1D9A1225096@nycmgexm004.leh.lbcorp.lehman.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <ufa65bh1pjj.fsf@epithumia.math.uh.edu>
+In-Reply-To: <D85B695BF793684EA72C8E481FB1D9A1225096@nycmgexm004.leh.lbcorp.lehman.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,38 +19,36 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jason L Tibbitts III <tibbs@math.uh.edu>
-Cc: autofs@linux.kernel.org
+To: "Patel, Rahulkumar [NJ]" <rahul@lehman.com>
+Cc: "'autofs@linux.kernel.org'" <autofs@linux.kernel.org>
 
-On Fri, 30 Apr 2004, Jason L Tibbitts III wrote:
+On Fri, 30 Apr 2004, Patel, Rahulkumar [NJ] wrote:
 
-> >>>>> "BL" == Brian Long <brilong@cisco.com> writes:
+> Hi,
+> I have following entry defined in the automounter map.
+> But, when I try to access it all the time it pick last server defined for
+> that mount.
 > 
-> BL> I like your idea about keeping the /cache up to date via
-> BL> rsync.
+> perl -ro,soft,nosuid,noquota,intr server1:/vol/vol1/software/perl
+> server2:/vol/vol1/software/perl.
 > 
-> Well, it's actually a hack but it works well enough.
 > 
-> BL> What other maps, mounts or symlinks do you have to keep this
-> BL> working?
+> When I cd /home/perl --> All the time I connect to server2.
 > 
-> Just to /etc/auto_usr_local files, one for the hosts with /cache and
-> one without.  These days, though, every machine has enough disk to
-> cache what it needs.  That wasn't the case back when I put this
-> together.
+> I am running autofs-3.1.7-21.
 > 
-> BL> For example, for hosts that don't have a /cache filesystem, do
-> BL> they have a separate auto_usr_local map?
+> Does anyone has idea why this is happening ?
 > 
-> Yes, the hosts pull what they need from a server, and hosts without
-> /cache pull a different auto_usr_local map.  I guess if I used
-> failover I wouldn't even have to do that, but I'm not sure if that's
-> supported far enough back.
 
-4.1.1 I think.
+I'm not sure if this should work in v3.
 
-It's a mount time check only. There is no dynamic failover.
+It should work in 4.1.1 and above but it seems that I have broken that 
+behaviour when I merged the patch for it. I'll have to fix it.
 
-The umounting logic needs to made smarter as well.
+However an entry like:
+
+perl -ro,... server1,server2:/vol/vol1/software/perl
+
+works as expected.
 
 Ian
