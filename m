@@ -1,60 +1,75 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [autofs] [RFC] direct mount support re-work for autofs v4
-Date: Sat, 26 Feb 2005 11:27:41 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0502261121460.3703@raven-wl.themaw.net>
-References: <Pine.LNX.4.61.0502232157130.8193@donald.themaw.net>
- <16927.43698.82318.311057@segfault.boston.redhat.com>
+From: Jeffery Malloch <jmall@lsil.com>
+Subject: RE: auotfs/NFS Issue with WAN mounted filesystem?
+Date: Tue, 22 Feb 2005 12:43:40 -0500
+Message-ID: <10EE351D89AE1F488B426AC91EF6EDAB0128138C@server-1.ad.lsil.com>
 Mime-Version: 1.0
-In-Reply-To: <16927.43698.82318.311057@segfault.boston.redhat.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>
+To: 'Ian Kent' <raven@themaw.net>
+Cc: "'autofs@linux.kernel.org'" <autofs@linux.kernel.org>, Kevork Kechichian <kkechich@lsil.com>, Michael Gallant <mgallant@lsil.com>
 
-On Fri, 25 Feb 2005, Jeff Moyer wrote:
+Hi Ian,
 
-> Hi, Ian,
-> 
-> Thanks for the write-up!  One question below.
-> 
-> ==> Regarding [autofs] [RFC] direct mount support re-work for autofs v4; raven@themaw.net adds:
-> 
-> [snip]
-> 
-> raven> As far as the daemon goes the changes needed to do this are fairly
-> raven> straight forward and reduce overall complexity. They amount to
-> raven> identifying the direct map in the master map by its key ("/-"),
-> raven> adding an additional mount option "direct" to each mount, adding an
-> raven> enumeration function to each map lookup module and to the map cache
-> raven> module used by autofs v4.  Together they will be used to perform
-> raven> mounts, expire runs and umounts.
-> 
-> raven> Since a single daemon will handle multiple autofs mounts, we need a
-> raven> way to distinguish one from another. This can be done by adding two
-> raven> additional kernel message handlers to the daemon for "missing" and
-> raven> "expire" events. The new messages will include the ioctl fd that
-> raven> autofs uses to communicate with the mount point. The lookup key path
-> raven> is not needed in these messages as the lookup information can be
-> raven> obtained from the ioctl fd found in the event message. In
-> raven> particular, the st_dev together with the st_ino from the stat struct
-> raven> should be sufficient for distinct key lookups.
-> 
-> Isn't the message communicated over the ioctl fd?  If so, why include this
-> data in the message?  It seems a bit redundant.
+Sorry it's been such a long time but I thought I had gotten my issue down to
+an issue with IBM Clearcase and their "mvfs" implementation.  But as it
+happens, I believe there still to be issues with autofs in RedHat WS3 U3.  I
+am currently using autofs-4.1.3-47.  I have been running many automounts on
+the linux systems in debug mode for some time.  But here's what I have to
+give you for now:
 
-Because the ioctl relates to a particular directory (direct mount point) 
-of which there may be many.
+Feb 21 23:44:33 lserver-11 automount[15042]: rm_unwanted: /lsi/vp/bed_shared
+Feb 21 23:44:33 lserver-11 automount[15042]: expired /lsi/vp/bed_shared
+Feb 21 23:44:38 lserver-11 automount[1700]: attempting to mount entry
+/lsi/vp/bed_shared
+Feb 22 00:16:51 lserver-11 automount[19628]: BUG: /lsi/vp/bed_shared already
+mounted
 
-Each direct mount map entry is a distinct autofs mount with a distinct 
-ioctl fd.
+And this is the automount process:
 
+/usr/sbin/automount --timeout=60 --debug /lsi/vp yp auto_lsi_vp
+rw,intr,,noatime
+
+Any help would be appreciated.
+
+Thanks!
+
+Jeff
+
+-----Original Message-----
+From: Ian Kent [mailto:raven@themaw.net] 
+Sent: Wednesday, December 15, 2004 5:06 AM
+To: Jeffery Malloch
+Cc: 'autofs@linux.kernel.org'
+Subject: Re: [autofs] auotfs/NFS Issue with WAN mounted filesystem?
+
+On Fri, 3 Dec 2004, Jeffery Malloch wrote:
+
+> Hi,
 > 
-> 
-> This is as far as I got.  I'll try to look at this in more detail next
-> week.
+> I appear to be seeing some sort of hang or race condition when accessing
+> code from a WAN automounted filesystem.  We have a 4Mbps VPN link between
+> our site and the site we are automounting from.  As many have observed in
+> other threads, this doesn't seem to occur on Solaris.  For linux I am
+> running RedHat WS3 Update 3 and the version of autofs is 4.1.3-12 (came
+with
+> OS).  The end result is that the process accessing this filesystem sits in
+a
+> constant I/O wait state and the same automount map is mounted twice (or
+even
+> three times).  It pretty much makes the system unusable and the only
+> recourse so far has been a reboot.  Does anyone have any suggestions other
+> then making the data available locally?
 
-Cool.
+Add --debug to your master map entries and send the log output.
 
 Ian
