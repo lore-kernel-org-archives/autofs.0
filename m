@@ -1,11 +1,10 @@
-From: raven@themaw.net
-Subject: [PATCH] update rpc ping logic and make nonstrict the default
-Date: Sun, 16 May 2004 20:25:56 +0800 (WST)
+From: Joe Perches <joe@perches.com>
+Subject: PATCH - 2.6.6-bk3 autofs4 DPRINTK cleanup
+Date: Sun, 16 May 2004 17:33:00 -0700
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0405161934150.9511@donald.themaw.net>
+Message-ID: <1084753980.21164.6.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="19054760-1480564573-1084710356=:16324"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -16,258 +15,441 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs mailing list <autofs@linux.kernel.org>
-Cc: Michael Blandford <michael@kmaclub.com>
-
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-  Send mail to mime@docserver.cac.washington.edu for more info.
-
---19054760-1480564573-1084710356=:16324
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-
-
-Hi all,
-
-Here are two patches:
-
-1. Update rpc ping logic to try TCP and also try NFS V2 and V3.
-   I hope I haven't broken anything. It should be transparent for
-   map entries that are not multi-mount syntax. It will delay
-   for a while if packets are droped instead of rejected from
-   a packet filter but what else can we do. Oh and adjusting
-   the timeout makes no difference cause the timeout is at a
-   lower network layer.
-
-2. Make nonstrict the default option for multi-mount map
-   entries. Seems to work OK. It essentially ignores existing
-   nonstrict option so as not to cause grief for those that
-   already use it. The option is now strict instead. Check
-   the man page entries and let me know if they are sane.
-   ie. automount.8 and autofs.5.
-
-If anyone has time to test these please let me know how it goes.
-
-Ian
-
---19054760-1480564573-1084710356=:16324
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name="autofs-4.1.2-rpc_ping.patch"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.58.0405162025560.16324@donald.themaw.net>
-Content-Description: smarter rpc ping
-Content-Disposition: attachment; filename="autofs-4.1.2-rpc_ping.patch"
-
-ZGlmZiAtTnVyIGF1dG9mcy00LjEuMy5vcmlnL2luY2x1ZGUvYXV0b21vdW50
-LmggYXV0b2ZzLTQuMS4zL2luY2x1ZGUvYXV0b21vdW50LmgNCi0tLSBhdXRv
-ZnMtNC4xLjMub3JpZy9pbmNsdWRlL2F1dG9tb3VudC5oCTIwMDQtMDUtMTYg
-MTI6MDc6MTAuMDAwMDAwMDAwICswODAwDQorKysgYXV0b2ZzLTQuMS4zL2lu
-Y2x1ZGUvYXV0b21vdW50LmgJMjAwNC0wNS0xNiAxNzozNjozOC4wMDAwMDAw
-MDAgKzA4MDANCkBAIC0yNDEsOCArMjQxLDE2IEBADQogICAgICAgICAgICAg
-ICBjb25zdCBjaGFyICpkaXIsIGNvbnN0IGNoYXIgKmJhc2UsIHNpemVfdCBi
-bGVuKTsNCiANCiAvKiBycGMgaGVscGVyIHN1YnMgKi8NCi1pbnQgcnBjX3Bp
-bmcoY29uc3QgY2hhciAqaG9zdCwgbG9uZyBzZWNvbmRzLCBsb25nIG1pY3Jv
-cyk7DQotaW50IHJwY190aW1lKGNvbnN0IGNoYXIgKmhvc3QsIGludCBzZWNv
-bmRzLCBpbnQgbWljcm9zLCBkb3VibGUgKnJlc3VsdCk7DQorI2RlZmluZSBS
-UENfUElOR19GQUlMICAgICAgICAgICAweDAwMDANCisjZGVmaW5lIFJQQ19Q
-SU5HX1YyICAgICAgICAgICAgIE5GUzJfVkVSU0lPTg0KKyNkZWZpbmUgUlBD
-X1BJTkdfVjMgICAgICAgICAgICAgTkZTM19WRVJTSU9ODQorI2RlZmluZSBS
-UENfUElOR19VRFAgICAgICAgICAgICAweDAxMDANCisjZGVmaW5lIFJQQ19Q
-SU5HX1RDUCAgICAgICAgICAgIDB4MDIwMA0KKw0KK3Vuc2lnbmVkIGludCBy
-cGNfcGluZyhjb25zdCBjaGFyICpob3N0LCBsb25nIHNlY29uZHMsIGxvbmcg
-bWljcm9zKTsNCitpbnQgcnBjX3RpbWUoY29uc3QgY2hhciAqaG9zdCwgDQor
-CSAgICAgdW5zaWduZWQgaW50IHBpbmdfdmVycywgdW5zaWduZWQgaW50IHBp
-bmdfcHJvdG8sDQorCSAgICAgbG9uZyBzZWNvbmRzLCBsb25nIG1pY3Jvcywg
-ZG91YmxlICpyZXN1bHQpOw0KIA0KIC8qIGxvZyBub3RpZmljYXRpb24gKi8N
-CiBleHRlcm4gaW50IGRvX3ZlcmJvc2U7DQpkaWZmIC1OdXIgYXV0b2ZzLTQu
-MS4zLm9yaWcvbGliL3JwY19zdWJzLmMgYXV0b2ZzLTQuMS4zL2xpYi9ycGNf
-c3Vicy5jDQotLS0gYXV0b2ZzLTQuMS4zLm9yaWcvbGliL3JwY19zdWJzLmMJ
-MjAwNC0wNS0xNiAxMjowNzoxMC4wMDAwMDAwMDAgKzA4MDANCisrKyBhdXRv
-ZnMtNC4xLjMvbGliL3JwY19zdWJzLmMJMjAwNC0wNS0xNiAxNzozNjozOC4w
-MDAwMDAwMDAgKzA4MDANCkBAIC0xLDE1ICsxLDIwIEBADQogI2luY2x1ZGUg
-PHJwYy9ycGMuaD4NCiAjaW5jbHVkZSA8bmZzL25mcy5oPg0KICNpbmNsdWRl
-IDxsaW51eC9uZnMyLmg+DQorI2luY2x1ZGUgPGxpbnV4L25mczMuaD4NCiAj
-aW5jbHVkZSA8cnBjL3hkci5oPg0KICANCi1pbnQgcnBjX3BpbmcoY29uc3Qg
-Y2hhciAqaG9zdCwgbG9uZyBzZWNvbmRzLCBsb25nIG1pY3JvcykNCisjaW5j
-bHVkZSAiYXV0b21vdW50LmgiDQorDQorc3RhdGljIGludCBycGNfcGluZ19w
-cm90byhjb25zdCBjaGFyICpob3N0LA0KKwkJCSAgdW5zaWduZWQgbG9uZyBu
-ZnNfdmVyc2lvbiwgY29uc3QgY2hhciAqcHJvdG8sDQorCQkJICBsb25nIHNl
-Y29uZHMsIGxvbmcgbWljcm9zKQ0KIHsNCiAJQ0xJRU5UICpjbGllbnQ7DQog
-CXN0cnVjdCB0aW1ldmFsIHRvdXQ7DQogCWVudW0gY2xudF9zdGF0IHN0YXQ7
-DQogDQotCWNsaWVudCA9IGNsbnRfY3JlYXRlKGhvc3QsIE5GU19QUk9HUkFN
-LCBORlMyX1ZFUlNJT04sICJ1ZHAiKTsNCisJY2xpZW50ID0gY2xudF9jcmVh
-dGUoaG9zdCwgTkZTX1BST0dSQU0sIG5mc192ZXJzaW9uLCBwcm90byk7DQog
-CWlmIChjbGllbnQgPT0gTlVMTCkgew0KIAkJcmV0dXJuIDA7DQogCX0NCkBA
-IC0zMiw2ICszNyw0OSBAQA0KIAlyZXR1cm4gMTsNCiB9DQogDQorc3RhdGlj
-IHVuc2lnbmVkIGludCBycGNfcGluZ192Mihjb25zdCBjaGFyICpob3N0LCBs
-b25nIHNlY29uZHMsIGxvbmcgbWljcm9zKQ0KK3sNCisJdW5zaWduZWQgaW50
-IHN0YXR1cyA9IFJQQ19QSU5HX0ZBSUw7DQorDQorCXN0YXR1cyA9IHJwY19w
-aW5nX3Byb3RvKGhvc3QsIE5GUzJfVkVSU0lPTiwgInVkcCIsIHNlY29uZHMs
-IG1pY3Jvcyk7DQorCWlmIChzdGF0dXMpDQorCQlyZXR1cm4gUlBDX1BJTkdf
-VjIgfCBSUENfUElOR19VRFA7DQorDQorCXN0YXR1cyA9IHJwY19waW5nX3By
-b3RvKGhvc3QsIE5GUzJfVkVSU0lPTiwgInRjcCIsIHNlY29uZHMsIG1pY3Jv
-cyk7DQorCWlmIChzdGF0dXMpDQorCQlyZXR1cm4gUlBDX1BJTkdfVjIgfCBS
-UENfUElOR19UQ1A7DQorDQorCXJldHVybiBzdGF0dXM7DQorfQ0KKw0KK3N0
-YXRpYyB1bnNpZ25lZCBpbnQgcnBjX3BpbmdfdjMoY29uc3QgY2hhciAqaG9z
-dCwgbG9uZyBzZWNvbmRzLCBsb25nIG1pY3JvcykNCit7DQorCXVuc2lnbmVk
-IGludCBzdGF0dXMgPSBSUENfUElOR19GQUlMOw0KKw0KKwlzdGF0dXMgPSBy
-cGNfcGluZ19wcm90byhob3N0LCBORlMzX1ZFUlNJT04sICJ1ZHAiLCBzZWNv
-bmRzLCBtaWNyb3MpOw0KKwlpZiAoc3RhdHVzKQ0KKwkJcmV0dXJuIFJQQ19Q
-SU5HX1YzIHwgUlBDX1BJTkdfVURQOw0KKw0KKwlzdGF0dXMgPSBycGNfcGlu
-Z19wcm90byhob3N0LCBORlMzX1ZFUlNJT04sICJ0Y3AiLCBzZWNvbmRzLCBt
-aWNyb3MpOw0KKwlpZiAoc3RhdHVzKQ0KKwkJcmV0dXJuIFJQQ19QSU5HX1Yz
-IHwgUlBDX1BJTkdfVENQOw0KKw0KKwlyZXR1cm4gc3RhdHVzOw0KK30NCisN
-Cit1bnNpZ25lZCBpbnQgcnBjX3BpbmcoY29uc3QgY2hhciAqaG9zdCwgbG9u
-ZyBzZWNvbmRzLCBsb25nIG1pY3JvcykNCit7DQorCXVuc2lnbmVkIGludCBz
-dGF0dXM7DQorDQorCXN0YXR1cyA9IHJwY19waW5nX3YyKGhvc3QsIHNlY29u
-ZHMsIG1pY3Jvcyk7DQorCWlmIChzdGF0dXMpDQorCQlyZXR1cm4gc3RhdHVz
-Ow0KKw0KKwlzdGF0dXMgPSBycGNfcGluZ192Myhob3N0LCBzZWNvbmRzLCBt
-aWNyb3MpOw0KKwkNCisJcmV0dXJuIHN0YXR1czsNCit9DQorDQogc3RhdGlj
-IGRvdWJsZSBlbGFwc2VkKHN0cnVjdCB0aW1ldmFsIHN0YXJ0LCBzdHJ1Y3Qg
-dGltZXZhbCBlbmQpDQogew0KIAlkb3VibGUgdDEsIHQyOw0KQEAgLTQwLDM0
-ICs4OCwyMSBAQA0KIAlyZXR1cm4gdDItdDE7DQogfQ0KIA0KLWludCBycGNf
-dGltZShjb25zdCBjaGFyICpob3N0LCBpbnQgc2Vjb25kcywgaW50IG1pY3Jv
-cywgZG91YmxlICpyZXN1bHQpDQoraW50IHJwY190aW1lKGNvbnN0IGNoYXIg
-Kmhvc3QsDQorCSAgICAgdW5zaWduZWQgaW50IHBpbmdfdmVycywgdW5zaWdu
-ZWQgaW50IHBpbmdfcHJvdG8sDQorCSAgICAgbG9uZyBzZWNvbmRzLCBsb25n
-IG1pY3JvcywgZG91YmxlICpyZXN1bHQpDQogew0KLQlDTElFTlQgKmNsaWVu
-dDsNCi0Jc3RydWN0IHRpbWV2YWwgdG91dDsNCi0JZW51bSBjbG50X3N0YXQg
-c3RhdDsNCisJaW50IHN0YXR1czsNCisJZG91YmxlIHRha2VuOw0KIAlzdHJ1
-Y3QgdGltZXZhbCBzdGFydCwgZW5kOw0KIAlzdHJ1Y3QgdGltZXpvbmUgdHo7
-DQotCWRvdWJsZSB0YWtlbjsNCi0NCi0JY2xpZW50ID0gY2xudF9jcmVhdGUo
-aG9zdCwgTkZTX1BST0dSQU0sIE5GUzJfVkVSU0lPTiwgInVkcCIpOw0KLQlp
-ZiAoY2xpZW50ID09IE5VTEwpIHsNCi0JCXJldHVybiAwOw0KLQl9DQotDQot
-CXRvdXQudHZfc2VjID0gc2Vjb25kczsNCi0JdG91dC50dl91c2VjID0gbWlj
-cm9zOw0KLQ0KLQljbG50X2NvbnRyb2woY2xpZW50LCBDTFNFVF9USU1FT1VU
-LCAoY2hhciAqKSZ0b3V0KTsNCi0JY2xudF9jb250cm9sKGNsaWVudCwgQ0xT
-RVRfUkVUUllfVElNRU9VVCwgKGNoYXIgKikmdG91dCk7DQorCWNoYXIgKnBy
-b3RvID0gKHBpbmdfcHJvdG8gJiBSUENfUElOR19VRFApID8gInVkcCIgOiAi
-dGNwIjsNCiANCiAJZ2V0dGltZW9mZGF5KCZzdGFydCwgJnR6KTsNCi0Jc3Rh
-dCA9IGNsbnRfY2FsbChjbGllbnQsIE5GU1BST0NfTlVMTCwNCi0JCQkoeGRy
-cHJvY190KXhkcl92b2lkLCAwLCAoeGRycHJvY190KXhkcl92b2lkLCAwLCB0
-b3V0KTsNCisJc3RhdHVzID0gcnBjX3BpbmdfcHJvdG8oaG9zdCwgcGluZ192
-ZXJzLCBwcm90bywgc2Vjb25kcywgbWljcm9zKTsNCiAJZ2V0dGltZW9mZGF5
-KCZlbmQsICZ0eik7DQogDQotCWNsbnRfZGVzdHJveShjbGllbnQpOw0KLQ0K
-LQlpZiAoc3RhdCAhPSBSUENfU1VDQ0VTUykgew0KKwlpZiAoIXN0YXR1cykg
-ew0KIAkJcmV0dXJuIDA7DQogCX0NCiANCkBAIC03Nyw2ICsxMTIsNiBAQA0K
-IAkJKnJlc3VsdCA9IHRha2VuOw0KIAl9DQogDQotCXJldHVybiAxOw0KKwly
-ZXR1cm4gc3RhdHVzOw0KIH0NCiANCmRpZmYgLU51ciBhdXRvZnMtNC4xLjMu
-b3JpZy9tb2R1bGVzL21vdW50X25mcy5jIGF1dG9mcy00LjEuMy9tb2R1bGVz
-L21vdW50X25mcy5jDQotLS0gYXV0b2ZzLTQuMS4zLm9yaWcvbW9kdWxlcy9t
-b3VudF9uZnMuYwkyMDA0LTA1LTE2IDEyOjA3OjEwLjAwMDAwMDAwMCArMDgw
-MA0KKysrIGF1dG9mcy00LjEuMy9tb2R1bGVzL21vdW50X25mcy5jCTIwMDQt
-MDUtMTYgMTc6MzY6MzguMDAwMDAwMDAwICswODAwDQpAQCAtMjksNiArMjks
-OCBAQA0KICNpbmNsdWRlIDxzeXMvdHlwZXMuaD4NCiAjaW5jbHVkZSA8c3lz
-L3N0YXQuaD4NCiAjaW5jbHVkZSA8bmV0aW5ldC9pbi5oPg0KKyNpbmNsdWRl
-IDxsaW51eC9uZnMuaD4NCisjaW5jbHVkZSA8bGludXgvbmZzMi5oPg0KIA0K
-ICNkZWZpbmUgTU9EVUxFX01PVU5UDQogI2luY2x1ZGUgImF1dG9tb3VudC5o
-Ig0KQEAgLTEzOSw2ICsxNDEsNyBAQA0KIA0KIAl3aGlsZSAocCAmJiAqcCkg
-ew0KIAkJY2hhciAqbmV4dDsNCisJCXVuc2lnbmVkIGludCBwaW5nX3N0YXQg
-PSAwOw0KIA0KIAkJcCArPSBzdHJzcG4ocCwgIiBcdCwiKTsNCiAJCWRlbGlt
-ID0gc3RycGJyayhwLCAiKCwgXHQ6Iik7DQpAQCAtMTQ4LDcgKzE1MSw3IEBA
-DQogCQkvKiBGaW5kIGxvd2VzdCB3ZWlnaHQgd2hvc2Ugc2VydmVyIGlzIGFs
-aXZlICovDQogCQlpZiAoKmRlbGltID09ICcoJykgew0KIAkJCWNoYXIgKndl
-aWdodCA9IGRlbGltICsgMTsNCi0JCQlpbnQgYWxpdmU7DQorCQkJdW5zaWdu
-ZWQgaW50IGFsaXZlOw0KIA0KIAkJCSpkZWxpbSA9ICdcMCc7DQogDQpAQCAt
-MjE3LDcgKzIyMCw3IEBADQogCQkgKiBJZiBpdCdzIG5vdCBsb2NhbCBhbmQg
-aXQncyBhIHJlcGxpY2F0ZWQgc2VydmVyIG1hcCBlbnRyeQ0KIAkJICogaXMg
-aXQgYWxpdmUNCiAJCSAqLw0KLQkJaWYgKCFsb2NhbCAmJiBpc19yZXBsaWNh
-dGVkICYmICFycGNfcGluZyhwLCBzZWMsIG1pY3JvcykpIHsNCisJCWlmICgh
-bG9jYWwgJiYgaXNfcmVwbGljYXRlZCAmJiAhKHBpbmdfc3RhdCA9IHJwY19w
-aW5nKHAsIHNlYywgbWljcm9zKSkpIHsNCiAJCQlwID0gbmV4dDsNCiAJCQlj
-b250aW51ZTsNCiAJCX0NCkBAIC0yMjgsMTggKzIzMSwyNSBAQA0KIAkJfQ0K
-IAkJLyogY29tcGFyZSBSUEMgdGltZXMgaWYgdGhlcmUgYXJlIG5vIHdlaWdo
-dGVkIGhvc3RzICovDQogCQllbHNlIGlmICh3aW5uZXJfd2VpZ2h0ID09IElO
-VF9NQVgpIHsNCisJCQlpbnQgc3RhdHVzOw0KIAkJCWRvdWJsZSByZXNwX3Rp
-bWU7DQorCQkJdW5zaWduZWQgaW50IHZlcnMgPSBORlMyX1ZFUlNJT047DQor
-CQkJdW5zaWduZWQgaW50IHByb3RvID0gUlBDX1BJTkdfVURQOw0KIA0KKwkJ
-CWlmIChwaW5nX3N0YXQpIHsNCisJCQkJdmVycyA9IHBpbmdfc3RhdCAmIDB4
-MDBmZjsNCisJCQkJcHJvdG8gPSBwaW5nX3N0YXQgJiAweGZmMDA7DQorCQkJ
-fQ0KKw0KKwkJCXN0YXR1cyA9IHJwY190aW1lKHdpbm5lciwgdmVycywgcHJv
-dG8sIHNlYywgbWljcm9zLCAmcmVzcF90aW1lKTsNCiAJCQkvKiBkaWQgd2Ug
-dGltZSB0aGUgZmlyc3Qgd2lubmVyPyAqLw0KIAkJCWlmICh3aW5uZXJfdGlt
-ZSA9PSAwKSB7DQotCQkJCWlmIChycGNfdGltZSh3aW5uZXIsIHNlYywgbWlj
-cm9zLCAmcmVzcF90aW1lKSkNCisJCQkJaWYgKHN0YXR1cykNCiAJCQkJCXdp
-bm5lcl90aW1lID0gcmVzcF90aW1lOw0KIAkJCQllbHNlDQogCQkJCQl3aW5u
-ZXJfdGltZSA9IDY7DQotCQkJfQ0KLQ0KLQkJCWlmIChycGNfdGltZSh3aW5u
-ZXIsIHNlYywgbWljcm9zLCAmcmVzcF90aW1lKSkgew0KLQkJCQlpZiAocmVz
-cF90aW1lIDwgd2lubmVyX3RpbWUpIHsNCisJCQl9IGVsc2Ugew0KKwkJCQlp
-ZiAoKHN0YXR1cykgJiYgKHJlc3BfdGltZSA8IHdpbm5lcl90aW1lKSkgew0K
-IAkJCQkJd2lubmVyID0gcDsNCiAJCQkJCXdpbm5lcl90aW1lID0gcmVzcF90
-aW1lOw0KIAkJCQl9DQo=
-
---19054760-1480564573-1084710356=:16324
-Content-Type: TEXT/PLAIN; charset=US-ASCII;
-	name="autofs-4.1.2-nonstrict_default.patch"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.58.0405162025561.16324@donald.themaw.net>
-Content-Description: make nonstrict default
-Content-Disposition: attachment;
-	filename="autofs-4.1.2-nonstrict_default.patch"
-
-RmlsZXMgYXV0b2ZzLTQuMS4zLm9yaWcvbWFuL2F1dG9mcy00LjEuMy50YXIu
-YnoyIGFuZCBhdXRvZnMtNC4xLjMvbWFuL2F1dG9mcy00LjEuMy50YXIuYnoy
-IGRpZmZlcg0KZGlmZiAtTnVyIGF1dG9mcy00LjEuMy5vcmlnL21hbi9hdXRv
-ZnMuNSBhdXRvZnMtNC4xLjMvbWFuL2F1dG9mcy41DQotLS0gYXV0b2ZzLTQu
-MS4zLm9yaWcvbWFuL2F1dG9mcy41CTIwMDQtMDUtMTYgMTc6MzY6MDkuMDAw
-MDAwMDAwICswODAwDQorKysgYXV0b2ZzLTQuMS4zL21hbi9hdXRvZnMuNQky
-MDA0LTA1LTE2IDIwOjE2OjQwLjAwMDAwMDAwMCArMDgwMA0KQEAgLTQ2LDEw
-ICs0NiwxMCBAQA0KIHVzZWQgdG8gc3BlY2lmeSBhIGZpbGVzeXN0ZW0gdHlw
-ZSBpZiB0aGUgZmlsZXN5c3RlbSBpcyBub3Qgb2YgdGhlIGRlZmF1bHQNCiBO
-RlMgdHlwZS4gIFRoaXMgb3B0aW9uIGlzIHByb2Nlc3NlZCBieSB0aGUgYXV0
-b21vdW50ZXIgYW5kIG5vdCBieSB0aGUgbW91bnQNCiBjb21tYW5kLg0KLS5J
-IC1ub25zdHJpY3QNCi11c2VkIHRvIGlnbm9yZSBmaWxlIHN5c3RlbXMgdGhh
-dCBjYW4ndCBiZSBtb3VudGVkLiBUaGlzIGlzIGltcG9ydGFudCBpZg0KKy5J
-IC1zdHJpY3QNCitpcyB1c2VkIHRvIHRyZWF0IGVycm9ycyB3aGVuIG1vdW50
-aW5nIGZpbGUgc3lzdGVtcyBhcyBmYXRhbC4gVGhpcyBpcyBpbXBvcnRhbnQg
-d2hlbg0KIG11bHRpcGxlIGZpbGUgc3lzdGVtcyBzaG91bGQgYmUgbW91bnRl
-ZCAoYG11bHRpbW91bnRzJykuIElmIHRoaXMgb3B0aW9uDQotaXMgbm90IGdp
-dmVuLCBubyBmaWxlIHN5c3RlbSBpcyBtb3VudGVkIGF0IGFsbCBpZiBhdCBs
-ZWFzdCBvbmUgZmlsZSBzeXN0ZW0NCitpcyBnaXZlbiwgbm8gZmlsZSBzeXN0
-ZW0gaXMgbW91bnRlZCBhdCBhbGwgaWYgYXQgbGVhc3Qgb25lIGZpbGUgc3lz
-dGVtDQogY2FuJ3QgYmUgbW91bnRlZC4NCiANCiAuU1MgbG9jYXRpb24NCmRp
-ZmYgLU51ciBhdXRvZnMtNC4xLjMub3JpZy9tYW4vYXV0b21vdW50LjggYXV0
-b2ZzLTQuMS4zL21hbi9hdXRvbW91bnQuOA0KLS0tIGF1dG9mcy00LjEuMy5v
-cmlnL21hbi9hdXRvbW91bnQuOAkyMDA0LTA1LTE2IDE3OjM2OjA5LjAwMDAw
-MDAwMCArMDgwMA0KKysrIGF1dG9mcy00LjEuMy9tYW4vYXV0b21vdW50LjgJ
-MjAwNC0wNS0xNiAyMDowNDo1MC4wMDAwMDAwMDAgKzA4MDANCkBAIC0xMTQs
-NiArMTE0LDEyIEBADQogLlRQDQogLkkgIlwtRHZhcmlhYmxlPXZhbHVlIg0K
-IFJlcGxhY2UgXGZJdmFyaWFibGVcZlAgd2l0aCBcZkl2YWx1ZVxmUCBpbiBt
-YXAgc3Vic3RpdHV0aW9ucy4NCisuVFANCisuSSAiXC1zdHJpY3QiDQorVHJl
-YXQgZXJyb3JzIHdoZW4gbW91bnRpbmcgZmlsZSBzeXN0ZW1zIGFzIGZhdGFs
-LiBUaGlzIGlzIGltcG9ydGFudCB3aGVuDQorbXVsdGlwbGUgZmlsZSBzeXN0
-ZW1zIHNob3VsZCBiZSBtb3VudGVkIChgbXVsdGltb3VudHMnKS4gSWYgdGhp
-cyBvcHRpb24NCitpcyBnaXZlbiwgbm8gZmlsZSBzeXN0ZW0gaXMgbW91bnRl
-ZCBhdCBhbGwgaWYgYXQgbGVhc3Qgb25lIGZpbGUgc3lzdGVtDQorY2FuJ3Qg
-YmUgbW91bnRlZC4NCiAuUkUNCiAuU0ggTk9URVMNCiBJZiB0aGUgXGZCYXV0
-b21vdW50XGZQIGRhZW1vbiBjYXRjaGVzIHNpZ25hbCBVU1IxLCBpdCB3aWxs
-IHVubW91bnQgYWxsDQpkaWZmIC1OdXIgYXV0b2ZzLTQuMS4zLm9yaWcvbW9k
-dWxlcy9wYXJzZV9zdW4uYyBhdXRvZnMtNC4xLjMvbW9kdWxlcy9wYXJzZV9z
-dW4uYw0KLS0tIGF1dG9mcy00LjEuMy5vcmlnL21vZHVsZXMvcGFyc2Vfc3Vu
-LmMJMjAwNC0wNS0xNiAxNzozNjowOS4wMDAwMDAwMDAgKzA4MDANCisrKyBh
-dXRvZnMtNC4xLjMvbW9kdWxlcy9wYXJzZV9zdW4uYwkyMDA0LTA1LTE2IDE5
-OjA4OjE1LjAwMDAwMDAwMCArMDgwMA0KQEAgLTUxNyw3ICs1MTcsNyBAQA0K
-IAkJICAgICBjb25zdCBjaGFyICpsb2MsIGludCBsb2NsZW4sIGNvbnN0IGNo
-YXIgKm9wdGlvbnMpDQogew0KIAljaGFyICpmc3R5cGUgPSAibmZzIjsJLyog
-RGVmYXVsdCBmaWxlc3lzdGVtIHR5cGUgKi8NCi0JaW50IG5vbnN0cmljdCA9
-IDA7DQorCWludCBub25zdHJpY3QgPSAxOw0KIAlpbnQgcnY7DQogCWNoYXIg
-Km1vdW50cG9pbnQ7DQogCWNoYXIgKndoYXQ7DQpAQCAtNTUxLDYgKzU1MSw4
-IEBADQogCQkJCWZzdHlwZSA9IGFsbG9jYSh0eXBlbGVuICsgMSk7DQogCQkJ
-CW1lbWNweShmc3R5cGUsIGNwICsgNywgdHlwZWxlbik7DQogCQkJCWZzdHlw
-ZVt0eXBlbGVuXSA9ICdcMCc7DQorCQkJfSBlbHNlIGlmIChzdHJuY21wKCJz
-dHJpY3QiLCBjcCwgNikgPT0gMCkgew0KKwkJCQlub25zdHJpY3QgPSAwOw0K
-IAkJCX0gZWxzZSBpZiAoc3RybmNtcCgibm9uc3RyaWN0IiwgY3AsIDkpID09
-IDApIHsNCiAJCQkJbm9uc3RyaWN0ID0gMTsNCiAJCQl9IGVsc2Ugew0K
-
---19054760-1480564573-1084710356=:16324
 Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: jeremy@goop.org
+Cc: autofs@linux.kernel.org
 
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
-
---19054760-1480564573-1084710356=:16324--
-
+diff -urN a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
+--- a/fs/autofs4/autofs_i.h	2004-05-16 11:50:45.000000000 -0700
++++ b/fs/autofs4/autofs_i.h	2004-05-16 17:25:05.000000000 -0700
+@@ -33,9 +33,9 @@
+ /* #define DEBUG */
+ 
+ #ifdef DEBUG
+-#define DPRINTK(D) do{ printk("pid %d: ", current->pid); printk D; } while(0)
++#define DPRINTK(fmt,args...) do { printk(KERN_DEBUG "pid %d: %s: " fmt "\n" , current->pid , __FUNCTION__ , ##args); } while(0)
+ #else
+-#define DPRINTK(D) do {} while(0)
++#define DPRINTK(fmt,args...) do {} while(0)
+ #endif
+ 
+ #define AUTOFS_SUPER_MAGIC 0x0187
+diff -urN a/fs/autofs4/expire.c b/fs/autofs4/expire.c
+--- a/fs/autofs4/expire.c	2004-05-16 11:50:45.000000000 -0700
++++ b/fs/autofs4/expire.c	2004-05-16 17:19:42.000000000 -0700
+@@ -50,8 +50,8 @@
+ {
+ 	int status = 0;
+ 
+-	DPRINTK(("autofs4_check_mount: dentry %p %.*s\n",
+-		 dentry, (int)dentry->d_name.len, dentry->d_name.name));
++	DPRINTK("dentry %p %.*s",
++		dentry, (int)dentry->d_name.len, dentry->d_name.name);
+ 
+ 	mntget(mnt);
+ 	dget(dentry);
+@@ -70,7 +70,7 @@
+ 	if (may_umount_tree(mnt) == 0)
+ 		status = 1;
+ done:
+-	DPRINTK(("autofs4_check_mount: returning = %d\n", status));
++	DPRINTK("returning = %d", status);
+ 	mntput(mnt);
+ 	dput(dentry);
+ 	return status;
+@@ -88,8 +88,8 @@
+ 	struct dentry *this_parent = top;
+ 	struct list_head *next;
+ 
+-	DPRINTK(("autofs4_check_tree: parent %p %.*s\n",
+-		 top, (int)top->d_name.len, top->d_name.name));
++	DPRINTK("parent %p %.*s",
++		top, (int)top->d_name.len, top->d_name.name);
+ 
+ 	/* Negative dentry - give up */
+ 	if (!simple_positive(top))
+@@ -112,8 +112,8 @@
+ 			continue;
+ 		}
+ 
+-		DPRINTK(("autofs4_check_tree: dentry %p %.*s\n",
+-			 dentry, (int)dentry->d_name.len, dentry->d_name.name));
++		DPRINTK("dentry %p %.*s",
++			dentry, (int)dentry->d_name.len, dentry->d_name.name);
+ 
+ 		if (!simple_empty_nolock(dentry)) {
+ 			this_parent = dentry;
+@@ -154,8 +154,8 @@
+ 	struct dentry *this_parent = parent;
+ 	struct list_head *next;
+ 
+-	DPRINTK(("autofs4_check_leaves: parent %p %.*s\n",
+-		parent, (int)parent->d_name.len, parent->d_name.name));
++	DPRINTK("parent %p %.*s",
++		parent, (int)parent->d_name.len, parent->d_name.name);
+ 
+ 	spin_lock(&dcache_lock);
+ repeat:
+@@ -170,8 +170,8 @@
+ 			continue;
+ 		}
+ 
+-		DPRINTK(("autofs4_check_leaves: dentry %p %.*s\n",
+-			dentry, (int)dentry->d_name.len, dentry->d_name.name));
++		DPRINTK("dentry %p %.*s",
++			dentry, (int)dentry->d_name.len, dentry->d_name.name);
+ 
+ 		if (!list_empty(&dentry->d_subdirs)) {
+ 			this_parent = dentry;
+@@ -250,8 +250,8 @@
+ 
+ 		/* Case 1: indirect mount or top level direct mount */
+ 		if (d_mountpoint(dentry)) {
+-			DPRINTK(("autofs4_expire: checking mountpoint %p %.*s\n",
+-			 dentry, (int)dentry->d_name.len, dentry->d_name.name));
++			DPRINTK("checking mountpoint %p %.*s",
++				dentry, (int)dentry->d_name.len, dentry->d_name.name);
+ 
+ 			/* Can we expire this guy */
+ 			if (!autofs4_can_expire(dentry, timeout, do_now))
+@@ -289,8 +289,8 @@
+ 	}
+ 
+ 	if ( expired ) {
+-		DPRINTK(("autofs4_expire: returning %p %.*s\n",
+-			 expired, (int)expired->d_name.len, expired->d_name.name));
++		DPRINTK("returning %p %.*s",
++			expired, (int)expired->d_name.len, expired->d_name.name);
+ 		spin_lock(&dcache_lock);
+ 		list_del(&expired->d_parent->d_subdirs);
+ 		list_add(&expired->d_parent->d_subdirs, &expired->d_child);
+diff -urN a/fs/autofs4/inode.c b/fs/autofs4/inode.c
+--- a/fs/autofs4/inode.c	2004-05-16 11:50:45.000000000 -0700
++++ b/fs/autofs4/inode.c	2004-05-16 16:42:32.000000000 -0700
+@@ -87,7 +87,7 @@
+ 
+ 	kfree(sbi);
+ 
+-	DPRINTK(("autofs: shutting down\n"));
++	DPRINTK("shutting down");
+ }
+ 
+ static struct super_operations autofs4_sops = {
+@@ -193,7 +193,7 @@
+ 	sbi = (struct autofs_sb_info *) kmalloc(sizeof(*sbi), GFP_KERNEL);
+ 	if ( !sbi )
+ 		goto fail_unlock;
+-	DPRINTK(("autofs: starting up, sbi = %p\n",sbi));
++	DPRINTK("starting up, sbi = %p",sbi);
+ 
+ 	memset(sbi, 0, sizeof(*sbi));
+ 
+@@ -253,7 +253,7 @@
+ 	sbi->version = maxproto > AUTOFS_MAX_PROTO_VERSION ? AUTOFS_MAX_PROTO_VERSION : maxproto;
+ 	sbi->sub_version = AUTOFS_PROTO_SUBVERSION;
+ 
+-	DPRINTK(("autofs: pipe fd = %d, pgrp = %u\n", pipefd, sbi->oz_pgrp));
++	DPRINTK("pipe fd = %d, pgrp = %u", pipefd, sbi->oz_pgrp);
+ 	pipe = fget(pipefd);
+ 	
+ 	if ( !pipe ) {
+diff -urN a/fs/autofs4/root.c b/fs/autofs4/root.c
+--- a/fs/autofs4/root.c	2004-05-16 11:50:45.000000000 -0700
++++ b/fs/autofs4/root.c	2004-05-16 16:22:35.000000000 -0700
+@@ -69,8 +69,7 @@
+ 	struct autofs_sb_info *sbi = autofs4_sbi(file->f_dentry->d_sb);
+ 	int oz_mode = autofs4_oz_mode(sbi);
+ 
+-	DPRINTK(("autofs4_root_readdir called, filp->f_pos = %lld\n",
+-			file->f_pos));
++	DPRINTK("called, filp->f_pos = %lld", file->f_pos);
+ 
+ 	/*
+ 	 * Don't set reghost flag if:
+@@ -81,8 +80,7 @@
+ 	if (oz_mode && file->f_pos == 0 && sbi->reghost_enabled)
+ 		sbi->needs_reghost = 1;
+ 
+-	DPRINTK(("autofs4_root_readdir: needs_reghost = %d\n",
+-			sbi->needs_reghost));
++	DPRINTK("needs_reghost = %d", sbi->needs_reghost);
+ 
+ 	return autofs4_dcache_readdir(file, dirent, filldir);
+ }
+@@ -173,14 +171,14 @@
+ 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
+ 	int status;
+ 
+-	DPRINTK(("autofs4_dir_open: file=%p dentry=%p %.*s\n",
+-		file, dentry, dentry->d_name.len, dentry->d_name.name));
++	DPRINTK("file=%p dentry=%p %.*s",
++		file, dentry, dentry->d_name.len, dentry->d_name.name);
+ 
+ 	if (autofs4_oz_mode(sbi))
+ 		goto out;
+ 
+ 	if (autofs4_ispending(dentry)) {
+-		DPRINTK(("autofs4_dir_open: dentry busy\n"));
++		DPRINTK("dentry busy");
+ 		return -EBUSY;
+ 	}
+ 
+@@ -227,14 +225,14 @@
+ 	struct dentry *dentry = file->f_dentry;
+ 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
+ 
+-	DPRINTK(("autofs4_dir_close: file=%p dentry=%p %.*s\n",
+-		file, dentry, dentry->d_name.len, dentry->d_name.name));
++	DPRINTK("file=%p dentry=%p %.*s",
++		file, dentry, dentry->d_name.len, dentry->d_name.name);
+ 
+ 	if (autofs4_oz_mode(sbi))
+ 		goto out;
+ 
+ 	if (autofs4_ispending(dentry)) {
+-		DPRINTK(("autofs4_dir_close: dentry busy\n"));
++		DPRINTK("dentry busy");
+ 		return -EBUSY;
+ 	}
+ 
+@@ -257,14 +255,14 @@
+ 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
+ 	int status;
+ 
+-	DPRINTK(("autofs4_readdir: file=%p dentry=%p %.*s\n",
+-		file, dentry, dentry->d_name.len, dentry->d_name.name));
++	DPRINTK("file=%p dentry=%p %.*s",
++		file, dentry, dentry->d_name.len, dentry->d_name.name);
+ 
+ 	if (autofs4_oz_mode(sbi))
+ 		goto out;
+ 
+ 	if (autofs4_ispending(dentry)) {
+-		DPRINTK(("autofs4_readdir: dentry busy\n"));
++		DPRINTK("dentry busy");
+ 		return -EBUSY;
+ 	}
+ 
+@@ -298,27 +296,27 @@
+            when expiration is done to trigger mount request with a new
+            dentry */
+ 	if (de_info && (de_info->flags & AUTOFS_INF_EXPIRING)) {
+-		DPRINTK(("try_to_fill_entry: waiting for expire %p name=%.*s\n",
+-			 dentry, dentry->d_name.len, dentry->d_name.name));
++		DPRINTK("waiting for expire %p name=%.*s",
++			 dentry, dentry->d_name.len, dentry->d_name.name);
+ 
+ 		status = autofs4_wait(sbi, dentry, NFY_NONE);
+ 		
+-		DPRINTK(("try_to_fill_entry: expire done status=%d\n", status));
++		DPRINTK("expire done status=%d", status);
+ 		
+ 		return 0;
+ 	}
+ 
+-	DPRINTK(("try_to_fill_entry: dentry=%p %.*s ino=%p\n", 
+-		 dentry, dentry->d_name.len, dentry->d_name.name, dentry->d_inode));
++	DPRINTK("dentry=%p %.*s ino=%p", 
++		 dentry, dentry->d_name.len, dentry->d_name.name, dentry->d_inode);
+ 
+ 	/* Wait for a pending mount, triggering one if there isn't one already */
+ 	if (dentry->d_inode == NULL) {
+-		DPRINTK(("try_to_fill_entry: waiting for mount name=%.*s\n",
+-			 dentry->d_name.len, dentry->d_name.name));
++		DPRINTK("waiting for mount name=%.*s",
++			 dentry->d_name.len, dentry->d_name.name);
+ 
+ 		status = autofs4_wait(sbi, dentry, NFY_MOUNT);
+ 		 
+-		DPRINTK(("try_to_fill_entry: mount done status=%d\n", status));
++		DPRINTK("mount done status=%d", status);
+ 
+ 		if (status && dentry->d_inode)
+ 			return 0; /* Try to get the kernel to invalidate this dentry */
+@@ -337,15 +335,15 @@
+ 	/* Trigger mount for path component or follow link */
+ 	} else if (flags & (LOOKUP_CONTINUE | LOOKUP_DIRECTORY) ||
+ 			current->link_count) {
+-		DPRINTK(("try_to_fill_entry: waiting for mount name=%.*s\n",
+-			dentry->d_name.len, dentry->d_name.name));
++		DPRINTK("waiting for mount name=%.*s",
++			dentry->d_name.len, dentry->d_name.name);
+ 
+ 		spin_lock(&dentry->d_lock);
+ 		dentry->d_flags |= DCACHE_AUTOFS_PENDING;
+ 		spin_unlock(&dentry->d_lock);
+ 		status = autofs4_wait(sbi, dentry, NFY_MOUNT);
+ 
+-		DPRINTK(("try_to_fill_entry: mount done status=%d\n", status));
++		DPRINTK("mount done status=%d", status);
+ 
+ 		if (status) {
+ 			spin_lock(&dentry->d_lock);
+@@ -396,8 +394,8 @@
+ 	if (S_ISDIR(dentry->d_inode->i_mode) &&
+ 	    !d_mountpoint(dentry) && 
+ 	    list_empty(&dentry->d_subdirs)) {
+-		DPRINTK(("autofs4_root_revalidate: dentry=%p %.*s, emptydir\n",
+-			 dentry, dentry->d_name.len, dentry->d_name.name));
++		DPRINTK("dentry=%p %.*s, emptydir",
++			 dentry, dentry->d_name.len, dentry->d_name.name);
+ 		spin_unlock(&dcache_lock);
+ 		if (!oz_mode)
+ 			status = try_to_fill_dentry(dentry, dir->i_sb, sbi, flags);
+@@ -416,7 +414,7 @@
+ {
+ 	struct autofs_info *inf;
+ 
+-	DPRINTK(("autofs4_dentry_release: releasing %p\n", de));
++	DPRINTK("releasing %p", de);
+ 
+ 	inf = autofs4_dentry_ino(de);
+ 	de->d_fsdata = NULL;
+@@ -446,9 +444,9 @@
+ static struct dentry *autofs4_dir_lookup(struct inode *dir, struct dentry *dentry, struct nameidata *nd)
+ {
+ #if 0
+-	DPRINTK(("autofs4_dir_lookup: iignoring lookup of %.*s/%.*s\n",
++	DPRINTK("ignoring lookup of %.*s/%.*s",
+ 		 dentry->d_parent->d_name.len, dentry->d_parent->d_name.name,
+-		 dentry->d_name.len, dentry->d_name.name));
++		 dentry->d_name.len, dentry->d_name.name);
+ #endif
+ 
+ 	dentry->d_fsdata = NULL;
+@@ -462,8 +460,8 @@
+ 	struct autofs_sb_info *sbi;
+ 	int oz_mode;
+ 
+-	DPRINTK(("autofs4_root_lookup: name = %.*s\n",
+-		 dentry->d_name.len, dentry->d_name.name));
++	DPRINTK("name = %.*s",
++		dentry->d_name.len, dentry->d_name.name);
+ 
+ 	if (dentry->d_name.len > NAME_MAX)
+ 		return ERR_PTR(-ENAMETOOLONG);/* File name too long to exist */
+@@ -471,8 +469,8 @@
+ 	sbi = autofs4_sbi(dir->i_sb);
+ 
+ 	oz_mode = autofs4_oz_mode(sbi);
+-	DPRINTK(("autofs4_lookup: pid = %u, pgrp = %u, catatonic = %d, oz_mode = %d\n",
+-		 current->pid, process_group(current), sbi->catatonic, oz_mode));
++	DPRINTK("pid = %u, pgrp = %u, catatonic = %d, oz_mode = %d",
++		 current->pid, process_group(current), sbi->catatonic, oz_mode);
+ 
+ 	/*
+ 	 * Mark the dentry incomplete, but add it. This is needed so
+@@ -537,8 +535,8 @@
+ 	struct inode *inode;
+ 	char *cp;
+ 
+-	DPRINTK(("autofs4_dir_symlink: %s <- %.*s\n", symname,
+-		 dentry->d_name.len, dentry->d_name.name));
++	DPRINTK("%s <- %.*s", symname,
++		dentry->d_name.len, dentry->d_name.name);
+ 
+ 	if (!autofs4_oz_mode(sbi))
+ 		return -EACCES;
+@@ -646,8 +644,8 @@
+ 	if ( !autofs4_oz_mode(sbi) )
+ 		return -EACCES;
+ 
+-	DPRINTK(("autofs4_dir_mkdir: dentry %p, creating %.*s\n",
+-		 dentry, dentry->d_name.len, dentry->d_name.name));
++	DPRINTK("dentry %p, creating %.*s",
++		dentry, dentry->d_name.len, dentry->d_name.name);
+ 
+ 	ino = autofs4_init_ino(ino, sbi, S_IFDIR | 0555);
+ 	if (ino == NULL)
+@@ -709,7 +707,7 @@
+ {
+ 	int status;
+ 
+-	DPRINTK(("autofs_ask_reghost: returning %d\n", sbi->needs_reghost));
++	DPRINTK("returning %d", sbi->needs_reghost);
+ 
+ 	status = put_user(sbi->needs_reghost, p);
+ 	if ( status )
+@@ -729,7 +727,7 @@
+ 
+ 	status = get_user(val, p);
+ 
+-	DPRINTK(("autofs4_toggle_reghost: reghost = %d\n", val));
++	DPRINTK("reghost = %d", val);
+ 
+ 	if (status)
+ 		return status;
+@@ -749,7 +747,7 @@
+ 	if (may_umount(mnt) == 0)
+ 		status = 1;
+ 
+-	DPRINTK(("autofs_ask_umount: returning %d\n", status));
++	DPRINTK("returning %d", status);
+ 
+ 	status = put_user(status, p);
+ 
+@@ -777,8 +775,8 @@
+ {
+ 	struct autofs_sb_info *sbi = autofs4_sbi(inode->i_sb);
+ 
+-	DPRINTK(("autofs4_root_ioctl: cmd = 0x%08x, arg = 0x%08lx, sbi = %p, pgrp = %u\n",
+-		 cmd,arg,sbi,process_group(current)));
++	DPRINTK("cmd = 0x%08x, arg = 0x%08lx, sbi = %p, pgrp = %u",
++		cmd,arg,sbi,process_group(current));
+ 
+ 	if ( _IOC_TYPE(cmd) != _IOC_TYPE(AUTOFS_IOC_FIRST) ||
+ 	     _IOC_NR(cmd) - _IOC_NR(AUTOFS_IOC_FIRST) >= AUTOFS_IOC_COUNT )
+diff -urN a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
+--- a/fs/autofs4/waitq.c	2004-05-16 11:50:45.000000000 -0700
++++ b/fs/autofs4/waitq.c	2004-05-16 14:04:08.000000000 -0700
+@@ -28,7 +28,7 @@
+ {
+ 	struct autofs_wait_queue *wq, *nwq;
+ 
+-	DPRINTK(("autofs: entering catatonic mode\n"));
++	DPRINTK("entering catatonic mode");
+ 
+ 	sbi->catatonic = 1;
+ 	wq = sbi->queues;
+@@ -91,8 +91,8 @@
+ 	union autofs_packet_union pkt;
+ 	size_t pktsz;
+ 
+-	DPRINTK(("autofs4_notify_daemon: wait id = 0x%08lx, name = %.*s, type=%d\n",
+-		 wq->wait_queue_token, wq->len, wq->name, type));
++	DPRINTK("wait id = 0x%08lx, name = %.*s, type=%d",
++		wq->wait_queue_token, wq->len, wq->name, type);
+ 
+ 	memset(&pkt,0,sizeof pkt); /* For security reasons */
+ 
+@@ -212,8 +212,8 @@
+ 		atomic_set(&wq->wait_ctr, 2);
+ 		up(&sbi->wq_sem);
+ 
+-		DPRINTK(("autofs4_wait: new wait id = 0x%08lx, name = %.*s, nfy=%d\n",
+-			 (unsigned long) wq->wait_queue_token, wq->len, wq->name, notify));
++		DPRINTK("new wait id = 0x%08lx, name = %.*s, nfy=%d",
++			(unsigned long) wq->wait_queue_token, wq->len, wq->name, notify);
+ 		/* autofs4_notify_daemon() may block */
+ 		if (notify != NFY_NONE) {
+ 			autofs4_notify_daemon(sbi,wq, 
+@@ -224,8 +224,8 @@
+ 	} else {
+ 		atomic_inc(&wq->wait_ctr);
+ 		up(&sbi->wq_sem);
+-		DPRINTK(("autofs4_wait: existing wait id = 0x%08lx, name = %.*s, nfy=%d\n",
+-			 (unsigned long) wq->wait_queue_token, wq->len, wq->name, notify));
++		DPRINTK("existing wait id = 0x%08lx, name = %.*s, nfy=%d",
++			(unsigned long) wq->wait_queue_token, wq->len, wq->name, notify);
+ 	}
+ 
+ 	/* wq->name is NULL if and only if the lock is already released */
+@@ -257,7 +257,7 @@
+ 		recalc_sigpending();
+ 		spin_unlock_irqrestore(&current->sighand->siglock, irqflags);
+ 	} else {
+-		DPRINTK(("autofs4_wait: skipped sleeping\n"));
++		DPRINTK("skipped sleeping");
+ 	}
+ 
+ 	status = wq->status;
