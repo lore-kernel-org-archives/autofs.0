@@ -1,12 +1,12 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: umount fails with NFS mounts
-Date: Wed, 15 Sep 2004 09:17:31 +0800 (WST)
+From: Peter Lojkin <ia6432@inbox.ru>
+Subject: autofs or nfs umount hang (again)
+Date: Wed, 15 Sep 2004 20:54:25 +0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0409150914150.20157@wombat.indigo.net.au>
-References: <Pine.LNX.4.44.0409142055270.2455-100000@maggie.lkpg.cendio.se>
+Message-ID: <E1C7d33-000ItD-00.ia6432-inbox-ru@f29.mail.ru>
+Reply-To: Peter Lojkin <ia6432@inbox.ru>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.44.0409142055270.2455-100000@maggie.lkpg.cendio.se>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,35 +16,47 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Peter Astrand <peter@cendio.se>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: autofs@linux.kernel.org
+Cc: Ian Kent <raven@themaw.net>
 
-On Tue, 14 Sep 2004, Peter Astrand wrote:
+Hello,
 
-> > > We are running autofs-3.1.7-36 on RedHat 9, with kernel 2.4.20-30.9smp.  
-> > > The mount version is 2.11y. The NFS server is Novell Netware 6.0sp3. Our
-> > > auto.master looks like:
-> > 
-> > Can you upgrade to autofs-4.1.x?  
-> 
-> Perhaps. Can I expect it to work good on a standard RH9 kernel?
+we've just upgraded our servers to 2.4.27 + autofs4-20040508 and autofs-4.1.3
+(with fixes) and started getting hangs on umounting of nfs shares every 2-3 days. it looks exactly like the problem we had a few months ago that was caused by wait_queue race (or something like this). it might not be autofs related since there were changes in nfs between .24 and .27 and at least sillydelete fix might cause a wait for something.
+here is the trace of automount and umount processes:
 
-I strongly recommend applying the autofs4 kernel patch (release 20040508).
-It is included in the distribution or on kernel.org.
+Proc;  automount
 
-> 
-> 
-> > attributable to the kernel.  Does Red Hat have a new release with the
-> > new kernel?
-> 
-> Fedora Core contains autofs-4, but I haven't seen such packages for RH9. 
+>>EIP; c9be0a60 <_end+9813d04/38a0e2a4>   <=====
 
-That's not going to change.
+Trace; f8e10c39 <[autofs4]autofs4_wait+2b9/35c>
+Trace; f8e115aa <[autofs4]autofs4_expire_multi+56/6c>
+Trace; f8e105c7 <[autofs4]autofs4_root_ioctl+2fb/310>
+Trace; c01497e9 <sys_ioctl+2ad/2ea>
+Trace; c0108913 <system_call+33/38>
+Proc;  automount
 
-You can build from the SRPMS provided by Jeff Moyer at
+>>EIP; e1772000 <_end+213a52a4/38a0e2a4>   <=====
 
-http://people.redhat.com/jmoyer
+Trace; c01440dd <pipe_wait+7d/a4>
+Trace; c01441b4 <pipe_read+b0/1fc>
+Trace; c013ae47 <sys_read+8f/100>
+Trace; c0108913 <system_call+33/38>
+Proc;  umount
 
-Ian
+>>EIP; dd2bfef8 <_end+1cef319c/38a0e2a4>   <=====
+
+Trace; c011694a <schedule_timeout+7a/9c>
+Trace; c0116870 <process_timeout+0/60>
+Trace; c011732a <interruptible_sleep_on_timeout+4e/80>
+Trace; c016c52e <nfs_reqlist_exit+72/ac>
+Trace; c016c8e2 <nfs_put_super+12/58>
+Trace; c0140ad2 <kill_super+d6/138>
+Trace; c0152232 <__mntput+1e/24>
+Trace; c0144f68 <path_release+28/30>
+Trace; c01529af <sys_umount+6f/7c>
+Trace; c01529c8 <sys_oldumount+c/10>
+Trace; c0108913 <system_call+33/38>
+
+if the full trace is needed i'll try to collect it next time...
