@@ -1,14 +1,15 @@
-From: Ian Kent <raven@themaw.net>
+From: Jim Carter <jimc@math.ucla.edu>
 Subject: Re: "Busy inodes after unmount. Self destruct in 5
 	seconds..."
-Date: Fri, 9 Apr 2004 13:35:48 +0800 (WST)
+Date: Fri, 9 Apr 2004 09:49:11 -0700 (PDT)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0404091334360.5256@raven.themaw.net>
-References: <OF0078B5E3.8F68FF8C-ON85256E70.004AE836-04256E70.0052CA39@us.ibm.com>
-	<Pine.LNX.4.58.0404091319060.5256@raven.themaw.net>
+Message-ID: <Pine.LNX.4.58.0404090943590.8569@simba.math.ucla.edu>
+References: <OFBFF7C508.11CDF1FE-ON85256E6F.00696B8E-04256E6F.006A66DA@us.ibm.com>
+	<Pine.LNX.4.58.0404081009540.546@simba.math.ucla.edu>
+	<Pine.LNX.4.58.0404090941020.4861@raven.themaw.net>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0404091319060.5256@raven.themaw.net>
+In-Reply-To: <Pine.LNX.4.58.0404090941020.4861@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,26 +21,29 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Raymond Prach <rprach@us.ibm.com>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
 On Fri, 9 Apr 2004, Ian Kent wrote:
 
+> On Thu, 8 Apr 2004, Jim Carter wrote:
+> > v4.1.2 seems happy with the back-version module.  However, being unable to
+> > do "ghost mounts", it (seems to) mount every exported filesystem from the
+> > target host (and they expire normally if unused).  That could be a problem
+> > if many filesystems are exported.  4.1.0 would complain and bypass the
+> > ghost mounts.  My preference would be for it to not complain and to mount
+> > only the requested filesystem.
 > 
-> I've tried to duplicate this just now and am having trouble.
-> 
-> First, the version of mount that I'm using doesn't seem to hang the way it 
-> used to. What version of util-linux (or mount) are you using? I have 
-> 2.11y.
-> 
-> Second thing I notice is that autofs-4.1.2 discovers the bogus mount very 
-> quickly (<1 sec) and so even with a stop watch I can't get the mount to 
-> be active at the same time as the expire.
-> 
-> Hopefully some of this info will help.
+> More info please Jim?
 
-Forgot kernel version info.
+Oops, I misinterpreted a test.  With the back-version module that can't do
+ghost mounts, 4.1.2 in fact silently mounts only the requested filesystem,
+and there is no trace of potentially but not actually requested
+filesystems, with both Linux and Solaris servers.  (Unless one has
+previously mounted the filesystem and forgotten that one has done it.)
 
-This is with a vanilla 2.4.24 kernel.
+Sorry about that.
 
-Ian
+James F. Carter          Voice 310 825 2897    FAX 310 206 6673
+UCLA-Mathnet;  6115 MSA; 405 Hilgard Ave.; Los Angeles, CA, USA  90095-1555
+Email: jimc@math.ucla.edu    http://www.math.ucla.edu/~jimc (q.v. for PGP key)
