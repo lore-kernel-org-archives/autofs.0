@@ -1,8 +1,8 @@
-From: Kenny Simpson <theonetruekenny@yahoo.com>
-Subject: Performance of autofs/amd-managed directory
-Date: Tue, 25 May 2004 20:02:34 -0700 (PDT)
+From: canon@nersc.gov
+Subject: fsck and already mounted filesystems
+Date: Mon, 24 May 2004 15:36:32 -0700
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <20040526030234.47115.qmail@web20025.mail.yahoo.com>
+Message-ID: <200405242236.i4OMaWqR027104@pookie.nersc.gov>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
@@ -18,26 +18,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: autofs@linux.kernel.org
 
-What is the performance penalty for write access to files in a managed
-directory vs. a fstab entry?
-I have a program that is very sensitive to write latency, and am being
-pressured to use amd or automount to access a NAS instead of my trusty fstab
-entry.
 
-My app uses a transactional log file that resides on a NAS.  I'd prefer to keep
-a simple fstab entry and use O_DIRECT to access the file, but if there is no
-penalty, I would switch.  Does O_DIRECT have meaning for automount or
-amd-managed files?  (isn't amd user-space, so it would need to copy data
-anyway?)
+Greetings,
 
-thanks,
--Kenny
+We perform multiple mounts of local file systems for
+use in a chroot environment.  It looks like this latest
+autofs breaks this since the fsck fails.  The fix
+would be to skip the fsck if the file system is already
+mounted.  There is code in libext2fs that does this.
+I can propose a patch if it would be helpful.
+
+--Shane
 
 
 
-	
-		
-__________________________________
-Do you Yahoo!?
-Friends.  Fun.  Try the all-new Yahoo! Messenger.
-http://messenger.yahoo.com/ 
+------------------------------------------------------------------------
+Shane Canon                             voice: 510-486-6981
+PSDF Project Lead                       fax:   510-486-7520
+National Energy Research Scientific
+  Computing Center                       
+1 Cyclotron Road Mailstop 943-256
+Berkeley, CA 94720                      canon@nersc.gov
+------------------------------------------------------------------------
