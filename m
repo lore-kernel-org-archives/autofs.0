@@ -1,12 +1,12 @@
-From: "Dimitry V. Ketov" <Dimitry.Ketov@avalon.ru>
+From: raven@themaw.net
 Subject: RE: automount 4.1.3 - strange behaviour in hearachy
-Date: Mon, 28 Jun 2004 12:01:48 +0400
+Date: Mon, 28 Jun 2004 21:18:56 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <E1B7C89B8DCB084C809A22D7FEB90B384E3A36@frodo.avalon.ru>
+Message-ID: <Pine.LNX.4.58.0406282115310.14360@donald.themaw.net>
+References: <E1B7C89B8DCB084C809A22D7FEB90B384E3A36@frodo.avalon.ru>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-content-class: urn:content-classes:message
+In-Reply-To: <E1B7C89B8DCB084C809A22D7FEB90B384E3A36@frodo.avalon.ru>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,43 +16,22 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: autofs@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: "Dimitry V. Ketov" <Dimitry.Ketov@avalon.ru>
+Cc: autofs@linux.kernel.org
 
-Any thoughts?
+On Mon, 28 Jun 2004, Dimitry V. Ketov wrote:
 
-> -----Original Message-----
-> From: autofs-bounces@linux.kernel.org 
-> [mailto:autofs-bounces@linux.kernel.org] On Behalf Of Dimitry V. Ketov
-> 
-> Just testing autofs herarchies:
-> 
-> --- /etc/auto.master ---
-> /mnt/autofs     program:/etc/auto.autofs --timeout=50 --debug 
-> --verbose
-> ------------------------
-> 
-> --- /etc/auto.autofs ---
-> #!/bin/bash
-> 
-> echo -fstype=autofs     program:/etc/auto.autofs
-> ------------------------
-> 
-> cd /mnt/autofs/a/b/c
-> ps axww
-> 
-> --- output ---
-> ...
-> 23343 pts/0    S      0:00 /usr/sbin/automount --pid-file
-> /var/run/automount.mnt.autofs.pid --timeout=50 --verbose 
-> --debug /mnt/autofs program /etc/auto.autofs
-> 23385 pts/0    S      0:00 /usr/sbin/automount --submount --timeout=50
-> --debug /mnt/autofs/a program /etc/auto.autofs
-> 23391 pts/0    S      0:00 /usr/sbin/automount --submount --timeout=50
-> --debug /mnt/autofs/a/b program /etc/auto.autofs
-> 23397 pts/0    S      0:00 /usr/sbin/automount --submount --timeout=50
-> --debug /mnt/autofs/a/b/c program /etc/auto.autofs
-> ...
-> --------------
-> 
-> a few seconds later automount with pid 23397 unexpectly dies
+> Any thoughts?
+
+I haven't had a chance to check yet.
+
+Sorry.
+
+This should work OK as far as I'm concerned.
+
+However, I'd be interested to know if this is still a problem with the 
+kernel module update?
+
+Ian
