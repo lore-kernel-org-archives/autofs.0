@@ -1,14 +1,13 @@
-From: Michael Blandford <mlblandf@sedona.ch.intel.com>
-Subject: Re: Strange autofs V4.0 problems
-Date: Mon, 02 Feb 2004 16:48:12 -0700
+From: Ian Kent <raven@themaw.net>
+Subject: Re: automount
+Date: Tue, 3 Feb 2004 20:41:12 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <401EE1BC.2020006@sedona.intel.com>
-References: <401EB843.5000501@analog.com>
-	<C7C7C062-55D7-11D8-B42C-000A95A011F0@qualcomm.com>
+Message-ID: <Pine.LNX.4.58.0402032038390.4761@raven.themaw.net>
+References: <200402022049.10239.Joerg.Fichter@gmx.de>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <C7C7C062-55D7-11D8-B42C-000A95A011F0@qualcomm.com>
+In-Reply-To: <200402022049.10239.Joerg.Fichter@gmx.de>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,25 +17,26 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Mike Marion <mmarion@qualcomm.com>
-Cc: autofs@linux.kernel.org, Annie Mckeon <anne.bourgeois@analog.com>
+Content-Type: TEXT/PLAIN; charset="iso-8859-1"
+To: =?iso-8859-1?q?J=F6rg=20Fichter?= <Joerg.Fichter@gmx.de>
+Cc: autofs@linux.kernel.org
 
-Mike Marion wrote:
+On Mon, 2 Feb 2004, [iso-8859-1] J=F6rg Fichter wrote:
 
->
-> The fact that you're seeing that in your logs shows that autofs is 
-> working fine.. your host tried to mount the directory and was denied 
-> by the server.  I'm seeing the exact same thing for some new linux 
-> boxes I just installed over the weekend and some of our NetApp filers, 
-> and we're seeing the same thing from some new Solaris hosts as well.
->
-> I'm wondering if there's some kind of name/ip caching bug on the 
-> netapps that caches a deny for a very long period if you try to mount 
-> before your netgroups/dns is updated with the new host information.
+> Dear Sirs,
+>=20
+> I've installed the automount system on my PC. Different user works on t=
+his=20
+> terminal! So I modified the auto.master file like this:
+>=20
+> /misc	/etc/auto.misc		user, exec, uid=3D700, gid=3D500
 
+Can't at the moment.
 
-If you can mount them by hand on the same box not using autofs, then it 
-seems more likely to be an autofs issue.
+The user option is only supported by mount when present in the fstab.
 
-Michael
+I posted a message to the util-linux list but haven't followed up on this=
+.=20
+I've been to busy.
+
+Ian
