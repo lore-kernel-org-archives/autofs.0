@@ -1,72 +1,57 @@
-From: Frank Cusack <fcusack@fcusack.com>
-Subject: Re: Re: [autofs] VFS: Busy inodes after unmount on 2 way SMP
-Date: Sun, 28 Sep 2003 20:27:58 -0700
-Sender: nfs-admin@lists.sourceforge.net
-Message-ID: <20030928202757.A21288@google.com>
-References: <shsd6dyabju.fsf@charged.uio.no> <Pine.LNX.4.44.0309251614290.22478-100000@fubar.phlinux.com>
+From: Ion Badulescu <lists@news.cs.columbia.edu>
+Subject: Re: [NFS] Re: VFS: Busy inodes after unmount on 2 way SMP
+Date: Mon, 29 Sep 2003 08:19:50 -0400 (EDT)
+Sender: autofs-bounces@linux.kernel.org
+Message-ID: <Pine.LNX.4.44.0309290812430.21173-100000@guppy.limebrokerage.com>
+References: <3F691E75.6040807@zytor.com>
 Mime-Version: 1.0
-Return-path: <nfs-admin@lists.sourceforge.net>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0309251614290.22478-100000@fubar.phlinux.com>; from wago@phlinux.com on Thu, Sep 25, 2003 at 04:17:54PM -0700
-Errors-To: nfs-admin@lists.sourceforge.net
-List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
-List-Post: <mailto:nfs@lists.sourceforge.net>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
+Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <3F691E75.6040807@zytor.com>
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
-Content-Type: text/plain; charset="us-ascii"
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Matt C <wago@phlinux.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>, Olaf Hering <olh@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Arun Sharma <arun.sharma@intel.com>, autofs@linux.kernel.org, nfs@lists.sourceforge.net, Ian Kent <raven@themaw.net>
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: autofs@linux.kernel.org, Arun Sharma <arun.sharma@intel.com>, nfs@lists.sourceforge.net, Ian Kent <raven@themaw.net>
 
-Does this patch help?
+On Wed, 17 Sep 2003, H. Peter Anvin wrote:
 
---- linux-2.4.22/fs/namei.c	2003-08-25 04:44:43.000000000 -0700
-+++ linux-2.4.22-gg4/fs/namei.c	2003-09-26 00:03:16.000000000 -0700
-@@ -893,6 +893,8 @@ static inline int check_sticky(struct in
-  *  7. If we were asked to remove a directory and victim isn't one - ENOTDIR.
-  *  8. If we were asked to remove a non-directory and victim isn't one - EISDIR.
-  *  9. We can't remove a root or mountpoint.
-+ * 10. We don't allow removal of NFS sillyrenamed files; it's handled by
-+ *     nfs_async_unlink().
-  */
- static inline int may_delete(struct inode *dir,struct dentry *victim, int isdir)
- {
-@@ -916,6 +918,8 @@ static inline int may_delete(struct inod
- 		return -EISDIR;
- 	if (IS_DEADDIR(dir))
- 		return -ENOENT;
-+	if (victim->d_flags & DCACHE_NFSFS_RENAMED)
-+		return -EBUSY;
- 	return 0;
- }
- 
-@@ -1484,13 +1488,14 @@ int vfs_unlink(struct inode *dir, struct
- 				lock_kernel();
- 				error = dir->i_op->unlink(dir, dentry);
- 				unlock_kernel();
--				if (!error)
-+				if (!error &&
-+				    !(dentry->d_flags & DCACHE_NFSFS_RENAMED))
- 					d_delete(dentry);
- 			}
- 		}
- 	}
- 	up(&dir->i_zombie);
--	if (!error)
-+	if (!error && !(dentry->d_flags & DCACHE_NFSFS_RENAMED))
- 		inode_dir_notify(dir, DN_DELETE);
- 	return error;
- }
+> > Why do you bring the daemon into the picture, it is irrelevant here. 
+> 
+> Because it makes it a lot harder to debug the problem.
 
+Ok, fair enough.
 
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
-_______________________________________________
-NFS maillist  -  NFS@lists.sourceforge.net
-https://lists.sourceforge.net/lists/listinfo/nfs
+The daemon version doesn't matter, any daemon will do. All you need is to 
+kill -9 automountd while something is mounted, and then unmount everything 
+by hand without removing the mountpoint directories.
+
+> > # cat /proc/mounts
+> > [snip]
+> > boxter:(pid29327) /bar autofs rw 0 0
+> > boxter:(pid29327) /net autofs rw 0 0
+> > boxter:(pid29327) /src autofs rw 0 0
+> > boxter:(pid29327) /misc autofs rw 0 0
+> > buggy:/n/buggy/misc/homes /misc/homes nfs rw,v3,rsize=8192,wsize=8192,hard,intr,tcp,lock,addr=buggy 0 0
+> > # umount /misc/homes
+> > # umount /misc
+> > # dmesg |tail
+> > VFS: Busy inodes after unmount. Self-destruct in 5 seconds.  Have a nice day...
+> 
+> OK.  Did you try Olaf's NFS patch?
+
+This is not an NFS problem. The message occurs regardless of what is 
+mounted on /misc/homes (NFS, local ext2, bind mount, whatever).
+
+Ion
+
+-- 
+  It is better to keep your mouth shut and be thought a fool,
+            than to open it and remove all doubt.
