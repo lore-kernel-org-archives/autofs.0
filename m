@@ -1,14 +1,11 @@
-From: "Ruslan U. Zakirov" <cubic@wildgate.miee.ru>
-Subject: Re: Program map for USB devices
-Date: Wed, 17 Dec 2003 18:59:48 +0300
+From: Richard Zidlicky <rz@linux-m68k.org>
+Subject: [patch] ext2 (auto)fsck
+Date: Sun, 21 Dec 2003 23:54:58 +0100
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <3FE07D74.10107@wildgate.miee.ru>
-References: <200312171548.57310.ext-dirk.heinrichs@nokia.com>
-	<1xr3cv5t.fsf@random.localnet.unwireduniverse.com>
+Message-ID: <20031221225457.GA14777@linux-m68k.org>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1xr3cv5t.fsf@random.localnet.unwireduniverse.com>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,24 +15,27 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Derrell.Lipman@unwireduniverse.com
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: autofs@linux.kernel.org
 
-Derrell.Lipman@unwireduniverse.com wrote:
-> Dirk Heinrichs <ext-dirk.heinrichs@nokia.com> writes:
-> 
-> 
->>I've got several USB devices which are all accessed as SCSI disc through the 
->>usb-storage driver. Since the device node they are attached to depends on 
->>plugin order, I need to know how to find out which hardware is attached to 
->>which /dev/sd*, so that I can write a program map.
-> 
-> 
-> Your program map could look at /proc/scsi/* to determine what's what.
-> 
-> Derrell
-First of all look at `mount` for mount point of procfs(type proc).
-For 2.6 kernels, as i think, you also could look into new sysfs for 
-needed info.
-		Good luck. Ruslan.
+Hi,
+
+I came across this, doesnt look like the intended behaviour:
+
+--- autofs-3.1.7/modules/mount_ext2.c.rz	Sun Dec 21 23:33:44 2003
++++ autofs-3.1.7/modules/mount_ext2.c	Sun Dec 21 23:34:51 2003
+@@ -58,7 +58,7 @@
+ 
+   syslog(LOG_DEBUG, MODPREFIX "calling fsck.ext2 -p %s", what);
+   err = spawnl(LOG_DEBUG, PATH_E2FSCK, PATH_E2FSCK, "-p", what, NULL);
+-  if ( err & ~7 ) {
++  if ( err & 7 ) {
+     syslog(LOG_ERR, MODPREFIX "%s: filesystem needs repair, won't mount",
+ 	   what);
+     return 1;
+
+Actually it may be better to simply err out on any fsck error
+and not try to interpret e2fsck error codes?
+
+Richard
