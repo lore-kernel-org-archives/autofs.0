@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: unacceptable bug in autofs kernel module
-Date: Thu, 30 Dec 2004 08:38:37 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0412300836510.29368@wombat.indigo.net.au>
+Date: Thu, 30 Dec 2004 08:47:17 +0800 (WST)
+Message-ID: <Pine.LNX.4.58.0412300842040.29368@wombat.indigo.net.au>
 References: <41D1106C.9070706@intraperson.com>
 	<Pine.LNX.4.58.0412290843030.31988@wombat.indigo.net.au>
 	<41D21C1E.8040407@intraperson.com>
@@ -27,17 +27,15 @@ Cc: autofs@linux.kernel.org
 
 On Wed, 29 Dec 2004, ramana wrote:
 
-> Ian Kent wrote:
-> 
-> >Do you have a simple way of reproducing this?
-> >  
-> >
-> 
+> autofs 3 with Fdora core 1 but I suspect even autofs4 also will behave 
+> similarly as code does not look different with ENOENT replies.
 
-And the environment.
+autofs 3 is not being developed any more.
 
-Version of kernel?
-Version of autofs?
-What autofs4 module?
+If you are testing you should use the latest autofs4. This can be done by 
+using 2.6.10 or applying the appropriate patch.
+
+If want to try this out let me know and I will post the latest patches I 
+have to kernel.org now. 
 
 Ian
