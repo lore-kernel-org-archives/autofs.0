@@ -1,12 +1,12 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: fsck and already mounted filesystems
-Date: Fri, 28 May 2004 10:13:27 +0800 (WST)
+Subject: Re: AutoFS problem
+Date: Fri, 28 May 2004 10:14:57 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0405281012410.6708@wombat.indigo.net.au>
-References: <200405271510.i4RFAqxp019860@pookie.nersc.gov>
+Message-ID: <Pine.LNX.4.58.0405281014240.6708@wombat.indigo.net.au>
+References: <5a3315fad7.5fad75a331@sorint.it>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200405271510.i4RFAqxp019860@pookie.nersc.gov>
+In-Reply-To: <5a3315fad7.5fad75a331@sorint.it>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,32 +18,51 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: canon@nersc.gov
+To: Giovanni Romanenghi <giovanni.romanenghi@sorint.it>
 Cc: autofs@linux.kernel.org
 
-On Thu, 27 May 2004 canon@nersc.gov wrote:
+On Wed, 26 May 2004, Giovanni Romanenghi wrote:
 
+> I configure my sun java desktop to authenticate with ldap server ( Sun Java System Directory server 5.1 Sp3) and I configure autofs to mount user home directory at logon and it works .
 > 
-> Sorry about the latency in my reply.
+> My problem is that the clients don't mount other file systems that aren't home directory.
 > 
-> I first noticed this problem on the autofs distributed
-> with FC2 (4.1.2).  I tested 4.1.3 and it didn't appear to
-> fix it (I had noticed the patch).  Version 3.1.7 worked okay,
-> probably because it didn't attempt an fsck before mounting
-> ext2/3 file systems.  You can easily test it by creating
-> a map like such...
+> All file systems that the workstation must mount are configured on ldap server.
 > 
-> cat > /etc/auto.local << EOF
-> root      -fstype=ext3          :/dev/<root partition>
-> EOF
+> When I connect from my workstation with my user giovanni , I view my home directory but the autofs doesn't mount the disk /u and /prova.
 > 
-> automount /local file /etc/auto.local
+> The nfs server is ok because i can mount all share from my workstation manually.
+> My /etc/exports:
+> /tmp/tmp (rw,sync,no_root_squash)
+> /tmp/u (rw,sync,no_root_squash)
+> /var/prova (rw,sync,no_root_squash)
 > 
-> Attempting to access /local/root will fail because the
-> fsck failed since the file system is already mounted.
+> /etc/init.d/autofs status:
+> Configured Mount Points:
+> ------------------------
+> /usr/sbin/automount /u ldap ldap.:.it:ou=auto.u,o=test.it,dc=test,dc=it
+> /usr/sbin/automount /home ldap ldap.test.it:ou=auto.home,o=test.it,dc=test,dc=it
+> /usr/sbin/automount /prova ldap ldap.test.it:ou=auto.prova,o=test.it,dc=test,dc=it
+> 
+> Active Mount Points:
+> --------------------
+> /usr/sbin/automount /u ldap ldap.test.it:ou=auto.u,o=test.it,dc=test,dc=it
+> /usr/sbin/automount /home ldap ldap.test.it:ou=auto.home,o=test.it,dc=test,dc=it
+> /usr/sbin/automount /prova ldap ldap.test.it:ou=auto.prova,o=test.it,dc=test,dc=it
+> 
+> 
+> This is my df -k:
+> /dev/hda1 10490084 5951992 4538092 57% /
+> /dev/hda4 5694860 4495668 1199192 79% /backup
+> shmfs 127868 0 127868 0% /dev/shm
+> /tmp/tmp/giovanni 10490084 5951992 4538092 57% /home/giovanni
+> 
+> 
+> I install this version of autofs:
+> autofs-3.1.7-731
+> 
+> Any Ideas?
 
-I can see how this happens.
-
-I'll see what I can do.
+What does one of your LDAP entries look like please.
 
 Ian
