@@ -1,10 +1,16 @@
-From: David Meleedy <david.meleedy@analog.com>
-Subject: Server IP address change screws up active mounts
-Date: Thu, 13 May 2004 17:40:42 -0400
+From: Ian Kent <raven@themaw.net>
+Subject: Re: autofs-4.1 slow to mount
+Date: Fri, 14 May 2004 09:37:27 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <200405132140.i4DLeg1s019737@jetcar.spd.analog.com>
+Message-ID: <Pine.LNX.4.58.0405140935020.29527@wombat.indigo.net.au>
+References: <200405101900.i4AJ09pH031586@hera.kernel.org>
+	<40A0CC37.3080003@gxt.com>
+	<Pine.LNX.4.58.0405130639030.16060@www.wm7d.net>
+	<Pine.LNX.4.58.0405132253300.13693@donald.themaw.net>
+	<Pine.LNX.4.58.0405130835380.21923@www.wm7d.net>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <Pine.LNX.4.58.0405130835380.21923@www.wm7d.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -14,34 +20,41 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: autofs@linux.kernel.org
+To: Joseph Mack NA3T <jmack@wm7d.net>
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
+On Thu, 13 May 2004, Joseph Mack NA3T wrote:
 
-One question I had for you guys happened to us when we were moving
-our subnets to an internal 10. net.  We were using autofs version 3
-on redhat 8, and I haven't had a chance to test this with version 4
-yet, but the problem might still exist.
+> 
+> > What does your map entry look like please?
+> 
+> auto.master
+> 
+> /removable	/etc/auto.removable
+> 
+> auto.removable
+> 
+> zip	-fstype=ext3	:/dev/zip
+> 
+> 
 
-If the redhat client using automounter had mounted a directory from some
-server (so the mount was active), and then we changed the IP address of 
-the server, the automounter would hang on that mount forever after.  In fact
-we couldn't even do "init 6", we had to do "reboot -f" to get
-the client working again.  To compare, with our Solaris machines,
-we didn't have this problem.  The new IP address was discovered and
-the mount continued to work.
+OK I'll test out a similar format and see what I can come up with.
 
-So I'm not really sure if this is an automount issue, or a mount command issue,
-but I figured you guys would be the right ones to ask.  I definitely
-think this issue should be fixed, it's not that uncommon to move
-servers to new IP addresses.
+> > Mmm. That's not good.
+> >
+> > Do you get a message like
+> > mouny(ext2) /path/to/mount : filesystem needs repair, won't mount
+> 
+> ah yes. I found it in syslog, I was looking at debug and messages and
+> didn't see it.
+> 
+> > I'll see what I can find. I wonder what e2fsck is returning????
+> 
+> running e2fsck 1.32
 
-Thanks!
+I'd like to know if you still get this message after doing what Jeff 
+recommended.
 
--Dave
-
-________________________________________________________________________
-David Meleedy				Analog Devices, Inc.
-David.Meleedy@analog.com		Three Technology Way
-Phone: 781 461 3494			Norwood, MA  02062-9106  USA
+Ian
