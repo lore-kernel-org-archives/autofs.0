@@ -1,10 +1,10 @@
-From: "Taylor, ForrestX" <forrestx.taylor@intel.com>
+From: Tom Georgoulias <tom.georgoulias@freescale.com>
 Subject: Re: mount fails because entry in multi-mount doesn't work
-Date: Thu, 13 May 2004 10:59:14 -0700
+Date: Thu, 13 May 2004 13:32:42 -0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <1084471154.8589.18.camel@bad.jf.intel.com>
+Message-ID: <40A3BF4A.8080901@freescale.com>
 References: <40A38585.4050103@freescale.com>
-	 <Pine.LNX.4.58.0405132305230.13693@donald.themaw.net>
+	<Pine.LNX.4.58.0405132305230.13693@donald.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
@@ -18,25 +18,42 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: raven@themaw.net
-Cc: autofs mailing list <autofs@linux.kernel.org>
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: autofs mailing list <autofs@linux.kernel.org>
 
-On Thu, 2004-05-13 at 08:08, raven@themaw.net wrote:
-> On Thu, 13 May 2004, Tom Georgoulias wrote:
-> 
-> > Yesterday I ran into an issue where a mount point wasn't working and 
-> > tracked it down to one of the submounts.  From what I can tell, if one 
-> > of the submounts in a multi-mount doesn't work, the entire mount point 
-> > won't work.  If that is the case, can this behavior be changed?
-> 
+raven@themaw.net wrote:
+
 > Use the -nonstrict option on the autofs mount.
-> 
-> OK this has happened one to many times. I think I'm going to change this 
-> default.
-> 
-> What do people think about this idea?
 
-Yes, please!  I have been asking for this default for years.
+Any docs for this?  I didn't see anything in the man pages about 
+nostrict and I wasn't able to get it to work, so I want to be sure I've 
+done everything correctly.
 
-Forrest
+[root@winston root]# /sbin/service autofs status
+Configured Mount Points:
+------------------------
+/usr/sbin/automount --timeout=60 --debug /proj/tec yp auto.proj 
+-rw,hard,intr,nosuid,nostrict rsize=32768,wsize=32768
+
+<snipped>
+
+Active Mount Points:
+--------------------
+/usr/sbin/automount --timeout=60 --debug /proj/tec yp auto.proj 
+-rw,hard,intr,nosuid,nostrict rsize=32768,wsize=32768
+
+<snipped>
+
+[root@winston root]# cat /etc/auto.master
+# /etc/auto.master
+yp:auto_master
+/home yp:auto.home
+[root@winston root]# ypcat -k auto_master | grep auto.proj
+/proj/tec auto.proj             -rw,hard,intr,nosuid,nostrict
+
+-- 
+Tom Georgoulias
+POPI Classification
+[x] General Business Information
+[] Freescale Semiconductor Internal Use
+[] Freescale Semiconductor Confidential Proprietary
