@@ -1,13 +1,14 @@
-From: raven@themaw.net
+From: Mike Waychison <Michael.Waychison@Sun.COM>
 Subject: Re: backfstype patch.
-Date: Wed, 30 Jun 2004 22:00:41 +0800 (WST)
+Date: Wed, 30 Jun 2004 10:20:51 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0406302153150.1811@donald.themaw.net>
-References: <40E1CCC3.1010809@deragon.biz>
-	<16610.49006.880121.543138@segfault.boston.redhat.com>
+Message-ID: <40E2CC43.1060001@sun.com>
+References: <40E1CCC3.1010809@deragon.biz> <40E2C0BA.3070605@sun.com>
+ <16610.50525.858094.848839@segfault.boston.redhat.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <16610.49006.880121.543138@segfault.boston.redhat.com>
+In-reply-to: <16610.50525.858094.848839@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,38 +18,80 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: jmoyer@redhat.com
+Cc: autofs@linux.kernel.org
 
-On Wed, 30 Jun 2004, Jeff Moyer wrote:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> >+		if (!strcmp(curfstype, "cachefs")) {
-> >+			/* cachefs not supported for Linux.  We do not even try because when
-> >+			   we try, mount will complain about the module being absent.  This is
-> >+			   not desired because if backfstype parameter is provided and works,
-> >+			   we sure do not want any error messages reported to syslog. */
-> >+			debug("cachefs not implemented under Linux and thus ignored.");
-> >+			continue;
-> >+		}
-> >+#endif
-> 
-> Don't need the ifdef.  Also, try to keep w/in 80 columns, please.
+Jeff Moyer wrote:
+> ==> Regarding Re: [autofs] backfstype patch.; Mike Waychison
+<Michael.Waychison@Sun.COM> adds:
+>
+> Michael.Waychison> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash> SHA1
+>
+> Michael.Waychison> Hans Deragon wrote:
+>
+>>>Greetings.
+>>>
+>>>
+>>>Attached, my patch for supporting backfstype.  If the OS is Linux and
+>>>cachefs is detected, this fs is ignored and no attempt is made to mount
+>>>a cachefs kernel module (none exist).  This way we avoid useless error
+>>>messages in syslog.
+>>>
+>>>If mounting the fstype fails or is cachefs, backfstype is then tried.
+>>>
+>>>It works fine under RHL 9.  Only one file was changed: parse_sun.c.  The
+>>>changes were made from the 4.1.3 branch.  Changes are very localized and
+>>>I believe they are safe (though code inspection is always desired).
+>>>
+>>>Please confirm if my patch has been accepted.
+>>>
+>
+>
+> Michael.Waychison> Why do this in the parser when it can easily be done in
+> Michael.Waychison> a mount module?
+>
+> Care to expound a bit?  I'm not sure what people use backfstype for,
+but if
+> it is generic, then you wouldn't want to handle every case in every mount
+> module.  But I think I'm missing your point.
+>
+> It makes some sense to me to handle this above the mount module, simply
+> because you could call into two different modules.
+>
+> So, care to set me straight?  ;)
+>
+> -Jeff
 
-We know it's hard to keep within 80 cols. I constantly try to rearrange 
-code to try and achieve this.
+I'm CC'ing David as he may have a better view of what the cachefs status is.
 
-> >+		if(!rv)
-> >+		{
-> >+			break;
-> >+		}
-> 
-> Keep to coding style:  { on same line as if.
+Backfstype is a fstype=cachefs specific mount option.  Specifically:
 
-The document in the kernel source is an excellent guide to what to try to 
-achieve coding standards.
+ - add cachefs to the not_generic array in daemon/mount.c
+ - create a new mount module, modules/mount_cachefs.c.  This module
+would check for cachefs support available and use it if available.
+Otherwise it would rewrite the fstype with the backfstype mount option
+and call do_mount again.
 
-<kernel source dir>/Documentation/CodingStyle
+- --
+Mike Waychison
+Sun Microsystems, Inc.
+1 (650) 352-5299 voice
+1 (416) 202-8336 voice
+http://www.sun.com
 
-Ian
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NOTICE:  The opinions expressed in this email are held by me,
+and may not represent the views of Sun Microsystems, Inc.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFA4sxCdQs4kOxk3/MRAu57AKCApSStIq7S4lvKUTxHhLmoM8hjNwCcDELp
+PsbhD31X2ZI7p7TZRBzDA8I=
+=SsXB
+-----END PGP SIGNATURE-----
