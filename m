@@ -1,10 +1,9 @@
-From: thorild@Update.UU.SE (Thorild Selen)
-Subject: Debian: Init script confused by options
-Date: Sun, 9 May 2004 03:07:18 +0200
+From: raven@themaw.net
+Subject: configure pie problem
+Date: Sun, 9 May 2004 11:46:01 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <16541.33862.63334.177007@Psilocybe.Update.UU.SE>
+Message-ID: <Pine.LNX.4.58.0405091113130.15537@donald.themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -15,68 +14,35 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="iso-8859-1"
-To: autofs@linux.kernel.org
-
-Starting the automounter in Debian:
-
-> [Psilocybe] update # /etc/init.d/autofs start
-> Starting automounter: --ghost.
-
-This doesn't look very pretty. Function "debian" in the start script
-reads the output from getmounts assuming that the first thing after
-the command is the mount point. However, it might be an option. It
-wouldn't do to skip everything after the daemon name up to the first
-thing that does not start with a dash and then assume that the next
-thing is the mount point, since some options take arguments. These
-arguments may start with dashes or slashes.
-
-The fix below assumes that the mount point will be the first thing
-that starts with a slash and is followed by something that starts with
-a letter (the map type). A bit ugly, but it will still work with
-option arguments that starts with dashes or slashes; also, it doesn't
-need to know a thing about which options there are and whether they
-take any arguments or not. As long as the mount point starts with a
-slash and the map type starts with a letter, we're fine.
-
-(Does anyone have a better idea?)
-
-With patch:
-> [Psilocybe] update # /etc/init.d/autofs start=20
-> Starting automounter: /slask.
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Jeff Moyer <jmoyer@redhat.com>, autofs mailing list <autofs@linux.kernel.org>
 
 
-Another thing; the /var/run/autofs.*.pid files that the debian
-function tries to use when reloading are actually never
-created. Adding --make-pidfile to start-stop-deamon would probably do
-the trick, but then it'd be nice to also delete old pid files so we
-don't keep them around and try to reload the settings of their
-deceased daemons forever. I haven't addressed this.
+Hi Jeff,
 
+I have a problem on the sparc64 arch where the -pie link fails to produce 
+a working executable. This is not detected by the autoconf test.
 
-Thorild Sel=E9n
-Datorf=F6reningen Update / Update Computer Club, Uppsala, SE
+When you get a chance could you check the following patch an an arch you 
+know works please.
 
+Ian
 
-
-diff -Naur autofs-4.1.2.old/samples/rc.autofs.in autofs-4.1.2/samples/rc.=
-autofs.in
---- autofs-4.1.2.old/samples/rc.autofs.in	2004-05-09 01:00:42.000000000 +=
-0200
-+++ autofs-4.1.2/samples/rc.autofs.in	2004-05-09 01:51:25.000000000 +0200
-@@ -441,12 +441,13 @@
- case "$1" in
-     start)
- 	echo -n 'Starting automounter:'
--	getmounts | while read cmd mnt rest
-+	getmounts | while read cmd rest
- 	do
-+		mnt=3D`echo $rest | sed 's/^.* \(\/[^ ]*\) [A-Za-z].*$/\1/'`
- 		echo -n " $mnt"
- 		pidfile=3D/var/run/autofs`echo $mnt | sed 's/\//./'`.pid
- 		start-stop-daemon --start --pidfile $pidfile --quiet \
--			--exec $DAEMON $daemonoptions -- $mnt $rest
-+			--exec $DAEMON $daemonoptions -- $rest
- 	done
- 	echo "."
- 	;;
+--- autofs-4.1.2/configure.in.orig	2004-05-09 10:31:30.000000000 +0800
++++ autofs-4.1.2/configure.in	2004-05-09 10:59:46.000000000 +0800
+@@ -133,11 +133,12 @@
+ int main(void) { return 0; }
+ EOF
+ CFLAGS=-fpie
++LDFLAGS=-pie
+ DAEMON_CFLAGS=
+ DAEMON_LDFLAGS=
+ AC_MSG_CHECKING([whether gcc accepts -fpie])
+-AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[int main(void) {return 0;}]])],
+-		  [gcc_supports_pie=yes], [gcc_supports_pie=no])
++AC_RUN_IFELSE([AC_LANG_PROGRAM([[]], [[int main(void) {return 0;}]])],
++	      [gcc_supports_pie=yes], [gcc_supports_pie=no])
+ AC_MSG_RESULT([$gcc_supports_pie])
+ if test $gcc_supports_pie = yes ; then
+ 	DAEMON_CFLAGS="-fpie"
