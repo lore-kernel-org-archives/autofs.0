@@ -1,16 +1,13 @@
-From: "Peter C. Norton" <spacey-autofs@lenin.net>
-Subject: Re: [PATCH 3/5] logging to stderr
-Date: Mon, 14 Feb 2005 08:38:00 -0800
-Message-ID: <20050214163800.GI9056@lenin.net>
-References: <200502111155.33706.vda@port.imtp.ilyichevsk.odessa.ua>
-	<200502111159.50103.vda@port.imtp.ilyichevsk.odessa.ua>
-	<200502111201.43507.vda@port.imtp.ilyichevsk.odessa.ua>
-	<200502111203.58345.vda@port.imtp.ilyichevsk.odessa.ua>
-	<16912.49643.760509.977965@segfault.boston.redhat.com>
-	<20050214160739.GH9056@lenin.net> <20050214162145.GA26266@uio.no>
+From: Mike Waychison <Michael.Waychison@Sun.COM>
+Subject: Re: Re: autofs map updates not working properly for
+	multi-mounts
+Date: Mon, 14 Feb 2005 15:36:00 -0500
+Message-ID: <42110BB0.3090201@sun.com>
+References: <16905.15217.105499.777724@segfault.boston.redhat.com>
+	<Pine.LNX.4.61.0502092116510.2140@donald.themaw.net>
 Mime-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20050214162145.GA26266@uio.no>
+Content-Transfer-Encoding: 7BIT
+In-reply-to: <Pine.LNX.4.61.0502092116510.2140@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,31 +19,37 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: autofs@linux.kernel.org
+To: raven@themaw.net
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
-On Mon, Feb 14, 2005 at 05:21:45PM +0100, Steinar H. Gunderson wrote:
-> On Mon, Feb 14, 2005 at 08:07:40AM -0800, Peter C. Norton wrote:
-> > There are sometimes good reasons to log to stderr instead of syslog.
-> > syslog is slow, loses messages, inflexable, and can introduce delays
-> > and huge volumes of crap to the disk.  Using stderr loggers can
-> > filter, or do things like rotate logs actively, etc.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+raven@themaw.net wrote:
+
+> So the bottom line at the moment is "multi-mount entries must be handled
+> a a single mount entry". So they can't be dynamically updated until the
+> next time they are mounted following the update.
 > 
-> OTOH, syslog makes it a lot easier to have unified systems for log rotation
-> etc. -- and I don't really see what you mean by "inflexible". I'd rather have
-> it all in one place than inventing a thousand new systems for (say) remote
-> logging.
 
-Yes, it does, and there's nothing wrong with having a verbose logging
-sequence and process doing the equivelant of (for production) grep -v '(unimportant_messages)' | logger -p kern.err
- 
-> Of course, having both isn't bad.
+This is a perfectly fair assumption and is handled the same way on other
+platforms.
 
-No, its not.
+- --
+Mike Waychison
+Sun Microsystems, Inc.
+1 (650) 352-5299 voice
+1 (416) 202-8336 voice
 
--Peter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NOTICE:  The opinions expressed in this email are held by me,
+and may not represent the views of Sun Microsystems, Inc.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
 
--- 
-The 5 year plan:
-In five years we'll make up another plan.
-Or just re-use this one.
+iD8DBQFCEQuvdQs4kOxk3/MRAoWNAJ9crYNXPjvM90EdaNxLkHPCaoVU1wCdEm0A
+K+voKmkaB9DWhcCjaC/Ub50=
+=IV4t
+-----END PGP SIGNATURE-----
