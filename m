@@ -1,10 +1,13 @@
-From: Ian Kent <raven@themaw.net>
-Subject: [ANNOUNCE] autofs 4.1.0 release
-Date: Sun, 7 Dec 2003 22:39:31 +0800 (WST)
+From: Michael Blandford <michael@kmaclub.com>
+Subject: Re: Problem with autofs 3.1.7 -> 4.1.0-beta2
+Date: Sun, 07 Dec 2003 15:15:14 -0700
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.44.0312072233130.3128-100000@raven.themaw.net>
+Message-ID: <3FD3A672.20405@kmaclub.com>
+References: <Pine.LNX.4.44.0312072016350.3078-100000@raven.themaw.net>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <Pine.LNX.4.44.0312072016350.3078-100000@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -14,38 +17,86 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: autofs mailing list <autofs@linux.kernel.org>
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: Ian Kent <raven@themaw.net>
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
+Ian Kent wrote:
 
-Hi all,
+>Which schema are you using the nisMap or automountMap.
+>
+>  
+>
+automountMap
 
-As usual the packages can be found at:
+>I'll need an ldif example in order to duplicate the problem.
+>
+>  
+>
+Names are changed to protect the innocent.
 
-ftp://ftp.kernel.org/pub/linux/daemons/autofs/v4
+# auto.master, kmaclub, com
+dn: ou=auto.master,dc=kmaclub,dc=com
+objectClass: top
+objectClass: automountMap
+ou: auto.master
 
-They are:
+# /services, auto.master, kmaclub, com
+dn: cn=/services, ou=auto.master,dc=kmaclub,dc=com
+objectClass: automount
+automountInformation: ldap:ou=auto.services,dc=kmaclub,dc=com
+cn: /services
 
-autofs-4.1.0.tar.[gz|bz2]
+# auto.services, kmaclub, com
+dn: ou=auto.services,dc=kmaclub,dc=com
+objectClass: top
+objectClass: automountMap
+ou: auto.services
 
-Changes:
+# /, auto.services, kmaclub, com
+dn: cn=/,ou=auto.services,dc=kmaclub,dc=com
+objectClass: automount
+automountInformation: fileserver:/export/services/&
+cn: /
 
-1) Corrected master map processing in init script.
-2) Backed out multi-mount patch in favour of using
-   the nonstrict option.
+# mounta, auto.services, kmaclub, com
+dn: cn=mounta,ou=auto.services,dc=kmaclub,dc=com
+objectClass: automount
+cn: mounta
+automountInformation: fileserver:/export2/mounta
 
-autofs4-2.4-module-20031201.tar.[gz|bz2]
+# mountb, auto.services, kmaclub, com
+dn: cn=mountb,ou=auto.services,dc=kmaclub,dc=com
+objectClass: automount
+cn: mountb
+automountInformation: fileserver:/export2/mountb
 
-Changes:
+# mountc, auto.services, kmaclub, com
+dn: cn=mountc,ou=auto.services,dc=kmaclub,dc=com
+objectClass: automount
+cn: mountc
+automountInformation: fileserver:/export2/mountc
 
-1) Changed the readdir related routines yet again.
-   I hope this is the last time.
+# mountd, auto.services, kmaclub, com
+dn: cn=mountd,ou=auto.services,dc=kmaclub,dc=com
+objectClass: automount
+cn: mountd
+automountInformation: fileserver:/export2/mountd
+~
 
+>>According to the automount man page, the wildcard for ldap is a / so 
+>>that is what I was using.  What I thought was odd was it was always 
+>>choosing the same thing and it *wasn't* the wildcard.
+>>    
+>>
+>
+>Think the code is incorrect.
+>
+>  
+>
+I reloaded autofs-4.1.0-beta2 again today just to play.  What I have 
+found is cd'ing into /services/asdlfjadalsdjfaklsdjf will also suceed 
+and give me a mount to fileserver:/export2/mountb even though the mount 
+should fail.
 
--- 
-
-   ,-._|\    Ian Kent
-  /      \   Perth, Western Australia
-  *_.--._/   E-mail: raven@themaw.net
-        v    Web: http://themaw.net/
+Michael
