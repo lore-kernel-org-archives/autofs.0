@@ -1,13 +1,12 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: smbfs credentias
-Date: Wed, 5 Jan 2005 13:34:18 -0500
-Message-ID: <16860.13098.782113.189445@segfault.boston.redhat.com>
-References: <20050105131618.1ccfca62@localhost>
-Reply-To: jmoyer@redhat.com
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [patch] Fix for ldap_search when multiple cn's are in
+ one LDAP entry.
+Date: Thu, 6 Jan 2005 13:54:59 +0800 (WST)
+Message-ID: <Pine.LNX.4.58.0501061353100.6246@wombat.indigo.net.au>
+References: <41B9F4EB.2050202@redhat.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20050105131618.1ccfca62@localhost>
+In-Reply-To: <41B9F4EB.2050202@redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,32 +17,33 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: abo <abo@brujulatelecom.com>
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Chris Feist <cfeist@redhat.com>
 Cc: autofs@linux.kernel.org
 
-==> Regarding [autofs] smbfs credentias; abo <abo@brujulatelecom.com> adds:
+On Fri, 10 Dec 2004, Chris Feist wrote:
 
-abo> hi!  im trying to mount smbfs resources from an ldap
+> This patch fixes a bug in the ldap search which will only use the first 
+> mount point found in an LDAP entry.
+> 
+> For example if an ldap entry looks like this:
+> 
+> dn: cn=%T%I_apps, nisMapName=auto_home, ou=foo.bar
+> nismapname: auto_home
+> objectClass: top
+> objectClass: nisobject
+> nismapentry: foo.bar.ti.com:/vol/vol6/TI_apps
+> cn: %T%I_apps
+> cn: TI_apps
+> 
+> Then the auto_home map will only be used in /%T%I_apps
 
-abo> if i put in nisMapEntry this
+But the key is unique by definition.
 
-abo> -fstype=smbfs,credentials=/home/abo/smb.creds
+I'll add this patch but I'm not sure it's correct wrt autofs map 
+definition.
 
-abo> everything is working right. then i want to do it per user but
-abo> variable substitution doesn't work, i tried:
+Comments?
 
-abo> -fstype=smbfs,credentials=/home/$USER/smb.creds
-
-abo> -fstype=smbfs,credentials=/home/${USER}/smb.creds
-
-abo> -fstype=smbfs,credentials=~/smb.creds
-
-abo> but no succes.
-
-abo> how can i get per user credentiasl? im on the wrong direction?
-
-The automounter runs as user root.  It has no way of knowing which user
-requested a given mount.
-
--Jeff
+Ian
