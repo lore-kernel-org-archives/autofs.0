@@ -1,12 +1,10 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Introduction: I am new
-Date: Wed, 21 Jan 2004 08:16:19 +0800 (WST)
+From: "Myers, Parrish" <PMyers@SIKORSKY.COM>
+Subject: auto.net
+Date: Thu, 22 Jan 2004 11:19:05 -0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.33.0401210813480.13443-100000@wombat.indigo.net.au>
-References: <400D6530.6050109@windriver.com>
+Message-ID: <B94D9EFEABBFD745A8BCFC0F658E3D740390C427@sussfe01.sikorsky.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <400D6530.6050109@windriver.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,22 +14,25 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jason Brooks <jason.brooks@windriver.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Tue, 20 Jan 2004, Jason Brooks wrote:
+Hello,
 
-> Thank you for your reply.
->
-> When you say:
-> > This function is done by using a program mount in 4.0.0 and above.
->
-> Do you mean when using a later version of the mount/umount program?  Or Autofs
-> version 4.x.x?  Or perhaps the kernel autofs4.o module?  <insert other
-> possibilities here>
+I was wondering if I could get some help?  I am kinda new to the autofs
+thing... I think this is a simple question: Is there a simple way to tell if
+I have autofs4 built into my linux kernel?  And, if it isn't, does this
+still affect the use of auto.net (which is a replacement for the '-host'
+flag in the sgi verison)? I am having problems with getting auto.net to
+work. Everything in the setup seems to say it sould work: it does everyting
+but actually mound the directories.
 
-autofs. An updated autofs4 module is not needed to do this.
+Thank you.
 
-Ian
+
+ <<...OLE_Obj...>> 
+COMANCHE Simulation
+Parrish M. Myers 
+Email: pmyers@sikorsky.com <mailto:pmyers@sikorsky.com>
+Phone: (203) 386-3676
