@@ -1,12 +1,9 @@
-From: raven@themaw.net
-Subject: Re: [PATCH] check nsswitch.conf for submounts
-Date: Tue, 1 Mar 2005 21:17:57 +0800 (WST)
-Message-ID: <Pine.LNX.4.61.0503012116150.14747@donald.themaw.net>
-References: <421D05BF.5000206@redhat.com>
-	<Pine.LNX.4.61.0502271124090.8184@donald.themaw.net>
-	<16931.9806.115239.891035@segfault.boston.redhat.com>
+From: devnull@adc.idt.com
+Subject: Autofs 4.1.4_beta2 + NetApp Filer + missing dir
+Date: Tue, 1 Mar 2005 14:06:32 -0500 (EST)
+Message-ID: <Pine.LNX.4.61.0503011049350.25092@pod.adc.idt.com>
+Reply-To: devnull@adc.idt.com
 Mime-Version: 1.0
-In-Reply-To: <16931.9806.115239.891035@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,49 +16,63 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: autofs@linux.kernel.org, Chris Feist <cfeist@redhat.com>
+To: AutoFS on Linux Kernel <autofs@linux.kernel.org>
 
-On Mon, 28 Feb 2005, Jeff Moyer wrote:
+Hello All,
 
-> ==> Regarding Re: [autofs] [PATCH] check nsswitch.conf for submounts; raven@themaw.net adds:
->
-> raven> On Wed, 23 Feb 2005, Chris Feist wrote: Thanks Chris.
->
-> raven> This is a really useful bit of code.  Appart from addressing the
-> raven> default map problem, it is one of the pieces of code needed to move
-> raven> logic out of the init script.
->
-> raven> Howerver, we can't assume that maps are stored in "/etc".  This
-> raven> really should be a configure logical.
->
-> And why not?  Is this not precisely what the Sun automounter does?
+This is an extension to the "unacceptable bug in autofs kernel module" 
+sent by mmarion at qualcomm
 
-Yes but not all distributions store their maps in /etc.
-I don't want to make it hard for myself and others that may need this in 
-time to come.
+http://linux.kernel.org/pipermail/autofs/2005-February/001889.html
 
-Gentoo stores maps in /etc/autofs for example.
+Our situation
 
->
-> -Jeff
->
->>> This patch addresses the problem if a user has the following in one of
->>> their automount maps: # auto.misc test -fstype=autofs auto.m2
->>>
->>> Before it would automatically assume that auto.m2 was a yp/nis map.  The
->>> patch now checks if the file exists in /etc/ (and if it's a file or
->>> program map) or if it exists in yp (according to the order in
->>> nsswitch.conf).
->>>
->>> In the future we may want to include functionality in the lookup_xxx.so
->>> modules so we can more easily detect if a certain map exists.
->>>
->>> Thanks, Chris
->>>
->>>
->
-> raven> _______________________________________________ autofs mailing list
-> raven> autofs@linux.kernel.org
-> raven> http://linux.kernel.org/mailman/listinfo/autofs
->
+/usr/sbin/automount -V
+Linux automount version 4.1.4_beta2
+(4.1.2 didnt work either)
+
+We are submitting jobs to machines via LSF, the data being stored on 
+NetApp filers, running OnTap 6.5.2
+
+We run a perl script from
+
+/home/user/workarea called test.pl
+
+test.pl basically does
+
+
+1. setup a bunch of stuff for our runs, including versions etc.
+
+2. rmtree "DirectoryNeeded" (to make sure we remove cached data from older
+    runs)
+
+3. bsub the job, wait for completion(this job has now created a new copy 
+of "DirectoryNeeded")
+
+4. Once the bsub completes, we then try to do an "opendir" on
+    "DirectoryNeeded" and it doesnt work. Just says not found.
+
+
+To make the script work I can
+
+1. Take out Step 2(the rmtree part), remove the dir manually and run the 
+script and it works great.
+
+2. Move the rmtree part as part of the bsub command submitted and it works 
+fine.
+
+3. Do a touch on "DirectoryNeeded" just before reading it and everything 
+works.
+
+
+Almost as if the contents of the dir are still in the
+rmtree DirectoryNeeded state and hasnt been updated.
+
+Ofcourse, all of this works on Solaris.
+
+Many thanks,
+
+Please let me know if you would like to see more information.
+
+Thanks,
+Ram.
