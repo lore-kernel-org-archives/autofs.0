@@ -1,83 +1,52 @@
-From: raven@themaw.net
-Subject: Re: Re: [patch] fix a file descriptor leak in rpc_subs.c
-Date: Sat, 11 Sep 2004 11:29:24 +0800 (WST)
-Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0409111125380.1365@donald.themaw.net>
-References: <E1C4deT-0004s0-5J@www.linux.org.uk>
+From: "Lever, Charles" <cel@netapp.com>
+Subject: RE: [autofs] umount fails with NFS mounts
+Date: Tue, 14 Sep 2004 07:11:51 -0700
+Sender: nfs-admin@lists.sourceforge.net
+Message-ID: <482A3FA0050D21419C269D13989C611302B07E14@lavender-fe.eng.netapp.com>
 Mime-Version: 1.0
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <E1C4deT-0004s0-5J@www.linux.org.uk>
+Content-Transfer-Encoding: quoted-printable
+Return-path: <nfs-admin@lists.sourceforge.net>
+content-class: urn:content-classes:message
+Errors-To: nfs-admin@lists.sourceforge.net
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
+	<mailto:nfs-request@lists.sourceforge.net?subject=unsubscribe>
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Bryce as root <root@www.linux.org.uk>
-Cc: autofs@linux.kernel.org
+List-Post: <mailto:nfs@lists.sourceforge.net>
+List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
+	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
+Content-Type: text/plain; charset="us-ascii"
+To: Peter Astrand <peter@cendio.se>
+Cc: autofs@linux.kernel.org, nfs@lists.sourceforge.net
 
-On Tue, 7 Sep 2004, Bryce as root wrote:
+> We are using autofs for mounting home directories, but are=20
+> experiencing two major problems wrt unmounting NFS mounts:
+>=20
+> 1) The umount command indicates that the umount succeeded,=20
+> but even so,=20
+> the NFS export is still mounted. This can be confirmed by looking in=20
+> /etc/mtab and /proc/mounts.=20
 
-> > 
-> > On Mon, 23 Aug 2004, Jeff Moyer wrote:
-> > 
-> > > Hi Ian, list,
-> > > 
-> > > We never close the file descriptors we open in the rpc ping path.  Here is
-> > > a patch which addresses this.  The patch appears in my latest rpms on my
-> > > people page.
-> > 
-> > While I was looking at the problem Bryce reported I got the impression 
-> > that the socket leak patch may not have completely covered the closeing of 
-> > open sockets. I'm probably wrong but I came up with this alternative patch 
-> > which I've called autofs-4.1.3-sock-leak-fix-2.patch.
-> > 
-> > Any thoughts?
-> > 
-> > --- autofs-4.1.3/lib/rpc_subs.c.sock-leak-fix-2	2004-09-06 19:26:30.000000000 +0800
-> > +++ autofs-4.1.3/lib/rpc_subs.c	2004-09-06 19:41:19.000000000 +0800
-> > @@ -48,7 +48,7 @@
-> >   */
-> >  static CLIENT* create_udp_client(struct conn_info *info)
-> >  {
-> > -	int fd = -1;
-> > +	int fd = RPC_ANYSOCK;
-> >  	CLIENT *client;
-> >  	struct sockaddr_in addr;
-> >  	struct hostent *hp;
-> > @@ -179,6 +179,12 @@
-> >  	if (!client)
-> >  		goto out_close;
-> >  
-> > +	/* Close socket fd on destroy, as is default for rpcowned fds */
-> > +	if  (!clnt_control(client, CLSET_FD_CLOSE, NULL)) {
-> > +		clnt_destroy(client);
-> > +		goto out_close;
-> > +	}
-> > +
-> >  	return client;
-> >  
-> >  out_close:
-> 
-> 
-> Applied and tried.. (and failed. Same messages about "nfs bindresvport:
-> Address already in use" in the log file)
-> One thing of note from an earlier email is that quite a few sockets are left
-> around from just one mount
+in other words, you are able to replicate this problem without autofs
+(ie, using only static mount points)?
 
-After thinking about this further I find the fact that the socket leak 
-made any difference at all mysterious.
+> Any ideas? This is a major problem for us, since it's not=20
+> possible to have=20
+> more than 800 NFS mounts or so.=20
 
-In fact with an autofs mount that does not have replicated mount syntax 
-none of the rpc code in autofs should be called. I'll be investigating 
-this.
+is there an error message in the kernel log?  you might try a few umount
+commands while NFS or RPC trace debugging messages are enabled on your
+client.
 
-Bryce, if you do a mount manually, are there any open sockets resulting 
-from that?
+  sudo sysctl -w sunrpc.rpc_debug=3D32767
 
-Ian
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: YOU BE THE JUDGE. Be one of 170
+Project Admins to receive an Apple iPod Mini FREE for your judgement on
+who ports your project to Linux PPC the best. Sponsored by IBM. 
+Deadline: Sept. 13. Go here: http://sf.net/ppc_contest.php
+_______________________________________________
+NFS maillist  -  NFS@lists.sourceforge.net
+https://lists.sourceforge.net/lists/listinfo/nfs
