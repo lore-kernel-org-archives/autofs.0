@@ -1,40 +1,45 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: To autofs4 or not
-Date: Fri, 16 Apr 2004 10:39:45 -0400
-Sender: autofs-bounces@linux.kernel.org
-Message-ID: <16511.61489.172219.152402@segfault.boston.redhat.com>
-References: <407F1FBC.3060603@analog.com>
-Reply-To: jmoyer@redhat.com
+From: Venkata Ravella <Venkata.Ravella@synopsys.com>
+Subject: Re: Automount/NFS issues causing executables to appear corrupted
+Date: Mon, 19 Apr 2004 17:08:35 -0700 (PDT)
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <200404200008.i3K08Zvs018948@radium.internal.synopsys.com>
+Reply-To: Venkata Ravella <Venkata.Ravella@synopsys.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <407F1FBC.3060603@analog.com>
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S261380AbUDTAIj@vger.kernel.org>
+Content-MD5: +FBRoMmHSN9ox+1AV41ZHg==
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: alan.burke@analog.com
-Cc: autofs@linux.kernel.org
+Content-Type: TEXT/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: raven@themaw.net
+Cc: linux-kernel@vger.kernel.org, Ramki.Balasubramanium@synopsys.COM, ab@californiadigital.com, hpa@zytor.com, autofs@linux.kernel.org
 
-==> Regarding [autofs] To autofs4 or not; "Alan.Burke" <alan.burke@analog.com> adds:
 
-alan.burke> Hi Everyone, I have the task of convincing a team of admins
-alan.burke> that we should be using autofs4 with RH8. /net is the major
-alan.burke> reason I want to use it, but some claim RH does not support
-alan.burke> autofs4. Is this true? If so will they support it in RHE3 or a
-alan.burke> future version?
+autofs version is autofs-3.1.7-21
 
-Well, RH8 is no longer supported, I'm sure you know.  :(  I've been working
-to get the autofs4 user space into RHEL 3, so it will appear in the next
-update release.  RHEL 4 will _hopefully_ support autofs4 user space and
-kernel module.
+I also have one new update. We started seeing similar problem on
+the system running the kernel 2.4.18-e.12smp which has the same
+version(3.1.7-21) of autofs as well.
 
-Cheers,
+This may or may not be an autofs problem but, restarting autofs
+fixes this problem temporarily.
 
-Jeff
+
+>
+>Please cc autofs questions to the list at autofs@linux.kernel.org.
+>
+>On Sun, 18 Apr 2004, Venkata Ravella wrote:
+>
+>> 
+>> The current kernel we use is default 7.2 kernel with two modifications:
+>> 1) BM patch applied to extend address space for a single process to 3.6GB
+>> 2) mnt patch applied to allow upto 1024 nfs mount points
+>> 
+>> uname -r output:
+>> 2.4.7-10mntBMsmp
+>
+>What autofs version?
+>
+>To be honest it's a bit hard to see how this is an autofs issue.
+>Mind, having said that, ....
+>
+>Ian
