@@ -1,13 +1,13 @@
-From: "Taylor, ForrestX" <forrestx.taylor@intel.com>
-Subject: Re: Autodir
-Date: Thu, 17 Jun 2004 10:27:48 -0700
+From: ramana <ramana@intraperson.com>
+Subject: [ldap] user home directories in ldap
+Date: Fri, 18 Jun 2004 06:18:18 +0530
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <1087493267.6977.34.camel@bad.jf.intel.com>
-References: <40D0392D.2050609@intraperson.com>
+Message-ID: <40D23BD2.7040503@intraperson.com>
+References: <LYRIS-1845620-699584-2004.04.19-05.42.49--ramana#intraperson.com@listserver.itd.umich.edu>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <40D0392D.2050609@intraperson.com>
+In-Reply-To: <LYRIS-1845620-699584-2004.04.19-05.42.49--ramana#intraperson.com@listserver.itd.umich.edu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,26 +17,40 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: ramana <ramana@intraperson.com>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: autofs@linux.kernel.org
 
-On Wed, 2004-06-16 at 05:12, ramana wrote:
-> Dear all,
-> 
-> It started when I stuck with intraperson documentation. I stuck becuase 
-> there is no good software to create home directories automatically for 
-> unix accounts in ldap.
-> 
-> I thought threre is simply no way it can be done without serious 
-> drawbacks. But autofs kernel module came to rescue.
-> 
-> Welcome to http://www.intraperson.com/autodir.html
-> 
-> 
-> Autodir HOWTO  
-> http://prdownloads.sourceforge.net/intraperson/Autodir-HOWTO.html?download
+ramana wrote:
 
-Just curious--doesn't pam_mkhomedir.so work?
+> I work on Linux.
+>
+> Its not pure ldap question but it does not fit exactly to any mailing 
+> list I know. So I decided to ask here.
+>
+> Posix/shadow ldap accounts have home directory associated with them. I 
+> can get those accounts to any server which require them --for example 
+> using nss_ldap.
+>
+> But the question is how to create home directories on the server 
+> automatically as IMAP and other servers depend heavily on physical 
+> presence of home directories.
+>
+> One solution is pam_mkhomedir, But it only works when the server uid=0.
+>
+> Any better solutions such that it should be transparent to the server 
+> and works with any server.
+>
+> Because I am planning to code a very simple solution -- to be used 
+> with autofs to solve this problem. If there is better solution I 
+> consider that.
+>
+> Regards
+> ramana
+>
+This what I posted to ldap mailing list once.
 
-Forrest
+Regards
+ramana
+
+-- 
+http://www.intraperson.com
