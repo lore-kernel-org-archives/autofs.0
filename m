@@ -1,11 +1,14 @@
-From: Ben-Nun Gil <Gil.Ben-nun@comverse.com>
-Subject: automounter
-Date: Sun, 5 Sep 2004 10:21:54 +0300
+From: Bryce as root <root@www.linux.org.uk>
+Subject: Re: Re: [patch] fix a file descriptor leak in rpc_subs.c
+Date: Tue, 7 Sep 2004 11:56:41 +0100 (BST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <4389DC3E2E59694D8B01794D38C1499C13A365@il-tlv-mail02.comverse.com>
+Message-ID: <E1C4deT-0004s0-5J@www.linux.org.uk>
+References: <Pine.LNX.4.58.0409062142310.13402@donald.themaw.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============70450901484322959=="
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <Pine.LNX.4.58.0409062142310.13402@donald.themaw.net> from
+	"raven@themaw.net" at Sep 06, 2004 09:50:09 PM
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -15,87 +18,80 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-To: "'autofs@linux.kernel.org'" <autofs@linux.kernel.org>
-
-This message is in MIME format. Since your mail reader does not understand
-this format, some or all of this message may not be legible.
-
---===============70450901484322959==
-Content-Type: multipart/alternative;
-	boundary="----_=_NextPart_001_01C49319.0548D76F"
-
-This message is in MIME format. Since your mail reader does not understand
-this format, some or all of this message may not be legible.
-
-------_=_NextPart_001_01C49319.0548D76F
-Content-Type: text/plain
-
-
-
-Can I use the auto mounter in Linux redhat to mount or ftp remote servers ?
-Can it work without running a nis service ?
-As I understand I have two files :/etc/auto.master which directs to the map
-file /etc/auto.misc.
-I added a line to the /etc/auto.misc : dsu                      -fstype=auto
-1.1.1.1:/share
-   the network is o.k., the directory on the remote server is shared -  but
-still no luck .
-Please help
-
-------_=_NextPart_001_01C49319.0548D76F
-Content-Type: text/html
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
-<HTML>
-<HEAD>
-<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
-charset=3Dus-ascii">
-<META NAME=3D"Generator" CONTENT=3D"MS Exchange Server version =
-5.5.2655.35">
-<TITLE>automounter</TITLE>
-</HEAD>
-<BODY>
-<BR>
-<BR>
-
-<P><B><FONT COLOR=3D"#0000FF" FACE=3D"Times New Roman">Can I use the =
-auto mounter in Linux redhat to mount or ftp remote servers =
-?</FONT></B>
-<BR><B><FONT COLOR=3D"#0000FF" FACE=3D"Times New Roman">Can it work =
-without running a nis service ?</FONT></B>
-<BR><B><FONT COLOR=3D"#0000FF" FACE=3D"Times New Roman">As I understand =
-I have two files :/etc/auto.master which directs to the map file =
-/etc/auto.misc.</FONT></B>
-<BR><B><FONT COLOR=3D"#0000FF" FACE=3D"Times New Roman">I added a line =
-to the /etc/auto.misc : =
-dsu&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
--fstype=3Dauto&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
-p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
-p; 1.1.1.1:/share</FONT></B>
-<BR><B><FONT COLOR=3D"#0000FF" FACE=3D"Times New Roman">&nbsp;&nbsp; =
-the network is o.k., the directory on the remote server is shared =
--&nbsp; but still no luck .</FONT></B>
-<BR><B><FONT COLOR=3D"#0000FF" FACE=3D"Times New Roman">Please =
-help</FONT></B>
-</P>
-
-</BODY>
-</HTML>
-------_=_NextPart_001_01C49319.0548D76F--
-
-
---===============70450901484322959==
 Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: raven@themaw.net
+Cc: autofs@linux.kernel.org
 
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
+> 
+> On Mon, 23 Aug 2004, Jeff Moyer wrote:
+> 
+> > Hi Ian, list,
+> > 
+> > We never close the file descriptors we open in the rpc ping path.  Here is
+> > a patch which addresses this.  The patch appears in my latest rpms on my
+> > people page.
+> 
+> While I was looking at the problem Bryce reported I got the impression 
+> that the socket leak patch may not have completely covered the closeing of 
+> open sockets. I'm probably wrong but I came up with this alternative patch 
+> which I've called autofs-4.1.3-sock-leak-fix-2.patch.
+> 
+> Any thoughts?
+> 
+> --- autofs-4.1.3/lib/rpc_subs.c.sock-leak-fix-2	2004-09-06 19:26:30.000000000 +0800
+> +++ autofs-4.1.3/lib/rpc_subs.c	2004-09-06 19:41:19.000000000 +0800
+> @@ -48,7 +48,7 @@
+>   */
+>  static CLIENT* create_udp_client(struct conn_info *info)
+>  {
+> -	int fd = -1;
+> +	int fd = RPC_ANYSOCK;
+>  	CLIENT *client;
+>  	struct sockaddr_in addr;
+>  	struct hostent *hp;
+> @@ -179,6 +179,12 @@
+>  	if (!client)
+>  		goto out_close;
+>  
+> +	/* Close socket fd on destroy, as is default for rpcowned fds */
+> +	if  (!clnt_control(client, CLSET_FD_CLOSE, NULL)) {
+> +		clnt_destroy(client);
+> +		goto out_close;
+> +	}
+> +
+>  	return client;
+>  
+>  out_close:
 
---===============70450901484322959==--
 
+Applied and tried.. (and failed. Same messages about "nfs bindresvport:
+Address already in use" in the log file)
+One thing of note from an earlier email is that quite a few sockets are left
+around from just one mount
+
+[root@localhost test]# netstat --inet
+Active Internet connections (w/o servers)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State      
+tcp        0      0 192.168.1.40:ssh        192.168.1.100:32985     ESTABLISHED 
+[root@localhost test]# ls 1
+1
+[root@localhost test]# netstat --inet
+Active Internet connections (w/o servers)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State      
+tcp        0      0 192.168.1.40:855        192.168.1.100:sunrpc    TIME_WAIT   
+tcp        0      0 192.168.1.40:858        192.168.1.100:sunrpc    TIME_WAIT   
+tcp        0      0 192.168.1.40:800        192.168.1.100:nfs       ESTABLISHED 
+tcp        0      0 192.168.1.40:ssh        192.168.1.100:32985     ESTABLISHED 
+tcp        0      0 192.168.1.40:856        192.168.1.100:1013      TIME_WAIT 
+
+so when it comes around to doing an ls * on my setup
+[root@localhost test]# netstat --inet | wc -l
+   2011
+Thats an awful lot of sockets for a meer 200+ mount points
+Admittidly the vast majority are in TIME_WAIT states
+
+Unfortunately I can't help beyond just observing results as my knowledge
+of RPC extends to just being able to spell it 8/
+
+Phil
+=--=
