@@ -1,12 +1,14 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs and 2.6.x
-Date: Mon, 10 May 2004 09:43:50 +0800 (WST)
+From: Joseph Mack NA3T <jmack@wm7d.net>
+Subject: Re: automount doesn't expire nested nfs mounts for certain
+ kernel configs
+Date: Mon, 10 May 2004 05:28:29 -0700 (PDT)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0405100936500.14861@wombat.indigo.net.au>
-References: <Pine.LNX.4.44.0405061146430.1165-100000@who.adc.idt.com>
+Message-ID: <Pine.LNX.4.58.0405100504440.7687@www.wm7d.net>
+References: <409E4AB5.6A3CCEB1@wm7d.net>
+	<Pine.LNX.4.58.0405100913350.14283@wombat.indigo.net.au>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.44.0405061146430.1165-100000@who.adc.idt.com>
+In-Reply-To: <Pine.LNX.4.58.0405100913350.14283@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,29 +20,73 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: devnull@adc.idt.com
-Cc: AutoFS on Linux Kernel <autofs@linux.kernel.org>
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org
 
-On Thu, 6 May 2004 devnull@adc.idt.com wrote:
+On Mon, 10 May 2004, Ian Kent wrote:
 
-> Has anyone gotten autofs-4.1.x ghosting to work on 2.6.x on x86_64 ?
-> 
-> I have FC1 running on a dual opteron machine and have patched
-> 2.6.4 with
-> 
-> http://www.kernel.org/pub/linux/kernel/people/raven/autofs4-2.6/2.6.4/
-> 
-> all 8 files.
-> 
-> automount works, but ghosting doesnt. I have added --ghost to the startup 
-> script. 2.4.26 seems to work, but i need to use 2.6.4
+> > machine that does autoexpire nested nfs mounts
+> >
+> >   < > Kernel automounter support
+> >   <M> Kernel automounter version 4 support (also supports v3)
+>
+> Yes. It loads the autofs4 module.
+>
+> >
+> > machine that doesn't autoexpire nested nfs mounts
+> >
+> >   <M> Kernel automounter support
+> >   <M> Kernel automounter version 4 support (also supports v3)
 
-Had a look at this. This is due to the ioctl 32 bit emulation layer not 
-being told yet about the added ioctls in the latest autofs4.
+Looked at the kernel config help for these options to find that you don't
+activate the first option if you want autofs v3 or v4 support. Since the
+question is simple, and knew I wanted autofs support, it never occured to
+me to read the help. I just said yes to the first option. I didn't know
+what the first line did or why there were two lines for autofs. Perhaps I
+thought that the first line was core autofs code while the 2nd line was
+for v3 and v4.
 
-This is also true on 2.4 and 64 bit archs.
+Here's a suggestion for a fix
 
-If I make a patch can you test it for me on your arch. I can only test on 
-sparc64?
+   < > Kernel automounter version 1,2 support (incompatible with v3,4)
+   < > Kernel automounter version 3,4 support
 
-Ian
+> Using autofs-4.0.0 you need to add
+>
+> alias autofs autofs4
+>
+> to your modules.conf to ensure that autofs4 gets loaded.
+
+autofs4 was loaded
+
+> I wasn't aware expire didn't work with the autofs module and v4.
+
+If you have the first option activated in the kernel config
+then
+ 	expire with _nested_ nfs mounts doesn't work
+	automount from autofs-4.1.2 won't load (well, loads and exits)
+	automount from autofs-4.0.0pre10 loads OK
+	expire with non-nested mounts works fine
+fi
+
+> > I can't get the automount from autofs-4.1.2 to load on the machine which
+> > doesn't autoexpire. automount runs and exits with no process in the ps table,
+> > no errors in the logs. Running with -d gives a few lines in the log files
+> > as it fires up, but no error messages. firing up the demon under strace,
+> > looks the same in both cases, as I don't see anything after the fork().
+>
+> Are you actually sending the *.debug to the log?
+
+I was looking in the wrong spot. autofs-4.0.0pre10 on my machine sends the
+logs to a file called debug (don't have machine here, so I don't know
+what's in syslogd.conf). I expected the logs from autofs-4.1.2 to go to
+the same file, but it's being sent to the file "messages". So I found
+the output now.
+
+Thanks Joe
+
+-- 
+Joseph Mack NA3T EME(B,D), FM05lw North Carolina
+jmack (at) wm7d (dot) net - azimuthal equidistant map
+generator at http://www.wm7d.net/azproj.shtml
+Homepage http://www.austintek.com/ It's GNU/Linux!
