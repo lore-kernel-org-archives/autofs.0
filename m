@@ -1,12 +1,12 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: multiple servers per automount
-Date: Fri, 10 Oct 2003 09:08:49 +0800 (WST)
+Subject: RE: multiple servers per automount
+Date: Fri, 10 Oct 2003 09:15:01 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.33.0310100856590.7746-100000@wombat.indigo.net.au>
-References: <3F85B03E.2050109@sun.com>
+Message-ID: <Pine.LNX.4.33.0310100910300.7746-100000@wombat.indigo.net.au>
+References: <6AB920CC10586340BE1674976E0A991D0C6B77@slexch2.sugarland.unocal.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <3F85B03E.2050109@sun.com>
+In-Reply-To: <6AB920CC10586340BE1674976E0A991D0C6B77@slexch2.sugarland.unocal.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,39 +18,25 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Waychison <Michael.Waychison@Sun.COM>
-Cc: "Ogden, Aaron A." <aogden@unocal.com>, autofs mailing list <autofs@linux.kernel.org>, nfs@lists.sourceforge.net
+To: "Ogden, Aaron A." <aogden@unocal.com>
+Cc: autofs mailing list <autofs@linux.kernel.org>, Mike Waychison <Michael.Waychison@Sun.COM>, linux-kernel <linux-kernel@vger.kernel.org>
 
-On Thu, 9 Oct 2003, Mike Waychison wrote:
+On Thu, 9 Oct 2003, Ogden, Aaron A. wrote:
 
-> Ogden, Aaron A. wrote:
 >
-> >Ouch.  As you may know, the limit is *much* lower in linux.  Something
-> >that I've been struggling with recently...
-> >
-> >Under normal circumstances I would not be concerned with 'limitations'
-> >of a few hundred active NFS mounts, but such limitations certainly limit
-> >scalability for the extreme cases.
-> >
-> >
->
-> The maximum number of plain pseudo-block device filesystems on a given
-> filesystem is limitted to 256. (This includes proc, autofs, nfs..).
->
-> This is because pseudo-block filesystems all use major 0, and each have
-> a different minor (thus the 256 limit).
->
-> There are however patches floating around (look at SuSe's kernels, I'm
-> not sure about RH) that allow n majors to be used (default 5).  This
-> gives you 1280 mounts, a big step up :)
+> Yes, we are using the RH kernels as a base, the limit is supposed to be
+> 1200+ but my experiments have shown it to be just shy of 800.  Or maybe
+> that results is due to a bug in the autofs code.  I think the real
+> solution to this problem is Richard Gooch's devfs and kernel 2.6.  It's
+> anyone's guess when there will be a distribution using both of those but
+> I think Fedora might be the first.
 >
 
-But as Aaron and I know things go pear shaped at just shy of 800 mounts
-with RedHat kernels. They have the more-unnamed patch.
+Looks like the limit is here to stay as 2.6 looks similar to 2.4 in that
+area and udev is destined to be used as a replacement for devfs (which
+never caught on). udev does not address this issue either.
 
-So this would indicate that even if there is a device system that can
-increase the number of unnamed devices that subsystems like NFS cannot
-handle this many mounts.
+Any know if/how this issue will be addressed?
 
 -- 
 
