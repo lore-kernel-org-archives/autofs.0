@@ -1,43 +1,76 @@
-From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
-Subject: Re: NIS maps loading.
-Date: Tue, 25 Jan 2005 17:50:45 +0100
-Message-ID: <20050125165045.GA8642@uio.no>
-References: <41F56D27.1080005@redhat.com>
-	<Pine.LNX.4.58.0501250904250.21644@wombat.indigo.net.au>
-	<20050125121827.GE2032@ba.issia.cnr.it>
-	<16886.26557.799629.351909@segfault.boston.redhat.com>
-	<20050125155021.GC8093@ba.issia.cnr.it>
+From: raven@themaw.net
+Subject: [ANNOUNCE] autofs 4.1.4 beta1 release
+Date: Wed, 26 Jan 2005 22:17:53 +0800 (WST)
+Message-ID: <Pine.LNX.4.61.0501262151370.1716@donald.themaw.net>
 Mime-Version: 1.0
-Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20050125155021.GC8093@ba.issia.cnr.it>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
-To: autofs@linux.kernel.org
+To: linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>
 
-On Tue, Jan 25, 2005 at 04:50:21PM +0100, Francesco P. Lovergine wrote:
->> The kernel patch you want is also listed on the website above.  You could
->> also just wait for 4.1.4 (or the beta version thereof).
-> Uhm, probably we missed that in current debian. Isn't it the same of FC3?
 
-Probably we missed it, yes. I'm still on semi-vacation (although I'm home from
-the USA, it's hard to do extensive testing without a Linux system :-) ), so I
-guess I'll simply wait for 4.1.4, which should be a largely problem-free
-update for us anyhow.
+Hi all,
 
-BTW, current Debian versions has fixes for whitespace in parse_sun.c (also
-for non-multimaps); are those fused upstream yet?
+It's been a long time between releases so there are many changes that need 
+testing and so this is labeled a beta so we can test it.
 
-/* Steinar */
--- 
-Homepage: http://www.sesse.net/
+For more information look at the CHANGELOG in the distribution.
+
+There are still a few problems that I'm aware of such as:
+
+- the init script for Debian and Gentoo doesn't handle the reload
+   option quite right.
+- there seems to be a bug with the selection of the default map
+   type when using submounts. I still need to investigate this.
+
+So let me know when you find more and I'll fix`em as quick as I can!
+
+The distribution can be found at the usual place at:
+
+http://www.kernel.org/pub/linux/daemons/autofs/v4
+
+in the tars
+
+autofs-4.1.4_beta1.tar.[gz|bz2]
+
+also there is a tarball called:
+
+autofs-4.1.4-beta1-deb.tar.[gz|bz2]
+
+that can be used to build binary debs (see below).
+
+It is possible to build packages for testing from the distribution. 
+I'm not the maintainer of any of these distribution packages so please be 
+aware that this is for convenience and testing.
+
+To build an rpm package use:
+
+rpmbuild -tb autofs-4.1.4_beta1.tar.gz
+
+and the binary rpms will end up in the usual location.
+
+To merge the package into Gentoo use:
+
+tar zxf autofs-4.1.4_beta1.tar.gz
+cd autofs-4.1.4_beta1/gentoo
+export PORTDIR_OVERLAY=`pwd`
+ebuild net-fs/autofs/autofs-4.1.4_beta1.ebuild digest
+ebuild net-fs/autofs/autofs-4.1.4_beta1.ebuild clean install
+ebuild net-fs/autofs/autofs-4.1.4_beta1.ebuild qmerge
+unset PORTDIR_OVERLAY
+
+To build binary debs for Debian download the tar refered to above and:
+
+tar zxvf autofs-4.1.4-beta1-deb.tar.gz
+dpkg-source -x autofs_4.1.4-beta1-1.dsc
+cd autofs-4.1.4-beta1
+dpkg-buildpackage -b
+
+and the binary debs will be placed in the directory the tar was unpacked.
+
+Hopefuly this will help with the testing
+
+Ian
+
