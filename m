@@ -1,47 +1,55 @@
-From: Marcelo Tosatti <marcelo.tosatti@cyclades.com>
-Subject: Re: [PATCH 2.4] SGI 932676 link_path_walk refcount problem allows umount of active filesystem
-Date: Fri, 25 Mar 2005 16:58:56 -0300
-Message-ID: <20050325195856.GB15383@logos.cnet>
-References: <1111454677.1991.766.camel@hole.melbourne.sgi.com>
+From: raven@themaw.net
+Subject: Re: Is autofs4 8-bit compatible?
+Date: Sun, 27 Mar 2005 11:01:51 +0800 (WST)
+Message-ID: <Pine.LNX.4.62.0503271100480.2479@donald.themaw.net>
+References: <42304DE7.00001F.23342@camay.yandex.ru>
 Mime-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <1111454677.1991.766.camel@hole.melbourne.sgi.com>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <42304DE7.00001F.23342@camay.yandex.ru>
 List-Id: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
-To: Greg Banks <gnb@melbourne.sgi.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux NFS Mailing List <nfs@lists.sourceforge.net>, Linux AutoFS Mailing List <autofs@linux.kernel.org>
+To: atlantos41 <atlantos41@yandex.ru>
+Cc: autofs@linux.kernel.org
 
-On Tue, Mar 22, 2005 at 12:24:37PM +1100, Greg Banks wrote:
-> G'day,
-> 
-> The attached patch fixes a bug in the VFS code which causes
-> "Busy inodes after unmount" and a subsequent oops.
+On Thu, 10 Mar 2005, atlantos41 wrote:
 
-Applied, thanks.
+> On Sunday 06 March 2005 05:10, raven@themaw.net wrote:
+>> Could you try this patch for me please.
+>>
 
-> 
-> Greg.
-> -- 
-> Greg Banks, R&D Software Engineer, SGI Australian Software Group.
-> I don't speak for SGI.
-> 
+snip ...
 
-> Following an absolute symlink opens a window during which the
-> filesystem containing the symlink has an outstanding dentry count
-> and no outstanding vfsmount count.  A umount() of the filesystem can
-> (incorrectly) proceed, resulting in the "Busy inodes after unmount"
-> message and an oops shortly thereafter.
-> 
-> Systems using autofs-controlled NFS mounts are especially vulnerable,
-> as autofs both increases the number of unmounts happening and does NFS
-> mounting in response to lookups which can result in multiple-second
-> vulnerability windows.  However the bug could happen on any filesystem.
-> 
-> This patch adds a mntget()/mntput() pair around the link following code
-> (as the 2.6 code does).  Attempts to umount() during link following
-> now return EBUSY.
-> 
-> 
-> Signed-off-by: Greg Banks <gnb@melbourne.sgi.com>
+>
+> I've tried your patch and there are no difference - autofs continue to fail on mount as before.
+>
+
+Could you try this one please?
+
+--- autofs-4.1.3/modules/lookup_file.c.wide_char	2005-03-27 10:47:16.000000000 +0800
++++ autofs-4.1.3/modules/lookup_file.c	2005-03-27 10:48:32.000000000 +0800
+@@ -148,7 +148,7 @@ static int read_one(FILE *f, char *key,
+  				else if (ch == '*') {
+  					state = st_star;
+  					*(kptr++) = ch;
+-				} else if (isprint((char) ch)) {
++				} else {
+  					state = st_compare;
+  					*(kptr++) = ch;
+  				}
+@@ -164,7 +164,7 @@ static int read_one(FILE *f, char *key,
+  				getting = got_real;
+  				state = st_entspc;
+  			} else if (escape == esc_char);
+-			else if (isprint((char) ch))
++			else
+  				*(kptr++) = ch;
+  			break;
