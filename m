@@ -1,13 +1,11 @@
-From: Denis Vlasenko <vda@port.imtp.ilyichevsk.odessa.ua>
-Subject: Re: autofs unmount don't work with symbolic links
-Date: Sat, 30 Oct 2004 23:17:04 +0300
-Sender: autofs-bounces@linux.kernel.org
-Message-ID: <200410302317.04738.vda@port.imtp.ilyichevsk.odessa.ua>
-References: <1098779618.19050.61.camel@IAPonomarenko.isd.dp.ua>
+From: Jouni Laakso <jounijl@yahoo.co.uk>
+Subject: Using automount with encrypted filesystems
+Date: Sun, 31 Oct 2004 16:40:48 +0200
+Message-ID: <200410311640.49389.jounijl@yahoo.co.uk>
+Reply-To: jounijl@yahoo.co.uk
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1098779618.19050.61.camel@IAPonomarenko.isd.dp.ua>
 Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -17,29 +15,38 @@ List-Post: <mailto:autofs@linux.kernel.org>
 List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: apon@isd.dp.ua, autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Tuesday 26 October 2004 11:33, Alexander Ponomarenko wrote:
->     Hello!
->     I found the trouble when I tryed to use autofs on linked var
-> filesystem. My /var is simbolic link to /usr/var. My filesystems
-> successfully mounts but didn't unmounts on expiration time.
->     If I use full path in config files (/uar/var/autofs not simply
-> /var/autofs) all is OK.
-> 
->     My operating system is Debian GNU/Linux:
->         Linux IAPonomarenko 2.6.6-asp #1 Fri Jul 2 11:52:26 EEST 2004
-> i686 GNU/Linux.
-> 
->     I think this information may be usefull for other people.
 
-I saw the same on 4.0.0pre10. I worked around by substituting
-the path symlink points to.
+Hello,
 
-I didn't check this on 4.1.3 (forgot about the issue)
+Question about mounting encrypted filesystems with automount.
 
-Which version is yours?
---
-vda
+I tried mounting encrypted filesystem with autofs (Suse 9.1) and it almost 
+succeeded, only thing was that password prompt appeared in console that 
+started the daemon from /etc/init.d/autofs without beeing able to write in 
+the password. 
+
+Is it possible to add something to the code, to a section just before when 
+mount is going to be done for encrypted filesystems? Has it been done 
+allready? Where can I find the solution?
+
+Is there a way, a 'hook' or similar for example in automountd, to be able to 
+pop up a window somehow to ask password when mounting encrypted filesystem or 
+to redirect the password question to console screen for user to type it in or 
+to handle encrypted filesystems mounting somehow securely and provide 
+password etc. for mount when it is needed?
+
+I think that access lists etc. can prohibit the use of mounted filesystem for 
+others. I'm not sure. Is it possible to mount filesystem to be used by only 
+one user?
+
+Encrypted filesystems work with loopback device, howtos and examples can be 
+found from www.tldp.org. 
+
+Best regards,
+
+Jouni
