@@ -1,24 +1,48 @@
-From: "Lever, Charles" <Charles.Lever@netapp.com>
-Subject: RE: Re: [autofs] multiple servers per automount
-Date: Fri, 10 Oct 2003 08:10:13 -0700
-Sender: nfs-admin@lists.sourceforge.net
-Message-ID: <482A3FA0050D21419C269D13989C6113020AC4E3@lavender-fe.eng.netapp.com>
+From: "Ogden, Aaron A." <aogden@unocal.com>
+Subject: RE: [NFS] Re: multiple servers per automount
+Date: Fri, 10 Oct 2003 10:43:41 -0500
+Sender: autofs-bounces@linux.kernel.org
+Message-ID: <6AB920CC10586340BE1674976E0A991D0C6B7D@slexch2.sugarland.unocal.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Return-path: <nfs-admin@lists.sourceforge.net>
+Content-Transfer-Encoding: 8bit
+Return-path: <autofs-bounces@linux.kernel.org>
 content-class: urn:content-classes:message
-Errors-To: nfs-admin@lists.sourceforge.net
-List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
-List-Post: <mailto:nfs@lists.sourceforge.net>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: Ian Kent <raven@themaw.net>, Mike Waychison <Michael.Waychison@Sun.COM>
-Cc: "Ogden, Aaron A." <aogden@unocal.com>, autofs mailing list <autofs@linux.kernel.org>, nfs@lists.sourceforge.net
+To: "Lever, Charles" <Charles.Lever@netapp.com>, Ian Kent <raven@themaw.net>, Mike Waychison <Michael.Waychison@Sun.COM>
+Cc: autofs mailing list <autofs@linux.kernel.org>, nfs@lists.sourceforge.net
+
+
+Aha! Wisdom from the heavens... :-)
+I assume that the RPC code is doing that to comply with reserved-port
+restrictions, ie. ports < 1024.  Solaris needs to do the same thing
+(with nfssrv:nfs_portmon=1) so it seems that there would be an inherent
+limit of 1024 ports or mountpoints to work with.  Actually less, since
+some ports will be in use.  How does Sun get 260,000 active mounts if
+they can only use ports < 1024?  Do we really need one port for each
+mountpoint?
+
+Perhaps this has something to do with the fact that solaris autofs is
+multithreaded (ie. one process) whereas linux autofs has many processes,
+one for each mountpoint.  Feel free to correct me if I'm wrong...
+
+-A
+
+-----Original Message-----
+From: Lever, Charles [mailto:Charles.Lever@netapp.com] 
+Sent: Friday, October 10, 2003 10:10 AM
+To: Ian Kent; Mike Waychison
+Cc: Ogden, Aaron A.; autofs mailing list; nfs@lists.sourceforge.net
+Subject: RE: [NFS] Re: [autofs] multiple servers per automount
+
 
 the problem is likely the algorithm used to allocate
 ports for the RPC transport sockets.  it starts at
@@ -30,71 +54,43 @@ port 800 and goes down to zero.
 > To: Mike Waychison
 > Cc: Ogden, Aaron A.; autofs mailing list; nfs@lists.sourceforge.net
 > Subject: [NFS] Re: [autofs] multiple servers per automount
->=20
->=20
+> 
+> 
 > On Thu, 9 Oct 2003, Mike Waychison wrote:
->=20
+> 
 > > Ogden, Aaron A. wrote:
 > >
-> > >Ouch.  As you may know, the limit is *much* lower in=20
-> linux.  Something
+> > >Ouch.  As you may know, the limit is *much* lower in linux.
+Something
 > > >that I've been struggling with recently...
 > > >
-> > >Under normal circumstances I would not be concerned with=20
-> 'limitations'
-> > >of a few hundred active NFS mounts, but such limitations=20
-> certainly limit
+> > >Under normal circumstances I would not be concerned with
+'limitations'
+> > >of a few hundred active NFS mounts, but such limitations certainly
+limit
 > > >scalability for the extreme cases.
 > > >
 > > >
 > >
-> > The maximum number of plain pseudo-block device filesystems=20
-> on a given
+> > The maximum number of plain pseudo-block device filesystems on a
+given
 > > filesystem is limitted to 256. (This includes proc, autofs, nfs..).
 > >
-> > This is because pseudo-block filesystems all use major 0,=20
-> and each have
+> > This is because pseudo-block filesystems all use major 0, and each
+have
 > > a different minor (thus the 256 limit).
 > >
-> > There are however patches floating around (look at SuSe's=20
-> kernels, I'm
+> > There are however patches floating around (look at SuSe's kernels,
+I'm
 > > not sure about RH) that allow n majors to be used (default 5).  This
 > > gives you 1280 mounts, a big step up :)
 > >
->=20
-> But as Aaron and I know things go pear shaped at just shy of=20
-> 800 mounts
+> 
+> But as Aaron and I know things go pear shaped at just shy of 800
+mounts
 > with RedHat kernels. They have the more-unnamed patch.
->=20
+> 
 > So this would indicate that even if there is a device system that can
 > increase the number of unnamed devices that subsystems like NFS cannot
 > handle this many mounts.
->=20
-> --=20
->=20
->    ,-._|\    Ian Kent
->   /      \   Perth, Western Australia
->   *_.--._/   E-mail: raven@themaw.net
->         v    Web: http://themaw.net/
->=20
->=20
->=20
-> -------------------------------------------------------
-> This SF.net email is sponsored by: SF.net Giveback Program.
-> SourceForge.net hosts over 70,000 Open Source Projects.
-> See the people who have HELPED US provide better services:
-> Click here: http://sourceforge.net/supporters.php
-> _______________________________________________
-> NFS maillist  -  NFS@lists.sourceforge.net
-> https://lists.sourceforge.net/lists/listinfo/nfs
->=20
-
-
--------------------------------------------------------
-This SF.net email is sponsored by: SF.net Giveback Program.
-SourceForge.net hosts over 70,000 Open Source Projects.
-See the people who have HELPED US provide better services:
-Click here: http://sourceforge.net/supporters.php
-_______________________________________________
-NFS maillist  -  NFS@lists.sourceforge.net
-https://lists.sourceforge.net/lists/listinfo/nfs
+> 
