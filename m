@@ -1,14 +1,13 @@
-From: "Pranay C. Tembhekar" <pranay@icemcfd.co.in>
-Subject: Re: automounting other hosts on the network
-Date: Wed, 10 Mar 2004 10:07:19 +0530
+From: Alexander Macdonald <alexandermacdonald@yahoo.com>
+Subject: Re: 2.6 patches broken with 2.6.4
+Date: Thu, 11 Mar 2004 19:30:25 +0000
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <404E9B7F.7070606@icemcfd.co.in>
-References: <404D8C3D.9000500@icemcfd.co.in>
-	<1078853834.16233.18.camel@bad.jf.intel.com>
+Message-ID: <4050BE51.6010908@yahoo.com>
+References: <Pine.LNX.4.44.0312022129550.2970-100000@raven.themaw.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============92112585916059997=="
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1078853834.16233.18.camel@bad.jf.intel.com>
+In-Reply-To: <Pine.LNX.4.44.0312022129550.2970-100000@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,166 +17,90 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-To: "Taylor, ForrestX" <forrestx.taylor@intel.com>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: autofs@linux.kernel.org
 
-This is a multi-part message in MIME format.
---===============92112585916059997==
-Content-Type: multipart/alternative;
- boundary="------------010407090507030507040108"
+The patches have applied cleanly to all kernels up to now, however the second 
+patch (and maybe more, didn't try them since there wasn't any point) won't apply 
+cleanly to kernel 2.6.4.
 
-This is a multi-part message in MIME format.
---------------010407090507030507040108
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-
-thanx Taylor I'll try it today & let u know about the success & or 
-errors...!!!
-
-thanx again
+I don't know about anybody else's experience with these patches but I haven't 
+had any trouble with them at all, maybe you should send them to Andrew Morton 
+for inclusion in the -mm branch, That'd save me some patching time for each 
+kernel ;)
 
 
+Keep up the good work!
+Alex
 
-Taylor, ForrestX wrote:
 
->On Tue, 2004-03-09 at 01:19, Pranay C. Tembhekar wrote:
->  
->
->>Hi Everybody,
->>    I want little bit help. I've installed Red Hat Linux 8.0 & 
->>configured it as a NFS & NIS server. I also installed Red Hat Linux 8.0 
->>on other system as a NIS client. Now I want to automount the hosts. E.g. 
->>/hosts/<systemname>/home. I have exported the /home from server. How can 
->>I achieve this in red hat linux. In solaris I can specify "/hosts -hosts 
->><options" in auto_master. But what's the procedure to do this in red hat 
->>linux?
->>    
+Ian Kent wrote:
+> Hi guys,
+> 
+> I have some 2.6 patches.
+> 
+> They can be found at 
+> 
+> http://www.kernel.org/pub/linux/kernel/people/raven/autofs4-2.6
+> 
+> Apply them in number order please.
+> 
+> Please leave out the max_anon_2.patch initially. We need to establish what 
+> the status of the kernel module is before trying this patch. It was 
+> written by Mike Waychison to increase the number of anonymous devices. 
+> Once the status patches is established it would be good to how the 
+> max_anon patch goes with over 255 mounts and less than about 790 (rpc 
+> doesn't allow more than that at the moment).
+> 
+> Try as many or as few things as your setup allows and please try and give 
+> some coverage of what was used and what went wrong. We need to try this on 
+> SMP setups if at all possible.
+> 
+> I know I don't need to say this to ypu guys but I will anyway. Please make 
+> sure that you do staged testing. What I'm saying is steady as it goes. 
+> First a single machine then a couple etc., you know the routine. While the 
+> general approach of the patches is the same as what I have used for ages 
+> in 2.4 the locking and synchronisation is different and may not be 
+> correct (read I think it's not quite right but need evidence to confirm 
+> it).
+> 
+> Looking forward to your feedback.
+> 
+> On Sun, 16 Nov 2003, Chris Croswhite wrote:
+> 
+> 
+>>I can offer up about 75 Linux boxes as testing.  They are used pretty heavily mounting about 300-400 differnet mount points during the day from slowlaris, HPsUx, Linux and NetApp file systems.  Just let me know.
 >>
->
->Use autofs4 (ftp://ftp.kernel.org/pub/linux/daemons/autofs/v4/).  Grab
->the latest src.rpm and rebuild it.  You will probably have to make
->autofs start after NIS.  In the spec file, I have:
-># chkconfig: 345 61 19
->
->Also, make sure you have 'alias autofs autofs4' in /etc/modules.conf,
->and remove the autofs3 module (service autofs stop;rmmod autofs).  I
->usually put these in the RPM file, but I haven't downloaded the latest
->to see if this is already in it.
->
->Once you rebuild the src.rpm file, install it and start it.  Instead of
->/hosts, you will use /net, and you may want to add nonstrict to the opts
->line in /etc/auto.net (if it isn't already).
->
->If you have problems, return with your errors.
->
->Forrest
->
->
->  
->
-
-
--- 
-Pranay C. Tembhekar
-Systems & Network Administrator
-Matrix CFD Solutions (I) Pvt. Ltd./ANSYS India Ltd.
-Phone: +91-20-24226160 x 16
-Fax:   +91-20-24228081 x 20
-Cell:  +91-98-22373121
-http://www.icemcfd.co.in
-http://www.ansys.com
-
-Disclaimer:
-The information transmitted is intended only for the person or  entity to which it is addressed and may contain confidential and/or  privileged material. Any review, retransmission, dissemination or  other use of, or taking of any action in reliance upon, this  information by persons or entities other than the intended recipient  is prohibited. If you received this in error, please contact the  sender and delete the material from any computer.
-
-
---------------010407090507030507040108
-Content-Type: text/html; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-1">
-  <title></title>
-</head>
-<body text="#000000" bgcolor="#ffffff">
-thanx Taylor I'll try it today &amp; let u know about the success &amp;
-or errors...!!!<br>
-<br>
-thanx again<br>
-<br>
-<br>
-<br>
-Taylor, ForrestX wrote:<br>
-<blockquote type="cite"
- cite="mid1078853834.16233.18.camel@bad.jf.intel.com">
-  <pre wrap="">On Tue, 2004-03-09 at 01:19, Pranay C. Tembhekar wrote:
-  </pre>
-  <blockquote type="cite">
-    <pre wrap="">Hi Everybody,
-    I want little bit help. I've installed Red Hat Linux 8.0 &amp; 
-configured it as a NFS &amp; NIS server. I also installed Red Hat Linux 8.0 
-on other system as a NIS client. Now I want to automount the hosts. E.g. 
-/hosts/&lt;systemname&gt;/home. I have exported the /home from server. How can 
-I achieve this in red hat linux. In solaris I can specify "/hosts -hosts 
-&lt;options" in auto_master. But what's the procedure to do this in red hat 
-linux?
-    </pre>
-  </blockquote>
-  <pre wrap=""><!---->
-Use autofs4 (<a class="moz-txt-link-freetext" href="ftp://ftp.kernel.org/pub/linux/daemons/autofs/v4/">ftp://ftp.kernel.org/pub/linux/daemons/autofs/v4/</a>).  Grab
-the latest src.rpm and rebuild it.  You will probably have to make
-autofs start after NIS.  In the spec file, I have:
-# chkconfig: 345 61 19
-
-Also, make sure you have 'alias autofs autofs4' in /etc/modules.conf,
-and remove the autofs3 module (service autofs stop;rmmod autofs).  I
-usually put these in the RPM file, but I haven't downloaded the latest
-to see if this is already in it.
-
-Once you rebuild the src.rpm file, install it and start it.  Instead of
-/hosts, you will use /net, and you may want to add nonstrict to the opts
-line in /etc/auto.net (if it isn't already).
-
-If you have problems, return with your errors.
-
-Forrest
-
-
-  </pre>
-</blockquote>
-<br>
-<br>
-<pre cols="72" class="moz-signature">-- 
-Pranay C. Tembhekar
-Systems &amp; Network Administrator
-Matrix CFD Solutions (I) Pvt. Ltd./ANSYS India Ltd.
-Phone: +91-20-24226160 x 16
-Fax:   +91-20-24228081 x 20
-Cell:  +91-98-22373121
-<a class="moz-txt-link-freetext" href="http://www.icemcfd.co.in">http://www.icemcfd.co.in</a>
-<a class="moz-txt-link-freetext" href="http://www.ansys.com">http://www.ansys.com</a>
-
-Disclaimer:
-The information transmitted is intended only for the person or  entity to which it is addressed and may contain confidential and/or  privileged material. Any review, retransmission, dissemination or  other use of, or taking of any action in reliance upon, this  information by persons or entities other than the intended recipient  is prohibited. If you received this in error, please contact the  sender and delete the material from any computer.
-</pre>
-</body>
-</html>
-
---------------010407090507030507040108--
-
-
---===============92112585916059997==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
-
---===============92112585916059997==--
-
+>>TIA,
+>>Chris
+>>
+>>
+>>-----Original Message-----
+>>From:	Ian Kent [mailto:raven@themaw.net]
+>>Sent:	Sun 16-Nov-03 18:53
+>>To:	Alexander Macdonald
+>>Cc:	autofs@linux.kernel.org
+>>Subject:	Re: [autofs] making the mountpoints visible all the time (fwd)
+>>On Sun, 16 Nov 2003, Alexander Macdonald wrote:
+>>
+>>
+>>>I'm happy to try out any patches, although I'm only using autofs for
+>>>about 20 or so samba and nfs shares on a few pcs so it wont exactly be
+>>>thorough enterprise level testing :)
+>>>
+>>>
+>>>>In fact, I don't have a 2.6 environment other than what I use to test at
+>>>>home so volenteers are needed for testing. We can't expect the changes
+>>>>to be accepted without some testing other than my simple setup.
+>>>>
+>>>>
+>>
+>>Any help is appreciated.
+>>
+>>I'll let you know when I've got something to test.
+>>
+>>Thanks.
+>>
+>>
+> 
+> 
