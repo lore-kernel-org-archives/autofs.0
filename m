@@ -1,15 +1,14 @@
-From: Stew Smith <stew.smith@sun.com>
-Subject: Re: Status of >800 mounts
-Date: Thu, 6 May 2004 14:15:49 -0700
+From: Michael Blandford <mlblandf@sedona.ch.intel.com>
+Subject: Re: 	Severe problem with 4.1.2: automount caches NIS maps
+	forever
+Date: Thu, 06 May 2004 14:22:38 -0700
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <20040506211549.GA6202@crashy.west.sun.com>
-References: <409A7A7C.2000109@sedona.intel.com>
-	<20040506185528.GA5149@crashy.west.sun.com>
-	<1083872373.5887.463.camel@d158140025182>
+Message-ID: <409AAC9E.9000505@sedona.intel.com>
+References: <1083865163.18740.6.camel@serpentine.internal.keyresearch.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1083872373.5887.463.camel@d158140025182>
+In-Reply-To: <1083865163.18740.6.camel@serpentine.internal.keyresearch.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,22 +18,36 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: Bryan O'Sullivan <bos@serpentine.com>
+Cc: autofs@linux.kernel.org
 
-On Thu, May 06, 2004 at 12:39:33PM -0700, Chris Croswhite wrote:
-> Why only up to 800 (although this is a large number)?  There are
-> instances where I could have 1200-1600 clients connecting to the same
-> server (4 way opteron) if I could that many...
-> 
+Bryan O'Sullivan wrote:
 
-this limit has been hardcoded in the sunrpc layer since the
-birth of time. it starts at 800 and counts down to 0 until
-it find an unused port. requring a privileged port gets
-you the default level of security NFSv3 provides...
+>Hi -
+>
+>The autofs 4.1.2 release has a change in behaviour from earlier releases
+>(4.1.0, I think, and 4.0.0 for sure) in that it never checks to see if a
+>NIS-based automount map has changed.  This means that if I change the
+>location of an autofs-mounted filesystem, I have to SIGHUP the automount
+>daemons on every machine that care about that filesystem so that they'll
+>forget the contents of the map and reload it.
+>
+>Needless to say, this doesn't scale in even a tiny way :-(
+>  
+>
+Agreed.  You would think with all the testing I have done, I would have 
+seen this one.
 
-anybody know why rpc doesn't use the full port 0-1023 range?
+I can easily replicate it and fix it with a SIGHUP.
 
---
-Stew Smith
+Ian, do you have any thoughts on this one?
+
+Michael
+
+
+
+Disclaimer: The content of this message is my personal opinion only and 
+although I am an employee of Intel, the statements I make here in no way 
+represent Intel's position on the issue, nor am I authorized to speak on 
+behalf of Intel on this matter.
