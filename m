@@ -1,12 +1,12 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: making the mountpoints visible all the time (fwd)
-Date: Sat, 22 Nov 2003 15:14:45 +0800 (WST)
+Date: Sat, 22 Nov 2003 15:19:43 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.44.0311221503030.2992-100000@raven.themaw.net>
-References: <3FBDD18D.1030409@wildgate.miee.ru>
+Message-ID: <Pine.LNX.4.44.0311221515290.2992-100000@raven.themaw.net>
+References: <3FBE6DEF.5020202@zytor.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <3FBDD18D.1030409@wildgate.miee.ru>
+In-Reply-To: <3FBE6DEF.5020202@zytor.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,57 +18,44 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Ruslan U. Zakirov" <cubic@wildgate.miee.ru>
-Cc: autofs mailing list <autofs@linux.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
-On Fri, 21 Nov 2003, Ruslan U. Zakirov wrote:
+On Fri, 21 Nov 2003, H. Peter Anvin wrote:
 
-> >
-> >On the other hand at work we run a cron every night on all our machines to
-> >trigger an update of the maps.
-> >
-> If I return to my task then I have two solutions:
-> 1) User space daemon that cache all needed info about workgroup. So it 
-> wouldn't be
-> much overhead to touch programm map on every request.
+> Ian Kent wrote:
+> > 
+> > The above works that way without the update.
+> > 
+> > I'm not sure that a periodic update really gets us much. Since in most
+> > sites maps change infrequently.
+> > 
+> > On the other hand at work we run a cron every night on all our machines to
+> > trigger an update of the maps.
+> > 
+> > So I'm on the fence here?
+> > 
+> 
+> Oh yes, a lot of map types support querying "has a change occurred"
+> (usually in the form of a generation number, or in the case of a file
+> map, the mtime.)  This absolutely should be taken advantage of.
 
-Not sure I understand this.
-                                                                                           
-For maps that are ghosted the map is cached and lookups are done within
-the cache. On a failure the external map is consulted and the cache
-updated with any new map info.
-                                                                                           
-That's the current implementation. So I would want fit in with this for 
-program maps as well.
-                                                        
-> 2) Programm map do all things only when it's called without arguments. 
-> Sometimes
-> network can take much time to finish and I have to use periodicaly 
-> update calls(~30min).
+Like the netid (or whatever it's called in NIS).
 
-Sorry. The point here is not clear to me either.
-
-My understanding of the current request (without timed updates) is that
-
-1) Program map is called without arguments at startup to retrieve entire 
-map.
-
-2) A lookup miss causes reread of entire map (program map is called 
-without arguments), to update cached map.
-
-So the problem that needs to be solved is the map inconsistency when it 
-changes between an entire read and a cache miss.
+Not sure about LDAP.
+I seem to remember some timestamps live in each entry. I'll need to check.
 
 > 
-> So I vote for runtime configuration of interval:
->     value > 0 - time period in seconds(msec,min or other)
->     value = 0 - every time
->     value < 0 - never
+> (For a program map, this complicates the protocol somewhat.  I don't
+> know necessarily of the best way to deal with that.  It needs some
+> thinking :)
 
-Any periodic update would have to be a multiple of the timer signal. This 
-means that you would not get the exact update period. Do you think this 
-would be a problem?
+A hard one I think.
 
+I read the entire map to often as it is so I need to come up with 
+something.
+
+This is shaping up to be quite an interesting proprosal.
 
 -- 
 
