@@ -1,11 +1,9 @@
-From: ramana <ramana@intraperson.com>
-Subject: Re: automount hung
-Date: Sun, 20 Mar 2005 19:52:02 +0530
-Message-ID: <423D870A.7070307@intraperson.com>
-References: <423B33E0.3020109@bnl.gov>
+From: devnull@adc.idt.com
+Subject: Re: unacceptable bug in autofs kernel module
+Date: Mon, 21 Mar 2005 15:54:52 -0500 (EST)
+Message-ID: <Pine.LNX.4.61.0503211425190.29378@pod.adc.idt.com>
+Reply-To: devnull@adc.idt.com
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <423B33E0.3020109@bnl.gov>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,23 +14,36 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: autofs@linux.kernel.org
-Cc: Sev Binello <sev@bnl.gov>
+Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
+Content-Transfer-Encoding: 7bit
+To: AutoFS on Linux Kernel <autofs@linux.kernel.org>
 
-Sev Binello wrote:
-> 
-> Has anyone had the experience where the automount daemon seems to freeze ?
-> It will not expire anything, nor mount anything new ?
-> 
-> 
+> the problems on?  Direct map with/without ghosting?   Program map?  yp?
+> ldap? etc..
+Program Map, yp with ghosting.
 
-When it is freezing?
+I haven't bothered to turn ghosting off to see if that will help any. I 
+need ghosting in any case.
 
-It is something to do with applications which are terminated while they are accessing autofs directories -- using signals for example?
+The issue I am seeing is rather simple, easy to reproduce and happens 
+every time.
 
-Regards
-ramana
+Automount -V yields 4.1.2
 
--- 
-http://www.intraperson.com
+4.1.4_beta2 has the problem too.
+
+The job being run via "lsf" really has nothing to do with the problem, I 
+can run the job locally on the machine and reproduce it.
+
+The application I run creates a directory to store certain results, and to 
+make sure that I am not looking at older results, my script deletes that 
+directory at the very beginning of the job.
+
+Somehow this causes a problem, the directory is always reported 
+missing, however if i remove the directory by hand, then run the script, 
+everything works great.
+
+Where would I need to look to see what process is caching the contents of 
+the directory.
+
+Thanks.
