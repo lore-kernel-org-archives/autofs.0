@@ -1,12 +1,12 @@
-From: Ian Kent <raven@themaw.net>
+From: Gerald Teschl <gerald@esi.ac.at>
 Subject: Re: autofs RFE
-Date: Mon, 8 Dec 2003 11:41:50 +0800 (WST)
+Date: Mon, 8 Dec 2003 11:43:46 +0100 (CET)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.33.0312081134310.26524-100000@wombat.indigo.net.au>
-References: <Pine.LNX.4.44.0312061825240.15355-100000@keen.esi.ac.at>
+Message-ID: <Pine.LNX.4.44.0312081124260.15293-100000@keen.esi.ac.at>
+References: <Pine.LNX.4.33.0312081134310.26524-100000@wombat.indigo.net.au>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.44.0312061825240.15355-100000@keen.esi.ac.at>
+In-Reply-To: <Pine.LNX.4.33.0312081134310.26524-100000@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,44 +18,51 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Gerald Teschl <gerald@esi.ac.at>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs mailing list <autofs@linux.kernel.org>
 
-On Sat, 6 Dec 2003, Gerald Teschl wrote:
+On Mon, 8 Dec 2003, Ian Kent wrote:
 
->
-> Hi Ian,
->
-> I saw your recent work on autofs and wondered if it would be possible to
-> add
-> a small but IMHO useful feature to autofs:
->
-> I'd like to use autofs for my floppy. pam_console sets the permissiond on,
-> e.g., /dev/fd0, such that is owned by the console user and hence,
-> when mounting /mnt/floppy it is mounted with the permissions of the owner.
-> But this won't help with autofs, since autofs runs as root and hence a
-> floppy
-> is mounted with owner root.
->
-> Would it be possible to make autofs honor the "owner" option for mount and
-> mount a dev with the permissions of the owner if this option is present?
+> I've been thinking about this for a while.
+> 
+> At the moment the userspace daemon has no way of knowing who the owner is.
+> To change that would break backward compatability. So I'm not sure it's
+> such a good idea.
 
-I've been thinking about this for a while.
+OK, let me provide more details (this refers to RedHat/Fedora):
 
-At the moment the userspace daemon has no way of knowing who the owner is.
-To change that would break backward compatability. So I'm not sure it's
-such a good idea.
+After login as console user I own the floppy dev:
 
-How is this handled in v3 Peter?
+brw-rw----    1 gerald   floppy     2,   0 Sep 15 15:40 /dev/fd0
 
-One way to deal with this is to use groups. The floppy group exists in
-RedHat and if you are a member and you allow group write you should have
-what you need. The cdrom is a little different. You may wish to create a
-new group called, say cdrom, and do the same thing with it.
+The default fstab entry on RedHat/Fedora looks like
 
--- 
+/dev/fd0                /mnt/floppy             auto    noauto,owner,kudzu 0 0 
 
-   ,-._|\    Ian Kent
-  /      \   Perth, Western Australia
-  *_.--._/   E-mail: raven@themaw.net
-        v    Web: http://themaw.net/
+and due to the "owner" option I (gerald) can say mount /mnt/floppy and a 
+dos floppy will be mounted and all files are owned by me. If I say mount
+/mnt/floppy as root, the files will be owned by root.
+
+Now if I use autofs to mount the floppy the mount call will be done as 
+root and the files will be owned by root (no matter if the owner option is
+present or not). 
+
+The ideal solution would be to make the mount call as the user requesting
+the mount, but if I understand you right, this is to complex to find out.
+So the solution to this problem should be the following:
+If the "owner" option is present, do the mount call as the user owning
+the device file.
+
+
+> One way to deal with this is to use groups. The floppy group exists in
+> RedHat and if you are a member and you allow group write you should have
+> what you need. The cdrom is a little different. You may wish to create a
+> new group called, say cdrom, and do the same thing with it.
+
+This is not an option for us. Or system has about 200 guest accounts. The
+guests need to have access to the floppy drive, but *only* to the drive
+in the computer they are sitting in front of!
+
+Thanks for considering this!
+
+Gerald
