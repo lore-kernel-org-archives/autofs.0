@@ -1,12 +1,12 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: multiple servers per automount
-Date: Fri, 10 Oct 2003 09:16:33 +0800 (WST)
+From: "Ogden, Aaron A." <aogden@unocal.com>
+Subject: RE: multiple servers per automount
+Date: Fri, 10 Oct 2003 10:16:01 -0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.33.0310100915540.7746-100000@wombat.indigo.net.au>
-References: <3F85D4EA.5030708@sun.com>
+Message-ID: <6AB920CC10586340BE1674976E0A991D5955FC@slexch2.sugarland.unocal.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <3F85D4EA.5030708@sun.com>
+content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,29 +16,43 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Mike Waychison <Michael.Waychison@Sun.COM>
-Cc: "Ogden, Aaron A." <aogden@unocal.com>, autofs mailing list <autofs@linux.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: Ian Kent <raven@themaw.net>, Mike Waychison <Michael.Waychison@Sun.COM>
+Cc: autofs mailing list <autofs@linux.kernel.org>, nfs@lists.sourceforge.net
 
-On Thu, 9 Oct 2003, Mike Waychison wrote:
 
+
+-----Original Message-----
+From: Ian Kent [mailto:raven@themaw.net] 
+Sent: Thursday, October 09, 2003 8:09 PM
+To: Mike Waychison
+Cc: Ogden, Aaron A.; autofs mailing list; nfs@lists.sourceforge.net
+Subject: Re: [autofs] multiple servers per automount
+
+>> The maximum number of plain pseudo-block device filesystems on a
+given
+>> filesystem is limitted to 256. (This includes proc, autofs, nfs..).
+>>
+>> This is because pseudo-block filesystems all use major 0, and each
+have
+>> a different minor (thus the 256 limit).
+>>
+>> There are however patches floating around (look at SuSe's kernels,
+I'm
+>> not sure about RH) that allow n majors to be used (default 5).  This
+>> gives you 1280 mounts, a big step up :)
+>>
 >
-> 2.6 mainline still has the 256 pseudo-block device limit.  Fortunately,
-> the patches used in distros should still apply with minimal fuzz.  Devfs
-> probably won't help matters here.
+> But as Aaron and I know things go pear shaped at just shy of 800
+mounts
+> with RedHat kernels. They have the more-unnamed patch.
 >
-> I think the next step in 2.6 is to change the bitmap used to grow as
-> needed..  especially now that minors are 20 bits, or 1048576 minors  :))
+> So this would indicate that even if there is a device system that can
+> increase the number of unnamed devices that subsystems like NFS cannot
+> handle this many mounts.
 
-Missed that.
-
-I'll have to look more closely.
-
-
--- 
-
-   ,-._|\    Ian Kent
-  /      \   Perth, Western Australia
-  *_.--._/   E-mail: raven@themaw.net
-        v    Web: http://themaw.net/
+Maybe.  I'm not 100% certain though.  Currently I am holding steady at
+710 active mounts, I am going to write a little script to mount more in
+small increments, ie. read a list of ~1000 mountpoints from /home, mount
+a few of them, check the filesystems, and repeat... this way I will know
+exactly where things break down.
