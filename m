@@ -1,13 +1,11 @@
-From: Stew Smith <stew.smith@sun.com>
-Subject: Re: [announce] Autofs NG 0.1
-Date: Wed, 29 Sep 2004 16:16:41 -0700
+From: CHakri Deverapalli <cdeverapalli@yahoo.com>
+Subject: NFS Help
+Date: Fri, 1 Oct 2004 13:27:20 -0700 (PDT)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <20040929231641.GC29260@crashy.west.sun.com>
-References: <4154C0F2.708@sun.com>
+Message-ID: <20041001202720.49624.qmail@web51107.mail.yahoo.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4154C0F2.708@sun.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,39 +15,109 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Mike Waychison <Michael.Waychison@sun.com>
-Cc: autofs@linux.kernel.org, linux-kernel@vger.kernel.org, thockin@hockin.org, raven@themaw.net
+Content-Type: text/plain; charset="windows-1252"
+To: autofs@linux.kernel.org
 
-On Fri, Sep 24, 2004 at 08:50:58PM -0400, Mike Waychison wrote:
-> 
-> Hi folks,
-> 
-> Some of you may remember my posting of a new way to do autofs in Linux a
-> while back:
-> 
-> http://marc.theaimsgroup.com/?l=linux-kernel&m=107341940326348&w=2
-> 
-> Anyhow,  I've gotten to the point where I have code that people can play
-> with.  I've posted it all at http://autofsng.bkbits.net
-> 
-> There are two repos located there, one is the userspace bits (autofsng).
-> ~ It has the 'utility' (automount) and the autofs usermode agent
-> (autofs).  This tree began as a automount 3.1.7 tree, but has
-> drastically changed.  Lots of good stuff has yet to be merged in from
-> the automount 4 daemon.
-> 
-> The kernel bits are in the linux-2.6-autofsng repository.   Broken out
-> patches are forthcoming in the next (weeks?) [*].  It has the following
-> major changes to it:
-
-autofsng userland tarball and kernel patch can now be found
-here for non-bitkeeper users:
-
-ftp://ftp-eng.cobalt.com/pub/users/ssmith/autofsng/
+Hi,=20
+   I am linux newbie and am having some problems with
+NFS hope someone could help. Here is what my problem
+is.
+1.My previous Administrator has set up a list of
+directories that are shared from a NFS server onto a
+VMS client, now I want to add another client (linux)
+onto this list. So I have changed my /etc/exports file
+to include the client2 and it looks like this.
+/home/data/nfs
+my.client1-VMS.ip.add(ro)my.client2.ip.add(ro)
+/home/data/disk1/1999 my.client1-VMS.ip.add(ro)
+my.client2.ip.add(ro)
+/home/data/disk2/1996 my.client1-VMS.ip.add(ro)
+my.client2.ip.add(ro)
+/home/data/disk2/1997 my.client1-VMS.ip.add(ro)
+my.client2.ip.add(ro)
+/home/data/disk3/2000 my.client1-VMS.ip.add(ro)
+my.client2.ip.add(ro)
+/home/data/disk4/1998 my.client1-VMS.ip.add(ro)
+my.client2.ip.add(ro)
+=95All the directories belong to the user =93data=94 and the
+group =93uvi=94 I have changed them to be owned by root
+both the user and group belongs to root now.
+2. You have tied down the /etc/sysconfig/ipchains and
+/etc/hosts.allow , I have changed them to look like
+this now.
+=95:input ACCEPT
+:forward ACCEPT
+:output ACCEPT
+-A input -s 0/0 -d 0/0 137 -p tcp -y -j ACCEPT
+-A input -s 0/0 -d 0/0 137 -p udp  -j ACCEPT
+-A input -s 0/0 -d 0/0 138 -p tcp -y -j ACCEPT
+-A input -s 0/0 -d 0/0 138 -p udp  -j ACCEPT
+-A input -s 0/0 -d 0/0 139 -p tcp -y -j ACCEPT
+-A input -s 0/0 -d 0/0 139 -p udp  -j ACCEPT
+-A input -s my.client1-VMS.ip.add -d 0/0 111 -p tcp -y
+-j ACCEPT
+-A input -s my.client1-VMS.ip.add -d 0/0 111 -p udp =20
+-j ACCEPT
+-A input -s my.client1-VMS.ip.add -d 0/0 2049 -p tcp
+-y -j ACCEPT
+-A input -s my.client1-VMS.ip.add -d 0/0 2049 -p udp =20
+-j ACCEPT
+-A input -s my.client2.ip.add -d 0/0 111 -p tcp -y -j
+ACCEPT
+-A input -s my.client2.ip.add -d 0/0 111 -p udp   -j
+ACCEPT
+-A input -s my.client2.ip.add -d 0/0 2049 -p tcp -y -j
+ACCEPT
+-A input -s my.client2.ip.add -d 0/0 2049 -p udp   -j
+ACCEPT
+-A input -s 0/0 -d 0/0 22 -p tcp -y -j ACCEPT
+-A input -s 0/0 -d 0/0 21 -p tcp -y -j ACCEPT
+-A input -s 0/0 -d 0/0 21 -p udp -j ACCEPT
+-A input -s 0/0 -d 0/0 -i lo -j ACCEPT
+-A input -p tcp -s 0/0 -d 0/0 0:1023 -y -j REJECT
+-A input -p tcp -s 0/0 -d 0/0 2049 -y -j REJECT
+-A input -p udp -s 0/0 -d 0/0 0:1023 -j REJECT
+-A input -p udp -s 0/0 -d 0/0 2049 -j REJECT
+-A input -p tcp -s 0/0 -d 0/0 6000:6009 -y -j REJECT
+-A input -p tcp -s 0/0 -d 0/0 7100 -y -j REJECT
+=95sshd: my.sub.domain.
+portmap: my.client1-VMS.ip.add my.client2.ip.add
+nfsd: my.client1-VMS.ip.add my.client2.ip.add
+rpc.mountd: my.client1-VMS.ip.add my.client2.ip.add
+in.ftpd: my.client1-VMS.ip.add  my.client2.ip.add
+3.Did an NFS restart on the NFS server machine.
+4. On the client machine I use the following command.
+Mount  =96tnfs  my.nfs-server.ip.add:/home/data/nfs
+/home/data/nfs
+=95I have created the same directory structure on the
+client also.
+5.I can mount it without problems but when I try a
+simple command like =93ls=94 my        system hangs up.
+6.I have created some new directories for test
+purposes and I can mount them and view their contents
+without any problems. But the old ones I am not able
+to mount them.
+Could you suggest what I am doing wrong or what I have
+missed?
 
 thanks,
+Chakri.
+=20
 
---
-Stew Smith
+
+
+=3D=3D=3D=3D=3D
+D.M.C.Chakravarthy
+Research Associate
+Center for Space Plasma and Aeronomy Research
+University of Alabama in Huntsville
+Ph:256-824-3485(O),256-824-6664(O)
+    256-890-8800(H)
+    256-479=3D9420(Cell)
+
+
+	=09
+__________________________________
+Do you Yahoo!?
+Yahoo! Mail Address AutoComplete - You start. We finish.
+http://promotions.yahoo.com/new_mail=20
