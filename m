@@ -1,19 +1,21 @@
-From: raven@themaw.net
+From: Tom Georgoulias <tom.georgoulias@freescale.com>
 Subject: Re: mount point created if automount map is empty during
  daemon startup?
-Date: Tue, 4 May 2004 23:37:29 +0800 (WST)
+Date: Tue, 04 May 2004 10:37:51 -0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0405042334080.17014@donald.themaw.net>
+Message-ID: <4097B8CF.9050104@freescale.com>
 References: <20040504010928.GL14889@sun.com>
 	<Pine.LNX.3.96.1040503181623.4110A-100000@Maggie.Linux-Consulting.com>
-	<20040503175506.GA14889@sun.com>
+	<Pine.LNX.4.58.0405032046130.3257@donald.themaw.net>
+	<20040503175506.GA14889@sun.com> <20040504003214.GA31852@neu.nirvana>
 	<Pine.LNX.4.58.0405040904450.24480@wombat.indigo.net.au>
-	<20040504010928.GL14889@sun.com> <20040504122536.GK5041@neu.nirvana>
-	<Pine.LNX.4.58.0405042248180.17014@donald.themaw.net>
-	<4097B610.6090405@freescale.com>
+	<20040504122536.GK5041@neu.nirvana> <4097AABF.5050709@freescale.com>
+	<16535.45364.767370.38110@segfault.boston.redhat.com>
+	<Pine.LNX.4.58.0405042317540.17014@donald.themaw.net>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4097B610.6090405@freescale.com>
+In-Reply-To: <Pine.LNX.4.58.0405042317540.17014@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -23,28 +25,25 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Tom Georgoulias <tom.georgoulias@freescale.com>
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: raven@themaw.net
 Cc: autofs mailing list <autofs@linux.kernel.org>
 
-On Tue, 4 May 2004, Tom Georgoulias wrote:
+raven@themaw.net wrote:
 
-> raven@themaw.net wrote:
-> 
-> > Can you try killing and then starting that automount process by hand.
-> 
-> There wasn't any daemon running for that mount, so I started it by hand 
-> and the mount is now functional.
-> 
-> I'm really confused as to why there wasn't a daemon running in the first 
-> place.  There should've been, right?  I just checked a second system 
-> where this was an issue and it is the same, not automount running for 
-> /sync.  Starting it manually also gets the mount working.
+> Saw that patch. Was a bit curious about it. Didn't add it.
 
-Yes, I check it. See my last post on this.
+And it sounds like I ought to remove it, too.  :)
 
-We'll leave this to the people on the list to decide whether this 
-behaviour should be changed.
+Judging by your test results on an empty map, an upgrade to 4.1.2 is in 
+order.  Thanks for checking in to that, I appreciate it. I'll start 
+working on getting out a new build of autofs to my systems.  4.1.3 is 
+just around the corner, right?
 
-Ian
+Tom
+-- 
+Tom Georgoulias
+POPI Classification
+[x] General Business Information
+[] Freescale Semiconductor Internal Use
+[] Freescale Semiconductor Confidential Proprietary
