@@ -1,15 +1,12 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: Re: [NFS] VFS: Busy inodes after unmount on 2 way SMP
-Date: Tue, 16 Sep 2003 13:54:04 -0700
+From: Ian Kent <raven@themaw.net>
+Subject: Re: VFS: Busy inodes after unmount on 2 way SMP
+Date: Wed, 17 Sep 2003 08:28:37 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <3F67786C.1020004@zytor.com>
-References: <Pine.LNX.4.44.0309122013380.9830-100000@moisil.badula.org>
-	<3F663246.7010806@intel.com> <3F663C5F.80207@zytor.com>
-	<3F67747C.10403@intel.com>
+Message-ID: <Pine.LNX.4.33.0309170825300.21012-100000@wombat.indigo.net.au>
+References: <3F610F3C.5040704@intel.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <3F67747C.10403@intel.com>
+In-Reply-To: <3F610F3C.5040704@intel.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,22 +16,35 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: Arun Sharma <arun.sharma@intel.com>
-Cc: Ion Badulescu <lists@cs.columbia.edu>, autofs@linux.kernel.org
+Cc: autofs@linux.kernel.org, nfs@lists.sourceforge.net
 
-Arun Sharma wrote:
-> H. Peter Anvin wrote:
-> 
->>
->> Indeed.  This is on autofs 3?
->>
-> 
-> Correction: the problem was primarily seen on autofs4. However the oops
-> that I reported yesterday was autofs3. So the problem affects both.
-> 
->     -Arun
+On Thu, 11 Sep 2003, Arun Sharma wrote:
 
-Thanks.  That's useful information.
+>
+> We've seen a few "VFS: Busy inodes after unmount. Self-destruct in 5 seconds.  Have a nice day.." messages on a dual processor NFS client. Here's the use case:
+>
+> - Due to network load issues, the NFS server becomes unreachable for some time
+> - The automounter tries to expire the mount
+> - The unmount finds a couple of busy inodes. Putting some debug printks shows that typically two inodes are busy i.e. have inode->i_count == 1. But they don't have any waiters on inode->i_wait. Further, the inodes that are busy are
+> /mnt/foo     -> autofs mount point
+> /mnt/foo/bar -> bar is a symbolic link
+>
+> It's not clear if this is a NFS issue or a autofs issue, but it's seen often with autofs. Are there any known race conditions that have been fixed after 2.4.20 ? The two calls I'm worried about are:
+>
+> fs/autofs/root.c:305:    d_instantiate(dentry, iget(dir->i_sb,ent->ino));
+> fs/autofs/root.c:416:    d_instantiate(dentry, iget(dir->i_sb,ino));
+>
 
-	-hpa
+This is in the autofs (aka v3) kernel module not autofs4.
+
+Please specify which version of the userspace daemon and kernel module?
+
+-- 
+
+   ,-._|\    Ian Kent
+  /      \   Perth, Western Australia
+  *_.--._/   E-mail: raven@themaw.net
+        v    Web: http://themaw.net/
