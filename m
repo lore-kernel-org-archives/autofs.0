@@ -1,16 +1,13 @@
-From: raven@themaw.net
-Subject: Re: [ANNOUNCE] autofs 4.1.4 beta1 release
-Date: Thu, 27 Jan 2005 20:12:49 +0800 (WST)
-Message-ID: <Pine.LNX.4.61.0501272002580.8888@donald.themaw.net>
-References: <Pine.LNX.4.61.0501262151370.1716@donald.themaw.net>
-	<20050126151344.GA841@uio.no>
-	<Pine.LNX.4.61.0501262320080.1890@donald.themaw.net>
-	<20050126161454.GA9417@uio.no>
-	<Pine.LNX.4.58.0501270916190.20105@wombat.indigo.net.au>
-	<20050127020231.GB5087@uio.no>
+From: Milan Knizek <knizek@volny.cz>
+Subject: Re: How to automount hidden Windows share - solved
+Date: Thu, 27 Jan 2005 16:57:47 +0000
+Message-ID: <41F91D8B.6040501@volny.cz>
+References: <41F8A365.8080808@volny.cz>
+	<Pine.LNX.4.61.0501272016470.8888@donald.themaw.net>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20050127020231.GB5087@uio.no>
+In-Reply-To: <Pine.LNX.4.61.0501272016470.8888@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,41 +18,34 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
-Content-Transfer-Encoding: 7bit
-To: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: raven@themaw.net
 Cc: autofs@linux.kernel.org
 
-On Thu, 27 Jan 2005, Steinar H. Gunderson wrote:
+raven@themaw.net wrote:
+> On Thu, 27 Jan 2005, Milan Knizek wrote:
+> 
+>> n -fstype=smbfs,users,uid=knizek_m,gid=users,credentials=/etc/samba
+> 
+>        What's this^^^^^
+...
+> This looks like a parsing problem. But I would have expected escaping 
+> the $ to have worked.
 
-> (I'm still on the list, no need to Cc me :-) )
->
-> On Thu, Jan 27, 2005 at 09:21:10AM +0800, Ian Kent wrote:
->> The Debian side of things really refers to the merging of patches I
->> found in the packages (as best as I could) and some init script changes
->> which you are, no doubt checking.
->
-> Well, I'm afraid I can't check that you got all the Debian-specific init
-> script changes right, as I don't really know or understand half the problems
-> these patches were fixing (and the code they modified seems to have been
-> mostly rewritten). As long as you actually reviewed the changes, I guess we
-> should be OK. If there'll be a 4.1.4-beta2 (with the missing patches I
-> noticed), I'll be happy to put that in experimental and see if people get it
-> to work properly without regressions. :-)
+I got rid of the non-sense option users and escaped the $, rebooted and
+now it works just fine.
 
-I'll put the changes you discussed in.
+n
+-fstype=smbfs,codepage=cp852,iocharset=iso8859-2,uid=knizek_m,gid=users,credentials=/etc/samba/crede
+ntials_argon ://ffile01/Home\$
 
-The main point here is that we really just want a working init script.
-The original init script didn't address some problems you were probably
-unaware of. Mostly related to master maps with a good number of entries. I 
-believe I've delat with much of that within the daemon now so the init 
-script is a little simpler and should be OK.
+I think that the 'users' option should not have a big influence, since
+automounting worked for other non-hidden Windows shares with this 
+option, too. Now I am busy with other issues, but later I will try to 
+reproduce the error again (probably relates to restarting the init 
+service) and let you know if I succeed.
 
-All that really remains then is to ensure that the reported Debian 
-problems have also been addressed. Certainly I've tried to include as many 
-of the Debian patches as I could, some were catered for in other ways or 
-had been applied as part of other patches.
+Thank you for input.
 
-So lets see how we go.
-
-Ian
+Milan
+knizek@volny.cz
