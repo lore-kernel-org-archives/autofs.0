@@ -1,11 +1,15 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Problem with init script and monolithic kernels
-Date: Mon, 31 Jan 2005 09:07:03 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0501310906360.25125@wombat.indigo.net.au>
-References: <20050129174031.GB29464@uio.no> <20050130225412.GF32080@uio.no>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: Race in expire code
+Date: Mon, 31 Jan 2005 10:34:38 -0500
+Message-ID: <16894.20494.352068.720924@segfault.boston.redhat.com>
+References: <Pine.LNX.4.61.0501292129280.14112@donald.themaw.net>
+	<20050129135126.GA24017@uio.no>
+	<Pine.LNX.4.61.0501292209240.14112@donald.themaw.net>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20050130225412.GF32080@uio.no>
+In-Reply-To: <Pine.LNX.4.61.0501292209240.14112@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,21 +20,42 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: raven@themaw.net
+Cc: autofs@linux.kernel.org, cfeist@redhat.com
 
-On Sun, 30 Jan 2005, Steinar H. Gunderson wrote:
+==> Regarding Re: [autofs] Race in expire code; raven@themaw.net adds:
 
-> On Sat, Jan 29, 2005 at 06:40:31PM +0100, Steinar H. Gunderson wrote:
-> > I haven't been able to test it myself except on a module-enabled machine (I
-> > have no machines without module support readily available), but it looks
-> > quite straightforward to me and should fix the problem.
-> 
-> The user responded, and saying the patch fixed his problem, so it should be
-> quite safe for 4.1.4.
+raven> On Sat, 29 Jan 2005, Steinar H. Gunderson wrote:
+>> On Sat, Jan 29, 2005 at 09:36:31PM +0800, raven@themaw.net wrote:
+>>> Can everyone who is maintaining downstream packages please chaeck that
+>>> the code in their package ends up looking like what the patch below
+>>> acheives.
+>>> 
+>>> [...]
+>>> 
+>>> case EXP_STARTED: - sigprocmask(SIG_SETMASK, &ready_sigs, NULL);
+>>> ap.state = ST_EXPIRE; + sigprocmask(SIG_SETMASK, &ready_sigs, NULL);
+>>> return 0; } return 1;
+>> The Debian packages are close, but not quite:
+>> 
+>> case EXP_STARTED: sigprocmask(SIG_SETMASK, &lock_sigs, NULL); ap.state =
+>> ST_EXPIRE; sigprocmask(SIG_SETMASK, &ready_sigs, NULL); return 0;
+>> 
+>> I have no idea what lock_sigs does, but this should be OK, no?
 
-OK. I'll make the change.
+raven> It's just the list of signals that are blocked while we do "stuff"
+raven> that we don`t want interrupted by something else.
 
-Ian
+raven> Similarly ready_sigs contains the signals we expect to be received
+raven> in normal operation.
+
+raven> The first sigprocmask call above does nothing as signals are already
+raven> blocked at that point.
+
+The Red Hat package also has the two calls to sigprocmask.  When "fixing"
+signal races, I definitely managed to introduce a similar bug.  Chris Feist
+fixed it.  Chris, do you agree with Ian on this matter, that the first
+sigprocmask is superfluous?
+
+-Jeff
