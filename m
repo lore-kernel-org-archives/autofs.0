@@ -1,16 +1,13 @@
-From: Jim Carter <jimc@math.ucla.edu>
-Subject: Re: Proposal for map refresh logic
-Date: Thu, 17 Jun 2004 09:56:15 -0700 (PDT)
+From: "Taylor, ForrestX" <forrestx.taylor@intel.com>
+Subject: Re: Autodir
+Date: Thu, 17 Jun 2004 10:27:48 -0700
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0406170951550.18774@simba.math.ucla.edu>
-References: <Pine.LNX.4.58.0405212143160.1592@donald.themaw.net>
- <Pine.LNX.4.58.0405210855001.28570@simba.math.ucla.edu>
- <Pine.LNX.4.58.0406142246320.16281@donald.themaw.net>
- <Pine.LNX.4.58.0406141255550.3683@xena.cft.ca.us>
- <Pine.LNX.4.58.0406150926540.6253@wombat.indigo.net.au>
+Message-ID: <1087493267.6977.34.camel@bad.jf.intel.com>
+References: <40D0392D.2050609@intraperson.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0406150926540.6253@wombat.indigo.net.au>
+In-Reply-To: <40D0392D.2050609@intraperson.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,28 +17,26 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Ian Kent <raven@themaw.net>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: ramana <ramana@intraperson.com>
+Cc: autofs@linux.kernel.org
 
-On Tue, 15 Jun 2004, Ian Kent wrote:
-
-> On Mon, 14 Jun 2004, Jim Carter wrote:
-> > Item 3 -- we did the NIS lookup on this one entry because the TTL had
-> > expired, and NIS gave a different answer than the cache, so every cached
-> > entry from that map is probably wrong.  But there's no need to read the
-> > whole map; just clear the cached entries that came from it (except the one
-> > just read, known to be up to date).
+On Wed, 2004-06-16 at 05:12, ramana wrote:
+> Dear all,
 > 
-> One thing I had in mind with this is that map updates are generally small, 
-> a few records or so.
+> It started when I stuck with intraperson documentation. I stuck becuase 
+> there is no good software to create home directories automatically for 
+> unix accounts in ldap.
+> 
+> I thought threre is simply no way it can be done without serious 
+> drawbacks. But autofs kernel module came to rescue.
+> 
+> Welcome to http://www.intraperson.com/autodir.html
+> 
+> 
+> Autodir HOWTO  
+> http://prdownloads.sourceforge.net/intraperson/Autodir-HOWTO.html?download
 
-Only a few records change at any one time.  But which ones changed?  The
-only way the client (automounter) can find out is to read the whole map.  
-Even NIS itself uploads the whole map every time to its slave servers,
-although NIS+ has an incremental update feature.
+Just curious--doesn't pam_mkhomedir.so work?
 
-James F. Carter          Voice 310 825 2897    FAX 310 206 6673
-UCLA-Mathnet;  6115 MSA; 405 Hilgard Ave.; Los Angeles, CA, USA  90095-1555
-Email: jimc@math.ucla.edu    http://www.math.ucla.edu/~jimc (q.v. for PGP key)
+Forrest
