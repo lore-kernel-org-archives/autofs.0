@@ -1,16 +1,19 @@
-From: Mike Waychison <Michael.Waychison@Sun.COM>
-Subject: Re: Exporting UID to userspace?
-Date: Tue, 08 Jun 2004 14:45:24 -0400
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [RFC] rpc_ping and looong timeouts
+Date: Wed, 9 Jun 2004 09:13:33 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <40C60944.3080006@sun.com>
-References: <E1B7C89B8DCB084C809A22D7FEB90B3841A3@frodo.avalon.ru>
- <Pine.LNX.4.58.0406080901490.17060@wombat.indigo.net.au>
- <1086700328.20393.38.camel@brilong-lnx2.cisco.com>
- <Pine.LNX.4.58.0406090017110.22861@donald.themaw.net>
+Message-ID: <Pine.LNX.4.58.0406090905580.11930@wombat.indigo.net.au>
+References: <16575.35426.918728.134817@segfault.boston.redhat.com>
+	<Pine.LNX.4.58.0406040909310.8991@wombat.indigo.net.au>
+	<16576.51269.311121.121046@segfault.boston.redhat.com>
+	<40C4B3FF.3060005@sedona.intel.com><40C5E4A0.10405@sedona.intel.com>
+	<Pine.LNX.4.58.0406090009180.22861@donald.themaw.net>
+	<16581.59576.649866.64681@segfault.boston.redhat.com>
+	<Pine.LNX.4.58.0406090030140.22861@donald.themaw.net>
+	<16581.63097.282897.254922@segfault.boston.redhat.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-reply-to: <Pine.LNX.4.58.0406090017110.22861@donald.themaw.net>
+In-Reply-To: <16581.63097.282897.254922@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,91 +23,78 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: raven@themaw.net
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Jeff Moyer <jmoyer@redhat.com>
 Cc: autofs@linux.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Tue, 8 Jun 2004, Jeff Moyer wrote:
 
-raven@themaw.net wrote:
-> On Tue, 8 Jun 2004, Brian Long wrote:
->
->
->>>Fact is I'm still struggling to get bugs fixed. When that has settled
-down
->>>there are a couple of quite serious limitations with autofs that need to
->>>be addressed. They've been outstanding for many months.
->>
->>Ian,
->>
->>Could you remind us what "serious limitations" still exist in autofs?
->>Is this in comparison to Sun's implementation on Solaris or something
->>else?
->
->
-> Lazy mounting of multi-mount map entries.
-> Direct mounts obscure underlying file system high up in the tree.
->
-> Yes this is what people expect from an automounter as Suns implementation
-> provides it. In any case I've needed it for ages and I have some fairly
-> clear ideas on how to implement it, after having given it much thought.
->
-> Don't get me wrong here, the big issue with this request is working out a
-> way to get hold of the UID and GID or perhaps GIDs without having to
-> compromise the existing system.
->
-> Do you guys have any ideas on how we might do this?
->
-> Ian
+> 
+> I guess we could come full circle on this issue, and try to solve it at the
+> rpc layer.
+> 
+> There are 2 issues here.  First, for UDP, the portmapper lookup has a
+> static timeout of 60 seconds, and that is not tunable (afaict).  For TCP,
+> it takes a long time to timout a connect call.  I've already written code
+> to address the TCP connect issue.
+> 
+> As it happens, the UDP issue is not insurmountable.  We can simply write
+> code which queries the portmapper ourselves.  Here is the excerpt from
+> pmap_getport, edited to show only the UDP stuff:
+> 
+> static const struct timeval tottimeout =  {60, 0};
+> 
+> u_short
+> pmap_getport (address, program, version, protocol)
+>      struct sockaddr_in *address;
+>      u_long program;
+>      u_long version;
+>      u_int protocol;
+> {
+>   address->sin_port = htons (PMAPPORT);
+>   client = INTUSE(clntudp_bufcreate) (address, PMAPPROG, PMAPVERS, timeout,
+> 					&socket, RPCSMALLMSGSIZE,
+> 					RPCSMALLMSGSIZE);
+>   if (client != (CLIENT *) NULL)
+>     {
+>       struct rpc_createerr *ce = &get_rpc_createerr ();
+>       parms.pm_prog = program;
+>       parms.pm_vers = version;
+>       parms.pm_prot = protocol;
+>       parms.pm_port = 0;	/* not needed or used */
+>       if (CLNT_CALL (client, PMAPPROC_GETPORT, (xdrproc_t)INTUSE(xdr_pmap),
+> 		     (caddr_t)&parms, (xdrproc_t)INTUSE(xdr_u_short),
+> 		     (caddr_t)&port, tottimeout) != RPC_SUCCESS)
+> 
+> clntudp_bufcreate is simply clnt_create.  In this case, we fill in
+> address->sin_port, so the clnt_create call will not do a pmap_lookup.
+> 
+> Next we do a clnt_call, passing in a timeout.  Note the 60 second timeout
+> above.  There, you're done.  So, if we add the TCP case back into the code,
+> we do the nonblocking connect, and then do that clnt_create with this
+> socket.
+> 
+> Ian, I think this is do-able, and not entirely disgusting.  What's more is
+> that we can get rid of the ping.c file.  ;)  I was never really happy with
+> using a separate protocol anyway.  The more I think about this, the more I
+> like it.
 
-If the idea is to have a 'Network Neighborhood' inside each user's
-homedir, you could write an executable map for /home (not tested..):
+I'm in.
 
-key = shift
-entry = `ypcat $KEY -k`
-if [ $? == 0 ] ; then
-   echo $entry " /NetworkNeighborhood -Duser=$key /etc/auto_nn"
-   exit 0
-fi;
-exit 1
+Doing everything using the method as we are going to use for NFS is 
+definutely the way to go if we can.
 
-And then use a auto_nn executable map for generating the Neighborhood
-contents.
+What have we got to work with in terms of patches/code examples (besides 
+above). What would you like/have time to do and what can I do. We don't 
+want to duplicate efforts here.
 
-To handle mounting with credentials, you'll have to
+> 
+> Comments?  If you like it, I'll set aside some time to implement it.
 
-a) adapt the existing modules to handle grabbing credentials
+Jeff's hogging all the fun.
 
-or
+Seriously though, whatever you do is a be a big help.
+Thanks Jeff.
 
-b) write a generic 'execmount' module that will execute a given script
-with all the required information (all the environment variables, mount
-options, real filesystem type, yadda yadda).   This is my preferred
-approach to handling this as it can be re-used for other strange
-automount uses..
-
-This method also means that you don't have to touch the kernel module at
-all..
-
-What think?
-
-- --
-Mike Waychison
-Sun Microsystems, Inc.
-1 (650) 352-5299 voice
-1 (416) 202-8336 voice
-mailto: Michael.Waychison@Sun.COM
-http://www.sun.com
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NOTICE:  The opinions expressed in this email are held by me,
-and may not represent the views of Sun Microsystems, Inc.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFAxglEdQs4kOxk3/MRAl0jAJ9NzCQq0c4AZ8r2DupTP2hilZ6CXQCeIWKu
-hEQ6VbhSVaURsqIPW9tRboM=
-=CzDF
------END PGP SIGNATURE-----
+Ian
