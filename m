@@ -1,15 +1,12 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: Help with ldap + autofs please
-Date: Thu, 25 Mar 2004 08:58:06 +0800 (WST)
+Subject: Re: autofs Bug ?
+Date: Thu, 25 Mar 2004 09:11:05 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0403250852420.10492@wombat.indigo.net.au>
-References: <200403181118.34039.ndbecker2@verizon.net>
- <Pine.LNX.4.58.0403212326530.4690@raven.themaw.net>
- <Pine.LNX.4.58.0403241636220.19787@lucy.dcs.qmul.ac.uk>
+Message-ID: <Pine.LNX.4.58.0403250901500.10492@wombat.indigo.net.au>
+References: <200403241149.i2OBnmM05081@NGEW05.math.tu-dresden.de>
 Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0403241636220.19787@lucy.dcs.qmul.ac.uk>
+In-Reply-To: <200403241149.i2OBnmM05081@NGEW05.math.tu-dresden.de>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,36 +16,27 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="utf-8"
-To: Matt Bernstein <mb/autofs@dcs.qmul.ac.uk>
-Cc: autofs@linux.kernel.org, Neal Becker <ndbecker2@verizon.net>
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Roland Pfretzschner <pfr@math.tu-dresden.de>
+Cc: autofs@linux.kernel.org
 
-On Wed, 24 Mar 2004, Matt Bernstein wrote:
+On Wed, 24 Mar 2004, Roland Pfretzschner wrote:
 
-> On Mar 21 Ian Kent wrote:
->=20
-> >On Thu, 18 Mar 2004, Neal Becker wrote:
-> >
-> >> Can anyone help me with migrating autofs to ldap?
-> >>=20
-> >> To test, I added this line to /etc/auto.master:
-> >>=20
-> >> /test=C2=A0=C2=A0=C2=A0ldap:rpppc1.md.hns.com:ou=3Dauto.test,dc=3Dad=
-g,dc=3Dhns,dc=3Dcom=C2=A0
-> >
-> >Try
-> >
-> >/test	ldap //rpppc1.md.hns.com/ou=3Dauto.test,dc=3Dadg,dc=3Dhns,dc=3Dc=
-om
->=20
-> Hi, I get the same problem--this doesn't help (a space after "ldap" mak=
-es=20
-> it think it's a yp map called "ldap").
+> Hi there,
+> 
+> I have installed autofs-4.1.0-1 on a Fedora Core 1 System with
+> Kernel 2.4.22-1.2174.nptlsmp
+> 
+> Often the System crashes, when an USR2 Signal is sent
+> to an automount process.
+> This happens under the following conditions:
 
-OK. My mistake.
+What do you mean by "crashes", hangs or reboots or dumps a trace to the 
+log?
 
-Doesn't look to good.
+Can you do a sys-req dump when this happens?
 
-I'll run up a Fedora install on the weekend and try to duplicate it.
+Send it to the list if you can.
 
 Ian
