@@ -1,16 +1,15 @@
-From: Ian Kent <raven@themaw.net>
+From: Denis Vlasenko <vda@port.imtp.ilyichevsk.odessa.ua>
 Subject: Re: autofs unmount don't work with symbolic links
-Date: Tue, 2 Nov 2004 20:02:14 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0411022001070.2952@raven-wl.themaw.net>
-References: <1098779618.19050.61.camel@IAPonomarenko.isd.dp.ua> 
- <200410302317.04738.vda@port.imtp.ilyichevsk.odessa.ua> 
- <1099300553.19050.241.camel@IAPonomarenko.isd.dp.ua> 
- <200411011332.06171.vda@port.imtp.ilyichevsk.odessa.ua> 
- <Pine.LNX.4.58.0411020719151.7571@wombat.indigo.net.au>
- <1099387308.2199.28.camel@IAPonomarenko.isd.dp.ua>
+Date: Tue, 2 Nov 2004 17:38:42 +0200
+Message-ID: <200411021738.43084.vda@port.imtp.ilyichevsk.odessa.ua>
+References: <1098779618.19050.61.camel@IAPonomarenko.isd.dp.ua>
+	<1099387308.2199.28.camel@IAPonomarenko.isd.dp.ua>
+	<Pine.LNX.4.58.0411021956001.2952@raven-wl.themaw.net>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1099387308.2199.28.camel@IAPonomarenko.isd.dp.ua>
+In-Reply-To: <Pine.LNX.4.58.0411021956001.2952@raven-wl.themaw.net>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,25 +20,43 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Alexander Ponomarenko <apon@isd.dp.ua>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: Ian Kent <raven@themaw.net>, Alexander Ponomarenko <apon@isd.dp.ua>
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
-On Tue, 2 Nov 2004, Alexander Ponomarenko wrote:
-
-> /etc/auto.master is
+> > > > I can confirm that bug is still there in 4.1.3:
+> > > > 
+> > > > # automount /mnt/auto
+> > > > 
+> > > > (/mnt is a symlink) does not expire mounts:
+> > > > 
+> > > > 13:23:47 * Initializing
+> > > > 13:23:48 * Starting: automount -f -s -v --timeout 15 /mnt/auto program /root/bin/mapper.sh
+> > > > 13:23:48 starting automounter version 4.1.3, path = /mnt/auto, maptype = program, mapname = /root/bin/mapper.sh
+> > > > 13:23:48 using kernel protocol version 3.00
+> > > 
+> > > Does this occur with the autofs4 module.
+> > > We want to see 4.05 instead of 3.00.
 > 
-> /var/autofs/local       /etc/auto.local         --timeout=30
-> /usr/var/autofs/remote  /etc/auto.remote        --timeout=300
-> /usr/var/autofs/mks     /etc/auto.mks           --timeout=300
-> 
-> where /var is simbolic link to /usr/var. All mounts from /etc/auto.local
-> don't unmounts on expiration time but mounts from /etc/auto.remote and
-> /etc/auto.mks works fine (unmounts on expiration time). The situation is
-> the same as for the version 3 of autofs kernel module, as for the
-> version 4. I can add syslog logs if needed (too mach for posting).
+> Which autofs4 kernel module?
+> Does the log say 4 or 4.05?
+> In other words, are you running the latest kernel module code.
 
-Can you make log (produced by using --debug) available somewhere?
+Yes, it was an old module (I had stale line on /etc/modules.conf).
+I fixed it, but new module does the same:
 
-Ian
+16:53:47 * Initializing
+16:53:47 * Starting: automount -f -s -v --timeout 15 /mnt/auto program /root/bin/mapper.sh
+16:53:47 starting automounter version 4.1.3, path = /mnt/auto, maptype = program, mapname = /root/bin/mapper.sh
+16:53:47 using kernel protocol version 4.05
+16:53:47 using timeout 15 seconds; freq 4 secs
+16:53:53 attempting to mount entry /mnt/auto/hda1
+16:53:53 >> /usr/bin/mount: illegal option -- s
+16:54:12 expired /mnt/auto/hda1
+16:54:28 expired /mnt/auto/hda1
+16:54:45 expired /mnt/auto/hda1
+16:55:13 expired /mnt/auto/hda1
+
+/mnt/auto/hda1 is still mounted...
+--
+vda
