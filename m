@@ -1,12 +1,12 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: Re: auto.net-like script for smbfs?
-Date: Tue, 2 Dec 2003 09:14:46 +0800 (WST)
+Subject: RE: making the mountpoints visible all the time (fwd)
+Date: Tue, 2 Dec 2003 21:49:23 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.33.0312020912420.11316-100000@wombat.indigo.net.au>
-References: <3FCBB813.50101@sun.com>
+Message-ID: <Pine.LNX.4.44.0312022129550.2970-100000@raven.themaw.net>
+References: <EE335453C5C57840823404C684F9F617012D69DB@exmbx01sj.cadence.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <3FCBB813.50101@sun.com>
+In-Reply-To: <EE335453C5C57840823404C684F9F617012D69DB@exmbx01sj.cadence.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,30 +18,74 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Soyoung Park <Soyoung.Park@Sun.COM>
-Cc: autofs@linux.kernel.org, Christoph Bugel <chris@tti-telecom.com>
+To: Chris Croswhite <csc@cadence.com>
+Cc: autofs@linux.kernel.org
 
-On Mon, 1 Dec 2003, Soyoung Park wrote:
 
+Hi guys,
+
+I have some 2.6 patches.
+
+They can be found at 
+
+http://www.kernel.org/pub/linux/kernel/people/raven/autofs4-2.6
+
+Apply them in number order please.
+
+Please leave out the max_anon_2.patch initially. We need to establish what 
+the status of the kernel module is before trying this patch. It was 
+written by Mike Waychison to increase the number of anonymous devices. 
+Once the status patches is established it would be good to how the 
+max_anon patch goes with over 255 mounts and less than about 790 (rpc 
+doesn't allow more than that at the moment).
+
+Try as many or as few things as your setup allows and please try and give 
+some coverage of what was used and what went wrong. We need to try this on 
+SMP setups if at all possible.
+
+I know I don't need to say this to ypu guys but I will anyway. Please make 
+sure that you do staged testing. What I'm saying is steady as it goes. 
+First a single machine then a couple etc., you know the routine. While the 
+general approach of the patches is the same as what I have used for ages 
+in 2.4 the locking and synchronisation is different and may not be 
+correct (read I think it's not quite right but need evidence to confirm 
+it).
+
+Looking forward to your feedback.
+
+On Sun, 16 Nov 2003, Chris Croswhite wrote:
+
+> I can offer up about 75 Linux boxes as testing.  They are used pretty heavily mounting about 300-400 differnet mount points during the day from slowlaris, HPsUx, Linux and NetApp file systems.  Just let me know.
+> 
+> TIA,
+> Chris
+> 
+> 
+> -----Original Message-----
+> From:	Ian Kent [mailto:raven@themaw.net]
+> Sent:	Sun 16-Nov-03 18:53
+> To:	Alexander Macdonald
+> Cc:	autofs@linux.kernel.org
+> Subject:	Re: [autofs] making the mountpoints visible all the time (fwd)
+> On Sun, 16 Nov 2003, Alexander Macdonald wrote:
+> 
+> > I'm happy to try out any patches, although I'm only using autofs for
+> > about 20 or so samba and nfs shares on a few pcs so it wont exactly be
+> > thorough enterprise level testing :)
 > >
-> i'm a little confused.
->
-> i've gotten smb mount to work w/ autofs, but not used any script.
->
-> what i did was:
->
-> 1. create a share dir in my window machine for file share access
-> 2. add an auto.smb file w/ line
-> "-fstype=smbfs,username=username,password=password:\\path" and
-> 3. motify auto.master to include auto.smb
->
-> and i was copying files across smb w/ the smb folder auto mounted.
->
-> the windows machine had to be password protected.
->
-
-I got the impression that someone was talking about using the anonymous
-share (no passwords) which is rearly avaialble in most places.
+> > >In fact, I don't have a 2.6 environment other than what I use to test at
+> > >home so volenteers are needed for testing. We can't expect the changes
+> > >to be accepted without some testing other than my simple setup.
+> > >
+> > >
+> 
+> Any help is appreciated.
+> 
+> I'll let you know when I've got something to test.
+> 
+> Thanks.
+> 
+> 
 
 -- 
 
