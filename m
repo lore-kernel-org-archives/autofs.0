@@ -1,95 +1,85 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Re: Where will it live
-Date: Thu, 4 Sep 2003 20:28:03 +0800 (WST)
-Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.44.0309041947430.3156-100000@raven.themaw.net>
-References: <3F567FF4.9050207@zytor.com>
+From: maximilian attems <janitor@sternwelten.at>
+Subject: [Kernel-janitors] [patch] use list_for_each() in fs/autofs4/expire.c
+Date: Wed, 10 Sep 2003 16:38:02 +0200
+Sender: kernel-janitors-bounces@lists.osdl.org
+Message-ID: <20030910143802.GJ24711@mail.sternwelten.at>
 Mime-Version: 1.0
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <3F567FF4.9050207@zytor.com>
+Content-Type: multipart/mixed; boundary="===============022615011962984211=="
+Return-path: <kernel-janitors-bounces@lists.osdl.org>
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+List-Unsubscribe: <http://lists.osdl.org/mailman/listinfo/kernel-janitors>,
+	<mailto:kernel-janitors-request@lists.osdl.org?subject=unsubscribe>
+List-Archive: <http://localhost.localdomain/pipermail/kernel-janitors>
+List-Post: <mailto:kernel-janitors@lists.osdl.org>
+List-Help: <mailto:kernel-janitors-request@lists.osdl.org?subject=help>
+List-Subscribe: <http://lists.osdl.org/mailman/listinfo/kernel-janitors>,
+	<mailto:kernel-janitors-request@lists.osdl.org?subject=subscribe>
+Errors-To: kernel-janitors-bounces@lists.osdl.org
+To: kj <kernel-janitors@osdl.org>
+Cc: autofs@linux.kernel.org, jeremy@goop.org
+
+
+--===============022615011962984211==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="k1BdFSKqAqVdu8k/"
+Content-Disposition: inline
+
+
+--k1BdFSKqAqVdu8k/
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+
+Use list_for_each() where applicable
+From: Domen Puncer <domen@coderock.org>
+- for (list =3D ymf_devs.next; list !=3D &ymf_devs; list =3D list->next) {
++ list_for_each(list, &ymf_devs) {
+pure cosmetic change, defined as a preprocessor macro in:
+include/linux/list.h
+
+please apply
+maks
+
+
+--- linux-2.6.0-test5/fs/autofs4/expire.c	Mon Sep  8 21:50:16 2003
++++ linux/fs/autofs4/expire.c	Wed Sep 10 12:13:24 2003
+@@ -169,9 +169,7 @@
+ 	timeout =3D sbi->exp_timeout;
+=20
+ 	spin_lock(&dcache_lock);
+-	for(tmp =3D root->d_subdirs.next;
+-	    tmp !=3D &root->d_subdirs;=20
+-	    tmp =3D tmp->next) {
++	list_for_each(tmp, &root->d_subdirs) {
+ 		struct autofs_info *ino;
+ 		struct dentry *dentry =3D list_entry(tmp, struct dentry, d_child);
+=20
+
+--k1BdFSKqAqVdu8k/
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.0.6 (GNU/Linux)
+Comment: For info see http://www.gnupg.org
+
+iD8DBQE/XzdK6//kSTNjoX0RAkSeAJ97lNBX6mUqzkU4bSu8mqi6gRNo1ACfb1En
+lo4AanJKt7hJahsjSL0NM+w=
+=v53g
+-----END PGP SIGNATURE-----
+
+--k1BdFSKqAqVdu8k/--
+
+--===============022615011962984211==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: autofs mailing list <autofs@linux.kernel.org>, Alvin Oga <alvin@Mail.Linux-Consulting.com>
+Content-Disposition: inline
 
-On Wed, 3 Sep 2003, H. Peter Anvin wrote:
+_______________________________________________
+Kernel-janitors mailing list
+Kernel-janitors@lists.osdl.org
+http://lists.osdl.org/mailman/listinfo/kernel-janitors
 
-> Alvin Oga wrote:
-> > hi ya
-> > 
-> > On Wed, 3 Sep 2003, H. Peter Anvin wrote:
-> > 
-> > 
-> >>Obviously for posting packages there is kernel.org, as before;
-> >>unfortunately we don't really have the human resources at this time to
-> >>set up SCM repositories.
-> > 
-> > 
-> > i'd be more than happy to spend time and drop a machine off
-> > to be autofs.kernel.org  ...
-> > 	( have plenty of spare 1U boxes - used for testing )
-> > 
-> > and configure anoncvs ... i havent done that yet .. ( the
-> > challenge/fun/frustation )
-> > 
-> 
-> I guess what we'd really need is cvs.kernel.org for all kinds of
-> different projects.
-> 
-> Here is probably not the best option for hosting if you are going to
-> maintain it, but I think I have a solution to that.  Let me get back to
-> you next week if there is interest, ok?
-> 
-
-I have a few thoughts on the discussion.
-
-Firstly I think it goes without saying we need to maintain an up to date 
-copy of the tarballs on kernel.org. Everyone expects it to be there and 
-the authoritative autofs release packages should all be in the same place 
-in at least one location.
-
-I have not used CVS much. We use SCCS for most of our admin and utility 
-scripts at work. The function is the same so the issues are the same.
-
-I will maintain a 'mostly not working' CVS on my little co-lo machine 
-anyway as I need to be able to grab it when I can't get onto my computer 
-'cause the kids have kicked me of mine' but that's another story.
-
-Forgive me for stating the obvious. But for completeness I will.
-
-The big issues here are the CVS repository needs care and feeding and 
-backup. This is trivial for a few small packages such as autofs but these 
-things have a tendency to grow without bound when you least expect them 
-to. This becomes important for development when CVS becomes the 'place 
-the distribution lives' for dif comparison and bug hunting etc.
-
-Although we don't expect much traffic, it is possible that at times 
-considerable download volumes may occur which of course means dollars.
-
-The point being we shouldn't take the amount of effort needed to keep it 
-available and maintain it lightly.
-
-I think that one of the public CVS repositories would be best for these 
-reasons but ...
-
-Peter clearly has a different need and it would be great if we could 
-establish cvs.kernel.org. However I think we would need a sponsor for 
-this.
-
-Thanks for your kind offer Alvin. Maybe you will be the sponsor.
-
--- 
-
-   ,-._|\    Ian Kent
-  /      \   Perth, Western Australia
-  *_.--._/   E-mail: raven@themaw.net
-        v    Web: http://themaw.net/
+--===============022615011962984211==--
