@@ -1,14 +1,12 @@
-From: "Arthur Korn" <arthur@korn.ch>
-Subject: Re: Debian diff remaining in autofs 4.1.3
-Date: Sun, 5 Sep 2004 13:40:31 +0200
+From: raven@themaw.net
+Subject: Re: [patch] fix a file descriptor leak in rpc_subs.c
+Date: Mon, 6 Sep 2004 21:50:09 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <20040905114031.GB3169@turing>
-References: <20040904200654.GA26488@turing>
-	<Pine.LNX.4.58.0409051011510.18618@donald.themaw.net>
+Message-ID: <Pine.LNX.4.58.0409062142310.13402@donald.themaw.net>
+References: <16682.9347.245335.724203@segfault.boston.redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============42100244699876826=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0409051011510.18618@donald.themaw.net>
+In-Reply-To: <16682.9347.245335.724203@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,88 +16,47 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-To: raven@themaw.net
-Cc: autofs@linux.kernel.org
-
-
---===============42100244699876826==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="+g7M9IMkV8truYOl"
-Content-Disposition: inline
-
-
---+g7M9IMkV8truYOl
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi
-
-raven@themaw.net schrieb:
-> Is there any way I can get hold of the soure package?
-
-I've just uploaded it to experimental.
-
-It is indeed experimental, since I didn't merge any init-script
-changes yet (I want to try to stick with your scripts as much as
-possible).
-
-There are a couple of doc patches left too.
-
-> Are there any plans to add a kernel patch for 2.4 and possibly for early=
-=20
-> 2.6 kernels? Perhaps I could help with that.
-
-Debian will ship recent 2.6 kernels in sarge (we can't change
-woody anymore).
-
-Maybe the autofs4 patches have already been applied to our stock
-2.4 kernels. If not, you could try to convince the
-kernel-image-2.4.27-i386 maintainers to integrate the patch in
-stock kernels, build a kernel-patch-autofs4 package
-(impractical, requires rebuild of entier kernel for this single
-module) or build your own autofs4-module(-source) kernel module
-package (which would be overkill IMHO).
-
-HTH, 2ri
---=20
-Help securing email, spread GPG, clearsign all mail. http://www.gnupg.org
-=2E
-The game was soon followed up by a round of "Alphabet Implementation" where
-each employee took turns suggesting a different language, tool, methodology=
-, or
-approach to a new business requirement, vehemently disapproving of all other
-ideas. This game awards double points for using an acronymn unknown by the =
-rest
-of the group, but imposes heavy penalties on making one up.
-	    -- Bryan Douglas <bryantdouglas@yahoo.com> on segfault.org
-
---+g7M9IMkV8truYOl
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-
-iD8DBQFBOvsvNgpsykSg/LgRAiYeAKCG3MdvLN8qGUwHfwUKCplSPs2IMgCgtRLZ
-kDrX5uRH02zjfSLzV0sRUgo=
-=akI5
------END PGP SIGNATURE-----
-
---+g7M9IMkV8truYOl--
-
-
---===============42100244699876826==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
+On Mon, 23 Aug 2004, Jeff Moyer wrote:
 
---===============42100244699876826==--
+> Hi Ian, list,
+> 
+> We never close the file descriptors we open in the rpc ping path.  Here is
+> a patch which addresses this.  The patch appears in my latest rpms on my
+> people page.
 
+While I was looking at the problem Bryce reported I got the impression 
+that the socket leak patch may not have completely covered the closeing of 
+open sockets. I'm probably wrong but I came up with this alternative patch 
+which I've called autofs-4.1.3-sock-leak-fix-2.patch.
+
+Any thoughts?
+
+--- autofs-4.1.3/lib/rpc_subs.c.sock-leak-fix-2	2004-09-06 19:26:30.000000000 +0800
++++ autofs-4.1.3/lib/rpc_subs.c	2004-09-06 19:41:19.000000000 +0800
+@@ -48,7 +48,7 @@
+  */
+ static CLIENT* create_udp_client(struct conn_info *info)
+ {
+-	int fd = -1;
++	int fd = RPC_ANYSOCK;
+ 	CLIENT *client;
+ 	struct sockaddr_in addr;
+ 	struct hostent *hp;
+@@ -179,6 +179,12 @@
+ 	if (!client)
+ 		goto out_close;
+ 
++	/* Close socket fd on destroy, as is default for rpcowned fds */
++	if  (!clnt_control(client, CLSET_FD_CLOSE, NULL)) {
++		clnt_destroy(client);
++		goto out_close;
++	}
++
+ 	return client;
+ 
+ out_close:
