@@ -1,13 +1,12 @@
-From: raven@themaw.net
-Subject: Re: multiple hostnames in automounter table
-Date: Fri, 25 Jun 2004 22:53:17 +0800 (WST)
+From: "Lever, Charles" <Charles.Lever@netapp.com>
+Subject: RE: is there an autofs roadmap somewhere?
+Date: Fri, 25 Jun 2004 08:04:23 -0700
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0406252248010.1375@donald.themaw.net>
-References: <40D9DAF6.1010403@ti.com>
-	<16603.9889.781697.120575@segfault.boston.redhat.com>
+Message-ID: <482A3FA0050D21419C269D13989C611302B07D00@lavender-fe.eng.netapp.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <16603.9889.781697.120575@segfault.boston.redhat.com>
+content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,43 +16,32 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: Al Alder <aalder@ti.com>, autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: raven@themaw.net
+Cc: autofs@linux.kernel.org
 
-On Thu, 24 Jun 2004, Jeff Moyer wrote:
-
-> ==> Regarding [autofs] multiple hostnames in automounter table; Al Alder <aalder@ti.com> adds:
+> On Tue, 22 Jun 2004, Lever, Charles wrote:
 > 
-> aalder> Are there any plans for the automounter to be able to handle
-> aalder> multiple hostnames in the automount table for Linux?  With Mandrake
-> aalder> 10.0 the automount daemon will not mount an entry that has multiple
-> aalder> hostnames.  On Red Hat Enterprise 3.0, it gives a warning, but will
-> aalder> mount using the first hostname, is this functionality a RedHat
-> aalder> thing that hasn't been shared with the rest of the community or is
-> aalder> Mandrake 10.0 just using a different/older version?  Is there
-> aalder> anyway around this problem, or to get Mandrake automount to mount
-> aalder> the first hostname?
+> > new to the game.
+> > 
+> > I'm wondering what features autofs developers have in mind for the 
+> > near future.
 > 
-> aalder> Your help is appreciated.
-> 
-> RHEL 3 uses a heavily patched autofs-3.1.7.  Most of the changes made by
-> Red Hat have been incorporated in autofs-4.x.y by Ian.  I try to involve
-> Ian and the list in all of the changes I make to the automounter.  The only
-> times I don't are when I get rediculous user requests that I am obligated
-> to fulfill.
-> 
-> Having said that, I'm guessing what you want is replicated server
-> functionality?  I would suggest starting with the README.replicated-server
-> file in the autofs 4 userspace package.  Hopefully it does what you need it
-> to do.
+> Charles. Why did you have to ask "that" question!
 
-Yes. As Jeff says.
+i'm working with trond to build a Linux NFS client roadmap.  our
+customers want a little more transparency into the Linux NFS client
+development plan, and i'm trying to include autofs because it is pretty
+important for them.  i actually know very little about it (so a pointer
+to a primer you like would be helpful for me).
 
-But there has been quite a bit of work done relating to side effects 
-from the initial implementation of the replicated functionality by myself 
-and Jeff. So this functionality is still stabilising. Hopefully the next 
-release will see that work complete.
+> But what functionality do you need?
+> And what do you think would be useful?
 
-Ian
+no requests... just polling for information, trying to get more involved
+here.  thanks!
+
+there are some naive thoughts about error recovery and threading
+architecture that could help autofs deployments in very large
+environments with lots of active mounts.  but i'd like to explore the
+current autofs more before stepping in it.
