@@ -1,14 +1,11 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: nfs optimization settings in the automounter
-Date: Tue, 18 Nov 2003 11:27:33 -0800
+From: "Taylor, ForrestX" <forrestx.taylor@intel.com>
+Subject: Automount log errors
+Date: Tue, 18 Nov 2003 16:13:50 -0800
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <3FBA72A5.4050605@zytor.com>
-References: <3FBA5C63.9080402@scout.wisc.edu> <3FBA67F7.1050505@zytor.com>
-	<3FBA6B79.9080706@scout.wisc.edu>
+Message-ID: <1069200829.28347.3.camel@ugly>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <3FBA6B79.9080706@scout.wisc.edu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,13 +16,26 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: Justin Rush <jrush@scout.wisc.edu>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-Justin Rush wrote:
-> I am using nfs v3 and I can mount it manually with these options.
+I get these errors in logwatch from autofs:
 
-If so, please enable *.debug output in syslog and look at the output
-from the automounter in the syslog.
+Use of uninitialized value in hash element at
+/etc/log.d/scripts/services/automount line 28, <STDIN> line 2.
+Use of uninitialized value in hash element at
+/etc/log.d/scripts/services/automount line 28, <STDIN> line 2.
 
-	-hpa
+
+The offending lines are:
+
+while (defined($ThisLine = <STDIN>)) {
+...
+   elsif ($ThisLine =~ /^mount\(nfs\): nfs: mount failure .*:.* on .*$/)
+{
+      $Failed{$Mount}{'nfsm'}++;
+
+This is on Fedora Core 1, using autofs-4.1.0-beta3.  Any ideas?
+
+Thanks,
+
+Forrest
