@@ -1,13 +1,21 @@
-From: Stew Smith <stew.smith@sun.com>
-Subject: Re: Status of >800 mounts
-Date: Thu, 6 May 2004 11:55:29 -0700
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: Please help - cleanup
+Date: Thu, 6 May 2004 15:10:36 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <20040506185528.GA5149@crashy.west.sun.com>
-References: <409A7A7C.2000109@sedona.intel.com>
+Message-ID: <16538.36268.355222.321710@segfault.boston.redhat.com>
+References: <Pine.LNX.4.58.0405022201480.25614@donald.themaw.net>
+	<Pine.LNX.4.58.0405042233560.17014@donald.themaw.net>
+	<16535.44980.475389.900686@segfault.boston.redhat.com>
+	<Pine.LNX.4.58.0405042308070.17014@donald.themaw.net>
+	<16537.26586.135188.997029@segfault.boston.redhat.com>
+	<409A4C04.1060604@freescale.com>
+	<1083858912.5890.411.camel@d158140025182>
+	<409A6220.80403@freescale.com>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <409A7A7C.2000109@sedona.intel.com>
+In-Reply-To: <409A6220.80403@freescale.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,26 +26,26 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: autofs@linux.kernel.org
+To: Tom Georgoulias <tom.georgoulias@freescale.com>
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
-On Thu, May 06, 2004 at 10:48:44AM -0700, Michael Blandford wrote:
-> Hello,
-> 
-> What is the current status of having more than 800 nfs mounts ( on 2.4 
-> and 2.6 )?
-> 
-> I had heard there might be a patch to use one port per server instead of 
-> per mount. 
-> 
+==> Regarding Re: [autofs] Please help - cleanup; Tom Georgoulias <tom.georgoulias@freescale.com> adds:
 
-i am working on a patch currently which multiplexes nfs connections
-per sever so you end up with a 800 server limit, similar to the
-way nfsv4 works now.. i will send it out for review very soon after
-i ferret out a few bugs.
+[snip]
+>> I also think that it would be nice to have some form of
+>> regressions/tests to help validate.
 
-another idea we had was to add SO_REUSEADDR to rpc sockets so
-you have more available on a busy system.
+tom.georgoulias> I think it's time to start developing some.  Since Red Hat
+tom.georgoulias> tests their software before they ship it, maybe they have
+tom.georgoulias> a suite already in place that they could share? ;)
 
--- 
-Stew Smith
+Heh.  Wishful thinking.  Part of the reason I started pushing out test rpms
+was to get more testing in environments I couldn't possibly reproduce.
+That's not to say autofs doesn't get tested in-house.  I certainly do as
+much testing as possible before pushing packges into a release.
+
+I would also like to see an autofs stress test and regression test.  I
+think it would help immensely.  However, setting aside time to do the work
+is always the issue.
+
+-Jeff
