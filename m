@@ -1,15 +1,12 @@
-From: Greg Bradner <gregb@rhythm.com>
-Subject: running out of mount points
-Date: Mon, 19 Jan 2004 07:48:53 -0800
+From: "Ogden, Aaron A." <aogden@unocal.com>
+Subject: RE: running out of mount points
+Date: Mon, 19 Jan 2004 11:11:12 -0600
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <400BFC65.3000700@rhythm.com>
-References: <Pine.LNX.4.33.0401130932460.10047-100000@wombat.indigo.net.au>
-	<4004409C.6040900@sun.com> <Pine.LNX.4.58.0401142351470.1783@raven.themaw.net>
-	<40059944.4060901@rhythm.com>
+Message-ID: <6AB920CC10586340BE1674976E0A991D0C6C00@slexch2.sugarland.unocal.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <40059944.4060901@rhythm.com>
+content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,32 +16,58 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: autofs@linux.kernel.org
-
-I wanted to repost this plea. I am really in a bind and could use some 
-help. I need to mount these users on the mail server.
-BTW: this is with autofs 4.1.0
+Content-Type: text/plain; charset="us-ascii"
+To: Greg Bradner <gregb@rhythm.com>, autofs@linux.kernel.org
 
 
-Greg Bradner wrote:
+> -----Original Message-----
+> From: autofs-bounces@linux.kernel.org 
+> [mailto:autofs-bounces@linux.kernel.org] On Behalf Of Greg Bradner
+> Sent: Monday, January 19, 2004 9:49 AM
+> To: autofs@linux.kernel.org
+> Subject: [autofs] running out of mount points
+> 
+> 
+> I wanted to repost this plea. I am really in a bind and could use some
 
-> I have run into a problem of running out of mount points.  I have over 
-> 600 users and their home dirs are listed in auto.home and they are all 
-> stored on the same nfs server.  If I list the dirs, automount will 
-> create a seperate mount point for each user, and at ~256 mount points, 
-> no more home dirs can be mounted.
-> Is there a work around?
->
-> Here is the auto.master and snip of auto.home
->
->
-> auto.master:
-> /home                   /etc/auto.maps/auto.home
->        vers=3,hard,intr,nosuid,nodev,rw,retrans=4,timeo=15,mountvers=2
->
->
-> auto.home:
-> gregb ntap:/vol/vol0/u/&
->
->
+> help. I need to mount these users on the mail server.
+> BTW: this is with autofs 4.1.0
+> 
+
+Hello Greg,
+I have run into this problem as well, actually it isn't autofs but the
+kernel itself.
+The kernel hackers can explain the details but the simplified version is
+that
+the kernel runs out of 'unnamed devices' and when it does it cannot make
+any additional
+NFS mounts.  You can get around this by applying a patch or using a
+kernel that already
+has the patch applied.  RedHat's kernels (updates.redhat.com) have this
+patch and more,
+I have had good results with them.  You can grab the source RPM and
+apply the autofs 4.1.0
+patch to it to get the functionality you want.  The 'unnamed devices'
+patch used by
+RedHat is supposed to allow around 1200 simultaneous NFS mounts.
+Without this patch the
+kernel has an 8-bit address space for unnamed devices so you hit the
+limit at 255 mounts.
+
+Once you get past this hurdle you may run into another problem, you may
+find (as I did)
+that you can't actually mount 1200 filesystems... RPC will start running
+into problems
+around 800 mounts or slightly less.  I've been told that this happens
+because RPC is using
+a separate port for each NFS mount, it starts at port 800 and counts
+down to 1, so when the
+system runs out of ports it is once again unable to mount anything.
+Supposedly there is
+some work being done to rewire linux RPC so that it uses one port *per
+server* rather than
+one port per NFS mount, that change would fix the problem for any
+reasonable configuration.
+
+hope this helps,
+aaron
