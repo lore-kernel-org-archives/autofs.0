@@ -1,12 +1,9 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: Is autofs4 8-bit compatible?
-Date: Wed, 16 Mar 2005 10:30:30 -0500
-Message-ID: <16952.20758.58340.464962@segfault.boston.redhat.com>
-References: <423689AD.000001.28955@colgate.yandex.ru>
-Reply-To: jmoyer@redhat.com
+From: David <spoel@xray.bmc.uu.se>
+Subject: autofs not mounting from nis maps
+Date: Wed, 16 Mar 2005 21:25:18 +0100
+Message-ID: <1111004718.6120.16.camel@studio.bibu>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <423689AD.000001.28955@colgate.yandex.ru>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,31 +15,49 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: atlantos41@yandex.ru
-Cc: autofs@linux.kernel.org, Ian Kent <raven@themaw.net>
+To: autofs@linux.kernel.org
 
-==> Regarding Re: [autofs] Is autofs4 8-bit compatible?; "atlantos41" <atlantos41@yandex.ru> adds:
+Hi
 
-atlantos41> On Tuesday 15 March 2005 08:15, Ian Kent wrote:
->> This is not nearly as much info as you should see.  In particular what
->> I'm actually after (the parsing debug output) is not there.
->> 
->> Can you check to see if you are sending debug output to syslog please?
->> 
->> I remember I had to alter my syslog.conf on FC2 at one point.
->> 
->> Ian
+I have a NIS server that broadcasts an auto.XXX files as such:
 
-atlantos41> Strange. I do ~ automount --timeout=60 --verbose /smb file
-atlantos41> /etc/auto.smb ~ cd /smb/test_data<cyrchar>est bash: cd:
-atlantos41> /smb/test_data<cyrchar>est: No such file or directory ~ kill
-atlantos41> -term `pidof automount`
+[root@appel2 proc]# ypcat -k auto.master
+/home  auto.home
+/usr/local  auto.local
+/pub auto.pub
 
-atlantos41> My syslog.conf have lines: *.debug /var/log/messages
+[root@appel2 proc]# ypcat -k auto.home | head -8
+magnusa  hirst:/homes/hirst/dsk1/&
+hattne   hirst:/homes/hirst/dsk2/&
+maria  hirst:/homes/hirst/dsk2/&
+diane  hirst:/homes/hirst/dsk2/&
+alina dqs1:/user13/&
+guestji hirst:/homes/hirst/dsk2/&
+hanna hirst:/homes/hirst/dsk2/&
+gunilla  bacon:/Users/&
 
-For debug logs, I include *everything*:
+...
 
-*.*	  /var/log/debug
+On the client side roughly half of the directories are actually mounted
+when I cd into them, the other half give:
+[root@appel2 proc]# cd /home/magnusa
+-bash: cd: /home/magnusa: No such file or directory
 
+Without NIS everything works fine. However I have a few tens of
+workstations so it's quite tedious to update all machines with new files
+and restart autofs whenever something changes.
 
--Jeff
+Am I doing something terribly wrong? Any other tips?
+
+We are running debian on the servers and different Fedora's on the
+clients.
+
+-- 
+David.
+________________________________________________________________________
+David van der Spoel, PhD, Assoc. Prof., Molecular Biophysics group,
+Dept. of Cell and Molecular Biology, Uppsala University.
+Husargatan 3, Box 596,          75124 Uppsala, Sweden
+phone:  46 18 471 4205          fax: 46 18 511 755
+spoel@xray.bmc.uu.se    spoel@gromacs.org   http://xray.bmc.uu.se/~spoel
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
