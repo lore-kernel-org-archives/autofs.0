@@ -1,16 +1,11 @@
-From: Neal Becker <ndbecker2@verizon.net>
-Subject: Re: Help with ldap + autofs please
-Date: Thu, 25 Mar 2004 21:14:40 -0500
+From: Dominique Le Foll <dominique@le-foll.demon.co.uk>
+Subject: Silent bug in autofs when conf file are in dos format
+Date: Sun, 28 Mar 2004 22:56:48 +0200
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <200403252114.40984.ndbecker2@verizon.net>
-References: <200403181118.34039.ndbecker2@verizon.net>
-	<200403251457.24822.ndbecker2@verizon.net>
-	<Pine.LNX.4.58.0403260835520.2053@wombat.indigo.net.au>
+Message-ID: <40673C10.901@le-foll.demon.co.uk>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0403260835520.2053@wombat.indigo.net.au>
-Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,23 +15,23 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: autofs@linux.kernel.org
 
-On Thursday 25 March 2004 07:36 pm, Ian Kent wrote:
-> On Thu, 25 Mar 2004, Neal Becker wrote:
-> > > /test	ldap:rpppc1.md.hns.com:nisMapName=auto.test,dc=adg,dc=hns,dc=com
-> > >
-> > > should work.
-> >
-> > This one is working:
-> > /test	ldap://rpppc1.md.hns.com/nisMapName=auto.test,dc=adg,dc=hns,dc=com
->
-> Does that mean we need to review the patch that should allow the colon
-> syntax?
+Hello,
 
-Not sure what you mean by "review the patch", but I don't personally care 
-which syntax is used.  The problem I found was it was really hard to find 
-anywhere that the correct syntax was documented.  A simple example would have 
-saved me a lot of time.
+after importing /etc/auto.*  from one linux server to an other via a 
+VFAT drive I have noticed that if the configuration files for atofs  are 
+in DOS format, autofs does not complain but fail to mount.
+
+As vi is silent on DOS text format it's not that easy to detect why it 
+does not work.
+
+A warning indicating Martian char (0x0D) in the file would do the job, a 
+silent proper management as well.
+
+I use Linux Suse 9.0 (kernel 2.4.21).
+
+Regards
+
+Dominique
