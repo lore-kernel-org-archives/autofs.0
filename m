@@ -1,14 +1,13 @@
-From: Robert Giles <rgiles@arlut.utexas.edu>
-Subject: Re: Infinite loop when trying to access nonexistent
-  directory (auto.home '&' substitution)
-Date: Wed, 20 Oct 2004 14:55:18 -0500
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [patch] Maintain backwards compatibility w/ local file maps w/o
+ etc.
+Date: Thu, 21 Oct 2004 10:41:40 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <6.1.2.0.2.20041020143753.036f5ca0@mail.utexas.edu>
-References: <Pine.LNX.4.61.0410201431520.8936@orion.arlut.utexas.edu>
+Message-ID: <Pine.LNX.4.58.0410211040430.4454@wombat.indigo.net.au>
+References: <1098291410.3527.18.camel@localhost.localdomain>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.61.0410201431520.8936@orion.arlut.utexas.edu>
-References: <Pine.LNX.4.61.0410201431520.8936@orion.arlut.utexas.edu>
+In-Reply-To: <1098291410.3527.18.camel@localhost.localdomain>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,17 +17,23 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: autofs@linux.kernel.org
+To: Chris Feist <cfeist@redhat.com>
+Cc: autofs@linux.kernel.org
 
-Ack, well I recompiled 2.4.27 without SNARE auditing patches and autofs
-appears to be working normally.
+On Wed, 20 Oct 2004, Chris Feist wrote:
 
-So this is without a doubt related to SNARE...
+> This patch maintains the same behavior as in previous versions of
+> rc.autofs.in.  In the past you could have the following in your
+> auto.master file and it would test to see if there was a local
+> /etc/auto.misc file, and if there was it would use it.
+> 
+> /misc auto.misc
+> 
+> Now, it doesn't check.  I've attached a patch that fixes this behavior
+> (I think debian does the same thing with their autofs patches as well).
 
-Going to compare the strace output under the "clean" kernel now...
-(hopefully the problem will be apparent).
+But this is a file map not a program map?
 
-Robert Giles
-ARL:UT
+Ian
