@@ -1,15 +1,13 @@
-From: Jeff Moyer <jmoyer@redhat.com>
+From: raven@themaw.net
 Subject: Re: backfstype patch.
-Date: Wed, 30 Jun 2004 09:51:25 -0400
+Date: Wed, 30 Jun 2004 22:00:41 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <16610.50525.858094.848839@segfault.boston.redhat.com>
+Message-ID: <Pine.LNX.4.58.0406302153150.1811@donald.themaw.net>
 References: <40E1CCC3.1010809@deragon.biz>
-	<40E2C0BA.3070605@sun.com>
-Reply-To: jmoyer@redhat.com
+	<16610.49006.880121.543138@segfault.boston.redhat.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <40E2C0BA.3070605@sun.com>
+In-Reply-To: <16610.49006.880121.543138@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,43 +17,38 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: Mike Waychison <Michael.Waychison@Sun.COM>
-Cc: autofs@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
-==> Regarding Re: [autofs] backfstype patch.; Mike Waychison <Michael.Waychison@Sun.COM> adds:
+On Wed, 30 Jun 2004, Jeff Moyer wrote:
 
-Michael.Waychison> -----BEGIN PGP SIGNED MESSAGE-----
-Hash> SHA1
+> >+		if (!strcmp(curfstype, "cachefs")) {
+> >+			/* cachefs not supported for Linux.  We do not even try because when
+> >+			   we try, mount will complain about the module being absent.  This is
+> >+			   not desired because if backfstype parameter is provided and works,
+> >+			   we sure do not want any error messages reported to syslog. */
+> >+			debug("cachefs not implemented under Linux and thus ignored.");
+> >+			continue;
+> >+		}
+> >+#endif
+> 
+> Don't need the ifdef.  Also, try to keep w/in 80 columns, please.
 
-Michael.Waychison> Hans Deragon wrote:
->> Greetings.
->> 
->> 
->> Attached, my patch for supporting backfstype.  If the OS is Linux and
->> cachefs is detected, this fs is ignored and no attempt is made to mount
->> a cachefs kernel module (none exist).  This way we avoid useless error
->> messages in syslog.
->> 
->> If mounting the fstype fails or is cachefs, backfstype is then tried.
->> 
->> It works fine under RHL 9.  Only one file was changed: parse_sun.c.  The
->> changes were made from the 4.1.3 branch.  Changes are very localized and
->> I believe they are safe (though code inspection is always desired).
->> 
->> Please confirm if my patch has been accepted.
->> 
+We know it's hard to keep within 80 cols. I constantly try to rearrange 
+code to try and achieve this.
 
-Michael.Waychison> Why do this in the parser when it can easily be done in
-Michael.Waychison> a mount module?
+> >+		if(!rv)
+> >+		{
+> >+			break;
+> >+		}
+> 
+> Keep to coding style:  { on same line as if.
 
-Care to expound a bit?  I'm not sure what people use backfstype for, but if
-it is generic, then you wouldn't want to handle every case in every mount
-module.  But I think I'm missing your point.
+The document in the kernel source is an excellent guide to what to try to 
+achieve coding standards.
 
-It makes some sense to me to handle this above the mount module, simply
-because you could call into two different modules.
+<kernel source dir>/Documentation/CodingStyle
 
-So, care to set me straight?  ;)
-
--Jeff
+Ian
