@@ -1,11 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Failure to find path that exists..
-Date: Thu, 18 Nov 2004 09:42:19 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0411180936260.10393@wombat.indigo.net.au>
-References: <200411171912.iAHJCDkY017634@miguelito.qualcomm.com>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: [RFT] Another round of testing for the map expiry changes
+Date: Thu, 18 Nov 2004 10:43:32 -0500
+Message-ID: <16796.49956.382698.186364@segfault.boston.redhat.com>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200411171912.iAHJCDkY017634@miguelito.qualcomm.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,62 +16,113 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: mmarion@qualcomm.com
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: autofs@linux.kernel.org
+Cc: cfeist@redhat.com, raven@themaw.net
 
-On Wed, 17 Nov 2004 mmarion@qualcomm.com wrote:
+Hello, all,
 
-> Running into a new problem lately, or at least more-so lately.  We use a
-> program map (shell script) to support our sun direct mount maps here.  It's
-> been working mostly as expected, but this new problem has cropped up, where a
-> user's job that is sent to a linux box via LSF, will fail to run due to it's
-> path failing to mount.
-> 
-> I found that watching the logs showed an entry like:
-> automount[32477]: lookup(program): lookup for lib failed 
-> in the syslogs (path was /iceng/lib so daemon on /iceng failed to find lib).
-> 
-> I turned on a bunch of verbose logging in the shell script to see if it was a
-> glitch there, but when the problem re-occured, there was no corroborating data
-> at all.  So it seems the daemon didn't even exec the shell script.  I was able
-> to turn on --debug on the automount daemon on a few hosts (this is happening
-> on our itanium hosts more then anywhere else right now, I think because of the
-> program running there and the less-used paths, I don't think the arch has any
-> effect).  The logs today show:
-> Nov 17 08:03:16 compute-ia64-san-005 automount[32470]: expired /iceng/lib/ram 
-> Nov 17 08:03:16 compute-ia64-san-005 automount[32081]: shut down, path =
-> /iceng/lib 
-> Nov 17 08:03:16 compute-ia64-san-005 automount[32477]: lookup(program): 
-lookup
-> for lib failed 
-> Nov 17 08:03:16 compute-ia64-san-005 automount[32477]: failed to recover from
-> partial expiry of /iceng/lib  
-> 
-> It looks to me like this might be a race condition where the path is being
-> expired at almost the exact time that a new request for the path comes in.  
-> 
-> I'm running autofs-4.1.2 on these hosts right now, but have upgraded to 4.1.3
-> with the bad_chdir, mtab_lock, non_block_ping and strict patches on one of
-> thes hosts.. and haven't seen the problem there again yet (but I also don't
-> know if the users have gotten new jobs on there since last night).
-> 
-> Has anyone seem similar issues, or know if one of the above patches for 4.1.3
-> might fix this?  I'm going ahead with upgrading to the same on all the hosts I
-> can anyway, but it's hard to get patches onto the ia64's (high demand for them
-> all the time) without solid proof that it'll help.
+It's been a while, as you can see from the changelog below.  I'd like to
+get more feedback on the map expiry changes Ian came up with.  I would also
+like feedback on the following:
 
-What kernel?
-Does it have the latest patch?
+- giant (>4k characters) program maps (they used to get truncated)
+- No regressions !  (this simply requires lots of people to make sure their
+  environments still work).
 
-The mount and expire is so heavily tied to the kernel it's essential to 
-consider that as well.
+RPMs can be found in the usual place:
+     http://people.redhat.com/~jmoyer/
 
-The other possiblity is that Jeff and Chris have submitted patches that 
-address a potential signal race which might help.
+So far, I've only built for fc-3.  If people would like to test on other
+distros, let me know which ones.  The kernel patch is required for the map
+expiry changes.  To make things easy for you, I've built an FC-3 kernel
+with this patch and posted it to the web page.  If you want to run this on
+an arch other than i686, let me know.  I've built the rpms, I just haven't
+uploaded them due to size.
 
-I'll have a look at the code tonight and send over the patch. But lets see 
-how your current setup goes for a while first.
+Any and all feedback is welcome.  Happy testing.
 
-Ian
+-Jeff
+
+
+* Wed Nov 17 2004  <jmoyer@redhat.com> - 1:4.1.3-55.1
+- re-enable map expiry patch
+- update ldap-search-limit patch to play nice with map expiry changes.
+- Multimounts broke with the expiry patch.  ian fixed.  (Ian Kent)
+
+* Tue Nov 16 2004 Jeff Moyer <jmoyer@redhat.com> - 1:4.1.3-55
+- Fix program maps so that they can have gt 4k characters. (Neil Horman)
+  Addresses bz #138994.
+- Add a space after the colon here "Starting automounter:" in init script.
+  Fixes bz #138513.
+
+* Mon Nov 15 2004 Jeff Moyer <jmoyer@redhat.com> - 1:4.1.3-53
+- Make autofs understand -[no]browse.  Addresses fz #113494.
+
+* Thu Nov 11 2004 Jeff Moyer <jmoyer@redhat.com> - 1:4.1.3-48
+- Fix the umount loop device function in the init script.
+
+* Wed Oct 27 2004 Chris Feist <cfeist@redhat.com> - 1:4.1.3-34
+- Added a patch to fix the automounter failing on ldap maps
+  when it couldn't get the whole map.  (ie. when the search
+  limit was lower than the number of results)
+
+* Thu Oct 21 2004 Chris Feist <cfeist@redhat.com> - 1:4.1.3-32
+- Fixed the use of +ypmapname so the maps included with +ypmapname
+  are used in the correct order.  (In the past the '+' entries
+  were always processed after local entries.)
+
+* Thu Oct 21 2004 Chris Feist <cfeist@redhat.com> - 1:4.1.3-31
+- Fixed the duplicate map detection code to detect if maps try
+  to mount on top of existing maps. 
+
+* Wed Oct 20 2004 Chris Feist <cfeist@redhat.com> - 1:4.1.3-29
+- Fixed a problem with backwards compatability. Specifying local
+  maps without '/etc/' prepended to them now works. (bz #136038)
+
+* Fri Oct 15 2004 Chris Feist <cfeist@redhat.com> - 1:4.1.3-28
+- Fixed a bug which caused directories to never be unmounted. (bz #134403)
+
+* Thu Oct 14 2004 Chris Feist <cfeist@redhat.com> - 1:4.1.3-27
+- Fixed an error in the init script which caused duplicate entries to be
+  displayed when asking for autofs status.
+
+* Fri Oct  1 2004 Jeff Moyer <jmoyer@redhat.com> - 1:4.1.3-22
+- Comment out map expiry (and related) patch for an FC3 build.
+
+* Thu Sep 23 2004 Jeff Moyer <jmoyer@redhat.com> - 1:4.1.3-21
+- Make local options apply to all maps in a multi-map entry.
+
+* Tue Sep 21 2004 Jeff Moyer <jmoyer@redhat.com> - 1:4.1.3-20
+- Merged my and Ian's socket leak fixes into one, smaller patch. Only
+  partially addresses bz #128966.
+- Fix some more echo lines for internationalization. bz #77820
+- Revert the only one auto.master patch until we implement the +auto_master
+  syntax.  Temporarily addresses bz #133055.
+
+* Thu Sep  2 2004 Jeff Moyer <jmoyer@redhat.com> - 1:4.1.3-18
+- Umount loopback filesystems under automount points when stopping the 
+  automounter.
+- Uncomment the map expiry patch.
+- change a close to an fclose in lookup_file.c
+
+* Tue Aug 31 2004 Jeff Moyer <jmoyer@redhat.com> - 1:4.1.3-17
+- Add patch to support parsing nsswitch.conf to determine map sources.
+- Disable this patch, and Ian's map expiry patch for a FC build.
+
+* Tue Aug 24 2004 Jeff Moyer <jmoyer@redhat.com> - 1:4.1.3-16
+- Version 3 of Ian's map expiry changes.
+
+* Wed Aug 18 2004 Jeff Moyer <jmoyer@redhat.com> - 1:4.1.3-15
+- Fix a socket leak in the rpc_subs, causing mounts to fail since we are 
+  running out of port space fairly quickly.
+
+* Wed Aug 18 2004 Jeff Moyer <jmoyer@redhat.com> - 1:4.1.3-14
+- New map expiry patch from Ian.
+- Fix a couple signal races.  No known problem reports of these, but they
+  are holes, none-the-less.
+
+* Tue Aug 10 2004 Jeff Moyer <jmoyer@redhat.com> - 1:4.1.3-13
+- Only read one auto.master map (instead of concatenating all found
+sources).
+- Uncomment Ian's experimental mount expiry patch.
