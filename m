@@ -1,15 +1,15 @@
 From: raven@themaw.net
 Subject: Re: automount doesn't reread file map, automount terminates
  on empty file map
-Date: Mon, 20 Dec 2004 23:27:24 +0800 (WST)
-Message-ID: <Pine.LNX.4.61.0412202320040.8019@donald.themaw.net>
+Date: Mon, 20 Dec 2004 23:32:19 +0800 (WST)
+Message-ID: <Pine.LNX.4.61.0412202328550.8019@donald.themaw.net>
 References: <1102796222l.6265l.2l@mercury>
 	<Pine.LNX.4.58.0412151807070.30726@wombat.indigo.net.au>
 	<Pine.LNX.4.58.0412161052250.20186@wombat.indigo.net.au>
-	<20041216131949.GA15605@mercury.jahnsnet.de>
+	<Pine.LNX.4.61.0412202320040.8019@donald.themaw.net>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20041216131949.GA15605@mercury.jahnsnet.de>
+In-Reply-To: <Pine.LNX.4.61.0412202320040.8019@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -25,32 +25,55 @@ Content-Transfer-Encoding: 7bit
 To: Thomas Jahns <Thomas.Jahns@gmx.net>
 Cc: autofs@linux.kernel.org
 
-On Thu, 16 Dec 2004, Thomas Jahns wrote:
+On Mon, 20 Dec 2004 raven@themaw.net wrote:
 
-> Hi again,
+> On Thu, 16 Dec 2004, Thomas Jahns wrote:
 >
-> On 12/16/04 04:00:33, Ian Kent wrote:
->> A further difficulty with this is that to fix this problem a small
->> kernel patch was needed. But what kernel are you using (ie. are the 
->> latest kernel updates included in it)?
+>> Hi again,
+>> 
+>> On 12/16/04 04:00:33, Ian Kent wrote:
+>>> A further difficulty with this is that to fix this problem a small
+>>> kernel patch was needed. But what kernel are you using (ie. are the 
+>>> latest kernel updates included in it)?
+>> 
+>> I'm currently running a kernel compiled from debian kernel- 
+>> source-2.6.9_2.6.9-2 package.
 >
-> I'm currently running a kernel compiled from debian kernel- 
-> source-2.6.9_2.6.9-2 package.
+> I'm not good with Debian packages but I had a go at applying the map update 
+> patch to the source deb.
+>
+> I've placed the source deb package files in
+> http://www.kernel.org/pub/linux/kernel/people/raven/deb
+> if your interested.
+>
+> I had to back out an LDAP entries limit patch as the map update patch changes 
+> the LDAP lookup module. If that's not a problem for you try it out.
+>
+> I haven't tested this at all except to build a deb from it on my system. The 
+> patch itself has been tested previously.
+>
+> The kernel patch that is needed for it to function properly is there also.
 
-I'm not good with Debian packages but I had a go at applying the map 
-update patch to the source deb.
+btw kernel.org signes and creates bz2s so you need
 
-I've placed the source deb package files in
-http://www.kernel.org/pub/linux/kernel/people/raven/deb
-if your interested.
+autofs-4.1.3-7.dsc
+autofs-4.1.3-7.diff.gz
+autofs-4.1.3-7.orig.tar.gz
 
-I had to back out an LDAP entries limit patch as the map update patch 
-changes the LDAP lookup module. If that's not a problem for you try it 
-out.
+and
 
-I haven't tested this at all except to build a deb from it on my system. 
-The patch itself has been tested previously.
+linux-2.6.7-autofs4-lookup.patch
 
-The kernel patch that is needed for it to function properly is there also.
+only for this.
 
-Ian
+>
+> Ian
+>
+>
+>
+
+--
+    ,-._|\    Ian Kent
+   /      \   Perth, Western Australia
+   *_.--._/   E-mail: raven@themaw.net
+         v    Web: http://themaw.net/
