@@ -1,10 +1,12 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: get_best_mounts fixes.
-Date: Mon, 14 Feb 2005 09:03:23 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0502140848520.25578@wombat.indigo.net.au>
-References: <4203B1C3.30303@redhat.com>
+Subject: Re: [PATCH 0/5] rediffed patches
+Date: Mon, 14 Feb 2005 09:10:27 +0800 (WST)
+Message-ID: <Pine.LNX.4.58.0502140905170.25578@wombat.indigo.net.au>
+References: <200502111155.33706.vda@port.imtp.ilyichevsk.odessa.ua>
+	<Pine.LNX.4.61.0502132122240.1843@donald.themaw.net>
+	<20050213134232.GA22574@uio.no>
 Mime-Version: 1.0
-In-Reply-To: <4203B1C3.30303@redhat.com>
+In-Reply-To: <20050213134232.GA22574@uio.no>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,30 +19,28 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Chris Feist <cfeist@redhat.com>
+To: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
 Cc: autofs@linux.kernel.org
 
-On Fri, 4 Feb 2005, Chris Feist wrote:
+On Sun, 13 Feb 2005, Steinar H. Gunderson wrote:
 
-> I'm working on a patch to get the get_best_mounts function (in 
-> modules/mount_nfs.c) work a little better and handle a few end cases.
+> On Sun, Feb 13, 2005 at 09:25:29PM +0800, raven@themaw.net wrote:
+> > My Ultra SPARC doesn't like the logging patches much.
+> > Managed to carsh automount in a flash.
 > 
-> What was the skiplocal variable intended to do?
-> 
-> It seems that if it is not 0, the only thing that get_best_mount does is 
-> check and see if the 'what' string is null & if it isn't return 0.  And 
-> the only time the get_best_mounts function is called with skiplocal set 
-> to 1. is when it is calling itself when all the hosts have not responded 
-> within 100ms.
-> 
-> Is it reasonable to completely remove this variable?
-> 
+> Could we please postpone these patches for 4.1.5? I'd like as few things as
+> possible to break for 4.1.4, at least, since that's probably the version
+> we'll be using in Debian sarge.
 
-Looking at the routine I've made a bit of a mess.
-I doesn't do quite what I thought I made it do. Never mind.
+Yes. That would be good policy anyway.
 
-I don't think that skiplocal should be removed as it should determine 
-whether a check to see if the host is equivalent to localhost is done.
+We've had a lot of changes in circulation for a while now, with the beta.
 
-I'm still trying to decide, but I think that the skiplocal test in the 
-early part of get_best_mount should be removed.
+To add the uncertainty of several more patches would be a mistake at this 
+stage.
+
+4.1.5 it is.
+
+Sorry Denis.
+
+Ian
