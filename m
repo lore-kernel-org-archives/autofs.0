@@ -1,8 +1,8 @@
 From: ramana <ramana@intraperson.com>
 Subject: Re: exporting autofs managed directory using NFS
-Date: Fri, 25 Jun 2004 06:56:55 +0530
+Date: Fri, 25 Jun 2004 06:45:54 +0530
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <40DB7F5F.5070500@intraperson.com>
+Message-ID: <40DB7CCA.3020702@intraperson.com>
 References: <40DADD60.5090201@intraperson.com>
 	<16603.10543.236802.870131@segfault.boston.redhat.com>
 Mime-Version: 1.0
