@@ -1,13 +1,15 @@
-From: Jason L Tibbitts III <tibbs@math.uh.edu>
+From: Jeff Moyer <jmoyer@redhat.com>
 Subject: Re: RFT: new autofs test package with map expiry changes
-Date: Thu, 05 Aug 2004 22:46:40 -0500
+Date: Fri, 6 Aug 2004 08:41:05 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <ufa3c310vz3.fsf@epithumia.math.uh.edu>
+Message-ID: <16659.31841.663187.637400@segfault.boston.redhat.com>
 References: <16658.38020.371365.856850@segfault.boston.redhat.com>
+	<ufa3c310vz3.fsf@epithumia.math.uh.edu>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <16658.38020.371365.856850@segfault.boston.redhat.com> (Jeff
- Moyer's message of "Thu, 5 Aug 2004 16:11:48 -0400")
+In-Reply-To: <ufa3c310vz3.fsf@epithumia.math.uh.edu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,16 +20,24 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: autofs@linux.kernel.org
+To: Jason L Tibbitts III <tibbs@math.uh.edu>
+Cc: autofs@linux.kernel.org
 
->>>>> "JM" == Jeff Moyer <jmoyer@redhat.com> writes:
+==> Regarding Re: [autofs] RFT: new autofs test package with map expiry changes; Jason L Tibbitts III <tibbs@math.uh.edu> adds:
 
+>>>>>> "JM" == Jeff Moyer <jmoyer@redhat.com> writes:
 JM> I also posted a kernel patch against 2.6.7, which is _required_.
 JM> autofs-4.1.3-11 is the version with these changes.
 
-Not to be overly dense, but is there any way to test this under FC2?
-I need map expiry and I'm happy to test, but I haven't found the time
-to bring up FC3t1 yet.
+tibbs> Not to be overly dense, but is there any way to test this under FC2?
+tibbs> I need map expiry and I'm happy to test, but I haven't found the time
+tibbs> to bring up FC3t1 yet.
 
- - J<
+The kernel patch should apply to an fc2 kernel, as well.  The userland
+utilities should also install fine.  If not, you can rebuild the SRPM for
+fc2.  If you need further help in doing either of these things, feel free
+to contact me off-list.
+
+Thanks!
+
+Jeff
