@@ -1,12 +1,14 @@
-From: Jon Niehof <jon_niehof@yahoo.com>
-Subject: RE: Trapping eject button on CD-ROM
-Date: Sun, 14 Mar 2004 19:56:41 -0800 (PST)
+From: Robin Rosenberg <robin.rosenberg.lists@dewire.com>
+Subject: Re: Trapping eject button on CD-ROM
+Date: Mon, 15 Mar 2004 11:24:37 +0100
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <20040315035641.22976.qmail@web20501.mail.yahoo.com>
-References: <4827392DDA3F414D80608255823E18910F768A@permls01.wde.woodside.com.au>
+Message-ID: <200403151124.38057.robin.rosenberg.lists@dewire.com>
+References: <20040315035641.22976.qmail@web20501.mail.yahoo.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4827392DDA3F414D80608255823E18910F768A@permls01.wde.woodside.com.au>
+In-Reply-To: <20040315035641.22976.qmail@web20501.mail.yahoo.com>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,17 +19,22 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: "Kent, Ian I." <IAN.KENT@woodside.com.au>, autofs@linux.kernel.org
+To: autofs@linux.kernel.org
+Cc: "Kent, Ian I." <IAN.KENT@woodside.com.au>
 
-> Maybe what you need is supermount.
-> 
-> Google search should turn up something.
-Perfect. Thank you; that does exactly what I want for
-my removables and autofs handles the rarely-used
-partitions fine. Perfect all around.
+On Monday 15 March 2004 04:56, Jon Niehof wrote:
+> > Maybe what you need is supermount.
+> >
+> > Google search should turn up something.
+>
+> Perfect. Thank you; that does exactly what I want for
+> my removables and autofs handles the rarely-used
+> partitions fine. Perfect all around.
 
-__________________________________
-Do you Yahoo!?
-Yahoo! Mail - More reliable, more storage, less spam
-http://mail.yahoo.com
+Agree, automoun is fine. A short timeout for CD's work fine. Set the timeout 
+to 15 seconds. Shorter is bad if you tend to use GUI's that don't hold a lock 
+on the CD, as the CD will often be unounted/remounted (=slow) inbetween the 
+clicks. and all you have to do is wait a few seconds before the disk is 
+ejected. If it doesn't come out someone is using it.
+
+-- robin
