@@ -1,13 +1,18 @@
-From: devnull@adc.idt.com
-Subject: Re: autofs and 2.6.x
-Date: Mon, 10 May 2004 09:49:02 -0400 (EDT)
+From: Joseph Mack NA3T <jmack@wm7d.net>
+Subject: Re: automount doesn't expire nested nfs mounts for certain
+ kernel configs
+Date: Mon, 10 May 2004 07:17:38 -0700 (PDT)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.44.0405100948310.23174-100000@who.adc.idt.com>
-References: <Pine.LNX.4.58.0405100936500.14861@wombat.indigo.net.au>
-Reply-To: devnull@adc.idt.com
+Message-ID: <Pine.LNX.4.58.0405100716530.14789@www.wm7d.net>
+References: <409E4AB5.6A3CCEB1@wm7d.net>
+	<Pine.LNX.4.58.0405100913350.14283@wombat.indigo.net.au>
+	<Pine.LNX.4.58.0405100504440.7687@www.wm7d.net>
+	<Pine.LNX.4.58.0405102051180.19425@donald.themaw.net>
+	<Pine.LNX.4.58.0405100605110.10734@www.wm7d.net>
+	<Pine.LNX.4.58.0405102123390.19425@donald.themaw.net>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0405100936500.14861@wombat.indigo.net.au>
+In-Reply-To: <Pine.LNX.4.58.0405102123390.19425@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,15 +24,20 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ian Kent <raven@themaw.net>
-Cc: AutoFS on Linux Kernel <autofs@linux.kernel.org>
+To: raven@themaw.net
+Cc: autofs@linux.kernel.org
 
-> Had a look at this. This is due to the ioctl 32 bit emulation layer not 
-> being told yet about the added ioctls in the latest autofs4.
-> 
-> This is also true on 2.4 and 64 bit archs.
-> 
-> If I make a patch can you test it for me on your arch. I can only test on 
-Most definitely. 
+On Mon, 10 May 2004 raven@themaw.net wrote:
 
-Thanks for your help!!
+> You might like to apply the 4.1.2 patches at the same location you got the
+> tar.
+
+are the 2.4.22 patches OK if I'm using 2.4.26?
+
+Joe
+
+-- 
+Joseph Mack NA3T EME(B,D), FM05lw North Carolina
+jmack (at) wm7d (dot) net - azimuthal equidistant map
+generator at http://www.wm7d.net/azproj.shtml
+Homepage http://www.austintek.com/ It's GNU/Linux!
