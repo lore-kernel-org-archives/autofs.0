@@ -1,10 +1,11 @@
-From: mmarion@qualcomm.com
+From: Mike Marion <mmarion@qualcomm.com>
 Subject: Re: Program map and submount problem
-Date: Fri, 23 Jan 2004 12:38:09 -0800 (PST)
+Date: Fri, 23 Jan 2004 13:20:24 -0800
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <200401232038.i0NKc9pK019108@miguelito.qualcomm.com>
+Message-ID: <F573AEE6-4DE9-11D8-9249-000A95A011F0@qualcomm.com>
 References: <Pine.LNX.4.44.0401232049020.4706-100000@raven.themaw.net>
-Mime-Version: 1.0
+Mime-Version: 1.0 (Apple Message framework v609)
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 In-Reply-To: <Pine.LNX.4.44.0401232049020.4706-100000@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
@@ -16,51 +17,142 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: raven@themaw.net
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: autofs@linux.kernel.org
 
-On 23 Jan, Ian Kent wrote:
+On Jan 23, 2004, at 12:38 PM, mmarion@qualcomm.com wrote:
 
-Hmm... for some reason I got 28 copies of this msg.. odd.
+> The -Dpref= option is a leftover from the original autofsv3 script, I
+> believe.  I'm trying a test without that to see if it makes any
+> difference but I doubt it.  Also going to strace the daemon on the
+> submount point to see what it does before quitting.
 
-> On Fri, 23 Jan 2004, Mike Marion wrote:
+Ok, I did a strace of the dameons on
+/usr/local/projects/some/automount and ./submount
+It appears that the daemon on .../submount does, in fact, try to umount 
+itself after the NFS mounts are expired, without checking to see if 
+it's path is busy, and when the umount fails, it simply tries to do an 
+rmdir and then exits, even though this bit of code in automount.c seems 
+to indicate that if umount fails it should stay runnnig:
 
->> Jan 22 23:49:23 linux-glab-1 automount[2171]: shut down, path = 
->> /usr/local/projects/some/automount/submount
->> Jan 22 23:49:23 linux-glab-1 automount[2171]: failed to remove dir 
->> /usr/local/projects/some/automount/submount: Device or resource busy
-> 
-> What does auto.projects.sh issue when executed in this context.
+~line 562:
+                        case ST_PRUNE:
+                                 /* If we're a submount and we've just
+                                    pruned or expired everything away,
+                                    try to shut down */
+                                 if (submount && success && ap.state != 
+ST_SHUTDOWN) {
+                                         next = ST_SHUTDOWN_PENDING;
+                                         break;
+                                 }
+                                 /* FALLTHROUGH */
 
-Not sure what you mean.  Do you mean what options did it startup the submount
-with when it mounted to the /usr/local/projects/some/automount/submount point?
-If so:
-/usr/sbin/automount --submount /usr/local/projects/some/automount/submount program /etc/auto.projects.sh 60 -Dpref=
+                         case ST_READY:
+                                 next = ST_READY;
+                                 break;
 
-The -Dpref= option is a leftover from the original autofsv3 script, I
-believe.  I'm trying a test without that to see if it makes any
-difference but I doubt it.  Also going to strace the daemon on the
-submount point to see what it does before quitting.
+                         case ST_SHUTDOWN_PENDING:
+                                 next = ST_SHUTDOWN;
 
-> What mounts work fine. 
+[This doesn't appear to be happening, even though umount fails]
+                           /* Failed shutdown returns to ready */
+                                 if (!success) {
+                                         syslog(LOG_WARNING,
+                                                "shutdown failed: 
+filesystem %s still busy",
+                                                ap.path);
+                                         alarm(ap.exp_runfreq);
+                                         next = ST_READY;
+                                 }
+                                 break;
 
-I meant that before the problem occurs, I can do something like:
-$ cd /usr/local/projects/some/automount/submount
-$ ls -l bin lib
-and see the contents of bin and lib, which are NFS mountpoints off of that
-path.  After those points (bin and lib) expire, automount tries to expire the
-submount point, and that's when the problem occurs.  The problem appears to be 
-the automount daemon for /usr/local/projects/some/automount/submount will exit,
-even though the path is still busy.  This causes the umount of the path
-(.../some/automount/submount) to fail, which then makes that path (and any NFS 
-mounts below it) inaccessible.
+====
 
-The log messages make it appear that the automount daemon on
-/usr/local/projects/some/automount/submount is trying to umount itself without
-bothering to see if it's a busy path or not.  It seems to assume that since
-there are no submounts (either autofs or NFS) below it, that it's not busy.
+This subroutine appears to be called, even though the submount wasn't 
+umounted, since it's where the log entry
+Jan 23 12:46:22 linux-glab-1 automount[31939]: failed to remove dir 
+/usr/local/projects/some/automount/submount: Device or resource busy
+seems to be coming from:
+
+static void cleanup_exit(const char *path, int exit_code)
+{
+         if (ap.lookup)
+                 close_lookup(ap.lookup);
+
+         if (pid_file)
+                 unlink(pid_file);
+
+         closelog();
+
+         if ((!ap.ghost || !submount) && *(path + 1) != '-')
+                 if (rmdir(path) == -1)
+                         syslog(LOG_WARNING, "failed to remove dir %s: 
+%m", path);
+
+         exit(exit_code);
+}
+
+====
+
+here's strace at important part btw:
+
+2987  oldumount("/usr/local/projects/some/automount/submount") = -1 
+EBUSY (Device or resource busy)
+2987  lstat64("/etc/mtab", {st_mode=S_IFREG|0644, st_size=1007, ...}) = 
+0
+2987  open("/etc/mtab", O_RDWR|O_CREAT|O_LARGEFILE, 0644) = 3
+2987  close(3)                          = 0
+2987  write(2, "umount: /usr/local/projects/some/"..., 63) = 63
+31939 <... read resumed> "umount: /usr/local/projects/some/"..., 2047) 
+= 63
+2987  _exit(1)                          = ?
+31939 time([1074890782])                = 1074890782
+31939 getpid()                          = 31939
+31939 rt_sigaction(SIGPIPE, {0x420e46d0, [], 0x4000000}, {0x804a318, 
+[HUP USR1 USR2 ALRM TERM], SA_RESTART|SA_ONESHOT|0x4000000}, 8) = 0
+31939 send(3, "<31>Jan 23 12:46:22 automount[31"..., 103, 0) = 103
+31939 rt_sigaction(SIGPIPE, {0x804a318, [HUP USR1 USR2 ALRM TERM], 
+SA_RESTART|SA_ONESHOT|0x4000000}, NULL, 8) = 0
+31939 read(4, "", 2047)                 = 0
+31939 close(4)                          = 0
+31939 wait4(2987, [WIFEXITED(s) && WEXITSTATUS(s) == 1], 0, NULL) = 2987
+31939 rt_sigprocmask(SIG_SETMASK, [HUP USR1 USR2 ALRM TERM], NULL, 8) = 
+0
+31939 --- SIGCHLD (Child exited) ---
+31939 wait4(-1, 0xbfffeaec, WNOHANG, NULL) = -1 ECHILD (No child 
+processes)
+31939 sigreturn()                       = ? (mask now [HUP USR1 USR2 
+ALRM TERM])
+31939 unlink("/var/lock/autofs")        = 0
+31939 stat64("/usr/local/projects/some/automount/submount", 
+{st_mode=S_IFDIR|0755, st_size=0, ...}) = 0
+31939 time([1074890782])                = 1074890782
+31939 getpid()                          = 31939
+31939 rt_sigaction(SIGPIPE, {0x420e46d0, [], 0x4000000}, {0x804a318, 
+[HUP USR1 USR2 ALRM TERM], SA_RESTART|SA_ONESHOT|0x4000000}, 8) = 0
+31939 send(3, "<27>Jan 23 12:46:22 automount[31"..., 91, 0) = 91
+31939 rt_sigaction(SIGPIPE, {0x804a318, [HUP USR1 USR2 ALRM TERM], 
+SA_RESTART|SA_ONESHOT|0x4000000}, NULL, 8) = 0
+31939 time([1074890782])                = 1074890782
+31939 getpid()                          = 31939
+31939 rt_sigaction(SIGPIPE, {0x420e46d0, [], 0x4000000}, {0x804a318, 
+[HUP USR1 USR2 ALRM TERM], SA_RESTART|SA_ONESHOT|0x4000000}, 8) = 0
+31939 send(3, "<30>Jan 23 12:46:22 automount[31"..., 94, 0) = 94
+31939 rt_sigaction(SIGPIPE, {0x804a318, [HUP USR1 USR2 ALRM TERM], 
+SA_RESTART|SA_ONESHOT|0x4000000}, NULL, 8) = 0
+31939 munmap(0x4001b000, 14688)         = 0
+31939 munmap(0x40017000, 14024)         = 0
+31939 munmap(0x40014000, 9340)          = 0
+31939 close(3)                          = 0
+31939 rmdir("/usr/local/projects/some/automount/submount") = -1 EBUSY 
+(Device or resource busy)
+31939 time([1074890782])                = 1074890782
+
+
 
 -- 
 Mike Marion-Unix SysAdmin/Staff Engineer-http://www.qualcomm.com
+Drew: "Violence doesn't solve anything? World War I. World War II. Star 
+Wars.
+every Super Bowl. Who says violence doesn't solve anything?!" ==> Drew 
+Cary Show
