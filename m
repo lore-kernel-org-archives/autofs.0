@@ -1,12 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs Bug ?
-Date: Thu, 25 Mar 2004 09:11:05 +0800 (WST)
+Subject: Re: Help with ldap + autofs please
+Date: Thu, 25 Mar 2004 20:42:37 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0403250901500.10492@wombat.indigo.net.au>
-References: <200403241149.i2OBnmM05081@NGEW05.math.tu-dresden.de>
+Message-ID: <Pine.LNX.4.58.0403252037070.4796@raven.themaw.net>
+References: <200403181118.34039.ndbecker2@verizon.net>
 Mime-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200403241149.i2OBnmM05081@NGEW05.math.tu-dresden.de>
+In-Reply-To: <200403181118.34039.ndbecker2@verizon.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,27 +17,45 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Roland Pfretzschner <pfr@math.tu-dresden.de>
+Content-Type: TEXT/PLAIN; charset="utf-8"
+To: Neal Becker <ndbecker2@verizon.net>
 Cc: autofs@linux.kernel.org
 
-On Wed, 24 Mar 2004, Roland Pfretzschner wrote:
+On Thu, 18 Mar 2004, Neal Becker wrote:
 
-> Hi there,
-> 
-> I have installed autofs-4.1.0-1 on a Fedora Core 1 System with
-> Kernel 2.4.22-1.2174.nptlsmp
-> 
-> Often the System crashes, when an USR2 Signal is sent
-> to an automount process.
-> This happens under the following conditions:
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+>=20
+> Can anyone help me with migrating autofs to ldap?
 
-What do you mean by "crashes", hangs or reboots or dumps a trace to the 
-log?
+Think so. Ive checked the Fedora package out and ...
+>=20
+> To test, I added this line to /etc/auto.master:
+>=20
+> /test=C2=A0=C2=A0=C2=A0ldap:rpppc1.md.hns.com:ou=3Dauto.test,dc=3Dadg,d=
+c=3Dhns,dc=3Dcom=C2=A0
 
-Can you do a sys-req dump when this happens?
+I see Jeff has added a patch to handle this syntax.
+I like it, I'm going to add it to 4.1.2.
 
-Send it to the list if you can.
+But
+
+/test	ldap://rpppc1.md.hns.com/ou=3Dauto.test,dc=3Dadg,dc=3Dhns,dc=3Dcom
+				 ^^
+should also work. However there seems to be an inconsistency with the dn
+
+>=20
+> Here is the corresponding ldif:
+> dn: nisMapName=3Dauto.test,dc=3Dadg,dc=3Dhns,dc=3Dcom
+here  ^^^^^^^^^^
+
+So
+
+/test	ldap:rpppc1.md.hns.com:nisMapName=3Dauto.test,dc=3Dadg,dc=3Dhns,dc=3D=
+com
+
+should work.
+
+Let me know how you go with this.
 
 Ian
