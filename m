@@ -1,12 +1,14 @@
-From: raven@themaw.net
-Subject: Re[3]: [NFS] nfs or autofs related hangs
-Date: Tue, 10 Feb 2004 00:13:30 +0800 (WST)
+From: =?koi8-r?Q?=22?=Peter Lojkin=?koi8-r?Q?=22=20?=<ia6432@inbox.ru>
+Subject: nfs or autofs related hangs (additional info)
+Date: Wed, 11 Feb 2004 18:28:52 +0300
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0402100010260.1818@raven.themaw.net>
-References: <E1AqDZO-000G5Z-00.ia6432-inbox-ru@f22.mail.ru>
+Message-ID: <E1AqwIG-000LZu-00.ia6432-inbox-ru@f21.mail.ru>
+References: <Pine.LNX.4.58.0402050849290.1536@wombat.indigo.net.au>
+Reply-To: =?koi8-r?Q?=22?=Peter Lojkin=?koi8-r?Q?=22=20?= <ia6432@inbox.ru>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <E1AqDZO-000G5Z-00.ia6432-inbox-ru@f22.mail.ru>
+In-Reply-To: <Pine.LNX.4.58.0402050849290.1536@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,30 +18,22 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: =?koi8-r?Q?=22?=Peter Lojkin=?koi8-r?Q?=22=20?= <ia6432@inbox.ru>
-Cc: =?koi8-r?Q?=22?=autofs mailing list=?koi8-r?Q?=22=20?= <autofs@linux.kernel.org>, nfs@lists.sourceforge.net, =?koi8-r?Q?=22?=Kernel Mailing List=?koi8-r?Q?=22=20?= <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: =?koi8-r?Q?=22?=Ian Kent=?koi8-r?Q?=22=20?= <raven@themaw.net>
+Cc: autofs@linux.kernel.org, nfs@lists.sourceforge.net
 
-On Mon, 9 Feb 2004, [koi8-r] "Peter Lojkin[koi8-r] "  wrote:
+On Thu, 5 Feb 2004 at 08:58:43 +0800 Ian Kent wrote:
 
-> On Mon, 9 Feb 2004 at 23:21:12 +0800 Ian Kent wrote:
-> 
-> > > > Could you try this patch please.
-> > > ok, i'll test it and let you know.
-> > > but it may take up to several days or week...
-> > 
-> > No problem.
-> > 
-> > The patch is against my 20031201 autofs4.
-> > If you wish to test against a vanila kernel I'll need to revise it.
-> i'll test this patch with our 2.4.23aa1 + autofs4-20031201 and
-> 2.4.25-rc1 + autofs4-20031201 (should it work?)...
-> 
+> > there're no oopses or any error messages prior to
+> > hang. we have no such problem with 2.4.20aa kernels
+> > but on newer servers we can't go below 2.4.22 because
+> > of hardware compatibility.
+>
+> And this doesn't happen with manually mounted/umounted filesystems?
 
-Think so.
-
-I haven't looked at the aa patches or 2.4.25. I'm not aware of any changes 
-to autofs4 but I've not been paying much attention to the 2.4 series.
-
-Let me know if there is a problem.
+we just had 2 more hangs (autofs wait queue fix wasn't applied there yet)
+and i've tried mounting nfs to directory not controlled by autofs. i was
+able to mount nfs shares and read from them but _umount_ hung. so after
+all it looks like not autofs related. it is possible that
+unlink/truncate-umount race descussed recently in nfs mailing list is
+the cause?
