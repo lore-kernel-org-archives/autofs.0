@@ -1,15 +1,12 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Looking for infor on executable map format
-Date: Tue, 30 Mar 2004 09:05:47 +0800 (WST)
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: direct map documentation
+Date: Tue, 30 Mar 2004 13:01:53 -0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0403300903490.6000@wombat.indigo.net.au>
-References: <200403261040.08085.krienke@uni-koblenz.de>
-	<Pine.LNX.4.58.0403291450290.18783@wombat.indigo.net.au>
-	<Pine.LNX.4.58.0403291822090.26549@raven.themaw.net>
-	<Pine.LNX.4.53.0403291129590.3206@fafnir.cft.ca.us>
+Message-ID: <16489.46609.75114.782585@segfault.boston.redhat.com>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.53.0403291129590.3206@fafnir.cft.ca.us>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,41 +16,25 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Jim Carter <jimc@math.ucla.edu>
-Cc: autofs@linux.kernel.org, Jim Carter <jimc@krienke.org>
+Content-Type: text/plain; charset="us-ascii"
+To: autofs@linux.kernel.org
 
-On Mon, 29 Mar 2004, Jim Carter wrote:
+Hello,
 
-> > On Mon, 29 Mar 2004, Rainer Krienke wrote:
-> 
-> > > This outputs eg something like
-> > >
-> > > -fstype=nfs,hard,intr,nodev,nosuid,nonstrict,rsize=8192,wsize=8192 \
-> > >         /export/user serverhost:/export/user
-> > > 	.....
-> > >
-> > > So there are options, a qouted newline and then the map entry without
-> > > the key.
-> 
-> Hmmm, the daemon code that handles executable maps likes to see
->     [-mount-options] [mapkey] mapreferent
-> ([] indicating optional), whereas the file map handler wants
->     mapkey [-mount-options] mapreferent
-> It's rather surprising that the mapkey is legal in the middle position -- I
-> would expect it to always be in the same place and to never be optioal -- I
-> can understand that it's mandatory in a file map, and if it were forbidden
-> in an executable map, but optional?
+Here is a small clarification on the direct map functionality.  Users
+assume that direct maps will operate exactly as they do on Solaris.
+Unfortunately, this isn't true.  Hopefully this little blurb could save
+some time, both for users and the list.  Comments welcome.
 
-Umm. I'm going to have to check that. Seems to me that an executable map 
-should be expected to emit the same map format as other maps.
+-Jeff
 
-> 
-> In any case, a comment in the man page (even if not representing the
-> parser's complete range of behavior bug for bug :-) would be helpful for
-> people writing executable maps.  Answering Reiner's first question, I said,
-
-Yep.
-
-Ian
+--- autofs-4.1.1/README.direct.orig	2004-03-30 12:58:21.000000000 -0500
++++ autofs-4.1.1/README.direct	2004-03-30 12:58:00.000000000 -0500
+@@ -33,3 +33,7 @@
+ WARNING: don't mount one direct mount within another. This does
+   not work properly at the moment.
+ 
++NOTE: Due to current design limitations, direct maps will take over an
++  entire directory hierarchy.  What this means is, if your direct map key
++  is /usr/share/bilbo, then /usr will become an automount mount point,
++  mounting over the existing /usr.
