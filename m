@@ -1,12 +1,10 @@
-From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
-Subject: Re: [PATCH 0/5] rediffed patches
-Date: Sun, 13 Feb 2005 14:42:32 +0100
-Message-ID: <20050213134232.GA22574@uio.no>
-References: <200502111155.33706.vda@port.imtp.ilyichevsk.odessa.ua>
-	<Pine.LNX.4.61.0502132122240.1843@donald.themaw.net>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: get_best_mounts fixes.
+Date: Mon, 14 Feb 2005 09:03:23 +0800 (WST)
+Message-ID: <Pine.LNX.4.58.0502140848520.25578@wombat.indigo.net.au>
+References: <4203B1C3.30303@redhat.com>
 Mime-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.61.0502132122240.1843@donald.themaw.net>
+In-Reply-To: <4203B1C3.30303@redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,18 +15,32 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: autofs@linux.kernel.org
+To: Chris Feist <cfeist@redhat.com>
+Cc: autofs@linux.kernel.org
 
-On Sun, Feb 13, 2005 at 09:25:29PM +0800, raven@themaw.net wrote:
-> My Ultra SPARC doesn't like the logging patches much.
-> Managed to carsh automount in a flash.
+On Fri, 4 Feb 2005, Chris Feist wrote:
 
-Could we please postpone these patches for 4.1.5? I'd like as few things as
-possible to break for 4.1.4, at least, since that's probably the version
-we'll be using in Debian sarge.
+> I'm working on a patch to get the get_best_mounts function (in 
+> modules/mount_nfs.c) work a little better and handle a few end cases.
+> 
+> What was the skiplocal variable intended to do?
+> 
+> It seems that if it is not 0, the only thing that get_best_mount does is 
+> check and see if the 'what' string is null & if it isn't return 0.  And 
+> the only time the get_best_mounts function is called with skiplocal set 
+> to 1. is when it is calling itself when all the hosts have not responded 
+> within 100ms.
+> 
+> Is it reasonable to completely remove this variable?
+> 
 
-/* Steinar */
--- 
-Homepage: http://www.sesse.net/
+Looking at the routine I've made a bit of a mess.
+I doesn't do quite what I thought I made it do. Never mind.
+
+I don't think that skiplocal should be removed as it should determine 
+whether a check to see if the host is equivalent to localhost is done.
+
+I'm still trying to decide, but I think that the skiplocal test in the 
+early part of get_best_mount should be removed.
