@@ -1,15 +1,20 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: Status of >800 mounts
-Date: Fri, 7 May 2004 09:13:27 -0400
+From: Mike Waychison <Michael.Waychison@Sun.COM>
+Subject: Re: Please help - cleanup
+Date: Fri, 07 May 2004 11:13:35 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <16539.35703.175832.70086@segfault.boston.redhat.com>
-References: <409A7A7C.2000109@sedona.intel.com>
-	<20040506185528.GA5149@crashy.west.sun.com>
-Reply-To: jmoyer@redhat.com
+Message-ID: <409BA79F.3060509@sun.com>
+References: <Pine.LNX.4.58.0405022201480.25614@donald.themaw.net>
+ <Pine.LNX.4.58.0405042233560.17014@donald.themaw.net>
+ <16535.44980.475389.900686@segfault.boston.redhat.com>
+ <Pine.LNX.4.58.0405042308070.17014@donald.themaw.net>
+ <16537.26586.135188.997029@segfault.boston.redhat.com>
+ <409A4C04.1060604@freescale.com> <1083858912.5890.411.camel@d158140025182>
+ <409A6220.80403@freescale.com>
+ <16538.36268.355222.321710@segfault.boston.redhat.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20040506185528.GA5149@crashy.west.sun.com>
+In-reply-to: <16538.36268.355222.321710@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,31 +25,56 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: Stew Smith <stew.smith@sun.com>
-Cc: autofs@linux.kernel.org
+To: jmoyer@redhat.com
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
-==> Regarding Re: [autofs] Status of >800 mounts; Stew Smith <stew.smith@sun.com> adds:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-stew.smith> On Thu, May 06, 2004 at 10:48:44AM -0700, Michael Blandford
-stew.smith> wrote:
->> Hello,
->> 
->> What is the current status of having more than 800 nfs mounts ( on 2.4
->> and 2.6 )?
->> 
->> I had heard there might be a patch to use one port per server instead of
->> per mount.
->> 
+Jeff Moyer wrote:
+> ==> Regarding Re: [autofs] Please help - cleanup; Tom Georgoulias
+<tom.georgoulias@freescale.com> adds:
+>
+> [snip]
+>
+>>>I also think that it would be nice to have some form of
+>>>regressions/tests to help validate.
+>
+>
+> tom.georgoulias> I think it's time to start developing some.  Since
+Red Hat
+> tom.georgoulias> tests their software before they ship it, maybe they have
+> tom.georgoulias> a suite already in place that they could share? ;)
+>
+> Heh.  Wishful thinking.  Part of the reason I started pushing out test
+rpms
+> was to get more testing in environments I couldn't possibly reproduce.
+> That's not to say autofs doesn't get tested in-house.  I certainly do as
+> much testing as possible before pushing packges into a release.
+>
+> I would also like to see an autofs stress test and regression test.  I
+> think it would help immensely.  However, setting aside time to do the work
+> is always the issue.
+>
 
-stew.smith> i am working on a patch currently which multiplexes nfs
-stew.smith> connections per sever so you end up with a 800 server limit,
-stew.smith> similar to the way nfsv4 works now.. i will send it out for
-stew.smith> review very soon after i ferret out a few bugs.
+I'll see if I can make something available.  Cross your fingers though :)
 
-stew.smith> another idea we had was to add SO_REUSEADDR to rpc sockets so
-stew.smith> you have more available on a busy system.
+- --
+Mike Waychison
+Sun Microsystems, Inc.
+1 (650) 352-5299 voice
+1 (416) 202-8336 voice
+mailto: Michael.Waychison@Sun.COM
+http://www.sun.com
 
-Are you going to post the patches (or have you already) to the linux-nfs
-list?  If enough people find it useful, would be nice to get it upstream.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NOTICE:  The opinions expressed in this email are held by me,
+and may not represent the views of Sun Microsystems, Inc.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
 
--Jeff
+iD8DBQFAm6eedQs4kOxk3/MRAmigAJ9CJLnHv20/XYF7Jnig7RuiUybXQwCffG9j
+dv9n9/X/vmVlnwoec/geOJw=
+=xVs2
+-----END PGP SIGNATURE-----
