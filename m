@@ -1,102 +1,28 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: RE: [autofs] multiple servers per automount
-Date: Wed, 15 Oct 2003 15:22:31 +0800 (WST)
-Sender: nfs-admin@lists.sourceforge.net
-Message-ID: <Pine.LNX.4.33.0310151515220.21320-100000@wombat.indigo.net.au>
-References: <3F8C1BB6.9010202@sun.com>
+From: "Lever, Charles" <Charles.Lever@netapp.com>
+Subject: RE: [NFS] RE: [autofs] multiple servers per automount
+Date: Wed, 15 Oct 2003 07:31:47 -0700
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <482A3FA0050D21419C269D13989C6113020AC516@lavender-fe.eng.netapp.com>
 Mime-Version: 1.0
-Return-path: <nfs-admin@lists.sourceforge.net>
-In-Reply-To: <3F8C1BB6.9010202@sun.com>
-Errors-To: nfs-admin@lists.sourceforge.net
-List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
-List-Post: <mailto:nfs@lists.sourceforge.net>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Mike Waychison <Michael.Waychison@Sun.COM>
-Cc: Joseph V Moss <jmoss@ichips.intel.com>, "Ogden, Aaron A." <aogden@unocal.com>, autofs mailing list <autofs@linux.kernel.org>, nfs@lists.sourceforge.net, Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: Ian Kent <raven@themaw.net>
+Cc: Joseph V Moss <jmoss@ichips.intel.com>, "Ogden, Aaron A." <aogden@unocal.com>, Mike Waychison <Michael.Waychison@Sun.COM>, autofs mailing list <autofs@linux.kernel.org>, nfs@lists.sourceforge.net, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Tue, 14 Oct 2003, Mike Waychison wrote:
+Ian Kent said:
+> Do you think that the possible NFS port allocation problems
+> should hold up this work or should it drive updates to NFS?
 
-> Ian Kent wrote:
->
-> >On Tue, 14 Oct 2003, Joseph V Moss wrote:
-> >
-> >
-> >
-> >>The limit is 800 as others have stated.  Although, it can be less than that
-> >>if something else is already using up some of the reserved UDP ports.
-> >>
-> >>I wrote a patch long ago against a 2.2.x kernel to enable it to use
-> >>multiple majors for NFS mounts (like the patches now common in several
-> >>distros).  I then ran into the 800 limit in the RPC layer.  After changing
-> >>the RPC layer to count up from 0, instead of down from 800, with no real
-> >>upper limit, I was able to mount more than 2000 NFS filesystems simultaneously.
-> >>I'm sure I could have done many thousand if I had had that many filesystems
-> >>around to mount.  Obviously, after 1024, it wasn't using reserved ports
-> >>anymore, but it didn't seem to matter.
-> >>
-> >>Unfortunately, while the changes to NFS were easy to port to the 2.4 kernel,
-> >>the RPC layer is different enough between 2.2 and 2.4 that it didn't work
-> >>right off.  Bumping it up to somewhere around 1024 should work, but using
-> >>non-reserved ports didn't seem to work when I made a simple attempt.
-> >>
-> >>Of course, the real fix for the NFS layer is the expansion of the minor
-> >>numbers that's already occurred in 2.6 and the RPC layer problems should
-> >>be fixed by multiplexing multiple mounts on the same port.
-> >>
-> >>
-> >>
-> >>
-> >
-> >I don't see that expansion in 2.6 (test6). It looks to me like the
-> >allocation is done in set_anon_super (in fs/super.c) and that looks like
-> >it is restricted to 256. Please correct this for me. I can't see how there
-> >is any change to the number of unnmaed devices.
-> >
-> >
-> >
->
-> Here is the quick fix for this in RH 2.1AS kernels:
->
-> http://www.kernelnewbies.org/kernels/rh21as/SOURCES/linux-2.4.9-moreunnamed.patch
->
-> It makes unnamed block devices use majors 12, 14, 38, 39, as well as 0.
->
-> I don't know if anyone is working out a better scheme for
-> get_unnamed_dev in 2.6 yet.  It does need to be done though.  A simple
-> patch for 2.6 would maybe see the unnamed_dev_in_use bitmap grow to
-> PAGE_SIZE, automatically allowing for 32768 unnamed devices.
->
+hi ian-
 
-OK. Sounds like a good job for me to do (simple - maybe).
-I'll spend a while looking for possible side effects.
+the port stuff has to be addressed at some point, but i don't
+think you should wait for it, because it is behind a long queue
+of other RPC work (like Kerberos for Linux NFS) that has a
+higher priority.  also, there are other patches that partially
+address this limitation, and certainly those will be used by
+the desparate few who need it now. :^)
 
-Do you think that the possible NFS port allocation problems should hold up
-this work or should it drive updates to NFS?
-
-Comments from anyone about where to check and what to watch out for are
-welcome.
-
--- 
-
-   ,-._|\    Ian Kent
-  /      \   Perth, Western Australia
-  *_.--._/   E-mail: raven@themaw.net
-        v    Web: http://themaw.net/
-
-
-
--------------------------------------------------------
-This SF.net email is sponsored by: SF.net Giveback Program.
-SourceForge.net hosts over 70,000 Open Source Projects.
-See the people who have HELPED US provide better services:
-Click here: http://sourceforge.net/supporters.php
-_______________________________________________
-NFS maillist  -  NFS@lists.sourceforge.net
-https://lists.sourceforge.net/lists/listinfo/nfs
+IMHO.
