@@ -1,15 +1,11 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: RFT: new autofs test package with map expiry changes
-Date: Fri, 6 Aug 2004 08:41:05 -0400
+From: "Andreas Neuper" <ANeuper@web.de>
+Subject: Is the "program" format correct ?
+Date: Sun, 08 Aug 2004 16:47:34 +0200
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <16659.31841.663187.637400@segfault.boston.redhat.com>
-References: <16658.38020.371365.856850@segfault.boston.redhat.com>
-	<ufa3c310vz3.fsf@epithumia.math.uh.edu>
-Reply-To: jmoyer@redhat.com
+Message-ID: <1399068150@web.de>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <ufa3c310vz3.fsf@epithumia.math.uh.edu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,24 +16,48 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: Jason L Tibbitts III <tibbs@math.uh.edu>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-==> Regarding Re: [autofs] RFT: new autofs test package with map expiry changes; Jason L Tibbitts III <tibbs@math.uh.edu> adds:
+Hello,
 
->>>>>> "JM" == Jeff Moyer <jmoyer@redhat.com> writes:
-JM> I also posted a kernel patch against 2.6.7, which is _required_.
-JM> autofs-4.1.3-11 is the version with these changes.
+I am new to the list.  I wanted to use the program format to provide some good solution.
+Unfortunately, it showed a strange behaviour.  It seems to me, nobody really ever used it!
+Your example delivered with the distribuion works, although it should not IMHO.  
+I would expect that the program format causes the same action as
+e.g. a nis-map or a file. Maybe I am wrong with my expectations. 
+Try this: 
 
-tibbs> Not to be overly dense, but is there any way to test this under FC2?
-tibbs> I need map expiry and I'm happy to test, but I haven't found the time
-tibbs> to bring up FC3t1 yet.
+~# cat /etc/auto.master
+/auto   /etc/auto.auto
 
-The kernel patch should apply to an fc2 kernel, as well.  The userland
-utilities should also install fine.  If not, you can rebuild the SRPM for
-fc2.  If you need further help in doing either of these things, feel free
-to contact me off-list.
+~# cat <<*** >/etc/auto.cat
+#!/bin/sh
+grep -v ^# /etc/auto.auto
+exit 0
+***
+~# chmod a+x /etc/auto.cat
+~# /etc/auto.cat
 
-Thanks!
+floppy  -fstype=auto                            :/dev/fd0
+video   -fstype=nfs,rw,rsize=8192,wsize=8192    ok:/home/video
 
-Jeff
+~# echo "/tmp/cat       /etc/auto.cat" >> /etc/auto.master
+~# /etc/rc.d/autofs restart
+~# ls /auto/video
+.       ..      DVD
+~# ls /tmp/cat/
+.       ..
+~# ls /tmp/cat/video
+^C
+~# tail -5 /var/log/messages
+Aug  8 16:26:21 akemi automount[6212]: mount(nfs): host -fstype=auto: lookup failure
+Aug  8 16:26:21 akemi automount[6212]: mount(nfs): host : lookup failure
+Aug  8 16:26:21 akemi automount[6215]: mount(nfs): host floppy: lookup failure
+Aug  8 16:26:21 akemi automount[6215]: mount(nfs): host -fstype=auto: lookup failure
+Aug  8 16:26:21 akemi automount[6215]: mount(nfs): host : lookup failure
+
+thanks for reading.  Is there a simple solution?
+Andreas
+____________________________________________________
+Aufnehmen, abschicken, nah sein - So einfach ist 
+WEB.DE Video-Mail: http://freemail.web.de/?mc=021200
