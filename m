@@ -1,11 +1,12 @@
 From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
 Subject: Re: [ANNOUNCE] autofs 4.1.4 beta2 release
-Date: Tue, 15 Feb 2005 02:48:57 +0100
-Message-ID: <20050215014857.GA26216@uio.no>
+Date: Tue, 15 Feb 2005 03:04:14 +0100
+Message-ID: <20050215020414.GA953@uio.no>
 References: <Pine.LNX.4.61.0502142233210.1653@donald.themaw.net>
+	<20050215014857.GA26216@uio.no>
 Mime-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.61.0502142233210.1653@donald.themaw.net>
+In-Reply-To: <20050215014857.GA26216@uio.no>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,26 +21,24 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: autofs@linux.kernel.org
 
-On Mon, Feb 14, 2005 at 10:39:51PM +0800, raven@themaw.net wrote:
-> Here is autofs 4.1.4 beta2.
+On Tue, Feb 15, 2005 at 02:48:57AM +0100, Steinar H. Gunderson wrote:
+> Apart from that, looks like everything went in; I'm building a new version
+> now and will upload after I get your feedback on the points above.
 
-Thanks! :-)
+I just found another bug; on upgrades, autofs attempts to restart itself,
+which invokes "debian stop"; this invokes something like
 
-I've gone through all the Debian patches again, and this needs looking into:
+  start-stop-daemon --stop --quiet --retry USR2/$DAEMON_EXIT_WAIT --pidfile $file --exec /usr/sbin/automount
 
-- 000_autofs_4.1.3_sock-leak-fix is missing.
-- 035_program_mount_repeated_last_character_of_map_output is in there, but
-  there looks like there's an identical situation further down. Could you
-  investigate? (I'm not really sure if it is an error or not, to be honest, I
-  just want it checked. :-) )
-- 051_maps_without_trailing_newline.diff is not in, it seems; did you forget
-  it or just find a cleaner way?
-- The check for /proc/modules does not seem to have went in (see
-  http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=292762).
+The problem here is that the pid does not really run /usr/sbin/automount
+anymore; or more correctly, /proc/<pid>/exe does not point to the current
+/usr/sbin/automount, it points to the _old_ /usr/sbin/automount, and that
+version was just removed as part of the upgrade.  Thus, the stop fails, and the
+entire upgrade fails.
 
-Apart from that, looks like everything went in; I'm building a new version
-now and will upload after I get your feedback on the points above.
-
-/* Steinar */
+Any good ideas? Stripping the --exec would be the easiest solution, but
+perhaps also the ugliest...
+ 
+/* Steinar */ 
 -- 
 Homepage: http://www.sesse.net/
