@@ -1,14 +1,15 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: autofs not mounting directories
-Date: Thu, 18 Mar 2004 09:30:39 +0800 (WST)
+Date: Thu, 18 Mar 2004 14:47:15 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0403180924490.28728@wombat.indigo.net.au>
+Message-ID: <Pine.LNX.4.58.0403181439100.1741@wombat.indigo.net.au>
 References: <200403160358.MAA25667@tk3p108pos.tky.swissbank.com>
- <Pine.LNX.4.58.0403171118120.6566@wombat.indigo.net.au>
- <20040317204829.GD12204@vprau.lsil.com>
+	<Pine.LNX.4.58.0403171118120.6566@wombat.indigo.net.au>
+	<Pine.LNX.4.58.0403180924490.28728@wombat.indigo.net.au>
+	<405932E8.4070804@sedona.intel.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20040317204829.GD12204@vprau.lsil.com>
+In-Reply-To: <405932E8.4070804@sedona.intel.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,38 +21,35 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Robert Au <rau@lsil.com>
+To: Michael Blandford <mlblandf@sedona.ch.intel.com>
 Cc: autofs@linux.kernel.org
 
-On Wed, 17 Mar 2004, Robert Au wrote:
+On Wed, 17 Mar 2004, Michael Blandford wrote:
 
-> > 
-> > Sounds like you may be suffering from the same problem that was reported 
-> > by Michael Blandford. I'm mystified I haven't seen the problem before as 
-> > it is so fundamental to proper operation.
+> Ian Kent wrote:
 > 
-> I don't see Michael's original report in the list archives. Did he send it
-> to the list?
-
-No.
-
-It was reported when he was testing changes he had requested for 4.1.1. 
-
->  
-> > I'll be looking to get a test group together from the list in a couple of 
-> > days.
+> >2.4.7. I wonder if the patch I'm creating against 2.4.20 will work for 
+> >you.
+> >
+> >Strange this has gone un-noticed for over 18 months and then suddenly 
+> >reports are popping up everywhere. Maybe it's just the focus at the moment 
+> >so everything seems to be caused by it.
+> >  
+> >
 > 
-> I think we are seeing something similar here; sporadically, listing a file
-> with ls will fail until a process changes working directory to that file's
-> directory. I'd like to help out in the testing. We are seeing this problem
-> with Red Hat 7.2 (kernel 2.4.7-10), autofs 4.1.0, and kernel module
-> autofs4-2.4-module-20031201.
+> After we get it fixed for 2.4.20, I will take a stab at backporting it 
+> to 2.4.9 which will probably be close enough for 2.4.7
+> 
 
-2.4.7. I wonder if the patch I'm creating against 2.4.20 will work for 
-you.
+Shouldn't be to bad. It needed practically no changes until about 2.4.18 
+or 20.
 
-Strange this has gone un-noticed for over 18 months and then suddenly 
-reports are popping up everywhere. Maybe it's just the focus at the moment 
-so everything seems to be caused by it.
+I may have the patch done tonight.
+
+One consequence of this is that when cd'ing to a directory we will have to 
+trigger the mount. To do it any other way will mean, essentially, 
+rewriting autofs4 from the ground up. Maybe not a bad idea, but not now.
+At least that is my impression atm.
+
 
 Ian
