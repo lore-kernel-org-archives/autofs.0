@@ -1,10 +1,15 @@
-From: Ian Kent <raven@themaw.net>
-Subject: RE: auotfs/NFS Issue with WAN mounted filesystem?
-Date: Wed, 23 Feb 2005 12:17:08 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0502231215210.5535@wombat.indigo.net.au>
-References: <10EE351D89AE1F488B426AC91EF6EDAB0128138C@server-1.ad.lsil.com>
+From: raven@themaw.net
+Subject: Re: [weasel@debian.org: Bug#296238: autofs breaks nis
+	auto.master when there is a tab in nsswitch]
+Date: Wed, 23 Feb 2005 21:53:32 +0800 (WST)
+Message-ID: <Pine.LNX.4.61.0502232149590.8193@donald.themaw.net>
+References: <20050221112243.GA18164@uio.no>
+	<Pine.LNX.4.61.0502220039110.20458@donald.themaw.net>
+	<20050222130204.GA16052@uio.no>
+	<Pine.LNX.4.61.0502222237240.1806@donald.themaw.net>
+	<20050222173833.GA18046@uio.no>
 Mime-Version: 1.0
-In-Reply-To: <10EE351D89AE1F488B426AC91EF6EDAB0128138C@server-1.ad.lsil.com>
+In-Reply-To: <20050222173833.GA18046@uio.no>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -15,33 +20,28 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
-To: Jeffery Malloch <jmall@lsil.com>
-Cc: "'autofs@linux.kernel.org'" <autofs@linux.kernel.org>, Kevork Kechichian <kkechich@lsil.com>, Michael Gallant <mgallant@lsil.com>
+To: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
+Cc: autofs@linux.kernel.org
 
-On Tue, 22 Feb 2005, Jeffery Malloch wrote:
+On Tue, 22 Feb 2005, Steinar H. Gunderson wrote:
 
-> Hi Ian,
-> 
-> Sorry it's been such a long time but I thought I had gotten my issue down to
-> an issue with IBM Clearcase and their "mvfs" implementation.  But as it
-> happens, I believe there still to be issues with autofs in RedHat WS3 U3.  I
-> am currently using autofs-4.1.3-47.  I have been running many automounts on
-> the linux systems in debug mode for some time.  But here's what I have to
-> give you for now:
-> 
-> Feb 21 23:44:33 lserver-11 automount[15042]: rm_unwanted: /lsi/vp/bed_shared
-> Feb 21 23:44:33 lserver-11 automount[15042]: expired /lsi/vp/bed_shared
-> Feb 21 23:44:38 lserver-11 automount[1700]: attempting to mount entry
-> /lsi/vp/bed_shared
-> Feb 22 00:16:51 lserver-11 automount[19628]: BUG: /lsi/vp/bed_shared already
-> mounted
-> 
+> On Tue, Feb 22, 2005 at 10:39:19PM +0800, raven@themaw.net wrote:
+>>> http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=295723
+>> Thanks Steinar, I'll unroll the expression in a loop to fix this.
+>>
+>> Would you like an interim patch or would you prefer to wait for beta3?
+>
+> I can wait for beta3, no problem. Do you do s/sh/bash/ in it while you're at
+> it (or optionally POSIXify the script)?
 
-This is usually due to mtab corruption caused by broken file locking in 
-mount and autofs.
+I think that unrolling the path regex (searching individually) will be 
+bourne shell compliant.
 
-What is the state of mtab when this happens.
+Do you think that will be sufficient.
+I would rather stick within Debian policy if possible.
+
+Are there any other bits you've noticed that might be a problem?
 
 Ian
