@@ -1,13 +1,11 @@
-From: "Taylor, ForrestX" <forrestx.taylor@intel.com>
-Subject: Re: automounting other hosts on the network
-Date: Tue, 09 Mar 2004 09:37:14 -0800
+From: matt <matt@angalon.org>
+Subject: Understanding direct mounts & ghosting
+Date: Wed, 10 Mar 2004 22:44:45 -0600
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <1078853834.16233.18.camel@bad.jf.intel.com>
-References: <404D8C3D.9000500@icemcfd.co.in>
+Message-ID: <404FEEBD.70507@angalon.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <404D8C3D.9000500@icemcfd.co.in>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,34 +15,55 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: "Pranay C. Tembhekar" <pranay@icemcfd.co.in>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: autofs@linux.kernel.org
 
-On Tue, 2004-03-09 at 01:19, Pranay C. Tembhekar wrote:
-> Hi Everybody,
->     I want little bit help. I've installed Red Hat Linux 8.0 & 
-> configured it as a NFS & NIS server. I also installed Red Hat Linux 8.0 
-> on other system as a NIS client. Now I want to automount the hosts. E.g. 
-> /hosts/<systemname>/home. I have exported the /home from server. How can 
-> I achieve this in red hat linux. In solaris I can specify "/hosts -hosts 
-> <options" in auto_master. But what's the procedure to do this in red hat 
-> linux?
+I am attempting to use direct mounts with autofs4 and either I'm doing 
+something wrong or I'm expecting the wrong behaviour.  Here's my 
+situation.  I installed SuSE 9.0 and then downloaded and built 
+autofs-4.1.0 and autofs4-2.4 kernel module.  I installed both and added 
+the alias line in modules.conf, and when I do 'lsmod' I see 'autofs4' as 
+the autofs module so I think I've got the kernel part right.
 
-Use autofs4 (ftp://ftp.kernel.org/pub/linux/daemons/autofs/v4/).  Grab
-the latest src.rpm and rebuild it.  You will probably have to make
-autofs start after NIS.  In the spec file, I have:
-# chkconfig: 345 61 19
+The reason I am trying to get direct mounts to work is so that I can 
+automount /usr/local from my fileserver, however if I put the line:
+     /usr/local    server:/usr/local
+into my auto.direct file, then all of /usr goes away (except 
+/usr/local).  So for testing purposed I changed things to use /mnt. Now 
+my auto.master includes the line:
+     /-    auto.direct
+and the auto.direct file contains:
+     /mnt/local      voorg:/usr/local
 
-Also, make sure you have 'alias autofs autofs4' in /etc/modules.conf,
-and remove the autofs3 module (service autofs stop;rmmod autofs).  I
-usually put these in the RPM file, but I haven't downloaded the latest
-to see if this is already in it.
+Once I start the automounter I see the following as part of the output 
+of the mount command:
 
-Once you rebuild the src.rpm file, install it and start it.  Instead of
-/hosts, you will use /net, and you may want to add nonstrict to the opts
-line in /etc/auto.net (if it isn't already).
+automount(pid27283) on /mnt type autofs 
+(rw,fd=5,pgrp=27279,minproto=2,maxproto=4)
 
-If you have problems, return with your errors.
+and my test directory (/mnt/local.orig) is no longer visible.  If I then 
+cd to /mnt/local the mount command shows:
 
-Forrest
+automount(pid27283) on /mnt type autofs 
+(rw,fd=5,pgrp=27279,minproto=2,maxproto=4)
+voorg:/usr/local on /mnt/local type nfs (rw,addr=192.168.222.5)
+
+So the automount does appear to be working; but not as I expect a direct 
+mount to work based on my experience with Solaris (and HPUX).  My 
+expecataion is that I should see /mnt/local as the automount point (i.e. 
+"automount(pid27238) on /mnt/local type autofs ...") instead of /mnt. 
+Is this the expected behavior or am I missing something?
+
+With regards to ghosting, I have another map (auto.nfs) that's mounted 
+on /nfs and, as I understand ghosting, I should be able to do:
+     ls /nfs
+and see a list of mountable directories (i.e. the contents of the 
+auto.nfs map) as a result.  I don't.  All I see is . and .. (presuming 
+of coure that I haven't cd'd to any of the mount-points).
+
+Anything you can offer to help me understand what's happening would be 
+greatly appreciated.  And if I can provide additional info about my 
+setup, please let me know.
+
+Thanks much,
+Matt
