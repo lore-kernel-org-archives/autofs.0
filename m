@@ -1,15 +1,10 @@
-From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
+From: raven@themaw.net
 Subject: Re: [ANNOUNCE] autofs 4.1.4 beta2 release
-Date: Tue, 15 Feb 2005 16:31:11 +0100
-Message-ID: <20050215153110.GC4112@uio.no>
+Date: Tue, 15 Feb 2005 23:21:47 +0800 (WST)
+Message-ID: <Pine.LNX.4.61.0502152316310.8319@donald.themaw.net>
 References: <Pine.LNX.4.61.0502142233210.1653@donald.themaw.net>
-	<20050215014857.GA26216@uio.no>
-	<Pine.LNX.4.61.0502152253120.8175@donald.themaw.net>
-	<Pine.LNX.4.61.0502152303450.8273@donald.themaw.net>
-	<Pine.LNX.4.61.0502152315060.8319@donald.themaw.net>
 Mime-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.61.0502152315060.8319@donald.themaw.net>
+In-Reply-To: <Pine.LNX.4.61.0502142233210.1653@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,15 +15,24 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
-To: autofs@linux.kernel.org
+To: autofs mailing list <autofs@linux.kernel.org>
 
-On Tue, Feb 15, 2005 at 11:16:04PM +0800, raven@themaw.net wrote:
-> Is this what you're seeking?
+On Mon, 14 Feb 2005 raven@themaw.net wrote:
 
-Yes, that is essentially the same patch. It was not in 4.1.4-beta2.
+>
+> There are still a few problems that I'm aware of such as:
 
-/* Steinar */
--- 
-Homepage: http://www.sesse.net/
+And a couple I've just found on scribled notes.
+
+- At some point I found nis maps getting called program maps
+    This may have been fixed. Can someone check please.
+    It may have been when a file map of the same name is
+    present in the map directory.
+
+- I think there is a bug handling submount map entries where
+    their map type is not specified. Anyone care to investigate
+    and get back with findings please.
+
+Ian
