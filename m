@@ -1,12 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: direct mounts
-Date: Fri, 26 Sep 2003 23:18:29 +0800 (WST)
+From: Ion Badulescu <lists@news.cs.columbia.edu>
+Subject: Re: [NFS] Re: VFS: Busy inodes after unmount on 2 way SMP
+Date: Fri, 26 Sep 2003 14:31:23 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.44.0309262313480.4947-100000@raven.themaw.net>
-References: <7EA66ACBFB7B8B4DA4C306BDAD178A5E227B73@abz-irg-exs01>
-Mime-Version: 1.0
+Message-ID: <200309261831.h8QIVNVw026806@buggy.badula.org>
+References: <16243.34641.819894.763746@charged.uio.no>
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <7EA66ACBFB7B8B4DA4C306BDAD178A5E227B73@abz-irg-exs01>
+In-Reply-To: <16243.34641.819894.763746@charged.uio.no>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,32 +15,31 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Salmon, Michael" <MICHAEL.SALMON@saic.com>
-Cc: "'autofs@linux.kernel.org'" <autofs@linux.kernel.org>
+To: trond.myklebust@fys.uio.no
+Cc: autofs@linux.kernel.org, nfs@lists.sourceforge.net
 
-On Fri, 26 Sep 2003, Salmon, Michael wrote:
+On Thu, 25 Sep 2003 17:24:49 -0700, Trond Myklebust <trond.myklebust@fys.uio.no> wrote:
 
-> Hi all I have just joined the list. I have been reading through some
-> previous posts particuraly about direct automounts. Can anyone tell me if
-> they are working yet. If so What do I need to get them working?
-> 
+> I would rather then have something like the appended patch go in to
+> which force the last process to close the file to actually wait on
+> completion (unless someone signals it with a 'kill -9' - in which case
+> they are knowingly breaking things).
 
-Oh, if only I could sort out the bugs I would have a beta out right now.
+Ugh, that's ugly -- and potentially a DoS issue as well. Since you don't
+need any privileges to issue the 'kill -9' for your own processes, it   
+becomes fairly easy to write some code that exploits this and causes 
+kernel crashes across the board...
 
-Hopefully soon.
+Not that the current situation is any better, of course.
 
-I have some rather old patches but I recommend against them as they won't 
-work with recent kernels.
+Perhaps making that wait an uninterruptable wait would be enough to take
+care of the problem?
 
-Main thing that can't be done with the current implementation is cross 
-filesystem mounts in a direct map. Mostly this is not done in direct maps 
-anyway and has not been a problem in practice as yet.
+Ion
 
 -- 
-
-   ,-._|\    Ian Kent
-  /      \   Perth, Western Australia
-  *_.--._/   E-mail: raven@themaw.net
-        v    Web: http://themaw.net/
+  It is better to keep your mouth shut and be thought a fool,
+            than to open it and remove all doubt.
