@@ -1,8 +1,8 @@
 From: "Ogden, Aaron A." <aogden@unocal.com>
 Subject: RE: [RFC] Towards a Modern Autofs
-Date: Tue, 6 Jan 2004 17:26:11 -0600
+Date: Tue, 6 Jan 2004 17:34:08 -0600
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <6AB920CC10586340BE1674976E0A991D0C6BE6@slexch2.sugarland.unocal.com>
+Message-ID: <6AB920CC10586340BE1674976E0A991D0C6BE7@slexch2.sugarland.unocal.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
@@ -17,43 +17,38 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: Paul Raines <raines@nmr.mgh.harvard.edu>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+To: Tim Hockin <thockin@hockin.org>
+Cc: autofs mailing list <autofs@linux.kernel.org>, Mike Waychison <Michael.Waychison@Sun.COM>, thockin@Sun.COM, Kernel Mailing List <linux-kernel@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>
+
 
 
 > -----Original Message-----
-> From: Paul Raines [mailto:raines@nmr.mgh.harvard.edu] 
-> Sent: Tuesday, January 06, 2004 4:54 PM
+> From: Tim Hockin [mailto:thockin@hockin.org] 
+> Sent: Tuesday, January 06, 2004 4:48 PM
 > To: Ogden, Aaron A.
 > Cc: thockin@Sun.COM; H. Peter Anvin; autofs mailing list; 
 > Mike Waychison; Kernel Mailing List
-> Subject: RE: [autofs] [RFC] Towards a Modern Autofs
+> Subject: Re: [autofs] [RFC] Towards a Modern Autofs
 > 
 > 
-> As another sysadmin with 300+ linux and solaris boxes, I second
-> you sentiments exactly.  As my previous post today states, I am
-> having exactly the problem you describe with automount daemons
-> becoming hung or unresponsive.  Guess I should give 4.1.0 a try.  
+> On Tue, Jan 06, 2004 at 04:28:59PM -0600, Ogden, Aaron A. wrote:
+> > Solaris there is a command called 'automount' that tells the kernel
+to
+> > re-read the automount maps, perhaps it resets the autofs subsystem
+in
+> > the kernel as well.  If linux autofs had the same capability we
+might
+> > not need the daemon, but until then, having the daemon in userland
+is a
+> > good thing.
 > 
-> Of course the same arguement applies to NFS server but they went
-> ahead and moved most of that into the kernel anyway for the 
-> performance gain.
+> That's more or less exactly what is proposed.
 > 
 
-I have been working with Ian for a long time, the improvements he's made
-since autofs-4.0.0pre10 have been tremendous.  Although the people from
-Sun may not agree I think autofs 4.1.0 is mostly on par with Sun's
-autofs, at least from a sysadmin perspective.  The code is still very
-new but I have not been able to break it yet... unlike previous
-versions.  :-)  
-
-If you are going to use autofs on linux I would highly recommend the
-latest version of autofs4, in my experience nothing else will cut it if
-you want your linux autofs to behave like what you are used to in
-Solaris.  This includes the browsing/ghosting feature.  Go to
-ftp://ftp.kernel.org/pub/linux/daemons/autofs/v4/ and get the latest
-tarball or source rpm.  You can install the daemon with that but you
-also need to apply patches to the kernel module to get things working
-properly, the patches are included in the file you download.
-
-Good luck!
+Excellent!  I haven't read through the proposal yet but I have it open
+in another window.  :-)
+The detailed proposal you've written implies that Sun as a whole has
+given serious thought to the problem, which IMHO is how to make linux
+autofs work like Solaris autofs.  Is Sun willing to devote man-hours to
+help implement the new autofs?  I think Ian has done a tremendous job
+with autofs4 but the more minds we throw at the problem the better.
