@@ -1,7 +1,7 @@
 From: Jeff Moyer <jmoyer@redhat.com>
 Subject: RE: auotfs/NFS Issue with WAN mounted filesystem?
-Date: Wed, 23 Feb 2005 12:40:12 -0500
-Message-ID: <16924.49148.935527.345456@segfault.boston.redhat.com>
+Date: Wed, 23 Feb 2005 12:49:21 -0500
+Message-ID: <16924.49697.937781.221419@segfault.boston.redhat.com>
 References: <10EE351D89AE1F488B426AC91EF6EDAB012813AC@server-1.ad.lsil.com>
 Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
@@ -68,12 +68,35 @@ jmall> I have a machine that went into this state again...  Here's a list
 jmall> of what I see:
 
 jmall> - I can look at the /proc/mounts and /etc/mtab without issue so they
-jmall> don't appear corrupted in any way 
+jmall> don't appear corrupted in any way - the automounted filesystems that
+jmall> are hanging appear in the /etc/mtab file but not in the /proc/mounts
+jmall> - all automount maps now have 3 processes associated with them - I
+jmall> can identify that at the same moment a new automount process was
+jmall> being started an unmount was running like this:
 
-jmall> - the automounted filesystems that
+jmall> root 3773 1584 0 10:59 ?  00:00:00 /usr/sbin/automount --timeout=60
+jmall> /lsi/soft yp auto_lsi_soft rw,intr,noatime root 3774 1584 0 10:59 ?
+jmall> 00:00:00 /usr/sbin/automount --timeout=60 /lsi/soft yp auto_lsi_soft
+jmall> rw,intr,noatime root 3775 3774 0 10:59 ?  00:00:00 /bin/umount
+jmall> //lsi/soft/emt root 3780 1717 0 10:59 ?  00:00:00
+jmall> /usr/sbin/automount --timeout=60 /tools yp auto_tools
+jmall> rw,soft,intr,noatime root 3781 1717 0 10:59 ?  00:00:00
+jmall> /usr/sbin/automount --timeout=60 /tools yp auto_tools
+jmall> rw,soft,intr,noatime root 3785 3781 0 10:59 ?  00:00:00 /bin/umount
+jmall> //tools/emt
 
-Hah!  Fired too early.  This is precisely the info I was looking for.
+jmall> The new automount maps always appear to start before the umount
+jmall> command in pairs.
 
-Don't mind me...
+jmall> - the load on the machine is growing but all usage is in CPU I/O
+jmall> wait
+
+jmall> If you would like more data, I will leave this system in this state
+jmall> for today.  Your input is greatly appreciated.
+
+If you need a quick workaround, then you could make /etc/mtab a symbolic
+link to /proc/mounts.  I can't say that I recommend doing this, but it
+should work okay.  (I think anaconda or kudzu might take issue which this
+setup, but I don't remember for sure).
 
 -Jeff
