@@ -1,14 +1,13 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: Re: [NFS] udp ports not being released
-Date: Tue, 23 Nov 2004 11:50:08 -0500
-Message-ID: <16803.27200.583030.756208@segfault.boston.redhat.com>
-References: <41A2413A.9020800@analog.com>
-	<41A24453.6000907@sun.com>
-Reply-To: jmoyer@redhat.com
+From: Ian Kent <raven@themaw.net>
+Subject: Re: Re: [patch] make autofs understand the -[no]browse
+ option
+Date: Wed, 24 Nov 2004 09:28:58 +0800 (WST)
+Message-ID: <Pine.LNX.4.58.0411240921090.28302@wombat.indigo.net.au>
+References: <16793.2017.226139.516137@segfault.boston.redhat.com>
+ <Pine.LNX.4.58.0411160853060.9913@wombat.indigo.net.au>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <41A24453.6000907@sun.com>
+In-Reply-To: <Pine.LNX.4.58.0411160853060.9913@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,37 +18,38 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: Mike Waychison <Michael.Waychison@sun.com>
-Cc: autofs@linux.kernel.org, Dwight Marzolf <dwight.marzolf@analog.com>, nfs@lists.sourceforge.net, Ian Kent <raven@themaw.net>
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: autofs@linux.kernel.org
 
-==> Regarding [autofs] Re: [NFS] udp ports not being released; Mike Waychison <Michael.Waychison@sun.com> adds:
+On Tue, 16 Nov 2004, Ian Kent wrote:
 
-Michael.Waychison> -----BEGIN PGP SIGNED MESSAGE----- Hash: SHA1
+> On Mon, 15 Nov 2004, Jeff Moyer wrote:
+> 
+> > Hi, Ian, list,
+> > 
+> > The patch below makes the Linux automounter a bit more compatibile with the
+> > Sun automounter, by parsing the -[no]browse options, and converting them
+> > into the equivalent --ghost option.
+> > 
+> > Ian, I've not made this patch against vanilla 4.1.3.  This is the patch
+> > that went into the Red Hat RPM.  I will generate a diff to whatever version
+> > you like, but I didn't want to do extra work since your tree may be quite
+> > different from 4.1.3 at this point.
+> 
+> Quite likely.
+> 
+> Doesn't look to complicated. I might do it by hand if needed.
 
-Michael.Waychison> Dwight Marzolf wrote:
->> We are running RedHat 8, kernel 2.4.20-20.8smp and autofs 4.1.2.  We
->> were having a variety of automount problems until a kernel patch was
->> recommended.  We added this patch, recompiled our kernel, and
->> distributed the patched kernel to all of our workstations.  About 90% of
->> our problems disappeared.  But one problem seems to remain.
->> 
->> When /net is used to mount directories, most of the time the udp port
->> used for that nfs mount operation is not released once the /net mount
->> times out.  Depending on the level of activity on a machine, over the
->> period of several days, all the available reserved ports are used up. At
->> that point the user on the workstation cannot cd to any mount points in
->> our automount maps except the ones already mounted.  In the
->> /var/log/messages the following error occurs for attempted mounts:
+I've tried to apply this but it appears to depend on a previous patch.
+It's one of the few patches that remain outstanding for 4.1.4.
 
-Michael.Waychison> IIRC, automount 4.1.2 had a fd leak, that was fixed in
-Michael.Waychison> 4.1.3
+I didn't spend long on it. When I saw some stuff I didn't recognise in the 
+init script I put it on the "get back to it list".
 
-Michael.Waychison> Ian?
+If you get a chance to create a diff againt the current code that would be 
+good otherwise I'll get back to it after I've done the straight forward 
+stuff.
 
-I'm not Ian, but I can answer.  That leak still exists in 4.1.3.  There are
-a couple of patches posted that deal with this problem and a related
-problem.  One fixes the socket leak, the other teaches the udp rpc_ping
-function to not use reserved ports.
-
--Jeff
+Ian
