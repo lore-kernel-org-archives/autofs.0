@@ -1,13 +1,15 @@
-From: Mike Waychison <Michael.Waychison@Sun.COM>
+From: Jeff Moyer <jmoyer@redhat.com>
 Subject: Re: backfstype patch.
-Date: Wed, 30 Jun 2004 09:31:38 -0400
+Date: Wed, 30 Jun 2004 09:51:25 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <40E2C0BA.3070605@sun.com>
+Message-ID: <16610.50525.858094.848839@segfault.boston.redhat.com>
 References: <40E1CCC3.1010809@deragon.biz>
+	<40E2C0BA.3070605@sun.com>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-reply-to: <40E1CCC3.1010809@deragon.biz>
+In-Reply-To: <40E2C0BA.3070605@sun.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,47 +20,42 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: Hans Deragon <hans@deragon.biz>
+To: Mike Waychison <Michael.Waychison@Sun.COM>
 Cc: autofs@linux.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+==> Regarding Re: [autofs] backfstype patch.; Mike Waychison <Michael.Waychison@Sun.COM> adds:
 
-Hans Deragon wrote:
-> Greetings.
->
->
->   Attached, my patch for supporting backfstype.  If the OS is Linux and
-> cachefs is detected, this fs is ignored and no attempt is made to mount
-> a cachefs kernel module (none exist).  This way we avoid useless error
-> messages in syslog.
->
->   If mounting the fstype fails or is cachefs, backfstype is then tried.
->
->   It works fine under RHL 9.  Only one file was changed:  parse_sun.c.
-> The changes were made from the 4.1.3 branch.  Changes are very localized
-> and I believe they are safe (though code inspection is always desired).
->
->   Please confirm if my patch has been accepted.
->
+Michael.Waychison> -----BEGIN PGP SIGNED MESSAGE-----
+Hash> SHA1
 
-Why do this in the parser when it can easily be done in a mount module?
+Michael.Waychison> Hans Deragon wrote:
+>> Greetings.
+>> 
+>> 
+>> Attached, my patch for supporting backfstype.  If the OS is Linux and
+>> cachefs is detected, this fs is ignored and no attempt is made to mount
+>> a cachefs kernel module (none exist).  This way we avoid useless error
+>> messages in syslog.
+>> 
+>> If mounting the fstype fails or is cachefs, backfstype is then tried.
+>> 
+>> It works fine under RHL 9.  Only one file was changed: parse_sun.c.  The
+>> changes were made from the 4.1.3 branch.  Changes are very localized and
+>> I believe they are safe (though code inspection is always desired).
+>> 
+>> Please confirm if my patch has been accepted.
+>> 
 
-- --
-Mike Waychison
-Sun Microsystems, Inc.
-1 (650) 352-5299 voice
-1 (416) 202-8336 voice
-http://www.sun.com
+Michael.Waychison> Why do this in the parser when it can easily be done in
+Michael.Waychison> a mount module?
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NOTICE:  The opinions expressed in this email are held by me,
-and may not represent the views of Sun Microsystems, Inc.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
+Care to expound a bit?  I'm not sure what people use backfstype for, but if
+it is generic, then you wouldn't want to handle every case in every mount
+module.  But I think I'm missing your point.
 
-iD8DBQFA4sC5dQs4kOxk3/MRAmqMAJ4ozb8H/WCSLofDJ1qSC+PrJZsoFwCeIL2R
-ugeytb6z6DP53zz2AC2bJm0=
-=pEWR
------END PGP SIGNATURE-----
+It makes some sense to me to handle this above the mount module, simply
+because you could call into two different modules.
+
+So, care to set me straight?  ;)
+
+-Jeff
