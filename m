@@ -1,10 +1,11 @@
 From: raven@themaw.net
-Subject: Re: Use of egrep without "|| true" in the init.d script
-Date: Sun, 6 Mar 2005 12:04:16 +0800 (WST)
-Message-ID: <Pine.LNX.4.62.0503061156360.8723@donald.themaw.net>
-References: <20050224131844.GA5150@uio.no>
+Subject: Re: Is autofs4 8-bit compatible?
+Date: Sun, 6 Mar 2005 11:10:13 +0800 (WST)
+Message-ID: <Pine.LNX.4.62.0503061109090.8484@donald.themaw.net>
+References: <421E3F05.00006A.08775@mfront7.yandex.ru>
 Mime-Version: 1.0
-In-Reply-To: <20050224131844.GA5150@uio.no>
+Content-Type: MULTIPART/MIXED; BOUNDARY="1629620785-410302742-1110078613=:8484"
+In-Reply-To: <421E3F05.00006A.08775@mfront7.yandex.ru>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -15,42 +16,72 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
-Content-Transfer-Encoding: 7bit
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+To: atlantos41 <atlantos41@yandex.ru>
+Cc: autofs@linux.kernel.org
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Hi Jeff,
+--1629620785-410302742-1110078613=:8484
+Content-Type: TEXT/PLAIN; charset=KOI8-R; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-This issue relates to the umount_loopback function.
+On Thu, 24 Feb 2005, atlantos41 wrote:
 
-I believe this patch was the result of a RedHat bug report.
-Did you manage to track this down?
+> Hi.
+> I start automount with command:
+> automount --timeout=3D60 /smb file /etc/auto.smb
+>
+> where /etc/auto.smb is
+> test_data<cyrchar>est    -fstype=3Dsmbfs    ://test/data<cyrchar>est
+>
+> where <cyrchar> is one cyrillic char, for example "=D4", i. e.
+> ~ echo -n <cyrchar> | hexdump
+> 0000000 00d4
+> 0000001
+>
+> When I try to change directory to /smb/test_data<cyrchar>est, then autofs
+> fails with messages in syslog:
+> automount[13111]: failed to mount /smb/test_data
+>
+> But if I change key in /etc/auto.smb to 7-bit, for example
+> "test_data<cyrchar>est" to "test_datatest":
+> test_datatest    -fstype=3Dsmbfs    ://test/data<cyrchar>est
+>
+> and then restart automount, autofs works as it should be.
+>
+> This problem appears to be in autofs 4.1.3 and autofs 4.1.4_beta1, but no=
+t in
+> autofs 3.1.7.
 
-As I mentioned before autofs should umount all mounts that are not busy at 
-shutdown. I'm planning on removing this for beta3 until we can work out 
-why it was needed. Hope that will not cause problems for you.
+Could you try this patch for me please.
 
 Ian
 
-On Thu, 24 Feb 2005, Steinar H. Gunderson wrote:
+--- autofs-4.1.4_beta2/modules/lookup_file.c.char-compare=092005-03-06 11:0=
+6:19.000000000 +0800
++++ autofs-4.1.4_beta2/modules/lookup_file.c=092005-03-06 11:06:57.00000000=
+0 +0800
+@@ -147,7 +147,7 @@
+  =09=09=09=09else if (ch =3D=3D '*') {
+  =09=09=09=09=09state =3D st_star;
+  =09=09=09=09=09*(kptr++) =3D ch;
+-=09=09=09=09} else if (isprint((char) ch)) {
++=09=09=09=09} else if (!iscntrl((char) ch)) {
+  =09=09=09=09=09state =3D st_compare;
+  =09=09=09=09=09*(kptr++) =3D ch;
+  =09=09=09=09}
 
-> Ian,
->
-> Would you like to take a look at
-> http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=295480 ?
->
-> The problem looks real enough to me (although I don't see the specific
-> circumstances where it would break), and it should probably be fixed for
-> beta3.
->
-> /* Steinar */
-> -- 
-> Homepage: http://www.sesse.net/
->
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
->
+--1629620785-410302742-1110078613=:8484
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--1629620785-410302742-1110078613=:8484--
+
