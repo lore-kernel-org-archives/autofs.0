@@ -1,16 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: submount vs automount
-Date: Tue, 29 Jun 2004 09:41:15 +0800 (WST)
+From: Hans Deragon <hans@deragon.biz>
+Subject: backfstype parameter supported.
+Date: Tue, 29 Jun 2004 08:40:13 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0406290932010.5546@wombat.indigo.net.au>
-References: <482A3FA0050D21419C269D13989C61130435E309@lavender-fe.eng.netapp.com>
-	<Pine.LNX.4.58.0406252225430.1375@donald.themaw.net>
-	<40DC6F84.5020701@sun.com><40E03CC2.7020601@sun.com>
-	<40E04693.1010507@sun.com>
-	<Pine.LNX.4.60.0406281749540.13910@fogarty.jakma.org>
+Message-ID: <40E1632D.1080903@deragon.biz>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7BIT
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.60.0406281749540.13910@fogarty.jakma.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,49 +15,46 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Paul Jakma <paul@clubi.ie>
-Cc: autofs@linux.kernel.org, Mike Waychison <Michael.Waychison@sun.com>
+Content-Type: text/plain; charset="us-ascii"
+To: autofs@linux.kernel.org
 
-On Mon, 28 Jun 2004, Paul Jakma wrote:
+Greetings.
 
-> On Mon, 28 Jun 2004, Mike Waychison wrote:
-> 
-> > This policy has to be determined on a machine-by-machine basis.  I 
-> > think we can agree to that.
-> 
-> Or site by site. (yeah, pam_console, eg, doesnt do directory lookups 
-> for config, but hey, maybe one day)
-> 
-> > I just chose to examine the :0 policy because doing so allows us to 
-> > explore the implications of such an implementation.
-> 
-> ok.
-> 
-> > For example, after considering the 'owner' bit, I realize now that
-> > autofs would:
-> >
-> > - still have to parse for such an option as it runs as root and would
-> > likely have to setuid to the user in question (so umount(8) still works).
-> >
-> > - which implies that automount would need to know who triggered the
-> > mount, which isn't possible without a protocol jump.
-> 
-> Yes, it would. I didnt realise automount did not have access to 
-> credentials of the process which triggered the 'lookup'.
 
-This came up recently and I've given it some thought.
+  Newbie with automount.  Its been a week I tried to communicate with H. Peter
+Anvin at hpa|at|zytor.com but never received any answer.  I then found this
+mailing list.
 
-A pipe is used to talk from the kernel to the automount process.
-So either the info must be included in the packet or the mount seperated 
-from the daemon and called using a helper.
+  cachefs is not supported by Linux.  In a mix Solaris/Linux environment,
+where NIS is provided by Solaris, many yp maps specify cachefs as the
+filesystem, but backfstype is set to nfs.  Automount does not support backfstype.
 
-The first option requires changing the packet size and so breaks backward 
-compatibility. Not necessarily bad but would need to be carefully managed.
+  Here is a exert of an entry:
 
-Thinking about it, the second seems quite feasibile.
+.. fstype=cachefs,cachedir=<dir>,backfstype=nfs ...
 
-It is similar to the method to be used by Mike.
+  I changed the code and now I have a modified 4.1.3 version which tries for
+the filesystem defined with "fstype" and if this fails, "backfstype" is then
+tried.  It works.
 
-Ian
+  My patch is not perfect though.  While trying "cachefs", modprobe errors
+shows up in /var/log/messages.  Until backfstype also fails, ideally no error
+message should be emitted.  Maybe there is a way to test for the existance of
+the kernel module before actually try to load it, thus avoiding error messages.
+
+  Altough I am a programmer, I do not program in C and do know pratically
+nothing about system calls.  I would like my patch to be accepted in the main
+branch and that someone experienced with autofs clean it up.
+
+  Please comment.  I would be glade to send you the patch, but first I have to
+read "man patch" to figure out how to generate one. :)  Its a pretty small
+change to the code.
+
+
+Best regards,
+Hans Deragon
+--
+Consultant en informatique/Software Consultant
+Deragon Informatique inc.     Open source:
+http://www.deragon.biz        http://facil.qc.ca (Promotion du libre)
+mailto://hans@deragon.biz     http://autopoweroff.sourceforge.net (Logiciel)
