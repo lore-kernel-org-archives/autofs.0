@@ -1,12 +1,9 @@
-From: Ion Badulescu <lists@cs.columbia.edu>
-Subject: Re: [NFS] Re: VFS: Busy inodes after unmount on 2 way SMP
-Date: Tue, 30 Sep 2003 09:12:04 -0400 (EDT)
+From: Eric Werme USG <werme@wasted.zk3.dec.com>
+Subject: Re: [NFS] Re: multiple servers per automount
+Date: Fri, 10 Oct 2003 13:02:06 -0400 (EDT)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.44.0309300849180.27055-100000@guppy.limebrokerage.com>
-References: <Pine.LNX.4.44.0309302012010.2982-100000@raven.themaw.net>
-Mime-Version: 1.0
+Message-ID: <200310101702.h9AH26q0000921107@anw.zk3.dec.com>
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.44.0309302012010.2982-100000@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,59 +13,54 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org, Arun Sharma <arun.sharma@intel.com>, "H. Peter Anvin" <hpa@zytor.com>
+To: aogden@unocal.com
+Cc: autofs@linux.kernel.org
 
-Hi Ian,
+Ogden, Aaron A. wrote:
 
-On Tue, 30 Sep 2003, Ian Kent wrote:
+>Aha! Wisdom from the heavens... :-)
+>I assume that the RPC code is doing that to comply with reserved-port
+>restrictions, ie. ports < 1024.  Solaris needs to do the same thing
+>(with nfssrv:nfs_portmon=1) so it seems that there would be an inherent
+>limit of 1024 ports or mountpoints to work with.  Actually less, since
+>some ports will be in use.  How does Sun get 260,000 active mounts if
+>they can only use ports < 1024?  Do we really need one port for each
+>mountpoint?
 
-> On Mon, 29 Sep 2003, Ion Badulescu wrote:
-> > The daemon version doesn't matter, any daemon will do. All you need is to 
-> > kill -9 automountd while something is mounted, and then unmount everything 
-> > by hand without removing the mountpoint directories.
-> > 
-> 
-> Yes, your'e exactly right. That's expected behaviour as the directory 
-> dentries still exist and there is no daemon to remove them.
+I can't speak for Solaris, but on HP's Tru64 UNIX we use one TCP
+connection for all traffic per mount, and we close connections that
+have been idle for 5 minutes and when there are "too many" connections
+to one server.  For UDP, the NFS client uses a single port, in large part
+do to problems with port number space exhaustion and the ripple effects
+on other consumers of that space.  (We don't throttle the number of outstanding
+NFS requests, but we have a fixed limit on the read/write nfsiod helper
+threads.)  We generally ran into port number exhaustion on our mail server
+which uses NFS (via aoutmount) to access /home/user/.forward files.  If one
+production system went down, then the mail server would wind up with a 
+big flock of sendmails all trying to access the .forwards until the port
+number space was chewed up, then automount couldn't issue new mounts
+whereupon no mail got delivered to anyone.
 
-Hmm. Expected behaviour, you say? Maybe, maybe not, it's hard to tell 
-what's to be expected here, since the autofs umount semantics are so 
-different from a regular filesystems.
+The NFS client gets its first look at a reply via a callback from UDP
+code when it finds the port has been registered.  The callback figures
+out what thread is waiting for the XID, saves the reply address in a
+data structure and issues the wakeup.  When the code is processed for
+real, it's NFS code that does the UDP checksum, thereby loading
+the local cache with the data.  The inspiration was pretty simple as I
+had to do the same demultiplexing in the NFS over TCP client.
 
-Normally a filesystem is allowed to be unmounted if it is not busy, right?
-But with autofs it's different, it should be unmounted only if it is
-completely empty, with no entries at all -- and I'm not convinced the VFS
-layer is up to the task of dealing with this requirement.  Alternatively
-the autofs code should be prepared to clean up after itself, but that
-might not be possible in all circumstances.
+BTW, the rationale behind the one TCP connection per mount was to
+conform to TCP's congestion control design, but limit the amount of
+cross mount locking and code complexity.  Typical NFS traffic
+has multiple accesses on a mount at a time, so I figured it would be
+a good compromise.  I know Solaris has one connection per server, I don't
+know what other vendors do.
 
-> Hence the message. Seeing this message has always been a signal to me
-> that the daemon has a bug.
-
-Oh, you're absolutely right here (although we're talking about different
-daemons, I'm using--and expanding, and debugging--amd's autofs support).
-:-) Nonetheless, it's a bug in the kernel code that should be remedied.
-
-> I have been thinking that implementing a umount_begin routine in the 
-> super_operations for autofs4 would remedy the problem. I believe that, 
-> correct me if I'm wrong, the umount must be done with a force option in 
-> this case, so the umount_begin would be called.
-
-No, you're right, you need MNT_FORCE for umount_begin to be called.
-
-That, however, would be a reasonable solution if the filesystem also
-prevented its own unmounting when it is not empty (by having each entry
-hold a reference to the vfsmount in its private data, perhaps, I'm not
-sure). Then, inside umount_begin, and only if the filesystem is catatonic,
-it would garbage-collect any entries not mounted upon and not busy. That
-should work, I think...
-
-Thanks,
-Ion
+	-Ric Werme
 
 -- 
-  It is better to keep your mouth shut and be thought a fool,
-            than to open it and remove all doubt.
+Eric (Ric) Werme         |  werme@zk3.dec.com
+Hewlett-Packard Co.      |  http://werme.8m.net/
