@@ -1,12 +1,11 @@
-From: Mike Waychison <Michael.Waychison@Sun.COM>
-Subject: Re: Re: Intermittant problems mounting with automounter
-Date: Tue, 14 Dec 2004 19:13:57 -0500
-Message-ID: <41BF81C5.5040205@sun.com>
-References: <200411302007.iAUK7GjH020588@jetcar.spd.analog.com>
+From: Chris Feist <cfeist@redhat.com>
+Subject: [Fwd: [PATCH] ldap search limit fix]
+Date: Tue, 07 Dec 2004 15:10:31 -0600
+Message-ID: <41B61C47.3000306@redhat.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7BIT
+Content-Type: multipart/mixed;
+ boundary="------------040201020409060902090906"
 Return-path: <autofs-bounces@linux.kernel.org>
-In-reply-to: <200411302007.iAUK7GjH020588@jetcar.spd.analog.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,84 +16,191 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
+To: raven@themaw.net, autofs@linux.kernel.org
+
+This is a multi-part message in MIME format.
+--------------040201020409060902090906
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+
+I've attached a new patch for the ldap-search-limit patch I sent on Oct. 
+29th.  Just had to fix one variable in the patch so we don't accidently 
+try to access an unitialized pointer.
+
+Thanks,
+Chris
+
+-------- Original Message --------
+Subject: 	[autofs] [PATCH] ldap search limit fix
+Date: 	Fri, 29 Oct 2004 14:44:43 -0500
+From: 	Chris Feist <cfeist@redhat.com>
+Reply-To: 	cfeist@redhat.com
+Organization: 	RedHat, Inc.
+To: 	raven@themaw.net, autofs@linux.kernel.org
+
+
+
+Currently if a site is using ldap for its automount maps and the number
+of maps they have is greater than the search limit for their ldap
+server, automount will give an error and quit at that mount point.
+
+This is because the ldap search returns LDAP_SIZELIMIT_EXCEEDED, which
+automount assumes is an error.  So the patch modifies automount so it
+knows that if it recieves an LDAP_SIZELIMIT_EXCEEDED that it got the
+map, it was just too large.  And automount knows that it can't ghost the
+map, but it still can look up individual entries.
+
+
+Thanks,
+Chris
+
+
+
+
+
+--------------040201020409060902090906
+Content-Type: text/x-patch;
+ name="autofs-4.1.3-ldap-search-limit.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="autofs-4.1.3-ldap-search-limit.patch"
+
+--- autofs-4.1.3/modules/lookup_ldap.c.ldap-search-limit.patch	2004-04-03 01:14:33.000000000 -0600
++++ autofs-4.1.3/modules/lookup_ldap.c	2004-10-29 14:03:02.163260495 -0500
+@@ -150,8 +150,10 @@ int lookup_init(const char *mapfmt, int 
+ }
+ 
+ static int read_one_map(const char *root,
+-			const char *class, char *key, char *type,
+-			struct lookup_context *context)
++			const char *class, char *key,
++			const char *keyval, int keyvallen, char *type,
++			struct lookup_context *context,
++			int *result_ldap)
+ {
+ 	struct lookup_context *ctxt = (struct lookup_context *) context;
+ 	int rv, i, l, count;
+@@ -170,7 +172,10 @@ static int read_one_map(const char *root
+ 	}
+ 
+ 	/* Build a query string. */
+-	l = strlen("(&(objectclass=))") + strlen(class) + 1;
++	l = strlen("(objectclass=)") + strlen(class) + 1;
++	if (keyvallen > 0) {
++		l += strlen(key) + keyvallen + strlen("(&(=))");
++	}
+ 
+ 	query = alloca(l);
+ 	if (query == NULL) {
+@@ -179,8 +184,15 @@ static int read_one_map(const char *root
+ 	}
+ 
+ 	memset(query, '\0', l);
+-	if (sprintf(query, "(&(objectclass=%s))", class) >= l) {
+-		debug(MODPREFIX "error forming query string");
++	if (keyvallen > 0) {
++		if (sprintf(query, "(&(objectclass=%s)(%s=%.*s))", class,
++			    key, keyvallen, keyval) >= l) {
++			debug(MODPREFIX "error forming query string");
++		}
++	} else {
++		if (sprintf(query, "(objectclass=%s)", class) >= l) {
++			debug(MODPREFIX "error forming query string");
++		}
+ 	}
+ 	query[l - 1] = '\0';
+ 
+@@ -212,6 +224,7 @@ static int read_one_map(const char *root
+ 	if (rv != LDAP_SUCCESS) {
+ 		crit(MODPREFIX "couldn't bind to %s",
+ 		     ctxt->server ? ctxt->server : "default server");
++		*result_ldap = rv;
+ 		return 0;
+ 	}
+ 
+@@ -223,6 +236,7 @@ static int read_one_map(const char *root
+ 
+ 	if ((rv != LDAP_SUCCESS) || (result == NULL)) {
+ 		crit(MODPREFIX "query failed for %s", query);
++		*result_ldap = rv;
+ 		return 0;
+ 	}
+ 
+@@ -268,15 +282,23 @@ static int read_one_map(const char *root
+ 	return 1;
+ }
+ 
+-static int read_map(const char *root, struct lookup_context *context)
++static int read_map(const char *root, struct lookup_context *context,
++		    const char *key, int keyvallen, int *result_ldap)
+ {
+ 	struct lookup_context *ctxt = (struct lookup_context *) context;
+ 	time_t age = time(NULL);
++	int rv = LDAP_SUCCESS;
+ 
+ 	/* all else fails read entire map */
+-	if (!read_one_map(root, "nisObject", "cn", "nisMapEntry", ctxt)) {
+-		if (!read_one_map(root, "automount", "cn", "automountInformation", ctxt))
++	if (!read_one_map(root, "nisObject", "cn", key, keyvallen,
++				"nisMapEntry", ctxt, &rv)) {
++		if ((rv != LDAP_SUCCESS) ||
++		    !read_one_map(root, "automount", "cn", key, keyvallen,
++				  "automountInformation", ctxt, &rv)) {
++			if (result_ldap != NULL) 
++				*result_ldap = rv;
+ 			return 0;
++		}
+ 	}
+ 
+ 	/* Clean stale entries from the cache */
+@@ -289,13 +311,22 @@ int lookup_ghost(const char *root, int g
+ {
+ 	struct lookup_context *ctxt = (struct lookup_context *) context;
+ 	struct mapent_cache *me;
+-	int status = 1;
++	int status = 1, rv = LDAP_SUCCESS;
+ 	char *mapname;
+ 
+ 	chdir("/");
+ 
+-	if (!read_map(root, ctxt))
+-		return LKP_FAIL;
++	if (!read_map(root, ctxt, NULL, 0, &rv))
++		switch (rv) {
++		case LDAP_SIZELIMIT_EXCEEDED:
++			if (ghost)
++				crit("lookup_ghost: Unable to download "
++				    "the entire LDAP map for: %s ",root);
++		case LDAP_UNWILLING_TO_PERFORM:
++			return LKP_NOTSUP;
++		default:
++			return LKP_FAIL;
++		}
+ 
+ 	if (ctxt->server) {
+ 		mapname = alloca(strlen(ctxt->server) + strlen(ctxt->base) + 2 + 1 + 1);
+@@ -382,8 +413,8 @@ int lookup_mount(const char *root, const
+ 
+ 	status = lookup(root, name, name_len, ctxt);
+ 	if (status == -1) {
+-		/* all else fails read entire map */
+-		if (!read_map(root, ctxt))
++		/* all else fails read just this entry */
++		if (!read_map(root, ctxt, name, name_len, NULL))
+ 			return 1;
+ 
+ 		status = lookup(root, name, name_len, ctxt);
+
+--------------040201020409060902090906
 Content-Type: text/plain; charset="us-ascii"
-To: David Meleedy <david.meleedy@analog.com>
-Cc: autofs@linux.kernel.org
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
 
-David Meleedy wrote:
-> Well, in order to troubleshoot this issue further, autofs on Redhat
-> Enterprise 3, update 3
-> 
-> I removed all options from the /etc/auto.master file:
-> 
-> from:
-> 
-> /cpd            /etc/auto.cpd  hard,intr,rsize=8192,wsize=8192
-> 
-> to:
-> 
-> /cpd            /etc/auto.cpd 
-> 
-> 
-> After this change, the following errors seemed to go away:
-> 
-> ====
-> Nov 19 11:27:38 codered kernel: RPC: Can't bind to reserved port (98).
-> Nov 19 11:27:38 codered kernel: nfs_get_root: getattr error = 5
-> Nov 19 11:27:38 codered kernel: RPC: Can't bind to reserved port (98).
-> Nov 19 11:27:38 codered kernel: nfs_get_root: getattr error = 5
-> Nov 19 11:27:38 codered kernel: nfs_read_super: get root inode failed
-> Nov 19 11:27:38 codered kernel: nfs warning: mount version older than kernel
-> Nov 19 11:27:38 codered kernel: RPC: Can't bind to reserved port (98).
-> Nov 19 11:27:38 codered kernel: nfs_get_root: getattr error = 5
-> Nov 19 11:27:38 codered kernel: nfs_read_super: get root inode failed
-> Nov 19 11:27:38 codered automount[3623]: >> mount: wrong fs type, bad option, 
-> bad superblock on aflac:/vol/vol1/cpd/nwd_usr,
-> Nov 19 11:27:38 codered automount[3623]: >>        or too many mounted file 
-> systems
-> Nov 19 11:27:38 codered automount[3623]: mount(nfs): nfs: mount failure 
-> aflac:/vol/vol1/cpd/nwd_usr on /cpd/usr
-> Nov 19 11:27:38 codered automount[3623]: failed to mount /cpd/usr
-> =====
-> 
-> So whatever it is might be caused by the options?
-> 
+--------------040201020409060902090906--
 
-These messages are due to starvation for reserved ports (< 1024).
-Specifically, the kernel will only use ports < 800.  Currently, the
-kernel uses one port per nfs filesystem.  If you mount filesystems very
-fast, then you can also run out of reserved ports as the local (mountd
-iirc?) will close tcp sessions and each must wait 2 minutes before being
-released.
-
-One solution is to try out the patch I posted last week that allows nfs
-mounts to share tcp/udp connections:
-
-http://marc.theaimsgroup.com/?l=linux-nfs&m=110261671705396&w=2
-
-(against 2.6.9, although should apply to other kernels w/o too much
-difficulty)
-
-HTH,
-
-- --
-Mike Waychison
-Sun Microsystems, Inc.
-1 (650) 352-5299 voice
-1 (416) 202-8336 voice
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NOTICE:  The opinions expressed in this email are held by me,
-and may not represent the views of Sun Microsystems, Inc.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
-
-iD8DBQFBv4HFdQs4kOxk3/MRAvoxAJ0XCN+p94P2SdOkm9GuLPpiA9CsOQCdEkk/
-ljNrkssKI9W/O/QxGjFycYc=
-=GF6k
------END PGP SIGNATURE-----
