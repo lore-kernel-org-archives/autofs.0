@@ -1,8 +1,8 @@
-From: Bryce as root <root@www.linux.org.uk>
-Subject: fast mounting problems
-Date: Tue, 31 Aug 2004 17:55:41 +0100 (BST)
+From: Terrence Martin <tmartin@physics.ucsd.edu>
+Subject: Failure to Unmount NFS Filesystems causes clients to hang on reboot
+Date: Thu, 02 Sep 2004 14:45:09 -0700
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <E1C2Bv4-0002u8-7T@www.linux.org.uk>
+Message-ID: <41379465.6030603@physics.ucsd.edu>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
@@ -15,38 +15,105 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: 
 
-Relating to Autofs 4.1
+Hi,
 
-This relates to a bug I've filed with RHAT
-( https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=128966 )
+I am having a problem where my client machines are not able to reboot 
+correctly because the NFS mounted file systems are hanging at shutdown 
+time and refuse to unmount.
 
-In our testing enviroment we use autofs a lot and have been experiancing
-problems of being unable to mount directories every now and again
+I am running RHEL3 (Rocks Cluster 3.1) nodes with the latest RH RHEL3 
+kernel in a cluster environment.  The problem occured with older kernels 
+as well.
 
-To this end I build a test script to exercise the autofs daemon which
-nicely exposes the problem (again covered in the bugzilla report)
+Relatively little information is actually shared over NFS, and clients 
+almost never have to write to the same files. Mostly clients read some 
+code and configurations files over NFS and then maybe writing a bit of 
+data to isolated locations (no two clients write to the same files).
 
-What appears to be happening is that autofs is spawning forked copies of
-itself to help facilitate loading FS's
-however, initially when debugging it seemed like the first batch of NFS
-directories were mounted before the second forked process times out
-trying to rpc_ping the server because the initial process never bothered to
-close the socket.
+Even when I shutdown the processes that actually use my nfs file systems 
+and confirm via lsof that no files are open on those file systems manual 
+unmount commands also hang.  Autofs also fails to stop correctly 
+claiming that the file systems are busy.
 
-Now Jeff Moyer at RedHat spotted that and gave me a patch for rpc_stubs.c
-which alleviates the problem slightly, however, while the parent and then
-the first child process play nice, any further forked processes also run
-into this rpc_ping port being held open and consequently fail to mount and
-you'd see something like this in the system messages log
+Most of the clients mount filesystems from 3 or 4 servers via autofs. My 
+timeouts are 600 seconds.
 
-Aug 18 18:59:12 localhost automount[8746]: attempting to mount entry/test/947
-Aug 18 18:59:12 localhost automount[9050]: >> nfs bindresvport: Address already in use
-Aug 18 18:59:12 localhost automount[9050]: mount(nfs): nfs: mount failure 192.168.1.100:/compile/nfs/947 on /test/947
+The problem is not always consistent. The other day I was able to 
+unmount properly and reboot after various strategies of manual unmounts 
+and shutting off autofs. Today I could not.
 
-soooooo,.... ideas on how to make the other children processes play nice?
+So my questions are, if there are no files open on these mounted file 
+systems why would I have such problems? Can you force the NFS file 
+systems to unmount anyway? This is a particular problem because a hang 
+requires manual intervention to power cycle the machine. I would even be 
+happy to have the NFS unmounting be ignored completely and just reboot 
+the system after properly unmounting the local filesystems and ensuring 
+all programs are shutdown.
 
-Phil
-=--=
+I would be interested also in any suggestions of how to find what is 
+hanging up my NFS mounts and preventing unmounting...
+
+Thanks for any suggestions,
+
+Terrence Martin
+UCSD Physics
+
+A few command outputs
+
+
+root@compute-2-5 ~# df
+Filesystem           1K-blocks      Used Available Use% Mounted on
+/dev/hda1              4127076   3454252    463180  89% /
+/dev/hda3             71789596  21607120  46535724  32% /state/data
+none                   1030816         0   1030816   0% /dev/shm
+192.168.20.3:/home/cdfcaf
+                     101161396  34167296  66994100  34% /home/cdfcaf
+192.168.20.3:/home/cdfcaf
+                     101161396  34167296  66994100  34% /home/cdfcaf
+192.168.10.5:/falcon/0/users
+                     1463382364 618177588 845204776  43% /home/users
+frontend-3.local:/export/home/install
+                      10080520   5781204   3787248  61% /home/install
+
+root@compute-2-5 ~# mount
+/dev/hda1 on / type ext3 (rw)
+none on /proc type proc (rw)
+usbdevfs on /proc/bus/usb type usbdevfs (rw)
+/dev/hda3 on /state/data type ext3 (rw)
+none on /dev/shm type tmpfs (rw)
+none on /dev/pts type devpts (rw,gid=5,mode=620)
+automount(pid2592) on /home type autofs 
+(rw,fd=5,pgrp=2592,minproto=2,maxproto=3)
+192.168.20.3:/home/cdfcaf on /home/cdfcaf type nfs (rw,addr=192.168.20.3)
+automount(pid3119) on /home type autofs 
+(rw,fd=5,pgrp=3119,minproto=2,maxproto=3)
+automount(pid3149) on /netstor type autofs 
+(rw,fd=5,pgrp=3149,minproto=2,maxproto=3)
+automount(pid3180) on /afs type autofs 
+(rw,fd=5,pgrp=3180,minproto=2,maxproto=3)
+192.168.20.3:/home/cdfcaf on /home/cdfcaf type nfs (rw,addr=192.168.20.3)
+192.168.10.5:/falcon/0/users on /home/users type nfs (rw,addr=192.168.10.5)
+frontend-3.local:/export/home/install on /home/install type nfs 
+(rw,addr=192.168.21.1)
+
+cat /etc/auto.master
+# $411id: /etc/auto.master$
+# Retrieved: 02-Sep-2004 21:41
+# Master server: 192.168.21.1
+# Last modified on master: 04-Aug-2004 04:04
+# Encrypted file size: 490 bytes
+#
+# Owner: 0.0
+# Name: etc.auto..master
+# Mode: 0100644
+/home auto.home --timeout 600
+/netstor auto.net --timeout 600
+/afs    auto.afs --timeout 600
+/groot   auto.grid3      --timeout 600
+
+On one of the servers
+cat /etc/exports
+/export 192.168.0.0/255.255.0.0(rw,sync)
