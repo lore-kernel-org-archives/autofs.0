@@ -1,17 +1,13 @@
-From: raven@themaw.net
-Subject: Re: automount doesn't expire nested nfs mounts for certain
- kernel configs
-Date: Mon, 10 May 2004 21:29:07 +0800 (WST)
+From: devnull@adc.idt.com
+Subject: Re: autofs and 2.6.x
+Date: Mon, 10 May 2004 13:41:34 -0400 (EDT)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0405102123390.19425@donald.themaw.net>
-References: <409E4AB5.6A3CCEB1@wm7d.net>
-	<Pine.LNX.4.58.0405100913350.14283@wombat.indigo.net.au>
-	<Pine.LNX.4.58.0405100504440.7687@www.wm7d.net>
-	<Pine.LNX.4.58.0405102051180.19425@donald.themaw.net>
-	<Pine.LNX.4.58.0405100605110.10734@www.wm7d.net>
+Message-ID: <Pine.LNX.4.44.0405101332190.27883-100000@who.adc.idt.com>
+References: <Pine.LNX.4.58.0405102251560.28439@donald.themaw.net>
+Reply-To: devnull@adc.idt.com
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0405100605110.10734@www.wm7d.net>
+In-Reply-To: <Pine.LNX.4.58.0405102251560.28439@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -23,46 +19,38 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Joseph Mack NA3T <jmack@wm7d.net>
-Cc: autofs@linux.kernel.org
+To: raven@themaw.net
+Cc: AutoFS on Linux Kernel <autofs@linux.kernel.org>
 
-On Mon, 10 May 2004, Joseph Mack NA3T wrote:
+> Use the patches for your kernel at 
+> http://www.kernel.org/pub/linux/kernel/people/raven
+> 
+> and add this patch for the ioctls. It applies with a small offset but 
+> achieves the desired result. This fixes the problem for me on sparc64 but 
+> I'm not sure avout x86_64. Let me know.
+
+Doesnt seem to fix the problem. 
+
+autofs seems to work fine, but ghosting doesnt. 
+
+Is there anything else i can do on the machine to help debug the problem ?
 
 > 
-> > With autofs-4.1.2 add a -d to the master map line and send the log
-> > fragment.
-> 
-> OK, not knowing where to add the -d, I'd put it in the autofs init.d
-> script with daemonoptions and it seemed to work
+> --- linux-2.6.6-rc3-mm2/include/linux/compat_ioctl.h.orig	2004-05-09 23:06:04.000000000 +0800
+> +++ linux-2.6.6-rc3-mm2/include/linux/compat_ioctl.h	2004-05-09 23:04:19.000000000 +0800
+> @@ -546,6 +546,10 @@
+>  COMPATIBLE_IOCTL(AUTOFS_IOC_PROTOVER)
+>  COMPATIBLE_IOCTL(AUTOFS_IOC_EXPIRE)
+>  COMPATIBLE_IOCTL(AUTOFS_IOC_EXPIRE_MULTI)
+> +COMPATIBLE_IOCTL(AUTOFS_IOC_PROTOSUBVER)
+> +COMPATIBLE_IOCTL(AUTOFS_IOC_ASKREGHOST)
+> +COMPATIBLE_IOCTL(AUTOFS_IOC_TOGGLEREGHOST)
+> +COMPATIBLE_IOCTL(AUTOFS_IOC_ASKUMOUNT)
+>  /* DEVFS */
+>  COMPATIBLE_IOCTL(DEVFSDIOC_GET_PROTO_REV)
+>  COMPATIBLE_IOCTL(DEVFSDIOC_SET_EVENT_MASK)
 
-That should work fine.
+I am applying all the patches(the ones from /people/raven and this one) to 
+the 2.6.4 tree. 
 
-> 
-> Let me set it up here and I'll post some logs (in another posting)
-> 
-> > What is in your master map then?
-> 
-> /nfs	/etc/auto.nfs.machine_name	-bg,intr,suid,nodev
-> 
-> > And the map your trying to load?
-> 
-> I sent a line with my first posting. It was
-
-Saw that afterward.
-
-I'll check this out but I've been working on this multi mount 
-stuff recently and it seemed OK.
-
-Do you have anything running that may be scanning the directories?
-
-The compaq stuff has done this in the past or sometimes gnome destops have 
-this problem.
-
-You might like to apply the 4.1.2 patches at the same location you got the 
-tar.
-
-> 
-> server	-fstype=nfs,soft	/ server:/ \
-> 				/usr server:/usr \
-> 				/src server:/src
-> 
+Should i be trying 2.6.6 instead ?
