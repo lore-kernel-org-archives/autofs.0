@@ -1,8 +1,8 @@
 From: "H. Peter Anvin" <hpa@zytor.com>
 Subject: Re: making the mountpoints visible all the time (fwd)
-Date: Fri, 21 Nov 2003 11:52:45 -0800
+Date: Fri, 21 Nov 2003 11:56:31 -0800
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <3FBE6D0D.3070307@zytor.com>
+Message-ID: <3FBE6DEF.5020202@zytor.com>
 References: <Pine.LNX.4.33.0311211453250.6131-100000@wombat.indigo.net.au>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -34,9 +34,12 @@ Ian Kent wrote:
 > So I'm on the fence here?
 > 
 
-At some sites the maps change rather frequently.  I'd let it be a
-adjustable option, however, I think few sites would want to have more
-than 24 hour delay, ever; most sites wouldn't want more than a few
-hours, and some sites wouldn't want more than 5 minutes.
+Oh yes, a lot of map types support querying "has a change occurred"
+(usually in the form of a generation number, or in the case of a file
+map, the mtime.)  This absolutely should be taken advantage of.
+
+(For a program map, this complicates the protocol somewhat.  I don't
+know necessarily of the best way to deal with that.  It needs some
+thinking :)
 
 	-hpa
