@@ -1,7 +1,7 @@
 From: David Meleedy <david.meleedy@analog.com>
-Subject: A different automounter problem: "BUG messages"
-Date: Tue, 30 Nov 2004 15:18:45 -0500
-Message-ID: <200411302018.iAUKIjoO020709@jetcar.spd.analog.com>
+Subject: Re: Intermittant problems mounting with automounter
+Date: Tue, 30 Nov 2004 15:07:16 -0500
+Message-ID: <200411302007.iAUK7GjH020588@jetcar.spd.analog.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
@@ -19,35 +19,42 @@ Content-Transfer-Encoding: 7bit
 To: autofs@linux.kernel.org
 
 
-We have a site that has the following errors constantly showing
-up in their /var/log/messages file (again this is Redhat Enterprise
-3 WS, update 3 for AMD64).
+Well, in order to troubleshoot this issue further, autofs on Redhat
+Enterprise 3, update 3
 
-Nov 30 12:32:36 ho automount[5287]: >> mount: slcnetapp:/vol/vol0/etc failed, 
-reason given by server: Permission denied
-Nov 30 12:32:36 ho automount[5287]: mount(nfs): nfs: mount failure 
-slcnetapp:/vol/vol0/etc on /net/slcnetapp/vol/vol0/etc
-Nov 30 12:36:52 ho automount[5614]: >> mount: slcnetapp:/vol/vol0/etc failed, 
-reason given by server: Permission denied
-Nov 30 12:36:52 ho automount[5614]: mount(nfs): nfs: mount failure 
-slcnetapp:/vol/vol0/etc on /net/slcnetapp/vol/vol0/etc
-Nov 30 12:36:52 ho automount[5614]: BUG: /net/slcnetapp/vol/vol0 already 
-mounted
-Nov 30 12:36:52 ho automount[5614]: BUG: /net/slcnetapp/vol/vol0/soft already 
-mounted
+I removed all options from the /etc/auto.master file:
 
-Strangely, if you try to:
+from:
 
-cd /net/slcnetapp/vol/vol0/etc
+/cpd            /etc/auto.cpd  hard,intr,rsize=8192,wsize=8192
 
-it works.  The permissions on the filer look like this:
+to:
 
-[dmeleedz@ho ~]$ cd /net/slcnetapp/vol/vol0/etc
-[dmeleedz@ho etc]$ cat exports
-/vol/vol0       -root=host1.spd.analog.com:host2.spd.analog.com
-/vol/vol0/cpd   -root=host1.spd.analog.com
-/vol/vol0/proj  -access=netgroup1:netgroup2:netgroup3,root=host1
-/vol/vol0/soft  -access=netgroup4,root=host1
+/cpd            /etc/auto.cpd 
+
+
+After this change, the following errors seemed to go away:
+
+====
+Nov 19 11:27:38 codered kernel: RPC: Can't bind to reserved port (98).
+Nov 19 11:27:38 codered kernel: nfs_get_root: getattr error = 5
+Nov 19 11:27:38 codered kernel: RPC: Can't bind to reserved port (98).
+Nov 19 11:27:38 codered kernel: nfs_get_root: getattr error = 5
+Nov 19 11:27:38 codered kernel: nfs_read_super: get root inode failed
+Nov 19 11:27:38 codered kernel: nfs warning: mount version older than kernel
+Nov 19 11:27:38 codered kernel: RPC: Can't bind to reserved port (98).
+Nov 19 11:27:38 codered kernel: nfs_get_root: getattr error = 5
+Nov 19 11:27:38 codered kernel: nfs_read_super: get root inode failed
+Nov 19 11:27:38 codered automount[3623]: >> mount: wrong fs type, bad option, 
+bad superblock on aflac:/vol/vol1/cpd/nwd_usr,
+Nov 19 11:27:38 codered automount[3623]: >>        or too many mounted file 
+systems
+Nov 19 11:27:38 codered automount[3623]: mount(nfs): nfs: mount failure 
+aflac:/vol/vol1/cpd/nwd_usr on /cpd/usr
+Nov 19 11:27:38 codered automount[3623]: failed to mount /cpd/usr
+=====
+
+So whatever it is might be caused by the options?
 
 -Dave
 
