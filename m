@@ -1,13 +1,13 @@
-From: Julien.Soula@lifl.fr
-Subject: Re: autofs4 patches for 2.6 kernel
-Date: Fri, 9 Apr 2004 22:46:04 +0200
+From: Ian Kent <raven@themaw.net>
+Subject: Re: "Busy inodes after unmount. Self destruct in 5
+	seconds..."
+Date: Sat, 10 Apr 2004 21:06:05 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <20040409204604.GB4007@foudroyante.lifl.fr>
-References: <Pine.LNX.4.58.0404071952170.4948@raven.themaw.net>
+Message-ID: <Pine.LNX.4.58.0404102054510.5094@raven.themaw.net>
+References: <OF602ECAC6.8CFD3CF1-ON85256E71.004B70E0-04256E71.004E8C14@us.ibm.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============67825274032849725=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0404071952170.4948@raven.themaw.net>
+In-Reply-To: <OF602ECAC6.8CFD3CF1-ON85256E71.004B70E0-04256E71.004E8C14@us.ibm.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,111 +17,76 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs mailing list <autofs@linux.kernel.org>
-
-
---===============67825274032849725==
-Content-Type: multipart/signed; protocol="application/x-pkcs7-signature";
-	micalg=sha1; boundary="3uo+9/B/ebqu+fSQ"
-Content-Disposition: inline
-
-
---3uo+9/B/ebqu+fSQ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, Apr 07, 2004 at 08:04:18PM +0800, Ian Kent wrote:
->=20
-> Hi all,
->=20
-> Some progress on getting the autofs4 patches into the kernel tree.
->=20
-> Could anyone that is able to test within a 2.6 envronment please test thi=
-s=20
-> as much as possible and feed back the results.
->=20
-> There are bound to be problems so it would be good to be pro-active.
-
-It's not really related to kernel side but it seems that the variables
-on command line (-Dtoto=3Dtata) are not passed throught submount, at
-least for direct mount.
-
-I test it with automount version 4.1.2
-
---=20
-Julien
-
-
---3uo+9/B/ebqu+fSQ
-Content-Type: application/x-pkcs7-signature
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Transfer-Encoding: base64
-
-MIIKagYJKoZIhvcNAQcCoIIKWzCCClcCAQExCzAJBgUrDgMCGgUAMAsGCSqGSIb3DQEHAaCC
-CB0wggSoMIIDkKADAgECAgINmDANBgkqhkiG9w0BAQQFADA0MQswCQYDVQQGEwJGUjENMAsG
-A1UEChMEQ05SUzEWMBQGA1UEAxMNQ05SUy1TdGFuZGFyZDAeFw0wNDAzMzEwODAxNTRaFw0w
-NTAzMzEwODAxNTRaMGoxCzAJBgNVBAYTAkZSMQ0wCwYDVQQKEwRDTlJTMRAwDgYDVQQLEwdV
-TVI4MDIyMRUwEwYDVQQDEwxKdWxpZW4gU291bGExIzAhBgkqhkiG9w0BCQEWFEp1bGllbi5T
-b3VsYUBsaWZsLmZyMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA10nFjenT03pZ
-EkXAJLn4sZ4Fr+Xfx/a1RPXGFsA+WK5xl3OsXiut8X+2oTsIuPEHhyfdVFM+xz+f+G5MJIQp
-yODYXbe1mvDw+I1BIwuQoQZuFxrvxGxi7uzIUUgtkiRIolos9Jut10P1F9agJThuAt/Fn4IV
-/a+LQUkHcac4984t/M33Uex5YJvNC1sOYO3QN+Xm/CIGf5rvWDS2hjLBkkQ5wLHM0aRC+ppK
-zI3CO7RT2s75KGpF9qnvj5z6Uk13/pRpEyIWTN8Ktt9MmMO9yGCKSCEqPAd6WpgvngMaud5t
-4f5PkvXwaHS7Rc97csfj4ugpg/R/Bv7BJ1sdKzSTlQIDAQABo4IBjDCCAYgwDAYDVR0TAQH/
-BAIwADARBglghkgBhvhCAQEEBAMCBLAwDgYDVR0PAQH/BAQDAgXgMHgGCWCGSAGG+EIBDQRr
-FmlDZXJ0aWZpY2F0IENOUlMtU3RhbmRhcmQuIFBvdXIgdG91dGUgaW5mb3JtYXRpb24gc2Ug
-cmVwb3J0ZXIg4CBodHRwOi8vaWdjLnNlcnZpY2VzLmNucnMuZnIvQ05SUy1TdGFuZGFyZC8w
-HQYDVR0OBBYEFFbWVGaSroKTcSaVDqg+0qUd/nyuMFMGA1UdIwRMMEqAFGdZpeUHdEkD7wXP
-zC6kGNUQyJ48oS+kLTArMQswCQYDVQQGEwJGUjENMAsGA1UEChMEQ05SUzENMAsGA1UEAxME
-Q05SU4IBAjAfBgNVHREEGDAWgRRKdWxpZW4uU291bGFAbGlmbC5mcjBGBgNVHR8EPzA9MDug
-OaA3hjVodHRwOi8vY3Jscy5zZXJ2aWNlcy5jbnJzLmZyL0NOUlMtU3RhbmRhcmQvZ2V0ZGVy
-LmNybDANBgkqhkiG9w0BAQQFAAOCAQEAJmFOsD4/FVs/vMjBR0rvu4OXYFfClIg/tKm2bk2R
-G2qFYdgqKMTi1jD+ffej7u793aOLUlZT1LekNeobm41MJ3WxhfcFD56oX9zhuq5CIHstuAvf
-v5fQDUXxHa2uJZqf9+J+f1wE+z6U8xIWbOsdYlQte9Vt/A8HH5SEh8ZY50rEAxk5MuHI75gM
-U67rrdOAwSFYwqa+YK3vHaRkKHIPTMdNQOJbX6VtLccN6K2gtrArh6A6XpNluzNkMs98/J34
-9Eg1F3f/mJCPtn1ydrKhTyy2rQ8+Qhkjm99tDBL66I79gVMahc9smSxIc73NXCB6jffCS99O
-TC3Y2ZRydNc4tTCCA20wggJVoAMCAQICAQIwDQYJKoZIhvcNAQEEBQAwKzELMAkGA1UEBhMC
-RlIxDTALBgNVBAoTBENOUlMxDTALBgNVBAMTBENOUlMwHhcNMDEwNDI3MDU0NjQ5WhcNMTEw
-NDI1MDU0NjQ5WjA0MQswCQYDVQQGEwJGUjENMAsGA1UEChMEQ05SUzEWMBQGA1UEAxMNQ05S
-Uy1TdGFuZGFyZDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANzhHiE9BovqvV60
-iNsPk5e0bQc9hmIALcr/tUqO51akj2Es8aAqq/Yq3Xwsv+91VQusCU7nTmHA5wzwkBVFEgLC
-jOvDEmTiYxAYLssHMdmB5dwpgpsxVuKBHopvp+ipWBFEVoNds054cC3ftv1ygUXV8e5Nzu++
-1T0MkCBFmgmArw9M2iAOgL86s+sngMC5D8ChTkDcOv1qKr9A1SxxgPn4umvk6ioAqy++mvCn
-dm2YKZwPL/BC8hiXW8n2zBlfusK+EtJcsJCUwLfLBgTvjzDtMi16SveTu6AJpLTuM8vQg5u1
-tbOQ3o6QHlmcINVLHu3XTE+G+hw6KqHprAWgnb8CAwEAAaOBkjCBjzAMBgNVHRMEBTADAQH/
-MB0GA1UdDgQWBBRnWaXlB3RJA+8Fz8wupBjVEMiePDBTBgNVHSMETDBKgBRW62i50lx+mLWl
-U8ORb2NYxPlrt6EvpC0wKzELMAkGA1UEBhMCRlIxDTALBgNVBAoTBENOUlMxDTALBgNVBAMT
-BENOUlOCAQAwCwYDVR0PBAQDAgEGMA0GCSqGSIb3DQEBBAUAA4IBAQAGA0eDckWQwk7hIder
-F6kBVQbKQG1Voh1e6+IUI1nkCeKQ9jyNNgYPS6cmI2XC6gaacru4jMuKX+95NiV+ANfzBpT7
-g0QpJjfH7umHzmyGgBtxPdJir/bNYmxTD+Z6kwCMey4z4EEdqr5lmHbxlQd0s+Y/U3XVSwY2
-SynE9tyOE4BAEHOCrRV7BHFQtTcz8shku6EQfjbGra9vcFKm0a7MzLqw6FkSj2INrQPdSyro
-iTmIUS/tYei3MIfbJ1VtZoejUQmAYXFRBb4THdlBMPx1XwqWmxj/vpCBtBPAchEI/Wqaage9
-9IMstGA2ZAf6PWqnsJAEdoPdM8s04heYBAuhMYICFTCCAhECAQEwOjA0MQswCQYDVQQGEwJG
-UjENMAsGA1UEChMEQ05SUzEWMBQGA1UEAxMNQ05SUy1TdGFuZGFyZAICDZgwCQYFKw4DAhoF
-AKCBsTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0wNDA0MDky
-MDQ2MDNaMCMGCSqGSIb3DQEJBDEWBBQOOfGjcMA08pInuasCXoOSZE1R6TBSBgkqhkiG9w0B
-CQ8xRTBDMAoGCCqGSIb3DQMHMA4GCCqGSIb3DQMCAgIAgDANBggqhkiG9w0DAgIBQDAHBgUr
-DgMCBzANBggqhkiG9w0DAgIBKDANBgkqhkiG9w0BAQEFAASCAQDPG3nQvtCCNeeay82mOV22
-hUEQV0iSmzkXHXDugUjiml0HFw2lWUeLCCos3brnpuYzKcKOYck6+J8+aRGJ6v6SrkrBOIZX
-KqeYjvSipXLQqVbxBF7D6L4wrIyKKBtg/KBCvBACqa4MusTNgw1t0UXOcKYVQa/1K2xIC3BE
-ULzrEMGhm8h+g2dzDyzQMsmq47JHaDn1dok76B7h9YEtQcK4n1Nact9C2dHYll+WMD06Ka3B
-FjRIAJkt/6c33oHhpYCss41zojet8OWyHpdzf7I7/Az3exd99pTDZiYWVcc9CXY5LskVcEA/
-udLyxARNstKUqlpfnGw9rcMBPWJhlFKM
-
---3uo+9/B/ebqu+fSQ--
-
-
---===============67825274032849725==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: Raymond Prach <rprach@us.ibm.com>
+Cc: autofs@linux.kernel.org
 
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
+On Fri, 9 Apr 2004, Raymond Prach wrote:
 
---===============67825274032849725==--
+> Thanks so much for your ongoing help. I will try to answer your questions 
+> as best as I'm able...
+> 
+> I'm curious. Does the AIX 5 automounter still polute the mount table with 
+> heaps of entries if you have a large direct mount table (as it did in AIX 
+> 4)?
+> 
+> Not sure. The AIX systems in question are using the am-utils automounter, 
+> which leaves the mount table tidy but, at least for us, has a habit of 
+> blowing up every so often, taking the machine down with it....
 
+OK.
+
+> 
+> First, the version of mount that I'm using doesn't seem to hang the way it 
+> 
+> used to. What version of util-linux (or mount) are you using? I have 
+> 2.11y.
+> 
+> Second thing I notice is that autofs-4.1.2 discovers the bogus mount very 
+> quickly (<1 sec) and so even with a stop watch I can't get the mount to 
+> be active at the same time as the expire.
+> 
+> Mount is 2.11y as well. I will upgrade the userspace automounter to 4.1.2 
+> and see if it helps. But I don't understand how autofs can possibly decide 
+> that the remote host is down or unavailable and quit attempting the mount 
+> in that short (<1 sec) time period. The remote hosts in question have 
+> valid DNS names, they're just powered off or otherwise unavailable. Hence 
+> the mount attempt taking some time is perfectly reasonable... right? Or am 
+> I being an idiot? I feel like I've been unclear in describing the 
+> situation...
+
+Good. Same version of mount.
+
+Good question.
+
+I merged a patch in 4.1.1 that provided replicated server type behaviour.
+The point bieng that it needs to deal with host specs like 
+host1(10),host2(5),host3 and so on. The point of it is to select the best 
+available host to mount from. To do this we have an rpc_ping function. It 
+is set to time out fairly quickly. All the mount requests pass through 
+this code and if none (one in this case) is not available it return a fail 
+and doesn't attempt the mount.
+
+This situation is quite interesting as your script could show up a bug in 
+that, even though the mount may be significantly less the problem may 
+still arise from time to time.
+
+Lets see how it goes first.
+
+> 
+> Oh yes: the kernel version is 2.4.26-pre3, though 2.4.25 exhibits the same 
+> behavior.
+> 
+> I will update the userspace automounter. Do I need to load autofs4 instead 
+> of autofs as well?
+
+The init script should do this for you.
+
+In the past it you needed to add a line like
+
+alias autofs autofs4
+
+to your modules.conf.
+
+Ian
