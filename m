@@ -1,91 +1,120 @@
 From: raven@themaw.net
-Subject: Re: csh/cd not getting the right cwd at the mount point
-Date: Sat, 10 Jul 2004 13:43:22 +0800 (WST)
-Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0407101248510.1378@donald.themaw.net>
-References: <BA0E4392AD99D040885C414D992C24BE08264B56@us-bv-m11.bv.tek.com>
+Subject: Re: umount() and NFS races in 2.4.26
+Date: Sat, 10 Jul 2004 14:57:46 +0800 (WST)
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <Pine.LNX.4.58.0407101419210.1378@donald.themaw.net>
+References: <20040708180709.GA7704@timesink.dyndns.org>
 Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <BA0E4392AD99D040885C414D992C24BE08264B56@us-bv-m11.bv.tek.com>
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S266175AbUGJHJo@vger.kernel.org>
+In-Reply-To: <20040708180709.GA7704@timesink.dyndns.org>
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="iso-8859-1"
-To: peter.a.harris@exgate.tek.com
-Cc: autofs mailing list <autofs@linux.kernel.org>
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Thomas Moestl <moestl@ibr.cs.tu-bs.de>
+Cc: autofs mailing list <autofs@linux.kernel.org>, nfs@lists.sourceforge.net, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Fri, 9 Jul 2004 peter.a.harris@exgate.tek.com wrote:
+On Thu, 8 Jul 2004, Thomas Moestl wrote:
 
-I'm having difficulty understanding the problem you describe.
+> Hi,
+> 
+> after deploying an SMP machine at work, we started to experience Oopses
+> in file-system related code relatively frequently. Investigation
+> revealed that they were caused by references using junk pointers from
+> freed super blocks via dangling inodes from unmounted file systems;
+> Oopses would always be preceded by the warning
+>   VFS: Busy inodes after unmount. Self-destruct in 5 seconds.  Have a nice day...
+> on an unmount (unmount activity is high on this machine due to heavy use
+> of the automounter). The predecessor to this machine, a UP system with
+> otherwise almost identical configuration, did never encounter such
+> problems, so I went looking for possible SMP races.
 
-> We have a problem.  Here are the conditions:
->=20
-> 1. Shell is (t)csh (does not happen under (ba)sh)
-> 2. cd to an autofs fa=E7ade (e.g. /tools in our case)
-> 3. cd relatively to the subdirectory that is the mount point. =20
->    NOTE: The mount must not yet be made. (e.g. perl5.8.3)
-> 4. cd relatively to a subdirectory in the mounted files system=20
->    (e.g. bin or lib)
+This has been reported many times by users of autofs, especially people 
+with a ot of mount/umount activity.
 
-Sorry, but the cd must cause a mount to happen. This is the case with the=
-=20
-latest autofs and must be the case for correct operation of autofs.
+As James pointed out my latest autofs4 patch resolved the issue for him.
+However, on the NFS list Greg Banks pointed out that this may be hiding a
+problem that exists in NFS. So it would be good if the NFS folk could 
+investigate this further.
 
-What is the reasoning here?
+Never the less I'm sure there is a race in waitq.c of autofs4 in 
+2.4 that seems to cause this problem. This is one of the things 
+addressed by my patch.
 
->=20
-> Pertinent stats:
->   * Red Hat EL 3.0 (no update) 2.4.21-4.ELhugemem=20
->   * All available Red Hat updates have been applied EXCEPT for kernel
->     autofs, and lpr updates
->   * autofs: autofs-4.1.0-2 from January 04
->   * autofs4: autofs4-2.4-module-20031201
-
-These autofs versions are old. There are known problems fixed after these=
-=20
-releases that sound similar to the problem you describe.
-
-I recommend you try autofs4 release 20040508. Unfortuneately this release=
-=20
-requires a kernel rebuild as there is a small mandatory change outside of=
-=20
-the autofs4 module needed for correct operation. This release is the one=20
-that should be used as it addresses all known problems and works best wit=
-h=20
-the latest autofs release.
-
-You should be using autofs-4.1.3. There is an additional patch that I hav=
-e=20
-recommened a couple of times now, without adverse feedback, that my fix=20
-your problem. I've uploaded it to kernel.org and it can be found at:
-
+The autofs4 stuff can be found at 
 http://www.kernel.org/pub/linux/daemons/autofs/v4
 
-named
+Note that the patch for the kernel module will not apply cleanly to 
+2.4.27-rc3 as Marcello has applied 2 hunks from that patch. Similarly if 
+you chose to use the kernel module build kit the mandatory and optional 
+kernel patches refered to in it have already been applied to 2.4.27-rc3.
 
-autofs-4.1.3-bad_chdir.patch
+Additionally, I recomend using the latest autofs, currently 4.1.3, as well 
+as the 4.1.3 patches found with the tarball at the location above.
 
-Additionally, I recommend applying:
-
-autofs-4.1.3-mtab_lock.patch
-
-found with the above patch. It fixes an obvios stupid mistake in=20
-the definition of mount(8)s' lock file name.
-
-As a RHEL user visiting Jeff Moyers autofs page is a must as there are=20
-patches included their that have not yet been included in an autofs=20
-release:
-
-http://people.redhat.com/~jmoyer
-
-Jeff, would it be possible to include the two patches mentioned above in=20
-your rpms please.
-
-Ian
+> 
+> I believe that I have found two problems:
+> 
+> - The NFS async unlink code (fs/nfs/unlink.c) does keep a dentry for
+>   later asynchronous processing, but the mount point is unbusied via
+>   path_release() once sys_unlink() returns (fs/namei.c). While it
+>   does a dget() on the dentry, this is insufficient to prevent an
+>   umount(); when one would happen in the right time window, it seems
+>   that it would initially get past the busy check:
+> 	if (atomic_read(&mnt->mnt_count) == 2 || flags & MNT_DETACH) {
+>   (fs/namespace.c, do_umount()), but invalidate_inodes() in kill_super()
+>   (fs/super.c) would then fail because of the inode referenced from
+>   the dentry needed for the async unlink (which cannot be removed
+>   by shrink_dcache_parent() because the NFS code did dget() it).
+> 
+>   Please note that this problem is only conjectured, as it turned out
+>   to not be our culprit. It looks not completely trivial to fix to me,
+>   I believe it might require some changes that would affect other FS
+>   implementations. It is not a true SMP race, if it exists it would
+>   affect UP systems as well.
+> 
+> - There is a SMP race between the shrink_dcache_parent() (fs/dcache.c)
+>   called from kill_super() and prune_dache() called via
+>   shrink_dache_memory() (called by kswapd), as follows:
+>   shrink_dache_parent() calls select_parent() to both prepare the LRU
+>   list for purge_cache() and return the number of unused dcache
+>   entries that can likely be removed in the next prune_dache() run.
+>   If select_parent() returns 0, shrink_dcache_parent() assumes that
+>   its work is done and returns. Now, assume for simplicity that there
+>   are only two remaining dcache entries: one for "foo/bar" and for
+>   the directory "foo/", which is referenced by the "foo/bar" entry.
+>   Furthermore, prune_dcache() is currently running, called from kswapd,
+>   and has decided to remove the "foo/bar" entry. To that end, it
+>   calls prune_one_dentry(), which dentry_iput()s then "foo/bar" dentry.
+>   This causes the dache_lock() to be dropped. Just now select_parent()
+>   comes along, and can obtain the dcache_lock(). It now looks for unused
+>   dentries; but there is only the "foo/" one left, which has a non-zero
+>   d_count because "foo/bar" referenced it as parent, and
+>   prune_one_dentry() did not yet have a chance to dput() it because it
+>   has to wait for the dcache_lock(). Thus, select_parent() finds no
+>   unused dentries, assumes that all is fine and does not purge any
+>   more; the "foo/" entry can remain in the cache for much longer
+>   because it may have DCACHE_REFERENCED set, so that the kswapd
+>   purge_dcache() will leave it alone. The inode corresponding to the
+>   dangling dcache entry will still be referenced, and end up dangling,
+>   too. kill_super() will print the warning mentioned above.
+>   When dentry or inode are touched again later (for example in another
+>   purge_dcache() later on) we can end up accessing the super block
+>   freed during the unmount, leading to an Oops.
+>   This was partially verified by inspecting the dcache state via
+>   /dev/kmem after the busy inodes warning had occured (the directory
+>   dentry was not busy any more, but still remained in the unused list).
+> 
+>   In the attached patch, I have used a semaphore to serialize purging
+>   accesses to the dentry_unused list. With a kernel so patched, the
+>   problem seems to have disappeared. The patch is just a quick hack,
+>   the semantics of the semaphore is not really well-defined; but maybe
+>   it can serve as a starting point.
+>   
+> I have not checked whether any of these issues pertain to the 2.6 series
+> as well.
+> 
+> 	- Thomas
+> 
+> P.S: please CC me in replies, as I am not subscribed to this list.
+> 
+> 
