@@ -1,12 +1,17 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [patch] fix SIGSEGV when yp domain not bound
-Date: Wed, 5 May 2004 09:36:23 +0800 (WST)
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: Please help - cleanup
+Date: Wed, 5 May 2004 18:16:58 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0405050933570.18190@wombat.indigo.net.au>
-References: <16535.53709.132008.904350@segfault.boston.redhat.com>
+Message-ID: <16537.26586.135188.997029@segfault.boston.redhat.com>
+References: <Pine.LNX.4.58.0405022201480.25614@donald.themaw.net>
+	<Pine.LNX.4.58.0405042233560.17014@donald.themaw.net>
+	<16535.44980.475389.900686@segfault.boston.redhat.com>
+	<Pine.LNX.4.58.0405042308070.17014@donald.themaw.net>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <16535.53709.132008.904350@segfault.boston.redhat.com>
+In-Reply-To: <Pine.LNX.4.58.0405042308070.17014@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,24 +21,20 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: autofs mailing list <autofs@linux.kernel.org>
 
-On Tue, 4 May 2004, Jeff Moyer wrote:
+==> Regarding Re: [autofs] Please help - cleanup; raven@themaw.net adds:
 
-> Hi Ian, list,
-> 
-> If you happen to find your systems unable to communicate with the yp
-> server, the subprocess launched to automount a share will receive a
-> SIGSEGV, because we only check for err == YPERR_KEY in the lookup_yp
-> module.  We get a different error, of course, and then go on to do a
-> cache_update with NULL values.  Here is a patch which addresses this
-> issue.  Comments more than welcome.  Oh, and I took the liberty of doing
-> minor reformatting; I hope you don't mind, Ian.
-> 
+[snip]
+raven> If anyone is able to test this also that would be great.
+>> I will roll another test rpm with this patch and post to my people page.
 
-Cool. Looks good to me.
+Has anyone had the chance to test this?  autofs-4.1.2-5 from my people
+page, or the patch Ian sent to the list?  I'd like to hear feedback, either
+positive or negative as I have to push a package into FC2 before the
+freeze on Friday.
 
-Ian
+Thanks!
+
+Jeff
