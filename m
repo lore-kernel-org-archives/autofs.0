@@ -1,38 +1,36 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
+From: Michael Clark <michael@metaparadigm.com>
 Subject: Re: [autofs] [RFC] Towards a Modern Autofs
-Date: Thu, 08 Jan 2004 13:01:15 -0800
+Date: Fri, 09 Jan 2004 07:42:30 +0800
 Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <3FFDC51B.8070108@zytor.com>
-References: <3FFB12AD.6010000@sun.com>	<Pine.LNX.4.53.0401071139430.20046@simba.math.ucla.edu>	<3FFC8E5B.40203@sun.com> <Pine.LNX.4.53.0401080911390.27090@simba.math.ucla.edu>
+Message-ID: <3FFDEAE6.4030503@metaparadigm.com>
+References: <Pine.LNX.4.44.0401081827070.285-100000@donald.themaw.net> <3FFD9498.6030905@zytor.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.53.0401080911390.27090@simba.math.ucla.edu>
+In-Reply-To: <3FFD9498.6030905@zytor.com>
 List-Id: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: Jim Carter <jimc@math.ucla.edu>
-Cc: Mike Waychison <Michael.Waychison@sun.com>, autofs mailing list <autofs@linux.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ian Kent <raven@themaw.net>, Mike Waychison <Michael.Waychison@Sun.COM>, autofs mailing list <autofs@linux.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Jim Carter wrote:
-> 
->>For justification to it's worth, some institutions have file servers
->>that export hundreds or even thousands of shares over NFS.   As /net is
->>really just a kind of executable indirect map that returns multimounts
->>for each hostname used as a key,  just doing 'cd /net/hostname' may
->>potentially mount hundreds of filesystems.  This is not cool!
-> 
-> Definitely not cool.  But some users (yours truly among them) do "alias ls
-> 'ls -F'", which requires "ls" to stat (and thus mount) every exported
-> filesystem.  More uncool, and I don't see any non-disgusting way around it.
-> 
+On 01/09/04 01:34, H. Peter Anvin wrote:
+> In many ways this returns to the simplicity of the autofs v3 design 
+> where the atomicity constraints where guaranteed by the VFS itself, *as 
+> long as* mount traps can be atomically destroyed with umounting the 
+> underlying filesystem.
 
-No, it doesn't... this has been covered several times already.  It
-requires ls to *lstat* the point; it only does a stat() if the resulting
-entry is S_IFLNK.  The same is true for GUI tools.  There is a fairly
-easy way to distinguish lstat() from virtually all other filesystem
-calls -- it doesn't invoke follow_link.  So the answer is simply to
-create an inode which is S_IFDIR but has a follow_link method.  The
-follow_link method triggers a mount.  This is called a "pseudo-symlink
-directory" or sometimes "ghost directory".
+Do we need to revive Tigran's forced unmount patch 'badfs' ala FreeBSD's
+deadfs? Although it doesn't guarantee atomic unmount, it could help
+a lot with the tendancy to get stuck autofs mounts.
 
-	-hpa
+   http://tinyurl.com/2hto8
+
+I've been long waiting for this functionality in mainline.
+
+I wonder if binding badfs over the mountpoint at the beginning of the
+potentially lengthy unmount process would improve the atomicity
+to userspace. ie although the unmount would proceed in the background,
+badfs would have been mounted at that point at the start of the process
+- mounts are atomic no?
+
+~mc
