@@ -1,12 +1,11 @@
-From: mmarion@qualcomm.com
-Subject: Re: /net with program map problem on x86_64
-Date: Mon, 8 Mar 2004 14:54:05 -0800 (PST)
+From: Andy Grimm <ag381597@ohio.edu>
+Subject: continued instability in autofs v3
+Date: Sat, 06 Mar 2004 19:34:19 -0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <200403082254.i28Ms5gQ023371@miguelito.qualcomm.com>
-References: <200403082206.i28M6PgQ016051@miguelito.qualcomm.com>
+Message-ID: <1078619658.22401.11.camel@desktop.init4.org>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200403082206.i28M6PgQ016051@miguelito.qualcomm.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,40 +15,21 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
 To: autofs@linux.kernel.org
 
-On  8 Mar, To: autofs@linux.kernel.org wrote:
+Hello, all.  I'm writing about a problem discussed in a thread back in
+September under the subject "[NFS] VFS: Busy inodes after unmount on 2
+way SMP".  I have been experiencing these issues on an increasing number
+of servers, and was wondering if any progress had been made in either
+autofs3 or autofs4.  I'm currently working with the RH 2.4.20-28.7smp
+kernel.  Unfortunately, I am not in control of the NFS servers, and I
+have to deal with the fact that they get rebooted on the weekends
+sometimes, and that sometimes processes on my servers are in the middle
+of accessing the mounts when they go away.  Is there any way to make the
+system stable again after this event occurs, or is rebooting the only
+answer?
 
->> Kernel module version?
-> 
-> It's not syslogging properly since the change to the stdarg stuff, but it's
-> the same patch in the autofs4-2.4-module-20031201.tar.bz2 file... 4.04?
+Thanks.
 
-*sigh*... nevermind.  Turns out that while I was re-imaging this box over and
-over (getting pxe->suse autoyast->Qualcomm bits) going, I forgot to uncomment
-the 
-# alias autofs autofs4
-line in the modules.conf file... again.  So it was using the crappy older
-autofs module code with the new daemon.
-
-I just rebooted with the modules.conf corrected, and /net works now..
-
-mmarion @ rs-blade 51 [~]% ls -l
-/net/mig/local/mnt/workspace/src/linux-2.4.24.tar.bz2 
--rw-------    1 mmarion  sysadmin 29837818 2004-01-09 14:26
-/net/mig/local/mnt/workspace/src/linux-2.4.24.tar.bz2
-mmarion @ rs-blade 52 [~]% df !$
-df /net/mig/local/mnt/workspace/src/linux-2.4.24.tar.bz2
-Filesystem           1K-blocks      Used Available Use% Mounted on
-mig:/local/mnt        17413280  10444256   6794880  61% /net/mig/local/mnt
-
-Sorry for making you think there was another bug. :)
-
-I should just rebuild my kernel and leave out autofs (not 4) alltogether so
-this can't happen again.
-
--- 
-Mike Marion-Unix SysAdmin/Staff Engineer-http://www.qualcomm.com
-What goes up, must come down. Ask any system administrator.
+--Andy
