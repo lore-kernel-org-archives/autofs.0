@@ -1,13 +1,12 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: direct map shut down?
-Date: Fri, 20 Feb 2004 21:00:57 +0800 (WST)
+Date: Fri, 20 Feb 2004 21:04:56 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0402202058120.4573@raven.themaw.net>
+Message-ID: <Pine.LNX.4.58.0402202102020.4573@raven.themaw.net>
 References: <1077211015.19371.32.camel@brilong-lnx2.cisco.com>
- <1077211301.19371.34.camel@brilong-lnx2.cisco.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1077211301.19371.34.camel@brilong-lnx2.cisco.com>
+In-Reply-To: <1077211015.19371.32.camel@brilong-lnx2.cisco.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,28 +23,27 @@ Cc: autofs@linux.kernel.org
 
 On Thu, 19 Feb 2004, Brian Long wrote:
 
-> As a follow-up, /var/log/messages lists the following:
-> 
-> Feb 19 12:07:03 machello automount[1600]: starting automounter version 4.1.0, path = /misc, maptype = file, mapname = /etc/auto.misc
-> Feb 19 12:07:03 machello automount[1620]: starting automounter version 4.1.0, path = /tools, maptype = nisplus, mapname = auto_tools
-> Feb 19 12:07:03 machello automount[1646]: starting automounter version 4.1.0, path = /auto, maptype = file, mapname = /etc/auto.indirect
-> Feb 19 12:07:03 machello automount[1678]: starting automounter version 4.1.0, path = /users, maptype = nisplus, mapname = auto_home
-> Feb 19 12:07:03 machello automount[1620]: using kernel protocol version 4.03
-> Feb 19 12:07:03 machello automount[1620]: using timeout 300 seconds; freq 75 secs
-> Feb 19 12:07:03 machello automount[1646]: using kernel protocol version 4.03
-> Feb 19 12:07:03 machello automount[1646]: using timeout 300 seconds; freq 75 secs
-> Feb 19 12:07:03 machello automount[1600]: using kernel protocol version 4.03
-> Feb 19 12:07:03 machello automount[1600]: using timeout 60 seconds; freq 15 secs
-> Feb 19 12:07:03 machello automount[1678]: using kernel protocol version 4.03
-> Feb 19 12:07:03 machello automount[1678]: using timeout 300 seconds; freq 75 secs
-> Feb 19 12:07:03 machello automount[1708]: starting automounter version 4.1.0, path = /-, maptype = file, mapname = /etc/auto.direct
-> Feb 19 12:07:03 machello autofs: automount startup succeeded
-> Feb 19 12:07:03 machello automount[1708]: shut down, path = /-
-> 
+> /tools nisplus:auto_tools rw,hard,intr,noquota,timeo=15
+> /auto /etc/auto.indirect rsize=32768,wsize=32768,tcp
+> /users nisplus:auto_home rw,hard,intr,rsize=32768,wsize=32768,tcp
+> /- /etc/auto.direct rsize=32768,wsize=32768,tcp
 
-4.03 is an old version of autofs4. Current is 4.04.
-Strange to see it in RHEL. I thought they didn't want to include it.
+I thought that should be proto=tcp?
 
-What is in your auto.direct map?
+> 
+> /etc/auto.direct
+> /netapp/rtp-filer01a    rtp-filer01a:/vol/vol0
+
+Looks OK?
+
+> 
+> Also, is there a version of the kernel module or user utils that would
+> support multiple direct mounts under the same mount point?  For example,
+> I want to mount rtp-filer01a:/vol/local1 under
+> /netapp/rtp-filer01a/vol/local1  :)
+
+Not for direct mount maps.
+It should work OK for multi-mount maps. Unfortuneately, there is no lazy 
+mounting for them yet.
 
 Ian
