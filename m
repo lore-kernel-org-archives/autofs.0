@@ -1,54 +1,60 @@
-From: raven@themaw.net
-Subject: Re: NFS readonly failover and linux?
-Date: Tue, 22 Feb 2005 00:21:12 +0800 (WST)
-Message-ID: <Pine.LNX.4.61.0502220020090.20443@donald.themaw.net>
-References: <1106871309.6181.254.camel@seki.nac.uci.edu>
- <Pine.LNX.4.61.0501291127450.1607@donald.themaw.net>
- <1107205302.4071.17.camel@seki.nac.uci.edu> <Pine.LNX.4.58.0502010945400.25875@wombat.indigo.net.au>
- <16895.57760.531261.8465@segfault.boston.redhat.com>
- <1108677567.5897.55.camel@seki.nac.uci.edu> <Pine.LNX.4.58.0502181207490.20922@wombat.indigo.net.au>
- <1108753705.5897.114.camel@seki.nac.uci.edu> <Pine.LNX.4.61.0502191104080.1601@donald.themaw.net>
- <16922.1193.403816.743145@segfault.boston.redhat.com>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: Autofs4 4.1.3-28 with NetApp filer
+Date: Mon, 21 Feb 2005 11:22:36 -0500
+Message-ID: <16922.2764.932856.525189@segfault.boston.redhat.com>
+References: <482A3FA0050D21419C269D13989C611308539786@lavender-fe.eng.netapp.com>
+	<Pine.LNX.4.58.0502211259250.9892@wombat.indigo.net.au>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
-In-Reply-To: <16922.1193.403816.743145@segfault.boston.redhat.com>
-Sender: nfs-admin@lists.sourceforge.net
-Errors-To: nfs-admin@lists.sourceforge.net
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=unsubscribe>
-List-Id: <autofs.vger.kernel.org>
-List-Post: <mailto:nfs@lists.sourceforge.net>
-List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
-Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: Dan Stromberg <strombrg@dcs.nac.uci.edu>, autofs mailing list <autofs@linux.kernel.org>, nfs@lists.sourceforge.net
+In-Reply-To: <Pine.LNX.4.58.0502211259250.9892@wombat.indigo.net.au>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org, "Lever, Charles" <Charles.Lever@netapp.com>
 
-On Mon, 21 Feb 2005, Jeff Moyer wrote:
+==> Regarding Re: [autofs] Autofs4 4.1.3-28 with NetApp filer; Ian Kent <raven@themaw.net> adds:
 
-> ==> Regarding Re: [NFS] NFS readonly failover and linux?; raven@themaw.net adds:
->
-> raven> Your hosts map won't work. It will be ignored. You can use the
-> raven> auto.net program map in the distribution to give similar
-> raven> functionality.
->
-> Perhaps it's time we just translated that.  I mean, it's not that
-> difficult, and would bring us that much closer to compatibility.
+raven> On Sun, 20 Feb 2005, Lever, Charles wrote:
+>> Customer of ours describes this problem:
+>> 
+>> > We have several netapp boxes that we use as filers and all > of them
+>> at this site, with the exception of this one box, would unmount > for
+>> the linux workstation after the autmount timeout period.  With the >
+>> implementation of autofs-4.1.3-28 this particular netapp box would not >
+>> only NOT unmount (/net mounts) after timeouts, and would not release >
+>> its ports, it would begin to actively take more ports (without any >
+>> other mounts of this netapp box taking place).  Within 24 hours a linux
+>> > box can be hung by the port-taking activity of this netapp box mounted
+>> > via /net.
+>> 
+>> They are running on RH 8.0, kernel 2.4.20-20.8smp.  Problem did not
+>> occur with autofs-4.1.2.
+>> 
+>> Does this sound familiar to anyone?
 
-Perhaps but I'd like to do a proper hosts modulei, but in the meantime, 
-why not.
+raven> This sounds like the mount order problem we had recently.  Also
+raven> against a Filer I think.
 
-Ian
+raven> We can confirm this is the same problem by collecting a log with the
+raven> --debug option set.
 
+raven> I can forward a patch but Jeff may already have included it in his
+raven> rpm.
 
+raven> Lets confirm it first.
 
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
-_______________________________________________
-NFS maillist  -  NFS@lists.sourceforge.net
-https://lists.sourceforge.net/lists/listinfo/nfs
+Maybe it's just because it's Monday, but I'm not sure which patch you are
+referring to.  Could you post it, and then I'll let you know if I have an
+updated RPM?  ;-)
+
+-Jeff
