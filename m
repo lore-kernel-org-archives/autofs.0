@@ -1,12 +1,13 @@
 From: raven@themaw.net
 Subject: Re: BUG: autofs4 + cd /net/<Netapp>/vol/vol[0-3] = port 
 	usage problems
-Date: Sat, 15 Jan 2005 10:50:59 +0800 (WST)
-Message-ID: <Pine.LNX.4.61.0501151035230.1597@donald.themaw.net>
-References: <200501142238.j0EMcbOT002214@jetcar.spd.analog.com>
+Date: Mon, 17 Jan 2005 22:01:31 +0800 (WST)
+Message-ID: <Pine.LNX.4.61.0501172156170.1801@donald.themaw.net>
+References: <200501130037.j0D0bNDj012842@jetcar.spd.analog.com>
+	<Pine.LNX.4.61.0501142225200.2519@donald.themaw.net>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200501142238.j0EMcbOT002214@jetcar.spd.analog.com>
+In-Reply-To: <Pine.LNX.4.61.0501142225200.2519@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,41 +23,43 @@ Content-Transfer-Encoding: 7bit
 To: David Meleedy <david.meleedy@analog.com>
 Cc: autofs mailing list <autofs@linux.kernel.org>, Mike Waychison <Michael.Waychison@sun.com>
 
-On Fri, 14 Jan 2005, David Meleedy wrote:
+On Fri, 14 Jan 2005 raven@themaw.net wrote:
 
 >
-> Ian,
-> 	I have installed the multi-over patch into our version
-> of the automounter 4.1.3-67 (with updated large-program-map patch)
-> and so far everything looks great!  I am going to test our machines
-> for a longer period of time and make sure everything looks stable,
-> but so far, so good!
-
-That sounds very encouraging. Great!
-
+> I have attached a patch I'd like you to try please.
 >
-> It seems to have eliminated the "BUG" message in the messages file,
-> and it seems as though the automounter can unmount /net/aflac
-> which it was not able to do in the past during a reboot.  I suspect
-> that this means it will use a lot less ports, and I might not
-> even need the kernel patch (given the small amount of mounts we actually
-> use) -- I am testing this as well.
 
-The BUG messages were placed there to identify this happening as this 
-problem has come up in various forms several times.
+Hi David,
 
-In this case it appears to be caused by the order in which the mounts are 
-done (ie. received from auto.net). Given that current autofs 
-implementation of multi-mounts must handle them as a single unit, nested 
-filesystem mounts, made in the wrong order, cause overmounting which 
-caused the umount problem.
+I've found a small problem with the patch.
+Please update your rpms with the extra patch below or get the version I 
+have uploaded to the autofs v4 directory on kernel.org.
 
-Perhaps.
+If you look at the code around the second hunk it should be fairly 
+clear how important this could be.
 
-Depends on whether the mount program has the patch which probes the 
-NFS server. The port usage problem still remains and I expect it will 
-continue to cause problems for us one way or another. Hopefully it will be 
-addressed in the near future.
+Jeff I've called the patch autofs-4.1.3-multi-over.patch if you would like 
+to have a look and perhaps add it to your rpms.
 
 Regards
 Ian
+
+--- autofs-4.1.3/modules/parse_sun.c.multi-over-2	2005-01-17 21:50:18.000000000 +0800
++++ autofs-4.1.3/modules/parse_sun.c	2005-01-17 21:51:06.000000000 +0800
+@@ -750,7 +750,6 @@
+  		do {
+  			char *myoptions = strdup(options);
+  			char *path, *loc;
+-			int pathlen, loclen;
+
+  			if (myoptions == NULL) {
+  				error(MODPREFIX "multi strdup: %m");
+@@ -813,7 +812,7 @@
+  				free(path);
+  				free(options);
+  				free(myoptions);
+-				multi_free_list(head);
++				multi_free_list(list);
+  				return 1;
+  			}
+  		} while (*p == '/');
