@@ -1,12 +1,12 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: Can I "null" out NIS maps with autofs?
-Date: Tue, 31 Aug 2004 21:17:01 +0800 (WST)
+Subject: Re: Problem with NIS maps
+Date: Tue, 31 Aug 2004 21:13:04 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0408312113150.2756@raven.themaw.net>
-References: <413400C3.2010203@cjs226.com>
+Message-ID: <Pine.LNX.4.58.0408312110390.2756@raven.themaw.net>
+References: <4133F97E.8060509@cjs226.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <413400C3.2010203@cjs226.com>
+In-Reply-To: <4133F97E.8060509@cjs226.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -23,19 +23,22 @@ Cc: autofs@linux.kernel.org
 
 On Mon, 30 Aug 2004, Clif Smith wrote:
 
-> Occasionally I need to use all but 1 or 2 NIS maps with automount.  With 
-> AIX and Solaris, I've been able to use the -null arg.  However that 
-> doesn't seem to work with autofs?
+> I'm in a large heterogeneous environment located across multiple 
+> locations.  I use NIS maps such as:
+> /home -rw austin:/export/home boston:/export/home phoenix:/export/home
+> 
+> with the following in /etc/auto.master:
+> /nis      yp      auto_indirect_nis
+> 
+> With AIX and Solaris, automounter chooses the server with the fewest
+> hops to determine which server to mount from.  Unfortunately, it appears
+> Suse's 8.1 implementation of automounter (v3.1.7-556) seems to choose 
+> the first listed.
 
-Sorry again.
+Sorry, SuSE have chosen not to update to autofs v4.
 
-It's actually worse than simply not having the null option.
+The most recent version handles this.
 
-First, this is a master map option but the master map is processed by the 
-init script so at best the automount(8) daemon will not be run at all.
-
-Second, if an empty map is given to automount(8) it exits.
-
-It's one of the things we need to do but I can't say when that might be.
+You may wish to try building the SRPM from one of the FC distributions.
 
 Ian
