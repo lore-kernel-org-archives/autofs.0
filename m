@@ -1,17 +1,13 @@
-From: Mike Waychison <Michael.Waychison@Sun.COM>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: [patch] buffer overflow, failure to auto-dismount,
  log file diarrhea
-Date: Fri, 09 Jan 2004 17:00:23 -0500
+Date: Sat, 10 Jan 2004 13:06:11 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <3FFF2477.9060909@sun.com>
-References: <Pine.LNX.4.44.0401031051350.4413-100000@raven.themaw.net>
- <Pine.LNX.4.53.0401091118050.9335@simba.math.ucla.edu>
- <3FFF1CCF.2070904@sun.com>
- <Pine.LNX.4.53.0401091330490.9335@simba.math.ucla.edu>
+Message-ID: <Pine.LNX.4.33.0401101253170.2403-100000@wombat.indigo.net.au>
+References: <Pine.LNX.4.53.0401091118050.9335@simba.math.ucla.edu>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============61256762441623303=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-reply-to: <Pine.LNX.4.53.0401091330490.9335@simba.math.ucla.edu>
+In-Reply-To: <Pine.LNX.4.53.0401091118050.9335@simba.math.ucla.edu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,130 +17,110 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: Jim Carter <jimc@math.ucla.edu>
-Cc: autofs mailing list <autofs@linux.kernel.org>, Ian Kent <raven@themaw.net>
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---===============61256762441623303==
-Content-type: multipart/signed;
- boundary=------------enigA99325A66258AEF78F655AD4;
- protocol="application/pgp-signature"; micalg=pgp-sha1
+On Fri, 9 Jan 2004, Jim Carter wrote:
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigA99325A66258AEF78F655AD4
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-
-Jim Carter wrote:
-
->On Fri, 9 Jan 2004, Mike Waychison wrote:
+> >
+> > A user write implies an open file. The expire routine must identify this
+> > dentry as busy or it's a bug that needs to be fixed.
 >
->  
+> No, I meant that when the sys_stat method fills in the mode field of
+> the returning stat structure, it would be reported as 555 for a busy
+> filesystem, or 755 if it looks idle and dismountable.  The mode field as
+> seen by the VFS layer can stay at 755.  This would be when statting
+> autofs's directory inode, not whatever is mounted on it.
+
+Don't see how the modes can identify whether a directory is busy. Its
+modes could just as well be 555 anyway.
+
 >
->>Jim Carter wrote:
->>    
->>
->>>No, I meant that when the sys_stat method fills in the mode field of
->>>the returning stat structure, it would be reported as 555 for a busy
->>>filesystem, or 755 if it looks idle and dismountable.  The mode field as
->>>seen by the VFS layer can stay at 755.  This would be when statting
->>>autofs's directory inode, not whatever is mounted on it.
->>>      
->>>
+> Is it really true that the VFS layer doesn't maintain use counts for
+> directories where you can find them easily?
+
+Good question. I'm not sure but I believe the reference count
+should be incremented when the dentry is actually being used, so it
+doesn't go away. For example, during a mount a dentry is obtained for the
+root directory and, since it is obviously in use it has a none zero
+reference count as long as the mount is present.
+
 >
->  
+> > > So the key task is to bulldoze aside the wreckage so a new instance of the
+> > > revitalized NFS server can be mounted.  Killing the moribund processes and
+> > > forcibly dismounting the destroyed filesystem instance are important so as
+> > > to recover resources, but the client can continue to function for quite a
+> > > long time even if that's not done; the only totally vital action is to be
+> > > able to remount, and that can possibly be done by renaming, or by
+> > > remounting the wreckage elsewhere, deferring the actual dismount.
+> >
+> > I'll have to think about this for a while. The rename idea might cause all
+> > sorts of problems.
 >
->>This hijacking of the st_mode is just that, hijacking.  You'd be
->>changing the mode of the directory on the NFS filesystem..  This
->>wouldn't work well in the VFS when it tries to check permissions, but it
->>also wouldn't work for more than one NFS client accessing the same
->>filehandle.
->>    
->>
+> I can imagine.  Maybe a -move remount?  Can you even do this when the
+> mounted FS is busy?  Well...
 >
->There are 2 inodes here: the mount point (owned by autofs) and what's
->mounted on it.  We mustn't monkey with the mountee's data, of course.  I'm
->talking about statting the mount point itself.  You can't do that by name,
->but in a prior discussion we were talking about opening the mount point
->before the mount, and later doing fstat on the file descriptor.  HPA
->mentioned providing a readlink method and doing lstat on the mount point by
->name, which would intercept the path walk before the mountee was noticed.
+> mkdir mtpt1 ; mkdir mtpt2
+> mount -t nfs hollyfs:/m1 mtpt1
+> cd mtpt1
+> sleep 3600 &		(PID is 2486)
+> cd ..
+> umount mtpt1		(device is busy -- correct)
+> mount --move mtpt1 mtpt2	(works -- yay!)
+> ls -l /proc/2486/cwd	(says: /proc/2486/cwd -> /tmp/root.jimc/mtpt2/)
+> grep mtpt /proc/mounts	(says: hollyfs:/m1 /tmp/root.jimc/mtpt2 nfs...)
+> grep mtpt /etc/mtab	(says: hollyfs:/m1 /tmp/root.jimc/mtpt1 nfs...
+> 			/tmp/root.jimc/mtpt1 /tmp/root.jimc/mtpt2 none rw 0 0
+> kill 2486
+> umount mtpt2		(works -- correct)
+> grep mtpt /proc/mounts	(says: nothing)
+> grep mtpt /etc/mtab	(says: hollyfs:/m1 /tmp/root.jimc/mtpt1, hiss, boo)
 >
->So the caller gets the mode of the mount point, which autofs can create or
->interpret any way it wants, rather than the mountee's data.
+> So you can do a move mount on a busy filesystem; the only downside is that
+> /etc/mtab has a stale entry in it -- obviously a bug, not an essential
+> behavior.
 >
->  
+> > A kill -9 on the blocked process needs further investigation. I'm not sure
+> > what the situation is there (probably not good).
 >
-Ok.  Then the kernel would need to periodically make these checks..   It 
-could work, but I see it as yet another communication kludge.
-
->>>I would really like it if, when autofs decided to forcibly unmount, it
->>>could kill the using processes, as in "fuser -k -m /net/host/mountpoint".
->>>Actually this is a general issue for unmount(8), not specific to autofs.
->>>But one wonders whether fuser is going to run wild...
->>>      
->>>
+> I would really like it if, when autofs decided to forcibly unmount, it
+> could kill the using processes, as in "fuser -k -m /net/host/mountpoint".
+> Actually this is a general issue for unmount(8), not specific to autofs.
+> But one wonders whether fuser is going to run wild...
 >
->  
+> > One thing I noticed in the module expire routine is that it doesn't
+> > progress past a failed mount on subsequent calls. A change to the
+> > adjustment of the d_subdirs list is probably needed (a bit difficult, but
+> > not impossible, in my implementation of the expire routine).
 >
->>Like HPA already mentioned, this is bad.  I don't even think you could
->>reliably detect this.
->>    
->>
+> I thought it moved the mount point to the end, before attempting to unmount
+> it.  Maybe that behavior got changed in a subsequent version, or maybe I'm
+> remembering wrong.
+
+I thought it was the front of the list. In fact I thought putting the
+expire candidate on the end of the list would help with the infinite loop
+problem as well, along with the limit patch you sent. In fact I think that
+using the limit patch is a preferable approach to manage this bug for now.
+
+I need to do more work on this in my module patch. Changes I needed to
+make have caused this manipulation to become ineffective.
+
 >
->Agreed, you wonder if the right processes are going to be picked.  But...
->"Ask for the moon; they might give it to you."  In the present case it
->should be possible to stick the fuser execution into the autofs shutdown
->script -- it already is aware that unmounts haven't finished, and it
->probably knows or can find out which filesystems are involved.
+> > By the way. Since you are obviously interested in autofs, it would
+> > be best if you could use the latest version. Please see kernel.org if
+> > you are able to update.
 >
->  
+> I'll discuss this with my management.  By the way, for RPM-based distros, a
+> lot of updating happens via mindless scripts, and it helps if ad-hoc fixes
+> are packed up as a RPM.  Then vendor updates to retro versions don't
+> overwrite the latest patches.  Example:
+>     Currently installed:	autofs4-4.0.0pre10-504
+>     I create and install:	autofs4-4.1.0-001
+>     Vendor issues patch:	autofs4-4.0.5-678
 >
-This probably isn't best placed in the initscript.  The automount daemon 
-should instead have a timeout setup for unmounting these filesystems.  
-If the unmount hangs for more than x seconds, move on to the next one.   
-Let init take care of killing off processes if they haven't died in time 
-for shutdown. 
 
--- 
-Mike Waychison
-Sun Microsystems, Inc.
-1 (650) 352-5299 voice
-1 (416) 202-8336 voice
-mailto: Michael.Waychison@Sun.COM
-http://www.sun.com
+SuSE is a bit difficult. The rpm I have is very much RedHat centric.
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NOTICE:  The opinions expressed in this email are held by me, 
-and may not represent the views of Sun Microsystems, Inc.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
-
-
---------------enigA99325A66258AEF78F655AD4
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
-Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
-
-iD8DBQE//yR6dQs4kOxk3/MRAo3CAJwP2eqU2kSsF/paTiM0iJCpk3J70ACgizCa
-TD1huqIuINAv+FjtyNMDM9o=
-=SvTi
------END PGP SIGNATURE-----
-
---------------enigA99325A66258AEF78F655AD4--
-
-
---===============61256762441623303==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
-
---===============61256762441623303==--
-
+Ian
