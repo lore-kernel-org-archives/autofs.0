@@ -1,16 +1,11 @@
-From: Greg Bradner <gregb@rhythm.com>
-Subject: Re: running out of mount points
-Date: Mon, 19 Jan 2004 11:07:29 -0800
+From: Jason Brooks <jason.brooks@windriver.com>
+Subject: Introduction: I am new
+Date: Mon, 19 Jan 2004 14:37:38 -0800
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <400C2AF1.10309@rhythm.com>
-References: <Pine.LNX.4.33.0401130932460.10047-100000@wombat.indigo.net.au>
-	<4004409C.6040900@sun.com> <Pine.LNX.4.58.0401142351470.1783@raven.themaw.net>
-	<40059944.4060901@rhythm.com> <400BFC65.3000700@rhythm.com>
-	<400C0FD2.6000507@sun.com>
+Message-ID: <400C5C32.7070504@windriver.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <400C0FD2.6000507@sun.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -23,25 +18,31 @@ Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"; format="flowed"
 To: autofs@linux.kernel.org
 
-I was hoping there would have been something in the configuration.  
-Right now I use AMD on my mailhost because it understands that it has 
-the server mounted and just links to the mount without creating another 
-mount point.
+Hello,
 
-Wouldn't that be more desirable?
+Is there a FAQ for this mailing list?
+
+If not, here are a couple right off the bat:
+
+1) Is it in the plans to support a "-hosts" option as found under solaris's automountd?  (or for 
+that matter, did I just miss it and it should be obvious?)
+
+2) Is this list for developers, or for users?
+
+3) (something's glimmering inside my brain, but not enough to formulate a third question...)
 
 
-> Greg Bradner wrote:
->
->> I wanted to repost this plea. I am really in a bind and could use 
->> some help. I need to mount these users on the mail server.
->> BTW: this is with autofs 4.1.0
->>
-> This has been discussed various times on this mailing list and is a 
-> known limitation in 2.4 / 2.6.   In 2.4, you can patch your kernel 
-> using something similar to:
->
-> http://people.redhat.com/zaitcev/linux/linux-2.4.19-pre7-unmaj.diff
->
-> HTH,
->
+--jason
+
+-- 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Jason Brooks ~ (503) 641-3440 x1861
+       Direct ~ (503) 924-1861
+Email to: jason.brooks@windriver.com
+Twiki: http://twiki.wrs.com/do/view/Main/JasonBrooks
+
+Senior Systems Administration Analyst
+Wind River Systems
+8905 SW Nimbus ~ Suite 255	
+Beaverton, Or 97008
