@@ -1,17 +1,13 @@
 From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [PATCH 3/5] logging to stderr
-Date: Tue, 15 Feb 2005 08:28:45 -0500
-Message-ID: <16913.63757.849983.485803@segfault.boston.redhat.com>
-References: <200502111155.33706.vda@port.imtp.ilyichevsk.odessa.ua>
-	<200502111159.50103.vda@port.imtp.ilyichevsk.odessa.ua>
-	<200502111201.43507.vda@port.imtp.ilyichevsk.odessa.ua>
-	<200502111203.58345.vda@port.imtp.ilyichevsk.odessa.ua>
-	<16912.49643.760509.977965@segfault.boston.redhat.com>
-	<Pine.LNX.4.58.0502150923460.22172@wombat.indigo.net.au>
+Subject: Re: [ANNOUNCE] autofs 4.1.4 beta2 release
+Date: Tue, 15 Feb 2005 08:46:24 -0500
+Message-ID: <16913.64816.599846.407333@segfault.boston.redhat.com>
+References: <Pine.LNX.4.61.0502142233210.1653@donald.themaw.net>
+	<20050215014857.GA26216@uio.no>
 Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <Pine.LNX.4.58.0502150923460.22172@wombat.indigo.net.au>
+In-Reply-To: <20050215014857.GA26216@uio.no>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -23,27 +19,25 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: Ian Kent <raven@themaw.net>
+To: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
 Cc: autofs@linux.kernel.org
 
-==> Regarding Re: [autofs] [PATCH 3/5] logging to stderr; Ian Kent <raven@themaw.net> adds:
+==> Regarding Re: [autofs] [ANNOUNCE] autofs 4.1.4 beta2 release; "Steinar H. Gunderson" <sgunderson@bigfoot.com> adds:
 
-raven> On Mon, 14 Feb 2005, Jeff Moyer wrote:
->> ==> Regarding [autofs] [PATCH 3/5] logging to stderr; Denis Vlasenko
->> <vda@port.imtp.ilyichevsk.odessa.ua> adds:
->> 
-vda> Add code, but do not switch rest of program to use it, yet.
->> I'm curious, what is the motivation for this?
+sgunderson> On Mon, Feb 14, 2005 at 10:39:51PM +0800, raven@themaw.net
+sgunderson> wrote:
+>> Here is autofs 4.1.4 beta2.
 
-raven> I believe it relates to the patch before this.  Putting autofs in
-raven> the foreground we want as much debug info as we can get.
+sgunderson> Thanks! :-)
 
-I still haven't heard an answer from the original poster.
+sgunderson> I've gone through all the Debian patches again, and this needs
+sgunderson> looking into:
 
-Putting autofs in the foreground doesn't buy you much, except to debug
-initialization.  Much of the "business logic" is executed in forked
-processes.  I'm not against this, but I must say that I find all of the
-information I need to debug autofs problems in the logs.  That's why I'm
-curious as to why someone would invest the time in these patches.
+sgunderson> - 000_autofs_4.1.3_sock-leak-fix is missing.
+
+Could you post this patch, please?  I'm almost certain this fix is in the
+tree.
+
+Thanks!
 
 -Jeff
