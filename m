@@ -1,12 +1,12 @@
-From: Jeff Moyer <jmoyer@redhat.com>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: autofs - nfs with localhost
-Date: Thu, 10 Feb 2005 13:12:34 -0500
-Message-ID: <16907.42002.201785.995963@segfault.boston.redhat.com>
+Date: Fri, 11 Feb 2005 10:11:02 +0800 (WST)
+Message-ID: <Pine.LNX.4.58.0502111005580.6415@wombat.indigo.net.au>
 References: <20050209170812.GA3000@hamburg.neofonie.priv>
-Reply-To: jmoyer@redhat.com
+	<16907.42002.201785.995963@segfault.boston.redhat.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <20050209170812.GA3000@hamburg.neofonie.priv>
+Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <16907.42002.201785.995963@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,29 +17,41 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: Rasmus Hahn <rassahah@neofonie.de>
-Cc: autofs@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: autofs@linux.kernel.org, Rasmus Hahn <rassahah@neofonie.de>
 
-==> Regarding [autofs] autofs - nfs with localhost; Rasmus Hahn <rassahah@neofonie.de> adds:
+On Thu, 10 Feb 2005, Jeff Moyer wrote:
 
-rassahah> Hello Mr & Mrs Autofs-Reader, im using autofs-4.1.3 and want to
-rassahah> use an map-entry like
+> ==> Regarding [autofs] autofs - nfs with localhost; Rasmus Hahn <rassahah@neofonie.de> adds:
+> 
+> rassahah> Hello Mr & Mrs Autofs-Reader, im using autofs-4.1.3 and want to
+> rassahah> use an map-entry like
+> 
+> rassahah>   -port=12215,mountport=12215,nfsvers=3,soft,tcp,ro localhost:/.
+> 
+> rassahah> For some reason the automounter believes in beeing smarter than
+> rassahah> me, and instead of mounting using the nfs daemon it could find on
+> rassahah> port 12215 it uses a `mount --bind' to mount the root filesystem
+> rassahah> without nfs.  How can i disable this to force automount to use
+> rassahah> NFS? The manpages didnt reveal anything about this, is it an
+> rassahah> experimental feature?
+> 
+> rassahah> (background: actually i dont want to remount my / somewhere else,
+> rassahah> but using an ssh-tunnel on port 12215 with an nfsd on the other
+> rassahah> end).
+> 
+> Sorry, there is no option to configure that.  So is this a feature request?
+> ;)
+> 
 
-rassahah>   -port=12215,mountport=12215,nfsvers=3,soft,tcp,ro localhost:/.
+I've looked at that part of the code a couple of times recently as Chris 
+is interested in tidying it up.
 
-rassahah> For some reason the automounter believes in beeing smarter than
-rassahah> me, and instead of mounting using the nfs daemon it could find on
-rassahah> port 12215 it uses a `mount --bind' to mount the root filesystem
-rassahah> without nfs.  How can i disable this to force automount to use
-rassahah> NFS? The manpages didnt reveal anything about this, is it an
-rassahah> experimental feature?
+It certainly looks like it needs work. What was I thinking, doh.
 
-rassahah> (background: actually i dont want to remount my / somewhere else,
-rassahah> but using an ssh-tunnel on port 12215 with an nfsd on the other
-rassahah> end).
+Anyway, it also looks like that if the nosymlink option is specified it 
+will work as requested here.
 
-Sorry, there is no option to configure that.  So is this a feature request?
-;)
-
--Jeff
+Ian
