@@ -1,13 +1,15 @@
-From: Mike Waychison <Michael.Waychison@Sun.COM>
-Subject: Re: autofs reload
-Date: Fri, 26 Mar 2004 11:58:41 -0500
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: Re[2]: autofs reload
+Date: Fri, 26 Mar 2004 12:07:58 -0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <40646141.2040809@sun.com>
-References: <E1B6tS8-0009vh-00.ia6432-inbox-ru@f10.mail.ru>
+Message-ID: <16484.25454.659035.551208@segfault.boston.redhat.com>
+References: <16484.22082.53177.910078@segfault.boston.redhat.com>
+	<E1B6uJK-0003zZ-00.ia6432-inbox-ru@f9.mail.ru>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-reply-to: <E1B6tS8-0009vh-00.ia6432-inbox-ru@f10.mail.ru>
+In-Reply-To: <E1B6uJK-0003zZ-00.ia6432-inbox-ru@f9.mail.ru>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,51 +19,34 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; format="flowed"; charset="us-ascii"
-To: Peter Lojkin <ia6432@inbox.ru>
+Content-Type: text/plain; charset="us-ascii"
+To: =?koi8-r?Q?=22?=Peter Lojkin=?koi8-r?Q?=22=20?= <ia6432@inbox.ru>
 Cc: autofs@linux.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+==> Regarding Re[2]: [autofs] autofs reload; "Peter Lojkin" <ia6432@inbox.ru> adds:
 
-Peter Lojkin wrote:
-| Hello,
-|
-| how to do correct autofs map reload?
-| with older (3.9.99-4.0.0pre10) autofs updating nis maps works ok.
-| for example changing in auto.home:
-| host1:/export/home/user
-| to
-| host2:/export/home/user
-| and doing ls /home/user leads to mounting new users home.
+ia6432> On Fri, 26 Mar 2004 11:11:46 -0500 at 11:11:46 -0500, Jeff Moyer
+ia6432> wrote: in autofs 4.1.0 (autofs4-20031201 in kernel) it tries to
+ia6432> mount host1 even after 5 hours wait and nscd/nis restart.
+>> Hmm, was the share ever umounted?  You can check this using either lsof
+>> of fuser before you try to do the ls.  If this is the case, your only
+>> option is to kill off users of the mount point and try again.
 
+ia6432> yes this share was umounted a couple of days prior to auto.home nis
+ia6432> map update.
 
-Ian responded to this a while back, see his answer at:
-http://linux.kernel.org/pipermail/autofs/2004-February/000932.html
+What I meant was, at the time you did an ls, were you sure that there were
+no applications accessing the directory.  If nothing was accessing the
+directory (even if it is mounted), then autofs should be able reload just
+fine.  If that's not the case, then I am certainly perplexed.
 
-"That's right because, for file, NIS and LDAP maps, the daemon uses a
-cache that is not aware of updates.
+>> ia6432> so how to do correct autofs map reload?
+>> Ok, the automount daemon shouldn't start up if the mountpoint is already
+>> controlled by autofs.  Attached is a patch which addresses this.
+>> Comments welcome.
+ia6432> this should fix autofs reload or stop/start? i'll try...
 
-In 4.1.0 you can send a HUP signal to the daemon process controling the
-map to ask it to update the map in similar fashion to running automount
-on Solaris."
+No, this will prevent the automount daemon from starting more than once for
+a given mount point.  Sorry if that was confusing.
 
-- --
-Mike Waychison
-Sun Microsystems, Inc.
-1 (650) 352-5299 voice
-1 (416) 202-8336 voice
-mailto: Michael.Waychison@Sun.COM
-http://www.sun.com
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NOTICE:  The opinions expressed in this email are held by me,
-and may not represent the views of Sun Microsystems, Inc.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFAZGFAdQs4kOxk3/MRAiBrAKCFRbar4nWnTcRBPBDw9HlkCfifSACfdVEX
-KeLa0I+Ei30gLF9gyQcL0Lc=
-=FZyN
------END PGP SIGNATURE-----
+-Jeff
