@@ -1,13 +1,10 @@
-From: Matthew Mitchell <matthew@geodev.com>
-Subject: Re: "simultaneous" mounts causing weird behavior
-Date: Mon, 10 Nov 2003 10:57:03 -0600
+From: Ian Kent <raven@themaw.net>
+Subject: [ANNOUNCE] autofs v4 beta3 (fwd)
+Date: Thu, 13 Nov 2003 15:43:21 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <1068483422.2640.458.camel@aluminum>
-References: <Pine.LNX.4.33.0311061108300.32640-100000@wombat.indigo.net.au>
+Message-ID: <Pine.LNX.4.33.0311131542180.11228-100000@wombat.indigo.net.au>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.33.0311061108300.32640-100000@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,75 +14,65 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: autofs@linux.kernel.org
 
-On Wed, 2003-11-05 at 21:53, Ian Kent wrote:
-> On Wed, 5 Nov 2003, Matthew Mitchell wrote:
-> 
-> > Looking at the 4.1.0-beta2 code, I don't see any mutex-looking code in
-> > handle_packet_missing.  Isn't that where it should be?  Or are you
-> > taking care of it elsewhere?  (Or are you allowing the bind mounts to go
-> > through in the odd case where you get past the lstat() test while still
-> > waiting on the lookup_mount to finish?)
-> 
-> Huh?.
-> 
-> You know of a user space semaphore implementation other than SysV IPC.
-> Tell me and I'll use it.
-> 
-> There is no MUTEX type code and the code that is there is not around the
-> lookup.
 
-Sorry, what I wrote was a bit unclear.  You don't need a real mutex
-because there is only one automount process per mount point.  The
-problem (it seems to me) is that the automount process runs mount
-asychronously (fork && exec without wait()) which can lead to
-unnecessary bind() mounts.   I would think that you either need to
-wait() on the mount or put in a manual exclusion check around the fork
-&& exec.  Of course I am only thinking about a simple NFS mount
-situation; there may be other automount uses that preclude this.  If so
-please educate me before I take the naive path. :)
+---------- Forwarded message ----------
+Date: 11 Nov 2003 20:51:57 +0800
+From: Ian Kent <raven@themaw.net>
+To: autofs@linux.kernel.org
+Subject: [ANNOUNCE] autofs v4 beta3
 
-> First I believe one of the problems is caused by contention for the mtab
-> file within mount. This can cause mount to return a fail even though the
-> mount has happened. Similar things happen at umount time when there are
-> many master map entries. Hence using a -n switch on the bind mount test
-> helps when there are many entries in the master map. This problem can also
-> occur when mount requests occur in rapid succession. The other possiblity
-> is that the kernel module incorrectly fires multiple mounts requests. If
-> this is the case (as it was at one point) then that needs to be fixed in
-> the kernel module not the daemon.
 
-Contention for mtab might explain the weird /tmp/mount-foobar garbage
-that df complains about.  I don't have any idea what was in mtab when
-this happened, though.  Have to check it the next time the problem shows
-up.
+Status
+------
 
-> I can't remember whether you gave details of your senario.
-> 
-> All I do is use a lock file around mount calls and a timed delay once
-> the lock file is aquired. I'm not giving any guarentee that this will
-> always work or that it will even work at all. However it does seem to work
-> better than I expected. It is a temporary work around until a better
-> solution is implemented.
-> 
-> Perhaps you can help here with a patch. But first try it and see if it
-> works. If it aint broke then I don't have the time to fix it.
+I'm hoping that this will be the last beta of 4.1.0.
 
-Understood.
+I expect to release 4.1.0 final and corresponding kernel module kit
+within
+a week or so.
 
-> You should be using the latest autofs4 kernel module with this. It is
-> available form the same place you got the beta autofs-4.
+The only bug reports I have had relate to multi-mount problems and this
+beta includes updates for them as far as they can be fixed at this
+stage. This leaves one outstanding problem with multi-mount maps. The
+senario is that the daemon cannot remount a manualy umounted multi-mount
+entry until after the following expire event. This is due kernel module
+and daemon not knowing the umount has occured and consequently not
+cleaning up afterward. This causes the kernel module to return a longer
+path than it should which cannot be matched in the map. I hope to be
+able
+to fix this a some time in the future. In the mean time it is necessary
+to
+let the daemon do its thing and all should be OK.
 
-OK.  Looks like a big change to the kernel setup (from a quick browse of
-the patch).  In the interest of isolating the change to userspace, can
-you point me to a version of autofs4 that works with the stock 2.4.20
-kernel module?  I'd be happy to forward-port anything that works and
-test it again with the newer code.  (I can test the new stuff pretty
-easily on one machine but I don't want to undertake the week-long
-process of updating the kernel on the whole cluster just for this
-problem.)
+A reported problem with the documentation regarding the mailing list
+subscription instructions is also not yet corrected. Sorry, I'll get it
+done by the time of the final release.
 
--m
+Packages
+--------
+
+As usual the packages can be found at:
+
+ftp://ftp.kernel.org/pub/linux/daemons/autofs/v4
+
+They are:
+
+autofs-4.1.0-beta3.tar.[bz2|gz]
+autofs4-2.4-module-20031109.tar.[bz2|gz]
+
+Additionally there is an autofs-4.1.0-beta3.src.rpm. This has been
+included because the rpmbuild -tb command will not work properly on
+the tar with this release. Please don't try as the spec file in the tar
+is
+out of date. Use the src rpm instead.
+
+-- 
+
+   ,-._|\    Ian Kent
+  /      \   Perth, Western Australia
+  *_.--._/   E-mail: raven@themaw.net
+        v    Web: http://themaw.net/
