@@ -1,12 +1,12 @@
-From: "Taylor, ForrestX" <forrestx.taylor@intel.com>
-Subject: Re: making the mountpoints visible all the time
-Date: Thu, 13 Nov 2003 12:29:38 -0800
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [ANNOUNCE] autofs v4 beta3 (fwd)
+Date: Fri, 14 Nov 2003 08:24:37 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <3FB3E9B2.1090002@intel.com>
-References: <3FB3C4C4.4030605@yahoo.com>
+Message-ID: <Pine.LNX.4.33.0311140823140.28052-100000@wombat.indigo.net.au>
+References: <3FB397B9.9010600@rhythm.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <3FB397B9.9010600@rhythm.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,22 +16,27 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Alexander Macdonald <alexandermacdonald@yahoo.com>
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Greg Bradner <gregb@rhythm.com>
 Cc: autofs@linux.kernel.org
 
-Alexander Macdonald wrote:
-> Hi
-> 
-> I've currently got automount setup so that i can cd into a directory 
-> like /mnt/someplace and someplace will be automatically created and 
-> mounted... it would be quite usefull if that directory was allways 
-> visible so that i could browse to it in gui applications... how do i do 
-> that?
+On Thu, 13 Nov 2003, Greg Bradner wrote:
 
-If you want it visible all the time, use /etc/fstab, not autofs.  Work 
-is being done on leaving the directory structure before actually 
-mounting it, but it is not finished yet.
+> I have multiple mount points on a NetApp, but I don't have 'access'
+> permissions to all of them.  When autofs encountered a permission denied
+> on one of the mount points, it didn't mount any of them.  Shouldn't it
+> just skip over the permission denied one and still mount the others?
 
-Forrest
+More info please.
+
+What does your map entry look like?
+What version of autofs are you using?
+
+
 -- 
+
+   ,-._|\    Ian Kent
+  /      \   Perth, Western Australia
+  *_.--._/   E-mail: raven@themaw.net
+        v    Web: http://themaw.net/
