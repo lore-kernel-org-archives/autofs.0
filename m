@@ -1,13 +1,15 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
+From: Mike Waychison <Michael.Waychison@Sun.COM>
 Subject: Re: autofs no_local_binds option (nfs <-> bind mounts)
-Date: Tue, 13 Jan 2004 12:54:49 -0800
+Date: Tue, 13 Jan 2004 15:58:43 -0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <40045B19.2040301@zytor.com>
-References: <200401132042.i0DKgDR0001085265@anw.zk3.dec.com>
+Message-ID: <40045C03.7020405@sun.com>
+References: <200401131958.i0DJwlV0001078000@anw.zk3.dec.com>
+ <40044F2A.9080305@zytor.com> <200401132023.49657.autofs@dylan.me.uk>
+ <4004544C.7030904@zytor.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============58097944038240756=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200401132042.i0DKgDR0001085265@anw.zk3.dec.com>
+In-reply-to: <4004544C.7030904@zytor.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,40 +19,94 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: autofs@linux.kernel.org, Eric Werme USG <werme@alpha.zk3.dec.com>
+
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--===============58097944038240756==
+Content-type: multipart/signed;
+ boundary=------------enig9199E617F590C39C0F2FF355;
+ protocol="application/pgp-signature"; micalg=pgp-sha1
+
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig9199E617F590C39C0F2FF355
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+
+H. Peter Anvin wrote:
+
+>Dylan wrote:
+>  
+>
+>>On Tuesday 13 January 2004 20:03 pm, H. Peter Anvin wrote:
+>>
+>>
+>>    
+>>
+>>>However, this doesn't address the issue of the client being *the same
+>>>system*, in which case you can't just move the IP address away from
+>>>it, since local == remote; you can no longer send packets to the
+>>>server and get a response back.  You can do it if you can get the
+>>>client and the server sides to bind to *different* IP addresses, in
+>>>which case the current autofs behaviour will correctly see them as
+>>>being separate and mount NFS.
+>>>      
+>>>
+>>Would binding an alias address to the interface be sufficient?
+>>
+>>    
+>>
+>
+>No, you have to force the local port to not be bound to the same
+>address.  I think this can be done with iptables rules, but I'm not
+>sure... I'm not a networking wizard.
+>
+>  
+>
+I know you can do this using chbind from the vserver toolset and kernel 
+patch.
+
+http://www.13thfloor.at/vserver/s_release/v1.23/
+
+-- 
+Mike Waychison
+Sun Microsystems, Inc.
+1 (650) 352-5299 voice
+1 (416) 202-8336 voice
+mailto: Michael.Waychison@Sun.COM
+http://www.sun.com
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NOTICE:  The opinions expressed in this email are held by me, 
+and may not represent the views of Sun Microsystems, Inc.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+
+
+--------------enig9199E617F590C39C0F2FF355
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.2 (GNU/Linux)
+Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
+
+iD8DBQFABFwGdQs4kOxk3/MRAtbNAKCNi94tossdCAsNiENLZ4TbDtEYfwCdGxrk
+O1uVzyNZampEMzHOz4hWV3o=
+=6jXp
+-----END PGP SIGNATURE-----
+
+--------------enig9199E617F590C39C0F2FF355--
+
+
+--===============58097944038240756==
 Content-Type: text/plain; charset="us-ascii"
-To: Eric Werme USG <werme@zk3.dec.com>
-Cc: autofs@linux.kernel.org, alexander.marx@hp.com
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Eric Werme USG wrote:
-> 
-> *the same system* as the server?  I don't know much about Linux internals,
-> one reason I don't post here often, but I try to offer insight to other
-> systems.  Tru64 Unix has a lot of BSD heritage. If mailhub1 is providing the
-> mailhub service and mounts something from mailhub, messages sent to mailhub
-> will be caught in the routing code and directed to the loopback "NIC" lo0. 
-> If the mailhub service (IP address) is relocated to mailhub2, the routing
-> code will see that no NIC on mailhub1 has the mailhub IP address and will
-> give the message to a NIC that can reach it.  (And ARP resolves the MAC
-> address and it all runs like a normal remote mount.)
-> 
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
 
-That one is not a problem.  The problem is that you either need to force
-the local address of the mount explicitly at the application layer (in
-this case this would require a localaddr= option to mount, or something
-similar) or it needs to be done by setting up the appropriate rules in
-the kernel.
+--===============58097944038240756==--
 
-> Ah.  Back to automount/autofs.  I made many fixes to Sun's old automount,
-> one of them was to rummage among all the NICs looking to see if the
-> FS was really a local mount and provide the appropriate symlink.  The
-> cluster folks didn't realize I also checked the alias addresses too,
-> so I had to add an option to disable that to force a real NFS call.
-> 
-> You mention "you can't just move the IP address away," is that something
-> Linux doesn't support yet?  No problem on Tru64.  A NIC has one permanent
-> address and a bunch of aliases that can come and go at the whims of the
-> admins or load balancing software:
-
-No, the problem is: which local address will the socket be bound to.
-
-	-hpa
