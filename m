@@ -1,45 +1,72 @@
-From: Ion Badulescu <lists@news.cs.columbia.edu>
-Subject: Re: [NFS] Re: VFS: Busy inodes after unmount on 2 way SMP
-Date: Fri, 26 Sep 2003 14:31:23 -0400
-Sender: autofs-bounces@linux.kernel.org
-Message-ID: <200309261831.h8QIVNVw026806@buggy.badula.org>
-References: <16243.34641.819894.763746@charged.uio.no>
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <16243.34641.819894.763746@charged.uio.no>
+From: Frank Cusack <fcusack@fcusack.com>
+Subject: Re: Re: [autofs] VFS: Busy inodes after unmount on 2 way SMP
+Date: Sun, 28 Sep 2003 20:27:58 -0700
+Sender: nfs-admin@lists.sourceforge.net
+Message-ID: <20030928202757.A21288@google.com>
+References: <shsd6dyabju.fsf@charged.uio.no> <Pine.LNX.4.44.0309251614290.22478-100000@fubar.phlinux.com>
+Mime-Version: 1.0
+Return-path: <nfs-admin@lists.sourceforge.net>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44.0309251614290.22478-100000@fubar.phlinux.com>; from wago@phlinux.com on Thu, Sep 25, 2003 at 04:17:54PM -0700
+Errors-To: nfs-admin@lists.sourceforge.net
+List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
+List-Post: <mailto:nfs@lists.sourceforge.net>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
+	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Errors-To: autofs-bounces@linux.kernel.org
-MIME-Version: 1.0
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
+	<mailto:nfs-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: trond.myklebust@fys.uio.no
-Cc: autofs@linux.kernel.org, nfs@lists.sourceforge.net
+To: Matt C <wago@phlinux.com>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>, Olaf Hering <olh@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Arun Sharma <arun.sharma@intel.com>, autofs@linux.kernel.org, nfs@lists.sourceforge.net, Ian Kent <raven@themaw.net>
 
-On Thu, 25 Sep 2003 17:24:49 -0700, Trond Myklebust <trond.myklebust@fys.uio.no> wrote:
+Does this patch help?
 
-> I would rather then have something like the appended patch go in to
-> which force the last process to close the file to actually wait on
-> completion (unless someone signals it with a 'kill -9' - in which case
-> they are knowingly breaking things).
+--- linux-2.4.22/fs/namei.c	2003-08-25 04:44:43.000000000 -0700
++++ linux-2.4.22-gg4/fs/namei.c	2003-09-26 00:03:16.000000000 -0700
+@@ -893,6 +893,8 @@ static inline int check_sticky(struct in
+  *  7. If we were asked to remove a directory and victim isn't one - ENOTDIR.
+  *  8. If we were asked to remove a non-directory and victim isn't one - EISDIR.
+  *  9. We can't remove a root or mountpoint.
++ * 10. We don't allow removal of NFS sillyrenamed files; it's handled by
++ *     nfs_async_unlink().
+  */
+ static inline int may_delete(struct inode *dir,struct dentry *victim, int isdir)
+ {
+@@ -916,6 +918,8 @@ static inline int may_delete(struct inod
+ 		return -EISDIR;
+ 	if (IS_DEADDIR(dir))
+ 		return -ENOENT;
++	if (victim->d_flags & DCACHE_NFSFS_RENAMED)
++		return -EBUSY;
+ 	return 0;
+ }
+ 
+@@ -1484,13 +1488,14 @@ int vfs_unlink(struct inode *dir, struct
+ 				lock_kernel();
+ 				error = dir->i_op->unlink(dir, dentry);
+ 				unlock_kernel();
+-				if (!error)
++				if (!error &&
++				    !(dentry->d_flags & DCACHE_NFSFS_RENAMED))
+ 					d_delete(dentry);
+ 			}
+ 		}
+ 	}
+ 	up(&dir->i_zombie);
+-	if (!error)
++	if (!error && !(dentry->d_flags & DCACHE_NFSFS_RENAMED))
+ 		inode_dir_notify(dir, DN_DELETE);
+ 	return error;
+ }
 
-Ugh, that's ugly -- and potentially a DoS issue as well. Since you don't
-need any privileges to issue the 'kill -9' for your own processes, it   
-becomes fairly easy to write some code that exploits this and causes 
-kernel crashes across the board...
 
-Not that the current situation is any better, of course.
-
-Perhaps making that wait an uninterruptable wait would be enough to take
-care of the problem?
-
-Ion
-
--- 
-  It is better to keep your mouth shut and be thought a fool,
-            than to open it and remove all doubt.
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
+_______________________________________________
+NFS maillist  -  NFS@lists.sourceforge.net
+https://lists.sourceforge.net/lists/listinfo/nfs
