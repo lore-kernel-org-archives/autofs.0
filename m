@@ -1,17 +1,16 @@
-From: Jeff Moyer <jmoyer@redhat.com>
+From: raven@themaw.net
 Subject: Re: [RFC] rpc_ping and looong timeouts
-Date: Fri, 4 Jun 2004 17:41:02 -0400
+Date: Sat, 5 Jun 2004 13:36:08 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <16576.60526.394177.533027@segfault.boston.redhat.com>
+Message-ID: <Pine.LNX.4.58.0406051327020.12824@donald.themaw.net>
 References: <16575.35426.918728.134817@segfault.boston.redhat.com>
-	<Pine.LNX.4.58.0406040909310.8991@wombat.indigo.net.au>
-	<16576.51269.311121.121046@segfault.boston.redhat.com>
-Reply-To: jmoyer@redhat.com
+ <Pine.LNX.4.58.0406040909310.8991@wombat.indigo.net.au>
+ <16576.51269.311121.121046@segfault.boston.redhat.com>
+ <16576.60526.394177.533027@segfault.boston.redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="wZGJ2U7ySl"
-Content-Transfer-Encoding: 7bit
+Content-Type: MULTIPART/MIXED; BOUNDARY="19054760-68511040-1086413768=:12824"
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <16576.51269.311121.121046@segfault.boston.redhat.com>
+In-Reply-To: <16576.60526.394177.533027@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,553 +20,454 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>, autofs@linux.kernel.org
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+  Send mail to mime@docserver.cac.washington.edu for more info.
 
---wZGJ2U7ySl
-Content-Type: text/plain; charset=us-ascii
-Content-Description: message body text
-Content-Transfer-Encoding: 7bit
+--19054760-68511040-1086413768=:12824
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 
-==> Regarding Re: [autofs] [RFC] rpc_ping and looong timeouts; Jeff Moyer <jmoyer@redhat.com> adds:
+On Fri, 4 Jun 2004, Jeff Moyer wrote:
 
-==> Regarding Re: [autofs] [RFC] rpc_ping and looong timeouts; Ian Kent <raven@themaw.net> adds:
-raven> On Thu, 3 Jun 2004, Jeff Moyer wrote:
->>> Hello, Ian, list,
->>> 
->>> You may recall my asking for the rpc_ping function to take TCP only
->>> servers into account.  Well, be careful what you ask for!  Now, if a
->>> server is down in a replicated server configuration, it takes quite a
->>> while to timeout due to the TCP connect.  The mount will eventually
->>> succeed, but I've seen this take up to 10 minutes.
+A couple of things ...
 
-raven> I'm not sure that I see that same behaviour in my test environment.
+> 
+> jmoyer> I've strace'd the automount process, and a lot of time is spent in
+> jmoyer> the clnt_create, for both UDP and the TCP.  I implemented a
+> jmoyer> non-blocking connect, and it took my ls time down from 8m21s to
+> jmoyer> 2m4s.  I'm still looking into why the UDP stuff isn't timing out
+> jmoyer> sooner.
+> 
+> The clnt_create call does not take a timeout.  One of the things it does is
+> to contact the remote portmapper to get the port for the specified program
+> number.  There is a hard-coded default timeout in that code of 60 seconds,
+> which explains my 2 minutes.
+> 
+> This patch simply implements an icmp ping (code shamelessly stolen from
+> clumanager), and does this before even attempting to do the rpc pings.  If
+> the icmp ping works, then we continue as usual.  This takes care of the
+> host down case quite nicely:
+> 
+> One nit: icmp_ping_host takes a char * for the hostname, whereas rpc_ping
+> passes a const char *.  As such, we get a 'discards qualifier' warning.  I
+> didn't think it warrented converting the whole call chain to consts, but if
+> you're especially concerned about that, Ian, I'd be happy to resubmit.
 
-raven> I'll check and get back.  It's probably best if we understand this a
-raven> little better before jumping in.
+I've put a cast in to eliminate the warning.
 
-jmoyer> I've strace'd the automount process, and a lot of time is spent in
-jmoyer> the clnt_create, for both UDP and the TCP.  I implemented a
-jmoyer> non-blocking connect, and it took my ls time down from 8m21s to
-jmoyer> 2m4s.  I'm still looking into why the UDP stuff isn't timing out
-jmoyer> sooner.
+I added the Makefile glue and ...
 
-The clnt_create call does not take a timeout.  One of the things it does is
-to contact the remote portmapper to get the port for the specified program
-number.  There is a hard-coded default timeout in that code of 60 seconds,
-which explains my 2 minutes.
+I noticed that, for the case the request is not a replicated server entry 
+a mount is still attempted so I added a ping check.
 
-This patch simply implements an icmp ping (code shamelessly stolen from
-clumanager), and does this before even attempting to do the rpc pings.  If
-the icmp ping works, then we continue as usual.  This takes care of the
-host down case quite nicely:
+I've attached the complete patch but here is what I added. Can you test 
+it in your environment before I commit it please:
 
-# time ls /multi/multi1
-foo
-
-real    0m0.208s
-user    0m0.010s
-sys     0m0.010s
-
-Ian, I can also post the nonblocking connect patch, but I'm unsure of its
-usefulness vs. complexity ratio.  I say we only cross that bridge if we
-need to.
-
-One nit: icmp_ping_host takes a char * for the hostname, whereas rpc_ping
-passes a const char *.  As such, we get a 'discards qualifier' warning.  I
-didn't think it warrented converting the whole call chain to consts, but if
-you're especially concerned about that, Ian, I'd be happy to resubmit.
-
-
-Comments?
-
--Jeff
-
-
---wZGJ2U7ySl
-Content-Type: text/plain
-Content-Disposition: inline;
-	filename="autofs-4.1.3-icmp-ping.patch"
-Content-Transfer-Encoding: 7bit
-
---- autofs-4.1.3/include/ping.h.orig	2004-06-04 17:35:44.000000000 -0400
-+++ autofs-4.1.3/include/ping.h	2004-06-04 17:26:08.000000000 -0400
-@@ -0,0 +1,60 @@
-+/*
-+  Copyright Red Hat, Inc. 2003
-+
-+  This program is free software; you can redistribute it and/or modify it
-+  under the terms of the GNU General Public License as published by the
-+  Free Software Foundation; either version 2, or (at your option) any
-+  later version.
-+
-+  This program is distributed in the hope that it will be useful, but
-+  WITHOUT ANY WARRANTY; without even the implied warranty of
-+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+  General Public License for more details.
-+
-+  You should have received a copy of the GNU General Public License
-+  along with this program; see the file COPYING.  If not, write to the
-+  Free Software Foundation, Inc.,  675 Mass Ave, Cambridge,
-+  MA 02139, USA.
-+ */
-+/** @file
-+ * Header for ping.c.
-+ */
-+#ifndef _PING_H
-+#define _PING_H
-+
-+#include <netinet/ip_icmp.h>
-+#include <sys/socket.h>
-+#include <netdb.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <stdint.h>
-+#include <errno.h>
-+#include <fcntl.h>
-+#include <unistd.h>
-+
-+#define PING_ERRNO		-1
-+#define PING_SUCCESS		0
-+#define PING_ALIVE		PING_SUCCESS
-+#define PING_TIMEOUT		1
-+#define PING_HOST_UNREACH	2
-+#define PING_HOST_NOT_FOUND	3
-+#define PING_INVALID_CHECKSUM	4
-+#define PING_INVALID_RESPONSE	5
-+#define PING_INVALID_SIZE	6
-+#define PING_INVALID_ID		7
-+
-+int32_t icmp_socket(void);
-+int32_t icmp_ping_hostfd(int32_t sock, char *hostname, uint32_t seq,
-+			 long seconds, long micros);
-+int32_t icmp_ping_host(char *hostname, uint32_t seq, long seconds,long micros);
-+
-+int32_t icmp_ping_addrfd(int32_t sock, struct sockaddr_in *sin_send, 
-+			 uint32_t seq, long seconds, long micros);
-+int32_t icmp_ping_addr(struct sockaddr_in *sin_send, uint32_t seq,
-+		       long seconds, long micros);
-+
-+
-+#define net_icmp_close(sock) close(sock)
-+
-+#endif /* _PING_H */
---- autofs-4.1.3/lib/rpc_subs.c.orig	2004-06-04 17:35:32.000000000 -0400
-+++ autofs-4.1.3/lib/rpc_subs.c	2004-06-04 17:36:05.000000000 -0400
-@@ -5,6 +5,7 @@
- #include <rpc/xdr.h>
-  
- #include "automount.h"
-+#include "ping.h"
+diff -Nur autofs-4.1.3.orig/lib/Makefile autofs-4.1.3/lib/Makefile
+--- autofs-4.1.3.orig/lib/Makefile	2004-03-07 20:17:54.000000000 +0800
++++ autofs-4.1.3/lib/Makefile	2004-06-05 13:13:05.000000000 +0800
+@@ -9,9 +9,9 @@
+ RPCGEN = /usr/bin/rpcgen
+ RANLIB = /usr/bin/ranlib
  
- static int rpc_ping_proto(const char *host,
- 			  unsigned long nfs_version, const char *proto,
-@@ -71,6 +72,10 @@
+-SRCS = cache.c listmount.c cat_path.c rpc_subs.c
++SRCS = cache.c listmount.c cat_path.c rpc_subs.c ping.c
+ RPCS = mount.h mount_clnt.c mount_xdr.c
+-OBJS = cache.o mount_clnt.o mount_xdr.o listmount.o cat_path.o rpc_subs.o
++OBJS = cache.o mount_clnt.o mount_xdr.o listmount.o cat_path.o rpc_subs.o ping.o
+ 
+ LIB = autofs.a
+ 
+diff -Nur autofs-4.1.3.orig/lib/rpc_subs.c autofs-4.1.3/lib/rpc_subs.c
+--- autofs-4.1.3.orig/lib/rpc_subs.c	2004-06-05 13:13:43.000000000 +0800
++++ autofs-4.1.3/lib/rpc_subs.c	2004-06-05 13:13:05.000000000 +0800
+@@ -72,7 +72,7 @@
  {
  	unsigned int status;
  
-+	status = icmp_ping_host(host, 0, seconds, micros);
-+	if (status)
-+		return 0;
-+
- 	status = rpc_ping_v2(host, seconds, micros);
+-	status = icmp_ping_host(host, 0, seconds, micros);
++	status = icmp_ping_host((char *) host, 0, seconds, micros);
  	if (status)
- 		return status;
-@@ -114,4 +119,3 @@
+ 		return 0;
  
- 	return status;
- }
--
---- autofs-4.1.3/lib/ping.c.orig	2004-06-04 17:35:38.000000000 -0400
-+++ autofs-4.1.3/lib/ping.c	2004-06-04 17:26:08.000000000 -0400
-@@ -0,0 +1,384 @@
-+/*
-+  Copyright Red Hat, Inc. 2003
-+
-+  This program is free software; you can redistribute it and/or modify it
-+  under the terms of the GNU General Public License as published by the
-+  Free Software Foundation; either version 2, or (at your option) any
-+  later version.
-+
-+  This program is distributed in the hope that it will be useful, but
-+  WITHOUT ANY WARRANTY; without even the implied warranty of
-+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+  General Public License for more details.
-+
-+  You should have received a copy of the GNU General Public License
-+  along with this program; see the file COPYING.  If not, write to the
-+  Free Software Foundation, Inc.,  675 Mass Ave, Cambridge,
-+  MA 02139, USA.
-+*/
-+/** @file
-+ * Ping functions for Red Hat Cluster Manager (RFC777)
-+ *
-+ * These functions provide internal ping functionality.  These functions are
-+ * used to help determine quorum when a two or four node cluster has an
-+ * even split.
-+ */
-+ 
-+#include <ping.h>
-+
-+/**
-+ * From RFC 777:
-+ *
-+ * [ICMP] Header Checksum
-+ * The 16 bit one's complement of the one's complement sum of all 16
-+ * bit words in the header.  For computing the checksum, the checksum
-+ * field should be zero.  This checksum may be replaced in the
-+ * future.
-+ *
-+ * @param buf		16-but word array
-+ * @param buflen	Length (in 8-bit bytes!) of buf
-+ * @return		ICMP header checksum of buf.
-+ */
-+uint16_t
-+icmp_checksum(uint16_t *buf, uint32_t buflen)
-+{
-+	uint32_t remain = buflen, sum = 0;
-+	char *data = (char *)buf;
-+
-+	while (remain > 1) {
-+		sum += *((uint16_t *)data);
-+		data += 2;
-+		remain -= 2;
-+	}
-+
-+	/*
-+	 * Clean up the last byte (if there is one)
-+	 */
-+	if (remain)
-+		sum += *data;
-+
-+	sum = (sum>>16)+(sum&0xffff);
-+	sum += (sum>>16);
-+	
-+	return (uint16_t)((~sum)&0xffff);
-+}
-+
-+
-+/**
-+ * Set up an ICMP socket (basically, a raw socket).  This requires root 
-+ * privileges.
-+ *
-+ * @return See socket(2).
-+ */
-+int32_t
-+icmp_socket(void)
-+{
-+	return socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
-+}
-+
-+
-+/**
-+ * Call gethostbyname and return an appropriate PING return value based on
-+ * the response we get.  Fill in sin_send.
-+ *
-+ * @param hostname	Hostname to look up.
-+ * @param sin_send	IP address structure (pre-allocated).
-+ * @return		PING_HOST_NOT_FOUND if the host is not found, 0
-+ *			on success, -1 on other error.
-+ * @see gethostbyname
-+ */
-+int32_t
-+icmp_ping_getaddr(char *hostname, struct sockaddr_in *sin_send)
-+{
-+	struct hostent *hp;
-+
-+	/*
-+	 * Grab the hostname
-+	 */
-+	while ((hp = gethostbyname(hostname)) == NULL) {
-+		switch(h_errno) {
-+		case TRY_AGAIN:
-+			continue;
-+		case HOST_NOT_FOUND:
-+		case NO_ADDRESS:
-+		case NO_RECOVERY:
-+			return PING_HOST_NOT_FOUND;
-+		}
-+		return -1;
-+	}
-+
-+	/*
-+	 * Set up send address
-+	 */
-+	memset(sin_send, 0, sizeof(*sin_send));
-+	sin_send->sin_family = AF_INET;
-+	sin_send->sin_port = 0;
-+	memcpy(&sin_send->sin_addr, hp->h_addr, sizeof(sin_send->sin_addr));
-+
-+	return 0;
-+}
-+
-+
-+/**
-+ * Send a ping (ICMP_ECHO) to a given IP address and file descriptor.
-+ * This is set up so that a daemon can drop privileges after binding to a raw
-+ * socket (perhaps preserving a static ping socket), but still be able to use
-+ * ping.  This is a pretty long function.
-+ *
-+ * @param sock		Socket to send on.
-+ * @param sin_send	Address to send to.
-+ * @param seq		Sequence number.
-+ * @param timeout	Timeout (in seconds)
-+ * @return		-1 on syscall error, 0 on success.
-+ *			See ping.h for list of return values >0.
-+ * @see	icmp_ping_host icmp_ping_hostfd icmp_ping_addr
-+ */
-+int32_t
-+icmp_ping_addrfd(int32_t sock, struct sockaddr_in *sin_send, uint32_t seq,
-+		 long seconds, long micros)
-+{
-+	char buffer[256]; /* XXX */
-+	struct icmp *packetp;
-+	struct ip *ipp;
-+	struct sockaddr_in sin_recv;
-+	struct timeval tv;
-+	fd_set rfds;
-+	uint16_t checksum;
-+	uint32_t x, sin_recv_len = sizeof(sin_recv);
-+	int timeout = (seconds || micros);
-+
-+	/*
-+	 * Set up ICMP echo packet
-+	 */
-+	packetp = (struct icmp *)buffer;
-+
-+	memset(packetp, 0, ICMP_MINLEN);
-+	packetp->icmp_type = ICMP_ECHO;
-+	packetp->icmp_seq = seq;
-+	packetp->icmp_id = getpid();
-+	packetp->icmp_cksum = icmp_checksum((uint16_t *)packetp,
-+						ICMP_MINLEN);
-+
-+	/*
-+	 * Send the packet
-+	 */
-+	while ((x = sendto(sock, packetp, ICMP_MINLEN, 0,
-+	    		   (struct sockaddr *)sin_send,
-+			   sizeof(*sin_send))) < ICMP_MINLEN)
-+		if (x < 0)
-+			return -1;
-+
-+	if (timeout) {
-+		tv.tv_sec = seconds;
-+		tv.tv_usec = micros;
-+	}
-+
-+	/*
-+	 * Wait for response
-+	 */
-+	while (1) {
-+		
-+		/*
-+		 * Set up select call...
-+		 */
-+		FD_ZERO(&rfds);
-+		FD_SET(sock,&rfds);
-+		while ((x = select(sock+1, &rfds, NULL, NULL,
-+		   		   timeout ? &tv : NULL)) <= 0) {
-+			if (!x)
-+				return PING_TIMEOUT;
-+			return -1;
-+		}
-+		
-+		/*
-+		 * Receive response
-+		 */
-+		if ((x = recvfrom(sock, buffer, sizeof(buffer), 0,
-+				  (struct sockaddr *)&sin_recv,
-+				  &sin_recv_len)) < 0) {
-+			return -1;
-+		}
-+
-+		/*
-+		 * Ensure it's the proper size...
-+		 * - (ipp->ip_hl << 2) is because IP header length is in
-+		 * 32-bit words instead of bytes.
-+		 * - ICMP_MINLEN is defined in netinet/ip_icmp.h.
-+		 */
-+		ipp = (struct ip *)buffer;
-+		if (x < ((ipp->ip_hl << 2) + ICMP_MINLEN)) {
-+			if (timeout)
-+				continue;
-+			return PING_INVALID_SIZE;
-+		}
-+		
-+		/*
-+		 * Validate the checksum.  The checksum needs to be set to
-+		 * 0 for validation purposes.
-+		 */
-+		packetp = (struct icmp *)((buffer + (ipp->ip_hl << 2)));
-+		checksum = packetp->icmp_cksum;
-+		packetp->icmp_cksum = 0;
-+		if (checksum != icmp_checksum((uint16_t*)packetp,
-+					      ICMP_MINLEN)) {
-+			if (timeout)
-+				continue;
-+			return PING_INVALID_CHECKSUM;
-+		}
-+
-+		/*
-+		 * Ensure it's the proper id...
-+		 */
-+		switch (packetp->icmp_type) {
-+		case ICMP_ECHOREPLY:
-+			if (packetp->icmp_id != getpid()) {
-+				if (timeout)
+diff -Nur autofs-4.1.3.orig/modules/mount_nfs.c autofs-4.1.3/modules/mount_nfs.c
+--- autofs-4.1.3.orig/modules/mount_nfs.c	2004-05-18 20:20:08.000000000 +0800
++++ autofs-4.1.3/modules/mount_nfs.c	2004-06-05 13:13:05.000000000 +0800
+@@ -142,6 +142,7 @@
+ 	while (p && *p) {
+ 		char *next;
+ 		unsigned int ping_stat = 0;
++		unsigned int status;
+ 
+ 		p += strspn(p, " \t,");
+ 		delim = strpbrk(p, "(, \t:");
+@@ -216,13 +217,24 @@
+ 				break;
+ 		}
+ 
+-		/*
+-		 * If it's not local and it's a replicated server map entry
+-		 * is it alive
+-		 */
+-		if (!local && is_replicated && !(ping_stat = rpc_ping(p, sec, micros))) {
+-			p = next;
+-			continue;
++		/* If it's not local */
++		if (!local) {
++			/* and it's a replicated server map entry, check
++			 * if it's alive and servicing NFS requests */
++			if (is_replicated) {
++				ping_stat = rpc_ping(p, sec, micros);
++				if (!ping_stat) {
++					p = next;
 +					continue;
-+				return PING_INVALID_ID;
++				}
++			/* otherwise just check if it's alive */
++			} else {
++				status = icmp_ping_host(p, 0, sec, micros);
++				if (status) {
++					*what = '\0';
++					return 0;
++				}
 +			}
-+			return PING_SUCCESS;
-+		case ICMP_DEST_UNREACH:
-+			return PING_HOST_UNREACH;
-+		}
-+
-+		/* XXX */
-+		return PING_INVALID_RESPONSE;
-+	}
-+}
-+
-+
-+/**
-+ * Send a ping (ICMP_ECHO) to a given IP address.  This is set up so that a
-+ * daemon can drop privileges after binding to a raw socket (perhaps
-+ * preserving a static ping socket), but still be able to use ping calls.
-+ *
-+ * @param sock		Socket to send on
-+ * @param hostname	Host name to ping
-+ * @param seq		Sequence number.
-+ * @param timeout	Timeout (in seconds)
-+ * @return		-1 on syscall error, 0 on success.
-+ *			See ping.h for list of return values >0.
-+ * @see	icmp_ping_getaddr icmp_ping_addrfd icmp_ping 
-+ */
-+int32_t
-+icmp_ping_hostfd(int32_t sock, char *hostname, uint32_t seq, 
-+		 long seconds, long micros)
-+{
-+	struct sockaddr_in sin_send;
-+	int rv;
-+
-+	rv = icmp_ping_getaddr(hostname, &sin_send);
-+	if (rv)
-+		return rv;
-+
-+	return icmp_ping_addrfd(sock, &sin_send, seq, seconds, micros);
-+}
-+
-+
-+/**
-+ * Send a ping (ICMP_ECHO) to a given IP address. 
-+ *
-+ * @param sin_send	Address we want to send to.
-+ * @param seq		Sequence number (user defined)
-+ * @param timeout	Timeout (in seconds)
-+ * @return		-1 on syscall error, 0 on success.
-+ *			See ping.h for list of return values >0.
-+ * @see	icmp_ping_addrfd icmp_socket icmp_ping_host icmp_ping_hostfd
-+ */
-+int32_t
-+icmp_ping_addr(struct sockaddr_in *sin_send, uint32_t seq, 
-+	       long seconds, long micros)
-+{
-+	int sock, rv, esv;
-+
-+	sock = icmp_socket();
-+	if (sock < 0)
-+		return -1;
-+
-+	rv = icmp_ping_addrfd(sock, sin_send, seq, seconds, micros);
-+
-+	esv = errno;
-+	close(sock);
-+	errno = esv;
-+
-+	return rv;
-+}
-+
-+
-+/**
-+ * Send a ping (ICMP_ECHO) to a given hostname.
-+ *
-+ * @param hostname	Target host
-+ * @param seq		Sequence number (user defined)
-+ * @param timeout	Timeout (in seconds)
-+ * @return		-1 on syscall error, 0 on success.
-+ *			See ping.h for list of return values >0.
-+ * @see	icmp_socket icmp_ping_hostfd icmp_ping_addr icmp_ping_addrfd
-+ */
-+int32_t
-+icmp_ping_host(char *hostname, uint32_t seq, long seconds, long micros)
-+{
-+	uint32_t rv, sock, esv;
-+
-+	sock = icmp_socket();
-+	if (sock == -1)
-+		return -1;
-+
-+	rv = icmp_ping_hostfd(sock, hostname, seq, seconds, micros);
-+
-+	esv = errno;
-+	close(sock);
-+	errno = esv;
-+
-+	return rv;
-+}
-+
-+
-+#ifdef STANDALONE
-+int
-+main(int argc, char **argv)
-+{
-+	int timeout = 0, rv;
-+
-+	if (argc < 2) {
-+		printf("usage: %s <host> [timeout]\n", argv[0]);
-+		return 2;
-+	}
-+
-+	if (argc == 3)
-+		timeout = atoi(argv[2]);
-+
-+	rv = icmp_ping_host(argv[1], 1, timeout);
-+
-+	switch(rv) {
-+	case PING_ERRNO:
-+		perror("icmp_ping_host");
-+		break;
-+	case PING_SUCCESS:
-+		printf("%s is alive\n", argv[1]);
-+		break;
-+	case PING_TIMEOUT:
-+		printf("%s timed out\n", argv[1]);
-+		break;
-+	case PING_HOST_UNREACH:
-+		printf("%s is unreachable\n", argv[1]);
-+		break;
-+	case PING_HOST_NOT_FOUND:
-+		printf("Host %s not found!\n", argv[1]);
-+		break;
-+	case PING_INVALID_CHECKSUM:
-+		printf("Invalid checksum in reply.\n");
-+		break;
-+	case PING_INVALID_SIZE:
-+		printf("Invalid size of reply packet.\n");
-+		break;
-+	case PING_INVALID_RESPONSE:
-+		printf("Invalid response.\n");
-+		break;
-+	case PING_INVALID_ID:
-+		printf("Invalid ID in response.\n");
-+		break;
-+	}
-+	return rv;
-+}
-+#endif
+ 		}
+ 
+ 		/* see if we have a previous 'winner' */
 
---wZGJ2U7ySl
+--19054760-68511040-1086413768=:12824
+Content-Type: TEXT/PLAIN; charset=US-ASCII;
+	name="autofs-4.1.3-icmp_ping.patch"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.58.0406051336080.12824@donald.themaw.net>
+Content-Description: icmp patch + my changes
+Content-Disposition: attachment; filename="autofs-4.1.3-icmp_ping.patch"
+
+ZGlmZiAtTnVyIGF1dG9mcy00LjEuMy5vcmlnL2luY2x1ZGUvcGluZy5oIGF1
+dG9mcy00LjEuMy9pbmNsdWRlL3BpbmcuaA0KLS0tIGF1dG9mcy00LjEuMy5v
+cmlnL2luY2x1ZGUvcGluZy5oCTE5NzAtMDEtMDEgMDg6MDA6MDAuMDAwMDAw
+MDAwICswODAwDQorKysgYXV0b2ZzLTQuMS4zL2luY2x1ZGUvcGluZy5oCTIw
+MDQtMDYtMDUgMTE6MDA6MDkuMDAwMDAwMDAwICswODAwDQpAQCAtMCwwICsx
+LDYwIEBADQorLyoNCisgIENvcHlyaWdodCBSZWQgSGF0LCBJbmMuIDIwMDMN
+CisNCisgIFRoaXMgcHJvZ3JhbSBpcyBmcmVlIHNvZnR3YXJlOyB5b3UgY2Fu
+IHJlZGlzdHJpYnV0ZSBpdCBhbmQvb3IgbW9kaWZ5IGl0DQorICB1bmRlciB0
+aGUgdGVybXMgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIGFz
+IHB1Ymxpc2hlZCBieSB0aGUNCisgIEZyZWUgU29mdHdhcmUgRm91bmRhdGlv
+bjsgZWl0aGVyIHZlcnNpb24gMiwgb3IgKGF0IHlvdXIgb3B0aW9uKSBhbnkN
+CisgIGxhdGVyIHZlcnNpb24uDQorDQorICBUaGlzIHByb2dyYW0gaXMgZGlz
+dHJpYnV0ZWQgaW4gdGhlIGhvcGUgdGhhdCBpdCB3aWxsIGJlIHVzZWZ1bCwg
+YnV0DQorICBXSVRIT1VUIEFOWSBXQVJSQU5UWTsgd2l0aG91dCBldmVuIHRo
+ZSBpbXBsaWVkIHdhcnJhbnR5IG9mDQorICBNRVJDSEFOVEFCSUxJVFkgb3Ig
+RklUTkVTUyBGT1IgQSBQQVJUSUNVTEFSIFBVUlBPU0UuICBTZWUgdGhlIEdO
+VQ0KKyAgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSBmb3IgbW9yZSBkZXRhaWxz
+Lg0KKw0KKyAgWW91IHNob3VsZCBoYXZlIHJlY2VpdmVkIGEgY29weSBvZiB0
+aGUgR05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UNCisgIGFsb25nIHdpdGgg
+dGhpcyBwcm9ncmFtOyBzZWUgdGhlIGZpbGUgQ09QWUlORy4gIElmIG5vdCwg
+d3JpdGUgdG8gdGhlDQorICBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb24sIElu
+Yy4sICA2NzUgTWFzcyBBdmUsIENhbWJyaWRnZSwNCisgIE1BIDAyMTM5LCBV
+U0EuDQorICovDQorLyoqIEBmaWxlDQorICogSGVhZGVyIGZvciBwaW5nLmMu
+DQorICovDQorI2lmbmRlZiBfUElOR19IDQorI2RlZmluZSBfUElOR19IDQor
+DQorI2luY2x1ZGUgPG5ldGluZXQvaXBfaWNtcC5oPg0KKyNpbmNsdWRlIDxz
+eXMvc29ja2V0Lmg+DQorI2luY2x1ZGUgPG5ldGRiLmg+DQorI2luY2x1ZGUg
+PHN0ZGlvLmg+DQorI2luY2x1ZGUgPHN0ZGxpYi5oPg0KKyNpbmNsdWRlIDxz
+dHJpbmcuaD4NCisjaW5jbHVkZSA8c3RkaW50Lmg+DQorI2luY2x1ZGUgPGVy
+cm5vLmg+DQorI2luY2x1ZGUgPGZjbnRsLmg+DQorI2luY2x1ZGUgPHVuaXN0
+ZC5oPg0KKw0KKyNkZWZpbmUgUElOR19FUlJOTwkJLTENCisjZGVmaW5lIFBJ
+TkdfU1VDQ0VTUwkJMA0KKyNkZWZpbmUgUElOR19BTElWRQkJUElOR19TVUND
+RVNTDQorI2RlZmluZSBQSU5HX1RJTUVPVVQJCTENCisjZGVmaW5lIFBJTkdf
+SE9TVF9VTlJFQUNICTINCisjZGVmaW5lIFBJTkdfSE9TVF9OT1RfRk9VTkQJ
+Mw0KKyNkZWZpbmUgUElOR19JTlZBTElEX0NIRUNLU1VNCTQNCisjZGVmaW5l
+IFBJTkdfSU5WQUxJRF9SRVNQT05TRQk1DQorI2RlZmluZSBQSU5HX0lOVkFM
+SURfU0laRQk2DQorI2RlZmluZSBQSU5HX0lOVkFMSURfSUQJCTcNCisNCitp
+bnQzMl90IGljbXBfc29ja2V0KHZvaWQpOw0KK2ludDMyX3QgaWNtcF9waW5n
+X2hvc3RmZChpbnQzMl90IHNvY2ssIGNoYXIgKmhvc3RuYW1lLCB1aW50MzJf
+dCBzZXEsDQorCQkJIGxvbmcgc2Vjb25kcywgbG9uZyBtaWNyb3MpOw0KK2lu
+dDMyX3QgaWNtcF9waW5nX2hvc3QoY2hhciAqaG9zdG5hbWUsIHVpbnQzMl90
+IHNlcSwgbG9uZyBzZWNvbmRzLGxvbmcgbWljcm9zKTsNCisNCitpbnQzMl90
+IGljbXBfcGluZ19hZGRyZmQoaW50MzJfdCBzb2NrLCBzdHJ1Y3Qgc29ja2Fk
+ZHJfaW4gKnNpbl9zZW5kLCANCisJCQkgdWludDMyX3Qgc2VxLCBsb25nIHNl
+Y29uZHMsIGxvbmcgbWljcm9zKTsNCitpbnQzMl90IGljbXBfcGluZ19hZGRy
+KHN0cnVjdCBzb2NrYWRkcl9pbiAqc2luX3NlbmQsIHVpbnQzMl90IHNlcSwN
+CisJCSAgICAgICBsb25nIHNlY29uZHMsIGxvbmcgbWljcm9zKTsNCisNCisN
+CisjZGVmaW5lIG5ldF9pY21wX2Nsb3NlKHNvY2spIGNsb3NlKHNvY2spDQor
+DQorI2VuZGlmIC8qIF9QSU5HX0ggKi8NCmRpZmYgLU51ciBhdXRvZnMtNC4x
+LjMub3JpZy9saWIvTWFrZWZpbGUgYXV0b2ZzLTQuMS4zL2xpYi9NYWtlZmls
+ZQ0KLS0tIGF1dG9mcy00LjEuMy5vcmlnL2xpYi9NYWtlZmlsZQkyMDA0LTA1
+LTMwIDEwOjM1OjQwLjAwMDAwMDAwMCArMDgwMA0KKysrIGF1dG9mcy00LjEu
+My9saWIvTWFrZWZpbGUJMjAwNC0wNi0wNSAxMTowMzo1Ni4wMDAwMDAwMDAg
+KzA4MDANCkBAIC05LDkgKzksOSBAQA0KIFJQQ0dFTiA9IC91c3IvYmluL3Jw
+Y2dlbg0KIFJBTkxJQiA9IC91c3IvYmluL3JhbmxpYg0KIA0KLVNSQ1MgPSBj
+YWNoZS5jIGxpc3Rtb3VudC5jIGNhdF9wYXRoLmMgcnBjX3N1YnMuYw0KK1NS
+Q1MgPSBjYWNoZS5jIGxpc3Rtb3VudC5jIGNhdF9wYXRoLmMgcnBjX3N1YnMu
+YyBwaW5nLmMNCiBSUENTID0gbW91bnQuaCBtb3VudF9jbG50LmMgbW91bnRf
+eGRyLmMNCi1PQkpTID0gY2FjaGUubyBtb3VudF9jbG50Lm8gbW91bnRfeGRy
+Lm8gbGlzdG1vdW50Lm8gY2F0X3BhdGgubyBycGNfc3Vicy5vDQorT0JKUyA9
+IGNhY2hlLm8gbW91bnRfY2xudC5vIG1vdW50X3hkci5vIGxpc3Rtb3VudC5v
+IGNhdF9wYXRoLm8gcnBjX3N1YnMubyBwaW5nLm8NCiANCiBMSUIgPSBhdXRv
+ZnMuYQ0KIA0KZGlmZiAtTnVyIGF1dG9mcy00LjEuMy5vcmlnL2xpYi9waW5n
+LmMgYXV0b2ZzLTQuMS4zL2xpYi9waW5nLmMNCi0tLSBhdXRvZnMtNC4xLjMu
+b3JpZy9saWIvcGluZy5jCTE5NzAtMDEtMDEgMDg6MDA6MDAuMDAwMDAwMDAw
+ICswODAwDQorKysgYXV0b2ZzLTQuMS4zL2xpYi9waW5nLmMJMjAwNC0wNi0w
+NSAxMTowMDowOS4wMDAwMDAwMDAgKzA4MDANCkBAIC0wLDAgKzEsMzg0IEBA
+DQorLyoNCisgIENvcHlyaWdodCBSZWQgSGF0LCBJbmMuIDIwMDMNCisNCisg
+IFRoaXMgcHJvZ3JhbSBpcyBmcmVlIHNvZnR3YXJlOyB5b3UgY2FuIHJlZGlz
+dHJpYnV0ZSBpdCBhbmQvb3IgbW9kaWZ5IGl0DQorICB1bmRlciB0aGUgdGVy
+bXMgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIGFzIHB1Ymxp
+c2hlZCBieSB0aGUNCisgIEZyZWUgU29mdHdhcmUgRm91bmRhdGlvbjsgZWl0
+aGVyIHZlcnNpb24gMiwgb3IgKGF0IHlvdXIgb3B0aW9uKSBhbnkNCisgIGxh
+dGVyIHZlcnNpb24uDQorDQorICBUaGlzIHByb2dyYW0gaXMgZGlzdHJpYnV0
+ZWQgaW4gdGhlIGhvcGUgdGhhdCBpdCB3aWxsIGJlIHVzZWZ1bCwgYnV0DQor
+ICBXSVRIT1VUIEFOWSBXQVJSQU5UWTsgd2l0aG91dCBldmVuIHRoZSBpbXBs
+aWVkIHdhcnJhbnR5IG9mDQorICBNRVJDSEFOVEFCSUxJVFkgb3IgRklUTkVT
+UyBGT1IgQSBQQVJUSUNVTEFSIFBVUlBPU0UuICBTZWUgdGhlIEdOVQ0KKyAg
+R2VuZXJhbCBQdWJsaWMgTGljZW5zZSBmb3IgbW9yZSBkZXRhaWxzLg0KKw0K
+KyAgWW91IHNob3VsZCBoYXZlIHJlY2VpdmVkIGEgY29weSBvZiB0aGUgR05V
+IEdlbmVyYWwgUHVibGljIExpY2Vuc2UNCisgIGFsb25nIHdpdGggdGhpcyBw
+cm9ncmFtOyBzZWUgdGhlIGZpbGUgQ09QWUlORy4gIElmIG5vdCwgd3JpdGUg
+dG8gdGhlDQorICBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb24sIEluYy4sICA2
+NzUgTWFzcyBBdmUsIENhbWJyaWRnZSwNCisgIE1BIDAyMTM5LCBVU0EuDQor
+Ki8NCisvKiogQGZpbGUNCisgKiBQaW5nIGZ1bmN0aW9ucyBmb3IgUmVkIEhh
+dCBDbHVzdGVyIE1hbmFnZXIgKFJGQzc3NykNCisgKg0KKyAqIFRoZXNlIGZ1
+bmN0aW9ucyBwcm92aWRlIGludGVybmFsIHBpbmcgZnVuY3Rpb25hbGl0eS4g
+IFRoZXNlIGZ1bmN0aW9ucyBhcmUNCisgKiB1c2VkIHRvIGhlbHAgZGV0ZXJt
+aW5lIHF1b3J1bSB3aGVuIGEgdHdvIG9yIGZvdXIgbm9kZSBjbHVzdGVyIGhh
+cyBhbg0KKyAqIGV2ZW4gc3BsaXQuDQorICovDQorIA0KKyNpbmNsdWRlIDxw
+aW5nLmg+DQorDQorLyoqDQorICogRnJvbSBSRkMgNzc3Og0KKyAqDQorICog
+W0lDTVBdIEhlYWRlciBDaGVja3N1bQ0KKyAqIFRoZSAxNiBiaXQgb25lJ3Mg
+Y29tcGxlbWVudCBvZiB0aGUgb25lJ3MgY29tcGxlbWVudCBzdW0gb2YgYWxs
+IDE2DQorICogYml0IHdvcmRzIGluIHRoZSBoZWFkZXIuICBGb3IgY29tcHV0
+aW5nIHRoZSBjaGVja3N1bSwgdGhlIGNoZWNrc3VtDQorICogZmllbGQgc2hv
+dWxkIGJlIHplcm8uICBUaGlzIGNoZWNrc3VtIG1heSBiZSByZXBsYWNlZCBp
+biB0aGUNCisgKiBmdXR1cmUuDQorICoNCisgKiBAcGFyYW0gYnVmCQkxNi1i
+dXQgd29yZCBhcnJheQ0KKyAqIEBwYXJhbSBidWZsZW4JTGVuZ3RoIChpbiA4
+LWJpdCBieXRlcyEpIG9mIGJ1Zg0KKyAqIEByZXR1cm4JCUlDTVAgaGVhZGVy
+IGNoZWNrc3VtIG9mIGJ1Zi4NCisgKi8NCit1aW50MTZfdA0KK2ljbXBfY2hl
+Y2tzdW0odWludDE2X3QgKmJ1ZiwgdWludDMyX3QgYnVmbGVuKQ0KK3sNCisJ
+dWludDMyX3QgcmVtYWluID0gYnVmbGVuLCBzdW0gPSAwOw0KKwljaGFyICpk
+YXRhID0gKGNoYXIgKilidWY7DQorDQorCXdoaWxlIChyZW1haW4gPiAxKSB7
+DQorCQlzdW0gKz0gKigodWludDE2X3QgKilkYXRhKTsNCisJCWRhdGEgKz0g
+MjsNCisJCXJlbWFpbiAtPSAyOw0KKwl9DQorDQorCS8qDQorCSAqIENsZWFu
+IHVwIHRoZSBsYXN0IGJ5dGUgKGlmIHRoZXJlIGlzIG9uZSkNCisJICovDQor
+CWlmIChyZW1haW4pDQorCQlzdW0gKz0gKmRhdGE7DQorDQorCXN1bSA9IChz
+dW0+PjE2KSsoc3VtJjB4ZmZmZik7DQorCXN1bSArPSAoc3VtPj4xNik7DQor
+CQ0KKwlyZXR1cm4gKHVpbnQxNl90KSgofnN1bSkmMHhmZmZmKTsNCit9DQor
+DQorDQorLyoqDQorICogU2V0IHVwIGFuIElDTVAgc29ja2V0IChiYXNpY2Fs
+bHksIGEgcmF3IHNvY2tldCkuICBUaGlzIHJlcXVpcmVzIHJvb3QgDQorICog
+cHJpdmlsZWdlcy4NCisgKg0KKyAqIEByZXR1cm4gU2VlIHNvY2tldCgyKS4N
+CisgKi8NCitpbnQzMl90DQoraWNtcF9zb2NrZXQodm9pZCkNCit7DQorCXJl
+dHVybiBzb2NrZXQoQUZfSU5FVCwgU09DS19SQVcsIElQUFJPVE9fSUNNUCk7
+DQorfQ0KKw0KKw0KKy8qKg0KKyAqIENhbGwgZ2V0aG9zdGJ5bmFtZSBhbmQg
+cmV0dXJuIGFuIGFwcHJvcHJpYXRlIFBJTkcgcmV0dXJuIHZhbHVlIGJhc2Vk
+IG9uDQorICogdGhlIHJlc3BvbnNlIHdlIGdldC4gIEZpbGwgaW4gc2luX3Nl
+bmQuDQorICoNCisgKiBAcGFyYW0gaG9zdG5hbWUJSG9zdG5hbWUgdG8gbG9v
+ayB1cC4NCisgKiBAcGFyYW0gc2luX3NlbmQJSVAgYWRkcmVzcyBzdHJ1Y3R1
+cmUgKHByZS1hbGxvY2F0ZWQpLg0KKyAqIEByZXR1cm4JCVBJTkdfSE9TVF9O
+T1RfRk9VTkQgaWYgdGhlIGhvc3QgaXMgbm90IGZvdW5kLCAwDQorICoJCQlv
+biBzdWNjZXNzLCAtMSBvbiBvdGhlciBlcnJvci4NCisgKiBAc2VlIGdldGhv
+c3RieW5hbWUNCisgKi8NCitpbnQzMl90DQoraWNtcF9waW5nX2dldGFkZHIo
+Y2hhciAqaG9zdG5hbWUsIHN0cnVjdCBzb2NrYWRkcl9pbiAqc2luX3NlbmQp
+DQorew0KKwlzdHJ1Y3QgaG9zdGVudCAqaHA7DQorDQorCS8qDQorCSAqIEdy
+YWIgdGhlIGhvc3RuYW1lDQorCSAqLw0KKwl3aGlsZSAoKGhwID0gZ2V0aG9z
+dGJ5bmFtZShob3N0bmFtZSkpID09IE5VTEwpIHsNCisJCXN3aXRjaChoX2Vy
+cm5vKSB7DQorCQljYXNlIFRSWV9BR0FJTjoNCisJCQljb250aW51ZTsNCisJ
+CWNhc2UgSE9TVF9OT1RfRk9VTkQ6DQorCQljYXNlIE5PX0FERFJFU1M6DQor
+CQljYXNlIE5PX1JFQ09WRVJZOg0KKwkJCXJldHVybiBQSU5HX0hPU1RfTk9U
+X0ZPVU5EOw0KKwkJfQ0KKwkJcmV0dXJuIC0xOw0KKwl9DQorDQorCS8qDQor
+CSAqIFNldCB1cCBzZW5kIGFkZHJlc3MNCisJICovDQorCW1lbXNldChzaW5f
+c2VuZCwgMCwgc2l6ZW9mKCpzaW5fc2VuZCkpOw0KKwlzaW5fc2VuZC0+c2lu
+X2ZhbWlseSA9IEFGX0lORVQ7DQorCXNpbl9zZW5kLT5zaW5fcG9ydCA9IDA7
+DQorCW1lbWNweSgmc2luX3NlbmQtPnNpbl9hZGRyLCBocC0+aF9hZGRyLCBz
+aXplb2Yoc2luX3NlbmQtPnNpbl9hZGRyKSk7DQorDQorCXJldHVybiAwOw0K
+K30NCisNCisNCisvKioNCisgKiBTZW5kIGEgcGluZyAoSUNNUF9FQ0hPKSB0
+byBhIGdpdmVuIElQIGFkZHJlc3MgYW5kIGZpbGUgZGVzY3JpcHRvci4NCisg
+KiBUaGlzIGlzIHNldCB1cCBzbyB0aGF0IGEgZGFlbW9uIGNhbiBkcm9wIHBy
+aXZpbGVnZXMgYWZ0ZXIgYmluZGluZyB0byBhIHJhdw0KKyAqIHNvY2tldCAo
+cGVyaGFwcyBwcmVzZXJ2aW5nIGEgc3RhdGljIHBpbmcgc29ja2V0KSwgYnV0
+IHN0aWxsIGJlIGFibGUgdG8gdXNlDQorICogcGluZy4gIFRoaXMgaXMgYSBw
+cmV0dHkgbG9uZyBmdW5jdGlvbi4NCisgKg0KKyAqIEBwYXJhbSBzb2NrCQlT
+b2NrZXQgdG8gc2VuZCBvbi4NCisgKiBAcGFyYW0gc2luX3NlbmQJQWRkcmVz
+cyB0byBzZW5kIHRvLg0KKyAqIEBwYXJhbSBzZXEJCVNlcXVlbmNlIG51bWJl
+ci4NCisgKiBAcGFyYW0gdGltZW91dAlUaW1lb3V0IChpbiBzZWNvbmRzKQ0K
+KyAqIEByZXR1cm4JCS0xIG9uIHN5c2NhbGwgZXJyb3IsIDAgb24gc3VjY2Vz
+cy4NCisgKgkJCVNlZSBwaW5nLmggZm9yIGxpc3Qgb2YgcmV0dXJuIHZhbHVl
+cyA+MC4NCisgKiBAc2VlCWljbXBfcGluZ19ob3N0IGljbXBfcGluZ19ob3N0
+ZmQgaWNtcF9waW5nX2FkZHINCisgKi8NCitpbnQzMl90DQoraWNtcF9waW5n
+X2FkZHJmZChpbnQzMl90IHNvY2ssIHN0cnVjdCBzb2NrYWRkcl9pbiAqc2lu
+X3NlbmQsIHVpbnQzMl90IHNlcSwNCisJCSBsb25nIHNlY29uZHMsIGxvbmcg
+bWljcm9zKQ0KK3sNCisJY2hhciBidWZmZXJbMjU2XTsgLyogWFhYICovDQor
+CXN0cnVjdCBpY21wICpwYWNrZXRwOw0KKwlzdHJ1Y3QgaXAgKmlwcDsNCisJ
+c3RydWN0IHNvY2thZGRyX2luIHNpbl9yZWN2Ow0KKwlzdHJ1Y3QgdGltZXZh
+bCB0djsNCisJZmRfc2V0IHJmZHM7DQorCXVpbnQxNl90IGNoZWNrc3VtOw0K
+Kwl1aW50MzJfdCB4LCBzaW5fcmVjdl9sZW4gPSBzaXplb2Yoc2luX3JlY3Yp
+Ow0KKwlpbnQgdGltZW91dCA9IChzZWNvbmRzIHx8IG1pY3Jvcyk7DQorDQor
+CS8qDQorCSAqIFNldCB1cCBJQ01QIGVjaG8gcGFja2V0DQorCSAqLw0KKwlw
+YWNrZXRwID0gKHN0cnVjdCBpY21wICopYnVmZmVyOw0KKw0KKwltZW1zZXQo
+cGFja2V0cCwgMCwgSUNNUF9NSU5MRU4pOw0KKwlwYWNrZXRwLT5pY21wX3R5
+cGUgPSBJQ01QX0VDSE87DQorCXBhY2tldHAtPmljbXBfc2VxID0gc2VxOw0K
+KwlwYWNrZXRwLT5pY21wX2lkID0gZ2V0cGlkKCk7DQorCXBhY2tldHAtPmlj
+bXBfY2tzdW0gPSBpY21wX2NoZWNrc3VtKCh1aW50MTZfdCAqKXBhY2tldHAs
+DQorCQkJCQkJSUNNUF9NSU5MRU4pOw0KKw0KKwkvKg0KKwkgKiBTZW5kIHRo
+ZSBwYWNrZXQNCisJICovDQorCXdoaWxlICgoeCA9IHNlbmR0byhzb2NrLCBw
+YWNrZXRwLCBJQ01QX01JTkxFTiwgMCwNCisJICAgIAkJICAgKHN0cnVjdCBz
+b2NrYWRkciAqKXNpbl9zZW5kLA0KKwkJCSAgIHNpemVvZigqc2luX3NlbmQp
+KSkgPCBJQ01QX01JTkxFTikNCisJCWlmICh4IDwgMCkNCisJCQlyZXR1cm4g
+LTE7DQorDQorCWlmICh0aW1lb3V0KSB7DQorCQl0di50dl9zZWMgPSBzZWNv
+bmRzOw0KKwkJdHYudHZfdXNlYyA9IG1pY3JvczsNCisJfQ0KKw0KKwkvKg0K
+KwkgKiBXYWl0IGZvciByZXNwb25zZQ0KKwkgKi8NCisJd2hpbGUgKDEpIHsN
+CisJCQ0KKwkJLyoNCisJCSAqIFNldCB1cCBzZWxlY3QgY2FsbC4uLg0KKwkJ
+ICovDQorCQlGRF9aRVJPKCZyZmRzKTsNCisJCUZEX1NFVChzb2NrLCZyZmRz
+KTsNCisJCXdoaWxlICgoeCA9IHNlbGVjdChzb2NrKzEsICZyZmRzLCBOVUxM
+LCBOVUxMLA0KKwkJICAgCQkgICB0aW1lb3V0ID8gJnR2IDogTlVMTCkpIDw9
+IDApIHsNCisJCQlpZiAoIXgpDQorCQkJCXJldHVybiBQSU5HX1RJTUVPVVQ7
+DQorCQkJcmV0dXJuIC0xOw0KKwkJfQ0KKwkJDQorCQkvKg0KKwkJICogUmVj
+ZWl2ZSByZXNwb25zZQ0KKwkJICovDQorCQlpZiAoKHggPSByZWN2ZnJvbShz
+b2NrLCBidWZmZXIsIHNpemVvZihidWZmZXIpLCAwLA0KKwkJCQkgIChzdHJ1
+Y3Qgc29ja2FkZHIgKikmc2luX3JlY3YsDQorCQkJCSAgJnNpbl9yZWN2X2xl
+bikpIDwgMCkgew0KKwkJCXJldHVybiAtMTsNCisJCX0NCisNCisJCS8qDQor
+CQkgKiBFbnN1cmUgaXQncyB0aGUgcHJvcGVyIHNpemUuLi4NCisJCSAqIC0g
+KGlwcC0+aXBfaGwgPDwgMikgaXMgYmVjYXVzZSBJUCBoZWFkZXIgbGVuZ3Ro
+IGlzIGluDQorCQkgKiAzMi1iaXQgd29yZHMgaW5zdGVhZCBvZiBieXRlcy4N
+CisJCSAqIC0gSUNNUF9NSU5MRU4gaXMgZGVmaW5lZCBpbiBuZXRpbmV0L2lw
+X2ljbXAuaC4NCisJCSAqLw0KKwkJaXBwID0gKHN0cnVjdCBpcCAqKWJ1ZmZl
+cjsNCisJCWlmICh4IDwgKChpcHAtPmlwX2hsIDw8IDIpICsgSUNNUF9NSU5M
+RU4pKSB7DQorCQkJaWYgKHRpbWVvdXQpDQorCQkJCWNvbnRpbnVlOw0KKwkJ
+CXJldHVybiBQSU5HX0lOVkFMSURfU0laRTsNCisJCX0NCisJCQ0KKwkJLyoN
+CisJCSAqIFZhbGlkYXRlIHRoZSBjaGVja3N1bS4gIFRoZSBjaGVja3N1bSBu
+ZWVkcyB0byBiZSBzZXQgdG8NCisJCSAqIDAgZm9yIHZhbGlkYXRpb24gcHVy
+cG9zZXMuDQorCQkgKi8NCisJCXBhY2tldHAgPSAoc3RydWN0IGljbXAgKiko
+KGJ1ZmZlciArIChpcHAtPmlwX2hsIDw8IDIpKSk7DQorCQljaGVja3N1bSA9
+IHBhY2tldHAtPmljbXBfY2tzdW07DQorCQlwYWNrZXRwLT5pY21wX2Nrc3Vt
+ID0gMDsNCisJCWlmIChjaGVja3N1bSAhPSBpY21wX2NoZWNrc3VtKCh1aW50
+MTZfdCopcGFja2V0cCwNCisJCQkJCSAgICAgIElDTVBfTUlOTEVOKSkgew0K
+KwkJCWlmICh0aW1lb3V0KQ0KKwkJCQljb250aW51ZTsNCisJCQlyZXR1cm4g
+UElOR19JTlZBTElEX0NIRUNLU1VNOw0KKwkJfQ0KKw0KKwkJLyoNCisJCSAq
+IEVuc3VyZSBpdCdzIHRoZSBwcm9wZXIgaWQuLi4NCisJCSAqLw0KKwkJc3dp
+dGNoIChwYWNrZXRwLT5pY21wX3R5cGUpIHsNCisJCWNhc2UgSUNNUF9FQ0hP
+UkVQTFk6DQorCQkJaWYgKHBhY2tldHAtPmljbXBfaWQgIT0gZ2V0cGlkKCkp
+IHsNCisJCQkJaWYgKHRpbWVvdXQpDQorCQkJCQljb250aW51ZTsNCisJCQkJ
+cmV0dXJuIFBJTkdfSU5WQUxJRF9JRDsNCisJCQl9DQorCQkJcmV0dXJuIFBJ
+TkdfU1VDQ0VTUzsNCisJCWNhc2UgSUNNUF9ERVNUX1VOUkVBQ0g6DQorCQkJ
+cmV0dXJuIFBJTkdfSE9TVF9VTlJFQUNIOw0KKwkJfQ0KKw0KKwkJLyogWFhY
+ICovDQorCQlyZXR1cm4gUElOR19JTlZBTElEX1JFU1BPTlNFOw0KKwl9DQor
+fQ0KKw0KKw0KKy8qKg0KKyAqIFNlbmQgYSBwaW5nIChJQ01QX0VDSE8pIHRv
+IGEgZ2l2ZW4gSVAgYWRkcmVzcy4gIFRoaXMgaXMgc2V0IHVwIHNvIHRoYXQg
+YQ0KKyAqIGRhZW1vbiBjYW4gZHJvcCBwcml2aWxlZ2VzIGFmdGVyIGJpbmRp
+bmcgdG8gYSByYXcgc29ja2V0IChwZXJoYXBzDQorICogcHJlc2VydmluZyBh
+IHN0YXRpYyBwaW5nIHNvY2tldCksIGJ1dCBzdGlsbCBiZSBhYmxlIHRvIHVz
+ZSBwaW5nIGNhbGxzLg0KKyAqDQorICogQHBhcmFtIHNvY2sJCVNvY2tldCB0
+byBzZW5kIG9uDQorICogQHBhcmFtIGhvc3RuYW1lCUhvc3QgbmFtZSB0byBw
+aW5nDQorICogQHBhcmFtIHNlcQkJU2VxdWVuY2UgbnVtYmVyLg0KKyAqIEBw
+YXJhbSB0aW1lb3V0CVRpbWVvdXQgKGluIHNlY29uZHMpDQorICogQHJldHVy
+bgkJLTEgb24gc3lzY2FsbCBlcnJvciwgMCBvbiBzdWNjZXNzLg0KKyAqCQkJ
+U2VlIHBpbmcuaCBmb3IgbGlzdCBvZiByZXR1cm4gdmFsdWVzID4wLg0KKyAq
+IEBzZWUJaWNtcF9waW5nX2dldGFkZHIgaWNtcF9waW5nX2FkZHJmZCBpY21w
+X3BpbmcgDQorICovDQoraW50MzJfdA0KK2ljbXBfcGluZ19ob3N0ZmQoaW50
+MzJfdCBzb2NrLCBjaGFyICpob3N0bmFtZSwgdWludDMyX3Qgc2VxLCANCisJ
+CSBsb25nIHNlY29uZHMsIGxvbmcgbWljcm9zKQ0KK3sNCisJc3RydWN0IHNv
+Y2thZGRyX2luIHNpbl9zZW5kOw0KKwlpbnQgcnY7DQorDQorCXJ2ID0gaWNt
+cF9waW5nX2dldGFkZHIoaG9zdG5hbWUsICZzaW5fc2VuZCk7DQorCWlmIChy
+dikNCisJCXJldHVybiBydjsNCisNCisJcmV0dXJuIGljbXBfcGluZ19hZGRy
+ZmQoc29jaywgJnNpbl9zZW5kLCBzZXEsIHNlY29uZHMsIG1pY3Jvcyk7DQor
+fQ0KKw0KKw0KKy8qKg0KKyAqIFNlbmQgYSBwaW5nIChJQ01QX0VDSE8pIHRv
+IGEgZ2l2ZW4gSVAgYWRkcmVzcy4gDQorICoNCisgKiBAcGFyYW0gc2luX3Nl
+bmQJQWRkcmVzcyB3ZSB3YW50IHRvIHNlbmQgdG8uDQorICogQHBhcmFtIHNl
+cQkJU2VxdWVuY2UgbnVtYmVyICh1c2VyIGRlZmluZWQpDQorICogQHBhcmFt
+IHRpbWVvdXQJVGltZW91dCAoaW4gc2Vjb25kcykNCisgKiBAcmV0dXJuCQkt
+MSBvbiBzeXNjYWxsIGVycm9yLCAwIG9uIHN1Y2Nlc3MuDQorICoJCQlTZWUg
+cGluZy5oIGZvciBsaXN0IG9mIHJldHVybiB2YWx1ZXMgPjAuDQorICogQHNl
+ZQlpY21wX3BpbmdfYWRkcmZkIGljbXBfc29ja2V0IGljbXBfcGluZ19ob3N0
+IGljbXBfcGluZ19ob3N0ZmQNCisgKi8NCitpbnQzMl90DQoraWNtcF9waW5n
+X2FkZHIoc3RydWN0IHNvY2thZGRyX2luICpzaW5fc2VuZCwgdWludDMyX3Qg
+c2VxLCANCisJICAgICAgIGxvbmcgc2Vjb25kcywgbG9uZyBtaWNyb3MpDQor
+ew0KKwlpbnQgc29jaywgcnYsIGVzdjsNCisNCisJc29jayA9IGljbXBfc29j
+a2V0KCk7DQorCWlmIChzb2NrIDwgMCkNCisJCXJldHVybiAtMTsNCisNCisJ
+cnYgPSBpY21wX3BpbmdfYWRkcmZkKHNvY2ssIHNpbl9zZW5kLCBzZXEsIHNl
+Y29uZHMsIG1pY3Jvcyk7DQorDQorCWVzdiA9IGVycm5vOw0KKwljbG9zZShz
+b2NrKTsNCisJZXJybm8gPSBlc3Y7DQorDQorCXJldHVybiBydjsNCit9DQor
+DQorDQorLyoqDQorICogU2VuZCBhIHBpbmcgKElDTVBfRUNITykgdG8gYSBn
+aXZlbiBob3N0bmFtZS4NCisgKg0KKyAqIEBwYXJhbSBob3N0bmFtZQlUYXJn
+ZXQgaG9zdA0KKyAqIEBwYXJhbSBzZXEJCVNlcXVlbmNlIG51bWJlciAodXNl
+ciBkZWZpbmVkKQ0KKyAqIEBwYXJhbSB0aW1lb3V0CVRpbWVvdXQgKGluIHNl
+Y29uZHMpDQorICogQHJldHVybgkJLTEgb24gc3lzY2FsbCBlcnJvciwgMCBv
+biBzdWNjZXNzLg0KKyAqCQkJU2VlIHBpbmcuaCBmb3IgbGlzdCBvZiByZXR1
+cm4gdmFsdWVzID4wLg0KKyAqIEBzZWUJaWNtcF9zb2NrZXQgaWNtcF9waW5n
+X2hvc3RmZCBpY21wX3BpbmdfYWRkciBpY21wX3BpbmdfYWRkcmZkDQorICov
+DQoraW50MzJfdA0KK2ljbXBfcGluZ19ob3N0KGNoYXIgKmhvc3RuYW1lLCB1
+aW50MzJfdCBzZXEsIGxvbmcgc2Vjb25kcywgbG9uZyBtaWNyb3MpDQorew0K
+Kwl1aW50MzJfdCBydiwgc29jaywgZXN2Ow0KKw0KKwlzb2NrID0gaWNtcF9z
+b2NrZXQoKTsNCisJaWYgKHNvY2sgPT0gLTEpDQorCQlyZXR1cm4gLTE7DQor
+DQorCXJ2ID0gaWNtcF9waW5nX2hvc3RmZChzb2NrLCBob3N0bmFtZSwgc2Vx
+LCBzZWNvbmRzLCBtaWNyb3MpOw0KKw0KKwllc3YgPSBlcnJubzsNCisJY2xv
+c2Uoc29jayk7DQorCWVycm5vID0gZXN2Ow0KKw0KKwlyZXR1cm4gcnY7DQor
+fQ0KKw0KKw0KKyNpZmRlZiBTVEFOREFMT05FDQoraW50DQorbWFpbihpbnQg
+YXJnYywgY2hhciAqKmFyZ3YpDQorew0KKwlpbnQgdGltZW91dCA9IDAsIHJ2
+Ow0KKw0KKwlpZiAoYXJnYyA8IDIpIHsNCisJCXByaW50ZigidXNhZ2U6ICVz
+IDxob3N0PiBbdGltZW91dF1cbiIsIGFyZ3ZbMF0pOw0KKwkJcmV0dXJuIDI7
+DQorCX0NCisNCisJaWYgKGFyZ2MgPT0gMykNCisJCXRpbWVvdXQgPSBhdG9p
+KGFyZ3ZbMl0pOw0KKw0KKwlydiA9IGljbXBfcGluZ19ob3N0KGFyZ3ZbMV0s
+IDEsIHRpbWVvdXQpOw0KKw0KKwlzd2l0Y2gocnYpIHsNCisJY2FzZSBQSU5H
+X0VSUk5POg0KKwkJcGVycm9yKCJpY21wX3BpbmdfaG9zdCIpOw0KKwkJYnJl
+YWs7DQorCWNhc2UgUElOR19TVUNDRVNTOg0KKwkJcHJpbnRmKCIlcyBpcyBh
+bGl2ZVxuIiwgYXJndlsxXSk7DQorCQlicmVhazsNCisJY2FzZSBQSU5HX1RJ
+TUVPVVQ6DQorCQlwcmludGYoIiVzIHRpbWVkIG91dFxuIiwgYXJndlsxXSk7
+DQorCQlicmVhazsNCisJY2FzZSBQSU5HX0hPU1RfVU5SRUFDSDoNCisJCXBy
+aW50ZigiJXMgaXMgdW5yZWFjaGFibGVcbiIsIGFyZ3ZbMV0pOw0KKwkJYnJl
+YWs7DQorCWNhc2UgUElOR19IT1NUX05PVF9GT1VORDoNCisJCXByaW50Zigi
+SG9zdCAlcyBub3QgZm91bmQhXG4iLCBhcmd2WzFdKTsNCisJCWJyZWFrOw0K
+KwljYXNlIFBJTkdfSU5WQUxJRF9DSEVDS1NVTToNCisJCXByaW50ZigiSW52
+YWxpZCBjaGVja3N1bSBpbiByZXBseS5cbiIpOw0KKwkJYnJlYWs7DQorCWNh
+c2UgUElOR19JTlZBTElEX1NJWkU6DQorCQlwcmludGYoIkludmFsaWQgc2l6
+ZSBvZiByZXBseSBwYWNrZXQuXG4iKTsNCisJCWJyZWFrOw0KKwljYXNlIFBJ
+TkdfSU5WQUxJRF9SRVNQT05TRToNCisJCXByaW50ZigiSW52YWxpZCByZXNw
+b25zZS5cbiIpOw0KKwkJYnJlYWs7DQorCWNhc2UgUElOR19JTlZBTElEX0lE
+Og0KKwkJcHJpbnRmKCJJbnZhbGlkIElEIGluIHJlc3BvbnNlLlxuIik7DQor
+CQlicmVhazsNCisJfQ0KKwlyZXR1cm4gcnY7DQorfQ0KKyNlbmRpZg0KZGlm
+ZiAtTnVyIGF1dG9mcy00LjEuMy5vcmlnL2xpYi9ycGNfc3Vicy5jIGF1dG9m
+cy00LjEuMy9saWIvcnBjX3N1YnMuYw0KLS0tIGF1dG9mcy00LjEuMy5vcmln
+L2xpYi9ycGNfc3Vicy5jCTIwMDQtMDUtMTggMjA6MjA6MDguMDAwMDAwMDAw
+ICswODAwDQorKysgYXV0b2ZzLTQuMS4zL2xpYi9ycGNfc3Vicy5jCTIwMDQt
+MDYtMDUgMTI6NDc6MTMuMDAwMDAwMDAwICswODAwDQpAQCAtNSw2ICs1LDcg
+QEANCiAjaW5jbHVkZSA8cnBjL3hkci5oPg0KICANCiAjaW5jbHVkZSAiYXV0
+b21vdW50LmgiDQorI2luY2x1ZGUgInBpbmcuaCINCiANCiBzdGF0aWMgaW50
+IHJwY19waW5nX3Byb3RvKGNvbnN0IGNoYXIgKmhvc3QsDQogCQkJICB1bnNp
+Z25lZCBsb25nIG5mc192ZXJzaW9uLCBjb25zdCBjaGFyICpwcm90bywNCkBA
+IC03MSw2ICs3MiwxMCBAQA0KIHsNCiAJdW5zaWduZWQgaW50IHN0YXR1czsN
+CiANCisJc3RhdHVzID0gaWNtcF9waW5nX2hvc3QoKGNoYXIgKikgaG9zdCwg
+MCwgc2Vjb25kcywgbWljcm9zKTsNCisJaWYgKHN0YXR1cykNCisJCXJldHVy
+biAwOw0KKw0KIAlzdGF0dXMgPSBycGNfcGluZ192Mihob3N0LCBzZWNvbmRz
+LCBtaWNyb3MpOw0KIAlpZiAoc3RhdHVzKQ0KIAkJcmV0dXJuIHN0YXR1czsN
+CkBAIC0xMTQsNCArMTE5LDMgQEANCiANCiAJcmV0dXJuIHN0YXR1czsNCiB9
+DQotDQpkaWZmIC1OdXIgYXV0b2ZzLTQuMS4zLm9yaWcvbW9kdWxlcy9tb3Vu
+dF9uZnMuYyBhdXRvZnMtNC4xLjMvbW9kdWxlcy9tb3VudF9uZnMuYw0KLS0t
+IGF1dG9mcy00LjEuMy5vcmlnL21vZHVsZXMvbW91bnRfbmZzLmMJMjAwNC0w
+NS0zMCAxMToyNTowNy4wMDAwMDAwMDAgKzA4MDANCisrKyBhdXRvZnMtNC4x
+LjMvbW9kdWxlcy9tb3VudF9uZnMuYwkyMDA0LTA2LTA1IDEyOjQ4OjA1LjAw
+MDAwMDAwMCArMDgwMA0KQEAgLTE0Miw2ICsxNDIsNyBAQA0KIAl3aGlsZSAo
+cCAmJiAqcCkgew0KIAkJY2hhciAqbmV4dDsNCiAJCXVuc2lnbmVkIGludCBw
+aW5nX3N0YXQgPSAwOw0KKwkJdW5zaWduZWQgaW50IHN0YXR1czsNCiANCiAJ
+CXAgKz0gc3Ryc3BuKHAsICIgXHQsIik7DQogCQlkZWxpbSA9IHN0cnBicmso
+cCwgIigsIFx0OiIpOw0KQEAgLTIxNiwxMyArMjE3LDI0IEBADQogCQkJCWJy
+ZWFrOw0KIAkJfQ0KIA0KLQkJLyoNCi0JCSAqIElmIGl0J3Mgbm90IGxvY2Fs
+IGFuZCBpdCdzIGEgcmVwbGljYXRlZCBzZXJ2ZXIgbWFwIGVudHJ5DQotCQkg
+KiBpcyBpdCBhbGl2ZQ0KLQkJICovDQotCQlpZiAoIWxvY2FsICYmIGlzX3Jl
+cGxpY2F0ZWQgJiYgIShwaW5nX3N0YXQgPSBycGNfcGluZyhwLCBzZWMsIG1p
+Y3JvcykpKSB7DQotCQkJcCA9IG5leHQ7DQotCQkJY29udGludWU7DQorCQkv
+KiBJZiBpdCdzIG5vdCBsb2NhbCAqLw0KKwkJaWYgKCFsb2NhbCkgew0KKwkJ
+CS8qIGFuZCBpdCdzIGEgcmVwbGljYXRlZCBzZXJ2ZXIgbWFwIGVudHJ5LCBj
+aGVjaw0KKwkJCSAqIGlmIGl0J3MgYWxpdmUgYW5kIHNlcnZpY2luZyBORlMg
+cmVxdWVzdHMgKi8NCisJCQlpZiAoaXNfcmVwbGljYXRlZCkgew0KKwkJCQlw
+aW5nX3N0YXQgPSBycGNfcGluZyhwLCBzZWMsIG1pY3Jvcyk7DQorCQkJCWlm
+ICghcGluZ19zdGF0KSB7DQorCQkJCQlwID0gbmV4dDsNCisJCQkJCWNvbnRp
+bnVlOw0KKwkJCQl9DQorCQkJLyogb3RoZXJ3aXNlIGp1c3QgY2hlY2sgaWYg
+aXQncyBhbGl2ZSAqLw0KKwkJCX0gZWxzZSB7DQorCQkJCXN0YXR1cyA9IGlj
+bXBfcGluZ19ob3N0KHAsIDAsIHNlYywgbWljcm9zKTsNCisJCQkJaWYgKHN0
+YXR1cykgew0KKwkJCQkJKndoYXQgPSAnXDAnOw0KKwkJCQkJcmV0dXJuIDA7
+DQorCQkJCX0NCisJCQl9DQogCQl9DQogDQogCQkvKiBzZWUgaWYgd2UgaGF2
+ZSBhIHByZXZpb3VzICd3aW5uZXInICovDQo=
+
+--19054760-68511040-1086413768=:12824
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -578,5 +478,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---wZGJ2U7ySl--
+--19054760-68511040-1086413768=:12824--
 
