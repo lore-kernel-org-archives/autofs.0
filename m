@@ -1,106 +1,231 @@
-From: raven@themaw.net
-Subject: Re: NFS readonly failover and linux?
-Date: Sat, 19 Feb 2005 11:10:54 +0800 (WST)
-Message-ID: <Pine.LNX.4.61.0502191104080.1601@donald.themaw.net>
-References: <1106871309.6181.254.camel@seki.nac.uci.edu> 
- <Pine.LNX.4.61.0501291127450.1607@donald.themaw.net> 
- <1107205302.4071.17.camel@seki.nac.uci.edu>  <Pine.LNX.4.58.0502010945400.25875@wombat.indigo.net.au>
-  <16895.57760.531261.8465@segfault.boston.redhat.com> 
- <1108677567.5897.55.camel@seki.nac.uci.edu>  <Pine.LNX.4.58.0502181207490.20922@wombat.indigo.net.au>
- <1108753705.5897.114.camel@seki.nac.uci.edu>
+From: Jonathan Loran <jonathan@loran.name>
+Subject: Re: autofs and terminal networks woes.
+Date: Thu, 17 Feb 2005 08:09:55 -0800
+Message-ID: <4214C1D3.8080107@loran.name>
+References: <215ff441050217023378003e72@mail.gmail.com>	<Pine.LNX.4.61.0502172136030.1683@donald.themaw.net>	<215ff441050217060647db41dc@mail.gmail.com>	<Pine.LNX.4.61.0502172203440.1683@donald.themaw.net>
+	<215ff441050217071517292c1a@mail.gmail.com>
 Mime-Version: 1.0
-In-Reply-To: <1108753705.5897.114.camel@seki.nac.uci.edu>
-Sender: nfs-admin@lists.sourceforge.net
-Errors-To: nfs-admin@lists.sourceforge.net
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=unsubscribe>
+Content-Type: multipart/mixed; boundary="===============0868536618=="
+In-Reply-To: <215ff441050217071517292c1a@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
-List-Post: <mailto:nfs@lists.sourceforge.net>
-List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
-Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: autofs@linux.kernel.org
+
+This is a multi-part message in MIME format.
+--===============0868536618==
+Content-Type: multipart/alternative;
+	boundary="------------070005010400000507050909"
+
+This is a multi-part message in MIME format.
+--------------070005010400000507050909
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-To: Dan Stromberg <strombrg@dcs.nac.uci.edu>
-Cc: jmoyer@redhat.com, autofs mailing list <autofs@linux.kernel.org>, nfs@lists.sourceforge.net
 
-On Fri, 18 Feb 2005, Dan Stromberg wrote:
 
-> On Fri, 2005-02-18 at 12:09 +0800, Ian Kent wrote:
+Chris, Ian,
+
+I don't chime in here very often, and I know this is now more or less 
+working, but the obvious question to me is, since both the thin client 
+and server are running Linux/Unix, why not use the more native NFS?  
+Perhaps I'm missing something obvious.
+
+Jon
+
+Chris Fanning wrote:
+
+>ok. downloaded, compiled and installed.
+>This works great!
 >
->>>> And please include the contents of your maps!
+>Thankyou.
+>Chris.
+>
+>
+>
+>On Thu, 17 Feb 2005 22:10:58 +0800 (WST), raven@themaw.net
+><raven@themaw.net> wrote:
+>  
+>
+>>On Thu, 17 Feb 2005, Chris Fanning wrote:
+>>
+>>    
+>>
+>>>Hi Ian,
+>>>
+>>>      
+>>>
+>>>>Versions?
 >>>>
->>>> -Jeff
+>>>>        
+>>>>
+>>>4.1.3-9
 >>>
+>>>      
+>>>
+>>>>Perhaps you need to use ://thinclient_ip/fd
+>>>>        
+>>>>
+>>>So, do you suggest I upgrade?
+>>>      
+>>>
+>>Only if you can solve the problems you face. Certainly not without plenty
+>>of testing.
 >>
->> Short answer is no.
+>>    
 >>
->>> Here are the maps we use on Solaris 9.  Should they work the same way on
->>> RHEL 3?
+>>>When might 4.1.4 be available for debian testing?
+>>>      
 >>>
->>> autoinst-strombrg> cat /etc/auto_dcslib
->>> /dcs -ro
->>   ^^^^
->> Single level direct mount entries don't yet work.
->
-> What if we set up indirect mounts for /foo/dcs and /foo/dcslib, and then
-> had symlinks from /dcs and /dcslib?
-
-That should work fine.
-
->
->>> dcslib1.nacs.uci.edu,dcslib2.nacs.uci.edu,dcslib3.nacs.uci.edu:/dcspdb/sun4-5
->>> /dcslib -ro
->>> dcslib1.nacs.uci.edu,dcslib2.nacs.uci.edu,dcslib3.nacs.uci.edu:/dcspda
+>>I guess that will depend on the Debian folks.
+>>I'm hoping they will push 4.1.4 into the Debian tree fairly soon after it
+>>is released. I've tried to get as many fixes into the new version as I could.
+>>
+>>    
+>>
+>>>Should I download the source instead?
+>>>      
 >>>
->>> autoinst-strombrg> cat /etc/auto_master
->>> # Master map for automounter
->>> #
->>> +auto.master
->>> /net            -hosts          -nosuid,nobrowse
->>> #/home          auto_home       -nobrowse
->>> /xfn            -xfn
->>> /-             auto_direct
->>                  ^^^^^^^^^^^ Don't you mean auto_dcslib?
->
-> Apologies.  I got these maps from a system on which they were only
-> vestigial.  Here are the maps from a system that's actually doing
-> this :) :
->
-> data-strombrg> cat /etc/auto_dcslib
-> /dcs -ro
-> dcslib1.nacs.uci.edu,dcslib2.nacs.uci.edu,dcslib3.nacs.uci.edu:/dcspdb/sun4-5
-> /dcslib -ro
-> dcslib1.nacs.uci.edu,dcslib2.nacs.uci.edu,dcslib3.nacs.uci.edu:/dcspda
->
-> data-strombrg> cat /etc/auto_master
-> # Master map for automounter
-> #
-> +auto.master
-> /net            -hosts          -nosuid,nobrowse
-> #/home          auto_home       -nobrowse
-> #/xfn           -xfn
-> /- auto_dcslib
-> /- auto_dcs
->
-
-Your hosts map won't work. It will be ignored. You can use the auto.net 
-program map in the distribution to give similar functionality.
-
->
->>>
->>>
+>>If you wish to test this out you can download
+>>autofs-4.1.4_beta2-deb.tar.gz which basically contains the files of a
+>>source deb.
+>>
+>>As i've said before, this is for testing only as I'm not the maintainer of
+>>the Debian package.
+>>
+>>If you do try this make sure you stop autofs before installing the deb.
+>>
+>>Ian
+>>
+>>
+>>    
 >>
 >
+>_______________________________________________
+>autofs mailing list
+>autofs@linux.kernel.org
+>http://linux.kernel.org/mailman/listinfo/autofs
+>  
+>
+
+--------------070005010400000507050909
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+  <title></title>
+</head>
+<body bgcolor="#ffffff" text="#000000">
+<br>
+Chris, Ian,<br>
+<br>
+I don't chime in here very often, and I know this is now more or less
+working, but the obvious question to me is, since both the thin client
+and server are running Linux/Unix, why not use the more native NFS?&nbsp;
+Perhaps I'm missing something obvious.<br>
+<br>
+Jon<br>
+<br>
+Chris Fanning wrote:
+<blockquote cite="mid215ff441050217071517292c1a@mail.gmail.com"
+ type="cite">
+  <pre wrap="">ok. downloaded, compiled and installed.
+This works great!
+
+Thankyou.
+Chris.
 
 
 
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+On Thu, 17 Feb 2005 22:10:58 +0800 (WST), <a class="moz-txt-link-abbreviated" href="mailto:raven@themaw.net">raven@themaw.net</a>
+<a class="moz-txt-link-rfc2396E" href="mailto:raven@themaw.net">&lt;raven@themaw.net&gt;</a> wrote:
+  </pre>
+  <blockquote type="cite">
+    <pre wrap="">On Thu, 17 Feb 2005, Chris Fanning wrote:
+
+    </pre>
+    <blockquote type="cite">
+      <pre wrap="">Hi Ian,
+
+      </pre>
+      <blockquote type="cite">
+        <pre wrap="">Versions?
+
+        </pre>
+      </blockquote>
+      <pre wrap="">4.1.3-9
+
+      </pre>
+      <blockquote type="cite">
+        <pre wrap="">Perhaps you need to use ://thinclient_ip/fd
+        </pre>
+      </blockquote>
+      <pre wrap="">So, do you suggest I upgrade?
+      </pre>
+    </blockquote>
+    <pre wrap="">Only if you can solve the problems you face. Certainly not without plenty
+of testing.
+
+    </pre>
+    <blockquote type="cite">
+      <pre wrap="">When might 4.1.4 be available for debian testing?
+      </pre>
+    </blockquote>
+    <pre wrap="">I guess that will depend on the Debian folks.
+I'm hoping they will push 4.1.4 into the Debian tree fairly soon after it
+is released. I've tried to get as many fixes into the new version as I could.
+
+    </pre>
+    <blockquote type="cite">
+      <pre wrap="">Should I download the source instead?
+      </pre>
+    </blockquote>
+    <pre wrap="">If you wish to test this out you can download
+autofs-4.1.4_beta2-deb.tar.gz which basically contains the files of a
+source deb.
+
+As i've said before, this is for testing only as I'm not the maintainer of
+the Debian package.
+
+If you do try this make sure you stop autofs before installing the deb.
+
+Ian
+
+
+    </pre>
+  </blockquote>
+  <pre wrap=""><!---->
 _______________________________________________
-NFS maillist  -  NFS@lists.sourceforge.net
-https://lists.sourceforge.net/lists/listinfo/nfs
+autofs mailing list
+<a class="moz-txt-link-abbreviated" href="mailto:autofs@linux.kernel.org">autofs@linux.kernel.org</a>
+<a class="moz-txt-link-freetext" href="http://linux.kernel.org/mailman/listinfo/autofs">http://linux.kernel.org/mailman/listinfo/autofs</a>
+  </pre>
+</blockquote>
+</body>
+</html>
+
+--------------070005010400000507050909--
+
+
+--===============0868536618==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--===============0868536618==--
+
