@@ -1,9 +1,10 @@
-From: Sev Binello <sev@bnl.gov>
-Subject: automount[ ]: failed to mount
-Date: Fri, 04 Mar 2005 17:30:46 -0500
-Message-ID: <4228E196.4090303@bnl.gov>
+From: mmarion@qualcomm.com
+Subject: Re: Autofs 4.1.4_beta2 + NetApp Filer + missing dir
+Date: Fri, 4 Mar 2005 17:07:14 -0800 (PST)
+Message-ID: <200503050107.j2517EGK021770@cornholio.qualcomm.com>
+References: <Pine.LNX.4.61.0503011049350.25092@pod.adc.idt.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <Pine.LNX.4.61.0503011049350.25092@pod.adc.idt.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -14,42 +15,46 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
+Content-Type: TEXT/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: autofs@linux.kernel.org
 
+On  1 Mar, devnull@adc.idt.com wrote:
 
-Can anyone shed any light on the significance of the error messages below?
+> This is an extension to the "unacceptable bug in autofs kernel module" 
+> sent by mmarion at qualcomm
 
-We constantly get messages of the form ....
+I didn't send that.. someone else did, but I did comment that I thought we
+were seeing the same thing.  I try to be more subtle when talking about a 
+bug.. especially when I know I can't code well enough to fix it. :)
 
-Mar  4 11:28:57 acnlin43 automount[2740]: attempting to mount entry /cfs/g
-Mar  4 11:29:00 acnlin43 automount[14890]: mount(nfs): no host elected
-Mar  4 11:29:00 acnlin43 automount[14890]: failed to mount /cfs/g
+> /usr/sbin/automount -V
+> Linux automount version 4.1.4_beta2
+> (4.1.2 didnt work either)
+> 
+> We are submitting jobs to machines via LSF, the data being stored on 
+> NetApp filers, running OnTap 6.5.2
 
-or just simply....
+Hmm.. read that you're still seeing the issue, are you using direct map or
+program map to mount?  Ghosting?  Our project data is all on netapp filers 
+as well, not sure on the ontap version.
 
-   Mar  4 09:58:17 acnlin42 automount[30250]: failed to mount /cfs/ad
+I just brought up 2 hosts (1 i386 suse-9.2 and 1 amd64 sles9, both kernel 
+2.6.5-7.147-smp which has the latest autofs4/ghosting patches already) and
+installed 4.1.4_beta2.  I'm now doing direct mounts with ghosting.. and it
+appears to be working like a charm.. interactively at least.
 
+Next I want to push into our LSF farm and have users hit it with jobs to see
+if the direct map vs program map and/or ghosting help with the jobs that say
+"file not found" when it's clearly there.  
 
+That problem almost seems like the programs expect the mount to be atomic, and
+error out before automount has a time to do it's mount.. even though it's
+sub-second in it's action.
 
-Followed by a successful mount not too long afterward...
-Mar  4 11:33:54 acnlin43 automount[2740]: attempting to mount entry /cfs/g
-
-The failure bounces around to different filesystems -- using /cfs/g here 
-as an example --
-even though the nfs severs for these filesystems are up and running.
-
-We are running Redhat WS updates 1,2,3,4  and autofs-3.1.7-41 
-autofs-4.1.3-47
-our mounts look something like this ( we normally use udp, but also 
-tested with tcp)...
-in auto.master
-        /cfs    /etc/auto.cfs   --timeout 60
-in auto.cfs
-            g    -ro,intr,noquota,proto=tcp                
-acnlin34.pbn.bnl.gov:/cfsg
-
-
-
-Thanks,
--Sev
+-- 
+Mike Marion-Unix SysAdmin/Staff Engineer-http://www.qualcomm.com
+"One of the best ways to get yourself a reputation as a dangerous
+ citizen these days is to go about repeating the very phrases which
+ our founding fathers used in the great struggle for independence."
+                            -- Charles Austin Beard (1874-1948)
