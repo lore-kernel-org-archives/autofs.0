@@ -1,12 +1,10 @@
-From: "surya " <surya_prabhakar@linuxmail.org>
-Subject: Summary of autofs migration from Sun to Linux (resolved)
-Date: Sun, 14 Mar 2004 20:38:52 +0500
+From: Jon Niehof <jon_niehof@yahoo.com>
+Subject: Trapping eject button on CD-ROM
+Date: Sun, 14 Mar 2004 08:40:51 -0800 (PST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <20040314153852.274C423979@ws5-3.us4.outblaze.com>
+Message-ID: <20040314164051.27220.qmail@web20503.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,54 +15,18 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+Content-Transfer-Encoding: 7bit
+To: autofs@linux.kernel.org
 
-Dear Ian / All  , 
-              First of all Thank you so much Ian for your time to resolve our problem . 
+Apologies if this has been asked before; I read a
+HOWTO that seemed to imply it was possible but haven't
+seen anything beyond that.
 
-Summary is 
+Is it possible to configure autofs to "catch" the
+eject button on a CD-ROM and unmount the filesystem
+(presuming it's not busy, of course), then eject?
 
-just download 2 files from the below site
-
-http://www.kernel.org/pub/linux/daemons/autofs/v4/
-
-download the below files
-
-autofs-4.1.0.tar.gz 
-autofs4-2.4-module-20031201.tar.gz 
-
-1) remove your existing autofs rpm ( if applicable)
-2) untar the autofs-4.1.0.tar.gz and compile it ( ./configure, make ,make install) 
-3) back up your previous module if you want (/lib/modules/<kernel-dir>/kernel/fs/autofs/autofs.o)
-4) Untar autofs4-2.4-module-20031201.tar.gz then do (adjust your kernelpath & macro(read the README) , make ,make install) 
-     After this need to add an option to the master map like this 
-
-              /home	/etc/auto.home --ghost (  /home	/etc/auto.home --ghost ) 
-   You can also pass this " --ghost " option in the /etc/init.d/autofs file .
-   There is an option in this file called  daemonoptions append the entry
-   
-   eg:
-   daemonoptions='--ghost'
-
-    This will append the option to the automount daemon .
-
-5) Restart your autofs service .
-
-    That will solve the problem .
-
-
-rgds
-
-Surya Prabhakar N ,
-Technical Specialist ,
-Strategy & Deployment Team ,
-Wipro Limited ,
-Bangalore - India.
--- 
-______________________________________________
-Check out the latest SMS services @ http://www.linuxmail.org 
-This allows you to send and receive SMS through your mailbox.
-
-
-Powered by Outblaze
+__________________________________
+Do you Yahoo!?
+Yahoo! Mail - More reliable, more storage, less spam
+http://mail.yahoo.com
