@@ -1,12 +1,12 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Repeated Meessages - sendmail
-Date: Sun, 11 Jan 2004 17:29:03 +0800 (WST)
+From: Alvin Oga <alvin@Mail.Linux-Consulting.com>
+Subject: Re: Repeated Meessages - sendmail - virtual
+Date: Fri, 23 Jan 2004 23:58:27 -0800 (PST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.44.0401111724480.260-100000@donald.themaw.net>
-References: <Pine.LNX.3.96.1040123232708.2194A-100000@Maggie.Linux-Consulting.com>
+Message-ID: <Pine.LNX.3.96.1040123235652.19949A-100000@Maggie.Linux-Consulting.com>
+References: <Pine.LNX.4.44.0401111724480.260-100000@donald.themaw.net>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.3.96.1040123232708.2194A-100000@Maggie.Linux-Consulting.com>
+In-Reply-To: <Pine.LNX.4.44.0401111724480.260-100000@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,35 +18,28 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Alvin Oga <alvin@Mail.Linux-Consulting.com>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-On Fri, 23 Jan 2004, Alvin Oga wrote:
 
->
->
-> hi ya
->
-> On Sat, 24 Jan 2004 raven@themaw.net wrote:
->
-> > I have been having problems with their qmail mail server for some time
-> > now.
-> >
-> > Am now relaying through my server temporarily.
-> >
-> > I can't work out how to sufficiently restrict relaying in sendmail, for my
-> > dynamic ADSL IP, to continue this for long. Any sendmail people out there?
->
-> if you have your own mail server ... use it .. instead of the isp..
+hi ya ian
 
-But it's not exactly mine.
+On Sun, 11 Jan 2004, Ian Kent wrote:
 
-It's a co-located server funded by a friend of mine.
-We run a few domains so I have to be a little careful.
+> > if you have your own mail server ... use it .. instead of the isp..
+> 
+> But it's not exactly mine.
+> 
+> It's a co-located server funded by a friend of mine.
+> We run a few domains so I have to be a little careful.
 
-Ahh but maybe it's time to go back to running sendmail on each machine I
-use to send mail, again.
+just add each virtual domain you want to support to
+	/etc/mail/access
 
-That would work.
+add your users  ian@virtual.com   and ian@virtual-two.com to 
+	/etc/mail/virtusertable
 
-Ian
+http://www.Linux-Sec.net/Mail/Sendmail-Install-Howto
+
+c ya
+alvin
