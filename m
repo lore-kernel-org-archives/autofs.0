@@ -1,12 +1,11 @@
-From: Mike Waychison <Michael.Waychison@Sun.COM>
-Subject: Re: 	Problem with rpc_ping times, permission denied mounts,
+From: Ian Kent <raven@themaw.net>
+Subject: Re: Problem with rpc_ping times, permission denied mounts,
 	etc.
-Date: Wed, 02 Feb 2005 16:11:41 -0500
-Message-ID: <4201420D.9040209@sun.com>
+Date: Thu, 3 Feb 2005 09:13:37 +0800 (WST)
+Message-ID: <Pine.LNX.4.58.0502030911110.23477@wombat.indigo.net.au>
 References: <4201347A.6000605@redhat.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-In-reply-to: <4201347A.6000605@redhat.com>
+In-Reply-To: <4201347A.6000605@redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,59 +16,31 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: cfeist@redhat.com
-Cc: autofs@linux.kernel.org, raven@themaw.net
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Chris Feist <cfeist@redhat.com>
+Cc: autofs@linux.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Wed, 2 Feb 2005, Chris Feist wrote:
 
-Chris Feist wrote:
 > Ian,
 > 
-> Looking at Sun's documentation it doesn't appear that they take into
-> account ping times when using automounter maps.  It looks like they just
-> sort by network proximity and then weight. Would it make sense to remove
+> Looking at Sun's documentation it doesn't appear that they take into 
+> account ping times when using automounter maps.  It looks like they just 
+> sort by network proximity and then weight. Would it make sense to remove 
 > the rpc_ping requests and only use network proximity and weight.
 > 
-
-IIRC, Solaris 'network proximity' is defined from closest to farthest:
-
-1) Localhost
-2) On the same subnet
-3) rpc_ping times
-
-> Also, it seems like it would be best to return all of mounts from the
-> get_best_mounts function in order from best to worst.  Then, when it's
-> time to mount the directories we can try the first and if we get
-> permission denied or it isn't there we can fail over to the second, etc.
->  As opposed to what happens now if the best host has nfs temporarily
+> Also, it seems like it would be best to return all of mounts from the 
+> get_best_mounts function in order from best to worst.  Then, when it's 
+> time to mount the directories we can try the first and if we get 
+> permission denied or it isn't there we can fail over to the second, etc. 
+>   As opposed to what happens now if the best host has nfs temporarily 
 > disabled (or the wrong permissions set) the whole directory fails to mount.
-> 
-> Thanks,
-> Chris
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
+>
 
+Sounds good.
 
-- --
-Mike Waychison
-Sun Microsystems, Inc.
-1 (650) 352-5299 voice
-1 (416) 202-8336 voice
+We probably need to assign priorities in some sort of semi-democratic 
+way, to these "larger than bug fix" tasks.
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NOTICE:  The opinions expressed in this email are held by me,
-and may not represent the views of Sun Microsystems, Inc.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
-
-iD8DBQFCAUINdQs4kOxk3/MRAkpBAJ0cEsM3IEkmgT5EhmNfyoNZ8TsY2QCgjCxe
-+gJM4Zbhkv1FZapcpRplvyM=
-=DKAX
------END PGP SIGNATURE-----
+Ian
