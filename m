@@ -1,13 +1,17 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Exporting UID to userspace?
-Date: Thu, 10 Jun 2004 09:13:10 +0800 (WST)
+From: "Peter C. Norton" <spacey@lenin.net>
+Subject: Re: [RFC] rpc_ping and looong timeouts
+Date: Mon, 7 Jun 2004 20:17:07 -0700
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0406100911000.6687@wombat.indigo.net.au>
-References: <E1B7C89B8DCB084C809A22D7FEB90B3841AA@frodo.avalon.ru>
- <40C75A89.4020002@sun.com>
+Message-ID: <20040608031707.GE11008@lenin.net>
+References: <16575.35426.918728.134817@segfault.boston.redhat.com>
+	<Pine.LNX.4.58.0406040909310.8991@wombat.indigo.net.au>
+	<16576.51269.311121.121046@segfault.boston.redhat.com>
+	<40C4B3FF.3060005@sedona.intel.com>
+	<Pine.LNX.4.58.0406080855390.17060@wombat.indigo.net.au>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <40C75A89.4020002@sun.com>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.58.0406080855390.17060@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,39 +21,35 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Waychison <Michael.Waychison@Sun.COM>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Wed, 9 Jun 2004, Mike Waychison wrote:
+On Tue, Jun 08, 2004 at 08:56:34AM +0800, Ian Kent wrote:
+> On Mon, 7 Jun 2004, Michael Blandford wrote:
+> 
+> > Jeff Moyer wrote:
+> > 
+> > >This patch simply implements an icmp ping (code shamelessly stolen from
+> > >clumanager), and does this before even attempting to do the rpc pings.  If
+> > >the icmp ping works, then we continue as usual.  This takes care of the
+> > >host down case quite nicely:
+> > >
+> > >  
+> > >
+> > 
+> > Would this patch cause problems for those of us who have icmp blocked?  
+> > If so, could we make it a run time option to enable/disable?
+> > 
+> 
+> So you have ICMP blocked but allow NFS?
 
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
-> 
-> Dimitry V. Ketov wrote:
-> >>-----Original Message-----
-> >>From: autofs-bounces@linux.kernel.org
-> >>
-> >>If the idea is to have a 'Network Neighborhood' inside each
-> >>user's homedir, you could write an executable map for /home
-> >
-> >
-> > It will hide /home directory content.
-> 
-> No. It wouldn't presuming that your /home subdirs are automounted.  The
-> script would basically transform map entries like:
-> 
-> mikew	-wsize=32768,rsize=32768  homedirserver:/export/home/mikew
-> 
-> Into:
-> mikew	-wsize=32768,rsize=32768  homedirserver:/export/home/mikew \
->   /NetworkNeighborhood	-fstype=autofs,Duser=mikew /etc/auto_nn
-> 
-> which is a valid multimount and should be handled correctly by automount 4.
+Its possible that some sites will have killed ping and pong because of
+various viruses in the past, but allow everything else.
 
-And this brings us to the lazy mounting issue for multi-mounts.
+-Peter
 
-Got to get some more time on that.
-
-Ian
+-- 
+The 5 year plan:
+In five years we'll make up another plan.
+Or just re-use this one.
