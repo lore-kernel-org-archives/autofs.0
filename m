@@ -1,16 +1,10 @@
-From: Geoff Mishkin <gmishkin@acs.bu.edu>
-Subject: Re: embedded spaces in automounter map options field
-Date: Wed, 18 Aug 2004 10:02:57 -0400
+From: Phy Prabab <phyprabab@yahoo.com>
+Subject: reload of maps
+Date: Wed, 18 Aug 2004 18:34:43 -0700 (PDT)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <200408181003.05973.gmishkin@acs.bu.edu>
-References: <200408171008.26436.gmishkin@acs.bu.edu>
-	<Pine.LNX.4.58.0408181723030.15856@wombat.indigo.net.au>
-Reply-To: gmishkin@bu.edu
+Message-ID: <20040819013443.27854.qmail@web51803.mail.yahoo.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0408181723030.15856@wombat.indigo.net.au>
-Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,47 +14,42 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: Text/Plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: autofs@linux.kernel.org
-Cc: Ian Kent <raven@themaw.net>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hello,
 
-It's autofs version 4.1.3.
-
-			--Geoff Mishkin <gmishkin@bu.edu>
+I have an interesting issue autofs/automount/mount
+issue.
 
 
-On Wednesday 18 August 2004 05:23 am, you wrote:
-> On Tue, 17 Aug 2004, Geoff Mishkin wrote:
-> > -----BEGIN PGP SIGNED MESSAGE-----
-> > Hash: SHA1
-> >
-> > I have a situation that requires me to have embedded spaces in the
-> > options field of my automounter map.  To make things trickier, the map
-> > has to be generated with an executable map.  I am using shfs and have to
-> > use it's cmd mount option to force it to connect using a specific private
-> > key file.  This requires there to be embedded spaces in the options
-> > field, like this:
-> >
-> > - -fstype=shfs,cmd="ssh -i /usr/keys/<username> <username>@<host>"
-> >
-> > Which causes the automounter to complain bitterly.  Most of the
-> > information I've found is for having spaces in share names or mount
-> > points, but the advice given doesn't work in the options field.  I've
-> > tried all kinds of quotes, backslashing, etc.  I'd greatly appriciate
-> > help.
-> >
-> > Please CC me on replies as I am not subscribed to the list.
->
-> You don't say which version of autofs you are using?
->
-> Ian
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
+I change a map for a user within auto.home and make
+sure it is in NIS and ldap.  I then go to the client
+machine and verify that the nis or ldap map (have
+tried it with both ldap and nis) has/have been
+updated.  I then make sure the user if logged off and
+then issue an autofs reload.  However, automount/mount
+continues to use the old mount point.  Even after I
+unmount the mount point and "reload" autofs, the mount
+point never changes.  The only way I have been able to
+fix this is by rebooting the machine which is
+generally not an acceptable solution.
 
-iD8DBQFBI2GYpH0X57UnVFoRAm4pAJ4lmMn2c3Z0i1sHqEg39zlEhjVf3QCfWtlO
-nWWAmp6dNEY/HYgKtQNzcjQ=
-=YPe4
------END PGP SIGNATURE-----
+So am I missing something?
+
+kernel 2.6.7
+autofs 4.1.3
+mount-2.11z
+
+Any help is greatly appreciated!
+
+Phy
+
+
+
+		
+__________________________________
+Do you Yahoo!?
+New and Improved Yahoo! Mail - Send 10MB messages!
+http://promotions.yahoo.com/new_mail 
