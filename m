@@ -1,15 +1,10 @@
-From: raven@themaw.net
-Subject: Re: automount doesn't reread file map, automount terminates
- on empty file map
-Date: Mon, 20 Dec 2004 23:32:19 +0800 (WST)
-Message-ID: <Pine.LNX.4.61.0412202328550.8019@donald.themaw.net>
-References: <1102796222l.6265l.2l@mercury>
-	<Pine.LNX.4.58.0412151807070.30726@wombat.indigo.net.au>
-	<Pine.LNX.4.58.0412161052250.20186@wombat.indigo.net.au>
-	<Pine.LNX.4.61.0412202320040.8019@donald.themaw.net>
+From: ramana <ramana@intraperson.com>
+Subject: unacceptable bug in autofs kernel module
+Date: Tue, 28 Dec 2004 13:21:08 +0530
+Message-ID: <41D1106C.9070706@intraperson.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.61.0412202320040.8019@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,60 +15,77 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
-Content-Transfer-Encoding: 7bit
-To: Thomas Jahns <Thomas.Jahns@gmx.net>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: autofs@linux.kernel.org
 
-On Mon, 20 Dec 2004 raven@themaw.net wrote:
+Dear developers,
 
-> On Thu, 16 Dec 2004, Thomas Jahns wrote:
->
->> Hi again,
->> 
->> On 12/16/04 04:00:33, Ian Kent wrote:
->>> A further difficulty with this is that to fix this problem a small
->>> kernel patch was needed. But what kernel are you using (ie. are the 
->>> latest kernel updates included in it)?
->> 
->> I'm currently running a kernel compiled from debian kernel- 
->> source-2.6.9_2.6.9-2 package.
->
-> I'm not good with Debian packages but I had a go at applying the map update 
-> patch to the source deb.
->
-> I've placed the source deb package files in
-> http://www.kernel.org/pub/linux/kernel/people/raven/deb
-> if your interested.
->
-> I had to back out an LDAP entries limit patch as the map update patch changes 
-> the LDAP lookup module. If that's not a problem for you try it out.
->
-> I haven't tested this at all except to build a deb from it on my system. The 
-> patch itself has been tested previously.
->
-> The kernel patch that is needed for it to function properly is there also.
+Here is the bug in autofs3 module which causing so much pain. It simply 
+stopped me from adding much more interesting features to Autodir 
+http://www.intraperson.com/autodir/
 
-btw kernel.org signes and creates bz2s so you need
+Taken from Linux kernel 2.4 autofs module source.
 
-autofs-4.1.3-7.dsc
-autofs-4.1.3-7.diff.gz
-autofs-4.1.3-7.orig.tar.gz
+file:            root.c
+function:    autofs_root_lookup.
+protocol:    3
 
-and
+        /*
+         * If this dentry is unhashed, then we shouldn't honour this
+         * lookup even if the dentry is positive.  Returning ENOENT here
+         * doesn't do the right thing for all system calls, but it should
+         * be OK for the operations we permit from an autofs.
+         */
+                                                                                                 
 
-linux-2.6.7-autofs4-lookup.patch
+        /*
+        if ( dentry->d_inode && d_unhashed(dentry) )
+                return ERR_PTR(-ENOENT);
+        */
+                                                                                                 
 
-only for this.
+        if ( dentry->d_inode && d_unhashed(dentry) ) {
+                printk( "ENOENT for %s\n", dentry->d_name.name );
+                return ERR_PTR(-ENOENT);
+        }
 
->
-> Ian
->
->
->
+I added printk to easily trace it. To my surprise autofs 4 also has 
+similar code.
 
---
-    ,-._|\    Ian Kent
-   /      \   Perth, Western Australia
-   *_.--._/   E-mail: raven@themaw.net
-         v    Web: http://themaw.net/
+Because of this, user space test program reporting like this:
+
+fail : /test/t944 : No such file or directory
+fail : /test/t4187 : No such file or directory
+fail : /test/t100 : No such file or directory
+fail : /test/t806 : No such file or directory
+fail : /test/t3451 : No such file or directory
+fail : /test/t1790 : No such file or directory
+fail : /test/t3555 : No such file or directory
+fail : /test/t3098 : No such file or directory
+fail : /test/t4085 : No such file or directory
+fail : /test/t3935 : No such file or directory
+
+with corresponding kernel messages are,
+
+ENOENT for t944
+ENOENT for t4187
+ENOENT for t100
+ENOENT for t806
+ENOENT for t3451
+ENOENT for t1790
+ENOENT for t3555
+ENOENT for t3098
+ENOENT for t4085
+ENOENT for t3935
+
+The error rate as taken from months of stress tests -- ie ENOENT; is 
+around 0.002% and increases as system load increases. Even at this rate 
+I do not think it is acceptable in production systems.
+
+Thanks in advance.
+
+Regards
+ramana
+
+-- 
+http://www.intraperson.com
