@@ -1,98 +1,89 @@
-From: Mike Waychison <michael.waychison@sun.com>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: [PATCH] autofs4 deadlock during expire - kernel 2.6
-Date: Wed, 24 Sep 2003 11:54:37 -0400
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <3F71BE3D.6030501@sun.com>
-References: <1064408962.5074.2.camel@laptop.fenrus.com> <Pine.LNX.4.44.0309242136080.6713-100000@raven.themaw.net>
+Date: Thu, 25 Sep 2003 09:44:16 +0800 (WST)
+Sender: autofs-bounces@linux.kernel.org
+Message-ID: <Pine.LNX.4.33.0309250924160.18646-100000@wombat.indigo.net.au>
+References: <3F71BE3D.6030501@sun.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------050604060400060505010602"
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44.0309242136080.6713-100000@raven.themaw.net>
+Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <3F71BE3D.6030501@sun.com>
 List-Id: <autofs.vger.kernel.org>
-To: Ian Kent <raven@themaw.net>
-Cc: Arjan van de Ven <arjanv@redhat.com>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Maneesh Soni <maneesh@in.ibm.com>, autofs mailing list <autofs@linux.kernel.org>, Jeremy Fitzhardinge <jeremy@goop.org>
-
-This is a multi-part message in MIME format.
---------------050604060400060505010602
-Content-Type: text/plain; charset=us-ascii; format=flowed
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+To: Mike Waychison <michael.waychison@sun.com>
+Cc: autofs mailing list <autofs@linux.kernel.org>, Arjan van de Ven <arjanv@redhat.com>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Jeremy Fitzhardinge <jeremy@goop.org>
 
-Ian Kent wrote:
-> On Wed, 24 Sep 2003, Arjan van de Ven wrote:
-> 
-> 
->>On Wed, 2003-09-24 at 15:01, Ian Kent wrote:
->>
->>>This is a corrected patch for the autofs4 daedlock problem I posted about 
->>>@@ -206,6 +207,11 @@
->>> 
->>> 		interruptible_sleep_on(&wq->queue);
->>> 
->>>+		if (waitqueue_active(&wq->queue) && current != wq->owner) {
->>>+			set_current_state(TASK_INTERRUPTIBLE);
->>>+			schedule_timeout(wq->wait_ctr * (HZ/10));
->>>+		}
->>>+
->>
->>this really really looks like you're trying to pamper over a bug by
->>changing the timing somewhere instead of fixing it...
-> 
-> 
-> Agreed.
-> 
-> 
->>also are you sure the deadlock isn't because of the racey use of
->>interruptible_sleep_on ?
->>
+On Wed, 24 Sep 2003, Mike Waychison wrote:
 
-I think the deadlock itself needs to be properly identified.
+>
+> I think the deadlock itself needs to be properly identified.
+>
+> Could you explain where the deadlock is actually occuring?  I briefed
+> over the automount 4 code as well as autofs4 and I don't see the
+> deadlock.  The 'owner' in the case of an expiry will be a child process
+> of the daemon, within a call to ioctl(EXPIRE_MULTI), correct?  Having it
+> be released from the waitqueue first should not affect flow of execution
+> and released from deadlock.
 
-Could you explain where the deadlock is actually occuring?  I briefed 
-over the automount 4 code as well as autofs4 and I don't see the 
-deadlock.  The 'owner' in the case of an expiry will be a child process 
-of the daemon, within a call to ioctl(EXPIRE_MULTI), correct?  Having it 
-be released from the waitqueue first should not affect flow of execution 
-and released from deadlock.
+Yes. I am having trouble defining the actual problem also.
 
-I don't see how having it wake up before before any other racing 
-processes solves anything.
+I believe that the deadlock occures because of the sequence of calls
+between the expire and Naultilus, each execution path taking and releasing
+the BKL.
 
-I think Arjan is right in that the race is do to the nautilus process 
-entering the sleep_on after the a call to wake_up(&wq->queue).  I don't 
-know if a change to using a workqueue is best..   how about refactoring 
-that chunk of code to use wait_event_interruptible on the queue, which 
-should be clear of any waitqueue/sleep_on races.
+I will try and get more evidence as I work on it.
 
-> 
-> 
-> OK so maybe I should have suggestions instead of comments.
-> 
-> Please elaborate.
-> 
+>
+> I don't see how having it wake up before before any other racing
+> processes solves anything.
 
-How about you try out this quick patch I threw together.
+I thought this was a side effect of the O(1) scheduler and that the
+design of the wait handling left it open to a sequence of calls problem.
+I first got the impression that it was related to the scheduler (and
+felt that it was a deadlock) when I bumped the priority of the expire to
+see what would happen and it work fine every time I tried it.
 
-Mike Waychison
+>
+> I think Arjan is right in that the race is do to the nautilus process
+> entering the sleep_on after the a call to wake_up(&wq->queue).  I don't
 
---------------050604060400060505010602
-Content-Type: text/plain;
- name="autofs4_wait_event.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="autofs4_wait_event.patch"
+That needs fixing for sure, apart from anything else.
 
-===== waitq.c 1.6 vs edited =====
---- 1.6/fs/autofs4/waitq.c	Fri Feb  7 12:25:20 2003
-+++ edited/waitq.c	Wed Sep 24 15:48:30 2003
-@@ -204,7 +204,7 @@
- 		recalc_sigpending();
- 		spin_unlock_irqrestore(&current->sighand->siglock, irqflags);
- 
--		interruptible_sleep_on(&wq->queue);
-+		wait_event_interruptible(wq->queue, wq->name == NULL);
- 
- 		spin_lock_irqsave(&current->sighand->siglock, irqflags);
- 		current->blocked = oldset;
+> know if a change to using a workqueue is best..   how about refactoring
+> that chunk of code to use wait_event_interruptible on the queue, which
+> should be clear of any waitqueue/sleep_on races.
 
---------------050604060400060505010602--
+Exaclty what I thought after pondering Arjans' mail last night.
+The expire must be interruptible.
+This will show if there actually is a timing problem (I hope).
+
+>
+> >
+> >
+> > OK so maybe I should have suggestions instead of comments.
+> >
+> > Please elaborate.
+> >
+>
+> How about you try out this quick patch I threw together.
+
+Oops. Replied without looking at the patch.
+
+I'll check it out after work tonight.
+
+Thanks to all for the help.
+
+-- 
+
+   ,-._|\    Ian Kent
+  /      \   Perth, Western Australia
+  *_.--._/   E-mail: raven@themaw.net
+        v    Web: http://themaw.net/
