@@ -1,12 +1,18 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Fixes to init script errors introduced in Debian patches
-Date: Fri, 22 Oct 2004 13:43:43 +0800 (WST)
+From: Chris Feist <cfeist@redhat.com>
+Subject: Re: [patch] Maintain backwards compatibility w/ local file maps
+	w/o etc.
+Date: Fri, 22 Oct 2004 10:13:26 -0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0410221338510.7438@wombat.indigo.net.au>
-References: <20041021211901.GA11243@turing>
+Message-ID: <1098458006.3014.58.camel@gold.msp.redhat.com>
+References: <1098291410.3527.18.camel@localhost.localdomain>
+	 <Pine.LNX.4.58.0410211040430.4454@wombat.indigo.net.au>
+	 <1098372523.9364.17.camel@gold.msp.redhat.com>
+	 <Pine.LNX.4.58.0410221329100.7438@wombat.indigo.net.au>
+Reply-To: cfeist@redhat.com
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20041021211901.GA11243@turing>
+In-Reply-To: <Pine.LNX.4.58.0410221329100.7438@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,29 +22,35 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Arthur Korn <arthur@korn.ch>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: Ian Kent <raven@themaw.net>, autofs@linux.kernel.org
 
-On Thu, 21 Oct 2004, Arthur Korn wrote:
 
-> Hi
+> But the patch doesn't appear to fix that problem.
+> Can you explain?
 > 
-> Two small bugs with causing quite some problems have been fixed.
+> Ian
 > 
-> These have been introduced with the changes made by me to the
-> init script for Debian. Since I posted those changes here
-> previously, I supply the fixes as well.
 
-Is that the -t error I got the other day on my Debian install?
-Do you upload these to the experimental packages about the same time as 
-you post here?
+Oops, sorry about that.  I didn't send you the correct version of the
+patch.  The problem is in the added lines, it says 'maptype=program' it
+should say 'maptype=file'...  Here's the corrected patch...
 
-<ot>
-If I add a patches to the patches directory, with an appropriate order 
-number, will they be picked up when I build the deb, or do I do it 
-differently?
-</ot>
+Thanks,
+Chris
 
-Ian
+s-4.1.3/samples/rc.autofs.in.filemap-etc-append       
+2004-10-20 11:47:05.227372963 -0500
++++ autofs-4.1.3/samples/rc.autofs.in   2004-10-20 11:47:06.947345831
+-0500
+@@ -206,6 +206,9 @@
+                        map=`echo /etc/$map | sed 's^//^/^g'`
+                    elif [ -f "$map" ]; then
+                        maptype=file
++                   elif [ -f "/etc/$map" ]; then
++                       maptype=file
++                       map=`echo /etc/$map | sed 's^//^/^g'`
+                    elif [ "$map" = "hesiod" -o "$map" = "userhome" ] ;
+then
+                        maptype=$map
+                        map=
