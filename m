@@ -1,13 +1,12 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: Trapping eject button on CD-ROM
-Date: Sun, 14 Mar 2004 11:01:03 -0800
+From: Jon Niehof <jon_niehof@yahoo.com>
+Subject: RE: Trapping eject button on CD-ROM
+Date: Sun, 14 Mar 2004 19:56:41 -0800 (PST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <4054ABEF.3050608@zytor.com>
-References: <20040314164051.27220.qmail@web20503.mail.yahoo.com>
+Message-ID: <20040315035641.22976.qmail@web20501.mail.yahoo.com>
+References: <4827392DDA3F414D80608255823E18910F768A@permls01.wde.woodside.com.au>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20040314164051.27220.qmail@web20503.mail.yahoo.com>
+In-Reply-To: <4827392DDA3F414D80608255823E18910F768A@permls01.wde.woodside.com.au>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,23 +16,18 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Jon Niehof <jon_niehof@yahoo.com>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: "Kent, Ian I." <IAN.KENT@woodside.com.au>, autofs@linux.kernel.org
 
-Jon Niehof wrote:
-> Apologies if this has been asked before; I read a
-> HOWTO that seemed to imply it was possible but haven't
-> seen anything beyond that.
+> Maybe what you need is supermount.
 > 
-> Is it possible to configure autofs to "catch" the
-> eject button on a CD-ROM and unmount the filesystem
-> (presuming it's not busy, of course), then eject?
-> 
+> Google search should turn up something.
+Perfect. Thank you; that does exactly what I want for
+my removables and autofs handles the rarely-used
+partitions fine. Perfect all around.
 
-No.
-
-If you monitor insert and eject you don't want autofs anyway.  You want 
-something like what Solaris calls "vold".
-
-	-hpa
+__________________________________
+Do you Yahoo!?
+Yahoo! Mail - More reliable, more storage, less spam
+http://mail.yahoo.com
