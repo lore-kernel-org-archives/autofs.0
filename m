@@ -1,13 +1,11 @@
 From: Mike Waychison <Michael.Waychison@Sun.COM>
-Subject: Re: Re: autofs map updates not working properly for
-	multi-mounts
-Date: Mon, 14 Feb 2005 15:36:00 -0500
-Message-ID: <42110BB0.3090201@sun.com>
-References: <16905.15217.105499.777724@segfault.boston.redhat.com>
-	<Pine.LNX.4.61.0502092116510.2140@donald.themaw.net>
+Subject: Re: Direct maps!!
+Date: Mon, 14 Feb 2005 15:56:34 -0500
+Message-ID: <42111082.50001@sun.com>
+References: <420D3666.3010208@trdlnk.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7BIT
-In-reply-to: <Pine.LNX.4.61.0502092116510.2140@donald.themaw.net>
+In-reply-to: <420D3666.3010208@trdlnk.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,21 +17,38 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: raven@themaw.net
-Cc: autofs mailing list <autofs@linux.kernel.org>
+To: Chip Seraphine <chip@trdlnk.com>
+Cc: autofs@linux.kernel.org
 
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-raven@themaw.net wrote:
+Hi Chip,
 
-> So the bottom line at the moment is "multi-mount entries must be handled
-> a a single mount entry". So they can't be dynamically updated until the
-> next time they are mounted following the update.
+Chip Seraphine wrote:
 > 
+> I was looking in the TODO file for version 4.0 and noticed that you have
+> "* direct maps?" listed for v5.  From the question mark, I assume that
+> you are not sure if you wanted to implement that or not...
+> 
+> I just wanted to beg you to please do the support for direct maps.  My
+> shop is stuck on Solaris for the simple reason that we use auto.direct
+> very extensively, and migrating to Linux is too painful because of that
+> one reason.  My life would be far better if direct map support is
+> implemented!!!!!
 
-This is a perfectly fair assumption and is handled the same way on other
-platforms.
+Thought I'd take this opportunity to plug autofsng.  It supports lazy
+mounting and direct maps.
+
+It still a bit beta, and lacks some of the heuristic logic available in
+autofs 4.1.*.  However, the project's goal is to be a drop-in substitute
+that allows %100 integration into a Solaris automount environment.
+
+If interested, patches and tarballs are available at:
+
+ftp://ftp-eng.cobalt.com/pub/users/ssmith/autofsng/
+
+(home will be changing soon).
 
 - --
 Mike Waychison
@@ -49,7 +64,7 @@ and may not represent the views of Sun Microsystems, Inc.
 Version: GnuPG v1.2.5 (GNU/Linux)
 Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
 
-iD8DBQFCEQuvdQs4kOxk3/MRAoWNAJ9crYNXPjvM90EdaNxLkHPCaoVU1wCdEm0A
-K+voKmkaB9DWhcCjaC/Ub50=
-=IV4t
+iD8DBQFCERCCdQs4kOxk3/MRAlTbAKCC3zIVD3D9hdortOWvsU3kQ1p9CQCeJFFk
+PT79cUZ+iaJS4SHwJoE0KjQ=
+=aapz
 -----END PGP SIGNATURE-----
