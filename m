@@ -1,11 +1,9 @@
 From: "Taylor, ForrestX" <forrestx.taylor@intel.com>
-Subject: Re: [ANNOUNCE] autofs v4 beta3 (fwd)
-Date: Thu, 13 Nov 2003 11:27:04 -0800
+Subject: Re: making the mountpoints visible all the time
+Date: Thu, 13 Nov 2003 12:29:38 -0800
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <3FB3DB08.2080703@intel.com>
-References: <Pine.LNX.4.33.0311131542180.11228-100000@wombat.indigo.net.au>
-	<3FB397B9.9010600@rhythm.com> <3FB3BC61.8060005@intel.com>
-	<3FB3C278.6080102@rhythm.com>
+Message-ID: <3FB3E9B2.1090002@intel.com>
+References: <3FB3C4C4.4030605@yahoo.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
@@ -19,15 +17,21 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Greg Bradner <gregb@rhythm.com>
+To: Alexander Macdonald <alexandermacdonald@yahoo.com>
 Cc: autofs@linux.kernel.org
 
-Greg Bradner wrote:
-> Can you spell it out for me? With what program is the nonstrict option 
-> associated? What man page?
-> Thank.
+Alexander Macdonald wrote:
+> Hi
+> 
+> I've currently got automount setup so that i can cd into a directory 
+> like /mnt/someplace and someplace will be automatically created and 
+> mounted... it would be quite usefull if that directory was allways 
+> visible so that i could browse to it in gui applications... how do i do 
+> that?
 
-It is in /etc/auto.net.
+If you want it visible all the time, use /etc/fstab, not autofs.  Work 
+is being done on leaving the directory structure before actually 
+mounting it, but it is not finished yet.
 
 Forrest
 -- 
