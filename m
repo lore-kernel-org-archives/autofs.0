@@ -1,14 +1,11 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: Trapping eject button on CD-ROM
-Date: Mon, 15 Mar 2004 10:07:13 -0800
+From: Hunter Matthews <thm@duke.edu>
+Subject: chained configs (and ghost too)
+Date: 15 Mar 2004 14:56:47 -0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <4055F0D1.9080603@zytor.com>
-References: <20040315035641.22976.qmail@web20501.mail.yahoo.com>
-	<200403151124.38057.robin.rosenberg.lists@dewire.com>
+Message-ID: <1079380607.4327.59.camel@jade.biology.duke.edu>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200403151124.38057.robin.rosenberg.lists@dewire.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,29 +15,50 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Robin Rosenberg <robin.rosenberg.lists@dewire.com>
-Cc: autofs@linux.kernel.org, "Kent, Ian I." <IAN.KENT@woodside.com.au>
+Content-Type: text/plain; charset="us-ascii"
+To: autofs mailing list <autofs@linux.kernel.org>
 
-Robin Rosenberg wrote:
-> On Monday 15 March 2004 04:56, Jon Niehof wrote:
-> 
->>>Maybe what you need is supermount.
->>>
->>>Google search should turn up something.
->>
->>Perfect. Thank you; that does exactly what I want for
->>my removables and autofs handles the rarely-used
->>partitions fine. Perfect all around.
-> 
-> 
-> Agree, automoun is fine. A short timeout for CD's work fine. Set the timeout 
-> to 15 seconds. Shorter is bad if you tend to use GUI's that don't hold a lock 
-> on the CD, as the CD will often be unounted/remounted (=slow) inbetween the 
-> clicks. and all you have to do is wait a few seconds before the disk is 
-> ejected. If it doesn't come out someone is using it.
-> 
+All, Thanks to nalin and steve, I've gotten autofs working with LDAP. 
 
-Note that any time your filesystem is unmounted you throw away the cache.
+I haven't seen this in the docs, nor in my quick scan of the archives.
+So, for others wondering how, here is the working configuration:
 
-	-hpa
+In nis, I had a table called auto.biology: 
+groups -fstype=autofs  yp:auto.groups
+zzz balh:/local/zzz
+ftp ftp:/local/ftp
+....
+
+All of these are now working fine from LDAP. I used  
+
+# groups, auto.biology, nis, biology, duke, edu
+dn: cn=groups,nisMapName=auto.biology,ou=nis,dc=biology,dc=duke,dc=edu
+objectClass: nisObject
+cn: groups
+nisMapName: auto.biology
+nisMapEntry: -fstype=autofs ldap:nisMapName=auto.groups,ou=nis,dc=biology,dc=duke,dc=edu --ti
+ meout 300 --ghost rsize=16384,wsize=16384
+
+auto.groups is then a normal automount map, same as any other.
+
+In my server, I have all the nisMaps at the same level in the ldap 
+server. I did not try having the auto.group map be below the 
+auto.biology tree - they are both at the top level of the ou where 
+I'm keeping nis type info.
+
+If you don't have the '-fstype=autofs' part first, it won't work, and
+in your logs you will see: 
+
+Mar 15 14:21:58 greenback automount[23607]: mount(nfs): nfs: mount
+failure ldap:nisMapName=auto.groups,ou=nis,dc=biology,dc=duke,dc=edu on
+/biology/groups
+
+I've not followed all the "umount" trouble thread, but these are
+unmounting about when they should. I'm not running nautilus though...
+
+
+-- 
+Hunter Matthews                          Unix / Network Administrator
+Office: BioScience 145/244               Duke Univ. Biology Department
+Key: F0F88438 / FFB5 34C0 B350 99A4 BB02  9779 A5DB 8B09 F0F8 8438
+Never take candy from strangers. Especially on the internet.
