@@ -1,12 +1,15 @@
-From: raven@themaw.net
-Subject: RE: is there an autofs roadmap somewhere?
-Date: Fri, 25 Jun 2004 23:18:44 +0800 (WST)
+From: Mike Waychison <Michael.Waychison@Sun.COM>
+Subject: Re: exporting autofs managed directory using NFS
+Date: Fri, 25 Jun 2004 12:09:12 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0406252306330.1375@donald.themaw.net>
-References: <482A3FA0050D21419C269D13989C611302B07D00@lavender-fe.eng.netapp.com>
+Message-ID: <40DC4E28.6030606@sun.com>
+References: <40DADD60.5090201@intraperson.com>
+ <16603.10543.236802.870131@segfault.boston.redhat.com>
+ <40DB7F5F.5070500@intraperson.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <482A3FA0050D21419C269D13989C611302B07D00@lavender-fe.eng.netapp.com>
+In-reply-to: <40DB7F5F.5070500@intraperson.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,58 +19,71 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: "Lever, Charles" <Charles.Lever@netapp.com>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: ramana <ramana@intraperson.com>
+Cc: autofs@linux.kernel.org, hpa@zytor.com
 
-On Fri, 25 Jun 2004, Lever, Charles wrote:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> > On Tue, 22 Jun 2004, Lever, Charles wrote:
-> > 
-> > > new to the game.
-> > > 
-> > > I'm wondering what features autofs developers have in mind for the 
-> > > near future.
-> > 
-> > Charles. Why did you have to ask "that" question!
-> 
-> i'm working with trond to build a Linux NFS client roadmap.  our
-> customers want a little more transparency into the Linux NFS client
-> development plan, and i'm trying to include autofs because it is pretty
-> important for them.  i actually know very little about it (so a pointer
-> to a primer you like would be helpful for me).
+ramana wrote:
+> Jeff Moyer wrote:
+>
+>> ==> Regarding [autofs] exporting autofs managed directory using NFS;
+>> ramana <ramana@intraperson.com> adds:
+>>
+>> ramana> We are facing problems where /home is managed by autofs ( in
+>> ramana> Autodir ) but this directory is to to be exported using NFS.
+>>
+>> ramana> Exactly reverse of what autofs supposed to do -- lol
+>>
+>> ramana> When tried to mount nfs exported home some where else,
+>> Persmission
+>> ramana> denied error is reported by nfs server.
+>>
+>> Are you saying you want to reexport an nfs mounted filesystem?  I don't
+>> believe that is supported.
+>>
+>> -Jeff
+>>
+>> .
+>>
+>>
+>>
+>
+>
+> No. Autodir do mount local directories only on autofs mounted fs.
+>
+> In simple terms, exporting this special case autofs mounted dir using nfs.
+>
+> Please check http://www.intraperson.com/autodir.html
+>
 
-Count me in.
+The kernel nfs server doesn't export across mountpoints by default.  You
+may try using the nohide option, but it has limitations (like the fact
+that it must be a single host export).
 
-Not sure what you need for doco here but the automounter howto at
+I suspect that the kernel nfsd may have issues trying to export an
+autofs imported fs, so I'd try the userspace nfs server.
 
-http://www.linux-consulting.com/Amd_AutoFS/autofs.html
+What I don't understand is why don't you run an automounter on the other
+host and have nis maps that point to the respective home dir locations?
 
-has a fair bit of info about autofs and amd, although a bit out of date.
+- --
+Mike Waychison
+Sun Microsystems, Inc.
+1 (650) 352-5299 voice
+1 (416) 202-8336 voice
+http://www.sun.com
 
-But for a description of what's expected of an automounter the
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NOTICE:  The opinions expressed in this email are held by me,
+and may not represent the views of Sun Microsystems, Inc.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
 
-"Managing NFS and NIS" by Stern, O'Reily, Ch 13
-
-gives a good coverage, again a little incomplete these days.
-
-> 
-> > But what functionality do you need?
-> > And what do you think would be useful?
-> 
-> no requests... just polling for information, trying to get more involved
-> here.  thanks!
-> 
-> there are some naive thoughts about error recovery and threading
-> architecture that could help autofs deployments in very large
-> environments with lots of active mounts.  but i'd like to explore the
-> current autofs more before stepping in it.
-
-I've given some thought to a change in internal design. Introducing a 
-threaded model in fact. But having lots of processes around and a 
-cluttered mount table need to be considered, even with the current design.
-
-I'd be interested in hearing your ideas about a threaded design.
-
-Ian
+iD8DBQFA3E4mdQs4kOxk3/MRAiSNAKCaWriyC3sk1DVkSoEpEb3bF2AxXwCcDafZ
+l+XMvtrgyEY8OjM87jH6EWM=
+=H3Lq
+-----END PGP SIGNATURE-----
