@@ -1,31 +1,44 @@
-From: raven@themaw.net
-Subject: [ANNOUNCE] autofs4 2.6 updated patches for kernels prior to 2.6.10
-Date: Tue, 4 Jan 2005 23:58:35 +0800 (WST)
-Message-ID: <Pine.LNX.4.61.0501042254180.20210@donald.themaw.net>
+From: abo <abo@brujulatelecom.com>
+Subject: smbfs credentias
+Date: Wed, 5 Jan 2005 13:16:18 +0100
+Message-ID: <20050105131618.1ccfca62@localhost>
 Mime-Version: 1.0
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Sender: linux-fsdevel-owner@vger.kernel.org
-List-Id: <autofs.vger.kernel.org>
-Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
-To: autofs mailing list <autofs@linux.kernel.org>
-Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
+Return-path: <autofs-bounces@linux.kernel.org>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: autofs@linux.kernel.org
 
+hi!
 
-I have updated the autofs4 patches for kernel 2.6 to match the 
-implementation in 2.6.10.
+im trying to mount smbfs resources from an ldap
 
-They are located at:
+if i put in nisMapEntry this
 
-http://www.kernel.org/pub/linux/daemons/autofs/v4
+-fstype=smbfs,credentials=/home/abo/smb.creds
 
-The files are
+everything is working right. then i want to do it per user but variable
+substitution doesn't work, i tried:
 
-vanila kernel patches:
-     autofs4-2.6.0-20041227.patch
-     autofs4-2.6.4-20041227.patch
-     autofs4-2.6.7-20041227.patch
-     autofs4-2.6.9-20041227.patch
+-fstype=smbfs,credentials=/home/$USER/smb.creds
 
-Ian
+-fstype=smbfs,credentials=/home/${USER}/smb.creds
 
+-fstype=smbfs,credentials=~/smb.creds
+
+but no succes.
+
+how can i get per user credentiasl? im on the wrong direction?
+
+thx
+
+abo
