@@ -1,13 +1,12 @@
 From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
 Subject: Re: [ANNOUNCE] autofs 4.1.4 beta2 release
-Date: Tue, 15 Feb 2005 15:02:06 +0100
-Message-ID: <20050215140206.GA26192@uio.no>
+Date: Tue, 15 Feb 2005 15:07:54 +0100
+Message-ID: <20050215140754.GA26814@uio.no>
 References: <Pine.LNX.4.61.0502142233210.1653@donald.themaw.net>
-	<20050215014857.GA26216@uio.no>
-	<16913.64816.599846.407333@segfault.boston.redhat.com>
+	<20050215014857.GA26216@uio.no> <20050215020414.GA953@uio.no>
 Mime-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <16913.64816.599846.407333@segfault.boston.redhat.com>
+In-Reply-To: <20050215020414.GA953@uio.no>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,12 +21,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: autofs@linux.kernel.org
 
-On Tue, Feb 15, 2005 at 08:46:24AM -0500, Jeff Moyer wrote:
-> Could you post this patch, please?  I'm almost certain this fix is in the
-> tree.
+On Tue, Feb 15, 2005 at 03:04:14AM +0100, Steinar H. Gunderson wrote:
+> Any good ideas? Stripping the --exec would be the easiest solution, but
+> perhaps also the ugliest...
 
-http://home.samfundet.no/~sesse/000_autofs_4.1.3_sock-leak-fix
+OK, I found the bug; autofs was not stopped on prerm (this was disabled to
+"fix" another bug). I've reverted the changes and made some workarounds; they
+are not relevant for autofs upstream, but will be part of the next Debian
+package.
 
-/* Steinar */
+/* Steinar */ 
 -- 
 Homepage: http://www.sesse.net/
