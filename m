@@ -1,12 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: RE: making the mountpoints visible all the time
-Date: Tue, 18 Nov 2003 22:05:39 +0800 (WST)
+From: Justin Rush <jrush@scout.wisc.edu>
+Subject: nfs optimization settings in the automounter
+Date: Tue, 18 Nov 2003 11:52:35 -0600
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.44.0311182203190.3008-100000@raven.themaw.net>
-References: <C3CDA0E3AC8B4E438E94F37D0A20FE712618F8@HOUEXC210.mgroupnet.com>
+Message-ID: <3FBA5C63.9080402@scout.wisc.edu>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <C3CDA0E3AC8B4E438E94F37D0A20FE712618F8@HOUEXC210.mgroupnet.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,51 +15,30 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: autofs mailing list <autofs@linux.kernel.org>
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: autofs@linux.kernel.org
 
-On Fri, 14 Nov 2003, Rigler, Steve wrote:
+I am having a hard time telling the automounter to use the options 
+rsize=32768,wsize=32768 when automounting home directories.  I have 
+tried specifying these options in the auto.home file on my nis master 
+server ( -rw,soft,rsize=32768,wsize=32768 nismaster:/export/home/jrush )
+I have also tried to put them in the localoptions setting in the autofs 
+init file ( localoptions='rsize=32768,wsize=32768' ) on both the nis 
+master and on the client machines.
+I also tried to specify these options in the auto.master file on the nis 
+master (the client machines don't have auto.master files because they 
+read the nis master's file ) ( /etc/auto.home  
+--timeout=43200,rsize=32768,wsize=32768 )
+I have also tried to use lower settings such as 16384
 
-> > 
-> > Ian Kent wrote:
-> > 
-> > >The autofs4-2.4 module build kit or the patches contained in 
-> > it or the
-> > >patches contained in autofs-4.1.0-beta3 can give you this 
-> > for some of the
-> > >maps. NIS, LDAP and file maps work at the moment.
-> > >
-> > >I's in the expected place on kernel.org.
-> > >  
-> > >
-> > 
-> > not sure what you mean by file maps, but I'm trying to mount 
-> > samba and 
-> > nfs shares so i guess I'm out of luck...
-> > 
-> 
-> In order to view the mountpoints before they are mounted you need
-> to have the newer version of the kernel module which is available
-> at kernel.org.
-> 
-> The maps aren't really specific to the type of filesystem you are
-> trying to mount.  You can get your maps from a local file, NIS, LDAP,
-> etc.  They can contain information to mount smb, nfs, or even local
-> filesystems.
-> 
-> If you install the newer kernel module, you can make your mountpoints
-> visisible with the ghosting option.  One way to enable this is to 
-> set it in your /etc/auto.master like:
-> 
-> /somedir	file:/etc/auto.somedir	-g
+however when I look in /proc/mounts on the client machine it is either 
+mounted with 4096 or 8192
 
-I've had some trouble lately with using the -g.
-If this is a problem use the long option --ghost, that seemed to work OK.
+My setup is as follows:
+All the machines are running redhat 9 using Linux automount version 
+3.1.7 and nfs version 3
 
--- 
-
-   ,-._|\    Ian Kent
-  /      \   Perth, Western Australia
-  *_.--._/   E-mail: raven@themaw.net
-        v    Web: http://themaw.net/
+Justin Rush
+Technical Specialist
+Internet Scout Project
+jrush@scout.wisc.edu
