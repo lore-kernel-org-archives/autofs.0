@@ -1,15 +1,12 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [patch] Maintain backwards compatibility w/ local file maps w/o
- etc.
-Date: Fri, 22 Oct 2004 13:30:36 +0800 (WST)
+Subject: Re: [PATCH] fixes problems w/ duplicate maps in auto.master
+Date: Fri, 22 Oct 2004 13:34:56 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0410221329100.7438@wombat.indigo.net.au>
-References: <1098291410.3527.18.camel@localhost.localdomain> 
- <Pine.LNX.4.58.0410211040430.4454@wombat.indigo.net.au>
- <1098372523.9364.17.camel@gold.msp.redhat.com>
+Message-ID: <Pine.LNX.4.58.0410221333000.7438@wombat.indigo.net.au>
+References: <1098395176.3014.42.camel@gold.msp.redhat.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1098372523.9364.17.camel@gold.msp.redhat.com>
+In-Reply-To: <1098395176.3014.42.camel@gold.msp.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -26,26 +23,33 @@ Cc: autofs@linux.kernel.org
 
 On Thu, 21 Oct 2004, Chris Feist wrote:
 
+> Ian,
 > 
-> > But this is a file map not a program map?
+> This patch should replace the previous init-duplicate-map.patch I
+> submitted last week.
 > 
-> Yes, in the past (3.1.7 & 4.0.0) autofs would check for entries in the
-> /etc/ directory even if it wasn't included in the auto.master file.
+> The following patch contains fixes to prevent duplicate directories from
+> being mapped on top of each other.
 > 
-> So, the following two files used to do the same thing:
+> For example, if my auto.master looks like this.
+> /misc auto.misc
+> /misc/misc2 auto.misc2
 > 
-> File A:
-> /home /etc/auto.home
+> The automounter will attempt to mount /misc/misc2 on top of the already
+> mounted /misc and fail.  There were also problems where the automounter
+> thought that '/misc' was different than /misc/ which is also fixed.
 > 
-> File B:
-> /home auto.home
-> 
-> So when people upgrade from 3.1.7 or 4.0.0 to 4.1.3 their maps end up
-> breaking.
+> Lastly, knownmaps is only added to if the map is not a duplicate.  It
+> wasn't being used anywhere else in the code and I don't think there is
+> any reason to check new maps against maps that we know aren't valid.
+>
 
-Point taken.
+Cool. I've known about this for ages but haven't tracked it down. I'll 
+have a closer look at the patch and add it to the list as well.
+ 
+> Let me know if you don't agree or you thing something needs to be
+> changed.
 
-But the patch doesn't appear to fix that problem.
-Can you explain?
+Will do.
 
 Ian
