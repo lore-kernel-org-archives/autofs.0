@@ -1,13 +1,12 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: Help with ldap + autofs please
-Date: Thu, 25 Mar 2004 20:42:37 +0800 (WST)
+Subject: Re: autofs4 bug fix - 1st attempt
+Date: Thu, 25 Mar 2004 22:28:40 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0403252037070.4796@raven.themaw.net>
-References: <200403181118.34039.ndbecker2@verizon.net>
+Message-ID: <Pine.LNX.4.58.0403252218360.8946@raven.themaw.net>
+References: <Pine.LNX.4.58.0403232330230.4953@raven.themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200403181118.34039.ndbecker2@verizon.net>
+In-Reply-To: <Pine.LNX.4.58.0403232330230.4953@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,45 +16,43 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="utf-8"
-To: Neal Becker <ndbecker2@verizon.net>
-Cc: autofs@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: autofs mailing list <autofs@linux.kernel.org>, Michael Blandford <mlblandf@sedona.ch.intel.com>
 
-On Thu, 18 Mar 2004, Neal Becker wrote:
+On Tue, 23 Mar 2004, Ian Kent wrote:
 
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
->=20
-> Can anyone help me with migrating autofs to ldap?
+> 
+> Hi Michael and autofs list,
+> 
+> I have a first attempt at a patch for the autofs4 kernel module to fix the 
+> problem you reported regarding the cd -> touch problem. Could you please 
+> test when you get a chance.
+> 
+> I need some other people to test it as well. Anyone who does give it a 
+> try, please let me know, successful or otherwise.
+> 
+> The patch(s) can be found at:
+> 
+> http://www.kernel.org/pub/linux/kernel/people/raven/autofs4-2.4-testing
 
-Think so. Ive checked the Fedora package out and ...
->=20
-> To test, I added this line to /etc/auto.master:
->=20
-> /test=C2=A0=C2=A0=C2=A0ldap:rpppc1.md.hns.com:ou=3Dauto.test,dc=3Dadg,d=
-c=3Dhns,dc=3Dcom=C2=A0
+Anyone who tested a chrooted autofs mount should have found that it didn't 
+work. An additional patch named autofs4-2.4.20-chroot-20040317.patch is 
+included in the above directory to fix this. Please only apply it after 
+the old patch if you already have a patched kernel as change is already 
+included in the updated patches there.
 
-I see Jeff has added a patch to handle this syntax.
-I like it, I'm going to add it to 4.1.2.
+Now there are 2.6 patches as well, They are located at:
 
-But
+http://www.kernel.org/pub/linux/kernel/people/raven/autofs4-2.6/2.6.4
 
-/test	ldap://rpppc1.md.hns.com/ou=3Dauto.test,dc=3Dadg,dc=3Dhns,dc=3Dcom
-				 ^^
-should also work. However there seems to be an inconsistency with the dn
+There's also a revised set for pre 2.6.4 at:
 
->=20
-> Here is the corresponding ldif:
-> dn: nisMapName=3Dauto.test,dc=3Dadg,dc=3Dhns,dc=3Dcom
-here  ^^^^^^^^^^
+http://www.kernel.org/pub/linux/kernel/people/raven/autofs4-2.6/2.6.0
 
-So
+which should apply to kernels prior to 2.6.4.
 
-/test	ldap:rpppc1.md.hns.com:nisMapName=3Dauto.test,dc=3Dadg,dc=3Dhns,dc=3D=
-com
-
-should work.
-
-Let me know how you go with this.
+I would greatly appreciate anyone who is in a possition to test them to do 
+so and let me know the result.
 
 Ian
