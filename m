@@ -1,15 +1,17 @@
 From: Mike Waychison <Michael.Waychison@Sun.COM>
-Subject: Re: [RFC] Towards a Modern Autofs
-Date: Fri, 09 Jan 2004 16:43:33 -0500
+Subject: Re: [patch] buffer overflow, failure to auto-dismount,
+ log file diarrhea
+Date: Fri, 09 Jan 2004 17:00:23 -0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <3FFF2085.4020102@sun.com>
-References: <Pine.LNX.4.44.0401081827070.285-100000@donald.themaw.net>
- <3FFD9498.6030905@zytor.com> <3FFDEAE6.4030503@metaparadigm.com>
- <3FFF0EF0.90807@sun.com> <3FFF14F9.6030601@zytor.com>
+Message-ID: <3FFF2477.9060909@sun.com>
+References: <Pine.LNX.4.44.0401031051350.4413-100000@raven.themaw.net>
+ <Pine.LNX.4.53.0401091118050.9335@simba.math.ucla.edu>
+ <3FFF1CCF.2070904@sun.com>
+ <Pine.LNX.4.53.0401091330490.9335@simba.math.ucla.edu>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============44178220787793721=="
+Content-Type: multipart/mixed; boundary="===============61256762441623303=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-reply-to: <3FFF14F9.6030601@zytor.com>
+In-reply-to: <Pine.LNX.4.53.0401091330490.9335@simba.math.ucla.edu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,107 +21,90 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Michael Clark <michael@metaparadigm.com>, autofs mailing list <autofs@linux.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Ian Kent <raven@themaw.net>
+To: Jim Carter <jimc@math.ucla.edu>
+Cc: autofs mailing list <autofs@linux.kernel.org>, Ian Kent <raven@themaw.net>
 
 This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---===============44178220787793721==
+--===============61256762441623303==
 Content-type: multipart/signed;
- boundary=------------enig90F0E425FCCF33089537B762;
+ boundary=------------enigA99325A66258AEF78F655AD4;
  protocol="application/pgp-signature"; micalg=pgp-sha1
 
 This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig90F0E425FCCF33089537B762
+--------------enigA99325A66258AEF78F655AD4
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
-H. Peter Anvin wrote:
+Jim Carter wrote:
 
->Mike Waychison wrote:
+>On Fri, 9 Jan 2004, Mike Waychison wrote:
+>
 >  
 >
->>This is an interesting approach to killing off a mountpoint.  However,
->>the problem in question is not the destruction of the mountpoints, but
->>rather being able to
->>check_activity_of_a_hierarchy_of_mountpoints/unmount_them_together
->>atomically.  This cannot be done cleanly in userspace even when given an
->>interface to do the check, someone can race in before userspace
->>initiates the unmounts.  The alternative is to have userspace detach the
->>hierarchy of mountpoints using the '-l' option to umount(8), but then we
->>may still unneccesarily unmount the filesystem will someone is in it.
->>I think that both HPA and I agree that this capability is needed in
->>order to support lazy mounting of multimounts properly.    The issue
->>that remains is *how* to do it.
+>>Jim Carter wrote:
+>>    
 >>
+>>>No, I meant that when the sys_stat method fills in the mode field of
+>>>the returning stat structure, it would be reported as 555 for a busy
+>>>filesystem, or 755 if it looks idle and dismountable.  The mode field as
+>>>seen by the VFS layer can stay at 755.  This would be when statting
+>>>autofs's directory inode, not whatever is mounted on it.
+>>>      
+>>>
+>
+>  
+>
+>>This hijacking of the st_mode is just that, hijacking.  You'd be
+>>changing the mode of the directory on the NFS filesystem..  This
+>>wouldn't work well in the VFS when it tries to check permissions, but it
+>>also wouldn't work for more than one NFS client accessing the same
+>>filehandle.
 >>    
 >>
 >
->I would argue even stronger: allowing the administrator to umount
->directories manually is a hard requirement.  This means that partial
->hierarchies *will* occur.  Thus, relying on the hierarchy being
->atomically destructed in inherently broken.
->  
+>There are 2 inodes here: the mount point (owned by autofs) and what's
+>mounted on it.  We mustn't monkey with the mountee's data, of course.  I'm
+>talking about statting the mount point itself.  You can't do that by name,
+>but in a prior discussion we were talking about opening the mount point
+>before the mount, and later doing fstat on the file descriptor.  HPA
+>mentioned providing a readlink method and doing lstat on the mount point by
+>name, which would intercept the path walk before the mountee was noticed.
 >
-Yes, but they shouldn't occur due to normal operation of the system.  
-Yes, the administrator can manually prune things away, yet the remaining 
-bits should still be able to expire atomically.
-
-On the other end of the spectrum is the situation where if I had 
-accessed my homedir, /home/mikew, and then I manually mounted something 
-in /home/mikew/mnt as root in another window, /home/mikew should _not_ 
-expire.  /home/mikew/mnt is not managed by the automounter, so it 
-shouldn't be expired by it either.
-
->This means that constructing the hierarchy with direct-mount automount
->triggers in between the filesystems is mandatory; you get lazy mounting
->for free, then -- it's a userspace policy decision whether or not to
->release the waiting processes before the hierarchy is complete or not.
+>So the caller gets the mode of the mount point, which autofs can create or
+>interpret any way it wants, rather than the mountee's data.
 >
 >  
 >
-Yes, and this policy in my proposal is handled by the automount 
-useragent.  The system is constructed such that any waiting processes 
-are released when the useragent dies off.  If userspace wanted to let 
-people in before it finished construction, it would fork and exit in the 
-parent process.
+Ok.  Then the kernel would need to periodically make these checks..   It 
+could work, but I see it as yet another communication kludge.
 
->Now, once you recognize that the administrator needs to be able to do
->umounts, expiry in userspace becomes quite trivial, since expiry is
->inherently probabilistic: it can simply mimic an administrator preening
->the trees, and if it fails, stop (or re-mount the submounts, policy
->decision.)  Having a simple kernel-assist to avoid needless umount
->operations is a good thing if (and only if!) it's cheap, but it doesn't
->have to be foolproof.
+>>>I would really like it if, when autofs decided to forcibly unmount, it
+>>>could kill the using processes, as in "fuser -k -m /net/host/mountpoint".
+>>>Actually this is a general issue for unmount(8), not specific to autofs.
+>>>But one wonders whether fuser is going to run wild...
+>>>      
+>>>
 >
 >  
 >
-But it doesn't work as a daemon when you have namespaces created left 
-and right.  It *would maybe* work as a cron job, if cron was namespace 
-aware.
-
->Again, the atomicity constraint that umounting a filesystem needs to
->destroy the mount traps above it derives from the need to cleanly deal
->with nonatomic destruction.
->
->  
->
-??
-
->>The time required to unmount something is constant if we detach the
->>mountpoint using a lazy umount.
->>
+>>Like HPA already mentioned, this is bad.  I don't even think you could
+>>reliably detect this.
 >>    
 >>
 >
->You probably don't want to do that -- you could end up with some really
->odd timing-related bugs if you then re-mount the filesystem.  It's also
->unnecessary, since expiry is not a triggered event and therefore doesn't
->keep anything that needs to happen from happening.
+>Agreed, you wonder if the right processes are going to be picked.  But...
+>"Ask for the moon; they might give it to you."  In the present case it
+>should be possible to stick the fuser execution into the autofs shutdown
+>script -- it already is aware that unmounts haven't finished, and it
+>probably knows or can find out which filesystems are involved.
 >
 >  
 >
-Off the top of my head, I don't see any issues, but you are right in 
-that something may creep up. 
+This probably isn't best placed in the initscript.  The automount daemon 
+should instead have a timeout setup for unmounting these filesystems.  
+If the unmount hangs for more than x seconds, move on to the next one.   
+Let init take care of killing off processes if they haven't died in time 
+for shutdown. 
 
 -- 
 Mike Waychison
@@ -135,22 +120,22 @@ and may not represent the views of Sun Microsystems, Inc.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
 
 
---------------enig90F0E425FCCF33089537B762
+--------------enigA99325A66258AEF78F655AD4
 Content-Type: application/pgp-signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.2 (GNU/Linux)
 Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
 
-iD8DBQE//yCIdQs4kOxk3/MRAnxvAJ4yYiUDtlN5Du7XBf+vxSdwhzP6wACgniVK
-QTa+HmcaXF6gXcIpr+C+TsI=
-=q4pi
+iD8DBQE//yR6dQs4kOxk3/MRAo3CAJwP2eqU2kSsF/paTiM0iJCpk3J70ACgizCa
+TD1huqIuINAv+FjtyNMDM9o=
+=SvTi
 -----END PGP SIGNATURE-----
 
---------------enig90F0E425FCCF33089537B762--
+--------------enigA99325A66258AEF78F655AD4--
 
 
---===============44178220787793721==
+--===============61256762441623303==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -161,5 +146,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---===============44178220787793721==--
+--===============61256762441623303==--
 
