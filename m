@@ -1,18 +1,12 @@
 From: Chris Feist <cfeist@redhat.com>
-Subject: Re: [patch] Maintain backwards compatibility w/ local file maps
-	w/o etc.
-Date: Fri, 22 Oct 2004 10:13:26 -0500
+Subject: [patch] Updated autofs-4.1.3-signal-race-fix.patch
+Date: Mon, 18 Oct 2004 10:50:14 -0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <1098458006.3014.58.camel@gold.msp.redhat.com>
-References: <1098291410.3527.18.camel@localhost.localdomain>
-	 <Pine.LNX.4.58.0410211040430.4454@wombat.indigo.net.au>
-	 <1098372523.9364.17.camel@gold.msp.redhat.com>
-	 <Pine.LNX.4.58.0410221329100.7438@wombat.indigo.net.au>
+Message-ID: <1098114614.6300.11.camel@dhcp187.msp.redhat.com>
 Reply-To: cfeist@redhat.com
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="=-qN6rm3CHFLvjzAA28VE3"
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0410221329100.7438@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,35 +16,65 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: Ian Kent <raven@themaw.net>, autofs@linux.kernel.org
+To: raven@themaw.net, autofs@linux.kernel.org
 
 
-> But the patch doesn't appear to fix that problem.
-> Can you explain?
-> 
-> Ian
-> 
+--=-qN6rm3CHFLvjzAA28VE3
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Oops, sorry about that.  I didn't send you the correct version of the
-patch.  The problem is in the added lines, it says 'maptype=program' it
-should say 'maptype=file'...  Here's the corrected patch...
+Ian,
+
+I've attached an updated patch from Jeff Moyer's earlier signal race
+patch which allows the SIGCHLD signal to be received in the middle of
+st_expire() before ap.state can be set to ST_EXPIRE.  This causes the
+signal handling function for SIG_CHLD to never run the alarm() function
+which causes the SIGALRM signal to never be sent (or received) by
+automount, which causes directories w/ a timeout to never be unmounted.
 
 Thanks,
 Chris
 
-s-4.1.3/samples/rc.autofs.in.filemap-etc-append       
-2004-10-20 11:47:05.227372963 -0500
-+++ autofs-4.1.3/samples/rc.autofs.in   2004-10-20 11:47:06.947345831
--0500
-@@ -206,6 +206,9 @@
-                        map=`echo /etc/$map | sed 's^//^/^g'`
-                    elif [ -f "$map" ]; then
-                        maptype=file
-+                   elif [ -f "/etc/$map" ]; then
-+                       maptype=file
-+                       map=`echo /etc/$map | sed 's^//^/^g'`
-                    elif [ "$map" = "hesiod" -o "$map" = "userhome" ] ;
-then
-                        maptype=$map
-                        map=
+--=-qN6rm3CHFLvjzAA28VE3
+Content-Disposition: attachment; filename=autofs-4.1.3-signal-race-fix.patch
+Content-Type: text/x-patch; name=autofs-4.1.3-signal-race-fix.patch;
+	charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+--- autofs-4.1.3/daemon/automount.c.signal-race-fix	2004-10-15 18:57:23.000000000 -0500
++++ autofs-4.1.3/daemon/automount.c	2004-10-15 18:57:59.000000000 -0500
+@@ -833,10 +833,10 @@
+ 	alarm(0);
+ 
+ 	/* Prevent any new mounts */
+-	ap.state = ST_SHUTDOWN_PENDING;
+-
+ 	sigprocmask(SIG_SETMASK, &lock_sigs, NULL);
+ 
++	ap.state = ST_SHUTDOWN_PENDING;
++
+ 	/* Unmount everything */
+ 	exp = expire_proc(1);
+ 
+@@ -904,6 +904,7 @@
+ 		return 1;
+ 
+ 	case EXP_STARTED:
++		sigprocmask(SIG_SETMASK, &lock_sigs, NULL);
+ 		ap.state = ST_EXPIRE;
+ 		sigprocmask(SIG_SETMASK, &ready_sigs, NULL);
+ 		return 0;
+
+--=-qN6rm3CHFLvjzAA28VE3
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--=-qN6rm3CHFLvjzAA28VE3--
+
