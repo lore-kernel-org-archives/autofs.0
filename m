@@ -1,9 +1,9 @@
-From: Ryan Go <ryan@rentec.com>
+From: raven@themaw.net
 Subject: Re: Another (stupid) question: autofs vs nfs for
 	automounting purposes
-Date: Fri, 11 Jun 2004 19:37:51 -0400 (EDT)
+Date: Sat, 12 Jun 2004 11:41:20 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0406111935010.11935@vulture.rentec.com>
+Message-ID: <Pine.LNX.4.58.0406121140090.7745@donald.themaw.net>
 References: <E1B7C89B8DCB084C809A22D7FEB90B3841AE@frodo.avalon.ru>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
@@ -22,25 +22,14 @@ Content-Transfer-Encoding: 7bit
 To: "Dimitry V. Ketov" <Dimitry.Ketov@avalon.ru>
 Cc: autofs@linux.kernel.org
 
-
-I think something is missing ...
-
-NFS doesn't do automounting. Autofs does automounting. It's an apple and
-orange comparison.
-
-	<< ryan
-
 On Fri, 11 Jun 2004, Dimitry V. Ketov wrote:
 
 > - Which reasons (besides simplicity) led developers to the autofs
 > solution?
 > - What's wrong with nfs for the same things?
->
-> Thanks in advance,
-> Dimitry.
->
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
->
+
+I don't understand your question.
+
+What has NFS to do with automounting?
+
+Ian
