@@ -1,12 +1,10 @@
-From: raven@themaw.net
-Subject: RE: auto direct
-Date: Wed, 21 Jul 2004 21:58:21 +0800 (WST)
+From: "Takashi Yoshizawa" <mz711@hotmail.com>
+Subject: What is the purpose of AUTOFS_NEGATIVE_TIMEOUT?
+Date: Wed, 28 Jul 2004 19:03:12 +0900
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0407212148130.1373@donald.themaw.net>
-References: <200407211332.i6LDWPmh030349@ns4.ypf.com.ar>
+Message-ID: <BAY18-F10AKYVpMmOlb0000761f@hotmail.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200407211332.i6LDWPmh030349@ns4.ypf.com.ar>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,40 +14,20 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Type: text/plain; format=flowed; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: EAGOMEZC@REPSOLYPF.COM
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Wed, 21 Jul 2004 EAGOMEZC@REPSOLYPF.COM wrote:
+Hi,
 
-> ok,
-> 
-> but why not ?
+AUTOFS_NEGATIVE_TIMEOUT is defined in autofs_i.h.  I want to know this 
+purpose.
+In case of CD, "ls /mnt/cd/" without CD doesn't mount, and then insert CD,
+"ls /mnt/cd/" doesn't too.  Why?  I want it mount immediately.
 
-It is a limitation of the current implementation.
+Regards,
+Takashi Yoshizawa
 
-> 
-> is it not posible ?
-
-Not until the direct mount rework is done.
-First I've spent a long time deciding on how best to implement it.
-Second, the original method was used, largely due to the restricted number 
-of anonymous mounts available in 2.4.
-Third, the kernel module changes needed are a bit tricky. They'll need 
-significant testing when the work is done, as will the userspace code.
-Fourth, I've had a more or less constant stream of bug fix and basic 
-functionality work needed with the package. It's way hard implement 
-against a moving target.
-
-> 
-> is it not implemented yet ?
-
-Above.
-
-> 
-> Can I help you ?
-
-Perhaps. What do you have in mind?
-
-Ian
+_________________________________________________________________
+Protect your PC - get McAfee.com VirusScan Online 
+http://clinic.mcafee.com/clinic/ibuy/campaign.asp?cid=3963
