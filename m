@@ -1,15 +1,14 @@
-From: raven@themaw.net
-Subject: Re: [RFC] rpc_ping and looong timeouts
-Date: Sat, 5 Jun 2004 10:08:58 +0800 (WST)
+From: Axel Thimm <Axel.Thimm@atrpms.net>
+Subject: Re: autofs-4.1.3 rpms available
+Date: Sat, 5 Jun 2004 11:22:41 +0200
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0406051003140.1643@donald.themaw.net>
-References: <16575.35426.918728.134817@segfault.boston.redhat.com>
- <Pine.LNX.4.58.0406040909310.8991@wombat.indigo.net.au>
- <16576.51269.311121.121046@segfault.boston.redhat.com>
- <16576.60526.394177.533027@segfault.boston.redhat.com>
+Message-ID: <20040605092241.GA4610@neu.nirvana>
+References: <6AB920CC10586340BE1674976E0A991D01755BC8@slexch2.sugarland.unocal.com>
+	<16576.55049.875986.881088@segfault.boston.redhat.com>
 Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============56978274924461836=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <16576.60526.394177.533027@segfault.boston.redhat.com>
+In-Reply-To: <16576.55049.875986.881088@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,64 +18,79 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: Jeff Moyer <jmoyer@redhat.com>
 Cc: autofs@linux.kernel.org
 
-On Fri, 4 Jun 2004, Jeff Moyer wrote:
 
-> 
-> jmoyer> I've strace'd the automount process, and a lot of time is spent in
-> jmoyer> the clnt_create, for both UDP and the TCP.  I implemented a
-> jmoyer> non-blocking connect, and it took my ls time down from 8m21s to
-> jmoyer> 2m4s.  I'm still looking into why the UDP stuff isn't timing out
-> jmoyer> sooner.
-> 
-> The clnt_create call does not take a timeout.  One of the things it does is
-> to contact the remote portmapper to get the port for the specified program
-> number.  There is a hard-coded default timeout in that code of 60 seconds,
-> which explains my 2 minutes.
-> 
-> This patch simply implements an icmp ping (code shamelessly stolen from
-> clumanager), and does this before even attempting to do the rpc pings.  If
-> the icmp ping works, then we continue as usual.  This takes care of the
-> host down case quite nicely:
-> 
-> # time ls /multi/multi1
-> foo
-> 
-> real    0m0.208s
-> user    0m0.010s
-> sys     0m0.010s
-> 
-> Ian, I can also post the nonblocking connect patch, but I'm unsure of its
-> usefulness vs. complexity ratio.  I say we only cross that bridge if we
-> need to.
+--===============56978274924461836==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="bp/iNruPH9dso1Pn"
+Content-Disposition: inline
 
-Agreed.
 
-> 
-> One nit: icmp_ping_host takes a char * for the hostname, whereas rpc_ping
-> passes a const char *.  As such, we get a 'discards qualifier' warning.  I
-> didn't think it warrented converting the whole call chain to consts, but if
-> you're especially concerned about that, Ian, I'd be happy to resubmit.
->
+--bp/iNruPH9dso1Pn
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I'll see if I can get rid of the warning in some simple way. If only as a 
-clear indication it's what we intended to do.
+On Fri, Jun 04, 2004 at 04:09:45PM -0400, Jeff Moyer wrote:
+> =3D=3D> Regarding RE: [autofs] autofs-4.1.3 rpms available; "Crawford, Ph=
+ilip I." <philip.crawford@unocal.com> adds:
+>=20
+> philip.crawford> Hi Jeff / List: With regards to your RHEL3 version of the
+> philip.crawford> RPM - doesn't the kernel need to be patched first?  We
+> philip.crawford> have been unable to get ghosting work just using the RPM.
+> philip.crawford> If there are patches needed where can I get these?  The
+> philip.crawford> ones Ian released last week aren't for RHEL and won't
+> philip.crawford> patch cleanly.
+>=20
+> Yes, that is quite correct, though all of the features you were using in
+> 3.1.7 should work fine with the autofs4 userspace and the autofs3 kernel
+> module.
+>=20
+> I have patches for RHEL 3 which I am currently testing internally.  I'll
+> let you know when they are publically available.
 
-In fact I will be able to use this to make the umount smarter later some 
-time.
- 
-> 
-> Comments?
+How about external kernel module rpms? I am providing such for
+consumer line Red Hat products (RHL 7.3 to 9 and FC 1 and 2), and
+these could also be built for RHEL kernels. This makes testing much
+easier, as you don't need to involve the kernel masters. As soon as
+the external kernel module rpms prove themselves, you can still merge
+them into the kernel rpm.
 
-I've only had a brief look at the patch but it looks like good clean code.
+Some people in RH are trying to get me a RHEL license for other
+purposes, if I get one indeed, I will try to provide external kernel
+modules (but there still is a tiny two-liner patch needed for enabling
+the autofs external module, which needs to be in-kernel, can't say if
+this aplies to the current RHEL kernel).
+--=20
+Axel.Thimm at ATrpms.net
 
-One small thing though.
+--bp/iNruPH9dso1Pn
+Content-Type: application/pgp-signature
+Content-Disposition: inline
 
-I understand you need to attribute Copyright to Redhat but don't you think 
-it would be acceptable to add your name their as well?
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
 
-Ian
+iD8DBQFAwZDhQBVS1GOamfERAuwmAKCMUJIGRXSHufoDcPWRWh/OMjjcZwCeJB52
+0BPWdHU2V/DkonD2vpe22lM=
+=Egbw
+-----END PGP SIGNATURE-----
+
+--bp/iNruPH9dso1Pn--
+
+
+--===============56978274924461836==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--===============56978274924461836==--
+
