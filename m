@@ -1,9 +1,9 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: "Busy inodes after unmount. Self destruct in 5
 	seconds..."
-Date: Fri, 9 Apr 2004 09:23:34 +0800 (WST)
+Date: Fri, 9 Apr 2004 09:30:03 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0404090917300.4861@raven.themaw.net>
+Message-ID: <Pine.LNX.4.58.0404090925160.4861@raven.themaw.net>
 References: <OF0078B5E3.8F68FF8C-ON85256E70.004AE836-04256E70.0052CA39@us.ibm.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
@@ -28,16 +28,9 @@ On Thu, 8 Apr 2004, Raymond Prach wrote:
 > workstation that is down or has been removed from the network, so it waits 
 > around for a long time for the mount attempt to time out
 
-How stupid of me.
-
-I may already have already added someting that will help with this in 
-4.1.1. I gad to deal with this when I merged a patch to deal with 
-replicated server mounts. Like when the mount refers to multiple 
-weighted servers and needs to choose the best one. I added an rcp_ping 
-function which appears to timeout much more quickly than an attempted 
-mount (order of 10 seconds).
-
-This may help you somewhat but the problem you report still needs to be 
-fixed as the situation you describe could easily still happen.
+Sorry to be a pest but looking at the changelog I see that I fixed a 
+problem in the replicated server code that dealt with this situation in 
+4.1.2 (latest release). So I guess I'm recommending 4.1.2 if you have the 
+chance to try anything.
 
 Ian
