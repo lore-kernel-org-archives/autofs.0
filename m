@@ -1,16 +1,9 @@
-From: "Francesco P. Lovergine" <frankie@debian.org>
-Subject: Re: automount doesn't reread file map, automount terminates
-	on empty file map
-Date: Thu, 16 Dec 2004 15:56:20 +0100
-Message-ID: <20041216145620.GD24795@ba.issia.cnr.it>
-References: <1102796222l.6265l.2l@mercury>
-	<Pine.LNX.4.58.0412151807070.30726@wombat.indigo.net.au>
-	<1103144614l.6934l.0l@mercury>
-	<Pine.LNX.4.58.0412161052250.20186@wombat.indigo.net.au>
+From: Keith Owens <kaos@ocs.com.au>
+Subject: Limit on return string from program map
+Date: Thu, 16 Dec 2004 17:27:04 +1100
+Message-ID: <21502.1103178424@kao2.melbourne.sgi.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0412161052250.20186@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -25,26 +18,91 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: autofs@linux.kernel.org
 
-On Thu, Dec 16, 2004 at 11:00:33AM +0800, Ian Kent wrote:
-> > 
-> > sorry I forgot to mention some essential information it seems, I use  
-> > the 4.1.3-6 debian package.
-> 
-> I can't remember the patches that Arthur included in the deb (Arthur?).
-> I'll check if we can't raise him.
->
+Kernel 2.6.9, autofs v4 as a module, autofs-4.1.3-28 (FC3).  I added
+"/net /etc/auto.net" to /etc/auto.master and it works fine, up to a
+point.  ps shows
 
-Package is currently in adoption, Arthur missed time to continue with
-proper maintainance.  Recently, me and Steinar Gunderson worked to
-have the package in decent shape for sarge.
+/usr/sbin/automount --timeout=60 /net program /etc/auto.net
 
-> A further difficulty with this is that to fix this problem a small kernel 
-> patch was needed. But what kernel are you using (ie. are the latest kernel 
-> updates included in it)?
-> 
+If the target server has a lot of mounted filesystems then automount
+will only mount the first few entries on the list.  Then it tries to
+run mount with invalid input.  It looks like there is a hard coded
+limit on the string that automount expects from a program map.  My
+virtual CD server has lots of CD images mounted over loopback, each
+with its own export entry, so the return string from auto.net is quite
+long.
 
-That's an interesting hint. I suspect our kernel team could be not aware 
-of it. Do you have a pointer to the patch somewhere?
+"/etc/auto.net virtcd" returns a long string, over 20K.  The start of
+this string is below, some of the names have been sanitized without
+changing their length.  irix-6.5.21-overlays-4 mounts correctly,
+irix-6.5.22-applications-1 does not.  Instead of issuing
 
--- 
-Francesco P. Lovergine
+  /bin/mount -t nfs -s -o hard,intr,nodev,nosuid virtcd:/virtcd/mnt/irix-6.5.22-applications-1 /net/virtcd/virtcd/mnt/irix-6.5.22-applications-1
+
+it issues
+
+  /bin/mount -t nfs -s -o hard,intr,nodev,nosuid virtcd:/virtcd/mnt /net/virtcd/virtcd/mnt/irix-6.5.22-applications-1
+
+The NFS directory string has been truncated.  Interesting that the
+failure point is around the 4K mark on the input string.
+
+-fstype=nfs,hard,intr,nodev,nosuid \
+	/ virtcd:/ \
+	/virtcd virtcd:/virtcd \
+	/virtcd/mnt/xxxxxxxxxxxxxxxxxxxxxxxx-009.iso virtcd:/virtcd/mnt/xxxxxxxxxxxxxxxxxxxxxxxx-009.iso \
+	/virtcd/mnt/xxxxxxxxxxxxxxxxxxxxxxxx-1162-xxx.iso virtcd:/virtcd/mnt/xxxxxxxxxxxxxxxxxxxxxxxx-1162-xxx.iso \
+	/virtcd/mnt/xxxxxxxxxxxxxxxxxxxxxxxx-004.iso virtcd:/virtcd/mnt/xxxxxxxxxxxxxxxxxxxxxxxx-004.iso \
+	/virtcd/mnt/xxxxxxxxxxxxxxxx-MR-1 virtcd:/virtcd/mnt/xxxxxxxxxxxxxxxx-MR-1 \
+	/virtcd/mnt/xxxxxxxxxxxxxxxx-RC1-1 virtcd:/virtcd/mnt/xxxxxxxxxxxxxxxx-RC1-1 \
+	/virtcd/mnt/xxxxxxxxxxxxxxxx-RC2-1 virtcd:/virtcd/mnt/xxxxxxxxxxxxxxxx-RC2-1 \
+	/virtcd/mnt/xxxxxxxxxxxxxx_28_05_02-1 virtcd:/virtcd/mnt/xxxxxxxxxxxxxx_28_05_02-1 \
+	/virtcd/mnt/xxxxx-xxxxx-1 virtcd:/virtcd/mnt/xxxxx-xxxxx-1 \
+	/virtcd/mnt/FC2-i386-disc1.iso virtcd:/virtcd/mnt/FC2-i386-disc1.iso \
+	/virtcd/mnt/FC2-i386-disc2.iso virtcd:/virtcd/mnt/FC2-i386-disc2.iso \
+	/virtcd/mnt/FC2-i386-disc3.iso virtcd:/virtcd/mnt/FC2-i386-disc3.iso \
+	/virtcd/mnt/FC2-i386-disc4.iso virtcd:/virtcd/mnt/FC2-i386-disc4.iso \
+	/virtcd/mnt/FC2-i386-rescuecd.iso virtcd:/virtcd/mnt/FC2-i386-rescuecd.iso \
+	/virtcd/mnt/FC2-i386-SRPMS-disc1.iso virtcd:/virtcd/mnt/FC2-i386-SRPMS-disc1.iso \
+	/virtcd/mnt/FC2-i386-SRPMS-disc2.iso virtcd:/virtcd/mnt/FC2-i386-SRPMS-disc2.iso \
+	/virtcd/mnt/FC2-i386-SRPMS-disc3.iso virtcd:/virtcd/mnt/FC2-i386-SRPMS-disc3.iso \
+	/virtcd/mnt/FC2-i386-SRPMS-disc4.iso virtcd:/virtcd/mnt/FC2-i386-SRPMS-disc4.iso \
+	/virtcd/mnt/FC3-i386-disc1.iso virtcd:/virtcd/mnt/FC3-i386-disc1.iso \
+	/virtcd/mnt/FC3-i386-disc2.iso virtcd:/virtcd/mnt/FC3-i386-disc2.iso \
+	/virtcd/mnt/FC3-i386-disc3.iso virtcd:/virtcd/mnt/FC3-i386-disc3.iso \
+	/virtcd/mnt/FC3-i386-disc4.iso virtcd:/virtcd/mnt/FC3-i386-disc4.iso \
+	/virtcd/mnt/FC3-i386-rescuecd.iso virtcd:/virtcd/mnt/FC3-i386-rescuecd.iso \
+	/virtcd/mnt/FC3-i386-SRPMS-disc1.iso virtcd:/virtcd/mnt/FC3-i386-SRPMS-disc1.iso \
+	/virtcd/mnt/FC3-i386-SRPMS-disc2.iso virtcd:/virtcd/mnt/FC3-i386-SRPMS-disc2.iso \
+	/virtcd/mnt/FC3-i386-SRPMS-disc3.iso virtcd:/virtcd/mnt/FC3-i386-SRPMS-disc3.iso \
+	/virtcd/mnt/FC3-i386-SRPMS-disc4.iso virtcd:/virtcd/mnt/FC3-i386-SRPMS-disc4.iso \
+	/virtcd/mnt/xxxxxxxx-xxxxxx-1 virtcd:/virtcd/mnt/xxxxxxxx-xxxxxx-1 \
+	/virtcd/mnt/xxxxxxxx-xxxxxx-2 virtcd:/virtcd/mnt/xxxxxxxx-xxxxxx-2 \
+	/virtcd/mnt/xxxxxxxx-xxxxxx-3 virtcd:/virtcd/mnt/xxxxxxxx-xxxxxx-3 \
+	/virtcd/mnt/xxxxxxxx-xxxxxx-4 virtcd:/virtcd/mnt/xxxxxxxx-xxxxxx-4 \
+	/virtcd/mnt/irix-6.5.18-applications-1 virtcd:/virtcd/mnt/irix-6.5.18-applications-1 \
+	/virtcd/mnt/irix-6.5.18-overlays-1 virtcd:/virtcd/mnt/irix-6.5.18-overlays-1 \
+	/virtcd/mnt/irix-6.5.18-overlays-2 virtcd:/virtcd/mnt/irix-6.5.18-overlays-2 \
+	/virtcd/mnt/irix-6.5.18-overlays-3 virtcd:/virtcd/mnt/irix-6.5.18-overlays-3 \
+	/virtcd/mnt/irix-6.5.18-overlays-4 virtcd:/virtcd/mnt/irix-6.5.18-overlays-4 \
+	/virtcd/mnt/irix-6.5.19-applications-1 virtcd:/virtcd/mnt/irix-6.5.19-applications-1 \
+	/virtcd/mnt/irix-6.5.19-overlays-1 virtcd:/virtcd/mnt/irix-6.5.19-overlays-1 \
+	/virtcd/mnt/irix-6.5.19-overlays-2 virtcd:/virtcd/mnt/irix-6.5.19-overlays-2 \
+	/virtcd/mnt/irix-6.5.19-overlays-3 virtcd:/virtcd/mnt/irix-6.5.19-overlays-3 \
+	/virtcd/mnt/irix-6.5.19-overlays-4 virtcd:/virtcd/mnt/irix-6.5.19-overlays-4 \
+	/virtcd/mnt/irix-6.5.20-applications-1 virtcd:/virtcd/mnt/irix-6.5.20-applications-1 \
+	/virtcd/mnt/irix-6.5.20-overlays-1 virtcd:/virtcd/mnt/irix-6.5.20-overlays-1 \
+	/virtcd/mnt/irix-6.5.20-overlays-2 virtcd:/virtcd/mnt/irix-6.5.20-overlays-2 \
+	/virtcd/mnt/irix-6.5.20-overlays-3 virtcd:/virtcd/mnt/irix-6.5.20-overlays-3 \
+	/virtcd/mnt/irix-6.5.20-overlays-4 virtcd:/virtcd/mnt/irix-6.5.20-overlays-4 \
+	/virtcd/mnt/irix-6.5.21-applications-1 virtcd:/virtcd/mnt/irix-6.5.21-applications-1 \
+	/virtcd/mnt/irix-6.5.21-overlays-1 virtcd:/virtcd/mnt/irix-6.5.21-overlays-1 \
+	/virtcd/mnt/irix-6.5.21-overlays-2 virtcd:/virtcd/mnt/irix-6.5.21-overlays-2 \
+	/virtcd/mnt/irix-6.5.21-overlays-3 virtcd:/virtcd/mnt/irix-6.5.21-overlays-3 \
+	/virtcd/mnt/irix-6.5.21-overlays-4 virtcd:/virtcd/mnt/irix-6.5.21-overlays-4 \
+	/virtcd/mnt/irix-6.5.22-applications-1 virtcd:/virtcd/mnt/irix-6.5.22-applications-1 \
+	/virtcd/mnt/irix-6.5.22-applications-2 virtcd:/virtcd/mnt/irix-6.5.22-applications-2 \
+	/virtcd/mnt/irix-6.5.22-overlays-1 virtcd:/virtcd/mnt/irix-6.5.22-overlays-1 \
+	/virtcd/mnt/irix-6.5.22-overlays-2 virtcd:/virtcd/mnt/irix-6.5.22-overlays-2 \
+	/virtcd/mnt/irix-6.5.22-overlays-3 virtcd:/virtcd/mnt/irix-6.5.22-overlays-3 \
+
+	Another 16K of entries suppressed.
