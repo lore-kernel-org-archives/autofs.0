@@ -1,10 +1,11 @@
-From: Neal Becker <ndbecker2@verizon.net>
-Subject: Help with ldap + autofs please
-Date: Thu, 18 Mar 2004 11:18:32 -0500
+From: "surya " <surya_prabhakar@linuxmail.org>
+Subject: Err:multiple hostnames not supported(migration from solaris to
+	Linux)
+Date: Sun, 21 Mar 2004 08:11:23 +0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <200403181118.34039.ndbecker2@verizon.net>
+Message-ID: <20040321031123.D89C921B32F@ws5-6.us4.outblaze.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
@@ -16,56 +17,28 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: Text/Plain; charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 To: autofs@linux.kernel.org
+Cc: raven@themaw.net
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
 
-Can anyone help me with migrating autofs to ldap?
+hi all / Ian ,
+   I mount from 2 different nfs mount points ( that is from a filer ) , It works perfectly fine in solaris but linux autofs dumps these in /var/log/messages .
 
-To test, I added this line to /etc/auto.master:
+error
 
-/test=C2=A0=C2=A0=C2=A0ldap:rpppc1.md.hns.com:ou=3Dauto.test,dc=3Dadg,dc=3D=
-hns,dc=3Dcom=C2=A0
+automount[19109]: >> mount: warning: multiple hostnames not supported
 
-Here is the corresponding ldif:
-dn: nisMapName=3Dauto.test,dc=3Dadg,dc=3Dhns,dc=3Dcom
-objectClass: top
-objectClass: nisMap
-nisMapName: auto.test
+Any solution for this .
 
-dn: cn=3Dtest,nisMapName=3Dauto.test,dc=3Dadg,dc=3Dhns,dc=3Dcom
-objectClass: nisObject
-cn: test
-nisMapEntry:=C2=A0=C2=A0=C2=A0=C2=A0rpppc1.md.hns.com:/disk1/test
-nisMapName: auto.test
 
-If I do /sbin/service autofs reload, I get:
+rgds
+surya
+TI-India.
+-- 
+______________________________________________
+Check out the latest SMS services @ http://www.linuxmail.org 
+This allows you to send and receive SMS through your mailbox.
 
-Mar 18 09:19:40 rpppc1 automount[19312]: starting automounter version 4.1=
-.0,
-path =3D /test, maptype =3D ldap, mapname =3D
-rpppc1.md.hns.com:ou=3Dauto.test,dc=3Dadg,dc=3Dhns,dc=3Dcom
-Mar 18 09:19:40 rpppc1 automount[19312]: using kernel protocol version 4.=
-00
-Mar 18 09:19:40 rpppc1 automount[19312]: using timeout 300 seconds; freq =
-75
-secs
-Mar 18 09:19:40 rpppc1 automount[19312]: lookup(ldap): query failed for
-(&(objectclass=3DnisObject))
-Mar 18 09:19:40 rpppc1 automount[19312]: lookup(ldap): query failed for
-(&(objectclass=3Dautomount))
-Mar 18 09:19:40 rpppc1 automount[19312]: failed to load map, exiting
-Mar 18 09:19:40 rpppc1 automount[19312]: failed to remove dir @ $(J`S (BI=
- -
-=A7f: No such file or directory -A
 
-(Yes, the garbage characters are there in the log)
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFAWcvYMDqogpR5tkMRArIuAKCDCsCk/iYysbHdnkKyYv72+HgXzACaAp4Z
-BzDuH2wgqXHKnyFiGAFiEgA=3D
-=3Dyazv
------END PGP SIGNATURE-----
+Powered by Outblaze
