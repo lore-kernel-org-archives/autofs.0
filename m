@@ -1,58 +1,100 @@
-From: "Ogden, Aaron A." <aogden@unocal.com>
-Subject: RE: multiple servers per automount
-Date: Fri, 10 Oct 2003 10:16:01 -0500
-Sender: autofs-bounces@linux.kernel.org
-Message-ID: <6AB920CC10586340BE1674976E0A991D5955FC@slexch2.sugarland.unocal.com>
+From: "Lever, Charles" <Charles.Lever@netapp.com>
+Subject: RE: Re: [autofs] multiple servers per automount
+Date: Fri, 10 Oct 2003 08:10:13 -0700
+Sender: nfs-admin@lists.sourceforge.net
+Message-ID: <482A3FA0050D21419C269D13989C6113020AC4E3@lavender-fe.eng.netapp.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <autofs-bounces@linux.kernel.org>
+Content-Transfer-Encoding: quoted-printable
+Return-path: <nfs-admin@lists.sourceforge.net>
 content-class: urn:content-classes:message
+Errors-To: nfs-admin@lists.sourceforge.net
+List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
+List-Post: <mailto:nfs@lists.sourceforge.net>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
+	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Errors-To: autofs-bounces@linux.kernel.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
+	<mailto:nfs-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
 Content-Type: text/plain; charset="us-ascii"
 To: Ian Kent <raven@themaw.net>, Mike Waychison <Michael.Waychison@Sun.COM>
-Cc: autofs mailing list <autofs@linux.kernel.org>, nfs@lists.sourceforge.net
+Cc: "Ogden, Aaron A." <aogden@unocal.com>, autofs mailing list <autofs@linux.kernel.org>, nfs@lists.sourceforge.net
 
+the problem is likely the algorithm used to allocate
+ports for the RPC transport sockets.  it starts at
+port 800 and goes down to zero.
 
-
------Original Message-----
-From: Ian Kent [mailto:raven@themaw.net] 
-Sent: Thursday, October 09, 2003 8:09 PM
-To: Mike Waychison
-Cc: Ogden, Aaron A.; autofs mailing list; nfs@lists.sourceforge.net
-Subject: Re: [autofs] multiple servers per automount
-
->> The maximum number of plain pseudo-block device filesystems on a
-given
->> filesystem is limitted to 256. (This includes proc, autofs, nfs..).
->>
->> This is because pseudo-block filesystems all use major 0, and each
-have
->> a different minor (thus the 256 limit).
->>
->> There are however patches floating around (look at SuSe's kernels,
-I'm
->> not sure about RH) that allow n majors to be used (default 5).  This
->> gives you 1280 mounts, a big step up :)
->>
->
-> But as Aaron and I know things go pear shaped at just shy of 800
-mounts
+> -----Original Message-----
+> From: Ian Kent [mailto:raven@themaw.net]
+> Sent: Thursday, October 09, 2003 6:09 PM
+> To: Mike Waychison
+> Cc: Ogden, Aaron A.; autofs mailing list; nfs@lists.sourceforge.net
+> Subject: [NFS] Re: [autofs] multiple servers per automount
+>=20
+>=20
+> On Thu, 9 Oct 2003, Mike Waychison wrote:
+>=20
+> > Ogden, Aaron A. wrote:
+> >
+> > >Ouch.  As you may know, the limit is *much* lower in=20
+> linux.  Something
+> > >that I've been struggling with recently...
+> > >
+> > >Under normal circumstances I would not be concerned with=20
+> 'limitations'
+> > >of a few hundred active NFS mounts, but such limitations=20
+> certainly limit
+> > >scalability for the extreme cases.
+> > >
+> > >
+> >
+> > The maximum number of plain pseudo-block device filesystems=20
+> on a given
+> > filesystem is limitted to 256. (This includes proc, autofs, nfs..).
+> >
+> > This is because pseudo-block filesystems all use major 0,=20
+> and each have
+> > a different minor (thus the 256 limit).
+> >
+> > There are however patches floating around (look at SuSe's=20
+> kernels, I'm
+> > not sure about RH) that allow n majors to be used (default 5).  This
+> > gives you 1280 mounts, a big step up :)
+> >
+>=20
+> But as Aaron and I know things go pear shaped at just shy of=20
+> 800 mounts
 > with RedHat kernels. They have the more-unnamed patch.
->
+>=20
 > So this would indicate that even if there is a device system that can
 > increase the number of unnamed devices that subsystems like NFS cannot
 > handle this many mounts.
+>=20
+> --=20
+>=20
+>    ,-._|\    Ian Kent
+>   /      \   Perth, Western Australia
+>   *_.--._/   E-mail: raven@themaw.net
+>         v    Web: http://themaw.net/
+>=20
+>=20
+>=20
+> -------------------------------------------------------
+> This SF.net email is sponsored by: SF.net Giveback Program.
+> SourceForge.net hosts over 70,000 Open Source Projects.
+> See the people who have HELPED US provide better services:
+> Click here: http://sourceforge.net/supporters.php
+> _______________________________________________
+> NFS maillist  -  NFS@lists.sourceforge.net
+> https://lists.sourceforge.net/lists/listinfo/nfs
+>=20
 
-Maybe.  I'm not 100% certain though.  Currently I am holding steady at
-710 active mounts, I am going to write a little script to mount more in
-small increments, ie. read a list of ~1000 mountpoints from /home, mount
-a few of them, check the filesystems, and repeat... this way I will know
-exactly where things break down.
+
+-------------------------------------------------------
+This SF.net email is sponsored by: SF.net Giveback Program.
+SourceForge.net hosts over 70,000 Open Source Projects.
+See the people who have HELPED US provide better services:
+Click here: http://sourceforge.net/supporters.php
+_______________________________________________
+NFS maillist  -  NFS@lists.sourceforge.net
+https://lists.sourceforge.net/lists/listinfo/nfs
