@@ -1,13 +1,12 @@
-From: Jason L Tibbitts III <tibbs@math.uh.edu>
-Subject: Re: Local mounts without NFS server
-Date: 30 Apr 2004 09:57:52 -0500
+From: "Patel, Rahulkumar [NJ]" <rahul@lehman.com>
+Subject: Autofs picking first server from the automounter map all the
+ time
+Date: Fri, 30 Apr 2004 15:19:30 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <ufa65bh1pjj.fsf@epithumia.math.uh.edu>
-References: <ufa65bi8qxv.fsf@epithumia.math.uh.edu>
-	<1083336286.21825.37.camel@brilong-lnx2.cisco.com>
+Message-ID: <D85B695BF793684EA72C8E481FB1D9A1225096@nycmgexm004.leh.lbcorp.lehman.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1083336286.21825.37.camel@brilong-lnx2.cisco.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,41 +17,35 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Brian Long <brilong@cisco.com>
-Cc: autofs@linux.kernel.org
+To: "'autofs@linux.kernel.org'" <autofs@linux.kernel.org>
 
->>>>> "BL" == Brian Long <brilong@cisco.com> writes:
+Hi,
+I have following entry defined in the automounter map.
+But, when I try to access it all the time it pick last server defined for
+that mount.
 
-BL> I like your idea about keeping the /cache up to date via
-BL> rsync.
+perl -ro,soft,nosuid,noquota,intr server1:/vol/vol1/software/perl
+server2:/vol/vol1/software/perl.
 
-Well, it's actually a hack but it works well enough.
 
-BL> What other maps, mounts or symlinks do you have to keep this
-BL> working?
+When I cd /home/perl --> All the time I connect to server2.
 
-Just to /etc/auto_usr_local files, one for the hosts with /cache and
-one without.  These days, though, every machine has enough disk to
-cache what it needs.  That wasn't the case back when I put this
-together.
+I am running autofs-3.1.7-21.
 
-BL> For example, for hosts that don't have a /cache filesystem, do
-BL> they have a separate auto_usr_local map?
+Does anyone has idea why this is happening ?
 
-Yes, the hosts pull what they need from a server, and hosts without
-/cache pull a different auto_usr_local map.  I guess if I used
-failover I wouldn't even have to do that, but I'm not sure if that's
-supported far enough back.
+Thanks
+Rahul
 
-BL> Do all your machines that have /cache always mirror the same
-BL> directories so you only maintain one /etc/auto_usr_local file?
-
-Yes, that makes it simple.  But it wouldn't be too hard to pull down
-directories until the disk gets too full and either use failover or
-autogenerate /etc/auto_usr_local depending on what you could fit.  I
-don't have enough third-party applications to make that worthwhile.
-(Just Mathematica, Matlab, Maple, the Portland Group compilers and
-some locally compiled stuff that I really should turn into RPMs.)
-
- - J<
+------------------------------------------------------------------------------
+This message is intended only for the personal and confidential use of the
+designated recipient(s) named above.  If you are not the intended recipient of
+this message you are hereby notified that any review, dissemination,
+distribution or copying of this message is strictly prohibited.  This
+communication is for information purposes only and should not be regarded as
+an offer to sell or as a solicitation of an offer to buy any financial
+product, an official confirmation of any transaction, or as an official
+statement of Lehman Brothers.  Email transmission cannot be guaranteed to be
+secure or error-free.  Therefore, we do not represent that this information is
+complete or accurate and it should not be relied upon as such.  All
+information is subject to change without notice.
