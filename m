@@ -1,14 +1,13 @@
 From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
-Subject: Re: [ANNOUNCE] autofs 4.1.4 beta1 release
-Date: Wed, 26 Jan 2005 17:14:55 +0100
-Message-ID: <20050126161454.GA9417@uio.no>
-References: <Pine.LNX.4.61.0501262151370.1716@donald.themaw.net>
-	<20050126151344.GA841@uio.no>
-	<Pine.LNX.4.61.0501262320080.1890@donald.themaw.net>
+Subject: Re: automount 4.1.3: unmount timeout not working
+Date: Wed, 26 Jan 2005 17:22:35 +0100
+Message-ID: <20050126162235.GB9417@uio.no>
+References: <20050122215228.GA14303@tangens.sinus.cz>
+	<20050126152037.GX21479@debian-server.aei.mpg.de>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.61.0501262320080.1890@donald.themaw.net>
+In-Reply-To: <20050126152037.GX21479@debian-server.aei.mpg.de>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,32 +20,26 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: autofs@linux.kernel.org
+To: steffen.grunewald@aei.mpg.de
+Cc: autofs@linux.kernel.org
 
-On Wed, Jan 26, 2005 at 11:35:18PM +0800, raven@themaw.net wrote:
->>- There is a patch for rc.autofs.in missing, changing an "else" to en
->>  "elif".  The idea is that failure in loading the autofs4 module should not
->>  break first-time installation (see http://bugs.debian.org/280276).
-> What if autofs[4] is not compiled as a module?
+On Wed, Jan 26, 2005 at 04:20:37PM +0100, Steffen Grunewald wrote:
+> I also see this (Debian Sarge, installation done some weeks ago, package
+> version is 4.1.3-4). WIth an older installation (another Sarge), still using
+> 3.9.99-4.0.0pre10-16, this doesn't show up.
 
-In that case, it is in /proc/filesystems, and there is no problem. You
-_could_ argue that is autofs3 was compiled into the kernel, it should fail,
-but I can't find a good way to detect that.
+4.1.3-4 is old, there has bene _lots_ of changes since then. The latest
+version in sarge is 4.1.3-8; 4.1.3-9 (latest in sid) is broken due to a build
+problem, and only fixes a minor issue anyhow.
 
->>- There seem to have been a lot of changes in rc.autofs.in (especially
->>  related to timeout parsing); I'm unable to follow them all, but I hope
->>  you've done the right thing in merging in the Debian patches here :-)
-> Do you remember what the issues were?
+> An upgrade to 4.1.3-8 apparently cured the problem; I don't know how
+> close the Debian package maintainer Steiner Gundersson works with autofs
+> people, and whether he's introduced some patches that have not been in
+> the previous version (and may have found their way into 4.1.4).
 
-(Just to clear up; "there seems to have been a lot of changes" refers to your
-changes, not the Debian changes, although there are several of those as
-well.) I'm afraid this was before I took over the maintainership of the
-package; the changelog is the best thing I can point you to.
-
-> Yep. There's been a bit of work there, not only related to white space.
-> Please test this out as I need to know what I've broken.
-
-OK, I'll give it a shot a bit later. :-)
+I'm at least here on the list, and we're currently trying to sync most of the
+Debian packages into 4.1.4 (upstream has already done most of them); see the
+other discussion today. :-)
 
 /* Steinar */
 -- 
