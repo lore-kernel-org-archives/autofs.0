@@ -1,10 +1,10 @@
-From: Timo Felbinger <Timo.Felbinger@physik.uni-potsdam.de>
-Subject: LDAP: suggesting one tiny and one larger patch
-Date: Fri, 24 Sep 2004 12:26:37 +0200 (CEST)
+From: Mike Waychison <Michael.Waychison@Sun.COM>
+Subject: [announce] Autofs NG 0.1
+Date: Fri, 24 Sep 2004 20:50:58 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0409231703430.28706@uranos.quantum.physik.uni-potsdam.de>
-Reply-To: Timo.Felbinger@physik.uni-potsdam.de
+Message-ID: <4154C0F2.708@sun.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7BIT
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -15,73 +15,92 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: linux-kernel@vger.kernel.org, autofs@linux.kernel.org
+Cc: thockin@hockin.org, raven@themaw.net
 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Hello,
+Hi folks,
 
-I'm currently trying to get users' home directories automounted, with
-maps stored in LDAP. I found that I want some things which the current
-lookup_ldap module cannot do (I believe), so I decided to patch it :-)
+Some of you may remember my posting of a new way to do autofs in Linux a
+while back:
 
-Doing this, I discovered the undocumented(?) yet (IMO) useful option
---no-slashify, which however seems to be buggy in 4.1.3, so I suggest
-a tiny fix to actually make it work:
+http://marc.theaimsgroup.com/?l=linux-kernel&m=107341940326348&w=2
 
-diff -u -r autofs-4.1.3-orig/modules/parse_sun.c autofs-4.1.3/modules/parse_sun.c
---- autofs-4.1.3-orig/modules/parse_sun.c	2004-05-18 14:22:40.000000000 +0200
-+++ autofs-4.1.3/modules/parse_sun.c	2004-09-22 15:36:56.539912580 +0200
-@@ -391,7 +391,7 @@
- 					bval = 1;
- 				}
+Anyhow,  I've gotten to the point where I have code that people can play
+with.  I've posted it all at http://autofsng.bkbits.net
 
--				if (strmcmp(xopt, "slashify-colons", 1))
-+				if (!strmcmp(xopt, "slashify-colons", 1))
- 					ctxt->slashify_colons = bval;
- 				else
- 					error(MODPREFIX "unknown option: %s",
+There are two repos located there, one is the userspace bits (autofsng).
+~ It has the 'utility' (automount) and the autofs usermode agent
+(autofs).  This tree began as a automount 3.1.7 tree, but has
+drastically changed.  Lots of good stuff has yet to be merged in from
+the automount 4 daemon.
 
-My actual patch of lookup_ldap.c grew somewhat larger than initially
-planned (so I'm not posting a diff), and I believe it could be useful
-and could be merged into the autofs source (after more testing, of
-course), so I put a modified lookup_ldap.c at
+The kernel bits are in the linux-2.6-autofsng repository.   Broken out
+patches are forthcoming in the next (weeks?) [*].  It has the following
+major changes to it:
 
-  http://www.timof.qipc.org/autofs-4.1.3-patch/lookup_ldap.c-patched
+- - changes to the vfsmount tree structures so that you can detach and
+re-attach sub-trees of the vfsmount tree.  The current implementation is
+admittedly a bit gross and will require work to make it pretty (and to
+get rid of having to grab a rwlock on every mntget/mntput!).
 
-I invite everyone using autofs with LDAP to try and use it. Basically,
-it will parse map names in (almost) the form of LDAP URIs as defined
-in rfc2255:
+- - the addition of a mountpoint file descriptor api.  I don't care for
+the interface at the moment, and I'll be posting interface descriptions
+later on along with broken out patches so that the interface itself can
+be thought through.
 
- [[scheme:]//server[:port]][/basedn][?attr[?scope[?filter[?ext]]]]]
+- - vfs native support for expiring mountpoints (and entire subtrees of
+them).  There currently exists a syscall entry to specify this from
+userspace as a way to easily test it.  As well, you can specify expiry
+information using the above mountpoint file descriptor api.
 
-This gives more flexibility: e.g., you can get TLS, you can use your
-own LDAP schema, and apply arbitrary filters; details are in
+- - a new module implementing the 'autofs' filesystem called autofsng.
+This filesystem will support automounting of both direct and indirect
+maps.  It also supports 'browsing'.  Most of this magic happens using
+'->follow_link' walks on directory inodes.   This is ugly, but it
+appears to be the best way to properly handle automounting from within
+the kernel.
 
-  http://www.timof.qipc.org/autofs-4.1.3-patch/README.ldap-patch
+There does remain a good amount of work to do, and I've tried to list
+things on the top of my head in the autofsng/autofs/TODO file.  I'm sure
+I missed stuff :\
 
-The last example there is approximately what I wanted to have, and
-what I am currently (test-)using (and so far it seems to work well):
-In addition to being able to connect with TLS, I wanted to put the
-automountInformation for home directories right into the account
-database (rather than into a separate subtree), using homeDirectory
-(which is there anyway) as the "key" (ie, mountpoint) attribute.
+At this point, I can run and pass a ported autofs connectathon
+testsuite.  I'm working on figuring out how to get the testsuite
+included in the package.  For comparison,  both autofs3 and autofs4
+couldn't handle the majority (>%95) of the tests done.  As well, we've
+uncovered a couple of nfs related issues that we'll be following up with
+on the nfs list.
 
-I tried to keep everything backward compatible: the current form of
-ldap map names, [//host/]base, should still work, with both
-autofs.schema and nis.schema, so not too many things should break.
-(and following Jun Futagawa's recent suggestion, the modified lookup
-module will print human-readable LDAP error messages, where possible.)
+So, if you have time to spare and you care about automounting, please
+have a try at using it.  If you are curious enough to wade through it,
+feel free to give feedback/flames/comments on the code/design/weather.
 
+Thanks,
 
-Regards,
+[*] - I know it is bad practice to pop-up out of nowhere with large
+changes, but I wasn't able to get anything out much earlier due to a
+variety of reasons.  From now on, expect to see much traffic from me as
+I feed a broken-out patchsets to the list.
 
-Timo
+- --
+Mike Waychison
+Sun Microsystems, Inc.
+1 (650) 352-5299 voice
+1 (416) 202-8336 voice
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NOTICE:  The opinions expressed in this email are held by me,
+and may not represent the views of Sun Microsystems, Inc.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
 
--- 
-Timo Felbinger                  <Timo.Felbinger@physik.uni-potsdam.de>
-Quantum Physics Group           http://www.quantum.physik.uni-potsdam.de
-Institut fuer Physik            Tel: +49 331 977 1793      Fax: -1767
-Universitaet Potsdam, Germany
+iD8DBQFBVMDydQs4kOxk3/MRAnQsAJ0XHLJA/HkAHTLSPjGZU75Bc3oJiQCfUWoE
+p94ERBoBhTa2jG2CJjT9Er8=
+=1RaX
+-----END PGP SIGNATURE-----
