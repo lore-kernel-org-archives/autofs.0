@@ -1,181 +1,80 @@
-From: mike@waychison.com
-Subject: RE: [autofs] [PATCH/RFC 0/2] Userspace RPC proxying
-Date: Tue, 8 Mar 2005 16:06:11 -0500 (EST)
-Message-ID: <38122.66.11.176.22.1110315971.squirrel@webmail1.hrnoc.net>
-References: <482A3FA0050D21419C269D13989C611307CF4C14@lavender-fe.eng.netapp.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-In-Reply-To: <482A3FA0050D21419C269D13989C611307CF4C14@lavender-fe.eng.netapp.com>
-Sender: nfs-admin@lists.sourceforge.net
-Errors-To: nfs-admin@lists.sourceforge.net
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=unsubscribe>
+From: Mike Marion <mmarion@qualcomm.com>
+Subject: Re: unacceptable bug in autofs kernel module
+Date: Tue, 8 Mar 2005 14:53:49 -0800
+Message-ID: <719dea83a19179ae2752ed3375139371@qualcomm.com>
+References: <C147DE5CF1A13D42B560879D6D212E63012F3B5D@us-bv-m21.global.tektronix.net>
+Mime-Version: 1.0 (Apple Message framework v619.2)
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <C147DE5CF1A13D42B560879D6D212E63012F3B5D@us-bv-m21.global.tektronix.net>
 List-Id: <autofs.vger.kernel.org>
-List-Post: <mailto:nfs@lists.sourceforge.net>
-List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
-Content-Type: text/plain; charset="us-ascii"
-To: "Lever, Charles" <Charles.Lever@netapp.com>
-Cc: mike@waychison.com, linux-nfs <nfs@lists.sourceforge.net>, autofs mailing list <autofs@linux.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: autofs@linux.kernel.org
 
->> It's less unsafe than SO_REUSEADDR, however it completely ignores
->> TIME_WAIT,  which has two purposes (according to W.R. Stevens):
->>
->> - If the client performs the active close, it allows the socket to
->> remember to resend the final ACK in response to the server's FIN.
->> Otherwise the client would respond with a RST.
->>
->> - It ensures that no re-incarnations of the same four-tuple
->> occur within 2
->> * MSL, ensuring that no packets that were lost on the network from the
->> first incarnation get used as part of the new incarnation.
->>
->> Avoiding TIME_WAIT altogether keeps TCP from doing a proper
->> full-duplex
->> close and also allows old packets to screw up TCP state.
->
-> right, there are cases where proper connection close processing is
-> required.  and you don't need to worry much about duplicate request
-> caching for the services we're talking about here, so it's probably not
-> as critical for rpcproxyd.
->
->> Which timeout is 5 minutes? (sparing me the trouble of finding it
-> myself).
->
-> the RPC client side idle timeout is 5 minutes in the reference
-> implementation (Solaris).
+On Mar 7, 2005, at 4:16 PM, peter.a.harris@exgate.tek.com wrote:
 
-Hmm. Okay. Without looking at the code, I'm going to assume that this is
-handled in the core rpc code, and not in the per-transport bits.
+> We use a mixture of direct and indirect maps, all with ghosting turned 
+> on.
+> The problems we are seeing are evenly spread between the two types.  
+> Our
+> basic tools and home directories are indirect maps, the project data 
+> and
+> project specific tools are in a large direct map.  All the maps are 
+> NIS (not
+> NIS+) served.  All totaled we have about 1200+ mounts.
 
-If this is indeed the case, then the client will close the connection to
-the proxy after five minutes, which in turns kicks off a timer in the
-proxy to close the unused transport after 30 seconds.
+Sounds close to us in size, though we had to move our map into a file 
+ages ago... we broke NIS at some point.  A quick check shows more 3000+ 
+mounts, but still 1200 is a lot.  We've been using program maps so far 
+though on linux, and haven't seen any of the same "the file isn't 
+there.. even though it's there" issue on solaris at all.
 
-Though I better dig deeper before I claim this is the case ;)
+> We have also seen some problems on the Solaris boxes in a timeframe 
+> similar
+> to our Linux problems.  We have been getting more RPC timeouts and NFS
+> server not responding errors in the messages files.  And the users 
+> have been
+> complaining of, what they have termed, "pausenia" and "stuttering".
+> Pausenia is where the user types a command and the shell locks for 15 
+> to 60
+> seconds before anything happens.  Stuttering is a file not found error,
+> followed by the file being there when the user immediately (after 
+> cursing
+> and retyping) reissues the command.  The one difference we see on the
+> Solaris side is that the automounter seems to self-recover.
 
->> I figured 30 for caching un-used tcp connections sounded like a good
->> number as it means that if TIME_WAIT period is 2 minutes,
->> that the most
->> TIME_WAIT connections that you can have to a given remote
->> service at any time is 4.
->>
->> A bit more thought could be had for timeouts (wishlist):
->> - TCP connect()s aren't timedout. (uses EINPROGRESS, but will wait
->> indefinitely, which I think is bounded by the kernel anyway).
->
-> there is a SYN retry limit controllable via sysctl for all sockets on
-> the system.  by default the active end tries sending SYN 6 times with
-> exponential backoff.  eventually the connection attempt will time out i=
-f
-> the remote peer doesn't respond with SYN,ACK after the last SYN is sent=
-.
-> i think it's on the order of a couple of minutes.
+Is the pausenia on solaris happening near the top of the hour?  We've 
+had a similar problem that seems to occur when automount on solaris 
+does it's hourly check/flush where it parses the maps again.  We 
+noticed when that happens that automount takes up a lot of CPU too.
 
-Great. This is probably a ENETUNREACH error.
+We don't see the stuttering so much since it only seems to occur when a 
+batch lsf job is submitted, and not when the user is working 
+interactively.
 
->
->> - UDP retransmission occurs in the proxy itself, which is currently
->> hardcoded to retry 5 times, once every two seconds.  I can
->> trivially set it up so that it gets the actual timeout values from the
->
->> client though and use those parameters.
->
-> that should probably have exponential backoff, but it probably isn't
-> critical.
->
+> We have turned off the "/net" program map because there are too many
+> problems with things staying mounted, overly long exports lists from 
+> the
+> filers, etc. and we don't really need it on every machine.
 
-Yup.  10 seconds of retries probably isn't big enough.  Will add the
-needed logic when I get the chance.
+Ah yes.. that's why I had to write this huge, ugly, shell script that 
+scrubs hosts trying to find and flush such hung/gone mounts.   If you 
+ever want to see it.. let me know. ;)  I found I could force umount 
+most of the hung mounts by spoofing the IP of a missing host on an 
+aliased interface, though I had to disable tcp mounts on /net for that 
+to work.
 
->> > you will also need a unique connection for each
->> program/version number
->> > combination to a given server; ie you can't share a single
->> socket among
->> > different program/version numbers (even though some
->> implementations try
->> > to do this, it is a bad practice, in my opinion).
->> >
->>
->> So, I know I discussed this with you last week, however I was
->> under the
->> impression that that was needed for the case where you
->> support re-binding
->> of the transport.  I'm not up to speed of who are the users of such a
->> thing (I'm assuming NFSv4).
->
-> if you expect to cache these associations for a long time, you will nee=
-d
-> to rebind every so often in case the server decides to move the service
-> to another port.  with UDP, anyway.
->
-> you also can't assume that all the services you need to talk to
-> (PORTMAP, NFS, MOUNTD, etc) will live on the same port.  for a truly
-> general implementation you will need to use a separate connection for
-> each service.
-
-rpcproxyd will make as many outbound connections as needed.  They are
-indexed by:
-
-(
-  addrlen =3D=3D conn->addrlen
-  && !memcmp(addr, conn->addr, addrlen)
-  && domain =3D=3D conn->domain  /* eg: AF_INET */
-  && type   =3D=3D conn->type    /* eg: SOCK_STREAM */
-)
-
-There is no re-using a connection based on prog && vers.
-
-As such, if the service moves a port, it will be the client's
-responsibility to either a) pass in the updated addr in a call the
-clntproxy_create or b) pass in addr with addr->sin_port =3D=3D 0 so the
-portmapper is consulted again.
-
-I don't think any of the existing rpc classes support transparent
-rebinding of service address.
-
->
-> but you said "assuming NFSv4," so maybe none of this matters.  i would
-> hope that a connection cache would be good for any application using
-> RPC.
-
-Well, I'm thinking that with NFSv4 you may want to rebind the underlying
-socket instead of creating a new socket with it comes time to migrate.
-
->
->> > to support IPv6 you will need support for rpcbind versions
->> 3 and 4; but
->> > that may be an issue outside of rpcproxyd.
->> >
->>
->> Okay.  I'm not so familiar with RPCB, but it is just a PMAP
->> on steroids, right?
->
-> the later versions of the rpcbind protocol support additional operation=
-s
-> that allow IPv6-style information to be returned.  version 2 does not
-> support IPv6, as far as i know, but i'm no expert.
->
-
-Great.
-
-This brings up the question though: does current util-linux even support
-IPv6?  It (the one on my debian box) has explicit calls to pmap_getport,
-which appears to be IPv4 only.
-
-Thanks,
-
-Mike Waychison
-
-
-
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now.
-http://ads.osdn.com/?ad_id=3D6595&alloc_id=3D14396&op=3Dclick
-_______________________________________________
-NFS maillist  -  NFS@lists.sourceforge.net
-https://lists.sourceforge.net/lists/listinfo/nfs
+-- 
+Mike Marion-Unix SysAdmin/Staff Engineer-http://www.qualcomm.com
+Drew: "Violence doesn't solve anything? World War I. World War II. Star 
+Wars.
+every Super Bowl. Who says violence doesn't solve anything?!" ==> Drew 
+Cary Show
