@@ -1,14 +1,16 @@
-From: Chris Croswhite <csc@cadence.com>
-Subject: Re: autofs-4.1.2-6 test rpms available
-Date: Thu, 06 May 2004 14:33:04 -0700
+From: Ian Kent <raven@themaw.net>
+Subject: Re: Please help - cleanup
+Date: Fri, 7 May 2004 09:50:25 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <1083879184.5885.532.camel@d158140025182>
-References: <16538.43940.58650.642984@segfault.boston.redhat.com>
-Reply-To: csc@cadence.com
+Message-ID: <Pine.LNX.4.58.0405070949330.6274@wombat.indigo.net.au>
+References: <Pine.LNX.4.58.0405022201480.25614@donald.themaw.net>
+	<Pine.LNX.4.58.0405042233560.17014@donald.themaw.net>
+	<16535.44980.475389.900686@segfault.boston.redhat.com>
+	<Pine.LNX.4.58.0405042308070.17014@donald.themaw.net>
+	<409A4C04.1060604@freescale.com><409A6220.80403@freescale.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <16538.43940.58650.642984@segfault.boston.redhat.com>
+In-Reply-To: <409A6220.80403@freescale.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,32 +20,35 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: jmoyer@redhat.com
-Cc: autofs@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Tom Georgoulias <tom.georgoulias@freescale.com>
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
-Cool and thanks....
+On Thu, 6 May 2004, Tom Georgoulias wrote:
 
-On Thu, 2004-05-06 at 14:18, Jeff Moyer wrote:
-> Here is the changelog for the latest version.  It includes Ian's latest
-> replicated server patches, my yperror patch, and an init script patch to
-> make option parsing more pedantic.  Available at:
->      http://people.redhat.com/~jmoyer/
+> Chris Croswhite wrote:
+> > I ran this on 40 clients last evening through our normal regression runs
+> > (9 hours, 1.5T of data, 127 mount points) and found that it behaved as
+> > expected.
 > 
-> -Jeff
+> I should clarify, the mount dropping problem I mentioned in my last 
+> message is not specifically related to testing autofs-4.1.2-5 (or any 
+> 4.1.2, I think).  I've got 4.1.1 rolled out and those systems are the 
+> ones dropping mounts, at least at this point in time.  My intention is 
+> to find a autofs release or set of patches that fixes this behavior 
+> sooner rather than later as it is causing problems for my users.
 > 
-> Changelog:
-> * Thu May  6 2004   - 1:4.1.2-6
-> - The lookup_yp module only dealt with YPERR_KEY, all other errors were
->   treated as success.  As a result, if the ypdomain was not bound, the
->   subprocess that starts mounts would SIGSEGV.  This is now fixed.
-> - Option parsing in the init script was not precise enough, sometimes matching
->   filesystem options to one of --ghost, --timeout, --verbose, or --debug.
->   The option-parsing patch addresses this issue by making the regexp's much
->   more precise.
-> - Ian has rolled a third version of the replicated mount fixes.
+> Just for my sanity, can anyone help me confirm the following "facts" 
+> about earlier behavior of the autofs-4.1.0pre10 release:
 > 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
+> 1.  NIS maps were not cached by the automounter daemon
+> 2.  changes made to the maps and pushed out went into effect 
+> immediately, regardless of whether or not the changes were new key/mount 
+> entries to an existing map or just changes to existing key/mount pairs 
+> withing an existing map.
+
+So your machines are not droping mounts. They just don't know about them, 
+right.
+
+Ian
