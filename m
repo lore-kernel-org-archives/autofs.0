@@ -1,15 +1,12 @@
-From: ramana <ramana@intraperson.com>
-Subject: Re: exporting autofs managed directory using NFS
-Date: Fri, 25 Jun 2004 20:02:03 +0530
+From: raven@themaw.net
+Subject: Re: is there an autofs roadmap somewhere?
+Date: Fri, 25 Jun 2004 22:46:03 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <40DC3763.7060501@intraperson.com>
-References: <40DADD60.5090201@intraperson.com>
-	<16603.10543.236802.870131@segfault.boston.redhat.com>
-	<40DB7F5F.5070500@intraperson.com>
+Message-ID: <Pine.LNX.4.58.0406252225430.1375@donald.themaw.net>
+References: <482A3FA0050D21419C269D13989C61130435E309@lavender-fe.eng.netapp.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <40DB7F5F.5070500@intraperson.com>
+In-Reply-To: <482A3FA0050D21419C269D13989C61130435E309@lavender-fe.eng.netapp.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,28 +16,44 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: autofs@linux.kernel.org
-Cc: hpa@zytor.com
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: "Lever, Charles" <Charles.Lever@netapp.com>
+Cc: autofs@linux.kernel.org
 
+On Tue, 22 Jun 2004, Lever, Charles wrote:
 
->>
->
->
-> No. Autodir do mount local directories only on autofs mounted fs.
->
-> In simple terms, exporting this special case autofs mounted dir using 
-> nfs.
->
-> Please check http://www.intraperson.com/autodir.html
->
-I suspect and almost sure that this problem is because of  'The "magic" 
-process group'.
+> new to the game.
+> 
+> I'm wondering what features autofs developers have in mind for the near
+> future.
 
-Any comments?
+Charles. Why did you have to ask "that" question!
 
-Regards
-ramana
+There are quite a few things that people here on the list have asked for, 
+that for one reason or another, are quite difficult to implement. I won't 
+go there now.
 
--- 
-http://www.intraperson.com
+The big issue for me is that, atm autofs does not have expected 
+functionality in two areas. One is the lazy mounting of multi-mount maps 
+and second, direct mounts that behave as expected (there's limited 
+functionality now).
+
+To be honest I've spent a lot of time fixing bugs. When that settles down 
+(soon I hope) I want to re-work the code to sort out the above.
+
+Once autofs has functionality expected of an automounter, a roadmap of 
+additional features would be good to develop.
+
+There's a redevelopment by Mike Waychison and Tim Hocking (of Sun) 
+underway but they haven't delivered any product yet. Perhaps we'll see 
+something in the 2.7 - 2.8 time frame. Their design will take much of the 
+function into the kernel using callback helper utilities.
+
+There's also the 800 mount limit in the sunrpc code for NFS v2 and v3 
+mounts, but you know about that.
+
+But what functionality do you need?
+And what do you think would be useful?
+
+Ian
