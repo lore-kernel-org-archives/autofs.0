@@ -1,8 +1,8 @@
-From: "Bryan O'Sullivan" <bos@serpentine.com>
-Subject: Severe problem with 4.1.2: automount caches NIS maps forever
-Date: Thu, 06 May 2004 10:39:23 -0700
+From: Michael Blandford <mlblandf@sedona.ch.intel.com>
+Subject: Status of >800 mounts
+Date: Thu, 06 May 2004 10:48:44 -0700
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <1083865163.18740.6.camel@serpentine.internal.keyresearch.com>
+Message-ID: <409A7A7C.2000109@sedona.intel.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
@@ -15,18 +15,23 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: autofs mailing list <autofs@linux.kernel.org>
 
-Hi -
+Hello,
 
-The autofs 4.1.2 release has a change in behaviour from earlier releases
-(4.1.0, I think, and 4.0.0 for sure) in that it never checks to see if a
-NIS-based automount map has changed.  This means that if I change the
-location of an autofs-mounted filesystem, I have to SIGHUP the automount
-daemons on every machine that care about that filesystem so that they'll
-forget the contents of the map and reload it.
+What is the current status of having more than 800 nfs mounts ( on 2.4 
+and 2.6 )?
 
-Needless to say, this doesn't scale in even a tiny way :-(
+I had heard there might be a patch to use one port per server instead of 
+per mount. 
 
-	<b
+Thanks,
+
+Michael
+
+
+Disclaimer: The content of this message is my personal opinion only and 
+although I am an employee of Intel, the statements I make here in no way 
+represent Intel's position on the issue, nor am I authorized to speak on 
+behalf of Intel on this matter.
