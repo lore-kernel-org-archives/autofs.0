@@ -1,14 +1,12 @@
-From: "Anne.Bourgeois" <anne.bourgeois@analog.com>
-Subject: Re: Newbie Question
-Date: Thu, 12 Aug 2004 14:44:20 -0400
+From: "Rigler, Steve" <SRigler@MarathonOil.com>
+Subject: RE: Newbie Question
+Date: Thu, 12 Aug 2004 14:10:25 -0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <411BBA84.7030009@analog.com>
-References: <411BAE2F.8040309@analog.com>
-	<16667.46801.458839.821849@segfault.boston.redhat.com>
+Message-ID: <C3CDA0E3AC8B4E438E94F37D0A20FE71012FB32F@HOUEXC210.mgroupnet.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <16667.46801.458839.821849@segfault.boston.redhat.com>
+Content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,9 +16,22 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
+Content-Type: text/plain; charset="us-ascii"
+To: autofs@linux.kernel.org
+
+It looks like the 4.1.3-13 is built against/dependant on OpenLDAP 2.2.
+
+IIRC, RH8 comes with OpenLDAP 2.0.x.
+
+-Steve
+
+-----Original Message-----
+From: autofs-bounces@linux.kernel.org
+[mailto:autofs-bounces@linux.kernel.org] On Behalf Of Anne.Bourgeois
+Sent: Thursday, August 12, 2004 1:44 PM
 To: jmoyer@redhat.com
 Cc: autofs@linux.kernel.org
+Subject: Re: [autofs] Newbie Question
 
 Jeff,
 
@@ -29,12 +40,16 @@ Please see my answers below...
 
 Jeff Moyer wrote:
 
->==> Regarding [autofs] Newbie Question; "Anne.Bourgeois" <anne.bourgeois@analog.com> adds:
+>==> Regarding [autofs] Newbie Question; "Anne.Bourgeois"
+<anne.bourgeois@analog.com> adds:
 >
->anne> I am pretty new to the list, and I have a very basic question.  How
->anne> do I install the kernel patch so that I can install the autofs rpm?
+>anne> I am pretty new to the list, and I have a very basic question.
+How
+>anne> do I install the kernel patch so that I can install the autofs
+rpm?
 >
->What distribution are you running?  Do you want to patch a kernel from that
+>What distribution are you running?  Do you want to patch a kernel from
+that
 >distribution (recommended), or run a vanilla kernel from kernel.org?
 >
 >  
@@ -42,30 +57,37 @@ Jeff Moyer wrote:
 We are currently running RedHat 8.0 with the 2.4.20.20-8smp kernel.  We 
 are looking to go to Enterprise 3 in the near future, but are dependent 
 on some software vendors, so we are holding back at the moment.  We are 
-seeing several autofs issues, which is the reason that I am trying these 
+seeing several autofs issues, which is the reason that I am trying these
+
 updates.
 
->anne> When I tried to just install the new autofs rpm, I got a dependency
+>anne> When I tried to just install the new autofs rpm, I got a
+dependency
 >anne> error:
 >
 >anne>         liblber-2.2.so.7 is needed by autofs-4.1.3-13
 >anne> libldap-2.2.so.7 is needed by autofs-4.1.3-13
 >
->If you're running Fedora, I'd suggest upgrading your current system with
+>If you're running Fedora, I'd suggest upgrading your current system
+with
 >yum.
 >
 >  
 >
 I'd prefer not to change the basic system that I'm running, as I have 
-several users on the current system.  Running on a large network, we see 
+several users on the current system.  Running on a large network, we see
+
 the automount map caching as a big problem right now.  I am hoping to 
-find a way to fix it without too much upgrading, re-kicking of machines, 
+find a way to fix it without too much upgrading, re-kicking of machines,
+
 etc.
 
->anne> I already have autofs-4.1.3-9 installed and didn't see any dependency
+>anne> I already have autofs-4.1.3-9 installed and didn't see any
+dependency
 >anne> errors when I installed that.
 >
->Well, there should be no added dependency requirements.  You _could_ try
+>Well, there should be no added dependency requirements.  You _could_
+try
 >doing an rpm -i --force of the autofs package.
 >  
 >
@@ -85,7 +107,8 @@ Preparing...                ###########################################
 
 Finally worked when I used the "--nodeps" flag.  Is this OK, though?
 
->anne> Is there information somewhere that I can go find about installing
+>anne> Is there information somewhere that I can go find about
+installing
 >anne> the kernel patch?
 >
 >Certainly, but let's figure out which kernel you want to build, first.
@@ -95,3 +118,8 @@ Finally worked when I used the "--nodeps" flag.  Is this OK, though?
 >
 >  
 >
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
