@@ -1,15 +1,16 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: autofs-4.1.2-6 test rpms available
-Date: Fri, 7 May 2004 13:57:16 -0400
+From: Michael Blandford <mlblandf@sedona.ch.intel.com>
+Subject: Re: Severe problem with 4.1.2: automount caches NIS maps
+ forever
+Date: Fri, 07 May 2004 11:45:44 -0700
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <16539.52732.173643.109020@segfault.boston.redhat.com>
-References: <16538.43940.58650.642984@segfault.boston.redhat.com>
-	<1083952048.18740.75.camel@serpentine.internal.keyresearch.com>
-Reply-To: jmoyer@redhat.com
+Message-ID: <409BD958.2080202@sedona.intel.com>
+References: <1083865163.18740.6.camel@serpentine.internal.keyresearch.com>
+	<Pine.LNX.4.58.0405070956590.6274@wombat.indigo.net.au>
+	<Pine.LNX.4.53.0405062024330.6910@xena.cft.ca.us>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1083952048.18740.75.camel@serpentine.internal.keyresearch.com>
+In-Reply-To: <Pine.LNX.4.53.0405062024330.6910@xena.cft.ca.us>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,29 +20,81 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: Bryan O'Sullivan <bos@serpentine.com>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: Jim Carter <jimc@math.ucla.edu>
+Cc: autofs@linux.kernel.org, Ian Kent <raven@themaw.net>
 
-==> Regarding Re: [autofs] autofs-4.1.2-6 test rpms available; "Bryan O'Sullivan" <bos@serpentine.com> adds:
+Jim Carter wrote:
 
-bos> On Thu, 2004-05-06 at 14:18, Jeff Moyer wrote:
->> Here is the changelog for the latest version.
+>On Fri, 7 May 2004, Ian Kent wrote:
+>  
+>
+>>This changed in 4.1.0 because, to do browsable directoties the entire map
+>>must be known in advance...
+>>
+>>So guys, the options here are:
+>>
+>>1) leave as is and use HUP signal to refresh maps.
+>>
+I don't think this solution can work.  It puts to much burden on the 
+clients.  It would be impossible to get consistency across a large 
+number of clients.
 
-bos> Jeff, I suggest that if you have time, you take a look to see if your
-bos> 4.1.0 RPMs have the "never notice updates to NIS maps" problem that is
-bos> in 4.1.2.  It's not entirely a showstopper, but it's a huge headache.
+>>2) reintroduce the "discover at mount time" behaviour (possibly
+>>   with a periodic resync).
+>>
+Does this mean verify the map entry once again at the time of mount?  If 
+so, that seems like it might work.
 
-I'm not quite sure what you're asking, here.  FC2t3 will have
-autofs-4.1.2-2.  I'm going to push either 4.1.2-6+ or 4.1.3-x into the next
-FC release.  I certainly won't support people running 4.1.0, as it has a
-few bugs that users often trip over.
+>>3) add a periodic map refresh whose frequency is perhaps configurable.
+>>    
+>>
+I think a periodic map refresh +  verify the map entry at mount time 
+could resolve the issue.
 
-Having said that, the 4.1.2 rpms I've released (both for testing and for
-inclusion in FC) have the bug to which you refer.
+map refreshes could be done on a random schedule within a time.  That 
+would keep the load down on the map servers.
 
-I'll work with Ian and the list as best I can to get this resolved.
+The random map refresh could keep the ghosting data fairly valid while 
+mounts would be 100% consistent.
 
-Thanks!
+>Another idea: if the map row is in the cache AND the mount succeeds,
+>fine, leave it in the cache.  If either one fails, the problem
+>might be with the map -- we've cached a row that was removed (and so was
+>its server), or we've failed to cache a newly added row.  So flush the
+>cache (for that map) and enumerate the map again.  But if a second mount
+>attempt fails, believe in the failure.  I think it likely that you can
+>get away with reading (or trying and failing to read) just that one row,
+>with random access data sources.
+>  
+>
+What happens if you change the mount point but the old remains?  autofs 
+wouldn't notice the change in your scenario and we would get the wrong 
+behaviour.
 
-Jeff
+It seems like we need to verify the cached entry at every mount.
+
+>The only fly in the ointment is, if the mount options change, you won't
+>know.  I'd say, include a time to live (with a configurable timeout), so
+>if a row is needed that hasn't been read authoritatively in (let's say) one
+>hour, you should re-read just that one row, for random-access data sources
+>
+I just don't think that works well enough.  If a map changes, autofs 
+needs to notice.  Waiting an hour or even 5 minutes isn't the right 
+solution. 
+
+>The current HUP behavior needs to be retained if the sysop wants to update
+>an entire map immediately, but as one of the writers said, HUP is not very
+>scalable.  I have an automated script for doing this kind of thing, but if
+>there were 1000 machines it would still be a burden.
+>  
+>
+Think of even larger deployments.  HUP'ing isnt a just a burden, it is 
+impractical.
+
+Michael
+
+Disclaimer: The content of this message is my personal opinion only and 
+although I am an employee of Intel, the statements I make here in no way 
+represent Intel's position on the issue, nor am I authorized to speak on 
+behalf of Intel on this matter.
