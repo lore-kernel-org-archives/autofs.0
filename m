@@ -1,89 +1,153 @@
-From: Jim Carter <jimc@math.ucla.edu>
-Subject: Re: Re: autofs map updates not working properly for
-	multi-mounts
-Date: Thu, 17 Feb 2005 14:12:05 -0800 (PST)
-Message-ID: <Pine.LNX.4.61.0502171331200.19710@simba.math.ucla.edu>
-References: <16905.15217.105499.777724@segfault.boston.redhat.com>
-	<Pine.LNX.4.61.0502092116510.2140@donald.themaw.net>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: NFS readonly failover and linux?
+Date: Fri, 18 Feb 2005 12:09:17 +0800 (WST)
+Message-ID: <Pine.LNX.4.58.0502181207490.20922@wombat.indigo.net.au>
+References: <1106871309.6181.254.camel@seki.nac.uci.edu> 
+ <Pine.LNX.4.61.0501291127450.1607@donald.themaw.net> 
+ <1107205302.4071.17.camel@seki.nac.uci.edu>  <Pine.LNX.4.58.0502010945400.25875@wombat.indigo.net.au>
+  <16895.57760.531261.8465@segfault.boston.redhat.com>
+ <1108677567.5897.55.camel@seki.nac.uci.edu>
 Mime-Version: 1.0
-In-Reply-To: <Pine.LNX.4.61.0502092116510.2140@donald.themaw.net>
+In-Reply-To: <1108677567.5897.55.camel@seki.nac.uci.edu>
+Sender: nfs-admin@lists.sourceforge.net
+Errors-To: nfs-admin@lists.sourceforge.net
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
+	<mailto:nfs-request@lists.sourceforge.net?subject=unsubscribe>
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
+List-Post: <mailto:nfs@lists.sourceforge.net>
+List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
+	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: raven@themaw.net
-Cc: autofs mailing list <autofs@linux.kernel.org>
+To: Dan Stromberg <strombrg@dcs.nac.uci.edu>
+Cc: jmoyer@redhat.com, autofs mailing list <autofs@linux.kernel.org>, nfs@lists.sourceforge.net
 
-Maybe I shouldn't be doing the "talk without patching" thing, but I'm not 
-exactly at guru level with the autofs code, so...
+On Thu, 17 Feb 2005, Dan Stromberg wrote:
 
-On Wed, 9 Feb 2005 raven@themaw.net wrote:
-
-> Multi-mount map entries must be treated as a single unit.
-> This is so because nested mounts are allowed within them.
-> Consider
+> On Tue, 2005-02-01 at 15:08 -0500, Jeff Moyer wrote:
+> > ==> Regarding Re: [NFS] NFS readonly failover and linux?; Ian Kent <raven@themaw.net> adds:
+> > 
+> > raven> On Mon, 31 Jan 2005, Dan Stromberg wrote:
+> > >> On Sat, 2005-01-29 at 11:46 +0800, raven@themaw.net wrote: > On Thu, 27
+> > >> Jan 2005, Dan Stromberg wrote:
+> > >> > 
+> > >> > >
+> > >> > > The autofs man pages on Redhat Enterprise Linux 3 as well as Fedora
+> > >> Core > > 3 both say that autofs supports replicated, readonly fileserver
+> > >> failover > > - but then there's a footnote of sorts that says autofs
+> > >> only supports it > > to the extent that mount does.
+> > >> > 
+> > >> > That part of the man page is old and slightly out of date.
+> > >> > 
+> > >> > The reason that this is left there is that autofs cannot support >
+> > >> dynamic failover as it just uses mount. However, a different host may be
+> > >> > selected at mount, after a previous timeout, for example. The issue of
+> > >> > umounting existing mounts from servers that have gone away is not >
+> > >> explicitly dealt with yet.
+> > >> 
+> > >> I see.
+> > >> 
+> > >> > >
+> > >> > > Upon trying to do such a mount, I get:
+> > >> > >
+> > >> > > seki-root> mount > >
+> > >> dcslib1.nacs.uci.edu,dcslib4.nacs.uci.edu:/dcspdb/rhel-3-i686 /mnt/nfs >
+> > >> > mount: warning: multiple hostnames not supported > > Thu Jan 27
+> > >> 16:12:18
+> > >> 
+> > >> > What version of autofs are you using?  > The autofs replicated server
+> > >> code is still relatively new.
+> > 
+> > raven> But, as we know, mount doesn't know about multiple host
+> > raven> names. autofs breaks these out.
+> > 
+> > So what is the actual problem, here?  Are you using the automounter?  What
+> > do your config files look like?
+> > 
+> > >> FC3: autofs-4.1.3-28 RHEL3: autofs-4.1.3-47
+> > 
+> > raven> I believe that the replicated server code should be present in both
+> > raven> of these.
+> > 
+> > raven> Can you confirm please Jeff?
+> > 
+> > raven> Perhaps you are seeing a bug which needs to be addressed.
+> > 
+> > Yes, the replicated server code is present in both of these versions.
+> > 
+> > >> The FC3 is yum update'd fairly regulary, and the RHEL3 is up2date'd
+> > >> regularly as well.
+> > >> 
+> > >> > If your autofs supports replicated server map entries then multiple >
+> > >> host mount requests will not reach the mount command.
+> > >> 
+> > >> Interesting.
+> > >> 
+> > >> > If you are using a RedHat based distro then check >
+> > >> http://people.redhat.com/jmoyer > for the latest patched versions
+> > >> > 
+> > >> > Also, you may need a kernel patch depending on your kernel
+> > >> version. See > README.patches in the distribution or join the autofs
+> > >> list at > http://linux.kernel.org/mailman/listinfo/autofs
+> > >> 
+> > >> I'm certain my management will only go for this, in the short term, if
+> > >> it works on a mainstream RHEL3 system.  Unfortunately, for me, the rest
+> > >> is academic interest.
+> > 
+> > raven> Once again I believe that the kernels mentioned here are up to date
+> > raven> wrt autofs.
+> > 
+> > raven> Certainly, the latest FC3 kernel is at 2.6.10 which has all the
+> > raven> autofs4 updates included in the base kernel.
+> > 
+> > raven> I believe the latest update to RHEL3 is also up to date. Jeff?
+> > 
+> > Yes, both kernels have the necessary patches to support replicated server.
+> > 
+> > raven> So perhaps you could send a log trace with the "--debug" option
+> > raven> added to the master map entry.
+> > 
+> > And please include the contents of your maps!
+> > 
+> > -Jeff
 > 
-> foo	-rw \
-> /one/a	server:/one/a \
-> /one/b	server:/one/b \
-> /one/b/c server:/one/b/c
+
+Short answer is no.
+
+> Here are the maps we use on Solaris 9.  Should they work the same way on
+> RHEL 3?
 > 
-> If this isn't handled as a single unit then it's possible for /one/b/c to be
-> mounted before /one/b. This could happen due to a map update, for example.
+> autoinst-strombrg> cat /etc/auto_dcslib
+> /dcs -ro
+  ^^^^
+Single level direct mount entries don't yet work.
 
-I've always wondered about that.  To mount on /net/foo/one/b/c, don't we 
-have to readdir /net/foo/one/b first, find the inode of mount point c, and 
-stat it?  That would (should :-) trigger an attempt by the module to have 
-/net/foo/one/b mounted.  
-
-Or is it a single thread issue, so the daemon can't begin mounting 
-/net/foo/one/b until it's finished mounting /net/foo/one/b/c (which it 
-can't do until after /net/foo/one/b is mounted)?
-
-> So, just as with individual mount entries, it can't be updated until it's
-> umounted and mounted again.
-
-I think you're saying that if the new map says to mount /net/foo/one/b/c on 
-a different mount point (or to obtain it from a different place), the 
-daemon will remember the new map but (obviously) can't make it happen until 
-the old mount times out.  If ever.  Using the "multiple uni-mounts" model 
-described below, actually there should be no problem obeying new map 
-content for directories that aren't mounted; it's just not possible to get 
-rid of old content immediately.
-
-> So the key in the example below that is sent to the daemon is "foo/dir/aaa"
-> when in fact the key for the map entry is "foo".
+> dcslib1.nacs.uci.edu,dcslib2.nacs.uci.edu,dcslib3.nacs.uci.edu:/dcspdb/sun4-5
+> /dcslib -ro
+> dcslib1.nacs.uci.edu,dcslib2.nacs.uci.edu,dcslib3.nacs.uci.edu:/dcspda
 > 
-> Consequently it's not found in the map.
-
-Hmm.  It sounds like the map lookup algorithm needs to have foo/dir/aaa 
-available as a key and not just the first word of the map row, "foo".  In
-other words, multiple keys point to one map row.  
-
-Alternatively, you might think of transforming the multi-mount into a set 
-of uni-mounts.  The example above would turn into:
-
-foo		mkdir but don't mount anything
-foo/one		mkdir but don't mount anything
-foo/one/a	-rw	server:/one/a
-foo/one/b	-rw	server:/one/b
-foo/one/b/c	-rw	server:/one/b/c
-
-Not that you would accept this syntax from a map file, but the term on the
-left is just what the module would send up, and the term on the right is
-what the daemon needs to do when it sees that key.
-
-Does any of this make any sense?
+> autoinst-strombrg> cat /etc/auto_master
+> # Master map for automounter
+> #
+> +auto.master
+> /net            -hosts          -nosuid,nobrowse
+> #/home          auto_home       -nobrowse
+> /xfn            -xfn
+> /-             auto_direct
+                 ^^^^^^^^^^^ Don't you mean auto_dcslib?
+> 
+> 
+> 
 
 
-James F. Carter          Voice 310 825 2897    FAX 310 206 6673
-UCLA-Mathnet;  6115 MSA; 405 Hilgard Ave.; Los Angeles, CA, USA  90095-1555
-Email: jimc@math.ucla.edu    http://www.math.ucla.edu/~jimc (q.v. for PGP key)
+
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+_______________________________________________
+NFS maillist  -  NFS@lists.sourceforge.net
+https://lists.sourceforge.net/lists/listinfo/nfs
