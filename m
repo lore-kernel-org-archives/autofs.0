@@ -1,11 +1,14 @@
-From: ramana <ramana@intraperson.com>
-Subject: exporting autofs managed directory using NFS
-Date: Thu, 24 Jun 2004 19:25:44 +0530
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: multiple hostnames in automounter table
+Date: Thu, 24 Jun 2004 15:08:17 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <40DADD60.5090201@intraperson.com>
+Message-ID: <16603.9889.781697.120575@segfault.boston.redhat.com>
+References: <40D9DAF6.1010403@ti.com>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <40D9DAF6.1010403@ti.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -15,17 +18,35 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: autofs@linux.kernel.org, hpa@zytor.com
+Content-Type: text/plain; charset="us-ascii"
+To: Al Alder <aalder@ti.com>
+Cc: autofs@linux.kernel.org
+
+==> Regarding [autofs] multiple hostnames in automounter table; Al Alder <aalder@ti.com> adds:
+
+aalder> Are there any plans for the automounter to be able to handle
+aalder> multiple hostnames in the automount table for Linux?  With Mandrake
+aalder> 10.0 the automount daemon will not mount an entry that has multiple
+aalder> hostnames.  On Red Hat Enterprise 3.0, it gives a warning, but will
+aalder> mount using the first hostname, is this functionality a RedHat
+aalder> thing that hasn't been shared with the rest of the community or is
+aalder> Mandrake 10.0 just using a different/older version?  Is there
+aalder> anyway around this problem, or to get Mandrake automount to mount
+aalder> the first hostname?
+
+aalder> Your help is appreciated.
+
+RHEL 3 uses a heavily patched autofs-3.1.7.  Most of the changes made by
+Red Hat have been incorporated in autofs-4.x.y by Ian.  I try to involve
+Ian and the list in all of the changes I make to the automounter.  The only
+times I don't are when I get rediculous user requests that I am obligated
+to fulfill.
+
+Having said that, I'm guessing what you want is replicated server
+functionality?  I would suggest starting with the README.replicated-server
+file in the autofs 4 userspace package.  Hopefully it does what you need it
+to do.
 
 
-We are facing problems where /home is managed by autofs ( in Autodir ) 
-but this directory is to to be exported using NFS.
-
-Exactly reverse of what autofs supposed to do  -- lol
-
-When tried to mount nfs exported home some where else, Persmission 
-denied error is reported by nfs server.
-
--- 
-http://www.intraperson.com
+Regards,
+Jeff
