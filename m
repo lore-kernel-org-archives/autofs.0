@@ -1,15 +1,12 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [RFC] rpc_ping and looong timeouts
-Date: Fri, 4 Jun 2004 15:06:45 -0400
+From: "Crawford, Philip I." <philip.crawford@unocal.com>
+Subject: RE: autofs-4.1.3 rpms available
+Date: Fri, 4 Jun 2004 14:43:08 -0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <16576.51269.311121.121046@segfault.boston.redhat.com>
-References: <16575.35426.918728.134817@segfault.boston.redhat.com>
-	<Pine.LNX.4.58.0406040909310.8991@wombat.indigo.net.au>
-Reply-To: jmoyer@redhat.com
+Message-ID: <6AB920CC10586340BE1674976E0A991D01755BC8@slexch2.sugarland.unocal.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0406040909310.8991@wombat.indigo.net.au>
+content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,39 +17,39 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+To: jmoyer@redhat.com, autofs@linux.kernel.org
 
-==> Regarding Re: [autofs] [RFC] rpc_ping and looong timeouts; Ian Kent <raven@themaw.net> adds:
+Hi Jeff / List:
 
-raven> On Thu, 3 Jun 2004, Jeff Moyer wrote:
->> Hello, Ian, list,
->> 
->> You may recall my asking for the rpc_ping function to take TCP only
->> servers into account.  Well, be careful what you ask for!  Now, if a
->> server is down in a replicated server configuration, it takes quite a
->> while to timeout due to the TCP connect.  The mount will eventually
->> succeed, but I've seen this take up to 10 minutes.
+With regards to your RHEL3 version of the RPM - doesn't the kernel need
+to be patched first?   We have been unable to get ghosting work just
+using the RPM.  If there are patches needed where can I get these?  The
+ones Ian released last week aren't for RHEL and won't patch cleanly. 
 
-raven> I'm not sure that I see that same behaviour in my test environment.
+Thanks
+Phil.  
 
-raven> I'll check and get back.  It's probably best if we understand this a
-raven> little better before jumping in.
+  
+-----Original Message-----
+From: autofs-bounces@linux.kernel.org
+[mailto:autofs-bounces@linux.kernel.org] On Behalf Of Jeff Moyer
+Sent: Wednesday, June 02, 2004 9:22 AM
+To: autofs@linux.kernel.org
+Subject: [autofs] autofs-4.1.3 rpms available
 
-I've strace'd the automount process, and a lot of time is spent in the
-clnt_create, for both UDP and the TCP.  I implemented a non-blocking
-connect, and it took my ls time down from 8m21s to 2m4s.  I'm still looking
-into why the UDP stuff isn't timing out sooner.
 
->> Perhaps we should first test to see if a host is reachable at all before
->> we begin our rpc pings?
+Hello,
 
-raven> Sigh!
+Sorry for the long delay.  I've updated my people page with Ian's latest
+release.  Ian, this also includes your inifinite loop fix.  As usual,
+I've built RPMs for fc1, fc2, and rhel3.
 
-raven> Will the fall out from the replicated server implementation it never
-raven> end.
+	  http://people.redhat.com/jmoyer/
 
-Despair not!  I'm sure we're on the home stretch, here!  ;)  I'll post a
-patch for review when it's baked.
+Happy Hacking,
 
--Jeff
+Jeff
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org http://linux.kernel.org/mailman/listinfo/autofs
