@@ -1,13 +1,14 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs4 patches for 2.6 kernel
-Date: Sat, 10 Apr 2004 21:14:40 +0800 (WST)
+Subject: Re: "Busy inodes after unmount. Self destruct in 5
+	seconds..."
+Date: Sat, 10 Apr 2004 21:23:53 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0404102113300.5094@raven.themaw.net>
-References: <Pine.LNX.4.58.0404071952170.4948@raven.themaw.net>
- <20040409204604.GB4007@foudroyante.lifl.fr>
+Message-ID: <Pine.LNX.4.58.0404102119320.5172@raven.themaw.net>
+References: <OF602ECAC6.8CFD3CF1-ON85256E71.004B70E0-04256E71.004E8C14@us.ibm.com>
+	<Pine.LNX.4.58.0404102054510.5094@raven.themaw.net>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20040409204604.GB4007@foudroyante.lifl.fr>
+In-Reply-To: <Pine.LNX.4.58.0404102054510.5094@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,30 +20,25 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Julien.Soula@lifl.fr
-Cc: autofs mailing list <autofs@linux.kernel.org>
+To: Raymond Prach <rprach@us.ibm.com>
+Cc: autofs@linux.kernel.org
 
-On Fri, 9 Apr 2004 Julien.Soula@lifl.fr wrote:
+On Sat, 10 Apr 2004, Ian Kent wrote:
 
-> On Wed, Apr 07, 2004 at 08:04:18PM +0800, Ian Kent wrote:
-> > 
-> > Hi all,
-> > 
-> > Some progress on getting the autofs4 patches into the kernel tree.
-> > 
-> > Could anyone that is able to test within a 2.6 envronment please test this 
-> > as much as possible and feed back the results.
-> > 
-> > There are bound to be problems so it would be good to be pro-active.
 > 
-> It's not really related to kernel side but it seems that the variables
-> on command line (-Dtoto=tata) are not passed throught submount, at
-> least for direct mount.
+> Good question.
 > 
-> I test it with automount version 4.1.2
+> I merged a patch in 4.1.1 that provided replicated server type behaviour.
+> The point bieng that it needs to deal with host specs like 
+> host1(10),host2(5),host3 and so on. The point of it is to select the best 
+> available host to mount from. To do this we have an rpc_ping function. It 
+> is set to time out fairly quickly. All the mount requests pass through 
+> this code and if none (one in this case) is not available it return a fail 
+> and doesn't attempt the mount.
+> 
 
-You are correct.
-
-I have a contributed patch for that and hope to get to it soon.
+Indeed, to my knowledge (anyone got more info), this has only been tested 
+against Linux servers so it's entirely possible that the rpc_ping needs 
+more work to function against other OS servers.
 
 Ian
