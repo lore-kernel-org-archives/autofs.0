@@ -1,12 +1,12 @@
 From: raven@themaw.net
-Subject: Re: Repeated Meessages
-Date: Sat, 24 Jan 2004 12:25:24 +0800 (WST)
+Subject: Re: Program map and submount problem
+Date: Sat, 24 Jan 2004 11:48:58 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0401241224060.1784@raven.themaw.net>
-References: <Pine.LNX.3.96.1040123200909.13421A-100000@Maggie.Linux-Consulting.com>
+Message-ID: <Pine.LNX.4.58.0401241139160.1751@raven.themaw.net>
+References: <F573AEE6-4DE9-11D8-9249-000A95A011F0@qualcomm.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.3.96.1040123200909.13421A-100000@Maggie.Linux-Consulting.com>
+In-Reply-To: <F573AEE6-4DE9-11D8-9249-000A95A011F0@qualcomm.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,23 +18,89 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Alvin Oga <alvin@Mail.Linux-Consulting.com>
+To: Mike Marion <mmarion@qualcomm.com>
 Cc: autofs@linux.kernel.org
 
-On Fri, 23 Jan 2004, Alvin Oga wrote:
+On Fri, 23 Jan 2004, Mike Marion wrote:
 
 > 
-> hi ya ian/raven
+> Ok, I did a strace of the dameons on
+> /usr/local/projects/some/automount and ./submount
+> It appears that the daemon on .../submount does, in fact, try to umount 
+> itself after the NFS mounts are expired, without checking to see if 
+> it's path is busy, and when the umount fails, it simply tries to do an 
+> rmdir and then exits, even though this bit of code in automount.c seems 
+> to indicate that if umount fails it should stay runnnig:
 > 
-> On Sat, 24 Jan 2004 raven@themaw.net wrote:
+> ~line 562:
+>                         case ST_PRUNE:
+>                                  /* If we're a submount and we've just
+>                                     pruned or expired everything away,
+>                                     try to shut down */
+>                                  if (submount && success && ap.state != 
+> ST_SHUTDOWN) {
+>                                          next = ST_SHUTDOWN_PENDING;
+>                                          break;
+>                                  }
+>                                  /* FALLTHROUGH */
 > 
-> > Must be that RedHat install I was using last night.
+>                          case ST_READY:
+>                                  next = ST_READY;
+>                                  break;
 > 
-> i think qmail on your rh install is broken ??
-> 	- did you patch it ???
+>                          case ST_SHUTDOWN_PENDING:
+>                                  next = ST_SHUTDOWN;
+> 
+> [This doesn't appear to be happening, even though umount fails]
+>                            /* Failed shutdown returns to ready */
+>                                  if (!success) {
+>                                          syslog(LOG_WARNING,
+>                                                 "shutdown failed: 
+> filesystem %s still busy",
+>                                                 ap.path);
+>                                          alarm(ap.exp_runfreq);
+>                                          next = ST_READY;
+>                                  }
+>                                  break;
 
-That's the ISP.
+Good work Mike. This will help me alot. However I don't think the daemon 
+actually gets to this point. Checking ....
 
-I can still see the same message coming through. I'll call them.
+
+> 
+> ====
+> 
+> This subroutine appears to be called, even though the submount wasn't 
+> umounted, since it's where the log entry
+> Jan 23 12:46:22 linux-glab-1 automount[31939]: failed to remove dir 
+> /usr/local/projects/some/automount/submount: Device or resource busy
+> seems to be coming from:
+> 
+> static void cleanup_exit(const char *path, int exit_code)
+> {
+>          if (ap.lookup)
+>                  close_lookup(ap.lookup);
+> 
+>          if (pid_file)
+>                  unlink(pid_file);
+> 
+>          closelog();
+> 
+>          if ((!ap.ghost || !submount) && *(path + 1) != '-')
+>                  if (rmdir(path) == -1)
+>                          syslog(LOG_WARNING, "failed to remove dir %s: 
+> %m", path);
+> 
+>          exit(exit_code);
+> }
+
+Called when the daemon pops out of the event loop.
+
+Can be caused by umount failure. I saw something like this the other day 
+and I've been meaning to return to it to try and find it.
+
+Jim Carter would like this. I caused it by an incorect return from buffer 
+overflow checking code. I think this problem is hitting the same bad error 
+handling code. Looking ...
 
 Ian
