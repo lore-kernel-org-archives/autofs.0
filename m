@@ -1,11 +1,11 @@
-From: Richard Zidlicky <rz@linux-m68k.org>
-Subject: [patch] ext2 (auto)fsck
-Date: Sun, 21 Dec 2003 23:54:58 +0100
+From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: Mailing list fixed
+Date: Mon, 29 Dec 2003 12:11:02 -0800
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <20031221225457.GA14777@linux-m68k.org>
+Message-ID: <3FF08A56.2090704@zytor.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -15,27 +15,15 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: autofs <autofs@kernel.org>
 
-Hi,
+Sorry... it appears this mailing list has been out of commission over 
+the holidays due to a misconfiguration involving the spam filtering system.
 
-I came across this, doesnt look like the intended behaviour:
+It should be working again now; please re-send any messages that didn't 
+make it.
 
---- autofs-3.1.7/modules/mount_ext2.c.rz	Sun Dec 21 23:33:44 2003
-+++ autofs-3.1.7/modules/mount_ext2.c	Sun Dec 21 23:34:51 2003
-@@ -58,7 +58,7 @@
- 
-   syslog(LOG_DEBUG, MODPREFIX "calling fsck.ext2 -p %s", what);
-   err = spawnl(LOG_DEBUG, PATH_E2FSCK, PATH_E2FSCK, "-p", what, NULL);
--  if ( err & ~7 ) {
-+  if ( err & 7 ) {
-     syslog(LOG_ERR, MODPREFIX "%s: filesystem needs repair, won't mount",
- 	   what);
-     return 1;
+Sorry about that,
 
-Actually it may be better to simply err out on any fsck error
-and not try to interpret e2fsck error codes?
-
-Richard
+	-hpa
