@@ -1,11 +1,9 @@
-From: Chris Feist <cfeist@redhat.com>
+From: Jim Carter <jimc@math.ucla.edu>
 Subject: Re: autofs not mounting from nis maps
-Date: Wed, 16 Mar 2005 16:38:51 -0600
-Message-ID: <4238B57B.6000409@redhat.com>
+Date: Wed, 16 Mar 2005 15:31:21 -0800 (PST)
+Message-ID: <Pine.LNX.4.61.0503161515040.7630@xena.cft.ca.us>
 References: <1111004718.6120.16.camel@studio.bibu>
-Reply-To: cfeist@redhat.com
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 In-Reply-To: <1111004718.6120.16.camel@studio.bibu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -17,50 +15,49 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: David <spoel@xray.bmc.uu.se>
 Cc: autofs@linux.kernel.org
 
-What version of autofs are you using on the Fedora clients?  rpm -q autofs
-
-Also, what appears in /var/log/messages when the mounts fail?
-
-Thanks,
-Chris
-
-David wrote:
-> Hi
-> 
-> I have a NIS server that broadcasts an auto.XXX files as such:
-> 
+On Wed, 16 Mar 2005, David wrote:
 > [root@appel2 proc]# ypcat -k auto.master
 > /home  auto.home
-> /usr/local  auto.local
-> /pub auto.pub
-> 
+--- snip ---
 > [root@appel2 proc]# ypcat -k auto.home | head -8
 > magnusa  hirst:/homes/hirst/dsk1/&
-> hattne   hirst:/homes/hirst/dsk2/&
-> maria  hirst:/homes/hirst/dsk2/&
-> diane  hirst:/homes/hirst/dsk2/&
-> alina dqs1:/user13/&
-> guestji hirst:/homes/hirst/dsk2/&
-> hanna hirst:/homes/hirst/dsk2/&
-> gunilla  bacon:/Users/&
-> 
-> ...
-> 
-> On the client side roughly half of the directories are actually mounted
-> when I cd into them, the other half give:
-> [root@appel2 proc]# cd /home/magnusa
-> -bash: cd: /home/magnusa: No such file or directory
-> 
-> Without NIS everything works fine. However I have a few tens of
-> workstations so it's quite tedious to update all machines with new files
-> and restart autofs whenever something changes.
-> 
-> Am I doing something terribly wrong? Any other tips?
-> 
-> We are running debian on the servers and different Fedora's on the
-> clients.
-> 
+
+We do almost exactly the same thing, except our auto.home map includes the
+full path name, i.e.
+	prob-mp sonia:/h1/guest/prob-mp
+rather than using the &.  But I'm sure this is not your problem.  I 
+explicitly specify the map type in /etc/auto.master, i.e. 
+	/home           yp:auto.home
+but again, I doubt that has anything to do with your problem.
+
+We're using autofs-4.1.3; what version are you using?  
+
+Since automounting works perfectly if it's a file map, I'm inclined to 
+blame YP and not look at either NFS mounting or autofs.  (Do log files 
+suggest that I'm wrong here?)
+
+Is it always the same users whose homedirs fail to mount?  Or will Mangusa 
+mount one day and not the next?  Do all the workstations behave equally?  I 
+assume both servers have some failing users.  Does the failure rate vary 
+with the time of day or with obvious system activities like backups?  I 
+know that our YP wierds out at 2 AM when the backups kick off, because the 
+network is overloaded.
+
+YP relies on UDP.  If there were network problems that ate YP packets 
+intermittently, it would explain the problem.  If a workstation pings the 
+YP server host (at a time of day when automount failures are seen), what's 
+the packet loss rate?  Is there any other reason to suspect flakiness in 
+the YP server and/or client?  Suppose you do "ypmatch $user auto.home", 
+iterating over and over through all your users, do you see any failures?
+(We don't, except during backups.)
+
+Good luck; I hope this helps.
+
+James F. Carter          Voice 310 825 2897    FAX 310 206 6673
+UCLA-Mathnet;  6115 MSA; 405 Hilgard Ave.; Los Angeles, CA, USA 90095-1555
+Email: jimc@math.ucla.edu  http://www.math.ucla.edu/~jimc (q.v. for PGP key)
