@@ -1,23 +1,14 @@
-From: Tom Georgoulias <tom.georgoulias@freescale.com>
-Subject: Re: mount point created if automount map is empty during
- daemon startup?
-Date: Tue, 04 May 2004 15:41:20 -0500
+From: Mike Waychison <Michael.Waychison@Sun.COM>
+Subject: Re: An offer to host autofs.org
+Date: Tue, 04 May 2004 17:16:21 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <4097FFF0.5020206@freescale.com>
-References: <20040504010928.GL14889@sun.com>
-	<Pine.LNX.3.96.1040503181623.4110A-100000@Maggie.Linux-Consulting.com>
-	<Pine.LNX.4.58.0405032046130.3257@donald.themaw.net>
-	<20040503175506.GA14889@sun.com> <20040504003214.GA31852@neu.nirvana>
-	<Pine.LNX.4.58.0405040904450.24480@wombat.indigo.net.au>
-	<20040504122536.GK5041@neu.nirvana> <4097AABF.5050709@freescale.com>
-	<16535.45364.767370.38110@segfault.boston.redhat.com>
-	<Pine.LNX.4.58.0405042317540.17014@donald.themaw.net>
-	<4097B8CF.9050104@freescale.com>
-	<Pine.LNX.4.58.0405042354490.17014@donald.themaw.net>
+Message-ID: <40980825.7000201@sun.com>
+References: <Pine.LNX.4.58.0405032046130.3257@donald.themaw.net>
+ <4097DB47.2050603@zytor.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0405042354490.17014@donald.themaw.net>
+In-reply-to: <4097DB47.2050603@zytor.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -27,67 +18,46 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: raven@themaw.net
-Cc: autofs mailing list <autofs@linux.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: autofs mailing list <autofs@linux.kernel.org>, raven@themaw.net
 
-raven@themaw.net wrote:
-> On Tue, 4 May 2004, Tom Georgoulias wrote:
-> 
-> 
->>raven@themaw.net wrote:
->>
->>
->>>Saw that patch. Was a bit curious about it. Didn't add it.
->>
->>And it sounds like I ought to remove it, too.  :)
->>
->>Judging by your test results on an empty map, an upgrade to 4.1.2 is in 
->>order.  Thanks for checking in to that, I appreciate it. I'll start 
->>working on getting out a new build of autofs to my systems.  4.1.3 is 
->>just around the corner, right?
->>
-> 
-> 
-> Yes.
-> 
-> Yet another bug fix release.
-> 
-> Not much in it.
-> 
-> CHANGELOG so far:
-> 
-> xx/xx/2004 autofs-4.1.3
-> -----------------------
-> - fixed bug processing --verbose option in init scripts.
-> - added missing parameter in call to run fsck on ext2 module (from Jeff 
-> Moyer).
-> - added check for executable existance in getldapmounts in init script.
-> - updated comment about option handling in getmounts in init script.
-> - updated kernel module patches.
-> - fix to init script for reload option.
-> - autofs now requires autoconf later than 2.5
-> 
-> Plus the replicated server patch I'm currently working on and another 
-> kernel module patch update.
-> 
-> I think that will be it for 4.1.3 as the kernel module patches need to be 
-> updated due to corrections.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Should I wait for the kernel module patches or just go ahead with testing?
+H. Peter Anvin wrote:
 
-I have set aside a Red Hat 8 system to test out the latest patches you 
-have written and want to be sure I make this test as productive as 
-possible for all.
+>
+> First of all, I still want the full autofs rewrite -- autofs 5 -- done
+> at some point, and I think this infrastructure would be in the way.
+>
 
-I'm looking at either running the autofs 4.1.2 plus patches from 
-kernel.org, or Jeff Moyer's latest RPM, 4.1.2-5, and using either the 
-04172004 kernel module patch or waiting for a new one.
+FYI, Sun is still going strong with the autofs rewrite described at:
 
-Tom
--- 
-Tom Georgoulias
-POPI Classification
-[x] General Business Information
-[] Freescale Semiconductor Internal Use
-[] Freescale Semiconductor Confidential Proprietary
+http://marc.theaimsgroup.com/?l=linux-kernel&m=107341940326348&w=2
+
+We have already made several inroads towards a next-generation autofs
+implementation and hope to release our changes to developers in the
+coming weeks.
+
+Thanks,
+
+- --
+Mike Waychison
+Sun Microsystems, Inc.
+1 (650) 352-5299 voice
+1 (416) 202-8336 voice
+mailto: Michael.Waychison@Sun.COM
+http://www.sun.com
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NOTICE:  The opinions expressed in this email are held by me,
+and may not represent the views of Sun Microsystems, Inc.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFAmAgkdQs4kOxk3/MRArkWAJ48Sa3ckNgKmbhEEViFKULE2oknUACePces
+SwwV99Lwx8K+/xBVENwlGPE=
+=tHKD
+-----END PGP SIGNATURE-----
