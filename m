@@ -1,16 +1,12 @@
-From: Greg Bradner <gregb@rhythm.com>
-Subject: Re: program mount problem
-Date: Thu, 19 Aug 2004 09:21:34 -0700
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: [patch] fix a file descriptor leak in rpc_subs.c
+Date: Mon, 23 Aug 2004 13:08:19 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <4124D38E.50807@rhythm.com>
-References: <200408171008.26436.gmishkin@acs.bu.edu>
-	<Pine.LNX.4.58.0408181723030.15856@wombat.indigo.net.au>
-	<4124A26C.6090300@rhythm.com>
-	<Pine.LNX.4.58.0408192315410.18842@donald.themaw.net>
+Message-ID: <16682.9347.245335.724203@segfault.boston.redhat.com>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0408192315410.18842@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,55 +16,67 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: autofs@linux.kernel.org
-Cc: raven@themaw.net
+Content-Type: text/plain; charset="us-ascii"
+To: raven@themaw.net
+Cc: autofs@linux.kernel.org
 
-Option change.
-I was using -v to get the version of automount in order to load 
-different auto_master files.  I didn't notice yesterday it failed on 
-booting.  I noticed it today when adding the --verbose and --debug.  
-Changed it to --version.  And it works.  I was also looking at an old 
-automount(8) man page.
+Hi Ian, list,
 
-Thanks and sorry for the false alarm.
+We never close the file descriptors we open in the rpc ping path.  Here is
+a patch which addresses this.  The patch appears in my latest rpms on my
+people page.
 
+Comments welcome.
 
+-Jeff
 
-raven@themaw.net wrote:
-
->On Thu, 19 Aug 2004, Greg Bradner wrote:
->
->  
->
->>I just installed 4.1.3 with the autofs4-2.4.22-20040508.patch.  I have a 
->>server with 10 mount points and I only have permission to mount 1.  If I 
->>cd to one I don't have permission to, I get permission denied in the 
->>syslog, but it will keep 'looping' the name of the mount.
->>
->>the mount is /n3 - a program mount
->>the server is ns16 - 10 mounts exported
->>no permissions to mount e
->>
->>cd /n3/ns16/e/n3/ns16/e/n3/ns16/e/n3/ns16/e/
->>
->>At end, I hit tab for file completion and will loop /n3/ns16/e over and 
->>over - were it would just stop at one /n3/ns16/e with autofs-4.1.0.
->>I am running redhat 7.3 and a 2.4.26 kernel.
->>    
->>
->
->Could you get some debug log output please.
->
->Ian
->  
->
-
--- 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Rhythm & Hues
-5404 Jandy Place
-Los Angeles, CA 90066
-Voice: 310 448-7763
-Fax:   310 448-7600
-gregb@rhythm.com
+--- autofs-4.1.3-devel/lib/rpc_subs.c~	2004-08-04 13:20:30.000000000 -0400
++++ autofs-4.1.3-devel/lib/rpc_subs.c	2004-08-18 13:37:14.123571936 -0400
+@@ -34,6 +34,7 @@
+ 
+ struct conn_info {
+ 	const char *host;
++	int fd;
+ 	unsigned short port;
+ 	unsigned long program;
+ 	unsigned long version;
+@@ -48,7 +49,6 @@ struct conn_info {
+  */
+ static CLIENT* create_udp_client(struct conn_info *info)
+ {
+-	int fd = -1;
+ 	CLIENT *client;
+ 	struct sockaddr_in addr;
+ 	struct hostent *hp;
+@@ -62,13 +62,14 @@ static CLIENT* create_udp_client(struct 
+ 	if (!hp)
+ 		return NULL;
+ 
++	info->fd = RPC_ANYSOCK;
+ 	addr.sin_family = AF_INET;
+ 	addr.sin_port = htons(info->port);
+ 	memcpy(&addr.sin_addr.s_addr, hp->h_addr, hp->h_length);
+ 
+ 	client = clntudp_bufcreate(&addr,
+ 				   info->program, info->version,
+-				   info->timeout, &fd,
++				   info->timeout, &info->fd,
+ 				   info->send_sz, info->recv_sz);
+ 
+ 	return client;
+@@ -169,6 +170,7 @@ static CLIENT* create_tcp_client(struct 
+ 	if (!client)
+ 		goto out_close;
+ 
++	info->fd = fd;
+ 	return client;
+ 
+ out_close:
+@@ -214,6 +216,7 @@ static unsigned short portmap_getport(st
+ 			 pmap_info.timeout);
+ 
+ 	clnt_destroy(client);
++	close(pmap_info.fd);
+ 
+ 	if (stat != RPC_SUCCESS)
+ 		return 0;
