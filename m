@@ -1,13 +1,13 @@
-From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
+From: raven@themaw.net
 Subject: Re: [weasel@debian.org: Bug#296238: autofs breaks nis
 	auto.master when there is a tab in nsswitch]
-Date: Tue, 22 Feb 2005 14:02:04 +0100
-Message-ID: <20050222130204.GA16052@uio.no>
+Date: Tue, 22 Feb 2005 22:39:19 +0800 (WST)
+Message-ID: <Pine.LNX.4.61.0502222237240.1806@donald.themaw.net>
 References: <20050221112243.GA18164@uio.no>
 	<Pine.LNX.4.61.0502220039110.20458@donald.themaw.net>
+	<20050222130204.GA16052@uio.no>
 Mime-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.61.0502220039110.20458@donald.themaw.net>
+In-Reply-To: <20050222130204.GA16052@uio.no>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,18 +18,23 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
-To: autofs@linux.kernel.org
+To: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
+Cc: autofs@linux.kernel.org
 
-On Tue, Feb 22, 2005 at 12:41:41AM +0800, raven@themaw.net wrote:
->> BTW, there's also multiple people complaining about the new auto.* scripts
->> (see the Debian BTS), but I haven't had time to look into it yet.
-> It would be good if you could check it out.
-> I'm keen to know what's is broken.
+On Tue, 22 Feb 2005, Steinar H. Gunderson wrote:
 
-http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=295723
+> On Tue, Feb 22, 2005 at 12:41:41AM +0800, raven@themaw.net wrote:
+>>> BTW, there's also multiple people complaining about the new auto.* scripts
+>>> (see the Debian BTS), but I haven't had time to look into it yet.
+>> It would be good if you could check it out.
+>> I'm keen to know what's is broken.
+>
+> http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=295723
 
-/* Steinar */
--- 
-Homepage: http://www.sesse.net/
+Thanks Steinar, I'll unroll the expression in a loop to fix this.
+
+Would you like an interim patch or would you prefer to wait for beta3?
+
+Ian
