@@ -1,15 +1,12 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: Infinite loop when trying to access nonexistent
-	directory (auto.home '&' substitution)
-Date: Sun, 17 Oct 2004 14:41:39 +0800 (WST)
+Subject: Re: [patch] Updated autofs-4.1.3-signal-race-fix.patch
+Date: Tue, 19 Oct 2004 11:46:21 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0410171433160.9440@donald.themaw.net>
-References: <Pine.LNX.4.61.0410151425360.7091@orion.arlut.utexas.edu>
- <Pine.LNX.4.58.0410161143240.8831@donald.themaw.net>
- <Pine.LNX.4.61.0410161825450.10308@orion.arlut.utexas.edu>
+Message-ID: <Pine.LNX.4.58.0410191144440.7757@wombat.indigo.net.au>
+References: <1098114614.6300.11.camel@dhcp187.msp.redhat.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.61.0410161825450.10308@orion.arlut.utexas.edu>
+In-Reply-To: <1098114614.6300.11.camel@dhcp187.msp.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,42 +18,23 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Robert Giles <rgiles@arlut.utexas.edu>
+To: Chris Feist <cfeist@redhat.com>
 Cc: autofs@linux.kernel.org
 
-On Sat, 16 Oct 2004, Robert Giles wrote:
+On Mon, 18 Oct 2004, Chris Feist wrote:
 
-> On Sat, 16 Oct 2004 raven@themaw.net wrote:
-> > And at least 2 hunks in the patch failed, right?
-> > One against fs/namei.c.
->
-> Right, and the other failed portion was against a configuration text file
-> (Documentation/something).
+> Ian,
+> 
+> I've attached an updated patch from Jeff Moyer's earlier signal race
+> patch which allows the SIGCHLD signal to be received in the middle of
+> st_expire() before ap.state can be set to ST_EXPIRE.  This causes the
+> signal handling function for SIG_CHLD to never run the alarm() function
+> which causes the SIGALRM signal to never be sent (or received) by
+> automount, which causes directories w/ a timeout to never be unmounted.
+> 
 
-That confirms it's 2.4.27. That's correct behaviour as those particular
-hunks are included in the vanila source now.
+Cool. Thanks.
 
->
-> I haven't explicitly tested 2.4.25 for the same problem, but over the
-> course of several months I never had a 2.4.25 machine fill up
-> /var/log/syslog with these automount errors (with 2.4.27, the disk fills
-> up so rapidly that folks regularly ask me why their machine doesn't have
-> any space on /...   basically have to "/etc/init.d/syslog stop" on these
-> hosts until I can correct the problem).
-
-I'm building a 2.4.27 kernel now on my Sparc Ultra 1 (yep it's going to
-take all day).
-
-I'll see what I can find out.
-
-As a side note.
-
-From 2.4.27 you can use the kernel module build kit without having to
-rebuild your kernel. You do however need a set of kernel headers that
-correspond to the running kernel. Using this you can build, install and
-uninstall the updated module.
-
-That would be the autofs4-2.4-module-20040508.tar.gz on kernel.org. Ignore
-the mandatory patches as they are the ones already in 2.4.27.
+I'll check and add it to the list of patches I'm collecting.
 
 Ian
