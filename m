@@ -1,11 +1,13 @@
-From: Marc MERLIN <marc@merlins.org>
-Subject: autofs init script doesn't support exclude
-Date: Mon, 20 Sep 2004 15:49:49 -0700
+From: "Arthur Korn" <arthur@korn.ch>
+Subject: Re: autofs init script doesn't support exclude
+Date: Tue, 21 Sep 2004 22:39:20 +0200
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <20040920224949.GL23879@merlins.org>
+Message-ID: <20040921203920.GA9988@turing>
+References: <20040920224949.GL23879@merlins.org>
 Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============12651624509252457=="
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <20040920224949.GL23879@merlins.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -15,58 +17,70 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: autofs@linux.kernel.org
 
-From https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=91559
 
-Could you add a patch of that sort so that we can override an ldap/yp
-auto.master and mount one or several of those mountpoints locally in /etc/fstab?
-
---- autofs.FCS  2003-01-27 20:22:54.000000000 -0800
-+++ autofs      2003-05-23 18:38:27.000000000 -0700
-@@ -34,6 +34,11 @@
- initdir=/etc/init.d
- 
- #
-+# Read configuration options
-+#
-+[ -f /etc/sysconfig/autofs ] && . /etc/sysconfig/autofs
-+
-+#
- # Determine which kind of configuration we're using
- #
- system=unknown
-@@ -196,6 +201,16 @@
-                fi
-                map=`echo $map | cut -f2- -d:`
- 
-+               # Process exclude list (to reduce number of automounts)
-+               if [ ! -z "$AUTOFS_EXCLUDE" ]; then
-+                   for exclude in $AUTOFS_EXCLUDE
-+                   do
-+                       if [ x"$exclude" = x"$dir" ]; then
-+                           continue
-+                       fi
-+                   done
-+               fi
-+
-                : echo STARTUPOPTIONS $startupoptions
-                : echo DIR $dir
-                : echo MAPTYPE $maptype
+--===============12651624509252457==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="u3/rZRmxL6MmkK24"
+Content-Disposition: inline
 
 
-I don't need this anymore as this is only useful if you use nis.
-With ldap, you can use the following undocumented trick:
-mrhat:~$ cat /etc/auto.master
-/home /etc/auto.null
-(doesn't work with YP though)
+--u3/rZRmxL6MmkK24
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks,
-Marc
--- 
-"A mouse is a device used to point at the xterm you want to type in" - A.S.R.
-Microsoft is to operating systems & security ....
-                                      .... what McDonalds is to gourmet cooking
-Home page: http://marc.merlins.org/   |   Finger marc_f@merlins.org for PGP key
+Hi
+
+Marc MERLIN schrieb:
+> >From https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=3D91559
+
+> --- autofs.FCS  2003-01-27 20:22:54.000000000 -0800
+> +++ autofs      2003-05-23 18:38:27.000000000 -0700
+> @@ -34,6 +34,11 @@
+>  initdir=3D/etc/init.d
+> =20
+>  #
+> +# Read configuration options
+> +#
+> +[ -f /etc/sysconfig/autofs ] && . /etc/sysconfig/autofs
+
+This would be /etc/default/autofs for Debian then ...
+
+ciao, 2ri
+--=20
+Secure email, spread GPG, clearsign all mail. http://www.gnupg.org
+=2E
+Options are optional.
+ -- autofs(5)
+
+--u3/rZRmxL6MmkK24
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+
+iD8DBQFBUJF4NgpsykSg/LgRAiGXAJ9KijmrMeg6BLKKXgelH8SurkX+1ACeM24J
+NNesfxdeMpE6pcAnXxRWkuM=
+=0rMD
+-----END PGP SIGNATURE-----
+
+--u3/rZRmxL6MmkK24--
+
+
+--===============12651624509252457==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--===============12651624509252457==--
+
