@@ -1,14 +1,15 @@
-From: Robert Au <rau@lsil.com>
-Subject: Re: autofs not mounting directories
-Date: Wed, 17 Mar 2004 12:48:29 -0800
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [autofs-4.1.1 patch] free of ap.path happens too early
+ in cleanup
+Date: Thu, 18 Mar 2004 09:17:43 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <20040317204829.GD12204@vprau.lsil.com>
-References: <200403160358.MAA25667@tk3p108pos.tky.swissbank.com>
-	<Pine.LNX.4.58.0403171118120.6566@wombat.indigo.net.au>
+Message-ID: <Pine.LNX.4.58.0403180915210.28728@wombat.indigo.net.au>
+References: <16471.29962.851785.48804@segfault.boston.redhat.com>
+ <Pine.LNX.4.58.0403172217060.18212@raven.themaw.net>
+ <16472.30279.850790.756677@segfault.boston.redhat.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0403171118120.6566@wombat.indigo.net.au>
+In-Reply-To: <16472.30279.850790.756677@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,37 +19,46 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: autofs@linux.kernel.org
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: autofs@linux.kernel.org
 
-On Wed, Mar 17, 2004 at 11:24:36AM +0800, Ian Kent wrote:
-> On Tue, 16 Mar 2004, Noel Hunt wrote:
-> > If `directory' is an automount mountpoint, is there some
-> > difference between `cd directory', and say cron running
-> > `/directory/bin/cmd', in the way that `directory' is
-> > accessed? I understand the former will cause a chdir()
-> > which will invoke autofs_root_lookup(); in the latter case,
-> > I don't know what goes on.
+On Wed, 17 Mar 2004, Jeff Moyer wrote:
+
+> ==> Regarding Re: [autofs]  [autofs-4.1.1 patch] free of ap.path happens too early in cleanup; Ian Kent <raven@themaw.net> adds:
 > 
-> Yes.
+> raven> On Tue, 16 Mar 2004, Jeff Moyer wrote:
+> >> Hello,
+> >> 
+> >> ap.path gets free-d before we are done with it.  Specifically, callers
+> >> of umount_autofs often-times reference ap.path when next calling
+> >> cleanup_exit.  This patch moves the free-ing of ap.path to cleanup_exit.
+> >> Comments welcome.
+> >> 
 > 
-> Sounds like you may be suffering from the same problem that was reported 
-> by Michael Blandford. I'm mystified I haven't seen the problem before as 
-> it is so fundamental to proper operation.
+> raven> Hi Jeff,
+> 
+> raven> I don't mind moving the free as you recommend (it looks OK) but,
+> raven> after a quick look, I can't see where ap.path is referred to out of
+> raven> context?
+> 
+> Sorry, I should have included more information.
+> 
+> Check for calls to umount_autofs(1), such as the call in handle_mounts:
+> 
+> 	if (map & LKP_FAIL) {
+> 		if (map & LKP_INDIRECT)
+> 			syslog(LOG_INFO,
+> 			       "bad map format: found indirect, expected direct exiting");
+> 		else
+> 			syslog(LOG_INFO, "failed to load map, exiting");
+> 		rm_unwanted(ap.path, 1, 1);
+> 		umount_autofs(1);
+> 		cleanup_exit(ap.path, 1);
 
-I don't see Michael's original report in the list archives. Did he send it
-to the list?
- 
-> I'll be looking to get a test group together from the list in a couple of 
-> days.
+Ha! Developer blindness.
 
-I think we are seeing something similar here; sporadically, listing a file
-with ls will fail until a process changes working directory to that file's
-directory. I'd like to help out in the testing. We are seeing this problem
-with Red Hat 7.2 (kernel 2.4.7-10), autofs 4.1.0, and kernel module
-autofs4-2.4-module-20031201.
+Maybe you could look a bit closer and a bit further, yes.
 
--- 
-Robert Au                     rau@lsil.com
-                              LSI Logic
+Ian
