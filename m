@@ -1,12 +1,16 @@
-From: Hans Deragon <hans@deragon.biz>
-Subject: Autofs and unrecognized parameters... mount() not ignoring anymorefor
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: 
+ Autofs and unrecognized parameters... mount() not ignoring anymorefor
  2.6 kernel?
-Date: Fri, 03 Sep 2004 15:27:31 -0400
+Date: Fri, 3 Sep 2004 15:35:44 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <4138C5A3.10107@deragon.biz>
+Message-ID: <16696.51088.808597.401614@segfault.boston.redhat.com>
+References: <4138C5A3.10107@deragon.biz>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7BIT
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <4138C5A3.10107@deragon.biz>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,30 +20,23 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: Hans Deragon <hans@deragon.biz>
+Cc: autofs@linux.kernel.org
 
-Greetings.
+==> Regarding [autofs]  Autofs and unrecognized parameters... mount() not ignoring anymorefor 2.6 kernel?; Hans Deragon <hans@deragon.biz> adds:
 
+hans> Greetings.  I use the same source code for two systems, RHL 9 and
+hans> FC2.  Its Autofs 4.1.3 with my infamous backfstype patch.
 
-   I use the same source code for two systems, RHL 9 and FC2.  Its Autofs 
-4.1.3 with my infamous backfstype patch.
+hans>    RHL 9 runs kernel 2.4.20-28.9 while FC2 runs 2.6.6-1.435.  On RHL
+hans> 9, autofs runs nicely.  On FC2, it complains about unrecognized
+hans> parameters.  This happens when I try to mount from yp maps that are
+hans> meant for Solaris.
 
-   RHL 9 runs kernel 2.4.20-28.9 while FC2 runs 2.6.6-1.435.  On RHL 9, autofs 
-runs nicely.  On FC2, it complains about unrecognized parameters.  This 
-happens when I try to mount from yp maps that are meant for Solaris.
+hans>    Is this a known issue?  Seams that the mount function does not
+hans> ignore unrecognized parameters anymore under the 2.6 kernel.
 
-   Is this a known issue?  Seams that the mount function does not ignore 
-unrecognized parameters anymore under the 2.6 kernel.
+Yes, known issue.  Upgrade util-linux.
 
-   Currently, my quick fix is to change /etc/init.d/autofs to catch the 
-unrecognized parameters.  These are "quota" and "nobrowse".
-
-
-Best regards,
-Hans Deragon
---
-Consultant en informatique/Software Consultant
-Deragon Informatique inc.     Open source:
-http://www.deragon.biz        http://facil.qc.ca (Promotion du libre)
-mailto://hans@deragon.biz     http://autopoweroff.sourceforge.net (Logiciel)
+-Jeff
