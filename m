@@ -1,12 +1,13 @@
-From: mmarion@qualcomm.com
+From: "H. Peter Anvin" <hpa@zytor.com>
 Subject: Re: Server IP address change screws up active mounts
-Date: Mon, 17 May 2004 13:11:05 -0700 (PDT)
+Date: Tue, 18 May 2004 17:15:28 -0700
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <200405172011.i4HKB5bv007009@miguelito.qualcomm.com>
-References: <200405132140.i4DLeg1s019737@jetcar.spd.analog.com>
+Message-ID: <40AAA720.9010000@zytor.com>
+References: <134FC8D9C1F126488E3D123A9B2607370105E0F9@bp1houex002.bp1.ad.bp.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200405132140.i4DLeg1s019737@jetcar.spd.analog.com>
+In-Reply-To: <134FC8D9C1F126488E3D123A9B2607370105E0F9@bp1houex002.bp1.ad.bp.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,52 +17,21 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: "Murata, Dennis W (SAIC)" <muratadw@bp.com>
+Cc: autofs@linux.kernel.org, David Meleedy <david.meleedy@analog.com>, Ian Kent <raven@themaw.net>
 
-On 13 May, David Meleedy wrote:
+Murata, Dennis W (SAIC) wrote:
+> We experienced similar problems using autofs-3.x with both RedHat(7.3,
+> 8.0, 2.1, 9.0) and Slackware(9.0).  This seems to be fixed with
+> autofs-4.x.  We have used 4.0.0-pre10 for a couple of years without
+> problem and are now trying 4.1.2.
+> The problems we were seeing dealt with and automounted nfs server not
+> responding, the mount would hang, autofs would not timeout and would
+> hang, only a hard reset would reboot the computer.
+> 
 
-> One question I had for you guys happened to us when we were moving
-> our subnets to an internal 10. net.  We were using autofs version 3
-> on redhat 8, and I haven't had a chance to test this with version 4
-> yet, but the problem might still exist.
+It wouldn't have anything to do with autofs, though.  Rather, it's an 
+NFS problem.
 
-It still exists in autofs4 because, like Dennis said, it's really a mount/nfs
-issue, not autofs.  If you run a mount -t nfs you'll note that the IP of the
-server is stored in the mount into.
-
-It's ugly, but one fix I've found to clear these up is to temporarily setup an
-aliased ethernet entry with the IP of the server and netmask 255.255.255.255
-(so you don't lose contact with a whole network), umount the mount, then shut
-down that aliased ethernet entry, and let automounter remount the path on the
-hosts' new ip.  This is on each client btw.
-
-i.e. if the host was 10.0.0.10 and is now 10.0.1.10, mount will show something
-like:
-myhost:/some/path on /some/path type nfs
-(rw,noquota,addr=10.0.0.10)
-
-do something like:
-ifconfig eth0:1 inet 10.0.0.10 netmask 255.255.255.255 up
-umount /some/path
-ifconfig eth0:1 down
-ls /some/path    so that automount remounts it on new host ip... and you
-should be ok.
-
-I'm working on an audit script to do just this on our /net path, because /net
-is used by a lot of our engineers to access other desktop's local disk/scratch
-space, and when users' move... the machines move and often get re-IPd.  I've
-noted that when a box moves, and then things like df hang, the automount daemon
-on /net will hang when checking for paths to expire and will never expire any
-anymore.  It will however still respond to and mount new /net requests.  So 
-eventually a host can hit the max number of allowable mounts.  
-
--- 
-Mike Marion-Unix SysAdmin/Staff Engineer-http://www.qualcomm.com
-[Joe just pulled Antonio away from a beautiful woman he was talking to, to move
-a cabinet a tiny bit]
-Antonio: "We barely moved it!"   Joe: "Yeah I know, but it was askew!  Isn't it 
-amazing how something like that can throw off your whole day?"
-Antonio: "Yes, and you know I only wish I could stay and slap you senseless.. 
-but there's a goddess waiting for me in the terminal." -- Wings
+	-hpa
