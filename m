@@ -1,15 +1,12 @@
-From: Hans Deragon <hans@deragon.biz>
-Subject: Re: backfstype patch.
-Date: Wed, 30 Jun 2004 11:11:30 -0400
+From: Jim Carter <jimc@math.ucla.edu>
+Subject: Re: autofs dont keep running in slackware
+Date: Wed, 30 Jun 2004 10:56:33 -0700 (PDT)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <40E2D822.7020609@deragon.biz>
-References: <40E1CCC3.1010809@deragon.biz> <40E2C0BA.3070605@sun.com>
- <16610.50525.858094.848839@segfault.boston.redhat.com>
- <40E2CC43.1060001@sun.com>
+Message-ID: <Pine.LNX.4.58.0406301042440.7763@simba.math.ucla.edu>
+References: <20040629204829.M71473@fabriciolima.com.br>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7BIT
 Return-path: <autofs-bounces@linux.kernel.org>
-In-reply-to: <40E2CC43.1060001@sun.com>
+In-Reply-To: <20040629204829.M71473@fabriciolima.com.br>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,62 +16,35 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Fabricio Lima <listas@fabriciolima.com.br>
 Cc: autofs@linux.kernel.org
 
-Mike Waychison wrote:
->>Michael.Waychison> Why do this in the parser when it can easily be done in
->>Michael.Waychison> a mount module?
->>
->>Care to expound a bit?  I'm not sure what people use backfstype for,
-> 
-> but if
-> 
->>it is generic, then you wouldn't want to handle every case in every mount
->>module.  But I think I'm missing your point.
->>
->>It makes some sense to me to handle this above the mount module, simply
->>because you could call into two different modules.
->>
->>So, care to set me straight?  ;)
->>
->>-Jeff
-> 
-> 
-> I'm CC'ing David as he may have a better view of what the cachefs status is.
-> 
-> Backfstype is a fstype=cachefs specific mount option.  Specifically:
-> 
->  - add cachefs to the not_generic array in daemon/mount.c
->  - create a new mount module, modules/mount_cachefs.c.  This module
-> would check for cachefs support available and use it if available.
-> Otherwise it would rewrite the fstype with the backfstype mount option
-> and call do_mount again.
-> 
-> - --
-> Mike Waychison
-> Sun Microsystems, Inc.
-> 1 (650) 352-5299 voice
-> 1 (416) 202-8336 voice
-> http://www.sun.com
+On Wed, 30 Jun 2004, Fabricio Lima wrote:
+> autofs in redhat8 is working pretty good, but the automount using the 
+> same /etc/auto.master and /etc/auto.misc at the slackware do not keep running 
+> when I type 'ps ax'.
 
-Great.
+Try doing "ldd /usr/sbin/automount" to make sure that it's actually finding 
+all its libraries.  That's a common reason for a program to exit 
+immediately.  Also check in /proc/modules to see that the autofs module is 
+really there.  Also, unload the module, then do "modprobe -v autofs", and 
+see if there are any embarrassing error messages.
 
+Someone else mentioned to try making /etc/mtab a symlink to /proc/mounts
+because it's on a non-writeable filesystem.  This is good, but see the man
+page of "mount" for a caveat involving loopback filesystems, e.g. crypto.  
+"mount" writes things in /etc/mtab so umount can free the /dev/loop* device
+automatically, but this doesn't happen if /etc/mtab -> /proc/mounts cannot
+be written.
 
-   Is this issue in someone's else hands?  The reason I coded the solution in 
-parse_sun.c is simply because I know nada about automount and I wanted a quick 
-solution.  I did not take the time to study automount's architecture to 
-understand the big picture, and I won't have the time to do this either. :( 
-Worse, I do not know much about C coding and particularly the available API for 
-Linux system calls.  However, I would like to see some solution taking care of 
-backfstype being implemented in the next release.  Can someone please take the 
-initiative?  You guys seam to understand the issue much better than I.
+Actually, the writeable /etc/mtab in /etc is a crock.  I wonder if a 
+symlink to /var/run/mtab or something like that would work.  
 
+If you're trying to have a plethora of base distros, have a look at SuSE.  
+I'm sure someone who runs Debian will have a similar suggestion.
 
-Best regards,
-Hans Deragon
---
-Consultant en informatique/Software Consultant
-Deragon Informatique inc.     Open source:
-http://www.deragon.biz        http://facil.qc.ca (Promotion du libre)
-mailto://hans@deragon.biz     http://autopoweroff.sourceforge.net (Logiciel)
+James F. Carter          Voice 310 825 2897    FAX 310 206 6673
+UCLA-Mathnet;  6115 MSA; 405 Hilgard Ave.; Los Angeles, CA, USA  90095-1555
+Email: jimc@math.ucla.edu    http://www.math.ucla.edu/~jimc (q.v. for PGP key)
