@@ -1,13 +1,15 @@
-From: devnull@adc.idt.com
+From: Jeff Moyer <jmoyer@redhat.com>
 Subject: Re: autofs and 2.6.x
-Date: Tue, 11 May 2004 17:02:27 -0400 (EDT)
+Date: Tue, 11 May 2004 17:08:48 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.44.0405111654280.7668-100000@who.adc.idt.com>
+Message-ID: <16545.16608.781482.171319@segfault.boston.redhat.com>
 References: <16545.13671.458946.559520@segfault.boston.redhat.com>
-Reply-To: devnull@adc.idt.com
+	<Pine.LNX.4.44.0405111654280.7668-100000@who.adc.idt.com>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <16545.13671.458946.559520@segfault.boston.redhat.com>
+In-Reply-To: <Pine.LNX.4.44.0405111654280.7668-100000@who.adc.idt.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,40 +19,25 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Jeff Moyer <jmoyer@redhat.com>
+Content-Type: text/plain; charset="us-ascii"
+To: devnull@adc.idt.com
 Cc: AutoFS on Linux Kernel <autofs@linux.kernel.org>
 
-Apologies for not sending this out earlier. 
+==> Regarding Re: [autofs] autofs and 2.6.x; devnull@adc.idt.com adds:
 
-autofs4 + ghosting + FC1 WORKS on X86_64
+devnull> Apologies for not sending this out earlier. autofs4 + ghosting +
+devnull> FC1 WORKS on X86_64
 
-I recompiled the kernel again this morning and everything works fine. 
+devnull> I recompiled the kernel again this morning and everything works
+devnull> fine.
 
-I do get a few warnings about 
-nfs warning: mount version older than kernel
+Ok, good news.  Curious, but good news none the less.
 
-I am using FC1 (mount-2.11y)
+[snip]
 
-Thanks, 
+BTW> Is FC2 for x86_64 out ?
 
-BTW: Is FC2 for x86_64 out ?
+heh.  Not quite yet.  I suppose you could call what I'm running a release
+candidate.
 
-> I just installed autofs4 on a dual x86_64, and ghosting works just fine.
-> Could you be a bit more specific about your configuration?  You said you
-> added --ghost to the startup script.  Where in the script?  $daemonoptions?
-> Would it be okay to post your config files?
-> 
-> Note, I'm using FC2 with Ian's patches, and autofs-4.1.2-6 from my people
-> page.
-> 
-> Thanks!
-> 
-> Jeff
-> 
-
--- 
-/dev/null
-
-devnull@adc.idt.com
+-Jeff
