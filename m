@@ -1,16 +1,15 @@
-From: Thorild Selen <thorild@Update.UU.SE>
-Subject: Re: Proposal for map refresh logic
-Date: Sun, 23 May 2004 05:19:01 +0200
+From: James Pearson <james-p@moving-picture.com>
+Subject: Re: [NFS] Re: Busy inodes after unmount followed by Oops
+Date: Mon, 24 May 2004 16:51:30 +0100
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <x3kisen25lm.fsf@Psilocybe.Update.UU.SE>
-References: <Pine.LNX.4.58.0405212143160.1592@donald.themaw.net>
-	<Pine.LNX.4.58.0405210855001.28570@simba.math.ucla.edu>
-	<Pine.LNX.4.58.0405221120001.1524@donald.themaw.net>
+Message-ID: <40B21A02.63C4536B@moving-picture.com>
+References: <3FFE8B28.1E645E4E@moving-picture.com>
+	<40AE23DC.6C240DAE@moving-picture.com>
+	<1085157843.3666.75.camel@lade.trondhjem.org>
+	<40AE3532.8EBA0D7B@moving-picture.com> <20040522130457.GB15564@sgi.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0405221120001.1524@donald.themaw.net>
-	(raven@themaw.net's message of "22 May 04 04:37:32 GMT")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,36 +19,34 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="iso-8859-1"
-To: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: Greg Banks <gnb@sgi.com>
+Cc: autofs@linux.kernel.org, nfs@lists.sourceforge.net
 
-raven@themaw.net writes:
-> I'm aware of the NIS order number but don't have an idea of how this ca=
-n=20
-> be done for LDAP maps. I want the handling to remain as consistent as=20
-> possible between map types. This will be an advantage when I add=20
-> ghosting of nis+ maps.
+Greg Banks wrote:
+> 
+> On Fri, May 21, 2004 at 05:58:26PM +0100, James Pearson wrote:
+> > Not quite sure what you mean by this - I had tried Greg's patch
+> > (http://marc.theaimsgroup.com/?l=linux-nfs&m=107604754127538&w=2)
+> > previously - but it made no difference in my case. The kernel I'm using
+> > now has both Greg's patch and Ian's recent autofs4 patch.
+> 
+> The error message and subsequent oops are both generic symptoms and
+> could come from any kind of race with umount which causes a dentry
+> or inode reference count leak, not just the particular one in NFS
+> which I fixed.  There could well be another NFS bug like this, or
+> one in autofs.  Ian's patch may have fixed it, hidden it, or just
+> stopped tickling it.
+> 
+> The only way to tell for sure is to modify the code that generates
+> the message to BUG() instead and use a kernel debugger to figure out
+> what has gone wrong.  Note that using a debugger at oops time is
+> already too late.
+> 
+> James, are you able to reproduce this at will?
 
-With servers that use the modifyTimestamp and createTimestamp
-operational attributes (these SHOULD be set when an object is added or
-changed, according to RFC 2252), these could be used to detect if any
-entry has been changed or added since last time you checked. However,
-this would fail to detect any removed entries.
+Unfortunately not. It proved impossible to reproduce in a 'controlled'
+way - however since using the latest autofs4 patch we haven't had the
+problem. Given that, I'm happy with the situation as it stands.
 
-What you really want is probably something like lcup ("LDAP Client
-Update Protocol",
-<URL:http://www.ietf.org/internet-drafts/draft-ietf-ldup-lcup-06.txt>)
-or ldapsync ("The LDAP Content Synchronization Operation",
-<URL:http://www.ietf.org/internet-drafts/draft-zeilenga-ldup-sync-05.txt>=
-),
-which both address this problem. It appears that recent versions of
-OpenLDAP support ldapsync, but neither solution is even close to
-de-facto standard status.
-
-For some years to come, any useful and portable implementation would
-need to support the case where there are no timestamps and no cool
-synchronization operations to help you, I'm afraid.
-
-
-Thorild Sel=E9n
-Datorf=F6reningen Update / Update Computer Club, Uppsala, SE
+James Pearson
