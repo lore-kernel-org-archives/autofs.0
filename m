@@ -1,12 +1,12 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: [autofs-4.1.1 patch] free of ap.path happens too early in cleanup
-Date: Tue, 16 Mar 2004 16:43:38 -0500
+From: Ian Kent <raven@themaw.net>
+Subject: Re: autofs not mounting directories
+Date: Wed, 17 Mar 2004 11:24:36 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <16471.29962.851785.48804@segfault.boston.redhat.com>
-Reply-To: jmoyer@redhat.com
+Message-ID: <Pine.LNX.4.58.0403171118120.6566@wombat.indigo.net.au>
+References: <200403160358.MAA25667@tk3p108pos.tky.swissbank.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <200403160358.MAA25667@tk3p108pos.tky.swissbank.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,35 +16,28 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: autofs@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Noel Hunt <huntno@ubs.com>
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
-Hello,
+On Tue, 16 Mar 2004, Noel Hunt wrote:
 
-ap.path gets free-d before we are done with it.  Specifically, callers of
-umount_autofs often-times reference ap.path when next calling
-cleanup_exit.  This patch moves the free-ing of ap.path to cleanup_exit.
-Comments welcome.
+> 
+> If `directory' is an automount mountpoint, is there some
+> difference between `cd directory', and say cron running
+> `/directory/bin/cmd', in the way that `directory' is
+> accessed? I understand the former will cause a chdir()
+> which will invoke autofs_root_lookup(); in the latter case,
+> I don't know what goes on.
 
--Jeff
+Yes.
 
+Sounds like you may be suffering from the same problem that was reported 
+by Michael Blandford. I'm mystified I haven't seen the problem before as 
+it is so fundamental to proper operation.
 
---- autofs-4.1.1/daemon/automount.c.orig	2004-03-07 07:17:54.000000000 -0500
-+++ autofs-4.1.1/daemon/automount.c	2004-03-16 16:27:49.000000000 -0500
-@@ -364,8 +364,6 @@ static int do_umount_autofs(void)
- 			rm_unwanted(ap.path, 1, 1);
- 	}
- 
--	free(ap.path);
--
- 	return rv;
- }
- 
-@@ -1327,6 +1325,8 @@ static void cleanup_exit(const char *pat
- 		if (rmdir(path) == -1)
- 			warn("failed to remove dir %s: %m", path);
- 
-+	free(ap.path);
-+
- 	exit(exit_code);
- }
+I'll be looking to get a test group together from the list in a couple of 
+days.
+
+Ian
