@@ -1,16 +1,10 @@
-From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
-Subject: Re: [ANNOUNCE] autofs 4.1.4 beta1 release
-Date: Thu, 27 Jan 2005 03:02:31 +0100
-Message-ID: <20050127020231.GB5087@uio.no>
-References: <Pine.LNX.4.61.0501262151370.1716@donald.themaw.net>
-	<20050126151344.GA841@uio.no>
-	<Pine.LNX.4.61.0501262320080.1890@donald.themaw.net>
-	<20050126161454.GA9417@uio.no>
-	<Pine.LNX.4.58.0501270916190.20105@wombat.indigo.net.au>
+From: Milan Knizek <knizek@volny.cz>
+Subject: How to automount hidden Windows share
+Date: Thu, 27 Jan 2005 08:16:37 +0000
+Message-ID: <41F8A365.8080808@volny.cz>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0501270916190.20105@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,25 +15,52 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
 To: autofs@linux.kernel.org
 
-(I'm still on the list, no need to Cc me :-) )
+Hello,
 
-On Thu, Jan 27, 2005 at 09:21:10AM +0800, Ian Kent wrote:
-> The Debian side of things really refers to the merging of patches I 
-> found in the packages (as best as I could) and some init script changes 
-> which you are, no doubt checking.
+I am not sure if this relates to kernel or to autofs, so sorry if I am 
+wrong. I also tried to google for the problem, but I have found only 
+questions and no solution.
 
-Well, I'm afraid I can't check that you got all the Debian-specific init
-script changes right, as I don't really know or understand half the problems
-these patches were fixing (and the code they modified seems to have been
-mostly rewritten). As long as you actually reviewed the changes, I guess we
-should be OK. If there'll be a 4.1.4-beta2 (with the missing patches I
-noticed), I'll be happy to put that in experimental and see if people get it
-to work properly without regressions. :-)
 
-/* Steinar */
--- 
-Homepage: http://www.sesse.net/
+I use autofs-4.1.3, gentoo-dev-sources kernel 2.6.9 compiled with 
+automounter v4 on Gentoo. I have problems with automounting hidden 
+Windows shares - e.g. my /etc/autofs/auto.work includes:
+
+n -fstype=smbfs,users,uid=knizek_m,gid=users,credentials=/etc/samba
+/credentials_argon ://ffile01/Home$
+
+My /etc/autofs/auto.master includes:
+
+/mnt/auto.work /etc/autofs/auto.work --timeout=60
+
+
+When try ls /mnt/auto.work/n, the file does not exist. Syslog reads:
+
+Jan 26 12:18:40 n1005 automount[10417]: failed to mount /mnt/auto.work/n
+Jan 26 12:18:40 n1005 automount[10420]: >> Usage: mount.smbfs service 
+mountpoint [-o options,...]
+Jan 26 12:18:40 n1005 automount[10420]: >> Version 3.0.9
+
+... cut on purpose ...
+
+Jan 26 12:18:40 n1005 automount[10420]: mount(generic): failed to mount 
+"://ffile01/Home" (type smbfs) o
+n /mnt/auto.work/n
+Jan 26 12:18:40 n1005 automount[10420]: failed to mount /mnt/auto.work/n
+
+
+I tried to change the line in auto.work to ://ffile01/Home\$ but it did 
+not help anyway.
+
+When I use fstab or mount manually, it works. Also, mounting normal 
+Windows shares (not ending with $) and local devices like cdrom and usb 
+works fine with automount.
+
+Is there other way to go?
+
+Thanks,
+Milan
+knizek@volny.cz
