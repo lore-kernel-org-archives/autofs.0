@@ -1,11 +1,16 @@
-From: Ian Kent <raven@themaw.net>
-Subject: RE: [ANNOUNCE] autofs 4.1.4 beta1 release
-Date: Thu, 27 Jan 2005 09:24:18 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0501270921590.20105@wombat.indigo.net.au>
-References: <C3CDA0E3AC8B4E438E94F37D0A20FE7101B291B1@HOUEXC210.mgroupnet.com>
+From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
+Subject: Re: [ANNOUNCE] autofs 4.1.4 beta1 release
+Date: Thu, 27 Jan 2005 03:02:31 +0100
+Message-ID: <20050127020231.GB5087@uio.no>
+References: <Pine.LNX.4.61.0501262151370.1716@donald.themaw.net>
+	<20050126151344.GA841@uio.no>
+	<Pine.LNX.4.61.0501262320080.1890@donald.themaw.net>
+	<20050126161454.GA9417@uio.no>
+	<Pine.LNX.4.58.0501270916190.20105@wombat.indigo.net.au>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <C3CDA0E3AC8B4E438E94F37D0A20FE7101B291B1@HOUEXC210.mgroupnet.com>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.58.0501270916190.20105@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,44 +21,25 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Rigler, Stephen C." <srigler@marathonoil.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Wed, 26 Jan 2005, Rigler, Stephen C. wrote:
+(I'm still on the list, no need to Cc me :-) )
 
->  
-> 
-> > -----Original Message-----
-> > From: autofs-bounces@linux.kernel.org 
-> > [mailto:autofs-bounces@linux.kernel.org] On Behalf Of raven@themaw.net
-> > Sent: Wednesday, January 26, 2005 9:35 AM
-> > To: Steinar H. Gunderson
-> > Cc: autofs@linux.kernel.org
-> > Subject: Re: [autofs] [ANNOUNCE] autofs 4.1.4 beta1 release
-> > 
-> > I see.
-> > 
-> > What if autofs[4] is not compiled as a module?
-> > 
-> > This might need some more work.
-> > 
-> 
-> Just to contribute to this, on Altix running SGI's variant of RHEL 3,
-> they compile autofs (3 and 4) into the kernel and not as modules.
-> We've had problems with automount defaulting to version 3 in this case.
-> It works fine when compiled as a module.  I opened a case with SGI
-> asking
-> them to ship their kernel with it compiled as a module, but I haven't
-> heard their stance on that yet.
+On Thu, Jan 27, 2005 at 09:21:10AM +0800, Ian Kent wrote:
+> The Debian side of things really refers to the merging of patches I 
+> found in the packages (as best as I could) and some init script changes 
+> which you are, no doubt checking.
 
-Interesting.
+Well, I'm afraid I can't check that you got all the Debian-specific init
+script changes right, as I don't really know or understand half the problems
+these patches were fixing (and the code they modified seems to have been
+mostly rewritten). As long as you actually reviewed the changes, I guess we
+should be OK. If there'll be a 4.1.4-beta2 (with the missing patches I
+noticed), I'll be happy to put that in experimental and see if people get it
+to work properly without regressions. :-)
 
-Seems to me that having both filesystems compiled in can't work as they 
-both attempt to register as "autofs".
-
-So first come first served.
-Deselecting autofs would also work of course.
-
-Ian
+/* Steinar */
+-- 
+Homepage: http://www.sesse.net/
