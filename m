@@ -1,16 +1,12 @@
-From: Tim Hockin <thockin@sun.com>
-Subject: Re: Re: An offer to host autofs.org
-Date: Mon, 3 May 2004 18:09:28 -0700
+From: Alvin Oga <alvin@Mail.Linux-Consulting.com>
+Subject: humm Re: Re: An offer to host autofs.org
+Date: Mon, 3 May 2004 18:21:20 -0700 (PDT)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <20040504010928.GL14889@sun.com>
-References: <Pine.LNX.4.58.0405032046130.3257@donald.themaw.net>
-	<20040503175506.GA14889@sun.com> <20040504003214.GA31852@neu.nirvana>
-	<Pine.LNX.4.58.0405040904450.24480@wombat.indigo.net.au>
-Reply-To: thockin@sun.com
+Message-ID: <Pine.LNX.3.96.1040503181623.4110A-100000@Maggie.Linux-Consulting.com>
+References: <20040504010928.GL14889@sun.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0405040904450.24480@wombat.indigo.net.au>
+In-Reply-To: <20040504010928.GL14889@sun.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,19 +16,40 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ian Kent <raven@themaw.net>
+To: Tim Hockin <thockin@sun.com>
 Cc: autofs mailing list <autofs@linux.kernel.org>
 
-On Tue, May 04, 2004 at 09:10:27AM +0800, Ian Kent wrote:
-> On Tue, 4 May 2004, Axel Thimm wrote:
-> 
-> > - No subversion (yet?)
-> 
-> I've checked out subversion.
-> 
-> It's more than capable of dealing with the our couple of simple autofs 
-> projects but could be just what's needed by other autofs contributors.
 
-Seeing as autofs is open, what's wrong with BK?  BK rockssssss
+hi ya
+
+On Mon, 3 May 2004, Tim Hockin wrote:
+
+> Seeing as autofs is open, what's wrong with BK?  BK rockssssss
+
+getting the autofs.org domain name is trivial ... 
+	- i've always wondered why nobody got it
+
+is autofs(4) looking for a new home ???
+
+is hpa lending the resources of kernel.org for autofs4 ??
+	- i think its best to keep autofs4 close to the kernel
+	in my limited view 
+
+if autofs needs some machines for testing ... there's
+plenty of spare metal around here
+
+--------
+
+why one app is better than another is the general issues
+	- and the users should decide and/or even better
+	if the two systems can co-exists
+	( eg  sourceforge + sf.net + yet-another-hosting
+
+- only major issue is  license terms and use of otehr peoples
+  machines and connectivity and datacenters
+  (the marketing/ceo/cfo/laywers are starting to get into the picture
+
+c ya
+alvin
