@@ -1,42 +1,37 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: autofs no_local_binds option (nfs <-> bind mounts)
-Date: Tue, 13 Jan 2004 13:06:34 -0800
-Sender: autofs-bounces@linux.kernel.org
-Message-ID: <40045DDA.1010805@zytor.com>
-References: <200401131958.i0DJwlV0001078000@anw.zk3.dec.com>
-	<40044F2A.9080305@zytor.com> <200401132023.49657.autofs@dylan.me.uk>
-	<4004544C.7030904@zytor.com> <40045C03.7020405@sun.com>
+From: raven@themaw.net
+Subject: Re: [autofs] [RFC] Towards a Modern Autofs
+Date: Wed, 14 Jan 2004 23:58:42 +0800 (WST)
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <Pine.LNX.4.58.0401142351470.1783@raven.themaw.net>
+References: <Pine.LNX.4.33.0401130932460.10047-100000@wombat.indigo.net.au>
+ <4004409C.6040900@sun.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <40045C03.7020405@sun.com>
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
+In-Reply-To: <4004409C.6040900@sun.com>
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: Mike Waychison <Michael.Waychison@Sun.COM>
-Cc: autofs@linux.kernel.org, Eric Werme USG <werme@alpha.zk3.dec.com>
+Cc: autofs mailing list <autofs@linux.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Mike Waychison wrote:
->>>
->>> Would binding an alias address to the interface be sufficient?
->>>
->> No, you have to force the local port to not be bound to the same
->> address.  I think this can be done with iptables rules, but I'm not
->> sure... I'm not a networking wizard.
->>
-> I know you can do this using chbind from the vserver toolset and kernel
-> patch.
+On Tue, 13 Jan 2004, Mike Waychison wrote:
+
+> >
+> My proposal uses filesystems for all automount mechanism *except* 
+> expiry. I see expiry as a VFS service, and strongly believe that this is 
+> where it belongs.
 > 
-> http://www.13thfloor.at/vserver/s_release/v1.23/
 
-There you go, then.  Either way, autofs should respect this rule once it
-is installed in the kernel.
-	
-	-hpa
+I'm certainly thinking alot about this and have made quite a bit of 
+progress thanks to the patiience of all.
+
+Now it think it may be time to ponder the expire mechanism.
+
+I was thinking it might be good for me to write up a specification based 
+on the discussion so far to make sure that we all have the same 
+understanding of what has been discussed. Perhaps this could allow for a 
+specification to follow.
+
+Good idea or not?
+
+Ian
