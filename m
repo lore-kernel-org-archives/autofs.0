@@ -1,14 +1,12 @@
-From: Jeff Moyer <jmoyer@redhat.com>
+From: raven@themaw.net
 Subject: Re: [ANNOUNCE] autofs 4.1.4 beta2 release
-Date: Tue, 15 Feb 2005 09:44:05 -0500
-Message-ID: <16914.2741.997861.638357@segfault.boston.redhat.com>
+Date: Tue, 15 Feb 2005 22:47:12 +0800 (WST)
+Message-ID: <Pine.LNX.4.61.0502152246210.8175@donald.themaw.net>
 References: <Pine.LNX.4.61.0502142233210.1653@donald.themaw.net>
-	<20050215014857.GA26216@uio.no>
-	<16914.2127.559335.703678@segfault.boston.redhat.com>
-Reply-To: jmoyer@redhat.com
+	<20050215014857.GA26216@uio.no> <20050215020414.GA953@uio.no>
+	<20050215140754.GA26814@uio.no>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <16914.2127.559335.703678@segfault.boston.redhat.com>
+In-Reply-To: <20050215140754.GA26814@uio.no>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,30 +17,22 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: "Steinar H. Gunderson" <sgunderson@bigfoot.com>, autofs@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
+Content-Transfer-Encoding: 7bit
+To: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
+Cc: autofs@linux.kernel.org
 
-==> Regarding Re: [autofs] [ANNOUNCE] autofs 4.1.4 beta2 release; Jeff Moyer <jmoyer@redhat.com> adds:
+On Tue, 15 Feb 2005, Steinar H. Gunderson wrote:
 
-==> Regarding Re: [autofs] [ANNOUNCE] autofs 4.1.4 beta2 release; "Steinar H. Gunderson" <sgunderson@bigfoot.com> adds:
-sgunderson> On Mon, Feb 14, 2005 at 10:39:51PM +0800, raven@themaw.net
-sgunderson> wrote:
->>> Here is autofs 4.1.4 beta2.
+> On Tue, Feb 15, 2005 at 03:04:14AM +0100, Steinar H. Gunderson wrote:
+>> Any good ideas? Stripping the --exec would be the easiest solution, but
+>> perhaps also the ugliest...
+>
+> OK, I found the bug; autofs was not stopped on prerm (this was disabled to
+> "fix" another bug). I've reverted the changes and made some workarounds; they
+> are not relevant for autofs upstream, but will be part of the next Debian
+> package.
 
-sgunderson> Thanks! :-)
+Except I'd like a patch for my Debian kit please.
 
-sgunderson> I've gone through all the Debian patches again, and this needs
-sgunderson> looking into:
-
-sgunderson> 035_program_mount_repeated_last_character_of_map_output is in
-sgunderson> there, but there looks like there's an identical situation
-sgunderson> further down. Could you investigate? (I'm not really sure if it
-sgunderson> is an error or not, to be honest, I just want it checked. :-) )
-
-jmoyer> Yes, looks like a problem to me.  Thanks!  Attached is a patch.
-
-Actually, I fired too quickly on this one.  stderr is used for the error
-reporting, so we shouldn't mark the state as done until we've read
-everything from stdout.
-
--Jeff
+Ian
