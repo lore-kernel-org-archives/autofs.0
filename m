@@ -1,12 +1,13 @@
-From: Gerald Teschl <gerald@esi.ac.at>
-Subject: Re: autofs RFE
-Date: Mon, 8 Dec 2003 13:35:33 +0100 (CET)
+From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: Re: autofs RFE
+Date: Tue, 09 Dec 2003 22:48:58 -0800
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.44.0312081320340.18368-100000@keen.esi.ac.at>
-References: <Pine.LNX.4.44.0312081929510.3866-100000@raven.themaw.net>
+Message-ID: <3FD6C1DA.7070303@zytor.com>
+References: <Pine.LNX.4.33.0312081134310.26524-100000@wombat.indigo.net.au>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.44.0312081929510.3866-100000@raven.themaw.net>
+In-Reply-To: <Pine.LNX.4.33.0312081134310.26524-100000@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,43 +17,28 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
 To: Ian Kent <raven@themaw.net>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+Cc: autofs mailing list <autofs@linux.kernel.org>, Gerald Teschl <gerald@esi.ac.at>
 
-On Mon, 8 Dec 2003, Ian Kent wrote:
-
-> On Mon, 8 Dec 2003, Gerald Teschl wrote:
+Ian Kent wrote:
+>>
+>>Would it be possible to make autofs honor the "owner" option for mount and
+>>mount a dev with the permissions of the owner if this option is present?
 > 
-> > 
-> > The ideal solution would be to make the mount call as the user requesting
-> > the mount, but if I understand you right, this is to complex to find out.
-> > So the solution to this problem should be the following:
-> > If the "owner" option is present, do the mount call as the user owning
-> > the device file.
+> I've been thinking about this for a while.
 > 
-> Umm...
-> That should work.
-> Can we always relly on the device owner to be the correct owner for the 
-> mount (when the owner option is specified) or is this a security risk?
-> Comments please.
+> At the moment the userspace daemon has no way of knowing who the owner is.
+> To change that would break backward compatability. So I'm not sure it's
+> such a good idea.
+> 
+> How is this handled in v3 Peter?
+> 
 
-1) It is as secure as the original "console user" concept
-used by RedHat and most others - which is definitely better than the
-"floppy group" concept. Moreover, if pam should fail to set the
-ownership you are hosed anyway: the dev owner has full access to the
-dev, so autofs doesn't give this user anything she/he die not have
-before (except for convennience;-).
+Actually, it's handled just fine by mount(8); the autofs daemon doesn't 
+need to do anything special.
 
-2) It is optional via the "owner" option. So the admin has to enable it
-and then live with the consequences;-)
+Just pass the -owner filesystem option and mount(8) will use the 
+ownership of the device node.
 
-
-> So short answer is yes, if all goes well, but I can't commit to when. I'll 
-> know more once I start the comming development phase.
-Nobody is pushing you. Take your time!
-
-Thanks,
-
-Gerald
+	-hpa
