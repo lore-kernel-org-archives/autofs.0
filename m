@@ -1,12 +1,15 @@
-From: raven@themaw.net
-Subject: Re: Problem with Automount 4.1.x
-Date: Tue, 4 May 2004 22:59:17 +0800 (WST)
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: Please help - cleanup
+Date: Tue, 4 May 2004 10:59:00 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0405042257370.17014@donald.themaw.net>
-References: <C3CDA0E3AC8B4E438E94F37D0A20FE718D45BB@HOUEXC210.mgroupnet.com>
+Message-ID: <16535.44980.475389.900686@segfault.boston.redhat.com>
+References: <Pine.LNX.4.58.0405022201480.25614@donald.themaw.net>
+	<Pine.LNX.4.58.0405042233560.17014@donald.themaw.net>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <C3CDA0E3AC8B4E438E94F37D0A20FE718D45BB@HOUEXC210.mgroupnet.com>
+In-Reply-To: <Pine.LNX.4.58.0405042233560.17014@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,31 +19,39 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: "Rigler, Steve" <SRigler@MarathonOil.com>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: raven@themaw.net
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
-On Tue, 4 May 2004, Rigler, Steve wrote:
+==> Regarding Re: [autofs] Please help - cleanup; raven@themaw.net adds:
 
-> I'm experiencing an issue where automount v4.1.2 (before and after
-> the most current patch) will not mount NFS dirs.  I'm pasting an
-> "strace -f" of the automount process responsible for the automount
-> dir.
-> 
-> This happens when we boot the machine (tested on RHEL 3 and FC1).
-> It won't mount NFS dirs and will sometimes resolve itself (always
-> after restarting the automount processes).
-> 
-> In the case of the strace, the mountpoint I'm trying to get to is
-> "/software/OW12PL" which is defined in a yp map.  In messages I
-> see this:
-> 
-> May  4 09:06:25 houu30 automount[1842]: attempting to mount entry /software/OW12PL
-> May  4 09:06:36 houu30 automount[2763]: mount(nfs): no host elected
-> May  4 09:06:36 houu30 automount[2763]: failed to mount /software/OW12PL
+raven> Hi all again,
 
-Steve could you add a --debug to the master map entry and send the log 
-output from your debug.log please.
+raven> Further to yesterdays replicated server patch I have done some
+raven> cleanup to it.
 
-Ian
+raven> This patch replaces the previous patch so you will need to back out
+raven> the previous one before applying this one.
+
+raven> I have:
+
+raven> - corrected some inconsistent messages.  - cleaned up paths (there
+raven> were some double slashes, function was OK though)
+
+raven> One problem remains and seems not to be easily fixed. For multi
+raven> mount maps dead mount point directories (from failed mounts) are
+raven> left. This is not simple to fix without breaking other
+raven> functionality. I believe it is better than those "BUG" messages
+raven> though. So we`ll have to live with it for now.
+
+Hmm... along the same lines, I just configured ghosting for a map which
+uses wildcards (which I'm guessing is not supported, right?). If you cd
+to a directory, any directory, it will create that directory and leave it
+around, even though there is no such mount.  This sounds like something
+that should be fixed up.
+
+raven> If anyone is able to test this also that would be great.
+
+I will roll another test rpm with this patch and post to my people page.
+
+-Jeff
