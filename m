@@ -1,13 +1,9 @@
-From: Rasmus Hahn <rassahah@neofonie.de>
-Subject: Re: autofs - nfs with localhost
-Date: Fri, 11 Feb 2005 12:43:09 +0100
-Message-ID: <20050211114309.GA21688@hamburg.neofonie.priv>
-References: <20050209170812.GA3000@hamburg.neofonie.priv>
-	<16907.42002.201785.995963@segfault.boston.redhat.com>
-	<Pine.LNX.4.58.0502111005580.6415@wombat.indigo.net.au>
+From: Chip Seraphine <chip@trdlnk.com>
+Subject: Direct maps!!
+Date: Fri, 11 Feb 2005 16:49:10 -0600
+Message-ID: <420D3666.3010208@trdlnk.com>
 Mime-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0502111005580.6415@wombat.indigo.net.au>
+Content-Transfer-Encoding: 7bit
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,47 +14,26 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: autofs@linux.kernel.org
 
-On Fri, Feb 11, 2005 at 10:11:02AM +0800, Ian Kent wrote:
-> On Thu, 10 Feb 2005, Jeff Moyer wrote:
-> 
-> > ==> Regarding [autofs] autofs - nfs with localhost; Rasmus Hahn <rassahah@neofonie.de> adds:
-> > 
-> > rassahah> Hello Mr & Mrs Autofs-Reader, im using autofs-4.1.3 and want to
-> > rassahah> use an map-entry like
-> > 
-> > rassahah>   -port=12215,mountport=12215,nfsvers=3,soft,tcp,ro localhost:/.
-> > 
-> > rassahah> For some reason the automounter believes in beeing smarter than
-> > rassahah> me, and instead of mounting using the nfs daemon it could find on
-> > rassahah> port 12215 it uses a `mount --bind' to mount the root filesystem
-> > rassahah> without nfs.  How can i disable this to force automount to use
-> > rassahah> NFS? The manpages didnt reveal anything about this, is it an
-> > rassahah> experimental feature?
-> > 
-> > rassahah> (background: actually i dont want to remount my / somewhere else,
-> > rassahah> but using an ssh-tunnel on port 12215 with an nfsd on the other
-> > rassahah> end).
-> > 
-> > Sorry, there is no option to configure that.  So is this a feature request?
-> > ;)
-> > 
-> 
-> I've looked at that part of the code a couple of times recently as Chris 
-> is interested in tidying it up.
-> 
-> It certainly looks like it needs work. What was I thinking, doh.
-> 
-> Anyway, it also looks like that if the nosymlink option is specified it 
-> will work as requested here.
-> 
 
-  Yes, the nosymlink option does it, thanks Ian. And moreover: The `nosymlink'
-  option is hereby approved to find its way into the manpage (if theres time
-  for that ;-)
+I was looking in the TODO file for version 4.0 and noticed that you have 
+"* direct maps?" listed for v5.  From the question mark, I assume that 
+you are not sure if you wanted to implement that or not...
 
-  Greetings - Rasmus
+I just wanted to beg you to please do the support for direct maps.  My 
+shop is stuck on Solaris for the simple reason that we use auto.direct 
+very extensively, and migrating to Linux is too painful because of that 
+one reason.  My life would be far better if direct map support is 
+implemented!!!!!
+
+Thanks....
+
+-- 
+
+Chip Seraphine
+Unix Administrator
+TradeLink, LLC
+312-264-2048
+chip@trdlnk.com
