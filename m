@@ -1,54 +1,121 @@
-From: raven@themaw.net
+From: Mike Waychison <Michael.Waychison@Sun.COM>
 Subject: Re: [autofs] [RFC] Towards a Modern Autofs
-Date: Tue, 13 Jan 2004 00:28:32 +0800 (WST)
+Date: Mon, 12 Jan 2004 11:58:48 -0500
 Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <Pine.LNX.4.58.0401130025540.6362@raven.themaw.net>
+Message-ID: <4002D248.2070304@sun.com>
 References: <Pine.LNX.4.33.0401101325280.2403-100000@wombat.indigo.net.au>
  <40029C19.409@sun.com> <Pine.LNX.4.58.0401122356100.6362@raven.themaw.net>
+ <Pine.LNX.4.58.0401130025540.6362@raven.themaw.net>
 Mime-Version: 1.0
+Content-Type: multipart/signed;
+ boundary=------------enig8E1C5834750FE2B509569C84;
+ protocol="application/pgp-signature"; micalg=pgp-sha1
 Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0401122356100.6362@raven.themaw.net>
+In-reply-to: <Pine.LNX.4.58.0401130025540.6362@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Mike Waychison <Michael.Waychison@Sun.COM>
+To: raven@themaw.net
 Cc: Jim Carter <jimc@math.ucla.edu>, autofs mailing list <autofs@linux.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Tue, 13 Jan 2004 raven@themaw.net wrote:
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig8E1C5834750FE2B509569C84
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> On Mon, 12 Jan 2004, Mike Waychison wrote:
-> 
-> > >
-> > >Transparency of an autofs filesystem (as I'm calling it) is the situation
-> > >where, given a map
-> > >
-> > >/usr	/man1	server:/usr/man1
-> > >	/man2	server:/usr/man2
-> > >
-> > >where the filesystem /usr contains, say a directory lib, that needs to be
-> > >available while also seeing the automounted directories.
-> > >
-> > >  
-> > >
-> > I see.  This requires direct mount triggers to do properly.  Trying to 
-> > do it with some sort of passthrough to the underlying filesystem is a 
-> > nightmare waiting to happen..
-> > 
-> 
-> So what are we saying here?
-> 
-> We install triggers at /usr/man1 and /usr/man2.
-> Then suppose the map had a nobrowse option.
-> Does the trigger also take care of hiding man1 and man2?
-> 
-> Is there some definition of these triggers?
-> 
+raven@themaw.net wrote:
 
-And I have another question concerning namespaces.
+>On Tue, 13 Jan 2004 raven@themaw.net wrote:
+>
+>  
+>
+>>On Mon, 12 Jan 2004, Mike Waychison wrote:
+>>
+>>    
+>>
+>>>>Transparency of an autofs filesystem (as I'm calling it) is the situation
+>>>>where, given a map
+>>>>
+>>>>/usr	/man1	server:/usr/man1
+>>>>	/man2	server:/usr/man2
+>>>>
+>>>>where the filesystem /usr contains, say a directory lib, that needs to be
+>>>>available while also seeing the automounted directories.
+>>>>
+>>>> 
+>>>>
+>>>>        
+>>>>
+>>>I see.  This requires direct mount triggers to do properly.  Trying to 
+>>>do it with some sort of passthrough to the underlying filesystem is a 
+>>>nightmare waiting to happen..
+>>>
+>>>      
+>>>
+>>So what are we saying here?
+>>
+>>We install triggers at /usr/man1 and /usr/man2.
+>>Then suppose the map had a nobrowse option.
+>>Does the trigger also take care of hiding man1 and man2?
+>>
+>>Is there some definition of these triggers?
+>>
+>>    
+>>
+>
+>And I have another question concerning namespaces.
+>
+>Given that there may be several namespaces, each of which may or may not 
+>have a trigger on this dentry, is there some sort of list of triggers?
+>
+>How do the triggers know who owns them?
+>
+>
+>  
+>
+This is the reason I went with using distinct filesystems to perform the 
+triggers.  If we use follow_link logic, we will have a reference to the 
+respective vfsmount.  Dentry's themselves know nothing about the 
+triggers, as the triggers just look like a mounted filesystem.   The 
+vfsmount information has enough information for autofs to call a 
+userspace agent through hotplug and have userspace handle the mount.  In 
+effect, there is no daemon so nobody 'owns' a trigger in the same sense 
+as with autofs3/4.
 
-Given that there may be several namespaces, each of which may or may not 
-have a trigger on this dentry, is there some sort of list of triggers?
+As far as userspace is concerned, an autofs filesystem is mounted as is 
+any other filesystem.  All that is required is a proper set of mount 
+options.  For example, mounting auto_home on /home is:
 
-How do the triggers know who owns them?
+mount -t autofs -o maptype=indirect,mapname=auto_home auto_home /home
 
-Ian
+Whenever somebody traverses into a subdir in /home within any namespace 
+this autofs filesystem has been inherited, userspace is invoked (in that 
+namespace) to perform the mount.  Again, there is no 'ownership' other 
+than maybe calling the namespace it resides it the 'owner', as you would 
+for any other mountpoint.
+
+-- 
+Mike Waychison
+Sun Microsystems, Inc.
+1 (650) 352-5299 voice
+1 (416) 202-8336 voice
+mailto: Michael.Waychison@Sun.COM
+http://www.sun.com
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NOTICE:  The opinions expressed in this email are held by me, 
+and may not represent the views of Sun Microsystems, Inc.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+
+
+--------------enig8E1C5834750FE2B509569C84
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.2 (GNU/Linux)
+Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
+
+iD8DBQFAAtJIdQs4kOxk3/MRAroLAKCK3K6/m+s+4z6i9/lmUi0C8FDDuACffvD7
+Urm2y6k9IR6ct5RZ8FLFKno=
+=BwsR
+-----END PGP SIGNATURE-----
+
+--------------enig8E1C5834750FE2B509569C84--
