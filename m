@@ -1,11 +1,9 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [carlst@u.washington.edu: Bug#298649: autofs: Last line
-	of auto.master ignored]
-Date: Fri, 11 Mar 2005 16:18:31 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0503111616130.14020@wombat.indigo.net.au>
-References: <20050309015822.GA18749@uio.no>
+From: Mike Marion <mmarion@qualcomm.com>
+Subject: Re: automount[ ]: failed to mount
+Date: Fri, 11 Mar 2005 09:12:53 -0800 (PST)
+Message-ID: <200503111712.j2BHCrGK028344@cornholio.qualcomm.com>
 Mime-Version: 1.0
-In-Reply-To: <20050309015822.GA18749@uio.no>
+Content-Disposition: INLINE
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,20 +16,25 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Wed, 9 Mar 2005, Steinar H. Gunderson wrote:
+On 10 Mar, Sev Binello wrote:
 
-> Forwarding another bug here -- wasn't this supposed to be fixed in beta2?
+> Yes, trying it already.
+> Installed it yesterday.
+> No failed mount  messages since.
+> Looks goo so far.
 
-No.
+Also, make sure you have the autofs4 kernel module loaded and not the older
+autofs one.  I'd see similar problems (and especially problems in /net) if I
+forgot to add
+alias autofs autofs4 
+in the modules.conf file and the old module loaded, but I was still running 
+the 4.x daemon.
 
-This is a different issue.
-This is in the init script not in the automount program reading file maps.
-I can't remember the original bug report but I thought it refered to file 
-maps and I was able to duplicate it.
-
-I'll investigate.
-
-Ian
+-- 
+Mike Marion-Unix SysAdmin/Staff Engineer-http://www.qualcomm.com
+[Bart & Lisa are reading a magazine at the Kwik-E-Mart.]
+Apu: "Hey, hey, this is not a lending library. If you're
+not going to buy that thing put it down or I'll blow your heads off!"
+-- Simpsons
