@@ -1,37 +1,51 @@
-From: raven@themaw.net
-Subject: Re: [autofs] [RFC] Towards a Modern Autofs
-Date: Wed, 14 Jan 2004 23:58:42 +0800 (WST)
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <Pine.LNX.4.58.0401142351470.1783@raven.themaw.net>
-References: <Pine.LNX.4.33.0401130932460.10047-100000@wombat.indigo.net.au>
- <4004409C.6040900@sun.com>
+From: Robin Rosenberg <robin.rosenberg.lists@dewire.com>
+Subject: Autofs question
+Date: Wed, 14 Jan 2004 17:23:28 +0100
+Sender: autofs-bounces@linux.kernel.org
+Message-ID: <200401141723.28338.robin.rosenberg.lists@dewire.com>
 Mime-Version: 1.0
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-In-Reply-To: <4004409C.6040900@sun.com>
-List-Id: <autofs.vger.kernel.org>
-Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Waychison <Michael.Waychison@Sun.COM>
-Cc: autofs mailing list <autofs@linux.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
+Return-path: <autofs-bounces@linux.kernel.org>
+Content-Disposition: inline
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: autofs@linux.kernel.org
 
-On Tue, 13 Jan 2004, Mike Waychison wrote:
+Hi,
 
-> >
-> My proposal uses filesystems for all automount mechanism *except* 
-> expiry. I see expiry as a VFS service, and strongly believe that this is 
-> where it belongs.
-> 
+1) I grabbed the Dieter Demerre's auto.smb script for mounting samba/windows shares making life hellofalot simpler
+when it comes to accessing Windows shares.
 
-I'm certainly thinking alot about this and have made quite a bit of 
-progress thanks to the patiience of all.
+One of the flaws is that I'd like to get around is that it must be configured as root, as opposed to by the user who
+wants to access a share, and most importantly  that I don't see who is requesting the mount. I was thinking along 
+the line of mounting shares in /cifs/$USER/servers/share or simply mounting the share for the first user using the mount 
+point (essentially single user or one-user-at-a-time machines anyway).
 
-Now it think it may be time to ponder the expire mechanism.
+the auto.smb script is running as root and I printed some info in root.c at the revalidate
 
-I was thinking it might be good for me to write up a specification based 
-on the discussion so far to make sure that we all have the same 
-understanding of what has been discussed. Perhaps this could allow for a 
-specification to follow.
+Jan 12 18:49:06 h6n2fls33o811 kernel: autofs4_root_revalidate, uid=505 name=10.1.1.4
+Jan 12 18:49:06 h6n2fls33o811 automount[22233]: attempting to mount entry /cifs/10.1.1.4
+Jan 12 18:49:06 h6n2fls33o811 kernel: autofs4_root_revalidate, uid=0 name=10.1.1.4
+Jan 12 18:49:06 h6n2fls33o811 logger: uid=0(root) gid=0(root) grupper=0(root)
+Jan 12 18:49:07 h6n2fls33o811 kernel: autofs4_root_revalidate, uid=0 name=10.1.1.4
+Jan 12 18:49:08 h6n2fls33o811 last message repeated 10 times
+and lots more from mounting with uid=0
 
-Good idea or not?
+Is there any simple way of passing the first uid to the automounter daemon?
 
-Ian
+2) Another anoying thing with autofs is that it mounts all shares on the machine which is a problem
+when I don't have access to all.
+
+3) How can the returned map handle spaces in the share names?
+
+I'm using vanilla kernel 2.6.1 and autofs tools 4.0.0 as they come on Mandrake Cooker.
+
+-- robin
