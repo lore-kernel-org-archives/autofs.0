@@ -1,35 +1,44 @@
-From: Jeff Garzik <jgarzik@pobox.com>
-Subject: Re: [announce] Autofs NG 0.1
-Date: Fri, 24 Sep 2004 20:55:52 -0400
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <4154C218.6010805@pobox.com>
-References: <4154C0F2.708@sun.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [NFS] RE: umount fails with NFS mounts
+Date: Mon, 27 Sep 2004 09:34:48 +0800 (WST)
+Sender: autofs-bounces@linux.kernel.org
+Message-ID: <Pine.LNX.4.58.0409270933130.3879@wombat.indigo.net.au>
+References: <Pine.LNX.4.44.0409240925460.9368-100000@maggie.lkpg.cendio.se>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel=40m.gmane.org-S269156AbUIYA4L@vger.kernel.org>
-In-Reply-To: <4154C0F2.708@sun.com>
+Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <Pine.LNX.4.44.0409240925460.9368-100000@maggie.lkpg.cendio.se>
 List-Id: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Mike Waychison <Michael.Waychison@Sun.COM>
-Cc: linux-kernel@vger.kernel.org, autofs@linux.kernel.org, thockin@hockin.org, raven@themaw.net, mark.fasheh@oracle.com
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Peter Astrand <peter@cendio.se>
+Cc: autofs@linux.kernel.org, Erik Forsberg <forsberg@cendio.se>, nfs@lists.sourceforge.net
 
-Mike Waychison wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
+On Fri, 24 Sep 2004, Peter Astrand wrote:
+
 > 
-> Hi folks,
+> > > Of course, the question is why a umount triggers a mount in the first 
+> > > place...
+> > 
+> > Let me guess: automount has to consult the map to know the exact hostname
+> > and options used to mount the filesystem, some of which are needed for the
+> > unmount.  (Well, I always do "umount /mount/point" and it works, but maybe
+> > the automounter needs to do more, such as finding and clearing an entry in
+> > the list of filesystems it is responsible for.)  In your case, the map is
+> > programmatic and includes the test mount.  But under obscure circumstances
+> > the necessary case conversion isn't happening.
 > 
-> Some of you may remember my posting of a new way to do autofs in Linux a
-> while back:
-> 
-> http://marc.theaimsgroup.com/?l=linux-kernel&m=107341940326348&w=2
-> 
-> Anyhow,  I've gotten to the point where I have code that people can play
-> with.  I've posted it all at http://autofsng.bkbits.net
+> Can anyone confirm that the automounter actually may call the programmatic 
+> map upon umount? If so, can the programmatic map detect that a umount is 
+> happening, rather than a mount?
 
-Although I am certainly a BK fan, please do post non-BK sources 
-somewhere so people can review and poke at them...
+The program specified in a program mount is not called during umount.
 
-	Jeff
-
-
+Ian
