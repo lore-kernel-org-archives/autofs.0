@@ -1,12 +1,8 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 0/5] rediffed patches
-Date: Mon, 14 Feb 2005 09:10:27 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0502140905170.25578@wombat.indigo.net.au>
-References: <200502111155.33706.vda@port.imtp.ilyichevsk.odessa.ua>
-	<Pine.LNX.4.61.0502132122240.1843@donald.themaw.net>
-	<20050213134232.GA22574@uio.no>
+From: raven@themaw.net
+Subject: [ANNOUNCE] autofs 4.1.4 beta2 release
+Date: Mon, 14 Feb 2005 22:39:51 +0800 (WST)
+Message-ID: <Pine.LNX.4.61.0502142233210.1653@donald.themaw.net>
 Mime-Version: 1.0
-In-Reply-To: <20050213134232.GA22574@uio.no>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,30 +13,72 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
-To: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
-Cc: autofs@linux.kernel.org
+To: autofs mailing list <autofs@linux.kernel.org>
 
-On Sun, 13 Feb 2005, Steinar H. Gunderson wrote:
 
-> On Sun, Feb 13, 2005 at 09:25:29PM +0800, raven@themaw.net wrote:
-> > My Ultra SPARC doesn't like the logging patches much.
-> > Managed to carsh automount in a flash.
-> 
-> Could we please postpone these patches for 4.1.5? I'd like as few things as
-> possible to break for 4.1.4, at least, since that's probably the version
-> we'll be using in Debian sarge.
+Hi all,
 
-Yes. That would be good policy anyway.
+Here is autofs 4.1.4 beta2.
 
-We've had a lot of changes in circulation for a while now, with the beta.
+There haven't been many changes since beta1.
 
-To add the uncertainty of several more patches would be a mistake at this 
-stage.
+For more information look at the CHANGELOG in the distribution.
 
-4.1.5 it is.
+There are still a few problems that I'm aware of such as:
 
-Sorry Denis.
+- the init script for Debian and Gentoo works better but still
+    ins't handling the reload option completely.
+
+- the bug with the selection of the default map type when using
+    submounts still hasn't been resolved.
+
+So let me know when you find more and I'll fix`em as quick as I can!
+
+The distribution can be found at the usual place at:
+
+http://www.kernel.org/pub/linux/daemons/autofs/v4
+
+in the tars
+
+autofs-4.1.4_beta2.tar.[gz|bz2]
+
+also there is a tarball called:
+
+autofs-4.1.4-beta2-deb.tar.[gz|bz2]
+
+that can be used to build binary debs (see below).
+
+It is possible to build packages for testing from the distribution. 
+I'm not the maintainer of any of these distribution packages so please be 
+aware that this is for convenience and testing.
+
+To build an rpm package use:
+
+rpmbuild -tb autofs-4.1.4_beta2.tar.gz
+
+and the binary rpms will end up in the usual location.
+
+To merge the package into Gentoo use:
+
+tar zxf autofs-4.1.4_beta2.tar.gz
+cd autofs-4.1.4_beta2/gentoo
+export PORTDIR_OVERLAY=`pwd`
+ebuild net-fs/autofs/autofs-4.1.4_beta2.ebuild digest
+ebuild net-fs/autofs/autofs-4.1.4_beta2.ebuild clean install
+ebuild net-fs/autofs/autofs-4.1.4_beta2.ebuild qmerge
+unset PORTDIR_OVERLAY
+
+To build binary debs for Debian download the tar refered to above and:
+
+tar zxvf autofs-4.1.4-beta2-deb.tar.gz
+dpkg-source -x autofs_4.1.4-beta2-1.dsc
+cd autofs-4.1.4-beta2
+dpkg-buildpackage -b
+
+and the binary debs will be placed in the directory the tar was unpacked.
+
+Hopefuly this will help with the testing
 
 Ian
