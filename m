@@ -1,13 +1,14 @@
-From: Arun Sharma <arun.sharma@intel.com>
+From: "H. Peter Anvin" <hpa@zytor.com>
 Subject: Re: VFS: Busy inodes after unmount on 2 way SMP
-Date: Wed, 17 Sep 2003 10:47:44 -0700
+Date: Wed, 17 Sep 2003 13:41:15 -0700
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <3F689E40.6090802@intel.com>
+Message-ID: <3F68C6EB.2080706@zytor.com>
 References: <Pine.LNX.4.33.0309171251290.25153-100000@wombat.indigo.net.au>
+	<3F689E40.6090802@intel.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.33.0309171251290.25153-100000@wombat.indigo.net.au>
+In-Reply-To: <3F689E40.6090802@intel.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,21 +19,12 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org, nfs@lists.sourceforge.net
+To: Arun Sharma <arun.sharma@intel.com>
+Cc: autofs@linux.kernel.org, nfs@lists.sourceforge.net, Ian Kent <raven@themaw.net>
 
-Ian Kent wrote:
-> On Tue, 16 Sep 2003, Arun Sharma wrote:
-> 
-> 
->> Please ignore the above lines. I corrected myself in an earlier
->> message. The problem was seen on the autofs4 kernel module in
->> 2.4.20 + autofs-3.1.7 user daemon.
-> 
-> 
-> Vanilla 2.4.20?
-> 
+Okay... let me ask this so I get it straight...
 
-Yes, vanilla 2.4.20.
+Has anyone seen this (busy inodes after stopping the automounter) using 
+autofs v3 kernel module and daemon?
 
-	-Arun
+	-hpa
