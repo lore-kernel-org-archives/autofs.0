@@ -1,13 +1,8 @@
-From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
-Subject: Re: New Debian packages
-Date: Mon, 4 Apr 2005 16:48:05 +0200
-Message-ID: <20050404144805.GA20880@uio.no>
-References: <20050403000945.GB22336@uio.no>
-	<Pine.LNX.4.58.0504041046400.27508@wombat.indigo.net.au>
-Mime-Version: 1.0
+From: "Craig Schreiner" <nzzjw8q02@sneakemail.com>
+Subject: Re: smbfs credentias
+Date: 4 Apr 2005 20:27:00 -0000
+Message-ID: <20065-08925@sneakemail.com>
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0504041046400.27508@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,19 +13,44 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: autofs@linux.kernel.org
 
-On Mon, Apr 04, 2005 at 10:51:36AM +0800, Ian Kent wrote:
-> I'm tempted to release 4.1.4. Most of the current issues are with the 
-> Debian portion of the init script which we have been working on.
-> 
-> Do you think we can get this bit right and go straight to release?
+> From: Jeff Moyer jmoyer at redhat.com
+> Date: Wed Jan 5 10:34:18 PST 2005
+>
+> ==> Regarding [autofs] smbfs credentias; abo <abo at brujulatelecom.com> adds:
+>
+> abo> hi!  im trying to mount smbfs resources from an ldap
+>
+> abo> if i put in nisMapEntry this
+>
+> abo> -fstype=smbfs,credentials=/home/abo/smb.creds
+>
+> abo> everything is working right. then i want to do it per user but
+> abo> variable substitution doesn't work, i tried:
+>
+> abo> -fstype=smbfs,credentials=/home/$USER/smb.creds
+>
+> abo> -fstype=smbfs,credentials=/home/${USER}/smb.creds
+>
+> abo> -fstype=smbfs,credentials=~/smb.creds
+>
+> abo> but no succes.
+>
+> abo> how can i get per user credentiasl? im on the wrong direction?
+>
+> The automounter runs as user root.  It has no way of knowing which user
+> requested a given mount.
+>
+> -Jeff
 
-The only gripe I can find seems to be the replication, but that is probably
-too much to fix for 4.1.4. So a release seems OK, yes.
+Wow, I'm really surprised that there isn't some mechanism to support multiple users?  While this credential mechanism might be okay for a test lab or a single user LAN, but what do people do in a business/enterprise environment?
 
-/* Steinar */
--- 
-Homepage: http://www.sesse.net/
+Is there anyway to force the automounter to prompt for username and password?
+
+Maybe I should ask, why is there no way of the automounter knowing which user is requesting a given mount?  I mean no disrespect, but does anyone else think this is a design limiting security risk implementation when automounting smbfs types?
+
+--z
