@@ -1,11 +1,14 @@
-From: Mike Waychison <Michael.Waychison@Sun.COM>
-Subject: Re: Direct maps!!
-Date: Mon, 14 Feb 2005 15:56:34 -0500
-Message-ID: <42111082.50001@sun.com>
-References: <420D3666.3010208@trdlnk.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [PATCH 3/5] logging to stderr
+Date: Tue, 15 Feb 2005 09:26:11 +0800 (WST)
+Message-ID: <Pine.LNX.4.58.0502150923460.22172@wombat.indigo.net.au>
+References: <200502111155.33706.vda@port.imtp.ilyichevsk.odessa.ua>
+	<200502111159.50103.vda@port.imtp.ilyichevsk.odessa.ua>
+	<200502111201.43507.vda@port.imtp.ilyichevsk.odessa.ua>
+	<200502111203.58345.vda@port.imtp.ilyichevsk.odessa.ua>
+	<16912.49643.760509.977965@segfault.boston.redhat.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-In-reply-to: <420D3666.3010208@trdlnk.com>
+In-Reply-To: <16912.49643.760509.977965@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,55 +19,20 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: Chip Seraphine <chip@trdlnk.com>
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Jeff Moyer <jmoyer@redhat.com>
 Cc: autofs@linux.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Mon, 14 Feb 2005, Jeff Moyer wrote:
 
-Hi Chip,
-
-Chip Seraphine wrote:
+> ==> Regarding [autofs] [PATCH 3/5] logging to stderr; Denis Vlasenko <vda@port.imtp.ilyichevsk.odessa.ua> adds:
 > 
-> I was looking in the TODO file for version 4.0 and noticed that you have
-> "* direct maps?" listed for v5.  From the question mark, I assume that
-> you are not sure if you wanted to implement that or not...
+> vda> Add code, but do not switch rest of program to use it, yet.
 > 
-> I just wanted to beg you to please do the support for direct maps.  My
-> shop is stuck on Solaris for the simple reason that we use auto.direct
-> very extensively, and migrating to Linux is too painful because of that
-> one reason.  My life would be far better if direct map support is
-> implemented!!!!!
+> I'm curious, what is the motivation for this?
 
-Thought I'd take this opportunity to plug autofsng.  It supports lazy
-mounting and direct maps.
+I believe it relates to the patch before this.
+Putting autofs in the foreground we want as much debug info as we can get.
 
-It still a bit beta, and lacks some of the heuristic logic available in
-autofs 4.1.*.  However, the project's goal is to be a drop-in substitute
-that allows %100 integration into a Solaris automount environment.
-
-If interested, patches and tarballs are available at:
-
-ftp://ftp-eng.cobalt.com/pub/users/ssmith/autofsng/
-
-(home will be changing soon).
-
-- --
-Mike Waychison
-Sun Microsystems, Inc.
-1 (650) 352-5299 voice
-1 (416) 202-8336 voice
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NOTICE:  The opinions expressed in this email are held by me,
-and may not represent the views of Sun Microsystems, Inc.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
-
-iD8DBQFCERCCdQs4kOxk3/MRAlTbAKCC3zIVD3D9hdortOWvsU3kQ1p9CQCeJFFk
-PT79cUZ+iaJS4SHwJoE0KjQ=
-=aapz
------END PGP SIGNATURE-----
+Ian
