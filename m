@@ -1,12 +1,9 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [patch] Fix for ldap_search when multiple cn's are in
- one LDAP entry.
-Date: Thu, 6 Jan 2005 13:54:59 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0501061353100.6246@wombat.indigo.net.au>
-References: <41B9F4EB.2050202@redhat.com>
+From: Krishnakumar B <kitty@dre.vanderbilt.edu>
+Subject: Help with automounting from a LDAP server
+Date: Mon, 10 Jan 2005 01:29:23 -0600
+Message-ID: <87llb1oi7g.fsf@tango.dre.vanderbilt.edu>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <41B9F4EB.2050202@redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,33 +14,40 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Chris Feist <cfeist@redhat.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Fri, 10 Dec 2004, Chris Feist wrote:
+Hi,
 
-> This patch fixes a bug in the ldap search which will only use the first 
-> mount point found in an LDAP entry.
-> 
-> For example if an ldap entry looks like this:
-> 
-> dn: cn=%T%I_apps, nisMapName=auto_home, ou=foo.bar
-> nismapname: auto_home
-> objectClass: top
-> objectClass: nisobject
-> nismapentry: foo.bar.ti.com:/vol/vol6/TI_apps
-> cn: %T%I_apps
-> cn: TI_apps
-> 
-> Then the auto_home map will only be used in /%T%I_apps
+Are there any standard practices to follow for automounting from a LDAP
+server without using local files, for both the NFS server and the clients?
+The NFS clients part seems straightforward.  However it is not clear how
+autofs mounts directories residing on the local filesystem on the NFS
+server.
 
-But the key is unique by definition.
+For example if I have the following setup:
 
-I'll add this patch but I'm not sure it's correct wrt autofs map 
-definition.
+1. I export /export/home from the NFS server, nfs.example.com
+2. The NFS server is also configured to use the LDAP server to get
+   automount information, i.e, automount: ldap in /etc/nsswitch.conf
+3. auto_home is setup on the LDAP server to spit out something equivalent to:
 
-Comments?
+*  -rw,hard,intr,rsize=8192,wsize=8192,nosuid nfs.example.com:/export/home
 
-Ian
+Will autofs on nfs.example.com recognize the local mount /export/home and
+use a loopback mount for /home?  If so, do people recommend using the same
+approach (using a direct mount) for /var/spool/mail on nfs.example.com?  If
+not, why not?
+
+Is there any way to disable specify exclude clauses in the mount options to
+autofs?  For example, can I specify some option to autofs so that on a
+particular machine autofs will not use the automount entry from the
+directory server.
+
+Thanks,
+kitty.
+
+-- 
+Krishnakumar B <kitty at dre dot vanderbilt dot edu>
+Institute for Software Integrated Systems, Dept. of EECS, Vanderbilt University
