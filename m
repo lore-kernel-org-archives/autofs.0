@@ -1,15 +1,8 @@
-From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
-Subject: Re: [weasel@debian.org: Bug#296238: autofs breaks nis
-	auto.master when there is a tab in nsswitch]
-Date: Tue, 22 Feb 2005 18:38:33 +0100
-Message-ID: <20050222173833.GA18046@uio.no>
-References: <20050221112243.GA18164@uio.no>
-	<Pine.LNX.4.61.0502220039110.20458@donald.themaw.net>
-	<20050222130204.GA16052@uio.no>
-	<Pine.LNX.4.61.0502222237240.1806@donald.themaw.net>
+From: David Meleedy <david.meleedy@analog.com>
+Subject: Re: Autofs4 4.1.3-28 with NetApp filer
+Date: Tue, 22 Feb 2005 15:07:29 -0500
+Message-ID: <200502222007.j1MK7Taq013513@jetcar.spd.analog.com>
 Mime-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.61.0502222237240.1806@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,15 +17,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: autofs@linux.kernel.org
 
-On Tue, Feb 22, 2005 at 10:39:19PM +0800, raven@themaw.net wrote:
->> http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=295723
-> Thanks Steinar, I'll unroll the expression in a loop to fix this.
-> 
-> Would you like an interim patch or would you prefer to wait for beta3?
 
-I can wait for beta3, no problem. Do you do s/sh/bash/ in it while you're at
-it (or optionally POSIXify the script)?
+Jeff Moyer said:
 
-/* Steinar */
--- 
-Homepage: http://www.sesse.net/
+> Thanks for reposting, Ian.  These slipped through the cracks.  I'll get
+> them into our version of the package.
+
+Does this refer to the autofs-4.1.3-multi-over.patch ?
+
+If so, please don't forget to incorporate this in as we depend on
+it!
+
+Thanks,
+
+-Dave
+
+________________________________________________________________________
+David Meleedy				Analog Devices, Inc.
+David.Meleedy@analog.com		Three Technology Way
+Phone: 781 461 3494			Norwood, MA  02062-9106  USA
