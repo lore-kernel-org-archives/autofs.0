@@ -1,11 +1,14 @@
-From: "idiot)_) supreme" <ejw50@hotmail.com>
-Subject: Re: error in 2.6
-Date: Fri, 30 Apr 2004 20:12:54 +0000
+From: Michael Blandford <mlblandf@sedona.ch.intel.com>
+Subject: Re: Autofs picking first server from the automounter map
+ all the time
+Date: Fri, 30 Apr 2004 13:52:13 -0700
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <SEA2-F70z3T4nwFYHwP00005275@hotmail.com>
+Message-ID: <4092BC7D.2080703@sedona.intel.com>
+References: <D85B695BF793684EA72C8E481FB1D9A1225096@nycmgexm004.leh.lbcorp.lehman.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============60660755190881455=="
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <D85B695BF793684EA72C8E481FB1D9A1225096@nycmgexm004.leh.lbcorp.lehman.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -15,56 +18,36 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-To: raven@themaw.net
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: "Patel, Rahulkumar [NJ]" <rahul@lehman.com>
+Cc: "'autofs@linux.kernel.org'" <autofs@linux.kernel.org>
 
---===============60660755190881455==
-Content-Type: text/html
+Patel, Rahulkumar [NJ] wrote:
 
-<html><div style='background-color:'><DIV class=RTE>
-<P><BR>Thanks Ian.&nbsp; I will repatch the kernel, move up autofs versions, and let you know how it goes.</P>
-<P>&nbsp;</P>
-<P><BR>&nbsp;</P></DIV>
-<DIV></DIV>&gt;From: raven@themaw.net 
-<DIV></DIV>&gt;To: "idiot)_) supreme" &lt;ejw50@hotmail.com&gt; 
-<DIV></DIV>&gt;CC: autofs@linux.kernel.org 
-<DIV></DIV>&gt;Subject: Re: [autofs] error in 2.6 
-<DIV></DIV>&gt;Date: Thu, 29 Apr 2004 21:28:57 +0800 (WST) 
-<DIV></DIV>&gt; 
-<DIV></DIV>&gt;On Wed, 28 Apr 2004, idiot)_) supreme wrote: 
-<DIV></DIV>&gt; 
-<DIV></DIV>&gt; &gt; I am running autofs4.1, kernel 2.6.5, with the ~7 or so patches.&nbsp;&nbsp;I got this error today 
-<DIV></DIV>&gt; &gt; (/net/d4m/ears is an automount directory).&nbsp;&nbsp;It logged me out, then when I tried on a different 
-<DIV></DIV>&gt; &gt; directory I got the second error&nbsp;&nbsp;and got kicked out again.&nbsp;&nbsp;I did not do any further 
-<DIV></DIV>&gt; &gt; debugging, but I thought you might want to know.&nbsp;&nbsp;If there's anything you want me to try, let 
-<DIV></DIV>&gt; &gt; me know. 
-<DIV></DIV>&gt; &gt; 
-<DIV></DIV>&gt; 
-<DIV></DIV>&gt;What revision are you using. 
-<DIV></DIV>&gt;You need the 20040417 set. 
-<DIV></DIV>&gt; 
-<DIV></DIV>&gt;Please inspect the file fs/autofs4/root.c and look for: 
-<DIV></DIV>&gt; 
-<DIV></DIV>&gt; int flags = nd ? nd-&gt;flags : 0; 
-<DIV></DIV>&gt; 
-<DIV></DIV>&gt;in the declarations near the top of the function autofs4_revalidate. 
-<DIV></DIV>&gt; 
-<DIV></DIV>&gt;If you haven't got this you have a broken version of the patches. 
-<DIV></DIV>&gt; 
-<DIV></DIV>&gt;Ian 
-<DIV></DIV>&gt; 
-<DIV></DIV></div><br clear=all><hr> <a href="http://g.msn.com/8HMAENUS/2749??PS=">Getting married? Find tips, tools and the latest trends at MSN Life Events.</a> </html>
+>Hi,
+>I have following entry defined in the automounter map.
+>But, when I try to access it all the time it pick last server defined for
+>that mount.
+>
+>perl -ro,soft,nosuid,noquota,intr server1:/vol/vol1/software/perl
+>server2:/vol/vol1/software/perl.
+>
+>
+>When I cd /home/perl --> All the time I connect to server2.
+>
+>I am running autofs-3.1.7-21.
+>  
+>
+Autofs 3.x and autofs 4.0.x didn't have real support for replicated 
+server.  It simply picks the first server in the list.
+
+Autofs 4.1.x does include support for replicated server.  You should 
+upgrade and test.
+
+Michael
 
 
---===============60660755190881455==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
-
---===============60660755190881455==--
+Disclaimer: The content of this message is my personal opinion only and 
+although I am an employee of Intel, the statements I make here in no way 
+represent Intel's position on the issue, nor am I authorized to speak on 
+behalf of Intel on this matter.
