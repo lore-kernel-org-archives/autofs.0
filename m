@@ -1,12 +1,13 @@
-From: Ian Kent <raven@themaw.net>
+From: Mike Waychison <Michael.Waychison@Sun.COM>
 Subject: Re: multiple servers per automount
-Date: Thu, 9 Oct 2003 11:07:28 +0800 (WST)
+Date: Thu, 09 Oct 2003 14:23:39 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.33.0310091104250.16859-100000@wombat.indigo.net.au>
-References: <3F848163.2050803@sun.com>
+Message-ID: <3F85A7AB.8070307@sun.com>
+References: <Pine.LNX.4.33.0310091104250.16859-100000@wombat.indigo.net.au>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <3F848163.2050803@sun.com>
+In-reply-to: <Pine.LNX.4.33.0310091104250.16859-100000@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,42 +17,21 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Mike Waychison <Michael.Waychison@Sun.COM>
-Cc: autofs@linux.kernel.org, "H. Peter Anvin" <hpa@zytor.com>
+Content-Type: text/plain; format="flowed"; charset="us-ascii"
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org
 
-On Wed, 8 Oct 2003, Mike Waychison wrote:
+Ian Kent wrote:
 
-> H. Peter Anvin wrote:
+>On a related not Mike.
 >
-> >This should not be an autofs feature but an NFS feature, for obvious
-> >reasons: it's equally applicable for static mounts.
-> >
-> >Furhtermore, failover HAS to be done at the NFS layer.
-> >
-> >The fact that Slowlaris does it in autofs is not a good motivation --
-> >it's idiotic design.
-
-Ohh .. Nasty .... mmmmaaahhh.
-
-> >
-> >
+>Is the number of NFS mounts on Solaris unlimited or is it table driven?
+>I can't find a reference to it anywhere.
 >
-> *Ahem*.  Solaris has had NFS client failover since 2.6.   Linux is still
-> playing catch up in this arena.
-> Failover is not handled in the automount layer, but rather passed on to
-> nfs layer itself.  man mount_nfs.
+>  
 >
+I've asked around, and I'm told that there is no set limit (besides 
+having enough memory).  I'm told that more recent Solaris releases have 
+been tested up to around 260,000 concurrent NFS mounts.
 
-On a related not Mike.
-
-Is the number of NFS mounts on Solaris unlimited or is it table driven?
-I can't find a reference to it anywhere.
-
--- 
-
-   ,-._|\    Ian Kent
-  /      \   Perth, Western Australia
-  *_.--._/   E-mail: raven@themaw.net
-        v    Web: http://themaw.net/
+Mike Waychison
