@@ -1,13 +1,10 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
+From: "Takashi Yoshizawa" <mz711@hotmail.com>
 Subject: Re: What is the purpose of AUTOFS_NEGATIVE_TIMEOUT?
-Date: Mon, 09 Aug 2004 16:21:23 -0700
+Date: Wed, 11 Aug 2004 14:27:10 +0900
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <411806F3.3000906@zytor.com>
-References: <BAY18-F10AKYVpMmOlb0000761f@hotmail.com>
+Message-ID: <BAY18-F41cm9t0CI76r000276b9@hotmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <BAY18-F10AKYVpMmOlb0000761f@hotmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,23 +14,23 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Takashi Yoshizawa <mz711@hotmail.com>
+Content-Type: text/plain; format=flowed; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: hpa@zytor.com
 Cc: autofs@linux.kernel.org
 
-Takashi Yoshizawa wrote:
-> Hi,
-> 
-> AUTOFS_NEGATIVE_TIMEOUT is defined in autofs_i.h.  I want to know this 
-> purpose.
-> In case of CD, "ls /mnt/cd/" without CD doesn't mount, and then insert CD,
-> "ls /mnt/cd/" doesn't too.  Why?  I want it mount immediately.
-> 
+H. Peter Anvin wrote:
+>autofs is not the tool of choice for removable media.  A volume-insertion 
+>daemon is.
+>
+>The reason for the negative timeout is to keep an unprivileged user from 
+>DoSing the system.
 
-autofs is not the tool of choice for removable media.  A volume-insertion 
-daemon is.
+I understand.
+Thank you.
 
-The reason for the negative timeout is to keep an unprivileged user from 
-DoSing the system.
+Takashi Yoshizawa
 
-	-hpa
+_________________________________________________________________
+MSN 8 helps eliminate e-mail viruses. Get 2 months FREE*. 
+http://join.msn.com/?page=features/virus
