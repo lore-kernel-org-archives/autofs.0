@@ -1,14 +1,12 @@
-From: Jim Carter <jimc@math.ucla.edu>
-Subject: Re: running out of mount points
-Date: Tue, 20 Jan 2004 11:15:20 -0800 (PST)
+From: Ian Kent <raven@themaw.net>
+Subject: Re: Introduction: I am new
+Date: Wed, 21 Jan 2004 08:16:19 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.53.0401201104560.5062@xena.cft.ca.us>
-References: <Pine.LNX.4.33.0401130932460.10047-100000@wombat.indigo.net.au>
-	<Pine.LNX.4.58.0401142351470.1783@raven.themaw.net>
-	<40059944.4060901@rhythm.com> <400BFC65.3000700@rhythm.com>
+Message-ID: <Pine.LNX.4.33.0401210813480.13443-100000@wombat.indigo.net.au>
+References: <400D6530.6050109@windriver.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <400BFC65.3000700@rhythm.com>
+In-Reply-To: <400D6530.6050109@windriver.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,33 +18,20 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg Bradner <gregb@rhythm.com>
+To: Jason Brooks <jason.brooks@windriver.com>
 Cc: autofs@linux.kernel.org
 
-On Mon, 19 Jan 2004, Greg Bradner wrote:
-> > I have run into a problem of running out of mount points.  I have over
-> > 600 users and their home dirs are listed in auto.home and they are all
-> > stored on the same nfs server.  If I list the dirs, automount will
-> > create a seperate mount point for each user, and at ~256 mount points,
-> > no more home dirs can be mounted.
+On Tue, 20 Jan 2004, Jason Brooks wrote:
 
-Our "workaround" is to not use the auto.home map.  In /etc/passwd, write
-the user's homedir as /net/tupelo/h1/maint/jimc (using mine as an example),
-where the actual mount point is /net/tupelo/h1.  We provide the auto.home
-map for convenience so users can manually type their homedir as
-/home/$USER, but at any one time only two or three /home mounts will be
-seen throughout our collection of clients and servers.
+> Thank you for your reply.
+>
+> When you say:
+> > This function is done by using a program mount in 4.0.0 and above.
+>
+> Do you mean when using a later version of the mount/umount program?  Or Autofs
+> version 4.x.x?  Or perhaps the kernel autofs4.o module?  <insert other
+> possibilities here>
 
-Also to minimize the number of mounts per machine it's helpful if the users
-execute on either the fileserver or their personal workstations.  In some
-cases this is impractical (e.g. the fileserver is a network appliance) and
-you need a shared execution machine.  But 600 users would bring anything to
-its knees.  We provide several shared execution machines and keep each
-category of (lesser-funded) user on his/her assigned machine, thus cutting
-down the number of mounts even if auto.home is used.
+autofs. An updated autofs4 module is not needed to do this.
 
-Hope this helps!
-
-James F. Carter          Voice 310 825 2897    FAX 310 206 6673
-UCLA-Mathnet;  6115 MSA; 405 Hilgard Ave.; Los Angeles, CA, USA 90095-1555
-Email: jimc@math.ucla.edu  http://www.math.ucla.edu/~jimc (q.v. for PGP key)
+Ian
