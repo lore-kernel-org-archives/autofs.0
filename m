@@ -1,10 +1,8 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: [RFT] Another round of testing for the map expiry changes
-Date: Thu, 18 Nov 2004 10:43:32 -0500
-Message-ID: <16796.49956.382698.186364@segfault.boston.redhat.com>
-Reply-To: jmoyer@redhat.com
+From: David Meleedy <david.meleedy@analog.com>
+Subject: Intermittant problems mounting with automounter
+Date: Thu, 18 Nov 2004 15:53:41 -0500
+Message-ID: <200411182053.iAIKrgEO013759@jetcar.spd.analog.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -17,112 +15,103 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: autofs@linux.kernel.org
-Cc: cfeist@redhat.com, raven@themaw.net
-
-Hello, all,
-
-It's been a while, as you can see from the changelog below.  I'd like to
-get more feedback on the map expiry changes Ian came up with.  I would also
-like feedback on the following:
-
-- giant (>4k characters) program maps (they used to get truncated)
-- No regressions !  (this simply requires lots of people to make sure their
-  environments still work).
-
-RPMs can be found in the usual place:
-     http://people.redhat.com/~jmoyer/
-
-So far, I've only built for fc-3.  If people would like to test on other
-distros, let me know which ones.  The kernel patch is required for the map
-expiry changes.  To make things easy for you, I've built an FC-3 kernel
-with this patch and posted it to the web page.  If you want to run this on
-an arch other than i686, let me know.  I've built the rpms, I just haven't
-uploaded them due to size.
-
-Any and all feedback is welcome.  Happy testing.
-
--Jeff
 
 
-* Wed Nov 17 2004  <jmoyer@redhat.com> - 1:4.1.3-55.1
-- re-enable map expiry patch
-- update ldap-search-limit patch to play nice with map expiry changes.
-- Multimounts broke with the expiry patch.  ian fixed.  (Ian Kent)
+codered-70: cat /etc/redhat-release 
+Red Hat Enterprise Linux WS release 3 (Taroon Update 3)
+codered-71: uname -a
+Linux codered.spd.analog.com 2.4.21-20.EL #1 Wed Aug 18 20:48:55 EDT 2004 
+x86_64
+ x86_64 x86_64 GNU/Linux
 
-* Tue Nov 16 2004 Jeff Moyer <jmoyer@redhat.com> - 1:4.1.3-55
-- Fix program maps so that they can have gt 4k characters. (Neil Horman)
-  Addresses bz #138994.
-- Add a space after the colon here "Starting automounter:" in init script.
-  Fixes bz #138513.
 
-* Mon Nov 15 2004 Jeff Moyer <jmoyer@redhat.com> - 1:4.1.3-53
-- Make autofs understand -[no]browse.  Addresses fz #113494.
+We are mounting from a netapp filer:
+aflac> version
+NetApp Release 6.4.2: Mon Sep 15 12:35:28 PDT 2003
 
-* Thu Nov 11 2004 Jeff Moyer <jmoyer@redhat.com> - 1:4.1.3-48
-- Fix the umount loop device function in the init script.
+Here are the versions of the automounter and kernel we are
+using:
 
-* Wed Oct 27 2004 Chris Feist <cfeist@redhat.com> - 1:4.1.3-34
-- Added a patch to fix the automounter failing on ldap maps
-  when it couldn't get the whole map.  (ie. when the search
-  limit was lower than the number of results)
+codered-65: rpm -qa | grep autofs
+autofs-4.1.3-12
+codered-66: rpm -qa | grep kernel
+kernel-2.4.21-20.EL
 
-* Thu Oct 21 2004 Chris Feist <cfeist@redhat.com> - 1:4.1.3-32
-- Fixed the use of +ypmapname so the maps included with +ypmapname
-  are used in the correct order.  (In the past the '+' entries
-  were always processed after local entries.)
+We set up automounter variables in the following way:
 
-* Thu Oct 21 2004 Chris Feist <cfeist@redhat.com> - 1:4.1.3-31
-- Fixed the duplicate map detection code to detect if maps try
-  to mount on top of existing maps. 
+codered-67: more /etc/sysconfig/autofs
+LOCALOPTIONS="-DSITE=nwd_ -DARCH=x86_64 -DOSREL=redhat3"
 
-* Wed Oct 20 2004 Chris Feist <cfeist@redhat.com> - 1:4.1.3-29
-- Fixed a problem with backwards compatability. Specifying local
-  maps without '/etc/' prepended to them now works. (bz #136038)
+We have an /etc/auto.master file that invokes a perl script
+that returns the value of the mount location given a key.
 
-* Fri Oct 15 2004 Chris Feist <cfeist@redhat.com> - 1:4.1.3-28
-- Fixed a bug which caused directories to never be unmounted. (bz #134403)
+codered-130: cat /etc/auto.master | grep cpd
+/cpd            /etc/auto.cpd   hard,intr,rsize=8192,wsize=8192,vers=3
 
-* Thu Oct 14 2004 Chris Feist <cfeist@redhat.com> - 1:4.1.3-27
-- Fixed an error in the init script which caused duplicate entries to be
-  displayed when asking for autofs status.
+Here is some sample output from that script:
+codered-131: /etc/auto.cpd X11R6
+aflac,aflac-171:/vol/vol1/cpd/${SITE}${ARCH}_${OSREL}/&
+codered-132: /etc/auto.cpd inet
+aflac,aflac-171:/vol/vol1/cpd/${SITE}${ARCH}_${OSREL}/&
 
-* Fri Oct  1 2004 Jeff Moyer <jmoyer@redhat.com> - 1:4.1.3-22
-- Comment out map expiry (and related) patch for an FC3 build.
+I should also mention that I simplified the output from our
+perl script, removing one of the host names that was separated
+by a comma, and the problem still occurred:
 
-* Thu Sep 23 2004 Jeff Moyer <jmoyer@redhat.com> - 1:4.1.3-21
-- Make local options apply to all maps in a multi-map entry.
+codered-132: /etc/auto.cpd inet
+aflac:/vol/vol1/cpd/${SITE}${ARCH}_${OSREL}/&
 
-* Tue Sep 21 2004 Jeff Moyer <jmoyer@redhat.com> - 1:4.1.3-20
-- Merged my and Ian's socket leak fixes into one, smaller patch. Only
-  partially addresses bz #128966.
-- Fix some more echo lines for internationalization. bz #77820
-- Revert the only one auto.master patch until we implement the +auto_master
-  syntax.  Temporarily addresses bz #133055.
 
-* Thu Sep  2 2004 Jeff Moyer <jmoyer@redhat.com> - 1:4.1.3-18
-- Umount loopback filesystems under automount points when stopping the 
-  automounter.
-- Uncomment the map expiry patch.
-- change a close to an fclose in lookup_file.c
+Now during the problem this is what it looks like... first
+one of the directories can be mounted:
 
-* Tue Aug 31 2004 Jeff Moyer <jmoyer@redhat.com> - 1:4.1.3-17
-- Add patch to support parsing nsswitch.conf to determine map sources.
-- Disable this patch, and Ian's map expiry patch for a FC build.
+codered-133: cd /cpd/X11R6
+codered-134: df .
+Filesystem           1K-blocks      Used Available Use% Mounted on
+aflac:/vol/vol1/cpd/nwd_x86_64_redhat3/X11R6
+                      47185920  41362456   5823464  88% /cpd/X11R6
 
-* Tue Aug 24 2004 Jeff Moyer <jmoyer@redhat.com> - 1:4.1.3-16
-- Version 3 of Ian's map expiry changes.
 
-* Wed Aug 18 2004 Jeff Moyer <jmoyer@redhat.com> - 1:4.1.3-15
-- Fix a socket leak in the rpc_subs, causing mounts to fail since we are 
-  running out of port space fairly quickly.
+and then another one from the same filer, same export permissions,
+same directory permissions gets the following error:
 
-* Wed Aug 18 2004 Jeff Moyer <jmoyer@redhat.com> - 1:4.1.3-14
-- New map expiry patch from Ian.
-- Fix a couple signal races.  No known problem reports of these, but they
-  are holes, none-the-less.
+codered-135: cd /cpd/inet
+/cpd/inet: No such file or directory
 
-* Tue Aug 10 2004 Jeff Moyer <jmoyer@redhat.com> - 1:4.1.3-13
-- Only read one auto.master map (instead of concatenating all found
-sources).
-- Uncomment Ian's experimental mount expiry patch.
+then later.... it mysteriously starts working.
+
+codered-137: cd /cpd/inet
+codered-138: df .
+Filesystem           1K-blocks      Used Available Use% Mounted on
+aflac:/vol/vol1/cpd/nwd_x86_64_redhat3/inet
+                      47185920  41362456   5823464  88% /cpd/inet
+
+
+Here's one that uses less automounter variables:
+
+codered-61: /etc/auto.cpd usr
+aflac,aflac-171:/vol/vol1/cpd/${SITE}&  
+codered-62: cd /cpd/usr
+/cpd/usr: No such file or directory.
+
+and later it works again:
+
+codered-68: cd /cpd/usr
+codered-69: df .
+Filesystem           1K-blocks      Used Available Use% Mounted on
+aflac:/vol/vol1/cpd/nwd_usr
+                      47185920  41362456   5823464  88% /cpd/usr
+
+
+Any ideas what is going on here?
+
+Thanks,
+
+-Dave
+
+________________________________________________________________________
+David Meleedy				Analog Devices, Inc.
+David.Meleedy@analog.com		Three Technology Way
+Phone: 781 461 3494			Norwood, MA  02062-9106  USA
