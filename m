@@ -1,11 +1,12 @@
-From: devnull@adc.idt.com
-Subject: autofs and 2.6.x
-Date: Thu, 6 May 2004 11:53:08 -0400 (EDT)
+From: "Rigler, Steve" <SRigler@MarathonOil.com>
+Subject: RE: [PATCH] continued difficulties with the replicated server code
+Date: Thu, 6 May 2004 11:12:09 -0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.44.0405061146430.1165-100000@who.adc.idt.com>
-Reply-To: devnull@adc.idt.com
+Message-ID: <C3CDA0E3AC8B4E438E94F37D0A20FE718D45CE@HOUEXC210.mgroupnet.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
+Content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -15,27 +16,31 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: AutoFS on Linux Kernel <autofs@linux.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: raven@themaw.net, autofs mailing list <autofs@linux.kernel.org>
+Cc: James Pearson <james-p@moving-picture.com>
 
-Has anyone gotten autofs-4.1.x ghosting to work on 2.6.x on x86_64 ?
 
-I have FC1 running on a dual opteron machine and have patched
-2.6.4 with
 
-http://www.kernel.org/pub/linux/kernel/people/raven/autofs4-2.6/2.6.4/
+> -----Original Message-----
+> From: raven@themaw.net [mailto:raven@themaw.net]
+> Sent: Thursday, May 06, 2004 10:41 AM
+> To: autofs mailing list
+> Cc: Rigler, Steve; Tom Georgoulias; James Pearson
+> Subject: [PATCH] continued difficulties with the replicated 
+> server code
+> 
+> 
+> 
+> Hi all,
+> 
+> He's yet another update to the replicated server code.
+> As previously it replaces the last so back it out first.
+> 
 
-all 8 files.
+Ian,
 
-automount works, but ghosting doesnt. I have added --ghost to the startup 
-script. 2.4.26 seems to work, but i need to use 2.6.4
+This patch fixes the issues I was seeing here.
 
-Any help is much appreciated. 
-
-Thanks
-
--- 
-/dev/null
-
-devnull@adc.idt.com
+Thanks,
+Steve
