@@ -1,12 +1,12 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Autofs problem (migration from sun to linux )
-Date: Sun, 14 Mar 2004 22:02:17 +0800 (WST)
+From: "surya " <surya_prabhakar@linuxmail.org>
+Subject: Summary of autofs migration from Sun to Linux (resolved)
+Date: Sun, 14 Mar 2004 20:39:30 +0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0403142201320.6046@raven.themaw.net>
-References: <20040314124713.2AA8D23979@ws5-3.us4.outblaze.com>
+Message-ID: <20040314153930.A51593982E7@ws5-1.us4.outblaze.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20040314124713.2AA8D23979@ws5-3.us4.outblaze.com>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,18 +16,55 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: surya <surya_prabhakar@linuxmail.org>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org, mark.laforest@amd.com
 
-On Sun, 14 Mar 2004, surya  wrote:
+Dear Ian / All  , 
+              First of all Thank you so much Ian for your time to resolve our problem . 
 
-> Dear Ian , 
->       Thx for the instant reply . I have tried in the same way  you told . I am in an environment where we have both solaris and linux clients while nis master is a solaris box .Maps come from NIS .  Does this ghost option ( /home	/etc/auto.home --ghost ) given in the master server cause any trouble for the existing solaris clients . 
+Summary is 
 
-Yes.
+just download 2 files from the below site
 
-Create a file master map localy to refer to the NIS maps.
+http://www.kernel.org/pub/linux/daemons/autofs/v4/
 
-Ian
+download the below files
+
+autofs-4.1.0.tar.gz 
+autofs4-2.4-module-20031201.tar.gz 
+
+1) remove your existing autofs rpm ( if applicable)
+2) untar the autofs-4.1.0.tar.gz and compile it ( ./configure, make ,make install) 
+3) back up your previous module if you want (/lib/modules/<kernel-dir>/kernel/fs/autofs/autofs.o)
+4) Untar autofs4-2.4-module-20031201.tar.gz then do (adjust your kernelpath & macro(read the README) , make ,make install) 
+     After this need to add an option to the master map like this 
+
+              /home	/etc/auto.home --ghost (  /home	/etc/auto.home --ghost ) 
+   You can also pass this " --ghost " option in the /etc/init.d/autofs file .
+   There is an option in this file called  daemonoptions append the entry
+   
+   eg:
+   daemonoptions='--ghost'
+
+    This will append the option to the automount daemon .
+
+5) Restart your autofs service .
+
+    That will solve the problem .
+
+
+rgds
+
+Surya Prabhakar N ,
+Technical Specialist ,
+Strategy & Deployment Team ,
+Wipro Limited ,
+Bangalore - India.
+-- 
+______________________________________________
+Check out the latest SMS services @ http://www.linuxmail.org 
+This allows you to send and receive SMS through your mailbox.
+
+
+Powered by Outblaze
