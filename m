@@ -1,8 +1,8 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: Fwd: autofs Bug ?
-Date: Thu, 8 Apr 2004 19:58:50 +0800 (WST)
+Date: Thu, 8 Apr 2004 20:04:02 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0404081954130.3363@raven.themaw.net>
+Message-ID: <Pine.LNX.4.58.0404082001010.3363@raven.themaw.net>
 References: <200404061002.i36A2s905388@NGEW05.math.tu-dresden.de>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
@@ -23,17 +23,16 @@ Cc: autofs@linux.kernel.org, John Saalwaechter <bababooey182@yahoo.com>
 
 On Tue, 6 Apr 2004, Roland Pfretzschner wrote:
 
-> 
-> In the above stop function, immediately after sending the USR2 signal in the 
-> else-Branch, the automount process is still alive, because it takes a while
-> to go down. And therefore, the while-loop begins working and sends a second USR2.
-> This was the moment when the automount process crashed, especially when there
-> were umountable (not busy) (Network-) filesystems mounted.
+> > > make the problem worse.  After the restart the load on the
+> > > Linux box will rise until it's high, and there will be multiple
+> > > automount daemons for the same mount point.  A full system
 
-Yes this was from the original autofs-3 RedHat package I took the patches 
-from. It has been modified somewhat in 4.1.1 to reduce the signalling as 
-it causes problems with umount. I put back some code I previously had. 
-This may not be the problem you describe but please try 4.1.1 or later and 
-let me know how you go.
+Oh as well.
+
+Jim Carter identified a possible infinite expire loop. I'm not sure that 
+this is what is happening here but I applied his work around in 4.1.1 
+also.
+
+Please try this out.
 
 Ian
