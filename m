@@ -1,12 +1,13 @@
-From: raven@themaw.net
-Subject: Re: Is the "program" format correct ?
-Date: Sun, 15 Aug 2004 10:15:53 +0800 (WST)
+From: Geoff Mishkin <gmishkin@acs.bu.edu>
+Subject: embedded spaces in automounter map options field
+Date: Tue, 17 Aug 2004 10:08:16 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0408150957290.1776@donald.themaw.net>
-References: <1411896967@web.de>
+Message-ID: <200408171008.26436.gmishkin@acs.bu.edu>
+Reply-To: gmishkin@bu.edu
 Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1411896967@web.de>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,45 +17,32 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Andreas Neuper <ANeuper@web.de>
-Cc: autofs@linux.kernel.org
+Content-Type: Text/Plain; charset="us-ascii"
+To: autofs@linux.kernel.org
 
-On Sat, 14 Aug 2004, Andreas Neuper wrote:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> Thank you Takashi,
-> 
-> this confirms my oppinion:  The format for program maps differs!
-> Usual and documented format is:
->         key [-options] location
+I have a situation that requires me to have embedded spaces in the options 
+field of my automounter map.  To make things trickier, the map has to be 
+generated with an executable map.  I am using shfs and have to use it's cmd 
+mount option to force it to connect using a specific private key file.  This 
+requires there to be embedded spaces in the options field, like this:
 
-Not really.
+- -fstype=shfs,cmd="ssh -i /usr/keys/<username> <username>@<host>"
 
-> 
-> These maps swallow the key and accept only nfs location codes
-> where the hostname seems to be overwritten with the key. !?!
+Which causes the automounter to complain bitterly.  Most of the information 
+I've found is for having spaces in share names or mount points, but the 
+advice given doesn't work in the options field.  I've tried all kinds of 
+quotes, backslashing, etc.  I'd greatly appriciate help.
 
-It receives the key as a parameter.
+Please CC me on replies as I am not subscribed to the list.
 
-Lookups always "lookup a key". The program map returns the map entry for 
-the given key only. All the lookup modules work this way.
+			--Geoff Mishkin <gmishkin@us.ibm.com>
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
 
-The confusion here is because you are seeing what the lookup module needs 
-to complete its operation not what you expect a map to look like. It 
-already knows what key it's looking for and doesn't want or need the key 
-to be returned.
-
-> 
-> It seems strange to me. just try to use it for the floppy. I get 
-> errors on hostname resolution! (even when omitting the key) 
-
-In what way are you using it with your floppy?
-
-> 
-> Is there a working release?
-
-Program maps are something that are used by people like yourself. The 
-auto.net is an example only.
-
-Ian
+iD8DBQFBIhFXpH0X57UnVFoRAoChAJ9oQGxmeQse0iwBmmi6DlrSo6CziQCgyJ62
+TiVrjLCwWxaFLvjs2wVZIKQ=
+=aOwF
+-----END PGP SIGNATURE-----
