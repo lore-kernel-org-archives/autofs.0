@@ -1,13 +1,14 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: 4.1.4?
-Date: Sat, 18 Dec 2004 11:22:30 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0412181116130.3330@raven-wl.themaw.net>
+Subject: Re: Limit on return string from program map
+Date: Sat, 18 Dec 2004 11:23:58 +0800 (WST)
+Message-ID: <Pine.LNX.4.58.0412181122440.3330@raven-wl.themaw.net>
 References: <21502.1103178424@kao2.melbourne.sgi.com>
-	<Pine.LNX.4.58.0412171422280.22350@wombat.indigo.net.au>
-	<41C318E8.4090605@rhythm.com>
+ <Pine.LNX.4.58.0412171422280.22350@wombat.indigo.net.au>
+ <16834.63746.614567.523947@segfault.boston.redhat.com>
+ <16835.5936.56572.109035@segfault.boston.redhat.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <41C318E8.4090605@rhythm.com>
+In-Reply-To: <16835.5936.56572.109035@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,32 +21,46 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg Bradner <gregb@rhythm.com>
-Cc: autofs@linux.kernel.org
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: autofs@linux.kernel.org, Keith Owens <kaos@ocs.com.au>
 
-On Fri, 17 Dec 2004, Greg Bradner wrote:
+On Fri, 17 Dec 2004, Jeff Moyer wrote:
 
-> I'm curious too.
+> ==> Regarding Re: [autofs] Limit on return string from program map; Jeff Moyer <jmoyer@redhat.com> adds:
 > 
-> >Ian, when is 4.1.4 coming out.   ;-) 
-> >
-> >-Jeff
+> ==> Regarding Re: [autofs] Limit on return string from program map; Ian Kent <raven@themaw.net> adds:
+> raven> On Thu, 16 Dec 2004, Keith Owens wrote:
+> >>> Kernel 2.6.9, autofs v4 as a module, autofs-4.1.3-28 (FC3).  I added
+> >>> "/net /etc/auto.net" to /etc/auto.master and it works fine, up to a
+> >>> point.  ps shows
+> >>> 
+> >>> /usr/sbin/automount --timeout=60 /net program /etc/auto.net
+> >>> 
+> >>> If the target server has a lot of mounted filesystems then automount
+> >>> will only mount the first few entries on the list.  Then it tries to
+> >>> run mount with invalid input.  It looks like there is a hard coded
+> >>> limit on the string that automount expects from a program map.  My
+> >>> virtual CD server has lots of CD images mounted over loopback, each
+> >>> with its own export entry, so the return string from auto.net is quite
+> >>> long.
+> 
+> raven> The buffer size for map entries is 4096.
+> 
+> jmoyer> I think I posted a patch here that would extend that?  I can't seem
+> jmoyer> to find it in the archives, so I'll repost.  This is the version of
+> jmoyer> the patch that is in our tree, so no guarantees about it applying
+> jmoyer> to Ian's tree.  *sigh* (patch originally done by from Neil Horman)
+> 
+> jmoyer> Ian, when is 4.1.4 coming out.  ;-)
+> 
+> Bah, and it was just pointed out to me that this patch adds a bug.  I'll
+> repost the patch when the bug is fixed.  (see red hat bz #138994).
+> 
+> No ETA just yet.
 
-I'm working kernel patch updates now.
+OK.
 
-I have a couple of difficult daemon patches to merge.
-In particular init script patches.
-
-A couple of patches that have been submitted have not been applied, 
-largely because of the large number of changes already added. In 
-particular the debug info to standard out. I must point out that this is 
-not because of problems with the patch but because of the number of 
-changes. I don't want to add additional function until this lot has 
-settled.
-
-So when?
-
-I should be able to finish over Xmass and get something out in the first 
-or second week of Jan.
+I think I've already merge the above patch.
+I'll look forward to the fix.
 
 Ian
