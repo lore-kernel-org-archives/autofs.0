@@ -1,16 +1,13 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Infinite loop when trying to access nonexistent
-	directory (auto.home '&' substitution)
-Date: Tue, 19 Oct 2004 23:04:26 +0800 (WST)
+From: Chris Feist <cfeist@redhat.com>
+Subject: [patch] Maintain backwards compatibility w/ local file maps w/o
+	etc.
+Date: Wed, 20 Oct 2004 11:56:50 -0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0410192303570.1067@donald.themaw.net>
-References: <Pine.LNX.4.61.0410151425360.7091@orion.arlut.utexas.edu>
- <Pine.LNX.4.58.0410161143240.8831@donald.themaw.net>
- <Pine.LNX.4.61.0410161825450.10308@orion.arlut.utexas.edu>
- <Pine.LNX.4.58.0410192258330.1062@donald.themaw.net>
+Message-ID: <1098291410.3527.18.camel@localhost.localdomain>
+Reply-To: cfeist@redhat.com
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0410192258330.1062@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,48 +17,34 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Robert Giles <rgiles@arlut.utexas.edu>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: raven@themaw.net, autofs@linux.kernel.org
 
-On Tue, 19 Oct 2004, Ian Kent wrote:
+This patch maintains the same behavior as in previous versions of
+rc.autofs.in.  In the past you could have the following in your
+auto.master file and it would test to see if there was a local
+/etc/auto.misc file, and if there was it would use it.
 
-> On Sat, 16 Oct 2004, Robert Giles wrote:
->
-> > On Sat, 16 Oct 2004 raven@themaw.net wrote:
-> > > And at least 2 hunks in the patch failed, right?
-> > > One against fs/namei.c.
-> >
-> > Right, and the other failed portion was against a configuration text file
-> > (Documentation/something).
-> >
-> > I haven't explicitly tested 2.4.25 for the same problem, but over the
-> > course of several months I never had a 2.4.25 machine fill up
-> > /var/log/syslog with these automount errors (with 2.4.27, the disk fills
-> > up so rapidly that folks regularly ask me why their machine doesn't have
-> > any space on /...   basically have to "/etc/init.d/syslog stop" on these
-> > hosts until I can correct the problem).
->
-> I've tested this with 2.4.27 and don't see any problem.
->
-> So it's time for some more specific info.
->
-> Please add the --debug option to the end of the line in the master map.
-> I want ypu to check the version info that is printed.
-> Maybe you could rerun the test and send the log.
->
-> Does the SNARE C2 change the signal handling?
+/misc auto.misc
 
-And what patches have you applied to 4.1.3?
+Now, it doesn't check.  I've attached a patch that fixes this behavior
+(I think debian does the same thing with their autofs patches as well).
 
->
-> Ian
->
->
+Thanks,
+Chris
 
---
-   ,-._|\    Ian Kent
-  /      \   Perth, Western Australia
-  *_.--._/   E-mail: raven@themaw.net
-        v    Web: http://themaw.net/
+--- autofs-4.1.3/samples/rc.autofs.in.filemap-etc-append       
+2004-10-20 11:47:05.227372963 -0500
++++ autofs-4.1.3/samples/rc.autofs.in   2004-10-20 11:47:06.947345831
+-0500
+@@ -206,6 +206,9 @@
+                        map=`echo /etc/$map | sed 's^//^/^g'`
+                    elif [ -f "$map" ]; then
+                        maptype=file
++                   elif [ -f "/etc/$map" ]; then
++                       maptype=program
++                       map=`echo /etc/$map | sed 's^//^/^g'`
+                    elif [ "$map" = "hesiod" -o "$map" = "userhome" ] ;
+then
+                        maptype=$map
+                        map=
