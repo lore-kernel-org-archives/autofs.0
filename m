@@ -1,12 +1,12 @@
-From: Peter Breitenlohner <peb@mppmu.mpg.de>
-Subject: autofs-4.1.2 -- patch
-Date: Tue, 15 Jun 2004 13:07:08 +0200 (CEST)
+From: raven@themaw.net
+Subject: Re: autofs-4.1.2 -- patch
+Date: Thu, 17 Jun 2004 22:48:25 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0406151303350.2724@pcl321.mppmu.mpg.de>
+Message-ID: <Pine.LNX.4.58.0406172247230.1403@donald.themaw.net>
+References: <Pine.LNX.4.58.0406151303350.2724@pcl321.mppmu.mpg.de>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="1803957763-1168090455-1087297628=:2724"
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <Pine.LNX.4.58.0406151303350.2724@pcl321.mppmu.mpg.de>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,158 +16,20 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
-
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-  Send mail to mime@docserver.cac.washington.edu for more info.
-
---1803957763-1168090455-1087297628=:2724
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-
-Hi,
-
-I'd like to suggest the attached patch for autofs-4.1.2 fixing various
-minor bugs, typos, and inconsistencies.
-
-Some comments:
-
-man/autofs.8.in:  Since "autofs status" is mentioned in the text it should
-as well appear in the synopsis.
-
-man/automount.8:  Tell the truth about creation and removal of mount points;
-various formating bugs and typos; consistent punctuation ("A, B, and C" like
-"A, B, or C").
-
-modules/Makefile:  "make install" shouldn't fail if the symlink
-mount_ext3.so->mount_ext2.so exists (e.g. when re-installing).
-
-samples/Makefile:  Consistently use $(INSTALLROOT)$(initdir) instead of
-$(INSTALLROOT)/$(initdir).
-
-samples/auto.master.ldap:  nisMapNmae=>nisMapName.
-
-regards
-Peter Breitenlohner <peb@mppmu.mpg.de>
---1803957763-1168090455-1087297628=:2724
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name="autofs-4.1.2-patch"
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.58.0406151307080.2724@pcl321.mppmu.mpg.de>
-Content-Description: 
-Content-Disposition: attachment; filename="autofs-4.1.2-patch"
-
-ZGlmZiAtdXIgYXV0b2ZzLTQuMS4yLm9yaWcvbWFuL2F1dG9mcy44LmluIGF1
-dG9mcy00LjEuMi9tYW4vYXV0b2ZzLjguaW4NCi0tLSBhdXRvZnMtNC4xLjIu
-b3JpZy9tYW4vYXV0b2ZzLjguaW4JMjAwMy0wOS0yOSAxMDoyMjozNS4wMDAw
-MDAwMDAgKzAyMDANCisrKyBhdXRvZnMtNC4xLjIvbWFuL2F1dG9mcy44Lmlu
-CTIwMDQtMDYtMTEgMTM6MzE6MTAuMDAwMDAwMDAwICswMjAwDQpAQCAtNCw3
-ICs0LDcgQEANCiBAQElOSVQuREBAL2F1dG9mcyBcLSBDb250cm9sIFNjcmlw
-dCBmb3IgYXV0b21vdW50ZXINCiAuU0ggU1lOT1BTSVMNCiAuQiBAQElOSVQu
-REBAL2F1dG9mcw0KLS5JIHN0YXJ0fHN0b3B8cmVsb2FkDQorLkkgc3RhcnR8
-c3RvcHxyZWxvYWR8c3RhdHVzDQogLlNIICJERVNDUklQVElPTiINCiAuQiBh
-dXRvZnMNCiBjb250cm9sIHRoZSBvcGVyYXRpb24gb2YgdGhlDQpkaWZmIC11
-ciBhdXRvZnMtNC4xLjIub3JpZy9tYW4vYXV0b21vdW50LjggYXV0b2ZzLTQu
-MS4yL21hbi9hdXRvbW91bnQuOA0KLS0tIGF1dG9mcy00LjEuMi5vcmlnL21h
-bi9hdXRvbW91bnQuOAkyMDA0LTAxLTI5IDE3OjAxOjIyLjAwMDAwMDAwMCAr
-MDEwMA0KKysrIGF1dG9mcy00LjEuMi9tYW4vYXV0b21vdW50LjgJMjAwNC0w
-Ni0xMSAxNjowMjowNC4wMDAwMDAwMDAgKzAyMDANCkBAIC00NSwxMiArNDUs
-MTMgQEANCiBEaXNwbGF5IHRoZSB2ZXJzaW9uIG51bWJlciwgdGhlbiBleGl0
-Lg0KIC5TSCBBUkdVTUVOVFMNCiBcZkJhdXRvbW91bnRcZlAgdGFrZXMgYXQg
-bGVhc3QgdGhyZWUgYXJndW1lbnRzLiAgTWFuZGF0b3J5IGFyZ3VtZW50cyAN
-Ci1pbmNsdWRlIFxmSW1vdW50LXBvaW50XGZQLCBcZkltYXAtdHlwZVxmUCBh
-bmQgXGZJbWFwXGZQLiAgQm90aCBtYW5kYXRvcnkNCitpbmNsdWRlIFxmSW1v
-dW50LXBvaW50XGZQLCBcZkltYXAtdHlwZVxmUCwgYW5kIFxmSW1hcFxmUC4g
-IEJvdGggbWFuZGF0b3J5DQogYW5kIG9wdGlvbmFsIGFyZ3VtZW50cyBhcmUg
-ZGVzY3JpYmVkIGJlbG93Lg0KIC5UUA0KIFxmQm1vdW50LXBvaW50XGZQDQog
-QmFzZSBsb2NhdGlvbiBmb3IgYXV0b2ZzLW1vdW50ZWQgZmlsZXN5c3RlbXMg
-dG8gYmUgYXR0YWNoZWQuICBUaGlzIGlzIGENCi1kaXJlY3RvcnkgbmFtZSB3
-aGljaCBtdXN0IGFscmVhZHkgZXhpc3QuDQorZGlyZWN0b3J5IG5hbWUgdGhh
-dCB3aWxsIGJlIGNyZWF0ZWQgKGFzIHdpdGggXGZCbWtkaXIgXC1wXGZQKSBh
-bmQgbGF0ZXINCit3aGVuIFxmQmF1dG9tb3VudFxmUCB0ZXJtaW5hdGVzIHdp
-bGwgYmUgcmVtb3ZlZCAoYXMgd2l0aCBcZkJybWRpciBcLXBcZlApLg0KIC5U
-UA0KIFxmQm1hcC10eXBlXGZQDQogVHlwZSBvZiBtYXAgdXNlZCBmb3IgdGhp
-cyBpbnZvY2F0aW9uIG9mIFxmQmF1dG9tb3VudFxmUC4gIFRoZSBmb2xsb3dp
-bmcgYXJlDQpAQCAtNzgsNyArNzksNyBAQA0KIC5CIGxkYXANCiBtYXAgbmFt
-ZXMgYXJlIG9mIHRoZSBmb3JtIFxmQlsvL3NlcnZlcm5hbWUvXWJhc2Vkblxm
-UCwgd2hlcmUgdGhlIG9wdGlvbmFsDQogXGZCc2VydmVybmFtZVxmUCBpcyB0
-aGUgbmFtZSBvZiB0aGUgTERBUCBzZXJ2ZXIgdG8gcXVlcnksIGFuZCBcZkJi
-YXNlZG5cZlAgaXMNCi10aGUgRE4gdG8gZG8gYSBzdWJ0cmVlIHNlYXJjaCB1
-bmRlci4gVHdvIExEQVAgc2NoZW1hIGFyZSBzdXBwb3J0ZWQuIFRoZSBpDQor
-dGhlIEROIHRvIGRvIGEgc3VidHJlZSBzZWFyY2ggdW5kZXIuIFR3byBMREFQ
-IHNjaGVtYSBhcmUgc3VwcG9ydGVkLiBUaGUNCiBhdXRvbW91bnRNYXAgYW5k
-IHRoZSBuaXNNYXAgKFJGQyAyMzA3KSBvYmplY3QgY2xhc3Nlcy4NCiAuUA0K
-IEVudHJpZXMgaW4gdGhlIGF1dG9tb3VudE1hcCBzY2hlbWEgYXJlIFxmQmF1
-dG9tb3VudFxmUCBvYmplY3RzIGluDQpAQCAtODgsMTIgKzg5LDEzIEBADQog
-dXNlZCBieSB0aGlzIG1vZHVsZSBpcyBhdmFpbGFibGUgb25saW5lIGF0DQog
-XGZJaHR0cDovL2RvY3Muc3VuLmNvbS9zb3VyY2UvODA2LTQyNTEtMTAvbWFw
-cGluZy5odG1cZlAuDQogLlANCi1SRkMgMjMwNyBzY2hlbWEgZW50cmllcyBh
-cmUgXGZCbmlzT2JqZWN0XGZCIG9iamVjdHMgYW5kIHVzZSB0aGUgXGZCY25c
-ZkINCi1hdHRyaWJ1dGUgYXMgdGhlIGtleSBhbmQgdGhlIFxmQm5pc01hcEVu
-dHJ5XGZCIGNvbnRhaW5zIGluZm9ybWF0aW9uIHVzZWQNCitSRkMgMjMwNyBz
-Y2hlbWEgZW50cmllcyBhcmUgXGZCbmlzT2JqZWN0XGZQIG9iamVjdHMgYW5k
-IHVzZSB0aGUgXGZCY25cZlANCithdHRyaWJ1dGUgYXMgdGhlIGtleSBhbmQg
-dGhlIFxmQm5pc01hcEVudHJ5XGZQIGNvbnRhaW5zIGluZm9ybWF0aW9uIHVz
-ZWQNCiBieSB0aGUgYXV0b21vdW50ZXIuIA0KIC5SRQ0KIC5UUA0KLVxmQmZv
-cm1hdFxmUCBGb3JtYXQgb2YgdGhlIG1hcCBkYXRhOyBjdXJyZW50bHkgdGhl
-IG9ubHkgZm9ybWF0cw0KK1xmQmZvcm1hdFxmUA0KK0Zvcm1hdCBvZiB0aGUg
-bWFwIGRhdGE7IGN1cnJlbnRseSB0aGUgb25seSBmb3JtYXRzDQogcmVjb2du
-aXplZCBhcmUgXGZCc3VuXGZQLCB3aGljaCBpcyBhIHN1YnNldCBvZiB0aGUg
-U3VuIGF1dG9tb3VudGVyIG1hcA0KIGZvcm1hdCwgYW5kIFxmQmhlc2lvZFxm
-UCwgZm9yIGhlc2lvZCBmaWxlc3lzIGVudHJpZXMuICBJZiB0aGUgZm9ybWF0
-IGlzDQogbGVmdCB1bnNwZWNpZmllZCwgaXQgZGVmYXVsdHMgdG8gXGZCc3Vu
-XGZQIGZvciBhbGwgbWFwIHR5cGVzIGV4Y2VwdA0KZGlmZiAtdXIgYXV0b2Zz
-LTQuMS4yLm9yaWcvbW9kdWxlcy9NYWtlZmlsZSBhdXRvZnMtNC4xLjIvbW9k
-dWxlcy9NYWtlZmlsZQ0KLS0tIGF1dG9mcy00LjEuMi5vcmlnL21vZHVsZXMv
-TWFrZWZpbGUJMjAwNC0wNC0wMyAwOToxNDozMy4wMDAwMDAwMDAgKzAyMDAN
-CisrKyBhdXRvZnMtNC4xLjIvbW9kdWxlcy9NYWtlZmlsZQkyMDA0LTA2LTEx
-IDEzOjQ3OjU1LjAwMDAwMDAwMCArMDIwMA0KQEAgLTU3LDcgKzU3LDcgQEAN
-CiAJLXJtIC1mICQoSU5TVEFMTFJPT1QpJChhdXRvZnNsaWJkaXIpL21vdW50
-X3NtYmZzLnNvDQogaWZlcSAoJChFWFQyRlMpLCAxKQ0KICBpZmVxICgkKEVY
-VDNGUyksIDEpDQotCWxuIC1zIG1vdW50X2V4dDIuc28gJChJTlNUQUxMUk9P
-VCkkKGF1dG9mc2xpYmRpcikvbW91bnRfZXh0My5zbw0KKwlsbiAtZnMgbW91
-bnRfZXh0Mi5zbyAkKElOU1RBTExST09UKSQoYXV0b2ZzbGliZGlyKS9tb3Vu
-dF9leHQzLnNvDQogIGVuZGlmDQogZWxzZQ0KICBpZmVxICgkKEVYVDNGUyks
-IDEpDQpkaWZmIC11ciBhdXRvZnMtNC4xLjIub3JpZy9zYW1wbGVzL01ha2Vm
-aWxlIGF1dG9mcy00LjEuMi9zYW1wbGVzL01ha2VmaWxlDQotLS0gYXV0b2Zz
-LTQuMS4yLm9yaWcvc2FtcGxlcy9NYWtlZmlsZQkyMDA0LTAxLTI5IDE3OjAx
-OjIyLjAwMDAwMDAwMCArMDEwMA0KKysrIGF1dG9mcy00LjEuMi9zYW1wbGVz
-L01ha2VmaWxlCTIwMDQtMDYtMTEgMTQ6MjI6NDYuMDAwMDAwMDAwICswMjAw
-DQpAQCAtMzEsNyArMzEsNyBAQA0KIAktbXYgLWYgJChJTlNUQUxMUk9PVCkv
-ZXRjL2F1dG8ubWlzYyAkKElOU1RBTExST09UKS9ldGMvYXV0by5taXNjLm9s
-ZA0KIAlpbnN0YWxsIC1jIGF1dG8ubWlzYyAgIC1tIDY0NCAkKElOU1RBTExS
-T09UKS9ldGMNCiAJaW5zdGFsbCAtYyBhdXRvLm5ldCAgICAtbSA3NTUgJChJ
-TlNUQUxMUk9PVCkvZXRjDQotCWluc3RhbGwgLWQgLW0gNzU1ICQoSU5TVEFM
-TFJPT1QpLyQoaW5pdGRpcikNCisJaW5zdGFsbCAtZCAtbSA3NTUgJChJTlNU
-QUxMUk9PVCkkKGluaXRkaXIpDQogCWluc3RhbGwgLWMgcmMuYXV0b2ZzICAg
-LW0gNzU1ICQoSU5TVEFMTFJPT1QpJChpbml0ZGlyKS9hdXRvZnMNCiAJaW5z
-dGFsbCAtZCAtbSA3NTUgJChJTlNUQUxMUk9PVCkkKGF1dG9mc2xpYmRpcikN
-CiBpZmVxICgkKExEQVApLCAxKQ0KZGlmZiAtdXIgYXV0b2ZzLTQuMS4yLm9y
-aWcvc2FtcGxlcy9hdXRvLm1hc3Rlci5sZGFwIGF1dG9mcy00LjEuMi9zYW1w
-bGVzL2F1dG8ubWFzdGVyLmxkYXANCi0tLSBhdXRvZnMtNC4xLjIub3JpZy9z
-YW1wbGVzL2F1dG8ubWFzdGVyLmxkYXAJMjAwNC0wNC0wMyAwOToxNDozMy4w
-MDAwMDAwMDAgKzAyMDANCisrKyBhdXRvZnMtNC4xLjIvc2FtcGxlcy9hdXRv
-Lm1hc3Rlci5sZGFwCTIwMDQtMDYtMTEgMTM6MjU6MDcuMDAwMDAwMDAwICsw
-MjAwDQpAQCAtMTQsOSArMTQsOSBAQA0KICMNCiAjIFdoZW4gdXNpbmcgdGhl
-IG5pc01hcCBzY2hlbWEgdXNlIGFuIGVudHJ5IGxpa2UNCiAjIA0KLSMvb3Ro
-ZXIgICBsZGFwOi8vYnVkZ2llL25pc01hcE5tYWU9YXV0by5pbmRpcmVjdCxk
-Yz10aGVtYXcsZGM9bmV0DQorIy9vdGhlciAgIGxkYXA6Ly9idWRnaWUvbmlz
-TWFwTmFtZT1hdXRvLmluZGlyZWN0LGRjPXRoZW1hdyxkYz1uZXQNCiAjDQog
-IyBvciBpZiB0aGUgZGVmYXVsdCBMREFQIHNlcnZlciBpcyBzZXQgaW4geW91
-ciBMREFQIGNvbmZpZw0KICMgeW91IGNhbiB1c2UgdGhpcw0KICMNCi0vb3Ro
-ZXIgICBsZGFwOm5pc01hcE5tYWU9YXV0by5pbmRpcmVjdCxkYz10aGVtYXcs
-ZGM9bmV0DQorL290aGVyICAgbGRhcDpuaXNNYXBOYW1lPWF1dG8uaW5kaXJl
-Y3QsZGM9dGhlbWF3LGRjPW5ldA0K
-
---1803957763-1168090455-1087297628=:2724
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: Peter Breitenlohner <peb@mppmu.mpg.de>
+Cc: autofs@linux.kernel.org
 
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
+On Tue, 15 Jun 2004, Peter Breitenlohner wrote:
 
---1803957763-1168090455-1087297628=:2724--
+> Hi,
+> 
+> I'd like to suggest the attached patch for autofs-4.1.2 fixing various
+> minor bugs, typos, and inconsistencies.
+> 
 
+Thanks for your patch Peter.
+I'll add in the the next release.
+
+Ian
