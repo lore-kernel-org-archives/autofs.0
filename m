@@ -1,17 +1,12 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: 	Is it normal for autofs to remount a file system more
-	than once?
-Date: Fri, 3 Sep 2004 10:20:12 -0400
+From: Hans Deragon <hans@deragon.biz>
+Subject: Autofs and unrecognized parameters... mount() not ignoring anymorefor
+ 2.6 kernel?
+Date: Fri, 03 Sep 2004 15:27:31 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <16696.32156.933953.187469@segfault.boston.redhat.com>
-References: <41379549.2040305@physics.ucsd.edu>
-	<4137DB6E.3020204@sun.com>
-	<413824F2.5040603@physics.ucsd.edu>
-Reply-To: jmoyer@redhat.com
+Message-ID: <4138C5A3.10107@deragon.biz>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7BIT
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <413824F2.5040603@physics.ucsd.edu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,16 +16,30 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: Terrence Martin <tmartin@physics.ucsd.edu>
-Cc: autofs@linux.kernel.org, Mike Waychison <Michael.Waychison@Sun.COM>
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: autofs@linux.kernel.org
 
-==> Regarding Re: [autofs]	Is it normal for autofs to remount a file system more than once?; Terrence Martin <tmartin@physics.ucsd.edu> adds:
+Greetings.
 
-tmartin> Hi, Aparently it looks like I have a problem
-[snip]
-tmartin> Autofs version 3.1.7-41
 
-RHEL 3 U3 includes autofs version 4, which addresses this problem.
+   I use the same source code for two systems, RHL 9 and FC2.  Its Autofs 
+4.1.3 with my infamous backfstype patch.
 
--Jeff
+   RHL 9 runs kernel 2.4.20-28.9 while FC2 runs 2.6.6-1.435.  On RHL 9, autofs 
+runs nicely.  On FC2, it complains about unrecognized parameters.  This 
+happens when I try to mount from yp maps that are meant for Solaris.
+
+   Is this a known issue?  Seams that the mount function does not ignore 
+unrecognized parameters anymore under the 2.6 kernel.
+
+   Currently, my quick fix is to change /etc/init.d/autofs to catch the 
+unrecognized parameters.  These are "quota" and "nobrowse".
+
+
+Best regards,
+Hans Deragon
+--
+Consultant en informatique/Software Consultant
+Deragon Informatique inc.     Open source:
+http://www.deragon.biz        http://facil.qc.ca (Promotion du libre)
+mailto://hans@deragon.biz     http://autopoweroff.sourceforge.net (Logiciel)
