@@ -1,13 +1,10 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: Err:multiple hostnames not supported(migration from solaris   
- toLinux)
-Date: Tue, 23 Mar 2004 09:03:58 +0800 (WST)
+Subject: autofs4 bug fix - 1st attempt
+Date: Tue, 23 Mar 2004 23:46:09 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0403230900490.25584@wombat.indigo.net.au>
-References: <20040322154222.5E60921B32F@ws5-6.us4.outblaze.com>
+Message-ID: <Pine.LNX.4.58.0403232330230.4953@raven.themaw.net>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20040322154222.5E60921B32F@ws5-6.us4.outblaze.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,18 +16,31 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: surya <surya_prabhakar@linuxmail.org>
-Cc: autofs@linux.kernel.org
+To: autofs mailing list <autofs@linux.kernel.org>, Michael Blandford <mlblandf@sedona.ch.intel.com>
 
-On Mon, 22 Mar 2004, surya  wrote:
 
-> hi ,
->    I am using 3.1.7 on some machines and some have 4.1.0 . It is coming on the latest version also .
-> 
+Hi Michael and autofs list,
 
-I also should have asked what is the form of your entry?
+I have a first attempt at a patch for the autofs4 kernel module to fix the 
+problem you reported regarding the cd -> touch problem. Could you please 
+test when you get a chance.
 
-Although it's not he place for it, multiple weighted host names in mount 
-entries has been added to 4.1.1, thanks to a patch from Michael Blandford. 
+I need some other people to test it as well. Anyone who does give it a 
+try, please let me know, successful or otherwise.
+
+The patch(s) can be found at:
+
+http://www.kernel.org/pub/linux/kernel/people/raven/autofs4-2.4-testing
+
+The patches are for either vanilla kernels and the RedHat9 kernels. If 
+there are problems applying them let me know. I'm not sure which 
+other versions of kernel sources they will apply against but I seem to 
+remember a change about 2.4.18. If additional patches against earlier 
+kernels are needed, again let me know.
+
+I will be merging these changes into a re-organized 2.6 patch set in 
+the next day or so. I'll need this tested as well. I hope I can get some 
+interest and feedback on this as I don't want to present faulty patches, 
+asking that they be included in the kernel.
 
 Ian
