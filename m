@@ -1,12 +1,12 @@
-From: Paul Raines <raines@nmr.mgh.harvard.edu>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: rm hangs on symlinks to down mount points
-Date: Wed, 31 Dec 2003 10:27:17 -0500 (EST)
+Date: Wed, 31 Dec 2003 22:54:32 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.44.0312311026180.2720-100000@gate.nmr.mgh.harvard.edu>
-References: <Pine.LNX.4.44.0312312252130.4678-100000@raven.themaw.net>
+Message-ID: <Pine.LNX.4.44.0312312252130.4678-100000@raven.themaw.net>
+References: <Pine.LNX.4.44.0312310919320.24097-100000@gate.nmr.mgh.harvard.edu>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.44.0312312252130.4678-100000@raven.themaw.net>
+In-Reply-To: <Pine.LNX.4.44.0312310919320.24097-100000@gate.nmr.mgh.harvard.edu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,28 +18,24 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ian Kent <raven@themaw.net>
+To: Paul Raines <raines@nmr.mgh.harvard.edu>
 Cc: autofs mailing list <autofs@linux.kernel.org>
 
-On Wed, 31 Dec 2003, Ian Kent wrote:
+On Wed, 31 Dec 2003, Paul Raines wrote:
 
-> On Wed, 31 Dec 2003, Paul Raines wrote:
 > 
-> > 
-> > I believe I made a mistake and feel pretty stupid now.  I think the hung
-> > automount subprocesses are not hanging on the mount but on the umount.  
-> > Does autofs ever call umount with the -f option after the first (few)
-> > regular umount's fail. If autofs has made a mount, the server dies, then
-> > the mount times out from no use so autofs wants to umount it, how does
-> > autofs handle the situation?
-> > 
+> I believe I made a mistake and feel pretty stupid now.  I think the hung
+> automount subprocesses are not hanging on the mount but on the umount.  
+> Does autofs ever call umount with the -f option after the first (few)
+> regular umount's fail. If autofs has made a mount, the server dies, then
+> the mount times out from no use so autofs wants to umount it, how does
+> autofs handle the situation?
 > 
-> No. It never uses the -f option.
-> 
-> I think the -f option is safe enough though. It probably should do 
-> something like that. But the -l option sounds like it could lead to 
-> strife.
 
-Though I hope autofs after the call to the umount does not purely rely
-on its return code to see that a mount is now unmounted but also checks
-the mount table to see if it is still there.
+No. It never uses the -f option.
+
+I think the -f option is safe enough though. It probably should do 
+something like that. But the -l option sounds like it could lead to 
+strife.
+
+Ian
