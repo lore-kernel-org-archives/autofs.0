@@ -1,8 +1,8 @@
 From: "surya " <surya_prabhakar@linuxmail.org>
 Subject: Summary of autofs migration from Sun to Linux (resolved)
-Date: Sun, 14 Mar 2004 20:39:30 +0500
+Date: Sun, 14 Mar 2004 20:38:52 +0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <20040314153930.A51593982E7@ws5-1.us4.outblaze.com>
+Message-ID: <20040314153852.274C423979@ws5-3.us4.outblaze.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
@@ -18,7 +18,7 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
 To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org, mark.laforest@amd.com
+Cc: autofs@linux.kernel.org
 
 Dear Ian / All  , 
               First of all Thank you so much Ian for your time to resolve our problem . 
