@@ -1,91 +1,133 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: udp ports not being released
-Date: Tue, 23 Nov 2004 09:34:12 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0411230919420.27086@wombat.indigo.net.au>
-References: <41A2413A.9020800@analog.com> <41A24453.6000907@sun.com>
+From: Mike Waychison <Michael.Waychison@Sun.COM>
+Subject: [announce] autofsng 0.3.1
+Date: Mon, 22 Nov 2004 20:53:13 -0500
+Message-ID: <41A29809.9090707@sun.com>
 Mime-Version: 1.0
-Return-path: <nfs-admin@lists.sourceforge.net>
-In-Reply-To: <41A24453.6000907@sun.com>
-Sender: nfs-admin@lists.sourceforge.net
-Errors-To: nfs-admin@lists.sourceforge.net
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=unsubscribe>
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-List-Post: <mailto:nfs@lists.sourceforge.net>
-List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Mike Waychison <Michael.Waychison@Sun.COM>
-Cc: Dwight Marzolf <dwight.marzolf@analog.com>, nfs@lists.sourceforge.net, autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: linux-fsdevel@vger.kernel.org, autofs@linux.kernel.org
+Cc: Ian Kent <raven@themaw.net>
 
-On Mon, 22 Nov 2004, Mike Waychison wrote:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
-> 
-> Dwight Marzolf wrote:
-> > We are running RedHat 8, kernel 2.4.20-20.8smp and autofs 4.1.2.  We
-> > were having a variety of automount problems until a kernel patch was
-> > recommended.  We added this patch, recompiled our kernel, and
-> > distributed the patched kernel to all of our workstations.  About 90% of
-> > our problems disappeared.  But one problem seems to remain.
-> > 
-> > When /net is used to mount directories, most of the time the udp port
-> > used for that nfs mount operation is not released once the /net mount
-> > times out.   Depending on the level of activity on a machine, over the
-> > period of several days, all the available reserved ports are used up. 
-> > At that point the user on the workstation cannot cd to any mount points
-> > in our automount maps except the ones already mounted.  In the
-> > /var/log/messages the following error occurs for attempted mounts:
-> 
-> IIRC, automount 4.1.2 had a fd leak, that was fixed in 4.1.3
+Hello All,
 
-Yes and also in 4.1.3. There is a patch on kernel.org but it has been 
-superceeded and not updated. I'll update it soon as I can (called 
-autofs-4.1.3-sock-leak-fix.patch).
+I'm pleased to announce the release of AutofsNG 0.3.1.
 
-I'm not sure about the socket leaks anyway. We fix them because it's good 
-practice but it appears that most of this happens in sub-processes, which 
-once finished close all their open fds. This certainly seems to work 
-correctly from what I've tested.
+This automounter is intended to be 100% interoperable with autofs
+implementations on other Unix platforms.  As such, it supports some
+feature that the current Linux automounters do not:
 
-For Redhat Jeff Moyers' rpms track the important fixes. Dwight, you should 
-try using one of them since you have problems.
+- - Direct Mounts (*)
+- - /net (--hosts access) (*)
+- - Lazy mounting of hierarchal / multimounts
+- - Lazy unmounting of hierarchal / multimounts
+- - Browsing (*)
 
-> 
-> Ian?
-> 
-> > 
-> > RPC: Can't bind to reserved port
-> > 
-> > In my experiments I found that doing a "umount -l /net" releases all the
-> > udp ports immediately.  Our workaround has been to kill all the autofs
-> > processes, do a umount -l on all mount points in /etc/mtab, and them
-> > restart the autofs process.
-> > 
-> > My question is (1) is there any fix for this problem or some switch I
-> > need to turn on/off in order for these udp ports to be released when the
-> > mount point times out and (2) is there some command that I can use to
-> > release these ports rather than going through the multiple step process
-> > I described above to clean up a machine?
+(*) automount 4.1.3 supports these features but with limitations that
+impact interoperability.
 
-See above.
+Of course, autofsng also supports the usual indirect map support
+available elsewhere.
 
-There is of course the possiblity this is a new problem so let us know 
-about your progress if any.
+Maps are supported from:
 
-Ian
+- - flat files
+- - executable maps
+- - nis maps
+- - nis+ maps
+- - ldap maps (in not one, but 3! different flavours)
+- - hesiod (dns) filsys namespace
 
+Of course, all this name service stuff is handled by /etc/nsswitch.conf
+logic.
 
+Also, as an added bonus, autofsng also supports the Linux specific
+'namespace' paradigm (man clone(2)).
 
--------------------------------------------------------
-SF email is sponsored by - The IT Product Guide
-Read honest & candid reviews on hundreds of IT Products from real users.
-Discover which products truly live up to the hype. Start reading now. 
-http://productguide.itmanagersjournal.com/
-_______________________________________________
-NFS maillist  -  NFS@lists.sourceforge.net
-https://lists.sourceforge.net/lists/listinfo/nfs
+This release marks the first where we actually posted tarballs of the
+userspace bits and kernel patch in one place (at the same time as the
+announcement.  They can be found at:
+
+ftp://ftp-eng.cobalt.com/pub/users/ssmith/autofsng/0.3.1/
+
+Also, we have bk trees at:
+
+http://autofsng.bkbits.net
+
+(ignore the -old tree)
+
+There are a couple known issues with this release, all of which will get
+some attention in coming releases:
+
+- - Default mount options in auto.master are currently ignored.
+- - Default timeout / timeout on the command line are ignored (all mounts
+timeout after 10 seconds).
+- - The parser may be a little too strict for some maps that use
+non-nfs(ipv4) mounts.
+- - The first process to access an automounted filesystem that hangs is
+left in interruptible sleep.
+- - Many applications are broken because they don't understand what a
+direct mount is (and thus trample into them).
+- - The kernel code is hard-coded to use '/sbin/autofsng' to perform the
+mounts. (installing it anywhere else won't work).
+
+- From the README:
+
+Installation
+- ------------
+
+Setting up autofsng requires two main pieces of code to be built and
+set up on your machine, the kernel code and the userland bits.
+
+Once you have the autofsng bits in your kernel tree, you will need to
+enabled CONFIG_AUTOFSNG_FS in the build.  If set to 'y', then autofsng
+will be built into the kernel proper and provide the pseudo
+filesystem 'autofsng'.  If built as a module, the module will be called
+'autofsng' and it will provide the 'autofsng' filesystem.
+
+Note that there currently exists two other autofs implementations in
+the kernel.  CONFIG_AUTOFS_FS, which is the autofs3 implementation is
+no longer actively maintained and the favourable replacement for it
+has become autofs4, specified by CONFIG_AUTOFS4_FS.  Both of these
+filesystems
+are called 'autofs', which is why we call ourselves 'autofsng'.
+
+You will need to run autoconf on the resulting pull.
+
+To build the userspace tools , please run:
+
+    configure
+
+to configure the system.  See README.options for options that you can
+give configure.
+
+After configuring, you can:
+
+make
+make install
+
+Enjoy  :)
+
+- --
+Mike Waychison
+Sun Microsystems, Inc.
+1 (650) 352-5299 voice
+1 (416) 202-8336 voice
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NOTICE:  The opinions expressed in this email are held by me,
+and may not represent the views of Sun Microsystems, Inc.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+
+iD8DBQFBopgJdQs4kOxk3/MRAnURAJ9lA8UnkQMqsEy55B+LshmGR+ARzACdGue5
+TRSCaT3nZX9HpGRvbW1JxK0=
+=oktk
+-----END PGP SIGNATURE-----
