@@ -1,11 +1,13 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: [rft] New autofs rpm available for testing
-Date: Fri, 14 Jan 2005 16:23:02 -0500
-Message-ID: <16872.14390.835831.995533@segfault.boston.redhat.com>
-Reply-To: jmoyer@redhat.com
+From: David Meleedy <david.meleedy@analog.com>
+Subject: Re: BUG: autofs4 + cd /net/<Netapp>/vol/vol[0-3] = port 
+	usage problems
+Date: Fri, 14 Jan 2005 17:38:37 -0500
+Message-ID: <200501142238.j0EMcbOT002214@jetcar.spd.analog.com>
+References: <Pine.LNX.4.61.0501142225200.2519@donald.themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-reply-to: Your message of "Fri, 14 Jan 2005 22:35:08 +0800."
+	<Pine.LNX.4.61.0501142225200.2519@donald.themaw.net> 
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,67 +19,30 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: autofs@linux.kernel.org
+Content-Transfer-Encoding: 7bit
+To: raven@themaw.net
+Cc: autofs mailing list <autofs@linux.kernel.org>, Mike Waychison <Michael.Waychison@sun.com>
 
-This RPM catches up on most of the changes that have been going in of late.
-Attached is the most recent part of the changelog.  You can find the RPMs
-by following the Fedora Core 4 link on the following page:
 
-   http://people.redhat.com/jmoyer/
+Ian,
+	I have installed the multi-over patch into our version
+of the automounter 4.1.3-67 (with updated large-program-map patch)
+and so far everything looks great!  I am going to test our machines
+for a longer period of time and make sure everything looks stable,
+but so far, so good!
 
-The version is 4.1.3-76, and requires a kernel patch for 2.4 based
-systems.  The current FC3 and FC4 kernels already have the patch applied.
+It seems to have eliminated the "BUG" message in the messages file,
+and it seems as though the automounter can unmount /net/aflac
+which it was not able to do in the past during a reboot.  I suspect
+that this means it will use a lot less ports, and I might not
+even need the kernel patch (given the small amount of mounts we actually
+use) -- I am testing this as well.
 
-This version does contain Ian's map update patch.
+Thanks!
 
-Happy testing.
+-Dave
 
--Jeff
-
-(the changelog is cobbled together from multiple branches, so may be a bit
-out of order)
-
-* Tue Jan 11 2005 Jeff Moyer <jmoyer@redhat.com> - 1:4.1.3-76
-- Fix the large program map patch.
-
-* Tue Jan 11 2005 Jeff Moyer <jmoyer@redhat.com> - 1:4.1.3-75
-- Fix some merging breakages that caused the package not to build.
-
-* Thu Jan  6 2005  <jmoyer@redhat.com> - 1:4.1.3-74
-- Add in the map expiry patch
-- Bring in other patches that have been committed to other branches. This 
-  version should now contain all fixes we have to date
-- Merge conflicts due to map expiry changes
-
-* Tue Dec  7 2004 Chris Feist <cfeist@redhat.com> - 1:4.1.3-67
-- Fixed an error which would cause autofs to attempt to use an
-  uninitialized pointer and segfault.  (bz #137220)
-- Fixed segfault when LDAP_SIZELIMIT_EXCEEDED is called and --ghost
-  is used, addresses  bz #137220.
-
-* Tue Dec  7 2004 Jeff Moyer <jmoyer@redhat.com> - 1:4.1.3-65
-- Fix truncation of large program maps.  bz #138994
-
-* Mon Dec  7 2004 Chris Feist <cfeist@redhat.com> - 1:4.1.3-64
-- Fixed problem with autofs not finding all mount points in an ldap map.
-  bz #139548
-
-* Fri Nov 19 2004 Jeff Moyer <jmoyer@redhat.com> - 1:4.1.3-58
-- Pass a socket into clntudp_bufcreate so that we don't use up additional 
-  reserved ports.  This patch, along with the socket leak fix, addresses
-  bz #128966.
-
-* Fri Nov 19 2004 Jeff Moyer <jmoyer@redhat.com> - 1:4.1.3-57
-- Pass a socket into clntudp_bufcreate so that we don't use up additional 
-  reserved ports.  This patch, along with the socket leak fix, addresses
-  bz #128966.
-
-* Wed Nov 17 2004  <jmoyer@redhat.com> - 1:4.1.3-56
-- Somehow the -browse patch either didn't get committed or got reverted.
-  Fixed.
-
-* Tue Nov 16 2004 Jeff Moyer <jmoyer@redhat.com> - 1:4.1.3-55
-- Fix program maps so that they can have gt 4k characters. (Neil Horman)
-  Addresses bz #138994.
-- Add a space after the colon here "Starting automounter:" in init script.
-  Fixes bz #138513.
+________________________________________________________________________
+David Meleedy				Analog Devices, Inc.
+David.Meleedy@analog.com		Three Technology Way
+Phone: 781 461 3494			Norwood, MA  02062-9106  USA
