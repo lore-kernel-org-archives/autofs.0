@@ -1,10 +1,13 @@
-From: Jason Brooks <jason.brooks@windriver.com>
-Subject: RE: automount
-Date: Tue, 03 Feb 2004 14:55:55 -0800
+From: "Anne.Bourgeois" <anne.bourgeois@analog.com>
+Subject: Re: Strange autofs V4.0 problems
+Date: Tue, 03 Feb 2004 14:14:43 -0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <402026FB.7080509@windriver.com>
+Message-ID: <401FF323.40702@analog.com>
+References: <401EB843.5000501@analog.com>
+	<C7C7C062-55D7-11D8-B42C-000A95A011F0@qualcomm.com>
+	<401EE1BC.2020006@sedona.intel.com> <401FEC84.40704@rhythm.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -15,71 +18,51 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="iso-8859-1"; format="flowed"
-To: Ian Kent <raven@themaw.net>, =?ISO-8859-1?Q?J=F6rg_Fichter?= <Joerg.Fichter@gmx.de>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: Greg Bradner <gregb@rhythm.com>
+Cc: autofs@linux.kernel.org, Michael Blandford <mlblandf@sedona.ch.intel.com>, Mike Marion <mmarion@qualcomm.com>
 
-Hello,
+Greg,
 
-You could instead use sudo to unmount the filesystems as necessary.
-An entry in the sudoers file such as:
+This worked immediately.  Thank you for your help.
 
-<useralias> <hostalias> =3D <password options>:/bin/umount -t nfs /misc/*
-
-Will allow the users in question to run:
-	sudo /bin/umount -t nfs /misc/tempfs
-
-And of course, it will fail if the filesystem's in use.
-
-In my mind, this may be a better place to implement commands requiring ro=
-ot.
-
---jason
+Annie
 
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Jason Brooks ~ (503) 641-3440 x1861
-       Direct ~ (503) 924-1861
-Email to: jason.brooks@windriver.com
-Twiki: http://twiki.wrs.com/do/view/Main/JasonBrooks
+Greg Bradner wrote:
 
-Senior Systems Administration Analyst
-Wind River Systems
-8905 SW Nimbus ~ Suite 255=09
-Beaverton, Or 97008
-
-
-> -----Original Message-----
-> From: autofs-bounces@linux.kernel.org=20
-> [mailto:autofs-bounces@linux.kernel.org] On Behalf Of Ian Kent
-> Sent: Tuesday, February 03, 2004 4:41 AM
-> To: J=F6rg Fichter
-> Cc: autofs@linux.kernel.org
-> Subject: Re: [autofs] automount
->=20
-> On Mon, 2 Feb 2004, [iso-8859-1] J=F6rg Fichter wrote:
->=20
-> > Dear Sirs,
-> >=20
-> > I've installed the automount system on my PC. Different=20
-> user works on=20
-> > this terminal! So I modified the auto.master file like this:
-> >=20
-> > /misc	/etc/auto.misc		user, exec, uid=3D700, gid=3D500
->=20
-> Can't at the moment.
->=20
-> The user option is only supported by mount when present in the fstab.
->=20
-> I posted a message to the util-linux list but haven't=20
-> followed up on this.=20
-> I've been to busy.
->=20
-> Ian
->=20
->=20
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
->=20
+> use the 'nonstrict' opition in your auto.net script.
+>
+> Michael Blandford wrote:
+>
+>> Mike Marion wrote:
+>>
+>>>
+>>> The fact that you're seeing that in your logs shows that autofs is 
+>>> working fine.. your host tried to mount the directory and was denied 
+>>> by the server.  I'm seeing the exact same thing for some new linux 
+>>> boxes I just installed over the weekend and some of our NetApp 
+>>> filers, and we're seeing the same thing from some new Solaris hosts 
+>>> as well.
+>>>
+>>> I'm wondering if there's some kind of name/ip caching bug on the 
+>>> netapps that caches a deny for a very long period if you try to 
+>>> mount before your netgroups/dns is updated with the new host 
+>>> information.
+>>
+>>
+>>
+>>
+>> If you can mount them by hand on the same box not using autofs, then 
+>> it seems more likely to be an autofs issue.
+>>
+>> Michael
+>>
+>>
+>> _______________________________________________
+>> autofs mailing list
+>> autofs@linux.kernel.org
+>> http://linux.kernel.org/mailman/listinfo/autofs
+>
+>
+>
