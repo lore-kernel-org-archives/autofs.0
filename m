@@ -1,10 +1,11 @@
-From: Jim Carter <jimc@math.ucla.edu>
+From: "Taylor, ForrestX" <forrestx.taylor@intel.com>
 Subject: Re: autofs not unmounting mount points?
-Date: Fri, 12 Mar 2004 09:52:44 -0800 (PST)
+Date: Fri, 12 Mar 2004 10:15:12 -0800
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0403120937370.1177@simba.math.ucla.edu>
+Message-ID: <1079115312.27266.4.camel@bad.jf.intel.com>
 References: <4051DB39.4060905@astro.wisc.edu>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 In-Reply-To: <4051DB39.4060905@astro.wisc.edu>
 List-Id: <autofs.vger.kernel.org>
@@ -16,37 +17,25 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
 To: jansen <jansen@astro.wisc.edu>
 Cc: autofs@linux.kernel.org
 
-On Fri, 12 Mar 2004, jansen wrote:
-
+On Fri, 2004-03-12 at 07:46, jansen wrote:
+> Hi,
+> 
 > I've been struggling to figure out why autofs does not appear
-> to unmount many mount points...  
+> to unmount many mount points.  I have more than 150 entries in
+> a map file and most of these entries get mounted when I log into
+> a Gnome session and never seem to ever get unmounted.  This
+> happened under RedHat 8.0 (autofs-3.1.7-33) and still happens on
+> SuSE 9.0 (autofs-3.1.7-717).  I'm guessing that Nautilus is doing
+> this.  Is anyone else seeing this?  Any suggestions on how to prevent
+> or debug this?  I can provide more details if anyone is interested.
 
-I also had this problem with autofs4-4.0.0pre10-504 from SuSE 8.2/9.0.
-I upgraded to the latest version (4.1.0 when I upgraded; now I think it's 
-4.1.2), and not only are filesystems unmounted as expected, but other 
-alarming symptoms in the logs are gone.  
+I have the same problem, and I think that it is nautilus, too.  It
+stores the files in .gnome/gnome-vfs/.trash_entry_cache.  You can clean
+out that file, but they will come back if you mount them.  I haven't had
+a chance yet to fix the problem instead of the symptoms...
 
-As for /net/home (this is the map you were complaining about, right?),
-possibly Nautilus has a compulsion to check for something at the top level
-of every mounted filesystem.  If /net/home were "browsable", i.e. if you do
-"ls /net/home" and get all 150 loginIDs, likely it would proceed to stat
-those names (e.g. /net/home/jimc), requiring that they be actually mounted.  
-It doesn't have to stat them just to see the names, but if it wants to know
-if they are directories, or if they are owned by you, then it needs to do
-the stat, and therefore the mount.
-
-See if you can forbid browsability on the "home" map.  To turn it on, I
-believe the correct syntax is to put "--ghost" (or -g?  Or just "ghost"?)
-among the mount options in /etc/auto.master, so that command line arg will
-be passed to the submount.  (Someone please correct this if wrong.)  So you
-would be looking for that option and removing it.
-
-
-James F. Carter          Voice 310 825 2897    FAX 310 206 6673
-UCLA-Mathnet;  6115 MSA; 405 Hilgard Ave.; Los Angeles, CA, USA  90095-1555
-Email: jimc@math.ucla.edu    http://www.math.ucla.edu/~jimc (q.v. for PGP key)
+Forrest
