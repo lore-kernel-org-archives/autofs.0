@@ -1,14 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 3/5] logging to stderr
-Date: Tue, 15 Feb 2005 09:26:11 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0502150923460.22172@wombat.indigo.net.au>
-References: <200502111155.33706.vda@port.imtp.ilyichevsk.odessa.ua>
-	<200502111159.50103.vda@port.imtp.ilyichevsk.odessa.ua>
-	<200502111201.43507.vda@port.imtp.ilyichevsk.odessa.ua>
-	<200502111203.58345.vda@port.imtp.ilyichevsk.odessa.ua>
-	<16912.49643.760509.977965@segfault.boston.redhat.com>
+From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
+Subject: Re: [ANNOUNCE] autofs 4.1.4 beta2 release
+Date: Tue, 15 Feb 2005 02:48:57 +0100
+Message-ID: <20050215014857.GA26216@uio.no>
+References: <Pine.LNX.4.61.0502142233210.1653@donald.themaw.net>
 Mime-Version: 1.0
-In-Reply-To: <16912.49643.760509.977965@segfault.boston.redhat.com>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.61.0502142233210.1653@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,20 +16,30 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Mon, 14 Feb 2005, Jeff Moyer wrote:
+On Mon, Feb 14, 2005 at 10:39:51PM +0800, raven@themaw.net wrote:
+> Here is autofs 4.1.4 beta2.
 
-> ==> Regarding [autofs] [PATCH 3/5] logging to stderr; Denis Vlasenko <vda@port.imtp.ilyichevsk.odessa.ua> adds:
-> 
-> vda> Add code, but do not switch rest of program to use it, yet.
-> 
-> I'm curious, what is the motivation for this?
+Thanks! :-)
 
-I believe it relates to the patch before this.
-Putting autofs in the foreground we want as much debug info as we can get.
+I've gone through all the Debian patches again, and this needs looking into:
 
-Ian
+- 000_autofs_4.1.3_sock-leak-fix is missing.
+- 035_program_mount_repeated_last_character_of_map_output is in there, but
+  there looks like there's an identical situation further down. Could you
+  investigate? (I'm not really sure if it is an error or not, to be honest, I
+  just want it checked. :-) )
+- 051_maps_without_trailing_newline.diff is not in, it seems; did you forget
+  it or just find a cleaner way?
+- The check for /proc/modules does not seem to have went in (see
+  http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=292762).
+
+Apart from that, looks like everything went in; I'm building a new version
+now and will upload after I get your feedback on the points above.
+
+/* Steinar */
+-- 
+Homepage: http://www.sesse.net/
