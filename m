@@ -1,16 +1,14 @@
 From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: configure pie problem
-Date: Tue, 11 May 2004 13:48:08 -0400
+Subject: Re: autofs and 2.6.x
+Date: Tue, 11 May 2004 16:19:51 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <16545.4568.847071.38147@segfault.boston.redhat.com>
-References: <Pine.LNX.4.58.0405091113130.15537@donald.themaw.net>
-	<16544.53839.846016.786437@segfault.boston.redhat.com>
-	<Pine.LNX.4.58.0405112215110.18413@donald.themaw.net>
+Message-ID: <16545.13671.458946.559520@segfault.boston.redhat.com>
+References: <Pine.LNX.4.44.0405061146430.1165-100000@who.adc.idt.com>
 Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0405112215110.18413@donald.themaw.net>
+In-Reply-To: <Pine.LNX.4.44.0405061146430.1165-100000@who.adc.idt.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,23 +19,31 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: raven@themaw.net
-Cc: autofs mailing list <autofs@linux.kernel.org>
+To: devnull@adc.idt.com
+Cc: AutoFS on Linux Kernel <autofs@linux.kernel.org>
 
-==> Regarding Re: configure pie problem; raven@themaw.net adds:
+==> Regarding [autofs] autofs and 2.6.x; devnull@adc.idt.com adds:
 
-raven> On Tue, 11 May 2004, Jeff Moyer wrote:
->> Okay, change that -fpie to -fPIE (at least for sparc, don't think it
->> hurts if we do this for everyone).  And I just confirmed with Jakub,
->> that it is better to actually try to run the program:
->> 
->> <jakub> phro: if you have old glibc on sparc, it will compile and link,
->> but not run e.g.
->> 
+devnull> Has anyone gotten autofs-4.1.x ghosting to work on 2.6.x on x86_64
+devnull> ?  I have FC1 running on a dual opteron machine and have patched
+devnull> 2.6.4 with
 
-raven> This would be the final patch on this issue then, yes.
+devnull http://www.kernel.org/pub/linux/kernel/people/raven/autofs4-2.6/2.6.4/
 
-That looks good to me.
+devnull> all 8 files.
+
+devnull> automount works, but ghosting doesnt. I have added --ghost to the
+devnull> startup script. 2.4.26 seems to work, but i need to use 2.6.4
+
+devnull> Any help is much appreciated.
+
+I just installed autofs4 on a dual x86_64, and ghosting works just fine.
+Could you be a bit more specific about your configuration?  You said you
+added --ghost to the startup script.  Where in the script?  $daemonoptions?
+Would it be okay to post your config files?
+
+Note, I'm using FC2 with Ian's patches, and autofs-4.1.2-6 from my people
+page.
 
 Thanks!
 
