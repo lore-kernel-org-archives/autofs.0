@@ -1,12 +1,12 @@
-From: "Rigler, Steve" <SRigler@MarathonOil.com>
-Subject: RE: making the mountpoints visible all the time
-Date: Fri, 14 Nov 2003 15:34:39 -0600
+From: Ian Kent <raven@themaw.net>
+Subject: Re: making the mountpoints visible all the time
+Date: Mon, 17 Nov 2003 00:12:19 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <C3CDA0E3AC8B4E438E94F37D0A20FE712618FD@HOUEXC210.mgroupnet.com>
+Message-ID: <Pine.LNX.4.44.0311170006200.12952-100000@raven.themaw.net>
+References: <3FB524E7.3090907@wildgate.miee.ru>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <3FB524E7.3090907@wildgate.miee.ru>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,47 +16,52 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: autofs@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: "Ruslan U. Zakirov" <cubic@wildgate.miee.ru>
+Cc: autofs@linux.kernel.org, "Taylor, ForrestX" <forrestx.taylor@intel.com>
 
+On Fri, 14 Nov 2003, Ruslan U. Zakirov wrote:
 
-> -----Original Message-----
-> From: autofs-bounces@linux.kernel.org
-> [mailto:autofs-bounces@linux.kernel.org]On Behalf Of 
-> Alexander Macdonald
-> Sent: Friday, November 14, 2003 2:20 PM
-> To: autofs@linux.kernel.org
-> Subject: Re: [autofs] making the mountpoints visible all the time
-> 
-> 
-> I'm using kernel 2.6.0-test9, i could only see patches for 2.4 so i 
-> guess this has the latest autofs in it allready right? I've also 
-> upgraded my daemon to autofs-4.1.0-beta3. I then tried running this:-
-> 
-> automount -g /mnt/network/samba/computerA file /etc/autofs/samba
-> 
-> in the file /etc/autofs/samba I have this:-
-> 
-> download    -fstype=smbfs,username=guest,password=none 
-> ://computera/Download
-> upload        -fstype=smbfs,username=guest,rw,password=none 
-> ://computera/Upload
-> 
-> it works fine but it still doesnt do the "ghosting"
-> 
-> 
+> Ian Kent wrote:
+> >
+> >Umm ...
+> >
+> >Beg to disagree.
+> >
+> >The autofs4-2.4 module build kit or the patches contained in it or the
+> >patches contained in autofs-4.1.0-beta3 can give you this for some of the
+> >maps. NIS, LDAP and file maps work at the moment.
+> >
+> >I's in the expected place on kernel.org.
+> >	
+> >  
+> >
+>         Hello, Ian and other.
+> As I've understand you've implemented readdir relaited syscalls in 
+> autofs for some map types, have you?
 
-I haven't tried the 2.6 kernel yet, so anything I suggest would be
-based on experience with the 2.4 kernel.
+Basically, yes.
 
-One thing is to make sure you have an entry in /etc/modules.conf
-to force loading of the autofs4 module.
+Some other related changes were also needed to make direct mount handling 
+in the daemon simpiler (when working with the updated module).
 
-It should look like:
-alias autofs autofs4
+> 
+> If so then I hope that soon we could see programm maps with such 
+> functionality.
+> I want to do progamm map wich allow something more native representation 
+> of windows workgroups like NetworkNigborhood. It would be very useful in 
+> plain networks(like our ~900 PC in one workgroup).
 
-If you have to add the line then stop autofs.  Do "rmmod autofs"
-and then start autofs again (I believe the init script will load
-the module for you).
+But how do you know what the keys are?
 
--Steve
+In order to make mount points visible you need to know what they are. The 
+definition of a program map is that it produces map entries as output 
+given an input key.
+
+-- 
+
+   ,-._|\    Ian Kent
+  /      \   Perth, Western Australia
+  *_.--._/   E-mail: raven@themaw.net
+        v    Web: http://themaw.net/
