@@ -1,76 +1,47 @@
-From: Ian Kent <raven@themaw.net>
-Subject: RE: [autofs] running out of mount points
-Date: Tue, 20 Jan 2004 23:11:59 +0800 (WST)
-Sender: nfs-admin@lists.sourceforge.net
-Message-ID: <Pine.LNX.4.44.0401202258170.3291-100000@raven.themaw.net>
-References: <6AB920CC10586340BE1674976E0A991D0C6C00@slexch2.sugarland.unocal.com>
+From: Jason Brooks <jason.brooks@windriver.com>
+Subject: Re: Introduction: I am new
+Date: Tue, 20 Jan 2004 09:28:16 -0800
+Sender: autofs-bounces@linux.kernel.org
+Message-ID: <400D6530.6050109@windriver.com>
+References: <Pine.LNX.4.44.0401202312340.3291-100000@raven.themaw.net>
 Mime-Version: 1.0
-Return-path: <nfs-admin@lists.sourceforge.net>
-In-Reply-To: <6AB920CC10586340BE1674976E0A991D0C6C00@slexch2.sugarland.unocal.com>
-Errors-To: nfs-admin@lists.sourceforge.net
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=unsubscribe>
-List-Id: <autofs.vger.kernel.org>
-List-Post: <mailto:nfs@lists.sourceforge.net>
-List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
-Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg Bradner <gregb@rhythm.com>
-Cc: autofs mailing list <autofs@linux.kernel.org>, nfs@lists.sourceforge.net
+Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <Pine.LNX.4.44.0401202312340.3291-100000@raven.themaw.net>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org
 
-On Mon, 19 Jan 2004, Ogden, Aaron A. wrote:
+Thank you for your reply.
+
+When you say:
+> This function is done by using a program mount in 4.0.0 and above. 
+
+Do you mean when using a later version of the mount/umount program?  Or Autofs 
+version 4.x.x?  Or perhaps the kernel autofs4.o module?  <insert other 
+possibilities here>
+
+> It does 
+> not do late mounting so all exports from a given host are mounted when 
+> accessed. See auto.net in the distribution.
+Aha!  It's a "program" map type!  I thought that might be required.  Thanks.
 
 > 
-> > -----Original Message-----
-> > From: autofs-bounces@linux.kernel.org 
-> > [mailto:autofs-bounces@linux.kernel.org] On Behalf Of Greg Bradner
-> > Sent: Monday, January 19, 2004 9:49 AM
-> > To: autofs@linux.kernel.org
-> > Subject: [autofs] running out of mount points
-> > 
-> > 
-> > I wanted to repost this plea. I am really in a bind and could use some
+>>3) (something's glimmering inside my brain, but not enough to formulate a third question...)
 > 
-> > help. I need to mount these users on the mail server.
-> > BTW: this is with autofs 4.1.0
-> > 
-> 
-> 
-> Once you get past this hurdle you may run into another problem, you may
-> find (as I did)
-> that you can't actually mount 1200 filesystems... RPC will start running
-> into problems
-> around 800 mounts or slightly less.  I've been told that this happens
-> because RPC is using
-> a separate port for each NFS mount, it starts at port 800 and counts
-> down to 1, so when the
-> system runs out of ports it is once again unable to mount anything.
-> Supposedly there is
-> some work being done to rewire linux RPC so that it uses one port *per
-> server* rather than
-> one port per NFS mount, that change would fix the problem for any
-> reasonable configuration.
+> Don't know the answer to that one.
 
-I have worked on Tronds' patch for that. I posted my first attempt on 
-the nfs list to see if Trond could sanity check it but he was clearly to 
-busy. So I went ahead and did the best I could. This resulted in a port 
-for 2.6 and 2.4 vanila kernel only. It is entirely untested and I expect 
-will have problems as the depth of my understanding of the NFS subsystem 
-is poor at best. I found trying to make it apply to a RedHat 2.4 kernel 
-was something of a nightmare and have left it there for now.
+As long as it isn't something akin to "a b-b rolling around in a boxcar".  :)
 
-Ian
+Thanks again!
 
-
-
--------------------------------------------------------
-The SF.Net email is sponsored by EclipseCon 2004
-Premiere Conference on Open Tools Development and Integration
-See the breadth of Eclipse activity. February 3-5 in Anaheim, CA.
-http://www.eclipsecon.org/osdn
-_______________________________________________
-NFS maillist  -  NFS@lists.sourceforge.net
-https://lists.sourceforge.net/lists/listinfo/nfs
+--jason
