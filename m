@@ -1,7 +1,7 @@
 From: David Meleedy <david.meleedy@analog.com>
-Subject: strange BUG reported by automount using /net directory
-Date: Mon, 13 Dec 2004 19:23:02 -0500
-Message-ID: <200412140023.iBE0N25k006225@jetcar.spd.analog.com>
+Subject: A different automounter problem: "BUG messages"
+Date: Tue, 30 Nov 2004 15:18:45 -0500
+Message-ID: <200411302018.iAUKIjoO020709@jetcar.spd.analog.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
@@ -19,40 +19,35 @@ Content-Transfer-Encoding: 7bit
 To: autofs@linux.kernel.org
 
 
-autofs vers: autofs-4.1.3-12
+We have a site that has the following errors constantly showing
+up in their /var/log/messages file (again this is Redhat Enterprise
+3 WS, update 3 for AMD64).
 
-alfalfa-71: uname -a
-Linux alfalfa.spd.analog.com 2.4.21-20.ELsmp #1 SMP Wed Aug 18 20:46:40 EDT 
-2004 i686 i686 i386 GNU/Linux
-
-alfalfa-72: cat /etc/redhat-release 
-Red Hat Enterprise Linux WS release 3 (Taroon Update 3)
-
-Nothing else is going on, on this machine, I just cd to a directory
-using /net and get the following:
-
-Note: this seems to happening exactly once per minute, which is
-what the timeout value is set to (note that I am running automounter
-with --debug and --verbose turned on):
-
-alfalfa-54: cd /net/aflac/vol/vol2
-alfalfa-58: tail -f /var/log/messages
-Dec 13 19:09:55 alfalfa automount[4324]: BUG: /net/aflac/vol/vol2 already 
+Nov 30 12:32:36 ho automount[5287]: >> mount: slcnetapp:/vol/vol0/etc failed, 
+reason given by server: Permission denied
+Nov 30 12:32:36 ho automount[5287]: mount(nfs): nfs: mount failure 
+slcnetapp:/vol/vol0/etc on /net/slcnetapp/vol/vol0/etc
+Nov 30 12:36:52 ho automount[5614]: >> mount: slcnetapp:/vol/vol0/etc failed, 
+reason given by server: Permission denied
+Nov 30 12:36:52 ho automount[5614]: mount(nfs): nfs: mount failure 
+slcnetapp:/vol/vol0/etc on /net/slcnetapp/vol/vol0/etc
+Nov 30 12:36:52 ho automount[5614]: BUG: /net/slcnetapp/vol/vol0 already 
 mounted
-Dec 13 19:10:56 alfalfa automount[4453]: BUG: /net/aflac/vol/vol2 already 
-mounted
-Dec 13 19:11:56 alfalfa automount[4578]: BUG: /net/aflac/vol/vol2 already 
-mounted
-Dec 13 19:12:57 alfalfa automount[4702]: BUG: /net/aflac/vol/vol2 already 
+Nov 30 12:36:52 ho automount[5614]: BUG: /net/slcnetapp/vol/vol0/soft already 
 mounted
 
-...etc...
+Strangely, if you try to:
 
-Note, I have not changed the /etc/auto.net file that came with
-RHE3,u3. 
+cd /net/slcnetapp/vol/vol0/etc
 
-alfalfa-64: showmount -e aflac | grep vol2
-/vol/vol2                 (everyone)
+it works.  The permissions on the filer look like this:
+
+[dmeleedz@ho ~]$ cd /net/slcnetapp/vol/vol0/etc
+[dmeleedz@ho etc]$ cat exports
+/vol/vol0       -root=host1.spd.analog.com:host2.spd.analog.com
+/vol/vol0/cpd   -root=host1.spd.analog.com
+/vol/vol0/proj  -access=netgroup1:netgroup2:netgroup3,root=host1
+/vol/vol0/soft  -access=netgroup4,root=host1
 
 -Dave
 
