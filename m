@@ -1,35 +1,42 @@
-From: Thomas Moestl <moestl@ibr.cs.tu-bs.de>
+From: raven@themaw.net
 Subject: Re: umount() and NFS races in 2.4.26
-Date: Sat, 10 Jul 2004 21:50:01 +0200
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <20040710195001.GC800@timesink.dyndns.org>
-References: <20040708180709.GA7704@timesink.dyndns.org> <Pine.LNX.4.58.0407101419210.1378@donald.themaw.net> <20040710181912.GA800@timesink.dyndns.org> <Pine.LNX.4.58.0407110323480.20439@donald.themaw.net>
+Date: Sun, 11 Jul 2004 18:16:05 +0800 (WST)
+Sender: autofs-bounces@linux.kernel.org
+Message-ID: <Pine.LNX.4.58.0407111812460.1900@donald.themaw.net>
+References: <20040708180709.GA7704@timesink.dyndns.org>
+	<20040710181912.GA800@timesink.dyndns.org>
 Mime-Version: 1.0
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org-S266365AbUGJTti@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0407110323480.20439@donald.themaw.net>
+Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <20040710181912.GA800@timesink.dyndns.org>
 List-Id: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: raven@themaw.net
+To: Thomas Moestl <moestl@ibr.cs.tu-bs.de>
 Cc: autofs mailing list <autofs@linux.kernel.org>, nfs@lists.sourceforge.net, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Sun, 2004/07/11 at 03:25:34 +0800, raven@themaw.net wrote:
-> On Sat, 10 Jul 2004, Thomas Moestl wrote:
-> > The system in question still uses autofs3. While I believe that the
-> > waitq race is also present there (it could probably cause directory
-> > lookups to hang, if I understand it correctly), I do not think that
-> > any autofs3 code could cause exactly those symptoms that I have
-> > observed. For that, it would have to obtain dentries of the file
-> > systems that it has mounted, but the old code never does that.
+On Sat, 10 Jul 2004, Thomas Moestl wrote:
+
+> > Never the less I'm sure there is a race in waitq.c of autofs4 in 
+> > 2.4 that seems to cause this problem. This is one of the things 
+> > addressed by my patch.
 > 
-> All autofs has to do is not delete a directory before exiting for this 
-> error to occur.
+> The system in question still uses autofs3. While I believe that the
+> waitq race is also present there (it could probably cause directory
+> lookups to hang, if I understand it correctly), I do not think that
+> any autofs3 code could cause exactly those symptoms that I have
+> observed. For that, it would have to obtain dentries of the file
+> systems that it has mounted, but the old code never does that.
 
-But in that case, the left-over dentry would be an autofs one, would
-it not? In our case, the dentries were verified to belong to a NFS
-mount that was unmounted by the automounter (that was one of the
-symptoms I was referring to). The automounter itself was still
-running, and the autofs still mounted.
+I don't think autofs v3 has this race. It uses the BKL everywhere to 
+serialise execution. Never the less people seem to see the "busy inode" 
+messages sometimes.
 
-	- Thomas
+Ian
