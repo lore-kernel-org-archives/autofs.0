@@ -1,14 +1,14 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: Looking for infor on executable map format
-Date: Mon, 29 Mar 2004 18:29:28 +0800 (WST)
+Subject: Re: Re[4]: autofs reload
+Date: Mon, 29 Mar 2004 18:56:19 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0403291822090.26549@raven.themaw.net>
-References: <200403261040.08085.krienke@uni-koblenz.de>
-	<Pine.LNX.4.58.0403291450290.18783@wombat.indigo.net.au>
-	<200403290900.23350.krienke@uni-koblenz.de>
+Message-ID: <Pine.LNX.4.58.0403291854490.29659@raven.themaw.net>
+References: <16484.25454.659035.551208@segfault.boston.redhat.com>
+ <E1B6v3m-0000cJ-00.ia6432-inbox-ru@f25.mail.ru>
+ <16484.27293.279258.40887@segfault.boston.redhat.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200403290900.23350.krienke@uni-koblenz.de>
+In-Reply-To: <16484.27293.279258.40887@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,29 +20,38 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Rainer Krienke <krienke@uni-koblenz.de>
-Cc: autofs@linux.kernel.org, Jim Carter <jimc@krienke.org>
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: autofs@linux.kernel.org
 
-On Mon, 29 Mar 2004, Rainer Krienke wrote:
+On Fri, 26 Mar 2004, Jeff Moyer wrote:
 
 > 
-> This outputs eg something like 
+> It may even be beneficial to change autofs reload to send a HUP to all
+> automount daemons.  Ian, what do you think?
 > 
-> -fstype=nfs,hard,intr,nodev,nosuid,nonstrict,rsize=8192,wsize=8192 \
->         /export/user serverhost:/export/user 
-> 	.....
-> 
-> So there are options, a qouted newline and then the map entry without the key. 
-> Fine. Would be nice if this information could be integrated into the man 
-> pages as well. However what about my --bind paramter (alltough it turned out 
-> that I probably do not need it)? Could it be given in the first line, i.e 
-> does autofs treat the first line somwhat different to allow options like 
 
-Point taken. Bug me if you don't see anything in the next release please.
+Adding this patch after the previous one should deal with the HUP signal.
 
-The code which handles the option parsing is a bit ugly so I'd have to 
-have a look, as options are generally passed starting with a single "-". 
-However the bind mount is always attempted first. Thinking about it I 
-think the code does check for "--". But does it handle the space....
-
-Ian
+diff -Nur autofs-4.1.1.status/samples/rc.autofs.in autofs-4.1.1/samples/rc.autofs.in
+--- autofs-4.1.1.status/samples/rc.autofs.in	2004-03-29 17:28:27.000000000 +0800
++++ autofs-4.1.1/samples/rc.autofs.in	2004-03-29 17:28:43.000000000 +0800
+@@ -403,6 +403,9 @@
+ 			kill -USR2 $pid 2> /dev/null
+ 			echo $"Stop $command"
+ 		    fi
++		else
++			kill -HUP $pid 2> /dev/null
++			echo $"Reload map $command"
+ 		fi
+ 	    done
+ 	)
+@@ -464,6 +467,9 @@
+ 		then
+ 			echo "Stopping automounter: $command"
+ 			kill -USR2 $pid 2> /dev/null
++		else
++			echo "Reloading automounter map: $command"
++			kill -HUP $pid 2> /dev/null
+ 		fi
+ 	done
+ 	rm -f $TMP
