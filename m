@@ -1,11 +1,14 @@
-From: Terrence Martin <tmartin@physics.ucsd.edu>
-Subject: Failure to Unmount NFS Filesystems causes clients to hang on reboot
-Date: Thu, 02 Sep 2004 14:45:09 -0700
+From: raven@themaw.net
+Subject: Re: Problem with NIS maps
+Date: Sat, 4 Sep 2004 12:06:24 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <41379465.6030603@physics.ucsd.edu>
+Message-ID: <Pine.LNX.4.58.0409041204250.8861@donald.themaw.net>
+References: <4133F97E.8060509@cjs226.com>
+	<Pine.LNX.4.58.0408312110390.2756@raven.themaw.net>
+	<413632D5.3090301@cjs226.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <413632D5.3090301@cjs226.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -15,105 +18,63 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: 
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: "Clif J. Smith" <plone@cjs226.com>
+Cc: autofs@linux.kernel.org
 
-Hi,
+On Wed, 1 Sep 2004, Clif J. Smith wrote:
 
-I am having a problem where my client machines are not able to reboot 
-correctly because the NFS mounted file systems are hanging at shutdown 
-time and refuse to unmount.
+> Ian Kent wrote:
+> 
+> >On Mon, 30 Aug 2004, Clif Smith wrote:
+> >
+> >  
+> >
+> >>I'm in a large heterogeneous environment located across multiple 
+> >>locations.  I use NIS maps such as:
+> >>/home -rw austin:/export/home boston:/export/home phoenix:/export/home
+> >>
+> >>with the following in /etc/auto.master:
+> >>/nis      yp      auto_indirect_nis
+> >>
+> >>With AIX and Solaris, automounter chooses the server with the fewest
+> >>hops to determine which server to mount from.  Unfortunately, it appears
+> >>Suse's 8.1 implementation of automounter (v3.1.7-556) seems to choose 
+> >>the first listed.
+> >>    
+> >>
+> >
+> >Sorry, SuSE have chosen not to update to autofs v4.
+> >
+> >The most recent version handles this.
+> >
+> >You may wish to try building the SRPM from one of the FC distributions.
+> >
+> >Ian
+> >  
+> >
+> I ASSuMEd compiling it from source (4.1.3) would be even "cleaner", but 
+> when I see that /etc/init.d/autofs has:
+> if [ -f /etc/debian_version ]; then
+>     system=debian
+> elif [ -f /etc/redhat-release ]; then
+>     system=redhat
+> else
+>     echo "$0: Unknown system, please port and contact 
+> autofs@linux.kernel.org" 1>&2
+>     exit 1
+> fi
+> 
+> Why is the source so restrictive?
+> 
+> Moving on to the FC SRPM.
+> 
 
-I am running RHEL3 (Rocks Cluster 3.1) nodes with the latest RH RHEL3 
-kernel in a cluster environment.  The problem occured with older kernels 
-as well.
+Yes, that's a good point.
 
-Relatively little information is actually shared over NFS, and clients 
-almost never have to write to the same files. Mostly clients read some 
-code and configurations files over NFS and then maybe writing a bit of 
-data to isolated locations (no two clients write to the same files).
+This is one of the issues that should be addressed when the master map 
+parsing is taken into the daemon. It's pretty much the highest priority 
+task atm.
 
-Even when I shutdown the processes that actually use my nfs file systems 
-and confirm via lsof that no files are open on those file systems manual 
-unmount commands also hang.  Autofs also fails to stop correctly 
-claiming that the file systems are busy.
-
-Most of the clients mount filesystems from 3 or 4 servers via autofs. My 
-timeouts are 600 seconds.
-
-The problem is not always consistent. The other day I was able to 
-unmount properly and reboot after various strategies of manual unmounts 
-and shutting off autofs. Today I could not.
-
-So my questions are, if there are no files open on these mounted file 
-systems why would I have such problems? Can you force the NFS file 
-systems to unmount anyway? This is a particular problem because a hang 
-requires manual intervention to power cycle the machine. I would even be 
-happy to have the NFS unmounting be ignored completely and just reboot 
-the system after properly unmounting the local filesystems and ensuring 
-all programs are shutdown.
-
-I would be interested also in any suggestions of how to find what is 
-hanging up my NFS mounts and preventing unmounting...
-
-Thanks for any suggestions,
-
-Terrence Martin
-UCSD Physics
-
-A few command outputs
-
-
-root@compute-2-5 ~# df
-Filesystem           1K-blocks      Used Available Use% Mounted on
-/dev/hda1              4127076   3454252    463180  89% /
-/dev/hda3             71789596  21607120  46535724  32% /state/data
-none                   1030816         0   1030816   0% /dev/shm
-192.168.20.3:/home/cdfcaf
-                     101161396  34167296  66994100  34% /home/cdfcaf
-192.168.20.3:/home/cdfcaf
-                     101161396  34167296  66994100  34% /home/cdfcaf
-192.168.10.5:/falcon/0/users
-                     1463382364 618177588 845204776  43% /home/users
-frontend-3.local:/export/home/install
-                      10080520   5781204   3787248  61% /home/install
-
-root@compute-2-5 ~# mount
-/dev/hda1 on / type ext3 (rw)
-none on /proc type proc (rw)
-usbdevfs on /proc/bus/usb type usbdevfs (rw)
-/dev/hda3 on /state/data type ext3 (rw)
-none on /dev/shm type tmpfs (rw)
-none on /dev/pts type devpts (rw,gid=5,mode=620)
-automount(pid2592) on /home type autofs 
-(rw,fd=5,pgrp=2592,minproto=2,maxproto=3)
-192.168.20.3:/home/cdfcaf on /home/cdfcaf type nfs (rw,addr=192.168.20.3)
-automount(pid3119) on /home type autofs 
-(rw,fd=5,pgrp=3119,minproto=2,maxproto=3)
-automount(pid3149) on /netstor type autofs 
-(rw,fd=5,pgrp=3149,minproto=2,maxproto=3)
-automount(pid3180) on /afs type autofs 
-(rw,fd=5,pgrp=3180,minproto=2,maxproto=3)
-192.168.20.3:/home/cdfcaf on /home/cdfcaf type nfs (rw,addr=192.168.20.3)
-192.168.10.5:/falcon/0/users on /home/users type nfs (rw,addr=192.168.10.5)
-frontend-3.local:/export/home/install on /home/install type nfs 
-(rw,addr=192.168.21.1)
-
-cat /etc/auto.master
-# $411id: /etc/auto.master$
-# Retrieved: 02-Sep-2004 21:41
-# Master server: 192.168.21.1
-# Last modified on master: 04-Aug-2004 04:04
-# Encrypted file size: 490 bytes
-#
-# Owner: 0.0
-# Name: etc.auto..master
-# Mode: 0100644
-/home auto.home --timeout 600
-/netstor auto.net --timeout 600
-/afs    auto.afs --timeout 600
-/groot   auto.grid3      --timeout 600
-
-On one of the servers
-cat /etc/exports
-/export 192.168.0.0/255.255.0.0(rw,sync)
+Ian
