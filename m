@@ -1,12 +1,12 @@
 From: raven@themaw.net
-Subject: Re: Program map and submount problem
-Date: Sat, 24 Jan 2004 12:05:25 +0800 (WST)
+Subject: Re: Repeated Meessages
+Date: Sat, 24 Jan 2004 12:25:24 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0401241202080.1751@raven.themaw.net>
-References: <200401232348.i0NNmJN4021507@miguelito.qualcomm.com>
+Message-ID: <Pine.LNX.4.58.0401241224060.1784@raven.themaw.net>
+References: <Pine.LNX.3.96.1040123200909.13421A-100000@Maggie.Linux-Consulting.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200401232348.i0NNmJN4021507@miguelito.qualcomm.com>
+In-Reply-To: <Pine.LNX.3.96.1040123200909.13421A-100000@Maggie.Linux-Consulting.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,34 +18,23 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mmarion@qualcomm.com
+To: Alvin Oga <alvin@Mail.Linux-Consulting.com>
 Cc: autofs@linux.kernel.org
 
-On Fri, 23 Jan 2004 mmarion@qualcomm.com wrote:
-
-> On 23 Jan, To: raven@themaw.net wrote:
-> 
-> > The log messages make it appear that the automount daemon on
-> > /usr/local/projects/some/automount/submount is trying to umount itself without
-> > bothering to see if it's a busy path or not.  It seems to assume that since
-> > there are no submounts (either autofs or NFS) below it, that it's not busy.
-> 
-> Recomipled autofs on test box with debugging enabled.  Syslog output of point
-> where it umounts NFS children (under
-> /usr/local/projects/some/automount/submount) and then the daemon on submount
-> tries to umount, fails, and exits follows:
-
-Thanks for the info. I'll look deeper into it over the weekend.
-
-I'm being chuked of my computer for a while by the kids. Bummer.
+On Fri, 23 Jan 2004, Alvin Oga wrote:
 
 > 
-> I'm digging through automount.c code looking for case where this would happen,
-> but my C skills are really weak.
+> hi ya ian/raven
+> 
+> On Sat, 24 Jan 2004 raven@themaw.net wrote:
+> 
+> > Must be that RedHat install I was using last night.
+> 
+> i think qmail on your rh install is broken ??
+> 	- did you patch it ???
 
-It's not easy with fairly good C skils and a good knowledge of how the 
-daemon works.
+That's the ISP.
 
-Thanks again.
+I can still see the same message coming through. I'll call them.
 
 Ian
