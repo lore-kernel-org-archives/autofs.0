@@ -1,13 +1,11 @@
-From: Joseph Mack NA3T <jmack@wm7d.net>
-Subject: autofs-4.1 slow to mount
-Date: Thu, 13 May 2004 07:09:55 -0700 (PDT)
+From: Tom Georgoulias <tom.georgoulias@freescale.com>
+Subject: mount fails because entry in multi-mount doesn't work
+Date: Thu, 13 May 2004 09:26:13 -0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0405130639030.16060@www.wm7d.net>
-References: <200405101900.i4AJ09pH031586@hera.kernel.org>
-	<40A0CC37.3080003@gxt.com>
+Message-ID: <40A38585.4050103@freescale.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <40A0CC37.3080003@gxt.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,31 +15,67 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: autofs mailing list <autofs@linux.kernel.org>
 
-Linux-2.4.26, autofs4 as module, libc-2.3.2
+Yesterday I ran into an issue where a mount point wasn't working and 
+tracked it down to one of the submounts.  From what I can tell, if one 
+of the submounts in a multi-mount doesn't work, the entire mount point 
+won't work.  If that is the case, can this behavior be changed?
 
-mounting zip disk by autofs
+System:
+Sun V20Z running RHEL3 WS AMD64, 2.4.21-15ELsmp (with 
+kernel-smp-unsupported-2.4.21-15.EL RPM to get autofs4 module) and 
+autofs-4.1.2-6 from Jeff Moyer.
 
-with automount-4.0.0pre10, the disk mounts in 1sec
 
-(interval between "attempting to mount entry /removable/zip"
-and "kernel: kjournald starting. Commit interval 5 seconds"
-messages)
+[root@winston root]# cd /proj/tec/layout/copperhead
+-bash: cd: /proj/tec/layout/copperhead: No such file or directory
 
-with automount-4.1.2 the same interval is 11 secs.
+Checked the messages:
 
-on another similar machine, automount-4.1.2 won't mount
-the zip disk, giving "e2fsck: need terminal for interactive repairs".
-Running fsck from the command line shows a clean zip disk.
-automount-4.0.0pre10 mounts zip disk OK.
+[root@winston root]# tail /var/log/messages
+May 12 17:22:47 winston automount[8314]: rm_unwanted: 
+/proj/tec/layout/maskprep1
+May 12 17:22:47 winston automount[8314]: rm_unwanted: 
+/proj/tec/layout/copperhead
+May 12 17:22:47 winston automount[8314]: rm_unwanted: /proj/tec/layout
+May 12 17:22:47 winston automount[6941]: attempting to mount entry 
+/proj/tec/layout
+May 12 17:22:47 winston automount[8318]: >> mount: 
+macduff:/fsys/fs04/maskprep1 failed, reason given by server: Permission 
+denied
+May 12 17:22:47 winston automount[8318]: mount(nfs): nfs: mount failure 
+macduff:/fsys/fs04/maskprep1 on /proj/tec/layout/maskprep1
+May 12 17:22:47 winston automount[8318]: failed to mount /proj/tec/layout
+May 12 17:22:47 winston automount[8318]: rm_unwanted: 
+/proj/tec/layout/maskprep1
+May 12 17:22:47 winston automount[8318]: rm_unwanted: 
+/proj/tec/layout/copperhead
+May 12 17:22:47 winston automount[8318]: rm_unwanted: /proj/tec/layout
 
-Thanks Joe
+Noticed how mount failed for /proj/tec/layout/maskprep1, then the whole 
+/proj/tec/layout mount fails.  The mount point it was failing on is 
+intentionally unshared at the moment, so I'm not surprise it couldn't 
+make it. Took the entry out of the automount map
 
+layout \
+/copperhead eclipse0:/export/layout/copperhead \
+/maskprep1 macduff:/fsys/fs04/maskprep1 \
+<snip>
+
+refreshed the automount daemon's cache.  Mount works now.
+
+[root@winston root]# pkill -HUP -f auto.proj
+[root@winston root]# cd /proj/tec/layout/copperhead
+[root@winston copperhead]# ls
+mpc5554.0l00x  mpc5554.0l87p  restore
+[root@winston copperhead]#
+
+Tom
 -- 
-Joseph Mack NA3T EME(B,D), FM05lw North Carolina
-jmack (at) wm7d (dot) net - azimuthal equidistant map
-generator at http://www.wm7d.net/azproj.shtml
-Homepage http://www.austintek.com/ It's GNU/Linux!
+Tom Georgoulias
+POPI Classification
+[x] General Business Information
+[] Freescale Semiconductor Internal Use
+[] Freescale Semiconductor Confidential Proprietary
