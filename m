@@ -1,12 +1,10 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: Problem with autofs 3.1.7 -> 4.1.0-beta2
-Date: Sun, 7 Dec 2003 20:29:07 +0800 (WST)
+Subject: [ANNOUNCE] autofs 4.1.0 release
+Date: Sun, 7 Dec 2003 22:39:31 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.44.0312072016350.3078-100000@raven.themaw.net>
-References: <3FD2CC22.6050401@kmaclub.com>
+Message-ID: <Pine.LNX.4.44.0312072233130.3128-100000@raven.themaw.net>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <3FD2CC22.6050401@kmaclub.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,42 +16,32 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Michael Blandford <michael@kmaclub.com>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+To: autofs mailing list <autofs@linux.kernel.org>
 
-On Sat, 6 Dec 2003, Michael Blandford wrote:
 
-> 
-> If there is a good way to do an ldapsearch to show the exact config, 
-> please show me the syntax and I would be happy to report that back.
+Hi all,
 
-Which schema are you using the nisMap or automountMap.
+As usual the packages can be found at:
 
-I'll need an ldif example in order to duplicate the problem.
+ftp://ftp.kernel.org/pub/linux/daemons/autofs/v4
 
-You should be able to do an ldapsearch -x and get the entire database. As 
-long as your /etc/openldap/ldap.conf specifies the BASE and HOST entries.
+They are:
 
-> 
-> According to the automount man page, the wildcard for ldap is a / so 
-> that is what I was using.  What I thought was odd was it was always 
-> choosing the same thing and it *wasn't* the wildcard.
+autofs-4.1.0.tar.[gz|bz2]
 
-Think the code is incorrect.
+Changes:
 
-> 
-> I didnt think there was ordering per say in the nis or ldap maps.
+1) Corrected master map processing in init script.
+2) Backed out multi-mount patch in favour of using
+   the nonstrict option.
 
-Yep. As Peter says my understanding is not right.
+autofs4-2.4-module-20031201.tar.[gz|bz2]
 
-> 
-> If my config is wrong, or if I cant do wildcards in this way, that is 
-> fine.  I just know it works differently between 3.1.7 and 4.1.0.
+Changes:
 
-That's no good.
+1) Changed the readdir related routines yet again.
+   I hope this is the last time.
 
-Wherever possible and relevant v3 and v4 should provide the same behavior 
-for any given configuration.
 
 -- 
 
