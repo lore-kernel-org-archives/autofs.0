@@ -1,13 +1,14 @@
-From: Tom Georgoulias <tom.georgoulias@motorola.com>
+From: Jeff Moyer <jmoyer@redhat.com>
 Subject: Re: To autofs4 or not
-Date: Fri, 16 Apr 2004 08:15:09 -0500
+Date: Fri, 16 Apr 2004 10:39:45 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <407FDC5D.4000000@motorola.com>
-References: <C3CDA0E3AC8B4E438E94F37D0A20FE718D4581@HOUEXC210.mgroupnet.com>
+Message-ID: <16511.61489.172219.152402@segfault.boston.redhat.com>
+References: <407F1FBC.3060603@analog.com>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <C3CDA0E3AC8B4E438E94F37D0A20FE718D4581@HOUEXC210.mgroupnet.com>
+In-Reply-To: <407F1FBC.3060603@analog.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,24 +18,23 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: alan.burke@analog.com
+Cc: autofs@linux.kernel.org
 
-Rigler, Steve wrote:
+==> Regarding [autofs] To autofs4 or not; "Alan.Burke" <alan.burke@analog.com> adds:
 
-> RHEL 3 includes the autofs4 module, but it is provided by the
-> "kernel-unsupported" package.  Judging by bugzilla, people have
-> been asking for support for the autofs4 daemon, but RH hasn't
-> done anything (yet?) to include it in their distribution.
+alan.burke> Hi Everyone, I have the task of convincing a team of admins
+alan.burke> that we should be using autofs4 with RH8. /net is the major
+alan.burke> reason I want to use it, but some claim RH does not support
+alan.burke> autofs4. Is this true? If so will they support it in RHE3 or a
+alan.burke> future version?
 
-Judging by the recent patch submissions from Jeff Moyer at Red Hat, I'm 
-guessing they're moving towards autofs4 now.  With any luck, we'll get 
-good autofs4 support in RHEL sooner rather than later.
+Well, RH8 is no longer supported, I'm sure you know.  :(  I've been working
+to get the autofs4 user space into RHEL 3, so it will appear in the next
+update release.  RHEL 4 will _hopefully_ support autofs4 user space and
+kernel module.
 
-Tom
--- 
-Tom Georgoulias
-POPI Classification
-[x] General Business Information
-[] Motorola & freescale Internal Use
-[] Motorola & freescale Confidential Proprietary
+Cheers,
+
+Jeff
