@@ -1,12 +1,14 @@
-From: "Crawford, Philip I." <philip.crawford@unocal.com>
+From: Jeff Moyer <jmoyer@redhat.com>
 Subject: RE: autofs-4.1.3 rpms available
-Date: Fri, 4 Jun 2004 14:43:08 -0500
+Date: Fri, 4 Jun 2004 16:09:45 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <6AB920CC10586340BE1674976E0A991D01755BC8@slexch2.sugarland.unocal.com>
+Message-ID: <16576.55049.875986.881088@segfault.boston.redhat.com>
+References: <6AB920CC10586340BE1674976E0A991D01755BC8@slexch2.sugarland.unocal.com>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-content-class: urn:content-classes:message
+In-Reply-To: <6AB920CC10586340BE1674976E0A991D01755BC8@slexch2.sugarland.unocal.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,39 +19,25 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: jmoyer@redhat.com, autofs@linux.kernel.org
+To: "Crawford, Philip I." <philip.crawford@unocal.com>
+Cc: autofs@linux.kernel.org
 
-Hi Jeff / List:
+==> Regarding RE: [autofs] autofs-4.1.3 rpms available; "Crawford, Philip I." <philip.crawford@unocal.com> adds:
 
-With regards to your RHEL3 version of the RPM - doesn't the kernel need
-to be patched first?   We have been unable to get ghosting work just
-using the RPM.  If there are patches needed where can I get these?  The
-ones Ian released last week aren't for RHEL and won't patch cleanly. 
+philip.crawford> Hi Jeff / List: With regards to your RHEL3 version of the
+philip.crawford> RPM - doesn't the kernel need to be patched first?  We
+philip.crawford> have been unable to get ghosting work just using the RPM.
+philip.crawford> If there are patches needed where can I get these?  The
+philip.crawford> ones Ian released last week aren't for RHEL and won't
+philip.crawford> patch cleanly.
 
-Thanks
-Phil.  
+Yes, that is quite correct, though all of the features you were using in
+3.1.7 should work fine with the autofs4 userspace and the autofs3 kernel
+module.
 
-  
------Original Message-----
-From: autofs-bounces@linux.kernel.org
-[mailto:autofs-bounces@linux.kernel.org] On Behalf Of Jeff Moyer
-Sent: Wednesday, June 02, 2004 9:22 AM
-To: autofs@linux.kernel.org
-Subject: [autofs] autofs-4.1.3 rpms available
+I have patches for RHEL 3 which I am currently testing internally.  I'll
+let you know when they are publically available.
 
-
-Hello,
-
-Sorry for the long delay.  I've updated my people page with Ian's latest
-release.  Ian, this also includes your inifinite loop fix.  As usual,
-I've built RPMs for fc1, fc2, and rhel3.
-
-	  http://people.redhat.com/jmoyer/
-
-Happy Hacking,
+Thanks!
 
 Jeff
-
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org http://linux.kernel.org/mailman/listinfo/autofs
