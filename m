@@ -1,54 +1,52 @@
-From: Robert Au <rau@lsil.com>
-Subject: Re: consistent pathnames vs autofs
-Date: Thu, 24 Feb 2005 18:24:25 -0800
-Message-ID: <20050225022425.GE15050@vprau.lsil.com>
-References: <200502192052.j1JKqiKs002944@calvin.labs.agilent.com>
-	<Pine.LNX.4.61.0502231142400.30588@simba.math.ucla.edu>
+From: raven@themaw.net
+Subject: Re: [Patch 2/6] Bind Mount Extensions 0.06
+Date: Fri, 25 Feb 2005 21:15:12 +0800 (WST)
+Message-ID: <Pine.LNX.4.61.0502252105260.1921@donald.themaw.net>
+References: <20050222121129.GC3682@mail.13thfloor.at> <20050223230105.GD21383@infradead.org>
+ <20050224211727.GD4981@mail.13thfloor.at>
 Mime-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.61.0502231142400.30588@simba.math.ucla.edu>
+In-Reply-To: <20050224211727.GD4981@mail.13thfloor.at>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
-To: autofs@linux.kernel.org
+To: Herbert Poetzl <herbert@13thfloor.at>
+Cc: Christoph Hellwig <hch@infradead.org>, Andrew Morton <akpm@osdl.org>, Al Viro <viro@parcelfarce.linux.theplanet.co.uk>, Linux Kernel ML <linux-kernel@vger.kernel.org>, autofs@linux.kernel.org
 
-On Wed, Feb 23, 2005 at 12:09:38PM -0800, Jim Carter wrote:
-> Here at UCLA-Mathnet our homedirs are of the form /net/tupelo/h1/maint/jimc 
-> (tupelo is the name of the server, and /h1 is what tupelo exports), and 
-> this path is valid both on random hosts, which NFS mount tupelo:/h1, and on 
-> tupelo itself (Linux kernel 2.4.20 or 2.6.8 depending on which server), 
-> where autofs does a bind mount from /net/tupelo/h1 to the local /h1. 
-> It's considered bad form to refer to /h1 explicitly in a script that may 
-> someday run on a different machine.
-> 
-> As a substitute for Sun's host map, we emit on the fly an indirect map
-> file with one line "*  tupelo:/&" whenever a new server is referred to in 
-> the /net directory.  Thus the client can mount anything that the server is 
-> willing to export, without having to enumerate that in advance.
-> 
-> Wouldn't it be nice if such a map file could be built up from macros within 
-> autofs, without needing to be instantiated as a file and periodically 
-> cleaned up?  So instead of doing (the internal equivalent of) 
->     automount /net/tupelo file /tmp/tmpmaps/tupelo 
-> we would do
->     automount /net/tupelo macro "* -rw,nodev,etc ${SERVER}:/&" \
-> 							-DSERVER=tupelo
+On Thu, 24 Feb 2005, Herbert Poetzl wrote:
 
-I'm confused. Shouldn't
+> On Wed, Feb 23, 2005 at 11:01:05PM +0000, Christoph Hellwig wrote:
+>> On Tue, Feb 22, 2005 at 01:11:29PM +0100, Herbert Poetzl wrote:
+>>>
+>>>
+>>> ;
+>>> ; Bind Mount Extensions
+>>> ;
+>>> ; This part adds the required checks for touch_atime() to allow
+>>> ; for vfsmount based NOATIME and NODIRATIME
+>>> ; autofs4 update_atime is the only exception (ignored on purpose)
+>>
+>> and that purpose is?
+>
+> this is based on a statement from Al Viro:
+>
+> | autofs4 use - AFAICS there we want atime updated unconditionally,
+> | so calling update_atime() (update atime after checking
+> | noatime/nodiratime/readonly flags) is wrong.
+>
+> agreed, maybe a proper fix would be better ...
+>
+>> Did you discuss this with the autofs maintainers?
 
-  automount /net program /etc/auto.net rw,nodev,...
+I've had a look at the patch and I can't see any problem.
 
-do what you want? Have you reimplemented the program map (and
-/etc/auto.net) outside of autofs?
+autofs4 doesn't use the inode atime for expire purposes but does update it 
+in sync with its dentry info struct field that is used for this purpose.
 
--- 
-Robert Au                     rau@lsil.com
+So AFAICS the atime is an external view of expire status, 
+but only when updated within the autofs4 module VFS callbacks.
+
+I haven't yet looked at the v3 (autofs) module.
+I'll get back if I see an issue there.
+
+Ian
