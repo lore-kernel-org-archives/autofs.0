@@ -1,12 +1,9 @@
-From: raven@themaw.net
-Subject: Re: FW: [NFS] NFS and/or autofs hanging on Linux
-Date: Sat, 9 Oct 2004 10:37:25 +0800 (WST)
+From: "William.Crocker" <william.crocker@analog.com>
+Subject: Newbie needs help with automounter.
+Date: Sat, 9 Oct 2004 20:37:10 -0400 (EDT)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0410091036150.1370@donald.themaw.net>
-References: <482A3FA0050D21419C269D13989C61130435E921@lavender-fe.eng.netapp.com>
-Mime-Version: 1.0
+Message-ID: <200410100037.i9A0bA020600@novus.adsdesign.analog.com>
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <482A3FA0050D21419C269D13989C61130435E921@lavender-fe.eng.netapp.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,74 +13,43 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Lever, Charles" <cel@netapp.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
+Hello:
 
-Thanks Charles.
+I am new to autofs/automounter and need help understanding
+the following messages which I found in /var/log/messages.
 
-Spotted it on the NFS list but didn't copy my response here. My bad.
+These messages appeared when I tried to
+change directory to /proj/asic on cfl30.
 
-Basically asked if he had patched his kernel.
+If I stop and then start autofs it will work for a while
+and then start failing again.
 
-On Thu, 7 Oct 2004, Lever, Charles wrote:
+Thanks in advance.
 
-> in case some of you guys don't hang out on the nfs mailing list....
-> 
-> -----Original Message-----
-> From: Burke, Alan [mailto:Alan.Burke@analog.com] 
-> Sent: Thursday, October 07, 2004 9:32 AM
-> To: nfs@lists.sourceforge.net
-> Cc: Annie Mckeon
-> Subject: [NFS] NFS and/or autofs hanging on Linux
-> 
-> 
-> Hi Everyone,
-> 
-> We have got a problem with NFS hanging with automounter mounts.
-> 
-> We're running RH8 2.4.20-20.0 kernel
-> NFS-utils 1.0.1-2
-> Autofs4.1.2 (we must have the /net ability)
-> H/W is mixed HP4100's, Dell 2650's, Sun V60 and V65's
-> All the machines are in a Sun NIS domain with 700 Sun machines that run
-> fine.
-> 
-> The problem is intermittent; any automounter point can hang at any time.
-> For example auto_home may have 1000 entries cd /home/user1 hangs and
-> /home/user2 does not on machine Foo, but /home/user2 is fine on machine
-> Bar.
-> 
-> Once hung we sometimes can get it to release by umount -at nfs others
-> time a reboot is the only way to get it to release.
-> 
-> any help is appreciated
-> 
-> thanks,
-> 
-> alan
-> 
-> 
-> 
-> 	  
-> 
-> 
-> 
-> 
-> 
-> -------------------------------------------------------
-> This SF.net email is sponsored by: IT Product Guide on ITManagersJournal
-> Use IT products in your business? Tell us what you think of them. Give
-> us Your Opinions, Get Free ThinkGeek Gift Certificates! Click to find
-> out more http://productguide.itmanagersjournal.com/guidepromo.tmpl
-> _______________________________________________
-> NFS maillist  -  NFS@lists.sourceforge.net
-> https://lists.sourceforge.net/lists/listinfo/nfs
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
-> 
+Bill
+
+------------- /var/log/messages -------------
+
+Oct  9 18:30:31 cfl30 kernel: RPC: Can't bind to reserved port (98).
+Oct  9 18:30:31 cfl30 kernel: NFS: cannot create RPC transport.
+Oct  9 18:30:31 cfl30 kernel: nfs warning: mount version older than kernel
+Oct  9 18:30:31 cfl30 kernel: RPC: Can't bind to reserved port (98).
+Oct  9 18:30:31 cfl30 kernel: NFS: cannot create RPC transport.
+Oct  9 18:30:31 cfl30 automount[14622]: >> mount: wrong fs type, bad option, bad superblock on 831ntap:/vol/vol0/proj/asic,
+Oct  9 18:30:31 cfl30 automount[14622]: >>        or too many mounted file systems
+Oct  9 18:30:31 cfl30 automount[14622]: mount(nfs): nfs: mount failure 831ntap:/vol/vol0/proj/asic on /proj/asic
+Oct  9 18:30:31 cfl30 automount[14622]: failed to mount /proj/asic
+Oct  9 18:30:31 cfl30 kernel: RPC: Can't bind to reserved port (98).
+Oct  9 18:30:31 cfl30 kernel: NFS: cannot create RPC transport.
+Oct  9 18:30:31 cfl30 kernel: nfs warning: mount version older than kernel
+Oct  9 18:30:31 cfl30 kernel: RPC: Can't bind to reserved port (98).
+Oct  9 18:30:31 cfl30 automount[14624]: >> mount: wrong fs type, bad option, bad superblock on 831ntap:/vol/vol0/proj/asic,
+Oct  9 18:30:31 cfl30 kernel: NFS: cannot create RPC transport.
+Oct  9 18:30:31 cfl30 automount[14624]: >>        or too many mounted file systems
+Oct  9 18:30:31 cfl30 automount[14624]: mount(nfs): nfs: mount failure 831ntap:/vol/vol0/proj/asic on /proj/asic
+Oct  9 18:30:31 cfl30 automount[14624]: failed to mount /proj/asic
