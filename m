@@ -1,14 +1,14 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Automount/NFS issues causing executables to appear corrupted
-Date: Tue, 20 Apr 2004 13:24:31 +0800 (WST)
+From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: To autofs4 or not
+Date: Mon, 19 Apr 2004 22:18:02 -0700
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0404201323060.16644@wombat.indigo.net.au>
-References: <200404200008.i3K08Zvs018948@radium.internal.synopsys.com>
-	<Pine.LNX.4.58.0404200916221.12229@wombat.indigo.net.au>
-	<20040420042811.GE20474@rearview.synopsys.com>
+Message-ID: <4084B28A.4040105@zytor.com>
+References: <407F1FBC.3060603@analog.com>
+	<16511.61489.172219.152402@segfault.boston.redhat.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20040420042811.GE20474@rearview.synopsys.com>
+In-Reply-To: <16511.61489.172219.152402@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,21 +18,27 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Venkata Ravella <Venkata.Ravella@synopsys.com>
-Cc: autofs@linux.kernel.org, ab@californiadigital.com, Ramki.Balasubramanium@synopsys.com, linux-kernel@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: jmoyer@redhat.com
+Cc: autofs@linux.kernel.org
 
-On Mon, 19 Apr 2004, Venkata Ravella wrote:
-
+Jeff Moyer wrote:
+> ==> Regarding [autofs] To autofs4 or not; "Alan.Burke" <alan.burke@analog.com> adds:
 > 
-> Posted. I am very thankful to your pointers. Both those lists are closed
-> lists and moderated. I do not think moderator got a chance to look at it
-> and post. 
+> alan.burke> Hi Everyone, I have the task of convincing a team of admins
+> alan.burke> that we should be using autofs4 with RH8. /net is the major
+> alan.burke> reason I want to use it, but some claim RH does not support
+> alan.burke> autofs4. Is this true? If so will they support it in RHE3 or a
+> alan.burke> future version?
+> 
+> Well, RH8 is no longer supported, I'm sure you know.  :(  I've been working
+> to get the autofs4 user space into RHEL 3, so it will appear in the next
+> update release.  RHEL 4 will _hopefully_ support autofs4 user space and
+> kernel module.
 > 
 
-I certainly accepted your post to the autofs list.
+For what it's worth, it seems autofs 4 has gotten stable enough, and 
+autofs 3 has bitrotted enough :-/ that I'm not planning to make any more 
+autofs 3 releases unless something major happens.
 
-Hope someone on one of the lists has seen this in the past.
-
-Ian
+	-hpa
