@@ -1,13 +1,14 @@
-From: Chris Feist <cfeist@redhat.com>
-Subject: [patch] Maintain backwards compatibility w/ local file maps w/o
-	etc.
-Date: Wed, 20 Oct 2004 11:56:50 -0500
+From: Robert Giles <rgiles@arlut.utexas.edu>
+Subject: Re: Infinite loop when trying to access nonexistent
+  directory (auto.home '&' substitution)
+Date: Wed, 20 Oct 2004 14:55:18 -0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <1098291410.3527.18.camel@localhost.localdomain>
-Reply-To: cfeist@redhat.com
+Message-ID: <6.1.2.0.2.20041020143753.036f5ca0@mail.utexas.edu>
+References: <Pine.LNX.4.61.0410201431520.8936@orion.arlut.utexas.edu>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <Pine.LNX.4.61.0410201431520.8936@orion.arlut.utexas.edu>
+References: <Pine.LNX.4.61.0410201431520.8936@orion.arlut.utexas.edu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,34 +18,17 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: raven@themaw.net, autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+Content-Transfer-Encoding: 7bit
+To: autofs@linux.kernel.org
 
-This patch maintains the same behavior as in previous versions of
-rc.autofs.in.  In the past you could have the following in your
-auto.master file and it would test to see if there was a local
-/etc/auto.misc file, and if there was it would use it.
+Ack, well I recompiled 2.4.27 without SNARE auditing patches and autofs
+appears to be working normally.
 
-/misc auto.misc
+So this is without a doubt related to SNARE...
 
-Now, it doesn't check.  I've attached a patch that fixes this behavior
-(I think debian does the same thing with their autofs patches as well).
+Going to compare the strace output under the "clean" kernel now...
+(hopefully the problem will be apparent).
 
-Thanks,
-Chris
-
---- autofs-4.1.3/samples/rc.autofs.in.filemap-etc-append       
-2004-10-20 11:47:05.227372963 -0500
-+++ autofs-4.1.3/samples/rc.autofs.in   2004-10-20 11:47:06.947345831
--0500
-@@ -206,6 +206,9 @@
-                        map=`echo /etc/$map | sed 's^//^/^g'`
-                    elif [ -f "$map" ]; then
-                        maptype=file
-+                   elif [ -f "/etc/$map" ]; then
-+                       maptype=program
-+                       map=`echo /etc/$map | sed 's^//^/^g'`
-                    elif [ "$map" = "hesiod" -o "$map" = "userhome" ] ;
-then
-                        maptype=$map
-                        map=
+Robert Giles
+ARL:UT
