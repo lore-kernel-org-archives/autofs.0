@@ -1,8 +1,8 @@
 From: Jeff Moyer <jmoyer@redhat.com>
-Subject: direct map documentation
-Date: Tue, 30 Mar 2004 13:01:53 -0500
+Subject: [patch] auto.master duplicate entry checking broken in init script
+Date: Tue, 30 Mar 2004 13:21:35 -0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <16489.46609.75114.782585@segfault.boston.redhat.com>
+Message-ID: <16489.47791.964698.563392@segfault.boston.redhat.com>
 Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -21,20 +21,27 @@ To: autofs@linux.kernel.org
 
 Hello,
 
-Here is a small clarification on the direct map functionality.  Users
-assume that direct maps will operate exactly as they do on Solaris.
-Unfortunately, this isn't true.  Hopefully this little blurb could save
-some time, both for users and the list.  Comments welcome.
+If you have entries in your auto.master such as:
 
--Jeff
+/home/u
+/u
 
---- autofs-4.1.1/README.direct.orig	2004-03-30 12:58:21.000000000 -0500
-+++ autofs-4.1.1/README.direct	2004-03-30 12:58:00.000000000 -0500
-@@ -33,3 +33,7 @@
- WARNING: don't mount one direct mount within another. This does
-   not work properly at the moment.
- 
-+NOTE: Due to current design limitations, direct maps will take over an
-+  entire directory hierarchy.  What this means is, if your direct map key
-+  is /usr/share/bilbo, then /usr will become an automount mount point,
-+  mounting over the existing /usr.
+then the second will be perceived as a dup of the first, due to an in-exact
+regexp.  Attached is a fix which checks for a proper word boundary.
+
+Cheers,
+
+Jeff
+
+
+--- autofs-4.1.1/samples/rc.autofs.in.init-redhat-only	2004-01-29 11:01:22.000000000 -0500
++++ autofs-4.1.1/samples/rc.autofs.in	2004-03-19 17:41:35.000000000 -0500
+@@ -162,7 +162,7 @@
+ 	    fi
+ 	    if [ ! -z "$dir" -a ! -z "$map" \
+ 			-a x`echo "$map" | cut -c1` != 'x-' \
+-			-a "`echo "$knownmaps" | grep $dir/`" = "" ]
++			-a "`echo "$knownmaps" | grep '\<'$dir/`" = "" ]
+ 	    then
+ 		# If the options include a -t or --timeout or a -g or --ghost
+ 		# parameter, then pull those particular options out.
