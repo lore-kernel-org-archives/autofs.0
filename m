@@ -1,12 +1,12 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: rm hangs on symlinks to down mount points
-Date: Wed, 31 Dec 2003 03:59:52 +0800 (WST)
+From: Dylan <autofs@dylan.me.uk>
+Subject: autofs4 and NIS
+Date: Thu, 1 Jan 2004 01:59:12 +0000
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.44.0312310350040.265-100000@donald.themaw.net>
-References: <Pine.LNX.4.44.0312311026180.2720-100000@gate.nmr.mgh.harvard.edu>
+Message-ID: <200401010159.12640.autofs@dylan.me.uk>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.44.0312311026180.2720-100000@gate.nmr.mgh.harvard.edu>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,47 +16,32 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Paul Raines <raines@nmr.mgh.harvard.edu>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: autofs mailing list <autofs@linux.kernel.org>
 
-On Wed, 31 Dec 2003, Paul Raines wrote:
+Hello all,
 
-> On Wed, 31 Dec 2003, Ian Kent wrote:
->
-> > On Wed, 31 Dec 2003, Paul Raines wrote:
-> >
-> > >
-> > > I believe I made a mistake and feel pretty stupid now.  I think the hung
-> > > automount subprocesses are not hanging on the mount but on the umount.
-> > > Does autofs ever call umount with the -f option after the first (few)
-> > > regular umount's fail. If autofs has made a mount, the server dies, then
-> > > the mount times out from no use so autofs wants to umount it, how does
-> > > autofs handle the situation?
-> > >
-> >
-> > No. It never uses the -f option.
-> >
-> > I think the -f option is safe enough though. It probably should do
-> > something like that. But the -l option sounds like it could lead to
-> > strife.
->
-> Though I hope autofs after the call to the umount does not purely rely
-> on its return code to see that a mount is now unmounted but also checks
-> the mount table to see if it is still there.
->
+I'm currently using autofs4 to mount nfs shares. The config files are 
+distributed via NIS, which overall is working without a hitch. I have 
+two related problems, however...
 
-No but the that can be unreliable as well. The return code is OK for some
-things. For example, when if the autofs mount fails to umount due to mtab
-contention (actually umounts it but fails to update mtab) between mount
-requests the return code can be reliably used to detect this. A second
-call to umount generally fixes the mtab.
+It is, obviously, necessary to restart the NIS server from time to time, 
+in order to take account of config changes (usually changes to user 
+accounts.) When I do this, the following occurs:
 
-The umount logic is not very smart. This would be why I'm interested in
-discussing it.
+A: nfs shares which are unmounted become unavailable (cd-ing to the 
+directory results in a 'no such file or directory' error)
 
-But what are you saying about the return code?
-I have seen situations where the return code is bogus.
+B: nfs shares which are mounted report stale file handles.
 
-Ian
+I can understand where problem A comes from - and I figure restarting 
+autofs would clear that, but it is not really practical to do on each 
+machine. But I'm not sure why B should happen...?
+
+Dylan
+-- 
+Sweet moderation
+Heart of this nation
+Desert us not
+We are between the wars
+- Billy Bragg
