@@ -1,9 +1,11 @@
-From: "Takashi Yoshizawa" <mz711@hotmail.com>
-Subject: Re: Is the "program" format correct ?
-Date: Wed, 11 Aug 2004 16:16:09 +0900
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: patch, new test rpm: only source one master map
+Date: Thu, 12 Aug 2004 13:25:03 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <BAY18-F2u57RmVHsqWP000188f0@hotmail.com>
+Message-ID: <16667.42991.938617.416626@segfault.boston.redhat.com>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -14,28 +16,69 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; format=flowed; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
 To: autofs@linux.kernel.org
+Cc: raven@themaw.net
 
-Andreas Neuper wrote:
->~# /etc/auto.cat
->
->floppy  -fstype=auto                            :/dev/fd0
->video   -fstype=nfs,rw,rsize=8192,wsize=8192    ok:/home/video
->
+Hello,
 
-I'm also using automounter program map.
-It should behave like this:
-~# /etc/auto.cat video
--fstype=nfs,rw,rsize=8192,wsize=8192    ok:/home/video
+I've rolled another test rpm with a patch to only parse one master map.
+Previously, we concatenated all master maps we found, which caused problems
+in some environments.  Attached is the patch which addresses this, and you
+can find a new test version of the autofs rpm on my people page:
 
->~# echo "/tmp/cat       /etc/auto.cat" >> /etc/auto.master
+    http://people.redhat.com/~jmoyer/
 
-~# echo "/tmp/cat       program:/etc/auto.cat" >> /etc/auto.master
+I've only created rpms for fc3.  If you would like to run this on other
+distributions, feel free to recompile the SRPM.
 
-Takashi Yoshizawa
+I am very interested in getting some testing of this.  I'm mainly
+interested in seeing if this causes regressions for anyone (presumably
+because you were depending on this arguably broken behaviour).  Please also
+note that this rpm includes Ian's experimental map expiry patches, so this
+is not expected to be super stable.  Use at your own risk.
 
-_________________________________________________________________
-Help STOP SPAM with the new MSN 8 and get 2 months FREE*  
-http://join.msn.com/?page=features/junkmail
+Thanks!
+
+Jeff
+
+--- autofs-4.1.3/samples/rc.autofs.in.one-auto-master	2004-08-09 15:57:18.985431288 -0400
++++ autofs-4.1.3/samples/rc.autofs.in	2004-08-09 17:08:24.842922376 -0400
+@@ -110,21 +110,33 @@
+         case "$scheme" in
+             files)
+                 if [ -z "$filescheme" ] ; then
+-                    getfilemounts
+-                    filescheme=1
++                    MOUNTS=`getfilemounts`
++                    if [ -n "$MOUNTS" ] ; then
++                        getfilemounts
++                        return
++		    fi
++		    filescheme=1
+                     export filescheme
+                 fi
+                 ;;
+             nis)
+                 if [ -z "$nisscheme" ] ; then
+-                    getnismounts
++                    MOUNTS=`getnismounts`
++                    if [ -n "$MOUNTS" ] ; then
++                        getnismounts
++                        return
++		    fi
+                     nisscheme=1
+                     export nisscheme
+                 fi
+                 ;;
+             ldap*)
+                 if [ -z "$ldapscheme" ] ; then
+-                    getldapmounts
++                    MOUNTS=`getldapmounts`
++                    if [ -n "$MOUNTS" ] ; then
++                        getldapmounts
++                        return
++                    fi
+                     ldapscheme=1
+                     export ldapscheme
+                 fi
