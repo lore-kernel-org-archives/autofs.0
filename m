@@ -1,7 +1,7 @@
 From: Jeff Moyer <jmoyer@redhat.com>
 Subject: RE: auotfs/NFS Issue with WAN mounted filesystem?
-Date: Wed, 23 Feb 2005 12:39:01 -0500
-Message-ID: <16924.49077.320677.10889@segfault.boston.redhat.com>
+Date: Wed, 23 Feb 2005 12:40:12 -0500
+Message-ID: <16924.49148.935527.345456@segfault.boston.redhat.com>
 References: <10EE351D89AE1F488B426AC91EF6EDAB012813AC@server-1.ad.lsil.com>
 Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
@@ -68,9 +68,12 @@ jmall> I have a machine that went into this state again...  Here's a list
 jmall> of what I see:
 
 jmall> - I can look at the /proc/mounts and /etc/mtab without issue so they
-jmall> don't appear corrupted in any way
+jmall> don't appear corrupted in any way 
 
-Let me rephrase: we want to know if these two files are out of synch.  As
-such, please actually include their contents here!
+jmall> - the automounted filesystems that
+
+Hah!  Fired too early.  This is precisely the info I was looking for.
+
+Don't mind me...
 
 -Jeff
