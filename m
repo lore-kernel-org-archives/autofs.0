@@ -1,12 +1,10 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [NFS] Re: VFS: Busy inodes after unmount on 2 way SMP
-Date: Wed, 1 Oct 2003 00:44:59 +0800 (WST)
+Subject: [ANNOUNCE] autofs v4 releases, at last
+Date: Wed, 1 Oct 2003 00:46:10 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.44.0310010036060.3492-100000@raven.themaw.net>
-References: <Pine.LNX.4.44.0309300849180.27055-100000@guppy.limebrokerage.com>
+Message-ID: <Pine.LNX.4.44.0309302028550.2982-100000@raven.themaw.net>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.44.0309300849180.27055-100000@guppy.limebrokerage.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,67 +16,95 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ion Badulescu <lists@cs.columbia.edu>
-Cc: autofs@linux.kernel.org, Arun Sharma <arun.sharma@intel.com>, "H. Peter Anvin" <hpa@zytor.com>
+To: autofs mailing list <autofs@linux.kernel.org>
 
-On Tue, 30 Sep 2003, Ion Badulescu wrote:
 
-> Hi Ian,
-> 
-> On Tue, 30 Sep 2003, Ian Kent wrote:
-> 
-> > On Mon, 29 Sep 2003, Ion Badulescu wrote:
-> > > The daemon version doesn't matter, any daemon will do. All you need is to 
-> > > kill -9 automountd while something is mounted, and then unmount everything 
-> > > by hand without removing the mountpoint directories.
-> > > 
-> > 
-> > Yes, your'e exactly right. That's expected behaviour as the directory 
-> > dentries still exist and there is no daemon to remove them.
-> 
-> Hmm. Expected behaviour, you say? Maybe, maybe not, it's hard to tell 
-> what's to be expected here, since the autofs umount semantics are so 
-> different from a regular filesystems.
+Hi all,
 
-For autofs v4 anyway possibly v3 also. Cause of the nature of it.
+It's not a perfect world and there are still problems with the code but I 
+need to get them out to a broader audience. So I have put these releases 
+together. I hope that you will find them useful.
 
-> 
-> Normally a filesystem is allowed to be unmounted if it is not busy, right?
-> But with autofs it's different, it should be unmounted only if it is
-> completely empty, with no entries at all -- and I'm not convinced the VFS
-> layer is up to the task of dealing with this requirement.  Alternatively
-> the autofs code should be prepared to clean up after itself, but that
-> might not be possible in all circumstances.
-> 
-> > Hence the message. Seeing this message has always been a signal to me
-> > that the daemon has a bug.
-> 
-> Oh, you're absolutely right here (although we're talking about different
-> daemons, I'm using--and expanding, and debugging--amd's autofs support).
-> :-) Nonetheless, it's a bug in the kernel code that should be remedied.
-> 
-> > I have been thinking that implementing a umount_begin routine in the 
-> > super_operations for autofs4 would remedy the problem. I believe that, 
-> > correct me if I'm wrong, the umount must be done with a force option in 
-> > this case, so the umount_begin would be called.
-> 
-> No, you're right, you need MNT_FORCE for umount_begin to be called.
-> 
-> That, however, would be a reasonable solution if the filesystem also
-> prevented its own unmounting when it is not empty (by having each entry
-> hold a reference to the vfsmount in its private data, perhaps, I'm not
-> sure). Then, inside umount_begin, and only if the filesystem is catatonic,
-> it would garbage-collect any entries not mounted upon and not busy. That
-> should work, I think...
+The tars mentioned below are located at:
 
-As you point out I am talking about autofs not amd.
+ftp://ftp.kernel.org/pub/linux/daemons/autofs/v4
 
-I think it's a lot simpler than it sounds above. Granted if the tree is 
-busy with mounts you can probably only give up but much of the time it's 
-not. The logic to traverse the filesystem would be similar to what I have 
-used in my rewrite of the expire module in autofs4. Check it out at 
-ftp://ftp.kernel.org/pub/linux/daemons/autofs/v4 and let me know if 
-you think the idea has merit.
+autofs-4.0.0-1.tar.[gz|bz2]
+===========================
+
+Largely the autofs-4.0.0pre10 with:
+
+	1) Some patches that I did ages ago to improve submounts.
+	   This includes correcting the double slash in mount
+	   points. Changes to the init script to improve the 
+	   shutdown when submounts are involved.
+	2) Merged some small patches from the Debian and SuSE autofs v4
+	   packages.
+	3) A simple work around to allow tree mounts to work with
+	   RedHat 2.4.20, and above, kernels.
+
+
+autofs-4.1.0-beta1.tar.[gz|bz2]
+===============================
+
+This is a restructuring and improvement of my original v4 patch. I am 
+releasing it as a beta so that it can be tested in a broader range of 
+environments. Please try it and let me know how it goes (he said as he 
+ducked waiting for the stream of complaints).
+
+As well the considerable restructure and tidy up of my original patch it 
+includes:
+
+	1) Merge of all the RedHat autofs v3 patches. This includes
+	   the RedHat init script and LDAP improvements. See the 
+	   README files in the package for more info.
+	2) Add LDAP direct mount support to complement the file
+	   and NIS map direct mount support already present.
+	3) Merged some patches from the Debian and SuSE autofs v4
+	   packages.
+	4) Found a bunch of bugs and fixed them. This was largely
+	   due to the huge efforts made by Aaron Ogden in testing
+	   a never ending stream of attempted corrections.
+	   Thanks Aaron.
+
+What has not yet been done:
+
+	1) Work on multiple distribution startup.
+	   I'm still thinking about how best to do this.
+	2) Merge of patches supplied by Mark Fasheh. Sorry Mark.
+	   This work has been started and you will see some of
+	   the code present, but as yet unused. I want to
+	   generalize these patches and that is going to
+	   take awhile.
+	3) Fix the handling busy mount points at exit.
+	   I have tried to improve this often but it is still
+	   not the best.
+
+
+And finally
+
+autofs4-2.4-module-20030929.tar.[gz|bz2]
+========================================
+
+The purpose of the autofs4 kernel module update is to provide support
+for browsing (ghosting) of the autofs file system. The daemon can do this 
+for file, NIS and LDAP maps.
+
+The kit is for the kernel version 2.4 autofs4 module. It includes patches 
+that can be applied separately to a kernel source tree (they are also 
+present in autofs-4.1.0 tar). People that want to compile autofs4 into 
+the kernel or just want to patch the kernel can use them. But the kit is 
+really intended to be used to build the autofs4 module without having to 
+build a kernel. The only requirement is that a kernel source tree that 
+matches the running kernel be present along with a corresponding kernel 
+config file. Please check the README for more info.
+
+This is new and I'm not sure about the quality of the documentation so 
+feedback is needed, or better, updates and patches.
+
+
+Hope some of you find these useful.
+Ian
 
 -- 
 
