@@ -1,11 +1,14 @@
-From: Martin Fick <fick@fgm.com>
-Subject: Automounting on /. deleting entire FS!
-Date: Mon, 11 Oct 2004 11:29:38 -0400
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: Automounting on /. deleting entire FS!
+Date: Mon, 11 Oct 2004 11:39:18 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <20041011152938.GL21585@lego.fgm.com>
+Message-ID: <16746.43302.434588.743693@segfault.boston.redhat.com>
+References: <20041011152938.GL21585@lego.fgm.com>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <20041011152938.GL21585@lego.fgm.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,34 +19,47 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: autofs@linux.kernel.org
-Cc: Martin Fick <fick@lego.fgm.com>
+To: Martin Fick <fick@fgm.com>
+Cc: autofs@linux.kernel.org, Martin Fick <fick@lego.fgm.com>
 
-Yup,
+==> Regarding [autofs] Automounting on /. deleting entire FS!; Martin Fick <fick@fgm.com> adds:
 
-  The #$@!! sys admin of my home machine, (that's me,)
-decided to fool the automounter into using '/' to mount his
-partiions on and lost his entire filesystem.  Pouff,
-everything that was not a mounted partition gone!!!  Now I
-realize that I shouldn' have been deceitfull to the poor
-little autofs daemon, I told hime to use '/.' since he
-balked at '/', but did I really deserve this?
+fick> Yup, The #$@!! sys admin of my home machine, (that's me,) decided to
+fick> fool the automounter into using '/' to mount his partiions on and
+fick> lost his entire filesystem.  Pouff, everything that was not a mounted
+fick> partition gone!!!  Now I realize that I shouldn' have been deceitfull
+fick> to the poor little autofs daemon, I told hime to use '/.' since he
+fick> balked at '/', but did I really deserve this?
 
-So a few questions:
+fick> So a few questions:
 
-   1) Why does the automounter delete files (or entire filesystems)? 
+fick>    1) Why does the automounter delete files (or entire filesystems)?
 
-   2) How can one go about automounting a cdrom on /cdrom?
+It doesn't, it simply mounted over your '/' mountpoint.  If you umount /,
+you get what was there before (I'm guessing.  never really overmounted /
+before).
 
-   3) Should this be fixed? i.e. if it's bad to use slash, then
-      should any other path that works out to be slash be checked
-      also? :)
+fick>    2) How can one go about automounting a cdrom on /cdrom?
 
-   4) Are my files really gone?  Is there anything I can do to
-      recover? (it is an ext3 fs, not ext2)     
+You could automount it in /misc/cdrom, and create a symlink.
 
+# ln -sf /misc/cdrom /cdrom
 
-  Still weeping/laughing,
-  
-  -Martin
+fick>    3) Should this be fixed? i.e. if it's bad to use slash, then
+fick> should any other path that works out to be slash be checked also? :)
+
+Probably.
+
+fick>    4) Are my files really gone?  Is there anything I can do to
+fick> recover? (it is an ext3 fs, not ext2)
+
+No, see the answer to 1) above.  If you can't simply umount /, then you can
+boot in single user mode.  This shouldn't start the automounter.  Then, you
+can edit your automount config files to not overmount /.  You should be
+good to go after that.
+
+fick>   Still weeping/laughing,
+
+You gave me a chuckle.
+
+-Jeff
