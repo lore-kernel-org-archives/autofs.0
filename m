@@ -1,17 +1,13 @@
-From: Greg Wooledge <wooledg@eeg.ccf.org>
-Subject: Re: [PATCH 3/5] logging to stderr
-Date: Tue, 15 Feb 2005 10:29:40 -0500
-Message-ID: <20050215152940.GX1535@eeg.ccf.org>
-References: <200502111155.33706.vda@port.imtp.ilyichevsk.odessa.ua>
-	<200502111159.50103.vda@port.imtp.ilyichevsk.odessa.ua>
-	<200502111201.43507.vda@port.imtp.ilyichevsk.odessa.ua>
-	<200502111203.58345.vda@port.imtp.ilyichevsk.odessa.ua>
-	<16912.49643.760509.977965@segfault.boston.redhat.com>
-	<Pine.LNX.4.58.0502150923460.22172@wombat.indigo.net.au>
-	<16913.63757.849983.485803@segfault.boston.redhat.com>
+From: raven@themaw.net
+Subject: Re: [ANNOUNCE] autofs 4.1.4 beta2 release
+Date: Tue, 15 Feb 2005 23:16:04 +0800 (WST)
+Message-ID: <Pine.LNX.4.61.0502152315060.8319@donald.themaw.net>
+References: <Pine.LNX.4.61.0502142233210.1653@donald.themaw.net>
+	<20050215014857.GA26216@uio.no>
+	<Pine.LNX.4.61.0502152253120.8175@donald.themaw.net>
+	<Pine.LNX.4.61.0502152303450.8273@donald.themaw.net>
 Mime-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <16913.63757.849983.485803@segfault.boston.redhat.com>
+In-Reply-To: <Pine.LNX.4.61.0502152303450.8273@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,19 +18,51 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
-To: autofs@linux.kernel.org
+To: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
+Cc: autofs@linux.kernel.org
 
-On Tue, Feb 15, 2005 at 08:28:45AM -0500, Jeff Moyer wrote:
-> Putting autofs in the foreground doesn't buy you much, except to debug
-> initialization.  Much of the "business logic" is executed in forked
-> processes.  I'm not against this, but I must say that I find all of the
-> information I need to debug autofs problems in the logs.  That's why I'm
-> curious as to why someone would invest the time in these patches.
+On Tue, 15 Feb 2005 raven@themaw.net wrote:
 
-My first guess would be that he wants to manage autofs under daemontools
-or runit.
+> On Tue, 15 Feb 2005 raven@themaw.net wrote:
+>
+>> On Tue, 15 Feb 2005, Steinar H. Gunderson wrote:
+>> 
+>>> - The check for /proc/modules does not seem to have went in (see
+>>> http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=292762).
+>> 
+>> I though I checks this?
+>> 
+>> Or have you changed the bug id?
+>
+> I've read the bug report you refer to but if I'm to get it right you need to 
+> provide a patch.
 
-http://cr.yp.to/daemontools.html
-http://smarden.org/runit/
+Is this what you're seeking?
+
+Index: samples/rc.autofs.in
+===================================================================
+RCS file: /home/cvs/root/autofs/samples/rc.autofs.in,v
+retrieving revision 1.47
+retrieving revision 1.48
+diff -u -r1.47 -r1.48
+--- samples/rc.autofs.in	10 Feb 2005 14:30:07 -0000	1.47
++++ samples/rc.autofs.in	15 Feb 2005 15:27:34 -0000	1.48
+@@ -1,6 +1,6 @@
+  #!/bin/bash
+  #
+-# $Id: rc.autofs.in,v 1.47 2005/02/10 14:30:07 raven Exp $
++# $Id: rc.autofs.in,v 1.48 2005/02/15 15:27:34 raven Exp $
+  #
+  # rc file for automount using a Sun-style "master map".
+  # We first look for a local /etc/auto.master, then a YP
+@@ -604,7 +604,7 @@
+  		# autofs filesystem support not loaded
+  		echo -n ' loading autofs4 kernel module,'
+  		modprobe autofs4 || true
+-	elif lsmod | grep -q autofs[^4]; then
++	elif ([ -f /proc/modules ] && lsmod) | grep -q autofs[^4]; then
+  		# wrong autofs filesystem module loaded
+  		echo
+  		echo "WARNING: autofs kernel module is loaded, autofs4 needed"
