@@ -1,13 +1,12 @@
-From: ramana <ramana@intraperson.com>
-Subject: Re: Autodir
-Date: Fri, 18 Jun 2004 07:16:31 +0530
+From: "Dimitry V. Ketov" <Dimitry.Ketov@avalon.ru>
+Subject: automount 4.1.3 - strange behaviour in hearachy
+Date: Tue, 22 Jun 2004 19:52:12 +0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <40D24977.7030706@intraperson.com>
-References: <LYRIS-1845620-699584-2004.04.19-05.42.49--ramana#intraperson.com@listserver.itd.umich.edu>
+Message-ID: <E1B7C89B8DCB084C809A22D7FEB90B3841B5@frodo.avalon.ru>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <LYRIS-1845620-699584-2004.04.19-05.42.49--ramana#intraperson.com@listserver.itd.umich.edu>
+content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,40 +16,36 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 To: autofs@linux.kernel.org
 
-ramana wrote:
+Just testing autofs herarchies:
 
-> I work on Linux.
->
-> Its not pure ldap question but it does not fit exactly to any mailing 
-> list I know. So I decided to ask here.
->
-> Posix/shadow ldap accounts have home directory associated with them. I 
-> can get those accounts to any server which require them --for example 
-> using nss_ldap.
->
-> But the question is how to create home directories on the server 
-> automatically as IMAP and other servers depend heavily on physical 
-> presence of home directories.
->
-> One solution is pam_mkhomedir, But it only works when the server uid=0.
->
-> Any better solutions such that it should be transparent to the server 
-> and works with any server.
->
-> Because I am planning to code a very simple solution -- to be used 
-> with autofs to solve this problem. If there is better solution I 
-> consider that.
->
-> Regards
-> ramana
->
-This what I posted to ldap mailing list once.
+--- /etc/auto.master ---
+/mnt/autofs     program:/etc/auto.autofs --timeout=50 --debug --verbose
+------------------------
 
-Regards
-ramana
+--- /etc/auto.autofs ---
+#!/bin/bash
 
--- 
-http://www.intraperson.com
+echo -fstype=autofs     program:/etc/auto.autofs
+------------------------
+
+cd /mnt/autofs/a/b/c
+ps axww
+
+--- output ---
+...
+23343 pts/0    S      0:00 /usr/sbin/automount --pid-file
+/var/run/automount.mnt.autofs.pid --timeout=50 --verbose --debug
+/mnt/autofs program /etc/auto.autofs
+23385 pts/0    S      0:00 /usr/sbin/automount --submount --timeout=50
+--debug /mnt/autofs/a program /etc/auto.autofs
+23391 pts/0    S      0:00 /usr/sbin/automount --submount --timeout=50
+--debug /mnt/autofs/a/b program /etc/auto.autofs
+23397 pts/0    S      0:00 /usr/sbin/automount --submount --timeout=50
+--debug /mnt/autofs/a/b/c program /etc/auto.autofs
+...
+--------------
+
+a few seconds later automount with pid 23397 unexpectly dies
