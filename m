@@ -1,12 +1,14 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: [patch] make automount daemon a PIE
-Date: Wed, 24 Mar 2004 17:56:23 -0500
+From: Matt Bernstein <mb/autofs@dcs.qmul.ac.uk>
+Subject: Re: Help with ldap + autofs please
+Date: Wed, 24 Mar 2004 16:41:21 +0000 (GMT)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <16482.4631.363999.697432@segfault.boston.redhat.com>
-Reply-To: jmoyer@redhat.com
+Message-ID: <Pine.LNX.4.58.0403241636220.19787@lucy.dcs.qmul.ac.uk>
+References: <200403181118.34039.ndbecker2@verizon.net>
+ <Pine.LNX.4.58.0403212326530.4690@raven.themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <Pine.LNX.4.58.0403212326530.4690@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,84 +18,106 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: autofs@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="utf-8"
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org, Neal Becker <ndbecker2@verizon.net>
 
-Hello,
+On Mar 21 Ian Kent wrote:
 
-Uli Drepper suggested making automount a position independent executable.
-Here is a patch which does so on systems with compilers that support it.
+>On Thu, 18 Mar 2004, Neal Becker wrote:
+>
+>> Can anyone help me with migrating autofs to ldap?
+>>=20
+>> To test, I added this line to /etc/auto.master:
+>>=20
+>> /test=C2=A0=C2=A0=C2=A0ldap:rpppc1.md.hns.com:ou=3Dauto.test,dc=3Dadg,=
+dc=3Dhns,dc=3Dcom=C2=A0
+>
+>Try
+>
+>/test	ldap //rpppc1.md.hns.com/ou=3Dauto.test,dc=3Dadg,dc=3Dhns,dc=3Dcom
 
-Ian, I didn't include generated files (ala configure and Makefile.conf) for
-obvious reasons.
+Hi, I get the same problem--this doesn't help (a space after "ldap" makes=
+=20
+it think it's a yp map called "ldap").
 
-Cheers,
+>> Mar 18 09:19:40 rpppc1 automount[19312]: lookup(ldap): query failed fo=
+r (&(objectclass=3DnisObject))
+>> Mar 18 09:19:40 rpppc1 automount[19312]: lookup(ldap): query failed fo=
+r (&(objectclass=3Dautomount))
+>> Mar 18 09:19:40 rpppc1 automount[19312]: failed to load map, exiting
 
-Jeff
+Same problem here.
+
+Mar 24 16:26:22 r2-pc automount[16114]: starting automounter version 4.1.=
+1, path =3D /homes, maptype =3D ldap, mapname =3D ou=3Dauto.homes,dc=3Ddc=
+s,dc=3Dqmul,dc=3Dac,dc=3Duk
+Mar 24 16:26:22 r2-pc automount[16114]: lookup(ldap): server =3D "(defaul=
+t)", port =3D 389, base dn =3D "ou=3Dauto.homes,dc=3Ddcs,dc=3Dqmul,dc=3Da=
+c,dc=3Duk"
+Mar 24 16:26:23 r2-pc automount[16114]: mount(bind): bind_works =3D 1
+Mar 24 16:26:23 r2-pc automount[16114]: kproto sub: Function not implemen=
+ted
+Mar 24 16:26:23 r2-pc automount[16114]: using kernel protocol version 4.0=
+0
+Mar 24 16:26:23 r2-pc automount[16114]: using timeout 300 seconds; freq 7=
+5 secs
+Mar 24 16:26:23 r2-pc automount[16114]: lookup(ldap): searching for "(&(o=
+bjectclass=3DnisObject))" under "ou=3Dauto.homes,dc=3Ddcs,dc=3Dqmul,dc=3D=
+ac,dc=3Duk"
+Mar 24 16:26:23 r2-pc automount[16114]: lookup(ldap): query succeeded, no=
+ matches for (&(objectclass=3DnisObject))
+Mar 24 16:26:24 r2-pc automount[16114]: lookup(ldap): searching for "(&(o=
+bjectclass=3Dautomount))" under "ou=3Dauto.homes,dc=3Ddcs,dc=3Dqmul,dc=3D=
+ac,dc=3Duk"
+Mar 24 16:26:24 r2-pc automount[16114]: lookup(ldap): query failed for (&=
+(objectclass=3Dautomount))
+Mar 24 16:26:24 r2-pc automount[16114]: failed to load map, exiting
+Mar 24 16:26:24 r2-pc automount[16114]: umount_multi: path=3D/homes incl=3D=
+0
+
+# ldapsearch -x '(&(objectclass=3Dautomount))' -b 'ou=3Dauto.homes,dc=3Dd=
+cs,dc=3Dqmul,dc=3Dac,dc=3Duk' -z 3
+# extended LDIF
+#
+# LDAPv3
+# base <ou=3Dauto.homes,dc=3Ddcs,dc=3Dqmul,dc=3Dac,dc=3Duk> with scope su=
+b
+# filter: (&(objectclass=3Dautomount))
+# requesting: ALL
+#
+
+# tba1, auto.homes, dcs.qmul.ac.uk
+dn: cn=3Dtba1,ou=3Dauto.homes,dc=3Ddcs,dc=3Dqmul,dc=3Dac,dc=3Duk
+cn: tba1
+objectClass: automount
+automountInformation:: Oi9ob21lL2N1c3RhcmQvM3JkL3RiYTE=3D
+
+# shc5, auto.homes, dcs.qmul.ac.uk
+dn: cn=3Dshc5,ou=3Dauto.homes,dc=3Ddcs,dc=3Dqmul,dc=3Dac,dc=3Duk
+cn: shc5
+objectClass: automount
+automountInformation:: Oi9ob21lL2N1c3RhcmQvbXNjaXQvc2hjNQ=3D=3D
+
+# ozm2, auto.homes, dcs.qmul.ac.uk
+dn: cn=3Dozm2,ou=3Dauto.homes,dc=3Ddcs,dc=3Dqmul,dc=3Dac,dc=3Duk
+cn: ozm2
+objectClass: automount
+automountInformation:: Oi9ob21lL2N1c3RhcmQvbXNjaXQvb3ptMg=3D=3D
+
+# search result
+search: 2
+result: 4 Size limit exceeded
+
+# numResponses: 4
+# numEntries: 3
 
 
-diff --exclude configure --exclude Makefile.conf -urp autofs-4.1.1.orig/Makefile.conf.in autofs-4.1.1/Makefile.conf.in
---- autofs-4.1.1.orig/Makefile.conf.in	2003-09-29 04:22:35.000000000 -0400
-+++ autofs-4.1.1/Makefile.conf.in	2004-03-24 17:37:46.000000000 -0500
-@@ -7,6 +7,10 @@
- # build autofs.
- #
- 
-+# Do we build with -fpie?
-+DAEMON_CFLAGS  = @DAEMON_CFLAGS@
-+DAEMON_LDFLAGS = @DAEMON_LDFLAGS@
-+
- # Special parameters for glibc (libc 6)
- LIBNSL    = @LIBNSL@
- LIBRESOLV = @LIBRESOLV@
-diff --exclude configure --exclude Makefile.conf -urp autofs-4.1.1.orig/configure.in autofs-4.1.1/configure.in
---- autofs-4.1.1.orig/configure.in	2004-03-07 07:17:54.000000000 -0500
-+++ autofs-4.1.1/configure.in	2004-03-24 17:44:26.000000000 -0500
-@@ -126,6 +126,27 @@ AC_SUBST(LIBLDAP)
- LDFLAGS="${AF_tmp_ldflags}"
- 
- #
-+# Does gcc support building position independent executables?
-+#
-+AC_PROG_CC
-+cat > pietest.c <<EOF
-+int main(void) { return 0; }
-+EOF
-+CFLAGS=-fpie
-+DAEMON_CFLAGS=
-+DAEMON_LDFLAGS=
-+AC_MSG_CHECKING([whether gcc accepts -fpie])
-+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[int main(void) {return 0;}]])],
-+		  [gcc_supports_pie=yes], [gcc_supports_pie=no])
-+AC_MSG_RESULT([$gcc_supports_pie])
-+if test $gcc_supports_pie = yes ; then
-+	DAEMON_CFLAGS="-fpie"
-+	DAEMON_LDFLAGS="-pie"
-+fi
-+AC_SUBST(DAEMON_CFLAGS)
-+AC_SUBST(DAEMON_LDFLAGS)
-+
-+#
- # Location of init.d directory?
- #
- AF_INIT_D()
-diff --exclude configure --exclude Makefile.conf -urp autofs-4.1.1.orig/daemon/Makefile autofs-4.1.1/daemon/Makefile
---- autofs-4.1.1.orig/daemon/Makefile	2004-01-29 11:01:22.000000000 -0500
-+++ autofs-4.1.1/daemon/Makefile	2004-03-24 17:40:28.000000000 -0500
-@@ -11,14 +11,14 @@ OBJS = automount.o spawn.o module.o moun
- 
- version := $(shell cat ../.version)
- 
--CFLAGS += -rdynamic -DAUTOFS_LIB_DIR=\"$(autofslibdir)\" -DVERSION_STRING=\"$(version)\" -I../include
-+CFLAGS += -rdynamic $(DAEMON_CFLAGS) -DAUTOFS_LIB_DIR=\"$(autofslibdir)\" -DVERSION_STRING=\"$(version)\" -I../include
- LDFLAGS += -rdynamic
- LIBS = -ldl
- 
- all: automount
- 
- automount: $(OBJS) $(AUTOFS_LIB)
--	$(CC) $(LDFLAGS) -o automount $(OBJS) $(AUTOFS_LIB) $(LIBS)
-+	$(CC) $(LDFLAGS) $(DAEMON_LDFLAGS) -o automount $(OBJS) $(AUTOFS_LIB) $(LIBS)
- 	$(STRIP) automount
- 
- clean:
+This is using autofs-4.1.1-3 from Fedora development (will probably go in=
+=20
+FC2), with either the v3 or v4 kernel module.
+
+Strangely, some mounts do work and others do not. There's not enough in=20
+the debug log for me to work out what's going on.
+
+I now have no home directory! Can anyone see what's gone wrong?
