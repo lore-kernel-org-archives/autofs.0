@@ -1,13 +1,13 @@
-From: Jim Carter <jimc@math.ucla.edu>
-Subject: Re: [patch] buffer overflow, failure to auto-dismount,
- log file diarrhea
-Date: Fri, 9 Jan 2004 11:58:53 -0800 (PST)
+From: Mike Waychison <Michael.Waychison@Sun.COM>
+Subject: Re: [RFC] Towards a Modern Autofs
+Date: Fri, 09 Jan 2004 15:06:49 -0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.53.0401091118050.9335@simba.math.ucla.edu>
-References: <Pine.LNX.4.44.0401031051350.4413-100000@raven.themaw.net>
+Message-ID: <3FFF09D9.40909@sun.com>
+References: <Pine.LNX.4.33.0401100143590.21972-100000@wombat.indigo.net.au>
 Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============70866615379017195=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.44.0401031051350.4413-100000@raven.themaw.net>
+In-reply-to: <Pine.LNX.4.33.0401100143590.21972-100000@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,102 +17,207 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: Ian Kent <raven@themaw.net>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+Cc: autofs mailing list <autofs@linux.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Sat, 3 Jan 2004, Ian Kent wrote:
-> On Fri, 2 Jan 2004, Jim Carter wrote:
-> > Right, expire.c :: autofs4_expire() bypasses a mount point if its last_used
-> > field is too recent, and then it checks is_tree_busy().  Oh, look, a kludge
-> > that could be added, how wonderful!  Assuming that it's feasible to get
-> > module-provided data into the inode data returned from sys_stat or
-> > sys_fstat, a mode bit could be set to indicate busyness, e.g. user write
-> > implies not busy.
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--===============70866615379017195==
+Content-type: multipart/signed;
+ boundary=------------enig81B952048166ED41571B2513;
+ protocol="application/pgp-signature"; micalg=pgp-sha1
+
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig81B952048166ED41571B2513
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+
+Ian Kent wrote:
+
+>On Thu, 8 Jan 2004, Mike Waychison wrote:
 >
-> A user write implies an open file. The expire routine must identify this
-> dentry as busy or it's a bug that needs to be fixed.
-
-No, I meant that when the sys_stat method fills in the mode field of
-the returning stat structure, it would be reported as 555 for a busy
-filesystem, or 755 if it looks idle and dismountable.  The mode field as
-seen by the VFS layer can stay at 755.  This would be when statting
-autofs's directory inode, not whatever is mounted on it.
-
-Is it really true that the VFS layer doesn't maintain use counts for
-directories where you can find them easily?
-
-> > So the key task is to bulldoze aside the wreckage so a new instance of the
-> > revitalized NFS server can be mounted.  Killing the moribund processes and
-> > forcibly dismounting the destroyed filesystem instance are important so as
-> > to recover resources, but the client can continue to function for quite a
-> > long time even if that's not done; the only totally vital action is to be
-> > able to remount, and that can possibly be done by renaming, or by
-> > remounting the wreckage elsewhere, deferring the actual dismount.
+>  
 >
-> I'll have to think about this for a while. The rename idea might cause all
-> sorts of problems.
+>>The direct map 'triggers' will be taken care of by another filesystem
+>>with a magic root directory that will catch traversals using some
+>>follow_link magic.   I wrote a prototype for this last summer, but
+>>haven't released it as the userspace stuff completely does not fit in
+>>with the existing daemon that was out at the time do the the mess of
+>>glue that was pgids, pipes and processes.   It worked in the simple
+>>case, but it didn't extend to being able to direct mount an indirect
+>>map, nor was it able to do the lazy mounting in multimounts as I had
+>>desired.
+>>    
+>>
+>
+>Is this the stuf that Al Viro is working on?
+>
+>  
+>
+Al is proposing doing the same thing directly in the VFS instead of 
+using a magic filesystem as I've described in the document.  
 
-I can imagine.  Maybe a -move remount?  Can you even do this when the
-mounted FS is busy?  Well...
+> Indeed, I
+>haven't solved my requirement of a transparent autofs filesystem aka.
+>Solaris automounter again. A difficult problem that will require
+>considerable effort.
+>
+>  
+>
+What do you mean by this?  Something that doesn't show up in 
+/proc/mounts?  I don't see this as much of an issue..  On any decently 
+large machine, there are so many entries anyway that /etc/mtab and 
+/proc/mounts become humanly unparseable anyhow.
 
-mkdir mtpt1 ; mkdir mtpt2
-mount -t nfs hollyfs:/m1 mtpt1
-cd mtpt1
-sleep 3600 &		(PID is 2486)
-cd ..
-umount mtpt1		(device is busy -- correct)
-mount --move mtpt1 mtpt2	(works -- yay!)
-ls -l /proc/2486/cwd	(says: /proc/2486/cwd -> /tmp/root.jimc/mtpt2/)
-grep mtpt /proc/mounts	(says: hollyfs:/m1 /tmp/root.jimc/mtpt2 nfs...)
-grep mtpt /etc/mtab	(says: hollyfs:/m1 /tmp/root.jimc/mtpt1 nfs...
-			/tmp/root.jimc/mtpt1 /tmp/root.jimc/mtpt2 none rw 0 0
-kill 2486
-umount mtpt2		(works -- correct)
-grep mtpt /proc/mounts	(says: nothing)
-grep mtpt /etc/mtab	(says: hollyfs:/m1 /tmp/root.jimc/mtpt1, hiss, boo)
+>>>>This is the subtle difference between direct and indirect maps.   The
+>>>>direct map keys are absolute paths, not path components.  We are
+>>>>implementing direct mounts as individual filesystems that will trap on
+>>>>traversal into their base directory.  This filesystem has no idea where
+>>>>it is located as far as the user is concerned.  We need to tell the
+>>>>filesystem directly so that the usermode helper can look it up.
+>>>>Conversely, the indirect map uses the sub-directory name as a mapkey.
+>>>>
+>>>>
+>>>>        
+>>>>
+>>>I'm not sure what you are saying here. Does this mean there is a mount for
+>>>every direct mount (this might be what you call a trigger)?
+>>>
+>>>
+>>>
+>>>      
+>>>
+>>Yes, it is its own filesystem (type autofs).  This is needed because we
+>>need to overlay direct triggers within NFS filesystems for multimounts.
+>>    
+>>
+>
+>Ahh. I see, you are talking about the cross filesystem problem. I haven't
+>solved that in what I have done either. Fortuneately I still get a good
+>hit rate in satisfying peoples' needs as in practice many people don't use
+>full automounter functionality.
+>
+>  
+>
+Yup.  But still, one of the nice things about a full automounter 
+solution is accessing a netapp with hundreds of exports through /net in 
+a reasonably fast way.
 
-So you can do a move mount on a busy filesystem; the only downside is that
-/etc/mtab has a stale entry in it -- obviously a bug, not an essential
-behavior.
+>>??  Really?  I find that hard to believe.  I thought Solaris shared it's
+>>automounter with HPUX and AIX.  I may be wrong though.
+>>    
+>>
+>
+>Old versions perhaps. AIX 4.x was the last I used. It was definately like
+>that then. 500+ automounts tends to cluter the mount display a bit.
+>
+>  
+>
+Could be.  Either way, on a system with a thousand NFS shares 
+automounted, I'm not really concerned about what the mounttable looks 
+like.  It won't be human parseable anyway.
 
-> A kill -9 on the blocked process needs further investigation. I'm not sure
-> what the situation is there (probably not good).
+>>>Mmm. The vfsmount_lock is available to modules in 2.6. At least it was in
+>>>test11. I'm sure I compiled the module under 2.6 as well???
+>>>
+>>>I thought that, taking the dcache_lock was the correct thing to do when
+>>>traversing a dentry list?
+>>>
+>>>
+>>>
+>>>      
+>>>
+>>Walking dentrys still takes the dcache_lock, however walking vfsmounts
+>>takes the vfsmount_lock.  dcache_lock is no longer used for fast path
+>>walking either (to the best of my understanding).
+>>
+>>find . -name '*.[ch]' -not -path '*SCCS*' | xargs grep vfsmount_lock |
+>>grep EXPORT
+>>    
+>>
+>
+>Strange. How does the module compile I wonder? How does it load without
+>unresolved symbols? Another little mystery to work on.
+>
+>  
+>
+No, you're module doesn't use vfsmount_lock.  At least the module in 
+autofs4-2.4-module-20031201.tar.gz doesn't.
 
-I would really like it if, when autofs decided to forcibly unmount, it
-could kill the using processes, as in "fuser -k -m /net/host/mountpoint".
-Actually this is a general issue for unmount(8), not specific to autofs.
-But one wonders whether fuser is going to run wild...
+>>The raciness comes from the fact that we now support the lazy-mounting
+>>of multimount offsets using embedded direct mounts.  Autofs4 mounts all
+>>(or as much as it can) from the multimount all together, and unmounts it
+>>all on expiry.
+>>    
+>>
+>
+>But 4.1 does lazy mount for several maps. Mounts that are triggered
+>during the umount step of the expire are put on a wait queue along with
+>the task requesting the umount. I think autofs always worked that way.
+>
+>  
+>
+This isn't lazy mounting per se.  If you are talking about autofs4's use 
+of AUTOFS_INF_EXPIRING, it's there to prevent somebody from walking into 
+a multimount while it is expiring. 
 
-> One thing I noticed in the module expire routine is that it doesn't
-> progress past a failed mount on subsequent calls. A change to the
-> adjustment of the d_subdirs list is probably needed (a bit difficult, but
-> not impossible, in my implementation of the expire routine).
+>>>Hang on. From the discussion my impression of a lazy mount is that it is
+>>>not actually mounted!
+>>>
+>>>
+>>>
+>>>      
+>>>
+>>Lazy _un_mounts as opposed to lazy mounts. Lazy unmounts are described
+>>in umount(8):
+>>    
+>>
+>
+>But will this leave the filesystem in a consistent state and allow further
+>mount activity on that mount point?
+>  
+>
+The underlying autofs filesystem?  Sure.
 
-I thought it moved the mount point to the end, before attempting to unmount
-it.  Maybe that behavior got changed in a subsequent version, or maybe I'm
-remembering wrong.
 
-> By the way. Since you are obviously interested in autofs, it would
-> be best if you could use the latest version. Please see kernel.org if
-> you are able to update.
+-- 
+Mike Waychison
+Sun Microsystems, Inc.
+1 (650) 352-5299 voice
+1 (416) 202-8336 voice
+mailto: Michael.Waychison@Sun.COM
+http://www.sun.com
 
-I'll discuss this with my management.  By the way, for RPM-based distros, a
-lot of updating happens via mindless scripts, and it helps if ad-hoc fixes
-are packed up as a RPM.  Then vendor updates to retro versions don't
-overwrite the latest patches.  Example:
-    Currently installed:	autofs4-4.0.0pre10-504
-    I create and install:	autofs4-4.1.0-001
-    Vendor issues patch:	autofs4-4.0.5-678
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NOTICE:  The opinions expressed in this email are held by me, 
+and may not represent the views of Sun Microsystems, Inc.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
 
-The scripts know that the vendor's patch should be bypassed.  If I get the
-go-ahead to install 4.1.0, I'll fake up a spec file (like steal it from the
-SuSE package) and send in some notes for how to use it.
 
-By the way, sorry for the late reply.  Your message just arrived
-(2003-01-09) -- probably stuck on some MX somewhere for 3 days.
+--------------enig81B952048166ED41571B2513
+Content-Type: application/pgp-signature
 
-James F. Carter          Voice 310 825 2897    FAX 310 206 6673
-UCLA-Mathnet;  6115 MSA; 405 Hilgard Ave.; Los Angeles, CA, USA  90095-1555
-Email: jimc@math.ucla.edu    http://www.math.ucla.edu/~jimc (q.v. for PGP key)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.2 (GNU/Linux)
+Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
+
+iD8DBQE//wncdQs4kOxk3/MRAkbfAJ9NB/gNAMmLZIcTt75hQkgpgZkg3QCfTIoJ
+JQ33wzhmHrWB7O4OoFbxWCY=
+=GQ1k
+-----END PGP SIGNATURE-----
+
+--------------enig81B952048166ED41571B2513--
+
+
+--===============70866615379017195==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--===============70866615379017195==--
+
