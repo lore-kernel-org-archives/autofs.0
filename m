@@ -1,12 +1,12 @@
-From: Daniel Mueller <danm@gmx.li>
-Subject: Autofs init script
-Date: Sat, 29 Nov 2003 20:43:18 +0100
+From: Ian Kent <raven@themaw.net>
+Subject: Re: auto.net-like script for smbfs?
+Date: Mon, 1 Dec 2003 14:07:50 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <20031129204318.2bf74c10.danm@gmx.li>
+Message-ID: <Pine.LNX.4.33.0312011405280.22187-100000@wombat.indigo.net.au>
+References: <20020128221855.A28232@pingu.tti>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="Multipart=_Sat__29_Nov_2003_20_43_18_+0100_2lAs+RSSn5M5rmGa"
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <20020128221855.A28232@pingu.tti>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,91 +16,37 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
-
-This is a multi-part message in MIME format.
-
---Multipart=_Sat__29_Nov_2003_20_43_18_+0100_2lAs+RSSn5M5rmGa
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+To: Christoph Bugel <chris@tti-telecom.com>
+Cc: autofs@linux.kernel.org
 
-Hello,
+On Mon, 28 Jan 2002, Christoph Bugel wrote:
 
-this patch is a proposal for a 'generic' system. 
+>
+> Is there a script that uses smbclient -L or something to
+> figure out the available shares on a given windows smb host,
+> similar to the auto.net script that uses showmount to figure
+> out the available mountpoints for a given NFS host?
 
-BTW, I had some problems to compile autofs-4.1.0-beta3 without openldap.
-The following command helped me to get rid of this:
+No. Not yet.
 
-$ cd autofs-4.1.0-beta3
-$ sed -i  -e 's|^all:.*|all: rc.autofs|g' \
- -e 's|.*install -c autofs-ldap-auto-master.*||g' \
- samples/Makefile
-$
+>
+> The goal is to have a /smb directory that will function just
+> like my NFS /net directory..
+>
+> currently I have auto.misc with the line
+> *  -fstype=smbfs,username=guest,password= ://&/c
+> But not all shares are called "C". I guess there is no
+> catch-all solution for the password thing, but maybe someone
+> has written the script for finding the shares?
 
-If you already know this, I'm sorry.
-
-bye,
-
-Daniel
+No. I have never been able to satisfactorily use SMB shares in a 'real'
+domain environmnet. I have tried enough to not want do any more.
 
 -- 
-Daniel Mueller			mailto:danm@gmx.li
-Berlin, Germany		(OpenPGP:  1024D/F7E7C01F)
 
---Multipart=_Sat__29_Nov_2003_20_43_18_+0100_2lAs+RSSn5M5rmGa
-Content-Type: application/octet-stream;
- name="autofs-4.1.0-beta3.patch"
-Content-Disposition: attachment;
- filename="autofs-4.1.0-beta3.patch"
-Content-Transfer-Encoding: base64
-
-LS0tIGF1dG9mcwkyMDAzLTExLTI3IDIzOjIyOjE4LjAwMDAwMDAwMCArMDEwMAorKysgYXV0b2Zz
-Lm5ldwkyMDAzLTExLTI5IDE5OjU4OjE5LjAwMDAwMDAwMCArMDEwMApAQCAtMzYsMTQgKzM2LDE2
-IEBACiAjCiAjIERldGVybWluZSB3aGljaCBraW5kIG9mIGNvbmZpZ3VyYXRpb24gd2UncmUgdXNp
-bmcKICMKKyMgVHJ5ICdnZW5lcmljJyBpZiB5b3UgaGF2ZSBhbiB1bnN1cHBvcnRlZCBzeXN0ZW0u
-Cisjc3lzdGVtPWdlbmVyaWMKKwogc3lzdGVtPXVua25vd24KIGlmIFsgLWYgL2V0Yy9kZWJpYW5f
-dmVyc2lvbiBdOyB0aGVuCiAgICAgc3lzdGVtPWRlYmlhbgogZWxpZiBbIC1mIC9ldGMvcmVkaGF0
-LXJlbGVhc2UgXTsgdGhlbgogICAgIHN5c3RlbT1yZWRoYXQKLWVsc2UKK2VsaWYgWyAiJHN5c3Rl
-bSIgPSAidW5rbm93biIgXTsgdGhlbgogICAgIGVjaG8gIiQwOiBVbmtub3duIHN5c3RlbSwgcGxl
-YXNlIHBvcnQgYW5kIGNvbnRhY3QgYXV0b2ZzQGxpbnV4Lmtlcm5lbC5vcmciIDE+JjIKLSAgICBl
-eGl0IDEKIGZpCiAKIGlmIFsgJHN5c3RlbSA9IHJlZGhhdCBdOyB0aGVuCkBAIC0xMzksNiArMTQx
-LDE0IEBACiAgICAgICAgICAgICAgICAgOzsKICAgICAgICAgZXNhYwogICAgIGRvbmUKKyAgICBp
-ZiBbIC16ICJgZ2V0c2NoZW1lc2AiIF07IHRoZW4KKyAgICAgICAgIyBhdXRvbW91bnQgZW50cnkg
-aW4gL2V0Yy9uc3N3aXRjaC5jb25mIG5vdCBmb3VuZAorCWlmIFsgLXogIiRmaWxlc2NoZW1lIiBd
-IDsgdGhlbgorCQlnZXRmaWxlbW91bnRzCisJCWZpbGVzY2hlbWU9MQorCQlleHBvcnQgZmlsZXNj
-aGVtZQorCWZpCisgICAgZmkKIH0KIAogCkBAIC00MDEsMTEgKzQxMSw1OSBAQAogZXNhYwogfQog
-CisKKyMKKyMgR2VuZXJpYyBzdGFydC9zdG9wIGZ1bmN0aW9uLgorIworZnVuY3Rpb24gZ2VuZXJp
-YygpCit7CisKK2Nhc2UgIiQxIiBpbgorICBzdGFydCkKKyAgICAgICAgIyBNYWtlIHN1cmUgdGhl
-IGF1dG9mcyBmaWxlc3lzdGVtIHR5cGUgaXMgYXZhaWxhYmxlLgorICAgICAgICAoZ3JlcCAtcSBh
-dXRvZnMgL3Byb2MvZmlsZXN5c3RlbXMgfHwgL3NiaW4vbW9kcHJvYmUgLWsgYXV0b2ZzNCB8fCAv
-c2Jpbi9tb2Rwcm9iZSAtayBhdXRvZnMpIDI+IC9kZXYvbnVsbAorICAgICAgICBUTVA9YG1rdGVt
-cCAvdG1wL2F1dG9mcy5YWFhYWFhgIHx8IHsgZWNobyAkImNvdWxkIG5vdCBtYWtlIHRlbXAgZmls
-ZSIgPiYgMjsgZXhpdCAxOyB9CisgICAgICAgIGdldG1vdW50cyB8IHRlZSAkVE1QIHwgc2gKKyAg
-ICAgICAgUkVUVkFMPSQ/CisJaWYgWyAtcyAkVE1QIF0gOyB0aGVuCisJICAgIFsgJFJFVFZBTCA9
-IDAgXSB8fCBlY2hvICJTdGFydGluZyBhdXRvbW91bnRlciBmYWlsZWQiCisJZWxzZQorCSAgICBl
-Y2hvICJObyBNb3VudHBvaW50cyBEZWZpbmVkIgorCWZpCisJcm0gLWYgJFRNUAorCWVjaG8KKwk7
-OworICBzdG9wKQorCWtpbGxhbGwgLVVTUjIgJERBRU1PTiAyPiAvZGV2L251bGwKKwljb3VudD0w
-CisJd2hpbGUgWyAtbiAiYHBpZG9mICREQUVNT05gIiAtYSAkY291bnQgLWx0IDEwIF0gOyBkbwor
-CSAgIGtpbGxhbGwgLVVTUjIgJERBRU1PTiAyPiAvZGV2L251bGwKKwkgICBSRVRWQUw9JD8KKwkg
-ICBbICRSRVRWQUwgPSAwIC1hIC16ICJgcGlkb2YgJERBRU1PTmAiIF0gfHwgc2xlZXAgMworCSAg
-IGNvdW50PWBleHByICRjb3VudCArIDFgCisJZG9uZQorCXVtb3VudCAtYSAtZiAtdCBhdXRvZnMK
-KwllY2hvCisJOzsKKyAgcmVzdGFydCkKKwlnZW5lcmljIHN0b3AKKwlnZW5lcmljIHN0YXJ0CisJ
-OzsKKyAgc3RhdHVzKQorCXN0YXR1cworCTs7CisgICopCisJZWNobyAkIlVzYWdlOiAkMCB7c3Rh
-cnR8c3RvcHxyZXN0YXJ0fHN0YXR1c30iCitlc2FjCit9CisKIFJFVFZBTD0wCiBpZiBbICRzeXN0
-ZW0gPSBkZWJpYW4gXTsgdGhlbgogCWRlYmlhbiAiJEAiCiBlbGlmIFsgJHN5c3RlbSA9IHJlZGhh
-dCBdOyB0aGVuCiAJcmVkaGF0ICIkQCIKK2VsaWYgWyAkc3lzdGVtID0gZ2VuZXJpYyBdOyB0aGVu
-CisJZ2VuZXJpYyAiJEAiCiBmaQogCiBleGl0ICRSRVRWQUwK
-
---Multipart=_Sat__29_Nov_2003_20_43_18_+0100_2lAs+RSSn5M5rmGa
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
-
---Multipart=_Sat__29_Nov_2003_20_43_18_+0100_2lAs+RSSn5M5rmGa--
-
+   ,-._|\    Ian Kent
+  /      \   Perth, Western Australia
+  *_.--._/   E-mail: raven@themaw.net
+        v    Web: http://themaw.net/
