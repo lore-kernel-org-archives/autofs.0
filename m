@@ -1,13 +1,12 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: An offer to host autofs.org
-Date: Wed, 5 May 2004 09:16:57 +0800 (WST)
+Subject: Re: [patch] fix SIGSEGV when yp domain not bound
+Date: Wed, 5 May 2004 09:36:23 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0405050909591.18190@wombat.indigo.net.au>
-References: <Pine.LNX.4.58.0405032046130.3257@donald.themaw.net>
- <4097DB47.2050603@zytor.com>
+Message-ID: <Pine.LNX.4.58.0405050933570.18190@wombat.indigo.net.au>
+References: <16535.53709.132008.904350@segfault.boston.redhat.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4097DB47.2050603@zytor.com>
+In-Reply-To: <16535.53709.132008.904350@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,38 +18,22 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: autofs@linux.kernel.org
 
-On Tue, 4 May 2004, H. Peter Anvin wrote:
+On Tue, 4 May 2004, Jeff Moyer wrote:
 
-> raven@themaw.net wrote:
-> > Hi all,
-> > 
-> > Axel Thim of ATrpms.net has contacted us and offered to fund the domain 
-> > autofs.org and provide web, lists, CVS/subversion infrastructure under the 
-> > same resourse structure as ATrpms.org.
-> > 
-> > Can we discus the oppertunities, implications, our needs and any other 
-> > issues please.
-> > 
-> > I believe Axel is present to take part in the discussion.
-> > 
+> Hi Ian, list,
 > 
-> I have several objections to this proposal.
+> If you happen to find your systems unable to communicate with the yp
+> server, the subprocess launched to automount a share will receive a
+> SIGSEGV, because we only check for err == YPERR_KEY in the lookup_yp
+> module.  We get a different error, of course, and then go on to do a
+> cache_update with NULL values.  Here is a patch which addresses this
+> issue.  Comments more than welcome.  Oh, and I took the liberty of doing
+> minor reformatting; I hope you don't mind, Ian.
 > 
-> First of all, I still want the full autofs rewrite -- autofs 5 -- done 
-> at some point, and I think this infrastructure would be in the way.
 
-And I will push v4 as far as it can go to give give breathing space for it 
-to be done throughly, without pressure.
-
-Will you be leading that project?
-Will Mike Waychisons' proposed framework be used?
-When can we start on nailing a specification?
-
-Will I get a chance to contribute??
-
-What infrastructure framework do you feel we need for this?
+Cool. Looks good to me.
 
 Ian
