@@ -1,11 +1,12 @@
-From: Manolis Tzanidakis <mtzanidakis@freemail.gr>
-Subject: [Feature request] foreground daemon process
-Date: Thu, 3 Jun 2004 17:13:28 +0300
+From: raven@themaw.net
+Subject: Re: [Feature request] foreground daemon process
+Date: Thu, 3 Jun 2004 22:49:39 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <20040603171328.1e9b8030@blade.matza.org>
+Message-ID: <Pine.LNX.4.58.0406032245580.8111@donald.themaw.net>
+References: <20040603171328.1e9b8030@blade.matza.org>
 Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <20040603171328.1e9b8030@blade.matza.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -15,30 +16,26 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="iso-8859-7"
-To: autofs@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Manolis Tzanidakis <mtzanidakis@freemail.gr>
+Cc: autofs@linux.kernel.org
 
-Hello all,
-I'm using runit (djb's daemontools-alike init w/ service supervision)
-instead of sysvinit as process 1 and I' d like to run the automount
-daemon supervised with it. Could you pls add an option or something in
-automount to make it stay in the foreground ?
-It'd be useful to others for debugging etc. IMO.
+On Thu, 3 Jun 2004, Manolis Tzanidakis wrote:
 
-ps. Unfortunately I' m not much of a coder to implement it myself &
-contribute it back :(.
+> Hello all,
+> I'm using runit (djb's daemontools-alike init w/ service supervision)
+> instead of sysvinit as process 1 and I' d like to run the automount
+> daemon supervised with it. Could you pls add an option or something in
+> automount to make it stay in the foreground ?
+> It'd be useful to others for debugging etc. IMO.
 
---=20
-.: Manolis Tzanidakis
-mailto: mtzanidakis@freemail.gr
-http://www.kegep.tuc.gr/~manolis
-jabber: mtzanidakis@jabber.org
-icq: #102798230
-GnuPG Key Fingerprint:
-5CA5 41D6 09F1 C4B9 C331
-65EF 4B3F 6979 EB8C 88F3
+That has been asked for a couple of times now.
+Have to think about the implications.
 
-____________________________________________________________________
-http://www.freemail.gr - =E4=F9=F1=E5=DC=ED =F5=F0=E7=F1=E5=F3=DF=E1 =E7=EB=
-=E5=EA=F4=F1=EF=ED=E9=EA=EF=FD =F4=E1=F7=F5=E4=F1=EF=EC=E5=DF=EF=F5.
-http://www.freemail.gr - free email service for the Greek-speaking.
+What about the fact that it spawns other processes?
+I'd have to reimplement the verbose/debug/info output code as well.
+
+There are a number of things that are higher on the priority list though.
+
+Ian
