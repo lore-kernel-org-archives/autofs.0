@@ -1,19 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: mount point created if automount map is empty during
- daemon startup?
-Date: Wed, 5 May 2004 09:08:30 +0800 (WST)
+Subject: Re: An offer to host autofs.org
+Date: Wed, 5 May 2004 09:16:57 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0405050903590.18190@wombat.indigo.net.au>
-References: <20040504010928.GL14889@sun.com>
-	<Pine.LNX.3.96.1040503181623.4110A-100000@Maggie.Linux-Consulting.com>
-	<20040503175506.GA14889@sun.com>
-	<Pine.LNX.4.58.0405040904450.24480@wombat.indigo.net.au>
-	<20040504122536.GK5041@neu.nirvana> <4097AABF.5050709@freescale.com>
-	<16535.45364.767370.38110@segfault.boston.redhat.com>
-	<4097B8CF.9050104@freescale.com><4097FFF0.5020206@freescale.com>
+Message-ID: <Pine.LNX.4.58.0405050909591.18190@wombat.indigo.net.au>
+References: <Pine.LNX.4.58.0405032046130.3257@donald.themaw.net>
+ <4097DB47.2050603@zytor.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4097FFF0.5020206@freescale.com>
+In-Reply-To: <4097DB47.2050603@zytor.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -25,27 +19,38 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Tom Georgoulias <tom.georgoulias@freescale.com>
+To: "H. Peter Anvin" <hpa@zytor.com>
 Cc: autofs mailing list <autofs@linux.kernel.org>
 
-On Tue, 4 May 2004, Tom Georgoulias wrote:
+On Tue, 4 May 2004, H. Peter Anvin wrote:
 
+> raven@themaw.net wrote:
+> > Hi all,
+> > 
+> > Axel Thim of ATrpms.net has contacted us and offered to fund the domain 
+> > autofs.org and provide web, lists, CVS/subversion infrastructure under the 
+> > same resourse structure as ATrpms.org.
+> > 
+> > Can we discus the oppertunities, implications, our needs and any other 
+> > issues please.
+> > 
+> > I believe Axel is present to take part in the discussion.
+> > 
 > 
-> Should I wait for the kernel module patches or just go ahead with testing?
+> I have several objections to this proposal.
 > 
-> I have set aside a Red Hat 8 system to test out the latest patches you 
-> have written and want to be sure I make this test as productive as 
-> possible for all.
-> 
-> I'm looking at either running the autofs 4.1.2 plus patches from 
-> kernel.org, or Jeff Moyer's latest RPM, 4.1.2-5, and using either the 
-> 04172004 kernel module patch or waiting for a new one.
+> First of all, I still want the full autofs rewrite -- autofs 5 -- done 
+> at some point, and I think this infrastructure would be in the way.
 
-It would be OK but 20040417 is a little old. I've just updated the kernel 
-modules last night. I haven't made the patches yet. People kept firing of 
-bug reports you know.
+And I will push v4 as far as it can go to give give breathing space for it 
+to be done throughly, without pressure.
 
-You won't need to wait for autofs as I will be placing them on kernel.org. 
-I expect that will happen tonight (my time).
+Will you be leading that project?
+Will Mike Waychisons' proposed framework be used?
+When can we start on nailing a specification?
+
+Will I get a chance to contribute??
+
+What infrastructure framework do you feel we need for this?
 
 Ian
