@@ -1,108 +1,88 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Re: Bug#299298: autofs: set -e still too strong
-Date: Mon, 14 Mar 2005 11:35:05 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0503141129520.27510@wombat.indigo.net.au>
-References: <E1DARve-0008Na-00@bohr.home> <20050313123255.GA1855@uio.no>
+From: Olaf Kirch <okir@suse.de>
+Subject: Re: [PATCH/RFC 1/2] rpcproxyd
+Date: Mon, 14 Mar 2005 11:52:49 +0100
+Message-ID: <20050314105249.GH14815@suse.de>
+References: <37086.66.11.176.22.1110228763.squirrel@webmail1.hrnoc.net> <37093.66.11.176.22.1110228819.squirrel@webmail1.hrnoc.net>
 Mime-Version: 1.0
-In-Reply-To: <20050313123255.GA1855@uio.no>
+Content-Disposition: inline
+In-Reply-To: <37093.66.11.176.22.1110228819.squirrel@webmail1.hrnoc.net>
+Sender: nfs-admin@lists.sourceforge.net
+Errors-To: nfs-admin@lists.sourceforge.net
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
+	<mailto:nfs-request@lists.sourceforge.net?subject=unsubscribe>
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+List-Post: <mailto:nfs@lists.sourceforge.net>
+List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
+	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
-Cc: autofs@linux.kernel.org, Tim Connors <tconnors+reportbug@astro.swin.edu.au>, 299298@bugs.debian.org
+To: mike@waychison.com
+Cc: linux-nfs <nfs@lists.sourceforge.net>, autofs mailing list <autofs@linux.kernel.org>
 
-On Sun, 13 Mar 2005, Steinar H. Gunderson wrote:
+Hi Mike,
 
-> On Sun, Mar 13, 2005 at 11:10:42PM +1100, Tim Connors wrote:
-> > If restarting autofs when a mountpoint is busy, or if the daemon has
-> > been killed manually, then the script never gets around to doing
-> > anything, failing midsentence, without printing an proper error
-> > message, because the start-stop-daemon isn't protected, despite the
-> > error code being explicitly checked thereafter:
-> > 
-> > 30600,43>  /etc/init.d/autofs restart
-> > Stopping automounter:1-0-23:03:30, Sun Mar 13 root@bohr:/home/tconnors (bash)
-> 
-> I'll forward this upstream, but I think in general "set -e" makes a lot more
-> sense than just silently go on if anything unexpected would fail. To me, it
-> looks like the init script should simply check the return value of
-> start-stop-daemon; I don't think just removing "set -e" is the magic bullet.
+I'm somewhat wary of this idea, because it creates a very attractive
+target for crackers. Once an attacker managers to fool this proxy
+daemon, he can talk to your NFS Server, concealing his identity or
+even posing as root, etc.
 
-Personally I'd prefer not to use the set -e.
-It is included because the Debian patch sets included it.
+I looked at the code in the light of this, and there are a few
+soft spots.
 
-At first glance it appears this is may be a case where we need to 
-explicitly turn this of to get the required behaviour.
+ -	you retrieve credentials in the initial negotiation
+ 	only. But client credentials can change, and should be
+	checked with every packet.
 
-> 
-> (Rest of the mail kept for Ian and the others on the autofs mailing list :-) )
-> 
-> > Since it makes sense to run restart when the daemon could possibly be
-> > not there (since restart is the automatic thing to do upon an
-> > upgrade), and since it makes sense to restart the daemon when a
-> > mountpoint is busy (new processes will get the new mountpoint with new
-> > mount flags, old processes will continue to use the stale mount
-> > point), then I think the proper thing to do is to print the message,
-> > and then just continue as before.
-> > 
-> > Is `set -e' really the right thing to do?  I think a wise man
-> > (possibly Dijkstra) once said "don't check for errors you don't
-> > explicitly know how to handle".  Since we already check for all
-> > conceivable errors, then does an extra `set -e' help anything?  It
-> > only seems to cause us to not issue correct errors when we really do
-> > fail -- see also bug 295480.
-> > 
-> > Relevant trace follows:
-> > 
-> > 30599,42> bash -x /etc/init.d/autofs restart
-> > + FLAGS='defaults 21'
-> > + DAEMON=/usr/sbin/automount
-> > ...
-> > + debian restart
-> > + set -e
-> > + case "$1" in
-> > + debian stop
-> > + set -e
-> > + case "$1" in
-> > + echo -n 'Stopping automounter:'
-> > Stopping automounter:+ umount_loopback
-> > ++ LC_ALL=C
-> > ++ awk '!/^#/ && $1 ~ /^\/dev\/loop/ && $2 != "/" {print $2}' /proc/mounts
-> > + loops=
-> > ++ LC_ALL=C
-> > ++ awk '!/^#/ && $1 ~ /^automount/ {print $2}' /proc/mounts
-> > + automounts=/var/autofs/net
-> > ++ LC_ALL=C
-> > ++ awk '!/^#/ && $1 ~ /^\/dev\/loop/ && $2 != "/" {print $1}' /proc/mounts
-> > + loopmnts=
-> > + any=0
-> > ++ ls /var/run/autofs/_var_autofs_net.pid
-> > + for file in '`ls /var/run/autofs/*.pid 2>/dev/null`'
-> > + '[' -e /var/run/autofs/_var_autofs_net.pid ']'
-> > + any=1
-> > ++ head -n 1 /var/run/autofs/_var_autofs_net.pid
-> > + pid=31598
-> > ++ ps -wwo cmd= 31598
-> > ++ sed -e 's,.* --pid-file=/var/run/autofs/\([^ ]*\)\.pid.*,\1,; s,_,/,g'
-> > + mnt=
-> > + start-stop-daemon --stop --quiet --retry USR2/20 --pidfile /var/run/autofs/_var_autofs_net.pid --exec /usr/sbin/automount
-> > 1-0-23:01:24, Sun Mar 13 root@bohr:/home/tconnors (bash)
-> 
-> /* Steinar */
-> -- 
-> Homepage: http://www.sesse.net/
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
-> 
+	For instance, I can connect to your service, and fork off
+	some setuid root application, with stderr connected to that
+	socket. Any error message the application prints will be arrive
+	with uid 0. If I manage to make that message appear valid to you,
+	your daemon will accept any future input unquestioned.
+
+	So my recommendation would be to validate credentials on
+	every packet, and if they change from the original values
+	received during negotiation, drop the connection.
+
+	I'd also recommend to change the permissions on the Unix
+	socket to 700.
+
+ -	This mechanism is really a special-case workaround for the
+ 	mount problem, but you're creating a general purpose framework.
+	That means if it's attacked successfully, it can be abused 
+	to attack any RPC based service on any host.
+
+	If you make it less generic, and allow only mount calls, you'll
+	be much safer, because in the case of a bug, an attacker will
+	be able to send fake MOUNT packets, but nothing else.
+
+ -	In several places, you keep packet offsets (pos, bufferpos)
+	in signed variables and compare them to unsigneds; that's
+	dangerous.
+
+ -	Your code assumes sizeof(unsigned long) == 4, eg here
+
+	unsigned long len;
+	[...]
+		memcpy(&len, conn->buffer, 4);
+		len = ntohl(len);
+		buf = &conn->buffer[4];
+
+	It's better to use uint32_t in such cases.
+
+Regards,
+Olaf
+-- 
+Olaf Kirch   |  --- o --- Nous sommes du soleil we love when we play
+okir@suse.de |    / | \   sol.dhoop.naytheet.ah kin.ir.samse.qurax
+
+
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+_______________________________________________
+NFS maillist  -  NFS@lists.sourceforge.net
+https://lists.sourceforge.net/lists/listinfo/nfs
