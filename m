@@ -1,13 +1,12 @@
-From: Steffen Grunewald <steffen.grunewald@aei.mpg.de>
-Subject: Re: automount 4.1.3: unmount timeout not working
-Date: Wed, 26 Jan 2005 16:20:37 +0100
-Message-ID: <20050126152037.GX21479@debian-server.aei.mpg.de>
-References: <20050122215228.GA14303@tangens.sinus.cz>
+From: raven@themaw.net
+Subject: Re: [ANNOUNCE] autofs 4.1.4 beta1 release
+Date: Wed, 26 Jan 2005 23:35:18 +0800 (WST)
+Message-ID: <Pine.LNX.4.61.0501262320080.1890@donald.themaw.net>
+References: <Pine.LNX.4.61.0501262151370.1716@donald.themaw.net>
+	<20050126151344.GA841@uio.no>
 Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20050122215228.GA14303@tangens.sinus.cz>
+In-Reply-To: <20050126151344.GA841@uio.no>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,47 +17,61 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="iso-8859-1"
-To: autofs@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
+Content-Transfer-Encoding: 7bit
+To: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
+Cc: autofs@linux.kernel.org
 
-On Sat, Jan 22, 2005 at 10:52:28PM +0100, Pavel Troller wrote:
-> Hello to all the list members,
->   I decided to write to this list after a lot of time spent by trying t=
-o
-> find an answer for my question, but I didn't find any so I'm trying the=
- luck
-> here.
->   I'm using automount 4.1.3 with kernel 2.6.10, but the problem appeare=
-d
-> formerly, with 2.6.7, and it's not directly related to the kernel, beca=
-use it
-> didn't appear with a kernel change, but with some other change in my sy=
-stem
-> or setup, which I cannot track down.
+On Wed, 26 Jan 2005, Steinar H. Gunderson wrote:
 
-I also see this (Debian Sarge, installation done some weeks ago, package
-version is 4.1.3-4). WIth an older installation (another Sarge), still us=
-ing
-3.9.99-4.0.0pre10-16, this doesn't show up.
+Cool.
 
->   The problem itself is that the autoumount doesn't unmount automatical=
-ly after
-> the timeout expires.
+I'll work through this during the beta.
 
-An upgrade to 4.1.3-8 apparently cured the problem; I don't know how
-close the Debian package maintainer Steiner Gundersson works with autofs
-people, and whether he's introduced some patches that have not been in
-the previous version (and may have found their way into 4.1.4).
-Sure, Debian Sarge is called "testing", that's what I'm doing, it's not
-"stable" yet (but there's still hope), but I'd like to see a close
-cooperation between the mainstream maintainers and the maintainers of
-Linux distros...
+> On Wed, Jan 26, 2005 at 10:17:53PM +0800, raven@themaw.net wrote:
+>> So let me know when you find more and I'll fix`em as quick as I can!
+>
+> Looks like you missed a patch or two from the Debian archive, at least:
+>
+> - Quite recently, I uploaded a patch for the debian/event.d script, but this
+>  is probably not relevant for the upstream distribution.
 
-Cheers,
- steffen
+I'll grab it for my Debian package test build.
 
---=20
-Steffen Grunewald * * * Merlin cluster admin (http://pandora.aei.mpg.de)
-Albert-Einstein-Institut (MPI Gravitationsphysik, http://www.aei.mpg.de)
-       Science Park Golm, Am M=FChlenberg 1, 14476 Potsdam, Germany
-e-mail: steffen.grunewald(*)aei.mpg.de * +49-331-567-{fon:7233,fax:7298}
+> - There is a patch for rc.autofs.in missing, changing an "else" to en "elif".
+>  The idea is that failure in loading the autofs4 module should not break
+>  first-time installation (see http://bugs.debian.org/280276).
+
+I see.
+
+What if autofs[4] is not compiled as a module?
+
+This might need some more work.
+
+> - There seem to have been a lot of changes in rc.autofs.in (especially
+>  related to timeout parsing); I'm unable to follow them all, but I hope
+>  you've done the right thing in merging in the Debian patches here :-)
+
+Do you remember what the issues were?
+
+> - The rc.autofs.in searches for "^automount: ", which breaks if a tab is used
+>  instead of a space (see http://bugs.debian.org/277320).
+
+Missed that one.
+
+> - I'm also having a hard time figuring out whether parse_sun.c does the right
+>  thing wrt. handling whitespace at the end of maps or not; the code looks
+>  different, at least, but I think it's broken for non-multimaps. Could you
+>  verify? (Of course, the simplest thing is probably to test :-) )
+
+Yep. There's been a bit of work there, not only related to white space.
+Please test this out as I need to know what I've broken.
+
+> - I can't see if lookup_file.c handles maps without a trailing newline now
+>  (Debian patch 051_maps_without_trailing_newline.diff has a hackish fix
+>  which is obviously not applied, but you might have implemented it
+>  differently).
+
+I'll check.
+
+Ian
