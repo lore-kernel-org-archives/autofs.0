@@ -1,12 +1,8 @@
-From: ramana <ramana@intraperson.com>
-Subject: Re: unacceptable bug in autofs kernel module
-Date: Sat, 05 Feb 2005 19:16:56 +0530
-Message-ID: <4204CE50.9090803@intraperson.com>
-References: <200502040038.j140ck99006468@cornholio.qualcomm.com>	<Pine.LNX.4.58.0502040948330.21690@wombat.indigo.net.au>
-	<4202E526.50304@intraperson.com>
+From: "adelphia user" <sendtoadelphia@hotmail.com>
+Subject: autofs-4.1.3-47 issue
+Date: Sat, 05 Feb 2005 01:19:21 +0530
+Message-ID: <BAY18-F29AEA825862ECF98A40C80D4700@phx.gbl>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <4202E526.50304@intraperson.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,24 +13,36 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
+Content-Type: text/plain; format=flowed; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: autofs@linux.kernel.org
-Cc: mmarion@qualcomm.com, Ian Kent <raven@themaw.net>
 
+Hi all,
 
-> I moved latest version Autodir to autofs 4 kernel module and so far 
-> all stress tests tell me autofs4 protocol is performing well without 
-> these ENOENT errors. I have to do little bit more tests before 
-> concluding anything as final.
->
-> For more details check http://www.intraperson.com/autodir/.
-> DVersion: Autodir 0.93.0 and above.
->
-Recent tests done under little loaded machine, show me this problem 
-still exist even in autofs4 kernel module.
+I have a question regarding the new version of autofs, specifically on 
+"nosymlink".
 
-Regards
-ramana
+    } else if (!nosymlink) {
+        local = get_best_mount(whatstr, what, 0, 0);
+        if (!*whatstr) {
+            warn(MODPREFIX "no  host elected");
+            return 1;
+        }
+        warn(MODPREFIX "from %s elected %s", what, whatstr);
+    }
 
--- 
-http://www.intraperson.com
+If  "nosymlink" is not used get_best_mount tries to use a rpc nfsv2 ping via 
+rpc_time,  so if the NFS server does not support  NFSV2, it does not seem to 
+try using a NFSV3  ping and just bails out. Because of this i am not able to 
+use autofs with a server which supports only NFSv3 unless i use "nosymlink" 
+as the option.  Will this be fixed so that the linux autofs will also try to 
+  do a NFSv3 ping in case NFSv2 ping fails??
+
+Any help is muchly appreciated
+Thx,
+Satya
+
+_________________________________________________________________
+The real power of teamwork. Experience it in real time. 
+http://www.microsoft.com/india/office/experience/  Experience MS Office 
+System.
