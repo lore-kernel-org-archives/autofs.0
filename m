@@ -1,50 +1,61 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
+From: Ion Badulescu <lists@news.cs.columbia.edu>
 Subject: Re: VFS: Busy inodes after unmount on 2 way SMP
-Date: Fri, 12 Sep 2003 13:51:04 -0700
-Sender: autofs-bounces@linux.kernel.org
-Message-ID: <3F6231B8.3090303@zytor.com>
-References: <3F610F3C.5040704@intel.com> <3F611BE8.6040900@zytor.com>
-	<3F6208F6.2080508@intel.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <3F6208F6.2080508@intel.com>
+Date: Fri, 12 Sep 2003 19:33:37 -0400
+Sender: nfs-admin@lists.sourceforge.net
+Message-ID: <200309122333.h8CNXbW09877@moisil.badula.org>
+References: <3F610F3C.5040704@intel.com>
+Return-path: <nfs-admin@lists.sourceforge.net>
+In-Reply-To: <3F610F3C.5040704@intel.com>
+Errors-To: nfs-admin@lists.sourceforge.net
+List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
+List-Post: <mailto:nfs@lists.sourceforge.net>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
+	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Errors-To: autofs-bounces@linux.kernel.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
+	<mailto:nfs-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: Arun Sharma <arun.sharma@intel.com>
-Cc: autofs@linux.kernel.org, nfs@lists.sourceforge.net
+Cc: nfs@lists.sourceforge.net, autofs@vger.kernel.org
 
-Arun Sharma wrote:
-> H. Peter Anvin wrote:
-> 
->>
->> Which version of autofs are you running?  What version of mount(8)?
->>
-> 
-> autofs-3.1.7 and mount-2.11g
-> 
->> It's possible NFS lets you umount a mount which has busy inodes under
->> certain conditions.
-> 
-> 
-> Are you thinking of the MNT_FORCE flag ? I have reasons to believe that
-> it won't help. Mainly because if it was a RPC task that marked the inode
-> busy, it'd have put itself on the waitq of the inode. However I found
-> that waitqueue_active(&inode->i_wait) == 0.
-> 
+On Thu, 11 Sep 2003 17:11:40 -0700, Arun Sharma <arun.sharma@intel.com> wrote:
 
-No, I'm thinking about the possibility that there is a bug.
+> We've seen a few "VFS: Busy inodes after unmount. Self-destruct in 5 seconds.  Have a nice day.." messages on a dual processor NFS client. Here's the use case:
+> 
+> - Due to network load issues, the NFS server becomes unreachable for some time
+> - The automounter tries to expire the mount
+> - The unmount finds a couple of busy inodes. Putting some debug printks shows that typically two inodes are busy i.e. have inode->i_count == 1. But they don't have any waiters on inode->i_wait. Further, the inodes that are busy are
+> /mnt/foo     -> autofs mount point
+> /mnt/foo/bar -> bar is a symbolic link
+> 
+> It's not clear if this is a NFS issue or a autofs issue, but it's seen often with autofs. Are there any known race conditions that have been fixed after 2.4.20 ? The two calls I'm worried about are:
+> 
+> fs/autofs/root.c:305:    d_instantiate(dentry, iget(dir->i_sb,ent->ino));
+> fs/autofs/root.c:416:    d_instantiate(dentry, iget(dir->i_sb,ino));
 
-autofs depends critically on a filesystem *not* allowing itself to be
-unmounted when there are busy inodes; however, this is something that
-things other than autofs doesn't really stress a whole lot.
+I don't know if it's the same issue, but I've seen it many many times 
+while testing amd's autofs functionality. It occurs when a non-empty 
+autofs filesystem is unmounted, e.g. if it has some leftover 
+subdirectories from previous mounts. Therefore I'd say it's quite 
+clearly an autofs issue, at least in my case.
 
-	-hpa
+Do you see it when shutting down the automounter, or in other cases as 
+well?
+
+Ion
+
+-- 
+  It is better to keep your mouth shut and be thought a fool,
+            than to open it and remove all doubt.
+
+
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
+_______________________________________________
+NFS maillist  -  NFS@lists.sourceforge.net
+https://lists.sourceforge.net/lists/listinfo/nfs
