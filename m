@@ -1,12 +1,18 @@
-From: raven@themaw.net
-Subject: Re: Is autofs4 8-bit compatible?
-Date: Tue, 5 Apr 2005 21:51:05 +0800 (WST)
-Message-ID: <Pine.LNX.4.62.0504052148570.8564@donald.themaw.net>
-References: <424F683D.000001.08082@tide.yandex.ru>
-	<Pine.LNX.4.62.0504031146420.8220@donald.themaw.net>
+From: Timo Felbinger <timo.felbinger@physik.uni-potsdam.de>
+Subject: Re: Autofs TLS and binddn/bindpw patch.
+Date: Tue, 5 Apr 2005 17:43:44 +0200
+Message-ID: <20050405154344.GE1010@uranos.quantum.physik.uni-potsdam.de>
+References: <424B6F70.8060802@ad2u.gr>
+	<Pine.LNX.4.62.0504031757570.1663@donald.themaw.net>
+	<424FF392.6070300@ad2u.gr>
+	<Pine.LNX.4.58.0504041029450.27508@wombat.indigo.net.au>
+	<20050404074050.GB1010@uranos.quantum.physik.uni-potsdam.de>
+	<Pine.LNX.4.62.0504042053290.8927@donald.themaw.net>
+Reply-To: Timo Felbinger <timo.felbinger@physik.uni-potsdam.de>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.62.0504031146420.8220@donald.themaw.net>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.62.0504042053290.8927@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,57 +23,55 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: atlantos41 <atlantos41@yandex.ru>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Sun, 3 Apr 2005 raven@themaw.net wrote:
+On Mon, Apr 04, 2005 at 08:57:43PM +0800, raven@themaw.net wrote:
+> >
+> >Hmm, autofs over TLS works well for me with anonymous binds (only the
+> >server is authenticated, the client remains unauthenticated).
+> >Client authentication in the TLS layer (via client certificates) should
+> >also be possible (and probably the most convenient form of client
+> >authentication) but I never tried this seriously (I don't consider
+> >automount information to be highly sensitive).
+> 
+> That's been said before and I agree however if the server also has 
+> sensitive info and will only allow secured connections for this reason 
+> we probably need to cater for it.
 
-> On Sun, 3 Apr 2005, atlantos41 wrote:
->
->> 
->>  I tried this patch and now automount mounts all shares. But automount 
->>  can't umount mounted shares with 8-bit chars in share names - I have 
->>  entries in syslog like (I start autofs with command `automount 
->>  --timeout=60 --verbose /smb file /etc/auto.smb``):
->
-> Thanks.
-> At least it's a step forward.
+Ok, I see. I played with SASL/TLS a while ago in a different client and
+got it working, so I decided to give it a try and simply put pretty much
+the same code into autofs.
+The interface for using SASL with OpenLDAP is still pretty undocumented
+(afaik), so much of the code is copied-and-pasted from the sample clients
+in the OpenLDAP source package. Nevertheless, it seems to work quite well,
+and I have put a new patch on
+  http://timof.qipc.org/autofs
+which can do authenticated lookups with either
+- LDAP simple authentication (with arbitrary binddn and password),
+  or
+- SASL authentication.
 
-I don't really think this will do the trick but please try it anyway.
+So far, the only SASL mechanism I have tried is "external", which is
+IMO the easiest one to set up (and it's non-interactive, which is good
+in this case: we probably don't want the automounter to hang, displaying
+a "password:" prompt on some terminal...).
 
-It includes the first patch and removes another isprint call.
+The whole SASL part is pretty experimental; it works for me but it would
+be good if others could test it and report problems. The patch should
+apply cleanly to autofs-4.1.4-beta2. Except for minor changes to the
+Makefiles and configure script, only the lookup_ldap module is affected,
+so it should not interfere with non-LDAP stuff. To actually use SASL, you
+must configure --with-sasl (in addition to --with-openldap).
 
-Ian
+Greetings,
 
---- autofs-4.1.3/lib/cat_path.c.wide-char	2005-04-05 21:28:36.000000000 +0800
-+++ autofs-4.1.3/lib/cat_path.c	2005-04-05 21:29:01.000000000 +0800
-@@ -48,7 +48,7 @@ int _strlen(const char *str, int max)
-  {
-  	char *s = (char *) str;
+Timo
 
--	while (isprint(*s++) && max--) ;
-+	while (*s++ && max--) ;
 
-  	if (max < 0)
-  		return 0;
---- autofs-4.1.3/modules/lookup_file.c.wide-char	2005-04-05 21:30:10.000000000 +0800
-+++ autofs-4.1.3/modules/lookup_file.c	2005-04-05 21:30:45.000000000 +0800
-@@ -148,7 +148,7 @@ static int read_one(FILE *f, char *key,
-  				else if (ch == '*') {
-  					state = st_star;
-  					*(kptr++) = ch;
--				} else if (isprint((char) ch)) {
-+				} else {
-  					state = st_compare;
-  					*(kptr++) = ch;
-  				}
-@@ -164,7 +164,7 @@ static int read_one(FILE *f, char *key,
-  				getting = got_real;
-  				state = st_entspc;
-  			} else if (escape == esc_char);
--			else if (isprint((char) ch))
-+			else
-  				*(kptr++) = ch;
-  			break;
+-- 
+Timo Felbinger                  <Timo.Felbinger@physik.uni-potsdam.de>
+Quantum Physics Group           http://www.quantum.physik.uni-potsdam.de
+Institut fuer Physik            Tel: +49 331 977 1793      Fax: -1767
+Universitaet Potsdam, Germany
