@@ -1,14 +1,12 @@
-From: Tom Georgoulias <tom.georgoulias@freescale.com>
-Subject: Re: Severe problem with 4.1.2: automount caches NIS maps
- forever
-Date: Thu, 06 May 2004 16:07:55 -0500
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: autofs-4.1.2-6 test rpms available
+Date: Thu, 6 May 2004 17:18:28 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <409AA92B.8050104@freescale.com>
-References: <200405061811.i46IBbbv019272@miguelito.qualcomm.com>
+Message-ID: <16538.43940.58650.642984@segfault.boston.redhat.com>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200405061811.i46IBbbv019272@miguelito.qualcomm.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,25 +16,23 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: autofs@linux.kernel.org
 
-mmarion@qualcomm.com wrote:
-> On  6 May, Bryan O'Sullivan wrote:
->>The autofs 4.1.2 release has a change in behaviour from earlier releases
->>(4.1.0, I think, and 4.0.0 for sure) in that it never checks to see if a
->>NIS-based automount map has changed.
+Here is the changelog for the latest version.  It includes Ian's latest
+replicated server patches, my yperror patch, and an init script patch to
+make option parsing more pedantic.  Available at:
+     http://people.redhat.com/~jmoyer/
 
-> I noticed this too and did a workaround...
+-Jeff
 
-Why was the behavor changed between releases?  I was asking about this 
-in my other message and now I see that two other people can confirm the 
-need to HUP for daemons to use new map changes.
-
-Tom
--- 
-Tom Georgoulias
-POPI Classification
-[x] General Business Information
-[] Freescale Semiconductor Internal Use
-[] Freescale Semiconductor Confidential Proprietary
+Changelog:
+* Thu May  6 2004   - 1:4.1.2-6
+- The lookup_yp module only dealt with YPERR_KEY, all other errors were
+  treated as success.  As a result, if the ypdomain was not bound, the
+  subprocess that starts mounts would SIGSEGV.  This is now fixed.
+- Option parsing in the init script was not precise enough, sometimes matching
+  filesystem options to one of --ghost, --timeout, --verbose, or --debug.
+  The option-parsing patch addresses this issue by making the regexp's much
+  more precise.
+- Ian has rolled a third version of the replicated mount fixes.
