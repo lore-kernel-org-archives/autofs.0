@@ -1,12 +1,12 @@
 From: Paul Raines <raines@nmr.mgh.harvard.edu>
 Subject: Re: rm hangs on symlinks to down mount points
-Date: Wed, 31 Dec 2003 09:32:22 -0500 (EST)
+Date: Wed, 31 Dec 2003 10:27:17 -0500 (EST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.44.0312310928400.24097-100000@gate.nmr.mgh.harvard.edu>
-References: <20031231115815.44107c3d.vogelchr@vogel.cx>
+Message-ID: <Pine.LNX.4.44.0312311026180.2720-100000@gate.nmr.mgh.harvard.edu>
+References: <Pine.LNX.4.44.0312312252130.4678-100000@raven.themaw.net>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20031231115815.44107c3d.vogelchr@vogel.cx>
+In-Reply-To: <Pine.LNX.4.44.0312312252130.4678-100000@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,18 +18,28 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christian Vogel <vogelchr@vogel.cx>
-Cc: autofs@linux.kernel.org
+To: Ian Kent <raven@themaw.net>
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
-On Wed, 31 Dec 2003, Christian Vogel wrote:
-> have you ever tried to compile a automount daemon that uses not
-> /bin/mount and /bin/umount but special shellscripts? You can change the
-> defines in $autofs_source/include/config.h.
+On Wed, 31 Dec 2003, Ian Kent wrote:
+
+> On Wed, 31 Dec 2003, Paul Raines wrote:
 > 
-> There you could probably apply all the magic you want to the process of
-> mounting/unmounting filesystems...
+> > 
+> > I believe I made a mistake and feel pretty stupid now.  I think the hung
+> > automount subprocesses are not hanging on the mount but on the umount.  
+> > Does autofs ever call umount with the -f option after the first (few)
+> > regular umount's fail. If autofs has made a mount, the server dies, then
+> > the mount times out from no use so autofs wants to umount it, how does
+> > autofs handle the situation?
+> > 
+> 
+> No. It never uses the -f option.
+> 
+> I think the -f option is safe enough though. It probably should do 
+> something like that. But the -l option sounds like it could lead to 
+> strife.
 
-That sounds like a very good idea.  Mainly, I would want to replace
-umount with a script that does a 'umount -f' if a regular umount fails.
-Better yet, it could read /etc/mtab for the name of the server and ping
-it and do a 'umount -f' from the beginning if it fails to ping.
+Though I hope autofs after the call to the umount does not purely rely
+on its return code to see that a mount is now unmounted but also checks
+the mount table to see if it is still there.
