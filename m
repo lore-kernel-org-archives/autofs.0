@@ -1,13 +1,16 @@
-From: Chris Walker <cwalker@pixar.com>
-Subject: Re: is there an autofs roadmap somewhere?
-Date: Fri, 25 Jun 2004 13:41:14 -0700
+From: Axel Thimm <Axel.Thimm@atrpms.net>
+Subject: util-linux rpms for sloppy/noacl/non-selinux (was: mount 2.12:
+	proplist and failed mounts)
+Date: Fri, 25 Jun 2004 22:59:32 +0200
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <20040625204114.GA7840@pixar.com>
-References: <482A3FA0050D21419C269D13989C611302B07D00@lavender-fe.eng.netapp.com>
+Message-ID: <20040625205932.GC1056@neu.nirvana>
+References: <20040625110243.GH22003@neu.nirvana>
+	<16604.6212.198799.326752@segfault.boston.redhat.com>
+	<20040625172316.GI22003@neu.nirvana>
 Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============18011575369622879=="
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <482A3FA0050D21419C269D13989C611302B07D00@lavender-fe.eng.netapp.com>
+In-Reply-To: <20040625172316.GI22003@neu.nirvana>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,51 +20,73 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: autofs@linux.kernel.org, sopwith@redhat.com, M.A.Young@durham.ac.uk
+
+
+--===============18011575369622879==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="XWOWbaMNXpFDWE00"
+Content-Disposition: inline
+
+
+--XWOWbaMNXpFDWE00
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Fri, Jun 25, 2004 at 07:23:16PM +0200, Axel Thimm wrote:
+> On Fri, Jun 25, 2004 at 08:19:16AM -0400, Jeff Moyer wrote:
+> > I had a bug filed here (on FC2, I think) which described your
+> > situation.  [...] It has since been fixed.
+>=20
+> Now, that I know what to look for I found the bugzilla entry:
+> https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=3D122448
+>=20
+> Looks like the fix is not yet in rawhide :( :( :(
+>=20
+> BTW, here are my patches to make util-linux build again on non-selinux
+> systems:
+>=20
+> https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=3D126720
+
+I put together util-linux rpms which include
+
+o the (no)selinux patches
+o the sloppy fixes by Michael Young
+o the [no]acl patches by Andreas Gruenbacher
+  (http://bugzilla.atrpms.net/show_bug.cgi?id=3D73)
+
+The work fine in mixed autofs'ed environments of OSF1s, acled and
+non-acled NFS servers and acled NFS clients.
+--=20
+Axel.Thimm at ATrpms.net
+
+--XWOWbaMNXpFDWE00
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFA3JIzQBVS1GOamfERAsNJAJ99/TyYIuqYBZhZMJMa1/flM5IdlQCghrlB
+UYORy4EuqhKKaPK6g7Jyyj4=
+=YiPl
+-----END PGP SIGNATURE-----
+
+--XWOWbaMNXpFDWE00--
+
+
+--===============18011575369622879==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: "Lever, Charles" <Charles.Lever@netapp.com>
-Cc: autofs@linux.kernel.org, raven@themaw.net
+Content-Disposition: inline
 
-Hear, hear.
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
 
-We use autofs with lots of mounts, and we would appreciate any
-development efforts in this area.
+--===============18011575369622879==--
 
-From Charles.Lever:
-> > On Tue, 22 Jun 2004, Lever, Charles wrote:
-> > 
-> > > new to the game.
-> > > 
-> > > I'm wondering what features autofs developers have in mind for the 
-> > > near future.
-> > 
-> > Charles. Why did you have to ask "that" question!
-> 
-> i'm working with trond to build a Linux NFS client roadmap.  our
-> customers want a little more transparency into the Linux NFS client
-> development plan, and i'm trying to include autofs because it is pretty
-> important for them.  i actually know very little about it (so a pointer
-> to a primer you like would be helpful for me).
-> 
-> > But what functionality do you need?
-> > And what do you think would be useful?
-> 
-> no requests... just polling for information, trying to get more involved
-> here.  thanks!
-> 
-> there are some naive thoughts about error recovery and threading
-> architecture that could help autofs deployments in very large
-> environments with lots of active mounts.  but i'd like to explore the
-> current autofs more before stepping in it.
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
-
--- 
-Chris Walker
-Render Pipeline Group
-Pixar Animation Studios
-510/752.3736
-cwalker@pixar.com
