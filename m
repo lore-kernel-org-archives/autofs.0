@@ -1,25 +1,25 @@
-From: Arun Sharma <arun.sharma@intel.com>
-Subject: Re: VFS: Busy inodes after unmount on 2 way SMP
-Date: Fri, 12 Sep 2003 17:08:58 -0700
-Sender: nfs-admin@lists.sourceforge.net
-Message-ID: <3F62601A.5000105@intel.com>
-References: <200309122333.h8CNXbW09877@moisil.badula.org>
+From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: Re: [NFS] VFS: Busy inodes after unmount on 2 way SMP
+Date: Fri, 12 Sep 2003 17:34:48 -0700
+Sender: autofs-bounces@linux.kernel.org
+Message-ID: <3F626628.9040000@zytor.com>
+References: <Pine.LNX.4.44.0309121957040.9830-100000@moisil.badula.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <nfs-admin@lists.sourceforge.net>
-In-Reply-To: <200309122333.h8CNXbW09877@moisil.badula.org>
-Errors-To: nfs-admin@lists.sourceforge.net
-List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
-List-Post: <mailto:nfs@lists.sourceforge.net>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
+Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <Pine.LNX.4.44.0309121957040.9830-100000@moisil.badula.org>
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
 To: Ion Badulescu <lists@news.cs.columbia.edu>
-Cc: nfs@lists.sourceforge.net, autofs@vger.kernel.org
+Cc: autofs@linux.kernel.org
 
 Ion Badulescu wrote:
 > 
@@ -28,22 +28,14 @@ Ion Badulescu wrote:
 > autofs filesystem is unmounted, e.g. if it has some leftover 
 > subdirectories from previous mounts. Therefore I'd say it's quite 
 > clearly an autofs issue, at least in my case.
-
-Do you have a case that can deterministically reproduce the issue ? 
-
+> 
 > Do you see it when shutting down the automounter, or in other cases as 
 > well?
+> 
 
-Everytime I've seen it, it's during an unmount by /usr/sbin/automount after the mount has expired. It's usually coupled with a temporarily unreachable NFS server.
+This happens when *any* filesystem allows itself to be unmounted without
+proper cleanup.  If it happens in normal operation, it is more likely an
+NFS problem.  If it happens on automounter shutdown, it's likely an
+autofs problem.
 
-	-Arun
-
-
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
-_______________________________________________
-NFS maillist  -  NFS@lists.sourceforge.net
-https://lists.sourceforge.net/lists/listinfo/nfs
+	-hpa
