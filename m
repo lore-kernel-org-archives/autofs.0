@@ -1,13 +1,12 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
+From: Paul Raines <raines@nmr.mgh.harvard.edu>
 Subject: Re: rm hangs on symlinks to down mount points
-Date: Tue, 30 Dec 2003 15:09:23 -0800
+Date: Tue, 30 Dec 2003 18:19:59 -0500 (EST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <3FF205A3.7000609@zytor.com>
-References: <Pine.LNX.4.44.0312301639450.24097-100000@gate.nmr.mgh.harvard.edu>
+Message-ID: <Pine.LNX.4.44.0312301814510.24097-100000@gate.nmr.mgh.harvard.edu>
+References: <3FF205A3.7000609@zytor.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.44.0312301639450.24097-100000@gate.nmr.mgh.harvard.edu>
+In-Reply-To: <3FF205A3.7000609@zytor.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,20 +16,27 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Paul Raines <raines@nmr.mgh.harvard.edu>
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: "H. Peter Anvin" <hpa@zytor.com>
 Cc: autofs@linux.kernel.org
 
-Paul Raines wrote:
+On Tue, 30 Dec 2003, H. Peter Anvin wrote:
 > 
-> If you try to delete linkfile, it hangs forever.  Seems to never timeout
-> or work.   Doing a strace shows it hanging to a system stat() call
-> on the pointed to file.
-> 
-> First, it seems fundamentally wrong that doing an unlink() on a symlink
-> causes a stat() call on the pointed to file.  Seems a huge waste.
+> It doesn't; however rm(1) apparently does.
 > 
 
-It doesn't; however rm(1) apparently does.
+Yes, so I guess it is mostly rm's fault.  I have already complained to
+the fileutils package writers about df which will do a stat on every
+mount even if you pass df a specific mount point.  So on my central
+system which often has over 50 automounts going at once with one of
+the servers almost always offline, df never works.  quota never works
+either.
 
-	-hpa
+It would be nice if one could configure a timeout in autofs for
+mounting though separate from something like 'timeo' in the nfs options.
+
+I am often getting automount processes that are hung and don't die
+with a simple kill.  I can "kill -9" them but that leaves things in 
+a bad state usually (though sometimes I will just hand edit /etc/mtab
+so I can get something done).
