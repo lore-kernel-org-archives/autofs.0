@@ -1,11 +1,12 @@
 From: Chris Feist <cfeist@redhat.com>
-Subject: [PATCH] fixes problems w/ duplicate maps in auto.master
-Date: Thu, 21 Oct 2004 16:46:16 -0500
+Subject: [PATCH] Fix, to fix the ordering of +ypmapname entries in
+	/etc/auto.master
+Date: Thu, 21 Oct 2004 18:15:01 -0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <1098395176.3014.42.camel@gold.msp.redhat.com>
+Message-ID: <1098400501.3014.50.camel@gold.msp.redhat.com>
 Reply-To: cfeist@redhat.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-3K4P2RKldQKUgSzTmFGy"
+Content-Type: multipart/mixed; boundary="=-Eh34Znqw2ZjzLIU8DNhQ"
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -19,86 +20,64 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: raven@themaw.net, autofs@linux.kernel.org
 
 
---=-3K4P2RKldQKUgSzTmFGy
+--=-Eh34Znqw2ZjzLIU8DNhQ
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
 Ian,
 
-This patch should replace the previous init-duplicate-map.patch I
-submitted last week.
+This patch will have automount process map entries that refer to yp maps
+(ie. +auto_master) in the same order as they show up in the
+/etc/auto.master file.  Previously all entries that didn't refer to
+another yp map were processed before entries refering to a yp map.
 
-The following patch contains fixes to prevent duplicate directories from
-being mapped on top of each other.
+For example with the following /etc/auto.master:
+/home /etc/auto.home
++auto_master
+/misc /etc/auto.misc
 
-For example, if my auto.master looks like this.
-/misc auto.misc
-/misc/misc2 auto.misc2
+In 4.1.3, all maps in auto_master would be included after the /home &
+/misc line.
 
-The automounter will attempt to mount /misc/misc2 on top of the already
-mounted /misc and fail.  There were also problems where the automounter
-thought that '/misc' was different than /misc/ which is also fixed.
-
-Lastly, knownmaps is only added to if the map is not a duplicate.  It
-wasn't being used anywhere else in the code and I don't think there is
-any reason to check new maps against maps that we know aren't valid.
-
-Let me know if you don't agree or you thing something needs to be
-changed.
+With this patch all lines in the auto_master file will be processed
+after the /home line, but before the /misc line.
 
 Thanks,
 Chris
 
-
---=-3K4P2RKldQKUgSzTmFGy
-Content-Disposition: attachment; filename=init-duplicate-map2.patch
-Content-Type: text/x-patch; name=init-duplicate-map2.patch; charset=UTF-8
+--=-Eh34Znqw2ZjzLIU8DNhQ
+Content-Disposition: attachment; filename=autofs-4.1.3-plus-map-ordering.patch
+Content-Type: text/x-patch; name=autofs-4.1.3-plus-map-ordering.patch;
+	charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
---- autofs-4.1.3/samples/rc.autofs.in.init-duplicate-map2	2004-10-21 16:20:08.251734287 -0500
-+++ autofs-4.1.3/samples/rc.autofs.in	2004-10-21 16:45:19.630945579 -0500
-@@ -159,12 +159,28 @@
- 	    # These checks screen out duplicates and skip over directories
- 	    # where the map is '-'.
- 	    # We can't do empty or direct host maps, so don't bother trying.
-+
-+	    # Strip trailing slashes from the dir line if it exists to aid
-+	    # in checking for duplicate maps
-+	    dir=`echo "$dir" | sed -e "s/\/*$//"`
-+
- 	    if [ ! -z "$map" -a "$map" = "-hosts" ] ; then
- 		continue
- 	    fi
-+
-+	    # Do not include a map if it is a duplicate, maps on top of
-+	    # another map or another map, maps on top of it.
-+	    for knownmap in $knownmaps
-+	    do
-+                if [ "`echo $dir/ | grep ^$knownmap`" != "" \
-+			-o "`echo $knownmap | grep ^$dir/`" != "" \]
-+		then
-+		    continue 2
-+		fi
-+	    done
-+
- 	    if [ ! -z "$dir" -a ! -z "$map" \
- 			-a x`echo "$map" | cut -c1` != 'x-' \
--			-a "`echo "$knownmaps" | grep '\<'$dir/`" = "" ]
- 	    then
- 		# If the options include a -t or --timeout, a -g or --ghost,
- 		# a -v or --verbose or a -d or --debug paramter, then pull
-@@ -231,8 +247,8 @@
- 		echo "$DAEMON $startupoptions $dir $maptype $map $mapoptions $localoptions" | sed -e 's/	/ /g' -e 's/  */ /g'
- 
- 		: echo ------------------------
--	    fi
- 	    knownmaps=" $dir/ $knownmaps"
-+	    fi
- 	done
-     )
+--- autofs-4.1.3/samples/rc.autofs.in.plus-map-ordering	2004-10-21 18:07:48.873983806 -0500
++++ autofs-4.1.3/samples/rc.autofs.in	2004-10-21 18:07:59.500816215 -0500
+@@ -94,10 +94,19 @@
+ function getfilemounts()
+ {
+     if [ -f /etc/auto.master ] ; then
+-        cat /etc/auto.master | grep -v '^\+' | sed -e '/^#/d' -e '/^$/d'
+-        for nismap in `cat /etc/auto.master | grep '^\+' | sed -e '/^#/d' -e '/^$/d'`; do
+-            catnismap `echo "$nismap" | sed -e 's/^\+//'`
++        cat /etc/auto.master | sed -e '/^#/d' -e '/^$/d' | (
++        while read auto_master_in
++        do
++            if [ "`echo $auto_master_in | grep '^+'`" = "" ]; then
++                echo $auto_master_in
++            else
++                for nismap in `cat /etc/auto.master | grep '^\+' |
++                        sed -e '/^#/d' -e '/^$/d'`; do
++                    catnismap `echo "$nismap" | sed -e 's/^\+//'`
++                done
++            fi
+         done
++        )
+     fi
  }
+ function getnismounts()
 
---=-3K4P2RKldQKUgSzTmFGy
+--=-Eh34Znqw2ZjzLIU8DNhQ
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -109,5 +88,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---=-3K4P2RKldQKUgSzTmFGy--
+--=-Eh34Znqw2ZjzLIU8DNhQ--
 
