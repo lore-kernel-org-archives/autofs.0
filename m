@@ -1,12 +1,13 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: [patch] make autofs understand the -[no]browse option
-Date: Mon, 15 Nov 2004 14:47:45 -0500
-Message-ID: <16793.2017.226139.516137@segfault.boston.redhat.com>
-Reply-To: jmoyer@redhat.com
+From: raven@themaw.net
+Subject: Re: [patch rfc] address regression in duplicate map entry order
+Date: Sun, 21 Nov 2004 22:41:57 +0800 (WST)
+Message-ID: <Pine.LNX.4.58.0411212219580.10238@donald.themaw.net>
+References: <16798.38327.587983.840248@segfault.boston.redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="cRo2mxynsa"
-Content-Transfer-Encoding: 7bit
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="1612843569-402957381-1101048117=:10238"
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <16798.38327.587983.840248@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,106 +18,418 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: raven@themaw.net
-Cc: autofs@linux.kernel.org
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+  Send mail to mime@docserver.cac.washington.edu for more info.
 
---cRo2mxynsa
-Content-Type: text/plain; charset=us-ascii
-Content-Description: message body text
-Content-Transfer-Encoding: 7bit
+--1612843569-402957381-1101048117=:10238
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 
-Hi, Ian, list,
+On Fri, 19 Nov 2004, Jeff Moyer wrote:
 
-The patch below makes the Linux automounter a bit more compatibile with the
-Sun automounter, by parsing the -[no]browse options, and converting them
-into the equivalent --ghost option.
+> Hi, Ian, list,
+> 
+> In my proposed fix, I meant to say:
+> 
+> We could expire the cache in lookup_ghost, and then go ahead and only
+> insert new entries (instead of overwriting what was there).
+> 
+> So, I've implemented this, though it isn't tested just yet.  There were
+> some other bugs.
+> 
+> In lookup_multi, we iterate through each map's lookup_ghost function.  The
+> problem here is that you will end up doing the following:
+> 
+> static int read_map(const char *root, struct lookup_context *ctxt)
+> {
+> 	char key[KEY_MAX_LEN + 1];
+> 	char mapent[MAPENT_MAX_LEN + 1];
+> 	char *mapname;
+> 	FILE *f;
+> 	int  entry;
+> 	time_t age = time(NULL);    <=================
+> 
+> 	mapname = alloca(strlen(ctxt->mapname) + 6);
+> 	sprintf(mapname, "file:%s", ctxt->mapname);
+> 
+> 	f = fopen(ctxt->mapname, "r");
+> 	if (!f) {
+> 		error(MODPREFIX "could not open map file %s", ctxt->mapname);
+> 		return 0;
+> 	}
+> 
+> 	while(1) {
+> 		entry = read_one(f, key, mapent);
+> 		if (entry)
+> 			cache_update(root, key, mapent, age); <==========
+> 
+> 		if (feof(f))
+> 			break;
+> 	}
+> 
+> 	fclose(f);
+> 
+> 	/* Clean stale entries from the cache */
+> 	cache_clean(root, age);  <=============
+> 
+> 	return 1;
+> }
+> 
+> Notice the lines I've pointed out.  We decide what the expiration age
+> should be at the beginning of the function.  We update entries and give
+> them that "age."  And finally, we expire all entries that were made prior
+> to that.  The problem arises in that we call the read_map routine for each
+> map in the list in order.  What will happen is that each map, as it is
+> processed, will end up with a new value for age.  Thus, we expire all of
+> the work done by the previous read_maps!  This is bad.  To fix this, I've
+> passed in the age field from the top-level.
+> 
+> I've changed ldap's lookup_ghost routine (well, a function it calls,
+> anyway) to use cache_insert_unique instead of cache_add.
+> 
+> Please let me know what you think.  If you only like some parts, let me
+> know which ones and I'll break them out from the rest of the patch.  BTW,
+> this patch is applied on top of your map expiration changes.  I can rediff
+> the thing to any version of the code you want.
 
-Ian, I've not made this patch against vanilla 4.1.3.  This is the patch
-that went into the Red Hat RPM.  I will generate a diff to whatever version
-you like, but I didn't want to do extra work since your tree may be quite
-different from 4.1.3 at this point.
+Understand the problem.
 
-Please let me know if you want me to rediff this.
+I've had a look at the patch and it looks good.
 
-Thanks!
+I had a slightly different idea though.
 
-Jeff
+I think the cache_insert_unique might be a problem later as if people add 
+multiple attributes (map entries) for multi-mount keys, instead of one 
+attribute containing multiple mounts, in what they think is "the LDAP way" 
+it probably won't work. I can't say we've seen this problem yet but I have 
+been trying to allow for it in the code.
 
+The other thing that occured to me was that, together with passing the
+time to keep things consistent, processing the maps in reverse order in
+lookup_ghost of the multi map module would fix most of the issues. Along
+with modifying cache_add to append to any existing entries, rather than 
+prepend.
 
---cRo2mxynsa
-Content-Type: text/plain
-Content-Disposition: inline;
-	filename="autofs-4.1.3-browse.patch"
-Content-Transfer-Encoding: 7bit
+I spotted something you missed in the yp module. Have a look at the 
+lookup_yp patch chunks in the attached map-entry-order patch.
 
---- autofs-4.1.3/modules/mount_autofs.c.b4phro	2004-11-12 14:35:01.000000000 -0500
-+++ autofs-4.1.3/modules/mount_autofs.c	2004-11-12 17:41:00.305656112 -0500
-@@ -40,7 +40,7 @@ int mount_mount(const char *root, const 
- 		void *context)
- {
- 	char *fullpath, **argv;
--	int argc, status;
-+	int argc, status, ghost = ap.ghost;
- 	char *options, *p;
- 	pid_t slave, wp;
- 	char timeout_opt[30];
-@@ -78,10 +78,16 @@ int mount_mount(const char *root, const 
- 		return 0;
- 	}
- 
-+	if (strstr(options, "browse")) {
-+		if (strstr(options, "nobrowse"))
-+			ghost = 0;
-+		else
-+			ghost = 1;
-+	}
- 	/* Build our argument vector.  */
- 
- 	argc = 5;
--	if (ap.ghost)
-+	if (ghost)
- 		argc++;
- 
- 	if (do_verbose || do_debug)
-@@ -106,8 +112,8 @@ int mount_mount(const char *root, const 
- 	argv[argc++] = PATH_AUTOMOUNT;
- 	argv[argc++] = "--submount";
- 
--	if (ap.ghost)
-+	if (ghost)
- 		argv[argc++] = "--ghost";
- 
- 	if (ap.exp_timeout != DEFAULT_TIMEOUT)
+Have a look at what I've tried to do and let me know what you think. I've 
+done some basic testing but not against the issue we are trying to fix. So 
+let me know how it goes.
 
---- autofs-4.1.3/samples/rc.autofs.in.b4phro	2004-11-15 13:33:35.408034112 -0500
-+++ autofs-4.1.3/samples/rc.autofs.in	2004-11-15 13:33:42.868899888 -0500
-@@ -182,7 +182,12 @@ function getmounts()
- 		then
- 		    startupoptions="$startupoptions --ghost"
- 		fi
--
-+		# Dont even deal with conflicts between --ghost and [no]browse
-+		# Its just insane to configure things like that.
-+		if echo "$options" | grep -qE -- '\B-browse\b' ;
-+		then
-+		    startupoptions="$startupoptions --ghost"
-+		fi
- 		# Check for verbose
- 		if echo "$DAEMONOPTIONS $options" | \
- 					grep -qE -- '\B-(v\b|-verbose\b)' ;
-@@ -202,7 +207,8 @@ function getmounts()
- 		      sed   's/-\(t[^0-9]*\|-timeout\)[ \t=]*\([0-9][0-9]*\)//g' |
- 		      sed   's/-\(g\b\|-ghost\b\)//g' |
- 		      sed   's/-\(v\b\|-verbose\b\)//g' |
--		      sed   's/-\(d\b\|-debug\b\)//g')"
-+		      sed   's/-\(d\b\|-debug\b\)//g' |
-+		      sed   's/-\(no\)\?browse\b//g')"
- 
- 		# Break up the maptype and map, if the map type is specified
- 		maptype=`echo $map | cut -f1 -d:`
+Also, I found a couple of other bugs and have attached a couple of other 
+patches as well.
 
---cRo2mxynsa
+Ian
+--1612843569-402957381-1101048117=:10238
+Content-Type: TEXT/PLAIN; charset=US-ASCII;
+	name="autofs-4.1.3-map-entry-order.patch"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.58.0411212241570.10238@donald.themaw.net>
+Content-Description: 
+Content-Disposition: attachment; filename="autofs-4.1.3-map-entry-order.patch"
+
+LS0tIGF1dG9mcy00LjEuMy9kYWVtb24vYXV0b21vdW50LmMubWFwLWVudHJ5
+LW9yZGVyCTIwMDQtMTEtMjEgMTI6NTU6MzguMDAwMDAwMDAwICswODAwDQor
+KysgYXV0b2ZzLTQuMS4zL2RhZW1vbi9hdXRvbW91bnQuYwkyMDA0LTExLTIx
+IDEyOjU1OjM5LjAwMDAwMDAwMCArMDgwMA0KQEAgLTgyNSw3ICs4MjUsNyBA
+QCBzdGF0aWMgaW50IHN0X3JlYWRtYXAodm9pZCkNCiB7DQogCWludCBzdGF0
+dXM7DQogDQotCXN0YXR1cyA9IGFwLmxvb2t1cC0+bG9va3VwX2dob3N0KGFw
+LnBhdGgsIGFwLmdob3N0LCBhcC5sb29rdXAtPmNvbnRleHQpOw0KKwlzdGF0
+dXMgPSBhcC5sb29rdXAtPmxvb2t1cF9naG9zdChhcC5wYXRoLCBhcC5naG9z
+dCwgMCwgYXAubG9va3VwLT5jb250ZXh0KTsNCiANCiAJZGVidWcoInN0X3Jl
+YWRtYXA6IHN0YXR1cyAlZFxuIiwgc3RhdHVzKTsNCiANCkBAIC0xNTAyLDcg
+KzE1MDIsNyBAQCBzdGF0aWMgdm9pZCBzaWdfc3VwZXJ2aXNvcihpbnQgc2ln
+KQ0KIAkJYnJlYWs7DQogDQogCWNhc2UgU0lHSFVQOg0KLQkJYXAubG9va3Vw
+LT5sb29rdXBfZ2hvc3QoYXAucGF0aCwgYXAuZ2hvc3QsIGFwLmxvb2t1cC0+
+Y29udGV4dCk7DQorCQlhcC5sb29rdXAtPmxvb2t1cF9naG9zdChhcC5wYXRo
+LCBhcC5naG9zdCwgMCwgYXAubG9va3VwLT5jb250ZXh0KTsNCiANCiAJCS8q
+IFBhc3Mgb24gdGhlIHJlcmVhZCBldmVudCBhbmQgaWdub3JlIHNlbGYgc2ln
+bmFsICovDQogCQlraWxsKDAsIFNJR0hVUCk7DQpAQCAtMTUyMCw3ICsxNTIw
+LDcgQEAgaW50IHN1cGVydmlzb3IoY2hhciAqcGF0aCkNCiAJYXAucGF0aCA9
+IGFsbG9jYShzdHJsZW4ocGF0aCkgKyAxKTsNCiAJc3RyY3B5KGFwLnBhdGgs
+IHBhdGgpOw0KIA0KLQltYXAgPSBhcC5sb29rdXAtPmxvb2t1cF9naG9zdChh
+cC5wYXRoLCBhcC5naG9zdCwgYXAubG9va3VwLT5jb250ZXh0KTsNCisJbWFw
+ID0gYXAubG9va3VwLT5sb29rdXBfZ2hvc3QoYXAucGF0aCwgYXAuZ2hvc3Qs
+IDAsIGFwLmxvb2t1cC0+Y29udGV4dCk7DQogCWlmIChtYXAgJiBMS1BfRkFJ
+TCkgew0KIAkJZXJyb3IoImZhaWxlZCB0byBsb2FkIG1hcCBleGl0aW5nIik7
+DQogCQljbGVhbnVwX2V4aXQoYXAucGF0aCwgMSk7DQpAQCAtMTU4OCw3ICsx
+NTg4LDcgQEAgaW50IGhhbmRsZV9tb3VudHMoY2hhciAqcGF0aCkNCiAJCQlh
+bGFybShhcC5leHBfcnVuZnJlcSArIG15X3BpZCAlIGFwLmV4cF9ydW5mcmVx
+KTsNCiAJfQ0KIA0KLQltYXAgPSBhcC5sb29rdXAtPmxvb2t1cF9naG9zdChh
+cC5wYXRoLCBhcC5naG9zdCwgYXAubG9va3VwLT5jb250ZXh0KTsNCisJbWFw
+ID0gYXAubG9va3VwLT5sb29rdXBfZ2hvc3QoYXAucGF0aCwgYXAuZ2hvc3Qs
+IDAsIGFwLmxvb2t1cC0+Y29udGV4dCk7DQogCWlmIChtYXAgJiBMS1BfRkFJ
+TCkgew0KIAkJaWYgKG1hcCAmIExLUF9JTkRJUkVDVCkgew0KIAkJCWVycm9y
+KCJiYWQgbWFwIGZvcm1hdDogZm91bmQgaW5kaXJlY3QsICINCi0tLSBhdXRv
+ZnMtNC4xLjMvaW5jbHVkZS9hdXRvbW91bnQuaC5tYXAtZW50cnktb3JkZXIJ
+MjAwNC0xMS0yMSAxMjo1NTozNy4wMDAwMDAwMDAgKzA4MDANCisrKyBhdXRv
+ZnMtNC4xLjMvaW5jbHVkZS9hdXRvbW91bnQuaAkyMDA0LTExLTIxIDEyOjU1
+OjM5LjAwMDAwMDAwMCArMDgwMA0KQEAgLTE0MCwxMiArMTQwLDEyIEBAIGlu
+dCBpc19tb3VudGVkKGNvbnN0IGNoYXIgKnBhdGgpOw0KIA0KICNpZmRlZiBN
+T0RVTEVfTE9PS1VQDQogaW50IGxvb2t1cF9pbml0KGNvbnN0IGNoYXIgKm1h
+cGZtdCwgaW50IGFyZ2MsIGNvbnN0IGNoYXIgKmNvbnN0ICphcmd2LCB2b2lk
+ICoqY29udGV4dCk7DQotaW50IGxvb2t1cF9naG9zdChjb25zdCBjaGFyICos
+IGludCwgdm9pZCAqKTsNCitpbnQgbG9va3VwX2dob3N0KGNvbnN0IGNoYXIg
+KiwgaW50LCB0aW1lX3QsIHZvaWQgKik7DQogaW50IGxvb2t1cF9tb3VudChj
+b25zdCBjaGFyICosIGNvbnN0IGNoYXIgKiwgaW50LCB2b2lkICopOw0KIGlu
+dCBsb29rdXBfZG9uZSh2b2lkICopOw0KICNlbmRpZg0KIHR5cGVkZWYgaW50
+ICgqbG9va3VwX2luaXRfdCkgKGNvbnN0IGNoYXIgKiwgaW50LCBjb25zdCBj
+aGFyICpjb25zdCAqLCB2b2lkICoqKTsNCi10eXBlZGVmIGludCAoKmxvb2t1
+cF9naG9zdF90KSAoY29uc3QgY2hhciAqLCBpbnQsIHZvaWQgKik7DQordHlw
+ZWRlZiBpbnQgKCpsb29rdXBfZ2hvc3RfdCkgKGNvbnN0IGNoYXIgKiwgaW50
+LCB0aW1lX3QsIHZvaWQgKik7DQogdHlwZWRlZiBpbnQgKCpsb29rdXBfbW91
+bnRfdCkgKGNvbnN0IGNoYXIgKiwgY29uc3QgY2hhciAqLCBpbnQsIHZvaWQg
+Kik7DQogdHlwZWRlZiBpbnQgKCpsb29rdXBfZG9uZV90KSAodm9pZCAqKTsN
+CiANCi0tLSBhdXRvZnMtNC4xLjMvbGliL2NhY2hlLmMubWFwLWVudHJ5LW9y
+ZGVyCTIwMDQtMTEtMjEgMTI6NTU6MzcuMDAwMDAwMDAwICswODAwDQorKysg
+YXV0b2ZzLTQuMS4zL2xpYi9jYWNoZS5jCTIwMDQtMTEtMjEgMTI6NTg6MDgu
+MDAwMDAwMDAwICswODAwDQpAQCAtMTY1LDcgKzE2NSw3IEBAIHN0cnVjdCBt
+YXBlbnRfY2FjaGUgKmNhY2hlX3BhcnRpYWxfbWF0Y2gNCiANCiBpbnQgY2Fj
+aGVfYWRkKGNvbnN0IGNoYXIgKnJvb3QsIGNvbnN0IGNoYXIgKmtleSwgY29u
+c3QgY2hhciAqbWFwZW50LCB0aW1lX3QgYWdlKQ0KIHsNCi0Jc3RydWN0IG1h
+cGVudF9jYWNoZSAqbWUgPSBOVUxMOw0KKwlzdHJ1Y3QgbWFwZW50X2NhY2hl
+ICptZSA9IE5VTEwsICpleGlzdGluZyA9IE5VTEw7DQogCWNoYXIgKnBrZXks
+ICpwZW50Ow0KIAl1bnNpZ25lZCBpbnQgaGFzaHZhbCA9IGhhc2goa2V5KTsN
+CiAJY2hhciAqcGF0aDsNCkBAIC0xOTEsOCArMTkxLDI3IEBAIGludCBjYWNo
+ZV9hZGQoY29uc3QgY2hhciAqcm9vdCwgY29uc3QgY2gNCiAJbWUtPm1hcGVu
+dCA9IHN0cmNweShwZW50LCBtYXBlbnQpOw0KIAltZS0+YWdlID0gYWdlOw0K
+IA0KLQltZS0+bmV4dCA9IG1hcGVudF9oYXNoW2hhc2h2YWxdOw0KLQltYXBl
+bnRfaGFzaFtoYXNodmFsXSA9IG1lOw0KKwkvKiANCisJICogV2UgbmVlZCB0
+byBhZGQgdG8gdGhlIGVuZCBpZiB2YWx1ZXMgZXhpc3QgaW4gb3JkZXIgdG8N
+CisJICogcHJlc2VydmUgdGhlIG9yZGVyIGluIHdoaWNoIHRoZSBtYXAgd2Fz
+IHJlYWQgb24gbG9va3VwLg0KKwkgKi8NCisJZXhpc3RpbmcgPSBjYWNoZV9s
+b29rdXAoa2V5KTsNCisJaWYgKCFleGlzdGluZykgew0KKwkJbWUtPm5leHQg
+PSBtYXBlbnRfaGFzaFtoYXNodmFsXTsNCisJCW1hcGVudF9oYXNoW2hhc2h2
+YWxdID0gbWU7DQorCX0gZWxzZSB7DQorCQl3aGlsZSAoMSkgew0KKwkJCXN0
+cnVjdCBtYXBlbnRfY2FjaGUgKm5leHQ7DQorCQkNCisJCQluZXh0ID0gY2Fj
+aGVfbG9va3VwX25leHQoZXhpc3RpbmcpOw0KKwkJCWlmICghbmV4dCkNCisJ
+CQkJYnJlYWs7DQorDQorCQkJZXhpc3RpbmcgPSBuZXh0Ow0KKwkJfQ0KKwkJ
+bWUtPm5leHQgPSBleGlzdGluZy0+bmV4dDsNCisJCWV4aXN0aW5nLT5uZXh0
+ID0gbWU7DQorCX0NCiANCiAJcmV0dXJuIENIRV9PSzsNCiB9DQotLS0gYXV0
+b2ZzLTQuMS4zL21vZHVsZXMvbG9va3VwX2ZpbGUuYy5tYXAtZW50cnktb3Jk
+ZXIJMjAwNC0xMS0yMSAxMjo1NTozOC4wMDAwMDAwMDAgKzA4MDANCisrKyBh
+dXRvZnMtNC4xLjMvbW9kdWxlcy9sb29rdXBfZmlsZS5jCTIwMDQtMTEtMjEg
+MTI6NTU6MzkuMDAwMDAwMDAwICswODAwDQpAQCAtMjI3LDE0ICsyMjcsMTQg
+QEAgc3RhdGljIGludCByZWFkX29uZShGSUxFICpmLCBjaGFyICprZXksIA0K
+IAlyZXR1cm4gMDsNCiB9DQogDQotc3RhdGljIGludCByZWFkX21hcChjb25z
+dCBjaGFyICpyb290LCBzdHJ1Y3QgbG9va3VwX2NvbnRleHQgKmN0eHQpDQor
+c3RhdGljIGludCByZWFkX21hcChjb25zdCBjaGFyICpyb290LCB0aW1lX3Qg
+bm93LCBzdHJ1Y3QgbG9va3VwX2NvbnRleHQgKmN0eHQpDQogew0KIAljaGFy
+IGtleVtLRVlfTUFYX0xFTiArIDFdOw0KIAljaGFyIG1hcGVudFtNQVBFTlRf
+TUFYX0xFTiArIDFdOw0KIAljaGFyICptYXBuYW1lOw0KIAlGSUxFICpmOw0K
+IAlpbnQgIGVudHJ5Ow0KLQl0aW1lX3QgYWdlID0gdGltZShOVUxMKTsNCisJ
+dGltZV90IGFnZSA9IG5vdyA/IG5vdyA6IHRpbWUoTlVMTCk7DQogDQogCW1h
+cG5hbWUgPSBhbGxvY2Eoc3RybGVuKGN0eHQtPm1hcG5hbWUpICsgNik7DQog
+CXNwcmludGYobWFwbmFtZSwgImZpbGU6JXMiLCBjdHh0LT5tYXBuYW1lKTsN
+CkBAIC0yNjIsMTQgKzI2MiwxNCBAQCBzdGF0aWMgaW50IHJlYWRfbWFwKGNv
+bnN0IGNoYXIgKnJvb3QsIHN0DQogCXJldHVybiAxOw0KIH0NCiANCi1pbnQg
+bG9va3VwX2dob3N0KGNvbnN0IGNoYXIgKnJvb3QsIGludCBnaG9zdCwgdm9p
+ZCAqY29udGV4dCkNCitpbnQgbG9va3VwX2dob3N0KGNvbnN0IGNoYXIgKnJv
+b3QsIGludCBnaG9zdCwgdGltZV90IG5vdywgdm9pZCAqY29udGV4dCkNCiB7
+DQogCXN0cnVjdCBsb29rdXBfY29udGV4dCAqY3R4dCA9IChzdHJ1Y3QgbG9v
+a3VwX2NvbnRleHQgKikgY29udGV4dDsNCiAJc3RydWN0IG1hcGVudF9jYWNo
+ZSAqbWU7DQogCXN0cnVjdCBzdGF0IHN0Ow0KIAlpbnQgc3RhdHVzID0gMTsN
+CiANCi0JaWYgKCFyZWFkX21hcChyb290LCBjdHh0KSkNCisJaWYgKCFyZWFk
+X21hcChyb290LCBub3csIGN0eHQpKQ0KIAkJcmV0dXJuIExLUF9GQUlMOw0K
+IA0KIAlpZiAoc3RhdChjdHh0LT5tYXBuYW1lLCAmc3QpKSB7DQotLS0gYXV0
+b2ZzLTQuMS4zL21vZHVsZXMvbG9va3VwX2hlc2lvZC5jLm1hcC1lbnRyeS1v
+cmRlcgkyMDA0LTExLTIxIDEyOjU1OjM3LjAwMDAwMDAwMCArMDgwMA0KKysr
+IGF1dG9mcy00LjEuMy9tb2R1bGVzL2xvb2t1cF9oZXNpb2QuYwkyMDA0LTEx
+LTIxIDEyOjU1OjM5LjAwMDAwMDAwMCArMDgwMA0KQEAgLTY2LDcgKzY2LDcg
+QEAgaW50IGxvb2t1cF9pbml0KGNvbnN0IGNoYXIgKm1hcGZtdCwgaW50IA0K
+IAlyZXR1cm4gIShjdHh0LT5wYXJzZXIgPSBvcGVuX3BhcnNlKG1hcGZtdCwg
+TU9EUFJFRklYLCBhcmdjIC0gMSwgYXJndiArIDEpKTsNCiB9DQogDQotaW50
+IGxvb2t1cF9naG9zdChjb25zdCBjaGFyICpyb290LCBpbnQgZ2hvc3QsIHZv
+aWQgKmNvbnRleHQpDQoraW50IGxvb2t1cF9naG9zdChjb25zdCBjaGFyICpy
+b290LCBpbnQgZ2hvc3QsIHRpbWVfdCBub3csIHZvaWQgKmNvbnRleHQpDQog
+ew0KIAlyZXR1cm4gTEtQX05PVFNVUDsNCiB9DQotLS0gYXV0b2ZzLTQuMS4z
+L21vZHVsZXMvbG9va3VwX2xkYXAuYy5tYXAtZW50cnktb3JkZXIJMjAwNC0x
+MS0yMSAxMjo1NTozOC4wMDAwMDAwMDAgKzA4MDANCisrKyBhdXRvZnMtNC4x
+LjMvbW9kdWxlcy9sb29rdXBfbGRhcC5jCTIwMDQtMTEtMjEgMTI6NTU6Mzku
+MDAwMDAwMDAwICswODAwDQpAQCAtMTc0LDEwICsxNzQsOSBAQCBzdGF0aWMg
+aW50IHJlYWRfb25lX21hcChjb25zdCBjaGFyICpyb290DQogCQkJY29uc3Qg
+Y2hhciAqY2xhc3MsIGNoYXIgKmtleSwNCiAJCQljb25zdCBjaGFyICprZXl2
+YWwsIGludCBrZXl2YWxsZW4sIGNoYXIgKnR5cGUsDQogCQkJc3RydWN0IGxv
+b2t1cF9jb250ZXh0ICpjdHh0LA0KLQkJCWludCAqcmVzdWx0X2xkYXApDQor
+CQkJdGltZV90IGFnZSwgaW50ICpyZXN1bHRfbGRhcCkNCiB7DQogCWludCBy
+diwgaSwgbCwgY291bnQ7DQotCXRpbWVfdCBhZ2UgPSB0aW1lKE5VTEwpOw0K
+IAljaGFyICpxdWVyeTsNCiAJTERBUE1lc3NhZ2UgKnJlc3VsdCwgKmU7DQog
+CWNoYXIgKiprZXlWYWx1ZSA9IE5VTEw7DQpAQCAtMjgwLDE3ICsyNzksMTYg
+QEAgc3RhdGljIGludCByZWFkX29uZV9tYXAoY29uc3QgY2hhciAqcm9vdA0K
+IH0NCiANCiBzdGF0aWMgaW50IHJlYWRfbWFwKGNvbnN0IGNoYXIgKnJvb3Qs
+IHN0cnVjdCBsb29rdXBfY29udGV4dCAqY3R4dCwNCi0JCSAgICBjb25zdCBj
+aGFyICprZXksIGludCBrZXl2YWxsZW4sIGludCAqcmVzdWx0X2xkYXApDQor
+CQkgICAgY29uc3QgY2hhciAqa2V5LCBpbnQga2V5dmFsbGVuLCB0aW1lX3Qg
+YWdlLCBpbnQgKnJlc3VsdF9sZGFwKQ0KIHsNCi0JdGltZV90IGFnZSA9IHRp
+bWUoTlVMTCk7DQogCWludCBydiA9IExEQVBfU1VDQ0VTUzsNCiANCiAJLyog
+YWxsIGVsc2UgZmFpbHMgcmVhZCBlbnRpcmUgbWFwICovDQogCWlmICghcmVh
+ZF9vbmVfbWFwKHJvb3QsICJuaXNPYmplY3QiLCAiY24iLCANCi0JCQkgIGtl
+eSwga2V5dmFsbGVuLCAibmlzTWFwRW50cnkiLCBjdHh0LCAmcnYpKSB7DQor
+CQkJICBrZXksIGtleXZhbGxlbiwgIm5pc01hcEVudHJ5IiwgY3R4dCwgYWdl
+LCAmcnYpKSB7DQogCQlpZiAoKHJ2ICE9IExEQVBfU1VDQ0VTUykgfHwgDQog
+CQkgICAgIXJlYWRfb25lX21hcChyb290LCAiYXV0b21vdW50IiwgImNuIiwg
+a2V5LCBrZXl2YWxsZW4sIA0KLQkJCQkgICJhdXRvbW91bnRJbmZvcm1hdGlv
+biIsIGN0eHQsICZydikpIHsNCisJCQkJICAiYXV0b21vdW50SW5mb3JtYXRp
+b24iLCBjdHh0LCBhZ2UsICZydikpIHsNCiAJCQlpZiAocmVzdWx0X2xkYXAg
+IT0gTlVMTCkNCiAJCQkJKnJlc3VsdF9sZGFwID0gcnY7DQogCQkJcmV0dXJu
+IDA7DQpAQCAtMzAzLDE2ICszMDEsMTcgQEAgc3RhdGljIGludCByZWFkX21h
+cChjb25zdCBjaGFyICpyb290LCBzdA0KIAlyZXR1cm4gMTsNCiB9DQogDQot
+aW50IGxvb2t1cF9naG9zdChjb25zdCBjaGFyICpyb290LCBpbnQgZ2hvc3Qs
+IHZvaWQgKmNvbnRleHQpDQoraW50IGxvb2t1cF9naG9zdChjb25zdCBjaGFy
+ICpyb290LCBpbnQgZ2hvc3QsIHRpbWVfdCBub3csIHZvaWQgKmNvbnRleHQp
+DQogew0KIAlzdHJ1Y3QgbG9va3VwX2NvbnRleHQgKmN0eHQgPSAoc3RydWN0
+IGxvb2t1cF9jb250ZXh0ICopIGNvbnRleHQ7DQogCXN0cnVjdCBtYXBlbnRf
+Y2FjaGUgKm1lOw0KIAlpbnQgc3RhdHVzID0gMSwgcnYgPSBMREFQX1NVQ0NF
+U1M7DQogCWNoYXIgKm1hcG5hbWU7DQorCXRpbWVfdCBhZ2UgPSBub3cgPyBu
+b3cgOiB0aW1lKE5VTEwpOw0KIA0KIAljaGRpcigiLyIpOw0KIA0KLQlpZiAo
+IXJlYWRfbWFwKHJvb3QsIGN0eHQsIE5VTEwsIDAsICZydikpDQorCWlmICgh
+cmVhZF9tYXAocm9vdCwgY3R4dCwgTlVMTCwgMCwgYWdlLCAmcnYpKQ0KIAkJ
+c3dpdGNoIChydikgew0KIAkJY2FzZSBMREFQX1NJWkVMSU1JVF9FWENFRURF
+RDoNCiAJCWNhc2UgTERBUF9VTldJTExJTkdfVE9fUEVSRk9STToNCi0tLSBh
+dXRvZnMtNC4xLjMvbW9kdWxlcy9sb29rdXBfbXVsdGkuYy5tYXAtZW50cnkt
+b3JkZXIJMjAwNC0xMS0yMSAxMjo1NTozOC4wMDAwMDAwMDAgKzA4MDANCisr
+KyBhdXRvZnMtNC4xLjMvbW9kdWxlcy9sb29rdXBfbXVsdGkuYwkyMDA0LTEx
+LTIxIDEyOjU1OjM5LjAwMDAwMDAwMCArMDgwMA0KQEAgLTExMSwxMyArMTEx
+LDE3IEBAIGludCBsb29rdXBfaW5pdChjb25zdCBjaGFyICpteV9tYXBmbXQs
+IGkNCiAJcmV0dXJuIDE7DQogfQ0KIA0KLWludCBsb29rdXBfZ2hvc3QoY29u
+c3QgY2hhciAqcm9vdCwgaW50IGdob3N0LCB2b2lkICpjb250ZXh0KQ0KK2lu
+dCBsb29rdXBfZ2hvc3QoY29uc3QgY2hhciAqcm9vdCwgaW50IGdob3N0LCB0
+aW1lX3Qgbm93LCB2b2lkICpjb250ZXh0KQ0KIHsNCiAJc3RydWN0IGxvb2t1
+cF9jb250ZXh0ICpjdHh0ID0gKHN0cnVjdCBsb29rdXBfY29udGV4dCAqKSBj
+b250ZXh0Ow0KIAlpbnQgaSwgcmV0LCBhdF9sZWFzdF8xID0gMDsNCiANCi0J
+Zm9yIChpID0gMDsgaSA8IGN0eHQtPm47IGkrKykgew0KLQkJcmV0ID0gY3R4
+dC0+bVtpXS5tb2QtPmxvb2t1cF9naG9zdChyb290LCBnaG9zdCwNCisJLyog
+DQorCSAqIFJlYWQgZWFjaCBtYXAgaW4gcmV2ZXJzZSBvcmRlciB0byBlbnN1
+cmUgdGhhdCB3aGVuIHdlIGxvb2t1cCBhIGtleQ0KKwkgKiBpbiB0aGUgY2Fj
+aGUgd2UgZ2V0IHdoYXQgd291bGQgYmUgc2VlbiBmaXJzdC4NCisJICovDQor
+CWZvciAoaSA9IGN0eHQtPm4gLSAxOyBpID49IDAgOyBpLS0pIHsNCisJCXJl
+dCA9IGN0eHQtPm1baV0ubW9kLT5sb29rdXBfZ2hvc3Qocm9vdCwgZ2hvc3Qs
+IG5vdywNCiAJCQkJCQkgICBjdHh0LT5tW2ldLm1vZC0+Y29udGV4dCk7DQog
+CQlpZiAocmV0ICYgTEtQX0ZBSUwpDQogCQkJY29udGludWU7DQotLS0gYXV0
+b2ZzLTQuMS4zL21vZHVsZXMvbG9va3VwX25pc3BsdXMuYy5tYXAtZW50cnkt
+b3JkZXIJMjAwNC0wMS0zMCAwMDowMToyMi4wMDAwMDAwMDAgKzA4MDANCisr
+KyBhdXRvZnMtNC4xLjMvbW9kdWxlcy9sb29rdXBfbmlzcGx1cy5jCTIwMDQt
+MTEtMjEgMTI6NTU6MzkuMDAwMDAwMDAwICswODAwDQpAQCAtNTksNyArNTks
+NyBAQCBpbnQgbG9va3VwX2luaXQoY29uc3QgY2hhciAqbWFwZm10LCBpbnQg
+DQogCXJldHVybiAhKGN0eHQtPnBhcnNlID0gb3Blbl9wYXJzZShtYXBmbXQs
+IE1PRFBSRUZJWCwgYXJnYyAtIDEsIGFyZ3YgKyAxKSk7DQogfQ0KIA0KLWlu
+dCBsb29rdXBfZ2hvc3QoY29uc3QgY2hhciAqcm9vdCwgaW50IGdob3N0LCB2
+b2lkICpjb250ZXh0KQ0KK2ludCBsb29rdXBfZ2hvc3QoY29uc3QgY2hhciAq
+cm9vdCwgaW50IGdob3N0LCB0aW1lX3Qgbm93LCB2b2lkICpjb250ZXh0KQ0K
+IHsNCiAJcmV0dXJuIExLUF9OT1RTVVA7DQogfQ0KLS0tIGF1dG9mcy00LjEu
+My9tb2R1bGVzL2xvb2t1cF9wcm9ncmFtLmMubWFwLWVudHJ5LW9yZGVyCTIw
+MDQtMTEtMjEgMTI6NTU6MzguMDAwMDAwMDAwICswODAwDQorKysgYXV0b2Zz
+LTQuMS4zL21vZHVsZXMvbG9va3VwX3Byb2dyYW0uYwkyMDA0LTExLTIxIDEy
+OjU1OjM5LjAwMDAwMDAwMCArMDgwMA0KQEAgLTc2LDcgKzc2LDcgQEAgaW50
+IGxvb2t1cF9pbml0KGNvbnN0IGNoYXIgKm1hcGZtdCwgaW50IA0KIAlyZXR1
+cm4gIShjdHh0LT5wYXJzZSA9IG9wZW5fcGFyc2UobWFwZm10LCBNT0RQUkVG
+SVgsIGFyZ2MgLSAxLCBhcmd2ICsgMSkpOw0KIH0NCiANCi1pbnQgbG9va3Vw
+X2dob3N0KGNvbnN0IGNoYXIgKnJvb3QsIGludCBnaG9zdCwgdm9pZCAqY29u
+dGV4dCkNCitpbnQgbG9va3VwX2dob3N0KGNvbnN0IGNoYXIgKnJvb3QsIGlu
+dCBnaG9zdCwgdGltZV90IG5vdywgdm9pZCAqY29udGV4dCkNCiB7DQogCXJl
+dHVybiBMS1BfTk9UU1VQOw0KIH0NCi0tLSBhdXRvZnMtNC4xLjMvbW9kdWxl
+cy9sb29rdXBfdXNlcmhvbWUuYy5tYXAtZW50cnktb3JkZXIJMjAwNC0wMS0z
+MCAwMDowMToyMi4wMDAwMDAwMDAgKzA4MDANCisrKyBhdXRvZnMtNC4xLjMv
+bW9kdWxlcy9sb29rdXBfdXNlcmhvbWUuYwkyMDA0LTExLTIxIDEyOjU1OjM5
+LjAwMDAwMDAwMCArMDgwMA0KQEAgLTM2LDcgKzM2LDcgQEAgaW50IGxvb2t1
+cF9pbml0KGNvbnN0IGNoYXIgKm1hcGZtdCwgaW50IA0KIAlyZXR1cm4gMDsJ
+CS8qIE5vdGhpbmcgdG8gZG8gKi8NCiB9DQogDQotaW50IGxvb2t1cF9naG9z
+dChjb25zdCBjaGFyICpyb290LCBpbnQgZ2hvc3QsIHZvaWQgKmNvbnRleHQp
+DQoraW50IGxvb2t1cF9naG9zdChjb25zdCBjaGFyICpyb290LCBpbnQgZ2hv
+c3QsIHRpbWVfdCBub3csIHZvaWQgKmNvbnRleHQpDQogew0KIAlyZXR1cm4g
+TEtQX05PVFNVUDsNCiB9DQotLS0gYXV0b2ZzLTQuMS4zL21vZHVsZXMvbG9v
+a3VwX3lwLmMubWFwLWVudHJ5LW9yZGVyCTIwMDQtMTEtMjEgMTI6NTU6Mzcu
+MDAwMDAwMDAwICswODAwDQorKysgYXV0b2ZzLTQuMS4zL21vZHVsZXMvbG9v
+a3VwX3lwLmMJMjAwNC0xMS0yMSAxMjo1NTozOS4wMDAwMDAwMDAgKzA4MDAN
+CkBAIC00NCwxNiArNDQsOCBAQCBzdHJ1Y3QgbG9va3VwX2NvbnRleHQgew0K
+IH07DQogDQogc3RydWN0IGNhbGxiYWNrX2RhdGEgew0KLQlpbnQgc3RhdHVz
+Ow0KLQlpbnQgbWFwOw0KIAljb25zdCBjaGFyICpyb290Ow0KLQljaGFyIGRp
+cmVjdF9iYXNlW0tFWV9NQVhfTEVOICsgMV07DQotCWNvbnN0IGNoYXIgKm5h
+bWU7DQotCWludCBuYW1lX2xlbjsNCi0JdW5zaWduZWQgbG9uZyB0eXBlOw0K
+LQljb25zdCBjaGFyICptYXBuYW1lOw0KIAl0aW1lX3QgYWdlOw0KLQlzdHJ1
+Y3QgbG9va3VwX2NvbnRleHQgKmNvbnRleHQ7DQogfTsNCiANCiBpbnQgbG9v
+a3VwX3ZlcnNpb24gPSBBVVRPRlNfTE9PS1VQX1ZFUlNJT047CS8qIFJlcXVp
+cmVkIGJ5IHByb3RvY29sICovDQpAQCAtOTMsOCArODUsOSBAQCBpbnQgbG9v
+a3VwX2luaXQoY29uc3QgY2hhciAqbWFwZm10LCBpbnQgDQogaW50IHlwX2Fs
+bF9jYWxsYmFjayhpbnQgc3RhdHVzLCBjaGFyICp5cGtleSwgaW50IHlwa2V5
+bGVuLA0KIAkJICAgIGNoYXIgKnZhbCwgaW50IHZhbGxlbiwgY2hhciAqeXBj
+Yl9kYXRhKQ0KIHsNCi0JdGltZV90IGFnZSA9IHRpbWUoTlVMTCk7DQotCWNo
+YXIgKnJvb3QgPSB5cGNiX2RhdGE7DQorCXN0cnVjdCBjYWxsYmFja19kYXRh
+ICpjYmRhdGEgPSAoc3RydWN0IGNhbGxiYWNrX2RhdGEgKikgeXBjYl9kYXRh
+Ow0KKwljaGFyICpyb290ID0gY2JkYXRhLT5yb290Ow0KKwl0aW1lX3QgYWdl
+ID0gY2JkYXRhLT5hZ2U7DQogCWNoYXIgKmtleTsNCiAJY2hhciAqbWFwZW50
+Ow0KIA0KQEAgLTExNCwxNSArMTA3LDE4IEBAIGludCB5cF9hbGxfY2FsbGJh
+Y2soaW50IHN0YXR1cywgY2hhciAqeXANCiAJcmV0dXJuIDA7DQogfQ0KIA0K
+LXN0YXRpYyBpbnQgcmVhZF9tYXAoY29uc3QgY2hhciAqcm9vdCwgc3RydWN0
+IGxvb2t1cF9jb250ZXh0ICpjb250ZXh0KQ0KK3N0YXRpYyBpbnQgcmVhZF9t
+YXAoY29uc3QgY2hhciAqcm9vdCwgdGltZV90IGFnZSwgc3RydWN0IGxvb2t1
+cF9jb250ZXh0ICpjb250ZXh0KQ0KIHsNCiAJc3RydWN0IGxvb2t1cF9jb250
+ZXh0ICpjdHh0ID0gKHN0cnVjdCBsb29rdXBfY29udGV4dCAqKSBjb250ZXh0
+Ow0KIAlzdHJ1Y3QgeXBhbGxfY2FsbGJhY2sgeXBjYjsNCi0JdGltZV90IGFn
+ZSA9IHRpbWUoTlVMTCk7DQorCXN0cnVjdCBjYWxsYmFja19kYXRhIHlwY2Jf
+ZGF0YTsNCiAJaW50IGVycjsNCiANCisJeXBjYl9kYXRhLnJvb3QgPSByb290
+Ow0KKwl5cGNiX2RhdGEuYWdlID0gYWdlOw0KKw0KIAl5cGNiLmZvcmVhY2gg
+PSB5cF9hbGxfY2FsbGJhY2s7DQotCXlwY2IuZGF0YSA9IChjaGFyICopIHJv
+b3Q7DQorCXlwY2IuZGF0YSA9IChjaGFyICopICZ5cGNiX2RhdGE7DQogDQog
+CWVyciA9IHlwX2FsbCgoY2hhciAqKSBjdHh0LT5kb21haW5uYW1lLCAoY2hh
+ciAqKSBjdHh0LT5tYXBuYW1lLCAmeXBjYik7DQogDQpAQCAtMTM4LDEzICsx
+MzQsMTQgQEAgc3RhdGljIGludCByZWFkX21hcChjb25zdCBjaGFyICpyb290
+LCBzdA0KIAlyZXR1cm4gMTsNCiB9DQogDQotaW50IGxvb2t1cF9naG9zdChj
+b25zdCBjaGFyICpyb290LCBpbnQgZ2hvc3QsIHZvaWQgKmNvbnRleHQpDQor
+aW50IGxvb2t1cF9naG9zdChjb25zdCBjaGFyICpyb290LCBpbnQgZ2hvc3Qs
+IHRpbWVfdCBub3csIHZvaWQgKmNvbnRleHQpDQogew0KIAlzdHJ1Y3QgbG9v
+a3VwX2NvbnRleHQgKmN0eHQgPSAoc3RydWN0IGxvb2t1cF9jb250ZXh0ICop
+IGNvbnRleHQ7DQorCXRpbWVfdCBhZ2UgPSBub3cgPyBub3cgOiB0aW1lKE5V
+TEwpOw0KIAlzdHJ1Y3QgbWFwZW50X2NhY2hlICptZTsNCiAJaW50IHN0YXR1
+cyA9IDE7DQogDQotCWlmICghcmVhZF9tYXAocm9vdCwgY3R4dCkpDQorCWlm
+ICghcmVhZF9tYXAocm9vdCwgYWdlLCBjdHh0KSkNCiAJCXJldHVybiBMS1Bf
+RkFJTDsNCiANCiAJc3RhdHVzID0gY2FjaGVfZ2hvc3Qocm9vdCwgZ2hvc3Qs
+IGN0eHQtPm1hcG5hbWUsICJ5cCIsIGN0eHQtPnBhcnNlKTsNCg==
+
+--1612843569-402957381-1101048117=:10238
+Content-Type: TEXT/PLAIN; charset=US-ASCII;
+	name="autofs-4.1.3-direct-lookup.patch"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.58.0411212241571.10238@donald.themaw.net>
+Content-Description: lookup bug
+Content-Disposition: attachment; filename="autofs-4.1.3-direct-lookup.patch"
+
+LS0tIGF1dG9mcy00LjEuMy9tb2R1bGVzL2xvb2t1cF95cC5jLmRpcmVjdC1s
+b29rdXAJMjAwNC0xMS0yMSAxNjoyOTo0OS4wMDAwMDAwMDAgKzA4MDANCisr
+KyBhdXRvZnMtNC4xLjMvbW9kdWxlcy9sb29rdXBfeXAuYwkyMDA0LTExLTIx
+IDE2OjMwOjI2LjAwMDAwMDAwMCArMDgwMA0KQEAgLTIzNSw3ICsyMzUsNyBA
+QCBpbnQgbG9va3VwX21vdW50KGNvbnN0IGNoYXIgKnJvb3QsIGNvbnN0DQog
+CQlyZXR1cm4gMTsNCiANCiAJLyogY2hlY2sgbWFwIGFuZCBpZiBjaGFuZ2Ug
+aXMgZGV0ZWN0ZWQgcmUtcmVhZCBtYXAgKi8NCi0JcmV0ID0gbG9va3VwX29u
+ZShyb290LCBuYW1lLCBuYW1lX2xlbiwgY3R4dCk7DQorCXJldCA9IGxvb2t1
+cF9vbmUocm9vdCwga2V5LCBrZXlfbGVuLCBjdHh0KTsNCiANCiAJZGVidWco
+InJldCA9ICVkIiwgcmV0KTsNCiANCg==
+
+--1612843569-402957381-1101048117=:10238
+Content-Type: TEXT/PLAIN; charset=US-ASCII;
+	name="autofs-4.1.3-map-expiry-fix.patch"
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.58.0411212241572.10238@donald.themaw.net>
+Content-Description: another fclose bug
+Content-Disposition: attachment; filename="autofs-4.1.3-map-expiry-fix.patch"
+
+LS0tIGF1dG9mcy00LjEuMy9tb2R1bGVzL2xvb2t1cF9maWxlLmMubWFwLWV4
+cGlyeS1maXgJMjAwNC0xMS0yMSAyMTozNTo1Mi4wMDAwMDAwMDAgKzA4MDAN
+CisrKyBhdXRvZnMtNC4xLjMvbW9kdWxlcy9sb29rdXBfZmlsZS5jCTIwMDQt
+MTEtMjEgMjE6Mzc6MDguMDAwMDAwMDAwICswODAwDQpAQCAtMzIzLDggKzMy
+MywxMCBAQCBzdGF0aWMgaW50IGxvb2t1cF9vbmUoY29uc3QgY2hhciAqcm9v
+dCwNCiAJd2hpbGUoMSkgew0KIAkJZW50cnkgPSByZWFkX29uZShmLCBta2V5
+LCBtYXBlbnQpOw0KIAkJaWYgKGVudHJ5KQ0KLQkJCWlmIChzdHJuY21wKG1r
+ZXksIGtleSwga2V5X2xlbikgPT0gMCkNCisJCQlpZiAoc3RybmNtcChta2V5
+LCBrZXksIGtleV9sZW4pID09IDApIHsNCisJCQkJZmNsb3NlKGYpOw0KIAkJ
+CQlyZXR1cm4gY2FjaGVfdXBkYXRlKHJvb3QsIGtleSwgbWFwZW50LCBhZ2Up
+Ow0KKwkJCX0NCiANCiAJCWlmIChmZW9mKGYpKQ0KIAkJCWJyZWFrOw0K
+
+--1612843569-402957381-1101048117=:10238
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -127,5 +440,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---cRo2mxynsa--
+--1612843569-402957381-1101048117=:10238--
 
