@@ -1,13 +1,15 @@
-From: Mike Waychison <Michael.Waychison@Sun.COM>
+From: Jeff Moyer <jmoyer@redhat.com>
 Subject: Re: compatibility with solaris '[no]browse' mount option
-Date: Mon, 14 Jun 2004 18:03:05 -0400
+Date: Mon, 14 Jun 2004 18:15:55 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <40CE2099.8050605@sun.com>
+Message-ID: <16590.9115.824969.138598@segfault.boston.redhat.com>
 References: <16589.63971.33237.4865@segfault.boston.redhat.com>
+	<40CE2099.8050605@sun.com>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-reply-to: <16589.63971.33237.4865@segfault.boston.redhat.com>
+In-Reply-To: <40CE2099.8050605@sun.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,64 +20,52 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: jmoyer@redhat.com
+To: Mike Waychison <Michael.Waychison@Sun.COM>
 Cc: autofs@linux.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+==> Regarding Re: [autofs] compatibility with solaris '[no]browse' mount option; Mike Waychison <Michael.Waychison@Sun.COM> adds:
 
-Jeff Moyer wrote:
-> Hello,
->
-> I've currently got a request to support the browse mount option.  It seems
-> do-able entirely in the init script (and this seems the right place).
-> Would there be any objections to such an approach?
->
-> -Jeff
->
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
+Michael.Waychison> -----BEGIN PGP SIGNED MESSAGE-----
+Hash> SHA1
 
-How would you be able to do browsing from the init script given the
-protocol restrictions imposed by autofs4?  Autofs4 uses the magic pgid
-value as well as requiring a pipe fd to do communication.
+Michael.Waychison> Jeff Moyer wrote:
+>> Hello,
+>> 
+>> I've currently got a request to support the browse mount option.  It
+>> seems do-able entirely in the init script (and this seems the right
+>> place).  Would there be any objections to such an approach?
+>> 
+>> -Jeff
+>> 
+>> _______________________________________________ autofs mailing list
+>> autofs@linux.kernel.org
+http> //linux.kernel.org/mailman/listinfo/autofs
 
-If you are simply looking towards translating the browse option to the
-ghosting used in automount4, then by all means go for it :)  However
-please note that you will have to handle this in the daemon as well as
-it is possible to nest indirect maps:
+Michael.Waychison> How would you be able to do browsing from the init
+Michael.Waychison> script given the protocol restrictions imposed by
+Michael.Waychison> autofs4?  Autofs4 uses the magic pgid value as well as
+Michael.Waychison> requiring a pipe fd to do communication.
 
-auto_master:
+I'm not quite that oblivious.  Close, but not quite.  ;)
 
-/src  auto_src -browse
+Michael.Waychison> If you are simply looking towards translating the browse
+Michael.Waychison> option to the ghosting used in automount4, then by all
+Michael.Waychison> means go for it :) However please note that you will
+Michael.Waychison> have to handle this in the daemon as well as it is
+Michael.Waychison> possible to nest indirect maps:
 
-auto_src:
+Ahh, that's what I was looking for (and Mike Blandford had touched on this
+as well in his reply).
 
-linux -fstype=linux,browse auto_linux
+Michael.Waychison> If you are willing to wait, I've been working on the
+Michael.Waychison> autofs implementation I described at
+Michael.Waychison> http://lkml.org/lkml/2004/1/6/167 that will support
+Michael.Waychison> browsing/lazy mounts.  I will be releasing it to the
+Michael.Waychison> community in the coming weeks pending some approvals..
 
-If you are willing to wait, I've been working on the autofs
-implementation I described at http://lkml.org/lkml/2004/1/6/167 that
-will support browsing/lazy mounts.  I will be releasing it to the
-community in the coming weeks pending some approvals..
+I look forward to seeing it.  However, this is no substitute for adding
+this bit of compatibility to autofs4.
 
-- --
-Mike Waychison
-Sun Microsystems, Inc.
-1 (650) 352-5299 voice
-1 (416) 202-8336 voice
-mailto: Michael.Waychison@Sun.COM
-http://www.sun.com
+Thanks!
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NOTICE:  The opinions expressed in this email are held by me,
-and may not represent the views of Sun Microsystems, Inc.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
-
-iD8DBQFAziCYdQs4kOxk3/MRAtDKAJ9LpL5XG6Jzz3GMxV37xn+fFFGnAACgkY69
-d0xqX+0xTLKaTwja5pI1cGg=
-=p9c+
------END PGP SIGNATURE-----
+-Jeff
