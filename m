@@ -1,12 +1,15 @@
-From: "Ogden, Aaron A." <aogden@unocal.com>
-Subject: RE: running out of mount points
-Date: Mon, 19 Jan 2004 11:11:12 -0600
+From: Mike Waychison <Michael.Waychison@Sun.COM>
+Subject: Re: running out of mount points
+Date: Mon, 19 Jan 2004 12:11:46 -0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <6AB920CC10586340BE1674976E0A991D0C6C00@slexch2.sugarland.unocal.com>
+Message-ID: <400C0FD2.6000507@sun.com>
+References: <Pine.LNX.4.33.0401130932460.10047-100000@wombat.indigo.net.au>
+	<Pine.LNX.4.58.0401142351470.1783@raven.themaw.net>
+	<40059944.4060901@rhythm.com> <400BFC65.3000700@rhythm.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed; boundary="===============5136068196808834=="
 Return-path: <autofs-bounces@linux.kernel.org>
-content-class: urn:content-classes:message
+In-reply-to: <400BFC65.3000700@rhythm.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,58 +19,73 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: Greg Bradner <gregb@rhythm.com>, autofs@linux.kernel.org
+To: Greg Bradner <gregb@rhythm.com>
+Cc: autofs@linux.kernel.org
 
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--===============5136068196808834==
+Content-type: multipart/signed;
+ boundary=------------enig75B1DE8A9717E08116C01FEF;
+ protocol="application/pgp-signature"; micalg=pgp-sha1
 
-> -----Original Message-----
-> From: autofs-bounces@linux.kernel.org 
-> [mailto:autofs-bounces@linux.kernel.org] On Behalf Of Greg Bradner
-> Sent: Monday, January 19, 2004 9:49 AM
-> To: autofs@linux.kernel.org
-> Subject: [autofs] running out of mount points
-> 
-> 
-> I wanted to repost this plea. I am really in a bind and could use some
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig75B1DE8A9717E08116C01FEF
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
+Greg Bradner wrote:
+
+> I wanted to repost this plea. I am really in a bind and could use some 
 > help. I need to mount these users on the mail server.
 > BTW: this is with autofs 4.1.0
-> 
+>
+This has been discussed various times on this mailing list and is a 
+known limitation in 2.4 / 2.6.   In 2.4, you can patch your kernel using 
+something similar to:
 
-Hello Greg,
-I have run into this problem as well, actually it isn't autofs but the
-kernel itself.
-The kernel hackers can explain the details but the simplified version is
-that
-the kernel runs out of 'unnamed devices' and when it does it cannot make
-any additional
-NFS mounts.  You can get around this by applying a patch or using a
-kernel that already
-has the patch applied.  RedHat's kernels (updates.redhat.com) have this
-patch and more,
-I have had good results with them.  You can grab the source RPM and
-apply the autofs 4.1.0
-patch to it to get the functionality you want.  The 'unnamed devices'
-patch used by
-RedHat is supposed to allow around 1200 simultaneous NFS mounts.
-Without this patch the
-kernel has an 8-bit address space for unnamed devices so you hit the
-limit at 255 mounts.
+http://people.redhat.com/zaitcev/linux/linux-2.4.19-pre7-unmaj.diff
 
-Once you get past this hurdle you may run into another problem, you may
-find (as I did)
-that you can't actually mount 1200 filesystems... RPC will start running
-into problems
-around 800 mounts or slightly less.  I've been told that this happens
-because RPC is using
-a separate port for each NFS mount, it starts at port 800 and counts
-down to 1, so when the
-system runs out of ports it is once again unable to mount anything.
-Supposedly there is
-some work being done to rewire linux RPC so that it uses one port *per
-server* rather than
-one port per NFS mount, that change would fix the problem for any
-reasonable configuration.
+HTH,
 
-hope this helps,
-aaron
+-- 
+Mike Waychison
+Sun Microsystems, Inc.
+1 (650) 352-5299 voice
+1 (416) 202-8336 voice
+mailto: Michael.Waychison@Sun.COM
+http://www.sun.com
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NOTICE:  The opinions expressed in this email are held by me, 
+and may not represent the views of Sun Microsystems, Inc.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+
+
+--------------enig75B1DE8A9717E08116C01FEF
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
+
+iD8DBQFADA/VdQs4kOxk3/MRAuIoAKCQq19kDka2YJED8XXVW5Ud2xy0VwCfTdQP
+ldnwSoxKoJ7tWFeNhFnRQZg=
+=q//O
+-----END PGP SIGNATURE-----
+
+--------------enig75B1DE8A9717E08116C01FEF--
+
+
+--===============5136068196808834==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--===============5136068196808834==--
+
