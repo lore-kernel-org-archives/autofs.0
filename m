@@ -1,12 +1,12 @@
-From: "Murata, Dennis W (SAIC)" <muratadw@bp.com>
-Subject: RE: Server IP address change screws up active mounts
-Date: Mon, 17 May 2004 11:17:46 -0500
+From: mmarion@qualcomm.com
+Subject: Re: Server IP address change screws up active mounts
+Date: Mon, 17 May 2004 13:11:05 -0700 (PDT)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <134FC8D9C1F126488E3D123A9B2607370105E0F9@bp1houex002.bp1.ad.bp.com>
+Message-ID: <200405172011.i4HKB5bv007009@miguelito.qualcomm.com>
+References: <200405132140.i4DLeg1s019737@jetcar.spd.analog.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-content-class: urn:content-classes:message
+In-Reply-To: <200405132140.i4DLeg1s019737@jetcar.spd.analog.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,73 +16,52 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: Ian Kent <raven@themaw.net>, David Meleedy <david.meleedy@analog.com>
-Cc: autofs@linux.kernel.org
+Content-Type: TEXT/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: autofs@linux.kernel.org
 
-We experienced similar problems using autofs-3.x with both RedHat(7.3,
-8.0, 2.1, 9.0) and Slackware(9.0).  This seems to be fixed with
-autofs-4.x.  We have used 4.0.0-pre10 for a couple of years without
-problem and are now trying 4.1.2.
-The problems we were seeing dealt with and automounted nfs server not
-responding, the mount would hang, autofs would not timeout and would
-hang, only a hard reset would reboot the computer.
+On 13 May, David Meleedy wrote:
 
-Wayne
-
------Original Message-----
-From: autofs-bounces@linux.kernel.org
-[mailto:autofs-bounces@linux.kernel.org]On Behalf Of Ian Kent
-Sent: Thursday, May 13, 2004 9:13 PM
-To: David Meleedy
-Cc: autofs@linux.kernel.org
-Subject: Re: [autofs] Server IP address change screws up active mounts
-
-
-On Thu, 13 May 2004, David Meleedy wrote:
-
-> 
 > One question I had for you guys happened to us when we were moving
 > our subnets to an internal 10. net.  We were using autofs version 3
 > on redhat 8, and I haven't had a chance to test this with version 4
 > yet, but the problem might still exist.
-> 
-> If the redhat client using automounter had mounted a directory from
-some
-> server (so the mount was active), and then we changed the IP address
-of 
-> the server, the automounter would hang on that mount forever after.
-In fact
-> we couldn't even do "init 6", we had to do "reboot -f" to get
-> the client working again.  To compare, with our Solaris machines,
-> we didn't have this problem.  The new IP address was discovered and
-> the mount continued to work.
 
-You must post this to the nfs list.
+It still exists in autofs4 because, like Dennis said, it's really a mount/nfs
+issue, not autofs.  If you run a mount -t nfs you'll note that the IP of the
+server is stored in the mount into.
 
-> 
-> So I'm not really sure if this is an automount issue, or a mount
-command issue,
-> but I figured you guys would be the right ones to ask.  I definitely
-> think this issue should be fixed, it's not that uncommon to move
-> servers to new IP addresses.
+It's ugly, but one fix I've found to clear these up is to temporarily setup an
+aliased ethernet entry with the IP of the server and netmask 255.255.255.255
+(so you don't lose contact with a whole network), umount the mount, then shut
+down that aliased ethernet entry, and let automounter remount the path on the
+hosts' new ip.  This is on each client btw.
 
-Sounds like an issue with NFS or mount.
+i.e. if the host was 10.0.0.10 and is now 10.0.1.10, mount will show something
+like:
+myhost:/some/path on /some/path type nfs
+(rw,noquota,addr=10.0.0.10)
 
-It sounds a bit strange though. It's been my impression that these types
+do something like:
+ifconfig eth0:1 inet 10.0.0.10 netmask 255.255.255.255 up
+umount /some/path
+ifconfig eth0:1 down
+ls /some/path    so that automount remounts it on new host ip... and you
+should be ok.
 
-of behaviour have improved greatly in later kernel versions.
+I'm working on an audit script to do just this on our /net path, because /net
+is used by a lot of our engineers to access other desktop's local disk/scratch
+space, and when users' move... the machines move and often get re-IPd.  I've
+noted that when a box moves, and then things like df hang, the automount daemon
+on /net will hang when checking for paths to expire and will never expire any
+anymore.  It will however still respond to and mount new /net requests.  So 
+eventually a host can hit the max number of allowable mounts.  
 
-What are the versions of:
-
-kernel
-util-linux
-autofs
-
-Ian
-
-
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
+-- 
+Mike Marion-Unix SysAdmin/Staff Engineer-http://www.qualcomm.com
+[Joe just pulled Antonio away from a beautiful woman he was talking to, to move
+a cabinet a tiny bit]
+Antonio: "We barely moved it!"   Joe: "Yeah I know, but it was askew!  Isn't it 
+amazing how something like that can throw off your whole day?"
+Antonio: "Yes, and you know I only wish I could stay and slap you senseless.. 
+but there's a goddess waiting for me in the terminal." -- Wings
