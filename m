@@ -1,11 +1,12 @@
-From: "idiot)_) supreme" <ejw50@hotmail.com>
-Subject: autofs default behavior on syminks?
-Date: Sat, 10 Apr 2004 13:53:36 +0000
+From: raven@themaw.net
+Subject: Re: autofs default behavior on syminks?
+Date: Sun, 11 Apr 2004 14:14:17 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Sea2-F21JTYxUARaYlF0005b05e@hotmail.com>
+Message-ID: <Pine.LNX.4.58.0404111359050.25415@donald.themaw.net>
+References: <Sea2-F21JTYxUARaYlF0005b05e@hotmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <Sea2-F21JTYxUARaYlF0005b05e@hotmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -15,54 +16,51 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; format=flowed; charset="windows-1252"
-To: autofs@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: "idiot)_) supreme" <ejw50@hotmail.com>
+Cc: autofs@linux.kernel.org
 
-Hi all
+On Sat, 10 Apr 2004, idiot)_) supreme wrote:
 
-We are running autofs4.1.0 with 2.4.22 on about 100 machines, and 2.6.5 o=
-n=20
-about 100 machines with all of the the kernel patches for both.
+> Hi all
+> 
+> We are running autofs4.1.0 with 2.4.22 on about 100 machines, and 2.6.5 on 
+> about 100 machines with all of the the kernel patches for both.
 
+Cool. I'm keen to hear how things go. Especially with 2.6.
+A note to the list from time to time would be appreciated.
 
-What is autofs's behavior trying to cross symlinks when you type 'ls'? =20
-autofs seems to time out a lot faster than AMD for example.
+> 
+> 
+> What is autofs's behavior trying to cross symlinks when you type 'ls'?  
+> autofs seems to time out a lot faster than AMD for example.
+> 
+> We are occasionally seeing problems timeouts trying to cross symlinks.  If I 
+> type 'ls' it might show
+> 
+> abc -> /net/emc/u11
+> 
+> as a broken symlink
+> 
+> but if I type 'ls /net/emc/u11'
+> the symlink comes back.
+> 
 
-We are occasionally seeing problems timeouts trying to cross symlinks.  I=
-f I=20
-type 'ls' it might show
+In this case autofs doesn't do anything special with symlinks.
+The colour ls does the 'stat'ing and the results are shown.
 
-abc -> /net/emc/u11
+This does sound like an autofs bug or lilitation perhaps.
+Indeed 'stat'ing the mountpoint itself should not mount it, otherwise we 
+would get undesired mounts, so autofs lies and gives the stat of 
+the autofs directory instead of the mounted. Actually autofs just doesn't 
+do anything.
 
-as a broken symlink
+It's interesting that the symlink shows broken occasionally and not all 
+the time. There must be a bad return coming back for some reason. So 
+how occasionally?
 
-but if I type 'ls /net/emc/u11'
-the symlink comes back.
+Perhaps the 'stat' occurs during an expire sometimes. That could cause a 
+fail return.
 
-
-
-My auto.master line contains
-/net/emc auto.emc --timeout 3600 --ghost
-
-my auto.emc line contains
-
-u11=20
--rw,hard,intr,wsize=3D32768,rsize=3D32768,vers=3D3,proto=3Dtcp,retry=3D20=
-00,timeo=3D1000,retrans=3D500=20
-emc1.bbn.com:/&
-
-I know some of these options do not apply for 'tcp', but I did not know h=
-ow=20
-autofs treated broken symlinks.  I am not sure if this is an nfs problem =
-or=20
-an automount problem.  Any insight would be appreciated.
-
-
-Thanks
-
-
-Eric
-
-_________________________________________________________________
-FREE pop-up blocking with the new MSN Toolbar =96 get it now!=20
-http://toolbar.msn.com/go/onm00200415ave/direct/01/
+Ian
