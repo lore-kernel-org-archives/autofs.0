@@ -1,17 +1,10 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: questions on auto.master file format
-Date: Thu, 4 Mar 2004 15:16:24 -0500
+From: mmarion@qualcomm.com
+Subject: /net with program map problem on x86_64
+Date: Fri, 5 Mar 2004 18:04:23 -0800 (PST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <16455.36504.18892.594265@segfault.boston.redhat.com>
-References: <16452.51314.769206.991484@segfault.boston.redhat.com>
-	<Pine.LNX.4.58.0403031455220.16583@wombat.indigo.net.au>
-	<16453.61187.553910.939557@segfault.boston.redhat.com>
-	<Pine.LNX.4.58.0403041224300.7374@wombat.indigo.net.au>
-Reply-To: jmoyer@redhat.com
+Message-ID: <200403060204.i2624NgQ000399@miguelito.qualcomm.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0403041224300.7374@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,22 +14,63 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+Content-Type: TEXT/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: autofs@linux.kernel.org
 
-==> Regarding Re: [autofs] questions on auto.master file format; Ian Kent <raven@themaw.net> adds:
+Here's a new one I've run into.  Finally got a full auto-yast install setup
+for Suse SLES8 on a dual opteron system that incorporates all our company
+configurations automatically as well.
 
-[snip]
-> Reading through Sun's documentation, it seems that mount options specified 
-> in auto.master should begin with a leading dash.
-[snip]
+I'm running the beta 4.1.1 code (don't know if it's released to wide audience
+yet) and it's been running perfectly fine on x86 hosts for a month or more.
 
-raven> Oops. My mistake.
+We have massive direct maps that were originally for an all sun environment
+that we use program maps to parse/mount with.  The direct maps are working
+fine, as are the homedir mounts (auto.home yp map)... but my /net program
+mapped mount is broken now.  The program file still returns exactly what I'd
+expect, but for some reason, the automount daemon can't create the necessary
+directories in the /net tree?!?  Not sure what would cause this or where it
+would be tripped.
 
-Okay, so do you have an opinion on my initial question: Is this something
-we want to be compatible with?
+syslog shows:
+Mar  5 17:48:21 rs-blade automount[4277]: mount(nfs): mkdir_path  failed:
+Operation not permitted
 
-Thanks!
+and a strace of the daemon shows:
+[pid  4932] mkdir("/net", 0555)         = -1 EEXIST (File exists)
+[pid  4932] stat("/net", {st_mode=S_IFDIR|0755, st_size=0, ...}) = 0
+[pid  4932] mkdir("/net/mig", 0555)     = 0
+[pid  4932] mkdir("/net/mig/local", 0555) = -1 EPERM (Operation not permitted)
 
-Jeff
+it then does it again later:
+[pid  4998] mkdir("/net", 0555)         = -1 EEXIST (File exists)
+[pid  4998] stat("/net", {st_mode=S_IFDIR|0755, st_size=0, ...}) = 0
+[pid  4998] mkdir("/net/mig", 0555)     = 0
+[pid  4998] mkdir("/net/mig/local", 0555) = -1 EPERM (Operation not permitted)
+
+
+The problem is probably related to:
+PANIC: attached pid 4942 exited
+PANIC: attached pid 4945 exited
+PANIC: attached pid 4948 exited
+PANIC: attached pid 4953 exited
+PANIC: attached pid 4936 exited
+PANIC: attached pid 5009 exited
+PANIC: attached pid 5012 exited
+PANIC: attached pid 5015 exited
+PANIC: attached pid 5020 exited
+PANIC: attached pid 5003 exited
+but none of those pids show any indication of what was running.. they appear
+to be processes waiting for the call to the program /etc/auto.net to finish.
+But from what I can see (especially since the mkdir is following the path down
+/net as though it knows what/where to mount) the correct results are getting
+to the daemon bits.
+
+Anyway.. very confusing.
+
+-- 
+Mike Marion-Unix SysAdmin/Staff Engineer-http://www.qualcomm.com
+[Homer left a 'Dear Jane' tape for Marge]
+Homer: "Marge, if you're watching this then it means I figured out how to work
+the camera."  ==> Simpsons
