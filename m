@@ -1,60 +1,48 @@
-From: Frank Cusack <fcusack@fcusack.com>
-Subject: Re: [autofs] Re: VFS: Busy inodes after unmount on 2 way SMP
-Date: Thu, 18 Sep 2003 19:57:49 -0700
-Sender: nfs-admin@lists.sourceforge.net
-Message-ID: <20030918195749.A2273@google.com>
-References: <Pine.LNX.4.44.0309151941550.18622-100000@moisil.badula.org> <Pine.LNX.4.44.0309151828050.1920-100000@fubar.phlinux.com>
+From: Olaf Hering <olh@suse.de>
+Subject: Re: [NFS] Re: VFS: Busy inodes after unmount on 2 way SMP
+Date: Sat, 20 Sep 2003 01:36:52 +0200
+Sender: autofs-bounces@linux.kernel.org
+Message-ID: <20030919233652.GA27676@suse.de>
+References: <Pine.LNX.4.33.0309171251290.25153-100000@wombat.indigo.net.au>
+	<3F689E40.6090802@intel.com> <3F68C6EB.2080706@zytor.com>
+	<20030917210023.GA15099@suse.de> <shsd6dyabju.fsf@charged.uio.no>
 Mime-Version: 1.0
-Return-path: <nfs-admin@lists.sourceforge.net>
+Content-Transfer-Encoding: quoted-printable
+Return-path: <autofs-bounces@linux.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44.0309151828050.1920-100000@fubar.phlinux.com>; from wago@phlinux.com on Mon, Sep 15, 2003 at 06:34:33PM -0700
-Errors-To: nfs-admin@lists.sourceforge.net
-List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
-List-Post: <mailto:nfs@lists.sourceforge.net>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
+In-Reply-To: <shsd6dyabju.fsf@charged.uio.no>
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: "H. Peter Anvin" <hpa@zytor.com>, autofs@linux.kernel.org, nfs@lists.sourceforge.net
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: text/plain; charset="macroman"
+To: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: Arun Sharma <arun.sharma@intel.com>, autofs@linux.kernel.org, nfs@lists.sourceforge.net, "H. Peter Anvin" <hpa@zytor.com>, Olaf Kirch <okir@suse.de>, Ian Kent <raven@themaw.net>
 
-On Mon, Sep 15, 2003 at 06:34:33PM -0700, Matt C wrote:
-> On Mon, 15 Sep 2003, Ion Badulescu wrote:
-> > On Mon, 15 Sep 2003, H. Peter Anvin wrote:
-> > > Arun Sharma wrote:
-> > > >>
-> > > >> Oh yeah, easily. Kill the automounter while some things are mounted,
-> > > >> unmount everything by hand but do not rmdir the mountpoints. When you
-> > > >> unmount the autofs filesystem itself, you will get the self destruct
-> > > >> message.
-> > > > 
-> > > > Thanks. This reproduces the problem I'm chasing very well. I think this
-> > > > is clearly an unacceptable kernel bug.
-> > > > 
-> > > Indeed.  This is on autofs 3?
-> > 
-> > Both 3 and 4, at least as far as the "self-destruct" message goes.
->
-> Don't know if it helps, but we also run a few hundred autofs4 clients, 
-> with a mix of 2.4.21 and 2.4.18. The 2.4.21 machines are seeing quite a 
-> few of these messages, but not on the 2.4.18 machines. We haven't seen any 
-> of the oopses described below, though.
+ On Thu, Sep 18, Trond Myklebust wrote:
 
-Same here, 2.4.22, autofs 3 and 4.  I'll be playing with 2.6.0 next week.
+> >>>>> " " =3D=3D Olaf Hering <olh@suse.de> writes:
+>=20
+>      >  On Wed, Sep 17, H. Peter Anvin wrote:
+>     >> Okay... let me ask this so I get it straight...
+>     >>
+>     >> Has anyone seen this (busy inodes after stopping the
+>     >> automounter) using autofs v3 kernel module and daemon?
+>=20
+>      > I'm not sure, but everyone who has seen this should fiddle this
+>      > patch into the kernel and see how it goes.  The whole thing
+>      > started very recently (post 2.4.21) for us.
 
-I haven't tried to reproduce it with your method, but I do see the bug;
-no oops though.
+After thinking more about the conditions, I got a crash with 2.4.19
+client. the codebase was unchanged for a long time. But the server side
+was updated to 2.4.21 with lots of nfs patches. Possible that the newer
+server side causes trouble for the client.
+--=20
+USB is for mice, FireWire is for men!
 
-/fc
-
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
-_______________________________________________
-NFS maillist  -  NFS@lists.sourceforge.net
-https://lists.sourceforge.net/lists/listinfo/nfs
+sUse lINUX ag, n=C3=9CRNBERG
