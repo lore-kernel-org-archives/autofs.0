@@ -1,13 +1,12 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [patch] buffer overflow, failure to auto-dismount,
- log file diarrhea
-Date: Thu, 27 Nov 2003 22:08:03 +0800 (WST)
+From: Daniel Mueller <danm@gmx.li>
+Subject: Autofs init script
+Date: Sat, 29 Nov 2003 20:43:18 +0100
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.44.0311272153290.3287-100000@raven.themaw.net>
-References: <Pine.LNX.4.53.0311261008100.2363@xena.cft.ca.us>
+Message-ID: <20031129204318.2bf74c10.danm@gmx.li>
 Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="Multipart=_Sat__29_Nov_2003_20_43_18_+0100_2lAs+RSSn5M5rmGa"
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.53.0311261008100.2363@xena.cft.ca.us>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,86 +16,91 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+To: autofs@linux.kernel.org
+
+This is a multi-part message in MIME format.
+
+--Multipart=_Sat__29_Nov_2003_20_43_18_+0100_2lAs+RSSn5M5rmGa
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-To: Jim Carter <jimc@math.ucla.edu>
-Cc: autofs mailing list <autofs@linux.kernel.org>
 
-On Wed, 26 Nov 2003, Jim Carter wrote:
+Hello,
 
-> On Sat, 22 Nov 2003, Ian Kent wrote:
-> > On Fri, 21 Nov 2003, Jim Carter wrote:
-> > > B.  If the daemon is hit with SIGUSR1, it goes into an infinite loop
-> > > trying unsuccessfully to dismount eligible filesystems, spitting out
-> > > typically 1000 syslog messages over 2 seconds until item C (below)
-> > > supervenes.  I put in both a rate throttle (20/second) and a dynamic
-> > > limit on the number of dismounts.
-> >
-> > This sounds like a problem that needs to be identified and fixed.
-> > Rate throttling seems more of a workaround that a solution.
-> > Can you give more information please.
-> 
-> This part of the patch is efinitely a kludge.  The daemon's logic goes like
-> this:  When it's time to purge mounts, it sends a packet to the driver
-> saying "find an expired mount".  The driver sends up a packet saying
-> "dismount /net/tupelo//h1". The daemon tries to do that, but the filesystem
-> is not actually dismounted (lots of possible reasons this could happen).
-> Repeating the loop, the daemon asks "find an expired mount".  The driver
-> sends up a packet saying "dismount /net/tupelo//h1"...
+this patch is a proposal for a 'generic' system. 
 
-Ahhh. I remember now. This was something I can across ages ago. I altered 
-the kernel module.
+BTW, I had some problems to compile autofs-4.1.0-beta3 without openldap.
+The following command helped me to get rid of this:
 
-The situation was that during a normal expire the candidates' info struct 
-last_used field is updated to the current time to stop this. I saw that 
-change months later and couldn't work out what it was for and removed it. 
-You are right the problem still exists.
+$ cd autofs-4.1.0-beta3
+$ sed -i  -e 's|^all:.*|all: rc.autofs|g' \
+ -e 's|.*install -c autofs-ldap-auto-master.*||g' \
+ samples/Makefile
+$
 
-I take the point that many do not want to alter the kernel source anyway.
+If you already know this, I'm sorry.
 
-I don't want to regress back to a develop, test and beta again so I will 
-add this to the growing list of stuff for 4.1.1 and work on it as a bug 
-fix for 4.0.1 when I get to the next development cycle (hope in early 
-December).
+bye,
 
-Thanks for you contribution. 
-
-> > > C.  Upon auto-dismount or SIGUSR1 looping, st_prepare_shutdown is called
-> > > when ap.state != ST_READY and an assertion fails, killing the thread.
-> > > I changed it to die on ST_SHUTDOWN_PENDING, i.e. a recursive call.  I'm
-> > > not 100% sure that this is the correct contingency, but automount does
-> > > dismount the unused filesystems and does exit.
-> >
-> > Have seen this. I'm not sure if I fixed this in the 4.0.0 release either.
-> > Will check into it.
-> 
-> When the submounted daemon dismounts its last filesystem, it's in ST_EXPIRE
-> (I think that's the spelling), but correctly calls st_prepare_shutdown.  I
-> don't know if there are any other non-obvious but correct transitions into
-> SHUTDOWN state.
-
-As I said previously I've seen this. I believe this was an error in the 
-state machine that Jeremy originally implemented. It seemed to work fine 
-with the change to the assertion.
-
-Again I'll check and merge your patch as a bug fix in 4.0.1 if it's 
-not already there.
-
-> 
-> We're definitely looking forward to it.  We're pretty aggressive about
-> patching machines and auditing software, and when we make private patches a
-> big problem is making sure they stay installed.
-
-Understand that very well.
-
-I really must contact the maintainer to see what his plans are for SuSE 
-antofs. I'll do my best.
-
-Thanks again.
+Daniel
 
 -- 
+Daniel Mueller			mailto:danm@gmx.li
+Berlin, Germany		(OpenPGP:  1024D/F7E7C01F)
 
-   ,-._|\    Ian Kent
-  /      \   Perth, Western Australia
-  *_.--._/   E-mail: raven@themaw.net
-        v    Web: http://themaw.net/
+--Multipart=_Sat__29_Nov_2003_20_43_18_+0100_2lAs+RSSn5M5rmGa
+Content-Type: application/octet-stream;
+ name="autofs-4.1.0-beta3.patch"
+Content-Disposition: attachment;
+ filename="autofs-4.1.0-beta3.patch"
+Content-Transfer-Encoding: base64
+
+LS0tIGF1dG9mcwkyMDAzLTExLTI3IDIzOjIyOjE4LjAwMDAwMDAwMCArMDEwMAorKysgYXV0b2Zz
+Lm5ldwkyMDAzLTExLTI5IDE5OjU4OjE5LjAwMDAwMDAwMCArMDEwMApAQCAtMzYsMTQgKzM2LDE2
+IEBACiAjCiAjIERldGVybWluZSB3aGljaCBraW5kIG9mIGNvbmZpZ3VyYXRpb24gd2UncmUgdXNp
+bmcKICMKKyMgVHJ5ICdnZW5lcmljJyBpZiB5b3UgaGF2ZSBhbiB1bnN1cHBvcnRlZCBzeXN0ZW0u
+Cisjc3lzdGVtPWdlbmVyaWMKKwogc3lzdGVtPXVua25vd24KIGlmIFsgLWYgL2V0Yy9kZWJpYW5f
+dmVyc2lvbiBdOyB0aGVuCiAgICAgc3lzdGVtPWRlYmlhbgogZWxpZiBbIC1mIC9ldGMvcmVkaGF0
+LXJlbGVhc2UgXTsgdGhlbgogICAgIHN5c3RlbT1yZWRoYXQKLWVsc2UKK2VsaWYgWyAiJHN5c3Rl
+bSIgPSAidW5rbm93biIgXTsgdGhlbgogICAgIGVjaG8gIiQwOiBVbmtub3duIHN5c3RlbSwgcGxl
+YXNlIHBvcnQgYW5kIGNvbnRhY3QgYXV0b2ZzQGxpbnV4Lmtlcm5lbC5vcmciIDE+JjIKLSAgICBl
+eGl0IDEKIGZpCiAKIGlmIFsgJHN5c3RlbSA9IHJlZGhhdCBdOyB0aGVuCkBAIC0xMzksNiArMTQx
+LDE0IEBACiAgICAgICAgICAgICAgICAgOzsKICAgICAgICAgZXNhYwogICAgIGRvbmUKKyAgICBp
+ZiBbIC16ICJgZ2V0c2NoZW1lc2AiIF07IHRoZW4KKyAgICAgICAgIyBhdXRvbW91bnQgZW50cnkg
+aW4gL2V0Yy9uc3N3aXRjaC5jb25mIG5vdCBmb3VuZAorCWlmIFsgLXogIiRmaWxlc2NoZW1lIiBd
+IDsgdGhlbgorCQlnZXRmaWxlbW91bnRzCisJCWZpbGVzY2hlbWU9MQorCQlleHBvcnQgZmlsZXNj
+aGVtZQorCWZpCisgICAgZmkKIH0KIAogCkBAIC00MDEsMTEgKzQxMSw1OSBAQAogZXNhYwogfQog
+CisKKyMKKyMgR2VuZXJpYyBzdGFydC9zdG9wIGZ1bmN0aW9uLgorIworZnVuY3Rpb24gZ2VuZXJp
+YygpCit7CisKK2Nhc2UgIiQxIiBpbgorICBzdGFydCkKKyAgICAgICAgIyBNYWtlIHN1cmUgdGhl
+IGF1dG9mcyBmaWxlc3lzdGVtIHR5cGUgaXMgYXZhaWxhYmxlLgorICAgICAgICAoZ3JlcCAtcSBh
+dXRvZnMgL3Byb2MvZmlsZXN5c3RlbXMgfHwgL3NiaW4vbW9kcHJvYmUgLWsgYXV0b2ZzNCB8fCAv
+c2Jpbi9tb2Rwcm9iZSAtayBhdXRvZnMpIDI+IC9kZXYvbnVsbAorICAgICAgICBUTVA9YG1rdGVt
+cCAvdG1wL2F1dG9mcy5YWFhYWFhgIHx8IHsgZWNobyAkImNvdWxkIG5vdCBtYWtlIHRlbXAgZmls
+ZSIgPiYgMjsgZXhpdCAxOyB9CisgICAgICAgIGdldG1vdW50cyB8IHRlZSAkVE1QIHwgc2gKKyAg
+ICAgICAgUkVUVkFMPSQ/CisJaWYgWyAtcyAkVE1QIF0gOyB0aGVuCisJICAgIFsgJFJFVFZBTCA9
+IDAgXSB8fCBlY2hvICJTdGFydGluZyBhdXRvbW91bnRlciBmYWlsZWQiCisJZWxzZQorCSAgICBl
+Y2hvICJObyBNb3VudHBvaW50cyBEZWZpbmVkIgorCWZpCisJcm0gLWYgJFRNUAorCWVjaG8KKwk7
+OworICBzdG9wKQorCWtpbGxhbGwgLVVTUjIgJERBRU1PTiAyPiAvZGV2L251bGwKKwljb3VudD0w
+CisJd2hpbGUgWyAtbiAiYHBpZG9mICREQUVNT05gIiAtYSAkY291bnQgLWx0IDEwIF0gOyBkbwor
+CSAgIGtpbGxhbGwgLVVTUjIgJERBRU1PTiAyPiAvZGV2L251bGwKKwkgICBSRVRWQUw9JD8KKwkg
+ICBbICRSRVRWQUwgPSAwIC1hIC16ICJgcGlkb2YgJERBRU1PTmAiIF0gfHwgc2xlZXAgMworCSAg
+IGNvdW50PWBleHByICRjb3VudCArIDFgCisJZG9uZQorCXVtb3VudCAtYSAtZiAtdCBhdXRvZnMK
+KwllY2hvCisJOzsKKyAgcmVzdGFydCkKKwlnZW5lcmljIHN0b3AKKwlnZW5lcmljIHN0YXJ0CisJ
+OzsKKyAgc3RhdHVzKQorCXN0YXR1cworCTs7CisgICopCisJZWNobyAkIlVzYWdlOiAkMCB7c3Rh
+cnR8c3RvcHxyZXN0YXJ0fHN0YXR1c30iCitlc2FjCit9CisKIFJFVFZBTD0wCiBpZiBbICRzeXN0
+ZW0gPSBkZWJpYW4gXTsgdGhlbgogCWRlYmlhbiAiJEAiCiBlbGlmIFsgJHN5c3RlbSA9IHJlZGhh
+dCBdOyB0aGVuCiAJcmVkaGF0ICIkQCIKK2VsaWYgWyAkc3lzdGVtID0gZ2VuZXJpYyBdOyB0aGVu
+CisJZ2VuZXJpYyAiJEAiCiBmaQogCiBleGl0ICRSRVRWQUwK
+
+--Multipart=_Sat__29_Nov_2003_20_43_18_+0100_2lAs+RSSn5M5rmGa
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--Multipart=_Sat__29_Nov_2003_20_43_18_+0100_2lAs+RSSn5M5rmGa--
+
