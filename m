@@ -1,11 +1,13 @@
-From: Terrence Martin <tmartin@physics.ucsd.edu>
-Subject: Is it normal for autofs to remount a file system more than once?
-Date: Thu, 02 Sep 2004 14:48:57 -0700
+From: Mike Waychison <Michael.Waychison@Sun.COM>
+Subject: Re: [patch] umount loopback filessystems on autofs stop
+Date: Thu, 02 Sep 2004 22:31:26 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <41379549.2040305@physics.ucsd.edu>
+Message-ID: <4137D77E.9080703@sun.com>
+References: <11395.1094160050@ichips.intel.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-reply-to: <11395.1094160050@ichips.intel.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -15,100 +17,120 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: Joseph V Moss <jmoss@ichips.intel.com>
+Cc: autofs@linux.kernel.org, raven@themaw.net
 
-Hi,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-I am not sure if this is related to my NFS mount hanging problems, but I 
-have noticed that autofs will often remount a file system multiple 
-times.  Is this normal? I think I have pretty straight forward auto. 
-files....
+Joseph V Moss wrote:
+> Using /proc/mounts could be an issue for anyone trying to use this
+with a kernel
+> that truncates /proc/mounts.
+>
 
-Terrence Martin
-UCSD Physics
+Which kernel truncates /proc/mounts?
 
-mount
-automount(pid4293) on /home type autofs 
-(rw,fd=5,pgrp=4293,minproto=2,maxproto=3)
-192.168.20.3:/home/cdfcaf on /home/cdfcaf type nfs (rw,addr=192.168.20.3)
-192.168.20.3:/home/cdfsoft on /home/cdfsoft type nfs (rw,addr=192.168.20.3)
-192.168.10.5:/falcon/0/users on /home/users type nfs (rw,addr=192.168.10.5)
-automount(pid12825) on /home type autofs 
-(rw,fd=5,pgrp=12825,minproto=2,maxproto=3)
-192.168.20.3:/home/cdfcaf on /home/cdfcaf type nfs (rw,addr=192.168.20.3)
-automount(pid3625) on /home type autofs 
-(rw,fd=5,pgrp=3625,minproto=2,maxproto=3)
-automount(pid3656) on /netstor type autofs 
-(rw,fd=5,pgrp=3656,minproto=2,maxproto=3)
-automount(pid3684) on /afs type autofs 
-(rw,fd=5,pgrp=3684,minproto=2,maxproto=3)
-192.168.20.3:/home/cdfcaf on /home/cdfcaf type nfs (rw,addr=192.168.20.3)
-192.168.20.3:/home/cdfsoft on /home/cdfsoft type nfs (rw,addr=192.168.20.3)
-192.168.10.5:/falcon/0/users on /home/users type nfs (rw,addr=192.168.10.5)
-frontend-3.local:/export/home/install on /home/install type nfs 
-(rw,addr=192.168.21.1)
-192.168.10.5:/falcon/0/afs/fnal.gov on /afs/fnal.gov type nfs 
-(rw,addr=192.168.10.5)
-192.168.10.5:/falcon/2 on /netstor/falcon0-2 type nfs (rw,addr=192.168.10.5)
-192.168.10.5:/falcon/0/afs/cern.ch on /afs/cern.ch type nfs 
-(rw,addr=192.168.10.5)
+Any recent kernel uses the seq_file interface which guarantees that
+nothing gets truncated.  I have a system up and running that works fine
+with about 2500 mounts.
 
-df
-Filesystem           1K-blocks      Used Available Use% Mounted on
-/dev/hda1             14112620   3535196   9860528  27% /
-/dev/hdb1             50394964   1222448  49172516   3% /state/data
-/dev/hdb2            189967608 183507236   6460372  97% /state/dcache
-none                   1030804         0   1030804   0% /dev/shm
-192.168.20.3:/home/cdfcaf
-                     101161396  34168568  66992828  34% /home/cdfcaf
-192.168.20.3:/home/cdfsoft
-                     101161396  34168568  66992828  34% /home/cdfsoft
-192.168.10.5:/falcon/0/users
-                     1463382364 618177588 845204776  43% /home/users
-192.168.20.3:/home/cdfcaf
-                     101161396  34168568  66992828  34% /home/cdfcaf
-192.168.20.3:/home/cdfcaf
-                     101161396  34168568  66992828  34% /home/cdfcaf
-192.168.20.3:/home/cdfsoft
-                     101161396  34168568  66992828  34% /home/cdfsoft
-192.168.10.5:/falcon/0/users
-                     1463382364 618177588 845204776  43% /home/users
-frontend-3.local:/export/home/install
-                      10080520   5781204   3787248  61% /home/install
-192.168.10.5:/falcon/0/afs/fnal.gov
-                     1463382364 618177588 845204776  43% /afs/fnal.gov
-192.168.10.5:/falcon/2
-                     1463382364 346259560 1117122804  24% /netstor/falcon0-2
-192.168.10.5:/falcon/0/afs/cern.ch
-                     1463382364 618177588 845204776  43% /afs/cern.ch
 
-cat /etc/auto.master
-# $411id: /etc/auto.master$
-# Retrieved: 02-Sep-2004 21:42
-# Master server: 192.168.21.1
-# Last modified on master: 04-Aug-2004 04:04
-# Encrypted file size: 490 bytes
-#
-# Owner: 0.0
-# Name: etc.auto..master
-# Mode: 0100644
-/home auto.home --timeout 600
-/netstor auto.net --timeout 600
-/afs    auto.afs --timeout 600
-/groot   auto.grid3      --timeout 600
+>
+>>Hello,
+>>
+>>The netfs scripts for Red Hat go through and umount any loopback devices
+>>before attempting to umount the encompassing filesystem.  This seems a
+sane
+>>thing to do (and I have a bug on said issue), so I've added similar
+>>functionality to the autofs init script.  Attached is a patch.  Comments
+>>encouraged.  Testing by debian folks would be nice, too.
+>>
+>>-Jeff
+>>
+>>--- autofs-4.1.3/samples/rc.autofs.in.umount-loopback	2004-09-02
+15:55:21.722705296 -0400
+>>+++ autofs-4.1.3/samples/rc.autofs.in	2004-09-02 16:16:09.985940440 -0400
+>>@@ -351,6 +351,31 @@ function signal_automounts()
+>> 	return $RETVAL
+>> }
+>>
+>>+function umount_loopback()
+>>+{
+>>+    loops=`LC_ALL=C awk '!/^#/ && $1 ~ /^\/dev\/loop/ && $2 != "/"
+{print $2}' /proc/mounts`
+>>+    automounts=`LC_ALL=C awk '!/^#/ && $1 ~ /^automount/ {print $2}'
+/proc/mounts`
+>>+
+>>+    for l in $loops
+>>+    do
+>>+	for a in $automounts
+>>+	do
+>>+	    command="echo $l | grep -E '^$a'"
+>>+	    match=`echo $command | sh`
+>>+	    if [ -n "$match" ]; then
+>>+		echo ""
+>>+		echo -n $"Unmounting loopback filesystem $match:  "
+>>+		umount -d $match
+>>+		if [ $? -eq 0 ]; then
+>>+		    echo "done"
+>>+		else
+>>+		    echo "failed ($?)"
+>>+		fi
+>>+	    fi
+>>+	done
+>>+    done
+>>+}
+>>+
+>> # Redhat start/stop function.
+>> #
+>> function redhat()
+>>@@ -386,6 +411,7 @@ case "$1" in
+>> 	if [ -z "`pidofproc $prog`" -a -z "`getmounts`" ]; then
+>> 		RETVAL=0
+>> 	else
+>>+		umount_loopback
+>> 		signal_automounts
+>> 		RETVAL=$?
+>> 	fi
+>>@@ -477,6 +503,7 @@ case "$1" in
+>> 	;;
+>>     stop)
+>> 	echo 'Stopping automounter.'
+>>+	umount_loopback
+>> 	start-stop-daemon --stop --quiet --signal USR2 --exec $DAEMON
+>> 	;;
+>>     reload|restart)
+>>
+>>_______________________________________________
+>>autofs mailing list
+>>autofs@linux.kernel.org
+>>http://linux.kernel.org/mailman/listinfo/autofs
+>>
+>
+>
+> _______________________________________________
+> autofs mailing list
+> autofs@linux.kernel.org
+> http://linux.kernel.org/mailman/listinfo/autofs
 
-# cat /etc/auto.net
-# $411id: /etc/auto.net$
-# Retrieved: 02-Sep-2004 21:42
-# Master server: 192.168.21.1
-# Last modified on master: 27-May-2004 07:23
-# Encrypted file size: 490 bytes
-#
-# Owner: 0.0
-# Name: etc.auto..net
-# Mode: 0100644
-data0   192.168.20.1:/raid0
-falcon0-0    192.168.10.5:/falcon/0
-falcon0-1    192.168.10.5:/falcon/1
-falcon0-2    192.168.10.5:/falcon/2
+
+- --
+Mike Waychison
+Sun Microsystems, Inc.
+1 (650) 352-5299 voice
+1 (416) 202-8336 voice
+http://www.sun.com
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NOTICE:  The opinions expressed in this email are held by me,
+and may not represent the views of Sun Microsystems, Inc.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFBN9d9dQs4kOxk3/MRAuv7AJ9RwuxkWHgwUkHsW/+C+Qoy/5hzhgCdFoSW
+fM9teS9ID1cEs0ZzVJfgO+g=
+=qIAQ
+-----END PGP SIGNATURE-----
