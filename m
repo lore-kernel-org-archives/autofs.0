@@ -1,8 +1,15 @@
-From: raven@themaw.net
-Subject: [ANNOUNCE] autofs 4.1.4 beta2 release
-Date: Mon, 14 Feb 2005 22:39:51 +0800 (WST)
-Message-ID: <Pine.LNX.4.61.0502142233210.1653@donald.themaw.net>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: [PATCH 3/5] logging to stderr
+Date: Mon, 14 Feb 2005 10:21:15 -0500
+Message-ID: <16912.49643.760509.977965@segfault.boston.redhat.com>
+References: <200502111155.33706.vda@port.imtp.ilyichevsk.odessa.ua>
+	<200502111159.50103.vda@port.imtp.ilyichevsk.odessa.ua>
+	<200502111201.43507.vda@port.imtp.ilyichevsk.odessa.ua>
+	<200502111203.58345.vda@port.imtp.ilyichevsk.odessa.ua>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <200502111203.58345.vda@port.imtp.ilyichevsk.odessa.ua>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -13,72 +20,14 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
-Content-Transfer-Encoding: 7bit
-To: autofs mailing list <autofs@linux.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: Denis Vlasenko <vda@port.imtp.ilyichevsk.odessa.ua>
+Cc: autofs@linux.kernel.org
 
+==> Regarding [autofs] [PATCH 3/5] logging to stderr; Denis Vlasenko <vda@port.imtp.ilyichevsk.odessa.ua> adds:
 
-Hi all,
+vda> Add code, but do not switch rest of program to use it, yet.
 
-Here is autofs 4.1.4 beta2.
+I'm curious, what is the motivation for this?
 
-There haven't been many changes since beta1.
-
-For more information look at the CHANGELOG in the distribution.
-
-There are still a few problems that I'm aware of such as:
-
-- the init script for Debian and Gentoo works better but still
-    ins't handling the reload option completely.
-
-- the bug with the selection of the default map type when using
-    submounts still hasn't been resolved.
-
-So let me know when you find more and I'll fix`em as quick as I can!
-
-The distribution can be found at the usual place at:
-
-http://www.kernel.org/pub/linux/daemons/autofs/v4
-
-in the tars
-
-autofs-4.1.4_beta2.tar.[gz|bz2]
-
-also there is a tarball called:
-
-autofs-4.1.4-beta2-deb.tar.[gz|bz2]
-
-that can be used to build binary debs (see below).
-
-It is possible to build packages for testing from the distribution. 
-I'm not the maintainer of any of these distribution packages so please be 
-aware that this is for convenience and testing.
-
-To build an rpm package use:
-
-rpmbuild -tb autofs-4.1.4_beta2.tar.gz
-
-and the binary rpms will end up in the usual location.
-
-To merge the package into Gentoo use:
-
-tar zxf autofs-4.1.4_beta2.tar.gz
-cd autofs-4.1.4_beta2/gentoo
-export PORTDIR_OVERLAY=`pwd`
-ebuild net-fs/autofs/autofs-4.1.4_beta2.ebuild digest
-ebuild net-fs/autofs/autofs-4.1.4_beta2.ebuild clean install
-ebuild net-fs/autofs/autofs-4.1.4_beta2.ebuild qmerge
-unset PORTDIR_OVERLAY
-
-To build binary debs for Debian download the tar refered to above and:
-
-tar zxvf autofs-4.1.4-beta2-deb.tar.gz
-dpkg-source -x autofs_4.1.4-beta2-1.dsc
-cd autofs-4.1.4-beta2
-dpkg-buildpackage -b
-
-and the binary debs will be placed in the directory the tar was unpacked.
-
-Hopefuly this will help with the testing
-
-Ian
+-Jeff
