@@ -1,13 +1,13 @@
-From: Mike Waychison <Michael.Waychison@Sun.COM>
-Subject: Re: [RFC] Towards a Modern Autofs
-Date: Tue, 13 Jan 2004 14:01:48 -0500
+From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: autofs no_local_binds option (nfs <-> bind mounts)
+Date: Tue, 13 Jan 2004 12:03:54 -0800
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <4004409C.6040900@sun.com>
-References: <Pine.LNX.4.33.0401130932460.10047-100000@wombat.indigo.net.au>
+Message-ID: <40044F2A.9080305@zytor.com>
+References: <200401131958.i0DJwlV0001078000@anw.zk3.dec.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============097166618615483147=="
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-reply-to: <Pine.LNX.4.33.0401130932460.10047-100000@wombat.indigo.net.au>
+In-Reply-To: <200401131958.i0DJwlV0001078000@anw.zk3.dec.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,134 +17,32 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs mailing list <autofs@linux.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
-
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---===============097166618615483147==
-Content-type: multipart/signed;
- boundary=------------enig33ACE2770E76760CD51F22AF;
- protocol="application/pgp-signature"; micalg=pgp-sha1
-
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig33ACE2770E76760CD51F22AF
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-
-Ian Kent wrote:
-
->On Mon, 12 Jan 2004, Mike Waychison wrote:
->
->  
->
->>>And I have another question concerning namespaces.
->>>
->>>Given that there may be several namespaces, each of which may or may not
->>>have a trigger on this dentry, is there some sort of list of triggers?
->>>
->>>How do the triggers know who owns them?
->>>
->>>
->>>
->>>
->>>      
->>>
->>This is the reason I went with using distinct filesystems to perform the
->>triggers.  If we use follow_link logic, we will have a reference to the
->>respective vfsmount.  Dentry's themselves know nothing about the
->>triggers, as the triggers just look like a mounted filesystem.   The
->>vfsmount information has enough information for autofs to call a
->>userspace agent through hotplug and have userspace handle the mount.  In
->>effect, there is no daemon so nobody 'owns' a trigger in the same sense
->>as with autofs3/4.
->>    
->>
->
->I'm not familiar with the follow_link mechanism (no prob. I'll pick it up
->as I go).
->
->Correct me if I'm wrong but, the only thing that I can see that is
->duplicated in cloning a namespace is the root dentry. The rest of the
->dentries on the system remain the same. The increase in complexity to the
->VFS to change this would be prohibitive.
->  
->
-No.  Dentries are *never* duplicated.  This goes back to Viro's work on 
-allowing a filesystem to be mounted in multiple locations.  See 
-http://kt.zork.net/kernel-traffic/kt20000424_64.html#9 .
-
-What is duplicated is the current->namespace tree of vfsmounts.  After 
-this is done, current->fs vfsmount members are updated to point to their 
-cloned counterparts.
-
->I see we want the triggers in the vfsmount struct. Is this a good idea?
->The vfsmount struct has always been difficult to get hold of during lookup
->and revalidate for me (someone like to help here).
->
->  
->
-If triggers in the vfsmount struct are done, then there will be no need 
-to handle lookups or revalidates.  In fact, triggers in the vfsmount 
-struct will not help at all for indirect maps.
-
->
->Also, something needs to be done about mount table noise. Several hundred
->entries is very bad from an administration viewpoint.
->  
->
-I don't see what you want here.  If you have hundreds of users logged 
-into the same machine, you *will* have hundreds of entries in the 
-mount-table.
-
->Except for the cross namespace issues, which I'm still digesting, I can't
->see why your design can't be done entirely as a filesystem using dentries
->instead of vfsmount, including expirey. Perhaps you could reinterate a few
->of the reasons for this.
->  
->
-My proposal uses filesystems for all automount mechanism *except* 
-expiry. I see expiry as a VFS service, and strongly believe that this is 
-where it belongs.
-
--- 
-Mike Waychison
-Sun Microsystems, Inc.
-1 (650) 352-5299 voice
-1 (416) 202-8336 voice
-mailto: Michael.Waychison@Sun.COM
-http://www.sun.com
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NOTICE:  The opinions expressed in this email are held by me, 
-and may not represent the views of Sun Microsystems, Inc.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
-
-
---------------enig33ACE2770E76760CD51F22AF
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.2 (GNU/Linux)
-Comment: Using GnuPG with Debian - http://enigmail.mozdev.org
-
-iD8DBQFABEChdQs4kOxk3/MRAjN2AKCYbtW16sHaHGc0DnOHbrpDDjdjlACggMC8
-tD9N1UTqN+4PmyjD0gmi874=
-=b8tF
------END PGP SIGNATURE-----
-
---------------enig33ACE2770E76760CD51F22AF--
-
-
---===============097166618615483147==
 Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: Eric Werme USG <werme@alpha.zk3.dec.com>
+Cc: autofs@linux.kernel.org, alexander.marx@hp.com
 
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
+Eric Werme USG wrote:
+> 
+> The stop-gap cluster system in Tru64 Unix did this.  Typically pairs
+> of servers had system names (service names in the jargon) and bound
+> the IP address to a NIC on one server.  When the service was relocated
+> manually or on a crash, the IP address was moved to a NIC on the other
+> server.  Disks were on a shared SCSI bus, and the file system would also
+> go through a umount/mount cycle.  Note that no changes to DNS' database
+> are necessary, just an update to clients' arp tables.
+> 
+> For example, we have systems "mailhub1" and "mailhub2".  The service name
+> "mailhub" is where Email here winds up.  I send mail via SMTP to mailhub, and
+> read it via NFS from mailhub.  Normally I don't care which of mailhub1
+> and mailhub2 handles it.  For the most part they're just servers, but
+> sometimes there are reasons to login to one or both of those systems.
 
---===============097166618615483147==--
+However, this doesn't address the issue of the client being *the same
+system*, in which case you can't just move the IP address away from it,
+since local == remote; you can no longer send packets to the server and
+get a response back.  You can do it if you can get the client and the
+server sides to bind to *different* IP addresses, in which case the
+current autofs behaviour will correctly see them as being separate and
+mount NFS.
 
+	-hpa
