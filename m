@@ -1,12 +1,12 @@
-From: raven@themaw.net
-Subject: Re: Please help - cleanup
-Date: Tue, 4 May 2004 22:44:39 +0800 (WST)
+From: "Rigler, Steve" <SRigler@MarathonOil.com>
+Subject: Problem with Automount 4.1.x
+Date: Tue, 4 May 2004 09:44:40 -0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0405042233560.17014@donald.themaw.net>
-References: <Pine.LNX.4.58.0405022201480.25614@donald.themaw.net>
+Message-ID: <C3CDA0E3AC8B4E438E94F37D0A20FE718D45BB@HOUEXC210.mgroupnet.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0405022201480.25614@donald.themaw.net>
+Content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,385 +16,260 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: autofs mailing list <autofs@linux.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: autofs@linux.kernel.org
 
+I'm experiencing an issue where automount v4.1.2 (before and after
+the most current patch) will not mount NFS dirs.  I'm pasting an
+"strace -f" of the automount process responsible for the automount
+dir.
 
-Hi all again,
+This happens when we boot the machine (tested on RHEL 3 and FC1).
+It won't mount NFS dirs and will sometimes resolve itself (always
+after restarting the automount processes).
 
-Further to yesterdays replicated server patch I have done some cleanup to 
-it.
+In the case of the strace, the mountpoint I'm trying to get to is
+"/software/OW12PL" which is defined in a yp map.  In messages I
+see this:
 
-This patch replaces the previous patch so you will need to back out the 
-previous one before applying this one.
+May  4 09:06:25 houu30 automount[1842]: attempting to mount entry /software/OW12PL
+May  4 09:06:36 houu30 automount[2763]: mount(nfs): no host elected
+May  4 09:06:36 houu30 automount[2763]: failed to mount /software/OW12PL
 
-I have:
+The strace follows.
 
-- corrected some inconsistent messages.
-- cleaned up paths (there were some double slashes,
-  function was OK though)
+-Steve
 
-One problem remains and seems not to be easily fixed. For multi mount 
-maps dead mount point directories (from failed mounts) are left. This is 
-not simple to fix without breaking other functionality. I believe it is 
-better than those "BUG" messages though. So we`ll have to live with it for 
-now.
-
-If anyone is able to test this also that would be great.
-
-Thanks
-Ian
-
-diff -Bu autofs-4.1.3/modules/mount_bind.c autofs-4.1.3.replicated_server_cleanup/modules/mount_bind.c
---- autofs-4.1.3/modules/mount_bind.c	2004-05-02 20:47:53.000000000 +0800
-+++ autofs-4.1.3.replicated_server_cleanup/modules/mount_bind.c	2004-05-04 19:35:49.000000000 +0800
-@@ -96,7 +96,12 @@
- 		error(MODPREFIX "alloca: %m");
- 		return 1;
- 	}
--	sprintf(fullpath, "%s/%s", root, name);
-+
-+	if (name_len)
-+		sprintf(fullpath, "%s/%s", root, name);
-+	else
-+		sprintf(fullpath, "%s", root);
-+
- 	i = strlen(fullpath);
- 	while (--i > 0 && fullpath[i] == '/')
- 		fullpath[i] = '\0';
-@@ -125,8 +130,8 @@
- 		unlink(AUTOFS_LOCK);
- 
- 		if (err) {
--			if (!ap.ghost || (ap.ghost && !status))
--				rmdir_path(fullpath);
-+			if (!ap.ghost && name_len)
-+				rmdir_path(name);
- 			return 1;
- 		} else {
- 			debug(MODPREFIX "mounted %s type %s on %s",
-diff -Bu autofs-4.1.3/modules/mount_changer.c autofs-4.1.3.replicated_server_cleanup/modules/mount_changer.c
---- autofs-4.1.3/modules/mount_changer.c	2004-05-02 20:50:53.000000000 +0800
-+++ autofs-4.1.3.replicated_server_cleanup/modules/mount_changer.c	2004-05-04 19:35:49.000000000 +0800
-@@ -61,7 +61,11 @@
- 		error(MODPREFIX "alloca: %m");
- 		return 1;
- 	}
--	sprintf(fullpath, "%s/%s", root, name);
-+
-+	if (name_len)
-+		sprintf(fullpath, "%s/%s", root, name);
-+	else
-+		sprintf(fullpath, "%s", root);
- 
- 	debug(MODPREFIX "calling umount %s", what);
- 
-@@ -77,7 +81,7 @@
- 	debug(MODPREFIX "calling mkdir_path %s", fullpath);
- 
- 	if ((status = mkdir_path(fullpath, 0555)) && errno != EEXIST) {
--		error(MODPREFIX "mkdir_path %s failed: %m", name);
-+		error(MODPREFIX "mkdir_path %s failed: %m", fullpath);
- 		return 1;
- 	}
- 
-@@ -105,9 +109,10 @@
- 			     "-t", fstype, what, fullpath, NULL);
- 	}
- 	unlink(AUTOFS_LOCK);
-+
- 	if (err) {
--		if (!ap.ghost || (ap.ghost && !status))
--			rmdir_path(fullpath);
-+		if (!ap.ghost && name_len)
-+			rmdir_path(name);
- 
- 		error(MODPREFIX "failed to mount %s (type %s) on %s",
- 		      what, fstype, fullpath);
-diff -Bu autofs-4.1.3/modules/mount_ext2.c autofs-4.1.3.replicated_server_cleanup/modules/mount_ext2.c
---- autofs-4.1.3/modules/mount_ext2.c	2004-05-02 20:53:00.000000000 +0800
-+++ autofs-4.1.3.replicated_server_cleanup/modules/mount_ext2.c	2004-05-04 19:35:49.000000000 +0800
-@@ -55,12 +55,16 @@
- 		error(MODPREFIX "alloca: %m");
- 		return 1;
- 	}
--	sprintf(fullpath, "%s/%s", root, name);
-+
-+	if (name_len)
-+		sprintf(fullpath, "%s/%s", root, name);
-+	else
-+		sprintf(fullpath, "%s", root);
- 
- 	debug(MODPREFIX "calling mkdir_path %s", fullpath);
- 
- 	if ((status = mkdir_path(fullpath, 0555)) && errno != EEXIST) {
--		error(MODPREFIX "mkdir_path %s failed: %m", name);
-+		error(MODPREFIX "mkdir_path %s failed: %m", fullpath);
- 		return 1;
- 	}
- 
-@@ -116,8 +120,8 @@
- 	unlink(AUTOFS_LOCK);
- 
- 	if (err) {
--		if (!ap.ghost || (ap.ghost && !status))
--			rmdir_path(fullpath);
-+		if (!ap.ghost && name_len)
-+			rmdir_path(name);
- 		error(MODPREFIX "failed to mount %s (type %s) on %s",
- 		      what, fstype, fullpath);
- 		return 1;
-diff -Bu autofs-4.1.3/modules/mount_generic.c autofs-4.1.3.replicated_server_cleanup/modules/mount_generic.c
---- autofs-4.1.3/modules/mount_generic.c	2004-05-02 20:54:10.000000000 +0800
-+++ autofs-4.1.3.replicated_server_cleanup/modules/mount_generic.c	2004-05-04 19:35:49.000000000 +0800
-@@ -53,12 +53,16 @@
- 		error(MODPREFIX "alloca: %m");
- 		return 1;
- 	}
--	sprintf(fullpath, "%s/%s", root, name);
-+
-+	if (name_len)
-+		sprintf(fullpath, "%s/%s", root, name);
-+	else
-+		sprintf(fullpath, "%s", root);
- 
- 	debug(MODPREFIX "calling mkdir_path %s", fullpath);
- 
- 	if ((status = mkdir_path(fullpath, 0555)) && errno != EEXIST) {
--		error(MODPREFIX "mkdir_path %s failed: %m", name);
-+		error(MODPREFIX "mkdir_path %s failed: %m", fullpath);
- 		return 1;
- 	}
- 
-@@ -85,8 +89,8 @@
- 	unlink(AUTOFS_LOCK);
- 
- 	if (err) {
--		if (!ap.ghost || (ap.ghost && !status))
--			rmdir_path(fullpath);
-+		if (!ap.ghost && name_len)
-+			rmdir_path(name);
- 
- 		error(MODPREFIX "failed to mount %s (type %s) on %s",
- 		      what, fstype, fullpath);
-diff -Bu autofs-4.1.3/modules/mount_nfs.c autofs-4.1.3.replicated_server_cleanup/modules/mount_nfs.c
---- autofs-4.1.3/modules/mount_nfs.c	2004-05-02 21:11:53.000000000 +0800
-+++ autofs-4.1.3.replicated_server_cleanup/modules/mount_nfs.c	2004-05-04 19:35:49.000000000 +0800
-@@ -131,7 +131,6 @@
- 
- 	while (p && *p) {
- 		char *next;
--		int alive = -1;
- 
- 		p += strspn(p, " \t,");
- 		delim = strpbrk(p, "(, \t:");
-@@ -187,29 +186,32 @@
- 			for (haddr = he->h_addr_list; *haddr; haddr++) {
- 				local = is_local_addr(p, *haddr, he->h_length);
- 
--				if (local < 0) {
--					local = 0;
--					p = next;
--				}
-+				if (local < 0)
-+					continue;
- 
- 				if (local) {
--					alive = rpc_ping(p, sec, micros);
--					if (alive) {
--						winner = p;
--						break;
--					}
--					local = 0;
-+					winner = p;
-+					break;
- 				}
- 			}
-+			
-+			if (local < 0) {
-+				local = 0;
-+				p = next;
-+				continue;
-+			}
-+
-+			if (local)
-+				break;
- 		}
- 
--		/* Are we actually alive */
--		if (!alive || (alive < 0 && !rpc_ping(p, sec, micros))) {
-+		/* If it's not local is it alive */
-+		if (!local && !rpc_ping(p, sec, micros)) {
- 			p = next;
- 			continue;
- 		}
- 
--		/* Not local, see if we have a previous 'winner' */
-+		/* see if we have a previous 'winner' */
- 		if (!winner) {
- 			winner = p;
- 		}
-@@ -391,7 +393,11 @@
- 		error(MODPREFIX "alloca: %m");
- 		return 1;
- 	}
--	sprintf(fullpath, "%s/%s", root, name);
-+
-+	if (name_len)
-+		sprintf(fullpath, "%s/%s", root, name);
-+	else
-+		sprintf(fullpath, "%s", root);
- 
- 	if (local) {
- 		/* Local host -- do a "bind" */
-@@ -406,7 +412,7 @@
- 
- 		debug(MODPREFIX "calling mkdir_path %s", fullpath);
- 		if ((status = mkdir_path(fullpath, 0555)) && errno != EEXIST) {
--			error(MODPREFIX "mkdir_path %s failed: %m", name);
-+			error(MODPREFIX "mkdir_path %s failed: %m", fullpath);
- 			return 1;
- 		}
- 
-@@ -434,8 +440,8 @@
- 		unlink(AUTOFS_LOCK);
- 
- 		if (err) {
--			if (!ap.ghost || (ap.ghost && !status))
--				rmdir_path(fullpath);
-+			if (!ap.ghost && name_len)
-+				rmdir_path(name);
- 			error(MODPREFIX "nfs: mount failure %s on %s",
- 			      whatstr, fullpath);
- 			return 1;
-diff -Bu autofs-4.1.3/modules/parse_sun.c autofs-4.1.3.replicated_server_cleanup/modules/parse_sun.c
---- autofs-4.1.3/modules/parse_sun.c	2004-05-02 20:31:32.000000000 +0800
-+++ autofs-4.1.3.replicated_server_cleanup/modules/parse_sun.c	2004-05-04 19:35:49.000000000 +0800
-@@ -514,7 +514,6 @@
- }
- 
- static int sun_mount(const char *root, const char *name, int namelen,
--		     const char *path, int pathlen,
- 		     const char *loc, int loclen, const char *options)
- {
- 	char *fstype = "nfs";	/* Default filesystem type */
-@@ -565,17 +564,13 @@
- 		options = noptions;
- 	}
- 
--	while (*path == '/') {
--		path++;
--		pathlen--;
-+	while (*name == '/') {
-+		name++;
-+		namelen--;
- 	}
- 
--	mountpoint = alloca(namelen + pathlen + 2);
--
--	if (pathlen)
--		sprintf(mountpoint, "%.*s/%.*s", namelen, name, pathlen, path);
--	else
--		sprintf(mountpoint, "%.*s", namelen, name);
-+	mountpoint = alloca(namelen + 1);
-+	sprintf(mountpoint, "%.*s", namelen, name);
- 
- 	what = alloca(loclen + 1);
- 	memcpy(what, loc, loclen);
-@@ -615,15 +610,15 @@
- 
- /*
-  * syntax is:
-- *	[-options] location
-- *	[-options] [mountpoint [-options] location]...
-+ *	[-options] location [location] ...
-+ *	[-options] [mountpoint [-options] location [location] ... ]...
-  */
- int parse_mount(const char *root, const char *name,
- 		int name_len, const char *mapent, void *context)
- {
- 	struct parse_context *ctxt = (struct parse_context *) context;
- 	char *pmapent, *options;
--	const char *p;
-+	const char *p, *q;
- 	int mapent_len, rv;
- 	int optlen;
- 
-@@ -667,6 +662,18 @@
- 
- 	if (*p == '/') {
- 		int l;
-+		char *multi_root;
-+
-+		multi_root = alloca(strlen(root) + name_len + 2);
-+		if (!multi_root) {
-+			error(MODPREFIX "alloca: %m");
-+			free(options);
-+			return 1;
-+		}
-+
-+		strcpy(multi_root, root);
-+		strcat(multi_root, "/");
-+		strcat(multi_root, name);
- 
- 		/* It's a multi-mount; deal with it */
- 		do {
-@@ -705,7 +712,15 @@
- 				} while (*p == '-');
- 			}
- 
--			loc = dequote(p, l = chunklen(p, 1));
-+			q = p;
-+			while (*q && *q != '/') {
-+				l = chunklen(q, 1);
-+				q += l;
-+				q = skipspace(q);
-+			}
-+			l = q - p;
-+
-+			loc = dequote(p, l);
- 			loclen = strlen(loc);
- 
- 			if (loc == NULL || path == NULL) {
-@@ -723,7 +738,7 @@
- 			      "multimount: %.*s on %.*s with options %s",
- 			      loclen, loc, pathlen, path, myoptions);
- 
--			rv = sun_mount(root, name, name_len, path, pathlen, loc, loclen,
-+			rv = sun_mount(multi_root, path, pathlen, loc, loclen,
- 				       myoptions);
- 			free(path);
- 			free(loc);
-@@ -739,12 +754,20 @@
- 	} else {
- 		/* Normal (non-multi) entries */
- 		char *loc;
--		int loclen;
-+		int loclen, l;
- 
- 		if (*p == ':')
- 			p++;	/* Sun escape for entries starting with / */
- 
--		loc = dequote(p, chunklen(p, 1));
-+		q = p;
-+		while (*q) {
-+			l = chunklen(q, 1);
-+			q += l;
-+			q = skipspace(q);
-+		}
-+		l = q - p;
-+
-+		loc = dequote(p, l);
- 		loclen = strlen(loc);
- 
- 		if (loc == NULL) {
-@@ -763,7 +786,7 @@
- 		debug(MODPREFIX "core of entry: options=%s, loc=%.*s",
- 		      options, loclen, loc);
- 
--		rv = sun_mount(root, name, name_len, "/", 1, loc, loclen, options);
-+		rv = sun_mount(root, name, name_len, loc, loclen, options);
- 		free(loc);
- 		free(options);
- 	}
+1842  poll([{fd=4, events=POLLIN}, {fd=6, events=POLLIN}], 2, -1) = -1 EINTR (Interrupted system call)
+1842  --- SIGALRM (Alarm clock) @ 0 (0) ---
+1842  write(7, "\2\0\0\0", 4)           = 4
+1842  sigreturn()                       = ? (mask now [])
+1842  poll([{fd=4, events=POLLIN}, {fd=6, events=POLLIN, revents=POLLIN}], 2, -1) = 1
+1842  read(6, "\2\0\0\0", 4)            = 4
+1842  rt_sigprocmask(SIG_BLOCK, [HUP USR1 USR2 ALRM TERM CHLD], [], 8) = 0
+1842  rt_sigprocmask(SIG_BLOCK, [HUP USR1 USR2 ALRM TERM CHLD], [HUP USR1 USR2 ALRM TERM CHLD], 8) = 0
+1842  clone(child_stack=0, flags=CLONE_CHILD_CLEARTID|CLONE_CHILD_SETTID|SIGCHLD, child_tidptr=0xb75d7b08) = 4593
+1842  rt_sigprocmask(SIG_SETMASK, [HUP USR1 USR2 ALRM TERM CHLD],  <unfinished ...>
+4593  --- SIGSTOP (Stopped (signal)) @ 0 (0) ---
+1842  <... rt_sigprocmask resumed> NULL, 8) = 0
+4593  --- SIGSTOP (Stopped (signal)) @ 0 (0) ---
+1842  rt_sigprocmask(SIG_SETMASK, [HUP USR1 USR2 ALRM TERM],  <unfinished ...>
+4593  rt_sigprocmask(SIG_BLOCK, ~[RTMIN],  <unfinished ...>
+1842  <... rt_sigprocmask resumed> NULL, 8) = 0
+4593  <... rt_sigprocmask resumed> NULL, 8) = 0
+1842  poll( <unfinished ...>
+4593  rt_sigaction(SIGHUP, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGINT, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGQUIT, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGILL, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGTRAP, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGABRT, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGBUS, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGFPE, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGKILL, {SIG_IGN}, NULL, 8) = -1 EINVAL (Invalid argument)
+4593  rt_sigaction(SIGUSR1, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGSEGV, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGUSR2, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGPIPE, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGALRM, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGTERM, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGSTKFLT, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGCHLD, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGCONT, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGSTOP, {SIG_IGN}, NULL, 8) = -1 EINVAL (Invalid argument)
+4593  rt_sigaction(SIGTSTP, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGTTIN, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGTTOU, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGURG, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGXCPU, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGXFSZ, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGVTALRM, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGPROF, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGWINCH, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGIO, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGPWR, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGSYS, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGRT_1, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGRT_2, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGRT_3, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGRT_4, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGRT_5, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGRT_6, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGRT_7, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGRT_8, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGRT_9, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGRT_10, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGRT_11, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGRT_12, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGRT_13, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGRT_14, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGRT_15, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGRT_16, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGRT_17, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGRT_18, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGRT_19, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGRT_20, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGRT_21, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGRT_22, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGRT_23, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGRT_24, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGRT_25, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGRT_26, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGRT_27, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGRT_28, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGRT_29, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGRT_30, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGRT_31, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGRT_32, {SIG_IGN}, NULL, 8) = 0
+4593  rt_sigaction(SIGCHLD, {SIG_DFL}, NULL, 8) = 0
+4593  rt_sigprocmask(SIG_UNBLOCK, ~[RTMIN], NULL, 8) = 0
+4593  close(4)                          = 0
+4593  close(6)                          = 0
+4593  close(7)                          = 0
+4593  getpriority(PRIO_PROCESS, 0)      = 20
+4593  setpriority(PRIO_PROCESS, 0, -4)  = 0
+4593  getpriority(PRIO_PROCESS, 0)      = 24
+4593  lstat64("/software", {st_mode=S_IFDIR|0755, st_size=0, ...}) = 0
+4593  open("/software", O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY) = 4
+4593  fstat64(4, {st_mode=S_IFDIR|0755, st_size=0, ...}) = 0
+4593  fcntl64(4, F_SETFD, FD_CLOEXEC)   = 0
+4593  getdents64(4, /* 2 entries */, 4096) = 48
+4593  getdents64(4, /* 0 entries */, 4096) = 0
+4593  close(4)                          = 0
+4593  ioctl(5, AUTOFS_IOC_EXPIRE_MULTI, 0xbfffd6dc) = -1 EAGAIN (Resource temporarily unavailable)
+4593  lstat64("/software", {st_mode=S_IFDIR|0755, st_size=0, ...}) = 0
+4593  open("/software", O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY) = 4
+4593  fstat64(4, {st_mode=S_IFDIR|0755, st_size=0, ...}) = 0
+4593  fcntl64(4, F_SETFD, FD_CLOEXEC)   = 0
+4593  getdents64(4, /* 2 entries */, 4096) = 48
+4593  getdents64(4, /* 0 entries */, 4096) = 0
+4593  close(4)                          = 0
+4593  exit_group(0)                     = ?
+1842  <... poll resumed> [{fd=4, events=POLLIN}, {fd=6, events=POLLIN}], 2, -1) = -1 EINTR (Interrupted system call)
+1842  --- SIGCHLD (Child exited) @ 0 (0) ---
+1842  waitpid(-1, [WIFEXITED(s) && WEXITSTATUS(s) == 0], WNOHANG) = 4593
+1842  alarm(15)                         = 0
+1842  waitpid(-1, 0xbfffd574, WNOHANG)  = -1 ECHILD (No child processes)
+1842  write(7, "\1\0\0\0", 4)           = 4
+1842  sigreturn()                       = ? (mask now [HUP USR1 USR2 ALRM TERM])
+1842  poll([{fd=4, events=POLLIN}, {fd=6, events=POLLIN, revents=POLLIN}], 2, -1) = 1
+1842  read(6, "\1\0\0\0", 4)            = 4
+1842  rt_sigprocmask(SIG_BLOCK, [HUP USR1 USR2 ALRM TERM CHLD], [HUP USR1 USR2 ALRM TERM], 8) = 0
+1842  rt_sigprocmask(SIG_UNBLOCK, [HUP USR1 USR2 ALRM TERM CHLD], NULL, 8) = 0
+1842  poll([{fd=4, events=POLLIN}, {fd=6, events=POLLIN}], 2, -1) = -1 EINTR (Interrupted system call)
+1842  --- SIGALRM (Alarm clock) @ 0 (0) ---
+1842  write(7, "\2\0\0\0", 4)           = 4
+1842  sigreturn()                       = ? (mask now [])
+1842  poll([{fd=4, events=POLLIN}, {fd=6, events=POLLIN, revents=POLLIN}], 2, -1) = 1
+1842  read(6, "\2\0\0\0", 4)            = 4
+1842  rt_sigprocmask(SIG_BLOCK, [HUP USR1 USR2 ALRM TERM CHLD], [], 8) = 0
+1842  rt_sigprocmask(SIG_BLOCK, [HUP USR1 USR2 ALRM TERM CHLD], [HUP USR1 USR2 ALRM TERM CHLD], 8) = 0
+1842  clone(child_stack=0, flags=CLONE_CHILD_CLEARTID|CLONE_CHILD_SETTID|SIGCHLD, child_tidptr=0xb75d7b08) = 4659
+1842  rt_sigprocmask(SIG_SETMASK, [HUP USR1 USR2 ALRM TERM CHLD],  <unfinished ...>
+4659  --- SIGSTOP (Stopped (signal)) @ 0 (0) ---
+1842  <... rt_sigprocmask resumed> NULL, 8) = 0
+4659  --- SIGSTOP (Stopped (signal)) @ 0 (0) ---
+1842  rt_sigprocmask(SIG_SETMASK, [HUP USR1 USR2 ALRM TERM],  <unfinished ...>
+4659  rt_sigprocmask(SIG_BLOCK, ~[RTMIN],  <unfinished ...>
+1842  <... rt_sigprocmask resumed> NULL, 8) = 0
+4659  <... rt_sigprocmask resumed> NULL, 8) = 0
+1842  poll( <unfinished ...>
+4659  rt_sigaction(SIGHUP, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGINT, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGQUIT, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGILL, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGTRAP, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGABRT, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGBUS, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGFPE, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGKILL, {SIG_IGN}, NULL, 8) = -1 EINVAL (Invalid argument)
+4659  rt_sigaction(SIGUSR1, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGSEGV, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGUSR2, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGPIPE, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGALRM, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGTERM, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGSTKFLT, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGCHLD, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGCONT, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGSTOP, {SIG_IGN}, NULL, 8) = -1 EINVAL (Invalid argument)
+4659  rt_sigaction(SIGTSTP, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGTTIN, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGTTOU, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGURG, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGXCPU, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGXFSZ, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGVTALRM, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGPROF, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGWINCH, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGIO, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGPWR, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGSYS, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGRT_1, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGRT_2, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGRT_3, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGRT_4, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGRT_5, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGRT_6, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGRT_7, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGRT_8, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGRT_9, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGRT_10, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGRT_11, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGRT_12, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGRT_13, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGRT_14, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGRT_15, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGRT_16, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGRT_17, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGRT_18, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGRT_19, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGRT_20, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGRT_21, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGRT_22, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGRT_23, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGRT_24, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGRT_25, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGRT_26, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGRT_27, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGRT_28, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGRT_29, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGRT_30, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGRT_31, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGRT_32, {SIG_IGN}, NULL, 8) = 0
+4659  rt_sigaction(SIGCHLD, {SIG_DFL}, NULL, 8) = 0
+4659  rt_sigprocmask(SIG_UNBLOCK, ~[RTMIN], NULL, 8) = 0
+4659  close(4)                          = 0
+4659  close(6)                          = 0
+4659  close(7)                          = 0
+4659  getpriority(PRIO_PROCESS, 0)      = 20
+4659  setpriority(PRIO_PROCESS, 0, -4)  = 0
+4659  getpriority(PRIO_PROCESS, 0)      = 24
+4659  lstat64("/software", {st_mode=S_IFDIR|0755, st_size=0, ...}) = 0
+4659  open("/software", O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY) = 4
+4659  fstat64(4, {st_mode=S_IFDIR|0755, st_size=0, ...}) = 0
+4659  fcntl64(4, F_SETFD, FD_CLOEXEC)   = 0
+4659  getdents64(4, /* 2 entries */, 4096) = 48
+4659  getdents64(4, /* 0 entries */, 4096) = 0
+4659  close(4)                          = 0
+4659  ioctl(5, AUTOFS_IOC_EXPIRE_MULTI, 0xbfffd6dc) = -1 EAGAIN (Resource temporarily unavailable)
+4659  lstat64("/software", {st_mode=S_IFDIR|0755, st_size=0, ...}) = 0
+4659  open("/software", O_RDONLY|O_NONBLOCK|O_LARGEFILE|O_DIRECTORY) = 4
+4659  fstat64(4, {st_mode=S_IFDIR|0755, st_size=0, ...}) = 0
+4659  fcntl64(4, F_SETFD, FD_CLOEXEC)   = 0
+4659  getdents64(4, /* 2 entries */, 4096) = 48
+4659  getdents64(4, /* 0 entries */, 4096) = 0
+4659  close(4)                          = 0
+4659  exit_group(0)                     = ?
+1842  <... poll resumed> [{fd=4, events=POLLIN}, {fd=6, events=POLLIN}], 2, -1) = -1 EINTR (Interrupted system call)
+1842  --- SIGCHLD (Child exited) @ 0 (0) ---
+1842  waitpid(-1, [WIFEXITED(s) && WEXITSTATUS(s) == 0], WNOHANG) = 4659
+1842  alarm(15)                         = 0
+1842  waitpid(-1, 0xbfffd574, WNOHANG)  = -1 ECHILD (No child processes)
+1842  write(7, "\1\0\0\0", 4)           = 4
+1842  sigreturn()                       = ? (mask now [HUP USR1 USR2 ALRM TERM])
+1842  poll([{fd=4, events=POLLIN}, {fd=6, events=POLLIN, revents=POLLIN}], 2, -1) = 1
+1842  read(6, "\1\0\0\0", 4)            = 4
+1842  rt_sigprocmask(SIG_BLOCK, [HUP USR1 USR2 ALRM TERM CHLD], [HUP USR1 USR2 ALRM TERM], 8) = 0
+1842  rt_sigprocmask(SIG_UNBLOCK, [HUP USR1 USR2 ALRM TERM CHLD], NULL, 8) = 0
+1842  poll( <unfinished ...>
