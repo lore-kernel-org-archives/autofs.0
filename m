@@ -1,12 +1,15 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: direct map limitations
-Date: Mon, 19 Jan 2004 08:30:39 +0800 (WST)
+From: Greg Bradner <gregb@rhythm.com>
+Subject: running out of mount points
+Date: Mon, 19 Jan 2004 07:48:53 -0800
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.33.0401190826350.27279-100000@wombat.indigo.net.au>
-References: <C28780ABC637504896EB86B4FB75FFBF455461@MAANDMBX1.ets.enterasys.com>
+Message-ID: <400BFC65.3000700@rhythm.com>
+References: <Pine.LNX.4.33.0401130932460.10047-100000@wombat.indigo.net.au>
+	<4004409C.6040900@sun.com> <Pine.LNX.4.58.0401142351470.1783@raven.themaw.net>
+	<40059944.4060901@rhythm.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <C28780ABC637504896EB86B4FB75FFBF455461@MAANDMBX1.ets.enterasys.com>
+In-Reply-To: <40059944.4060901@rhythm.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,67 +19,32 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: "Bahi, David" <dbahi@enterasys.com>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: autofs@linux.kernel.org
 
-On Sat, 17 Jan 2004, Bahi, David wrote:
+I wanted to repost this plea. I am really in a bind and could use some 
+help. I need to mount these users on the mail server.
+BTW: this is with autofs 4.1.0
 
-> is it not possible to use direct mounts on / with
->
-> /etc/auto.master:
->
->   /- /etc/auto.direct
->
-> /etc/auto.direct:
->
->   /only host:/some/path/of/interest
->
-> and with a running kernel that has
->
->
-> http://kernel.org/pub/linux/daemons/autofs/v4/autofs4-2.4-module-2003120
-> 1.tar.bz2
->
-> applied to 2.4.24
-> (messy as it is -
-> cleaner patch attached -
-> please check root.c in particular)
->
-> and with an rpmbuild --rebuild of
->
->   http://kernel.org/pub/linux/daemons/autofs/v4/autofs-4.1.0-2.src.rpm
->
-> on boot/startup of the autofs daemon (alias autofs autofs4 in
-> modules.conf)
->
-> /var/log/messages:
->
->   cache_ghost: entry in file:/etc/auto.direct not valid map format, key
-> /only
->
-> and of course 'ls /only' No such file or directory....
 
-This is a limitation of the implementation.
-It has been done this way largely because of the limit in the kernel on
-the maximum number of anonymous mounts.
+Greg Bradner wrote:
 
+> I have run into a problem of running out of mount points.  I have over 
+> 600 users and their home dirs are listed in auto.home and they are all 
+> stored on the same nfs server.  If I list the dirs, automount will 
+> create a seperate mount point for each user, and at ~256 mount points, 
+> no more home dirs can be mounted.
+> Is there a work around?
 >
-> looking at lib/cache.c it seems the logic is inverted so that the daemon
-> must find a /dir/ pattern so the automount daemon can 'watch over'
-> '/dir'
-> when a direct daemon needs to be able to listen over '/' too, no?
+> Here is the auto.master and snip of auto.home
 >
-> thanks for any feedback
 >
-> db
+> auto.master:
+> /home                   /etc/auto.maps/auto.home
+>        vers=3,hard,intr,nosuid,nodev,rw,retrans=4,timeo=15,mountvers=2
 >
-> ps i was going to try this - but figured it would just fail miserably
-
-Yes. This will not work.
-
-Sorry you'll have to wait for a new implementation.
-I have no idea of when that may be.
-
-Ian
+>
+> auto.home:
+> gregb ntap:/vol/vol0/u/&
+>
+>
