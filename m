@@ -1,61 +1,21 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH] autofs4 deadlock during expire - kernel 2.6 (fwd)
-Date: Tue, 23 Sep 2003 21:58:16 +0800 (WST)
-Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.44.0309232157490.2762-100000@raven.themaw.net>
+Subject: [PATCH] autofs4 deadlock during expire - kernel 2.6
+Date: Wed, 24 Sep 2003 21:01:56 +0800 (WST)
+Sender: linux-kernel-owner@vger.kernel.org
+Message-ID: <Pine.LNX.4.44.0309242059120.4975-100000@raven.themaw.net>
 Mime-Version: 1.0
-Return-path: <autofs-bounces@linux.kernel.org>
+Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: autofs mailing list <autofs@linux.kernel.org>
-
-
----------- Forwarded message ----------
-Date: Tue, 23 Sep 2003 21:47:23 +0800 (WST)
-From: Ian Kent <raven@themaw.net>
 To: Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Maneesh Soni <maneesh@in.ibm.com>, Jeremy Fitzhardinge <jeremy@goop.org>
-Subject: [PATCH] autofs4 deadlock during expire - kernel 2.6
+Cc: Maneesh Soni <maneesh@in.ibm.com>, autofs mailing list <autofs@linux.kernel.org>, Jeremy Fitzhardinge <jeremy@goop.org>
 
 
-I have noticed that a deadlock can occur in the autofs4 module in the 2.6 
-kernel and RedHat kernels with the O(1) scheduler patch. The easiest way 
-to reproduce it is with an autofs-4.0.0 tree mount with at least 10 mounts 
-within a Nautilus desktop environment with the module debug flag set. 
-Perhaps this is because of the longish amount of time spent in the expire 
-state.
+This is a corrected patch for the autofs4 daedlock problem I posted about 
+yesterday.
 
-The scenario:
-
-1) An expire locates an expirable dentry and signals the user space 
-daemon to umount it.
-2) During the umount operation Nautilus notices and scans entries in the 
-directory tree triggering a revalidate/lookup.
-3) autofs4 places the requesting process on the umount wait queue. 
-4) At completion of the expire both process are released from the wait 
-queue.
-5) If the lookup gets a quantum first deadlock occurs and expiration stops 
-leaving an autofs mount that is permanently busy.
-
-The following patch fixes this by ensuring that the expire gets a lookin 
-before the revalidate/lookup continues.
-
-The problem of the remount that this causes remains and I an not sure how 
-to deal with that at this stage.
-
-Comments and suggestions please.
-
-Is this acceptable for inclusion in the kernel?
-If so what should I do to make this happen?
+As before comments please.
 
 diff -Nur autofs4-2.6.orig/fs/autofs4/autofs_i.h autofs4-2.6.deadlock/fs/autofs4/autofs_i.h
 --- autofs4-2.6.orig/fs/autofs4/autofs_i.h	2003-09-09 03:50:14.000000000 +0800
@@ -70,8 +30,16 @@ diff -Nur autofs4-2.6.orig/fs/autofs4/autofs_i.h autofs4-2.6.deadlock/fs/autofs4
  
 diff -Nur autofs4-2.6.orig/fs/autofs4/waitq.c autofs4-2.6.deadlock/fs/autofs4/waitq.c
 --- autofs4-2.6.orig/fs/autofs4/waitq.c	2003-09-09 03:50:31.000000000 +0800
-+++ autofs4-2.6.deadlock/fs/autofs4/waitq.c	2003-09-23 00:02:29.209789432 +0800
-@@ -206,6 +206,11 @@
++++ autofs4-2.6.deadlock/fs/autofs4/waitq.c	2003-09-24 00:10:38.000000000 +0800
+@@ -165,6 +165,7 @@
+ 		wq->status = -EINTR; /* Status return if interrupted */
+ 		memcpy(wq->name, name->name, name->len);
+ 		wq->next = sbi->queues;
++		wq->owner = current;
+ 		sbi->queues = wq;
+ 
+ 		DPRINTK(("autofs_wait: new wait id = 0x%08lx, name = %.*s, nfy=%d\n",
+@@ -206,6 +207,11 @@
  
  		interruptible_sleep_on(&wq->queue);
  
