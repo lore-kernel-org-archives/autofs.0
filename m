@@ -1,97 +1,55 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: autofs4 patch: autofs4_wait can leak memory
-Date: Fri, 4 Mar 2005 10:48:03 -0500
-Message-ID: <16936.33587.974061.237160@segfault.boston.redhat.com>
-Reply-To: jmoyer@redhat.com
+From: Sev Binello <sev@bnl.gov>
+Subject: automount[ ]: failed to mount
+Date: Fri, 04 Mar 2005 17:30:46 -0500
+Message-ID: <4228E196.4090303@bnl.gov>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="QP67Nc5ul6"
 Content-Transfer-Encoding: 7bit
-Sender: linux-kernel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
 To: autofs@linux.kernel.org
-Cc: raven@themaw.net, linux-kernel@vger.kernel.org
 
 
---QP67Nc5ul6
-Content-Type: text/plain; charset=us-ascii
-Content-Description: message body text
-Content-Transfer-Encoding: 7bit
+Can anyone shed any light on the significance of the error messages below?
 
-Hi,
+We constantly get messages of the form ....
 
-There is a memory in the autofs4_wait function, if multiple processes are
-waiting on the same queue:
+Mar  4 11:28:57 acnlin43 automount[2740]: attempting to mount entry /cfs/g
+Mar  4 11:29:00 acnlin43 automount[14890]: mount(nfs): no host elected
+Mar  4 11:29:00 acnlin43 automount[14890]: failed to mount /cfs/g
 
-	name = kmalloc(NAME_MAX + 1, GFP_KERNEL);
-	if (!name)
-		return -ENOMEM;
-	...
+or just simply....
 
-	if ( !wq ) {
-		/* Create a new wait queue */
-		wq = kmalloc(sizeof(struct autofs_wait_queue), GFP_KERNEL);
-		if ( !wq ) {
-			kfree(name);
-			up(&sbi->wq_sem);
-			return -ENOMEM;
-		}
-		...
-		wq->name = name;
-
-		...
-	} else {
-		atomic_inc(&wq->wait_ctr);
-		up(&sbi->wq_sem);
-		...
-       }
-
-In the else clause, we forget to free the name we kmalloc'd above.  This is
-pretty easy to trigger with the following reproducer:
-
-setup an automount map as follows:
-for n in `seq 1 48`; do echo "$n server:/export/$n" >> /etc/auto.test; done
-setup a master map entry to point at this:
-echo "/test /etc/auto.test --timeout=1" >> /etc/auto.master
-
-Now, assuming the nfs server was setup to export said directories, run the
-following shell script in two xterms:
-
-#!/bin/sh
-while true; do
-        for n in `seq 1 48`; do
-                ls /test/$n
-        done
-        sleep 2
-done
-
-and watch the size-256 slab cache grow
-
-Within 4 minutes, I had the size-256 cache grow to 384k.  On a kernel with
-the below patch applied, the size-256 remained constant during an over-night
-run.
-
-The patch is against linux-2.6.9, but it applies to 2.6.11, as well.
-
--Jeff
-
-Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
+   Mar  4 09:58:17 acnlin42 automount[30250]: failed to mount /cfs/ad
 
 
---QP67Nc5ul6
-Content-Type: text/plain
-Content-Disposition: inline;
-	filename="linux-2.6.9-autofs-mem-leak.patch"
-Content-Transfer-Encoding: 7bit
 
---- linux-2.6.9/fs/autofs4/waitq.c.orig	2005-03-03 17:09:11.534047192 -0500
-+++ linux-2.6.9/fs/autofs4/waitq.c	2005-03-03 17:09:21.777489952 -0500
-@@ -224,6 +224,7 @@ int autofs4_wait(struct autofs_sb_info *
- 	} else {
- 		atomic_inc(&wq->wait_ctr);
- 		up(&sbi->wq_sem);
-+		kfree(name);
- 		DPRINTK("existing wait id = 0x%08lx, name = %.*s, nfy=%d",
- 			(unsigned long) wq->wait_queue_token, wq->len, wq->name, notify);
- 	}
+Followed by a successful mount not too long afterward...
+Mar  4 11:33:54 acnlin43 automount[2740]: attempting to mount entry /cfs/g
 
---QP67Nc5ul6--
+The failure bounces around to different filesystems -- using /cfs/g here 
+as an example --
+even though the nfs severs for these filesystems are up and running.
+
+We are running Redhat WS updates 1,2,3,4  and autofs-3.1.7-41 
+autofs-4.1.3-47
+our mounts look something like this ( we normally use udp, but also 
+tested with tcp)...
+in auto.master
+        /cfs    /etc/auto.cfs   --timeout 60
+in auto.cfs
+            g    -ro,intr,noquota,proto=tcp                
+acnlin34.pbn.bnl.gov:/cfsg
+
+
+
+Thanks,
+-Sev
