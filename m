@@ -1,12 +1,14 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: compatibility with solaris '[no]browse' mount option
-Date: Mon, 14 Jun 2004 15:17:55 -0400
+From: Jim Carter <jimc@math.ucla.edu>
+Subject: Re: Proposal for map refresh logic
+Date: Mon, 14 Jun 2004 13:11:13 -0700 (PDT)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <16589.63971.33237.4865@segfault.boston.redhat.com>
-Reply-To: jmoyer@redhat.com
+Message-ID: <Pine.LNX.4.58.0406141255550.3683@xena.cft.ca.us>
+References: <Pine.LNX.4.58.0405212143160.1592@donald.themaw.net>
+ <Pine.LNX.4.58.0405210855001.28570@simba.math.ucla.edu>
+ <Pine.LNX.4.58.0406142246320.16281@donald.themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <Pine.LNX.4.58.0406142246320.16281@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,13 +18,45 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: autofs@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: raven@themaw.net
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
-Hello,
+On Mon, 14 Jun 2004 raven@themaw.net wrote:
+> On Fri, 21 May 2004, Jim Carter wrote:
 
-I've currently got a request to support the browse mount option.  It seems
-do-able entirely in the init script (and this seems the right place).
-Would there be any objections to such an approach?
+> > > For a a cache hit we can:
+> > > 
+> > > 1. Check if the map entry has exceeded a given time to live, say
+> > >    the map expire time.
+> > > 2. If not continue as normal otherwise lookup the individual map
+> > >    entry and compare it to the cached entry.
+> > > 3. If they are identical continue as normal otherwise it's a hint
+> > >    the map has changed so re-read it.
+> > 
+> > Suggestion: set a flag saying "we know that this map is out of date", but 
+> > only re-read the whole thing when userspace expects to see up-to-date ghost 
+> > mounts.  Understood, that to read any one row from a file map you have to 
+> > read the whole thing; the suggestion makes a difference only for NIS and 
+> > LDAP -- where it makes a big difference.
 
--Jeff
+> What were you thinking of as defining "out of date" Jim?
+
+Item 3 -- we did the NIS lookup on this one entry because the TTL had
+expired, and NIS gave a different answer than the cache, so every cached
+entry from that map is probably wrong.  But there's no need to read the
+whole map; just clear the cached entries that came from it (except the one
+just read, known to be up to date).
+
+In subsequent discussion we may or may not have agreed that the only time 
+you need to read the whole map is when the caller does readdir, as results 
+from "ls /net" or "ls /net/hostname".  In that case you can't trust the 
+cache, because entries might have been added to the map and you'd never 
+know.  Someone pointed out that readdir may have to be used on an ordinary 
+file lookup if you have to dig through the directory to find the file.  
+I'm assuming that a successful cache lookup bypasses this readdir.
+
+James F. Carter          Voice 310 825 2897    FAX 310 206 6673
+UCLA-Mathnet;  6115 MSA; 405 Hilgard Ave.; Los Angeles, CA, USA 90095-1555
+Email: jimc@math.ucla.edu  http://www.math.ucla.edu/~jimc (q.v. for PGP key)
