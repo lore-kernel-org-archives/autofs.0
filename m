@@ -1,11 +1,17 @@
-From: "Simpson, Richard" <Richard.Simpson@wgint.com>
-Subject: RE: automount 4.1.3: unmount timeout not working
-Date: Fri, 28 Jan 2005 23:40:23 -0600
-Message-ID: <07C997312C46834CBC7C3B04A6FFABA406A56805@wgiptcemx01.wgint.net>
+From: raven@themaw.net
+Subject: Re: automount 4.1.3: unmount timeout not working
+Date: Sat, 29 Jan 2005 18:58:52 +0800 (WST)
+Message-ID: <Pine.LNX.4.61.0501291858060.10028@donald.themaw.net>
+References: <20050122215228.GA14303@tangens.sinus.cz>
+	<Pine.LNX.4.61.0501262240140.1716@donald.themaw.net>
+	<20050126194824.GA3627@tangens.sinus.cz>
+	<Pine.LNX.4.61.0501291154590.1607@donald.themaw.net>
+	<20050129044935.GA11104@tangens.sinus.cz>
+	<Pine.LNX.4.61.0501291243130.1607@donald.themaw.net>
+	<20050129060136.GA16475@tangens.sinus.cz>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <20050129060136.GA16475@tangens.sinus.cz>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,23 +22,38 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: raven@themaw.net, Pavel Troller <patrol@sinus.cz>
+Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
+Content-Transfer-Encoding: 7bit
+To: Pavel Troller <patrol@sinus.cz>
 Cc: autofs@linux.kernel.org
 
+On Sat, 29 Jan 2005, Pavel Troller wrote:
 
-> -----Original Message-----
-> From: autofs-bounces@linux.kernel.org
-> [mailto:autofs-bounces@linux.kernel.org]On Behalf Of raven@themaw.net
-> Sent: Friday, January 28, 2005 9:00 PM
-> To: Pavel Troller
-> Cc: autofs@linux.kernel.org
-> Subject: Re: [autofs] automount 4.1.3: unmount timeout not working
-> 
-> I'll have a look but does this work if you set the timeout to 
-> 4 seconds or 
-> above?
-> 
-For the record, I'm having _exactly_ the same problem as Pavel, on three different workstations all using Gentoo w/ a 2.6.10 kernel, and autofs 4.1.3. I even tried a knoppix 3.7 liveCD and got the same results (2.6.9 kernel and autofs 4.1.3). That would seem to rule out the distro, the kernel, and even me, since the liveCD is preconfigured. I've also tried a lot of different timeouts with no luck.
+>> What I'm looking for is log entries after the mount happens.
+>> Where you see the alarm firing and expire checks happening.
+>> Basically, you don't have any expiration happening (obviously) so the
+>> alarm timer must be set to 0. We need to establish why.
+>>
+>> So using the --debug should give you that.
+>> Include the log from each test please and I'll put together a patch to log
+>> some extra stuff.
+>>
+>> I'll go back through you mails to check what version your using.
+>>
+>> Ian
+> Hi Ian!
+>  Thanks for Your great care, I hope that we'll fix it soon!
+>  To save your time:
+> root@arcus:~# automount --version
+> Linux automount version 4.1.3
+>  And my /etc/init.d/autofs already contains
+> #       The automount options may be added here
+> #       e.g. amoptions='-t 15'
+> amoptions='--timeout 3 -d'
+>  so I think that the debug flag is already on.
+>                                      With regards, Pavel
+>
 
-Richard
+OK. How about the log with a timeout of 10.
+
+Ian
