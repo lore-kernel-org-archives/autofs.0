@@ -1,9 +1,11 @@
-From: raven@themaw.net
-Subject: Proposal for map refresh logic
-Date: Fri, 21 May 2004 22:31:53 +0800 (WST)
+From: James Pearson <james-p@moving-picture.com>
+Subject: Re: Busy inodes after unmount followed by Oops
+Date: Fri, 21 May 2004 16:44:28 +0100
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0405212143160.1592@donald.themaw.net>
+Message-ID: <40AE23DC.6C240DAE@moving-picture.com>
+References: <3FFE8B28.1E645E4E@moving-picture.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -14,72 +16,47 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: autofs mailing list <autofs@linux.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: nfs@lists.sourceforge.net, autofs@linux.kernel.org
 
+James Pearson wrote:
+> 
+> There was a long thread a few months ago about this subject:
+> 
+> http://marc.theaimsgroup.com/?t=106332683300004&r=1&w=2
+> 
+> and
+> 
+> http://marc.theaimsgroup.com/?t=106340013500006&r=1&w=2
+> 
+> I've read the posts but as far as I can tell, I can't find a 'solution'
+> to the problem (but I may have missed it in all the posts!)
+> 
+> I have the same problem with a large number of dual CPU machines running
+> 2.4.20 and above that make heavy use of autofs (v4.0.0pre10).
+> 
+> We get a:
+> 
+> VFS: Busy inodes after unmount. Self-destruct in 5 seconds.  Have a nice
+> day...
+> 
+> mesasage, followed some time later by Oops's from kswapd, umount or some
+> other user application.
+> 
+> Is there a 'fix' for this problem?
 
-Hi all,
+Just to follow up on my original posting back in January, the problem
+above appears to have been solved by using Ian Kent's latest autofs
+kernel patch (20040508) from
+http://www.kernel.org/pub/linux/daemons/autofs/v4 - we are also running
+the latest 4.1.2/4.1.3 automount daemon.
 
-Here are my thoughts on the automatic map refresh issue.
+We've been running this patch on over 400 machines for the last 10 or so
+days, and have not seen any instance of this 'VFS: Busy inodes after
+unmount/Oops' problem above - previously, we would have seen a
+significant number of these in the same time scale (and we are still
+seeing the problem on machines not using the patch).
 
-A few things to keep in mind are:
+Thanks
 
-1. Re-reading a map also removes stale entries unless they are
-   mounted. In this case they would not be removed until the
-   refresh following their umount.
-
-2. Using the success or failure of the mount operation is
-   unreliable at best and could, at best, lead to unwanted
-   map refreshes and at worst lead to a map reading storm.
-
-3. For file maps we cannot read a single entry so instead
-   the lookup of an individual entry amounts to checking the
-   map files' modification time. This value will be recorded
-   when the map is read.
-
-4. We need to take advantage of hints that the map may have
-   changed frequently in order to catch updated maps without
-   a large time lag.
-
-5. The HUP signal handling will remain to allow map refresh
-   on demand.
-
-There are two distinct cases to consider:
-
-1. A map lookup results in a cache hit.
-2. A map lookup results in a cache miss.
-
-For a a cache hit we can:
-
-1. Check if the map entry has exceeded a given time to live, say
-   the map expire time.
-2. If not continue as normal otherwise lookup the individual map
-   entry and compare it to the cached entry.
-3. If they are identical continue as normal otherwise it's a hint
-   the map has changed so re-read it.
-
-For a cache miss we can:
-
-1. Lookup the individual map entry.
-2. If this fails consider it as a real failure and continue.
-3. If it succeeds re-read the entire map as it must be out of date.
-
-This scheme avoids using the mount result as a hint.
-
-It should give a reasonably frequent refresh interval particularly for 
-map entries that change often.
-
-One further consideration remains.
-
-Should a time based (say 6-10 times the expire timeout) map refresh be 
-added to the above logic?
-
-I would prefer not as I'm not sure that it gets us much more than the 
-above scheme. The main point being that the map will be out of date for 
-an extended amount of time anyway and likely would be refreshed before
-timeout anyway if it has changed and is frequent use. 
-
-Comments please.
-
-Ian
+James Pearson
