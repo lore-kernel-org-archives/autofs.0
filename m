@@ -1,13 +1,12 @@
-From: devnull@adc.idt.com
+From: Ian Kent <raven@themaw.net>
 Subject: Re: autofs and 2.6.x
-Date: Mon, 10 May 2004 13:41:34 -0400 (EDT)
+Date: Tue, 11 May 2004 09:49:05 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.44.0405101332190.27883-100000@who.adc.idt.com>
-References: <Pine.LNX.4.58.0405102251560.28439@donald.themaw.net>
-Reply-To: devnull@adc.idt.com
+Message-ID: <Pine.LNX.4.58.0405110941010.9132@wombat.indigo.net.au>
+References: <Pine.LNX.4.44.0405101332190.27883-100000@who.adc.idt.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0405102251560.28439@donald.themaw.net>
+In-Reply-To: <Pine.LNX.4.44.0405101332190.27883-100000@who.adc.idt.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,38 +18,41 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: raven@themaw.net
+To: devnull@adc.idt.com
 Cc: AutoFS on Linux Kernel <autofs@linux.kernel.org>
 
-> Use the patches for your kernel at 
-> http://www.kernel.org/pub/linux/kernel/people/raven
+On Mon, 10 May 2004 devnull@adc.idt.com wrote:
+
+> > Use the patches for your kernel at 
+> > http://www.kernel.org/pub/linux/kernel/people/raven
+> > 
+> > and add this patch for the ioctls. It applies with a small offset but 
+> > achieves the desired result. This fixes the problem for me on sparc64 but 
+> > I'm not sure avout x86_64. Let me know.
 > 
-> and add this patch for the ioctls. It applies with a small offset but 
-> achieves the desired result. This fixes the problem for me on sparc64 but 
-> I'm not sure avout x86_64. Let me know.
-
-Doesnt seem to fix the problem. 
-
-autofs seems to work fine, but ghosting doesnt. 
-
-Is there anything else i can do on the machine to help debug the problem ?
-
+> Doesnt seem to fix the problem. 
 > 
-> --- linux-2.6.6-rc3-mm2/include/linux/compat_ioctl.h.orig	2004-05-09 23:06:04.000000000 +0800
-> +++ linux-2.6.6-rc3-mm2/include/linux/compat_ioctl.h	2004-05-09 23:04:19.000000000 +0800
-> @@ -546,6 +546,10 @@
->  COMPATIBLE_IOCTL(AUTOFS_IOC_PROTOVER)
->  COMPATIBLE_IOCTL(AUTOFS_IOC_EXPIRE)
->  COMPATIBLE_IOCTL(AUTOFS_IOC_EXPIRE_MULTI)
-> +COMPATIBLE_IOCTL(AUTOFS_IOC_PROTOSUBVER)
-> +COMPATIBLE_IOCTL(AUTOFS_IOC_ASKREGHOST)
-> +COMPATIBLE_IOCTL(AUTOFS_IOC_TOGGLEREGHOST)
-> +COMPATIBLE_IOCTL(AUTOFS_IOC_ASKUMOUNT)
->  /* DEVFS */
->  COMPATIBLE_IOCTL(DEVFSDIOC_GET_PROTO_REV)
->  COMPATIBLE_IOCTL(DEVFSDIOC_SET_EVENT_MASK)
+> autofs seems to work fine, but ghosting doesnt. 
+> 
+> Is there anything else i can do on the machine to help debug the problem ?
+> 
 
-I am applying all the patches(the ones from /people/raven and this one) to 
-the 2.6.4 tree. 
+Yep.
 
-Should i be trying 2.6.6 instead ?
+What OS do you have?
+Version?
+Does your OS use 64-bit exes?
+Evidence of that?
+
+> I am applying all the patches(the ones from /people/raven and this one) to 
+> the 2.6.4 tree.
+
+So you had to rebuild your kernel and reboot so it must be using the 
+update, right?
+ 
+> 
+> Should i be trying 2.6.6 instead ?
+
+No need.
+
+Ian
