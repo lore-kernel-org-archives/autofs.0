@@ -1,12 +1,14 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs and 2.6.x
-Date: Fri, 7 May 2004 09:54:02 +0800 (WST)
+Subject: Re: Severe problem with 4.1.2: automount caches NIS maps
+ forever
+Date: Fri, 7 May 2004 10:10:26 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0405070951550.6274@wombat.indigo.net.au>
-References: <Pine.LNX.4.44.0405061146430.1165-100000@who.adc.idt.com>
+Message-ID: <Pine.LNX.4.58.0405070956590.6274@wombat.indigo.net.au>
+References: <1083865163.18740.6.camel@serpentine.internal.keyresearch.com>
+ <409AAC9E.9000505@sedona.intel.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.44.0405061146430.1165-100000@who.adc.idt.com>
+In-Reply-To: <409AAC9E.9000505@sedona.intel.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,26 +20,53 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: devnull@adc.idt.com
-Cc: AutoFS on Linux Kernel <autofs@linux.kernel.org>
+To: Michael Blandford <mlblandf@sedona.ch.intel.com>
+Cc: autofs@linux.kernel.org
 
-On Thu, 6 May 2004 devnull@adc.idt.com wrote:
+On Thu, 6 May 2004, Michael Blandford wrote:
 
-> Has anyone gotten autofs-4.1.x ghosting to work on 2.6.x on x86_64 ?
+> Bryan O'Sullivan wrote:
 > 
-> I have FC1 running on a dual opteron machine and have patched
-> 2.6.4 with
+> >Hi -
+> >
+> >The autofs 4.1.2 release has a change in behaviour from earlier releases
+> >(4.1.0, I think, and 4.0.0 for sure) in that it never checks to see if a
+> >NIS-based automount map has changed.  This means that if I change the
+> >location of an autofs-mounted filesystem, I have to SIGHUP the automount
+> >daemons on every machine that care about that filesystem so that they'll
+> >forget the contents of the map and reload it.
+> >
+> >Needless to say, this doesn't scale in even a tiny way :-(
+> >  
+> >
+> Agreed.  You would think with all the testing I have done, I would have 
+> seen this one.
 > 
-> http://www.kernel.org/pub/linux/kernel/people/raven/autofs4-2.6/2.6.4/
+> I can easily replicate it and fix it with a SIGHUP.
 > 
-> all 8 files.
-> 
-> automount works, but ghosting doesnt. I have added --ghost to the startup 
-> script. 2.4.26 seems to work, but i need to use 2.6.4
-> 
-> Any help is much appreciated. 
+> Ian, do you have any thoughts on this one?
 
-I don't have a 64 bit x86 machine but presumably an Ultra sparc would give 
-similar results. I will try that when I get time.
+Yes.
 
+This changed in 4.1.0 because, to do browsable directoties the entire map 
+must be known in advance.
+
+It is wrong to say the daemon never checks any more. It never did and to 
+do so I need information about NIS and LDAP that I don't have at this 
+stage.
+
+In early stages I kept the "discover at mount time" behaviour but was 
+concerned that this lead to a missleading picture of the mount tree.
+
+So guys, the options here are:
+
+1) leave as is and use HUP signal to refresh maps.
+2) reintroduce the "discover at mount time" behaviour (possibly
+   with a periodic resync).
+3) add a periodic map refresh whose frequency is perhaps configurable.
+
+I must retain the cache that is used internally as when (if I ever) get to 
+working on fixing the current limitations the design will be heavily based 
+on that.
+ 
 Ian
