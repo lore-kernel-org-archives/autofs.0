@@ -1,14 +1,15 @@
 From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: Badness in interruptible_sleep_on
-Date: Fri, 7 May 2004 09:05:41 -0400
+Subject: Re: Status of >800 mounts
+Date: Fri, 7 May 2004 09:13:27 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <16539.35237.785906.37376@segfault.boston.redhat.com>
-References: <Pine.LNX.4.58.0405070532500.1979@fogarty.jakma.org>
+Message-ID: <16539.35703.175832.70086@segfault.boston.redhat.com>
+References: <409A7A7C.2000109@sedona.intel.com>
+	<20040506185528.GA5149@crashy.west.sun.com>
 Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0405070532500.1979@fogarty.jakma.org>
+In-Reply-To: <20040506185528.GA5149@crashy.west.sun.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,33 +20,31 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: Paul Jakma <paul@clubi.ie>
-Cc: Linux autofs <autofs@linux.kernel.org>
+To: Stew Smith <stew.smith@sun.com>
+Cc: autofs@linux.kernel.org
 
+==> Regarding Re: [autofs] Status of >800 mounts; Stew Smith <stew.smith@sun.com> adds:
 
-==> Regarding [autofs] Badness in interruptible_sleep_on; Paul Jakma <paul@clubi.ie> adds:
+stew.smith> On Thu, May 06, 2004 at 10:48:44AM -0700, Michael Blandford
+stew.smith> wrote:
+>> Hello,
+>> 
+>> What is the current status of having more than 800 nfs mounts ( on 2.4
+>> and 2.6 )?
+>> 
+>> I had heard there might be a patch to use one port per server instead of
+>> per mount.
+>> 
 
-paul> Hi, I regularly get the following in my logs: Badness in
-paul> interruptible_sleep_on at kernel/sched.c:1923 Call Trace:
+stew.smith> i am working on a patch currently which multiplexes nfs
+stew.smith> connections per sever so you end up with a 800 server limit,
+stew.smith> similar to the way nfsv4 works now.. i will send it out for
+stew.smith> review very soon after i ferret out a few bugs.
 
- [<c0120c9f>] interruptible_sleep_on+0x5a/0x230
- [<c01205a7>] default_wake_function+0x0/0xc
- [<d08ea491>] autofs4_wait+0x35d/0x509 [autofs4]
- [<c01c33dd>] inode_has_perm+0x57/0x5f
- [<d08e8572>] try_to_fill_dentry+0x39/0x25c [autofs4]
- [<c0173b4c>] do_lookup+0x54/0x72
- [<c01740e9>] link_path_walk+0x57f/0xcb1
- [<c0174b7d>] __user_walk+0x21/0x36
- [<c016f1ad>] vfs_lstat+0x11/0x37
+stew.smith> another idea we had was to add SO_REUSEADDR to rpc sockets so
+stew.smith> you have more available on a busy system.
 
-You need to update to the latest kernel patches.
-    http://www.kernel.org/pub/linux/kernel/people/raven/autofs4-2.6/
+Are you going to post the patches (or have you already) to the linux-nfs
+list?  If enough people find it useful, would be nice to get it upstream.
 
-Or, you could run with the mm tree.
-
-FYI, please indicate versions of software in the future when reporting a
-bug.
-
-Thanks!
-
-Jeff
+-Jeff
