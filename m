@@ -1,12 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs not mounting directories
-Date: Wed, 17 Mar 2004 11:24:36 +0800 (WST)
+Subject: Re: [autofs-4.1.1 patch] free of ap.path happens too early
+ in cleanup
+Date: Wed, 17 Mar 2004 22:19:45 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0403171118120.6566@wombat.indigo.net.au>
-References: <200403160358.MAA25667@tk3p108pos.tky.swissbank.com>
+Message-ID: <Pine.LNX.4.58.0403172217060.18212@raven.themaw.net>
+References: <16471.29962.851785.48804@segfault.boston.redhat.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200403160358.MAA25667@tk3p108pos.tky.swissbank.com>
+In-Reply-To: <16471.29962.851785.48804@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,26 +19,22 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Noel Hunt <huntno@ubs.com>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: autofs@linux.kernel.org
 
-On Tue, 16 Mar 2004, Noel Hunt wrote:
+On Tue, 16 Mar 2004, Jeff Moyer wrote:
 
+> Hello,
 > 
-> If `directory' is an automount mountpoint, is there some
-> difference between `cd directory', and say cron running
-> `/directory/bin/cmd', in the way that `directory' is
-> accessed? I understand the former will cause a chdir()
-> which will invoke autofs_root_lookup(); in the latter case,
-> I don't know what goes on.
+> ap.path gets free-d before we are done with it.  Specifically, callers of
+> umount_autofs often-times reference ap.path when next calling
+> cleanup_exit.  This patch moves the free-ing of ap.path to cleanup_exit.
+> Comments welcome.
+> 
 
-Yes.
+Hi Jeff,
 
-Sounds like you may be suffering from the same problem that was reported 
-by Michael Blandford. I'm mystified I haven't seen the problem before as 
-it is so fundamental to proper operation.
-
-I'll be looking to get a test group together from the list in a couple of 
-days.
+I don't mind moving the free as you recommend (it looks OK) but, after a 
+quick look, I can't see where ap.path is referred to out of context?
 
 Ian
