@@ -1,13 +1,15 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: automount
-Date: Tue, 3 Feb 2004 20:43:56 +0800 (WST)
+From: Greg Bradner <gregb@rhythm.com>
+Subject: Re: Strange autofs V4.0 problems
+Date: Tue, 03 Feb 2004 10:46:28 -0800
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0402032041570.4761@raven.themaw.net>
-References: <200402022049.10239.Joerg.Fichter@gmx.de>
+Message-ID: <401FEC84.40704@rhythm.com>
+References: <401EB843.5000501@analog.com>
+	<C7C7C062-55D7-11D8-B42C-000A95A011F0@qualcomm.com>
+	<401EE1BC.2020006@sedona.intel.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200402022049.10239.Joerg.Fichter@gmx.de>
+In-Reply-To: <401EE1BC.2020006@sedona.intel.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,20 +19,47 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="iso-8859-1"
-To: =?iso-8859-1?q?J=F6rg=20Fichter?= <Joerg.Fichter@gmx.de>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: Michael Blandford <mlblandf@sedona.ch.intel.com>
+Cc: autofs@linux.kernel.org, Mike Marion <mmarion@qualcomm.com>, Annie Mckeon <anne.bourgeois@analog.com>
 
-On Mon, 2 Feb 2004, [iso-8859-1] J=F6rg Fichter wrote:
+use the 'nonstrict' opition in your auto.net script.
 
-> Dear Sirs,
->=20
-> I've installed the automount system on my PC. Different user works on t=
-his=20
-> terminal! So I modified the auto.master file like this:
->=20
-> /misc	/etc/auto.misc		user, exec, uid=3D700, gid=3D500
->=20
+Michael Blandford wrote:
 
-In any case the user option allows a user to mount/umount the filesystem=20
-which is not applicable to automount as all mounts are caried out as root.
+> Mike Marion wrote:
+>
+>>
+>> The fact that you're seeing that in your logs shows that autofs is 
+>> working fine.. your host tried to mount the directory and was denied 
+>> by the server.  I'm seeing the exact same thing for some new linux 
+>> boxes I just installed over the weekend and some of our NetApp 
+>> filers, and we're seeing the same thing from some new Solaris hosts 
+>> as well.
+>>
+>> I'm wondering if there's some kind of name/ip caching bug on the 
+>> netapps that caches a deny for a very long period if you try to mount 
+>> before your netgroups/dns is updated with the new host information.
+>
+>
+>
+> If you can mount them by hand on the same box not using autofs, then 
+> it seems more likely to be an autofs issue.
+>
+> Michael
+>
+>
+> _______________________________________________
+> autofs mailing list
+> autofs@linux.kernel.org
+> http://linux.kernel.org/mailman/listinfo/autofs
+
+
+-- 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Rhythm & Hues
+5404 Jandy Place
+Los Angeles, CA 90066
+Voice: 310 448-7763
+Fax:   310 448-7600
+gregb@rhythm.com
