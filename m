@@ -1,12 +1,15 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: autofs-4.1.2-6 test rpms available
-Date: Thu, 6 May 2004 17:18:28 -0400
+From: Stew Smith <stew.smith@sun.com>
+Subject: Re: Status of >800 mounts
+Date: Thu, 6 May 2004 14:15:49 -0700
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <16538.43940.58650.642984@segfault.boston.redhat.com>
-Reply-To: jmoyer@redhat.com
+Message-ID: <20040506211549.GA6202@crashy.west.sun.com>
+References: <409A7A7C.2000109@sedona.intel.com>
+	<20040506185528.GA5149@crashy.west.sun.com>
+	<1083872373.5887.463.camel@d158140025182>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1083872373.5887.463.camel@d158140025182>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,22 +20,21 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: autofs@linux.kernel.org
 
-Here is the changelog for the latest version.  It includes Ian's latest
-replicated server patches, my yperror patch, and an init script patch to
-make option parsing more pedantic.  Available at:
-     http://people.redhat.com/~jmoyer/
+On Thu, May 06, 2004 at 12:39:33PM -0700, Chris Croswhite wrote:
+> Why only up to 800 (although this is a large number)?  There are
+> instances where I could have 1200-1600 clients connecting to the same
+> server (4 way opteron) if I could that many...
+> 
 
--Jeff
+this limit has been hardcoded in the sunrpc layer since the
+birth of time. it starts at 800 and counts down to 0 until
+it find an unused port. requring a privileged port gets
+you the default level of security NFSv3 provides...
 
-Changelog:
-* Thu May  6 2004   - 1:4.1.2-6
-- The lookup_yp module only dealt with YPERR_KEY, all other errors were
-  treated as success.  As a result, if the ypdomain was not bound, the
-  subprocess that starts mounts would SIGSEGV.  This is now fixed.
-- Option parsing in the init script was not precise enough, sometimes matching
-  filesystem options to one of --ghost, --timeout, --verbose, or --debug.
-  The option-parsing patch addresses this issue by making the regexp's much
-  more precise.
-- Ian has rolled a third version of the replicated mount fixes.
+anybody know why rpc doesn't use the full port 0-1023 range?
+
+--
+Stew Smith
