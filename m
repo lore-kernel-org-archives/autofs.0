@@ -1,13 +1,16 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [patch] Maintain backwards compatibility w/ local file maps w/o
- etc.
-Date: Thu, 21 Oct 2004 10:41:40 +0800 (WST)
+From: Chris Feist <cfeist@redhat.com>
+Subject: Re: [patch] Maintain backwards compatibility w/ local file maps
+	w/o etc.
+Date: Thu, 21 Oct 2004 10:28:43 -0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0410211040430.4454@wombat.indigo.net.au>
+Message-ID: <1098372523.9364.17.camel@gold.msp.redhat.com>
 References: <1098291410.3527.18.camel@localhost.localdomain>
+	 <Pine.LNX.4.58.0410211040430.4454@wombat.indigo.net.au>
+Reply-To: cfeist@redhat.com
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1098291410.3527.18.camel@localhost.localdomain>
+In-Reply-To: <Pine.LNX.4.58.0410211040430.4454@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,23 +20,26 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Chris Feist <cfeist@redhat.com>
+Content-Type: text/plain; charset="us-ascii"
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-On Wed, 20 Oct 2004, Chris Feist wrote:
 
-> This patch maintains the same behavior as in previous versions of
-> rc.autofs.in.  In the past you could have the following in your
-> auto.master file and it would test to see if there was a local
-> /etc/auto.misc file, and if there was it would use it.
-> 
-> /misc auto.misc
-> 
-> Now, it doesn't check.  I've attached a patch that fixes this behavior
-> (I think debian does the same thing with their autofs patches as well).
+> But this is a file map not a program map?
 
-But this is a file map not a program map?
+Yes, in the past (3.1.7 & 4.0.0) autofs would check for entries in the
+/etc/ directory even if it wasn't included in the auto.master file.
 
-Ian
+So, the following two files used to do the same thing:
+
+File A:
+/home /etc/auto.home
+
+File B:
+/home auto.home
+
+So when people upgrade from 3.1.7 or 4.0.0 to 4.1.3 their maps end up
+breaking.
+
+Thanks,
+Chris
