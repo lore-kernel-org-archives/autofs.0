@@ -1,11 +1,9 @@
-From: Todd Denniston <Todd.Denniston@ssa.crane.navy.mil>
-Subject: Re: Re: Automount/NFS issues causing executables to appear 
- corrupted
-Date: Tue, 20 Apr 2004 09:46:30 -0500
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: [patch] mount_ext2 forgets MOUNTED_LOCK in spawnl
+Date: Tue, 20 Apr 2004 10:46:21 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <408537C6.D3FDC158@ssa.crane.navy.mil>
-References: <200404200008.i3K08Zvs018948@radium.internal.synopsys.com>
-	<40853517.71EB10A9@ssa.crane.navy.mil>
+Message-ID: <16517.14269.189595.323548@segfault.boston.redhat.com>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
@@ -19,41 +17,28 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: Venkata Ravella <Venkata.Ravella@synopsys.com>, autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-Todd Denniston wrote:
-> 
-> question,
-> Is the file system mounted with the 'soft' option?
-> i.e. on the systems that are causing problems try
-> if mount | grep -i soft >>/dev/null 2>&1
-> then
->   echo "we have soft mounts"
-> else
->   echo "good, only normal mounts"
-> fi
-> 
-> We had a problem that caused me headaches for 6 months to track down... One of
-> the other admins had chosen to mount all the file systems with the soft option
-> and propagated this to all machines he could, that is to any I did not
-> control, and then people using his config started asking me why they were
-> getting IO errors transferring files to/from the file server I maintained.  if
-> the file was bigger than would fit in the normal [wr]size, which defaults to
-> 1024 bytes {or 4096 dependent on which kernel version I believe} the
-> probability of an IO error during normal operations went from 0 towards
-> certainty by the time the file was 650 MBytes, generally would happen by
-> ~100MBytes.
-> 
-> My server was a sun ultra 2 running solaris 2.6, the clients were Linux
-> running 2.[02].X and a mix of autofs-3 and autofs-4 (which ever was installed
-> with the distros, RH6-9 & Slack7-9.1).
-<SNIP>
+Hi Ian,
 
-typo
-they were actually 2.[24].X systems with maybe one 2.0.?? system hidden
-amongst the bunch.
+Seems you missed an option to spawnl for the ext2 fsck call.  Nils Philipp
+found (and fixed) this bug while trying to automount filesystems on loop
+devices.
 
--- 
-Todd Denniston
-Crane Division, Naval Surface Warfare Center (NSWC Crane) 
-Harnessing the Power of Technology for the Warfighter
+-Jeff
+
+--- autofs-4.1.2/modules/mount_ext2.c.ext2	2004-01-29 17:01:22.000000000 +0100
++++ autofs-4.1.2/modules/mount_ext2.c	2004-04-20 14:57:00.524935974 +0200
+@@ -87,10 +87,10 @@
+ #endif
+ 	if (ro) {
+ 		debug(MODPREFIX "calling %s -n %s", fsck_prog, what);
+-		err = spawnl(LOG_DEBUG, fsck_prog, fsck_prog, "-n", what, NULL);
++		err = spawnl(LOG_DEBUG, MOUNTED_LOCK, fsck_prog, fsck_prog, "-n", what, NULL);
+ 	} else {
+ 		debug(MODPREFIX "calling %s -p %s", fsck_prog, what);
+-		err = spawnl(LOG_DEBUG, fsck_prog, fsck_prog, "-p", what, NULL);
++		err = spawnl(LOG_DEBUG, MOUNTED_LOCK, fsck_prog, fsck_prog, "-p", what, NULL);
+ 	}
+ 
+ 	if (err & ~6) {
