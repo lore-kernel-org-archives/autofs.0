@@ -1,20 +1,19 @@
 From: raven@themaw.net
 Subject: Re: mount point created if automount map is empty during
  daemon startup?
-Date: Tue, 4 May 2004 23:52:46 +0800 (WST)
+Date: Tue, 4 May 2004 23:57:55 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0405042351460.17014@donald.themaw.net>
+Message-ID: <Pine.LNX.4.58.0405042354490.17014@donald.themaw.net>
 References: <20040504010928.GL14889@sun.com>
 	<Pine.LNX.3.96.1040503181623.4110A-100000@Maggie.Linux-Consulting.com>
 	<20040503175506.GA14889@sun.com>
 	<Pine.LNX.4.58.0405040904450.24480@wombat.indigo.net.au>
-	<20040504010928.GL14889@sun.com> <20040504122536.GK5041@neu.nirvana>
-	<Pine.LNX.4.58.0405042248180.17014@donald.themaw.net>
-	<Pine.LNX.4.58.0405042334080.17014@donald.themaw.net>
-	<4097BA21.5060307@freescale.com>
+	<20040504122536.GK5041@neu.nirvana> <4097AABF.5050709@freescale.com>
+	<16535.45364.767370.38110@segfault.boston.redhat.com>
+	<4097B8CF.9050104@freescale.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4097BA21.5060307@freescale.com>
+In-Reply-To: <4097B8CF.9050104@freescale.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -33,20 +32,39 @@ On Tue, 4 May 2004, Tom Georgoulias wrote:
 
 > raven@themaw.net wrote:
 > 
-> > We'll leave this to the people on the list to decide whether this 
-> > behaviour should be changed.
+> > Saw that patch. Was a bit curious about it. Didn't add it.
 > 
-> Well, from our point of view, it is nice to be able to create maps that 
-> are empty at first and not have to worry about populating them until 
-> later.  This gives us our group the flexibility to plan out in advance 
-> how our mounts will look, put the necessary mount points in place during 
-> the regular maintenance intervals (by rebooting the systems, something 
-> we can't always do), and adding map entries later on as the data is 
-> moved to the new location.
+> And it sounds like I ought to remove it, too.  :)
+> 
+> Judging by your test results on an empty map, an upgrade to 4.1.2 is in 
+> order.  Thanks for checking in to that, I appreciate it. I'll start 
+> working on getting out a new build of autofs to my systems.  4.1.3 is 
+> just around the corner, right?
 > 
 
-Good point.
+Yes.
 
-I'll be poking around to see what this means for the autofs code anyway.
+Yet another bug fix release.
+
+Not much in it.
+
+CHANGELOG so far:
+
+xx/xx/2004 autofs-4.1.3
+-----------------------
+- fixed bug processing --verbose option in init scripts.
+- added missing parameter in call to run fsck on ext2 module (from Jeff 
+Moyer).
+- added check for executable existance in getldapmounts in init script.
+- updated comment about option handling in getmounts in init script.
+- updated kernel module patches.
+- fix to init script for reload option.
+- autofs now requires autoconf later than 2.5
+
+Plus the replicated server patch I'm currently working on and another 
+kernel module patch update.
+
+I think that will be it for 4.1.3 as the kernel module patches need to be 
+updated due to corrections.
 
 Ian
