@@ -1,8 +1,8 @@
 From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Mailing list fixed
-Date: Mon, 29 Dec 2003 12:11:02 -0800
+Subject: Mailing list check...
+Date: Mon, 29 Dec 2003 12:25:26 -0800
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <3FF08A56.2090704@zytor.com>
+Message-ID: <3FF08DB6.6000306@zytor.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
@@ -18,12 +18,7 @@ Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"; format="flowed"
 To: autofs <autofs@kernel.org>
 
-Sorry... it appears this mailing list has been out of commission over 
-the holidays due to a misconfiguration involving the spam filtering system.
-
-It should be working again now; please re-send any messages that didn't 
-make it.
-
-Sorry about that,
+It seems the mailing list is still having some problems... trying
+again...
 
 	-hpa
