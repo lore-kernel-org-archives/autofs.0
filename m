@@ -1,15 +1,15 @@
-From: Robin Rosenberg <robin.rosenberg.lists@dewire.com>
-Subject: Re: Exporting UID to userspace?
-Date: Tue, 8 Jun 2004 00:53:33 +0200
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [RFC] rpc_ping and looong timeouts
+Date: Tue, 8 Jun 2004 08:56:34 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <200406080053.33383.robin.rosenberg.lists@dewire.com>
-References: <E1B7C89B8DCB084C809A22D7FEB90B3841A4@frodo.avalon.ru>
-	<40C49290.8060309@sun.com>
+Message-ID: <Pine.LNX.4.58.0406080855390.17060@wombat.indigo.net.au>
+References: <16575.35426.918728.134817@segfault.boston.redhat.com>
+	<Pine.LNX.4.58.0406040909310.8991@wombat.indigo.net.au>
+	<16576.51269.311121.121046@segfault.boston.redhat.com>
+	<40C4B3FF.3060005@sedona.intel.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <40C49290.8060309@sun.com>
-Content-Disposition: inline
+In-Reply-To: <40C4B3FF.3060005@sedona.intel.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,54 +19,27 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: autofs@linux.kernel.org
-Cc: Mike Waychison <Michael.Waychison@sun.com>
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Michael Blandford <mlblandf@sedona.ch.intel.com>
+Cc: autofs@linux.kernel.org
 
-On Monday 07 June 2004 18.06, Mike Waychison wrote:
-> My real problem with this RFE is that there is no indication on how you
-> are planning to acquire the user credentials.
-Does it matter if you know it  *is* possible. My idea is to do as I do today,
-but with an extra lookup based on uid. That is the script executed by
-automount would 
+On Mon, 7 Jun 2004, Michael Blandford wrote:
 
-> For instance:
-> - how are you going to acquire terminal information with just a uid/gid
-> pair?
-Simple case: don't need it. Assume the user has entered all info in a file
-named ~uid/.autofs/credentials
-host, share, remoteuid,remotepass
+> Jeff Moyer wrote:
+> 
+> >This patch simply implements an icmp ping (code shamelessly stolen from
+> >clumanager), and does this before even attempting to do the rpc pings.  If
+> >the icmp ping works, then we continue as usual.  This takes care of the
+> >host down case quite nicely:
+> >
+> >  
+> >
+> 
+> Would this patch cause problems for those of us who have icmp blocked?  
+> If so, could we make it a run time option to enable/disable?
+> 
 
-I'm a samba user so I could think of using Smb4K or similar to set up 
+So you have ICMP blocked but allow NFS?
 
-Or like the gpg agent that can bring up a window. 
-~uid/.autofspipe
-
-But I'd simply use the first version to start with.
-
-> - how are you going to handle the case where there was no terminal?
-> - what about when there was no terminal, but there were X resources
-> available? (kernelspace wouldn't know anything about this at all..)
-
-> Shouldn't this RFE also include some proposal for how you are going to
-> ensure that only a single uid ever attempts access to the automounted
-> directory as well? (if needed?)
-Well, uh.. 
-..good point. 
-
-The directory can be shared if the permissions allow it so there is no 
-absolute requirement for always separating users (but probably that is
-the common need). But that's more of an extra feature for those file systems 
-that support this.
-
-I was thinking of ~uid/Network\ Neighborhood, but then autofs cannot do
-/home/*/Network\ Neighborhood, I think.
-
-Come to think of it.. There's a product called Sharity that does this. 
-Actually it seem to do exactly what I want for CIFS without automount. 
-Everything gets listed under /CIFS. The mount deamon talks to an agent 
-running on the user's terminal, X or wherever the user decides and prompts 
-for credentials if necessary. If no agent is running its can read info from a
-pre-setup file or access will fail.
-
--- robin
+Ian
