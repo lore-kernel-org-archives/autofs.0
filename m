@@ -1,12 +1,16 @@
-From: raven@themaw.net
-Subject: Re: autofs-4.1.2 -- patch
-Date: Thu, 17 Jun 2004 22:48:25 +0800 (WST)
+From: Jim Carter <jimc@math.ucla.edu>
+Subject: Re: Proposal for map refresh logic
+Date: Thu, 17 Jun 2004 09:56:15 -0700 (PDT)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0406172247230.1403@donald.themaw.net>
-References: <Pine.LNX.4.58.0406151303350.2724@pcl321.mppmu.mpg.de>
+Message-ID: <Pine.LNX.4.58.0406170951550.18774@simba.math.ucla.edu>
+References: <Pine.LNX.4.58.0405212143160.1592@donald.themaw.net>
+ <Pine.LNX.4.58.0405210855001.28570@simba.math.ucla.edu>
+ <Pine.LNX.4.58.0406142246320.16281@donald.themaw.net>
+ <Pine.LNX.4.58.0406141255550.3683@xena.cft.ca.us>
+ <Pine.LNX.4.58.0406150926540.6253@wombat.indigo.net.au>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0406151303350.2724@pcl321.mppmu.mpg.de>
+In-Reply-To: <Pine.LNX.4.58.0406150926540.6253@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,18 +22,26 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Peter Breitenlohner <peb@mppmu.mpg.de>
-Cc: autofs@linux.kernel.org
+To: Ian Kent <raven@themaw.net>
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
-On Tue, 15 Jun 2004, Peter Breitenlohner wrote:
+On Tue, 15 Jun 2004, Ian Kent wrote:
 
-> Hi,
+> On Mon, 14 Jun 2004, Jim Carter wrote:
+> > Item 3 -- we did the NIS lookup on this one entry because the TTL had
+> > expired, and NIS gave a different answer than the cache, so every cached
+> > entry from that map is probably wrong.  But there's no need to read the
+> > whole map; just clear the cached entries that came from it (except the one
+> > just read, known to be up to date).
 > 
-> I'd like to suggest the attached patch for autofs-4.1.2 fixing various
-> minor bugs, typos, and inconsistencies.
-> 
+> One thing I had in mind with this is that map updates are generally small, 
+> a few records or so.
 
-Thanks for your patch Peter.
-I'll add in the the next release.
+Only a few records change at any one time.  But which ones changed?  The
+only way the client (automounter) can find out is to read the whole map.  
+Even NIS itself uploads the whole map every time to its slave servers,
+although NIS+ has an incremental update feature.
 
-Ian
+James F. Carter          Voice 310 825 2897    FAX 310 206 6673
+UCLA-Mathnet;  6115 MSA; 405 Hilgard Ave.; Los Angeles, CA, USA  90095-1555
+Email: jimc@math.ucla.edu    http://www.math.ucla.edu/~jimc (q.v. for PGP key)
