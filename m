@@ -1,13 +1,12 @@
-From: Timo Felbinger <Timo.Felbinger@physik.uni-potsdam.de>
-Subject: Re: LDAP binding
-Date: Wed, 13 Oct 2004 21:03:36 +0200 (CEST)
+From: Robert Giles <rgiles@arlut.utexas.edu>
+Subject: Infinite loop when trying to access nonexistent directory
+ (auto.home '&' substitution)
+Date: Fri, 15 Oct 2004 19:36:15 -0500 (CDT)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0410132057180.27709@uranos.quantum.physik.uni-potsdam.de>
-References: <be4ff6020410130412116e1f1f@mail.gmail.com>
-Reply-To: Timo.Felbinger@physik.uni-potsdam.de
+Message-ID: <Pine.LNX.4.61.0410151425360.7091@orion.arlut.utexas.edu>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <be4ff6020410130412116e1f1f@mail.gmail.com>
+Content-ID: <Pine.LNX.4.61.0410151426271.7091@orion.arlut.utexas.edu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,65 +16,81 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
 To: autofs@linux.kernel.org
 
+Hi folks - I'm seeing a really unusual problem when I try to access a 
+nonexistent mount under /home - cd'ing into "/home/asdf" causes the 
+automounter to get stuck in what appears to be an infinite loop (in the 
+example below, something tried to access /home/lock and caused the 
+problem):
 
-On Wed, 13 Oct 2004, linux user wrote:
+Oct 15 14:13:55 seneca automount[16767]: mount(nfs): nfs: mount failure brain-nfs:/ldisk/md0/home/lock on /home/lock
+Oct 15 14:13:55 seneca automount[16767]: failed to mount /home/lock
+Oct 15 14:13:55 seneca automount[16769]: >> mount: brain-nfs:/ldisk/md0/home/lock failed, reason given by server: No such file or directory
+Oct 15 14:13:55 seneca automount[16769]: mount(nfs): nfs: mount failure brain-nfs:/ldisk/md0/home/lock on /home/lock
+Oct 15 14:13:55 seneca automount[16769]: failed to mount /home/lock
+Oct 15 14:13:55 seneca automount[16771]: >> mount: brain-nfs:/ldisk/md0/home/lock failed, reason given by server: No such file or directory
+Oct 15 14:13:55 seneca automount[16771]: mount(nfs): nfs: mount failure brain-nfs:/ldisk/md0/home/lock on /home/lock
+Oct 15 14:13:55 seneca automount[16771]: failed to mount /home/lock
+Oct 15 14:13:55 seneca automount[16773]: >> mount: brain-nfs:/ldisk/md0/home/lock failed, reason given by server: No such file or directory
+Oct 15 14:13:55 seneca automount[16773]: mount(nfs): nfs: mount failure brain-nfs:/ldisk/md0/home/lock on /home/lock
+Oct 15 14:13:55 seneca automount[16773]: failed to mount /home/lock
+Oct 15 14:13:55 seneca automount[16775]: >> mount: brain-nfs:/ldisk/md0/home/lock failed, reason given by server: No such file or directory
+Oct 15 14:13:55 seneca automount[16775]: mount(nfs): nfs: mount failure brain-nfs:/ldisk/md0/home/lock on /home/lock
+Oct 15 14:13:55 seneca automount[16775]: failed to mount /home/lock
+Oct 15 14:13:55 seneca automount[16777]: >> mount: brain-nfs:/ldisk/md0/home/lock failed, reason given by server: No such file or directory
+Oct 15 14:13:55 seneca automount[16777]: mount(nfs): nfs: mount failure brain-nfs:/ldisk/md0/home/lock on /home/lock
+Oct 15 14:13:55 seneca automount[16777]: failed to mount /home/lock
 
-> Dear all,
->
-> We have Redhat Linux  clients that are migrating from NIS to LDAP
-> using the RFC2307, the ldap server is a SUN ONE DS 5.1 which runing on
-> a Solaris 8.0, The linux clients (different red hat releases 7.3,8.0,
-> RHEL 2.1, and 3.0)
->
-> We could not do autofs lookups as they seem to be binding anonoumsly
-> as seen from the log files, also from the code we can see that is the
-> case as follows :
->
-> file modules/lookup_ldap.c:
->            ldap_simple_bind_s(ldap, NULL, NULL);   /*  LDAPv3 */
->
-> But in fact, according to the OpenLDAP header file (ldap.h):
->             ldap_simple_bind_s(LDAP *ld, char *who, char *passwd);
->
-> So, my question is would that be changed to bind using simple bind by
-> passing the credniatls as seen in the configration files later on? the
-> who, and the password in the above lookup_ldap.c function, as we do
-> not have control over the ldap server as its run by different
-> department, and they require us to do a simple bind passing
-> credentials.
+<...and on and on until /var/log/syslog fills up the disk...>
 
-I don't know about simple bind with credentials; I've never tried that.
-However if "SASL external" (ie, basically RSA public key authentication
-via client certificates) would work for you as a client authentication
-mechanism, I can confirm that it is possible to get this to work with
-autofs. Since you are asking for TLS, your server is probably already
-using server certificates to authenticate itself to the clients. I'm
-currently configuring our clients to do essentially the reverse and use
-the ssh_host_rsa_key (which every client has anyway) to authenticate
-itself to the server.
+I'm not sure if this is the same bug mentioned in 
+autofs-4.1.3-strict.patch.  ???
 
-I can post a patch if someone is interested, but I need to put some
-more work into it to make it a little less ugly...
+Problem surfaced when I upgraded from 2.4.25 to 2.4.27, but it doesn't 
+look like there were any autofs4 changes made between 2.4.25 and 2.4.27. 
+If it makes any difference, I am using the SNARE C2 auditing patches for 
+the kernel, but I don't think those would have any impact on autofs.
 
-> also what is the status of autofs when it comes to using LDAPS instead
-> over SSL/TLS instead of just standard ldap.
+I'm seeing this problem regardless of what autofs package I use (SuSE 9.0 
+autofs3, autofs4.0.0-pre10, or the latest autofs-4.1.3 + patches from 
+kernel.org).
 
-This part is already working fine and stable here.
-I posted a link to a modified lookup_ldap module which can speak TLS a
-little while ago (http://www.timof.qipc.org/autofs-4.1.3-patch).
+I've upgraded util-linux to 2.12b and nfs-utils to 1.06, no luck.  Have 
+also upgraded nfs-utils server-side, no luck.
 
+I also applied the autofs4-2.4.22-20040508.patch to 2.4.27 and haven't 
+seen any change in behavior (the autofs-4.1.3-strict.patch mentioned a 
+the kernel patch might be required if the problem didn't go away).
 
-Regards,
+More details about my system:
 
-Timo Felbinger
+automount:  Linux automount version 4.1.3
+mount:  mount-2.12b
 
+uname -a: Linux seneca 2.4.27 #4 Tue Sep 14 14:42:16 CDT 2004 i686 i686 i386 GNU/Linux
+   (built again today with the autofs4 kernel patch, no change)
 
--- 
-Timo Felbinger                  <Timo.Felbinger@physik.uni-potsdam.de>
-Quantum Physics Group           http://www.quantum.physik.uni-potsdam.de
-Institut fuer Physik            Tel: +49 331 977 1793      Fax: -1767
-Universitaet Potsdam, Germany
+# /etc/auto.master
+----
+/home   /etc/auto.home
+/proj   /etc/auto.proj
+/data   /etc/auto.data
+/info   /etc/auto.info
+/scratch /etc/auto.scratch
+----
+
+# /etc/auto.home
+----
+* -fstype=nfs,rw,soft,intr brain-nfs:/ldisk/md0/home/&
+----
+
+Have also tried /etc/auto.home without ANY options, no difference.
+
+Any possible solutions you all could throw out there would be greatly 
+appreciated - I'm stumped!
+
+Robert Giles
+ARL:UT
