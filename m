@@ -1,47 +1,43 @@
-From: Trond Myklebust <trond.myklebust@fys.uio.no>
-Subject: Re: Re: Busy inodes after unmount followed by Oops
-Date: Fri, 21 May 2004 12:44:04 -0400
-Sender: nfs-admin@lists.sourceforge.net
-Message-ID: <1085157843.3666.75.camel@lade.trondhjem.org>
+From: James Pearson <james-p@moving-picture.com>
+Subject: Re: [NFS] Re: Busy inodes after unmount followed by Oops
+Date: Fri, 21 May 2004 17:58:26 +0100
+Sender: autofs-bounces@linux.kernel.org
+Message-ID: <40AE3532.8EBA0D7B@moving-picture.com>
 References: <3FFE8B28.1E645E4E@moving-picture.com>
-	 <40AE23DC.6C240DAE@moving-picture.com>
+	<1085157843.3666.75.camel@lade.trondhjem.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
-Return-path: <nfs-admin@lists.sourceforge.net>
-In-Reply-To: <40AE23DC.6C240DAE@moving-picture.com>
-Errors-To: nfs-admin@lists.sourceforge.net
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=unsubscribe>
+Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
-List-Post: <mailto:nfs@lists.sourceforge.net>
-List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
-Content-Type: text/plain; charset="macroman"
-To: James Pearson <james-p@moving-picture.com>
-Cc: nfs@lists.sourceforge.net, autofs@linux.kernel.org
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+To: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: autofs@linux.kernel.org, nfs@lists.sourceforge.net
 
-P=E5 fr , 21/05/2004 klokka 11:44, skreiv James Pearson:
+Trond Myklebust wrote:
+>=20
+> P=E5 fr , 21/05/2004 klokka 11:44, skreiv James Pearson:
+>=20
+> > We've been running this patch on over 400 machines for the last 10 or=
+ so
+> > days, and have not seen any instance of this 'VFS: Busy inodes after
+> > unmount/Oops' problem above - previously, we would have seen a
+> > significant number of these in the same time scale (and we are still
+> > seeing the problem on machines not using the patch).
+>=20
+> Note  that Greg's patch for solving the NFS client issues that were
+> revealed by this bug is in 2.4.26 (and in 2.6.5)...
 
-> We've been running this patch on over 400 machines for the last 10 or so
-> days, and have not seen any instance of this 'VFS: Busy inodes after
-> unmount/Oops' problem above - previously, we would have seen a
-> significant number of these in the same time scale (and we are still
-> seeing the problem on machines not using the patch).
+Not quite sure what you mean by this - I had tried Greg's patch
+(http://marc.theaimsgroup.com/?l=3Dlinux-nfs&m=3D107604754127538&w=3D2)
+previously - but it made no difference in my case. The kernel I'm using
+now has both Greg's patch and Ian's recent autofs4 patch.
 
-Note  that Greg's patch for solving the NFS client issues that were
-revealed by this bug is in 2.4.26 (and in 2.6.5)...
-
-Cheers,
-  Trond
-
-
--------------------------------------------------------
-This SF.Net email is sponsored by: Oracle 10g
-Get certified on the hottest thing ever to hit the market... Oracle 10g. 
-Take an Oracle 10g class now, and we'll give you the exam FREE.
-http://ads.osdn.com/?ad_id=3149&alloc_id=8166&op=click
-_______________________________________________
-NFS maillist  -  NFS@lists.sourceforge.net
-https://lists.sourceforge.net/lists/listinfo/nfs
+James Pearson
