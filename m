@@ -1,12 +1,18 @@
 From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
-Subject: Re: [ANNOUNCE] autofs 4.1.4 beta1 release
-Date: Wed, 26 Jan 2005 16:13:44 +0100
-Message-ID: <20050126151344.GA841@uio.no>
-References: <Pine.LNX.4.61.0501262151370.1716@donald.themaw.net>
+Subject: Re: NIS maps loading.
+Date: Wed, 26 Jan 2005 16:16:02 +0100
+Message-ID: <20050126151602.GB841@uio.no>
+References: <41F56D27.1080005@redhat.com>
+	<Pine.LNX.4.58.0501250904250.21644@wombat.indigo.net.au>
+	<20050125121827.GE2032@ba.issia.cnr.it>
+	<16886.26557.799629.351909@segfault.boston.redhat.com>
+	<20050125155021.GC8093@ba.issia.cnr.it>
+	<20050125165045.GA8642@uio.no>
+	<Pine.LNX.4.61.0501262249150.1716@donald.themaw.net>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.61.0501262151370.1716@donald.themaw.net>
+In-Reply-To: <Pine.LNX.4.61.0501262249150.1716@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,32 +27,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: autofs@linux.kernel.org
 
-On Wed, Jan 26, 2005 at 10:17:53PM +0800, raven@themaw.net wrote:
-> So let me know when you find more and I'll fix`em as quick as I can!
+(No need to send directly to me anymore, I'm on the list :-) )
 
-Looks like you missed a patch or two from the Debian archive, at least:
+On Wed, Jan 26, 2005 at 10:53:02PM +0800, raven@themaw.net wrote:
+> Umm ... I hope I haven't made life difficult for you with 4.1.4 beta.
+> There are a dswag of changes.
 
-- Quite recently, I uploaded a patch for the debian/event.d script, but this
-  is probably not relevant for the upstream distribution.
-- There is a patch for rc.autofs.in missing, changing an "else" to en "elif".
-  The idea is that failure in loading the autofs4 module should not break
-  first-time installation (see http://bugs.debian.org/280276).
-- There seem to have been a lot of changes in rc.autofs.in (especially
-  related to timeout parsing); I'm unable to follow them all, but I hope
-  you've done the right thing in merging in the Debian patches here :-)
-- The rc.autofs.in searches for "^automount: ", which breaks if a tab is used
-  instead of a space (see http://bugs.debian.org/277320).
-- I'm also having a hard time figuring out whether parse_sun.c does the right
-  thing wrt. handling whitespace at the end of maps or not; the code looks
-  different, at least, but I think it's broken for non-multimaps. Could you
-  verify? (Of course, the simplest thing is probably to test :-) )
-- I can't see if lookup_file.c handles maps without a trailing newline now
-  (Debian patch 051_maps_without_trailing_newline.diff has a hackish fix
-  which is obviously not applied, but you might have implemented it
-  differently).
+Yes, I noticed -- I'll probably let it live in experimental for a while
+before uploading to unstable, as we're quite near a freeze now.
 
-Apart from those, it appears like everything else from Debian's 4.1.3 package
-is in, at least -- which removes the need for twenty or so local patches :-)
+> I've worked through and applied as many of the Debian patches as I could.
+> Please let me know if there's more that I can do to help.
+
+See my last mail to the list; I guess most of the points should be in there.
+Overall, you're making my work a lot easier :-)
 
 /* Steinar */
 -- 
