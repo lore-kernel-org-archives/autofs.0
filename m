@@ -1,12 +1,17 @@
-From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
-Subject: Re: [ANNOUNCE] autofs 4.1.4 beta2 release
-Date: Tue, 15 Feb 2005 03:04:14 +0100
-Message-ID: <20050215020414.GA953@uio.no>
-References: <Pine.LNX.4.61.0502142233210.1653@donald.themaw.net>
-	<20050215014857.GA26216@uio.no>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: [PATCH 3/5] logging to stderr
+Date: Tue, 15 Feb 2005 08:28:45 -0500
+Message-ID: <16913.63757.849983.485803@segfault.boston.redhat.com>
+References: <200502111155.33706.vda@port.imtp.ilyichevsk.odessa.ua>
+	<200502111159.50103.vda@port.imtp.ilyichevsk.odessa.ua>
+	<200502111201.43507.vda@port.imtp.ilyichevsk.odessa.ua>
+	<200502111203.58345.vda@port.imtp.ilyichevsk.odessa.ua>
+	<16912.49643.760509.977965@segfault.boston.redhat.com>
+	<Pine.LNX.4.58.0502150923460.22172@wombat.indigo.net.au>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20050215014857.GA26216@uio.no>
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <Pine.LNX.4.58.0502150923460.22172@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,27 +23,27 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: autofs@linux.kernel.org
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org
 
-On Tue, Feb 15, 2005 at 02:48:57AM +0100, Steinar H. Gunderson wrote:
-> Apart from that, looks like everything went in; I'm building a new version
-> now and will upload after I get your feedback on the points above.
+==> Regarding Re: [autofs] [PATCH 3/5] logging to stderr; Ian Kent <raven@themaw.net> adds:
 
-I just found another bug; on upgrades, autofs attempts to restart itself,
-which invokes "debian stop"; this invokes something like
+raven> On Mon, 14 Feb 2005, Jeff Moyer wrote:
+>> ==> Regarding [autofs] [PATCH 3/5] logging to stderr; Denis Vlasenko
+>> <vda@port.imtp.ilyichevsk.odessa.ua> adds:
+>> 
+vda> Add code, but do not switch rest of program to use it, yet.
+>> I'm curious, what is the motivation for this?
 
-  start-stop-daemon --stop --quiet --retry USR2/$DAEMON_EXIT_WAIT --pidfile $file --exec /usr/sbin/automount
+raven> I believe it relates to the patch before this.  Putting autofs in
+raven> the foreground we want as much debug info as we can get.
 
-The problem here is that the pid does not really run /usr/sbin/automount
-anymore; or more correctly, /proc/<pid>/exe does not point to the current
-/usr/sbin/automount, it points to the _old_ /usr/sbin/automount, and that
-version was just removed as part of the upgrade.  Thus, the stop fails, and the
-entire upgrade fails.
+I still haven't heard an answer from the original poster.
 
-Any good ideas? Stripping the --exec would be the easiest solution, but
-perhaps also the ugliest...
- 
-/* Steinar */ 
--- 
-Homepage: http://www.sesse.net/
+Putting autofs in the foreground doesn't buy you much, except to debug
+initialization.  Much of the "business logic" is executed in forked
+processes.  I'm not against this, but I must say that I find all of the
+information I need to debug autofs problems in the logs.  That's why I'm
+curious as to why someone would invest the time in these patches.
+
+-Jeff
