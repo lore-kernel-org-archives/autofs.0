@@ -1,28 +1,54 @@
-From: "Lever, Charles" <Charles.Lever@netapp.com>
-Subject: RE: [NFS] RE: [autofs] multiple servers per automount
-Date: Wed, 15 Oct 2003 07:31:47 -0700
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <482A3FA0050D21419C269D13989C6113020AC516@lavender-fe.eng.netapp.com>
+From: Greg Bradner <gregb@rhythm.com>
+Subject: autofs v4
+Date: Thu, 23 Oct 2003 09:08:24 -0700
+Sender: autofs-bounces@linux.kernel.org
+Message-ID: <3F97FCF8.5020903@rhythm.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-content-class: urn:content-classes:message
+Content-Transfer-Encoding: 7bit
+Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: Ian Kent <raven@themaw.net>
-Cc: Joseph V Moss <jmoss@ichips.intel.com>, "Ogden, Aaron A." <aogden@unocal.com>, Mike Waychison <Michael.Waychison@Sun.COM>, autofs mailing list <autofs@linux.kernel.org>, nfs@lists.sourceforge.net, Kernel Mailing List <linux-kernel@vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: autofs@linux.kernel.org
 
-Ian Kent said:
-> Do you think that the possible NFS port allocation problems
-> should hold up this work or should it drive updates to NFS?
 
-hi ian-
+It is not making the mount  points for program mounts. Any ideas?
 
-the port stuff has to be addressed at some point, but i don't
-think you should wait for it, because it is behind a long queue
-of other RPC work (like Kerberos for Linux NFS) that has a
-higher priority.  also, there are other patches that partially
-address this limitation, and certainly those will be used by
-the desparate few who need it now. :^)
+This is from /etc/auto_maps/autofs_host_mount.pl, my program for program 
+mounts.
+PARGS /usr/sbin/automount --timeout 60 /n program 
+/etc/auto_maps/autofs_host_mount.pl vers=2,mountvers=2 
+rsize=32768,wsize=32768
+TEST = --timeout
+TEST = 60
+TEST = /n
+BASEDIR = /n (2)
+MOUNT OPTS: -o  vers=2,mountvers=2,rsize=32768,wsize=32768
+am_mount -o  vers=2,mountvers=2,rsize=32768,wsize=32768 linn:/etc 
+/n/linn/etc
+am_mount -o  vers=2,mountvers=2,rsize=32768,wsize=32768 linn:/usr 
+/n/linn/usr
+am_mount -o  vers=2,mountvers=2,rsize=32768,wsize=32768 linn:/local/b 
+/n/linn/local/b
+am_mount -o  vers=2,mountvers=2,rsize=32768,wsize=32768 linn:/local/a 
+/n/linn/local/a
+/n/linn
 
-IMHO.
+[34] lid2:/# tail /var/log/messages
+Oct 23 08:55:50 lid2 am_mount[11720]: am_mount /n/linn/usr
+Oct 23 08:55:50 lid2 automount[2281]: attempting to mount entry /n/linn
+Oct 23 08:55:50 lid2 am_mount[11725]: am_mount /n/linn/etc
+Oct 23 08:55:50 lid2 am_mount[11726]: am_mount /n/linn/usr
+Oct 23 08:55:50 lid2 am_mount[11727]: am_mount /n/linn/local/b
+Oct 23 08:55:50 lid2 am_mount[11728]: am_mount /n/linn/local/a
+Oct 23 08:55:50 lid2 automount[11722]: >> mount: wrong fs type, bad 
+option, bad superblock on ,
+Oct 23 08:55:50 lid2 automount[11722]: >>        or too many mounted 
+file systems
