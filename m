@@ -1,12 +1,12 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: [ANNOUNCE] autofs v4 beta3 (fwd)
-Date: Fri, 14 Nov 2003 08:24:37 +0800 (WST)
+Date: Fri, 14 Nov 2003 08:26:47 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.33.0311140823140.28052-100000@wombat.indigo.net.au>
-References: <3FB397B9.9010600@rhythm.com>
+Message-ID: <Pine.LNX.4.33.0311140825480.28052-100000@wombat.indigo.net.au>
+References: <3FB3A8A9.80402@rhythm.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <3FB397B9.9010600@rhythm.com>
+In-Reply-To: <3FB3A8A9.80402@rhythm.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -23,15 +23,10 @@ Cc: autofs@linux.kernel.org
 
 On Thu, 13 Nov 2003, Greg Bradner wrote:
 
-> I have multiple mount points on a NetApp, but I don't have 'access'
-> permissions to all of them.  When autofs encountered a permission denied
-> on one of the mount points, it didn't mount any of them.  Shouldn't it
-> just skip over the permission denied one and still mount the others?
+> I should also add this is for 'program' mounts.
+>
 
-More info please.
-
-What does your map entry look like?
-What version of autofs are you using?
+Yes and what does the program output when given approiate inputs?
 
 
 -- 
