@@ -1,13 +1,11 @@
-From: raven@themaw.net
-Subject: Re: fsck and already mounted filesystems
-Date: Sun, 30 May 2004 13:08:34 +0800 (WST)
+From: Ian Kent <raven@themaw.net>
+Subject: [PATCH] autofs-4.1.3 - fix mischief caused by changed
+	default nonstrict -> sctrict
+Date: Sun, 30 May 2004 21:17:15 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0405301259240.18235@donald.themaw.net>
-References: <200405271510.i4RFAqxp019860@pookie.nersc.gov>
- <Pine.LNX.4.58.0405281012410.6708@wombat.indigo.net.au>
+Message-ID: <Pine.LNX.4.58.0405302106510.13691@donald.themaw.net>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0405281012410.6708@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,45 +17,62 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: canon@nersc.gov
-Cc: autofs@linux.kernel.org
+To: autofs mailing list <autofs@linux.kernel.org>
+Cc: Axel Thimm <Axel.Thimm@atrpms.net>, Michael Blandford <michael@kmaclub.com>
 
-On Fri, 28 May 2004, Ian Kent wrote:
 
-> On Thu, 27 May 2004 canon@nersc.gov wrote:
-> 
-> > 
-> > Sorry about the latency in my reply.
-> > 
-> > I first noticed this problem on the autofs distributed
-> > with FC2 (4.1.2).  I tested 4.1.3 and it didn't appear to
-> > fix it (I had noticed the patch).  Version 3.1.7 worked okay,
-> > probably because it didn't attempt an fsck before mounting
-> > ext2/3 file systems.  You can easily test it by creating
-> > a map like such...
-> > 
-> > cat > /etc/auto.local << EOF
-> > root      -fstype=ext3          :/dev/<root partition>
-> > EOF
-> > 
-> > automount /local file /etc/auto.local
-> > 
-> > Attempting to access /local/root will fail because the
-> > fsck failed since the file system is already mounted.
-> 
-> I can see how this happens.
-> 
-> I'll see what I can do.
+Problem: infinite error loop occurs when trying to access non-exitent
+         directory.
 
-Had a brief look at this.
+This patch, for 4.1.3, fixes the problem caused when the default for
+multi-mounts was changed from strict to non-strict. This change tickled
+a bug in the old autofs4 kernel module found in 2.4 kernels and 2.6
+kernels to date (ie. < 2.6.7).
 
-So far all I can see is that, when using the above it uses the 
-mount_generic module which doesn't do an fsck and mounts the fs. 
-This is probably not what we want but is what happens now.
+This change in default caused a small change in mount logic which went
+unnoticed and lead to this problem. So the kernel interaction problem
+remains but is much less likely to occur. If this problem persists
+after applying this patch then update your kernel autofs4.
 
-If ext2 is specified, with appropriate changes to allow for fsck failures, 
-then after passing the mount fails with an already mounted message?
+The patch restores the previous logic but leaves the new default.
 
-Anymore thoughts.
+diff -Nur autofs-4.1.3.orig/modules/parse_sun.c autofs-4.1.3/modules/parse_sun.c
+--- autofs-4.1.3.orig/modules/parse_sun.c	2004-05-18 20:22:40.000000000 +0800
++++ autofs-4.1.3/modules/parse_sun.c	2004-05-29 15:38:42.000000000 +0800
+@@ -602,10 +602,8 @@
+ 			      options);
+ 	}
 
-Ian
+-	if (nonstrict && rv) {
+-		debug("ignoring failure of non-strict mount");
+-		return 0;
+-	}
++	if (nonstrict && rv)
++		return -rv;
+
+ 	return rv;
+ }
+@@ -746,7 +744,11 @@
+ 			free(loc);
+ 			free(myoptions);
+
+-			if (rv)
++			/* Convert non-strict failure into success */
++			if (rv < 0) {
++				rv = 0;
++				debug("parse_mount: ignoring failure of non-strict mount");
++			} else if (rv > 0)
+ 				break;
+
+ 		} while (*p == '/');
+@@ -789,6 +791,10 @@
+ 		      options, loclen, loc);
+
+ 		rv = sun_mount(root, name, name_len, loc, loclen, options);
++		/* non-strict failure to normal failure for ordinary mount */
++		if (rv < 0)
++			rv = -rv;
++
+ 		free(loc);
+ 		free(options);
+ 	}
