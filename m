@@ -1,17 +1,19 @@
 From: raven@themaw.net
 Subject: Re: mount point created if automount map is empty during
  daemon startup?
-Date: Tue, 4 May 2004 23:27:58 +0800 (WST)
+Date: Tue, 4 May 2004 23:37:29 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0405042325370.17014@donald.themaw.net>
+Message-ID: <Pine.LNX.4.58.0405042334080.17014@donald.themaw.net>
 References: <20040504010928.GL14889@sun.com>
 	<Pine.LNX.3.96.1040503181623.4110A-100000@Maggie.Linux-Consulting.com>
+	<20040503175506.GA14889@sun.com>
 	<Pine.LNX.4.58.0405040904450.24480@wombat.indigo.net.au>
 	<20040504010928.GL14889@sun.com> <20040504122536.GK5041@neu.nirvana>
 	<Pine.LNX.4.58.0405042248180.17014@donald.themaw.net>
+	<4097B610.6090405@freescale.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0405042248180.17014@donald.themaw.net>
+In-Reply-To: <4097B610.6090405@freescale.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -26,32 +28,23 @@ Content-Transfer-Encoding: 7bit
 To: Tom Georgoulias <tom.georgoulias@freescale.com>
 Cc: autofs mailing list <autofs@linux.kernel.org>
 
-On Tue, 4 May 2004 raven@themaw.net wrote:
+On Tue, 4 May 2004, Tom Georgoulias wrote:
 
-> On Tue, 4 May 2004, Tom Georgoulias wrote:
+> raven@themaw.net wrote:
 > 
-> > Ran into an issue today where many of my systems running autofs4 do not 
-> > have a mount point for one my automount maps.  The map in question, 
-> > auto.sync, has existed since mid-March but remained empty until last 
-> > week when an entry was added to create the /sync/caches mount.  Is this 
-> > expected behavior or do I have a misconfiguration or bug on my hands?
-> > 
-> > hatfield12:tomg$ ypcat -k auto.sync
-> > cache duncan:/vol/vol02/sync_caches/&
-> > hatfield12:tomg$ ls -ld /sync
-> > ls: /sync: No such file or directory
-> > hatfield12:tomg$ /sbin/service autofs status | grep sync
-> > /usr/sbin/automount /sync yp auto.sync -rw,hard,intr rsize=32768,wsize=32768
-> >
+> > Can you try killing and then starting that automount process by hand.
 > 
-> Bit odd.
+> There wasn't any daemon running for that mount, so I started it by hand 
+> and the mount is now functional.
 > 
-> I'll try to duplicate this using an empty map.
+> I'm really confused as to why there wasn't a daemon running in the first 
+> place.  There should've been, right?  I just checked a second system 
+> where this was an issue and it is the same, not automount running for 
+> /sync.  Starting it manually also gets the mount working.
 
-Mmm. Tried this with an empty file map.
-Got a "failed to load map, exiting" message.
-Seems reasonable to me.
+Yes, I check it. See my last post on this.
 
-Can you update to Jeff Moyers latest RPM please.
+We'll leave this to the people on the list to decide whether this 
+behaviour should be changed.
 
 Ian
