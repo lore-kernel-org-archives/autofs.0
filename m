@@ -1,13 +1,12 @@
-From: Michael Blandford <mlblandf@sedona.ch.intel.com>
-Subject: Re: autofs4 and NIS
-Date: Mon, 05 Jan 2004 09:21:51 -0700
+From: Paul Raines <raines@nmr.mgh.harvard.edu>
+Subject: Re: rm hangs on symlinks to down mount points
+Date: Tue, 6 Jan 2004 11:23:42 -0500 (EST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <3FF98F1F.6010709@sedona.intel.com>
-References: <200401010159.12640.autofs@dylan.me.uk>
+Message-ID: <Pine.LNX.4.44.0401061115160.16793-100000@gate.nmr.mgh.harvard.edu>
+References: <3FF21106.4000907@zytor.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200401010159.12640.autofs@dylan.me.uk>
+In-Reply-To: <3FF21106.4000907@zytor.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,33 +16,37 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Dylan <autofs@dylan.me.uk>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: autofs@linux.kernel.org
 
-Dylan wrote:
+I am now in one of the unmountable mount situation I described
+before:
 
->Hello all,
->
->I'm currently using autofs4 to mount nfs shares. The config files are 
->distributed via NIS, which overall is working without a hitch. I have 
->two related problems, however...
->
->It is, obviously, necessary to restart the NIS server from time to time, 
->in order to take account of config changes (usually changes to user 
->accounts.) When I do this, the following occurs:
->  
->
-I think we need to address this issue in particular.  I can't think of 
-any reason you need to restart your NIS master for config changes.  We 
-have masters/slaves that have been up for years at a time without 
-restarting.  These probably see > 100 map changes/pushes a day.  What 
-changes are being made that a 'make' in /var/yp doesnt solve?
+[root@gate /root]# umount /autofs/space/meso_013
+umount: /autofs/space/meso_013: device is busy
+[root@gate /root]# umount -f /autofs/space/meso_013
+umount2: Device or resource busy
+umount: /autofs/space/meso_013: Illegal seek
+[root@gate /root]# find /proc -lname '*meso*' 2>&1 | grep -v 'No such'
+[root@gate /root]# fuser -m /autofs/space/meso_013
+/autofs/space/meso_013: Stale NFS file handle
+[root@gate /root]# ps auxw | grep auto
+root       650  0.0  0.1  1612  580 ?        S     2003   0:02 
+/usr/sbin/automount /autofs/space yp auto.space intr,rw,hard,nodev,rs
 
-Also, you can set up a NIS slave/secondary to handle any connections in 
-the event the master is unavailable or to help handle the load.  Then 
-you always have NIS coverage.
+As you can see, no process is advertising itself as one that is
+keeping the mount "busy".  So I see nothing I can kill.  There
+are no automount subprocesses, just the parent one.  I can try 
+stopping that but I have over 30 users on the system now and I
+would rather not cause an interruption.
 
-I think if you solve this problem, the others will become non issues. 
+Is there any other solution?  Any better way to hunt for processes
+that are keeping a mount busy?
 
-Michael
+-- 
+---------------------------------------------------------------
+Paul Raines                   email: raines@nmr.mgh.harvard.edu
+MGH/MIT/HMS Athinoula A. Martinos Center for Biomedical Imaging
+149 (2301) 13th Street        Charlestown, MA 02129	USA   
