@@ -1,8 +1,8 @@
-From: Michael Blandford <michael@kmaclub.com>
+From: "H. Peter Anvin" <hpa@zytor.com>
 Subject: Re: Problem with autofs 3.1.7 -> 4.1.0-beta2
-Date: Sat, 06 Dec 2003 23:43:46 -0700
+Date: Sun, 07 Dec 2003 01:14:54 -0800
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <3FD2CC22.6050401@kmaclub.com>
+Message-ID: <3FD2EF8E.6060309@zytor.com>
 References: <Pine.LNX.4.44.0312071347540.2974-100000@raven.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -21,27 +21,15 @@ Content-Type: text/plain; charset="us-ascii"; format="flowed"
 To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
+Ian Kent wrote:
+> 
+> This looks like a NIS map. Shouldn't the / be a * in this case and 
+> shouldn't the wildcard map entry come last. I thouht that the defined 
+> behaviour of the wildcard map entry was that once it is encountered map 
+> processing stops.
+> 
 
->This looks like a NIS map. Shouldn't the / be a * in this case and 
->shouldn't the wildcard map entry come last. I thouht that the defined 
->behaviour of the wildcard map entry was that once it is encountered map 
->processing stops.
->
->  
->
-Yes, I didnt know how to represent what was in ldap very well so I made 
-it look like it did in NIS.
+Nope... especially not for non-file maps where there really is no such 
+thing as "order"...
 
-If there is a good way to do an ldapsearch to show the exact config, 
-please show me the syntax and I would be happy to report that back.
-
-According to the automount man page, the wildcard for ldap is a / so 
-that is what I was using.  What I thought was odd was it was always 
-choosing the same thing and it *wasn't* the wildcard.
-
-I didnt think there was ordering per say in the nis or ldap maps.
-
-If my config is wrong, or if I cant do wildcards in this way, that is 
-fine.  I just know it works differently between 3.1.7 and 4.1.0.
-
-Michael
+	-hpa
