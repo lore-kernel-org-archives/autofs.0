@@ -1,25 +1,26 @@
 From: Ion Badulescu <lists@news.cs.columbia.edu>
-Subject: Re: VFS: Busy inodes after unmount on 2 way SMP
-Date: Fri, 12 Sep 2003 19:33:37 -0400
-Sender: nfs-admin@lists.sourceforge.net
-Message-ID: <200309122333.h8CNXbW09877@moisil.badula.org>
-References: <3F610F3C.5040704@intel.com>
-Return-path: <nfs-admin@lists.sourceforge.net>
-In-Reply-To: <3F610F3C.5040704@intel.com>
-Errors-To: nfs-admin@lists.sourceforge.net
-List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
-List-Post: <mailto:nfs@lists.sourceforge.net>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
+Subject: Re: [NFS] VFS: Busy inodes after unmount on 2 way SMP
+Date: Fri, 12 Sep 2003 19:58:30 -0400 (EDT)
+Sender: autofs-bounces@linux.kernel.org
+Message-ID: <Pine.LNX.4.44.0309121957040.9830-100000@moisil.badula.org>
+Mime-Version: 1.0
+Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Arun Sharma <arun.sharma@intel.com>
-Cc: nfs@lists.sourceforge.net, autofs@vger.kernel.org
+To: autofs@linux.kernel.org
+
+Sorry, I got the autofs list address wrong the first time around. -Ion
+
+---------- Forwarded message ----------
 
 On Thu, 11 Sep 2003 17:11:40 -0700, Arun Sharma <arun.sharma@intel.com> wrote:
 
@@ -50,12 +51,3 @@ Ion
 -- 
   It is better to keep your mouth shut and be thought a fool,
             than to open it and remove all doubt.
-
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
-_______________________________________________
-NFS maillist  -  NFS@lists.sourceforge.net
-https://lists.sourceforge.net/lists/listinfo/nfs
