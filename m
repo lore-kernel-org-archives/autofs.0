@@ -1,7 +1,7 @@
 From: raven@themaw.net
 Subject: Re: [PATCH 0/5] rediffed patches
-Date: Sun, 13 Feb 2005 20:26:08 +0800 (WST)
-Message-ID: <Pine.LNX.4.61.0502132017290.2089@donald.themaw.net>
+Date: Sun, 13 Feb 2005 21:25:29 +0800 (WST)
+Message-ID: <Pine.LNX.4.61.0502132122240.1843@donald.themaw.net>
 References: <200502111155.33706.vda@port.imtp.ilyichevsk.odessa.ua>
 Mime-Version: 1.0
 In-Reply-To: <200502111155.33706.vda@port.imtp.ilyichevsk.odessa.ua>
@@ -26,20 +26,28 @@ On Fri, 11 Feb 2005, Denis Vlasenko wrote:
 >
 > Please comment /apply
 
-I like em.
+All that glitters is not gold.
 
-I can see you've put a lot of effort into them and first glance looks 
-good.
+My Ultra SPARC doesn't like the logging patches much.
+Managed to carsh automount in a flash.
 
-I was going to put out beta2 tonight but now I've received your patches 
-I'm going to have to delay a couple of days (it's already late).
+Still it could be my fault I'll check further.
 
-The fact that you've broken them down so I can see what's going on and the 
-way you've done the logging goes further than what I set out to do when I 
-first changed it. It's just what I wanted originally.
-
-However, I must push back on the PATH patch claiming it's a security hole. 
-I would feel better about it if we overroad the PATH within the daemon 
-with something suitable.
+Feb 13 21:20:14 donald automount[1786]: starting automounter version , path = (null), maptype = (null), mapname = (null)
+Feb 13 21:20:14 donald automount[1786]: mount(bind): bind_works = -268438712
+Feb 13 21:20:14 donald automount[1786]: using kernel protocol version -268437552.00
+Feb 13 21:20:14 donald automount[1786]: using timeout -268437552 seconds; freq 0 secs
+Feb 13 21:20:14 donald automount[1786]: ghosting enabled
+Feb 13 21:20:30 donald automount[1786]: sig -268438664 switching from 0 to 0
+Feb 13 21:20:30 donald automount[1786]: get_pkt: state -268438184, next 8
+Feb 13 21:20:30 donald automount[1786]: st_expire(): state = -268438288
+Feb 13 21:20:30 donald automount[1786]: expire_proc: exp_proc=-268438808
+Feb 13 21:20:30 donald automount[1786]: handle_child: got pid -268439072, sig 0 (0), stat 0
+Feb 13 21:20:30 donald automount[1786]: sigchld: exp -268439072 finished, switching from 0 to 0
+Feb 13 21:20:30 donald automount[1786]: get_pkt: state -268438184, next 8
+Feb 13 21:20:30 donald automount[1786]: st_ready(): state = -268438288
+Feb 13 21:20:38 donald automount[1786]: handle_packet: type = -268437928
+Feb 13 21:20:38 donald automount[1786]: process -268445208 got unexpected signal 0!
+Feb 13 21:20:38 donald automount[1786]: sig -268445208 switching from 0 to 0
 
 Ian
