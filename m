@@ -1,14 +1,12 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: backfstype parameter supported.
-Date: Wed, 30 Jun 2004 07:50:33 +0800 (WST)
+Subject: Re: How to build autofs RPM package?
+Date: Wed, 30 Jun 2004 07:52:06 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0406300748090.32407@wombat.indigo.net.au>
-References: <40E1632D.1080903@deragon.biz>
-	<Pine.LNX.4.58.0406292140380.14746@donald.themaw.net>
-	<40E17F4F.6060307@deragon.biz>
+Message-ID: <Pine.LNX.4.58.0406300750590.32407@wombat.indigo.net.au>
+References: <40E1C305.7070500@deragon.biz>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <40E17F4F.6060307@deragon.biz>
+In-Reply-To: <40E1C305.7070500@deragon.biz>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -25,17 +23,15 @@ Cc: autofs@linux.kernel.org
 
 On Tue, 29 Jun 2004, Hans Deragon wrote:
 
-> > Those messages are difficult to eliminate as they often come from 
-> > mount(8) itself.
+> Greetings.
 > 
-> In cachefs case, we know that Linux does not support it.  Should we simply catch 
-> it and immediately try the backfstype?  This would avoid the errors.
 > 
-> Is automount used on any OS where cachefs is supported?  Anyhow, I could 
-> implement a #ifdef LINUX statement which will catch cachefs only for Linux OS. 
-> Anybody knows of an actual macro I could use to figure out if the kernel is Linux?
+>    How does one build an RPM package for autofs?  I notice that a autofs.spec is 
+> provided, but no instructions.  I could fool around to get an RPM, but if there 
+> is a receipe, I would like to know it and see it documented in the README file.
 
-autofs is a Linux automounter so we need to worry about clashes, like 
-this, with centralised map stores shared by other OSs.
+rpmbuild -tb autofs-4.1.3.tar.gz
+
+man rpm
 
 Ian
