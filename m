@@ -1,71 +1,118 @@
-From: Chris Fanning <christopher.fanning@gmail.com>
-Subject: Re: autofs and terminal networks woes.
-Date: Thu, 17 Feb 2005 16:15:04 +0100
-Message-ID: <215ff441050217071517292c1a@mail.gmail.com>
-References: <215ff441050217023378003e72@mail.gmail.com>
-	<Pine.LNX.4.61.0502172136030.1683@donald.themaw.net>
-	<215ff441050217060647db41dc@mail.gmail.com>
-	<Pine.LNX.4.61.0502172203440.1683@donald.themaw.net>
-Reply-To: Chris Fanning <christopher.fanning@gmail.com>
+From: Dan Stromberg <strombrg@dcs.nac.uci.edu>
+Subject: Re: NFS readonly failover and linux?
+Date: Fri, 18 Feb 2005 11:08:25 -0800
+Message-ID: <1108753705.5897.114.camel@seki.nac.uci.edu>
+References: <1106871309.6181.254.camel@seki.nac.uci.edu>
+	 <Pine.LNX.4.61.0501291127450.1607@donald.themaw.net>
+	 <1107205302.4071.17.camel@seki.nac.uci.edu>
+	 <Pine.LNX.4.58.0502010945400.25875@wombat.indigo.net.au>
+	 <16895.57760.531261.8465@segfault.boston.redhat.com>
+	 <1108677567.5897.55.camel@seki.nac.uci.edu>
+	 <Pine.LNX.4.58.0502181207490.20922@wombat.indigo.net.au>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <Pine.LNX.4.61.0502172203440.1683@donald.themaw.net>
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-YaBtl/z3N3I//KU+75ST"
+In-Reply-To: <Pine.LNX.4.58.0502181207490.20922@wombat.indigo.net.au>
+Sender: nfs-admin@lists.sourceforge.net
+Errors-To: nfs-admin@lists.sourceforge.net
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
+	<mailto:nfs-request@lists.sourceforge.net?subject=unsubscribe>
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: "raven@themaw.net" <raven@themaw.net>
-Cc: autofs@linux.kernel.org
-
-ok. downloaded, compiled and installed.
-This works great!
-
-Thankyou.
-Chris.
+List-Post: <mailto:nfs@lists.sourceforge.net>
+List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
+	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
+To: Ian Kent <raven@themaw.net>
+Cc: strombrg@dcs.nac.uci.edu, jmoyer@redhat.com, autofs mailing list <autofs@linux.kernel.org>, nfs@lists.sourceforge.net
 
 
+--=-YaBtl/z3N3I//KU+75ST
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, 17 Feb 2005 22:10:58 +0800 (WST), raven@themaw.net
-<raven@themaw.net> wrote:
-> On Thu, 17 Feb 2005, Chris Fanning wrote:
-> 
-> > Hi Ian,
-> >
-> >> Versions?
-> >>
-> > 4.1.3-9
-> >
-> >> Perhaps you need to use ://thinclient_ip/fd
-> >
-> > So, do you suggest I upgrade?
-> 
-> Only if you can solve the problems you face. Certainly not without plenty
-> of testing.
-> 
-> > When might 4.1.4 be available for debian testing?
-> 
-> I guess that will depend on the Debian folks.
-> I'm hoping they will push 4.1.4 into the Debian tree fairly soon after it
-> is released. I've tried to get as many fixes into the new version as I could.
-> 
-> > Should I download the source instead?
-> 
-> If you wish to test this out you can download
-> autofs-4.1.4_beta2-deb.tar.gz which basically contains the files of a
-> source deb.
-> 
-> As i've said before, this is for testing only as I'm not the maintainer of
-> the Debian package.
-> 
-> If you do try this make sure you stop autofs before installing the deb.
-> 
-> Ian
-> 
->
+On Fri, 2005-02-18 at 12:09 +0800, Ian Kent wrote:
+
+> > > And please include the contents of your maps!
+> > >=20
+> > > -Jeff
+> >=20
+>=20
+> Short answer is no.
+>=20
+> > Here are the maps we use on Solaris 9.  Should they work the same way o=
+n
+> > RHEL 3?
+> >=20
+> > autoinst-strombrg> cat /etc/auto_dcslib
+> > /dcs -ro
+>   ^^^^
+> Single level direct mount entries don't yet work.
+
+What if we set up indirect mounts for /foo/dcs and /foo/dcslib, and then
+had symlinks from /dcs and /dcslib?
+
+> > dcslib1.nacs.uci.edu,dcslib2.nacs.uci.edu,dcslib3.nacs.uci.edu:/dcspdb/=
+sun4-5
+> > /dcslib -ro
+> > dcslib1.nacs.uci.edu,dcslib2.nacs.uci.edu,dcslib3.nacs.uci.edu:/dcspda
+> >=20
+> > autoinst-strombrg> cat /etc/auto_master
+> > # Master map for automounter
+> > #
+> > +auto.master
+> > /net            -hosts          -nosuid,nobrowse
+> > #/home          auto_home       -nobrowse
+> > /xfn            -xfn
+> > /-             auto_direct
+>                  ^^^^^^^^^^^ Don't you mean auto_dcslib?
+
+Apologies.  I got these maps from a system on which they were only
+vestigial.  Here are the maps from a system that's actually doing
+this :) :
+
+data-strombrg> cat /etc/auto_dcslib
+/dcs -ro
+dcslib1.nacs.uci.edu,dcslib2.nacs.uci.edu,dcslib3.nacs.uci.edu:/dcspdb/sun4=
+-5
+/dcslib -ro
+dcslib1.nacs.uci.edu,dcslib2.nacs.uci.edu,dcslib3.nacs.uci.edu:/dcspda
+
+data-strombrg> cat /etc/auto_master
+# Master map for automounter
+#
++auto.master
+/net            -hosts          -nosuid,nobrowse
+#/home          auto_home       -nobrowse
+#/xfn           -xfn
+/- auto_dcslib
+/- auto_dcs
+
+
+> >=20
+> >=20
+>=20
+
+--=-YaBtl/z3N3I//KU+75ST
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.6 (GNU/Linux)
+
+iD8DBQBCFj0po0feVm00f/8RAh0uAJ43lv5i/8eRNy1pBeXEqwTQ62E22ACcC6s8
+NLTr0QABUitoJv8JiNDCEM4=
+=FoPa
+-----END PGP SIGNATURE-----
+
+--=-YaBtl/z3N3I//KU+75ST--
+
+
+
+-------------------------------------------------------
+SF email is sponsored by - The IT Product Guide
+Read honest & candid reviews on hundreds of IT Products from real users.
+Discover which products truly live up to the hype. Start reading now.
+http://ads.osdn.com/?ad_id=6595&alloc_id=14396&op=click
+_______________________________________________
+NFS maillist  -  NFS@lists.sourceforge.net
+https://lists.sourceforge.net/lists/listinfo/nfs
