@@ -1,14 +1,17 @@
 From: raven@themaw.net
-Subject: RE: Exporting UID to userspace?
-Date: Wed, 9 Jun 2004 00:28:21 +0800 (WST)
+Subject: Re: [RFC] rpc_ping and looong timeouts
+Date: Wed, 9 Jun 2004 00:36:43 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0406090017110.22861@donald.themaw.net>
-References: <E1B7C89B8DCB084C809A22D7FEB90B3841A3@frodo.avalon.ru> 
- <Pine.LNX.4.58.0406080901490.17060@wombat.indigo.net.au>
- <1086700328.20393.38.camel@brilong-lnx2.cisco.com>
+Message-ID: <Pine.LNX.4.58.0406090030140.22861@donald.themaw.net>
+References: <16575.35426.918728.134817@segfault.boston.redhat.com>
+	<Pine.LNX.4.58.0406040909310.8991@wombat.indigo.net.au>
+	<16576.51269.311121.121046@segfault.boston.redhat.com>
+	<40C4B3FF.3060005@sedona.intel.com><40C5E4A0.10405@sedona.intel.com>
+	<Pine.LNX.4.58.0406090009180.22861@donald.themaw.net>
+	<16581.59576.649866.64681@segfault.boston.redhat.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1086700328.20393.38.camel@brilong-lnx2.cisco.com>
+In-Reply-To: <16581.59576.649866.64681@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,33 +23,60 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Brian Long <brilong@cisco.com>
+To: Jeff Moyer <jmoyer@redhat.com>
 Cc: autofs@linux.kernel.org
 
-On Tue, 8 Jun 2004, Brian Long wrote:
+On Tue, 8 Jun 2004, Jeff Moyer wrote:
+
+> ==> Regarding Re: [autofs] [RFC] rpc_ping and looong timeouts; raven@themaw.net adds:
+> 
+> raven> On Tue, 8 Jun 2004, Michael Blandford wrote:
+> >> Jeff Moyer wrote:
+> >> 
+> >> >mlblandf> Would this patch cause problems for those of us who have icmp
+> >> >mlblandf> blocked?  If so, could we make it a run time option to
+> >> >mlblandf> enable/disable?
+> >> >
+> >> >Wow, you block icmp internally?  This would incur a timeout for every
+> >> host >listed in your replicated server entry, and with Ian's patch, it
+> >> would >incur a timeout for non-replicated servers, as well.  In fact,
+> >> for the >non-replicated server case, I think it would give a false
+> >> negative, failing >the mount even though the server is up.
+> >> >
+> >> >Is this really how you have things configured?  NFS clients can't ping
+> >> >their servers?
+> >> >  
+> >> >
+> >> 
+> >> In a large environment it wouldn't be uncommon to have NFS mounts that
+> >> span across a WAN.  Using NFS over TCP seems to make the most sense in
+> >> that situation.
+> >> 
+> >> As packets traverse the WAN, there may be routers that block icmp.  This
+> >> is the type of situation where replicated server would make the most
+> >> sense - find the fastest server.
+> >> 
+> 
+> raven> I was thinking that we could make disabling ICMP ping a configure
+> raven> option.  What do you think?
+> 
+> Well, if it's not hard to do...
+
+Should be fairly straight forward.
+The code sections are small and easily identified.
+
+Of course it would be neccessary to make an SRPM from the tarball, install 
+it and edit the configure statement, then rebuild.
 
 > 
-> > Fact is I'm still struggling to get bugs fixed. When that has settled down 
-> > there are a couple of quite serious limitations with autofs that need to 
-> > be addressed. They've been outstanding for many months.
+> raven> Still, I can't see why an internal WAN would block ICMP. It's needed
+> raven> for proper operation of your net.
 > 
-> Ian,
+> I don't think that's for us to dictate.  ;)  There's no reason not to be
+> flexible on this issue.
 > 
-> Could you remind us what "serious limitations" still exist in autofs? 
-> Is this in comparison to Sun's implementation on Solaris or something
-> else?
 
-Lazy mounting of multi-mount map entries.
-Direct mounts obscure underlying file system high up in the tree.
-
-Yes this is what people expect from an automounter as Suns implementation 
-provides it. In any case I've needed it for ages and I have some fairly 
-clear ideas on how to implement it, after having given it much thought.
-
-Don't get me wrong here, the big issue with this request is working out a 
-way to get hold of the UID and GID or perhaps GIDs without having to 
-compromise the existing system.
-
-Do you guys have any ideas on how we might do this?
+Right you are Jeff.
+My bad.
 
 Ian
