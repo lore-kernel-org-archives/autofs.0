@@ -1,81 +1,114 @@
-From: Krishnakumar B <kitty@dre.vanderbilt.edu>
-Subject: Re: Autofs + LDAP + STARTTLS
-Date: Mon, 31 Jan 2005 14:52:04 -0600
-Message-ID: <874qgxe2yz.fsf@tango.dre.vanderbilt.edu>
-References: <87hdkxe6jp.fsf@tango.dre.vanderbilt.edu>
-	<41FE96B2.4070602@int-evry.fr>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: NFS readonly failover and linux?
+Date: Tue, 1 Feb 2005 09:58:59 +0800 (WST)
+Message-ID: <Pine.LNX.4.58.0502010945400.25875@wombat.indigo.net.au>
+References: <1106871309.6181.254.camel@seki.nac.uci.edu> 
+ <Pine.LNX.4.61.0501291127450.1607@donald.themaw.net>
+ <1107205302.4071.17.camel@seki.nac.uci.edu>
 Mime-Version: 1.0
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <41FE96B2.4070602@int-evry.fr> (jehan procaccia's message of
-	"Mon, 31 Jan 2005 21:36:02 +0100")
+In-Reply-To: <1107205302.4071.17.camel@seki.nac.uci.edu>
+Sender: nfs-admin@lists.sourceforge.net
+Errors-To: nfs-admin@lists.sourceforge.net
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
+	<mailto:nfs-request@lists.sourceforge.net?subject=unsubscribe>
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
+List-Post: <mailto:nfs@lists.sourceforge.net>
+List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
+	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "jehan.procaccia" <jehan.procaccia@int-evry.fr>
-Cc: autofs@linux.kernel.org
+To: Dan Stromberg <strombrg@dcs.nac.uci.edu>
+Cc: Jeff Moyer <jmoyer@redhat.com>, autofs mailing list <autofs@linux.kernel.org>, nfs@lists.sourceforge.net
 
-On Monday, 31 January 2005, jehan.procaccia wrote:
-> Krishnakumar B wrote:
->
+On Mon, 31 Jan 2005, Dan Stromberg wrote:
 
-[...]
+> On Sat, 2005-01-29 at 11:46 +0800, raven@themaw.net wrote:
+> > On Thu, 27 Jan 2005, Dan Stromberg wrote:
+> > 
+> > >
+> > > The autofs man pages on Redhat Enterprise Linux 3 as well as Fedora Core
+> > > 3 both say that autofs supports replicated, readonly fileserver failover
+> > > - but then there's a footnote of sorts that says autofs only supports it
+> > > to the extent that mount does.
+> > 
+> > That part of the man page is old and slightly out of date.
+> > 
+> > The reason that this is left there is that autofs cannot support 
+> > dynamic failover as it just uses mount. However, a different host may be 
+> > selected at mount, after a previous timeout, for example. The issue of 
+> > umounting existing mounts from servers that have gone away is not 
+> > explicitly dealt with yet.
+> 
+> I see.
+> 
+> > >
+> > > Upon trying to do such a mount, I get:
+> > >
+> > > seki-root> mount
+> > > dcslib1.nacs.uci.edu,dcslib4.nacs.uci.edu:/dcspdb/rhel-3-i686 /mnt/nfs
+> > > mount: warning: multiple hostnames not supported
+> > > Thu Jan 27 16:12:18
+> 
+> > What version of autofs are you using?
+> > The autofs replicated server code is still relatively new.
 
-> I didn't tried it (autofs with TLS) but I know that autofs reads ldap 
-> configuration in /etc/openldap/ldap.conf on redhat config! not 
-> /etc/ldap.conf , did you put a TLS_CACERT directive in 
-> /etc/openldap/ldap.conf ?
+But, as we know, mount doesn't know about multiple host names. autofs 
+breaks these out.
 
-Here's what I have in /etc/openldap/ldap.conf:
+> 
+> FC3: autofs-4.1.3-28
+> RHEL3: autofs-4.1.3-47
 
-BASE dc=dre,dc=vanderbilt,dc=edu
-HOST ldap.dre.vanderbilt.edu
-TLS_CERT        /usr/share/ssl/certs/valhalla.crt
-TLS_KEY         /usr/share/ssl/certs/valhalla.pem
-TLS_CACERT      /usr/share/ssl/certs/DRE-CA-CERT
-TLS_REQCERT     demand
+I believe that the replicated server code should be present in both of 
+these.
 
-And it works:
+Can you confirm please Jeff?
 
-[root@valhalla root]# ldapsearch -LLL -ZZ -x -s base -b "" "(objectClass=*)" +
-dn:
-structuralObjectClass: OpenLDAProotDSE
-namingContexts: dc=dre,dc=vanderbilt,dc=edu
-supportedControl: 2.16.840.1.113730.3.4.18
-supportedControl: 2.16.840.1.113730.3.4.2
-supportedControl: 1.3.6.1.4.1.4203.1.10.1
-supportedControl: 1.2.840.113556.1.4.1413
-supportedControl: 1.2.840.113556.1.4.1339
-supportedControl: 1.2.840.113556.1.4.319
-supportedControl: 1.2.826.0.1.334810.2.3
-supportedExtension: 1.3.6.1.4.1.1466.20037
-supportedExtension: 1.3.6.1.4.1.4203.1.11.1
-supportedExtension: 1.3.6.1.4.1.4203.1.11.3
-supportedFeatures: 1.3.6.1.4.1.4203.1.5.1
-supportedFeatures: 1.3.6.1.4.1.4203.1.5.2
-supportedFeatures: 1.3.6.1.4.1.4203.1.5.3
-supportedFeatures: 1.3.6.1.4.1.4203.1.5.4
-supportedFeatures: 1.3.6.1.4.1.4203.1.5.5
-supportedLDAPVersion: 3
-supportedSASLMechanisms: PLAIN
-supportedSASLMechanisms: LOGIN
-supportedSASLMechanisms: GSSAPI
-supportedSASLMechanisms: DIGEST-MD5
-supportedSASLMechanisms: CRAM-MD5
-subschemaSubentry: cn=Subschema
+Perhaps you are seeing a bug which needs to be addressed.
 
-[root@valhalla root]#
+> 
+> The FC3 is yum update'd fairly regulary, and the RHEL3 is up2date'd
+> regularly as well.
+> 
+> > If your autofs supports replicated server map entries then multiple 
+> > host mount requests will not reach the mount command.
+> 
+> Interesting.
+> 
+> > If you are using a RedHat based distro then check
+> > http://people.redhat.com/jmoyer
+> > for the latest patched versions
+> > 
+> > Also, you may need a kernel patch depending on your kernel version. See 
+> > README.patches in the distribution or join the autofs list at
+> > http://linux.kernel.org/mailman/listinfo/autofs
+> 
+> I'm certain my management will only go for this, in the short term, if
+> it works on a mainstream RHEL3 system.  Unfortunately, for me, the rest
+> is academic interest.
 
--kitty.
+Once again I believe that the kernels mentioned here are up to date wrt 
+autofs.
 
--- 
-Krishnakumar B <kitty at dre dot vanderbilt dot edu>
-Institute for Software Integrated Systems, Dept. of EECS, Vanderbilt University
+Certainly, the latest FC3 kernel is at 2.6.10 which has all the autofs4 
+updates included in the base kernel.
+
+I believe the latest update to RHEL3 is also up to date. Jeff?
+
+So perhaps you could send a log trace with the "--debug" option added to 
+the master map entry.
+
+Ian
+
+
+
+-------------------------------------------------------
+This SF.Net email is sponsored by: IntelliVIEW -- Interactive Reporting
+Tool for open source databases. Create drag-&-drop reports. Save time
+by over 75%! Publish reports on the web. Export to DOC, XLS, RTF, etc.
+Download a FREE copy at http://www.intelliview.com/go/osdn_nl
+_______________________________________________
+NFS maillist  -  NFS@lists.sourceforge.net
+https://lists.sourceforge.net/lists/listinfo/nfs
