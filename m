@@ -1,8 +1,8 @@
-From: BRINER Cedric <work@infomaniak.ch>
+From: BRINER Cedric <briner@infomaniak.ch>
 Subject: rc.autofs.in > getnismounts > error?
-Date: Mon, 24 Nov 2003 13:13:46 +0100
+Date: Mon, 24 Nov 2003 12:00:44 +0100
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <3FC1F5FA.9090803@infomaniak.ch>
+Message-ID: <3FC1E4DC.2070702@infomaniak.ch>
 Mime-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
@@ -26,11 +26,11 @@ autofs-4.1.0.
 in the function:
 function getnismounts()
 {
-    YPMAP=3D`catnismap auto.master`
-    if [ -z "$YPMAP" ]; then
-       YPMAP=3D`catnismap`
-    fi
-    echo $YPMAP
+     YPMAP=3D`catnismap auto.master`
+     if [ -z "$YPMAP" ]; then
+        YPMAP=3D`catnismap`
+     fi
+     echo $YPMAP
 }
 
 The fact is that on my machine the line:
@@ -41,12 +41,12 @@ read functions will not works and so on...
 So in my case, I've simply changed the above function like this:
 function getnismounts()
 {
-    YPMAP=3D`catnismap auto.master`
-    if [ -z "$YPMAP" ]; then
-       catnismap
-    else
-        catnismap auto.master
-    fi
+     YPMAP=3D`catnismap auto.master`
+     if [ -z "$YPMAP" ]; then
+        catnismap
+     else
+         catnismap auto.master
+     fi
 }
 and everything works perflectly well.
 
@@ -55,11 +55,11 @@ Regards
 C=C3=A9dric BRINER
 PS. thanks for your work!
 
---
+--=20
 
-                   +41(o)\                       at      =20
-                          76/\    -o762   briner/  \infomaniak
-                              577/     \ /                    \
- .       .       .   .  .  .  . -=3DCedric Briner=3D- .   . .ch - dot=20
-                                       /
- 46b rue Jacques-Dalphin,CH-1227 Geneva    \
+                    +41(o)\                       at
+                           76/\    -o762   briner/  \infomaniak
+                               577/     \ /                    \
+  .       .       .   .  .  .  . -=3DCedric Briner=3D- .   . .ch - dot
+                                        /
+  46b rue Jacques-Dalphin,CH-1227 Geneva    \
