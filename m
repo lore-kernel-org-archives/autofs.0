@@ -1,12 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: AutoFS4
-Date: Wed, 17 Dec 2003 09:48:02 +0800 (WST)
+From: Dirk Heinrichs <ext-dirk.heinrichs@nokia.com>
+Subject: Program map for USB devices
+Date: Wed, 17 Dec 2003 15:48:50 +0100
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.33.0312170945330.27456-100000@wombat.indigo.net.au>
-References: <3FC3FB65000A73F7@mssazhb-int.msg.bluewin.ch>
+Message-ID: <200312171548.57310.ext-dirk.heinrichs@nokia.com>
 Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============47278567908493829=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <3FC3FB65000A73F7@mssazhb-int.msg.bluewin.ch>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,19 +15,71 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+To: autofs@linux.kernel.org
+
+
+--===============47278567908493829==
+Content-Type: multipart/signed;
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1;
+  boundary="Boundary-02=_ZzG4/c49qBYoYvG";
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-To: Jean-Eric Cuendet <jean-eric.cuendet@bluewin.ch>
-Cc: autofs@linux.kernel.org
 
-On Mon, 15 Dec 2003, Jean-Eric Cuendet wrote:
 
-> Hi,
-> I read that autofs4 can mount an entire NFS tree on /net like on solaris.
->
-> I wonder if it is also possible to mount a complete tree of Windows servers
-> (Samba) on /smb for example?
+--Boundary-02=_ZzG4/c49qBYoYvG
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-This is done using a socalled program map. It is up to the administrator
-to write the program map script to return required map entries. This could
-be smb mounts if you want.
+Hi,
+
+I've got several USB devices which are all accessed as SCSI disc through th=
+e=20
+usb-storage driver. Since the device node they are attached to depends on=20
+plugin order, I need to know how to find out which hardware is attached to=
+=20
+which /dev/sd*, so that I can write a program map.
+
+Any hints?
+
+Thanx...
+
+	Dirk
+=2D-=20
+Dirk Heinrichs          | Tel:  +49 (0)151 1513 6954
+Configuration Manager   | Fax:  +49 (0)211 47068 111
+Cap Gemini Ernst & Young| Mail: dirk.heinrichs@cgey.com
+Hambornerstra=DFe 55      | Web:  http://www.cgey.com
+D-40472 D=FCsseldorf      | ICQ#: 110037733
+GPG Public Key C2E467BB | Keyserver: www.keyserver.net
+
+--Boundary-02=_ZzG4/c49qBYoYvG
+Content-Type: application/pgp-signature
+Content-Description: signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+
+iD8DBQA/4GzZ8NVtnsLkZ7sRAvWIAKCNG7Uc+vBOJWefS/iAEiKadgRTpQCgo8tU
+ReJZxZVMe8VPtFacWOoGDps=
+=idfo
+-----END PGP SIGNATURE-----
+
+--Boundary-02=_ZzG4/c49qBYoYvG--
+
+
+--===============47278567908493829==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--===============47278567908493829==--
+
