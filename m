@@ -1,14 +1,13 @@
 From: raven@themaw.net
 Subject: Re: Local mounts without NFS server
-Date: Sat, 1 May 2004 11:51:42 +0800 (WST)
+Date: Sat, 1 May 2004 11:54:15 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0405011150210.5768@donald.themaw.net>
+Message-ID: <Pine.LNX.4.58.0405011152290.5768@donald.themaw.net>
 References: <ufa65bi8qxv.fsf@epithumia.math.uh.edu>
-	<Pine.LNX.4.58.0404300918400.21424@wombat.indigo.net.au>
-	<Pine.LNX.4.58.0404301421240.27225@wombat.indigo.net.au>
+	<ufa65bh1pjj.fsf@epithumia.math.uh.edu>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0404301421240.27225@wombat.indigo.net.au>
+In-Reply-To: <ufa65bh1pjj.fsf@epithumia.math.uh.edu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -23,53 +22,35 @@ Content-Transfer-Encoding: 7bit
 To: Jason L Tibbitts III <tibbs@math.uh.edu>
 Cc: autofs@linux.kernel.org
 
-On Fri, 30 Apr 2004, Ian Kent wrote:
+On Fri, 30 Apr 2004, Jason L Tibbitts III wrote:
 
-> On Fri, 29 Apr 2004, Jason L Tibbitts III wrote:
+> >>>>> "BL" == Brian Long <brilong@cisco.com> writes:
 > 
-> > >>>>> "IK" == Ian Kent <raven@themaw.net> writes:
-> > 
-> > IK> An unexpected side effect of the replicated server code.
-> > 
-> > Ah, I see how it would interfere, given that all of the hosts are
-> > pinged (via RPC) and localhost fails since it doesn't export anything.
+> BL> I like your idea about keeping the /cache up to date via
+> BL> rsync.
 > 
-> I shouldn't be pinging local addresses at all.
+> Well, it's actually a hack but it works well enough.
 > 
-> > 
-> > IK> I'll investigate and fix it.
-> > 
-> > Thanks.  Could you just call is_local_addr and if so check that the
-> > path exists instead of doing the RPC ping?  That way you could use
-> > localhost and remote hosts as alternate servers.  (I could use this
-> > for machines without enough disk to cache things.)
+> BL> What other maps, mounts or symlinks do you have to keep this
+> BL> working?
 > 
-> I shouldn't need to do that either.
+> Just to /etc/auto_usr_local files, one for the hosts with /cache and
+> one without.  These days, though, every machine has enough disk to
+> cache what it needs.  That wasn't the case back when I put this
+> together.
 > 
-> This is a programming error. I'll fix it tonight I hope.
+> BL> For example, for hosts that don't have a /cache filesystem, do
+> BL> they have a separate auto_usr_local map?
+> 
+> Yes, the hosts pull what they need from a server, and hosts without
+> /cache pull a different auto_usr_local map.  I guess if I used
+> failover I wouldn't even have to do that, but I'm not sure if that's
+> supported far enough back.
 
-I believe this patch fixes the problem. Please test and let me know.
+4.1.1 I think.
 
---- autofs-4.1.2/modules/mount_nfs.c	2004-05-01 11:05:04.000000000 +0800
-+++ autofs-4.1.2/modules/mount_nfs.c.local	2004-05-01 11:04:54.000000000 +0800
-@@ -192,13 +192,14 @@
- 					p = next;
- 				}
- 
--				if (local) {
-+				if (local)
-+					alive = 1;
-+				else
- 					alive = rpc_ping(p, sec, micros);
--					if (alive) {
--						winner = p;
--						break;
--					}
--					local = 0;
-+
-+				if (alive) {
-+					winner = p;
-+					break;
- 				}
- 			}
- 		}
+It's a mount time check only. There is no dynamic failover.
+
+The umounting logic needs to made smarter as well.
+
+Ian
