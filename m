@@ -1,20 +1,13 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [patch rfc] address regression in duplicate map entry
-	order
-Date: Mon, 7 Feb 2005 13:10:29 -0500
-Message-ID: <16903.44821.752046.306391@segfault.boston.redhat.com>
-References: <16798.38327.587983.840248@segfault.boston.redhat.com>
-	<Pine.LNX.4.58.0411212219580.10238@donald.themaw.net>
-	<16802.11524.992409.610071@segfault.boston.redhat.com>
-	<Pine.LNX.4.58.0411230856060.27086@wombat.indigo.net.au>
-	<16898.16820.640543.489325@segfault.boston.redhat.com>
-	<Pine.LNX.4.58.0502040929270.21690@wombat.indigo.net.au>
-	<16899.45023.789578.736494@segfault.boston.redhat.com>
-	<Pine.LNX.4.61.0502051136030.1673@donald.themaw.net>
-Reply-To: jmoyer@redhat.com
+From: Chris Feist <cfeist@redhat.com>
+Subject: Re: get_best_mounts fixes.
+Date: Mon, 07 Feb 2005 16:44:33 -0600
+Message-ID: <4207EF51.1060004@redhat.com>
+References: <4203B1C3.30303@redhat.com>
+	<Pine.LNX.4.61.0502051243250.1673@donald.themaw.net>
+Reply-To: cfeist@redhat.com
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <Pine.LNX.4.61.0502051136030.1673@donald.themaw.net>
+In-Reply-To: <Pine.LNX.4.61.0502051243250.1673@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -25,32 +18,24 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
 To: raven@themaw.net
-Cc: autofs mailing list <autofs@linux.kernel.org>
+Cc: autofs@linux.kernel.org
 
-==> Regarding Re: [patch rfc] address regression in duplicate map entry order; raven@themaw.net adds:
+raven@themaw.net wrote:
+> Oh, another unrelated thing.
+> 
+> I hope you didn't mind me jumping on the direct mounts work.
 
-[snip]
+Sure, no problem.
 
-raven> So consider the following patch together with the original patch. I
-raven> think this might be all that's needed, at least in populating the
-raven> cache.
+> I've thought about how it could be done for so long and it was the 
+> original problem I wanted to fix when I first started work on autofs.
 
-raven> It reverts the change in 2) and changes cache_update to cache_add in
-raven> the needed places.
+Do you have any idea how long it may take? Let me know if there is 
+anything I can do to help, we've got several users who *really* want 
+this functionality.  I would also be happy to beta test it when you're 
+ready.
 
-raven> What do you think?
-
-raven> As I said above the other question that needs to be answered is
-raven> whether this will have undesirable side affects at lookup time?
-
-Hi, Ian,
-
-I've tested this patch and it resolves the problem.  We should pursue the
-other map expiry related problem I described in my last mail separately, I
-think.
-
-Thanks!
-
--Jeff
+Thanks,
+Chris
