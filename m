@@ -1,13 +1,12 @@
-From: Michael Blandford <michael@kmaclub.com>
-Subject: Re: Problem with autofs 3.1.7 -> 4.1.0-beta2
-Date: Sun, 07 Dec 2003 15:15:14 -0700
+From: Ian Kent <raven@themaw.net>
+Subject: Re: autofs RFE
+Date: Mon, 8 Dec 2003 11:41:50 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <3FD3A672.20405@kmaclub.com>
-References: <Pine.LNX.4.44.0312072016350.3078-100000@raven.themaw.net>
+Message-ID: <Pine.LNX.4.33.0312081134310.26524-100000@wombat.indigo.net.au>
+References: <Pine.LNX.4.44.0312061825240.15355-100000@keen.esi.ac.at>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.44.0312072016350.3078-100000@raven.themaw.net>
+In-Reply-To: <Pine.LNX.4.44.0312061825240.15355-100000@keen.esi.ac.at>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,86 +16,46 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Ian Kent <raven@themaw.net>
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Gerald Teschl <gerald@esi.ac.at>
 Cc: autofs mailing list <autofs@linux.kernel.org>
 
-Ian Kent wrote:
+On Sat, 6 Dec 2003, Gerald Teschl wrote:
 
->Which schema are you using the nisMap or automountMap.
 >
->  
+> Hi Ian,
 >
-automountMap
-
->I'll need an ldif example in order to duplicate the problem.
+> I saw your recent work on autofs and wondered if it would be possible to
+> add
+> a small but IMHO useful feature to autofs:
 >
->  
+> I'd like to use autofs for my floppy. pam_console sets the permissiond on,
+> e.g., /dev/fd0, such that is owned by the console user and hence,
+> when mounting /mnt/floppy it is mounted with the permissions of the owner.
+> But this won't help with autofs, since autofs runs as root and hence a
+> floppy
+> is mounted with owner root.
 >
-Names are changed to protect the innocent.
+> Would it be possible to make autofs honor the "owner" option for mount and
+> mount a dev with the permissions of the owner if this option is present?
 
-# auto.master, kmaclub, com
-dn: ou=auto.master,dc=kmaclub,dc=com
-objectClass: top
-objectClass: automountMap
-ou: auto.master
+I've been thinking about this for a while.
 
-# /services, auto.master, kmaclub, com
-dn: cn=/services, ou=auto.master,dc=kmaclub,dc=com
-objectClass: automount
-automountInformation: ldap:ou=auto.services,dc=kmaclub,dc=com
-cn: /services
+At the moment the userspace daemon has no way of knowing who the owner is.
+To change that would break backward compatability. So I'm not sure it's
+such a good idea.
 
-# auto.services, kmaclub, com
-dn: ou=auto.services,dc=kmaclub,dc=com
-objectClass: top
-objectClass: automountMap
-ou: auto.services
+How is this handled in v3 Peter?
 
-# /, auto.services, kmaclub, com
-dn: cn=/,ou=auto.services,dc=kmaclub,dc=com
-objectClass: automount
-automountInformation: fileserver:/export/services/&
-cn: /
+One way to deal with this is to use groups. The floppy group exists in
+RedHat and if you are a member and you allow group write you should have
+what you need. The cdrom is a little different. You may wish to create a
+new group called, say cdrom, and do the same thing with it.
 
-# mounta, auto.services, kmaclub, com
-dn: cn=mounta,ou=auto.services,dc=kmaclub,dc=com
-objectClass: automount
-cn: mounta
-automountInformation: fileserver:/export2/mounta
+-- 
 
-# mountb, auto.services, kmaclub, com
-dn: cn=mountb,ou=auto.services,dc=kmaclub,dc=com
-objectClass: automount
-cn: mountb
-automountInformation: fileserver:/export2/mountb
-
-# mountc, auto.services, kmaclub, com
-dn: cn=mountc,ou=auto.services,dc=kmaclub,dc=com
-objectClass: automount
-cn: mountc
-automountInformation: fileserver:/export2/mountc
-
-# mountd, auto.services, kmaclub, com
-dn: cn=mountd,ou=auto.services,dc=kmaclub,dc=com
-objectClass: automount
-cn: mountd
-automountInformation: fileserver:/export2/mountd
-~
-
->>According to the automount man page, the wildcard for ldap is a / so 
->>that is what I was using.  What I thought was odd was it was always 
->>choosing the same thing and it *wasn't* the wildcard.
->>    
->>
->
->Think the code is incorrect.
->
->  
->
-I reloaded autofs-4.1.0-beta2 again today just to play.  What I have 
-found is cd'ing into /services/asdlfjadalsdjfaklsdjf will also suceed 
-and give me a mount to fileserver:/export2/mountb even though the mount 
-should fail.
-
-Michael
+   ,-._|\    Ian Kent
+  /      \   Perth, Western Australia
+  *_.--._/   E-mail: raven@themaw.net
+        v    Web: http://themaw.net/
