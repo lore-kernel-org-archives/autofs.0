@@ -1,15 +1,13 @@
-From: raven@themaw.net
-Subject: Re: Badness in interruptible_sleep_on
-Date: Thu, 13 May 2004 22:08:34 +0800 (WST)
+From: Joseph Mack NA3T <jmack@wm7d.net>
+Subject: autofs-4.1 slow to mount
+Date: Thu, 13 May 2004 07:09:55 -0700 (PDT)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0405132202340.13693@donald.themaw.net>
-References: <Pine.LNX.4.58.0405070532500.1979@fogarty.jakma.org>
- <Pine.LNX.4.58.0405071426500.11299@wombat.indigo.net.au>
- <Pine.LNX.4.58.0405072321530.1979@fogarty.jakma.org>
- <Pine.LNX.4.58.0405081324440.2371@donald.themaw.net>
+Message-ID: <Pine.LNX.4.58.0405130639030.16060@www.wm7d.net>
+References: <200405101900.i4AJ09pH031586@hera.kernel.org>
+	<40A0CC37.3080003@gxt.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0405081324440.2371@donald.themaw.net>
+In-Reply-To: <40A0CC37.3080003@gxt.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,33 +19,29 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Paul Jakma <paul@clubi.ie>
-Cc: Linux autofs <autofs@linux.kernel.org>, Arjan van de Ven <arjanv@redhat.com>, Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: autofs@linux.kernel.org
 
-On Sat, 8 May 2004 raven@themaw.net wrote:
+Linux-2.4.26, autofs4 as module, libc-2.3.2
 
-> > 
-> > PS: Arjan, any chance of a kernel with davej's NFS stack fixes and 
-> > the autofs badness fixes? would be much appreciated!
-> 
-> While I have some patch sets around for earlier 2.6 kernels I advise 
-> against using them.
-> 
-> I'm in the process of making "single file" patches for the earlier kernels 
-> with all the updates that are in 2.6.6-rc3-mm2.
-> 
-> As an aside the same goes for the 2.4 patches.
-> 
-> I'll let you know when it's done. I expect to finish this weekend.
+mounting zip disk by autofs
 
-Sorry to take so long to get back.
+with automount-4.0.0pre10, the disk mounts in 1sec
 
-The patches have been at
-http://www.kernel.org/pub/linux/kernel/people/raven
-for a while.
+(interval between "attempting to mount entry /removable/zip"
+and "kernel: kjournald starting. Commit interval 5 seconds"
+messages)
 
-There is one for 2.6.0 and the 2.6.4 one caters a change that was made.
-The autofs4-2.6.6-rc3-mm2-compat_ioctls.patch is to update the 32 <-> 
-64 bit ioctl emulation and should apply with a small offset.
+with automount-4.1.2 the same interval is 11 secs.
 
-Ian
+on another similar machine, automount-4.1.2 won't mount
+the zip disk, giving "e2fsck: need terminal for interactive repairs".
+Running fsck from the command line shows a clean zip disk.
+automount-4.0.0pre10 mounts zip disk OK.
+
+Thanks Joe
+
+-- 
+Joseph Mack NA3T EME(B,D), FM05lw North Carolina
+jmack (at) wm7d (dot) net - azimuthal equidistant map
+generator at http://www.wm7d.net/azproj.shtml
+Homepage http://www.austintek.com/ It's GNU/Linux!
