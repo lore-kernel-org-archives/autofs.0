@@ -1,18 +1,13 @@
-From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
-Subject: Re: NIS maps loading.
-Date: Wed, 26 Jan 2005 16:16:02 +0100
-Message-ID: <20050126151602.GB841@uio.no>
-References: <41F56D27.1080005@redhat.com>
-	<Pine.LNX.4.58.0501250904250.21644@wombat.indigo.net.au>
-	<20050125121827.GE2032@ba.issia.cnr.it>
-	<16886.26557.799629.351909@segfault.boston.redhat.com>
-	<20050125155021.GC8093@ba.issia.cnr.it>
-	<20050125165045.GA8642@uio.no>
-	<Pine.LNX.4.61.0501262249150.1716@donald.themaw.net>
+From: Steffen Grunewald <steffen.grunewald@aei.mpg.de>
+Subject: Re: automount 4.1.3: unmount timeout not working
+Date: Wed, 26 Jan 2005 16:20:37 +0100
+Message-ID: <20050126152037.GX21479@debian-server.aei.mpg.de>
+References: <20050122215228.GA14303@tangens.sinus.cz>
 Mime-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.61.0501262249150.1716@donald.themaw.net>
+In-Reply-To: <20050122215228.GA14303@tangens.sinus.cz>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -23,25 +18,47 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
 To: autofs@linux.kernel.org
 
-(No need to send directly to me anymore, I'm on the list :-) )
+On Sat, Jan 22, 2005 at 10:52:28PM +0100, Pavel Troller wrote:
+> Hello to all the list members,
+>   I decided to write to this list after a lot of time spent by trying t=
+o
+> find an answer for my question, but I didn't find any so I'm trying the=
+ luck
+> here.
+>   I'm using automount 4.1.3 with kernel 2.6.10, but the problem appeare=
+d
+> formerly, with 2.6.7, and it's not directly related to the kernel, beca=
+use it
+> didn't appear with a kernel change, but with some other change in my sy=
+stem
+> or setup, which I cannot track down.
 
-On Wed, Jan 26, 2005 at 10:53:02PM +0800, raven@themaw.net wrote:
-> Umm ... I hope I haven't made life difficult for you with 4.1.4 beta.
-> There are a dswag of changes.
+I also see this (Debian Sarge, installation done some weeks ago, package
+version is 4.1.3-4). WIth an older installation (another Sarge), still us=
+ing
+3.9.99-4.0.0pre10-16, this doesn't show up.
 
-Yes, I noticed -- I'll probably let it live in experimental for a while
-before uploading to unstable, as we're quite near a freeze now.
+>   The problem itself is that the autoumount doesn't unmount automatical=
+ly after
+> the timeout expires.
 
-> I've worked through and applied as many of the Debian patches as I could.
-> Please let me know if there's more that I can do to help.
+An upgrade to 4.1.3-8 apparently cured the problem; I don't know how
+close the Debian package maintainer Steiner Gundersson works with autofs
+people, and whether he's introduced some patches that have not been in
+the previous version (and may have found their way into 4.1.4).
+Sure, Debian Sarge is called "testing", that's what I'm doing, it's not
+"stable" yet (but there's still hope), but I'd like to see a close
+cooperation between the mainstream maintainers and the maintainers of
+Linux distros...
 
-See my last mail to the list; I guess most of the points should be in there.
-Overall, you're making my work a lot easier :-)
+Cheers,
+ steffen
 
-/* Steinar */
--- 
-Homepage: http://www.sesse.net/
+--=20
+Steffen Grunewald * * * Merlin cluster admin (http://pandora.aei.mpg.de)
+Albert-Einstein-Institut (MPI Gravitationsphysik, http://www.aei.mpg.de)
+       Science Park Golm, Am M=FChlenberg 1, 14476 Potsdam, Germany
+e-mail: steffen.grunewald(*)aei.mpg.de * +49-331-567-{fon:7233,fax:7298}
