@@ -1,15 +1,12 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [RFC] rpc_ping and looong timeouts
-Date: Tue, 8 Jun 2004 08:56:34 +0800 (WST)
+Subject: RE: Exporting UID to userspace?
+Date: Tue, 8 Jun 2004 09:15:12 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0406080855390.17060@wombat.indigo.net.au>
-References: <16575.35426.918728.134817@segfault.boston.redhat.com>
-	<Pine.LNX.4.58.0406040909310.8991@wombat.indigo.net.au>
-	<16576.51269.311121.121046@segfault.boston.redhat.com>
-	<40C4B3FF.3060005@sedona.intel.com>
+Message-ID: <Pine.LNX.4.58.0406080901490.17060@wombat.indigo.net.au>
+References: <E1B7C89B8DCB084C809A22D7FEB90B3841A3@frodo.avalon.ru>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <40C4B3FF.3060005@sedona.intel.com>
+In-Reply-To: <E1B7C89B8DCB084C809A22D7FEB90B3841A3@frodo.avalon.ru>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,25 +18,34 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Michael Blandford <mlblandf@sedona.ch.intel.com>
+To: "Dimitry V. Ketov" <Dimitry.Ketov@avalon.ru>
 Cc: autofs@linux.kernel.org
 
-On Mon, 7 Jun 2004, Michael Blandford wrote:
+On Mon, 7 Jun 2004, Dimitry V. Ketov wrote:
 
-> Jeff Moyer wrote:
+> > -----Original Message-----
+> > From: raven@themaw.net [mailto:raven@themaw.net] 
+> > Sent: Saturday, June 05, 2004 7:47 PM
 > 
-> >This patch simply implements an icmp ping (code shamelessly stolen from
-> >clumanager), and does this before even attempting to do the rpc pings.  If
-> >the icmp ping works, then we continue as usual.  This takes care of the
-> >host down case quite nicely:
-> >
-> >  
-> >
+> > I'd like to do it but it isn't trivial so it's in the wait queue.
+> > 
+> > It's dificult because it requires that the packet which is used to 
+> > communicate with the daemon will need to be changed. This will break 
+> > backward compatibility with other versions.
 > 
-> Would this patch cause problems for those of us who have icmp blocked?  
-> If so, could we make it a run time option to enable/disable?
-> 
+> Ok. Is it mean that it will be included only in the next version of
+> autofs protocol?
 
-So you have ICMP blocked but allow NFS?
+Perhaps but probably not. It means that, if the kernel module changes are 
+accepted and the changes are made to the autofs daemon, then from that 
+time on the kernel module will only work with the corresponding later 
+versions of the autofs daemon and the daemon will require that version or 
+later of the kernel module. This is not something that can be taken 
+lightly. I will think about this for a while and see if I can come up with 
+some way to do it.
+
+Fact is I'm still struggling to get bugs fixed. When that has settled down 
+there are a couple of quite serious limitations with autofs that need to 
+be addressed. They've been outstanding for many months.
 
 Ian
