@@ -1,9 +1,8 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: new autofs test rpm available
-Date: Tue, 24 Aug 2004 14:56:30 -0400
+From: Clif Smith <kernel@cjs226.com>
+Subject: Problem with NIS maps
+Date: Mon, 30 Aug 2004 23:07:26 -0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <16683.36702.305349.678017@segfault.boston.redhat.com>
-Reply-To: jmoyer@redhat.com
+Message-ID: <4133F97E.8060509@cjs226.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
@@ -16,15 +15,21 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
 To: autofs@linux.kernel.org
 
-I've rolled another rpm with Ian's latest map expiry changes.  All of the
-same rules still apply: could break things horribly, needs the kernel
-patch.  I also included the socket descriptor leak fix in this next
-version, which is 4.1.3-16.  Available in the usual place:
-	 http://people.redhat.com/~jmoyer/
+I'm in a large heterogeneous environment located across multiple 
+locations.  I use NIS maps such as:
+/home -rw austin:/export/home boston:/export/home phoenix:/export/home
 
-Happy testing.
+with the following in /etc/auto.master:
+/nis      yp      auto_indirect_nis
 
--Jeff
+With AIX and Solaris, automounter chooses the server with the fewest
+hops to determine which server to mount from.  Unfortunately, it appears
+Suse's 8.1 implementation of automounter (v3.1.7-556) seems to choose 
+the first listed.
+
+Has anyone run into this before?
+
+Thanks, Clif
