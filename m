@@ -1,13 +1,12 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: basic question on "key"
-Date: Wed, 6 Oct 2004 16:08:24 +0800 (WST)
+From: "Lever, Charles" <cel@netapp.com>
+Subject: FW: [NFS] NFS and/or autofs hanging on Linux
+Date: Thu, 7 Oct 2004 07:18:33 -0700
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0410061607390.13975@wombat.indigo.net.au>
-References: <4162C97A.7080407@javanet.info>
-	<Pine.LNX.4.58.0410061552130.13975@wombat.indigo.net.au>
+Message-ID: <482A3FA0050D21419C269D13989C61130435E921@lavender-fe.eng.netapp.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0410061552130.13975@wombat.indigo.net.au>
+content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,40 +16,57 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: es <es.autofs@javanet.info>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: autofs@linux.kernel.org
 
-On Wed, 6 Oct 2004, Ian Kent wrote:
+in case some of you guys don't hang out on the nfs mailing list....
 
-> On Tue, 5 Oct 2004, es wrote:
-> 
-> > Hello there, I'm using autofs since a while and works very well.
-> > Now I'd like to mount /home/milly and /home/es/Data from an NFS export. 
-> > This means I cannot simply have /home in auto.master otherwise /home/es 
-> > became inaccesible.
-> > ********* auto.master file
-> > /home/milly  /etc/autofs/auto.home.milly
-> > /home/es  /etc/autofs/auto.home.es
-> > ********* auto.home.milly
-> > ./              -fstype=nfs,rw          myhost:/home/milly
-> > 
-> > It seems I can't use ./ as key nor I can have /home/es in auto.master 
-> > and have Data as key in auto.home.es because it will mount /home/es 
-> > hidding the content of /home/es.
-> 
-> You might like to try a multi mount entry like
-> 
-> milly	myhost:/home/milly
-> es	/	myhost:/home/es	\
-> 	/data	otherhost:/home/data
-> 
-> Note that multi mount map entries mount and umount all their entries as 
-> a single unit because of the cross filesystem issues that can arise. So in 
-> this case /home/es and /home/es/data would be mounted and umounted 
-> together.
+-----Original Message-----
+From: Burke, Alan [mailto:Alan.Burke@analog.com] 
+Sent: Thursday, October 07, 2004 9:32 AM
+To: nfs@lists.sourceforge.net
+Cc: Annie Mckeon
+Subject: [NFS] NFS and/or autofs hanging on Linux
 
-And as Stephen says you need at least autofs version 4.0.0.
 
-Ian
+Hi Everyone,
+
+We have got a problem with NFS hanging with automounter mounts.
+
+We're running RH8 2.4.20-20.0 kernel
+NFS-utils 1.0.1-2
+Autofs4.1.2 (we must have the /net ability)
+H/W is mixed HP4100's, Dell 2650's, Sun V60 and V65's
+All the machines are in a Sun NIS domain with 700 Sun machines that run
+fine.
+
+The problem is intermittent; any automounter point can hang at any time.
+For example auto_home may have 1000 entries cd /home/user1 hangs and
+/home/user2 does not on machine Foo, but /home/user2 is fine on machine
+Bar.
+
+Once hung we sometimes can get it to release by umount -at nfs others
+time a reboot is the only way to get it to release.
+
+any help is appreciated
+
+thanks,
+
+alan
+
+
+
+	  
+
+
+
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: IT Product Guide on ITManagersJournal
+Use IT products in your business? Tell us what you think of them. Give
+us Your Opinions, Get Free ThinkGeek Gift Certificates! Click to find
+out more http://productguide.itmanagersjournal.com/guidepromo.tmpl
+_______________________________________________
+NFS maillist  -  NFS@lists.sourceforge.net
+https://lists.sourceforge.net/lists/listinfo/nfs
