@@ -1,19 +1,19 @@
 From: Jeff Moyer <jmoyer@redhat.com>
 Subject: Re: BUG: autofs4 + cd /net/<Netapp>/vol/vol[0-3] = port 
 	usage problems
-Date: Tue, 18 Jan 2005 12:05:01 -0500
-Message-ID: <16877.16829.641377.849073@segfault.boston.redhat.com>
+Date: Tue, 18 Jan 2005 12:07:52 -0500
+Message-ID: <16877.17000.262046.386856@segfault.boston.redhat.com>
 References: <200501142238.j0EMcbOT002214@jetcar.spd.analog.com>
 	<Pine.LNX.4.61.0501151035230.1597@donald.themaw.net>
 	<16875.53538.836665.652032@segfault.boston.redhat.com>
 	<Pine.LNX.4.58.0501180922310.32570@wombat.indigo.net.au>
-	<16877.6865.609132.621298@segfault.boston.redhat.com>
-	<Pine.LNX.4.58.0501190058540.5388@raven-wl.themaw.net>
+	<16877.6946.710259.562902@segfault.boston.redhat.com>
+	<Pine.LNX.4.58.0501190101000.5388@raven-wl.themaw.net>
 Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0501190058540.5388@raven-wl.themaw.net>
+In-Reply-To: <Pine.LNX.4.58.0501190101000.5388@raven-wl.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -76,27 +76,24 @@ raven> it will be addressed in the near future.
 >> 
 raven> I looked at the code in an FC2 mount and found that it did quite a
 raven> bit of probing.
->>
-raven> In itself this is probably a good thing as it's more comprehensive
-raven> than what I do for replicated server mount entries and it may be a
-raven> precursor to providing that functionality in mount. This just means
-raven> that we need to get a handle on the objections to RPC transport
-raven> multiplexing and get it done.
->> Umm, you want mount to support replicated servers?  Interesting idea,
->> but I'm not sure I like it.
+>> [snip]
 >> 
-raven> Using non-priveledged ports has other dependencies. For example, on
-raven> Debian with 2.4.27 mountd rejects connections from non-priveledged
-raven> ports. I didn't spend much time to find out if I could work around
-raven> it but never the less it likely will generate a bit of noise.
->> Right.  But you can still try to connect using non-priveledged ports,
->> and fallback to the current code path if that fails.
+raven> This just means that we need to get a handle on the objections to
+raven> RPC transport multiplexing and get it done.
+>> I forwarded Mike's patch off to Steve Dickson.  However, with the
+>> caveats he listed, I'm not optimistic.
 
-raven> But mount doesn't work (in this case) when the kernel on the server
-raven> end doesn't support non-priveledged ports but the client does.
+raven> Neither am I. The patch that Trond originally did is probably a
+raven> better starting point.
 
-Seems we have a disconnect.  I thought you were only talking about the
-probe code.  I don't know how to work around this, either, but I think
-mount is supposed to try reserved ports first?
+raven> There's quite a bit to do meantime such as, general testing,
+raven> scalability testing, dynamically allocating a new transport if a
+raven> request slot can't be allocated and so on.
+
+raven> There will be quite a bit more discussion on this I expect.
+
+raven> What is Steves responsibility here?
+
+Steve is our NFS maintainer.
 
 -Jeff
