@@ -1,13 +1,12 @@
-From: "Mick" <email_mick_groups@bigpond.com>
-Subject: RE: no auto in autofs...
-Date: Thu, 2 Sep 2004 08:33:25 +0800
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: [patch] umount loopback filessystems on autofs stop
+Date: Thu, 2 Sep 2004 16:14:42 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <JCEBJEOKALMICCBFAFIBEEIMCFAA.email_mick_groups@bigpond.com>
-References: <Pine.LNX.4.58.0409011429090.6576@vulture.rentec.com>
+Message-ID: <16695.32562.350433.822164@segfault.boston.redhat.com>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-reply-to: <Pine.LNX.4.58.0409011429090.6576@vulture.rentec.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,20 +17,66 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: Ryan Go <ryan@rentec.com>, Mick <email_mick_groups@bigpond.com>
+To: raven@themaw.net
 Cc: autofs@linux.kernel.org
 
-> Default behavior of autofs is not to mount unless you need it. Mkdir is
-> probably doing some kind of stat as part of it's normal routine. Executing
-> 'cd /misc/beast' would also trigger a mount.
->
-Wierd, as per all the docs I've seen "ls -l" also does some kind of stat.
+Hello,
 
-> If you want to see all your automount-points, there are options like
-> browsing (I am not sure since I don't use them). There has been a lot of
-> discussion about it in the past, try to search the list archives.
->
-I would have, but the only list archives I've seen are not searchable?  Can
-you point me int he right direction?
+The netfs scripts for Red Hat go through and umount any loopback devices
+before attempting to umount the encompassing filesystem.  This seems a sane
+thing to do (and I have a bug on said issue), so I've added similar
+functionality to the autofs init script.  Attached is a patch.  Comments
+encouraged.  Testing by debian folks would be nice, too.
 
-Mick
+-Jeff
+
+--- autofs-4.1.3/samples/rc.autofs.in.umount-loopback	2004-09-02 15:55:21.722705296 -0400
++++ autofs-4.1.3/samples/rc.autofs.in	2004-09-02 16:16:09.985940440 -0400
+@@ -351,6 +351,31 @@ function signal_automounts()
+ 	return $RETVAL
+ }
+ 
++function umount_loopback()
++{
++    loops=`LC_ALL=C awk '!/^#/ && $1 ~ /^\/dev\/loop/ && $2 != "/" {print $2}' /proc/mounts`
++    automounts=`LC_ALL=C awk '!/^#/ && $1 ~ /^automount/ {print $2}' /proc/mounts`
++
++    for l in $loops
++    do
++	for a in $automounts
++	do
++	    command="echo $l | grep -E '^$a'"
++	    match=`echo $command | sh`
++	    if [ -n "$match" ]; then
++		echo ""
++		echo -n $"Unmounting loopback filesystem $match:  "
++		umount -d $match
++		if [ $? -eq 0 ]; then
++		    echo "done"
++		else
++		    echo "failed ($?)"
++		fi
++	    fi
++	done
++    done
++}
++
+ # Redhat start/stop function.
+ #
+ function redhat()
+@@ -386,6 +411,7 @@ case "$1" in
+ 	if [ -z "`pidofproc $prog`" -a -z "`getmounts`" ]; then
+ 		RETVAL=0
+ 	else
++		umount_loopback
+ 		signal_automounts
+ 		RETVAL=$?
+ 	fi
+@@ -477,6 +503,7 @@ case "$1" in
+ 	;;
+     stop)
+ 	echo 'Stopping automounter.'
++	umount_loopback
+ 	start-stop-daemon --stop --quiet --signal USR2 --exec $DAEMON
+ 	;;
+     reload|restart)
