@@ -1,14 +1,11 @@
-From: "Clif J. Smith" <plone@cjs226.com>
-Subject: Re: Problem with NIS maps
-Date: Wed, 01 Sep 2004 15:36:37 -0500
+From: Bryce as root <root@www.linux.org.uk>
+Subject: fast mounting problems
+Date: Tue, 31 Aug 2004 17:55:41 +0100 (BST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <413632D5.3090301@cjs226.com>
-References: <4133F97E.8060509@cjs226.com>
-	<Pine.LNX.4.58.0408312110390.2756@raven.themaw.net>
+Message-ID: <E1C2Bv4-0002u8-7T@www.linux.org.uk>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0408312110390.2756@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,53 +15,38 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: autofs@linux.kernel.org
 
-Ian Kent wrote:
+Relating to Autofs 4.1
 
->On Mon, 30 Aug 2004, Clif Smith wrote:
->
->  
->
->>I'm in a large heterogeneous environment located across multiple 
->>locations.  I use NIS maps such as:
->>/home -rw austin:/export/home boston:/export/home phoenix:/export/home
->>
->>with the following in /etc/auto.master:
->>/nis      yp      auto_indirect_nis
->>
->>With AIX and Solaris, automounter chooses the server with the fewest
->>hops to determine which server to mount from.  Unfortunately, it appears
->>Suse's 8.1 implementation of automounter (v3.1.7-556) seems to choose 
->>the first listed.
->>    
->>
->
->Sorry, SuSE have chosen not to update to autofs v4.
->
->The most recent version handles this.
->
->You may wish to try building the SRPM from one of the FC distributions.
->
->Ian
->  
->
-I ASSuMEd compiling it from source (4.1.3) would be even "cleaner", but 
-when I see that /etc/init.d/autofs has:
-if [ -f /etc/debian_version ]; then
-    system=debian
-elif [ -f /etc/redhat-release ]; then
-    system=redhat
-else
-    echo "$0: Unknown system, please port and contact 
-autofs@linux.kernel.org" 1>&2
-    exit 1
-fi
+This relates to a bug I've filed with RHAT
+( https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=128966 )
 
-Why is the source so restrictive?
+In our testing enviroment we use autofs a lot and have been experiancing
+problems of being unable to mount directories every now and again
 
-Moving on to the FC SRPM.
+To this end I build a test script to exercise the autofs daemon which
+nicely exposes the problem (again covered in the bugzilla report)
 
-cjs
+What appears to be happening is that autofs is spawning forked copies of
+itself to help facilitate loading FS's
+however, initially when debugging it seemed like the first batch of NFS
+directories were mounted before the second forked process times out
+trying to rpc_ping the server because the initial process never bothered to
+close the socket.
+
+Now Jeff Moyer at RedHat spotted that and gave me a patch for rpc_stubs.c
+which alleviates the problem slightly, however, while the parent and then
+the first child process play nice, any further forked processes also run
+into this rpc_ping port being held open and consequently fail to mount and
+you'd see something like this in the system messages log
+
+Aug 18 18:59:12 localhost automount[8746]: attempting to mount entry/test/947
+Aug 18 18:59:12 localhost automount[9050]: >> nfs bindresvport: Address already in use
+Aug 18 18:59:12 localhost automount[9050]: mount(nfs): nfs: mount failure 192.168.1.100:/compile/nfs/947 on /test/947
+
+soooooo,.... ideas on how to make the other children processes play nice?
+
+Phil
+=--=
