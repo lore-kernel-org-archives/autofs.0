@@ -1,13 +1,9 @@
-From: Mike Waychison <Michael.Waychison@Sun.COM>
-Subject: Re: Replicated hosts in autofs
-Date: Tue, 16 Nov 2004 12:56:57 -0500
-Message-ID: <419A3F69.9020601@sun.com>
-References: <69612FDB757A504ABA194C8B3AC7FED994E064@pauex2ku06.agere.com>
- <Pine.LNX.4.58.0411152128070.8422@donald.themaw.net>
+From: mmarion@qualcomm.com
+Subject: Failure to find path that exists..
+Date: Wed, 17 Nov 2004 11:12:13 -0800 (PST)
+Message-ID: <200411171912.iAHJCDkY017634@miguelito.qualcomm.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7BIT
 Return-path: <autofs-bounces@linux.kernel.org>
-In-reply-to: <Pine.LNX.4.58.0411152128070.8422@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,89 +14,50 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: raven@themaw.net
-Cc: autofs@linux.kernel.org, "Keeler, Wayne T (Wayne)" <wtkeeler@agere.com>, nfs@lists.sourceforge.net
+Content-Type: TEXT/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: autofs@linux.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Running into a new problem lately, or at least more-so lately.  We use a
+program map (shell script) to support our sun direct mount maps here.  It's
+been working mostly as expected, but this new problem has cropped up, where a
+user's job that is sent to a linux box via LSF, will fail to run due to it's
+path failing to mount.
 
-raven@themaw.net wrote:
-> On Fri, 12 Nov 2004, Keeler, Wayne T (Wayne) wrote:
-> 
-> 
->>Hi,
->>
->>I have read many threads regarding replicated hosts for autofs v3 and
->>v4. 
->>
->>Here is my scenario:
->>
->>On a linux host (Opteron running RHEL 3 WS kernel 2.4.21-20.ELsmp, I
->>have the following automount configured:
->>
->>mountpoint -fstype=nfs,-proto=tcp,ro host1,host2:/tmp/ro
->>
->>The goal in my implementation is that after the initial mount occurs to
->>host1 or host2, if that particular host fails, nfs will pick up the
->>mount on the alternate host. Note that since both mount points are read
->>only, this serves as a lower cost, higher availability solution. This
->>works on Solaris.
-> 
-> 
-> Nop. Not available in Linux.
-> 
-> 
->>I have had no success with this on Linux. It seems that the replication
->>only works on the initial mount/rpc call. Once the initial mount occurs,
->>it doesn't appear there is any fail-over capability.
-> 
-> 
-> Yep. I believe you are correct.
-> 
-> 
->>I have even installed RedHat's Beta version of E4 (kernel
->>2.6.9-1.648_ELsmp). The result is the same. If I crash the machine that
->>originally had the mount-point, the end result is a hung mount and
->>fail-over never occurs.
->>
->>I can't seem to find any information that indicates that this should or
->>should not work by design.
->>
->>Can someone please definitively tell me if the capability I am seeking
->>is available via the autofs supplied by RedHat in Enterprise 3?
-> 
-> 
-> I don't think that this is practicle to do in autofs.
-> 
-> This is the source of statements like "this functionality belongs in NFS 
-> or mount". The limited implementation in autofs is there because of the 
-> lack of it in NFS.
-> 
-> The question then is "does autofs or mount/NFS handle this in Solaris"?
-> 
-> Mike?
+I found that watching the logs showed an entry like:
+automount[32477]: lookup(program): lookup for lib failed 
+in the syslogs (path was /iceng/lib so daemon on /iceng failed to find lib).
 
-This is handled in the NFS code in Solaris (for the read-only failover
-bits).  I remember reading it being listed on one of the many Linux nfs
-priority lists on the net, but I can't find it now.  I don't think
-anyone is working on this just yet.
+I turned on a bunch of verbose logging in the shell script to see if it was a
+glitch there, but when the problem re-occured, there was no corroborating data
+at all.  So it seems the daemon didn't even exec the shell script.  I was able
+to turn on --debug on the automount daemon on a few hosts (this is happening
+on our itanium hosts more then anywhere else right now, I think because of the
+program running there and the less-used paths, I don't think the arch has any
+effect).  The logs today show:
+Nov 17 08:03:16 compute-ia64-san-005 automount[32470]: expired /iceng/lib/ram 
+Nov 17 08:03:16 compute-ia64-san-005 automount[32081]: shut down, path =
+/iceng/lib 
+Nov 17 08:03:16 compute-ia64-san-005 automount[32477]: lookup(program): lookup
+for lib failed 
+Nov 17 08:03:16 compute-ia64-san-005 automount[32477]: failed to recover from
+partial expiry of /iceng/lib  
 
-- --
-Mike Waychison
-Sun Microsystems, Inc.
-1 (650) 352-5299 voice
-1 (416) 202-8336 voice
+It looks to me like this might be a race condition where the path is being
+expired at almost the exact time that a new request for the path comes in.  
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NOTICE:  The opinions expressed in this email are held by me,
-and may not represent the views of Sun Microsystems, Inc.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+I'm running autofs-4.1.2 on these hosts right now, but have upgraded to 4.1.3
+with the bad_chdir, mtab_lock, non_block_ping and strict patches on one of
+thes hosts.. and haven't seen the problem there again yet (but I also don't
+know if the users have gotten new jobs on there since last night).
 
-iD8DBQFBmj9pdQs4kOxk3/MRAi6dAJ9nBswZwFZO+ucAnu9sbOa740X3DgCfXJ0W
-J1DL7hYYQZaMXmVG9POHBZ8=
-=1WFI
------END PGP SIGNATURE-----
+Has anyone seem similar issues, or know if one of the above patches for 4.1.3
+might fix this?  I'm going ahead with upgrading to the same on all the hosts I
+can anyway, but it's hard to get patches onto the ia64's (high demand for them
+all the time) without solid proof that it'll help.
+
+-- 
+Mike Marion-Unix SysAdmin/Staff Engineer-http://www.qualcomm.com
+"Because right now, developing software for Microsoft is like brushing the
+teeth of a Great White Shark with a piece of raw steak." - Robert G. Brown,
+Linux Today; Nov 13th, 1998
