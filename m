@@ -1,11 +1,16 @@
 From: raven@themaw.net
-Subject: Re: How to automount hidden Windows share
-Date: Thu, 27 Jan 2005 20:22:35 +0800 (WST)
-Message-ID: <Pine.LNX.4.61.0501272016470.8888@donald.themaw.net>
-References: <41F8A365.8080808@volny.cz>
+Subject: Re: [ANNOUNCE] autofs 4.1.4 beta1 release
+Date: Thu, 27 Jan 2005 20:12:49 +0800 (WST)
+Message-ID: <Pine.LNX.4.61.0501272002580.8888@donald.themaw.net>
+References: <Pine.LNX.4.61.0501262151370.1716@donald.themaw.net>
+	<20050126151344.GA841@uio.no>
+	<Pine.LNX.4.61.0501262320080.1890@donald.themaw.net>
+	<20050126161454.GA9417@uio.no>
+	<Pine.LNX.4.58.0501270916190.20105@wombat.indigo.net.au>
+	<20050127020231.GB5087@uio.no>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <41F8A365.8080808@volny.cz>
+In-Reply-To: <20050127020231.GB5087@uio.no>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,68 +23,39 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
-To: Milan Knizek <knizek@volny.cz>
+To: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
 Cc: autofs@linux.kernel.org
 
-On Thu, 27 Jan 2005, Milan Knizek wrote:
+On Thu, 27 Jan 2005, Steinar H. Gunderson wrote:
 
-> Hello,
+> (I'm still on the list, no need to Cc me :-) )
 >
-> I am not sure if this relates to kernel or to autofs, so sorry if I am wrong. 
-> I also tried to google for the problem, but I have found only questions and 
-> no solution.
+> On Thu, Jan 27, 2005 at 09:21:10AM +0800, Ian Kent wrote:
+>> The Debian side of things really refers to the merging of patches I
+>> found in the packages (as best as I could) and some init script changes
+>> which you are, no doubt checking.
 >
->
-> I use autofs-4.1.3, gentoo-dev-sources kernel 2.6.9 compiled with automounter 
-> v4 on Gentoo. I have problems with automounting hidden Windows shares - e.g. 
-> my /etc/autofs/auto.work includes:
->
-> n -fstype=smbfs,users,uid=knizek_m,gid=users,credentials=/etc/samba
-        What's this^^^^^ 
-> /credentials_argon ://ffile01/Home$
->
-> My /etc/autofs/auto.master includes:
->
-> /mnt/auto.work /etc/autofs/auto.work --timeout=60
->
->
-> When try ls /mnt/auto.work/n, the file does not exist. Syslog reads:
->
-> Jan 26 12:18:40 n1005 automount[10417]: failed to mount /mnt/auto.work/n
-> Jan 26 12:18:40 n1005 automount[10420]: >> Usage: mount.smbfs service 
-> mountpoint [-o options,...]
-> Jan 26 12:18:40 n1005 automount[10420]: >> Version 3.0.9
->
+> Well, I'm afraid I can't check that you got all the Debian-specific init
+> script changes right, as I don't really know or understand half the problems
+> these patches were fixing (and the code they modified seems to have been
+> mostly rewritten). As long as you actually reviewed the changes, I guess we
+> should be OK. If there'll be a 4.1.4-beta2 (with the missing patches I
+> noticed), I'll be happy to put that in experimental and see if people get it
+> to work properly without regressions. :-)
 
-I'd like to see the log entries prior to the "failed to mount" message 
-with the --debug option on the entry in the master map please.
+I'll put the changes you discussed in.
 
-This looks like a parsing problem. But I would have expected escaping the 
-$ to have worked.
+The main point here is that we really just want a working init script.
+The original init script didn't address some problems you were probably
+unaware of. Mostly related to master maps with a good number of entries. I 
+believe I've delat with much of that within the daemon now so the init 
+script is a little simpler and should be OK.
 
-> ... cut on purpose ...
->
-> Jan 26 12:18:40 n1005 automount[10420]: mount(generic): failed to mount 
-> "://ffile01/Home" (type smbfs) o
-> n /mnt/auto.work/n
-> Jan 26 12:18:40 n1005 automount[10420]: failed to mount /mnt/auto.work/n
->
->
-> I tried to change the line in auto.work to ://ffile01/Home\$ but it did not 
-> help anyway.
->
-> When I use fstab or mount manually, it works. Also, mounting normal Windows 
-> shares (not ending with $) and local devices like cdrom and usb works fine 
-> with automount.
->
-> Is there other way to go?
->
-> Thanks,
-> Milan
-> knizek@volny.cz
->
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
->
+All that really remains then is to ensure that the reported Debian 
+problems have also been addressed. Certainly I've tried to include as many 
+of the Debian patches as I could, some were catered for in other ways or 
+had been applied as part of other patches.
+
+So lets see how we go.
+
+Ian
