@@ -1,12 +1,13 @@
-From: Ian Kent <raven@themaw.net>
+From: Matthew Mitchell <matthew@geodev.com>
 Subject: Re: "simultaneous" mounts causing weird behavior
-Date: Wed, 5 Nov 2003 08:51:01 +0800 (WST)
+Date: Wed, 05 Nov 2003 10:57:43 -0600
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.33.0311050849370.8092-100000@wombat.indigo.net.au>
-References: <3FA81422.7070004@zytor.com>
+Message-ID: <1068051462.2640.181.camel@aluminum>
+References: <Pine.LNX.4.33.0311050836180.8092-100000@wombat.indigo.net.au>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <3FA81422.7070004@zytor.com>
+In-Reply-To: <Pine.LNX.4.33.0311050836180.8092-100000@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,40 +17,60 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: autofs@linux.kernel.org, Matthew Mitchell <matthew@geodev.com>
+Content-Type: text/plain; charset="us-ascii"
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org
 
-On Tue, 4 Nov 2003, H. Peter Anvin wrote:
+On Tue, 2003-11-04 at 18:46, Ian Kent wrote:
 
-> Matthew Mitchell wrote:
-> >
-> > Yes, I know that mount can do that now.  But automount is spawning the
-> > second mount before the first one completes, no?  Still seems like there
-> > should be some sort of mutual exclusion around the lookup_mount call.  I
-> > realize our workload is kind of funny in that the processes effectively
-> > _try_ to synchronize their automount request.
-> >
->
-> autofs 3 relied on the mutural exclusion inherent in mount(2).  When
-> this was changed, it introduced a race condition in autofs 3.  I have
-> asked to add a mount flag to override this new behaviour; I don't know
-> if one was ever introduced or added to mount(8).
->
-> > Has any of this changed in the 4.0-pre autofs?  I haven't read through
-> > its source yet.
->
-> autofs 4 uses a different mutural exclusion strategy, so I would *think*
-> it would not be affected.
+> The /tmp entry is caused by mount failing to handle overlapping requests.
+> Aaron Ogden and I have been there recently with autofs v4.
+> 
+> The overlapping mount problem is likely causing the other problem as well.
+> I put some altogether ugly code, which shouldn't work at all, but seems
+> to, into autofs v4 to deal with this. In fact I hated it so much, I
+> removed it at one point and Aaron was horrified to find everything broken
+> again.
 
-autofs v4 was also affected. Overlapping requests caused some odd
-problems.
+Looking at the 4.1.0-beta2 code, I don't see any mutex-looking code in
+handle_packet_missing.  Isn't that where it should be?  Or are you
+taking care of it elsewhere?  (Or are you allowing the bind mounts to go
+through in the odd case where you get past the lstat() test while still
+waiting on the lookup_mount to finish?)
 
+My memory of signal gymnastics is fuzzy, but would this work?
 
--- 
+(pseudocode)
 
-   ,-._|\    Ian Kent
-  /      \   Perth, Western Australia
-  *_.--._/   E-mail: raven@themaw.net
-        v    Web: http://themaw.net/
+if (lstat tests fail) {
+  if (mount is pending) {
+    /* someone is already trying to mount this path */
+    spin && retry from start;
+  } else {
+    set mount is pending;
+    f = fork();
+    if (f == -1) { couldn't fork, error case; }
+    if (!f) {
+	/* child */
+	close fds;
+	attempt mount;
+	if (mount succeeds) { exit 0 };
+	else if (mount fails) { exit 1 };
+    }
+    else {
+      /* parent */
+      success = wait(f);
+      unset mount is pending;
+    }
+} else {
+  /* already there */
+}
+
+I just am not seeing how you can properly guarantee that you don't end
+up with an unnecessary bind mount without waiting to see if the mount
+succeeds or not.  I do realize you might not want to wait forever if
+there is a problem mounting the device...
+
+Am I missing something?
+
+-m
