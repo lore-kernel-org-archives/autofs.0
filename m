@@ -1,14 +1,15 @@
 From: raven@themaw.net
 Subject: Re: [RFC] rpc_ping and looong timeouts
-Date: Sat, 5 Jun 2004 09:58:54 +0800 (WST)
+Date: Sat, 5 Jun 2004 10:08:58 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0406050956050.1643@donald.themaw.net>
+Message-ID: <Pine.LNX.4.58.0406051003140.1643@donald.themaw.net>
 References: <16575.35426.918728.134817@segfault.boston.redhat.com>
  <Pine.LNX.4.58.0406040909310.8991@wombat.indigo.net.au>
  <16576.51269.311121.121046@segfault.boston.redhat.com>
+ <16576.60526.394177.533027@segfault.boston.redhat.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <16576.51269.311121.121046@segfault.boston.redhat.com>
+In-Reply-To: <16576.60526.394177.533027@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -25,43 +26,57 @@ Cc: autofs@linux.kernel.org
 
 On Fri, 4 Jun 2004, Jeff Moyer wrote:
 
-> ==> Regarding Re: [autofs] [RFC] rpc_ping and looong timeouts; Ian Kent <raven@themaw.net> adds:
 > 
-> raven> On Thu, 3 Jun 2004, Jeff Moyer wrote:
-> >> Hello, Ian, list,
-> >> 
-> >> You may recall my asking for the rpc_ping function to take TCP only
-> >> servers into account.  Well, be careful what you ask for!  Now, if a
-> >> server is down in a replicated server configuration, it takes quite a
-> >> while to timeout due to the TCP connect.  The mount will eventually
-> >> succeed, but I've seen this take up to 10 minutes.
+> jmoyer> I've strace'd the automount process, and a lot of time is spent in
+> jmoyer> the clnt_create, for both UDP and the TCP.  I implemented a
+> jmoyer> non-blocking connect, and it took my ls time down from 8m21s to
+> jmoyer> 2m4s.  I'm still looking into why the UDP stuff isn't timing out
+> jmoyer> sooner.
 > 
-> raven> I'm not sure that I see that same behaviour in my test environment.
+> The clnt_create call does not take a timeout.  One of the things it does is
+> to contact the remote portmapper to get the port for the specified program
+> number.  There is a hard-coded default timeout in that code of 60 seconds,
+> which explains my 2 minutes.
 > 
-> raven> I'll check and get back.  It's probably best if we understand this a
-> raven> little better before jumping in.
+> This patch simply implements an icmp ping (code shamelessly stolen from
+> clumanager), and does this before even attempting to do the rpc pings.  If
+> the icmp ping works, then we continue as usual.  This takes care of the
+> host down case quite nicely:
 > 
-> I've strace'd the automount process, and a lot of time is spent in the
-> clnt_create, for both UDP and the TCP.  I implemented a non-blocking
-> connect, and it took my ls time down from 8m21s to 2m4s.  I'm still looking
-> into why the UDP stuff isn't timing out sooner.
+> # time ls /multi/multi1
+> foo
+> 
+> real    0m0.208s
+> user    0m0.010s
+> sys     0m0.010s
+> 
+> Ian, I can also post the nonblocking connect patch, but I'm unsure of its
+> usefulness vs. complexity ratio.  I say we only cross that bridge if we
+> need to.
+
+Agreed.
+
+> 
+> One nit: icmp_ping_host takes a char * for the hostname, whereas rpc_ping
+> passes a const char *.  As such, we get a 'discards qualifier' warning.  I
+> didn't think it warrented converting the whole call chain to consts, but if
+> you're especially concerned about that, Ian, I'd be happy to resubmit.
 >
 
-Cool. I'm wanting an excuse to look at the sunrpc code anyway.
+I'll see if I can get rid of the warning in some simple way. If only as a 
+clear indication it's what we intended to do.
 
-I'll have a bit of a poke around as well.
+In fact I will be able to use this to make the umount smarter later some 
+time.
  
-> >> Perhaps we should first test to see if a host is reachable at all before
-> >> we begin our rpc pings?
 > 
-> raven> Sigh!
-> 
-> raven> Will the fall out from the replicated server implementation it never
-> raven> end.
-> 
-> Despair not!  I'm sure we're on the home stretch, here!  ;)  I'll post a
-> patch for review when it's baked.
+> Comments?
 
-Great I'm looking forward to it.
+I've only had a brief look at the patch but it looks like good clean code.
+
+One small thing though.
+
+I understand you need to attribute Copyright to Redhat but don't you think 
+it would be acceptable to add your name their as well?
 
 Ian
