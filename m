@@ -1,102 +1,85 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Re: [PATCH] autofs4 deadlock during expire - kernel
- 2.6
-Date: Thu, 25 Sep 2003 19:59:44 +0800 (WST)
-Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.44.0309251933590.1548-100000@raven.themaw.net>
-References: <Pine.LNX.4.33.0309250924160.18646-100000@wombat.indigo.net.au>
+From: Matt C <wago@phlinux.com>
+Subject: Re: Re: [autofs] VFS: Busy inodes after unmount on 2 way SMP
+Date: Thu, 25 Sep 2003 16:17:54 -0700 (PDT)
+Sender: nfs-admin@lists.sourceforge.net
+Message-ID: <Pine.LNX.4.44.0309251614290.22478-100000@fubar.phlinux.com>
+References: <shsd6dyabju.fsf@charged.uio.no>
 Mime-Version: 1.0
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.33.0309250924160.18646-100000@wombat.indigo.net.au>
+Return-path: <nfs-admin@lists.sourceforge.net>
+In-Reply-To: <shsd6dyabju.fsf@charged.uio.no>
+Errors-To: nfs-admin@lists.sourceforge.net
+List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
+List-Post: <mailto:nfs@lists.sourceforge.net>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
+	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Errors-To: autofs-bounces@linux.kernel.org
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
+	<mailto:nfs-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Waychison <michael.waychison@sun.com>
-Cc: autofs mailing list <autofs@linux.kernel.org>, Arjan van de Ven <arjanv@redhat.com>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Jeremy Fitzhardinge <jeremy@goop.org>
+To: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: Olaf Hering <olh@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Arun Sharma <arun.sharma@intel.com>, autofs@linux.kernel.org, nfs@lists.sourceforge.net, Ian Kent <raven@themaw.net>
 
-On Thu, 25 Sep 2003, Ian Kent wrote:
+Hi All-
 
-Seem to have lost the original message.
-Please forgive the double indent.
+We've been having the 'VFS: Busy inodes after unmount' problems like crazy 
+on our desktop and server linux boxes running autofs under 2.4.21 
+(vanilla). We're using the autofs-3.1.7 userspace tools, but with the 
+autofs4 kernel module.
 
-I have tried the patch you recommended and have exactly the same symptoms.
+I applied the patch that was attached earlier in this thread to our kernel 
+and have been running it for the past few days on my desktop. These errors 
+have completely disappeared, and autofs is behaving as expected so far.
 
-> On Wed, 24 Sep 2003, Mike Waychison wrote:
+So, while it might be the wrong thing to do, it does fix our problems.
+
+-matt
+
+On 18 Sep 2003, Trond Myklebust wrote:
+
+> >>>>> " " == Olaf Hering <olh@suse.de> writes:
 > 
-> >
-> > I think the deadlock itself needs to be properly identified.
-> >
-> > Could you explain where the deadlock is actually occuring?  I briefed
-> > over the automount 4 code as well as autofs4 and I don't see the
-> > deadlock.  The 'owner' in the case of an expiry will be a child process
-> > of the daemon, within a call to ioctl(EXPIRE_MULTI), correct?  Having it
-> > be released from the waitqueue first should not affect flow of execution
-> > and released from deadlock.
-
-I have had some time to clear my thoughts on this now.
-
-First, the expire is done using a while in the daemon. It continues until 
-the ioctl returns non zero.
-
-I believe the sequence of events is:
-
-Expire locates an expireable dentry and sends a message to the daemon to 
-do the umount and returns 0. The ioctl runs with the BKL.
-The Naultilus process triggers a revalidate during the expire and waits 
-till that iteration of the expire finishes before continuing. The 
-revalidate leads to a lookup which takes the BKL.
-Meanwhile the expire enters the ioctl again but is blocked on the BKL.
-The lookup sends a mount request to the daemon which it cannot hear 
-because it is still waiting for the expire to finish.
-
-While this is a plausible description with the code as it is, I 
-have found that even if I bracket the revalidate with a BKL the problem 
-still occurs. 
-So there is something else I am missing. I don't know what it is.
-
-> > I don't see how having it wake up before before any other racing
-> > processes solves anything.
-
-If my description above where correct then forcing the expire to finish 
-would lead to the correct behaviour.
-
+>      >  On Wed, Sep 17, H. Peter Anvin wrote:
+>     >> Okay... let me ask this so I get it straight...
+>     >>
+>     >> Has anyone seen this (busy inodes after stopping the
+>     >> automounter) using autofs v3 kernel module and daemon?
 > 
-> I thought this was a side effect of the O(1) scheduler and that the
-> design of the wait handling left it open to a sequence of calls problem.
-> I first got the impression that it was related to the scheduler (and
-> felt that it was a deadlock) when I bumped the priority of the expire to
-> see what would happen and it work fine every time I tried it.
+>      > I'm not sure, but everyone who has seen this should fiddle this
+>      > patch into the kernel and see how it goes.  The whole thing
+>      > started very recently (post 2.4.21) for us.
+> 
+>      > This patch is untested, any feedback appreciated.
+> 
+> ...and is indeed wrong... It does the exact opposite of what
+> sillydelete should do. Instead of causing the last application that
+> closes the file to perform the sillydelete, you are asking the *first*
+> application that closes it to do so.
+> Sillydelete *has* to be tied to dentries. Not files, and not
+> inodes. It is purely a namespace operation...
+> 
+> So exactly what are you trying to do, and why?
+> 
+> Cheers,
+>   Trond
+> 
+> 
+> -------------------------------------------------------
+> This sf.net email is sponsored by:ThinkGeek
+> Welcome to geek heaven.
+> http://thinkgeek.com/sf
+> _______________________________________________
+> NFS maillist  -  NFS@lists.sourceforge.net
+> https://lists.sourceforge.net/lists/listinfo/nfs
 > 
 
-I still think that it is a O(1) effect. When the sleeping processes awake 
-it is possible that the scheduler does not pick the expire process as it 
-was the most recent of the processes to run.
 
-> >
-> > I think Arjan is right in that the race is do to the nautilus process
-> > entering the sleep_on after the a call to wake_up(&wq->queue).  I don't
-> 
-> That needs fixing for sure, apart from anything else.
-> 
-> > know if a change to using a workqueue is best..   how about refactoring
-> > that chunk of code to use wait_event_interruptible on the queue, which
-> > should be clear of any waitqueue/sleep_on races.
 
-Again if my explanation is close to correct then the question is what is 
-the proper way to force the execution order? Using a completion as well as 
-the wait perhaps?
-
--- 
-
-   ,-._|\    Ian Kent
-  /      \   Perth, Western Australia
-  *_.--._/   E-mail: raven@themaw.net
-        v    Web: http://themaw.net/
+-------------------------------------------------------
+This sf.net email is sponsored by:ThinkGeek
+Welcome to geek heaven.
+http://thinkgeek.com/sf
+_______________________________________________
+NFS maillist  -  NFS@lists.sourceforge.net
+https://lists.sourceforge.net/lists/listinfo/nfs
