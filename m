@@ -1,13 +1,13 @@
-From: raven@themaw.net
-Subject: Re: Proposal for map refresh logic
-Date: Mon, 14 Jun 2004 19:04:29 +0800 (WST)
+From: "Dimitry V. Ketov" <Dimitry.Ketov@avalon.ru>
+Subject: RE: Another (stupid) question: autofs vs nfs for
+	automounting purposes
+Date: Mon, 14 Jun 2004 15:28:09 +0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0406141857480.14098@donald.themaw.net>
-References: <Pine.LNX.4.58.0405212143160.1592@donald.themaw.net>
- <Pine.LNX.4.58.0405210855001.28570@simba.math.ucla.edu>
+Message-ID: <E1B7C89B8DCB084C809A22D7FEB90B384E3A15@frodo.avalon.ru>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0405210855001.28570@simba.math.ucla.edu>
+content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,29 +17,32 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Jim Carter <jimc@math.ucla.edu>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: autofs@linux.kernel.org
 
-On Fri, 21 May 2004, Jim Carter wrote:
+> -----Original Message-----
+> From: raven@themaw.net [mailto:raven@themaw.net] 
 
-> don't know about LDAP.  Suggestion for ghost mounts: only refresh the map 
-> when a userspace process does opendir on the containing directory, as in 
-> "ls /net/hostname".  In any other case, outdated or missing ghost mounts 
-> cannot be seen by userspace, so let sleeping dogs lie.
+> > communication protocol and to complicate kernel instead 
+> using already 
+> > in-kernel nfs code?
+> 
+> I'm not really familiar with amd so I can't comment on that.
+> 
+> Historically there are two ways to implement automount one being 
+> userspace, RPC based and the other being kernel based. autofs 
+> uses the 
+> kernel based method. It doesn't seem to me using the in 
+> kernel NFS would 
+> be sensible but someone would need to enlighten me on that.
+> 
+> In any case this implementation is a kernel based automounter. If you 
+> would like to use the other implementation then I believe amd 
+> is quite a 
+> capable product.
+:) Nope. Just trying to figure out why two different implementations is
+still exists.
+Anyway thanks,
 
-I wonder how many of those opendir events are actually userspace 
-requests not themselves initiated by the daemon?
 
-I'll investigate this a little further!
-
-What were your thoughts about frequent opendir events, many users, or just 
-many ls commands?
-
-Perhaps a map needs to be considered up to date for some amount of time 
-after a map re-read?
-
-Thoughts?
-
-Ian
+Dimitry.
