@@ -1,14 +1,12 @@
-From: raven@themaw.net
-Subject: Re: Debian: Init script confused by options
-Date: Wed, 12 May 2004 23:29:56 +0800 (WST)
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: rpc_ping always uses UDP
+Date: Wed, 12 May 2004 15:00:28 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0405122328330.21783@donald.themaw.net>
-References: <16541.33862.63334.177007@Psilocybe.Update.UU.SE>
-	<Pine.LNX.4.58.0405122051330.6844@donald.themaw.net>
-	<20040512133426.GA30296@majestix.home.watz.ch>
+Message-ID: <16546.29772.254542.152548@segfault.boston.redhat.com>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20040512133426.GA30296@majestix.home.watz.ch>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,24 +16,26 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Daniel Lutz <danlutz@debian.org>
-Cc: autofs@linux.kernel.org, Thorild Selen <thorild@Update.UU.SE>
+Content-Type: text/plain; charset="us-ascii"
+To: autofs@linux.kernel.org
 
-On Wed, 12 May 2004, Daniel Lutz wrote:
+Hello Ian, list,
 
-> > 
-> > What can I do to encourage you to upgrade from the 4.0.0pre10 base you are 
-> > using. Sorry, I know it's quite a bit of work, but I'm certain the current 
-> > version is more stable and functional than your current base.
-> 
-> I'm fully aware that an upgrade to 4.1.x would be the best thing to do,
-> a lot of bugs in Debians bug tracking system could be closed.
-> But unfortunately I'm still too busy for doing this big step.
+I had a user report an issue which is summed up in the subject.  Basically,
+he disallowed UDP traffic to his NFS server.  Because the autofs code uses
+UDP in the rpc_ping function to determine if a server is alive, it would
+conclude that the server was not alive.  He was, of course, using NFSv4
+over TCP.
 
-Understand.
+This is a bit of a corner case.  I'm not sure if this is a valid problem or
+not, and I'm sure it could be argued either way.  So, what does the list
+think?
 
-If there's anything I can do let me know.
+To provide further information on the implementation implications, we would
+actually have to look at the filesystem options, which is something we
+don't really need to bother ourselves with, at the moment.  That part
+sounds a little ugly to me.
 
-Ian
+So, thoughts?  Comments?
+
+-Jeff
