@@ -1,7 +1,7 @@
 From: raven@themaw.net
 Subject: Re: [ANNOUNCE] autofs 4.1.4 beta2 release
-Date: Tue, 15 Feb 2005 22:52:57 +0800 (WST)
-Message-ID: <Pine.LNX.4.61.0502152250440.8175@donald.themaw.net>
+Date: Tue, 15 Feb 2005 22:53:57 +0800 (WST)
+Message-ID: <Pine.LNX.4.61.0502152253120.8175@donald.themaw.net>
 References: <Pine.LNX.4.61.0502142233210.1653@donald.themaw.net>
 	<20050215014857.GA26216@uio.no>
 Mime-Version: 1.0
@@ -23,35 +23,11 @@ Cc: autofs@linux.kernel.org
 
 On Tue, 15 Feb 2005, Steinar H. Gunderson wrote:
 
-> - 051_maps_without_trailing_newline.diff is not in, it seems; did you forget
->  it or just find a cleaner way?
+> - The check for /proc/modules does not seem to have went in (see
+>  http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=292762).
 
-I think you'll find that this handles the issue (if I understand it 
-correctly).
+I though I checks this?
 
-Index: modules/lookup_file.c
-===================================================================
-RCS file: /home/cvs/root/autofs/modules/lookup_file.c,v
-retrieving revision 1.13
-retrieving revision 1.14
-diff -u -r1.13 -r1.14
---- modules/lookup_file.c	26 Jan 2005 05:31:38 -0000	1.13
-+++ modules/lookup_file.c	6 Feb 2005 10:05:55 -0000	1.14
-@@ -1,4 +1,4 @@
--#ident "$Id: lookup_file.c,v 1.13 2005/01/26 05:31:38 raven Exp $"
-+#ident "$Id: lookup_file.c,v 1.14 2005/02/06 10:05:55 raven Exp $"
-  /* ----------------------------------------------------------------------- *
-   *
-   *  lookup_file.c - module for Linux automount to query a flat file map
-@@ -202,6 +202,11 @@
-  			} else if (mapent_len < MAPENT_MAX_LEN) {
-  				mapent_len++;
-  				*(p++) = ch;
-+				nch = getc(f);
-+				if (nch == EOF &&
-+				   (gotten == got_real || gotten == getting))
-+				   	goto got_it;
-+				ungetc(nch, f);
-  			}
-  			break;
-  		}
+Or have you changed the bug id?
+
+Ian
