@@ -1,8 +1,19 @@
-From: peter.a.harris@exgate.tek.com
-Subject: RE: unacceptable bug in autofs kernel module
-Date: Mon, 7 Mar 2005 16:16:41 -0800
-Message-ID: <C147DE5CF1A13D42B560879D6D212E63012F3B5D@us-bv-m21.global.tektronix.net>
+From: Chris Fanning <christopher.fanning@gmail.com>
+Subject: Re: autofs and terminal networks woes.
+Date: Tue, 8 Mar 2005 12:36:26 +0100
+Message-ID: <215ff4410503080336477daa92@mail.gmail.com>
+References: <215ff441050217023378003e72@mail.gmail.com>
+	<Pine.LNX.4.61.0502172136030.1683@donald.themaw.net>
+	<215ff441050217060647db41dc@mail.gmail.com>
+	<Pine.LNX.4.61.0502172203440.1683@donald.themaw.net>
+	<215ff441050217071517292c1a@mail.gmail.com>
+	<4214C1D3.8080107@loran.name>
+	<215ff44105022011381b2deee7@mail.gmail.com>
+	<Pine.LNX.4.58.0502211236290.9892@wombat.indigo.net.au>
+Reply-To: Chris Fanning <christopher.fanning@gmail.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <Pine.LNX.4.58.0502211236290.9892@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -14,69 +25,110 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: mmarion@qualcomm.com
-Cc: autofs@linux.kernel.org
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org, Jonathan Loran <jonathan@loran.name>
 
-Mike,
+Hi,
 
-We use a mixture of direct and indirect maps, all with ghosting turned on.
-The problems we are seeing are evenly spread between the two types.  Our
-basic tools and home directories are indirect maps, the project data and
-project specific tools are in a large direct map.  All the maps are NIS (not
-NIS+) served.  All totaled we have about 1200+ mounts.
+well, though observation, it seems the problem I stated before of the
+mounts not unmounting is because Nautilus keeps it in sort of cache or
+something and the mount remains busy.
 
-We have also seen some problems on the Solaris boxes in a timeframe similar
-to our Linux problems.  We have been getting more RPC timeouts and NFS
-server not responding errors in the messages files.  And the users have been
-complaining of, what they have termed, "pausenia" and "stuttering".
-Pausenia is where the user types a command and the shell locks for 15 to 60
-seconds before anything happens.  Stuttering is a file not found error,
-followed by the file being there when the user immediately (after cursing
-and retyping) reissues the command.  The one difference we see on the
-Solaris side is that the automounter seems to self-recover.
+anyway, to refresh..
+I have a terminal network environment.
+All users run their session on the central terminal server. Each pc,
+where the users sits, is running X. Problems start when the
+user wants to access the floppy because /mnt/floppy is the floppy
+drive on the server, when in reality, the user is not phisically at
+the server.
 
-We have turned off the "/net" program map because there are too many
-problems with things staying mounted, overly long exports lists from the
-filers, etc. and we don't really need it on every machine.
+ok. since then I've got this working
+/terminals/terminal_ip/fd
+/terminals/terminal_ip/cd
+great!
 
+Now I have another doubt.
+I can't expect the users to know the path to the floppy because, for
+example, they don't even know their ip.
+So I make a link from the users home to their terminals floppy. eg.
+ln -s /terminals/terminal_ip/fd /home/a_user/Floppy
 
-Pete Harris
-Central Engineering / Technical Computing
-Phone:	1-503-627-3989
-Fax:	1-503-627-5587
+But this causes the drive to mount. Bad.
 
-   __++__            ---------  ___,--. --+_._._:_    
-  _|____|_ _________ |__|_|__| |_SP&S_| |_|_===__|    
-   oo  oo ~ oo   oo ~ oo   oo ~ ooo ooo~ o OOOO =o\   
-============================================================
-Perform random acts of kindness and senseless beauty...
+Is there anyway to point to the floppy but delay the mount until the
+user really wants it?
 
-=-----Original Message-----
-=From: Mike Marion [mailto:mmarion@qualcomm.com]
-=Sent: Monday, March 07, 2005 11:49 AM
-=To: Harris, Peter A
-=Cc: autofs@linux.kernel.org
-=Subject: Re: [autofs] unacceptable bug in autofs kernel module
-=
-=On Feb 4, 2005, at 10:58 AM, peter.a.harris@exgate.tek.com wrote:
-=
-=> Funny you should mention - I was just getting ready to ask about this.
-=
-=Curious.. those that are seeing that mount problem, especially for jobs
-=submitted via a system like lsf.. What kind of map(s) are you seeing
-=the problems on?  Direct map with/without ghosting?   Program map?  yp?
-=ldap? etc..
-=
-=We've been having the problem with a shell scripted, program map to
-=support our sun auto.direct map, but I did just get the newer direct
-=map support with ghosting working on a couple test boxes and want to do
-=some testing to see if that helps vs the non-visible way it was with
-=the program script.
-=
-=--
-=Mike Marion-Unix SysAdmin/Staff Engineer-http://www.qualcomm.com
-=Drew: "Violence doesn't solve anything? World War I. World War II. Star
-=Wars.
-=every Super Bowl. Who says violence doesn't solve anything?!" ==> Drew
-=Cary Show
+Thanks again.
+Chris.
+
+On Mon, 21 Feb 2005 12:39:37 +0800 (WST), Ian Kent <raven@themaw.net> wrote:
+> On Sun, 20 Feb 2005, Chris Fanning wrote:
+> 
+> > No Jon, you're not missing anything.
+> > I've simply started using smb because the pxes client I've been
+> > testing with has a nice check box to include a smb server in the
+> > image.
+> > You are probably right and nfs is the way to go.
+> >
+> > By the way, since I've upgraded, autofs doesn't seem to unmount the
+> > drives (I can hear the diskette spinning every 8 seconds or so), even
+> > with the timeout set.
+> >
+> > How should I test that to see if it really is a bug?
+> 
+> Mostly I use the --debug option on the master map entry.
+> Then forward the log and I'll see if there's anything amiss.
+> 
+> What about your autofs4 kernel module?
+> 
+> >
+> > Chris.
+> >
+> >
+> > On Thu, 17 Feb 2005 08:09:55 -0800, Jonathan Loran <jonathan@loran.name> wrote:
+> > >
+> > >  Chris, Ian,
+> > >
+> > >  I don't chime in here very often, and I know this is now more or less
+> > > working, but the obvious question to me is, since both the thin client and
+> > > server are running Linux/Unix, why not use the more native NFS?  Perhaps I'm
+> > > missing something obvious.
+> > >
+> > >  Jon
+> > >
+> > >  Chris Fanning wrote:
+> > >  ok. downloaded, compiled and installed. This works great! Thankyou. Chris.
+> > > On Thu, 17 Feb 2005 22:10:58 +0800 (WST), raven@themaw.net
+> > > <raven@themaw.net> wrote:
+> > >  On Thu, 17 Feb 2005, Chris Fanning wrote:
+> > >  Hi Ian,
+> > >  Versions? 4.1.3-9
+> > >  Perhaps you need to use ://thinclient_ip/fd So, do you suggest I upgrade?
+> > > Only if you can solve the problems you face. Certainly not without plenty of
+> > > testing.
+> > >  When might 4.1.4 be available for debian testing? I guess that will depend
+> > > on the Debian folks. I'm hoping they will push 4.1.4 into the Debian tree
+> > > fairly soon after it is released. I've tried to get as many fixes into the
+> > > new version as I could.
+> > >  Should I download the source instead? If you wish to test this out you can
+> > > download autofs-4.1.4_beta2-deb.tar.gz which basically contains the files of
+> > > a source deb. As i've said before, this is for testing only as I'm not the
+> > > maintainer of the Debian package. If you do try this make sure you stop
+> > > autofs before installing the deb. Ian
+> > > _______________________________________________ autofs mailing list
+> > > autofs@linux.kernel.org http://linux.kernel.org/mailman/listinfo/autofs
+> > > _______________________________________________
+> > > autofs mailing list
+> > > autofs@linux.kernel.org
+> > > http://linux.kernel.org/mailman/listinfo/autofs
+> > >
+> > >
+> > >
+> >
+> > _______________________________________________
+> > autofs mailing list
+> > autofs@linux.kernel.org
+> > http://linux.kernel.org/mailman/listinfo/autofs
+> >
+> 
+>
