@@ -1,9 +1,11 @@
-From: Mike Waychison <mike@waychison.com>
-Subject: Re: [RFC] direct mount support re-work for autofs v4
-Date: Thu, 24 Feb 2005 00:21:42 -0500
-Message-ID: <421D6466.1000508@waychison.com>
+From: raven@themaw.net
+Subject: Re: Is autofs4 8-bit compatible?
+Date: Fri, 25 Feb 2005 21:23:25 +0800 (WST)
+Message-ID: <Pine.LNX.4.61.0502252118490.1921@donald.themaw.net>
+References: <421E3F05.00006A.08775@mfront7.yandex.ru>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: MULTIPART/MIXED; BOUNDARY="1629620785-131795599-1109337805=:1921"
+In-Reply-To: <421E3F05.00006A.08775@mfront7.yandex.ru>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -14,31 +16,64 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
+To: atlantos41 <atlantos41@yandex.ru>
+Cc: autofs@linux.kernel.org
+
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+--1629620785-131795599-1109337805=:1921
+Content-Type: TEXT/PLAIN; charset=KOI8-R; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+On Thu, 24 Feb 2005, atlantos41 wrote:
+
+In short no.
+
+> Hi.
+> I start automount with command:
+> automount --timeout=3D60 /smb file /etc/auto.smb
+>
+> where /etc/auto.smb is
+> test_data<cyrchar>est    -fstype=3Dsmbfs    ://test/data<cyrchar>est
+>
+> where <cyrchar> is one cyrillic char, for example "=D4", i. e.
+> ~ echo -n <cyrchar> | hexdump
+> 0000000 00d4
+> 0000001
+>
+> When I try to change directory to /smb/test_data<cyrchar>est, then autofs
+> fails with messages in syslog:
+> automount[13111]: failed to mount /smb/test_data
+>
+> But if I change key in /etc/auto.smb to 7-bit, for example
+> "test_data<cyrchar>est" to "test_datatest":
+> test_datatest    -fstype=3Dsmbfs    ://test/data<cyrchar>est
+>
+> and then restart automount, autofs works as it should be.
+>
+> This problem appears to be in autofs 4.1.3 and autofs 4.1.4_beta1, but no=
+t in
+> autofs 3.1.7.
+
+I'll check but I think v3 didn't actually do specific character=20
+comparisons. Along the way this has made its way into v4.
+
+Perhaps it's not a big deal to change.
+I'm not sure yet.
+
+Ian
+
+--1629620785-131795599-1109337805=:1921
 Content-Type: text/plain; charset="us-ascii"
-To: autofs@linux.kernel.org
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
 
-Sorry for breaking threading, this email addy isn't subscribed.
+--1629620785-131795599-1109337805=:1921--
 
-> The other way is to use an approach similar to that outlined in
-> Mike Waychisons' "Towards a Modern AutoFS" (contact Mike at 
-> Michael.Waychison at sun.com if you'd like to get a copy) adapted
-> for the existing autofs code.
-
-FWIW, I no longer work at Sun.  Please update your contacts to read mike
-at waychison dawt com.
-
-I will still however be continuing work on autofsng, homepage is at
-http://waychison.com/autofsng/
-
-Mike Waychison
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.5 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
-
-iD8DBQFCHWRmdQs4kOxk3/MRAtFiAJsE+MEcfjLCAtyH4GVl70wKF5HwrwCfcV52
-PVVODv6NfGxg2x7UblOCIu4=
-=11a9
------END PGP SIGNATURE-----
