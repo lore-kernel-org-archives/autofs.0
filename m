@@ -1,49 +1,25 @@
-From: Ian Kent <raven@themaw.net>
+From: Arjan van de Ven <arjanv@redhat.com>
 Subject: Re: [PATCH] autofs4 deadlock during expire - kernel 2.6
-Date: Wed, 24 Sep 2003 21:38:16 +0800 (WST)
+Date: Wed, 24 Sep 2003 15:57:20 +0200
 Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <Pine.LNX.4.44.0309242136080.6713-100000@raven.themaw.net>
-References: <1064408962.5074.2.camel@laptop.fenrus.com>
+Message-ID: <20030924155720.C31236@devserv.devel.redhat.com>
+References: <1064408962.5074.2.camel@laptop.fenrus.com> <Pine.LNX.4.44.0309242136080.6713-100000@raven.themaw.net>
 Mime-Version: 1.0
 Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-In-Reply-To: <1064408962.5074.2.camel@laptop.fenrus.com>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44.0309242136080.6713-100000@raven.themaw.net>; from raven@themaw.net on Wed, Sep 24, 2003 at 09:38:16PM +0800
 List-Id: <autofs.vger.kernel.org>
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Arjan van de Ven <arjanv@redhat.com>
-Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, Maneesh Soni <maneesh@in.ibm.com>, autofs mailing list <autofs@linux.kernel.org>, Jeremy Fitzhardinge <jeremy@goop.org>
+To: Ian Kent <raven@themaw.net>
+Cc: Arjan van de Ven <arjanv@redhat.com>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Maneesh Soni <maneesh@in.ibm.com>, autofs mailing list <autofs@linux.kernel.org>, Jeremy Fitzhardinge <jeremy@goop.org>
 
-On Wed, 24 Sep 2003, Arjan van de Ven wrote:
-
-> On Wed, 2003-09-24 at 15:01, Ian Kent wrote:
-> > This is a corrected patch for the autofs4 daedlock problem I posted about 
-> > @@ -206,6 +207,11 @@
-> >  
-> >  		interruptible_sleep_on(&wq->queue);
-> >  
-> > +		if (waitqueue_active(&wq->queue) && current != wq->owner) {
-> > +			set_current_state(TASK_INTERRUPTIBLE);
-> > +			schedule_timeout(wq->wait_ctr * (HZ/10));
-> > +		}
-> > +
+On Wed, Sep 24, 2003 at 09:38:16PM +0800, Ian Kent wrote:
+> > interruptible_sleep_on ?
+> > 
 > 
-> this really really looks like you're trying to pamper over a bug by
-> changing the timing somewhere instead of fixing it...
+> OK so maybe I should have suggestions instead of comments.
 
-Agreed.
-
-> 
-> also are you sure the deadlock isn't because of the racey use of
-> interruptible_sleep_on ?
-> 
-
-OK so maybe I should have suggestions instead of comments.
-
-Please elaborate.
-
--- 
-
-   ,-._|\    Ian Kent
-  /      \   Perth, Western Australia
-  *_.--._/   E-mail: raven@themaw.net
-        v    Web: http://themaw.net/
+instead of interruptible_sleep_on(), it looks like you really want
+to use completions for this code..
+see kernel/workqueue.c for how those are used
