@@ -1,11 +1,11 @@
-From: David Wuertele <dave-gnus@bfnet.com>
-Subject: support for Japanese share names?
-Date: Tue, 28 Sep 2004 16:15:45 -0700
+From: Luke Kenneth Casson Leighton <lkcl@lkcl.net>
+Subject: timeouts on update of /etc/autofs.[conf] file not read v. fast
+Date: Wed, 22 Sep 2004 18:21:20 +0100
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <m3u0tidly6.fsf@bfnet.com>
+Message-ID: <20040922172120.GA7308@lkcl.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -15,48 +15,61 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="iso-2022-jp"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: autofs@linux.kernel.org
 
-The system:
+hi,
 
-    Fedora Core 2, relatively stock:
+i notice that failed attempts to access an autofs managed mountpoint
+result in a sort of "black hole" period of somewhere around thirty
+seconds, during which time the media cannot be accessed.
 
-    # rpm -q autofs
-    autofs-4.1.2-2
-    # uname -a
-    Linux 5nave 2.6.5-1.358 #1 Sat May 8 09:04:50 EDT 2004 i686 i686 i386=
- GNU/Linux
-    # cat /etc/auto.master
-    /mnt/server /etc/auto.server
-    # cat /etc/auto.server
-    * -fstype=3Dcifs,ip=3D192.168.5.172 ://server/&
-    #=20
+after this "black hole" period has expired, handle_packet() suddenly...
+just... wakes up!  up until that time, any attempts to do an ls
+/media/floppy are just... ignored.
 
-The problem:
+what's goin on?
 
-    Shares that have low-ASCII names mount fine, but shares that have
-    Japanese names won't mount under autofs:
+ta,
 
-    # ls /mnt/server/share
-    dave	docs	Music   bitmaps  Photos
-    # ls /mnt/server/=BF=B7=A4=B7=A4=A4=A5=D5=A5=A9=A5=EB=A5=C0
-    ls: /mnt/server/=BF=B7=A4=B7=A4=A4=A5=D5=A5=A9=A5=EB=A5=C0: No such f=
-ile or directory
-    #=20
+l.
 
-    The exact same share mounts fine when I do it manually:
+Sep 22 18:17:29 localhost automount[11118]: get_pkt: state 3, next 2
+Sep 22 18:17:29 localhost automount[11118]: st_ready(): state = 3
+Sep 22 18:17:30 localhost automount[11118]: sig 14 switching from 2 to 3
+Sep 22 18:17:30 localhost automount[11118]: get_pkt: state 2, next 3
+Sep 22 18:17:30 localhost automount[11118]: st_expire(): state = 2  
+Sep 22 18:17:30 localhost automount[11118]: expire_proc: exp_proc=11317
+Sep 22 18:17:30 localhost automount[11118]: st_expire(): exp = 1  
+Sep 22 18:17:30 localhost automount[11118]: handle_child: got pid 11317,
+sig 0 (0), stat 0 
+Sep 22 18:17:30 localhost automount[11118]: sigchld: exp 11317 finished,
+switching from 3 to 2
+Sep 22 18:17:30 localhost automount[11118]: get_pkt: state 3, next 2
+Sep 22 18:17:30 localhost automount[11118]: st_ready(): state = 3
+Sep 22 18:17:31 localhost automount[11118]: sig 14 switching from 2 to 3 
+Sep 22 18:17:31 localhost automount[11118]: get_pkt: state 2, next 3
+Sep 22 18:17:31 localhost automount[11118]: st_expire(): state = 2 
+Sep 22 18:17:31 localhost automount[11118]: expire_proc: exp_proc=11318
+Sep 22 18:17:31 localhost automount[11118]: st_expire(): exp = 1
+Sep 22 18:17:31 localhost automount[11118]: handle_child: got pid 11318,
+sig 0 (0), stat 0
+Sep 22 18:17:31 localhost automount[11118]: sigchld: exp 11318 finished,
+switching from 3 to 2
+Sep 22 18:17:31 localhost automount[11118]: get_pkt: state 3, next 2
+Sep 22 18:17:31 localhost automount[11118]: st_ready(): state = 3
+Sep 22 18:17:31 localhost automount[11118]: handle_packet: type = 0
+Sep 22 18:17:31 localhost automount[11118]: handle_packet_missing: token
+4, name floppy
+Sep 22 18:17:31 localhost automount[11118]: attempting to mount entry
+/media/floppy
 
-    # mount -t cifs //server/=BF=B7=A4=B7=A4=A4=A5=D5=A5=A9=A5=EB=A5=C0 /=
-mnt/dave -o ip=3D192.168.5.172
-    # ls dave
-    file1   file2   file3
-    #=20
-
-The question:
-
-    Does autofs have support for non-ASCII sharenames at all?
-    How do I make it work with Japanese sharenames?
-
-Thanks,
-Dave
+-- 
+--
+Truth, honesty and respect are rare commodities that all spring from
+the same well: Love.  If you love yourself and everyone and everything
+around you, funnily and coincidentally enough, life gets a lot better.
+--
+<a href="http://lkcl.net">      lkcl.net      </a> <br />
+<a href="mailto:lkcl@lkcl.net"> lkcl@lkcl.net </a> <br />
