@@ -1,12 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: RE: [ANNOUNCE] autofs v4 releases, at last
-Date: Wed, 8 Oct 2003 21:18:19 +0800 (WST)
+From: Rich Sahlender <rsahlen@voicenet.com>
+Subject: multiple servers per automount
+Date: Wed, 8 Oct 2003 13:24:51 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.44.0310082115190.3218-100000@raven.themaw.net>
-References: <BA0E4392AD99D040885C414D992C24BE0526D052@us-bv-m11.bv.tek.com>
+Message-ID: <20031008172451.GA1775@born2.midworld.org>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <BA0E4392AD99D040885C414D992C24BE0526D052@us-bv-m11.bv.tek.com>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,31 +15,24 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: peter.a.harris@exgate.tek.com
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Mon, 6 Oct 2003 peter.a.harris@exgate.tek.com wrote:
+This is probably a faq but I havn't seen it asked in recent months...
 
-> Ian,
-> 
-> I am having problems with the 2.4 module compile.  I am running Red Hat 7.3,
-> 2.4.20-20.7 kernel and I get:
-> 
+I have a situation where two network appliance filers with identical
+file systems are used to serve read only mounts for CAD software tools.
+Both Solaris and HP-UX support an automount like:
 
-Peter,
+cadtool	-ro	tools1,tools2:/vol/vol1/tools/&
 
-It would be a good idea to wait a little as Aaron has identified an error 
-in the kernel module during his recent testing. I expect to put out 
-replacement packages tonight or tomorrow. I'll investigate the RedHat 
-kernel issue as well and update the documentation.
+and will automatically switch to the other server if the initial mount
+becomes unavailable.
 
-Sorry.
+Last time I was able to check Linux autofs did not support the failover
+and complained about the syntax. Has this changed or are there plans to
+support the syntax above with failover for read only mounts?
 
--- 
-
-   ,-._|\    Ian Kent
-  /      \   Perth, Western Australia
-  *_.--._/   E-mail: raven@themaw.net
-        v    Web: http://themaw.net/
+Thanks,
+Rich Sahlender
