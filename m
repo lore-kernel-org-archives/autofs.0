@@ -1,27 +1,43 @@
-From: raven@themaw.net
-Subject: Re: autofs4 patch: autofs4_wait can leak memory
-Date: Mon, 7 Mar 2005 16:15:18 +0800 (WST)
-Message-ID: <Pine.LNX.4.62.0503071612570.23607@donald.themaw.net>
-References: <16936.33587.974061.237160@segfault.boston.redhat.com>
-Mime-Version: 1.0
-In-Reply-To: <16936.33587.974061.237160@segfault.boston.redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: <autofs.vger.kernel.org>
-Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
+From: Mike Marion <mmarion@qualcomm.com>
+Subject: Re: unacceptable bug in autofs kernel module
+Date: Mon, 7 Mar 2005 11:49:09 -0800
+Message-ID: <13d4539f0ea6367322865103397ca277@qualcomm.com>
+References: <C147DE5CF1A13D42B560879D6D212E63D0948E@us-bv-m21.global.tektronix.net>
+Mime-Version: 1.0 (Apple Message framework v619.2)
 Content-Transfer-Encoding: 7bit
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: autofs@linux.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <C147DE5CF1A13D42B560879D6D212E63D0948E@us-bv-m21.global.tektronix.net>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: peter.a.harris@exgate.tek.com
+Cc: autofs@linux.kernel.org
 
-On Fri, 4 Mar 2005, Jeff Moyer wrote:
+On Feb 4, 2005, at 10:58 AM, peter.a.harris@exgate.tek.com wrote:
 
-> Hi,
->
-> There is a memory in the autofs4_wait function, if multiple processes are
-> waiting on the same queue:
->
+> Funny you should mention - I was just getting ready to ask about this.
 
-Well done Jeff.
+Curious.. those that are seeing that mount problem, especially for jobs 
+submitted via a system like lsf.. What kind of map(s) are you seeing 
+the problems on?  Direct map with/without ghosting?   Program map?  yp? 
+ldap? etc..
 
-I'll update my retrospective patch set.
+We've been having the problem with a shell scripted, program map to 
+support our sun auto.direct map, but I did just get the newer direct 
+map support with ghosting working on a couple test boxes and want to do 
+some testing to see if that helps vs the non-visible way it was with 
+the program script.
 
-Ian
+-- 
+Mike Marion-Unix SysAdmin/Staff Engineer-http://www.qualcomm.com
+Drew: "Violence doesn't solve anything? World War I. World War II. Star 
+Wars.
+every Super Bowl. Who says violence doesn't solve anything?!" ==> Drew 
+Cary Show
