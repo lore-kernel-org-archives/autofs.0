@@ -1,8 +1,8 @@
 From: Clif Smith <kernel@cjs226.com>
-Subject: Problem with NIS maps
-Date: Mon, 30 Aug 2004 23:07:26 -0500
+Subject: Can I "null" out NIS maps with autofs?
+Date: Mon, 30 Aug 2004 23:38:27 -0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <4133F97E.8060509@cjs226.com>
+Message-ID: <413400C3.2010203@cjs226.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
@@ -18,18 +18,8 @@ Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"; format="flowed"
 To: autofs@linux.kernel.org
 
-I'm in a large heterogeneous environment located across multiple 
-locations.  I use NIS maps such as:
-/home -rw austin:/export/home boston:/export/home phoenix:/export/home
+Occasionally I need to use all but 1 or 2 NIS maps with automount.  With 
+AIX and Solaris, I've been able to use the -null arg.  However that 
+doesn't seem to work with autofs?
 
-with the following in /etc/auto.master:
-/nis      yp      auto_indirect_nis
-
-With AIX and Solaris, automounter chooses the server with the fewest
-hops to determine which server to mount from.  Unfortunately, it appears
-Suse's 8.1 implementation of automounter (v3.1.7-556) seems to choose 
-the first listed.
-
-Has anyone run into this before?
-
-Thanks, Clif
+cjs
