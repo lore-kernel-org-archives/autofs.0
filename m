@@ -1,12 +1,12 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: making the mountpoints visible all the time
-Date: Wed, 19 Nov 2003 08:41:46 +0800 (WST)
+Subject: Re: nfs optimization settings in the automounter
+Date: Wed, 19 Nov 2003 08:49:52 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.33.0311190835020.17313-100000@wombat.indigo.net.au>
-References: <1069201444.28347.12.camel@ugly>
+Message-ID: <Pine.LNX.4.33.0311190846250.17313-100000@wombat.indigo.net.au>
+References: <3FBA67F7.1050505@zytor.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1069201444.28347.12.camel@ugly>
+In-Reply-To: <3FBA67F7.1050505@zytor.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,52 +18,34 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Taylor, ForrestX" <forrestx.taylor@intel.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Tue, 18 Nov 2003, Taylor, ForrestX wrote:
+On Tue, 18 Nov 2003, H. Peter Anvin wrote:
 
-> On Thu, 2003-11-13 at 19:04, Ian Kent wrote:
-> > On Thu, 13 Nov 2003, Taylor, ForrestX wrote:
+> Justin Rush wrote:
+> > I am having a hard time telling the automounter to use the options
+> > rsize=32768,wsize=32768 when automounting home directories.  I have
+> > tried specifying these options in the auto.home file on my nis master
+> > server ( -rw,soft,rsize=32768,wsize=32768 nismaster:/export/home/jrush )
+> > I have also tried to put them in the localoptions setting in the autofs
+> > init file ( localoptions='rsize=32768,wsize=32768' ) on both the nis
+> > master and on the client machines.
+> > I also tried to specify these options in the auto.master file on the nis
+> > master (the client machines don't have auto.master files because they
+> > read the nis master's file ) ( /etc/auto.home
+> > --timeout=43200,rsize=32768,wsize=32768 )
+> > I have also tried to use lower settings such as 16384
 > >
-> > > Alexander Macdonald wrote:
-> > > > Hi
-> > > >
-> > > > I've currently got automount setup so that i can cd into a directory
-> > > > like /mnt/someplace and someplace will be automatically created and
-> > > > mounted... it would be quite usefull if that directory was allways
-> > > > visible so that i could browse to it in gui applications... how do i do
-> > > > that?
-> > >
-> > > If you want it visible all the time, use /etc/fstab, not autofs.  Work
-> > > is being done on leaving the directory structure before actually
-> > > mounting it, but it is not finished yet.
-> > >
+> > however when I look in /proc/mounts on the client machine it is either
+> > mounted with 4096 or 8192
 > >
-> > Umm ...
-> >
-> > Beg to disagree.
-> >
-> > The autofs4-2.4 module build kit or the patches contained in it or the
-> > patches contained in autofs-4.1.0-beta3 can give you this for some of the
-> > maps. NIS, LDAP and file maps work at the moment.
-> >
-> > I's in the expected place on kernel.org.
 >
-> Now it is my turn to apologize.  I saw the autofs module on the ftp
-> site, but I didn't have time to investigate.  Has this module been
-> included in the upstream kernel yet?
->
+> Are you using NFSv3?  As far as I know I think 8192 is max for NFSv2, at
+> least for most of the NFSv2 servers I know.
 
-No.
+Yep. Saw it in the 2.4 source the other day.
 
-I have mailed Marcello Tosatti asking what I need to do for my changes to
-be included but he hasn't sent any reply.
-
-On the upside, when I commplained about not getting my changes into the
-kernel the other day and copied it to the LKML, Peter Anvin suggested I
-submit my patches for inclusion in 2.6. He sounded quite positive and I'm
-currently porting the changes. You may have seen the recent discussion.
+NFSv3 has a maximum of 32768.
 
 -- 
 
