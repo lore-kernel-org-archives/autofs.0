@@ -1,12 +1,10 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [RFC] Towards a Modern Autofs
-Date: Tue, 13 Jan 2004 09:54:06 +0800 (WST)
+From: "MARX,ALEXANDER (HP-Germany,ex1)" <alexander.marx@hp.com>
+Subject: autofs no_local_binds option (nfs <-> bind mounts)
+Date: Tue, 13 Jan 2004 15:26:52 +0100
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.33.0401130932460.10047-100000@wombat.indigo.net.au>
-References: <4002D248.2070304@sun.com>
+Message-ID: <F3123864FB69D411946000D0B77FBBDF0D5E13EF@haendel.bbn.hp.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4002D248.2070304@sun.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,69 +14,33 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Waychison <Michael.Waychison@Sun.COM>
-Cc: autofs mailing list <autofs@linux.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: autofs@linux.kernel.org
 
-On Mon, 12 Jan 2004, Mike Waychison wrote:
+Hi list,
 
-> >
-> >And I have another question concerning namespaces.
-> >
-> >Given that there may be several namespaces, each of which may or may not
-> >have a trigger on this dentry, is there some sort of list of triggers?
-> >
-> >How do the triggers know who owns them?
-> >
-> >
-> >
-> >
-> This is the reason I went with using distinct filesystems to perform the
-> triggers.  If we use follow_link logic, we will have a reference to the
-> respective vfsmount.  Dentry's themselves know nothing about the
-> triggers, as the triggers just look like a mounted filesystem.   The
-> vfsmount information has enough information for autofs to call a
-> userspace agent through hotplug and have userspace handle the mount.  In
-> effect, there is no daemon so nobody 'owns' a trigger in the same sense
-> as with autofs3/4.
+autofs (v4,3.1.7-425) is too intelligent ... 
 
-I'm not familiar with the follow_link mechanism (no prob. I'll pick it up
-as I go).
+Directory 'test' is exported via the nfs server on host 'foo' and imported
+again via the linux automounter locally as soon as 'test' is accessed
+(corresponding entry in automounter map). The automounter recognizes that
+'test' is a local directory and performs a bind mount. 
 
-Correct me if I'm wrong but, the only thing that I can see that is
-duplicated in cloning a namespace is the root dentry. The rest of the
-dentries on the system remain the same. The increase in complexity to the
-VFS to change this would be prohibitive.
+Great feature - BUT, there is no way to turn off this functionality. I would
+need to always have nfs mounts regardless of having the exported directory
+locally or remotely.
 
-I see we want the triggers in the vfsmount struct. Is this a good idea?
-The vfsmount struct has always been difficult to get hold of during lookup
-and revalidate for me (someone like to help here).
+In some scenarios (e.g. HA), the nfs server could switch from local to
+remote, therefore having local binds is not a desirable scenario, there
+should always be nfs mounts.
 
->
-> As far as userspace is concerned, an autofs filesystem is mounted as is
-> any other filesystem.  All that is required is a proper set of mount
-> options.  For example, mounting auto_home on /home is:
->
-> mount -t autofs -o maptype=indirect,mapname=auto_home auto_home /home
->
-> Whenever somebody traverses into a subdir in /home within any namespace
-> this autofs filesystem has been inherited, userspace is invoked (in that
-> namespace) to perform the mount.  Again, there is no 'ownership' other
-> than maybe calling the namespace it resides it the 'owner', as you would
-> for any other mountpoint.
+Is there some kind of workaround or possibiliy to perform such actions, or
+will the automounter always be smarter that me :-) ?
 
-The "mount all automount entries" has always been the simpler option but,
-as you know, the kernel still allows only 255 anonymous mounts. This would
-have to be the first order of business. Ohh, I was supposed to be working
-on sysctl inerface for that. I'll just be quiet now.
+Thanks,
 
-Also, something needs to be done about mount table noise. Several hundred
-entries is very bad from an administration viewpoint.
+Alex
 
-Except for the cross namespace issues, which I'm still digesting, I can't
-see why your design can't be done entirely as a filesystem using dentries
-instead of vfsmount, including expirey. Perhaps you could reinterate a few
-of the reasons for this.
-
-Ian
+-
+Alexander Marx
