@@ -1,12 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [patch] retrieve LDAP error message string
-Date: Wed, 22 Sep 2004 15:33:06 +0800 (WST)
+Subject: Re: autofs init script doesn't support exclude
+Date: Wed, 22 Sep 2004 15:37:43 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0409221532330.25785@wombat.indigo.net.au>
-References: <414E8ED1.6040505@featia.net>
+Message-ID: <Pine.LNX.4.58.0409221533390.25785@wombat.indigo.net.au>
+References: <20040920224949.GL23879@merlins.org>
+	<20040921203920.GA9988@turing>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <414E8ED1.6040505@featia.net>
+In-Reply-To: <20040921203920.GA9988@turing>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,64 +19,33 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jun Futagawa <jfut@featia.net>
+To: Arthur Korn <arthur@korn.ch>
 Cc: autofs@linux.kernel.org
 
+On Tue, 21 Sep 2004, Arthur Korn wrote:
 
-Thanks. I'll merge this.
+> Hi
+> 
+> Marc MERLIN schrieb:
+> > >From https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=91559
+> 
+> > --- autofs.FCS  2003-01-27 20:22:54.000000000 -0800
+> > +++ autofs      2003-05-23 18:38:27.000000000 -0700
+> > @@ -34,6 +34,11 @@
+> >  initdir=/etc/init.d
+> >  
+> >  #
+> > +# Read configuration options
+> > +#
+> > +[ -f /etc/sysconfig/autofs ] && . /etc/sysconfig/autofs
+> 
+> This would be /etc/default/autofs for Debian then ...
 
-On Mon, 20 Sep 2004, Jun Futagawa wrote:
+Yes, the fact that this can be different for different distributions means 
+that it's not as straight forward as one would hope.
 
-> Hi,
-> 
-> When I updated to v4 from v3, I encountered the following error message.
-> 
-> automount[26411]: lookup(ldap): query failed for (&(objectclass=automount))
-> automount[26411]: failed to load map, exiting
-> 
-> Since the details of the error were not found, I applied the following patch.
-> 
-> --- autofs-4.1.3/modules/lookup_ldap.c.orig	2004-04-03 16:14:33.000000000 +0900
-> +++ autofs-4.1.3/modules/lookup_ldap.c	2004-09-20 13:36:53.193400776 +0900
-> @@ -222,7 +222,7 @@
->  			   query, attrs, 0, &result);
->  
->  	if ((rv != LDAP_SUCCESS) || (result == NULL)) {
-> -		crit(MODPREFIX "query failed for %s", query);
-> +		crit(MODPREFIX "query failed for %s: %s", query, ldap_err2string(rv));
->  		return 0;
->  	}
->  
-> 
-> The patched error message in the case of using OpenLDAP is as follows.
-> 
-> automount[29790]: lookup(ldap): query failed for (&(objectclass=automount)): Size limit exceeded
-> automount[29790]: failed to load map, exiting
-> 
-> It was because the search query to LDAP was changed by v3 and v4.
-> # query for user1 map
-> v4: (&(objectclass=automount))
-> v3: (&(objectclass=automount)(cn=user1))
-> 
-> I solved this problem by specifying the sizelimit directive to the
-> configuration file of OpenLDAP server for your reference.
-> http://www.openldap.org/doc/admin22/slapdconfig.html
-> 
-> # /etc/openldap/slapd.conf
-> sizelimit 5000
-> (The default is 500. But, I have many entries more than it.)
-> 
-> I want this patch to be merged so that the cause of an error can be
-> identified.
-> 
-> -- 
-> Jun Futagawa
-> SMBLDAP-TOOLS Addons http://smbldap-addons.sourceforge.net/
-> The smbldap-autofs-tools provides a anagement function of automount and 
-> automountMap entries defined by autofs.schema.
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
-> 
+This is only one of the cases that needs to be catered. I'll take this on 
+advisement but would prefer that these type of patches be carried in the 
+distribution packages till we can deal with them in a sensible manner.
+
+Ian
