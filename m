@@ -1,12 +1,12 @@
-From: "surya " <surya_prabhakar@linuxmail.org>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: Autofs problem (migration from sun to linux )
-Date: Sun, 14 Mar 2004 17:19:11 +0500
+Date: Sun, 14 Mar 2004 20:32:51 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <20040314121911.D66BE23979@ws5-3.us4.outblaze.com>
+Message-ID: <Pine.LNX.4.58.0403142028380.4669@raven.themaw.net>
+References: <20040314121911.D66BE23979@ws5-3.us4.outblaze.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <20040314121911.D66BE23979@ws5-3.us4.outblaze.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,49 +16,28 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: Ian Kent <raven@themaw.net>
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: surya <surya_prabhakar@linuxmail.org>
 Cc: autofs@linux.kernel.org
 
-Dear Ian ,
-     Thank you for your help . But unfortunately it did not solve my problem . I run autofs modular . So I removed existing one and compiled the autofs4 tar file and also compiled the patch module(autofs4-2.4-module-20031201.tar.bz2 ) . It got installed , I restarted autofs but no luck . Most of my maps comes from NIS . still I cant see any directories . Kindly tell me is there something else which I need to check .
+On Sun, 14 Mar 2004, surya  wrote:
 
-awaiting your reply,
+> Dear Ian ,
+>      Thank you for your help . But unfortunately it did not solve my problem . I run autofs modular . So I removed existing one and compiled the autofs4 tar file and also compiled the patch module(autofs4-2.4-module-20031201.tar.bz2 ) . It got installed , I restarted autofs but no luck . Most of my maps comes from NIS . still I cant see any directories . Kindly tell me is there something else which I need to check .
 
-rgds
-Surya .
+Did you read the documentation in the tarball?
 
+I guess you untared it edited the macros in Makefile.conf to point to the 
+source tree of the running kernel then:
 
+make
+make install
 
------ Original Message -----
-From: Ian Kent <raven@themaw.net>
-Date: Sun, 7 Mar 2004 19:21:50 +0800 (WST)
-To: surya <surya_prabhakar@linuxmail.org>
-Subject: Re: [autofs] Autofs problem (migration from sun to linux )
+That's all you should need to do for the kernel module.
 
-> On Sun, 7 Mar 2004, surya  wrote:
-> 
-> > Dear All ,
-> >           We are migrating from sun to linux . The problem faced is , all the mounted directories are shown  by default in sun . But in linux the directories are not shown until they are accessed . Is there a way wherein all the directories are shown by default in linux like sun .
-> > 
-> 
-> Try looking at 
-> http://www.kernel.org/pub/linux/daemons/autofs/v4/
-> 
-> You need the kernel module update also.
-> 
-> Ian
-> 
+You also need to add an option to the master map like
 
+/home	/etc/auto.home --ghost
 
-
-rgds
-surya
-
--- 
-______________________________________________
-Check out the latest SMS services @ http://www.linuxmail.org 
-This allows you to send and receive SMS through your mailbox.
-
-
-Powered by Outblaze
+Ian
