@@ -1,11 +1,10 @@
-From: "Miquel van Smoorenburg" <miquels@cistron.nl>
-Subject: Re: Moderator wanted for this mailing list
-Date: Mon, 17 Nov 2003 09:30:31 +0000 (UTC)
+From: Dirk Heinrichs <ext-dirk.heinrichs@nokia.com>
+Subject: Program maps - examples?
+Date: Tue, 18 Nov 2003 13:55:48 +0100
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <bpa4fn$cpt$1@news.cistron.nl>
-References: <3FB7C527.1010108@transmeta.com>
+Message-ID: <3FBA16D4.9040806@nokia.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -16,24 +15,47 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="iso-8859-1"; format="flowed"
 To: autofs@linux.kernel.org
 
-In article <3FB7C527.1010108@transmeta.com>,
-H. Peter Anvin <hpa@transmeta.com> wrote:
->Hi all,
->
->This list has unfortunately gotten very frequently spammed lately.  This 
->leads to the moderation queue for his list frequently having hundreds or 
->even thousands of messages; unfortunately a small number of those (maybe 
->1 in 100) are legitimate.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-I run some heavily used lists as well. Non-subscriber posts are
-not moderated, but filtered automatically. I use spamassassin and
-a simple perl script that filters out everything with a (windows)
-executable attachment.
+Hello,
 
-That takes care of >99% of the spam, automatically. The lists
-now basically run themselves, I barely look at it.
+I'm new to this list and have the following problem:
 
-Mike.
+I wan't to automount home directories from a file server on a linux
+machine. The problem is that the tree on the server is different from
+the what it looks like when mounted:
+
+Local: 	/level1/level2/home/username
+Server: /prefix/homestore_[:a-z:]/username
+
+This means when I want to mount my own home I have to mount
+server:/prefix/homestore_d/dheinric to /level1/level2/home/dheinric. I
+guess there's no other way than using a program map, but there's not
+much documentation/examples about this in the package. Can someone sched
+some light on this, please.
+
+I've also looked onto our Solaris machines. They seem to cascade the
+maps, which I guess is not possible on linux, right?
+
+Thanx...
+
+	Dirk
+- --
+Dirk Heinrichs          | Tel:  +49 (0)151 1513 6954
+Configuration Manager   | Fax:  +49 (0)211 47068 111
+Cap Gemini Ernst & Young| Mail: dirk.heinrichs@cgey.com
+Hambornerstra=DFe 55      | Web:  http://www.cgey.com
+D-40472 D=FCsseldorf      | ICQ#: 110037733
+GPG Public Key C2E467BB | Keyserver: www.keyserver.net
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.3 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iD8DBQE/uhbU8NVtnsLkZ7sRAqcVAJ0aLUABC1g9ibyOL5dxbLS1mGrqNQCgrDOX
+ZKkbt4tCeAbd/ntsDpSIJao=3D
+=3D3zV0
+-----END PGP SIGNATURE-----
