@@ -1,14 +1,18 @@
 From: raven@themaw.net
-Subject: Re: Please help - cleanup
-Date: Tue, 4 May 2004 23:16:52 +0800 (WST)
+Subject: Re: mount point created if automount map is empty during
+ daemon startup?
+Date: Tue, 4 May 2004 23:22:10 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0405042308070.17014@donald.themaw.net>
-References: <Pine.LNX.4.58.0405022201480.25614@donald.themaw.net>
- <Pine.LNX.4.58.0405042233560.17014@donald.themaw.net>
- <16535.44980.475389.900686@segfault.boston.redhat.com>
+Message-ID: <Pine.LNX.4.58.0405042317540.17014@donald.themaw.net>
+References: <20040504010928.GL14889@sun.com>
+	<Pine.LNX.3.96.1040503181623.4110A-100000@Maggie.Linux-Consulting.com>
+	<20040503175506.GA14889@sun.com>
+	<Pine.LNX.4.58.0405040904450.24480@wombat.indigo.net.au>
+	<20040504122536.GK5041@neu.nirvana> <4097AABF.5050709@freescale.com>
+	<16535.45364.767370.38110@segfault.boston.redhat.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <16535.44980.475389.900686@segfault.boston.redhat.com>
+In-Reply-To: <16535.45364.767370.38110@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -25,51 +29,34 @@ Cc: autofs mailing list <autofs@linux.kernel.org>
 
 On Tue, 4 May 2004, Jeff Moyer wrote:
 
-> ==> Regarding Re: [autofs] Please help - cleanup; raven@themaw.net adds:
+> ==> Regarding [autofs]  mount point created if automount map is empty during daemon startup?; Tom Georgoulias <tom.georgoulias@freescale.com> adds:
 > 
-> raven> Hi all again,
+> [snip]
 > 
-> raven> Further to yesterdays replicated server patch I have done some
-> raven> cleanup to it.
+> tom.georgoulias> * Thu Mar 18 2004 Jeff Moyer <jmoyer@redhat.com> -
+> tom.georgoulias> 1:4.1.1-3
 > 
-> raven> This patch replaces the previous patch so you will need to back out
-> raven> the previous one before applying this one.
+> tom.georgoulias> - Fix bug in get_best_mount, whereby if there is only one
+> tom.georgoulias> option, we choose nothing.  This is primarily due to the
+> tom.georgoulias> fact that we pass 0 in to the get_best_mount function for
+> tom.georgoulias> the long timeout parameter.  So, we timeout trying to
+> tom.georgoulias> contact our first and only server, and never retry.
 > 
-> raven> I have:
-> 
-> raven> - corrected some inconsistent messages.  - cleaned up paths (there
-> raven> were some double slashes, function was OK though)
-> 
-> raven> One problem remains and seems not to be easily fixed. For multi
-> raven> mount maps dead mount point directories (from failed mounts) are
-> raven> left. This is not simple to fix without breaking other
-> raven> functionality. I believe it is better than those "BUG" messages
-> raven> though. So we`ll have to live with it for now.
-> 
-> Hmm... along the same lines, I just configured ghosting for a map which
-> uses wildcards (which I'm guessing is not supported, right?). If you cd
-> to a directory, any directory, it will create that directory and leave it
-> around, even though there is no such mount.  This sounds like something
-> that should be fixed up.
+> Ugh, skeleton is out of the closet.  ;-P  To clarify, I only saw this when
+> the map was an LDAP map (which I thought should make absolutely no
+> difference).  This patch is actually just a work-around.  I was hoping to
+> track down the real issue later...
 
-That problem is a little different to the one sited above.
+Saw that patch. Was a bit curious about it. Didn't add it.
 
-If there is a map that contains some entries and a wildcard map at the end 
-I can't tell if the directory should be removed or not. So either we keep 
-that behaviour or we disable ghosting altogether when a wildcard map 
-entry is seen.
+I think that I discovered that the error return from get_best_mount was 
+not being checked. This may have been the cause of that.
 
-In the past I considered that if ghosting was requested in this case I 
-would leave the entries and allow autofs to "learn" about the mounts as 
-it went.
+I thought that was fixed.
 
-So what do people think we should do here?
+CHANGELOG says 4.1.2.
 
-> 
-> raven> If anyone is able to test this also that would be great.
-> 
-> I will roll another test rpm with this patch and post to my people page.
-
-Thanks Jeff.
+I think the replicated server behaviour is working OK now. Fingers 
+crossed.
 
 Ian
