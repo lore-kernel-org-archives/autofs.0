@@ -1,13 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: compatibility with solaris '[no]browse' mount option
-Date: Tue, 15 Jun 2004 09:49:37 +0800 (WST)
+From: ramana <ramana@intraperson.com>
+Subject: Autodir
+Date: Wed, 16 Jun 2004 17:42:29 +0530
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0406150948450.6253@wombat.indigo.net.au>
-References: <16589.63971.33237.4865@segfault.boston.redhat.com>
- <Pine.LNX.4.58.0406150946580.6253@wombat.indigo.net.au>
+Message-ID: <40D0392D.2050609@intraperson.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0406150946580.6253@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,27 +15,23 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: autofs@linux.kernel.org, ldap@umich.edu, nssldap@padl.com, gvldap@corvu.com, tonye@billy.demon.nl, openldap-software@OpenLDAP.org
 
-On Tue, 15 Jun 2004, Ian Kent wrote:
+Dear all,
 
-> On Mon, 14 Jun 2004, Jeff Moyer wrote:
-> 
-> > Hello,
-> > 
-> > I've currently got a request to support the browse mount option.  It seems
-> > do-able entirely in the init script (and this seems the right place).
-> > Would there be any objections to such an approach?
-> 
-> Yes it's a daemon option.
-> 
-> I'll check on the submount issue.
+It started when I stuck with intraperson documentation. I stuck becuase 
+there is no good software to create home directories automatically for 
+unix accounts in ldap.
 
-I mean the ghost <-> browse equivalence.
+I thought threre is simply no way it can be done without serious 
+drawbacks. But autofs kernel module came to rescue.
 
-Should at least be partially OK.
+Welcome to http://www.intraperson.com/autodir.html
 
-Ian
+
+Autodir HOWTO  
+http://prdownloads.sourceforge.net/intraperson/Autodir-HOWTO.html?download
+
+-- 
+http://www.intraperson.com
