@@ -1,13 +1,12 @@
-From: Heinrich Rebehn <rebehn@ant.uni-bremen.de>
-Subject: Re: autofs-4.0.0 last chance
-Date: Wed, 27 Aug 2003 12:25:41 +0200
+From: Ian Kent <raven@themaw.net>
+Subject: Re: autofs and nautilus
+Date: Mon, 1 Sep 2003 21:55:46 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <3F4C8725.8030209@ant.uni-bremen.de>
-References: <Pine.LNX.4.44.0308262051110.1831-100000@raven.themaw.net>
+Message-ID: <Pine.LNX.4.44.0309012139520.4150-100000@raven.themaw.net>
+References: <1062411218.22264.38.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.44.0308262051110.1831-100000@raven.themaw.net>
+In-Reply-To: <1062411218.22264.38.camel@localhost.localdomain>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,133 +16,57 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Ian Kent <raven@themaw.net>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Alexander Larsson <alexl@redhat.com>
+Cc: autofs mailing list <autofs@linux.kernel.org>, Nautilus <nautilus-list@gnome.org>
 
-Ian Kent wrote:
-> I intend to release autofs-4.0.0.
+On 1 Sep 2003, Alexander Larsson wrote:
+
+> On Sat, 2003-08-30 at 16:55, Ian Kent wrote:
+> > Hi all,
+> > 
+> > I have recently taken on maintenance of autofs v4 and am investigating a 
+> > problem with Nautilus and autofs.
+> > 
+> > It appears that the if the Trash monitor scans the mounts at the time that 
+> > an expire is happening it remounts the the automount entry. I have spent 
+> > quite a while developing an understanding of what is happening but I can't 
+> > think of a way to get around this purely within autofs. I am hoping that 
+> > a solution can be found in discussion here on the list.
+> > 
+> > Please help.
 > 
-> If anyone has any bug reports or patches for autofs-4.0.0 please forward 
-> them to me by this Friday 08/29. Anything after this will have to go into 
-> sebsequent point releases.
+> I'm all for fixing this in Nautilus, however i'm hardly an expert in
+> autofs or mounting in general. The nautilus volume handling code is
+> pretty gross, and at some point it will probably be rewritten. 
+
+In cooperation with autofs we should be able to sort it out.
+
 > 
-> Cheers all
-> Ian
-> 
-Since mailman rejected my post, i post it again:
+> However, is trash scanning really a problem? Don't we only do that on
+> startup?
 
-Hi,
+That's the sort of thing I'm here to find out.
 
-i am using autofs 4.0 with maps served via LDAP.
-I get strange errors when i try to access a subdirectory that is not in the map:
+I'm happy to do more experimentation.
 
-############################################
-root@verden [~] # ls /ant/xxx
-ls: /ant/xxx: No such file or directory
-############################################
+It appears to me that there is probably a call to stat or the like that 
+often (sometimes 3 out of 4, sometimes 1 out of 4, then sometimes not a 
+all) happens when an automount times out, like it is triggered upon 
+seeing the change in the mount table. This, as it should, causes 
+a (re)mount to occur. A quick scan over the source gave me the impression 
+it might be a scan for trash folders but I am by no means sure. One 
+obvious thought is that it's probably not useful to act on umounts but 
+rather on mounts. I'm sure it can't be that simple.
 
-syslog output:
-
-#################################################################################
-Aug 26 15:53:45 verden automount[11430]: >> mount: special device /dev/xxx does
-not exist
-Aug 26 15:53:45 verden automount[11430]: mount(generic): failed to mount
-/dev/xxx (type auto) on /ant/xxx/
-#################################################################################
-
-Autofs tries to mount /dev/xxx, if xxx does not exist in the map.
-
-LDAP map:
-
-###########################################################################
-root@verden [~] # ldapsearch -x -b ou=auto.ant,o=ant,c=de
-version: 2
-
-#
-# filter: (objectclass=*)
-# requesting: ALL
-#
-
-# auto.ant, ANT, DE
-dn: ou=auto.ant,o=ANT,c=DE
-objectClass: top
-objectClass: automountMap
-ou: auto.ant
-
-# www, auto.ant, ant, de
-dn: cn=www,ou=auto.ant,o=ant,c=de
-objectClass: automount
-cn: www
-automountInformation: antsrv1:/export/data/www
-
-# dsvbuch, auto.ant, ant, de
-dn: cn=dsvbuch,ou=auto.ant,o=ant,c=de
-objectClass: automount
-cn: dsvbuch
-automountInformation: antsrv1:/export/homes/wiss/dsvbuch
-
-# misc, auto.ant, ant, de
-dn: cn=misc,ou=auto.ant,o=ant,c=de
-objectClass: automount
-cn: misc
-automountInformation: antsrv1:/export/homes/wiss/misc
-
-# ntbuch, auto.ant, ant, de
-dn: cn=ntbuch,ou=auto.ant,o=ant,c=de
-objectClass: automount
-cn: ntbuch
-automountInformation: antsrv1:/export/homes/wiss/ntbuch
-
-# matbuch, auto.ant, ant, de
-dn: cn=matbuch,ou=auto.ant,o=ant,c=de
-objectClass: automount
-cn: matbuch
-automountInformation: antsrv1:/export/homes/wiss/matbuch
-
-# lib, auto.ant, ant, de
-dn: cn=lib,ou=auto.ant,o=ant,c=de
-objectClass: automount
-cn: lib
-automountInformation: antsrv1:/export/data/lib
-
-# cvs, auto.ant, ant, de
-dn: cn=cvs,ou=auto.ant,o=ant,c=de
-objectClass: automount
-cn: cvs
-automountInformation: antsrv1:/export/data/cvs
-
-# praktik, auto.ant, ant, de
-dn: cn=praktik,ou=auto.ant,o=ant,c=de
-objectClass: automount
-cn: praktik
-automountInformation: antsrv1:/export/data/praktikum
-
-# search result
-search: 2
-result: 0 Success
-
-# numResponses: 10
-# numEntries: 9
-#############################################################
-
-automount cmd line:
-
-/usr/sbin/automount /ant ldap o=ANT,c=DE
-
-kernel 2.4.20 smp
-
-openldap 2.0
+Perhaps a pointer to the relevant bits of code could shed some light on it 
+for me without the pain of having to go through it bit by bit.
 
 
-Sorry for not reporting earlier, too busy ;-)
 -- 
 
-Heinrich Rebehn
-
-University of Bremen
-Physics / Electrical and Electronics Engineering
-- Department of Telecommunications -
-
-Phone : +49/421/218-4664
-Fax   :            -3341
+   ,-._|\    Ian Kent
+  /      \   Perth, Western Australia
+  *_.--._/   E-mail: raven@themaw.net
+        v    Web: http://themaw.net/
