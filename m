@@ -1,59 +1,60 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Autofs4 4.1.3-28 with NetApp filer
-Date: Mon, 21 Feb 2005 13:03:05 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0502211259250.9892@wombat.indigo.net.au>
-References: <482A3FA0050D21419C269D13989C611308539786@lavender-fe.eng.netapp.com>
+From: Valdis.Kletnieks@vt.edu
+Subject: Re: [autofs] automount does not close file descriptors at start
+Date: Mon, 21 Feb 2005 00:27:30 -0500
+Message-ID: <200502210527.j1L5RX44032376@turing-police.cc.vt.edu>
+References: <20050216125350.GA6031@uio.no>
+            <Pine.LNX.4.58.0502211244540.9892@wombat.indigo.net.au>
 Mime-Version: 1.0
-In-Reply-To: <482A3FA0050D21419C269D13989C611308539786@lavender-fe.eng.netapp.com>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Type: multipart/signed; boundary="==_Exmh_1108963650_4668P";
+	 micalg=pgp-sha1; protocol="application/pgp-signature"
 Content-Transfer-Encoding: 7bit
-To: "Lever, Charles" <Charles.Lever@netapp.com>
-Cc: autofs@linux.kernel.org
+In-Reply-To: Your message of "Mon, 21 Feb 2005 12:57:22 +0800."
+             <Pine.LNX.4.58.0502211244540.9892@wombat.indigo.net.au> 
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: <autofs.vger.kernel.org>
+To: Ian Kent <raven@themaw.net>
+Cc: "Steinar H. Gunderson" <sgunderson@bigfoot.com>, Kernel Mailing List <linux-kernel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>
 
-On Sun, 20 Feb 2005, Lever, Charles wrote:
+--==_Exmh_1108963650_4668P
+Content-Type: text/plain; charset=us-ascii
 
-> Customer of ours describes this problem:
+On Mon, 21 Feb 2005 12:57:22 +0800, Ian Kent said:
+
+> This is the first time I've heard this and the first time I wrote a Unix
+> daemon was fifteen years ago.
 > 
->   >    We have several netapp boxes that we use as filers and all 
->   >    of them at this site, with the exception of this one box, would
-> unmount
->   >    for the linux workstation after the autmount timeout period.
-> With the 
->   >    implementation of autofs-4.1.3-28 this particular netapp box
-> would not
->   >    only NOT unmount (/net mounts) after timeouts, and would not
-> release
->   >    its ports, it would begin to actively take more ports (without
-> any
->   >    other mounts of this netapp box taking place).  Within 24 hours a
-> linux
->   >    box can be hung by the port-taking activity of this netapp box
-> mounted
->   >    via /net.
+> As far as I'm concerned redirecting stdin, stdout and stderr to the null 
+> device, then closing it and setting the process to a be the group leader 
+> (as autofs does) should be all that's needed to daemonize a process.
 > 
-> They are running on RH 8.0, kernel 2.4.20-20.8smp.  Problem did not
-> occur with autofs-4.1.2.
-> 
-> Does this sound familiar to anyone?
+> So are we saying that we don't trust the kernel to reliably duplicate the 
+> state of file handles when we fork?
 
-This sounds like the mount order problem we had recently.
-Also against a Filer I think.
+No, you have it 180 degrees off. ;)
 
-We can confirm this is the same problem by collecting a log with 
-the --debug option set.
+We *do* trust the kernel to reliably duplicate the state of file handles.
+So if we're about to do the whole double-fork thing and all that, we want to
+loop around and close all the file descriptors we don't want leaking to
+the double-forked daemon.  Yes, we do something reasonable with fd 0,1,2 -
+but we probably also want to do something with that unclosed fd 3 that's still
+open on /etc/mydaemon.cf, and any other file descriptors we've left dangling
+in the breeze after initialization.
 
-I can forward a patch but Jeff may already have included it in his rpm.
+And yes, this sort of error happens in Real Live - I need to go and figure out
+why the /sbin/lvm.static on my initrd is throwing 'File descriptor 3 left open'
+messages... 
 
-Lets confirm it first.
 
-Jeff?
+--==_Exmh_1108963650_4668P
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.0 (GNU/Linux)
+Comment: Exmh version 2.5 07/13/2001
+
+iD8DBQFCGXFCcC3lWbTT17ARAvBrAJ9xqEbdN92RWECoLPPk378yIIiK9gCgxx+/
+tSq+gNne87iTC6xB8QGxDwM=
+=7M30
+-----END PGP SIGNATURE-----
+
+--==_Exmh_1108963650_4668P--
