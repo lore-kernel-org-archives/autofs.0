@@ -1,82 +1,97 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: backfstype patch.
-Date: Thu, 3 Mar 2005 10:15:46 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0503031009520.21049@wombat.indigo.net.au>
-References: <40F82248.2050803@deragon.biz>
-	<16632.9711.453411.560590@segfault.boston.redhat.com>
-	<42262A18.6040203@rhythm.com>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: autofs4 patch: autofs4_wait can leak memory
+Date: Fri, 4 Mar 2005 10:48:03 -0500
+Message-ID: <16936.33587.974061.237160@segfault.boston.redhat.com>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
-In-Reply-To: <42262A18.6040203@rhythm.com>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Type: multipart/mixed; boundary="QP67Nc5ul6"
 Content-Transfer-Encoding: 7bit
-To: Greg Bradner <gregb@rhythm.com>
-Cc: autofs@linux.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: <autofs.vger.kernel.org>
+To: autofs@linux.kernel.org
+Cc: raven@themaw.net, linux-kernel@vger.kernel.org
 
-On Wed, 2 Mar 2005, Greg Bradner wrote:
 
-> I am thinking about using cachefs on suse 9.2 and was wondering the 
-> status of the cachefs mount module?
-> I'm currently running autofs-4.1.3 with 2.6.10 kernel.
+--QP67Nc5ul6
+Content-Type: text/plain; charset=us-ascii
+Content-Description: message body text
+Content-Transfer-Encoding: 7bit
 
-I'll be collecting stuff for 4.1.5 soon.
-I can't decide on priorities until I can see what's to be done.
+Hi,
 
-I don't know who else might be working on this.
+There is a memory in the autofs4_wait function, if multiple processes are
+waiting on the same queue:
 
-> 
-> Jeff Moyer wrote:
-> 
-> >==> Regarding [autofs] backfstype patch.; Hans Deragon <hans@deragon.biz> adds:
-> >
-> >hans> Greetings.  Remember me with my backfstype patch?  Some people
-> >hans> commented on it, I replied and then never got any answers since.
-> >hans> Altough functional, my patch was questionned; the fix was not at the
-> >hans> right place within the code (from a design/elegance point of view;
-> >hans> technically it works great).  As I explained, I have no knowledge of
-> >hans> the overall architecture of Autofs and unfortunatly, I do not have
-> >hans> the time to get deep into it.
-> >
-> >hans>    Can my patch still be applied in the main branch until it is moved
-> >hans> into a more appropriate area of the code?  Its still adds the new
-> >hans> backsftype support, does not cause any problems, is very localized,
-> >hans> and very usefull.  I have been running it since the last 2 weeks
-> >hans> without any problems.  I am rolling it out in the production
-> >hans> environment.
-> >
-> >Ultimately, this is up to Ian.  I have a todo list item to implement a
-> >cachefs mount module (which was the agreed upon correct approach).
-> >Unfortunately, it's quite low on the todo list.  :(
-> >
-> >-Jeff
-> >
-> >_______________________________________________
-> >autofs mailing list
-> >autofs@linux.kernel.org
-> >http://linux.kernel.org/mailman/listinfo/autofs
-> >  
-> >
-> 
-> -- 
-> ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> Rhythm & Hues
-> 5404 Jandy Place
-> Los Angeles, CA 90066
-> Voice: 310 448-7763
-> Fax:   310 448-7600
-> gregb@rhythm.com
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
-> 
+	name = kmalloc(NAME_MAX + 1, GFP_KERNEL);
+	if (!name)
+		return -ENOMEM;
+	...
+
+	if ( !wq ) {
+		/* Create a new wait queue */
+		wq = kmalloc(sizeof(struct autofs_wait_queue), GFP_KERNEL);
+		if ( !wq ) {
+			kfree(name);
+			up(&sbi->wq_sem);
+			return -ENOMEM;
+		}
+		...
+		wq->name = name;
+
+		...
+	} else {
+		atomic_inc(&wq->wait_ctr);
+		up(&sbi->wq_sem);
+		...
+       }
+
+In the else clause, we forget to free the name we kmalloc'd above.  This is
+pretty easy to trigger with the following reproducer:
+
+setup an automount map as follows:
+for n in `seq 1 48`; do echo "$n server:/export/$n" >> /etc/auto.test; done
+setup a master map entry to point at this:
+echo "/test /etc/auto.test --timeout=1" >> /etc/auto.master
+
+Now, assuming the nfs server was setup to export said directories, run the
+following shell script in two xterms:
+
+#!/bin/sh
+while true; do
+        for n in `seq 1 48`; do
+                ls /test/$n
+        done
+        sleep 2
+done
+
+and watch the size-256 slab cache grow
+
+Within 4 minutes, I had the size-256 cache grow to 384k.  On a kernel with
+the below patch applied, the size-256 remained constant during an over-night
+run.
+
+The patch is against linux-2.6.9, but it applies to 2.6.11, as well.
+
+-Jeff
+
+Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
+
+
+--QP67Nc5ul6
+Content-Type: text/plain
+Content-Disposition: inline;
+	filename="linux-2.6.9-autofs-mem-leak.patch"
+Content-Transfer-Encoding: 7bit
+
+--- linux-2.6.9/fs/autofs4/waitq.c.orig	2005-03-03 17:09:11.534047192 -0500
++++ linux-2.6.9/fs/autofs4/waitq.c	2005-03-03 17:09:21.777489952 -0500
+@@ -224,6 +224,7 @@ int autofs4_wait(struct autofs_sb_info *
+ 	} else {
+ 		atomic_inc(&wq->wait_ctr);
+ 		up(&sbi->wq_sem);
++		kfree(name);
+ 		DPRINTK("existing wait id = 0x%08lx, name = %.*s, nfy=%d",
+ 			(unsigned long) wq->wait_queue_token, wq->len, wq->name, notify);
+ 	}
+
+--QP67Nc5ul6--
