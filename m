@@ -1,13 +1,12 @@
 From: raven@themaw.net
-Subject: Re: autofs 4.1.2 cannot use option:
-	username=mydomain\\myuserid
-Date: Wed, 14 Jul 2004 22:47:17 +0800 (WST)
+Subject: Re: Re: automount and nsswitch.conf
+Date: Wed, 14 Jul 2004 22:43:31 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0407142246120.1633@donald.themaw.net>
-References: <40F49F90.6040707@anstat.com.au>
+Message-ID: <Pine.LNX.4.58.0407142238480.1633@donald.themaw.net>
+References: <4384.1089744432@ichips.intel.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <40F49F90.6040707@anstat.com.au>
+In-Reply-To: <4384.1089744432@ichips.intel.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,31 +18,38 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: George Hansper <georgeh@anstat.com.au>
+To: Joseph V Moss <jmoss@ichips.intel.com>
 Cc: autofs@linux.kernel.org
 
-On Wed, 14 Jul 2004, George Hansper wrote:
+On Tue, 13 Jul 2004, Joseph V Moss wrote:
 
-> Hi,
+> > ==> Regarding Re: automount and nsswitch.conf; Mike Waychison <Michael.Waychison@Sun.COM> adds:
+> > 
+> > [snip]
+> > 
+> > >> Ok, my only beef here is that we are not at all honoring the semantics
+> > >> of nsswitch.conf.  I attest that this is a design flaw, but given the
+> > >> Sun automounter legacy, I see now ay around it.  We'll adhere to what is
+> > >> done by all other automounters, even though it's wrong and poorly
+> > >> documented.
+> > >> 
+> > >> So, can I make the assumption that Suns's automounter does not then
+> > >> honor the "reaction on lookup result", ala [NOTFOUND=return]?  If so,
+> > >> then
+> > Michael.Waychison> our job
+> > >> is a bit easier, though we are _still_ duplicating a parser, which I
+> > >> despise.  (I'll do it, I just won't like it ;)
+> > >> 
 > 
-> I've just upgraded to Fedora Core 2, and the autofs has changed from 3.1.7 to 4.1.2.
-> Previously, I would automount Windows shares using an auto.smb file with an entry:
-> 
-> myshare  -fstype=smbfs,username=mydomain\\myuserid,password=insecure,uid=500,gid=500,fmask=775 ://winsvr/myshare
-> 
-> In the new autofs 4.1.2 package, the above entry provokes a bug which was not present before.
-> Windows requires the username to be of the form:
-> 
-> 	mydomain\myuserid
-> 
-> The problem is that the new autofs strips ALL backslashes from the options, and supplies
-> mount.smb with:
-> 
-> 	username=mydomainmyuserid
+> H.P.A. was always quite opposed to using nsswitch.conf for autofs (see
+> http://www.mail-archive.com/autofs@linux.kernel.org/msg00733.html and other
+> messages in that thread, for example), but it does seem like it's a
+> defacto standard that linux should be compatible with.
 
-Odd. That's not what I thought it did.
+Yes. I can understand his viewpoint. The original autofs has a character 
+of its own and was never designed specifically to fit into Solaris type 
+automounter environments. But this is something that many people need and 
+as you say the Solaris behaviour is the defacto standard that several OSes 
+implement so, for coexistence, we probably should as well.
 
-I'll check as soon as I get a chance.
-
-Thanks
 Ian
