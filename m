@@ -1,12 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs4 and NIS
-Date: Thu, 1 Jan 2004 12:13:36 +0800 (WST)
+Subject: Re: [patch] buffer overflow, failure to auto-dismount,
+ log file diarrhea
+Date: Thu, 1 Jan 2004 21:12:15 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.44.0401011157590.4407-100000@raven.themaw.net>
-References: <200401010159.12640.autofs@dylan.me.uk>
+Message-ID: <Pine.LNX.4.44.0401012101380.6621-100000@raven.themaw.net>
+References: <Pine.LNX.4.53.0311261008100.2363@xena.cft.ca.us>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200401010159.12640.autofs@dylan.me.uk>
+In-Reply-To: <Pine.LNX.4.53.0311261008100.2363@xena.cft.ca.us>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,55 +19,45 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Dylan <autofs@dylan.me.uk>
+To: Jim Carter <jimc@math.ucla.edu>
 Cc: autofs mailing list <autofs@linux.kernel.org>
 
-On Thu, 1 Jan 2004, Dylan wrote:
 
-> Hello all,
-> 
-> I'm currently using autofs4 to mount nfs shares. The config files are 
-> distributed via NIS, which overall is working without a hitch. I have 
-> two related problems, however...
+I've just been re-reading your mail after looking at your patch ....
 
-autofs4 is the kernel module.
-What version of the daemon package are you using?
-Are you using the unmodified version of the kernel module, autofs4?
+On Wed, 26 Nov 2003, Jim Carter wrote:
 
 > 
-> It is, obviously, necessary to restart the NIS server from time to time, 
-> in order to take account of config changes (usually changes to user 
-> accounts.) When I do this, the following occurs:
+> A possible non-kludge fix might go like this.  The daemon walks the tree of
+> (its own sub-) mounts and for each, it may or may not make a judgment that
+> the mount might (or might not) be expired.  On likely-looking mounts, it
+> asks the driver "is this expired" or "when was it really last used"?
+> If the mount is really expired, the daemon attempts to dismounts it.  But,
+> if the filesystem fails to go away, the daemon will not return to it until
+> the next USR1 or ALRM, avoiding the infinite loop.
 
-Yes, but I fail to see how autofs is part of this unless autofs tries to 
-contact the NIS server while NIS is not available? Which should be a few 
-seconds at most right?
+I'm thinking I like this approach.
+It may be fairly straight forward to do and should be quite effective.
 
-> 
-> A: nfs shares which are unmounted become unavailable (cd-ing to the 
-> directory results in a 'no such file or directory' error)
-
-What are you saying here. If the NFS server is not available I would say 
-this is firly acurate. We are talking about restarting NIS services 
-aren't we?
+This approach has the advantage that it can be done entirely in the 
+daemon and should also work for older versions of the kernel module.
 
 > 
-> B: nfs shares which are mounted report stale file handles.
+> Here's another possibility: you shouldn't go around updating the atime of
+> the mounted filesystem, but the mount point belongs to the driver, and if
+> you stat the mount point's inode, the driver can provide the last access
+> time (what it uses to decide about expiration) as the atime of that inode.
+> Then the daemon can do the entire logic of picking expired mounts.  That
+> would be preferable as design, and it avoids all infinite loop
+> possibilities.  Presumably to stat the inode, you would open(2) the mount
+> point directory before mounting on it, and then use lstat.  I hope that
+> will actually work.  Of course, both of these fixes require protocol
+> changes in the driver.
 
-The client has open files on the NFS server and it has gone bye bye. We 
-aren't talking about restarting NIS anymore are we?
+This sounds a bit complicated considering what needs to be achieved. I 
+keep thinking that there would be changes needed in the kernel module for 
+this.
 
-> 
-> I can understand where problem A comes from - and I figure restarting 
-> autofs would clear that, but it is not really practical to do on each 
-> machine. But I'm not sure why B should happen...?
-
-You shouldn't need to restart autofs. This nees to be investigated and 
-fixed. I'm not seeing this myself but most of my clients have stuff 
-mounted for extended time and mostly survive.
-
-Maybe there is more going on here than I can gather from the description 
-or maybe the particular setup you have is exposing a problem I am unaware 
-of, more info perhaps.
+Have you had any other thoughts on this?
 
 Ian
