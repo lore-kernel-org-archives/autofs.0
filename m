@@ -1,12 +1,10 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: chained configs (and ghost too)
-Date: Tue, 16 Mar 2004 11:15:57 +0800 (WST)
+From: Noel Hunt <huntno@ubs.com>
+Subject: autofs not mounting directories
+Date: Tue, 16 Mar 2004 12:58:30 +0900
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0403161114380.12290@wombat.indigo.net.au>
-References: <1079380607.4327.59.camel@jade.biology.duke.edu>
+Message-ID: <200403160358.MAA25667@tk3p108pos.tky.swissbank.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1079380607.4327.59.camel@jade.biology.duke.edu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,25 +14,34 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Hunter Matthews <thm@duke.edu>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+To: autofs mailing list <autofs@linux.kernel.org>
 
-On Tue, 15 Mar 2004, Hunter Matthews wrote:
+I have been given reports by users that after a reboot,
+cron jobs don't run, and also sudo su - ..., while not
+failing, is not cd'ing to the user's home directory. In
+the cron case, there were commands of the form
 
-> All, Thanks to nalin and steve, I've gotten autofs working with LDAP. 
-> 
-> I haven't seen this in the docs, nor in my quick scan of the archives.
-> So, for others wondering how, here is the working configuration:
-> 
-> In nis, I had a table called auto.biology: 
-> groups -fstype=autofs  yp:auto.groups
-> zzz balh:/local/zzz
-> ftp ftp:/local/ftp
-> ....
+/a/b/cmd > /a/b/log 2>&1
 
-I see. I don't have an example of a submount in the distribution.
-I'll have to fix that.
+(/a/b being an automount point) where one would expect
+the modify time of /a/b/log to change even if the command
+fails, but the files modification times were unchanged from
+the last access.
 
-Ian
+I was also told that a cd from the shell to the directory
+in question solves the problem.
+
+The machines on which this is reported had no cron logging
+which I have now remedied, so I can't try to reproduce this
+until I can reboot these machines.
+
+If `directory' is an automount mountpoint, is there some
+difference between `cd directory', and say cron running
+`/directory/bin/cmd', in the way that `directory' is
+accessed? I understand the former will cause a chdir()
+which will invoke autofs_root_lookup(); in the latter case,
+I don't know what goes on.
+
+Noel Hunt
