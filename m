@@ -1,15 +1,16 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
+From: Tim Hockin <thockin@sun.com>
 Subject: Re: RE: autofs scalability
-Date: Thu, 04 Dec 2003 12:04:55 -0800
+Date: Thu, 4 Dec 2003 14:37:33 -0800
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <3FCF9367.8040804@zytor.com>
+Message-ID: <20031204223733.GJ10772@sun.com>
 References: <20031203194323.GB10772@sun.com>
 	<Pine.LNX.4.33.0312040935420.7055-100000@wombat.indigo.net.au>
-	<20031204191203.GA17865@sun.com>
+	<20031204191203.GA17865@sun.com> <3FCF9367.8040804@zytor.com>
+Reply-To: thockin@sun.com
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20031204191203.GA17865@sun.com>
+Content-Disposition: inline
+In-Reply-To: <3FCF9367.8040804@zytor.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,27 +21,25 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: thockin@sun.com
+Content-Transfer-Encoding: 7bit
+To: "H. Peter Anvin" <hpa@zytor.com>
 Cc: "Ogden, Aaron A." <aogden@unocal.com>, autofs@linux.kernel.org, Ian Kent <raven@themaw.net>
 
-Tim Hockin wrote:
-> On Thu, Dec 04, 2003 at 09:37:44AM +0800, Ian Kent wrote:
+On Thu, Dec 04, 2003 at 12:04:55PM -0800, H. Peter Anvin wrote:
+> > Ditto. It's simple, but it just hasn't been high enough priority.
+> > 
 > 
->>>removed the 256 limit, but has made it so that it CAN BE removed.  We hav a
->>>prelim patch for that, which I wan tot rework, some, maybe.
->>>
->>
->>Are you refering to the sysctl recommendation.
->>
->>I would like to do it but haven't had time.
->>
->>I'll let you know if I get to start work on it.
-> 
-> 
-> Ditto. It's simple, but it just hasn't been high enough priority.
-> 
+> It really would be better if it was dynamic.  Any fixed limit (other
+> than 2^20 minors) is really  a hack.
 
-It really would be better if it was dynamic.  Any fixed limit (other
-than 2^20 minors) is really  a hack.
+You either allocate 2^20 bits for every user, or you allocate it as needed
+(and handle alloc failures when they are least expected) or you sysctl it
+and let the admin decide early on whether she wants to allow large numbers
+of pseudo-devs.
 
-	-hpa
+
+-- 
+Tim Hockin
+Sun Microsystems, Linux Software Engineering
+thockin@sun.com
+All opinions are my own, not Sun's
