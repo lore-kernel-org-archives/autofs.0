@@ -1,13 +1,18 @@
-From: raven@themaw.net
-Subject: Re: autofs-4.1.2-6 test rpms available
-Date: Sat, 8 May 2004 13:51:33 +0800 (WST)
+From: "Bryan O'Sullivan" <bos@serpentine.com>
+Subject: Re: Severe problem with 4.1.2: automount caches NIS maps
+	forever
+Date: Sat, 08 May 2004 14:26:55 -0700
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0405081345450.2371@donald.themaw.net>
-References: <16538.43940.58650.642984@segfault.boston.redhat.com>
- <1083952048.18740.75.camel@serpentine.internal.keyresearch.com>
+Message-ID: <1084051615.2073.5.camel@camp4.serpentine.com>
+References: <1083865163.18740.6.camel@serpentine.internal.keyresearch.com>
+	 <409AAC9E.9000505@sedona.intel.com>
+	 <Pine.LNX.4.58.0405070956590.6274@wombat.indigo.net.au>
+	 <1083952697.18740.86.camel@serpentine.internal.keyresearch.com>
+	 <Pine.LNX.4.58.0405081333390.2371@donald.themaw.net>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1083952048.18740.75.camel@serpentine.internal.keyresearch.com>
+In-Reply-To: <Pine.LNX.4.58.0405081333390.2371@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,26 +22,20 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Bryan O'Sullivan <bos@serpentine.com>
+Content-Type: text/plain; charset="us-ascii"
+To: raven@themaw.net
 Cc: autofs@linux.kernel.org
 
-On Fri, 7 May 2004, Bryan O'Sullivan wrote:
+On Fri, 2004-05-07 at 22:44, raven@themaw.net wrote:
 
-> On Thu, 2004-05-06 at 14:18, Jeff Moyer wrote:
-> > Here is the changelog for the latest version.
-> 
-> Jeff, I suggest that if you have time, you take a look to see if your
-> 4.1.0 RPMs have the "never notice updates to NIS maps" problem that is
-> in 4.1.2.  It's not entirely a showstopper, but it's a huge headache.
+> Dealing with mount fails is often a source of pain for a bunch of reasons. 
+> I think the idea of using that as a trigger to re-read the map is likely 
+> not the best as this is potentially the time the map might not be available.
 
-Sorry to say that's more my problem than Jeffs'.
+Right, which is why I suggest dropping the TTL instead of taking
+immediate action.  Frankly, if NIS or LDAP is hosed and you're relying
+on them for directory services, it is unlikely to matter whether or not
+autofs "works", since so much else (i.e. regular user stuff) is going to
+be hosed.
 
-I think that once we've decided on an implementation plan, and I 
-implement it, that it becomes a known problem with earlier versions.
-
-It may be an option for someone to back port the changes. Perhaps someone 
-on the list would be interested in doing it.
-
-Ian
+	<b
