@@ -1,16 +1,10 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: questions on auto.master file format
-Date: Thu, 4 Mar 2004 22:32:34 +0800 (WST)
+From: "Salmon, Michael [OS-IE]" <MICHAEL.SALMON@saic.com>
+Subject: automount through firewalls
+Date: Thu, 4 Mar 2004 06:54:21 -0800
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0403042231270.4704@raven.themaw.net>
-References: <16452.51314.769206.991484@segfault.boston.redhat.com> 
- <Pine.LNX.4.58.0403031455220.16583@wombat.indigo.net.au> 
- <16453.61187.553910.939557@segfault.boston.redhat.com> 
- <Pine.LNX.4.58.0403041224300.7374@wombat.indigo.net.au>
- <1078409214.29340.33.camel@brilong-lnx2.cisco.com>
+Message-ID: <7EA66ACBFB7B8B4DA4C306BDAD178A5E227E49@abz-irg-exs01>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1078409214.29340.33.camel@brilong-lnx2.cisco.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,15 +14,22 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Brian Long <brilong@cisco.com>
-Cc: autofs@linux.kernel.org
+To: 'autofs mailing list' <autofs@linux.kernel.org>
 
-On Thu, 4 Mar 2004, Brian Long wrote:
+Has anyone had any experience or seen any problems caused by having your nfs
+data behind a firewall and having to mount over tcp.
 
-> 
-> Before implementing this feature, I'd much prefer to see layered direct
-> mounts  ;-)
-
-You would be talking about cross filesystem mounts?
+Michael Salmon
+Unix Systems Management
+S.A.I.C Ltd
+Aberdeen Science and Technology Park
+Campus 1
+Balgownie Road
+Bridge of Don
+Aberdeen
+AB22 8GT
+Tel: 44 (0) 1224 333720
+Tel: BP short code 720 3720
+Fax: 44 (0) 1224 333924
