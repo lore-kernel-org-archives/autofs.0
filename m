@@ -1,18 +1,13 @@
-From: Steffen Grunewald <steffen.grunewald@aei.mpg.de>
-Subject: Re: Automounting on /. deleting entire FS!
-Date: Mon, 11 Oct 2004 19:00:11 +0200
+From: Mike Waychison <Michael.Waychison@Sun.COM>
+Subject: Re: Newbie needs help with automounter.
+Date: Mon, 11 Oct 2004 13:11:42 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <20041011170010.GI27189@debian-server.aei.mpg.de>
-References: <20041011152938.GL21585@lego.fgm.com>
-	<16746.43302.434588.743693@segfault.boston.redhat.com>
-	<20041011160135.GM21585@lego.fgm.com>
-	<16746.45101.876872.951336@segfault.boston.redhat.com>
-	<20041011162927.GN21585@lego.fgm.com>
+Message-ID: <416ABECE.2010701@sun.com>
+References: <200410100037.i9A0bA020600@novus.adsdesign.analog.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7BIT
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20041011162927.GN21585@lego.fgm.com>
+In-reply-to: <200410100037.i9A0bA020600@novus.adsdesign.analog.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,52 +17,83 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="iso-8859-1"
-To: Martin Fick <fick@fgm.com>
+Content-Type: text/plain; charset="us-ascii"
+To: "William.Crocker" <william.crocker@analog.com>
 Cc: autofs@linux.kernel.org
 
-On Mon, Oct 11, 2004 at 12:29:27PM -0400, Martin Fick wrote:
-> > Nothing is in /etc/ on your old root partition?  I don't see anything=
- in
-> > the autofs code that would remove an entire directory hierarchy plus =
-its
-> > contents.
-> Well, I don't have acces to the system here, I am at work,
-> but I didn't see any files, just a few vacant directories
-> left such as:
->=20
-> 	/bin (maybe)
-> 	/dev
-> 	/etc
-> 	/home/fick (my home dir, empty!)
-> 	/mnt
-> 	/usr (was mounted externally)
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Looks like the contents of fs cache.=20
-You might try to find out what's there (from single user best, but
-another root partition would do too) using df. Make sure to first mount
-read-only, then (when you can see everything is somehow still alive)
-remount rw. fsck'ing may be a Very Bad Idea. If you can see files it'd
-be a good idea to do some kind of backup (if it works, you won't need it
-afterwards in 99% of all cases) before going rw.
+William.Crocker wrote:
+> Hello:
+> 
+> I am new to autofs/automounter and need help understanding
+> the following messages which I found in /var/log/messages.
+> 
+> These messages appeared when I tried to
+> change directory to /proj/asic on cfl30.
+> 
+> If I stop and then start autofs it will work for a while
+> and then start failing again.
+> 
+> Thanks in advance.
+> 
+> Bill
+> 
+> ------------- /var/log/messages -------------
+> 
+> Oct  9 18:30:31 cfl30 kernel: RPC: Can't bind to reserved port (98).
+> Oct  9 18:30:31 cfl30 kernel: NFS: cannot create RPC transport.
+> Oct  9 18:30:31 cfl30 kernel: nfs warning: mount version older than kernel
+> Oct  9 18:30:31 cfl30 kernel: RPC: Can't bind to reserved port (98).
+> Oct  9 18:30:31 cfl30 kernel: NFS: cannot create RPC transport.
+> Oct  9 18:30:31 cfl30 automount[14622]: >> mount: wrong fs type, bad option, bad superblock on 831ntap:/vol/vol0/proj/asic,
+> Oct  9 18:30:31 cfl30 automount[14622]: >>        or too many mounted file systems
+> Oct  9 18:30:31 cfl30 automount[14622]: mount(nfs): nfs: mount failure 831ntap:/vol/vol0/proj/asic on /proj/asic
+> Oct  9 18:30:31 cfl30 automount[14622]: failed to mount /proj/asic
+> Oct  9 18:30:31 cfl30 kernel: RPC: Can't bind to reserved port (98).
+> Oct  9 18:30:31 cfl30 kernel: NFS: cannot create RPC transport.
+> Oct  9 18:30:31 cfl30 kernel: nfs warning: mount version older than kernel
+> Oct  9 18:30:31 cfl30 kernel: RPC: Can't bind to reserved port (98).
+> Oct  9 18:30:31 cfl30 automount[14624]: >> mount: wrong fs type, bad option, bad superblock on 831ntap:/vol/vol0/proj/asic,
+> Oct  9 18:30:31 cfl30 kernel: NFS: cannot create RPC transport.
+> Oct  9 18:30:31 cfl30 automount[14624]: >>        or too many mounted file systems
+> Oct  9 18:30:31 cfl30 automount[14624]: mount(nfs): nfs: mount failure 831ntap:/vol/vol0/proj/asic on /proj/asic
+> Oct  9 18:30:31 cfl30 automount[14624]: failed to mount /proj/asic
+> 
 
-There's still hope.
+This occurs when the kernel can't bind to a reserved port (<1024) when
+building the rpc transport.  In fact, the rpc code further limits the
+available ports to 1-800.   You can try upping the value of
+XPRT_MAX_RESVPORT in net/sunrpc/xprt.c to 1024, or higher if your nfs
+servers don't care what port the client is connecting from.
 
-Cheers,
- Steffen
+This said, this is likely a symptom of one of two things:
 
-(BTW, it's a quite common trap, almost as efficient as chown -R xyz .*)
+- - You are mounting hundreds of nfs filesystems (the current code does
+not multiplex rpc connections at all).
+- - Automounter ran wild and is mounting filesystems that are not getting
+freed/umounnted properly.
 
-> I had assumed at first that it was something like what you
-> suggested and so I simply rebooted into the other partition
-> and was shocked to find that nothing came back!
+Can you post the output of 'cat /proc/mounts' and 'netstat -a --inet' as
+well as versioning information for your kernel and automounter you are
+using?
 
-??? so you started another kernel and gave it the root=3D... arg?
-Then of course automount would be running before you can do anything...
-there's perhaps even more hope than you'd expect!
+- --
+Mike Waychison
+Sun Microsystems, Inc.
+1 (650) 352-5299 voice
+1 (416) 202-8336 voice
 
---=20
-Steffen Grunewald * * * Merlin cluster admin (http://pandora.aei.mpg.de)
-Albert-Einstein-Institut (MPI Gravitationsphysik, http://www.aei.mpg.de)
-       Science Park Golm, Am M=FChlenberg 1, 14476 Potsdam, Germany
-e-mail: steffen.grunewald(*)aei.mpg.de * +49-331-567-{fon:7233,fax:7298}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NOTICE:  The opinions expressed in this email are held by me,
+and may not represent the views of Sun Microsystems, Inc.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.5 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://enigmail.mozdev.org
+
+iD8DBQFBar7NdQs4kOxk3/MRAmKVAKCbxhhMthZ+T2fLG9XZ4Y04+0V1gwCfQ6IQ
+oBaXn6tijYWEgbArqoSTlG8=
+=LBX8
+-----END PGP SIGNATURE-----
