@@ -1,36 +1,57 @@
-From: Michael Clark <michael@metaparadigm.com>
-Subject: Re: [autofs] [RFC] Towards a Modern Autofs
-Date: Fri, 09 Jan 2004 07:42:30 +0800
-Sender: linux-kernel-owner@vger.kernel.org
-Message-ID: <3FFDEAE6.4030503@metaparadigm.com>
-References: <Pine.LNX.4.44.0401081827070.285-100000@donald.themaw.net> <3FFD9498.6030905@zytor.com>
+From: James Pearson <james-p@moving-picture.com>
+Subject: Busy inodes after unmount followed by Oops
+Date: Fri, 09 Jan 2004 11:06:16 +0000
+Sender: nfs-admin@lists.sourceforge.net
+Message-ID: <3FFE8B28.1E645E4E@moving-picture.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+linux-kernel=40quimby.gnus.org@vger.kernel.org>
-In-Reply-To: <3FFD9498.6030905@zytor.com>
+Return-path: <nfs-admin@lists.sourceforge.net>
+Errors-To: nfs-admin@lists.sourceforge.net
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
+	<mailto:nfs-request@lists.sourceforge.net?subject=unsubscribe>
 List-Id: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ian Kent <raven@themaw.net>, Mike Waychison <Michael.Waychison@Sun.COM>, autofs mailing list <autofs@linux.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
+List-Post: <mailto:nfs@lists.sourceforge.net>
+List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
+	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
+Content-Type: text/plain; charset="us-ascii"
+To: nfs@lists.sourceforge.net, autofs@linux.kernel.org
 
-On 01/09/04 01:34, H. Peter Anvin wrote:
-> In many ways this returns to the simplicity of the autofs v3 design 
-> where the atomicity constraints where guaranteed by the VFS itself, *as 
-> long as* mount traps can be atomically destroyed with umounting the 
-> underlying filesystem.
+There was a long thread a few months ago about this subject:
 
-Do we need to revive Tigran's forced unmount patch 'badfs' ala FreeBSD's
-deadfs? Although it doesn't guarantee atomic unmount, it could help
-a lot with the tendancy to get stuck autofs mounts.
+http://marc.theaimsgroup.com/?t=106332683300004&r=1&w=2
 
-   http://tinyurl.com/2hto8
+and
 
-I've been long waiting for this functionality in mainline.
+http://marc.theaimsgroup.com/?t=106340013500006&r=1&w=2
 
-I wonder if binding badfs over the mountpoint at the beginning of the
-potentially lengthy unmount process would improve the atomicity
-to userspace. ie although the unmount would proceed in the background,
-badfs would have been mounted at that point at the start of the process
-- mounts are atomic no?
+I've read the posts but as far as I can tell, I can't find a 'solution'
+to the problem (but I may have missed it in all the posts!)
 
-~mc
+I have the same problem with a large number of dual CPU machines running
+2.4.20 and above that make heavy use of autofs (v4.0.0pre10).
+
+We get a:
+
+VFS: Busy inodes after unmount. Self-destruct in 5 seconds.  Have a nice
+day...
+
+mesasage, followed some time later by Oops's from kswapd, umount or some
+other user application.
+
+Is there a 'fix' for this problem?
+
+Thanks
+
+James Pearson
+
+
+-------------------------------------------------------
+This SF.net email is sponsored by: Perforce Software.
+Perforce is the Fast Software Configuration Management System offering
+advanced branching capabilities and atomic changes on 50+ platforms.
+Free Eval! http://www.perforce.com/perforce/loadprog.html
+_______________________________________________
+NFS maillist  -  NFS@lists.sourceforge.net
+https://lists.sourceforge.net/lists/listinfo/nfs
