@@ -1,8 +1,8 @@
 From: Jeff Moyer <jmoyer@redhat.com>
 Subject: Re: BUG: autofs4 + cd /net/<Netapp>/vol/vol[0-3] = port 
 	usage problems
-Date: Tue, 18 Jan 2005 09:18:57 -0500
-Message-ID: <16877.6865.609132.621298@segfault.boston.redhat.com>
+Date: Tue, 18 Jan 2005 09:20:18 -0500
+Message-ID: <16877.6946.710259.562902@segfault.boston.redhat.com>
 References: <200501142238.j0EMcbOT002214@jetcar.spd.analog.com>
 	<Pine.LNX.4.61.0501151035230.1597@donald.themaw.net>
 	<16875.53538.836665.652032@segfault.boston.redhat.com>
@@ -70,21 +70,12 @@ raven> it will be addressed in the near future.
 raven> I looked at the code in an FC2 mount and found that it did quite a
 raven> bit of probing.
 
-raven> In itself this is probably a good thing as it's more comprehensive
-raven> than what I do for replicated server mount entries and it may be a
-raven> precursor to providing that functionality in mount. This just means
-raven> that we need to get a handle on the objections to RPC transport
-raven> multiplexing and get it done.
+[snip]
 
-Umm, you want mount to support replicated servers?  Interesting idea, but
-I'm not sure I like it.
+raven> This just means that we need to get a handle on the objections to
+raven> RPC transport multiplexing and get it done.
 
-raven> Using non-priveledged ports has other dependencies. For example, on
-raven> Debian with 2.4.27 mountd rejects connections from non-priveledged
-raven> ports. I didn't spend much time to find out if I could work around
-raven> it but never the less it likely will generate a bit of noise.
-
-Right.  But you can still try to connect using non-priveledged ports, and
-fallback to the current code path if that fails.
+I forwarded Mike's patch off to Steve Dickson.  However, with the caveats
+he listed, I'm not optimistic.
 
 -Jeff
