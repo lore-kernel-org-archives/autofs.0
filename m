@@ -1,14 +1,13 @@
-From: =?koi8-r?Q?=22?=Peter Lojkin=?koi8-r?Q?=22=20?= <ia6432@inbox.ru>
-Subject: Re[4]: autofs reload
-Date: Fri, 26 Mar 2004 20:23:58 +0300
+From: Mike Waychison <Michael.Waychison@Sun.COM>
+Subject: Re: autofs reload
+Date: Fri, 26 Mar 2004 12:34:23 -0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <E1B6v3m-0000cJ-00.ia6432-inbox-ru@f25.mail.ru>
-References: <16484.25454.659035.551208@segfault.boston.redhat.com>
-Reply-To: =?koi8-r?Q?=22?=Peter Lojkin=?koi8-r?Q?=22=20?= <ia6432@inbox.ru>
+Message-ID: <4064699F.80301@sun.com>
+References: <E1B6v6s-000EvK-00.ia6432-inbox-ru@f13.mail.ru>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <16484.25454.659035.551208@segfault.boston.redhat.com>
+In-reply-to: <E1B6v6s-000EvK-00.ia6432-inbox-ru@f13.mail.ru>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,36 +17,52 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: jmoyer@redhat.com
+Content-Type: text/plain; format="flowed"; charset="us-ascii"
+To: Peter Lojkin <ia6432@inbox.ru>
 Cc: autofs@linux.kernel.org
 
-On Fri, 26 Mar 2004 at 12:07:58 -0500, Jeff Moyer wrote:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> ia6432> yes this share was umounted a couple of days prior to auto.home nis
-> ia6432> map update.
-> 
-> What I meant was, at the time you did an ls, were you sure that there were
-> no applications accessing the directory.
-yes there're no applications accessing the directory...
+Peter Lojkin wrote:
+| On Fri, 26 Mar 2004 at 11:58:41 -0500, Mike Waychison wrote:
+|
+|
+|>Ian responded to this a while back, see his answer at:
+|>http://linux.kernel.org/pipermail/autofs/2004-February/000932.html
+|
+| thanks! missed this one...
+|
+|
+|>"That's right because, for file, NIS and LDAP maps, the daemon uses a
+|>cache that is not aware of updates.
+|>
+|>In 4.1.0 you can send a HUP signal to the daemon process controling the
+|>map to ask it to update the map in similar fashion to running automount
+|>on Solaris."
+|
+| then maybe we should do this on autofs reload instead of restarting
+| daemons?
+|
 
->  If nothing was accessing the
-> directory (even if it is mounted), then autofs should be able reload just
-> fine.  If that's not the case, then I am certainly perplexed.
-looks like it now needs HUP signal to update cache as mentioned in
-other rely...
+Sure, however doing so will not pick up any changes to the master map :(
 
-> >> controlled by autofs.  Attached is a patch which addresses this.
-> >> Comments welcome.
-> ia6432> this should fix autofs reload or stop/start? i'll try...
-> 
-> No, this will prevent the automount daemon from starting more than once for
-> a given mount point.  Sorry if that was confusing.
-well it works i.e. no more duplicate automount and it's good.
-but now we need to fix "stop" because when i did autofs stop, then
-installed new version and did autofs start i got unusable /auto and /home.
-with autofs stop all automount processes stoped but autofs on /auto and
-/home was not umounted (there're directories in use), so when i started
-new version no daemon came up for this points.
-then i did umount /auto /home and got several "Busy inodes after unmount".
-after next autofs restart everything worked...
+- --
+Mike Waychison
+Sun Microsystems, Inc.
+1 (650) 352-5299 voice
+1 (416) 202-8336 voice
+mailto: Michael.Waychison@Sun.COM
+http://www.sun.com
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NOTICE:  The opinions expressed in this email are held by me,
+and may not represent the views of Sun Microsystems, Inc.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.2.4 (GNU/Linux)
+
+iD8DBQFAZGmedQs4kOxk3/MRAtaPAJ900FWk/VIKySRwiwtPHyEV/17ejACghZ61
+SiCjqCHy86w/ntoX2sztgbg=
+=HkPf
+-----END PGP SIGNATURE-----
