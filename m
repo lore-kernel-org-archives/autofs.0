@@ -1,11 +1,10 @@
-From: James Pearson <james-p@moving-picture.com>
-Subject: Re: 	Mounting an NFS file system upon itself or something
-	like that
-Date: Wed, 10 Nov 2004 20:41:55 +0000
-Message-ID: <41927D13.2000402@moving-picture.com>
+From: raven@themaw.net
+Subject: Re: Mounting an NFS file system upon itself or something
+ like that
+Date: Sat, 13 Nov 2004 14:37:02 +0800 (WST)
+Message-ID: <Pine.LNX.4.58.0411131431270.9059@donald.themaw.net>
 References: <1100090139.4310.32.camel@dyn059070.shef.ac.uk>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 In-Reply-To: <1100090139.4310.32.camel@dyn059070.shef.ac.uk>
 List-Id: <autofs.vger.kernel.org>
@@ -18,11 +17,20 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: Alan Le Moigne <a.lemoigne@sheffield.ac.uk>
 Cc: autofs@linux.kernel.org
 
-Alan Le Moigne wrote:
+
+To start with lets have the versions of everything.
+
+kernel, patched or not, and autofs.
+
+I believe that autofs should do a bind mount of the lical filesystem in 
+this case.
+
+On Wed, 10 Nov 2004, Alan Le Moigne wrote:
 
 > Hi,
 > 
@@ -66,19 +74,12 @@ Alan Le Moigne wrote:
 > from there.
 > 
 > Any idea or comment is very welcome.
-
-I don't think you can mix local mounts and automounts in that way - the 
-way I would do it (in fact, this is the way I do it):
-
-mount the local disks as /nodeX
-
-The /etc/auto.data file contains something like:
-
-node2 [options] 192.168.101.2:/node2
-node3 [options] 192.168.101.3:/node3
-node4 [options] 192.168.101.4:/node4
-
-on machine node2, /data/node2 will be a bind mount (not over NFS) of 
-/node2 - all the other /data/nodeX mounts will be over NFS.
-
-James Pearson
+> 
+> Alan.
+> 
+> 
+> _______________________________________________
+> autofs mailing list
+> autofs@linux.kernel.org
+> http://linux.kernel.org/mailman/listinfo/autofs
+> 
