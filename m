@@ -1,17 +1,14 @@
-From: Tom Georgoulias <tom.georgoulias@motorola.com>
-Subject: Re: newly added heirarchical mount points not found
-Date: Wed, 25 Feb 2004 08:18:35 -0600
+From: Ian Kent <raven@themaw.net>
+Subject: Re: Re: newly added heirarchical mount points not found
+Date: Mon, 1 Mar 2004 16:04:17 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <403CAEBB.6010003@motorola.com>
-References: <1077211015.19371.32.camel@brilong-lnx2.cisco.com>
-	<1077211301.19371.34.camel@brilong-lnx2.cisco.com>
+Message-ID: <Pine.LNX.4.58.0403011547160.15326@raven.themaw.net>
+References: <1077211015.19371.32.camel@brilong-lnx2.cisco.com> 
+	<1077211301.19371.34.camel@brilong-lnx2.cisco.com> 
 	<Pine.LNX.4.58.0402202058120.4573@raven.themaw.net>
-	<1077284694.21595.54.camel@brilong-lnx2.cisco.com>
-	<Pine.LNX.4.58.0402211534050.4697@raven.themaw.net>
 	<403AA2A7.3010409@motorola.com>
 	<Pine.LNX.4.58.0402251203060.31545@wombat.indigo.net.au>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 In-Reply-To: <Pine.LNX.4.58.0402251203060.31545@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
@@ -23,52 +20,37 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Ian Kent <raven@themaw.net>
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Tom Georgoulias <tom.georgoulias@motorola.com>
 Cc: autofs@linux.kernel.org
 
-Thank you for your help on this.
+On Wed, 25 Feb 2004, Ian Kent wrote:
 
-Ian Kent wrote:
+> On Mon, 23 Feb 2004, Tom Georgoulias wrote:
+> 
+> > Hi:
+> > 
+> > I'd like to know if the heirarchical mount point behavior I've been 
+> > seeing lately with autofs4 is what I should expect.  When I add an 
+> > additional submount point to an existing set of heirarchical mounts, I 
+> > cannot access the file system referenced by the new mount point.
 
-> Browsable mount points are a must. 
+Unfortunately it is. After checking the code I see that autofs v4 does 
+not look inside the multi-mount map. It just mounts the whole thing and 
+umounts it after a timeout (you already know this anyway). Consequently 
+changes to the map are not seen until it is umounted and then remounted. 
+To change this is quite a bit of work because of the tight coupling 
+between the mount lookup and the action of the mount itself in the 
+current design.
 
-For this to work?  Or just to get all the benefits of autofs4?
+This design has caused me pain before and I have been planning to rework 
+it for ages. I've been trying to complete as many bug fixes and requested 
+features (that are fairly straight forward) before starting this as it's 
+likely to take quite a while (and will probably be the start of 4.2.x).
 
-> Anyway try the HUP signal.
+So the news is not good I'm afraid. As I said I'll try and implement a 
+work around in the 4.1.x release but I can't work out a way to do it yet
+without a fair bit of change to the code.
 
-I wasn't successful.  On a Red Hat Linux 8.0 system using autofs-4.1.0-2 
-and the autofs4-20031201 kernel module:
-
-1. Made a test mount entry and pushed out the change
-
-hatfield3:tomg$ ypmatch -k sync_caches auto.design
-sync_caches <snip>
-/tomg_test -suid bender:/export/bender/tomg/tmp/tomg_test
-<snip>
-
-2. Tried to access it on Linux
-hatfield3:tomg$ cd /design/sync_caches/tomg_test
--bash: cd: /design/sync_caches/tomg_test: No such file or directory
-
-3. Tried to access it on Solaris
-fry:tomg$ cd /design/sync_caches/tomg_test
-fry:tomg_test$
-
-4. Sent HUP signal to automount daemon on Linux
-[root@hatfield3 root]# psg design
-root      1274     1  0 08:00 ?        00:00:00 /usr/sbin/automount 
-/design yp a
-[root@hatfield3 root]# kill -1 1274
-
-5. Try again on Linux:
-hatfield3:tomg$ cd /design/sync_caches/tomg_test
--bash: cd: /design/sync_caches/tomg_test: No such file or directory
-
-Did I overlook something, or do it incorrectly?
--- 
-Tom Georgoulias
-POPI Classification
-[x] General Business Information
-[] Motorola Internal Use
-[] Motorola Confidential Proprietary
+Ian
