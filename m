@@ -1,8 +1,8 @@
 From: ramana <ramana@intraperson.com>
-Subject: [ldap] user home directories in ldap
-Date: Fri, 18 Jun 2004 06:18:18 +0530
+Subject: Re: Autodir
+Date: Fri, 18 Jun 2004 07:16:31 +0530
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <40D23BD2.7040503@intraperson.com>
+Message-ID: <40D24977.7030706@intraperson.com>
 References: <LYRIS-1845620-699584-2004.04.19-05.42.49--ramana#intraperson.com@listserver.itd.umich.edu>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
