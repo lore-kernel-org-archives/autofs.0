@@ -1,16 +1,16 @@
-From: Thomas Jahns <Thomas.Jahns@gmx.net>
+From: Jeff Moyer <jmoyer@redhat.com>
 Subject: Re: Limit on return string from program map
-Date: Fri, 17 Dec 2004 15:40:08 +0000
-Message-ID: <1103298008l.6599l.1l@mercury>
+Date: Fri, 17 Dec 2004 11:09:22 -0500
+Message-ID: <16835.1202.105657.451392@segfault.boston.redhat.com>
 References: <21502.1103178424@kao2.melbourne.sgi.com>
 	<Pine.LNX.4.58.0412171422280.22350@wombat.indigo.net.au>
 	<16834.63746.614567.523947@segfault.boston.redhat.com>
+	<1103298008l.6599l.1l@mercury>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <16834.63746.614567.523947@segfault.boston.redhat.com> (from
-	jmoyer@redhat.com on Fri Dec 17 16:19:30 2004)
-Content-Disposition: inline
+In-Reply-To: <1103298008l.6599l.1l@mercury>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,22 +21,23 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; delsp="Yes"; format="Flowed"
-To: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: Thomas Jahns <Thomas.Jahns@gmx.net>
+Cc: autofs@linux.kernel.org
 
-On 12/17/04 16:19:30, Jeff Moyer wrote:
->>> the string that automount expects from a program map.  My virtual
->>> CD server has lots of CD images mounted over loopback, each with  
->>> its own export entry, so the return string from auto.net is quite  
->>> long.
-> 
-> raven> The buffer size for map entries is 4096.
+==> Regarding Re: [autofs] Limit on return string from program map; Thomas Jahns <Thomas.Jahns@gmx.net> adds:
 
-not sure it's related: wasn't there also a very small limit on the  
-number of loop-devices?
+Thomas.Jahns> On 12/17/04 16:19:30, Jeff Moyer wrote:
+>>>> the string that automount expects from a program map.  My virtual CD
+>>>> server has lots of CD images mounted over loopback, each with its own
+>>>> export entry, so the return string from auto.net is quite long.
+>>
+raven> The buffer size for map entries is 4096.
 
-Thomas Jahns
--- 
-"Computers are good at following instructions,
- but not at reading your mind."
-D. E. Knuth, The TeXbook, Addison-Wesley 1984, 1986, 1996, p. 9
+Thomas.Jahns> not sure it's related: wasn't there also a very small limit
+Thomas.Jahns> on the number of loop-devices?
+
+MODULE_PARM(max_loop, "i");
+MODULE_PARM_DESC(max_loop, "Maximum number of loop devices (1-256)");
+
+-Jeff
