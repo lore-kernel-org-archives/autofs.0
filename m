@@ -1,14 +1,15 @@
 From: raven@themaw.net
 Subject: Re: autofs-4.1 slow to mount
-Date: Thu, 13 May 2004 23:00:01 +0800 (WST)
+Date: Thu, 13 May 2004 23:02:50 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0405132253300.13693@donald.themaw.net>
+Message-ID: <Pine.LNX.4.58.0405132300580.13693@donald.themaw.net>
 References: <200405101900.i4AJ09pH031586@hera.kernel.org>
 	<40A0CC37.3080003@gxt.com>
 	<Pine.LNX.4.58.0405130639030.16060@www.wm7d.net>
+	<16547.34453.14284.235161@segfault.boston.redhat.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0405130639030.16060@www.wm7d.net>
+In-Reply-To: <16547.34453.14284.235161@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,38 +21,26 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Joseph Mack NA3T <jmack@wm7d.net>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: autofs@linux.kernel.org
 
-On Thu, 13 May 2004, Joseph Mack NA3T wrote:
+On Thu, 13 May 2004, Jeff Moyer wrote:
 
-> Linux-2.4.26, autofs4 as module, libc-2.3.2
+> Not sure what the issue here is.  Trying with my latest rpm would provide a
+> useful data point.  See below.
 > 
-> mounting zip disk by autofs
+> jmack> on another similar machine, automount-4.1.2 won't mount the zip
+> jmack> disk, giving "e2fsck: need terminal for interactive repairs".
+> jmack> Running fsck from the command line shows a clean zip disk.
+> jmack> automount-4.0.0pre10 mounts zip disk OK.
 > 
-> with automount-4.0.0pre10, the disk mounts in 1sec
+> Hmm.  This second issue sounds like the spawnl issue discovered a little
+> while back.  Could you try the autofs package from my people page:
 > 
-> (interval between "attempting to mount entry /removable/zip"
-> and "kernel: kjournald starting. Commit interval 5 seconds"
-> messages)
+>       http://people.redhat.com/~jmoyer/
 > 
-> with automount-4.1.2 the same interval is 11 secs.
+> Or, you could try the attached patch.
 
-Are you using the latest replicated server fixes patch?
-This aounds like a problem that should have been fixed.
-What does your map entry look like please?
-
-> 
-> on another similar machine, automount-4.1.2 won't mount
-> the zip disk, giving "e2fsck: need terminal for interactive repairs".
-> Running fsck from the command line shows a clean zip disk.
-> automount-4.0.0pre10 mounts zip disk OK.
-
-Mmm. That's not good.
-
-Do you get a message like
-mouny(ext2) /path/to/mount : filesystem needs repair, won't mount
-
-I'll see what I can find. I wonder what e2fsck is returning????
+Ahh Yes. Thanks Jeff. That sounds like it.
 
 Ian
