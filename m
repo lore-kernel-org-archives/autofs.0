@@ -1,13 +1,14 @@
-From: "Taylor, ForrestX" <forrestx.taylor@intel.com>
-Subject: Re: autofs not unmounting mount points?
-Date: Wed, 17 Mar 2004 09:50:20 -0800
+From: Robert Au <rau@lsil.com>
+Subject: Re: autofs not mounting directories
+Date: Wed, 17 Mar 2004 12:48:29 -0800
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <40588FDC.5020909@intel.com>
-References: <4051DB39.4060905@astro.wisc.edu>
-	<Pine.LNX.4.58.0403141018340.4585@raven.themaw.net>
+Message-ID: <20040317204829.GD12204@vprau.lsil.com>
+References: <200403160358.MAA25667@tk3p108pos.tky.swissbank.com>
+	<Pine.LNX.4.58.0403171118120.6566@wombat.indigo.net.au>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.58.0403171118120.6566@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,41 +18,37 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: autofs@linux.kernel.org
 
-Ian Kent wrote:
-> On Fri, 12 Mar 2004, jansen wrote:
+On Wed, Mar 17, 2004 at 11:24:36AM +0800, Ian Kent wrote:
+> On Tue, 16 Mar 2004, Noel Hunt wrote:
+> > If `directory' is an automount mountpoint, is there some
+> > difference between `cd directory', and say cron running
+> > `/directory/bin/cmd', in the way that `directory' is
+> > accessed? I understand the former will cause a chdir()
+> > which will invoke autofs_root_lookup(); in the latter case,
+> > I don't know what goes on.
 > 
+> Yes.
 > 
->>Hi,
->>
->>I've been struggling to figure out why autofs does not appear
->>to unmount many mount points.  I have more than 150 entries in
->>a map file and most of these entries get mounted when I log into
->>a Gnome session and never seem to ever get unmounted.  This
->>happened under RedHat 8.0 (autofs-3.1.7-33) and still happens on
->>SuSE 9.0 (autofs-3.1.7-717).  I'm guessing that Nautilus is doing
->>this.  Is anyone else seeing this?  Any suggestions on how to prevent
->>or debug this?  I can provide more details if anyone is interested.
-> 
-> 
-> Bit unfortunate they never umount.
-> 
-> The problem is that Nautilus scans the directory if/when it notices umount 
-> activity. This causes a remount. I couldn't find a way to trun it off. The 
-> list of directories to scan is help in a file (I can't remember where now) 
-> and I was able to stop it, to some extent, by cleaning it out and changing 
-> the modes on the file (for non-root login anyway).
-> 
-> I started working on this some time ago but did not get anywhere before 
-> other things took priority. To fix this means digging into Nautilius. A 
-> significant task in itself. The people on the Nautilus list would probably 
-> help but they would need a significant time investment from an autofs 
-> development person. Any volunteers?
+> Sounds like you may be suffering from the same problem that was reported 
+> by Michael Blandford. I'm mystified I haven't seen the problem before as 
+> it is so fundamental to proper operation.
 
-Although I am not really an autofs development person, I would really 
-like this remedied, so I will volunteer.  Where can I get started?
+I don't see Michael's original report in the list archives. Did he send it
+to the list?
+ 
+> I'll be looking to get a test group together from the list in a couple of 
+> days.
 
-Forrest
+I think we are seeing something similar here; sporadically, listing a file
+with ls will fail until a process changes working directory to that file's
+directory. I'd like to help out in the testing. We are seeing this problem
+with Red Hat 7.2 (kernel 2.4.7-10), autofs 4.1.0, and kernel module
+autofs4-2.4-module-20031201.
+
+-- 
+Robert Au                     rau@lsil.com
+                              LSI Logic
