@@ -1,14 +1,14 @@
-From: Mike Waychison <Michael.Waychison@Sun.COM>
+From: Hans Deragon <hans@deragon.biz>
 Subject: Re: backfstype patch.
-Date: Wed, 30 Jun 2004 10:28:48 -0400
+Date: Wed, 30 Jun 2004 11:01:42 -0400
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <40E2CE20.1050103@sun.com>
-References: <40E1CCC3.1010809@deragon.biz> <40E2C0BA.3070605@sun.com>
- <16610.50525.858094.848839@segfault.boston.redhat.com>
+Message-ID: <40E2D5D6.6010604@deragon.biz>
+References: <40E1CCC3.1010809@deragon.biz>
+ <16610.49006.880121.543138@segfault.boston.redhat.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7BIT
 Return-path: <autofs-bounces@linux.kernel.org>
-In-reply-to: <16610.50525.858094.848839@segfault.boston.redhat.com>
+In-reply-to: <16610.49006.880121.543138@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,71 +18,138 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: jmoyer@redhat.com
-Cc: autofs@linux.kernel.org, dhowells@redhat.com
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: autofs@linux.kernel.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
-
-Resending as I forgot to CC David :)
+Greetings Jeff.
 
 Jeff Moyer wrote:
-> ==> Regarding Re: [autofs] backfstype patch.; Mike Waychison
-<Michael.Waychison@Sun.COM> adds:
->
-> Michael.Waychison> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash> SHA1
->
-> Michael.Waychison> Hans Deragon wrote:
->
->>>Greetings.
->>>
->>>
->>>Attached, my patch for supporting backfstype.  If the OS is Linux and
->>>cachefs is detected, this fs is ignored and no attempt is made to mount
->>>a cachefs kernel module (none exist).  This way we avoid useless error
->>>messages in syslog.
->>>
->>>If mounting the fstype fails or is cachefs, backfstype is then tried.
->>>
->>>It works fine under RHL 9.  Only one file was changed: parse_sun.c.  The
->>>changes were made from the 4.1.3 branch.  Changes are very localized and
->>>I believe they are safe (though code inspection is always desired).
->>>
->>>Please confirm if my patch has been accepted.
->>>
->
->
-> Michael.Waychison> Why do this in the parser when it can easily be done in
-> Michael.Waychison> a mount module?
->
-> Care to expound a bit?  I'm not sure what people use backfstype for,
-but if
-> it is generic, then you wouldn't want to handle every case in every mount
-> module.  But I think I'm missing your point.
->
-> It makes some sense to me to handle this above the mount module, simply
-> because you could call into two different modules.
->
-> So, care to set me straight?  ;)
->
-> -Jeff
+> ==> Regarding [autofs] backfstype patch.; Hans Deragon <hans@deragon.biz> adds:
+> 
+> hans> Greetings.  Attached, my patch for supporting backfstype.  If the OS
+> hans> is Linux and cachefs is detected, this fs is ignored and no attempt
+> hans> is made to mount a cachefs kernel module (none exist).  This way we
+> hans> avoid useless error messages in syslog.
+> 
+> First off, thanks for taking the initiative!
+> 
+> Now, to business.  Ian meant to say that you _don't_ need to do #ifdef
+> __linux__, as this is the Linux automounter.  It won't work on any other
+> OS.
+> 
+> I'm not sure I like the special casing for cachefs, but that's ultimately
+> Ian's call.  I just attempted a mount -t cachefs on my machine, and got no
+> messages in the logs.  I wonder what's trying the modprobe.
 
-I'm CC'ing David as he may have a better view of what the cachefs status is.
+I got messages in my logs.
 
-Backfstype is a fstype=cachefs specific mount option.  Specifically:
+> I've taken a cursory look at your patch, and inlined some initial
+> comments.  I'll try to take a closer look at it some time this week.
+> 
+> Thanks!
+> 
+> Jeff
+> 
+> 
+> 
+> 
+>>diff -Nur autofs-4.1.3.org/modules/parse_sun.c autofs-4.1.3/modules/parse_sun.c
+>>--- autofs-4.1.3.org/modules/parse_sun.c	2004-05-18 08:22:40.000000000 -0400
+>>+++ autofs-4.1.3/modules/parse_sun.c	2004-06-29 14:54:49.000000000 -0400
+>>@@ -22,7 +22,6 @@
+>>#include <fcntl.h>
+>>#include <unistd.h>
+>>#include <stdlib.h>
+>>-#include <syslog.h>
+>>#include <string.h>
+>>#include <syslog.h>
+>>#include <ctype.h>
+>>@@ -516,17 +515,20 @@
+>>static int sun_mount(const char *root, const char *name, int namelen,
+>>		     const char *loc, int loclen, const char *options)
+>>{
+>>-	char *fstype = "nfs";	/* Default filesystem type */
+>>+	char *fstype     = "nfs"; /* Default filesystem type */
+> 
+> 
+> Bad form to change spacing.
 
- - add cachefs to the not_generic array in daemon/mount.c
- - create a new mount module, modules/mount_cachefs.c.  This module
-would check for cachefs support available and use it if available.
-Otherwise it would rewrite the fstype with the backfstype mount option
-and call do_mount again.
+Better alignment with new variable backfstype.  Looks cleaner.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (GNU/Linux)
+> [snip]
+> 
+> 
+>>@@ -551,6 +553,15 @@
+>>				fstype = alloca(typelen + 1);
+>>				memcpy(fstype, cp + 7, typelen);
+>>				fstype[typelen] = '\0';
+>>+			} else if (strncmp("backfstype=", cp, 11) == 0) {
+>>+				int typelen = comma - (cp + 11);
+>>+				backfstype = alloca(typelen + 1);
+>>+				memcpy(backfstype, cp + 11, typelen);
+>>+				backfstype[typelen] = '\0';
+>>+#if 0
+>>+			} else if (strncmp("cachedir=", cp, 9) == 0) {
+>>+        /* Ignoring cachedir, since cachefs is not supported. */
+>>+#endif
+> 
+> 
+> Ick.
 
-iD8DBQFA4s4fdQs4kOxk3/MRAvw7AJ9THSEKPZ2FFP73r60fb3QASiJ9RgCggOE0
-Csu1J3seKze4LGzuKfvbgh8=
-=o36j
------END PGP SIGNATURE-----
+Ick what?
+
+> [snip]
+> 
+> 
+>>+#ifdef __linux__
+>>+		if (!strcmp(curfstype, "cachefs")) {
+>>+			/* cachefs not supported for Linux.  We do not even try because when
+>>+			   we try, mount will complain about the module being absent.  This is
+>>+			   not desired because if backfstype parameter is provided and works,
+>>+			   we sure do not want any error messages reported to syslog. */
+>>+			debug("cachefs not implemented under Linux and thus ignored.");
+>>+			continue;
+>>+		}
+>>+#endif
+> 
+> 
+> Don't need the ifdef.  Also, try to keep w/in 80 columns, please.
+
+#ifdef could be removed.  And it is 80 columns!  Set your tabstops at 2. :) 
+Granted, I have to figure out what your tab settings are, and my I suggest that 
+you ban tabs all together?  I never found any value to use tabs, but always 
+grief with alignements.
+
+>>+
+>>+		if (!strcmp(curfstype, "nfs")) {
+>>+			/* Removing cachedir parameter which is not understood by nfs. */
+>>+			start=strstr(noptions, ",cachedir=");
+> 
+> 
+> You don't really need to do this.  We use the sloppy (-s) option to mount,
+> which just ignore unrecognized options.
+
+When I tested, nfs mount would fail when cachedir was present.  Are you sure 
+that -s is sent to the mount command and it works?
+> 
+> [snip]
+> 
+> 
+>>+		if(!rv)
+>>+		{
+>>+			break;
+>>+		}
+> 
+> 
+> Keep to coding style:  { on same line as if.
+
+Agree.
+
+
+Thanks for the comments.
+Hans Deragon
+--
+Consultant en informatique/Software Consultant
+Deragon Informatique inc.     Open source:
+http://www.deragon.biz        http://facil.qc.ca (Promotion du libre)
+mailto://hans@deragon.biz     http://autopoweroff.sourceforge.net (Logiciel)
