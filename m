@@ -1,9 +1,11 @@
-From: Noel Hunt <huntno@ubs.com>
-Subject: autofs not mounting directories
-Date: Tue, 16 Mar 2004 12:58:30 +0900
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: [autofs-4.1.1 patch] free of ap.path happens too early in cleanup
+Date: Tue, 16 Mar 2004 16:43:38 -0500
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <200403160358.MAA25667@tk3p108pos.tky.swissbank.com>
+Message-ID: <16471.29962.851785.48804@segfault.boston.redhat.com>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -15,33 +17,34 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: autofs mailing list <autofs@linux.kernel.org>
+To: autofs@linux.kernel.org
 
-I have been given reports by users that after a reboot,
-cron jobs don't run, and also sudo su - ..., while not
-failing, is not cd'ing to the user's home directory. In
-the cron case, there were commands of the form
+Hello,
 
-/a/b/cmd > /a/b/log 2>&1
+ap.path gets free-d before we are done with it.  Specifically, callers of
+umount_autofs often-times reference ap.path when next calling
+cleanup_exit.  This patch moves the free-ing of ap.path to cleanup_exit.
+Comments welcome.
 
-(/a/b being an automount point) where one would expect
-the modify time of /a/b/log to change even if the command
-fails, but the files modification times were unchanged from
-the last access.
+-Jeff
 
-I was also told that a cd from the shell to the directory
-in question solves the problem.
 
-The machines on which this is reported had no cron logging
-which I have now remedied, so I can't try to reproduce this
-until I can reboot these machines.
-
-If `directory' is an automount mountpoint, is there some
-difference between `cd directory', and say cron running
-`/directory/bin/cmd', in the way that `directory' is
-accessed? I understand the former will cause a chdir()
-which will invoke autofs_root_lookup(); in the latter case,
-I don't know what goes on.
-
-Noel Hunt
+--- autofs-4.1.1/daemon/automount.c.orig	2004-03-07 07:17:54.000000000 -0500
++++ autofs-4.1.1/daemon/automount.c	2004-03-16 16:27:49.000000000 -0500
+@@ -364,8 +364,6 @@ static int do_umount_autofs(void)
+ 			rm_unwanted(ap.path, 1, 1);
+ 	}
+ 
+-	free(ap.path);
+-
+ 	return rv;
+ }
+ 
+@@ -1327,6 +1325,8 @@ static void cleanup_exit(const char *pat
+ 		if (rmdir(path) == -1)
+ 			warn("failed to remove dir %s: %m", path);
+ 
++	free(ap.path);
++
+ 	exit(exit_code);
+ }
