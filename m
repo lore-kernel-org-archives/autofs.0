@@ -1,12 +1,12 @@
-From: raven@themaw.net
+From: Ian Kent <raven@themaw.net>
 Subject: Re: autofs default behavior on syminks?
-Date: Sun, 11 Apr 2004 14:14:17 +0800 (WST)
+Date: Mon, 12 Apr 2004 11:36:15 +0800 (WST)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0404111359050.25415@donald.themaw.net>
-References: <Sea2-F21JTYxUARaYlF0005b05e@hotmail.com>
+Message-ID: <Pine.LNX.4.58.0404121130360.4859@raven.themaw.net>
+References: <Sea2-F17J09Z6e2iL550001e1f5@hotmail.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Sea2-F21JTYxUARaYlF0005b05e@hotmail.com>
+In-Reply-To: <Sea2-F17J09Z6e2iL550001e1f5@hotmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,46 +21,50 @@ Content-Transfer-Encoding: 7bit
 To: "idiot)_) supreme" <ejw50@hotmail.com>
 Cc: autofs@linux.kernel.org
 
-On Sat, 10 Apr 2004, idiot)_) supreme wrote:
-
-> Hi all
-> 
-> We are running autofs4.1.0 with 2.4.22 on about 100 machines, and 2.6.5 on 
-> about 100 machines with all of the the kernel patches for both.
-
-Cool. I'm keen to hear how things go. Especially with 2.6.
-A note to the list from time to time would be appreciated.
+On Sun, 11 Apr 2004, idiot)_) supreme wrote:
 
 > 
+> For the most part, we only see this error on the 2.6.5 with 4.1.0 and all of the
+> kernel patches.  We do not really see this on 2.4.22/4.1.0 and kernel patches.  When
+> all of the machines are running, we see it about 2x an hour.  I have tried raising
+> the timeouts to 1 hour (so they never umount once mounted) but I won't know if this
+> "works" until next week.  Our previous timeouts were 5 minutes.   I have also
+> recently tried raising retry, timeo, and other variables, but don't know if will
+> work unti next week.  I have not tried 4.1.2 yet.
 > 
-> What is autofs's behavior trying to cross symlinks when you type 'ls'?  
-> autofs seems to time out a lot faster than AMD for example.
+> We see this error in /var/log/messages
 > 
-> We are occasionally seeing problems timeouts trying to cross symlinks.  If I 
-> type 'ls' it might show
+> Apr  9 22:16:00 e232 automount[17404]: >> mount: RPC: Remote system error -
+> Connection timed out
+> Apr  9 22:16:00 e232 automount[17404]: mount(nfs): nfs: mount failure
+> emc1.bbn.com:/u11 on /net/emc/u11
+> Apr  9 22:16:00 e232 automount[17404]: failed to mount /net/emc/u11
 > 
-> abc -> /net/emc/u11
-> 
-> as a broken symlink
-> 
-> but if I type 'ls /net/emc/u11'
-> the symlink comes back.
-> 
+> I can correspond these /var/log/messages logs to error logs in our job running
+> system
 
-In this case autofs doesn't do anything special with symlinks.
-The colour ls does the 'stat'ing and the results are shown.
+If there is in fact a problem mounting then this is expected behviour.
+In fact correct behaviour. autofs calls mount and that's about all. So the 
+big question is "why is the mount failing"?
 
-This does sound like an autofs bug or lilitation perhaps.
-Indeed 'stat'ing the mountpoint itself should not mount it, otherwise we 
-would get undesired mounts, so autofs lies and gives the stat of 
-the autofs directory instead of the mounted. Actually autofs just doesn't 
-do anything.
+> 
+>  
+> 
+> 29763 K    *username*  @ e232        5  e200        racks5n6  
+> "13022-SCTM_X-tr-GI-1-2-05"
+> 22:16:00: can't open task output
+> /d4m/ears/expts/13009/logfiles/13009-SCTM_NX-tr-GI-1-1-6.log: No such file or
+> directory
+> 22:16:04: reap pid 17403, task 29843, exit 0
+> 22:16:04: syncing with db
+> 
+> The file it can't open is really a link to /net/emc/u11 (which is the what automount
+> reports a failure on)
+> 
+> This is why I asked about autofs link behavior.
 
-It's interesting that the symlink shows broken occasionally and not all 
-the time. There must be a bad return coming back for some reason. So 
-how occasionally?
+Yes. This should work fine.
 
-Perhaps the 'stat' occurs during an expire sometimes. That could cause a 
-fail return.
+Maybe a question on the NFS list is in order as well.
 
 Ian
