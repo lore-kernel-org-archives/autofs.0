@@ -1,16 +1,18 @@
 From: Joseph Mack NA3T <jmack@wm7d.net>
 Subject: Re: automount doesn't expire nested nfs mounts for certain
  kernel configs
-Date: Mon, 10 May 2004 06:15:56 -0700 (PDT)
+Date: Mon, 10 May 2004 06:52:06 -0700 (PDT)
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.58.0405100605110.10734@www.wm7d.net>
+Message-ID: <Pine.LNX.4.58.0405100644140.12924@www.wm7d.net>
 References: <409E4AB5.6A3CCEB1@wm7d.net>
 	<Pine.LNX.4.58.0405100913350.14283@wombat.indigo.net.au>
 	<Pine.LNX.4.58.0405100504440.7687@www.wm7d.net>
 	<Pine.LNX.4.58.0405102051180.19425@donald.themaw.net>
+	<Pine.LNX.4.58.0405100605110.10734@www.wm7d.net>
+	<Pine.LNX.4.58.0405102123390.19425@donald.themaw.net>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0405102051180.19425@donald.themaw.net>
+In-Reply-To: <Pine.LNX.4.58.0405102123390.19425@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -27,47 +29,28 @@ Cc: autofs@linux.kernel.org
 
 On Mon, 10 May 2004 raven@themaw.net wrote:
 
-> > Here's a suggestion for a fix
-> >
-> >    < > Kernel automounter version 1,2 support (incompatible with v3,4)
-> >    < > Kernel automounter version 3,4 support
-> >
->
-> That's not right.
->
-> The first option is autofs (aka v3).
+> Do you have anything running that may be scanning the directories?
 
-OK, I don't know what's really going on here. I just know that to get what
-I want (expiration of nested nfs mounts), I can't have the first one
-activated, and you don't find this out till you read the kernel config
-help file.
+thought of that. There's nothing I know of that's doing it at 10sec
+intervals (my timeout) and I saw nothing with lsof or fuser.  Also didn't
+see anything the logs (although didn't regard this as definitive). If
+anything was scanning directories, then disabling the first line in the
+kernel config wouldn't have fixed it.
 
-> 4.1.0 and above should automatically load the v4 module unless the v3
-> module is already loaded.
+> The compaq stuff has done this in the past or sometimes gnome destops have
+> this problem.
 
-no autofs.o, only autofs4.o loaded on my machine.
+I use fvwm2 with a pile of xterms. I can't handle the fancy graphics
+interfaces.
 
-> With autofs-4.1.2 add a -d to the master map line and send the log
-> fragment.
+> You might like to apply the 4.1.2 patches at the same location you got the
+> tar.
 
-OK, not knowing where to add the -d, I'd put it in the autofs init.d
-script with daemonoptions and it seemed to work
+OK, will go get them
 
-Let me set it up here and I'll post some logs (in another posting)
+Thanks
 
-> What is in your master map then?
-
-/nfs	/etc/auto.nfs.machine_name	-bg,intr,suid,nodev
-
-> And the map your trying to load?
-
-I sent a line with my first posting. It was
-
-server	-fstype=nfs,soft	/ server:/ \
-				/usr server:/usr \
-				/src server:/src
-
-Thanks Joe
+Joe
 
 -- 
 Joseph Mack NA3T EME(B,D), FM05lw North Carolina
