@@ -1,15 +1,11 @@
-From: Alan Le Moigne <a.lemoigne@sheffield.ac.uk>
-Subject: Re: Mounting an NFS file system upon itself or something
-	like that
-Date: Sat, 13 Nov 2004 16:55:01 +0000
-Message-ID: <1100364900.41963c6501643@webmail.shef.ac.uk>
-References: <1100090139.4310.32.camel@dyn059070.shef.ac.uk>
-	<41927D13.2000402@moving-picture.com>
-	<Pine.LNX.4.58.0411131439060.9059@donald.themaw.net>
+From: "Keeler, Wayne T \(Wayne\)" <wtkeeler@agere.com>
+Subject: Replicated hosts in autofs
+Date: Fri, 12 Nov 2004 13:53:34 -0500
+Message-ID: <69612FDB757A504ABA194C8B3AC7FED994E064@pauex2ku06.agere.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed; boundary="===============45056738566088095=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0411131439060.9059@donald.themaw.net>
+content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,109 +16,220 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
+To: autofs@linux.kernel.org
+
+This is a multi-part message in MIME format.
+
+--===============45056738566088095==
+content-class: urn:content-classes:message
+Content-Type: multipart/alternative;
+	boundary="----_=_NextPart_001_01C4C8E8.E95D44EE"
+
+This is a multi-part message in MIME format.
+
+------_=_NextPart_001_01C4C8E8.E95D44EE
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+
+Hi,
+
+I have read many threads regarding replicated hosts for autofs v3 and
+v4.=20
+
+Here is my scenario:
+
+On a linux host (Opteron running RHEL 3 WS kernel 2.4.21-20.ELsmp, I
+have the following automount configured:
+
+mountpoint -fstype=3Dnfs,-proto=3Dtcp,ro host1,host2:/tmp/ro
+
+The goal in my implementation is that after the initial mount occurs to
+host1 or host2, if that particular host fails, nfs will pick up the
+mount on the alternate host. Note that since both mount points are read
+only, this serves as a lower cost, higher availability solution. This
+works on Solaris.
+
+I have had no success with this on Linux. It seems that the replication
+only works on the initial mount/rpc call. Once the initial mount occurs,
+it doesn't appear there is any fail-over capability.
+
+I have even installed RedHat's Beta version of E4 (kernel
+2.6.9-1.648_ELsmp). The result is the same. If I crash the machine that
+originally had the mount-point, the end result is a hung mount and
+fail-over never occurs.
+
+I can't seem to find any information that indicates that this should or
+should not work by design.
+
+Can someone please definitively tell me if the capability I am seeking
+is available via the autofs supplied by RedHat in Enterprise 3?
+
+Regards,
+Wayne
+
+
+
+------_=_NextPart_001_01C4C8E8.E95D44EE
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
+charset=3Dus-ascii">
+<META NAME=3D"Generator" CONTENT=3D"MS Exchange Server version =
+6.0.6617.6">
+<TITLE>[autofs] Replicated hosts in autofs </TITLE>
+</HEAD>
+<BODY>
+<!-- Converted from text/rtf format -->
+<BR>
+
+<P ALIGN=3DLEFT><SPAN LANG=3D"en-us"><FONT SIZE=3D2 FACE=3D"Courier =
+New">Hi,</FONT></SPAN></P>
+
+<P ALIGN=3DLEFT><SPAN LANG=3D"en-us"><FONT SIZE=3D2 FACE=3D"Courier =
+New">I have read</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN><SPAN =
+LANG=3D"en-us"> <FONT SIZE=3D2 FACE=3D"Courier New">many threads =
+regarding replicated hosts for autofs v3 and v4.</FONT></SPAN><SPAN =
+LANG=3D"en-us"></SPAN><SPAN LANG=3D"en-us"> </SPAN></P>
+
+<P ALIGN=3DLEFT><SPAN LANG=3D"en-us"><FONT SIZE=3D2 FACE=3D"Courier =
+New">Here is my scenario:</FONT></SPAN></P>
+
+<P ALIGN=3DLEFT><SPAN LANG=3D"en-us"><FONT SIZE=3D2 FACE=3D"Courier =
+New">On a linux host (Opteron running RHEL 3 WS =
+kernel</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN><SPAN =
+LANG=3D"en-us"><FONT SIZE=3D2 FACE=3D"Courier New"></FONT></SPAN><SPAN =
+LANG=3D"en-us"></SPAN><SPAN LANG=3D"en-us"> <FONT SIZE=3D2 =
+FACE=3D"Courier New">2.4.21-20.ELsmp</FONT></SPAN><SPAN =
+LANG=3D"en-us"></SPAN><SPAN LANG=3D"en-us"><FONT SIZE=3D2 =
+FACE=3D"Courier New">,</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN><SPAN =
+LANG=3D"en-us"> <FONT SIZE=3D2 FACE=3D"Courier New">I</FONT></SPAN><SPAN =
+LANG=3D"en-us"></SPAN><SPAN LANG=3D"en-us"><FONT SIZE=3D2 =
+FACE=3D"Courier New"> have the following automount =
+configured:</FONT></SPAN></P>
+
+<P ALIGN=3DLEFT><SPAN LANG=3D"en-us"><FONT SIZE=3D2 FACE=3D"Courier =
+New">mountpoint</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN><SPAN =
+LANG=3D"en-us"><FONT SIZE=3D2 FACE=3D"Courier New"> =
+-fstype=3Dnfs,-proto=3Dtcp,ro</FONT></SPAN><SPAN =
+LANG=3D"en-us"></SPAN><SPAN LANG=3D"en-us"> <FONT SIZE=3D2 =
+FACE=3D"Courier New">host1</FONT></SPAN><SPAN =
+LANG=3D"en-us"></SPAN><SPAN LANG=3D"en-us"><FONT SIZE=3D2 =
+FACE=3D"Courier New">,</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN><SPAN =
+LANG=3D"en-us"><FONT SIZE=3D2 FACE=3D"Courier =
+New">host2</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN><SPAN =
+LANG=3D"en-us"><FONT SIZE=3D2 FACE=3D"Courier =
+New">:/tmp/ro</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN><SPAN =
+LANG=3D"en-us"></SPAN></P>
+
+<P ALIGN=3DLEFT><SPAN LANG=3D"en-us"><FONT SIZE=3D2 FACE=3D"Courier =
+New">The goal in my implementati</FONT></SPAN><SPAN =
+LANG=3D"en-us"></SPAN><SPAN LANG=3D"en-us"><FONT SIZE=3D2 =
+FACE=3D"Courier New">on is that after the initial mount occurs to host1 =
+or host2, if that particular host fails, nfs will pick up the mount on =
+the alternate host. Note that since both mount points are read =
+only,</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN><SPAN LANG=3D"en-us"> =
+<FONT SIZE=3D2 FACE=3D"Courier New">this</FONT></SPAN><SPAN =
+LANG=3D"en-us"></SPAN><SPAN LANG=3D"en-us"> <FONT SIZE=3D2 =
+FACE=3D"Courier New">serves</FONT></SPAN><SPAN =
+LANG=3D"en-us"></SPAN><SPAN LANG=3D"en-us"><FONT SIZE=3D2 =
+FACE=3D"Courier New"> as a lower cost, higher =
+availabil</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN><SPAN =
+LANG=3D"en-us"><FONT SIZE=3D2 FACE=3D"Courier New">it</FONT></SPAN><SPAN =
+LANG=3D"en-us"></SPAN><SPAN LANG=3D"en-us"><FONT SIZE=3D2 =
+FACE=3D"Courier New">y solution. This work</FONT></SPAN><SPAN =
+LANG=3D"en-us"></SPAN><SPAN LANG=3D"en-us"><FONT SIZE=3D2 =
+FACE=3D"Courier New">s</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN><SPAN =
+LANG=3D"en-us"><FONT SIZE=3D2 FACE=3D"Courier New"> on =
+Solaris.</FONT></SPAN></P>
+
+<P ALIGN=3DLEFT><SPAN LANG=3D"en-us"><FONT SIZE=3D2 FACE=3D"Courier =
+New">I have had no success with this on Linux. It seems that the =
+replication only works on the initial mount/rpc call.</FONT></SPAN><SPAN =
+LANG=3D"en-us"></SPAN><SPAN LANG=3D"en-us"><FONT SIZE=3D2 =
+FACE=3D"Courier New"> Once the initial mount occurs</FONT></SPAN><SPAN =
+LANG=3D"en-us"></SPAN><SPAN LANG=3D"en-us"><FONT SIZE=3D2 =
+FACE=3D"Courier New">, it doesn</FONT></SPAN><SPAN =
+LANG=3D"en-us"></SPAN><SPAN LANG=3D"en-us"><FONT SIZE=3D2 =
+FACE=3D"Courier New">&#8217;</FONT></SPAN><SPAN =
+LANG=3D"en-us"></SPAN><SPAN LANG=3D"en-us"><FONT SIZE=3D2 =
+FACE=3D"Courier New">t appear</FONT></SPAN><SPAN =
+LANG=3D"en-us"></SPAN><SPAN LANG=3D"en-us"> <FONT SIZE=3D2 =
+FACE=3D"Courier New">there is</FONT></SPAN><SPAN =
+LANG=3D"en-us"></SPAN><SPAN LANG=3D"en-us"><FONT SIZE=3D2 =
+FACE=3D"Courier New"> any fail-over capability.</FONT></SPAN><SPAN =
+LANG=3D"en-us"></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
+
+<P ALIGN=3DLEFT><SPAN LANG=3D"en-us"><FONT SIZE=3D2 FACE=3D"Courier =
+New">I have even installed RedHat</FONT></SPAN><SPAN =
+LANG=3D"en-us"></SPAN><SPAN LANG=3D"en-us"><FONT SIZE=3D2 =
+FACE=3D"Courier New">&#8217;</FONT></SPAN><SPAN =
+LANG=3D"en-us"></SPAN><SPAN LANG=3D"en-us"><FONT SIZE=3D2 =
+FACE=3D"Courier New">s Beta version of E</FONT></SPAN><SPAN =
+LANG=3D"en-us"></SPAN><SPAN LANG=3D"en-us"><FONT SIZE=3D2 =
+FACE=3D"Courier New">4</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN><SPAN =
+LANG=3D"en-us"><FONT SIZE=3D2 FACE=3D"Courier New"> =
+(kernel</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN><SPAN LANG=3D"en-us"> =
+<FONT SIZE=3D2 FACE=3D"Courier New">2.6.9-1.648_ELsmp). The result is =
+the same. If I crash the machine that originally had the mount-point, =
+the end result is a</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN><SPAN =
+LANG=3D"en-us"> <FONT SIZE=3D2 FACE=3D"Courier New">h</FONT></SPAN><SPAN =
+LANG=3D"en-us"></SPAN><SPAN LANG=3D"en-us"><FONT SIZE=3D2 =
+FACE=3D"Courier New">ung</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN><SPAN =
+LANG=3D"en-us"><FONT SIZE=3D2 FACE=3D"Courier New"> mount and fail-over =
+never occurs.</FONT></SPAN></P>
+
+<P ALIGN=3DLEFT><SPAN LANG=3D"en-us"><FONT SIZE=3D2 FACE=3D"Courier =
+New">I can</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN><SPAN =
+LANG=3D"en-us"><FONT SIZE=3D2 FACE=3D"Courier =
+New">&#8217;</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN><SPAN =
+LANG=3D"en-us"><FONT SIZE=3D2 FACE=3D"Courier New">t seem to find any =
+information that indicates that this should or should not work =
+b</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN><SPAN LANG=3D"en-us"><FONT =
+SIZE=3D2 FACE=3D"Courier New">y</FONT></SPAN><SPAN =
+LANG=3D"en-us"></SPAN><SPAN LANG=3D"en-us"><FONT SIZE=3D2 =
+FACE=3D"Courier New"> design.</FONT></SPAN><SPAN =
+LANG=3D"en-us"></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
+
+<P ALIGN=3DLEFT><SPAN LANG=3D"en-us"><FONT SIZE=3D2 FACE=3D"Courier =
+New">Can someone please</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN><SPAN =
+LANG=3D"en-us"><FONT SIZE=3D2 FACE=3D"Courier New"> definitively tell me =
+if the capability I am seeking is available via the autofs supplied by =
+RedHat</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN><SPAN =
+LANG=3D"en-us"><FONT SIZE=3D2 FACE=3D"Courier New"> in Enterprise =
+3</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN><SPAN LANG=3D"en-us"><FONT =
+SIZE=3D2 FACE=3D"Courier New">?</FONT></SPAN><SPAN =
+LANG=3D"en-us"></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
+
+<P ALIGN=3DLEFT><SPAN LANG=3D"en-us"><FONT SIZE=3D2 FACE=3D"Courier =
+New">Regards,</FONT></SPAN></P>
+
+<P ALIGN=3DLEFT><SPAN LANG=3D"en-us"><FONT SIZE=3D2 FACE=3D"Courier =
+New">Wayne</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN><SPAN =
+LANG=3D"en-us"></SPAN></P>
+<BR>
+
+</BODY>
+</HTML>
+------_=_NextPart_001_01C4C8E8.E95D44EE--
+
+
+--===============45056738566088095==
 Content-Type: text/plain; charset="us-ascii"
-To: raven@themaw.net
-Cc: autofs@linux.kernel.org, James Pearson <james-p@moving-picture.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
 
-> > 
-> > > Hi,
-> > > 
-> > > I am new to autofs and I hope you can help. Here's the problem: I am
-> > > managing a Linux cluster working under Red Hat 9. I've got 21 nodes in
-> > > the cluster but for the sake of the example, let's say I've got only 3
-> > > called node2, node3 and node4. Each of them has its own hard disk and I
-> > > want to distribute this partition to all the other nodes through NFS and
-> > > autofs.
-> > > 
-> > > For example on node2, my data are stored in /data/node2. /data/node3 and
-> > > /data/node4 are just mount points where I want to mount partitions from
-> > > node3 and node4 respectively. On node3, I've got physical data in
-> > > /data/node3 whereas /data/node2 and /data/node4 are just mount points
-> > > and so on...
-> > > 
-> > > I am trying to mount the NFS file systems with autofs. My auto.master
-> > > contains:
-> > > 
-> > > /data/ /etc/auto.data
-> > > 
-> > > and /etc/auto.data :
-> > > 
-> > > node2 -fstype=nfs,hard,intr,rsize=8192,wsize=8192
-> > > 192.168.101.2:/data/node2
-> > > node3 -fstype=nfs,hard,intr,rsize=8192,wsize=8192
-> > > 192.168.101.3:/data/node3
-> > > node4 -fstype=nfs,hard,intr,rsize=8192,wsize=8192
-> > > 192.168.101.4:/data/node4
-> > > 
-> > > 
-> > > If I use that on node2, /data/node3 and /data/node4 are mounted
-> > > correctly but /data/node2 is empty i.e. the NFS file system isn't
-> > > mounted upon itself. I think NFS allows this since when I use /etc/fstab
-> > > only, without autofs, and mount /data/node2 manually, it works.
-> > > 
-> > > There is probably a way of doing that with multi-mount but I can't
-> > > figure it out. The ideal case would be to be able to use the same
-> > > auto.master and auto.data files on all the nodes so that I can put them
-> > > in the slave image on the master node and all the slave nodes get them
-> > > from there.
-> > > 
-> > > Any idea or comment is very welcome.
-> > 
-> > I don't think you can mix local mounts and automounts in that way - the 
-> > way I would do it (in fact, this is the way I do it):
-> > 
-> > mount the local disks as /nodeX
-> > 
-> > The /etc/auto.data file contains something like:
-> > 
-> > node2 [options] 192.168.101.2:/node2
-> > node3 [options] 192.168.101.3:/node3
-> > node4 [options] 192.168.101.4:/node4
-> > 
-> > on machine node2, /data/node2 will be a bind mount (not over NFS) of 
-> > /node2 - all the other /data/nodeX mounts will be over NFS.
-> 
-> Yep. Thanks James. I think my previous post was wrong.
-> 
-> That's the way we do it as well.
-> 
-> We mount stuff like
-> 
-> /local/dsk/voln
-> 
-> or
-> 
-> /local/dsk/home
-> 
-> and direct maps with
-> 
-> /nfs/<server>/... -> <server>:/local/dsk/...
-> 
-> and indirect mounts (under /home) with
-> 
-> <server> -> <server>:/local/dsk/home
-> 
-> Ian
-> 
-> 
+--===============45056738566088095==--
 
-Thanks a lot James and Ian for your answers. I have now found a solution to the
-problem thanks to James' post. I am not sure I fully understand what Ian means
-but for the record, here's my solution:
-
-I mount the local disk as /node (and not /nodeX since this isn't necessary). And
-the /etc/auto.data file contains:
-node2 -fstype=nfs,... 192.168.101.2:/node
-node3 -fstype=nfs,... 192.168.101.3:/node
-node4 -fstype=nfs,... 192.168.101.4:/node
-
-That is I am mounting everything through NFS even when the disk is local. For
-the purists, there might be some issue of performance by doing it that way but
-I don't care too much as long as it's working. My main concern is that all the
-nodes have exactly the same /etc/auto.data and the same partitions /node for
-the local disk and /data/node2, /data/node3,... as mount points. That way I can
-put everything in a single slave image on the master node from where the slave
-nodes  find their configuration when they boot up.
-
-Alan.
