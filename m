@@ -1,61 +1,32 @@
-From: Matt C <wago@phlinux.com>
-Subject: Re: [autofs] Re: VFS: Busy inodes after unmount on 2 way SMP
-Date: Mon, 15 Sep 2003 18:34:33 -0700 (PDT)
-Sender: nfs-admin@lists.sourceforge.net
-Message-ID: <Pine.LNX.4.44.0309151828050.1920-100000@fubar.phlinux.com>
-References: <Pine.LNX.4.44.0309151941550.18622-100000@moisil.badula.org>
+From: Arun Sharma <arun.sharma@intel.com>
+Subject: Re: Re: [NFS] VFS: Busy inodes after unmount on 2 way SMP
+Date: Tue, 16 Sep 2003 13:37:16 -0700
+Sender: autofs-bounces@linux.kernel.org
+Message-ID: <3F67747C.10403@intel.com>
+References: <Pine.LNX.4.44.0309122013380.9830-100000@moisil.badula.org>
+	<3F663246.7010806@intel.com> <3F663C5F.80207@zytor.com>
 Mime-Version: 1.0
-Return-path: <nfs-admin@lists.sourceforge.net>
-In-Reply-To: <Pine.LNX.4.44.0309151941550.18622-100000@moisil.badula.org>
-Errors-To: nfs-admin@lists.sourceforge.net
-List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
-List-Post: <mailto:nfs@lists.sourceforge.net>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
-Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ion Badulescu <lists@news.cs.columbia.edu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>, Arun Sharma <arun.sharma@intel.com>, autofs@linux.kernel.org, nfs@lists.sourceforge.net
+Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <3F663C5F.80207@zytor.com>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ion Badulescu <lists@cs.columbia.edu>, autofs@linux.kernel.org
 
-Don't know if it helps, but we also run a few hundred autofs4 clients, 
-with a mix of 2.4.21 and 2.4.18. The 2.4.21 machines are seeing quite a 
-few of these messages, but not on the 2.4.18 machines. We haven't seen any 
-of the oopses described below, though.
-
--matt
-
-On Mon, 15 Sep 2003, Ion Badulescu wrote:
-
-> On Mon, 15 Sep 2003, H. Peter Anvin wrote:
+H. Peter Anvin wrote:
 > 
-> > Arun Sharma wrote:
-> > >>
-> > >> Oh yeah, easily. Kill the automounter while some things are mounted,
-> > >> unmount everything by hand but do not rmdir the mountpoints. When you
-> > >> unmount the autofs filesystem itself, you will get the self destruct
-> > >> message.
-> > > 
-> > > Thanks. This reproduces the problem I'm chasing very well. I think this
-> > > is clearly an unacceptable kernel bug.
-> > > 
-> > Indeed.  This is on autofs 3?
-> 
-> Both 3 and 4, at least as far as the "self-destruct" message goes.
-> 
-> Ion
-> 
+> Indeed.  This is on autofs 3?
 > 
 
+Correction: the problem was primarily seen on autofs4. However the oops that I reported yesterday was autofs3. So the problem affects both.
 
-
--------------------------------------------------------
-This sf.net email is sponsored by:ThinkGeek
-Welcome to geek heaven.
-http://thinkgeek.com/sf
-_______________________________________________
-NFS maillist  -  NFS@lists.sourceforge.net
-https://lists.sourceforge.net/lists/listinfo/nfs
+	-Arun
