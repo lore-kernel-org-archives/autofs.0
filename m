@@ -1,10 +1,12 @@
 From: Denis Vlasenko <vda@port.imtp.ilyichevsk.odessa.ua>
-Subject: [PATCH 0/5] rediffed patches
-Date: Fri, 11 Feb 2005 11:55:33 +0200
-Message-ID: <200502111155.33706.vda@port.imtp.ilyichevsk.odessa.ua>
+Subject: [PATCH 1/5] use PATH
+Date: Fri, 11 Feb 2005 11:58:01 +0200
+Message-ID: <200502111158.01592.vda@port.imtp.ilyichevsk.odessa.ua>
+References: <200502111155.33706.vda@port.imtp.ilyichevsk.odessa.ua>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <200502111155.33706.vda@port.imtp.ilyichevsk.odessa.ua>
 Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -19,8 +21,7 @@ Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
 To: autofs@linux.kernel.org
 
-Originally done against 4.1.3. Rediffed against 4.1.4_beta1 now
-
-Please comment /apply
+Use exec*p() so that root can use PATH to direct automount
+to desired mount binary and the like
 --
 vda
