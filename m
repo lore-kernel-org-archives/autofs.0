@@ -1,12 +1,12 @@
-From: Ian Kent <raven@themaw.net>
-Subject: RE: making the mountpoints visible all the time (fwd)
-Date: Tue, 2 Dec 2003 21:49:23 +0800 (WST)
+From: "Ogden, Aaron A." <aogden@unocal.com>
+Subject: RE: autofs scalability
+Date: Wed, 3 Dec 2003 13:19:27 -0600
 Sender: autofs-bounces@linux.kernel.org
-Message-ID: <Pine.LNX.4.44.0312022129550.2970-100000@raven.themaw.net>
-References: <EE335453C5C57840823404C684F9F617012D69DB@exmbx01sj.cadence.com>
+Message-ID: <6AB920CC10586340BE1674976E0A991DE22E18@slexch2.sugarland.unocal.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <EE335453C5C57840823404C684F9F617012D69DB@exmbx01sj.cadence.com>
+content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,80 +16,67 @@ List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
 List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Chris Croswhite <csc@cadence.com>
+Content-Type: text/plain; charset="us-ascii"
+To: Ian Kent <raven@themaw.net>, Chris Croswhite <csc@cadence.com>
 Cc: autofs@linux.kernel.org
 
 
-Hi guys,
-
-I have some 2.6 patches.
-
-They can be found at 
-
-http://www.kernel.org/pub/linux/kernel/people/raven/autofs4-2.6
-
-Apply them in number order please.
-
-Please leave out the max_anon_2.patch initially. We need to establish what 
-the status of the kernel module is before trying this patch. It was 
-written by Mike Waychison to increase the number of anonymous devices. 
-Once the status patches is established it would be good to how the 
-max_anon patch goes with over 255 mounts and less than about 790 (rpc 
-doesn't allow more than that at the moment).
-
-Try as many or as few things as your setup allows and please try and give 
-some coverage of what was used and what went wrong. We need to try this on 
-SMP setups if at all possible.
-
-I know I don't need to say this to ypu guys but I will anyway. Please make 
-sure that you do staged testing. What I'm saying is steady as it goes. 
-First a single machine then a couple etc., you know the routine. While the 
-general approach of the patches is the same as what I have used for ages 
-in 2.4 the locking and synchronisation is different and may not be 
-correct (read I think it's not quite right but need evidence to confirm 
-it).
-
-Looking forward to your feedback.
-
-On Sun, 16 Nov 2003, Chris Croswhite wrote:
-
-> I can offer up about 75 Linux boxes as testing.  They are used pretty heavily mounting about 300-400 differnet mount points during the day from slowlaris, HPsUx, Linux and NetApp file systems.  Just let me know.
-> 
-> TIA,
-> Chris
-> 
-> 
 > -----Original Message-----
-> From:	Ian Kent [mailto:raven@themaw.net]
-> Sent:	Sun 16-Nov-03 18:53
-> To:	Alexander Macdonald
-> Cc:	autofs@linux.kernel.org
-> Subject:	Re: [autofs] making the mountpoints visible all the time (fwd)
-> On Sun, 16 Nov 2003, Alexander Macdonald wrote:
+> From: autofs-bounces@linux.kernel.org 
+> [mailto:autofs-bounces@linux.kernel.org] On Behalf Of Ian Kent
+> Sent: Tuesday, December 02, 2003 7:49 AM
+> To: Chris Croswhite
+> Cc: autofs@linux.kernel.org
+> Subject: RE: [autofs] making the mountpoints visible all the 
+> time (fwd)
 > 
-> > I'm happy to try out any patches, although I'm only using autofs for
-> > about 20 or so samba and nfs shares on a few pcs so it wont exactly be
-> > thorough enterprise level testing :)
-> >
-> > >In fact, I don't have a 2.6 environment other than what I use to test at
-> > >home so volenteers are needed for testing. We can't expect the changes
-> > >to be accepted without some testing other than my simple setup.
-> > >
-> > >
+> Hi guys,
 > 
-> Any help is appreciated.
+> I have some 2.6 patches.
+> They can be found at 
+> http://www.kernel.org/pub/linux/kernel/people/raven/autofs4-2.6
+> Apply them in number order please.
 > 
-> I'll let you know when I've got something to test.
-> 
-> Thanks.
-> 
-> 
+> Please leave out the max_anon_2.patch initially. We need to establish
+what 
+> the status of the kernel module is before trying this patch. It was 
+> written by Mike Waychison to increase the number of anonymous devices.
 
--- 
+> Once the status patches is established it would be good to how the 
+> max_anon patch goes with over 255 mounts and less than about 790 (rpc 
+> doesn't allow more than that at the moment).
+> 
+... <snip>
 
-   ,-._|\    Ian Kent
-  /      \   Perth, Western Australia
-  *_.--._/   E-mail: raven@themaw.net
-        v    Web: http://themaw.net/
+Hello all,
+I was reading through Joe Pranevich's "Wonderful World of Linux 2.6" and
+I came across this, I thought you might find it interesting. (source:
+http://kniggit.net/wwol26.html)  The "Network Filesystems" section makes
+for interesting reading as well.  If I am reading this correctly, the
+'unnamed device' limit has been raised from 256 to 4096 in kernel 2.6,
+can anyone confirm this?  If this is the case the only barrier left to
+remove is the RPC port limitation of ~800 open ports.  If the
+connections were multiplexed such that all connections to a given server
+used the same port then 800 ports would stretch a lot farther than they
+do now...
+
+"Another major scalability improvement in Linux 2.6 is that the kernel
+itself can now not only support more types of devices, but also support
+more devices of a single type. Under all iterations of Linux (and
+indeed, most UNIX-derived operating systems), users and applications
+running on a system communicate with the attached hardware using
+numbered device nodes. (The entries in the "/dev" directory.) These
+device nodes were limited to 255 "major" devices (generally, one type of
+device gets one or more device nodes) and 255 "minor" numbers
+(generally, specific devices of that type.) For example, the "/dev/sda2"
+device (the second partition on the first detected SCSI disk), gets a
+major number of 8, common for all SCSI devices, and a minor number of 2
+to indicate the second partition. Different device types allocate their
+major and minor numbers differently, so it can't be said with assurance
+how many devices you can have on a Linux system. Unfortunately, this
+system breaks down badly on large systems where it would be possible,
+for example, to have many more than 255 of any specific device in a
+system. (Think large storage arrays, print farms, etc.) Under Linux 2.6,
+these limitations have been eased to allow for 4095 major device types
+and a more than a million subdevices per type. This increase should be
+more than adequate to support high-end systems for the time being."
