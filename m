@@ -1,14 +1,16 @@
-From: Ian Kent <raven@themaw.net>
+From: Thomas Jahns <Thomas.Jahns@gmx.net>
 Subject: Re: automount doesn't reread file map, automount terminates
- on empty file map
-Date: Thu, 16 Dec 2004 11:00:33 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0412161052250.20186@wombat.indigo.net.au>
+	on empty file map
+Date: Thu, 16 Dec 2004 14:19:49 +0100
+Message-ID: <20041216131949.GA15605@mercury.jahnsnet.de>
 References: <1102796222l.6265l.2l@mercury>
 	<Pine.LNX.4.58.0412151807070.30726@wombat.indigo.net.au>
 	<1103144614l.6934l.0l@mercury>
+	<Pine.LNX.4.58.0412161052250.20186@wombat.indigo.net.au>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1103144614l.6934l.0l@mercury>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.58.0412161052250.20186@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,56 +21,22 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; delsp="Yes"; format="Flowed"
 Content-Transfer-Encoding: 7bit
-To: Thomas Jahns <Thomas.Jahns@gmx.net>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Wed, 15 Dec 2004, Thomas Jahns wrote:
+Hi again,
 
-> Hi,
-> 
-> On 12/15/04 11:08:44, Ian Kent wrote:
-> > On Sat, 11 Dec 2004, Thomas Jahns wrote:
-> > > I'm currently experimenting with a script-created map and face the
-> > > following two problems:
-> > >
-> > > - After the script rewrites the map, I need to kill -HUP the
-> > > corresponding automount to reread the map, the documentation says
-> > > the daemon would read a changed map on next access of the
-> > > directory?
-> > 
-> > Known problem with 4.1.
-> > But what vesion are you running?
-> 
-> sorry I forgot to mention some essential information it seems, I use  
-> the 4.1.3-6 debian package.
+On 12/16/04 04:00:33, Ian Kent wrote:
+> A further difficulty with this is that to fix this problem a small
+> kernel patch was needed. But what kernel are you using (ie. are the  
+> latest kernel updates included in it)?
 
-I can't remember the patches that Arthur included in the deb (Arthur?).
-I'll check if we can't raise him.
+I'm currently running a kernel compiled from debian kernel- 
+source-2.6.9_2.6.9-2 package.
 
-A further difficulty with this is that to fix this problem a small kernel 
-patch was needed. But what kernel are you using (ie. are the latest kernel 
-updates included in it)?
-
-> 
-> > >
-> > > - Unfortunately there exists the possibility, that the script might
-> > > leave the map empty. The corresponding automount process will then
-> > > exit. Is there perhaps some comment convention or anything else I
-> > > could do to keep the automount process running?
-> > 
-> > Known problem but not yet fixed.
-> 
-> Okay, could I perhaps add some dummy entry? Any device/location I could  
-> specify that would never ever get mounted?
-
-Any bogus entry should be OK.
-
-Must admint I've known about this for a while but it slipped through the 
-cracks. Now is difficult as there have been so many changes, making 
-patches is going to start to be difficult to get them to apply. So I'm 
-likely not to add much to the current code until after I make a new 
-release.
-
-Ian
+Thomas Jahns
+-- 
+"Computers are good at following instructions,
+ but not at reading your mind."
+D. E. Knuth, The TeXbook, Addison-Wesley 1984, 1986, 1996, p. 9
