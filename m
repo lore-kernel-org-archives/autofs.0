@@ -1,7 +1,7 @@
 From: raven@themaw.net
-Subject: [ANNOUNCE] autofs 4.1.4 release
-Date: Sun, 10 Apr 2005 21:38:50 +0800 (WST)
-Message-ID: <Pine.LNX.4.62.0504102120390.14539@donald.themaw.net>
+Subject: [ANNOUNCE] autofs4 - updated module build kit and kernel patches
+Date: Sun, 10 Apr 2005 22:03:49 +0800 (WST)
+Message-ID: <Pine.LNX.4.62.0504102202260.18122@donald.themaw.net>
 Mime-Version: 1.0
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
 Sender: linux-fsdevel-owner@vger.kernel.org
@@ -13,57 +13,42 @@ To: linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@l
 
 Hi all,
 
-Here is autofs 4.1.4.
+I have updated the autofs4 kernel module build kit (kernel 2.4) and
+kernel patches (2.4 and 2.6).
 
-For more information look at the CHANGELOG in the distribution.
+The changes include a memory leak fix, a fix for expireing multi-mounts
+when the tree is not n fact busy and a fix for lost mount notifications.
 
-I'm sure there are problems that I've missed but a relaese is long 
-overdue.
-
-So let me know when you find problems and I'll fix`em as quick as I can!
-
-The distribution can be found at the usual place at:
+The files are located in:
 
 http://www.kernel.org/pub/linux/daemons/autofs/v4
 
-in the tars
+and are
 
-autofs-4.1.4.tar.[gz|bz2]
+the build kit:
+      autofs4-2.4-module-20050404.tar.[bz2|gz]
 
-also there is a tarball called:
+vanila kernel patches:
+      autofs4-2.4.18-20050404.patch
+      autofs4-2.4.19-20050404.patch
+      autofs4-2.4.20-20050404.patch
+      autofs4-2.4.21-20050404.patch
+      autofs4-2.4.22-20050404.patch
+      autofs4-2.4.27-20050404.patch
+      autofs4-2.4.29-20050404.patch
+      autofs4-2.6.0-20050404.patch
+      autofs4-2.6.4-20050404.patch
+      autofs4-2.6.7-20050404.patch
+      autofs4-2.6.9-20050404.patch
+      autofs4-2.6.10-20050404.patch
 
-autofs-4.1.4-deb.tar.[gz|bz2]
+RedHat 9:
+      autofs4-2.4.20-redhat9-20050404.patch
 
-that can be used to build binary debs (see below).
+Fedora Core 1:
+      autofs4-2.4.22-fc1-20050404.patch
 
-It is possible to build packages for testing from the distribution.
-I'm not the maintainer of any of these distribution packages so please be
-aware that this is for convenience and testing.
-
-To build an rpm package use:
-
-rpmbuild -tb autofs-4.1.4.tar.gz
-
-and the binary rpms will end up in the usual location.
-
-To merge the package into Gentoo use:
-
-tar zxf autofs-4.1.4.tar.gz
-cd autofs-4.1.4_beta2/gentoo
-PORTDIR_OVERLAY=`pwd` \
- 	ebuild net-fs/autofs/autofs-4.1.4.ebuild digest
-PORTDIR_OVERLAY=`pwd` \
- 	ebuild net-fs/autofs/autofs-4.1.4.ebuild clean install
-PORTDIR_OVERLAY=`pwd` \
- 	ebuild net-fs/autofs/autofs-4.1.4.ebuild qmerge
-
-To build binary debs for Debian download the tar refered to above and:
-
-tar zxvf autofs-4.1.4-deb.tar.gz
-dpkg-source -x autofs_4.1.4-1.dsc
-cd autofs-4.1.4-beta2
-dpkg-buildpackage -b
-
-and the binary debs will be placed in the directory the tar was unpacked.
 
 Ian
+
+
