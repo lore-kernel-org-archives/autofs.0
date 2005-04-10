@@ -1,54 +1,41 @@
-From: raven@themaw.net
-Subject: [ANNOUNCE] autofs4 - updated module build kit and kernel patches
-Date: Sun, 10 Apr 2005 22:03:49 +0800 (WST)
-Message-ID: <Pine.LNX.4.62.0504102202260.18122@donald.themaw.net>
+From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
+Subject: Re: [ANNOUNCE] autofs 4.1.4 release
+Date: Sun, 10 Apr 2005 16:44:16 +0200
+Message-ID: <20050410144416.GB23740@uio.no>
+References: <Pine.LNX.4.62.0504102120390.14539@donald.themaw.net>
 Mime-Version: 1.0
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Return-path: <autofs-bounces@linux.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.62.0504102120390.14539@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
-Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>
+To: autofs@linux.kernel.org
 
+On Sun, Apr 10, 2005 at 09:38:50PM +0800, raven@themaw.net wrote:
+> Here is autofs 4.1.4.
 
-Hi all,
+Looks like the Debian init script is broken to me:
 
-I have updated the autofs4 kernel module build kit (kernel 2.4) and
-kernel patches (2.4 and 2.6).
+  kanskje:~# /etc/init.d/autofs start
+  Starting automounter:start-stop-daemon: --start needs --exec or --startas
+  Try `start-stop-daemon --help' for more information.
 
-The changes include a memory leak fix, a fix for expireing multi-mounts
-when the tree is not n fact busy and a fix for lost mount notifications.
+   failed to start automount point /home/cassarossa
 
-The files are located in:
+Looks like you've over-applied the fix for --stop onto --start as well.
+Changing "--name $dname" into "--exec $DAEMON" in "start" in the init script
+seems to fix it.
 
-http://www.kernel.org/pub/linux/daemons/autofs/v4
-
-and are
-
-the build kit:
-      autofs4-2.4-module-20050404.tar.[bz2|gz]
-
-vanila kernel patches:
-      autofs4-2.4.18-20050404.patch
-      autofs4-2.4.19-20050404.patch
-      autofs4-2.4.20-20050404.patch
-      autofs4-2.4.21-20050404.patch
-      autofs4-2.4.22-20050404.patch
-      autofs4-2.4.27-20050404.patch
-      autofs4-2.4.29-20050404.patch
-      autofs4-2.6.0-20050404.patch
-      autofs4-2.6.4-20050404.patch
-      autofs4-2.6.7-20050404.patch
-      autofs4-2.6.9-20050404.patch
-      autofs4-2.6.10-20050404.patch
-
-RedHat 9:
-      autofs4-2.4.20-redhat9-20050404.patch
-
-Fedora Core 1:
-      autofs4-2.4.22-fc1-20050404.patch
-
-
-Ian
-
-
+/* Steinar */
+-- 
+Homepage: http://www.sesse.net/
