@@ -1,31 +1,69 @@
 From: raven@themaw.net
-Subject: [PATCH 3/3] autofs4 - expiring filesystem from under process
-Date: Sun, 10 Apr 2005 20:52:41 +0800 (WST)
-Message-ID: <Pine.LNX.4.62.0504102050530.5212@donald.themaw.net>
+Subject: [ANNOUNCE] autofs 4.1.4 release
+Date: Sun, 10 Apr 2005 21:38:50 +0800 (WST)
+Message-ID: <Pine.LNX.4.62.0504102120390.14539@donald.themaw.net>
 Mime-Version: 1.0
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
 Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@osdl.org>
-Cc: autofs mailing list <autofs@linux.kernel.org>, Michael Blandford <michael@kmaclub.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Jeff Moyer <jmoyer@redhat.com>
+To: linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>
 
 
-autofs4-2.6.12-rc1-mm4-version.patch
+Hi all,
 
-Bump autofs4 version so we know what's going on.
+Here is autofs 4.1.4.
 
-Signed-off-by: Ian Kent <raven@themaw.net>
+For more information look at the CHANGELOG in the distribution.
 
---- linux-2.6.12-rc1-mm4/include/linux/auto_fs4.h.version	2005-04-03 12:45:28.000000000 +0800
-+++ linux-2.6.12-rc1-mm4/include/linux/auto_fs4.h	2005-04-03 12:47:01.000000000 +0800
-@@ -23,7 +23,7 @@
-  #define AUTOFS_MIN_PROTO_VERSION	3
-  #define AUTOFS_MAX_PROTO_VERSION	4
+I'm sure there are problems that I've missed but a relaese is long 
+overdue.
 
--#define AUTOFS_PROTO_SUBVERSION         5
-+#define AUTOFS_PROTO_SUBVERSION		6
+So let me know when you find problems and I'll fix`em as quick as I can!
 
-  /* Mask for expire behaviour */
-  #define AUTOFS_EXP_IMMEDIATE		1
+The distribution can be found at the usual place at:
+
+http://www.kernel.org/pub/linux/daemons/autofs/v4
+
+in the tars
+
+autofs-4.1.4.tar.[gz|bz2]
+
+also there is a tarball called:
+
+autofs-4.1.4-deb.tar.[gz|bz2]
+
+that can be used to build binary debs (see below).
+
+It is possible to build packages for testing from the distribution.
+I'm not the maintainer of any of these distribution packages so please be
+aware that this is for convenience and testing.
+
+To build an rpm package use:
+
+rpmbuild -tb autofs-4.1.4.tar.gz
+
+and the binary rpms will end up in the usual location.
+
+To merge the package into Gentoo use:
+
+tar zxf autofs-4.1.4.tar.gz
+cd autofs-4.1.4_beta2/gentoo
+PORTDIR_OVERLAY=`pwd` \
+ 	ebuild net-fs/autofs/autofs-4.1.4.ebuild digest
+PORTDIR_OVERLAY=`pwd` \
+ 	ebuild net-fs/autofs/autofs-4.1.4.ebuild clean install
+PORTDIR_OVERLAY=`pwd` \
+ 	ebuild net-fs/autofs/autofs-4.1.4.ebuild qmerge
+
+To build binary debs for Debian download the tar refered to above and:
+
+tar zxvf autofs-4.1.4-deb.tar.gz
+dpkg-source -x autofs_4.1.4-1.dsc
+cd autofs-4.1.4-beta2
+dpkg-buildpackage -b
+
+and the binary debs will be placed in the directory the tar was unpacked.
+
+Ian
