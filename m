@@ -1,12 +1,12 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [ANNOUNCE] autofs 4.1.4 release
-Date: Mon, 11 Apr 2005 16:59:33 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0504111657400.18235@wombat.indigo.net.au>
+Subject: Re: [PATCH] semi-trivial patches
+Date: Mon, 11 Apr 2005 17:14:48 +0800 (WST)
+Message-ID: <Pine.LNX.4.58.0504111704160.18235@wombat.indigo.net.au>
 References: <Pine.LNX.4.62.0504102120390.14539@donald.themaw.net>
-	<20050410144416.GB23740@uio.no>
+	<200504111101.13933.vda@port.imtp.ilyichevsk.odessa.ua>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20050410144416.GB23740@uio.no>
+In-Reply-To: <200504111101.13933.vda@port.imtp.ilyichevsk.odessa.ua>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,30 +19,52 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
-Cc: autofs@linux.kernel.org
+To: Denis Vlasenko <vda@port.imtp.ilyichevsk.odessa.ua>
+Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>
 
-On Sun, 10 Apr 2005, Steinar H. Gunderson wrote:
+On Mon, 11 Apr 2005, Denis Vlasenko wrote:
 
-> On Sun, Apr 10, 2005 at 09:38:50PM +0800, raven@themaw.net wrote:
+> On Sunday 10 April 2005 16:38, raven@themaw.net wrote:
+> > 
+> > Hi all,
+> > 
 > > Here is autofs 4.1.4.
 > 
-> Looks like the Debian init script is broken to me:
-> 
->   kanskje:~# /etc/init.d/autofs start
->   Starting automounter:start-stop-daemon: --start needs --exec or --startas
->   Try `start-stop-daemon --help' for more information.
-> 
->    failed to start automount point /home/cassarossa
-> 
-> Looks like you've over-applied the fix for --stop onto --start as well.
-> Changing "--name $dname" into "--exec $DAEMON" in "start" in the init script
-> seems to fix it.
+> Please find three patches attached.
 
-Odd.
+Good to see your persistent in keeping your patches upto date.
+I'll work through this soon as I can fix my mistakes in the 4.1.4 release.
 
-Seemed to work fine when I tested it.
+> 
+> b.exec.patch makes it possible to rely on PATH
+> when exec'ing mount etc. If one wants to do this, he will
+> need to run configure like this:
+> OUNT="mount" \
+> UMOUNT="umount" \
+> E2FSCK="fsck.ext2" \
+> E3FSCK="fsck.ext3" \
+> ./configure
+> but at least one wouldn't need to hack C source for that to work
+> as expected (.i.e., to search for binaries in the PATH).
+> 'Classic' automount would be unaffected since it uses /abs/path/names,
+> and exec..p() does not search PATH in this case.
+> 
+> c.msg.patch removes usage of %m in messages (this can't work for
+> non-syslog directed messages). I need this for pending --stderr patch.
+> Also it removes tons of stray newlines.
+> 
+> d.close.patch fixes obscure bug when we can close one of standard
+> descriptors.
+> 
+> Was run tested before, rediffed against 4.1.4 and compile tested.
+> 
+> Please apply.
 
-Looks like I'll have to have another go at this.
+I remember applying several of your patches to do with this some time ago.
+On my development machine (an Ultra 2), the autofs daemon failed 
+completely when trying to log. I mailed you asking about it but received 
+no answer.
+
+Are you able to help merging them when I get to it?
 
 Ian
