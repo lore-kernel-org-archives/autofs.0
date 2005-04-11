@@ -1,53 +1,49 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Re: autofs>3.9.99-4.0.0pre10-16 doesn't work any more
-	for me
-Date: Mon, 11 Apr 2005 09:10:03 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0504110909070.9299@wombat.indigo.net.au>
-References: <E1DD8yC-0005oi-61@mago.wo.de> <20050409120352.GA12001@uio.no>
-	<ifbr8o6m1u.fsf@mago.linux-lounge.it.fh-worms.de>
-	<20050409151430.GA4432@uio.no>
-	<Pine.LNX.4.62.0504101029160.1694@donald.themaw.net>
-	<ifvf6uwqd2.fsf@mago.linux-lounge.it.fh-worms.de>
+From: raven@themaw.net
+Subject: Re: [PATCH 2/3] autofs4 - expiring filesystem from under process
+Date: Mon, 11 Apr 2005 10:44:03 +0800 (WST)
+Message-ID: <Pine.LNX.4.62.0504111029440.1345@donald.themaw.net>
+References: <Pine.LNX.4.62.0504102048370.5212@donald.themaw.net>
+ <20050410161520.19f67220.akpm@osdl.org>
 Mime-Version: 1.0
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <ifvf6uwqd2.fsf@mago.linux-lounge.it.fh-worms.de>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <20050410161520.19f67220.akpm@osdl.org>
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
-To: Martin Ruppert <ruppert@Fh-Worms.de>
-Cc: autofs@linux.kernel.org, 300648@bugs.debian.org, ruppert@mago.linux-lounge.it.fh-worms.de
+To: Andrew Morton <akpm@osdl.org>
+Cc: michael@kmaclub.com, linux-fsdevel@vger.kernel.org, jmoyer@redhat.com, autofs@linux.kernel.org
 
-On Sun, 10 Apr 2005, Martin Ruppert wrote:
+On Sun, 10 Apr 2005, Andrew Morton wrote:
 
-> On Sun, 10 Apr 2005 10:30:12 +0800 (WST), raven  wrote:
-> > On Sat, 9 Apr 2005, Steinar H. Gunderson wrote:
-> >> On Sat, Apr 09, 2005 at 04:51:09PM +0200, Martin Ruppert wrote:
-> >>> i not only mount one partition, but a whole system (df -T shortened):
-> >>> 
-> >>> /dev/hda8      xfs ... /mnt/auto/hda8
-> >>> /dev/hda5     ext2 ... /mnt/auto/hda8/boot
-> >>> /dev/m/vm-u0   xfs ... /mnt/auto/hda8/usr
-> >>> /dev/m/vm-v0   xfs ... /mnt/auto/hda8/var
-> >> 
-> >> Hm, sounds like multimount stuff. I have absolutely no experience with that;
-> >> Cc-ing upstream. (Ian: I have no idea whether this is supposed to work at all
-> >> or not, I've never seen anything like this before. Keeping the rest of the
-> >> mail intact so you get it all :-) )
-> 
-> > So what exactly is the problem?
-> 
-> > I can't see any failures in the log.
-> 
-> yes, because the log is of autofs-3.9.99-4.0.0pre10-16, and any higher
-> version doesn't work any more, as the subject says. 
+> raven@themaw.net wrote:
+>>
+>> +	/* Is someone visiting anywhere in the tree ? */
+>>  +	if (autofs4_may_umount(mnt))
+>
+> There's no such function in my tree...
+>
 
-Oh so you just want to keep it a secret or are you just being funny.
+Sorry about the hastle Andrew.
+Thanks for the feedback. I'll make sure it doesn't happen again.
+
+As far as the call above goes I'm unable to find when this was correct in 
+the patch. I'm wondering how the kernel compiled (but that was a while 
+back).
+
+Everything else looks OK but I'll review the patches to make sure all is 
+well.
+
+The correct function call is
+
+--- linux-2.6.12-rc2-mm2/fs/autofs4/expire.c.dumb	2005-04-11 10:24:28.000000000 +0800
++++ linux-2.6.12-rc2-mm2/fs/autofs4/expire.c	2005-04-11 10:37:27.000000000 +0800
+@@ -100,7 +100,7 @@ static int autofs4_check_tree(struct vfs
+  		return 0;
+
+  	/* Is someone visiting anywhere in the tree ? */
+-	if (autofs4_may_umount(mnt))
++	if (may_umount_tree(mnt))
+  		return 0;
+
+  	spin_lock(&dcache_lock);
