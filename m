@@ -1,15 +1,13 @@
-From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
-Subject: Re: Bug#304226: Re: Bug#304226: outdated rsize,
-	wsize overrides
-Date: Tue, 12 Apr 2005 13:08:14 +0200
-Message-ID: <20050412110814.GA11129@uio.no>
-References: <20050411194555.139CED9443922@ninsei.internal.cyberhqz.com>
-	<20050411201312.GC24780@uio.no>
-	<Pine.LNX.4.58.0504121250380.11391@wombat.indigo.net.au>
+From: raven@themaw.net
+Subject: Re: Re: [PATCH 1/3] autofs4 - expiring filesystem from
+	under process
+Date: Tue, 12 Apr 2005 20:44:51 +0800 (WST)
+Message-ID: <Pine.LNX.4.62.0504122029420.2460@donald.themaw.net>
+References: <Pine.LNX.4.62.0504102044140.5212@donald.themaw.net>
+	<16986.44640.269893.824019@segfault.boston.redhat.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0504121250380.11391@wombat.indigo.net.au>
+In-Reply-To: <16986.44640.269893.824019@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,28 +18,56 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
-To: Ian Kent <raven@themaw.net>, 304226@bugs.debian.org
-Cc: autofs@linux.kernel.org, Ryan Murray <rmurray@debian.org>, control@bugs.debian.org
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: Andrew Morton <akpm@osdl.org>, autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Michael Blandford <michael@kmaclub.com>
 
-tags 304226 - upstream
-thanks
+On Mon, 11 Apr 2005, Jeff Moyer wrote:
 
-On Tue, Apr 12, 2005 at 12:51:32PM +0800, Ian Kent wrote:
->> I'll fix this in the next upload (if there will be any before sarge); sending
->> it upstream as well.
-> These options are added by a Debian specific patch.
-> 
-> They aren't in the tar distribution.
+Glad you were able to find time to review the patches Jeff.
+Much appreciated.
 
-Heh, you're right.
+> ==> Regarding [PATCH 1/3] autofs4 - expiring filesystem from under process; raven@themaw.net adds:
+>
+> raven> autofs4-2.6.12-rc1-mm4-wait-order.patch
+>
+> raven> It's possible for an event wait request to arive before the event
+> raven> requestor. If this happens the daemon never gets notified and autofs
+> raven> hangs.
+>
+> I'm not sure I understand your problem description.  Could you please
+> elaborate on the set of circumstances that lead to this?
 
-Ryan: Do you know when this became default? After all, sarge will still be
-shipping with 2.4 kernels... (Setting them to 32768 could be an acceptable
-compromise.) I'm not really sure if setting "async" is the right thing to do
-in the general case, while I'm at it...
+The case is similar to the one you describe below except it's during the 
+entry to the expire event.
 
-/* Steinar */
--- 
-Homepage: http://www.sesse.net/
+During an expire, after a dentry is selected to be expired and 
+AUTOFS_INF_EXPIRE is set. Another process may take the same path as below 
+via try_to_fill_dentry and race for the semaphore. The result is the same 
+as your example below.
+
+>
+> expire process runs and issues AUTOFS_EXPIRE_MULTI, which sets
+> AUTOFS_INF_EXPIRING in flags.  While the expire is in progress, another
+> process access the directory in question, causing a call to
+> try_to_fill_dentry.  try_to_fill_dentry sees the AUTOFS_INF_EXPIRING flag
+> is set, and so calls autofs4_wait with notify set to NFY_NONE.  However,
+> when we take the wq sem, we find that the expire has finished, and thus
+> create a new wq entry.  Because NFY_NONE is set, we don't tell the daemon.
+>
+> So how will this process ever get woken up?
+
+Never.
+Well spotted.
+
+This certainly looks like a potential race.
+It appears to be the same case except on exit from the expire instead of 
+on entry.
+
+I've missed it till now.
+
+I don't have a solution yet either but I'll give it some thought and see 
+what I can come up with.
+
+Ian
