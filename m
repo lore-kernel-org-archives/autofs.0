@@ -1,47 +1,61 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: BUG: /foo/bar already mounted
-Date: Wed, 13 Apr 2005 13:10:43 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0504131308290.10508@wombat.indigo.net.au>
-References: <20050412175850.GA1556@pixar.com>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: [autofs] Re: [ANNOUNCE] Important update - autofs 4.1.4 release
+Date: Wed, 13 Apr 2005 21:59:13 -0400
+Message-ID: <16989.52849.68024.30163@segfault.boston.redhat.com>
+References: <Pine.LNX.4.62.0504102120390.14539@donald.themaw.net>
+	<Pine.LNX.4.62.0504112324510.6384@donald.themaw.net>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20050412175850.GA1556@pixar.com>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Chris Walker <cwalker@pixar.com>
-Cc: autofs@linux.kernel.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.62.0504112324510.6384@donald.themaw.net>
+Sender: linux-fsdevel-owner@vger.kernel.org
+List-Id: <autofs.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: raven@themaw.net
+Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>
 
-On Tue, 12 Apr 2005, Chris Walker wrote:
+==> Regarding [autofs] Re: [ANNOUNCE] Important update - autofs 4.1.4 release; raven@themaw.net adds:
 
-> Apologies if this in faq or changelog somewhere. I get run into this bug
-> quite frequently:
-> 
-> Apr 11 15:40:15 XXXXX automount[21296]: BUG: /foo/bar/blah already mounted
-> 
-> Once hitting this, the filesystem in question is unavailable until
-> reboot. Has this bug been addressed? If so, in what version of the
-> autofs or the kernel has it been fixed? Thanks!
-> 
-> OS: fedora core 2
-> kernel: 2.6.8-1.521smp
-> autofs: 4.1.3-47 (autofs4 kernel mod)
-> 
-> Let me know if you need any more information.
-> 
+raven> On Sun, 10 Apr 2005 raven@themaw.net wrote:
+>> Hi all,
+>> 
+>> Here is autofs 4.1.4.
 
-This has come up in various ways lately.
-Jeff Moyer has a somewhat later version rpm around somewhere, Jeff?
+raven> There were a couple of mistakes in the release.
 
-What do your maps look like?
+raven> The kernel patches have been updated as there were some obvious
+raven> errors in them.  An error in patching of the Debian portion of the
+raven> init script was corrected.
 
-Ian
+raven> I've uploaded corrected versions along with a MD5SUMS file of
+raven> checksums for people to verify against.
+
+raven> The new upload has a timestamp of 11-Apr-2005 06:21-59. If you
+raven> downloaded anything before this, sorry, you'll need to get the
+raven> updated files.
+
+This new version has regressed since beta2 for /net mounts in my
+environment.  A simple ls of /net/<filer> will now show the contents of
+/net/<filer>/exporteddir.  So, for example, we have devfiler which exports
+/vol/vol1.  When I do an ls of /net/devfiler, I get the contents of
+devfiler:/vol/vol1.
+
+Okay, after further debugging, it seems we're not identifying this as a
+multimount entry.  It's getting late, so I'm going to turn this over to
+you.  I think that the checking of first_chunk is bogus.  For instance,
+with the below change, everything works as expected for me.
+
+-Jeff
+
+--- autofs-4.1.4/modules/parse_sun.c.orig	2005-04-13 21:52:21.663629568 -0400
++++ autofs-4.1.4/modules/parse_sun.c	2005-04-13 21:52:31.687105768 -0400
+@@ -766,7 +766,7 @@ static int check_is_multi(const char *ma
+ {
+ 	const char *p = (char *) mapent;
+ 	int multi = 0;
+-	int first_chunk = 0;
++	int first_chunk = 1;
+ 
+ 	while (*p) {
+ 		p = skipspace(p);
