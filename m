@@ -1,13 +1,13 @@
-From: Chris Walker <cwalker@pixar.com>
+From: Jeff Moyer <jmoyer@redhat.com>
 Subject: Re: BUG: /foo/bar already mounted
-Date: Thu, 14 Apr 2005 06:51:11 -0700
-Message-ID: <20050414135111.GA12267@pixar.com>
+Date: Thu, 14 Apr 2005 10:18:47 -0400
+Message-ID: <16990.31687.286825.639821@segfault.boston.redhat.com>
 References: <20050412175850.GA1556@pixar.com>
-	<Pine.LNX.4.58.0504131308290.10508@wombat.indigo.net.au>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0504131308290.10508@wombat.indigo.net.au>
+In-Reply-To: <20050412175850.GA1556@pixar.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,48 +19,35 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: autofs@linux.kernel.org
+To: Chris Walker <cwalker@pixar.com>
+Cc: autofs@linux.kernel.org
 
-They're NIS maps most of which are like this:
+==> Regarding [autofs] BUG: /foo/bar already mounted; Chris Walker <cwalker@pixar.com> adds:
 
-proxydisk -rw,intr    netapp:/sv/blah-proxy
-stats     -rw,intr    netapp:/vol/vol11/unit-stats-01/blah
+cwalker> Apologies if this in faq or changelog somewhere. I get run into
+cwalker> this bug quite frequently:
 
-The master map looks like this:
+cwalker> Apr 11 15:40:15 XXXXX automount[21296]: BUG: /foo/bar/blah already
+cwalker> mounted
 
-/shows/blah   auto.show.blah   -rw,intr,--timeout=0
+cwalker> Once hitting this, the filesystem in question is unavailable until
+cwalker> reboot. Has this bug been addressed? If so, in what version of the
+cwalker> autofs or the kernel has it been fixed? Thanks!
 
-From raven:
-> On Tue, 12 Apr 2005, Chris Walker wrote:
-> 
-> > Apologies if this in faq or changelog somewhere. I get run into this bug
-> > quite frequently:
-> > 
-> > Apr 11 15:40:15 XXXXX automount[21296]: BUG: /foo/bar/blah already mounted
-> > 
-> > Once hitting this, the filesystem in question is unavailable until
-> > reboot. Has this bug been addressed? If so, in what version of the
-> > autofs or the kernel has it been fixed? Thanks!
-> > 
-> > OS: fedora core 2
-> > kernel: 2.6.8-1.521smp
-> > autofs: 4.1.3-47 (autofs4 kernel mod)
-> > 
-> > Let me know if you need any more information.
-> > 
-> 
-> This has come up in various ways lately.
-> Jeff Moyer has a somewhat later version rpm around somewhere, Jeff?
-> 
-> What do your maps look like?
-> 
-> Ian
-> 
+cwalker> OS: fedora core 2 kernel: 2.6.8-1.521smp autofs: 4.1.3-47 (autofs4
+cwalker> kernel mod)
 
--- 
-Chris Walker
-Render Pipeline Group
-Pixar Animation Studios
-510/752.3736
-cwalker@pixar.com
+Hmm, old.  I don't make patches for FC2 anymore.  You can try the latest
+autofs utility from fc4, it will compile and run happily on FC2.  You will
+be missing one kernel patch that fixes map updates when using direct maps
+and ghosting.  Everything else should work as advertised.
+
+So, can you try the 4.1.4 version of autofs?  You can get an SRPM to build
+from here:
+
+  http://people.redhat.com/~jmoyer/autofs/fc4/4.1.4-4/SRPMS/
+
+If that still fails, then we'll talk about how to get more debugging
+information.
+
+-Jeff
