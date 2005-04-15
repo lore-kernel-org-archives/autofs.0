@@ -1,13 +1,11 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: BUG: /foo/bar already mounted
-Date: Fri, 15 Apr 2005 10:09:46 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0504151005360.30832@wombat.indigo.net.au>
-References: <20050412175850.GA1556@pixar.com>
-	<Pine.LNX.4.58.0504131308290.10508@wombat.indigo.net.au>
-	<20050414135111.GA12267@pixar.com>
+Subject: Re: [announce] autofs-4.1.4-4 FC4 packages available
+Date: Fri, 15 Apr 2005 10:18:06 +0800 (WST)
+Message-ID: <Pine.LNX.4.58.0504151012290.30832@wombat.indigo.net.au>
+References: <16990.24191.475851.544067@segfault.boston.redhat.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20050414135111.GA12267@pixar.com>
+In-Reply-To: <16990.24191.475851.544067@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,63 +18,28 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Chris Walker <cwalker@pixar.com>
+To: Jeff Moyer <jmoyer@redhat.com>
 Cc: autofs@linux.kernel.org
 
-On Thu, 14 Apr 2005, Chris Walker wrote:
+On Thu, 14 Apr 2005, Jeff Moyer wrote:
 
-> They're NIS maps most of which are like this:
+> Hello,
 > 
-> proxydisk -rw,intr    netapp:/sv/blah-proxy
-> stats     -rw,intr    netapp:/vol/vol11/unit-stats-01/blah
+> I put together a test rpm for fc4 based on the 4.1.4 release of autofs.
+> You can find it here:
 > 
-> The master map looks like this:
+>   http://people.redhat.com/jmoyer/autofs/fc4/autofs-4.1.4-4/
 > 
-> /shows/blah   auto.show.blah   -rw,intr,--timeout=0
+> For those of you who would like to try it but are not running fc4, the srpm
+> is located in the SRPMS directory at the url above.  I've done some basic
+> functionality tests, but haven't run through a full regression.  As such,
+> consider this a beta pacakge (i.e. don't throw this into production just
+> yet!).  I put in a workaround for the multimount issue reported yesterday.
+> 
+> Ian, thanks for all of the hard work in putting this together.  I managed
+> to remove 50+ patches from our RPM!
 
-I don't like to say this but I would like to find out if this still 
-happens with the latest autofs version.
+And thanks for your many contributions (and your collegues) and your 
+especially good code review skills.
 
-Try Jeff Moyers' people page.
-http://people.redhat.com/~jmoyer/
-
-> 
-> >From raven:
-> > On Tue, 12 Apr 2005, Chris Walker wrote:
-> > 
-> > > Apologies if this in faq or changelog somewhere. I get run into this bug
-> > > quite frequently:
-> > > 
-> > > Apr 11 15:40:15 XXXXX automount[21296]: BUG: /foo/bar/blah already mounted
-> > > 
-> > > Once hitting this, the filesystem in question is unavailable until
-> > > reboot. Has this bug been addressed? If so, in what version of the
-> > > autofs or the kernel has it been fixed? Thanks!
-> > > 
-> > > OS: fedora core 2
-> > > kernel: 2.6.8-1.521smp
-> > > autofs: 4.1.3-47 (autofs4 kernel mod)
-> > > 
-> > > Let me know if you need any more information.
-> > > 
-> > 
-> > This has come up in various ways lately.
-> > Jeff Moyer has a somewhat later version rpm around somewhere, Jeff?
-> > 
-> > What do your maps look like?
-> > 
-> > Ian
-> > 
-> 
-> -- 
-> Chris Walker
-> Render Pipeline Group
-> Pixar Animation Studios
-> 510/752.3736
-> cwalker@pixar.com
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
-> 
+Ian
