@@ -1,69 +1,90 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [autofs] Re: [ANNOUNCE] Important update - autofs 4.1.4 release
-Date: Fri, 15 Apr 2005 09:25:50 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0504150920450.30832@wombat.indigo.net.au>
-References: <Pine.LNX.4.62.0504102120390.14539@donald.themaw.net>
- <Pine.LNX.4.62.0504112324510.6384@donald.themaw.net>
- <16989.52849.68024.30163@segfault.boston.redhat.com>
- <Pine.LNX.4.58.0504141357180.7872@wombat.indigo.net.au>
- <Pine.LNX.4.58.0504141410190.8227@wombat.indigo.net.au>
- <16990.24002.650785.141049@segfault.boston.redhat.com>
+Subject: Re: [patch, rfc] fix hung automounter issues
+Date: Fri, 15 Apr 2005 09:59:56 +0800 (WST)
+Message-ID: <Pine.LNX.4.58.0504150932070.30832@wombat.indigo.net.au>
+References: <16990.26693.814813.479017@segfault.boston.redhat.com>
 Mime-Version: 1.0
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <16990.24002.650785.141049@segfault.boston.redhat.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <16990.26693.814813.479017@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Jeff Moyer <jmoyer@redhat.com>
-Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>
+Cc: autofs mailing list <autofs@linux.kernel.org>, Dan.Berrange@ubs.com
 
 On Thu, 14 Apr 2005, Jeff Moyer wrote:
 
-> ==> Regarding Re: [autofs] Re: [ANNOUNCE] Important update - autofs 4.1.4 release; Ian Kent <raven@themaw.net> adds:
+I'm inpressed, this looks like a fine piece of work guys.
+It's going to take a while to work through this.
+
+Also This is bound to make merging Denis Vlasenkos' logging patches really 
+hard. So there's potentially a fair bit of work in this.
+
+> Hi, Ian,
 > 
-> raven> On Thu, 14 Apr 2005, Ian Kent wrote:
-> >> On Wed, 13 Apr 2005, Jeff Moyer wrote:
-> >> 
-> >> > 
-> >> > This new version has regressed since beta2 for /net mounts in my 
-> >> environment.  A simple ls of /net/<filer> will now show the contents of
-> >> > /net/<filer>/exporteddir.  So, for example, we have devfiler which
-> >> exports /vol/vol1.  When I do an ls of /net/devfiler, I get the
-> >> contents of devfiler:/vol/vol1.
-> >> > 
-> >> > Okay, after further debugging, it seems we're not identifying this as
-> >> a multimount entry.  It's getting late, so I'm going to turn this over
-> >> to you.  I think that the checking of first_chunk is bogus.  For
-> >> instance, with the below change, everything works as expected for me.
-> >>
-> >> 
-> >> Cool, I'll check this out and get back.
+> Dan Berrange did a spectacular job of diagnosing some autofs hangs he was
+> experiencing.  The automount daemon would appear hung, and an an strace of
+> the process would show sys_futex on the call stack.  Through his
+> debugging, he figured out that the problem was autofs issuing syslog calls
+> while in a signal handler.
+
+One, probably stupid question (humour me).
+
+Shouldn't we be able use syslog in a signal handler?
+
 > 
-> raven> Could I have the example map entry that breaks the parse please.
+> So, there are a few ways to fix this that come to mind.
 > 
-> Sheesh, you'd think that I could generate a bug report by now... I'll blame
-> it on the late night thing.  =)
-> 
-> This is an auto.net entry.  Here's what auto.net spits out for this
-> particular host:
-> 
-> -fstype=nfs,hard,intr,nodev,nosuid \
->         /vol/vol1 devfiler:/vol/vol1
-> 
-> I'm guessing you didn't test auto.net against a host that only exported one
-> dir?  Just a guess.  Below are the debug logs.
+> o We could not log in signal handlers.  I don't consider this an acceptable
+>   solution, as we really need the debug messages generated there.
+> o We could defer logging to non-signal handler context.  This is in fact
+>   what the attached pattch does.  It queues the syslog messages, and
+>   flushes them upon the next syslog that occurs outside of signal handler
+>   context.
+> o We could open /dev/log directly.  This is likely a bad idea as there is
+>   no standard for the interface there.
+> o We could have a separate logging process, which we write to via a pipe.
+>   I'm not keen on this as it adds yet another process, and makes shutdown
+>   that much more complicated.
 > 
 
-That's exactly right, I missed that edge case.
-I did actually guess that and the above confirms it.
+I actually like the last option but a multi threaded autofs is not likely 
+to happen for a long time.
 
-I know exaclty how I'd like to handle it but I haven't had time to generte 
-a patch. I'll try to find time at work today but I've got heaps of "work" 
-stuff to do. Of course it's Friday here so doing it tonight not looking to 
-good either.
+Would another option be to make autofs signal safe by doing all the work 
+in subprocesses?
 
-Oh well I'll get to it.
+> Note that in all of the above cases, we still need to implement a
+> signal-safe vsprintf.  That is what the bulk of this patch is.
+
+What about a signal safe syslog?
+Is this something we push to the libc guys, both a signal safe vsprintf 
+and syslog?
+
+> 
+> So, here is a rough take on implementing the second bullet point.  I
+> wholesale copied a bunch of code from the linux kernel for doing vsprintf.
+> That bit is ugly.  I'd also move the definition of the new logging routines
+> into the vsprintf file, and rename it.  In short, this is a proof of
+> concept (shown to resolve the issues).  I'm happy to clean it up, but I
+> want to be sure that this is the direction we want to go in, first.
+> 
+> Limitations of this approach: we won't flush the logs that were issued in
+> signal handler context until another syslog call is made.  One improvement
+> that could be made straight-away is to have all of the logging routines
+> call flush_logs, even if the log priority is set low enough that they
+> wouldn't otherwise log.
+> 
+> Comments encouraged.  Thanks again to Dan!
+> 
 
 Ian
-
