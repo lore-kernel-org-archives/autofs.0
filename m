@@ -1,14 +1,9 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [patch, rfc] fix hung automounter issues
-Date: Fri, 15 Apr 2005 07:58:54 -0400
-Message-ID: <16991.44158.799389.569339@segfault.boston.redhat.com>
-References: <16990.26693.814813.479017@segfault.boston.redhat.com>
-	<Pine.LNX.4.58.0504150932070.30832@wombat.indigo.net.au>
-Reply-To: jmoyer@redhat.com
+From: Jason L Tibbitts III <tibbs@math.uh.edu>
+Subject: LDAP questions
+Date: Fri, 15 Apr 2005 12:45:54 -0500
+Message-ID: <ufa8y3krl0t.fsf@epithumia.math.uh.edu>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0504150932070.30832@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,76 +15,63 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: Ian Kent <raven@themaw.net>
-Cc: autofs mailing list <autofs@linux.kernel.org>, Dan.Berrange@ubs.com
+Content-Transfer-Encoding: 7bit
+To: autofs@linux.kernel.org
 
-==> Regarding Re: [patch, rfc] fix hung automounter issues; Ian Kent <raven@themaw.net> adds:
+I'm trying to migrate towards LDAP and away from homebrew map
+distribution.  My test setup is running FC3, autofs-4.1.3-114.  So far
+I've been successful, but I have a couple of questions.  I apologize
+for the length of this but I think these are mostly related.
 
-raven> On Thu, 14 Apr 2005, Jeff Moyer wrote: I'm inpressed, this looks
-raven> like a fine piece of work guys.  It's going to take a while to work
-raven> through this.
+Is there any documentation on how mount entries retrieved from LDAP
+are cached?  I'm seeing entries sticking around long after they've
+been deleted from the map and I'm wondering if there's any timeout for
+positive hits.  I'm also not seeing any type of negative caching.
 
-raven> Also This is bound to make merging Denis Vlasenkos' logging patches
-raven> really hard. So there's potentially a fair bit of work in this.
+I noticed that I see a lot of messages like this one, accessing /home/mike:
 
-Well, you can go ahead and apply his patches, and I'll merge this stuff in
-afterwards.  Just let me know when you have that all set in CVS.
+lookup(ldap): got answer, but no first entry for (&(objectclass=automount)(cn=mike))
 
->> Hi, Ian,
->> 
->> Dan Berrange did a spectacular job of diagnosing some autofs hangs he
->> was experiencing.  The automount daemon would appear hung, and an an
->> strace of the process would show sys_futex on the call stack.  Through
->> his debugging, he figured out that the problem was autofs issuing syslog
->> calls while in a signal handler.
+I'm using the NIS schema, not the automount schema.  The LDAP server
+shows these searches:
 
-raven> One, probably stupid question (humour me).
+SRCH base="nisMapName=auto.home,dc=math,dc=uh,dc=edu" scope=2 deref=0
+filter="(&(objectClass=nisObject)(cn=mike))"
+SRCH attr=cn nisMapEntry
+SEARCH RESULT tag=101 err=0 nentries=1 text=
 
-raven> Shouldn't we be able use syslog in a signal handler?
+SRCH base="nisMapName=auto.home,dc=math,dc=uh,dc=edu" scope=2 deref=0 filter="(&(?=undefined)(cn=mike))"
+SRCH attr=cn automountInformation
+SEARCH RESULT tag=101 err=0 nentries=0 text=
 
-Nope:
+Note how the first search returns an entry.  Should I just ignore
+these log messages, or can I turn off use of the automount schema
+somehow?  (The master map is in LDAP too, so theoretically the daemon
+should be able to figure out which schema I'm using when it starts up
+and could stick to it.)
 
-http://www.opengroup.org/onlinepubs/009695399/functions/xsh_chap02_04.html#tag_02_04
+I noticed that running "man" takes ages now.  The default manpath for
+some reason has a bunch of references to points under /usr/local,
+which so happens to be managed by autofs.  Each time man tries to stat
+one of these paths, it takes about a second.  From strace -r:
 
->> So, there are a few ways to fix this that come to mind.
->> 
->> o We could not log in signal handlers.  I don't consider this an
->> acceptable solution, as we really need the debug messages generated
->> there.  o We could defer logging to non-signal handler context.  This is
->> in fact what the attached pattch does.  It queues the syslog messages,
->> and flushes them upon the next syslog that occurs outside of signal
->> handler context.  o We could open /dev/log directly.  This is likely a
->> bad idea as there is no standard for the interface there.  o We could
->> have a separate logging process, which we write to via a pipe.  I'm not
->> keen on this as it adds yet another process, and makes shutdown that
->> much more complicated.
->> 
+0.000068 stat64("/usr/local/share/man/en_US.UTF-8", 0xbfff947c) = -1 ENOENT (No such file or directory)
+0.921225 stat64("/usr/local/share/man/en", 0xbfff947c) = -1 ENOENT (No such file or directory)
+1.001739 stat64("/usr/local/share/man", 0xbfff94ac) = -1 ENOENT (No such file or directory)
+1.082108 stat64("/usr/kerberos/bin/man", 0xbfffb52c) = -1 ENOENT (No such file or directory)
+0.000074 stat64("/usr/kerberos/bin/MAN", 0xbfffb52c) = -1 ENOENT (No such file or directory)
 
-raven> I actually like the last option but a multi threaded autofs is not
-raven> likely to happen for a long time.
+So each time /usr/local/share/man or something under it is referenced,
+there is a one second pause and for each pause the following two lines
+are logged:
 
-It does not imply threading.  You can simply fork().
+lookup(ldap): got answer, but no first entry for (&(objectclass=nisObject)(cn=/))
+lookup(ldap): got answer, but no first entry for (&(objectclass=automount)(cn=/))
 
-raven> Would another option be to make autofs signal safe by doing all the
-raven> work in subprocesses?
+I don't believe that the delay is coming from the LDAP server.  It's
+logs only have single second resolution, but the BIND, SRCH and SEARCH
+RESULT lines generally all happen within the same second.
 
-There are a number of ways to address this by changing the control
-structure of the daemon.  However, that seemed way to invasive at this
-stage of the game.  The ideal solution is to do less in the sig_child
-handler, deferring the work just like we do for all of the other caught
-signals.
+Any hints or pointers would be appreciated.
 
->> Note that in all of the above cases, we still need to implement a
->> signal-safe vsprintf.  That is what the bulk of this patch is.
-
-raven> What about a signal safe syslog?  Is this something we push to the
-raven> libc guys, both a signal safe vsprintf and syslog?
-
-Well, we can certainly try, but this won't gain you anything in the short
-term.
-
-I'll think more about having a separate logging process.  If it seems easy
-enough to implement, I'll post a first whack at it.  In the mean time, I
-think we should continue to discuss our alternatives.
-
--Jeff
+ - J<
