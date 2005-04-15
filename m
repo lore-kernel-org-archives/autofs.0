@@ -1,80 +1,95 @@
 From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [autofs] Re: [ANNOUNCE] Important update - autofs 4.1.4 release
-Date: Fri, 15 Apr 2005 07:49:17 -0400
-Message-ID: <16991.43581.861771.904551@segfault.boston.redhat.com>
-References: <Pine.LNX.4.62.0504102120390.14539@donald.themaw.net>
-	<Pine.LNX.4.62.0504112324510.6384@donald.themaw.net>
-	<16989.52849.68024.30163@segfault.boston.redhat.com>
-	<Pine.LNX.4.58.0504141357180.7872@wombat.indigo.net.au>
-	<Pine.LNX.4.58.0504141410190.8227@wombat.indigo.net.au>
-	<16990.24002.650785.141049@segfault.boston.redhat.com>
-	<Pine.LNX.4.58.0504151449260.4676@wombat.indigo.net.au>
+Subject: Re: [patch, rfc] fix hung automounter issues
+Date: Fri, 15 Apr 2005 07:58:54 -0400
+Message-ID: <16991.44158.799389.569339@segfault.boston.redhat.com>
+References: <16990.26693.814813.479017@segfault.boston.redhat.com>
+	<Pine.LNX.4.58.0504150932070.30832@wombat.indigo.net.au>
 Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0504151449260.4676@wombat.indigo.net.au>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <Pine.LNX.4.58.0504150932070.30832@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
 To: Ian Kent <raven@themaw.net>
-Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>
+Cc: autofs mailing list <autofs@linux.kernel.org>, Dan.Berrange@ubs.com
 
-==> Regarding Re: [autofs] Re: [ANNOUNCE] Important update - autofs 4.1.4 release; Ian Kent <raven@themaw.net> adds:
+==> Regarding Re: [patch, rfc] fix hung automounter issues; Ian Kent <raven@themaw.net> adds:
 
-raven> On Thu, 14 Apr 2005, Jeff Moyer wrote:
->> ==> Regarding Re: [autofs] Re: [ANNOUNCE] Important update - autofs 4.1.4 release; Ian Kent <raven@themaw.net> adds:
+raven> On Thu, 14 Apr 2005, Jeff Moyer wrote: I'm inpressed, this looks
+raven> like a fine piece of work guys.  It's going to take a while to work
+raven> through this.
+
+raven> Also This is bound to make merging Denis Vlasenkos' logging patches
+raven> really hard. So there's potentially a fair bit of work in this.
+
+Well, you can go ahead and apply his patches, and I'll merge this stuff in
+afterwards.  Just let me know when you have that all set in CVS.
+
+>> Hi, Ian,
 >> 
-raven> On Thu, 14 Apr 2005, Ian Kent wrote:
->> >> On Wed, 13 Apr 2005, Jeff Moyer wrote:
->> >> 
->> >> > 
->> >> > This new version has regressed since beta2 for /net mounts in my 
->> >> environment.  A simple ls of /net/<filer> will now show the contents of
->> >> > /net/<filer>/exporteddir.  So, for example, we have devfiler which
->> >> exports /vol/vol1.  When I do an ls of /net/devfiler, I get the
->> >> contents of devfiler:/vol/vol1.
->> >> > 
->> >> > Okay, after further debugging, it seems we're not identifying this as
->> >> a multimount entry.  It's getting late, so I'm going to turn this over
->> >> to you.  I think that the checking of first_chunk is bogus.  For
->> >> instance, with the below change, everything works as expected for me.
->> >>
->> >> 
->> >> Cool, I'll check this out and get back.
+>> Dan Berrange did a spectacular job of diagnosing some autofs hangs he
+>> was experiencing.  The automount daemon would appear hung, and an an
+>> strace of the process would show sys_futex on the call stack.  Through
+>> his debugging, he figured out that the problem was autofs issuing syslog
+>> calls while in a signal handler.
+
+raven> One, probably stupid question (humour me).
+
+raven> Shouldn't we be able use syslog in a signal handler?
+
+Nope:
+
+http://www.opengroup.org/onlinepubs/009695399/functions/xsh_chap02_04.html#tag_02_04
+
+>> So, there are a few ways to fix this that come to mind.
 >> 
-raven> Could I have the example map entry that breaks the parse please.
->> 
->> Sheesh, you'd think that I could generate a bug report by now... I'll blame
->> it on the late night thing.  =)
->> 
->> This is an auto.net entry.  Here's what auto.net spits out for this
->> particular host:
->> 
->> -fstype=nfs,hard,intr,nodev,nosuid \
->> /vol/vol1 devfiler:/vol/vol1
->> 
->> I'm guessing you didn't test auto.net against a host that only exported one
->> dir?  Just a guess.  Below are the debug logs.
+>> o We could not log in signal handlers.  I don't consider this an
+>> acceptable solution, as we really need the debug messages generated
+>> there.  o We could defer logging to non-signal handler context.  This is
+>> in fact what the attached pattch does.  It queues the syslog messages,
+>> and flushes them upon the next syslog that occurs outside of signal
+>> handler context.  o We could open /dev/log directly.  This is likely a
+>> bad idea as there is no standard for the interface there.  o We could
+>> have a separate logging process, which we write to via a pipe.  I'm not
+>> keen on this as it adds yet another process, and makes shutdown that
+>> much more complicated.
 >> 
 
-raven> I think this should do the trick.
+raven> I actually like the last option but a multi threaded autofs is not
+raven> likely to happen for a long time.
 
-Yes, you're probably right.  Please consider renaming the first_chunk
-variable, too!
+It does not imply threading.  You can simply fork().
+
+raven> Would another option be to make autofs signal safe by doing all the
+raven> work in subprocesses?
+
+There are a number of ways to address this by changing the control
+structure of the daemon.  However, that seemed way to invasive at this
+stage of the game.  The ideal solution is to do less in the sig_child
+handler, deferring the work just like we do for all of the other caught
+signals.
+
+>> Note that in all of the above cases, we still need to implement a
+>> signal-safe vsprintf.  That is what the bulk of this patch is.
+
+raven> What about a signal safe syslog?  Is this something we push to the
+raven> libc guys, both a signal safe vsprintf and syslog?
+
+Well, we can certainly try, but this won't gain you anything in the short
+term.
+
+I'll think more about having a separate logging process.  If it seems easy
+enough to implement, I'll post a first whack at it.  In the mean time, I
+think we should continue to discuss our alternatives.
 
 -Jeff
-
-raven> --- autofs-4.1.4/modules/parse_sun.c.first-multi	Fri Apr 15 14:30:18 2005
-raven> +++ autofs-4.1.4/modules/parse_sun.c	Fri Apr 15 14:42:04 2005
-raven> @@ -768,6 +768,10 @@ static int check_is_multi(const char *ma
-raven>  	int multi = 0;
-raven>  	int first_chunk = 0;
- 
-raven> +	/* If first character is "/" it's a multi-mount */
-raven> +	if (*p == '/')
-raven> +		return 1;
-raven> +
-raven>  	while (*p) {
-raven>  		p = skipspace(p);
- 
