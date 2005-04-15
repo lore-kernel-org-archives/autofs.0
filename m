@@ -1,45 +1,72 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [announce] autofs-4.1.4-4 FC4 packages available
-Date: Fri, 15 Apr 2005 10:18:06 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0504151012290.30832@wombat.indigo.net.au>
-References: <16990.24191.475851.544067@segfault.boston.redhat.com>
+Subject: Re: [autofs] Re: [ANNOUNCE] Important update - autofs 4.1.4 release
+Date: Fri, 15 Apr 2005 14:51:28 +0800 (WST)
+Message-ID: <Pine.LNX.4.58.0504151449260.4676@wombat.indigo.net.au>
+References: <Pine.LNX.4.62.0504102120390.14539@donald.themaw.net>
+ <Pine.LNX.4.62.0504112324510.6384@donald.themaw.net>
+ <16989.52849.68024.30163@segfault.boston.redhat.com>
+ <Pine.LNX.4.58.0504141357180.7872@wombat.indigo.net.au>
+ <Pine.LNX.4.58.0504141410190.8227@wombat.indigo.net.au>
+ <16990.24002.650785.141049@segfault.boston.redhat.com>
 Mime-Version: 1.0
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <16990.24191.475851.544067@segfault.boston.redhat.com>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <16990.24002.650785.141049@segfault.boston.redhat.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Jeff Moyer <jmoyer@redhat.com>
-Cc: autofs@linux.kernel.org
+Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>
 
 On Thu, 14 Apr 2005, Jeff Moyer wrote:
 
-> Hello,
+> ==> Regarding Re: [autofs] Re: [ANNOUNCE] Important update - autofs 4.1.4 release; Ian Kent <raven@themaw.net> adds:
 > 
-> I put together a test rpm for fc4 based on the 4.1.4 release of autofs.
-> You can find it here:
+> raven> On Thu, 14 Apr 2005, Ian Kent wrote:
+> >> On Wed, 13 Apr 2005, Jeff Moyer wrote:
+> >> 
+> >> > 
+> >> > This new version has regressed since beta2 for /net mounts in my 
+> >> environment.  A simple ls of /net/<filer> will now show the contents of
+> >> > /net/<filer>/exporteddir.  So, for example, we have devfiler which
+> >> exports /vol/vol1.  When I do an ls of /net/devfiler, I get the
+> >> contents of devfiler:/vol/vol1.
+> >> > 
+> >> > Okay, after further debugging, it seems we're not identifying this as
+> >> a multimount entry.  It's getting late, so I'm going to turn this over
+> >> to you.  I think that the checking of first_chunk is bogus.  For
+> >> instance, with the below change, everything works as expected for me.
+> >>
+> >> 
+> >> Cool, I'll check this out and get back.
 > 
->   http://people.redhat.com/jmoyer/autofs/fc4/autofs-4.1.4-4/
+> raven> Could I have the example map entry that breaks the parse please.
 > 
-> For those of you who would like to try it but are not running fc4, the srpm
-> is located in the SRPMS directory at the url above.  I've done some basic
-> functionality tests, but haven't run through a full regression.  As such,
-> consider this a beta pacakge (i.e. don't throw this into production just
-> yet!).  I put in a workaround for the multimount issue reported yesterday.
+> Sheesh, you'd think that I could generate a bug report by now... I'll blame
+> it on the late night thing.  =)
 > 
-> Ian, thanks for all of the hard work in putting this together.  I managed
-> to remove 50+ patches from our RPM!
+> This is an auto.net entry.  Here's what auto.net spits out for this
+> particular host:
+> 
+> -fstype=nfs,hard,intr,nodev,nosuid \
+>         /vol/vol1 devfiler:/vol/vol1
+> 
+> I'm guessing you didn't test auto.net against a host that only exported one
+> dir?  Just a guess.  Below are the debug logs.
+> 
 
-And thanks for your many contributions (and your collegues) and your 
-especially good code review skills.
+I think this should do the trick.
 
-Ian
+--- autofs-4.1.4/modules/parse_sun.c.first-multi	Fri Apr 15 14:30:18 2005
++++ autofs-4.1.4/modules/parse_sun.c	Fri Apr 15 14:42:04 2005
+@@ -768,6 +768,10 @@ static int check_is_multi(const char *ma
+ 	int multi = 0;
+ 	int first_chunk = 0;
+ 
++	/* If first character is "/" it's a multi-mount */
++	if (*p == '/')
++		return 1;
++
+ 	while (*p) {
+ 		p = skipspace(p);
+ 
