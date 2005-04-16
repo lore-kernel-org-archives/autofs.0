@@ -1,77 +1,73 @@
-From: Jason L Tibbitts III <tibbs@math.uh.edu>
-Subject: LDAP questions
-Date: Fri, 15 Apr 2005 12:45:54 -0500
-Message-ID: <ufa8y3krl0t.fsf@epithumia.math.uh.edu>
+From: raven@themaw.net
+Subject: Re: [autofs] Re: [ANNOUNCE] Important update - autofs 4.1.4 release
+Date: Sat, 16 Apr 2005 11:09:38 +0800 (WST)
+Message-ID: <Pine.LNX.4.62.0504161109090.1609@donald.themaw.net>
+References: <Pine.LNX.4.62.0504102120390.14539@donald.themaw.net>
+ <Pine.LNX.4.62.0504112324510.6384@donald.themaw.net>
+ <16989.52849.68024.30163@segfault.boston.redhat.com>
+ <Pine.LNX.4.58.0504141357180.7872@wombat.indigo.net.au>
+ <Pine.LNX.4.58.0504141410190.8227@wombat.indigo.net.au>
+ <16990.24002.650785.141049@segfault.boston.redhat.com>
+ <Pine.LNX.4.58.0504151449260.4676@wombat.indigo.net.au>
+ <16991.43581.861771.904551@segfault.boston.redhat.com>
 Mime-Version: 1.0
-Return-path: <autofs-bounces@linux.kernel.org>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <16991.43581.861771.904551@segfault.boston.redhat.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
-To: autofs@linux.kernel.org
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>
 
-I'm trying to migrate towards LDAP and away from homebrew map
-distribution.  My test setup is running FC3, autofs-4.1.3-114.  So far
-I've been successful, but I have a couple of questions.  I apologize
-for the length of this but I think these are mostly related.
+On Fri, 15 Apr 2005, Jeff Moyer wrote:
 
-Is there any documentation on how mount entries retrieved from LDAP
-are cached?  I'm seeing entries sticking around long after they've
-been deleted from the map and I'm wondering if there's any timeout for
-positive hits.  I'm also not seeing any type of negative caching.
+> ==> Regarding Re: [autofs] Re: [ANNOUNCE] Important update - autofs 4.1.4 release; Ian Kent <raven@themaw.net> adds:
+>
+> raven> On Thu, 14 Apr 2005, Jeff Moyer wrote:
+>>> ==> Regarding Re: [autofs] Re: [ANNOUNCE] Important update - autofs 4.1.4 release; Ian Kent <raven@themaw.net> adds:
+>>>
+> raven> On Thu, 14 Apr 2005, Ian Kent wrote:
+>>>>> On Wed, 13 Apr 2005, Jeff Moyer wrote:
+>>>>>
+>>>>>>
+>>>>>> This new version has regressed since beta2 for /net mounts in my
+>>>>> environment.  A simple ls of /net/<filer> will now show the contents of
+>>>>>> /net/<filer>/exporteddir.  So, for example, we have devfiler which
+>>>>> exports /vol/vol1.  When I do an ls of /net/devfiler, I get the
+>>>>> contents of devfiler:/vol/vol1.
+>>>>>>
+>>>>>> Okay, after further debugging, it seems we're not identifying this as
+>>>>> a multimount entry.  It's getting late, so I'm going to turn this over
+>>>>> to you.  I think that the checking of first_chunk is bogus.  For
+>>>>> instance, with the below change, everything works as expected for me.
+>>>>>
+>>>>>
+>>>>> Cool, I'll check this out and get back.
+>>>
+> raven> Could I have the example map entry that breaks the parse please.
+>>>
+>>> Sheesh, you'd think that I could generate a bug report by now... I'll blame
+>>> it on the late night thing.  =)
+>>>
+>>> This is an auto.net entry.  Here's what auto.net spits out for this
+>>> particular host:
+>>>
+>>> -fstype=nfs,hard,intr,nodev,nosuid \
+>>> /vol/vol1 devfiler:/vol/vol1
+>>>
+>>> I'm guessing you didn't test auto.net against a host that only exported one
+>>> dir?  Just a guess.  Below are the debug logs.
+>>>
+>
+> raven> I think this should do the trick.
+>
+> Yes, you're probably right.  Please consider renaming the first_chunk
+> variable, too!
 
-I noticed that I see a lot of messages like this one, accessing /home/mike:
+Sure.
 
-lookup(ldap): got answer, but no first entry for (&(objectclass=automount)(cn=mike))
+Suggestions?
 
-I'm using the NIS schema, not the automount schema.  The LDAP server
-shows these searches:
+Ian
 
-SRCH base="nisMapName=auto.home,dc=math,dc=uh,dc=edu" scope=2 deref=0
-filter="(&(objectClass=nisObject)(cn=mike))"
-SRCH attr=cn nisMapEntry
-SEARCH RESULT tag=101 err=0 nentries=1 text=
-
-SRCH base="nisMapName=auto.home,dc=math,dc=uh,dc=edu" scope=2 deref=0 filter="(&(?=undefined)(cn=mike))"
-SRCH attr=cn automountInformation
-SEARCH RESULT tag=101 err=0 nentries=0 text=
-
-Note how the first search returns an entry.  Should I just ignore
-these log messages, or can I turn off use of the automount schema
-somehow?  (The master map is in LDAP too, so theoretically the daemon
-should be able to figure out which schema I'm using when it starts up
-and could stick to it.)
-
-I noticed that running "man" takes ages now.  The default manpath for
-some reason has a bunch of references to points under /usr/local,
-which so happens to be managed by autofs.  Each time man tries to stat
-one of these paths, it takes about a second.  From strace -r:
-
-0.000068 stat64("/usr/local/share/man/en_US.UTF-8", 0xbfff947c) = -1 ENOENT (No such file or directory)
-0.921225 stat64("/usr/local/share/man/en", 0xbfff947c) = -1 ENOENT (No such file or directory)
-1.001739 stat64("/usr/local/share/man", 0xbfff94ac) = -1 ENOENT (No such file or directory)
-1.082108 stat64("/usr/kerberos/bin/man", 0xbfffb52c) = -1 ENOENT (No such file or directory)
-0.000074 stat64("/usr/kerberos/bin/MAN", 0xbfffb52c) = -1 ENOENT (No such file or directory)
-
-So each time /usr/local/share/man or something under it is referenced,
-there is a one second pause and for each pause the following two lines
-are logged:
-
-lookup(ldap): got answer, but no first entry for (&(objectclass=nisObject)(cn=/))
-lookup(ldap): got answer, but no first entry for (&(objectclass=automount)(cn=/))
-
-I don't believe that the delay is coming from the LDAP server.  It's
-logs only have single second resolution, but the BIND, SRCH and SEARCH
-RESULT lines generally all happen within the same second.
-
-Any hints or pointers would be appreciated.
-
- - J<
