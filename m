@@ -1,15 +1,10 @@
-From: Chris Feist <cfeist@redhat.com>
-Subject: Re: Re: [daniel@vision.ime.usp.br: Bug#304245: patch - NFS
-	mounts occasionally fail]
-Date: Mon, 18 Apr 2005 14:46:17 -0500
-Message-ID: <42640E89.7090005@redhat.com>
-References: <20050417154240.GA17232@uio.no>	<20050417181827.GA13101@vision.ime.usp.br>
-	<Pine.LNX.4.62.0504182142090.14946@donald.themaw.net>
-Reply-To: cfeist@redhat.com
+From: "Lucas Peet" <lpeet@velociti.us>
+Subject: mount -o bind
+Date: Mon, 18 Apr 2005 15:56:26 -0500
+Message-ID: <200504182056.j3IKutJ30896@mail.velociti.us>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090009000202010404040906"
+Content-Type: multipart/mixed; boundary="===============0883061913=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.62.0504182142090.14946@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,246 +15,231 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: raven@themaw.net, autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
 This is a multi-part message in MIME format.
---------------090009000202010404040906
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+
+--===============0883061913==
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_015C_01C5442F.2D896D60"
+
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_015C_01C5442F.2D896D60
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-I've attached the redhat patch which should fix this problem as well.  (And 
-we've tested it and it seems to work pretty well).
+Hello,
+
+ 
+
+Does autofs / automount have the ability to bind one directory to another
+like 'mount -o bind dir1 dir2'?  And if so, can this be handled by using
+wildcards in the maps?  Here is my situation:
+
+ 
+
+I have a large directory of user's home directories.  These are in a chroot
+jail, so making soft links isn't an option, and hard links won't work for
+directories.  I need to bind (mount) a directory that lives outside the
+chroot jail to a directory / mount point inside each home directory.  The
+users will only be accessing this directory for short periods (to copy a
+file or two), and I think it would be more practical to have autofs mount it
+whenever they needed access to it, and unmount it when they're done.
+
+ 
+
+I'm not sure on the exact number of mounted filesystems Linux can handle (or
+if a directory mounded via -o bind counts towards that, though I'd assume it
+would), but I would think that using automount instead of putting hundreds
+of entries into fstab would be more the Linux way of doing things.  Even if
+I had to put an entry for each user in a map, that would be a better
+solution to me than using fstab, since they all wouldn't be mounted at the
+same time, all the time.
+
+ 
+
+Dir to be accessed by all users:  /home/stuff/everyone
+
+ 
+
+Mounted to: /home/users/*/everyone
+
+ 
+
+Is this even possible?
+
+ 
 
 Thanks,
-Chris
 
-raven@themaw.net wrote:
-> On Sun, 17 Apr 2005, Daniel Andre Vaquero wrote:
-> 
->> Hi,
->>
->> My editor broke the indentation style in the patch; I'm resending it as
->> an attached file.
-> 
-> 
-> Will check out the patch.
-> 
-> Thanks for the feedback.
-> Ian
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
+ 
+
+-Lucas
 
 
---------------090009000202010404040906
-Content-Type: text/x-patch;
- name="autofs-4.1.4-non-replicated-ping.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline; filename="autofs-4.1.4-non-replicated-ping.patch"
+------=_NextPart_000_015C_01C5442F.2D896D60
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
---- autofs-4.1.4/modules/mount_nfs.c.orig	2005-04-13 20:31:24.639009544 -0400
-+++ autofs-4.1.4/modules/mount_nfs.c	2005-04-13 20:31:40.727563712 -0400
-@@ -31,6 +31,7 @@
- #include <netinet/in.h>
- #include <linux/nfs.h>
- #include <linux/nfs2.h>
-+#include <ctype.h>
- 
- #define MODULE_MOUNT
- #include "automount.h"
-@@ -105,28 +106,116 @@ int is_local_addr(const char *host, cons
- 	
- 	return 1;
- }
-+
-+/*
-+ * If the map doesn't contain a ',' and doesn't contain more than
-+ * one ':' then @what is not a multimount entry.
-+ */
-+static int is_multimount_entry(char *what)
-+{
-+	return !strchr(what, ',') && (strchr(what, ':') == strrchr(what, ':'));
-+}
-+
-+/*
-+ *  Check to see if the 'host:path' or 'host' is on the local machine
-+ *  Returns < 0 if there is a host lookup problem, otherwise returns 0
-+ *  if it's not a local mount, and returns > 0 if it is a local mount.
-+ */
-+int is_local_mount(const char *hostpath)
-+{
-+	struct hostent *he;
-+	char **haddr;
-+	char *delim;
-+	char *hostname;
-+	int hostnamelen;
-+	int local = 0;
-+
-+	debug(MODPREFIX "is_local_mount: %s", hostpath);
-+	delim = strpbrk(hostpath,":");
-+
-+	if (delim) 
-+		hostnamelen = delim - hostpath; 
-+	else 
-+		hostnamelen = strlen(hostpath);
-+
-+	hostname = malloc(hostnamelen+1);
-+	strncpy(hostname,hostpath,hostnamelen);
-+	hostname[hostnamelen] = '\0';
-+	he = gethostbyname(hostname);
-+	if (!he) {
-+		error(MODPREFIX "host %s: lookup failure", hostname);
-+		return -1;
-+	}
-+
-+	for (haddr = he->h_addr_list; *haddr; haddr++) {
-+		local = is_local_addr(hostname, *haddr, he->h_length);
-+		if (local < 0) 
-+			return local;
-+ 		if (local) {
-+			debug(MODPREFIX "host %s: is localhost",
-+					hostname);
-+			return local;
-+		}
-+	}
-+	return 0;
-+}
-+
- /*
-  * Given a mount string, return (in the same string) the
-- * best mount to use based on weight/locality/rpctime
-+ * best mount to use based on locality/weight/rpctime.
-+ *
-+ * If longtimeout is set to 0 then we only do 100 ms pings to hosts.  In
-+ * the event that this fails, we call ourself recursively with the
-+ * longtimeout option set to 1.  In this case we ping for up to 10s and
-+ * skip logic for detecting if a localhost has been passed. (if a local
-+ * host had been passed, we would have returned that mount as the best
-+ * mount.  The skipping of local maps in this case is an optimization).
-+ *
-  * - return -1 and what = '\0' on error,
-  *           1 and what = local mount path if local bind,
-  *     else  0 and what = remote mount path
-  */
--int get_best_mount(char *what, const char *original, int longtimeout, int skiplocal)
-+int get_best_mount(char *what, const char *original, int longtimeout)
- {
- 	char *p = what;
- 	char *winner = NULL;
- 	int winner_weight = INT_MAX, local = 0;
- 	double winner_time = 0;
--	char *delim;
-+	char *delim, *pstrip;
- 	int sec = (longtimeout) ? 10 : 0;
- 	int micros = (longtimeout) ? 0 : 100000;
-+	int skiplocal = longtimeout; /* clearly local is not available */
- 
- 	if (!p) {
- 		*what = '\0';
- 		return -1;
- 	}
- 
-+	/*
-+	 *  If only one mountpoint has been passed in, we don't need to
-+	 *  do anything except strip whitespace from the end of the string.
-+	 */
-+	if (!is_multimount_entry(p)) {
-+		for (pstrip = p+strlen(p) - 1; pstrip >= p; pstrip--) 
-+			if (isspace(*pstrip))
-+				*pstrip = '\0';
-+
-+		/* Check if the host is the localhost */
-+		if (is_local_mount(p)) {
-+			debug(MODPREFIX "host %s: is localhost", p);
-+
-+			/* Strip off hostname and ':' */
-+			delim = strchr(p,':');
-+			while (delim && *delim != '\0') {
-+				delim++;
-+				*what = *delim;
-+				what++;
-+			}
-+			return 1;
-+		}
-+		return 0;
-+	}
-+
- 	while (p && *p) {
- 		char *next;
- 		unsigned int ping_stat = 0;
-@@ -171,37 +260,17 @@ int get_best_mount(char *what, const cha
- 		/* p points to a server, "next is our next parse point */
- 		if (!skiplocal) {
- 			/* Check if it's localhost */
--			struct hostent *he;
--			char **haddr;
--
--			he = gethostbyname(p);
--			if (!he) {
--				error(MODPREFIX "host %s: lookup failure", p);
--				p = next;
--				continue;
--			}
--
--			/* Check each host in round robin list */
--			for (haddr = he->h_addr_list; *haddr; haddr++) {
--				local = is_local_addr(p, *haddr, he->h_length);
--
--				if (local < 0)
--					continue;
--
--				if (local) {
--					winner = p;
--					break;
--				}
--			}
--			
-+			local = is_local_mount(p);
- 			if (local < 0) {
- 				local = 0;
- 				p = next;
- 				continue;
- 			}
- 
--			if (local)
-+			if (local) {
-+				winner = p;
- 				break;
-+			}
- 		}
- 
- 		/* ping each (or the) entry to see if it's alive. */
-@@ -256,7 +325,7 @@ int get_best_mount(char *what, const cha
- 	 */
- 	if (!local && winner_weight == INT_MAX) {
- 		/* We had more than one contender and none responded in time */
--		if (winner_time != 0 && winner_time > 500) {
-+		if (winner_time == 0 || winner_time > 500) {
- 			/* We've already tried a longer timeout */
- 			if (!longtimeout) {
- 				/* Reset string and try again */
-@@ -267,7 +336,7 @@ int get_best_mount(char *what, const cha
- 				      "retrying with longer timeout",
- 				      original);
- 
--				return get_best_mount(what, original, 1, 1);
-+				return get_best_mount(what, original, 1);
- 			}
- 		}
- 	}
-@@ -395,7 +464,7 @@ int mount_mount(const char *root, const 
- 		/* No colon, take this as a bind (local) entry */
- 		local = 1;
- 	} else if (!nosymlink) {
--		local = get_best_mount(whatstr, what, 0, 0);
-+		local = get_best_mount(whatstr, what, 0);
- 		if (!*whatstr) {
- 			warn(MODPREFIX "no host elected");
- 			return 1;
+<html xmlns:v=3D"urn:schemas-microsoft-com:vml" =
+xmlns:o=3D"urn:schemas-microsoft-com:office:office" =
+xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
+xmlns=3D"http://www.w3.org/TR/REC-html40">
 
---------------090009000202010404040906
+<head>
+<meta http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Dus-ascii">
+<meta name=3DGenerator content=3D"Microsoft Word 11 (filtered medium)">
+<style>
+<!--
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0in;
+	margin-bottom:.0001pt;
+	font-size:12.0pt;
+	font-family:"Times New Roman";}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;}
+span.EmailStyle17
+	{mso-style-type:personal-compose;
+	font-family:Arial;
+	color:windowtext;}
+@page Section1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.25in 1.0in 1.25in;}
+div.Section1
+	{page:Section1;}
+-->
+</style>
+<!--[if gte mso 9]><xml>
+ <o:shapedefaults v:ext=3D"edit" spidmax=3D"1026" />
+</xml><![endif]--><!--[if gte mso 9]><xml>
+ <o:shapelayout v:ext=3D"edit">
+  <o:idmap v:ext=3D"edit" data=3D"1" />
+ </o:shapelayout></xml><![endif]-->
+</head>
+
+<body lang=3DEN-US link=3Dblue vlink=3Dpurple>
+
+<div class=3DSection1>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>Hello,<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>Does autofs / automount have the ability to bind one
+directory to another like &#8216;mount &#8211;o bind dir1 =
+dir2&#8217;?&nbsp;
+And if so, can this be handled by using wildcards in the maps?&nbsp; =
+Here is my
+situation:<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>I have a large directory of user&#8217;s home
+directories.&nbsp; These are in a chroot jail, so making soft links =
+isn&#8217;t
+an option, and hard links won&#8217;t work for directories.&nbsp; I need =
+to bind
+(mount) a directory that lives outside the chroot jail to a directory / =
+mount
+point inside each home directory.&nbsp; The users will only be accessing =
+this
+directory for short periods (to copy a file or two), and I think it =
+would be
+more practical to have autofs mount it whenever they needed access to =
+it, and
+unmount it when they&#8217;re done.<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>I&#8217;m not sure on the exact number of mounted
+filesystems Linux can handle (or if a directory mounded via &#8211;o =
+bind
+counts towards that, though I&#8217;d assume it would), but I would =
+think that
+using automount instead of putting hundreds of entries into fstab would =
+be more
+the Linux way of doing things.&nbsp; Even if I had to put an entry for =
+each
+user in a map, that would be a better solution to me than using fstab, =
+since
+they all wouldn&#8217;t be mounted at the same time, all the =
+time.<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>Dir to be accessed by all users:&nbsp; =
+/home/stuff/everyone<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>Mounted to: =
+/home/users/*/everyone<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>Is this even possible?<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>Thanks,<o:p></o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'><o:p>&nbsp;</o:p></span></font></p>
+
+<p class=3DMsoNormal><font size=3D2 face=3DArial><span =
+style=3D'font-size:10.0pt;
+font-family:Arial'>-Lucas<o:p></o:p></span></font></p>
+
+</div>
+
+</body>
+
+</html>
+
+------=_NextPart_000_015C_01C5442F.2D896D60--
+
+
+--===============0883061913==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -270,5 +250,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---------------090009000202010404040906--
+--===============0883061913==--
 
