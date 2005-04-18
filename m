@@ -1,14 +1,15 @@
 From: Chris Feist <cfeist@redhat.com>
-Subject: Re: [daniel@vision.ime.usp.br: Bug#304245: patch - NFS mounts
-	occasionally fail]
-Date: Mon, 18 Apr 2005 14:44:07 -0500
-Message-ID: <42640E07.9080305@redhat.com>
-References: <20050417154240.GA17232@uio.no>
+Subject: Re: Re: [daniel@vision.ime.usp.br: Bug#304245: patch - NFS
+	mounts occasionally fail]
+Date: Mon, 18 Apr 2005 14:46:17 -0500
+Message-ID: <42640E89.7090005@redhat.com>
+References: <20050417154240.GA17232@uio.no>	<20050417181827.GA13101@vision.ime.usp.br>
+	<Pine.LNX.4.62.0504182142090.14946@donald.themaw.net>
 Reply-To: cfeist@redhat.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------020707020807070203080609"
+Content-Type: multipart/mixed; boundary="------------090009000202010404040906"
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20050417154240.GA17232@uio.no>
+In-Reply-To: <Pine.LNX.4.62.0504182142090.14946@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,29 +20,32 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: raven@themaw.net, autofs@linux.kernel.org
 
 This is a multi-part message in MIME format.
---------------020707020807070203080609
+--------------090009000202010404040906
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
-I'm currently using the attached patch which should fix this problem. We've 
-tested it and it works pretty well (It also fixes a problem with local mounts 
-not using --bind).
+I've attached the redhat patch which should fix this problem as well.  (And 
+we've tested it and it seems to work pretty well).
 
 Thanks,
 Chris
 
-Steinar H. Gunderson wrote:
-> Hi,
+raven@themaw.net wrote:
+> On Sun, 17 Apr 2005, Daniel Andre Vaquero wrote:
 > 
-> Thanks for the patch; sending upstream for evaluation.
+>> Hi,
+>>
+>> My editor broke the indentation style in the patch; I'm resending it as
+>> an attached file.
 > 
-> /* Steinar */
 > 
+> Will check out the patch.
 > 
-> ------------------------------------------------------------------------
+> Thanks for the feedback.
+> Ian
 > 
 > _______________________________________________
 > autofs mailing list
@@ -49,7 +53,7 @@ Steinar H. Gunderson wrote:
 > http://linux.kernel.org/mailman/listinfo/autofs
 
 
---------------020707020807070203080609
+--------------090009000202010404040906
 Content-Type: text/x-patch;
  name="autofs-4.1.4-non-replicated-ping.patch"
 Content-Transfer-Encoding: 7bit
@@ -255,7 +259,7 @@ Content-Disposition: inline; filename="autofs-4.1.4-non-replicated-ping.patch"
  			warn(MODPREFIX "no host elected");
  			return 1;
 
---------------020707020807070203080609
+--------------090009000202010404040906
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -266,5 +270,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---------------020707020807070203080609--
+--------------090009000202010404040906--
 
