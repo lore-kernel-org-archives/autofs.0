@@ -1,15 +1,13 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: Re: [patch, rfc] fix hung automounter issues
-Date: Mon, 18 Apr 2005 09:45:17 -0400
-Message-ID: <16995.47597.676985.360271@segfault.boston.redhat.com>
-References: <16990.26693.814813.479017@segfault.boston.redhat.com>
-	<Pine.LNX.4.62.0504182108230.14946@donald.themaw.net>
-	<Pine.LNX.4.62.0504182136110.14946@donald.themaw.net>
-Reply-To: jmoyer@redhat.com
+From: raven@themaw.net
+Subject: Re: Re: [daniel@vision.ime.usp.br: Bug#304245: patch - NFS
+	mounts occasionally fail]
+Date: Mon, 18 Apr 2005 21:42:48 +0800 (WST)
+Message-ID: <Pine.LNX.4.62.0504182142090.14946@donald.themaw.net>
+References: <20050417154240.GA17232@uio.no>
+	<20050417181827.GA13101@vision.ime.usp.br>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.62.0504182136110.14946@donald.themaw.net>
+In-Reply-To: <20050417181827.GA13101@vision.ime.usp.br>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,30 +18,19 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: raven@themaw.net
-Cc: autofs mailing list <autofs@linux.kernel.org>, Dan.Berrange@ubs.com
+Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
+Content-Transfer-Encoding: 7bit
+To: Daniel Andre Vaquero <daniel@vision.ime.usp.br>
+Cc: autofs@linux.kernel.org, 304245@bugs.debian.org
 
-==> Regarding Re: [autofs] Re: [patch, rfc] fix hung automounter issues; raven@themaw.net adds:
+On Sun, 17 Apr 2005, Daniel Andre Vaquero wrote:
 
-raven> On Mon, 18 Apr 2005 raven@themaw.net wrote:
+> Hi,
+>
+> My editor broke the indentation style in the patch; I'm resending it as
+> an attached file.
 
-raven> Hang on, I think I've got a problem with white space and my mailer.
+Will check out the patch.
 
-raven> If you have problems with the patch in the previous mail try this one 
-raven> instead (maybe just use this one).
-
-Oops, we need to disable signals when flushing the logs.  The following is
-unsafe:
-
-> +static void flush_log(void)
-> +{
-> +	int i;
-> +
-> +	for (i = 0; i < ringlen; i++)
-> +		syslog(logbuf[i].pri, logbuf[i].buf);
-> +	ringlen = 0;
-> +}
-> +
-
--Jeff
+Thanks for the feedback.
+Ian
