@@ -1,15 +1,14 @@
-From: Timo Felbinger <timo.felbinger@physik.uni-potsdam.de>
-Subject: Re: LDAP questions
-Date: Mon, 18 Apr 2005 16:23:59 +0200
-Message-ID: <20050418142359.GG1010@uranos.quantum.physik.uni-potsdam.de>
-References: <ufa8y3krl0t.fsf@epithumia.math.uh.edu>
-	<Pine.LNX.4.62.0504161253520.8246@donald.themaw.net>
-	<ufavf6kdx4x.fsf@epithumia.math.uh.edu>
-Reply-To: Timo Felbinger <timo.felbinger@physik.uni-potsdam.de>
+From: raven@themaw.net
+Subject: Re: Re: [patch, rfc] fix hung automounter issues
+Date: Tue, 19 Apr 2005 01:15:58 +0800 (WST)
+Message-ID: <Pine.LNX.4.62.0504190115210.14946@donald.themaw.net>
+References: <16990.26693.814813.479017@segfault.boston.redhat.com>
+	<Pine.LNX.4.62.0504182108230.14946@donald.themaw.net>
+	<Pine.LNX.4.62.0504182136110.14946@donald.themaw.net>
+	<16995.47597.676985.360271@segfault.boston.redhat.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <ufavf6kdx4x.fsf@epithumia.math.uh.edu>
+In-Reply-To: <16995.47597.676985.360271@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,31 +19,35 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
-To: autofs@linux.kernel.org
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: autofs mailing list <autofs@linux.kernel.org>, Dan.Berrange@ubs.com
 
-On Mon, Apr 18, 2005 at 08:37:02AM -0500, Jason L Tibbitts III wrote:
-> 
-> >>>>> "r" == raven  <raven@themaw.net> writes:
-> 
-> r> I'm afraid you'll have to wait for the LDAP patches to be merged.
-> 
-> No problem.  I'm always happy to test things out; are these patches
-> available anywhere?
-> 
+On Mon, 18 Apr 2005, Jeff Moyer wrote:
 
-On http://timof.qipc.org/autofs, you can find patches for both
-autofs-4.1.3 and autofs-4.1.4. So far, they work well for me,
-but they definitely need more testing. So, feel free to try them!
+> ==> Regarding Re: [autofs] Re: [patch, rfc] fix hung automounter issues; raven@themaw.net adds:
+>
+> raven> On Mon, 18 Apr 2005 raven@themaw.net wrote:
+>
+> raven> Hang on, I think I've got a problem with white space and my mailer.
+>
+> raven> If you have problems with the patch in the previous mail try this one
+> raven> instead (maybe just use this one).
+>
+> Oops, we need to disable signals when flushing the logs.  The following is
+> unsafe:
+>
+>> +static void flush_log(void)
+>> +{
+>> +	int i;
+>> +
+>> +	for (i = 0; i < ringlen; i++)
+>> +		syslog(logbuf[i].pri, logbuf[i].buf);
+>> +	ringlen = 0;
+>> +}
+>> +
 
-Regards,
+But it's static and only called when signals are blocked.
 
-Timo
-
-
--- 
-Timo Felbinger                  <Timo.Felbinger@physik.uni-potsdam.de>
-Quantum Physics Group           http://www.quantum.physik.uni-potsdam.de
-Institut fuer Physik            Tel: +49 331 977 1793      Fax: -1767
-Universitaet Potsdam, Germany
+Ian
