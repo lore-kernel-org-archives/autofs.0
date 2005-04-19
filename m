@@ -1,14 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: Re: [patch, rfc] fix hung automounter issues
-Date: Tue, 19 Apr 2005 10:56:04 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0504191054060.12674@wombat.indigo.net.au>
-References: <16990.26693.814813.479017@segfault.boston.redhat.com>
-	<Pine.LNX.4.62.0504182108230.14946@donald.themaw.net>
-	<Pine.LNX.4.62.0504182136110.14946@donald.themaw.net>
-	<16996.18646.775008.395575@segfault.boston.redhat.com>
+Subject: Re: LDAP questions
+Date: Tue, 19 Apr 2005 14:32:53 +0800 (WST)
+Message-ID: <Pine.LNX.4.58.0504191429330.17350@wombat.indigo.net.au>
+References: <ufa8y3krl0t.fsf@epithumia.math.uh.edu>
+	<Pine.LNX.4.62.0504161253520.8246@donald.themaw.net>
+	<ufavf6kdx4x.fsf@epithumia.math.uh.edu>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <16996.18646.775008.395575@segfault.boston.redhat.com>
+In-Reply-To: <ufavf6kdx4x.fsf@epithumia.math.uh.edu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,21 +20,34 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: autofs mailing list <autofs@linux.kernel.org>, Dan.Berrange@ubs.com
+To: Jason L Tibbitts III <tibbs@math.uh.edu>
+Cc: autofs@linux.kernel.org
 
-On Mon, 18 Apr 2005, Jeff Moyer wrote:
+On Mon, 18 Apr 2005, Jason L Tibbitts III wrote:
+
+> >>>>> "r" == raven  <raven@themaw.net> writes:
+> 
+> r> But the logic is fairly simple in the sense that autofs will only
+> r> update it's map when it attempts a mount.
+> 
+> I understand.  As I understand things, fresh data will be fetched if
+> it attempts a mount from cached data which fails.  The most
+> significant implication of this is that you cannot smoothly migrate
+> from one server to another by making a copy and then changing the LDAP
+> map; the clients won't stop using the old server as long as they can
+> still mount from it.
+
+You can send a HUP signal to the daemon to force a map re-read as well.
 
 > 
-> Okay, I've reviewed all parts except for the actual logging functions.  I'm
-> actually not convinced this is the right approach.  The overhead of setting
-> up and tearing down the signal mask is quite expensive.  I fear that
-> environments with a great number of mounts will fall over when debugging is
-> turned on, and that is the very thing we are trying to save.  Perhaps it is
-> worth another look at a separate logging process.
+> Not a big deal as long as you know about it.
 > 
+> r> I'm afraid you'll have to wait for the LDAP patches to be merged.
+> 
+> No problem.  I'm always happy to test things out; are these patches
+> available anywhere?
 
-I'm also concerned about using an array to store the log messages.
-This could overflow in heavy load mount situations.
+They've been posted to the list but I've not had a chance to look at them 
+yet. There are a couple of LDAP requests (and associated patches).
 
 Ian
