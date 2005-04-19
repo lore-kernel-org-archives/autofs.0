@@ -1,12 +1,12 @@
 From: raven@themaw.net
-Subject: Re: replicated mounts patch
-Date: Wed, 20 Apr 2005 00:58:23 +0800 (WST)
-Message-ID: <Pine.LNX.4.62.0504200053250.8587@donald.themaw.net>
-References: <1113875877.4581.15.camel@tleilax.poochiereds.net>
-	<1113912312.1274.26.camel@barsoom.rdu.redhat.com>
+Subject: Re: [daniel@vision.ime.usp.br: Bug#304245: patch - NFS
+	mounts occasionally fail]
+Date: Wed, 20 Apr 2005 01:00:30 +0800 (WST)
+Message-ID: <Pine.LNX.4.62.0504200059370.8587@donald.themaw.net>
+References: <20050417154240.GA17232@uio.no>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1113912312.1274.26.camel@barsoom.rdu.redhat.com>
+In-Reply-To: <20050417154240.GA17232@uio.no>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,20 +19,15 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
-To: Jeffrey Layton <jtlayton@poochiereds.net>
-Cc: autofs@linux.kernel.org
+To: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
+Cc: autofs@linux.kernel.org, daniel@vision.ime.usp.br, 304245@bugs.debian.org
 
-On Tue, 19 Apr 2005, Jeffrey Layton wrote:
+On Sun, 17 Apr 2005, Steinar H. Gunderson wrote:
 
-> Doh! Just realized that there was a rather nasty logic bug in the last
-> patch I sent that could cause it to go into an infinite loop. This patch
-> should take care of that (and also makes the code a little cleaner).
+> Hi,
+>
+> Thanks for the patch; sending upstream for evaluation.
 
-I've not had a chance to look at this patch much yet but I have a 
-couple of questions the bit that I did look at.
-
-Does the is_local_addr function work correctly for multi-homed hosts?
-Does the parse_mount_string work for something like:
-"host1 , host2	 ,host3,  host4:/this/dir"?
+Has this patch been tested with multi-mount map entries?
 
 Ian
