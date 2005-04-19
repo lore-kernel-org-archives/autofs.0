@@ -1,13 +1,13 @@
-From: Max Matveev <makc@sgi.com>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: sgi IRIX-6.5 autofs
-Date: Tue, 19 Apr 2005 19:08:36 +1000
-Message-ID: <16996.51860.889578.213550@kuku.melbourne.sgi.com>
+Date: Tue, 19 Apr 2005 17:33:47 +0800 (WST)
+Message-ID: <Pine.LNX.4.58.0504191732380.21257@wombat.indigo.net.au>
 References: <16995.31446.632122.928444@kuku.melbourne.sgi.com>
 	<Pine.LNX.4.62.0504182128250.14946@donald.themaw.net>
+	<16996.51860.889578.213550@kuku.melbourne.sgi.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.62.0504182128250.14946@donald.themaw.net>
+In-Reply-To: <16996.51860.889578.213550@kuku.melbourne.sgi.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,23 +18,33 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: raven@themaw.net
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Max Matveev <makc@sgi.com>
 Cc: autofs@linux.kernel.org
 
->>>>> "ian" == raven  <raven@themaw.net> writes:
+On Tue, 19 Apr 2005, Max Matveev wrote:
 
+> >>>>> "ian" == raven  <raven@themaw.net> writes:
+> 
+> 
+>  ian> Colour ls will mount everything when you list an autofs
+>  ian> directory and this (the mount storm on large autofs directories)
+>  ian> was seen as undesirable for lazy mounting in a browsable tree.
+> 
+> It sounds like an attempt to fix appliction bug in the kernel - color
+> ls should've used lstat(2) instead of stat(2). But if people are happy
+> with such behaviour then there is no need to change it.
 
- ian> Colour ls will mount everything when you list an autofs
- ian> directory and this (the mount storm on large autofs directories)
- ian> was seen as undesirable for lazy mounting in a browsable tree.
+Yea.
 
-It sounds like an attempt to fix appliction bug in the kernel - color
-ls should've used lstat(2) instead of stat(2). But if people are happy
-with such behaviour then there is no need to change it.
+Oddly, Solaris automounter seems to behave this way as well.
 
-BTW, Greg's problem with 30 sec timeout could be because server does
-not reply - tcpdump/ethereal run on a client should confirm or refute
-this hypothesis.
+> 
+> BTW, Greg's problem with 30 sec timeout could be because server does
+> not reply - tcpdump/ethereal run on a client should confirm or refute
+> this hypothesis.
 
-max
+Greg?
+
+Ian
