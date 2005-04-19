@@ -1,16 +1,13 @@
-From: raven@themaw.net
-Subject: Re: replicated mounts patch
-Date: Wed, 20 Apr 2005 19:34:29 +0800 (WST)
-Message-ID: <Pine.LNX.4.62.0504201932310.1883@donald.themaw.net>
-References: <1113875877.4581.15.camel@tleilax.poochiereds.net> 
-	<1113912312.1274.26.camel@barsoom.rdu.redhat.com> 
-	<Pine.LNX.4.62.0504200053250.8587@donald.themaw.net> 
-	<1113941787.1274.84.camel@barsoom.rdu.redhat.com> 
-	<Pine.LNX.4.58.0504200922220.7460@wombat.indigo.net.au>
-	<1113960613.5879.14.camel@tleilax.poochiereds.net>
+From: Daniel Andre Vaquero <daniel@vision.ime.usp.br>
+Subject: Re: Bug#304245: patch - NFS mounts occasionally fail
+Date: Tue, 19 Apr 2005 18:06:53 -0300
+Message-ID: <20050419210653.GA15270@vision.ime.usp.br>
+References: <20050417154240.GA17232@uio.no>
+	<Pine.LNX.4.62.0504200059370.8587@donald.themaw.net>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1113960613.5879.14.camel@tleilax.poochiereds.net>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.62.0504200059370.8587@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,31 +18,34 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jeff Layton <jtlayton@poochiereds.net>
-Cc: autofs@linux.kernel.org
+To: raven@themaw.net
+Cc: autofs@linux.kernel.org, 304245@bugs.debian.org
 
-On Tue, 19 Apr 2005, Jeff Layton wrote:
+Hi,
 
-> On Wed, 2005-04-20 at 09:25 +0800, Ian Kent wrote:
->> But, I've had complaints about it in the past.
->> Call it an added feature.
->>
->> If we choose to not require it we will need to be clear about it in the
->> doco.
->>
->> Personally, I like to be able to add a space after each comma for
->> readability.
->>
->> Ian
->>
->
-> It's certainly possible to do it, but will probably require rewriting
-> the entire parser since my current approach probably won't work if we
-> allow for it. Using POSIX regex'es might make it easier, but I'll need
-> to look at how you use them under C.
+On Wed, Apr 20, 2005 at 01:00:30AM +0800, raven@themaw.net wrote:
+> 
+> Has this patch been tested with multi-mount map entries?
 
-What about a function to chew up spaces before the colon, then parse.
+I don't have experience with multi-mount map entries, but I have done a
+small test with entries like this (borrowed from
+http://linux.kernel.org/pipermail/autofs/2005-February/001909.html):
 
-Ian
+auto.master contains:
+
+/testing    /etc/auto.testing
+
+/etc/auto.testing contains:
+
+foo     -ro,hard,intr \
+        /dir/bar        server:/export/a \
+        /dir/baz        server:/export/b
+
+It seems to work (both directories were mounted) if I cd to
+/testing/foo. After the expiration time they were also unmounted.
+
+Thanks,
+
+Daniel
