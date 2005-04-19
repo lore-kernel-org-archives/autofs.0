@@ -1,11 +1,13 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Re: Bug#304245: patch - NFS mounts occasionally fail
-Date: Tue, 19 Apr 2005 14:37:15 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0504191434350.17350@wombat.indigo.net.au>
-References: <200504190130.j3J1UCKj002166@cornholio.qualcomm.com>
+From: Max Matveev <makc@sgi.com>
+Subject: Re: sgi IRIX-6.5 autofs
+Date: Tue, 19 Apr 2005 19:08:36 +1000
+Message-ID: <16996.51860.889578.213550@kuku.melbourne.sgi.com>
+References: <16995.31446.632122.928444@kuku.melbourne.sgi.com>
+	<Pine.LNX.4.62.0504182128250.14946@donald.themaw.net>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200504190130.j3J1UCKj002166@cornholio.qualcomm.com>
+In-Reply-To: <Pine.LNX.4.62.0504182128250.14946@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,34 +18,23 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Michael Marion <mmarion@qualcomm.com>
+Content-Type: text/plain; charset="us-ascii"
+To: raven@themaw.net
 Cc: autofs@linux.kernel.org
 
-On Mon, 18 Apr 2005, Michael Marion wrote:
+>>>>> "ian" == raven  <raven@themaw.net> writes:
 
-> On 16 Apr, Daniel Andre Vaquero wrote:
-> 
-> > After some days of testing with upstream version 4.1.4, I noticed that it
-> > is also broken (although mount failures occur less frequently). My scenario
-> > consists of a single server, with no replicated mounts. Debugging the code,
-> 
-> Hmm... so you're saying that this happens even when you have just one mount
-> listed in the map?  Odd since the subroutine shouldn't even do the rpc ping if
-> there's only one possible mount.. at least it seems that way.
 
-I've said that before but I was wrong. Sorry.
+ ian> Colour ls will mount everything when you list an autofs
+ ian> directory and this (the mount storm on large autofs directories)
+ ian> was seen as undesirable for lazy mounting in a browsable tree.
 
-> 
-> I'll be doing some testing here tomorrow as well, since this sounds like it
-> may solve the problem we've been having with lsf jobs submitted to linux hosts
-> for a long time now... and has been a big thorn in our side.  The fact that
-> it's a timing issue and it seems to happen more often when the filer in
-> question is heavily loaded would seem to reinforce that this might be the
-> cause as well.
+It sounds like an attempt to fix appliction bug in the kernel - color
+ls should've used lstat(2) instead of stat(2). But if people are happy
+with such behaviour then there is no need to change it.
 
-We have two patches for this issue now.
-Since this is still a problem I'll be working on this next (again).
+BTW, Greg's problem with 30 sec timeout could be because server does
+not reply - tcpdump/ethereal run on a client should confirm or refute
+this hypothesis.
 
-Ian
+max
