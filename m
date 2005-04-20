@@ -1,12 +1,11 @@
 From: raven@themaw.net
 Subject: RE: mount -o bind
-Date: Wed, 20 Apr 2005 19:57:18 +0800 (WST)
-Message-ID: <Pine.LNX.4.62.0504201949060.1883@donald.themaw.net>
+Date: Wed, 20 Apr 2005 20:02:23 +0800 (WST)
+Message-ID: <Pine.LNX.4.62.0504201958130.1883@donald.themaw.net>
 References: <200504192203.j3JM3CJ32241@mail.velociti.us>
-	<Pine.LNX.4.61.0504192158380.14524@xena.cft.ca.us>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.61.0504192158380.14524@xena.cft.ca.us>
+In-Reply-To: <200504192203.j3JM3CJ32241@mail.velociti.us>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,34 +18,75 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
-To: Jim Carter <jimc@math.ucla.edu>
+To: Lucas Peet <lpeet@velociti.us>
 Cc: autofs@linux.kernel.org
 
-On Tue, 19 Apr 2005, Jim Carter wrote:
+On Tue, 19 Apr 2005, Lucas Peet wrote:
 
 >
-> /ftp/* -bind /home/users/& /home/users/&/data
+> On Wed, 20 Apr 2005 raven@themaw.net wrote:
+>
+>> What would be the map key in this case?
+>
+> I *think* the key would be the user's home directory?
+>
+>> Perhaps you could do something like ...
+>>
+>> auto.master:
+>> /home	/etc/autofs.home
+>>
+>> autofs.home:
+>> *	/ :/home/users/& :/home/stuff/&/everyone
+>
+> I don't understand a whole lot about autofs just yet (I'm learning though!)
+> but I'm not sure if that's what I'm after.
+>
+> Say I have a 200GB drive in the system for a central shared filestore,
+> mounted as /data.  I have this shared via Samba on the network.  I want this
+> to be available as /home/users/lpeet/data (for each user in /home/users) so
+> it can be accessed via FTP as well.
+>
+>> I haven't tried this so I'm not sure it will work.
+>> Give it a try. It will be interesting to see how chroot affects this as
+> that
+>> will probably affect the path that autofs gets back at mount request time.
+>
+> The chroot environment isn't system wide - it's only in place when
+> connecting through FTP.  Do you still think that will affect the path?
 
-That would be something like
+See following message but ...
 
-auto.master
+In the case that I describe the chroot will cause the mount.
+Both the needed directories will be mounted before chroot completes so in 
+the case I've described it should be OK.
 
-/ftp	/etc/autofs.multi
+What kernel are you using?
+This could make a difference.
 
-and in autofs.multi
+>
+>> Note that it can't work with anything less than 4.1.4 for the : escape to
+>> work in multi-maps.
 
-*	-bind	/users/&	:/home/users/&	\
- 		/users/&/data	:/home/users/&/data
+That's the ":" escape I'm talking about.
+If you use localhost the mounts should be bind mounts anyway, giving the 
+same result.
 
-Which, on access (when ftp daemon changes to login directory) by, 
-say user iank, should mount
+>
+> I'm upgrading now.  :)
+>
+>> And another thing.
+>> This would mount two directories at a time. When the mount times out both
+>> would be umounted.
+>
+> So...does this mean that since there's only one mapping, using a wildcard,
+> that if say one user logs in, access the directory, that automount will
+> mount the directory for every user or just the user that requested it to be
+> mounted?  At the same time, if the timeout occurs for one user, will it
+> unmount the directory for all the users? Or will it leave the directory
+> mounted for all the users and wait until the last user has stopped accessing
+> it, and unmount it for all the users at that time?
 
-/home/users/iank	on 	/ftp/users/iank
-/home/users/iank/data	on	/ftp/users/iank/data
-
-and after logout should umount both mounts on timeout.
-
-the "*" wildcard key is replaced in the mount entry to form the mounts.
-Only directories that are walked on should be mounted.
+They would be mounted on demand.
+See following post.
 
 Ian
