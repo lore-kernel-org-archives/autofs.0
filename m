@@ -1,7 +1,7 @@
 From: Jeffrey Layton <jtlayton@poochiereds.net>
 Subject: Re: replicated mounts patch
-Date: Wed, 20 Apr 2005 11:54:04 -0400
-Message-ID: <1114012444.9683.28.camel@barsoom.rdu.redhat.com>
+Date: Wed, 20 Apr 2005 12:03:23 -0400
+Message-ID: <1114013003.9683.31.camel@barsoom.rdu.redhat.com>
 References: <1113875877.4581.15.camel@tleilax.poochiereds.net>
 	<1113912312.1274.26.camel@barsoom.rdu.redhat.com>
 	<Pine.LNX.4.62.0504200053250.8587@donald.themaw.net>
@@ -9,10 +9,11 @@ References: <1113875877.4581.15.camel@tleilax.poochiereds.net>
 	<Pine.LNX.4.58.0504200903300.7460@wombat.indigo.net.au>
 	<1113959940.5879.5.camel@tleilax.poochiereds.net>
 	<Pine.LNX.4.62.0504202319550.9260@donald.themaw.net>
+	<16998.31297.836977.160607@segfault.boston.redhat.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.62.0504202319550.9260@donald.themaw.net>
+In-Reply-To: <16998.31297.836977.160607@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,32 +25,18 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: raven@themaw.net
-Cc: autofs@linux.kernel.org
+To: jmoyer@redhat.com
+Cc: autofs@linux.kernel.org, raven@themaw.net
 
-On Wed, 2005-04-20 at 23:24 +0800, raven@themaw.net wrote:
-> I've tested this and it certainly seems to work.
+On Wed, 2005-04-20 at 11:50 -0400, Jeff Moyer wrote:
+> Does this patch actually change any of those interactions?  I guess I'll
+> have to look at this earlier than I had planned.
 > 
-> But another thing came to mind.
-> 
-> We've had complaints about ports and protocols being blocked for the 
-> rpc_ping function.
-> 
-> Any thoughts on how to work around that?
 
-My patch should address this somewhat -- it looks for the 'tcp' and
-'nfsvers=' mount options and does the RPC ping according to those. So if
-the ping doesn't work due to blocked ports, then the mount won't work
-either.
+It shouldn't -- I just use the existing rpc_time() function, so it
+should do the RPC ping pretty much the same as the original code. The
+only difference should be that my patch looks for the tcp and nfsvers=3
+mount options and does the ping accordingly if they're specified.
 
-> The other thing that plagues us is that when we open TCP sockets they hang 
-> around which causes port exaustion.
-> Thoughts on that as well?
-
-On this part, there's not much we can do. The kernel leaves sockets in
-FIN_WAIT for a little while in case any stray packets come in after the
-connection has been closed. I don't think much (if anything) can be done
-from userspace to affect this, other than to close the socket as soon as
-possible.
-
--- Jeff
+-- 
+Jeffrey Layton <jtlayton@poochiereds.net>
