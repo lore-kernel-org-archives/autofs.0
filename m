@@ -1,7 +1,7 @@
-From: Jeff Moyer <jmoyer@redhat.com>
+From: Jeffrey Layton <jtlayton@poochiereds.net>
 Subject: Re: replicated mounts patch
-Date: Wed, 20 Apr 2005 11:50:25 -0400
-Message-ID: <16998.31297.836977.160607@segfault.boston.redhat.com>
+Date: Wed, 20 Apr 2005 11:54:04 -0400
+Message-ID: <1114012444.9683.28.camel@barsoom.rdu.redhat.com>
 References: <1113875877.4581.15.camel@tleilax.poochiereds.net>
 	<1113912312.1274.26.camel@barsoom.rdu.redhat.com>
 	<Pine.LNX.4.62.0504200053250.8587@donald.themaw.net>
@@ -9,7 +9,6 @@ References: <1113875877.4581.15.camel@tleilax.poochiereds.net>
 	<Pine.LNX.4.58.0504200903300.7460@wombat.indigo.net.au>
 	<1113959940.5879.5.camel@tleilax.poochiereds.net>
 	<Pine.LNX.4.62.0504202319550.9260@donald.themaw.net>
-Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
@@ -28,35 +27,29 @@ Content-Type: text/plain; charset="us-ascii"
 To: raven@themaw.net
 Cc: autofs@linux.kernel.org
 
-==> Regarding Re: [autofs] replicated mounts patch; raven@themaw.net adds:
+On Wed, 2005-04-20 at 23:24 +0800, raven@themaw.net wrote:
+> I've tested this and it certainly seems to work.
+> 
+> But another thing came to mind.
+> 
+> We've had complaints about ports and protocols being blocked for the 
+> rpc_ping function.
+> 
+> Any thoughts on how to work around that?
 
-raven> On Tue, 19 Apr 2005, Jeff Layton wrote:
->> On Wed, 2005-04-20 at 09:12 +0800, Ian Kent wrote:
->>> I'm not saying the original code works.
->>> 
->>> I don't think it will work.  Can you test this or should I setup an
->>> environment to test it?
->> Hmmm, I don't have a multi-homed host to test this on, but it looks to
->> me like it should do the right thing. I'll see if I can find one that I
->> can test on, but if you have a multi-homed host handy it would save me
->> some trouble.
+My patch should address this somewhat -- it looks for the 'tcp' and
+'nfsvers=' mount options and does the RPC ping according to those. So if
+the ping doesn't work due to blocked ports, then the mount won't work
+either.
 
-raven> I've tested this and it certainly seems to work.
+> The other thing that plagues us is that when we open TCP sockets they hang 
+> around which causes port exaustion.
+> Thoughts on that as well?
 
-raven> But another thing came to mind.
+On this part, there's not much we can do. The kernel leaves sockets in
+FIN_WAIT for a little while in case any stray packets come in after the
+connection has been closed. I don't think much (if anything) can be done
+from userspace to affect this, other than to close the socket as soon as
+possible.
 
-raven> We've had complaints about ports and protocols being blocked for the
-raven> rpc_ping function.
-
-raven> Any thoughts on how to work around that?  The other thing that
-raven> plagues us is that when we open TCP sockets they hang around which
-raven> causes port exaustion.  Thoughts on that as well?
-
-Depending on what you're doing, you don't need a reserved port to do an RPC
-NULL function call.  I thought we shook this down already, and got rid of
-all of the unneeded calls using reserved ports?
-
-Does this patch actually change any of those interactions?  I guess I'll
-have to look at this earlier than I had planned.
-
--Jeff
+-- Jeff
