@@ -1,16 +1,16 @@
 From: raven@themaw.net
 Subject: Re: replicated mounts patch
-Date: Wed, 20 Apr 2005 19:31:53 +0800 (WST)
-Message-ID: <Pine.LNX.4.62.0504201929240.1883@donald.themaw.net>
+Date: Wed, 20 Apr 2005 19:34:29 +0800 (WST)
+Message-ID: <Pine.LNX.4.62.0504201932310.1883@donald.themaw.net>
 References: <1113875877.4581.15.camel@tleilax.poochiereds.net> 
 	<1113912312.1274.26.camel@barsoom.rdu.redhat.com> 
 	<Pine.LNX.4.62.0504200053250.8587@donald.themaw.net> 
-	<1113933871.1274.56.camel@barsoom.rdu.redhat.com> 
-	<Pine.LNX.4.58.0504200903300.7460@wombat.indigo.net.au>
-	<1113959940.5879.5.camel@tleilax.poochiereds.net>
+	<1113941787.1274.84.camel@barsoom.rdu.redhat.com> 
+	<Pine.LNX.4.58.0504200922220.7460@wombat.indigo.net.au>
+	<1113960613.5879.14.camel@tleilax.poochiereds.net>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1113959940.5879.5.camel@tleilax.poochiereds.net>
+In-Reply-To: <1113960613.5879.14.camel@tleilax.poochiereds.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -28,19 +28,24 @@ Cc: autofs@linux.kernel.org
 
 On Tue, 19 Apr 2005, Jeff Layton wrote:
 
-> On Wed, 2005-04-20 at 09:12 +0800, Ian Kent wrote:
->> I'm not saying the original code works.
+> On Wed, 2005-04-20 at 09:25 +0800, Ian Kent wrote:
+>> But, I've had complaints about it in the past.
+>> Call it an added feature.
 >>
->> I don't think it will work.
->> Can you test this or should I setup an environment to test it?
+>> If we choose to not require it we will need to be clear about it in the
+>> doco.
+>>
+>> Personally, I like to be able to add a space after each comma for
+>> readability.
+>>
+>> Ian
+>>
 >
-> Hmmm, I don't have a multi-homed host to test this on, but it looks to
-> me like it should do the right thing. I'll see if I can find one that I
-> can test on, but if you have a multi-homed host handy it would save me
-> some trouble.
+> It's certainly possible to do it, but will probably require rewriting
+> the entire parser since my current approach probably won't work if we
+> allow for it. Using POSIX regex'es might make it easier, but I'll need
+> to look at how you use them under C.
 
-It's difficult for me as well.
-If I want to do it I'll need to setup another subnet on my little router 
-and stick another network card in a machine here at home.
+What about a function to chew up spaces before the colon, then parse.
 
 Ian
