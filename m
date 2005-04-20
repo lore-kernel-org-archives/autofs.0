@@ -1,15 +1,16 @@
 From: raven@themaw.net
-Subject: Re: Bug#304245: patch - NFS mounts occasionally fail
-Date: Wed, 20 Apr 2005 19:27:45 +0800 (WST)
-Message-ID: <Pine.LNX.4.62.0504201927070.1883@donald.themaw.net>
-References: <20050417154240.GA17232@uio.no>
-	<Pine.LNX.4.62.0504200059370.8587@donald.themaw.net>
-	<20050419210653.GA15270@vision.ime.usp.br>
-	<Pine.LNX.4.58.0504200859160.7460@wombat.indigo.net.au>
-	<20050420013214.GA9960@vision.ime.usp.br>
+Subject: Re: replicated mounts patch
+Date: Wed, 20 Apr 2005 19:31:53 +0800 (WST)
+Message-ID: <Pine.LNX.4.62.0504201929240.1883@donald.themaw.net>
+References: <1113875877.4581.15.camel@tleilax.poochiereds.net> 
+	<1113912312.1274.26.camel@barsoom.rdu.redhat.com> 
+	<Pine.LNX.4.62.0504200053250.8587@donald.themaw.net> 
+	<1113933871.1274.56.camel@barsoom.rdu.redhat.com> 
+	<Pine.LNX.4.58.0504200903300.7460@wombat.indigo.net.au>
+	<1113959940.5879.5.camel@tleilax.poochiereds.net>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20050420013214.GA9960@vision.ime.usp.br>
+In-Reply-To: <1113959940.5879.5.camel@tleilax.poochiereds.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,28 +23,24 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
-To: Daniel Andre Vaquero <daniel@vision.ime.usp.br>
-Cc: autofs@linux.kernel.org, 304245@bugs.debian.org
+To: Jeff Layton <jtlayton@poochiereds.net>
+Cc: autofs@linux.kernel.org
 
-On Tue, 19 Apr 2005, Daniel Andre Vaquero wrote:
+On Tue, 19 Apr 2005, Jeff Layton wrote:
 
-> On Wed, Apr 20, 2005 at 09:02:22AM +0800, Ian Kent wrote:
+> On Wed, 2005-04-20 at 09:12 +0800, Ian Kent wrote:
+>> I'm not saying the original code works.
 >>
->> Fine, but what I'm after is what happpens when the ping fails for all
->> servers. Changing the host names to bogus names should be enough.
+>> I don't think it will work.
+>> Can you test this or should I setup an environment to test it?
 >
-> Changed /etc/auto.testing to
->
-> foo     -ro,hard,intr \
->        /dir/bar        bogus:/usr/local/bin \
->        /dir/baz        morebogus:/usr/local/sbin
->
-> cd /testing/foo resulted in the part of the log that follows attached.
->
+> Hmmm, I don't have a multi-homed host to test this on, but it looks to
+> me like it should do the right thing. I'll see if I can find one that I
+> can test on, but if you have a multi-homed host handy it would save me
+> some trouble.
 
-Cool.
-
-That seems to work properly.
-Thanks for doing that for me.
+It's difficult for me as well.
+If I want to do it I'll need to setup another subnet on my little router 
+and stick another network card in a machine here at home.
 
 Ian
