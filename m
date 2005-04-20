@@ -1,11 +1,18 @@
 From: raven@themaw.net
-Subject: RE: mount -o bind
-Date: Wed, 20 Apr 2005 20:02:23 +0800 (WST)
-Message-ID: <Pine.LNX.4.62.0504201958130.1883@donald.themaw.net>
-References: <200504192203.j3JM3CJ32241@mail.velociti.us>
+Subject: Re: replicated mounts patch
+Date: Wed, 20 Apr 2005 20:13:50 +0800 (WST)
+Message-ID: <Pine.LNX.4.62.0504202006530.1883@donald.themaw.net>
+References: <1113875877.4581.15.camel@tleilax.poochiereds.net>
+	<1113912312.1274.26.camel@barsoom.rdu.redhat.com>
+	<Pine.LNX.4.62.0504200053250.8587@donald.themaw.net>
+	<1113941787.1274.84.camel@barsoom.rdu.redhat.com>
+	<Pine.LNX.4.58.0504200922220.7460@wombat.indigo.net.au>
+	<1113960613.5879.14.camel@tleilax.poochiereds.net>
+	<Pine.LNX.4.62.0504201932310.1883@donald.themaw.net>
+	<1113997219.9683.3.camel@barsoom.rdu.redhat.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200504192203.j3JM3CJ32241@mail.velociti.us>
+In-Reply-To: <1113997219.9683.3.camel@barsoom.rdu.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,75 +25,27 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
-To: Lucas Peet <lpeet@velociti.us>
+To: Jeffrey Layton <jtlayton@poochiereds.net>
 Cc: autofs@linux.kernel.org
 
-On Tue, 19 Apr 2005, Lucas Peet wrote:
+On Wed, 20 Apr 2005, Jeffrey Layton wrote:
 
->
-> On Wed, 20 Apr 2005 raven@themaw.net wrote:
->
->> What would be the map key in this case?
->
-> I *think* the key would be the user's home directory?
->
->> Perhaps you could do something like ...
+> On Wed, 2005-04-20 at 19:34 +0800, raven@themaw.net wrote:
+>> What about a function to chew up spaces before the colon, then parse.
 >>
->> auto.master:
->> /home	/etc/autofs.home
->>
->> autofs.home:
->> *	/ :/home/users/& :/home/stuff/&/everyone
+>> Ian
 >
-> I don't understand a whole lot about autofs just yet (I'm learning though!)
-> but I'm not sure if that's what I'm after.
->
-> Say I have a 200GB drive in the system for a central shared filestore,
-> mounted as /data.  I have this shared via Samba on the network.  I want this
-> to be available as /home/users/lpeet/data (for each user in /home/users) so
-> it can be accessed via FTP as well.
->
->> I haven't tried this so I'm not sure it will work.
->> Give it a try. It will be interesting to see how chroot affects this as
-> that
->> will probably affect the path that autofs gets back at mount request time.
->
-> The chroot environment isn't system wide - it's only in place when
-> connecting through FTP.  Do you still think that will affect the path?
+> Yes, after I sent that last night, it hit me that I could just strip out
+> all spaces that are adjacent to commas and then run it through the
+> current parser. I'll take a crack at writing something to do that soon.
 
-See following message but ...
+That's great.
+I'll look further into the code when I get a chance.
 
-In the case that I describe the chroot will cause the mount.
-Both the needed directories will be mounted before chroot completes so in 
-the case I've described it should be OK.
+This exersise is likely going to be fairly difficult and take a while as 
+we really need to get this right since we've had some much trouble here.
 
-What kernel are you using?
-This could make a difference.
-
->
->> Note that it can't work with anything less than 4.1.4 for the : escape to
->> work in multi-maps.
-
-That's the ":" escape I'm talking about.
-If you use localhost the mounts should be bind mounts anyway, giving the 
-same result.
-
->
-> I'm upgrading now.  :)
->
->> And another thing.
->> This would mount two directories at a time. When the mount times out both
->> would be umounted.
->
-> So...does this mean that since there's only one mapping, using a wildcard,
-> that if say one user logs in, access the directory, that automount will
-> mount the directory for every user or just the user that requested it to be
-> mounted?  At the same time, if the timeout occurs for one user, will it
-> unmount the directory for all the users? Or will it leave the directory
-> mounted for all the users and wait until the last user has stopped accessing
-> it, and unmount it for all the users at that time?
-
-They would be mounted on demand.
-See following post.
+However, the coding style looks good to me so it should be much easier to 
+spot the bugs. But we'll work on that as well.
 
 Ian
