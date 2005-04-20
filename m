@@ -1,62 +1,57 @@
 From: raven@themaw.net
-Subject: Re: replicated mounts patch
-Date: Wed, 20 Apr 2005 22:17:28 +0800 (WST)
-Message-ID: <Pine.LNX.4.62.0504202214050.8769@donald.themaw.net>
-References: <1113875877.4581.15.camel@tleilax.poochiereds.net>
-	<1113912312.1274.26.camel@barsoom.rdu.redhat.com>
-	<Pine.LNX.4.62.0504200053250.8587@donald.themaw.net>
-	<1113941787.1274.84.camel@barsoom.rdu.redhat.com>
-	<Pine.LNX.4.58.0504200922220.7460@wombat.indigo.net.au>
-	<1113960613.5879.14.camel@tleilax.poochiereds.net>
-	<16998.25381.11844.696212@segfault.boston.redhat.com>
+Subject: Re: [PATCH 1/3] autofs4 - expiring filesystem from under process
+Date: Wed, 20 Apr 2005 22:34:26 +0800 (WST)
+Message-ID: <Pine.LNX.4.62.0504202227130.8800@donald.themaw.net>
+References: <Pine.LNX.4.62.0504102044140.5212@donald.themaw.net>
+ <16986.44640.269893.824019@segfault.boston.redhat.com>
 Mime-Version: 1.0
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <16998.25381.11844.696212@segfault.boston.redhat.com>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <16986.44640.269893.824019@segfault.boston.redhat.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Jeff Moyer <jmoyer@redhat.com>
-Cc: autofs@linux.kernel.org
+Cc: Andrew Morton <akpm@osdl.org>, autofs mailing list <autofs@linux.kernel.org>, Michael Blandford <michael@kmaclub.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-On Wed, 20 Apr 2005, Jeff Moyer wrote:
+On Mon, 11 Apr 2005, Jeff Moyer wrote:
 
-> ==> Regarding Re: [autofs] replicated mounts patch; Jeff Layton <jtlayton@poochiereds.net> adds:
+> ==> Regarding [PATCH 1/3] autofs4 - expiring filesystem from under process; raven@themaw.net adds:
 >
-> jtlayton> On Wed, 2005-04-20 at 09:25 +0800, Ian Kent wrote:
->>> But, I've had complaints about it in the past.
->>> Call it an added feature.
->>>
->>> If we choose to not require it we will need to be clear about it in the
->>> doco.
->>>
->>> Personally, I like to be able to add a space after each comma for
->>> readability.
->>>
->>> Ian
->>>
+> Could also please explain how the following is handled:
 >
-> jtlayton> It's certainly possible to do it, but will probably require rewriting
-> jtlayton> the entire parser since my current approach probably won't work if we
-> jtlayton> allow for it. Using POSIX regex'es might make it easier, but I'll
-> jtlayton> need to look at how you use them under C.
+> expire process runs and issues AUTOFS_EXPIRE_MULTI, which sets
+> AUTOFS_INF_EXPIRING in flags.  While the expire is in progress, another
+> process access the directory in question, causing a call to
+> try_to_fill_dentry.  try_to_fill_dentry sees the AUTOFS_INF_EXPIRING flag
+> is set, and so calls autofs4_wait with notify set to NFY_NONE.  However,
+> when we take the wq sem, we find that the expire has finished, and thus
+> create a new wq entry.  Because NFY_NONE is set, we don't tell the daemon.
 >
-> Bah.  The parser is the source of so much frustration.  When are we going to
-> rewrite it in Lex/Yacc?  Ian, something to think about for v5?
+> So how will this process ever get woken up?
+>
 
-How odd.
+I've thought about this for quite a while and I think all that's needed is 
+to recognise that we're about to expire a dentry that's not mounted 
+anymore.
 
-I was thinking the very same thing today.
-Eyeing of an O'Reilly book called "lex & yacc".
-
-Mmmmm ... good excuse to ....
+Can you think of a case for which this patch fails?
 
 Ian
+
+--- linux-2.6.12-rc2-mm3/fs/autofs4/waitq.c.post-expire-race	2005-04-20 22:07:32.000000000 +0800
++++ linux-2.6.12-rc2-mm3/fs/autofs4/waitq.c	2005-04-20 22:08:29.000000000 +0800
+@@ -191,6 +191,13 @@ int autofs4_wait(struct autofs_sb_info *
+  	}
+
+  	if ( !wq ) {
++		/* Can't expire if we are not mounted */
++		if (notify == NFY_EXPIRE && !d_mountpoint(dentry)) {
++			kfree(name);
++			up(&sbi->wq_sem);
++			return -ENOENT;
++		}
++
+  		/* Create a new wait queue */
+  		wq = kmalloc(sizeof(struct autofs_wait_queue),GFP_KERNEL);
+  		if ( !wq ) {
