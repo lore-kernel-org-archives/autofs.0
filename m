@@ -1,19 +1,11 @@
-From: Jeffrey Layton <jtlayton@poochiereds.net>
-Subject: Re: replicated mounts patch
-Date: Wed, 20 Apr 2005 12:03:23 -0400
-Message-ID: <1114013003.9683.31.camel@barsoom.rdu.redhat.com>
-References: <1113875877.4581.15.camel@tleilax.poochiereds.net>
-	<1113912312.1274.26.camel@barsoom.rdu.redhat.com>
-	<Pine.LNX.4.62.0504200053250.8587@donald.themaw.net>
-	<1113933871.1274.56.camel@barsoom.rdu.redhat.com>
-	<Pine.LNX.4.58.0504200903300.7460@wombat.indigo.net.au>
-	<1113959940.5879.5.camel@tleilax.poochiereds.net>
-	<Pine.LNX.4.62.0504202319550.9260@donald.themaw.net>
-	<16998.31297.836977.160607@segfault.boston.redhat.com>
+From: "Lever, Charles" <Charles.Lever@netapp.com>
+Subject: RE: replicated mounts patch
+Date: Wed, 20 Apr 2005 09:13:13 -0700
+Message-ID: <482A3FA0050D21419C269D13989C6113085399F5@lavender-fe.eng.netapp.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <16998.31297.836977.160607@segfault.boston.redhat.com>
+content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -25,18 +17,25 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: jmoyer@redhat.com
-Cc: autofs@linux.kernel.org, raven@themaw.net
+To: Jeffrey Layton <jtlayton@poochiereds.net>, raven@themaw.net
+Cc: autofs@linux.kernel.org
 
-On Wed, 2005-04-20 at 11:50 -0400, Jeff Moyer wrote:
-> Does this patch actually change any of those interactions?  I guess I'll
-> have to look at this earlier than I had planned.
+jeffrey-
+
+> > We've had complaints about ports and protocols being 
+> blocked for the 
+> > rpc_ping function.
+> > 
+> > Any thoughts on how to work around that?
 > 
+> My patch should address this somewhat -- it looks for the 
+> 'tcp' and 'nfsvers=' mount options and does the RPC ping 
+> according to those. So if the ping doesn't work due to 
+> blocked ports, then the mount won't work either.
 
-It shouldn't -- I just use the existing rpc_time() function, so it
-should do the RPC ping pretty much the same as the original code. The
-only difference should be that my patch looks for the tcp and nfsvers=3
-mount options and does the ping accordingly if they're specified.
+if the mount option default settings change (say it was 'udp' in earlier
+releases, and is now 'tcp') the meaning of a missing option on the mount
+command line is different.
 
--- 
-Jeffrey Layton <jtlayton@poochiereds.net>
+so looking at the mount options is a completely unreliable way to
+determine which transport protocol is in use...
