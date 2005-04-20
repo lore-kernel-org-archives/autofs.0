@@ -1,18 +1,18 @@
 From: Jeffrey Layton <jtlayton@poochiereds.net>
 Subject: Re: replicated mounts patch
-Date: Wed, 20 Apr 2005 07:37:58 -0400
-Message-ID: <1113997078.9683.1.camel@barsoom.rdu.redhat.com>
+Date: Wed, 20 Apr 2005 07:40:19 -0400
+Message-ID: <1113997219.9683.3.camel@barsoom.rdu.redhat.com>
 References: <1113875877.4581.15.camel@tleilax.poochiereds.net>
 	<1113912312.1274.26.camel@barsoom.rdu.redhat.com>
 	<Pine.LNX.4.62.0504200053250.8587@donald.themaw.net>
-	<1113933871.1274.56.camel@barsoom.rdu.redhat.com>
-	<Pine.LNX.4.58.0504200903300.7460@wombat.indigo.net.au>
-	<1113959940.5879.5.camel@tleilax.poochiereds.net>
-	<Pine.LNX.4.62.0504201929240.1883@donald.themaw.net>
+	<1113941787.1274.84.camel@barsoom.rdu.redhat.com>
+	<Pine.LNX.4.58.0504200922220.7460@wombat.indigo.net.au>
+	<1113960613.5879.14.camel@tleilax.poochiereds.net>
+	<Pine.LNX.4.62.0504201932310.1883@donald.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.62.0504201929240.1883@donald.themaw.net>
+In-Reply-To: <Pine.LNX.4.62.0504201932310.1883@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -27,13 +27,14 @@ Content-Type: text/plain; charset="us-ascii"
 To: raven@themaw.net
 Cc: autofs@linux.kernel.org
 
-On Wed, 2005-04-20 at 19:31 +0800, raven@themaw.net wrote:
-> It's difficult for me as well.
-> If I want to do it I'll need to setup another subnet on my little router 
-> and stick another network card in a machine here at home.
+On Wed, 2005-04-20 at 19:34 +0800, raven@themaw.net wrote:
+> What about a function to chew up spaces before the colon, then parse.
+> 
+> Ian
 
-Don't sweat it for now. I'll see if I can come up with one at work to
-test it out.
+Yes, after I sent that last night, it hit me that I could just strip out
+all spaces that are adjacent to commas and then run it through the
+current parser. I'll take a crack at writing something to do that soon.
 
 -- 
 Jeffrey Layton <jtlayton@poochiereds.net>
