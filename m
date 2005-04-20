@@ -1,11 +1,12 @@
-From: "Lever, Charles" <Charles.Lever@netapp.com>
+From: Jeffrey Layton <jtlayton@poochiereds.net>
 Subject: RE: replicated mounts patch
-Date: Wed, 20 Apr 2005 09:13:13 -0700
-Message-ID: <482A3FA0050D21419C269D13989C6113085399F5@lavender-fe.eng.netapp.com>
+Date: Wed, 20 Apr 2005 12:32:35 -0400
+Message-ID: <1114014755.9683.42.camel@barsoom.rdu.redhat.com>
+References: <482A3FA0050D21419C269D13989C6113085399F5@lavender-fe.eng.netapp.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-content-class: urn:content-classes:message
+In-Reply-To: <482A3FA0050D21419C269D13989C6113085399F5@lavender-fe.eng.netapp.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,25 +18,25 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: Jeffrey Layton <jtlayton@poochiereds.net>, raven@themaw.net
-Cc: autofs@linux.kernel.org
+To: "Lever, Charles" <Charles.Lever@netapp.com>
+Cc: autofs@linux.kernel.org, raven@themaw.net
 
-jeffrey-
-
-> > We've had complaints about ports and protocols being 
-> blocked for the 
-> > rpc_ping function.
-> > 
-> > Any thoughts on how to work around that?
+On Wed, 2005-04-20 at 09:13 -0700, Lever, Charles wrote:
+> if the mount option default settings change (say it was 'udp' in earlier
+> releases, and is now 'tcp') the meaning of a missing option on the mount
+> command line is different.
 > 
-> My patch should address this somewhat -- it looks for the 
-> 'tcp' and 'nfsvers=' mount options and does the RPC ping 
-> according to those. So if the ping doesn't work due to 
-> blocked ports, then the mount won't work either.
+> so looking at the mount options is a completely unreliable way to
+> determine which transport protocol is in use...
+> 
 
-if the mount option default settings change (say it was 'udp' in earlier
-releases, and is now 'tcp') the meaning of a missing option on the mount
-command line is different.
+True, but at least this makes some effort at it. The old code did a
+UDP/NFSv2 ping no matter what. This is still what happens in the absence
+of these mount options.
 
-so looking at the mount options is a completely unreliable way to
-determine which transport protocol is in use...
+Is there some way to pull this info out of the mount program or the
+kernel so we could determine the appropriate default at runtime? That
+would be the best way to do it.
+
+-- 
+Jeffrey Layton <jtlayton@poochiereds.net>
