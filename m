@@ -1,57 +1,54 @@
 From: raven@themaw.net
-Subject: Re: [PATCH 1/3] autofs4 - expiring filesystem from under process
-Date: Wed, 20 Apr 2005 22:34:26 +0800 (WST)
-Message-ID: <Pine.LNX.4.62.0504202227130.8800@donald.themaw.net>
-References: <Pine.LNX.4.62.0504102044140.5212@donald.themaw.net>
- <16986.44640.269893.824019@segfault.boston.redhat.com>
+Subject: Re: replicated mounts patch
+Date: Wed, 20 Apr 2005 23:24:42 +0800 (WST)
+Message-ID: <Pine.LNX.4.62.0504202319550.9260@donald.themaw.net>
+References: <1113875877.4581.15.camel@tleilax.poochiereds.net> 
+	<1113912312.1274.26.camel@barsoom.rdu.redhat.com> 
+	<Pine.LNX.4.62.0504200053250.8587@donald.themaw.net> 
+	<1113933871.1274.56.camel@barsoom.rdu.redhat.com> 
+	<Pine.LNX.4.58.0504200903300.7460@wombat.indigo.net.au>
+	<1113959940.5879.5.camel@tleilax.poochiereds.net>
 Mime-Version: 1.0
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <16986.44640.269893.824019@segfault.boston.redhat.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <1113959940.5879.5.camel@tleilax.poochiereds.net>
 List-Id: <autofs.vger.kernel.org>
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: Andrew Morton <akpm@osdl.org>, autofs mailing list <autofs@linux.kernel.org>, Michael Blandford <michael@kmaclub.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+To: Jeff Layton <jtlayton@poochiereds.net>
+Cc: autofs@linux.kernel.org
 
-On Mon, 11 Apr 2005, Jeff Moyer wrote:
+On Tue, 19 Apr 2005, Jeff Layton wrote:
 
-> ==> Regarding [PATCH 1/3] autofs4 - expiring filesystem from under process; raven@themaw.net adds:
+> On Wed, 2005-04-20 at 09:12 +0800, Ian Kent wrote:
+>> I'm not saying the original code works.
+>>
+>> I don't think it will work.
+>> Can you test this or should I setup an environment to test it?
 >
-> Could also please explain how the following is handled:
->
-> expire process runs and issues AUTOFS_EXPIRE_MULTI, which sets
-> AUTOFS_INF_EXPIRING in flags.  While the expire is in progress, another
-> process access the directory in question, causing a call to
-> try_to_fill_dentry.  try_to_fill_dentry sees the AUTOFS_INF_EXPIRING flag
-> is set, and so calls autofs4_wait with notify set to NFY_NONE.  However,
-> when we take the wq sem, we find that the expire has finished, and thus
-> create a new wq entry.  Because NFY_NONE is set, we don't tell the daemon.
->
-> So how will this process ever get woken up?
->
+> Hmmm, I don't have a multi-homed host to test this on, but it looks to
+> me like it should do the right thing. I'll see if I can find one that I
+> can test on, but if you have a multi-homed host handy it would save me
+> some trouble.
 
-I've thought about this for quite a while and I think all that's needed is 
-to recognise that we're about to expire a dentry that's not mounted 
-anymore.
+I've tested this and it certainly seems to work.
 
-Can you think of a case for which this patch fails?
+But another thing came to mind.
+
+We've had complaints about ports and protocols being blocked for the 
+rpc_ping function.
+
+Any thoughts on how to work around that?
+The other thing that plagues us is that when we open TCP sockets they hang 
+around which causes port exaustion.
+Thoughts on that as well?
 
 Ian
-
---- linux-2.6.12-rc2-mm3/fs/autofs4/waitq.c.post-expire-race	2005-04-20 22:07:32.000000000 +0800
-+++ linux-2.6.12-rc2-mm3/fs/autofs4/waitq.c	2005-04-20 22:08:29.000000000 +0800
-@@ -191,6 +191,13 @@ int autofs4_wait(struct autofs_sb_info *
-  	}
-
-  	if ( !wq ) {
-+		/* Can't expire if we are not mounted */
-+		if (notify == NFY_EXPIRE && !d_mountpoint(dentry)) {
-+			kfree(name);
-+			up(&sbi->wq_sem);
-+			return -ENOENT;
-+		}
-+
-  		/* Create a new wait queue */
-  		wq = kmalloc(sizeof(struct autofs_wait_queue),GFP_KERNEL);
-  		if ( !wq ) {
