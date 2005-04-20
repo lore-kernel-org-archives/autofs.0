@@ -1,13 +1,14 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: Bug#304245: patch - NFS mounts occasionally fail
-Date: Wed, 20 Apr 2005 09:02:22 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0504200859160.7460@wombat.indigo.net.au>
-References: <20050417154240.GA17232@uio.no>
-	<Pine.LNX.4.62.0504200059370.8587@donald.themaw.net>
-	<20050419210653.GA15270@vision.ime.usp.br>
+Subject: Re: replicated mounts patch
+Date: Wed, 20 Apr 2005 09:12:22 +0800 (WST)
+Message-ID: <Pine.LNX.4.58.0504200903300.7460@wombat.indigo.net.au>
+References: <1113875877.4581.15.camel@tleilax.poochiereds.net> 
+	<1113912312.1274.26.camel@barsoom.rdu.redhat.com> 
+	<Pine.LNX.4.62.0504200053250.8587@donald.themaw.net>
+	<1113933871.1274.56.camel@barsoom.rdu.redhat.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20050419210653.GA15270@vision.ime.usp.br>
+In-Reply-To: <1113933871.1274.56.camel@barsoom.rdu.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,36 +21,38 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Daniel Andre Vaquero <daniel@vision.ime.usp.br>
-Cc: autofs@linux.kernel.org, 304245@bugs.debian.org
+To: Jeffrey Layton <jtlayton@poochiereds.net>
+Cc: autofs@linux.kernel.org
 
-On Tue, 19 Apr 2005, Daniel Andre Vaquero wrote:
+On Tue, 19 Apr 2005, Jeffrey Layton wrote:
 
-> Hi,
+> On Tue, 2005-04-19 at 12:58, raven@themaw.net wrote:
+> > Does the is_local_addr function work correctly for multi-homed hosts?
 > 
-> On Wed, Apr 20, 2005 at 01:00:30AM +0800, raven@themaw.net wrote:
-> > 
-> > Has this patch been tested with multi-mount map entries?
-> 
-> I don't have experience with multi-mount map entries, but I have done a
-> small test with entries like this (borrowed from
-> http://linux.kernel.org/pipermail/autofs/2005-February/001909.html):
-> 
-> auto.master contains:
-> 
-> /testing    /etc/auto.testing
-> 
-> /etc/auto.testing contains:
-> 
-> foo     -ro,hard,intr \
->         /dir/bar        server:/export/a \
->         /dir/baz        server:/export/b
-> 
-> It seems to work (both directories were mounted) if I cd to
-> /testing/foo. After the expiration time they were also unmounted.
-> 
+> I changed the name of the is_local_addr() function to is_bind_addr(),
+> but otherwise left it more or less untouched. I did this in anticipation
+> that we will eventually want to make an is_local_addr() function that
+> does the 'subnet' check that the manpage claims. So, the short answer
+> is, yes -- it should work for multi-homed hosts since it essentially
+> does what the original code does here.
 
-Fine, but what I'm after is what happpens when the ping fails for all 
-servers. Changing the host names to bogus names should be enough.
+I'm not saying the original code works.
+
+I don't think it will work.
+Can you test this or should I setup an environment to test it?
+
+> 
+> > Does the parse_mount_string work for something like:
+> > "host1 , host2	 ,host3,  host4:/this/dir"?
+> 
+> Yes. I've verified that it does. It even works for relatively strange
+> stuff like:
+> 
+> host1(1),host2:/this/dir host3(5):/that/dir
+
+OK.
+
+It didn't look like it would work to me.
+I'll have to look more closely.
 
 Ian
