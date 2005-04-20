@@ -1,18 +1,12 @@
-From: Jeffrey Layton <jtlayton@poochiereds.net>
-Subject: Re: replicated mounts patch
-Date: Wed, 20 Apr 2005 07:40:19 -0400
-Message-ID: <1113997219.9683.3.camel@barsoom.rdu.redhat.com>
-References: <1113875877.4581.15.camel@tleilax.poochiereds.net>
-	<1113912312.1274.26.camel@barsoom.rdu.redhat.com>
-	<Pine.LNX.4.62.0504200053250.8587@donald.themaw.net>
-	<1113941787.1274.84.camel@barsoom.rdu.redhat.com>
-	<Pine.LNX.4.58.0504200922220.7460@wombat.indigo.net.au>
-	<1113960613.5879.14.camel@tleilax.poochiereds.net>
-	<Pine.LNX.4.62.0504201932310.1883@donald.themaw.net>
+From: raven@themaw.net
+Subject: RE: mount -o bind
+Date: Wed, 20 Apr 2005 19:57:18 +0800 (WST)
+Message-ID: <Pine.LNX.4.62.0504201949060.1883@donald.themaw.net>
+References: <200504192203.j3JM3CJ32241@mail.velociti.us>
+	<Pine.LNX.4.61.0504192158380.14524@xena.cft.ca.us>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.62.0504201932310.1883@donald.themaw.net>
+In-Reply-To: <Pine.LNX.4.61.0504192158380.14524@xena.cft.ca.us>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -23,18 +17,36 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: raven@themaw.net
+Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
+Content-Transfer-Encoding: 7bit
+To: Jim Carter <jimc@math.ucla.edu>
 Cc: autofs@linux.kernel.org
 
-On Wed, 2005-04-20 at 19:34 +0800, raven@themaw.net wrote:
-> What about a function to chew up spaces before the colon, then parse.
-> 
-> Ian
+On Tue, 19 Apr 2005, Jim Carter wrote:
 
-Yes, after I sent that last night, it hit me that I could just strip out
-all spaces that are adjacent to commas and then run it through the
-current parser. I'll take a crack at writing something to do that soon.
+>
+> /ftp/* -bind /home/users/& /home/users/&/data
 
--- 
-Jeffrey Layton <jtlayton@poochiereds.net>
+That would be something like
+
+auto.master
+
+/ftp	/etc/autofs.multi
+
+and in autofs.multi
+
+*	-bind	/users/&	:/home/users/&	\
+ 		/users/&/data	:/home/users/&/data
+
+Which, on access (when ftp daemon changes to login directory) by, 
+say user iank, should mount
+
+/home/users/iank	on 	/ftp/users/iank
+/home/users/iank/data	on	/ftp/users/iank/data
+
+and after logout should umount both mounts on timeout.
+
+the "*" wildcard key is replaced in the mount entry to form the mounts.
+Only directories that are walked on should be mounted.
+
+Ian
