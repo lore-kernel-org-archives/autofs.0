@@ -1,13 +1,11 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [patch] get rid of is_mounted checks in cache_clean
-Date: Thu, 28 Apr 2005 15:16:19 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0504281513440.13323@wombat.indigo.net.au>
-References: <17005.16721.218171.703321@segfault.boston.redhat.com>
-	<Pine.LNX.4.58.0504261020310.19250@wombat.indigo.net.au>
-	<17006.55834.519305.364296@segfault.boston.redhat.com>
+Subject: Re: nested mounts -- supported?
+Date: Thu, 28 Apr 2005 16:38:20 +0800 (WST)
+Message-ID: <Pine.LNX.4.58.0504281551050.13323@wombat.indigo.net.au>
+References: <17008.3537.313570.647302@segfault.boston.redhat.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <17006.55834.519305.364296@segfault.boston.redhat.com>
+In-Reply-To: <17008.3537.313570.647302@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,60 +19,75 @@ Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Jeff Moyer <jmoyer@redhat.com>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+Cc: autofs mailing list <autofs@linux.kernel.org>, nfs@lists.sourceforge.net
 
-On Tue, 26 Apr 2005, Jeff Moyer wrote:
+On Wed, 27 Apr 2005, Jeff Moyer wrote:
 
-> ==> Regarding Re: [patch] get rid of is_mounted checks in cache_clean; Ian Kent <raven@themaw.net> adds:
+> Hi, Ian,
 > 
-> raven> On Mon, 25 Apr 2005, Jeff Moyer wrote:
-> >> Hi, Ian,
-> >> 
-> >> I'm not sure what purpose the following check serves in the cache_clean
-> >> function:
-> >> 
-> >> if (is_mounted(_PATH_MOUNTED, path)) { free(path); continue; }
-> >> 
-> >> In the event that the map was updated, we signal the daemon to do a
-> >> re-read of the entire map.  If the mount finishes before the daemon is
-> >> able to process this signal, we end up not pruning the old entry for the
-> >> given path.  Now, because we append entries to the cache, we end up with
-> >> the stale entry first, followed by the updated entry.  This means that
-> >> subsequent lookups will give the old entry.
+> I've got customers running 4.1.3 that complain about long mount times when
+> using nested mounts.  Basically, they have maps that look like so:
 > 
-> raven> This was originally meant to stop busy (currently mounted) entries
-> raven> from disappearing from the cache.
+> auto.master:
+> /foo	/etc/auto.foo
+> /bar	/etc/auto.bar
 > 
-> raven> I'll check whether this is actually needed and get back.
+> auto.foo
+> baz	localhost:/bar/baz/bat
 > 
-> raven> One thing that comes to mind is that the direct mount rework design
-> raven> might need this.
+> auto.bar
+> baz	server:/export/baz
 > 
-> Well, unfortunately I cannot comment on that.  We had have a very precise
-> definite of what it means to be in the cache, then, if there are to be
-> side-effects of removing entries.
+> So what ends up happening is /bar/baz is an nfs mountpoint, and
+> /foo/baz/bat is a bind mount inside that nfs mountpoint.  Yuck.
 > 
-> Anyway, the patch I sent was somewhat incomplete.  Look at this:
-> 
-> 		if (me->age < age) {
-> 			pred->next = me->next;
-> 			free(me->key);
-> 			free(me->mapent);
-> 			free(me);
-> 			me = pred;
-> 			rmdir_path(path);
-> 		}
-> 
-> The rmdir_path is unneeded, and I would argue has no business being here.
-> It is the job of the umount_multi code to clean up the directory tree, not
-> the cache code.  Lucky for us, the umount_multi path doesn't error out if a
-> directory is removed for it (thinking of odd races, here).  Anyway, the
-> attached patch (diffed against current cvs) is more complete in this
-> respect.  It gets rid of these rmdir_path calls.
+> The long timeouts are due to the fact that we are doing a wait_for_lock
+> before calling the mount binary.  Since this is a nested call, we are
+> essentially deadlocked (though the 4.1.3 code simply declared the lock
+> stale and overwrote it after 10 seconds).
 
-I remember now why this is needed.
+This is an unusual way to do things.
 
-The directory creation/removal isn't done at mount/umount for browsable 
-maps. It's done when the map is updated.
+The main thing to remember here is that the only reason that locking is 
+in autofs at all is that mount(8)s' locking is (was) broken. That's easily 
+demonstarted by putting 50 or so entries in a master map and getting rid 
+of the lock calls. Often you will see mtab corruption.
+
+The corruption causes autofs to become very confused.
+
+> 
+> Anyway, is this sort of thing supported?  It seems to work, though I am
+> uneasy about the whole setup.
+
+I think this probably should be supported and probably will work if the 
+locking in monnt(8) was fixed.
+
+However, if we find that fixed locking mount(8) can't do these mounts 
+either then we're stuck.
+
+> 
+> Further, if this is something we strive to support, then we have to
+> consider that this won't work under 4.1.4.  The reason is that the revamped
+> locking code will not overwrite the old lock, and so nested mounts will
+> fail.  We will not hang, mind you, we will simply time out waiting for the
+> lock.
+
+Right.
+
+But will the work that's been done in autofs translate to a fix for the 
+locking in mount(8). mount(8)s' locking is used only to update mtab so the 
+mount call deadlock we see in autofs shouldn't happen. The locking code I 
+have now was taken from mount in the first place so it might fit in fairly 
+well. But I'm not sure what to propose as, given the locking code in 
+mount(8), I can't actually work out what their requirements were in the 
+first place (eg. exclusive lock, stagered delay, etc.).
+
+I'd like to get rid of the locking code altogether in autofs as it's just 
+unwanted overhead layered on top of not working overhead. I'd be willing 
+carry a patch for mount in the distribution with a big warning. Perhaps we 
+could actually get a response from whoever maintains mount? I've only 
+tried once without success.
+
+Sorry to rant about this but it burned a lot of my time in the past.
 
 Ian
