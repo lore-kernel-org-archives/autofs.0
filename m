@@ -1,14 +1,12 @@
-From: raven@themaw.net
-Subject: Re: Patches for 4.1.4 (was: fix multi maps that have an
-	implied '/' entry)
-Date: Sun, 1 May 2005 21:31:05 +0800 (WST)
-Message-ID: <Pine.LNX.4.62.0505012121350.2773@donald.themaw.net>
-References: <17010.37023.613781.405203@segfault.boston.redhat.com>
-	<Pine.LNX.4.62.0504302307230.2229@donald.themaw.net>
-	<20050430153923.GA25335@uio.no>
+From: Robert Swan <rswanster@gmail.com>
+Subject: debug failed automount
+Date: Thu, 28 Apr 2005 10:19:34 -0400
+Message-ID: <11101302050428071921ec8bb7@mail.gmail.com>
+Reply-To: Robert Swan <rswanster@gmail.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20050430153923.GA25335@uio.no>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,52 +17,78 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
-Content-Transfer-Encoding: 7bit
-To: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: autofs@linux.kernel.org
 
-On Sat, 30 Apr 2005, Steinar H. Gunderson wrote:
+I'm trying to debug automount refusal to mount volumes.  The manual
+mount works fine:
 
-> On Sat, Apr 30, 2005 at 11:12:56PM +0800, raven@themaw.net wrote:
->> I've already placed a patch on kernel.org for that.
->> Check out autofs-4.1.4-multi-parse-fix.patch and let me know what you
->> think.
->
-> I'm rapidly losing overview over what's going in and not here, with all the
-> traffic :-) I'm planning an upload of autofs 4.1.4 to Debian unstable RSN;
-> what patches do I want with this? Vanilla 4.1.4 + multi-parse-fix +
-> non-replicated ping?
+> ypcat -k auto.home | grep robert
+robert remotehost:/export/users/car073/robert
 
-Sorry, I don't mean to be confusing.
+then
 
-This is the way that I do things normally.
-Any smallish bug fixes that I think are really needed I post on kernel.org 
-with the tarball.
+> mount remotehost:/export/users/car073/robert /home/robert
 
-I would recommend you include both of those patches.
+and ls /home/robert works as expected. However, if I
 
->
-> BTW: Ian, have you looked at
-> http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=305872 ? I'm not really sure
-> what the & is supposed to mean :-)
+> automount /var/autofs/home/ yp auto.home
 
-Interesting but not nearly enough information to resolve the issue.
-The problem that is reported shouldn't be happening.
+and then try to ls /var/autofs/home/robert, I get 
 
-Debug logs needed.
+ls:/var/autofs/home/robert: No such file or directory, 
 
-The & is a placeholder for the key and the * is the wildcard key.
+and /var/log/syslog contains
 
-In
+localhost automount[23333]: failed to mount /var/autofs/home/robert
 
-*	&:/var/local/bulk
+I've also verified that I'm able to automount locally exported
+directories (using a "file" map, however).
 
+One point is that the remote host is accessed through a VPN tunnel.
 
-if this map is mounted on /amnt then
+I've attached automount syslog entries using the -d and -v automount
+command line options. I suspect "winner=(null)" is a clue but I have
+no idea what it means.
 
-ls /amnt/somehost
+Thanks for any help,
+Robert
 
-resolves to somehost:/var/local.bulk
-
-Ian
+Apr 28 07:52:28 localhost automount[12608]: handle_packet: type = 0
+Apr 28 07:52:28 localhost automount[12608]: handle_packet_missing:
+token 4, name robert
+Apr 28 07:52:28 localhost automount[12608]: attempting to mount entry
+/var/autofs/home/robert
+Apr 28 07:52:28 localhost automount[12617]: lookup(yp): looking up robert
+Apr 28 07:52:28 localhost automount[12617]: ret = 1
+Apr 28 07:52:28 localhost automount[12617]: lookup(yp): robert ->
+remotehost:/export/users/car073/robert
+Apr 28 07:52:28 localhost automount[12617]: parse(sun): expanded
+entry: remotehost:/export/users/car073/robert
+Apr 28 07:52:28 localhost automount[12617]: parse(sun): gathered options:
+Apr 28 07:52:28 localhost automount[12617]: parse(sun):
+dequote("remotehost:/export/users/car073/robert") ->
+remotehost:/export/users/car073/robert
+Apr 28 07:52:28 localhost automount[12617]: parse(sun): core of entry:
+options=, loc=remotehost:/export/users/car073/robert
+Apr 28 07:52:28 localhost automount[12617]: parse(sun): mounting root
+/var/autofs/home, mountpoint robert, what
+remotehost:/export/users/car073/robert, fstype nfs, options (null)
+Apr 28 07:52:28 localhost automount[12617]: mount(nfs):
+root=/var/autofs/home name=robert
+what=remotehost:/export/users/car073/robert, fstype=nfs,
+options=(null)
+Apr 28 07:52:29 localhost automount[12617]: mount(nfs): winner =
+(null) local = 0
+Apr 28 07:52:29 localhost automount[12617]: mount(nfs): no host elected
+Apr 28 07:52:29 localhost automount[12617]: failed to mount
+/var/autofs/home/robert
+Apr 28 07:52:29 localhost automount[12617]: umount_multi:
+path=/var/autofs/home/robert incl=1
+Apr 28 07:52:29 localhost automount[12617]: umount_multi: no mounts
+found under /var/autofs/home/robert
+Apr 28 07:52:29 localhost automount[12608]: handle_child: got pid
+12617, sig 0 (0), stat 1
+Apr 28 07:52:29 localhost automount[12608]: sig_child: found pending
+iop pid 12617: signalled 0 (sig 0), exit status 1
+Apr 28 07:52:29 localhost automount[12608]: send_fail: token=4
