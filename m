@@ -1,10 +1,13 @@
-From: "Brian Stevens" <brian@stevens.com>
-Subject: Q: Does nsswitch and/or +ypmapname work for indirect maps?
-Date: Thu, 28 Apr 2005 10:19:16 -0500 (CDT)
-Message-ID: <37886.67.79.20.83.1114701556.squirrel@www.prettygood.net>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: Quick question about parsing
+Date: Thu, 28 Apr 2005 14:12:58 -0400
+Message-ID: <17009.10154.689020.532687@segfault.boston.redhat.com>
+References: <20050428142948.GP7317@lenin.net>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <20050428142948.GP7317@lenin.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,23 +19,23 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: autofs@linux.kernel.org
+To: "Peter C. Norton" <spacey-autofs@lenin.net>
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
-Should the "+ypmapname" and/or nsswitch.conf allow an indirect map to pick
-up entries from both a local file AND a NIS map?  I have tried many
-revisions of autofs 4.1.3 with kernels 2.4.21 and 2.6.x, and what I am
-experiencing does not seem to correlate with the ChangeLogs I've read.
+==> Regarding [autofs] Quick question about parsing; "Peter C. Norton" <spacey-autofs@lenin.net> adds:
 
-I have an auto.master map which includes "/apps auto.apps".  auto.apps is
-distributed via NIS.  I would like, on one host, to override one of the
-NIS entries with a local one.  I created a local /etc/auto.apps with
-"oracle hous0117:/vol/vol013/oracle-hous0138".  I would like the /apps
-automount to use that local entry from oracle, but also grab any other
-entries from the NIS map.  I have found that I can get the indirect map to
-use the local file OR the NIS map, but not both.
+spacey-autofs> Does anyone know if there's a documented behaviour if the
+spacey-autofs> same key appears more than once in a map?  First, last, all?
 
-Is that possible?  Should it work?
+spacey-autofs> I'm trying to fix an issue in the NIS+ module, and I want to
+spacey-autofs> make sure I'm doing what the documentation says I should.
 
-Many thanks for any input!
+Well, I don't believe NIS guarantees the order in which results are
+returned.  I'm not sure about NIS+.
 
-Brian
+The internal behaviour of the Linux automounter is that all of the entries
+are cached, but the first to be found is the one that is used.  Note that
+this is all hidden under the covers from the various lookup modules.  So,
+you shouldn't have to do anything specific in the nis+ module.
+
+-Jeff
