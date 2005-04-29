@@ -1,12 +1,12 @@
-From: Chris Fanning <christopher.fanning@gmail.com>
-Subject: samba stop and autofs stop
-Date: Fri, 29 Apr 2005 16:49:12 +0200
-Message-ID: <215ff441050429074949954080@mail.gmail.com>
-Reply-To: Chris Fanning <christopher.fanning@gmail.com>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: [patch] Fix buffer overflow with large key lengths in file
+	maps
+Date: Fri, 29 Apr 2005 11:31:12 -0400
+Message-ID: <17010.21312.962838.364226@segfault.boston.redhat.com>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,22 +20,27 @@ Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
 To: autofs@linux.kernel.org
 
-Hello all,
+Hi Ian,
 
-I have a server running samba for some windows clients.
-Now, one the same client network, I am setting up some thin clients
-that open their desktop session, in this case, the same server that's
-running samba.
+I'm attempting to get the connectathon automount test suite running, and it
+turned up this bug.  Basically, we never do any bounds checking on the key
+array passed into read_one in lookup_file.c.   This patch fixes the problem
+in my environment.
 
-Because I've got some windows and some thin clients running kde, samba
-is still necesary.
+Thanks,
 
-Some of the samba shares are common to all users so I'm trying to use
-autofs to mount them.
+Jeff
 
-It works but.
-When I shutdown the server it freezes. It seems to be because the
-samba server is shutdown before automount. Does that sound right?
-
-Thank you.
-Chris.
+--- autofs-4.1.4/modules/lookup_file.c.orig	2005-04-29 11:14:54.699437608 -0400
++++ autofs-4.1.4/modules/lookup_file.c	2005-04-29 11:21:16.004470432 -0400
+@@ -157,6 +157,10 @@ static int read_one(FILE *f, char *key, 
+ 			break;
+ 
+ 		case st_compare:
++			if (kptr - key > KEY_MAX_LEN) {
++				state = st_badent;
++				break;
++			}
+ 			if (ch == '\n')
+ 				state = st_begin;
+ 			else if (isspace(ch) && !escape) {
