@@ -1,11 +1,12 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: Quick question about parsing
-Date: Fri, 29 Apr 2005 09:53:17 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0504290951140.4749@wombat.indigo.net.au>
-References: <20050428142948.GP7317@lenin.net>
+Subject: Re: Q: Does nsswitch and/or +ypmapname work for indirect
+	maps?
+Date: Fri, 29 Apr 2005 10:02:11 +0800 (WST)
+Message-ID: <Pine.LNX.4.58.0504290957070.4749@wombat.indigo.net.au>
+References: <37886.67.79.20.83.1114701556.squirrel@www.prettygood.net>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20050428142948.GP7317@lenin.net>
+In-Reply-To: <37886.67.79.20.83.1114701556.squirrel@www.prettygood.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,34 +19,28 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Peter C. Norton" <spacey-autofs@lenin.net>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+To: Brian Stevens <brian@stevens.com>
+Cc: autofs@linux.kernel.org
 
-On Thu, 28 Apr 2005, Peter C. Norton wrote:
+On Thu, 28 Apr 2005, Brian Stevens wrote:
 
-> Does anyone know if there's a documented behaviour if the same key
-> appears more than once in a map?  First, last, all?
+> Should the "+ypmapname" and/or nsswitch.conf allow an indirect map to pick
+> up entries from both a local file AND a NIS map?  I have tried many
+> revisions of autofs 4.1.3 with kernels 2.4.21 and 2.6.x, and what I am
+> experiencing does not seem to correlate with the ChangeLogs I've read.
+> 
+> I have an auto.master map which includes "/apps auto.apps".  auto.apps is
+> distributed via NIS.  I would like, on one host, to override one of the
+> NIS entries with a local one.  I created a local /etc/auto.apps with
+> "oracle hous0117:/vol/vol013/oracle-hous0138".  I would like the /apps
+> automount to use that local entry from oracle, but also grab any other
+> entries from the NIS map.  I have found that I can get the indirect map to
+> use the local file OR the NIS map, but not both.
+> 
+> Is that possible?  Should it work?
 
-This has been discussed a bit lately.
+Not possible at the moment.
 
-My current understanding is that the first encountered entry should take 
-precedence.
+This is quite difficult to implement within the current autofs design.
 
-> 
-> I'm trying to fix an issue in the NIS+ module, and I want to make sure
-> I'm doing what the documentation says I should.
-> 
-> Thanks,
-> 
-> -Peter
-> 
-> -- 
-> The 5 year plan:
-> In five years we'll make up another plan.
-> Or just re-use this one.
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
-> 
+Ian
