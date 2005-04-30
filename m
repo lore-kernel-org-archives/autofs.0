@@ -1,14 +1,11 @@
-From: Robert Swan <rswanster@gmail.com>
-Subject: Re: debug failed automount
-Date: Sat, 30 Apr 2005 01:27:17 -0400
-Message-ID: <11101302050429222770e0df9d@mail.gmail.com>
-References: <11101302050428071921ec8bb7@mail.gmail.com>
-Reply-To: Robert Swan <rswanster@gmail.com>
+From: raven@themaw.net
+Subject: Re: [patch] fix multi maps that have an implied '/' entry
+Date: Sat, 30 Apr 2005 23:12:56 +0800 (WST)
+Message-ID: <Pine.LNX.4.62.0504302307230.2229@donald.themaw.net>
+References: <17010.37023.613781.405203@segfault.boston.redhat.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <11101302050428071921ec8bb7@mail.gmail.com>
-Content-Disposition: inline
+In-Reply-To: <17010.37023.613781.405203@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,20 +16,31 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: autofs@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
+Content-Transfer-Encoding: 7bit
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: autofs@linux.kernel.org
 
-> 
-> One point is that the remote host is accessed through a VPN tunnel.
+On Fri, 29 Apr 2005, Jeff Moyer wrote:
 
-so as it turns out, this is the problem. The rpc_time call fails (I
-assume this is because it is not supported by the VPN) and this marks
-my only host as dead and automount does not attempt to mount. Even
-though the mount actually works fine.
+> This is apparently a legal format for a multi-mount map:
+>
+> g3b     segfault.boston.redhat.com:/export/automount/export5/testing/test \
+>        /s1     segfault.boston.redhat.com:/export/automount/export2 \
+>        /s2     segfault.boston.redhat.com:/export/automount/export3
+>
+> The first entry is an implied root level entry, or '/'.  Solaris handles
+> this case just fine, and the automounter test sweet uses this as one of its
+> tests.  The attached patch causes this map format to be recognized.  I
+> think the patch could probably re-use the memory allocatd for "path" by the
+> dequote function.  That's up to you, Ian, if you want to change that to be
+> a little prettier.
 
-I made myself a little patch to overcome the problem. I think someone
-suggested that the rpc_ping stuff should be used to to rank the hosts,
-and that mount should try all of them before giving up. Seems like a
-good idea.
+I've already placed a patch on kernel.org for that.
+Check out autofs-4.1.4-multi-parse-fix.patch and let me know what you 
+think.
 
-Robert
+It also addresses the multi-mount recognition problem you mentioned 
+a short while ago.
+
+Ian
