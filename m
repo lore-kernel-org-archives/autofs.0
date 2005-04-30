@@ -1,12 +1,14 @@
-From: raven@themaw.net
-Subject: Re: Re: debug failed automount
-Date: Sat, 30 Apr 2005 23:27:48 +0800 (WST)
-Message-ID: <Pine.LNX.4.62.0504302318540.2229@donald.themaw.net>
-References: <11101302050428071921ec8bb7@mail.gmail.com>
-	<11101302050429222770e0df9d@mail.gmail.com>
+From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
+Subject: Patches for 4.1.4 (was: fix multi maps that have an
+	implied '/' entry)
+Date: Sat, 30 Apr 2005 17:39:23 +0200
+Message-ID: <20050430153923.GA25335@uio.no>
+References: <17010.37023.613781.405203@segfault.boston.redhat.com>
+	<Pine.LNX.4.62.0504302307230.2229@donald.themaw.net>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <11101302050429222770e0df9d@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.62.0504302307230.2229@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,36 +19,24 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Robert Swan <rswanster@gmail.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Sat, 30 Apr 2005, Robert Swan wrote:
+On Sat, Apr 30, 2005 at 11:12:56PM +0800, raven@themaw.net wrote:
+> I've already placed a patch on kernel.org for that.
+> Check out autofs-4.1.4-multi-parse-fix.patch and let me know what you 
+> think.
 
->>
->> One point is that the remote host is accessed through a VPN tunnel.
->
-> so as it turns out, this is the problem. The rpc_time call fails (I
-> assume this is because it is not supported by the VPN) and this marks
-> my only host as dead and automount does not attempt to mount. Even
-> though the mount actually works fine.
+I'm rapidly losing overview over what's going in and not here, with all the
+traffic :-) I'm planning an upload of autofs 4.1.4 to Debian unstable RSN;
+what patches do I want with this? Vanilla 4.1.4 + multi-parse-fix +
+non-replicated ping?
 
-Why? The rpc_ping connects to port 2049 on the target host.
+BTW: Ian, have you looked at
+http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=305872 ? I'm not really sure
+what the & is supposed to mean :-)
 
->
-> I made myself a little patch to overcome the problem. I think someone
-> suggested that the rpc_ping stuff should be used to to rank the hosts,
-> and that mount should try all of them before giving up. Seems like a
-> good idea.
-
-Mount will only try the hosts that autofs gives it.
-
-We are going full circle. Before there were complaints about mounting 
-taking to long so a heap of work was done on that. Just when that's 
-almost working OK it looks like people are asking for the opposite.
-
-If autofs can't connect to the RPC null procedure on the NFS port of 
-the target host autofs won't ask mount to mount it.
-
-Ian
+/* Steinar */
+-- 
+Homepage: http://www.sesse.net/
