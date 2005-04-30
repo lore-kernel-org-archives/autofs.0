@@ -1,12 +1,14 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: [patch] Treat multimount entries with duplicate keys as
-	invalid
-Date: Fri, 29 Apr 2005 17:14:34 -0400
-Message-ID: <17010.41914.911954.730506@segfault.boston.redhat.com>
-Reply-To: jmoyer@redhat.com
+From: Robert Swan <rswanster@gmail.com>
+Subject: Re: debug failed automount
+Date: Sat, 30 Apr 2005 01:27:17 -0400
+Message-ID: <11101302050429222770e0df9d@mail.gmail.com>
+References: <11101302050428071921ec8bb7@mail.gmail.com>
+Reply-To: Robert Swan <rswanster@gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <11101302050428071921ec8bb7@mail.gmail.com>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,51 +22,17 @@ Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
 To: autofs@linux.kernel.org
 
-Hi Ian,
+> 
+> One point is that the remote host is accessed through a VPN tunnel.
 
-Again, from the connectathon automount test suite, this map entry is listed
-in the invalid bin:
+so as it turns out, this is the problem. The rpc_time call fails (I
+assume this is because it is not supported by the VPN) and this marks
+my only host as dead and automount does not attempt to mount. Even
+though the mount actually works fine.
 
-b3          \
-        /s1                             segfault.boston.redhat.com:/export/automount/export1 \
-        /s1                             segfault.boston.redhat.com:/export/automount/export1
+I made myself a little patch to overcome the problem. I think someone
+suggested that the rpc_ping stuff should be used to to rank the hosts,
+and that mount should try all of them before giving up. Seems like a
+good idea.
 
-The attached patch checks for duplicate keys, and returns failure from
-multi_add_list if there is one.  The test case passes with this patch.
-
--Jeff
-
---- autofs-4.1.4/modules/parse_sun.c.orig	2005-04-29 17:02:07.581358160 -0400
-+++ autofs-4.1.4/modules/parse_sun.c	2005-04-29 17:09:47.947371888 -0400
-@@ -697,6 +697,18 @@ static int sun_mount(const char *root, c
- 	return rv;
- }
- 
-+static int key_exists(struct multi_mnt *list, char *path, int pathlen)
-+{
-+	struct multi_mnt *mmptr = list;
-+
-+	while (mmptr && pathlen == strlen(mmptr->path)) {
-+		if (!strncmp(mmptr->path, path, pathlen))
-+			return 1;
-+		mmptr = mmptr->next;
-+	}
-+	return 0;
-+}
-+
- /*
-  * Build list of mounts in shortest -> longest order.
-  * Pass in list head and return list head.
-@@ -727,6 +739,12 @@ struct multi_mnt *multi_add_list(struct 
- 		mmptr = mmptr->next;
- 	}
- 
-+	/* if a multimount entry has duplicate keys, it is invalid */
-+	if (key_exists(mmptr, path, plen)) {
-+		free(new);
-+		return NULL;
-+	}
-+
- 	if (old)
- 		old->next = new;
- 	new->next = mmptr;
+Robert
