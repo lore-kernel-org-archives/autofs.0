@@ -1,12 +1,13 @@
-From: Robert Swan <rswanster@gmail.com>
-Subject: debug failed automount
-Date: Thu, 28 Apr 2005 10:19:34 -0400
-Message-ID: <11101302050428071921ec8bb7@mail.gmail.com>
-Reply-To: Robert Swan <rswanster@gmail.com>
+From: raven@themaw.net
+Subject: Re: Re: debug failed automount
+Date: Sun, 1 May 2005 21:46:41 +0800 (WST)
+Message-ID: <Pine.LNX.4.62.0505012144150.2824@donald.themaw.net>
+References: <11101302050428071921ec8bb7@mail.gmail.com>
+	<11101302050429222770e0df9d@mail.gmail.com>
+	<Pine.LNX.4.62.0504302318540.2229@donald.themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.62.0504302318540.2229@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,78 +18,54 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: autofs@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
+Content-Transfer-Encoding: 7bit
+To: Robert Swan <rswanster@gmail.com>
+Cc: autofs@linux.kernel.org
 
-I'm trying to debug automount refusal to mount volumes.  The manual
-mount works fine:
+On Sat, 30 Apr 2005 raven@themaw.net wrote:
 
-> ypcat -k auto.home | grep robert
-robert remotehost:/export/users/car073/robert
+My response was a bit hasty I think.
 
-then
+> On Sat, 30 Apr 2005, Robert Swan wrote:
+>
+>> > 
+>> >  One point is that the remote host is accessed through a VPN tunnel.
+>> 
+>>  so as it turns out, this is the problem. The rpc_time call fails (I
+>>  assume this is because it is not supported by the VPN) and this marks
+>>  my only host as dead and automount does not attempt to mount. Even
+>>  though the mount actually works fine.
+>
+> Why? The rpc_ping connects to port 2049 on the target host.
 
-> mount remotehost:/export/users/car073/robert /home/robert
+You may be seeing a bug with the autofs mount code not trying a longer 
+timeout if it fails to get a response in time.
 
-and ls /home/robert works as expected. However, if I
+The latest RedHat rpms may have the fix? Jeff, Chris?
 
-> automount /var/autofs/home/ yp auto.home
+There's a patch on kernel.org for it as well.
 
-and then try to ls /var/autofs/home/robert, I get 
-
-ls:/var/autofs/home/robert: No such file or directory, 
-
-and /var/log/syslog contains
-
-localhost automount[23333]: failed to mount /var/autofs/home/robert
-
-I've also verified that I'm able to automount locally exported
-directories (using a "file" map, however).
-
-One point is that the remote host is accessed through a VPN tunnel.
-
-I've attached automount syslog entries using the -d and -v automount
-command line options. I suspect "winner=(null)" is a clue but I have
-no idea what it means.
-
-Thanks for any help,
-Robert
-
-Apr 28 07:52:28 localhost automount[12608]: handle_packet: type = 0
-Apr 28 07:52:28 localhost automount[12608]: handle_packet_missing:
-token 4, name robert
-Apr 28 07:52:28 localhost automount[12608]: attempting to mount entry
-/var/autofs/home/robert
-Apr 28 07:52:28 localhost automount[12617]: lookup(yp): looking up robert
-Apr 28 07:52:28 localhost automount[12617]: ret = 1
-Apr 28 07:52:28 localhost automount[12617]: lookup(yp): robert ->
-remotehost:/export/users/car073/robert
-Apr 28 07:52:28 localhost automount[12617]: parse(sun): expanded
-entry: remotehost:/export/users/car073/robert
-Apr 28 07:52:28 localhost automount[12617]: parse(sun): gathered options:
-Apr 28 07:52:28 localhost automount[12617]: parse(sun):
-dequote("remotehost:/export/users/car073/robert") ->
-remotehost:/export/users/car073/robert
-Apr 28 07:52:28 localhost automount[12617]: parse(sun): core of entry:
-options=, loc=remotehost:/export/users/car073/robert
-Apr 28 07:52:28 localhost automount[12617]: parse(sun): mounting root
-/var/autofs/home, mountpoint robert, what
-remotehost:/export/users/car073/robert, fstype nfs, options (null)
-Apr 28 07:52:28 localhost automount[12617]: mount(nfs):
-root=/var/autofs/home name=robert
-what=remotehost:/export/users/car073/robert, fstype=nfs,
-options=(null)
-Apr 28 07:52:29 localhost automount[12617]: mount(nfs): winner =
-(null) local = 0
-Apr 28 07:52:29 localhost automount[12617]: mount(nfs): no host elected
-Apr 28 07:52:29 localhost automount[12617]: failed to mount
-/var/autofs/home/robert
-Apr 28 07:52:29 localhost automount[12617]: umount_multi:
-path=/var/autofs/home/robert incl=1
-Apr 28 07:52:29 localhost automount[12617]: umount_multi: no mounts
-found under /var/autofs/home/robert
-Apr 28 07:52:29 localhost automount[12608]: handle_child: got pid
-12617, sig 0 (0), stat 1
-Apr 28 07:52:29 localhost automount[12608]: sig_child: found pending
-iop pid 12617: signalled 0 (sig 0), exit status 1
-Apr 28 07:52:29 localhost automount[12608]: send_fail: token=4
+>
+>> 
+>>  I made myself a little patch to overcome the problem. I think someone
+>>  suggested that the rpc_ping stuff should be used to to rank the hosts,
+>>  and that mount should try all of them before giving up. Seems like a
+>>  good idea.
+>
+> Mount will only try the hosts that autofs gives it.
+>
+> We are going full circle. Before there were complaints about mounting taking 
+> to long so a heap of work was done on that. Just when that's almost working 
+> OK it looks like people are asking for the opposite.
+>
+> If autofs can't connect to the RPC null procedure on the NFS port of the 
+> target host autofs won't ask mount to mount it.
+>
+> Ian
+>
+> _______________________________________________
+> autofs mailing list
+> autofs@linux.kernel.org
+> http://linux.kernel.org/mailman/listinfo/autofs
+>
