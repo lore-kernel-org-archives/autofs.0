@@ -1,13 +1,16 @@
-From: raven@themaw.net
-Subject: Re: [PATCH] replicated mounts overhaul
-Date: Tue, 3 May 2005 23:07:17 +0800 (WST)
-Message-ID: <Pine.LNX.4.62.0505032303380.8405@donald.themaw.net>
-References: <1115040578.3594.9.camel@barsoom.rdu.redhat.com> 
-	<Pine.LNX.4.62.0505022157230.9314@donald.themaw.net>
-	<1115043862.3594.21.camel@barsoom.rdu.redhat.com>
+From: Steven Ihde <steve@x2.hamachi.us>
+Subject: Re: Re: debug failed automount
+Date: Thu, 05 May 2005 21:19:13 -0700
+Message-ID: <pan.2005.05.06.04.19.09.534391@x2.hamachi.us>
+References: <11101302050428071921ec8bb7@mail.gmail.com>
+	<11101302050429222770e0df9d@mail.gmail.com>
+	<Pine.LNX.4.62.0504302318540.2229@donald.themaw.net>
+	<Pine.LNX.4.62.0505012144150.2824@donald.themaw.net>
+	<1110130205050116184381a11e@mail.gmail.com>
+	<Pine.LNX.4.58.0505020959430.8040@wombat.indigo.net.au>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1115043862.3594.21.camel@barsoom.rdu.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,49 +21,46 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
-Content-Transfer-Encoding: 7bit
-To: Jeffrey Layton <jtlayton@poochiereds.net>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: autofs@linux.kernel.org
 
-On Mon, 2 May 2005, Jeffrey Layton wrote:
+On Mon, 02 May 2005 10:03:38 +0800, Ian Kent wrote:
+[discussion of failure to automount a NFS server over a VPN tunnel...]
+> This sound even more like the original problem.
+> 
+> The symptom was intermitent fails.
+> 
+> So if the target server responds quickly enough all is well.
+> But if there's a bit to much trafic or if you stop to scratch it doesn't 
+> work.
+> 
+> As I said I'd recommend the two patches on kernel.org.
 
-> On Mon, 2005-05-02 at 22:01 +0800, raven@themaw.net wrote:
->> On Mon, 2 May 2005, Jeffrey Layton wrote:
->>
->>> Here's the latest version of the replicated mounts patch that I've been
->>> working on. I sent this a couple of weeks ago and got no response.
->>
->> I've been trying to get my direct mount stuff working.
->
-> Sounds good, just wanted to make sure it didn't slip thru the cracks. I
-> also wanted to make sure I don't allow any regressions as I update my
-> patch for new CVS versions.
->
-> Also, I've been doing some looking at what it will take to do the
-> "subnet" locality check. The problem seems to be quite a bit more
-> complicated than it seems at first glance. I'm trying to wrap my brain
-> around netlink sockets as that seems to be the best way to get
-> routing/netmask info out of the kernel.
+I was suffering the same problem, and the patch fixed it.
 
-Yep. Sounds good.
+I'm automounting an NFS server in India with a 250ms round trip time --
+autofs consistently refused to mount it.
 
-An interesting sideline to this might be to consider how this would apply 
-to discovering hosts for a "-hosts" map type. Much later, but worth some 
-thought.
+I applied the non-replicated-ping patch from kernel.org and the problem is
+fixed:
 
->
-> We might also want to consider patching "mount" for that effort since
-> the current mount command just picks the first address when given a
-> hostname that resolves to more than one address.
+http://www.kernel.org/pub/linux/daemons/autofs/v4/autofs-4.1.4-non-replicated-ping.patch
 
-Ouch.
+Thanks for the information.
 
->
-> If/when my other patch goes in, I'll start focusing on that.
+Along the way I noticed that the replicated server support seems a bit
+broken with respect to the "nosymlink" option.  Before applying the patch
+above I noticed that "nosymlink" allowed the slow server to mount -- this
+is because "nosymlink" completely bypasses get_best_mount.  This is OK if
+you have only a single server, but doesn't work if you have a replicated
+mount.  For example,
 
-It's a big change.
-It would be good if we could get it right as the follow on overhead of 
-subtle bugs is huge.
+* -nosymlink foo.bar.com,baz.quux.com:/some/path
 
-Ian
+will wind up passing the literal string
+'foo.bar.com,baz.quux.com:/some/path' to mount, which of course fails --
+if you remove the nosymlink option it works fine.
+
+Thanks,
+
+Steve
