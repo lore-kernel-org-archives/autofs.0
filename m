@@ -1,10 +1,13 @@
-From: Jeremy Rosengren <jeremy@rosengren.org>
-Subject: autofs 4.1.4 regression?
-Date: Mon, 09 May 2005 16:30:07 -0500
-Message-ID: <427FD65F.2050708@rosengren.org>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: autofs 4.1.4 regression?
+Date: Mon, 9 May 2005 17:55:21 -0400
+Message-ID: <17023.56393.15007.106702@segfault.boston.redhat.com>
+References: <427FD65F.2050708@rosengren.org>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <427FD65F.2050708@rosengren.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -15,38 +18,28 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: Jeremy Rosengren <jeremy@rosengren.org>
+Cc: autofs@linux.kernel.org
 
-I previously worked with Ian to troubleshoot and resolve some problems 
-that I was seeing with autofs 4.1.3's replicated server code.  
-Everything had been working swimmingly with Fedora Core 3's autofs 
-4.1.3-114 package.
+==> Regarding [autofs] autofs 4.1.4 regression?; Jeremy Rosengren <jeremy@rosengren.org> adds:
 
-I'm testing Fedora Core 4, and am seeing problems with replicated host 
-maps and autofs 4.1.4-5.
+jeremy> I previously worked with Ian to troubleshoot and resolve some
+jeremy> problems that I was seeing with autofs 4.1.3's replicated server
+jeremy> code.  Everything had been working swimmingly with Fedora Core 3's
+jeremy> autofs 4.1.3-114 package.
 
-Here's the map:
+jeremy> I'm testing Fedora Core 4, and am seeing problems with replicated
+jeremy> host maps and autofs 4.1.4-5.
 
-[root@flexer ~]# ypcat -k auto_group
-icdes ausfiler,minnfiler2:/vol/vol0/data/group/&
+There is a regression, but it's in the Red Hat package.  I've got a fix for
+it.  Please try 4.1.4-8 from my people page:
+  http://people.redhat.com/~jmoyer/autofs/fc4/
 
-Here's what happens:
-
-[root@flexer ~]# cd /group/icdes
--bash: cd: /group/icdes: No such file or directory
-
-Here's what /var/log/messages says:
-May  9 16:25:48 flexer automount[8202]: mount(nfs): host 
-ausfiler,minnfiler2: lookup failure
-May  9 16:25:48 flexer automount[8202]: >> mount: special device 
-/vol/vol0/data/group/icdes does not exist
-May  9 16:25:48 flexer automount[8202]: failed to mount /group/icdes
-
-Using 4.1.3-114 in FC3 this works without any problems.  Also, 
-non-replicated maps seem to be working just fine.  Any other information 
-I can gather to help troubleshoot?
+I'll push this to rawhide once that's enabled again.  Sorry for the
+inconvenience.  Oh, and definitely let me know whether or not this fixes
+your problem.
 
 Thanks,
 
--- jeremy
+Jeff
