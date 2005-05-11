@@ -1,10 +1,13 @@
-From: =?ISO-8859-1?Q?Xisco_Fern=E1ndez?= <fjfernandez@riu.com>
-Subject: autofs and dollar sign in hidden NT volumes
-Date: Wed, 11 May 2005 18:32:57 +0200
-Message-ID: <428233B9.8080401@riu.com>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: autofs and dollar sign in hidden NT volumes
+Date: Wed, 11 May 2005 15:05:02 -0400
+Message-ID: <17026.22366.16278.577510@segfault.boston.redhat.com>
+References: <428233B9.8080401@riu.com>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <428233B9.8080401@riu.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -15,47 +18,44 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="iso-8859-1"; format="flowed"
-To: autofs@linux.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+To: =?ISO-8859-1?Q?Xisco_Fern=E1ndez?= <fjfernandez@riu.com>
+Cc: autofs@linux.kernel.org
 
-Hello list,
+=3D=3D> Regarding [autofs] autofs and dollar sign in hidden NT volumes; X=
+isco Fern=E1ndez <fjfernandez@riu.com> adds:
 
-I'm having some sort of problem w/ automount. I'm trying to automount
-hidden windows volumes (volume$), but the dollar sign isn't being
-recognized by autofs.
+fjfernandez> Hello list, I'm having some sort of problem w/ automount. I'=
+m
+fjfernandez> trying to automount hidden windows volumes (volume$), but th=
+e
+fjfernandez> dollar sign isn't being recognized by autofs.
 
-I am able to mount that share manually with mount.smbfs.
-I am able to mount other non hidden shares with automount.
+fjfernandez> I am able to mount that share manually with mount.smbfs.  I =
+am
+fjfernandez> able to mount other non hidden shares with automount.
 
-It's not a credentials problem:
+fjfernandez> It's not a credentials problem:
 
-auto.master:
+fjfernandez> auto.master:
 
-/mnt/auto       /etc/auto.sgil --timeout=3D2
+fjfernandez> /mnt/auto /etc/auto.sgil --timeout=3D2
 
-auto.sgil:
+fjfernandez> auto.sgil:
 
-cdrom -fstype=3Diso9660,ro,nosuid,nodev :/dev/cdrom
-sgil  -fstype=3Dsmbfs,username=3Druben,password=3Dtosidad,codepage=3Dcp85=
-0=20
-://192.168.2.57/SGIL$
+fjfernandez> cdrom -fstype=3Diso9660,ro,nosuid,nodev :/dev/cdrom sgil
+fjfernandez> -fstype=3Dsmbfs,username=3Druben,password=3Dtosidad,codepage=
+=3Dcp850
+fjfernandez> ://192.168.2.57/SGIL$
 
+Please take a look at the "Filing bug reports" section of this page:
 
-LOG:
+  http://people.redhat.com/jmoyer
 
-May 11 17:35:26 localhost automount[20971]: >> 20973: tree connect=20
-failed: ERRDOS - ERRnosuchshare (You specified an invalid share name)
-May 11 17:35:26 localhost automount[20971]: >> SMB connection failed
-May 11 17:35:26 localhost automount[20971]: mount(generic): failed to=20
-mount //192.168.2.57/SGIL (type smbfs) on /mnt/auto/sgil
-May 11 17:35:26 localhost automount[20971]: failed to mount /mnt/auto/sgi=
-l
+Please provide the requested information, as it will  help us to debug yo=
+ur
+problem more easily.
 
-Thanks in advanced.
+Thanks,
 
---=20
-Francisco Jos=E9 Fern=E1ndez Rivera
-Departamento de Tecnolog=EDa (Redes)
-Riu Hotels & Resorts
-Palma de Mallorca
-Espa=F1a
+Jeff
