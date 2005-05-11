@@ -1,13 +1,10 @@
-From: Jeremy Rosengren <jeremy@rosengren.org>
-Subject: Re: autofs 4.1.4 regression?
-Date: Mon, 09 May 2005 17:23:07 -0500
-Message-ID: <427FE2CB.5000003@rosengren.org>
-References: <427FD65F.2050708@rosengren.org>
-	<17023.56393.15007.106702@segfault.boston.redhat.com>
+From: =?ISO-8859-1?Q?Xisco_Fern=E1ndez?= <fjfernandez@riu.com>
+Subject: autofs and dollar sign in hidden NT volumes
+Date: Wed, 11 May 2005 18:32:57 +0200
+Message-ID: <428233B9.8080401@riu.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <17023.56393.15007.106702@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,33 +15,47 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: jmoyer@redhat.com
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"; format="flowed"
+To: autofs@linux.kernel.org
 
-Jeff Moyer wrote:
+Hello list,
 
->==> Regarding [autofs] autofs 4.1.4 regression?; Jeremy Rosengren <jeremy@rosengren.org> adds:
->
->jeremy> I previously worked with Ian to troubleshoot and resolve some
->jeremy> problems that I was seeing with autofs 4.1.3's replicated server
->jeremy> code.  Everything had been working swimmingly with Fedora Core 3's
->jeremy> autofs 4.1.3-114 package.
->
->jeremy> I'm testing Fedora Core 4, and am seeing problems with replicated
->jeremy> host maps and autofs 4.1.4-5.
->
->There is a regression, but it's in the Red Hat package.  I've got a fix for
->it.  Please try 4.1.4-8 from my people page:
->  http://people.redhat.com/~jmoyer/autofs/fc4/
->
->I'll push this to rawhide once that's enabled again.  Sorry for the
->inconvenience.  Oh, and definitely let me know whether or not this fixes
->your problem.
->  
->
-The 4.1.4-8 package seems to work properly with my replicated host maps.
+I'm having some sort of problem w/ automount. I'm trying to automount
+hidden windows volumes (volume$), but the dollar sign isn't being
+recognized by autofs.
 
-Thanks for the quick response!
+I am able to mount that share manually with mount.smbfs.
+I am able to mount other non hidden shares with automount.
 
--- jeremy
+It's not a credentials problem:
+
+auto.master:
+
+/mnt/auto       /etc/auto.sgil --timeout=3D2
+
+auto.sgil:
+
+cdrom -fstype=3Diso9660,ro,nosuid,nodev :/dev/cdrom
+sgil  -fstype=3Dsmbfs,username=3Druben,password=3Dtosidad,codepage=3Dcp85=
+0=20
+://192.168.2.57/SGIL$
+
+
+LOG:
+
+May 11 17:35:26 localhost automount[20971]: >> 20973: tree connect=20
+failed: ERRDOS - ERRnosuchshare (You specified an invalid share name)
+May 11 17:35:26 localhost automount[20971]: >> SMB connection failed
+May 11 17:35:26 localhost automount[20971]: mount(generic): failed to=20
+mount //192.168.2.57/SGIL (type smbfs) on /mnt/auto/sgil
+May 11 17:35:26 localhost automount[20971]: failed to mount /mnt/auto/sgi=
+l
+
+Thanks in advanced.
+
+--=20
+Francisco Jos=E9 Fern=E1ndez Rivera
+Departamento de Tecnolog=EDa (Redes)
+Riu Hotels & Resorts
+Palma de Mallorca
+Espa=F1a
