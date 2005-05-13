@@ -1,12 +1,13 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs and dollar sign in hidden NT volumes
-Date: Thu, 12 May 2005 10:05:37 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0505121004290.2818@wombat.indigo.net.au>
-References: <428233B9.8080401@riu.com>
+From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
+Subject: Re: New autofs in sid, please push to testing
+Date: Fri, 13 May 2005 13:46:09 +0200
+Message-ID: <20050513114609.GA22968@uio.no>
+References: <20050511115113.GA24295@uio.no>
+	<20050513044148.GB4770@mauritius.dodds.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <428233B9.8080401@riu.com>
+Content-Disposition: inline
+In-Reply-To: <20050513044148.GB4770@mauritius.dodds.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,35 +18,40 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="iso-8859-1"
-To: =?ISO-8859-1?Q?Xisco_Fern=E1ndez?= <fjfernandez@riu.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: debian-release@lists.debian.org
 Cc: autofs@linux.kernel.org
 
-On Wed, 11 May 2005, [ISO-8859-1] Xisco Fern=E1ndez wrote:
+On Thu, May 12, 2005 at 09:41:52PM -0700, Steve Langasek wrote:
+>> I've uploaded autofs 4.1.3+4.1.4beta2-8 to sid, which fixes (to the best of
+>> my knowledge -- I can't reproduce the problems myself) two important bugs,
+>> and contains no other changes. vorlon promised me a freeze exception for the
+>> upload, so letting it through to sarge would be nice :-) Thanks.
+> Hmm, memory leak:
+> 
+> [...]
+>
+> ++int is_local_mount(const char *hostpath)
+> ++{
+>
+> [...]
+> 
+> Memory is allocated for hostname on every call, and never freed.
 
-> Hello list,
->=20
-> I'm having some sort of problem w/ automount. I'm trying to automount
-> hidden windows volumes (volume$), but the dollar sign isn't being
-> recognized by autofs.
->=20
-> I am able to mount that share manually with mount.smbfs.
-> I am able to mount other non hidden shares with automount.
->=20
-> It's not a credentials problem:
->=20
-> auto.master:
->=20
-> /mnt/auto       /etc/auto.sgil --timeout=3D2
->=20
-> auto.sgil:
->=20
-> cdrom -fstype=3Diso9660,ro,nosuid,nodev :/dev/cdrom
-> sgil  -fstype=3Dsmbfs,username=3Druben,password=3Dtosidad,codepage=3Dcp=
-850=20
-> ://192.168.2.57/SGIL$
+I've fixed this in 4.1.3+4.1.4beta2-10 (just uploaded); it's a simple fix
+(free(hostname) added three or four places -- it's being used in printf()s
+etc. in various code branches, so I can't just free it once).
 
-Have you tried escaping the $?
-It has special meaning to autofs.
+> The get_best_mount function worries me, as it's writing to a caller-provided
+> pointer (char *what) with no bounds checking.  This appears to be the
+> intended *use* of the pointer, so this isn't a blocking issue, it's just
+> something that ought to be cleaned up at some point (including making sure
+> there's no exploitable buffer overflow here when using things like LDAP or
+> Hesiod maps).
 
-Ian
+Cc-ing the autofs list :-)
+
+/* Steinar */
+-- 
+Homepage: http://www.sesse.net/
