@@ -1,53 +1,95 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [VFS-RFC] autofs4 and bind, rbind and move mount requests
-Date: Mon, 23 May 2005 17:02:36 +0200
-Message-ID: <E1DaERw-0002cC-00@dorka.pomaz.szeredi.hu>
-References: <Pine.LNX.4.62.0505232041410.8361@donald.themaw.net>
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-reply-to: <Pine.LNX.4.62.0505232041410.8361@donald.themaw.net>
-	(raven@themaw.net)
-Sender: linux-fsdevel-owner@vger.kernel.org
-List-Id: <autofs.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: handle_packet_missing called with wrong path
+Date: Mon, 23 May 2005 11:47:10 -0400
+Message-ID: <17041.64254.30905.109713@segfault.boston.redhat.com>
+Reply-To: jmoyer@redhat.com
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: raven@themaw.net
-Cc: linux-fsdevel@vger.kernel.org, autofs@linux.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <autofs-bounces@linux.kernel.org>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://hera.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: autofs@linux.kernel.org
 
-> I've been investigating a bug report about bind mounting an autofs 
-> controlled mount point. It is indeed disastrous for autofs. It would be 
-> simple enough it to check and fail silently but that won't give sensible 
-> behavior.
-> 
-> What should the semantics be for these type of mount requests against 
-> autofs?
-> 
-> First, a move mount doesn't make sense as it places the autofs 
-> filesystem in a location that is not specified in the autofs map to which 
-> it belongs. It looks like the user space daemon would loose contact with 
-> the newly mounted filesystem and so it would become useless and probably 
-> not umountable, not to mention how the daemon would handle it. I believe 
-> that this shouldn't be allowed. What do people think? If we don't treat 
-> these as invalid then how should they behave?
+Hi, Ian, list,
 
-Move is very similar to rbind + umount.  So if you find sane semantics
-for the rbind case, that should do for move as well.
+I have a user reporting a problem with autofs whereby his automounts fail for
+a period of time, and then start to work again.  The map looks like this:
 
-> Bind mount requests are another question.
-> 
-> In the case of a bind mount we can find ourselves with a dentry in the 
-> bound filesystem that is marked as mounted but can't be followed 
-> because the parent vfsmount is in the source filesystem.
+soldyn2 -rsize=8192,wsize=8192  alexandria:/export/soldyn2
+clouds2 -rsize=8192,wsize=8192  alexandria:/export/clouds2
+waves2 -rsize=8192,wsize=8192   alexandria:/export/waves2
+sw1 -rsize=8192,wsize=8192      alexandria:/export/data1
+radar3 -rsize=8192,wsize=8192   alexandria:/export/radar3
+bigmeadow -rsize=8192,wsize=8192        alexandria:/export/bigmeadow
 
-I don't understand this.  A bind will just copy a vfsmount and add the
-copy to some other place in the mount tree.  It should not matter if
-the original mount was automounted or not.  What am I missing?
+And here is a debug log trace that shows, when the problem occurs, that the
+kernel passes on a missing packet with relative path of radar3/saber:
 
-> Should the automount functionality go along with the bind mount 
-> filesystem?
+automount[3488]: handle_packet: type = 0 
+automount[3488]: handle_packet_missing: token 250, name radar3/saber 
+automount[3488]: attempting to mount entry /data/radar3/saber
+automount[14482]: lookup(yp): looking up radar3/saber
+automount[14482]: ret = 8
+automount[14482]: failed to mount /data/radar3/saber
+automount[14482]: umount_multi: path=/data/radar3/saber incl=1 
 
-No.  With bind you copy the mount to another place.  Now it has
-nothing to do with the automouter, it becomes a perfectly ordinary
-mount.
+Then, when things work, the logs look like so:
 
-Miklos
+automount[3488]: handle_packet: type = 0 
+automount[3488]: handle_packet_missing: token 251, name radar3 
+automount[3488]: attempting to mount entry /data/radar3
+automount[14504]: lookup(yp): looking up radar3
+automount[14504]: ret = 1
+automount[14504]: lookup(yp): radar3 -> -rsize=8192,wsize=8192	alexandria:/export/radar3
+automount[14504]: parse(sun): expanded entry: -rsize=8192,wsize=8192	alexandria:/export/radar3
+automount[14504]: parse(sun): dequote("rsize=8192,wsize=8192") -> rsize=8192,wsize=8192
+automount[14504]: parse(sun): gathered options: intr,,rsize=8192,wsize=8192
+automount[14504]: parse(sun): dequote("alexandria:/export/radar3") -> alexandria:/export/radar3
+automount[14504]: parse(sun): core of entry: options=intr,,rsize=8192,wsize=8192, loc=alexandria:/export/radar3
+automount[14504]: parse(sun): mounting root /data, mountpoint radar3, what alexandria:/export/radar3, fstype nfs, options intr,rsize=8192,wsize=8192 
+automount[14504]: mount(nfs):  root=/data name=radar3 what=alexandria:/export/radar3, fstype=nfs, options=intr,rsize=8192,wsize=8192
+automount[14504]: mount(nfs): nfs options="intr,rsize=8192,wsize=8192", nosymlink=0
+automount[14504]: mount(nfs): is_local_mount: alexandria:/export/radar3
+automount[14504]: mount(nfs): from alexandria:/export/radar3 elected alexandria:/export/radar3
+automount[14504]: mount(nfs): calling mkdir_path /data/radar3
+automount[14504]: mount(nfs): calling mount -t nfs -s  -o intr,rsize=8192,wsize=8192 alexandria:/export/radar3 /data/radar3
+kernel: SELinux: initialized (dev 0:19, type nfs), uses genfs_contexts
+automount[14504]: mount(nfs): mounted alexandria:/export/radar3 on /data/radar3
+
+Ian, any ideas on this?  The user was even kind enough to attach a
+reproducer (though I believe it takes a good deal of run-time to trigger
+the problem):
+
+#!/usr/bin/perl
+while (1) {
+   open(IN,"< /data/radar3/saber/SABER_SPECTRA_2002_090_130M.DAT") or print `date` . ": Failed to open\n";
+   close(IN);
+   sleep(70);
+}
+
+The version of the automounter is autofs-4.1.4-8, and the kernel is FC3's
+latest, which is based off of 2.6.11.10, with the addition of the expiry
+race patch.
+
+Here is some additional information from the user that may be useful:
+
+  We automount NFS directories in /data from various NFS servers using NFSv4.
+  It appears that since adding NFSv4 capability (to /etc/exports) to the
+  servers, this is much less reliable.  All machines are up to date FC3.
+
+  There are no mount requests in the server logs during the problem period.
+
+Any help on this would be greatly appreciated.
+
+Thanks!
+
+Jeff
