@@ -1,45 +1,68 @@
 From: raven@themaw.net
-Subject: Re: Re: New autofs in sid, please push to testing
-Date: Sun, 15 May 2005 22:06:51 +0800 (WST)
-Message-ID: <Pine.LNX.4.62.0505152202390.14835@donald.themaw.net>
-References: <20050511115113.GA24295@uio.no>
-	<20050513044148.GB4770@mauritius.dodds.net>
-	<20050513114609.GA22968@uio.no>
+Subject: Re: [PATCH 1/3] autofs4 - expiring filesystem from under process
+Date: Mon, 23 May 2005 20:38:11 +0800 (WST)
+Message-ID: <Pine.LNX.4.62.0505232005550.8361@donald.themaw.net>
+References: <Pine.LNX.4.62.0504102044140.5212@donald.themaw.net>
+ <16986.44640.269893.824019@segfault.boston.redhat.com>
+ <Pine.LNX.4.62.0504202227130.8800@donald.themaw.net>
+ <16998.50065.652052.980908@segfault.boston.redhat.com>
 Mime-Version: 1.0
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20050513114609.GA22968@uio.no>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <16998.50065.652052.980908@segfault.boston.redhat.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://hera.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
-To: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
-Cc: autofs@linux.kernel.org, debian-release@lists.debian.org
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: Andrew Morton <akpm@osdl.org>, autofs mailing list <autofs@linux.kernel.org>, Michael Blandford <michael@kmaclub.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-On Fri, 13 May 2005, Steinar H. Gunderson wrote:
 
-> On Thu, May 12, 2005 at 09:41:52PM -0700, Steve Langasek wrote:
+Sorry to take so long to get back to this Jeff.
 
-snip ...
+On Wed, 20 Apr 2005, Jeff Moyer wrote:
+> ==> Regarding Re: [PATCH 1/3] autofs4 - expiring filesystem from under process; raven@themaw.net adds:
+>
+> raven> On Mon, 11 Apr 2005, Jeff Moyer wrote:
+>>> ==> Regarding [PATCH 1/3] autofs4 - expiring filesystem from under
+>>> process; raven@themaw.net adds:
+>>>
+>>> Could also please explain how the following is handled:
+>>>
+>>> expire process runs and issues AUTOFS_EXPIRE_MULTI, which sets
+>>> AUTOFS_INF_EXPIRING in flags.  While the expire is in progress, another
+>>> process access the directory in question, causing a call to
+>>> try_to_fill_dentry.  try_to_fill_dentry sees the AUTOFS_INF_EXPIRING
+>>> flag is set, and so calls autofs4_wait with notify set to NFY_NONE.
+>>> However, when we take the wq sem, we find that the expire has finished,
+>>> and thus create a new wq entry.  Because NFY_NONE is set, we don't tell
+>>> the daemon.
+>>>
+>>> So how will this process ever get woken up?
+>>>
+>
+> raven> I've thought about this for quite a while and I think all that's
+> raven> needed is to recognise that we're about to expire a dentry that's
+> raven> not mounted anymore.
+>
+> raven> Can you think of a case for which this patch fails?
+>
+> I don't see how the patch you provided addresses the race between an expire
+> event and a lookup.  The real issue here is that the checking of
+> AUTOFS_INF_EXPIRING and the list operations associated therewith need to
+> happen atomically.  Until this happens, we will have races.
 
->> The get_best_mount function worries me, as it's writing to a caller-provided
->> pointer (char *what) with no bounds checking.  This appears to be the
->> intended *use* of the pointer, so this isn't a blocking issue, it's just
->> something that ought to be cleaned up at some point (including making sure
->> there's no exploitable buffer overflow here when using things like LDAP or
->> Hesiod maps).
+I don't think that's quite how this process works.
 
-Perhaps.
+In this case, since the the directory exists, we always come to 
+autofs4_wait via autofs4_revalidate and only during an expire. If the 
+expire finishes and we attempt to create a new wait as you describe then 
+all that needs to be done is to return a fail instead of waiting and rely 
+on the subsequent autofs4_lookup call to perform the requested mount.
 
-I'll have a look but bounds checking should be done way before this so I'm 
-not so concerned about this. Checking that it is done at the right spot is 
-the important thing (I think it is in the latest release).
+For the normal case, when the process waits and then returns at expire 
+completion has the same semantics. So for a NFY_NONE wait request, 
+checking if the dentry is a mountpoint and returning -ENOENT is sufficient 
+(in fact the return code itself is not significant). Please check 
+do_lookup in namei.c and I think you will see what I mean.
 
 Ian
