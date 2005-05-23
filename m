@@ -1,68 +1,65 @@
 From: raven@themaw.net
-Subject: Re: [PATCH 1/3] autofs4 - expiring filesystem from under process
-Date: Mon, 23 May 2005 20:38:11 +0800 (WST)
-Message-ID: <Pine.LNX.4.62.0505232005550.8361@donald.themaw.net>
-References: <Pine.LNX.4.62.0504102044140.5212@donald.themaw.net>
- <16986.44640.269893.824019@segfault.boston.redhat.com>
- <Pine.LNX.4.62.0504202227130.8800@donald.themaw.net>
- <16998.50065.652052.980908@segfault.boston.redhat.com>
+Subject: [VFS-RFC] autofs4 and bind, rbind and move mount requests
+Date: Mon, 23 May 2005 22:34:38 +0800 (WST)
+Message-ID: <Pine.LNX.4.62.0505232041410.8361@donald.themaw.net>
 Mime-Version: 1.0
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <16998.50065.652052.980908@segfault.boston.redhat.com>
 Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: Andrew Morton <akpm@osdl.org>, autofs mailing list <autofs@linux.kernel.org>, Michael Blandford <michael@kmaclub.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+To: linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
 
-Sorry to take so long to get back to this Jeff.
+I've been investigating a bug report about bind mounting an autofs 
+controlled mount point. It is indeed disastrous for autofs. It would be 
+simple enough it to check and fail silently but that won't give sensible 
+behavior.
 
-On Wed, 20 Apr 2005, Jeff Moyer wrote:
-> ==> Regarding Re: [PATCH 1/3] autofs4 - expiring filesystem from under process; raven@themaw.net adds:
->
-> raven> On Mon, 11 Apr 2005, Jeff Moyer wrote:
->>> ==> Regarding [PATCH 1/3] autofs4 - expiring filesystem from under
->>> process; raven@themaw.net adds:
->>>
->>> Could also please explain how the following is handled:
->>>
->>> expire process runs and issues AUTOFS_EXPIRE_MULTI, which sets
->>> AUTOFS_INF_EXPIRING in flags.  While the expire is in progress, another
->>> process access the directory in question, causing a call to
->>> try_to_fill_dentry.  try_to_fill_dentry sees the AUTOFS_INF_EXPIRING
->>> flag is set, and so calls autofs4_wait with notify set to NFY_NONE.
->>> However, when we take the wq sem, we find that the expire has finished,
->>> and thus create a new wq entry.  Because NFY_NONE is set, we don't tell
->>> the daemon.
->>>
->>> So how will this process ever get woken up?
->>>
->
-> raven> I've thought about this for quite a while and I think all that's
-> raven> needed is to recognise that we're about to expire a dentry that's
-> raven> not mounted anymore.
->
-> raven> Can you think of a case for which this patch fails?
->
-> I don't see how the patch you provided addresses the race between an expire
-> event and a lookup.  The real issue here is that the checking of
-> AUTOFS_INF_EXPIRING and the list operations associated therewith need to
-> happen atomically.  Until this happens, we will have races.
+What should the semantics be for these type of mount requests against 
+autofs?
 
-I don't think that's quite how this process works.
+First, a move mount doesn't make sense as it places the autofs 
+filesystem in a location that is not specified in the autofs map to which 
+it belongs. It looks like the user space daemon would loose contact with 
+the newly mounted filesystem and so it would become useless and probably 
+not umountable, not to mention how the daemon would handle it. I believe 
+that this shouldn't be allowed. What do people think? If we don't treat 
+these as invalid then how should they behave?
 
-In this case, since the the directory exists, we always come to 
-autofs4_wait via autofs4_revalidate and only during an expire. If the 
-expire finishes and we attempt to create a new wait as you describe then 
-all that needs to be done is to return a fail instead of waiting and rely 
-on the subsequent autofs4_lookup call to perform the requested mount.
+Should there be a way for a filesystem to veto a mount request?
+This doesn't appear possible atm.
 
-For the normal case, when the process waits and then returns at expire 
-completion has the same semantics. So for a NFY_NONE wait request, 
-checking if the dentry is a mountpoint and returning -ENOENT is sufficient 
-(in fact the return code itself is not significant). Please check 
-do_lookup in namei.c and I think you will see what I mean.
+This couls be done by adding a method such as "mount_begin" to match the 
+"umount_begin". Should the methods simply be named "mount" and "umount" 
+instead?
+
+Is there a reason that the umount_begin is called only as a special case 
+instead of leaving it to the filesystem which implements it to decide 
+what needs to be done?
+
+Bind mount requests are another question.
+
+In the case of a bind mount we can find ourselves with a dentry in the 
+bound filesystem that is marked as mounted but can't be followed 
+because the parent vfsmount is in the source filesystem.
+
+Should the automount functionality go along with the bind mount 
+filesystem? At this stage there's no straight forward way for autofs to 
+handle two independent mount trees from the same automount daemon. It's 
+just not designed to do that.
+
+It's probably possible to make this behave as though the automounted 
+filesystem is mirrored under the filesystem to which it is bound. But it's 
+likely problematic. What do people think about this?
+
+I've not really thought enough about recursive bind mounts yet but on 
+the face of it they look fairly ugly as well.
+
+I know this post is short on detail but hopefully that will come out if 
+there are people interested in discussing it further.
+
+I look forward to some feedback and hope I can find a realistic approach 
+to solving this problem.
 
 Ian
