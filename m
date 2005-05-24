@@ -1,17 +1,12 @@
 From: raven@themaw.net
-Subject: Re: [VFS-RFC] autofs4 and bind,
-	rbind and move mount requests
-Date: Tue, 24 May 2005 23:24:07 +0800 (WST)
-Message-ID: <Pine.LNX.4.62.0505242215330.8219@donald.themaw.net>
+Subject: Re: [VFS-RFC] autofs4 and bind, rbind and move mount requests
+Date: Tue, 24 May 2005 23:50:14 +0800 (WST)
+Message-ID: <Pine.LNX.4.62.0505242325331.8219@donald.themaw.net>
 References: <Pine.LNX.4.62.0505232041410.8361@donald.themaw.net>
-	<E1DaERw-0002cC-00@dorka.pomaz.szeredi.hu>
-	<Pine.LNX.4.62.0505232339250.3469@donald.themaw.net>
-	<E1DaG04-0002hk-00@dorka.pomaz.szeredi.hu>
-	<Pine.LNX.4.58.0505240846410.26293@wombat.indigo.net.au>
-	<E1DaSRW-0003V9-00@dorka.pomaz.szeredi.hu>
+	<Pine.LNX.4.61.0505231847470.6229@xena.cft.ca.us>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <E1DaSRW-0003V9-00@dorka.pomaz.szeredi.hu>
+In-Reply-To: <Pine.LNX.4.61.0505231847470.6229@xena.cft.ca.us>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,112 +19,82 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-fsdevel@vger.kernel.org, autofs@linux.kernel.org, linux-kernel@vger.kernel.org
+To: Jim Carter <jimc@math.ucla.edu>
+Cc: autofs mailing list <autofs@linux.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
 
-On Tue, 24 May 2005, Miklos Szeredi wrote:
+On Mon, 23 May 2005, Jim Carter wrote:
 
->>>> Perhaps not in this case.
->>>
->>> Maybe I'm misunderstanding.
->>>
->>> Are you talking about an automounted filesystem, or the autofs
->>> filesystem itself.
+> On Mon, 23 May 2005 raven@themaw.net wrote:
+>
+>> I've been investigating a bug report about bind mounting an autofs
+>> controlled mount point. It is indeed disastrous for autofs. It would be
+>> simple enough it to check and fail silently but that won't give sensible
+>> behavior.
 >>
->> I'm talking about the autofs filesystem (actually the autofs4 module).
+>> What should the semantics be for these type of mount requests against
+>> autofs?
 >
-> OK.
->
->>>
->>> With the later I can well imagine that you have problems with bind and
->>> move.
->>
->> yep.
->>
->> I'm not really concerned about whether bind and move mounts work or not. I
->> just need to establish whether these should be supported and if so, how
->> they should work so I can resolve the problem. Personally, I would be
->> happy to say these types of mounts are not supported by autofs if I could
->> veto the requests.
->
-> Does it work if somebody renames a directory in the path leading to
-> the autofs mountpoint?  The result is very similar to move mount.
+> So in the reported bug, the person did a bind mount on the toplevel autofs
+> mount point.  I was expecting to see a particular server, or more likely a
+> particular NFS-mounted dir from that server, as the subject of the mount.
+> It's not too unreasonable to expect any of these to work transparently,
+> since autofs does its magic when the user looks up a name in the autofs
+> directory, and it shouldn't matter whether he got there from the original
+> mount point or the bind target.  The kernel module would send the name to
+> the userspace daemon, which would spawn a submount daemon or mount
+> something in the original location, and the subdir and whatever is mounted
+> on it ought to be visible even from the bind target.
 
-Don't know but I doubt it.
-I don't think it should because autofs needs be true to the mount maps 
-that define what automounts are to be provided.
+So your in favour of a bind mount behaving in a sense like a chroot.
 
->
-> You could solve both, by having the automoutnter daemon chdir to the
-> autofs root, and then it would just not care about any namespace
-> changes outside it's own filesystem.
+This I think I can do that but that's not how bind mount behaviour is 
+defined in mount(8). Hence the discussion.
 
-Perhaps but I think it will not be that simple.
-It's worth thinking about.
+What I would have trouble doing is maintaining two distinct trees 
+of mount points which is in line with the definition.
 
-I'm working on providing full direct mount support atm (I have limited 
-functionality now). I will have many autofs mounts handled by a single 
-daemon. So that makes it a bit harder. This will be done using a file 
-handle to identify (for map entry lookup) each direct mount point in the 
-map, but still I suspect the corresponding vfsmount will end up being 
-wrong. I'm also thinking of doing this for indirect mounts during this 
-rework. A similar approach I think, to what you describe below.
-
-I must point out that my current focus is to push the current autofs 
-implementation as far as it can go within its original design. Which is 
-probably not much further than implementing functionaly workable direct 
-mounts. This means that multiple namespace support is not under 
-consideration. Indeed the current design will not easily lend itself to 
-it.
-
-Mike Waychison was working on a new version to address this and other 
-limitations of the current design but development of this seems to have 
-stopped.
+And there's also the question of recursive bind mounts????
 
 >
-> Bind and clone(... CLONE_NEWNS) are trickier if you want to make
-> automounting work in the new instance.  It should be workable, if the
-> autofs kernel module returns a reference not just to the dentry but
-> the dentry/vfsmount pair to the daemon.  For example it could open a
-> file descriptor with dentry_open() refering to the mountpoint, and
-> pass that to userspace.  The daemon then can do the mount on in
-> (either by doing fchdir(fd) and 'mount blah .', or 'mount blah
-> /proc/PID/fd/FD').
+> But evidently that's not true.  As you say, if it can't be made to work
+> transparently, the next best is to make the bind mount fail.  A distant
+> third choice is to say "don't do that" in the documnetation.  Sorry, no
+> insights in the code; I'm just acting as a sounding board.
 >
-> This is all very theoretical, I don't know how the internals of
-> autofs...
+> I wonder what the person is trying to do.  Maybe a chroot jail, but it's
+
+But an actual chroot should work as expected. If not it's a bug.
+
+> unlikely that the client would be allowed to use the whole automount
+> mechanism.  How about this concept (not what's described in the bug
+> report): the client's homedir server is autofs mounted (i.e. a submount
+> process is spawned) and the server dir is bind-mounted into the jail.
+> Then a shell is jailed.  He can use anything on his server, using the
+> out-of-jail autofs daemon to mount the filesystems, but no other host will
+> be accessible.
+
+Oh yes Miklos, we haven't even started talking about submounts, each with 
+its own map! Sorry, I'm sure you have enough to do already but I thought 
+you might like to follow the discussion a little further.
+
 >
-> On a related note, have you looked at using the kernel atumounter
-> support for autofs? (Documentation/filesystems/automount-support.txt)
+> Certainly a "move" mount should be illegal: how would the userspace daemon
+> know where the main mount point had gone?
 
-I saw that code when I was looking at this problem.
-It looks quite interesting.
-Again, I'll have to think about it.
-Changes of that magnitude won't happen quickly.
-It's already been a hard slog to get autofs to a reasonably stable state.
+Exactly. But the pipe to the daemon should still be there (maybe). It may 
+turn out that it can be handled the same way as the bind mount above. The actual 
+difficulty is locating the correct vfsmount kernel struct from the module, 
+which is probably now gone with during a move mount.
 
-When I was looking at it I didn't see anything that would help with some 
-of the issues such as:
+>
+> Am I correct that if a filesystem is unmounted by force majeure, e.g.
+> manually by the sysadmin or any other reason, the userspace daemon that
+> mounted it may be a little unhappy but it will not suffer any permanent
+> damage?  I've always assumed that to be true, in case of stubborn messed-up
+> mounts.
 
-1) lazy mount/umount/expire of a tree of mount points (needs to be handled 
-atomically).
-2) Didn't see anything relating to expire timeouts just busyness.
-3) I don't think that item (1) in the file you refer to above is correct. 
-The nameidata struct passed to follow_link assumes that a mount point has 
-not been followed prior to the call. So this approach can't work for 
-direct mounts without some more work in the VFS. Maybe it can be done 
-another way but I'm not aware of it.
-5) It seems that exporting the vfsmount_lock so it can be used in a 
-module is not good pratice (at least that was the case the last time I 
-needed it).
-
-Please don't get me wrong. I did notice this code (but not the doco) and 
-it does look really useful to me but it means a significant redesign of 
-autofs. I need what's currently in place to work as it's likely to be 
-around for quite a while yet.
-
-What I really need is agreement that adding a super_operations method such 
-as "mount" is acceptable so that I can veto bind and move mounts with the 
-current version. Perhaps I can do it another way ?????
+It will catch up at the next expire event. It shouldn't cause to much 
+grief. The fact that it doesn't catch up until the next expire event is a 
+long standing bug.
 
 Ian
