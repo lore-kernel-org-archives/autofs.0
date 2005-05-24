@@ -1,12 +1,14 @@
-From: raven@themaw.net
-Subject: Re: [VFS-RFC] autofs4 and bind, rbind and move mount requests
-Date: Tue, 24 May 2005 23:50:14 +0800 (WST)
-Message-ID: <Pine.LNX.4.62.0505242325331.8219@donald.themaw.net>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: [VFS-RFC] autofs4 and bind,
+	rbind and move mount requests
+Date: Tue, 24 May 2005 12:28:13 -0400
+Message-ID: <17043.22045.971680.964834@segfault.boston.redhat.com>
 References: <Pine.LNX.4.62.0505232041410.8361@donald.themaw.net>
-	<Pine.LNX.4.61.0505231847470.6229@xena.cft.ca.us>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.61.0505231847470.6229@xena.cft.ca.us>
+In-Reply-To: <Pine.LNX.4.62.0505232041410.8361@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,84 +19,66 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
-Content-Transfer-Encoding: 7bit
-To: Jim Carter <jimc@math.ucla.edu>
-Cc: autofs mailing list <autofs@linux.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
+Content-Type: text/plain; charset="us-ascii"
+To: raven@themaw.net
+Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Mon, 23 May 2005, Jim Carter wrote:
+==> Regarding [VFS-RFC] autofs4 and bind, rbind and move mount requests; raven@themaw.net adds:
 
-> On Mon, 23 May 2005 raven@themaw.net wrote:
->
->> I've been investigating a bug report about bind mounting an autofs
->> controlled mount point. It is indeed disastrous for autofs. It would be
->> simple enough it to check and fail silently but that won't give sensible
->> behavior.
->>
->> What should the semantics be for these type of mount requests against
->> autofs?
->
-> So in the reported bug, the person did a bind mount on the toplevel autofs
-> mount point.  I was expecting to see a particular server, or more likely a
-> particular NFS-mounted dir from that server, as the subject of the mount.
-> It's not too unreasonable to expect any of these to work transparently,
-> since autofs does its magic when the user looks up a name in the autofs
-> directory, and it shouldn't matter whether he got there from the original
-> mount point or the bind target.  The kernel module would send the name to
-> the userspace daemon, which would spawn a submount daemon or mount
-> something in the original location, and the subdir and whatever is mounted
-> on it ought to be visible even from the bind target.
+raven> I've been investigating a bug report about bind mounting an autofs
+raven> controlled mount point. It is indeed disastrous for autofs. It would
+raven> be simple enough it to check and fail silently but that won't give
+raven> sensible behavior.
 
-So your in favour of a bind mount behaving in a sense like a chroot.
+raven> What should the semantics be for these type of mount requests
+raven> against autofs?
 
-This I think I can do that but that's not how bind mount behaviour is 
-defined in mount(8). Hence the discussion.
+raven> First, a move mount doesn't make sense as it places the autofs
+raven> filesystem in a location that is not specified in the autofs map to
+raven> which it belongs. It looks like the user space daemon would loose
+raven> contact with the newly mounted filesystem and so it would become
+raven> useless and probably not umountable, not to mention how the daemon
+raven> would handle it. I believe that this shouldn't be allowed. What do
+raven> people think? If we don't treat these as invalid then how should
+raven> they behave?
 
-What I would have trouble doing is maintaining two distinct trees 
-of mount points which is in line with the definition.
+I think it is reasonable to not allow this.
 
-And there's also the question of recursive bind mounts????
+[snip]
 
->
-> But evidently that's not true.  As you say, if it can't be made to work
-> transparently, the next best is to make the bind mount fail.  A distant
-> third choice is to say "don't do that" in the documnetation.  Sorry, no
-> insights in the code; I'm just acting as a sounding board.
->
-> I wonder what the person is trying to do.  Maybe a chroot jail, but it's
+raven> Bind mount requests are another question.
 
-But an actual chroot should work as expected. If not it's a bug.
+raven> In the case of a bind mount we can find ourselves with a dentry in
+raven> the bound filesystem that is marked as mounted but can't be followed
+raven> because the parent vfsmount is in the source filesystem.
 
-> unlikely that the client would be allowed to use the whole automount
-> mechanism.  How about this concept (not what's described in the bug
-> report): the client's homedir server is autofs mounted (i.e. a submount
-> process is spawned) and the server dir is bind-mounted into the jail.
-> Then a shell is jailed.  He can use anything on his server, using the
-> out-of-jail autofs daemon to mount the filesystems, but no other host will
-> be accessible.
+raven> Should the automount functionality go along with the bind mount
+raven> filesystem? At this stage there's no straight forward way for autofs
+raven> to handle two independent mount trees from the same automount
+raven> daemon. It's just not designed to do that.
 
-Oh yes Miklos, we haven't even started talking about submounts, each with 
-its own map! Sorry, I'm sure you have enough to do already but I thought 
-you might like to follow the discussion a little further.
+raven> It's probably possible to make this behave as though the automounted
+raven> filesystem is mirrored under the filesystem to which it is
+raven> bound. But it's likely problematic. What do people think about this?
 
->
-> Certainly a "move" mount should be illegal: how would the userspace daemon
-> know where the main mount point had gone?
+raven> I've not really thought enough about recursive bind mounts yet but
+raven> on the face of it they look fairly ugly as well.
 
-Exactly. But the pipe to the daemon should still be there (maybe). It may 
-turn out that it can be handled the same way as the bind mount above. The actual 
-difficulty is locating the correct vfsmount kernel struct from the module, 
-which is probably now gone with during a move mount.
+raven> I know this post is short on detail but hopefully that will come out
+raven> if there are people interested in discussing it further.
 
->
-> Am I correct that if a filesystem is unmounted by force majeure, e.g.
-> manually by the sysadmin or any other reason, the userspace daemon that
-> mounted it may be a little unhappy but it will not suffer any permanent
-> damage?  I've always assumed that to be true, in case of stubborn messed-up
-> mounts.
+raven> I look forward to some feedback and hope I can find a realistic
+raven> approach to solving this problem.
 
-It will catch up at the next expire event. It shouldn't cause to much 
-grief. The fact that it doesn't catch up until the next expire event is a 
-long standing bug.
+Yeah, this is really a tricky matter.  On the surface, it really doesn't
+make sense to me to do a mount -bind with a source directory of the
+automount point.  Given the current semantics of bind mounts, what does
+this gain you?  Likely it gains you access to an emtpy directory, or a
+directory full of empty directories (in the case of ghosting).
 
-Ian
+Mount -rbind is equally nonsensical, if you agree with the last paragraph.
+You will only get a copy of the vfsmount tree at the time of the mount
+-rbind call.  Who knows what was mounted at that time, it really isn't
+deterministic.
+
+-Jeff
