@@ -1,13 +1,13 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [VFS-RFC] autofs4 and bind, rbind and move mount requests
-Date: Tue, 24 May 2005 20:28:01 +0200
-Message-ID: <E1Dae8H-0004bV-00@dorka.pomaz.szeredi.hu>
-References: <Pine.LNX.4.62.0505232041410.8361@donald.themaw.net>
-	<Pine.LNX.4.61.0505231847470.6229@xena.cft.ca.us>
-	<Pine.LNX.4.62.0505242325331.8219@donald.themaw.net>
+From: raven@themaw.net
+Subject: Re: handle_packet_missing called with wrong path
+Date: Sun, 29 May 2005 22:09:08 +0800 (WST)
+Message-ID: <Pine.LNX.4.62.0505292201560.9745@donald.themaw.net>
+References: <17041.64254.30905.109713@segfault.boston.redhat.com>
+	<Pine.LNX.4.62.0505240005230.3469@donald.themaw.net>
+	<17042.4853.680049.888755@segfault.boston.redhat.com>
+Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-reply-to: <Pine.LNX.4.62.0505242325331.8219@donald.themaw.net>
-	(raven@themaw.net)
+In-Reply-To: <17042.4853.680049.888755@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,30 +18,78 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
-To: raven@themaw.net
+To: Jeff Moyer <jmoyer@redhat.com>
 Cc: autofs@linux.kernel.org
 
+On Mon, 23 May 2005, Jeff Moyer wrote:
 
-> So your in favour of a bind mount behaving in a sense like a chroot.
-> 
-> This I think I can do that but that's not how bind mount behaviour is 
-> defined in mount(8). Hence the discussion.
-> 
-> What I would have trouble doing is maintaining two distinct trees 
-> of mount points which is in line with the definition.
-> 
-> And there's also the question of recursive bind mounts????
+> ==> Regarding Re: [autofs] handle_packet_missing called with wrong path; raven@themaw.net adds:
+>
+> raven> On Mon, 23 May 2005, Jeff Moyer wrote:
+>>> Hi, Ian, list,
+>>>
+>>> I have a user reporting a problem with autofs whereby his automounts
+>>> fail for a period of time, and then start to work again.  The map looks
+>>> like this:
+>>>
+>>> soldyn2 -rsize=8192,wsize=8192 alexandria:/export/soldyn2 clouds2
+>>> -rsize=8192,wsize=8192 alexandria:/export/clouds2 waves2
+>>> -rsize=8192,wsize=8192 alexandria:/export/waves2 sw1
+>>> -rsize=8192,wsize=8192 alexandria:/export/data1 radar3
+>>> -rsize=8192,wsize=8192 alexandria:/export/radar3 bigmeadow
+>>> -rsize=8192,wsize=8192 alexandria:/export/bigmeadow
+>>>
+>>> And here is a debug log trace that shows, when the problem occurs, that
+>>> the kernel passes on a missing packet with relative path of
+>>> radar3/saber:
+>>>
+>>> automount[3488]: handle_packet: type = 0 automount[3488]:
+>>> handle_packet_missing: token 250, name radar3/saber automount[3488]:
+>>> attempting to mount entry /data/radar3/saber automount[14482]:
+>>> lookup(yp): looking up radar3/saber automount[14482]: ret = 8
+>>> automount[14482]: failed to mount /data/radar3/saber automount[14482]:
+>>> umount_multi: path=/data/radar3/saber incl=1
+>
+> raven> I wish I new what caused this.  I thought I'd sorted this out long
+> raven> ago but maybe it's a different problem.
+>
+> raven> This can happen if the lookup doesn't think that, for some reason,
+> raven> radar3 is a mountpoint during the path walk. It is probably because
+> raven> the subdirs list for the radar3 dentry is not empty when it should
+> raven> be. Oddly enough this might not be due to directory create and
+> raven> removal. It might be that a dentry from a path lookup hasn't been
+> raven> cleaned up for some reason. Quite difficult to diagnose.
+>
 
-You can always say in the manual: don't do that, or expect the
-unexpected!
+Found it.
 
-> Oh yes Miklos, we haven't even started talking about submounts, each with 
-> its own map! Sorry, I'm sure you have enough to do already but I thought 
-> you might like to follow the discussion a little further.
+This happens for browsable maps that request a mount at the same time as 
+an expire is happening. My understanding of the lookup was slightly 
+incorrect in that, when the directory exists the revalidate succeeds when 
+it should fail, in order to ensure that lookup is called. Instead lookup 
+is called on the next path component which should be whithin the mount. 
+Unfortuneately, the parent isn't mounted.
 
-OK.  Why are submounts special?
+This patch seems to fix the problem.
 
-Miklos
+diff -Nurp linux-2.6.12-rc5-mm1.orig/fs/autofs4/root.c linux-2.6.12-rc5-mm1/fs/autofs4/root.c
+--- linux-2.6.12-rc5-mm1.orig/fs/autofs4/root.c	2005-05-29 14:46:30.000000000 +0800
++++ linux-2.6.12-rc5-mm1/fs/autofs4/root.c	2005-05-29 14:47:04.000000000 +0800
+@@ -306,7 +306,14 @@ static int try_to_fill_dentry(struct den
+
+  		DPRINTK("expire done status=%d", status);
+
+-		return 0;
++		/*
++		 * If the directory still exists the mount request must
++		 * continue otherwise it can't be followed at the right
++		 * time during the walk.
++		 */
++		status = d_invalidate(dentry);
++		if (status != -EBUSY)
++			return 0;
+  	}
+
+  	DPRINTK("dentry=%p %.*s ino=%p",
