@@ -1,14 +1,10 @@
-From: raven@themaw.net
-Subject: Re: handle_packet_missing called with wrong path
-Date: Sun, 29 May 2005 22:13:14 +0800 (WST)
-Message-ID: <Pine.LNX.4.62.0505292212030.15718@donald.themaw.net>
-References: <17041.64254.30905.109713@segfault.boston.redhat.com>
-	<Pine.LNX.4.62.0505240005230.3469@donald.themaw.net>
-	<17042.4853.680049.888755@segfault.boston.redhat.com>
-	<Pine.LNX.4.62.0505292201560.9745@donald.themaw.net>
+From: Michael Marion <mmarion@qualcomm.com>
+Subject: Failure to mount without ever trying to mount..
+Date: Tue, 31 May 2005 14:42:02 -0700 (PDT)
+Message-ID: <200505312142.j4VLg3OT016150@cornholio.qualcomm.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.62.0505292201560.9745@donald.themaw.net>
+Content-Disposition: INLINE
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,108 +17,48 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Sun, 29 May 2005 raven@themaw.net wrote:
+Wonder if this is known.. don't see the same thing in the list, but I'm way
+behind.
 
-> On Mon, 23 May 2005, Jeff Moyer wrote:
->
->> ==>  Regarding Re: [autofs] handle_packet_missing called with wrong path; 
->> ==>  raven@themaw.net adds:
->> 
->> raven>  On Mon, 23 May 2005, Jeff Moyer wrote:
->> > >  Hi, Ian, list,
->> > > 
->> > >  I have a user reporting a problem with autofs whereby his automounts
->> > >  fail for a period of time, and then start to work again.  The map 
->> > >  looks
->> > >  like this:
->> > > 
->> > >  soldyn2 -rsize=8192,wsize=8192 alexandria:/export/soldyn2 clouds2
->> > >  -rsize=8192,wsize=8192 alexandria:/export/clouds2 waves2
->> > >  -rsize=8192,wsize=8192 alexandria:/export/waves2 sw1
->> > >  -rsize=8192,wsize=8192 alexandria:/export/data1 radar3
->> > >  -rsize=8192,wsize=8192 alexandria:/export/radar3 bigmeadow
->> > >  -rsize=8192,wsize=8192 alexandria:/export/bigmeadow
->> > > 
->> > >  And here is a debug log trace that shows, when the problem occurs, 
->> > >  that
->> > >  the kernel passes on a missing packet with relative path of
->> > >  radar3/saber:
->> > > 
->> > >  automount[3488]: handle_packet: type = 0 automount[3488]:
->> > >  handle_packet_missing: token 250, name radar3/saber automount[3488]:
->> > >  attempting to mount entry /data/radar3/saber automount[14482]:
->> > >  lookup(yp): looking up radar3/saber automount[14482]: ret = 8
->> > >  automount[14482]: failed to mount /data/radar3/saber automount[14482]:
->> > >  umount_multi: path=/data/radar3/saber incl=1
->> 
->> raven>  I wish I new what caused this.  I thought I'd sorted this out long
->> raven>  ago but maybe it's a different problem.
->> 
->> raven>  This can happen if the lookup doesn't think that, for some reason,
->> raven>  radar3 is a mountpoint during the path walk. It is probably because
->> raven>  the subdirs list for the radar3 dentry is not empty when it should
->> raven>  be. Oddly enough this might not be due to directory create and
->> raven>  removal. It might be that a dentry from a path lookup hasn't been
->> raven>  cleaned up for some reason. Quite difficult to diagnose.
->> 
->
-> Found it.
->
-> This happens for browsable maps that request a mount at the same time as an 
-> expire is happening. My understanding of the lookup was slightly incorrect in 
-> that, when the directory exists the revalidate succeeds when it should fail, 
-> in order to ensure that lookup is called. Instead lookup is called on the 
-> next path component which should be whithin the mount. Unfortuneately, the 
-> parent isn't mounted.
->
-> This patch seems to fix the problem.
->
-> diff -Nurp linux-2.6.12-rc5-mm1.orig/fs/autofs4/root.c 
-> linux-2.6.12-rc5-mm1/fs/autofs4/root.c
-> --- linux-2.6.12-rc5-mm1.orig/fs/autofs4/root.c	2005-05-29 14:46:30.000000000 
-> +0800
-> +++ linux-2.6.12-rc5-mm1/fs/autofs4/root.c	2005-05-29 14:47:04.000000000 
-> +0800
-> @@ -306,7 +306,14 @@ static int try_to_fill_dentry(struct den
->
-> 		DPRINTK("expire done status=%d", status);
->
-> -		return 0;
-> +		/*
-> +		 * If the directory still exists the mount request must
-> +		 * continue otherwise it can't be followed at the right
-> +		 * time during the walk.
-> +		 */
-> +		status = d_invalidate(dentry);
-> +		if (status != -EBUSY)
-> +			return 0;
-> 	}
->
-> 	DPRINTK("dentry=%p %.*s ino=%p",
->
->
+Most hosts failing to mount a test server, but watching packets shows that it
+never does try to mount.  I've verified that patching 4.1.4 with:
+autofs-4.1.4-multi-parse-fix.patch
+autofs-4.1.4-non-replicated-ping.patch
+autofs-4.1.4-misc-fixes.patch
 
-Ooops again. That setting on my new version of pine is driving me crazy!
+fixes the problem, and I'm guessing it's the non-replicated-ping patch that
+does it as the ok hosts do a lot more rpc traffic.  
 
-diff -Nurp linux-2.6.12-rc5-mm1.orig/fs/autofs4/root.c linux-2.6.12-rc5-mm1/fs/autofs4/root.c
---- linux-2.6.12-rc5-mm1.orig/fs/autofs4/root.c	2005-05-29 14:46:30.000000000 +0800
-+++ linux-2.6.12-rc5-mm1/fs/autofs4/root.c	2005-05-29 14:47:04.000000000 +0800
-@@ -306,7 +306,14 @@ static int try_to_fill_dentry(struct den
+Only this one host fails, and I think it's due to it not running nfs v2 or
+something else under portmap, it's only running:
+cornholio src {511}$ rpcinfo -p box
+   program vers proto   port
+    100000    2   udp    111  portmapper
+    100000    2   tcp    111  portmapper
+    100003    3   udp   2049  nfs
+    100003    3   tcp   2049  nfs
+    100005    1   udp    635  mountd
+    100005    1   tcp    635  mountd
+    100005    2   udp    635  mountd
+    100005    2   tcp    635  mountd
+    100005    3   udp    635  mountd
+    100005    3   tcp    635  mountd
 
-  		DPRINTK("expire done status=%d", status);
+Most servers (and filers) which work fine have more ports up, like nfs v2,
+status, nlockmgr, etc.
 
--		return 0;
-+		/*
-+		 * If the directory still exists the mount request must
-+		 * continue otherwise it can't be followed at the right
-+		 * time during the walk.
-+		 */
-+		status = d_invalidate(dentry);
-+		if (status != -EBUSY)
-+			return 0;
-  	}
+We're trying to figure out if just enabling nfs v2 support, or something else
+simple will help in the short term.. I'd rather not update the kernel and
+automount daemon on 800+ hosts for one path. :)  Though I want to get them all
+updated eventually where I can.
 
-  	DPRINTK("dentry=%p %.*s ino=%p",
+I attached ethereal caps of a successful host vs a failed host... the failed
+host does getport call for nfs v3, talks to 2049, does an nfs v3 null call..
+more nfsd port talk, getport call for nfs v2, then quits.
+
+-- 
+Mike Marion-Unix SysAdmin/Staff Engineer-http://www.qualcomm.com
+Stewie Griffin: Forecast for tomorrow; A few sprinkles of genius with a chance of 
+doom.  ==> Family Guy
