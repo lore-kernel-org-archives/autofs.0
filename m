@@ -1,11 +1,10 @@
-From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: Failure to mount without ever trying to mount..
-Date: Tue, 31 May 2005 23:53:32 +0200
-Message-ID: <20050531215332.GA31971@uio.no>
+Date: Wed, 1 Jun 2005 12:43:46 +0800 (WST)
+Message-ID: <Pine.LNX.4.58.0506011239550.10849@wombat.indigo.net.au>
 References: <200505312142.j4VLg3OT016150@cornholio.qualcomm.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
 In-Reply-To: <200505312142.j4VLg3OT016150@cornholio.qualcomm.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -17,11 +16,13 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: autofs@linux.kernel.org
+To: Michael Marion <mmarion@qualcomm.com>
+Cc: autofs@linux.kernel.org
 
-On Tue, May 31, 2005 at 02:42:02PM -0700, Michael Marion wrote:
+On Tue, 31 May 2005, Michael Marion wrote:
+
 > Wonder if this is known.. don't see the same thing in the list, but I'm way
 > behind.
 > 
@@ -32,19 +33,40 @@ On Tue, May 31, 2005 at 02:42:02PM -0700, Michael Marion wrote:
 > autofs-4.1.4-misc-fixes.patch
 > 
 > fixes the problem, and I'm guessing it's the non-replicated-ping patch that
-> does it as the ok hosts do a lot more rpc traffic. 
+> does it as the ok hosts do a lot more rpc traffic.  
 
-If patching autofs works, why not simply do that?
+Exactly right.
+The problem was in the probe logic. It fails if a machine doesn't respond 
+quickly enough rather than retrying with a longer timeout.
 
+Maybe this one machine has some other problem that's slowing it down?
+Duplex?
+
+> 
+> Only this one host fails, and I think it's due to it not running nfs v2 or
+> something else under portmap, it's only running:
+> cornholio src {511}$ rpcinfo -p box
+>    program vers proto   port
+>     100000    2   udp    111  portmapper
+>     100000    2   tcp    111  portmapper
+>     100003    3   udp   2049  nfs
+>     100003    3   tcp   2049  nfs
+>     100005    1   udp    635  mountd
+>     100005    1   tcp    635  mountd
+>     100005    2   udp    635  mountd
+>     100005    2   tcp    635  mountd
+>     100005    3   udp    635  mountd
+>     100005    3   tcp    635  mountd
+> 
+> Most servers (and filers) which work fine have more ports up, like nfs v2,
+> status, nlockmgr, etc.
+> 
 > We're trying to figure out if just enabling nfs v2 support, or something else
 > simple will help in the short term.. I'd rather not update the kernel and
 > automount daemon on 800+ hosts for one path. :)  Though I want to get them all
 > updated eventually where I can.
 
-You don't have to update the kernel for the fixes, just the daemon. If you
-have 800+ machines, surely you must have some kind of automated system for
-doing that.
+The only thing to do is make the machine respond more quickly.
+Network card driver update?
 
-/* Steinar */
--- 
-Homepage: http://www.sesse.net/
+Ian
