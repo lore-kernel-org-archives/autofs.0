@@ -1,13 +1,10 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: Autofs and NIS+ bug
-Date: Fri, 3 Jun 2005 12:13:30 -0400
-Message-ID: <17056.33194.160849.89353@segfault.boston.redhat.com>
-References: <20050603141451.GJ18045@lenin.net>
-Reply-To: jmoyer@redhat.com
+From: Michael Marion <mmarion@qualcomm.com>
+Subject: Re: Strange new /net behavior
+Date: Fri, 3 Jun 2005 11:47:47 -0700 (PDT)
+Message-ID: <200506031847.j53Illqh020757@neophyte.qualcomm.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20050603141451.GJ18045@lenin.net>
+Content-Disposition: INLINE
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,24 +15,21 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: "Peter C. Norton" <spacey-autofs@lenin.net>
-Cc: autofs@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: autofs@linux.kernel.org
 
-==> Regarding [autofs] Autofs and NIS+ bug; "Peter C. Norton" <spacey-autofs@lenin.net> adds:
+On  3 Jun, Ian Kent wrote:
 
-spacey-autofs> Greetings list, I've been working on an issue with the
-spacey-autofs> lookup_nisplus.c that runs headfirst into a bug in the linux
-spacey-autofs> glibc's NIS+ code.
+> I'll check this out.
 
-[snip]
+Worse yet.. it's happening on amd64 hosts, but not on a 32bit host that I
+build a couple weeks ago.. same exact patches and source.  
 
-spacey-autofs> So let me know if in principle this kind of patch could be
-spacey-autofs> reviewed, and I'll pass it along, with a minimal description
-spacey-autofs> of how to reproduce a test case... if anyone is interested.
+Going to try some debugging options on both archs to look for differences.
 
-Of course you should send the patch!  Also, please don't skimp on the
-description of how to reproduce.  If I can't reliably reproduce the problem
-and verify the fix, I have a hard time justifying the fix to management!
-
--Jeff
+-- 
+Mike Marion-Unix SysAdmin/Staff Engineer-http://www.qualcomm.com
+Marge: "I'm tired of being cooped up in this house!"
+Homer: "Well open a window."
+==> The Simpsons
