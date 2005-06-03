@@ -1,11 +1,10 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Strange new /net behavior
-Date: Fri, 3 Jun 2005 10:39:54 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0506031038570.11551@wombat.indigo.net.au>
-References: <200506022104.j52L4X8B014371@magus.qualcomm.com>
+From: Greg Bradner <gregb@rhythm.com>
+Subject: mounting problem
+Date: Fri, 03 Jun 2005 06:41:53 -0700
+Message-ID: <42A05E21.4090802@rhythm.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200506022104.j52L4X8B014371@magus.qualcomm.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,56 +15,70 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Michael Marion <mmarion@qualcomm.com>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: autofs@linux.kernel.org
 
-On Thu, 2 Jun 2005, Michael Marion wrote:
 
-> I just noticed an improper behavior with 4.1.4 (and patches) regarding /net
-> that I've not seen yet.
-> 
-> I just upgraded a host to 4.1.4 with the latest patches from kernel.org:
-> autofs-4.1.4-misc-fixes.patch
-> autofs-4.1.4-multi-parse-fix.patch
-> autofs-4.1.4-non-replicated-ping.patch
-> 
-> /net is mounting the paths improperly if there's only one export from a host..
-> 
-> i.e.
-> kydland SOURCES {504}$ /etc/auto.net cornholio
-> -fstype=nfs,hard,intr,nodev,nosuid \
->         /local/mnt cornholio:/local/mnt
-> kydland SOURCES {505}$ ls /net/cornholio
-> suse-9.2  workspace  x86_64
-> kydland SOURCES {506}$ mount | grep cornholio
-> cornholio:/local/mnt on /net/cornholio type nfs
-> (rw,nosuid,nodev,hard,intr,addr=129.46.234.38)
-> 
-> 
-> vs:
-> kydland SOURCES {507}$ /etc/auto.net uranium
-> -fstype=nfs,hard,intr,nodev,nosuid \
->         /local/mnt uranium:/local/mnt \
->         /local/scratch uranium:/local/scratch
-> kydland SOURCES {508}$ ls /net/uranium
-> local
-> kydland SOURCES {509}$ mount | grep uranium
-> uranium:/local/mnt on /net/uranium/local/mnt type nfs
-> (rw,nosuid,nodev,hard,intr,addr=129.46.26.26)
-> uranium:/local/scratch on /net/uranium/local/scratch type nfs
-> (rw,nosuid,nodev,hard,intr,addr=129.46.26.26)
+This happens with autofs or using mount directly.
 
-I'll check this out.
+However I mount the disk the first time, the same characteristics are 
+passed to future mounts.
 
-> 
-> I'm still using a program map for /net.. had issues with mounts to something
-> where as soon as one path failed to mount, the rest were ignored.  I remember
-> someone mentioning an option to automount that would fix that, but when I
-> tried it (a long time ago) it didn't work, at least not for me.
+## This is a read only mount point and you can see the options in the 
+/proc/mounts file at the bottom
 
-The default has changed.
-This should be OK.
+ > cd /nfs/ro3/fs14/a/rla/
 
-Ian
+ > df -k .
+Filesystem 1K-blocks Used Available Use% Mounted on
+fs14:/a/rla 657148928 545010048 112138880 83% /nfs/ro3/fs14/a/rla
+
+## Then when I go to a mount point that shouldn't be read only, it take 
+the options from the previous mount.
+ > cd /fs14a/rla/
+
+ > df -k .
+Filesystem 1K-blocks Used Available Use% Mounted on
+fs14:/a/rla 657148928 545010048 112138880 83% /fs14a/rla
+
+ > touch test
+touch: cannot touch `test': Read-only file system
+
+ > tail /proc/mounts
+automount(pid3481) /ntap10 autofs rw 0 0
+automount(pid3599) /morph autofs rw 0 0
+automount(pid3538) /systems autofs rw 0 0
+/dev/hda7 /home/gregb ext3 rw 0 0
+fs14:/a/jobs /nfs/ro3/fs14/a/jobs nfs 
+ro,v3,rsize=32768,wsize=32768,hard,intr,udp,lock,addr=fs14 0 0
+fs14:/a/rla /nfs/ro3/fs14/a/rla nfs 
+ro,v3,rsize=32768,wsize=32768,hard,intr,udp,lock,addr=fs14 0 0
+fs14:/b/rla /nfs/ro3/fs14/b/rla nfs 
+ro,v3,rsize=32768,wsize=32768,hard,intr,udp,lock,addr=fs14 0 0
+fs14:/root0 /nfs/ro3/fs14/root0 nfs 
+ro,v3,rsize=32768,wsize=32768,hard,intr,udp,lock,addr=fs14 0 0
+fs14:/root1 /nfs/ro3/fs14/root1 nfs 
+ro,v3,rsize=32768,wsize=32768,hard,intr,udp,lock,addr=fs14 0 0
+fs14:/a/rla /fs14a/rla nfs 
+ro,nosuid,nodev,v3,rsize=32768,wsize=32768,hard,intr,udp,lock,addr=fs14 0 0
+
+
+Has anyone seen this before?  This is stock SuSE 9.2.  Thanks for any help.
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ > rpm -qa | grep autofs
+autofs4-4.0.0-105
+
+ > uname -ar
+Linux lid2 2.6.5-7.112-suse #6 SMP Wed Mar 23 10:16:11 PST 2005 i686 
+athlon i386 GNU/Linux
+
+ > cat /etc/issue
+Welcome to SuSE Linux 9.2 (i586)
+
+ > /usr/sbin/automount -V
+Linux automount version 4.1.3
+ 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gregb@rhythm.com
