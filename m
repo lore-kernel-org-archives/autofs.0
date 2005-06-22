@@ -1,14 +1,12 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Re: autofs>3.9.99-4.0.0pre10-16 doesn't work any more
-	for me
-Date: Fri, 10 Jun 2005 09:04:25 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0506100852350.25943@wombat.indigo.net.au>
-References: <E1DD8yC-0005oi-61@mago.wo.de> <20050409120352.GA12001@uio.no>
-	<ifbr8o6m1u.fsf@mago.linux-lounge.it.fh-worms.de>
-	<20050409151430.GA4432@uio.no>
+From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
+Subject: [mirko.kohns@gmail.com: Bug#315465: lookup(ldap): got
+	answer, but no first entry for (&(objectclass=nisObject)]
+Date: Wed, 22 Jun 2005 22:55:40 +0200
+Message-ID: <20050622205540.GA26670@uio.no>
 Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="fdj2RfSjLxBAspz7"
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20050409151430.GA4432@uio.no>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,140 +17,143 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+To: autofs@linux.kernel.org
+
+
+--fdj2RfSjLxBAspz7
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+
+Ian,
+
+Do you have any good ideas about this?
+
+/* Steinar */
+-- 
+Homepage: http://www.sesse.net/
+
+--fdj2RfSjLxBAspz7
+Content-Type: message/rfc822
+Content-Disposition: inline
+
+Return-path: <debbugs@bugs.debian.org>
+Envelope-to: root@trofast.sesse.net
+Delivery-date: Wed, 22 Jun 2005 22:53:43 +0200
+Received: from cassarossa.samfundet.no ([129.241.93.19])
+	by trofast.sesse.net with esmtp (Exim 3.36 #1 (Debian))
+	id 1DlCEB-0006ue-00
+	for <root@trofast.sesse.net>; Wed, 22 Jun 2005 22:53:43 +0200
+Received: from mail-kr.bigfoot.com ([211.115.216.228])
+	by cassarossa.samfundet.no with smtp (Exim 4.50) id 1DlCE8-0000Xp-Ag
+	for sesse@samfundet.no; Wed, 22 Jun 2005 22:53:42 +0200
+Received: from spohr.debian.org ([140.211.166.43])
+	by BFLITEMAIL-KR4.bigfoot.com (LiteMail v3.03(BFLITEMAIL-KR4)) with
+	SMTP id 0506221937_BFLITEMAIL-KR4_429208_113353780; 
+	Wed, 22 Jun 2005 19:41:58 -0400 EST
+Received: from debbugs by spohr.debian.org with local (Exim 3.35 1 (Debian))
+	id 1DlC8j-000770-00; Wed, 22 Jun 2005 13:48:05 -0700
+X-Loop: owner@bugs.debian.org
+Subject: Bug#315465: lookup(ldap): got answer,
+	but no first entry for (&(objectclass=nisObject)
+Reply-To: Mirko Kohns <mirko.kohns@gmail.com>, 315465@bugs.debian.org
+Resent-From: Mirko Kohns <mirko.kohns@gmail.com>
+Resent-To: debian-bugs-dist@lists.debian.org
+Resent-CC: mirko.kohns@gmail.com, sesse@debian.org (Steinar H. Gunderson)
+Resent-Date: Wed, 22 Jun 2005 20:48:03 UTC
+Resent-Message-ID: <handler.315465.B.111947257816408@bugs.debian.org>
+X-Debian-PR-Message: report 315465
+X-Debian-PR-Package: autofs-ldap
+X-Debian-PR-Keywords: 
+Received: via spool by submit@bugs.debian.org id=B.111947257816408
+	(code B ref -1); Wed, 22 Jun 2005 20:48:03 UTC
+Received: (at submit) by bugs.debian.org; 22 Jun 2005 20:36:18 +0000
+Received: from quecksilber.informatik.rwth-aachen.de [137.226.36.126] 
+	by spohr.debian.org with esmtp (Exim 3.35 1 (Debian))
+	id 1DlBx4-0004BE-00; Wed, 22 Jun 2005 13:36:02 -0700
+Received: from i6 (cadmium.informatik.rwth-aachen.de [137.226.36.108])
+	by quecksilber.informatik.rwth-aachen.de (8.13.4/8.13.4/Debian-3) with
+	SMTP id j5MKa1hv026364
+	for <submit@bugs.debian.org>; Wed, 22 Jun 2005 22:36:01 +0200
+Received: (nullmailer pid 31879 invoked by uid 2245);
+	Wed, 22 Jun 2005 20:36:01 -0000
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
-Cc: autofs mailing list <autofs@linux.kernel.org>, 300648@bugs.debian.org, Martin Ruppert <ruppert@Fh-Worms.de>
+From: Mirko Kohns <mirko.kohns@gmail.com>
+To: Debian Bug Tracking System <submit@bugs.debian.org>
+X-Mailer: reportbug 3.8
+Date: Wed, 22 Jun 2005 22:36:00 +0200
+Message-Id: <1119472560.980283.31878.nullmailer@i6>
+Delivered-To: submit@bugs.debian.org
+X-Spam-Checker-Version: SpamAssassin 2.60-bugs.debian.org_2005_01_02 
+	(1.212-2003-09-23-exp) on spohr.debian.org
+X-Spam-Status: No, hits=-11.0 required=4.0 tests=BAYES_00,HAS_PACKAGE,
+	X_DEBBUGS_CC autolearn=ham version=2.60-bugs.debian.org_2005_01_02
+X-Spam-Level: 
+Resent-Sender: Debian BTS <debbugs@bugs.debian.org>
+X-Spam-Score: 2.3 (++)
+X-Spam-Report: Status=No hits=2.3 required=5.0 tests=INVALID_TZ_EST
+	version=3.0.3
+X-CRM114-Version: 20050415.BlameTheIRS ( TRE 0.7.2 (GPL) ) MF-DAE15AAC [pR:
+	152.4426]
+X-CRM114-Status: Good  ( pR: 152.4426 )
 
-On Sat, 9 Apr 2005, Steinar H. Gunderson wrote:
+Package: autofs-ldap
+Version: 4.1.3+4.1.4beta2-10
+Severity: normal
 
-I think this is a known bug.
-Fixed during the 4.1.4 and probably should be OK in the current Debian 
-version but I will need to check.
+When updating from autofs-ldap_4.1.3-4_i386 to
+autofs-ldap_4.1.3+4.1.4beta2-10_i386.deb
 
-See below for required map syntax update.
+I get following syslog error/warnings
 
-> On Sat, Apr 09, 2005 at 04:51:09PM +0200, Martin Ruppert wrote:
-> > i not only mount one partition, but a whole system (df -T shortened):
-> > 
-> > /dev/hda8      xfs ... /mnt/auto/hda8
-> > /dev/hda5     ext2 ... /mnt/auto/hda8/boot
-> > /dev/m/vm-u0   xfs ... /mnt/auto/hda8/usr
-> > /dev/m/vm-v0   xfs ... /mnt/auto/hda8/var
-> 
-> Hm, sounds like multimount stuff. I have absolutely no experience with that;
-> Cc-ing upstream. (Ian: I have no idea whether this is supposed to work at all
-> or not, I've never seen anything like this before. Keeping the rest of the
-> mail intact so you get it all :-) )
-> 
-> BTW, you _are_ aware that the default /etc/auto.master is empty now?
-> 
-> /* Steinar */
-> 
-> 
-> > 
-> > The information to do it i found in some Documentation, but the
-> > Documentation is not up to date (man page from 14 Jan 2000), so i had
-> > to try some time until it worked. And therefore i don't know what has
-> > changed.   
-> > 
-> > > (I'll need the whole script 
-> > 
-> > here it is (/etc/auto.misc):
-> > #!/bin/sh
-> > 
-> > #function perr(){
-> > #    echo "`date +%Y%m%d.%H%M%S`:$1">>/var/log/autofs.debug
-> > #}
-> > #perr $@
-> > 
-> > case "$1" in
-> >     DVDs)
-> > 	echo "-fstype=auto / /dev/s/$1 /raw /dev/s/raw"
+Jun 22 22:25:20 zirconium automount[12443]: lookup(ldap): got answer,
+but no first entry for (&(objectclass=nisObject)(cn=kohns))
 
-The mount entry syntax is now required to be consistent with the Sun 
-escape ":" for all types of mount maps including multimount entries 
-(previously not).
+for every mount request.
+Mounting works fine - but all my nodes are crying to my syslogserver
 
-So this should be:
+my auto.master is
 
- 	echo "-fstype=auto / :/dev/s/$1 /raw :/dev/s/raw"
+/user ldap:ou=auto.user,ou=automount,dc=Mitarbeiter,dc=xx,dc=xxxxxxx,dc=de
+/work ldap:ou=auto.work,ou=automount,dc=Mitarbeiter,dc=xx,dc=xxxxxxx,dc=de
 
-> > 	;;
-> >     backup)
-> > 	echo "-fstype=auto :/dev/s0/bu"
-> > 	;;
-> >     boot)
-> > 	echo "-fstype=ext2 :/dev/hda8"
-> > 	;;
-> >     cd*)
-> > 	echo "-fstype=auto,ro,sync,nodev,nosuid,user :/dev/hdc"
-> > 	;;
-> >     dvd*)
-> > 	echo "-fstype=auto,ro,sync,nodev,nosuid,user :/dev/hdc"
-> > 	;;
-> >     f[dl]*)
-> > 	echo "-fstype=auto,sync,nodev,nosuid,user :/dev/fd0"
-> > 	;;
-> >     #hda[23])
-> >     #  echo "-fstype=ufs,ufstype=44bsd,rw :/dev/$1"
-> >     #  ;;
-> >     hda8)
-> > 	echo "-fstype=auto / /dev/$1 /boot /dev/hda5 /usr /dev/vm/u0 /var /dev/vm/v0"
+my ldif looks like
 
-and again.
- 	echo "-fstype=auto / :/dev/$1 /boot :/dev/hda5 \
-			/usr :/dev/vm/u0 /var :/dev/vm/v0"
-and the rest below.
+dn:
+cn=kohns,ou=auto.work,ou=automount,dc=Mitarbeiter,dc=xx,dc=xxxxxxxxx,dc=de
+objectclass: top
+objectclass: automount
+automountinformation: -rw,intr raidxx:/volume/work/kohns
+cn: kohns
 
-> > 	;;
-> >     hda9)
-> > 	echo "-fstype=auto / /dev/$1 /boot /dev/hda5 /usr /dev/vm/u1 /var /dev/vm/v1"
-> > 	;;
-> >     hda10)
-> > 	echo "-fstype=auto / /dev/$1 /boot /dev/hda5 /usr /dev/vm/u2 /var /dev/vm/v2"
-> > 	;;
-> >     hd*)
-> > 	echo "-fstype=auto :/dev/$1"
-> > 	;;
-> >     knoppix)
-> > 	echo "-fstype=iso9660,ro,sync,loop :/home/ftp/pub/knoppix.iso"
-> > 	;;
-> >     pub*)
-> > 	echo "-fstype=auto :/dev/vm/$1"
-> > 	;;
-> >     s[cdr]*)
-> > 	echo "-fstype=auto :/dev/$1"
-> > 	;;
-> >     vm-*)
-> > 	set -x
-> > 	h=`echo $1|perl -ne 'chomp;split(/-/);print $_[1];'`
-> >         echo "-fstype=auto :/dev/vm/$h"
-> > 	;;
-> >     [uv][012])
-> >         echo "-fstype=auto :/dev/vm/$1"
-> > 	;;
-> >     *)
-> > 	:
-> > 	;;
-> > esac
-> > exit 0
-> > 
+MIRKO
 
-So please try this out.
+-- System Information:
+Debian Release: 3.1
+Architecture: i386 (i686)
+Kernel: Linux 2.6.11.7-intel
+Locale: LANG=en_US, LC_CTYPE=en_US (charmap=ISO-8859-1)
 
-> > > and precise autofs version in any case.)
-> > 
-> > the last working version is:
-> > mago:~ 0409.15:38:07# automount --version
-> > Linux automount version 4.0.0
-> > 
-> > Debian-Package is
-> > autofs_3.9.99-4.0.0pre10-16_i386.deb
+Versions of packages autofs-ldap depends on:
+hi  autofs               4.1.3+4.1.4beta2-10 kernel-based automounter for Linux
+hi  ldap-utils           2.2.23-8            OpenLDAP utilities
+hi  libc6                2.3.2.ds1-22        GNU C Library: Shared libraries an
+ii  libldap2             2.1.30-8            OpenLDAP libraries
 
-Sorry but these versions are simply to old.
+-- no debconf information
 
-Please update to the latest stable autofs in Debian, update your maps as 
-above and try again. We will work on this from there if a problem remains.
 
-Ian
+--fdj2RfSjLxBAspz7
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--fdj2RfSjLxBAspz7--
+
