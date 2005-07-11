@@ -1,15 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Cached NIS map?
-Date: Mon, 4 Jul 2005 09:09:40 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0507040901080.20510@wombat.indigo.net.au>
-References: <Pine.LNX.4.61.0506301010100.19272@simba.math.ucla.edu>
-	<Pine.LNX.4.58.0507011335240.26508@wombat.indigo.net.au>
-	<Pine.LNX.4.61.0507011100390.6273@xena.cft.ca.us>
-	<Pine.LNX.4.63.0507022037580.3914@donald.themaw.net>
-	<Pine.LNX.4.61.0507031715340.8574@xena.cft.ca.us>
+From: Chris Feist <cfeist@redhat.com>
+Subject: [PATCH] autofs 4.1.4 no-unlink patch
+Date: Mon, 11 Jul 2005 14:43:02 -0500
+Message-ID: <42D2CBC6.200@redhat.com>
+Reply-To: cfeist@redhat.com
 Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="------------070408020101080807050006"
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.61.0507031715340.8574@xena.cft.ca.us>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,51 +16,92 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+To: autofs@linux.kernel.org, Ian McLeod <imcleod@redhat.com>
+
+This is a multi-part message in MIME format.
+--------------070408020101080807050006
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-To: Jim Carter <jimc@math.ucla.edu>
-Cc: autofs@linux.kernel.org
 
-On Sun, 3 Jul 2005, Jim Carter wrote:
+Ian,
 
-> On Sat, 2 Jul 2005, Ian Kent wrote:
-> 
-> > On Fri, 1 Jul 2005, Jim Carter wrote:
-> > > OK, it's definitely time to upgrade the automounter to 4.1.4.
-> > 
-> > Sorry to be a hastle but it might be best to wait for 4.1.5.
-> > It will be another bug fix release before I start working on enhancements 
-> > again.
-> > 
-> > If you are in a hurry I can give you patches to get you the most important 
-> > fixes. There are three patches on kernel.org that should be included but 
-> > there's at least one other that you should have.
-> 
-> We aren't in a real hurry -- given the amount of changes we're making on 
-> our net, it might actually be prudent to live with the problem and upgrade 
-> automount later when the dust settles.  There's only one server (the web 
-> server) that regularly uses auto.home, and restarting the relevant process 
-> is not a burden once you know what's causing the problem.  
+We've been hearing some reports of autofs removing entire home directories 
+when mounts expire.  It appears that this could be some sort of race condition 
+in the walk_tree code, where when the function starts the directory is 
+unmounted and then autofs unlinks files in the the directory that is supposed 
+to be umounted.  I've attached a patch to the rm_unwanted_fn which adds some 
+additional checks before we unlink anything, and it prevents autofs from 
+unlinking files (since I'm pretty sure that autofs never creates a regular 
+file).  Let me know what you think.
 
-Absolutely. I agree with you completely.
+Thanks,
+Chris
 
-> 
-> > What kernel version do you use?
-> 
-> Most machines use 2.6.8 from SuSE 9.2.  We're trying out 2.6.11 (SuSE 9.3) 
-> on a few machines.  
-> 
-> > Do you patch the kernel with the latest revision patches?
-> 
-> If I can get away with using the distro's module, I do, to avoid work and 
-> screwup exposures when there are kernel upgrades.  This is the autofs 
-> module in the kernel sources for that version.  SuSE has their kernel 
-> hacks, but they don't do it gratuitously.
+--------------070408020101080807050006
+Content-Type: text/plain;
+ name="autofs-4.1.4-no-unlink-upstream"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="autofs-4.1.4-no-unlink-upstream"
 
-That's great because we 2.6.11 is pretty much upto date except for a 
-couple of patches that are coming through in later versions.
+--- autofs-4.1.4/daemon/automount.c.no-unlink	2005-07-11 13:28:57.000000000 -0500
++++ autofs-4.1.4/daemon/automount.c	2005-07-11 13:50:46.000000000 -0500
+@@ -216,16 +216,38 @@ static int walk_tree(const char *base, i
+ static int rm_unwanted_fn(const char *file, const struct stat *st, int when, void *arg)
+ {
+ 	int rmsymlink = *(int *) arg;
++	struct stat newst;
+ 
+ 	if (when == 0) {
+ 		if (st->st_dev != ap.dev)
+ 			return 0;
+-	} else {
+-		info("rm_unwanted: %s\n", file);
+-		if (S_ISDIR(st->st_mode))
+-			rmdir(file);
+-		else if (!S_ISLNK(st->st_mode) || rmsymlink)
+-			unlink(file);
++		return 1;
++	}
++
++	if (lstat(file, &newst)) {
++		crit ("rm_unwanted: unable to stat file, possible race "
++		      "condition.");
++		return 0;
++	}
++
++	if (newst.st_dev != ap.dev) {
++		crit ("rm_unwanted: file %s has the wrong device, possible "
++		      "race condition.",file);
++		return 0;
++	}
++
++	if (S_ISDIR(newst.st_mode)) {
++		if (rmdir(file)) {
++			info ("rm_unwanted: unable to remove directory"
++			      " %s", file);
++			return 0;
++		}
++	} else if (S_ISREG(newst.st_mode)) {
++		crit ("rm_unwanted: attempting to remove files from a mounted "
++		      "directory.");
++		return 0;
++	} else if (S_ISLNK(newst.st_mode) && rmsymlink) {
++		unlink(file);
+ 	}
+ 
+ 	return 1;
 
-I understand it's best to stick with vendor kernels whereever possible for 
-obvious support reasons.
+--------------070408020101080807050006
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Ian
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--------------070408020101080807050006--
+
