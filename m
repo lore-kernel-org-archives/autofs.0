@@ -1,12 +1,16 @@
-From: Olaf Kirch <okir@suse.de>
+From: Trond Myklebust <trond.myklebust@fys.uio.no>
 Subject: Re: making the 'addr=' mount option an address hint
-Date: Mon, 18 Jul 2005 21:54:32 +0200
-Message-ID: <20050718195432.GC24783@suse.de>
-References: <1121614708.6713.41.camel@localhost.localdomain> <1121700961.8780.13.camel@lade.trondhjem.org> <1121711065.23863.31.camel@barsoom.rdu.redhat.com> <1121711870.8707.5.camel@lade.trondhjem.org>
+Date: Mon, 18 Jul 2005 16:49:53 -0400
+Message-ID: <1121719793.8251.16.camel@lade.trondhjem.org>
+References: <1121614708.6713.41.camel@localhost.localdomain>
+	 <1121700961.8780.13.camel@lade.trondhjem.org>
+	 <1121711065.23863.31.camel@barsoom.rdu.redhat.com>
+	 <1121711870.8707.5.camel@lade.trondhjem.org>
+	 <20050718195432.GC24783@suse.de>
 Mime-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
 Return-path: <nfs-admin@lists.sourceforge.net>
-Content-Disposition: inline
-In-Reply-To: <1121711870.8707.5.camel@lade.trondhjem.org>
+In-Reply-To: <20050718195432.GC24783@suse.de>
 Sender: nfs-admin@lists.sourceforge.net
 Errors-To: nfs-admin@lists.sourceforge.net
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
@@ -17,24 +21,31 @@ List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
 List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
 	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Trond Myklebust <trond.myklebust@fys.uio.no>
+Content-Type: text/plain; charset="iso-8859-1"
+To: Olaf Kirch <okir@suse.de>
 Cc: Jeff Layton <jtlayton@poochiereds.net>, nfs@lists.sourceforge.net, autofs@linux.kernel.org
 
-On Mon, Jul 18, 2005 at 02:37:50PM -0400, Trond Myklebust wrote:
-> I would not at all support doing this sort of thing in autofs. If it is
-> to be done, it should be done by the mount program.
+m=C3=A5 den 18.07.2005 Klokka 21:54 (+0200) skreiv Olaf Kirch:
+> On Mon, Jul 18, 2005 at 02:37:50PM -0400, Trond Myklebust wrote:
+> > I would not at all support doing this sort of thing in autofs. If it is
+> > to be done, it should be done by the mount program.
+>=20
+> That would make mount awfully slow, and we're suffering from excessive
+> boot times already. Besides, mount can see just the current state,
+> a daemon would be able to collect statistics over a period of time and
+> average it.
 
-That would make mount awfully slow, and we're suffering from excessive
-boot times already. Besides, mount can see just the current state,
-a daemon would be able to collect statistics over a period of time and
-average it.
+It would be slow only in the case where you have multiple ip addresses
+on the server as you would probe them all instead of just probing one as
+we do now.
 
-Olaf
--- 
-Olaf Kirch   |  --- o --- Nous sommes du soleil we love when we play
-okir@suse.de |    / | \   sol.dhoop.naytheet.ah kin.ir.samse.qurax
+If you really do want to collect long term statistics (and I'm not sure
+I see the value of that), you can have mount save the information in a
+file.
+
+Cheers,
+  Trond
+
 
 
 -------------------------------------------------------
