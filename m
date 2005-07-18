@@ -1,10 +1,10 @@
 From: Jeff Layton <jtlayton@poochiereds.net>
 Subject: [PATCH] mount_nfs replicated mounts patch (now sorts by
 	subnet locality too)
-Date: Sat, 16 Jul 2005 19:32:56 -0400
-Message-ID: <1121556776.11263.13.camel@localhost.localdomain>
+Date: Mon, 18 Jul 2005 17:28:12 -0400
+Message-ID: <1121722092.6710.2.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-voGUxfaNCMXPv/GyiQT8"
+Content-Type: multipart/mixed; boundary="=-M2aUAKRSR3pNpT4NEHD5"
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -19,7 +19,7 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
 
---=-voGUxfaNCMXPv/GyiQT8
+--=-M2aUAKRSR3pNpT4NEHD5
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
@@ -69,15 +69,15 @@ As always, comments and suggestions are appreciated...
 
 -- Jeff
 
---=-voGUxfaNCMXPv/GyiQT8
-Content-Disposition: attachment;
-	filename=autofs-replicated-mounts-overhaul.patch
-Content-Type: text/x-patch; name=autofs-replicated-mounts-overhaul.patch;
+
+--=-M2aUAKRSR3pNpT4NEHD5
+Content-Disposition: attachment; filename=autofs-4.1.4-replicated-mounts.patch
+Content-Type: text/x-patch; name=autofs-4.1.4-replicated-mounts.patch;
 	charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
---- autofs/modules/mount_nfs.c.orig	2005-07-09 06:36:45.000000000 -0400
-+++ autofs/modules/mount_nfs.c	2005-07-15 22:09:33.000000000 -0400
+--- autofs/modules/mount_nfs.c.orig	2005-07-17 08:00:53.000000000 -0400
++++ autofs/modules/mount_nfs.c	2005-07-18 14:55:36.000000000 -0400
 @@ -6,6 +6,7 @@
   *
   *   Copyright 1997 Transmeta Corporation - All Rights Reserved
@@ -1272,7 +1272,7 @@ Content-Transfer-Encoding: 7bit
  
  int mount_done(void *context)
 
---=-voGUxfaNCMXPv/GyiQT8
+--=-M2aUAKRSR3pNpT4NEHD5
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -1283,5 +1283,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---=-voGUxfaNCMXPv/GyiQT8--
+--=-M2aUAKRSR3pNpT4NEHD5--
 
