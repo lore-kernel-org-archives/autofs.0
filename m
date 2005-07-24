@@ -1,10 +1,11 @@
-From: Moshe Kaminsky <kaminsky@math.huji.ac.il>
-Subject: running program maps as a different user
-Date: Sun, 24 Jul 2005 18:12:31 +0300
-Message-ID: <20050724151231.GA2094@kaminsky.dyndns.org>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: running program maps as a different user
+Date: Sun, 24 Jul 2005 23:56:10 +0800 (WST)
+Message-ID: <Pine.LNX.4.63.0507242349030.5392@donald.themaw.net>
+References: <20050724151231.GA2094@kaminsky.dyndns.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1615428958=="
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <20050724151231.GA2094@kaminsky.dyndns.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -15,66 +16,30 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
-
-
-
---===============1615428958==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qMm9M+Fa2AknHoGS"
-Content-Disposition: inline
-
-
-
---qMm9M+Fa2AknHoGS
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-I don't know if this is really the place to ask (I also was unable to=20
-view the archives). Anyway, my question is this: suppose I'm using the=20
-program map type to return the mount argument. Can I know from within=20
-this program who is the user that is causing the mounting to take place?=20
-Can I ask that the program be run as that user?
-
-Thanks,
-Moshe
-
---=20
-I love deadlines. I like the whooshing sound they make as they fly by.=20
-                                        -- Douglas Adams
-   =20
-    Moshe Kaminsky <kaminsky@math.huji.ac.il>
-    Home: 08-9456841
-
-
---qMm9M+Fa2AknHoGS
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1-ecc0.1.6 (GNU/Linux)
-
-iD8DBQFC46/fkBjmVsKMBeMRAvcoAJ4uenw3GKXPPvUYczxwpTF7xaCmCQCgl1dO
-rI6H0cUt/LdRIYq1Pi4FEXs=
-=7gvA
------END PGP SIGNATURE-----
-
---qMm9M+Fa2AknHoGS--
-
-
---===============1615428958==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: Moshe Kaminsky <kaminsky@math.huji.ac.il>
+Cc: autofs@linux.kernel.org
 
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
+On Sun, 24 Jul 2005, Moshe Kaminsky wrote:
 
---===============1615428958==--
+> Hi,
+> 
+> I don't know if this is really the place to ask (I also was unable to 
+> view the archives). Anyway, my question is this: suppose I'm using the 
+> program map type to return the mount argument. Can I know from within 
+> this program who is the user that is causing the mounting to take place? 
+> Can I ask that the program be run as that user?
 
+Not yet.
+
+The reason this has not been done so far is that the messages from the 
+kernel that request actions need to be a predefined length to maintain 
+compatability with older versions of autofs. The current message 
+structure doesn't have any user information and so this cannot be used 
+during the mount. The time that this can change is when the kernel 
+protocol version changes, in this case from version 4 to version 5. I'm 
+currently working on getting an alpha of autofs version 5. Indeed, I've 
+started work on this very issue tonight.
+
+Ian
