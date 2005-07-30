@@ -1,12 +1,11 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [patch] clear whatstr in get_best_mount when host name
-	lookup fails
-Date: Sat, 30 Jul 2005 14:09:07 +0800 (WST)
-Message-ID: <Pine.LNX.4.63.0507301403390.2871@donald.themaw.net>
-References: <17116.9480.197620.834203@segfault.boston.redhat.com>
+Subject: Re: autofs-4.1.4/samples/rc.autofs.in bad use of grep \B
+Date: Sat, 30 Jul 2005 18:04:30 +0800 (WST)
+Message-ID: <Pine.LNX.4.63.0507301802230.2344@donald.themaw.net>
+References: <17127.59627.203496.547988@fig.ICSI.Berkeley.EDU>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <17116.9480.197620.834203@segfault.boston.redhat.com>
+In-Reply-To: <17127.59627.203496.547988@fig.ICSI.Berkeley.EDU>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,49 +18,37 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jeff Moyer <jmoyer@redhat.com>
+To: David Johnson <davidj@ICSI.Berkeley.EDU>
 Cc: autofs@linux.kernel.org
 
-On Mon, 18 Jul 2005, Jeff Moyer wrote:
 
-> Hi, Ian,
-> 
-> A "bug" was introduced into the get_best_mount function at some point.
-> Basically, if is_local_mount returns failure, we should be setting *what to
-> NULL, since this is what the caller checks:
-> 
->         colon = strchr(whatstr, ':');
->         if (!colon) {
->                 /* No colon, take this as a bind (local) entry */
->                 local = 1;
->         } else if (!nosymlink) {
->                 local = get_best_mount(whatstr, what, 0);
->                 if (!*whatstr) {                <---------------
->                         warn(MODPREFIX "no host elected");
->                         return 1;
->                 }
->                 debug(MODPREFIX "from %s elected %s", what, whatstr);
->         }
-> 
-> Prior to the patches in this area of code, we did indeed set *what to NULL
-> before returning in this specific case (the host name resolution failed,
-> and this was the only entry).
-> 
-> The way the code stands, you will end up failing the mount (for the very
-> same reason, the host name lookup will fail).  So, this patch is relatively
-> low on the priority scale.  However, it seems like a correctness issue to
-> me.  Otherwise, we should get rid of the check for *whatstr.
+Thanks David.
 
-Looks like this bug it`s a bit worse.
-
-If we have a replcated mount with two hosts where, say, the first is 
-dowm and the second fails name lookup then we try to mount the first 
-(instead of failing) leading to a hang of a couple of minutes while mount 
-times out.
-
-> 
-> Let me know what you think.
-
-Ouch!
+I'll add your patch to the list to be merged for 4.1.5 when I return to 
+working on it. Hopefully fairly soon now.
 
 Ian
+
+On Wed, 27 Jul 2005, David Johnson wrote:
+
+> autofs-4.1.4/samples/rc.autofs.in uses \B incorrectly in grep
+> commands.  \B actually means "not edge of word", but the script uses
+> it to mean "beginning of word".  Fortunately, due to the script
+> writer assuming "-" is part of a word, but this not being the case
+> when LANG==C, it works under most common circumstances (but
+> breaks with e.g. --no--verbose in /etc/sysconfig/autofs).
+> However, it may cease to work if more command-line args get added to
+> automount.
+> 
+> I've posted a tested patch against RHEL3 in bugzilla.redhat.com for
+> Fedora Devel.  I've also forward-ported the patch to autofs-4.1.4 and
+> included it here.  Note that although this is very similar to the
+> RHEL3 patch and may well work, unfortunately I have no reasonable way
+> of testing it.
+> 
+> Cheers,
+> 
+> David.
+> 
+> 
+> 
