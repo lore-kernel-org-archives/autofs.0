@@ -1,13 +1,16 @@
-From: Max Matveev <makc@sgi.com>
-Subject: Re: Difference in behaviour between 4.1.3 and 4.1.4
-Date: Tue, 2 Aug 2005 23:34:31 +1000
-Message-ID: <17135.30311.969737.212368@kuku.melbourne.sgi.com>
-References: <netoe8gn34v.fsf@kuku.melbourne.sgi.com>
-	<17135.29013.324264.704045@segfault.boston.redhat.com>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: [patch] clear whatstr in get_best_mount when host name
+	lookup fails
+Date: Mon, 1 Aug 2005 16:14:16 -0400
+Message-ID: <17134.33432.511769.548082@segfault.boston.redhat.com>
+References: <17116.9480.197620.834203@segfault.boston.redhat.com>
+	<Pine.LNX.4.63.0507301403390.2871@donald.themaw.net>
+	<Pine.LNX.4.63.0508012214140.2061@donald.themaw.net>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <17135.29013.324264.704045@segfault.boston.redhat.com>
+In-Reply-To: <Pine.LNX.4.63.0508012214140.2061@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,31 +22,114 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: jmoyer@redhat.com
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
->>>>> "jmoyer" == Jeff Moyer <jmoyer@redhat.com> writes:
+==> Regarding Re: [autofs] [patch] clear whatstr in get_best_mount when host name lookup fails; Ian Kent <raven@themaw.net> adds:
 
- jmoyer> ==> Regarding [autofs] Difference in behaviour between 4.1.3 and 4.1.4; Max Matveev <makc@sgi.com> adds:
- makc> It seems that 4.1.4 has fixed a problem which 4.1.3 suffers from: if
- makc> a server does not export /, then autofs mount via auto.net would fail
- makc> with the following in the syslog:
+raven> On Sat, 30 Jul 2005, Ian Kent wrote:
+>> On Mon, 18 Jul 2005, Jeff Moyer wrote:
+>> 
+>> > Hi, Ian,
+>> > 
+>> > A "bug" was introduced into the get_best_mount function at some point.
+>> > Basically, if is_local_mount returns failure, we should be setting *what to
+>> > NULL, since this is what the caller checks:
+>> > 
+>> >         colon = strchr(whatstr, ':');
+>> >         if (!colon) {
+>> >                 /* No colon, take this as a bind (local) entry */
+>> >                 local = 1;
+>> >         } else if (!nosymlink) {
+>> >                 local = get_best_mount(whatstr, what, 0);
+>> >                 if (!*whatstr) {                <---------------
+>> >                         warn(MODPREFIX "no host elected");
+>> >                         return 1;
+>> >                 }
+>> >                 debug(MODPREFIX "from %s elected %s", what, whatstr);
+>> >         }
+>> > 
+>> > Prior to the patches in this area of code, we did indeed set *what to NULL
+>> > before returning in this specific case (the host name resolution failed,
+>> > and this was the only entry).
+>> > 
+>> > The way the code stands, you will end up failing the mount (for the very
+>> > same reason, the host name lookup will fail).  So, this patch is relatively
+>> > low on the priority scale.  However, it seems like a correctness issue to
+>> > me.  Otherwise, we should get rid of the check for *whatstr.
+>> 
+>> Looks like this bug it`s a bit worse.
+>> 
+>> If we have a replcated mount with two hosts where, say, the first is 
+>> dowm and the second fails name lookup then we try to mount the first 
+>> (instead of failing) leading to a hang of a couple of minutes while mount 
+>> times out.
+>> 
+>> > 
+>> > Let me know what you think.
+>> 
+>> Ouch!
 
- makc> Aug 2 18:11:46 laura automount[6968]: mount(nfs): mkdir_path
- makc> /net/mazur/var failed: Operation not permitted
+raven> I added the hunk at the bottom to the patch.
 
- makc> This is with SLES9 and autofs4-4.1.3. FC4 with autofs-4.1.4-5 works.
- makc> Whould anybody know which particular change in 4.1.4 is responsible
- makc> for fixing that problem? And is it something which was changed from
- makc> 4.1.3 to 4.1.4 or is it FC's good work?
+Heh.  We actually fixed that locally.  I guess I forgot to send along that
+hunk.  Yes, I totally agree with it.
 
- jmoyer> I have never seen this issue.  I haven't seen it in the
- jmoyer> upstream autofs package nor in any variant of the Red Hat
- jmoyer> packages with which I work.
+raven> I haven't had time to test it yet.
 
-Dang! I was hopeing it was a known issue and I wouldn't have to dive
-into the code - apparently 4.0.0-pre-something on Mandrake behave
-similarly. Maybe it's a kernel module issue, not the user-space
-automounter one.
+raven> Check it out and let me know what you think.
+raven> Interestingly, I might have missed this except that I have a dual boot
+raven> box in the a replicated list map and this caused mount to and hang in
+raven> the case described above. Takes about 2 mins to timeout. I was testing
+raven> something else when I stumbled on it.
 
-max
+Yeah, the below looks fine to me.
+
+-Jeff
+
+> --- autofs-4.1.4/modules/mount_nfs.c.whatstr	2005-07-30 14:17:40.000000000 +0800
+> +++ autofs-4.1.4/modules/mount_nfs.c	2005-07-30 14:24:50.000000000 +0800
+> @@ -197,12 +197,14 @@ int get_best_mount(char *what, const cha
+>  	 *  do anything except strip whitespace from the end of the string.
+>  	 */
+>  	if (!is_replicated_entry(p)) {
+> +		int ret;
+>  		for (pstrip = p+strlen(p) - 1; pstrip >= p; pstrip--) 
+>  			if (isspace(*pstrip))
+>  				*pstrip = '\0';
+
+>  		/* Check if the host is the localhost */
+> -		if (is_local_mount(p) > 0) {
+> +		ret = is_local_mount(p);
+> +		if (ret > 0) {
+>  			debug(MODPREFIX "host %s: is localhost", p);
+
+>  			/* Strip off hostname and ':' */
+> @@ -213,7 +215,9 @@ int get_best_mount(char *what, const cha
+>  				what++;
+>  			}
+>  			return 1;
+> -		}
+> +		} else if (ret < 0)
+> +			*what = '\0';
+> +
+>  		return 0;
+>  	}
+
+> @@ -344,8 +348,14 @@ int get_best_mount(char *what, const cha
+>  	}
+
+>  	/* No winner found so return first */
+> -	if (!winner)
+> -		winner = what;
+> +	/* No - this will lead to mount hanging if the first host
+> +	 *	is not available. Since we tried to ping it and
+> +	 *	failed that's likely the case.
+> +	 */
+> +	if (!winner) {
+> +		*what = '\0';
+> +		return 0;
+> +	}
+
+>  	/*
+>  	 * We now have our winner, copy it to the front of the string,
