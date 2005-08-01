@@ -1,13 +1,13 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: autofs-4.1.4/samples/rc.autofs.in bad use of grep \B
-Date: Mon, 1 Aug 2005 09:17:05 -0400
-Message-ID: <17134.8401.961227.160675@segfault.boston.redhat.com>
-References: <17127.59627.203496.547988@fig.ICSI.Berkeley.EDU>
-Reply-To: jmoyer@redhat.com
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [patch] clear whatstr in get_best_mount when host name
+	lookup fails
+Date: Mon, 1 Aug 2005 22:20:23 +0800 (WST)
+Message-ID: <Pine.LNX.4.63.0508012214140.2061@donald.themaw.net>
+References: <17116.9480.197620.834203@segfault.boston.redhat.com>
+	<Pine.LNX.4.63.0507301403390.2871@donald.themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <17127.59627.203496.547988@fig.ICSI.Berkeley.EDU>
+In-Reply-To: <Pine.LNX.4.63.0507301403390.2871@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,50 +18,107 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: David Johnson <davidj@ICSI.Berkeley.EDU>
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Jeff Moyer <jmoyer@redhat.com>
 Cc: autofs@linux.kernel.org
 
-==> Regarding [autofs] autofs-4.1.4/samples/rc.autofs.in bad use of grep \B; David Johnson <davidj@ICSI.Berkeley.EDU> adds:
+On Sat, 30 Jul 2005, Ian Kent wrote:
 
-davidj> autofs-4.1.4/samples/rc.autofs.in uses \B incorrectly in grep
-davidj> commands.  \B actually means "not edge of word", but the script
-davidj> uses it to mean "beginning of word".  Fortunately, due to the
-davidj> script writer assuming "-" is part of a word, but this not being
-davidj> the case when LANG==C, it works under most common circumstances
-davidj> (but breaks with e.g. --no--verbose in /etc/sysconfig/autofs).
-davidj> However, it may cease to work if more command-line args get added
-davidj> to automount.
+> On Mon, 18 Jul 2005, Jeff Moyer wrote:
+> 
+> > Hi, Ian,
+> > 
+> > A "bug" was introduced into the get_best_mount function at some point.
+> > Basically, if is_local_mount returns failure, we should be setting *what to
+> > NULL, since this is what the caller checks:
+> > 
+> >         colon = strchr(whatstr, ':');
+> >         if (!colon) {
+> >                 /* No colon, take this as a bind (local) entry */
+> >                 local = 1;
+> >         } else if (!nosymlink) {
+> >                 local = get_best_mount(whatstr, what, 0);
+> >                 if (!*whatstr) {                <---------------
+> >                         warn(MODPREFIX "no host elected");
+> >                         return 1;
+> >                 }
+> >                 debug(MODPREFIX "from %s elected %s", what, whatstr);
+> >         }
+> > 
+> > Prior to the patches in this area of code, we did indeed set *what to NULL
+> > before returning in this specific case (the host name resolution failed,
+> > and this was the only entry).
+> > 
+> > The way the code stands, you will end up failing the mount (for the very
+> > same reason, the host name lookup will fail).  So, this patch is relatively
+> > low on the priority scale.  However, it seems like a correctness issue to
+> > me.  Otherwise, we should get rid of the check for *whatstr.
+> 
+> Looks like this bug it`s a bit worse.
+> 
+> If we have a replcated mount with two hosts where, say, the first is 
+> dowm and the second fails name lookup then we try to mount the first 
+> (instead of failing) leading to a hang of a couple of minutes while mount 
+> times out.
+> 
+> > 
+> > Let me know what you think.
+> 
+> Ouch!
 
-davidj> I've posted a tested patch against RHEL3 in bugzilla.redhat.com for
-davidj> Fedora Devel.  I've also forward-ported the patch to autofs-4.1.4
-davidj> and included it here.  Note that although this is very similar to
-davidj> the RHEL3 patch and may well work, unfortunately I have no
-davidj> reasonable way of testing it.
+I added the hunk at the bottom to the patch.
+I haven't had time to test it yet.
 
-Why don't you have a reasonable way of testing it?  It doesn't work
-entirely correctly, by the way:
+Check it out and let me know what you think.
+Interestingly, I might have missed this except that I have a dual boot box 
+in the a replicated list map and this caused mount to and hang in the case 
+described above. Takes about 2 mins to timeout. I was testing something 
+else when I stumbled on it.
 
---- rc.autofs.in.sav	2005-04-11 04:30:54.000000000 -0700
-+++ rc.autofs.in	2005-07-27 12:48:33.000000000 -0700
-@@ -248,11 +248,13 @@
- 		# those particular options out.
- 		: echo DAEMONOPTIONS OPTIONS $daemonoptions $options
- 		startupoptions=
--		if echo "$options" | grep -qE -- '\B-(t\b|-timeout\b=)' ;
-+		if echo " $options " | \
-+		    grep -qE -- '[[:space:]]-(t[[:space:][:digit:]]|-timeout=)';
- 		then
- 		    startupoptions="--timeout=$(echo $options |\
- 			sed 's/.*-\(t[^0-9]*\|-timeout\)[ \t=]*\([0-9][0-9]*\).*$/\2/g')"
--		elif echo "$daemonoptions" | grep -q -- '-t' ;
-+		elif echo " $daemonoptions " | \
-+		    grep -qE -- '[[:space:]]-(t[[:space:][:digit:]]|-timeout=)' ;
- 		then
- 		    # It's okay to be sloppy with DAEMONOPTIONS as there is no
- 		    # possibility of conflicting with mount or map options.
-
-If --timeout=60 is the first thing that appears in DAEMONOPTIONS, there
-will be no space before it, so the grep will fail.  It's easy to test.
-
--Jeff
+--- autofs-4.1.4/modules/mount_nfs.c.whatstr	2005-07-30 14:17:40.000000000 +0800
++++ autofs-4.1.4/modules/mount_nfs.c	2005-07-30 14:24:50.000000000 +0800
+@@ -197,12 +197,14 @@ int get_best_mount(char *what, const cha
+ 	 *  do anything except strip whitespace from the end of the string.
+ 	 */
+ 	if (!is_replicated_entry(p)) {
++		int ret;
+ 		for (pstrip = p+strlen(p) - 1; pstrip >= p; pstrip--) 
+ 			if (isspace(*pstrip))
+ 				*pstrip = '\0';
+ 
+ 		/* Check if the host is the localhost */
+-		if (is_local_mount(p) > 0) {
++		ret = is_local_mount(p);
++		if (ret > 0) {
+ 			debug(MODPREFIX "host %s: is localhost", p);
+ 
+ 			/* Strip off hostname and ':' */
+@@ -213,7 +215,9 @@ int get_best_mount(char *what, const cha
+ 				what++;
+ 			}
+ 			return 1;
+-		}
++		} else if (ret < 0)
++			*what = '\0';
++
+ 		return 0;
+ 	}
+ 
+@@ -344,8 +348,14 @@ int get_best_mount(char *what, const cha
+ 	}
+ 
+ 	/* No winner found so return first */
+-	if (!winner)
+-		winner = what;
++	/* No - this will lead to mount hanging if the first host
++	 *	is not available. Since we tried to ping it and
++	 *	failed that's likely the case.
++	 */
++	if (!winner) {
++		*what = '\0';
++		return 0;
++	}
+ 
+ 	/*
+ 	 * We now have our winner, copy it to the front of the string,
