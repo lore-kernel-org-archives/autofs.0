@@ -1,16 +1,14 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [patch] clear whatstr in get_best_mount when host name
-	lookup fails
-Date: Mon, 1 Aug 2005 16:14:16 -0400
-Message-ID: <17134.33432.511769.548082@segfault.boston.redhat.com>
-References: <17116.9480.197620.834203@segfault.boston.redhat.com>
-	<Pine.LNX.4.63.0507301403390.2871@donald.themaw.net>
-	<Pine.LNX.4.63.0508012214140.2061@donald.themaw.net>
-Reply-To: jmoyer@redhat.com
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [PATCH] replicated mounts patch (local subnet mounts
+	now get passed addr= option)
+Date: Wed, 3 Aug 2005 00:30:40 +0800 (WST)
+Message-ID: <Pine.LNX.4.63.0508030010530.17071@donald.themaw.net>
+References: <1122917193.28132.22.camel@barsoom.rdu.redhat.com>
+	<Pine.LNX.4.58.0508020927120.31272@wombat.indigo.net.au>
+	<17135.28891.580109.903906@segfault.boston.redhat.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.63.0508012214140.2061@donald.themaw.net>
+In-Reply-To: <17135.28891.580109.903906@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,115 +19,95 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: Ian Kent <raven@themaw.net>
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Jeff Moyer <jmoyer@redhat.com>
 Cc: autofs@linux.kernel.org
 
-==> Regarding Re: [autofs] [patch] clear whatstr in get_best_mount when host name lookup fails; Ian Kent <raven@themaw.net> adds:
+On Tue, 2 Aug 2005, Jeff Moyer wrote:
 
-raven> On Sat, 30 Jul 2005, Ian Kent wrote:
->> On Mon, 18 Jul 2005, Jeff Moyer wrote:
->> 
->> > Hi, Ian,
->> > 
->> > A "bug" was introduced into the get_best_mount function at some point.
->> > Basically, if is_local_mount returns failure, we should be setting *what to
->> > NULL, since this is what the caller checks:
->> > 
->> >         colon = strchr(whatstr, ':');
->> >         if (!colon) {
->> >                 /* No colon, take this as a bind (local) entry */
->> >                 local = 1;
->> >         } else if (!nosymlink) {
->> >                 local = get_best_mount(whatstr, what, 0);
->> >                 if (!*whatstr) {                <---------------
->> >                         warn(MODPREFIX "no host elected");
->> >                         return 1;
->> >                 }
->> >                 debug(MODPREFIX "from %s elected %s", what, whatstr);
->> >         }
->> > 
->> > Prior to the patches in this area of code, we did indeed set *what to NULL
->> > before returning in this specific case (the host name resolution failed,
->> > and this was the only entry).
->> > 
->> > The way the code stands, you will end up failing the mount (for the very
->> > same reason, the host name lookup will fail).  So, this patch is relatively
->> > low on the priority scale.  However, it seems like a correctness issue to
->> > me.  Otherwise, we should get rid of the check for *whatstr.
->> 
->> Looks like this bug it`s a bit worse.
->> 
->> If we have a replcated mount with two hosts where, say, the first is 
->> dowm and the second fails name lookup then we try to mount the first 
->> (instead of failing) leading to a hang of a couple of minutes while mount 
->> times out.
->> 
->> > 
->> > Let me know what you think.
->> 
->> Ouch!
+> ==> Regarding Re: [autofs] [PATCH] replicated mounts patch (local subnet mounts now get passed addr= option); Ian Kent <raven@themaw.net> adds:
+> 
+> raven> On Mon, 1 Aug 2005, Jeff Layton wrote:
+> >> Hi All, Below is the latest iteration of my mount_nfs.c overhaul
+> >> patch. This one now passes the addr= option to the mount command when
+> >> the NFS server is deemed to be "local" (which in my patch is different
+> >> than a bind mount).
+> >> 
+> >> This patch, in conjunction with the patch to mount that I sent to the
+> >> util-linux maintainer should give us the proper behavior when the NFS
+> >> server is a multihomed host and has an interface on the same subnet as
+> >> the client.
+> >> 
+> >> I've unfortunately still not heard back from Adrian Bunk on my mount
+> >> patch, however, so I have no idea if that's going to go in or not.
+> >> 
+> >> Still though, passing the addr= option shouldn't be harmful since the
+> >> current version of mount just ignores it. We just may not get the
+> >> desired behavior without that.
+> >> 
+> >> Ian, are you still planning to consider this for inclusion in 4.1.5 or
+> >> 5.x?
+> 
+> raven> My plan is fairly simple.
+> 
+> raven> Get a basic implementation that provides direct mounts and release
+> raven> as first alpha. I'm likely to label it 5.0.0 as the best way to
+> raven> support the needed change in the protocol between the kernel and the
+> raven> daemon is to bump the kernel module protocol version (to 5.00 as
+> raven> well).
+> 
+> raven> Release 4.1.5 soon after, another bug fix release to have as stable
+> raven> a base as possible before starting work on 4.1.6 which will include
+> raven> analysis and possible merge of the LDAP rework , your mount rework
+> raven> and the run in forground patches.
+> 
+> The run in the foreground patches don't actually add any functionality.
+> Can we push those to v5?  It seems like a pretty silly change to make in a
+> stable release, especially since it isn't difficult to debug autofs the way
+> it stands today, via logging.
 
-raven> I added the hunk at the bottom to the patch.
+I'm not to concerned myself as I also find the logging enough.
+So the priority on this is low.
 
-Heh.  We actually fixed that locally.  I guess I forgot to send along that
-hunk.  Yes, I totally agree with it.
+> 
+> When you're fixing to merge in the LDAP stuff, can we get that reposted to
+> the list?
 
-raven> I haven't had time to test it yet.
+Yep. No problem.
 
-raven> Check it out and let me know what you think.
-raven> Interestingly, I might have missed this except that I have a dual boot
-raven> box in the a replicated list map and this caused mount to and hang in
-raven> the case described above. Takes about 2 mins to timeout. I was testing
-raven> something else when I stumbled on it.
+> 
+> raven> Following that (and probably while working on the above) I will
+> raven> return to working on 5.0.0. Forward porting the patches from
+> raven> 4.1.6. New stuff that will actually be in 5.0.0 is not final
+> raven> yet. There are two critical areas that still require a lot of
+> raven> work. First is lazy mount/umount of multi-mount mount entries. This
+> raven> is really difficult. Second is implementing a utility to startup and
+> raven> shutdown autofs to get the complexity out of the init script.
+> 
+> Joy!  Can I add to the list a re-write of the parser?  Yes, I'll sign up to
+> do the leg work.  This seems to be the most error-prone and fragile bit of
+> code.
 
-Yeah, the below looks fine to me.
+You mean the master map parser I guess.
+That would be the bulk of the utility I think.
 
--Jeff
+Fire away.
 
-> --- autofs-4.1.4/modules/mount_nfs.c.whatstr	2005-07-30 14:17:40.000000000 +0800
-> +++ autofs-4.1.4/modules/mount_nfs.c	2005-07-30 14:24:50.000000000 +0800
-> @@ -197,12 +197,14 @@ int get_best_mount(char *what, const cha
->  	 *  do anything except strip whitespace from the end of the string.
->  	 */
->  	if (!is_replicated_entry(p)) {
-> +		int ret;
->  		for (pstrip = p+strlen(p) - 1; pstrip >= p; pstrip--) 
->  			if (isspace(*pstrip))
->  				*pstrip = '\0';
+> 
+> raven> Another issue is the patch for mount that's heading for util-linux
+> raven> some time (and has been in the FC mount) which causes no less than 7
+> raven> ports per mount to be opened. autofs opens 2 as well giving a total
+> raven> of 9 per mount. Only one is needed for the actual mount. As I said
+> raven> on the NFS list, I'm wondering if it's possible to use the SO_LINGER
+> raven> option to help.
+> 
+> Steve Dickson fixed this.  In fact, he trimmed down the number of reserved
+> ports used by quite a bit.  Perhaps you should try out the latest rawhide
+> packages?
 
->  		/* Check if the host is the localhost */
-> -		if (is_local_mount(p) > 0) {
-> +		ret = is_local_mount(p);
-> +		if (ret > 0) {
->  			debug(MODPREFIX "host %s: is localhost", p);
+Will do.
+But my curiosity has stired so I'm seeking an answer to how using the
+SO_LINGER option on a socket that has no outstanding io behaves.
 
->  			/* Strip off hostname and ':' */
-> @@ -213,7 +215,9 @@ int get_best_mount(char *what, const cha
->  				what++;
->  			}
->  			return 1;
-> -		}
-> +		} else if (ret < 0)
-> +			*what = '\0';
-> +
->  		return 0;
->  	}
-
-> @@ -344,8 +348,14 @@ int get_best_mount(char *what, const cha
->  	}
-
->  	/* No winner found so return first */
-> -	if (!winner)
-> -		winner = what;
-> +	/* No - this will lead to mount hanging if the first host
-> +	 *	is not available. Since we tried to ping it and
-> +	 *	failed that's likely the case.
-> +	 */
-> +	if (!winner) {
-> +		*what = '\0';
-> +		return 0;
-> +	}
-
->  	/*
->  	 * We now have our winner, copy it to the front of the string,
+Ian
