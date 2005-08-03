@@ -1,11 +1,9 @@
-From: Jeff Moyer <jmoyer@redhat.com>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: Here's a new really odd auto.net bug
-Date: Wed, 3 Aug 2005 08:45:43 -0400
-Message-ID: <17136.48247.23554.149449@segfault.boston.redhat.com>
+Date: Wed, 3 Aug 2005 20:56:55 +0800 (WST)
+Message-ID: <Pine.LNX.4.63.0508032052460.19691@donald.themaw.net>
 References: <200508022052.j72Kqs8F015586@cornholio.qualcomm.com>
-Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 In-Reply-To: <200508022052.j72Kqs8F015586@cornholio.qualcomm.com>
 List-Id: <autofs.vger.kernel.org>
@@ -18,118 +16,76 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: Michael Marion <mmarion@qualcomm.com>
 Cc: autofs@linux.kernel.org
 
-==> Regarding [autofs] Here's a new really odd auto.net bug ; Michael Marion <mmarion@qualcomm.com> adds:
+On Tue, 2 Aug 2005, Michael Marion wrote:
 
-mmarion> Had a similar problem in the past that turned out to be my fault,
-mmarion> wrong /etc/auto.net script in place.  Today, I'm seeing similar
-mmarion> mount issue, but I've made sure the right script is in place.
+> Had a similar problem in the past that turned out to be my fault, wrong
+> /etc/auto.net script in place.  Today, I'm seeing similar mount issue, but
+> I've made sure the right script is in place.
+> 
+> If a host has >1 export, it works sort of as expected:
+> kydland mmarion {728}$ /etc/auto.net cornholio
+> -fstype=nfs,rsize=8192,wsize=8192,hard,intr,acdirmin=1,acdirmax=5,acregmin=1,acregmax=5,nodev,nosuid
+> \
+>         /local/mnt cornholio:/local/mnt \
+>         /tftpboot cornholio:/tftpboot
+> kydland mmarion {729}$ ls /net/cornholio
+> local  tftpboot
+> kydland mmarion {730}$ mount | grep cornholio
+> cornholio:/local/mnt on /net/cornholio/local/mnt type nfs
+> (rw,nosuid,nodev,rsize=8192,wsize=8192,hard,intr,acdirmin=1,acdirmax=5,acregmin=1,acregmax=5,addr=129.46.234.38)
+> 
+> but /tftpboot isn't there and debug/verbose output in syslog shows:
+> Aug  2 13:43:01 kydland automount[32588]: attempting to mount entry
+> /net/cornholio
+> Aug  2 13:43:01 kydland kernel: nfs_get_root: getattr error = 116
+> Aug  2 13:43:01 kydland kernel: nfs_read_super: get root inode failed
+> Aug  2 13:43:01 kydland kernel: nfs_get_root: getattr error = 116
+> Aug  2 13:43:01 kydland kernel: nfs_read_super: get root inode failed
+> Aug  2 13:43:01 kydland automount[581]: >> mount: wrong fs type, bad option,
+> bad superblock on cornholio:/tftpboot,
+> Aug  2 13:43:01 kydland automount[581]: >>        or too many mounted file
+> systems
+> Aug  2 13:43:01 kydland automount[581]: mount(nfs): nfs: mount failure
+> cornholio:/tftpboot on /net/cornholio/tftpboot
+> 
+> trying to ls that tftpboot path gives more logs:
+> Aug  2 13:43:54 kydland automount[32588]: attempting to mount entry
+> /net/cornholio/tftpboot
+> Aug  2 13:43:54 kydland automount[631]: >> showmount: can't get address for
+> cornholio/tftpboot
+> Aug  2 13:43:54 kydland automount[631]: lookup(program): lookup for
+> cornholio/tftpboot failed
+  ^^^^^^^^^^^^^^^^^^
+This looks a bit like the bad lookup bug.
 
-Are you certain you are capturing all debug output?  Add an entry to
-syslog.conf like so:
+The patch below is for 2.6 so you may need to apply it by had for a 2.4 
+kernel.
 
-*.*		 /var/log/debug
+Give it a try.
 
-Then trigger the bug and send the logs.  I think the logs you sent were
-incomplete.
+Ian
 
-
--Jeff
-
-mmarion> If a host has >1 export, it works sort of as expected:
-mmarion> kydland mmarion {728}$ /etc/auto.net cornholio
-mmarion> -fstype=nfs,rsize=8192,wsize=8192,hard,intr,acdirmin=1,acdirmax=5,acregmin=1,acregmax=5,nodev,nosuid
-mmarion> \
-mmarion>         /local/mnt cornholio:/local/mnt \
-mmarion>         /tftpboot cornholio:/tftpboot
-mmarion> kydland mmarion {729}$ ls /net/cornholio
-mmarion> local  tftpboot
-mmarion> kydland mmarion {730}$ mount | grep cornholio
-mmarion> cornholio:/local/mnt on /net/cornholio/local/mnt type nfs
-mmarion> (rw,nosuid,nodev,rsize=8192,wsize=8192,hard,intr,acdirmin=1,acdirmax=5,acregmin=1,acregmax=5,addr=129.46.234.38)
-
-mmarion> but /tftpboot isn't there and debug/verbose output in syslog shows:
-mmarion> Aug  2 13:43:01 kydland automount[32588]: attempting to mount entry
-mmarion> /net/cornholio
-mmarion> Aug  2 13:43:01 kydland kernel: nfs_get_root: getattr error = 116
-mmarion> Aug  2 13:43:01 kydland kernel: nfs_read_super: get root inode failed
-mmarion> Aug  2 13:43:01 kydland kernel: nfs_get_root: getattr error = 116
-mmarion> Aug  2 13:43:01 kydland kernel: nfs_read_super: get root inode failed
-mmarion> Aug  2 13:43:01 kydland automount[581]: >> mount: wrong fs type, bad option,
-mmarion> bad superblock on cornholio:/tftpboot,
-mmarion> Aug  2 13:43:01 kydland automount[581]: >>        or too many mounted file
-mmarion> systems
-mmarion> Aug  2 13:43:01 kydland automount[581]: mount(nfs): nfs: mount failure
-mmarion> cornholio:/tftpboot on /net/cornholio/tftpboot
-
-mmarion> trying to ls that tftpboot path gives more logs:
-mmarion> Aug  2 13:43:54 kydland automount[32588]: attempting to mount entry
-mmarion> /net/cornholio/tftpboot
-mmarion> Aug  2 13:43:54 kydland automount[631]: >> showmount: can't get address for
-mmarion> cornholio/tftpboot
-mmarion> Aug  2 13:43:54 kydland automount[631]: lookup(program): lookup for
-mmarion> cornholio/tftpboot failed
-mmarion> Aug  2 13:43:54 kydland automount[631]: failed to mount
-mmarion> /net/cornholio/tftpboot
-mmarion> Aug  2 13:43:54 kydland automount[631]: umount_multi: no mounts found under
-mmarion> /net/cornholio/tftpboot
-mmarion> Aug  2 13:43:54 kydland automount[631]: rm_unwanted: /net/cornholio/tftpboot
-mmarion> Aug  2 13:43:54 kydland automount[32588]: attempting to mount entry
-mmarion> /net/cornholio/tftpboot
-mmarion> Aug  2 13:43:54 kydland automount[643]: >> showmount: can't get address for
-mmarion> cornholio/tftpboot
-mmarion> Aug  2 13:43:54 kydland automount[643]: lookup(program): lookup for
-mmarion> cornholio/tftpboot failed
-mmarion> Aug  2 13:43:54 kydland automount[643]: failed to mount
-mmarion> /net/cornholio/tftpboot
-mmarion> Aug  2 13:43:54 kydland automount[643]: umount_multi: no mounts found under
-mmarion> /net/cornholio/tftpboot
-
-
-mmarion> Even worse, trying to mount a host with a single export mounts at the wrong
-mmarion> place (this is similar to what I saw before):
-mmarion> kydland mmarion {733}$ /etc/auto.net tau
-mmarion> -fstype=nfs,rsize=8192,wsize=8192,hard,intr,acdirmin=1,acdirmax=5,acregmin=1,acregmax=5,nodev,nosuid
-mmarion> \
-mmarion>         /local/mnt tau:/local/mnt
-mmarion> kydland mmarion {734}$ ls /net/tau
-mmarion> licenses  lost+found  mlb  usr2  workspace
-mmarion> kydland mmarion {735}$ mount | grep tau
-mmarion> tau:/local/mnt on /net/tau type nfs
-mmarion> (rw,nosuid,nodev,rsize=8192,wsize=8192,hard,intr,acdirmin=1,acdirmax=5,acregmin=1,acregmax=5,addr=129.46.234.39)
-
-mmarion> It should have mounted as /net/tau/local/mnt not /net/tau
-
-mmarion> and syslog debug output shows:
-mmarion> Aug  2 13:45:34 kydland automount[32588]: attempting to mount entry /net/tau
-mmarion> Aug  2 13:45:34 kydland automount[977]: mount(nfs): host /local/mnt: lookup
-mmarion> failure
-mmarion> Aug  2 13:45:34 kydland automount[977]: >> nfs server reported tcp not
-mmarion> available, falling back to udp
-
-mmarion> Host has been up for 61 days, and I could swear it was ok when first booted 
-mmarion> (though I could be wrong).
-
-mmarion> Module loaded is autofs4, not autofs... patched up to 61 days ago.. :)
-mmarion> automount daemon is 4.1.4 with patches from same timeframe.. added patches:
-mmarion> autofs-4.1.4-misc-fixes.patch
-mmarion> autofs-4.1.4-multi-parse-fix.patch
-mmarion> autofs-4.1.4-non-replicated-ping.patch 
-
-mmarion> Seeing same effect on multiple 64bit sles9 hosts, but same level of
-mmarion> daemon/patches and exact same kernel (built from exact same src.rpm anyway) on 
-mmarion> a 32bit host (with same /etc/auto.net script) is working fine.
-
-mmarion> -- 
-mmarion> Mike Marion-Unix SysAdmin/Staff Engineer-http://www.qualcomm.com
-mmarion> Marge: "Homer, I couldn't help overhearing you warp Bart's mind."
-mmarion> Homer: "And?"
-==> The Simpsons
-
-mmarion> _______________________________________________
-mmarion> autofs mailing list
-mmarion> autofs@linux.kernel.org
-mmarion> http://linux.kernel.org/mailman/listinfo/autofs
+diff -Nurp linux-2.6.12-rc5-mm1.orig/fs/autofs4/root.c linux-2.6.12-rc5-mm1/fs/autofs4/root.c
+--- linux-2.6.12-rc5-mm1.orig/fs/autofs4/root.c	2005-05-29 14:46:30.000000000 +0800
++++ linux-2.6.12-rc5-mm1/fs/autofs4/root.c	2005-05-29 14:47:04.000000000 +0800
+@@ -306,7 +306,14 @@ static int try_to_fill_dentry(struct den
+ 		
+ 		DPRINTK("expire done status=%d", status);
+ 		
+-		return 0;
++		/*
++		 * If the directory still exists the mount request must
++		 * continue otherwise it can't be followed at the right
++		 * time during the walk.
++		 */
++		status = d_invalidate(dentry);
++		if (status != -EBUSY)
++			return 0;
+ 	}
+ 
+ 	DPRINTK("dentry=%p %.*s ino=%p",
