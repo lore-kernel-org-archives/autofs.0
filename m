@@ -1,14 +1,10 @@
-From: Max Matveev <makc@melbourne.sgi.com>
-Subject: Re: Difference in behaviour between 4.1.3 and 4.1.4
-Date: 03 Aug 2005 18:13:30 +1000
-Message-ID: <net7jf3mo9h.fsf@kuku.melbourne.sgi.com>
-References: <netoe8gn34v.fsf@kuku.melbourne.sgi.com>
-	<17135.29013.324264.704045@segfault.boston.redhat.com>
-	<17135.30311.969737.212368@kuku.melbourne.sgi.com>
+From: Michael Marion <mmarion@qualcomm.com>
+Subject: Re: Here's a new really odd auto.net bug
+Date: Thu, 4 Aug 2005 17:48:12 -0700 (PDT)
+Message-ID: <200508050048.j750mC8F007763@cornholio.qualcomm.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-Sender: max.matveev@sgi.com
-In-Reply-To: <17135.30311.969737.212368@kuku.melbourne.sgi.com>
+Content-Disposition: INLINE
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,25 +15,66 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: jmoyer@redhat.com
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
->>>>> "makc" == Max Matveev <makc@sgi.com> writes:
->>>>> "jmoyer" == Jeff Moyer <jmoyer@redhat.com> writes:
+On  3 Aug, Ian Kent wrote:
 
- jmoyer> I have never seen this issue.  I haven't seen it in the
- jmoyer> upstream autofs package nor in any variant of the Red Hat
- jmoyer> packages with which I work.
+>> Aug  2 13:43:54 kydland automount[631]: lookup(program): lookup for
+>> cornholio/tftpboot failed
+>   ^^^^^^^^^^^^^^^^^^
+> This looks a bit like the bad lookup bug.
+> 
+> The patch below is for 2.6 so you may need to apply it by had for a 2.4 
+> kernel.
+> 
+> Give it a try.
 
- makc> Dang! I was hopeing it was a known issue and I wouldn't have to dive
- makc> into the code - apparently 4.0.0-pre-something on Mandrake behave
- makc> similarly. Maybe it's a kernel module issue, not the user-space
- makc> automounter one.
+Didn't seem to fix at least the one problem:
+rs-workstation mmarion {527}$ ls /net/tau
+licenses  lost+found  mlb  usr2  workspace
+rs-workstation mmarion {528}$ /etc/auto.net tau
+-fstype=nfs,rsize=8192,wsize=8192,hard,intr,acdirmin=1,acdirmax=5,acregmin=1,acregmax=5,nodev,nosuid
+\
+        /local/mnt tau:/local/mnt
+rs-workstation mmarion {530}$ mount | grep tau
+tau:/local/mnt on /net/tau type nfs
+(rw,nosuid,nodev,rsize=8192,wsize=8192,hard,intr,acdirmin=1,acdirmax=5,acregmin=1,acregmax=5,addr=129.46.234.39)
 
-Scrap that - happened to be a mismatch between kernel and user space:
-kernel at autofs3, userspace at autofs4, modprobe.conf got clobbered
-during update.
+Logs are same:
+Aug  4 17:31:58 rs-workstation automount[9487]: mount(nfs): host /local/mnt:
+lookup failure
+Aug  4 17:31:58 rs-workstation automount[9487]: >> nfs server reported tcp not
+available, falling back to udp
+Aug  4 17:31:58 rs-workstation automount[9487]: >> Using NFS over UDP can
+cause data corruption.
+Aug  4 17:31:58 rs-workstation automount[9487]: >> Please refer to the
+WARNINGS section of the nfs(5) manual page.
 
-max
+2.6.8-24.16-smp amd64 sles9-sp2 system btw.. but I've seen the problem on 
+sles9 and -sp1 hosts too.  
+
+This is the _really_ confusing part:
+cornholio ~ {605}$ /etc/auto.net tau
+-fstype=nfs,rsize=8192,wsize=8192,hard,intr,acdirmin=1,acdirmax=5,acregmin=1,acregmax=5,nodev,nosuid
+\
+	/local/mnt tau:/local/mnt
+cornholio ~ {606}$ ls /net/tau
+local
+cornholio ~ {607}$ mount | grep tau
+tau:/local/mnt on /net/tau/local/mnt type nfs
+(rw,nosuid,nodev,rsize=8192,wsize=8192,hard,intr,acdirmin=1,acdirmax=5,acregmin=1,acregmax=5,addr=129.46.234.39)
+
+Suse 9.2 host, but exact same kernel as the sles9 and sp1 hosts (used a
+src.rpm from suse 9.2 for autofs4 patches that sles9 didn't have) and exact
+same automount daemon.. only other difference is this is a 32bit host vs the
+rest are 64bit.
+
+Trying some more things...
+-- 
+Mike Marion-Unix SysAdmin/Staff Engineer-http://www.qualcomm.com
+Frasier: "Well I had to, what with you underneath the covers with a flashlight 
+looking at the National Geographics." 
+Niles: "I was looking at the maps!"
+Frasier: "THAT'S what makes it so scary!" -- Frasier
