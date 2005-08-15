@@ -1,13 +1,10 @@
-From: Ian Kent <raven@themaw.net>
+From: Mike Marion <mmarion@qualcomm.com>
 Subject: Re: Here's a new really odd auto.net bug
-Date: Wed, 10 Aug 2005 08:46:33 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0508100843050.7040@wombat.indigo.net.au>
-References: <200508052107.j75L7Tid019987@crowley.qualcomm.com>
-	<Pine.LNX.4.63.0508062203390.2086@donald.themaw.net>
-	<42F82858.7030804@qualcomm.com>
+Date: Sun, 14 Aug 2005 23:02:20 -0700 (PDT)
+Message-ID: <200508150602.j7F62LNq023532@neophyte.qualcomm.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <42F82858.7030804@qualcomm.com>
+Content-Disposition: INLINE
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,30 +17,31 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Marion <mmarion@qualcomm.com>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+To: raven@themaw.net
+Cc: autofs@linux.kernel.org
 
-On Mon, 8 Aug 2005, Mike Marion wrote:
+On 10 Aug, Ian Kent wrote:
 
-> Ian Kent wrote:
-> 
-> >Yep. I need to get back to working on 4.1.
-> >
-> >Which three?
-> >
-> >I've got four waiting to go into a new revision but the three you are 
-> >refering to may be older still.
-> >
-> 
-> The following three that have been in the path for awhile now...
-> 
->  autofs-4.1.4-misc-fixes.patch
->  autofs-4.1.4-multi-parse-fix.patch  
->  autofs-4.1.4-non-replicated-ping.patch
+> OK. I thought you were talking about kernel patches. Sorry.
 
-OK. I thought you were talking about kernel patches. Sorry.
+No, sorry.. daemon patches.
 
-But that remionds me there was a very important patch from Chris Feist.
-I must apply that and post it.
+BTW, so far I've only seen one bug in the updated daemon with those patches,
+with ghosting and direct maps.  If a mount gets hung, then HUPing the daemons,
+even ones not related to the hung path (/net path hung and direct maps on
+paths /prj and /iceng) doesn't seem to work.
 
-Ian
+e.g. had a host where some new paths under /prj added to map weren't taking 
+effect.  Numerous hups to daemons didn't help.  Finally noticed an error about 
+stating a filesystem in /net.  Was able to force umount that path, and next 
+HUPs made new paths now accessible.   
+
+Can recreate and strace daemon(s) sometime this week for more data.
+
+-- 
+Mike Marion-Unix SysAdmin/Staff Engineer-http://www.qualcomm.com
+"...Microsoft has taken a perfectly good standard, broken it, and then told us 
+that we have to buy expensive programs that support the broken interface rather
+than use the free ones that come with all operating systems in the world except
+Microsoft operating systems." 
+==> Allen Holub (http://i-want-a-website.com/about-microsoft/quotes.html)
