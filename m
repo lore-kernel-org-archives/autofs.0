@@ -1,11 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Here's a new really odd auto.net bug
-Date: Mon, 15 Aug 2005 21:54:50 +0800 (WST)
-Message-ID: <Pine.LNX.4.63.0508152152090.2111@donald.themaw.net>
-References: <200508150602.j7F62LNq023532@neophyte.qualcomm.com>
+From: Axel Thimm <Axel.Thimm@atrpms.net>
+Subject: Cascading/recursive autofs mounts?
+Date: Thu, 25 Aug 2005 22:13:42 +0200
+Message-ID: <20050825201342.GB4935@neu.nirvana>
+Reply-To: autofs@linux.kernel.org
 Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============0634098268=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200508150602.j7F62LNq023532@neophyte.qualcomm.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,37 +16,61 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+To: autofs@linux.kernel.org
+
+
+--===============0634098268==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="qMm9M+Fa2AknHoGS"
+Content-Disposition: inline
+
+
+--qMm9M+Fa2AknHoGS
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+we have a setup, where we would like to have autofs mount over NFS a
+certain folder and then bind-mount from subfolders to other places.
+
+Can this work with autofs? E.g. can autofs cascade mount requests?
+E.g. if the first autofs request would require a second one to be
+performed first, would the second one properly mount the NFS share and
+the outer one continue with bind mounting?. It looks like the first
+one would lock /var/lock/autofs and the inner autofs request would
+fail.
+
+Thanks!
+--=20
+Axel.Thimm at ATrpms.net
+
+--qMm9M+Fa2AknHoGS
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.1 (GNU/Linux)
+
+iD8DBQFDDiZ1QBVS1GOamfERAhTuAJ9scB404DReNH1X4o2uuY3Oicx+lACfXpLy
+wiDT0Zwz/1Iod9KDk++iww0=
+=AcaL
+-----END PGP SIGNATURE-----
+
+--qMm9M+Fa2AknHoGS--
+
+
+--===============0634098268==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: Mike Marion <mmarion@qualcomm.com>
-Cc: autofs@linux.kernel.org
+Content-Disposition: inline
 
-On Sun, 14 Aug 2005, Mike Marion wrote:
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
 
-> On 10 Aug, Ian Kent wrote:
-> 
-> > OK. I thought you were talking about kernel patches. Sorry.
-> 
-> No, sorry.. daemon patches.
-> 
-> BTW, so far I've only seen one bug in the updated daemon with those patches,
-> with ghosting and direct maps.  If a mount gets hung, then HUPing the daemons,
-> even ones not related to the hung path (/net path hung and direct maps on
-> paths /prj and /iceng) doesn't seem to work.
-> 
-> e.g. had a host where some new paths under /prj added to map weren't taking 
-> effect.  Numerous hups to daemons didn't help.  Finally noticed an error about 
-> stating a filesystem in /net.  Was able to force umount that path, and next 
-> HUPs made new paths now accessible.   
-> 
-> Can recreate and strace daemon(s) sometime this week for more data.
+--===============0634098268==--
 
-That would be useful, thanks.
-
-I fear that the resolution may not be simple as the daemon works as a 
-finite state machine. If something blocks state transitions then 
-everything stops.
-
-Bummer.
-
-Ian
