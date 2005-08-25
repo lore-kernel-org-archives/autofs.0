@@ -1,11 +1,13 @@
-From: Axel Thimm <Axel.Thimm@atrpms.net>
-Subject: Cascading/recursive autofs mounts?
-Date: Thu, 25 Aug 2005 22:13:42 +0200
-Message-ID: <20050825201342.GB4935@neu.nirvana>
-Reply-To: autofs@linux.kernel.org
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: Cascading/recursive autofs mounts?
+Date: Thu, 25 Aug 2005 16:44:14 -0400
+Message-ID: <17166.11678.314365.509696@segfault.boston.redhat.com>
+References: <20050825201342.GB4935@neu.nirvana>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0634098268=="
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <20050825201342.GB4935@neu.nirvana>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,61 +18,23 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
 To: autofs@linux.kernel.org
 
+==> Regarding [autofs] Cascading/recursive autofs mounts?; Axel Thimm <Axel.Thimm@atrpms.net> adds:
 
---===============0634098268==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qMm9M+Fa2AknHoGS"
-Content-Disposition: inline
+Axel.Thimm> Hi, we have a setup, where we would like to have autofs mount
+Axel.Thimm> over NFS a certain folder and then bind-mount from subfolders
+Axel.Thimm> to other places.
 
+Axel.Thimm> Can this work with autofs? E.g. can autofs cascade mount
+Axel.Thimm> requests?  E.g. if the first autofs request would require a
+Axel.Thimm> second one to be performed first, would the second one properly
+Axel.Thimm> mount the NFS share and the outer one continue with bind
+Axel.Thimm> mounting?. It looks like the first one would lock
+Axel.Thimm> /var/lock/autofs and the inner autofs request would fail.
 
---qMm9M+Fa2AknHoGS
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Correct.  The way things are structured in autofs4.1.4, recursive mounts
+such as this are not supported.
 
-Hi,
-
-we have a setup, where we would like to have autofs mount over NFS a
-certain folder and then bind-mount from subfolders to other places.
-
-Can this work with autofs? E.g. can autofs cascade mount requests?
-E.g. if the first autofs request would require a second one to be
-performed first, would the second one properly mount the NFS share and
-the outer one continue with bind mounting?. It looks like the first
-one would lock /var/lock/autofs and the inner autofs request would
-fail.
-
-Thanks!
---=20
-Axel.Thimm at ATrpms.net
-
---qMm9M+Fa2AknHoGS
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
-
-iD8DBQFDDiZ1QBVS1GOamfERAhTuAJ9scB404DReNH1X4o2uuY3Oicx+lACfXpLy
-wiDT0Zwz/1Iod9KDk++iww0=
-=AcaL
------END PGP SIGNATURE-----
-
---qMm9M+Fa2AknHoGS--
-
-
---===============0634098268==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
-
---===============0634098268==--
-
+-Jeff
