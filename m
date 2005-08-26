@@ -1,12 +1,12 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: Cascading/recursive autofs mounts?
-Date: Fri, 26 Aug 2005 12:32:44 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0508261153330.2586@wombat.indigo.net.au>
-References: <20050825201342.GB4935@neu.nirvana>
-	<17166.11678.314365.509696@segfault.boston.redhat.com>
+Subject: Re: Re: BUG: autofs4 + cd /net/<Netapp>/vol/vol[0-3] = port
+	usage problems
+Date: Fri, 26 Aug 2005 11:44:21 +0800 (WST)
+Message-ID: <Pine.LNX.4.58.0508261141230.2586@wombat.indigo.net.au>
+References: <20050825221428.GC1867@robsims.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <17166.11678.314365.509696@segfault.boston.redhat.com>
+In-Reply-To: <20050825221428.GC1867@robsims.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,28 +19,24 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jeff Moyer <jmoyer@redhat.com>
+To: Rob Sims <robsims@robsims.com>
 Cc: autofs@linux.kernel.org
 
-On Thu, 25 Aug 2005, Jeff Moyer wrote:
+On Thu, 25 Aug 2005, Rob Sims wrote:
 
-> ==> Regarding [autofs] Cascading/recursive autofs mounts?; Axel Thimm <Axel.Thimm@atrpms.net> adds:
+> > THE PROBLEM DESCRIPTION:
 > 
-> Axel.Thimm> Hi, we have a setup, where we would like to have autofs mount
-> Axel.Thimm> over NFS a certain folder and then bind-mount from subfolders
-> Axel.Thimm> to other places.
+> > Autofs hangs and refuses to mount any directories for a period of time
+> > after cd'ing to /net/<Netapp>/vol/vol[0-3] and waiting a while.
+> > The only way to clear this is to reboot the client.
 > 
-> Axel.Thimm> Can this work with autofs? E.g. can autofs cascade mount
-> Axel.Thimm> requests?  E.g. if the first autofs request would require a
-> Axel.Thimm> second one to be performed first, would the second one properly
-> Axel.Thimm> mount the NFS share and the outer one continue with bind
-> Axel.Thimm> mounting?. It looks like the first one would lock
-> Axel.Thimm> /var/lock/autofs and the inner autofs request would fail.
-> 
-> Correct.  The way things are structured in autofs4.1.4, recursive mounts
-> such as this are not supported.
+> I didn't see a resolution to this in the archive - was it resolved?
+> How?
 
-This should be able to be done with Sun style offset mounts (which we are 
-calling multi-mounts). We can't do that atm but that's comming.
+This has come up several times and as far as I know we can resolve or 
+work around these problems.
+
+If you have a problem then we need to establish versions and symptoms to 
+know what needs to be done to resolve it.
 
 Ian
