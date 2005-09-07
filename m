@@ -1,11 +1,12 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: correct format for mounting cifs/smbfs shares
-Date: Wed, 7 Sep 2005 10:10:35 -0400
-Message-ID: <17182.62683.375367.892022@segfault.boston.redhat.com>
-Reply-To: jmoyer@redhat.com
+From: Jehan PROCACCIA <Jehan.Procaccia@int-evry.fr>
+Subject: Re: correct format for mounting cifs/smbfs shares
+Date: Wed, 07 Sep 2005 17:20:07 +0200
+Message-ID: <431F0527.5060701@int-evry.fr>
+References: <17182.62683.375367.892022@segfault.boston.redhat.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <17182.62683.375367.892022@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,50 +17,96 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: jmoyer@redhat.com
+Cc: autofs@linux.kernel.org
 
-Hi,
+For automounting smb/cif I use this:
 
-I had a user report a bug as follows:
+$ tail -3 /etc/auto.misc
+windowsshare    
+-fstype=smbfs,username=mylogin,workgroup=myworkgroup,credentials=/etc/smbwindows.auth 
+://winserver/share1
+unixshare    
+-fstype=smbfs,username=mylogin,credentials=/etc/smbunix.auth 
+://sambaserver/mylogin
 
----
-Description of problem:
-automount does not understand //hostname in its config files, which is needed by mount.cifs and mount.smbfs
-I found a "solution", but I don't like it:
-use \/\/hostname in /etc/auto.misc file
+$ cat /etc/smbunix.auth
+username=mylogin
+password=secret
+
+$ cat /etc/smbwindows.auth
+username=mylogin
+password=secret
+
+$ cd /misc/windowsshare
+[root@calaz /misc/windowsshare]
+$ df .
+Filesystem           1K-blocks      Used Available Use% Mounted on
+//winserver/share1        858652672 122945536 735707136  15% 
+/misc/windowsshare
 
 
-Version-Release number of selected component (if applicable):
-autofs-4.1.3-114
-samba-client-3.0.14a-2.1.fc3.kde
+However, as you can see, I need two smb*.auth files because my password 
+is diffrent on both shares (windows/unix)
+And the major problem is THE use of a smb.auth file where the password 
+must be in clear text :-( . If someone knows how to automount cifs/smb 
+FS without pre-entering the password ... The problem is that If I don't 
+do that, autofs/mount won't prompt me to enter the password :-(
+pehaps there's something to do with pamcred ... ?
 
-How reproducible:
-Always
+thanks .
 
-Steps to Reproduce:
-1. put following line in /etc/auto.misc file:
-share  -fstype=cifs                                                                                                     //HOST/SHARE
-(of course, I hope that you have host HOST with share SHARE and you can make
-mount -t cifs //HOST/SHARE /misc/share)
+Jeff Moyer wrote:
 
-2. ls /misc/share 
-  
-
-Actual Results:  in /var/log/messages:
-automount[1624]: mount(generic): failed to mount  (type cifs) on /misc/share/HOST/share
-
-Expected Results:  //HOST/SHARE mounted in /misc/share
-;-)
-
-Additional info:
-
-Same results with -fstype=smb
----
-
-I have no experience with this.  What is the expected configuration to get
-this to work?
-
-Thanks,
-
-Jeff
+>Hi,
+>
+>I had a user report a bug as follows:
+>
+>---
+>Description of problem:
+>automount does not understand //hostname in its config files, which is needed by mount.cifs and mount.smbfs
+>I found a "solution", but I don't like it:
+>use \/\/hostname in /etc/auto.misc file
+>
+>
+>Version-Release number of selected component (if applicable):
+>autofs-4.1.3-114
+>samba-client-3.0.14a-2.1.fc3.kde
+>
+>How reproducible:
+>Always
+>
+>Steps to Reproduce:
+>1. put following line in /etc/auto.misc file:
+>share  -fstype=cifs                                                                                                     //HOST/SHARE
+>(of course, I hope that you have host HOST with share SHARE and you can make
+>mount -t cifs //HOST/SHARE /misc/share)
+>
+>2. ls /misc/share 
+>  
+>
+>Actual Results:  in /var/log/messages:
+>automount[1624]: mount(generic): failed to mount  (type cifs) on /misc/share/HOST/share
+>
+>Expected Results:  //HOST/SHARE mounted in /misc/share
+>;-)
+>
+>Additional info:
+>
+>Same results with -fstype=smb
+>---
+>
+>I have no experience with this.  What is the expected configuration to get
+>this to work?
+>
+>Thanks,
+>
+>Jeff
+>
+>_______________________________________________
+>autofs mailing list
+>autofs@linux.kernel.org
+>http://linux.kernel.org/mailman/listinfo/autofs
+>  
+>
