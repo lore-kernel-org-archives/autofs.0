@@ -1,14 +1,11 @@
-From: "Ryan Pisani" <autofs@thepisanis.com>
-Subject: Re: lookup_nisplus module
-Date: Fri, 9 Sep 2005 22:18:35 -0500 (CDT)
-Message-ID: <46288.24.223.199.54.1126322315.squirrel@thepisanis.com>
-References: <11593.136.182.2.222.1126298006.squirrel@thepisanis.com>
-	<Pine.LNX.4.63.0509101101330.2073@donald.themaw.net>
-Reply-To: autofs@thepisanis.com
+From: Ian Kent <raven@themaw.net>
+Subject: Re: Multipliexing mounts
+Date: Sat, 10 Sep 2005 11:33:01 +0800 (WST)
+Message-ID: <Pine.LNX.4.63.0509101112250.2073@donald.themaw.net>
+References: <134FC8D9C1F126488E3D123A9B2607370A75992F@bp1houex002.bp1.ad.bp.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.63.0509101101330.2073@donald.themaw.net>
+In-Reply-To: <134FC8D9C1F126488E3D123A9B2607370A75992F@bp1houex002.bp1.ad.bp.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,114 +16,43 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: "Murata, Dennis W (SAIC)" <muratadw@bp.com>
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
-Thanks Ian. Hopefully it can be used down the road. If you ever do need a
-tester, I'm always available, and I have access to multiple nisplus
-domains that differ from the primary one. I know nisplus is not a hot item
-in the world of linux and autofs. Thanks again.
+On Fri, 9 Sep 2005, Murata, Dennis W (SAIC) wrote:
 
-Ryan
+> I recently had an applications trainer give a class on Konqueror.  During the class she went up a directory from $HOME.  Konqueror tried to automount 1321 home directories.  I did not count to see how many were mounted, but I was able to kill Konqueror.  The workstation did not lock up, but not all home directories were available.  Has the patch to multiplex mounts been applied to any autofs version?
+> We are running RHEL 3 update 3, with autofs-4.1.4-4 from jmoyer recompiled.  The users want the ghosting feature, so I don't want to disable it.
+> The home directories are automounted from a NetApp filer.
+> 
 
+Hi Dennis,
 
+Your description of this problem is a bit unclear to me.
 
-> On Fri, 9 Sep 2005, Ryan Pisani wrote:
->
->> Hello -
->> I'm new to this list so please forgive me if I do anything out of the
->> norm. For the last year and a half I've been applying a fix the
->> lookup_nisplus.so source to allow for non-standard nisplus maps. The map
->> extension org_dir is hardcoded in the current and previous source as to
->> always assume .org_dir to any preceding map name like passwd, hosts,
->> etc.
->> It occurred to me this morning that maybe I could get this changed in
->> the
->> native autofs package so that I don't have to keep patching rpms for
->> every
->> release of RHEL we use at work. Anyhow, I contacted Redhat and they
->> stated
->> this would be the proper place to suggest a patch. Below you'll find the
->> patch to C source based on autofs 4.1.3. I know nisplus is probably
->> rarely
->> used on Linux in most environments, but unfortunately I'm stuck with it
->> in
->> mine. Please let me know if there is any way to have this patch
->> verified,
->> and possibly included in future releases.
->>
->
-> Hi Ryan,
->
-> Thanks for your patch.
->
-> I have to admit my maintenance of the nisplus code has been poor.
-> I've received a few patches over the last couple of years and haven't been
-> able to merge any.
->
-> Priorities, not knowing nisplus myself and the complete lack of the
-> ability to test has been the main problem. At one point I tried to
-> work with someone on this but it rapidly became too hard.
->
-> atm the priority is getting the basic functionality expected of an
-> automounter sorted out. Linux autofs just hasn't got it and I've been
-> responsible for it for quite a while now so it's way past time to get it
-> done.
->
-> So all I can say is I've filed it and hope to get to it.
->
-> Sorry, for now at least.
->
-> Ian
->
->> regards,
->>
->> Ryan Pisani
->>
->>
->>
->> #autofs-nisplus.patch
->> --- autofs-4.1.3.orig/modules/lookup_nisplus.c  2004-01-29
->> 10:01:22.000000000 -0
->> 600
->> +++ autofs-4.1.3/modules/lookup_nisplus.c       2005-06-16
->> 13:48:26.000000000 -0
->> 500
->> @@ -74,14 +74,14 @@
->>
->>         debug(MODPREFIX "looking up %s", name);
->>
->> -       sprintf(tablename, "[key=%s],%s.org_dir.%s", name,
->> ctxt->mapname,
->> +       sprintf(tablename, "[key=%s],%s.%s", name, ctxt->mapname,
->>                 ctxt->domainname);
->>
->>         result = nis_list(tablename, FOLLOW_PATH | FOLLOW_LINKS, NULL,
->> NULL);
->>         if (result->status != NIS_SUCCESS && result->status !=
->> NIS_S_SUCCESS) {
->>                 /* Try to get the "*" entry if there is one - note that
->> we
->> *don'
->> t*
->>                    modify "name" so & -> the name we used, not "*" */
->> -               sprintf(tablename, "[key=*],%s.org_dir.%s",
->> ctxt->mapname,
->> +               sprintf(tablename, "[key=*],%s.%s", ctxt->mapname,
->>                         ctxt->domainname);
->>                 result = nis_list(tablename, FOLLOW_PATH | FOLLOW_LINKS,
->> NULL, N
->> ULL);
->>         }
->>
->> ###END PATCH
->>
->>
->> _______________________________________________
->> autofs mailing list
->> autofs@linux.kernel.org
->> http://linux.kernel.org/mailman/listinfo/autofs
->>
->
->
+I think you're talking about about more than one issue.
+
+Firstly the multiplexing of mounts is likely referring to the kernel 
+sunrpc implementation which is not part of the autofs code. There 
+certainly is a problem there that's been discussed many times. There are a 
+couple of patches around but I don't believe any are ready for general 
+use. This would allow you to mount that many mounts but, with a 2.4 
+kernel and the more-unnamed patch such as is in RedHat kernels, you will 
+run out of unnamed devices at just over 1200. The limitation on unnamed 
+devices has been removed in 2.6.
+
+The second thing is that you may be using the multi-mount (auto.net) type 
+mounts from these servers whereby accessing it mounts all the servers 
+exports. Lazy mount/umount for multi-mounts is not done yet. I was this 
+very morning thinking about the way in which this will be implemented. 
+Unfortunately, when this is done it will require the reworked direct mount 
+functionality that is well underway now.
+
+In any case I'm not sure that this will actually play well with the 
+aggressive directory tree scanning of file managers found in KDE and Gnome.
+
+We'll just have to see.
+
+Ian
