@@ -1,73 +1,70 @@
-From: "Ryan Pisani" <ryan@thepisanis.com>
-Subject: lookup_nisplus module
-Date: Fri, 9 Sep 2005 15:31:48 -0500 (CDT)
-Message-ID: <64926.136.182.2.222.1126297908.squirrel@thepisanis.com>
-Reply-To: ryan@thepisanis.com
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: autofs4 looks up wrong path element when ghosting is enabled
+Date: Tue, 20 Sep 2005 15:02:04 -0400
+Message-ID: <17200.23724.686149.394150@segfault.boston.redhat.com>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <autofs-bounces@linux.kernel.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S965079AbVITTCW@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://hera.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: autofs@linux.kernel.org
+To: raven@themaw.net
+Cc: autofs@linux.kernel.org, linux-kernel@vger.kernel.org
 
-Hello -
-I'm new to this list so please forgive me if I do anything out of the
-norm. For the last year and a half I've been applying a fix the
-lookup_nisplus.so source to allow for non-standard nisplus maps. The map
-extension org_dir is hardcoded in the current and previous source as to
-always assume .org_dir to any preceding map name like passwd, hosts, etc.
-It occurred to me this morning that maybe I could get this changed in the
-native autofs package so that I don't have to keep patching rpms for every
-release of RHEL we use at work. Anyhow, I contacted Redhat and they stated
-this would be the proper place to suggest a patch. Below you'll find the
-patch to C source based on autofs 4.1.3. I know nisplus is probably rarely
-used on Linux in most environments, but unfortunately I'm stuck with it in
-mine. Please let me know if there is any way to have this patch verified,
-and possibly included in future releases.
+Hi, Ian, list,
 
-regards,
+I have a bug filed against autofs when ghosting is enabled.  The best way
+to describe the bug is to walk through the reproducer, I guess.
 
-Ryan Pisani
+Take the following maps, for example:
 
+auto.master
+/sbox	auto.sbox
 
+auto.sbox:
+src	segfault:/sbox/src/
 
-#autofs-nisplus.patch
---- autofs-4.1.3.orig/modules/lookup_nisplus.c  2004-01-29
-10:01:22.000000000 -0
-600
-+++ autofs-4.1.3/modules/lookup_nisplus.c       2005-06-16
-13:48:26.000000000 -0
-500
-@@ -74,14 +74,14 @@
+Let's say that there is a file, id3_0.12.orig.tar.gz, in segfault:/sbox/src/.
 
-        debug(MODPREFIX "looking up %s", name);
+To reproduce the problem, stop the nfs service on the server.
 
--       sprintf(tablename, "[key=%s],%s.org_dir.%s", name, ctxt->mapname,
-+       sprintf(tablename, "[key=%s],%s.%s", name, ctxt->mapname,
-                ctxt->domainname);
+On the client, do an 'ls /sbox/src/id3_012.orig.tar.gz'.  This will fail,
+as well it should.  However, if we look in the logs, we find this:
 
-        result = nis_list(tablename, FOLLOW_PATH | FOLLOW_LINKS, NULL, NULL);
-        if (result->status != NIS_SUCCESS && result->status !=
-NIS_S_SUCCESS) {
-                /* Try to get the "*" entry if there is one - note that we
-*don'
-t*
-                   modify "name" so & -> the name we used, not "*" */
--               sprintf(tablename, "[key=*],%s.org_dir.%s", ctxt->mapname,
-+               sprintf(tablename, "[key=*],%s.%s", ctxt->mapname,
-                        ctxt->domainname);
-                result = nis_list(tablename, FOLLOW_PATH | FOLLOW_LINKS,
-NULL, N
-ULL);
-        }
+automount[1182]: handle_packet_missing: token 1, name src 
+automount[1182]: attempting to mount entry /sbox/src
+...
+automount[1481]: mount(nfs): calling mkdir_path /sbox/src
+automount[1481]: mount(nfs): calling mount -t nfs -s-o tcp,intr,timeo=600,rsize=8192,wsize=8192,retrans=5 segfault:/sbox/src /sbox/src
+automount[1481]: >> mount: RPC: Program not registered
+automount[1481]: mount(nfs): add_bad_host: segfault:/sbox/src
+automount[1481]: mount(nfs): nfs: mount failure segfault:/sbox/src on /sbox/src
+automount[1481]: failed to mount /sbox/src
+...
+automount[1182]: send_fail: token=1 
+automount[1182]: handle_packet: type = 0 
+automount[1182]: handle_packet_missing: token 2, name src/id3_0.12.orig.tar.gz 
+automount[1182]: attempting to mount entry /sbox/src/id3_0.12.orig.tar.gz
 
-###END PATCH
+Noteworthy are these last two lines!  Even though the mount failed, we are
+continuing the lookup.  The culprit is here, in cached_lookup:
+
+    if (!dentry->d_op->d_revalidate(dentry, flags) && !d_invalidate(dentry)) { 
+            dput(dentry); 
+            dentry = NULL; 
+    } 
+
+d_revalidate points to autofs4_revalidate, which calls try_to_fill_dentry,
+which will return a status of 0.  Since ghosting is enabled,
+d_invalidate(dentry) will return -EBUSY, and so we return the dentry to the
+caller, which then continues the lookup.
+
+Ian, I'm not really sure how we can address this issue without VFS
+changes.  Any ideas?
+
+Oh, also note that, once the nfs service is started up again on the server,
+the lookup of a specific file name will still fail!  In this case, the
+daemon won't even be called.
+
+-Jeff
