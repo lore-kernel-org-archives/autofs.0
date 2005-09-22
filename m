@@ -1,14 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs4 looks up wrong path element when ghosting is
-	enabled
-Date: Sat, 24 Sep 2005 16:59:57 +0800 (WST)
-Message-ID: <Pine.LNX.4.63.0509241644420.2069@donald.themaw.net>
-References: <17200.23724.686149.394150@segfault.boston.redhat.com>
-	<Pine.LNX.4.58.0509210916040.26144@wombat.indigo.net.au>
-	<17203.7543.949262.883138@segfault.boston.redhat.com>
+From: "Breitman, Jason" <Jason.Breitman@blackrock.com>
+Subject: nfs bindresvport: Address already in use
+Date: Thu, 22 Sep 2005 10:08:10 -0400
+Message-ID: <FB7BDBB2C6034E44B36CFDCF09256BCF029E982C@NYCPEXV003.na.blkint.com>
 Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============0345117977=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <17203.7543.949262.883138@segfault.boston.redhat.com>
+content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,108 +16,148 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+To: autofs@linux.kernel.org
+
+--===============0345117977==
+content-class: urn:content-classes:message
+Content-Type: multipart/alternative;
+	boundary="----_=_NextPart_001_01C5BF7F.100E6B62"
+
+------_=_NextPart_001_01C5BF7F.100E6B62
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: autofs@linux.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, 22 Sep 2005, Jeff Moyer wrote:
+rpm -q autofs
+autofs-4.1.3-131
 
-> ==> Regarding Re: autofs4 looks up wrong path element when ghosting is enabled; Ian Kent <raven@themaw.net> adds:
-> 
-> raven> On Tue, 20 Sep 2005, Jeff Moyer wrote:
-> >> Hi, Ian, list,
-> >> 
-> >> I have a bug filed against autofs when ghosting is enabled.  The best way
-> >> to describe the bug is to walk through the reproducer, I guess.
-> >> 
-> >> Take the following maps, for example:
-> >> 
-> >> auto.master
-> >> /sbox	auto.sbox
-> >> 
-> >> auto.sbox:
-> >> src	segfault:/sbox/src/
-> >> 
-> >> Let's say that there is a file, id3_0.12.orig.tar.gz, in segfault:/sbox/src/.
-> >> 
-> >> To reproduce the problem, stop the nfs service on the server.
-> >> 
-> >> On the client, do an 'ls /sbox/src/id3_012.orig.tar.gz'.  This will fail,
-> >> as well it should.  However, if we look in the logs, we find this:
-> >> 
-> >> automount[1182]: handle_packet_missing: token 1, name src 
-> >> automount[1182]: attempting to mount entry /sbox/src
-> >> ...
-> >> automount[1481]: mount(nfs): calling mkdir_path /sbox/src
-> >> automount[1481]: mount(nfs): calling mount -t nfs -s-o tcp,intr,timeo=600,rsize=8192,wsize=8192,retrans=5 segfault:/sbox/src /sbox/src
-> >> automount[1481]: >> mount: RPC: Program not registered
-> >> automount[1481]: mount(nfs): add_bad_host: segfault:/sbox/src
-> >> automount[1481]: mount(nfs): nfs: mount failure segfault:/sbox/src on /sbox/src
-> >> automount[1481]: failed to mount /sbox/src
-> >> ...
-> >> automount[1182]: send_fail: token=1 
-> >> automount[1182]: handle_packet: type = 0 
-> >> automount[1182]: handle_packet_missing: token 2, name src/id3_0.12.orig.tar.gz 
-> >> automount[1182]: attempting to mount entry /sbox/src/id3_0.12.orig.tar.gz
-> >> 
-> >> Noteworthy are these last two lines!  Even though the mount failed, we are
-> >> continuing the lookup.  The culprit is here, in cached_lookup:
-> >> 
-> >> if (!dentry->d_op->d_revalidate(dentry, flags) && !d_invalidate(dentry)) { 
-> >> dput(dentry); 
-> >> dentry = NULL; 
-> >> } 
-> >> 
-> >> d_revalidate points to autofs4_revalidate, which calls try_to_fill_dentry,
-> >> which will return a status of 0.  Since ghosting is enabled,
-> >> d_invalidate(dentry) will return -EBUSY, and so we return the dentry to 
-> raven> the
-> >> caller, which then continues the lookup.
-> >> 
-> >> Ian, I'm not really sure how we can address this issue without VFS
-> >> changes.  Any ideas?
-> >> 
-> 
-> raven> I'm aware of this problem.
-> raven> I'm not sure how to deal with it yet.
-> raven> The case above is probably not that difficult to solve but if the last 
-> raven> component is a directory it's hard to work out it's a problem.
-> 
-> Ugh.  If you're thinking what I think you're thinking, that's an ugly hack.
+uname -r
+2.6.9-5.Elsmp
 
-Don't think so.
+/etc/auto.master
+/usr/local              program:/usr/bin/autofs_local   --timeout=3600
+--debug
 
-I've been seeing this for a while. I wasn't quite sure of the source but, 
-for some reason your report has cleared that up.
+/var/log/messages
+Sep 22 09:41:18 bbc003 automount[4774]: >> nfs bindresvport: Address
+already in use
+Sep 22 09:41:18 bbc003 automount[4774]: mount(nfs): nfs: mount failure
+nfs:/clients/local/data on /usr/local/data
+Sep 22 09:41:18 bbc003 automount[4774]: failed to mount /usr/local/data
 
-The problem is not so much the success returned on the failed mount 
-(revalidate). It's the return from the following lookup. This is a lookup 
-in a non-root directory. I replaced the non-root lookup with the root 
-lookup a while ago and I think this is an unexpected side affect of that. 
-Becuase of other changes that lead to that decision I think that it should 
-be now be OK to put back the null function (always return a negative 
-dentry) that was there before I started working on the browable maps 
-feature.
+Configured Mount Points:
+------------------------
+/usr/sbin/automount --timeout=3600 --debug /usr/local program
+/usr/bin/autofs_local 
 
-I'll change the module I use here and test it out for a while.
-If you have time I could make a patch for the 2.4 code and send it over so 
-that you could test it out a bit as well.
+Active Mount Points:
+--------------------
+/usr/sbin/automount --timeout=3600 --debug /usr/local program
+/usr/bin/autofs_local
 
-> 
-> raven> There's more information here than I've gathhered so far.
-> 
-> >> Oh, also note that, once the nfs service is started up again on the server,
-> >> the lookup of a specific file name will still fail!  In this case, the
-> >> daemon won't even be called.
-> 
-> raven> I'll have to check this out.
-> raven> It could be helpful.
-> 
-> Well, I've provided a reproducer.  If you'd like log output from the kernel
-> side, let me know.  I can certainly provide that.
+ps -ef | grep automount
+root      2175     1  0 09:38 ?        00:00:00 /usr/sbin/automount
+--timeout=3600 --debug /usr/local program /usr/bin/autofs_local
 
-Don't think I need it.
-I'm fairly sure I understand what's happening here now. As I said above.
 
-Ian
+Problem
+Automount fails to mount directories and application fail to run.
+
+Bugzilla ID That appears to be similar
+https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=128966
+
+Jason Breitman
+jason.breitman@blackrock.com
+
+
+THE INFORMATION CONTAINED IN THIS MESSAGE AND ANY ATTACHMENT MAY BE PRIVILEGED, CONFIDENTIAL, PROPRIETARY OR OTHERWISE PROTECTED FROM DISCLOSURE. If the reader of this message is not the intended recipient, you are hereby notified that any dissemination, distribution, copying or use of this message and any attachment is strictly prohibited. If you have received this message in error, please notify us immediately by replying to the message and permanently delete it from your computer and destroy any printout thereof.
+------_=_NextPart_001_01C5BF7F.100E6B62
+Content-Type: text/html; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=us-ascii">
+<META NAME="Generator" CONTENT="MS Exchange Server version 6.0.6603.0">
+<TITLE>nfs bindresvport: Address already in use</TITLE>
+</HEAD>
+<BODY>
+<!-- Converted from text/rtf format -->
+
+<P><B><FONT SIZE=2 FACE="Arial">rpm -q autofs</FONT></B>
+
+<BR><FONT SIZE=2 FACE="Arial">autofs-4.1.3-131</FONT>
+</P>
+
+<P><B><FONT SIZE=2 FACE="Arial">uname -r</FONT></B>
+
+<BR><FONT SIZE=2 FACE="Arial">2.6.9-5.Elsmp</FONT>
+</P>
+
+<P><B><FONT SIZE=2 FACE="Arial">/etc/auto.master</FONT></B>
+
+<BR><FONT SIZE=2 FACE="Arial">/usr/local&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; program:/usr/bin/autofs_local&nbsp;&nbsp; --timeout=3600 --debug</FONT>
+</P>
+
+<P><B><FONT SIZE=2 FACE="Arial">/var/log/messages</FONT></B>
+
+<BR><FONT SIZE=2 FACE="Arial">Sep 22 09:41:18 bbc003 automount[4774]: &gt;&gt; nfs bindresvport: Address already in use</FONT>
+
+<BR><FONT SIZE=2 FACE="Arial">Sep 22 09:41:18 bbc003 automount[4774]: mount(nfs): nfs: mount failure nfs:/clients/local/data on /usr/local/data</FONT>
+
+<BR><FONT SIZE=2 FACE="Arial">Sep 22 09:41:18 bbc003 automount[4774]: failed to mount /usr/local/data</FONT>
+</P>
+
+<P><FONT SIZE=2 FACE="Arial">Configured Mount Points:</FONT>
+
+<BR><FONT SIZE=2 FACE="Arial">------------------------</FONT>
+
+<BR><FONT SIZE=2 FACE="Arial">/usr/sbin/automount --timeout=3600 --debug /usr/local program /usr/bin/autofs_local </FONT>
+</P>
+
+<P><FONT SIZE=2 FACE="Arial">Active Mount Points:</FONT>
+
+<BR><FONT SIZE=2 FACE="Arial">--------------------</FONT>
+
+<BR><FONT SIZE=2 FACE="Arial">/usr/sbin/automount --timeout=3600 --debug /usr/local program /usr/bin/autofs_local</FONT>
+</P>
+
+<P><B><FONT SIZE=2 FACE="Arial">ps -ef | grep automount</FONT></B>
+
+<BR><FONT SIZE=2 FACE="Arial">root&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2175&nbsp;&nbsp;&nbsp;&nbsp; 1&nbsp; 0 09:38 ?&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 00:00:00 /usr/sbin/automount --timeout=3600 --debug /usr/local program /usr/bin/autofs_local</FONT></P>
+<BR>
+
+<P><B><FONT SIZE=2 FACE="Arial">Problem</FONT></B>
+
+<BR><FONT SIZE=2 FACE="Arial">Automount fails to mount directories and application fail to run.</FONT>
+</P>
+
+<P><FONT SIZE=2 FACE="Arial">Bugzilla ID That appears to be similar</FONT>
+
+<BR><A HREF="https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=128966"><U><FONT COLOR="#0000FF" SIZE=2 FACE="Arial">https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=128966</FONT></U></A>
+</P>
+
+<P><FONT SIZE=2 FACE="Arial">Jason Breitman</FONT>
+
+<BR><FONT SIZE=2 FACE="Arial">jason.breitman@blackrock.com</FONT>
+</P>
+
+</BODY>
+</HTML><br>
+THE INFORMATION CONTAINED IN THIS MESSAGE AND ANY ATTACHMENT MAY BE PRIVILEGED, CONFIDENTIAL, PROPRIETARY OR OTHERWISE PROTECTED FROM DISCLOSURE. If the reader of this message is not the intended recipient, you are hereby notified that any dissemination, distribution, copying or use of this message and any attachment is strictly prohibited. If you have received this message in error, please notify us immediately by replying to the message and permanently delete it from your computer and destroy any printout thereof.
+------_=_NextPart_001_01C5BF7F.100E6B62--
+
+
+--===============0345117977==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--===============0345117977==--
+
