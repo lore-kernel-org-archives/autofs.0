@@ -1,17 +1,11 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: autofs4 looks up wrong path element when ghosting is
-	enabled
-Date: Sat, 24 Sep 2005 16:51:12 -0400
-Message-ID: <17205.48192.180623.885538@segfault.boston.redhat.com>
-References: <17200.23724.686149.394150@segfault.boston.redhat.com>
-	<Pine.LNX.4.58.0509210916040.26144@wombat.indigo.net.au>
-	<17203.7543.949262.883138@segfault.boston.redhat.com>
-	<Pine.LNX.4.63.0509241644420.2069@donald.themaw.net>
-Reply-To: jmoyer@redhat.com
+From: Ian Kent <raven@themaw.net>
+Subject: Re: nfs bindresvport: Address already in use
+Date: Sun, 25 Sep 2005 08:47:37 +0800 (WST)
+Message-ID: <Pine.LNX.4.63.0509250837580.2070@donald.themaw.net>
+References: <FB7BDBB2C6034E44B36CFDCF09256BCF029E982C@NYCPEXV003.na.blkint.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.63.0509241644420.2069@donald.themaw.net>
+In-Reply-To: <FB7BDBB2C6034E44B36CFDCF09256BCF029E982C@NYCPEXV003.na.blkint.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,108 +16,65 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: "Breitman, Jason" <Jason.Breitman@blackrock.com>
+Cc: autofs@linux.kernel.org
 
-==> Regarding Re: autofs4 looks up wrong path element when ghosting is enabled; Ian Kent <raven@themaw.net> adds:
+On Thu, 22 Sep 2005, Breitman, Jason wrote:
 
-raven> On Thu, 22 Sep 2005, Jeff Moyer wrote:
->> ==> Regarding Re: autofs4 looks up wrong path element when ghosting is
->> enabled; Ian Kent <raven@themaw.net> adds:
->> 
-raven> On Tue, 20 Sep 2005, Jeff Moyer wrote:
->> >> Hi, Ian, list,
->> >> 
->> >> I have a bug filed against autofs when ghosting is enabled.  The best
->> way >> to describe the bug is to walk through the reproducer, I guess.
->> >> 
->> >> Take the following maps, for example:
->> >> 
->> >> auto.master >> /sbox auto.sbox
->> >> 
->> >> auto.sbox: >> src segfault:/sbox/src/
->> >> 
->> >> Let's say that there is a file, id3_0.12.orig.tar.gz, in
->> segfault:/sbox/src/.
->> >> 
->> >> To reproduce the problem, stop the nfs service on the server.
->> >> 
->> >> On the client, do an 'ls /sbox/src/id3_012.orig.tar.gz'.  This will
->> fail, >> as well it should.  However, if we look in the logs, we find
->> this:
->> >> 
->> >> automount[1182]: handle_packet_missing: token 1, name src >>
->> automount[1182]: attempting to mount entry /sbox/src >> ...  >>
->> automount[1481]: mount(nfs): calling mkdir_path /sbox/src >>
->> automount[1481]: mount(nfs): calling mount -t nfs -s-o
->> tcp,intr,timeo=600,rsize=8192,wsize=8192,retrans=5 segfault:/sbox/src
->> /sbox/src >> automount[1481]: >> mount: RPC: Program not registered >>
->> automount[1481]: mount(nfs): add_bad_host: segfault:/sbox/src >>
->> automount[1481]: mount(nfs): nfs: mount failure segfault:/sbox/src on
->> /sbox/src >> automount[1481]: failed to mount /sbox/src >> ...  >>
->> automount[1182]: send_fail: token=1 >> automount[1182]: handle_packet:
->> type = 0 >> automount[1182]: handle_packet_missing: token 2, name
->> src/id3_0.12.orig.tar.gz >> automount[1182]: attempting to mount entry
->> /sbox/src/id3_0.12.orig.tar.gz
->> >> 
->> >> Noteworthy are these last two lines!  Even though the mount failed,
->> we are >> continuing the lookup.  The culprit is here, in cached_lookup:
->> >> 
->> >> if (!dentry->d_op->d_revalidate(dentry, flags) &&
->> !d_invalidate(dentry)) { >> dput(dentry); >> dentry = NULL; >> }
->> >> 
->> >> d_revalidate points to autofs4_revalidate, which calls
->> try_to_fill_dentry, >> which will return a status of 0.  Since ghosting
->> is enabled, >> d_invalidate(dentry) will return -EBUSY, and so we return
->> the dentry to
-raven> the
->> >> caller, which then continues the lookup.
->> >> 
->> >> Ian, I'm not really sure how we can address this issue without VFS >>
->> changes.  Any ideas?
->> >> 
->> 
-raven> I'm aware of this problem.  I'm not sure how to deal with it yet.
-raven> The case above is probably not that difficult to solve but if the
-raven> last component is a directory it's hard to work out it's a problem.
->> Ugh.  If you're thinking what I think you're thinking, that's an ugly
->> hack.
+> rpm -q autofs
+> autofs-4.1.3-131
+> 
+> uname -r
+> 2.6.9-5.Elsmp
+> 
+> /etc/auto.master
+> /usr/local              program:/usr/bin/autofs_local   --timeout=3600
+> --debug
+> 
+> /var/log/messages
+> Sep 22 09:41:18 bbc003 automount[4774]: >> nfs bindresvport: Address
+> already in use
+> Sep 22 09:41:18 bbc003 automount[4774]: mount(nfs): nfs: mount failure
+> nfs:/clients/local/data on /usr/local/data
+> Sep 22 09:41:18 bbc003 automount[4774]: failed to mount /usr/local/data
+>
 
-raven> Don't think so.
+As Ryan says, mounting a good number of mounts quickly will cause a 
+reserved port exhaustion. How bad the problem is depends partly on the 
+patches applied to the version of mount in you distribution.
 
-raven> I've been seeing this for a while. I wasn't quite sure of the source
-raven> but, for some reason your report has cleared that up.
+The other way that this can arise is if you are not returning a 
+multi-mount entry in the right order from autofs_local. The order is 
+important due to possible nesting of mounts.
 
-raven> The problem is not so much the success returned on the failed mount
-raven> (revalidate). It's the return from the following lookup. This is a
-raven> lookup in a non-root directory. I replaced the non-root lookup with
-raven> the root lookup a while ago and I think this is an unexpected side
-raven> affect of that. Becuase of other changes that lead to that decision
-raven> I think that it should be now be OK to put back the null function
-raven> (always return a negative dentry) that was there before I started
-raven> working on the browable maps feature.
+The reserved port exhaustion problem lies in the RPC kernel subsystem.
+It's quite a difficult problem to solve.
 
-raven> I'll change the module I use here and test it out for a while.  If
-raven> you have time I could make a patch for the 2.4 code and send it over
-raven> so that you could test it out a bit as well.
-
-Just send along the 2.6 patch, since I have to deal with that, too.  I'll
-go through the trouble of backporting it.
-
->>
-raven> There's more information here than I've gathhered so far.
->> >> Oh, also note that, once the nfs service is started up again on the
->> server, >> the lookup of a specific file name will still fail!  In this
->> case, the >> daemon won't even be called.
->> 
-raven> I'll have to check this out.  It could be helpful.
->> Well, I've provided a reproducer.  If you'd like log output from the
->> kernel side, let me know.  I can certainly provide that.
-
-raven> Don't think I need it.  I'm fairly sure I understand what's
-raven> happening here now. As I said above.
-
-Cool.  Thanks!
-
-Jeff
+> Configured Mount Points:
+> ------------------------
+> /usr/sbin/automount --timeout=3600 --debug /usr/local program
+> /usr/bin/autofs_local 
+> 
+> Active Mount Points:
+> --------------------
+> /usr/sbin/automount --timeout=3600 --debug /usr/local program
+> /usr/bin/autofs_local
+> 
+> ps -ef | grep automount
+> root      2175     1  0 09:38 ?        00:00:00 /usr/sbin/automount
+> --timeout=3600 --debug /usr/local program /usr/bin/autofs_local
+> 
+> 
+> Problem
+> Automount fails to mount directories and application fail to run.
+> 
+> Bugzilla ID That appears to be similar
+> https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=128966
+> 
+> Jason Breitman
+> jason.breitman@blackrock.com
+> 
+> 
+> THE INFORMATION CONTAINED IN THIS MESSAGE AND ANY ATTACHMENT MAY BE PRIVILEGED, CONFIDENTIAL, PROPRIETARY OR OTHERWISE PROTECTED FROM DISCLOSURE. If the reader of this message is not the intended recipient, you are hereby notified that any dissemination, distribution, copying or use of this message and any attachment is strictly prohibited. If you have received this message in error, please notify us immediately by replying to the message and permanently delete it from your computer and destroy any printout thereof.
