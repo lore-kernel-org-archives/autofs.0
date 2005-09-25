@@ -1,80 +1,114 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: nfs bindresvport: Address already in use
-Date: Sun, 25 Sep 2005 08:47:37 +0800 (WST)
-Message-ID: <Pine.LNX.4.63.0509250837580.2070@donald.themaw.net>
-References: <FB7BDBB2C6034E44B36CFDCF09256BCF029E982C@NYCPEXV003.na.blkint.com>
+Subject: Re: autofs4 looks up wrong path element when ghosting is enabled
+Date: Sun, 25 Sep 2005 09:25:37 +0800 (WST)
+Message-ID: <Pine.LNX.4.63.0509250918150.2191@donald.themaw.net>
+References: <17200.23724.686149.394150@segfault.boston.redhat.com>
+ <Pine.LNX.4.58.0509210916040.26144@wombat.indigo.net.au>
+ <17203.7543.949262.883138@segfault.boston.redhat.com>
+ <Pine.LNX.4.63.0509241644420.2069@donald.themaw.net>
+ <17205.48192.180623.885538@segfault.boston.redhat.com>
 Mime-Version: 1.0
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <FB7BDBB2C6034E44B36CFDCF09256BCF029E982C@NYCPEXV003.na.blkint.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750801AbVIYB00@vger.kernel.org>
+In-Reply-To: <17205.48192.180623.885538@segfault.boston.redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://hera.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Breitman, Jason" <Jason.Breitman@blackrock.com>
-Cc: autofs@linux.kernel.org
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: autofs@linux.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, 22 Sep 2005, Breitman, Jason wrote:
+On Sat, 24 Sep 2005, Jeff Moyer wrote:
 
-> rpm -q autofs
-> autofs-4.1.3-131
+> >> >> 
+> >> >> Ian, I'm not really sure how we can address this issue without VFS >>
+> >> changes.  Any ideas?
+> >> >> 
+> >> 
+> raven> I'm aware of this problem.  I'm not sure how to deal with it yet.
+> raven> The case above is probably not that difficult to solve but if the
+> raven> last component is a directory it's hard to work out it's a problem.
+> >> Ugh.  If you're thinking what I think you're thinking, that's an ugly
+> >> hack.
 > 
-> uname -r
-> 2.6.9-5.Elsmp
+> raven> Don't think so.
 > 
-> /etc/auto.master
-> /usr/local              program:/usr/bin/autofs_local   --timeout=3600
-> --debug
+> raven> I've been seeing this for a while. I wasn't quite sure of the source
+> raven> but, for some reason your report has cleared that up.
 > 
-> /var/log/messages
-> Sep 22 09:41:18 bbc003 automount[4774]: >> nfs bindresvport: Address
-> already in use
-> Sep 22 09:41:18 bbc003 automount[4774]: mount(nfs): nfs: mount failure
-> nfs:/clients/local/data on /usr/local/data
-> Sep 22 09:41:18 bbc003 automount[4774]: failed to mount /usr/local/data
->
+> raven> The problem is not so much the success returned on the failed mount
+> raven> (revalidate). It's the return from the following lookup. This is a
+> raven> lookup in a non-root directory. I replaced the non-root lookup with
+> raven> the root lookup a while ago and I think this is an unexpected side
+> raven> affect of that. Becuase of other changes that lead to that decision
+> raven> I think that it should be now be OK to put back the null function
+> raven> (always return a negative dentry) that was there before I started
+> raven> working on the browable maps feature.
+> 
+> raven> I'll change the module I use here and test it out for a while.  If
+> raven> you have time I could make a patch for the 2.4 code and send it over
+> raven> so that you could test it out a bit as well.
+> 
+> Just send along the 2.6 patch, since I have to deal with that, too.  I'll
+> go through the trouble of backporting it.
 
-As Ryan says, mounting a good number of mounts quickly will cause a 
-reserved port exhaustion. How bad the problem is depends partly on the 
-patches applied to the version of mount in you distribution.
+I'm in the middle of working on lazy multi-mounts atm so I'm not in a good 
+position to test. It's a little tricky so I don't want to forget where I'm 
+at by getting side tracked.
 
-The other way that this can arise is if you are not returning a 
-multi-mount entry in the right order from autofs_local. The order is 
-important due to possible nesting of mounts.
+But here's the patch that I will apply to my v5 tree for the initial 
+testing. Hopefully you will be able to give it a run in a standard setup.
 
-The reserved port exhaustion problem lies in the RPC kernel subsystem.
-It's quite a difficult problem to solve.
+Ian
 
-> Configured Mount Points:
-> ------------------------
-> /usr/sbin/automount --timeout=3600 --debug /usr/local program
-> /usr/bin/autofs_local 
-> 
-> Active Mount Points:
-> --------------------
-> /usr/sbin/automount --timeout=3600 --debug /usr/local program
-> /usr/bin/autofs_local
-> 
-> ps -ef | grep automount
-> root      2175     1  0 09:38 ?        00:00:00 /usr/sbin/automount
-> --timeout=3600 --debug /usr/local program /usr/bin/autofs_local
-> 
-> 
-> Problem
-> Automount fails to mount directories and application fail to run.
-> 
-> Bugzilla ID That appears to be similar
-> https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=128966
-> 
-> Jason Breitman
-> jason.breitman@blackrock.com
-> 
-> 
-> THE INFORMATION CONTAINED IN THIS MESSAGE AND ANY ATTACHMENT MAY BE PRIVILEGED, CONFIDENTIAL, PROPRIETARY OR OTHERWISE PROTECTED FROM DISCLOSURE. If the reader of this message is not the intended recipient, you are hereby notified that any dissemination, distribution, copying or use of this message and any attachment is strictly prohibited. If you have received this message in error, please notify us immediately by replying to the message and permanently delete it from your computer and destroy any printout thereof.
+diff -Nurp linux-2.6.12.orig/fs/autofs4/root.c linux-2.6.12/fs/autofs4/root.c
+--- linux-2.6.12.orig/fs/autofs4/root.c	2005-06-18 03:48:29.000000000 +0800
++++ linux-2.6.12/fs/autofs4/root.c	2005-09-25 09:15:11.000000000 +0800
+@@ -28,7 +28,8 @@ static int autofs4_dir_open(struct inode
+ static int autofs4_dir_close(struct inode *inode, struct file *file);
+ static int autofs4_dir_readdir(struct file * filp, void * dirent, filldir_t filldir);
+ static int autofs4_root_readdir(struct file * filp, void * dirent, filldir_t filldir);
+-static struct dentry *autofs4_lookup(struct inode *,struct dentry *, struct nameidata *);
++static struct dentry *autofs4_root_lookup(struct inode *,struct dentry *, struct nameidata *);
++static struct dentry *autofs4_dir_lookup(struct inode *,struct dentry *, struct nameidata *);
+ static int autofs4_dcache_readdir(struct file *, void *, filldir_t);
+ 
+ struct file_operations autofs4_root_operations = {
+@@ -47,7 +48,7 @@ struct file_operations autofs4_dir_opera
+ };
+ 
+ struct inode_operations autofs4_root_inode_operations = {
+-	.lookup		= autofs4_lookup,
++	.lookup		= autofs4_root_lookup,
+ 	.unlink		= autofs4_dir_unlink,
+ 	.symlink	= autofs4_dir_symlink,
+ 	.mkdir		= autofs4_dir_mkdir,
+@@ -55,7 +56,7 @@ struct inode_operations autofs4_root_ino
+ };
+ 
+ struct inode_operations autofs4_dir_inode_operations = {
+-	.lookup		= autofs4_lookup,
++	.lookup		= autofs4_dir_lookup,
+ 	.unlink		= autofs4_dir_unlink,
+ 	.symlink	= autofs4_dir_symlink,
+ 	.mkdir		= autofs4_dir_mkdir,
+@@ -438,8 +439,19 @@ static struct dentry_operations autofs4_
+ 	.d_release	= autofs4_dentry_release,
+ };
+ 
++static struct dentry *autofs4_dir_lookup(struct inode *dir, struct dentry *dentry, struct nameidata *nd)
++{
++	DPRINTK(("ignoring lookup of %.*s/%.*s\n",
++		dentry->d_parent->d_name.len, dentry->d_parent->d_name.name,
++		dentry->d_name.len, dentry->d_name.name));
++
++	dentry->d_fsdata = NULL;
++	d_add(dentry, NULL);
++	return NULL;
++}
++
+ /* Lookups in the root directory */
+-static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, struct nameidata *nd)
++static struct dentry *autofs4_root_lookup(struct inode *dir, struct dentry *dentry, struct nameidata *nd)
+ {
+ 	struct autofs_sb_info *sbi;
+ 	int oz_mode;
