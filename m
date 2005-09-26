@@ -1,8 +1,7 @@
 From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: autofs4 looks up wrong path element when ghosting is
-	enabled
-Date: Mon, 26 Sep 2005 11:14:40 -0400
-Message-ID: <17208.4192.84732.418313@segfault.boston.redhat.com>
+Subject: Re: autofs4 looks up wrong path element when ghosting is enabled
+Date: Mon, 26 Sep 2005 16:57:54 -0400
+Message-ID: <17208.24786.729632.221157@segfault.boston.redhat.com>
 References: <17200.23724.686149.394150@segfault.boston.redhat.com>
 	<Pine.LNX.4.58.0509210916040.26144@wombat.indigo.net.au>
 	<17203.7543.949262.883138@segfault.boston.redhat.com>
@@ -12,18 +11,10 @@ References: <17200.23724.686149.394150@segfault.boston.redhat.com>
 Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750756AbVIZU6R@vger.kernel.org>
 In-Reply-To: <Pine.LNX.4.63.0509250918150.2191@donald.themaw.net>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://hera.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
 To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org, linux-kernel@vger.kernel.org
@@ -69,19 +60,17 @@ raven> But here's the patch that I will apply to my v5 tree for the initial
 raven> testing. Hopefully you will be able to give it a run in a standard
 raven> setup.
 
-Ian, this will introduce a regression.  That code was changed to fix a
-different bug with ghosted direct maps.  So, at least for autofs4, this
-isn't a good fix.  To be more specific, the problem comes when you update a
-ghosted direct map.  So, if you had a direct map that looks like:
+I put together a different patch, but I want to get your input on the
+approach before I post it.  It requires both user-space and kernel-space
+changes.
 
-/opt/local/bin server:/export/local/bin
+Basically, you identify that a given automount tree is a direct map tree.
+This information is passed along to the kernel (I did this via a mount
+option), and recorded (in the super block info).  Then, when a directory
+lookup occurs, if we are in a direct map tree, and ghosting is enabled,
+then we pass the lookup on to the real lookup code.
 
-An ls of /opt/local would show the 'bin' directory.  If we update the map,
-adding this entry:
-
-/opt/local/share	server:/export/local/share
-
-An ls of '/opt/local/share' will return -ENOENT.  The current behaviour is
-to list the contents of /opt/local/share, which is correct.
+I'm not sold on the approach, as I haven't thought through all of the
+implications.  Care to comment?
 
 -Jeff
