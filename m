@@ -1,98 +1,42 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs4 looks up wrong path element when ghosting is enabled
-Date: Tue, 27 Sep 2005 12:34:28 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0509271223440.3079@wombat.indigo.net.au>
-References: <17200.23724.686149.394150@segfault.boston.redhat.com>
- <Pine.LNX.4.58.0509210916040.26144@wombat.indigo.net.au>
- <17203.7543.949262.883138@segfault.boston.redhat.com>
- <Pine.LNX.4.63.0509241644420.2069@donald.themaw.net>
- <17205.48192.180623.885538@segfault.boston.redhat.com>
- <Pine.LNX.4.63.0509250918150.2191@donald.themaw.net>
- <17208.24786.729632.221157@segfault.boston.redhat.com>
+From: Donald Arseneau <asnd@triumf.ca>
+Subject: Signal USR1 does not force unmount
+Date: 26 Sep 2005 19:48:59 -0700
+Message-ID: <yfi8xxjb4ys.fsf@triumf.ca>
 Mime-Version: 1.0
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S964789AbVI0Ecc@vger.kernel.org>
-In-Reply-To: <17208.24786.729632.221157@segfault.boston.redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://hera.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: autofs@linux.kernel.org, linux-kernel@vger.kernel.org
+To: autofs@linux.kernel.org
 
-On Mon, 26 Sep 2005, Jeff Moyer wrote:
+Hello maintainers,
 
-> ==> Regarding Re: autofs4 looks up wrong path element when ghosting is enabled; Ian Kent <raven@themaw.net> adds:
-> 
-> raven> On Sat, 24 Sep 2005, Jeff Moyer wrote:
-> >> >> >> >> >> Ian, I'm not really sure how we can address this issue
-> >> without VFS >> >> changes.  Any ideas?
-> >> >> >> 
-> >> >> 
-> raven> I'm aware of this problem.  I'm not sure how to deal with it yet.
-> raven> The case above is probably not that difficult to solve but if the
-> raven> last component is a directory it's hard to work out it's a problem.
-> >> >> Ugh.  If you're thinking what I think you're thinking, that's an ugly
-> >> >> hack.
-> >> 
-> raven> Don't think so.
-> >>
-> raven> I've been seeing this for a while. I wasn't quite sure of the source
-> raven> but, for some reason your report has cleared that up.
-> >>
-> raven> The problem is not so much the success returned on the failed mount
-> raven> (revalidate). It's the return from the following lookup. This is a
-> raven> lookup in a non-root directory. I replaced the non-root lookup with
-> raven> the root lookup a while ago and I think this is an unexpected side
-> raven> affect of that. Becuase of other changes that lead to that decision
-> raven> I think that it should be now be OK to put back the null function
-> raven> (always return a negative dentry) that was there before I started
-> raven> working on the browable maps feature.
-> >>
-> raven> I'll change the module I use here and test it out for a while.  If
-> raven> you have time I could make a patch for the 2.4 code and send it over
-> raven> so that you could test it out a bit as well.
-> >> Just send along the 2.6 patch, since I have to deal with that, too.
-> >> I'll go through the trouble of backporting it.
-> 
-> raven> I'm in the middle of working on lazy multi-mounts atm so I'm not in
-> raven> a good position to test. It's a little tricky so I don't want to
-> raven> forget where I'm at by getting side tracked.
-> 
-> raven> But here's the patch that I will apply to my v5 tree for the initial
-> raven> testing. Hopefully you will be able to give it a run in a standard
-> raven> setup.
-> 
-> I put together a different patch, but I want to get your input on the
-> approach before I post it.  It requires both user-space and kernel-space
-> changes.
-> 
-> Basically, you identify that a given automount tree is a direct map tree.
-> This information is passed along to the kernel (I did this via a mount
-> option), and recorded (in the super block info).  Then, when a directory
-> lookup occurs, if we are in a direct map tree, and ghosting is enabled,
-> then we pass the lookup on to the real lookup code.
-> 
-> I'm not sold on the approach, as I haven't thought through all of the
-> implications.  Care to comment?
-> 
+According to the automount manual, signal USR1 is supposed to 
+immediately cause unmounting of inactive filesystems, but
+ 
+  killall -s USR1 automount
 
-Based on your description I'm not sure that this is the simplest approach.
+(and similar kill commands) has no noticable effect; one must 
+wait for the regular expiry time before the system gets unmounted.
 
-The fundamental problem here is, I think, an incorrect return code from 
-lookup. revalidate is called from lookup and it's return code is not 
-checked. Even if it was the return is often success even if there is a 
-mount failure.
-
-revalidate calls try_to_fill_dentry (I think that's the function name) 
-which is responsible for the false return code. Some thought about why it 
-returns these would be good to do first. This may well be historic and 
-overdue to be updated. If so correcting the return codes and checking 
-them in lookup my be a better solution.
-
-I'll have a closer look at the patch and the return code issue tonight.
-
-Thanks for your continued help.
-
-Ian
+Signal USR2 does function as described, causing automount to
+exit when filesystem is inactive.
 
 
+Versions:
+
+Linux automount version 4.1.3-114
+
+Fedora Core (2.6.12-1.1378_FC3)
+
+-- 
+Donald Arseneau                          asnd@triumf.ca
