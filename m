@@ -1,17 +1,17 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: autofs4 looks up wrong path element when ghosting is enabled
-Date: Tue, 27 Sep 2005 12:21:46 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0509271219230.3079@wombat.indigo.net.au>
+Date: Tue, 27 Sep 2005 12:34:28 +0800 (WST)
+Message-ID: <Pine.LNX.4.58.0509271223440.3079@wombat.indigo.net.au>
 References: <17200.23724.686149.394150@segfault.boston.redhat.com>
  <Pine.LNX.4.58.0509210916040.26144@wombat.indigo.net.au>
  <17203.7543.949262.883138@segfault.boston.redhat.com>
  <Pine.LNX.4.63.0509241644420.2069@donald.themaw.net>
  <17205.48192.180623.885538@segfault.boston.redhat.com>
  <Pine.LNX.4.63.0509250918150.2191@donald.themaw.net>
- <17208.4192.84732.418313@segfault.boston.redhat.com>
+ <17208.24786.729632.221157@segfault.boston.redhat.com>
 Mime-Version: 1.0
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1750840AbVI0ETm@vger.kernel.org>
-In-Reply-To: <17208.4192.84732.418313@segfault.boston.redhat.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S964789AbVI0Ecc@vger.kernel.org>
+In-Reply-To: <17208.24786.729632.221157@segfault.boston.redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 Content-Type: TEXT/PLAIN; charset="us-ascii"
@@ -62,13 +62,37 @@ On Mon, 26 Sep 2005, Jeff Moyer wrote:
 > raven> testing. Hopefully you will be able to give it a run in a standard
 > raven> setup.
 > 
-> Ian, this will introduce a regression.  That code was changed to fix a
-> different bug with ghosted direct maps.  So, at least for autofs4, this
-> isn't a good fix.  To be more specific, the problem comes when you update a
-> ghosted direct map.  So, if you had a direct map that looks like:
+> I put together a different patch, but I want to get your input on the
+> approach before I post it.  It requires both user-space and kernel-space
+> changes.
+> 
+> Basically, you identify that a given automount tree is a direct map tree.
+> This information is passed along to the kernel (I did this via a mount
+> option), and recorded (in the super block info).  Then, when a directory
+> lookup occurs, if we are in a direct map tree, and ghosting is enabled,
+> then we pass the lookup on to the real lookup code.
+> 
+> I'm not sold on the approach, as I haven't thought through all of the
+> implications.  Care to comment?
+> 
 
-Yep. I see that too. Missed that.
+Based on your description I'm not sure that this is the simplest approach.
 
-I'll have to look more closely at the returns from lookup.
+The fundamental problem here is, I think, an incorrect return code from 
+lookup. revalidate is called from lookup and it's return code is not 
+checked. Even if it was the return is often success even if there is a 
+mount failure.
+
+revalidate calls try_to_fill_dentry (I think that's the function name) 
+which is responsible for the false return code. Some thought about why it 
+returns these would be good to do first. This may well be historic and 
+overdue to be updated. If so correcting the return codes and checking 
+them in lookup my be a better solution.
+
+I'll have a closer look at the patch and the return code issue tonight.
+
+Thanks for your continued help.
 
 Ian
+
+
