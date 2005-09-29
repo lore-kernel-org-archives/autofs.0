@@ -1,12 +1,10 @@
-From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
-Subject: Re: swap space (off topic)
-Date: Mon, 3 Oct 2005 13:09:49 +0200
-Message-ID: <20051003110949.GC26883@uio.no>
-References: <215ff4410510030159h205c3588xa432510af1940f3d@mail.gmail.com>
+From: "Borislav Stoichkov" <boka@meanstream.org>
+Subject: autofs-ldap-auto-master with ldap filter support
+Date: Thu, 29 Sep 2005 10:33:33 -0700 (PDT)
+Message-ID: <26771.198.204.141.208.1128015213.squirrel@email.meanstream.org>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <215ff4410510030159h205c3588xa432510af1940f3d@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,25 +16,116 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: autofs@linux.kernel.org
 
-On Mon, Oct 03, 2005 at 10:59:21AM +0200, Chris Fanning wrote:
-> I know this hasn't got much to do with the list but I thought someone
-> here might put me in the right direction.
+Hello
 
-You might want to try debian-user@lists.debian.org. :-)
+In the process of trying to achieve an automounter configuration that
+would lookup maps both in local and then ldap maps in that order I ended
+up using executable maps. I wanted to use autofs-ldap-auto-master to dump
+maps and look for keys but with big maps this took way too long every time
+it was done. The solution I implemented was to modify
+autofs-ldap-auto-master to add an additional parameter -f for a filter
+that can be applied when the map is looked up on the ldap server. The
+default filter is to display the whole map which was the behavior prior to
+the modification. Here's the patch in case somebody finds this useful.
 
-> I've recently installed a Debian testing. When it boots, it reports
-> "activating swap space: failed"
+--- samples/autofs-ldap-auto-master.c.orig      2003-12-10
+09:54:33.000000000 -0500
++++ samples/autofs-ldap-auto-master.c   2005-09-27 14:49:20.752043698 -0400
+@@ -26,6 +26,7 @@
+ #define ENTRYOC "nisObject"
+ #define ENTRYKEY "cn"
+ #define VALUE "nisMapEntry"
++#define FILTER "*"
 
-Check that you don't have anything bogus in your /etc/fstab?
+ static int
+ dump_map(LDAP *ld,
+@@ -34,7 +35,8 @@
+         const char *entry_class,
+         const char *map_key_attribute,
+         const char *entry_key_attribute,
+-        const char *value_attribute)
++        const char *value_attribute,
++         const char *filter_string)
+ {
+        LDAPControl *server = NULL, *client = NULL;
+        LDAPMessage *messages = NULL, *entry = NULL;
+@@ -78,7 +80,8 @@
+        }
 
-> However, I can see swap space using the 'top' command.(although it
-> doesn't get used).
+        /* Set the filter to only find entries in the map we're looking
+at. */
+-       snprintf(filter, sizeof(filter), "(objectclass=%s)", entry_class);
++       snprintf(filter, sizeof(filter), "(&(%s=%s)(objectclass=%s))",
++                 entry_key_attribute, filter_string, entry_class);
 
-If it's there, it's OK, and will eventually get used.
+        /* Free memory used by our first query. */
+        free(attrs[0]);
+@@ -163,11 +166,12 @@
+        const char *map_key = MAPKEY, *entry_key = ENTRYKEY, *value = VALUE;
+        const char *map_oc = MAPOC, *entry_oc = ENTRYOC;
+        const char *map = MAP;
++        const char *filter = FILTER;
 
-/* Steinar */
--- 
-Homepage: http://www.sesse.net/
+        setlocale(LC_ALL, "");
+
+        /* Scan through the argument list. */
+-       while((c = getopt(argc, argv, "m:e:n:k:v:")) != -1) {
++       while((c = getopt(argc, argv, "m:e:n:k:v:f:")) != -1) {
+                switch(c) {
+                        case 'm':
+                                /* This is the object class we expect maps to
+@@ -198,6 +202,11 @@
+                                 * VALUE attribute. */
+                                value = optarg;
+                                break;
++                        case 'f':
++                                /* This is the filter for the ENTRY_KEY
++                                 * attribute. The default is FILTER =
+"*". */
++                                filter = optarg;
++                                break;
+                        default:
+                                fprintf(stderr, "syntax: %s\n"
+                                        "\t[-m %s] (map object class)\n"
+@@ -205,11 +214,12 @@
+                                        "\t[-n %s] (attribute used as map
+key)\n"
+                                        "\t[-k %s] (attribute used as
+entry key)\n"
+                                        "\t[-v %s] (attribute used as
+value)\n"
+-                                       "\t[%s] (map name)\n",
++                                       "\t[%s] (map name)\n"
++                                       "\t[-f %s] (cn filter)\n",
+                                        strchr(argv[0], '/') ?
+                                        strrchr(argv[0], '/') + 1 : argv[0],
+                                        map_oc, entry_oc, map_key, entry_key,
+-                                       value, map);
++                                       value, map, filter);
+                                return 0;
+                                break;
+                }
+@@ -245,7 +255,8 @@
+        }
+
+        /* Try to dump the map given the preferred or user-supplied
+schema. */
+-       if(!dump_map(ld, map, map_oc, entry_oc, map_key, entry_key, value)) {
++       if(!dump_map(ld, map, map_oc, entry_oc, map_key, entry_key, value,
++                     filter)) {
+                if(strcmp(map_oc, "automountMap") ||
+                   strcmp(entry_oc, "automount") ||
+                   strcmp(map_key, "ou") ||
+@@ -257,7 +268,8 @@
+                                 "automount",
+                                 "ou",
+                                 "cn",
+-                                "automountInformation");
++                                "automountInformation",
++                                 filter);
+                }
+        }
+
+Borislav
