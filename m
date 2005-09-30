@@ -1,11 +1,10 @@
-From: "Wolfe, Allan" <Allan_Wolfe@anadarko.com>
-Subject: RE: Autofs LDAP info
-Date: Fri, 30 Sep 2005 08:39:38 -0500
-Message-ID: <01C21895FD36D7419A4777E29FED91B90151DA84@houmbx19.anadarko.com>
+From: "Borislav Stoichkov" <atfs@meanstream.org>
+Subject: autofs-ldap-auto-master with ldap filter support
+Date: Fri, 30 Sep 2005 08:30:42 -0700 (PDT)
+Message-ID: <38648.198.204.141.208.1128094242.squirrel@email.meanstream.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,90 +18,115 @@ Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
 To: autofs@linux.kernel.org
 
- Maybe I can help a bit here.  Microsoft supposedly uses the standard
-rfc2307 schema, however, they seem to embellish the standard with their
-own naming -- particularly prefacing the names with "mssfu" (Microsoft
-Services for UNIX).  
+Hello
 
-I have a couple of broader questions along this line that I've not been
-able to discern/decipher out of the information to implement LDAP with
-autofs.  
+In the process of trying to achieve an automounter configuration that
+would lookup maps both in local and then ldap maps in that order I ended
+up using executable maps. I wanted to use autofs-ldap-auto-master to dump
+maps and look for keys but with big maps this took way too long every time
+it was done. The solution I implemented was to modify
+autofs-ldap-auto-master to add an additional parameter -f for a filter
+that can be applied when the map is looked up on the ldap server. The
+default filter is to display the whole map which was the behavior prior to
+the modification. Here's the patch in case somebody finds this useful.
 
-(1) How does one utilize ldaps. All the notes I've seen has been
-insecure transport.  We can't justify GSSAPI and TLS simple fits our
-needs. 
+--- samples/autofs-ldap-auto-master.c.orig      2003-12-10
+09:54:33.000000000 -0500
++++ samples/autofs-ldap-auto-master.c   2005-09-27 14:49:20.752043698
+-0400 @@ -26,6 +26,7 @@
+ #define ENTRYOC "nisObject"
+ #define ENTRYKEY "cn"
+ #define VALUE "nisMapEntry"
++#define FILTER "*"
 
-(2) Why doesn't autofs (or maybe it does and it doesn't make sense)
-utilize NSS?  Using NSS would give flexibility to create service search
-descriptors to deal with the Microsoft and Sun deviations in object
-definition without having to maintain duplicate data to accommodate any
-version.  SSD support would logically be built into nss_ldap framework.
+ static int
+ dump_map(LDAP *ld,
+@@ -34,7 +35,8 @@
+         const char *entry_class,
+         const char *map_key_attribute,
+         const char *entry_key_attribute,
+-        const char *value_attribute)
++        const char *value_attribute,
++         const char *filter_string)
+ {
+        LDAPControl *server = NULL, *client = NULL;
+        LDAPMessage *messages = NULL, *entry = NULL;
+@@ -78,7 +80,8 @@
+        }
 
------Original Message-----
-From: autofs-bounces@linux.kernel.org
-[mailto:autofs-bounces@linux.kernel.org] On Behalf Of Timo Felbinger
-Sent: Friday, September 30, 2005 6:50 AM
-To: autofs@linux.kernel.org
-Subject: Re: [autofs] Autofs LDAP info
+        /* Set the filter to only find entries in the map we're looking
+at. */
+-       snprintf(filter, sizeof(filter), "(objectclass=%s)", entry_class);
++       snprintf(filter, sizeof(filter), "(&(%s=%s)(objectclass=%s))", +  
+              entry_key_attribute, filter_string, entry_class);
 
-On Thu, Sep 29, 2005 at 05:28:28PM -0700, Jim Kusznir wrote:
-> 
-> Hello all:
-> 
-> I've been tasked with making AutoFS get its maps from a Windows 2003 
-> Active Directory server via LDAP.  I know AutoFS works with LDAP in 
-> some fashon or another, however the documentation seems very sparce, 
-> and information on the net seems very fragmented and contradictory in
-areas.
-> 
-> My primary questions at this point:
-> 
-> What schema(s) does the latest AutoFS support?  Does it support 
-> standards such as NisMap?  (I've found both "yes" and "no" answers to 
-> this on the net, and no details in either)
-> 
-> How are maps entered in such schema?
->
-The current stable version of autofs (4.1.4) does support nis.schema and
-autofs.schema. With the nis.schema, entries must have objectclass
-"nisObject"; the relevant attributes are "cn" (the mount point, as in
-the second argument of the mount command) and "nismapentry" (the
-"automount information": options and first argument of the mount
-command).
+        /* Free memory used by our first query. */
+        free(attrs[0]);
+@@ -163,11 +166,12 @@
+        const char *map_key = MAPKEY, *entry_key = ENTRYKEY, *value =
+VALUE; const char *map_oc = MAPOC, *entry_oc = ENTRYOC;
+        const char *map = MAP;
++        const char *filter = FILTER;
 
-If you need greater flexibility (want to use a different schema), or if
-you need to authenticate to the LDAP server: there is a patch for
-autofs-4.1.4 to allow this:
-  http://timof.qipc.org/autofs
-The page also shows some examples. It works for me with an OpenLDAP
-server. I've never tried it with Windows AD, but I would like to learn
-whether it does.
+        setlocale(LC_ALL, "");
 
+        /* Scan through the argument list. */
+-       while((c = getopt(argc, argv, "m:e:n:k:v:")) != -1) {
++       while((c = getopt(argc, argv, "m:e:n:k:v:f:")) != -1) {
+                switch(c) {
+                        case 'm':
+                                /* This is the object class we expect maps to
+@@ -198,6 +202,11 @@
+                                 * VALUE attribute. */
+                                value = optarg;
+                                break;
++                        case 'f':
++                                /* This is the filter for the ENTRY_KEY +
+                                * attribute. The default is FILTER = "*".
+*/
++                                filter = optarg;
++                                break;
+                        default:
+                                fprintf(stderr, "syntax: %s\n"
+                                        "\t[-m %s] (map object class)\n"
+@@ -205,11 +214,12 @@
+                                        "\t[-n %s] (attribute used as map
+key)\n"
+                                        "\t[-k %s] (attribute used as
+entry key)\n"
+                                        "\t[-v %s] (attribute used as
+value)\n"
+-                                       "\t[%s] (map name)\n",
++                                       "\t[%s] (map name)\n"
++                                       "\t[-f %s] (cn filter)\n",
+                                        strchr(argv[0], '/') ?
+                                        strrchr(argv[0], '/') + 1 :
+argv[0], map_oc, entry_oc,
+map_key, entry_key,
+-                                       value, map);
++                                       value, map, filter);
+                                return 0;
+                                break;
+                }
+@@ -245,7 +255,8 @@
+        }
 
-Regards,
+        /* Try to dump the map given the preferred or user-supplied
+schema. */
+-       if(!dump_map(ld, map, map_oc, entry_oc, map_key, entry_key,
+value)) { +       if(!dump_map(ld, map, map_oc, entry_oc, map_key,
+entry_key, value, +                     filter)) {
+                if(strcmp(map_oc, "automountMap") ||
+                   strcmp(entry_oc, "automount") ||
+                   strcmp(map_key, "ou") ||
+@@ -257,7 +268,8 @@
+                                 "automount",
+                                 "ou",
+                                 "cn",
+-                                "automountInformation");
++                                "automountInformation",
++                                 filter);
+                }
+        }
 
-Timo Felbinger
-
-
--- 
-Timo Felbinger                  <Timo.Felbinger@physik.uni-potsdam.de>
-Quantum Physics Group           http://www.quantum.physik.uni-potsdam.de
-Institut fuer Physik            Tel: +49 331 977 1793      Fax: -1767
-Universitaet Potsdam, Germany   PGP key-id: E92567B2
-
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
-
------------------------------------------
-Anadarko Confidentiality Notice:  
-This electronic transmission and any attached documents or other
-writings are intended only for the person or entity to which it is
-addressed and may contain information that is privileged, confidential
-or otherwise protected from disclosure.  If you have received this
-communication in error, please immediately notify sender by return
-e-mail and destroy the communication. Any disclosure, copying,
-distribution or the taking of any action concerning the contents of
-this communication or any attachments by anyone other than the named
-recipient is strictly prohibited.
+Borislav
