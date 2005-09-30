@@ -1,8 +1,9 @@
-From: Donald Arseneau <asnd@triumf.ca>
-Subject: Signal USR1 does not force unmount
-Date: 26 Sep 2005 19:48:59 -0700
-Message-ID: <yfi8xxjb4ys.fsf@triumf.ca>
+From: Jim Kusznir <kusznir@eecs.wsu.edu>
+Subject: Autofs LDAP info
+Date: Thu, 29 Sep 2005 17:28:28 -0700
+Message-ID: <433C86AC.1010100@eecs.wsu.edu>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -14,29 +15,31 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
 To: autofs@linux.kernel.org
 
-Hello maintainers,
+Hello all:
 
-According to the automount manual, signal USR1 is supposed to 
-immediately cause unmounting of inactive filesystems, but
- 
-  killall -s USR1 automount
+I've been tasked with making AutoFS get its maps from a Windows 2003 
+Active Directory server via LDAP.  I know AutoFS works with LDAP in some 
+fashon or another, however the documentation seems very sparce, and 
+information on the net seems very fragmented and contradictory in areas.
 
-(and similar kill commands) has no noticable effect; one must 
-wait for the regular expiry time before the system gets unmounted.
+My primary questions at this point:
 
-Signal USR2 does function as described, causing automount to
-exit when filesystem is inactive.
+What schema(s) does the latest AutoFS support?  Does it support 
+standards such as NisMap?  (I've found both "yes" and "no" answers to 
+this on the net, and no details in either)
 
+How are maps entered in such schema?
 
-Versions:
+Are there any HOWTOs that cover LDAP specifically?  (I'm familiar with 
+the amd-autofs howto at linuxconsulting, however I haven't found any 
+useful (as of yet) LDAP info in there).
 
-Linux automount version 4.1.3-114
+I currently have AutoFS working via NIS maps wonderfuly, but my work 
+over the next few months is to migrate everything from NIS into the AD 
+server so as to retire it.
 
-Fedora Core (2.6.12-1.1378_FC3)
-
--- 
-Donald Arseneau                          asnd@triumf.ca
+Thanks!
+--Jim
