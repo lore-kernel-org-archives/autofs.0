@@ -1,13 +1,11 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: Autofs LDAP info
-Date: Tue, 4 Oct 2005 09:43:34 +0800 (WST)
-Message-ID: <Pine.LNX.4.58.0510040937430.6153@wombat.indigo.net.au>
-References: <433C86AC.1010100@eecs.wsu.edu>
-	<Pine.LNX.4.58.0509300851010.22929@wombat.indigo.net.au>
-	<433CB70A.7080105@eecs.wsu.edu>
+Subject: Re: swap space (off topic)
+Date: Tue, 4 Oct 2005 09:48:25 +0800 (WST)
+Message-ID: <Pine.LNX.4.58.0510040944390.6153@wombat.indigo.net.au>
+References: <215ff4410510030159h205c3588xa432510af1940f3d@mail.gmail.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <433CB70A.7080105@eecs.wsu.edu>
+In-Reply-To: <215ff4410510030159h205c3588xa432510af1940f3d@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,23 +18,24 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jim Kusznir <kusznir@eecs.wsu.edu>
+To: Chris Fanning <christopher.fanning@gmail.com>
 Cc: autofs@linux.kernel.org
 
-On Thu, 29 Sep 2005, Jim Kusznir wrote:
+On Mon, 3 Oct 2005, Chris Fanning wrote:
 
-> >
-> I actually haven't found the tarball yet.  So far, all I've found is the
-> RHEL RPMS (distributed through RH).  They don't appear to include the
-> examples (I did look on my devel system a fair bit, but found nothing
-> but a few configure readme's.
-
-How about adding the examples to the rpm Jeff?
-
+> Hello all,
 > 
-> Where is the autofs project homepage / tarball download?  (Google seems
-> to point me to a bunch of howtos and blog-type pages).
+> I know this hasn't got much to do with the list but I thought someone
+> here might put me in the right direction.
+> 
+> I've recently installed a Debian testing. When it boots, it reports
+> "activating swap space: failed"
+> However, I can see swap space using the 'top' command.(although it
+> doesn't get used).
+> 
+> Does anyone know how I can test the swap partition?
 
-http://www.kernel.org/pub/linux/daemons/autofs/v4
+Have you, check what the swap partitions are, listed your swap (swapon 
+-s) and checked against the fstab?
 
 Ian
