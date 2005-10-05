@@ -1,10 +1,12 @@
-From: Jim Kusznir <kusznir@eecs.wsu.edu>
-Subject: direct vs indirect maps??
-Date: Tue, 04 Oct 2005 16:50:00 -0700
-Message-ID: <43431528.5060506@eecs.wsu.edu>
+From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
+Subject: Re: direct vs indirect maps??
+Date: Wed, 5 Oct 2005 03:43:51 +0200
+Message-ID: <20051005014351.GA32035@uio.no>
+References: <43431528.5060506@eecs.wsu.edu>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <43431528.5060506@eecs.wsu.edu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -15,15 +17,20 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: autofs@linux.kernel.org
 
-Hello again:
+On Tue, Oct 04, 2005 at 04:50:00PM -0700, Jim Kusznir wrote:
+> I've found references to "direct" and "indirect" maps throughout the 
+> various autofs documentation.  However, I have not yet found an 
+> understandable definition of what the difference is.  Could someone 
+> enlighten me?
 
-I've found references to "direct" and "indirect" maps throughout the 
-various autofs documentation.  However, I have not yet found an 
-understandable definition of what the difference is.  Could someone 
-enlighten me?
+Direct maps are relative to /, indirect maps are relative to some other path.
 
-Thanks!
---Jim
+(At least that's my understanding of it.)
+
+/* Steinar */
+-- 
+Homepage: http://www.sesse.net/
