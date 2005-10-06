@@ -1,12 +1,11 @@
-From: "Peter C. Norton" <spacey-autofs@lenin.net>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: direct vs indirect maps??
-Date: Tue, 4 Oct 2005 19:51:18 -0700
-Message-ID: <20051005025118.GE5852@lenin.net>
-References: <43431528.5060506@eecs.wsu.edu> <20051005014351.GA32035@uio.no>
+Date: Thu, 6 Oct 2005 10:52:29 +0800 (WST)
+Message-ID: <Pine.LNX.4.58.0510061043480.3297@wombat.indigo.net.au>
+References: <43431528.5060506@eecs.wsu.edu>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20051005014351.GA32035@uio.no>
+In-Reply-To: <43431528.5060506@eecs.wsu.edu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,36 +16,28 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: autofs@linux.kernel.org
+To: Jim Kusznir <kusznir@eecs.wsu.edu>
+Cc: autofs@linux.kernel.org
 
-On Wed, Oct 05, 2005 at 03:43:51AM +0200, Steinar H. Gunderson wrote:
-> On Tue, Oct 04, 2005 at 04:50:00PM -0700, Jim Kusznir wrote:
-> > I've found references to "direct" and "indirect" maps throughout the 
-> > various autofs documentation.  However, I have not yet found an 
-> > understandable definition of what the difference is.  Could someone 
-> > enlighten me?
+On Tue, 4 Oct 2005, Jim Kusznir wrote:
+
+> Hello again:
 > 
-> Direct maps are relative to /, indirect maps are relative to some other path.
-> 
-> (At least that's my understanding of it.)
-> 
+> I've found references to "direct" and "indirect" maps throughout the 
+> various autofs documentation.  However, I have not yet found an 
+> understandable definition of what the difference is.  Could someone 
+> enlighten me?
 
-A practical way to think about it is that direct maps are things that
-you may otherwise put into /etc/fstab except that you may want them
-centrally controlled.
+I'm not sure how much this will help but Jeff Moyer and myself wrote a few 
+words about autofs for his presentation at Linux Kongress.
 
-It's the way to fake a common federated namespace - like AFS - which
-lets you create the same mountpoints on all systems even if the fstab
-format is different and even if the server changes once in a while.
+My writing skills are not that good but perhaps it will help.
 
-Except it doesn't actually work on linux yet, but the team here seems
-to be really trying to get this one done.
+In particular reference [5] has more information but it's hard to find on 
+the Sun doco site.
 
--Peter
+http://themaw.net/autofs_linux_kongress.pdf
 
--- 
-The 5 year plan:
-In five years we'll make up another plan.
-Or just re-use this one.
+Ian
