@@ -1,11 +1,10 @@
-From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: Using autofs with USB Devices
-Date: Tue, 11 Oct 2005 19:40:33 +0200
-Message-ID: <20051011174033.GA527@uio.no>
+Date: Thu, 13 Oct 2005 09:43:58 +0800 (WST)
+Message-ID: <Pine.LNX.4.58.0510130942190.26706@wombat.indigo.net.au>
 References: <20051011135319.58411.qmail@web60016.mail.yahoo.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
 In-Reply-To: <20051011135319.58411.qmail@web60016.mail.yahoo.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -17,18 +16,24 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: autofs@linux.kernel.org
+To: "Dr. Harold K. Brown, P.E." <hbrown_usa@yahoo.com>
+Cc: autofs@linux.kernel.org
 
-On Tue, Oct 11, 2005 at 06:53:19AM -0700, Dr. Harold K. Brown, P.E. wrote:
-> What is missing is how to determine which usb dev
-> mount point (i.e. /dev/sd?) the device is being
-> associated with within this same context.
+On Tue, 11 Oct 2005, Dr. Harold K. Brown, P.E. wrote:
 
-sysfs will give you this information; look in
-/sys/bus/usb/drivers/usb-storage/, IIRC.
+> 
+> The issues at play here is when there are several
+> usb-storage devices, (i.e. ipod, memory cards, and
+> cameras) mounted in different order and in different
+> usb ports the (/dev/sd?) assignment is somewhat random
+> from a user standpoint.  The goal is to resolve this
+> problem and document the solution.  Note also other
+> devices such as iPODS may also be plugged into the USB
+> ports during the same time period.
 
-/* Steinar */
--- 
-Homepage: http://www.sesse.net/
+I thought that device name persistence was one of the issues
+that udev addressed?
+
+Ian
