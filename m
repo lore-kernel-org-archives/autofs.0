@@ -1,11 +1,11 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: automounter works for some maps, fails on another
-Date: Sat, 15 Oct 2005 19:06:49 +0800 (WST)
-Message-ID: <Pine.LNX.4.63.0510151904030.2102@donald.themaw.net>
-References: <56eb9cd10510061043t1ec2b762kab81d85c42fe12e1@mail.gmail.com>
+Subject: Re: autofs doesn't work anymore for me
+Date: Sat, 15 Oct 2005 19:43:35 +0800 (WST)
+Message-ID: <Pine.LNX.4.63.0510151940360.2102@donald.themaw.net>
+References: <Pine.GSO.4.58.0510121631440.19649@sun>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <56eb9cd10510061043t1ec2b762kab81d85c42fe12e1@mail.gmail.com>
+In-Reply-To: <Pine.GSO.4.58.0510121631440.19649@sun>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,41 +18,23 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bill Geddes <wkgeddes@gmail.com>
+To: Erik Mckee <emckee@cs.tamu.edu>
 Cc: autofs@linux.kernel.org
 
-On Thu, 6 Oct 2005, Bill Geddes wrote:
+On Wed, 12 Oct 2005, Erik Mckee wrote:
 
-> I have a puzzling problem. When I start the autofs
-> service on a client, the local /var/log/messages file shows:
+> Hello :)
 > 
-> Sep 29 13:41:34 clonehost2 autofs: automount startup succeeded Sep 29
-> 13:41:34 clonehost2 automount[10732]: failed to load map, exiting
+> I have both a gentoo box and a fedora core 4 box, neither of them will
+> speak to my nfs server and automount.  Nothing shows up on my nfs server
+> that it is even being contacted.  The nfs server is a SGI running IRIX64
+> 6.5.  Automount gives me logs like the following:
 > 
-> - automount processes are all running, but
-> On the server side, I get ' rpc.mountd: getfh failed: Operation not
-> permitted'.
-> 
-> Here's the output of `ypcat -k auto.master`
-> /server/homes server.homes
-> /server/File_Access auto.file_access
-> /auto/data auto.data
-> /auto/bitsrus auto.bitsrus
-> /nfs auto.hosts
-> 
-> ** The automounter manages to mount these maps just fine!
-> 
-> and `ypcat -k server.homes`
-> svr_homes -rw,intr,rsize=8192,wsize=8192,timeo=14 svr:/vol3/server_homes
-> 
-> ** This is the one that fails.
-> Manually mounting this fails as well.
-
-If you can't mount it manually with mount you don't need to try autofs.
-You need to sort that out first.
-
-Try the NFS list.
-
-I'm not aware of problems with 64 bit clients.
+> Jun 19 20:01:23 bluefin automount[22097]: starting automounter version
+> 4.1.3, path = /helm, maptype = file, mapname = /etc/autofs/auto_rooms
+  ^^^^^ 
+This doesn't look like an a Redhat packaged version?
+If you use the tarball then use that latest version with the patches on 
+kernel.org.
 
 Ian
