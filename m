@@ -1,12 +1,14 @@
 From: Erik Mckee <emckee@cs.tamu.edu>
 Subject: Re: autofs doesn't work anymore for me
-Date: Sat, 15 Oct 2005 16:19:15 -0500 (CDT)
-Message-ID: <Pine.GSO.4.58.0510151618510.15100@sun>
+Date: Sun, 16 Oct 2005 02:39:35 -0500 (CDT)
+Message-ID: <Pine.GSO.4.58.0510160238080.15100@sun>
 References: <Pine.GSO.4.58.0510121631440.19649@sun>
 	<Pine.LNX.4.63.0510151940360.2102@donald.themaw.net>
+	<Pine.GSO.4.58.0510151618510.15100@sun>
+	<Pine.LNX.4.63.0510161159130.2072@donald.themaw.net>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.63.0510151940360.2102@donald.themaw.net>
+In-Reply-To: <Pine.LNX.4.63.0510161159130.2072@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,27 +24,43 @@ Content-Transfer-Encoding: 7bit
 To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-The version the error messages is from is Gentoo, using the the patches
-included in the ebuild for it...
+On Sun, 16 Oct 2005, Ian Kent wrote:
 
-On Sat, 15 Oct 2005, Ian Kent wrote:
+> On Sat, 15 Oct 2005, Erik Mckee wrote:
+>
+> > The version the error messages is from is Gentoo, using the the patches
+> > included in the ebuild for it...
+>
+> You might like to file a bug report with Gentoo then.
 
-> On Wed, 12 Oct 2005, Erik Mckee wrote:
+I might would like to, however, stock fedora core has the same problem.
+This most recent set of error messages can be reproduced, even given the
+off chance that things actually automount....
+
+> I recommend version 4.1.4 along with the patches located with the tarball.
 >
-> > Hello :)
 > >
-> > I have both a gentoo box and a fedora core 4 box, neither of them will
-> > speak to my nfs server and automount.  Nothing shows up on my nfs server
-> > that it is even being contacted.  The nfs server is a SGI running IRIX64
-> > 6.5.  Automount gives me logs like the following:
+> > On Sat, 15 Oct 2005, Ian Kent wrote:
 > >
-> > Jun 19 20:01:23 bluefin automount[22097]: starting automounter version
-> > 4.1.3, path = /helm, maptype = file, mapname = /etc/autofs/auto_rooms
->   ^^^^^
-> This doesn't look like an a Redhat packaged version?
-> If you use the tarball then use that latest version with the patches on
-> kernel.org.
->
-> Ian
+> > > On Wed, 12 Oct 2005, Erik Mckee wrote:
+> > >
+> > > > Hello :)
+> > > >
+> > > > I have both a gentoo box and a fedora core 4 box, neither of them will
+> > > > speak to my nfs server and automount.  Nothing shows up on my nfs server
+> > > > that it is even being contacted.  The nfs server is a SGI running IRIX64
+> > > > 6.5.  Automount gives me logs like the following:
+> > > >
+> > > > Jun 19 20:01:23 bluefin automount[22097]: starting automounter version
+> > > > 4.1.3, path = /helm, maptype = file, mapname = /etc/autofs/auto_rooms
+> > >   ^^^^^
+> > > This doesn't look like an a Redhat packaged version?
+> > > If you use the tarball then use that latest version with the patches on
+> > > kernel.org.
+> > >
+> > > Ian
+> > >
+> > >
+> >
 >
 >
