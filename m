@@ -1,12 +1,21 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Unable to mount with autofs-4.1.4: aquire_lock: can't
-	lock lock file timed out: /var/lock/autofs
-Date: Wed, 19 Oct 2005 23:55:21 +0800 (WST)
-Message-ID: <Pine.LNX.4.63.0510192336180.2071@donald.themaw.net>
-References: <200510181321.08443.krienke@uni-koblenz.de>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: autofs4 looks up wrong path element when ghosting is
+	enabled
+Date: Wed, 19 Oct 2005 16:49:00 -0400
+Message-ID: <17238.45372.628520.739194@segfault.boston.redhat.com>
+References: <17200.23724.686149.394150@segfault.boston.redhat.com>
+	<Pine.LNX.4.58.0509210916040.26144@wombat.indigo.net.au>
+	<17203.7543.949262.883138@segfault.boston.redhat.com>
+	<Pine.LNX.4.63.0509241644420.2069@donald.themaw.net>
+	<17205.48192.180623.885538@segfault.boston.redhat.com>
+	<Pine.LNX.4.63.0509250918150.2191@donald.themaw.net>
+	<17208.24786.729632.221157@segfault.boston.redhat.com>
+	<Pine.LNX.4.63.0510152006340.30122@donald.themaw.net>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200510181321.08443.krienke@uni-koblenz.de>
+In-Reply-To: <Pine.LNX.4.63.0510152006340.30122@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,161 +26,76 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Rainer Krienke <krienke@uni-koblenz.de>
-Cc: autofs mailing list <autofs@linux.kernel.org>, Adrian Bunk <bunk@stusta.de>
+Content-Type: text/plain; charset="us-ascii"
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, 18 Oct 2005, Rainer Krienke wrote:
+==> Regarding Re: autofs4 looks up wrong path element when ghosting is enabled; Ian Kent <raven@themaw.net> adds:
 
-> Hello,
-> 
-> using the autofs package from suse10.0 (autofs-4.1.4-6.i586.rpm; autofs4 
-> kernel module, Kernel2.6.13-15) NFS mounts of user directories fail when using indirect mounts. 
-> The problem can be reproduced in a certrain setup describes below. Because of this, the description 
-> is a bit lenghty.
+raven> On Mon, 26 Sep 2005, Jeff Moyer wrote:
+>> ==> Regarding Re: autofs4 looks up wrong path element when ghosting is
+>> enabled; Ian Kent <raven@themaw.net> adds:
+>> 
+raven> On Sat, 24 Sep 2005, Jeff Moyer wrote:
+>> >> >> >> >> >> Ian, I'm not really sure how we can address this issue >>
+>> without VFS >> >> changes.  Any ideas?
+>> >> >> >> 
+>> >> >> 
+raven> I'm aware of this problem.  I'm not sure how to deal with it yet.
+raven> The case above is probably not that difficult to solve but if the
+raven> last component is a directory it's hard to work out it's a problem.
+>> >> >> Ugh.  If you're thinking what I think you're thinking, that's an
+>> ugly >> >> hack.
+>> >> 
+raven> Don't think so.
+>> >>
+raven> I've been seeing this for a while. I wasn't quite sure of the source
+raven> but, for some reason your report has cleared that up.
+>> >>
+raven> The problem is not so much the success returned on the failed mount
+raven> (revalidate). It's the return from the following lookup. This is a
+raven> lookup in a non-root directory. I replaced the non-root lookup with
+raven> the root lookup a while ago and I think this is an unexpected side
+raven> affect of that. Becuase of other changes that lead to that decision
+raven> I think that it should be now be OK to put back the null function
+raven> (always return a negative dentry) that was there before I started
+raven> working on the browable maps feature.
+>> >>
 
-It's good to see that SuSE is attempting to keep up with the autofs 
-versions. If you have the oppertunity, Rainer, please thank them for me.
+raven> I've had a look at this a bit more deeply.
 
-> 
-> The maps for automount are taken from  NIS. To mount a users directory via NFS eg. /home/krienke on a 
-> client entries from the NIS-maps auto.home and auto.vol are used.  auto.master is  
-> configured like this:  
->   
-> /home auto.home         -intr  
-> /import auto.vol        -intr  
->   
-> In auto.home there is this entry for each user like "krienke":  
->   
-> krienke localhost:/import/user2/krienke  
->   
-> In auto.vol you find another entry to handle the "user2" key starting at /import from above 
-> (there are more than one nfsservers exporting user1, user2, ... each with about 2000 users):  
->   
-> user2 nfssrv2:/export/user2  
->   
-> nfssrv2 ist one of our NFS servers for home directories. So basically we nfs mount a volume containing 
-> all the users on this server on /import/user2 on the client and then we mount /home/krienke on 
-> /import/user2/krienke  on the client (the advantage of this indirect 2 layer mount is that we 
-> avoid problems with too many mounts for users on one client since bind mounts are used for the 
-> users home). This mount was (up to 9.3) automatically mounted as a bind mount by automount. 
-> Up to suse9.3 (using autofs4-4.1.3) this worked without problems and if I replace the suse10 
-> autofs rpm by the suse9.3 autofs4 rpm it again does work. I can also manually issue the mount 
-> command logged by automunt 
-> below (mount -t nfs -s  -o intr nfssrv2:/export/user2 /import/user2) and it works without any problems. 
+raven> As we know we can't make the path walk lookup fail by
+raven> autofs4_revalidate simply returning 0 and to change that in the
+raven> kernel would be far to dangerous. So we need to deal with this
+raven> during the following lookup. This just means we get an unwanted
+raven> callback to the daemon which will fail and should not cause a
+raven> problem.
 
-As Jeff has said this sort of nesting of mounts is, in general, not 
-supported by autofs and it worked previously because the locking was less 
-broken in 4.1.3 than in 4.1.4 (yes its still broken in 4.1.4).
+raven> I'm still not fully clear on the reasoning behind the logic in
+raven> try_to_fill_dentry when called with a negative dentry. One of the
+raven> things it attempts to do is cache a lookup failure (ENOENT return
+raven> from the wait). Unfortuneatly the subsequent test in
+raven> autofs4_revalidate is a tautology, always returning true. So
+raven> d_invalidate is never called to cleanup what might be a stale
+raven> dentry. While this is not causing the problem stale dentrys are the
+raven> problem.
 
-Can this case be done safely?
+raven> I still haven't decided whether it would be a good idea to return 0
+raven> instead of 1 from try_to_fill_dentry for these failed mount
+raven> attempts. All this would do is give the kernel more chances to clean
+raven> up the stale dentries. The dentry in question won't be released at
+raven> this point as it has a non zero reference count (I believe). But
+raven> sooner or later they will go anyway when d_invalidate is called.
 
-I'm not entirely sure of the answer to this but I've never liked using 
-locking in autofs. I introduced it only to prevent mtab corruption during 
-mount (correct me if you have a different recollection Jeff). It happens
-during rapid mount activity such as when there as a largish number of
-entries in the master map (of the order of 50 or more).
+raven> So to resolve this we need to ignore negative and unhashed dentries
+raven> when checking if directory dentry is empty.
 
-The mtab locking should be done in mount which narrows the scope of the 
-lock enough to allow this case to function as requested.
+raven> Please test this patch and let me know how you go.
 
-However, lets not forget that, even if mount were working OK today, we 
-would need to carry a patch in the autofs distribution for older versions. 
-I can see the mailing list filling with support queries already.
+OK, I've finally got 'round to testing your patch.  It does fix the test
+case I was using.  My only concern is the potential for regressions.  I'll
+try making sure all of my various maps still work as advertised.
 
-Can we eliminate the locking without reintroducing the problems that lead
-to it being used?
+Thanks!
 
-Maybe, if mounts locking is working as intended but see above.
-
-Can this be done another way?
-
-Probably with a multi-mount map but this would introduce a fair bit of
-added complexity to the map. Or possibly with a program map as Jim 
-has suggested.
-
->    
-> When trying to mount a user like "krienke" saying eg ls ~krienke the following log appears 
-> in /var/log/messages (autmount is running with -d -v): 
->  
-> Oct 18 12:41:59 rzinstal1 automount[16770]: handle_packet: type = 0 
-> Oct 18 12:41:59 rzinstal1 automount[16770]: handle_packet_missing: token 49, name krienke 
-> Oct 18 12:41:59 rzinstal1 automount[16770]: attempting to mount entry /home/krienke 
-> Oct 18 12:41:59 rzinstal1 automount[16791]: lookup(yp): looking up krienke 
-> Oct 18 12:41:59 rzinstal1 automount[16791]: ret = 1 
-> Oct 18 12:41:59 rzinstal1 automount[16791]: lookup(yp): krienke -> localhost:/import/user2/krienke 
-> Oct 18 12:41:59 rzinstal1 automount[16791]: parse(sun): expanded entry: localhost:/import/user2/krienke 
-> Oct 18 12:41:59 rzinstal1 automount[16791]: parse(sun): gathered options: intr 
-> Oct 18 12:41:59 rzinstal1 automount[16791]: parse(sun): dequote("localhost:/import/user2/krienke") -> localhost:/import/user2/krienke 
-> Oct 18 12:41:59 rzinstal1 automount[16791]: parse(sun): core of entry: options=intr, loc=localhost:/import/user2/krienke 
-> Oct 18 12:41:59 rzinstal1 automount[16791]: parse(sun): mounting root /home, mountpoint krienke, what localhost:/import/user2/krienke, fstype nfs, 
-> Oct 18 12:41:59 rzinstal1 automount[16791]: mount(nfs): root=/home name=krienke what=localhost:/import/user2/krienke, fstype=nfs, options=intr 
-> Oct 18 12:41:59 rzinstal1 automount[16791]: mount(nfs): nfs options="intr", nosymlink=0, ro=0 
-> Oct 18 12:41:59 rzinstal1 automount[16791]: mount(nfs): winner = localhost local = 1 
-> Oct 18 12:41:59 rzinstal1 automount[16791]: mount(nfs): from localhost:/import/user2/krienke elected /import/user2/krienke 
-> Oct 18 12:41:59 rzinstal1 automount[16791]: mount(nfs): krienke is local, doing bind 
-> Oct 18 12:41:59 rzinstal1 automount[16791]: mount(bind): calling mkdir_path /home/krienke 
-> Oct 18 12:41:59 rzinstal1 automount[16791]: mount(bind): calling mount --bind -s  -o defaults /import/user2/krienke /home/krienke 
-> Oct 18 12:41:59 rzinstal1 automount[16772]: handle_packet: type = 0 
-> Oct 18 12:41:59 rzinstal1 automount[16772]: handle_packet_missing: token 50, name user2 
-> Oct 18 12:41:59 rzinstal1 automount[16772]: attempting to mount entry /import/user2 
-> Oct 18 12:41:59 rzinstal1 automount[16793]: lookup(yp): looking up user2 
-> Oct 18 12:41:59 rzinstal1 automount[16793]: ret = 1 
-> Oct 18 12:41:59 rzinstal1 automount[16793]: lookup(yp): user2 -> nfssrv2:/export/user2 
-> Oct 18 12:41:59 rzinstal1 automount[16793]: parse(sun): expanded entry: nfssrv2:/export/user2 
-> Oct 18 12:41:59 rzinstal1 automount[16793]: parse(sun): gathered options: intr 
-> Oct 18 12:41:59 rzinstal1 automount[16793]: parse(sun): dequote("nfssrv2:/export/user2") -> nfssrv2:/export/user2 
-> Oct 18 12:41:59 rzinstal1 automount[16793]: parse(sun): core of entry: options=intr, loc=nfssrv2:/export/user2 
-> Oct 18 12:41:59 rzinstal1 automount[16793]: parse(sun): mounting root /import, mountpoint user2, what nfssrv2:/export/user2, fstype nfs, options intr 
-> Oct 18 12:41:59 rzinstal1 automount[16793]: mount(nfs): root=/import name=user2 what=nfssrv2:/export/user2, fstype=nfs, options=intr 
-> Oct 18 12:41:59 rzinstal1 automount[16793]: mount(nfs): nfs options="intr", nosymlink=0, ro=0 
-> Oct 18 12:41:59 rzinstal1 automount[16793]: mount(nfs): winner = nfssrv2 local = 0 
-> Oct 18 12:41:59 rzinstal1 automount[16793]: mount(nfs): from nfssrv2:/export/user2 elected nfssrv2:/export/user2 
-> Oct 18 12:41:59 rzinstal1 automount[16793]: mount(nfs): calling mkdir_path /import/user2 
-> Oct 18 12:41:59 rzinstal1 automount[16793]: mount(nfs): calling mount -t nfs -s  -o intr nfssrv2:/export/user2 /import/user2 
-> Oct 18 12:42:30 rzinstal1 automount[16793]: aquire_lock: can't lock lock file timed out: /var/lock/autofs 
-> Oct 18 12:42:30 rzinstal1 automount[16793]: mount(nfs): nfs: mount failure nfssrv2:/export/user2 on /import/user2 
-> Oct 18 12:42:30 rzinstal1 automount[16793]: failed to mount /import/user2 
-> Oct 18 12:42:30 rzinstal1 automount[16793]: umount_multi: path=/import/user2 incl=1 
-> Oct 18 12:42:30 rzinstal1 automount[16793]: umount_multi: no mounts found under /import/user2 
-> Oct 18 12:42:30 rzinstal1 automount[16772]: handle_child: got pid 16793, sig 0 (0), stat 1 
-> Oct 18 12:42:30 rzinstal1 automount[16772]: sig_child: found pending iop pid 16793: signalled 0 (sig 0), exit status 1 
-> Oct 18 12:42:30 rzinstal1 automount[16772]: send_fail: token=50 
->  
-> Then after 2 more retries to mount /import/user2 the whole mount fails. 
->  
-> Oct 18 12:44:04 rzinstal1 automount[16798]: aquire_lock: can't lock lock file timed out: /var/lock/autofs 
-> Oct 18 12:44:04 rzinstal1 automount[16798]: mount(nfs): nfs: mount failure nfssrv2:/export/user2 on /import/user2 
-> Oct 18 12:44:04 rzinstal1 automount[16798]: failed to mount /import/user2 
-> Oct 18 12:44:04 rzinstal1 automount[16798]: umount_multi: path=/import/user2 incl=1 
-> Oct 18 12:44:04 rzinstal1 automount[16798]: umount_multi: no mounts found under /import/user2 
-> Oct 18 12:44:04 rzinstal1 automount[16772]: handle_child: got pid 16798, sig 0 (0), stat 1 
-> Oct 18 12:44:04 rzinstal1 automount[16772]: sig_child: found pending iop pid 16798: signalled 0 (sig 0), exit status 1 
-> Oct 18 12:44:04 rzinstal1 automount[16772]: send_fail: token=54 
-> Oct 18 12:44:04 rzinstal1 automount[16795]: >> mount: special device /import/user2/krienke does not exist 
-> Oct 18 12:44:04 rzinstal1 automount[16795]: failed to mount /home/krienke 
-> Oct 18 12:44:04 rzinstal1 automount[16795]: umount_multi: path=/home/krienke incl=1 
-> Oct 18 12:44:04 rzinstal1 automount[16795]: umount_multi: no mounts found under /home/krienke 
-> Oct 18 12:44:04 rzinstal1 automount[16770]: handle_child: got pid 16795, sig 0 (0), stat 1 
-> Oct 18 12:44:04 rzinstal1 automount[16770]: sig_child: found pending iop pid 16795: signalled 0 (sig 0), exit status 1 
-> Oct 18 12:44:04 rzinstal1 automount[16770]: send_fail: token=52 
-> 
-> 
-> Any idea why or how to fix this?
-> 
-> Thanks
-> Rainer
-> -- 
-> ---------------------------------------------------------------------------
-> Rainer Krienke, Universitaet Koblenz, Rechenzentrum, Raum A022
-> Universitaetsstrasse 1, 56070 Koblenz, Tel: +49 261287 -1312, Fax: -1001312
-> Mail: krienke@uni-koblenz.de, Web: http://www.uni-koblenz.de/~krienke
-> Get my public PGP key: http://www.uni-koblenz.de/~krienke/mypgp.html
-> ---------------------------------------------------------------------------
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
-> 
+Jeff
