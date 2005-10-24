@@ -1,12 +1,15 @@
-From: devnull@adc.idt.com
-Subject: autofs looks up wrong path element metoo and /net question
-Date: Mon, 24 Oct 2005 17:16:10 -0400 (EDT)
-Message-ID: <Pine.LNX.4.61.0509271133270.9747@pod.adc.idt.com>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: autofs looks up wrong path element metoo and /net
+	question
+Date: Mon, 24 Oct 2005 17:55:11 -0400
+Message-ID: <17245.22591.307788.606416@segfault.boston.redhat.com>
 References: <200509251900.j8PJ0HIm008775@hera.kernel.org>
-Reply-To: devnull@adc.idt.com
+	<Pine.LNX.4.61.0509271133270.9747@pod.adc.idt.com>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200509251900.j8PJ0HIm008775@hera.kernel.org>
+In-Reply-To: <Pine.LNX.4.61.0509271133270.9747@pod.adc.idt.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,108 +20,44 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
-Content-Transfer-Encoding: 7bit
-To: AutoFS on Linux Kernel <autofs@linux.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: devnull@adc.idt.com
+Cc: AutoFS on Linux Kernel <autofs@linux.kernel.org>
 
-Ian, list.
+==> Regarding [autofs] autofs looks up wrong path element metoo and /net question; devnull@adc.idt.com adds:
 
-Fedora Core 2
+devnull> Ian, list.  Fedora Core 2
 
-/usr/sbin/automount -V
-Linux automount version 4.1.4
+devnull> /usr/sbin/automount -V Linux automount version 4.1.4
 
-I am running automount with /usr/sbin/automount --ghost -v --debug
+So you built your own?  OK.
 
-uname -r
-2.6.7 / 2.4.31
+devnull> I am running automount with /usr/sbin/automount --ghost -v --debug
 
-I have "yp" autofs maps that are 2 directories deep. For eg. 
-/projects/map1 /projects/map2 etc and then I mount 
-different projects under them, project1 project2 etc
+devnull> uname -r 2.6.7 / 2.4.31
 
-/projects/map1/projectA
-/projects/map1/projectB
+Again, your own kernel?  Ian posted a kernel patch to fix the issue.  You
+probably want to grab that, though I can't find a pointer to it at the
+moment.  I've attached the equivalent patch that went into RHEL3, for
+reference.
 
-/projects/map2/projectC
-/projects/map2/projectD
+-Jeff
 
-/projects/map3/projectE
-/projects/map3/projectF
-
-/projects/map4/projectG
-/projects/map4/projectH
-
-Sometimes on these machines, users find that their jobs are killed because 
-they were unable to "cd" into /projects/map1/projectA for eg.
-
-They see something similar to
-
-irn:/projects/map1/projectA > ll
-total 0
-?---------  ? ? ? ?           ? dir1
-?---------  ? ? ? ?           ? dir2
-irn:/projects/map1/projectsA > cd dir1
-dir1: No such file or directory.
-
-
-If I look at the messages file at the same time, I see entries like
-
-Oct 24 16:44:36 irn automount[2202]: attempting to mount entry 
-/projects/map1/map2
-Oct 24 16:44:36 irn automount[19851]: lookup(yp): lookup for map2 failed: 
-No such key in map
-Oct 24 16:44:36 irn automount[19851]: failed to mount /projects/map1/map2
-Oct 24 16:44:36 irn automount[2189]: attempting to mount entry 
-/projects/map2/map2
-Oct 24 16:44:36 irn automount[19852]: lookup(yp): lookup for map2 failed: 
-No such key in map
-Oct 24 16:44:36 irn automount[19852]: failed to mount /projects/map2/map2
-Oct 24 16:44:36 irn automount[2098]: attempting to mount entry 
-/projects/map3/map2
-Oct 24 16:44:36 irn automount[19853]: lookup(yp): lookup for map2 failed: 
-No such key in map
-Oct 24 16:44:36 irn automount[19853]: failed to mount /projects/map3/map2
-Oct 24 16:44:36 irn automount[2118]: attempting to mount entry 
-/projects/map4/map2
-Oct 24 16:44:36 irn automount[19854]: lookup(yp): lookup for map2 failed: 
-No such key in map
-Oct 24 16:44:36 irn automount[19854]: failed to mount /projects/map4/map2
-
-
-
-Right after these messages I also see
-
-Oct 24 16:31:55 irn automount[2145]: attempting to mount entry 
-/projects/map2/projectA
-Oct 24 16:31:55 irn automount[19134]: lookup(yp): lookup for projectA
-failed: No such key in map
-Oct 24 16:31:56 irn automount[19134]: failed to mount 
-/projects/map2/projectA
-
-Oct 24 16:31:55 irn automount[2145]: attempting to mount entry 
-/projects/map3/projectA
-Oct 24 16:31:55 irn automount[19134]: lookup(yp): lookup for projectA
-failed: No such key in map
-Oct 24 16:31:56 irn automount[19134]: failed to mount 
-/projects/map3/projectA
-
-Oct 24 16:31:55 irn automount[2145]: attempting to mount entry 
-/projects/map3/projectA
-Oct 24 16:31:55 irn automount[19134]: lookup(yp): lookup for projectA
-failed: No such key in map
-Oct 24 16:31:56 irn automount[19134]: failed to mount 
-/projects/map3/projectA
-
-
-It will do this for all maps, but the correct map which is "map1"
-
-The actual automount process for "map1" is running and after a few 
-minutes/retries things come back to normal. Sometimes they dont and I need 
-to reboot this machine/restart automount for that map.
-
-
-Is something getting incorrectly parsed and being sent to automount ?
-
-
-Thanks
+--- linux-2.4.21/fs/autofs4/root.c.orig	2005-05-31 09:31:16.097321176 -0400
++++ linux-2.4.21/fs/autofs4/root.c	2005-05-31 09:31:19.816755736 -0400
+@@ -301,7 +301,14 @@ static int try_to_fill_dentry(struct den
+ 
+ 		DPRINTK(("try_to_fill_entry: expire done status=%d\n", status));
+ 		
+-		return 0;
++		/*
++		 * If the directory still exists the mount request must
++		 * continue otherwise it can't be followed at the right
++		 * time during the walk.
++		 */
++		status = d_invalidate(dentry);
++		if (status != -EBUSY)
++			return 0;
+ 	}
+ 
+ 	DPRINTK(("try_to_fill_entry: dentry=%p %.*s ino=%p\n", 
