@@ -1,14 +1,12 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Unable to mount with autofs-4.1.4: aquire_lock: can't
-	lock lock file timed out: /var/lock/autofs
-Date: Mon, 24 Oct 2005 23:59:42 +0800 (WST)
-Message-ID: <Pine.LNX.4.63.0510242357290.2769@donald.themaw.net>
-References: <200510181321.08443.krienke@uni-koblenz.de>
-	<Pine.LNX.4.63.0510231153350.19690@donald.themaw.net>
-	<200510241259.31961.krienke@uni-koblenz.de>
+From: devnull@adc.idt.com
+Subject: autofs looks up wrong path element metoo and /net question
+Date: Mon, 24 Oct 2005 17:16:10 -0400 (EDT)
+Message-ID: <Pine.LNX.4.61.0509271133270.9747@pod.adc.idt.com>
+References: <200509251900.j8PJ0HIm008775@hera.kernel.org>
+Reply-To: devnull@adc.idt.com
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200510241259.31961.krienke@uni-koblenz.de>
+In-Reply-To: <200509251900.j8PJ0HIm008775@hera.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,43 +17,108 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
-To: Rainer Krienke <krienke@uni-koblenz.de>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+To: AutoFS on Linux Kernel <autofs@linux.kernel.org>
 
-On Mon, 24 Oct 2005, Rainer Krienke wrote:
+Ian, list.
 
-> On Sonntag 23 Oktober 2005 06:00, you wrote:
-> > On Tue, 18 Oct 2005, Rainer Krienke wrote:
-> > > Hello,
-> > >
-> > > using the autofs package from suse10.0 (autofs-4.1.4-6.i586.rpm; autofs4
-> > > kernel module, Kernel2.6.13-15) NFS mounts of user directories fail when
-> > > using indirect mounts. The problem can be reproduced in a certrain setup
-> > > describes below. Because of this, the description is a bit lenghty.
-> >
-> > Here is a patch to add a configure option to disable locking when calling
-> > mount. It also adds a patch for mount that I hope will prevent mtab
-> > coruption. Obviousy autofs needs to be built with the option added to
-> > configure.
-> >
-> 
-> I tried the patch (compiled with --disable-mount-locking) on a opensuse10 
-> client. For me it seems to work. I wrote a script that randomly selects users 
-> from our NIS auto.home map and accesses the home directory. After a while I 
-> had about 4000 mounts on the client (99.9% bind mounts of course) and nothing 
-> went wrong as far as I saw. The most important thing for me is of course that 
-> using this patch my solution for hierarchcal mounts of the home directories 
-> does work again.
+Fedora Core 2
 
-Great.
+/usr/sbin/automount -V
+Linux automount version 4.1.4
 
-I'll merge the configure option into the next release.
+I am running automount with /usr/sbin/automount --ghost -v --debug
 
-You understand that this will not be the default because of problems that 
-other people might have and the dependence on mount locking working.
+uname -r
+2.6.7 / 2.4.31
 
-Perhaps in time....
+I have "yp" autofs maps that are 2 directories deep. For eg. 
+/projects/map1 /projects/map2 etc and then I mount 
+different projects under them, project1 project2 etc
 
-Ian
+/projects/map1/projectA
+/projects/map1/projectB
+
+/projects/map2/projectC
+/projects/map2/projectD
+
+/projects/map3/projectE
+/projects/map3/projectF
+
+/projects/map4/projectG
+/projects/map4/projectH
+
+Sometimes on these machines, users find that their jobs are killed because 
+they were unable to "cd" into /projects/map1/projectA for eg.
+
+They see something similar to
+
+irn:/projects/map1/projectA > ll
+total 0
+?---------  ? ? ? ?           ? dir1
+?---------  ? ? ? ?           ? dir2
+irn:/projects/map1/projectsA > cd dir1
+dir1: No such file or directory.
+
+
+If I look at the messages file at the same time, I see entries like
+
+Oct 24 16:44:36 irn automount[2202]: attempting to mount entry 
+/projects/map1/map2
+Oct 24 16:44:36 irn automount[19851]: lookup(yp): lookup for map2 failed: 
+No such key in map
+Oct 24 16:44:36 irn automount[19851]: failed to mount /projects/map1/map2
+Oct 24 16:44:36 irn automount[2189]: attempting to mount entry 
+/projects/map2/map2
+Oct 24 16:44:36 irn automount[19852]: lookup(yp): lookup for map2 failed: 
+No such key in map
+Oct 24 16:44:36 irn automount[19852]: failed to mount /projects/map2/map2
+Oct 24 16:44:36 irn automount[2098]: attempting to mount entry 
+/projects/map3/map2
+Oct 24 16:44:36 irn automount[19853]: lookup(yp): lookup for map2 failed: 
+No such key in map
+Oct 24 16:44:36 irn automount[19853]: failed to mount /projects/map3/map2
+Oct 24 16:44:36 irn automount[2118]: attempting to mount entry 
+/projects/map4/map2
+Oct 24 16:44:36 irn automount[19854]: lookup(yp): lookup for map2 failed: 
+No such key in map
+Oct 24 16:44:36 irn automount[19854]: failed to mount /projects/map4/map2
+
+
+
+Right after these messages I also see
+
+Oct 24 16:31:55 irn automount[2145]: attempting to mount entry 
+/projects/map2/projectA
+Oct 24 16:31:55 irn automount[19134]: lookup(yp): lookup for projectA
+failed: No such key in map
+Oct 24 16:31:56 irn automount[19134]: failed to mount 
+/projects/map2/projectA
+
+Oct 24 16:31:55 irn automount[2145]: attempting to mount entry 
+/projects/map3/projectA
+Oct 24 16:31:55 irn automount[19134]: lookup(yp): lookup for projectA
+failed: No such key in map
+Oct 24 16:31:56 irn automount[19134]: failed to mount 
+/projects/map3/projectA
+
+Oct 24 16:31:55 irn automount[2145]: attempting to mount entry 
+/projects/map3/projectA
+Oct 24 16:31:55 irn automount[19134]: lookup(yp): lookup for projectA
+failed: No such key in map
+Oct 24 16:31:56 irn automount[19134]: failed to mount 
+/projects/map3/projectA
+
+
+It will do this for all maps, but the correct map which is "map1"
+
+The actual automount process for "map1" is running and after a few 
+minutes/retries things come back to normal. Sometimes they dont and I need 
+to reboot this machine/restart automount for that map.
+
+
+Is something getting incorrectly parsed and being sent to automount ?
+
+
+Thanks
