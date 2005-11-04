@@ -1,78 +1,28 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [autofs] Re: autofs4 looks up wrong path element when ghosting
- is enabled
-Date: Sat, 5 Nov 2005 17:50:19 +0800 (WST)
-Message-ID: <Pine.LNX.4.63.0511051737390.29492@donald.themaw.net>
-References: <17200.23724.686149.394150@segfault.boston.redhat.com>
- <Pine.LNX.4.58.0509210916040.26144@wombat.indigo.net.au>
- <17203.7543.949262.883138@segfault.boston.redhat.com>
- <Pine.LNX.4.63.0509241644420.2069@donald.themaw.net>
- <17205.48192.180623.885538@segfault.boston.redhat.com>
- <Pine.LNX.4.63.0509250918150.2191@donald.themaw.net>
- <17208.24786.729632.221157@segfault.boston.redhat.com>
- <Pine.LNX.4.63.0510152006340.30122@donald.themaw.net>
- <17238.45372.628520.739194@segfault.boston.redhat.com>
- <Pine.LNX.4.63.0510291536320.2949@donald.themaw.net>
- <17254.252.746357.935671@segfault.boston.redhat.com>
- <Pine.LNX.4.63.0510312119320.2069@donald.themaw.net>
+From: Vince Busam <vbusam@google.com>
+Subject: LDAP entries cached forever [PATCH]
+Date: Fri, 04 Nov 2005 15:25:43 -0800
+Message-ID: <436BEDF7.6020607@google.com>
 Mime-Version: 1.0
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751326AbVKEJvI@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.63.0510312119320.2069@donald.themaw.net>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: <autofs.vger.kernel.org>
-Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: autofs@linux.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <autofs-bounces@linux.kernel.org>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://hera.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: autofs@linux.kernel.org
 
-On Mon, 31 Oct 2005, Ian Kent wrote:
+An ldap mountpoint will be cached forever until autofs is restarted or gets a SIGHUP. 
+Does it make sense to alter the behavior to automatically age out old entries and re-query 
+the ldap server every once in a while?
 
-> On Mon, 31 Oct 2005, Jeff Moyer wrote:
-> 
-> > ==> Regarding Re: autofs4 looks up wrong path element when ghosting is enabled; Ian Kent <raven@themaw.net> adds:
-> > 
-> > raven> So to resolve this we need to ignore negative and unhashed dentries
-> > raven> when checking if directory dentry is empty.
-> > >>
-> > raven> Please test this patch and let me know how you go.
-> > >> OK, I've finally got 'round to testing your patch.  It does fix the test
-> > >> case I was using.  My only concern is the potential for regressions.
-> > >> I'll try making sure all of my various maps still work as advertised.
-> > 
-> > raven> I've spotted a regression with this patch.  It doesn't stop autofs
-> > raven> from appearing to function correctly. It causes mount callbacks when
-> > raven> they shouldn't made. So it seems that there is a case when an autofs
-> > raven> directory is, as yet unhashed, but should be used.
-> > 
-> > I'm not sure I follow.  What do you mean it doesn't stop autofs from
-> > *appearing* to function correctly?  Do you have a reproducer that fails?
-> 
-> Any pseudo direct map will produce the behaviour.
-> 
-> It behaves as if the ghost option was not specified even when it has. 
-> This is because the altered test for an empty directory is always 
-> returning true even though the directory isn't empty.
-> 
-> I'm still trying to understand why this happens. In theory it's just not 
-> the expected behaviour. I must be missing something in the directory 
-> creation. I've been here before and looked several times and I just can't 
-> see why it happens this way.
+Something like this (though without the hacky environment variable config):
+http://www.sixpak.org/vince/autofs-age-ldap-cache.diff
 
-I couldn't work out why this patch shouldn't work so I tried to duplicate 
-the problem I saw before and I can't.
-
-I've tested the patch against autofs-4.1.3-123 (latest source rpm I could 
-find) and autofs-4.1.4-8 with a couple of my patches (only on the 4.1.4 
-version) that shouldn't affect it and I can't seem to break it.
-
-I must have got my kernel modules mixed up. It probably means there's some 
-backward compatibilty work to be done on the version 5 module.
-
-Anyway, some more testing, as you suggested, would be great.
-
-The only other question is what to do about the cacheing of mount failures 
-which has never worked by the look of it. We can remove it or fix it.
-
-Ian
-
-
+Vince
