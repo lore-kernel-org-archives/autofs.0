@@ -1,67 +1,78 @@
-From: Dannie Stanley <dannie.stanley@gmail.com>
-Subject: Re: autofs timeout and large map
-Date: Tue, 1 Nov 2005 13:24:05 -0500
-Message-ID: <89e9feae0511011024y73ec0d2bn86a486d63b8e357b@mail.gmail.com>
-References: <20051028163028.75072c9b.akpm@osdl.org>
-	<Pine.LNX.4.63.0510291032450.2075@donald.themaw.net>
-	<89e9feae0510310904u389dc003mc311a1f0a1058168@mail.gmail.com>
-	<89e9feae0511010451we3f1d43g8c8d3caf0efceb0@mail.gmail.com>
-	<Pine.LNX.4.63.0511020005090.3040@donald.themaw.net>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [autofs] Re: autofs4 looks up wrong path element when ghosting
+ is enabled
+Date: Sat, 5 Nov 2005 17:50:19 +0800 (WST)
+Message-ID: <Pine.LNX.4.63.0511051737390.29492@donald.themaw.net>
+References: <17200.23724.686149.394150@segfault.boston.redhat.com>
+ <Pine.LNX.4.58.0509210916040.26144@wombat.indigo.net.au>
+ <17203.7543.949262.883138@segfault.boston.redhat.com>
+ <Pine.LNX.4.63.0509241644420.2069@donald.themaw.net>
+ <17205.48192.180623.885538@segfault.boston.redhat.com>
+ <Pine.LNX.4.63.0509250918150.2191@donald.themaw.net>
+ <17208.24786.729632.221157@segfault.boston.redhat.com>
+ <Pine.LNX.4.63.0510152006340.30122@donald.themaw.net>
+ <17238.45372.628520.739194@segfault.boston.redhat.com>
+ <Pine.LNX.4.63.0510291536320.2949@donald.themaw.net>
+ <17254.252.746357.935671@segfault.boston.redhat.com>
+ <Pine.LNX.4.63.0510312119320.2069@donald.themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.63.0511020005090.3040@donald.themaw.net>
-Content-Disposition: inline
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751326AbVKEJvI@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.63.0510312119320.2069@donald.themaw.net>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://hera.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: autofs@linux.kernel.org, linux-kernel@vger.kernel.org
 
-Thanks for the feedback.  Here is my answer to your last question:
+On Mon, 31 Oct 2005, Ian Kent wrote:
 
-$ lsmod |grep fs
-autofs4                15864   1  (autoclean)
+> On Mon, 31 Oct 2005, Jeff Moyer wrote:
+> 
+> > ==> Regarding Re: autofs4 looks up wrong path element when ghosting is enabled; Ian Kent <raven@themaw.net> adds:
+> > 
+> > raven> So to resolve this we need to ignore negative and unhashed dentries
+> > raven> when checking if directory dentry is empty.
+> > >>
+> > raven> Please test this patch and let me know how you go.
+> > >> OK, I've finally got 'round to testing your patch.  It does fix the test
+> > >> case I was using.  My only concern is the potential for regressions.
+> > >> I'll try making sure all of my various maps still work as advertised.
+> > 
+> > raven> I've spotted a regression with this patch.  It doesn't stop autofs
+> > raven> from appearing to function correctly. It causes mount callbacks when
+> > raven> they shouldn't made. So it seems that there is a case when an autofs
+> > raven> directory is, as yet unhashed, but should be used.
+> > 
+> > I'm not sure I follow.  What do you mean it doesn't stop autofs from
+> > *appearing* to function correctly?  Do you have a reproducer that fails?
+> 
+> Any pseudo direct map will produce the behaviour.
+> 
+> It behaves as if the ghost option was not specified even when it has. 
+> This is because the altered test for an empty directory is always 
+> returning true even though the directory isn't empty.
+> 
+> I'm still trying to understand why this happens. In theory it's just not 
+> the expected behaviour. I must be missing something in the directory 
+> creation. I've been here before and looked several times and I just can't 
+> see why it happens this way.
 
-I am assuming it is safe to skip the debug steps since Jeff Moyer has
-assisted in this diagnosis -- Thanks Jeff!
+I couldn't work out why this patch shouldn't work so I tried to duplicate 
+the problem I saw before and I can't.
 
--- Dannie
+I've tested the patch against autofs-4.1.3-123 (latest source rpm I could 
+find) and autofs-4.1.4-8 with a couple of my patches (only on the 4.1.4 
+version) that shouldn't affect it and I can't seem to break it.
 
+I must have got my kernel modules mixed up. It probably means there's some 
+backward compatibilty work to be done on the version 5 module.
 
-On 11/1/05, Ian Kent <raven@themaw.net> wrote:
-> On Tue, 1 Nov 2005, Dannie Stanley wrote:
->
-> > I performed some testing in the early morning hours and this is what I
-> > found.  The problem seems to be with the --ghost option.  When I
-> > specify this in my auto.master:
-> >
-> >    /- /etc/auto.virtual --ghost
-> >
-> > I get the originally reported errors.  When I remove the --ghost
-> > option it seems to work as expected.
-> >
->
-> Btw there are two kernel modules, autofs and autofs4, which do you have
-> loaded?
->
-> You can find out with an lsmod. You'll see either autofs or autofs4.
->
-> Ian
->
->
+Anyway, some more testing, as you suggested, would be great.
+
+The only other question is what to do about the cacheing of mount failures 
+which has never worked by the look of it. We can remove it or fix it.
+
+Ian
 
 
---
-Dannie M. Stanley
-
-"The Feynman Problem-Solving Algorithm: (1) write down the problem;
-(2) think very hard; (3) write down the answer." - Murray Gell-Mann
