@@ -1,8 +1,8 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [autofs] Re: autofs4 looks up wrong path element when ghosting
- is enabled
-Date: Thu, 10 Nov 2005 18:51:57 -0500
-Message-ID: <17267.56605.959115.501951@segfault.boston.redhat.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: Re: autofs4 looks up wrong path element when ghosting
+	is enabled
+Date: Fri, 11 Nov 2005 09:53:14 -0500 (EST)
+Message-ID: <Pine.LNX.4.58.0511110943010.23668@wombat.indigo.net.au>
 References: <17200.23724.686149.394150@segfault.boston.redhat.com>
 	<Pine.LNX.4.58.0509210916040.26144@wombat.indigo.net.au>
 	<17203.7543.949262.883138@segfault.boston.redhat.com>
@@ -16,77 +16,97 @@ References: <17200.23724.686149.394150@segfault.boston.redhat.com>
 	<17254.252.746357.935671@segfault.boston.redhat.com>
 	<Pine.LNX.4.63.0510312119320.2069@donald.themaw.net>
 	<Pine.LNX.4.63.0511051737390.29492@donald.themaw.net>
-Reply-To: jmoyer@redhat.com
+	<17267.56605.959115.501951@segfault.boston.redhat.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932146AbVKJXwN@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.63.0511051737390.29492@donald.themaw.net>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <17267.56605.959115.501951@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: Ian Kent <raven@themaw.net>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://hera.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Jeff Moyer <jmoyer@redhat.com>
 Cc: autofs@linux.kernel.org, linux-kernel@vger.kernel.org
 
-==> Regarding Re: [autofs] Re: autofs4 looks up wrong path element when ghosting is enabled; Ian Kent <raven@themaw.net> adds:
+On Thu, 10 Nov 2005, Jeff Moyer wrote:
 
-raven> On Mon, 31 Oct 2005, Ian Kent wrote:
->> On Mon, 31 Oct 2005, Jeff Moyer wrote:
->> 
->> > ==> Regarding Re: autofs4 looks up wrong path element when ghosting is
->> enabled; Ian Kent <raven@themaw.net> adds:
->> > 
->> > raven> So to resolve this we need to ignore negative and unhashed
->> dentries > raven> when checking if directory dentry is empty.
->> > >>
->> > raven> Please test this patch and let me know how you go.  > >> OK,
->> I've finally got 'round to testing your patch.  It does fix the test >
->> >> case I was using.  My only concern is the potential for regressions.
->> > >> I'll try making sure all of my various maps still work as
->> advertised.
->> > 
->> > raven> I've spotted a regression with this patch.  It doesn't stop
->> autofs > raven> from appearing to function correctly. It causes mount
->> callbacks when > raven> they shouldn't made. So it seems that there is a
->> case when an autofs > raven> directory is, as yet unhashed, but should
->> be used.
->> > 
->> > I'm not sure I follow.  What do you mean it doesn't stop autofs from >
->> *appearing* to function correctly?  Do you have a reproducer that fails?
->> 
->> Any pseudo direct map will produce the behaviour.
->> 
->> It behaves as if the ghost option was not specified even when it
->> has. This is because the altered test for an empty directory is always
->> returning true even though the directory isn't empty.
->> 
->> I'm still trying to understand why this happens. In theory it's just not
->> the expected behaviour. I must be missing something in the directory
->> creation. I've been here before and looked several times and I just
->> can't see why it happens this way.
+> ==> Regarding Re: [autofs] Re: autofs4 looks up wrong path element when ghosting is enabled; Ian Kent <raven@themaw.net> adds:
+> 
+> raven> On Mon, 31 Oct 2005, Ian Kent wrote:
+> >> On Mon, 31 Oct 2005, Jeff Moyer wrote:
+> >> 
+> >> > ==> Regarding Re: autofs4 looks up wrong path element when ghosting is
+> >> enabled; Ian Kent <raven@themaw.net> adds:
+> >> > 
+> >> > raven> So to resolve this we need to ignore negative and unhashed
+> >> dentries > raven> when checking if directory dentry is empty.
+> >> > >>
+> >> > raven> Please test this patch and let me know how you go.  > >> OK,
+> >> I've finally got 'round to testing your patch.  It does fix the test >
+> >> >> case I was using.  My only concern is the potential for regressions.
+> >> > >> I'll try making sure all of my various maps still work as
+> >> advertised.
+> >> > 
+> >> > raven> I've spotted a regression with this patch.  It doesn't stop
+> >> autofs > raven> from appearing to function correctly. It causes mount
+> >> callbacks when > raven> they shouldn't made. So it seems that there is a
+> >> case when an autofs > raven> directory is, as yet unhashed, but should
+> >> be used.
+> >> > 
+> >> > I'm not sure I follow.  What do you mean it doesn't stop autofs from >
+> >> *appearing* to function correctly?  Do you have a reproducer that fails?
+> >> 
+> >> Any pseudo direct map will produce the behaviour.
+> >> 
+> >> It behaves as if the ghost option was not specified even when it
+> >> has. This is because the altered test for an empty directory is always
+> >> returning true even though the directory isn't empty.
+> >> 
+> >> I'm still trying to understand why this happens. In theory it's just not
+> >> the expected behaviour. I must be missing something in the directory
+> >> creation. I've been here before and looked several times and I just
+> >> can't see why it happens this way.
+> 
+> raven> I couldn't work out why this patch shouldn't work so I tried to
+> raven> duplicate the problem I saw before and I can't.
+> 
+> raven> I've tested the patch against autofs-4.1.3-123 (latest source rpm I
+> raven> could find) and autofs-4.1.4-8 with a couple of my patches (only on
+> raven> the 4.1.4 version) that shouldn't affect it and I can't seem to
+> raven> break it.
+> 
+> raven> I must have got my kernel modules mixed up. It probably means
+> raven> there's some backward compatibilty work to be done on the version 5
+> raven> module.
+> 
+> raven> Anyway, some more testing, as you suggested, would be great.
+> 
+> raven> The only other question is what to do about the cacheing of mount
+> raven> failures which has never worked by the look of it. We can remove it
+> raven> or fix it.
+> 
+> OK, good to know that it works.  I'm really not sure why we're caching
+> mount failures, either.  Perhaps it was thought to be a performance
+> optimization?  I see no reason to keep it around, to be honest.
 
-raven> I couldn't work out why this patch shouldn't work so I tried to
-raven> duplicate the problem I saw before and I can't.
+It may have been used to prevent mount storms but I'm still haveing 
+trouble justifying keeping it. I'll get rid of it.
 
-raven> I've tested the patch against autofs-4.1.3-123 (latest source rpm I
-raven> could find) and autofs-4.1.4-8 with a couple of my patches (only on
-raven> the 4.1.4 version) that shouldn't affect it and I can't seem to
-raven> break it.
+> 
+> Note that the patch you posted has been in Fedora Core 5's devel
+> repository since October 20th, and no bugs have been filed.
 
-raven> I must have got my kernel modules mixed up. It probably means
-raven> there's some backward compatibilty work to be done on the version 5
-raven> module.
+Testing has always been a very difficult and time consuming task for me.
+I'm looking forward to completeing the core infrastructure for the direct 
+mounts and lazy multi-mounts (ready for a hosts map) so that we can get on 
+to the initiator utility. Using an unmodified conecathon suite for 
+validation will be a big win.
 
-raven> Anyway, some more testing, as you suggested, would be great.
-
-raven> The only other question is what to do about the cacheing of mount
-raven> failures which has never worked by the look of it. We can remove it
-raven> or fix it.
-
-OK, good to know that it works.  I'm really not sure why we're caching
-mount failures, either.  Perhaps it was thought to be a performance
-optimization?  I see no reason to keep it around, to be honest.
-
-Note that the patch you posted has been in Fedora Core 5's devel
-repository since October 20th, and no bugs have been filed.
-
--Jeff
+Ian
