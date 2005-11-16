@@ -1,113 +1,167 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: auto.net gets a key with a path under SLES9.
-Date: Tue, 15 Nov 2005 12:14:58 -0500
-Message-ID: <17274.6034.627580.972164@segfault.boston.redhat.com>
-References: <4378ED9A.6090903@deragon.biz>
-	<Pine.LNX.4.58.0511150826030.27505@wombat.indigo.net.au>
-	<17273.61751.864306.585017@segfault.boston.redhat.com>
-	<Pine.LNX.4.63.0511160007560.2260@donald.themaw.net>
-	<437A0CB7.20701@deragon.biz>
-	<Pine.LNX.4.63.0511160036370.2260@donald.themaw.net>
-Reply-To: jmoyer@redhat.com
+From: linuxram@us.ibm.com (Ram Pai)
+Subject: [RFC PATCH]autofs4: hang and proposed fix
+Date: Wed, 16 Nov 2005 02:17:40 -0800
+Message-ID: <20051116101740.GA9551@RAM>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.63.0511160036370.2260@donald.themaw.net>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://hera.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+Content-Transfer-Encoding: 7bit
+To: autofs@linux.kernel.org
+Cc: linux-fsdevel@vger.kernel.org, linuxram@us.ibm.com
 
-==> Regarding Re: [autofs] auto.net gets a key with a path under SLES9.; Ian Kent <raven@themaw.net> adds:
+Autofs4 assumes that its ->revalidate() function gets called with the
+parent_dentry's_inode_semaphore released. This is true mostly
+but not in one particular case.
 
-raven> On Tue, 15 Nov 2005, Hans Deragon wrote:
->> Ian Kent wrote: > On Tue, 15 Nov 2005, Jeff Moyer wrote:
->> > 
->> > 
->> > > ==> Regarding Re: [autofs] auto.net gets a key with a path under
->> SLES9.; > > Ian Kent <raven@themaw.net> adds:
->> > > 
->> > > raven> On Mon, 14 Nov 2005, Hans Deragon wrote: Thanks for reporting
->> this > > raven> Hans.
->> > > 
->> > > 
->> > > > > Greetings.
->> > > > > 
->> > > > > 
->> > > > > I compiled autofs 4.1.4 for SuSE Linux Enterprise Server 9
->> (SLES9). I > > > > did found a little problem with auto.net.  The
->> original code has:
->> > > > > 
->> > > > > key=$1
->> > > > > 
->> > > > > However, under SLES9, in my network environment, $key can be of
->> the > > > > form > > > > "server/something[/otherthing]*", which is
->> wrong.  $key should only be > > > > a > > > > server name.  I fixed the
->> problem with:
->> > > > > 
->> > > > > key=`echo $1 | perl -wp -e 's%^(\w+)(\/?.+)*$%$1%;'`
->> > > > > 
->> > > > > My fix removes any path after the server name.
->> > > 
->> > > raven> Interesting. I'm not sure why that's happening either.
->> > > 
->> > > 
->> > > > > Exactly why automount passes a server name containg some path is
->> > > > > unclear > > > > for me.  But I wanted to report this here.  If
->> other suffer from this, > > > > you might want to consider some fix like
->> mine (maybe using sed which > > > > is > > > > more standard).
->> > > 
->> > > raven> Yep. Sounds like a good idea.
->> > > 
->> > > raven> I'll put it on the queue of stuff for 4.1 so I can do it when
->> I > > raven> eventually get back to it.
->> > > 
->> > > Ian, this sounds more like papering over the real problem to me.  Do
->> you > > agree?  I'd like to see some debug output.
->> > 
->> > 
->> > Yep. Absolutely right.
->> > 
->> > Your post was clearly more useful than what I had to say.
->> > 
->> > And I agree it is likely one of the issues we have recently
->> investigated.  > Perhaps the SuSE folks haven't merged some of the
->> recent kernel patches.
->> > 
->> > Hans, could you spend a bit of time to get us a debug log please.
->> > 
->> > Ian
->> 
->> No problem.  Just give me instructions on how to proceed.  I am not that
->> familiar with autofs and its code/features.
->> 
+Process P1  calls autofs4's ->lookup(). The lookup finds that the dentry
+does not exist. It creates a dentry and adds to the cache. Releases
+the parent's inode's semaphore and than calls ->revalidate().
 
-raven> It is fairly straight forward.  Just add --debug or just -d to the
-raven> master map entry for the autofs mount point you want to collect
-raven> debug info. for.
+Process P2 meanwhile comes in and cached_lookup() gets called. It finds
+the dentry in the cache and finds ->revalidate() function exists. So
+it calls ->revalidate() holding the parent's inode's semaphore.
 
-raven> If you concerned feel free to replace host names or IP addresses (if
-raven> any) but please keep the trace in tact otherwise.
+Now the automounter daemon comes in and tries to hold the same semaphore
+in order to mount. But since the semaphore is held by P2 it
+goes to sleep.
 
-raven> eg.
+Process P1 and P2 continue waiting for the mount to complete and it never
+happens. Deadlock.
 
-raven> /net /etc/auto.net --debug
+The stack of the deadlock is as follows:
 
-raven> Should do the trick.
+ls            S 00000000     0 13049  11954                     (NOTLB)
+f5221df0 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+00000000 f5d44a70 c721b520 00000000 d4f33800 003d0990 c721b9d8 f5d44030
+f5d44164 f5220000 f5221e3c f3dd6880 f5221e68 c0215207 f3b95580 80000000
+Call Trace:
+[<c0215207>] autofs4_wait+0x307/0x3d0
+[<c02141d3>] try_to_fill_dentry+0xf3/0x150
+[<c0214389>] autofs4_revalidate+0x159/0x170
+[<c02144e0>] autofs4_lookup+0x110/0x150
+[<c016f3f5>] __lookup_hash+0x85/0xb0
+[<c016f42a>] lookup_hash+0xa/0x10
+[<c016f483>] lookup_one_len+0x53/0x70
+[<f8851293>] stubfs_readdir+0x113/0x170 [stubfs]
+[<c0172fcb>] vfs_readdir+0x8b/0xa0
+[<c01733b3>] sys_getdents64+0x63/0xb5
+[<c010464d>] syscall_call+0x7/0xb
 
-And, as I mentioned earlier in this thread, you can find more detailed
-instructions on my people page, http://people.redhat.com/jmoyer/.
+ls            S C011B1AF     0 13050  11898                     (NOTLB)
+f1337df0 00000082 f1337e04 c011b1af 06ce3f60 00000027 00000027 00000080
+06d03f60 00000000 c721b520 00000000 d4f33800 003d0990 f1337df0 f5d44a70
+f5d44ba4 f1336000 f1337e3c f3dd6880 f1337e68 c0215207 f3b95580 80000000
+Call Trace:
+[<c0215207>] autofs4_wait+0x307/0x3d0
+[<c02141d3>] try_to_fill_dentry+0xf3/0x150
+[<c0214389>] autofs4_revalidate+0x159/0x170
+[<c016dc77>] cached_lookup+0x47/0x80
+[<c016f3ca>] __lookup_hash+0x5a/0xb0
+[<c016f42a>] lookup_hash+0xa/0x10
+[<c016f483>] lookup_one_len+0x53/0x70  
+[<f88512e3>] stubfs_readdir+0x163/0x170 [stubfs]
+[<c0172fcb>] vfs_readdir+0x8b/0xa0  
+[<c01733b3>] sys_getdents64+0x63/0xb5
+[<c010464d>] syscall_call+0x7/0xb
 
-Most notably, it also contains the steps necessary to make the syslog
-daemon actually capture the debug logs.
+automount     D 00000010     0 13052  13016                     (NOTLB)
+f3321f00 fff80000 00000007 00000010 f3321f68 c7b1cd20 00000000 f3321f34
+f3321ee8 f5e92a70 c7233520 00000000 d5304100 003d0990 c7233560 f1e31a70
+f1e31ba4 f5f59914 f5f5991c 00000296 f3321f38 c03b4cd3 f1e31a70 00000001
+Call Trace:
+[<c03b4cd3>] __down+0x83/0xe0
+[<c03b3632>] __down_failed+0xa/0x10
+[<c0171e6d>] .text.lock.namei+0xeb/0x1de
+[<c0170482>] sys_mkdir+0x52/0xd0
+[<c010464d>] syscall_call+0x7/0xb
+BUG: soft lockup detected on CPU#0!
 
--Jeff
+
+I have coded up a tentative fix. The patch releases the semaphore in
+->revalidate() function, instead of the caller of that function.  Not
+sure if this is the right fix. Tested it and verified that the deadlock
+is fixed.  But I am not sure if it opens up other bugs. Please validate.
+
+
+ fs/autofs4/root.c |   26 +++++++++++++++-----------
+ 1 files changed, 15 insertions(+), 11 deletions(-)
+
+Index: 2.6.15-rc1/fs/autofs4/root.c
+===================================================================
+--- 2.6.15-rc1.orig/fs/autofs4/root.c
++++ 2.6.15-rc1/fs/autofs4/root.c
+@@ -386,40 +386,47 @@ static int autofs4_revalidate(struct den
+ 	struct autofs_sb_info *sbi = autofs4_sbi(dir->i_sb);
+ 	int oz_mode = autofs4_oz_mode(sbi);
+ 	int flags = nd ? nd->flags : 0;
+ 	int status = 1;
+ 
++	up(&dir->i_sem);
+ 	/* Pending dentry */
+ 	if (autofs4_ispending(dentry)) {
+ 		if (!oz_mode)
+-			status = try_to_fill_dentry(dentry, dir->i_sb, sbi, flags);
+-		return status;
++			status = try_to_fill_dentry(dentry, dir->i_sb,
++					sbi, flags);
++		goto out;
+ 	}
+ 
+ 	/* Negative dentry.. invalidate if "old" */
+-	if (dentry->d_inode == NULL)
+-		return (dentry->d_time - jiffies <= AUTOFS_NEGATIVE_TIMEOUT);
++	if (dentry->d_inode == NULL) {
++		status = (dentry->d_time - jiffies <= AUTOFS_NEGATIVE_TIMEOUT);
++		goto out;
++	}
+ 
+ 	/* Check for a non-mountpoint directory with no contents */
+ 	spin_lock(&dcache_lock);
+ 	if (S_ISDIR(dentry->d_inode->i_mode) &&
+ 	    !d_mountpoint(dentry) && 
+ 	    list_empty(&dentry->d_subdirs)) {
+ 		DPRINTK("dentry=%p %.*s, emptydir",
+ 			 dentry, dentry->d_name.len, dentry->d_name.name);
+ 		spin_unlock(&dcache_lock);
+ 		if (!oz_mode)
+-			status = try_to_fill_dentry(dentry, dir->i_sb, sbi, flags);
+-		return status;
++			status = try_to_fill_dentry(dentry, dir->i_sb, sbi,
++					flags);
++		goto out;
+ 	}
+ 	spin_unlock(&dcache_lock);
+ 
+ 	/* Update the usage list */
+ 	if (!oz_mode)
+ 		autofs4_update_usage(dentry);
+ 
+-	return 1;
++out:
++	down(&dir->i_sem);
++	return status;
+ }
+ 
+ static void autofs4_dentry_release(struct dentry *de)
+ {
+ 	struct autofs_info *inf;
+@@ -485,15 +492,12 @@ static struct dentry *autofs4_lookup(str
+ 		spin_unlock(&dentry->d_lock);
+ 	}
+ 	dentry->d_fsdata = NULL;
+ 	d_add(dentry, NULL);
+ 
+-	if (dentry->d_op && dentry->d_op->d_revalidate) {
+-		up(&dir->i_sem);
++	if (dentry->d_op && dentry->d_op->d_revalidate)
+ 		(dentry->d_op->d_revalidate)(dentry, nd);
+-		down(&dir->i_sem);
+-	}
+ 
+ 	/*
+ 	 * If we are still pending, check if we had to handle
+ 	 * a signal. If so we can force a restart..
+ 	 */
