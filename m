@@ -1,11 +1,13 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs timeout behavior
-Date: Wed, 16 Nov 2005 20:56:23 +0800 (WST)
-Message-ID: <Pine.LNX.4.63.0511162049590.2593@donald.themaw.net>
-References: <Pine.LNX.4.62.0511141618530.6122@snowball.fnal.gov>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: [RFC PATCH]autofs4: hang and proposed fix
+Date: Wed, 16 Nov 2005 10:22:40 -0500
+Message-ID: <17275.20160.12805.536289@segfault.boston.redhat.com>
+References: <20051116101740.GA9551@RAM>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.62.0511141618530.6122@snowball.fnal.gov>
+In-Reply-To: <20051116101740.GA9551@RAM>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,82 +18,47 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Steven Timm <timm@fnal.gov>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: Ram Pai <linuxram@us.ibm.com>
+Cc: autofs@linux.kernel.org, linux-fsdevel@vger.kernel.org
 
-On Mon, 14 Nov 2005, Steven Timm wrote:
+==> Regarding [autofs] [RFC PATCH]autofs4: hang and proposed fix; linuxram@us.ibm.com (Ram Pai) adds:
 
-> 
-> I have a single NFS server serving approximately 200 clients.
-> It is exporting three file systems to each. (actually to a 9-bit wide
-> network subnet).
-> 
-> /home           /etc/auto.home
-> -rw,hard,tcp,timeo=15,retrans=8,intr,noatime,nodiratime,rsize=32768,wsize=32768
-> 0 0
-> /farm           /etc/auto.farm
-> -rw,hard,tcp,timeo=15,retrans=8,intr,noatime,nodiratime,rsize=32768,wsize=32768
-> 0 0
-> /fnal           /etc/auto.fnal
-> -rw,hard,tcp,timeo=15,retrans=8,intr,noatime,nodiratime,rsize=32768,wsize=32768
-> 0 0
-> 
-> 
-> First few lines of /etc/auto.home look like this:
-> 
-> ktevdb          fnpcsrv1:/export/lsi_home/ktevdb
-> jaws            fnpcsrv1:/export/lsi_home/jaws
-> glazov          fnpcsrv1:/export/lsi_home/glazov
-> jshields        fnpcsrv1:/export/lsi_home/jshields
-> seturner        fnpcsrv1:/export/lsi_home/seturner
-> 
-> there are 394 possible home directories that could be mounted but
-> on average only one or two of them are in fact mounted on any given client.
-> 
-> This machine is running Kernel 2.4.21-37.XFS, all version 3 NFS
-> across TCP.
-> 
-> We are seeing a significant number of times when the attempted
-> automount just fails.  we see "Failed to mount...." in
-> /var/log/messages in the client and nothing on the server.
-> These tend to be during times of high server load >=60 on the server.
+ram> Autofs4 assumes that its ->revalidate() function gets called with the
+ram> parent_dentry's_inode_semaphore released. This is true mostly
+ram> but not in one particular case.
 
-Might be a known bug.
+ram> Process P1  calls autofs4's ->lookup(). The lookup finds that the dentry
+ram> does not exist. It creates a dentry and adds to the cache. Releases
+ram> the parent's inode's semaphore and than calls ->revalidate().
 
-> 
-> 
-> My questions:
-> 1) what controls when an automount attempt just times out?
->    Is it variable and can it be lengthed?
+ram> Process P2 meanwhile comes in and cached_lookup() gets called. It finds
+ram> the dentry in the cache and finds ->revalidate() function exists. So
+ram> it calls ->revalidate() holding the parent's inode's semaphore.
 
-Might be the same bug.
+ram> Now the automounter daemon comes in and tries to hold the same semaphore
+ram> in order to mount. But since the semaphore is held by P2 it
+ram> goes to sleep.
 
-> 
-> 2) Does the automounter honor the fg/bg options?  (I have tried
-> it both ways and it looks like it does not.)  But what is the
-> behavior if a directory is requested and the request fails?  Is
-> there any way to specify a retry?
+ram> Process P1 and P2 continue waiting for the mount to complete and it never
+ram> happens. Deadlock.
 
-No. autofs is dependant on mount for that.
-Some versions of mount will background a failed request but I've seen 
-others behave differently but lets not go there now.
+ram> The stack of the deadlock is as follows:
 
-> 
-> 
-> Occasionally we see the export tables get confused, and then
-> automount fails with "permission denied."  exportfs -va usually
-> restores the permission so that all clients can mount, but why would
-> it get confused in the first place?
+ram> ls            S 00000000     0 13049  11954                     (NOTLB)
+ram> f5221df0 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+ram> 00000000 f5d44a70 c721b520 00000000 d4f33800 003d0990 c721b9d8 f5d44030
+ram> f5d44164 f5220000 f5221e3c f3dd6880 f5221e68 c0215207 f3b95580 80000000
+ram> Call Trace:
+ram> [<c0215207>] autofs4_wait+0x307/0x3d0
+ram> [<c02141d3>] try_to_fill_dentry+0xf3/0x150
+ram> [<c0214389>] autofs4_revalidate+0x159/0x170
+ram> [<c02144e0>] autofs4_lookup+0x110/0x150
+ram> [<c016f3f5>] __lookup_hash+0x85/0xb0
+ram> [<c016f42a>] lookup_hash+0xa/0x10
+ram> [<c016f483>] lookup_one_len+0x53/0x70
+ram> [<f8851293>] stubfs_readdir+0x113/0x170 [stubfs]
 
-Also likely a known bug.
+What's stubfs?
 
-The backgrounding of a mount has the potential to break the locking in 
-autofs which is meant to prevent (what sounds like) mtab corruption you 
-are seeing. But that's another long story as well.
-
-What versions of autofs and kernel are you running?
-Are you able to get a debug log trace if needed?
-
-Ian
+-Jeff
