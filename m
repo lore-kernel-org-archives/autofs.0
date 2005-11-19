@@ -1,75 +1,61 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [autofs] [RFC PATCH]autofs4: hang and proposed fix
-Date: Sat, 19 Nov 2005 10:52:44 +0800 (WST)
-Message-ID: <Pine.LNX.4.63.0511190947540.2069@donald.themaw.net>
-References: <20051116101740.GA9551@RAM>  <Pine.LNX.4.63.0511162009470.2593@donald.themaw.net>
-  <1132159817.5720.33.camel@localhost>  <Pine.LNX.4.63.0511170627150.3049@donald.themaw.net>
-  <1132192362.5720.163.camel@localhost>  <Pine.LNX.4.58.0511171330320.26602@wombat.indigo.net.au>
-  <437CD7D2.40003@us.ibm.com>  <Pine.LNX.4.58.0511180926400.25749@wombat.indigo.net.au>
-  <437DF12A.5050805@us.ibm.com>  <Pine.LNX.4.63.0511190025050.2602@donald.themaw.net>
-  <437E0B62.4000306@us.ibm.com> <1132340265.5720.191.camel@localhost>
- <437E34D9.4050102@us.ibm.com>
+Subject: Re: Automount ghost option
+Date: Sat, 19 Nov 2005 11:35:02 +0800 (WST)
+Message-ID: <Pine.LNX.4.63.0511191116260.2069@donald.themaw.net>
+References: <437E0F3A.2000906@free.fr>
 Mime-Version: 1.0
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <437E34D9.4050102@us.ibm.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1161258AbVKSDf1@vger.kernel.org>
+In-Reply-To: <437E0F3A.2000906@free.fr>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "William H. Taber" <wtaber@us.ibm.com>
-Cc: Ram Pai <linuxram@us.ibm.com>, autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+To: Olivier Croquette <ocroquette@free.fr>
+Cc: LKML <linux-kernel@vger.kernel.org>, autofs@linux.kernel.org
 
-On Fri, 18 Nov 2005, William H. Taber wrote:
+On Fri, 18 Nov 2005, Olivier Croquette wrote:
 
-> Ram Pai wrote:
-> > On Fri, 2005-11-18 at 09:12, William H. Taber wrote:
 > 
-> > 
-> > I think the problem is with cached_lookup(). It is the only place which
-> > calls ->revalidate() holding the parent's inode-semaphore AFAICT.
-> > 
-> > note: cached_lookup() is only called from __lookup_hash() and
-> > __lookup_hash() is always called holding the semaphore.
-> > 
-> > VFS experts agree?
-> > RP
-> > 
-> Ram,
-> Lookup_one_len calls lookup_hash and it is the callers of lookup_one_len that
-> are problematical.  Just as an example, lookup_one_len is called from
-> nfs_sillyrename which is called, among other places in the nfs_rename code.
-> In that path the parent i_sem is obtained in do_rename   in the vfs code
-> (namei.c). I would think that it would be extremely difficult to to change
-> that usage.  The alternative is to move the obtaining of the parent i_sem from
-> real_lookup to do_lookup.  We would also have to put the locking around the
-> d_revalidate call at return_reval in __link_path_walk.
->
+> I want the automount mount points to be visible even if they are not mounted.
+> 
+> It seems the "ghost" option implements that. I can find several references on
+> the internet which indicates it is available, like:
+> http://gentoo-wiki.com/HOWTO_Auto_mount_filesystems_(AUTOFS)
+
+This looks like a good description of to do it.
+
+> 
+> Nevertheless, on some recent distributions I have tested on, this option is
+> not available.
+
+For example?
+
+It is available on all recent RedHat distributions, Debian 3.1, latest 
+SuSE and although last time I looked Gentoo is a little behind on their 
+release and patches it should still work. I also recommend a fairly recent 
+2.6 kernel in order to get the latest bug fixes. I've fallen somewhat 
+behind in updating my 2.4 patches but those that are available at 
+
+http://www.kernel.org/pub/linux/daemons/autofs/v4
+
+should work adequately.
+
+> 
+> Can anyone tell me in which version of automount it is present?
+> Or is it a distribution specific patch?
+
+Preferably 4.1.4 with at least the patches autofs-4.1.4-*.patch from 
+kernel.org above applied but distributions that have a 4.1 version should 
+work.
+
+You need to be aware that some maps cannot be browsable (the terminology 
+is about to change from ghosting). For example
+
+*	host:/some/dir/&
+
+is not browsable because autofs cannot know what the map keys at startup.
+
+Basically, if the map keys cannot be known in advance they will not be 
+seen, at least immediately after startup.
  
-Perhaps we are making this altogether to complicated.
-
-I'm sure that there are good reasons for the locking being the way 
-it is and any attempt to change it is likely to be a disaster. So what 
-about solving this by defining a usage policy based on the intent of 
-the functions concerned.
-
-For example.
-
-The lookup_one_len a special use funtion to return the dentry 
-corresponding to a path element and by definition it does not follow 
-mounts or symlinks. To function correctly autofs needs to follow mounts 
-and some time soon I will be posting patches that will use the the 
-follow_link method as well.
-
-So the policy could be that if autofs revalidate is called with the 
-directory inode semaphore held it must validate the autofs dentry itself 
-and not cause a mount request be triggered. The responsibility then 
-moves to the filesystem to check if the dentry is an autofs dentry and to 
-decide if it needs to then make an unlocked revalidate call. It is easy 
-enough to check if the semaphore is held the autofs module. The 
-filesystem check is easy enough to do once the filesystem magic number is 
-moved to one of the common autofs header files.
-
-Thoughts?
-
 Ian
-
