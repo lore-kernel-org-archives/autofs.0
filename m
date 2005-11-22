@@ -1,17 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: automount never umount
-Date: Wed, 23 Nov 2005 07:27:19 +0800 (WST)
-Message-ID: <Pine.LNX.4.63.0511230719331.2069@donald.themaw.net>
-References: <4381E865.4070908@bppiac.hu>
-	<Pine.LNX.4.58.0511220822410.16196@wombat.indigo.net.au>
-	<4382E835.3020904@bppiac.hu>
-	<Pine.LNX.4.63.0511222054060.2600@donald.themaw.net>
-	<438344F7.8020503@bppiac.hu>
-	<17283.19512.49399.338448@segfault.boston.redhat.com>
-	<43838CA9.40105@bppiac.hu>
+Subject: Re: stat of /users/no-such-user takes 15 seconds
+Date: Wed, 23 Nov 2005 07:34:57 +0800 (WST)
+Message-ID: <Pine.LNX.4.63.0511230728340.2069@donald.themaw.net>
+References: <1132670358.4039.37.camel@brilong-lnx>
+	<Pine.LNX.4.63.0511222329100.9982@donald.themaw.net>
+	<17283.17854.189791.135878@segfault.boston.redhat.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <43838CA9.40105@bppiac.hu>
+In-Reply-To: <17283.17854.189791.135878@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,59 +20,66 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Farkas Levente <lfarkas@bppiac.hu>
+To: Jeff Moyer <jmoyer@redhat.com>
 Cc: autofs@linux.kernel.org
 
-On Tue, 22 Nov 2005, Farkas Levente wrote:
+On Tue, 22 Nov 2005, Jeff Moyer wrote:
 
-> Jeff Moyer wrote:
-> > ==> Regarding Re: [autofs] automount never umount; Farkas Levente
-> > <lfarkas@bppiac.hu> adds:
-> > 
-> > lfarkas> Ian Kent wrote:
-> > 
-> > > > That wasn't what I had in mind.
-> > > > 
-> > > > I was thinking more along the lines of the definition of what constitues
-> > > > "use". For example any access, such as a directory listing, will update
-> > > > the "last used" value whereas if I change the definition of "last used"
-> > > > to "currently in use" then to be busy there would have to be an open
-> > > > file or a process working directory set. This may solve the GUI scanning
-> > > > problem we see but wouldn't solve immediate remounting that occurs due
-> > > > to the scanning as well.
-> > 
-> > 
-> > lfarkas> that would be useful and may be solve our problem. without it the
-> > lfarkas> current implementation is not usable to umount. think about just
-> > lfarkas> the daily process like slocate database update, tripwire and may
-> > lfarkas> be others.
-> > 
-> > Things that run infrequently are not at fault, here.  I'd really like to
-> > know precisely what is going on, in your case.
-> > 
-> > Ian, I think it would be easy enough to instrument the autofs4 module.
-> > Simple things, like figuring out which process is triggerring the lookup.
+> ==> Regarding Re: [autofs] stat of /users/no-such-user takes 15 seconds; Ian Kent <raven@themaw.net> adds:
 > 
-> ps axu can help you?
-
-Not really in our case.
-
+> raven> On Tue, 22 Nov 2005, Brian Long wrote:
+> >> I have an auto.master deployed to thousands of hosts and it looks like
+> >> this:
+> >> 
+> >> /misc /etc/auto.misc --timeout=60 /auto /etc/auto.indirect
+> >> rsize=32768,wsize=32768,tcp /users auto_home
+> >> rw,hard,intr,rsize=32768,wsize=32768,tcp
+> >> 
+> >> As you can see, /users comes from NIS auto.home map.  In our case,
+> >> auto.home contains over 34,000 entries.  I've noticed in RHEL 3 U5 and
+> >> beyond (autofs-4.1.3-130), trying to stat (ls) /users/no-such-user takes
+> >> roughly 12-15 seconds.  In RHEL 3 U3 (autofs-4.1.3-12), it returns
+> >> immediately.  This is a regression in my opinion.
 > 
-> > We can either log it, or just keep a ring buffer.
+> raven> Bummer. I thought that update code was OK.
 > 
-> i run gnome and nothing special, even if only one terminal and netscape is
-> running the autofs never umount.
+> >> After looking at tcpdump data, it appears automounter is downloading the
+> >> entire auto.home map when it fails to lookup "no-such-user".  This
+> >> results in a > 700KB transfer from the NIS server :(
+> 
+> raven> This is exactly the sort of problem I was concerned about when
+> raven> people asked for periodic reload of maps. I didn't do that and
+> raven> clearly I was right.
+> 
+> raven> Having said that it possibly shouldn't be doing this either. I'll
+> raven> have to check the lookup code to see what I'm doing.
+> 
+> raven> Probably I'm signaling a re-load because, since the entry is now
+> raven> missing, the map may need to be updated.
+> 
+> raven> I hasten to point out there was quite a bit of demand for having "up
+> raven> to date maps"! Having a HUP signal to force a re-load wasn't enough.
+> 
+> raven> Given your situation and the fact that we need to know about
+> raven> changes, what do you think the semantics of handling map updates
+> raven> should be?
+> 
+> raven> Seems to me there are only two options when an out of date map entry
+> raven> is encountered. Update, remove or add the given entry and accept
+> raven> there may be more you don't know about or re-read the whole map. Now
+> raven> even the simple addition and removal is not simple as the lookup is
+> raven> done in a subprocess so somehow the process leader needs to be told
+> raven> what to get!
+> 
+> Ian, the point here is that the map key isn't out of date.  We don't detect
+> that the entry didn't exist in the first place.  See my other post to this
+> thread, where I've attached a patch.  Comments on that are, of course,
+> encouraged.
 
-I spent quite a bit of time on this very same issue some time ago.
-I even subscribed to the list but the job was to big for the time I had.
-The folks there agreed that that code was in need of work.
+Think I get it now.
 
-In the end I used a work around of setting the mode of the file where 
-gnome keeps its files list to 000 so no entries could be added. Didn't 
-seem to worry gnome and prevented the timeout/remount cycle.
-
-I'll poke around and see if I can find the details.
-
-As far as the desktop goes this is probably our biggest issue.
+Your point is that the case where the map lookup to the server fails to 
+find the key and the entry doesn't exist in the local entry database is 
+not handled, yes.
 
 Ian
