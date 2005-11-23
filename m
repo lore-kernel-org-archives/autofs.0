@@ -1,94 +1,78 @@
-From: Farkas Levente <lfarkas@bppiac.hu>
-Subject: Re: automount never umount
-Date: Wed, 23 Nov 2005 18:13:56 +0100
-Message-ID: <4384A354.9040502@bppiac.hu>
-References: <4381E865.4070908@bppiac.hu>	<Pine.LNX.4.58.0511220822410.16196@wombat.indigo.net.au>	<4382E835.3020904@bppiac.hu>	<Pine.LNX.4.63.0511222054060.2600@donald.themaw.net>	<438344F7.8020503@bppiac.hu>	<17283.19512.49399.338448@segfault.boston.redhat.com>	<43838CA9.40105@bppiac.hu>	<17283.46783.748916.772469@segfault.boston.redhat.com>	<438435EF.6080102@bppiac.hu>	<Pine.LNX.4.63.0511232105320.3200@donald.themaw.net>	<43846C1C.3050305@bppiac.hu>	<17284.35467.301318.255602@segfault.boston.redhat.com>	<Pine.LNX.4.63.0511232334300.3253@donald.themaw.net>
-	<17284.40834.559604.943290@segfault.boston.redhat.com>
+From: "William H. Taber" <wtaber@us.ibm.com>
+Subject: Re: [autofs] [RFC PATCH]autofs4: hang and proposed fix
+Date: Wed, 23 Nov 2005 13:47:02 -0500
+Message-ID: <4384B926.5030104@us.ibm.com>
+References: <20051116101740.GA9551@RAM>  <Pine.LNX.4.63.0511162009470.2593@donald.themaw.net>  <1132159817.5720.33.camel@localhost>  <Pine.LNX.4.63.0511170627150.3049@donald.themaw.net>  <1132192362.5720.163.camel@localhost>  <Pine.LNX.4.58.0511171330320.26602@wombat.indigo.net.au>  <437CD7D2.40003@us.ibm.com>  <Pine.LNX.4.58.0511180926400.25749@wombat.indigo.net.au>  <437DF12A.5050805@us.ibm.com>  <Pine.LNX.4.63.0511190025050.2602@donald.themaw.net>  <437E0B62.4000306@us.ibm.com> <1132340265.5720.191.camel@localhost> <437E34D9.4050102@us.ibm.com> <Pine.LNX.4.63.0511190947540.2069@donald.themaw.net> <4381F873.2010408@us.ibm.com> <Pine.LNX.4.58.0511220724250.16196@wombat.indigo.net.au> <438359FA.4060105@us.ibm.com> <Pine.LNX.4.63.0511232118220.3200@donald.themaw.net> <43849C11.6000302@us.ibm.com> <Pine.LNX.4.63.0511240130510.2072@donald.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <17284.40834.559604.943290@segfault.boston.redhat.com>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.63.0511240130510.2072@donald.themaw.net>
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://hera.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: jmoyer@redhat.com
-Cc: autofs@linux.kernel.org, Ian Kent <raven@themaw.net>
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: Ian Kent <raven@themaw.net>
+Cc: Ram Pai <linuxram@us.ibm.com>, autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-Jeff Moyer wrote:
-> ==> Regarding Re: [autofs] automount never umount; Ian Kent <raven@themaw.net> adds:
-> 
-> raven> On Wed, 23 Nov 2005, Jeff Moyer wrote:
-> 
->>>==> Regarding Re: [autofs] automount never umount; Farkas Levente
->>><lfarkas@bppiac.hu> adds:
->>>
-> 
-> lfarkas> Ian Kent wrote:
-> 
->>>>>On Wed, 23 Nov 2005, Farkas Levente wrote: >>> Jeff Moyer wrote:
->>>
->>>output of dmesg or /var/log/daemon? there is nothing >>> in dmesg.  i'm
->>>running this kernel currently and mount nfs and smbfs >>> servers.
->>>
->>>>>>---------------------------
->>>>>>root 1974 0.0 0.0 1788 736 ?  Ss 10:05 0:00 /usr/sbin/automount >>>
->>>
->>>--timeout=60 --debug /smb program /etc/auto.smb root 1976 0.0 0.0 1788
->>>
->>>>>>736 ?  Ss 10:05 0:00 /usr/sbin/automount --timeout=60 --debug /net
->>>>>>program /etc/auto.net
->>>>>>---------------------------
->>>>>>how long should i wait? as the timeout is 1 minute, they should have
->>>
->>>to >>> be umounted, but not. here is the relevant part of daemon log
->>>which >>> don't tell me too much:-(
->>>
->>>>>
->>>>>You've waited long enough. Your timeout was 60 seconds.
->>>>>
->>>>>This is really strange. We didn't catch any activity from the patch
->>>
->>>so I >> don't know why it isn't expiring. Come to think of it we we
->>>should have >> at least got some kernel messages?
->>>
->>>>>What version was the kernel you originally saw this on?
->>>
-> lfarkas> # rpm -q kernel kernel-2.6.14-1.1637_FC4
-> lfarkas> kernel-2.6.14-1.1641_FC4.jmoyertest.1
-> 
->>>
->>>>>Jeff, I'm wondering if this is a regression from the latest patch.
->>>
->>>Was >> that in the above kernel?
->>>
->>>>>Farkas, if your willing the next step in this process is likely to >>
->>>
->>>generate even more output but hopefully will give us more info.
->>>
-> 
-> lfarkas> what should i do?
-> 
->>>Well, I shouldn't be rolling kernels so late in the day.  I didn't even
->>>apply the patch!  I'll roll another for you to try.  ;)
-> 
-> 
-> raven> The interesting thing about the log is that there was no timeout and
-> raven> instant remount activity which is characteristic of the GUI scaning
-> raven> problem. AFAICT the reason that this happens is because the GUI
-> raven> scaning springs into life when it sees the umount activity.
-> 
-> Good point.  Can we get the output of lsof and fuser -v?
+Ian Kent wrote:
 
-a full lsof ? fuser -v for what?
+>>I am a little unclear about this.  Which directory are you talking about?  The
+>>mount-over directory or the directory being mounted?  My picture of things
+>>(and I haven't verified this by doing anything mundane like reading the code)
+>>is that There is a directory (such as /net ) which is of type autofs and as
+>>needed new directories of type autofs are created under it for the various
+>>hosts/filenames.  Over these subdirectories (the mount-over directories) get
+>>mounted the remote filesystems, usually of type NFS.  Is this a correct
+>>understanding?
+> 
+> 
+> Yep. That's an indirect mount.
 
+OK.  Got it.
+> 
+> The directories I'm refering to are the ones created inside the autofs 
+> mount point /net or other autofs mount point. Creating the directories 
+> makes them browsable without necessarily mounting them (as long as the 
+> module knows when to trigger a mount request). This lazyness is what 
+> causes all the fus.
+> 
+> 
+>>>Case 2 needs special attention. To achieve this I would need to have two
+>>>types of unhashed dentry, valid and invalid (perhaps because of a ENOENT
+>>>return from the daemon on mount).
+>>>
+>>
+>>If my understanding above is correct, I don't think you need to hide the
+>>dentry for the autofs mount-over directory.  If there is an active mount, then
+>>the dentries d_mounted flag will be set and the normal mountpoint traversal
+>>will work.  If nothing is mounted here then the autofs mount-over directory
+>>lookup functions will be called.  This is where the actual mount request gets
+>>triggered.  The dentry created here should not be added to the dentry cache
+>>until the dentry is actually ready to use.  It has to be kept in a way that
+>>can be found by subsequent calls to lookup in case there are multiple requests
+>>for it. The trick is that the first lookup to succeed has to be the one for
+>>the mount request.  But once it is on the dentry hash chain, revalidate has to
+>>be careful because if the revalidate fails then the dentry will be
+>>invalidated.  And if revalidate succeeds then everything needs to be setup so
+>>that folow_down will work.  Hmm.  I will have to think about this some more.
+> 
+> 
+> That was how things used to work but late mounting is what's needed to 
+> provide the function expected of an automounter when people start using 
+> this in an enterprise environment. Basically autofs tells lies until it's 
+> forced to tell the truth.
+> 
+> Point is people expect to be able to see the mount points without causing 
+> them to mount until they actually try and access something inside the 
+> mount.
+> 
+> Hence "browseable".
+> 
+OK.  This is a whole other kettle of fish.
+This means that readdir lies and reports about the existance of 
+directories but doesn't mount them until someone is actually foolish 
+enough to include them in a pathname.  That's the problem.  Too many 
+fools. :^)
 
--- 
-  Levente                               "Si vis pacem para bellum!"
+And thanks for the pointer to the paper.
+
+Will
