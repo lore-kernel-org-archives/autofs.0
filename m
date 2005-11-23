@@ -1,7 +1,7 @@
-From: Ian Kent <raven@themaw.net>
+From: Farkas Levente <lfarkas@bppiac.hu>
 Subject: Re: automount never umount
-Date: Wed, 23 Nov 2005 21:13:40 +0800 (WST)
-Message-ID: <Pine.LNX.4.63.0511232105320.3200@donald.themaw.net>
+Date: Wed, 23 Nov 2005 14:18:20 +0100
+Message-ID: <43846C1C.3050305@bppiac.hu>
 References: <4381E865.4070908@bppiac.hu>
 	<Pine.LNX.4.58.0511220822410.16196@wombat.indigo.net.au>
 	<4382E835.3020904@bppiac.hu>
@@ -11,9 +11,11 @@ References: <4381E865.4070908@bppiac.hu>
 	<43838CA9.40105@bppiac.hu>
 	<17283.46783.748916.772469@segfault.boston.redhat.com>
 	<438435EF.6080102@bppiac.hu>
+	<Pine.LNX.4.63.0511232105320.3200@donald.themaw.net>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <438435EF.6080102@bppiac.hu>
+In-Reply-To: <Pine.LNX.4.63.0511232105320.3200@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,47 +26,47 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Farkas Levente <lfarkas@bppiac.hu>
+Content-Type: text/plain; charset="us-ascii"
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-On Wed, 23 Nov 2005, Farkas Levente wrote:
-
-> Jeff Moyer wrote:
-> > lfarkas> i'll happy to test it.
-> > 
-> > Try the kernel rpm located here:
-> > 
-> > 	http://people.redhat.com/jmoyer/farkas/kernel-2.6.14-1.1641_FC4.jmoyertest.1.i686.rpm
-> > 
-> > It has the potential to generate a good bit of output.  I've attached the
-> > patch that is incorporated there.  You'll want to post the output of dmesg
-> > to this list when you get it.
+Ian Kent wrote:
+> On Wed, 23 Nov 2005, Farkas Levente wrote:
+>>Jeff Moyer wrote:
+>>output of dmesg or /var/log/daemon? there is nothing in dmesg.
+>>i'm running this kernel currently and mount nfs and smbfs servers.
+>>---------------------------
+>>root      1974  0.0  0.0   1788   736 ?        Ss   10:05   0:00
+>>/usr/sbin/automount --timeout=60 --debug /smb program /etc/auto.smb
+>>root      1976  0.0  0.0   1788   736 ?        Ss   10:05   0:00
+>>/usr/sbin/automount --timeout=60 --debug /net program /etc/auto.net
+>>---------------------------
+>>how long should i wait? as the timeout is 1 minute, they should have to
+>>be umounted, but not. here is the relevant part of daemon log which
+>>don't tell me too much:-(
 > 
-> output of dmesg or /var/log/daemon? there is nothing in dmesg.
-> i'm running this kernel currently and mount nfs and smbfs servers.
-> ---------------------------
-> root      1974  0.0  0.0   1788   736 ?        Ss   10:05   0:00
-> /usr/sbin/automount --timeout=60 --debug /smb program /etc/auto.smb
-> root      1976  0.0  0.0   1788   736 ?        Ss   10:05   0:00
-> /usr/sbin/automount --timeout=60 --debug /net program /etc/auto.net
-> ---------------------------
-> how long should i wait? as the timeout is 1 minute, they should have to
-> be umounted, but not. here is the relevant part of daemon log which
-> don't tell me too much:-(
+> 
+> You've waited long enough. Your timeout was 60 seconds.
+> 
+> This is really strange. We didn't catch any activity from the patch so I 
+> don't know why it isn't expiring. Come to think of it we we should have 
+> at least got some kernel messages?
+> 
+> What version was the kernel you originally saw this on?
 
-You've waited long enough. Your timeout was 60 seconds.
+# rpm -q kernel
+kernel-2.6.14-1.1637_FC4
+kernel-2.6.14-1.1641_FC4.jmoyertest.1
 
-This is really strange. We didn't catch any activity from the patch so I 
-don't know why it isn't expiring. Come to think of it we we should have 
-at least got some kernel messages?
 
-What version was the kernel you originally saw this on?
-Jeff, I'm wondering if this is a regression from the latest patch.
-Was that in the above kernel?
+> Jeff, I'm wondering if this is a regression from the latest patch.
+> Was that in the above kernel?
+> 
+> Farkas, if your willing the next step in this process is likely to 
+> generate even more output but hopefully will give us more info.
 
-Farkas, if your willing the next step in this process is likely to 
-generate even more output but hopefully will give us more info.
+what should i do?
 
-Ian
+
+-- 
+  Levente                               "Si vis pacem para bellum!"
