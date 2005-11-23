@@ -1,15 +1,19 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: stat of /users/no-such-user takes 15 seconds
-Date: Wed, 23 Nov 2005 09:33:44 -0500 (EST)
-Message-ID: <Pine.LNX.4.58.0511230927160.26458@wombat.indigo.net.au>
-References: <1132670358.4039.37.camel@brilong-lnx>
-	<17283.15738.978933.591442@segfault.boston.redhat.com>
-	<1132676478.4039.57.camel@brilong-lnx>
-	<Pine.LNX.4.63.0511230739130.2069@donald.themaw.net>
-	<17283.46598.750040.812177@segfault.boston.redhat.com>
+Subject: Re: automount never umount
+Date: Wed, 23 Nov 2005 21:13:40 +0800 (WST)
+Message-ID: <Pine.LNX.4.63.0511232105320.3200@donald.themaw.net>
+References: <4381E865.4070908@bppiac.hu>
+	<Pine.LNX.4.58.0511220822410.16196@wombat.indigo.net.au>
+	<4382E835.3020904@bppiac.hu>
+	<Pine.LNX.4.63.0511222054060.2600@donald.themaw.net>
+	<438344F7.8020503@bppiac.hu>
+	<17283.19512.49399.338448@segfault.boston.redhat.com>
+	<43838CA9.40105@bppiac.hu>
+	<17283.46783.748916.772469@segfault.boston.redhat.com>
+	<438435EF.6080102@bppiac.hu>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <17283.46598.750040.812177@segfault.boston.redhat.com>
+In-Reply-To: <438435EF.6080102@bppiac.hu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,44 +26,45 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jeff Moyer <jmoyer@redhat.com>
+To: Farkas Levente <lfarkas@bppiac.hu>
 Cc: autofs@linux.kernel.org
 
-On Tue, 22 Nov 2005, Jeff Moyer wrote:
+On Wed, 23 Nov 2005, Farkas Levente wrote:
 
-> ==> Regarding Re: [autofs] stat of /users/no-such-user takes 15 seconds; Ian Kent <raven@themaw.net> adds:
+> Jeff Moyer wrote:
+> > lfarkas> i'll happy to test it.
+> > 
+> > Try the kernel rpm located here:
+> > 
+> > 	http://people.redhat.com/jmoyer/farkas/kernel-2.6.14-1.1641_FC4.jmoyertest.1.i686.rpm
+> > 
+> > It has the potential to generate a good bit of output.  I've attached the
+> > patch that is incorporated there.  You'll want to post the output of dmesg
+> > to this list when you get it.
 > 
-> raven> On Tue, 22 Nov 2005, Brian Long wrote:
-> >> On Tue, 2005-11-22 at 10:47 -0500, Jeff Moyer wrote:
-> >> 
-> >> > This is likely a side-effect of the cache expiry code.  Try this patch
-> >> on > for size.
-> >> 
-> >> I took the SRPM from autofs-4.1.3-154 (RHEL 3 U6) and applied your
-> >> patch.  I installed this RPM on a test host, rebooted the host and ls
-> >> /users/nosuchuser came back immediately.
-> >> 
-> >> Is this patch something that would be accepted upstream Ian?  Jeff, any
-> >> chance this patch can be put into RHEL 3 U7 and RHEL 4 U3?  I know it's
-> >> last-minute, but I really need this fixed (and supported by Red Hat).
-> 
-> raven> It's never a problem including this type of fix once we've decided
-> raven> the root cause which is happening now. And then this also needs to
-> raven> be done for the LDAP lookup module and probably best to do same for
-> raven> file lookup module and tested .....
-> 
-> raven> The real problem for me is time and keeping track of the bug fixes
-> raven> for the different autofs versions and which patches have been
-> raven> applied while there in my queue for the next version.
-> 
-> And this is important.  Perhaps we should limit the bug reports here to
-> those reported on the upstream variant of autofs, currently 4.1.4 (and
-> potentially with some patches from your ftp site).
+> output of dmesg or /var/log/daemon? there is nothing in dmesg.
+> i'm running this kernel currently and mount nfs and smbfs servers.
+> ---------------------------
+> root      1974  0.0  0.0   1788   736 ?        Ss   10:05   0:00
+> /usr/sbin/automount --timeout=60 --debug /smb program /etc/auto.smb
+> root      1976  0.0  0.0   1788   736 ?        Ss   10:05   0:00
+> /usr/sbin/automount --timeout=60 --debug /net program /etc/auto.net
+> ---------------------------
+> how long should i wait? as the timeout is 1 minute, they should have to
+> be umounted, but not. here is the relevant part of daemon log which
+> don't tell me too much:-(
 
-Something like that would be good, however people will likely still post 
-and it would be poor relations to turn them down.
+You've waited long enough. Your timeout was 60 seconds.
 
-The understanding that here fixes are always going to be for the current 
-version and that issues with previous versions are discussion only.
+This is really strange. We didn't catch any activity from the patch so I 
+don't know why it isn't expiring. Come to think of it we we should have 
+at least got some kernel messages?
+
+What version was the kernel you originally saw this on?
+Jeff, I'm wondering if this is a regression from the latest patch.
+Was that in the above kernel?
+
+Farkas, if your willing the next step in this process is likely to 
+generate even more output but hopefully will give us more info.
 
 Ian
