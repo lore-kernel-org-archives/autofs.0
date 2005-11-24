@@ -1,27 +1,10 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: automount never umount
-Date: Thu, 24 Nov 2005 20:10:20 +0800 (WST)
-Message-ID: <Pine.LNX.4.63.0511242003250.2069@donald.themaw.net>
-References: <4381E865.4070908@bppiac.hu>
-	<Pine.LNX.4.58.0511220822410.16196@wombat.indigo.net.au>
-	<4382E835.3020904@bppiac.hu>
-	<Pine.LNX.4.63.0511222054060.2600@donald.themaw.net>
-	<438344F7.8020503@bppiac.hu>
-	<17283.19512.49399.338448@segfault.boston.redhat.com>
-	<43838CA9.40105@bppiac.hu>
-	<17283.46783.748916.772469@segfault.boston.redhat.com>
-	<438435EF.6080102@bppiac.hu>
-	<Pine.LNX.4.63.0511232105320.3200@donald.themaw.net>
-	<43846C1C.3050305@bppiac.hu>
-	<17284.35467.301318.255602@segfault.boston.redhat.com>
-	<Pine.LNX.4.63.0511232334300.3253@donald.themaw.net>
-	<17284.40834.559604.943290@segfault.boston.redhat.com>
-	<4384A354.9040502@bppiac.hu>
-	<17284.41971.660257.356263@segfault.boston.redhat.com>
-	<43859055.3020508@bppiac.hu>
+From: Farkas Levente <lfarkas@bppiac.hu>
+Subject: cryptsetup with automount
+Date: Thu, 24 Nov 2005 15:35:30 +0100
+Message-ID: <4385CFB2.5070908@bppiac.hu>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <43859055.3020508@bppiac.hu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -32,45 +15,72 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Farkas Levente <lfarkas@bppiac.hu>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: autofs@linux.kernel.org
 
-On Thu, 24 Nov 2005, Farkas Levente wrote:
+hi,
+may be it seems to be offtopic, but first i have to describe the problem
+or just jump to the QUESTION.
+recently i try to use encrypted filesystem on linux. now i'd not like
+into the detail, but it seems currently the best solution is LUKS on
+dm-crypt (http://luks.endorphin.org/dm-crypt). the whole thing is well
+documented:
+http://www.flyn.org/easycrypto/easycrypto.html
+http://www.saout.de/tikiwiki/tiki-index.php?page=EncryptedDeviceUsingLUKS
+and working for block device and file container.
+the only problem you always need to be root:-(
+what i would like to do, setup everything as root (create luks partition
+is a file in this way eg):
+--------------------------------
+dd if=/dev/urandom of=/home/lfarkas/.private bs=1M count=2048
+losetup /dev/loop0 /home/lfarkas/.private
+cryptsetup luksFormat /dev/loop0
+cryptsetup luksOpen /dev/loop0 private
+mkfs.ext3 /dev/mapper/private
+mount /dev/mapper/private /home/lfarkas/private
+umount /home/lfarkas/private
+cryptsetup luksClose private
+losetup -d /dev/loop0
+--------------------------------
+and after then i'd like to allow user lfarkas to mount his own file and
+use it. ie:
+--------------------------------
+losetup /dev/loop0 /home/lfarkas/.private
+cryptsetup luksOpen /dev/loop0 private
+mount /dev/mapper/private /home/lfarkas/private
+umount /home/lfarkas/private
+cryptsetup luksClose private
+losetup -d /dev/loop0
+--------------------------------
+and here comes the problems:
+- losetup can used only by root,
+- cryptsetup luksOpen/luksClose can used only by root,
+- there is a modified mount at :
+http://people.redhat.com/kzak/util-linux-cryptsetup/
+which should have to allow this with:
+mount /home/lfarkas/.private /home/lfarkas/private -t ext3 -o crypt,loop
+it always give me:
+--------------------------------
+mount: wrong fs type, bad option, bad superblock on /dev/loop0,
+       missing codepage or other error
+       In some cases useful info is found in syslog - try
+       dmesg | tail  or so
+--------------------------------
+while at the and of dmesg:
+--------------------------------
+VFS: Can't find ext3 filesystem on dev loop0.
+--------------------------------
 
-> Jeff Moyer wrote:
-> > lfarkas> a full lsof ? fuser -v for what?
-> > 
-> > For the mount points in question.  I guess something like:
-> > 
-> > fuser -v -m <automountpoint>
-> > 
-> > lsof +D <automountpoint>
-> 
-> ok now i use only nfs and no smbfs, uprgade to
-> kernel-2.6.14-1.1641_FC4.jmoyertest.2 but it doesn't show me any
-> difference. so here is the current daemon log and that's all:-(
-> -------------------------------
-> [root@garfield ~]# fuser -v -m /net/
-> 
->                      USER        PID ACCESS COMMAND
-> /net/                root       1919 f....  automount
-> [root@garfield ~]# lsof +D /net/
-> COMMAND    PID USER   FD   TYPE DEVICE SIZE NODE NAME
-> automount 1919 root    5r   DIR   0,20    0 5471 /net/
-> -------------------------------
-> new tips?
+================== QUESTION ====================
+so what comes into my mind, may be i can use autofs. can i define some
+scripts which are run:
+- before the mount
+- after the umount
+i can use program map and run losetup and cryptsetup luksOpen in it (can
+i do so?) and this run by the kernel so run as root. but how can i give
+the password of key file in this case? and is there any way to define
+post umount script?
+yours.
 
-These's still no printk output?
-
-So no explanation of what is wrong.
-
-Jeff we could enable DEBUG in the kernel module.
-What do you think.
-
-If it would be better I could take the source from the kernel you have and 
-put together a tarball. Farkas could then compile and install it so that 
-the original module can restored with a "make uninstall" when we are done.
-
-Ian
+-- 
+  Levente                               "Si vis pacem para bellum!"
