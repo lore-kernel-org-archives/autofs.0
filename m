@@ -1,11 +1,17 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs-4.1.3 not working properly
-Date: Fri, 25 Nov 2005 13:47:34 -0500 (EST)
-Message-ID: <Pine.LNX.4.58.0511251345540.8746@wombat.indigo.net.au>
-References: <43861466.2030706@cchmc.org>
+From: thorild@Update.UU.SE (Thorild Selen)
+Subject: Re: stat of /users/no-such-user takes 15 seconds
+Date: Fri, 25 Nov 2005 19:01:51 +0100
+Message-ID: <17287.20879.104271.43152@Psilocybe.Update.UU.SE>
+References: <1132670358.4039.37.camel@brilong-lnx>
+	<1132674350.4039.52.camel@brilong-lnx>
+	<Pine.LNX.4.63.0511222351130.9982@donald.themaw.net>
+	<Pine.LNX.4.63.0511231359220.20045@simba.math.ucla.edu>
+	<x3kiruhbkzh.fsf@Psilocybe.Update.UU.SE>
+	<Pine.LNX.4.58.0511251021100.3517@wombat.indigo.net.au>
 Mime-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <43861466.2030706@cchmc.org>
+In-Reply-To: <Pine.LNX.4.58.0511251021100.3517@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,37 +22,48 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Prakash Velayutham <prakash.velayutham@cchmc.org>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+Content-Type: text/plain; charset="iso-8859-1"
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org, Thorild Selen <thorild@Update.UU.SE>
 
-On Thu, 24 Nov 2005, Prakash Velayutham wrote:
+Ian Kent writes:
+ > But, at this stage, autofs isn't going to be listening it's going to b=
+e=20
+ > asking?
 
-> Hi,
-> 
-> I am new to this list, so please forgive my ignorances.
-> I had a SuSE Pro 9.0 system running autofs (v3) running earlier. The 
-> autofs itself did not have any issues at all until I decided to upgrade 
-> the system to SuSE 9.3. It was a clean install, and autofs4-4.1.3 became 
-> the default kernel autofs module. My autofs master map comes from a 
-> OpenLDAP server and it contains 3 different mount maps.
-> /users (LDAP map)
-> /protein/users (LDAP map)
-> /import/users (LDAP map)
-> I also have a file-based map in this server (/export/users).
-> 
-> Recently I was trying to move a user's home dir from server1 to server2. 
-> After moving his home dir and making the relevant changes to his LDAP 
-> entry (homeDirectory attribute), I tried to restart autofs in the 
-> above-mentioned server. The server already had several users logged in 
-> under /protein/users. Though the restart did not complain, I noticed 
-> that autofs status showed "Configured mount points" correctly and 
-> removed the currently mounted mount points from "Active mount points". 
-> Is there a reason why? Also strangely the ownerships of the previously 
-> mounted dirs had been changed to root:root.
+LCUP provides a syncOnly mode if you don't want to listen persistently
+but instead occasionally ask for changes. If I've understood it
+correctly, it would work basically like this:
 
-I'm not sure what is not working or what has been broken.
-What is the actual problem and symptom?
+ 1. The automounter downloads a table from the LDAP server, attaching
+    a Sync Request control (with no synchronisation cookie) to the
+    search request.
 
-Ian
+ 2. The LDAP server returns the table, together with a synchronisation
+    cookie.
+
+ 3. Later, the automounter may ask the server: "What changes have been
+    made to this table since you handed out this synchronisation
+    cookie?" (Yes, I know, there is no such thing as a table from the
+    LDAP server's point of view, but you get the point.) The server
+    will then tell the client about any changes since then, including
+    added/deleted entries, and return a new synchronisation cookie to
+    be used in the next sync request. Repeat each time we want to
+    check for modifications.
+
+    NOTE: I believe the server is not required to keep this
+    synchronisation state around. The server may refuse, in which case
+    we go back to 1. and download the table from scratch.
+
+
+The advantage with this would be that the automounter can keep its
+tables perfectly up to date without having to retrieve the tables in
+their entirety over and over again.
+
+(Alternatively, LCUP has a persistent mode where you constantly listen
+for changes instead of requesting them when required. That would
+probably not scale as well as using the syncOnly mode.)
+
+
+Thorild Sel=E9n
+Datorf=F6reningen Update / Update Computer Club, Uppsala, SE
