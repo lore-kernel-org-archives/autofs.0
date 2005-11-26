@@ -1,17 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: stat of /users/no-such-user takes 15 seconds
-Date: Sat, 26 Nov 2005 09:40:25 +0800 (WST)
-Message-ID: <Pine.LNX.4.63.0511260937300.2070@donald.themaw.net>
-References: <1132670358.4039.37.camel@brilong-lnx>
-	<1132674350.4039.52.camel@brilong-lnx>
-	<Pine.LNX.4.63.0511222351130.9982@donald.themaw.net>
-	<Pine.LNX.4.63.0511231359220.20045@simba.math.ucla.edu>
-	<x3kiruhbkzh.fsf@Psilocybe.Update.UU.SE>
-	<Pine.LNX.4.58.0511251021100.3517@wombat.indigo.net.au>
-	<17287.20879.104271.43152@Psilocybe.Update.UU.SE>
+From: "Prakash Velayutham" <Prakash.Velayutham@cchmc.org>
+Subject: Re: autofs-4.1.3 not working properly
+Date: Sat, 26 Nov 2005 10:20:52 -0500
+Message-ID: <s388370e.055@n6mcgw16.cchmc.org>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <17287.20879.104271.43152@Psilocybe.Update.UU.SE>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,27 +16,55 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Thorild Selen <thorild@Update.UU.SE>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: autofs@linux.kernel.org
+Cc: raven@themaw.net
 
-On Fri, 25 Nov 2005, Thorild Selen wrote:
+>>> Ian Kent <raven@themaw.net> 11/25/05 1:47 PM >>>
+On Thu, 24 Nov 2005, Prakash Velayutham wrote:
 
-Thanks for this info.
-
-> Ian Kent writes:
->  > But, at this stage, autofs isn't going to be listening it's going to be 
->  > asking?
+> Hi,
 > 
-> LCUP provides a syncOnly mode if you don't want to listen persistently
-> but instead occasionally ask for changes. If I've understood it
-> correctly, it would work basically like this:
+> I am new to this list, so please forgive my ignorances.
+> I had a SuSE Pro 9.0 system running autofs (v3) running earlier. The 
+> autofs itself did not have any issues at all until I decided to
+upgrade 
+> the system to SuSE 9.3. It was a clean install, and autofs4-4.1.3
+became 
+> the default kernel autofs module. My autofs master map comes from a 
+> OpenLDAP server and it contains 3 different mount maps.
+> /users (LDAP map)
+> /protein/users (LDAP map)
+> /import/users (LDAP map)
+> I also have a file-based map in this server (/export/users).
+> 
+> Recently I was trying to move a user's home dir from server1 to
+server2. 
+> After moving his home dir and making the relevant changes to his LDAP 
+> entry (homeDirectory attribute), I tried to restart autofs in the 
+> above-mentioned server. The server already had several users logged in
 
-OK. I see.
+> under /protein/users. Though the restart did not complain, I noticed 
+> that autofs status showed "Configured mount points" correctly and 
+> removed the currently mounted mount points from "Active mount points".
 
-I'll investigate. I can't say when I'll get to this as I've got a bunch of 
-stuff that just keeps building up while I'm working on missing basic 
-features.
+> Is there a reason why? Also strangely the ownerships of the previously
+
+> mounted dirs had been changed to root:root.
+
+I'm not sure what is not working or what has been broken.
+What is the actual problem and symptom?
 
 Ian
+
+Thanks Ian for a reply. What if I restart autofs when a user whose home
+dir is mounted through autofs is already logged into the system (and
+hence at least one of the automount entries is being used)? What will
+the system do in that case?
+
+And also if I change the ldap attribute "homeDirectory" for a user, do I
+have to restart autofs in a system for that change to be seen. Because I
+sometimes see that the system has cached the user's attributes from LDAP
+and tries to use that and fails.
+
+Prakash
