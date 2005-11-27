@@ -1,12 +1,11 @@
-From: Hans Deragon <hans@deragon.biz>
-Subject: Re: auto.net gets a key with a path under SLES9.
-Date: Fri, 25 Nov 2005 16:17:35 -0500
-Message-ID: <43877F6F.5000708@deragon.biz>
-References: <4378ED9A.6090903@deragon.biz>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [RFC PATCH]autofs4: hang and proposed fix
+Date: Sun, 27 Nov 2005 18:47:10 +0800 (WST)
+Message-ID: <Pine.LNX.4.63.0511271807100.2406@donald.themaw.net>
+References: <20051116101740.GA9551@RAM>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_kK6IpAUZS63xXBCQX9WoPQ)"
 Return-path: <autofs-bounces@linux.kernel.org>
-In-reply-to: <4378ED9A.6090903@deragon.biz>
+In-Reply-To: <20051116101740.GA9551@RAM>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,223 +16,181 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
-
-This is a multi-part message in MIME format.
-
---Boundary_(ID_kK6IpAUZS63xXBCQX9WoPQ)
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-
-Greetings.
-
-
-   Well, I successfully reproduced the problem of a path sent to 
-auto.net (see below for full description).  Attached, the debug output 
-on syslogd.  From what I understand of the syslogd logs, the problem 
-occurs before sun_mount() is called.
-
-   What I did was:
-
-   cd /net/asterix  # Everything is ok.  $key=asterix
-   cd asteris-07    # Bug:  $key=asterix/asterix-07
-
-   What was passed to auto.net was asterix/asterix-07 at the second 'cd'.
-
-   And there is some confusion.  The directory structure should be:
-
-# pwd
-/net/asterix
-# ls -l
-drwxr-xr-x  4 root root 8192 Jun  1 16:23 asterix-00
-drwxr-xr-x  5 root root 8192 Sep 20 09:06 asterix-01
-drwxr-xr-x  4 root root 8192 Jun 29  2004 asterix-02
-drwxr-xr-x  5 root root 8192 Feb 13  2004 asterix-03
-drwxr-xr-x  4 root root 8192 Oct 17 07:18 asterix-04
-drwxr-xr-x  4 root root   96 Sep 22 13:29 asterix-05
-drwxr-xr-x  4 root root   96 Nov  3  2004 asterix-06
-drwxr-xr-x  4 root root   96 Nov  3  2004 asterix-07
-
-However, I notice the following:
-
-# pwd
-/net/asterix/asterix-07
-# ls -l
-drwxr-xr-x  4 root root 8192 Jun  1 16:23 asterix-00
-drwxr-xr-x  5 root root 8192 Sep 20 09:06 asterix-01
-drwxr-xr-x  4 root root 8192 Jun 29  2004 asterix-02
-drwxr-xr-x  5 root root 8192 Feb 13  2004 asterix-03
-drwxr-xr-x  4 root root 8192 Oct 17 07:18 asterix-04
-drwxr-xr-x  4 root root   96 Sep 22 13:29 asterix-05
-drwxr-xr-x  4 root root   96 Nov  3  2004 asterix-06
-
-   This is not right.  The content of /net/asterix/asterix-07 is not 
-supposed to be the same as /net/asterix.  Something recursive is going on.
-
-I went so far as:
-
-# cd asterix-07
-# pwd
-/net/asterix/asterix-07/asterix-07
-# cd asterix-07
-# pwd
-/net/asterix/asterix-07/asterix-07/asterix-07
-# cd asterix-07
-# pwd
-/net/asterix/asterix-07/asterix-07/asterix-07/asterix-07
-
-   You see?  Automount fall in a recursive condition.
-
-   Autofs 4.1.4 was used.  What was running was:
-
-/usr/sbin/automount --debug --ghost --timeout 60 /net program /etc/auto.net
-
-   Let me know if you find something strange in the output.  What I do 
-not understand, is the asterix-06 mountpoint.
-
-
-Best regards,
-Hans Deragon
---
-Consultant en informatique/Software Consultant
-Deragon Informatique inc.
-http://www.deragon.biz        Open source (contribution):
-mailto://hans@deragon.biz     http://autopoweroff.deragon.biz
-
-
-Hans Deragon wrote:
-> Greetings.
-> 
-> 
->   I compiled autofs 4.1.4 for SuSE Linux Enterprise Server 9 (SLES9). I 
-> did found a little problem with auto.net.  The original code has:
-> 
->   key=$1
-> 
->   However, under SLES9, in my network environment, $key can be of the 
-> form "server/something[/otherthing]*", which is wrong.  $key should only 
-> be a server name.  I fixed the problem with:
-> 
->   key=`echo $1 | perl -wp -e 's%^(\w+)(\/?.+)*$%$1%;'`
-> 
->   My fix removes any path after the server name.
-> 
->   Exactly why automount passes a server name containg some path is 
-> unclear for me.  But I wanted to report this here.  If other suffer from 
-> this, you might want to consider some fix like mine (maybe using sed 
-> which is more standard).
-> 
->   I have not experienced this under Fedora Core 4 (FC4).
-> 
-> 
-> Best regards,
-> Hans Deragon
-
-
---Boundary_(ID_kK6IpAUZS63xXBCQX9WoPQ)
-Content-type: text/x-log; CHARSET=US-ASCII; name=autofs.pathprob.log
-Content-transfer-encoding: 7BIT
-Content-disposition: inline; filename=autofs.pathprob.log
-
-Nov 25 15:44:28 mysystem automount[31394]: handle_packet: type = 0 
-Nov 25 15:44:28 mysystem automount[31394]: handle_packet_missing: token 116, name asterix/asterix-07 
-Nov 25 15:44:28 mysystem automount[31394]: attempting to mount entry /net/asterix/asterix-07
-Nov 25 15:44:28 mysystem automount[31431]: lookup(program): looking up asterix/asterix-07
-Nov 25 15:44:28 mysystem automount[31431]: lookup(program): asterix/asterix-07 -> -fstype=nfs,hard,intr,nodev,nosuid  	/asterix-00 asterix:/asterix-00  	/asterix-01 asterix:/asterix-01  	/asterix-02 asterix:/asterix-02  	/asterix-03 asterix:/asterix-03  	/asterix-04 asterix:/asterix-04  	/asterix-05 asterix:/asterix-05  	/asterix-06 asterix:/asterix-06
-Nov 25 15:44:28 mysystem automount[31431]: parse(sun): expanded entry: -fstype=nfs,hard,intr,nodev,nosuid  	/asterix-00 asterix:/asterix-00  	/asterix-01 asterix:/asterix-01  	/asterix-02 asterix:/asterix-02  	/asterix-03 asterix:/asterix-03  	/asterix-04 asterix:/asterix-04  	/asterix-05 asterix:/asterix-05  	/asterix-06 asterix:/asterix-06
-Nov 25 15:44:28 mysystem automount[31431]: parse(sun): dequote("fstype=nfs,hard,intr,nodev,nosuid") -> fstype=nfs,hard,intr,nodev,nosuid
-Nov 25 15:44:28 mysystem automount[31431]: parse(sun): gathered options: fstype=nfs,hard,intr,nodev,nosuid
-Nov 25 15:44:28 mysystem automount[31431]: parse(sun): dequote("/asterix-00") -> /asterix-00
-Nov 25 15:44:28 mysystem automount[31431]: parse(sun): dequote("asterix:/asterix-00") -> asterix:/asterix-00
-Nov 25 15:44:28 mysystem automount[31431]: parse(sun): dequote("/asterix-01") -> /asterix-01
-Nov 25 15:44:28 mysystem automount[31431]: parse(sun): dequote("asterix:/asterix-01") -> asterix:/asterix-01
-Nov 25 15:44:28 mysystem automount[31431]: parse(sun): dequote("/asterix-02") -> /asterix-02
-Nov 25 15:44:28 mysystem automount[31431]: parse(sun): dequote("asterix:/asterix-02") -> asterix:/asterix-02
-Nov 25 15:44:28 mysystem automount[31431]: parse(sun): dequote("/asterix-03") -> /asterix-03
-Nov 25 15:44:28 mysystem automount[31431]: parse(sun): dequote("asterix:/asterix-03") -> asterix:/asterix-03
-Nov 25 15:44:28 mysystem automount[31431]: parse(sun): dequote("/asterix-04") -> /asterix-04
-Nov 25 15:44:28 mysystem automount[31431]: parse(sun): dequote("asterix:/asterix-04") -> asterix:/asterix-04
-Nov 25 15:44:28 mysystem automount[31431]: parse(sun): dequote("/asterix-05") -> /asterix-05
-Nov 25 15:44:28 mysystem automount[31431]: parse(sun): dequote("asterix:/asterix-05") -> asterix:/asterix-05
-Nov 25 15:44:28 mysystem automount[31431]: parse(sun): dequote("/asterix-06") -> /asterix-06
-Nov 25 15:44:28 mysystem automount[31431]: parse(sun): dequote("asterix:/asterix-06") -> asterix:/asterix-06
-Nov 25 15:44:28 mysystem automount[31431]: parse(sun): multimount: asterix:/asterix-06 on /asterix-06 with options fstype=nfs,hard,intr,nodev,nosuid
-Nov 25 15:44:28 mysystem automount[31431]: parse(sun): mounting root /net/asterix/asterix-07, mountpoint asterix-06, what asterix:/asterix-06, fstype nfs, options hard,intr,nodev,nosuid 
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): root=/net/asterix/asterix-07 name=asterix-06 what=asterix:/asterix-06, fstype=nfs, options=hard,intr,nodev,nosuid
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): nfs options="hard,intr,nodev,nosuid", nosymlink=0, ro=0
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): winner = asterix local = 0
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): from asterix:/asterix-06 elected asterix:/asterix-06
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): calling mkdir_path /net/asterix/asterix-07/asterix-06
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): calling mount -t nfs -s  -o hard,intr,nodev,nosuid asterix:/asterix-06 /net/asterix/asterix-07/asterix-06
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): mounted asterix:/asterix-06 on /net/asterix/asterix-07/asterix-06
-Nov 25 15:44:28 mysystem automount[31431]: parse(sun): multimount: asterix:/asterix-05 on /asterix-05 with options fstype=nfs,hard,intr,nodev,nosuid
-Nov 25 15:44:28 mysystem automount[31431]: parse(sun): mounting root /net/asterix/asterix-07, mountpoint asterix-05, what asterix:/asterix-05, fstype nfs, options hard,intr,nodev,nosuid 
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): root=/net/asterix/asterix-07 name=asterix-05 what=asterix:/asterix-05, fstype=nfs, options=hard,intr,nodev,nosuid
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): nfs options="hard,intr,nodev,nosuid", nosymlink=0, ro=0
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): winner = asterix local = 0
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): from asterix:/asterix-05 elected asterix:/asterix-05
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): calling mkdir_path /net/asterix/asterix-07/asterix-05
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): calling mount -t nfs -s  -o hard,intr,nodev,nosuid asterix:/asterix-05 /net/asterix/asterix-07/asterix-05
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): mounted asterix:/asterix-05 on /net/asterix/asterix-07/asterix-05
-Nov 25 15:44:28 mysystem automount[31431]: parse(sun): multimount: asterix:/asterix-04 on /asterix-04 with options fstype=nfs,hard,intr,nodev,nosuid
-Nov 25 15:44:28 mysystem automount[31431]: parse(sun): mounting root /net/asterix/asterix-07, mountpoint asterix-04, what asterix:/asterix-04, fstype nfs, options hard,intr,nodev,nosuid 
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): root=/net/asterix/asterix-07 name=asterix-04 what=asterix:/asterix-04, fstype=nfs, options=hard,intr,nodev,nosuid
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): nfs options="hard,intr,nodev,nosuid", nosymlink=0, ro=0
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): winner = asterix local = 0
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): from asterix:/asterix-04 elected asterix:/asterix-04
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): calling mkdir_path /net/asterix/asterix-07/asterix-04
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): calling mount -t nfs -s  -o hard,intr,nodev,nosuid asterix:/asterix-04 /net/asterix/asterix-07/asterix-04
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): mounted asterix:/asterix-04 on /net/asterix/asterix-07/asterix-04
-Nov 25 15:44:28 mysystem automount[31431]: parse(sun): multimount: asterix:/asterix-03 on /asterix-03 with options fstype=nfs,hard,intr,nodev,nosuid
-Nov 25 15:44:28 mysystem automount[31431]: parse(sun): mounting root /net/asterix/asterix-07, mountpoint asterix-03, what asterix:/asterix-03, fstype nfs, options hard,intr,nodev,nosuid 
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): root=/net/asterix/asterix-07 name=asterix-03 what=asterix:/asterix-03, fstype=nfs, options=hard,intr,nodev,nosuid
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): nfs options="hard,intr,nodev,nosuid", nosymlink=0, ro=0
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): winner = asterix local = 0
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): from asterix:/asterix-03 elected asterix:/asterix-03
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): calling mkdir_path /net/asterix/asterix-07/asterix-03
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): calling mount -t nfs -s  -o hard,intr,nodev,nosuid asterix:/asterix-03 /net/asterix/asterix-07/asterix-03
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): mounted asterix:/asterix-03 on /net/asterix/asterix-07/asterix-03
-Nov 25 15:44:28 mysystem automount[31431]: parse(sun): multimount: asterix:/asterix-02 on /asterix-02 with options fstype=nfs,hard,intr,nodev,nosuid
-Nov 25 15:44:28 mysystem automount[31431]: parse(sun): mounting root /net/asterix/asterix-07, mountpoint asterix-02, what asterix:/asterix-02, fstype nfs, options hard,intr,nodev,nosuid 
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): root=/net/asterix/asterix-07 name=asterix-02 what=asterix:/asterix-02, fstype=nfs, options=hard,intr,nodev,nosuid
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): nfs options="hard,intr,nodev,nosuid", nosymlink=0, ro=0
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): winner = asterix local = 0
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): from asterix:/asterix-02 elected asterix:/asterix-02
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): calling mkdir_path /net/asterix/asterix-07/asterix-02
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): calling mount -t nfs -s  -o hard,intr,nodev,nosuid asterix:/asterix-02 /net/asterix/asterix-07/asterix-02
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): mounted asterix:/asterix-02 on /net/asterix/asterix-07/asterix-02
-Nov 25 15:44:28 mysystem automount[31431]: parse(sun): multimount: asterix:/asterix-01 on /asterix-01 with options fstype=nfs,hard,intr,nodev,nosuid
-Nov 25 15:44:28 mysystem automount[31431]: parse(sun): mounting root /net/asterix/asterix-07, mountpoint asterix-01, what asterix:/asterix-01, fstype nfs, options hard,intr,nodev,nosuid 
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): root=/net/asterix/asterix-07 name=asterix-01 what=asterix:/asterix-01, fstype=nfs, options=hard,intr,nodev,nosuid
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): nfs options="hard,intr,nodev,nosuid", nosymlink=0, ro=0
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): winner = asterix local = 0
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): from asterix:/asterix-01 elected asterix:/asterix-01
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): calling mkdir_path /net/asterix/asterix-07/asterix-01
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): calling mount -t nfs -s  -o hard,intr,nodev,nosuid asterix:/asterix-01 /net/asterix/asterix-07/asterix-01
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): mounted asterix:/asterix-01 on /net/asterix/asterix-07/asterix-01
-Nov 25 15:44:28 mysystem automount[31431]: parse(sun): multimount: asterix:/asterix-00 on /asterix-00 with options fstype=nfs,hard,intr,nodev,nosuid
-Nov 25 15:44:28 mysystem automount[31431]: parse(sun): mounting root /net/asterix/asterix-07, mountpoint asterix-00, what asterix:/asterix-00, fstype nfs, options hard,intr,nodev,nosuid 
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): root=/net/asterix/asterix-07 name=asterix-00 what=asterix:/asterix-00, fstype=nfs, options=hard,intr,nodev,nosuid
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): nfs options="hard,intr,nodev,nosuid", nosymlink=0, ro=0
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): winner = asterix local = 0
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): from asterix:/asterix-00 elected asterix:/asterix-00
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): calling mkdir_path /net/asterix/asterix-07/asterix-00
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): calling mount -t nfs -s  -o hard,intr,nodev,nosuid asterix:/asterix-00 /net/asterix/asterix-07/asterix-00
-Nov 25 15:44:28 mysystem automount[31431]: mount(nfs): mounted asterix:/asterix-00 on /net/asterix/asterix-07/asterix-00
-Nov 25 15:44:28 mysystem automount[31394]: handle_child: got pid 31431, sig 0 (0), stat 0 
-Nov 25 15:44:28 mysystem automount[31394]: sig_child: found pending iop pid 31431: signalled 0 (sig 0), exit status 0
-Nov 25 15:44:28 mysystem automount[31394]: send_ready: token=116 
-
---Boundary_(ID_kK6IpAUZS63xXBCQX9WoPQ)
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: "William H. Taber" <wtaber@us.ibm.com>, Ram Pai <linuxram@us.ibm.com>
+Cc: autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
+On Wed, 16 Nov 2005, Ram Pai wrote:
 
---Boundary_(ID_kK6IpAUZS63xXBCQX9WoPQ)--
+> Autofs4 assumes that its ->revalidate() function gets called with the
+> parent_dentry's_inode_semaphore released. This is true mostly
+> but not in one particular case.
+> 
+> Process P1  calls autofs4's ->lookup(). The lookup finds that the dentry
+> does not exist. It creates a dentry and adds to the cache. Releases
+> the parent's inode's semaphore and than calls ->revalidate().
+> 
+> Process P2 meanwhile comes in and cached_lookup() gets called. It finds
+> the dentry in the cache and finds ->revalidate() function exists. So
+> it calls ->revalidate() holding the parent's inode's semaphore.
+> 
+> Now the automounter daemon comes in and tries to hold the same semaphore
+> in order to mount. But since the semaphore is held by P2 it
+> goes to sleep.
+> 
+> Process P1 and P2 continue waiting for the mount to complete and it never
+> happens. Deadlock.
+> 
+> The stack of the deadlock is as follows:
+> 
+> ls            S 00000000     0 13049  11954                     (NOTLB)
+> f5221df0 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+> 00000000 f5d44a70 c721b520 00000000 d4f33800 003d0990 c721b9d8 f5d44030
+> f5d44164 f5220000 f5221e3c f3dd6880 f5221e68 c0215207 f3b95580 80000000
+> Call Trace:
+> [<c0215207>] autofs4_wait+0x307/0x3d0
+> [<c02141d3>] try_to_fill_dentry+0xf3/0x150
+> [<c0214389>] autofs4_revalidate+0x159/0x170
+> [<c02144e0>] autofs4_lookup+0x110/0x150
+> [<c016f3f5>] __lookup_hash+0x85/0xb0
+> [<c016f42a>] lookup_hash+0xa/0x10
+> [<c016f483>] lookup_one_len+0x53/0x70
+> [<f8851293>] stubfs_readdir+0x113/0x170 [stubfs]
+> [<c0172fcb>] vfs_readdir+0x8b/0xa0
+> [<c01733b3>] sys_getdents64+0x63/0xb5
+> [<c010464d>] syscall_call+0x7/0xb
+> 
+> ls            S C011B1AF     0 13050  11898                     (NOTLB)
+> f1337df0 00000082 f1337e04 c011b1af 06ce3f60 00000027 00000027 00000080
+> 06d03f60 00000000 c721b520 00000000 d4f33800 003d0990 f1337df0 f5d44a70
+> f5d44ba4 f1336000 f1337e3c f3dd6880 f1337e68 c0215207 f3b95580 80000000
+> Call Trace:
+> [<c0215207>] autofs4_wait+0x307/0x3d0
+> [<c02141d3>] try_to_fill_dentry+0xf3/0x150
+> [<c0214389>] autofs4_revalidate+0x159/0x170
+> [<c016dc77>] cached_lookup+0x47/0x80
+> [<c016f3ca>] __lookup_hash+0x5a/0xb0
+> [<c016f42a>] lookup_hash+0xa/0x10
+> [<c016f483>] lookup_one_len+0x53/0x70  
+> [<f88512e3>] stubfs_readdir+0x163/0x170 [stubfs]
+> [<c0172fcb>] vfs_readdir+0x8b/0xa0  
+> [<c01733b3>] sys_getdents64+0x63/0xb5
+> [<c010464d>] syscall_call+0x7/0xb
+> 
+> automount     D 00000010     0 13052  13016                     (NOTLB)
+> f3321f00 fff80000 00000007 00000010 f3321f68 c7b1cd20 00000000 f3321f34
+> f3321ee8 f5e92a70 c7233520 00000000 d5304100 003d0990 c7233560 f1e31a70
+> f1e31ba4 f5f59914 f5f5991c 00000296 f3321f38 c03b4cd3 f1e31a70 00000001
+> Call Trace:
+> [<c03b4cd3>] __down+0x83/0xe0
+> [<c03b3632>] __down_failed+0xa/0x10
+> [<c0171e6d>] .text.lock.namei+0xeb/0x1de
+> [<c0170482>] sys_mkdir+0x52/0xd0
+> [<c010464d>] syscall_call+0x7/0xb
+> BUG: soft lockup detected on CPU#0!
+> 
 
+Hi guys,
+
+I've been thinking about this one for a while now and have a suggestion 
+about how it may be fixed.
+
+To re-state the problem:
+
+The autofs4 revalidate callback needs to function properly when called 
+with the inode semaphore either held or not.
+
+Summary:
+
+Ram Pai provided the excelent problem profile above and offered a patch 
+for comment which droped the inode semaphore. Will pointed out that 
+droping the semaphore was not a good thing to do because of possible side 
+affects.
+
+A fair bit of interesting discussion followed.
+
+My thoughts:
+
+The cause of this issue is user space programs using autofs4 need to 
+call services that must be able to take the inode semaphore. Notably 
+sys_mkdir and sys_symlink in order to complete their task.
+
+I believe that, in this case, releasing the semaphore is ok since the 
+entry is part of the autofs filesystem and so autofs is responsible for 
+taking care of it, provided that it is done carefully. The semaphore is 
+meant to serialize changes being to the directory and these changes are 
+done in autofs by asking the user space process to do it. Which are 
+themselves serialized by the same semaphore.
+
+The only tricky thing I can think of here is that care must be taken to 
+ensure that the semaphore is not released before the DCACHE_AUTOFS_PENDING 
+flag is set to make sure that other incoming requests are sent to the wait 
+queue.
+
+The attached patch does this and opts for a conservative approach by 
+broadening the critical region instead of narrowing it.
+
+It may also be necessary to review the return codes from revaliate but I'm 
+only part way through that.
+
+Please review and test this patch and offer further comment.
+Sorry guys but I haven't been able to test this at all save verifying that 
+it compiles.
+
+Hopefully I haven't missed anything completely obvious ... DOH!
+
+Ian
+
+--- linux-2.6.15-rc1/fs/autofs4/root.c.lookup-deadlock	2005-11-17 18:58:38.000000000 +0800
++++ linux-2.6.15-rc1/fs/autofs4/root.c	2005-11-27 17:00:40.000000000 +0800
+@@ -487,11 +487,8 @@ static struct dentry *autofs4_lookup(str
+ 	dentry->d_fsdata = NULL;
+ 	d_add(dentry, NULL);
+ 
+-	if (dentry->d_op && dentry->d_op->d_revalidate) {
+-		up(&dir->i_sem);
++	if (dentry->d_op && dentry->d_op->d_revalidate)
+ 		(dentry->d_op->d_revalidate)(dentry, nd);
+-		down(&dir->i_sem);
+-	}
+ 
+ 	/*
+ 	 * If we are still pending, check if we had to handle
+--- linux-2.6.15-rc1/fs/autofs4/waitq.c.lookup-deadlock	2005-11-27 17:09:42.000000000 +0800
++++ linux-2.6.15-rc1/fs/autofs4/waitq.c	2005-11-27 17:17:34.000000000 +0800
+@@ -161,6 +161,8 @@ int autofs4_wait(struct autofs_sb_info *
+ 		enum autofs_notify notify)
+ {
+ 	struct autofs_wait_queue *wq;
++	struct inode *dir = dentry->d_parent->d_inode;
++	int i_sem_held;
+ 	char *name;
+ 	int len, status;
+ 
+@@ -227,6 +229,14 @@ int autofs4_wait(struct autofs_sb_info *
+ 			(unsigned long) wq->wait_queue_token, wq->len, wq->name, notify);
+ 	}
+ 
++	/*
++	 * If we are called from lookup or lookup_hash the
++	 * the inode semaphore needs to be released for
++	 * userspace to do its thing.
++	 */
++	i_sem_held = down_trylock(&dir->i_sem);
++	up(&dir->i_sem);
++
+ 	if (notify != NFY_NONE && atomic_dec_and_test(&wq->notified)) {
+ 		int type = (notify == NFY_MOUNT ?
+ 			autofs_ptype_missing : autofs_ptype_expire_multi);
+@@ -268,6 +278,10 @@ int autofs4_wait(struct autofs_sb_info *
+ 		DPRINTK("skipped sleeping");
+ 	}
+ 
++	/* Re-take the inode semaphore if it was held */
++	if (i_sem_held)
++		down(&dir->i_sem);
++
+ 	status = wq->status;
+ 
+ 	/* Are we the last process to need status? */
