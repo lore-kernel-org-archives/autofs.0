@@ -1,15 +1,13 @@
-From: Brian Long <brilong@cisco.com>
-Subject: Re: stat of /users/no-such-user takes 15 seconds
-Date: Mon, 28 Nov 2005 09:56:54 -0500
-Message-ID: <1133189814.4126.16.camel@brilong-lnx>
-References: <1132670358.4039.37.camel@brilong-lnx>
-	<1132674350.4039.52.camel@brilong-lnx>
-	<Pine.LNX.4.63.0511222351130.9982@donald.themaw.net>
-	<Pine.LNX.4.63.0511231359220.20045@simba.math.ucla.edu>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: autofs-4.1.3 not working properly
+Date: Mon, 28 Nov 2005 23:33:17 +0800 (WST)
+Message-ID: <Pine.LNX.4.63.0511282331530.2596@donald.themaw.net>
+References: <s388370e.056@n6mcgw16.cchmc.org>
+	<Pine.LNX.4.63.0511271725001.2406@donald.themaw.net>
+	<438B12A4.1040106@cchmc.org>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.63.0511231359220.20045@simba.math.ucla.edu>
+In-Reply-To: <438B12A4.1040106@cchmc.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,43 +18,104 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: Jim Carter <jimc@math.ucla.edu>
-Cc: autofs@linux.kernel.org, Ian Kent <raven@themaw.net>
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Prakash Velayutham <prakash.velayutham@cchmc.org>
+Cc: autofs@linux.kernel.org
 
-On Wed, 2005-11-23 at 14:46 -0800, Jim Carter wrote:
-> On Tue, 22 Nov 2005, Ian Kent wrote:
-> > On Tue, 22 Nov 2005, Brian Long wrote:
-> > > On Tue, 2005-11-22 at 09:39 -0500, Brian Long wrote:
-> > > > I have an auto.master deployed to thousands of hosts and it looks like
->  -- snip --
-> > > > auto.home contains over 34,000 entries.  I've noticed in RHEL 3 U5 and
->  -- snip --
-> > > > After looking at tcpdump data, it appears automounter is downloading the
-> > > > entire auto.home map when it fails to lookup "no-such-user".  This
-> > > > results in a > 700KB transfer from the NIS server  :(
-> 
-> I may have missed something in subsequent discussion, but why isn't 
-> automount querying just the missing map row?  If NIS agreed that it did not 
-> exist, fine, report an error to the client's opendir().  If it *did* exist, 
-> the new information could be added immediately and the filesystem could be 
-> mounted promptly.
+On Mon, 28 Nov 2005, Prakash Velayutham wrote:
 
-Exactly; I believe this is a bug in the cache code as Jeff Moyer
-mentioned (and provided a patch for).
+> Ian Kent wrote:
+> > On Sat, 26 Nov 2005, Prakash Velayutham wrote:
+> > 
+> >   
+> > > > > > Ian Kent <raven@themaw.net> 11/25/05 1:47 PM >>>
+> > > > > >           
+> > > On Thu, 24 Nov 2005, Prakash Velayutham wrote:
+> > > 
+> > >     
+> > > > Hi,
+> > > > 
+> > > > I am new to this list, so please forgive my ignorances.
+> > > > I had a SuSE Pro 9.0 system running autofs (v3) running earlier. The
+> > > > autofs itself did not have any issues at all until I decided to
+> > > >       
+> > > upgrade     
+> > > > the system to SuSE 9.3. It was a clean install, and autofs4-4.1.3
+> > > >       
+> > > became     
+> > > > the default kernel autofs module. My autofs master map comes from a
+> > > > OpenLDAP server and it contains 3 different mount maps.
+> > > > /users (LDAP map)
+> > > > /protein/users (LDAP map)
+> > > > /import/users (LDAP map)
+> > > > I also have a file-based map in this server (/export/users).
+> > > > 
+> > > > Recently I was trying to move a user's home dir from server1 to
+> > > >       
+> > > server2.     
+> > > > After moving his home dir and making the relevant changes to his LDAP
+> > > > entry (homeDirectory attribute), I tried to restart autofs in the
+> > > > above-mentioned server. The server already had several users logged in
+> > > >       under /protein/users. Though the restart did not complain, I
+> > > > noticed that autofs status showed "Configured mount points" correctly
+> > > > and removed the currently mounted mount points from "Active mount
+> > > > points".
+> > > >       Is there a reason why? Also strangely the ownerships of the
+> > > > previously
+> > > >       mounted dirs had been changed to root:root.
+> > > >       
+> > > I'm not sure what is not working or what has been broken.
+> > > What is the actual problem and symptom?
+> > > 
+> > > Ian
+> > > 
+> > > Thanks Ian for a reply. What if I restart autofs when a user whose home
+> > > dir is mounted through autofs is already logged into the system (and
+> > > hence at least one of the automount entries is being used)? What will
+> > > the system do in that case?
+> > >     
+> > 
+> > On runing "reload" it should, depending on version and patch levels re-read
+> > and update the map, leave the mounted directory mounted and leave the stale
+> > map entry for cleanup next time the map is reloaded and the entry isn't
+> > mounted. 
+> > "Restart"ing is much more agressive and I wouldn't recommend it if you have
+> > mount that are in use. To restart you really need to have nothing actually
+> > in use.
+> > 
+> >   
+> > > And also if I change the ldap attribute "homeDirectory" for a user, do I
+> > > have to restart autofs in a system for that change to be seen. Because I
+> > > sometimes see that the system has cached the user's attributes from LDAP
+> > > and tries to use that and fails.
+> > >     
+> > 
+> > autofs doesn't use that attribute so no, but you'll need to be sure that the
+> > automount map entry that is used to access that directory is still valid
+> > following the change and if it also had to be changed then you might need to
+> > "reload" autofs. It's worth pointing out that later versions (most RedHat
+> > versions and 4.1.4 I think) of autofs should recognise this change on access
+> > without needing to re-load the map.
+> > 
+> > The other thing I noticed about your query was the question about the root
+> > owned directory. At variuos times in the past development autofs has been
+> > (mostly intentionally) lazy about cleaning up mount point directories. When
+> > autofs directories don't have a filesystem mounted on them they will appear
+> > root owned. It shouldn't make a difference to operation.
+> > 
+> > Ian
+> Thanks Ian. I tried out autofs reload and there seems to be a small glitch. It
+> says "checking for changes in auto.master" and then stops some of the
+> automount daemons. But stays there forever. If I do Ctrl-C, then it
+> immediately shows "Starting XXX" for the different automount daemons (except 1
+> for some reason). Is there a reason for this behaviour. The system I am trying
+> out is SuSE Linux 10.0, autofs-4.1.4-6 with automount master map and the
+> entries coming from a OpenLDAP server.
 
-> Browsing is nice but gets expensive if there are 34,000 potential mount 
-> points.  If browsing is turned off, the code that enumerates the map should 
-> delete rows in the kernel but not in the map, but should bypass adding rows 
-> in the map but not the kernel.  Could this be part of the cause of the 
-> original problem -- browsing being turned on inappropriately?
+Sounds like a bug to me.
 
-To my knowledge, browsing is not enabled by default.  We definitely do
-not have it enabled in our environment on purpose.
+I'll try to duplcate it.
+Can you offer any additional information on your setup?
 
-/Brian/
--- 
-       Brian Long                      |         |           |
-       IT Data Center Systems          |       .|||.       .|||.
-       Cisco Linux Developer           |   ..:|||||||:...:|||||||:..
-       Phone: (919) 392-7363           |   C i s c o   S y s t e m s
+Ian
