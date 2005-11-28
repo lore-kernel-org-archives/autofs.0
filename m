@@ -1,111 +1,93 @@
-From: "William H. Taber" <wtaber@us.ibm.com>
-Subject: Re: [RFC PATCH]autofs4: hang and proposed fix
-Date: Mon, 28 Nov 2005 12:19:48 -0500
-Message-ID: <438B3C34.2050509@us.ibm.com>
-References: <20051116101740.GA9551@RAM> <Pine.LNX.4.63.0511271807100.2406@donald.themaw.net>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: stat of /users/no-such-user takes 15 seconds
+Date: Mon, 28 Nov 2005 13:40:10 -0500
+Message-ID: <17291.20234.799348.428815@segfault.boston.redhat.com>
+References: <1132670358.4039.37.camel@brilong-lnx>
+	<Pine.LNX.4.63.0511222329100.9982@donald.themaw.net>
+	<17283.17854.189791.135878@segfault.boston.redhat.com>
+	<Pine.LNX.4.63.0511242311570.2314@donald.themaw.net>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.63.0511271807100.2406@donald.themaw.net>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <Pine.LNX.4.63.0511242311570.2314@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://hera.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
 To: Ian Kent <raven@themaw.net>
-Cc: Ram Pai <linuxram@us.ibm.com>, autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Cc: autofs@linux.kernel.org
 
-Ian Kent wrote:
+==> Regarding Re: [autofs] stat of /users/no-such-user takes 15 seconds; Ian Kent <raven@themaw.net> adds:
 
-> My thoughts:
-> 
-> The cause of this issue is user space programs using autofs4 need to 
-> call services that must be able to take the inode semaphore. Notably 
-> sys_mkdir and sys_symlink in order to complete their task.
-> 
-> I believe that, in this case, releasing the semaphore is ok since the 
-> entry is part of the autofs filesystem and so autofs is responsible for 
-> taking care of it, provided that it is done carefully. The semaphore is 
-> meant to serialize changes being to the directory and these changes are 
-> done in autofs by asking the user space process to do it. Which are 
-> themselves serialized by the same semaphore.
-> 
-> The only tricky thing I can think of here is that care must be taken to 
-> ensure that the semaphore is not released before the DCACHE_AUTOFS_PENDING 
-> flag is set to make sure that other incoming requests are sent to the wait 
-> queue.
-> 
-> The attached patch does this and opts for a conservative approach by 
-> broadening the critical region instead of narrowing it.
-> 
-> It may also be necessary to review the return codes from revaliate but I'm 
-> only part way through that.
-> 
-> Please review and test this patch and offer further comment.
-> Sorry guys but I haven't been able to test this at all save verifying that 
-> it compiles.
-> 
-> Hopefully I haven't missed anything completely obvious ... DOH!
-> 
-> Ian
-> 
-> --- linux-2.6.15-rc1/fs/autofs4/root.c.lookup-deadlock	2005-11-17 18:58:38.000000000 +0800
-> +++ linux-2.6.15-rc1/fs/autofs4/root.c	2005-11-27 17:00:40.000000000 +0800
-> @@ -487,11 +487,8 @@ static struct dentry *autofs4_lookup(str
->  	dentry->d_fsdata = NULL;
->  	d_add(dentry, NULL);
->  
-> -	if (dentry->d_op && dentry->d_op->d_revalidate) {
-> -		up(&dir->i_sem);
-> +	if (dentry->d_op && dentry->d_op->d_revalidate)
->  		(dentry->d_op->d_revalidate)(dentry, nd);
-> -		down(&dir->i_sem);
-> -	}
->  
->  	/*
->  	 * If we are still pending, check if we had to handle
-> --- linux-2.6.15-rc1/fs/autofs4/waitq.c.lookup-deadlock	2005-11-27 17:09:42.000000000 +0800
-> +++ linux-2.6.15-rc1/fs/autofs4/waitq.c	2005-11-27 17:17:34.000000000 +0800
-> @@ -161,6 +161,8 @@ int autofs4_wait(struct autofs_sb_info *
->  		enum autofs_notify notify)
->  {
->  	struct autofs_wait_queue *wq;
-> +	struct inode *dir = dentry->d_parent->d_inode;
-> +	int i_sem_held;
->  	char *name;
->  	int len, status;
->  
-> @@ -227,6 +229,14 @@ int autofs4_wait(struct autofs_sb_info *
->  			(unsigned long) wq->wait_queue_token, wq->len, wq->name, notify);
->  	}
->  
-> +	/*
-> +	 * If we are called from lookup or lookup_hash the
-> +	 * the inode semaphore needs to be released for
-> +	 * userspace to do its thing.
-> +	 */
-> +	i_sem_held = down_trylock(&dir->i_sem);
-> +	up(&dir->i_sem);
-> +
->  	if (notify != NFY_NONE && atomic_dec_and_test(&wq->notified)) {
->  		int type = (notify == NFY_MOUNT ?
->  			autofs_ptype_missing : autofs_ptype_expire_multi);
-> @@ -268,6 +278,10 @@ int autofs4_wait(struct autofs_sb_info *
->  		DPRINTK("skipped sleeping");
->  	}
->  
-> +	/* Re-take the inode semaphore if it was held */
-> +	if (i_sem_held)
-> +		down(&dir->i_sem);
-> +
->  	status = wq->status;
->  
->  	/* Are we the last process to need status? */
-> -
-Ian,
-I have not tested this patch but it seems to have a serious flaw.  Given 
-that do_lookup does not get the parent i_sem lock before calling 
-revalidate, you have the possibility that you are being called without 
-having gotten the lock but the lock may be held by another process.  In 
-that case you do not want to be releasing their lock while they are 
-relying on it.
+raven> On Tue, 22 Nov 2005, Jeff Moyer wrote:
+>> ==> Regarding Re: [autofs] stat of /users/no-such-user takes 15 seconds;
+>> Ian Kent <raven@themaw.net> adds:
+>> 
+raven> On Tue, 22 Nov 2005, Brian Long wrote:
+>> >> I have an auto.master deployed to thousands of hosts and it looks
+>> like >> this:
+>> >> 
+>> >> /misc /etc/auto.misc --timeout=60 /auto /etc/auto.indirect >>
+>> rsize=32768,wsize=32768,tcp /users auto_home >>
+>> rw,hard,intr,rsize=32768,wsize=32768,tcp
+>> >> 
+>> >> As you can see, /users comes from NIS auto.home map.  In our case, >>
+>> auto.home contains over 34,000 entries.  I've noticed in RHEL 3 U5 and
+>> >> beyond (autofs-4.1.3-130), trying to stat (ls) /users/no-such-user
+>> takes >> roughly 12-15 seconds.  In RHEL 3 U3 (autofs-4.1.3-12), it
+>> returns >> immediately.  This is a regression in my opinion.
+>> 
+raven> Bummer. I thought that update code was OK.
+>> >> After looking at tcpdump data, it appears automounter is downloading
+>> the >> entire auto.home map when it fails to lookup "no-such-user".
+>> This >> results in a > 700KB transfer from the NIS server :(
+>> 
+raven> This is exactly the sort of problem I was concerned about when
+raven> people asked for periodic reload of maps. I didn't do that and
+raven> clearly I was right.
+>>
+raven> Having said that it possibly shouldn't be doing this either. I'll
+raven> have to check the lookup code to see what I'm doing.
+>>
+raven> Probably I'm signaling a re-load because, since the entry is now
+raven> missing, the map may need to be updated.
+>>
+raven> I hasten to point out there was quite a bit of demand for having "up
+raven> to date maps"! Having a HUP signal to force a re-load wasn't enough.
+>>
+raven> Given your situation and the fact that we need to know about
+raven> changes, what do you think the semantics of handling map updates
+raven> should be?
+>>
+raven> Seems to me there are only two options when an out of date map entry
+raven> is encountered. Update, remove or add the given entry and accept
+raven> there may be more you don't know about or re-read the whole map. Now
+raven> even the simple addition and removal is not simple as the lookup is
+raven> done in a subprocess so somehow the process leader needs to be told
+raven> what to get!
+>> Ian, the point here is that the map key isn't out of date.  We don't
+>> detect that the entry didn't exist in the first place.  See my other
+>> post to this thread, where I've attached a patch.  Comments on that are,
+>> of course, encouraged.
 
-Will
+raven> Could you review this patch please Jeff.
+
+raven> I will try to find some time to setup and test it on the weekend.
+
+Yup, that looks great.  My only nit is that we never check the return codes
+from cache_add or cache_update.  But, that's something to worry about in
+another patch.
+
+Brian, have you tested the new patch?
+
+Thanks,
+
+Jeff
