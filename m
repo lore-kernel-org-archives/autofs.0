@@ -1,30 +1,13 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: automount never umount
-Date: Thu, 1 Dec 2005 23:04:22 +0800 (WST)
-Message-ID: <Pine.LNX.4.63.0512012302340.6390@donald.themaw.net>
-References: <4381E865.4070908@bppiac.hu> <438344F7.8020503@bppiac.hu>
-	<17283.19512.49399.338448@segfault.boston.redhat.com>
-	<43838CA9.40105@bppiac.hu>
-	<17283.46783.748916.772469@segfault.boston.redhat.com>
-	<438435EF.6080102@bppiac.hu>
-	<Pine.LNX.4.63.0511232105320.3200@donald.themaw.net>
-	<43846C1C.3050305@bppiac.hu>
-	<17284.35467.301318.255602@segfault.boston.redhat.com>
-	<Pine.LNX.4.63.0511232334300.3253@donald.themaw.net>
-	<17284.40834.559604.943290@segfault.boston.redhat.com>
-	<4384A354.9040502@bppiac.hu>
-	<17284.41971.660257.356263@segfault.boston.redhat.com>
-	<43859055.3020508@bppiac.hu>
-	<Pine.LNX.4.63.0511242003250.2069@donald.themaw.net>
-	<17291.9542.484484.306141@segfault.boston.redhat.com>
-	<438C4983.30504@bppiac.hu> <438EC2E8.6060602@bppiac.hu>
-	<Pine.LNX.4.63.0512011902480.3189@donald.themaw.net>
-	<438EE03B.5090601@bppiac.hu>
-	<Pine.LNX.4.63.0512012142270.3272@donald.themaw.net>
-	<438F006A.4030800@bppiac.hu>
+From: Hans Deragon <hans@deragon.biz>
+Subject: Re: auto.net gets a key with a path under SLES9.
+Date: Mon, 28 Nov 2005 12:53:09 -0500
+Message-ID: <438B4405.7020800@deragon.biz>
+References: <4378ED9A.6090903@deragon.biz> <43877F6F.5000708@deragon.biz>
+	<Pine.LNX.4.63.0511272135350.2462@donald.themaw.net>
 Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="Boundary_(ID_8yK2spa9uqNZ0IGRB2QiIA)"
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <438F006A.4030800@bppiac.hu>
+In-reply-to: <Pine.LNX.4.63.0511272135350.2462@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -35,33 +18,170 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Farkas Levente <lfarkas@bppiac.hu>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-On Thu, 1 Dec 2005, Farkas Levente wrote:
+This is a multi-part message in MIME format.
 
-> Ian Kent wrote:
-> >>>I'm not familiar with this applet.
-> >>>Can someone help ot?
-> >>
-> >>which kind of distro do you use? on fedora/redhat it's in gnome-applets
-> >>package and anyway in:
-> >>http://cvs.gnome.org/viewcvs/gnome-applets/multiload/
-> > 
-> > 
-> > I'll have a look about.
-> > 
-> > Dev machine has Aurora 2.0, a Gentoo and a Debian install. Only the Aurora 
-> > is really working.
+--Boundary_(ID_8yK2spa9uqNZ0IGRB2QiIA)
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+
+Ian Kent wrote:
+> On Fri, 25 Nov 2005, Hans Deragon wrote:
 > 
-> aurora is almost the same:-)
-> fyi: there is a new centos 4.2beta for sparc on beta.centos.org we use
-> it for a weeks and seems to ok.
+> 
+>>Greetings.
+>>
+>>
+>>  Well, I successfully reproduced the problem of a path sent to auto.net (see
+>>below for full description).  Attached, the debug output on syslogd.  From
+>>what I understand of the syslogd logs, the problem occurs before sun_mount()
+>>is called.
+>>
+>>  What I did was:
+>>
+>>  cd /net/asterix  # Everything is ok.  $key=asterix
+>>  cd asteris-07    # Bug:  $key=asterix/asterix-07
+> 
+> 
+> Yes. Undoubtably the problem and that will be in the kernel module.
+> 
+> 
+>>  What was passed to auto.net was asterix/asterix-07 at the second 'cd'.
+> 
+> 
+> I would like to see the output of auto.net run manually and with the 
+> incorrect key please.
+> 
+> Do you have access to the source for for the kernel you are using so that 
+> we may check the patch levels?
+> 
+> Ian
 
-OK. Must check that out.
-But not till get some more of the autofs stuff done.
-There's quite a bit going on just now.
+Greetings Ian.
 
-Ian
+
+   Here is the output of auto.net.
+
+[root@mysystem etc] auto.net asterix/asterix-07
+/usr/sbin/showmount: can't get address for asterix/asterix-07
+[root@mysystem etc] auto.net asterix
+-fstype=nfs,hard,intr,nodev,nosuid \
+         /asterix-00 asterix:/asterix-00 \
+         /asterix-01 asterix:/asterix-01 \
+         /asterix-02 asterix:/asterix-02 \
+         /asterix-03 asterix:/asterix-03 \
+         /asterix-04 asterix:/asterix-04 \
+         /asterix-05 asterix:/asterix-05 \
+         /asterix-06 asterix:/asterix-06
+
+   Please note that in my previous email, when I reproduced
+   the problem, I used a patched auto.net which would remove
+   the path.  This is not the case above, since I wanted to
+   reproduce the problem for you.
+
+   This said, I just realized that the recursive path problem
+   occurs when I try to 'cd' to an NFS share that does not
+   exist (I have not realized this earlier; my bad).  For
+   instance, with my patched auto.net,
+   /net/asterix/asterix-07 mounts with the content of
+   /net/asterix, which is wrong.  It should not mount.
+
+   So I am starting to realize that maybe there is no bug...
+   If I leave auto.net untouched, I do get the proper error,
+   i.e.:
+
+   [root@mysystem /net/asterix] cd asterix-07
+   -bash: cd: asterix-07: No such file or directory
+
+   Yet... I think that auto.net should not receive a path.
+   So there might be a bug, but a minor one?
+
+   I would need to find a case where a path is sent to
+   auto.net when trying to access a valid NFS share.
+
+   Attached, the auto.net, unpatched (actually, my patch is
+   commented out).
+
+   Also, I do have the kernel's source.
+
+
+Best regards,
+Hans Deragon
+--
+Consultant en informatique/Software Consultant
+Deragon Informatique inc.
+http://www.deragon.biz        Open source (contribution):
+mailto://hans@deragon.biz     http://autopoweroff.deragon.biz
+
+--Boundary_(ID_8yK2spa9uqNZ0IGRB2QiIA)
+Content-type: text/plain; CHARSET=US-ASCII; name=auto.net
+Content-transfer-encoding: 7BIT
+Content-disposition: inline; filename=auto.net
+
+#!/bin/bash
+
+# $Id: auto.net,v 1.8 2005/04/05 13:02:09 raven Exp $
+
+# This file must be executable to work! chmod 755!
+
+# Look at what a host is exporting to determine what we can mount.
+# This is very simple, but it appears to work surprisingly well
+
+# Modified by Hans Deragon, 2005/10/26, 12:57 EDT
+# key should be only the hostname, but for some reason, this
+# script sometimes receives an NFS share in the form <hostname>/<path>,
+# which is wrong.
+#echo $1 >>/tmp/auto.net.out
+#key=`echo $1 | perl -wp -e 's%^(\w+)(\/?.+)*$%$1%;'`
+key=$1  # Original code
+
+# add "nosymlink" here if you want to suppress symlinking local filesystems
+# add "nonstrict" to make it OK for some filesystems to not mount
+opts="-fstype=nfs,hard,intr,nodev,nosuid"
+
+# Showmount comes in a number of names and varieties.  "showmount" is
+# typically an older version which accepts the '--no-headers' flag
+# but ignores it.  "kshowmount" is the newer version installed with knfsd,
+# which both accepts and acts on the '--no-headers' flag.
+#SHOWMOUNT="kshowmount --no-headers -e $key"
+#SHOWMOUNT="showmount -e $key | tail -n +2"
+
+for P in /bin /sbin /usr/bin /usr/sbin
+do
+	for M in showmount kshowmount
+	do
+		if [ -x $P/$M ]
+		then
+			SMNT=$P/$M
+			break
+		fi
+	done
+done
+
+[ -x $SMNT ] || exit 1
+
+# Newer distributions get this right
+SHOWMOUNT="$SMNT --no-headers -e $key"
+
+$SHOWMOUNT | LC_ALL=C sort +0 | \
+	awk -v key="$key" -v opts="$opts" -- '
+	BEGIN	{ ORS=""; first=1 }
+		{ if (first) { print opts; first=0 }; print " \\\n\t" $1, key ":" $1 }
+	END	{ if (!first) print "\n"; else exit 1 }
+	'
+
+--Boundary_(ID_8yK2spa9uqNZ0IGRB2QiIA)
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--Boundary_(ID_8yK2spa9uqNZ0IGRB2QiIA)--
+
