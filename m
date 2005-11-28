@@ -1,13 +1,30 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs-4.1.3 not working properly
-Date: Mon, 28 Nov 2005 23:33:17 +0800 (WST)
-Message-ID: <Pine.LNX.4.63.0511282331530.2596@donald.themaw.net>
-References: <s388370e.056@n6mcgw16.cchmc.org>
-	<Pine.LNX.4.63.0511271725001.2406@donald.themaw.net>
-	<438B12A4.1040106@cchmc.org>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: automount never umount
+Date: Mon, 28 Nov 2005 10:41:58 -0500
+Message-ID: <17291.9542.484484.306141@segfault.boston.redhat.com>
+References: <4381E865.4070908@bppiac.hu>
+	<Pine.LNX.4.58.0511220822410.16196@wombat.indigo.net.au>
+	<4382E835.3020904@bppiac.hu>
+	<Pine.LNX.4.63.0511222054060.2600@donald.themaw.net>
+	<438344F7.8020503@bppiac.hu>
+	<17283.19512.49399.338448@segfault.boston.redhat.com>
+	<43838CA9.40105@bppiac.hu>
+	<17283.46783.748916.772469@segfault.boston.redhat.com>
+	<438435EF.6080102@bppiac.hu>
+	<Pine.LNX.4.63.0511232105320.3200@donald.themaw.net>
+	<43846C1C.3050305@bppiac.hu>
+	<17284.35467.301318.255602@segfault.boston.redhat.com>
+	<Pine.LNX.4.63.0511232334300.3253@donald.themaw.net>
+	<17284.40834.559604.943290@segfault.boston.redhat.com>
+	<4384A354.9040502@bppiac.hu>
+	<17284.41971.660257.356263@segfault.boston.redhat.com>
+	<43859055.3020508@bppiac.hu>
+	<Pine.LNX.4.63.0511242003250.2069@donald.themaw.net>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <438B12A4.1040106@cchmc.org>
+In-Reply-To: <Pine.LNX.4.63.0511242003250.2069@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,104 +35,77 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Prakash Velayutham <prakash.velayutham@cchmc.org>
+Content-Type: text/plain; charset="us-ascii"
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-On Mon, 28 Nov 2005, Prakash Velayutham wrote:
+==> Regarding Re: [autofs] automount never umount; Ian Kent <raven@themaw.net> adds:
 
-> Ian Kent wrote:
-> > On Sat, 26 Nov 2005, Prakash Velayutham wrote:
-> > 
-> >   
-> > > > > > Ian Kent <raven@themaw.net> 11/25/05 1:47 PM >>>
-> > > > > >           
-> > > On Thu, 24 Nov 2005, Prakash Velayutham wrote:
-> > > 
-> > >     
-> > > > Hi,
-> > > > 
-> > > > I am new to this list, so please forgive my ignorances.
-> > > > I had a SuSE Pro 9.0 system running autofs (v3) running earlier. The
-> > > > autofs itself did not have any issues at all until I decided to
-> > > >       
-> > > upgrade     
-> > > > the system to SuSE 9.3. It was a clean install, and autofs4-4.1.3
-> > > >       
-> > > became     
-> > > > the default kernel autofs module. My autofs master map comes from a
-> > > > OpenLDAP server and it contains 3 different mount maps.
-> > > > /users (LDAP map)
-> > > > /protein/users (LDAP map)
-> > > > /import/users (LDAP map)
-> > > > I also have a file-based map in this server (/export/users).
-> > > > 
-> > > > Recently I was trying to move a user's home dir from server1 to
-> > > >       
-> > > server2.     
-> > > > After moving his home dir and making the relevant changes to his LDAP
-> > > > entry (homeDirectory attribute), I tried to restart autofs in the
-> > > > above-mentioned server. The server already had several users logged in
-> > > >       under /protein/users. Though the restart did not complain, I
-> > > > noticed that autofs status showed "Configured mount points" correctly
-> > > > and removed the currently mounted mount points from "Active mount
-> > > > points".
-> > > >       Is there a reason why? Also strangely the ownerships of the
-> > > > previously
-> > > >       mounted dirs had been changed to root:root.
-> > > >       
-> > > I'm not sure what is not working or what has been broken.
-> > > What is the actual problem and symptom?
-> > > 
-> > > Ian
-> > > 
-> > > Thanks Ian for a reply. What if I restart autofs when a user whose home
-> > > dir is mounted through autofs is already logged into the system (and
-> > > hence at least one of the automount entries is being used)? What will
-> > > the system do in that case?
-> > >     
-> > 
-> > On runing "reload" it should, depending on version and patch levels re-read
-> > and update the map, leave the mounted directory mounted and leave the stale
-> > map entry for cleanup next time the map is reloaded and the entry isn't
-> > mounted. 
-> > "Restart"ing is much more agressive and I wouldn't recommend it if you have
-> > mount that are in use. To restart you really need to have nothing actually
-> > in use.
-> > 
-> >   
-> > > And also if I change the ldap attribute "homeDirectory" for a user, do I
-> > > have to restart autofs in a system for that change to be seen. Because I
-> > > sometimes see that the system has cached the user's attributes from LDAP
-> > > and tries to use that and fails.
-> > >     
-> > 
-> > autofs doesn't use that attribute so no, but you'll need to be sure that the
-> > automount map entry that is used to access that directory is still valid
-> > following the change and if it also had to be changed then you might need to
-> > "reload" autofs. It's worth pointing out that later versions (most RedHat
-> > versions and 4.1.4 I think) of autofs should recognise this change on access
-> > without needing to re-load the map.
-> > 
-> > The other thing I noticed about your query was the question about the root
-> > owned directory. At variuos times in the past development autofs has been
-> > (mostly intentionally) lazy about cleaning up mount point directories. When
-> > autofs directories don't have a filesystem mounted on them they will appear
-> > root owned. It shouldn't make a difference to operation.
-> > 
-> > Ian
-> Thanks Ian. I tried out autofs reload and there seems to be a small glitch. It
-> says "checking for changes in auto.master" and then stops some of the
-> automount daemons. But stays there forever. If I do Ctrl-C, then it
-> immediately shows "Starting XXX" for the different automount daemons (except 1
-> for some reason). Is there a reason for this behaviour. The system I am trying
-> out is SuSE Linux 10.0, autofs-4.1.4-6 with automount master map and the
-> entries coming from a OpenLDAP server.
+raven> On Thu, 24 Nov 2005, Farkas Levente wrote:
+>> Jeff Moyer wrote: > lfarkas> a full lsof ? fuser -v for what?
+>> > 
+>> > For the mount points in question.  I guess something like:
+>> > 
+>> > fuser -v -m <automountpoint>
+>> > 
+>> > lsof +D <automountpoint>
+>> 
+>> ok now i use only nfs and no smbfs, uprgade to
+>> kernel-2.6.14-1.1641_FC4.jmoyertest.2 but it doesn't show me any
+>> difference. so here is the current daemon log and that's all:-(
+>> -------------------------------
+>> [root@garfield ~]# fuser -v -m /net/
+>> 
+>> USER PID ACCESS COMMAND /net/ root 1919 f....  automount [root@garfield
+>> ~]# lsof +D /net/ COMMAND PID USER FD TYPE DEVICE SIZE NODE NAME
+>> automount 1919 root 5r DIR 0,20 0 5471 /net/
+>> -------------------------------
+>> new tips?
 
-Sounds like a bug to me.
+raven> These's still no printk output?
 
-I'll try to duplcate it.
-Can you offer any additional information on your setup?
+I find that difficult to believe.  Farkas, are you using the `dmesg'
+command to look for the printk output?  Please do, as I'm certain there are
+a *lot* of messages generated.
 
-Ian
+raven> So no explanation of what is wrong.
+
+raven> Jeff we could enable DEBUG in the kernel module.  What do you think.
+
+raven> If it would be better I could take the source from the kernel you
+raven> have and put together a tarball. Farkas could then compile and
+raven> install it so that the original module can restored with a "make
+raven> uninstall" when we are done.
+
+Sure, you could enable debug.  I just didn't want to get too much
+information.  However, at this point, it's probably better that we get as
+much as possible so Farkas doesn't have to keep trying new patches.
+
+Farkas, please look at the output of dmesg and let us know what you find.
+You should see something like this:
+
+autofs4_revalidate: revalidate called on behalf of application "mount"
+autofs4_revalidate: revalidate called on behalf of application "automount"
+autofs4_revalidate: revalidate called on behalf of application "automount"
+autofs4_revalidate: revalidate called on behalf of application "automount"
+autofs4_revalidate: revalidate called on behalf of application "automount"
+autofs4_revalidate: revalidate called on behalf of application "automount"
+autofs4_revalidate: revalidate called on behalf of application "automount"
+autofs4_revalidate: revalidate called on behalf of application "automount"
+autofs4_revalidate: revalidate called on behalf of application "automount"
+autofs4_revalidate: revalidate called on behalf of application "automount"
+autofs4_revalidate: revalidate called on behalf of application "automount"
+autofs4_revalidate: revalidate called on behalf of application "automount"
+autofs4_revalidate: revalidate called on behalf of application "automount"
+autofs4_revalidate: revalidate called on behalf of application "automount"
+autofs4_revalidate: revalidate called on behalf of application "automount"
+autofs4_revalidate: revalidate called on behalf of application "automount"
+autofs4_revalidate: revalidate called on behalf of application "automount"
+autofs4_revalidate: revalidate called on behalf of application "automount"
+autofs4_revalidate: revalidate called on behalf of application "automount"
+autofs4_revalidate: revalidate called on behalf of application "ls"
+autofs4_revalidate: revalidate called on behalf of application "ls"
+autofs4_revalidate: revalidate called on behalf of application "ls"
+autofs4_revalidate: revalidate called on behalf of application "ls"
+
+-Jeff
