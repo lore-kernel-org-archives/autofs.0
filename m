@@ -1,11 +1,13 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Latest docs
-Date: Tue, 29 Nov 2005 18:54:10 +0800 (WST)
-Message-ID: <Pine.LNX.4.63.0511291849220.2069@donald.themaw.net>
-References: <20051128203952.mgakgc8wajok4k0k@www.mommabears.com>
+From: Farkas Levente <lfarkas@bppiac.hu>
+Subject: Re: automount never umount
+Date: Tue, 29 Nov 2005 13:28:51 +0100
+Message-ID: <438C4983.30504@bppiac.hu>
+References: <4381E865.4070908@bppiac.hu>	<Pine.LNX.4.58.0511220822410.16196@wombat.indigo.net.au>	<4382E835.3020904@bppiac.hu>	<Pine.LNX.4.63.0511222054060.2600@donald.themaw.net>	<438344F7.8020503@bppiac.hu>	<17283.19512.49399.338448@segfault.boston.redhat.com>	<43838CA9.40105@bppiac.hu>	<17283.46783.748916.772469@segfault.boston.redhat.com>	<438435EF.6080102@bppiac.hu>	<Pine.LNX.4.63.0511232105320.3200@donald.themaw.net>	<43846C1C.3050305@bppiac.hu>	<17284.35467.301318.255602@segfault.boston.redhat.com>	<Pine.LNX.4.63.0511232334300.3253@donald.themaw.net>	<17284.40834.559604.943290@segfault.boston.redhat.com>	<4384A354.9040502@bppiac.hu>	<17284.41971.660257.356263@segfault.boston.redhat.com>	<43859055.3020508@bppiac.hu>	<Pine.LNX.4.63.0511242003250.2069@donald.themaw.net>
+	<17291.9542.484484.306141@segfault.boston.redhat.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20051128203952.mgakgc8wajok4k0k@www.mommabears.com>
+In-Reply-To: <17291.9542.484484.306141@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,39 +18,60 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: mike@mommabears.com
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: jmoyer@redhat.com
+Cc: autofs@linux.kernel.org, Ian Kent <raven@themaw.net>
 
-On Mon, 28 Nov 2005, mike@mommabears.com wrote:
-
-> Folks,
+Jeff Moyer wrote:
+> ==> Regarding Re: [autofs] automount never umount; Ian Kent <raven@themaw.net> adds:
 > 
-> Just looking for the latest docs which explain the autofs scripts
-> (/etc/auto.net, /etc/auto.smb) in use on SUSE and Fedora. The HOWTOs don't seem
-> up to date, and the latest stuff from http://people.redhat.com/~jmoyer/ don't
-> seem to address these scripts. Yes, I can use these scripts to find the shares
-> with commands such as:
-
-These are examples of using a program map.
-
+> raven> On Thu, 24 Nov 2005, Farkas Levente wrote:
 > 
-> /etc/auto.smb hostname(or IP address)
-
-and there's not much else to it.
-
-The key to these scripts are the host name and the keys is passed to the 
-scripts from autofs at mount time.
-
+>>>Jeff Moyer wrote: > lfarkas> a full lsof ? fuser -v for what?
+>>>
+>>>>For the mount points in question.  I guess something like:
+>>>>
+>>>>fuser -v -m <automountpoint>
+>>>>
+>>>>lsof +D <automountpoint>
+>>>
+>>>ok now i use only nfs and no smbfs, uprgade to
+>>>kernel-2.6.14-1.1641_FC4.jmoyertest.2 but it doesn't show me any
+>>>difference. so here is the current daemon log and that's all:-(
+>>>-------------------------------
+>>>[root@garfield ~]# fuser -v -m /net/
+>>>
+>>>USER PID ACCESS COMMAND /net/ root 1919 f....  automount [root@garfield
+>>>~]# lsof +D /net/ COMMAND PID USER FD TYPE DEVICE SIZE NODE NAME
+>>>automount 1919 root 5r DIR 0,20 0 5471 /net/
+>>>-------------------------------
+>>>new tips?
 > 
-> But I don't know how to make this into mountable directories in /smb and /net as
-> directed via /etc/auto.master.
+> 
+> raven> These's still no printk output?
+> 
+> I find that difficult to believe.  Farkas, are you using the `dmesg'
+> command to look for the printk output?  Please do, as I'm certain there are
+> a *lot* of messages generated.
 
-I thought there was usually a line like (perhaps commented out):
+opps. sorry i'm just look into daemon log while these are go into kern
+log:-(
 
-/net	/etc/auto.net
+> Sure, you could enable debug.  I just didn't want to get too much
+> information.  However, at this point, it's probably better that we get as
+> much as possible so Farkas doesn't have to keep trying new patches.
+> 
+> Farkas, please look at the output of dmesg and let us know what you find.
+> You should see something like this:
 
-in most distributed packages?
+# dmesg |sort|uniq
 
-Ian
+autofs4_revalidate: revalidate called on behalf of application "automount"
+autofs4_revalidate: revalidate called on behalf of application
+"multiload-apple"
+
+so what can i do? no longer use multiload-applet ? this is a standard
+gnome applet included in fc4: "System Monitor 2.10.1"
+
+-- 
+  Levente                               "Si vis pacem para bellum!"
