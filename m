@@ -1,25 +1,21 @@
-From: Badari Pulavarty <pbadari@gmail.com>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: [RFC PATCH]autofs4: hang and proposed fix
-Date: Mon, 28 Nov 2005 15:12:52 -0800
-Message-ID: <1133219572.27824.24.camel@localhost.localdomain>
-References: <20051116101740.GA9551@RAM>
-	 <Pine.LNX.4.63.0511271807100.2406@donald.themaw.net>
-	 <438B3C34.2050509@us.ibm.com>
+Date: Tue, 29 Nov 2005 09:20:59 -0500 (EST)
+Message-ID: <Pine.LNX.4.58.0511290920380.26303@wombat.indigo.net.au>
+References: <20051116101740.GA9551@RAM> <Pine.LNX.4.63.0511271807100.2406@donald.themaw.net>
+ <438B3C34.2050509@us.ibm.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-8zn/UaTFYQ9fb5bhVpdQ"
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
 In-Reply-To: <438B3C34.2050509@us.ibm.com>
 Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-To: "William H. Taber" <wtaber@us.ibm.com>
-Cc: Ian Kent <raven@themaw.net>, Ram Pai <linuxram@us.ibm.com>, autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
-
-
---=-8zn/UaTFYQ9fb5bhVpdQ
-Content-Type: text/plain
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+To: "William H. Taber" <wtaber@us.ibm.com>
+Cc: Ram Pai <linuxram@us.ibm.com>, autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-On Mon, 2005-11-28 at 12:19 -0500, William H. Taber wrote:
+On Mon, 28 Nov 2005, William H. Taber wrote:
+
 > Ian Kent wrote:
 > 
 > > My thoughts:
@@ -114,143 +110,6 @@ On Mon, 2005-11-28 at 12:19 -0500, William H. Taber wrote:
 > having gotten the lock but the lock may be held by another process.  In 
 > that case you do not want to be releasing their lock while they are 
 > relying on it.
-> 
 
-Here is the patch Will Taber proposed and I am posting on his behalf.
-
-Thanks,
-Badari
-
-
-
-
---=-8zn/UaTFYQ9fb5bhVpdQ
-Content-Disposition: attachment; filename=autofs.patch
-Content-Type: text/x-patch; name=autofs.patch; charset=utf-8
-Content-Transfer-Encoding: 7bit
-
-This patch changes the semantics of d_revalidate so that it is always called 
-with the parent i_sem lock held.  This allows the autofs4 code to release the
-lock if it needs to pend.  Without this patch the autofs has a race condition
-in which it pends in the revalidate code while holding the parent i_sem lock 
-which prevents the mount from ever completing.  There have been other patches
-proposed for this problem which check to see if the parent i_sem lock is held
-before releasing it but those solutions ignore the possibility that the lock
-may be held by another process.
-
-diff -ur linux-2.6.13.3/fs/autofs4/root.c linux-2.6.13.3-autofspatch/fs/autofs4/root.c
---- linux-2.6.13.3/fs/autofs4/root.c	2005-10-03 16:27:35.000000000 -0700
-+++ linux-2.6.13.3-autofspatch/fs/autofs4/root.c	2005-11-28 04:22:52.000000000 -0800
-@@ -302,7 +302,9 @@
- 		DPRINTK("waiting for expire %p name=%.*s",
- 			 dentry, dentry->d_name.len, dentry->d_name.name);
- 
-+		up(&dentry->d_parent->d_inode->i_sem);
- 		status = autofs4_wait(sbi, dentry, NFY_NONE);
-+		down(&dentry->d_parent->d_inode->i_sem);
- 		
- 		DPRINTK("expire done status=%d", status);
- 		
-@@ -324,7 +326,9 @@
- 		DPRINTK("waiting for mount name=%.*s",
- 			 dentry->d_name.len, dentry->d_name.name);
- 
-+		up(&dentry->d_parent->d_inode->i_sem);
- 		status = autofs4_wait(sbi, dentry, NFY_MOUNT);
-+		down(&dentry->d_parent->d_inode->i_sem);
- 		 
- 		DPRINTK("mount done status=%d", status);
- 
-@@ -351,7 +355,9 @@
- 		spin_lock(&dentry->d_lock);
- 		dentry->d_flags |= DCACHE_AUTOFS_PENDING;
- 		spin_unlock(&dentry->d_lock);
-+		up(&dentry->d_parent->d_inode->i_sem);
- 		status = autofs4_wait(sbi, dentry, NFY_MOUNT);
-+		down(&dentry->d_parent->d_inode->i_sem);
- 
- 		DPRINTK("mount done status=%d", status);
- 
-diff -ur linux-2.6.13.3/fs/namei.c linux-2.6.13.3-autofspatch/fs/namei.c
---- linux-2.6.13.3/fs/namei.c	2005-10-03 16:27:35.000000000 -0700
-+++ linux-2.6.13.3-autofspatch/fs/namei.c	2005-11-28 04:22:52.000000000 -0800
-@@ -393,7 +393,6 @@
- 	struct dentry * result;
- 	struct inode *dir = parent->d_inode;
- 
--	down(&dir->i_sem);
- 	/*
- 	 * First re-do the cached lookup just in case it was created
- 	 * while we waited for the directory semaphore..
-@@ -419,7 +418,6 @@
- 			else
- 				result = dentry;
- 		}
--		up(&dir->i_sem);
- 		return result;
- 	}
- 
-@@ -427,7 +425,6 @@
- 	 * Uhhuh! Nasty case: the cache was re-populated while
- 	 * we waited on the semaphore. Need to revalidate.
- 	 */
--	up(&dir->i_sem);
- 	if (result->d_op && result->d_op->d_revalidate) {
- 		if (!result->d_op->d_revalidate(result, nd) && !d_invalidate(result)) {
- 			dput(result);
-@@ -676,13 +673,16 @@
- 		     struct path *path)
- {
- 	struct vfsmount *mnt = nd->mnt;
-+	struct inode *parent = nd->dentry->d_inode;
- 	struct dentry *dentry = __d_lookup(nd->dentry, name);
- 
-+	down(&parent->i_sem);
- 	if (!dentry)
- 		goto need_lookup;
- 	if (dentry->d_op && dentry->d_op->d_revalidate)
- 		goto need_revalidate;
- done:
-+	up(&parent->i_sem);
- 	path->mnt = mnt;
- 	path->dentry = dentry;
- 	__follow_mount(path);
-@@ -703,6 +703,7 @@
- 	goto need_lookup;
- 
- fail:
-+	up(&parent->i_sem);
- 	return PTR_ERR(dentry);
- }
- 
-@@ -718,7 +719,7 @@
- {
- 	struct path next;
- 	struct inode *inode;
--	int err;
-+	int err, reval;
- 	unsigned int lookup_flags = nd->flags;
- 	
- 	while (*name=='/')
-@@ -893,9 +894,17 @@
- 		 */
- 		if (nd->dentry && nd->dentry->d_sb &&
- 		    (nd->dentry->d_sb->s_type->fs_flags & FS_REVAL_DOT)) {
-+			struct dentry *nparent;
-+
- 			err = -ESTALE;
- 			/* Note: we do not d_invalidate() */
--			if (!nd->dentry->d_op->d_revalidate(nd->dentry, nd))
-+			/* Revalidate requires us to lock the parent.
-+			 */
-+			nparent = nd->dentry->d_parent;
-+			down(&nparent->d_inode->i_sem);
-+			reval = nd->dentry->d_op->d_revalidate(nd->dentry, nd);
-+			up(&nparent->d_inode->i_sem);
-+			if (!reval)
- 				break;
- 		}
- return_base:
-
---=-8zn/UaTFYQ9fb5bhVpdQ--
+Oops.
 
