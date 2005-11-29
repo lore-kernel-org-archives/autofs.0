@@ -1,15 +1,16 @@
-From: Prakash Velayutham <prakash.velayutham@cchmc.org>
-Subject: Re: autofs-4.1.3 not working properly
-Date: Tue, 29 Nov 2005 11:36:15 -0500
-Message-ID: <438C837F.5020101@cchmc.org>
-References: <s388370e.056@n6mcgw16.cchmc.org>
-	<Pine.LNX.4.63.0511271725001.2406@donald.themaw.net>
-	<438B12A4.1040106@cchmc.org>
-	<Pine.LNX.4.63.0511282331530.2596@donald.themaw.net>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: stat of /users/no-such-user takes 15 seconds
+Date: Tue, 29 Nov 2005 14:09:17 -0500
+Message-ID: <17292.42845.186329.808676@segfault.boston.redhat.com>
+References: <1132670358.4039.37.camel@brilong-lnx>
+	<Pine.LNX.4.63.0511222329100.9982@donald.themaw.net>
+	<17283.17854.189791.135878@segfault.boston.redhat.com>
+	<Pine.LNX.4.63.0511242311570.2314@donald.themaw.net>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.63.0511282331530.2596@donald.themaw.net>
+In-Reply-To: <Pine.LNX.4.63.0511242311570.2314@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,209 +21,70 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-Ian Kent wrote:
-> On Mon, 28 Nov 2005, Prakash Velayutham wrote:
->
->   
->> Ian Kent wrote:
->>     
->>> On Sat, 26 Nov 2005, Prakash Velayutham wrote:
->>>
->>>   
->>>       
->>>>>>> Ian Kent <raven@themaw.net> 11/25/05 1:47 PM >>>
->>>>>>>           
->>>>>>>               
->>>> On Thu, 24 Nov 2005, Prakash Velayutham wrote:
->>>>
->>>>     
->>>>         
->>>>> Hi,
->>>>>
->>>>> I am new to this list, so please forgive my ignorances.
->>>>> I had a SuSE Pro 9.0 system running autofs (v3) running earlier. The
->>>>> autofs itself did not have any issues at all until I decided to
->>>>>       
->>>>>           
->>>> upgrade     
->>>>         
->>>>> the system to SuSE 9.3. It was a clean install, and autofs4-4.1.3
->>>>>       
->>>>>           
->>>> became     
->>>>         
->>>>> the default kernel autofs module. My autofs master map comes from a
->>>>> OpenLDAP server and it contains 3 different mount maps.
->>>>> /users (LDAP map)
->>>>> /protein/users (LDAP map)
->>>>> /import/users (LDAP map)
->>>>> I also have a file-based map in this server (/export/users).
->>>>>
->>>>> Recently I was trying to move a user's home dir from server1 to
->>>>>       
->>>>>           
->>>> server2.     
->>>>         
->>>>> After moving his home dir and making the relevant changes to his LDAP
->>>>> entry (homeDirectory attribute), I tried to restart autofs in the
->>>>> above-mentioned server. The server already had several users logged in
->>>>>       under /protein/users. Though the restart did not complain, I
->>>>> noticed that autofs status showed "Configured mount points" correctly
->>>>> and removed the currently mounted mount points from "Active mount
->>>>> points".
->>>>>       Is there a reason why? Also strangely the ownerships of the
->>>>> previously
->>>>>       mounted dirs had been changed to root:root.
->>>>>       
->>>>>           
->>>> I'm not sure what is not working or what has been broken.
->>>> What is the actual problem and symptom?
->>>>
->>>> Ian
->>>>
->>>> Thanks Ian for a reply. What if I restart autofs when a user whose home
->>>> dir is mounted through autofs is already logged into the system (and
->>>> hence at least one of the automount entries is being used)? What will
->>>> the system do in that case?
->>>>     
->>>>         
->>> On runing "reload" it should, depending on version and patch levels re-read
->>> and update the map, leave the mounted directory mounted and leave the stale
->>> map entry for cleanup next time the map is reloaded and the entry isn't
->>> mounted. 
->>> "Restart"ing is much more agressive and I wouldn't recommend it if you have
->>> mount that are in use. To restart you really need to have nothing actually
->>> in use.
->>>
->>>   
->>>       
->>>> And also if I change the ldap attribute "homeDirectory" for a user, do I
->>>> have to restart autofs in a system for that change to be seen. Because I
->>>> sometimes see that the system has cached the user's attributes from LDAP
->>>> and tries to use that and fails.
->>>>     
->>>>         
->>> autofs doesn't use that attribute so no, but you'll need to be sure that the
->>> automount map entry that is used to access that directory is still valid
->>> following the change and if it also had to be changed then you might need to
->>> "reload" autofs. It's worth pointing out that later versions (most RedHat
->>> versions and 4.1.4 I think) of autofs should recognise this change on access
->>> without needing to re-load the map.
->>>
->>> The other thing I noticed about your query was the question about the root
->>> owned directory. At variuos times in the past development autofs has been
->>> (mostly intentionally) lazy about cleaning up mount point directories. When
->>> autofs directories don't have a filesystem mounted on them they will appear
->>> root owned. It shouldn't make a difference to operation.
->>>
->>> Ian
->>>       
->> Thanks Ian. I tried out autofs reload and there seems to be a small glitch. It
->> says "checking for changes in auto.master" and then stops some of the
->> automount daemons. But stays there forever. If I do Ctrl-C, then it
->> immediately shows "Starting XXX" for the different automount daemons (except 1
->> for some reason). Is there a reason for this behaviour. The system I am trying
->> out is SuSE Linux 10.0, autofs-4.1.4-6 with automount master map and the
->> entries coming from a OpenLDAP server.
->>     
->
-> Sounds like a bug to me.
->
-> I'll try to duplcate it.
-> Can you offer any additional information on your setup?
->
-> Ian
-Hi Ian,
+==> Regarding Re: [autofs] stat of /users/no-such-user takes 15 seconds; Ian Kent <raven@themaw.net> adds:
 
-Sorry for this long posting. Just giving all the info required. Let me 
-know if you need anything else in particular.
+raven> On Tue, 22 Nov 2005, Jeff Moyer wrote:
+>> ==> Regarding Re: [autofs] stat of /users/no-such-user takes 15 seconds; Ian Kent <raven@themaw.net> adds:
+>> 
 
-Client details:
-SuSE Linux 10.0 (the Open SuSE OS).
-autofs-4.1.4-6
+raven> Could you review this patch please Jeff.
 
-auto.master map comes from LDAP server (NIS attributes, not automount 
-attributes) as well as from the file /etc/auto.master (nsswitch.conf has 
-automount: files nis ldap)
-DN is:
-dn: nisMapName=auto.master,o=x,c=x
-nisMapName: auto.master
-objectClass: nisMap
-objectClass: top
+After reviewing this further, I did find a problem.  See below.
 
-4 different map entries (3 through LDAP and 1 through file).
-DNs are:
-dn: nisMapName=auto.users,o=x,c=x
-nisMapName: auto.users
-objectClass: nisMap
-objectClass: top
-structuralObjectClass: nisMap
+> --- autofs-4.1.4/modules/lookup_file.c.update-fix	2005-11-24 22:00:30.000000000 +0800
+> +++ autofs-4.1.4/modules/lookup_file.c	2005-11-24 22:52:56.000000000 +0800
+[snip]
+> @@ -407,12 +407,12 @@ int lookup_mount(const char *root, const
 
-dn: cn=/,nisMapName=auto.users,o=x,c=x
-cn: /
-nisMapName: auto.users
-objectClass: nisObject
-structuralObjectClass: nisObject
-nisMapEntry: -fstype=nfs,hard,intr x.x.x:/home/&
+>  	/* only if it has been modified */
+>  	if (st.st_mtime > ctxt->mtime) {
+> +		exists = cache_lookup(key);
+> +
+>  		ret = lookup_one(root, key, key_len, ctxt);
+> -		if (!ret)
+> +		if (!exists && !ret)
+>  			return 1;
 
-dn: cn=/users,nisMapName=auto.master,o=x,c=x
-cn: /users
-nisMapName: auto.master
-objectClass: nisObject
-nisMapEntry: ldap x.x.x:nisMapName=auto.users,o=x,c=x
+This check is wrong.  ret will be zero only if there is a failure reading
+the map or adding an entry to the cache.  I think the code should look
+like so:
 
-dn: cn=/import/users,nisMapName=auto.master,o=x,c=x
-cn: /import/users
-nisMapName: auto.master
-objectClass: nisObject
-nisMapEntry: ldap x.x.x:nisMapName=auto.import,o=x,c=x
-structuralObjectClass: nisObject
+	if (st.st_mtime > ctxt->mtime) {
+		exists = cache_lookup(key);
 
-dn: nisMapName=auto.import,o=x,c=x
-nisMapName: auto.import
-objectClass: nisMap
-objectClass: top
-structuralObjectClass: nisMap
+		ret = lookup_one(root, key, key_len, ctxt);
+		if (!ret)
+			return 1;
 
-dn: cn=/,nisMapName=auto.import,o=x,c=x
-cn: /
-nisMapName: auto.import
-objectClass: nisObject
-nisMapEntry: -fstype=nfs,hard,intr x.x.x.x:/home/&
-structuralObjectClass: nisObject
+		if (ret == CHE_MISSING && exists) {          <----------
+			if (!cache_delete(root, key, CHE_RMPATH))
+				rmdir_path(key);
 
-dn: nisMapName=auto.proteinusers,o=x,c=x
-nisMapName: auto.proteinusers
-objectClass: nisMap
-objectClass: top
-structuralObjectClass: nisMap
+			/* Maybe update wild card map entry */
+			if (ap.type == LKP_INDIRECT)
+				lookup_wild(root, ctxt);
 
-dn: cn=/,nisMapName=auto.proteinusers,o=x,c=x
-cn: /
-nisMapName: auto.proteinusers
-objectClass: nisObject
-nisMapEntry: -fstype=nfs,hard,intr x.x.x.x:/home/&
-structuralObjectClass: nisObject
+			/* Have parent update its map */
+			if (t_last_read > ap.exp_runfreq)
+				kill(getppid(), SIGHUP);
+		} else if (ret == CHE_UPDATED) {
+			/* Have parent update its map */
+			if (t_last_read > ap.exp_runfreq)
+				kill(getppid(), SIGHUP);
+		}
+	}
 
-dn: cn=/protein/users,nisMapName=auto.master,o=x,c=x
-cn: /protein/users
-nisMapName: auto.master
-objectClass: nisObject
-nisMapEntry: ldap x.x.x:nisMapName=auto.proteinusers,o=x,c=x
-structuralObjectClass: nisObject
+As a matter of cleanliness, it would be good to use the CHE_ defines when
+testing for error.  This mistake likely would not have been made if the
+code had read:
 
-The file based auto.master has
-/export/users   auto_users      -rw,bg,hard,rsize=8192,wsize=8192
-+
+		if (ret == CHE_FAIL)
+			return 1;
 
-Contents of /etc/auto_users:
-*       x.x.x.x:/pi_home/home/&/.linux
+instead of "if (!ret)".
 
-Any help is greatly appreciated.
-
-Thanks,
-Prakash
+-Jeff
