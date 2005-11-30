@@ -1,47 +1,64 @@
 From: Trond Myklebust <trond.myklebust@fys.uio.no>
-Subject: Re: [autofs] [RFC PATCH]autofs4: hang and proposed fix
-Date: Wed, 30 Nov 2005 11:45:22 -0500
-Message-ID: <1133369123.8625.28.camel@lade.trondhjem.org>
+Subject: Re: [RFC PATCH]autofs4: hang and proposed fix
+Date: Wed, 30 Nov 2005 12:04:11 -0500
+Message-ID: <1133370251.8625.38.camel@lade.trondhjem.org>
 References: <20051116101740.GA9551@RAM>
-	 <17292.64892.680738.833917@segfault.boston.redhat.com>
-	 <1133315771.8978.65.camel@lade.trondhjem.org>
-	 <17293.10094.111804.682032@segfault.boston.redhat.com>
-	 <1133331286.8195.29.camel@lade.trondhjem.org>
-	 <Pine.LNX.4.63.0511302334390.2069@donald.themaw.net>
-	 <1133366016.8625.19.camel@lade.trondhjem.org>
-	 <Pine.LNX.4.63.0511302358370.2069@donald.themaw.net>
+	 <Pine.LNX.4.63.0511271807100.2406@donald.themaw.net>
+	 <438B3C34.2050509@us.ibm.com>
+	 <1133219572.27824.24.camel@localhost.localdomain>
+	 <Pine.LNX.4.58.0511290918060.26303@wombat.indigo.net.au>
+	 <438C82FB.50706@us.ibm.com>
+	 <Pine.LNX.4.58.0511300850450.32520@wombat.indigo.net.au>
+	 <1133369361.27824.61.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.63.0511302358370.2069@donald.themaw.net>
+In-Reply-To: <1133369361.27824.61.camel@localhost.localdomain>
 Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Ian Kent <raven@themaw.net>
-Cc: jmoyer@redhat.com, Ram Pai <linuxram@us.ibm.com>, autofs@linux.kernel.org, linux-fsdevel@vger.kernel.org
+To: Badari Pulavarty <pbadari@gmail.com>
+Cc: Ian Kent <raven@themaw.net>, "William H. Taber" <wtaber@us.ibm.com>, Ram Pai <linuxram@us.ibm.com>, autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Al Viro <viro@ftp.linux.org.uk>, smaneesh@in.ibm.com
 
-On Thu, 2005-12-01 at 00:12 +0800, Ian Kent wrote:
-
-> > 2.4 kernels did a second d_lookup() after retaking the i_sem. The
-> > problem is what do you do in the case of a race: you either have to loop
-> > back (may lead to infinite loops of d_lookup()+d_invalidate()) or you do
-> > something like retry once, then return an error (which is what 2.4
-> > kernels did).
+On Wed, 2005-11-30 at 08:49 -0800, Badari Pulavarty wrote:
+> On Wed, 2005-11-30 at 09:02 -0500, Ian Kent wrote:
+> > On Tue, 29 Nov 2005, William H. Taber wrote:
+> > 
+> > > Ian Kent wrote:
+> > > > We'll need to do an analysis of all callers of the revalidate method.
+> > > You are right. Searching through the sources, it would appear that I 
+> > > missed fixing autofs and devfs.  Everyone else just defines a revalidate 
+> > > routine but doesn't call one.  You may find devfs to be interesting 
+> > > because they have code to determine whether they need to release the 
+> > > i_sem lock or not.  I am working on an updated patch to include the 
+> > > changes needed for these two modules.
+> > 
+> > I've looked at devfs before but that bit of code sounds interesting to me.
+> > 
+> > The other thing that concerns me is that we may be increasing the latency 
+> > of some code paths that need to be really fast. I was thinking that 
+> > perhaps it might be good to try a change more in line with the locking 
+> > used in link_patch_walk (ie. i_sem free revalidate) rather than that used 
+> > in lookup_one_len. My only justification being that lookup is called to 
+> > create stuff where revalidate is called to check stuff. I've been 
+> > poking around and this change looks fairly difficult as well (I seem to 
+> > remember you also looked at this).
+> > 
+> > Anyway, I'm keen to have a look at your patch.
+> > Thanks much for your interest and help.
+> > 
+> > Ian
+> > 
 > 
-> But in this case the semaphore is already held up until the revalidate so 
-> I guess the concern is that the dentry goes away after releasing the 
-> semaphore?
+> Again, I am posting Will's latest patch on his behalf.
+> 
+> Any thoughts on how acceptable are the VFS changes ?
 
-The problem is the same: dealing with the case of someone else
-populating the d_cache while you have temporarily dropped the
-dir->i_sem.
+That will slow link_path_walk() for commonly accessed shared directories
+(/lib, /usr/share,...) down to a crawl.
 
-> btw, a little aside.
-> I'm having trouble understanding where EEXIST is returned in a call such 
-> as sys_mkdir. Can you help?
-
-The call to may_create() (at the top of vfs_mkdir()) will return EEXIST
-if the dentry is already positive i.e. dentry->d_inode is non-null.
+Instead of having lock-free lookups of cached dentries, you are suddenly
+serialising everybody in the parent directory.
 
 Cheers,
   Trond
