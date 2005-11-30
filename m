@@ -1,44 +1,65 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [RFC PATCH]autofs4: hang and proposed fix
-Date: Wed, 30 Nov 2005 09:02:24 -0500 (EST)
-Message-ID: <Pine.LNX.4.58.0511300850450.32520@wombat.indigo.net.au>
-References: <20051116101740.GA9551@RAM>  <Pine.LNX.4.63.0511271807100.2406@donald.themaw.net>
-  <438B3C34.2050509@us.ibm.com> <1133219572.27824.24.camel@localhost.localdomain>
- <Pine.LNX.4.58.0511290918060.26303@wombat.indigo.net.au> <438C82FB.50706@us.ibm.com>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: [autofs] [RFC PATCH]autofs4: hang and proposed fix
+Date: Tue, 29 Nov 2005 20:16:44 -0500
+Message-ID: <17292.64892.680738.833917@segfault.boston.redhat.com>
+References: <20051116101740.GA9551@RAM>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <438C82FB.50706@us.ibm.com>
+In-Reply-To: <20051116101740.GA9551@RAM>
 Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: "William H. Taber" <wtaber@us.ibm.com>
-Cc: Badari Pulavarty <pbadari@gmail.com>, Ram Pai <linuxram@us.ibm.com>, autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: Ram Pai <linuxram@us.ibm.com>
+Cc: autofs@linux.kernel.org, linux-fsdevel@vger.kernel.org
 
-On Tue, 29 Nov 2005, William H. Taber wrote:
+==> Regarding [autofs] [RFC PATCH]autofs4: hang and proposed fix; linuxram@us.ibm.com (Ram Pai) adds:
 
-> Ian Kent wrote:
-> > We'll need to do an analysis of all callers of the revalidate method.
-> You are right. Searching through the sources, it would appear that I 
-> missed fixing autofs and devfs.  Everyone else just defines a revalidate 
-> routine but doesn't call one.  You may find devfs to be interesting 
-> because they have code to determine whether they need to release the 
-> i_sem lock or not.  I am working on an updated patch to include the 
-> changes needed for these two modules.
+linuxram> Autofs4 assumes that its ->revalidate() function gets called with
+linuxram> the parent_dentry's_inode_semaphore released. This is true mostly
+linuxram> but not in one particular case.
 
-I've looked at devfs before but that bit of code sounds interesting to me.
+linuxram> Process P1 calls autofs4's ->lookup(). The lookup finds that the
+linuxram> dentry does not exist. It creates a dentry and adds to the
+linuxram> cache. Releases the parent's inode's semaphore and than calls
+linuxram> ->revalidate().
 
-The other thing that concerns me is that we may be increasing the latency 
-of some code paths that need to be really fast. I was thinking that 
-perhaps it might be good to try a change more in line with the locking 
-used in link_patch_walk (ie. i_sem free revalidate) rather than that used 
-in lookup_one_len. My only justification being that lookup is called to 
-create stuff where revalidate is called to check stuff. I've been 
-poking around and this change looks fairly difficult as well (I seem to 
-remember you also looked at this).
+linuxram> Process P2 meanwhile comes in and cached_lookup() gets called. It
+linuxram> finds the dentry in the cache and finds ->revalidate() function
+linuxram> exists. So it calls ->revalidate() holding the parent's inode's
+linuxram> semaphore.
 
-Anyway, I'm keen to have a look at your patch.
-Thanks much for your interest and help.
+Can't we simply fix this case?  It seems like it should be perfectly safe
+to drop the parent's i_sem before calling revalidate in cached_lookup.  In
+fact, there are comments in the NFS code that would lead one to believe
+that revalidate is not supposed to be called with the parent's i_sem held:
 
-Ian
+static int nfs_lookup_revalidate(struct dentry * dentry, struct nameidata *nd)
+{
+...
+	/*
+	 * Note: we're not holding inode->i_sem and so may be racing with
+	 * operations that change the directory. We therefore save the
+	 * change attribute *before* we do the RPC call.
+	 */
 
+Can you try out a patch which does this?
+
+-Jeff
+
+--- linux-2.6.14/fs/namei.c.orig	2005-11-29 20:14:30.000000000 -0500
++++ linux-2.6.14/fs/namei.c	2005-11-29 20:14:48.000000000 -0500
+@@ -332,10 +332,12 @@ static struct dentry * cached_lookup(str
+ 		dentry = d_lookup(parent, name);
+ 
+ 	if (dentry && dentry->d_op && dentry->d_op->d_revalidate) {
++		up(&parent->d_inode->i_sem);
+ 		if (!dentry->d_op->d_revalidate(dentry, nd) && !d_invalidate(dentry)) {
+ 			dput(dentry);
+ 			dentry = NULL;
+ 		}
++		down(&parent->d_inode->i_sem);
+ 	}
+ 	return dentry;
+ }
