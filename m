@@ -1,20 +1,20 @@
-From: Ian Kent <raven@themaw.net>
+From: Trond Myklebust <trond.myklebust@fys.uio.no>
 Subject: Re: [autofs] [RFC PATCH]autofs4: hang and proposed fix
-Date: Wed, 30 Nov 2005 09:48:42 -0500 (EST)
-Message-ID: <Pine.LNX.4.58.0511300947560.32520@wombat.indigo.net.au>
-References: <20051116101740.GA9551@RAM> <17292.64892.680738.833917@segfault.boston.redhat.com>
+Date: Tue, 29 Nov 2005 20:56:11 -0500
+Message-ID: <1133315771.8978.65.camel@lade.trondhjem.org>
+References: <20051116101740.GA9551@RAM>
+	 <17292.64892.680738.833917@segfault.boston.redhat.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
 In-Reply-To: <17292.64892.680738.833917@segfault.boston.redhat.com>
 Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Jeff Moyer <jmoyer@redhat.com>
+Content-Type: text/plain; charset="us-ascii"
+To: jmoyer@redhat.com
 Cc: Ram Pai <linuxram@us.ibm.com>, autofs@linux.kernel.org, linux-fsdevel@vger.kernel.org
 
-On Tue, 29 Nov 2005, Jeff Moyer wrote:
-
+On Tue, 2005-11-29 at 20:16 -0500, Jeff Moyer wrote:
 > ==> Regarding [autofs] [RFC PATCH]autofs4: hang and proposed fix; linuxram@us.ibm.com (Ram Pai) adds:
 > 
 > linuxram> Autofs4 assumes that its ->revalidate() function gets called with
@@ -46,9 +46,32 @@ On Tue, 29 Nov 2005, Jeff Moyer wrote:
 > 	 */
 > 
 > Can you try out a patch which does this?
+> 
+> -Jeff
+> 
+> --- linux-2.6.14/fs/namei.c.orig	2005-11-29 20:14:30.000000000 -0500
+> +++ linux-2.6.14/fs/namei.c	2005-11-29 20:14:48.000000000 -0500
+> @@ -332,10 +332,12 @@ static struct dentry * cached_lookup(str
+>  		dentry = d_lookup(parent, name);
+>  
+>  	if (dentry && dentry->d_op && dentry->d_op->d_revalidate) {
+> +		up(&parent->d_inode->i_sem);
+>  		if (!dentry->d_op->d_revalidate(dentry, nd) && !d_invalidate(dentry)) {
+>  			dput(dentry);
+>  			dentry = NULL;
+>  		}
+> +		down(&parent->d_inode->i_sem);
+>  	}
+>  	return dentry;
+>  }
 
-Could it be as simple as that?
-Food for more thought.
+Woah! Definitely not safe. NFS might not care, but the VFS will
+certainly barf over that!
 
-Ian
+By dropping the dir->i_sem in cached_lookup() you are allowing 2
+processes to allocate and lookup multiple dentries for the same file
+inside __lookup_hash().
+
+Cheers,
+  Trond
 
