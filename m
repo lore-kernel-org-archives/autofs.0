@@ -1,65 +1,107 @@
-From: Trond Myklebust <trond.myklebust@fys.uio.no>
-Subject: Re: [RFC PATCH]autofs4: hang and proposed fix
-Date: Wed, 30 Nov 2005 12:04:11 -0500
-Message-ID: <1133370251.8625.38.camel@lade.trondhjem.org>
-References: <20051116101740.GA9551@RAM>
-	 <Pine.LNX.4.63.0511271807100.2406@donald.themaw.net>
-	 <438B3C34.2050509@us.ibm.com>
-	 <1133219572.27824.24.camel@localhost.localdomain>
-	 <Pine.LNX.4.58.0511290918060.26303@wombat.indigo.net.au>
-	 <438C82FB.50706@us.ibm.com>
-	 <Pine.LNX.4.58.0511300850450.32520@wombat.indigo.net.au>
-	 <1133369361.27824.61.camel@localhost.localdomain>
+From: "William H. Taber" <wtaber@us.ibm.com>
+Subject: Re: [autofs] [RFC PATCH]autofs4: hang and proposed fix
+Date: Wed, 30 Nov 2005 15:32:38 -0500
+Message-ID: <438E0C66.6040607@us.ibm.com>
+References: <20051116101740.GA9551@RAM>	 <17292.64892.680738.833917@segfault.boston.redhat.com> <1133315771.8978.65.camel@lade.trondhjem.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <1133369361.27824.61.camel@localhost.localdomain>
+In-Reply-To: <1133315771.8978.65.camel@lade.trondhjem.org>
 Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: Badari Pulavarty <pbadari@gmail.com>
-Cc: Ian Kent <raven@themaw.net>, "William H. Taber" <wtaber@us.ibm.com>, Ram Pai <linuxram@us.ibm.com>, autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Al Viro <viro@ftp.linux.org.uk>, smaneesh@in.ibm.com
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: jmoyer@redhat.com, Ram Pai <linuxram@us.ibm.com>, autofs@linux.kernel.org, linux-fsdevel@vger.kernel.org
 
-On Wed, 2005-11-30 at 08:49 -0800, Badari Pulavarty wrote:
-> On Wed, 2005-11-30 at 09:02 -0500, Ian Kent wrote:
-> > On Tue, 29 Nov 2005, William H. Taber wrote:
-> > 
-> > > Ian Kent wrote:
-> > > > We'll need to do an analysis of all callers of the revalidate method.
-> > > You are right. Searching through the sources, it would appear that I 
-> > > missed fixing autofs and devfs.  Everyone else just defines a revalidate 
-> > > routine but doesn't call one.  You may find devfs to be interesting 
-> > > because they have code to determine whether they need to release the 
-> > > i_sem lock or not.  I am working on an updated patch to include the 
-> > > changes needed for these two modules.
-> > 
-> > I've looked at devfs before but that bit of code sounds interesting to me.
-> > 
-> > The other thing that concerns me is that we may be increasing the latency 
-> > of some code paths that need to be really fast. I was thinking that 
-> > perhaps it might be good to try a change more in line with the locking 
-> > used in link_patch_walk (ie. i_sem free revalidate) rather than that used 
-> > in lookup_one_len. My only justification being that lookup is called to 
-> > create stuff where revalidate is called to check stuff. I've been 
-> > poking around and this change looks fairly difficult as well (I seem to 
-> > remember you also looked at this).
-> > 
-> > Anyway, I'm keen to have a look at your patch.
-> > Thanks much for your interest and help.
-> > 
-> > Ian
-> > 
+Trond Myklebust wrote:
+> On Tue, 2005-11-29 at 20:16 -0500, Jeff Moyer wrote:
 > 
-> Again, I am posting Will's latest patch on his behalf.
+>>==> Regarding [autofs] [RFC PATCH]autofs4: hang and proposed fix; linuxram@us.ibm.com (Ram Pai) adds:
+>>
+>>linuxram> Autofs4 assumes that its ->revalidate() function gets called with
+>>linuxram> the parent_dentry's_inode_semaphore released. This is true mostly
+>>linuxram> but not in one particular case.
+>>
+>>linuxram> Process P1 calls autofs4's ->lookup(). The lookup finds that the
+>>linuxram> dentry does not exist. It creates a dentry and adds to the
+>>linuxram> cache. Releases the parent's inode's semaphore and than calls
+>>linuxram> ->revalidate().
+>>
+>>linuxram> Process P2 meanwhile comes in and cached_lookup() gets called. It
+>>linuxram> finds the dentry in the cache and finds ->revalidate() function
+>>linuxram> exists. So it calls ->revalidate() holding the parent's inode's
+>>linuxram> semaphore.
+>>
+>>Can't we simply fix this case?  It seems like it should be perfectly safe
+>>to drop the parent's i_sem before calling revalidate in cached_lookup.  In
+>>fact, there are comments in the NFS code that would lead one to believe
+>>that revalidate is not supposed to be called with the parent's i_sem held:
+>>
+>>static int nfs_lookup_revalidate(struct dentry * dentry, struct nameidata *nd)
+>>{
+>>...
+>>	/*
+>>	 * Note: we're not holding inode->i_sem and so may be racing with
+>>	 * operations that change the directory. We therefore save the
+>>	 * change attribute *before* we do the RPC call.
+>>	 */
+>>
+>>Can you try out a patch which does this?
+>>
+>>-Jeff
+>>
+>>--- linux-2.6.14/fs/namei.c.orig	2005-11-29 20:14:30.000000000 -0500
+>>+++ linux-2.6.14/fs/namei.c	2005-11-29 20:14:48.000000000 -0500
+>>@@ -332,10 +332,12 @@ static struct dentry * cached_lookup(str
+>> 		dentry = d_lookup(parent, name);
+>> 
+>> 	if (dentry && dentry->d_op && dentry->d_op->d_revalidate) {
+>>+		up(&parent->d_inode->i_sem);
+>> 		if (!dentry->d_op->d_revalidate(dentry, nd) && !d_invalidate(dentry)) {
+>> 			dput(dentry);
+>> 			dentry = NULL;
+>> 		}
+>>+		down(&parent->d_inode->i_sem);
+>> 	}
+>> 	return dentry;
+>> }
 > 
-> Any thoughts on how acceptable are the VFS changes ?
+> 
+> Woah! Definitely not safe. NFS might not care, but the VFS will
+> certainly barf over that!
+> 
+> By dropping the dir->i_sem in cached_lookup() you are allowing 2
+> processes to allocate and lookup multiple dentries for the same file
+> inside __lookup_hash().
+> 
+> Cheers,
+>   Trond
+Not only is there this case, but the original premise is wrong as well. 
+  There is a second case in which a d_revalidate function is called with 
+the parent i_sem and that is when it is called from inside of 
+lookup_one_len.  What makes this tricky is that lookup_one_len is called 
+from nfs_sillyrename from inside of nfs_rename which is called, 
+naturally enough by sys_rename.  The rename code is very careful about 
+the order in which it obtains the parent semaphores because it needs to 
+get two of them.  It must always obtain the locks in the same order so 
+that does not get into a deadly embrace.  If we start arbitrarily 
+releasing a parent semaphore in cached_lookup and taking it again after 
+the revalidate, we risk breaking the lock ordering and creating a deadly 
+embrace.
 
-That will slow link_path_walk() for commonly accessed shared directories
-(/lib, /usr/share,...) down to a crawl.
+When I started writing this I thought that it would be safe for the 
+autofs revalidate code to release the parent semaphore because they do 
+not have a rename callback.  But I looked again at the rename code and 
+it calls lookup_hash on the final source and destination files after 
+locking the parents so the potential for a deadly embrace still exists 
+unless there is some other assurance that these final lookups will never 
+pend waiting on the automounter in either their revalidate or lookup 
+routines.  (Actually the requirement is that they never give up the 
+parent i_sem lock, but the lookup code has to give up the lock so that 
+the autofs demon can run and perform the mount so it amounts to the same 
+thing.)
 
-Instead of having lock-free lookups of cached dentries, you are suddenly
-serialising everybody in the parent directory.
+The same issue exists for devfs which also releases the parent i_sem 
+lock so that it can wait inside its revalidation routine.
 
-Cheers,
-  Trond
-
+Will
