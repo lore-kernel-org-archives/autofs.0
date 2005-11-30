@@ -1,60 +1,54 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs-4.1.3 not working properly
-Date: Wed, 30 Nov 2005 09:34:47 -0500 (EST)
-Message-ID: <Pine.LNX.4.58.0511300918050.32520@wombat.indigo.net.au>
-References: <s388370e.056@n6mcgw16.cchmc.org>
-	<Pine.LNX.4.63.0511271725001.2406@donald.themaw.net>
-	<438B12A4.1040106@cchmc.org>
-	<Pine.LNX.4.63.0511282331530.2596@donald.themaw.net>
-	<438C837F.5020101@cchmc.org>
+Subject: Re: [autofs] [RFC PATCH]autofs4: hang and proposed fix
+Date: Wed, 30 Nov 2005 09:48:42 -0500 (EST)
+Message-ID: <Pine.LNX.4.58.0511300947560.32520@wombat.indigo.net.au>
+References: <20051116101740.GA9551@RAM> <17292.64892.680738.833917@segfault.boston.redhat.com>
 Mime-Version: 1.0
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <438C837F.5020101@cchmc.org>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <17292.64892.680738.833917@segfault.boston.redhat.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://hera.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Prakash Velayutham <prakash.velayutham@cchmc.org>
-Cc: autofs@linux.kernel.org
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: Ram Pai <linuxram@us.ibm.com>, autofs@linux.kernel.org, linux-fsdevel@vger.kernel.org
 
-On Tue, 29 Nov 2005, Prakash Velayutham wrote:
+On Tue, 29 Nov 2005, Jeff Moyer wrote:
 
-> >
-> > Sounds like a bug to me.
-> >
-> > I'll try to duplcate it.
-> > Can you offer any additional information on your setup?
-> >
-> > Ian
-> Hi Ian,
+> ==> Regarding [autofs] [RFC PATCH]autofs4: hang and proposed fix; linuxram@us.ibm.com (Ram Pai) adds:
 > 
-> Sorry for this long posting. Just giving all the info required. Let me 
-> know if you need anything else in particular.
-
-That's OK.
-
-I always have trouble finding/getting hold of the SuSE source rpm to test 
-this stuff out. If you are able to forward one that would be great. 
-Otherwise I'll test with my 4.1.4 and the minimum patches I recommend.
-It's likey to show up the problem any way but I thought I'd mention it.
-
+> linuxram> Autofs4 assumes that its ->revalidate() function gets called with
+> linuxram> the parent_dentry's_inode_semaphore released. This is true mostly
+> linuxram> but not in one particular case.
 > 
-> Client details:
-> SuSE Linux 10.0 (the Open SuSE OS).
-> autofs-4.1.4-6
->
+> linuxram> Process P1 calls autofs4's ->lookup(). The lookup finds that the
+> linuxram> dentry does not exist. It creates a dentry and adds to the
+> linuxram> cache. Releases the parent's inode's semaphore and than calls
+> linuxram> ->revalidate().
+> 
+> linuxram> Process P2 meanwhile comes in and cached_lookup() gets called. It
+> linuxram> finds the dentry in the cache and finds ->revalidate() function
+> linuxram> exists. So it calls ->revalidate() holding the parent's inode's
+> linuxram> semaphore.
+> 
+> Can't we simply fix this case?  It seems like it should be perfectly safe
+> to drop the parent's i_sem before calling revalidate in cached_lookup.  In
+> fact, there are comments in the NFS code that would lead one to believe
+> that revalidate is not supposed to be called with the parent's i_sem held:
+> 
+> static int nfs_lookup_revalidate(struct dentry * dentry, struct nameidata *nd)
+> {
+> ...
+> 	/*
+> 	 * Note: we're not holding inode->i_sem and so may be racing with
+> 	 * operations that change the directory. We therefore save the
+> 	 * change attribute *before* we do the RPC call.
+> 	 */
+> 
+> Can you try out a patch which does this?
 
-This is exactly what I need to duplicate the problem.
-My test setup is not greatly different anyway.
-I'll setup and test soon as I get a chance.
+Could it be as simple as that?
+Food for more thought.
 
-Thanks
 Ian
+
