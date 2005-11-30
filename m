@@ -1,200 +1,86 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: stat of /users/no-such-user takes 15 seconds
-Date: Wed, 30 Nov 2005 16:22:58 -0500
-Message-ID: <17294.6194.571144.480918@segfault.boston.redhat.com>
-References: <1132670358.4039.37.camel@brilong-lnx>
-	<Pine.LNX.4.63.0511222329100.9982@donald.themaw.net>
-	<17283.17854.189791.135878@segfault.boston.redhat.com>
-	<Pine.LNX.4.63.0511242311570.2314@donald.themaw.net>
-	<17292.42845.186329.808676@segfault.boston.redhat.com>
-	<Pine.LNX.4.58.0511300907190.32520@wombat.indigo.net.au>
-	<17294.3164.781525.150155@segfault.boston.redhat.com>
-	<1133384016.4403.25.camel@brilong-lnx>
-Reply-To: jmoyer@redhat.com
+From: "William H. Taber" <wtaber@us.ibm.com>
+Subject: Re: [autofs] [RFC PATCH]autofs4: hang and proposed fix
+Date: Wed, 30 Nov 2005 16:30:45 -0500
+Message-ID: <438E1A05.7000308@us.ibm.com>
+References: <20051116101740.GA9551@RAM>	 <17292.64892.680738.833917@segfault.boston.redhat.com>	 <1133315771.8978.65.camel@lade.trondhjem.org> <438E0C66.6040607@us.ibm.com> <1133384015.8974.35.camel@lade.trondhjem.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1133384016.4403.25.camel@brilong-lnx>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <1133384015.8974.35.camel@lade.trondhjem.org>
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://hera.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: Brian Long <brilong@cisco.com>
-Cc: autofs@linux.kernel.org, Ian Kent <raven@themaw.net>
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: jmoyer@redhat.com, Ram Pai <linuxram@us.ibm.com>, autofs@linux.kernel.org, linux-fsdevel@vger.kernel.org
 
-==> Regarding Re: [autofs] stat of /users/no-such-user takes 15 seconds; Brian Long <brilong@cisco.com> adds:
-
-brilong> On Wed, 2005-11-30 at 15:32 -0500, Jeff Moyer wrote:
->> ==> Regarding Re: [autofs] stat of /users/no-such-user takes 15 seconds;
->> Ian Kent <raven@themaw.net> adds:
->> 
-raven> On Tue, 29 Nov 2005, Jeff Moyer wrote:
->> >> ==> Regarding Re: [autofs] stat of /users/no-such-user takes 15
->> seconds; >> Ian Kent <raven@themaw.net> adds:
->> >> 
-raven> On Tue, 22 Nov 2005, Jeff Moyer wrote:
->> >> >> ==> Regarding Re: [autofs] stat of /users/no-such-user takes 15 >>
->> seconds; Ian Kent <raven@themaw.net> adds:
->> >> >> 
->> >> 
-raven> Could you review this patch please Jeff.
->> >> After reviewing this further, I did find a problem.  See below.
->> 
-raven> All good points and the test is wrong.  I'll update the patch and
-raven> post another.
+Trond Myklebust wrote:
+> On Wed, 2005-11-30 at 15:32 -0500, William H. Taber wrote:
+> 
+> 
+>>Not only is there this case, but the original premise is wrong as well. 
+>>  There is a second case in which a d_revalidate function is called with 
+>>the parent i_sem and that is when it is called from inside of 
+>>lookup_one_len.  What makes this tricky is that lookup_one_len is called 
+>>from nfs_sillyrename from inside of nfs_rename which is called, 
+>>naturally enough by sys_rename.  The rename code is very careful about 
+>>the order in which it obtains the parent semaphores because it needs to 
+>>get two of them.  It must always obtain the locks in the same order so 
+>>that does not get into a deadly embrace.  If we start arbitrarily 
+>>releasing a parent semaphore in cached_lookup and taking it again after 
+>>the revalidate, we risk breaking the lock ordering and creating a deadly 
+>>embrace.
 >>
-raven> That just leaves the re-read for the other cases which may be
-raven> causing a long delay. I'm not sure this slows the lookup unless
-raven> sending the signal is causing starvation of cpu cycles some
-raven> how. Perhaps the change from cache_add to cache_update will help
-raven> more than I think.
->> Ian,
->> 
->> The patch I'm attaching is the one against the RHEL autofs package.
->> This is what I have come up with, and it is WRONG.  =) It causes a
->> regression in the case where there are multiple keys of the same name in
->> a map; the patched automounter will always use the last key instead of
->> the first.  Remember dealing with this back in February?  Fun.
->> 
->> I'll keep poking at it, I just wanted to make you aware of the problem.
+>>When I started writing this I thought that it would be safe for the 
+>>autofs revalidate code to release the parent semaphore because they do 
+>>not have a rename callback.  But I looked again at the rename code and 
+>>it calls lookup_hash on the final source and destination files after 
+>>locking the parents so the potential for a deadly embrace still exists 
+>>unless there is some other assurance that these final lookups will never 
+>>pend waiting on the automounter in either their revalidate or lookup 
+>>routines.  (Actually the requirement is that they never give up the 
+>>parent i_sem lock, but the lookup code has to give up the lock so that 
+>>the autofs demon can run and perform the mount so it amounts to the same 
+>>thing.)
+>>
+>>The same issue exists for devfs which also releases the parent i_sem 
+>>lock so that it can wait inside its revalidation routine.
+> 
+> 
+> So exactly why does autofs4 want to hold the dir->i_sem in d_revalidate
+> in the first place? Can't we move any code that requires dir->i_sem to
+> be held into a ->lookup() method?
 
-brilong> Does this affect the autofs-4.1.3-166 RPMs I'm testing?  :)
+It's not that d_revalidate wants or doesn't want to hold the lock.  The 
+caller of lookup_one_len is required to get the lock and this function 
+calls lookup_hash which calls cached_lookup which calls d_revalidate.
 
-Yes.  And here is the patch, which I forgot to attach to my last message.
-In case this is at all unclear, the attached patch is bad.  Don't deploy.
-;)  To clarify even further, I tested the file maps case.
+> 
+> Trivially, if you have a d_revalidate that does something like
+> 
+> int autofs_revalidate(struct dentry *dentry, struct nameidata *nd)
+> {
+>   d_drop(dentry);
+>   return 0;
+> }
+> 
+> then the VFS will currently allocate a new dentry with the same name,
+> and call ->lookup() on it without dropping dir->i_sem. If you still need
+> to reference the old dentry, then put it on a private list somewhere.
+> That would also allow you to return the old dentry as the result of the
+> ->lookup() operation if that is desirable.
 
--Jeff
+Problem with that, as I understand it and Ian Kent knows better than I, 
+is that the autofs lookup code creates the dentry and fills it in 
+partially and marks it as waiting for mounting and wakes up the 
+automount demon.  The demon completes the mount and finishes filling in 
+the dentry.  So we cannot have some other lookup coming in and removing 
+the dentry on us.  At least that is what I understand from Ian's answer 
+when I proposed the same sort of thing to him.   Even if  they end up 
+doing something like that in a future version of the automounter, I 
+would still like a simple patch that can be applied to existing systems 
+as an interim fix.
 
---- autofs-4.1.3/modules/lookup_file.c.orig	2005-11-29 13:44:12.000000000 -0500
-+++ autofs-4.1.3/modules/lookup_file.c	2005-11-29 14:31:10.000000000 -0500
-@@ -248,7 +248,7 @@ static int read_map(const char *root, ti
- 	while(1) {
- 		entry = read_one(f, key, mapent);
- 		if (entry)
--			cache_add(root, key, mapent, age);
-+			cache_update(root, key, mapent, age);
- 
- 		if (feof(f))
- 			break;
-@@ -380,7 +380,7 @@ int lookup_mount(const char *root, const
- 	char key[KEY_MAX_LEN + 1];
- 	int key_len;
- 	char mapent[MAPENT_MAX_LEN + 1];
--	struct mapent_cache *me;
-+	struct mapent_cache *me, *exists;
- 	time_t now = time(NULL);
- 	time_t t_last_read;
- 	int ret;
-@@ -403,13 +403,15 @@ int lookup_mount(const char *root, const
- 
- 	/* only if it has been modified */
- 	if (st.st_mtime > ctxt->mtime) {
-+		exists = cache_lookup(key);
-+
- 		ret = lookup_one(root, key, key_len, ctxt);
--		if (!ret)
-+		if (ret == CHE_FAIL)
- 			return 1;
- 
- 		debug("ret = %d", ret);
- 
--		if (ret == CHE_MISSING) {
-+		if (ret == CHE_MISSING && exists) {
- 			if (!cache_delete(root, key, CHE_RMPATH))
- 				rmdir_path(key);
- 
---- autofs-4.1.3/modules/lookup_yp.c.orig	2005-11-29 14:31:14.000000000 -0500
-+++ autofs-4.1.3/modules/lookup_yp.c	2005-11-29 14:33:41.000000000 -0500
-@@ -110,7 +110,7 @@ int yp_all_callback(int status, char *yp
- 	strncpy(mapent, val, vallen);
- 	*(mapent + vallen) = '\0';
- 
--	cache_add(root, key, mapent, age);
-+	cache_update(root, key, mapent, age);
- 
- 	return 0;
- }
-@@ -224,7 +224,7 @@ int lookup_mount(const char *root, const
- 	int key_len;
- 	char *mapent;
- 	int mapent_len;
--	struct mapent_cache *me;
-+	struct mapent_cache *me, *exists;
- 	int ret;
- 	time_t now = time(NULL);
- 	time_t t_last_read;
-@@ -240,11 +240,14 @@ int lookup_mount(const char *root, const
- 	if (key_len > KEY_MAX_LEN)
- 		return 1;
- 
--	/* check map and if change is detected re-read map */
--	ret = lookup_one(root, key, key_len, ctxt);
-+	/*
-+	 *  check map and if change is detected re-read map
-+	 */
- 
--	debug("ret = %d", ret);
-+	/* First check to see if this entry exists in the cache */
-+	exists = cache_lookup(key);
- 
-+	ret = lookup_one(root, key, key_len, ctxt);
- 	if (!ret)
- 		return 1;
- 
-@@ -261,7 +264,7 @@ int lookup_mount(const char *root, const
- 		/* Have parent update its map */
- 		if (t_last_read > ap.exp_runfreq)
- 			kill(getppid(), SIGHUP);
--	} else if (ret == CHE_MISSING) {
-+	} else if (ret == CHE_MISSING && exists) {
- 		if (!cache_delete(root, key, 0)) {
- 			rmdir_if_mount_fails = 1;
- 		}
---- autofs-4.1.3/modules/lookup_ldap.c.orig	2005-11-29 14:35:02.000000000 -0500
-+++ autofs-4.1.3/modules/lookup_ldap.c	2005-11-29 16:02:56.000000000 -0500
-@@ -460,10 +460,8 @@ static int lookup_one(const char *root, 
- 	}
- 
- 	if (!me) {
--		cache_delete(root, qKey, 0);
--
- 		for (i = 0; values[i]; i++) {	
--			rv = cache_add(root, qKey, values[i], age);
-+			rv = cache_update(root, qKey, values[i], age);
- 			if (!rv)
- 				return 0;
- 		}
-@@ -594,7 +592,7 @@ int lookup_mount(const char *root, const
- 	int key_len;
- 	char mapent[MAPENT_MAX_LEN + 1];
- 	char *mapname;
--	struct mapent_cache *me;
-+	struct mapent_cache *me, *exists;
- 	time_t now = time(NULL);
- 	time_t t_last_read;
- 
-@@ -606,6 +604,8 @@ int lookup_mount(const char *root, const
- 	if (key_len > KEY_MAX_LEN)
- 		return 1;
- 
-+	exists = cache_lookup(key);
-+
- 	ret = lookup_one(root, key, "nisObject", "cn", "nisMapEntry", ctxt);
- 	ret2 = lookup_one(root, key,
- 			    "automount", "cn", "automountInformation", ctxt);
-@@ -620,7 +620,7 @@ int lookup_mount(const char *root, const
- 	me = cache_lookup_first();
- 	t_last_read = now - me->age;
- 
--	if (ret == CHE_MISSING && ret2 == CHE_MISSING && ret3 == CHE_MISSING) {
-+	if (ret == ret2 == ret3 == CHE_MISSING && exists) {
- 		if (!cache_delete(root, key, CHE_RMPATH))
- 			rmdir_path(key);
+Will
+
+
+Will
