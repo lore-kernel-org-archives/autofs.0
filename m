@@ -1,11 +1,11 @@
 From: Hans Deragon <hans@deragon.biz>
 Subject: Re: auto.net gets a key with a path under SLES9.
-Date: Mon, 28 Nov 2005 12:53:09 -0500
-Message-ID: <438B4405.7020800@deragon.biz>
+Date: Wed, 30 Nov 2005 14:46:40 -0500
+Message-ID: <438E01A0.8060205@deragon.biz>
 References: <4378ED9A.6090903@deragon.biz> <43877F6F.5000708@deragon.biz>
 	<Pine.LNX.4.63.0511272135350.2462@donald.themaw.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_8yK2spa9uqNZ0IGRB2QiIA)"
+Content-Type: multipart/mixed; boundary="Boundary_(ID_HqwqLViYyGtG/tMWYhjYVQ)"
 Return-path: <autofs-bounces@linux.kernel.org>
 In-reply-to: <Pine.LNX.4.63.0511272135350.2462@donald.themaw.net>
 List-Id: <autofs.vger.kernel.org>
@@ -18,14 +18,19 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
 This is a multi-part message in MIME format.
 
---Boundary_(ID_8yK2spa9uqNZ0IGRB2QiIA)
+--Boundary_(ID_HqwqLViYyGtG/tMWYhjYVQ)
 Content-type: text/plain; charset=ISO-8859-1; format=flowed
 Content-transfer-encoding: 7BIT
+
+Resending this email since it seams not to have made it to the mailing list.
+
+-Hans
+
+-------------------------->
 
 Ian Kent wrote:
 > On Fri, 25 Nov 2005, Hans Deragon wrote:
@@ -62,49 +67,49 @@ Ian Kent wrote:
 Greetings Ian.
 
 
-   Here is the output of auto.net.
+    Here is the output of auto.net.
 
 [root@mysystem etc] auto.net asterix/asterix-07
 /usr/sbin/showmount: can't get address for asterix/asterix-07
 [root@mysystem etc] auto.net asterix
 -fstype=nfs,hard,intr,nodev,nosuid \
-         /asterix-00 asterix:/asterix-00 \
-         /asterix-01 asterix:/asterix-01 \
-         /asterix-02 asterix:/asterix-02 \
-         /asterix-03 asterix:/asterix-03 \
-         /asterix-04 asterix:/asterix-04 \
-         /asterix-05 asterix:/asterix-05 \
-         /asterix-06 asterix:/asterix-06
+          /asterix-00 asterix:/asterix-00 \
+          /asterix-01 asterix:/asterix-01 \
+          /asterix-02 asterix:/asterix-02 \
+          /asterix-03 asterix:/asterix-03 \
+          /asterix-04 asterix:/asterix-04 \
+          /asterix-05 asterix:/asterix-05 \
+          /asterix-06 asterix:/asterix-06
 
-   Please note that in my previous email, when I reproduced
-   the problem, I used a patched auto.net which would remove
-   the path.  This is not the case above, since I wanted to
-   reproduce the problem for you.
+    Please note that in my previous email, when I reproduced
+    the problem, I used a patched auto.net which would remove
+    the path.  This is not the case above, since I wanted to
+    reproduce the problem for you.
 
-   This said, I just realized that the recursive path problem
-   occurs when I try to 'cd' to an NFS share that does not
-   exist (I have not realized this earlier; my bad).  For
-   instance, with my patched auto.net,
-   /net/asterix/asterix-07 mounts with the content of
-   /net/asterix, which is wrong.  It should not mount.
+    This said, I just realized that the recursive path problem
+    occurs when I try to 'cd' to an NFS share that does not
+    exist (I have not realized this earlier; my bad).  For
+    instance, with my patched auto.net,
+    /net/asterix/asterix-07 mounts with the content of
+    /net/asterix, which is wrong.  It should not mount.
 
-   So I am starting to realize that maybe there is no bug...
-   If I leave auto.net untouched, I do get the proper error,
-   i.e.:
+    So I am starting to realize that maybe there is no bug...
+    If I leave auto.net untouched, I do get the proper error,
+    i.e.:
 
-   [root@mysystem /net/asterix] cd asterix-07
-   -bash: cd: asterix-07: No such file or directory
+    [root@mysystem /net/asterix] cd asterix-07
+    -bash: cd: asterix-07: No such file or directory
 
-   Yet... I think that auto.net should not receive a path.
-   So there might be a bug, but a minor one?
+    Yet... I think that auto.net should not receive a path.
+    So there might be a bug, but a minor one?
 
-   I would need to find a case where a path is sent to
-   auto.net when trying to access a valid NFS share.
+    I would need to find a case where a path is sent to
+    auto.net when trying to access a valid NFS share.
 
-   Attached, the auto.net, unpatched (actually, my patch is
-   commented out).
+    Attached, the auto.net, unpatched (actually, my patch is
+    commented out).
 
-   Also, I do have the kernel's source.
+    Also, I do have the kernel's source.
 
 
 Best regards,
@@ -115,7 +120,8 @@ Deragon Informatique inc.
 http://www.deragon.biz        Open source (contribution):
 mailto://hans@deragon.biz     http://autopoweroff.deragon.biz
 
---Boundary_(ID_8yK2spa9uqNZ0IGRB2QiIA)
+
+--Boundary_(ID_HqwqLViYyGtG/tMWYhjYVQ)
 Content-type: text/plain; CHARSET=US-ASCII; name=auto.net
 Content-transfer-encoding: 7BIT
 Content-disposition: inline; filename=auto.net
@@ -172,7 +178,8 @@ $SHOWMOUNT | LC_ALL=C sort +0 | \
 	END	{ if (!first) print "\n"; else exit 1 }
 	'
 
---Boundary_(ID_8yK2spa9uqNZ0IGRB2QiIA)
+
+--Boundary_(ID_HqwqLViYyGtG/tMWYhjYVQ)
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -183,5 +190,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---Boundary_(ID_8yK2spa9uqNZ0IGRB2QiIA)--
+--Boundary_(ID_HqwqLViYyGtG/tMWYhjYVQ)--
 
