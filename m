@@ -1,15 +1,11 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [RFC PATCH]autofs4: hang and proposed fix
-Date: Wed, 30 Nov 2005 23:44:34 +0800 (WST)
-Message-ID: <Pine.LNX.4.63.0511302334390.2069@donald.themaw.net>
-References: <20051116101740.GA9551@RAM>
-	<17292.64892.680738.833917@segfault.boston.redhat.com>
-	<1133315771.8978.65.camel@lade.trondhjem.org> 
-	<17293.10094.111804.682032@segfault.boston.redhat.com>
-	<1133331286.8195.29.camel@lade.trondhjem.org>
+Subject: Re: autofs-4.1.3 not working properly
+Date: Wed, 30 Nov 2005 23:12:21 +0800 (WST)
+Message-ID: <Pine.LNX.4.63.0511302302210.2069@donald.themaw.net>
+References: <s38caaf0.054@n6mcgw16.cchmc.org>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1133331286.8195.29.camel@lade.trondhjem.org>
+In-Reply-To: <s38caaf0.054@n6mcgw16.cchmc.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,29 +18,33 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: autofs@linux.kernel.org, linux-fsdevel@vger.kernel.org
+To: Prakash Velayutham <Prakash.Velayutham@cchmc.org>
+Cc: autofs@linux.kernel.org
 
-On Wed, 30 Nov 2005, Trond Myklebust wrote:
+On Tue, 29 Nov 2005, Prakash Velayutham wrote:
 
-> On Tue, 2005-11-29 at 23:15 -0500, Jeff Moyer wrote:
+> But what happens in the following scenario.
 > 
-> > The patch only drops the semaphore if d_lookup finds the dentry and the
-> > dentry has a revalidate routine.  I don't follow how you can end up with
-> > multiple dentries for the same file in this case.
-> > 
-> > Sorry if I'm missing something obvious.
+> In client C, users user1 and user2 are both logged in and their home
+> dirs are /server1/users/user1 and /server1/users/user2.
 > 
-> The inode->i_sem is what ensures that nobody can insert a new dentry
-> between the lookup of the cached dentry by d_lookup() and the call to
-> ->lookup() (which instantiates a new dentry).
-> 
-> Imagine you have two separate processes that are doing a __lookup_hash()
-> of the same cached dentry. Now imagine that d_revalidate() of the dentry
-> fails.
+> Now I want to move user1 to a different server server2. His home will be
+> changed to /server2/users/user1. I can unmount /server1/users/user1, but
+> cannot unmount /server1/users/user2. Now if user1 tries to login, would
+> autofs automatically mount /server2/users/user1 for him or keep
+> complaining about /server1/users/user1 not available (as the home dir
+> has already been moved to server2 and not available in server1 any
+> more)?
 
-And that would be why lookup is only called if d_lookup fails in do_lookup 
-when called from the link_path_walk routine. Do you think it is possible 
-to do this safely in __lookup_hash with a similar re-ordering?
+There's not much you can do about user2, at least till the mount is not 
+busy and is umounted. This change should be seen next time the mount is 
+accessed.
+
+The server2 mount for user1 should be seen on next access provided 
+LDAP has been updated. At least that's what 4.1.4 should do.
+
+If it doesn't I've got an error in the LDAP lookup module.
+
+If in doubt send a HUP signal to the daemon to force a re-read of the map.
 
 Ian
