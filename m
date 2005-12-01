@@ -1,17 +1,30 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: stat of /users/no-such-user takes 15 seconds
-Date: Thu, 1 Dec 2005 22:58:28 +0800 (WST)
-Message-ID: <Pine.LNX.4.63.0512012252410.3272@donald.themaw.net>
-References: <1132670358.4039.37.camel@brilong-lnx>
-	<Pine.LNX.4.63.0511222329100.9982@donald.themaw.net>
-	<17283.17854.189791.135878@segfault.boston.redhat.com>
-	<Pine.LNX.4.63.0511242311570.2314@donald.themaw.net>
-	<17292.42845.186329.808676@segfault.boston.redhat.com>
-	<Pine.LNX.4.58.0511300907190.32520@wombat.indigo.net.au>
-	<17294.3164.781525.150155@segfault.boston.redhat.com>
+Subject: Re: automount never umount
+Date: Thu, 1 Dec 2005 23:02:07 +0800 (WST)
+Message-ID: <Pine.LNX.4.63.0512012300390.6390@donald.themaw.net>
+References: <4381E865.4070908@bppiac.hu> <438344F7.8020503@bppiac.hu>
+	<17283.19512.49399.338448@segfault.boston.redhat.com>
+	<43838CA9.40105@bppiac.hu>
+	<17283.46783.748916.772469@segfault.boston.redhat.com>
+	<438435EF.6080102@bppiac.hu>
+	<Pine.LNX.4.63.0511232105320.3200@donald.themaw.net>
+	<43846C1C.3050305@bppiac.hu>
+	<17284.35467.301318.255602@segfault.boston.redhat.com>
+	<Pine.LNX.4.63.0511232334300.3253@donald.themaw.net>
+	<17284.40834.559604.943290@segfault.boston.redhat.com>
+	<4384A354.9040502@bppiac.hu>
+	<17284.41971.660257.356263@segfault.boston.redhat.com>
+	<43859055.3020508@bppiac.hu>
+	<Pine.LNX.4.63.0511242003250.2069@donald.themaw.net>
+	<17291.9542.484484.306141@segfault.boston.redhat.com>
+	<438C4983.30504@bppiac.hu> <438EC2E8.6060602@bppiac.hu>
+	<Pine.LNX.4.63.0512011902480.3189@donald.themaw.net>
+	<438EE03B.5090601@bppiac.hu>
+	<17294.62252.248439.850231@segfault.boston.redhat.com>
+	<438EFD96.7020903@bppiac.hu>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <17294.3164.781525.150155@segfault.boston.redhat.com>
+In-Reply-To: <438EFD96.7020903@bppiac.hu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,241 +37,48 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jeff Moyer <jmoyer@redhat.com>
+To: Farkas Levente <lfarkas@bppiac.hu>
 Cc: autofs@linux.kernel.org
 
-On Wed, 30 Nov 2005, Jeff Moyer wrote:
+On Thu, 1 Dec 2005, Farkas Levente wrote:
 
-> ==> Regarding Re: [autofs] stat of /users/no-such-user takes 15 seconds; Ian Kent <raven@themaw.net> adds:
+> Jeff Moyer wrote:
+> >>>>># dmesg |sort|uniq
+> >>>>>
+> >>>>>autofs4_revalidate: revalidate called on behalf of application
+> >>>>>"automount" autofs4_revalidate: revalidate called on behalf of
+> >>>>>application "multiload-apple"
+> >>>>>
+> >>>>>so what can i do? no longer use multiload-applet ? this is a standard
+> >>>>>gnome applet included in fc4: "System Monitor 2.10.1"
+> >>>>
+> >>>>so what is the conclusion now?  will autofs be modified to umount even
+> >>>>in such case or ...?  thnaks.
+> >>>
+> >>>
+> >>>I'm not familiar with this applet.  Can someone help ot?
+> > 
+> > 
+> > lfarkas> which kind of distro do you use? on fedora/redhat it's in
+> > lfarkas> gnome-applets package and anyway in:
+> > lfarkas> http://cvs.gnome.org/viewcvs/gnome-applets/multiload/
+> > 
+> > I'm not convinced it's the culprit.  As Ian mentioned earlier in this
+> > thread, there is no flurry of mount/umount activity.  The file system gets
+> > mounted, and then never unmounted, right?  If that is the case, and lsof
 > 
-> raven> On Tue, 29 Nov 2005, Jeff Moyer wrote:
-> >> ==> Regarding Re: [autofs] stat of /users/no-such-user takes 15 seconds;
-> >> Ian Kent <raven@themaw.net> adds:
-> >> 
-> raven> On Tue, 22 Nov 2005, Jeff Moyer wrote:
-> >> >> ==> Regarding Re: [autofs] stat of /users/no-such-user takes 15
-> >> seconds; Ian Kent <raven@themaw.net> adds:
-> >> >> 
-> >> 
-> raven> Could you review this patch please Jeff.
-> >> After reviewing this further, I did find a problem.  See below.
+> right.
 > 
-> raven> All good points and the test is wrong.  I'll update the patch and
-> raven> post another.
+> > shows no users, then this is likely an autofs bug.
 > 
-> raven> That just leaves the re-read for the other cases which may be
-> raven> causing a long delay. I'm not sure this slows the lookup unless
-> raven> sending the signal is causing starvation of cpu cycles some
-> raven> how. Perhaps the change from cache_add to cache_update will help
-> raven> more than I think.
-> 
-> Ian,
-> 
-> The patch I'm attaching is the one against the RHEL autofs package.  This
-> is what I have come up with, and it is WRONG.  =)  It causes a regression
-> in the case where there are multiple keys of the same name in a map;  the
-> patched automounter will always use the last key instead of the first.
-> Remember dealing with this back in February?  Fun.
-> 
+> no users.
+> so i also assume it's an autofs bug, that's why i wrote my first post.
+> since i'm sure there is not any file on the nfs partition which is used
+> for hours. the given nfs partition is our mirror server of centos,
+> fedora, dag, etc.. so we only use it to manualy install new packages.
+> even the daily updates run through ftp in order not use this nfs.
 
-Maybe this one is a little better.
-I've removed the LDAP update changes as I think their not needed.
+Then I must be able to duplicate it.
+The kernel includes the latest patch we have in test right Jeff?
 
-Please check it out Jeff.
-
-
-=================
-
-This patch addresses three problems.
-
-Change cache_update to only update the first occurance of
-a duplicate map entry on a map read.
-
-Change cache_add to cache_update in lookup modules.
-Perform an update rather than an add so that only stale
-entries are actually removed instead of adding an additional
-entry then removing the old one. This add/remove causes a
-directory removal of almost every entry in the map when it
-should'nt.
-
-Prevent re-read of map and return fail from the lookup module
-when a key is not present in the cache and is not present in
-the map source.
-
---- autofs-4.1.4/lib/cache.c.update-fix	2005-11-24 22:40:58.000000000 +0800
-+++ autofs-4.1.4/lib/cache.c	2005-12-01 22:16:42.000000000 +0800
-@@ -233,6 +233,10 @@ int cache_update(const char *root, const
- 		}
- 		ret = CHE_UPDATED;
- 	} else {
-+		/* Already seen one of these */
-+		if (me->age == age)
-+			return CHE_OK;
-+
- 		if (strcmp(me->mapent, mapent) != 0) {
- 			pent = malloc(strlen(mapent) + 1);
- 			if (pent == NULL) {
-@@ -312,11 +316,6 @@ void cache_clean(const char *root, time_
- 			if (!path)
- 				return;
- 
--			if (is_mounted(_PATH_MOUNTED, path)) {
--				free(path);
--				continue;
--			}
--
- 			if (me->age < age) {
- 				pred->next = me->next;
- 				free(me->key);
-@@ -337,11 +336,6 @@ void cache_clean(const char *root, time_
- 		if (!path)
- 			return;
- 
--		if (is_mounted(_PATH_MOUNTED, path)) {
--			free(path);
--			continue;
--		}
--
- 		if (me->age < age) {
- 			mapent_hash[i] = me->next;
- 			rmdir_path(path);
---- autofs-4.1.4/modules/lookup_file.c.update-fix	2005-11-24 22:00:30.000000000 +0800
-+++ autofs-4.1.4/modules/lookup_file.c	2005-12-01 22:36:21.000000000 +0800
-@@ -252,7 +252,7 @@ static int read_map(const char *root, ti
- 	while(1) {
- 		entry = read_one(f, key, mapent);
- 		if (entry)
--			cache_add(root, key, mapent, age);
-+			cache_update(root, key, mapent, age);
- 
- 		if (feof(f))
- 			break;
-@@ -383,7 +383,7 @@ int lookup_mount(const char *root, const
- 	char key[KEY_MAX_LEN + 1];
- 	int key_len;
- 	char mapent[MAPENT_MAX_LEN + 1];
--	struct mapent_cache *me;
-+	struct mapent_cache *me, *exists;
- 	time_t now = time(NULL);
- 	time_t t_last_read;
- 	int need_hup = 0;
-@@ -407,16 +407,19 @@ int lookup_mount(const char *root, const
- 
- 	/* only if it has been modified */
- 	if (st.st_mtime > ctxt->mtime) {
-+		exists = cache_lookup(key);
-+
- 		ret = lookup_one(root, key, key_len, ctxt);
--		if (!ret)
-+		if (ret == CHE_FAIL)
- 			return 1;
- 
--		debug("ret = %d", ret);
--
-+		/* Check if we need to update the map */
- 		if (t_last_read > ap.exp_runfreq)
--			if (ret & (CHE_UPDATED | CHE_MISSING))
-+			if ((ret & CHE_UPDATED) ||
-+			    (exists && (ret & CHE_MISSING)))
- 				need_hup = 1;
- 
-+		/* Update our map for the lookup */
- 		if (ret == CHE_MISSING) {
- 			int wild = CHE_MISSING;
- 
---- autofs-4.1.4/modules/lookup_yp.c.update-fix	2005-11-24 22:02:00.000000000 +0800
-+++ autofs-4.1.4/modules/lookup_yp.c	2005-12-01 22:35:44.000000000 +0800
-@@ -102,7 +102,7 @@ int yp_all_callback(int status, char *yp
- 	strncpy(mapent, val, vallen);
- 	*(mapent + vallen) = '\0';
- 
--	cache_add(root, key, mapent, age);
-+	cache_update(root, key, mapent, age);
- 
- 	return 0;
- }
-@@ -220,7 +220,7 @@ int lookup_mount(const char *root, const
- 	int key_len;
- 	char *mapent;
- 	int mapent_len;
--	struct mapent_cache *me;
-+	struct mapent_cache *me, *exists;
- 	time_t now = time(NULL);
- 	time_t t_last_read;
- 	int need_hup = 0;
-@@ -236,13 +236,17 @@ int lookup_mount(const char *root, const
- 	if (key_len > KEY_MAX_LEN)
- 		return 1;
- 
--	/* check map and if change is detected re-read map */
-+	/*
-+	 * check map and if change is detected re-read map
-+	 */
-+
-+	/* First check to see if this entry exists in the cache */
-+	exists = cache_lookup(key);
-+
- 	ret = lookup_one(root, key, key_len, ctxt);
--	if (!ret)
-+	if (ret == CHE_FAIL)
- 		return 1;
- 
--	debug("ret = %d", ret);
--
- 	if (ret < 0) {
- 		warn(MODPREFIX 
- 		     "lookup for %s failed: %s", name, yperr_string(-ret));
-@@ -253,7 +257,8 @@ int lookup_mount(const char *root, const
- 	t_last_read = me ? now - me->age : ap.exp_runfreq + 1;
- 
- 	if (t_last_read > ap.exp_runfreq)
--		if (ret & (CHE_UPDATED | CHE_MISSING))
-+		if ((ret & CHE_UPDATED) ||
-+		    (exists && (ret & CHE_MISSING)))
- 			need_hup = 1;
- 
- 	if (ret == CHE_MISSING) {
---- autofs-4.1.4/modules/lookup_ldap.c.update-fix	2005-11-24 22:35:22.000000000 +0800
-+++ autofs-4.1.4/modules/lookup_ldap.c	2005-12-01 22:36:44.000000000 +0800
-@@ -598,7 +598,7 @@ int lookup_mount(const char *root, const
- 	int key_len;
- 	char mapent[MAPENT_MAX_LEN + 1];
- 	char *mapname;
--	struct mapent_cache *me;
-+	struct mapent_cache *me, *exists;
- 	time_t now = time(NULL);
- 	time_t t_last_read;
- 	int need_hup = 0;
-@@ -611,22 +611,26 @@ int lookup_mount(const char *root, const
- 	if (key_len > KEY_MAX_LEN)
- 		return 1;
- 
-+	exists = cache_lookup(key);
-+
- 	ret = lookup_one(root, key, "nisObject", "cn", "nisMapEntry", ctxt);
- 	ret2 = lookup_one(root, key,
- 			    "automount", "cn", "automountInformation", ctxt);
- 	
--   	debug("ret = %d, ret2 = %d", ret, ret2);
--
--	if (!ret && !ret2)
-+	if (ret == CHE_FAIL && ret2 == CHE_FAIL)
- 		return 1;
- 
- 	me = cache_lookup_first();
- 	t_last_read = me ? now - me->age : ap.exp_runfreq + 1;
- 
--	if (t_last_read > ap.exp_runfreq) 
--		if ((ret & (CHE_MISSING | CHE_UPDATED)) && 
--		    (ret2 & (CHE_MISSING | CHE_UPDATED)))
-+	if (t_last_read > ap.exp_runfreq) {
-+		if ((ret & CHE_UPDATED) ||
-+		     (exists && (ret & CHE_MISSING)))
- 			need_hup = 1;
-+		else if ((ret2 & CHE_UPDATED) ||
-+		     (exists && (ret2 & CHE_MISSING)))
-+			need_hup = 1;
-+	}
- 
- 	if (ret == CHE_MISSING && ret2 == CHE_MISSING) {
- 		int wild = CHE_MISSING;
+Ian
