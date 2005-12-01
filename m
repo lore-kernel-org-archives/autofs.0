@@ -1,118 +1,132 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: auto.net gets a key with a path under SLES9.
-Date: Fri, 2 Dec 2005 00:24:46 +0800 (WST)
-Message-ID: <Pine.LNX.4.63.0512020020330.6439@donald.themaw.net>
-References: <4378ED9A.6090903@deragon.biz> <43877F6F.5000708@deragon.biz>
-	<Pine.LNX.4.63.0511272135350.2462@donald.themaw.net>
-	<438B4405.7020800@deragon.biz>
+From: "William H. Taber" <wtaber@us.ibm.com>
+Subject: Re: [autofs] [RFC PATCH]autofs4: hang and proposed fix
+Date: Thu, 01 Dec 2005 11:30:19 -0500
+Message-ID: <438F251B.7060602@us.ibm.com>
+References: <20051116101740.GA9551@RAM>  <17292.64892.680738.833917@segfault.boston.redhat.com>  <1133315771.8978.65.camel@lade.trondhjem.org> <438E0C66.6040607@us.ibm.com> <1133384015.8974.35.camel@lade.trondhjem.org> <438E1A05.7000308@us.ibm.com> <Pine.LNX.4.63.0512011917010.3189@donald.themaw.net>
 Mime-Version: 1.0
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <438B4405.7020800@deragon.biz>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://hera.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Hans Deragon <hans@deragon.biz>
-Cc: autofs@linux.kernel.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.63.0512011917010.3189@donald.themaw.net>
+Sender: linux-fsdevel-owner@vger.kernel.org
+List-Id: <autofs.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: Ian Kent <raven@themaw.net>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>, Jeff Moyer <jmoyer@redhat.com>, Ram Pai <linuxram@us.ibm.com>, autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-On Mon, 28 Nov 2005, Hans Deragon wrote:
+Ian Kent wrote:
+> On Wed, 30 Nov 2005, William H. Taber wrote:
+> 
+> 
+>>Trond Myklebust wrote:
+>>
+>>>On Wed, 2005-11-30 at 15:32 -0500, William H. Taber wrote:
+>>>
+>>>
+>>>
+>>>>Not only is there this case, but the original premise is wrong as well.
+>>>>There is a second case in which a d_revalidate function is called with the
+>>>>parent i_sem and that is when it is called from inside of lookup_one_len.
+>>>>What makes this tricky is that lookup_one_len is called from
+>>>>nfs_sillyrename from inside of nfs_rename which is called, naturally
+>>>>enough by sys_rename.  The rename code is very careful about the order in
+>>>>which it obtains the parent semaphores because it needs to get two of
+>>>>them.  It must always obtain the locks in the same order so that does not
+>>>>get into a deadly embrace.  If we start arbitrarily releasing a parent
+>>>>semaphore in cached_lookup and taking it again after the revalidate, we
+>>>>risk breaking the lock ordering and creating a deadly embrace.
+>>>>
+>>>>When I started writing this I thought that it would be safe for the autofs
+>>>>revalidate code to release the parent semaphore because they do not have a
+>>>>rename callback.  But I looked again at the rename code and it calls
+>>>>lookup_hash on the final source and destination files after locking the
+>>>>parents so the potential for a deadly embrace still exists unless there is
+>>>>some other assurance that these final lookups will never pend waiting on
+>>>>the automounter in either their revalidate or lookup routines.  (Actually
+>>>>the requirement is that they never give up the parent i_sem lock, but the
+>>>>lookup code has to give up the lock so that the autofs demon can run and
+>>>>perform the mount so it amounts to the same thing.)
+>>>>
+>>>>The same issue exists for devfs which also releases the parent i_sem lock
+>>>>so that it can wait inside its revalidation routine.
+>>>
+>>>
+>>>So exactly why does autofs4 want to hold the dir->i_sem in d_revalidate
+>>>in the first place? Can't we move any code that requires dir->i_sem to
+>>>be held into a ->lookup() method?
+>>
+>>It's not that d_revalidate wants or doesn't want to hold the lock.  The caller
+>>of lookup_one_len is required to get the lock and this function calls
+>>lookup_hash which calls cached_lookup which calls d_revalidate.
+>>
+>>
+>>>Trivially, if you have a d_revalidate that does something like
+>>>
+>>>int autofs_revalidate(struct dentry *dentry, struct nameidata *nd)
+>>>{
+>>>  d_drop(dentry);
+>>>  return 0;
+>>>}
+>>>
+>>>then the VFS will currently allocate a new dentry with the same name,
+>>>and call ->lookup() on it without dropping dir->i_sem. If you still need
+>>>to reference the old dentry, then put it on a private list somewhere.
+>>>That would also allow you to return the old dentry as the result of the
+>>>->lookup() operation if that is desirable.
+>>
+>>Problem with that, as I understand it and Ian Kent knows better than I, is
+>>that the autofs lookup code creates the dentry and fills it in partially and
+>>marks it as waiting for mounting and wakes up the automount demon.  The demon
+>>completes the mount and finishes filling in the dentry.  So we cannot have
+>>some other lookup coming in and removing the dentry on us.  At least that is
+>>what I understand from Ian's answer when I proposed the same sort of thing to
+>>him.   Even if  they end up doing something like that in a future version of
+>>the automounter, I would still like a simple patch that can be applied to
+>>existing systems as an interim fix.
+> 
+> 
+> Lets see if I can keep this explaination simple.
+> 
+> The user space process using the autofs filesystem (autodir or automount) 
+> needs to be able to call mkdir at mount time as a result of a callback 
+> from revalidate. Sometimes this comes indirectly from lookup (if the 
+> directory does not already exist).
+> 
+> lookup_one_len requires the i_sem to be held so two instances of a 
+> filesystem calling it lead to a deadlock when mkdir is called from 
+> userspace (the third process). In the case we are discussing this happens 
+> because the first process calls lookup which releases the i_sem and 
+> calls revalidate itself. The second calls revalidate which doesn't release 
+> the i_sem and is places on a wait queue for mount completion. Consequently 
+> the mkdir blocks.
+> 
+> So the requirement is that autofs release the i_sem during the callback, 
+> not obtain it.
+> 
+> Will believes that it is not safe for autofs to release i_sem for 
+> the callback to user space because it is possible that path that aquired 
+> it may not be the path that has called revalidate and I can see his point.
+> 
+> Never the less I'm still not convinced that this is possible given the 
+> restrictions of autofs.
+> 
+> Let me try and describe this, hopefully more clearly than I've done so 
+> far.
+> 
+> The only operations defined for autofs are:
+> 
+> mkdir, rmdir, symlink and unlink 
+> 
+> and the only processes that can do these operations must be in the same 
+> process group that mounted the filesystem. EACCESS is returned for all 
+> other processes attempting these operations.
+> 
+> The other functionality is read-only (and perhaps triggers a mount) 
+> being lookup, revalidate and readdir.
+> 
+> So the question is, can anyone provide an example of a path that, upon 
+> calling autofs revalidate or lookup with the i_sem held, not be the path 
+> that aquired it?
 
-> Ian Kent wrote:
-> > On Fri, 25 Nov 2005, Hans Deragon wrote:
-> > 
-> > 
-> > > Greetings.
-> > > 
-> > > 
-> > >  Well, I successfully reproduced the problem of a path sent to auto.net
-> > > (see
-> > > below for full description).  Attached, the debug output on syslogd.  From
-> > > what I understand of the syslogd logs, the problem occurs before
-> > > sun_mount()
-> > > is called.
-> > > 
-> > >  What I did was:
-> > > 
-> > >  cd /net/asterix  # Everything is ok.  $key=asterix
-> > >  cd asteris-07    # Bug:  $key=asterix/asterix-07
-> > 
-> > 
-> > Yes. Undoubtably the problem and that will be in the kernel module.
-> > 
-> > 
-> > >  What was passed to auto.net was asterix/asterix-07 at the second 'cd'.
-> > 
-> > 
-> > I would like to see the output of auto.net run manually and with the
-> > incorrect key please.
-> > 
-> > Do you have access to the source for for the kernel you are using so that we
-> > may check the patch levels?
-> > 
-> > Ian
-> 
-> Greetings Ian.
-> 
-> 
->   Here is the output of auto.net.
-> 
-> [root@mysystem etc] auto.net asterix/asterix-07
-> /usr/sbin/showmount: can't get address for asterix/asterix-07
-> [root@mysystem etc] auto.net asterix
-> -fstype=nfs,hard,intr,nodev,nosuid \
->         /asterix-00 asterix:/asterix-00 \
->         /asterix-01 asterix:/asterix-01 \
->         /asterix-02 asterix:/asterix-02 \
->         /asterix-03 asterix:/asterix-03 \
->         /asterix-04 asterix:/asterix-04 \
->         /asterix-05 asterix:/asterix-05 \
->         /asterix-06 asterix:/asterix-06
-> 
->   Please note that in my previous email, when I reproduced
->   the problem, I used a patched auto.net which would remove
->   the path.  This is not the case above, since I wanted to
->   reproduce the problem for you.
-> 
->   This said, I just realized that the recursive path problem
->   occurs when I try to 'cd' to an NFS share that does not
->   exist (I have not realized this earlier; my bad).  For
->   instance, with my patched auto.net,
->   /net/asterix/asterix-07 mounts with the content of
->   /net/asterix, which is wrong.  It should not mount.
-> 
->   So I am starting to realize that maybe there is no bug...
->   If I leave auto.net untouched, I do get the proper error,
->   i.e.:
-> 
->   [root@mysystem /net/asterix] cd asterix-07
->   -bash: cd: asterix-07: No such file or directory
-> 
->   Yet... I think that auto.net should not receive a path.
->   So there might be a bug, but a minor one?
+Any other process calling lookup_one_len on a file in /net.
 
-Yep. I think that this may be a known problem.
-I need to review and possibly re-test a patch that I've done recently 
-before I post it. I suspect that it may have broken the expiry.
-
-> 
->   I would need to find a case where a path is sent to
->   auto.net when trying to access a valid NFS share.
-> 
->   Attached, the auto.net, unpatched (actually, my patch is
->   commented out).
-> 
->   Also, I do have the kernel's source.
-
-Could you tar the fs/autofs4 directory and send it over so I can check it.
-There have been several patches lately and I'd like to confirm which have 
-been applied.
- 
-Ian
+Will
