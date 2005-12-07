@@ -1,62 +1,30 @@
-From: Jeff Moyer <jmoyer@redhat.com>
+From: Will Taber <wtaber@us.ibm.com>
 Subject: Re: [autofs] [RFC PATCH]autofs4: hang and proposed fix
-Date: Tue, 6 Dec 2005 17:37:53 -0500
-Message-ID: <17302.4801.459854.80468@segfault.boston.redhat.com>
-References: <438F251B.7060602@us.ibm.com>
-	<Pine.LNX.4.63.0512022059350.2070@donald.themaw.net>
-	<43906968.6080508@us.ibm.com>
-	<Pine.LNX.4.63.0512030115310.2632@donald.themaw.net>
-	<1133547148.8976.25.camel@lade.trondhjem.org>
-	<20051204125612.GA28229@infradead.org>
-	<20051204125740.GB28229@infradead.org>
-	<Pine.LNX.4.63.0512042256380.31847@donald.themaw.net>
-	<20051204171729.GA31111@infradead.org>
-	<17302.157.540958.723305@segfault.boston.redhat.com>
-	<20051206214033.GA31000@infradead.org>
-Reply-To: jmoyer@redhat.com
+Date: Wed, 07 Dec 2005 09:52:04 -0500
+Message-ID: <4396F714.1010407@us.ibm.com>
+References: <438F251B.7060602@us.ibm.com> <Pine.LNX.4.63.0512022059350.2070@donald.themaw.net> <43906968.6080508@us.ibm.com> <Pine.LNX.4.63.0512030115310.2632@donald.themaw.net> <1133547148.8976.25.camel@lade.trondhjem.org> <20051204125612.GA28229@infradead.org> <20051204125740.GB28229@infradead.org> <Pine.LNX.4.63.0512042256380.31847@donald.themaw.net> <20051204171729.GA31111@infradead.org> <17302.157.540958.723305@segfault.boston.redhat.com> <20051206214033.GA31000@infradead.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
 In-Reply-To: <20051206214033.GA31000@infradead.org>
 Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
 To: Christoph Hellwig <hch@infradead.org>
-Cc: Ian Kent <raven@themaw.net>, Trond Myklebust <trond.myklebust@fys.uio.no>, Will Taber <wtaber@us.ibm.com>, Ram Pai <linuxram@us.ibm.com>, autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Cc: Jeff Moyer <jmoyer@redhat.com>, Ian Kent <raven@themaw.net>, Trond Myklebust <trond.myklebust@fys.uio.no>, Ram Pai <linuxram@us.ibm.com>, autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-==> Regarding Re: [autofs] [RFC PATCH]autofs4: hang and proposed fix; Christoph Hellwig <hch@infradead.org> adds:
+Christoph Hellwig wrote:
+> To rephrease the above:  With current mainline the nameidata argument
+> is always valid when ->lookup or ->d_revalidate are called except when
+> the filesystem uses lookup_one_len.  lookup_one_len is a helper for fileystem
+> usage that is only valid to be used on the filesystems own trees.
+> 
+Is this documented anywhere?  How is one to know about this restriction 
+since it isn't obvious from the code?  And if this function is only to 
+be used to lookup in ones own filesystem how is a filesystem supposed to 
+lookup a file in another filesystem if they already have a directory 
+dentry in hand? Walking up the dentry tree to recreate a path name so 
+you can call path_walk seems a bit much.  Without this capablility how 
+does one write a stackable file system?
 
-hch> On Tue, Dec 06, 2005 at 04:20:29PM -0500, Jeff Moyer wrote: No, for
-hch> current TOT that can't happen.  It could happen for older kernels but
-hch> nothing is doing it in the tree anymore and if anything outside is
-hch> doing it it's fundamentally broken.
->> This is a bit unclear to me.  What do you mean when you refer to "it"
->> and "that" above?  Oh, and TOT is a TLA I haven't run across before.
-
-hch> TOT = top of tree.
-
-hch> To rephrease the above: With current mainline the nameidata argument
-hch> is always valid when ->lookup or ->d_revalidate are called except when
-hch> the filesystem uses lookup_one_len.  lookup_one_len is a helper for
-hch> fileystem usage that is only valid to be used on the filesystems own
-hch> trees.
-
->> We know that there is at least one out of tree module that calls
->> lookup_one_len, and ends up in the autofs4 revalidate code without the
->> valid nameidata structure.  In this case, with your patch, wouldn't we
->> blindly dereference the structure and cause an oops?  If so, who is at
->> fault?
-
-hch> This out of tree module is wrong and always has been wrong.  Any
-hch> actual breakage of such a module is expected.
-
-Thanks for the clarification.  This was my interpretation, but I wanted to
-be sure.
-
-hch> Do you happen to know what module that is?
-
-Well, the example originally posted was stubfs, which was purported to be a
-sample fs used to show this problem.  Perhaps the original reporter can
-tell us what other code does this.
-
--Jeff
+Will
