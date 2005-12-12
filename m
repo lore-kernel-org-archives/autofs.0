@@ -1,41 +1,274 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [autofs] [RFC PATCH]autofs4: hang and proposed fix
-Date: Tue, 13 Dec 2005 18:39:38 +0000
-Message-ID: <20051213183938.GA10907@infradead.org>
-References: <20051204125612.GA28229@infradead.org> <20051204125740.GB28229@infradead.org> <Pine.LNX.4.63.0512042256380.31847@donald.themaw.net> <20051204171729.GA31111@infradead.org> <17302.157.540958.723305@segfault.boston.redhat.com> <20051206214033.GA31000@infradead.org> <1133968943.4581.22.camel@brilong-lnx> <43971FFF.2090900@us.ibm.com> <20051209121239.GA17898@infradead.org> <6cd5k6xume.fsf@sumu.lexma.ibm.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: disable-mount-locking patch
+Date: Mon, 12 Dec 2005 22:21:09 +0800 (WST)
+Message-ID: <Pine.LNX.4.63.0512122218360.5491@donald.themaw.net>
+References: <Pine.LNX.4.62.0512080954130.22388@gate.nmr.mgh.harvard.edu>
+	<Pine.LNX.4.58.0512090842400.26935@wombat.indigo.net.au>
 Mime-Version: 1.0
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <6cd5k6xume.fsf@sumu.lexma.ibm.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="1629620785-1124577747-1134397269=:5491"
+Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <Pine.LNX.4.58.0512090842400.26935@wombat.indigo.net.au>
 List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://hera.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: Paul Raines <raines@nmr.mgh.harvard.edu>
+Cc: autofs@linux.kernel.org
+
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+--1629620785-1124577747-1134397269=:5491
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+
+On Fri, 9 Dec 2005, Ian Kent wrote:
+
+> On Thu, 8 Dec 2005, Paul Raines wrote:
+> 
+> > 
+> > Where can I get the disable-mount-locking patch for 4.1.4?  And
+> > the patch for mount?
+> > 
+> > The locking is an absolute killer for me.  One user on a big interactive 
+> > server accessing a mount on a down box causes every other user accessing 
+> > perfectly valid mounts to have their accesses fail (giving the aquire_lock 
+> > error in the log) while the first mount takes forever to timeout.
+> 
+> I'll have a look and see if I can find it.
+
+I've got 2 patches.
+Both have descriptions of what they do.
+
+One fixes a bug in the locking and the other does what you are seeking.
+
+Attached
+
+Ian
+
+--1629620785-1124577747-1134397269=:5491
+Content-Type: TEXT/PLAIN; charset=US-ASCII;
+	name=autofs-4.1.4-locking-fix-1.patch
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.63.0512122221080.5491@donald.themaw.net>
+Content-Description: locking fix
+Content-Disposition: attachment; filename=autofs-4.1.4-locking-fix-1.patch
+
+DQpUaGlzIHBhdGNoIGZpeGVzIHR3byB0aGluZ3MuDQoNCkZpcnN0LCBzbG9w
+cHkgZXJyb3IgaGFuZGxpbmcgd2hlbiBzcGF3bmluZyBhIHN1YiB0YXNrLg0K
+DQpTZWNvbmQsIGlmIHRoZSBwcm9jZXNzIHJlY2VpdmVzIGEgc2lnbmFsIHdo
+aWxlIHdhaXRpbmcgb24gdGhlIGxvY2sNCmZpbGUgaXQgd2lsbCByZXR1cm4g
+YSAidGltZWQgb3V0IiBlcnJvciBhZnRlciBvbmx5IGEgbGl0dGxlIG1vcmUN
+CnRoYW4gYSB0ZW50aCBvZiBhIHNlY29uZC4gVGhpcyB3YXMgZHVlIHRvIHRo
+ZSB3YWl0IHRpbWUgdmFyaWFibGUNCm5vdCBiZWluZyByZXNldCBhZnRlciBl
+YWNoIHRlbnRoIG9mIGEgc2Vjb25kIHdhaXQuDQoNCmRpZmYgLU51cnAgYXV0
+b2ZzLTQuMS40Lm9yaWcvZGFlbW9uL3NwYXduLmMgYXV0b2ZzLTQuMS40L2Rh
+ZW1vbi9zcGF3bi5jDQotLS0gYXV0b2ZzLTQuMS40Lm9yaWcvZGFlbW9uL3Nw
+YXduLmMJMjAwNS0wMi0xMCAyMDo1Njo1My4wMDAwMDAwMDAgKzA4MDANCisr
+KyBhdXRvZnMtNC4xLjQvZGFlbW9uL3NwYXduLmMJMjAwNS0xMS0wMSAxODoz
+NjozNS4wMDAwMDAwMDAgKzA4MDANCkBAIC0yMTQsMTQgKzIxNCwxNSBAQCBz
+dGF0aWMgaW50IGRvX3NwYXduKGludCBsb2dwcmksIGludCB1c2VfDQogCXNp
+Z2ZpbGxzZXQoJmFsbHNpZ25hbHMpOw0KIAlzaWdwcm9jbWFzayhTSUdfQkxP
+Q0ssICZhbGxzaWduYWxzLCAmb2xkc2lnKTsNCiANCi0JaWYgKHBpcGUocGlw
+ZWZkKSkNCisJaWYgKHBpcGUocGlwZWZkKSkgew0KKwkJaWYgKHVzZV9sb2Nr
+KQ0KKwkJCXJlbGVhc2VfbG9jaygpOw0KKwkJc2lncHJvY21hc2soU0lHX1NF
+VE1BU0ssICZvbGRzaWcsIE5VTEwpOw0KIAkJcmV0dXJuIC0xOw0KKwl9DQog
+DQogCWYgPSBmb3JrKCk7DQotCWlmIChmIDwgMCkgew0KLQkJc2lncHJvY21h
+c2soU0lHX1NFVE1BU0ssICZvbGRzaWcsIE5VTEwpOw0KLQkJcmV0dXJuIC0x
+Ow0KLQl9IGVsc2UgaWYgKGYgPT0gMCkgew0KKwlpZiAoZiA9PSAwKSB7DQog
+CQlyZXNldF9zaWduYWxzKCk7DQogCQljbG9zZShwaXBlZmRbMF0pOw0KIAkJ
+ZHVwMihwaXBlZmRbMV0sIFNURE9VVF9GSUxFTk8pOw0KQEAgLTI0Myw2ICsy
+NDQsOCBAQCBzdGF0aWMgaW50IGRvX3NwYXduKGludCBsb2dwcmksIGludCB1
+c2VfDQogDQogCQlpZiAoZiA8IDApIHsNCiAJCQljbG9zZShwaXBlZmRbMF0p
+Ow0KKwkJCWlmICh1c2VfbG9jaykNCisJCQkJcmVsZWFzZV9sb2NrKCk7DQog
+CQkJc2lncHJvY21hc2soU0lHX1NFVE1BU0ssICZvbGRzaWcsIE5VTEwpOw0K
+IAkJCXJldHVybiAtMTsNCiAJCX0NCkBAIC0yODcsMTEgKzI5MCwxMSBAQCBz
+dGF0aWMgaW50IGRvX3NwYXduKGludCBsb2dwcmksIGludCB1c2VfDQogCQlp
+ZiAod2FpdHBpZChmLCAmc3RhdHVzLCAwKSAhPSBmKQ0KIAkJCXN0YXR1cyA9
+IC0xOwkvKiB3YWl0cGlkKCkgZmFpbGVkICovDQogDQotCQlzaWdwcm9jbWFz
+ayhTSUdfU0VUTUFTSywgJm9sZHNpZywgTlVMTCk7DQotDQogCQlpZiAodXNl
+X2xvY2spDQogCQkJcmVsZWFzZV9sb2NrKCk7DQogDQorCQlzaWdwcm9jbWFz
+ayhTSUdfU0VUTUFTSywgJm9sZHNpZywgTlVMTCk7DQorDQogCQlyZXR1cm4g
+c3RhdHVzOw0KIAl9DQogfQ0KZGlmZiAtTnVycCBhdXRvZnMtNC4xLjQub3Jp
+Zy9saWIvbG9jay5jIGF1dG9mcy00LjEuNC9saWIvbG9jay5jDQotLS0gYXV0
+b2ZzLTQuMS40Lm9yaWcvbGliL2xvY2suYwkyMDA1LTAxLTE3IDIzOjA5OjI4
+LjAwMDAwMDAwMCArMDgwMA0KKysrIGF1dG9mcy00LjEuNC9saWIvbG9jay5j
+CTIwMDUtMTEtMDEgMjA6MTI6MjguMDAwMDAwMDAwICswODAwDQpAQCAtMjA4
+LDkgKzIwOCw2IEBAIHZvaWQgcmVsZWFzZV9sb2NrKHZvaWQpDQogICovDQog
+c3RhdGljIGludCB3YWl0X2Zvcl9sb2NrZihjb25zdCBjaGFyICpsb2NrZikN
+CiB7DQotCXN0cnVjdCB0aW1lc3BlYyB0ID0geyAwLCBXQUlUX0lOVEVSVkFM
+IH07DQotCXN0cnVjdCB0aW1lc3BlYyByOw0KLQlpbnQgdHNfc2l6ZSA9IHNp
+emVvZihzdHJ1Y3QgdGltZXNwZWMpOw0KIAlpbnQgdHJpZXMgPSBXQUlUX1RS
+SUVTOw0KIAlpbnQgc3RhdHVzID0gMDsNCiAJc3RydWN0IHN0YXQgc3Q7DQpA
+QCAtMjE4LDEwICsyMTUsMTMgQEAgc3RhdGljIGludCB3YWl0X2Zvcl9sb2Nr
+Zihjb25zdCBjaGFyICpsbw0KIAl3aGlsZSAodHJpZXMtLSAmJiAhc3RhdHVz
+KSB7DQogCQlzdGF0dXMgPSBzdGF0KGxvY2tmLCAmc3QpOw0KIAkJaWYgKCFz
+dGF0dXMpIHsNCisJCQlzdHJ1Y3QgdGltZXNwZWMgdCA9IHsgMCwgV0FJVF9J
+TlRFUlZBTCB9Ow0KKwkJCXN0cnVjdCB0aW1lc3BlYyByOw0KKw0KIAkJCXdo
+aWxlIChuYW5vc2xlZXAoJnQsICZyKSA9PSAtMSAmJiBlcnJubyA9PSBFSU5U
+Uikgew0KIAkJCQlpZiAoZ290X3Rlcm0pDQogCQkJCQlyZXR1cm4gMDsNCi0J
+CQkJbWVtY3B5KCZ0LCAmciwgdHNfc2l6ZSk7DQorCQkJCW1lbWNweSgmdCwg
+JnIsIHNpemVvZihzdHJ1Y3QgdGltZXNwZWMpKTsNCiAJCQl9DQogCQl9DQog
+CX0NCg==
+
+--1629620785-1124577747-1134397269=:5491
+Content-Type: TEXT/PLAIN; charset=US-ASCII;
+	name=autofs-4.1.4-configureable-locking.patch
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.63.0512122221081.5491@donald.themaw.net>
+Content-Description: configurable locking
+Content-Disposition: attachment;
+	filename=autofs-4.1.4-configureable-locking.patch
+
+DQpUaGlzIHBhdGNoIHByb3ZpZGVzIGEgY29uZmlndXJlIG9wdGlvbiB0byBk
+aXNhYmxlIHRoZSB1c2Ugb2YgYSBsb2NrDQpmaWxlIHdoZW4gY2FsbGluZyBt
+b3VudCBmcm9tIGF1dG9mcy4gSXQgYWxzbyBhZGRzIGEgcGF0Y2ggdG8gdGhl
+DQoicGF0Y2hlcyIgZGlyZWN0b3J5IHRoYXQgbmVlZHMgdG8gYmUgdXNlZCBm
+b3IgbW91bnQgdG8gKGhvcGVmdXVsbHkpDQpwcmV2ZW50IC9ldGMvbXRhYiBj
+b3JydXB0aW9uIHdoZW4gcmFwaWRseSBtb3VudGluZyBmaWxlc3lzdGVtcw0K
+d2hlbiBhdXRvZnMgZG9lcyBub3QgdXNlIGxvY2tpbmcuDQoNClRvIGRpc2Fi
+bGUgdGhlIGxvY2tpbmcgYWRkIHRoZSBjb25maWd1cmUgb3B0aW9uIC0tZGlz
+YWJsZS1tb3VudC1sb2NraW5nLg0KDQpkaWZmIC1OdXJwIGF1dG9mcy00LjEu
+NC5vcmlnL2NvbmZpZ3VyZSBhdXRvZnMtNC4xLjQvY29uZmlndXJlDQotLS0g
+YXV0b2ZzLTQuMS40Lm9yaWcvY29uZmlndXJlCTIwMDUtMDQtMDYgMjM6MjQ6
+MzcuMDAwMDAwMDAwICswODAwDQorKysgYXV0b2ZzLTQuMS40L2NvbmZpZ3Vy
+ZQkyMDA1LTEwLTIzIDExOjMzOjQ0LjAwMDAwMDAwMCArMDgwMA0KQEAgLTg0
+Miw2ICs4NDIsNyBAQCBPcHRpb25hbCBGZWF0dXJlczoNCiAgIC0tZGlzYWJs
+ZS1GRUFUVVJFICAgICAgIGRvIG5vdCBpbmNsdWRlIEZFQVRVUkUgKHNhbWUg
+YXMgLS1lbmFibGUtRkVBVFVSRT1ubykNCiAgIC0tZW5hYmxlLUZFQVRVUkVb
+PUFSR10gIGluY2x1ZGUgRkVBVFVSRSBbQVJHPXllc10NCiAtLWRpc2FibGUt
+ZXh0LWVudiAgICAgICAgICBkaXNhYmxlIHNlYXJjaCBpbiBlbnZpcm9ubWVu
+dCBmb3Igc3Vic3RpdHV0aW9uIHZhcmlhYmxlDQorLS1kaXNhYmxlLW1vdW50
+LWxvY2tpbmcgICAgICAgICAgZGlzYWJsZSB1c2Ugb2YgbG9ja2luZyB3aGVu
+IHNwYXduaW5nIG1vdW50IGNvbW1hbmQNCiANCiBPcHRpb25hbCBQYWNrYWdl
+czoNCiAgIC0td2l0aC1QQUNLQUdFWz1BUkddICAgIHVzZSBQQUNLQUdFIFtB
+Ukc9eWVzXQ0KQEAgLTQzMDgsNiArNDMwOSwyMyBAQCBfQUNFT0YNCiBmaQ0K
+IA0KICMNCisjIERpc2FibGUgdXNlIG9mIGxvY2tpbmcgd2hlbiBzcGF3bmlu
+ZyBtb3VudCBjb21tYW5kDQorIw0KKyMgQ2hlY2sgd2hldGhlciAtLWVuYWJs
+ZS1tb3VudC1sb2NraW5nIG9yIC0tZGlzYWJsZS1tb3VudC1sb2NraW5nIHdh
+cyBnaXZlbi4NCitpZiB0ZXN0ICIke2VuYWJsZV9tb3VudF9sb2NraW5nK3Nl
+dH0iID0gc2V0OyB0aGVuDQorICBlbmFibGV2YWw9IiRlbmFibGVfbW91bnRf
+bG9ja2luZyINCisNCitlbHNlDQorICBlbmFibGV2YWw9eWVzDQorZmk7DQor
+aWYgdGVzdCB4JGVuYWJsZV9tb3VudF9sb2NraW5nID0geHllcyAtbyB4JGVu
+YWJsZXZhbCA9IHh5ZXM7IHRoZW4NCisJY2F0ID4+Y29uZmRlZnMuaCA8PFxf
+QUNFT0YNCisjZGVmaW5lIEVOQUJMRV9NT1VOVF9MT0NLSU5HIDENCitfQUNF
+T0YNCisNCitmaQ0KKw0KKyMNCiAjIFdyaXRlIE1ha2VmaWxlLmNvbmYgYW5k
+IGluY2x1ZGUvY29uZmlnLmgNCiAjDQogICAgICAgICAgIGFjX2NvbmZpZ19o
+ZWFkZXJzPSIkYWNfY29uZmlnX2hlYWRlcnMgaW5jbHVkZS9jb25maWcuaCIN
+CmRpZmYgLU51cnAgYXV0b2ZzLTQuMS40Lm9yaWcvY29uZmlndXJlLmluIGF1
+dG9mcy00LjEuNC9jb25maWd1cmUuaW4NCi0tLSBhdXRvZnMtNC4xLjQub3Jp
+Zy9jb25maWd1cmUuaW4JMjAwNS0wNC0wNiAyMzoyNDozNy4wMDAwMDAwMDAg
+KzA4MDANCisrKyBhdXRvZnMtNC4xLjQvY29uZmlndXJlLmluCTIwMDUtMTAt
+MjMgMTE6MzM6MzUuMDAwMDAwMDAwICswODAwDQpAQCAtMTY3LDYgKzE2Nywx
+NiBAQCBpZiB0ZXN0IHgkZW5hYmxlX2V4dF9lbnYgPSB4eWVzOyB0aGVuDQog
+ZmkNCiANCiAjDQorIyBEaXNhYmxlIHVzZSBvZiBsb2NraW5nIHdoZW4gc3Bh
+d25pbmcgbW91bnQgY29tbWFuZA0KKyMNCitBQ19BUkdfRU5BQkxFKG1vdW50
+LWxvY2tpbmcsDQorLS1kaXNhYmxlLW1vdW50LWxvY2tpbmcgICAgICAgICAg
+ZGlzYWJsZSB1c2Ugb2YgbG9ja2luZyB3aGVuIHNwYXduaW5nIG1vdW50IGNv
+bW1hbmQsLA0KKwllbmFibGV2YWw9eWVzKQ0KK2lmIHRlc3QgeCRlbmFibGVf
+bW91bnRfbG9ja2luZyA9IHh5ZXMgLW8geCRlbmFibGV2YWwgPSB4eWVzOyB0
+aGVuDQorCUFDX0RFRklORShFTkFCTEVfTU9VTlRfTE9DS0lORywgMSkNCitm
+aQ0KKw0KKyMNCiAjIFdyaXRlIE1ha2VmaWxlLmNvbmYgYW5kIGluY2x1ZGUv
+Y29uZmlnLmgNCiAjDQogQUNfQ09ORklHX0hFQURFUihpbmNsdWRlL2NvbmZp
+Zy5oKQ0KZGlmZiAtTnVycCBhdXRvZnMtNC4xLjQub3JpZy9kYWVtb24vc3Bh
+d24uYyBhdXRvZnMtNC4xLjQvZGFlbW9uL3NwYXduLmMNCi0tLSBhdXRvZnMt
+NC4xLjQub3JpZy9kYWVtb24vc3Bhd24uYwkyMDA1LTAyLTEwIDIwOjU2OjUz
+LjAwMDAwMDAwMCArMDgwMA0KKysrIGF1dG9mcy00LjEuNC9kYWVtb24vc3Bh
+d24uYwkyMDA1LTEwLTIzIDEwOjUxOjEwLjAwMDAwMDAwMCArMDgwMA0KQEAg
+LTMyMiw2ICszMjIsNyBAQCBpbnQgc3Bhd25sKGludCBsb2dwcmksIGNvbnN0
+IGNoYXIgKnByb2csDQogCXJldHVybiBkb19zcGF3bihsb2dwcmksIDAsIHBy
+b2csIChjb25zdCBjaGFyICoqKSBhcmd2KTsNCiB9DQogDQorI2lmZGVmIEVO
+QUJMRV9NT1VOVF9MT0NLSU5HDQogaW50IHNwYXdubGwoaW50IGxvZ3ByaSwg
+Y29uc3QgY2hhciAqcHJvZywgLi4uKQ0KIHsNCiAJdmFfbGlzdCBhcmc7DQpA
+QCAtMzQyLDMgKzM0Myw0IEBAIGludCBzcGF3bmxsKGludCBsb2dwcmksIGNv
+bnN0IGNoYXIgKnByb2cNCiANCiAJcmV0dXJuIGRvX3NwYXduKGxvZ3ByaSwg
+MSwgcHJvZywgKGNvbnN0IGNoYXIgKiopIGFyZ3YpOw0KIH0NCisjZW5kaWYN
+CmRpZmYgLU51cnAgYXV0b2ZzLTQuMS40Lm9yaWcvaW5jbHVkZS9hdXRvbW91
+bnQuaCBhdXRvZnMtNC4xLjQvaW5jbHVkZS9hdXRvbW91bnQuaA0KLS0tIGF1
+dG9mcy00LjEuNC5vcmlnL2luY2x1ZGUvYXV0b21vdW50LmgJMjAwNS0wMS0y
+NiAyMTowMzowMi4wMDAwMDAwMDAgKzA4MDANCisrKyBhdXRvZnMtNC4xLjQv
+aW5jbHVkZS9hdXRvbW91bnQuaAkyMDA1LTEwLTIzIDEwOjUxOjEwLjAwMDAw
+MDAwMCArMDgwMA0KQEAgLTEyMSw5ICsxMjEsMTMgQEAgZXh0ZXJuIHN0cnVj
+dCBhdXRvZnNfcG9pbnQgYXA7IA0KIA0KIGludCBhcXVpcmVfbG9jayh2b2lk
+KTsNCiB2b2lkIHJlbGVhc2VfbG9jayh2b2lkKTsNCi1pbnQgc3Bhd25sbChp
+bnQgbG9ncHJpLCBjb25zdCBjaGFyICpwcm9nLCAuLi4pOw0KIGludCBzcGF3
+bmwoaW50IGxvZ3ByaSwgY29uc3QgY2hhciAqcHJvZywgLi4uKTsNCi1pbnQg
+c3Bhd252KGludCBsb2dwcmksIGNvbnN0IGNoYXIgKnByb2csIGNvbnN0IGNo
+YXIgKmNvbnN0ICphcmd2KTsNCisjaWZkZWYgRU5BQkxFX01PVU5UX0xPQ0tJ
+TkcNCitpbnQgc3Bhd25sbChpbnQgbG9ncHJpLCBjb25zdCBjaGFyICpwcm9n
+LCAuLi4pOw0KKyNlbHNlDQorI2RlZmluZSBzcGF3bmxsCXNwYXdubA0KKyNl
+bmRpZg0KK2ludCBzcGF3bnYoaW50IG9ncHJpLCBjb25zdCBjaGFyICpwcm9n
+LCBjb25zdCBjaGFyICpjb25zdCAqYXJndik7DQogdm9pZCByZXNldF9zaWdu
+YWxzKHZvaWQpOw0KIHZvaWQgaWdub3JlX3NpZ25hbHModm9pZCk7DQogdm9p
+ZCBkaXNjYXJkX3BlbmRpbmcoaW50IHNpZyk7DQpkaWZmIC1OdXJwIGF1dG9m
+cy00LjEuNC5vcmlnL2luY2x1ZGUvY29uZmlnLmguaW4gYXV0b2ZzLTQuMS40
+L2luY2x1ZGUvY29uZmlnLmguaW4NCi0tLSBhdXRvZnMtNC4xLjQub3JpZy9p
+bmNsdWRlL2NvbmZpZy5oLmluCTIwMDQtMDItMDMgMjM6MjM6MjEuMDAwMDAw
+MDAwICswODAwDQorKysgYXV0b2ZzLTQuMS40L2luY2x1ZGUvY29uZmlnLmgu
+aW4JMjAwNS0xMC0yMyAxMDo1MToxMC4wMDAwMDAwMDAgKzA4MDANCkBAIC0y
+NSwzICsyNSw1IEBADQogI3VuZGVmIEhBVkVfU0xPUFBZX01PVU5UDQogDQog
+I3VuZGVmIEVOQUJMRV9FWFRfRU5WDQorDQorI3VuZGVmIEVOQUJMRV9NT1VO
+VF9MT0NLSU5HDQpkaWZmIC1OdXJwIGF1dG9mcy00LjEuNC5vcmlnL3BhdGNo
+ZXMvdXRpbC1saW51eC0yLjEyYS1mbG9jay5wYXRjaCBhdXRvZnMtNC4xLjQv
+cGF0Y2hlcy91dGlsLWxpbnV4LTIuMTJhLWZsb2NrLnBhdGNoDQotLS0gYXV0
+b2ZzLTQuMS40Lm9yaWcvcGF0Y2hlcy91dGlsLWxpbnV4LTIuMTJhLWZsb2Nr
+LnBhdGNoCTE5NzAtMDEtMDEgMDg6MDA6MDAuMDAwMDAwMDAwICswODAwDQor
+KysgYXV0b2ZzLTQuMS40L3BhdGNoZXMvdXRpbC1saW51eC0yLjEyYS1mbG9j
+ay5wYXRjaAkyMDA1LTEwLTIzIDEwOjUxOjEwLjAwMDAwMDAwMCArMDgwMA0K
+QEAgLTAsMCArMSwzMCBAQA0KKy0tLSB1dGlsLWxpbnV4LTIuMTJhL21vdW50
+L2ZzdGFiLmMuZmxvY2sJMjAwNS0wOS0xNyAwMTozNjowMy4wMDAwMDAwMDAg
+KzA4MDANCisrKysgdXRpbC1saW51eC0yLjEyYS9tb3VudC9mc3RhYi5jCTIw
+MDUtMDktMTcgMDE6NDE6MTIuMDAwMDAwMDAwICswODAwDQorQEAgLTQ4OCw3
+ICs0ODgsNyBAQCBsb2NrX210YWIgKHZvaWQpIHsNCisgCQkJCX0NCisgCQkJ
+CS8qIHByb2NlZWQgYW55d2F5ICovDQorIAkJCX0NCistCQkJd2VfY3JlYXRl
+ZF9sb2NrZmlsZSA9IDE7DQorKwkJCXdlX2NyZWF0ZWRfbG9ja2ZpbGUgPSBm
+ZDsNCisgCQl9IGVsc2Ugew0KKyAJCQlzdGF0aWMgaW50IHRyaWVzID0gMDsN
+CisgDQorQEAgLTUxMCw5ICs1MTAsOCBAQCBsb2NrX210YWIgKHZvaWQpIHsN
+CisgCQkJCQkgICAgIE1PVU5URURfTE9DSyk7DQorIAkJCQlzbGVlcCgxKTsN
+CisgCQkJfQ0KKysJCQljbG9zZShmZCk7DQorIAkJfQ0KKy0NCistCQljbG9z
+ZShmZCk7DQorIAl9DQorIH0NCisgDQorQEAgLTUyMCw2ICs1MTksNyBAQCBs
+b2NrX210YWIgKHZvaWQpIHsNCisgdm9pZA0KKyB1bmxvY2tfbXRhYiAodm9p
+ZCkgew0KKyAJaWYgKHdlX2NyZWF0ZWRfbG9ja2ZpbGUpIHsNCisrCQljbG9z
+ZSh3ZV9jcmVhdGVkX2xvY2tmaWxlKTsNCisgCQl1bmxpbmsgKE1PVU5URURf
+TE9DSyk7DQorIAkJd2VfY3JlYXRlZF9sb2NrZmlsZSA9IDA7DQorIAl9DQpk
+aWZmIC1OdXJwIGF1dG9mcy00LjEuNC5vcmlnL3BhdGNoZXMvdXRpbC1saW51
+eC0yLjEycS1mbG9jay5wYXRjaCBhdXRvZnMtNC4xLjQvcGF0Y2hlcy91dGls
+LWxpbnV4LTIuMTJxLWZsb2NrLnBhdGNoDQotLS0gYXV0b2ZzLTQuMS40Lm9y
+aWcvcGF0Y2hlcy91dGlsLWxpbnV4LTIuMTJxLWZsb2NrLnBhdGNoCTE5NzAt
+MDEtMDEgMDg6MDA6MDAuMDAwMDAwMDAwICswODAwDQorKysgYXV0b2ZzLTQu
+MS40L3BhdGNoZXMvdXRpbC1saW51eC0yLjEycS1mbG9jay5wYXRjaAkyMDA1
+LTEwLTIzIDEwOjUxOjEwLjAwMDAwMDAwMCArMDgwMA0KQEAgLTAsMCArMSwy
+OSBAQA0KKy0tLSB1dGlsLWxpbnV4LTIuMTJxL21vdW50L2ZzdGFiLmMuZmxv
+Y2sJMjAwNS0wOS0xNyAwMToxMDozNy4wMDAwMDAwMDAgKzA4MDANCisrKysg
+dXRpbC1saW51eC0yLjEycS9tb3VudC9mc3RhYi5jCTIwMDUtMDktMTcgMDE6
+MTY6NTEuMDAwMDAwMDAwICswODAwDQorQEAgLTQxNyw2ICs0MTcsNyBAQA0K
+KyB1bmxvY2tfbXRhYiAodm9pZCkgew0KKyAJaWYgKHdlX2NyZWF0ZWRfbG9j
+a2ZpbGUpIHsNCisgCQl1bmxpbmsgKE1PVU5URURfTE9DSyk7DQorKwkJY2xv
+c2Uod2VfY3JlYXRlZF9sb2NrX2ZpbGUpOw0KKyAJCXdlX2NyZWF0ZWRfbG9j
+a2ZpbGUgPSAwOw0KKyAJfQ0KKyB9DQorQEAgLTUyOCw2ICs1MjksNyBAQA0K
+KyAJCQkJfQ0KKyAJCQkJLyogcHJvY2VlZCBhbnl3YXkgKi8NCisgCQkJfQ0K
+KysJCQl3ZV9jcmVhdGVkX2xvY2tfZmlsZSA9IGZkOw0KKyAJCX0gZWxzZSB7
+DQorIAkJCXN0YXRpYyBpbnQgdHJpZXMgPSAwOw0KKyANCitAQCAtNTQ5LDkg
+KzU1MSw4IEBADQorIAkJCQkJICAgICBNT1VOVEVEX0xPQ0spOw0KKyAJCQkJ
+c2xlZXAoMSk7DQorIAkJCX0NCisrCQkJY2xvc2UoZmQpOw0KKyAJCX0NCist
+DQorLQkJY2xvc2UoZmQpOw0KKyAJfQ0KKyB9DQorIA0K
+
+--1629620785-1124577747-1134397269=:5491
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: "John T. Kohl" <jtk@us.ibm.com>
-Cc: Christoph Hellwig <hch@infradead.org>, Brian Long <brilong@cisco.com>, Jeff Moyer <jmoyer@redhat.com>, autofs mailing list <autofs@linux.kernel.org>, wtaber@us.ibm.com, Trond Myklebust <trond.myklebust@fys.uio.no>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Ian Kent <raven@themaw.net>
+Content-Disposition: inline
 
-On Fri, Dec 09, 2005 at 08:33:45AM -0500, John T. Kohl wrote:
-> Christoph> path_walk and firends resolve a full path.  As such they are
-> Christoph> definitly not suitable for stackable filesystem, they are
-> Christoph> intendeded only for implementating syscalls (and syscall-like
-> Christoph> interfaces, e.g. some ioctls)
-> 
-> path_lookup() takes a pathname and interprets it relative to cwd or
-> root, so it's definitely not useful for stacking.  But path_walk() takes
-> a pathname fragment and an initialized nameidata (start point), so it
-> *could* be used to resolve a single component, or multiple components.
-> 
-> If lookup_one_len() is for use within the caller's file system only, and
-> path_walk() is not suitable for stacking, then what calls *are* suitable
-> for stacking file systems to use?  We want to start with an existing
-> (dentry,vfsmnt) and a pathname component, converting it to the
-> (dentry,vfsmnt) of the result.
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
 
-As there are no stackable filesystems in the tree there's currently no
-interface designed for them, and once we'll get interfaces for stackable
-filesystems they'll surely be _GPL as they're clearly internal and any
-stackable filesystem needs to know a lot about the VFS and will have to
-change far more frequently than leaf filesystems.
+--1629620785-1124577747-1134397269=:5491--
 
-path_walk is an internal implementation detail that will hopefull go away
-as an export.
