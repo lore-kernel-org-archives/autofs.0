@@ -1,51 +1,41 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Cross compiling autofs tools
-Date: Mon, 12 Dec 2005 22:18:08 +0800 (WST)
-Message-ID: <Pine.LNX.4.63.0512122213450.5491@donald.themaw.net>
-References: <DAF42D2FFC65A146BAB240719E4AD214D360E8@gbrwgceumf02.eu.xerox.net>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [autofs] [RFC PATCH]autofs4: hang and proposed fix
+Date: Tue, 13 Dec 2005 18:39:38 +0000
+Message-ID: <20051213183938.GA10907@infradead.org>
+References: <20051204125612.GA28229@infradead.org> <20051204125740.GB28229@infradead.org> <Pine.LNX.4.63.0512042256380.31847@donald.themaw.net> <20051204171729.GA31111@infradead.org> <17302.157.540958.723305@segfault.boston.redhat.com> <20051206214033.GA31000@infradead.org> <1133968943.4581.22.camel@brilong-lnx> <43971FFF.2090900@us.ibm.com> <20051209121239.GA17898@infradead.org> <6cd5k6xume.fsf@sumu.lexma.ibm.com>
 Mime-Version: 1.0
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <DAF42D2FFC65A146BAB240719E4AD214D360E8@gbrwgceumf02.eu.xerox.net>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <6cd5k6xume.fsf@sumu.lexma.ibm.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://hera.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Hamilton, Ian" <Ian.Hamilton@xerox.com>
-Cc: autofs@linux.kernel.org
+To: "John T. Kohl" <jtk@us.ibm.com>
+Cc: Christoph Hellwig <hch@infradead.org>, Brian Long <brilong@cisco.com>, Jeff Moyer <jmoyer@redhat.com>, autofs mailing list <autofs@linux.kernel.org>, wtaber@us.ibm.com, Trond Myklebust <trond.myklebust@fys.uio.no>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Ian Kent <raven@themaw.net>
 
-On Mon, 12 Dec 2005, Hamilton, Ian wrote:
-
-> Hi there.
+On Fri, Dec 09, 2005 at 08:33:45AM -0500, John T. Kohl wrote:
+> Christoph> path_walk and firends resolve a full path.  As such they are
+> Christoph> definitly not suitable for stackable filesystem, they are
+> Christoph> intendeded only for implementating syscalls (and syscall-like
+> Christoph> interfaces, e.g. some ioctls)
 > 
-> I would like to add the automounter to an embedded MIPS system that I am
-> cross compiling on an x86 host. I've enabled autofs version 4 support in
-> the kernel, but I think I need the autofs user space tools as well.
-
-Yes you will need autofs user space.
-
+> path_lookup() takes a pathname and interprets it relative to cwd or
+> root, so it's definitely not useful for stacking.  But path_walk() takes
+> a pathname fragment and an initialized nameidata (start point), so it
+> *could* be used to resolve a single component, or multiple components.
 > 
-> I cannot find much information on cross-compiling the automount tools.
-> The usual cross-compiling options for configure don't seem to work, and
-> I'm not sure how to deal with the location of the system binaries.
+> If lookup_one_len() is for use within the caller's file system only, and
+> path_walk() is not suitable for stacking, then what calls *are* suitable
+> for stacking file systems to use?  We want to start with an existing
+> (dentry,vfsmnt) and a pathname component, converting it to the
+> (dentry,vfsmnt) of the result.
 
-Location of the binaries is set at compile time for the location of the 
-modules for reading maps, parsing and mounting. See the Makefile in the 
-subdirectory "modules" in the source distribution.
+As there are no stackable filesystems in the tree there's currently no
+interface designed for them, and once we'll get interfaces for stackable
+filesystems they'll surely be _GPL as they're clearly internal and any
+stackable filesystem needs to know a lot about the VFS and will have to
+change far more frequently than leaf filesystems.
 
-> 
-> Is there a Howto on cross-compiling autofs?
-
-Not done that before and not having been involved with embeded systems I'm 
-not sure how to go about it.
-
-Maybe I could help you along and you could feed back your results.
-
-Ian
+path_walk is an internal implementation detail that will hopefull go away
+as an export.
