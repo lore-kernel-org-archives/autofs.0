@@ -1,11 +1,10 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: is there any progress
-Date: Fri, 6 Jan 2006 15:46:36 -0500 (EST)
-Message-ID: <Pine.LNX.4.58.0601061533480.21807@wombat.indigo.net.au>
-References: <43BD523B.1040705@bppiac.hu>
-Mime-Version: 1.0
+From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: [PATCH] 4.1.4 - fix multimounts with single entry
+Date: Fri, 6 Jan 2006 17:55:36 +0300
+Message-ID: <200601061755.37441.arvidjaar@mail.ru>
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <43BD523B.1040705@bppiac.hu>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,31 +15,90 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Farkas Levente <lfarkas@bppiac.hu>
-Cc: autofs@linux.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+To: autofs@linux.kernel.org
 
-On Thu, 5 Jan 2006, Farkas Levente wrote:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> hi,
-> is there any progress in the "autofs never umounted" area?
-> thnaks in advance.
+[I am not subscribed to this list]
 
-Perhaps.
+This easily happens when you are using e.g. /net map and host exports single 
+directory. In this case currently automount will mount this directory 
+on /net/host instead of creating path under /net/host,
 
-One of the patches in the group I'll be submitting soon changes the 
-way "busyness" is established. The change will consider a mount busy only 
-if it has positive reference count such as an actual open file or working 
-directory set. I'm changing this to make the busy timeout consistent for 
-both existing versions and the direct mount implementation coming in 
-version 5.0.
+regards
 
-While I can't do much about mounts being triggered by aggressive 
-filesystem scanning I hope that this change will also allow these scanned 
-type of busy mounts to timeout and umount.
+- -andrey
 
-I only have patches for 2.6.15-rc5-mm3 at the moment but I will probably 
-need to make a set for 2.6.14 for my own testing.
+- --- autofs-4.1.4/modules/parse_sun.c.multi	2005-04-05 16:42:42.000000000 +0400
++++ autofs-4.1.4/modules/parse_sun.c	2006-01-06 17:33:01.000000000 +0300
+@@ -759,50 +759,6 @@ void multi_free_list(struct multi_mnt *l
+ }
+ 
+ /*
+- - * Scan map entry looking for evidence it has multiple key/mapent
+- - * pairs.
+- - */
+- -static int check_is_multi(const char *mapent)
+- -{
+- -	const char *p = (char *) mapent;
+- -	int multi = 0;
+- -	int first_chunk = 0;
+- -
+- -	while (*p) {
+- -		p = skipspace(p);
+- -
+- -		/*
+- -		 * After the first chunk there can be additional
+- -		 * locations (possibly not multi) or possibly an
+- -		 * options string if the first entry includes the
+- -		 * optional '/' (is multi). Following this any
+- -		 * path that begins with '/' indicates a mutil-mount
+- -		 * entry.
+- -		 */
+- -		if (first_chunk) {
+- -			if (*p == '/' || *p == '-') {
+- -				multi = 1;
+- -				break;
+- -			}
+- -		}
+- -
+- -		while (*p == '-') {
+- -			p += chunklen(p, 0);
+- -			p = skipspace(p);
+- -		}
+- -
+- -		/*
+- -		 * Expect either a path or location
+- -		 * after which it's a multi mount.
+- -		 */
+- -		p += chunklen(p, check_colon(p));
+- -		first_chunk++;
+- -	}
+- -
+- -	return multi;
+- -}
+- -
+- -/*
+  * syntax is:
+  *	[-options] location [location] ...
+  *	[-options] [mountpoint [-options] location [location] ... ]...
+@@ -855,7 +811,8 @@ int parse_mount(const char *root, const 
+ 
+ 	debug(MODPREFIX "gathered options: %s", options);
+ 
+- -	if (check_is_multi(p)) {
++	/* '/' here means path and hence multi entry */
++	if (*p == '/') {
+ 		struct multi_mnt *list, *head = NULL;
+ 		char *multi_root;
+ 		int l;
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
 
-Ian
+iD8DBQFDvoTpR6LMutpd94wRApOUAKCYz0G44CEQwnJZnKekknw5n0OZkwCggahc
+cMxr5QUtWxgNhnPT+1UnpHs=
+=rMqb
+-----END PGP SIGNATURE-----
