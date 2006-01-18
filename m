@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 4/13] autofs4 - expire code readability cleanup
-Date: Wed, 18 Jan 2006 15:23:01 +0800
-Message-ID: <200601180723.k0I7N1VM006144@eagle.themaw.net>
+Subject: [PATCH 8/13] autofs4 - remove update_atime unused function
+Date: Wed, 18 Jan 2006 15:23:43 +0800
+Message-ID: <200601180723.k0I7NhHB006177@eagle.themaw.net>
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -19,183 +19,88 @@ Content-Transfer-Encoding: 7bit
 To: Andrew Morton <akpm@osdl.org>
 Cc: linux-fsdevel@vger.kernel.org, autofs@linux.kernel.org, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-This patch changes the names of the boolean functions autofs4_check_mount
-and autofs4_check_tree to autofs4_mount_busy and autofs4_tree_busy
-respectively and alters their return codes to suit in order to aid
-code readabilty.
-
-A couple of white space cleanups are included as well.
+This patch removes the update of i_atime from autofs4 in favour of
+having VFS update it. i_atime is never used for expire in autofs4.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 
 
---- linux-2.6.15-mm2/fs/autofs4/expire.c.expire-cleanup	2006-01-12 15:06:52.000000000 +0800
-+++ linux-2.6.15-mm2/fs/autofs4/expire.c	2006-01-12 15:11:55.000000000 +0800
-@@ -16,7 +16,7 @@
- 
- static unsigned long now;
- 
--/* Check if a dentry can be expired return 1 if it can else return 0 */
-+/* Check if a dentry can be expired */
- static inline int autofs4_can_expire(struct dentry *dentry,
- 					unsigned long timeout, int do_now)
- {
-@@ -41,14 +41,13 @@ static inline int autofs4_can_expire(str
- 		     attempts if expire fails the first time */
- 		ino->last_used = now;
- 	}
--
- 	return 1;
+--- linux-2.6.15-mm3/fs/autofs4/root.c.remove-update_atime	2006-01-13 16:21:05.000000000 +0800
++++ linux-2.6.15-mm3/fs/autofs4/root.c	2006-01-13 16:27:09.000000000 +0800
+@@ -84,24 +84,6 @@ static int autofs4_root_readdir(struct f
+ 	return dcache_readdir(file, dirent, filldir);
  }
  
--/* Check a mount point for busyness return 1 if not busy, otherwise */
--static int autofs4_check_mount(struct vfsmount *mnt, struct dentry *dentry)
-+/* Check a mount point for busyness */
-+static int autofs4_mount_busy(struct vfsmount *mnt, struct dentry *dentry)
+-/* Update usage from here to top of tree, so that scan of
+-   top-level directories will give a useful result */
+-static void autofs4_update_usage(struct vfsmount *mnt, struct dentry *dentry)
+-{
+-	struct dentry *top = dentry->d_sb->s_root;
+-
+-	spin_lock(&dcache_lock);
+-	for(; dentry != top; dentry = dentry->d_parent) {
+-		struct autofs_info *ino = autofs4_dentry_ino(dentry);
+-
+-		if (ino) {
+-			touch_atime(mnt, dentry);
+-			ino->last_used = jiffies;
+-		}
+-	}
+-	spin_unlock(&dcache_lock);
+-}
+-
+ static int autofs4_dir_open(struct inode *inode, struct file *file)
  {
--	int status = 0;
-+	int status = 1;
+ 	struct dentry *dentry = file->f_dentry;
+@@ -246,10 +228,9 @@ out:
+ 	return dcache_readdir(file, dirent, filldir);
+ }
  
- 	DPRINTK("dentry %p %.*s",
- 		dentry, (int)dentry->d_name.len, dentry->d_name.name);
-@@ -65,7 +64,7 @@ static int autofs4_check_mount(struct vf
- 
- 	/* The big question */
- 	if (may_umount_tree(mnt) == 0)
--		status = 1;
-+		status = 0;
- done:
- 	DPRINTK("returning = %d", status);
- 	mntput(mnt);
-@@ -75,30 +74,29 @@ done:
- 
- /* Check a directory tree of mount points for busyness
-  * The tree is not busy iff no mountpoints are busy
-- * Return 1 if the tree is busy or 0 otherwise
-  */
--static int autofs4_check_tree(struct vfsmount *mnt,
--	       		      struct dentry *top,
--			      unsigned long timeout,
--			      int do_now)
-+static int autofs4_tree_busy(struct vfsmount *mnt,
-+	       		     struct dentry *top,
-+			     unsigned long timeout,
-+			     int do_now)
+-static int try_to_fill_dentry(struct vfsmount *mnt, struct dentry *dentry, int flags)
++static int try_to_fill_dentry(struct dentry *dentry, int flags)
  {
- 	struct dentry *this_parent = top;
- 	struct list_head *next;
+-	struct super_block *sb = mnt->mnt_sb;
+-	struct autofs_sb_info *sbi = autofs4_sbi(sb);
++	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
+ 	struct autofs_info *ino = autofs4_dentry_ino(dentry);
+ 	int status = 0;
  
--	DPRINTK("parent %p %.*s",
-+	DPRINTK("top %p %.*s",
- 		top, (int)top->d_name.len, top->d_name.name);
- 
- 	/* Negative dentry - give up */
- 	if (!simple_positive(top))
--		return 0;
-+		return 1;
- 
- 	/* Timeout of a tree mount is determined by its top dentry */
- 	if (!autofs4_can_expire(top, timeout, do_now))
--		return 0;
-+		return 1;
- 
- 	/* Is someone visiting anywhere in the tree ? */
- 	if (may_umount_tree(mnt))
--		return 0;
-+		return 1;
- 
- 	spin_lock(&dcache_lock);
- repeat:
-@@ -126,9 +124,9 @@ resume:
- 
- 		if (d_mountpoint(dentry)) {
- 			/* First busy => tree busy */
--			if (!autofs4_check_mount(mnt, dentry)) {
-+			if (autofs4_mount_busy(mnt, dentry)) {
- 				dput(dentry);
--				return 0;
-+				return 1;
- 			}
+@@ -323,13 +304,6 @@ static int try_to_fill_dentry(struct vfs
  		}
+ 	}
  
-@@ -144,7 +142,7 @@ resume:
+-	/*
+-	 * We don't update the usages for the autofs daemon itself, this
+-	 * is necessary for recursive autofs mounts
+-	 */
+-	if (!autofs4_oz_mode(sbi))
+-		autofs4_update_usage(mnt, dentry);
+-
+ 	/* Initialize expiry counter after successful mount */
+ 	if (ino)
+ 		ino->last_used = jiffies;
+@@ -357,7 +331,7 @@ static int autofs4_revalidate(struct den
+ 	/* Pending dentry */
+ 	if (autofs4_ispending(dentry)) {
+ 		if (!oz_mode)
+-			status = try_to_fill_dentry(nd->mnt, dentry, flags);
++			status = try_to_fill_dentry(dentry, flags);
+ 		return status;
+ 	}
+ 
+@@ -374,15 +348,11 @@ static int autofs4_revalidate(struct den
+ 			 dentry, dentry->d_name.len, dentry->d_name.name);
+ 		spin_unlock(&dcache_lock);
+ 		if (!oz_mode)
+-			status = try_to_fill_dentry(nd->mnt, dentry, flags);
++			status = try_to_fill_dentry(dentry, flags);
+ 		return status;
  	}
  	spin_unlock(&dcache_lock);
  
--	return 1;
-+	return 0;
- }
- 
- static struct dentry *autofs4_check_leaves(struct vfsmount *mnt,
-@@ -188,7 +186,7 @@ resume:
- 				goto cont;
- 
- 			/* Can we umount this guy */
--			if (autofs4_check_mount(mnt, dentry))
-+			if (!autofs4_mount_busy(mnt, dentry))
- 				return dentry;
- 
- 		}
-@@ -241,7 +239,7 @@ static struct dentry *autofs4_expire(str
- 		struct dentry *dentry = list_entry(next, struct dentry, d_u.d_child);
- 
- 		/* Negative dentry - give up */
--		if ( !simple_positive(dentry) ) {
-+		if (!simple_positive(dentry)) {
- 			next = next->next;
- 			continue;
- 		}
-@@ -259,21 +257,21 @@ static struct dentry *autofs4_expire(str
- 				goto next;
- 
- 			/* Can we umount this guy */
--			if (autofs4_check_mount(mnt, dentry)) {
-+			if (!autofs4_mount_busy(mnt, dentry)) {
- 				expired = dentry;
- 				break;
- 			}
- 			goto next;
- 		}
- 
--		if ( simple_empty(dentry) )
-+		if (simple_empty(dentry))
- 			goto next;
- 
- 		/* Case 2: tree mount, expire iff entire tree is not busy */
- 		if (!exp_leaves) {
- 			/* Lock the tree as we must expire as a whole */
- 			spin_lock(&sbi->fs_lock);
--			if (autofs4_check_tree(mnt, dentry, timeout, do_now)) {
-+			if (!autofs4_tree_busy(mnt, dentry, timeout, do_now)) {
- 				struct autofs_info *inf = autofs4_dentry_ino(dentry);
- 
- 				/* Set this flag early to catch sys_chdir and the like */
-@@ -297,7 +295,7 @@ next:
- 		next = next->next;
- 	}
- 
--	if ( expired ) {
-+	if (expired) {
- 		DPRINTK("returning %p %.*s",
- 			expired, (int)expired->d_name.len, expired->d_name.name);
- 		spin_lock(&dcache_lock);
-@@ -352,16 +350,16 @@ int autofs4_expire_multi(struct super_bl
- 		return -EFAULT;
- 
- 	if ((dentry = autofs4_expire(sb, mnt, sbi, do_now)) != NULL) {
--		struct autofs_info *de_info = autofs4_dentry_ino(dentry);
-+		struct autofs_info *ino = autofs4_dentry_ino(dentry);
- 
- 		/* This is synchronous because it makes the daemon a
-                    little easier */
--		de_info->flags |= AUTOFS_INF_EXPIRING;
-+		ino->flags |= AUTOFS_INF_EXPIRING;
- 		ret = autofs4_wait(sbi, dentry, NFY_EXPIRE);
--		de_info->flags &= ~AUTOFS_INF_EXPIRING;
-+		ino->flags &= ~AUTOFS_INF_EXPIRING;
- 		dput(dentry);
- 	}
--		
-+
- 	return ret;
+-	/* Update the usage list */
+-	if (!oz_mode)
+-		autofs4_update_usage(nd->mnt, dentry);
+-
+ 	return 1;
  }
