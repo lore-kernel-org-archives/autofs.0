@@ -1,12 +1,12 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 9/13] updated for rc1-mm1: autofs4 - add a show mount
- options for proc filesystem
-Date: Thu, 19 Jan 2006 09:18:31 +0800 (WST)
-Message-ID: <Pine.LNX.4.64.0601190917150.3261@eagle.themaw.net>
-References: <200601180723.k0I7Nruv006185@eagle.themaw.net>
+Subject: Re: [PATCH 10/13] updated for rc1-mm1: autofs4 - white space cleanup
+ for waitq.c
+Date: Thu, 19 Jan 2006 09:19:40 +0800 (WST)
+Message-ID: <Pine.LNX.4.64.0601190918420.3261@eagle.themaw.net>
+References: <200601180724.k0I7O9Go006193@eagle.themaw.net>
 Mime-Version: 1.0
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <200601180723.k0I7Nruv006185@eagle.themaw.net>
+In-Reply-To: <200601180724.k0I7O9Go006193@eagle.themaw.net>
 Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 Content-Type: TEXT/PLAIN; charset="us-ascii"
@@ -16,127 +16,87 @@ Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel@vger.kerne
 
 On Wed, 18 Jan 2006, Ian Kent wrote:
 
-> This patch adds show_options method to display autofs4 mount options
-> in the proc filesystem.
+> Whitespace and formating changes to waitq code.
 > 
 > Signed-off-by: Ian Kent <raven@themaw.net>
 > 
 
---- linux-2.6.16-rc1-mm1/fs/autofs4/inode.c.add-show_options	2006-01-18 22:08:08.000000000 +0800
-+++ linux-2.6.16-rc1-mm1/fs/autofs4/inode.c	2006-01-18 22:08:28.000000000 +0800
-@@ -13,6 +13,7 @@
- #include <linux/kernel.h>
- #include <linux/slab.h>
- #include <linux/file.h>
-+#include <linux/seq_file.h>
- #include <linux/pagemap.h>
- #include <linux/parser.h>
- #include <linux/bitops.h>
-@@ -163,9 +164,26 @@ static void autofs4_put_super(struct sup
- 	DPRINTK("shutting down");
+--- linux-2.6.16-rc1-mm1/fs/autofs4/waitq.c.waitq-cleanup	2006-01-18 22:15:23.000000000 +0800
++++ linux-2.6.16-rc1-mm1/fs/autofs4/waitq.c	2006-01-18 22:16:04.000000000 +0800
+@@ -33,7 +33,7 @@ void autofs4_catatonic_mode(struct autof
+ 	sbi->catatonic = 1;
+ 	wq = sbi->queues;
+ 	sbi->queues = NULL;	/* Erase all wait queues */
+-	while ( wq ) {
++	while (wq) {
+ 		nwq = wq->next;
+ 		wq->status = -ENOENT; /* Magic is gone - report failure */
+ 		kfree(wq->name);
+@@ -45,7 +45,6 @@ void autofs4_catatonic_mode(struct autof
+ 		fput(sbi->pipe);	/* Close the pipe */
+ 		sbi->pipe = NULL;
+ 	}
+-
+ 	shrink_dcache_sb(sbi->sb);
  }
  
-+static int autofs4_show_options(struct seq_file *m, struct vfsmount *mnt)
-+{
-+	struct autofs_sb_info *sbi = autofs4_sbi(mnt->mnt_sb);
-+
-+	if (!sbi)
-+		return 0;
-+
-+	seq_printf(m, ",fd=%d", sbi->pipefd);
-+	seq_printf(m, ",pgrp=%d", sbi->oz_pgrp);
-+	seq_printf(m, ",timeout=%lu", sbi->exp_timeout/HZ);
-+	seq_printf(m, ",minproto=%d", sbi->min_proto);
-+	seq_printf(m, ",maxproto=%d", sbi->max_proto);
-+
-+	return 0;
-+}
-+
- static struct super_operations autofs4_sops = {
- 	.put_super	= autofs4_put_super,
- 	.statfs		= simple_statfs,
-+	.show_options	= autofs4_show_options,
- };
+@@ -165,7 +164,7 @@ int autofs4_wait(struct autofs_sb_info *
+ 	int len, status;
  
- enum {Opt_err, Opt_fd, Opt_uid, Opt_gid, Opt_pgrp, Opt_minproto, Opt_maxproto};
-@@ -261,7 +279,6 @@ int autofs4_fill_super(struct super_bloc
- 	int pipefd;
- 	struct autofs_sb_info *sbi;
- 	struct autofs_info *ino;
--	int minproto, maxproto;
- 
- 	sbi = (struct autofs_sb_info *) kmalloc(sizeof(*sbi), GFP_KERNEL);
- 	if ( !sbi )
-@@ -273,12 +290,15 @@ int autofs4_fill_super(struct super_bloc
- 	s->s_fs_info = sbi;
- 	sbi->magic = AUTOFS_SBI_MAGIC;
- 	sbi->root = NULL;
-+	sbi->pipefd = -1;
- 	sbi->catatonic = 0;
- 	sbi->exp_timeout = 0;
- 	sbi->oz_pgrp = process_group(current);
- 	sbi->sb = s;
- 	sbi->version = 0;
- 	sbi->sub_version = 0;
-+	sbi->min_proto = 0;
-+	sbi->max_proto = 0;
- 	mutex_init(&sbi->wq_mutex);
- 	spin_lock_init(&sbi->fs_lock);
- 	sbi->queues = NULL;
-@@ -311,22 +331,26 @@ int autofs4_fill_super(struct super_bloc
- 	if (parse_options(data, &pipefd,
- 			  &root_inode->i_uid, &root_inode->i_gid,
- 			  &sbi->oz_pgrp,
--			  &minproto, &maxproto)) {
-+			  &sbi->min_proto, &sbi->max_proto)) {
- 		printk("autofs: called with bogus options\n");
- 		goto fail_dput;
+ 	/* In catatonic mode, we don't wait for nobody */
+-	if ( sbi->catatonic )
++	if (sbi->catatonic)
+ 		return -ENOENT;
+ 	
+ 	name = kmalloc(NAME_MAX + 1, GFP_KERNEL);
+@@ -190,7 +189,7 @@ int autofs4_wait(struct autofs_sb_info *
+ 			break;
  	}
  
- 	/* Couldn't this be tested earlier? */
--	if (maxproto < AUTOFS_MIN_PROTO_VERSION ||
--	    minproto > AUTOFS_MAX_PROTO_VERSION) {
-+	if (sbi->max_proto < AUTOFS_MIN_PROTO_VERSION ||
-+	    sbi->min_proto > AUTOFS_MAX_PROTO_VERSION) {
- 		printk("autofs: kernel does not match daemon version "
- 		       "daemon (%d, %d) kernel (%d, %d)\n",
--			minproto, maxproto,
-+			sbi->min_proto, sbi->max_proto,
- 			AUTOFS_MIN_PROTO_VERSION, AUTOFS_MAX_PROTO_VERSION);
- 		goto fail_dput;
+-	if ( !wq ) {
++	if (!wq) {
+ 		/* Can't wait for an expire if there's no mount */
+ 		if (notify == NFY_NONE && !d_mountpoint(dentry)) {
+ 			kfree(name);
+@@ -200,7 +199,7 @@ int autofs4_wait(struct autofs_sb_info *
+ 
+ 		/* Create a new wait queue */
+ 		wq = kmalloc(sizeof(struct autofs_wait_queue),GFP_KERNEL);
+-		if ( !wq ) {
++		if (!wq) {
+ 			kfree(name);
+ 			mutex_unlock(&sbi->wq_mutex);
+ 			return -ENOMEM;
+@@ -240,14 +239,14 @@ int autofs4_wait(struct autofs_sb_info *
+ 
+ 	/* wq->name is NULL if and only if the lock is already released */
+ 
+-	if ( sbi->catatonic ) {
++	if (sbi->catatonic) {
+ 		/* We might have slept, so check again for catatonic mode */
+ 		wq->status = -ENOENT;
+ 		kfree(wq->name);
+ 		wq->name = NULL;
  	}
  
--	sbi->version = maxproto > AUTOFS_MAX_PROTO_VERSION ? AUTOFS_MAX_PROTO_VERSION : maxproto;
-+	/* Establish highest kernel protocol version */
-+	if (sbi->max_proto > AUTOFS_MAX_PROTO_VERSION)
-+		sbi->version = AUTOFS_MAX_PROTO_VERSION;
-+	else
-+		sbi->version = sbi->max_proto;
- 	sbi->sub_version = AUTOFS_PROTO_SUBVERSION;
+-	if ( wq->name ) {
++	if (wq->name) {
+ 		/* Block all but "shutdown" signals while waiting */
+ 		sigset_t oldset;
+ 		unsigned long irqflags;
+@@ -283,12 +282,12 @@ int autofs4_wait_release(struct autofs_s
+ 	struct autofs_wait_queue *wq, **wql;
  
- 	DPRINTK("pipe fd = %d, pgrp = %u", pipefd, sbi->oz_pgrp);
-@@ -339,6 +363,7 @@ int autofs4_fill_super(struct super_bloc
- 	if ( !pipe->f_op || !pipe->f_op->write )
- 		goto fail_fput;
- 	sbi->pipe = pipe;
-+	sbi->pipefd = pipefd;
+ 	mutex_lock(&sbi->wq_mutex);
+-	for ( wql = &sbi->queues ; (wq = *wql) != 0 ; wql = &wq->next ) {
+-		if ( wq->wait_queue_token == wait_queue_token )
++	for (wql = &sbi->queues ; (wq = *wql) != 0 ; wql = &wq->next) {
++		if (wq->wait_queue_token == wait_queue_token)
+ 			break;
+ 	}
  
- 	/*
- 	 * Take a reference to the root dentry so we get a chance to
---- linux-2.6.16-rc1-mm1/fs/autofs4/autofs_i.h.add-show_options	2006-01-18 22:08:08.000000000 +0800
-+++ linux-2.6.16-rc1-mm1/fs/autofs4/autofs_i.h	2006-01-18 22:08:28.000000000 +0800
-@@ -87,11 +87,14 @@ struct autofs_wait_queue {
- struct autofs_sb_info {
- 	u32 magic;
- 	struct dentry *root;
-+	int pipefd;
- 	struct file *pipe;
- 	pid_t oz_pgrp;
- 	int catatonic;
- 	int version;
- 	int sub_version;
-+	int min_proto;
-+	int max_proto;
- 	unsigned long exp_timeout;
- 	int reghost_enabled;
- 	int needs_reghost;
+-	if ( !wq ) {
++	if (!wq) {
+ 		mutex_unlock(&sbi->wq_mutex);
+ 		return -EINVAL;
+ 	}
