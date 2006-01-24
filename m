@@ -1,10 +1,13 @@
-From: Johan van den Dorpe <johan.vandendorpe@framestore-cfc.com>
-Subject: subdirs trying to be mounted when using ghosting
-Date: Tue, 24 Jan 2006 16:40:59 +0000
-Message-ID: <43D6589B.6030102@framestore-cfc.com>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: subdirs trying to be mounted when using ghosting
+Date: Tue, 24 Jan 2006 12:17:31 -0500
+Message-ID: <17366.24875.680488.918796@segfault.boston.redhat.com>
+References: <43D6589B.6030102@framestore-cfc.com>
+Reply-To: jmoyer@redhat.com
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <43D6589B.6030102@framestore-cfc.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -15,114 +18,64 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: autofs mailing list <autofs@linux.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: Johan van den Dorpe <johan.vandendorpe@framestore-cfc.com>
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
-Hi guys
+==> Regarding [autofs] subdirs trying to be mounted when using ghosting; Johan van den Dorpe <johan.vandendorpe@framestore-cfc.com> adds:
 
-We're having a problem when trying to access a subdir of an automount 
-directory that isn't mounted. Instead of looking up the mount entry for 
-the directory, a subdir is looked up instead. If the exact dir of the 
-entry is accessed, then it mounts fine.
+johan.vandendorpe> Hi guys We're having a problem when trying to access a
+johan.vandendorpe> subdir of an automount directory that isn't
+johan.vandendorpe> mounted. Instead of looking up the mount entry for the
+johan.vandendorpe> directory, a subdir is looked up instead. If the exact
+johan.vandendorpe> dir of the entry is accessed, then it mounts fine.
 
-i.e.
+Fixed by Ian in more recent kernels.  Patch was something like the
+attached, though you'd do better to drop this part, I think:
 
-ls /net/alpha/job/xmen3 -> no such file or directory
-ls /net/alpha -> lists OK
-
-We use a yp map for auto.net, it's not -host based mounting, heres the 
-line from auto.master
-
-/net yp:auto.net --ghost
+-		return (dentry->d_time - jiffies <= AUTOFS_NEGATIVE_TIMEOUT);
++		return (dentry->d_time - jiffies <= 0);
 
 
-Here's the entry from auto.net for /net/alpha which seems to be causing 
-the problem (but I understand we experienced this for other mount 
-points, including nfs servers. alpha is a lustre cluster)
+-Jeff
 
-alpha -fstype=lustre mds1a://mdt1a/alpha
-
-
-We're running autofs 4.1.4-8 from RHEL4 RHN repo rebuilt for Fedora Core 
-3. Also kernel-2.6.12-1.1381 from FC3 updates.
-
-We've got debugging turned on the automounter so here you can see the 
-logs when running the commands listed above
-
-
-Jan 24 15:38:49 rj081 automount[3186]: handle_packet: type = 0
-Jan 24 15:38:49 rj081 automount[3186]: handle_packet_missing: token 269, 
-name alpha/job
-Jan 24 15:38:49 rj081 automount[3186]: attempting to mount entry 
-/net/alpha/job
-Jan 24 15:38:49 rj081 automount[25673]: lookup(yp): looking up alpha/job
-Jan 24 15:38:49 rj081 automount[25673]: ret = 8
-Jan 24 15:38:49 rj081 automount[25673]: failed to mount /net/alpha/job
-Jan 24 15:38:49 rj081 automount[25673]: umount_multi: 
-path=/net/alpha/job incl=1
-Jan 24 15:38:49 rj081 automount[25673]: umount_multi: no mounts found 
-under /net/alpha/job
-Jan 24 15:38:51 rj081 automount[3137]: sig 14 switching from 1 to 2
-Jan 24 15:38:51 rj081 automount[3137]: get_pkt: state 1, next 2
-Jan 24 15:38:51 rj081 automount[3137]: st_expire(): state = 1
-Jan 24 15:38:51 rj081 automount[3137]: expire_proc: exp_proc=25674
-Jan 24 15:38:51 rj081 automount[3292]: sig 14 switching from 1 to 2
-Jan 24 15:38:51 rj081 automount[3292]: get_pkt: state 1, next 2
-Jan 24 15:38:51 rj081 automount[3292]: st_expire(): state = 1
-Jan 24 15:38:51 rj081 automount[3292]: expire_proc: exp_proc=25675
-Jan 24 15:38:51 rj081 automount[3137]: handle_child: got pid 25674, sig 
-0 (0), stat 0
-Jan 24 15:38:51 rj081 automount[3137]: sigchld: exp 25674 finished, 
-switching from 2 to 1
-Jan 24 15:38:51 rj081 automount[3137]: get_pkt: state 2, next 1
-Jan 24 15:38:51 rj081 automount[3137]: st_ready(): state = 2
-Jan 24 15:38:51 rj081 automount[3292]: handle_child: got pid 25675, sig 
-0 (0), stat 0
-Jan 24 15:38:51 rj081 automount[3292]: sigchld: exp 25675 finished, 
-switching from 2 to 1
-Jan 24 15:38:51 rj081 automount[3292]: get_pkt: state 2, next 1
-Jan 24 15:38:51 rj081 automount[3292]: st_ready(): state = 2
-Jan 24 15:38:51 rj081 automount[3186]: handle_child: got pid 25673, sig 
-0 (0), stat 1
-Jan 24 15:38:51 rj081 automount[3186]: sig_child: found pending iop pid 
-25673: signalled 0 (sig 0), exit status 1
-Jan 24 15:38:51 rj081 automount[3186]: send_fail: token=269
-Jan 24 15:38:51 rj081 automount[3186]: handle_packet: type = 0
-Jan 24 15:38:51 rj081 automount[3186]: handle_packet_missing: token 270, 
-name alpha
-Jan 24 15:38:51 rj081 automount[3186]: attempting to mount entry /net/alpha
-Jan 24 15:38:51 rj081 automount[25677]: lookup(yp): looking up alpha
-Jan 24 15:38:51 rj081 automount[25677]: ret = 1
-Jan 24 15:38:51 rj081 automount[25677]: lookup(yp): alpha -> 
--fstype=lustre mds1a://mdt1a/alpha
-Jan 24 15:38:51 rj081 automount[25677]: parse(sun): expanded entry: 
--fstype=lustre mds1a://mdt1a/alpha
-Jan 24 15:38:51 rj081 automount[25677]: parse(sun): 
-dequote("fstype=lustre") -> fstype=lustre
-Jan 24 15:38:51 rj081 automount[25677]: parse(sun): gathered options: 
-fstype=lustre
-Jan 24 15:38:51 rj081 automount[25677]: parse(sun): 
-dequote("mds1a://mdt1a/alpha") -> mds1a://mdt1a/alpha
-Jan 24 15:38:51 rj081 automount[25677]: parse(sun): core of entry: 
-options=fstype=lustre, loc=mds1a://mdt1a/alpha
-Jan 24 15:38:51 rj081 automount[25677]: parse(sun): mounting root /net, 
-mountpoint alpha, what mds1a://mdt1a/alpha, fstype lustre, options
-Jan 24 15:38:51 rj081 automount[25677]: do_mount mds1a://mdt1a/alpha 
-/net/alpha type lustre options  using module generic
-Jan 24 15:38:51 rj081 automount[25677]: mount(generic): calling 
-mkdir_path /net/alpha
-Jan 24 15:38:51 rj081 automount[25677]: mount(generic): calling mount -t 
-lustre mds1a://mdt1a/alpha /net/alpha
-Jan 24 15:38:52 rj081 automount[25677]: mount(generic): mounted 
-mds1a://mdt1a/alpha type lustre on /net/alpha
-Jan 24 15:39:31 rj081 automount[3186]: handle_child: got pid 25677, sig 
-0 (0), stat 0
-Jan 24 15:39:31 rj081 automount[3186]: sig_child: found pending iop pid 
-25677: signalled 0 (sig 0), exit status 0
-
-
-
--- 
-Johan van den Dorpe
-Systems Administrator, Framestore CFC
-020 7106 2441
+diff -Nurp linux-2.6.12.orig/fs/autofs4/expire.c linux-2.6.12/fs/autofs4/expire.c
+--- linux-2.6.12.orig/fs/autofs4/expire.c	2005-06-18 03:48:29.000000000 +0800
++++ linux-2.6.12/fs/autofs4/expire.c	2005-10-09 15:11:37.000000000 +0800
+@@ -177,7 +177,7 @@ resume:
+ 		DPRINTK("dentry %p %.*s",
+ 			dentry, (int)dentry->d_name.len, dentry->d_name.name);
+ 
+-		if (!list_empty(&dentry->d_subdirs)) {
++		if (!simple_empty_nolock(dentry)) {
+ 			this_parent = dentry;
+ 			goto repeat;
+ 		}
+@@ -269,7 +269,7 @@ static struct dentry *autofs4_expire(str
+ 			goto next;
+ 		}
+ 
+-		if ( simple_empty(dentry) )
++		if (simple_empty(dentry))
+ 			goto next;
+ 
+ 		/* Case 2: tree mount, expire iff entire tree is not busy */
+diff -Nurp linux-2.6.12.orig/fs/autofs4/root.c linux-2.6.12/fs/autofs4/root.c
+--- linux-2.6.12.orig/fs/autofs4/root.c	2005-06-18 03:48:29.000000000 +0800
++++ linux-2.6.12/fs/autofs4/root.c	2005-10-09 15:52:04.000000000 +0800
+@@ -386,13 +386,13 @@ static int autofs4_revalidate(struct den
+ 
+ 	/* Negative dentry.. invalidate if "old" */
+ 	if (dentry->d_inode == NULL)
+-		return (dentry->d_time - jiffies <= AUTOFS_NEGATIVE_TIMEOUT);
++		return (dentry->d_time - jiffies <= 0);
+ 
+ 	/* Check for a non-mountpoint directory with no contents */
+ 	spin_lock(&dcache_lock);
+ 	if (S_ISDIR(dentry->d_inode->i_mode) &&
+ 	    !d_mountpoint(dentry) && 
+-	    list_empty(&dentry->d_subdirs)) {
++	    simple_empty_nolock(dentry)) {
+ 		DPRINTK("dentry=%p %.*s, emptydir",
+ 			 dentry, dentry->d_name.len, dentry->d_name.name);
+ 		spin_unlock(&dcache_lock);
