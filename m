@@ -1,8 +1,9 @@
-From: Jacob Bower <jab00@doc.ic.ac.uk>
-Subject: Why does autofs require root permissions?
-Date: Mon, 30 Jan 2006 01:34:34 +0000 (GMT)
-Message-ID: <Pine.LNX.4.63L.0601300132280.9601@medusa-s4.doc.ic.ac.uk>
+From: Guillaume Rousse <Guillaume.Rousse@inria.fr>
+Subject: getting rid of spurious log warnings
+Date: Fri, 03 Feb 2006 17:30:25 +0100
+Message-ID: <43E38521.7070002@inria.fr>
 Mime-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -14,30 +15,51 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
 To: autofs@linux.kernel.org
 
-Hi,
+I get lot of similar warnings in my logs, every time I try to access an
+automount-managed filesystem:
+Feb  3 16:21:54 pomerol automount[8854]: lookup(ldap): got answer, but
+no first entry for (&(objectclass=3DnisObject)(cn=3Dinfosystems))
+Feb  3 16:21:54 pomerol automount[8854]: lookup(ldap): got answer, but
+no first entry for (&(objectclass=3Dautomount)(cn=3Dinfosystems))
+Feb  3 16:21:54 pomerol automount[8854]: lookup(ldap): got answer, but
+no first entry for (&(objectclass=3DnisObject)(cn=3D/))
 
-I'm trying to figure out why administrative privileges are required for 
-both the automount program and to access the kernel autofs interface. 
-Perhaps I've missed something but I can't see the security hole caused 
-by allowing non-root users (with suitable directory permissions) to 
-set-up their own automount points?
+According to detailed informations found at
+http://www.ldapguru.com/modules/newbb/viewtopic.php?topic_id=3D2029&forum=
+=3D6&viewmode=3Dflat&order=3DASC&start=3D0
+it seems to be caused by a two pass querying mechanism from autofs,
+first one using Sun legacy schema, second one using autofs specific
+schema. The first two queries seems to be attempts to retrieve an
+explicit mapping for the first path element in the client map, the third
+one a fallback to a generic root mapping.
 
-If it is not a security risk, then it would be useful if this 
-restriction could be removed to allow fun hacks with things like FUSE. 
-For example, I would like to set things up so if I move into 
-/home/myhome/sshfs/foo@bar/, I automatically get connected via sshfs to 
-'foo' as user 'bar'. However this can only be done effectively if the 
-automount process managing /home/me/sshfs is started by my user account. 
-Otherwise there is no easy route to getting access to my ssh agent, 
-allowing one-password-only logins (and even my X11 session so I can have 
-a GUI to ask for the passwords etc...).
+Is there any way to configure autofs to directly use the correct schema
+? I found some references to using nss_map_objectclass directives in nss
+_ldap configuration, but it doesn't seem to work (and I'm not really
+sure autofs rely on nss configuration). Otherwise, I could also just
+change my ldap content, but I find using 'automount' instead of 'nis'
+simpler.
 
--- 
-Jacob Bower <jab00@doc.ic.ac.uk>
-Custom Computing Group  - http://cc.doc.ic.ac.uk/
-Department of Computing - http://www.doc.ic.ac.uk/
-Imperial College London - http://www.ic.ac.uk/
+I'm using linux-only setup, with an openldap 2.2 server. Here is an
+exemple of a client map.
+
+dn: ou=3Dauto.net.graves,ou=3Dautofs,dc=3Dvillage,dc=3Dinria,dc=3Dfr
+objectClass: top
+objectClass: automountMap
+ou: auto.net.graves
+
+dn: cn=3D/,ou=3Dauto.net.graves,ou=3Dautofs,dc=3Dvillage,dc=3Dinria,dc=3D=
+fr
+objectClass: top
+objectClass: automount
+cn: /
+automountInformation: -fstype=3Dnfs,hard,intr graves:/home/graves/ftp/&
+
+--=20
+The bullet that is forgotten while installing an antenna systems will
+always be at the base of the antenna, and discovered at 5pm on a Friday
+after the tower crew has left
+		-- Murphy's Laws of Broadcast Engineering n=B07
