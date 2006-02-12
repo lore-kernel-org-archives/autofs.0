@@ -1,43 +1,39 @@
-From: Jacob Bower <jab00@doc.ic.ac.uk>
-Subject: Why do autofs operations require root permissions?
-Date: Sun, 29 Jan 2006 23:54:11 +0000 (GMT)
-Message-ID: <Pine.LNX.4.63L.0601292334110.9601@medusa-s4.doc.ic.ac.uk>
-Mime-Version: 1.0
-Return-path: <autofs-bounces@linux.kernel.org>
+From: Ian Kent <raven@themaw.net>
+Subject: [RFC:PATCH 0/4] autofs4 - add direct mount functionality to autofs
+Date: Sun, 12 Feb 2006 21:40:06 +0800
+Message-ID: <200602121340.k1CDe67s019267@eagle.themaw.net>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://hera.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: autofs@linux.kernel.org
+To: Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: linux-fsdevel@vger.kernel.org, autofs@linux.kernel.org
 
-Hi,
+These patches are for autofs version 5.
 
-I'm trying to figure out why administrative privileges are required for 
-both the automount program and to access the kernel autofs interface. 
-Perhaps I've missed something but I can't see the security hole caused 
-by allowing non-root users (with suitable directory permissions) to 
-set-up their own automount points?
+This is the second set of patches for autofs to support the user
+space daemon (automount from the autofs package) implementation of
+direct mounts and lazy mount and expire of nested mount maps, such
+as those found in mounting the NFS exports from a host, known as
+a "hosts" map.
 
-If it is not a security risk, then it would be useful if this 
-restriction could be removed to allow fun hacks with things like FUSE. 
-For example, I would like to set things up so if I move into 
-/home/myhome/sshfs/foo@bar/, I automatically get connected via sshfs to 
-'foo' as user 'bar'. However this can only be done effectively if the 
-automount process managing /home/me/sshfs is started by my user account. 
-Otherwise there is no easy route to getting access to my ssh agent, 
-allowing one-password-only logins (and even my X11 session so I can have 
-a GUI to ask for the passwords etc...).
+I'd like to thank my collegue, Jeff Moyer at RedHat for his efforts
+reviewing all the autofs patches, both this set and previous patches.
+His efforts have made a big difference to the quality and accuracy
+of autofs in general for a long time now.
 
--- 
-Jacob Bower <jab00@doc.ic.ac.uk>
-Custom Computing Group  - http://cc.doc.ic.ac.uk/
-Department of Computing - http://www.doc.ic.ac.uk/
-Imperial College London - http://www.ic.ac.uk/
+The changes implemented in the patch set are:
+
+1) update-nameidata-on-follow_link - autofs needs the nameidata
+   struct to be up to date wrt the dentry passed to the inode
+   follow_link operation.
+2) v5-follow_link - defines the version 5 inode follow_link
+   operation used to trigger direct mounts.
+3) v5-expire - update expire to handle version 5 direct mounts.
+4) v5-packet-proto - update communication packet to support
+   version 5 extended packet information.
+
+Comments and suggstions please.
+
