@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [RFC:PATCH 1/4] autofs4 - nameidata needs to be up to date for follow_link
-Date: Fri, 17 Feb 2006 15:00:55 +0800
-Message-ID: <200602170700.k1H70tIC004008@eagle.themaw.net>
+Subject: [RFC:PATCH 0/4] autofs4 - add direct mount functionality to autofs
+Date: Fri, 17 Feb 2006 15:00:47 +0800
+Message-ID: <200602170700.k1H70lnw004000@eagle.themaw.net>
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
 Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
@@ -11,86 +11,29 @@ Content-Transfer-Encoding: 7bit
 To: Kernel Mailing List <linux-kernel@vger.kernel.org>
 Cc: linux-fsdevel@vger.kernel.org, autofs@linux.kernel.org
 
-In order to be able to trigger a mount using the follow_link
-inode method the nameidata struct that is passed in needs to have
-the vfsmount of the autofs trigger not its parent.
+These patches are for autofs version 5.
 
-During a path walk if an autofs trigger is mounted on a dentry,
-when the follow_link method is called, the nameidata struct contains
-the vfsmount and mountpoint dentry of the parent mount while the
-dentry that is passed in is the root of the autofs trigger mount.
-I believe it is impossible to get the vfsmount of the trigger 
-mount, within the follow_link method, when only the parent vfsmount
-and the root dentry of the trigger mount are known.
+This is the second set of patches for autofs to support the user
+space daemon (automount from the autofs package) implementation of
+direct mounts and lazy mount and expire of nested mount maps, such
+as those found in mounting the NFS exports from a host, known as
+a "hosts" map.
 
-This patch updates the nameidata struct on entry to __do_follow_link
-if it detects that it is out of date. It moves the path_to_nameidata
-to above __do_follow_link to facilitate calling it from there.
-The dput_path is moved as well as that seemed sensible. No changes
-are made to these two functions.
+I'd like to thank my collegue, Jeff Moyer at RedHat for his efforts
+reviewing all the autofs patches, both this set and previous patches.
+His efforts have made a big difference to the quality and accuracy
+of autofs in general for a long time now.
 
-Signed-off-by: Ian Kent <raven@themaw.net>
+The changes implemented in the patch set are:
 
+1) update-nameidata-on-follow_link - autofs needs the nameidata
+   struct to be up to date wrt the dentry passed to the inode
+   follow_link operation.
+2) v5-follow_link - defines the version 5 inode follow_link
+   operation used to trigger direct mounts.
+3) v5-expire - update expire to handle version 5 direct mounts.
+4) v5-packet-proto - update communication packet to support
+   version 5 extended packet information.
 
---- linux-2.6.16-rc2-mm1/fs/namei.c.update-nameidata-on-follow_link	2006-02-09 13:41:32.000000000 +0800
-+++ linux-2.6.16-rc2-mm1/fs/namei.c	2006-02-09 13:51:19.000000000 +0800
-@@ -546,6 +546,22 @@ struct path {
- 	struct dentry *dentry;
- };
- 
-+static inline void dput_path(struct path *path, struct nameidata *nd)
-+{
-+	dput(path->dentry);
-+	if (path->mnt != nd->mnt)
-+		mntput(path->mnt);
-+}
-+
-+static inline void path_to_nameidata(struct path *path, struct nameidata *nd)
-+{
-+	dput(nd->dentry);
-+	if (nd->mnt != path->mnt)
-+		mntput(nd->mnt);
-+	nd->mnt = path->mnt;
-+	nd->dentry = path->dentry;
-+}
-+
- static __always_inline int __do_follow_link(struct path *path, struct nameidata *nd)
- {
- 	int error;
-@@ -555,8 +571,11 @@ static __always_inline int __do_follow_l
- 	touch_atime(path->mnt, dentry);
- 	nd_set_link(nd, NULL);
- 
--	if (path->mnt == nd->mnt)
--		mntget(path->mnt);
-+	if (path->mnt != nd->mnt) {
-+		path_to_nameidata(path, nd);
-+		dget(dentry);
-+	}
-+	mntget(path->mnt);
- 	cookie = dentry->d_inode->i_op->follow_link(dentry, nd);
- 	error = PTR_ERR(cookie);
- 	if (!IS_ERR(cookie)) {
-@@ -573,22 +592,6 @@ static __always_inline int __do_follow_l
- 	return error;
- }
- 
--static inline void dput_path(struct path *path, struct nameidata *nd)
--{
--	dput(path->dentry);
--	if (path->mnt != nd->mnt)
--		mntput(path->mnt);
--}
--
--static inline void path_to_nameidata(struct path *path, struct nameidata *nd)
--{
--	dput(nd->dentry);
--	if (nd->mnt != path->mnt)
--		mntput(nd->mnt);
--	nd->mnt = path->mnt;
--	nd->dentry = path->dentry;
--}
--
- /*
-  * This limits recursive symlink follows to 8, while
-  * limiting consecutive symlinks to 40.
+Ian
+
