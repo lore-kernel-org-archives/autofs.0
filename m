@@ -1,63 +1,53 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [RFC:PATCH 4/4] autofs4 - add new packet type for v5 communications
-Date: Fri, 17 Feb 2006 19:03:09 +0800 (WST)
-Message-ID: <Pine.LNX.4.64.0602171902010.4114@eagle.themaw.net>
-References: <200602170701.k1H71Irp004035@eagle.themaw.net>
- <20060217005134.6842f0ca.akpm@osdl.org> <Pine.LNX.4.64.0602171703590.4109@eagle.themaw.net>
- <20060217011712.66ba594c.akpm@osdl.org>
+Subject: [PATCH] autofs4 - fix comms packet struct size
+Date: Sun, 19 Feb 2006 22:11:31 +0800 (WST)
+Message-ID: <Pine.LNX.4.64.0602192206440.24506@eagle.themaw.net>
 Mime-Version: 1.0
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <20060217011712.66ba594c.akpm@osdl.org>
 Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Andrew Morton <akpm@osdl.org>
-Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, autofs@linux.kernel.org
+Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>
 
-On Fri, 17 Feb 2006, Andrew Morton wrote:
 
-> Ian Kent <raven@themaw.net> wrote:
-> >
-> > On Fri, 17 Feb 2006, Andrew Morton wrote:
-> > 
-> > > Ian Kent <raven@themaw.net> wrote:
-> > > >
-> > > > +/* autofs v5 common packet struct */
-> > > >  +struct autofs_v5_packet {
-> > > >  +	struct autofs_packet_hdr hdr;
-> > > >  +	autofs_wqt_t wait_queue_token;
-> > > >  +	__u32 dev;
-> > > >  +	__u64 ino;
-> > > >  +	uid_t uid;
-> > > >  +	gid_t gid;
-> > > >  +	pid_t pid;
-> > > >  +	pid_t tgid;
-> > > >  +	int len;
-> > > >  +	char name[NAME_MAX+1];
-> > > >  +};
-> > > 
-> > > Is this known to work with 32-bit userspace on 64-bit kernels?
-> > > 
-> > > In particular, perhaps the ?id_t's should become a type of known size and
-> > > alignment (u32 or u64)?
-> > > 
-> > 
-> > Yes. I take your point.
-> > 
-> > I used this for some time on my Ultra 2, which has this type of arch, 
-> > without problem. I increased the ino field from 32 to 64 bits since that 
-> > time and haven't since tested it.
-> > 
-> > I'm happy to change them to 64 bit if you believe it will avoid potential 
-> > problems?
-> > 
-> 
-> This stuff always makes my head spin, but certainly using u64 throughout
-> would be the safest approach.
-> 
+Set userspace communication struct fields to fixed size.
 
-OK. I'll change it, test it tomorrow and post the resulting patch.
+Signed-off-by: Ian Kent <raven@themaw.net>
 
-Ian
+--- linux-2.6.16-rc3-mm1/include/linux/auto_fs4.h.fix-v5-packet-size	2006-02-17 19:15:49.000000000 +0800
++++ linux-2.6.16-rc3-mm1/include/linux/auto_fs4.h	2006-02-17 19:12:09.000000000 +0800
+@@ -65,10 +65,10 @@ struct autofs_v5_packet {
+ 	autofs_wqt_t wait_queue_token;
+ 	__u32 dev;
+ 	__u64 ino;
+-	uid_t uid;
+-	gid_t gid;
+-	pid_t pid;
+-	pid_t tgid;
++	__u64 uid;
++	__u64 gid;
++	__u64 pid;
++	__u64 tgid;
+ 	int len;
+ 	char name[NAME_MAX+1];
+ };
+--- linux-2.6.16-rc3-mm1/fs/autofs4/autofs_i.h.fix-v5-packet-size	2006-02-17 19:17:03.000000000 +0800
++++ linux-2.6.16-rc3-mm1/fs/autofs4/autofs_i.h	2006-02-17 19:17:25.000000000 +0800
+@@ -79,10 +79,10 @@ struct autofs_wait_queue {
+ 	char *name;
+ 	u32 dev;
+ 	u64 ino;
+-	uid_t uid;
+-	gid_t gid;
+-	pid_t pid;
+-	pid_t tgid;
++	u64 uid;
++	u64 gid;
++	u64 pid;
++	u64 tgid;
+ 	/* This is for status reporting upon return */
+ 	int status;
+ 	atomic_t notified;
 
