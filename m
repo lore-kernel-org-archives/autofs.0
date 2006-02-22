@@ -1,35 +1,42 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCH] autofs4 - fix comms packet struct size
-Date: Mon, 20 Feb 2006 16:00:54 +0000
-Message-ID: <20060220160054.GA31797@infradead.org>
-References: <Pine.LNX.4.64.0602192206440.24506@eagle.themaw.net> <20060219141517.GA7942@infradead.org> <Pine.LNX.4.64.0602200856300.2355@eagle.themaw.net>
+From: Ian Kent <raven@themaw.net>
+Subject: [PATCH] autofs4 - second try - set fields size for pipe packet
+Date: Wed, 22 Feb 2006 16:43:26 +0800 (WST)
+Message-ID: <Pine.LNX.4.64.0602221633520.19127@eagle.themaw.net>
 Mime-Version: 1.0
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0602200856300.2355@eagle.themaw.net>
 Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ian Kent <raven@themaw.net>
-Cc: Andrew Morton <akpm@osdl.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>
+To: Andrew Morton <akpm@osdl.org>
+Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@infradead.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>
 
-On Mon, Feb 20, 2006 at 09:05:59AM +0800, Ian Kent wrote:
-> > >  	autofs_wqt_t wait_queue_token;
-> > 
-> > Hiding types in user visible structures behind typedefs is bad.
-> > What type is behind this?  If this is not an __u32 you have
-> > a padding issue.
-> 
-> This has been an occassion problem for a long time.
-> Since it dates back to way before version 4 I have always been reluctant 
-> to change it. I'd rather leave it as is unless you really can't accept it.
 
-So is this an __u32? ;-)
+I have made almost all the changes recommended by Christoph.
 
-> OK. But will they be 32 bit for the life of this struct?
+I'm reluctant to change the type of autofs_wqt_t as it is part of the 
+existing autofs4 struture. While such a change shouldn't cause a problem 
+I'd rather not change what's been there for a long time just in case there 
+are unexpected side effects.
 
-If we'd ever bump pid_t or uid_t to 64bits tons of kernel interface
-would need to change.  And no one guarantees it'd be come an u64
-then.  So __u32 is the safest choice.
+Signed-off-by: Ian Kent <raven@themaw.net>
 
+--- linux-2.6.16-rc4-mm1/include/linux/auto_fs4.h.set-fields-size-for-packet	2006-02-22 16:07:57.000000000 +0800
++++ linux-2.6.16-rc4-mm1/include/linux/auto_fs4.h	2006-02-22 16:08:29.000000000 +0800
+@@ -65,11 +65,11 @@ struct autofs_v5_packet {
+ 	autofs_wqt_t wait_queue_token;
+ 	__u32 dev;
+ 	__u64 ino;
+-	uid_t uid;
+-	gid_t gid;
+-	pid_t pid;
+-	pid_t tgid;
+-	int len;
++	__u32 uid;
++	__u32 gid;
++	__u32 pid;
++	__u32 tgid;
++	__u32 len;
+ 	char name[NAME_MAX+1];
+ };
+ 
