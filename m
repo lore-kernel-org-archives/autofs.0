@@ -1,34 +1,44 @@
-From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
-Subject: Problems with automounts dying
-Date: Sun, 26 Mar 2006 16:05:44 +0200
-Message-ID: <20060326140544.GA5749@uio.no>
+From: Adrian Bunk <bunk@stusta.de>
+Subject: [2.6 patch] proper prototype for autofs4_dentry_release()
+Date: Sun, 26 Mar 2006 23:06:34 +0200
+Message-ID: <20060326210634.GS4053@stusta.de>
 Mime-Version: 1.0
-Return-path: <autofs-bounces@linux.kernel.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751078AbWCZVGg@vger.kernel.org>
 Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://hera.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: autofs@linux.kernel.org
+To: raven@themaw.net
+Cc: autofs@linux.kernel.org, linux-kernel@vger.kernel.org
 
-Hi,
+This patch adds a proper prototype for autofs4_dentry_release() to 
+autofs_i.h.
 
-Lately I've been receiving multiple bug reports about autofs starting to
-forget mountpoints, for instance:
+Signed-off-by: Adrian Bunk <bunk@stusta.de>
 
-  http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=349073
+---
 
-Does anybody else experience this? I can't reproduce it myself, but it sounds
-very much real :-) Any ideas?
+ fs/autofs4/autofs_i.h |    3 +++
+ fs/autofs4/inode.c    |    1 -
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-/* Steinar */
--- 
-Homepage: http://www.sesse.net/
+--- linux-2.6.16-mm1-full/fs/autofs4/autofs_i.h.old	2006-03-26 19:55:17.000000000 +0200
++++ linux-2.6.16-mm1-full/fs/autofs4/autofs_i.h	2006-03-26 19:56:53.000000000 +0200
+@@ -230,3 +230,6 @@
+ out:
+ 	return ret;
+ }
++
++void autofs4_dentry_release(struct dentry *);
++
+--- linux-2.6.16-mm1-full/fs/autofs4/inode.c.old	2006-03-26 19:57:06.000000000 +0200
++++ linux-2.6.16-mm1-full/fs/autofs4/inode.c	2006-03-26 19:57:16.000000000 +0200
+@@ -292,7 +292,6 @@
+ 	return ino;
+ }
+ 
+-void autofs4_dentry_release(struct dentry *);
+ static struct dentry_operations autofs4_sb_dentry_operations = {
+ 	.d_release      = autofs4_dentry_release,
+ };
