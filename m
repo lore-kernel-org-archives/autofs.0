@@ -1,14 +1,10 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [PATCH] starttls for autofs-ldap-auto-master.c (actually
-	attaching it this time.)
-Date: Mon, 27 Mar 2006 12:34:36 -0500
-Message-ID: <17448.8748.465963.850118@segfault.boston.redhat.com>
-References: <20060323175511.GE12245@nmt.edu>
-Reply-To: jmoyer@redhat.com
+From: Mi <mi.lists@alma.ch>
+Subject: Autofs wrongly tries to use NFS for a program map
+Date: Wed, 29 Mar 2006 20:13:16 +0200
+Message-ID: <442ACE3C.5020600@alma.ch>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20060323175511.GE12245@nmt.edu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,18 +15,66 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: "Anthony M. Martinez" <twopir@nmt.edu>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: autofs@linux.kernel.org
 
-==> Regarding [autofs] [PATCH] starttls for autofs-ldap-auto-master.c (actually attaching it this time.); "Anthony M. Martinez" <twopir@nmt.edu> adds:
+Hello,
 
-twopir> Since our LDAP server is configured to require confidentiality, I made
-twopir> the program default to using it.
+I'm trying to use a program map for external Firewire drives, but autofs 
+seems to think it's supposed to be a NFS map, and fails.
 
-That's great for your environment, but breaks most everyone else.  How
-about making this configurable and not changing the default?  For Debian,
-I'm guessing the configuration would be stored in /etc/default/autofs.  For
-Red Hat systems, it would use /etc/sysconfig/autofs.
+I simplified things to a minimum to show the problem.
+/etc/auto.test1 is a normal map which works.
+/etc/auto.test2 is a program map which outputs the exact same content as 
+is in auto.test1, yet it fails:
 
--Jeff
+    # grep test /etc/auto.master
+    /test1           /etc/auto.test1 --timeout=60
+    /test2           /etc/auto.test2 --timeout=60
+
+    # cat /etc/auto.test1
+    sdb7         -fstype=ext3                        :/dev/sdb7
+
+    # cat /etc/auto.test2
+    #!/bin/bash
+    echo "sdb7         -fstype=ext3                        :/dev/sdb7"
+
+
+The test2 program fails:
+
+    # ls /test2/sdb7
+    ls: /test2/sdb7: No such file or directory
+
+While test1 works as expected:
+
+    # ls /test1/sdb7
+    lost+found
+
+The error in /var/log/daemon.log shows the mount is wrongly attempted as 
+an nfs mount:
+
+    Mar 29 18:37:36 gc automount[22081]: mount(nfs): host sdb7: lookup 
+failure
+    Mar 29 18:37:36 gc automount[22081]: >> mount: directory to mount 
+not in host:dir format
+    Mar 29 18:37:36 gc automount[22081]: mount(nfs): nfs: mount failure 
+sdb7 on /test2/sdb7
+    Mar 29 18:37:36 gc automount[22081]: failed to mount /test2/sdb7
+
+
+# automount -V
+Linux automount version 4.1.4_beta2
+
+# uname -a
+Linux gc 2.6.8-2-686 #1 Tue Aug 16 13:22:48 UTC 2005 i686 GNU/Linux
+
+
+
+Thanks fo any help.
+
+MI
+
+PS: In case you are curious why I want a program map for an external 
+drive, it is to be able to wake a sleeping drive. See 
+http://sourceforge.net/mailarchive/forum.php?thread_id=10069902&forum_id=5389 
+for details.
