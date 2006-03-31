@@ -1,15 +1,10 @@
-From: "Anthony M. Martinez" <twopir@nmt.edu>
-Subject: Re: [PATCH] starttls for autofs-ldap-auto-master.c (actually
-	attaching it this time.)
-Date: Thu, 30 Mar 2006 10:00:55 -0700
-Message-ID: <20060330170054.GF12245@nmt.edu>
-References: <20060323175511.GE12245@nmt.edu>
-	<17448.8748.465963.850118@segfault.boston.redhat.com>
+From: david.laroche@idestyle-tech.com
+Subject: Multimount problem
+Date: Fri, 31 Mar 2006 16:08:22 +0200
+Message-ID: <OFB37AEEAA.12E9D7AF-ONC125713F.00321520-C1257142.004D368D@idestyle-tech.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="R3G7APHDIzY6R/pk"
+Content-Type: multipart/mixed; boundary="===============1488109043549798879=="
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <17448.8748.465963.850118@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,103 +15,169 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
+
+Message en plusieurs parties au format MIME
+--===============1488109043549798879==
+Content-Type: multipart/alternative;
+	boundary="=_alternative 004D368AC1257142_="
+
+Message en plusieurs parties au format MIME
+--=_alternative 004D368AC1257142_=
+Content-Type: text/plain; charset="US-ASCII"
+
+Hello,
 
 
---R3G7APHDIzY6R/pk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I have a problem  with autofs multimount on Linux.
+On our SGI,SUN,IBM these lines works.
 
-On Mon, Mar 27, 2006 at 12:34:36PM -0500, Jeff Moyer wrote:
-> ==> Regarding [autofs] [PATCH] starttls for autofs-ldap-auto-master.c (actually attaching it this time.); "Anthony M. Martinez" <twopir@nmt.edu> adds:
-> 
-> twopir> Since our LDAP server is configured to require confidentiality, I made
-> twopir> the program default to using it.
-> 
-> That's great for your environment, but breaks most everyone else.  How
-> about making this configurable and not changing the default?  For Debian,
-> I'm guessing the configuration would be stored in /etc/default/autofs.  For
-> Red Hat systems, it would use /etc/sysconfig/autofs.
+auto.master
+/users  /etc/auto.users
 
-Okay. I modified the patch such that passing the -s option to
-autofs-ldap-auto-master will cause it to require confidentiality,
-otherwise it behaves normally.
+auto.users
+*       -rw,intr,hard   caosrv01:/caosrv01/users/& 
+caosrv02:/caosrv02/users/&      caosrv03:/caosrv03/users/&
 
-I'll look at the distro-specific stuff later.
+On linux, the log reports no errors when I run autofs and the mount works 
+correctly (ex : mount caosrv02:/caosrv02/users/toto /r is OK )
+but when I want to use autofs ( ex :  cd /users/toto ) I have an error if 
+toto is on caosrv02 or caosrv03
 
-Pi
+In /var/log/messages
 
-> 
-> -Jeff
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
+Mar 28 10:16:25 nim_client automount[18049]: >> mount: 
+caosrv01:/caosrv01/users/toto failed, reason given by server: Permission 
+denied
+Mar 28 10:16:25 nim_client automount[18049]: mount(nfs): nfs: mount 
+failure caosrv01:/caosrv01/users/toto on /users/toto
+Mar 28 10:16:25 nim_client automount[18049]: failed to mount /users/toto
+Mar 28 10:16:25 nim_client automount[18049]: umount_multi: no mounts found 
+under /users/toto
+Mar 28 10:16:25 nim_client automount[18036]: attempting to mount entry 
+/users/toto
+Mar 28 10:16:25 nim_client automount[18051]: >> mount: 
+caosrv01:/caosrv01/users/toto failed, reason given by server: Permission 
+denied
+Mar 28 10:16:25 nim_client automount[18051]: mount(nfs): nfs: mount 
+failure caosrv01:/caosrv01/users/toto on /users/toto
+Mar 28 10:16:25 nim_client automount[18051]: failed to mount /users/toto
+Mar 28 10:16:25 nim_client automount[18051]: umount_multi: no mounts found 
+under /users/toto
+Mar 28 10:16:58 nim_client automount[18036]: attempting to mount entry 
+/users/toto
 
--- 
-I have always wished that my computer would be as easy to use as my telephone.
-My wish has come true. I no longer know how to use my telephone.
--- Bjarne Stroustrup 
+If I try this many times (5, 10, 20 tries ), the filesystem comes up.
 
---R3G7APHDIzY6R/pk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="starttls_4.1.4.patch"
+I'm using FC4 with autofs 4.1.4.5. 
+I tried on several linux and autofs versions and I always had the same 
+thing.
 
---- autofs-4.1.4_beta2/samples/autofs-ldap-auto-master.c	2006-03-23 10:21:54.764752622 -0700
-+++ autofs-4.1.4_beta2-starttls/samples/autofs-ldap-auto-master.c	2006-03-23 10:28:06.371758942 -0700
-@@ -160,6 +160,7 @@
- 	LDAP *ld = NULL;
- 	int result;
- 	int c;
-+	int starttls = 0; /* By default, do not start TLS */
- 	const char *map_key = MAPKEY, *entry_key = ENTRYKEY, *value = VALUE;
- 	const char *map_oc = MAPOC, *entry_oc = ENTRYOC;
- 	const char *map = MAP;
-@@ -167,7 +168,7 @@
- 	setlocale(LC_ALL, "");
- 
- 	/* Scan through the argument list. */
--	while((c = getopt(argc, argv, "m:e:n:k:v:")) != -1) {
-+	while((c = getopt(argc, argv, "m:e:n:k:v:s")) != -1) {
- 		switch(c) {
- 			case 'm':
- 				/* This is the object class we expect maps to
-@@ -198,6 +199,10 @@
- 				 * VALUE attribute. */
- 				value = optarg;
- 				break;
-+			case 's':
-+				/* Enable starttls on the LDAP link */
-+				starttls = 1;
-+				break;
- 			default:
- 				fprintf(stderr, "syntax: %s\n"
- 					"\t[-m %s] (map object class)\n"
-@@ -205,6 +210,7 @@
- 					"\t[-n %s] (attribute used as map key)\n"
- 					"\t[-k %s] (attribute used as entry key)\n"
- 					"\t[-v %s] (attribute used as value)\n"
-+					"\t[-s] (enable starttls)\n"
- 					"\t[%s] (map name)\n",
- 					strchr(argv[0], '/') ?
- 					strrchr(argv[0], '/') + 1 : argv[0],
-@@ -235,6 +241,12 @@
- 		ld = ldap_init(NULL, LDAP_PORT);
- 	}
- 
-+	if(starttls && (ldap_start_tls_s(ld, NULL, NULL) != LDAP_SUCCESS)) {
-+		/* Ooops. We failed to start TLS. Bomb out. */
-+		ldap_perror(ld, "Couldn't start TLS");
-+		return 3;
-+	}
-+
- 	/* Connect to the server anonymously. */
- 	result = ldap_simple_bind_s(ld, NULL, NULL);
- 	if(result != LDAP_SUCCESS) {
+I try to change my auto.users map syntax like this
+auto.users
+*       -rw,intr,hard   \
+        caosrv01:/caosrv01/users/&      \
+        caosrv02:/caosrv02/users/&      \
+        caosrv03:/caosrv03/users/&
 
---R3G7APHDIzY6R/pk
+OR 
+*       -rw,intr,hard   caosrv01,caosrv02,caosrv03:/server/users/&    (on 
+each server, /server is a link with /caosrv0X , the /etc/exports is 
+updated and mount is OK on the station. )
+
+
+
+Any idea ?
+
+Thanks 
+
+David.
+--=_alternative 004D368AC1257142_=
+Content-Type: text/html; charset="US-ASCII"
+
+
+<br><font size=2 face="sans-serif">Hello,</font>
+<br>
+<br>
+<br><font size=2 face="sans-serif">I have a problem &nbsp;with autofs multimount
+on Linux.</font>
+<br><font size=2 face="sans-serif">On our SGI,SUN,IBM these lines works.</font>
+<br>
+<br><font size=2 face="sans-serif">auto.master</font>
+<br><font size=2 face="sans-serif">/users &nbsp; &nbsp; &nbsp; &nbsp;/etc/auto.users</font>
+<br>
+<br><font size=2 face="sans-serif">auto.users</font>
+<br><font size=2 face="sans-serif">* &nbsp; &nbsp; &nbsp; &nbsp;-rw,intr,hard
+&nbsp; &nbsp; &nbsp; &nbsp;caosrv01:/caosrv01/users/&amp; &nbsp;
+&nbsp; &nbsp; &nbsp; caosrv02:/caosrv02/users/&amp; &nbsp; &nbsp;
+&nbsp; &nbsp; caosrv03:/caosrv03/users/&amp;</font>
+<br>
+<br><font size=2 face="sans-serif">On linux, the log reports no errors
+when I run autofs and the mount works correctly (ex : mount caosrv02:/caosrv02/users/toto
+/r is OK )</font>
+<br><font size=2 face="sans-serif">but when I want to use autofs ( ex :
+&nbsp;cd /users/toto ) I have an error if toto is on caosrv02 or caosrv03</font>
+<br>
+<br><font size=2 face="sans-serif">In /var/log/messages</font>
+<br>
+<br><font size=2 face="sans-serif">Mar 28 10:16:25 nim_client automount[18049]:
+&gt;&gt; mount: caosrv01:/caosrv01/users/toto failed, reason given by server:
+Permission denied</font>
+<br><font size=2 face="sans-serif">Mar 28 10:16:25 nim_client automount[18049]:
+mount(nfs): nfs: mount failure caosrv01:/caosrv01/users/toto on /users/toto</font>
+<br><font size=2 face="sans-serif">Mar 28 10:16:25 nim_client automount[18049]:
+failed to mount /users/toto</font>
+<br><font size=2 face="sans-serif">Mar 28 10:16:25 nim_client automount[18049]:
+umount_multi: no mounts found under /users/toto</font>
+<br><font size=2 face="sans-serif">Mar 28 10:16:25 nim_client automount[18036]:
+attempting to mount entry /users/toto</font>
+<br><font size=2 face="sans-serif">Mar 28 10:16:25 nim_client automount[18051]:
+&gt;&gt; mount: caosrv01:/caosrv01/users/toto failed, reason given by server:
+Permission denied</font>
+<br><font size=2 face="sans-serif">Mar 28 10:16:25 nim_client automount[18051]:
+mount(nfs): nfs: mount failure caosrv01:/caosrv01/users/toto on /users/toto</font>
+<br><font size=2 face="sans-serif">Mar 28 10:16:25 nim_client automount[18051]:
+failed to mount /users/toto</font>
+<br><font size=2 face="sans-serif">Mar 28 10:16:25 nim_client automount[18051]:
+umount_multi: no mounts found under /users/toto</font>
+<br><font size=2 face="sans-serif">Mar 28 10:16:58 nim_client automount[18036]:
+attempting to mount entry /users/toto</font>
+<br>
+<br><font size=2 face="sans-serif">If I try this many times (5, 10, 20
+tries ), the filesystem comes up.</font>
+<br>
+<br><font size=2 face="sans-serif">I'm using FC4 with autofs 4.1.4.5. </font>
+<br><font size=2 face="sans-serif">I tried on several linux and autofs
+versions and I always had the same thing.</font>
+<br>
+<br><font size=2 face="sans-serif">I try to change my auto.users map syntax
+like this</font>
+<br><font size=2 face="sans-serif">auto.users</font>
+<br><font size=2 face="sans-serif">* &nbsp; &nbsp; &nbsp; &nbsp;-rw,intr,hard
+&nbsp; &nbsp; &nbsp; &nbsp;\</font>
+<br><font size=2 face="sans-serif">&nbsp; &nbsp; &nbsp; &nbsp; caosrv01:/caosrv01/users/&amp;
+&nbsp; &nbsp; &nbsp; &nbsp; \</font>
+<br><font size=2 face="sans-serif">&nbsp; &nbsp; &nbsp; &nbsp; caosrv02:/caosrv02/users/&amp;
+&nbsp; &nbsp; &nbsp; &nbsp; \</font>
+<br><font size=2 face="sans-serif">&nbsp; &nbsp; &nbsp; &nbsp; caosrv03:/caosrv03/users/&amp;</font>
+<br>
+<br><font size=2 face="sans-serif">OR </font>
+<br><font size=2 face="sans-serif">* &nbsp; &nbsp; &nbsp; &nbsp;-rw,intr,hard
+&nbsp; &nbsp; &nbsp; &nbsp;caosrv01,caosrv02,caosrv03:/server/users/&amp;
+&nbsp; &nbsp;(on each server, /server is a link with /caosrv0X , the /etc/exports
+is updated and mount is OK on the station. )</font>
+<br>
+<br>
+<br>
+<br><font size=2 face="sans-serif">Any idea ?</font>
+<br>
+<br><font size=2 face="sans-serif">Thanks </font>
+<br>
+<br><font size=2 face="sans-serif">David.</font>
+--=_alternative 004D368AC1257142_=--
+
+
+--===============1488109043549798879==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -127,5 +188,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---R3G7APHDIzY6R/pk--
+--===============1488109043549798879==--
 
