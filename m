@@ -1,8 +1,9 @@
-From: Joe Pruett <joey@clean.q7.com>
-Subject: cross automount issue
-Date: Thu, 6 Apr 2006 21:08:40 -0700 (PDT)
-Message-ID: <Pine.LNX.4.64.0604062047510.13380@q7.q7.com>
+From: Mike Seda <maseda@unc.edu>
+Subject: uninitialized value in hash element
+Date: Fri, 07 Apr 2006 09:59:18 -0400
+Message-ID: <44367036.2000701@unc.edu>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -14,51 +15,84 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"; format="flowed"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
 To: autofs@linux.kernel.org
 
-maybe there is a better way to do this, so i'll lay out my plan first, 
-then my problem, and then my solution.
+Hi All,
+The following is the entire automount section of a LogWatch email for 
+one of my servers:
 
-to avoid 100s or 1000s of nfs mounts i would like to have one mount per 
-exported file system and then bind mounts (or symlinks) for each directory 
-within each mount point.  like so:
+ --------------------- Automount Begin ------------------------
 
-real mounts:
-/disks/foo.0 -> foo:/0
-/disks/foo.1 -> foo:/1
-/disks/bar.0 -> bar:/0
+Use of uninitialized value in hash element at 
+/etc/log.d/scripts/services/automount line 28, <STDIN> line 2.
+Use of uninitialized value in hash element at 
+/etc/log.d/scripts/services/automount line 28, <STDIN> line 2.
+Use of uninitialized value in hash element at 
+/etc/log.d/scripts/services/automount line 28, <STDIN> line 5.
+Use of uninitialized value in hash element at 
+/etc/log.d/scripts/services/automount line 28, <STDIN> line 8.
+Use of uninitialized value in hash element at 
+/etc/log.d/scripts/services/automount line 28, <STDIN> line 11.
+Use of uninitialized value in hash element at 
+/etc/log.d/scripts/services/automount line 28, <STDIN> line 14.
+Use of uninitialized value in hash element at 
+/etc/log.d/scripts/services/automount line 28, <STDIN> line 17.
+Use of uninitialized value in hash element at 
+/etc/log.d/scripts/services/automount line 28, <STDIN> line 20.
+Use of uninitialized value in hash element at 
+/etc/log.d/scripts/services/automount line 28, <STDIN> line 23.
+Use of uninitialized value in hash element at 
+/etc/log.d/scripts/services/automount line 28, <STDIN> line 26.
+Use of uninitialized value in hash element at 
+/etc/log.d/scripts/services/automount line 28, <STDIN> line 29.
+Use of uninitialized value in hash element at 
+/etc/log.d/scripts/services/automount line 28, <STDIN> line 32.
+Use of uninitialized value in hash element at 
+/etc/log.d/scripts/services/automount line 28, <STDIN> line 35.
+Use of uninitialized value in hash element at 
+/etc/log.d/scripts/services/automount line 28, <STDIN> line 38.
+Use of uninitialized value in hash element at 
+/etc/log.d/scripts/services/automount line 28, <STDIN> line 41.
+Use of uninitialized value in hash element at 
+/etc/log.d/scripts/services/automount line 28, <STDIN> line 44.
+Use of uninitialized value in hash element at 
+/etc/log.d/scripts/services/automount line 28, <STDIN> line 47.
+Use of uninitialized value in hash element at 
+/etc/log.d/scripts/services/automount line 28, <STDIN> line 50.
+Use of uninitialized value in hash element at 
+/etc/log.d/scripts/services/automount line 28, <STDIN> line 53.
+Use of uninitialized value in hash element at 
+/etc/log.d/scripts/services/automount line 28, <STDIN> line 56.
+Use of uninitialized value in hash element at 
+/etc/log.d/scripts/services/automount line 28, <STDIN> line 59.
+Use of uninitialized value in hash element at 
+/etc/log.d/scripts/services/automount line 28, <STDIN> line 62.
+Use of uninitialized value in hash element at 
+/etc/log.d/scripts/services/automount line 28, <STDIN> line 65.
+Use of uninitialized value in hash element at 
+/etc/log.d/scripts/services/automount line 28, <STDIN> line 68.
+Use of uninitialized value in hash element at 
+/etc/log.d/scripts/services/automount line 28, <STDIN> line 71.
 
-etc.
+Failed mounts:
+          NFS Mount Failure 24 Time(s)
 
-and then bind mounts:
+**Unmatched Entries**
+failed to mount /home/bpuser: 11 Time(s)
+failed to mount /home/ls: 8 Time(s)
+failed to mount /home/df: 5 Time(s)
 
-/home/user -> /disks/foo.0/user
-/home/other -> /disks/foo.1/other
-/home/another -> /disks/bar.0/another
+ ---------------------- Automount End -------------------------
 
-now this kinda works, but since there is one global lock file for all 
-automount daemons the first reference to /home/user will try to touch 
-/disks/foo.0 and that will hang for 10 seconds waiting for the lock file. 
-once the real mounts are done, things work well.  and since there are a 
-few thousand entries in /home it keeps the nfs mounts from getting out of 
-control.
-
-so my solution would be to make one lock per daemon.  that will keep each 
-daemon happy and they won't interfere with each other.
-
-is that a reasonable idea?  is there a better way to cope with this?  i 
-know that long ago you used to be able to do things like:
-
-user	foo:/0:user
-user1	foo:/0:user1
-
-and somehow it would mount foo:/0 once and then use symlinks for user and 
-user1 (or something like that).  but modern automounts just do a full 
-mount for each one.
-
-part of this plan is based on old 2.4 behaviour where too many mounts 
-would kill the system.  but it still doesn't feel right to have a few 
-thousand mounts on a box (other than bind mounts).  am i just being 
-paranoid?
+Does anyone know what could cause the hash element errors? I looked in 
+/var/log/messages, and this error also appeared previously when trying 
+to mount /home/gateway, which doesn't even exist on my system. Btw, 
+/home/ls and /home/df do not exist either, but /home/bpuser does. I 
+never executed mount requests for either /home/gateway, /home/ls, or 
+/home/df, and there is a slim chance that any of my users did. I have 
+seen these errors on other machines running the same kernel and 
+automount version, and it is really bugging me. Any thoughts would be 
+much appreciated.
+Regards,
+maseda
