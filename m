@@ -1,10 +1,13 @@
-From: "Anthony M. Martinez" <twopir@nmt.edu>
-Subject: bind mount not working as expected
-Date: Thu, 6 Apr 2006 09:29:22 -0600
-Message-ID: <20060406152922.GD10241@nmt.edu>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: cross automount issue
+Date: Sun, 9 Apr 2006 12:19:40 +0800 (WST)
+Message-ID: <Pine.LNX.4.64.0604091218001.3969@eagle.themaw.net>
+References: <Pine.LNX.4.64.0604062047510.13380@q7.q7.com>
+	<Pine.LNX.4.58.0604072342530.24984@wombat.indigo.net.au>
+	<Pine.LNX.4.64.0604070923300.15746@q7.q7.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0604070923300.15746@q7.q7.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -15,76 +18,20 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: autofs@linux.kernel.org
-Cc: Timo Felbinger <Timo.Felbinger@physik.uni-potsdam.de>
+To: Joe Pruett <joey@clean.q7.com>
+Cc: autofs@linux.kernel.org
 
-As suggested, I am forwarding this question to the autofs mailing list,
-since my problem doesn't seem to be Timo's patch. 
+On Fri, 7 Apr 2006, Joe Pruett wrote:
 
-On Fri, Mar 24, 2006 at 06:05:31PM +0100, Timo Felbinger wrote:
-> On Thu, Mar 23, 2006 at 09:57:15AM -0700, Pi (aka Anthony Martinez) wrote:
-> > > > 
-> > > Is it correct that this is a "program" map which is to telling
-> > > automount to mount /fs/administratium/accounts/p/pi as /u/pi,
-> > > and this information is taken from an ldap entry containing the
-> > > attributes
-> > >   uid: pi
-> > >   tccRawHomeDir: /fs/administratium/accounts/p/pi
-> > 
-> > > ? If so, would
-> > >   automount /u ldap "ldap://<server>/<base>?uid,tccRawHomeDir?sub?<filter>"
-> > > do what you want?
-> > 
-> > OK. I am using
-> > ldaps://<server>/ou=accounts,<base>?uid,tccRawHomeDir?sub?(objectClass=tccAccount)
-> > 
-> > but this mounts /u/pi in some weird fashion:
+> after sending it, i started wondering what the lock was there for.  i wasn't
+> sure if each automount daemon was multi-threaded or not.  what mount locking
+> are you referring to?
 
-(the results of 'find /u/pi')
+The lock was introduced to prevent corruption of /etc/mtab because the 
+locking in mount for this purpose didn't work.
 
-> > 
-> > /u/pi
-> > /u/pi/fs
-> > /u/pi/fs/administratium
-> > /u/pi/fs/administratium/accounts
-> > /u/pi/fs/administratium/accounts/p
-> > /u/pi/fs/administratium/accounts/p/pi
-> > 
-> 
-> No, that's definitely not what it should do. (and I just tried and
-> failed to reproduce this problem)
-> 
-> However, I do not see how this is specific to the lookup_ldap module
-> (which is the only one affected by my patch). Essentially, these lookup
-> modules just get handed a key value (in your example, "pi"), and return
-> information on what to mount there (in your example,
-> "/fs/administratium/accounts/p/pi"), much like your program map.
-> The result should be the same as what you get manually with
->   mount -o bind /fs/administratium/accounts/p/pi /u/pi
-> (this is a local (not NFS) mount, right?), and it works for me like that.
+There are patches for mount which I believe fix it.
 
-Additional information: /fs is also handled by automount, but that mount
-works correctly
-
-> 
-> So your problem might be more general (too old kernel version, maybe?),
-
-Debian Stable, kernel 2.6.8, autofs 4.1.3+4.1.4beta2 (with both Timo and
-my patches relating to LDAP functionality)
-
-> and maybe you could ask this on the autofs mailing list
-> (http://linux.kernel.org/mailman/listinfo/autofs)?
-> 
-> Regards,
-> 
-> Timo
-
-
--- 
-<aydiosmio> wow
-<aydiosmio> someone's password in this db is "secrets"
-<aydiosmio> I thought hackers was a lie
-<com`fu> it was
-<com`fu> they said secret
+Ian
