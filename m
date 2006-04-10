@@ -1,11 +1,10 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: bind mount not working as expected
-Date: Sun, 9 Apr 2006 12:24:57 +0800 (WST)
-Message-ID: <Pine.LNX.4.64.0604091222430.3969@eagle.themaw.net>
-References: <20060406152922.GD10241@nmt.edu>
+From: pablo.roldan@upc.edu
+Subject: newbie autofs problem
+Date: Mon, 10 Apr 2006 17:45:04 +0200
+Message-ID: <20060410154504.GD1223@pollo.upc.es>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20060406152922.GD10241@nmt.edu>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,30 +15,84 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Anthony M. Martinez" <twopir@nmt.edu>
-Cc: autofs@linux.kernel.org, Timo Felbinger <Timo.Felbinger@physik.uni-potsdam.de>
+To: autofs@linux.kernel.org
 
-On Thu, 6 Apr 2006, Anthony M. Martinez wrote:
+Hi,
 
-> As suggested, I am forwarding this question to the autofs mailing list,
-> since my problem doesn't seem to be Timo's patch. 
-> 
-> On Fri, Mar 24, 2006 at 06:05:31PM +0100, Timo Felbinger wrote:
-> > On Thu, Mar 23, 2006 at 09:57:15AM -0700, Pi (aka Anthony Martinez) wrote:
-> > > > > 
-> > > > Is it correct that this is a "program" map which is to telling
-> > > > automount to mount /fs/administratium/accounts/p/pi as /u/pi,
-> > > > and this information is taken from an ldap entry containing the
-> > > > attributes
-> > > >   uid: pi
-> > > >   tccRawHomeDir: /fs/administratium/accounts/p/pi
-                        ^
-Where's the hostname on this !
-tccRawHomeDir: :/fs/administratium/accounts/p/pi
-               ^
+I'm using autofs to automount the home dirs of my users, distributed among
+several machines. The config files are:
 
-Sun map escape might be needed?
+***** /etc/auto.master: *****
+/home /etc/auto_home
+***** end /etc/auto.master *****
 
-Ian
+***** /etc/auto_home: *****
+canalias        -rsize=8192,wsize=8192  e04:/homes/&
+jmbenita        -rsize=8192,wsize=8192  e05:/homes/&
+...
+***** end /etc/auto_home *****
+
+Until now, it was all working fine. A few days ago I moved the directory
+e04:/homes from / to a (larger) partition, which I now mount as /homes:
+
+***** /etc/fstab: *****
+# /etc/fstab: static file system information.
+#
+#<file sys>          <mount point>     <type>   <options>   <dump>   <pass>
+/dev/sda3    /                 ext3    rw,errors=remount-ro  0    1
+/dev/sda2    none              swap    rw        0    0
+none         /proc             proc    defaults  0    0
+none  /proc/bus/usb  usbdevfs  defaults
+/dev/fd0  /floppy  auto  users,noauto 0 0
+/dev/sda5    /usr                 ext3    defaults  0    2
+/dev/sda6    /homes                 ext3    defaults  0    2
+***** end /etc/fstab *****
+
+Since that moment, I am having problems accessing anything below /home. For
+instance, I can't do
+
+	ls /home
+
+because the shell hangs. It just becomes irresponsive.
+
+There are currently Condor processes running with working directory
+/home/canalias.
+
+I've been trying to find out what's going on, with no luck for the moment. Any
+hint would be greatly appreciated. I don't even know where to look for logged
+errors from the automounter.
+
+I next list the output of command "mount" and "autofs status" for reference:
+
+eixam:~# mount
+/dev/sda3 on / type ext3 (rw,errors=remount-ro)
+proc on /proc type proc (rw)
+sysfs on /sys type sysfs (rw)
+devpts on /dev/pts type devpts (rw,gid=5,mode=620)
+tmpfs on /dev/shm type tmpfs (rw)
+/dev/sda5 on /usr type ext3 (rw)
+/dev/sda6 on /homes type ext3 (rw)
+usbfs on /proc/bus/usb type usbfs (rw)
+automount(pid1377) on /home type autofs
+(rw,fd=4,pgrp=1377,minproto=2,maxproto=4)
+/homes/condor on /home/condor type none (rw,bind)
+e04:/homes/canalias on /home/canalias type nfs
+(rw,rsize=8192,wsize=8192,addr=192.168.1.4)
+e05:/homes/jmbenita on /home/jmbenita type nfs
+(rw,rsize=8192,wsize=8192,addr=192.168.1.5)
+
+eixam:~# /etc/init.d/autofs status
+Configured Mount Points:
+------------------------
+/usr/sbin/automount --timeout=300 /home file /etc/auto_home
+
+Active Mount Points:
+--------------------
+/usr/sbin/automount --pid-file=/var/run/autofs/_home.pid --timeout=300 /home
+file /etc/auto_home
+
+
+Thanks a lot,
+/P
