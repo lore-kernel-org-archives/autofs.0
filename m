@@ -1,10 +1,10 @@
-From: pablo.roldan@upc.edu
-Subject: newbie autofs problem
-Date: Mon, 10 Apr 2006 17:45:04 +0200
-Message-ID: <20060410154504.GD1223@pollo.upc.es>
+From: Guillaume Rousse <Guillaume.Rousse@inria.fr>
+Subject: kernel panic when accessing local filesystems on NFS server
+Date: Wed, 12 Apr 2006 14:48:15 +0200
+Message-ID: <443CF70F.90001@inria.fr>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,83 +16,47 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: autofs@linux.kernel.org
 
-Hi,
+Hello.
 
-I'm using autofs to automount the home dirs of my users, distributed among
-several machines. The config files are:
+Since last reboot, I encounter heavy troubles when trying to access
+local filesystems also advertised by LDAP as available for auto-mounting.
 
-***** /etc/auto.master: *****
-/home /etc/auto_home
-***** end /etc/auto.master *****
-
-***** /etc/auto_home: *****
-canalias        -rsize=8192,wsize=8192  e04:/homes/&
-jmbenita        -rsize=8192,wsize=8192  e05:/homes/&
+/etc/fstab:
 ...
-***** end /etc/auto_home *****
+/dev/hdb1 /home/graves/ftp ext3 defaults 1 2
 
-Until now, it was all working fine. A few days ago I moved the directory
-e04:/homes from / to a (larger) partition, which I now mount as /homes:
+/etc/exports:
+...
+/home/graves/ftp/pub    *.inria.fr(ro,async,all_squash,insecure)
 
-***** /etc/fstab: *****
-# /etc/fstab: static file system information.
-#
-#<file sys>          <mount point>     <type>   <options>   <dump>   <pass>
-/dev/sda3    /                 ext3    rw,errors=remount-ro  0    1
-/dev/sda2    none              swap    rw        0    0
-none         /proc             proc    defaults  0    0
-none  /proc/bus/usb  usbdevfs  defaults
-/dev/fd0  /floppy  auto  users,noauto 0 0
-/dev/sda5    /usr                 ext3    defaults  0    2
-/dev/sda6    /homes                 ext3    defaults  0    2
-***** end /etc/fstab *****
+/etc/init.d/autofs status:
+...
+/usr/sbin/automount --timeout=60 /home/graves ldap
+ou=auto.home.graves,ou=autofs,dc=village,dc=inria,dc=fr
 
-Since that moment, I am having problems accessing anything below /home. For
-instance, I can't do
+LDAP client map:
+# auto.home.graves, autofs, village.inria.fr
+dn: ou=auto.home.graves,ou=autofs,dc=village,dc=inria,dc=fr
+objectClass: top
+objectClass: automountMap
+ou: auto.home.graves
 
-	ls /home
+# /, auto.home.graves, autofs, village.inria.fr
+dn: cn=/,ou=auto.home.graves,ou=autofs,dc=village,dc=inria,dc=fr
+objectClass: top
+objectClass: automount
+cn: /
+automountInformation: -fstype=nfs,hard,intr graves:/home/graves/&
 
-because the shell hangs. It just becomes irresponsive.
+When autofs is not activated, ls /home/graves/ftp works OK. As soon as
+autofs is activated, ls /home/graves/ftp triggers immediate kernel
+panics (can't handle kernel paging request). This is happening on a
+mandriva 10.2, running kernel 2.6.11-13mdk, with autofs 4.1.4. It is
+also a recent problem, which didn't occured earlier.
 
-There are currently Condor processes running with working directory
-/home/canalias.
-
-I've been trying to find out what's going on, with no luck for the moment. Any
-hint would be greatly appreciated. I don't even know where to look for logged
-errors from the automounter.
-
-I next list the output of command "mount" and "autofs status" for reference:
-
-eixam:~# mount
-/dev/sda3 on / type ext3 (rw,errors=remount-ro)
-proc on /proc type proc (rw)
-sysfs on /sys type sysfs (rw)
-devpts on /dev/pts type devpts (rw,gid=5,mode=620)
-tmpfs on /dev/shm type tmpfs (rw)
-/dev/sda5 on /usr type ext3 (rw)
-/dev/sda6 on /homes type ext3 (rw)
-usbfs on /proc/bus/usb type usbfs (rw)
-automount(pid1377) on /home type autofs
-(rw,fd=4,pgrp=1377,minproto=2,maxproto=4)
-/homes/condor on /home/condor type none (rw,bind)
-e04:/homes/canalias on /home/canalias type nfs
-(rw,rsize=8192,wsize=8192,addr=192.168.1.4)
-e05:/homes/jmbenita on /home/jmbenita type nfs
-(rw,rsize=8192,wsize=8192,addr=192.168.1.5)
-
-eixam:~# /etc/init.d/autofs status
-Configured Mount Points:
-------------------------
-/usr/sbin/automount --timeout=300 /home file /etc/auto_home
-
-Active Mount Points:
---------------------
-/usr/sbin/automount --pid-file=/var/run/autofs/_home.pid --timeout=300 /home
-file /etc/auto_home
-
-
-Thanks a lot,
-/P
+It seems I have to hide client maps to servers exporting them. Which is
+quite difficult as I use LDAP precisely to propagate a centralised
+configuration. But even if my configuration is wrong, autofs ought to be
+a little more robust here.
