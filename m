@@ -1,13 +1,12 @@
 From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: kernel panic when accessing local filesystems on NFS
-	server
-Date: Wed, 12 Apr 2006 14:20:30 -0400
-Message-ID: <x49vete1wr5.fsf@segfault.boston.redhat.com>
-References: <443CF70F.90001@inria.fr>
+Subject: Re: newbie autofs problem
+Date: Wed, 12 Apr 2006 14:37:00 -0400
+Message-ID: <x49odz61vzn.fsf@segfault.boston.redhat.com>
+References: <20060410154504.GD1223@pollo.upc.es>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <443CF70F.90001@inria.fr> (Guillaume Rousse's message of "Wed,
-	12 Apr 2006 14:48:15 +0200")
+In-Reply-To: <20060410154504.GD1223@pollo.upc.es> (pablo roldan's message of
+	"Mon, 10 Apr 2006 17:45:04 +0200")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,27 +19,48 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guillaume Rousse <Guillaume.Rousse@inria.fr>
+To: pablo.roldan@upc.edu
 Cc: autofs@linux.kernel.org
 
-==> Regarding [autofs] kernel panic when accessing local filesystems on NFS server; Guillaume Rousse <Guillaume.Rousse@inria.fr> adds:
+==> Regarding [autofs] newbie autofs problem; pablo.roldan@upc.edu adds:
 
-Guillaume.Rousse> When autofs is not activated, ls /home/graves/ftp works
-Guillaume.Rousse> OK. As soon as autofs is activated, ls /home/graves/ftp
-Guillaume.Rousse> triggers immediate kernel panics (can't handle kernel
-Guillaume.Rousse> paging request). This is happening on a mandriva 10.2,
-Guillaume.Rousse> running kernel 2.6.11-13mdk, with autofs 4.1.4. It is
-Guillaume.Rousse> also a recent problem, which didn't occured earlier.
+pablo.roldan> Hi, I'm using autofs to automount the home dirs of my users,
+pablo.roldan> distributed among several machines. The config files are:
 
-Guillaume.Rousse> It seems I have to hide client maps to servers exporting
-Guillaume.Rousse> them. Which is quite difficult as I use LDAP precisely to
-Guillaume.Rousse> propagate a centralised configuration. But even if my
-Guillaume.Rousse> configuration is wrong, autofs ought to be a little more
-Guillaume.Rousse> robust here.
+pablo.roldan> ***** /etc/auto.master: ***** /home /etc/auto_home ***** end
+pablo.roldan> /etc/auto.master *****
 
-Autofs is probably attempting a recursive bind mount.  This problem was
-fixed, upgrade your kernel.
+pablo.roldan> ***** /etc/auto_home: ***** canalias -rsize=8192,wsize=8192
+pablo.roldan> e04:/homes/& jmbenita -rsize=8192,wsize=8192 e05:/homes/& ...
+pablo.roldan> ***** end /etc/auto_home *****
 
-	http://lkml.org/lkml/2005/6/4/11
+pablo.roldan> Until now, it was all working fine. A few days ago I moved
+pablo.roldan> the directory e04:/homes from / to a (larger) partition,
+pablo.roldan> which I now mount as /homes:
+
+Did you make sure that no clients had the file system mounted?  You simply
+can't move things around like this and expect it to work.
+
+pablo.roldan> ***** /etc/fstab: ***** # /etc/fstab: static file system
+pablo.roldan> information.  # #<file sys> <mount point> <type> <options>
+pablo.roldan> <dump> <pass> /dev/sda3 / ext3 rw,errors=remount-ro 0 1
+pablo.roldan> /dev/sda2 none swap rw 0 0 none /proc proc defaults 0 0 none
+pablo.roldan> /proc/bus/usb usbdevfs defaults /dev/fd0 /floppy auto
+pablo.roldan> users,noauto 0 0 /dev/sda5 /usr ext3 defaults 0 2 /dev/sda6
+pablo.roldan> /homes ext3 defaults 0 2 ***** end /etc/fstab *****
+
+pablo.roldan> Since that moment, I am having problems accessing anything
+pablo.roldan> below /home. For instance, I can't do
+
+pablo.roldan> 	ls /home
+
+pablo.roldan> because the shell hangs. It just becomes irresponsive.
+
+On the client system?  I'm surprised it hangs, but ESTALE would be very
+likely.  Alt-Sysrq-t will show where the ls is hanging out.  However, this
+really sounds like an administrative error.  Reboot the client.
+
+The automounter logs to /var/log/messages.  You should check there for any
+error messages if you feel this isn't purely a user error.
 
 -Jeff
