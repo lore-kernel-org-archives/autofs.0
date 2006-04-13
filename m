@@ -1,10 +1,14 @@
-From: Mike Marion <mmarion@qualcomm.com>
-Subject: Mounts not happening for "remote" processes
-Date: Wed, 12 Apr 2006 18:36:29 -0700
-Message-ID: <20060413013629.GH19971@cornholio.qualcomm.com>
+From: Guillaume Rousse <Guillaume.Rousse@inria.fr>
+Subject: Re: kernel panic when accessing local filesystems on NFS
+	server
+Date: Thu, 13 Apr 2006 14:18:57 +0200
+Message-ID: <443E41B1.50804@inria.fr>
+References: <443CF70F.90001@inria.fr>
+	<x49vete1wr5.fsf@segfault.boston.redhat.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <x49vete1wr5.fsf@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,91 +20,31 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: autofs@linux.kernel.org
+Cc: autofs@linux.kernel.org
 
-One of the last problems we're having with autofs4 is the fact that we
-see a lot of cases where a "remote" job can't see files in nfs.  By
-"remote" I mean jobs like those dispatched by our LSF system, where
-processes are started on hosts without a user actually logging in.  The
-programs they run will stat a file looking for it's input, or binary, or
-whatever, then it's like the mount doesn't happen, or isn't atomic
-enough, and the program will fail.  If we immediately log into the host
-and do something like ls the same file.. it works fine.
+Jeff Moyer wrote:
+> Autofs is probably attempting a recursive bind mount.  This problem was
+> fixed, upgrade your kernel.
+> 
+> 	http://lkml.org/lkml/2005/6/4/11
+Thanks, this fixed the crash issue.
 
-I've been able to reproduce this behavior (sometimes) using apache on a
-host and requesting a file symlinked out of an NFS path, but it's hard
-to get it to happen when I want.  I've turned on --debug and --verbose
-on some hosts for more info.  BTW, I've noticed that if you add --debug
-and --verbose in the init script as daemonoptions, and use a /- direct
-map entry, it only has the children inherit --debug but not --verbose.
+However, it seems automount is still taking priority on direct access if
+a mount point is activated.
 
-Anyway.. I was able to get some data where a path mounted fine
-( /prj/qct/gv in this case while apache tried to stat
-/prj/qct/gv/x86_64/sles10-b9/GV/profiles/default/classes/software/sles10.xml),
-but on a reload after the path expired, it failed... 
+If my /etc/fstab says:
+/dev/hda1 /home
 
-Logs show:
-Apr 12 18:12:21 rs-workstation automount[8493]: expired /prj/qct/gv
-mode
-Apr 12 18:13:28 rs-workstation automount[8253]: attempting to mount
-entry /prj/qct/gv
-Apr 12 18:13:49 rs-workstation automount[8517]: mount(nfs): nfs: mount
-failure ronald:/ vol/eng_ice_0014/qct_gv on /prj/qct/gv
-Apr 12 18:13:49 rs-workstation automount[8517]: failed to mount
-/prj/qct/gv
-Apr 12 18:13:49 rs-workstation automount[8532]: failed to mount
-/prj/qct/gv/x86_64
-Apr 12 18:13:49 rs-workstation automount[8517]: >> mount: RPC: Timed out
-Apr 12 18:13:49 rs-workstation automount[8517]: mount(nfs): nfs: mount
-failure ronald:/ vol/eng_ice_0014/qct_gv on /prj/qct/gv
-Apr 12 18:13:49 rs-workstation automount[8517]: failed to mount
-/prj/qct/gv
-Apr 12 18:13:49 rs-workstation automount[8517]: umount_multi: no mounts
-found under /pr j/qct/gv
-Apr 12 18:13:49 rs-workstation automount[8253]: attempting to mount
-entry /prj/qct/gv/x 86_64
-Apr 12 18:13:49 rs-workstation automount[8532]: failed to mount
-/prj/qct/gv/x86_64
-Apr 12 18:13:49 rs-workstation automount[8532]: umount_multi: no mounts
-found under /pr j/qct/gv/x86_64
-Apr 12 18:13:49 rs-workstation automount[8253]: attempting to mount
-entry /prj/qct/gv
-Apr 12 18:14:10 rs-workstation automount[8535]: mount(nfs): nfs: mount
-failure ronald:/ vol/eng_ice_0014/qct_gv on /prj/qct/gv
-Apr 12 18:14:10 rs-workstation automount[8535]: failed to mount
-/prj/qct/gv
-Apr 12 18:14:10 rs-workstation automount[8535]: >> mount: RPC: Timed out
-Apr 12 18:14:10 rs-workstation automount[8535]: mount(nfs): nfs: mount
-failure ronald:/ vol/eng_ice_0014/qct_gv on /prj/qct/gv
-Apr 12 18:14:10 rs-workstation automount[8535]: failed to mount
-/prj/qct/gv
-Apr 12 18:14:10 rs-workstation automount[8535]: umount_multi: no mounts
-found under /pr j/qct/gv
-Apr 12 18:14:12 rs-workstation automount[6339]: attempting to mount
-entry /usr2/mmarion
+and /etc/init.d/autofs status says:
+/usr/sbin/automount /home/graves ldap
+ou=auto.home.graves,ou=autofs,dc=village,dc=inria,dc=fr
 
-I was able to snag an ethereal of the conversation between the host and
-the NFS server (here to save size: http://www.miguelito.org/autofs.cap).
+Any attempt to access /home/graves on graves host will mount it through
+autofs, and access it through NFS, masking local filesystem and probably
+wasting resources.
 
-I got a strace of the mount call that had that issue too.
+If however /etc/fstab has exactly the same mount point defined, it seems
+the init script correctly filter it (it is configured, but not
+activated), preventing the issue.
 
-I don't know if this is always what happens when the mounts fail on LSF
-jobs since we haven't been running with debug or verbose for long.
-
-I'm currently running autofs-4.1.4 with the following patches:
-autofs-4.1.4-multi-parse-fix.patch
-autofs-4.1.4-non-replicated-ping.patch
-autofs-4.1.4-misc-fixes.patch
-
-and the suse-9.2 kernel 
-2.6.5-7.147-smp which appeared to have all the autofs4 kernel patches up
-to at least the time of the above daemon patches.
-
-Also, I've noticed patches mentioning autofs5 on the list, but must've
-missed how we can test this if we want.. or I'm nuts and way off. :)
--- 
-Mike Marion-Unix SysAdmin/Staff Engineer-http://www.qualcomm.com
-Ned: "We must've really painted the town last night.  I have a pounding 
-headache, my mouth tastes like vomit, and I don't remember a thing!"
-Homer: "Welcome to my world."  ==> Simpsons
+Is this expected behaviour ?
