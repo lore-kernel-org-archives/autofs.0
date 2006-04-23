@@ -1,13 +1,11 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: bind mount not working as expected
-Date: Sun, 23 Apr 2006 14:43:51 +0800 (WST)
-Message-ID: <Pine.LNX.4.64.0604231442560.2914@raven.themaw.net>
-References: <20060406152922.GD10241@nmt.edu>
-	<Pine.LNX.4.64.0604091222430.3969@eagle.themaw.net>
-	<20060411180453.GA3841@nmt.edu>
+Subject: Re: Problem between autofs 3 and autofs4
+Date: Sun, 23 Apr 2006 14:48:29 +0800 (WST)
+Message-ID: <Pine.LNX.4.64.0604231448020.2914@raven.themaw.net>
+References: <002701c6608c$7d49bbf0$9700a8c0@mambo>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20060411180453.GA3841@nmt.edu>
+In-Reply-To: <002701c6608c$7d49bbf0$9700a8c0@mambo>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,61 +18,35 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Anthony M. Martinez" <twopir@nmt.edu>
-Cc: autofs@linux.kernel.org, Timo Felbinger <Timo.Felbinger@physik.uni-potsdam.de>
+To: autofs mailing list <autofs@linux.kernel.org>
 
-On Tue, 11 Apr 2006, Anthony M. Martinez wrote:
+On Sat, 15 Apr 2006, ergatz wrote:
 
-> On Sun, Apr 09, 2006 at 12:24:57PM +0800, Ian Kent wrote:
-> > On Thu, 6 Apr 2006, Anthony M. Martinez wrote:
-> > 
-> > > As suggested, I am forwarding this question to the autofs mailing list,
-> > > since my problem doesn't seem to be Timo's patch. 
-> > > 
-> > > On Fri, Mar 24, 2006 at 06:05:31PM +0100, Timo Felbinger wrote:
-> > > > On Thu, Mar 23, 2006 at 09:57:15AM -0700, Pi (aka Anthony Martinez) wrote:
-> > > > > > > 
-> > > > > > Is it correct that this is a "program" map which is to telling
-> > > > > > automount to mount /fs/administratium/accounts/p/pi as /u/pi,
-> > > > > > and this information is taken from an ldap entry containing the
-> > > > > > attributes
-> > > > > >   uid: pi
-> > > > > >   tccRawHomeDir: /fs/administratium/accounts/p/pi
-> >                         ^
-> > Where's the hostname on this !
-> > tccRawHomeDir: :/fs/administratium/accounts/p/pi
-> >                ^
+> I have a Solaris 2.6 NIS server and have recently added some Redhat Linux hosts to it.
 > 
-> There isn't a hostname... It's supposed to bind (or possibly symlink if
-> bind mounts aren't available?) /fs/administratium/accounts/p/pi to /u/pi
+> I have:
+> 
+>      1 RH 7.3 machine
+>      2 RH 3.0 update 0
+>      1 RH 3.0 update 3
+>      2 RH 4.0 machines
+> 
+> I have looked at this problem a lot, and the difference I see is that 7.3 and 3.0U0 use autofs 3.
+> The 4.0 and 3.0U3 machines use autofs 4
+> 
+> My problem is:  When I moved some users' home directories to a different partition, the RH machines using autofs 4 had to be rebooted to pick up the changes.  The solaris hosts and the 7.3 and 3.0U0 (running autofs 3) picked up the changed locations magically like they are supposed to.  The machines using autofs 4 had to be rebooted in order to pick up the changes.  I tried everything I could think of to avoid reboot, because multiple users are on the the system at all times.
+> 
+> I stopped and restarted autofs and ypbind--SEVERAL times.  Nothing worked.
 
-And the ":" is meant to escape the fact that the mapent begins with a "/".
+Did you try "service autofs reload".
+
+or 
+
+/etc/init.d/autofs reload
+
+?
 
 > 
-> I'd like to migrate away from program mounts hopefully; since we have
-> LDAP, they should be unnecessary :)
+> So, who know the differences between autofs 3 and 4, and what can I do to hosts running autofs 4 to get them to pick up the NIS changes without having to reboot?
 > 
-> An auto.home program map that works on autofs-4.1.2 just returns this:
-> 
-> $ /etc/auto.home pi
-> / /fs/administratium/accounts/p/pi
-> 
-> Hmm. So I need that slash in front. Sucks to be me?
-> 
-> 
-> Pi
-> 
-> > 
-> > Sun map escape might be needed?
-> > 
-> > Ian
-> 
-> -- 
-> All C programs do the same thing: look at a character and do nothing with it.
-> -- Peter Weinberger
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
-> 
+> dorothy
