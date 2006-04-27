@@ -1,11 +1,9 @@
-From: Cedric BRINER <work@infomaniak.ch>
-Subject: automount lock
-Date: Thu, 27 Apr 2006 16:40:18 +0200
-Message-ID: <20060427144018.GA14670@obs.unige.ch>
+From: W1657801@Queens-Belfast.AC.UK
+Subject: auto.smb (null) and other issues
+Date: 27 Apr 2006 03:38:17 +0000
+Message-ID: <Prayer.1.0.12.0604270338170.1663@amos>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7BIT
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,48 +14,111 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; format="flowed"; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: autofs@linux.kernel.org
 
-Debian/Sarge i386
-hi,
+Hi,
 
-I'm having some problems with autofs.
-1) is this map entry allowed for auto.master ?
-  /home/epfl auto_home_vaud
-  /home/vaud auto_home_vaud
+I have come across some issues when try automount samba shares using 
+auto.smb on fedora core 5.
 
-2) I'm getting in this situtation
-ps -efH
-  ...
-  root      6947     1  0 Feb13 ?        00:00:01   /usr/sbin/automount --pid-file=/var/run/autofs/_home_vaud.pid --timeout=300 --ghost /home/vaud yp auto_home_vaud
-  root     32357  6947  0 09:44 ?        00:00:00     /usr/sbin/automount --pid-file=/var/run/autofs/_home_vaud.pid --timeout=300 --ghost /home/vaud yp auto_home_vaud
-  root     32359 32357  0 09:44 ?        00:00:00       [mount] <defunct>
-  root     15406  6947  0 11:29 ?        00:00:00     /usr/sbin/automount --pid-file=/var/run/autofs/_home_vaud.pid --timeout=300 --ghost /home/vaud yp auto_home_vaud
-  ...
+I had to
+1)Uncomment the smb section in auto.master
+2)Add hostnames to /etc/hosts to do hostname to ip translation
 
-more /var/lock/autofs
-32357
+Then to solve some problems I had to 3)change the opts line in auto.smb to 
+read opts="-fstype=cifs" 4)apply one line patch to auto.smb to allow the 
+system to read shares with spaces - /Disk/ { if (first) { print opts; 
+first=0 }; print " \\\n\t /" $2, "://" key "/" $2 } + /Disk/ { if (first) { 
+print opts; first=0 }; sub(/ /, "\\ ", $2); print " \\\n\t /" $2, "://" key 
+"/" $2 }
 
-is this normal to have more than one automount process by auto.master entry ?
+Now the real problem is this, when I cd /smb/sigma the shares mount fine (i 
+check ed the logfile).
+
+However WHEN I do an ls -l i get a (null) entry in the listing. Why is this 
+here?
 
 
-and now when I try to launch an other automount
-/usr/sbin/automount -v --debug --pid-file=/var/run/autofs/_unige.pid --timeout=300 --ghost /unige yp auto_unige_linux
+$ ll
+total 0
+drwxrwxrwx 1 root root 0 Apr  3 16:48 music
+dr-xr-xr-x 8 root root 0 Apr 26 18:13 (null)
+drwxrwxrwx 1 root root 0 Mar 29  2005 XLNX
+..etc
 
-tail /var/log/daemon.log
-Apr 27 16:35:05 obsdw19 automount[5500]: aquire_lock: can't lock lock file timed out: /var/lock/autofs
-Apr 27 16:35:05 obsdw19 automount[5500]: failed to mount autofs path /unige
-Apr 27 16:35:05 obsdw19 automount[5500]: /unige: mount failed!
-Apr 27 16:35:05 obsdw19 automount[5500]: failed to remove dir /unige: No such file or directory
-Apr 27 16:35:09 obsdw19 automount[5598]: starting automounter version 4.1.4_beta2, path = /unige, maptype = yp, mapname = auto_unige_linux
-Apr 27 16:35:09 obsdw19 automount[5598]: mount(bind): bind_works = 1
+AND now taking a look in the debug log file I have this entry...for some 
+reason it is trying to mount everthing in /smb/sigma into 
+/smb/sigma/(null)/ which of course fails, with lots of error messages.
 
-the fact is that /home/vaud is the home directory for the user on this machine. So how can I restart the autofs without asking the user to logoff ?
+automount[1661]: handle_packet_missing: token 2, name sigma/(null) 
+automount[1661]: attempting to mount entry /smb/sigma/(null) 
+automount[2279]: lookup(program): looking up sigma/(null) automount[2279]: 
+lookup(program): sigma/(null) -> -fstype=cifs /XLNX ://sigma/(null)/XLNX 
+/My\ Videos ://sigma/(null)/My\ Videos /music ://sigma/(null)/music 
+/Incoming ://sigma/(null)/Incoming automount[2279]: parse(sun): expanded 
+entry: -fstype=cifs /XLNX ://sigma/(null)/XLNX /My\ Videos 
+://sigma/(null)/My\ Videos /music ://sigma/(null)/music /Incoming 
+://sigma/(null)/Incoming aopen automount[2279]: parse(sun): 
+dequote("fstype=cifs") -> fstype=cifs aopen automount[2279]: parse(sun): 
+gathered options: fstype=cifs [lots of inevitable error messages not shown]
 
-Ced.
 
--- 
 
-Cedric BRINER
-Geneva - Switzerland
+THEN it tries to do everthing in /smb/sigma into /smb/sigma/(null)/mls/!!! 
+The mls would most likely have something to do with the ls command that I 
+used to get a directory listing
+
+
+automount[1661]: handle_packet_missing: token 3, name sigma/(null)/mls 
+automount[1661]: attempting to mount entry /smb/sigma/(null)/mls 
+automount[2291]: lookup(program): looking up sigma/(null)/mls 
+automount[2291]: lookup(program): sigma/(null)/mls -> -fstype=cifs /XLNX 
+://sigma/(null)/mls/XLNX /My\ Videos ://sigma/(null)/mls/My\ Videos /music 
+://sigma/(null)/mls/music /Incoming ://sigma/(null)/mls/Incoming 
+automount[2291]: parse(sun): expanded entry: -fstype=cifs /XLNX 
+://sigma/(null)/mls/XLNX /My\ Videos ://sigma/(null)/mls/My\ Videos /music 
+://sigma/(null)/mls/music /Incoming ://sigma/(null)/mls/Incoming 
+automount[2291]: parse(sun): dequote("fstype=cifs") -> fstype=cifs
+
+Why does the automounter create a (null) folder, and then why does it try 
+and mount stuff inside the (null)/ and (null)/mls/ folder after doing a 
+directory listing on the hostname
+
+Also, can points 3 and 4 above be fixed in the default auto.smb script 
+distributed.
+
+cheers,
+Neil
+
+
+
+[me@aopen ~]$ cat /etc/auto.smb
+#!/bin/bash
+
+# $Id: auto.smb,v 1.3 2005/04/05 13:02:09 raven Exp $
+
+# This file must be executable to work! chmod 755!
+
+key="$1"
+opts="-fstype=cifs"
+
+for P in /bin /sbin /usr/bin /usr/sbin
+do
+        if [ -x $P/smbclient ]
+        then
+                SMBCLIENT=$P/smbclient
+                break
+        fi
+done
+
+[ -x $SMBCLIENT ] || exit 1
+
+$SMBCLIENT -gNL $key 2>/dev/null| awk -v key="$key" -v opts="$opts" -F'|' 
+-- '
+        BEGIN   { ORS=""; first=1 }
+        /Disk/ { if (first) { print opts; first=0 }; sub(/ /, "\\ ", $2); 
+print " \\\n\t /" $2, "://" key "/" $2 }
+        END     { if (!first) print "\n"; else exit 1 }
+        '
