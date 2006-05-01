@@ -1,119 +1,202 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: Problem between autofs 3 and autofs4
-Date: Mon, 1 May 2006 17:17:47 +0800 (WST)
-Message-ID: <Pine.LNX.4.64.0605011717200.3236@raven.themaw.net>
-References: <042920062055.4139.4453D2C8000AB43E0000102B2207021633969B0E099D0A@comcast.net>
+Subject: [PATCH] autofs4 - NFY_NONE wait race fix
+Date: Mon, 1 May 2006 18:56:50 +0800 (WST)
+Message-ID: <Pine.LNX.4.64.0605011822250.5588@raven.themaw.net>
 Mime-Version: 1.0
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <042920062055.4139.4453D2C8000AB43E0000102B2207021633969B0E099D0A@comcast.net>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://hera.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: autofs mailing list <autofs@linux.kernel.org>
+To: Andrew Morton <akpm@osdl.org>
+Cc: autofs mailing list <autofs@linux.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-On Sat, 29 Apr 2006, ergatz@comcast.net wrote:
 
-Hi Dorothy,
+Hi Andrew,
 
-> Ian,
-> 
-> Thanks for your responses.  I wanted to let you know that the rpm that I 
-> installed is version 4.1.3-169.  It may have been fixed in an earlier iteration, 
-> but this is the one downloaded.
+This patch fixes two problems.
 
-I think the latest update is about 176.
+First, the comparison of entries in the waitq.c was incorrect.
 
-It would be good to get some info on the ones that that you tried that 
-were broken in case there's work needed.
+Second, the NFY_NONE check was incorrect. The test of whether the dentry 
+is mounted if ineffective, for example, if an expire fails then we could 
+wait forever on a non existant expire. The bug was identified by Jeff 
+Moyer.
 
-> 
-> dorothy
-> 
-> 
-> 
-> 
->  -------------- Original message ----------------------
-> From: Ian Kent <raven@themaw.net>
-> > On Sun, 23 Apr 2006, ergatz@comcast.net wrote:
-> > 
-> > > I tried all sorts of things, to include autofs reload, autofs stop and start, 
-> > ypbind stop and start.
-> > > The only thing that would work was too reboot the machine.  Rebooting a SERVER 
-> > is not
-> > > really something I want to do when I make changes.
-> > 
-> > Oh and you think I don't realize that!
-> > 
-> > > 
-> > > One of the guys in the office found an updated version of autofs.  I installed 
-> > it, and everything
-> > > works like a charm.  
-> > 
-> > What version?
-> > 
-> > > 
-> > > A commentary:  I found somewhere that autofs 4 was written by someone who did 
-> > not write
-> > > autofs3.  In fact, the author of 3 said he would like to come back to write 5.  
-> > It seems the author
-> > > of 4 did not know as much about autofs as he should have to write properly 
-> > functioning code.
-> > 
-> > Who are you talking about.
-> > All this happened a very long time ago.
-> > 
-> > Perhaps "me" since I took over the v4 maintenance several years ago and 
-> > 4.1.3 is one of my releases.
-> > 
-> > The fact is that what you have should work and if it's been broken by the 
-> > addition of a patch then we need to identify which patch that is.
-> > 
-> > You should also consider the fact that changes to the package are often 
-> > driven by requests for functionality on this list. I don't always get that 
-> > right but I try.
-> > 
-> > You might also have a look at the CHANGELOG in 4.1.4.
-> > The list of bugs fixed is so long that I didn't have any time to work on 
-> > developing things that really need doing.
-> > 
-> > Previous to my current job at RedHat I worked as an infrastructure analyst 
-> > at a Solaris site. Very demanding of time as you likely realize and then 
-> > would go home and try to work on autofs.
-> > 
-> > That was really hard.
-> > 
-> > > 
-> > > Just one of my many frustrations with RedHat and open source....
-> > 
-> > How is RedHat responsible for my mistakes?
-> > 
-> > Another fact is that there are many devoted people at RedHat that try to 
-> > fix breakage in my packages (including me) and they have a difficult time 
-> > to be sure.
-> > 
-> > On a lighter note I must apologize (to everyone) for not being more 
-> > helpful on the list lately but I'm heavily focused on version 5 
-> > development (which no doubt will not work properly either, ha).
-> > 
-> > Ian
-> > 
-> > _______________________________________________
-> > autofs mailing list
-> > autofs@linux.kernel.org
-> > http://linux.kernel.org/mailman/listinfo/autofs
-> 
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
-> 
+The patch changes autofs4 to wait on expires only as this is all that's 
+needed. If there is no existing wait when autofs4_wait is call with 
+a type of NFY_NONE it delays until either a wait appears or the the expire 
+flag is cleared.
+
+Signed-off-by: Ian Kent <raven@themaw.net>
+
+--
+
+--- linux-2.6.17-rc1-mm3/fs/autofs4/autofs_i.h.nfy_none-wait-race-fix	2006-04-26 15:19:41.000000000 +0800
++++ linux-2.6.17-rc1-mm3/fs/autofs4/autofs_i.h	2006-04-26 15:20:25.000000000 +0800
+@@ -74,8 +74,8 @@
+ 	struct autofs_wait_queue *next;
+ 	autofs_wqt_t wait_queue_token;
+ 	/* We use the following to see what we are waiting for */
+-	int hash;
+-	int len;
++	unsigned int hash;
++	unsigned int len;
+ 	char *name;
+ 	u32 dev;
+ 	u64 ino;
+@@ -85,7 +85,6 @@
+ 	pid_t tgid;
+ 	/* This is for status reporting upon return */
+ 	int status;
+-	atomic_t notify;
+ 	atomic_t wait_ctr;
+ };
+ 
+--- linux-2.6.17-rc1-mm3/fs/autofs4/waitq.c.nfy_none-wait-race-fix	2006-04-26 15:19:41.000000000 +0800
++++ linux-2.6.17-rc1-mm3/fs/autofs4/waitq.c	2006-04-26 15:32:00.000000000 +0800
+@@ -189,14 +189,30 @@
+ 	return len;
+ }
+ 
++static struct autofs_wait_queue *
++autofs4_find_wait(struct autofs_sb_info *sbi,
++		  char *name, unsigned int hash, unsigned int len)
++{
++	struct autofs_wait_queue *wq = NULL;
++
++	for (wq = sbi->queues ; wq ; wq = wq->next) {
++		if (wq->hash == hash &&
++		    wq->len == len &&
++		    wq->name && !memcmp(wq->name, name, len))
++			break;
++	}
++	return wq;
++}
++
+ int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
+ 		enum autofs_notify notify)
+ {
++	struct autofs_info *ino;
+ 	struct autofs_wait_queue *wq;
+ 	char *name;
+ 	unsigned int len = 0;
+ 	unsigned int hash = 0;
+-	int status;
++	int status, type;
+ 
+ 	/* In catatonic mode, we don't wait for nobody */
+ 	if (sbi->catatonic)
+@@ -223,21 +239,42 @@
+ 		return -EINTR;
+ 	}
+ 
+-	for (wq = sbi->queues ; wq ; wq = wq->next) {
+-		if (wq->hash == dentry->d_name.hash &&
+-		    wq->len == len &&
+-		    wq->name && !memcmp(wq->name, name, len))
+-			break;
+-	}
++	wq = autofs4_find_wait(sbi, name, hash, len);
++	ino = autofs4_dentry_ino(dentry);
++	if (!wq && ino && notify == NFY_NONE) {
++		/*
++		 * Either we've betean the pending expire to post it's
++		 * wait or it finished while we waited on the mutex.
++		 * So we need to wait till either, the wait appears
++		 * or the expire finishes.
++		 */
+ 
+-	if (!wq) {
+-		/* Can't wait for an expire if there's no mount */
+-		if (notify == NFY_NONE && !d_mountpoint(dentry)) {
++		while (ino->flags & AUTOFS_INF_EXPIRING) {
++			mutex_unlock(&sbi->wq_mutex);
++			set_current_state(TASK_INTERRUPTIBLE);
++			schedule_timeout(HZ/10);
++			if (mutex_lock_interruptible(&sbi->wq_mutex)) {
++				kfree(name);
++				return -EINTR;
++			}
++			wq = autofs4_find_wait(sbi, name, hash, len);
++			if (wq)
++				break;
++		}
++
++		/*
++		 * Not ideal but the status has already gone. Of the two
++		 * cases where we wait on NFY_NONE neither depend on the
++		 * return status of the wait.
++		 */
++		if (!wq) {
+ 			kfree(name);
+ 			mutex_unlock(&sbi->wq_mutex);
+-			return -ENOENT;
++			return 0;
+ 		}
++	}
+ 
++	if (!wq) {
+ 		/* Create a new wait queue */
+ 		wq = kmalloc(sizeof(struct autofs_wait_queue),GFP_KERNEL);
+ 		if (!wq) {
+@@ -263,20 +300,7 @@
+ 		wq->tgid = current->tgid;
+ 		wq->status = -EINTR; /* Status return if interrupted */
+ 		atomic_set(&wq->wait_ctr, 2);
+-		atomic_set(&wq->notify, 1);
+ 		mutex_unlock(&sbi->wq_mutex);
+-	} else {
+-		atomic_inc(&wq->wait_ctr);
+-		mutex_unlock(&sbi->wq_mutex);
+-		kfree(name);
+-		DPRINTK("existing wait id = 0x%08lx, name = %.*s, nfy=%d",
+-			(unsigned long) wq->wait_queue_token, wq->len, wq->name, notify);
+-	}
+-
+-	if (notify != NFY_NONE && atomic_read(&wq->notify)) {
+-		int type;
+-
+-		atomic_dec(&wq->notify);
+ 
+ 		if (sbi->version < 5) {
+ 			if (notify == NFY_MOUNT)
+@@ -299,6 +323,12 @@
+ 
+ 		/* autofs4_notify_daemon() may block */
+ 		autofs4_notify_daemon(sbi, wq, type);
++	} else {
++		atomic_inc(&wq->wait_ctr);
++		mutex_unlock(&sbi->wq_mutex);
++		kfree(name);
++		DPRINTK("existing wait id = 0x%08lx, name = %.*s, nfy=%d",
++			(unsigned long) wq->wait_queue_token, wq->len, wq->name, notify);
+ 	}
+ 
+ 	/* wq->name is NULL if and only if the lock is already released */
+--- linux-2.6.17-rc1-mm3/fs/autofs4/root.c.nfy_none-wait-race-fix	2006-04-26 15:19:41.000000000 +0800
++++ linux-2.6.17-rc1-mm3/fs/autofs4/root.c	2006-04-26 15:22:07.000000000 +0800
+@@ -327,6 +327,7 @@
+ static void *autofs4_follow_link(struct dentry *dentry, struct nameidata *nd)
+ {
+ 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
++	struct autofs_info *ino = autofs4_dentry_ino(dentry);
+ 	int oz_mode = autofs4_oz_mode(sbi);
+ 	unsigned int lookup_type;
+ 	int status;
+@@ -340,13 +341,8 @@
+ 	if (oz_mode || !lookup_type)
+ 		goto done;
+ 
+-	/*
+-	 * If a request is pending wait for it.
+-	 * If it's a mount then it won't be expired till at least
+-	 * a liitle later and if it's an expire then we might need
+-	 * to mount it again.
+-	 */
+-	if (autofs4_ispending(dentry)) {
++	/* If an expire request is pending wait for it. */
++	if (ino && (ino->flags & AUTOFS_INF_EXPIRING)) {
+ 		DPRINTK("waiting for active request %p name=%.*s",
+ 			dentry, dentry->d_name.len, dentry->d_name.name);
+ 
