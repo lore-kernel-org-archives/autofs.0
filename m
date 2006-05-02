@@ -1,125 +1,38 @@
-From: Ian Kent <raven@themaw.net>
-Subject: [ANNOUNCE] autofs 5.0.0 beta1
-Date: Tue, 2 May 2006 23:35:02 +0800 (WST)
-Message-ID: <Pine.LNX.4.64.0605022329020.10568@raven.themaw.net>
+From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
+Subject: Re: [ANNOUNCE] autofs 5.0.0 beta1
+Date: Tue, 2 May 2006 19:33:28 +0200
+Message-ID: <20060502173328.GA5006@uio.no>
+References: <Pine.LNX.4.64.0605022329020.10568@raven.themaw.net>
 Mime-Version: 1.0
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Return-path: <autofs-bounces@linux.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0605022329020.10568@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://hera.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: autofs mailing list <autofs@linux.kernel.org>
-Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>
+To: autofs@linux.kernel.org
 
+On Tue, May 02, 2006 at 11:35:02PM +0800, Ian Kent wrote:
+> - Master map is now read and parsed by the `automount' daemon
+>   - the parameters for the `automount' daemon are now very different.
+>     See automount(8).
 
-Hi all,
+Ouch. Are there any plans for a conversion tool?
 
-I've finally got to a point where I can release a beta of
-autofs 5.0.0.
+> - `autofs' version 5.0.0 will refuse to run if it cannot find an
+>    autofs4 kernel module that supports protocol version 5.00 or above.
 
-I would really appreciate some real world testing of this
-so I hope some of you are able to help.
+What kernels are this?
 
-Feedback is welcome.
-
-autofs
-======
-
-For the moment the package can be found at:
-
-ftp://ftp.kernel.org/pub/linux/daemons/autofs/v4
-
-It is autofs-5.0.0_beta1.tar.[gz|bz2]
-
-No source rpm is there as it can be produced by using:
-
-rpmbuild -ts autofs-5.0.0_beta1.tar.gz
-
-and the binary rpm by using:
-
-rpmbuild -tb autofs-5.0.0_beta1.tar.gz
-
-See the INSTALL file for information about configure options and
-kernel requirements.
-
-I have no way to test the Gentoo portage build and the build
-files will need to be modified for beta1. It would be great
-if someone could get this working and forward a patch before
-the final release.
-
-Here is the README.v5.release which outlines the changes:
-
-autofs-5.0.0 beta1 release notes
-================================
-
-Differences between version 4 and version 5.
-
-- Master map is now read and parsed by the `automount' daemon
-  - the parameters for the `automount' daemon are now very different.
-    See automount(8).
-
-- The `automount' daemon is now a multi-threaded application and so
-  appears as a single process (unless a thread process display option
-  is used).
-
-- `autofs' filesystem mounts only appear in /proc/mounts and not
-  /etc/mtab. If you have a large number of entries in a direct mount
-  map and link /etc/mtab to /proc/mounts you may see performance
-  degradation.
-
-- `autofs' version 5.0.0 will refuse to run if it cannot find an
-   autofs4 kernel module that supports protocol version 5.00 or above.
-
-New in 5.0.0 is:
-
-- improved direct mount map support
-  - single level map entries now work as expected.
-  - top level directory of direct mount heirachy no longer obscurses
-    directory tree below.
-
-- `+' map inclusion
-  - maps preceded by a `+' in file maps may now be included inline.
-  - implemented for the master map and mount maps.
-
-- added nsswitch map source support
-  - is now used to locate maps if no map source is given in their
-    specification.
-  - is used for bothe master map and mount maps.
-
-- rewrote multi-mount map code
-  - multi-mount map entry offsets now mount and expire indpendently
-    instead of having to mount and umount all offset entries at once.
-
-- added LDAP encryption and authentication support
-  - needs to be enabled using a configure option.
-  - a configuration file specifies whether encryption and authentication
-    is to be used (see INSTALL and auto.master(5) for more information).
-
-- improved shutdown and restart
-  - needs to be enabled using a configure option.
-  - see INSTALL for more information.
-
-- a "hosts" map module has been added
-  - an entry like "/net -hosts" is now understood and uses the new
-    multi-mount semantics for lazy mount/umount of exports from the host.
-  - the implementation is quite simple minded at this stage and will need
-    refinment. It just iterates through the host table and addes any host
-    names it finds to the internal map.
-
-Things not yet done
-===================
-
-- I have no way to test the Gentoo setup here anymore so it is unlikey
-  to work. Patches from anyone who needs this are welcome.
-
-- the underscore to dot translation has not been added yet.
-
-- there's a problen with the calcuation of the best host in replicated
-  server selection.
-
-- all the things I've broken and not re-tested after further development!
-
-
-Ian
-
-
+/* Steinar */
+-- 
+Homepage: http://www.sesse.net/
