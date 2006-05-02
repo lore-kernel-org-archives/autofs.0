@@ -1,67 +1,124 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [RFC] Multiple server selection and replicated mount failover
-Date: Tue, 2 May 2006 13:56:47 +0800 (WST)
-Message-ID: <Pine.LNX.4.64.0605021257500.3868@raven.themaw.net>
+Subject: [ANNOUNCE] autofs 5.0.0 beta1
+Date: Tue, 2 May 2006 23:35:02 +0800 (WST)
+Message-ID: <Pine.LNX.4.64.0605022329020.10568@raven.themaw.net>
 Mime-Version: 1.0
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
 Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: nfs@lists.sourceforge.net
-Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>
+To: autofs mailing list <autofs@linux.kernel.org>
+Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
 
 Hi all,
 
-For some time now I have had code in autofs that attempts to select an 
-appropriate server from a weighted list to satisfy server priority 
-selection and Replicated Server requirements. The code has been 
-problematic from the beginning and is still incorrect largely due to me 
-not merging the original patch well and also not fixing it correctly 
-afterward.
+I've finally got to a point where I can release a beta of
+autofs 5.0.0.
 
-So I'd like to have this work properly and to do that I also need to 
-consider read-only NFS mount fail over.
+I would really appreciate some real world testing of this
+so I hope some of you are able to help.
 
-The rules for server selection are, in order of priority (I believe):
+Feedback is welcome.
 
-1) Hosts on the local subnet.
-2) Hosts on the local network.
-3) Hosts on other network.
+autofs
+======
 
-Each of these proximity groups is made up of the largest number of 
-servers supporting a given NFS protocol version. For example if there were 
-5 servers and 4 supported v3 and 2 supported v2 then the candidate group 
-would be made up of the 4 supporting v3. Within the group of candidate 
-servers the one with the best response time is selected. Selection 
-within a proximity group can be further influenced by a zero based weight 
-associated with each host. The higher the weight (a cost really) the less 
-likely a server is to be selected. I'm not clear on exactly how he weight 
-influences the selection, so perhaps someone who is familiar with this 
-could explain it?
+For the moment the package can be found at:
 
-Apart from mount time server selection read-only replicated servers need 
-to be able to fail over to another server if the current one becomes 
-unavailable. 
+ftp://ftp.kernel.org/pub/linux/daemons/autofs/v4
 
-The questions I have are:
+It is autofs-5.0.0_beta1.tar.[gz|bz2]
 
-1) What is the best place for each part of this process to be
-   carried out.
-   - mount time selection.
-   - read-only mount fail over.
+No source rpm is there as it can be produced by using:
 
-2) What mechanisms would be best to use for the selection process.
+rpmbuild -ts autofs-5.0.0_beta1.tar.gz
 
-3) Is there any existing work available that anyone is aware
-   of that could be used as a reference.
+and the binary rpm by using:
 
-4) How does NFS v4 fit into this picture as I believe that some
-   of this functionality is included within the protocol.
+rpmbuild -tb autofs-5.0.0_beta1.tar.gz
 
-Any comments or suggestions or reference code would be very much 
-appreciated.
+See the INSTALL file for information about configure options and
+kernel requirements.
+
+I have no way to test the Gentoo portage build and the build
+files will need to be modified for beta1. It would be great
+if someone could get this working and forward a patch before
+the final release.
+
+Here is the README.v5.release which outlines the changes:
+
+autofs-5.0.0 beta1 release notes
+================================
+
+Differences between version 4 and version 5.
+
+- Master map is now read and parsed by the `automount' daemon
+  - the parameters for the `automount' daemon are now very different.
+    See automount(8).
+
+- The `automount' daemon is now a multi-threaded application and so
+  appears as a single process (unless a thread process display option
+  is used).
+
+- `autofs' filesystem mounts only appear in /proc/mounts and not
+  /etc/mtab. If you have a large number of entries in a direct mount
+  map and link /etc/mtab to /proc/mounts you may see performance
+  degradation.
+
+- `autofs' version 5.0.0 will refuse to run if it cannot find an
+   autofs4 kernel module that supports protocol version 5.00 or above.
+
+New in 5.0.0 is:
+
+- improved direct mount map support
+  - single level map entries now work as expected.
+  - top level directory of direct mount heirachy no longer obscurses
+    directory tree below.
+
+- `+' map inclusion
+  - maps preceded by a `+' in file maps may now be included inline.
+  - implemented for the master map and mount maps.
+
+- added nsswitch map source support
+  - is now used to locate maps if no map source is given in their
+    specification.
+  - is used for bothe master map and mount maps.
+
+- rewrote multi-mount map code
+  - multi-mount map entry offsets now mount and expire indpendently
+    instead of having to mount and umount all offset entries at once.
+
+- added LDAP encryption and authentication support
+  - needs to be enabled using a configure option.
+  - a configuration file specifies whether encryption and authentication
+    is to be used (see INSTALL and auto.master(5) for more information).
+
+- improved shutdown and restart
+  - needs to be enabled using a configure option.
+  - see INSTALL for more information.
+
+- a "hosts" map module has been added
+  - an entry like "/net -hosts" is now understood and uses the new
+    multi-mount semantics for lazy mount/umount of exports from the host.
+  - the implementation is quite simple minded at this stage and will need
+    refinment. It just iterates through the host table and addes any host
+    names it finds to the internal map.
+
+Things not yet done
+===================
+
+- I have no way to test the Gentoo setup here anymore so it is unlikey
+  to work. Patches from anyone who needs this are welcome.
+
+- the underscore to dot translation has not been added yet.
+
+- there's a problen with the calcuation of the best host in replicated
+  server selection.
+
+- all the things I've broken and not re-tested after further development!
+
 
 Ian
 
