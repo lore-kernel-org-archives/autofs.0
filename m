@@ -1,202 +1,68 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH] autofs4 - NFY_NONE wait race fix
-Date: Mon, 1 May 2006 18:56:50 +0800 (WST)
-Message-ID: <Pine.LNX.4.64.0605011822250.5588@raven.themaw.net>
+Subject: [RFC] Multiple server selection and replicated mount failover
+Date: Tue, 2 May 2006 13:56:47 +0800 (WST)
+Message-ID: <Pine.LNX.4.64.0605021257500.3868@raven.themaw.net>
 Mime-Version: 1.0
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
 Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@osdl.org>
-Cc: autofs mailing list <autofs@linux.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+To: nfs@lists.sourceforge.net
+Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>
 
 
-Hi Andrew,
+Hi all,
 
-This patch fixes two problems.
+For some time now I have had code in autofs that attempts to select an 
+appropriate server from a weighted list to satisfy server priority 
+selection and Replicated Server requirements. The code has been 
+problematic from the beginning and is still incorrect largely due to me 
+not merging the original patch well and also not fixing it correctly 
+afterward.
 
-First, the comparison of entries in the waitq.c was incorrect.
+So I'd like to have this work properly and to do that I also need to 
+consider read-only NFS mount fail over.
 
-Second, the NFY_NONE check was incorrect. The test of whether the dentry 
-is mounted if ineffective, for example, if an expire fails then we could 
-wait forever on a non existant expire. The bug was identified by Jeff 
-Moyer.
+The rules for server selection are, in order of priority (I believe):
 
-The patch changes autofs4 to wait on expires only as this is all that's 
-needed. If there is no existing wait when autofs4_wait is call with 
-a type of NFY_NONE it delays until either a wait appears or the the expire 
-flag is cleared.
+1) Hosts on the local subnet.
+2) Hosts on the local network.
+3) Hosts on other network.
 
-Signed-off-by: Ian Kent <raven@themaw.net>
+Each of these proximity groups is made up of the largest number of 
+servers supporting a given NFS protocol version. For example if there were 
+5 servers and 4 supported v3 and 2 supported v2 then the candidate group 
+would be made up of the 4 supporting v3. Within the group of candidate 
+servers the one with the best response time is selected. Selection 
+within a proximity group can be further influenced by a zero based weight 
+associated with each host. The higher the weight (a cost really) the less 
+likely a server is to be selected. I'm not clear on exactly how he weight 
+influences the selection, so perhaps someone who is familiar with this 
+could explain it?
 
---
+Apart from mount time server selection read-only replicated servers need 
+to be able to fail over to another server if the current one becomes 
+unavailable. 
 
---- linux-2.6.17-rc1-mm3/fs/autofs4/autofs_i.h.nfy_none-wait-race-fix	2006-04-26 15:19:41.000000000 +0800
-+++ linux-2.6.17-rc1-mm3/fs/autofs4/autofs_i.h	2006-04-26 15:20:25.000000000 +0800
-@@ -74,8 +74,8 @@
- 	struct autofs_wait_queue *next;
- 	autofs_wqt_t wait_queue_token;
- 	/* We use the following to see what we are waiting for */
--	int hash;
--	int len;
-+	unsigned int hash;
-+	unsigned int len;
- 	char *name;
- 	u32 dev;
- 	u64 ino;
-@@ -85,7 +85,6 @@
- 	pid_t tgid;
- 	/* This is for status reporting upon return */
- 	int status;
--	atomic_t notify;
- 	atomic_t wait_ctr;
- };
- 
---- linux-2.6.17-rc1-mm3/fs/autofs4/waitq.c.nfy_none-wait-race-fix	2006-04-26 15:19:41.000000000 +0800
-+++ linux-2.6.17-rc1-mm3/fs/autofs4/waitq.c	2006-04-26 15:32:00.000000000 +0800
-@@ -189,14 +189,30 @@
- 	return len;
- }
- 
-+static struct autofs_wait_queue *
-+autofs4_find_wait(struct autofs_sb_info *sbi,
-+		  char *name, unsigned int hash, unsigned int len)
-+{
-+	struct autofs_wait_queue *wq = NULL;
-+
-+	for (wq = sbi->queues ; wq ; wq = wq->next) {
-+		if (wq->hash == hash &&
-+		    wq->len == len &&
-+		    wq->name && !memcmp(wq->name, name, len))
-+			break;
-+	}
-+	return wq;
-+}
-+
- int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
- 		enum autofs_notify notify)
- {
-+	struct autofs_info *ino;
- 	struct autofs_wait_queue *wq;
- 	char *name;
- 	unsigned int len = 0;
- 	unsigned int hash = 0;
--	int status;
-+	int status, type;
- 
- 	/* In catatonic mode, we don't wait for nobody */
- 	if (sbi->catatonic)
-@@ -223,21 +239,42 @@
- 		return -EINTR;
- 	}
- 
--	for (wq = sbi->queues ; wq ; wq = wq->next) {
--		if (wq->hash == dentry->d_name.hash &&
--		    wq->len == len &&
--		    wq->name && !memcmp(wq->name, name, len))
--			break;
--	}
-+	wq = autofs4_find_wait(sbi, name, hash, len);
-+	ino = autofs4_dentry_ino(dentry);
-+	if (!wq && ino && notify == NFY_NONE) {
-+		/*
-+		 * Either we've betean the pending expire to post it's
-+		 * wait or it finished while we waited on the mutex.
-+		 * So we need to wait till either, the wait appears
-+		 * or the expire finishes.
-+		 */
- 
--	if (!wq) {
--		/* Can't wait for an expire if there's no mount */
--		if (notify == NFY_NONE && !d_mountpoint(dentry)) {
-+		while (ino->flags & AUTOFS_INF_EXPIRING) {
-+			mutex_unlock(&sbi->wq_mutex);
-+			set_current_state(TASK_INTERRUPTIBLE);
-+			schedule_timeout(HZ/10);
-+			if (mutex_lock_interruptible(&sbi->wq_mutex)) {
-+				kfree(name);
-+				return -EINTR;
-+			}
-+			wq = autofs4_find_wait(sbi, name, hash, len);
-+			if (wq)
-+				break;
-+		}
-+
-+		/*
-+		 * Not ideal but the status has already gone. Of the two
-+		 * cases where we wait on NFY_NONE neither depend on the
-+		 * return status of the wait.
-+		 */
-+		if (!wq) {
- 			kfree(name);
- 			mutex_unlock(&sbi->wq_mutex);
--			return -ENOENT;
-+			return 0;
- 		}
-+	}
- 
-+	if (!wq) {
- 		/* Create a new wait queue */
- 		wq = kmalloc(sizeof(struct autofs_wait_queue),GFP_KERNEL);
- 		if (!wq) {
-@@ -263,20 +300,7 @@
- 		wq->tgid = current->tgid;
- 		wq->status = -EINTR; /* Status return if interrupted */
- 		atomic_set(&wq->wait_ctr, 2);
--		atomic_set(&wq->notify, 1);
- 		mutex_unlock(&sbi->wq_mutex);
--	} else {
--		atomic_inc(&wq->wait_ctr);
--		mutex_unlock(&sbi->wq_mutex);
--		kfree(name);
--		DPRINTK("existing wait id = 0x%08lx, name = %.*s, nfy=%d",
--			(unsigned long) wq->wait_queue_token, wq->len, wq->name, notify);
--	}
--
--	if (notify != NFY_NONE && atomic_read(&wq->notify)) {
--		int type;
--
--		atomic_dec(&wq->notify);
- 
- 		if (sbi->version < 5) {
- 			if (notify == NFY_MOUNT)
-@@ -299,6 +323,12 @@
- 
- 		/* autofs4_notify_daemon() may block */
- 		autofs4_notify_daemon(sbi, wq, type);
-+	} else {
-+		atomic_inc(&wq->wait_ctr);
-+		mutex_unlock(&sbi->wq_mutex);
-+		kfree(name);
-+		DPRINTK("existing wait id = 0x%08lx, name = %.*s, nfy=%d",
-+			(unsigned long) wq->wait_queue_token, wq->len, wq->name, notify);
- 	}
- 
- 	/* wq->name is NULL if and only if the lock is already released */
---- linux-2.6.17-rc1-mm3/fs/autofs4/root.c.nfy_none-wait-race-fix	2006-04-26 15:19:41.000000000 +0800
-+++ linux-2.6.17-rc1-mm3/fs/autofs4/root.c	2006-04-26 15:22:07.000000000 +0800
-@@ -327,6 +327,7 @@
- static void *autofs4_follow_link(struct dentry *dentry, struct nameidata *nd)
- {
- 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
-+	struct autofs_info *ino = autofs4_dentry_ino(dentry);
- 	int oz_mode = autofs4_oz_mode(sbi);
- 	unsigned int lookup_type;
- 	int status;
-@@ -340,13 +341,8 @@
- 	if (oz_mode || !lookup_type)
- 		goto done;
- 
--	/*
--	 * If a request is pending wait for it.
--	 * If it's a mount then it won't be expired till at least
--	 * a liitle later and if it's an expire then we might need
--	 * to mount it again.
--	 */
--	if (autofs4_ispending(dentry)) {
-+	/* If an expire request is pending wait for it. */
-+	if (ino && (ino->flags & AUTOFS_INF_EXPIRING)) {
- 		DPRINTK("waiting for active request %p name=%.*s",
- 			dentry, dentry->d_name.len, dentry->d_name.name);
- 
+The questions I have are:
+
+1) What is the best place for each part of this process to be
+   carried out.
+   - mount time selection.
+   - read-only mount fail over.
+
+2) What mechanisms would be best to use for the selection process.
+
+3) Is there any existing work available that anyone is aware
+   of that could be used as a reference.
+
+4) How does NFS v4 fit into this picture as I believe that some
+   of this functionality is included within the protocol.
+
+Any comments or suggestions or reference code would be very much 
+appreciated.
+
+Ian
+
+
