@@ -1,14 +1,14 @@
-From: Moshe Kaminsky <kaminsky@math.huji.ac.il>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: [ANNOUNCE] autofs 5.0.0 beta1
-Date: Wed, 3 May 2006 19:58:29 +0300
-Message-ID: <20060503165829.GC1982@kaminsky>
+Date: Thu, 4 May 2006 01:30:22 +0800 (WST)
+Message-ID: <Pine.LNX.4.64.0605040124240.31510@raven.themaw.net>
 References: <Pine.LNX.4.64.0605022329020.10568@raven.themaw.net>
 	<20060503131637.GA30523@kaminsky>
-	<Pine.LNX.4.64.0605032311080.31306@raven.themaw.net>
+	<Pine.LNX.4.64.0605032232220.31300@raven.themaw.net>
+	<20060503165542.GB1982@kaminsky>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0500979308425458652=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.0605032311080.31306@raven.themaw.net>
+In-Reply-To: <20060503165542.GB1982@kaminsky>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,73 +19,36 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Moshe Kaminsky <kaminsky@math.huji.ac.il>
 Cc: autofs@linux.kernel.org
 
+On Wed, 3 May 2006, Moshe Kaminsky wrote:
 
---===============0500979308425458652==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4ZLFUWh1odzi/v6L"
-Content-Disposition: inline
+> * Ian Kent <raven@themaw.net> [03/05/06 18:00]:
+> > On Wed, 3 May 2006, Moshe Kaminsky wrote:
+> > > Another question I have: I once asked if it's possible to run the 
+> > > actual mount command as the user trying to read the directory, 
+> > > instead of root. I was told that this is impossible in version 4. 
+> > > Will it be possible now?
+> > 
+> > Do you have a mount that will work for a user?
+> > 
+> > You can use the $USER substitution variable now to mount with a 
+> > "user=${USER}" option or $UID and $GID with "uid=${UID}" and "gid=${GID}" 
+> > in your map. Will that help?
+> > 
+> 
+> I don't think so. What I have in mind is that a user will be able to 
+> automount his home directory on a remote machine using sshfs. For this, 
+> that user has to actually run the mount command, so that his ~/.ssh is 
+> used.
 
+The problem here is that mount(8) will only allow the "user" option if 
+an entry is present in the fstab which defeats the purpose of using 
+autofs.
 
---4ZLFUWh1odzi/v6L
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I'll think about it for a while.
 
-* Ian Kent <raven@themaw.net> [03/05/06 18:30]:
-> On Wed, 3 May 2006, Moshe Kaminsky wrote:
->=20
-> > gcc -g -Os -march=3Dathlon-tbird -pipe -fomit-frame-pointer
->  -D_REENTRANT -D_REENTRANT -rdynamic -fPIE -D_GNU_SOURCE
->  -I../include -DAUTOFS_LIB_DIR=3D\"/usr/lib/autofs\"=20
->  -DAUTOFS_MAP_DIR=3D\"/etc/autofs\" -DAUTOFS_CONF_DIR=3D\"/etc/sysconfig\=
-" -DVERSION_STRING=3D\"5.0.0_beta1\" -c direct.c
->=20
-> There's something else wrong with the build.
-> Shouldn't AUTOFS_CONF_DIR be /etc/conf.d instead of /etc/sysconfig?
-> configure should look for the directory?
-> What did I get wrong there?
-> Does /etc/sysconfig exist on you system?
-> Maybe it should be set explicitly at configure time.
->=20
-> Ian
->=20
-
-The /etc/sysconfig does exist (don't know why), and the configure takes=20
-it first. I added --with-confdir=3D/etc/conf.d to the ebuild, and it=20
-solved the problem.
-
-Thanks,
-Moshe
-
-
---4ZLFUWh1odzi/v6L
-Content-Type: application/pgp-signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.3-ecc0.1.6 (GNU/Linux)
-
-iD8DBQFEWOE1kBjmVsKMBeMRAlhcAKDeSCdWakXtOorkKbHVklsa9yL6jQCguY5L
-bgHBiPTdKO4utc3Dm4WsOQw=
-=scwa
------END PGP SIGNATURE-----
-
---4ZLFUWh1odzi/v6L--
-
-
---===============0500979308425458652==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
-
---===============0500979308425458652==--
-
+Ian
