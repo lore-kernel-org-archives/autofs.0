@@ -1,14 +1,14 @@
 From: Moshe Kaminsky <kaminsky@math.huji.ac.il>
 Subject: Re: [ANNOUNCE] autofs 5.0.0 beta1
-Date: Wed, 3 May 2006 19:55:43 +0300
-Message-ID: <20060503165542.GB1982@kaminsky>
+Date: Wed, 3 May 2006 20:00:05 +0300
+Message-ID: <20060503170005.GD1982@kaminsky>
 References: <Pine.LNX.4.64.0605022329020.10568@raven.themaw.net>
 	<20060503131637.GA30523@kaminsky>
-	<Pine.LNX.4.64.0605032232220.31300@raven.themaw.net>
+	<Pine.LNX.4.64.0605032354490.31402@raven.themaw.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0132396255917450928=="
+Content-Type: multipart/mixed; boundary="===============3034418327727415390=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.0605032232220.31300@raven.themaw.net>
+In-Reply-To: <Pine.LNX.4.64.0605032354490.31402@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -23,57 +23,68 @@ To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
 
---===============0132396255917450928==
+--===============3034418327727415390==
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="A6N2fC+uXW/VQSAv"
+	protocol="application/pgp-signature"; boundary="Ycz6tD7Th1CMF4v7"
 Content-Disposition: inline
 
 
---A6N2fC+uXW/VQSAv
+--Ycz6tD7Th1CMF4v7
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-* Ian Kent <raven@themaw.net> [03/05/06 18:00]:
+* Ian Kent <raven@themaw.net> [03/05/06 19:15]:
 > On Wed, 3 May 2006, Moshe Kaminsky wrote:
-> > Another question I have: I once asked if it's possible to run the=20
-> > actual mount command as the user trying to read the directory,=20
-> > instead of root. I was told that this is impossible in version 4.=20
-> > Will it be possible now?
 >=20
-> Do you have a mount that will work for a user?
+> >=20
+> > I modified the ebuild for autofs4 and tried to compile. I get:
+> >=20
+> > gcc -g -Os -march=3Dathlon-tbird -pipe -fomit-frame-pointer -D_REENTRAN=
+T -D_REENTRANT -rdynamic -fPIE -D_GNU_SOURCE -I../include -DAUTOFS_LIB_DIR=
+=3D\"/usr/lib/autofs\"  -DAUTOFS_MAP_DIR=3D\"/etc/autofs\" -DAUTOFS_CONF_DI=
+R=3D\"/etc/sysconfig\" -DVERSION_STRING=3D\"5.0.0_beta1\" -c direct.c
+> > direct.c: In function `handle_packet_expire_direct':
+> > direct.c:969: error: label at end of compound statement
+> > direct.c: In function `handle_packet_missing_direct':
+> > direct.c:1260: error: label at end of compound statement
+> > make[1]: *** [direct.o] Error 1
+> > make[1]: Leaving directory `/usr/tmp/portage/autofs-5.0.0_beta1/work/au=
+tofs-5.0.0_beta1/daemon'
 >=20
-> You can use the $USER substitution variable now to mount with a=20
-> "user=3D${USER}" option or $UID and $GID with "uid=3D${UID}" and "gid=3D$=
-{GID}"=20
-> in your map. Will that help?
+> I'm not sure this will make a difference but could you give it a try.
+
+This didn't help.
+
+>=20
+>=20
+> You'll have to review the Gentoo init script also.
+> A starting point is the one in the tarball. It should be fairly close but=
+=20
+> you'll need to review it.
 >=20
 
-I don't think so. What I have in mind is that a user will be able to=20
-automount his home directory on a remote machine using sshfs. For this,=20
-that user has to actually run the mount command, so that his ~/.ssh is=20
-used.
+I'll do that once I get this to compile.
 
 Thanks,
 Moshe
 
-
---A6N2fC+uXW/VQSAv
+--Ycz6tD7Th1CMF4v7
 Content-Type: application/pgp-signature
 Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.3-ecc0.1.6 (GNU/Linux)
 
-iD8DBQFEWOCOkBjmVsKMBeMRAk7pAKCzlClsV3kYAUuhcwQTSs21nbcUsQCbBF4n
-6F2uSDvycOtnuGC19WfT35k=
-=6Nx1
+iD8DBQFEWOGVkBjmVsKMBeMRAij0AJ9mPgGFxtOrr5aAgvkZhNLPoJPz2wCgs1cD
+Lf+f9EYzYRG9lLhCLZf7ojo=
+=/X1M
 -----END PGP SIGNATURE-----
 
---A6N2fC+uXW/VQSAv--
+--Ycz6tD7Th1CMF4v7--
 
 
---===============0132396255917450928==
+--===============3034418327727415390==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -84,5 +95,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---===============0132396255917450928==--
+--===============3034418327727415390==--
 
