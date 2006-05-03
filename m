@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: [ANNOUNCE] autofs 5.0.0 beta1
-Date: Wed, 3 May 2006 22:48:31 +0800 (WST)
-Message-ID: <Pine.LNX.4.64.0605032232220.31300@raven.themaw.net>
+Date: Wed, 3 May 2006 23:15:09 +0800 (WST)
+Message-ID: <Pine.LNX.4.64.0605032311080.31306@raven.themaw.net>
 References: <Pine.LNX.4.64.0605022329020.10568@raven.themaw.net>
 	<20060503131637.GA30523@kaminsky>
 Mime-Version: 1.0
@@ -64,38 +64,16 @@ On Wed, 3 May 2006, Moshe Kaminsky wrote:
 > 
 > I modified the ebuild for autofs4 and tried to compile. I get:
 > 
-> gcc -g -Os -march=athlon-tbird -pipe -fomit-frame-pointer -D_REENTRANT -D_REENTRANT -rdynamic -fPIE -D_GNU_SOURCE -I../include -DAUTOFS_LIB_DIR=\"/usr/lib/autofs\"  -DAUTOFS_MAP_DIR=\"/etc/autofs\" -DAUTOFS_CONF_DIR=\"/etc/sysconfig\" -DVERSION_STRING=\"5.0.0_beta1\" -c direct.c
-> direct.c: In function `handle_packet_expire_direct':
-> direct.c:969: error: label at end of compound statement
-> direct.c: In function `handle_packet_missing_direct':
-> direct.c:1260: error: label at end of compound statement
-> make[1]: *** [direct.o] Error 1
-> make[1]: Leaving directory `/usr/tmp/portage/autofs-5.0.0_beta1/work/autofs-5.0.0_beta1/daemon'
+> gcc -g -Os -march=athlon-tbird -pipe -fomit-frame-pointer
+ -D_REENTRANT -D_REENTRANT -rdynamic -fPIE -D_GNU_SOURCE
+ -I../include -DAUTOFS_LIB_DIR=\"/usr/lib/autofs\" 
+ -DAUTOFS_MAP_DIR=\"/etc/autofs\" -DAUTOFS_CONF_DIR=\"/etc/sysconfig\" -DVERSION_STRING=\"5.0.0_beta1\" -c direct.c
 
-I've seen that error as well.
-It's quite odd because it seems to be dependent of the version of glibc 
-pthread headers specifically the pthread_cleanup_push and 
-pthread_cleanup_pop macros.
-
-Once I got that error when some of the files had a timestamp in the future 
-and "make install" tried to re-compile some of the sources.
-
-I'll see if I can re-arrange the pthread_cleanup_push and 
-pthread_cleanup_pop calls that cause this to happen.
-
-> 
-> Note that I removed all the patches that were used for autofs4. I'm 
-> using gcc 3.4.6.
-> 
-> Another question I have: I once asked if it's possible to run the actual 
-> mount command as the user trying to read the directory, instead of root. 
-> I was told that this is impossible in version 4. Will it be possible 
-> now?
-
-Do you have a mount that will work for a user?
-
-You can use the $USER substitution variable now to mount with a 
-"user=${USER}" option or $UID and $GID with "uid=${UID}" and "gid=${GID}" 
-in your map. Will that help?
+There's something else wrong with the build.
+Shouldn't AUTOFS_CONF_DIR be /etc/conf.d instead of /etc/sysconfig?
+configure should look for the directory?
+What did I get wrong there?
+Does /etc/sysconfig exist on you system?
+Maybe it should be set explicitly at configure time.
 
 Ian
