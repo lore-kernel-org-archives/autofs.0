@@ -1,12 +1,10 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [ANNOUNCE] autofs 5.0.0 beta1
-Date: Thu, 04 May 2006 14:03:47 -0400
-Message-ID: <x49ac9xy8e4.fsf@redhat.com>
-References: <C3CDA0E3AC8B4E438E94F37D0A20FE71026B10D5@HOUEXC210.mgroupnet.com>
+From: Mike Marion <mmarion@qualcomm.com>
+Subject: Umount call getting stuck, hanging nfs?
+Date: Thu, 4 May 2006 13:41:41 -0700
+Message-ID: <20060504204141.GO27751@cornholio.qualcomm.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <C3CDA0E3AC8B4E438E94F37D0A20FE71026B10D5@HOUEXC210.mgroupnet.com>
-	(Stephen C. Rigler's message of "Thu, 4 May 2006 12:29:54 -0500")
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,40 +17,58 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Rigler, Stephen C." <srigler@marathonoil.com>
-Cc: autofs mailing list <autofs@linux.kernel.org>, Ian Kent <raven@themaw.net>
+To: autofs@linux.kernel.org
 
-==> Regarding RE: [autofs] [ANNOUNCE] autofs 5.0.0 beta1; "Rigler, Stephen C." <srigler@marathonoil.com> adds:
+Seeing some of our hosts in only one site having problems with hangs
+occurring.  Seems to be to same filer and even same paths, but what I
+see is odd.  The kernel rpciod thread is even stuck in state D,
+seemingly because the umount call is.  
 
->> -----Original Message----- From: Jeff Moyer [mailto:jmoyer@redhat.com]
->> Sent: Thursday, May 04, 2006 8:56 AM To: Ian Kent Cc: Rigler, Stephen
->> C.; autofs mailing list Subject: Re: [autofs] [ANNOUNCE] autofs 5.0.0
->> beta1
->> 
-raven> and /etc/auto.master exists with a +auto.master it
->> will probably get
-raven> it wrong in a strange way. Maybe that's what is happening?
->> Yeah, I think this is the one exception to the nsswitch rule. I wonder
->> if it's the same if you have /etc/auto.foo that does a +auto.foo?  May
->> be worth testing that out on another UNIX box to see what happens.
->> 
->> -Jeff
->> 
+i.e.
+root     20302  1.2  0.0  2468  584 ?        D    12:01   2:39
+/bin/umount //usr/local/projects/dsp/qdsp6
 
-srigler> Pretty much standard configuration here on Solaris and Irix is to
-srigler> have "automount: files nis" in nsswitch.conf and "+auto.master" in
-srigler> the local auto_master file.  I'm not aware if this is what the
-srigler> standard automount behavior should be (it's documented in the Irix
-srigler> man page for autofs), but we've gotten away with it for years if
-srigler> it's not.
+root      6270  0.0  0.0     0    0 ?        D    Apr28   3:17 [rpciod]
 
-srigler> Another nice thing to see would be the "-null" option in
-srigler> auto.master.  We have machines running clustered filesystems that
-srigler> are also exported via NFS from one or two meta-data servers.  The
-srigler> machines that see the filesystems locally should not automount the
-srigler> fileystems and the "-null" would allow us to exclude them.
+unfortunately, once this happens, any new mounts will fail.  Can't even
+stat the path above via df.  Basically the whole NFS layer is stuck.
 
-Well, you're in luck.  Give autofs5 a try, as it is supposed to handle
--null maps.
+Using autofs-4.1.4 with 
+autofs-4.1.4-misc-fixes.patch 
+autofs-4.1.4-multi-parse-fix.patch
+autofs-4.1.4-non-replicated-ping.patch
+patches (slight possibility one of the above is missing, but I'm pretty
+damn sure they're in there).
 
--Jeff
+Mounts are TCP based so I can't even use a spoofed interface to force a
+umount.  
+
+Wondering why the extra / in the path on the umount call as well.  Also
+wondering if there's something in the filer (netapp) wrong that's giving
+some kind of response to the umount that's tickling a bug there.  Not
+much I've found online yet though.
+
+Oh, and umount call shows socks in fd list that don't appear to exist
+anymore:
+:~# ls -l /proc/20302/fd
+total 3
+dr-x------  2 root root  0 May  4 15:26 .
+dr-xr-xr-x  3 root root  0 May  4 12:01 ..
+lrwx------  1 root root 64 May  4 15:26 0 -> /dev/null
+l-wx------  1 root root 64 May  4 15:26 1 -> pipe:[4528730]
+l-wx------  1 root root 64 May  4 15:26 2 -> pipe:[4528730]
+:~ # socklist | grep 4528730
+:~ #
+
+Problem happens on hosts using same autofs daemons with or without
+direct maps enabled.  Not really sure if it's technically an autofs
+issue (unless there's a glitch in how it's calling umount and it's
+timing there) or an NFS layer issue.
+
+SLES9-SP1, kernel 2.6.5-7.147-smp (from suse-9.2 updates) on
+x86_64 hosts.
+
+-- 
+Mike Marion-Unix SysAdmin/Staff Engineer-http://www.qualcomm.com
+Drew Carey: "Look, this is an odd question, but you're kind of cute and you're
+pretty nice to me. Are you drunk? It's OK if you are." => Drew Cary Show.
