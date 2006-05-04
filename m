@@ -1,11 +1,16 @@
-From: "Rigler, Stephen C." <srigler@marathonoil.com>
-Subject: RE: [ANNOUNCE] autofs 5.0.0 beta1
-Date: Thu, 4 May 2006 12:29:54 -0500
-Message-ID: <C3CDA0E3AC8B4E438E94F37D0A20FE71026B10D5@HOUEXC210.mgroupnet.com>
+From: Moshe Kaminsky <kaminsky@math.huji.ac.il>
+Subject: Re: [ANNOUNCE] autofs 5.0.0 beta1
+Date: Thu, 4 May 2006 20:33:52 +0300
+Message-ID: <20060504173352.GB12272@kaminsky>
+References: <Pine.LNX.4.64.0605022329020.10568@raven.themaw.net>
+	<20060503131637.GA30523@kaminsky>
+	<Pine.LNX.4.64.0605032232220.31300@raven.themaw.net>
+	<20060503165542.GB1982@kaminsky>
+	<Pine.LNX.4.64.0605040124240.31510@raven.themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed; boundary="===============3228593551671963649=="
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <Pine.LNX.4.64.0605040124240.31510@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,41 +21,83 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org
+
+
+--===============3228593551671963649==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="4SFOXa2GPu3tIq4H"
+Content-Disposition: inline
+
+
+--4SFOXa2GPu3tIq4H
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+* Ian Kent <raven@themaw.net> [03/05/06 20:45]:
+> On Wed, 3 May 2006, Moshe Kaminsky wrote:
+>=20
+> > * Ian Kent <raven@themaw.net> [03/05/06 18:00]:
+> > > On Wed, 3 May 2006, Moshe Kaminsky wrote:
+> > > > Another question I have: I once asked if it's possible to run the=
+=20
+> > > > actual mount command as the user trying to read the directory,=20
+> > > > instead of root. I was told that this is impossible in version 4.=
+=20
+> > > > Will it be possible now?
+> > >=20
+> > > Do you have a mount that will work for a user?
+> > >=20
+> > > You can use the $USER substitution variable now to mount with a=20
+> > > "user=3D${USER}" option or $UID and $GID with "uid=3D${UID}" and "gid=
+=3D${GID}"=20
+> > > in your map. Will that help?
+> > >=20
+> >=20
+> > I don't think so. What I have in mind is that a user will be able to=20
+> > automount his home directory on a remote machine using sshfs. For this,=
+=20
+> > that user has to actually run the mount command, so that his ~/.ssh is=
+=20
+> > used.
+>=20
+> The problem here is that mount(8) will only allow the "user" option if=20
+> an entry is present in the fstab which defeats the purpose of using=20
+> autofs.
+
+Funny. It appears that you're right. I'm sure it used to work, though=20
+(maybe something changed in the kernel?)
+
+Thanks,
+Moshe
+
+--4SFOXa2GPu3tIq4H
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.3-ecc0.1.6 (GNU/Linux)
+
+iD8DBQFEWjsAkBjmVsKMBeMRAqtHAJ4mFPQKJS9INi6iY++Iv5XeckYaXQCg12QJ
+aTb92C47mA1kyano316Qa5Q=
+=3Fzw
+-----END PGP SIGNATURE-----
+
+--4SFOXa2GPu3tIq4H--
+
+
+--===============3228593551671963649==
 Content-Type: text/plain; charset="us-ascii"
-To: Jeff Moyer <jmoyer@redhat.com>, Ian Kent <raven@themaw.net>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
 
-> -----Original Message-----
-> From: Jeff Moyer [mailto:jmoyer@redhat.com] 
-> Sent: Thursday, May 04, 2006 8:56 AM
-> To: Ian Kent
-> Cc: Rigler, Stephen C.; autofs mailing list
-> Subject: Re: [autofs] [ANNOUNCE] autofs 5.0.0 beta1
-> 
-> raven> and /etc/auto.master exists with a +auto.master it 
-> will probably get
-> raven> it wrong in a strange way. Maybe that's what is happening?
-> 
-> Yeah, I think this is the one exception to the nsswitch rule. 
->  I wonder if
-> it's the same if you have /etc/auto.foo that does a +auto.foo?  May be
-> worth testing that out on another UNIX box to see what happens.
-> 
-> -Jeff
-> 
+--===============3228593551671963649==--
 
-Pretty much standard configuration here on Solaris and Irix is
-to have "automount: files nis" in nsswitch.conf and "+auto.master"
-in the local auto_master file.  I'm not aware if this is what
-the standard automount behavior should be (it's documented in the
-Irix man page for autofs), but we've gotten away with it for years 
-if it's not.
-
-Another nice thing to see would be the "-null" option in auto.master.
-We have machines running clustered filesystems that are also
-exported via NFS from one or two meta-data servers.  The machines
-that see the filesystems locally should not automount the fileystems
-and the "-null" would allow us to exclude them.
-
--Steve
