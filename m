@@ -1,15 +1,11 @@
-From: "Neil Millar" <nmillar@gmail.com>
-Subject: Re: opensuse 10/autofs-4.1.4-6 Automount getting stuck with
-	superblock/time out/no mount found errors
-Date: Fri, 5 May 2006 02:37:57 +0100
-Message-ID: <694d2f6c0605041837s4e87cccfsce78e3038d7d6b9f@mail.gmail.com>
-References: <694d2f6c0605040946u25257f96ga8dbb5f1c24fe1f2@mail.gmail.com>
-	<x491wv9xzfg.fsf@redhat.com>
+From: Ian Kent <raven@themaw.net>
+Subject: RE: [ANNOUNCE] autofs 5.0.0 beta1
+Date: Fri, 5 May 2006 09:37:43 +0800 (WST)
+Message-ID: <Pine.LNX.4.64.0605050935140.2898@raven.themaw.net>
+References: <C3CDA0E3AC8B4E438E94F37D0A20FE71026B10D5@HOUEXC210.mgroupnet.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <x491wv9xzfg.fsf@redhat.com>
-Content-Disposition: inline
+In-Reply-To: <C3CDA0E3AC8B4E438E94F37D0A20FE71026B10D5@HOUEXC210.mgroupnet.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,41 +16,49 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: autofs@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: "Rigler, Stephen C." <srigler@marathonoil.com>
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
-On 04/05/06, Jeff Moyer <jmoyer@redhat.com> wrote:
-> ==> Regarding [autofs] opensuse 10/autofs-4.1.4-6 Automount getting stuck with superblock/time out/no mount found errors; "Neil Millar" <nmillar@gmail.com> adds:
->
-> nmillar> We are having a problem with autofs getting stuck mounting a
-> nmillar> number of directories on a number of machines in a short space of
-> nmillar> time.
+On Thu, 4 May 2006, Rigler, Stephen C. wrote:
 
-> What do the logs on the NFS server show?  If/when you do get debug logs
-> from the automounter, that will certainly help debug the problem.
->
-> -Jeff
->
-> p.s. your auto.master refers to /etc/auto.home, but you only include the
-> contents of the yp map auto.home.
+> 
+> > -----Original Message-----
+> > From: Jeff Moyer [mailto:jmoyer@redhat.com] 
+> > Sent: Thursday, May 04, 2006 8:56 AM
+> > To: Ian Kent
+> > Cc: Rigler, Stephen C.; autofs mailing list
+> > Subject: Re: [autofs] [ANNOUNCE] autofs 5.0.0 beta1
+> > 
+> > raven> and /etc/auto.master exists with a +auto.master it 
+> > will probably get
+> > raven> it wrong in a strange way. Maybe that's what is happening?
+> > 
+> > Yeah, I think this is the one exception to the nsswitch rule. 
+> >  I wonder if
+> > it's the same if you have /etc/auto.foo that does a +auto.foo?  May be
+> > worth testing that out on another UNIX box to see what happens.
+> > 
+> > -Jeff
+> > 
+> 
+> Pretty much standard configuration here on Solaris and Irix is
+> to have "automount: files nis" in nsswitch.conf and "+auto.master"
+> in the local auto_master file.  I'm not aware if this is what
+> the standard automount behavior should be (it's documented in the
+> Irix man page for autofs), but we've gotten away with it for years 
+> if it's not.
+> 
+> Another nice thing to see would be the "-null" option in auto.master.
+> We have machines running clustered filesystems that are also
+> exported via NFS from one or two meta-data servers.  The machines
+> that see the filesystems locally should not automount the fileystems
+> and the "-null" would allow us to exclude them.
 
-I will try and get hold of the server logs.
+It should understand "-null" but the question is whether it works 
+correctly and how it should work. Give a try and let me know how it goes.
 
-I have uploaded 3 autofs debug logs to:
+What would you have in your map in this case?
 
-http://www.dur.ac.uk/n.r.millar/
-
-If you search for timed, failed, and superblock you should see the
-errors. The debug differs slightly from the settings I posted as the
-debug machines were using multi on /data but the rest should be
-the same.
-
-We don't have a /etc/auto.home on these machines, so the autofs
-startup script drops through to just using the auto.home from yp.
-
-Looking at the debug output i'm less convinced now that it is problems
-with automount rather than nfs in general, but the return codes may help
-confirm that?
-
-Thanks,
-Neil.
+Ian
