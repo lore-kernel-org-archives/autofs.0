@@ -1,14 +1,11 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: opensuse 10/autofs-4.1.4-6 Automount getting stuck with
-	superblock/time out/no mount found errors
-Date: Fri, 5 May 2006 09:53:06 +0800 (WST)
-Message-ID: <Pine.LNX.4.64.0605050949570.2898@raven.themaw.net>
-References: <694d2f6c0605040946u25257f96ga8dbb5f1c24fe1f2@mail.gmail.com>
-	<x491wv9xzfg.fsf@redhat.com>
-	<694d2f6c0605041837s4e87cccfsce78e3038d7d6b9f@mail.gmail.com>
+Subject: Re: Umount call getting stuck, hanging nfs?
+Date: Fri, 5 May 2006 09:59:14 +0800 (WST)
+Message-ID: <Pine.LNX.4.64.0605050955571.2898@raven.themaw.net>
+References: <20060504204141.GO27751@cornholio.qualcomm.com>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <694d2f6c0605041837s4e87cccfsce78e3038d7d6b9f@mail.gmail.com>
+In-Reply-To: <20060504204141.GO27751@cornholio.qualcomm.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,51 +18,77 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Neil Millar <nmillar@gmail.com>
+To: Mike Marion <mmarion@qualcomm.com>
 Cc: autofs@linux.kernel.org
 
-On Fri, 5 May 2006, Neil Millar wrote:
+On Thu, 4 May 2006, Mike Marion wrote:
 
-> On 04/05/06, Jeff Moyer <jmoyer@redhat.com> wrote:
-> > ==> Regarding [autofs] opensuse 10/autofs-4.1.4-6 Automount getting stuck
-> > with superblock/time out/no mount found errors; "Neil Millar"
-> > <nmillar@gmail.com> adds:
-> > 
-> > nmillar> We are having a problem with autofs getting stuck mounting a
-> > nmillar> number of directories on a number of machines in a short space of
-> > nmillar> time.
-> 
-> > What do the logs on the NFS server show?  If/when you do get debug logs
-> > from the automounter, that will certainly help debug the problem.
-> > 
-> > -Jeff
-> > 
-> > p.s. your auto.master refers to /etc/auto.home, but you only include the
-> > contents of the yp map auto.home.
-> 
-> I will try and get hold of the server logs.
-> 
-> I have uploaded 3 autofs debug logs to:
-> 
-> http://www.dur.ac.uk/n.r.millar/
-> 
-> If you search for timed, failed, and superblock you should see the
-> errors. The debug differs slightly from the settings I posted as the
-> debug machines were using multi on /data but the rest should be
-> the same.
-> 
-> We don't have a /etc/auto.home on these machines, so the autofs
-> startup script drops through to just using the auto.home from yp.
-> 
-> Looking at the debug output i'm less convinced now that it is problems
-> with automount rather than nfs in general, but the return codes may help
-> confirm that?
+> Seeing some of our hosts in only one site having problems with hangs
+> occurring.  Seems to be to same filer and even same paths, but what I
+> see is odd.  The kernel rpciod thread is even stuck in state D,
+> seemingly because the umount call is.  
 
-Yes. That superblock error is a bit suspicious.
+I think that might be the other way around.
 
-However, before we go further please check to see if your autofs package 
-includes the patch:
+> 
+> i.e.
+> root     20302  1.2  0.0  2468  584 ?        D    12:01   2:39
+> /bin/umount //usr/local/projects/dsp/qdsp6
+> 
+> root      6270  0.0  0.0     0    0 ?        D    Apr28   3:17 [rpciod]
+> 
+> unfortunately, once this happens, any new mounts will fail.  Can't even
+> stat the path above via df.  Basically the whole NFS layer is stuck.
 
-http://www.kernel.org/pub/linux/daemons/autofs/v4/autofs-4.1.4-locking-fix-1.patch
+Tell us what the maps look like.
 
-Ian
+> 
+> Using autofs-4.1.4 with 
+> autofs-4.1.4-misc-fixes.patch 
+> autofs-4.1.4-multi-parse-fix.patch
+> autofs-4.1.4-non-replicated-ping.patch
+> patches (slight possibility one of the above is missing, but I'm pretty
+> damn sure they're in there).
+> 
+> Mounts are TCP based so I can't even use a spoofed interface to force a
+> umount.  
+> 
+> Wondering why the extra / in the path on the umount call as well.  Also
+> wondering if there's something in the filer (netapp) wrong that's giving
+> some kind of response to the umount that's tickling a bug there.  Not
+> much I've found online yet though.
+
+The extra "/" will be a bug but it gets ignored by the kernel in this 
+case.
+
+> 
+> Oh, and umount call shows socks in fd list that don't appear to exist
+> anymore:
+> :~# ls -l /proc/20302/fd
+> total 3
+> dr-x------  2 root root  0 May  4 15:26 .
+> dr-xr-xr-x  3 root root  0 May  4 12:01 ..
+> lrwx------  1 root root 64 May  4 15:26 0 -> /dev/null
+> l-wx------  1 root root 64 May  4 15:26 1 -> pipe:[4528730]
+> l-wx------  1 root root 64 May  4 15:26 2 -> pipe:[4528730]
+> :~ # socklist | grep 4528730
+> :~ #
+> 
+> Problem happens on hosts using same autofs daemons with or without
+> direct maps enabled.  Not really sure if it's technically an autofs
+> issue (unless there's a glitch in how it's calling umount and it's
+> timing there) or an NFS layer issue.
+> 
+> SLES9-SP1, kernel 2.6.5-7.147-smp (from suse-9.2 updates) on
+> x86_64 hosts.
+> 
+> -- 
+> Mike Marion-Unix SysAdmin/Staff Engineer-http://www.qualcomm.com
+> Drew Carey: "Look, this is an odd question, but you're kind of cute and you're
+> pretty nice to me. Are you drunk? It's OK if you are." => Drew Cary Show.
+> 
+> _______________________________________________
+> autofs mailing list
+> autofs@linux.kernel.org
+> http://linux.kernel.org/mailman/listinfo/autofs
+> 
