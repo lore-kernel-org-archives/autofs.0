@@ -1,16 +1,15 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [ANNOUNCE] autofs 5.0.0 beta1
-Date: Fri, 5 May 2006 09:32:45 +0800 (WST)
-Message-ID: <Pine.LNX.4.64.0605050924040.2898@raven.themaw.net>
-References: <Pine.LNX.4.64.0605022329020.10568@raven.themaw.net>
-	<20060503131637.GA30523@kaminsky>
-	<Pine.LNX.4.64.0605032232220.31300@raven.themaw.net>
-	<20060503165542.GB1982@kaminsky>
-	<Pine.LNX.4.64.0605040124240.31510@raven.themaw.net>
-	<20060504173352.GB12272@kaminsky>
+From: "Neil Millar" <nmillar@gmail.com>
+Subject: Re: opensuse 10/autofs-4.1.4-6 Automount getting stuck with
+	superblock/time out/no mount found errors
+Date: Fri, 5 May 2006 02:37:57 +0100
+Message-ID: <694d2f6c0605041837s4e87cccfsce78e3038d7d6b9f@mail.gmail.com>
+References: <694d2f6c0605040946u25257f96ga8dbb5f1c24fe1f2@mail.gmail.com>
+	<x491wv9xzfg.fsf@redhat.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20060504173352.GB12272@kaminsky>
+In-Reply-To: <x491wv9xzfg.fsf@redhat.com>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,49 +20,41 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Moshe Kaminsky <kaminsky@math.huji.ac.il>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: autofs@linux.kernel.org
 
-On Thu, 4 May 2006, Moshe Kaminsky wrote:
+On 04/05/06, Jeff Moyer <jmoyer@redhat.com> wrote:
+> ==> Regarding [autofs] opensuse 10/autofs-4.1.4-6 Automount getting stuck with superblock/time out/no mount found errors; "Neil Millar" <nmillar@gmail.com> adds:
+>
+> nmillar> We are having a problem with autofs getting stuck mounting a
+> nmillar> number of directories on a number of machines in a short space of
+> nmillar> time.
 
-> * Ian Kent <raven@themaw.net> [03/05/06 20:45]:
-> > On Wed, 3 May 2006, Moshe Kaminsky wrote:
-> > 
-> > > * Ian Kent <raven@themaw.net> [03/05/06 18:00]:
-> > > > On Wed, 3 May 2006, Moshe Kaminsky wrote:
-> > > > > Another question I have: I once asked if it's possible to run the 
-> > > > > actual mount command as the user trying to read the directory, 
-> > > > > instead of root. I was told that this is impossible in version 4. 
-> > > > > Will it be possible now?
-> > > > 
-> > > > Do you have a mount that will work for a user?
-> > > > 
-> > > > You can use the $USER substitution variable now to mount with a 
-> > > > "user=${USER}" option or $UID and $GID with "uid=${UID}" and "gid=${GID}" 
-> > > > in your map. Will that help?
-> > > > 
-> > > 
-> > > I don't think so. What I have in mind is that a user will be able to 
-> > > automount his home directory on a remote machine using sshfs. For this, 
-> > > that user has to actually run the mount command, so that his ~/.ssh is 
-> > > used.
-> > 
-> > The problem here is that mount(8) will only allow the "user" option if 
-> > an entry is present in the fstab which defeats the purpose of using 
-> > autofs.
-> 
-> Funny. It appears that you're right. I'm sure it used to work, though 
-> (maybe something changed in the kernel?)
+> What do the logs on the NFS server show?  If/when you do get debug logs
+> from the automounter, that will certainly help debug the problem.
+>
+> -Jeff
+>
+> p.s. your auto.master refers to /etc/auto.home, but you only include the
+> contents of the yp map auto.home.
 
-All this checking is done in mount(8). I've investigated this before when 
-checking this type of question. Maybe yours.
+I will try and get hold of the server logs.
 
-Anyway, after thinking about this and checking out sshfs this is not a 
-problem. Getting the sshfs mount done as the user (now we know the 
-username) would be possible by writting a simple mount_sshfs.c module but 
-it looks like the resulting mount can't be un-mounted by umount. Is that 
-right?
+I have uploaded 3 autofs debug logs to:
 
-Ian
+http://www.dur.ac.uk/n.r.millar/
+
+If you search for timed, failed, and superblock you should see the
+errors. The debug differs slightly from the settings I posted as the
+debug machines were using multi on /data but the rest should be
+the same.
+
+We don't have a /etc/auto.home on these machines, so the autofs
+startup script drops through to just using the auto.home from yp.
+
+Looking at the debug output i'm less convinced now that it is problems
+with automount rather than nfs in general, but the return codes may help
+confirm that?
+
+Thanks,
+Neil.
