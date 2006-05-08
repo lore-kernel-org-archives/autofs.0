@@ -1,16 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: opensuse 10/autofs-4.1.4-6 Automount getting stuck with
-	superblock/time out/no mount found errors
-Date: Fri, 5 May 2006 10:47:56 +0800 (WST)
-Message-ID: <Pine.LNX.4.64.0605051032010.6748@raven.themaw.net>
-References: <694d2f6c0605040946u25257f96ga8dbb5f1c24fe1f2@mail.gmail.com>
-	<x491wv9xzfg.fsf@redhat.com>
-	<694d2f6c0605041837s4e87cccfsce78e3038d7d6b9f@mail.gmail.com>
-	<Pine.LNX.4.64.0605050949570.2898@raven.themaw.net>
-	<694d2f6c0605041913s58953350jdb737123b7a21bdb@mail.gmail.com>
+From: "Rigler, Stephen C." <srigler@marathonoil.com>
+Subject: RE: [ANNOUNCE] autofs 5.0.0 beta1
+Date: Mon, 8 May 2006 06:51:04 -0500
+Message-ID: <C3CDA0E3AC8B4E438E94F37D0A20FE71026B10D8@HOUEXC210.mgroupnet.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <694d2f6c0605041913s58953350jdb737123b7a21bdb@mail.gmail.com>
+Content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,53 +16,45 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Neil Millar <nmillar@gmail.com>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: Ian Kent <raven@themaw.net>
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
-On Fri, 5 May 2006, Neil Millar wrote:
 
-> On 05/05/06, Ian Kent <raven@themaw.net> wrote:
-> > On Fri, 5 May 2006, Neil Millar wrote:
-> > 
-> > > Looking at the debug output i'm less convinced now that it is problems
-> > > with automount rather than nfs in general, but the return codes may help
-> > > confirm that?
-> > 
-> > Yes. That superblock error is a bit suspicious.
-> > 
-> > However, before we go further please check to see if your autofs package
-> > includes the patch:
-> > 
-> > http://www.kernel.org/pub/linux/daemons/autofs/v4/autofs-4.1.4-locking-fix-1.patch
+> -----Original Message-----
+> From: Ian Kent [mailto:raven@themaw.net] 
+> Sent: Thursday, May 04, 2006 8:38 PM
+> To: Rigler, Stephen C.
+> Cc: Jeff Moyer; autofs mailing list
+> Subject: RE: [autofs] [ANNOUNCE] autofs 5.0.0 beta1
 > 
-> The suse package doesn't appear to have that patch included. Should
-> I try that?
+> > Another nice thing to see would be the "-null" option in 
+> auto.master.
+> > We have machines running clustered filesystems that are also
+> > exported via NFS from one or two meta-data servers.  The machines
+> > that see the filesystems locally should not automount the fileystems
+> > and the "-null" would allow us to exclude them.
+> 
+> It should understand "-null" but the question is whether it works 
+> correctly and how it should work. Give a try and let me know 
+> how it goes.
+> 
+> What would you have in your map in this case?
+> 
+> Ian
 
-I don't think it will solve the problem but I think some of the messages 
-are because the locking is also failing. OTOH the locking could be timing 
-out because NFS umount is blocked.
+"-null" seems to be working fine.
 
-I'd add it and see if we can get rid of some of the error messages and 
-maybe get closer to what's actually happening.
+In my case, my /etc/auto.master has "+yp:auto.master" and then
+"/somepath -null" to exclude an indirect mount or "/some/path -null"
+to exclude a direct mount.  This is the inverse of the Solaris and
+Irix boxes we handle where the "+auto.master" is the last line in
+the local file.  I have not tried it with an actual filesystem 
+mounted at the mountpoint I'm excluding.
 
-Unfortunately, the lock is meant to prevent corruption of /etc/mtab and 
-because it's shared by all mounts and umounts it can't be specific to 
-individual mounts so it affects all mounts.
+The only inconsistency I've noticed if I remove the "-null" from
+an indirect mount I need to restart automount (reload doesn't seem
+to pick it back up).  "Reload" does work when I remove the "-null"
+from a direct mount.
 
-I'd add it anyway.
-
-Another way to eliminate unrelated error messages might be to disable the 
-mount locking using:
-
-http://www.kernel.org/pub/linux/daemons/autofs/v4/autofs-4.1.4-configureable-locking.patch
-
-but you will need to be carefull to ensure that util-linux mount/umount 
-locking is working. SuSE might already have a patched util-linux. See the 
-patch for more information. The reason this is better is because it moves 
-the locking of mtab to a much smaller window so the hung mount will not 
-have taken the lock since it probably hasn't umounted the file system yet. 
-So other unrelated mount/umounts won't also then fail.
-
-Ian
+-Steve
