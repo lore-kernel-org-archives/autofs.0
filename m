@@ -1,14 +1,10 @@
-From: Guillaume Rousse <Guillaume.Rousse@inria.fr>
-Subject: Re: [ANNOUNCE] autofs 5.0.0 beta2
-Date: Thu, 18 May 2006 16:56:52 +0200
-Message-ID: <446C8B34.5000602@inria.fr>
-References: <Pine.LNX.4.64.0605091848390.12829@raven.themaw.net>	<446251C5.5070407@inria.fr>
-	<x49y7x12vml.fsf@redhat.com>	<446C78F9.2080403@inria.fr>
-	<x49mzdfjt3g.fsf@segfault.boston.redhat.com>
+From: Daniel Qarras <dqarras@yahoo.com>
+Subject: AutoFS Problems with Laptops
+Date: Fri, 19 May 2006 01:17:03 -0700 (PDT)
+Message-ID: <20060519081703.10370.qmail@web36805.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <x49mzdfjt3g.fsf@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,37 +15,55 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: autofs@linux.kernel.org
 
-Jeff Moyer wrote:
-> ==> Regarding Re: [autofs] [ANNOUNCE] autofs 5.0.0 beta2; Guillaume Rousse <Guillaume.Rousse@inria.fr> adds:
-> 
-> Guillaume.Rousse> I couldn't test it really yet, as mandriva development
-> Guillaume.Rousse> kernel is still 2.6.14, however here are a few remarks:
-> Guillaume.Rousse> First, stripping binaries by default, especially during
-> Guillaume.Rousse> compilation, is opposite behaviour of standard
-> Guillaume.Rousse> autotools-based procedure, where it only occurs if you
-> Guillaume.Rousse> install with "make stripinstall". I need to have debug
-> Guillaume.Rousse> symbols present when building a package, as they are
-> Guillaume.Rousse> automatically for extracting them in a separate debug
-> Guillaume.Rousse> package. I've found that "make DEBUG=1" would prevent
-> Guillaume.Rousse> stripping, but it also defines an additional CFLAG with
-> Guillaume.Rousse> unknown result :/
->>> Try the attached patch.  It was made against the 4.1.3 Red Hat packages,
->>> but you get the idea.  Basically, "make -DDONTSTRIP."
-> 
-> Guillaume.Rousse> I can achieve the same result without the patch with make
-> Guillaume.Rousse> CFLAGS="-O2 -g" LDFLAGS="-g" STRIP=":" However, I find a
-> Guillaume.Rousse> bit cumbersome to need top pass arguments both to
-> Guillaume.Rousse> configure and to make invocation. And I wanted to point
-> Guillaume.Rousse> out it was not standard behaviour.
-> 
-> Well, patches are welcome, I'm sure.  =)
-Even one that would replace existing Makefile.in with automake-generated 
-ones ? That's the easiest way I know :)
+Hi!
 
-> I've still not gotten to the hesiod patch.  I hope to do it by the end of
-> the week.
-Don't worry, there is no emergency at all for me, as I still don't have 
-the correct kernel to test autofs 5 anyway :/
+This is probably very easy but I can neither figure it out or use
+Google.. Anyway, this is what I want to achieve:
+
+Our local network (10.0.0.0) server exports /home and /work directories
+and desktop workstations with static IPs can mount them all ok over
+NFS. I have a laptop that is using DHCP and autofs. In our local
+network autofs mounts work all ok with the config below.
+
+However, when I go out to a different network where those directories
+are not available, I would like autofs to figure that out and not to
+try mount them and cause jams. What should the script output if those
+mounts are available?
+
+I am asking this because I've tried almost everything and I am just
+getting bizarre results like directory /var/autofs/(null)/home,
+/var/autofs/hithere/work, etc. I want to mount available mounts under
+/var/autofs so that they would be /var/autofs/home and /var/autofs/work
+but that seems not to work.
+
+The autofs configuration that works perfectly in our local network is
+the following.
+
+/etc/auto.master:
+
+/var/autofs /etc/auto.local --timeout=30,--ghost
+
+And /etc/auto.local:
+
+home -fstype=nfs,rw,soft,intr 10.0.0.1:/home
+work -fstype=nfs,rw,soft,intr 10.0.0.1:/work
+
+But, as said, if I turn auto.local as an executable script that outputs
+lines like those I just get those silly results with mounts.
+
+Thanks,
+
+Dan.
+
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
+
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
