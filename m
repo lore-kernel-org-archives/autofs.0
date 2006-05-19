@@ -1,10 +1,13 @@
-From: Daniel Qarras <dqarras@yahoo.com>
-Subject: AutoFS Problems with Laptops
-Date: Fri, 19 May 2006 01:17:03 -0700 (PDT)
-Message-ID: <20060519081703.10370.qmail@web36805.mail.mud.yahoo.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [ANNOUNCE] autofs 5.0.0 beta2
+Date: Fri, 19 May 2006 21:31:37 +0800 (WST)
+Message-ID: <Pine.LNX.4.64.0605192130560.4364@raven.themaw.net>
+References: <Pine.LNX.4.64.0605091848390.12829@raven.themaw.net>
+	<446251C5.5070407@inria.fr> <x49y7x12vml.fsf@redhat.com>
+	<446C78F9.2080403@inria.fr>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <446C78F9.2080403@inria.fr>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -15,55 +18,19 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: autofs@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Guillaume Rousse <Guillaume.Rousse@inria.fr>
+Cc: autofs@linux.kernel.org
 
-Hi!
+On Thu, 18 May 2006, Guillaume Rousse wrote:
 
-This is probably very easy but I can neither figure it out or use
-Google.. Anyway, this is what I want to achieve:
+> > 
+> > Why would you apply 4.1.x patches to 5.x?  *Quite* a lot has changed.  I
+> > suggest dropping the patches.
+> Mainly because I don't know what they are meant for, I'm taking over package
+> maintainership.
 
-Our local network (10.0.0.0) server exports /home and /work directories
-and desktop workstations with static IPs can mount them all ok over
-NFS. I have a laptop that is using DHCP and autofs. In our local
-network autofs mounts work all ok with the config below.
+Distribution?
 
-However, when I go out to a different network where those directories
-are not available, I would like autofs to figure that out and not to
-try mount them and cause jams. What should the script output if those
-mounts are available?
-
-I am asking this because I've tried almost everything and I am just
-getting bizarre results like directory /var/autofs/(null)/home,
-/var/autofs/hithere/work, etc. I want to mount available mounts under
-/var/autofs so that they would be /var/autofs/home and /var/autofs/work
-but that seems not to work.
-
-The autofs configuration that works perfectly in our local network is
-the following.
-
-/etc/auto.master:
-
-/var/autofs /etc/auto.local --timeout=30,--ghost
-
-And /etc/auto.local:
-
-home -fstype=nfs,rw,soft,intr 10.0.0.1:/home
-work -fstype=nfs,rw,soft,intr 10.0.0.1:/work
-
-But, as said, if I turn auto.local as an executable script that outputs
-lines like those I just get those silly results with mounts.
-
-Thanks,
-
-Dan.
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+Ian
