@@ -1,12 +1,11 @@
-From: Daniel Qarras <dqarras@yahoo.com>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: AutoFS Problems with Laptops
-Date: Mon, 22 May 2006 02:11:52 -0700 (PDT)
-Message-ID: <20060522091152.51175.qmail@web36802.mail.mud.yahoo.com>
-References: <44717133.3000304@themaw.net>
+Date: Mon, 22 May 2006 18:45:43 +0800 (WST)
+Message-ID: <Pine.LNX.4.64.0605221844210.27006@raven.themaw.net>
+References: <20060522091152.51175.qmail@web36802.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <44717133.3000304@themaw.net>
+In-Reply-To: <20060522091152.51175.qmail@web36802.mail.mud.yahoo.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,61 +16,45 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: Ian Kent <raven@themaw.net>
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Daniel Qarras <dqarras@yahoo.com>
 Cc: autofs@linux.kernel.org
 
-> >> A script should just output the map entry without the key. Like
-> >> -fstype=nfs,rw,soft,intr 10.0.0.1:/work
+On Mon, 22 May 2006, Daniel Qarras wrote:
+
+> > >> A script should just output the map entry without the key. Like
+> > >> -fstype=nfs,rw,soft,intr 10.0.0.1:/work
+> > > 
+> > > Unfortunately, this still creates (null) directory and I can even
+> > go to
+> > > /var/autofs/whatever to see contents of /work. And if the script
+> > > outputs both /work and /home I see only either of them, depending
+> > the
+> > > order the entries are printed and if they are on the same line or
+> > in
+> > > two lines.
 > > 
-> > Unfortunately, this still creates (null) directory and I can even
-> go to
-> > /var/autofs/whatever to see contents of /work. And if the script
-> > outputs both /work and /home I see only either of them, depending
-> the
-> > order the entries are printed and if they are on the same line or
-> in
-> > two lines.
+> > That's interesting.
+> > 
+> > You mean you get a directory "(null)" with no mount?
+> > That shouldn't happen because the the "(null)" key shouldn't be found
+> > and so shouldn't have a mount entry associated with it. If the script
+> > needs to return a fail on the lookup it should return 1, 0 on
+> > success.
 > 
-> That's interesting.
+> The "(null)" directory has contents of /home. I now modified the script
+> so that it is just like this:
 > 
-> You mean you get a directory "(null)" with no mount?
-> That shouldn't happen because the the "(null)" key shouldn't be found
-> and so shouldn't have a mount entry associated with it. If the script
-> needs to return a fail on the lookup it should return 1, 0 on
-> success.
+> #!/bin/sh
+> echo -fstype=nfs,rw,soft,intr 10.0.0.1:/home
+> echo -fstype=nfs,rw,soft,intr 10.0.0.1:/work
 
-The "(null)" directory has contents of /home. I now modified the script
-so that it is just like this:
+This is not right.
 
-#!/bin/sh
-echo -fstype=nfs,rw,soft,intr 10.0.0.1:/home
-echo -fstype=nfs,rw,soft,intr 10.0.0.1:/work
+The script is passed the key and you must emit the mount corresponding to 
+that key.
 
-The (null) directory is visible when I say:
+Look at auto.net for an example.
 
-cd /var/autofs
-ls
-
-It also gave me access to /home via any directory but not to /work.
-meaning that I see contents of /home via these directories:
-
-/var/autofs/home
-/var/autofs/test
-/var/autofs/work
-
-Cheers,
-
-Dan.
-
-
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
-
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+Ian
