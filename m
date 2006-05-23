@@ -1,62 +1,55 @@
-From: Daniel Qarras <dqarras@yahoo.com>
-Subject: Re: AutoFS Problems with Laptops
-Date: Mon, 22 May 2006 04:51:06 -0700 (PDT)
-Message-ID: <20060522115106.99887.qmail@web36801.mail.mud.yahoo.com>
-References: <Pine.LNX.4.64.0605221844210.27006@raven.themaw.net>
+From: Ian Kent <raven@themaw.net>
+Subject: [ANNOUNCE] autofs 5.0.0 beta3
+Date: Tue, 23 May 2006 14:48:03 +0800 (WST)
+Message-ID: <Pine.LNX.4.64.0605231446270.4758@raven.themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.0605221844210.27006@raven.themaw.net>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://hera.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
-
-> > #!/bin/sh
-> > echo -fstype=nfs,rw,soft,intr 10.0.0.1:/home
-> > echo -fstype=nfs,rw,soft,intr 10.0.0.1:/work
-> 
-> This is not right.
-> 
-> The script is passed the key and you must emit the mount
-> corresponding to that key.
-> 
-> Look at auto.net for an example.
-
-If I run auto.net from command line with parameter 10.0.0.1 it outputs:
-
-root@laptop# /etc/auto.net 10.0.0.1
--fstype=nfs,hard,intr,nodev,nosuid \
-        /home 10.0.0.1:/home \
-        /work 10.0.0.1:/work
-
-With any other parameter I just get errors. But when I use auto.net or
-my own script to print $1 to /tmp/foo I see that $1 is (null) when
-doing ls /var/autofs or home when doind cd /var/autofs/home. Naturally,
-nothing gets mounted then.
-
-Too bad that RH Bugzilla is still down and I can't check whether
-there's already a bug report about this already.
-
-Thanks.
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
 
+Hi all,
 
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+It's time for an updated beta again.
 
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+autofs
+======
+
+The package can be found at:
+
+ftp://ftp.kernel.org/pub/linux/daemons/autofs/v5
+
+It is autofs-5.0.0_beta3.tar.[gz|bz2]
+
+No source rpm is there as it can be produced by using:
+
+rpmbuild -ts autofs-5.0.0_beta3.tar.gz
+
+and the binary rpm by using:
+
+rpmbuild -tb autofs-5.0.0_beta3.tar.gz
+
+See the INSTALL file for information about configure options and
+kernel requirements.
+
+Here are the entries from the CHANGELOG which outline the updates:
+
+23/5/2006 autofs-5.0.0_beta3
+----------------------------
+- add config and compile time info to output of -V.
+- add "-Dvar=value" comand line option to define global
+  macro definitions.
+- remove "nofg" and "bg" options as they aren't relevant for
+  autofs.
+- fix handling of numeric ip address strings in name translation.
+- fix error handling for gethostbyname_r.
+- change option processing to be inline with standard automount
+  option processing. ie. mount entry options override global
+  mount options.
+- replicated server selection re-write.
+
+Ian
+
