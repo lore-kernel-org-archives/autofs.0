@@ -1,44 +1,51 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [dubtsov@iis.nsk.su: Bug#319904: autofs: workaround]
-Date: Wed, 24 May 2006 14:14:13 -0400
-Message-ID: <x4964jvcmtm.fsf@segfault.boston.redhat.com>
-References: <20060523104544.GA3982@uio.no>
-	<1148482569.8182.33.camel@raven.themaw.net>
-	<20060524174858.GB9644@uio.no>
+From: Trond Myklebust <trond.myklebust@fys.uio.no>
+Subject: Re: [autofs] Re: [NFS] Re: [RFC] Multiple server selection and
+	replicated mount failover
+Date: Wed, 24 May 2006 14:31:41 -0400
+Message-ID: <1148495501.11732.8.camel@lade.trondhjem.org>
+References: <Pine.LNX.4.64.0605021257500.3868@raven.themaw.net>
+	 <Pine.LNX.4.64.0605241240200.3730@raven.themaw.net>
+	 <1148488156.5872.42.camel@lade.trondhjem.org>
+	 <x49ac97cnja.fsf@segfault.boston.redhat.com>
 Mime-Version: 1.0
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20060524174858.GB9644@uio.no> (Steinar H. Gunderson's message
-	of "Wed, 24 May 2006 19:48:58 +0200")
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://hera.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <x49ac97cnja.fsf@segfault.boston.redhat.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+List-Id: <autofs.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: Ian Kent <raven@themaw.net>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>, nfs@lists.sourceforge.net
 
-==> Regarding Re: [autofs] [dubtsov@iis.nsk.su: Bug#319904: autofs: workaround]; "Steinar H. Gunderson" <sgunderson@bigfoot.com> adds:
+On Wed, 2006-05-24 at 13:58 -0400, Jeff Moyer wrote:
+> ==> Regarding [autofs] Re: [NFS] Re: [RFC] Multiple server selection and replicated mount failover; Trond Myklebust <trond.myklebust@fys.uio.no> adds:
+> 
+> trond.myklebust> On Wed, 2006-05-24 at 13:05 +0800, Ian Kent wrote:
+> >> > 4) How does NFS v4 fit into this picture as I believe that some
+> >> >    of this functionality is included within the protocol.
+> >> 
+> >> And this.
+> >> 
+> >> NFS v4 appears quite different so should I be considering this for v2 and 
+> >> v3 only?
+> 
+> trond.myklebust> NFSv4 has full support for migration/replication in the
+> trond.myklebust> protocol. If a filesystem fails on a given server, then
+> trond.myklebust> the server itself will tell the client where it can find
+> trond.myklebust> the replicas. There should be no need to provide that
+> trond.myklebust> information at mount time.
+> 
+> And what happens when the server disappears?
 
-sgunderson> On Wed, May 24, 2006 at 10:56:09PM +0800, Ian Kent wrote:
->> Is the system using HAL?
+There are 2 strategies for dealing with that:
 
-sgunderson> According to the user, it is. Should this really affect autofs
-sgunderson> any, though? I know there have been problems with autofs+hal
-sgunderson> earlier, but I hope there's a better solution than just
-sgunderson> removing hal? :-)
+Firstly, we can maintain a cache of the list of replica volumes (we can
+request the list of replicas when we mount the original volume).
 
-As Ian said, I think in this thread, there is a fix in the works for hal.
-If the system supports hal, I really think that hal should be used for
-removable media, not autofs.
+Secondly, there are plans to add a backup list of failover servers in a
+specialised DNS record. This strategy could be made to work for NFSv2/v3
+too.
 
-At any rate, turning off hal will help to determine if this is a
-hal-related issue.
+Cheers,
+  Trond
 
--Jeff
