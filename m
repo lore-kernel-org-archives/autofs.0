@@ -1,58 +1,37 @@
-From: Dan Stromberg <strombrg@dcs.nac.uci.edu>
-Subject: Re: [NFS] Re: [RFC] Multiple server selection and replicated mount
-	failover
-Date: Wed, 24 May 2006 13:52:48 -0700
-Message-ID: <1148503968.4900.130.camel@seki.nac.uci.edu>
-References: <Pine.LNX.4.64.0605021257500.3868@raven.themaw.net>
-	 <Pine.LNX.4.64.0605241240200.3730@raven.themaw.net>
-	 <44745972.2010305@redhat.com>  <6cpsi36tkf.fsf@sumu.lexma.ibm.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [dubtsov@iis.nsk.su: Bug#319904: autofs: workaround]
+Date: Thu, 25 May 2006 09:03:26 +0800
+Message-ID: <1148519006.2790.2.camel@raven.themaw.net>
+References: <20060523104544.GA3982@uio.no>
+	<1148482569.8182.33.camel@raven.themaw.net>
+	<20060524174858.GB9644@uio.no>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <6cpsi36tkf.fsf@sumu.lexma.ibm.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <20060524174858.GB9644@uio.no>
 List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://hera.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: "John T. Kohl" <jtk@us.ibm.com>
-Cc: Peter Staubach <staubach@redhat.com>, Ian Kent <raven@themaw.net>, nfs@lists.sourceforge.net, linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>, strombrg@dcs.nac.uci.edu
+To: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
+Cc: autofs@linux.kernel.org
 
-On Wed, 2006-05-24 at 16:45 -0400, John T. Kohl wrote:
-
+On Wed, 2006-05-24 at 19:48 +0200, Steinar H. Gunderson wrote:
+> On Wed, May 24, 2006 at 10:56:09PM +0800, Ian Kent wrote:
+> > Is the system using HAL?
 > 
-> If you have multiple processes talking to different server replicas, can
-> you then get cases where the processes aren't sharing the same files given
-> the same name?
+> According to the user, it is. Should this really affect autofs any, though? I
+> know there have been problems with autofs+hal earlier, but I hope there's a
+> better solution than just removing hal? :-)
 
-Sounds like it to me.
+Yes. John Palmieri has developed a patch for this.
+Hopefully it will be available in updated versions of HAL soonish.
 
-> Process "A" looks up /mount/a/b/c/file.c (using server 1) opens it and
-> starts working on it.  It then sits around doing nothing for a while.
-> 
-> Process "B" cd's to /mount/a/b, gets a timeout, fails over to server 2,
-> and then looks up "c/file.c" which will be referencing the object on
-> server 2 ?
-
-Yup.
-
-> A & B then try locking to cooperate...
-
-Yup.
-
-To get good locking semantics, you'll probably need a distributed
-filesystem like GFS or Lustre.
-
-> Are replicas only useful for read-only copies?  If they're read-only, do
-> locks even make sense?
-
-Yes, they can - imagine a software system that wants to make sure only
-one process is accessing some data at a time.  The lock might be in one
-filesystem, but the data might be in another.  Or you might be reading
-from a device that has really expensive seeks (a DVD comes to mind), so
-you want to be sure that only one thing is reading from it at a time.
-There are other possible scenarios I imagine, but many folks may be able
-to live without any of them.  :)
-
-
-
-
-
+Ian
