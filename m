@@ -1,78 +1,136 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [autofs] Re: [NFS] Re: [RFC] Multiple server selection and
-	replicated mount failover
-Date: Thu, 25 May 2006 11:56:26 +0800
-Message-ID: <1148529386.2704.22.camel@raven.themaw.net>
-References: <Pine.LNX.4.64.0605021257500.3868@raven.themaw.net>
-	 <Pine.LNX.4.64.0605241240200.3730@raven.themaw.net>
-	 <1148488156.5872.42.camel@lade.trondhjem.org>
-	 <x49ac97cnja.fsf@segfault.boston.redhat.com>
-	 <1148495501.11732.8.camel@lade.trondhjem.org>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: [ANNOUNCE] autofs 5.0.0 beta2
+Date: Fri, 26 May 2006 18:56:47 -0400
+Message-ID: <x49lksoz974.fsf@segfault.boston.redhat.com>
+References: <Pine.LNX.4.64.0605091848390.12829@raven.themaw.net>
+	<446251C5.5070407@inria.fr> <x49y7x12vml.fsf@redhat.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <1148495501.11732.8.camel@lade.trondhjem.org>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <x49y7x12vml.fsf@redhat.com> (Jeff Moyer's message of "Tue, 16
+	May 2006 23:11:30 -0400")
 List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://hera.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: Jeff Moyer <jmoyer@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>, nfs@lists.sourceforge.net
-
-On Wed, 2006-05-24 at 14:31 -0400, Trond Myklebust wrote:
-> On Wed, 2006-05-24 at 13:58 -0400, Jeff Moyer wrote:
-> > ==> Regarding [autofs] Re: [NFS] Re: [RFC] Multiple server selection and replicated mount failover; Trond Myklebust <trond.myklebust@fys.uio.no> adds:
-> > 
-> > trond.myklebust> On Wed, 2006-05-24 at 13:05 +0800, Ian Kent wrote:
-> > >> > 4) How does NFS v4 fit into this picture as I believe that some
-> > >> >    of this functionality is included within the protocol.
-> > >> 
-> > >> And this.
-> > >> 
-> > >> NFS v4 appears quite different so should I be considering this for v2 and 
-> > >> v3 only?
-> > 
-> > trond.myklebust> NFSv4 has full support for migration/replication in the
-> > trond.myklebust> protocol. If a filesystem fails on a given server, then
-> > trond.myklebust> the server itself will tell the client where it can find
-> > trond.myklebust> the replicas. There should be no need to provide that
-> > trond.myklebust> information at mount time.
-> > 
-> > And what happens when the server disappears?
-> 
-> There are 2 strategies for dealing with that:
-> 
-> Firstly, we can maintain a cache of the list of replica volumes (we can
-> request the list of replicas when we mount the original volume).
-> 
-> Secondly, there are plans to add a backup list of failover servers in a
-> specialised DNS record. This strategy could be made to work for NFSv2/v3
-> too.
-> 
-
-I see. That would work fine.
-
-Personally, I'm not keen on using DNS for this as it adds another
-source, separate from the original source, that needs to be kept up to
-date.
-
-Unfortunately, in many environments it's not possible to deploy new
-services, often for several years after they become available. So there
-is a need to do this for v2 and v3 in the absence of v4. We at least
-need to support the mount syntax used in other industry OSs to round out
-the v2 and v3 implementation, so using mount seems the logical thing to
-do. I think this would also fit in well with v4 in that, as you mention
-above, the replica information needs to be gathered at mount time.
-
-I have the opportunity to spend some time on this now.
-
-Ideally I would like to fit in with the work that is being done for v4
-as much as possible. For example I noticed references to a struct
-nfs_fs_locations in you patch set which may be useful for the
-information I need. However, I haven't spotted anything that relates to
-fail detection and fail over itself (ok I know you said your working on
-it) so perhaps I can contribute to this in a way that could help your v4
-work. So what's you plan for this?
-
-Ian
+Content-Transfer-Encoding: 7bit
+To: Guillaume Rousse <Guillaume.Rousse@inria.fr>
+Cc: autofs@linux.kernel.org, raven@themaw.net
 
 
+Guillaume.Rousse> Third, the following patches still apply, but I got no
+Guillaume.Rousse> clue about their usefulness: -
+
+Guillaume.Rousse> autofs-4.1.0-hesiod-bind.patch
+
+jmoyer> I'll do some digging on this one tomorrow.
+
+OK, it took me a while longer than expected to get to this.  Sorry!
+
+The hesiod resolve patch is wanted.  Actually, I think in v5 we can just
+get rid of the old calls to hes_resolve.
+
+If you look at the implementation that currently is there in lookup_hesiod.c,
+it has some bugs.  It will free a pointer that the library will
+subsequently try to free, and it also leaks memory.  This is, in part, due to
+the horrible definition of the interface at the time, I believe.
+
+At any rate, we should move to hesiod_init, hesiod_resolve, etc.  It's
+probably best to check that the hesiod library supports the new interfaces
+at configure time.  If not, just disable the building of the hesiod
+modules.
+
+Ian, let me know what you think of the attached patch.
+
+Thanks!
+
+Jeff
+
+--- autofs-5.0.0_beta3/modules/lookup_hesiod.c.orig	2006-05-22 23:28:48.000000000 -0400
++++ autofs-5.0.0_beta3/modules/lookup_hesiod.c	2006-05-26 18:47:04.000000000 -0400
+@@ -29,6 +29,7 @@
+ 
+ struct lookup_context {
+ 	struct parse_mod *parser;
++	void *hesiod_context;
+ };
+ 
+ int lookup_version = AUTOFS_LOOKUP_VERSION;	/* Required by protocol */
+@@ -51,6 +52,11 @@ int lookup_init(const char *mapfmt, int 
+ 	/* Initialize the resolver. */
+ 	res_init();
+ 
++	/* Initialize the hesiod context. */
++	if (hesiod_init(&(ctxt->hesiod_context)) != 0) {
++		crit(MODPREFIX "hesiod_init(): %m");
++		return 1;
++	}
+ 	/* If a map type isn't explicitly given, parse it as hesiod entries. */
+ 	if (!mapfmt)
+ 		mapfmt = MAPFMT_DEFAULT;
+@@ -73,6 +79,11 @@ int lookup_read_map(struct autofs_point 
+    record in hesiod.  If it's an AFS or NFS filesyste, parse it out.  If
+    it's an ERR filesystem, it's an error message we should log.  Otherwise,
+    assume it's something we know how to deal with already (generic). */
++/*
++ *  Note that the hesiod library functions are not thread-safe.  If there
++ *  is a chance of multiple simultaneous calls to lookup_mount, these
++ *  need to be serialized.  --JM
++ */
+ int lookup_mount(struct autofs_point *ap, const char *name, int name_len, void *context)
+ {
+ 	char **hes_result;
+@@ -86,9 +97,10 @@ int lookup_mount(struct autofs_point *ap
+ 	chdir("/");		/* If this is not here the filesystem stays
+ 				   busy, for some reason... */
+ 
+-	hes_result = hes_resolve(name, "filsys");
+-
++	hes_result = hesiod_resolve(ctxt->hesiod_context, name, "filsys");
+ 	if (!hes_result || !hes_result[0]) {
++		/* Note: it is not clear to me how to distinguish between
++		 * the "no search results" case and other failures.  --JM */
+ 		warn(MODPREFIX "entry \"%s\" not found in map", name);
+ 		return NSS_STATUS_UNAVAIL;
+ 	}
+@@ -111,9 +123,13 @@ int lookup_mount(struct autofs_point *ap
+ 
+ 	debug(MODPREFIX "lookup for \"%s\" gave \"%s\"", name, best_record);
+ 
++	/* The error code needs to be converted to an NSS_ code There are
++	 * several places we can get a failure returned.  0 is always
++	 * success, -1 or 1 could be failure.  */
+ 	rv = ctxt->parser->parse_mount(ap, name, name_len, best_record,
+ 				       ctxt->parser->context);
+-	free(hes_result);
++	hesiod_free_list(ctxt->hesiod_context, hes_result);
++
+ 	return rv;
+ }
+ 
+@@ -123,6 +139,8 @@ int lookup_done(void *context)
+ {
+ 	struct lookup_context *ctxt = (struct lookup_context *) context;
+ 	int rv = close_parse(ctxt->parser);
++
++	hesiod_end(ctxt->hesiod_context);
+ 	free(ctxt);
+ 	return rv;
+ }
+--- autofs-5.0.0_beta3/configure.in.orig	2006-05-26 16:54:52.000000000 -0400
++++ autofs-5.0.0_beta3/configure.in	2006-05-26 17:35:16.000000000 -0400
+@@ -143,7 +143,7 @@ AC_ARG_WITH(hesiod,
+ if test -z "$HAVE_HESIOD"
+ then
+ 	HAVE_HESIOD=0
+-	AC_CHECK_LIB(hesiod, hes_resolve, HAVE_HESIOD=1 LIBHESIOD="$LIBHESIOD -lhesiod", ,
++	AC_CHECK_LIB(hesiod, hesiod_resolve, HAVE_HESIOD=1 LIBHESIOD="$LIBHESIOD -lhesiod", ,
+ 		     $LIBRESOLV)
+ 	if test "$HAVE_HESIOD" == "1"; then
+ 		AC_DEFINE(WITH_HESIOD,1,
