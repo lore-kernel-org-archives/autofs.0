@@ -1,69 +1,72 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [ANNOUNCE] autofs 5.0.0 beta2
-Date: Sat, 27 May 2006 13:26:54 -0400
-Message-ID: <x498xonz8dd.fsf@segfault.boston.redhat.com>
-References: <Pine.LNX.4.64.0605091848390.12829@raven.themaw.net>
-	<446251C5.5070407@inria.fr> <x49y7x12vml.fsf@redhat.com>
-	<x49lksoz974.fsf@segfault.boston.redhat.com>
-	<1148717601.2587.39.camel@raven.themaw.net>
-	<1148721904.10961.2.camel@raven.themaw.net>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [autofs] Re: [NFS] Re: [RFC] Multiple server selection and
+ replicated mount failover
+Date: Mon, 29 May 2006 15:31:59 +0800 (WST)
+Message-ID: <Pine.LNX.4.64.0605291525010.3436@raven.themaw.net>
+References: <Pine.LNX.4.64.0605021257500.3868@raven.themaw.net>
+ <Pine.LNX.4.64.0605241240200.3730@raven.themaw.net> <44745972.2010305@redhat.com>
+ <6cpsi36tkf.fsf@sumu.lexma.ibm.com>
 Mime-Version: 1.0
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1148721904.10961.2.camel@raven.themaw.net> (Ian Kent's message
-	of "Sat, 27 May 2006 17:25:04 +0800")
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <6cpsi36tkf.fsf@sumu.lexma.ibm.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://hera.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+To: "John T. Kohl" <jtk@us.ibm.com>
+Cc: Peter Staubach <staubach@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>, nfs@lists.sourceforge.net
 
-==> Regarding Re: [autofs] [ANNOUNCE] autofs 5.0.0 beta2; Ian Kent <raven@themaw.net> adds:
+On Thu, 24 May 2006, John T. Kohl wrote:
 
-raven> On Sat, 2006-05-27 at 16:13 +0800, Ian Kent wrote:
->> On Fri, 2006-05-26 at 18:56 -0400, Jeff Moyer wrote: > Guillaume.Rousse>
->> Third, the following patches still apply, but I got no >
->> Guillaume.Rousse> clue about their usefulness: -
->> > 
->> > Guillaume.Rousse> autofs-4.1.0-hesiod-bind.patch
->> > 
->> > jmoyer> I'll do some digging on this one tomorrow.
->> > 
->> > OK, it took me a while longer than expected to get to this.  Sorry!
->> > 
->> > The hesiod resolve patch is wanted.  Actually, I think in v5 we can
->> just > get rid of the old calls to hes_resolve.
->> > 
->> > If you look at the implementation that currently is there in
->> lookup_hesiod.c, > it has some bugs.  It will free a pointer that the
->> library will > subsequently try to free, and it also leaks memory.  This
->> is, in part, due to > the horrible definition of the interface at the
->> time, I believe.
->> > 
->> > At any rate, we should move to hesiod_init, hesiod_resolve, etc.  It's
->> > probably best to check that the hesiod library supports the new
->> interfaces > at configure time.  If not, just disable the building of
->> the hesiod > modules.
->> > 
->> > Ian, let me know what you think of the attached patch.
->> > 
->> 
->> I've checked this out and ended up with this, the configure part is due
->> to the change in configure.in:
->> 
+> >>>>> "PS" == Peter Staubach <staubach@redhat.com> writes:
+> 
+> PS> When the Solaris client gets a timeout from an RPC, it checks to see
+> PS> whether this file and mount are failover'able.  This checks to see
+> PS> whether there are alternate servers in the list and could contain a
+> PS> check to see if there are locks existing on the file.  If there are
+> PS> locks, then don't failover.  The alternative to doing this is to
+> PS> attempt to move the lock, but this could be problematic because
+> PS> there would be no guarantee that the new lock could be acquired.
+> 
+> PS> Anyway, if the file is failover'able, then a new server is chosen
+> PS> from the list and the file handle associated with the file is
+> PS> remapped to the equivalent file on the new server.  This is done by
+> PS> repeating the lookups done to get the original file handle.  Once
+> PS> the new file handle is acquired, then some minimal checks are done
+> PS> to try to ensure that the files are the "same".  This is probably
+> PS> mostly checking to see whether the sizes of the two files are the
+> PS> same.
+> 
+> PS> Please note that this approach contains the interesting aspect that
+> PS> files are only failed over when they need to be and are not failed over
+> PS> proactively.  This can lead to the situation where processes using the
+> PS> the file system can be talking to many of the different underlying
+> PS> servers, all at the sametime.  If a server goes down and then comes back
+> PS> up before a process, which was talking to that server, notices, then it
+> PS> will just continue to use that server, while another process, which
+> PS> noticed the failed server, may have failed over to a new server.
+> 
+> If you have multiple processes talking to different server replicas, can
+> you then get cases where the processes aren't sharing the same files given
+> the same name?
+> 
+> Process "A" looks up /mount/a/b/c/file.c (using server 1) opens it and
+> starts working on it.  It then sits around doing nothing for a while.
+> 
+> Process "B" cd's to /mount/a/b, gets a timeout, fails over to server 2,
+> and then looks up "c/file.c" which will be referencing the object on
+> server 2 ?
+> 
+> A & B then try locking to cooperate...
+> 
+> Are replicas only useful for read-only copies?  If they're read-only, do
+> locks even make sense?
 
-raven> Oops and this.
+Apps will take locks whether it makes sense or not.
+So refusing to fail-over if locks are held is likely the best approach.
 
-Yeah, with the added unlock this looks good.
+The case of replica filesystems themselves being updated could give rise 
+to some interesting difficulties.
 
-Thanks,
+Ian
 
-Jeff
