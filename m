@@ -1,70 +1,47 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [autofs] Re: [NFS] Re: [RFC] Multiple server selection and replicated mount failover
-Date: Tue, 30 May 2006 08:02:03 -0400
-Message-ID: <x49mzczwwjo.fsf@redhat.com>
-References: <Pine.LNX.4.64.0605021257500.3868@raven.themaw.net>
-	<Pine.LNX.4.64.0605241240200.3730@raven.themaw.net>
-	<44745972.2010305@redhat.com> <6cpsi36tkf.fsf@sumu.lexma.ibm.com>
+From: Quentin Arce <qarce@yahoo.com>
+Subject: speed ? / problem
+Date: Thu, 1 Jun 2006 08:49:48 -0700 (PDT)
+Message-ID: <20060601154948.30806.qmail@web60817.mail.yahoo.com>
 Mime-Version: 1.0
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <6cpsi36tkf.fsf@sumu.lexma.ibm.com> (John T. Kohl's message of "24 May 2006 16:45:04 -0400")
-Sender: linux-fsdevel-owner@vger.kernel.org
+Content-Transfer-Encoding: 8bit
+Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://hera.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: "John T. Kohl" <jtk@us.ibm.com>
-Cc: Peter Staubach <staubach@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>, nfs@lists.sourceforge.net, Ian Kent <raven@themaw.net>
+To: autofs@linux.kernel.org
 
-==> Regarding [autofs] Re: [NFS] Re: [RFC] Multiple server selection and replicated mount failover; jtk@us.ibm.com (John T. Kohl) adds:
+Hello,
 
->>>>>> "PS" == Peter Staubach <staubach@redhat.com> writes:
-PS> When the Solaris client gets a timeout from an RPC, it checks to see
-PS> whether this file and mount are failover'able.  This checks to see
-PS> whether there are alternate servers in the list and could contain a
-PS> check to see if there are locks existing on the file.  If there are
-PS> locks, then don't failover.  The alternative to doing this is to
-PS> attempt to move the lock, but this could be problematic because there
-PS> would be no guarantee that the new lock could be acquired.
+I am mounting a Solaris 10 nfs export to my Linux box.
+ When I perform an subversion svn co to the nfs
+mounted area I see the data going in what seem to be
+bursts.  i.e one or two pages of text fly by.  Then a
+1 to 4 second pause.  Then another few pages.  A
+checkout to local disk  on the linux box does not have
+this problem.
 
-PS> Anyway, if the file is failover'able, then a new server is chosen from
-PS> the list and the file handle associated with the file is remapped to
-PS> the equivalent file on the new server.  This is done by repeating the
-PS> lookups done to get the original file handle.  Once the new file handle
-PS> is acquired, then some minimal checks are done to try to ensure that
-PS> the files are the "same".  This is probably mostly checking to see
-PS> whether the sizes of the two files are the same.
+mount options used:
 
-PS> Please note that this approach contains the interesting aspect that
-PS> files are only failed over when they need to be and are not failed over
-PS> proactively.  This can lead to the situation where processes using the
-PS> the file system can be talking to many of the different underlying
-PS> servers, all at the sametime.  If a server goes down and then comes
-PS> back up before a process, which was talking to that server, notices,
-PS> then it will just continue to use that server, while another process,
-PS> which noticed the failed server, may have failed over to a new server.
+rw,nosuid,nodev,noatime,hard,intr,rsize=8192,wsize=8192,tcp,actimeo=0
 
-jtk> If you have multiple processes talking to different server replicas,
-jtk> can you then get cases where the processes aren't sharing the same
-jtk> files given the same name?
+The nfs server is on the same subnet plugged into the
+same switch.
 
-jtk> Process "A" looks up /mount/a/b/c/file.c (using server 1) opens it and
-jtk> starts working on it.  It then sits around doing nothing for a while.
+Thank you for any insight you may have.
 
-jtk> Process "B" cd's to /mount/a/b, gets a timeout, fails over to server
-jtk> 2, and then looks up "c/file.c" which will be referencing the object
-jtk> on server 2 ?
+Q
 
-jtk> A & B then try locking to cooperate...
+ 
 
-jtk> Are replicas only useful for read-only copies?  If they're read-only,
-jtk> do locks even make sense?
-
-In the docs I've read, the replicated failover only works for read-only
-file systems.  You can have a replicated server entry for read-write file
-systems, but only one of those will be mounted by the automounter.  To
-change servers would require a timeout (unmount) and subsequent lookup
-(mount).
-
-I don't think we need to try to kill ourselves by making this too complex.
-
--Jeff
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
