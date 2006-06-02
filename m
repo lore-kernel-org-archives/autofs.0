@@ -1,47 +1,76 @@
-From: Quentin Arce <qarce@yahoo.com>
-Subject: speed ? / problem
-Date: Thu, 1 Jun 2006 08:49:48 -0700 (PDT)
-Message-ID: <20060601154948.30806.qmail@web60817.mail.yahoo.com>
+From: Ian Kent <raven@themaw.net>
+Subject: [ANNOUNCE] autofs 5.0.0 beta4 another beta release
+Date: Fri, 2 Jun 2006 18:43:01 +0800 (WST)
+Message-ID: <Pine.LNX.4.64.0606021839030.17530@raven.themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <autofs-bounces@linux.kernel.org>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://hera.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-To: autofs@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-Hello,
 
-I am mounting a Solaris 10 nfs export to my Linux box.
- When I perform an subversion svn co to the nfs
-mounted area I see the data going in what seem to be
-bursts.  i.e one or two pages of text fly by.  Then a
-1 to 4 second pause.  Then another few pages.  A
-checkout to local disk  on the linux box does not have
-this problem.
+Hi all,
 
-mount options used:
+Another beta.
 
-rw,nosuid,nodev,noatime,hard,intr,rsize=8192,wsize=8192,tcp,actimeo=0
+I think we are getting close to a release but we need more testing
+in more areas on this or we will be stuck with annoying bugs in
+the v5 release for longer than we should.
 
-The nfs server is on the same subnet plugged into the
-same switch.
+Please find a little time to check this out.
 
-Thank you for any insight you may have.
+autofs
+======
 
-Q
+The package can be found at:
 
- 
+ftp://ftp.kernel.org/pub/linux/daemons/autofs/v5
 
-__________________________________________________
-Do You Yahoo!?
-Tired of spam?  Yahoo! Mail has the best spam protection around 
-http://mail.yahoo.com 
+It is autofs-5.0.0_beta4.tar.[gz|bz2]
+
+No source rpm is there as it can be produced by using:
+
+rpmbuild -ts autofs-5.0.0_beta4.tar.gz
+
+and the binary rpm by using:
+
+rpmbuild -tb autofs-5.0.0_beta4.tar.gz
+
+See the INSTALL file for information about configure options and
+kernel requirements.
+
+Here are the entries from the CHANGELOG which outline the updates:
+
+2/6/2006 autofs-5.0.0_beta4
+---------------------------
+- fix memory alloc error in nis lookup module.
+- add "_" to "." mapname translation to nis lookup module.
+- fix white space handling in replicated server selection code.
+- merge don't strip debug info macro patch (Jeff Moyer).
+- merge patch to add sanity checks on rmdir_path and unlink (Jeff Moyer).
+- merge patch fix e2fsck error code check (Jeff Moyer).
+- update hesiod module (Jeff Moyer).
+  - add mutex to protect against overlapping mount requests.
+  - update return from mount request to give more sensible NSS_*
+    values.
+- fix handling of autofs filesystem mount fail on init.
+- add back test test for nested mount in program map lookup.
+  - I must have commented this out for a reason. I guess we'll
+    find out soon enough.
+- fix "-hosts" map not finding entry for the "nobrowse" case.
+- update man page with description of "-hosts" map type.
+- complete logging, including per mount logging.
+  - still needs some more work but that will need to wait.
+- change init script to check for read on config file instead
+  of execute.
+- fix lookup of wildcard map entry for several map types.
+- fix fail to realease cache read lock on indirect map expire.
+- fix incorrect cache update of wildcard map entry.
+- alter master map lookup semantics to be a little more like
+  version 4. The way we should locate the master map needs
+  more investigation and may change again.
+
+Ian
+
