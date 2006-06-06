@@ -1,12 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: getting parameters to executable maps
-Date: Fri, 09 Jun 2006 18:41:24 +0800
-Message-ID: <1149849684.23627.19.camel@raven.themaw.net>
-References: <000101c68b42$54bc0b30$ce054c09@almaden.ibm.com>
+From: "Murata, Dennis W \(SAIC\)" <dennis.murata@bp.com>
+Subject: FW: Hierarchical mount points in automount maps
+Date: Tue, 6 Jun 2006 14:29:34 -0500
+Message-ID: <9D9C36F25770704685BF3E652F9D1CFD0BAF0C@bp1vhoex011.bp1.ad.bp.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <000101c68b42$54bc0b30$ce054c09@almaden.ibm.com>
+Content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,23 +17,48 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: aptosca <aptosca@esseff.org>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Thu, 2006-06-08 at 14:27 -0700, aptosca wrote:
-> I've been looking for a way to get a parameter to an executable being used
-> as a map and have so far failed to come up with anything that will work. Has
-> this issue ever arisen? As far as I can tell, the exec of the program gets
-> nothing except the key being looked up. The program I'd like to have exec'd
-> needs just a little bit of context. It could be passed in through arguments
-> specified in the calling map, but autofs doesn't, for example, break the
-> string up at spaces for the exec call. Alternatively, if there were a way to
-> get at the args that were passed in the options string, that would work,
-> too, but again, I don't see anyway of making that happen.
+I did not see this on the mailling list, so I am resending it.  Sorry if you have received it twice.
 
-Can you give a little more information please.
+Wayne Murata
 
-A simple example of what your program needs and where it comes from
-would be good.
-
-Ian
+>  -----Original Message-----
+> From: 	Murata, Dennis W (SAIC)  
+> Sent:	Monday, June 05, 2006 2:28 PM
+> To:	'autofs@linux.kernel.org'
+> Subject:	Hierarchical mount points in automount maps
+> 
+> I am seeing some instability using hierarchical mount points in automount maps.  The version of autofs is autofs-4.1.3-168 on RHEL 3 update 7.  The workstations are dual opteron running x86_64 version of RHEL.  The maps are local to the workstation, and follow the format:
+> 
+> foobar1/a     server1:/local/foobar1/a
+> foobar1/b     server1:/local/foobar1/b
+> foobar2/c     server1:/local/foobar2/c
+> foobar3/d     server1:/local/foobar3/d
+> foobar4/f     server1:/local/foobar4/f
+> foobar4/g     server1:/local/foobar4/
+> 
+> The map name is auto.foobars, the entry in the auto.master is:
+> /foobars	   /etc/auto.foobars --ghost
+> 
+> After a reboot, the directory structure is fine.  After a cd to /foobars, an ls will list all directories foobar1 through foobar4.  The subdirectories will be correct below foobar*.  After a time period, I believe the timeout set in /etc/sysconfig/autofs, the mount points become confused.  Instead of the subdirectories a and b listed below /foobars/foobar1, the directories will be listed below /foobars/foobar1/foobar1.  This can happen to any/all of the foobar* directories.
+>   
+> I have tried various formats  of the automount map.  I have tried to escape the slash in the directory structure on the left hand side, i.e. foobar1\/a, I have tried something like this for auto.foobar:
+> 
+> foobar1 \
+> /a     server1:/local/foobar1/a \
+> /b     server1:/local/foobar1/b
+> foobar2 \
+> /c     server1:/local/foobar2/c
+> foobar3 \
+> /d     server1:/local/foobar3/d
+> foobar4 \
+> /f     server1:/local/foobar4/f \
+> /g     server1:/local/foobar4/g
+> 
+> With all three tries, initially the mounts are correct, after a time the mounts become confused.
+> Without the --ghost, none of the subdirectories of foobar* are visible or even accessible.
+> Are hierachical mounts supported?  I was a little surprised this worked at all.  The automount maps I am used to dealing with came from Solaris and never used subdirectories on the left side.
+> 
+> Wayne Murata
+> 
