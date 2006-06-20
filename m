@@ -1,54 +1,77 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [autofs] [RFC:VFS] autofs4 needs to force fail return
- revalidate
-Date: Mon, 19 Jun 2006 11:15:39 -0400
-Message-ID: <x491wtljhwk.fsf@segfault.boston.redhat.com>
-References: <Pine.LNX.4.64.0606191332510.5732@raven.themaw.net>
-Mime-Version: 1.0
+From: Ian Kent <raven@themaw.net>
+Subject: [ANNOUNCE] autofs 5.0.0 beta5 beta release
+Date: Tue, 20 Jun 2006 12:07:10 +0800
+Message-ID: <200606200407.k5K47AUt022166@raven.themaw.net>
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.0606191332510.5732@raven.themaw.net> (Ian Kent's
- message of "Mon, 19 Jun 2006 13:51:14 +0800 (WST)")
 Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ian Kent <raven@themaw.net>
-Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+To: autofs@linux.kernel.org
+Cc: linux-fsdevel@vger.kernel.org
 
-==> Regarding [autofs] [RFC:VFS] autofs4 needs to force fail return revalidate; Ian Kent <raven@themaw.net> adds:
+Hi all,
 
-raven> Hi all,
+Another beta.
 
-raven> For a long time now I have had a problem with not being able to
-raven> return a lookup failure on an existsing directory. In autofs this
-raven> corresponds to a mount failure on a autofs managed mount entry that
-raven> is browsable (and so the mount point directory exists).
+A few changes since beta4.
 
-raven> While this problem has been present for a long time I've avoided
-raven> resolving it because it was not very visible. But now that autofs v5
-raven> has "mount and expire on demand" of nested multiple mounts, such as
-raven> is found when mounting an export list from a server, solving the
-raven> problem cannot be avoided any longer.
+Please find a little time to check this out.
 
-raven> I've tried very hard to find a way to do this entirely within the
-raven> autofs4 module but have not been able to find a satisfactory way to
-raven> achieve it.
+autofs
+======
 
-raven> So, I need to propose a change to the VFS.
+The package can be found at:
 
-raven> Please offer comments and suggestions or if anyone has an idea how
-raven> this could be done within the autofs4 filesystem then I'm all ears.
+ftp://ftp.kernel.org/pub/linux/daemons/autofs/v5
 
-> --- linux-2.6.17/include/linux/dcache.h.dcache-revalidate-return-fail	2006-06-19 13:26:27.000000000 +0800
-> +++ linux-2.6.17/include/linux/dcache.h	2006-06-19 13:29:25.000000000 +0800
-> @@ -163,6 +163,7 @@ d_iput:		no		no		no       yes
->  #define DCACHE_UNHASHED		0x0010	
+It is autofs-5.0.0_beta5.tar.[gz|bz2]
 
->  #define DCACHE_INOTIFY_PARENT_WATCHED	0x0020 /* Parent inode is watched */
-> +#define DCACHE_REVAL_FORCE_FAIL 0x0040	/* Force revalidate fail on valid dentry */
+No source rpm is there as it can be produced by using:
 
->  extern spinlock_t dcache_lock;
+rpmbuild -ts autofs-5.0.0_beta5.tar.gz
 
-This looks like the right approach to me.  I'd ack it.
+and the binary rpm by using:
 
--Jeff
+rpmbuild -tb autofs-5.0.0_beta5.tar.gz
+
+See the INSTALL file for information about configure options and
+kernel requirements.
+
+Here are the entries from the CHANGELOG which outline the updates:
+
+20/6/2006 autofs-5.0.0_beta5
+----------------------------
+- re-instate v4 directory cleanup.
+- backout master map lookup changes made to beta3.
+- change default master map from /etc/auto.master to auto.master
+  so that we always use nsswitch to locate master map.
+- change default installed master map to include "+auto.master"
+  to pickup NIS master map.
+- correct config names in default.c (jpro@bas.ac.uk).
+- check base of offset mount tree is not a mount before umounting
+  its offsets.
+- fix replicated mount parse for case where last name in list
+  fails lookup.
+- correct indirect mount expire broken by the wildcard lookup fix.
+- fix up multi-mount handling when wildcard map entry present.
+- fix mutex not being unlocked on map read.
+- fix rpc routines not logging errors.
+- fix handling of invalid directory for nobrowse hosts map lookup.
+- add free for working var in get_default_logging.
+- add inialisation for kver in autofs_point struct.
+- fix sources list corruption in check_update_map_sources.
+- fix memory leak in walk_tree.
+- fix memory leak in rpc_portmap_getport and rpc_ping_proto.
+- fix memory leak in initialisation of lookup modules.
+- fix handling of master map entry update.
+- fix program map handling of invalid multi-mount offsets.
+- move autofs4 module loading back to init script.
+- add export access list matching to "hosts" lookup module.
+- add check for key length to long (Jeff Moyer).
+- add patch to restrict /proc lookup to pid directories (Jeff Moyer).
+- fix directory cleanup at exit.
+
+Ian
+
