@@ -1,15 +1,13 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: getting parameters to executable maps
-Date: Wed, 21 Jun 2006 11:03:08 -0400
-Message-ID: <x49ejxih7pv.fsf@segfault.boston.redhat.com>
-References: <000101c68e5a$6f30d570$4d928050$@org>
-	<Pine.LNX.4.64.0606211121140.3748@raven.themaw.net>
-	<x49mzc6hbvz.fsf@segfault.boston.redhat.com>
-	<1150901405.14524.3.camel@raven.themaw.net>
+From: "aptosca" <aptosca@esseff.org>
+Subject: RE: getting parameters to executable maps
+Date: Wed, 21 Jun 2006 08:08:23 -0700
+Message-ID: <000101c69544$8a747300$9f5d5900$@org>
+References: <1150901405.14524.3.camel@raven.themaw.net>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1150901405.14524.3.camel@raven.themaw.net> (Ian Kent's message
-	of "Wed, 21 Jun 2006 22:50:05 +0800")
+In-Reply-To: <1150901405.14524.3.camel@raven.themaw.net>
+Content-Language: en-us
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,45 +19,37 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Ian Kent <raven@themaw.net>
+To: 'Ian Kent' <raven@themaw.net>, Jeff Moyer <jmoyer@redhat.com>
 Cc: autofs@linux.kernel.org
 
-==> Regarding Re: [autofs] getting parameters to executable maps; Ian Kent <raven@themaw.net> adds:
+	I've been thinking about that but I'm not sure about it.
+	Mainly because the information flow is from autofs to the program
+and
+	autofs can't know what environment to set.
 
-raven> On Wed, 2006-06-21 at 09:33 -0400, Jeff Moyer wrote:
->> ==> Regarding RE: [autofs] getting parameters to executable maps; Ian
->> Kent <raven@themaw.net> adds:
->> 
-raven> On Mon, 12 Jun 2006, aptosca wrote:
->> >> I have a network service that defines a filesystem namespace. I'd
->> like >> to write an executable map that uses that service to return map
->> entries >> to automount. Abstractly, the executable map takes the
->> namespace path, >> queries the web service, and returns a map entry to
->> automount. The map >> entry is either a pointer to a real filesystem or
->> an -fstype=autofs >> entry that causes the executable map to be executed
->> again when/if an >> entry in the directory is touched.
->> 
-raven> I've thought about this and I can't think of any easy way to achieve
-raven> this.
->>
-raven> I don't like the idea of changing the internals of the way program
-raven> maps are called.
->>
-raven> One way to do this would be to write an autofs lookup module to
-raven> handle this map source rather than use a program map.
->> Is there any way we could achieve this via setting some environment
->> variables?
+	Are you perhaps suggesting we define one or so?
 
-raven> I've been thinking about that but I'm not sure about it.  Mainly
-raven> because the information flow is from autofs to the program and
-raven> autofs can't know what environment to set.
+That's what I was thinking of. I kinda thought the command line option would
+be too messy. But adding a variable to the environment (either after the
+fork before the exec or before the fork and retracting it, depending on the
+impact on COW paging stuff?) would seem pretty benign.
 
-raven> Are you perhaps suggesting we define one or so?
+I can imagine AUTOFS_OPTIONS having the whole options string, or
+AUTOFS_OPTIONS being just a new program_map option, depending on whether it
+was considered bad to let the map see all the options or not. Since it's all
+new stuff, it shouldn't break any existing code.
 
-Yeah, could be part of the API, if you will.  If we do that, then it
-wouldn't require changing existing program maps, either.  It's just a
-thought.  I'd like to hear from the reporter (aptosca, no name specified,
-who are you?) if it would help in his/her situation.
+Having brought this all up, I'm not really sure how much I care now, though.
+It would have been nice, but even if it went in, we won't be able expect
+everybody we need to support to have a new version of autofs very soon, so
+we'll probably have to do something else. We're looking at pushing all the
+information into an ldap server since (I think) all the clients we care
+about support that.  I need to double back and check that that's a
+sufficiently flexible solution. It has the great benefit of not requiring
+custom code on the client.
 
--Jeff
+I did like Ian's idea of a new lookup method. I'd love autofs to support an
+xmlrpc lookup. Much easier to implement a dynamic xmlrpc server than one
+that has a NIS or ldap interface. Would that be of interest to others?
+
+steven
