@@ -1,50 +1,49 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH] autofs4 needs to force fail return revalidate
-Date: Fri, 23 Jun 2006 14:43:59 +0800 (WST)
-Message-ID: <Pine.LNX.4.64.0606231434480.15807@raven.themaw.net>
-References: <200606210618.k5L6IFDr008176@raven.themaw.net>
- <20060620233941.49ba2223.akpm@osdl.org> <Pine.LNX.4.64.0606231159540.2904@raven.themaw.net>
- <20060622213050.fc753e91.akpm@osdl.org>
+From: ramana <intraperson@yahoo.com>
+Subject: Re: Large number of mount request.
+Date: Fri, 23 Jun 2006 04:27:41 -0700 (PDT)
+Message-ID: <20060623112741.95825.qmail@web34505.mail.mud.yahoo.com>
+References: <01e801c68f82$3794d8e0$6cf1718c@administrator>
+Reply-To: ramana@intraperson.com
 Mime-Version: 1.0
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <20060622213050.fc753e91.akpm@osdl.org>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Content-Transfer-Encoding: 8bit
+Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <01e801c68f82$3794d8e0$6cf1718c@administrator>
 List-Id: <autofs.vger.kernel.org>
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@osdl.org>
-Cc: autofs@linux.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://hera.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: Latrell <is85022@cis.nctu.edu.tw>, autofs@linux.kernel.org
 
-On Thu, 22 Jun 2006, Andrew Morton wrote:
+--- Latrell <is85022@cis.nctu.edu.tw> wrote:
 
-> On Fri, 23 Jun 2006 12:14:09 +0800 (WST)
-> Ian Kent <raven@themaw.net> wrote:
+> Hi, all:
 > 
-> > > 
-> > > Also, did you consider broadening the ->d_revalidate() semantics?  It
-> > > appears that all implementations return 0 or 1.  You could teach the VFS to
-> > > also recognise and act upon a -ve return value, and do this trickery within
-> > > the autofs d_revalidate(), perhaps?
-> > > 
-> > 
-> > Yep and I've now done this.
-> > I think this is in fact the only way to do it.
-> 
-> Below is the combined patch for reviewing purposes.
-> 
-> Removing that __always_inline saves 30-odd bytes.  I suspect that removing
-> it would be a performance loss in this case.  But I'll make it just
-> `inline' because __always_inline is peculiar, and people will wonder what's
-> special about this function.
-> 
+> I have a problem with the mount and umount packet.
+> My problem is when I have a large number of mount requests, some
+> mount request packets are missing. Thus, when I "cd share1", I will
+> get "fail to change directory" because share1 is not mounted. Fewer
+> mount requests work normally. 
 
-Thanks Andrew.
-The combined diff is exactly what I'm trying to achieve.
+I am afraid, this is ENOENT bug.
 
-I marked the function __always_inline because several other functions 
-that appear to be frequently called from this code path are also declared 
-this way. Hopefully someone with more experience of this area of the VFS 
-will recommend the best choice.
+Thanks in advance.
 
-Ian
+Regards
+ramana
 
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
+
+__________________________________________________
+Do You Yahoo!?
+Tired of spam?  Yahoo! Mail has the best spam protection around 
+http://mail.yahoo.com 
