@@ -1,114 +1,99 @@
-From: Ian Kent <raven@themaw.net>
-Subject: RE: Issuing custom mount commands within an autofs
-	controlled mountpoint
-Date: Fri, 23 Jun 2006 23:56:56 +0800
-Message-ID: <1151078216.16853.29.camel@raven.themaw.net>
-References: <7F0AA25C9B1706448E8B73DFDD109B31028E5AD6@EXCHANGE.TIGR.ORG>
+From: "Peter C. Norton" <spacey-autofs@lenin.net>
+Subject: Re: [autofs] [ANNOUNCE] autofs 5.0.0 beta5 beta release
+Date: Mon, 26 Jun 2006 20:34:00 -0700
+Message-ID: <20060627033400.GD27804@lenin.net>
+References: <200606200407.k5K47AUt022166@raven.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <7F0AA25C9B1706448E8B73DFDD109B31028E5AD6@EXCHANGE.TIGR.ORG>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <200606200407.k5K47AUt022166@raven.themaw.net>
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://hera.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: "Gomez, Daniel" <dgomez@tigr.org>
-Cc: autofs@linux.kernel.org
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org, linux-fsdevel@vger.kernel.org
 
-On Fri, 2006-06-23 at 11:36 -0400, Gomez, Daniel wrote:
-> Thank you Ian for the thoughts.
-> 
-> I did try to hijack the /bin/mount command with a simple wrapper but it
-> doesn't work potentially due to the fact that this custom mount command
-> (ibrix_lwmount) is not returning the correct information back to the
-> automount command, either in terms of return code, time delay (which the
-> ibrix command does take some time), and/or verbose stdout which it has
-> lot of that as well which the automount may not like. 
+Using auto.master will break NIS+ (and possibly sql-based nsswich
+modules, if there are any in real use), which uses auto_master since
+"." is used as the namespace heirarchy separator. If you're going to
+assume a name, you may want to see if there's a per-nameservice way of
+specifying the map/schema/table to look up.
 
-The debug log can be a big help for this.
-I have a "tail -f" going all the time when I'm working on stuff like
-this.
+-Peter
 
-Don't forget to check syslog and make sure your sending daemon.*
-somewhere.
-
+On Tue, Jun 20, 2006 at 12:07:10PM +0800, Ian Kent wrote:
+> Hi all,
 > 
-> I have yet delved further into which if any of these may be why the
-> automount is balking, but I'll let you know when I do along with the
-> code and results.
+> Another beta.
 > 
-> -----Original Message-----
-> From: Ian Kent [mailto:raven@themaw.net] 
-> Sent: Tuesday, June 20, 2006 11:06 PM
-> To: Gomez, Daniel
-> Cc: autofs@linux.kernel.org
-> Subject: Re: [autofs] Issuing custom mount commands within an autofs
-> controlled mountpoint
+> A few changes since beta4.
 > 
+> Please find a little time to check this out.
 > 
-> On Tue, 20 Jun 2006, Gomez, Daniel wrote:
+> autofs
+> ======
 > 
-> > Hello,
-> >  
-> > Is it feasible to hijack the automounter and issue your own custom 
-> > mount command or must the automount program perform the actual "mount"
+> The package can be found at:
 > 
-> > call?
+> ftp://ftp.kernel.org/pub/linux/daemons/autofs/v5
 > 
-> The path to "mount" is established at compile time.
-> Not being able to hijack mount is probably considered good seurity 
-> practice.
+> It is autofs-5.0.0_beta5.tar.[gz|bz2]
 > 
-> You would need to write a warpper around mount to check the filesystem 
-> given in the -t and issue the mount command of your choice or call the 
-> normal mount.
+> No source rpm is there as it can be produced by using:
 > 
-> I guess it would be possible to add a configure option to allow an 
-> alternate commands to be used for all mounting and umounting. That would
+> rpmbuild -ts autofs-5.0.0_beta5.tar.gz
 > 
-> take a bit of work though as the existing configure setup isn't designed
+> and the binary rpm by using:
 > 
-> allow for this.
+> rpmbuild -tb autofs-5.0.0_beta5.tar.gz
 > 
-> >  
-> > The reason why I am interested is that we are using the IBRIX parallel
+> See the INSTALL file for information about configure options and
+> kernel requirements.
 > 
-> > filesystem and we wish to have some clients mount IBRIX exported 
-> > shares using it's own special "ibrix_lwmount" client mount command and
+> Here are the entries from the CHANGELOG which outline the updates:
 > 
-> > non-ibrix clients to use the normal automount process. The catch is we
+> 20/6/2006 autofs-5.0.0_beta5
+> ----------------------------
+> - re-instate v4 directory cleanup.
+> - backout master map lookup changes made to beta3.
+> - change default master map from /etc/auto.master to auto.master
+>   so that we always use nsswitch to locate master map.
+> - change default installed master map to include "+auto.master"
+>   to pickup NIS master map.
+> - correct config names in default.c (jpro@bas.ac.uk).
+> - check base of offset mount tree is not a mount before umounting
+>   its offsets.
+> - fix replicated mount parse for case where last name in list
+>   fails lookup.
+> - correct indirect mount expire broken by the wildcard lookup fix.
+> - fix up multi-mount handling when wildcard map entry present.
+> - fix mutex not being unlocked on map read.
+> - fix rpc routines not logging errors.
+> - fix handling of invalid directory for nobrowse hosts map lookup.
+> - add free for working var in get_default_logging.
+> - add inialisation for kver in autofs_point struct.
+> - fix sources list corruption in check_update_map_sources.
+> - fix memory leak in walk_tree.
+> - fix memory leak in rpc_portmap_getport and rpc_ping_proto.
+> - fix memory leak in initialisation of lookup modules.
+> - fix handling of master map entry update.
+> - fix program map handling of invalid multi-mount offsets.
+> - move autofs4 module loading back to init script.
+> - add export access list matching to "hosts" lookup module.
+> - add check for key length to long (Jeff Moyer).
+> - add patch to restrict /proc lookup to pid directories (Jeff Moyer).
+> - fix directory cleanup at exit.
 > 
-> > want to use the same mountpoint under the control of autofs for both 
-> > ibrix and non-ibrix clients.
-> >  
-> > Is this feat feasible? Any insight into how one might even approach 
-> > this problem would be helpful to me and maybe to the whole community 
-> > of ibrix users using linux.
-> >  
-> > I will say, I was able to simply double mount seemingly ok, meaning I 
-> > allow the automount to mount the directory as it will under normal 
-> > circumstances for regular clients, but then I run the ibrix mount 
-> > command ontop of the same directory. At first I was also using the 
-> > special ibrix umount command before I stopped the autofs daemon, but 
-> > it seems if I don't umount the double mounted directory, autofs still 
-> > unmounts all directory keys under the parent mountpoint fine.
-> 
-> Yep. You can stack mount points in 2.6.
-> 
-> The only real requirement for autofs to be able to expire mounts is that
-> 
-> they appear in /etc/mtab.
-> 
-> 
+> Ian
 > 
 > _______________________________________________
 > autofs mailing list
 > autofs@linux.kernel.org
 > http://linux.kernel.org/mailman/listinfo/autofs
+
+-- 
+The 5 year plan:
+In five years we'll make up another plan.
+Or just re-use this one.
+
