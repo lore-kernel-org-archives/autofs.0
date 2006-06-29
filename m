@@ -1,10 +1,18 @@
 From: Ian Kent <raven@themaw.net>
 Subject: [ANNOUNCE] autofs 5.0.0 beta6 beta release
-Date: Thu, 29 Jun 2006 19:17:58 +0800
-Message-ID: <200606291117.k5TBHwaL030550@raven.themaw.net>
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Date: Thu, 29 Jun 2006 19:16:59 +0800
+Message-ID: <200606291116.k5TBGxwr030546@raven.themaw.net>
+Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://hera.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -61,4 +69,3 @@ Here are the entries from the CHANGELOG which outline the updates:
 - update RedHat autofs default config.
 
 Ian
-
