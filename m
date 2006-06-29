@@ -1,11 +1,12 @@
-From: "Martin Dorey" <mdorey@bluearc.com>
-Subject: deliberate? deadlock when one automount depends on another
-Date: Thu, 29 Jun 2006 10:35:32 -0700
-Message-ID: <CECD6E8A589E8447BC6E836C8369AFF509D14A07@us-email.terastack.bluearc.com>
+From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
+Subject: Re: Bug#316378: autofs: Deadlock causes automount failure
+Date: Fri, 30 Jun 2006 00:17:19 +0200
+Message-ID: <20060629221719.GA6280@uio.no>
+References: <CECD6E8A589E8447BC6E836C8369AFF509D14A1A@us-email.terastack.bluearc.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <CECD6E8A589E8447BC6E836C8369AFF509D14A1A@us-email.terastack.bluearc.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,56 +18,53 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: autofs@linux.kernel.org
+Content-Transfer-Encoding: 7bit
+To: Martin Dorey <mdorey@bluearc.com>, 316378@bugs.debian.org
+Cc: autofs@linux.kernel.org
 
-I have a couple of maps in auto.master:
+[sorry about the bottom-posting]
 
-/home auto.home	-hard,intr,rsize=32768,wsize=32768
-/u auto.u	-hard,intr,rsize=32768,wsize=32768
+On Thu, Jun 29, 2006 at 02:45:32PM -0700, Martin Dorey wrote:
+> martin>> Ian Kent suggests disabling the autofs locking, providing that
+> martin>> mount locks mtab properly.  Does Debian's mount do that?
+> 
+> steinar> strace seems to indicate that it does: 
+> 
+> Cool.  I have *no* idea what I'm doing here but...
+> 
+> martind@duezer:/tmp$ apt-get source autofs
+> martind@duezer:/tmp$ cd autofs-4.1.4
+> martind@duezer:/tmp/autofs-4.1.4$ wget -O
+> debian/patches/080_configurable_locking
+> http://www.kernel.org/pub/linux/daemons/autofs/v4/autofs-4.1.4-configure
+> able-locking.patch
+> 
+> ... and applying this patch...
+> 
+> martind@duezer:/tmp$ diff -u clean/autofs-4.1.4/debian/rules
+> autofs-4.1.4/debian/
+> --- clean/autofs-4.1.4/debian/rules	2006-06-29 14:40:28.000000000
+> -0700
+> +++ autofs-4.1.4/debian/rules	2006-06-29 14:29:17.000000000 -0700
+> @@ -30,7 +30,7 @@
+>  	dh_testdir
+>  	(cd $(BUILD_DIR) && \
+>  	    ./configure --prefix=/usr --mandir=/usr/share/man \
+> -		--host=$(DEB_HOST_GNU_TYPE)
+> --build=$(DEB_BUILD_GNU_TYPE) )
+> +		--host=$(DEB_HOST_GNU_TYPE)
+> --build=$(DEB_BUILD_GNU_TYPE) --disable-mount-locking)
+>  	touch $@
+>  
+>  source.make: $(STAMP_DIR)/source.make
+> martind@duezer:/tmp$
+> 
+> ... gave me something I could sudo dpkg-buildpackage; sudo dpkg -i
+> ../autofs_4.1.4-10_i386.deb and which then solved my problem.
 
-One of the entries in auto.home refers to a directory automounted via
-the auto.u map:
+Interesting. Ian, is this something that's feasible to enable for Debian,
+given that our mount seems to be locking mtab by itself?
 
-usbuilder :/u/u60/Development/users/&
-
-The entry in auto.u says:
-
-u60 -proto=tcp,hard,intr,rsize=32768,wsize=32768
-us-titan.terastack.bluearc.com:/Company
-
-If /u/u60 is already mounted, I can mount /home/usbuilder promptly and
-without problem.  If /u/u60 isn't mounted, I get this every time:
-
-Jun 29 09:20:29 duezer automount[27601]: aquire_lock: can't lock lock
-file timed out: /var/lock/autofs
-Jun 29 09:20:29 duezer automount[27601]: mount(nfs): nfs: mount failure
-us-titan.terastack.bluearc.com:/Company on /u/u60
-Jun 29 09:20:29 duezer automount[27601]: failed to mount /u/u60
-Jun 29 09:20:56 duezer automount[28138]: aquire_lock: can't lock lock
-file timed out: /var/lock/autofs
-Jun 29 09:20:56 duezer automount[28138]: mount(nfs): nfs: mount failure
-us-titan:/svn on /net/us-titan/svn
-Jun 29 09:21:00 duezer automount[28143]: aquire_lock: can't lock lock
-file timed out: /var/lock/autofs
-Jun 29 09:21:00 duezer automount[28143]: mount(nfs): nfs: mount failure
-us-titan.terastack.bluearc.com:/Company on /u/u60
-Jun 29 09:21:00 duezer automount[28143]: failed to mount /u/u60
-Jun 29 09:21:00 duezer automount[27599]: >> mount: special device
-/u/u60/Development/users/usbuilder does not exist
-Jun 29 09:21:00 duezer automount[27599]: failed to mount /home/usbuilder
-
-My guess is that there's effectively a deadlock here - that autofs has
-already locked /var/lock/autofs to mount /home/usbuilder and then finds
-it has to mount /u/u60 and tries to acquire the same lock again.  If I'm
-wrong, and it's more interesting than I think, then you'll probably want
-more than I've gathered from http://people.redhat.com/jmoyer/:
-
-From dpkg --status autofs: Version: 4.1.4-10.  From uname -r:
-2.6.16-1-686-smp.  (That's a Debian stock kernel.)
-
-The workaround is obvious and not problematic for me.  I just wondered
-if this behavior was intentional.  I don't see the problem on autofs 3
-(Debian's autofs version 3.9.99-4.0.0pre10-20, 2.6.13.4-d865-satasata-uk
-(a non-stock kernel).)
--------------------------------------
-Martin's Outlook, BlueArc Engineering
+/* Steinar */
+-- 
+Homepage: http://www.sesse.net/
