@@ -1,98 +1,165 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: Autofs vs shrink_dcache_for_umount() problem
-Date: Sat, 01 Jul 2006 09:45:36 +0800
-Message-ID: <1151718336.2923.18.camel@raven.themaw.net>
-References: <20060630032426.671acfac.akpm@osdl.org>
-	<20060630030950.d9c75915.akpm@osdl.org>
-	<12824.1151661289@warthog.cambridge.redhat.com>
-	<200606300729.k5U7TXbs030525@shell0.pdx.osdl.net>
-	<15084.1151661496@warthog.cambridge.redhat.com>
-	<28248.1151662595@warthog.cambridge.redhat.com>
-	<22007.1151667101@warthog.cambridge.redhat.com>
+Subject: Re: [PATCH 2/2] AUTOFS: Make sure all dentries refs are released
+	before calling kill_anon_super()
+Date: Sat, 01 Jul 2006 10:18:52 +0800
+Message-ID: <1151720333.2923.33.camel@raven.themaw.net>
+References: <20060630123326.26938.278.stgit@warthog.cambridge.redhat.com>
+	 <20060630123328.26938.19324.stgit@warthog.cambridge.redhat.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <22007.1151667101@warthog.cambridge.redhat.com>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <20060630123328.26938.19324.stgit@warthog.cambridge.redhat.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://hera.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
 To: David Howells <dhowells@redhat.com>
-Cc: Andrew Morton <akpm@osdl.org>, neilb@suse.de, aviro@redhat.com, autofs@linux.kernel.org
+Cc: torvalds@osdl.org, akpm@osdl.org, aviro@redhat.com, neilb@suse.de, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, autofs@linux.kernel.org
 
-On Fri, 2006-06-30 at 12:31 +0100, David Howells wrote:
-> Andrew Morton <akpm@osdl.org> wrote:
+On Fri, 2006-06-30 at 13:33 +0100, David Howells wrote:
+> From: David Howells <dhowells@redhat.com>
 > 
-> > But why was yum (or an RPM script) dinking with loop and
-> > mounting/unmounting things?
-> 
-> It may have restarted the automounter... this may cause mounts and unmounts...
-> 
-> I've done a bit of probing, and when both ext3 and NFS go into the superblock
-> squidger with a tree that only has a root dentry, that root dentry has a usage
-> count of 1:
-> 
-> 	### Shrink root c629b088{1}
-> 	-->shrink_dcache_for_umount_subtree(c629b088)
-> 	- AT c629b088{0}
-> 	  - consume c629b088{0}
-> 	### Shrunk
-> 
-> 
-> 	### Shrink root c621d710{1}
-> 	-->shrink_dcache_for_umount_subtree(c621d710)
-> 	- AT c621d710{0}
-> 	  - consume c621d710{0}
-> 	### Shrunk
-> 
-> But when autofs4 goes in there with a minimal tree:
-> 
-> 	### Shrink root c6b714b0{2}
-> 	-->shrink_dcache_for_umount_subtree(c6b714b0)
-> 	- AT c6b714b0{1}
-> 	  - consume c6b714b0{1}
-> 	BUG: Dentry c6b714b0{i=1a80,n=/} still in use (1) [unmount of autofs autofs]
-> 	------------[ cut here ]------------
-> 	kernel BUG at fs/dcache.c:618!
-> 
-> It's got a usage count of *2*.  That means the root dentry is still in use
-> somewhere beyond the superblock s_root reference.
-> 
-> I think this in autofs4_fill_super() is the problem:
-> 
-> 	/*
-> 	 * Take a reference to the root dentry so we get a chance to
-> 	 * clean up the dentry tree on umount.
-> 	 * See autofs4_force_release.
-> 	 */
-> 	sbi->root = dget(root);
-> 
-> autofs4 violates the assumptions that I was told I could make.  autofs4
-> expects to clean up its dentries in autofs4_put_super(), when it should
-> perhaps really be overloading the kill_sb() op and doing it before calling
-> kill_anon_super().
+> Make sure all dentries refs are released before calling kill_anon_super() so
+> that the assumption that generic_shutdown_super() can completely destroy the
+> dentry tree for there will be no external references holds true.
 
-Right you are. Sorry.
-Looks like I've got a bit of work to do then.
+Thanks for doing this David.
+I'll try and give it some testing this weekend.
 
-The main reason this exists is that if the daemon is summarily killed
-dentrys with a non-zero reference count can be left in the tree so they
-need to be culled.
-
-I wish I'd had time to pay more attention to the work your doing David.
-A super brief overview would be really helpful if you have the time.
-
-Sounds like all I need to do is move the function. Overloading kill_sb
-sounds good. I'll investigate.
-
-I really need to try and motivate myself to do some work on my house
-this weekend so it may be a little while before I get back.
-
-Ian
+> 
+> What was being done in the put_super() superblock op, is now done in the
+> kill_sb() filesystem op instead, prior to calling kill_anon_super().
+> 
+> This makes the struct autofs_sb_info::root member variable redundant (since
+> sb->s_root is still available), and so that is removed.  The calls to
+> shrink_dcache_sb() are also removed since they're also redundant as
+> shrink_dcache_for_umount() will now be called after the cleanup routine.
+> 
+> Signed-Off-By: David Howells <dhowells@redhat.com>
+> ---
+> 
+>  fs/autofs4/autofs_i.h |    3 +--
+>  fs/autofs4/init.c     |    2 +-
+>  fs/autofs4/inode.c    |   22 ++++------------------
+>  fs/autofs4/waitq.c    |    1 -
+>  4 files changed, 6 insertions(+), 22 deletions(-)
+> 
+> diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
+> index d6603d0..47e38f3 100644
+> --- a/fs/autofs4/autofs_i.h
+> +++ b/fs/autofs4/autofs_i.h
+> @@ -96,7 +96,6 @@ #define AUTOFS_TYPE_OFFSET       0x0004
+>  
+>  struct autofs_sb_info {
+>  	u32 magic;
+> -	struct dentry *root;
+>  	int pipefd;
+>  	struct file *pipe;
+>  	pid_t oz_pgrp;
+> @@ -231,4 +230,4 @@ out:
+>  }
+>  
+>  void autofs4_dentry_release(struct dentry *);
+> -
+> +extern void autofs4_kill_sb(struct super_block *);
+> diff --git a/fs/autofs4/init.c b/fs/autofs4/init.c
+> index 5d91933..723a1c5 100644
+> --- a/fs/autofs4/init.c
+> +++ b/fs/autofs4/init.c
+> @@ -24,7 +24,7 @@ static struct file_system_type autofs_fs
+>  	.owner		= THIS_MODULE,
+>  	.name		= "autofs",
+>  	.get_sb		= autofs_get_sb,
+> -	.kill_sb	= kill_anon_super,
+> +	.kill_sb	= autofs4_kill_sb,
+>  };
+>  
+>  static int __init init_autofs4_fs(void)
+> diff --git a/fs/autofs4/inode.c b/fs/autofs4/inode.c
+> index fde78b1..1bf68c5 100644
+> --- a/fs/autofs4/inode.c
+> +++ b/fs/autofs4/inode.c
+> @@ -95,7 +95,7 @@ void autofs4_free_ino(struct autofs_info
+>   */
+>  static void autofs4_force_release(struct autofs_sb_info *sbi)
+>  {
+> -	struct dentry *this_parent = sbi->root;
+> +	struct dentry *this_parent = sbi->sb->s_root;
+>  	struct list_head *next;
+>  
+>  	spin_lock(&dcache_lock);
+> @@ -126,7 +126,7 @@ resume:
+>  		spin_lock(&dcache_lock);
+>  	}
+>  
+> -	if (this_parent != sbi->root) {
+> +	if (this_parent != sbi->sb->s_root) {
+>  		struct dentry *dentry = this_parent;
+>  
+>  		next = this_parent->d_u.d_child.next;
+> @@ -139,15 +139,9 @@ resume:
+>  		goto resume;
+>  	}
+>  	spin_unlock(&dcache_lock);
+> -
+> -	dput(sbi->root);
+> -	sbi->root = NULL;
+> -	shrink_dcache_sb(sbi->sb);
+> -
+> -	return;
+>  }
+>  
+> -static void autofs4_put_super(struct super_block *sb)
+> +void autofs4_kill_sb(struct super_block *sb)
+>  {
+>  	struct autofs_sb_info *sbi = autofs4_sbi(sb);
+>  
+> @@ -162,6 +156,7 @@ static void autofs4_put_super(struct sup
+>  	kfree(sbi);
+>  
+>  	DPRINTK("shutting down");
+> +	kill_anon_super(sb);
+>  }
+>  
+>  static int autofs4_show_options(struct seq_file *m, struct vfsmount *mnt)
+> @@ -188,7 +183,6 @@ static int autofs4_show_options(struct s
+>  }
+>  
+>  static struct super_operations autofs4_sops = {
+> -	.put_super	= autofs4_put_super,
+>  	.statfs		= simple_statfs,
+>  	.show_options	= autofs4_show_options,
+>  };
+> @@ -314,7 +308,6 @@ int autofs4_fill_super(struct super_bloc
+>  
+>  	s->s_fs_info = sbi;
+>  	sbi->magic = AUTOFS_SBI_MAGIC;
+> -	sbi->root = NULL;
+>  	sbi->pipefd = -1;
+>  	sbi->catatonic = 0;
+>  	sbi->exp_timeout = 0;
+> @@ -396,13 +389,6 @@ int autofs4_fill_super(struct super_bloc
+>  	sbi->pipefd = pipefd;
+>  
+>  	/*
+> -	 * Take a reference to the root dentry so we get a chance to
+> -	 * clean up the dentry tree on umount.
+> -	 * See autofs4_force_release.
+> -	 */
+> -	sbi->root = dget(root);
+> -
+> -	/*
+>  	 * Success! Install the root dentry now to indicate completion.
+>  	 */
+>  	s->s_root = root;
+> diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
+> index ce103e7..c0a6c8d 100644
+> --- a/fs/autofs4/waitq.c
+> +++ b/fs/autofs4/waitq.c
+> @@ -45,7 +45,6 @@ void autofs4_catatonic_mode(struct autof
+>  		fput(sbi->pipe);	/* Close the pipe */
+>  		sbi->pipe = NULL;
+>  	}
+> -	shrink_dcache_sb(sbi->sb);
+>  }
+>  
+>  static int autofs4_write(struct file *file, const void *addr, int bytes)
