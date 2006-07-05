@@ -1,19 +1,11 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: autofs5: unable to locate ldap master map
-Date: Wed, 05 Jul 2006 08:53:05 -0400
-Message-ID: <x49irmc43im.fsf@segfault.boston.redhat.com>
-References: <44A25311.2040501@inria.fr>
-	<1151554184.2929.45.camel@raven.themaw.net>
-	<44A3B6CD.5030403@inria.fr>
-	<1151585997.3915.36.camel@raven.themaw.net>
-	<44A4E38D.7020004@inria.fr>
-	<Pine.LNX.4.64.0607020143300.11953@raven.themaw.net>
-	<44A9216F.1030102@inria.fr>
-	<1151943337.9183.44.camel@raven.themaw.net>
+From: Jim Carter <jimc@math.ucla.edu>
+Subject: Re: about mainboard driver
+Date: Wed, 5 Jul 2006 11:51:05 -0700 (PDT)
+Message-ID: <Pine.LNX.4.64.0607051137470.24272@simba.math.ucla.edu>
+References: <04cd01c69fe2$d2044bc0$4d74a8c0@jiangguowei2>
 Mime-Version: 1.0
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1151943337.9183.44.camel@raven.themaw.net> (Ian Kent's message
-	of "Tue, 04 Jul 2006 00:15:37 +0800")
+In-Reply-To: <04cd01c69fe2$d2044bc0$4d74a8c0@jiangguowei2>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,31 +16,32 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ian Kent <raven@themaw.net>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+To: =?gb2312?B?vaq5+s6w?= <jianggw@bsw.net.cn>
+Cc: autofs@linux.kernel.org
 
-==> Regarding Re: [autofs] autofs5: unable to locate ldap master map; Ian Kent <raven@themaw.net> adds:
->> > use different locations to customise them. If it doesn't meet with your 
->> > approval then I'm sorry but I like it and it works well for me. And I 
->> > don't see any patch submissions from you for discussion so I guess you'll 
->> > just have to live with it.
->> I don't see the point of investing time to produce patches that will be
->> rejected, so I usually try to reach agreement before. Now, if all you
->> want is a patch, I can easily produce one, once we agree on the
->> following points:
->> - is is desirable to have distinct directories for automount
->> configuration and master map location (aka --with-confdir and
->> --with-mapdir switches) ?
+On Wed, 5 Jul 2006, ??? (Victor) wrote:
 
-raven> I think so.
-raven> Certainly the map directory is different on different distributions so
-raven> that's definitely a good thing to have. And your point above would imply
-raven> having the configuration directory configurable is good as well.
+>       Hello! Does anyone know in linux kernel 2.6.16 source codes,which 
+>   files are mainboard drivers?
 
-If you're using a mixed environment (Linux and other Unix variants), then
-you'll likely keep your maps in /etc/ for interoperability purposes.  As
-such, I don't really see a reason to put maps elsewhere.
+Suggestion, in the messages printed by the kernel during booting, look at 
+the message for the behavior you're doing research on, and use recursive 
+"grep" in the kernel sources to find files containing a word or phrase in 
+that message.  I was going to do that for you, for some representative 
+subsystems, but I'm on my work machine which doesn't have the sources 
+installed.  
 
--Jeff
+I don't think Linux has a specific "mainboard driver" like Windows does; 
+hardware initialization is done with the subsystems (e.g. memory 
+management) to which it's relevant, and where necessary the actions are 
+conditional on the chipset, with both run-time tests and the possibility to 
+exclude a whole class of processors/chipsets at compile time.
+
+For autofs the kernel's generic filesystem code cooperates with a userspace 
+daemon, and this is all happening at a hardware independent level.
+
+James F. Carter          Voice 310 825 2897    FAX 310 206 6673
+UCLA-Mathnet;  6115 MSA; 405 Hilgard Ave.; Los Angeles, CA, USA  90095-1555
+Email: jimc@math.ucla.edu    http://www.math.ucla.edu/~jimc (q.v. for PGP key)
