@@ -1,10 +1,11 @@
-From: "Latrell" <is85022@cis.nctu.edu.tw>
-Subject: Re: Large number of mount request.
-Date: Thu, 6 Jul 2006 11:52:54 +0800
-Message-ID: <007601c6a0af$aea99c70$251a17ac@ZyXEL.com>
-References: <20060623112741.95825.qmail@web34505.mail.mud.yahoo.com>
+From: =?utf-8?B?5aec5Zu95Lyf?= <jianggw@bsw.net.cn>
+Subject: Re: about mainboard driver
+Date: Thu, 6 Jul 2006 13:28:45 +0800
+Message-ID: <018f01c6a0bd$0cfc1cf0$4d74a8c0@jiangguowei2>
+References: <04cd01c69fe2$d2044bc0$4d74a8c0@jiangguowei2>
+	<Pine.LNX.4.64.0607051137470.24272@simba.math.ucla.edu>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -16,56 +17,38 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; format="flowed"; charset="us-ascii"; reply-type="original"
-To: ramana@intraperson.com, autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: Jim Carter <jimc@math.ucla.edu>
+Cc: autofs@linux.kernel.org
 
-Do you mean my ghost option didn't make it in time thus "cd share1" failed?
-I got the following message whenever there's "Failed to change directory" 
-error:
+Thank you for your reply,Jim.
 
-automount[2306]: aquire_lock: can't lock lock file interrupted: 
-/var/lock/autofs
-automount[2306]: failed to mount autofs path /tmp/users/shares/1034
-
-automount[2306]: /ramdisk/mnt/var1/tmp/users/shares/1034: mount failed!
-
-I also checked the ghost did create directory share1 under the home 
-directory. Could the lock problem cause cd share1 fail?
-
-Thanks for your comment,
-Latrell.
-
------ Original Message ----- 
-From: "ramana" <intraperson@yahoo.com>
-To: "Latrell" <is85022@cis.nctu.edu.tw>; <autofs@linux.kernel.org>
-Sent: Friday, June 23, 2006 7:27 PM
-Subject: Re: [autofs] Large number of mount request.
-
-
-> --- Latrell <is85022@cis.nctu.edu.tw> wrote:
+> Suggestion, in the messages printed by the kernel during booting, look at 
+> the message for the behavior you're doing research on, and use recursive 
+> "grep" in the kernel sources to find files containing a word or phrase in 
+> that message.  I was going to do that for you, for some representative 
+> subsystems, but I'm on my work machine which doesn't have the sources 
+> installed.  
 >
->> Hi, all:
->>
->> I have a problem with the mount and umount packet.
->> My problem is when I have a large number of mount requests, some
->> mount request packets are missing. Thus, when I "cd share1", I will
->> get "fail to change directory" because share1 is not mounted. Fewer
->> mount requests work normally.
->
-> I am afraid, this is ENOENT bug.
->
-> Thanks in advance.
->
-> Regards
-> ramana
->
-> __________________________________________________
-> Do You Yahoo!?
-> Tired of spam?  Yahoo! Mail has the best spam protection around
-> http://mail.yahoo.com
->
-> __________________________________________________
-> Do You Yahoo!?
-> Tired of spam?  Yahoo! Mail has the best spam protection around
-> http://mail.yahoo.com
+You can get kernel source codes in http://www.kernel.org/pub/linux/kernel/v2.6/ .
+
+
+> I don't think Linux has a specific "mainboard driver" like Windows does; 
+
+But I found many in http://www.treiberupdate.de/treiber-download/treiber-Mainboard/Motherboard-linux-0.html 
+> hardware initialization is done with the subsystems (e.g. memory 
+> management) to which it's relevant, and where necessary the actions are 
+> conditional on the chipset, with both run-time tests and the possibility to 
+> exclude a whole class of processors/chipsets at compile time.
 > 
+> For autofs the kernel's generic filesystem code cooperates with a userspace 
+> daemon, and this is all happening at a hardware independent level.
+> 
+> James F. Carter          Voice 310 825 2897    FAX 310 206 6673
+> UCLA-Mathnet;  6115 MSA; 405 Hilgard Ave.; Los Angeles, CA, USA  90095-1555
+> Email: jimc@math.ucla.edu    http://www.math.ucla.edu/~jimc (q.v. for PGP key)
+
+
+Regards,
+
+Victor
