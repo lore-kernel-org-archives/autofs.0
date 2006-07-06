@@ -1,13 +1,12 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: Large number of mount request.
-Date: Thu, 06 Jul 2006 19:58:11 +0800
-Message-ID: <1152187091.8761.6.camel@raven.themaw.net>
-References: <20060623112741.95825.qmail@web34505.mail.mud.yahoo.com>
-	<007601c6a0af$aea99c70$251a17ac@ZyXEL.com>
+Subject: Re: AFS + LDAP
+Date: Thu, 06 Jul 2006 20:33:12 +0800
+Message-ID: <1152189192.8761.24.camel@raven.themaw.net>
+References: <20060706055029.GS19585@mail.iSKUNK.ORG>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <007601c6a0af$aea99c70$251a17ac@ZyXEL.com>
+In-Reply-To: <20060706055029.GS19585@mail.iSKUNK.ORG>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,66 +18,50 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: Latrell <is85022@cis.nctu.edu.tw>
-Cc: autofs@linux.kernel.org, ramana@intraperson.com
+To: "Daniel Richard G." <skunk@iskunk.org>
+Cc: autofs@linux.kernel.org
 
-On Thu, 2006-07-06 at 11:52 +0800, Latrell wrote:
-> Do you mean my ghost option didn't make it in time thus "cd share1" failed?
-> I got the following message whenever there's "Failed to change directory" 
-> error:
+On Thu, 2006-07-06 at 01:50 -0400, Daniel Richard G. wrote:
+> Does there exist a standard(ish) LDAP schema for AFS mounts?
 > 
-> automount[2306]: aquire_lock: can't lock lock file interrupted: 
-> /var/lock/autofs
+> I'm familiar with the Hesiod record format, along the lines of e.g.
+> 
+> 	AFS /afs/athena.mit.edu/contrib/sipb n /mit/sipb 1
+> 	AFS /afs/athena.mit.edu/user/y/o/yoav w /mit/yoav
+> 
+> (and supported by the Hesiod lookup module), but I'm interested in pulling 
+> this same sort of information via LDAP.
 
-And what is sending the SIGQUIT, SIGTERM or SIGINT to autofs to cause it
-to stop waiting and return a interrupted fail?
+I'm not familiar with the hesoid system but I assume that in the record
+above we have:
 
-> automount[2306]: failed to mount autofs path /tmp/users/shares/1034
-> 
-> automount[2306]: /ramdisk/mnt/var1/tmp/users/shares/1034: mount failed!
-> 
-> I also checked the ghost did create directory share1 under the home 
-> directory. Could the lock problem cause cd share1 fail?
-> 
-> Thanks for your comment,
-> Latrell.
-> 
-> ----- Original Message ----- 
-> From: "ramana" <intraperson@yahoo.com>
-> To: "Latrell" <is85022@cis.nctu.edu.tw>; <autofs@linux.kernel.org>
-> Sent: Friday, June 23, 2006 7:27 PM
-> Subject: Re: [autofs] Large number of mount request.
-> 
-> 
-> > --- Latrell <is85022@cis.nctu.edu.tw> wrote:
-> >
-> >> Hi, all:
-> >>
-> >> I have a problem with the mount and umount packet.
-> >> My problem is when I have a large number of mount requests, some
-> >> mount request packets are missing. Thus, when I "cd share1", I will
-> >> get "fail to change directory" because share1 is not mounted. Fewer
-> >> mount requests work normally.
-> >
-> > I am afraid, this is ENOENT bug.
-> >
-> > Thanks in advance.
-> >
-> > Regards
-> > ramana
-> >
-> > __________________________________________________
-> > Do You Yahoo!?
-> > Tired of spam?  Yahoo! Mail has the best spam protection around
-> > http://mail.yahoo.com
-> >
-> > __________________________________________________
-> > Do You Yahoo!?
-> > Tired of spam?  Yahoo! Mail has the best spam protection around
-> > http://mail.yahoo.com
-> > 
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
+AFS -> filesystem type
+/afs/athena.mit.edu/user/y/o/yoav -> filesystem
+w -> read/write option rw
+
+The last field is confusing but it may be the key used by hes_resolve?
+If so for autofs it would not normally be a path but a component such as
+yoav here.
+
+So you could store this in LDAP by one of the schema such as the NIS
+schema by setting attributes for a distinguished name like:
+
+dn: cn=yoav,nisMapName=mymap,dc=dncom1,dc=dncomp2:
+
+as
+
+cn: yoav
+nisMapEntry: AFS /afs/athena.mit.edu/user/y/o/yoav w
+
+and using something like:
+
+/mymount	ldap,hesoid://server/nasMapName=mymap,dc=my,dc=dnname
+
+as a master map entry.
+
+There's a fair bit of detail left out because I'm not sure about it so
+there would have to be some trial and error. But the ",hesoid" will send
+the entry to the hesoid parser instead of the sun parser in the same way
+as the hesoid lookup module does.
+
+Ian
