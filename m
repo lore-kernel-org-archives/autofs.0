@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: Large number of mount request.
-Date: Thu, 06 Jul 2006 19:29:20 +0800
-Message-ID: <1152185360.8761.1.camel@raven.themaw.net>
+Date: Thu, 06 Jul 2006 19:58:11 +0800
+Message-ID: <1152187091.8761.6.camel@raven.themaw.net>
 References: <20060623112741.95825.qmail@web34505.mail.mud.yahoo.com>
 	<007601c6a0af$aea99c70$251a17ac@ZyXEL.com>
 Mime-Version: 1.0
@@ -29,6 +29,10 @@ On Thu, 2006-07-06 at 11:52 +0800, Latrell wrote:
 > 
 > automount[2306]: aquire_lock: can't lock lock file interrupted: 
 > /var/lock/autofs
+
+And what is sending the SIGQUIT, SIGTERM or SIGINT to autofs to cause it
+to stop waiting and return a interrupted fail?
+
 > automount[2306]: failed to mount autofs path /tmp/users/shares/1034
 > 
 > automount[2306]: /ramdisk/mnt/var1/tmp/users/shares/1034: mount failed!
@@ -37,12 +41,6 @@ On Thu, 2006-07-06 at 11:52 +0800, Latrell wrote:
 > directory. Could the lock problem cause cd share1 fail?
 > 
 > Thanks for your comment,
-
-At least some information would be in order here!
-autofs version?
-kernel version?
-what patches if any have you or the vendor applied to autofs?
-
 > Latrell.
 > 
 > ----- Original Message ----- 
