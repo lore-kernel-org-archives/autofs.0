@@ -1,169 +1,129 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 2/2] AUTOFS: Make sure all dentries refs are released
-	before calling kill_anon_super()
-Date: Fri, 07 Jul 2006 16:26:42 +0800
-Message-ID: <1152260802.2797.4.camel@raven.themaw.net>
-References: <20060630123326.26938.278.stgit@warthog.cambridge.redhat.com>
-	 <20060630123328.26938.19324.stgit@warthog.cambridge.redhat.com>
+Subject: Re: Large number of mount request.
+Date: Fri, 7 Jul 2006 17:03:39 +0800 (WST)
+Message-ID: <Pine.LNX.4.64.0607071653410.2893@raven.themaw.net>
+References: <20060623112741.95825.qmail@web34505.mail.mud.yahoo.com>
+	<007601c6a0af$aea99c70$251a17ac@ZyXEL.com>
+	<1152187091.8761.6.camel@raven.themaw.net>
+	<00b201c6a17a$8050d160$251a17ac@ZyXEL.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <20060630123328.26938.19324.stgit@warthog.cambridge.redhat.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <00b201c6a17a$8050d160$251a17ac@ZyXEL.com>
 List-Id: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: David Howells <dhowells@redhat.com>
-Cc: torvalds@osdl.org, akpm@osdl.org, aviro@redhat.com, neilb@suse.de, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, autofs@linux.kernel.org
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://hera.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Latrell <is85022@cis.nctu.edu.tw>
+Cc: autofs@linux.kernel.org, ramana@intraperson.com
 
+On Fri, 7 Jul 2006, Latrell wrote:
 
-Thanks for you patience.
-Carried out a number of basic autofs tests without problem.
+> There will be an automount daemon for 1 ftp session (used to mount shares
+> under home directory).
+> I sent SIGTERM to automount when my FTP session close (because the
+> corresponding automount daemod need to be killed).
+> In my scenario, there should be multi-sessions need to be closed. Thus,
+> SIGTERM will not be unique.
 
-So in so far as autofs4 is concerned:
+I'm a little confused.
+What I was suggesting is that according to the log entry below automount 
+received one of the above signals which caused the mount to fail. That was 
+why I asked about where the signals might have come from. If you send a 
+termination signal to version 4 and a mount is busy it usually won't exit 
+but I would expect any mounts in progress to fail in this manner as well.
 
-On Fri, 2006-06-30 at 13:33 +0100, David Howells wrote:
-> From: David Howells <dhowells@redhat.com>
 > 
-> Make sure all dentries refs are released before calling kill_anon_super() so
-> that the assumption that generic_shutdown_super() can completely destroy the
-> dentry tree for there will be no external references holds true.
-> 
-> What was being done in the put_super() superblock op, is now done in the
-> kill_sb() filesystem op instead, prior to calling kill_anon_super().
-> 
-> This makes the struct autofs_sb_info::root member variable redundant (since
-> sb->s_root is still available), and so that is removed.  The calls to
-> shrink_dcache_sb() are also removed since they're also redundant as
-> shrink_dcache_for_umount() will now be called after the cleanup routine.
-> 
-> Signed-Off-By: David Howells <dhowells@redhat.com>
-Acked-by: Ian Kent <raven@themaw.net>
+> My autofs version is 4.1.4 with patch autofs4-2.4.29-20050404.patch.
+> kernel is 2.4.31 (no autofs patch for 2.4.31)
 
-> ---
+You should consider appling the patches for 4.1.4 available on kernel.org.
+At least apply autofs-4.1.4-locking-fix-1.patch.
+However, the locking problem that this addresses results in lock timeout 
+log entries not lock interrupted messages. The reason bieng that automount 
+dosn't wiat for the lock.
+
 > 
->  fs/autofs4/autofs_i.h |    3 +--
->  fs/autofs4/init.c     |    2 +-
->  fs/autofs4/inode.c    |   22 ++++------------------
->  fs/autofs4/waitq.c    |    1 -
->  4 files changed, 6 insertions(+), 22 deletions(-)
+> Thanks, for your comment,
+> Latrell.
+> ----- Original Message ----- From: "Ian Kent" <raven@themaw.net>
+> To: "Latrell" <is85022@cis.nctu.edu.tw>
+> Cc: <ramana@intraperson.com>; <autofs@linux.kernel.org>
+> Sent: Thursday, July 06, 2006 7:58 PM
+> Subject: Re: [autofs] Large number of mount request.
 > 
-> diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
-> index d6603d0..47e38f3 100644
-> --- a/fs/autofs4/autofs_i.h
-> +++ b/fs/autofs4/autofs_i.h
-> @@ -96,7 +96,6 @@ #define AUTOFS_TYPE_OFFSET       0x0004
->  
->  struct autofs_sb_info {
->  	u32 magic;
-> -	struct dentry *root;
->  	int pipefd;
->  	struct file *pipe;
->  	pid_t oz_pgrp;
-> @@ -231,4 +230,4 @@ out:
->  }
->  
->  void autofs4_dentry_release(struct dentry *);
-> -
-> +extern void autofs4_kill_sb(struct super_block *);
-> diff --git a/fs/autofs4/init.c b/fs/autofs4/init.c
-> index 5d91933..723a1c5 100644
-> --- a/fs/autofs4/init.c
-> +++ b/fs/autofs4/init.c
-> @@ -24,7 +24,7 @@ static struct file_system_type autofs_fs
->  	.owner		= THIS_MODULE,
->  	.name		= "autofs",
->  	.get_sb		= autofs_get_sb,
-> -	.kill_sb	= kill_anon_super,
-> +	.kill_sb	= autofs4_kill_sb,
->  };
->  
->  static int __init init_autofs4_fs(void)
-> diff --git a/fs/autofs4/inode.c b/fs/autofs4/inode.c
-> index fde78b1..1bf68c5 100644
-> --- a/fs/autofs4/inode.c
-> +++ b/fs/autofs4/inode.c
-> @@ -95,7 +95,7 @@ void autofs4_free_ino(struct autofs_info
->   */
->  static void autofs4_force_release(struct autofs_sb_info *sbi)
->  {
-> -	struct dentry *this_parent = sbi->root;
-> +	struct dentry *this_parent = sbi->sb->s_root;
->  	struct list_head *next;
->  
->  	spin_lock(&dcache_lock);
-> @@ -126,7 +126,7 @@ resume:
->  		spin_lock(&dcache_lock);
->  	}
->  
-> -	if (this_parent != sbi->root) {
-> +	if (this_parent != sbi->sb->s_root) {
->  		struct dentry *dentry = this_parent;
->  
->  		next = this_parent->d_u.d_child.next;
-> @@ -139,15 +139,9 @@ resume:
->  		goto resume;
->  	}
->  	spin_unlock(&dcache_lock);
-> -
-> -	dput(sbi->root);
-> -	sbi->root = NULL;
-> -	shrink_dcache_sb(sbi->sb);
-> -
-> -	return;
->  }
->  
-> -static void autofs4_put_super(struct super_block *sb)
-> +void autofs4_kill_sb(struct super_block *sb)
->  {
->  	struct autofs_sb_info *sbi = autofs4_sbi(sb);
->  
-> @@ -162,6 +156,7 @@ static void autofs4_put_super(struct sup
->  	kfree(sbi);
->  
->  	DPRINTK("shutting down");
-> +	kill_anon_super(sb);
->  }
->  
->  static int autofs4_show_options(struct seq_file *m, struct vfsmount *mnt)
-> @@ -188,7 +183,6 @@ static int autofs4_show_options(struct s
->  }
->  
->  static struct super_operations autofs4_sops = {
-> -	.put_super	= autofs4_put_super,
->  	.statfs		= simple_statfs,
->  	.show_options	= autofs4_show_options,
->  };
-> @@ -314,7 +308,6 @@ int autofs4_fill_super(struct super_bloc
->  
->  	s->s_fs_info = sbi;
->  	sbi->magic = AUTOFS_SBI_MAGIC;
-> -	sbi->root = NULL;
->  	sbi->pipefd = -1;
->  	sbi->catatonic = 0;
->  	sbi->exp_timeout = 0;
-> @@ -396,13 +389,6 @@ int autofs4_fill_super(struct super_bloc
->  	sbi->pipefd = pipefd;
->  
->  	/*
-> -	 * Take a reference to the root dentry so we get a chance to
-> -	 * clean up the dentry tree on umount.
-> -	 * See autofs4_force_release.
-> -	 */
-> -	sbi->root = dget(root);
-> -
-> -	/*
->  	 * Success! Install the root dentry now to indicate completion.
->  	 */
->  	s->s_root = root;
-> diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
-> index ce103e7..c0a6c8d 100644
-> --- a/fs/autofs4/waitq.c
-> +++ b/fs/autofs4/waitq.c
-> @@ -45,7 +45,6 @@ void autofs4_catatonic_mode(struct autof
->  		fput(sbi->pipe);	/* Close the pipe */
->  		sbi->pipe = NULL;
->  	}
-> -	shrink_dcache_sb(sbi->sb);
->  }
->  
->  static int autofs4_write(struct file *file, const void *addr, int bytes)
+> 
+> > On Thu, 2006-07-06 at 11:52 +0800, Latrell wrote:
+> > > Do you mean my ghost option didn't make it in time thus "cd share1"
+> > > failed?
+> > > I got the following message whenever there's "Failed to change directory"
+> > > error:
+> > > 
+> > > automount[2306]: aquire_lock: can't lock lock file interrupted:
+> > > /var/lock/autofs
+> > 
+> > And what is sending the SIGQUIT, SIGTERM or SIGINT to autofs to cause it
+> > to stop waiting and return a interrupted fail?
+> > 
+> > > automount[2306]: failed to mount autofs path /tmp/users/shares/1034
+> > > 
+> > > automount[2306]: /ramdisk/mnt/var1/tmp/users/shares/1034: mount failed!
+> > > 
+> > > I also checked the ghost did create directory share1 under the home
+> > > directory. Could the lock problem cause cd share1 fail?
+> > > 
+> > > Thanks for your comment,
+> > > Latrell.
+> > > 
+> > > ----- Original Message ----- From: "ramana" <intraperson@yahoo.com>
+> > > To: "Latrell" <is85022@cis.nctu.edu.tw>; <autofs@linux.kernel.org>
+> > > Sent: Friday, June 23, 2006 7:27 PM
+> > > Subject: Re: [autofs] Large number of mount request.
+> > > 
+> > > 
+> > > > --- Latrell <is85022@cis.nctu.edu.tw> wrote:
+> > > >
+> > > >> Hi, all:
+> > > >>
+> > > >> I have a problem with the mount and umount packet.
+> > > >> My problem is when I have a large number of mount requests, some
+> > > >> mount request packets are missing. Thus, when I "cd share1", I will
+> > > >> get "fail to change directory" because share1 is not mounted. Fewer
+> > > >> mount requests work normally.
+> > > >
+> > > > I am afraid, this is ENOENT bug.
+> > > >
+> > > > Thanks in advance.
+> > > >
+> > > > Regards
+> > > > ramana
+> > > >
+> > > > __________________________________________________
+> > > > Do You Yahoo!?
+> > > > Tired of spam?  Yahoo! Mail has the best spam protection around
+> > > > http://mail.yahoo.com
+> > > >
+> > > > __________________________________________________
+> > > > Do You Yahoo!?
+> > > > Tired of spam?  Yahoo! Mail has the best spam protection around
+> > > > http://mail.yahoo.com
+> > > >
+> > > 
+> > > _______________________________________________
+> > > autofs mailing list
+> > > autofs@linux.kernel.org
+> > > http://linux.kernel.org/mailman/listinfo/autofs
+> > 
+> 
+> _______________________________________________
+> autofs mailing list
+> autofs@linux.kernel.org
+> http://linux.kernel.org/mailman/listinfo/autofs
+> 
