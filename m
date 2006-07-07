@@ -1,13 +1,14 @@
-From: "Latrell" <is85022@cis.nctu.edu.tw>
-Subject: Re: Large number of mount request.
-Date: Fri, 7 Jul 2006 12:04:45 +0800
-Message-ID: <00b201c6a17a$8050d160$251a17ac@ZyXEL.com>
-References: <20060623112741.95825.qmail@web34505.mail.mud.yahoo.com>
-	<007601c6a0af$aea99c70$251a17ac@ZyXEL.com>
-	<1152187091.8761.6.camel@raven.themaw.net>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: AFS + LDAP
+Date: Fri, 07 Jul 2006 09:41:28 +0800
+Message-ID: <1152236488.2922.19.camel@raven.themaw.net>
+References: <20060706055029.GS19585@mail.iSKUNK.ORG>
+	<1152189192.8761.24.camel@raven.themaw.net>
+	<20060706194023.GG32706@mail.iSKUNK.ORG>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <20060706194023.GG32706@mail.iSKUNK.ORG>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,89 +19,93 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; format="flowed"; charset="us-ascii"; reply-type="original"
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org, ramana@intraperson.com
+Content-Type: text/plain; charset="us-ascii"
+To: "Daniel Richard G." <skunk@iskunk.org>
+Cc: autofs@linux.kernel.org
 
-There will be an automount daemon for 1 ftp session (used to mount shares 
-under home directory).
-I sent SIGTERM to automount when my FTP session close (because the 
-corresponding automount daemod need to be killed).
-In my scenario, there should be multi-sessions need to be closed. Thus, 
-SIGTERM will not be unique.
-
-My autofs version is 4.1.4 with patch autofs4-2.4.29-20050404.patch.
-kernel is 2.4.31 (no autofs patch for 2.4.31)
-
-Thanks, for your comment,
-Latrell.
------ Original Message ----- 
-From: "Ian Kent" <raven@themaw.net>
-To: "Latrell" <is85022@cis.nctu.edu.tw>
-Cc: <ramana@intraperson.com>; <autofs@linux.kernel.org>
-Sent: Thursday, July 06, 2006 7:58 PM
-Subject: Re: [autofs] Large number of mount request.
-
-
-> On Thu, 2006-07-06 at 11:52 +0800, Latrell wrote:
->> Do you mean my ghost option didn't make it in time thus "cd share1" 
->> failed?
->> I got the following message whenever there's "Failed to change directory"
->> error:
->>
->> automount[2306]: aquire_lock: can't lock lock file interrupted:
->> /var/lock/autofs
->
-> And what is sending the SIGQUIT, SIGTERM or SIGINT to autofs to cause it
-> to stop waiting and return a interrupted fail?
->
->> automount[2306]: failed to mount autofs path /tmp/users/shares/1034
->>
->> automount[2306]: /ramdisk/mnt/var1/tmp/users/shares/1034: mount failed!
->>
->> I also checked the ghost did create directory share1 under the home
->> directory. Could the lock problem cause cd share1 fail?
->>
->> Thanks for your comment,
->> Latrell.
->>
->> ----- Original Message ----- 
->> From: "ramana" <intraperson@yahoo.com>
->> To: "Latrell" <is85022@cis.nctu.edu.tw>; <autofs@linux.kernel.org>
->> Sent: Friday, June 23, 2006 7:27 PM
->> Subject: Re: [autofs] Large number of mount request.
->>
->>
->> > --- Latrell <is85022@cis.nctu.edu.tw> wrote:
->> >
->> >> Hi, all:
->> >>
->> >> I have a problem with the mount and umount packet.
->> >> My problem is when I have a large number of mount requests, some
->> >> mount request packets are missing. Thus, when I "cd share1", I will
->> >> get "fail to change directory" because share1 is not mounted. Fewer
->> >> mount requests work normally.
->> >
->> > I am afraid, this is ENOENT bug.
->> >
->> > Thanks in advance.
->> >
->> > Regards
->> > ramana
->> >
->> > __________________________________________________
->> > Do You Yahoo!?
->> > Tired of spam?  Yahoo! Mail has the best spam protection around
->> > http://mail.yahoo.com
->> >
->> > __________________________________________________
->> > Do You Yahoo!?
->> > Tired of spam?  Yahoo! Mail has the best spam protection around
->> > http://mail.yahoo.com
->> >
->>
->> _______________________________________________
->> autofs mailing list
->> autofs@linux.kernel.org
->> http://linux.kernel.org/mailman/listinfo/autofs
+On Thu, 2006-07-06 at 15:40 -0400, Daniel Richard G. wrote:
+> On Thu, 2006 Jul 06 20:33:12 +0800, Ian Kent wrote:
+> > 
+> > I'm not familiar with the hesoid system but I assume that in the record
+> > above we have:
+> > 
+> > AFS -> filesystem type
+> > /afs/athena.mit.edu/user/y/o/yoav -> filesystem
+> > w -> read/write option rw
 > 
+> Aye, that's right.
+> 
+> > The last field is confusing but it may be the key used by hes_resolve?
+> > If so for autofs it would not normally be a path but a component such as
+> > yoav here.
+> 
+> It's the mount point, actually. The original way of working is that you 
+> would mount the volume by invoking "attach sipb" or "attach yoav", without 
+> reference to a base path. /mit is the usual location, but some special 
+> volumes (e.g. for system software) mount elsewhere in the filesystem.
+
+OK. The existing code appears to call hes_resolve with just the
+component of say yoav so that is the bit that would need to be stored as
+the key in an alternate source.
+
+> 
+> > So you could store this in LDAP by one of the schema such as the NIS
+> > schema by setting attributes for a distinguished name like:
+> > 
+> [...]
+> > 
+> > cn: yoav
+> > nisMapEntry: AFS /afs/athena.mit.edu/user/y/o/yoav w
+> > 
+> [...]
+> > 
+> > There's a fair bit of detail left out because I'm not sure about it so
+> > there would have to be some trial and error. But the ",hesoid" will send
+> > the entry to the hesoid parser instead of the sun parser in the same way
+> > as the hesoid lookup module does.
+> 
+> Hmm. So it would basically be a Hesiod record stuffed into an LDAP 
+> attribute... and (if I understand correctly) autofs is currently limited to 
+> this sort of approach as _something_ ultimately has to be fed to the Hesiod 
+> parser.
+
+Only to the extent that if you have existing records and you don't want
+to convert them to the sun format. Ultimately something has to be feed
+to a parser and hesoid and sun format parsers are all we have atm.
+
+> 
+> I was hoping for something more along the lines of an extension to the 
+> standard NIS schema. (It's common for AFS sites to have each user's home 
+> directory be a separately mountable volume, so having some sort of 
+> user-volume equivalence in LDAP is reasonable.)
+
+Don't quite follow.
+There are three schema in use about the place, the automount NIS schema,
+rfc2307 and rfc2307-bis automount schema.
+
+They all have objectclasses to hold automount keys and corresponding
+mount information.
+
+> 
+> I take it something like this would require new code to support, then? And 
+> how would this work---pulling data from LDAP, but not doing any parsing per 
+> se (as the information is already broken out into attributes); there would 
+> be no lookup/parser disjunction. Should there be any issue with a backend 
+> module that effectively does both tasks?
+
+Not really, but maybe.
+The entry point into this is the lookup module.
+
+In version 4 and version 5 so far the lookup module for a map source is
+called to find the mount data it then calls the parser module which in
+turn calls the appropriate mount module.
+
+You need to be careful not to implement something that is specific to
+what you require rather than something that general and that others may
+benefit from. Otherwise we would end up with a bunch of limited function
+modules.
+
+The feeling is that this design is inflexible and it will be redesigned
+at some point.
+
+Ian
