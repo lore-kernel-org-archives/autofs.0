@@ -1,16 +1,18 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: AFS + LDAP
-Date: Fri, 07 Jul 2006 13:50:12 -0400
-Message-ID: <x49hd1t1ezv.fsf@segfault.boston.redhat.com>
-References: <20060706055029.GS19585@mail.iSKUNK.ORG>
-	<1152189192.8761.24.camel@raven.themaw.net>
-	<20060706194023.GG32706@mail.iSKUNK.ORG>
-	<1152236488.2922.19.camel@raven.themaw.net>
-	<20060707170919.GI32706@mail.iSKUNK.ORG>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: Large number of mount request.
+Date: Sat, 08 Jul 2006 13:01:43 +0800
+Message-ID: <1152334903.2814.6.camel@raven.themaw.net>
+References: <20060623112741.95825.qmail@web34505.mail.mud.yahoo.com>
+	<007601c6a0af$aea99c70$251a17ac@ZyXEL.com>
+	<1152187091.8761.6.camel@raven.themaw.net>
+	<00b201c6a17a$8050d160$251a17ac@ZyXEL.com>
+	<Pine.LNX.4.64.0607071653410.2893@raven.themaw.net>
+	<00ec01c6a1be$34af4e00$251a17ac@ZyXEL.com>
+	<x49lkr51nru.fsf@segfault.boston.redhat.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20060707170919.GI32706@mail.iSKUNK.ORG> (Daniel Richard G.'s
-	message of "Fri, 7 Jul 2006 13:09:19 -0400")
+In-Reply-To: <x49lkr51nru.fsf@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,39 +24,29 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: "Daniel Richard G." <skunk@iskunk.org>
-Cc: autofs@linux.kernel.org, Ian Kent <raven@themaw.net>
+To: Latrell <is85022@cis.nctu.edu.tw>
+Cc: autofs@linux.kernel.org, ramana@intraperson.com
 
-==> Regarding Re: [autofs] AFS + LDAP; "Daniel Richard G." <skunk@iskunk.org> adds:
+On Fri, 2006-07-07 at 10:40 -0400, Jeff Moyer wrote:
+> ==> Regarding Re: [autofs] Large number of mount request.; "Latrell" <is85022@cis.nctu.edu.tw> adds:
+> 
+> is85022> Sorry for misunderstanding what you mean. I think I should describe my
+> is85022> scenario in detail.
+> is85022> I use autofs to mount shares under user's home directory. It functions
+> is85022> normally in normal cases.
+> is85022> However, in stress test,  the user continuously login->change directory
+> is85022> (autofs mount in this time) -> logout (a SIGERM sent to the automount
+> is85022> daemon) --> login.......
+> 
+> Why is a SIGTERM sent to automount when you logout?  It shouldn't be.
 
-skunk> On Fri, 2006 Jul 07 09:41:28 +0800, Ian Kent wrote:
->> > be no lookup/parser disjunction. Should there be any issue with a backend 
->> > module that effectively does both tasks?
->> 
->> Not really, but maybe.
->> The entry point into this is the lookup module.
->> 
->> In version 4 and version 5 so far the lookup module for a map source is
->> called to find the mount data it then calls the parser module which in
->> turn calls the appropriate mount module.
+I think Jeff has pretty much summed it up.
 
-skunk> I see. So the separation is not enforced; the daemon only knows about 
-skunk> lookup modules, and the modules can delegate however they wish.
+The SIGTERM terminates autofs and you then have unnecessary startup and
+shutdown overhead giving a window where mounts will not work as there is
+no daemon to manage them.
 
-And as things stand today, every lookup module falls into the model of
-calling into the parse module to do parsing (and the parse module calls the
-mount module).  If you're going to stray from this, you had better have a
-really good reason to do so.
+Don't forget that there was also a bug in the lock routines that cause
+it not to wait sometimes. Apply, at least the locking patch to 4.1.4.
 
->> You need to be careful not to implement something that is specific to
->> what you require rather than something that general and that others may
->> benefit from. Otherwise we would end up with a bunch of limited function
->> modules.
-
-skunk> The point is not lost on me. I'd like to find a "tighter" solution
-skunk> that can nevertheless be generally applicable.
-
-Good.
-
-Jeff
+Ian
