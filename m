@@ -1,7 +1,7 @@
-From: "Daniel Richard G." <skunk@iskunk.org>
+From: Timo Felbinger <Timo.Felbinger@physik.uni-potsdam.de>
 Subject: Re: AFS + LDAP
-Date: Sun, 9 Jul 2006 01:35:04 -0400
-Message-ID: <20060709053504.GF7333@mail.iSKUNK.ORG>
+Date: Sun, 9 Jul 2006 14:59:24 +0200
+Message-ID: <20060709125924.GC27033@uranos.quantum.physik.uni-potsdam.de>
 References: <20060706055029.GS19585@mail.iSKUNK.ORG>
 	<1152189192.8761.24.camel@raven.themaw.net>
 	<20060706194023.GG32706@mail.iSKUNK.ORG>
@@ -10,10 +10,13 @@ References: <20060706055029.GS19585@mail.iSKUNK.ORG>
 	<1152336210.2814.23.camel@raven.themaw.net>
 	<20060708075345.GA7333@mail.iSKUNK.ORG>
 	<1152373694.2814.54.camel@raven.themaw.net>
+	<20060709053504.GF7333@mail.iSKUNK.ORG>
+Reply-To: Timo Felbinger <Timo.Felbinger@physik.uni-potsdam.de>
 Mime-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1152373694.2814.54.camel@raven.themaw.net>
+In-Reply-To: <20060709053504.GF7333@mail.iSKUNK.ORG>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,85 +27,78 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
 To: autofs@linux.kernel.org
-Cc: Ian Kent <raven@themaw.net>
 
-On Sat, 2006 Jul 08 23:48:13 +0800, Ian Kent wrote:
-> > 
-> > 	automountKey: qux
-> > 	automountType: device
-> > 	automountFormat: xfs
-> > 	automountPath: /dev/sda5
-> > 	automountWritable: yes
-> 
-> We would probably need a couple of other attributes, say for mount
-> options other than read/write.
+On Sun, Jul 09, 2006 at 01:35:04AM -0400, Daniel Richard G. wrote:
+>=20
+> On Sat, 2006 Jul 08 23:48:13 +0800, Ian Kent wrote:
+> > >=20
+> > > 	automountKey: qux
+> > > 	automountType: device
+> > > 	automountFormat: xfs
+> > > 	automountPath: /dev/sda5
+> > > 	automountWritable: yes
+> >=20
+> > We would probably need a couple of other attributes, say for mount
+> > options other than read/write.
+>=20
+> This is why you want your standards written by some greybeard at Sun=20
+> instead of a rabble-rouser like me :-)  Certainly here, there'd be a lo=
+t of=20
+> ground to cover, corner cases and the like.
 
-This is why you want your standards written by some greybeard at Sun 
-instead of a rabble-rouser like me :-)  Certainly here, there'd be a lot of 
-ground to cover, corner cases and the like.
+Sorry for bursting into your conversation and bringing up an old
+issue again, but it seems to be quite related to this discussion:
 
-> Right row (and for quite a long time) I've been most concerned with
-> bringing the current autofs feature set up to par with functionality of
-> other industry standard products. This is where the interoperability
-> bent comes from and so haven't really thought about doing it better. The
-> other reason that interoperability is so important to me is that Linux
-> autofs must be able to fit into mixed vendor sites with minimal hassle
-> for the admin as the heaviest autofs users tend to have such
-> environments. In fact this one of the reasons I took up maintenance of
-> the package.
+A while ago I did suggest a generalized syntax for LDAP map names,
+by implementing an already existing standard: LDAP URLs as in rfc2255.
+This would be more a "meta"-standard, as it does not enforce any
+specific schema, but allow one to use arbitrary schemas, encoded
+into the map name. So far, I used to think in terms of schemas with
+just two relevant attributes (automount key and information), but I
+actually start to like the idea of splitting automountInformation
+into several attributes.
 
-Absolutely no disagreement here.
+The current map name format would be subset of the URL syntax, so
+compatibility could be preserved.
 
-> But it's getting there now so in the not so distant future a project
-> like this would be a great idea. I think it's likely to be a little
-> bigger task than you my be thinking. Perhaps your thinking a proof of
-> concept module(s) might be a good idea at this stage. And then
-> discussion about how the schema might need to change.
+I submitted a patch for autofs4 (http://timof.qipc.org/autofs), which
+however didn't make it into autofs5. I understand that this would be
+an ambitious change, and bringing other parts of autofs up to standard
+was probably more urgent; however, it could give plenty of room for
+future improvements (like the evolution of a new standard schema), while
+staying compatible with traditional schemas (at least, I don't see any
+fundamental issues here), so I would still like to hear your opinions
+about implementing this in a future version?
 
-It's an intriguing idea, to allow a good "universal" schema to evolve.
+...btw:
 
-I'm coming from the perspective of needing to support an organization, 
-however, so this would go a bit beyond my mandate. I'd have to think about 
-this, and gauge how well the idea of using a "prototype" schema would suit 
-my colleagues.
+On Thu, Jul 06 2006 at 15:40:24 -0400, Daniel Richard G. wrote:
+>
+> I was hoping for something more along the lines of an extension to the=AF=
+=AB
+> standard NIS schema. (It's common for AFS sites to have each user's hom=
+e=AF=AB
+> directory be a separately mountable volume, so having some sort of=AF=AB
+> user-volume equivalence in LDAP is reasonable.)=AB
 
-> Just thinking about this is quite strange.
-> Linux autofs has been behind the pack for so long that to suddenly be
-> considering how the service could do things better and possibly
-> establish the standard in time to come is really weird.
-
-And that view in itself is a bit novel to me, seeing as how Linux in 
-general seems to be getting the lion's share of new *nix features these 
-days :)  (It doesn't hurt that autofs's userspace side seems eminently
-hackable, too.)
-
-> Never the less I can't see us getting much support for such a proposal
-> unless Linux autofs is at least providing all the existing expected
-> functionality in a sound, stable and reliable way so I've still got my
-> hands full for at least a while.
-
-It's a fair point, and your earlier comments make perfect sense in light of 
-it. Though I'm still a bit surprised that my proposal wasn't something that 
-you'd come across before, in one form or another.
-
-Ian, kind thanks for expounding on the situation for me. You've given me a 
-bit to think about. It does seem like a "six of one, half-dozen of the 
-other" judgment call at this point in time.
+If I understand this correctly (I'm not familiar with AFS), this is prett=
+y
+much the reason why I started to patch lookup_ldap.c in the first place:
+to pull automount information from user account entries (rather than from
+an independent hierarchy), with the "uid" attribute used as the autmountK=
+ey,
+when mounting user directories. Seems the natural way of doing it to me.
 
 
-Sincerely yours,
+Best Regards,
+
+Timo Felbinger
 
 
---Daniel
-
-
--- 
-NAME   = Daniel Richard G.       ##  Remember, skunks       _\|/_  meef?
-EMAIL1 = skunk@iskunk.org        ##  don't smell bad---    (/o|o\) /
-EMAIL2 = skunk@alum.mit.edu      ##  it's the people who   < (^),>
-WWW    = http://www.******.org/  ##  annoy them that do!    /   \
---
-(****** = site not yet online)
+--=20
+Timo Felbinger                  http://www.felbinger.net
+Quantum Physics Group           Phone:  +49 331 977 1793   Fax: -1767
+Institut fuer Physik            Mobile: +49 177 735 1936
+Universitaet Potsdam, Germany   PGP key-id: E92567B2
