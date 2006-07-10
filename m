@@ -1,100 +1,211 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: automount removes mountpoint upon exit
-Date: Mon, 10 Jul 2006 10:28:52 -0400
-Message-ID: <x494pxp1ql7.fsf@segfault.boston.redhat.com>
-References: <44B23316.7050808@ant.uni-bremen.de>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [autofs] Re: [PATCH] autofs4 needs to force fail return
+	revalidate
+Date: Tue, 11 Jul 2006 00:23:47 +0800
+Message-ID: <1152548627.1853.19.camel@raven.themaw.net>
+References: <200606210618.k5L6IFDr008176@raven.themaw.net>
+	 <20060620233941.49ba2223.akpm@osdl.org>
+	 <Pine.LNX.4.64.0606231159540.2904@raven.themaw.net>
+	 <20060710032429.15192c9c.akpm@osdl.org>
 Mime-Version: 1.0
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <44B23316.7050808@ant.uni-bremen.de> (Heinrich Rebehn's message
-	of "Mon, 10 Jul 2006 12:59:34 +0200")
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://hera.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Heinrich Rebehn <rebehn@ant.uni-bremen.de>
-Cc: autofs@linux.kernel.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <20060710032429.15192c9c.akpm@osdl.org>
+Sender: linux-fsdevel-owner@vger.kernel.org
+List-Id: <autofs.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: Andrew Morton <akpm@osdl.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, autofs@linux.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 
-==> Regarding [autofs] automount removes mountpoint upon exit; Heinrich Rebehn <rebehn@ant.uni-bremen.de> adds:
+On Mon, 2006-07-10 at 03:24 -0700, Andrew Morton wrote:
+> btw, this patch is presently in a not-going-anywhere state because Al
+> expressed some reservations.  But then it all went quiet?
 
-rebehn> Hi list,
+Ya. Thought that might be the case.
+This is in a sensitive place in the VFS.
 
-rebehn> We use automount 4.1.3 in our Kubuntu cluster.  In this cluster,
-rebehn> all machines mount their nfsroot ro for security reasons, except
-rebehn> for one "master" machine which is used to maintain the nfsroot.  I
-rebehn> discovered that every time the master machine shuts down, all the
-rebehn> autofs mountpoints are removed. If another machine reboots while
-rebehn> the master machine is down, autofs is unable to recreate the
-rebehn> mountpoints and thus fails.
+Al, please your swift and sure guidance would be appreciated.
 
-rebehn> Is there any way to keep automount from removing the mountpoint
-rebehn> upon exit?
-
-Well, in the RHEL version of the package we added a patch that causes
-automount to only remove directories if it had created them.  Thus, if you
-simply create the top-level automount points, those won't be removed by the
-demon exiting,  However, if you rely on path components below the
-top-level, you are out of luck.
-
-I've attached the patch, not sure if it will apply to vanilla 4.1.3.
-
--Jeff
-
---- autofs-4.1.3/daemon/automount.c.no-rmdir	2005-01-21 13:04:38.153059825 -0600
-+++ autofs-4.1.3/daemon/automount.c	2005-01-21 13:11:26.316690021 -0600
-@@ -429,9 +429,17 @@ static int mount_autofs(char *path)
- 	ap.pipefd = ap.ioctlfd = -1;
- 
- 	/* In case the directory doesn't exist, try to mkdir it */
--	if (mkdir_path(path, 0555) < 0 && errno != EEXIST && errno != EROFS) {
--		crit("failed to create iautofs directory %s", ap.path);
--		return -1;
-+	if (mkdir_path(path, 0555) < 0) {
-+		if (errno != EEXIST && errno != EROFS) {
-+			crit("failed to create iautofs directory %s", ap.path);
-+			return -1;
-+		}
-+		/* If we recieve an error, and it's EEXIST or EROFS we know
-+		   the directory was not created. */
-+		ap.dir_created = 0;
-+	} else {
-+		/* No errors so the directory was successfully created */
-+		ap.dir_created = 1;
- 	}
- 
- 	/* Pipe for kernel communications */
-@@ -1349,7 +1357,7 @@ static void cleanup_exit(const char *pat
- 
- 	closelog();
- 
--	if ((!ap.ghost || !submount) && *(path + 1) != '-')
-+	if ((!ap.ghost || !submount) && (*(path + 1) != '-') && ap.dir_created)
- 		if (rmdir(path) == -1)
- 			warn("failed to remove dir %s: %m", path);
- 
-@@ -1672,6 +1680,7 @@ int main(int argc, char *argv[])
- 	ap.exp_timeout = DEFAULT_TIMEOUT;
- 	ap.ghost = DEFAULT_GHOST_MODE;
- 	ap.type = LKP_INDIRECT;
-+	ap.dir_created = 0; /* We haven't created the main directory yet */
- 
- 	opterr = 0;
- 	while ((opt = getopt_long(argc, argv, "+hp:t:vdVg", long_options, NULL)) != EOF) {
---- autofs-4.1.3/include/automount.h.no-rmdir	2005-01-21 13:04:38.157059762 -0600
-+++ autofs-4.1.3/include/automount.h	2005-01-21 13:04:38.189059263 -0600
-@@ -111,6 +111,8 @@ struct autofs_point {
- 	struct lookup_mod *lookup;		/* Lookup module */
- 	enum states state;
- 	int state_pipe[2];
-+	unsigned dir_created;		/* Was a directory created for this
-+					   mount? */
- };
- 
- /* Standard function used by daemon or modules */
+> 
+> 
+> From: Ian Kent <raven@themaw.net>
+> 
+> For a long time now I have had a problem with not being able to return a
+> lookup failure on an existsing directory.  In autofs this corresponds to a
+> mount failure on a autofs managed mount entry that is browsable (and so the
+> mount point directory exists).
+> 
+> While this problem has been present for a long time I've avoided resolving
+> it because it was not very visible.  But now that autofs v5 has "mount and
+> expire on demand" of nested multiple mounts, such as is found when mounting
+> an export list from a server, solving the problem cannot be avoided any
+> longer.
+> 
+> I've tried very hard to find a way to do this entirely within the autofs4
+> module but have not been able to find a satisfactory way to achieve it.
+> 
+> So, I need to propose a change to the VFS.
+> 
+> Signed-off-by: Ian Kent <raven@themaw.net>
+> Signed-off-by: Andrew Morton <akpm@osdl.org>
+> ---
+> 
+>  fs/autofs4/root.c |   38 ++++++++++++++++++++++++++-------
+>  fs/namei.c        |   50 ++++++++++++++++++++++++++++++--------------
+>  linux/dcache.h    |    0 
+>  3 files changed, 65 insertions(+), 23 deletions(-)
+> 
+> diff -puN fs/autofs4/root.c~autofs4-needs-to-force-fail-return-revalidate fs/autofs4/root.c
+> --- a/fs/autofs4/root.c~autofs4-needs-to-force-fail-return-revalidate
+> +++ a/fs/autofs4/root.c
+> @@ -137,7 +137,9 @@ static int autofs4_dir_open(struct inode
+>  		nd.flags = LOOKUP_DIRECTORY;
+>  		ret = (dentry->d_op->d_revalidate)(dentry, &nd);
+>  
+> -		if (!ret) {
+> +		if (ret <= 0) {
+> +			if (ret < 0)
+> +				status = ret;
+>  			dcache_dir_close(inode, file);
+>  			goto out;
+>  		}
+> @@ -400,13 +402,23 @@ static int autofs4_revalidate(struct den
+>  	struct autofs_sb_info *sbi = autofs4_sbi(dir->i_sb);
+>  	int oz_mode = autofs4_oz_mode(sbi);
+>  	int flags = nd ? nd->flags : 0;
+> -	int status = 0;
+> +	int status = 1;
+>  
+>  	/* Pending dentry */
+>  	if (autofs4_ispending(dentry)) {
+> -		if (!oz_mode)
+> -			status = try_to_fill_dentry(dentry, flags);
+> -		return !status;
+> +		/* The daemon never causes a mount to trigger */
+> +		if (oz_mode)
+> +			return 1;
+> +
+> +		/*
+> +		 * A zero status is success otherwise we have a
+> +		 * negative error code.
+> +		 */
+> +		status = try_to_fill_dentry(dentry, flags);
+> +		if (status == 0)
+> +				return 1;
+> +
+> +		return status;
+>  	}
+>  
+>  	/* Negative dentry.. invalidate if "old" */
+> @@ -421,9 +433,19 @@ static int autofs4_revalidate(struct den
+>  		DPRINTK("dentry=%p %.*s, emptydir",
+>  			 dentry, dentry->d_name.len, dentry->d_name.name);
+>  		spin_unlock(&dcache_lock);
+> -		if (!oz_mode)
+> -			status = try_to_fill_dentry(dentry, flags);
+> -		return !status;
+> +		/* The daemon never causes a mount to trigger */
+> +		if (oz_mode)
+> +			return 1;
+> +
+> +		/*
+> +		 * A zero status is success otherwise we have a
+> +		 * negative error code.
+> +		 */
+> +		status = try_to_fill_dentry(dentry, flags);
+> +		if (status == 0)
+> +			return 1;
+> +
+> +		return status;
+>  	}
+>  	spin_unlock(&dcache_lock);
+>  
+> diff -puN fs/namei.c~autofs4-needs-to-force-fail-return-revalidate fs/namei.c
+> --- a/fs/namei.c~autofs4-needs-to-force-fail-return-revalidate
+> +++ a/fs/namei.c
+> @@ -365,6 +365,30 @@ void release_open_intent(struct nameidat
+>  		fput(nd->intent.open.file);
+>  }
+>  
+> +static inline struct dentry *
+> +do_revalidate(struct dentry *dentry, struct nameidata *nd)
+> +{
+> +	int status = dentry->d_op->d_revalidate(dentry, nd);
+> +	if (unlikely(status <= 0)) {
+> +		/*
+> +		 * The dentry failed validation.
+> +		 * If d_revalidate returned 0 attempt to invalidate
+> +		 * the dentry otherwise d_revalidate is asking us
+> +		 * to return a fail status.
+> +		 */
+> +		if (!status) {
+> +			if (!d_invalidate(dentry)) {
+> +				dput(dentry);
+> +				dentry = NULL;
+> +			}
+> +		} else {
+> +			dput(dentry);
+> +			dentry = ERR_PTR(status);
+> +		}
+> +	}
+> +	return dentry;
+> +}
+> +
+>  /*
+>   * Internal lookup() using the new generic dcache.
+>   * SMP-safe
+> @@ -379,12 +403,9 @@ static struct dentry * cached_lookup(str
+>  	if (!dentry)
+>  		dentry = d_lookup(parent, name);
+>  
+> -	if (dentry && dentry->d_op && dentry->d_op->d_revalidate) {
+> -		if (!dentry->d_op->d_revalidate(dentry, nd) && !d_invalidate(dentry)) {
+> -			dput(dentry);
+> -			dentry = NULL;
+> -		}
+> -	}
+> +	if (dentry && dentry->d_op && dentry->d_op->d_revalidate)
+> +		dentry = do_revalidate(dentry, nd);
+> +
+>  	return dentry;
+>  }
+>  
+> @@ -477,10 +498,9 @@ static struct dentry * real_lookup(struc
+>  	 */
+>  	mutex_unlock(&dir->i_mutex);
+>  	if (result->d_op && result->d_op->d_revalidate) {
+> -		if (!result->d_op->d_revalidate(result, nd) && !d_invalidate(result)) {
+> -			dput(result);
+> +		result = do_revalidate(result, nd);
+> +		if (!result)
+>  			result = ERR_PTR(-ENOENT);
+> -		}
+>  	}
+>  	return result;
+>  }
+> @@ -760,12 +780,12 @@ need_lookup:
+>  	goto done;
+>  
+>  need_revalidate:
+> -	if (dentry->d_op->d_revalidate(dentry, nd))
+> -		goto done;
+> -	if (d_invalidate(dentry))
+> -		goto done;
+> -	dput(dentry);
+> -	goto need_lookup;
+> +	dentry = do_revalidate(dentry, nd);
+> +	if (!dentry)
+> +		goto need_lookup;
+> +	if (IS_ERR(dentry))
+> +		goto fail;
+> +	goto done;
+>  
+>  fail:
+>  	return PTR_ERR(dentry);
+> diff -puN include/linux/dcache.h~autofs4-needs-to-force-fail-return-revalidate include/linux/dcache.h
+> _
+> 
+> _______________________________________________
+> autofs mailing list
+> autofs@linux.kernel.org
+> http://linux.kernel.org/mailman/listinfo/autofs
