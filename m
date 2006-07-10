@@ -1,199 +1,43 @@
-From: Andrew Morton <akpm@osdl.org>
-Subject: Re: [PATCH] autofs4 needs to force fail return revalidate
-Date: Mon, 10 Jul 2006 03:24:29 -0700
-Message-ID: <20060710032429.15192c9c.akpm@osdl.org>
-References: <200606210618.k5L6IFDr008176@raven.themaw.net>
-	<20060620233941.49ba2223.akpm@osdl.org>
-	<Pine.LNX.4.64.0606231159540.2904@raven.themaw.net>
+From: Heinrich Rebehn <rebehn@ant.uni-bremen.de>
+Subject: automount removes mountpoint upon exit
+Date: Mon, 10 Jul 2006 12:59:34 +0200
+Message-ID: <44B23316.7050808@ant.uni-bremen.de>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.0606231159540.2904@raven.themaw.net>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: Ian Kent <raven@themaw.net>, Al Viro <viro@zeniv.linux.org.uk>
-Cc: autofs@linux.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://hera.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: autofs@linux.kernel.org
 
+Hi list,
 
-btw, this patch is presently in a not-going-anywhere state because Al
-expressed some reservations.  But then it all went quiet?
+We use automount 4.1.3 in our Kubuntu cluster.
+In this cluster, all machines mount their nfsroot ro for security 
+reasons, except for one "master" machine which is used to maintain the 
+nfsroot.
+I discovered that every time the master machine shuts down, all the 
+autofs mountpoints are removed. If another machine reboots while the 
+master machine is down, autofs is unable to recreate the mountpoints and 
+thus fails.
 
+Is there any way to keep automount from removing the mountpoint upon exit?
 
-From: Ian Kent <raven@themaw.net>
+Thanks for your help,
 
-For a long time now I have had a problem with not being able to return a
-lookup failure on an existsing directory.  In autofs this corresponds to a
-mount failure on a autofs managed mount entry that is browsable (and so the
-mount point directory exists).
+Heinrich Rebehn
 
-While this problem has been present for a long time I've avoided resolving
-it because it was not very visible.  But now that autofs v5 has "mount and
-expire on demand" of nested multiple mounts, such as is found when mounting
-an export list from a server, solving the problem cannot be avoided any
-longer.
+University of Bremen
+Physics / Electrical and Electronics Engineering
+- Department of Telecommunications -
 
-I've tried very hard to find a way to do this entirely within the autofs4
-module but have not been able to find a satisfactory way to achieve it.
-
-So, I need to propose a change to the VFS.
-
-Signed-off-by: Ian Kent <raven@themaw.net>
-Signed-off-by: Andrew Morton <akpm@osdl.org>
----
-
- fs/autofs4/root.c |   38 ++++++++++++++++++++++++++-------
- fs/namei.c        |   50 ++++++++++++++++++++++++++++++--------------
- linux/dcache.h    |    0 
- 3 files changed, 65 insertions(+), 23 deletions(-)
-
-diff -puN fs/autofs4/root.c~autofs4-needs-to-force-fail-return-revalidate fs/autofs4/root.c
---- a/fs/autofs4/root.c~autofs4-needs-to-force-fail-return-revalidate
-+++ a/fs/autofs4/root.c
-@@ -137,7 +137,9 @@ static int autofs4_dir_open(struct inode
- 		nd.flags = LOOKUP_DIRECTORY;
- 		ret = (dentry->d_op->d_revalidate)(dentry, &nd);
- 
--		if (!ret) {
-+		if (ret <= 0) {
-+			if (ret < 0)
-+				status = ret;
- 			dcache_dir_close(inode, file);
- 			goto out;
- 		}
-@@ -400,13 +402,23 @@ static int autofs4_revalidate(struct den
- 	struct autofs_sb_info *sbi = autofs4_sbi(dir->i_sb);
- 	int oz_mode = autofs4_oz_mode(sbi);
- 	int flags = nd ? nd->flags : 0;
--	int status = 0;
-+	int status = 1;
- 
- 	/* Pending dentry */
- 	if (autofs4_ispending(dentry)) {
--		if (!oz_mode)
--			status = try_to_fill_dentry(dentry, flags);
--		return !status;
-+		/* The daemon never causes a mount to trigger */
-+		if (oz_mode)
-+			return 1;
-+
-+		/*
-+		 * A zero status is success otherwise we have a
-+		 * negative error code.
-+		 */
-+		status = try_to_fill_dentry(dentry, flags);
-+		if (status == 0)
-+				return 1;
-+
-+		return status;
- 	}
- 
- 	/* Negative dentry.. invalidate if "old" */
-@@ -421,9 +433,19 @@ static int autofs4_revalidate(struct den
- 		DPRINTK("dentry=%p %.*s, emptydir",
- 			 dentry, dentry->d_name.len, dentry->d_name.name);
- 		spin_unlock(&dcache_lock);
--		if (!oz_mode)
--			status = try_to_fill_dentry(dentry, flags);
--		return !status;
-+		/* The daemon never causes a mount to trigger */
-+		if (oz_mode)
-+			return 1;
-+
-+		/*
-+		 * A zero status is success otherwise we have a
-+		 * negative error code.
-+		 */
-+		status = try_to_fill_dentry(dentry, flags);
-+		if (status == 0)
-+			return 1;
-+
-+		return status;
- 	}
- 	spin_unlock(&dcache_lock);
- 
-diff -puN fs/namei.c~autofs4-needs-to-force-fail-return-revalidate fs/namei.c
---- a/fs/namei.c~autofs4-needs-to-force-fail-return-revalidate
-+++ a/fs/namei.c
-@@ -365,6 +365,30 @@ void release_open_intent(struct nameidat
- 		fput(nd->intent.open.file);
- }
- 
-+static inline struct dentry *
-+do_revalidate(struct dentry *dentry, struct nameidata *nd)
-+{
-+	int status = dentry->d_op->d_revalidate(dentry, nd);
-+	if (unlikely(status <= 0)) {
-+		/*
-+		 * The dentry failed validation.
-+		 * If d_revalidate returned 0 attempt to invalidate
-+		 * the dentry otherwise d_revalidate is asking us
-+		 * to return a fail status.
-+		 */
-+		if (!status) {
-+			if (!d_invalidate(dentry)) {
-+				dput(dentry);
-+				dentry = NULL;
-+			}
-+		} else {
-+			dput(dentry);
-+			dentry = ERR_PTR(status);
-+		}
-+	}
-+	return dentry;
-+}
-+
- /*
-  * Internal lookup() using the new generic dcache.
-  * SMP-safe
-@@ -379,12 +403,9 @@ static struct dentry * cached_lookup(str
- 	if (!dentry)
- 		dentry = d_lookup(parent, name);
- 
--	if (dentry && dentry->d_op && dentry->d_op->d_revalidate) {
--		if (!dentry->d_op->d_revalidate(dentry, nd) && !d_invalidate(dentry)) {
--			dput(dentry);
--			dentry = NULL;
--		}
--	}
-+	if (dentry && dentry->d_op && dentry->d_op->d_revalidate)
-+		dentry = do_revalidate(dentry, nd);
-+
- 	return dentry;
- }
- 
-@@ -477,10 +498,9 @@ static struct dentry * real_lookup(struc
- 	 */
- 	mutex_unlock(&dir->i_mutex);
- 	if (result->d_op && result->d_op->d_revalidate) {
--		if (!result->d_op->d_revalidate(result, nd) && !d_invalidate(result)) {
--			dput(result);
-+		result = do_revalidate(result, nd);
-+		if (!result)
- 			result = ERR_PTR(-ENOENT);
--		}
- 	}
- 	return result;
- }
-@@ -760,12 +780,12 @@ need_lookup:
- 	goto done;
- 
- need_revalidate:
--	if (dentry->d_op->d_revalidate(dentry, nd))
--		goto done;
--	if (d_invalidate(dentry))
--		goto done;
--	dput(dentry);
--	goto need_lookup;
-+	dentry = do_revalidate(dentry, nd);
-+	if (!dentry)
-+		goto need_lookup;
-+	if (IS_ERR(dentry))
-+		goto fail;
-+	goto done;
- 
- fail:
- 	return PTR_ERR(dentry);
-diff -puN include/linux/dcache.h~autofs4-needs-to-force-fail-return-revalidate include/linux/dcache.h
-_
-
+Phone : +49/421/218-4664
+Fax   :            -3341
