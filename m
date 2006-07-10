@@ -1,10 +1,12 @@
-From: Heinrich Rebehn <rebehn@ant.uni-bremen.de>
-Subject: automount removes mountpoint upon exit
-Date: Mon, 10 Jul 2006 12:59:34 +0200
-Message-ID: <44B23316.7050808@ant.uni-bremen.de>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: automount removes mountpoint upon exit
+Date: Mon, 10 Jul 2006 10:28:52 -0400
+Message-ID: <x494pxp1ql7.fsf@segfault.boston.redhat.com>
+References: <44B23316.7050808@ant.uni-bremen.de>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <44B23316.7050808@ant.uni-bremen.de> (Heinrich Rebehn's message
+	of "Mon, 10 Jul 2006 12:59:34 +0200")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -15,29 +17,84 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Heinrich Rebehn <rebehn@ant.uni-bremen.de>
+Cc: autofs@linux.kernel.org
 
-Hi list,
+==> Regarding [autofs] automount removes mountpoint upon exit; Heinrich Rebehn <rebehn@ant.uni-bremen.de> adds:
 
-We use automount 4.1.3 in our Kubuntu cluster.
-In this cluster, all machines mount their nfsroot ro for security 
-reasons, except for one "master" machine which is used to maintain the 
-nfsroot.
-I discovered that every time the master machine shuts down, all the 
-autofs mountpoints are removed. If another machine reboots while the 
-master machine is down, autofs is unable to recreate the mountpoints and 
-thus fails.
+rebehn> Hi list,
 
-Is there any way to keep automount from removing the mountpoint upon exit?
+rebehn> We use automount 4.1.3 in our Kubuntu cluster.  In this cluster,
+rebehn> all machines mount their nfsroot ro for security reasons, except
+rebehn> for one "master" machine which is used to maintain the nfsroot.  I
+rebehn> discovered that every time the master machine shuts down, all the
+rebehn> autofs mountpoints are removed. If another machine reboots while
+rebehn> the master machine is down, autofs is unable to recreate the
+rebehn> mountpoints and thus fails.
 
-Thanks for your help,
+rebehn> Is there any way to keep automount from removing the mountpoint
+rebehn> upon exit?
 
-Heinrich Rebehn
+Well, in the RHEL version of the package we added a patch that causes
+automount to only remove directories if it had created them.  Thus, if you
+simply create the top-level automount points, those won't be removed by the
+demon exiting,  However, if you rely on path components below the
+top-level, you are out of luck.
 
-University of Bremen
-Physics / Electrical and Electronics Engineering
-- Department of Telecommunications -
+I've attached the patch, not sure if it will apply to vanilla 4.1.3.
 
-Phone : +49/421/218-4664
-Fax   :            -3341
+-Jeff
+
+--- autofs-4.1.3/daemon/automount.c.no-rmdir	2005-01-21 13:04:38.153059825 -0600
++++ autofs-4.1.3/daemon/automount.c	2005-01-21 13:11:26.316690021 -0600
+@@ -429,9 +429,17 @@ static int mount_autofs(char *path)
+ 	ap.pipefd = ap.ioctlfd = -1;
+ 
+ 	/* In case the directory doesn't exist, try to mkdir it */
+-	if (mkdir_path(path, 0555) < 0 && errno != EEXIST && errno != EROFS) {
+-		crit("failed to create iautofs directory %s", ap.path);
+-		return -1;
++	if (mkdir_path(path, 0555) < 0) {
++		if (errno != EEXIST && errno != EROFS) {
++			crit("failed to create iautofs directory %s", ap.path);
++			return -1;
++		}
++		/* If we recieve an error, and it's EEXIST or EROFS we know
++		   the directory was not created. */
++		ap.dir_created = 0;
++	} else {
++		/* No errors so the directory was successfully created */
++		ap.dir_created = 1;
+ 	}
+ 
+ 	/* Pipe for kernel communications */
+@@ -1349,7 +1357,7 @@ static void cleanup_exit(const char *pat
+ 
+ 	closelog();
+ 
+-	if ((!ap.ghost || !submount) && *(path + 1) != '-')
++	if ((!ap.ghost || !submount) && (*(path + 1) != '-') && ap.dir_created)
+ 		if (rmdir(path) == -1)
+ 			warn("failed to remove dir %s: %m", path);
+ 
+@@ -1672,6 +1680,7 @@ int main(int argc, char *argv[])
+ 	ap.exp_timeout = DEFAULT_TIMEOUT;
+ 	ap.ghost = DEFAULT_GHOST_MODE;
+ 	ap.type = LKP_INDIRECT;
++	ap.dir_created = 0; /* We haven't created the main directory yet */
+ 
+ 	opterr = 0;
+ 	while ((opt = getopt_long(argc, argv, "+hp:t:vdVg", long_options, NULL)) != EOF) {
+--- autofs-4.1.3/include/automount.h.no-rmdir	2005-01-21 13:04:38.157059762 -0600
++++ autofs-4.1.3/include/automount.h	2005-01-21 13:04:38.189059263 -0600
+@@ -111,6 +111,8 @@ struct autofs_point {
+ 	struct lookup_mod *lookup;		/* Lookup module */
+ 	enum states state;
+ 	int state_pipe[2];
++	unsigned dir_created;		/* Was a directory created for this
++					   mount? */
+ };
+ 
+ /* Standard function used by daemon or modules */
