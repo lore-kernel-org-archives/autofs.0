@@ -1,22 +1,11 @@
-From: Timo Felbinger <Timo.Felbinger@physik.uni-potsdam.de>
-Subject: Re: AFS + LDAP
-Date: Sun, 9 Jul 2006 14:59:24 +0200
-Message-ID: <20060709125924.GC27033@uranos.quantum.physik.uni-potsdam.de>
-References: <20060706055029.GS19585@mail.iSKUNK.ORG>
-	<1152189192.8761.24.camel@raven.themaw.net>
-	<20060706194023.GG32706@mail.iSKUNK.ORG>
-	<1152236488.2922.19.camel@raven.themaw.net>
-	<20060707170919.GI32706@mail.iSKUNK.ORG>
-	<1152336210.2814.23.camel@raven.themaw.net>
-	<20060708075345.GA7333@mail.iSKUNK.ORG>
-	<1152373694.2814.54.camel@raven.themaw.net>
-	<20060709053504.GF7333@mail.iSKUNK.ORG>
-Reply-To: Timo Felbinger <Timo.Felbinger@physik.uni-potsdam.de>
+From: "Latrell" <is85022@cis.nctu.edu.tw>
+Subject: Re: Large number of mount request.
+Date: Mon, 10 Jul 2006 09:40:04 +0800
+Message-ID: <010301c6a3c1$ce6837f0$251a17ac@ZyXEL.com>
+References: <20060708055304.30906.qmail@web56008.mail.re3.yahoo.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20060709053504.GF7333@mail.iSKUNK.ORG>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -27,78 +16,77 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="iso-8859-1"
-To: autofs@linux.kernel.org
+Content-Type: text/plain; format="flowed"; charset="us-ascii"; reply-type="original"
+To: ramana@intraperson.com, Ian Kent <raven@themaw.net>, Jeff Moyer <jmoyer@redhat.com>
+Cc: autofs@linux.kernel.org
 
-On Sun, Jul 09, 2006 at 01:35:04AM -0400, Daniel Richard G. wrote:
->=20
-> On Sat, 2006 Jul 08 23:48:13 +0800, Ian Kent wrote:
-> > >=20
-> > > 	automountKey: qux
-> > > 	automountType: device
-> > > 	automountFormat: xfs
-> > > 	automountPath: /dev/sda5
-> > > 	automountWritable: yes
-> >=20
-> > We would probably need a couple of other attributes, say for mount
-> > options other than read/write.
->=20
-> This is why you want your standards written by some greybeard at Sun=20
-> instead of a rabble-rouser like me :-)  Certainly here, there'd be a lo=
-t of=20
-> ground to cover, corner cases and the like.
+Hi, All:
 
-Sorry for bursting into your conversation and bringing up an old
-issue again, but it seems to be quite related to this discussion:
+I use autofs to mount shares of users under home directory with. Each user 
+login, a map file will be created and an automount daemon will be invoked 
+with options pid-file, ghost, timeout and file.
+When user logout, I need the automount daemon killed. Thus, I send SIGTERM 
+to the automount daemon. It's probably there are several automount daemons 
+existing in the same time.
+I found a case if many users logout at the same time, many SIGTERMs will be 
+sent to corresponding automount daemons. In such cirsumstance, some 
+automount daemons will not be killed and will exist in system forever. Thus 
+I check the pid under /proc and send SIGTERM again when the automonut daemon 
+not killed.
 
-A while ago I did suggest a generalized syntax for LDAP map names,
-by implementing an already existing standard: LDAP URLs as in rfc2255.
-This would be more a "meta"-standard, as it does not enforce any
-specific schema, but allow one to use arbitrary schemas, encoded
-into the map name. So far, I used to think in terms of schemas with
-just two relevant attributes (automount key and information), but I
-actually start to like the idea of splitting automountInformation
-into several attributes.
+Did I use autofs in the wrong way?
+Ms stress test is to keep login(invoke automount), mount(cd share1),access, 
+logout(umount, kill automount) for 4 users sessions.
 
-The current map name format would be subset of the URL syntax, so
-compatibility could be preserved.
+Many thanks,
+Latrell.
 
-I submitted a patch for autofs4 (http://timof.qipc.org/autofs), which
-however didn't make it into autofs5. I understand that this would be
-an ambitious change, and bringing other parts of autofs up to standard
-was probably more urgent; however, it could give plenty of room for
-future improvements (like the evolution of a new standard schema), while
-staying compatible with traditional schemas (at least, I don't see any
-fundamental issues here), so I would still like to hear your opinions
-about implementing this in a future version?
+ps. I patched the lock patch, and the condition not changed.
 
-...btw:
+----- Original Message ----- 
+From: "ramana" <intraperson@yahoo.com>
+To: "Ian Kent" <raven@themaw.net>; "Latrell" <is85022@cis.nctu.edu.tw>; 
+"Jeff Moyer" <jmoyer@redhat.com>
+Cc: <autofs@linux.kernel.org>
+Sent: Saturday, July 08, 2006 1:53 PM
+Subject: Re: [autofs] Large number of mount request.
 
-On Thu, Jul 06 2006 at 15:40:24 -0400, Daniel Richard G. wrote:
+
 >
-> I was hoping for something more along the lines of an extension to the=AF=
-=AB
-> standard NIS schema. (It's common for AFS sites to have each user's hom=
-e=AF=AB
-> directory be a separately mountable volume, so having some sort of=AF=AB
-> user-volume equivalence in LDAP is reasonable.)=AB
-
-If I understand this correctly (I'm not familiar with AFS), this is prett=
-y
-much the reason why I started to patch lookup_ldap.c in the first place:
-to pull automount information from user account entries (rather than from
-an independent hierarchy), with the "uid" attribute used as the autmountK=
-ey,
-when mounting user directories. Seems the natural way of doing it to me.
-
-
-Best Regards,
-
-Timo Felbinger
-
-
---=20
-Timo Felbinger                  http://www.felbinger.net
-Quantum Physics Group           Phone:  +49 331 977 1793   Fax: -1767
-Institut fuer Physik            Mobile: +49 177 735 1936
-Universitaet Potsdam, Germany   PGP key-id: E92567B2
+>
+> --- Ian Kent <raven@themaw.net> wrote:
+>
+>>
+>> I think Jeff has pretty much summed it up.
+>>
+>> The SIGTERM terminates autofs and you then have unnecessary startup
+>> and
+>> shutdown overhead giving a window where mounts will not work as there
+>> is
+>> no daemon to manage them.
+>>
+>> Don't forget that there was also a bug in the lock routines that
+>> cause
+>> it not to wait sometimes. Apply, at least the locking patch to 4.1.4.
+>
+> I do not think so.
+>
+> His explanation about what actually he is doing is not very clear.
+>
+> Little more explanation on how he is doing strss test would help,
+> 'rather than trying to include his own conclusions'
+>
+> Thanks in advance.
+>
+> Regards
+> ramana
+>
+> --
+>
+> Autodir
+>
+> __________________________________________________
+> Do You Yahoo!?
+> Tired of spam?  Yahoo! Mail has the best spam protection around
+> http://mail.yahoo.com
+> 
