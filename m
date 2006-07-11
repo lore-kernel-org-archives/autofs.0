@@ -1,11 +1,12 @@
-From: "Jim Dennis" <jdennis@cadence.com>
+From: Jeff Moyer <jmoyer@redhat.com>
 Subject: Re: nonroot umount
-Date: Tue, 11 Jul 2006 15:56:50 -0700
-Message-ID: <920746F6DF728345915EF4D6DA610D0F0111249A@MAILSJ2.global.cadence.com>
+Date: Tue, 11 Jul 2006 19:12:27 -0400
+Message-ID: <x49wtajivms.fsf@redhat.com>
+References: <920746F6DF728345915EF4D6DA610D0F0111249A@MAILSJ2.global.cadence.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <920746F6DF728345915EF4D6DA610D0F0111249A@MAILSJ2.global.cadence.com>
+	(Jim Dennis's message of "Tue, 11 Jul 2006 15:56:50 -0700")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,48 +18,58 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: autofs@linux.kernel.org
+Content-Transfer-Encoding: 7bit
+To: Jim Dennis <jdennis@cadence.com>
+Cc: autofs@linux.kernel.org
 
- 
+==> Regarding Re: [autofs] nonroot umount; "Jim Dennis" <jdennis@cadence.com> adds:
 
-On Date: Tue, 11 Jul 2006 08:39:01 -0400
-Peter Staubach <staubach@redhat.com> wrote (in response to Marcos Diez
-<marcos@unitron.com.br>):
+jdennis> On Date: Tue, 11 Jul 2006 08:39:01 -0400
+jdennis> Peter Staubach <staubach@redhat.com> wrote (in response to Marcos Diez
+jdennis> <marcos@unitron.com.br>):
 
-> Marcos Diez wrote:
+>> Marcos Diez wrote:
 
->> In a Unix desktop system automount is very practical for CDROMs, 
->> digital cameras, USB flash drives and any other type of removable
-media.
->> But it is annoying to the unprivileged user to wait the timeout to 
->> remove the media.
+>>> In a Unix desktop system automount is very practical for CDROMs, 
+>>> digital cameras, USB flash drives and any other type of removable
+jdennis> media.
+>>> But it is annoying to the unprivileged user to wait the timeout to 
+>>> remove the media.
 
-> It seems to me that a better architected solution might be to tie in
-the automounter with the eject(1) sort of command.
+>> It seems to me that a better architected solution might be to tie in
+jdennis> the automounter with the eject(1) sort of command.
 
-> It is not good for a user to have to know that he needs to zing the
-automounter in order to remove his media.
+>> It is not good for a user to have to know that he needs to zing the
+jdennis> automounter in order to remove his media.
 
->    Thanx...
->       ps
+>> Thanx...
+>> ps
 
- So, perhaps we could send a patch to the maintainer of the eject
-utility.  It could detect if the target is
- under an autofs and use this code in place of the ioctl() that it would
-normally send to a CD-ROM or similar
- device.
+jdennis>  So, perhaps we could send a patch to the maintainer of the eject
+jdennis> utility.  It could detect if the target is
+jdennis>  under an autofs and use this code in place of the ioctl() that it would
+jdennis> normally send to a CD-ROM or similar
+jdennis>  device.
 
- On my OpenSuSE system eject is already marked SUID/root, though it
-doesn't seem the be the case for my RHEL4
- system nor on my Debian system.
+jdennis>  On my OpenSuSE system eject is already marked SUID/root, though it
+jdennis> doesn't seem the be the case for my RHEL4
+jdennis>  system nor on my Debian system.
 
- As usual I'd limit the risk of another SUID/root binary by marking the
-executable mode 4550 and associating
- it with some relevant group (such as "console").  Thus only processes
-running in the specified group can attempt
- to exploit any vulnerabilities in it.
+jdennis>  As usual I'd limit the risk of another SUID/root binary by marking the
+jdennis> executable mode 4550 and associating
+jdennis>  it with some relevant group (such as "console").  Thus only processes
+jdennis> running in the specified group can attempt
+jdennis>  to exploit any vulnerabilities in it.
 
- Question: how would one programmatically detect that a particular mount
-point is being managed by an autofs process?
+jdennis>  Question: how would one programmatically detect that a particular
+jdennis> mount point is being managed by an autofs process?
 
-JDennis
+I simply don't like this idea.  ;)  As I mentioned before, there are better
+mechanisms to deal with removable media.
+
+If, however, you insist on using the automounter for this, then why not
+specify a short timeout for removable media?  Put all forms of removable
+media in the same map, and use --timeout=1 or 5, or 10, whatever suits
+you.  Would that be an acceptable solution?
+
+-Jeff
