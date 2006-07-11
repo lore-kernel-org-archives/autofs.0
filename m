@@ -1,57 +1,80 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: automount removes mountpoint upon exit
-Date: Wed, 12 Jul 2006 01:53:12 +0800
-Message-ID: <1152640392.22214.24.camel@raven.themaw.net>
-References: <44B23316.7050808@ant.uni-bremen.de>
-	<x494pxp1ql7.fsf@segfault.boston.redhat.com>
-	<44B3B06F.90006@ant.uni-bremen.de> <x49r70skye3.fsf@redhat.com>
-	<1152632631.16553.6.camel@raven.themaw.net>
-	<x49irm4ksz6.fsf@redhat.com>
+From: "Gregory Baker" <gregory.baker@amd.com>
+Subject: bug in linux mount? (says NetApp)
+Date: Tue, 11 Jul 2006 14:00:23 -0500
+Message-ID: <44B3F547.9010507@amd.com>
+Reply-To: gregory.baker@amd.com
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <x49irm4ksz6.fsf@redhat.com>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://hera.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: Jeff Moyer <jmoyer@redhat.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <nfs-bounces@lists.sourceforge.net>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
+	<mailto:nfs-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
+List-Post: <mailto:nfs@lists.sourceforge.net>
+List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
+	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
+Sender: nfs-bounces@lists.sourceforge.net
+Errors-To: nfs-bounces@lists.sourceforge.net
+To: nfs@lists.sourceforge.net
 Cc: autofs@linux.kernel.org
 
-On Tue, 2006-07-11 at 12:26 -0400, Jeff Moyer wrote:
-> ==> Regarding Re: [autofs] automount removes mountpoint upon exit; Ian Kent <raven@themaw.net> adds:
-> 
-> raven> On Tue, 2006-07-11 at 10:29 -0400, Jeff Moyer wrote:
-> >> ==> Regarding Re: [autofs] automount removes mountpoint upon exit; Heinrich Rebehn <rebehn@ant.uni-bremen.de> adds:
-> >> 
-> rebehn> Jeff Moyer wrote:
-> rebehn> Thank you for the patch, Jeff.
-> rebehn> However, i failed to understand the debian package system and
-> rebehn> simply have no time to read a couple of manpages and howtos just to
-> rebehn> implement this small patch. So i simply set the immutable flag on
-> rebehn> our server and it works!
-> >> 
-> rebehn> Will this patch be in the officcial version some day, so we
-> rebehn> eventually see it in debian or ubuntu?
-> >> 
-> >> Yes, it already is in 4.1.4.  Ask the debian maintainer to upgrade autofs
-> >> to that.  It's been out for some time, now.
-> 
-> raven> But I thought Heinrich was asking about the top directory of the mount.
-> raven> I don't think we check that in the same way.
-> raven> I'll have a look later.
-> raven> Wonder whether I check that in v5 .....
-> 
-> Yeah, he's asking about the top-directory of the mount.  That's exactly
-> what that patch takes care to check for.  ;)
 
-Oops. Maybe I'll actually pay more attention some time soon!
+We have thousands of linux clients hitting netapp file servers (many 
+3500 series, clustered) on a local gigabit LAN.  From time to time, 
+applications return "file not found" when attempting to automount a 
+directory and access a file.  An example of this is a long running 
+process, which reads in data, processes it for hours (in which time the 
+filesystem is unmounted) then tries to read more data from that mount 
+point (which causes a "file not found" error in the application).  This 
+occurs about 1/100th of the time.
 
-Ian
+Researching at Netapp turns up this bit by Chuck Lever (Linux NFS 
+contributer)
+
+"Using the Linux NFS Client with Network Appliance Filers"
+http://www.netapp.com/libr ary/tr/3183.pdf  (February 2006)
+
+page 10 says...
+
+"Due to a bug in the mount command, the default retransmission timeout 
+value on Linux for NFS over TCP is quite small...To obtain standard 
+behavior, we strongly recommend using "timeo=600, retrans=2" explicitly 
+when mounting via TCP."
+
+Our defaults (assuming man pages are correct, RedHat Enterprise Linux 3) 
+would be timeo=7, retrans=3, which translates to 7+14+28+56 = 105 tenths 
+of a second (10 seconds).  It appears netapp is suggesting waiting 
+600+600 = 1200 tenths (120 seconds) before giving up on the mount command...
+
+* What "bug" in the mount command do you believe NetApp is talking about?
+
+* What do you think proper options for NFS auto/mounts would be for 
+extremely busy centralized NFS filers?
+
+* What is the reference standard behavior?
+
+Thanks,
+
+--Greg
+
+-- 
+----------------------------------------------------------------------
+Greg Baker                                         512-602-3287 (work)
+gregory.baker@amd.com                              512-602-6970 (fax)
+5900 E. Ben White Blvd MS 626                      512-555-1212 (info)
+Austin, TX 78741
+
+
+
+
+
+-------------------------------------------------------------------------
+Using Tomcat but need to do more? Need to support web services, security?
+Get stuff done quickly with pre-integrated technology to make your job easier
+Download IBM WebSphere Application Server v.1.0.1 based on Apache Geronimo
+http://sel.as-us.falkag.net/sel?cmd=lnk&kid=120709&bid=263057&dat=121642
+_______________________________________________
+NFS maillist  -  NFS@lists.sourceforge.net
+https://lists.sourceforge.net/lists/listinfo/nfs
