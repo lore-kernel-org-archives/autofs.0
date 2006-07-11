@@ -1,13 +1,14 @@
-From: Peter Staubach <staubach@redhat.com>
-Subject: Re: nonroot umount
-Date: Tue, 11 Jul 2006 10:09:10 -0400
-Message-ID: <44B3B106.80203@redhat.com>
-References: <200607100726.k6A7Po1e029994@hera.kernel.org>	<44B2E238.2010203@unitron.com.br>
-	<44B39BE5.6040309@redhat.com> <x49veq4l0dh.fsf@redhat.com>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: automount removes mountpoint upon exit
+Date: Tue, 11 Jul 2006 10:29:56 -0400
+Message-ID: <x49r70skye3.fsf@redhat.com>
+References: <44B23316.7050808@ant.uni-bremen.de>
+	<x494pxp1ql7.fsf@segfault.boston.redhat.com>
+	<44B3B06F.90006@ant.uni-bremen.de>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <x49veq4l0dh.fsf@redhat.com>
+In-Reply-To: <44B3B06F.90006@ant.uni-bremen.de> (Heinrich Rebehn's message of
+	"Tue, 11 Jul 2006 16:06:39 +0200")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,72 +19,24 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: autofs@linux.kernel.org, Marcos Diez <marcos@unitron.com.br>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Heinrich Rebehn <rebehn@ant.uni-bremen.de>
+Cc: autofs@linux.kernel.org
 
-Jeff Moyer wrote:
+==> Regarding Re: [autofs] automount removes mountpoint upon exit; Heinrich Rebehn <rebehn@ant.uni-bremen.de> adds:
 
->==> Regarding Re: [autofs] nonroot umount; Peter Staubach <staubach@redhat.com> adds:
->
->staubach> Marcos Diez wrote:
->  
->
->>>In a Unix desktop system automount is very practical for CDROMs, digital
->>>cameras, USB flash drives and any other type of removable media.
->>>But it is annoying to the unprivileged user to wait the timeout to
->>>remove the media.
->>>
->>>Since it is insecure to allow the user to do a "killall -s SIGUSR1
->>>automount", I wrote a program that does exactly (and only) that. Of
->>>course it must be suid root, but it makes life much easier. I double
->>>verified that there are no buffer overflows and I believe it's safe. The
->>>program is not interactive, so a malicious user can't do much with it
->>>anyway.
->>>
->>>It gets the PIDs from instances of automount by parsing /proc/mounts
->>>It would be nice if it could be added to the autofs distribution.
->>>
->>>
->>>http://boby.unitron.com.br/%7Emarcos/umounter.c
->>>
->>>
->>>To compile:
->>>
->>>gcc -O3 -ansi -Wall -pedantic umounter.c -o umounter
->>>
->>>To install:
->>>cp umounter /usr/local/bin && chmod 4711 /usr/local/bin/umounter
->>>
->>>To use:
->>>
->>>./umounter
->>>or
->>>./umounter --verbose
->>>(show the signaled PIDs )
->>>
->>>      
->>>
->
->staubach> It seems to me that a better architected solution might be to tie in
->staubach> the automounter with the eject(1) sort of command.
->
->staubach> It is not good for a user to have to know that he needs to zing the
->staubach> automounter in order to remove his media.
->
->What "desktop" system are we talking about?  If you're using hal/udev, then
->they have a much nicer mechanism for handling such things.  Autofs isn't
->really a good fit for removable media, in my experience.
->
+rebehn> Jeff Moyer wrote:
+rebehn> Thank you for the patch, Jeff.
+rebehn> However, i failed to understand the debian package system and
+rebehn> simply have no time to read a couple of manpages and howtos just to
+rebehn> implement this small patch. So i simply set the immutable flag on
+rebehn> our server and it works!
 
-Cool!
+rebehn> Will this patch be in the officcial version some day, so we
+rebehn> eventually see it in debian or ubuntu?
 
-My only objection was building tools to utilize automount specific
-implementation details.  That's just wrong.
+Yes, it already is in 4.1.4.  Ask the debian maintainer to upgrade autofs
+to that.  It's been out for some time, now.
 
-Perhaps we need to redirect Marcos Diez to better functionality to
-solve his problems...  :-)
-
-    Thanx...
-
-       ps
+-Jeff
