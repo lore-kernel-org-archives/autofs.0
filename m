@@ -1,12 +1,12 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: nonroot umount
-Date: Tue, 11 Jul 2006 19:12:27 -0400
-Message-ID: <x49wtajivms.fsf@redhat.com>
-References: <920746F6DF728345915EF4D6DA610D0F0111249A@MAILSJ2.global.cadence.com>
+From: Trond Myklebust <trond.myklebust@fys.uio.no>
+Subject: Re: [NFS] bug in linux mount? (says NetApp)
+Date: Tue, 11 Jul 2006 19:27:58 -0400
+Message-ID: <1152660478.5681.38.camel@lade.trondhjem.org>
+References: <44B3F547.9010507@amd.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <920746F6DF728345915EF4D6DA610D0F0111249A@MAILSJ2.global.cadence.com>
-	(Jim Dennis's message of "Tue, 11 Jul 2006 15:56:50 -0700")
+In-Reply-To: <44B3F547.9010507@amd.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,58 +18,63 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Jim Dennis <jdennis@cadence.com>
-Cc: autofs@linux.kernel.org
+To: gregory.baker@amd.com
+Cc: autofs@linux.kernel.org, nfs@lists.sourceforge.net
 
-==> Regarding Re: [autofs] nonroot umount; "Jim Dennis" <jdennis@cadence.com> adds:
+On Tue, 2006-07-11 at 14:00 -0500, Gregory Baker wrote:
+> We have thousands of linux clients hitting netapp file servers (many 
+> 3500 series, clustered) on a local gigabit LAN.  From time to time, 
+> applications return "file not found" when attempting to automount a 
+> directory and access a file.  An example of this is a long running 
+> process, which reads in data, processes it for hours (in which time the 
+> filesystem is unmounted) then tries to read more data from that mount 
+> point (which causes a "file not found" error in the application).  This 
+> occurs about 1/100th of the time.
+> 
+> Researching at Netapp turns up this bit by Chuck Lever (Linux NFS 
+> contributer)
+> 
+> "Using the Linux NFS Client with Network Appliance Filers"
+> http://www.netapp.com/libr ary/tr/3183.pdf  (February 2006)
+> 
+> page 10 says...
+> 
+> "Due to a bug in the mount command, the default retransmission timeout 
+> value on Linux for NFS over TCP is quite small...To obtain standard 
+> behavior, we strongly recommend using "timeo=600, retrans=2" explicitly 
+> when mounting via TCP."
+> 
+> Our defaults (assuming man pages are correct, RedHat Enterprise Linux 3) 
+> would be timeo=7, retrans=3, which translates to 7+14+28+56 = 105 tenths 
+> of a second (10 seconds).  It appears netapp is suggesting waiting 
+> 600+600 = 1200 tenths (120 seconds) before giving up on the mount command...
 
-jdennis> On Date: Tue, 11 Jul 2006 08:39:01 -0400
-jdennis> Peter Staubach <staubach@redhat.com> wrote (in response to Marcos Diez
-jdennis> <marcos@unitron.com.br>):
+No they are not. See below.
 
->> Marcos Diez wrote:
+> * What "bug" in the mount command do you believe NetApp is talking about?
 
->>> In a Unix desktop system automount is very practical for CDROMs, 
->>> digital cameras, USB flash drives and any other type of removable
-jdennis> media.
->>> But it is annoying to the unprivileged user to wait the timeout to 
->>> remove the media.
+It has nothing to do with the mount timeout: Chuck is talking about the
+retransmission timeout for TCP connections 'timeo' which should indeed
+be set to a high value since TCP guarantees message delivery (unlike UDP
+which requires a small timeo value). Setting it too low means that you
+end up spamming your server with a load of unnecessary retransmissions.
 
->> It seems to me that a better architected solution might be to tie in
-jdennis> the automounter with the eject(1) sort of command.
+This was indeed the case for some older versions of 'mount' and also for
+older versions of the am-utils/amd automounters.
 
->> It is not good for a user to have to know that he needs to zing the
-jdennis> automounter in order to remove his media.
+> * What do you think proper options for NFS auto/mounts would be for 
+> extremely busy centralized NFS filers?
 
->> Thanx...
->> ps
+Something like
 
-jdennis>  So, perhaps we could send a patch to the maintainer of the eject
-jdennis> utility.  It could detect if the target is
-jdennis>  under an autofs and use this code in place of the ioctl() that it would
-jdennis> normally send to a CD-ROM or similar
-jdennis>  device.
+mount -t nfs -ohard,timeo=600,retrans=2,rsize=32768,wsize=32768,tcp foo:/ /bar
 
-jdennis>  On my OpenSuSE system eject is already marked SUID/root, though it
-jdennis> doesn't seem the be the case for my RHEL4
-jdennis>  system nor on my Debian system.
+should be a fairly safe bet. You might want to add the 'intr' flag too,
+depending on how you feel about the behaviour w.r.t. pressing ^C.
 
-jdennis>  As usual I'd limit the risk of another SUID/root binary by marking the
-jdennis> executable mode 4550 and associating
-jdennis>  it with some relevant group (such as "console").  Thus only processes
-jdennis> running in the specified group can attempt
-jdennis>  to exploit any vulnerabilities in it.
+> * What is the reference standard behavior?
 
-jdennis>  Question: how would one programmatically detect that a particular
-jdennis> mount point is being managed by an autofs process?
+To which reference are you referring?
 
-I simply don't like this idea.  ;)  As I mentioned before, there are better
-mechanisms to deal with removable media.
-
-If, however, you insist on using the automounter for this, then why not
-specify a short timeout for removable media?  Put all forms of removable
-media in the same map, and use --timeout=1 or 5, or 10, whatever suits
-you.  Would that be an acceptable solution?
-
--Jeff
+Cheers,
+  Trond
