@@ -1,141 +1,98 @@
-From: "Gregory Baker" <gregory.baker@amd.com>
-Subject: Re: bug in linux mount? (says NetApp)
-Date: Tue, 11 Jul 2006 20:07:40 -0500
-Message-ID: <44B44B5C.7020603@amd.com>
-References: <44B3F547.9010507@amd.com>
-	<b7c76e8ece93a4f6008145e18efe9ed3@corp.yahoo.com>
-Reply-To: gregory.baker@amd.com
+From: =?utf-8?B?5aec5Zu95Lyf?= <jianggw@bsw.net.cn>
+Subject: Re: about mainboard driver
+Date: Wed, 12 Jul 2006 09:22:41 +0800
+Message-ID: <034201c6a551$ab6efef0$4d74a8c0@jiangguowei2>
+References: <04cd01c69fe2$d2044bc0$4d74a8c0@jiangguowei2>
+	<Pine.LNX.4.64.0607051137470.24272@simba.math.ucla.edu>
+	<028d01c6a183$66f1fb00$4d74a8c0@jiangguowei2>
+	<Pine.LNX.4.64.0607071000360.32493@simba.math.ucla.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <nfs-bounces@lists.sourceforge.net>
-In-Reply-To: <b7c76e8ece93a4f6008145e18efe9ed3@corp.yahoo.com>
+Content-Transfer-Encoding: quoted-printable
+Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
-List-Post: <mailto:nfs@lists.sourceforge.net>
-List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
-Sender: nfs-bounces@lists.sourceforge.net
-Errors-To: nfs-bounces@lists.sourceforge.net
-To: Blake Golliher <golliher@yahoo-inc.com>
-Cc: autofs@linux.kernel.org, nfs@lists.sourceforge.net
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://hera.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: text/plain; charset="utf-8"
+To: Jim Carter <jimc@math.ucla.edu>
+Cc: autofs@linux.kernel.org
+
+Thank you for your patience,Jim.You are so kind.
+
+----- Original Message -----=20
+From: "Jim Carter" <jimc@math.ucla.edu>
+To: "=C3=A5=C2=A7=C5=93=C3=A5=E2=80=BA=C2=BD=C3=A4=C2=BC=C5=B8" <jianggw@=
+bsw.net.cn>
+Cc: <autofs@linux.kernel.org>
+Sent: Saturday, July 08, 2006 1:16 AM
+Subject: Re: [autofs] about mainboard driver
 
 
-We have various versions; 3500 and R series are running 7.x, the older 
-840/880 are running 6.5.x
-
-  NetApp Release 7.0.2P4: Wed Nov 30 01:52:11 PST 2005 charity.amd.com
-  NetApp Release 7.0.3P4: Sat Jan 28 06:03:18 PST 2006 chang.amd.com
-  NetApp Release 6.5.5P7: Thu Jul 21 02:10:50 PDT 2005 diego.amd.com
-  NetApp Release 7.0.3P4: Sat Jan 28 06:03:18 PST 2006 eng.amd.com
-  NetApp Release 6.5.5P7: Thu Jul 21 02:10:50 PDT 2005 escher.amd.com
-  NetApp Release 6.5.5P7: Thu Jul 21 02:10:50 PDT 2005 faith.amd.com
-  NetApp Release 6.5.6P10D3:Thu Apr 13 22:13:21 PDT 2006 fortitud.amd.com
-  NetApp Release 6.5.5P7: Thu Jul 21 02:10:50 PDT 2005 frida.amd.com
-  NetApp Release 6.5.5P7: Thu Jul 21 02:10:50 PDT 2005 hope.amd.com
-  NetApp Release 6.5.5P7: Thu Jul 21 02:10:50 PDT 2005 justice.amd.com
-  NetApp Release 7.0.3P4: Sat Jan 28 06:03:18 PST 2006 kuching.amd.com
-  NetApp Release 6.5.5P7: Thu Jul 21 02:10:50 PDT 2005 okeeffe.amd.com
-  NetApp Release 7.0.2P4: Wed Nov 30 01:52:11 PST 2005 prudence.amd.com
-  NetApp Release 6.5.5P7: Thu Jul 21 02:10:50 PDT 2005 raffael.amd.com
-  NetApp Release 7.0.3P4: Sat Jan 28 06:03:18 PST 2006 siam.amd.com
-  NetApp Release 6.5.5P7: Thu Jul 21 02:10:50 PDT 2005 sobriety.amd.com
-  NetApp Release 6.5.5P7: Thu Jul 21 02:10:50 PDT 2005 vangogh.amd.com
-  NetApp Release 7.2RC1: Wed Feb 15 00:46:09 PST 2006 jacen.amd.com
-  NetApp Release 7.2RC1: Wed Feb 15 00:46:09 PST 2006 jaina.amd.com
-
---Greg
-
-Blake Golliher wrote:
-> What version of OnTap are you running?
-> 
-> -Blake
-> 
-> On Jul 11, 2006, at 12:00 PM, Gregory Baker wrote:
-> 
->>
->> We have thousands of linux clients hitting netapp file servers (many
->> 3500 series, clustered) on a local gigabit LAN.  From time to time,
->> applications return "file not found" when attempting to automount a
->> directory and access a file.  An example of this is a long running
->> process, which reads in data, processes it for hours (in which time the
->> filesystem is unmounted) then tries to read more data from that mount
->> point (which causes a "file not found" error in the application).  This
->> occurs about 1/100th of the time.
->>
->> Researching at Netapp turns up this bit by Chuck Lever (Linux NFS
->> contributer)
->>
->> "Using the Linux NFS Client with Network Appliance Filers"
->> http://www.netapp.com/libr ary/tr/3183.pdf  (February 2006)
->>
->> page 10 says...
->>
->> "Due to a bug in the mount command, the default retransmission timeout
->> value on Linux for NFS over TCP is quite small...To obtain standard
->> behavior, we strongly recommend using "timeo=600, retrans=2" explicitly
->> when mounting via TCP."
->>
->> Our defaults (assuming man pages are correct, RedHat Enterprise Linux 3)
->> would be timeo=7, retrans=3, which translates to 7+14+28+56 = 105 tenths
->> of a second (10 seconds).  It appears netapp is suggesting waiting
->> 600+600 = 1200 tenths (120 seconds) before giving up on the mount 
->> command...
->>
->> * What "bug" in the mount command do you believe NetApp is talking about?
->>
->> * What do you think proper options for NFS auto/mounts would be for
->> extremely busy centralized NFS filers?
->>
->> * What is the reference standard behavior?
->>
->> Thanks,
->>
->> --Greg
->>
->> -- ----------------------------------------------------------------------
->> Greg Baker                                         512-602-3287 (work)
->> gregory.baker@amd.com                              512-602-6970 (fax)
->> 5900 E. Ben White Blvd MS 626                      512-555-1212 (info)
->> Austin, TX 78741
->>
->>
->>
->>
->>
->> -------------------------------------------------------------------------
->> Using Tomcat but need to do more? Need to support web services, security?
->> Get stuff done quickly with pre-integrated technology to make your job 
->> easier
->> Download IBM WebSphere Application Server v.1.0.1 based on Apache 
->> Geronimo
->> http://sel.as-us.falkag.net/sel?cmd=lnk&kid=120709&bid=263057&dat=121642
->> _______________________________________________
->> NFS maillist  -  NFS@lists.sourceforge.net
->> https://lists.sourceforge.net/lists/listinfo/nfs
->>
->>
-> 
-
--- 
-----------------------------------------------------------------------
-Greg Baker                                         512-602-3287 (work)
-gregory.baker@amd.com                              512-602-6970 (fax)
-5900 E. Ben White Blvd MS 626                      512-555-1212 (info)
-Austin, TX 78741
-
-
-
-
-
--------------------------------------------------------------------------
-Using Tomcat but need to do more? Need to support web services, security?
-Get stuff done quickly with pre-integrated technology to make your job easier
-Download IBM WebSphere Application Server v.1.0.1 based on Apache Geronimo
-http://sel.as-us.falkag.net/sel?cmd=lnk&kid=120709&bid=263057&dat=121642
-_______________________________________________
-NFS maillist  -  NFS@lists.sourceforge.net
-https://lists.sourceforge.net/lists/listinfo/nfs
+> On Fri, 7 Jul 2006, ??? wrote:
+>=20
+> > > I don't think Linux has a specific "mainboard driver" like Windows =
+does;=20
+> > > hardware initialization is done with the subsystems (e.g. memory=20
+> > > management) to which it's relevant, and where necessary the actions=
+ are=20
+> > > conditional on the chipset, with both run-time tests and the possib=
+ility to=20
+> > > exclude a whole class of processors/chipsets at compile time.
+> >=20
+> > Hi,Jim .I don't understand your meaning.Could you explain more partic=
+ularly?
+>=20
+> The kernel (.config) has a collection of configuration options so you c=
+an=20
+> pick which architecture, and which variants of that architecture, you w=
+ant=20
+> to compile the kernel for.  These are used to turn on and configure var=
+ious=20
+> features.  For example, in the x86_64 architecture, you tell it you wan=
+t=20
+> to support AMD Opteron or Athlon64 and it will define MK8, whereas for =
+an=20
+> Intel Xeon or Pentium-4 with extended memory you would have MPSC define=
+d.
+> These are then interrogated to set, for example, the level 1 cache line=
+=20
+> size (X86_L1_CACHE_BYTES and X86_L1_CACHE_SHIFT).  These are used in=20
+> ./arch/x86_64/kernel/vmlinux.lds.S to align some frequently used kernel=
+=20
+> variables, like "jiffies", for fastest access.  I don't see anyplace el=
+se=20
+> where these #defines are used.
+>=20
+> As another example, the Via Centaur processor has an onboard crypto eng=
+ine,=20
+> and you need to set CRYPTO_DEV_PADLOCK to use it, if your kernel may ru=
+n on=20
+> a Via Centaur. =20
+>=20
+> The developers try to avoid special cases for particular processors, bu=
+t
+> bits and pieces like this are scattered various places around the kerne=
+l.=20
+> In Windows there is a specific driver file for each processor type, and=
+ I=20
+> don't know any more about what's in it than anyone else outside of=20
+> Microsoft, but I assume that they collect the various special cases in =
+that=20
+> one file.  That's not what Linux does, and you can't identify a particu=
+lar=20
+> part of the kernel as the "mainboard driver".
+>=20
+> I think this discussion is kind of getting off the topic of autofs.
+>=20
+> James F. Carter          Voice 310 825 2897    FAX 310 206 6673
+> UCLA-Mathnet;  6115 MSA; 405 Hilgard Ave.; Los Angeles, CA, USA  90095-=
+1555
+> Email: jimc@math.ucla.edu    http://www.math.ucla.edu/~jimc (q.v. for P=
+GP key)
+>=20
