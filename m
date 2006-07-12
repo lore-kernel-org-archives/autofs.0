@@ -1,81 +1,56 @@
-From: "Daniel Richard G." <skunk@iskunk.org>
-Subject: Map overrides
-Date: Tue, 11 Jul 2006 21:38:59 -0400
-Message-ID: <20060712013858.GA29064@mail.iSKUNK.ORG>
+From: "Gomez, Daniel" <dgomez@tigr.ORG>
+Subject: Re: bug in linux mount? (says NetApp)
+Date: Tue, 11 Jul 2006 22:13:44 -0400
+Message-ID: <7F0AA25C9B1706448E8B73DFDD109B31028E5B13@EXCHANGE.TIGR.ORG>
 Mime-Version: 1.0
-Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://hera.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: autofs@linux.kernel.org
+Return-path: <nfs-bounces@lists.sourceforge.net>
+Content-class: urn:content-classes:message
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
+	<mailto:nfs-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
+List-Post: <mailto:nfs@lists.sourceforge.net>
+List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
+	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
+Sender: nfs-bounces@lists.sourceforge.net
+Errors-To: nfs-bounces@lists.sourceforge.net
+To: autofs@linux.kernel.org, nfs@lists.sourceforge.net
 
-[The "next-gen LDAP schema" problem will have to simmer for a while, but in 
-the meantime, I've another little nut to crack on this list]
+Hello,
 
-
-Map overrides. I'd like to have an indirect map that is normally pulled 
-from LDAP/Hesiod/etc.---but not necessarily 100% of the time. Sometimes, a 
-key will have to map to something other than the "canonical" location, and 
-on a locally-visible-only basis at that.
-
-
-Real-life example: Let's say I have a straightforward NFS-homedir setup, 
-and a user "foo". So you'd typically see e.g.
-
-	fuzzball:/srv/users/foo on /nfshome/foo type nfs
-
-But what if, for some reason, the workstation cannot contact the fuzzball 
-server? (Assume no server replication.) Then, I'd like to create a 
-temporary homedir, e.g.
-
-	/nfshome/foo -> /var/tmphomedir/foo	(symlink)
-
-so that the user can at least log in and check mail et al.
-
-(There are other use cases, but this is probably the least convoluted one I 
-can think of. Note: My scenario would be with AFS, but I used NFS above 
-because it really shouldn't matter.)
+>> * What do you think proper options for NFS auto/mounts would be for
+>> extremely busy centralized NFS filers?
+>
+>Something like
+>
+>mount -t nfs -ohard,timeo=600,retrans=2,rsize=32768,wsize=32768,tcp
+foo:/ /bar
+>
+>should be a fairly safe bet. You might want to add the 'intr' flag too,
+depending on how you feel about the behaviour w.r.t. pressing ^C.
 
 
-Right now, I can sort-of get this behavior via a program map, one that 
-returns the /var/*** path when necessary. Of course, if I want LDAP/Hesiod 
-lookups to be the common case, then those have to be built into the program 
-map as well, making autofs's built-in lookup code redundant. Right now, I 
-can't say to autofs "First, check if program map A returns some 
-special-case path; if not, then use whatever directory service B says."
+We use the following setup with good results and without loss of
+functionality (assuminig linux defaults [eg, 'hard','rw', etc]):
 
-This would be a sort of failover for maps, in general terms: if the first 
-map doesn't succeed, try the second one, and so on. This is a bit iffy when 
-you're talking about directory services failing, because that usually 
-involves a longish timeout. But a program map can fail immediately, thereby 
-making itself transparent at the top of such a failover stack.
+For read-only filesystem:
+	
+ro,rsize=32768,wsize=32768,timeo=600,actimeo=600,intr,tcp,nfsvers=3
 
+For read-write:
+	rsize=32768,wsize=32768,timeo=600,actimeo=120,intr,tcp,nfsvers=3
 
-First of all, is there a way to do this currently?
-
-If not, should I expect any difficulty in implementing this? On the 
-configuration side, I would think that extending the syntax to support this 
-behavior should be straightforward: just allow multiple entries for the 
-same mountpoint in auto.master.
+-Daniel
 
 
---Daniel
-
-
--- 
-NAME   = Daniel Richard G.       ##  Remember, skunks       _\|/_  meef?
-EMAIL1 = skunk@iskunk.org        ##  don't smell bad---    (/o|o\) /
-EMAIL2 = skunk@alum.mit.edu      ##  it's the people who   < (^),>
-WWW    = http://www.******.org/  ##  annoy them that do!    /   \
---
-(****** = site not yet online)
+-------------------------------------------------------------------------
+Using Tomcat but need to do more? Need to support web services, security?
+Get stuff done quickly with pre-integrated technology to make your job easier
+Download IBM WebSphere Application Server v.1.0.1 based on Apache Geronimo
+http://sel.as-us.falkag.net/sel?cmd=lnk&kid=120709&bid=263057&dat=121642
+_______________________________________________
+NFS maillist  -  NFS@lists.sourceforge.net
+https://lists.sourceforge.net/lists/listinfo/nfs
