@@ -1,92 +1,71 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Map overrides
-Date: Wed, 12 Jul 2006 20:03:33 +0800
-Message-ID: <1152705813.2930.34.camel@raven.themaw.net>
-References: <20060712013858.GA29064@mail.iSKUNK.ORG>
-	<1152674321.2930.28.camel@raven.themaw.net>
-	<20060712041816.GC29064@mail.iSKUNK.ORG>
+From: Trond Myklebust <trond.myklebust@fys.uio.no>
+Subject: Re: [autofs] Re:  bug in linux mount? (says NetApp)
+Date: Wed, 12 Jul 2006 08:19:39 -0400
+Message-ID: <1152706779.6292.18.camel@lade.trondhjem.org>
+References: <44B3F547.9010507@amd.com>
+	<1152660478.5681.38.camel@lade.trondhjem.org>
+	<1152673424.2930.15.camel@raven.themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20060712041816.GC29064@mail.iSKUNK.ORG>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://hera.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: "Daniel Richard G." <skunk@iskunk.org>
-Cc: autofs@linux.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <nfs-bounces@lists.sourceforge.net>
+In-Reply-To: <1152673424.2930.15.camel@raven.themaw.net>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
+	<mailto:nfs-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
+List-Post: <mailto:nfs@lists.sourceforge.net>
+List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
+	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
+Sender: nfs-bounces@lists.sourceforge.net
+Errors-To: nfs-bounces@lists.sourceforge.net
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org, gregory.baker@amd.com, nfs@lists.sourceforge.net
 
-On Wed, 2006-07-12 at 00:18 -0400, Daniel Richard G. wrote:
-> On Wed, 2006 Jul 12 11:18:41 +0800, Ian Kent wrote:
+On Wed, 2006-07-12 at 11:03 +0800, Ian Kent wrote:
+> On Tue, 2006-07-11 at 19:27 -0400, Trond Myklebust wrote:
+> > Something like
 > > 
-> > This is done (not to well in v4) in the mount_nfs.c module as the mount
-> > syntax (at least in autofs maps not, mount itself) allows it.
+> > mount -t nfs -ohard,timeo=600,retrans=2,rsize=32768,wsize=32768,tcp foo:/ /bar
 > 
-> I should've been more clear: This would be completely apart from the 
-> replicated-server-selection mechanism. My example might not have been the 
-> best, as it presents this parallel that has to be disavowed.
+> I thought that the default timeo had changed to 600 (60 secs) for TCP
+> mounts in later versions of mount (it should be) and that the retrans
+> shouldn't matter as 60 secs is the RPC major timeout. I thought the
+> point of this default was to prevent RPC from retransmitting as the TCP
+> la
+> > should be a fairly safe bet. You might want to add the 'intr' flag too,
+> > depending on how you feel about the behaviour w.r.t. pressing ^C.
+> > 
+> > > * What is the reference standard behavior?
 > 
-> Another scenario: Say that you have a (read-only) volume that's normally 
-> NFS-mounted. Imagine a framework that would allow you to copy that volume 
-> in its entirety to your local disk, and then have autofs "mount" the volume 
-> by symlinking the local copy. Whether it be to avoid network latency, or 
-> because you're on a laptop and want to go off-net.
+> I don't think it's a standard in as much as it's common sense.
+> Certainly if the defaults are set to those that are sensible for UDP you
+> are much more likely to bogus failures.
 > 
-> So there's nothing going on here w.r.t. checking whether an NFS/AFS server 
-> is up. It's about overriding what autofs would usually do---to have a 
-> program map return the (special-case) local path, preempting the usual 
-> LDAP/Hesiod request. (And if and only if the program map gives no answer, 
-> go ahead and do the LDAP/Hesiod lookup.)
+> Ian
+> yer would take care of it. 
+> 
+> Trond what am I missing.
 
-OK. Maybe a multi-map entry in the master map will work for this.
+The fact that not everyone may be using a recent version of mount :-)
+The above line should work fine with all versions.
 
-> 
-> > It's not as simple to do as first appears.
-> > To extend it to cater for multiple source formats would be really messy.
-> 
-> My intuition was that it would involve extending struct master / 
-> master_mapent in some way, so that a single indirect map mountpoint could 
-> have multiple definitions. (Or perhaps the structure could stay the same--- 
-> it does appear to be in a linked list---and the restriction lifted on the 
-> uniqueness of indirect map mountpoints?)
-> 
-> I mean, what you would have in the configuration file is something like
-> 
-> 	/mit	program,hesiod:/sbin/myprogmap
-> 	/mit	ldap,hesiod://foo/ou=auto.indirect,dc=mit,dc=edu
+Actually, the "retrans" value is pretty irrelevant for hard mounts. It
+is more important for soft mounts for which it defines the number of
+resends before giving up the RPC call and returning an error to the
+application.
 
-/mit	program,hesiod:/sbin/myprogmap -- ldap,hesiod://foo/ou=auto.indirect,dc=mit,dc=edu
+Cheers,
+  Trond
 
-It should behave the way you need.
 
-> 
-> i.e. two entries that could be completely independent, and are no different 
-> syntactically from what exists now. Just that autofs would try them in 
-> order when resolving a key in /mit.
-> 
-> > Perhaps one way to approach this would be to teach the hesoid lookup
-> > module to convert these entries into the format that mount_nfs.c can use
-> > to perform the selection. For example if one of the entries is localhost
-> > then autofs will perform a bind mount. We would probably need to teach
-> > mount_afs.c something similar.
-> 
-> Eeegh... I really wasn't thinking that the modules would have to be aware 
-> of this.
-> 
-> > It's probably not sensible to mix AFS and NFS in the same entry anyway.
-> 
-> Why not? :) Imagine a (public, read-only) volume that's normally 
-> AFS-mounted, but has an NFS backup. As NFS is dead easy to set up, it's a 
-> good option for emergency use.
 
-In the same entry?
-The Hesoid format can't have AFS and NFS for the same map entry can it?
-
-Ian
+-------------------------------------------------------------------------
+Using Tomcat but need to do more? Need to support web services, security?
+Get stuff done quickly with pre-integrated technology to make your job easier
+Download IBM WebSphere Application Server v.1.0.1 based on Apache Geronimo
+http://sel.as-us.falkag.net/sel?cmd=lnk&kid=120709&bid=263057&dat=121642
+_______________________________________________
+NFS maillist  -  NFS@lists.sourceforge.net
+https://lists.sourceforge.net/lists/listinfo/nfs
