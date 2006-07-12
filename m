@@ -1,58 +1,92 @@
-From: James Pearson <james-p@moving-picture.com>
-Subject: Re: bug in linux mount? (says NetApp)
-Date: Wed, 12 Jul 2006 10:32:08 +0100
-Message-ID: <44B4C198.2070609@moving-picture.com>
-References: <44B3F547.9010507@amd.com>
-	<1152660478.5681.38.camel@lade.trondhjem.org>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: Map overrides
+Date: Wed, 12 Jul 2006 20:03:33 +0800
+Message-ID: <1152705813.2930.34.camel@raven.themaw.net>
+References: <20060712013858.GA29064@mail.iSKUNK.ORG>
+	<1152674321.2930.28.camel@raven.themaw.net>
+	<20060712041816.GC29064@mail.iSKUNK.ORG>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <nfs-bounces@lists.sourceforge.net>
-In-Reply-To: <1152660478.5681.38.camel@lade.trondhjem.org>
+Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <20060712041816.GC29064@mail.iSKUNK.ORG>
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
-List-Post: <mailto:nfs@lists.sourceforge.net>
-List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
-Sender: nfs-bounces@lists.sourceforge.net
-Errors-To: nfs-bounces@lists.sourceforge.net
-To: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: autofs@linux.kernel.org, nfs@lists.sourceforge.net
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://hera.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: "Daniel Richard G." <skunk@iskunk.org>
+Cc: autofs@linux.kernel.org
 
-Trond Myklebust wrote:
+On Wed, 2006-07-12 at 00:18 -0400, Daniel Richard G. wrote:
+> On Wed, 2006 Jul 12 11:18:41 +0800, Ian Kent wrote:
+> > 
+> > This is done (not to well in v4) in the mount_nfs.c module as the mount
+> > syntax (at least in autofs maps not, mount itself) allows it.
 > 
-> It has nothing to do with the mount timeout: Chuck is talking about the
-> retransmission timeout for TCP connections 'timeo' which should indeed
-> be set to a high value since TCP guarantees message delivery (unlike UDP
-> which requires a small timeo value). Setting it too low means that you
-> end up spamming your server with a load of unnecessary retransmissions.
+> I should've been more clear: This would be completely apart from the 
+> replicated-server-selection mechanism. My example might not have been the 
+> best, as it presents this parallel that has to be disavowed.
 > 
-> This was indeed the case for some older versions of 'mount' and also for
-> older versions of the am-utils/amd automounters.
+> Another scenario: Say that you have a (read-only) volume that's normally 
+> NFS-mounted. Imagine a framework that would allow you to copy that volume 
+> in its entirety to your local disk, and then have autofs "mount" the volume 
+> by symlinking the local copy. Whether it be to avoid network latency, or 
+> because you're on a laptop and want to go off-net.
+> 
+> So there's nothing going on here w.r.t. checking whether an NFS/AFS server 
+> is up. It's about overriding what autofs would usually do---to have a 
+> program map return the (special-case) local path, preempting the usual 
+> LDAP/Hesiod request. (And if and only if the program map gives no answer, 
+> go ahead and do the LDAP/Hesiod lookup.)
 
-Do you know how you tell what value of timeo is being used by default?
+OK. Maybe a multi-map entry in the master map will work for this.
 
-The source code for mount (nfsmount.c, part of util-linux v2.12) has the 
-comment:
+> 
+> > It's not as simple to do as first appears.
+> > To extend it to cater for multiple source formats would be really messy.
+> 
+> My intuition was that it would involve extending struct master / 
+> master_mapent in some way, so that a single indirect map mountpoint could 
+> have multiple definitions. (Or perhaps the structure could stay the same--- 
+> it does appear to be in a linked list---and the restriction lifted on the 
+> uniqueness of indirect map mountpoints?)
+> 
+> I mean, what you would have in the configuration file is something like
+> 
+> 	/mit	program,hesiod:/sbin/myprogmap
+> 	/mit	ldap,hesiod://foo/ou=auto.indirect,dc=mit,dc=edu
 
-   /* timeo is filled in after we know whether it'll be TCP or UDP */
+/mit	program,hesiod:/sbin/myprogmap -- ldap,hesiod://foo/ou=auto.indirect,dc=mit,dc=edu
 
-Can I assume, in this case, the value of timeo will be a suitable value 
-for tcp mounts?
+It should behave the way you need.
 
-Thanks
+> 
+> i.e. two entries that could be completely independent, and are no different 
+> syntactically from what exists now. Just that autofs would try them in 
+> order when resolving a key in /mit.
+> 
+> > Perhaps one way to approach this would be to teach the hesoid lookup
+> > module to convert these entries into the format that mount_nfs.c can use
+> > to perform the selection. For example if one of the entries is localhost
+> > then autofs will perform a bind mount. We would probably need to teach
+> > mount_afs.c something similar.
+> 
+> Eeegh... I really wasn't thinking that the modules would have to be aware 
+> of this.
+> 
+> > It's probably not sensible to mix AFS and NFS in the same entry anyway.
+> 
+> Why not? :) Imagine a (public, read-only) volume that's normally 
+> AFS-mounted, but has an NFS backup. As NFS is dead easy to set up, it's a 
+> good option for emergency use.
 
-James Pearson
+In the same entry?
+The Hesoid format can't have AFS and NFS for the same map entry can it?
 
-
--------------------------------------------------------------------------
-Using Tomcat but need to do more? Need to support web services, security?
-Get stuff done quickly with pre-integrated technology to make your job easier
-Download IBM WebSphere Application Server v.1.0.1 based on Apache Geronimo
-http://sel.as-us.falkag.net/sel?cmd=lnk&kid=120709&bid=263057&dat=121642
-_______________________________________________
-NFS maillist  -  NFS@lists.sourceforge.net
-https://lists.sourceforge.net/lists/listinfo/nfs
+Ian
