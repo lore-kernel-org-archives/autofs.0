@@ -1,12 +1,13 @@
-From: Ian Kent <raven@themaw.net>
+From: "Daniel Richard G." <skunk@iskunk.org>
 Subject: Re: Map overrides
-Date: Wed, 12 Jul 2006 11:18:41 +0800
-Message-ID: <1152674321.2930.28.camel@raven.themaw.net>
+Date: Wed, 12 Jul 2006 00:18:16 -0400
+Message-ID: <20060712041816.GC29064@mail.iSKUNK.ORG>
 References: <20060712013858.GA29064@mail.iSKUNK.ORG>
+	<1152674321.2930.28.camel@raven.themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20060712013858.GA29064@mail.iSKUNK.ORG>
+Content-Disposition: inline
+In-Reply-To: <1152674321.2930.28.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,72 +19,76 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: "Daniel Richard G." <skunk@iskunk.org>
-Cc: autofs@linux.kernel.org
+Content-Transfer-Encoding: 7bit
+To: autofs@linux.kernel.org
+Cc: Ian Kent <raven@themaw.net>
 
-On Tue, 2006-07-11 at 21:38 -0400, Daniel Richard G. wrote:
-> [The "next-gen LDAP schema" problem will have to simmer for a while, but in 
-> the meantime, I've another little nut to crack on this list]
+On Wed, 2006 Jul 12 11:18:41 +0800, Ian Kent wrote:
 > 
-> 
-> Map overrides. I'd like to have an indirect map that is normally pulled 
-> from LDAP/Hesiod/etc.---but not necessarily 100% of the time. Sometimes, a 
-> key will have to map to something other than the "canonical" location, and 
-> on a locally-visible-only basis at that.
-> 
-> 
-> Real-life example: Let's say I have a straightforward NFS-homedir setup, 
-> and a user "foo". So you'd typically see e.g.
-> 
-> 	fuzzball:/srv/users/foo on /nfshome/foo type nfs
-> 
-> But what if, for some reason, the workstation cannot contact the fuzzball 
-> server? (Assume no server replication.) Then, I'd like to create a 
-> temporary homedir, e.g.
-> 
-> 	/nfshome/foo -> /var/tmphomedir/foo	(symlink)
-> 
-> so that the user can at least log in and check mail et al.
-> 
-> (There are other use cases, but this is probably the least convoluted one I 
-> can think of. Note: My scenario would be with AFS, but I used NFS above 
-> because it really shouldn't matter.)
-> 
-> 
-> Right now, I can sort-of get this behavior via a program map, one that 
-> returns the /var/*** path when necessary. Of course, if I want LDAP/Hesiod 
-> lookups to be the common case, then those have to be built into the program 
-> map as well, making autofs's built-in lookup code redundant. Right now, I 
-> can't say to autofs "First, check if program map A returns some 
-> special-case path; if not, then use whatever directory service B says."
-> 
-> This would be a sort of failover for maps, in general terms: if the first 
-> map doesn't succeed, try the second one, and so on. This is a bit iffy when 
-> you're talking about directory services failing, because that usually 
-> involves a longish timeout. But a program map can fail immediately, thereby 
-> making itself transparent at the top of such a failover stack.
-> 
-> 
-> First of all, is there a way to do this currently?
-> 
-> If not, should I expect any difficulty in implementing this? On the 
-> configuration side, I would think that extending the syntax to support this 
-> behavior should be straightforward: just allow multiple entries for the 
-> same mountpoint in auto.master.
+> This is done (not to well in v4) in the mount_nfs.c module as the mount
+> syntax (at least in autofs maps not, mount itself) allows it.
 
-This is done (not to well in v4) in the mount_nfs.c module as the mount
-syntax (at least in autofs maps not, mount itself) allows it.
+I should've been more clear: This would be completely apart from the 
+replicated-server-selection mechanism. My example might not have been the 
+best, as it presents this parallel that has to be disavowed.
 
-It's not as simple to do as first appears.
-To extend it to cater for multiple source formats would be really messy.
+Another scenario: Say that you have a (read-only) volume that's normally 
+NFS-mounted. Imagine a framework that would allow you to copy that volume 
+in its entirety to your local disk, and then have autofs "mount" the volume 
+by symlinking the local copy. Whether it be to avoid network latency, or 
+because you're on a laptop and want to go off-net.
 
-Perhaps one way to approach this would be to teach the hesoid lookup
-module to convert these entries into the format that mount_nfs.c can use
-to perform the selection. For example if one of the entries is localhost
-then autofs will perform a bind mount. We would probably need to teach
-mount_afs.c something similar. It's probably not sensible to mix AFS and
-NFS in the same entry anyway.
+So there's nothing going on here w.r.t. checking whether an NFS/AFS server 
+is up. It's about overriding what autofs would usually do---to have a 
+program map return the (special-case) local path, preempting the usual 
+LDAP/Hesiod request. (And if and only if the program map gives no answer, 
+go ahead and do the LDAP/Hesiod lookup.)
 
-So no, not that simple.
+> It's not as simple to do as first appears.
+> To extend it to cater for multiple source formats would be really messy.
 
-Ian
+My intuition was that it would involve extending struct master / 
+master_mapent in some way, so that a single indirect map mountpoint could 
+have multiple definitions. (Or perhaps the structure could stay the same--- 
+it does appear to be in a linked list---and the restriction lifted on the 
+uniqueness of indirect map mountpoints?)
+
+I mean, what you would have in the configuration file is something like
+
+	/mit	program,hesiod:/sbin/myprogmap
+	/mit	ldap,hesiod://foo/ou=auto.indirect,dc=mit,dc=edu
+
+i.e. two entries that could be completely independent, and are no different 
+syntactically from what exists now. Just that autofs would try them in 
+order when resolving a key in /mit.
+
+> Perhaps one way to approach this would be to teach the hesoid lookup
+> module to convert these entries into the format that mount_nfs.c can use
+> to perform the selection. For example if one of the entries is localhost
+> then autofs will perform a bind mount. We would probably need to teach
+> mount_afs.c something similar.
+
+Eeegh... I really wasn't thinking that the modules would have to be aware 
+of this.
+
+> It's probably not sensible to mix AFS and NFS in the same entry anyway.
+
+Why not? :) Imagine a (public, read-only) volume that's normally 
+AFS-mounted, but has an NFS backup. As NFS is dead easy to set up, it's a 
+good option for emergency use.
+
+> So no, not that simple.
+
+I hope this is due to my not having conveyed the idea very well....
+
+
+--Daniel
+
+
+-- 
+NAME   = Daniel Richard G.       ##  Remember, skunks       _\|/_  meef?
+EMAIL1 = skunk@iskunk.org        ##  don't smell bad---    (/o|o\) /
+EMAIL2 = skunk@alum.mit.edu      ##  it's the people who   < (^),>
+WWW    = http://www.******.org/  ##  annoy them that do!    /   \
+--
+(****** = site not yet online)
