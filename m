@@ -1,116 +1,166 @@
-From: "Gordon Lack" <gml4410@ggr.co.uk>
-Subject: -hosts and -null enabling for autofs v4.1.x
-Date: Fri, 07 Jul 2006 16:02:29 +0100
-Message-ID: <44AE7785.74E63D70@ggr.co.uk>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: bug in linux mount? (says NetApp)
+Date: Thu, 13 Jul 2006 20:55:45 +0800
+Message-ID: <1152795345.23150.1.camel@raven.themaw.net>
+References: <A0674ED473ECE741B47C065D2FB6DC2008A785@BP1XEUEX029-C.bp1.ad.bp.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary=------------FA069077B19ED5AECCBDEF80
-Return-path: <autofs-bounces@linux.kernel.org>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://hera.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
-
-This is a multi-part message in MIME format.
---------------FA069077B19ED5AECCBDEF80
-Content-Type: text/plain;
- charset=us-ascii
-Content-Transfer-Encoding: 7bit
-
-   Here is a simple patch to the system autofs startup script so that
--hosts and -null is enabled in autofs 4.1.x.  This patch is actually
-against a RedHat autofs, but the same code is present in
-samples/rc.autofs.in.
-
-   For -hosts, it just translates the map name to /etc/auto.net if that
-is present and executable.
-
-   For -null, it just adds the mountpoint location to the list of
-knownmaps, but doesn't do anything else.
-
-
-PS:  I see that v5 handles these anyway.  However, this note in
-README.v5.release looks ominous...
-
-==========
-- a "hosts" map module has been added
-  - an entry like "/net -hosts" is now understood and uses the new
-    multi-mount semantics for lazy mount/umount of exports from the
-host.
-  - the implementation is quite simple minded at this stage and will
-need
-    refinment. It just iterates through the host table and addes any
-host
-    names it finds to the internal map.
-==========
-
-Some of us have thousands of hosts in a host map, eg:
-
-systemx*[1] ypcat -k hosts | wc -l
-   30899
---------------FA069077B19ED5AECCBDEF80
-Content-Type: text/plain;
- charset=us-ascii;
- name=autofs.diffs
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename=autofs.diffs
-
-*** autofs.orig	2006-07-07 08:56:05.000000000 -0400
---- autofs	2006-07-07 09:25:57.000000000 -0400
-***************
-*** 191,197 ****
-  	    dir=`echo "$dir" | sed -e "s/\/*$//"`
-  
-  	    if [ ! -z "$map" -a "$map" = "-hosts" ] ; then
-! 		continue
-  	    fi
-  	    if [ $DISABLE_DIRECT -eq 1 \
-  			-a x`echo $dir | grep -E "^/-"` != 'x' ]
---- 191,201 ----
-  	    dir=`echo "$dir" | sed -e "s/\/*$//"`
-  
-  	    if [ ! -z "$map" -a "$map" = "-hosts" ] ; then
-!                 if [ -x '/etc/auto.net' ]; then
-!                     map='/etc/auto.net'
-!                 else
-!                     continue
-!                 fi
-  	    fi
-  	    if [ $DISABLE_DIRECT -eq 1 \
-  			-a x`echo $dir | grep -E "^/-"` != 'x' ]
-***************
-*** 210,215 ****
---- 214,224 ----
-  		fi	
-  	    done
-  
-+             if [ "$map" = '-null' ]; then
-+ # Just add dir to list of those with a known map, but do nothing else
-+                 knownmaps=" $dir/ $knownmaps"
-+                 continue
-+             fi
-  	    if [ ! -z "$dir" -a ! -z "$map" \
-  			-a x`echo "$map" | cut -c1` != 'x-' ]
-  	    then
-
---------------FA069077B19ED5AECCBDEF80
 Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Return-path: <nfs-bounces@lists.sourceforge.net>
+In-Reply-To: <A0674ED473ECE741B47C065D2FB6DC2008A785@BP1XEUEX029-C.bp1.ad.bp.com>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
+	<mailto:nfs-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
+List-Post: <mailto:nfs@lists.sourceforge.net>
+List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
+	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
+Sender: nfs-bounces@lists.sourceforge.net
+Errors-To: nfs-bounces@lists.sourceforge.net
+To: "Murata, Dennis W (SAIC)" <dennis.murata@bp.com>
+Cc: autofs@linux.kernel.org, gregory.baker@amd.com, nfs@lists.sourceforge.net, Trond Myklebust <trond.myklebust@fys.uio.no>
 
+On Wed, 2006-07-12 at 21:23 +0100, Murata, Dennis W (SAIC) wrote:
+> I am seeing something very similar to the problem Greg has stated.  We
+> are using udp rather than tcp as the transport protocol.  Should we be
+> using tcp rather than udp?  That seems to be the recommendation.  I am
+> testing configuration with tcp with the following arguments:
+> 
+> 	DAEMONOPTIONS="--timeout=60
+> rsize=32768,wsize=32768,tcp,timeo=600,retrans=2,bg"
+> 
+> We are using automount for all the nfs directories, nothing is listed in
+> the /etc/fstab.  The nis maps are legacy from Solaris, and we still use
+> Solaris NIS servers.  I am little reluctant to modify the maps
+> themselves if I don't have to.  Will this work using the DAEMONOPTIONS
+> in /etc/sysconfig/autofs?  From the mount command I see:
+> 
+> nfsserver:/vol/vol1/home/foo on /home/foo type nfs
+> (rw,nosuid,rsize=32768,wsize=32768,tcp,timeo=600,retrans=2,bg,intr,retry
+> =1000,vers=3,addr=XXX.XXX.XXX.XXX)
+
+Looks like you've answered your own question about the DAEMONOPTIONS.
+
+> 
+> The entry from /proc/mounts does not list the values for timeo or
+> retrans:
+> 
+> nfsserver:/vol/vol1/home/foo /home/foo nfs
+> rw,nosuid,v3,rsize=32768,wsize=32768,hard,intr,tcp,lock,addr=nfsserver 0
+> 0
+> 
+> Is this normal?
+> 
+> Wayne Murata
+> 
+> -----Original Message-----
+> From: nfs-bounces@lists.sourceforge.net
+> [mailto:nfs-bounces@lists.sourceforge.net]On Behalf Of Trond Myklebust
+> Sent: Tuesday, July 11, 2006 6:28 PM
+> To: gregory.baker@amd.com
+> Cc: autofs@linux.kernel.org; nfs@lists.sourceforge.net
+> Subject: Re: [NFS] bug in linux mount? (says NetApp)
+> 
+> 
+> On Tue, 2006-07-11 at 14:00 -0500, Gregory Baker wrote:
+> > We have thousands of linux clients hitting netapp file servers (many 
+> > 3500 series, clustered) on a local gigabit LAN.  From time to time, 
+> > applications return "file not found" when attempting to automount a 
+> > directory and access a file.  An example of this is a long running 
+> > process, which reads in data, processes it for hours (in which time
+> the 
+> > filesystem is unmounted) then tries to read more data from that mount 
+> > point (which causes a "file not found" error in the application).
+> This 
+> > occurs about 1/100th of the time.
+> > 
+> > Researching at Netapp turns up this bit by Chuck Lever (Linux NFS 
+> > contributer)
+> > 
+> > "Using the Linux NFS Client with Network Appliance Filers"
+> > http://www.netapp.com/libr ary/tr/3183.pdf  (February 2006)
+> > 
+> > page 10 says...
+> > 
+> > "Due to a bug in the mount command, the default retransmission timeout
+> 
+> > value on Linux for NFS over TCP is quite small...To obtain standard 
+> > behavior, we strongly recommend using "timeo=600, retrans=2"
+> explicitly 
+> > when mounting via TCP."
+> > 
+> > Our defaults (assuming man pages are correct, RedHat Enterprise Linux
+> 3) 
+> > would be timeo=7, retrans=3, which translates to 7+14+28+56 = 105
+> tenths 
+> > of a second (10 seconds).  It appears netapp is suggesting waiting 
+> > 600+600 = 1200 tenths (120 seconds) before giving up on the mount
+> command...
+> 
+> No they are not. See below.
+> 
+> > * What "bug" in the mount command do you believe NetApp is talking
+> about?
+> 
+> It has nothing to do with the mount timeout: Chuck is talking about the
+> retransmission timeout for TCP connections 'timeo' which should indeed
+> be set to a high value since TCP guarantees message delivery (unlike UDP
+> which requires a small timeo value). Setting it too low means that you
+> end up spamming your server with a load of unnecessary retransmissions.
+> 
+> This was indeed the case for some older versions of 'mount' and also for
+> older versions of the am-utils/amd automounters.
+> 
+> > * What do you think proper options for NFS auto/mounts would be for 
+> > extremely busy centralized NFS filers?
+> 
+> Something like
+> 
+> mount -t nfs -ohard,timeo=600,retrans=2,rsize=32768,wsize=32768,tcp
+> foo:/ /bar
+> 
+> should be a fairly safe bet. You might want to add the 'intr' flag too,
+> depending on how you feel about the behaviour w.r.t. pressing ^C.
+> 
+> > * What is the reference standard behavior?
+> 
+> To which reference are you referring?
+> 
+> Cheers,
+>   Trond
+> 
+> 
+> 
+> ------------------------------------------------------------------------
+> -
+> Using Tomcat but need to do more? Need to support web services,
+> security?
+> Get stuff done quickly with pre-integrated technology to make your job
+> easier
+> Download IBM WebSphere Application Server v.1.0.1 based on Apache
+> Geronimo
+> http://sel.as-us.falkag.net/sel?cmd=lnk&kid=120709&bid=263057&dat=121642
+> _______________________________________________
+> NFS maillist  -  NFS@lists.sourceforge.net
+> https://lists.sourceforge.net/lists/listinfo/nfs
+> 
+> 
+> -------------------------------------------------------------------------
+> Using Tomcat but need to do more? Need to support web services, security?
+> Get stuff done quickly with pre-integrated technology to make your job easier
+> Download IBM WebSphere Application Server v.1.0.1 based on Apache Geronimo
+> http://sel.as-us.falkag.net/sel?cmd=lnk&kid=120709&bid=263057&dat=121642
+> _______________________________________________
+> NFS maillist  -  NFS@lists.sourceforge.net
+> https://lists.sourceforge.net/lists/listinfo/nfs
+
+
+-------------------------------------------------------------------------
+Using Tomcat but need to do more? Need to support web services, security?
+Get stuff done quickly with pre-integrated technology to make your job easier
+Download IBM WebSphere Application Server v.1.0.1 based on Apache Geronimo
+http://sel.as-us.falkag.net/sel?cmd=lnk&kid=120709&bid=263057&dat=121642
 _______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
-
---------------FA069077B19ED5AECCBDEF80--
-
+NFS maillist  -  NFS@lists.sourceforge.net
+https://lists.sourceforge.net/lists/listinfo/nfs
