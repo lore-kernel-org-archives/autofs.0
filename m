@@ -1,151 +1,69 @@
-From: "Murata, Dennis W (SAIC)" <dennis.murata@bp.com>
-Subject: Re: bug in linux mount? (says NetApp)
-Date: Wed, 12 Jul 2006 21:23:09 +0100
-Message-ID: <A0674ED473ECE741B47C065D2FB6DC2008A785@BP1XEUEX029-C.bp1.ad.bp.com>
+From: "Daniel Richard G." <skunk@iskunk.org>
+Subject: Re: Map overrides
+Date: Wed, 12 Jul 2006 22:11:04 -0400
+Message-ID: <20060713021103.GG29064@mail.iSKUNK.ORG>
+References: <20060712013858.GA29064@mail.iSKUNK.ORG>
+	<1152674321.2930.28.camel@raven.themaw.net>
+	<20060712041816.GC29064@mail.iSKUNK.ORG>
+	<1152705813.2930.34.camel@raven.themaw.net>
 Mime-Version: 1.0
+Return-path: <autofs-bounces@linux.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1152705813.2930.34.camel@raven.themaw.net>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://hera.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <nfs-bounces@lists.sourceforge.net>
-Content-class: urn:content-classes:message
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
-List-Post: <mailto:nfs@lists.sourceforge.net>
-List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
-	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
-Sender: nfs-bounces@lists.sourceforge.net
-Errors-To: nfs-bounces@lists.sourceforge.net
-To: Trond Myklebust <trond.myklebust@fys.uio.no>, gregory.baker@amd.com
-Cc: autofs@linux.kernel.org, nfs@lists.sourceforge.net
+To: autofs@linux.kernel.org
+Cc: Ian Kent <raven@themaw.net>
 
-I am seeing something very similar to the problem Greg has stated.  We
-are using udp rather than tcp as the transport protocol.  Should we be
-using tcp rather than udp?  That seems to be the recommendation.  I am
-testing configuration with tcp with the following arguments:
-
-	DAEMONOPTIONS="--timeout=60
-rsize=32768,wsize=32768,tcp,timeo=600,retrans=2,bg"
-
-We are using automount for all the nfs directories, nothing is listed in
-the /etc/fstab.  The nis maps are legacy from Solaris, and we still use
-Solaris NIS servers.  I am little reluctant to modify the maps
-themselves if I don't have to.  Will this work using the DAEMONOPTIONS
-in /etc/sysconfig/autofs?  From the mount command I see:
-
-nfsserver:/vol/vol1/home/foo on /home/foo type nfs
-(rw,nosuid,rsize=32768,wsize=32768,tcp,timeo=600,retrans=2,bg,intr,retry
-=1000,vers=3,addr=XXX.XXX.XXX.XXX)
-
-The entry from /proc/mounts does not list the values for timeo or
-retrans:
-
-nfsserver:/vol/vol1/home/foo /home/foo nfs
-rw,nosuid,v3,rsize=32768,wsize=32768,hard,intr,tcp,lock,addr=nfsserver 0
-0
-
-Is this normal?
-
-Wayne Murata
-
------Original Message-----
-From: nfs-bounces@lists.sourceforge.net
-[mailto:nfs-bounces@lists.sourceforge.net]On Behalf Of Trond Myklebust
-Sent: Tuesday, July 11, 2006 6:28 PM
-To: gregory.baker@amd.com
-Cc: autofs@linux.kernel.org; nfs@lists.sourceforge.net
-Subject: Re: [NFS] bug in linux mount? (says NetApp)
-
-
-On Tue, 2006-07-11 at 14:00 -0500, Gregory Baker wrote:
-> We have thousands of linux clients hitting netapp file servers (many 
-> 3500 series, clustered) on a local gigabit LAN.  From time to time, 
-> applications return "file not found" when attempting to automount a 
-> directory and access a file.  An example of this is a long running 
-> process, which reads in data, processes it for hours (in which time
-the 
-> filesystem is unmounted) then tries to read more data from that mount 
-> point (which causes a "file not found" error in the application).
-This 
-> occurs about 1/100th of the time.
+On Wed, 2006 Jul 12 20:03:33 +0800, Ian Kent wrote:
+> > 
+> > So there's nothing going on here w.r.t. checking whether an NFS/AFS server 
+> > is up. It's about overriding what autofs would usually do---to have a 
+> > program map return the (special-case) local path, preempting the usual 
+> > LDAP/Hesiod request. (And if and only if the program map gives no answer, 
+> > go ahead and do the LDAP/Hesiod lookup.)
 > 
-> Researching at Netapp turns up this bit by Chuck Lever (Linux NFS 
-> contributer)
+> OK. Maybe a multi-map entry in the master map will work for this.
 > 
-> "Using the Linux NFS Client with Network Appliance Filers"
-> http://www.netapp.com/libr ary/tr/3183.pdf  (February 2006)
+> /mit	program,hesiod:/sbin/myprogmap -- ldap,hesiod://foo/ou=auto.indirect,dc=mit,dc=edu
 > 
-> page 10 says...
+> It should behave the way you need.
+
+[I wasn't able to get autofs beta6 up and going to answer this, though a 
+glance at the code implies that the answer is "no"...]
+
+Is this implemented already? Or are you saying that you'd prefer this minor 
+extension to the master map syntax instead of allowing redundant entries?
+
+> > Why not? :) Imagine a (public, read-only) volume that's normally 
+> > AFS-mounted, but has an NFS backup. As NFS is dead easy to set up, it's a 
+> > good option for emergency use.
 > 
-> "Due to a bug in the mount command, the default retransmission timeout
+> In the same entry?
+> The Hesoid format can't have AFS and NFS for the same map entry can it?
 
-> value on Linux for NFS over TCP is quite small...To obtain standard 
-> behavior, we strongly recommend using "timeo=600, retrans=2"
-explicitly 
-> when mounting via TCP."
-> 
-> Our defaults (assuming man pages are correct, RedHat Enterprise Linux
-3) 
-> would be timeo=7, retrans=3, which translates to 7+14+28+56 = 105
-tenths 
-> of a second (10 seconds).  It appears netapp is suggesting waiting 
-> 600+600 = 1200 tenths (120 seconds) before giving up on the mount
-command...
-
-No they are not. See below.
-
-> * What "bug" in the mount command do you believe NetApp is talking
-about?
-
-It has nothing to do with the mount timeout: Chuck is talking about the
-retransmission timeout for TCP connections 'timeo' which should indeed
-be set to a high value since TCP guarantees message delivery (unlike UDP
-which requires a small timeo value). Setting it too low means that you
-end up spamming your server with a load of unnecessary retransmissions.
-
-This was indeed the case for some older versions of 'mount' and also for
-older versions of the am-utils/amd automounters.
-
-> * What do you think proper options for NFS auto/mounts would be for 
-> extremely busy centralized NFS filers?
-
-Something like
-
-mount -t nfs -ohard,timeo=600,retrans=2,rsize=32768,wsize=32768,tcp
-foo:/ /bar
-
-should be a fairly safe bet. You might want to add the 'intr' flag too,
-depending on how you feel about the behaviour w.r.t. pressing ^C.
-
-> * What is the reference standard behavior?
-
-To which reference are you referring?
-
-Cheers,
-  Trond
+A single Hesiod record can't specify both, but it can handle one or the 
+other. So if you had a situation that could return one of two possible 
+records then this would work.
 
 
-
-------------------------------------------------------------------------
--
-Using Tomcat but need to do more? Need to support web services,
-security?
-Get stuff done quickly with pre-integrated technology to make your job
-easier
-Download IBM WebSphere Application Server v.1.0.1 based on Apache
-Geronimo
-http://sel.as-us.falkag.net/sel?cmd=lnk&kid=120709&bid=263057&dat=121642
-_______________________________________________
-NFS maillist  -  NFS@lists.sourceforge.net
-https://lists.sourceforge.net/lists/listinfo/nfs
+--Daniel
 
 
--------------------------------------------------------------------------
-Using Tomcat but need to do more? Need to support web services, security?
-Get stuff done quickly with pre-integrated technology to make your job easier
-Download IBM WebSphere Application Server v.1.0.1 based on Apache Geronimo
-http://sel.as-us.falkag.net/sel?cmd=lnk&kid=120709&bid=263057&dat=121642
-_______________________________________________
-NFS maillist  -  NFS@lists.sourceforge.net
-https://lists.sourceforge.net/lists/listinfo/nfs
+-- 
+NAME   = Daniel Richard G.       ##  Remember, skunks       _\|/_  meef?
+EMAIL1 = skunk@iskunk.org        ##  don't smell bad---    (/o|o\) /
+EMAIL2 = skunk@alum.mit.edu      ##  it's the people who   < (^),>
+WWW    = http://www.******.org/  ##  annoy them that do!    /   \
+--
+(****** = site not yet online)
