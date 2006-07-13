@@ -1,7 +1,7 @@
-From: Ian Kent <raven@themaw.net>
+From: "Daniel Richard G." <skunk@iskunk.org>
 Subject: Re: Map overrides
-Date: Thu, 13 Jul 2006 13:01:24 +0800
-Message-ID: <1152766884.2929.18.camel@raven.themaw.net>
+Date: Thu, 13 Jul 2006 03:43:13 -0400
+Message-ID: <20060713074313.GH29064@mail.iSKUNK.ORG>
 References: <20060712013858.GA29064@mail.iSKUNK.ORG>
 	<1152674321.2930.28.camel@raven.themaw.net>
 	<20060712041816.GC29064@mail.iSKUNK.ORG>
@@ -9,8 +9,8 @@ References: <20060712013858.GA29064@mail.iSKUNK.ORG>
 	<20060713021103.GG29064@mail.iSKUNK.ORG>
 	<1152765179.2929.11.camel@raven.themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+Content-Disposition: inline
 In-Reply-To: <1152765179.2929.11.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -23,47 +23,28 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-To: "Daniel Richard G." <skunk@iskunk.org>
-Cc: autofs@linux.kernel.org
+Content-Transfer-Encoding: 7bit
+To: autofs@linux.kernel.org
+Cc: Ian Kent <raven@themaw.net>
 
-On Thu, 2006-07-13 at 12:32 +0800, Ian Kent wrote:
-> On Wed, 2006-07-12 at 22:11 -0400, Daniel Richard G. wrote:
-> > On Wed, 2006 Jul 12 20:03:33 +0800, Ian Kent wrote:
-> > > > 
-> > > > So there's nothing going on here w.r.t. checking whether an NFS/AFS server 
-> > > > is up. It's about overriding what autofs would usually do---to have a 
-> > > > program map return the (special-case) local path, preempting the usual 
-> > > > LDAP/Hesiod request. (And if and only if the program map gives no answer, 
-> > > > go ahead and do the LDAP/Hesiod lookup.)
-> > > 
-> > > OK. Maybe a multi-map entry in the master map will work for this.
-> > > 
-> > > /mit	program,hesiod:/sbin/myprogmap -- ldap,hesiod://foo/ou=auto.indirect,dc=mit,dc=edu
-
-However I think my syntax is wrong.
-It should be
-/mit	multi:program,hesiod:/sbin/myprogmap -- ldap,hesiod://foo/ou=auto.indirect,dc=mit,dc=edu
-
-
-> > > 
-> > > It should behave the way you need.
-> > 
-> > [I wasn't able to get autofs beta6 up and going to answer this, though a 
-> > glance at the code implies that the answer is "no"...]
-> > 
-> > Is this implemented already? Or are you saying that you'd prefer this minor 
-> > extension to the master map syntax instead of allowing redundant entries?
-> 
-> This is part of the original autofs implementation so it's definitely
-> available in v4 and so must be carried through to v5 for backward
-> compatibility.
+On Thu, 2006 Jul 13 12:32:59 +0800, Ian Kent wrote:
 > 
 > And having a quick look at the code suggests that it could be made to
 > function the way you require with some minor changes.
-> 
-> Ian
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
+
+So this is all in lookup_multi.c, eh? Interesting.
+
+This looks like it should do the trick... but since I'm not yet up on all 
+the subtleties, what sort of changes do you anticipate this needing?
+
+
+--Daniel
+
+
+-- 
+NAME   = Daniel Richard G.       ##  Remember, skunks       _\|/_  meef?
+EMAIL1 = skunk@iskunk.org        ##  don't smell bad---    (/o|o\) /
+EMAIL2 = skunk@alum.mit.edu      ##  it's the people who   < (^),>
+WWW    = http://www.******.org/  ##  annoy them that do!    /   \
+--
+(****** = site not yet online)
