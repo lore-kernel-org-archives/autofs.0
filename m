@@ -1,50 +1,69 @@
-From: "Daniel Richard G." <skunk@iskunk.org>
-Subject: Re: Map overrides
-Date: Thu, 13 Jul 2006 03:43:13 -0400
-Message-ID: <20060713074313.GH29064@mail.iSKUNK.ORG>
-References: <20060712013858.GA29064@mail.iSKUNK.ORG>
-	<1152674321.2930.28.camel@raven.themaw.net>
-	<20060712041816.GC29064@mail.iSKUNK.ORG>
-	<1152705813.2930.34.camel@raven.themaw.net>
-	<20060713021103.GG29064@mail.iSKUNK.ORG>
-	<1152765179.2929.11.camel@raven.themaw.net>
-Mime-Version: 1.0
-Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1152765179.2929.11.camel@raven.themaw.net>
+From: Ian Kent <raven@themaw.net>
+Subject: [ANNOUNCE] autofs 5.0.1 rc1 release candidate
+Date: Thu, 13 Jul 2006 16:36:37 +0800
+Message-ID: <200607130836.k6D8abN7022238@raven.themaw.net>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://hera.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: autofs@linux.kernel.org
-Cc: Ian Kent <raven@themaw.net>
+Cc: linux-fsdevel@vger.kernel.org
 
-On Thu, 2006 Jul 13 12:32:59 +0800, Ian Kent wrote:
-> 
-> And having a quick look at the code suggests that it could be made to
-> function the way you require with some minor changes.
+Hi all,
 
-So this is all in lookup_multi.c, eh? Interesting.
+Time to consolidate again.
 
-This looks like it should do the trick... but since I'm not yet up on all 
-the subtleties, what sort of changes do you anticipate this needing?
+There has been a change in the version labeling because of bad
+naming on my part. It would have caused conflicts for those that
+use rpms built from the included spec file. In order to have the
+built rpms upgrade smoothly the version number has been changed
+to 5.0.1. But as I would like to consolidate as many corrections
+into the final relaese as I can I've decided to also mark this
+as a release candidate rather than a final release. A lot of
+fixes have been made but I'm sure there are more we can find.
 
+Please find a little time to check this out.
 
---Daniel
+autofs
+======
 
+The package can be found at:
 
--- 
-NAME   = Daniel Richard G.       ##  Remember, skunks       _\|/_  meef?
-EMAIL1 = skunk@iskunk.org        ##  don't smell bad---    (/o|o\) /
-EMAIL2 = skunk@alum.mit.edu      ##  it's the people who   < (^),>
-WWW    = http://www.******.org/  ##  annoy them that do!    /   \
---
-(****** = site not yet online)
+ftp://ftp.kernel.org/pub/linux/daemons/autofs/v5
+
+It is autofs-5.0.1i-rc1.tar.[gz|bz2]
+
+No source rpm is there as it can be produced by using:
+
+rpmbuild -ts autofs-5.0.1-rc1.tar.gz
+
+and the binary rpm by using:
+
+rpmbuild -tb autofs-5.0.1-rc1.tar.gz
+
+See the INSTALL file for information about configure options and
+kernel requirements.
+
+Here are the entries from the CHANGELOG which outline the updates:
+
+13/7/2006 autofs-5.0.1 rc1
+--------------------------
+- merge LDAP authentication update for GSSAPI (Jeff Moyer).
+- update default auth config to add options documenetation (Jeff Moyer).
+- workaround segfaults at exit after using GSSAPI library.
+- fix not checking return in init_ldap_connection (Jeff Moyer).
+- correct test for existence of auth config file.
+- correct shutdown log message print.
+- correct auth init test when no credentials required.
+- correct auto.net installed as auto.smb.
+- update LDAP auth - add autodectect option.
+- correct test for libhesiod.
+- correct directory cleanup in mount modules.
+- merge key and wildcard LDAP query for lookups.
+- add cacheing of negative lookups to reduce unneeded map lookups.
+- version number change to allow update from beta for rpm packages.
+
+Ian
+
