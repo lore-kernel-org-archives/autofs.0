@@ -1,48 +1,49 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: nonroot user umount
-Date: Thu, 13 Jul 2006 09:24:15 -0400
-Message-ID: <x491wspbpts.fsf@segfault.boston.redhat.com>
-References: <44B11E87.5000802@unitron.com.br>
+From: Trond Myklebust <trond.myklebust@fys.uio.no>
+Subject: Re: bug in linux mount? (says NetApp)
+Date: Thu, 13 Jul 2006 09:37:51 -0400
+Message-ID: <1152797871.5678.51.camel@lade.trondhjem.org>
+References: <A0674ED473ECE741B47C065D2FB6DC2008A785@BP1XEUEX029-C.bp1.ad.bp.com>
 Mime-Version: 1.0
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <44B11E87.5000802@unitron.com.br> (Marcos Diez's message of
-	"Sun, 09 Jul 2006 15:19:35 +0000")
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://hera.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Marcos Diez <marcos@unitron.com.br>
-Cc: autofs@linux.kernel.org
+Return-path: <nfs-bounces@lists.sourceforge.net>
+In-Reply-To: <A0674ED473ECE741B47C065D2FB6DC2008A785@BP1XEUEX029-C.bp1.ad.bp.com>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
+	<mailto:nfs-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=nfs>
+List-Post: <mailto:nfs@lists.sourceforge.net>
+List-Help: <mailto:nfs-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/nfs>,
+	<mailto:nfs-request@lists.sourceforge.net?subject=subscribe>
+Sender: nfs-bounces@lists.sourceforge.net
+Errors-To: nfs-bounces@lists.sourceforge.net
+To: "Murata, Dennis W (SAIC)" <dennis.murata@bp.com>
+Cc: autofs@linux.kernel.org, gregory.baker@amd.com, nfs@lists.sourceforge.net
 
-==> Regarding [autofs] nonroot user umount; Marcos Diez <marcos@unitron.com.br> adds:
+On Wed, 2006-07-12 at 21:23 +0100, Murata, Dennis W (SAIC) wrote:
+> The entry from /proc/mounts does not list the values for timeo or
+> retrans:
+> 
+> nfsserver:/vol/vol1/home/foo /home/foo nfs
+> rw,nosuid,v3,rsize=32768,wsize=32768,hard,intr,tcp,lock,addr=nfsserver 0
+> 0
+> 
+> Is this normal?
 
-marcos> Hello everybody!  In a Unix desktop system automount is very
-marcos> practical for CDROMs, digital cameras, USB flash drives and any
-marcos> other type of removable media.  But it is annoying to the
-marcos> unprivileged user to wait the timeout to remove the media.
+Yes. If you have a recent kernel (2.6.17 or newer), I believe you should
+be able to check the full mount options using /proc/self/mountstats
 
-marcos> Since it is insecure to allow the user to do a "killall -s SIGUSR1
-marcos> automount", I wrote a program that does exactly (and only) that. Of
-marcos> course it must be suid root, but it makes life much easier. I
-marcos> double verified that there are no buffer overflows and I believe
-marcos> it's safe. The program is not interactive, so a malicious user
-marcos> can't do much with it anyway.
+Cheers,
+  Trond
 
-marcos> It gets the PIDs from instances of automount by parsing
-marcos> /proc/mounts It would be nice if it could be added to the autofs
-marcos> distribution.
 
-Why not simply use udev/hal?  Are you not running a somewhat recent
-desktop?  There are other alternatives, too.  Why not simply add an entry
-to the fstab, specifying "user"?  Without good answer to these questions,
-I'm definitely against adding such a kludge.
 
--Jeff
+-------------------------------------------------------------------------
+Using Tomcat but need to do more? Need to support web services, security?
+Get stuff done quickly with pre-integrated technology to make your job easier
+Download IBM WebSphere Application Server v.1.0.1 based on Apache Geronimo
+http://sel.as-us.falkag.net/sel?cmd=lnk&kid=120709&bid=263057&dat=121642
+_______________________________________________
+NFS maillist  -  NFS@lists.sourceforge.net
+https://lists.sourceforge.net/lists/listinfo/nfs
