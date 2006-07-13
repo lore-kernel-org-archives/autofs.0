@@ -1,12 +1,12 @@
-From: Jeff Moyer <jmoyer@redhat.com>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: -hosts and -null enabling for autofs v4.1.x
-Date: Thu, 13 Jul 2006 09:42:54 -0400
-Message-ID: <x49u05laae9.fsf@segfault.boston.redhat.com>
+Date: Thu, 13 Jul 2006 21:10:28 +0800
+Message-ID: <1152796228.23150.7.camel@raven.themaw.net>
 References: <44AE7785.74E63D70@ggr.co.uk>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <44AE7785.74E63D70@ggr.co.uk> (Gordon Lack's message of "Fri,
-	07 Jul 2006 16:02:29 +0100")
+In-Reply-To: <44AE7785.74E63D70@ggr.co.uk>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,34 +18,37 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: Gordon Lack <gml4410@ggr.co.uk>
 Cc: autofs@linux.kernel.org
 
-==> Regarding [autofs] -hosts and -null enabling for autofs v4.1.x; "Gordon Lack" <gml4410@ggr.co.uk> adds:
+On Fri, 2006-07-07 at 16:02 +0100, Gordon Lack wrote:
 
-gml4410>    Here is a simple patch to the system autofs startup script so that
-gml4410> -hosts and -null is enabled in autofs 4.1.x.  This patch is actually
-gml4410> against a RedHat autofs, but the same code is present in
-gml4410> samples/rc.autofs.in.
+> PS:  I see that v5 handles these anyway.  However, this note in
+> README.v5.release looks ominous...
+> 
+> ==========
+> - a "hosts" map module has been added
+>   - an entry like "/net -hosts" is now understood and uses the new
+>     multi-mount semantics for lazy mount/umount of exports from the
+> host.
+>   - the implementation is quite simple minded at this stage and will
+> need
+>     refinment. It just iterates through the host table and addes any
+> host
+>     names it finds to the internal map.
+> ==========
+> 
+> Some of us have thousands of hosts in a host map, eg:
+> 
+> systemx*[1] ypcat -k hosts | wc -l
+>    30899
 
-gml4410>    For -hosts, it just translates the map name to /etc/auto.net if
-gml4410> that is present and executable.
+The hosts table is only iterated if you also specify --ghost as an
+option. The internal program default is ghosting (browsing) enabled but
+the installed configuration modifies the default and disables it for
+backward compatibility.
 
-That bit looks sane at first glance.
+So if you've got potentially large maps then the idea is to leave the
+installed settings as they are.
 
-gml4410>    For -null, it just adds the mountpoint location to the list of
-gml4410> knownmaps, but doesn't do anything else.
-
-This isn't exactly right.  It should "nullify" the next occurrence of the
-given mount point, and then go away.  Consider a map like this:
-
-/home -null
-+auto.master
-/home /etc/auto.home
-
-Let's assume that +auto.master reads the master map from nis, and the nis
-master map defines /home to point to some nis map.  The above would ignore
-the /home entry in the nis master, and allow us to replace it with our own.
-
--Jeff
+Ian
