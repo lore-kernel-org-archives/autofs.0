@@ -1,11 +1,11 @@
-From: "Daniel Richard G." <skunk@iskunk.org>
+From: "Daniel Richard G." <iskunk@gmail.com>
 Subject: [PATCH] Code cleanup
-Date: Fri, 14 Jul 2006 00:12:54 -0400
-Message-ID: <20060714041254.GP29064@mail.iSKUNK.ORG>
+Date: Fri, 14 Jul 2006 00:30:39 -0400
+Message-ID: <8f1c6d820607132130v36f83815uab4406375b70f1c9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MIdTMoZhcV1D07fI"
+Content-Type: multipart/mixed; 
+	boundary="----=_Part_14330_10398866.1152851439936"
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,54 +18,57 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-
---MIdTMoZhcV1D07fI
-Content-Type: text/plain; charset=us-ascii
+------=_Part_14330_10398866.1152851439936
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
+
+[SpamCop doesn't seem to like my outgoing mail server, so I am sending
+this from an alternate account]
 
 Hello hello,
 
 First off, is there a public CVS/SVN repository for autofs?
 
-I grabbed the -rc1 tarball, figured I'd try building it with my usual devel 
+I grabbed the -rc1 tarball, figured I'd try building it with my usual devel
 CFLAGS, and... wow. This code's got _issues_, maaan....
 
-See the attached omnibus patch. Commentary follows, in patch order (more or 
-less). Of course, not all these changes need to go in as-is, but they 
+See the attached omnibus patch. Commentary follows, in patch order (more or
+less). Of course, not all these changes need to go in as-is, but they
 should at least bring attention to some spots that could really use it.
 
 
 (various files):
 
-* Don't use "#if WITH_FOO", as this produces a warning if WITH_FOO is 
+* Don't use "#if WITH_FOO", as this produces a warning if WITH_FOO is
   undefined. Use "#ifdef".
 
 daemon/automount.c:
 
-* 'mc' is used many times as a local variable in this file; rename the 
+* 'mc' is used many times as a local variable in this file; rename the
   global instance to 'mrc' to avoid gratuitous shadowing
 
 * 'mrc' (nee 'mc') is not needed outside of this file; declare as static
 
-* Two fields in struct master_readmap_cond were not specified in the 
+* Two fields in struct master_readmap_cond were not specified in the
   initializer for 'mrc' (nee 'mc')
 
-* 'sc' is used many times as a local variable in this file; rename the 
+* 'sc' is used many times as a local variable in this file; rename the
   global instance to 'suc' to avoid gratuitous shadowing
 
 include/automount.h:
 
-* Disable the OpenBSD syslog.h #include with a cpp conditional, not a 
+* Disable the OpenBSD syslog.h #include with a cpp conditional, not a
   comment. This is a bit safer.
 
 * The "extern struct master_readmap_cond mc" declaration is not used
 
 include/lookup_ldap.h:
 
-* Added appropriate WITH_KERBEROS and WITH_SASL cpp conditionals, to avoid 
+* Added appropriate WITH_KERBEROS and WITH_SASL cpp conditionals, to avoid
   breakage when the respective libraries are not used.
 
-  (Note: WITH_KERBEROS is a new conditional; support for it needs to be 
+  (Note: WITH_KERBEROS is a new conditional; support for it needs to be
   added to the configure script)
 
 * Comment the #endifs if the opening #ifdef is far away
@@ -80,12 +83,12 @@ lib/cache.c:
 
 lib/cat_path.c:
 
-* Tweaked the _strlen() function: Eliminated the unnecessary de-consting 
-  cast, and rewrote the logic w.r.t. 'max' (this is unsigned, therefore the 
-  max<0 check is pointless; it's not nice to modify your arguments; pointer 
+* Tweaked the _strlen() function: Eliminated the unnecessary de-consting
+  cast, and rewrote the logic w.r.t. 'max' (this is unsigned, therefore the
+  max<0 check is pointless; it's not nice to modify your arguments; pointer
   arithmetic sucks)
-  
-  P.S.: _strlen() should really have a return type of size_t, but I didn't 
+
+  P.S.: _strlen() should really have a return type of size_t, but I didn't
   care enough to change this.
 
 lib/master.c:
@@ -96,13 +99,13 @@ lib/master.c:
 
 lib/master_parse.y:
 
-* #define YYENABLE_NLS and YYLTYPE_IS_TRIVIAL to zero; #ifdefs with these 
-  appear in the generated code, and you get warnings if they are not 
+* #define YYENABLE_NLS and YYLTYPE_IS_TRIVIAL to zero; #ifdefs with these
+  appear in the generated code, and you get warnings if they are not
   defined
 
 lib/mounts.c:
 
-* m_dev and m_ino are 'long unsigned int' values, so cast them to avoid 
+* m_dev and m_ino are 'long unsigned int' values, so cast them to avoid
   sscanf() format warnings
 
 lib/nss_parse.y:
@@ -120,24 +123,24 @@ lib/rpc_subs.c:
 	#define h_errno (*__h_errno_location ())
 	...
 
-  (There were some places that used h_errno without declaring it locally. 
-  I'm assuming that nowhere was this meant to refer to the global netdb.h 
+  (There were some places that used h_errno without declaring it locally.
+  I'm assuming that nowhere was this meant to refer to the global netdb.h
   h_errno variable.)
 
 modules/lookup_file.c:
 modules/lookup_hosts.c
 
-* What first caught my attention here was a warning that me->mapent is 
-  being passed in as a format string to sprintf() without further arguments 
-  (lots of fun if there's a "%s" in there somewhere), but that line and the 
-  one before seemed a bit bizarrely written to me. (You call strlen() on a 
-  string, then use sprintf() as an unsafe strcpy() replacement, and grab 
-  the return value to get the length of that same string??) Replaced with 
+* What first caught my attention here was a warning that me->mapent is
+  being passed in as a format string to sprintf() without further arguments
+  (lots of fun if there's a "%s" in there somewhere), but that line and the
+  one before seemed a bit bizarrely written to me. (You call strlen() on a
+  string, then use sprintf() as an unsafe strcpy() replacement, and grab
+  the return value to get the length of that same string??) Replaced with
   something more straightforward.
 
 lookup_ldap.c:
 
-* What the heck is '?:' supposed to return if the expression is true? (Not 
+* What the heck is '?:' supposed to return if the expression is true? (Not
   valid C90, at any rate)
 
 * My OpenLDAP 2.1.30 header does not define LDAP_SCOPE_ONE. It does,
@@ -161,7 +164,7 @@ modules/replicated.c:
 	#define h_addr  h_addr_list[0]  /* Address, for backward compatibility. */
 
 
-There's still a ton of warnings, mostly of variables shadowing other 
+There's still a ton of warnings, mostly of variables shadowing other
 variables, but those affect code clarity more so than correctness.
 
 
@@ -176,831 +179,402 @@ WWW    = http://www.******.org/  ##  annoy them that do!    /   \
 --
 (****** = site not yet online)
 
---MIdTMoZhcV1D07fI
-Content-Type: text/plain; charset=us-ascii
+------=_Part_14330_10398866.1152851439936
+Content-Type: text/x-diff; name=autofs5-fixups.patch; charset=ISO-8859-1
+Content-Transfer-Encoding: base64
+X-Attachment-Id: file0
 Content-Disposition: attachment; filename="autofs5-fixups.patch"
 
-diff -ru autofs-5.0.1/daemon/automount.c autofs-5.0.1-patched/daemon/automount.c
---- autofs-5.0.1/daemon/automount.c	2006-07-13 04:11:38.000000000 -0400
-+++ autofs-5.0.1-patched/daemon/automount.c	2006-07-13 15:10:28.000000000 -0400
-@@ -54,10 +54,10 @@
- /* Attribute to create detached thread */
- pthread_attr_t thread_attr;
- 
--struct master_readmap_cond mc = {
--	PTHREAD_MUTEX_INITIALIZER, PTHREAD_COND_INITIALIZER, 0, NULL, 0, 0};
-+static struct master_readmap_cond mrc = {
-+	PTHREAD_MUTEX_INITIALIZER, PTHREAD_COND_INITIALIZER, 0, NULL, 0, 0, 0, 0};
- 
--struct startup_cond sc = {
-+struct startup_cond suc = {
- 	PTHREAD_MUTEX_INITIALIZER, PTHREAD_COND_INITIALIZER, 0, 0};
- 
- pthread_key_t key_thread_stdenv_vars;
-@@ -929,7 +929,7 @@
- {
- 	int status;
- 
--	status = pthread_mutex_unlock(&mc.mutex);
-+	status = pthread_mutex_unlock(&mrc.mutex);
- 	if (status)
- 		fatal(status);
- 
-@@ -944,26 +944,26 @@
- 
- 	sig = *(int *) arg;
- 
--	status = pthread_mutex_lock(&mc.mutex);
-+	status = pthread_mutex_lock(&mrc.mutex);
- 	if (status)
- 		fatal(status);
- 
--	master = mc.master;
-+	master = mrc.master;
- 
- 	debug(master->default_logging, "signal %d", sig);
- 
--	mc.signaled = 1;
--	status = pthread_cond_signal(&mc.cond);
-+	mrc.signaled = 1;
-+	status = pthread_cond_signal(&mrc.cond);
- 	if (status) {
- 		error(master->default_logging,
- 		      "failed to signal state notify condition");
--		status = pthread_mutex_unlock(&mc.mutex);
-+		status = pthread_mutex_unlock(&mrc.mutex);
- 		if (status)
- 			fatal(status);
- 		pthread_exit(NULL);
- 	}
- 
--	status = pthread_mutex_unlock(&mc.mutex);
-+	status = pthread_mutex_unlock(&mrc.mutex);
- 	if (status)
- 		fatal(status);
- 
-@@ -978,7 +978,7 @@
- 	int sig = signal;
- 	int status;
- 
--	status = pthread_mutex_lock(&mc.mutex);
-+	status = pthread_mutex_lock(&mrc.mutex);
- 	if (status)
- 		fatal(status);
- 
-@@ -986,20 +986,20 @@
- 	if (status) {
- 		error(master->default_logging,
- 		      "mount state notify thread create failed");
--		status = pthread_mutex_unlock(&mc.mutex);
-+		status = pthread_mutex_unlock(&mrc.mutex);
- 		if (status)
- 			fatal(status);
- 		return 0;
- 	}
- 
--	mc.thid = thid;
--	mc.master = master;
-+	mrc.thid = thid;
-+	mrc.master = master;
- 
- 	pthread_cleanup_push(do_master_cleanup_unlock, NULL);
- 
--	mc.signaled = 0;
--	while (!mc.signaled) {
--		status = pthread_cond_wait(&mc.cond, &mc.mutex);
-+	mrc.signaled = 0;
-+	while (!mrc.signaled) {
-+		status = pthread_cond_wait(&mrc.cond, &mrc.mutex);
- 		if (status)
- 			fatal(status);
- 	}
-@@ -1016,25 +1016,25 @@
- 	int readall = 1;
- 	int status;
- 
--	status = pthread_mutex_lock(&mc.mutex);
-+	status = pthread_mutex_lock(&mrc.mutex);
- 	if (status)
- 		fatal(status);
- 
--	master = mc.master;
--	age = mc.age;
-+	master = mrc.master;
-+	age = mrc.age;
- 
--	mc.signaled = 1;
--	status = pthread_cond_signal(&mc.cond);
-+	mrc.signaled = 1;
-+	status = pthread_cond_signal(&mrc.cond);
- 	if (status) {
- 		error(master->default_logging,
- 		      "failed to signal master read map condition");
--		status = pthread_mutex_unlock(&mc.mutex);
-+		status = pthread_mutex_unlock(&mrc.mutex);
- 		if (status)
- 			fatal(status);
- 		pthread_exit(NULL);
- 	}
- 
--	status = pthread_mutex_unlock(&mc.mutex);
-+	status = pthread_mutex_unlock(&mrc.mutex);
- 	if (status)
- 		fatal(status);
- 
-@@ -1048,7 +1048,7 @@
- 	pthread_t thid;
- 	int status;
- 
--	status = pthread_mutex_lock(&mc.mutex);
-+	status = pthread_mutex_lock(&mrc.mutex);
- 	if (status)
- 		fatal(status);
- 
-@@ -1056,21 +1056,21 @@
- 	if (status) {
- 		error(master->default_logging,
- 		      "master read map thread create failed");
--		status = pthread_mutex_unlock(&mc.mutex);
-+		status = pthread_mutex_unlock(&mrc.mutex);
- 		if (status)
- 			fatal(status);
- 		return 0;
- 	}
- 
--	mc.thid = thid;
--	mc.master = master;
--	mc.age = age;
-+	mrc.thid = thid;
-+	mrc.master = master;
-+	mrc.age = age;
- 
- 	pthread_cleanup_push(do_master_cleanup_unlock, NULL);
- 
--	mc.signaled = 0;
--	while (!mc.signaled) {
--		status = pthread_cond_wait(&mc.cond, &mc.mutex);
-+	mrc.signaled = 0;
-+	while (!mrc.signaled) {
-+		status = pthread_cond_wait(&mrc.cond, &mrc.mutex);
- 		if (status)
- 			fatal(status);
- 	}
-@@ -1236,14 +1236,14 @@
- 
- 	ap = (struct autofs_point *) arg;
- 
--	pthread_cleanup_push(return_start_status, &sc);
-+	pthread_cleanup_push(return_start_status, &suc);
- 	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &cancel_state);
- 
- 	status = pthread_mutex_lock(&ap->state_mutex);
- 	if (status)
- 		fatal(status);
- 
--	status = pthread_mutex_lock(&sc.mutex);
-+	status = pthread_mutex_lock(&suc.mutex);
- 	if (status) {
- 		crit(ap->logopt, "failed to lock startup condition mutex!");
- 		fatal(status);
-@@ -1251,7 +1251,7 @@
- 
- 	if (mount_autofs(ap) < 0) {
- 		crit(ap->logopt, "mount of %s failed!", ap->path);
--		sc.status = 1;
-+		suc.status = 1;
- 		status = pthread_mutex_unlock(&ap->state_mutex);
- 		if (status)
- 			fatal(status);
-@@ -1262,7 +1262,7 @@
- 	if (ap->ghost && ap->type != LKP_DIRECT)
- 		msg("ghosting enabled");
- 
--	sc.status = 0;
-+	suc.status = 0;
- 	pthread_cleanup_pop(1);
- 
- 	/* We often start several automounters at the same time.  Add some
-diff -ru autofs-5.0.1/include/automount.h autofs-5.0.1-patched/include/automount.h
---- autofs-5.0.1/include/automount.h	2006-07-13 04:11:38.000000000 -0400
-+++ autofs-5.0.1-patched/include/automount.h	2006-07-13 15:31:34.000000000 -0400
-@@ -30,13 +30,14 @@
- #include "log.h"
- #include "rpc_subs.h"
- 
--#if WITH_DMALLOC
-+#ifdef WITH_DMALLOC
- #include <dmalloc.h>
- #endif
- 
--/* OpenBSD re-entrant syslog
-+/* OpenBSD re-entrant syslog */
-+#if 0
- #include "syslog.h"
--*/
-+#endif
- 
- #define ENABLE_CORES	1
- 
-@@ -379,8 +380,6 @@
- 	unsigned int busy;	 /* Map read in progress. */
- };
- 
--extern struct master_readmap_cond mc;
--
- struct pending_args {
- 	pthread_mutex_t mutex;
- 	pthread_cond_t  cond;
-diff -ru autofs-5.0.1/include/lookup_ldap.h autofs-5.0.1-patched/include/lookup_ldap.h
---- autofs-5.0.1/include/lookup_ldap.h	2006-07-13 04:11:38.000000000 -0400
-+++ autofs-5.0.1-patched/include/lookup_ldap.h	2006-07-13 12:50:30.000000000 -0400
-@@ -1,7 +1,7 @@
- #ifndef LOOKUP_LDAP_H
- #define LOOKUP_LDAP_H
- 
--#if WITH_SASL
-+#ifdef WITH_SASL
- #include <openssl/ssl.h>
- #include <openssl/evp.h>
- #include <openssl/err.h>
-@@ -37,17 +37,21 @@
- 	char        *client_princ;
- 	int          kinit_done;
- 	int          kinit_successful;
-+#ifdef WITH_KERBEROS
- 	krb5_principal  krb5_client_princ;
- 	krb5_context krb5ctxt;
- 	krb5_ccache  krb5_ccache;
-+#endif
-+#ifdef WITH_SASL
- 	sasl_conn_t  *sasl_conn;
-+#endif
- 	/* keytab file name needs to be added */
- 
- 	struct parse_mod *parse;
- };
- 
- 
--#if WITH_SASL
-+#ifdef WITH_SASL
- #define LDAP_AUTH_CONF_FILE "test"
- 
- #define LDAP_TLS_DONT_USE	0
-@@ -68,6 +72,6 @@
- int autofs_sasl_init(LDAP *ldap, struct lookup_context *ctxt);
- int autofs_sasl_bind(LDAP *ldap, struct lookup_context *ctxt);
- void autofs_sasl_unbind(struct lookup_context *ctxt);
--#endif
-+#endif /* WITH_SASL */
- 
- #endif /* _lookup_ldap_h */
-diff -ru autofs-5.0.1/include/state.h autofs-5.0.1-patched/include/state.h
---- autofs-5.0.1/include/state.h	2006-07-13 04:11:38.000000000 -0400
-+++ autofs-5.0.1-patched/include/state.h	2006-07-13 13:24:30.000000000 -0400
-@@ -47,7 +47,7 @@
- 	ST_READMAP,
- 	ST_SHUTDOWN_PENDING,
- 	ST_SHUTDOWN_FORCE,
--	ST_SHUTDOWN,
-+	ST_SHUTDOWN
- };
- 
- struct expire_args {
-diff -ru autofs-5.0.1/lib/cache.c autofs-5.0.1-patched/lib/cache.c
---- autofs-5.0.1/lib/cache.c	2006-07-13 04:11:38.000000000 -0400
-+++ autofs-5.0.1-patched/lib/cache.c	2006-07-13 14:25:17.000000000 -0400
-@@ -414,8 +414,8 @@
- 	INIT_LIST_HEAD(&me->multi_list);
- 	me->multi = NULL;
- 	me->ioctlfd = -1;
--	me->dev = -1;
--	me->ino = -1;
-+	me->dev = (dev_t)-1;
-+	me->ino = (ino_t)-1;
- 
- 	/* 
- 	 * We need to add to the end if values exist in order to
-diff -ru autofs-5.0.1/lib/cat_path.c autofs-5.0.1-patched/lib/cat_path.c
---- autofs-5.0.1/lib/cat_path.c	2006-07-13 04:11:38.000000000 -0400
-+++ autofs-5.0.1-patched/lib/cat_path.c	2006-07-13 15:15:14.000000000 -0400
-@@ -60,14 +60,13 @@
- 
- int _strlen(const char *str, size_t max)
- {
--	char *s = (char *) str;
-+	const char *s = str;
-+	size_t len = 0;
- 
--	while (*s++ && max--) ;
-+	while (*s++ && len < max)
-+		len++;
- 
--	if (max < 0)
--		return 0;
--	
--	return s - str - 1;
-+	return (int) len;
- }
- 
- /* 
-diff -ru autofs-5.0.1/lib/master.c autofs-5.0.1-patched/lib/master.c
---- autofs-5.0.1/lib/master.c	2006-07-13 04:11:39.000000000 -0400
-+++ autofs-5.0.1-patched/lib/master.c	2006-07-13 15:16:45.000000000 -0400
-@@ -34,7 +34,7 @@
- /* Attribute to create detached thread */
- extern pthread_attr_t thread_attr;
- 
--extern struct startup_cond sc;
-+extern struct startup_cond suc;
- 
- static struct map_source *
- __master_find_map_source(struct master_mapent *,
-@@ -361,7 +361,7 @@
- struct map_source *master_find_source_instance(struct map_source *source, const char *type, const char *format, int argc, const char **argv)
- {
- 	struct map_source *map;
--	struct map_source *instance = NULL;;
-+	struct map_source *instance = NULL;
- 	int status, res;
- 
- 	status = pthread_mutex_lock(&instance_mutex);
-@@ -657,14 +657,14 @@
- struct master *master_new(const char *name, unsigned int timeout, unsigned int ghost)
- {
- 	struct master *master;
--	const char *tmp;
-+	char *tmp;
- 
- 	master = malloc(sizeof(struct master));
- 	if (!master)
- 		return NULL;
- 
- 	if (!name)
--		tmp = defaults_get_master_map();
-+		tmp = (char *) defaults_get_master_map();
- 	else
- 		tmp = strdup(name);
- 
-@@ -838,12 +838,12 @@
- 	pthread_t thid;
- 	int status;
- 
--	status = pthread_mutex_lock(&sc.mutex);
-+	status = pthread_mutex_lock(&suc.mutex);
- 	if (status)
- 		fatal(status);
- 
--	sc.done = 0;
--	sc.status = 0;
-+	suc.done = 0;
-+	suc.status = 0;
- 
- 	ap = entry->ap;
- 
-@@ -853,28 +853,28 @@
- 		crit(ap->logopt,
- 		     "failed to create mount handler thread for %s",
- 		     entry->path);
--		status = pthread_mutex_unlock(&sc.mutex);
-+		status = pthread_mutex_unlock(&suc.mutex);
- 		if (status)
- 			fatal(status);
- 		return 0;
- 	}
- 	entry->thid = thid;
- 
--	while (!sc.done) {
--		status = pthread_cond_wait(&sc.cond, &sc.mutex);
-+	while (!suc.done) {
-+		status = pthread_cond_wait(&suc.cond, &suc.mutex);
- 		if (status)
- 			fatal(status);
- 	}
- 
--	if (sc.status) {
-+	if (suc.status) {
- 		error(ap->logopt, "failed to startup mount");
--		status = pthread_mutex_unlock(&sc.mutex);
-+		status = pthread_mutex_unlock(&suc.mutex);
- 		if (status)
- 			fatal(status);
- 		return 0;
- 	}
- 
--	status = pthread_mutex_unlock(&sc.mutex);
-+	status = pthread_mutex_unlock(&suc.mutex);
- 	if (status)
- 		fatal(status);
- 
-diff -ru autofs-5.0.1/lib/master_parse.y autofs-5.0.1-patched/lib/master_parse.y
---- autofs-5.0.1/lib/master_parse.y	2006-07-13 04:11:39.000000000 -0400
-+++ autofs-5.0.1-patched/lib/master_parse.y	2006-07-13 12:57:45.000000000 -0400
-@@ -62,6 +62,8 @@
- static int lineno;
- 
- #define YYDEBUG 0
-+#define YYENABLE_NLS 0
-+#define YYLTYPE_IS_TRIVIAL 0
- 
- #if YYDEBUG
- static int master_fprintf(FILE *, char *, ...);
-diff -ru autofs-5.0.1/lib/mounts.c autofs-5.0.1-patched/lib/mounts.c
---- autofs-5.0.1/lib/mounts.c	2006-07-13 04:11:39.000000000 -0400
-+++ autofs-5.0.1-patched/lib/mounts.c	2006-07-13 14:42:26.000000000 -0400
-@@ -357,14 +357,14 @@
- 		p_dev = strstr(mnt->mnt_opts, "dev=");
- 		if (!p_dev)
- 			continue;
--		sscanf(p_dev, "dev=%ld", &m_dev);
-+		sscanf(p_dev, "dev=%ld", (long int *) &m_dev);
- 		if (m_dev != l_dev)
- 			continue;
- 
- 		p_ino = strstr(mnt->mnt_opts, "ino=");
- 		if (!p_ino)
- 			continue;
--		sscanf(p_ino, "ino=%ld", &m_ino);
-+		sscanf(p_ino, "ino=%ld", (long int *) &m_ino);
- 		if (m_ino == l_ino) {
- 			path = strdup(mnt->mnt_dir);
- 			break;
-diff -ru autofs-5.0.1/lib/nss_parse.y autofs-5.0.1-patched/lib/nss_parse.y
---- autofs-5.0.1/lib/nss_parse.y	2006-07-13 04:11:39.000000000 -0400
-+++ autofs-5.0.1-patched/lib/nss_parse.y	2006-07-13 15:19:46.000000000 -0400
-@@ -36,6 +36,8 @@
- struct nss_action act[NSS_STATUS_MAX];
- 
- #define YYDEBUG 0
-+#define YYENABLE_NLS 0
-+#define YYLTYPE_IS_TRIVIAL 0
- 
- extern int nss_lineno;
- extern int nss_lex(void);
-@@ -72,13 +74,13 @@
- 
- nss_source: SOURCE
- {
--//	printf("source: %s\n", $1);
-+/*	printf("source: %s\n", $1); */
- 	src = add_source(nss_list, $1);
- } | SOURCE LBRACKET status_exp_list RBRACKET
- {
- 	enum nsswitch_status a;
- 
--//	printf("source: %s\n", $1);
-+/*	printf("source: %s\n", $1); */
- 	src = add_source(nss_list, $1);
- 	for (a = 0; a < NSS_STATUS_MAX; a++) {
- 		if (act[a].action != NSS_ACTION_UNKNOWN) {
-@@ -98,11 +100,11 @@
- 
- status_exp: STATUS EQUAL ACTION
- {
--//	printf("action: [ %s=%s ]\n", $1, $3);
-+/*	printf("action: [ %s=%s ]\n", $1, $3); */
- 	set_action(act, $1, $3, 0);
- } | BANG STATUS EQUAL ACTION
- {
--//	printf("action: [ ! %s=%s ]\n", $2, $4);
-+/*	printf("action: [ ! %s=%s ]\n", $2, $4); */
- 	set_action(act, $2, $4, 1);
- } | STATUS EQUAL OTHER {nss_error($3); YYABORT; }
-   | STATUS OTHER {nss_error($2); YYABORT; }
-diff -ru autofs-5.0.1/lib/rpc_subs.c autofs-5.0.1-patched/lib/rpc_subs.c
---- autofs-5.0.1/lib/rpc_subs.c	2006-07-13 04:11:39.000000000 -0400
-+++ autofs-5.0.1-patched/lib/rpc_subs.c	2006-07-13 14:48:49.000000000 -0400
-@@ -46,7 +46,7 @@
-  */
- static CLIENT *create_udp_client(struct conn_info *info)
- {
--	int fd, ret, h_errno;
-+	int fd, ret, h_err;
- 	CLIENT *client;
- 	struct sockaddr_in laddr, raddr;
- 	struct hostent hp;
-@@ -78,9 +78,9 @@
- 	memset(&hp, 0, sizeof(struct hostent));
- 
- 	ret = gethostbyname_r(info->host, php,
--			buf, HOST_ENT_BUF_SIZE, &result, &h_errno);
-+			buf, HOST_ENT_BUF_SIZE, &result, &h_err);
- 	if (ret || !result) {
--		int err = h_errno == -1 ? errno : h_errno;
-+		int err = h_err == -1 ? errno : h_err;
- 		char *estr = strerror_r(err, buf, HOST_ENT_BUF_SIZE);
- 		error(LOGOPT_ANY, "hostname lookup failed: %s", estr);
- 		return NULL;
-@@ -241,7 +241,7 @@
- 	struct hostent *php = &hp;
- 	struct hostent *result;
- 	char buf[HOST_ENT_BUF_SIZE];
--	int ret;
-+	int h_err, ret;
- 
- 	if (info->proto->p_proto != IPPROTO_TCP)
- 		return NULL;
-@@ -266,9 +266,9 @@
- 	memset(&hp, 0, sizeof(struct hostent));
- 
- 	ret = gethostbyname_r(info->host, php,
--			buf, HOST_ENT_BUF_SIZE, &result, &h_errno);
-+			buf, HOST_ENT_BUF_SIZE, &result, &h_err);
- 	if (ret || !result) {
--		int err = h_errno == -1 ? errno : h_errno;
-+		int err = h_err == -1 ? errno : h_err;
- 		char *estr =  strerror_r(err, buf, HOST_ENT_BUF_SIZE);
- 		error(LOGOPT_ANY, "hostname lookup failed: %s", estr);
- 		return NULL;
-@@ -720,13 +720,13 @@
- 	struct hostent *result;
- 	char buf[HOST_ENT_BUF_SIZE], **haddr;
- 	struct sockaddr_in saddr, maddr;
--	int h_errno, ret;
-+	int h_err, ret;
- 
- 	memset(buf, 0, HOST_ENT_BUF_SIZE);
- 	memset(&he, 0, sizeof(struct hostent));
- 
- 	ret = gethostbyname_r(myname, phe,
--			buf, HOST_ENT_BUF_SIZE, &result, &h_errno);
-+			buf, HOST_ENT_BUF_SIZE, &result, &h_err);
- 	if (ret || !result)
- 		return 0;
- 
-@@ -739,7 +739,7 @@
- 		if (!ret)
- 			return 0;
- 	} else {
--		uint32_t m = -1;
-+		uint32_t m = (uint32_t)-1;
- 		int msize = atoi(mask);
- 
- 		m = m << (32 - msize);
-@@ -836,13 +836,13 @@
- 	struct hostent *phe = &he;
- 	struct hostent *result;
- 	char buf[HOST_ENT_BUF_SIZE];
--	int ret;
-+	int h_err, ret;
- 
- 	memset(buf, 0, HOST_ENT_BUF_SIZE);
- 	memset(&he, 0, sizeof(struct hostent));
- 
- 	ret = gethostbyname_r(myname, phe,
--			buf, HOST_ENT_BUF_SIZE, &result, &h_errno);
-+			buf, HOST_ENT_BUF_SIZE, &result, &h_err);
- 	if (ret || !result)
- 		return 0;
- 
-diff -ru autofs-5.0.1/modules/lookup_file.c autofs-5.0.1-patched/modules/lookup_file.c
---- autofs-5.0.1/modules/lookup_file.c	2006-07-13 04:11:39.000000000 -0400
-+++ autofs-5.0.1-patched/modules/lookup_file.c	2006-07-13 14:36:41.000000000 -0400
-@@ -942,8 +942,9 @@
- 	me = cache_lookup(mc, key);
- 	if (me) {
- 		pthread_cleanup_push(cache_lock_cleanup, mc);
--		mapent = alloca(strlen(me->mapent) + 1);
--		mapent_len = sprintf(mapent, me->mapent);
-+		mapent_len = strlen(me->mapent);
-+		mapent = alloca(mapent_len + 1);
-+		strcpy(mapent, me->mapent);
- 		pthread_cleanup_pop(0);
- 		mapent[mapent_len] = '\0';
- 	}
-diff -ru autofs-5.0.1/modules/lookup_hosts.c autofs-5.0.1-patched/modules/lookup_hosts.c
---- autofs-5.0.1/modules/lookup_hosts.c	2006-07-13 04:11:39.000000000 -0400
-+++ autofs-5.0.1-patched/modules/lookup_hosts.c	2006-07-13 14:37:31.000000000 -0400
-@@ -157,8 +157,9 @@
- 	 */
- 	if (*name == '/') {
- 		pthread_cleanup_push(cache_lock_cleanup, mc);
--		mapent = alloca(strlen(me->mapent) + 1);
--		mapent_len = sprintf(mapent, me->mapent);
-+		mapent_len = strlen(me->mapent);
-+		mapent = alloca(mapent_len + 1);
-+		strcpy(mapent, me->mapent);
- 		pthread_cleanup_pop(0);
- 		mapent[mapent_len] = '\0';
- 	}
-diff -ru autofs-5.0.1/modules/lookup_ldap.c autofs-5.0.1-patched/modules/lookup_ldap.c
---- autofs-5.0.1/modules/lookup_ldap.c	2006-07-13 04:11:39.000000000 -0400
-+++ autofs-5.0.1-patched/modules/lookup_ldap.c	2006-07-13 15:18:52.000000000 -0400
-@@ -55,7 +55,7 @@
- 	if (rv != LDAP_SUCCESS) {
- 		crit(LOGOPT_ANY,
- 		     MODPREFIX "Unable to bind to the LDAP server: "
--		     "%s, error %s", ctxt->server ?: "(default)",
-+		     "%s, error %s", ctxt->server ? "" : "(default)",
- 		     ldap_err2string(rv));
- 		return -1;
- 	}
-@@ -67,7 +67,7 @@
- {
- 	int rv;
- 
--#if WITH_SASL
-+#ifdef WITH_SASL
- 	debug(LOGOPT_NONE, "use_tls: %d", ctxt->use_tls);
- 	/*
- 	 * The OpenSSL library can't handle having its message and error
-@@ -82,7 +82,7 @@
- 		ctxt->use_tls = LDAP_TLS_INIT;
- 	}
- 	autofs_sasl_unbind(ctxt);
--#endif
-+#endif /* WITH_SASL */
- 
- 	rv = ldap_unbind_ext(ldap, NULL, NULL);
- 	if (rv != LDAP_SUCCESS)
-@@ -135,7 +135,7 @@
- 		     MODPREFIX "failed to set connection timeout to %d",
- 		     timeout);
- 
--#if WITH_SASL
-+#ifdef WITH_SASL
- 	if (ctxt->use_tls) {
- 		if (ctxt->version == 2) {
- 			if (ctxt->tls_required) {
-@@ -166,7 +166,7 @@
- 		}
- 		ctxt->use_tls = LDAP_TLS_RELEASE;
- 	}
--#endif
-+#endif /* WITH_SASL */
- 
- 	return ldap;
- }
-@@ -180,7 +180,7 @@
- 	if (!ldap)
- 		return NULL;
- 
--#if WITH_SASL
-+#ifdef WITH_SASL
- 	debug(LOGOPT_NONE, "auth_required: %d, sasl_mech %s",
- 	      ctxt->auth_required, ctxt->sasl_mech);
- 
-@@ -194,10 +194,10 @@
- 		debug(LOGOPT_NONE,
- 		      MODPREFIX "ldap anonymous bind returned %d", rv);
- 	}
--#else
-+#else /* not WITH_SASL */
- 	rv = bind_ldap_anonymous(ldap, ctxt);
- 	debug(LOGOPT_NONE, MODPREFIX "ldap anonymous bind returned %d", rv);
--#endif
-+#endif /* not WITH_SASL */
- 
- 	if (rv != 0) {
- 		unbind_ldap_connection(ldap, ctxt);
-@@ -207,7 +207,7 @@
- 	return ldap;
- }
- 
--#if WITH_SASL
-+#ifdef WITH_SASL
- int get_property(xmlNodePtr node, const char *prop, char **value)
- {
- 	xmlChar *ret;
-@@ -544,7 +544,7 @@
- 
- 	return 0;
- }
--#endif
-+#endif /* WITH_SASL */
- 
- /*
-  *  Take an input string as specified in the master map, and break it
-@@ -802,7 +802,7 @@
- 			      MODPREFIX "error forming query string");
- 			return 0;
- 		}
--		scope = LDAP_SCOPE_ONE;
-+		scope = LDAP_SCOPE_ONELEVEL;
- 	} else {
- 		if (sprintf(query, "(objectclass=%s)", class) >= l) {
- 			debug(LOGOPT_NONE,
-@@ -883,7 +883,7 @@
- 		return 1;
- 	}
- 
--#if WITH_SASL
-+#ifdef WITH_SASL
- 	/*
- 	 * Determine which authentication mechanism to use.  We sanity-
- 	 * check by binding to the server temporarily.
-@@ -895,7 +895,7 @@
- 		free_context(ctxt);
- 		return 1;
- 	}
--#endif
-+#endif /* WITH_SASL */
- 
- 	ldap = do_connect(ctxt);
- 	if (!ldap) {
-@@ -1281,7 +1281,6 @@
- {
- 	struct map_source *source = ap->entry->current;
- 	struct mapent_cache *mc = source->mc;
--	struct mapent me;
- 	int rv, i, l, ql, count;
- 	char buf[MAX_ERR_BUF];
- 	time_t age = time(NULL);
-@@ -1590,9 +1589,9 @@
- 	me = cache_lookup(mc, key);
- 	if (me) {
- 		pthread_cleanup_push(cache_lock_cleanup, mc);
--		mapent = alloca(strlen(me->mapent) + 1);
--		mapent_len = sprintf(mapent, me->mapent);
--		mapent[mapent_len] = '\0';
-+		mapent_len = strlen(me->mapent);
-+		mapent = alloca(mapent_len + 1);
-+		strcpy(mapent, me->mapent);
- 		pthread_cleanup_pop(0);
- 	}
- 	cache_unlock(mc);
-@@ -1633,7 +1632,7 @@
- {
- 	struct lookup_context *ctxt = (struct lookup_context *) context;
- 	int rv = close_parse(ctxt->parse);
--#if WITH_SASL
-+#ifdef WITH_SASL
- 	EVP_cleanup();
- 	ERR_free_strings();
- 
-diff -ru autofs-5.0.1/modules/mount_nfs.c autofs-5.0.1-patched/modules/mount_nfs.c
---- autofs-5.0.1/modules/mount_nfs.c	2006-07-13 04:11:39.000000000 -0400
-+++ autofs-5.0.1-patched/modules/mount_nfs.c	2006-07-13 15:11:11.000000000 -0400
-@@ -47,7 +47,7 @@
- {
- 	/* Make sure we have the local mount method available */
- 	if (!mount_bind) {
--		if ((mount_bind = open_mount("bind", MODPREFIX)));
-+		if ((mount_bind = open_mount("bind", MODPREFIX)))
- 			init_ctr++;
- 	} else
- 		init_ctr++;
-diff -ru autofs-5.0.1/modules/replicated.c autofs-5.0.1-patched/modules/replicated.c
---- autofs-5.0.1/modules/replicated.c	2006-07-13 04:11:39.000000000 -0400
-+++ autofs-5.0.1-patched/modules/replicated.c	2006-07-13 15:27:05.000000000 -0400
-@@ -75,7 +75,7 @@
- static unsigned int get_proximity(const char *host_addr, int addr_len)
- {
- 	struct sockaddr_in *msk_addr, *if_addr;
--	struct in_addr *h_addr;
-+	struct in_addr *hx_addr;
- 	char tmp[20], buf[MAX_ERR_BUF], *estr, *ptr;
- 	struct ifconf ifc;
- 	struct ifreq *ifr, nmptr;
-@@ -83,9 +83,9 @@
- 	uint32_t mask, ha, ia;
- 
- 	memcpy(tmp, host_addr, addr_len);
--	h_addr = (struct in_addr *) tmp;
-+	hx_addr = (struct in_addr *) tmp;
- 
--	ha = ntohl((uint32_t) h_addr->s_addr);
-+	ha = ntohl((uint32_t) hx_addr->s_addr);
- 
- 	sock = socket(AF_INET, SOCK_DGRAM, 0);
- 	if (sock < 0) {
-@@ -116,7 +116,7 @@
- 		switch (ifr->ifr_addr.sa_family) {
- 		case AF_INET:
- 			if_addr = (struct sockaddr_in *) &ifr->ifr_addr;
--			ret = memcmp(&if_addr->sin_addr, h_addr, addr_len);
-+			ret = memcmp(&if_addr->sin_addr, hx_addr, addr_len);
- 			if (!ret) {
- 				close(sock);
- 				return PROXIMITY_LOCAL;
-@@ -696,7 +696,7 @@
- 	struct hostent *result;
- 	struct sockaddr_in saddr;
- 	char buf[MAX_IFC_BUF], **haddr;
--	int h_errno, ret;
-+	int h_err, ret;
- 	struct host *new;
- 	unsigned int prx;
- 
-@@ -721,14 +721,14 @@
- 	memset(&he, 0, sizeof(struct hostent));
- 
- 	ret = gethostbyname_r(host, phe,
--			buf, MAX_IFC_BUF, &result, &h_errno);
-+			buf, MAX_IFC_BUF, &result, &h_err);
- 	if (ret || !result) {
--		if (h_errno == -1)
-+		if (h_err == -1)
- 			error(LOGOPT_ANY,
- 			      "host %s: lookup failure %d", host, errno);
- 		else
- 			error(LOGOPT_ANY,
--			      "host %s: lookup failure %d", host, h_errno);
-+			      "host %s: lookup failure %d", host, h_err);
- 		return 0;
- 	}
- 
-
---MIdTMoZhcV1D07fI
+ZGlmZiAtcnUgYXV0b2ZzLTUuMC4xL2RhZW1vbi9hdXRvbW91bnQuYyBhdXRvZnMtNS4wLjEtcGF0
+Y2hlZC9kYWVtb24vYXV0b21vdW50LmMKLS0tIGF1dG9mcy01LjAuMS9kYWVtb24vYXV0b21vdW50
+LmMJMjAwNi0wNy0xMyAwNDoxMTozOC4wMDAwMDAwMDAgLTA0MDAKKysrIGF1dG9mcy01LjAuMS1w
+YXRjaGVkL2RhZW1vbi9hdXRvbW91bnQuYwkyMDA2LTA3LTEzIDE1OjEwOjI4LjAwMDAwMDAwMCAt
+MDQwMApAQCAtNTQsMTAgKzU0LDEwIEBACiAvKiBBdHRyaWJ1dGUgdG8gY3JlYXRlIGRldGFjaGVk
+IHRocmVhZCAqLwogcHRocmVhZF9hdHRyX3QgdGhyZWFkX2F0dHI7CiAKLXN0cnVjdCBtYXN0ZXJf
+cmVhZG1hcF9jb25kIG1jID0gewotCVBUSFJFQURfTVVURVhfSU5JVElBTElaRVIsIFBUSFJFQURf
+Q09ORF9JTklUSUFMSVpFUiwgMCwgTlVMTCwgMCwgMH07CitzdGF0aWMgc3RydWN0IG1hc3Rlcl9y
+ZWFkbWFwX2NvbmQgbXJjID0geworCVBUSFJFQURfTVVURVhfSU5JVElBTElaRVIsIFBUSFJFQURf
+Q09ORF9JTklUSUFMSVpFUiwgMCwgTlVMTCwgMCwgMCwgMCwgMH07CiAKLXN0cnVjdCBzdGFydHVw
+X2NvbmQgc2MgPSB7CitzdHJ1Y3Qgc3RhcnR1cF9jb25kIHN1YyA9IHsKIAlQVEhSRUFEX01VVEVY
+X0lOSVRJQUxJWkVSLCBQVEhSRUFEX0NPTkRfSU5JVElBTElaRVIsIDAsIDB9OwogCiBwdGhyZWFk
+X2tleV90IGtleV90aHJlYWRfc3RkZW52X3ZhcnM7CkBAIC05MjksNyArOTI5LDcgQEAKIHsKIAlp
+bnQgc3RhdHVzOwogCi0Jc3RhdHVzID0gcHRocmVhZF9tdXRleF91bmxvY2soJm1jLm11dGV4KTsK
+KwlzdGF0dXMgPSBwdGhyZWFkX211dGV4X3VubG9jaygmbXJjLm11dGV4KTsKIAlpZiAoc3RhdHVz
+KQogCQlmYXRhbChzdGF0dXMpOwogCkBAIC05NDQsMjYgKzk0NCwyNiBAQAogCiAJc2lnID0gKihp
+bnQgKikgYXJnOwogCi0Jc3RhdHVzID0gcHRocmVhZF9tdXRleF9sb2NrKCZtYy5tdXRleCk7CisJ
+c3RhdHVzID0gcHRocmVhZF9tdXRleF9sb2NrKCZtcmMubXV0ZXgpOwogCWlmIChzdGF0dXMpCiAJ
+CWZhdGFsKHN0YXR1cyk7CiAKLQltYXN0ZXIgPSBtYy5tYXN0ZXI7CisJbWFzdGVyID0gbXJjLm1h
+c3RlcjsKIAogCWRlYnVnKG1hc3Rlci0+ZGVmYXVsdF9sb2dnaW5nLCAic2lnbmFsICVkIiwgc2ln
+KTsKIAotCW1jLnNpZ25hbGVkID0gMTsKLQlzdGF0dXMgPSBwdGhyZWFkX2NvbmRfc2lnbmFsKCZt
+Yy5jb25kKTsKKwltcmMuc2lnbmFsZWQgPSAxOworCXN0YXR1cyA9IHB0aHJlYWRfY29uZF9zaWdu
+YWwoJm1yYy5jb25kKTsKIAlpZiAoc3RhdHVzKSB7CiAJCWVycm9yKG1hc3Rlci0+ZGVmYXVsdF9s
+b2dnaW5nLAogCQkgICAgICAiZmFpbGVkIHRvIHNpZ25hbCBzdGF0ZSBub3RpZnkgY29uZGl0aW9u
+Iik7Ci0JCXN0YXR1cyA9IHB0aHJlYWRfbXV0ZXhfdW5sb2NrKCZtYy5tdXRleCk7CisJCXN0YXR1
+cyA9IHB0aHJlYWRfbXV0ZXhfdW5sb2NrKCZtcmMubXV0ZXgpOwogCQlpZiAoc3RhdHVzKQogCQkJ
+ZmF0YWwoc3RhdHVzKTsKIAkJcHRocmVhZF9leGl0KE5VTEwpOwogCX0KIAotCXN0YXR1cyA9IHB0
+aHJlYWRfbXV0ZXhfdW5sb2NrKCZtYy5tdXRleCk7CisJc3RhdHVzID0gcHRocmVhZF9tdXRleF91
+bmxvY2soJm1yYy5tdXRleCk7CiAJaWYgKHN0YXR1cykKIAkJZmF0YWwoc3RhdHVzKTsKIApAQCAt
+OTc4LDcgKzk3OCw3IEBACiAJaW50IHNpZyA9IHNpZ25hbDsKIAlpbnQgc3RhdHVzOwogCi0Jc3Rh
+dHVzID0gcHRocmVhZF9tdXRleF9sb2NrKCZtYy5tdXRleCk7CisJc3RhdHVzID0gcHRocmVhZF9t
+dXRleF9sb2NrKCZtcmMubXV0ZXgpOwogCWlmIChzdGF0dXMpCiAJCWZhdGFsKHN0YXR1cyk7CiAK
+QEAgLTk4NiwyMCArOTg2LDIwIEBACiAJaWYgKHN0YXR1cykgewogCQllcnJvcihtYXN0ZXItPmRl
+ZmF1bHRfbG9nZ2luZywKIAkJICAgICAgIm1vdW50IHN0YXRlIG5vdGlmeSB0aHJlYWQgY3JlYXRl
+IGZhaWxlZCIpOwotCQlzdGF0dXMgPSBwdGhyZWFkX211dGV4X3VubG9jaygmbWMubXV0ZXgpOwor
+CQlzdGF0dXMgPSBwdGhyZWFkX211dGV4X3VubG9jaygmbXJjLm11dGV4KTsKIAkJaWYgKHN0YXR1
+cykKIAkJCWZhdGFsKHN0YXR1cyk7CiAJCXJldHVybiAwOwogCX0KIAotCW1jLnRoaWQgPSB0aGlk
+OwotCW1jLm1hc3RlciA9IG1hc3RlcjsKKwltcmMudGhpZCA9IHRoaWQ7CisJbXJjLm1hc3RlciA9
+IG1hc3RlcjsKIAogCXB0aHJlYWRfY2xlYW51cF9wdXNoKGRvX21hc3Rlcl9jbGVhbnVwX3VubG9j
+aywgTlVMTCk7CiAKLQltYy5zaWduYWxlZCA9IDA7Ci0Jd2hpbGUgKCFtYy5zaWduYWxlZCkgewot
+CQlzdGF0dXMgPSBwdGhyZWFkX2NvbmRfd2FpdCgmbWMuY29uZCwgJm1jLm11dGV4KTsKKwltcmMu
+c2lnbmFsZWQgPSAwOworCXdoaWxlICghbXJjLnNpZ25hbGVkKSB7CisJCXN0YXR1cyA9IHB0aHJl
+YWRfY29uZF93YWl0KCZtcmMuY29uZCwgJm1yYy5tdXRleCk7CiAJCWlmIChzdGF0dXMpCiAJCQlm
+YXRhbChzdGF0dXMpOwogCX0KQEAgLTEwMTYsMjUgKzEwMTYsMjUgQEAKIAlpbnQgcmVhZGFsbCA9
+IDE7CiAJaW50IHN0YXR1czsKIAotCXN0YXR1cyA9IHB0aHJlYWRfbXV0ZXhfbG9jaygmbWMubXV0
+ZXgpOworCXN0YXR1cyA9IHB0aHJlYWRfbXV0ZXhfbG9jaygmbXJjLm11dGV4KTsKIAlpZiAoc3Rh
+dHVzKQogCQlmYXRhbChzdGF0dXMpOwogCi0JbWFzdGVyID0gbWMubWFzdGVyOwotCWFnZSA9IG1j
+LmFnZTsKKwltYXN0ZXIgPSBtcmMubWFzdGVyOworCWFnZSA9IG1yYy5hZ2U7CiAKLQltYy5zaWdu
+YWxlZCA9IDE7Ci0Jc3RhdHVzID0gcHRocmVhZF9jb25kX3NpZ25hbCgmbWMuY29uZCk7CisJbXJj
+LnNpZ25hbGVkID0gMTsKKwlzdGF0dXMgPSBwdGhyZWFkX2NvbmRfc2lnbmFsKCZtcmMuY29uZCk7
+CiAJaWYgKHN0YXR1cykgewogCQllcnJvcihtYXN0ZXItPmRlZmF1bHRfbG9nZ2luZywKIAkJICAg
+ICAgImZhaWxlZCB0byBzaWduYWwgbWFzdGVyIHJlYWQgbWFwIGNvbmRpdGlvbiIpOwotCQlzdGF0
+dXMgPSBwdGhyZWFkX211dGV4X3VubG9jaygmbWMubXV0ZXgpOworCQlzdGF0dXMgPSBwdGhyZWFk
+X211dGV4X3VubG9jaygmbXJjLm11dGV4KTsKIAkJaWYgKHN0YXR1cykKIAkJCWZhdGFsKHN0YXR1
+cyk7CiAJCXB0aHJlYWRfZXhpdChOVUxMKTsKIAl9CiAKLQlzdGF0dXMgPSBwdGhyZWFkX211dGV4
+X3VubG9jaygmbWMubXV0ZXgpOworCXN0YXR1cyA9IHB0aHJlYWRfbXV0ZXhfdW5sb2NrKCZtcmMu
+bXV0ZXgpOwogCWlmIChzdGF0dXMpCiAJCWZhdGFsKHN0YXR1cyk7CiAKQEAgLTEwNDgsNyArMTA0
+OCw3IEBACiAJcHRocmVhZF90IHRoaWQ7CiAJaW50IHN0YXR1czsKIAotCXN0YXR1cyA9IHB0aHJl
+YWRfbXV0ZXhfbG9jaygmbWMubXV0ZXgpOworCXN0YXR1cyA9IHB0aHJlYWRfbXV0ZXhfbG9jaygm
+bXJjLm11dGV4KTsKIAlpZiAoc3RhdHVzKQogCQlmYXRhbChzdGF0dXMpOwogCkBAIC0xMDU2LDIx
+ICsxMDU2LDIxIEBACiAJaWYgKHN0YXR1cykgewogCQllcnJvcihtYXN0ZXItPmRlZmF1bHRfbG9n
+Z2luZywKIAkJICAgICAgIm1hc3RlciByZWFkIG1hcCB0aHJlYWQgY3JlYXRlIGZhaWxlZCIpOwot
+CQlzdGF0dXMgPSBwdGhyZWFkX211dGV4X3VubG9jaygmbWMubXV0ZXgpOworCQlzdGF0dXMgPSBw
+dGhyZWFkX211dGV4X3VubG9jaygmbXJjLm11dGV4KTsKIAkJaWYgKHN0YXR1cykKIAkJCWZhdGFs
+KHN0YXR1cyk7CiAJCXJldHVybiAwOwogCX0KIAotCW1jLnRoaWQgPSB0aGlkOwotCW1jLm1hc3Rl
+ciA9IG1hc3RlcjsKLQltYy5hZ2UgPSBhZ2U7CisJbXJjLnRoaWQgPSB0aGlkOworCW1yYy5tYXN0
+ZXIgPSBtYXN0ZXI7CisJbXJjLmFnZSA9IGFnZTsKIAogCXB0aHJlYWRfY2xlYW51cF9wdXNoKGRv
+X21hc3Rlcl9jbGVhbnVwX3VubG9jaywgTlVMTCk7CiAKLQltYy5zaWduYWxlZCA9IDA7Ci0Jd2hp
+bGUgKCFtYy5zaWduYWxlZCkgewotCQlzdGF0dXMgPSBwdGhyZWFkX2NvbmRfd2FpdCgmbWMuY29u
+ZCwgJm1jLm11dGV4KTsKKwltcmMuc2lnbmFsZWQgPSAwOworCXdoaWxlICghbXJjLnNpZ25hbGVk
+KSB7CisJCXN0YXR1cyA9IHB0aHJlYWRfY29uZF93YWl0KCZtcmMuY29uZCwgJm1yYy5tdXRleCk7
+CiAJCWlmIChzdGF0dXMpCiAJCQlmYXRhbChzdGF0dXMpOwogCX0KQEAgLTEyMzYsMTQgKzEyMzYs
+MTQgQEAKIAogCWFwID0gKHN0cnVjdCBhdXRvZnNfcG9pbnQgKikgYXJnOwogCi0JcHRocmVhZF9j
+bGVhbnVwX3B1c2gocmV0dXJuX3N0YXJ0X3N0YXR1cywgJnNjKTsKKwlwdGhyZWFkX2NsZWFudXBf
+cHVzaChyZXR1cm5fc3RhcnRfc3RhdHVzLCAmc3VjKTsKIAlwdGhyZWFkX3NldGNhbmNlbHN0YXRl
+KFBUSFJFQURfQ0FOQ0VMX0RJU0FCTEUsICZjYW5jZWxfc3RhdGUpOwogCiAJc3RhdHVzID0gcHRo
+cmVhZF9tdXRleF9sb2NrKCZhcC0+c3RhdGVfbXV0ZXgpOwogCWlmIChzdGF0dXMpCiAJCWZhdGFs
+KHN0YXR1cyk7CiAKLQlzdGF0dXMgPSBwdGhyZWFkX211dGV4X2xvY2soJnNjLm11dGV4KTsKKwlz
+dGF0dXMgPSBwdGhyZWFkX211dGV4X2xvY2soJnN1Yy5tdXRleCk7CiAJaWYgKHN0YXR1cykgewog
+CQljcml0KGFwLT5sb2dvcHQsICJmYWlsZWQgdG8gbG9jayBzdGFydHVwIGNvbmRpdGlvbiBtdXRl
+eCEiKTsKIAkJZmF0YWwoc3RhdHVzKTsKQEAgLTEyNTEsNyArMTI1MSw3IEBACiAKIAlpZiAobW91
+bnRfYXV0b2ZzKGFwKSA8IDApIHsKIAkJY3JpdChhcC0+bG9nb3B0LCAibW91bnQgb2YgJXMgZmFp
+bGVkISIsIGFwLT5wYXRoKTsKLQkJc2Muc3RhdHVzID0gMTsKKwkJc3VjLnN0YXR1cyA9IDE7CiAJ
+CXN0YXR1cyA9IHB0aHJlYWRfbXV0ZXhfdW5sb2NrKCZhcC0+c3RhdGVfbXV0ZXgpOwogCQlpZiAo
+c3RhdHVzKQogCQkJZmF0YWwoc3RhdHVzKTsKQEAgLTEyNjIsNyArMTI2Miw3IEBACiAJaWYgKGFw
+LT5naG9zdCAmJiBhcC0+dHlwZSAhPSBMS1BfRElSRUNUKQogCQltc2coImdob3N0aW5nIGVuYWJs
+ZWQiKTsKIAotCXNjLnN0YXR1cyA9IDA7CisJc3VjLnN0YXR1cyA9IDA7CiAJcHRocmVhZF9jbGVh
+bnVwX3BvcCgxKTsKIAogCS8qIFdlIG9mdGVuIHN0YXJ0IHNldmVyYWwgYXV0b21vdW50ZXJzIGF0
+IHRoZSBzYW1lIHRpbWUuICBBZGQgc29tZQpkaWZmIC1ydSBhdXRvZnMtNS4wLjEvaW5jbHVkZS9h
+dXRvbW91bnQuaCBhdXRvZnMtNS4wLjEtcGF0Y2hlZC9pbmNsdWRlL2F1dG9tb3VudC5oCi0tLSBh
+dXRvZnMtNS4wLjEvaW5jbHVkZS9hdXRvbW91bnQuaAkyMDA2LTA3LTEzIDA0OjExOjM4LjAwMDAw
+MDAwMCAtMDQwMAorKysgYXV0b2ZzLTUuMC4xLXBhdGNoZWQvaW5jbHVkZS9hdXRvbW91bnQuaAky
+MDA2LTA3LTEzIDE1OjMxOjM0LjAwMDAwMDAwMCAtMDQwMApAQCAtMzAsMTMgKzMwLDE0IEBACiAj
+aW5jbHVkZSAibG9nLmgiCiAjaW5jbHVkZSAicnBjX3N1YnMuaCIKIAotI2lmIFdJVEhfRE1BTExP
+QworI2lmZGVmIFdJVEhfRE1BTExPQwogI2luY2x1ZGUgPGRtYWxsb2MuaD4KICNlbmRpZgogCi0v
+KiBPcGVuQlNEIHJlLWVudHJhbnQgc3lzbG9nCisvKiBPcGVuQlNEIHJlLWVudHJhbnQgc3lzbG9n
+ICovCisjaWYgMAogI2luY2x1ZGUgInN5c2xvZy5oIgotKi8KKyNlbmRpZgogCiAjZGVmaW5lIEVO
+QUJMRV9DT1JFUwkxCiAKQEAgLTM3OSw4ICszODAsNiBAQAogCXVuc2lnbmVkIGludCBidXN5Owkg
+LyogTWFwIHJlYWQgaW4gcHJvZ3Jlc3MuICovCiB9OwogCi1leHRlcm4gc3RydWN0IG1hc3Rlcl9y
+ZWFkbWFwX2NvbmQgbWM7Ci0KIHN0cnVjdCBwZW5kaW5nX2FyZ3MgewogCXB0aHJlYWRfbXV0ZXhf
+dCBtdXRleDsKIAlwdGhyZWFkX2NvbmRfdCAgY29uZDsKZGlmZiAtcnUgYXV0b2ZzLTUuMC4xL2lu
+Y2x1ZGUvbG9va3VwX2xkYXAuaCBhdXRvZnMtNS4wLjEtcGF0Y2hlZC9pbmNsdWRlL2xvb2t1cF9s
+ZGFwLmgKLS0tIGF1dG9mcy01LjAuMS9pbmNsdWRlL2xvb2t1cF9sZGFwLmgJMjAwNi0wNy0xMyAw
+NDoxMTozOC4wMDAwMDAwMDAgLTA0MDAKKysrIGF1dG9mcy01LjAuMS1wYXRjaGVkL2luY2x1ZGUv
+bG9va3VwX2xkYXAuaAkyMDA2LTA3LTEzIDEyOjUwOjMwLjAwMDAwMDAwMCAtMDQwMApAQCAtMSw3
+ICsxLDcgQEAKICNpZm5kZWYgTE9PS1VQX0xEQVBfSAogI2RlZmluZSBMT09LVVBfTERBUF9ICiAK
+LSNpZiBXSVRIX1NBU0wKKyNpZmRlZiBXSVRIX1NBU0wKICNpbmNsdWRlIDxvcGVuc3NsL3NzbC5o
+PgogI2luY2x1ZGUgPG9wZW5zc2wvZXZwLmg+CiAjaW5jbHVkZSA8b3BlbnNzbC9lcnIuaD4KQEAg
+LTM3LDE3ICszNywyMSBAQAogCWNoYXIgICAgICAgICpjbGllbnRfcHJpbmM7CiAJaW50ICAgICAg
+ICAgIGtpbml0X2RvbmU7CiAJaW50ICAgICAgICAgIGtpbml0X3N1Y2Nlc3NmdWw7CisjaWZkZWYg
+V0lUSF9LRVJCRVJPUwogCWtyYjVfcHJpbmNpcGFsICBrcmI1X2NsaWVudF9wcmluYzsKIAlrcmI1
+X2NvbnRleHQga3JiNWN0eHQ7CiAJa3JiNV9jY2FjaGUgIGtyYjVfY2NhY2hlOworI2VuZGlmCisj
+aWZkZWYgV0lUSF9TQVNMCiAJc2FzbF9jb25uX3QgICpzYXNsX2Nvbm47CisjZW5kaWYKIAkvKiBr
+ZXl0YWIgZmlsZSBuYW1lIG5lZWRzIHRvIGJlIGFkZGVkICovCiAKIAlzdHJ1Y3QgcGFyc2VfbW9k
+ICpwYXJzZTsKIH07CiAKIAotI2lmIFdJVEhfU0FTTAorI2lmZGVmIFdJVEhfU0FTTAogI2RlZmlu
+ZSBMREFQX0FVVEhfQ09ORl9GSUxFICJ0ZXN0IgogCiAjZGVmaW5lIExEQVBfVExTX0RPTlRfVVNF
+CTAKQEAgLTY4LDYgKzcyLDYgQEAKIGludCBhdXRvZnNfc2FzbF9pbml0KExEQVAgKmxkYXAsIHN0
+cnVjdCBsb29rdXBfY29udGV4dCAqY3R4dCk7CiBpbnQgYXV0b2ZzX3Nhc2xfYmluZChMREFQICps
+ZGFwLCBzdHJ1Y3QgbG9va3VwX2NvbnRleHQgKmN0eHQpOwogdm9pZCBhdXRvZnNfc2FzbF91bmJp
+bmQoc3RydWN0IGxvb2t1cF9jb250ZXh0ICpjdHh0KTsKLSNlbmRpZgorI2VuZGlmIC8qIFdJVEhf
+U0FTTCAqLwogCiAjZW5kaWYgLyogX2xvb2t1cF9sZGFwX2ggKi8KZGlmZiAtcnUgYXV0b2ZzLTUu
+MC4xL2luY2x1ZGUvc3RhdGUuaCBhdXRvZnMtNS4wLjEtcGF0Y2hlZC9pbmNsdWRlL3N0YXRlLmgK
+LS0tIGF1dG9mcy01LjAuMS9pbmNsdWRlL3N0YXRlLmgJMjAwNi0wNy0xMyAwNDoxMTozOC4wMDAw
+MDAwMDAgLTA0MDAKKysrIGF1dG9mcy01LjAuMS1wYXRjaGVkL2luY2x1ZGUvc3RhdGUuaAkyMDA2
+LTA3LTEzIDEzOjI0OjMwLjAwMDAwMDAwMCAtMDQwMApAQCAtNDcsNyArNDcsNyBAQAogCVNUX1JF
+QURNQVAsCiAJU1RfU0hVVERPV05fUEVORElORywKIAlTVF9TSFVURE9XTl9GT1JDRSwKLQlTVF9T
+SFVURE9XTiwKKwlTVF9TSFVURE9XTgogfTsKIAogc3RydWN0IGV4cGlyZV9hcmdzIHsKZGlmZiAt
+cnUgYXV0b2ZzLTUuMC4xL2xpYi9jYWNoZS5jIGF1dG9mcy01LjAuMS1wYXRjaGVkL2xpYi9jYWNo
+ZS5jCi0tLSBhdXRvZnMtNS4wLjEvbGliL2NhY2hlLmMJMjAwNi0wNy0xMyAwNDoxMTozOC4wMDAw
+MDAwMDAgLTA0MDAKKysrIGF1dG9mcy01LjAuMS1wYXRjaGVkL2xpYi9jYWNoZS5jCTIwMDYtMDct
+MTMgMTQ6MjU6MTcuMDAwMDAwMDAwIC0wNDAwCkBAIC00MTQsOCArNDE0LDggQEAKIAlJTklUX0xJ
+U1RfSEVBRCgmbWUtPm11bHRpX2xpc3QpOwogCW1lLT5tdWx0aSA9IE5VTEw7CiAJbWUtPmlvY3Rs
+ZmQgPSAtMTsKLQltZS0+ZGV2ID0gLTE7Ci0JbWUtPmlubyA9IC0xOworCW1lLT5kZXYgPSAoZGV2
+X3QpLTE7CisJbWUtPmlubyA9IChpbm9fdCktMTsKIAogCS8qIAogCSAqIFdlIG5lZWQgdG8gYWRk
+IHRvIHRoZSBlbmQgaWYgdmFsdWVzIGV4aXN0IGluIG9yZGVyIHRvCmRpZmYgLXJ1IGF1dG9mcy01
+LjAuMS9saWIvY2F0X3BhdGguYyBhdXRvZnMtNS4wLjEtcGF0Y2hlZC9saWIvY2F0X3BhdGguYwot
+LS0gYXV0b2ZzLTUuMC4xL2xpYi9jYXRfcGF0aC5jCTIwMDYtMDctMTMgMDQ6MTE6MzguMDAwMDAw
+MDAwIC0wNDAwCisrKyBhdXRvZnMtNS4wLjEtcGF0Y2hlZC9saWIvY2F0X3BhdGguYwkyMDA2LTA3
+LTEzIDE1OjE1OjE0LjAwMDAwMDAwMCAtMDQwMApAQCAtNjAsMTQgKzYwLDEzIEBACiAKIGludCBf
+c3RybGVuKGNvbnN0IGNoYXIgKnN0ciwgc2l6ZV90IG1heCkKIHsKLQljaGFyICpzID0gKGNoYXIg
+Kikgc3RyOworCWNvbnN0IGNoYXIgKnMgPSBzdHI7CisJc2l6ZV90IGxlbiA9IDA7CiAKLQl3aGls
+ZSAoKnMrKyAmJiBtYXgtLSkgOworCXdoaWxlICgqcysrICYmIGxlbiA8IG1heCkKKwkJbGVuKys7
+CiAKLQlpZiAobWF4IDwgMCkKLQkJcmV0dXJuIDA7Ci0JCi0JcmV0dXJuIHMgLSBzdHIgLSAxOwor
+CXJldHVybiAoaW50KSBsZW47CiB9CiAKIC8qIApkaWZmIC1ydSBhdXRvZnMtNS4wLjEvbGliL21h
+c3Rlci5jIGF1dG9mcy01LjAuMS1wYXRjaGVkL2xpYi9tYXN0ZXIuYwotLS0gYXV0b2ZzLTUuMC4x
+L2xpYi9tYXN0ZXIuYwkyMDA2LTA3LTEzIDA0OjExOjM5LjAwMDAwMDAwMCAtMDQwMAorKysgYXV0
+b2ZzLTUuMC4xLXBhdGNoZWQvbGliL21hc3Rlci5jCTIwMDYtMDctMTMgMTU6MTY6NDUuMDAwMDAw
+MDAwIC0wNDAwCkBAIC0zNCw3ICszNCw3IEBACiAvKiBBdHRyaWJ1dGUgdG8gY3JlYXRlIGRldGFj
+aGVkIHRocmVhZCAqLwogZXh0ZXJuIHB0aHJlYWRfYXR0cl90IHRocmVhZF9hdHRyOwogCi1leHRl
+cm4gc3RydWN0IHN0YXJ0dXBfY29uZCBzYzsKK2V4dGVybiBzdHJ1Y3Qgc3RhcnR1cF9jb25kIHN1
+YzsKIAogc3RhdGljIHN0cnVjdCBtYXBfc291cmNlICoKIF9fbWFzdGVyX2ZpbmRfbWFwX3NvdXJj
+ZShzdHJ1Y3QgbWFzdGVyX21hcGVudCAqLApAQCAtMzYxLDcgKzM2MSw3IEBACiBzdHJ1Y3QgbWFw
+X3NvdXJjZSAqbWFzdGVyX2ZpbmRfc291cmNlX2luc3RhbmNlKHN0cnVjdCBtYXBfc291cmNlICpz
+b3VyY2UsIGNvbnN0IGNoYXIgKnR5cGUsIGNvbnN0IGNoYXIgKmZvcm1hdCwgaW50IGFyZ2MsIGNv
+bnN0IGNoYXIgKiphcmd2KQogewogCXN0cnVjdCBtYXBfc291cmNlICptYXA7Ci0Jc3RydWN0IG1h
+cF9zb3VyY2UgKmluc3RhbmNlID0gTlVMTDs7CisJc3RydWN0IG1hcF9zb3VyY2UgKmluc3RhbmNl
+ID0gTlVMTDsKIAlpbnQgc3RhdHVzLCByZXM7CiAKIAlzdGF0dXMgPSBwdGhyZWFkX211dGV4X2xv
+Y2soJmluc3RhbmNlX211dGV4KTsKQEAgLTY1NywxNCArNjU3LDE0IEBACiBzdHJ1Y3QgbWFzdGVy
+ICptYXN0ZXJfbmV3KGNvbnN0IGNoYXIgKm5hbWUsIHVuc2lnbmVkIGludCB0aW1lb3V0LCB1bnNp
+Z25lZCBpbnQgZ2hvc3QpCiB7CiAJc3RydWN0IG1hc3RlciAqbWFzdGVyOwotCWNvbnN0IGNoYXIg
+KnRtcDsKKwljaGFyICp0bXA7CiAKIAltYXN0ZXIgPSBtYWxsb2Moc2l6ZW9mKHN0cnVjdCBtYXN0
+ZXIpKTsKIAlpZiAoIW1hc3RlcikKIAkJcmV0dXJuIE5VTEw7CiAKIAlpZiAoIW5hbWUpCi0JCXRt
+cCA9IGRlZmF1bHRzX2dldF9tYXN0ZXJfbWFwKCk7CisJCXRtcCA9IChjaGFyICopIGRlZmF1bHRz
+X2dldF9tYXN0ZXJfbWFwKCk7CiAJZWxzZQogCQl0bXAgPSBzdHJkdXAobmFtZSk7CiAKQEAgLTgz
+OCwxMiArODM4LDEyIEBACiAJcHRocmVhZF90IHRoaWQ7CiAJaW50IHN0YXR1czsKIAotCXN0YXR1
+cyA9IHB0aHJlYWRfbXV0ZXhfbG9jaygmc2MubXV0ZXgpOworCXN0YXR1cyA9IHB0aHJlYWRfbXV0
+ZXhfbG9jaygmc3VjLm11dGV4KTsKIAlpZiAoc3RhdHVzKQogCQlmYXRhbChzdGF0dXMpOwogCi0J
+c2MuZG9uZSA9IDA7Ci0Jc2Muc3RhdHVzID0gMDsKKwlzdWMuZG9uZSA9IDA7CisJc3VjLnN0YXR1
+cyA9IDA7CiAKIAlhcCA9IGVudHJ5LT5hcDsKIApAQCAtODUzLDI4ICs4NTMsMjggQEAKIAkJY3Jp
+dChhcC0+bG9nb3B0LAogCQkgICAgICJmYWlsZWQgdG8gY3JlYXRlIG1vdW50IGhhbmRsZXIgdGhy
+ZWFkIGZvciAlcyIsCiAJCSAgICAgZW50cnktPnBhdGgpOwotCQlzdGF0dXMgPSBwdGhyZWFkX211
+dGV4X3VubG9jaygmc2MubXV0ZXgpOworCQlzdGF0dXMgPSBwdGhyZWFkX211dGV4X3VubG9jaygm
+c3VjLm11dGV4KTsKIAkJaWYgKHN0YXR1cykKIAkJCWZhdGFsKHN0YXR1cyk7CiAJCXJldHVybiAw
+OwogCX0KIAllbnRyeS0+dGhpZCA9IHRoaWQ7CiAKLQl3aGlsZSAoIXNjLmRvbmUpIHsKLQkJc3Rh
+dHVzID0gcHRocmVhZF9jb25kX3dhaXQoJnNjLmNvbmQsICZzYy5tdXRleCk7CisJd2hpbGUgKCFz
+dWMuZG9uZSkgeworCQlzdGF0dXMgPSBwdGhyZWFkX2NvbmRfd2FpdCgmc3VjLmNvbmQsICZzdWMu
+bXV0ZXgpOwogCQlpZiAoc3RhdHVzKQogCQkJZmF0YWwoc3RhdHVzKTsKIAl9CiAKLQlpZiAoc2Mu
+c3RhdHVzKSB7CisJaWYgKHN1Yy5zdGF0dXMpIHsKIAkJZXJyb3IoYXAtPmxvZ29wdCwgImZhaWxl
+ZCB0byBzdGFydHVwIG1vdW50Iik7Ci0JCXN0YXR1cyA9IHB0aHJlYWRfbXV0ZXhfdW5sb2NrKCZz
+Yy5tdXRleCk7CisJCXN0YXR1cyA9IHB0aHJlYWRfbXV0ZXhfdW5sb2NrKCZzdWMubXV0ZXgpOwog
+CQlpZiAoc3RhdHVzKQogCQkJZmF0YWwoc3RhdHVzKTsKIAkJcmV0dXJuIDA7CiAJfQogCi0Jc3Rh
+dHVzID0gcHRocmVhZF9tdXRleF91bmxvY2soJnNjLm11dGV4KTsKKwlzdGF0dXMgPSBwdGhyZWFk
+X211dGV4X3VubG9jaygmc3VjLm11dGV4KTsKIAlpZiAoc3RhdHVzKQogCQlmYXRhbChzdGF0dXMp
+OwogCmRpZmYgLXJ1IGF1dG9mcy01LjAuMS9saWIvbWFzdGVyX3BhcnNlLnkgYXV0b2ZzLTUuMC4x
+LXBhdGNoZWQvbGliL21hc3Rlcl9wYXJzZS55Ci0tLSBhdXRvZnMtNS4wLjEvbGliL21hc3Rlcl9w
+YXJzZS55CTIwMDYtMDctMTMgMDQ6MTE6MzkuMDAwMDAwMDAwIC0wNDAwCisrKyBhdXRvZnMtNS4w
+LjEtcGF0Y2hlZC9saWIvbWFzdGVyX3BhcnNlLnkJMjAwNi0wNy0xMyAxMjo1Nzo0NS4wMDAwMDAw
+MDAgLTA0MDAKQEAgLTYyLDYgKzYyLDggQEAKIHN0YXRpYyBpbnQgbGluZW5vOwogCiAjZGVmaW5l
+IFlZREVCVUcgMAorI2RlZmluZSBZWUVOQUJMRV9OTFMgMAorI2RlZmluZSBZWUxUWVBFX0lTX1RS
+SVZJQUwgMAogCiAjaWYgWVlERUJVRwogc3RhdGljIGludCBtYXN0ZXJfZnByaW50ZihGSUxFICos
+IGNoYXIgKiwgLi4uKTsKZGlmZiAtcnUgYXV0b2ZzLTUuMC4xL2xpYi9tb3VudHMuYyBhdXRvZnMt
+NS4wLjEtcGF0Y2hlZC9saWIvbW91bnRzLmMKLS0tIGF1dG9mcy01LjAuMS9saWIvbW91bnRzLmMJ
+MjAwNi0wNy0xMyAwNDoxMTozOS4wMDAwMDAwMDAgLTA0MDAKKysrIGF1dG9mcy01LjAuMS1wYXRj
+aGVkL2xpYi9tb3VudHMuYwkyMDA2LTA3LTEzIDE0OjQyOjI2LjAwMDAwMDAwMCAtMDQwMApAQCAt
+MzU3LDE0ICszNTcsMTQgQEAKIAkJcF9kZXYgPSBzdHJzdHIobW50LT5tbnRfb3B0cywgImRldj0i
+KTsKIAkJaWYgKCFwX2RldikKIAkJCWNvbnRpbnVlOwotCQlzc2NhbmYocF9kZXYsICJkZXY9JWxk
+IiwgJm1fZGV2KTsKKwkJc3NjYW5mKHBfZGV2LCAiZGV2PSVsZCIsIChsb25nIGludCAqKSAmbV9k
+ZXYpOwogCQlpZiAobV9kZXYgIT0gbF9kZXYpCiAJCQljb250aW51ZTsKIAogCQlwX2lubyA9IHN0
+cnN0cihtbnQtPm1udF9vcHRzLCAiaW5vPSIpOwogCQlpZiAoIXBfaW5vKQogCQkJY29udGludWU7
+Ci0JCXNzY2FuZihwX2lubywgImlubz0lbGQiLCAmbV9pbm8pOworCQlzc2NhbmYocF9pbm8sICJp
+bm89JWxkIiwgKGxvbmcgaW50ICopICZtX2lubyk7CiAJCWlmIChtX2lubyA9PSBsX2lubykgewog
+CQkJcGF0aCA9IHN0cmR1cChtbnQtPm1udF9kaXIpOwogCQkJYnJlYWs7CmRpZmYgLXJ1IGF1dG9m
+cy01LjAuMS9saWIvbnNzX3BhcnNlLnkgYXV0b2ZzLTUuMC4xLXBhdGNoZWQvbGliL25zc19wYXJz
+ZS55Ci0tLSBhdXRvZnMtNS4wLjEvbGliL25zc19wYXJzZS55CTIwMDYtMDctMTMgMDQ6MTE6Mzku
+MDAwMDAwMDAwIC0wNDAwCisrKyBhdXRvZnMtNS4wLjEtcGF0Y2hlZC9saWIvbnNzX3BhcnNlLnkJ
+MjAwNi0wNy0xMyAxNToxOTo0Ni4wMDAwMDAwMDAgLTA0MDAKQEAgLTM2LDYgKzM2LDggQEAKIHN0
+cnVjdCBuc3NfYWN0aW9uIGFjdFtOU1NfU1RBVFVTX01BWF07CiAKICNkZWZpbmUgWVlERUJVRyAw
+CisjZGVmaW5lIFlZRU5BQkxFX05MUyAwCisjZGVmaW5lIFlZTFRZUEVfSVNfVFJJVklBTCAwCiAK
+IGV4dGVybiBpbnQgbnNzX2xpbmVubzsKIGV4dGVybiBpbnQgbnNzX2xleCh2b2lkKTsKQEAgLTcy
+LDEzICs3NCwxMyBAQAogCiBuc3Nfc291cmNlOiBTT1VSQ0UKIHsKLS8vCXByaW50Zigic291cmNl
+OiAlc1xuIiwgJDEpOworLyoJcHJpbnRmKCJzb3VyY2U6ICVzXG4iLCAkMSk7ICovCiAJc3JjID0g
+YWRkX3NvdXJjZShuc3NfbGlzdCwgJDEpOwogfSB8IFNPVVJDRSBMQlJBQ0tFVCBzdGF0dXNfZXhw
+X2xpc3QgUkJSQUNLRVQKIHsKIAllbnVtIG5zc3dpdGNoX3N0YXR1cyBhOwogCi0vLwlwcmludGYo
+InNvdXJjZTogJXNcbiIsICQxKTsKKy8qCXByaW50Zigic291cmNlOiAlc1xuIiwgJDEpOyAqLwog
+CXNyYyA9IGFkZF9zb3VyY2UobnNzX2xpc3QsICQxKTsKIAlmb3IgKGEgPSAwOyBhIDwgTlNTX1NU
+QVRVU19NQVg7IGErKykgewogCQlpZiAoYWN0W2FdLmFjdGlvbiAhPSBOU1NfQUNUSU9OX1VOS05P
+V04pIHsKQEAgLTk4LDExICsxMDAsMTEgQEAKIAogc3RhdHVzX2V4cDogU1RBVFVTIEVRVUFMIEFD
+VElPTgogewotLy8JcHJpbnRmKCJhY3Rpb246IFsgJXM9JXMgXVxuIiwgJDEsICQzKTsKKy8qCXBy
+aW50ZigiYWN0aW9uOiBbICVzPSVzIF1cbiIsICQxLCAkMyk7ICovCiAJc2V0X2FjdGlvbihhY3Qs
+ICQxLCAkMywgMCk7CiB9IHwgQkFORyBTVEFUVVMgRVFVQUwgQUNUSU9OCiB7Ci0vLwlwcmludGYo
+ImFjdGlvbjogWyAhICVzPSVzIF1cbiIsICQyLCAkNCk7CisvKglwcmludGYoImFjdGlvbjogWyAh
+ICVzPSVzIF1cbiIsICQyLCAkNCk7ICovCiAJc2V0X2FjdGlvbihhY3QsICQyLCAkNCwgMSk7CiB9
+IHwgU1RBVFVTIEVRVUFMIE9USEVSIHtuc3NfZXJyb3IoJDMpOyBZWUFCT1JUOyB9CiAgIHwgU1RB
+VFVTIE9USEVSIHtuc3NfZXJyb3IoJDIpOyBZWUFCT1JUOyB9CmRpZmYgLXJ1IGF1dG9mcy01LjAu
+MS9saWIvcnBjX3N1YnMuYyBhdXRvZnMtNS4wLjEtcGF0Y2hlZC9saWIvcnBjX3N1YnMuYwotLS0g
+YXV0b2ZzLTUuMC4xL2xpYi9ycGNfc3Vicy5jCTIwMDYtMDctMTMgMDQ6MTE6MzkuMDAwMDAwMDAw
+IC0wNDAwCisrKyBhdXRvZnMtNS4wLjEtcGF0Y2hlZC9saWIvcnBjX3N1YnMuYwkyMDA2LTA3LTEz
+IDE0OjQ4OjQ5LjAwMDAwMDAwMCAtMDQwMApAQCAtNDYsNyArNDYsNyBAQAogICovCiBzdGF0aWMg
+Q0xJRU5UICpjcmVhdGVfdWRwX2NsaWVudChzdHJ1Y3QgY29ubl9pbmZvICppbmZvKQogewotCWlu
+dCBmZCwgcmV0LCBoX2Vycm5vOworCWludCBmZCwgcmV0LCBoX2VycjsKIAlDTElFTlQgKmNsaWVu
+dDsKIAlzdHJ1Y3Qgc29ja2FkZHJfaW4gbGFkZHIsIHJhZGRyOwogCXN0cnVjdCBob3N0ZW50IGhw
+OwpAQCAtNzgsOSArNzgsOSBAQAogCW1lbXNldCgmaHAsIDAsIHNpemVvZihzdHJ1Y3QgaG9zdGVu
+dCkpOwogCiAJcmV0ID0gZ2V0aG9zdGJ5bmFtZV9yKGluZm8tPmhvc3QsIHBocCwKLQkJCWJ1Ziwg
+SE9TVF9FTlRfQlVGX1NJWkUsICZyZXN1bHQsICZoX2Vycm5vKTsKKwkJCWJ1ZiwgSE9TVF9FTlRf
+QlVGX1NJWkUsICZyZXN1bHQsICZoX2Vycik7CiAJaWYgKHJldCB8fCAhcmVzdWx0KSB7Ci0JCWlu
+dCBlcnIgPSBoX2Vycm5vID09IC0xID8gZXJybm8gOiBoX2Vycm5vOworCQlpbnQgZXJyID0gaF9l
+cnIgPT0gLTEgPyBlcnJubyA6IGhfZXJyOwogCQljaGFyICplc3RyID0gc3RyZXJyb3JfcihlcnIs
+IGJ1ZiwgSE9TVF9FTlRfQlVGX1NJWkUpOwogCQllcnJvcihMT0dPUFRfQU5ZLCAiaG9zdG5hbWUg
+bG9va3VwIGZhaWxlZDogJXMiLCBlc3RyKTsKIAkJcmV0dXJuIE5VTEw7CkBAIC0yNDEsNyArMjQx
+LDcgQEAKIAlzdHJ1Y3QgaG9zdGVudCAqcGhwID0gJmhwOwogCXN0cnVjdCBob3N0ZW50ICpyZXN1
+bHQ7CiAJY2hhciBidWZbSE9TVF9FTlRfQlVGX1NJWkVdOwotCWludCByZXQ7CisJaW50IGhfZXJy
+LCByZXQ7CiAKIAlpZiAoaW5mby0+cHJvdG8tPnBfcHJvdG8gIT0gSVBQUk9UT19UQ1ApCiAJCXJl
+dHVybiBOVUxMOwpAQCAtMjY2LDkgKzI2Niw5IEBACiAJbWVtc2V0KCZocCwgMCwgc2l6ZW9mKHN0
+cnVjdCBob3N0ZW50KSk7CiAKIAlyZXQgPSBnZXRob3N0YnluYW1lX3IoaW5mby0+aG9zdCwgcGhw
+LAotCQkJYnVmLCBIT1NUX0VOVF9CVUZfU0laRSwgJnJlc3VsdCwgJmhfZXJybm8pOworCQkJYnVm
+LCBIT1NUX0VOVF9CVUZfU0laRSwgJnJlc3VsdCwgJmhfZXJyKTsKIAlpZiAocmV0IHx8ICFyZXN1
+bHQpIHsKLQkJaW50IGVyciA9IGhfZXJybm8gPT0gLTEgPyBlcnJubyA6IGhfZXJybm87CisJCWlu
+dCBlcnIgPSBoX2VyciA9PSAtMSA/IGVycm5vIDogaF9lcnI7CiAJCWNoYXIgKmVzdHIgPSAgc3Ry
+ZXJyb3JfcihlcnIsIGJ1ZiwgSE9TVF9FTlRfQlVGX1NJWkUpOwogCQllcnJvcihMT0dPUFRfQU5Z
+LCAiaG9zdG5hbWUgbG9va3VwIGZhaWxlZDogJXMiLCBlc3RyKTsKIAkJcmV0dXJuIE5VTEw7CkBA
+IC03MjAsMTMgKzcyMCwxMyBAQAogCXN0cnVjdCBob3N0ZW50ICpyZXN1bHQ7CiAJY2hhciBidWZb
+SE9TVF9FTlRfQlVGX1NJWkVdLCAqKmhhZGRyOwogCXN0cnVjdCBzb2NrYWRkcl9pbiBzYWRkciwg
+bWFkZHI7Ci0JaW50IGhfZXJybm8sIHJldDsKKwlpbnQgaF9lcnIsIHJldDsKIAogCW1lbXNldChi
+dWYsIDAsIEhPU1RfRU5UX0JVRl9TSVpFKTsKIAltZW1zZXQoJmhlLCAwLCBzaXplb2Yoc3RydWN0
+IGhvc3RlbnQpKTsKIAogCXJldCA9IGdldGhvc3RieW5hbWVfcihteW5hbWUsIHBoZSwKLQkJCWJ1
+ZiwgSE9TVF9FTlRfQlVGX1NJWkUsICZyZXN1bHQsICZoX2Vycm5vKTsKKwkJCWJ1ZiwgSE9TVF9F
+TlRfQlVGX1NJWkUsICZyZXN1bHQsICZoX2Vycik7CiAJaWYgKHJldCB8fCAhcmVzdWx0KQogCQly
+ZXR1cm4gMDsKIApAQCAtNzM5LDcgKzczOSw3IEBACiAJCWlmICghcmV0KQogCQkJcmV0dXJuIDA7
+CiAJfSBlbHNlIHsKLQkJdWludDMyX3QgbSA9IC0xOworCQl1aW50MzJfdCBtID0gKHVpbnQzMl90
+KS0xOwogCQlpbnQgbXNpemUgPSBhdG9pKG1hc2spOwogCiAJCW0gPSBtIDw8ICgzMiAtIG1zaXpl
+KTsKQEAgLTgzNiwxMyArODM2LDEzIEBACiAJc3RydWN0IGhvc3RlbnQgKnBoZSA9ICZoZTsKIAlz
+dHJ1Y3QgaG9zdGVudCAqcmVzdWx0OwogCWNoYXIgYnVmW0hPU1RfRU5UX0JVRl9TSVpFXTsKLQlp
+bnQgcmV0OworCWludCBoX2VyciwgcmV0OwogCiAJbWVtc2V0KGJ1ZiwgMCwgSE9TVF9FTlRfQlVG
+X1NJWkUpOwogCW1lbXNldCgmaGUsIDAsIHNpemVvZihzdHJ1Y3QgaG9zdGVudCkpOwogCiAJcmV0
+ID0gZ2V0aG9zdGJ5bmFtZV9yKG15bmFtZSwgcGhlLAotCQkJYnVmLCBIT1NUX0VOVF9CVUZfU0la
+RSwgJnJlc3VsdCwgJmhfZXJybm8pOworCQkJYnVmLCBIT1NUX0VOVF9CVUZfU0laRSwgJnJlc3Vs
+dCwgJmhfZXJyKTsKIAlpZiAocmV0IHx8ICFyZXN1bHQpCiAJCXJldHVybiAwOwogCmRpZmYgLXJ1
+IGF1dG9mcy01LjAuMS9tb2R1bGVzL2xvb2t1cF9maWxlLmMgYXV0b2ZzLTUuMC4xLXBhdGNoZWQv
+bW9kdWxlcy9sb29rdXBfZmlsZS5jCi0tLSBhdXRvZnMtNS4wLjEvbW9kdWxlcy9sb29rdXBfZmls
+ZS5jCTIwMDYtMDctMTMgMDQ6MTE6MzkuMDAwMDAwMDAwIC0wNDAwCisrKyBhdXRvZnMtNS4wLjEt
+cGF0Y2hlZC9tb2R1bGVzL2xvb2t1cF9maWxlLmMJMjAwNi0wNy0xMyAxNDozNjo0MS4wMDAwMDAw
+MDAgLTA0MDAKQEAgLTk0Miw4ICs5NDIsOSBAQAogCW1lID0gY2FjaGVfbG9va3VwKG1jLCBrZXkp
+OwogCWlmIChtZSkgewogCQlwdGhyZWFkX2NsZWFudXBfcHVzaChjYWNoZV9sb2NrX2NsZWFudXAs
+IG1jKTsKLQkJbWFwZW50ID0gYWxsb2NhKHN0cmxlbihtZS0+bWFwZW50KSArIDEpOwotCQltYXBl
+bnRfbGVuID0gc3ByaW50ZihtYXBlbnQsIG1lLT5tYXBlbnQpOworCQltYXBlbnRfbGVuID0gc3Ry
+bGVuKG1lLT5tYXBlbnQpOworCQltYXBlbnQgPSBhbGxvY2EobWFwZW50X2xlbiArIDEpOworCQlz
+dHJjcHkobWFwZW50LCBtZS0+bWFwZW50KTsKIAkJcHRocmVhZF9jbGVhbnVwX3BvcCgwKTsKIAkJ
+bWFwZW50W21hcGVudF9sZW5dID0gJ1wwJzsKIAl9CmRpZmYgLXJ1IGF1dG9mcy01LjAuMS9tb2R1
+bGVzL2xvb2t1cF9ob3N0cy5jIGF1dG9mcy01LjAuMS1wYXRjaGVkL21vZHVsZXMvbG9va3VwX2hv
+c3RzLmMKLS0tIGF1dG9mcy01LjAuMS9tb2R1bGVzL2xvb2t1cF9ob3N0cy5jCTIwMDYtMDctMTMg
+MDQ6MTE6MzkuMDAwMDAwMDAwIC0wNDAwCisrKyBhdXRvZnMtNS4wLjEtcGF0Y2hlZC9tb2R1bGVz
+L2xvb2t1cF9ob3N0cy5jCTIwMDYtMDctMTMgMTQ6Mzc6MzEuMDAwMDAwMDAwIC0wNDAwCkBAIC0x
+NTcsOCArMTU3LDkgQEAKIAkgKi8KIAlpZiAoKm5hbWUgPT0gJy8nKSB7CiAJCXB0aHJlYWRfY2xl
+YW51cF9wdXNoKGNhY2hlX2xvY2tfY2xlYW51cCwgbWMpOwotCQltYXBlbnQgPSBhbGxvY2Eoc3Ry
+bGVuKG1lLT5tYXBlbnQpICsgMSk7Ci0JCW1hcGVudF9sZW4gPSBzcHJpbnRmKG1hcGVudCwgbWUt
+Pm1hcGVudCk7CisJCW1hcGVudF9sZW4gPSBzdHJsZW4obWUtPm1hcGVudCk7CisJCW1hcGVudCA9
+IGFsbG9jYShtYXBlbnRfbGVuICsgMSk7CisJCXN0cmNweShtYXBlbnQsIG1lLT5tYXBlbnQpOwog
+CQlwdGhyZWFkX2NsZWFudXBfcG9wKDApOwogCQltYXBlbnRbbWFwZW50X2xlbl0gPSAnXDAnOwog
+CX0KZGlmZiAtcnUgYXV0b2ZzLTUuMC4xL21vZHVsZXMvbG9va3VwX2xkYXAuYyBhdXRvZnMtNS4w
+LjEtcGF0Y2hlZC9tb2R1bGVzL2xvb2t1cF9sZGFwLmMKLS0tIGF1dG9mcy01LjAuMS9tb2R1bGVz
+L2xvb2t1cF9sZGFwLmMJMjAwNi0wNy0xMyAwNDoxMTozOS4wMDAwMDAwMDAgLTA0MDAKKysrIGF1
+dG9mcy01LjAuMS1wYXRjaGVkL21vZHVsZXMvbG9va3VwX2xkYXAuYwkyMDA2LTA3LTEzIDE1OjE4
+OjUyLjAwMDAwMDAwMCAtMDQwMApAQCAtNTUsNyArNTUsNyBAQAogCWlmIChydiAhPSBMREFQX1NV
+Q0NFU1MpIHsKIAkJY3JpdChMT0dPUFRfQU5ZLAogCQkgICAgIE1PRFBSRUZJWCAiVW5hYmxlIHRv
+IGJpbmQgdG8gdGhlIExEQVAgc2VydmVyOiAiCi0JCSAgICAgIiVzLCBlcnJvciAlcyIsIGN0eHQt
+PnNlcnZlciA/OiAiKGRlZmF1bHQpIiwKKwkJICAgICAiJXMsIGVycm9yICVzIiwgY3R4dC0+c2Vy
+dmVyID8gIiIgOiAiKGRlZmF1bHQpIiwKIAkJICAgICBsZGFwX2VycjJzdHJpbmcocnYpKTsKIAkJ
+cmV0dXJuIC0xOwogCX0KQEAgLTY3LDcgKzY3LDcgQEAKIHsKIAlpbnQgcnY7CiAKLSNpZiBXSVRI
+X1NBU0wKKyNpZmRlZiBXSVRIX1NBU0wKIAlkZWJ1ZyhMT0dPUFRfTk9ORSwgInVzZV90bHM6ICVk
+IiwgY3R4dC0+dXNlX3Rscyk7CiAJLyoKIAkgKiBUaGUgT3BlblNTTCBsaWJyYXJ5IGNhbid0IGhh
+bmRsZSBoYXZpbmcgaXRzIG1lc3NhZ2UgYW5kIGVycm9yCkBAIC04Miw3ICs4Miw3IEBACiAJCWN0
+eHQtPnVzZV90bHMgPSBMREFQX1RMU19JTklUOwogCX0KIAlhdXRvZnNfc2FzbF91bmJpbmQoY3R4
+dCk7Ci0jZW5kaWYKKyNlbmRpZiAvKiBXSVRIX1NBU0wgKi8KIAogCXJ2ID0gbGRhcF91bmJpbmRf
+ZXh0KGxkYXAsIE5VTEwsIE5VTEwpOwogCWlmIChydiAhPSBMREFQX1NVQ0NFU1MpCkBAIC0xMzUs
+NyArMTM1LDcgQEAKIAkJICAgICBNT0RQUkVGSVggImZhaWxlZCB0byBzZXQgY29ubmVjdGlvbiB0
+aW1lb3V0IHRvICVkIiwKIAkJICAgICB0aW1lb3V0KTsKIAotI2lmIFdJVEhfU0FTTAorI2lmZGVm
+IFdJVEhfU0FTTAogCWlmIChjdHh0LT51c2VfdGxzKSB7CiAJCWlmIChjdHh0LT52ZXJzaW9uID09
+IDIpIHsKIAkJCWlmIChjdHh0LT50bHNfcmVxdWlyZWQpIHsKQEAgLTE2Niw3ICsxNjYsNyBAQAog
+CQl9CiAJCWN0eHQtPnVzZV90bHMgPSBMREFQX1RMU19SRUxFQVNFOwogCX0KLSNlbmRpZgorI2Vu
+ZGlmIC8qIFdJVEhfU0FTTCAqLwogCiAJcmV0dXJuIGxkYXA7CiB9CkBAIC0xODAsNyArMTgwLDcg
+QEAKIAlpZiAoIWxkYXApCiAJCXJldHVybiBOVUxMOwogCi0jaWYgV0lUSF9TQVNMCisjaWZkZWYg
+V0lUSF9TQVNMCiAJZGVidWcoTE9HT1BUX05PTkUsICJhdXRoX3JlcXVpcmVkOiAlZCwgc2FzbF9t
+ZWNoICVzIiwKIAkgICAgICBjdHh0LT5hdXRoX3JlcXVpcmVkLCBjdHh0LT5zYXNsX21lY2gpOwog
+CkBAIC0xOTQsMTAgKzE5NCwxMCBAQAogCQlkZWJ1ZyhMT0dPUFRfTk9ORSwKIAkJICAgICAgTU9E
+UFJFRklYICJsZGFwIGFub255bW91cyBiaW5kIHJldHVybmVkICVkIiwgcnYpOwogCX0KLSNlbHNl
+CisjZWxzZSAvKiBub3QgV0lUSF9TQVNMICovCiAJcnYgPSBiaW5kX2xkYXBfYW5vbnltb3VzKGxk
+YXAsIGN0eHQpOwogCWRlYnVnKExPR09QVF9OT05FLCBNT0RQUkVGSVggImxkYXAgYW5vbnltb3Vz
+IGJpbmQgcmV0dXJuZWQgJWQiLCBydik7Ci0jZW5kaWYKKyNlbmRpZiAvKiBub3QgV0lUSF9TQVNM
+ICovCiAKIAlpZiAocnYgIT0gMCkgewogCQl1bmJpbmRfbGRhcF9jb25uZWN0aW9uKGxkYXAsIGN0
+eHQpOwpAQCAtMjA3LDcgKzIwNyw3IEBACiAJcmV0dXJuIGxkYXA7CiB9CiAKLSNpZiBXSVRIX1NB
+U0wKKyNpZmRlZiBXSVRIX1NBU0wKIGludCBnZXRfcHJvcGVydHkoeG1sTm9kZVB0ciBub2RlLCBj
+b25zdCBjaGFyICpwcm9wLCBjaGFyICoqdmFsdWUpCiB7CiAJeG1sQ2hhciAqcmV0OwpAQCAtNTQ0
+LDcgKzU0NCw3IEBACiAKIAlyZXR1cm4gMDsKIH0KLSNlbmRpZgorI2VuZGlmIC8qIFdJVEhfU0FT
+TCAqLwogCiAvKgogICogIFRha2UgYW4gaW5wdXQgc3RyaW5nIGFzIHNwZWNpZmllZCBpbiB0aGUg
+bWFzdGVyIG1hcCwgYW5kIGJyZWFrIGl0CkBAIC04MDIsNyArODAyLDcgQEAKIAkJCSAgICAgIE1P
+RFBSRUZJWCAiZXJyb3IgZm9ybWluZyBxdWVyeSBzdHJpbmciKTsKIAkJCXJldHVybiAwOwogCQl9
+Ci0JCXNjb3BlID0gTERBUF9TQ09QRV9PTkU7CisJCXNjb3BlID0gTERBUF9TQ09QRV9PTkVMRVZF
+TDsKIAl9IGVsc2UgewogCQlpZiAoc3ByaW50ZihxdWVyeSwgIihvYmplY3RjbGFzcz0lcykiLCBj
+bGFzcykgPj0gbCkgewogCQkJZGVidWcoTE9HT1BUX05PTkUsCkBAIC04ODMsNyArODgzLDcgQEAK
+IAkJcmV0dXJuIDE7CiAJfQogCi0jaWYgV0lUSF9TQVNMCisjaWZkZWYgV0lUSF9TQVNMCiAJLyoK
+IAkgKiBEZXRlcm1pbmUgd2hpY2ggYXV0aGVudGljYXRpb24gbWVjaGFuaXNtIHRvIHVzZS4gIFdl
+IHNhbml0eS0KIAkgKiBjaGVjayBieSBiaW5kaW5nIHRvIHRoZSBzZXJ2ZXIgdGVtcG9yYXJpbHku
+CkBAIC04OTUsNyArODk1LDcgQEAKIAkJZnJlZV9jb250ZXh0KGN0eHQpOwogCQlyZXR1cm4gMTsK
+IAl9Ci0jZW5kaWYKKyNlbmRpZiAvKiBXSVRIX1NBU0wgKi8KIAogCWxkYXAgPSBkb19jb25uZWN0
+KGN0eHQpOwogCWlmICghbGRhcCkgewpAQCAtMTI4MSw3ICsxMjgxLDYgQEAKIHsKIAlzdHJ1Y3Qg
+bWFwX3NvdXJjZSAqc291cmNlID0gYXAtPmVudHJ5LT5jdXJyZW50OwogCXN0cnVjdCBtYXBlbnRf
+Y2FjaGUgKm1jID0gc291cmNlLT5tYzsKLQlzdHJ1Y3QgbWFwZW50IG1lOwogCWludCBydiwgaSwg
+bCwgcWwsIGNvdW50OwogCWNoYXIgYnVmW01BWF9FUlJfQlVGXTsKIAl0aW1lX3QgYWdlID0gdGlt
+ZShOVUxMKTsKQEAgLTE1OTAsOSArMTU4OSw5IEBACiAJbWUgPSBjYWNoZV9sb29rdXAobWMsIGtl
+eSk7CiAJaWYgKG1lKSB7CiAJCXB0aHJlYWRfY2xlYW51cF9wdXNoKGNhY2hlX2xvY2tfY2xlYW51
+cCwgbWMpOwotCQltYXBlbnQgPSBhbGxvY2Eoc3RybGVuKG1lLT5tYXBlbnQpICsgMSk7Ci0JCW1h
+cGVudF9sZW4gPSBzcHJpbnRmKG1hcGVudCwgbWUtPm1hcGVudCk7Ci0JCW1hcGVudFttYXBlbnRf
+bGVuXSA9ICdcMCc7CisJCW1hcGVudF9sZW4gPSBzdHJsZW4obWUtPm1hcGVudCk7CisJCW1hcGVu
+dCA9IGFsbG9jYShtYXBlbnRfbGVuICsgMSk7CisJCXN0cmNweShtYXBlbnQsIG1lLT5tYXBlbnQp
+OwogCQlwdGhyZWFkX2NsZWFudXBfcG9wKDApOwogCX0KIAljYWNoZV91bmxvY2sobWMpOwpAQCAt
+MTYzMyw3ICsxNjMyLDcgQEAKIHsKIAlzdHJ1Y3QgbG9va3VwX2NvbnRleHQgKmN0eHQgPSAoc3Ry
+dWN0IGxvb2t1cF9jb250ZXh0ICopIGNvbnRleHQ7CiAJaW50IHJ2ID0gY2xvc2VfcGFyc2UoY3R4
+dC0+cGFyc2UpOwotI2lmIFdJVEhfU0FTTAorI2lmZGVmIFdJVEhfU0FTTAogCUVWUF9jbGVhbnVw
+KCk7CiAJRVJSX2ZyZWVfc3RyaW5ncygpOwogCmRpZmYgLXJ1IGF1dG9mcy01LjAuMS9tb2R1bGVz
+L21vdW50X25mcy5jIGF1dG9mcy01LjAuMS1wYXRjaGVkL21vZHVsZXMvbW91bnRfbmZzLmMKLS0t
+IGF1dG9mcy01LjAuMS9tb2R1bGVzL21vdW50X25mcy5jCTIwMDYtMDctMTMgMDQ6MTE6MzkuMDAw
+MDAwMDAwIC0wNDAwCisrKyBhdXRvZnMtNS4wLjEtcGF0Y2hlZC9tb2R1bGVzL21vdW50X25mcy5j
+CTIwMDYtMDctMTMgMTU6MTE6MTEuMDAwMDAwMDAwIC0wNDAwCkBAIC00Nyw3ICs0Nyw3IEBACiB7
+CiAJLyogTWFrZSBzdXJlIHdlIGhhdmUgdGhlIGxvY2FsIG1vdW50IG1ldGhvZCBhdmFpbGFibGUg
+Ki8KIAlpZiAoIW1vdW50X2JpbmQpIHsKLQkJaWYgKChtb3VudF9iaW5kID0gb3Blbl9tb3VudCgi
+YmluZCIsIE1PRFBSRUZJWCkpKTsKKwkJaWYgKChtb3VudF9iaW5kID0gb3Blbl9tb3VudCgiYmlu
+ZCIsIE1PRFBSRUZJWCkpKQogCQkJaW5pdF9jdHIrKzsKIAl9IGVsc2UKIAkJaW5pdF9jdHIrKzsK
+ZGlmZiAtcnUgYXV0b2ZzLTUuMC4xL21vZHVsZXMvcmVwbGljYXRlZC5jIGF1dG9mcy01LjAuMS1w
+YXRjaGVkL21vZHVsZXMvcmVwbGljYXRlZC5jCi0tLSBhdXRvZnMtNS4wLjEvbW9kdWxlcy9yZXBs
+aWNhdGVkLmMJMjAwNi0wNy0xMyAwNDoxMTozOS4wMDAwMDAwMDAgLTA0MDAKKysrIGF1dG9mcy01
+LjAuMS1wYXRjaGVkL21vZHVsZXMvcmVwbGljYXRlZC5jCTIwMDYtMDctMTMgMTU6Mjc6MDUuMDAw
+MDAwMDAwIC0wNDAwCkBAIC03NSw3ICs3NSw3IEBACiBzdGF0aWMgdW5zaWduZWQgaW50IGdldF9w
+cm94aW1pdHkoY29uc3QgY2hhciAqaG9zdF9hZGRyLCBpbnQgYWRkcl9sZW4pCiB7CiAJc3RydWN0
+IHNvY2thZGRyX2luICptc2tfYWRkciwgKmlmX2FkZHI7Ci0Jc3RydWN0IGluX2FkZHIgKmhfYWRk
+cjsKKwlzdHJ1Y3QgaW5fYWRkciAqaHhfYWRkcjsKIAljaGFyIHRtcFsyMF0sIGJ1ZltNQVhfRVJS
+X0JVRl0sICplc3RyLCAqcHRyOwogCXN0cnVjdCBpZmNvbmYgaWZjOwogCXN0cnVjdCBpZnJlcSAq
+aWZyLCBubXB0cjsKQEAgLTgzLDkgKzgzLDkgQEAKIAl1aW50MzJfdCBtYXNrLCBoYSwgaWE7CiAK
+IAltZW1jcHkodG1wLCBob3N0X2FkZHIsIGFkZHJfbGVuKTsKLQloX2FkZHIgPSAoc3RydWN0IGlu
+X2FkZHIgKikgdG1wOworCWh4X2FkZHIgPSAoc3RydWN0IGluX2FkZHIgKikgdG1wOwogCi0JaGEg
+PSBudG9obCgodWludDMyX3QpIGhfYWRkci0+c19hZGRyKTsKKwloYSA9IG50b2hsKCh1aW50MzJf
+dCkgaHhfYWRkci0+c19hZGRyKTsKIAogCXNvY2sgPSBzb2NrZXQoQUZfSU5FVCwgU09DS19ER1JB
+TSwgMCk7CiAJaWYgKHNvY2sgPCAwKSB7CkBAIC0xMTYsNyArMTE2LDcgQEAKIAkJc3dpdGNoIChp
+ZnItPmlmcl9hZGRyLnNhX2ZhbWlseSkgewogCQljYXNlIEFGX0lORVQ6CiAJCQlpZl9hZGRyID0g
+KHN0cnVjdCBzb2NrYWRkcl9pbiAqKSAmaWZyLT5pZnJfYWRkcjsKLQkJCXJldCA9IG1lbWNtcCgm
+aWZfYWRkci0+c2luX2FkZHIsIGhfYWRkciwgYWRkcl9sZW4pOworCQkJcmV0ID0gbWVtY21wKCZp
+Zl9hZGRyLT5zaW5fYWRkciwgaHhfYWRkciwgYWRkcl9sZW4pOwogCQkJaWYgKCFyZXQpIHsKIAkJ
+CQljbG9zZShzb2NrKTsKIAkJCQlyZXR1cm4gUFJPWElNSVRZX0xPQ0FMOwpAQCAtNjk2LDcgKzY5
+Niw3IEBACiAJc3RydWN0IGhvc3RlbnQgKnJlc3VsdDsKIAlzdHJ1Y3Qgc29ja2FkZHJfaW4gc2Fk
+ZHI7CiAJY2hhciBidWZbTUFYX0lGQ19CVUZdLCAqKmhhZGRyOwotCWludCBoX2Vycm5vLCByZXQ7
+CisJaW50IGhfZXJyLCByZXQ7CiAJc3RydWN0IGhvc3QgKm5ldzsKIAl1bnNpZ25lZCBpbnQgcHJ4
+OwogCkBAIC03MjEsMTQgKzcyMSwxNCBAQAogCW1lbXNldCgmaGUsIDAsIHNpemVvZihzdHJ1Y3Qg
+aG9zdGVudCkpOwogCiAJcmV0ID0gZ2V0aG9zdGJ5bmFtZV9yKGhvc3QsIHBoZSwKLQkJCWJ1Ziwg
+TUFYX0lGQ19CVUYsICZyZXN1bHQsICZoX2Vycm5vKTsKKwkJCWJ1ZiwgTUFYX0lGQ19CVUYsICZy
+ZXN1bHQsICZoX2Vycik7CiAJaWYgKHJldCB8fCAhcmVzdWx0KSB7Ci0JCWlmIChoX2Vycm5vID09
+IC0xKQorCQlpZiAoaF9lcnIgPT0gLTEpCiAJCQllcnJvcihMT0dPUFRfQU5ZLAogCQkJICAgICAg
+Imhvc3QgJXM6IGxvb2t1cCBmYWlsdXJlICVkIiwgaG9zdCwgZXJybm8pOwogCQllbHNlCiAJCQll
+cnJvcihMT0dPUFRfQU5ZLAotCQkJICAgICAgImhvc3QgJXM6IGxvb2t1cCBmYWlsdXJlICVkIiwg
+aG9zdCwgaF9lcnJubyk7CisJCQkgICAgICAiaG9zdCAlczogbG9va3VwIGZhaWx1cmUgJWQiLCBo
+b3N0LCBoX2Vycik7CiAJCXJldHVybiAwOwogCX0KIAo=
+------=_Part_14330_10398866.1152851439936
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -1011,5 +585,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---MIdTMoZhcV1D07fI--
+------=_Part_14330_10398866.1152851439936--
 
