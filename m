@@ -1,9 +1,9 @@
 From: "Daniel Richard G." <skunk@iskunk.org>
-Subject: Code cleanup
-Date: Thu, 13 Jul 2006 23:58:58 -0400
-Message-ID: <20060714035857.GM29064@mail.iSKUNK.ORG>
+Subject: [PATCH] Code cleanup
+Date: Fri, 14 Jul 2006 00:12:54 -0400
+Message-ID: <20060714041254.GP29064@mail.iSKUNK.ORG>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="d9ADC0YsG2v16Js0"
+Content-Type: multipart/mixed; boundary="MIdTMoZhcV1D07fI"
 Return-path: <autofs-bounces@linux.kernel.org>
 Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
@@ -19,7 +19,7 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
 
---d9ADC0YsG2v16Js0
+--MIdTMoZhcV1D07fI
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
@@ -176,7 +176,7 @@ WWW    = http://www.******.org/  ##  annoy them that do!    /   \
 --
 (****** = site not yet online)
 
---d9ADC0YsG2v16Js0
+--MIdTMoZhcV1D07fI
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: attachment; filename="autofs5-fixups.patch"
 
@@ -1000,7 +1000,7 @@ diff -ru autofs-5.0.1/modules/replicated.c autofs-5.0.1-patched/modules/replicat
  	}
  
 
---d9ADC0YsG2v16Js0
+--MIdTMoZhcV1D07fI
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -1011,5 +1011,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---d9ADC0YsG2v16Js0--
+--MIdTMoZhcV1D07fI--
 
