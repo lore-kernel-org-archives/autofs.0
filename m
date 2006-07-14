@@ -1,7 +1,10 @@
-From: Guillaume Rousse <Guillaume.Rousse@inria.fr>
-Subject: Lost patch
-Date: Thu, 03 Aug 2006 17:12:52 +0200
-Message-ID: <44D21274.9040405@inria.fr>
+From: "Gordon Lack" <gml4410@ggr.co.uk>
+Subject: Re: -hosts and -null enabling for autofs v4.1.x
+Date: Fri, 14 Jul 2006 16:58:51 +0100
+Message-ID: <44B7BF3B.7D744291@ggr.co.uk>
+References: <44AE7785.74E63D70@ggr.co.uk>
+	<x49u05laae9.fsf@segfault.boston.redhat.com>
+	<44B780FA.DC42CB24@ggr.co.uk> <x49bqrsia8r.fsf@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -16,13 +19,22 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: autofs@linux.kernel.org
 
-I tried two times already to send a patch to the list without success,
-despite they were quite small (5Kb). What is the problem ?
--- 
-Guillaume Rousse
-Projet Estime, INRIA
-Domaine de Voluceau
-Rocquencourt - B.P. 105
-78153 Le Chesnay Cedex - France
+Jeff Moyer wrote:
+>
+> Yes, you are correct.
+
+   Thanks.
+
+>                       This line in the man page is what confused me:
+> 
+>      The -null map cancels a previous map for the directory indi-
+>      cated.
+
+   Yes, it's an interesting interpretation of "previous" since the end
+of that paragraph is:
+
+>                             To be effective, the -null entries must
+>     be inserted before the included map entry.
