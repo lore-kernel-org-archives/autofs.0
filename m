@@ -1,13 +1,14 @@
-From: Erich Weiler <weiler@soe.ucsc.edu>
+From: Jeff Moyer <jmoyer@redhat.com>
 Subject: Re: AutoFS problem with OpenLDAP server
-Date: Wed, 26 Jul 2006 14:24:22 -0700
-Message-ID: <44C7DD86.5050900@soe.ucsc.edu>
-References: <44C7CF32.7030501@soe.ucsc.edu>
+Date: Wed, 26 Jul 2006 17:52:52 -0400
+Message-ID: <x49ejw8hw3v.fsf@segfault.boston.redhat.com>
+References: <44C7CF32.7030501@soe.ucsc.edu> <44C7DD86.5050900@soe.ucsc.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <44C7CF32.7030501@soe.ucsc.edu>
+In-Reply-To: <44C7DD86.5050900@soe.ucsc.edu> (Erich Weiler's message of
+	"Wed, 26 Jul 2006 14:24:22 -0700")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,91 +19,41 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
+To: Erich Weiler <weiler@soe.ucsc.edu>
 Cc: autofs@linux.kernel.org
 
-OK, I figured out that AutoFS looks at "/etc/openldap/ldap.conf" and NOT 
-"/etc/ldap.conf".  I'm one step closer.  However, when I copy my 
-ldap.conf over to /etc/openldap/ldap.conf, and do a "/etc/init.d/autofs 
-start", it still gives me the:
+==> Regarding Re: [autofs] AutoFS problem with OpenLDAP server; Erich Weiler <weiler@soe.ucsc.edu> adds:
 
-Starting automount: No Mountpoints Defined
+weiler> OK, I figured out that AutoFS looks at "/etc/openldap/ldap.conf" and NOT 
+weiler> "/etc/ldap.conf".  I'm one step closer.  However, when I copy my 
+weiler> ldap.conf over to /etc/openldap/ldap.conf, and do a "/etc/init.d/autofs 
+weiler> start", it still gives me the:
 
-Error at the command line.  I *DO* see traffic to the Openldap server 
-this time though, and in the OpenLDAP logs I see:
+weiler> Starting automount: No Mountpoints Defined
 
-ber_scanf fmt ({mm}) ber:
-ber_scanf fmt ({mm}) ber:
-     filter: (&(?=undefined)(?=undefined))
-ber_scanf fmt ({M}}) ber:
-     attrs: automountMapName automountInformation
+weiler> Error at the command line.  I *DO* see traffic to the Openldap server 
+weiler> this time though, and in the OpenLDAP logs I see:
+
+weiler> ber_scanf fmt ({mm}) ber:
+weiler> ber_scanf fmt ({mm}) ber:
+weiler>      filter: (&(?=undefined)(?=undefined))
+weiler> ber_scanf fmt ({M}}) ber:
+weiler>      attrs: automountMapName automountInformation
 ==> limits_get: conn=10642 op=6 dn="[anonymous]"
-=> bdb_search
-bdb_dn2entry("dc=domain,dc=com")
+weiler> => bdb_search
+weiler> bdb_dn2entry("dc=domain,dc=com")
 
-So it looks like the automounter is searching for "automountMapName" and 
-"automountInformation".  Which is bad, because my maps are in the form 
-of "nisMapName" and "nisMapEntry".  Does anyone know if there is an easy 
-way to tell the automounter to look for the other attributes?  Or do I 
-have to try to set up some kind of aliasing on my OpenLDAP server?
+weiler> So it looks like the automounter is searching for
+weiler> "automountMapName" and "automountInformation".  Which is bad,
+weiler> because my maps are in the form of "nisMapName" and "nisMapEntry".
+weiler> Does anyone know if there is an easy way to tell the automounter to
+weiler> look for the other attributes?  Or do I have to try to set up some
+weiler> kind of aliasing on my OpenLDAP server?
 
-Thanks for your patience with me!
+The autofs init script in autofs v4 will invoke a command,
+autofs-ldap-auto-master, to determine if there is an auto.master available
+on your ldap server.  It should try 3 schemas before giving up.
 
-ciao, erich
+You didn't mention whether you actually had an auto.master in ldap.  Do you?
 
-Erich Weiler wrote:
-> Greetings all-
-> 
-> I have a strange problem with AutoFS under Fedora Core 5.  Can't seem to 
-> automount via ldap the way I should be able to.  If I have:
-> 
-> automount: files ldap
-> 
-> in /etc/nsswitch.conf, and have:
-> 
-> /projects 
-> ldap://ldapserver.domain.com/nisMapName=auto.projects,dc=domain,dc=com
-> 
-> in /etc/auto.master, everything works.  However, I don't want my clients 
-> to be configured this way because I have two redundant OpenLDAP servers 
-> and would like AutoFS to automatically try a second LDAP server if the 
-> first one goes down.  So I put this in /etc/nsswitch.conf:
-> 
-> automount: ldap
-> 
-> and tried to restart AutoFS, and got the error:
-> 
-> [root@sunbright default]# /etc/init.d/autofs start
-> Starting automount: No Mountpoints Defined                 [  OK  ]
-> [root@sunbright default]#
-> 
-> But there ARE automount maps in OpenLDAP, as the first method works.  If 
-> I try the "automount" command manually, I get this in the logs:
-> 
-> Jul 26 13:06:34 sunbright automount[22965]: starting automounter version 
-> 4.1.4-19, path = /projects, maptype = ldap, mapname = 
-> nisMapName=auto.projects,dc=domain,dc=com
-> Jul 26 13:06:34 starbright automount[22965]: lookup(ldap): couldn't bind 
-> to default server
-> 
-> The server does accept anonymous lookups.  I even watched the traffic 
-> (via tcpdump) from the client to the server and there was no traffic at 
-> all!  Seems the client isn't even trying to contact any of my LDAP servers.
-> 
-> Does anyone have any ideas as to what's happening?  Like I said I would 
-> like the automounter to try each of my 3 servers in order listed in 
-> /etc/ldap.conf, so manually specifying one server in /etc/auto.master 
-> isn't very appealing...
-> 
-> Thanks in advance for any insight!
-> 
-> ciao, erich
-> 
-
--- 
-===================================
-Erich Weiler
-UNIX Systems Administrator
-School of Engineering
-University of California Santa Cruz
-weiler@soe.ucsc.edu
-===================================
+-Jeff
