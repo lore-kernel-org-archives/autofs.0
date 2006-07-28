@@ -1,13 +1,15 @@
-From: Bernd Petrovitsch <bernd@firmix.at>
+From: "Daniel Richard G." <skunk@iskunk.org>
 Subject: Re: Code cleanup
-Date: Fri, 28 Jul 2006 11:25:48 +0200
-Message-ID: <1154078748.3094.7.camel@gimli.at.home>
+Date: Fri, 28 Jul 2006 10:50:37 -0400
+Message-ID: <20060728145037.GS19452@mail.iSKUNK.ORG>
 References: <20060714035857.GM29064@mail.iSKUNK.ORG>
+	<1154078748.3094.7.camel@gimli.at.home>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20060714035857.GM29064@mail.iSKUNK.ORG>
+Content-Disposition: inline
+In-Reply-To: <1154078748.3094.7.camel@gimli.at.home>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,19 +22,30 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-On Thu, 2006-07-13 at 23:58 -0400, Daniel Richard G. wrote:
-[...]
-> (various files):
+On Fri, 2006 Jul 28 11:25:48 +0200, Bernd Petrovitsch wrote:
+> On Thu, 2006-07-13 at 23:58 -0400, Daniel Richard G. wrote:
+> > 
+> > * Don't use "#if WITH_FOO", as this produces a warning if WITH_FOO is 
+> >   undefined. Use "#ifdef".
 > 
-> * Don't use "#if WITH_FOO", as this produces a warning if WITH_FOO is 
->   undefined. Use "#ifdef".
+> Personally I would define them to always have a value (be it "0" or "1"
+> for "false" and "true") - and set them correctly in a .h file or
+> Makefile - so you catch typos using them.
 
-Personally I would define them to always have a value (be it "0" or "1"
-for "false" and "true") - and set them correctly in a .h file or
-Makefile - so you catch typos using them.
+There are tradeoffs with the two approaches. I believe autoconf settled on 
+#define/#undef/#ifdef to allow easy re-use of source files in different 
+environments/contexts, as you don't have to #define all the macros that a 
+source file uses to get a clean build. (The ubiquitous "#ifdef 
+HAVE_CONFIG_H" clause also serves the same end.)
 
-	Bernd
+
+--Daniel
+
+
 -- 
-Firmix Software GmbH                   http://www.firmix.at/
-mobil: +43 664 4416156                 fax: +43 1 7890849-55
-          Embedded Linux Development and Services
+NAME   = Daniel Richard G.       ##  Remember, skunks       _\|/_  meef?
+EMAIL1 = skunk@iskunk.org        ##  don't smell bad---    (/o|o\) /
+EMAIL2 = skunk@alum.mit.edu      ##  it's the people who   < (^),>
+WWW    = http://www.******.org/  ##  annoy them that do!    /   \
+--
+(****** = site not yet online)
