@@ -1,15 +1,10 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: automounter w/ LDAP redundant servers
-Date: Thu, 03 Aug 2006 12:17:10 +0800
-Message-ID: <1154578630.6629.1.camel@raven.themaw.net>
-References: <44D0088A.2090009@soe.ucsc.edu>
-	<1154545348.26912.3.camel@raven.themaw.net>
-	<44D129DF.20004@soe.ucsc.edu>
+From: =?ISO-8859-2?Q?Ji=F8=ED_=C8ervenka?= <cervenka@sps-pi.cz>
+Subject: How to set more than one mountmaps for one mountpoint?
+Date: Thu, 03 Aug 2006 10:03:57 +0200
+Message-ID: <44D1ADED.9030706@sps-pi.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <44D129DF.20004@soe.ucsc.edu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,20 +15,31 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Erich Weiler <weiler@soe.ucsc.edu>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+To: autofs@linux.kernel.org
 
-On Wed, 2006-08-02 at 15:40 -0700, Erich Weiler wrote:
-> > So
-> > ldap://server1 server2/.....
-> > 
-> > should work since the ldap_init call, I believe, will take such an
-> > argument. But then we need to check that autofs isn't getting in the
-> > road when it reads the ldap string to start with.
-> 
-> Sounds fantastic!  How can we check that?  :)
+Hello,
+I=B4m trying to automatically mount homedirectories that are stored on =
 
-I think that putting more than one server in and running autofs with the
-debug option then checking the log may reveal what we need.
+w2k3 server using autofs.Homedirectories are exported using SFU and NFS =
 
-Ian
+server.
+Directory structure looks like this:
+
+g:\class1\user1\
+g:\class1\user2\
+g:\class2\user3\
+etc.
+
+All user=B4s homedirectories are on linux stations stored in /home/user1/ =
+
+and this is why I need to define more mountmaps for one mountpoint.
+I tried several different configuration that should make this possible =
+
+but with no success.
+So my question is:
+Is there a way how to set more mountmaps for one mountpoint?
+Or is there a way how to make autofs to search all subdirectories in =
+
+defined directory to find user=B4s homedir?
+Thank you for help.
