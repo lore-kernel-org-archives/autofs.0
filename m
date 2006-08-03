@@ -1,14 +1,15 @@
-From: Erich Weiler <weiler@soe.ucsc.edu>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: automounter w/ LDAP redundant servers
-Date: Wed, 02 Aug 2006 15:40:31 -0700
-Message-ID: <44D129DF.20004@soe.ucsc.edu>
+Date: Thu, 03 Aug 2006 12:17:10 +0800
+Message-ID: <1154578630.6629.1.camel@raven.themaw.net>
 References: <44D0088A.2090009@soe.ucsc.edu>
 	<1154545348.26912.3.camel@raven.themaw.net>
+	<44D129DF.20004@soe.ucsc.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1154545348.26912.3.camel@raven.themaw.net>
+In-Reply-To: <44D129DF.20004@soe.ucsc.edu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,18 +20,20 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
+To: Erich Weiler <weiler@soe.ucsc.edu>
 Cc: autofs@linux.kernel.org
 
-> So
-> ldap://server1 server2/.....
+On Wed, 2006-08-02 at 15:40 -0700, Erich Weiler wrote:
+> > So
+> > ldap://server1 server2/.....
+> > 
+> > should work since the ldap_init call, I believe, will take such an
+> > argument. But then we need to check that autofs isn't getting in the
+> > road when it reads the ldap string to start with.
 > 
-> should work since the ldap_init call, I believe, will take such an
-> argument. But then we need to check that autofs isn't getting in the
-> road when it reads the ldap string to start with.
+> Sounds fantastic!  How can we check that?  :)
 
-Sounds fantastic!  How can we check that?  :)
+I think that putting more than one server in and running autofs with the
+debug option then checking the log may reveal what we need.
 
-Thanks very much for responding, btw.
-
-ciao, erich
+Ian
