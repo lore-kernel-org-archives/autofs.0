@@ -1,15 +1,10 @@
-From: "Daniel Richard G." <skunk@iskunk.org>
-Subject: Re: [PATCH] More autofs cleanup
-Date: Mon, 14 Aug 2006 12:21:13 -0400
-Message-ID: <20060814162112.GK1695@mail.iSKUNK.ORG>
-References: <20060811023733.GC26249@mail.iSKUNK.ORG>
-	<x4964gv7br4.fsf@segfault.boston.devel.redhat.com>
+From: csarid <csarid@yahoo.com>
+Subject: Cannot see automount point subdirecties
+Date: Mon, 14 Aug 2006 09:43:42 -0700 (PDT)
+Message-ID: <20060814164342.3014.qmail@web56408.mail.re3.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============7996781023693172417=="
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <x4964gv7br4.fsf@segfault.boston.devel.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,56 +17,55 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-On Mon, 2006 Aug 14 08:17:03 -0400, Jeff Moyer wrote:
->  		pthread_cleanup_push(cache_lock_cleanup, mc);
-> -		mapent = alloca(strlen(me->mapent) + 1);
-> -		mapent_len = sprintf(mapent, me->mapent);
-> +		mapent_len = strlen(me->mapent);
-> +		mapent = alloca(mapent_len + 1);
-> +		strcpy(mapent, me->mapent);
->  		pthread_cleanup_pop(0);
-> -		mapent[mapent_len] = '\0';
->  	}
->  done:
->  	cache_unlock(mc);
-> 
-> This is just a refactoring of code with no real gain.  The previous usage
-> was correct.
+--===============7996781023693172417==
+Content-Type: multipart/alternative; boundary="0-1038627588-1155573822=:3012"
 
-Well, there were some problems with the previous code...
+--0-1038627588-1155573822=:3012
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+X-MIME-Autoconverted: from 8bit to quoted-printable by hera.kernel.org id k7G8Li2X022508
 
-1. It passes a variable format string to sprintf()---the cause of the 
-   original warning, and a potential crash/security bug. (What happens if 
-   me->mapent contains instances of "%s"?)
+Hello,
+  =20
+  I am running linux kernal version 2.4 automounting files using nis. The=
+ issue is that after I, for instanced "cd /programs" and then do an "ls -=
+la" no subdirectories showup unless I explicitly change directory to a su=
+bdirectory. Otherwise, no files or directories are listed.=20
+  =20
+  Thanks!
 
-2. It takes the length of me->mapent twice. (Not something I addressed,
-   but if you're okay with it, you could change that strcpy() into a 
-   memcpy())
+ 	=09
+---------------------------------
+Talk is cheap. Use Yahoo! Messenger to make PC-to-Phone calls.  Great rat=
+es starting at 1=A2/min.
+--0-1038627588-1155573822=:3012
+Content-Type: text/html; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+X-MIME-Autoconverted: from 8bit to quoted-printable by hera.kernel.org id k7G8Li2X022508
 
-3. In general, it was less clear/straightforward than it could have been. 
-   There are times when it's useful to grab the return value of sprintf(), 
-   but here, it's pointless (and unsafe...)
-
-
-> As Ian mentioned before, posting patches inline makes it easier to quote in
-> the reply (at least for my arcane mailer.  ;).
-
-Understood. My experience has been that things in the main body tend to get 
-mangled, but here I see that's not a problem.
-
-> The rest up to this point looks pretty good to me.  Thanks a bunch for
-> doing this!
-
-Sure thing :)
+<div>Hello,</div>  <div>&nbsp;</div>  <div>I am running linux kernal vers=
+ion 2.4 automounting files using nis. The issue is that after I, for inst=
+anced "cd /programs" and then do an "ls -la" no subdirectories showup unl=
+ess I explicitly change directory to a subdirectory. Otherwise, no files =
+or directories are listed. </div>  <div>&nbsp;</div>  <div>Thanks!</div><=
+p>&#32;
+		<hr size=3D1>Talk is cheap. Use Yahoo! Messenger to make PC-to-Phone ca=
+lls. <a href=3D"http://us.rd.yahoo.com/mail_us/taglines/postman7/*http://=
+us.rd.yahoo.com/evt=3D39666/*http://messenger.yahoo.com"> Great rates sta=
+rting at 1=A2/min.
+--0-1038627588-1155573822=:3012--
 
 
---Daniel
+--===============7996781023693172417==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
 
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
 
--- 
-NAME   = Daniel Richard G.       ##  Remember, skunks       _\|/_  meef?
-EMAIL1 = skunk@iskunk.org        ##  don't smell bad---    (/o|o\) /
-EMAIL2 = skunk@alum.mit.edu      ##  it's the people who   < (^),>
-WWW    = http://www.******.org/  ##  annoy them that do!    /   \
---
-(****** = site not yet online)
+--===============7996781023693172417==--
+
