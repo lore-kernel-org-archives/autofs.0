@@ -1,14 +1,15 @@
-From: Jeff Moyer <jmoyer@redhat.com>
+From: "Daniel Richard G." <skunk@iskunk.org>
 Subject: Re: [PATCH] More autofs cleanup
-Date: Mon, 14 Aug 2006 08:17:03 -0400
-Message-ID: <x4964gv7br4.fsf@segfault.boston.devel.redhat.com>
+Date: Mon, 14 Aug 2006 12:21:13 -0400
+Message-ID: <20060814162112.GK1695@mail.iSKUNK.ORG>
 References: <20060811023733.GC26249@mail.iSKUNK.ORG>
+	<x4964gv7br4.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20060811023733.GC26249@mail.iSKUNK.ORG> (Daniel Richard G.'s
-	message of "Thu, 10 Aug 2006 22:37:33 -0400")
+Content-Disposition: inline
+In-Reply-To: <x4964gv7br4.fsf@segfault.boston.devel.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,41 +20,58 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: "Daniel Richard G." <skunk@iskunk.org>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-==> Regarding [autofs] [PATCH] More autofs cleanup; "Daniel Richard G." <skunk@iskunk.org> adds:
+On Mon, 2006 Aug 14 08:17:03 -0400, Jeff Moyer wrote:
+>  		pthread_cleanup_push(cache_lock_cleanup, mc);
+> -		mapent = alloca(strlen(me->mapent) + 1);
+> -		mapent_len = sprintf(mapent, me->mapent);
+> +		mapent_len = strlen(me->mapent);
+> +		mapent = alloca(mapent_len + 1);
+> +		strcpy(mapent, me->mapent);
+>  		pthread_cleanup_pop(0);
+> -		mapent[mapent_len] = '\0';
+>  	}
+>  done:
+>  	cache_unlock(mc);
+> 
+> This is just a refactoring of code with no real gain.  The previous usage
+> was correct.
 
-skunk> Hello list, Finally built and semi-figured-out git. A few more
-skunk> wrinkles ironed out in this patch.
+Well, there were some problems with the previous code...
 
-skunk> modules/lookup_hosts.c:
+1. It passes a variable format string to sprintf()---the cause of the 
+   original warning, and a potential crash/security bug. (What happens if 
+   me->mapent contains instances of "%s"?)
 
-skunk> * Fixed more weirdness of using sprintf()'s return value.
+2. It takes the length of me->mapent twice. (Not something I addressed,
+   but if you're okay with it, you could change that strcpy() into a 
+   memcpy())
 
-@@ -170,10 +172,10 @@ int lookup_mount(struct autofs_point *ap
- 	 */
- 	if (*name == '/') {
- 		pthread_cleanup_push(cache_lock_cleanup, mc);
--		mapent = alloca(strlen(me->mapent) + 1);
--		mapent_len = sprintf(mapent, me->mapent);
-+		mapent_len = strlen(me->mapent);
-+		mapent = alloca(mapent_len + 1);
-+		strcpy(mapent, me->mapent);
- 		pthread_cleanup_pop(0);
--		mapent[mapent_len] = '\0';
- 	}
- done:
- 	cache_unlock(mc);
-
-This is just a refactoring of code with no real gain.  The previous usage
-was correct.
-
-As Ian mentioned before, posting patches inline makes it easier to quote in
-the reply (at least for my arcane mailer.  ;).
+3. In general, it was less clear/straightforward than it could have been. 
+   There are times when it's useful to grab the return value of sprintf(), 
+   but here, it's pointless (and unsafe...)
 
 
-The rest up to this point looks pretty good to me.  Thanks a bunch for
-doing this!
+> As Ian mentioned before, posting patches inline makes it easier to quote in
+> the reply (at least for my arcane mailer.  ;).
 
--Jeff
+Understood. My experience has been that things in the main body tend to get 
+mangled, but here I see that's not a problem.
+
+> The rest up to this point looks pretty good to me.  Thanks a bunch for
+> doing this!
+
+Sure thing :)
+
+
+--Daniel
+
+
+-- 
+NAME   = Daniel Richard G.       ##  Remember, skunks       _\|/_  meef?
+EMAIL1 = skunk@iskunk.org        ##  don't smell bad---    (/o|o\) /
+EMAIL2 = skunk@alum.mit.edu      ##  it's the people who   < (^),>
+WWW    = http://www.******.org/  ##  annoy them that do!    /   \
+--
+(****** = site not yet online)
