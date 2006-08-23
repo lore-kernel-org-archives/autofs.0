@@ -1,16 +1,18 @@
 From: Guillaume Rousse <Guillaume.Rousse@inria.fr>
-Subject: Re: autofs5: unable to locate ldap master map
-Date: Wed, 23 Aug 2006 15:43:21 +0200
-Message-ID: <44EC5B79.4050102@inria.fr>
-References: <44A25311.2040501@inria.fr>	
-	<1151554184.2929.45.camel@raven.themaw.net>
-	<44A3B6CD.5030403@inria.fr>
-	<1151585997.3915.36.camel@raven.themaw.net>
+Subject: Re: Lost patch
+Date: Wed, 23 Aug 2006 16:26:57 +0200
+Message-ID: <44EC65B1.2060109@inria.fr>
+References: <44D21274.9040405@inria.fr>
+	<1154699891.25506.0.camel@raven.themaw.net>
+	<44D3536A.6060502@inria.fr>
+	<1154934063.11586.3.camel@raven.themaw.net>
+	<44E9C785.5000104@inria.fr>
+	<Pine.LNX.4.64.0608231113200.2954@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1151585997.3915.36.camel@raven.themaw.net>
+In-Reply-To: <Pine.LNX.4.64.0608231113200.2954@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,246 +26,192 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
 Ian Kent wrote:
-> On Thu, 2006-06-29 at 13:17 +0200, Guillaume Rousse wrote:
->>>> 2) using nss-based master map lookup, by using "/usr/sbin/automount
->>>> name-without-path", and insert a "ldap" value in "automount" line in
->>>> "/etc/nsswitch.conf"
->>> Yep. Or just use the default name which is auto.master.
->> Right (according to include/default.h), but then man page template has
->> to be corrected: it gives "@autofsmapdir@@/auto.master" as default.
+> On Mon, 21 Aug 2006, Guillaume Rousse wrote:
 > 
-> Oops. I'll fix that.
-Here is the patch, quite longue because the file is renamed now that no
-substitution is needed anymore.
+>> Ian Kent wrote:
+>>> Please don't send patches as attachments put them in-line with the mail.
+>>> It's a pain reply with comments.
+>> OK. It's a bit more difficult to ensure patch integrity, but here is it
+>> again:
+> 
+> OK. I'll merge it during the next round of cleanups.
+> 
+> Have you tested this?
+Actually not, otherwise I would have noticed I've been confused between
+redhat/ and samples/ directories :/. Is this really useful to keep
+redhat-specific stuff there ?
 
-diff -Naur autofs-5.0.1/man/automount.8
-autofs-5.0.1.fix-man-page/man/automount.8
---- autofs-5.0.1/man/automount.8	1970-01-01 01:00:00.000000000 +0100
-+++ autofs-5.0.1.fix-man-page/man/automount.8	2006-08-23
-13:52:26.000000000 +0200
-@@ -0,0 +1,107 @@
-+.\" Linux man page by B. James Phillippe, 1997 <bryan@Terran.ORG>
-+.\"
-+.\" This page was written to contribute to the Linux kernel autofs
-+.\" implementation by H. Peter Anvin (1997).  It is loosly based on
-+.\" the documentation for mount(8) and amd(8) Linux manpages.
-+.\"
-+.\" This is free documentation.
-+.\"
-+.\" $Id: automount.8,v 1.8 2004/11/20 13:54:39 raven Exp $
-+.\"
-+.TH AUTOMOUNT 8 "12 Apr 2006"
-+.SH NAME
-+automount \- manage autofs mount points
-+.SH SYNOPSIS
-+\fBautomount\fP [\fIoptions\fP] [\fImaster_map\fP]
-+.SH DESCRIPTION
-+The \fBautomount\fP program is used to manage mount points for
-+autofs, the inlined Linux automounter.  \fBautomount\fP works by
-+reading the
-+.nh
-+.BR auto.master (8)
-+.hy
-+map and sets up mount points for each entry in the master map allowing
-+them to be automatically mounted when accessed. The file systems are
-+then automatically umounted after a period of inactivity.
-+.SH OPTIONS
-+.TP
-+.I "\-h, \-\-help"
-+Print brief help on program usage.
-+.TP
-+.I "\-p, \-\-pid-file"
-+Write the pid of the daemon to the specified file.
-+.TP
-+.I "\-t, \-\-timeout"
-+Set the global minimum timeout, in seconds, until directories
-+are unmounted. The default is 10 minutes. Setting the timeout
-+to zero disables umounts completely.
-+.TP
-+.I "\-v, \-\-verbose"
-+Enables logging of general status and progress messages for all
-+autofs managed mounts.
-+.TP
-+.I "\-d, \-\-debug"
-+Enables logging of general status and progress messages as well as
-+debuging messages for all autofs managed mounts.
-+.TP
-+.I "\-Dvariable=value"
-+Define a global macro substitution variable. Global definitions
-+are over-ridden macro definitions of the same name specified in
-+mount entries.
-+.TP
-+.I "\-V, \-\-version"
-+Display the version number, then exit.
-+.SH ARGUMENTS
-+\fBautomount\fP takes one optional argument, the name of the master map to
-+use.
-+.TP
-+\fBmaster_map\fP
-+Location for autofs master map that defines autofs managed mount points
-+and the mount maps they will use. The default is
-+.nh
-+\fBauto.master\fP.
-+.hy
-+.RE
-+.SH NOTES
-+If the \fBautomount\fP daemon catches a USR1 signal, it will umount all
-+currently unused autofs managed mounted file systems and continue running
-+(forced expire).  If it catches the TERM signal it will umount
-+all unused autofs managed mounted file systems and exit if there are
-+no remaining busy file systems. If autofs has been compiled with the
-+option to ignore busy mounts on exit it will exit leaving any busy
-+mounts in place otherwise busy file systems will not be umounted
-+and autofs will not exit.
-+Alternatively, if autofs has been compiled with the option to enable
-+forced shutdown then a USR2 signal to the daemon will cause all
-+mounts to be umounted and any busy mounts to be forcibly umounted,
-+including autofs mount point directories (summary execution). Note
-+that the forced umount is an unlink operation and the actual umount
-+will not happen in the kernel until active file handles are released.
-+The daemon also responds to a HUP signal which triggers an update of
-+the maps for each mount point.
-+.P
-+If any autofs mount point directories are busy when the daemon is sent
-+an exit signal the daemon will not exit. The exception to this is
-+if autofs has been built with configure options to either ignore busy
-+mounts at exit or force umount at exit. If the ignore busy mounts at
-+exit option is used the filesystems will be left in a catatonic
-+(non-functional) state and can be manually umounted when they become
-+unused. If the force umount at exit option is used the filesystems
-+will be umounted but the mount will not be released by the kernel
-+until they are no longer in use by the processes that held them busy.
-+If automount managed filesystems are found mounted when autofs is
-+started they will be recoverd unless they are no longer present in
-+the map in which case they need to umounted manually.
-+.SH "SEE ALSO"
-+.BR autofs (5),
-+.BR mount (8).
-+.SH BUGS
-+Don't know, I've fixed everything I know about.
-+
-+The documentation could be better.
-+
-+Please report other bugs along with a detailed description to
-+<autofs@linux.kernel.org>. For instructions on how to join the list
-+and for archives visit http://linux.kernel.org/mailman/listinfo/autofs
-+.SH AUTHOR
-+H. Peter Anvin <hpa@transmeta.com> and Ian Kent <raven@themaw.net>.
-diff -Naur autofs-5.0.1/man/automount.8.in
-autofs-5.0.1.fix-man-page/man/automount.8.in
---- autofs-5.0.1/man/automount.8.in	2006-07-13 10:11:39.000000000 +0200
-+++ autofs-5.0.1.fix-man-page/man/automount.8.in	1970-01-01
-01:00:00.000000000 +0100
-@@ -1,107 +0,0 @@
--.\" Linux man page by B. James Phillippe, 1997 <bryan@Terran.ORG>
--.\"
--.\" This page was written to contribute to the Linux kernel autofs
--.\" implementation by H. Peter Anvin (1997).  It is loosly based on
--.\" the documentation for mount(8) and amd(8) Linux manpages.
--.\"
--.\" This is free documentation.
--.\"
--.\" $Id: automount.8,v 1.8 2004/11/20 13:54:39 raven Exp $
--.\"
--.TH AUTOMOUNT 8 "12 Apr 2006"
--.SH NAME
--automount \- manage autofs mount points
--.SH SYNOPSIS
--\fBautomount\fP [\fIoptions\fP] [\fImaster_map\fP]
--.SH DESCRIPTION
--The \fBautomount\fP program is used to manage mount points for
--autofs, the inlined Linux automounter.  \fBautomount\fP works by
--reading the
--.nh
--.BR auto.master (8)
--.hy
--map and sets up mount points for each entry in the master map allowing
--them to be automatically mounted when accessed. The file systems are
--then automatically umounted after a period of inactivity.
--.SH OPTIONS
--.TP
--.I "\-h, \-\-help"
--Print brief help on program usage.
--.TP
--.I "\-p, \-\-pid-file"
--Write the pid of the daemon to the specified file.
--.TP
--.I "\-t, \-\-timeout"
--Set the global minimum timeout, in seconds, until directories
--are unmounted. The default is 10 minutes. Setting the timeout
--to zero disables umounts completely.
--.TP
--.I "\-v, \-\-verbose"
--Enables logging of general status and progress messages for all
--autofs managed mounts.
--.TP
--.I "\-d, \-\-debug"
--Enables logging of general status and progress messages as well as
--debuging messages for all autofs managed mounts.
--.TP
--.I "\-Dvariable=value"
--Define a global macro substitution variable. Global definitions
--are over-ridden macro definitions of the same name specified in
--mount entries.
--.TP
--.I "\-V, \-\-version"
--Display the version number, then exit.
--.SH ARGUMENTS
--\fBautomount\fP takes one optional argument, the name of the master map to
--use.
--.TP
--\fBmaster_map\fP
--Location for autofs master map that defines autofs managed mount points
--and the mount maps they will use. The default is
--.nh
--\fB@@autofsmapdir@@/auto.master\fP.
--.hy
--.RE
--.SH NOTES
--If the \fBautomount\fP daemon catches a USR1 signal, it will umount all
--currently unused autofs managed mounted file systems and continue running
--(forced expire).  If it catches the TERM signal it will umount
--all unused autofs managed mounted file systems and exit if there are
--no remaining busy file systems. If autofs has been compiled with the
--option to ignore busy mounts on exit it will exit leaving any busy
--mounts in place otherwise busy file systems will not be umounted
--and autofs will not exit.
--Alternatively, if autofs has been compiled with the option to enable
--forced shutdown then a USR2 signal to the daemon will cause all
--mounts to be umounted and any busy mounts to be forcibly umounted,
--including autofs mount point directories (summary execution). Note
--that the forced umount is an unlink operation and the actual umount
--will not happen in the kernel until active file handles are released.
--The daemon also responds to a HUP signal which triggers an update of
--the maps for each mount point.
--.P
--If any autofs mount point directories are busy when the daemon is sent
--an exit signal the daemon will not exit. The exception to this is
--if autofs has been built with configure options to either ignore busy
--mounts at exit or force umount at exit. If the ignore busy mounts at
--exit option is used the filesystems will be left in a catatonic
--(non-functional) state and can be manually umounted when they become
--unused. If the force umount at exit option is used the filesystems
--will be umounted but the mount will not be released by the kernel
--until they are no longer in use by the processes that held them busy.
--If automount managed filesystems are found mounted when autofs is
--started they will be recoverd unless they are no longer present in
--the map in which case they need to umounted manually.
--.SH "SEE ALSO"
--.BR autofs (5),
--.BR mount (8).
--.SH BUGS
--Don't know, I've fixed everything I know about.
--
--The documentation could be better.
--
--Please report other bugs along with a detailed description to
--<autofs@linux.kernel.org>. For instructions on how to join the list
--and for archives visit http://linux.kernel.org/mailman/listinfo/autofs
--.SH AUTHOR
--H. Peter Anvin <hpa@transmeta.com> and Ian Kent <raven@themaw.net>.
+Here is a corrected version that just change the DEFAULT_ prefixes
+without altering default values, as it needs further discussion:
+diff -Naur autofs-5.0.1/lib/defaults.c
+autofs-5.0.1-drop-default-profix-from-config/lib/defaults.c
+--- autofs-5.0.1/lib/defaults.c	2006-07-13 10:11:38.000000000 +0200
++++ autofs-5.0.1-drop-default-profix-from-config/lib/defaults.c
+2006-08-23 14:21:55.000000000 +0200
+@@ -24,21 +24,21 @@
+ #define DEFAULTS_CONFIG_FILE		AUTOFS_CONF_DIR "/autofs"
+ #define MAX_LINE_LEN			256
 
-Tested, it works.
+-#define ENV_NAME_MASTER_MAP		"DEFAULT_MASTER_MAP_NAME"
++#define ENV_NAME_MASTER_MAP		"MASTER_MAP_NAME"
+
+-#define ENV_NAME_TIMEOUT		"DEFAULT_TIMEOUT"
+-#define ENV_NAME_BROWSE_MODE		"DEFAULT_BROWSE_MODE"
+-#define ENV_NAME_LOGGING		"DEFAULT_LOGGING"
++#define ENV_NAME_TIMEOUT		"TIMEOUT"
++#define ENV_NAME_BROWSE_MODE		"BROWSE_MODE"
++#define ENV_NAME_LOGGING		"LOGGING"
+
+-#define ENV_LDAP_SERVER			"DEFAULT_LDAP_SERVER"
++#define ENV_LDAP_SERVER			"LDAP_SERVER"
+
+-#define ENV_NAME_MAP_OBJ_CLASS		"DEFAULT_MAP_OBJECT_CLASS"
+-#define ENV_NAME_ENTRY_OBJ_CLASS	"DEFAULT_ENTRY_OBJECT_CLASS"
+-#define ENV_NAME_MAP_ATTR		"DEFAULT_MAP_ATTRIBUTE"
+-#define ENV_NAME_ENTRY_ATTR		"DEFAULT_ENTRY_ATTRIBUTE"
+-#define ENV_NAME_VALUE_ATTR		"DEFAULT_VALUE_ATTRIBUTE"
++#define ENV_NAME_MAP_OBJ_CLASS		"MAP_OBJECT_CLASS"
++#define ENV_NAME_ENTRY_OBJ_CLASS	"ENTRY_OBJECT_CLASS"
++#define ENV_NAME_MAP_ATTR		"MAP_ATTRIBUTE"
++#define ENV_NAME_ENTRY_ATTR		"ENTRY_ATTRIBUTE"
++#define ENV_NAME_VALUE_ATTR		"VALUE_ATTRIBUTE"
+
+-#define ENV_AUTH_CONF_FILE		"DEFAULT_AUTH_CONF_FILE"
++#define ENV_AUTH_CONF_FILE		"AUTH_CONF_FILE"
+
+ static const char *default_master_map_name = DEFAULT_MASTER_MAP_NAME;
+
+diff -Naur autofs-5.0.1/samples/autofs.conf.default.in
+autofs-5.0.1-drop-default-profix-from-config/samples/autofs.conf.default.in
+--- autofs-5.0.1/samples/autofs.conf.default.in	2006-07-13
+10:11:39.000000000 +0200
++++
+autofs-5.0.1-drop-default-profix-from-config/samples/autofs.conf.default.in
+2006-08-23 14:22:24.000000000 +0200
+@@ -1,50 +1,50 @@
+ #
+ # Define default options for autofs.
+ #
+-# DEFAULT_MASTER_MAP_NAME - default map name for the master map.
++# MASTER_MAP_NAME - default map name for the master map.
+ #
+-#DEFAULT_MASTER_MAP_NAME="auto.master"
++#MASTER_MAP_NAME="auto.master"
+ #
+-# DEFAULT_TIMEOUT - set the default mount timeout (default 600).
++# TIMEOUT - set the default mount timeout (default 600).
+ #
+-DEFAULT_TIMEOUT=300
++TIMEOUT=300
+ #
+-# DEFAULT_BROWSE_MODE - maps are browsable by default.
++# BROWSE_MODE - maps are browsable by default.
+ #
+-DEFAULT_BROWSE_MODE="no"
++BROWSE_MODE="no"
+ #
+-# DEFAULT_LOGGING - set default log level "none", "verbose" or "debug"
++# LOGGING - set default log level "none", "verbose" or "debug"
+ #
+-#DEFAULT_LOGGING="none"
++#LOGGING="none"
+ #
+ # Define the default LDAP schema to use for lookups
+ #
+ # System default
+ #
+-#DEFAULT_MAP_OBJECT_CLASS="nisMap"
+-#DEFAULT_ENTRY_OBJECT_CLASS="nisObject"
+-#DEFAULT_MAP_ATTRIBUTE="nisMapName"
+-#DEFAULT_ENTRY_ATTRIBUTE="cn"
+-#DEFAULT_VALUE_ATTRIBUTE="nisMapEntry"
++#MAP_OBJECT_CLASS="nisMap"
++#ENTRY_OBJECT_CLASS="nisObject"
++#MAP_ATTRIBUTE="nisMapName"
++#ENTRY_ATTRIBUTE="cn"
++#VALUE_ATTRIBUTE="nisMapEntry"
+ #
+ # Other common LDAP nameing
+ #
+-#DEFAULT_MAP_OBJECT_CLASS="automountMap"
+-#DEFAULT_ENTRY_OBJECT_CLASS="automount"
+-#DEFAULT_MAP_ATTRIBUTE="ou"
+-#DEFAULT_ENTRY_ATTRIBUTE="cn"
+-#DEFAULT_VALUE_ATTRIBUTE="automountInformation"
+-#
+-#DEFAULT_MAP_OBJECT_CLASS="automountMap"
+-#DEFAULT_ENTRY_OBJECT_CLASS="automount"
+-#DEFAULT_MAP_ATTRIBUTE="automountMapName"
+-#DEFAULT_ENTRY_ATTRIBUTE="automountKey"
+-#DEFAULT_VALUE_ATTRIBUTE="automountInformation"
++#MAP_OBJECT_CLASS="automountMap"
++#ENTRY_OBJECT_CLASS="automount"
++#MAP_ATTRIBUTE="ou"
++#ENTRY_ATTRIBUTE="cn"
++#VALUE_ATTRIBUTE="automountInformation"
++#
++#MAP_OBJECT_CLASS="automountMap"
++#ENTRY_OBJECT_CLASS="automount"
++#MAP_ATTRIBUTE="automountMapName"
++#ENTRY_ATTRIBUTE="automountKey"
++#VALUE_ATTRIBUTE="automountInformation"
+ #
+-# DEFAULT_AUTH_CONF_FILE - set the default location for the SASL
++# AUTH_CONF_FILE - set the default location for the SASL
+ #			   authentication configuration file.
+ #
+-#DEFAULT_AUTH_CONF_FILE="@@autofsmapdir@@/autofs_ldap_auth.conf"
++#AUTH_CONF_FILE="@@autofsmapdir@@/autofs_ldap_auth.conf"
+ #
+ # General global options
+ #
+
+[..]
+>> -# System default
+>> +# autofs server configuration
+> 
+> I always thought of autofs is a client not a server.
+I just wanted to express the difference between daemon and service
+script configuration. Feel free to express it differently.
+
+> The config needs to reflect the setup of previous versions of autofs.
+It depend what you want to achieve. If you want to make the transition
+easier, you're right, but not if you want to provide quick references
+about default values in the configuration file. I'd rather document the
+changes in release notes, or eventually change the defaults values in
+defaults.h.
+
+[..]
+>> -# Other common LDAP nameing
+>> +#TIMEOUT=600
+> 
+> Should be 300 not 600.
+600 is the default.
+
+[..]
+>> +#BROWSE_MODE="yes"
+> 
+> Should be set to "no".
+yes is the default.
+
+[..]
+>> +# Define the LDAP schema to use for lookups
+>>  #
+>> -# DEFAULT_AUTH_CONF_FILE - set the default location for the SASL
+>> +#MAP_OBJECT_CLASS="nisMap"
+>> +#ENTRY_OBJECT_CLASS="nisObject"
+>> +#MAP_ATTRIBUTE="nisMapName"
+>> +#ENTRY_ATTRIBUTE="cn"
+>> +#VALUE_ATTRIBUTE="nisMapEntry"
+> 
+> The two other common LDAP schema should be present in the config file 
+> somewhere for a quick reference for people needing that information.
+OK, but then I'd rather use a different formating, to have a better
+visual identification of available configuration directives, such as:
+
+# Name used for object class. Other common value may be "automountMap"
+#MAP_OBJECT_CLASS="nisMap"
+
 -- 
 Guillaume Rousse
 Projet Estime, INRIA
