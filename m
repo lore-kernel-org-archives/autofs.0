@@ -1,48 +1,35 @@
-From: Anders Blomdell <anders.blomdell@control.lth.se>
-Subject: Bug#379780: autofs: Automounts fail to automount after a few days of uptime
-Date: Thu, 24 Aug 2006 12:28:49 +0200
-Message-ID: <44ED7F61.1040402@control.lth.se>
-Reply-To: Anders Blomdell <anders.blomdell@control.lth.se>,
-	379780@bugs.debian.org
+From: Piete Brooks <Piete.Brooks--autofs@cl.cam.ac.uk>
+Subject: What is the syntax for bind mounts under autofs 5 ?
+Date: Thu, 24 Aug 2006 13:39:16 +0100
+Message-ID: <E1GGEUO-0004FJ-00@mta2.cl.cam.ac.uk>
 Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <bounce-debian-bugs-dist=glddb-debian-bugs-dist=m.gmane.org@lists.debian.org>
-Resent-To: debian-bugs-dist@lists.debian.org
-Resent-Message-ID: <handler.379780.B379780.1156415343704@bugs.debian.org>
+Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
-List-Post: <mailto:debian-bugs-dist@lists.debian.org>
-List-Help: <mailto:debian-bugs-dist-request@lists.debian.org?subject=help>
-List-Subscribe: <mailto:debian-bugs-dist-request@lists.debian.org?subject=subscribe>
-List-Unsubscribe: <mailto:debian-bugs-dist-request@lists.debian.org?subject=unsubscribe>
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: 379780@bugs.debian.org
-Cc: Christian Weeks <christian.weeks@oracle.com>, autofs@linux.kernel.org
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: autofs@linux.kernel.org
 
-I see similar behaviour on a FC4 system running 2.6.13-1.1526_FC4smp, in this 
-case the problem seems to be (gleaned from strace of /usr/sbin/automount) when 
-stating "/home/dir/subd":
+I used to be able to use:
 
-read(3, "\4\0\0\0\0\0\0\0\f\214\2\0\10\0\0\0dir/subd\0\0\0\0\0\0"..., 272) = 272
-chdir("/home")                          = 0
-lstat64("dir/subd", 0xbfb6e0cc)         = -1 ENOENT (No such file or directory)
+	foo	:/usr/local/foo
 
-in cases where no error occurs, the same stat gives this in the strace:
+to cause autofs to do a bind mount of "foo" to the local directory 
+/usr/local/foo but under autofs 5 it fails. With "automount -d -v" I get:
 
-read(3, "\4\0\0\0\0\0\0\0\16\214\2\0\6\0\0\0dir\0\0\0\0\0\0\0"..., 272) = 272
-chdir("/home")                          = 0
-lstat64("dir", {st_mode=S_IFDIR|0555, st_size=0, ...}) = 0
+Aug 24 13:36:21 pbtest8 automount[3657]: attempting to mount entry /mount/foo
+Aug 24 13:36:21 pbtest8 automount[3657]: failed to mount /mount/foo
 
-so to mee it seems like the kernel is requesting the wrong information from the 
-automounter...
+I also tried:
 
-Regards
+	foo -fstype=bind :/usr/local/foo
 
-Anders
-
--- 
-Anders Blomdell                  Email: anders.blomdell@control.lth.se
-Department of Automatic Control
-Lund University                  Phone:    +46 46 222 4625
-P.O. Box 118                     Fax:      +46 46 138118
-SE-221 00 Lund, Sweden
-
+but that didn't work either. Any suggestions?
