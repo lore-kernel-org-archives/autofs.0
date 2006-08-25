@@ -1,20 +1,22 @@
-From: Matt Bernstein <+systems.extlists.autofs@dcs.qmul.ac.uk>
-Subject: Re: autofs {3, 4,
- 5} and bind mounts which point to other automount points
-Date: Fri, 25 Aug 2006 15:49:46 +0100 (BST)
-Message-ID: <Pine.LNX.4.64.0608251540530.14075@frank.dcs.qmul.ac.uk>
-References: <Pine.LNX.4.64.0608241525320.1854@frank.dcs.qmul.ac.uk> 
-	<Pine.LNX.4.64.0608250926270.6382@raven.themaw.net> 
-	<Pine.LNX.4.64.0608250736190.10216@frank.dcs.qmul.ac.uk> 
-	<Pine.LNX.4.64.0608251506180.25004@raven.themaw.net> 
-	<Pine.LNX.4.64.0608251917030.30523@raven.themaw.net> 
-	<Pine.LNX.4.64.0608251407560.14075@frank.dcs.qmul.ac.uk>
-	<1156516142.30971.35.camel@raven.themaw.net>
+From: Guillaume Rousse <Guillaume.Rousse@inria.fr>
+Subject: Re: autofs 5.0.1-rc1 still doesn't find master map	in	ldap
+ automatically
+Date: Fri, 25 Aug 2006 17:29:11 +0200
+Message-ID: <44EF1747.5010103@inria.fr>
+References: <44EDB98B.8050201@inria.fr>	
+	<Pine.LNX.4.64.0608250923480.6382@raven.themaw.net>	
+	<44EEA538.8090203@inria.fr>	
+	<Pine.LNX.4.64.0608251920210.30523@raven.themaw.net>	
+	<44EEEC55.2040101@inria.fr>	
+	<Pine.LNX.4.64.0608252033290.30811@raven.themaw.net>	
+	<44EEF1E6.7040008@inria.fr>
+	<1156511928.30971.12.camel@raven.themaw.net>
+	<1156512652.30971.19.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1156516142.30971.35.camel@raven.themaw.net>
+In-Reply-To: <1156512652.30971.19.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -25,58 +27,75 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-At 22:29 +0800 Ian Kent wrote:
+Ian Kent wrote:
+> On Fri, 2006-08-25 at 21:18 +0800, Ian Kent wrote:
+>> On Fri, 2006-08-25 at 14:49 +0200, Guillaume Rousse wrote:
+>>> Ian Kent wrote:
+>>>> On Fri, 25 Aug 2006, Guillaume Rousse wrote:
+>>>>
+>>>>> Ian Kent wrote:
+>>>>>>> I'll try to run it in the debugger, but I have to fix my debug package
+>>>>>>> first.
+>>>>> gdbdoesn't complain anymore about missing symbols, but despite my
+>>>>> attempts, I've been unable to set a working break point on faulty
+>>>>> function (get_query_dn).
+>>>> Is your LDAP client able to query this stuff with only the information 
+>>>> used in the autofs queries (the ones you see in the debug output)?
+>>> Not sure to understand you here. I get nothing else in my debug output
+>>> than: failed to get query dn
+>> Have you setup syslog.conf to log daemon.* to somewhere?
+>> You won't get much at all unless syslog is sending it some where.
+>>
+>> Mmmm .. I see I don't debug print the query in get_query_dn.
+>>
+>> But looking at the code, if there is a map name the filter would be
+>> something like:
+>>
+>> (&(objectclass=<map_obj_class>)(<map_attr>=<map name>))
+>>
+>> so I think for your defaults that would be
+>>
+>> (&(objectclass=automountMap)(ou=auto.master))
+>>
+>> It gets the base dn from the output of this query.
+>> If that doesn't work nothing else does, but you already know that.
+> 
+> Oh .. btw .. to get quick info you can just stick an error print in
+> like:
+> 
+> error(LOGOPT_ANY, "query %s", query);
+> 
+> and it should show up in the log regardless of the debug setting.
+OK, I found the issue: when all you have is mapname, and you have to use
+default server and base, you should use LDAP_SCOPE_SUBTREE scope for
+your query, not LDAP_SCOPE_ONELEVEL.
 
->> Aug 25 14:07:19 laurel automount[17416]: attempting to mount entry /homes/mb
->> Aug 25 14:07:19 laurel automount[17416]: mount(nfs): nfs: mount failure :/home/cream/home71/mb on /homes/mb
->
-> This was broken for sure but I tested the usual cases.
->
-> Did the patch apply cleanly?
+Here is a patch that fixes the problem:
+diff -Naur autofs-5.0.1/modules/lookup_ldap.c
+autofs-5.0.1-fix-ldap-lookup/modules/lookup_ldap.c
+--- autofs-5.0.1/modules/lookup_ldap.c  2006-07-13 04:11:39.000000000 -0400
++++ autofs-5.0.1-fix-ldap-lookup/modules/lookup_ldap.c  2006-08-25
+11:19:59.000000000 -0400
+@@ -802,7 +802,7 @@
+                              MODPREFIX "error forming query string");
+                        return 0;
+                }
+-               scope = LDAP_SCOPE_ONELEVEL;
++               scope = LDAP_SCOPE_SUBTREE;
+        } else {
+                if (sprintf(query, "(objectclass=%s)", class) >= l) {
+                        debug(LOGOPT_NONE,
 
-Yup :) (see my update)
 
-> And where's the rest of the output that will tell us the mount command
-> that was actually used.
->
-> Send daemon.* to a log and run with debug enabled.
-
-Aug 25 15:42:18 laurel automount[22501]: handle_packet: type = 3
-Aug 25 15:42:18 laurel automount[22501]: handle_packet_missing_indirect: token 3489, name mb, request pid 22628
-Aug 25 15:42:18 laurel automount[22501]: attempting to mount entry /homes/mb
-Aug 25 15:42:18 laurel automount[22501]: lookup_mount: lookup(ldap): looking up mb
-Aug 25 15:42:18 laurel automount[22501]: lookup_one: lookup(ldap): searching for "(&(objectclass=automount)(|(cn=mb)(cn=/)))" under "ou=auto.homes,dc=dcs,dc=qmul,dc=ac,dc=uk"
-Aug 25 15:42:18 laurel automount[22501]: do_connect: auth_required: 1, sasl_mech (null)
-Aug 25 15:42:18 laurel automount[22501]: do_connect: lookup(ldap): ldap anonymous bind returned 0
-Aug 25 15:42:18 laurel automount[22501]: lookup_one: lookup(ldap): getting first entry for cn="mb"
-Aug 25 15:42:18 laurel automount[22501]: lookup_one: lookup(ldap): examining first entry
-Aug 25 15:42:18 laurel automount[22501]: unbind_ldap_connection: use_tls: 2
-Aug 25 15:42:18 laurel automount[22501]: lookup_mount: lookup(ldap): mb -> :/home/cream/home71/mb
-Aug 25 15:42:18 laurel automount[22501]: parse_mount: parse(sun): expanded entry: :/home/cream/home71/mb
-Aug 25 15:42:18 laurel automount[22501]: parse_mount: parse(sun): gathered options:
-Aug 25 15:42:18 laurel automount[22501]: parse_mount: parse(sun): dequote(":/home/cream/home71/mb") -> :/home/cream/home71/mb
-Aug 25 15:42:18 laurel automount[22501]: parse_mount: parse(sun): core of entry: options=, loc=:/home/cream/home71/mb
-Aug 25 15:42:18 laurel automount[22501]: sun_mount: parse(sun): mounting root /homes, mountpoint mb, what :/home/cream/home71/mb, fstype nfs, options (null)
-Aug 25 15:42:18 laurel automount[22501]: mount_mount: mount(nfs): root=/homes name=mb what=:/home/cream/home71/mb, fstype=nfs, options=(null)
-Aug 25 15:42:18 laurel automount[22501]: mount_mount: mount(nfs): calling mkdir_path /homes/mb
-Aug 25 15:42:18 laurel automount[22501]: mount_mount: mount(nfs): mb is local, attempt bind mount
-Aug 25 15:42:18 laurel automount[22501]: mount_mount: mount(bind): calling mkdir_path /homes/mb
-Aug 25 15:42:18 laurel automount[22501]: mount_mount: mount(bind): calling mount --bind -s  -o defaults /home/cream/home71/mb /homes/mb
-Aug 25 15:42:18 laurel automount[22501]: >> mount: special device /home/cream/home71/mb does not exist
-Aug 25 15:42:18 laurel automount[22501]: mount(nfs): nfs: mount failure :/home/cream/home71/mb on /homes/mb
-Aug 25 15:42:18 laurel automount[22501]: send_fail: token = 3489
-Aug 25 15:42:18 laurel automount[22501]: failed to mount /homes/mb
-
-The desired "nested" behaviour is:
-
- 	/homes/mb binds /home/cream/home71/mb
- 		/home/cream/home71 binds /server/cream/export71
- 			/server/cream/export71 nfsmounts cream:/export71
-
-This way:
-- my apps always use /homes/mb
-- my infrastructure db knows I'm /home/x/y/mb 
-- the actual nfs server can also be looked up
+> I find getting a gdb session going is a hassle much of the time.
+It depends on your setup. I usually build my packages on mandriva
+cluster, and install then on my own machines for testing them, rather
+than directly building and installing locally.
+-- 
+Guillaume Rousse
+Projet Estime, INRIA
+Domaine de Voluceau
+Rocquencourt - B.P. 105
+78153 Le Chesnay Cedex - France
