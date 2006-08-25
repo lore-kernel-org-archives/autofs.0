@@ -1,19 +1,18 @@
-From: Guillaume Rousse <Guillaume.Rousse@inria.fr>
-Subject: Re: autofs 5.0.1-rc1 still doesn't find master map in ldap
- automatically
-Date: Fri, 25 Aug 2006 14:49:42 +0200
-Message-ID: <44EEF1E6.7040008@inria.fr>
-References: <44EDB98B.8050201@inria.fr>
-	<Pine.LNX.4.64.0608250923480.6382@raven.themaw.net>
-	<44EEA538.8090203@inria.fr>
-	<Pine.LNX.4.64.0608251920210.30523@raven.themaw.net>
-	<44EEEC55.2040101@inria.fr>
-	<Pine.LNX.4.64.0608252033290.30811@raven.themaw.net>
+From: Matt Bernstein <+systems.extlists.autofs@dcs.qmul.ac.uk>
+Subject: Re: autofs {3, 4,
+ 5} and bind mounts which point to other automount points
+Date: Fri, 25 Aug 2006 14:09:30 +0100 (BST)
+Message-ID: <Pine.LNX.4.64.0608251407560.14075@frank.dcs.qmul.ac.uk>
+References: <Pine.LNX.4.64.0608241525320.1854@frank.dcs.qmul.ac.uk>
+	<Pine.LNX.4.64.0608250926270.6382@raven.themaw.net>
+	<Pine.LNX.4.64.0608250736190.10216@frank.dcs.qmul.ac.uk>
+	<Pine.LNX.4.64.0608251506180.25004@raven.themaw.net>
+	<Pine.LNX.4.64.0608251917030.30523@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.0608252033290.30811@raven.themaw.net>
+In-Reply-To: <Pine.LNX.4.64.0608251917030.30523@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,56 +23,21 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org
 
-Ian Kent wrote:
-> On Fri, 25 Aug 2006, Guillaume Rousse wrote:
-> 
->> Ian Kent wrote:
->>>> I'll try to run it in the debugger, but I have to fix my debug package
->>>> first.
->> gdbdoesn't complain anymore about missing symbols, but despite my
->> attempts, I've been unable to set a working break point on faulty
->> function (get_query_dn).
-> 
-> Is your LDAP client able to query this stuff with only the information 
-> used in the autofs queries (the ones you see in the debug output)?
-Not sure to understand you here. I get nothing else in my debug output
-than: failed to get query dn
+At 19:18 +0800 Ian Kent wrote:
 
-Using informations from the config file, however, such as the automount
-map class, I can retrieve all those maps easily from ldapsearch:
-[rousse@alceste ~]$ ldapsearch -x objectClass=automountMap
-# extended LDIF
-#
-# LDAPv3
-# base <> with scope subtree
-# filter: objectClass=automountMap
-# requesting: ALL
-#
+>>> Aug 25 07:31:29 laurel automount[17274]: attempting to mount entry /homes/mb
+>>> Aug 25 07:31:29 laurel automount[17274]: mount_mount: mount(nfs): no hosts
+>>> available
+>>
+>> Mmmm ... I shouldn't be defaulting to NFS for a ":" escaped mount.
+>
+> Could you try this patch please.
 
-# auto.master, autofs, village.inria.fr
-dn: ou=auto.master,ou=autofs,dc=village,dc=inria,dc=fr
-objectClass: top
-objectClass: automountMap
-ou: auto.master
+Thanks.. now my messages are slightly different (though it still fails).
 
-# auto.home.beaune, autofs, village.inria.fr
-dn: ou=auto.home.beaune,ou=autofs,dc=village,dc=inria,dc=fr
-objectClass: top
-objectClass: automountMap
-ou: auto.home.beaune
-...
-# search result
-search: 2
-result: 0 Success
-
-# numResponses: 7
-# numEntries: 6
-
--- 
-Guillaume Rousse
-Projet Estime, INRIA
-Domaine de Voluceau
-Rocquencourt - B.P. 105
-78153 Le Chesnay Cedex - France
+Aug 25 14:07:19 laurel automount[17416]: attempting to mount entry /homes/mb
+Aug 25 14:07:19 laurel automount[17416]: mount(nfs): nfs: mount failure :/home/cream/home71/mb on /homes/mb
+Aug 25 14:07:19 laurel automount[17416]: failed to mount /homes/mb
