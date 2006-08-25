@@ -1,14 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs: Automounts fail to automount after a few days
- of	uptime
-Date: Fri, 25 Aug 2006 20:00:10 +0800 (WST)
-Message-ID: <Pine.LNX.4.64.0608251958370.30744@raven.themaw.net>
-References: <44ED7F61.1040402@control.lth.se>
+Subject: Re: RE : Autofs V4 under SLES9
+Date: Fri, 25 Aug 2006 20:02:09 +0800 (WST)
+Message-ID: <Pine.LNX.4.64.0608252001060.30744@raven.themaw.net>
+References: <B634AEB29A2B1B4281B7206EC4333E0A010AA91E@kmsmsx411.gar.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <44ED7F61.1040402@control.lth.se>
+In-Reply-To: <B634AEB29A2B1B4281B7206EC4333E0A010AA91E@kmsmsx411.gar.corp.intel.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,17 +18,26 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Anders Blomdell <anders.blomdell@control.lth.se>
-Cc: autofs@linux.kernel.org, Christian Weeks <christian.weeks@oracle.com>, 379780@bugs.debian.org
+To: "Low, Kok Leong" <kok.leong.low@intel.com>
+Cc: autofs@linux.kernel.org
 
-On Thu, 24 Aug 2006, Anders Blomdell wrote:
+On Fri, 25 Aug 2006, Low, Kok Leong wrote:
 
-> I see similar behaviour on a FC4 system running 2.6.13-1.1526_FC4smp, in this 
-> case the problem seems to be (gleaned from strace of /usr/sbin/automount) when 
-> stating "/home/dir/subd":
+> Hi :
+> 
+>  
+> 
+> I have some issue with setting up direct map under SLES9, as the
+> automount daemon always will not read the direct map entry , though no
+> error is shown.
+> 
+> I did some search thru web and some are saying v4 is not supporting
+> direct map and will be fix under v5. Also , I saw there is an option
+> DISABLE_DIRECT =1 option under /etc/sysconfig/autofs and  I did tried to
+> change from 1 to 0, still direct map does not work but indirect does.
 
-Yes. We've seen this quite a lot over time.
-I'd be interested to see if this problem goes away wit a fully updated 
-kernel.
+That should work but there is limited support for direct maps in v4.
+
+What does your map look like?
 
 Ian
