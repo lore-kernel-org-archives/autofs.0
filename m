@@ -1,13 +1,17 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: RE : Autofs V4 under SLES9
-Date: Fri, 25 Aug 2006 20:02:09 +0800 (WST)
-Message-ID: <Pine.LNX.4.64.0608252001060.30744@raven.themaw.net>
-References: <B634AEB29A2B1B4281B7206EC4333E0A010AA91E@kmsmsx411.gar.corp.intel.com>
+From: Guillaume Rousse <Guillaume.Rousse@inria.fr>
+Subject: Re: autofs 5.0.1-rc1 still doesn't find master map in ldap
+ automatically
+Date: Fri, 25 Aug 2006 14:25:57 +0200
+Message-ID: <44EEEC55.2040101@inria.fr>
+References: <44EDB98B.8050201@inria.fr>
+	<Pine.LNX.4.64.0608250923480.6382@raven.themaw.net>
+	<44EEA538.8090203@inria.fr>
+	<Pine.LNX.4.64.0608251920210.30523@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <B634AEB29A2B1B4281B7206EC4333E0A010AA91E@kmsmsx411.gar.corp.intel.com>
+In-Reply-To: <Pine.LNX.4.64.0608251920210.30523@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,26 +22,61 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: "Low, Kok Leong" <kok.leong.low@intel.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Fri, 25 Aug 2006, Low, Kok Leong wrote:
+Ian Kent wrote:
+>> I'll try to run it in the debugger, but I have to fix my debug package
+>> first.
+gdbdoesn't complain anymore about missing symbols, but despite my
+attempts, I've been unable to set a working break point on faulty
+function (get_query_dn).
 
-> Hi :
-> 
->  
-> 
-> I have some issue with setting up direct map under SLES9, as the
-> automount daemon always will not read the direct map entry , though no
-> error is shown.
-> 
-> I did some search thru web and some are saying v4 is not supporting
-> direct map and will be fix under v5. Also , I saw there is an option
-> DISABLE_DIRECT =1 option under /etc/sysconfig/autofs and  I did tried to
-> change from 1 to 0, still direct map does not work but indirect does.
+> Can you give a couple of examples of you LDAP entries please.
+Here it is:
 
-That should work but there is limited support for direct maps in v4.
+# autofs, village.inria.fr
+dn: ou=autofs,dc=village,dc=inria,dc=fr
+ou: autofs
+objectClass: top
+objectClass: organizationalUnit
 
-What does your map look like?
+# auto.master, autofs, village.inria.fr
+dn: ou=auto.master,ou=autofs,dc=village,dc=inria,dc=fr
+objectClass: top
+objectClass: automountMap
+ou: auto.master
 
-Ian
+# /home/beaune, auto.master, autofs, village.inria.fr
+dn: cn=/home/beaune,ou=auto.master,ou=autofs,dc=village,dc=inria,dc=fr
+objectClass: top
+objectClass: automount
+cn: /home/beaune
+automountInformation:
+ldap:ou=auto.home.beaune,ou=autofs,dc=village,dc=inria,d
+ c=fr
+
+# /home/yquem, auto.master, autofs, village.inria.fr
+dn: cn=/home/yquem,ou=auto.master,ou=autofs,dc=village,dc=inria,dc=fr
+objectClass: top
+objectClass: automount
+cn: /home/yquem
+automountInformation:
+ldap:ou=auto.home.yquem,ou=autofs,dc=village,dc=inria,dc
+ =fr
+
+# /net/yquem, auto.master, autofs, village.inria.fr
+dn: cn=/net/yquem,ou=auto.master,ou=autofs,dc=village,dc=inria,dc=fr
+objectClass: top
+objectClass: automount
+cn: /net/yquem
+automountInformation:
+ldap:ou=auto.net.yquem,ou=autofs,dc=village,dc=inria,dc=
+ fr
+
+etc...
+-- 
+Guillaume Rousse
+Projet Estime, INRIA
+Domaine de Voluceau
+Rocquencourt - B.P. 105
+78153 Le Chesnay Cedex - France
