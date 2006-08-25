@@ -1,8 +1,8 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: autofs {3, 4,
  5} and bind mounts which point to other automount points
-Date: Fri, 25 Aug 2006 14:58:20 +0800 (WST)
-Message-ID: <Pine.LNX.4.64.0608251456410.25004@raven.themaw.net>
+Date: Fri, 25 Aug 2006 15:07:22 +0800 (WST)
+Message-ID: <Pine.LNX.4.64.0608251506180.25004@raven.themaw.net>
 References: <Pine.LNX.4.64.0608241525320.1854@frank.dcs.qmul.ac.uk>
 	<Pine.LNX.4.64.0608250926270.6382@raven.themaw.net>
 	<Pine.LNX.4.64.0608250736190.10216@frank.dcs.qmul.ac.uk>
@@ -44,8 +44,18 @@ On Fri, 25 Aug 2006, Matt Bernstein wrote:
 > 
 > Thanks--is the locking disabled, or do we need to patch the source? (I haven't
 > looked at it yet.)
+> 
+> > Someone else has reported that bind mounts aren't working with v5.
+> > It would be good to resolve this but I need more info.
+> > A debug log would be best.
+> 
+> I set DEFAULT_LOGGING="debug" in /etc/sysconfig/autofs (this is
+> autofs-5.0.1-0.rc1.16.x86_64 in FC6test), and I got this in /var/log/messages:
+> 
+> Aug 25 07:31:29 laurel automount[17274]: attempting to mount entry /homes/mb
+> Aug 25 07:31:29 laurel automount[17274]: mount_mount: mount(nfs): no hosts
+> available
 
-Yes it is in the FC6 packages.
-mount(8) has been patches to fix the locking in FC.
+Mmmm ... I shouldn't be defaulting to NFS for a ":" escaped mount.
 
 Ian
