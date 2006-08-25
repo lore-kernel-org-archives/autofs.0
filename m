@@ -1,16 +1,23 @@
-From: Piete Brooks <Piete.Brooks--autofs@cl.cam.ac.uk>
-Subject: Re: What is the syntax for bind mounts under autofs 5 ?
-Date: Fri, 25 Aug 2006 06:20:19 +0100
-Message-ID: <E1GGU7A-0004GD-00@mta2.cl.cam.ac.uk>
-References: <E1GGEUO-0004FJ-00@mta2.cl.cam.ac.uk>
-	<Pine.LNX.4.64.0608250919030.6382@raven.themaw.net>
+From: Piete.Brooks--autofs@cl.cam.ac.uk
+Subject: Re: autofs5: unable to locate ldap master map
+Date: Fri, 25 Aug 2006 06:53:53 +0100
+Message-ID: <E1GGUde-0004ps-00@mta2.cl.cam.ac.uk>
+References: <44A25311.2040501@inria.fr>
+	<1151554184.2929.45.camel@raven.themaw.net>
+	<44A3B6CD.5030403@inria.fr>
+	<1151585997.3915.36.camel@raven.themaw.net>
+	<44A4E38D.7020004@inria.fr>
+	<Pine.LNX.4.64.0607020143300.11953@raven.themaw.net>
+	<44A9216F.1030102@inria.fr>
+	<1151943337.9183.44.camel@raven.themaw.net>
+	<44C72411.8070401@inria.fr> <44EC6C56.9070304@inria.fr>
+	<44EDBC7D.9090702@inria.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: Message from Ian Kent <raven@themaw.net> of "Fri,
-	25 Aug 2006 09:21:55 +0800."
-	<Pine.LNX.4.64.0608250919030.6382@raven.themaw.net> 
+In-Reply-To: Message from Guillaume Rousse <Guillaume.Rousse@inria.fr> 
+	of "Thu, 24 Aug 2006 16:49:33 +0200." <44EDBC7D.9090702@inria.fr> 
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,71 +28,28 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+To: Guillaume Rousse <Guillaume.Rousse@inria.fr>
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
->> I used to be able to use:	foo	:/usr/local/foo
->> to cause autofs to do a bind mount of "foo" to the local directory 
->> /usr/local/foo but under autofs 5 it fails. With "automount -d -v" I get:
-> Your not getting all the log info.
+> BTW, I'm not even sure being able to define ldap autentification file
+> name is really useful. I'd just hardcode its location, as the main one.
 
-Ta.
+I'd really rather not!
 
-I now get:
-
-Aug 25 06:06:51 pbtest8 automount[2287]: handle_packet: type = 3
-Aug 25 06:06:51 pbtest8 automount[2287]: handle_packet_missing_indirect: token 
-2, name rf10, request pid 31696
-Aug 25 06:06:51 pbtest8 automount[2287]: attempting to mount entry 
-/auto/homes/rf10
-Aug 25 06:06:51 pbtest8 automount[2287]: lookup_mount: lookup(file): looking 
-up rf10
-Aug 25 06:06:51 pbtest8 automount[2287]: lookup_mount: lookup(file): rf10 -> 
--fstype=bind :/auto/userfiles/&/unix_home
-Aug 25 06:06:51 pbtest8 automount[2287]: parse_mount: parse(sun): expanded 
-entry: -fstype=bind :/auto/userfiles/rf10/unix_home
-Aug 25 06:06:51 pbtest8 automount[2287]: parse_mount: parse(sun): gathered 
-options: fstype=bind
-Aug 25 06:06:51 pbtest8 automount[2287]: parse_mount: parse(sun): 
-dequote(":/auto/userfiles/rf10/unix_home") -> :/auto/userfiles/rf10/unix_home
-Aug 25 06:06:51 pbtest8 automount[2287]: parse_mount: parse(sun): core of 
-entry: options=fstype=bind, loc=:/auto/userfiles/rf10/unix_home
-Aug 25 06:06:51 pbtest8 automount[2287]: sun_mount: parse(sun): mounting root 
-/auto/homes, mountpoint rf10, what /auto/userfiles/rf10/unix_home, fstype 
-bind, options
-Aug 25 06:06:51 pbtest8 automount[2287]: mount_init: mount(bind): bind_works = 
-1
-Aug 25 06:06:51 pbtest8 automount[2287]: do_mount: 
-/auto/userfiles/rf10/unix_home /auto/homes/rf10 type bind options  using 
-module bind
-Aug 25 06:06:51 pbtest8 automount[2287]: mount_mount: mount(bind): calling 
-mkdir_path /auto/homes/rf10
-Aug 25 06:06:51 pbtest8 automount[2287]: mount_mount: mount(bind): calling 
-mount --bind -s  -o defaults /auto/userfiles/rf10/unix_home /auto/homes/rf10
-Aug 25 06:06:51 pbtest8 automount[2287]: >> mount: special device 
-/auto/userfiles/rf10/unix_home does not exist
-Aug 25 06:06:51 pbtest8 automount[2287]: send_fail: token = 2
-Aug 25 06:06:51 pbtest8 automount[2287]: failed to mount /auto/homes/rf10
-Aug 25 06:06:51 pbtest8 automount[2287]: handle_packet: type = 3
-Aug 25 06:06:51 pbtest8 automount[2287]: handle_packet_missing_indirect: token 
-3, name rf10, request pid 31696
-Aug 25 06:06:51 pbtest8 automount[2287]: attempting to mount entry 
-/auto/homes/rf10
-Aug 25 06:06:51 pbtest8 automount[2287]: lookup_mount: lookup(file): looking 
-up rf10
-Aug 25 06:06:51 pbtest8 automount[2287]: send_fail: token = 3
-Aug 25 06:06:51 pbtest8 automount[2287]: failed to mount /auto/homes/rf10
+I'd like to have a number of maps available for different classes of machines.
 
 
-so it looks like the "mount: special device /auto/userfiles/rf10/unix_home 
-does not exist" is the problem :-(
+PS: LDAP failed for me too until I edited /etc/sysconfig/autofs to use the 
+correct schema -- now it works fine!
 
-However, a manual mount appears to work OK:
+ivatt:~: ldapsearch -LLL -x "(&(objectclass=automountMap)(ou=auto.master))"
+dn: ou=auto.master,dc=cl,dc=cam,dc=ac,dc=uk
+objectClass: top
+objectClass: automountMap
+automountMapName: auto.master
+ou: auto.master
 
-pbtest8:~: ls -ld /auto/userfiles/rf10/unix_home
-drwxr-xr-x 103 rf10 rf10 65536 Aug 25 05:59 /auto/userfiles/rf10/unix_home
-pbtest8:~: sudo mount --bind -s  -o defaults /auto/userfiles/rf10/unix_home 
-/mnt
-pbtest8:~: ls -ld /mnt
-drwxr-xr-x 103 rf10 rf10 65536 Aug 25 05:59 /mnt
-pbtest8:~: 
+ivatt:~: ldapsearch -LLL -x "(&(objectclass=nisMap)(nisMapName=auto.master))"
+ivatt:~: 
+
+Any chance of it it defaulting to try the three example schemas?
