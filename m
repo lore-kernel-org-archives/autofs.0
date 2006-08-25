@@ -1,16 +1,24 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs {3, 4,
-	5} and bind mounts which point to other	automount points
-Date: Fri, 25 Aug 2006 23:55:00 +0800
-Message-ID: <1156521300.31377.3.camel@raven.themaw.net>
-References: <Pine.LNX.4.64.0608241525320.1854@frank.dcs.qmul.ac.uk>
-	<1156517163.30971.45.camel@raven.themaw.net>
-	<Pine.LNX.4.64.0608251546430.14075@frank.dcs.qmul.ac.uk>
+From: Piete.Brooks--autofs@cl.cam.ac.uk
+Subject: Re: autofs 5.0.1-rc1 still doesn't find master map in ldap
+ automatically
+Date: Fri, 25 Aug 2006 16:21:23 +0100
+Message-ID: <E1GGe66-00006L-00@mta2.cl.cam.ac.uk>
+References: <44EDB98B.8050201@inria.fr>
+	<Pine.LNX.4.64.0608250923480.6382@raven.themaw.net>
+	<44EEA538.8090203@inria.fr>
+	<Pine.LNX.4.64.0608251920210.30523@raven.themaw.net>
+	<44EEEC55.2040101@inria.fr>
+	<Pine.LNX.4.64.0608252033290.30811@raven.themaw.net>
+	<44EEF1E6.7040008@inria.fr>
+	<1156511928.30971.12.camel@raven.themaw.net>
+	<1156512652.30971.19.camel@raven.themaw.net>
+	<44EF1747.5010103@inria.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.0608251546430.14075@frank.dcs.qmul.ac.uk>
+In-Reply-To: Message from Guillaume Rousse <Guillaume.Rousse@inria.fr> 
+	of "Fri, 25 Aug 2006 17:29:11 +0200." <44EF1747.5010103@inria.fr> 
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,36 +29,24 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Matt Bernstein <+systems.extlists.autofs@dcs.qmul.ac.uk>
+To: Guillaume Rousse <Guillaume.Rousse@inria.fr>
 Cc: autofs@linux.kernel.org
 
-On Fri, 2006-08-25 at 15:47 +0100, Matt Bernstein wrote:
-> At 22:46 +0800 Ian Kent wrote:
-> 
-> > On Thu, 2006-08-24 at 15:44 +0100, Matt Bernstein wrote:
-> >> Hi,
-> >>
-> >> We like to preconfigure an number of our (1000ish) users' applications.
-> >> Typically, this might necessitate hard-coding their home directories in
-> >> dot-files, so we specify their home directory in the passwd map as
-> >> /homes/$LOGNAME, and make this an (LDAP) automount map which might point
-> >> to ":/server/{servername}/{volumename}/$LOGNAME" (via a bind mount), where
-> >> /server/{servername}/{volumename} would be the "real" NFS mount.
-> >
-> > So you have another automount map for the server entries, right?
-> 
-> Yup. Actually it's even more indirect. I'm about to hit send on my other 
-> mail which describes it.
+> OK, I found the issue: when all you have is mapname, and you have to use
+> default server and base, you should use LDAP_SCOPE_SUBTREE scope for
+> your query, not LDAP_SCOPE_ONELEVEL
 
-I think I know why this isn't working.
-It's due to the conversion to a threaded model.
-And I fairly sure it can't work within v5 if we don't make changes.
-It's actually quite difficult.
+Why?
 
-Basically, the daemon doesn't ever trigger a mount itself and since
-there is only one daemon now you can't cause a mount to happen in
-another mount point.
+As I said before, it works for me as it is. I see no need to change it.
 
-I'll have to think about how we can do this.
+I've just had my wrist slapped for suggesting doing three queries for the 
+three "common" schemas, so changing from a one level search (which should be 
+very fast as I'd not expect much at the top level) to searching the WHOLE tree 
+(which I expect to be several orders of magnitude slower) would seem not to be 
+a good idea.
 
-Ian
+
+If you do the search manually, does it work?
+Are the two programmes using the same conf file (e.g. std /etc/ldap.conf vs 
+/etc/openldap/ldap.conf)?
