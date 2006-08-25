@@ -1,12 +1,13 @@
-From: Piete Brooks <Piete.Brooks@cl.cam.ac.uk>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: autofs5: unable to locate ldap master map
-Date: Fri, 25 Aug 2006 12:14:29 +0100
-Message-ID: <E1GGZdt-0002fb-00@mta2.cl.cam.ac.uk>
+Date: Fri, 25 Aug 2006 19:15:00 +0800 (WST)
+Message-ID: <Pine.LNX.4.64.0608251913370.30523@raven.themaw.net>
+References: <E1GGXbO-0000MZ-00@mta2.cl.cam.ac.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-From: Piete.Brooks--autofs@cl.cam.ac.uk
+In-Reply-To: <E1GGXbO-0000MZ-00@mta2.cl.cam.ac.uk>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,13 +18,20 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
+To: Piete Brooks <Piete.Brooks@cl.cam.ac.uk>, Piete.Brooks--autofs@cl.cam.ac.uk
 Cc: autofs mailing list <autofs@linux.kernel.org>
 
-> Complains about doing too many queries to the server is why it's this way.
+On Fri, 25 Aug 2006, Piete Brooks wrote:
 
-Fine -- I can live with a single lookup.
+> 
+> OK -- put it down to a "simplistic user view of the problem" :-(
+> I was thinking you could do something equiv to
+> 
+> (|(&(objectclass=automountMap)(ou=auto.master))
+>   (&(objectclass=nisMap)(nisMapName=auto.master))
+> )
 
-> For people with large maps trying all three schema would be a killer.
+That query would work but then we would no be able to use arbitary schema 
+in the configuration.
 
-As a naive LDAP user, I assumed that such a simple request would be trivial :-(
+Ian
