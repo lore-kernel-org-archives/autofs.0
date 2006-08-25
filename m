@@ -1,20 +1,14 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: autofs {3, 4,
 	5} and bind mounts which point to other	automount points
-Date: Fri, 25 Aug 2006 22:37:48 +0800
-Message-ID: <1156516669.30971.43.camel@raven.themaw.net>
+Date: Fri, 25 Aug 2006 22:46:03 +0800
+Message-ID: <1156517163.30971.45.camel@raven.themaw.net>
 References: <Pine.LNX.4.64.0608241525320.1854@frank.dcs.qmul.ac.uk>
-	<Pine.LNX.4.64.0608250926270.6382@raven.themaw.net>
-	<Pine.LNX.4.64.0608250736190.10216@frank.dcs.qmul.ac.uk>
-	<Pine.LNX.4.64.0608251506180.25004@raven.themaw.net>
-	<Pine.LNX.4.64.0608251917030.30523@raven.themaw.net>
-	<Pine.LNX.4.64.0608251407560.14075@frank.dcs.qmul.ac.uk>
-	<Pine.LNX.4.64.0608251417500.14075@frank.dcs.qmul.ac.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.0608251417500.14075@frank.dcs.qmul.ac.uk>
+In-Reply-To: <Pine.LNX.4.64.0608241525320.1854@frank.dcs.qmul.ac.uk>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -28,28 +22,16 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: Matt Bernstein <+systems.extlists.autofs@dcs.qmul.ac.uk>
 Cc: autofs@linux.kernel.org
 
-On Fri, 2006-08-25 at 14:22 +0100, Matt Bernstein wrote:
-> At 14:09 +0100 Matt Bernstein wrote:
+On Thu, 2006-08-24 at 15:44 +0100, Matt Bernstein wrote:
+> Hi,
 > 
-> > At 19:18 +0800 Ian Kent wrote:
-> >
-> >> Could you try this patch please.
-> >
-> > Thanks.. now my messages are slightly different (though it still fails).
-> >
-> > Aug 25 14:07:19 laurel automount[17416]: attempting to mount entry /homes/mb
-> > Aug 25 14:07:19 laurel automount[17416]: mount(nfs): nfs: mount failure :/home/cream/home71/mb on /homes/mb
-> > Aug 25 14:07:19 laurel automount[17416]: failed to mount /homes/mb
-> 
-> Actually, this only happens when the target isn't already mounted. It does 
-> perform a bind mount if there's something to bind to. Now what we need to 
-> do (I think) is tickle the target in case it's another automount point, a 
-> la our-bad-patch-for-autofs4.
+> We like to preconfigure an number of our (1000ish) users' applications. 
+> Typically, this might necessitate hard-coding their home directories in 
+> dot-files, so we specify their home directory in the passwd map as 
+> /homes/$LOGNAME, and make this an (LDAP) automount map which might point 
+> to ":/server/{servername}/{volumename}/$LOGNAME" (via a bind mount), where 
+> /server/{servername}/{volumename} would be the "real" NFS mount.
 
-Shouldn't need to do that.
-This my be due to changes in the lookup flags in the kernel over time.
-I haven't reviewed that for some time now.
-
-I'll see if I can duplicate your situation.
+So you have another automount map for the server entries, right?
 
 Ian
