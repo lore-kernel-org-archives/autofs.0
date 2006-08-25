@@ -1,23 +1,15 @@
-From: Piete.Brooks--autofs@cl.cam.ac.uk
-Subject: Re: autofs5: unable to locate ldap master map
-Date: Fri, 25 Aug 2006 06:53:53 +0100
-Message-ID: <E1GGUde-0004ps-00@mta2.cl.cam.ac.uk>
-References: <44A25311.2040501@inria.fr>
-	<1151554184.2929.45.camel@raven.themaw.net>
-	<44A3B6CD.5030403@inria.fr>
-	<1151585997.3915.36.camel@raven.themaw.net>
-	<44A4E38D.7020004@inria.fr>
-	<Pine.LNX.4.64.0607020143300.11953@raven.themaw.net>
-	<44A9216F.1030102@inria.fr>
-	<1151943337.9183.44.camel@raven.themaw.net>
-	<44C72411.8070401@inria.fr> <44EC6C56.9070304@inria.fr>
-	<44EDBC7D.9090702@inria.fr>
+From: Matt Bernstein <+systems.extlists.autofs@dcs.qmul.ac.uk>
+Subject: Re: autofs {3, 4,
+ 5} and bind mounts which point to other automount points
+Date: Fri, 25 Aug 2006 07:45:17 +0100 (BST)
+Message-ID: <Pine.LNX.4.64.0608250736190.10216@frank.dcs.qmul.ac.uk>
+References: <Pine.LNX.4.64.0608241525320.1854@frank.dcs.qmul.ac.uk>
+	<Pine.LNX.4.64.0608250926270.6382@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: Message from Guillaume Rousse <Guillaume.Rousse@inria.fr> 
-	of "Thu, 24 Aug 2006 16:49:33 +0200." <44EDBC7D.9090702@inria.fr> 
+In-Reply-To: <Pine.LNX.4.64.0608250926270.6382@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -28,28 +20,37 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Guillaume Rousse <Guillaume.Rousse@inria.fr>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org
 
-> BTW, I'm not even sure being able to define ldap autentification file
-> name is really useful. I'd just hardcode its location, as the main one.
+At 09:29 +0800 Ian Kent wrote:
 
-I'd really rather not!
+>On Thu, 24 Aug 2006, Matt Bernstein wrote:
+>> +/* 'what' may itself be on an automounted file system so we need to access it */
+>> +/* to ensure it gets mounted before calling wait_for_lock() inorder to avoid a*/
+>> +/* long delay */
+>> +               (void)access(what,F_OK);
+>
+>That can lead to corruption of /etc/mtab.
+>That's why the lock was introduced.
+>
+>In v5 the locking can be disabled as most people have updated mount(8) 
+>these days.
 
-I'd like to have a number of maps available for different classes of machines.
+Thanks--is the locking disabled, or do we need to patch the source? (I 
+haven't looked at it yet.)
 
+>Someone else has reported that bind mounts aren't working with v5.
+>It would be good to resolve this but I need more info.
+>A debug log would be best.
 
-PS: LDAP failed for me too until I edited /etc/sysconfig/autofs to use the 
-correct schema -- now it works fine!
+I set DEFAULT_LOGGING="debug" in /etc/sysconfig/autofs (this is 
+autofs-5.0.1-0.rc1.16.x86_64 in FC6test), and I got this in /var/log/messages:
 
-ivatt:~: ldapsearch -LLL -x "(&(objectclass=automountMap)(ou=auto.master))"
-dn: ou=auto.master,dc=cl,dc=cam,dc=ac,dc=uk
-objectClass: top
-objectClass: automountMap
-automountMapName: auto.master
-ou: auto.master
+Aug 25 07:31:29 laurel automount[17274]: attempting to mount entry /homes/mb
+Aug 25 07:31:29 laurel automount[17274]: mount_mount: mount(nfs): no hosts available
+Aug 25 07:31:29 laurel automount[17274]: failed to mount /homes/mb
+Aug 25 07:31:30 laurel automount[17274]: attempting to mount entry /homes/mb
+Aug 25 07:31:30 laurel automount[17274]: failed to mount /homes/mb
 
-ivatt:~: ldapsearch -LLL -x "(&(objectclass=nisMap)(nisMapName=auto.master))"
-ivatt:~: 
-
-Any chance of it it defaulting to try the three example schemas?
+..with the last two lines repeated 19 times. Is that helpful?
