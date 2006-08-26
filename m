@@ -1,11 +1,23 @@
-From: Sven Ulland <sveniu@ifi.uio.no>
-Subject: Change dn of auto.master for autofs+ldap
-Date: Fri, 25 Aug 2006 23:12:02 +0200
-Message-ID: <44EF67A2.2090905@ifi.uio.no>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: autofs 5.0.1-rc1 still doesn't find master map in	ldap
+	automatically
+Date: Sat, 26 Aug 2006 11:20:24 +0800
+Message-ID: <1156562424.3023.82.camel@raven.themaw.net>
+References: <44EDB98B.8050201@inria.fr>
+	<Pine.LNX.4.64.0608250923480.6382@raven.themaw.net>
+	<44EEA538.8090203@inria.fr>
+	<Pine.LNX.4.64.0608251920210.30523@raven.themaw.net>
+	<44EEEC55.2040101@inria.fr>
+	<Pine.LNX.4.64.0608252033290.30811@raven.themaw.net>
+	<44EEF1E6.7040008@inria.fr>
+	<1156511928.30971.12.camel@raven.themaw.net>
+	<1156512652.30971.19.camel@raven.themaw.net>
+	<44EF1747.5010103@inria.fr> <E1GGe66-00006L-00@mta2.cl.cam.ac.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <E1GGe66-00006L-00@mta2.cl.cam.ac.uk>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,23 +28,20 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Piete.Brooks--autofs@cl.cam.ac.uk
+Cc: autofs@linux.kernel.org
 
-I'm setting up autofs in ldap, i.e. I'm not using the /etc/auto.*
-files at all. Now, I'm wondering how to change the distinguished name
-of auto.master in the database. It seems all examples use the
-following structure for the entry:
+On Fri, 2006-08-25 at 16:21 +0100, Piete.Brooks--autofs@cl.cam.ac.uk
+wrote:
+> I've just had my wrist slapped for suggesting doing three queries for the 
+> three "common" schemas, so changing from a one level search (which should be 
 
-dn: ou=auto.master,dc=mydom,dc=com
-ou: auto.master
-objectClass: top
-objectClass: automountMap
+I didn't mean to be nasty.
+It's just that it seems like every time I do something in response to
+requests someone else then wants the opposite.
 
-I grepped the archives to see if it is possible to specify some
-options for this in nsswitch.conf, but couldn't find anything. So how
-would I go about changing the dn of the auto.master (and the rest of
-the auto.* entries) so that they recide under ou=system? Maybe that
-is something I don't want to do?
+Actually, using the multiple schema we were seeing up to "nine" queries
+per lookup during a mount failure situation which is really bad for a
+busy server. It's now one or two so it's much better.
 
-regards,
-sven
+Ian
