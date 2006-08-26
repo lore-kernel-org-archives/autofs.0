@@ -1,18 +1,13 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs {3, 4,
-	5} and bind mounts which point to other	automount points
-Date: Sat, 26 Aug 2006 11:24:51 +0800
-Message-ID: <1156562691.3023.86.camel@raven.themaw.net>
-References: <Pine.LNX.4.64.0608241525320.1854@frank.dcs.qmul.ac.uk>
-	<1156517163.30971.45.camel@raven.themaw.net>
-	<Pine.LNX.4.64.0608251546430.14075@frank.dcs.qmul.ac.uk>
-	<1156521300.31377.3.camel@raven.themaw.net>
-	<Pine.LNX.4.64.0608251710580.17316@frank.dcs.qmul.ac.uk>
+From: Sven Ulland <sveniu@ifi.uio.no>
+Subject: Re: Change dn of auto.master for autofs+ldap
+Date: Sat, 26 Aug 2006 08:10:23 +0200
+Message-ID: <44EFE5CF.4020706@ifi.uio.no>
+References: <44EF67A2.2090905@ifi.uio.no>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.0608251710580.17316@frank.dcs.qmul.ac.uk>
+In-Reply-To: <44EF67A2.2090905@ifi.uio.no>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -23,35 +18,14 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Matt Bernstein <+systems.extlists.autofs@dcs.qmul.ac.uk>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Fri, 2006-08-25 at 17:19 +0100, Matt Bernstein wrote:
-> At 23:55 +0800 Ian Kent wrote:
-> 
-> > I think I know why this isn't working.
-> > It's due to the conversion to a threaded model.
-> > And I fairly sure it can't work within v5 if we don't make changes.
-> > It's actually quite difficult.
-> 
-> I appreciate this--thanks for taking the time to understand it :)
-> 
-> > Basically, the daemon doesn't ever trigger a mount itself and since
-> > there is only one daemon now you can't cause a mount to happen in
-> > another mount point.
-> 
-> Yes.. (that's why the accept() patch doesn't help); it may need some kind 
-> of ability to recurse.
-> 
-> For bonus points, the following scenario is a quick route to a nasty 
-> deadlock in autofs{3,4}: /a/1 binds to :/b/2; /b/2 binds to :/a/1. Having 
-> some kind of cycle-detection might prevent some difficult-to-diagnose 
-> crashes. (It happened to us..)
+Sven Ulland wrote:
+> I'm setting up autofs in ldap, i.e. I'm not using the /etc/auto.*
+> files at all. Now, I'm wondering how to change the distinguished name
+> of auto.master in the database.
 
-That's really hard to detect.
-Mainly because of the autofs4 kernel module doesn't know much about the
-user space daemon context and visa versa.
+Oh right. Just put it under any ou and it works without
+having to configure anything. Sweet.
 
-I'll think about that one.
-
-Ian
+sven
