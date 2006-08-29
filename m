@@ -1,8 +1,8 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: autofs {3, 4,
- 5} and bind mounts which point to other automount points
-Date: Sun, 27 Aug 2006 15:52:46 +0800 (WST)
-Message-ID: <Pine.LNX.4.64.0608271549370.21043@raven.themaw.net>
+	5} and bind mounts which point to other	automount points
+Date: Tue, 29 Aug 2006 19:11:11 +0800
+Message-ID: <1156849871.15241.9.camel@raven.themaw.net>
 References: <Pine.LNX.4.64.0608241525320.1854@frank.dcs.qmul.ac.uk>
 	<Pine.LNX.4.64.0608250926270.6382@raven.themaw.net>
 	<Pine.LNX.4.64.0608250736190.10216@frank.dcs.qmul.ac.uk>
@@ -11,11 +11,12 @@ References: <Pine.LNX.4.64.0608241525320.1854@frank.dcs.qmul.ac.uk>
 	<Pine.LNX.4.64.0608251407560.14075@frank.dcs.qmul.ac.uk>
 	<Pine.LNX.4.64.0608251417500.14075@frank.dcs.qmul.ac.uk>
 	<1156516669.30971.43.camel@raven.themaw.net>
+	<Pine.LNX.4.64.0608271549370.21043@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1156516669.30971.43.camel@raven.themaw.net>
+In-Reply-To: <Pine.LNX.4.64.0608271549370.21043@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -29,35 +30,37 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: Matt Bernstein <+systems.extlists.autofs@dcs.qmul.ac.uk>
 Cc: autofs@linux.kernel.org
 
-On Fri, 25 Aug 2006, Ian Kent wrote:
-
-> On Fri, 2006-08-25 at 14:22 +0100, Matt Bernstein wrote:
-> > At 14:09 +0100 Matt Bernstein wrote:
-> > 
-> > > At 19:18 +0800 Ian Kent wrote:
-> > >
-> > >> Could you try this patch please.
-> > >
-> > > Thanks.. now my messages are slightly different (though it still fails).
-> > >
-> > > Aug 25 14:07:19 laurel automount[17416]: attempting to mount entry /homes/mb
-> > > Aug 25 14:07:19 laurel automount[17416]: mount(nfs): nfs: mount failure :/home/cream/home71/mb on /homes/mb
-> > > Aug 25 14:07:19 laurel automount[17416]: failed to mount /homes/mb
-> > 
-> > Actually, this only happens when the target isn't already mounted. It does 
-> > perform a bind mount if there's something to bind to. Now what we need to 
-> > do (I think) is tickle the target in case it's another automount point, a 
-> > la our-bad-patch-for-autofs4.
+On Sun, 2006-08-27 at 15:52 +0800, Ian Kent wrote:
+> On Fri, 25 Aug 2006, Ian Kent wrote:
 > 
-> Shouldn't need to do that.
-> This my be due to changes in the lookup flags in the kernel over time.
-> I haven't reviewed that for some time now.
+> > On Fri, 2006-08-25 at 14:22 +0100, Matt Bernstein wrote:
+> > > At 14:09 +0100 Matt Bernstein wrote:
+> > > 
+> > > > At 19:18 +0800 Ian Kent wrote:
+> > > >
+> > > >> Could you try this patch please.
+> > > >
+> > > > Thanks.. now my messages are slightly different (though it still fails).
+> > > >
+> > > > Aug 25 14:07:19 laurel automount[17416]: attempting to mount entry /homes/mb
+> > > > Aug 25 14:07:19 laurel automount[17416]: mount(nfs): nfs: mount failure :/home/cream/home71/mb on /homes/mb
+> > > > Aug 25 14:07:19 laurel automount[17416]: failed to mount /homes/mb
+> > > 
+> > > Actually, this only happens when the target isn't already mounted. It does 
+> > > perform a bind mount if there's something to bind to. Now what we need to 
+> > > do (I think) is tickle the target in case it's another automount point, a 
+> > > la our-bad-patch-for-autofs4.
+> > 
+> > Shouldn't need to do that.
+> > This my be due to changes in the lookup flags in the kernel over time.
+> > I haven't reviewed that for some time now.
+> 
+> And that seems OK.
+> 
+> Can you try this patch in addition to the previous patch please.
 
-And that seems OK.
-
-Can you try this patch in addition to the previous patch please.
-
-Ian
+There was a mistake in this patch.
+Use this one instead please.
 
 -- 
 
@@ -132,8 +135,10 @@ index 7dc4a81..84df3b9 100644
 -}
 -#endif
 -
--static int do_spawn(logger *log, int use_lock, const char *prog, const char *const *argv)
-+static int do_spawn(logger *log, unsigned int options, const char *prog, const char *const *argv)
+-static int do_spawn(logger *log, int use_lock, const char *prog, const
+char *const *argv)
++static int do_spawn(logger *log, unsigned int options, const char
+*prog, const char *const *argv)
  {
  	pid_t f;
  	int status, pipefd[2];
@@ -280,7 +285,8 @@ index 7dc4a81..84df3b9 100644
 + * itself an automount) we attempt to mount the target using an opendir
 + * call. For this to work the location must be the second last arg.
 + *
-+ * NOTE: If mount locking is enabled this type of recursive mount cannot
++ * NOTE: If mount locking is enabled this type of recursive mount
+cannot
 + *	 work.
 + */
 +int spawn_bind_mount(logger *log, ...)
@@ -373,10 +379,11 @@ index 1f4fc6b..9c2de00 100644
 +int spawn_bind_mount(logger *log, ...);
 +int spawn_umount(logger *log, ...);
  void reset_signals(void);
- int do_mount(struct autofs_point *ap, const char *root, const char *name,
+ int do_mount(struct autofs_point *ap, const char *root, const char
+*name,
  	     int name_len, const char *what, const char *fstype,
 diff --git a/lib/parse_subs.c b/lib/parse_subs.c
-index b584250..a6a6f18 100644
+index b584250..fbbc515 100644
 --- a/lib/parse_subs.c
 +++ b/lib/parse_subs.c
 @@ -304,9 +304,9 @@ int umount_ent(struct autofs_point *ap, 
@@ -384,7 +391,7 @@ index b584250..a6a6f18 100644
  	 */
  	if (!status && (S_ISDIR(st.st_mode) && st.st_dev != ap->dev)) {
 -		rv = spawnll(log_debug, PATH_UMOUNT, PATH_UMOUNT, path, NULL);
-+		rv = spawn_mount(log_debug, path, NULL);
++		rv = spawn_umount(log_debug, path, NULL);
  	} else if (is_smbfs && (sav_errno == EIO || sav_errno == EBADSLT)) {
 -		rv = spawnll(log_debug, PATH_UMOUNT, PATH_UMOUNT, path, NULL);
 +		rv = spawn_umount(log_debug, path, NULL);
