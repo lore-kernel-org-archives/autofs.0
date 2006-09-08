@@ -1,7 +1,8 @@
-From: Guillaume Rousse <Guillaume.Rousse@inria.fr>
-Subject: network timeout needed at startup
-Date: Wed, 06 Sep 2006 13:13:42 +0200
-Message-ID: <44FEAD66.7060106@inria.fr>
+From: "Gordon Lack" <gml4410@ggr.co.uk>
+Subject: Bug in autofs v4.1.4 init.d script (and fix)
+Date: Fri, 08 Sep 2006 12:31:37 +0100
+Message-ID: <45015498.22A9C700@ggr.co.uk>
+References: <44AE7785.74E63D70@ggr.co.uk> <44EB1231.7ABAA89B@ggr.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,26 +19,38 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-When using LDAP (and probably other network resources) to store master
-map, the network has to be available at autofs daemon start. As Linux
-distributions boot time is currently diminushing (hotplug replaced by
-udev, various parallelisation effort), I see various race conditions
-occuring: the network service finishes, but the actual network interface
-is still in initialisation state, leading to autofs start failure.
+   In the getfilemounts() function when the code comes acros a line
+which starts with a "+" (include an NIS map here) instead of just
+including that map it cats the entire /etc/auto.master file again and
+actually include *all* NIS maps which are mentioned.  This means that if
+you have n (> 1) NIS map inclusions then the inclusions are done <n>
+times,and it also means that the inclusion for all maps is first done
+when the first NIS map inclusion is found. 
 
-The primary problem comes from network service implementation, and
-should probably get fixed there, right. However, I also think than
-having a configurable network timeout directly in autofs (aka: wait at
-least 10 second before considering the server is down) may also help in
-other scenarios. For instance, when you start various machine
-simultaneously (for instance, after a general power down), and your
-server takes longer to boot than your workstation.
+   It is perfectly legitimate to have an /etc/auto.master file like
+this:
 
-With autofs 4, I implemented this in service script. Now than everything
-is handled by autoumout daemon, this should get implemented there I think.
--- 
-Guillaume Rousse
-Projet Estime, INRIA
-Domaine de Voluceau
-Rocquencourt - B.P. 105
-78153 Le Chesnay Cedex - France
++auto.master-TEST
+/home   /etc/my-home-override.amap
++auto.master
+
+   whereby the /home setting is meant to override the stanmdrad one in
+auto.master.  The bug in the getfilemounts() function stops this
+happening as auto.master will be included when +auto.master-TEST is
+seen.
+
+   The fix for this is to change the "while read auto_master_in" loop to
+be:
+
+        while read auto_master_in
+        do
+            case "$auto_master_in" in
+            +*)
+                nismap=`echo $auto_master_in | sed -e 's/^\+//'`
+                catnismap $nismap
+                ;;
+            *)
+                echo $auto_master_in
+                ;;
+            esac
+        done
