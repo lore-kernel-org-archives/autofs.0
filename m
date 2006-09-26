@@ -1,13 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: White spaces in mount point
-Date: Wed, 27 Sep 2006 00:37:55 +0800
-Message-ID: <1159288675.27996.15.camel@raven.themaw.net>
-References: <b688507b0609260603o4c94a308ke3bc394966fdbc53@mail.gmail.com>
+From: Dana Wellen <dana.wellen@onsemi.com>
+Subject: Simple direct mout problem
+Date: Tue, 26 Sep 2006 14:02:04 -0400
+Message-ID: <45196B1C.5040303@onsemi.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <b688507b0609260603o4c94a308ke3bc394966fdbc53@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,27 +16,55 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Kfir Lavi <lavi.kfir@gmail.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Tue, 2006-09-26 at 16:03 +0300, Kfir Lavi wrote:
-> Hi,
-> I have this problem:
-> When I try to mount samba share with white spaces, I get an error:
-> Sep 26 15:40:20 [automount] failed to mount /tmp/explorer/test1/AAA_My Pictures
-> 
-> My auto.aaa file:
-> "AAA_My Pictures" -fstype=smbfs,ro :"//AAA/My Pictures"
-> 
-> Tried without the quotes:
-> AAA_My Pictures -fstype=smbfs,ro ://AAA/My Pictures
-> 
-> How can I mount share names that have white spaces?
+Hello,
 
-So I would guess you're using version 4?
-Try
-AAA_My\ Pictures -fstype=smbfs,ro ://AAA/My\ Pictures
+   Trying to setup a simple direct map using nis and the autofs automounter:
 
-and see if that helps
+automount -V
+Linux automount version 4.1.3-67
 
-Ian
+/etc/auto.master
+
+/-      yp:auto.linux
+
+
+ypcat -k auto.linux
+
+/proj server2:/vol/proj/xx_proj
+
+This is documented in the readme file in 
+/usr/share/doc/aufofs-4.1.3/README.direct
+
+When the autofs is started or restarted in the /var/log/messages I get :
+
+automount[25461]: cache_ghost: entry in yp:auto.linux not valid map 
+format, key /proj
+
+If I use indirect mounts it works however direct mounts would be a lot 
+easier for my users in that
+they will be able to see the directories in the mounted directory.  The 
+ghost function doesn't work
+well because it will only show the mounted directories or the 
+directories that have been mounted
+since the last restart of the autofs.
+
+  If I copy the file to the /etc directory it still has a similar error.
+
+
+aufofs-4.1.3/README.direct
+-- For example if we were using NIS we might have something like
+the map entries below.
+
+In the master map:
+
+/-      autofs.global
+
+and in autofs.global:
+
+/nfs/apps/mozilla       bogus:/usr/local/moxilla
+/nfs/data/budgets       tiger:/usr/local/budgets
+/tst/sbin               bogus:/usr/sbin
+
+and so on.
