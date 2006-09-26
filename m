@@ -1,16 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: SOLVED?? Pls help on configuring autofs on
-	NFS	for	home dir
-Date: Wed, 27 Sep 2006 00:35:59 +0800
-Message-ID: <1159288559.27996.12.camel@raven.themaw.net>
-References: <200609261119.47084.fajarpri@cbn.net.id>
-	<200609261143.12477.fajarpri@cbn.net.id> <45192426.3040108@onsemi.com>
-	<200609262047.22505.fajarpri@cbn.net.id>
+Subject: Re: White spaces in mount point
+Date: Wed, 27 Sep 2006 00:37:55 +0800
+Message-ID: <1159288675.27996.15.camel@raven.themaw.net>
+References: <b688507b0609260603o4c94a308ke3bc394966fdbc53@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200609262047.22505.fajarpri@cbn.net.id>
+In-Reply-To: <b688507b0609260603o4c94a308ke3bc394966fdbc53@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,36 +18,27 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Fajar Priyanto <fajarpri@cbn.net.id>
+To: Kfir Lavi <lavi.kfir@gmail.com>
 Cc: autofs@linux.kernel.org
 
-On Tue, 2006-09-26 at 20:47 +0700, Fajar Priyanto wrote:
-> On Tuesday 26 September 2006 19:59, Dana Wellen wrote:
-> >  Fajar,
-> >    I assume you want your nfstest user to mount their home directory in
-> > /home.  Your autofs files should be:
-> >  auto.master
-> >  /home      /etc/auto.home --timeout=60
-> >  auto.home
-> > *       -rw,soft,intr   192.168.1.247:/home/&
+On Tue, 2006-09-26 at 16:03 +0300, Kfir Lavi wrote:
+> Hi,
+> I have this problem:
+> When I try to mount samba share with white spaces, I get an error:
+> Sep 26 15:40:20 [automount] failed to mount /tmp/explorer/test1/AAA_My Pictures
 > 
-> Hi Dana,
-> Thank you very much for replying.
-> Actually, that was one of the first configurations I tried, but, when I tried 
-> it, autofs couldn't be started with error:
-> "Cannot start automount. 
-> /home already mounted"
-
-umount /home
-
-I assume /home is not in use for home directories since you are testing
-your setup.
-
+> My auto.aaa file:
+> "AAA_My Pictures" -fstype=smbfs,ro :"//AAA/My Pictures"
 > 
-> I don't know, maybe it's because I have done some mistakes before. But, I 
-> couldn't restart the machine since it's my running mail server (shame on me 
-> by experimenting on a production server).
+> Tried without the quotes:
+> AAA_My Pictures -fstype=smbfs,ro ://AAA/My Pictures
+> 
+> How can I mount share names that have white spaces?
 
-Depends on the version of autofs.
+So I would guess you're using version 4?
+Try
+AAA_My\ Pictures -fstype=smbfs,ro ://AAA/My\ Pictures
+
+and see if that helps
 
 Ian
