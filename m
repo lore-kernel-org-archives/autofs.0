@@ -1,15 +1,14 @@
-From: Fajar Priyanto <fajar@bpkpenabur.or.id>
+From: Dana Wellen <dana.wellen@onsemi.com>
 Subject: Re: SOLVED?? Pls help on configuring autofs on NFS for
-	home dir
-Date: Tue, 26 Sep 2006 11:42:16 +0700
-Message-ID: <200609261142.16752.fajar@bpkpenabur.or.id>
-References: <200609261119.47084.fajarpri@cbn.net.id>
+ home dir
+Date: Tue, 26 Sep 2006 10:50:51 -0400
+Message-ID: <45193E4B.20402@onsemi.com>
+References: <200609261119.47084.fajarpri@cbn.net.id>	<200609261143.12477.fajarpri@cbn.net.id>	<45192426.3040108@onsemi.com>
+	<200609262047.22505.fajarpri@cbn.net.id>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============4239756126779797941=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200609261119.47084.fajarpri@cbn.net.id>
-Content-Disposition: inline
+In-Reply-To: <200609262047.22505.fajarpri@cbn.net.id>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,76 +21,79 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-On Tuesday 26 September 2006 11:19, Fajar Priyanto wrote:
-> Hi all,
-> I'm trying to setup this scenario on NFS and autofs on Centos 4.3:
-> - useradd nfstest on an NFS server (192.168.1.247)
-> - Setting up this NFS server /etc/exports:
-> /home/nfstest   192.168.1.252/255.255.255.0(rw,sync,no_root_squash)
->
-> - useradd nfstest on a client machine (192.168.1.252)
-> - make sure that the uid and gid are the same on the server and the client
-> - setting up /etc/auto.master:
-> /home/nfstest   /etc/auto.nfs   --timeout=60
-> - setting up /etc/auto.nfs:
-> * -rw,soft,intr 192.168.1.247:/home/&
->
-> - Restarting portmap, nfs, nfslock on the server
-> - Restarting autofs on the client
->
-> - showmount -e localhost:
-> /home/nfstest 192.168.1.252/255.255.255.0
->
-> - Try to logon using username on the client: nfstest
->
-> But I've got this error:
->
-> automount[5937]: >> mount: 192.168.1.247:/home/.bash_profile failed, reason
-> given by server: Permission denied
-> automount[5937]: mount(nfs): nfs: mount failure
-> 192.168.1.247:/home/.bash_profile on /home/nfstest/.bash_profile
-> automount[5937]: failed to mount /home/nfstest/.bash_profile
-> automount[5939]: >> mount: 192.168.1.247:/home/.bash_login failed, reason
-> given by server: Permission denied
-> automount[5939]: mount(nfs): nfs: mount failure
-> 192.168.1.247:/home/.bash_login on /home/nfstest/.bash_login
-> automount[5939]: failed to mount /home/nfstest/.bash_login
-> automount[5941]: >> mount: 192.168.1.247:/home/.profile failed, reason
-> given by server: Permission denied
->
-> And on the login screen shows only this:
-> -bash-3.00$
->
-> Oh by the way, firewall is off.
->
-> But, when I did 'cd nfstest' it mount the directory!
-> Also as root, if I do 'cd /home/nfstest/nfstest' it mount the directory.
->
-> Is that the correct way? I mean why I need to 'cd' thing?
-> Am I missing something?
-> Thank you very much,
+--===============4239756126779797941==
+Content-Type: text/html; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
+X-MIME-Autoconverted: from 8bit to quoted-printable by hera.kernel.org id k922vZ99012554
 
-After a second thought...
-I modify this:
-/etc/exports:
-/home   192.168.1.252/255.255.255.0(rw,sync,no_root_squash)
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content=3D"text/html;charset=3DISO-8859-15"
+ http-equiv=3D"Content-Type">
+  <title></title>
+</head>
+<body bgcolor=3D"#ffffff" text=3D"#000000">
+Fajar,<br>
+=A0 Is your /home a mounted partition?=A0 Or /home exists before hand.=A0
+Automounts will create<br>
+the directory as needed when autofs is started.=A0 In other words /home
+can't exist on ether <br>
+the root partition or have any other partitions mounted to /home.<br>
+<br>
+<br>
+<br>
+Fajar Priyanto wrote:
+<blockquote cite=3D"mid200609262047.22505.fajarpri@cbn.net.id" type=3D"ci=
+te">
+  <pre wrap=3D"">On Tuesday 26 September 2006 19:59, Dana Wellen wrote:
+  </pre>
+  <blockquote type=3D"cite">
+    <pre wrap=3D""> Fajar,
+ =A0 I assume you want your nfstest user to mount their home directory in
+/home.=A0 Your autofs files should be:
+ auto.master
+ /home=A0=A0 =A0=A0 /etc/auto.home --timeout=3D60
+ auto.home
+*       -rw,soft,intr   192.168.1.247:/home/&amp;
+    </pre>
+  </blockquote>
+  <pre wrap=3D""><!---->
+Hi Dana,
+Thank you very much for replying.
+Actually, that was one of the first configurations I tried, but, when I t=
+ried=20
+it, autofs couldn't be started with error:
+"Cannot start automount.=20
+/home already mounted"
 
-/etc/auto.master:
-/mnt    /etc/auto.nfs   --timeout=60    -fstype=nfs
+I don't know, maybe it's because I have done some mistakes before. But, I=
+=20
+couldn't restart the machine since it's my running mail server (shame on =
+me=20
+by experimenting on a production server).
 
-/etc/auto.nfs:
-*       -rw,soft,intr   192.168.1.247:/home/&
+I'll setup some boxes at home to try it again.
+I'll post the result.
+  </pre>
+</blockquote>
+<br>
+<div class=3D"moz-signature">-- <br>
+<br>
+</div>
+</body>
+</html>
 
-And finally, I also modify the home directory of user: nfstest in /etc/passwd 
-file from /home/nfstest to /mnt/nfstest
 
-Try logon as nfstest, and... voila!! It works!!
-Is this the correct way? Especially do I need to modify the home directory of 
-the user in /etc/passwd?
+--===============4239756126779797941==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
 
-Thank you very much.
--- 
-Fajar Priyanto | Reg'd Linux User #327841 | Linux tutorial 
-http://linux2.arinet.org
-11:42am up 2:55, 2.6.16.13-4-default GNU/Linux 
-Let's use OpenOffice. http://www.openoffice.org
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--===============4239756126779797941==--
