@@ -1,11 +1,15 @@
-From: Robert Giles <rgiles@arlut.utexas.edu>
-Subject: LDAP-based auto.master and --ghost option
-Date: Fri, 29 Sep 2006 14:20:48 -0500
-Message-ID: <Pine.CYG.4.64.0609291328430.468@ninja>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: Simple direct mout problem
+Date: Tue, 03 Oct 2006 01:11:02 +0800
+Message-ID: <1159809062.2905.7.camel@raven.themaw.net>
+References: <45196B1C.5040303@onsemi.com>
+	<1159324405.2897.27.camel@raven.themaw.net>
+	<451ABD74.7060908@onsemi.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-559023410-1182772375-1159556099=:468"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-ID: <Pine.CYG.4.64.0609291400180.468@ninja>
+In-Reply-To: <451ABD74.7060908@onsemi.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,80 +20,170 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Dana Wellen <dana.wellen@onsemi.com>
+Cc: autofs@linux.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Wed, 2006-09-27 at 14:05 -0400, Dana Wellen wrote:
+> Ian,
+>   Finally figured it out, simply put:
+> 
+> auto.master
+> 
+> /-      yp:auto.linux
+> 
+> auto.linux
+> 
+> /some_mount_directory/example                   server:/nfs_export
+> 
+> works.  However if the yp map is changed to
+> 
+> /example                  server:/nsf_export 
 
----559023410-1182772375-1159556099=:468
-Content-Type: TEXT/PLAIN; CHARSET=X-UNKNOWN; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Content-ID: <Pine.CYG.4.64.0609291355461.468@ninja>
+That's what I said before.
 
-Hi folks - I have our auto.master configuration stored in LDAP as an=20
-"nisMap", with "nisObjects" beneath it describing our various mount=20
-points.  I'm trying to get the --ghost option to work from this LDAP-based=
-=20
-auto.master, but am not having any luck (the mounts DO work without the=20
---ghost option).
+> 
+> it fails.  The error in the messages file aren't very helpful in
+> figuring this simple error out.  
+> 
+> Will the next version (5) work more like the Sun automounter? I know
+> in our case we are moving off of standard 
+> Unix to Linux due to support being dropped for our main platform
+> (HP-UX) for our CAD software vendors.
 
-This is on a SuSE 10.1-based system, running autofs 4.1.4 and the 2.6.18=20
-vanilla kernel (with SuSE 10.1 /proc/config.gz)...
+Yes. It does.
 
+> 
+> What I am seeing with indirect mounts and ghosting is that the only
+> directories visible in the mount directory
+> are directories that are mounted or been mounted but won't show the
+> directories never mounted, examples:
 
-For example, one of my working nisObjects under the auto.master:
+No. It only creates directories that it can know about in advance.
 
-          cn=3D/proj
-nisMapEntry=3Dldap:nisMapName=3Dauto.proj,ou=3Dautofs,dc=3Dfake
+For example, what directories would you create for a map entry:
 
+*	&:/server/&
 
-=2E..would report this line from "Configured Mount Points" after starting=
-=20
-autofs (and also as an active mount point):
-
-/usr/sbin/automount /proj ldap "nisMapName=3Dauto.proj,ou=3Dautofs,dc=3Dfak=
-e"
-
-=2E..
-
-When I add the --ghost option to my nisMapEntry...
-
-          cn=3D/proj
-nisMapEntry=3Dldap:nisMapName=3Dauto.proj,ou=3Dautofs,dc=3Dfake --ghost
-
-
-=2E..I get this back when starting autofs (and the mount point is=20
-missing from the "active" mounts list):
-
-/usr/sbin/automount /proj ldap:nisMapName=3Dauto.proj,ou=3Dautofs,dc=3Dfake=
- "--ghost"
-
-The quotes appear to shift over to the "--ghost" option, and the=20
-ldap:nisMapName is no longer parsed correctly (ie: split on the ":"=20
-separator).
-
-Seems like I'm using invalid syntax when specifying additional automount=20
-options via the nisMapEntry field...  can anyone shed some light on what=20
-I'm doing wrong here?
-
-(I've also tried adding the "--ghost" before the "ldap:nisMapName..."=20
-string, without success)
-
-Thanks for any tips out there.
-
------------------------------------------------------------
-Robert Giles                     Group System Administrator
-SPD/ARL:UT              (512) 835-3077 =B7 Fax (512) 490-4244
----559023410-1182772375-1159556099=:468
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
-
----559023410-1182772375-1159556099=:468--
-
+> 
+> Before any mounts:
+> 
+> ls -la /proj
+> total 8
+> drwxr-xr-x   2 root root    0 Sep 27 14:02 .
+> drwxr-xr-x  29 root root 4096 Sep 27 14:01 ..
+> 
+> ls /proj/some_directory
+> file1 file2 directory1 directory2 etc..
+> 
+> ls -la /proj
+> total 12
+> drwxr-xr-x   3 root   root    0 Sep 27 14:03 .
+> drwxr-xr-x  29 root   root 4096 Sep 27 14:01 ..
+> drwxrwxr-x   9 root root  4096 Nov  3  2005 some_directory
+> 
+> Well after the 60 second timeout
+> ls -la /proj
+> total 12
+> drwxr-xr-x   3 root   root    0 Sep 27 14:03 .
+> drwxr-xr-x  29 root   root 4096 Sep 27 14:01 ..
+> drwxrwxr-x   9 root root  4096 Nov  3  2005 some_directory
+> 
+> This directory holds over 100 subdirectories that the user can't see
+> and can only be accessed if
+> they know the name of the subdirectory.
+> 
+> Thanks,
+> Dana
+> 
+> 
+> Ian Kent wrote: 
+> > On Tue, 2006-09-26 at 14:02 -0400, Dana Wellen wrote:
+> >   
+> > > Hello,
+> > > 
+> > >    Trying to setup a simple direct map using nis and the autofs automounter:
+> > > 
+> > > automount -V
+> > > Linux automount version 4.1.3-67
+> > >     
+> > 
+> > This version is way to old.
+> > Update it.
+> > 
+> >   
+> > > /etc/auto.master
+> > > 
+> > > /-      yp:auto.linux
+> > > 
+> > > 
+> > > ypcat -k auto.linux
+> > > 
+> > > /proj server2:/vol/proj/xx_proj
+> > >     
+> > 
+> > Nop.
+> > There are an number of limitations with direct mounts in version 4.
+> > Single level direct mounts is one.
+> > 
+> >   
+> > > This is documented in the readme file in 
+> > > /usr/share/doc/aufofs-4.1.3/README.direct
+> > > 
+> > > When the autofs is started or restarted in the /var/log/messages I get :
+> > > 
+> > > automount[25461]: cache_ghost: entry in yp:auto.linux not valid map 
+> > > format, key /proj
+> > > 
+> > > If I use indirect mounts it works however direct mounts would be a lot 
+> > > easier for my users in that
+> > > they will be able to see the directories in the mounted directory.  The 
+> > > ghost function doesn't work
+> > > well because it will only show the mounted directories or the 
+> > > directories that have been mounted
+> > > since the last restart of the autofs.
+> > >     
+> > 
+> > That's not correct.
+> > 
+> >   
+> > >   If I copy the file to the /etc directory it still has a similar error.
+> > >     
+> > 
+> > Huh ????
+> > 
+> >   
+> > > aufofs-4.1.3/README.direct
+> > > -- For example if we were using NIS we might have something like
+> > > the map entries below.
+> > > 
+> > > In the master map:
+> > > 
+> > > /-      autofs.global
+> > > 
+> > > and in autofs.global:
+> > > 
+> > > /nfs/apps/mozilla       bogus:/usr/local/moxilla
+> > > /nfs/data/budgets       tiger:/usr/local/budgets
+> > > /tst/sbin               bogus:/usr/sbin
+> > > 
+> > > and so on.
+> > >     
+> > 
+> > Note that the RedHat package has a config entry that disables direct
+> > mounts by default because of the limitations.
+> > 
+> > Change it if you wish to try using them (in /etc/sysconfig/autofs).
+> > 
+> > Ian
+> > 
+> > 
+> > 
+> >   
+> 
+> -- 
+> 
+> 
+> _______________________________________________
+> autofs mailing list
+> autofs@linux.kernel.org
+> http://linux.kernel.org/mailman/listinfo/autofs
