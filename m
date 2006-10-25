@@ -1,19 +1,13 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: automounted filesystems being unmounted
-	and	mounted	every minute
-Date: Mon, 16 Oct 2006 15:49:20 -0400
-Message-ID: <x498xjgxcqn.fsf@segfault.boston.devel.redhat.com>
-References: <1161005417.3184.5.camel@pc.ilinx>
-	<1161016376.3085.86.camel@localhost>
-	<1161019573.3184.15.camel@pc.ilinx>
-	<x49d58sxhes.fsf@segfault.boston.devel.redhat.com>
-	<1161025241.3184.34.camel@pc.ilinx>
+From: Frederic Tronel <autofs@tronel.org>
+Subject: Exporting an autofs filesystem by NFS
+Date: Wed, 25 Oct 2006 17:42:53 +0200
+Message-ID: <200610251742.53940.autofs@tronel.org>
+Reply-To: autofs@tronel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1161025241.3184.34.camel@pc.ilinx> (Brian J. Murrell's message
-	of "Mon, 16 Oct 2006 15:00:41 -0400")
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,35 +18,30 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: "Brian J. Murrell" <brian@interlinx.bc.ca>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-==> Regarding Re: [autofs] automounted filesystems being unmounted and mounted every minute; "Brian J. Murrell" <brian@interlinx.bc.ca> adds:
+Hi,
 
-brian> On Mon, 2006-16-10 at 14:08 -0400, Jeff Moyer wrote:
->> Take a look at http://people.redhat.com/jmoyer for documentation on how
->> to gather debug information from the automounter.  Basically, you need
->> to log daemon.* somewhere.
+I'm facing the following problem. I'm a user of the autodir project 
+(http://www.intraperson.com/autodir). This project allows the automatic 
+creation of users homedirs. The first time a process enters its homedir 
+(let's say under the directory /home), the autodir daemon (in the same way 
+autofs daemon would be triggered) checks if the user is a legal one (using 
+libnss, and a LDAP directory in my case). If the user is valid and the 
+homedir does not exists it is created under another directory (let's 
+say /realhome) and automatically mounts it under /home (mount --bind). It 
+heavily relies on the autofs4 kernel module to realize this.
 
-brian> gnome-panel?
+I would like to export the entire /home directory (which is in fact an autodir 
+filesystem, i.e. its superblock is managed by autofs4) using NFS, as I would 
+be able to do it, if /home was a regular filesystem.
+This is unfortunately impossible since autofs4 is not an exportable 
+filesystem. The reason is that in the autofs superblock the s_export_op field 
+is left equal to NULL. I would like to know if there already exists a patch 
+that makes autofs4 exportable somewhere around there ? If not, does it makes 
+sense to develop such a patch (read  am I the only one who want to export a 
+whole autofs filesystem ?).
 
-brian> $ ps -p14360 f PID TTY STAT TIME COMMAND 14360 ?  Ss 8:53
-brian> gnome-panel --sm-config-prefix /gnome-panel-dbYkZn/ -
+Cheers,
 
-brian> I wonder why gnome-panel would be touching /autohome/share.
-
-Please ask them!
-
-brian> I guess what I wonder also about all of this is that isn't there
-brian> some period of "idleness" required before anything is unmounted?  Is
-brian> that the 60s that I am seeing?  If I increase that to a period
-brian> longer than the periodic access by gnome-panel should that not stop
-brian> the trashing of the mount?
-
-You can specify the timeout in seconds for unmounts via the --timeout=XX
-option.  But please pursue this with the gnome folks, as they shouldn't be
-causing this problem in the first place.
-
-Thanks!
-
-Jeff
+Frederic  
