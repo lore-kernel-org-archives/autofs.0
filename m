@@ -1,15 +1,13 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: --timeout doesn't do anything on fedora3 or 5
-Date: Thu, 26 Oct 2006 10:47:13 -0400
-Message-ID: <x49bqnzyw0e.fsf@segfault.boston.devel.redhat.com>
-References: <000301c6f89d$ce6afdb0$9600a8c0@home>
-	<1161832308.3789.2.camel@localhost>
+From: <Scott_Rochford@DELL.com>
+Subject: automounted filesystems being unmounted and mounted every
+	minute
+Date: Fri, 27 Oct 2006 16:14:28 +0100
+Message-ID: <0F5A1C742BC73849AFF518F1F8249D4D0181D362@mtpx3m2.mtp.emea.dell.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1161832308.3789.2.camel@localhost> (Ian Kent's message of "Thu,
-	26 Oct 2006 11:11:48 +0800")
+Content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,33 +18,39 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org, marty <leisner@rochester.rr.com>
+To: autofs@linux.kernel.org
 
-==> Regarding Re: [autofs] --timeout doesn't do anything on fedora3 or 5; Ian Kent <raven@themaw.net> adds:
+Hi,
 
-raven> On Wed, 2006-10-25 at 21:26 -0400, marty wrote:
->> On both fedora3 and fedora5, I can't get the --timeout option on autofs
->> to do anything useful.
->> 
->> I saw a bug report on fedora3, but getting a newer release doesn't seem
->> to make a difference.
->> http://linux.derkeiler.com/Mailing-Lists/Fedora/2005-02/0488.html
->> 
->> Is there anyway to "monitor" the timeout interactively from user space
->> (instead of "waiting" to see if it happens, watch to see its counting
->> down?)
+> > Take a look at http://people.redhat.com/jmoyer for documentation on
+how to
+> > gather debug information from the automounter.  Basically, you need
+to log
+> > daemon.* somewhere.
+> gnome-panel?
+> Oct 16 14:54:51 jenny automount[24104]: handle_packet: type = 3
+> Oct 16 14:54:51 jenny automount[24104]:
+handle_packet_missing_indirect: token 
+> 19801, name share, request pid 14360
 
-raven> To start with more information is needed.  See
-raven> http://people.redhat.com/jmoyer and provide the information
-raven> described.
+I've been puzzling over a similar problem with mounts of long since
+removed users' home directories occurring every few minutes for some
+time and was thrilled to discover this thread on the subject, however
+after enabling debugging as instructed I only get:
 
-raven> Enabling debug as described in Jeffs page will log the startup and
-raven> specify the timeout being used and log entries every time there is a
-raven> check.
+Oct 27 16:06:04 e1shdb03 automount[16563]: handle_packet: type = 0
+Oct 27 16:06:04 e1shdb03 automount[16563]: handle_packet_missing: token
+1487772, name scott
+Oct 27 16:06:04 e1shdb03 automount[16563]: attempting to mount entry
+/users/scott
 
-It's worth noting that most times when users report that mounts aren't
-timing out, the problem is another app periodically accessing the mounted
-directory.
+RHEL AS 3
+autofs-4.1.3-154
+2.4.21-37.0.1.ELhugemem
 
--Jeff
+Do you have any other suggestions for methods to identify the processes
+that are triggering these mount attempts?
+
+Thanks in advance,
+--
+Scott Rochford
