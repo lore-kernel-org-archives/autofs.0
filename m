@@ -1,16 +1,13 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: automounted filesystems being unmounted and
-	mounted	every minute
-Date: Fri, 27 Oct 2006 19:04:38 -0400
-Message-ID: <x49fyd9nywp.fsf@segfault.boston.devel.redhat.com>
-References: <0F5A1C742BC73849AFF518F1F8249D4D0181D362@mtpx3m2.mtp.emea.dell.com>
-	<1161962982.11403.7.camel@pc.ilinx>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: /net support
+Date: Sat, 28 Oct 2006 12:05:05 +0800
+Message-ID: <1162008305.3091.8.camel@localhost>
+References: <200610272022.k9RKMVk5020007@jetcar.spd.analog.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1161962982.11403.7.camel@pc.ilinx> (Brian J. Murrell's message
-	of "Fri, 27 Oct 2006 11:29:42 -0400")
+In-Reply-To: <200610272022.k9RKMVk5020007@jetcar.spd.analog.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,44 +18,37 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: "Brian J. Murrell" <brian@interlinx.bc.ca>
-Cc: autofs@linux.kernel.org, Scott_Rochford@DELL.com
+To: David Meleedy <david.meleedy@analog.com>
+Cc: autofs@linux.kernel.org
 
-==> Regarding Re: [autofs] automounted filesystems being unmounted and mounted every minute; "Brian J. Murrell" <brian@interlinx.bc.ca> adds:
+On Fri, 2006-10-27 at 16:22 -0400, David Meleedy wrote:
+> Are there any plans to implement this correctly?  We are seeing
+> problems with the auto.net script that just loads up every
+> directory provided by the machine.  For example some of our
+> fileservers have a lot of mounts, and this can really start
+> filling up the mount table.  Also, some fileservers let certain
+> clients mount some of the directories provided but not others.
+> The error messages are confusing our user's because they are
+> trying to cd to:
+> 
+> /net/<machine_name>/foo
+> and they see an error message about not being able to mount
+> /net/<machine_name>/goo
+> 
+> It would be a lot cleaner if only the directory you are cd'ing
+> to got mounted instead of every directory.
 
-brian> On Fri, 2006-27-10 at 16:14 +0100, Scott_Rochford@DELL.com wrote:
->> Hi,
+As Jeff says, autofs version 5 works in a similar way to other
+automounters now, by mounting (and expiring) the exported shares as you
+go.
 
-brian> Hello,
+There is also a built in "-hosts" map now.
 
->> I've been puzzling over a similar problem with mounts of long since
->> removed users' home directories occurring every few minutes for some
->> time and was thrilled to discover this thread on the subject, however
->> after enabling debugging as instructed I only get:
->> 
->> Oct 27 16:06:04 e1shdb03 automount[16563]: handle_packet: type = 0 Oct
->> 27 16:06:04 e1shdb03 automount[16563]: handle_packet_missing: token
->> 1487772, name scott Oct 27 16:06:04 e1shdb03 automount[16563]:
->> attempting to mount entry /users/scott
->> 
->> RHEL AS 3 autofs-4.1.3-154 2.4.21-37.0.1.ELhugemem
->> 
->> Do you have any other suggestions for methods to identify the processes
->> that are triggering these mount attempts?
+However, I've recently discovered that I haven't covered some of the
+export access control syntax used by Solaris servers so you may still
+need to use the auto.net script.
 
-brian> The instructions at http://people.redhat.com/jmoyer were very
-brian> helpful on my Mandriva boxes as it would print the pid.  On my
-brian> Ubuntu Edgy box though no pids to be found.  :-(
+This issue will never be fixed in version 4 because version 4 cannot
+handle the nesting of mounts found in server export lists.
 
-brian> In my case I found two causes:
-
-brian>      1. Having an automounted share in my GTK "bookmarks" was
-brian> causing a ping-pong effect where as soon as it was unmounted,
-brian> gnome-panel wanted to go stat it.  Stupid.  2. An open Nautilus
-brian> window and/or a Nautilus desktop icon on/for an automounted share
-brian> was causing the same kind of ping pong.
-
-The new autofs kernel code logs pid information of the requester.  Older
-code bases do not.
-
--Jeff
+Ian
