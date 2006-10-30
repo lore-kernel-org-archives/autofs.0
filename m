@@ -1,13 +1,14 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs 5 not recognizing manual umounts properly
-Date: Mon, 30 Oct 2006 18:49:12 +0800
-Message-ID: <1162205352.2900.40.camel@localhost>
-References: <0F5A1C742BC73849AFF518F1F8249D4D0181D723@mtpx3m2.mtp.emea.dell.com>
+From: David Meleedy <david.meleedy@analog.com>
+Subject: Re: /net support
+Date: Mon, 30 Oct 2006 17:52:55 -0500
+Message-ID: <200610302252.k9UMquhr025943@jetcar.spd.analog.com>
+References: <1162008305.3091.8.camel@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <0F5A1C742BC73849AFF518F1F8249D4D0181D723@mtpx3m2.mtp.emea.dell.com>
+In-reply-to: Your message of "Sat, 28 Oct 2006 12:05:05 +0800."
+	<1162008305.3091.8.camel@localhost> 
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,48 +19,61 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Scott_Rochford@DELL.com
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-On Mon, 2006-10-30 at 09:53 +0000, Scott_Rochford@DELL.com wrote:
-> > I'm likely to end up saying that manual umounting of automounted 
-> > shares is a bad thing and doing so may lead to unpredictable 
-> > behavior. I may be able to improve matters but it is unlikely to be 
-> > totally reliable.
-> > So I recommend leaving the automounts alone.
+
+> As Jeff says, autofs version 5 works in a similar way to other
+> automounters now, by mounting (and expiring) the exported shares as you
+> go.
 > 
-> In an ideal world, yes of course, but in reality in large production
-> environments with NFS servers going down and/or hanging from time to
-> time for various reasons I think it's a situation that needs to be
-> accounted for.
-
-In any world really.
-The man pages for the Solaris automounter say much the same thing.
-
-Never the less, it looks like there is some more work to be done in this
-area. Also, not all types of automounts will not work properly when they
-are manually umounted but I can't say it's OK for some and not others as
-that will introduce confusion. In particular, manually umounting parts
-of nested mount trees is not something that should be attempted at all.
-
+> There is also a built in "-hosts" map now.
 > 
-> Failing that, an alternative procedure?  Stop the automounter, unmount,
-> and restart it perhaps?
+> However, I've recently discovered that I haven't covered some of the
+> export access control syntax used by Solaris servers so you may still
+> need to use the auto.net script.
+> 
+> This issue will never be fixed in version 4 because version 4 cannot
+> handle the nesting of mounts found in server export lists.
 
-As it turns out the FC6 build uses the "--enable-ignore-busy" configure
-option. If mounts are wedged then restarting autofs will unlink umount
-all mounts and start afresh. This allows existing processes using mounts
-that aren't wedged to continue until they are done with the mount, while
-new mount requests are handled by the new daemon. Clearly, if a mount is
-blocked in an uninterruptable sleep then they won't be released by the
-kernel and the process that is stuck would need to be encouraged to go
-away in a fairly forceful manner, if it can be persuaded to go away at
-all. This is not a perfect solution because there is a finite amount of
-time that there is no daemon to answer requests but I can't see any
-other way to deal with this.
+One other thing I am wondering about regarding this issue.  I had
+discovered that at our site, we had to modify the /etc/auto.net script
+to return different -fstype options depending on whether or not the
+machine was on the LAN vs. on the WAN.  It turns out we needed to
+turn on tcp version 3 for our WAN mounts because udp mounts would hang
+once you tried to access the filesystem at all with "ls" or whatever.
 
-I've given this problem a lot of thought and considerable effort and
-it's about as good as it can be until I can come up with something
-better if that's possible.
+So for example, here is what we are doing for LAN vs. WAN:
 
-Ian
+(here you can see "jetcar" a LAN mount vs. "siren" a WAN mount)
+
+codered-302: cd /etc
+codered-303: auto.net jetcar
+-fstype=nfs,hard,intr,nodev,nosuid \
+        /export/jetcar1 jetcar:/export/jetcar1 \
+        /export/jetcar2 jetcar:/export/jetcar2
+codered-304: auto.net siren
+-fstype=nfs,hard,intr,nodev,nosuid,bg,tcp,vers=3 \
+        /vol/vol0 siren:/vol/vol0 \
+        /vol/vol0/backups siren:/vol/vol0/backups \
+        /vol/vol0/proj siren:/vol/vol0/proj \
+        /vol/vol1 siren:/vol/vol1 \
+        /vol/vol1/proj siren:/vol/vol1/proj
+
+
+I am wondering if we switch to using "-hosts" which I would really
+prefer to do given that I wouldn't want a client to mount everything
+provided by a server.  Is there a way to have different fstype options
+happen on a per machine basis? (I am assuming you don't do that right now,
+but I thought I would submit this concept to see if you have any ideas
+on how to do this).
+
+Thanks,
+
+-Dave
+
+
+________________________________________________________________________
+David Meleedy				Analog Devices, Inc.
+David.Meleedy@analog.com		Three Technology Way
+Phone: 781 461 3494			Norwood, MA  02062-9106  USA
