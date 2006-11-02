@@ -1,8 +1,7 @@
 From: Jeff Moyer <jmoyer@redhat.com>
-Subject: [autofs4 patch] check for a negative return from
-	is_local_mount
-Date: Wed, 01 Nov 2006 19:14:00 -0500
-Message-ID: <x49bqnq66yf.fsf@segfault.boston.devel.redhat.com>
+Subject: [autofs4 patch] try to avoid removing regular files
+Date: Wed, 01 Nov 2006 19:20:21 -0500
+Message-ID: <x497iye66nu.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -17,80 +16,68 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <ikent@redhat.com>, autofs mailing list <autofs@linux.kernel.org>
+To: Ian Kent <raven@themaw.net>, autofs mailing list <autofs@linux.kernel.org>
 
-Hi, Ian, list,
+Hi,
 
-get_best_mount is documented as returning the following:
+There have been cases where broken kernels resulted in autofs removing
+regular files on non-autofs file systems.  This should be avoided at all
+costs.  This patch adds some paranoia checks to the rm_unwanted_fn.
 
-return -1 and what = '\0' on error,
-        1 and what = local mount path if local bind,
-  else  0 and what = remote mount path
+Comments are welcome.
 
-However, we get the return values incorrect in one case:
+-Jeff
 
-get_best_mount():
-		if (is_local_mount(p) > 0) {
-			debug(MODPREFIX "host %s: is localhost", p);
-
-			/* Strip off hostname and ':' */
-			delim = strchr(p,':');
-			while (delim && *delim != '\0') {
-				delim++;
-				*what = *delim;
-				what++;
-			}
-			return 1;
-		}
-
-		return 0;
-
-is_local_mount can return -1 if there is a host name lookup failure.
-However, we don't check for the negative return value, and hence return 0
-(success) when we shouldn't.  When using /net, this actually results in an
-attempt to perform a bind mount of the directory to itself!  Before the
-kernel patch went in to prevent infinite recursions of this type, it would
-end up panicking the system.
-
-The fix is much simpler than the explanation.  Review/comments appreciated.
-
-Thanks,
-
-Jeff
-
-diff --git a/modules/mount_nfs.c b/modules/mount_nfs.c
-index 8bede48..7d46a86 100644
---- a/modules/mount_nfs.c
-+++ b/modules/mount_nfs.c
-@@ -187,6 +187,8 @@ int get_best_mount(char *what, const cha
- 	 *  do anything except strip whitespace from the end of the string.
- 	 */
- 	if (!strchr(p, ',') && (strchr(p,':') == strrchr(p,':'))) {
-+		int ret;
-+
- 		for (pstrip = p+strlen(p) - 1; pstrip >= p; pstrip--) {
- 			if (!isspace(*pstrip))
- 				break;
-@@ -194,7 +196,8 @@ int get_best_mount(char *what, const cha
- 		}
+diff --git a/daemon/automount.c b/daemon/automount.c
+index 348b499..eb0cdd3 100644
+--- a/daemon/automount.c
++++ b/daemon/automount.c
+@@ -262,16 +262,42 @@ static int walk_tree(const char *base, i
+ static int rm_unwanted_fn(const char *file, const struct stat *st, int when, void *arg)
+ {
+ 	int rmsymlink = *(int *) arg;
++	struct stat newst;
  
- 		/* Check if the host is the localhost */
--		if (is_local_mount(p) > 0) {
-+		ret = is_local_mount(p);
-+		if (ret > 0) {
- 			debug(MODPREFIX "host %s: is localhost", p);
- 
- 			/* Strip off hostname and ':' */
-@@ -205,8 +208,10 @@ int get_best_mount(char *what, const cha
- 				what++;
- 			}
- 			return 1;
--		}
--		return 0;
-+		} else if (ret < 0)
-+			*what = '\0';
+ 	if (when == 0) {
+ 		if (st->st_dev != ap.dev)
+ 			return 0;
+-	} else {
+-		info("rm_unwanted: %s\n", file);
+-		if (S_ISDIR(st->st_mode))
+-			rmdir(file);
+-		else if (!S_ISLNK(st->st_mode) || rmsymlink)
+-			unlink(file);
++		return 1;
++	}
 +
-+		return ret;
++	if (lstat(file, &newst)) {
++		crit("rm_unwanted: unable to stat file, possible race "
++		      "condition: %s", strerror(errno));
++		return 0;
++	}
++
++	if (newst.st_dev != ap.dev) {
++		crit("rm_unwanted: file %s has the wrong device, possible "
++		     "race condition.", file);
++		return 0;
++	}
++
++	if (S_ISDIR(newst.st_mode)) {
++		if (rmdir(file)) {
++			info("rm_unwanted: unable to remove directory: "
++			     " %s, error: %s", file, strerror(errno));
++			return 0;
++		}
++	} else if (S_ISREG(newst.st_mode)) {
++		crit ("rm_unwanted: attempting to remove files from a mounted "
++		      "directory.");
++		return 0;
++	} else if (S_ISLNK(newst.st_mode) && rmsymlink) {
++		if (unlink(file)) {
++			crit ("rm_unwanted: unable to remove link: %s, error: "
++			      "%s", file, strerror(errno));
++			return 0;
++		}
  	}
  
- 	while (p && *p) {
+ 	return 1;
