@@ -1,11 +1,15 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: [autofs4 patch] fix string comparison to do full matches
-Date: Fri, 03 Nov 2006 16:30:30 -0500
-Message-ID: <x49odro1amh.fsf@segfault.boston.devel.redhat.com>
+From: Fabio Olive Leite <fleite@redhat.com>
+Subject: Re: [autofs4 patch] fix string comparison to do full
+	matches
+Date: Fri, 3 Nov 2006 20:04:50 -0300
+Message-ID: <20061103230450.GA23284@sleipnir.redhat.com>
+References: <x49odro1amh.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <x49odro1amh.fsf@segfault.boston.devel.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,72 +20,28 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>, autofs mailing list <autofs@linux.kernel.org>
+To: autofs mailing list <autofs@linux.kernel.org>
 
-Hi, Ian, list,
+On Fri, Nov 03, 2006 at 04:30:30PM -0500, Jeff Moyer wrote:
+> =
 
-	while(1) {
-		entry = read_one(f, mkey, mapent);
-		if (entry)
-			if (strncmp(mkey, key, key_len) == 0) {
-				fclose(f);
-				return cache_update(root, key, mapent, age);
-			}
+> This patch is again from Chris Feist.  Comments welcome.
+> =
 
-		if (feof(f))
-			break;
-	}
+> +			if (strlen(mkey) =3D=3D key_len &&
+> +			    strncmp(mkey, key, key_len) =3D=3D 0) {
 
-The strncmp above will match a partial key in the cache.  What I mean by
-that is, if we are looking up "foo", and there is an entry for "foobar",
-that code would incorrectly update the "foobar" entry with the value for
-the key "foo".  The fix is simple, and has been in the RHEL 4 code for some
-time.
+If this was a Google interview, I'd say that doing the strncmp before
+the strlen is more efficient. With equal keys it does not matter, but
+with different keys strncmp will bail out in the middle of the key, on
+average, and strlen will always scan the whole key. So doing strlen
+and then strncmp scans 1.5 the length of the key on average, while
+doing strncmp and then strlen scans 0.5 of it (with different keys,
+remember).
 
-I tested it as follows:
+Other than that, the patch seems to be the right thing to do. :)
 
----
+F=E1bio
+-- =
 
-Setup the automounter to mount a local map (nsswitch should have 'automount: files')
-
-The auto.master file should have the following entry:
-/misc   /etc/auto.misc --timeout=3
-
-The /etc/auto.misc file should have the following entries:
-foo2            mountpoint1
-foo             mountpoint2
-
-where mountpoint1 & mountpoint2 are two different mountpoints (ie.
-tng4-1:/net/1/1/1 & tng4-1:/net/1/1/2)
-
-Run 'ls /misc/foo ; ls /misc/foo2'
-
-You should get a list of the files in both mountpoints.  Wait 10 seconds.  Run
-df and make sure both dirs were unmounted.
-
-touch /etc/auto.misc
-
-Run 'ls /misc/foo ; ls /misc/foo2'
-
-You should have the same output as the first 'ls /misc/foo ; ls /misc/foo2'
-
----
-
-This patch is again from Chris Feist.  Comments welcome.
-
--Jeff
-
-diff --git a/modules/lookup_file.c b/modules/lookup_file.c
-index 2eb002e..49d1155 100644
---- a/modules/lookup_file.c
-+++ b/modules/lookup_file.c
-@@ -345,7 +345,8 @@ static int lookup_one(const char *root,
- 	while(1) {
- 		entry = read_one(f, mkey, mapent);
- 		if (entry)
--			if (strncmp(mkey, key, key_len) == 0) {
-+			if (strlen(mkey) == key_len &&
-+			    strncmp(mkey, key, key_len) == 0) {
- 				fclose(f);
- 				return cache_update(root, key, mapent, age);
- 			}
+ex sed lex awk yacc, e pluribus unix, amem
