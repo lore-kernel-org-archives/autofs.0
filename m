@@ -1,8 +1,7 @@
 From: Jeff Moyer <jmoyer@redhat.com>
-Subject: [autofs4 patch] add a make option to not strip debugging
-	symbols
-Date: Fri, 03 Nov 2006 18:32:33 -0500
-Message-ID: <x49bqno14z2.fsf@segfault.boston.devel.redhat.com>
+Subject: [autofs4 patch] allow one to specify multiple direct maps
+Date: Fri, 03 Nov 2006 18:51:21 -0500
+Message-ID: <x497iyc143q.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -21,32 +20,43 @@ To: Ian Kent <raven@themaw.net>, autofs mailing list <autofs@linux.kernel.org>
 
 Hi, Ian, list,
 
-This patch was posed for v5 and was taken in.  We should do something
-similar for v4.  Guillaume noted that the build process is somewhat
-unorthodox, so perhaps we should fix it "the right way."  However, I lack
-the cycles at the moment.
+Currently, the autofs init script filters out all duplicate map names.
+This patch turns off that filtering for direct maps, allowing multiple "/-"
+keys in the master map.
+
+This was tested successfully on my systems here.  Comments welcome.
 
 -Jeff
 
-diff --git a/Makefile.rules b/Makefile.rules
-index 99393f6..82ded1f 100644
---- a/Makefile.rules
-+++ b/Makefile.rules
-@@ -22,10 +22,16 @@ CFLAGS    = -O2 -g -DDEBUG
- LDFLAGS   = -g
- STRIP     = :
- else
-+ifdef DONTSTRIP
-+CFLAGS    = -O2 -g
-+LDFLAGS   = -g
-+STRIP     = :
-+else # normal compile
- CFLAGS    = -O3 -fomit-frame-pointer -Wall
- LDFLAGS   = -s
- STRIP     = strip --strip-debug
--endif
-+endif # DONTSTRIP
-+endif # DEBUG
+diff --git a/samples/rc.autofs.in b/samples/rc.autofs.in
+index 8cd3eb1..d00f2ab 100644
+--- a/samples/rc.autofs.in
++++ b/samples/rc.autofs.in
+@@ -253,15 +253,18 @@ function getmounts()
+ 	    fi
  
- CC        = gcc
- CXX       = g++
+ 	    # Do not include a map if it is a duplicate, maps on top of
+-	    # another map or another map, maps on top of it.
+-	    for knownmap in $knownmaps
+-	    do	
+-		if [ "`echo $dir/ | grep ^$knownmap`" != "" \
+-			-o "`echo $knownmap | grep ^$dir/`" != "" \]
+-		then 
+-		    continue 2
+-		fi	
+-	    done
++	    # another map or another map maps on top of it, unless it's
++	    # a direct map.
++	    if [ x`echo $dir | grep -E "^/-"` == 'x' ]; then
++		for knownmap in $knownmaps
++		do
++		    if [ "`echo $dir/ | grep ^$knownmap`" != "" \
++			    -o "`echo $knownmap | grep ^$dir/`" != "" \]
++		    then
++			continue 2
++		    fi
++		done
++	    fi
+ 
+ 	    if [ ! -z "$dir" -a ! -z "$map" \
+ 			-a x`echo "$map" | cut -c1` != 'x-' ]
