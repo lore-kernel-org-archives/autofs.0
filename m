@@ -1,13 +1,13 @@
-From: "Fletcher Mattox" <fletcher@cs.utexas.edu>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: automount errors under high load
-Date: Fri, 3 Nov 2006 18:55:57 -0600
-Message-ID: <200611040055.kA40tweg018563@cs.utexas.edu>
-References: <x49zmb8ysld.fsf@segfault.boston.devel.redhat.com>
+Date: Sat, 04 Nov 2006 10:14:23 +0800
+Message-ID: <1162606463.25017.28.camel@localhost>
+References: <200611040115.kA41Fm6V023423@cs.utexas.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <x49zmb8ysld.fsf@segfault.boston.devel.redhat.com>
+In-Reply-To: <200611040115.kA41Fm6V023423@cs.utexas.edu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,64 +18,86 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Fletcher Mattox <fletcher+autofs@cs.utexas.edu>
+Cc: autofs@linux.kernel.org
 
-Jeff Moyer writes:
-> ==> Regarding [autofs] automount errors under high load; "Fletcher Mattox" <fletcher+autofs@cs.utexas.edu> adds:
+On Fri, 2006-11-03 at 18:55 -0600, Fletcher Mattox wrote:
+> Jeff Moyer writes:
+> > ==> Regarding [autofs] automount errors under high load; "Fletcher Mattox" <fletcher+autofs@cs.utexas.edu> adds:
+> > 
+> > fletcher> Hi,
+> > fletcher> Under high load (100 mount/sec) automount will fail with either
+> > fletcher> of these error messages from mount.
+> > 
+> > fletcher>     mount: filer3:/vol/vol2/v2q017: can't read superblock
+> > fletcher>     mount: RPC: Authentication error; why = Client credential too weak
+> > 
+> > fletcher> I find these error messages suspicious, and do not believe either of
+> > fletcher> them represent the true problem.  I have appended the debug output in
+> > fletcher> case that is useful.  I notice that it seems to try the mount seven
+> > fletcher> times each, before giving up with one of the above errors (usually
+> > fletcher> it is the superblock error).
+> > 
+> > The mount program performs the retries.  What errors are reported in the
+> > server logs?  This really feels like more of an NFS problem than an autofs
+> > one.
 > 
-> fletcher> Hi,
-> fletcher> Under high load (100 mount/sec) automount will fail with either
-> fletcher> of these error messages from mount.
+> Jeff,
 > 
-> fletcher>     mount: filer3:/vol/vol2/v2q017: can't read superblock
-> fletcher>     mount: RPC: Authentication error; why = Client credential too weak
+> This is the only error in the server logs:
 > 
-> fletcher> I find these error messages suspicious, and do not believe either of
-> fletcher> them represent the true problem.  I have appended the debug output in
-> fletcher> case that is useful.  I notice that it seems to try the mount seven
-> fletcher> times each, before giving up with one of the above errors (usually
-> fletcher> it is the superblock error).
+>   Mon Oct 30 10:58:05 CST [mountd_main:warning]: Client 128.83.120.210 (xid 160302913),\
+>   from mount is trying to mount from a nonreserved port = 43645 as uid = 0
 > 
-> The mount program performs the retries.  What errors are reported in the
-> server logs?  This really feels like more of an NFS problem than an autofs
-> one.
+> which would explain the weak credentials error.  I wonder why mount would
+> use a non-privileged port?  If it runs out of privileged ports, does it
+> start using non-privileged ports?  Seems like it should just return an error.
 
-Jeff,
+mount(8) is notorious for it's port usage when probing an NFS server.
 
-This is the only error in the server logs:
+It can use up to 6 ports per mount and combined with autofs checking if
+the server is up this can increase to as many as eight per mount.
 
-  Mon Oct 30 10:58:05 CST [mountd_main:warning]: Client 128.83.120.210 (xid 160302913),\
-  from mount is trying to mount from a nonreserved port = 43645 as uid = 0
+Many distributions have a mount(8) that will attempt to use
+non-privileged ports for this reason which is bad news if your NFS
+server is configured to not allow then.
 
-which would explain the weak credentials error.  I wonder why mount would
-use a non-privileged port?  If it runs out of privileged ports, does it
-start using non-privileged ports?  Seems like it should just return an error.
-
-In any event, Im now wondering if the problem is caused because all 1024 privileged
-ports are in use.  Hmm.
-
-But the superblock error is still unexplained.
-
-> fletcher> I have also noticed corruption of /etc/mtab.  Sometimes static
-> fletcher> mounts just disappear from it during busy times.  I assume this
-> fletcher> is some type of race condition where file locking fails.  I do
-> fletcher> not know if this is the same problem or a different problem, but
-> fletcher> I thought I would mention it.
 > 
-> I posted one method for fixing that problem to the list some time ago.  The
-> idea is to simply use /proc/mounts instead aof /etc/mtab.  That way we
-> avoid the whole lock-file mess.  I've attached the patch, here, but I
-> didn't try to apply it to 4.1.4, so it may need some massaging.  (I'll post
-> a proper patch later on, but I have to work through my backlog first.)
+> In any event, Im now wondering if the problem is caused because all 1024 privileged
+> ports are in use.  Hmm.
+> 
+> But the superblock error is still unexplained.
 
-Thanks.  I just joined the list.  And I have to get up to speed using
-ubuntu's source building environment before I can start applying patches.
-But it's good to know they exist.
+It's quite likely that mount is reporting this because it can't get NFS
+file handle for the mount root. Possibly an error code returned by the
+remote mountd.
 
-> I don't think the corruption of /etc/mtab will cause the problems you are
-> seeing, but I could be wrong.
-
-I agree.   I just though it was worth mentioning.
-
-Thank you for responding!
-Fletcher
+> 
+> > fletcher> I have also noticed corruption of /etc/mtab.  Sometimes static
+> > fletcher> mounts just disappear from it during busy times.  I assume this
+> > fletcher> is some type of race condition where file locking fails.  I do
+> > fletcher> not know if this is the same problem or a different problem, but
+> > fletcher> I thought I would mention it.
+> > 
+> > I posted one method for fixing that problem to the list some time ago.  The
+> > idea is to simply use /proc/mounts instead aof /etc/mtab.  That way we
+> > avoid the whole lock-file mess.  I've attached the patch, here, but I
+> > didn't try to apply it to 4.1.4, so it may need some massaging.  (I'll post
+> > a proper patch later on, but I have to work through my backlog first.)
+> 
+> Thanks.  I just joined the list.  And I have to get up to speed using
+> ubuntu's source building environment before I can start applying patches.
+> But it's good to know they exist.
+> 
+> > I don't think the corruption of /etc/mtab will cause the problems you are
+> > seeing, but I could be wrong.
+> 
+> I agree.   I just though it was worth mentioning.
+> 
+> Thank you for responding!
+> Fletcher
+> 
+> _______________________________________________
+> autofs mailing list
+> autofs@linux.kernel.org
+> http://linux.kernel.org/mailman/listinfo/autofs
