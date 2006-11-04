@@ -1,13 +1,13 @@
-From: "Fletcher Mattox" <fletcher+autofs@cs.utexas.edu>
-Subject: Re: automount errors under high load
-Date: Fri, 3 Nov 2006 18:55:57 -0600
-Message-ID: <200611040115.kA41Fm6V023423@cs.utexas.edu>
-References: <x49zmb8ysld.fsf@segfault.boston.devel.redhat.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: dead lock (autofs and/or mount)
+Date: Sat, 04 Nov 2006 09:50:51 +0800
+Message-ID: <1162605051.25017.12.camel@localhost>
+References: <454B7750.9000307@infomaniak.ch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <x49zmb8ysld.fsf@segfault.boston.devel.redhat.com>
+In-Reply-To: <454B7750.9000307@infomaniak.ch>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,64 +18,48 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: cedric briner <work@infomaniak.ch>
+Cc: autofs <autofs@linux.kernel.org>
 
-Jeff Moyer writes:
-> ==> Regarding [autofs] automount errors under high load; "Fletcher Mattox" <fletcher+autofs@cs.utexas.edu> adds:
+On Fri, 2006-11-03 at 18:07 +0100, cedric briner wrote:
+> sarge
+> autofs-4.1.3
+> mount-2.12p
+> uname -r : 2.6.8-3-686
 > 
-> fletcher> Hi,
-> fletcher> Under high load (100 mount/sec) automount will fail with either
-> fletcher> of these error messages from mount.
+> hello,
+> I'm having such difficulties between the mount and the autofs package.
+> When autofs want to mount a resource which is not available, i get into 
+> this situation:
 > 
-> fletcher>     mount: filer3:/vol/vol2/v2q017: can't read superblock
-> fletcher>     mount: RPC: Authentication error; why = Client credential too weak
+> in my situation a nested mount in unavailable!
 > 
-> fletcher> I find these error messages suspicious, and do not believe either of
-> fletcher> them represent the true problem.  I have appended the debug output in
-> fletcher> case that is useful.  I notice that it seems to try the mount seven
-> fletcher> times each, before giving up with one of the above errors (usually
-> fletcher> it is the superblock error).
+> # ps -efH
 > 
-> The mount program performs the retries.  What errors are reported in the
-> server logs?  This really feels like more of an NFS problem than an autofs
-> one.
-
-Jeff,
-
-This is the only error in the server logs:
-
-  Mon Oct 30 10:58:05 CST [mountd_main:warning]: Client 128.83.120.210 (xid 160302913),\
-  from mount is trying to mount from a nonreserved port = 43645 as uid = 0
-
-which would explain the weak credentials error.  I wonder why mount would
-use a non-privileged port?  If it runs out of privileged ports, does it
-start using non-privileged ports?  Seems like it should just return an error.
-
-In any event, Im now wondering if the problem is caused because all 1024 privileged
-ports are in use.  Hmm.
-
-But the superblock error is still unexplained.
-
-> fletcher> I have also noticed corruption of /etc/mtab.  Sometimes static
-> fletcher> mounts just disappear from it during busy times.  I assume this
-> fletcher> is some type of race condition where file locking fails.  I do
-> fletcher> not know if this is the same problem or a different problem, but
-> fletcher> I thought I would mention it.
+> root      4588     1  0 Oct25 ?        00:00:00   /usr/sbin/automount
+> --pid-file=/var/run/autofs/_home_photom.pid --timeout=300 --ghost
+> /home/photom yp auto_home_photom
 > 
-> I posted one method for fixing that problem to the list some time ago.  The
-> idea is to simply use /proc/mounts instead aof /etc/mtab.  That way we
-> avoid the whole lock-file mess.  I've attached the patch, here, but I
-> didn't try to apply it to 4.1.4, so it may need some massaging.  (I'll post
-> a proper patch later on, but I have to work through my backlog first.)
+> root     21442  4588  0 13:41 ?        00:00:00     /usr/sbin/automount
+> --pid-file=/var/run/autofs/_home_photom.pid --timeout=300 --ghost
+> /home/photom yp auto_home_photom
+> 
+> root     21444 21442  0 13:41 ?        00:00:00       [mount] <defunct>
+> 
+> root     21450     1  0 13:41 ?        00:00:00   mount --
+> obssb13:/export/diskA2/backup/carrier
+> 
+> # ypcat -k auto_home_photom | grep carrier
+> carrier -bg / obssb6:/export/diskA1/& /unsaved obssb6:/export/diskA2/&
+>   /backup obssb13:/export/diskA2/backup/&
 
-Thanks.  I just joined the list.  And I have to get up to speed using
-ubuntu's source building environment before I can start applying patches.
-But it's good to know they exist.
+Don't use -bg.
 
-> I don't think the corruption of /etc/mtab will cause the problems you are
-> seeing, but I could be wrong.
+How can autofs mount all entries of a multi-mount, with potential
+nesting, if a mount operation is put into background. When a mount
+operation is put into the background mount returns success which may not
+actually true.
 
-I agree.   I just though it was worth mentioning.
+This is a sure way to break multi-mounts such as you are using here.
 
-Thank you for responding!
-Fletcher
+Ian
