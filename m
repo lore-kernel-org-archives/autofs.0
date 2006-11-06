@@ -1,14 +1,10 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: autofs illustrations
-Date: Mon, 06 Nov 2006 19:10:21 -0500
-Message-ID: <x49y7qoxgk2.fsf@segfault.boston.devel.redhat.com>
-References: <454FB932.8080906@oracle.com>
+From: "Syed Khader" <syedk@google.com>
+Subject: problem with autofs
+Date: Mon, 6 Nov 2006 22:20:20 +0530
+Message-ID: <29c5cd460611060850p4972e906s65990c968db963e4@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============6209535246741090868=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <454FB932.8080906@oracle.com> (wengang wang's message of "Mon,
-	06 Nov 2006 14:37:38 -0800")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,20 +15,86 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: wengang wang <wen.gang.wang@oracle.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-==> Regarding [autofs] autofs illustrations; wengang wang <wen.gang.wang@oracle.com> adds:
+--===============6209535246741090868==
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_35760_27501084.1162831820857"
 
-wen.gang.wang> Hi all,
+------=_Part_35760_27501084.1162831820857
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-wen.gang.wang> Currently, I am working on debugging for
-wen.gang.wang> autofs/automount. But I am not very clear about how
-wen.gang.wang> autofs/automount works.  Is there any illustration on
-wen.gang.wang> autofs/automount?
+Hello Evrybuddy,
 
-wen.gang.wang> your answer will be greatly appreciated!
+I had configured Openldap and succesfully configured for authentication of
+users.I'm facing problem with autofs.
 
-http://people.redhat.com/jmoyer/autofs_linux_kongress.pdf
+I'm using Rhel4.When i say service autofs start it says
 
--Jeff
+No mount points defined.
+
+I have written the correct entries in /etc/exports file.
+
+I have sucessfully mounted directories using /etc/auto.master and indirect
+maps on the client side
+But when i'm using the ldap maps it's giving me problems
+How can i make my autofs service to read the auto.master from LDAP Ou=
+auto.master.
+
+I have changed in the /etc/nsswitch.conf file to Automount: ldap but no use
+
+when i use service autofs start it says "No mountpoints defined".
+
+Are they any bugs with RHEL4?
+Or am i going wrong somewhere?
+
+Thanks in advance
+Abdul.
+
+------=_Part_35760_27501084.1162831820857
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<div>Hello Evrybuddy,</div>
+<div>&nbsp;</div>
+<div>I had configured Openldap and succesfully configured for authentication of users.I'm facing problem with autofs.</div>
+<div>&nbsp;</div>
+<div>I'm using Rhel4.When i say service autofs start it says</div>
+<div>&nbsp;</div>
+<div>No mount points defined.</div>
+<div>&nbsp;</div>
+<div>I have written the correct entries in /etc/exports file.</div>
+<div>&nbsp;</div>
+<div>I have sucessfully mounted directories using /etc/auto.master and indirect maps on the client side</div>
+<div>But when i'm using the ldap maps it's giving me problems</div>
+<div>How can i make my autofs service to read the auto.master from LDAP Ou=auto.master.</div>
+<div>&nbsp;</div>
+<div>I have changed in the /etc/nsswitch.conf file to Automount: ldap but no use</div>
+<div>&nbsp;</div>
+<div>when i use service autofs start it says &quot;No mountpoints defined&quot;.</div>
+<div>&nbsp;</div>
+<div>Are they any bugs with RHEL4?</div>
+<div>Or am i going wrong somewhere?</div>
+<div>&nbsp;</div>
+<div>Thanks in advance</div>
+<div>Abdul.</div>
+
+------=_Part_35760_27501084.1162831820857--
+
+
+--===============6209535246741090868==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--===============6209535246741090868==--
+
