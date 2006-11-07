@@ -1,21 +1,13 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: problem with autofs
-Date: Tue, 07 Nov 2006 14:01:48 -0500
-Message-ID: <x493b8vxeqr.fsf@segfault.boston.devel.redhat.com>
-References: <29c5cd460611060850p4972e906s65990c968db963e4@mail.gmail.com>
-	<x49psbzxtfa.fsf@segfault.boston.devel.redhat.com>
-	<29c5cd460611070612x1d046f91u3a3c0577bb1fd77@mail.gmail.com>
-	<x49ejsfxqix.fsf@segfault.boston.devel.redhat.com>
-	<1162912613.18975.59.camel@localhost>
-	<29c5cd460611070732h1cbdd998n3dd627c4e554b98a@mail.gmail.com>
-	<x497iy7xmtp.fsf@segfault.boston.devel.redhat.com>
-	<29c5cd460611070820o6cb2a08fp2c9e9adf67651ce3@mail.gmail.com>
+From: Peter Staubach <staubach@redhat.com>
+Subject: Re: autofs illustrations
+Date: Tue, 07 Nov 2006 15:40:03 -0500
+Message-ID: <4550EF23.4050901@redhat.com>
+References: <200611071719.kA7HJSvl002639@cs.utexas.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <29c5cd460611070820o6cb2a08fp2c9e9adf67651ce3@mail.gmail.com>
-	(Syed Khader's message of "Tue, 7 Nov 2006 21:50:06 +0530")
+In-Reply-To: <200611071719.kA7HJSvl002639@cs.utexas.edu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -26,25 +18,45 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Syed Khader <syedk@google.com>
-Cc: autofs@linux.kernel.org, Ian Kent <raven@themaw.net>
+To: Fletcher Mattox <fletcher+autofs@cs.utexas.edu>
+Cc: autofs@linux.kernel.org
 
-==> Regarding Re: [autofs] problem with autofs; "Syed Khader" <syedk@google.com> adds:
+Fletcher Mattox wrote:
+> Jeff Moyer writes:
+>
+>   
+>> http://people.redhat.com/jmoyer/autofs_linux_kongress.pdf
+>>     
+>
+> Jeff,
+>
+> Nice paper.  Thanks!  I'm suffering from RPC port exhaustion (you
+> responded to one of my queries last week), so I am especially interested
+> in your section on port allocation.  You state
+>
+> 	When a service requests an RPC connection, binding to
+> 	a reserved port is the default.  The RPC layer scans
+> 	ports starting from 800 down until it finds one that
+> 	is unallocated.
+>
+> My experience is that the 2.6.17.4 kernel allocates between 512 and 1024
+> and then begins with unreserved ports >33000.  Yeah, I know.  It's just
+> a nit, but I thought I'd tell you anyway.
+>
+> The most interesting part of the paper was the comment about a practical
+> limit of 100 mounts in rapid succession.  I am certain this is the limit
+> we have bumped into.  Do you see any improvement in this in autofs 5?
+>
+> Unprivileged ports and/or UDP are not viable options for us, so I am
+> forced to increase the timeout from 5 minutes to 24 hours, which in
+> practice means they are always mounted.  We have about 400 automounted
+> filesystems, so the only long term solution for us is to try to coalesce
+> them to less than 100.  Very painful.
 
-syedk> Hi Jeff,
-syedk> Here's the output
+You have 400 automounted file systems, all of which need to be mounted at
+the same time?  If so, I might suggest that static mounts might better serve
+your needs.  Or, rethink the application and deployment.
 
->> ldapsearch -x -s subtree '(&(objectclass=automountMap)(ou=auto.master))'
+    Thanx...
 
-syedk> dn:ou=auto.master,dc=testlab,dc=com
-syedk> objectClass:top
-syedk> objectClass:automountMap
-syedk> ou:auto.master
-
-syedk> I have configured to allow anonymous bind.No ACLS are given
-
-OK, then what do you get with this:
-
-ldapsearch -x -s subtree -b 'ou=auto.master,dc=testlab,dc=com' 'objectclass=automount'
-
--Jeff
+       ps
