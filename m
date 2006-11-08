@@ -1,15 +1,17 @@
-From: Joe Pruett <joey@clean.q7.com>
+From: Jeff Moyer <jmoyer@redhat.com>
 Subject: Re: autofs illustrations
-Date: Wed, 8 Nov 2006 14:34:27 -0800 (PST)
-Message-ID: <Pine.LNX.4.64.0611081431170.25763@q7.q7.com>
+Date: Wed, 08 Nov 2006 18:03:47 -0500
+Message-ID: <x49mz71pmlo.fsf@segfault.boston.devel.redhat.com>
 References: <200611071719.kA7HJSvl002639@cs.utexas.edu>
-	<1162958395.3555.8.camel@localhost>
-	<4551DAE2.1080704@redhat.com> <1162994432.3555.15.camel@localhost>
+	<1162958395.3555.8.camel@localhost> <4551DAE2.1080704@redhat.com>
+	<1162994432.3555.15.camel@localhost>
+	<Pine.LNX.4.64.0611081431170.25763@q7.q7.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1162994432.3555.15.camel@localhost>
+In-Reply-To: <Pine.LNX.4.64.0611081431170.25763@q7.q7.com> (Joe Pruett's
+	message of "Wed, 8 Nov 2006 14:34:27 -0800 (PST)")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,27 +22,26 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Joe Pruett <joey@clean.q7.com>
+Cc: autofs@linux.kernel.org
 
-> > Actually, there is work on going to reduce the number of connections 
-> > from the
-> > client to the server from one per mount to one per client server 
-> > combination.
-> > Solaris has always done this and it works out quite well in practice.
-> 
-> Excellent.
-> Tell me more?
+==> On Wed, 8 Nov 2006 14:34:27 -0800 (PST), Joe Pruett <joey@clean.q7.com> said:
 
-this sure sounds like the old solaris automount setup of:
+Joe> > > Actually, there is work on going to reduce the number of
+Joe> connections > > from the > > client to the server from one per
+Joe> mount to one per client server > > combination.  > > Solaris has
+Joe> always done this and it works out quite well in practice.
+Joe> > 
+Joe> > Excellent.  > Tell me more?
 
-foo	server:/path/disk:foo
-bar	server:/path/disk:bar
+Joe> this sure sounds like the old solaris automount setup of:
 
-hitting foo would mount server:/path/disk and then symlink/bind for foo.  
-hitting bar within the timeout period would just cause another 
-symlink/bind instead of another mount.
+Joe> foo server:/path/disk:foo bar server:/path/disk:bar
 
-i am mimicking this on my setup with two maps.  one for disks and then one 
-for home dirs that points to the disks mount.  it still hiccups 
-occasionally since the two automounts don't really know about each other.  
-having this functionality back in automount would be great.
+Joe> hitting foo would mount server:/path/disk and then symlink/bind
+Joe> for foo.  hitting bar within the timeout period would just cause
+Joe> another symlink/bind instead of another mount.
+
+Quite different.  I think Pete is referring to connection sharing.
+
+-Jeff
