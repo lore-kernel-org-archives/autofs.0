@@ -1,14 +1,20 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs illustrations
-Date: Wed, 08 Nov 2006 22:00:32 +0800
-Message-ID: <1162994432.3555.15.camel@localhost>
-References: <200611071719.kA7HJSvl002639@cs.utexas.edu>
-	<1162958395.3555.8.camel@localhost>  <4551DAE2.1080704@redhat.com>
+From: "Syed Khader" <syedk@google.com>
+Subject: Re: problem with autofs
+Date: Wed, 8 Nov 2006 09:23:16 +0530
+Message-ID: <29c5cd460611071953w5c3ab139w274c75b913aee36e@mail.gmail.com>
+References: <29c5cd460611060850p4972e906s65990c968db963e4@mail.gmail.com>
+	<x49psbzxtfa.fsf@segfault.boston.devel.redhat.com>
+	<29c5cd460611070612x1d046f91u3a3c0577bb1fd77@mail.gmail.com>
+	<x49ejsfxqix.fsf@segfault.boston.devel.redhat.com>
+	<1162912613.18975.59.camel@localhost>
+	<29c5cd460611070732h1cbdd998n3dd627c4e554b98a@mail.gmail.com>
+	<x497iy7xmtp.fsf@segfault.boston.devel.redhat.com>
+	<29c5cd460611070820o6cb2a08fp2c9e9adf67651ce3@mail.gmail.com>
+	<x493b8vxeqr.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============3170798737538686215=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4551DAE2.1080704@redhat.com>
+In-Reply-To: <x493b8vxeqr.fsf@segfault.boston.devel.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,34 +25,93 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Peter Staubach <staubach@redhat.com>
-Cc: autofs@linux.kernel.org
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: autofs@linux.kernel.org, Ian Kent <raven@themaw.net>
 
-On Wed, 2006-11-08 at 08:25 -0500, Peter Staubach wrote:
-> Ian Kent wrote:
-> >
-> >   
-> >> Unprivileged ports and/or UDP are not viable options for us, so I am
-> >> forced to increase the timeout from 5 minutes to 24 hours, which in
-> >> practice means they are always mounted.  We have about 400 automounted
-> >> filesystems, so the only long term solution for us is to try to coalesce
-> >> them to less than 100.  Very painful.
-> >>     
-> >
-> > Understood. We had similar constraints at my last employer.
-> >
-> > I'm not aware of any work being actively done on this.
-> > Nobody that cares has any time at the moment.
-> >
-> >   
-> 
-> Actually, there is work on going to reduce the number of connections 
-> from the
-> client to the server from one per mount to one per client server 
-> combination.
-> Solaris has always done this and it works out quite well in practice.
+--===============3170798737538686215==
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_14506_18690977.1162957996584"
 
-Excellent.
-Tell me more?
+------=_Part_14506_18690977.1162957996584
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Ian
+Jeff,
+It gives me
+
+dn: cn=/home,dc=testlab,dc=com
+and the automount information which i specified in the auto.home map.
+
+I think Ldap entries are fine,but the problem is to make autofs read from
+the LDAP rather than files.
+
+Thanks,
+Abdul.
+
+
+
+On 11/8/06, Jeff Moyer <jmoyer@redhat.com> wrote:
+>
+> ==> Regarding Re: [autofs] problem with autofs; "Syed Khader" <
+> syedk@google.com> adds:
+>
+> syedk> Hi Jeff,
+> syedk> Here's the output
+>
+> >> ldapsearch -x -s subtree '(&(objectclass=automountMap)(ou=auto.master
+> ))'
+>
+> syedk> dn:ou=auto.master,dc=testlab,dc=com
+> syedk> objectClass:top
+> syedk> objectClass:automountMap
+> syedk> ou:auto.master
+>
+> syedk> I have configured to allow anonymous bind.No ACLS are given
+>
+> OK, then what do you get with this:
+>
+> ldapsearch -x -s subtree -b 'ou=auto.master,dc=testlab,dc=com'
+> 'objectclass=automount'
+>
+> -Jeff
+>
+
+------=_Part_14506_18690977.1162957996584
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<div>Jeff,</div>
+<div>It gives me</div>
+<div>&nbsp;</div>
+<div>dn: cn=/home,dc=testlab,dc=com</div>
+<div>and the automount information which i specified in the auto.home map.</div>
+<div>&nbsp;</div>
+<div>I think Ldap entries are fine,but the problem is to make autofs read from the LDAP rather than files.</div>
+<div>&nbsp;</div>
+<div>Thanks,</div>
+<div>Abdul.</div>
+<div><br><br>&nbsp;</div>
+<div><span class="gmail_quote">On 11/8/06, <b class="gmail_sendername">Jeff Moyer</b> &lt;<a href="mailto:jmoyer@redhat.com">jmoyer@redhat.com</a>&gt; wrote:</span>
+<blockquote class="gmail_quote" style="PADDING-LEFT: 1ex; MARGIN: 0px 0px 0px 0.8ex; BORDER-LEFT: #ccc 1px solid">==&gt; Regarding Re: [autofs] problem with autofs; &quot;Syed Khader&quot; &lt;<a href="mailto:syedk@google.com">
+syedk@google.com</a>&gt; adds:<br><br>syedk&gt; Hi Jeff,<br>syedk&gt; Here's the output<br><br>&gt;&gt; ldapsearch -x -s subtree '(&amp;(objectclass=automountMap)(ou=auto.master))'<br><br>syedk&gt; dn:ou=auto.master,dc=testlab,dc=com
+<br>syedk&gt; objectClass:top<br>syedk&gt; objectClass:automountMap<br>syedk&gt; ou:auto.master<br><br>syedk&gt; I have configured to allow anonymous bind.No ACLS are given<br><br>OK, then what do you get with this:<br><br>
+ldapsearch -x -s subtree -b 'ou=auto.master,dc=testlab,dc=com' 'objectclass=automount'<br><br>-Jeff<br></blockquote></div><br>
+
+------=_Part_14506_18690977.1162957996584--
+
+
+--===============3170798737538686215==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--===============3170798737538686215==--
+
