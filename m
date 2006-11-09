@@ -1,15 +1,11 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [autofs4 patch] implement included map support
-Date: Thu, 09 Nov 2006 10:09:43 -0500
-Message-ID: <x49odrgmzbc.fsf@segfault.boston.devel.redhat.com>
-References: <x491wodnvdk.fsf@segfault.boston.devel.redhat.com>
-	<1163049640.7831.3.camel@localhost>
+From: Dana Wellen <dana.wellen@onsemi.com>
+Subject: Problem patching kernel in Rhel-4
+Date: Thu, 09 Nov 2006 12:10:21 -0500
+Message-ID: <455360FD.50205@onsemi.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1163049640.7831.3.camel@localhost> (Ian Kent's message of "Thu,
-	09 Nov 2006 13:20:40 +0800")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,43 +16,70 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+To: autofs@linux.kernel.org
 
-==> On Thu, 09 Nov 2006 13:20:40 +0800, Ian Kent <raven@themaw.net> said:
+Hello,
 
-Ian> On Wed, 2006-11-08 at 22:37 -0500, Jeff Moyer wrote: > Hi, Ian,
-Ian> list, (again, sorry if this is a dup)
-Ian> > 
-Ian> > Here is an implementation of included map support for autofs
-Ian> v4.  This > supports included maps in both the master map, and
-Ian> regular direct or > indirect file maps.
-Ian> > 
-Ian> > Because I dread writing bash code, I implemented the included
-Ian> map > checking for the master map in C.  We basically just call
-Ian> into the > daemon with a bogus mount point, asking for it to dump
-Ian> out all of the > maps.  This works well for 2 reasons: 1) it's
-Ian> not bash, and 2) it > re-uses the code that the daemon will use
-Ian> to read the included maps > anyway.
-Ian> > 
-Ian> > Review would be greatly appreciated.  I tested this in my
-Ian> environment > by creating a number of included maps, and
-Ian> modifying > /etc/nsswitch.conf to ensure that it works as
-Ian> expected for file and > NIS maps.
+  I am really glad to see that autofs is finally being updated to one 
+that works in a multi-OS environment.  Autofs
+has long been a weak link into the standard Unix environment and this 
+version fixes many of the issues I have had
+with v4 and getting the company to switch to Linux because Linux wasn't 
+plug and play with the Solaris automounter.
 
-Ian> I've only looked briefly at this but I get the impression that it
-Ian> will allow "+" map inclusion from other than file maps. Is that
-Ian> right?
+  I am getting a error patching the kernel in Rhel-4.
 
-That was not the intent, and upon testing, it certainly doesn't follow
-included maps from yp.  It does, however, interpret the included
-map as a key in the map, which give a directory listing like this:
+The kernel being used is 2.6.9-5.ELsmp, I have installed the 
+corresponding source rpm and unpacked the kernel.
 
-# ls /test/
-+auto.test  repltest  sbox
+A transcript of the error is:
 
-Wrong, and somewhat amusing.  I'm not sure how best to deal with that.
-I guess we need to throw out entries which do not have a "value"
-portion.  I'm surprised we don't handle that already.
+patching file fs/namei.c
+Hunk #4 FAILED at 635.
+Hunk #5 succeeded at 752 (offset 6 lines).
+1 out of 6 hunks FAILED -- saving rejects to file fs/namei.c.rej
 
--Jeff
+All of the other files used in the patch are patched correctly.  The 
+namei.c file is the only one
+that doesn't patch. 
+
+  This is the error file made by patch.
+
+cat namei.c.rej
+***************
+*** 654,665 ****
+        goto done;
+
+  need_revalidate:
+-       dentry = do_revalidate(dentry, nd);
+-       if (!dentry)
+-               goto need_lookup;
+-       if (IS_ERR(dentry))
+-               goto fail;
+-       goto done;
+
+  fail:
+        return PTR_ERR(dentry);
+--- 635,646 ----
+        goto done;
+
+  need_revalidate:
++       if (dentry->d_op->d_revalidate(dentry, nd))
++               goto done;
++       if (d_invalidate(dentry))
++               goto done;
++       dput(dentry);
++       goto need_lookup;
+
+  fail:
+        return PTR_ERR(dentry);
+
+
+ Also, I couldn't find any information on what the flock patches are for 
+in the documentation.
+
+  I have been able to build the kernel and autofs using Suse 10.1 and 
+Sled 10 but not Rhel-4.
+
+
+-- 
