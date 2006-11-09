@@ -1,7 +1,7 @@
 From: Jeff Moyer <jmoyer@redhat.com>
-Subject: [autofs4 patch] Define LDAP_DEPRECATED in the build
-Date: Wed, 08 Nov 2006 20:46:34 -0500
-Message-ID: <x498xilpf2d.fsf@segfault.boston.devel.redhat.com>
+Subject: [autofs4 patch] close open file descriptors in daemonize
+Date: Wed, 08 Nov 2006 20:54:41 -0500
+Message-ID: <x494pt9peou.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,48 +18,31 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: Ian Kent <raven@themaw.net>, autofs mailing list <autofs@linux.kernel.org>
 
-Without this, newer 64 bit installs will have problems with the
-sources (since return codes default to int's).
+Our daemonize function should really close open file descriptors that
+were leaked to us.  This actually did result in a bug, whereby an "rpm
+-Uvh" from an ssh session would leave the user unable to logout.
+
+It's a pretty simple patch.  Comments welcome.
 
 -Jeff
 
-diff --git a/lib/Makefile b/lib/Makefile
-index a35b208..148828d 100644
---- a/lib/Makefile
-+++ b/lib/Makefile
-@@ -18,7 +18,8 @@ OBJS = cache.o mount_clnt.o mount_xdr.o 
- LIB = autofs.a
- NSSWITCH = nsswitch
+diff --git a/daemon/automount.c b/daemon/automount.c
+index 3c42c8a..c09eaf6 100644
+--- a/daemon/automount.c
++++ b/daemon/automount.c
+@@ -1436,10 +1436,15 @@ static void become_daemon(void)
+ 	pid_t pid;
+ 	int nullfd;
+ 	int pfds[2];
++	int i;
  
--CFLAGS += -I../include -fPIC -D_GNU_SOURCE -DHAVE_TCP_WRAPPER -DNFS3_SUPPORTED
-+CFLAGS += -I../include -fPIC -D_GNU_SOURCE -DHAVE_TCP_WRAPPER \
-+	-DNFS3_SUPPORTED -DLDAP_DEPRECATED
+ 	/* Don't BUSY any directories unnecessarily */
+ 	chdir("/");
  
- .PHONY: all install clean
- 
-diff --git a/modules/Makefile b/modules/Makefile
-index f87721a..e37d980 100644
---- a/modules/Makefile
-+++ b/modules/Makefile
-@@ -87,7 +87,7 @@ lookup_hesiod.so: lookup_hesiod.c
- 	$(STRIP) lookup_hesiod.so
- 
- lookup_ldap.so: lookup_ldap.c
--	$(CC) $(SOLDFLAGS) $(CFLAGS) $(LDAP_FLAGS) -o lookup_ldap.so \
-+	$(CC) $(SOLDFLAGS) $(CFLAGS) $(LDAP_FLAGS) -DLDAP_DEPRECATED -o lookup_ldap.so \
- 		lookup_ldap.c $(AUTOFS_LIB) $(LIBLDAP)
- 	$(STRIP) lookup_ldap.so
- 
-diff --git a/samples/Makefile b/samples/Makefile
-index d69d6e7..029ea9e 100644
---- a/samples/Makefile
-+++ b/samples/Makefile
-@@ -10,7 +10,7 @@ ifeq ($(LDAP), 1)
-   BINS = autofs-ldap-auto-master
- endif
- 
--CFLAGS += -I../include
-+CFLAGS += -I../include -DLDAP_DEPRECATED
- LIBS = -lldap -llber
- 
- all: $(BINS) rc.autofs
++	/* close open file descriptors, stdin/out/err are handled below */
++	for (i = 3; i < 255; i++)
++		close(i);
++
+ 	/* Detach from foreground process */
+ 	if (!submount) {
+ 		if (pipe(pfds) < 0) {
