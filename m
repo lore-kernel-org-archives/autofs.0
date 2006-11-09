@@ -1,7 +1,7 @@
 From: Jeff Moyer <jmoyer@redhat.com>
-Subject: [autofs4 patch] fix e2fsck error checking
-Date: Wed, 08 Nov 2006 22:18:20 -0500
-Message-ID: <x49irhpnw8z.fsf@segfault.boston.devel.redhat.com>
+Subject: [autofs4 patch] touch /var/lock/subsys/autofs at startup
+Date: Wed, 08 Nov 2006 22:24:10 -0500
+Message-ID: <x49ejsdnvz9.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -20,28 +20,23 @@ To: Ian Kent <raven@themaw.net>, autofs mailing list <autofs@linux.kernel.org>
 
 Hi, Ian, list,
 
-The patch is pretty self-explanatory.  Comments are welcome, as always.
-I sent this a while back, too.  I have not re-tested it since then.
+It turns out that a condrestart will fail if there were previously no
+maps, and then you populate some.  This is a pretty trivial case to
+fix, and it looks right to me.  I tested it, and it now works as expected.
+
+Comments welcome as usual.
 
 -Jeff
 
-
-diff --git a/modules/mount_ext2.c b/modules/mount_ext2.c
-index b2efb96..a7f008f 100644
---- a/modules/mount_ext2.c
-+++ b/modules/mount_ext2.c
-@@ -99,7 +99,13 @@ #endif
- 		err = spawnl(LOG_DEBUG, fsck_prog, fsck_prog, "-p", what, NULL);
- 	}
- 
--	if (err & ~6) {
-+	/*
-+	 * spawnl returns the error code, left shifted by 8 bits.  We are
-+	 * interested in the following error bits from the fsck program:
-+	 *    2 - File system errors corrected, system should be rebooted
-+	 *    4 - File system errors left uncorrected
-+	 */
-+	if ((err >> 8) & 6) {
- 		error(MODPREFIX "%s: filesystem needs repair, won't mount",
- 		      what);
- 		return 1;
+diff --git a/samples/rc.autofs.in b/samples/rc.autofs.in
+index f6f0444..5b71481 100644
+--- a/samples/rc.autofs.in
++++ b/samples/rc.autofs.in
+@@ -560,6 +560,7 @@ case "$1" in
+ 	else
+ 	    echo -n $"No Mountpoints Defined"
+ 	    success "$prog startup"
++	    touch /var/lock/subsys/autofs
+ 	fi
+ 	rm -f $TMP
+ 	echo
