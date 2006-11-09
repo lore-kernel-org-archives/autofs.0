@@ -1,13 +1,15 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs to load MAP from LDAP
-Date: Thu, 09 Nov 2006 19:38:34 +0800
-Message-ID: <1163072315.7831.14.camel@localhost>
-References: <29c5cd460611082119u63dcc765j56c58c07f6ccd072@mail.gmail.com>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: [autofs4 patch] implement included map support
+Date: Thu, 09 Nov 2006 10:09:43 -0500
+Message-ID: <x49odrgmzbc.fsf@segfault.boston.devel.redhat.com>
+References: <x491wodnvdk.fsf@segfault.boston.devel.redhat.com>
+	<1163049640.7831.3.camel@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <29c5cd460611082119u63dcc765j56c58c07f6ccd072@mail.gmail.com>
+In-Reply-To: <1163049640.7831.3.camel@localhost> (Ian Kent's message of "Thu,
+	09 Nov 2006 13:20:40 +0800")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,26 +20,43 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Syed Khader <syedk@google.com>
-Cc: autofs@linux.kernel.org
+To: Ian Kent <raven@themaw.net>
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
-On Thu, 2006-11-09 at 10:49 +0530, Syed Khader wrote:
+==> On Thu, 09 Nov 2006 13:20:40 +0800, Ian Kent <raven@themaw.net> said:
 
-> 
-> /usr/lib/autofs/autofs-ldap-auto-master DOESn't give any ouput 
+Ian> On Wed, 2006-11-08 at 22:37 -0500, Jeff Moyer wrote: > Hi, Ian,
+Ian> list, (again, sorry if this is a dup)
+Ian> > 
+Ian> > Here is an implementation of included map support for autofs
+Ian> v4.  This > supports included maps in both the master map, and
+Ian> regular direct or > indirect file maps.
+Ian> > 
+Ian> > Because I dread writing bash code, I implemented the included
+Ian> map > checking for the master map in C.  We basically just call
+Ian> into the > daemon with a bogus mount point, asking for it to dump
+Ian> out all of the > maps.  This works well for 2 reasons: 1) it's
+Ian> not bash, and 2) it > re-uses the code that the daemon will use
+Ian> to read the included maps > anyway.
+Ian> > 
+Ian> > Review would be greatly appreciated.  I tested this in my
+Ian> environment > by creating a number of included maps, and
+Ian> modifying > /etc/nsswitch.conf to ensure that it works as
+Ian> expected for file and > NIS maps.
 
-As we established, we need to find out why this program (the one that
-reads the LDAP master map) is not receiving anything back from the LDAP
-server.
+Ian> I've only looked briefly at this but I get the impression that it
+Ian> will allow "+" map inclusion from other than file maps. Is that
+Ian> right?
 
-You will need to either increase the debug level on the LDAP server to
-log packets or obtain a network packet dump of the network communication
-to the server from the client.
+That was not the intent, and upon testing, it certainly doesn't follow
+included maps from yp.  It does, however, interpret the included
+map as a key in the map, which give a directory listing like this:
 
-Something like:
+# ls /test/
++auto.test  repltest  sbox
 
-tcpdump -w <file to save packets to> host <LDAP server name or IP>
+Wrong, and somewhat amusing.  I'm not sure how best to deal with that.
+I guess we need to throw out entries which do not have a "value"
+portion.  I'm surprised we don't handle that already.
 
-on the client should do it. Then we need to get hold of it somehow.
-
-Ian
+-Jeff
