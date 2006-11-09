@@ -1,8 +1,7 @@
 From: Jeff Moyer <jmoyer@redhat.com>
-Subject: [autofs4 patch] Handle ldap entries with multiple cn's for
-	a single key
-Date: Wed, 08 Nov 2006 22:10:45 -0500
-Message-ID: <x49r6wdnwlm.fsf@segfault.boston.devel.redhat.com>
+Subject: [autofs4 patch] fall back to yp_master if yp_order fails
+Date: Wed, 08 Nov 2006 22:13:32 -0500
+Message-ID: <x49mz71nwgz.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -17,34 +16,60 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: raven@themaw.net, autofs@linux.kernel.org
+To: Ian Kent <raven@themaw.net>, autofs mailing list <autofs@linux.kernel.org>
 
-Hi, Ian, list,  (sorry if this is a dup, mailer issues...)
+Hi, Ian, list,
 
-This small patch fixes a rather odd problem noticed in the wild.
-Basically, a customer had multiple cn's for the wildcard key.  The key
-would show up in searches for "/" or "*".  So, when enumerating the
-result set from ldap, we would try to mount the entry for each one of
-those!  This, of course, would lead to an "already mounted" error, and
-we would tear everything down due to the failure.
+Some nisplus servers, when running in nis compatibility mode, will not
+support yp_order.  So, we check for the existence of the map with the
+yp_master call, instead.
 
-The fix is to stop once we find an entry that successfully mounts.
-Comments welcome.
+I don't have a nisplus server with which to test this patch, so it's
+only compile tested (and verified by the one person who ran into this,
+but that was on the RHEL code base).
 
 -Jeff
 
-diff --git a/modules/lookup_ldap.c b/modules/lookup_ldap.c
-index 3d0cba0..08a1c56 100644
---- a/modules/lookup_ldap.c
-+++ b/modules/lookup_ldap.c
-@@ -687,6 +687,10 @@ int lookup_mount(const char *root, const
- 			debug(MODPREFIX "%s -> %s", key, mapent);
- 			ret = ctxt->parse->parse_mount(root, name, name_len,
- 						  mapent, ctxt->parse->context);
-+			/* stop after the first successful mount */
-+			if (ret == 0)
-+				break;
+diff --git a/lib/nsswitch.c b/lib/nsswitch.c
+index 6ff097f..c884cc7 100644
+--- a/lib/nsswitch.c
++++ b/lib/nsswitch.c
+@@ -16,6 +16,7 @@ #include <ldap.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ #include <rpcsvc/ypclnt.h>
++#include <rpc/types.h>
+ #include "automount.h"
+ 
+ #define MODPREFIX "nsswitch: "
+@@ -208,16 +209,27 @@ int isypmap(const char *loc)
+ {
+ 	int err;
+ 	char *domainname;
++	char *hostname;
+ 	unsigned int order;
+ 
+ 	if ((err = yp_get_default_domain(&domainname)) != YPERR_SUCCESS) {
+ 		error(MODPREFIX "unable to get default yp domain");
+ 		return 0;
+ 	}
 +
- 			me = cache_lookup_next(me);
- 		}
- 	} else {
+ 	if ((err = yp_order(domainname, loc, &order)) != YPERR_SUCCESS) {
+-		debug(MODPREFIX "unable to find map, %s in domain, %s",
+-		      loc, domainname);
+-		return 0;
++		/*
++		 * Some nisplus servers, when running in nis compatibility
++		 * mode, will not support yp_order.  So, we check for the
++		 * existence of the map with the yp_master call.
++		 */
++		err = yp_master(domainname, loc, &hostname);
++		if (err != YPERR_SUCCESS) {
++			debug(MODPREFIX "unable to find map, %s in domain, %s",
++			      loc, domainname);
++			return 0;
++		}
++		free(hostname);
+ 	}
+ 
+ 	return 1;
