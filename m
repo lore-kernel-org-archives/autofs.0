@@ -1,13 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [autofs4 patch] implement included map support
-Date: Thu, 09 Nov 2006 13:20:40 +0800
-Message-ID: <1163049640.7831.3.camel@localhost>
-References: <x491wodnvdk.fsf@segfault.boston.devel.redhat.com>
+Subject: Re: autofs to load MAP from LDAP
+Date: Thu, 09 Nov 2006 19:38:34 +0800
+Message-ID: <1163072315.7831.14.camel@localhost>
+References: <29c5cd460611082119u63dcc765j56c58c07f6ccd072@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <x491wodnvdk.fsf@segfault.boston.devel.redhat.com>
+In-Reply-To: <29c5cd460611082119u63dcc765j56c58c07f6ccd072@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,33 +18,26 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+To: Syed Khader <syedk@google.com>
+Cc: autofs@linux.kernel.org
 
-On Wed, 2006-11-08 at 22:37 -0500, Jeff Moyer wrote:
-> Hi, Ian, list,  (again, sorry if this is a dup)
-> 
-> Here is an implementation of included map support for autofs v4.  This
-> supports included maps in both the master map, and regular direct or
-> indirect file maps.
-> 
-> Because I dread writing bash code, I implemented the included map
-> checking for the master map in C.  We basically just call into the
-> daemon with a bogus mount point, asking for it to dump out all of the
-> maps.  This works well for 2 reasons: 1) it's not bash, and 2) it
-> re-uses the code that the daemon will use to read the included maps
-> anyway.
-> 
-> Review would be greatly appreciated.  I tested this in my environment
-> by creating a number of included maps, and modifying
-> /etc/nsswitch.conf to ensure that it works as expected for file and
-> NIS maps.
+On Thu, 2006-11-09 at 10:49 +0530, Syed Khader wrote:
 
-I've only looked briefly at this but I get the impression that it will
-allow "+" map inclusion from other than file maps. Is that right?
+> 
+> /usr/lib/autofs/autofs-ldap-auto-master DOESn't give any ouput 
 
-If that is the case we need to explicitly ignore "+" map entries in map
-sources other than file maps as it's not legal or at least for
-consistency.
+As we established, we need to find out why this program (the one that
+reads the LDAP master map) is not receiving anything back from the LDAP
+server.
+
+You will need to either increase the debug level on the LDAP server to
+log packets or obtain a network packet dump of the network communication
+to the server from the client.
+
+Something like:
+
+tcpdump -w <file to save packets to> host <LDAP server name or IP>
+
+on the client should do it. Then we need to get hold of it somehow.
 
 Ian
