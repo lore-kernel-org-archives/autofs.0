@@ -1,15 +1,12 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [autofs4 patch] implement included map support
-Date: Fri, 10 Nov 2006 12:02:21 +0800
-Message-ID: <1163131341.3797.5.camel@localhost>
-References: <x491wodnvdk.fsf@segfault.boston.devel.redhat.com>
-	<1163049640.7831.3.camel@localhost>
-	<x49odrgmzbc.fsf@segfault.boston.devel.redhat.com>
+From: "Stephen C. Rigler" <srigler@marathonoil.com>
+Subject: Re: autofs to load MAP from LDAP
+Date: Thu, 09 Nov 2006 07:11:47 -0600
+Message-ID: <1163077907.9612.18.camel@houuc8>
+References: <29c5cd460611082119u63dcc765j56c58c07f6ccd072@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============7872380987377030805=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <x49odrgmzbc.fsf@segfault.boston.devel.redhat.com>
+In-Reply-To: <29c5cd460611082119u63dcc765j56c58c07f6ccd072@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,45 +17,138 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+To: autofs@linux.kernel.org
 
-On Thu, 2006-11-09 at 10:09 -0500, Jeff Moyer wrote:
-> ==> On Thu, 09 Nov 2006 13:20:40 +0800, Ian Kent <raven@themaw.net> said:
-> 
-> Ian> On Wed, 2006-11-08 at 22:37 -0500, Jeff Moyer wrote: > Hi, Ian,
-> Ian> list, (again, sorry if this is a dup)
-> Ian> > 
-> Ian> > Here is an implementation of included map support for autofs
-> Ian> v4.  This > supports included maps in both the master map, and
-> Ian> regular direct or > indirect file maps.
-> Ian> > 
-> Ian> > Because I dread writing bash code, I implemented the included
-> Ian> map > checking for the master map in C.  We basically just call
-> Ian> into the > daemon with a bogus mount point, asking for it to dump
-> Ian> out all of the > maps.  This works well for 2 reasons: 1) it's
-> Ian> not bash, and 2) it > re-uses the code that the daemon will use
-> Ian> to read the included maps > anyway.
-> Ian> > 
-> Ian> > Review would be greatly appreciated.  I tested this in my
-> Ian> environment > by creating a number of included maps, and
-> Ian> modifying > /etc/nsswitch.conf to ensure that it works as
-> Ian> expected for file and > NIS maps.
-> 
-> Ian> I've only looked briefly at this but I get the impression that it
-> Ian> will allow "+" map inclusion from other than file maps. Is that
-> Ian> right?
-> 
-> That was not the intent, and upon testing, it certainly doesn't follow
-> included maps from yp.  It does, however, interpret the included
-> map as a key in the map, which give a directory listing like this:
-> 
-> # ls /test/
-> +auto.test  repltest  sbox
 
-I'm impressed!
+--===============7872380987377030805==
+Content-Type: multipart/alternative; boundary="=-Ed7UMYk0MBFdNi64cYVx"
 
-You've been able to duplicate the broken Solaris behavior I've seen in
-the past. Hehe!
 
-Ian
+--=-Ed7UMYk0MBFdNi64cYVx
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+
+On Thu, 2006-11-09 at 10:49 +0530, Syed Khader wrote:
+
+> Hello Everybody,
+> 
+> How to make autofs read map from ldap rather than files.
+> 
+
+
+Syed,
+
+We run a mixed environment of Irix, Solaris and Linux machines.  To keep
+the Solaris machines happy, we use their schema (keys are "automountkey"
+rather than "cn", etc).  With autofs-4, Linux needs a different master
+map, but with version 5 it looks like we'll be able to use the same map
+as the other platforms.
+
+To point the Linux machines at your master map set "LDAPAUTOMASTER"
+in /etc/sysconfig/autofs to the name of the map (the name, not the dn).
+
+Our master map looks like:
+
+dn: automountMapName=auto.master_linux,dc=example,dc=com
+automountMapName: auto.master_linux
+objectClass: top
+objectClass: automountMap
+
+dn:
+automountkey=/home,automountmapname=auto.master_linux,dc=example,dc=com
+objectClass: automount
+objectClass: top
+automountKey: /home
+automountInformation: ldap:automountmapname=auto_home,dc=example,dc=com
+
+auto_home looks like:
+
+dn: automountMapName=auto_home,dc=example,dc=com
+automountMapName: auto_home
+objectClass: top
+objectClass: automountMap
+
+dn: automountkey=someuser,automountmapname=auto_home,dc=example,dc=com
+objectClass: automount
+objectClass: top
+automountKey: someuser
+automountInformation: -rw    server:/export/home/&
+
+Hope this helps.
+
+-Steve
+
+
+--=-Ed7UMYk0MBFdNi64cYVx
+Content-Type: text/html; charset=utf-8
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 TRANSITIONAL//EN">
+<HTML>
+<HEAD>
+  <META HTTP-EQUIV="Content-Type" CONTENT="text/html; CHARSET=UTF-8">
+  <META NAME="GENERATOR" CONTENT="GtkHTML/3.3.2">
+</HEAD>
+<BODY>
+On Thu, 2006-11-09 at 10:49 +0530, Syed Khader wrote:<BR>
+<BLOCKQUOTE TYPE=CITE>
+    <FONT COLOR="#000000">Hello Everybody,</FONT><BR>
+    <BR>
+    <FONT COLOR="#000000">How to make autofs read map from ldap rather than files.</FONT><BR>
+    <BR>
+</BLOCKQUOTE>
+<BR>
+Syed,<BR>
+<BR>
+We run a mixed environment of Irix, Solaris and Linux machines.&nbsp; To keep the Solaris machines happy, we use their schema (keys are &quot;automountkey&quot; rather than &quot;cn&quot;, etc).&nbsp; With autofs-4, Linux needs a different master map, but with version 5 it looks like we'll be able to use the same map as the other platforms.<BR>
+<BR>
+To point the Linux machines at your master map set &quot;LDAPAUTOMASTER&quot; in /etc/sysconfig/autofs to the name of the map (the name, not the dn).<BR>
+<BR>
+Our master map looks like:<BR>
+<BR>
+<TT>dn: automountMapName=auto</TT>.<TT>master</TT>_linux<TT>,dc=example,dc=com</TT><BR>
+<TT>automountMapName: auto</TT>.<TT>master</TT>_linux<BR>
+<TT>objectClass: top</TT><BR>
+<TT>objectClass: automountMap</TT><BR>
+<BR>
+<TT>dn: automountkey=/home,automountmapname=auto</TT>.master_linux<TT>,dc=example,dc=com</TT><BR>
+<TT>objectClass: automount</TT><BR>
+<TT>objectClass: top</TT><BR>
+<TT>automountKey: /home</TT><BR>
+<TT>automountInformation: </TT>ldap:automountmapname=auto_home,dc=example,dc=com<BR>
+<BR>
+<TT>auto_home looks like:</TT><BR>
+<BR>
+<TT>dn: automountMapName=auto_home,dc=example,dc=com</TT><BR>
+<TT>automountMapName: auto_home</TT><BR>
+<TT>objectClass: top</TT><BR>
+<TT>objectClass: automountMap</TT><BR>
+<BR>
+<TT>dn: automountkey=someuser,automountmapname=auto_home,dc=example,dc=com</TT><BR>
+<TT>objectClass: automount</TT><BR>
+<TT>objectClass: top</TT><BR>
+<TT>automountKey: someuser</TT><BR>
+<TT>automountInformation: -rw&nbsp;&nbsp;&nbsp; server:/export/home/&amp;</TT><BR>
+<BR>
+Hope this helps.<BR>
+<BR>
+-Steve<BR>
+<BR>
+</BODY>
+</HTML>
+
+--=-Ed7UMYk0MBFdNi64cYVx--
+
+
+--===============7872380987377030805==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--===============7872380987377030805==--
+
