@@ -1,13 +1,14 @@
-From: "Gordon Lack" <gml4410@ggr.co.uk>
-Subject: autofsv5 enhancement - map names in /proc/mounts
-Date: Fri, 10 Nov 2006 12:05:51 +0000
-Message-ID: <45546B1F.5030306@ggr.co.uk>
-References: <44AE7785.74E63D70@ggr.co.uk> <4554696C.5030400@ggr.co.uk>
+From: "Stephen C. Rigler" <srigler@marathonoil.com>
+Subject: Re: autofs to load MAP from LDAP
+Date: Fri, 10 Nov 2006 08:32:32 -0600
+Message-ID: <1163169152.22827.8.camel@houuc8>
+References: <29c5cd460611082119u63dcc765j56c58c07f6ccd072@mail.gmail.com>
+	<1163077907.9612.18.camel@houuc8>
+	<29c5cd460611092033m2e0de71cpa6e9e29d74555c24@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary=------------020903040602060502090808
+Content-Type: multipart/mixed; boundary="===============4353672256070320432=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4554696C.5030400@ggr.co.uk>
+In-Reply-To: <29c5cd460611092033m2e0de71cpa6e9e29d74555c24@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,61 +19,93 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Syed Khader <syedk@google.com>
+Cc: autofs@linux.kernel.org
 
-This is a multi-part message in MIME format.
---------------020903040602060502090808
-Content-Type: text/plain;
- charset=iso-8859-1;
- format=flowed
+
+--===============4353672256070320432==
+Content-Type: multipart/alternative; boundary="=-qVFu/WLjhYLxxBjJCGDR"
+
+
+--=-qVFu/WLjhYLxxBjJCGDR
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
-    The current entry which ends up in /proc/mounts for autofs entries 
-looks like:
-
-  automount /home autofs rw,fd=170,......
-
-Other autofs implementations (Solaris, Irix, OSF1, ...) have the 
-map-name which is being used as the first token.
-
-The attached patch to daemon/indirect.c adds this (for indirect maps - I 
-don't have any other kind...).
-
-The result is lines like:
-
-  auto.home /home autofs rw,fd=170,......
 
 
-This does means that kernel mount entries (eg: those added under 
-SElinux?) need to ignore the device name passed in, but they should be 
-doing that for autofs file systems anyway.
+On Fri, 2006-11-10 at 10:03 +0530, Syed Khader wrote:
 
-NOTE: The ap->entry->first->argv[0] seems a contrived way to get a map 
-name, but is all I could see looking through the code.
+> But in my ldap entries i don't have automountmapname.
 
---------------020903040602060502090808
-Content-Type: text/plain;
- name=indirect.c.patch
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename=indirect.c.patch
 
---- daemon/indirect.c.orig	2006-11-10 10:29:18.716266000 +0000
-+++ daemon/indirect.c	2006-11-10 10:06:21.726654000 +0000
-@@ -183,7 +183,11 @@
- 		ap->dir_created = 1;
- 	}
- 
-+/* GML - Enhancement
-+ *   Put map name into /proc/mounts, as Solaris, Irix, OSF1, do
- 	ret = mount("automount", ap->path, "autofs", MS_MGC_VAL, options);
-+ */
-+	ret = mount(ap->entry->first->argv[0], ap->path, "autofs", MS_MGC_VAL, options);
- 	if (ret) {
- 		crit(ap->logopt, "failed to mount autofs path %s", ap->path);
- 		goto out_rmdir;
+Might not be an issue.  Somebody else can confirm the behavior, but I do
+recall while looking at my LDAP server logs that autofs was looking up
+all possible combinations when search for the master map.  You can
+verify either by looking at your server logs or running tcpdump or
+wireshark/ethereal on your client while autofs is starting up.
 
---------------020903040602060502090808
+
+> dn: cn=/home,ou=auto.master,dc=testlab,dc=com
+> objectClass:automount
+> cn:/home
+> automountInformation: ldap
+> server.testlab.com:ou=auto.home,dc=testlab,dc=com --timeout 60
+
+
+Your automountinformation should probably be
+"ldap:ou=auto.home,dc=testlab,dc=com --timeout 60".
+
+
+>  What do i set LDAPAUTOMASTER to?
+
+
+We set it because our auto.master has a different name.  I don't think
+you'd need to if it's just "auto.master".
+
+-Steve
+
+--=-qVFu/WLjhYLxxBjJCGDR
+Content-Type: text/html; charset=utf-8
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 TRANSITIONAL//EN">
+<HTML>
+<HEAD>
+  <META HTTP-EQUIV="Content-Type" CONTENT="text/html; CHARSET=UTF-8">
+  <META NAME="GENERATOR" CONTENT="GtkHTML/3.3.2">
+</HEAD>
+<BODY>
+<BR>
+<BR>
+On Fri, 2006-11-10 at 10:03 +0530, Syed Khader wrote:<BR>
+<BLOCKQUOTE TYPE=CITE>
+    <FONT COLOR="#000000">But in my ldap entries i don't have automountmapname.</FONT><BR>
+</BLOCKQUOTE>
+<BR>
+Might not be an issue.&nbsp; Somebody else can confirm the behavior, but I do recall while looking at my LDAP server logs that autofs was looking up all possible combinations when search for the master map.&nbsp; You can verify either by looking at your server logs or running tcpdump or wireshark/ethereal on your client while autofs is starting up.<BR>
+<BR>
+<BLOCKQUOTE TYPE=CITE>
+    <FONT COLOR="#000000">dn: cn=/home,ou=auto.master,dc=testlab,dc=com</FONT><BR>
+    <FONT COLOR="#000000">objectClass:automount</FONT><BR>
+    <FONT COLOR="#000000">cn:/home</FONT><BR>
+    <FONT COLOR="#000000">automountInformation: ldap server.testlab.com:ou=auto.home,dc=testlab,dc=com --timeout 60</FONT><BR>
+</BLOCKQUOTE>
+<BR>
+Your automountinformation should probably be &quot;ldap:ou=auto.home,dc=testlab,dc=com --timeout 60&quot;.<BR>
+<BR>
+<BLOCKQUOTE TYPE=CITE>
+    <FONT COLOR="#000000"> What do i set LDAPAUTOMASTER to?</FONT><BR>
+</BLOCKQUOTE>
+<BR>
+We set it because our auto.master has a different name.&nbsp; I don't think you'd need to if it's just &quot;auto.master&quot;.<BR>
+<BR>
+-Steve
+</BODY>
+</HTML>
+
+--=-qVFu/WLjhYLxxBjJCGDR--
+
+
+--===============4353672256070320432==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -83,5 +116,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---------------020903040602060502090808--
+--===============4353672256070320432==--
 
