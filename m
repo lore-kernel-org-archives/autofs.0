@@ -1,13 +1,13 @@
 From: "Gordon Lack" <gml4410@ggr.co.uk>
-Subject: autofsv5 bug.  Non-existent dirs get "mounted"!
-Date: Fri, 10 Nov 2006 11:58:36 +0000
-Message-ID: <4554696C.5030400@ggr.co.uk>
-References: <44AE7785.74E63D70@ggr.co.uk>
+Subject: autofsv5 enhancement - map names in /proc/mounts
+Date: Fri, 10 Nov 2006 12:05:51 +0000
+Message-ID: <45546B1F.5030306@ggr.co.uk>
+References: <44AE7785.74E63D70@ggr.co.uk> <4554696C.5030400@ggr.co.uk>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary=------------050206080602060100010104
+ boundary=------------020903040602060502090808
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <44AE7785.74E63D70@ggr.co.uk>
+In-Reply-To: <4554696C.5030400@ggr.co.uk>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,67 +21,58 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
 This is a multi-part message in MIME format.
---------------050206080602060100010104
+--------------020903040602060502090808
 Content-Type: text/plain;
  charset=iso-8859-1;
  format=flowed
 Content-Transfer-Encoding: 7bit
 
-    If you have a wildcard entry in an automount map and refer to an 
-entry which does not exist on the NFS server the entry actually appears 
-within the autofs tree (but with nothing mounted on it).
+    The current entry which ends up in /proc/mounts for autofs entries 
+looks like:
 
-    This causes havoc if you are testing for the existence of a 
-directory in an automount point.
+  automount /home autofs rw,fd=170,......
 
-    It took a while to track it down, since all of the code to remove 
-the locally-created dir if the mount failed was in place.  I eventually 
-found an incorrect reuse of a status variable, which is overwriting the 
-return code from the mount (failed), with that of a mutex unlock (which 
-must succeed, or the process dies..).
+Other autofs implementations (Solaris, Irix, OSF1, ...) have the 
+map-name which is being used as the first token.
 
-    This happens in daemon/spawn.c
+The attached patch to daemon/indirect.c adds this (for indirect maps - I 
+don't have any other kind...).
 
-    Patch (against distro as on 10 Nov 2006) attached.
+The result is lines like:
 
---------------050206080602060100010104
+  auto.home /home autofs rw,fd=170,......
+
+
+This does means that kernel mount entries (eg: those added under 
+SElinux?) need to ignore the device name passed in, but they should be 
+doing that for autofs file systems anyway.
+
+NOTE: The ap->entry->first->argv[0] seems a contrived way to get a map 
+name, but is all I could see looking through the code.
+
+--------------020903040602060502090808
 Content-Type: text/plain;
- name=spawn.c.patch
+ name=indirect.c.patch
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename=spawn.c.patch
+ filename=indirect.c.patch
 
---- daemon/spawn.c.orig	2006-11-10 10:28:47.270474000 +0000
-+++ daemon/spawn.c	2006-11-10 10:11:22.917315000 +0000
-@@ -202,11 +202,25 @@
- 		if (waitpid(f, &status, 0) != f)
- 			status = -1;	/* waitpid() failed */
+--- daemon/indirect.c.orig	2006-11-10 10:29:18.716266000 +0000
++++ daemon/indirect.c	2006-11-10 10:06:21.726654000 +0000
+@@ -183,7 +183,11 @@
+ 		ap->dir_created = 1;
+ 	}
  
--		if (use_lock) {
-+/* GML - Bug.
-+ *  This code used status, hence wiping out the result of the mount!
-+ *  Hence we always return from here with success, even when the
-+ *  mount actually fails, meaning we get directories created for
-+ *  non-existent entries...
++/* GML - Enhancement
++ *   Put map name into /proc/mounts, as Solaris, Irix, OSF1, do
+ 	ret = mount("automount", ap->path, "autofs", MS_MGC_VAL, options);
 + */
-+#if 0 
-+ 		if (use_lock) {
- 			status = pthread_mutex_unlock(&spawn_mutex);
- 			if (status)
- 				fatal(status);
- 		}
-+#endif
-+		if (use_lock) {
-+                        int lstatus;
-+			lstatus = pthread_mutex_unlock(&spawn_mutex);
-+			if (lstatus)
-+				fatal(lstatus);
-+		}
- 		pthread_sigmask(SIG_SETMASK, &oldsig, NULL);
- 		pthread_setcancelstate(cancel_state, NULL);
- 
++	ret = mount(ap->entry->first->argv[0], ap->path, "autofs", MS_MGC_VAL, options);
+ 	if (ret) {
+ 		crit(ap->logopt, "failed to mount autofs path %s", ap->path);
+ 		goto out_rmdir;
 
---------------050206080602060100010104
+--------------020903040602060502090808
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -92,5 +83,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---------------050206080602060100010104--
+--------------020903040602060502090808--
 
