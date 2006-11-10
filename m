@@ -1,13 +1,13 @@
-From: "Syed Khader" <syedk@google.com>
-Subject: Re: autofs to load MAP from LDAP
-Date: Fri, 10 Nov 2006 10:03:28 +0530
-Message-ID: <29c5cd460611092033m2e0de71cpa6e9e29d74555c24@mail.gmail.com>
-References: <29c5cd460611082119u63dcc765j56c58c07f6ccd072@mail.gmail.com>
-	<1163077907.9612.18.camel@houuc8>
+From: "Gordon Lack" <gml4410@ggr.co.uk>
+Subject: autofsv5 bug.  Non-existent dirs get "mounted"!
+Date: Fri, 10 Nov 2006 11:58:36 +0000
+Message-ID: <4554696C.5030400@ggr.co.uk>
+References: <44AE7785.74E63D70@ggr.co.uk>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============5579563457490140817=="
+Content-Type: multipart/mixed;
+ boundary=------------050206080602060100010104
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1163077907.9612.18.camel@houuc8>
+In-Reply-To: <44AE7785.74E63D70@ggr.co.uk>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,200 +18,70 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: "Stephen C. Rigler" <srigler@marathonoil.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
---===============5579563457490140817==
-Content-Type: multipart/alternative; 
-	boundary="----=_Part_42762_3157252.1163133208111"
-
-------=_Part_42762_3157252.1163133208111
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+This is a multi-part message in MIME format.
+--------------050206080602060100010104
+Content-Type: text/plain;
+ charset=iso-8859-1;
+ format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
-But in my ldap entries i don't have automountmapname.
+    If you have a wildcard entry in an automount map and refer to an 
+entry which does not exist on the NFS server the entry actually appears 
+within the autofs tree (but with nothing mounted on it).
 
-dn: ou=auto.master,dc=testlab,dc=com
-objectClass:top
-objectClass:automountMap
-ou:auto.master
+    This causes havoc if you are testing for the existence of a 
+directory in an automount point.
 
-dn: cn=/home,ou=auto.master,dc=testlab,dc=com
-objectClass:automount
-cn:/home
-automountInformation: ldap server.testlab.com:ou=auto.home,dc=testlab,dc=com
---timeout 60
+    It took a while to track it down, since all of the code to remove 
+the locally-created dir if the mount failed was in place.  I eventually 
+found an incorrect reuse of a status variable, which is overwriting the 
+return code from the mount (failed), with that of a mutex unlock (which 
+must succeed, or the process dies..).
 
+    This happens in daemon/spawn.c
 
-Auto.Home
+    Patch (against distro as on 10 Nov 2006) attached.
 
- dn: ou=auto.home,dc=testlab,dc=com
-objectClass:top
-objectClass:automountMap
-ou:auto.home
-
-dn: cn=user1,ou=auto.home,dc=testlab,dc=com
-objectClass: automount
-cn:user1
-automountInformation: -fstype=nfs,hard,intr server.testlab.com:/home/user1
-
-What do i set LDAPAUTOMASTER to?
-
-Abdul.
-
-
-On 11/9/06, Stephen C. Rigler <srigler@marathonoil.com> wrote:
->
->  On Thu, 2006-11-09 at 10:49 +0530, Syed Khader wrote:
->
-> Hello Everybody,
->
-> How to make autofs read map from ldap rather than files.
->
->
-> Syed,
->
-> We run a mixed environment of Irix, Solaris and Linux machines.  To keep
-> the Solaris machines happy, we use their schema (keys are "automountkey"
-> rather than "cn", etc).  With autofs-4, Linux needs a different master map,
-> but with version 5 it looks like we'll be able to use the same map as the
-> other platforms.
->
-> To point the Linux machines at your master map set "LDAPAUTOMASTER" in
-> /etc/sysconfig/autofs to the name of the map (the name, not the dn).
->
-> Our master map looks like:
->
-> dn: automountMapName=auto.master_linux,dc=example,dc=com
-> automountMapName: auto.master_linux
-> objectClass: top
-> objectClass: automountMap
->
-> dn: automountkey=/home,automountmapname=auto.master_linux
-> ,dc=example,dc=com
-> objectClass: automount
-> objectClass: top
-> automountKey: /home
-> automountInformation: ldap:automountmapname=auto_home,dc=example,dc=com
->
-> auto_home looks like:
->
-> dn: automountMapName=auto_home,dc=example,dc=com
-> automountMapName: auto_home
-> objectClass: top
-> objectClass: automountMap
->
-> dn: automountkey=someuser,automountmapname=auto_home,dc=example,dc=com
-> objectClass: automount
-> objectClass: top
-> automountKey: someuser
-> automountInformation: -rw    server:/export/home/&
->
-> Hope this helps.
->
-> -Steve
->
->
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
->
->
->
-
-------=_Part_42762_3157252.1163133208111
-Content-Type: text/html; charset=ISO-8859-1
+--------------050206080602060100010104
+Content-Type: text/plain;
+ name=spawn.c.patch
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Content-Disposition: inline;
+ filename=spawn.c.patch
 
-But in my ldap entries i don't have automountmapname.<br><br><div>dn: ou=auto.master,dc=testlab,dc=com</div>
-<div>objectClass:top</div>
-<div>objectClass:automountMap</div>
-<div>ou:auto.master</div>
-<div>&nbsp;</div>
-<div>dn: cn=/home,ou=auto.master,dc=testlab,dc=com</div>
-<div>objectClass:automount</div>
-<div>cn:/home</div>
-<div>automountInformation: ldap server.testlab.com:ou=auto.home,dc=testlab,dc=com --timeout 60</div>
-<div>&nbsp;</div>
-<div>&nbsp;</div>
-<div>Auto.Home</div>
-<div>&nbsp;</div>
-<div>
-<div>dn: ou=auto.home,dc=testlab,dc=com</div>
-<div>objectClass:top</div>
-<div>objectClass:automountMap</div>
-<div>ou:auto.home</div>
-<div>&nbsp;</div>
-<div>dn: cn=user1,ou=auto.home,dc=testlab,dc=com</div>
-<div>objectClass: automount</div>
-<div>cn:user1</div>
-<div>automountInformation: -fstype=nfs,hard,intr server.testlab.com:/home/user1</div></div>
-<div>&nbsp;<br>What do i set LDAPAUTOMASTER to?<br><br>Abdul.<br></div><br><br><div><span class="gmail_quote">On 11/9/06, <b class="gmail_sendername">Stephen C. Rigler</b> &lt;<a href="mailto:srigler@marathonoil.com">srigler@marathonoil.com
-</a>&gt; wrote:</span><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+--- daemon/spawn.c.orig	2006-11-10 10:28:47.270474000 +0000
++++ daemon/spawn.c	2006-11-10 10:11:22.917315000 +0000
+@@ -202,11 +202,25 @@
+ 		if (waitpid(f, &status, 0) != f)
+ 			status = -1;	/* waitpid() failed */
+ 
+-		if (use_lock) {
++/* GML - Bug.
++ *  This code used status, hence wiping out the result of the mount!
++ *  Hence we always return from here with success, even when the
++ *  mount actually fails, meaning we get directories created for
++ *  non-existent entries...
++ */
++#if 0 
++ 		if (use_lock) {
+ 			status = pthread_mutex_unlock(&spawn_mutex);
+ 			if (status)
+ 				fatal(status);
+ 		}
++#endif
++		if (use_lock) {
++                        int lstatus;
++			lstatus = pthread_mutex_unlock(&spawn_mutex);
++			if (lstatus)
++				fatal(lstatus);
++		}
+ 		pthread_sigmask(SIG_SETMASK, &oldsig, NULL);
+ 		pthread_setcancelstate(cancel_state, NULL);
+ 
 
-
-  
-  
-
-<div><span class="q">
-On Thu, 2006-11-09 at 10:49 +0530, Syed Khader wrote:<br>
-</span><span class="q"><blockquote type="CITE">
-    <font color="#000000">Hello Everybody,</font><br>
-    <br>
-    <font color="#000000">How to make autofs read map from ldap rather than files.</font><br>
-    <br>
-</blockquote></span>
-<br>
-Syed,<br>
-<br>
-We run a mixed environment of Irix, Solaris and Linux machines.&nbsp; To keep the Solaris machines happy, we use their schema (keys are &quot;automountkey&quot; rather than &quot;cn&quot;, etc).&nbsp; With autofs-4, Linux needs a different master map, but with version 5 it looks like we'll be able to use the same map as the other platforms.
-<br>
-<br>
-To point the Linux machines at your master map set &quot;LDAPAUTOMASTER&quot; in /etc/sysconfig/autofs to the name of the map (the name, not the dn).<br>
-<br>
-Our master map looks like:<br>
-<br>
-<tt>dn: automountMapName=auto</tt>.<tt>master</tt>_linux<tt>,dc=example,dc=com</tt><br>
-<tt>automountMapName: auto</tt>.<tt>master</tt>_linux<br>
-<tt>objectClass: top</tt><br>
-<tt>objectClass: automountMap</tt><br>
-<br>
-<tt>dn: automountkey=/home,automountmapname=auto</tt>.master_linux<tt>,dc=example,dc=com</tt><br>
-<tt>objectClass: automount</tt><br>
-<tt>objectClass: top</tt><br>
-<tt>automountKey: /home</tt><br>
-<tt>automountInformation: </tt>ldap:automountmapname=auto_home,dc=example,dc=com<br>
-<br>
-<tt>auto_home looks like:</tt><br>
-<br>
-<tt>dn: automountMapName=auto_home,dc=example,dc=com</tt><br>
-<tt>automountMapName: auto_home</tt><br>
-<tt>objectClass: top</tt><br>
-<tt>objectClass: automountMap</tt><br>
-<br>
-<tt>dn: automountkey=someuser,automountmapname=auto_home,dc=example,dc=com</tt><br>
-<tt>objectClass: automount</tt><br>
-<tt>objectClass: top</tt><br>
-<tt>automountKey: someuser</tt><br>
-<tt>automountInformation: -rw&nbsp;&nbsp;&nbsp; server:/export/home/&amp;</tt><br>
-<br>
-Hope this helps.<br>
-<br>
--Steve<br>
-<br>
-</div>
-
-
-<br>_______________________________________________<br>autofs mailing list<br><a onclick="return top.js.OpenExtLink(window,event,this)" href="mailto:autofs@linux.kernel.org">autofs@linux.kernel.org</a><br><a onclick="return top.js.OpenExtLink(window,event,this)" href="http://linux.kernel.org/mailman/listinfo/autofs" target="_blank">
-http://linux.kernel.org/mailman/listinfo/autofs</a><br><br><br></blockquote></div><br>
-
-------=_Part_42762_3157252.1163133208111--
-
-
---===============5579563457490140817==
+--------------050206080602060100010104
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -222,5 +92,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---===============5579563457490140817==--
+--------------050206080602060100010104--
 
