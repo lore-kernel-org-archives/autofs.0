@@ -1,14 +1,14 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: autofsv5 enhancement - map names in /proc/mounts
-Date: Sat, 11 Nov 2006 10:53:59 +0800
-Message-ID: <1163213639.3113.15.camel@localhost>
+Subject: Re: autofsv5 - mouting files (not dirs)
+Date: Sat, 11 Nov 2006 10:58:16 +0800
+Message-ID: <1163213896.3113.19.camel@localhost>
 References: <44AE7785.74E63D70@ggr.co.uk> <4554696C.5030400@ggr.co.uk>
-	<45546B1F.5030306@ggr.co.uk>
+	<45546B1F.5030306@ggr.co.uk>  <4554B7F4.3050909@ggr.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <45546B1F.5030306@ggr.co.uk>
+In-Reply-To: <4554B7F4.3050909@ggr.co.uk>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,58 +22,23 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: Gordon Lack <gml4410@ggr.co.uk>
 Cc: autofs@linux.kernel.org
 
-On Fri, 2006-11-10 at 12:05 +0000, Gordon Lack wrote:
->     The current entry which ends up in /proc/mounts for autofs entries 
-> looks like:
+On Fri, 2006-11-10 at 17:33 +0000, Gordon Lack wrote:
+>     The automount code (at least for indirect mounts) will not mount an 
+> entry which is a file - it has to be a directory.
 > 
->   automount /home autofs rw,fd=170,......
+>     The reason behind this is that the code first creates the directory 
+> then tries to mount the remote object on it.
 > 
-> Other autofs implementations (Solaris, Irix, OSF1, ...) have the 
-> map-name which is being used as the first token.
+>     In order to mount a remote file you need to mount it over a file, 
+> not a directory.  (As far as I can tell, mounting a file on a file works 
+> OK in Linux).
 > 
-> The attached patch to daemon/indirect.c adds this (for indirect maps - I 
-> don't have any other kind...).
-> 
-> The result is lines like:
-> 
->   auto.home /home autofs rw,fd=170,......
+>     Would it be possible to get automount to retry on a file if it gets 
+> ENOTDIR from the remote end?
 
-I thought about doing this but how do you handle
+You got me there. I'm not sure about mounting on files at this stage.
 
-/home	/etc/auto.server1.home
-/home	/etc/auto.server2.home
+I think there's probably a bit more to change than just the create
+directory function.
 
-What map name will you use?
-
-or
-
-/home	/a very long path/map.map
-
-etc. ...
-
-> 
-> This does means that kernel mount entries (eg: those added under 
-> SElinux?) need to ignore the device name passed in, but they should be 
-> doing that for autofs file systems anyway.
-> 
-> NOTE: The ap->entry->first->argv[0] seems a contrived way to get a map 
-> name, but is all I could see looking through the code.
-> plain text document attachment (indirect.c.patch)
-> --- daemon/indirect.c.orig	2006-11-10 10:29:18.716266000 +0000
-> +++ daemon/indirect.c	2006-11-10 10:06:21.726654000 +0000
-> @@ -183,7 +183,11 @@
->  		ap->dir_created = 1;
->  	}
->  
-> +/* GML - Enhancement
-> + *   Put map name into /proc/mounts, as Solaris, Irix, OSF1, do
->  	ret = mount("automount", ap->path, "autofs", MS_MGC_VAL, options);
-> + */
-> +	ret = mount(ap->entry->first->argv[0], ap->path, "autofs", MS_MGC_VAL, options);
->  	if (ret) {
->  		crit(ap->logopt, "failed to mount autofs path %s", ap->path);
->  		goto out_rmdir;
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
+Ian
