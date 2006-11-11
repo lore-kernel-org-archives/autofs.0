@@ -1,15 +1,14 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs to load MAP from LDAP
-Date: Sat, 11 Nov 2006 10:44:28 +0800
-Message-ID: <1163213068.3113.10.camel@localhost>
-References: <29c5cd460611082119u63dcc765j56c58c07f6ccd072@mail.gmail.com>
-	<1163077907.9612.18.camel@houuc8>
-	<29c5cd460611092033m2e0de71cpa6e9e29d74555c24@mail.gmail.com>
+Subject: Re: autofsv5 enhancement - map names in /proc/mounts
+Date: Sat, 11 Nov 2006 10:53:59 +0800
+Message-ID: <1163213639.3113.15.camel@localhost>
+References: <44AE7785.74E63D70@ggr.co.uk> <4554696C.5030400@ggr.co.uk>
+	<45546B1F.5030306@ggr.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <29c5cd460611092033m2e0de71cpa6e9e29d74555c24@mail.gmail.com>
+In-Reply-To: <45546B1F.5030306@ggr.co.uk>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,108 +19,60 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Syed Khader <syedk@google.com>
+To: Gordon Lack <gml4410@ggr.co.uk>
 Cc: autofs@linux.kernel.org
 
-On Fri, 2006-11-10 at 10:03 +0530, Syed Khader wrote:
-> But in my ldap entries i don't have automountmapname.
+On Fri, 2006-11-10 at 12:05 +0000, Gordon Lack wrote:
+>     The current entry which ends up in /proc/mounts for autofs entries 
+> looks like:
+> 
+>   automount /home autofs rw,fd=170,......
+> 
+> Other autofs implementations (Solaris, Irix, OSF1, ...) have the 
+> map-name which is being used as the first token.
+> 
+> The attached patch to daemon/indirect.c adds this (for indirect maps - I 
+> don't have any other kind...).
+> 
+> The result is lines like:
+> 
+>   auto.home /home autofs rw,fd=170,......
 
-Stephen said in his post that he is using a different schema.
+I thought about doing this but how do you handle
+
+/home	/etc/auto.server1.home
+/home	/etc/auto.server2.home
+
+What map name will you use?
+
+or
+
+/home	/a very long path/map.map
+
+etc. ...
 
 > 
-> dn: ou=auto.master,dc=testlab,dc=com
-> objectClass:top
-> objectClass:automountMap
-> ou:auto.master
->  
-> dn: cn=/home,ou=auto.master,dc=testlab,dc=com
-> objectClass:automount
-> cn:/home
-> automountInformation: ldap
-> server.testlab.com:ou=auto.home,dc=testlab,dc=com --timeout 60
->  
->  
-> Auto.Home
->  
-> dn: ou=auto.home,dc=testlab,dc=com
-> objectClass:top
-> objectClass:automountMap
-> ou:auto.home
->  
-> dn: cn=user1,ou=auto.home,dc=testlab,dc=com
-> objectClass: automount
-> cn:user1
-> automountInformation: -fstype=nfs,hard,intr
-> server.testlab.com:/home/user1
->  
-> What do i set LDAPAUTOMASTER to?
+> This does means that kernel mount entries (eg: those added under 
+> SElinux?) need to ignore the device name passed in, but they should be 
+> doing that for autofs file systems anyway.
 > 
-> Abdul.
-> 
-> 
-> 
-> On 11/9/06, Stephen C. Rigler <srigler@marathonoil.com> wrote:
->         On Thu, 2006-11-09 at 10:49 +0530, Syed Khader wrote:
->         > Hello Everybody,
->         > 
->         > How to make autofs read map from ldap rather than files.
->         > 
->         
->         Syed,
->         
->         We run a mixed environment of Irix, Solaris and Linux
->         machines.  To keep the Solaris machines happy, we use their
->         schema (keys are "automountkey" rather than "cn", etc).  With
->         autofs-4, Linux needs a different master map, but with version
->         5 it looks like we'll be able to use the same map as the other
->         platforms. 
->         
->         To point the Linux machines at your master map set
->         "LDAPAUTOMASTER" in /etc/sysconfig/autofs to the name of the
->         map (the name, not the dn).
->         
->         Our master map looks like:
->         
->         dn: automountMapName=auto.master_linux,dc=example,dc=com
->         automountMapName: auto.master_linux
->         objectClass: top
->         objectClass: automountMap
->         
->         dn:
->         automountkey=/home,automountmapname=auto.master_linux,dc=example,dc=com
->         objectClass: automount
->         objectClass: top
->         automountKey: /home
->         automountInformation:
->         ldap:automountmapname=auto_home,dc=example,dc=com
->         
->         auto_home looks like:
->         
->         dn: automountMapName=auto_home,dc=example,dc=com
->         automountMapName: auto_home
->         objectClass: top
->         objectClass: automountMap
->         
->         dn:
->         automountkey=someuser,automountmapname=auto_home,dc=example,dc=com
->         objectClass: automount
->         objectClass: top
->         automountKey: someuser
->         automountInformation: -rw    server:/export/home/&
->         
->         Hope this helps.
->         
->         -Steve
->         
->         
->         
->         _______________________________________________
->         autofs mailing list
->         autofs@linux.kernel.org
->         http://linux.kernel.org/mailman/listinfo/autofs
->         
->         
-> 
+> NOTE: The ap->entry->first->argv[0] seems a contrived way to get a map 
+> name, but is all I could see looking through the code.
+> plain text document attachment (indirect.c.patch)
+> --- daemon/indirect.c.orig	2006-11-10 10:29:18.716266000 +0000
+> +++ daemon/indirect.c	2006-11-10 10:06:21.726654000 +0000
+> @@ -183,7 +183,11 @@
+>  		ap->dir_created = 1;
+>  	}
+>  
+> +/* GML - Enhancement
+> + *   Put map name into /proc/mounts, as Solaris, Irix, OSF1, do
+>  	ret = mount("automount", ap->path, "autofs", MS_MGC_VAL, options);
+> + */
+> +	ret = mount(ap->entry->first->argv[0], ap->path, "autofs", MS_MGC_VAL, options);
+>  	if (ret) {
+>  		crit(ap->logopt, "failed to mount autofs path %s", ap->path);
+>  		goto out_rmdir;
 > _______________________________________________
 > autofs mailing list
 > autofs@linux.kernel.org
