@@ -1,14 +1,15 @@
 From: "Gordon Lack" <gml4410@ggr.co.uk>
 Subject: Re: autofsv5 enhancement - map names in /proc/mounts
-Date: Mon, 13 Nov 2006 10:09:12 +0000
-Message-ID: <45584448.2000102@ggr.co.uk>
+Date: Mon, 13 Nov 2006 16:58:41 +0000
+Message-ID: <4558A441.1030303@ggr.co.uk>
 References: <44AE7785.74E63D70@ggr.co.uk> <4554696C.5030400@ggr.co.uk>
 	<45546B1F.5030306@ggr.co.uk> <1163213639.3113.15.camel@localhost>
+	<45584448.2000102@ggr.co.uk> <1163432685.3016.21.camel@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1163213639.3113.15.camel@localhost>
+In-Reply-To: <1163432685.3016.21.camel@localhost>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -23,26 +24,49 @@ To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
 Ian Kent wrote:
+>>     Given that there can only be one map active at a mountpoint, and the 
+>> first one wins (which is why the -null map works) that would be 
+>> /etc/auto.server1.home,
 > 
-> I thought about doing this but how do you handle
-> 
-> /home	/etc/auto.server1.home
-> /home	/etc/auto.server2.home
-> 
-> What map name will you use?
+> Ya but for some reason I believed that I was able to do this with the
+> Solaris automounter and so v5 now will merge each map.
 
-    Given that there can only be one map active at a mountpoint, and the 
-first one wins (which is why the -null map works) that would be 
-/etc/auto.server1.home,
+    Just tried it on Solaris8:
 
-> /home	/a very long path/map.map
-> 
-> etc. ...
+Added these to /etc/auto_master:
 
-    Yes - perhaps more of a problem, but:
+  /local/AM /etc/auto.AM1
+  /local/AM /etc/auto.AM2
 
-a) is there any limit to the line length?
-b) can you actually get space-containing paths into use through the parser?
+/etc/mntab now has *just* this 1 line at the end:
 
-   For b), if you can't it's not an issue, if you can you could URI 
-encode it?
+  /etc/auto.AM1   /local/AM       autofs  indirect,..........
+
+and only the entries in /etc/auto.AM1 work.
+
+This is what I would expect.  eg: -null is there so that you can 
+"remove" an entry from an included NIS  auto.master (or equiv).  If the 
+code is merging then this won't work, and its supposed to.
+
+It's also perfectly reasonable to have, say, a standard auto.master map, 
+and a smaller auto.master.wizards map, with maps in it which are meant 
+to *override* the standard ones.
+
+I can't see any benefit in merging things here - only confusing 
+complexity.  On Solaris and Irix (and Linux up to autofsv4) I've only 
+ever seen the first map mentioned be used (OSF1 uses the last, which is 
+truly bizarre, as it creates mountpoints then has to immediately rip 
+them out in order to replace them...)
+
+> An individual file name can be up to 255 characters alone.
+> They don't have to have spaces to be long.
+
+    Agreed - but is there a limit to the line lengths or total size of 
+/proc/mounts?
+
+> How do you use this feature?
+
+    I have a script which reads it and prints the actual mounts that 
+exists at a given automount point.  It means I don't need to find out 
+which map is handling a particular automount point, nor do I have to 
+type in the map name, and I get the keys sorted for me.
