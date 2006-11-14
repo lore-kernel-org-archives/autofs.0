@@ -1,12 +1,16 @@
-From: "Ulrich Windl" <ulrich.windl@rz.uni-regensburg.de>
-Subject: autofs mount discarding directory in mount point
-Date: Tue, 14 Nov 2006 08:24:52 +0100
-Message-ID: <45597D53.6848.53F40EC@Ulrich.Windl.rkdvmks1.ngate.uni-regensburg.de>
+From: "Gordon Lack" <gml4410@ggr.co.uk>
+Subject: Re: autofsv5 enhancement - map names in /proc/mounts
+Date: Tue, 14 Nov 2006 10:00:57 +0000
+Message-ID: <455993D9.4010003@ggr.co.uk>
+References: <44AE7785.74E63D70@ggr.co.uk> <4554696C.5030400@ggr.co.uk>
+	<45546B1F.5030306@ggr.co.uk> <1163213639.3113.15.camel@localhost>
+	<45584448.2000102@ggr.co.uk> <1163432685.3016.21.camel@localhost>
+	<4558A441.1030303@ggr.co.uk> <1163469607.3297.22.camel@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-description: Mail message body
+In-Reply-To: <1163469607.3297.22.camel@localhost>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,40 +21,25 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org
 
-Hi,
+Ian Kent wrote:
+> 
+> I'd like to find a simple way to accommodate this while retaining the
+> multiple map functionality.
 
-I have a problem where autofs (Novell SLES10, autofs-4.1.4-23.4) discards the 
-first and only directory for an NFS mount; for two directories the thing seems to 
-work OK. I've browsed the sources, but couldn't easily find the problem.
+    Fine by me.  Bear in mind that the map-name (the bit I'm suggesting 
+should be added to /proc/mounts) will be different.  eg: from your 
+original example:
 
-The problem is that "server:/foo" which should be mounted to "/net/server/foo" is 
-actually mounted to "/net/server" (with "foo's content" in "server")
+  /home	/etc/auto.server1.home
+  /home	/etc/auto.server2.home
 
-Here's my trace:
+So we'd end up with 2 lines in /proc/mounts:
 
-automount[24703]: lookup(program): server -> -fstype=nfs,hard,intr,nodev,nosuid     
-/foo server:/foo
-automount[24703]: parse(sun): core of entry: 
-options=fstype=nfs,hard,intr,nodev,nosuid, loc=/foo server:/foo
-automount[24703]: parse(sun): mounting root /net, mountpoint server, what /foo 
-server:/foo, fstype nfs, options hard,intr,nodev,nosuid
-Nov  9 16:56:47 rksapas03 automount[24703]: mount(nfs): root=/net name=server
-what=/foo server:/foo, fstype=nfs, options=hard,intr,nodev,nosuid
-automount[24703]: mount(nfs): nfs options="hard,intr,nodev,nosuid", nosymlink=0, 
-ro=0
-automount[24703]: mount(nfs): host /foo: lookup failure
-automount[24703]: mount(nfs): winner = server local = 0
-automount[24703]: mount(nfs): from /foo server:/foo elected server:/foo
-automount[24703]: mount(nfs): calling mkdir_path /net/server
-automount[24703]: mount(nfs): calling mount -t nfs -s -o hard,intr,nodev,nosuid 
-server:/foo /net/server
-automount[24703]: mount(nfs): mounted server:/foo on /net/server
+  /etc/auto.server1.home /home autofs ....
+  /etc/auto.server2.home /home autofs ....
 
-
-(Actual names replaced for clarity)
-
-Regards,
-Ulrich
-P.S. I'm not subscribed to this list.
+(I think...although whether the patch I sent is sufficient to achieve 
+that I don't know)
