@@ -1,15 +1,14 @@
-From: jmoyer@redhat.com
+From: "Shawn Starr" <sstarr@platform.com>
 Subject: Re: Automount with a local NFS export and a remote NFS
 	export using the same mount path name over LDAP
-Date: Tue, 21 Nov 2006 15:37:14 -0500
-Message-ID: <m37ixoy1s5.fsf@redhat.com>
-References: <E2AC825D4FC7764DA86D9C8ECA27A2DE065AFA@catoexm05.noam.corp.platform.com>
+Date: Mon, 20 Nov 2006 15:03:18 -0500
+Message-ID: <E2AC825D4FC7764DA86D9C8ECA27A2DE065AEA@catoexm05.noam.corp.platform.com>
+References: <E2AC825D4FC7764DA86D9C8ECA27A2DEAF7B34@catoexm05.noam.corp.platform.com>
+	<x49k61quoif.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1395968908417933818=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <E2AC825D4FC7764DA86D9C8ECA27A2DE065AFA@catoexm05.noam.corp.platform.com>
-	(Shawn Starr's message of "Tue, 21 Nov 2006 15:12:46 -0500")
+content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,133 +19,99 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Shawn Starr <sstarr@platform.com>
+To: Jeff Moyer <jmoyer@redhat.com>
 Cc: autofs@linux.kernel.org
 
-==> Regarding RE: [autofs] Automount with a local NFS export and a remote NFS export using the same mount path name over LDAP; "Shawn Starr" <sstarr@platform.com> adds:
+This is a multi-part message in MIME format.
 
-==> Regarding RE: [autofs] Automount with a local NFS export and a remote NFS export using the same mount path name over LDAP; "Shawn Starr" 
->> I re-read your original problem statement, and I am officially confused.
->> What, exactly, are you trying to accomplish?
+--===============1395968908417933818==
+content-class: urn:content-classes:message
+Content-Type: multipart/alternative;
+	boundary="----_=_NextPart_001_01C70CDE.EBBD848C"
 
->> Do you want to merge the contents of two master maps?  If so, set
->> ONE_AUTO_MASTER=0.
+This is a multi-part message in MIME format.
 
->> Do you want to merge the contents of two indirect maps?  If so, try reading
->> up on multi-maps.  This allows one to merge the contents of two or more
->> maps, potentially from different sources.
+------_=_NextPart_001_01C70CDE.EBBD848C
+Content-Type: text/plain;
+	charset="Windows-1252"
+Content-Transfer-Encoding: quoted-printable
 
->> If neither of these is what you are trying to do, then please provide a
->> better explanation of the problem.  Post your maps, and give concrete
->> examples with machine names, exports, and intended use.
+=3D=3D> On Mon, 20 Nov 2006 10:27 AM, "Jeff Moyer" said:
 
->> -Jeff
+>For some reason, I can't find your original post in my mailbox...
+>
+>For the RHEL variants, add this to your /etc/sysconfig/autofs
+>
+>ONE_AUTO_MASTER=3D1
+>
+>Shawn> > If Automount 4 can't do this does version 5? :)
+>
+>Yes, but in the v5 case no special settings are necessary.
+>
+>-Jeff
 
-sstarr> Hi Jeff, Here's what I'm trying to do:
+Yes, I am using RHEL4 at present. I just found the errata page this =
+should solve the issue.
 
-sstarr> On a local machine (10.1.1.75) I have the following configuration:
+Thank you!
+Shawn.
 
-sstarr> /etc/exports:
-sstarr> =========
-sstarr> /export 10.0.0.0/255.0.0.0(rw,async)
+------_=_NextPart_001_01C70CDE.EBBD848C
+Content-Type: text/html;
+	charset="Windows-1252"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
+charset=3DWindows-1252">
+<META NAME=3D"Generator" CONTENT=3D"MS Exchange Server version =
+6.0.6618.4">
+<TITLE>RE: [autofs] Automount with a local NFS export and a remote NFS =
+export using the same mount path name over LDAP</TITLE>
+</HEAD>
+<BODY>
+<!-- Converted from text/plain format -->
+
+<P><FONT SIZE=3D2>=3D=3D&gt; On Mon, 20 Nov 2006 10:27 AM, &quot;Jeff =
+Moyer&quot; said:<BR>
+<BR>
+&gt;For some reason, I can't find your original post in my =
+mailbox...<BR>
+&gt;<BR>
+&gt;For the RHEL variants, add this to your /etc/sysconfig/autofs<BR>
+&gt;<BR>
+&gt;ONE_AUTO_MASTER=3D1<BR>
+&gt;<BR>
+&gt;Shawn&gt; &gt; If Automount 4 can't do this does version 5? :)<BR>
+&gt;<BR>
+&gt;Yes, but in the v5 case no special settings are necessary.<BR>
+&gt;<BR>
+&gt;-Jeff<BR>
+<BR>
+Yes, I am using RHEL4 at present. I just found the errata page this =
+should solve the issue.<BR>
+<BR>
+Thank you!<BR>
+Shawn.</FONT>
+</P>
+
+</BODY>
+</HTML>
+------_=_NextPart_001_01C70CDE.EBBD848C--
 
 
-sstarr> /etc/auto.home:
-sstarr> ===========
+--===============1395968908417933818==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-sstarr> install         10.1.1.75:/export/home/&
-sstarr> +auto.home
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
 
-sstarr> /etc/auto.master:
-sstarr> ============
-sstarr> /home  /etc/auto.home --ghost
+--===============1395968908417933818==--
 
-sstarr> On the local machine, /home is NFS exported so: /home/install is
-sstarr> visible when using automount.
-
-
-sstarr> On a remote machine (somehostname.platform.com) I have the
-sstarr> following configuration:
-
-sstarr> /etc/exports:
-sstarr> =========
-sstarr> /home   *(rw,async)
-
-
-sstarr> auto.master: LDAP map
-sstarr> ===============
-
-sstarr> dn: ou=autofs,dc=platform,dc=com
-sstarr> objectClass: top
-sstarr> objectClass: organizationalUnit
-sstarr> ou: autofs
-
-sstarr> dn: ou=auto.master,ou=autofs,dc=platform,dc=com
-sstarr> objectClass: top
-sstarr> objectCLass: automountMap
-sstarr> ou: auto.master
-
-sstarr> dn: cn=/home,ou=auto.master,ou=autofs,dc=platform,dc=com
-sstarr> objectClass: top
-sstarr> objectClass: automount
-sstarr> cn: /home
-sstarr> automountInformation: ldap:ou=auto.home,ou=autofs,dc=platform,dc=com
-
-sstarr> auto.home:  LDAP map
-sstarr> ===============
-
-sstarr> dn: ou=auto.home,ou=autofs,dc=platform,dc=com
-sstarr> objectClass: top
-sstarr> objectClass: automountMap
-sstarr> ou: auto.home
-
-sstarr> dn: cn=sstarr,ou=auto.home,ou=autofs,dc=platform,dc=com
-sstarr> objectClass: top
-sstarr> objectClass: automount
-sstarr> cn: sstarr
-sstarr> automountInformation: -fstype=nfs,hard,intr,nodev,nosuid somehostname.platform.com:/home:&
-
-is this supposed to be /home/& ?
-
-sstarr> The goal is to be able to share /home from *both* NFS exports and
-sstarr> combine them like NIS does (with +auto.home).
-
-sstarr> So on the local machine: if I do cd /home/install or cd
-sstarr> /home/sstarr I can see both as if they were one mounted point.
-
-sstarr> I can do this if I add the following to my LDAP maps:
-
-sstarr> dn: cn=install,ou=auto.home,ou=autofs,dc=platform,dc=com
-sstarr> objectClass: top
-sstarr> objectClass: automount
-sstarr> cn: install
-sstarr> automountInformation: 10.1.1.75:/export/home/install
-
-sstarr> Which basically does what I'm trying to do, but its a hack since I
-sstarr> have to use an LDAP entry instead of using the local 10.1.1.75
-sstarr> /etc/auto.home mapping
-
-sstarr> On the 10.1.1.75 local machine I have the /etc/nsswitch.conf as:
-sstarr> automount: files ldap
-
-sstarr> If it finds valid automounts in the 10.1.1.75's local
-sstarr> /etc/auto.master it ignores the LDAP maps so I only get one
-sstarr> automount set up. This isn't the behavour I'm looking for. I need a
-sstarr> way to tell automount that even though it found valid maps in
-sstarr> /etc/auto.master, look for additional maps from LDAP also.
-
-sstarr> I hope this clears things up :-)
-
-Ok, so you basically want included map support.  You are right, I did post
-a patch to implement this, but it is quite a beast, so I wouldn't expect it
-to get released straight away (these things require gobs of testing).
-
-In the interim, you can use something like the following local master map
-entry:
-
-/etc/auto.master:
-/home   multi:file /etc/auto.home -- ldap auto.home
-
-I think that will do what you need.  If not, I'll give it another try.  ;)
-
--Jeff
