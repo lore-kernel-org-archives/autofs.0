@@ -1,8 +1,8 @@
 From: "Shawn Starr" <sstarr@platform.com>
 Subject: Re: Automount with a local NFS export and a remote NFS
 	export using the same mount path name over LDAP
-Date: Tue, 21 Nov 2006 16:35:18 -0500
-Message-ID: <E2AC825D4FC7764DA86D9C8ECA27A2DEAF7B3C@catoexm05.noam.corp.platform.com>
+Date: Tue, 21 Nov 2006 15:12:46 -0500
+Message-ID: <E2AC825D4FC7764DA86D9C8ECA27A2DE065AFA@catoexm05.noam.corp.platform.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -21,60 +21,105 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: jmoyer@redhat.com
 Cc: autofs@linux.kernel.org
 
+==> Regarding RE: [autofs] Automount with a local NFS export and a remote NFS export using the same mount path name over LDAP; "Shawn Starr" 
+>I re-read your original problem statement, and I am officially confused.
+>What, exactly, are you trying to accomplish?
 
->Ok, so you basically want included map support.  You are right, I did post
->a patch to implement this, but it is quite a beast, so I wouldn't expect it
->to get released straight away (these things require gobs of testing).
+>Do you want to merge the contents of two master maps?  If so, set
+>ONE_AUTO_MASTER=0.
 
->In the interim, you can use something like the following local master map
->entry:
+>Do you want to merge the contents of two indirect maps?  If so, try reading
+>up on multi-maps.  This allows one to merge the contents of two or more
+>maps, potentially from different sources.
 
->/etc/auto.master:
->/home   multi:file /etc/auto.home -- ldap auto.home
-
->I think that will do what you need.  If not, I'll give it another try.  ;)
+>If neither of these is what you are trying to do, then please provide a
+>better explanation of the problem.  Post your maps, and give concrete
+>examples with machine names, exports, and intended use.
 
 >-Jeff
 
-Nov 21 16:31:04 rocksfe1 automount[10044]: nsswitch: couldn't find map auto.home
-Nov 21 16:31:04 rocksfe1 automount[10044]: lookup(ldap): query failed for (objectclass=nisObject)
-Nov 21 16:31:04 rocksfe1 automount[10044]: lookup(ldap): query failed for (objectclass=automount)
+Hi Jeff, Here's what I'm trying to do:
 
-It seems it can't find what the automount is, yet I'm not sure why its not able to find 
-the automount maps (ignoring NIS objects which I don't have)
+On a local machine (10.1.1.75) I have the following configuration:
 
-My nsswitch.conf has files only since multi:file would also check a remote ldap for its auto.home LDAP entry.
+/etc/exports:
+=========
+/export 10.0.0.0/255.0.0.0(rw,async)
 
-# ldapsearch -x "(&(objectclass=automount))"
-# extended LDIF
-#
-# LDAPv3
-# base <> with scope sub
-# filter: (&(objectclass=automount))
-# requesting: ALL
-#
 
-# /home, auto.master, autofs, platform.com
+/etc/auto.home:
+===========
+
+install         10.1.1.75:/export/home/&
++auto.home
+
+/etc/auto.master:
+============
+/home  /etc/auto.home --ghost
+
+On the local machine, /home is NFS exported so: /home/install is visible when using automount.
+
+
+On a remote machine (somehostname.platform.com) I have the following configuration:
+
+/etc/exports:
+=========
+/home   *(rw,async)
+
+
+auto.master: LDAP map
+===============
+
+dn: ou=autofs,dc=platform,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: autofs
+
+dn: ou=auto.master,ou=autofs,dc=platform,dc=com
+objectClass: top
+objectCLass: automountMap
+ou: auto.master
+
 dn: cn=/home,ou=auto.master,ou=autofs,dc=platform,dc=com
 objectClass: top
 objectClass: automount
 cn: /home
 automountInformation: ldap:ou=auto.home,ou=autofs,dc=platform,dc=com
 
-# sstarr, auto.home, autofs, platform.com
+auto.home:  LDAP map
+===============
+
+dn: ou=auto.home,ou=autofs,dc=platform,dc=com
+objectClass: top
+objectClass: automountMap
+ou: auto.home
+
 dn: cn=sstarr,ou=auto.home,ou=autofs,dc=platform,dc=com
 objectClass: top
 objectClass: automount
 cn: sstarr
-automountInformation: -fstype=nfs,hard,intr,nodev,nosuid somehostname.lsf.platform
- .com:/home:&
+automountInformation: -fstype=nfs,hard,intr,nodev,nosuid somehostname.platform.com:/home:&
 
-# search result
-search: 2
-result: 0 Success
 
-# numResponses: 3
-# numEntries: 2
+The goal is to be able to share /home from *both* NFS exports and combine them like NIS does (with +auto.home).
 
-Thanks, 
+So on the local machine: if I do cd /home/install or cd /home/sstarr I can see both as if they were one mounted point.
+
+I can do this if I add the following to my LDAP maps:
+
+dn: cn=install,ou=auto.home,ou=autofs,dc=platform,dc=com
+objectClass: top
+objectClass: automount
+cn: install
+automountInformation: 10.1.1.75:/export/home/install
+
+Which basically does what I'm trying to do, but its a hack since I have to use an LDAP entry instead of using the local 10.1.1.75 /etc/auto.home mapping
+
+On the 10.1.1.75 local machine I have the /etc/nsswitch.conf as:  automount: files ldap
+
+If it finds valid automounts in the 10.1.1.75's local /etc/auto.master it ignores the LDAP maps so I only get one automount set up. This isn't the behavour I'm looking for. I need a way to tell automount that even though it found valid maps in /etc/auto.master, look for additional maps from LDAP also.
+
+I hope this clears things up :-)
+
+Thanks,
 Shawn.
