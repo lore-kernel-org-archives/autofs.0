@@ -1,8 +1,8 @@
 From: "Shawn Starr" <sstarr@platform.com>
 Subject: Re: Automount with a local NFS export and a remote NFS
 	export using the same mount path name over LDAP
-Date: Tue, 21 Nov 2006 13:58:53 -0500
-Message-ID: <E2AC825D4FC7764DA86D9C8ECA27A2DEAF7B39@catoexm05.noam.corp.platform.com>
+Date: Tue, 21 Nov 2006 16:35:18 -0500
+Message-ID: <E2AC825D4FC7764DA86D9C8ECA27A2DEAF7B3C@catoexm05.noam.corp.platform.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,77 +18,63 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>
+To: jmoyer@redhat.com
 Cc: autofs@linux.kernel.org
 
-Hi Jeff, 
 
-This didn't work on RHEL4 U4.
+>Ok, so you basically want included map support.  You are right, I did post
+>a patch to implement this, but it is quite a beast, so I wouldn't expect it
+>to get released straight away (these things require gobs of testing).
 
-It again skipped mounting the remote LDAP NFS map.
+>In the interim, you can use something like the following local master map
+>entry:
 
-It is clobbering the two NFS exports sharing /home
+>/etc/auto.master:
+>/home   multi:file /etc/auto.home -- ldap auto.home
 
-I noticed you made a patch this month for LDAP and automount, that seems
-to be what I'm trying to do.
+>I think that will do what you need.  If not, I'll give it another try.  ;)
 
-basically, If my nssswitch.conf has:   automount: files ldap
+>-Jeff
 
-Automount should respect *both* file and LDAP automounts. Right now only one is expected Even If I use the option you mentioned below.
+Nov 21 16:31:04 rocksfe1 automount[10044]: nsswitch: couldn't find map auto.home
+Nov 21 16:31:04 rocksfe1 automount[10044]: lookup(ldap): query failed for (objectclass=nisObject)
+Nov 21 16:31:04 rocksfe1 automount[10044]: lookup(ldap): query failed for (objectclass=automount)
+
+It seems it can't find what the automount is, yet I'm not sure why its not able to find 
+the automount maps (ignoring NIS objects which I don't have)
+
+My nsswitch.conf has files only since multi:file would also check a remote ldap for its auto.home LDAP entry.
+
+# ldapsearch -x "(&(objectclass=automount))"
+# extended LDIF
+#
+# LDAPv3
+# base <> with scope sub
+# filter: (&(objectclass=automount))
+# requesting: ALL
+#
+
+# /home, auto.master, autofs, platform.com
+dn: cn=/home,ou=auto.master,ou=autofs,dc=platform,dc=com
+objectClass: top
+objectClass: automount
+cn: /home
+automountInformation: ldap:ou=auto.home,ou=autofs,dc=platform,dc=com
+
+# sstarr, auto.home, autofs, platform.com
+dn: cn=sstarr,ou=auto.home,ou=autofs,dc=platform,dc=com
+objectClass: top
+objectClass: automount
+cn: sstarr
+automountInformation: -fstype=nfs,hard,intr,nodev,nosuid somehostname.lsf.platform
+ .com:/home:&
+
+# search result
+search: 2
+result: 0 Success
+
+# numResponses: 3
+# numEntries: 2
 
 Thanks, 
 Shawn.
-
-
------Original Message-----
-From: Jeff Moyer [mailto:jmoyer@redhat.com]
-Sent: Monday, November 20, 2006 10:28 AM
-To: Shawn Starr
-Cc: autofs@linux.kernel.org
-Subject: Re: [autofs] Automount with a local NFS export and a remote NFS
-export using the same mount path name over LDAP
-
-
-For some reason, I can't find your original post in my mailbox...
-
-==> On Fri, 17 Nov 2006 17:27:35 -0500, "Shawn Starr" <sstarr@platform.com> said:
-
-Shawn> Nevermind, I found an ugly workaround.  Just add another entry
-Shawn> to auto.home in the LDAP config to map back to the local
-Shawn> machine.
-
-Shawn> > -----Original Message----- > From: Shawn Starr > Sent:
-Shawn> Friday, November 17, 2006 3:46 PM > To:
-Shawn> 'autofs@linux.kernel.org' > Subject: Automount with a local NFS
-Shawn> export and a remote NFS export using the same mount path name
-Shawn> over LDAP
-Shawn> > 
-Shawn> > Hi,
-Shawn> > 
-Shawn> > Does Automount v4 support the ability do the following:
-Shawn> > 
-Shawn> > 
-Shawn> > 1) A local machine with NFS export /home mounted with a local
-Shawn> /etc/auto.home map.
-Shawn> > 
-Shawn> > 2) a external machine with NFS export /home and using LDAP to
-Shawn> export a auto.home map to automount.
-Shawn> > 
-Shawn> > If I set nsswitch.conf on the local machine to: automount:
-Shawn> files ldap. Automount ignores LDAP mounts and only mounts the
-Shawn> local files.
-Shawn> > 
-Shawn> > If I flip the order and use 'ldap files' automount only
-Shawn> mounts the remote NFS /home and clobbers the local NFS /home
-Shawn> map. Yet if I try to pass more than one auto.home mapping via
-Shawn> LDAP to automount it ignores them.
-
-For the RHEL variants, add this to your /etc/sysconfig/autofs
-
-ONE_AUTO_MASTER=1
-
-Shawn> > If Automount 4 can't do this does version 5? :)
-
-Yes, but in the v5 case no special settings are necessary.
-
--Jeff
