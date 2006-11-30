@@ -1,14 +1,11 @@
-From: Frank Thommen <fthommen@embl.de>
-Subject: Re: No include of NIS maps in automounter maps possible
- any more?
-Date: Thu, 30 Nov 2006 16:29:07 +0100
-Message-ID: <456EF8C3.7070803@embl.de>
-References: <456EE067.3090208@embl.de> <1164898277.3127.36.camel@localhost>
+From: Matthias Koenig <mkoenig@suse.de>
+Subject: [PATCH] Possible buffer overflow
+Date: Thu, 30 Nov 2006 18:06:43 +0100
+Message-ID: <n7xhcwghnj0.fsf@giuliani.suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1164898277.3127.36.camel@localhost>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,28 +16,27 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+To: autofs mailing list <autofs@linux.kernel.org>
 
-Hi Ian,
+Hi,
 
->> [...]
-> Jeff Moyer has done a lot of work on this and is working to push the
-> RHEL autofs patches upstream now. However, I'm still neck deep in fixing
-> version 5 bugs so it's a bit hard to get an update to version 4 out.
+There seems to be a possible buffer overflow in modules/mount_afs.c.
+strncat(dest, src, n) uses at most n chars from src. n is not the
+size of dest. Patch below.
 
-No problem. The multi-map syntax as proposed by Jeff works perfectly and 
-I'll stick with that for the time being.
+Regards,
+Matthias
 
-
-> [...]
->> Any hints or pointers are appreciated.
-> 
-> Get FC6 if you want to try out version 5.
-
-I'll first sleep over it ;-)
-
-
-Thanks
-
-    frank
+--- modules/mount_afs.c
++++ modules/mount_afs.c
+@@ -36,8 +36,8 @@
+ 	char dest[PATH_MAX * 2];
+ 
+ 	strcpy(dest, root);	/* Convert the name to a mount point. */
+-	strncat(dest, "/", sizeof(dest));
+-	strncat(dest, name, sizeof(dest));
++	strncat(dest, "/", sizeof(dest)-strlen(dest)-1);
++	strncat(dest, name, sizeof(dest)-strlen(dest)-1);
+ 
+ 	/* remove trailing slash (http://bugs.debian.org/141775) */
+ 	if (dest[strlen(dest)-1] == '/')
