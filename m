@@ -1,14 +1,12 @@
-From: Guillaume Rousse <Guillaume.Rousse@inria.fr>
-Subject: Re: excluding some pattern to prevent useless mount request
-Date: Tue, 28 Nov 2006 10:57:15 +0100
-Message-ID: <456C07FB.7050308@inria.fr>
-References: <456B1516.1030108@inria.fr>
-	<x49bqmswws1.fsf@segfault.boston.devel.redhat.com>
+From: Frank Thommen <fthommen@embl.de>
+Subject: No include of NIS maps in automounter maps possible any
+	more?
+Date: Thu, 30 Nov 2006 14:45:11 +0100
+Message-ID: <456EE067.3090208@embl.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <x49bqmswws1.fsf@segfault.boston.devel.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,37 +17,38 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-Jeff Moyer wrote:
-> ==> On Mon, 27 Nov 2006 17:40:54 +0100, Guillaume Rousse <Guillaume.Rousse@inria.fr> said:
-> 
-> Guillaume> While looking in server's log, I found many such mount requests:
-> Guillaume> Nov 26 04:23:19 yquem rpc.mountd: refused mount request from
-> Guillaume> chouchen.inria.fr for /home/yquem/.hidden (/): no export entry
-> Guillaume> ...
-> Guillaume> Nov 26 04:22:33 yquem rpc.mountd: refused mount request from
-> Guillaume> medoc.inria.fr for /home/yquem/.directory (/): no export entry
-> 
-> Guillaume> I guess they are caused by graphical file manager trying to find
-> Guillaume> metadata directories when displaying mount points. Is there a way to
-> Guillaume> prevent them ?
-> 
-> No, there is not a way to prevent them.  The basic problem is that the
-> requests could be valid;  how is the automounter to know which
-> directory lookups to ignore? 
-If it could be configured locally, the automounter would know :)
+Hi,
 
-> haldaemon has been responsible for some
-> problems in the past, but its authors chose to include special cases
-> for automount-managed directories.  This is not the most ideal
-> solution, I guess, but it is the most attractive from the autofs point
-> of view.
-> 
-> Can you find out which applications are causing these lookups and file
-> bugs in their respective bug trackers?
-I don't feel very confident trying to convince konqueror developer they
-have to always test first if the directory they are going to probe is
-automountable... This seems to be both a exception, and something more
-easily implementable in a centralized way in automounter.
+I hope this question is not too basic for this list, but I could not 
+find any answer in the list archives or through friend google.
+
+With automount version 4.1.3-187 (running on CentOS 4.4) I could have an 
+automounter map (not auto.master) to be like:
+
+key1   host1:/path1
+key2   host2:/path2
++map.in.nis
+
+This way I could add specific local mounts to a generally available NIS 
+map or override NIS given keys with my own ones.
+
+With automount 4.1.4-33 (on Fedora Core 5) this doesn't work any more. 
+The additional map is simply ignored.  I tried with '+map.in.nis' and 
+'+yp:map.in.nis' to no avail.
+
+'automount' in nsswitch.conf is on 'files nis' in both cases.
+
+
+Is this a bug or a wanted feature in 4.1.4?  Is there an other way to 
+*combine* nis and local maps for automounting?  We have configured a lot 
+of hosts with above setup and whith the current OS-updates this starts 
+to break.
+
+
+Any hints or pointers are appreciated.
+
+Thanks you very much
+
+    frank
