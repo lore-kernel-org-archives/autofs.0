@@ -1,14 +1,12 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH] Possible buffer overflow
-Date: Fri, 01 Dec 2006 10:01:50 +0800
-Message-ID: <1164938510.3404.6.camel@localhost>
-References: <n7xhcwghnj0.fsf@giuliani.suse.de>
-	<x49mz68u3qu.fsf@segfault.boston.devel.redhat.com>
+From: Fabio Olive Leite <fleite@redhat.com>
+Subject: [patch] Underscore in hostnames
+Date: Thu, 7 Dec 2006 21:22:12 -0200
+Message-ID: <20061207232212.GA1994@sleipnir.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <x49mz68u3qu.fsf@segfault.boston.devel.redhat.com>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,44 +17,41 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+To: autofs@linux.kernel.org
 
-On Thu, 2006-11-30 at 14:35 -0500, Jeff Moyer wrote:
-> ==> On Thu, 30 Nov 2006 18:06:43 +0100, Matthias Koenig <mkoenig@suse.de> said:
-> 
-> Matthias> Hi,
-> Matthias> There seems to be a possible buffer overflow in modules/mount_afs.c.
-> Matthias> strncat(dest, src, n) uses at most n chars from src. n is not the
-> Matthias> size of dest. Patch below.
-> 
-> The fix seems correct to me.  Have you actually seen a problem in the
-> wild?  I wonder why the dest string is twice the maximum path length;
-> that doesn't make a whole lot of sense.  Perhaps we should fix that
-> while we're in here.
+Hi all,
 
-Yes, that array does seem to be excessive.
-I was thinking that it would be better to calculate the length, check it
-and then do the copy.
+Even though underscores are not really valid in hostnames, many people
+use them and they seem to be tolerated in many places. So I propose
+the one-liner below to see what you think.
 
-> 
-> -Jeff
-> 
-> > --- modules/mount_afs.c
-> > +++ modules/mount_afs.c
-> > @@ -36,8 +36,8 @@
-> >  	char dest[PATH_MAX * 2];
-> 
-> >  	strcpy(dest, root);	/* Convert the name to a mount point. */
-> > -	strncat(dest, "/", sizeof(dest));
-> > -	strncat(dest, name, sizeof(dest));
-> > +	strncat(dest, "/", sizeof(dest)-strlen(dest)-1);
-> > +	strncat(dest, name, sizeof(dest)-strlen(dest)-1);
-> 
-> >  	/* remove trailing slash (http://bugs.debian.org/141775) */
-> >  	if (dest[strlen(dest)-1] == '/')
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
+This one-liner adds underscore as a valid hostname character for NFS
+mounts.
+
+Signed-off-by: Fabio Olive Leite <fleite@redhat.com>
+---
+
+ parse_sun.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/modules/parse_sun.c b/modules/parse_sun.c
+index 6f10a4f..c849ff3 100644
+--- a/modules/parse_sun.c
++++ b/modules/parse_sun.c
+@@ -691,7 +691,7 @@ static int validate_location(char *loc)
+        if (check_colon(ptr)) {
+                while (*ptr && *ptr !=3D ':') {
+                        if (!(isalnum(*ptr) ||
+-                           *ptr =3D=3D '-' || *ptr =3D=3D '.' ||
++                           *ptr =3D=3D '-' || *ptr =3D=3D '.' || *ptr =3D=
+=3D '_' ||
+                            *ptr =3D=3D ',' || *ptr =3D=3D '(' || *ptr =3D=
+=3D ')'))
+                                return 0;
+                        ptr++;
+
+Kind regards,
+F=E1bio
+-- =
+
+ex sed lex awk yacc, e pluribus unix, amem
