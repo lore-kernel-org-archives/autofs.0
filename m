@@ -1,10 +1,10 @@
-From: Fabio Olive Leite <fleite@redhat.com>
-Subject: [patch] Underscore in hostnames
-Date: Thu, 7 Dec 2006 21:22:12 -0200
-Message-ID: <20061207232212.GA1994@sleipnir.redhat.com>
+From: Capelle =?iso-8859-1?q?Beno=EEt?= <capelle@labri.fr>
+Subject: [PATCH] no-slashify-colons option
+Date: Fri, 8 Dec 2006 14:13:03 +0100
+Message-ID: <200612081413.04075.capelle@labri.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
@@ -19,39 +19,57 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-Hi all,
+Hi,
 
-Even though underscores are not really valid in hostnames, many people
-use them and they seem to be tolerated in many places. So I propose
-the one-liner below to see what you think.
+After upgrading one of our servers from Fedora 5 (autofs-4.1.4) to Fedora 6
+(autofs-5.0.1) we noticed that the "--no-slashify-colons" option was no more 
+working.
 
-This one-liner adds underscore as a valid hostname character for NFS
-mounts.
+We've got the following maps.
+/etc/auto.master:
+/nfs /etc/auto.nfs --no-slashify-colons
 
-Signed-off-by: Fabio Olive Leite <fleite@redhat.com>
----
+/etc/auto.nfs:
+datas -async,ro,bg,vers=3,tcp,timeo=600,hard,intr,rsize=32768,wsize=32768,context=system_u:object_r:httpd_sys_content_t 
+nfs_server:/exported_nfs
 
- parse_sun.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Setting log level to debug showed that the last colon from
+system_u:object_r:httpd_sys_content_t (used for SELinux) was replaced by a
+slash.
+Dec  4 16:47:41 client automount[2094]: lookup_mount: lookup(file): 
+deptinfo -> -async,ro,bg,vers=3,tcp,timeo=600,hard,intr,rsize=32768,wsize=32768,context=system_u:object_r:httpd_sys_content_t  
+nfs_server:/exported_nfs
+Dec  4 16:47:41 client automount[2094]: parse_mount: parse(sun): expanded 
+entry: -async,ro,bg,vers=3,tcp,timeo=600,hard,intr,rsize=32768,wsize=32768,context=system_u:object_r/httpd_sys_content_t  
+nfs_server:/exported_nfs
 
-diff --git a/modules/parse_sun.c b/modules/parse_sun.c
-index 6f10a4f..c849ff3 100644
---- a/modules/parse_sun.c
-+++ b/modules/parse_sun.c
-@@ -691,7 +691,7 @@ static int validate_location(char *loc)
-        if (check_colon(ptr)) {
-                while (*ptr && *ptr !=3D ':') {
-                        if (!(isalnum(*ptr) ||
--                           *ptr =3D=3D '-' || *ptr =3D=3D '.' ||
-+                           *ptr =3D=3D '-' || *ptr =3D=3D '.' || *ptr =3D=
-=3D '_' ||
-                            *ptr =3D=3D ',' || *ptr =3D=3D '(' || *ptr =3D=
-=3D ')'))
-                                return 0;
-                        ptr++;
+Using "--no-slashify-colons" should prevent this as it was back in version 
+4.1.4.
 
-Kind regards,
-F=E1bio
--- =
+Following patch fixes the issue. Regards.
+--
+Benoit
 
-ex sed lex awk yacc, e pluribus unix, amem
+diff -ur a/lib/master_tok.l b/lib/master_tok.l
+--- a/lib/master_tok.l  2006-12-06 15:10:08.000000000 +0100
++++ b/lib/master_tok.l  2006-12-06 15:17:30.000000000 +0100
+@@ -91,6 +91,7 @@
+
+ OPTIONSTR      ([\-]?([[:alpha:]_]([[:alnum:]_\-])*(=([[:alnum:]_\-])+)*)+)
+ MACROSTR       (-D{OPTWS}([[:alpha:]_]([[:alnum:]_\-])*)=([[:alnum:]_\-])+)
++SLASHIFYSTR    (--(no-)?slashify-colons)
+ NUMBER         [0-9]+
+
+ DNSERVSTR1     ([[:alpha:]][[:alnum:]\-.]*(:[0-9]+)?:)
+@@ -323,6 +324,11 @@
+
+        {OPTWS} {}
+
++       {SLASHIFYSTR} {
++               strcpy(master_lval.strtype, master_text);
++               return(OPTION);
++       }
++
+        {MACROSTR} {
+                strcpy(master_lval.strtype, master_text);
+                return(OPTION);
