@@ -1,12 +1,11 @@
-From: Capelle =?iso-8859-1?q?Beno=EEt?= <capelle@labri.fr>
-Subject: [PATCH] no-slashify-colons option
-Date: Fri, 8 Dec 2006 14:13:03 +0100
-Message-ID: <200612081413.04075.capelle@labri.fr>
+From: Michael <michael@kmaclub.com>
+Subject: Automounting DVD images
+Date: Fri, 08 Dec 2006 09:59:12 -0700
+Message-ID: <457999E0.2040808@kmaclub.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,59 +16,62 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: autofs mailing list <autofs@linux.kernel.org>
 
-Hi,
+Hello,
 
-After upgrading one of our servers from Fedora 5 (autofs-4.1.4) to Fedora 6
-(autofs-5.0.1) we noticed that the "--no-slashify-colons" option was no more 
-working.
+I have been trying to get autofs to mount DVD iso images but so far have 
+been unsuccessful.  I want to make this work from various client 
+machines and not on the machine that servers out the iso.
 
-We've got the following maps.
-/etc/auto.master:
-/nfs /etc/auto.nfs --no-slashify-colons
+I tried some examples from the web but can't seem to make them work.  I 
+can mount the file by hand  over NFS without any issues.
 
-/etc/auto.nfs:
-datas -async,ro,bg,vers=3,tcp,timeo=600,hard,intr,rsize=32768,wsize=32768,context=system_u:object_r:httpd_sys_content_t 
-nfs_server:/exported_nfs
+Here is my configuration
 
-Setting log level to debug showed that the last colon from
-system_u:object_r:httpd_sys_content_t (used for SELinux) was replaced by a
-slash.
-Dec  4 16:47:41 client automount[2094]: lookup_mount: lookup(file): 
-deptinfo -> -async,ro,bg,vers=3,tcp,timeo=600,hard,intr,rsize=32768,wsize=32768,context=system_u:object_r:httpd_sys_content_t  
-nfs_server:/exported_nfs
-Dec  4 16:47:41 client automount[2094]: parse_mount: parse(sun): expanded 
-entry: -async,ro,bg,vers=3,tcp,timeo=600,hard,intr,rsize=32768,wsize=32768,context=system_u:object_r/httpd_sys_content_t  
-nfs_server:/exported_nfs
+NIS:
 
-Using "--no-slashify-colons" should prevent this as it was back in version 
-4.1.4.
+auto.master
+/mythtv         auto.mythtv     
+bg,hard,intr,retry=10000,rsize=32768,wsize=32768,timeo=600,nfsvers=3,tcp
 
-Following patch fixes the issue. Regards.
---
-Benoit
+auto.mythtv
+iso             --timeout=60 -fstype=autofs     auto.mythtv.iso
+video           -rw             filer:/export/services/mythtv/video
 
-diff -ur a/lib/master_tok.l b/lib/master_tok.l
---- a/lib/master_tok.l  2006-12-06 15:10:08.000000000 +0100
-+++ b/lib/master_tok.l  2006-12-06 15:17:30.000000000 +0100
-@@ -91,6 +91,7 @@
+auto.mythtv.iso
+* -fstype=iso9660,ro,loop       /mythtv/video/Movies/&
 
- OPTIONSTR      ([\-]?([[:alpha:]_]([[:alnum:]_\-])*(=([[:alnum:]_\-])+)*)+)
- MACROSTR       (-D{OPTWS}([[:alpha:]_]([[:alnum:]_\-])*)=([[:alnum:]_\-])+)
-+SLASHIFYSTR    (--(no-)?slashify-colons)
- NUMBER         [0-9]+
+I have tried various incarnations of the auto.mythtv.iso map but none 
+actually worked.  Can someone give me a hint?
 
- DNSERVSTR1     ([[:alpha:]][[:alnum:]\-.]*(:[0-9]+)?:)
-@@ -323,6 +324,11 @@
+[root@fc5 mythtv]# cd /mythtv/iso
+[root@fc5 iso]# cd MOVIE.iso
+-bash: cd: MOVIE.iso: No such file or directory
 
-        {OPTWS} {}
+Here is log from a FC5 box with autofs.4.1.4-33
+Dec  8 09:44:19 fc5 automount[30292]: failed to mount /mythtv/iso/MOVIE.iso
 
-+       {SLASHIFYSTR} {
-+               strcpy(master_lval.strtype, master_text);
-+               return(OPTION);
-+       }
-+
-        {MACROSTR} {
-                strcpy(master_lval.strtype, master_text);
-                return(OPTION);
+Here is the log from a FC6 box with autofs 5.0.1-0.rc2.28.1
+Dec  8 09:50:20 fc6 automount[2557]: mounted indirect mount on 
+/mythtv/iso with timeout 300, freq 75 seconds
+Dec  8 09:50:20 fc6 automount[2557]: ghosting enabled
+Dec  8 09:50:20 fc6 automount[2557]: mounted /mythtv/iso
+Dec  8 09:50:24 fc6 automount[2557]: attempting to mount entry 
+/mythtv/iso/MOVIE.iso
+Dec  8 09:50:24 fc6 automount[2557]: lookup_name_file_source_instance: 
+file map not found
+Dec  8 09:50:24 fc6 automount[2557]: failed to mount /mythtv/iso/MOVIE.iso
+Dec  8 09:50:24 fc6 automount[2557]: attempting to mount entry 
+/mythtv/iso/MOVIE.iso
+Dec  8 09:50:24 fc6 automount[2557]: lookup_name_file_source_instance: 
+file map not found
+Dec  8 09:50:24 fc6 automount[2557]: failed to mount /mythtv/iso/MOVIE.iso
+Dec  8 09:50:24 fc6 automount[2557]: attempting to mount entry 
+/mythtv/iso/MOVIE.iso
+Dec  8 09:50:24 fc6 automount[2557]: lookup_name_file_source_instance: 
+file map not found
+Dec  8 09:50:24 fc6 automount[2557]: failed to mount /mythtv/iso/MOVIE.iso
+
+Thanks,
+Michael
