@@ -1,15 +1,16 @@
-From: Fabio Olive Leite <fleite@redhat.com>
+From: Jeff Moyer <jmoyer@redhat.com>
 Subject: Re: [patch] Underscore in hostnames
-Date: Mon, 11 Dec 2006 10:05:07 -0200
-Message-ID: <20061211120507.GA2629@sleipnir.redhat.com>
+Date: Mon, 11 Dec 2006 09:16:02 -0500
+Message-ID: <x49lkler00t.fsf@segfault.boston.devel.redhat.com>
 References: <20061207232212.GA1994@sleipnir.redhat.com>
 	<1165809391.3380.8.camel@raven.themaw.net>
+	<20061211120507.GA2629@sleipnir.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1165809391.3380.8.camel@raven.themaw.net>
+In-Reply-To: <20061211120507.GA2629@sleipnir.redhat.com> (Fabio Olive Leite's
+	message of "Mon, 11 Dec 2006 10:05:07 -0200")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,20 +23,22 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-On Mon, Dec 11, 2006 at 12:56:31PM +0900, Ian Kent wrote:
-> =
+==> On Mon, 11 Dec 2006 10:05:07 -0200, Fabio Olive Leite <fleite@redhat.com> said:
 
-> Not valid at all.
-> And they are tolerated because the admin explicitly configures DNS to
-> violate the RFC.
+Fabio> On Mon, Dec 11, 2006 at 12:56:31PM +0900, Ian Kent wrote:
+Fabio> > 
+Fabio> > Not valid at all.
+Fabio> > And they are tolerated because the admin explicitly configures DNS to
+Fabio> > violate the RFC.
 
-The sad thing is that mount(1) does no such validation, and allows one
-to mount an NFS export on a hostname containing underscores just fine.
-So we can end up in a situation where automount does not allow the
-user to configure a working NFS mount she has.
+Fabio> The sad thing is that mount(1) does no such validation, and allows one
+Fabio> to mount an NFS export on a hostname containing underscores just fine.
+Fabio> So we can end up in a situation where automount does not allow the
+Fabio> user to configure a working NFS mount she has.
 
-Regards,
-F=E1bio
--- =
+Yes, and when coupled with the fact that some other vendors' products
+allow this sort of thing by default, I think we may have to support
+it.  I'm a big fan of sticking to the RFC's, but in this case, I think
+we should make an exception.
 
-ex sed lex awk yacc, e pluribus unix, amem
+-Jeff
