@@ -1,18 +1,20 @@
-From: Ian Kent <raven@themaw.net>
+From: Fabio Olive Leite <fleite@redhat.com>
 Subject: Re: [patch] Underscore in hostnames
-Date: Tue, 12 Dec 2006 01:20:08 +0900
-Message-ID: <1165854008.3380.47.camel@raven.themaw.net>
+Date: Mon, 11 Dec 2006 14:58:24 -0200
+Message-ID: <20061211165824.GB2629@sleipnir.redhat.com>
 References: <20061207232212.GA1994@sleipnir.redhat.com>
 	<1165809391.3380.8.camel@raven.themaw.net>
 	<20061211120507.GA2629@sleipnir.redhat.com>
 	<x49lkler00t.fsf@segfault.boston.devel.redhat.com>
 	<1165851275.3380.42.camel@raven.themaw.net>
 	<457D7FD7.5030702@redhat.com>
+	<x494ps2quec.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <457D7FD7.5030702@redhat.com>
+Content-Disposition: inline
+In-Reply-To: <x494ps2quec.fsf@segfault.boston.devel.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -23,46 +25,31 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Peter Staubach <staubach@redhat.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Mon, 2006-12-11 at 10:57 -0500, Peter Staubach wrote:
-> Ian Kent wrote:
-> > On Mon, 2006-12-11 at 09:16 -0500, Jeff Moyer wrote:
-> >   
-> >> ==> On Mon, 11 Dec 2006 10:05:07 -0200, Fabio Olive Leite <fleite@redhat.com> said:
-> >>
-> >> Fabio> On Mon, Dec 11, 2006 at 12:56:31PM +0900, Ian Kent wrote:
-> >> Fabio> > 
-> >> Fabio> > Not valid at all.
-> >> Fabio> > And they are tolerated because the admin explicitly configures DNS to
-> >> Fabio> > violate the RFC.
-> >>
-> >> Fabio> The sad thing is that mount(1) does no such validation, and allows one
-> >> Fabio> to mount an NFS export on a hostname containing underscores just fine.
-> >> Fabio> So we can end up in a situation where automount does not allow the
-> >> Fabio> user to configure a working NFS mount she has.
-> >>
-> >> Yes, and when coupled with the fact that some other vendors' products
-> >> allow this sort of thing by default, I think we may have to support
-> >> it.  I'm a big fan of sticking to the RFC's, but in this case, I think
-> >> we should make an exception.
-> >>     
-> >
-> > Ya .. I reality I don't feel as strongly as I made out.
-> >
-> > I did want to see if there was anyone else that did have an opinion
-> > though.
-> >
-> > I'll merge the patch unless anyone else feels strongly against it.
-> 
-> Do we know which other vendors products support '_' as a valid character
-> in a hostname?
+On Mon, Dec 11, 2006 at 11:17:31AM -0500, Jeff Moyer wrote:
+> =
 
-Bind can be configured to allow it, as you probably know, but the
-default has been to not allow it for several years now.
+> If you want to disallow this, then surely it is best to simply "fix"
+> the name resolution routines in libc.  At this point, however, that
+> could be viewed as a regression.
 
-I guess that many sites that have Windows machines with '_' in host
-names configure DNS to allow them or they probably use the Windows DNS.
+Even though I do my own RFC evangelizing at times, I can't help but
+think: why limit automount with a hostname validation routine when
+automount is *not* the authoritative entity that decides what is a
+valid hostname? Will you want to patch automount again whenever the
+RFCs get updated?
 
-Ian
+automount should regard the hostname as a string, and if it can be
+resolved, great. If it cannot, complain in the logs and exit. But it
+should not enforce validation on top of something that can be
+redefined under its feet anytime in the future.
+
+Will you also include validation for bracketed IPv6 literals? And
+whatever comes next?
+
+Two additional cents...
+F=E1bio
+-- =
+
+ex sed lex awk yacc, e pluribus unix, amem
