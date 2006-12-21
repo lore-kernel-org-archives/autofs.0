@@ -1,18 +1,11 @@
-From: Michael <michael@kmaclub.com>
-Subject: Re: Automounting DVD images
-Date: Wed, 13 Dec 2006 09:14:42 -0700
-Message-ID: <458026F2.4060901@kmaclub.com>
-References: <457999E0.2040808@kmaclub.com>	
-	<1165602659.3996.59.camel@raven.themaw.net>
-	<4579C7F4.4020506@kmaclub.com>	
-	<1165808922.3380.1.camel@raven.themaw.net>
-	<457EF8EA.9000608@kmaclub.com>
-	<1165975679.3332.7.camel@raven.themaw.net>
+From: Miguel Varas <mvaras@inf.utfsm.cl>
+Subject: autofs error
+Date: Thu, 21 Dec 2006 16:32:12 -0300
+Message-ID: <458AE13C.3060902@inf.utfsm.cl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1165975679.3332.7.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -23,18 +16,28 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+To: autofs@linux.kernel.org
 
-Ian Kent wrote:
-> That's a bit of a surprise, I didn't expect it to break other maps.
-> I'll check into that before doing anything else.
->
-> Does the /home mount also break if you don't use /mythtv map?
->
->   
+the following error is causes falls of autofs.....it happens when using
+  different kernels now i m running Linux inti.inf.utfsm.cl
+2.6.9-42.0.3.plus.c4 #1 Fri Oct 6 10:58:59 CDT 2006 x86_64 x86_64 x86_64
+GNU/Linux
 
-Yes, I just rebooted to verify a clean situation.  /home doesn't work 
-any more.  Some paths work and some don't.
 
-Michael
+
+
+inti kernel: automount[11720]: segfault at 0000002b592133b8 rip
+0000002a9586403f rsp 0000007fbfffd0d0 error 4
+Dec 21 16:27:58 inti kernel: automount[11723]: segfault at
+0000002b592133b8 rip 0000002a9586403f rsp 0000007fbfffd0d0 error 4
+Dec 21 16:27:58 inti kernel: automount[11724]: segfault at
+0000002b592133b8 rip 0000002a9586403f rsp 0000007fbfffd0d0 error 4
+
+-- 
+
+---------------------------------------
+Miguel Angel Varas Astudillo.
+Jefe Recursos Tecnicos Depto Informatica
+Universidad Tecnica Federico Santa Maria
+Linux User # 436411
+fono 032-654245
