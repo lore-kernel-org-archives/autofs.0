@@ -1,10 +1,10 @@
-From: Miguel Varas <mvaras@inf.utfsm.cl>
-Subject: autofs error
-Date: Thu, 21 Dec 2006 16:32:12 -0300
-Message-ID: <458AE13C.3060902@inf.utfsm.cl>
+From: Jens Tautenhahn <shogun@tausys.franken.de>
+Subject: Patch for autofs 4.1.4 to mount Windows administrative
+	shares
+Date: Sat, 23 Dec 2006 09:39:59 +0100
+Message-ID: <458CEB5F.9050201@tausys.franken.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="------------070301080504020005050107"
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -18,26 +18,42 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-the following error is causes falls of autofs.....it happens when using
-  different kernels now i m running Linux inti.inf.utfsm.cl
-2.6.9-42.0.3.plus.c4 #1 Fri Oct 6 10:58:59 CDT 2006 x86_64 x86_64 x86_64
-GNU/Linux
+This is a multi-part message in MIME format.
+--------------070301080504020005050107
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
+Hello!
 
+For each local drive letter Windows starting from Version 2000 provides
+automatically a share with the names C$, D$, etc. In order to be able to
+access these shares, the file /etc/auto.smb needs a small patch, which I
+attached.
 
+Jens
 
-inti kernel: automount[11720]: segfault at 0000002b592133b8 rip
-0000002a9586403f rsp 0000007fbfffd0d0 error 4
-Dec 21 16:27:58 inti kernel: automount[11723]: segfault at
-0000002b592133b8 rip 0000002a9586403f rsp 0000007fbfffd0d0 error 4
-Dec 21 16:27:58 inti kernel: automount[11724]: segfault at
-0000002b592133b8 rip 0000002a9586403f rsp 0000007fbfffd0d0 error 4
+--------------070301080504020005050107
+Content-Type: text/x-patch;
+ name="auto.smb.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="auto.smb.patch"
 
--- 
+23c23
+< 	/Disk/	{ if (first) { print opts; first=0 }; print " \\\n\t /" $2, "://" key "/" $2 }
+---
+> 	/Disk/	{ if (first) { print opts; first=0 }; gsub(/\$$/, "\\$", $2); print " \\\n\t /" $2, "://" key "/" $2 }
 
----------------------------------------
-Miguel Angel Varas Astudillo.
-Jefe Recursos Tecnicos Depto Informatica
-Universidad Tecnica Federico Santa Maria
-Linux User # 436411
-fono 032-654245
+--------------070301080504020005050107
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--------------070301080504020005050107--
+
