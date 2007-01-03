@@ -1,14 +1,11 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: autofs error
-Date: Tue, 02 Jan 2007 11:31:52 -0500
-Message-ID: <x49zm91wft3.fsf@segfault.boston.devel.redhat.com>
-References: <458AE13C.3060902@inf.utfsm.cl>
+From: =?ISO-8859-1?Q?Dieter_St=FCken?= <stueken@conterra.de>
+Subject: mtab corruption
+Date: Wed, 03 Jan 2007 17:03:21 +0100
+Message-ID: <459BD3C9.9090201@conterra.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <458AE13C.3060902@inf.utfsm.cl> (Miguel Varas's message of "Thu,
-	21 Dec 2006 16:32:12 -0300")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,34 +16,28 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Miguel Varas <mvaras@inf.utfsm.cl>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-==> On Thu, 21 Dec 2006 16:32:12 -0300, Miguel Varas <mvaras@inf.utfsm.cl> said:
+I frequently end up with a broken mtab. This results in a message like:
+mount(nfs): warning: /home/stueken is already mounted
 
-Miguel> the following error is causes falls of autofs.....it happens
-Miguel> when using different kernels now i m running Linux
-Miguel> inti.inf.utfsm.cl 2.6.9-42.0.3.plus.c4 #1 Fri Oct 6 10:58:59
-Miguel> CDT 2006 x86_64 x86_64 x86_64 GNU/Linux
+I'm using a SuSE-10.1 x86_64-smp system with a 2.6.16.21-0.25-smp kernel.
+After I read about new patches to solve some mtab locking problems
+I upgraded from autofs-4.1.4-23 to autofs-4.1.4-37, but the mtab
+corruption still occurs.
 
+Seems the problem became even worse since a mount request sometimes
+takes about 5 seconds (due to some LDAP configuration problems) while
+a bunch of other mount requests are coming in.
+In addition this is an SMP system.
 
-Miguel> inti kernel: automount[11720]: segfault at 0000002b592133b8
-Miguel> rip 0000002a9586403f rsp 0000007fbfffd0d0 error 4 Dec 21
-Miguel> 16:27:58 inti kernel: automount[11723]: segfault at
-Miguel> 0000002b592133b8 rip 0000002a9586403f rsp 0000007fbfffd0d0
-Miguel> error 4 Dec 21 16:27:58 inti kernel: automount[11724]:
-Miguel> segfault at 0000002b592133b8 rip 0000002a9586403f rsp
-Miguel> 0000007fbfffd0d0 error 4
+Should I consider to update my kernel, too?
 
-We're going to need a bit more information than this.  What version of
-autofs?  Did it leave a core file?  Are there any messages in the
-logs?  What do your maps looks like?  How is /etc/nsswitch.conf
-configured?
+Unfortunately I could not convince my sysads to do so, as they are
+afraid of even more problems with newer kernels...
 
-For a list of the items required for fixing bugs, please see my people
-page:
-  http://people.redhat.com/jmoyer/
+I noticed the upcoming autofs5. Should I wait for it?
 
-Thnaks!
+thanks for advice,
 
-Jeff
+- Dieter. 
