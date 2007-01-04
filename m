@@ -1,14 +1,14 @@
-From: wengang wang <wen.gang.wang@oracle.com>
-Subject: Re: add logging feature for 'reload'
-Date: Fri, 05 Jan 2007 11:18:01 +0800
-Message-ID: <459DC369.6090203@oracle.com>
-References: <459C7DC8.1000204@oracle.com>
-	<x497iw2x364.fsf@segfault.boston.devel.redhat.com>
+From: Jim Carter <jimc@math.ucla.edu>
+Subject: Re: mtab corruption
+Date: Thu, 4 Jan 2007 09:03:59 -0800 (PST)
+Message-ID: <Pine.LNX.4.64.0701040855170.23215@simba.math.ucla.edu>
+References: <459BD3C9.9090201@conterra.de>
+	<1167874477.3546.10.camel@raven.themaw.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: MULTIPART/MIXED;
+	BOUNDARY="1635810564-781230220-1167930239=:23215"
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <x497iw2x364.fsf@segfault.boston.devel.redhat.com>
+In-Reply-To: <1167874477.3546.10.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,42 +19,63 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-Thanks so much!
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-regards,
-wengang
+--1635810564-781230220-1167930239=:23215
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+X-MIME-Autoconverted: from 8bit to quoted-printable by hera.kernel.org id l0634GJP027090
 
-Jeff Moyer wrote:
-> ==> On Thu, 04 Jan 2007 12:08:40 +0800, wengang wang <wen.gang.wang@oracle.com> said:
->
-> wengang> Hi, Some users like to see information in syslog when autofs
-> wengang> reloads.  Till RedHat 4 update 4 with autofs version being
-> wengang> 4.1.3-187, there are logging action for "start", "stop" and
-> wengang> "restart", Can we add logging feature for "reload" too in new
-> wengang> update versions?  If you have done it, please ignore this.
->
-> I filed Red Hat bugzilla #221400.  I tried to add you to the CC list,
-> but it wouldn't let me.  I'm guessing you have to have a bugzilla
-> account in order for that to work.
->
-> You should be able to at least view the bug without an account.  Try
-> this URL:
->
->   https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=221400
->
-> Thanks,
->
-> Jeff
->   
+On Thu, 4 Jan 2007, Ian Kent wrote:
+> On Wed, 2007-01-03 at 17:03 +0100, Dieter St=FCken wrote:
+> > I frequently end up with a broken mtab. This results in a message lik=
+e:
+> > mount(nfs): warning: /home/stueken is already mounted
 
--- 
-Wengang Wang
-Member of Technical Staff
-Oracle China Development Center
-Open Source Technologies Development
+Sorry, I don't have anything useful to add on the mtab corruption issue.
+We do a ton of NFS automounting and don't see this issue.
 
-Tel:      +86 10 8278 6265
-Mobile:   +86 13381078925
+> > I'm using a SuSE-10.1 x86_64-smp system with a 2.6.16.21-0.25-smp ker=
+nel.
+> > I upgraded from autofs-4.1.4-23 to autofs-4.1.4-37, but the mtab
+>=20
+> I don't know what this means, I don't use SuSE.
+
+The trailing numbers differentiate variants of the "same" software versio=
+n,=20
+e.g. security patches.  SuSE has a policy of backporting patches to old=20
+versions, if feasible, in contrast to Debian, which I think would send=20
+out the latest version including the latest patch.  The idea is to minimi=
+ze=20
+feature changes except at distro version transitions.
+
+> Does your system use mount.nfs from nfs-utils?
+> There is an mtab locking error I spotted in nfs-utils recently.
+
+SuSE 10.1 uses /bin/mount from util-linux-2.12r-35 which does NFS=20
+intrinsically, and not mount.nfs from nfs-utils-1.0.7, which is installed=
+=20
+but minus mount.nfs.
+
+James F. Carter          Voice 310 825 2897    FAX 310 206 6673
+UCLA-Mathnet;  6115 MSA; 405 Hilgard Ave.; Los Angeles, CA, USA  90095-15=
+55
+Email: jimc@math.ucla.edu    http://www.math.ucla.edu/~jimc (q.v. for PGP=
+ key)
+--1635810564-781230220-1167930239=:23215
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--1635810564-781230220-1167930239=:23215--
+
