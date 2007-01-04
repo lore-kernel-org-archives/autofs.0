@@ -1,11 +1,12 @@
-From: =?ISO-8859-1?Q?Dieter_St=FCken?= <stueken@conterra.de>
-Subject: mtab corruption
-Date: Wed, 03 Jan 2007 17:03:21 +0100
-Message-ID: <459BD3C9.9090201@conterra.de>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: mtab corruption
+Date: Thu, 04 Jan 2007 10:34:37 +0900
+Message-ID: <1167874477.3546.10.camel@raven.themaw.net>
+References: <459BD3C9.9090201@conterra.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <459BD3C9.9090201@conterra.de>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,28 +17,37 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+To: Dieter =?ISO-8859-1?Q?St=FCken?= <stueken@conterra.de>
+Cc: autofs@linux.kernel.org
 
-I frequently end up with a broken mtab. This results in a message like:
-mount(nfs): warning: /home/stueken is already mounted
-
-I'm using a SuSE-10.1 x86_64-smp system with a 2.6.16.21-0.25-smp kernel.
-After I read about new patches to solve some mtab locking problems
-I upgraded from autofs-4.1.4-23 to autofs-4.1.4-37, but the mtab
-corruption still occurs.
-
-Seems the problem became even worse since a mount request sometimes
-takes about 5 seconds (due to some LDAP configuration problems) while
-a bunch of other mount requests are coming in.
-In addition this is an SMP system.
-
-Should I consider to update my kernel, too?
-
-Unfortunately I could not convince my sysads to do so, as they are
-afraid of even more problems with newer kernels...
-
-I noticed the upcoming autofs5. Should I wait for it?
-
-thanks for advice,
-
-- Dieter. 
+T24gV2VkLCAyMDA3LTAxLTAzIGF0IDE3OjAzICswMTAwLCBEaWV0ZXIgU3TDvGtlbiB3cm90ZToK
+PiBJIGZyZXF1ZW50bHkgZW5kIHVwIHdpdGggYSBicm9rZW4gbXRhYi4gVGhpcyByZXN1bHRzIGlu
+IGEgbWVzc2FnZSBsaWtlOgo+IG1vdW50KG5mcyk6IHdhcm5pbmc6IC9ob21lL3N0dWVrZW4gaXMg
+YWxyZWFkeSBtb3VudGVkCj4gCj4gSSdtIHVzaW5nIGEgU3VTRS0xMC4xIHg4Nl82NC1zbXAgc3lz
+dGVtIHdpdGggYSAyLjYuMTYuMjEtMC4yNS1zbXAga2VybmVsLgo+IEFmdGVyIEkgcmVhZCBhYm91
+dCBuZXcgcGF0Y2hlcyB0byBzb2x2ZSBzb21lIG10YWIgbG9ja2luZyBwcm9ibGVtcwo+IEkgdXBn
+cmFkZWQgZnJvbSBhdXRvZnMtNC4xLjQtMjMgdG8gYXV0b2ZzLTQuMS40LTM3LCBidXQgdGhlIG10
+YWIKPiBjb3JydXB0aW9uIHN0aWxsIG9jY3Vycy4KCkkgZG9uJ3Qga25vdyB3aGF0IHRoaXMgbWVh
+bnMsIEkgZG9uJ3QgdXNlIFN1U0UuCgo+IAo+IFNlZW1zIHRoZSBwcm9ibGVtIGJlY2FtZSBldmVu
+IHdvcnNlIHNpbmNlIGEgbW91bnQgcmVxdWVzdCBzb21ldGltZXMKPiB0YWtlcyBhYm91dCA1IHNl
+Y29uZHMgKGR1ZSB0byBzb21lIExEQVAgY29uZmlndXJhdGlvbiBwcm9ibGVtcykgd2hpbGUKPiBh
+IGJ1bmNoIG9mIG90aGVyIG1vdW50IHJlcXVlc3RzIGFyZSBjb21pbmcgaW4uCj4gSW4gYWRkaXRp
+b24gdGhpcyBpcyBhbiBTTVAgc3lzdGVtLgoKVGhpcyBjb3JydXB0aW9uIGlzIG5vdCBhY3R1YWxs
+eSBhbiBhdXRvZnMgcHJvYmxlbSBhbHRob3VnaCB2ZXJpb3VzCnRoaW5ncyBoYXZlIGJlZW4gdHJp
+ZWQgb3ZlciB0aGUgeWVhcnMgdG8gcmVkdWNlIGl0LiBtb3VudCg4KSBpcyB3aGVyZQp0aGUgcHJv
+YmxlbSBsaWVzLgoKRG9lcyB5b3VyIHN5c3RlbSB1c2UgbW91bnQubmZzIGZyb20gbmZzLXV0aWxz
+PwpUaGVyZSBpcyBhbiBtdGFiIGxvY2tpbmcgZXJyb3IgSSBzcG90dGVkIGluIG5mcy11dGlscyBy
+ZWNlbnRseS4KCj4gCj4gU2hvdWxkIEkgY29uc2lkZXIgdG8gdXBkYXRlIG15IGtlcm5lbCwgdG9v
+PwoKV2FzdGUgb2YgdGltZSwgbm90aGluZyB0byBkbyB3aXRoIHRoZSBrZXJuZWwuCi9ldGMvbXRh
+YiBpcyBtYW5hZ2VkIGVudGlyZWx5IGJ5IHVzZXIgc3BhY2UgY29kZS4KCj4gCj4gVW5mb3J0dW5h
+dGVseSBJIGNvdWxkIG5vdCBjb252aW5jZSBteSBzeXNhZHMgdG8gZG8gc28sIGFzIHRoZXkgYXJl
+Cj4gYWZyYWlkIG9mIGV2ZW4gbW9yZSBwcm9ibGVtcyB3aXRoIG5ld2VyIGtlcm5lbHMuLi4KPiAK
+PiBJIG5vdGljZWQgdGhlIHVwY29taW5nIGF1dG9mczUuIFNob3VsZCBJIHdhaXQgZm9yIGl0PwoK
+QXQgdGhlIG1vbWVudCB2NSBzdGlsbCBleHBlY3RzIC9ldGMvbXRhYiB0byBiZSBjb3JyZWN0LgpU
+aGlzIGNhbiBiZSBmYWlybHkgZWFzaWx5IGNoYW5nZWQgYnV0IEkgd291bGQgcHJlZmVyIHRvIGJl
+IGFibGUgdG8gcmVseQpvbiBtb3VudCg4KSBiZWNhdXNlLCBmb3IgbGFyZ2UgZGlyZWN0IG1vdW50
+IG1hcHMgKGF0IGxlYXN0KSB3ZSB3aWxsIGhhdmUKYSBwZXJmb3JtYW5jZSBwZW5hbHR5LgoKSWFu
+CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwphdXRvZnMg
+bWFpbGluZyBsaXN0CmF1dG9mc0BsaW51eC5rZXJuZWwub3JnCmh0dHA6Ly9saW51eC5rZXJuZWwu
+b3JnL21haWxtYW4vbGlzdGluZm8vYXV0b2ZzCg==
