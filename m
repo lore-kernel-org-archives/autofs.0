@@ -1,14 +1,14 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: add logging feature for 'reload'
-Date: Thu, 04 Jan 2007 09:44:03 -0500
-Message-ID: <x497iw2x364.fsf@segfault.boston.devel.redhat.com>
-References: <459C7DC8.1000204@oracle.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: mtab corruption
+Date: Fri, 05 Jan 2007 10:54:44 +0900
+Message-ID: <1167962084.4289.8.camel@raven.themaw.net>
+References: <459BD3C9.9090201@conterra.de>
+	<1167874477.3546.10.camel@raven.themaw.net>
+	<Pine.LNX.4.64.0701040855170.23215@simba.math.ucla.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <459C7DC8.1000204@oracle.com> (wengang wang's message of "Thu,
-	04 Jan 2007 12:08:40 +0800")
+In-Reply-To: <Pine.LNX.4.64.0701040855170.23215@simba.math.ucla.edu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,26 +19,37 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: wengang wang <wen.gang.wang@oracle.com>
+Content-Type: text/plain; charset="iso-8859-1"
+To: Jim Carter <jimc@math.ucla.edu>
 Cc: autofs@linux.kernel.org
 
-==> On Thu, 04 Jan 2007 12:08:40 +0800, wengang wang <wen.gang.wang@oracle.com> said:
-
-wengang> Hi, Some users like to see information in syslog when autofs
-wengang> reloads.  Till RedHat 4 update 4 with autofs version being
-wengang> 4.1.3-187, there are logging action for "start", "stop" and
-wengang> "restart", Can we add logging feature for "reload" too in new
-wengang> update versions?  If you have done it, please ignore this.
-
-I filed Red Hat bugzilla #221400.  I tried to add you to the CC list,
-but it wouldn't let me.  I'm guessing you have to have a bugzilla
-account in order for that to work.
-
-You should be able to at least view the bug without an account.  Try
-this URL:
-
-  https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=221400
-
-Thanks,
-
-Jeff
+T24gVGh1LCAyMDA3LTAxLTA0IGF0IDA5OjAzIC0wODAwLCBKaW0gQ2FydGVyIHdyb3RlOgo+IE9u
+IFRodSwgNCBKYW4gMjAwNywgSWFuIEtlbnQgd3JvdGU6Cj4gPiBPbiBXZWQsIDIwMDctMDEtMDMg
+YXQgMTc6MDMgKzAxMDAsIERpZXRlciBTdMO8a2VuIHdyb3RlOgo+ID4gPiBJIGZyZXF1ZW50bHkg
+ZW5kIHVwIHdpdGggYSBicm9rZW4gbXRhYi4gVGhpcyByZXN1bHRzIGluIGEgbWVzc2FnZSBsaWtl
+Ogo+ID4gPiBtb3VudChuZnMpOiB3YXJuaW5nOiAvaG9tZS9zdHVla2VuIGlzIGFscmVhZHkgbW91
+bnRlZAo+IAo+IFNvcnJ5LCBJIGRvbid0IGhhdmUgYW55dGhpbmcgdXNlZnVsIHRvIGFkZCBvbiB0
+aGUgbXRhYiBjb3JydXB0aW9uIGlzc3VlLgo+IFdlIGRvIGEgdG9uIG9mIE5GUyBhdXRvbW91bnRp
+bmcgYW5kIGRvbid0IHNlZSB0aGlzIGlzc3VlLgo+IAo+ID4gPiBJJ20gdXNpbmcgYSBTdVNFLTEw
+LjEgeDg2XzY0LXNtcCBzeXN0ZW0gd2l0aCBhIDIuNi4xNi4yMS0wLjI1LXNtcCBrZXJuZWwuCj4g
+PiA+IEkgdXBncmFkZWQgZnJvbSBhdXRvZnMtNC4xLjQtMjMgdG8gYXV0b2ZzLTQuMS40LTM3LCBi
+dXQgdGhlIG10YWIKPiA+IAo+ID4gSSBkb24ndCBrbm93IHdoYXQgdGhpcyBtZWFucywgSSBkb24n
+dCB1c2UgU3VTRS4KPiAKPiBUaGUgdHJhaWxpbmcgbnVtYmVycyBkaWZmZXJlbnRpYXRlIHZhcmlh
+bnRzIG9mIHRoZSAic2FtZSIgc29mdHdhcmUgdmVyc2lvbiwgCj4gZS5nLiBzZWN1cml0eSBwYXRj
+aGVzLiAgU3VTRSBoYXMgYSBwb2xpY3kgb2YgYmFja3BvcnRpbmcgcGF0Y2hlcyB0byBvbGQgCj4g
+dmVyc2lvbnMsIGlmIGZlYXNpYmxlLCBpbiBjb250cmFzdCB0byBEZWJpYW4sIHdoaWNoIEkgdGhp
+bmsgd291bGQgc2VuZCAKPiBvdXQgdGhlIGxhdGVzdCB2ZXJzaW9uIGluY2x1ZGluZyB0aGUgbGF0
+ZXN0IHBhdGNoLiAgVGhlIGlkZWEgaXMgdG8gbWluaW1pemUgCj4gZmVhdHVyZSBjaGFuZ2VzIGV4
+Y2VwdCBhdCBkaXN0cm8gdmVyc2lvbiB0cmFuc2l0aW9ucy4KClN1cmUsIGJ1dCBteSBwb2ludCB3
+YXMgdGhhdCBJJ20gbm90IGZhbWlsaWFyIHdpdGggd2hhdCBwYXRjaGVzIHRoZSBTdVNFCm1haW50
+YWluZXIgbWF5IGhhdmUgYWRkZWQuIFBlcmhhcHMgdGhpcyB3b3VsZCBiZSBhIGdvb2QgdGltZSBm
+b3IgdGhlClN1U0UgbWFpbnRhaW5lciB0byBzcGVhayB1cCwgaWYgcHJlc2VudC4KCj4gCj4gPiBE
+b2VzIHlvdXIgc3lzdGVtIHVzZSBtb3VudC5uZnMgZnJvbSBuZnMtdXRpbHM/Cj4gPiBUaGVyZSBp
+cyBhbiBtdGFiIGxvY2tpbmcgZXJyb3IgSSBzcG90dGVkIGluIG5mcy11dGlscyByZWNlbnRseS4K
+PiAKPiBTdVNFIDEwLjEgdXNlcyAvYmluL21vdW50IGZyb20gdXRpbC1saW51eC0yLjEyci0zNSB3
+aGljaCBkb2VzIE5GUyAKPiBpbnRyaW5zaWNhbGx5LCBhbmQgbm90IG1vdW50Lm5mcyBmcm9tIG5m
+cy11dGlscy0xLjAuNywgd2hpY2ggaXMgaW5zdGFsbGVkIAo+IGJ1dCBtaW51cyBtb3VudC5uZnMu
+CgpPSy4gU28gd2Ugc3RpbGwgZG9uJ3Qga25vdyBpZiB0aGUgbG9ja2luZyBjb2RlIGluIHV0aWwt
+bGludXggaXMgYnJva2VuLgoKSWFuCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18KYXV0b2ZzIG1haWxpbmcgbGlzdAphdXRvZnNAbGludXgua2VybmVsLm9y
+ZwpodHRwOi8vbGludXgua2VybmVsLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2F1dG9mcwo=
