@@ -1,16 +1,17 @@
-From: Matthias Koenig <mkoenig@suse.de>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: mtab corruption
-Date: Tue, 09 Jan 2007 15:36:45 +0100
-Message-ID: <n7xlkkc4682.fsf@sor.suse.de>
+Date: Wed, 10 Jan 2007 00:02:21 +0900
+Message-ID: <1168354941.3641.25.camel@raven.themaw.net>
 References: <459BD3C9.9090201@conterra.de>
 	<1167874477.3546.10.camel@raven.themaw.net>
 	<Pine.LNX.4.64.0701040855170.23215@simba.math.ucla.edu>
 	<1167962084.4289.8.camel@raven.themaw.net>
+	<n7xlkkc4682.fsf@sor.suse.de>
 Mime-Version: 1.0
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1167962084.4289.8.camel@raven.themaw.net> (Ian Kent's message of
-	"Fri, 05 Jan 2007 10:54:44 +0900")
+In-Reply-To: <n7xlkkc4682.fsf@sor.suse.de>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,39 +22,26 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="iso-8859-1"
-To: Ian Kent <raven@themaw.net>
+To: Matthias Koenig <mkoenig@suse.de>
 Cc: autofs@linux.kernel.org
 
-SWFuIEtlbnQgPHJhdmVuQHRoZW1hdy5uZXQ+IHdyaXRlczoKPiBPbiBUaHUsIDIwMDctMDEtMDQg
-YXQgMDk6MDMgLTA4MDAsIEppbSBDYXJ0ZXIgd3JvdGU6Cj4+IE9uIFRodSwgNCBKYW4gMjAwNywg
-SWFuIEtlbnQgd3JvdGU6Cj4+ID4gT24gV2VkLCAyMDA3LTAxLTAzIGF0IDE3OjAzICswMTAwLCBE
-aWV0ZXIgU3TDvGtlbiB3cm90ZToKPj4gPiA+IEkgZnJlcXVlbnRseSBlbmQgdXAgd2l0aCBhIGJy
-b2tlbiBtdGFiLiBUaGlzIHJlc3VsdHMgaW4gYSBtZXNzYWdlIGxpa2U6Cj4+ID4gPiBtb3VudChu
-ZnMpOiB3YXJuaW5nOiAvaG9tZS9zdHVla2VuIGlzIGFscmVhZHkgbW91bnRlZAo+PiAKPj4gU29y
-cnksIEkgZG9uJ3QgaGF2ZSBhbnl0aGluZyB1c2VmdWwgdG8gYWRkIG9uIHRoZSBtdGFiIGNvcnJ1
-cHRpb24gaXNzdWUuCj4+IFdlIGRvIGEgdG9uIG9mIE5GUyBhdXRvbW91bnRpbmcgYW5kIGRvbid0
-IHNlZSB0aGlzIGlzc3VlLgo+PiAKPj4gPiA+IEknbSB1c2luZyBhIFN1U0UtMTAuMSB4ODZfNjQt
-c21wIHN5c3RlbSB3aXRoIGEgMi42LjE2LjIxLTAuMjUtc21wIGtlcm5lbC4KPj4gPiA+IEkgdXBn
-cmFkZWQgZnJvbSBhdXRvZnMtNC4xLjQtMjMgdG8gYXV0b2ZzLTQuMS40LTM3LCBidXQgdGhlIG10
-YWIKPj4gPiAKPj4gPiBJIGRvbid0IGtub3cgd2hhdCB0aGlzIG1lYW5zLCBJIGRvbid0IHVzZSBT
-dVNFLgo+PiAKPj4gVGhlIHRyYWlsaW5nIG51bWJlcnMgZGlmZmVyZW50aWF0ZSB2YXJpYW50cyBv
-ZiB0aGUgInNhbWUiIHNvZnR3YXJlIHZlcnNpb24sIAo+PiBlLmcuIHNlY3VyaXR5IHBhdGNoZXMu
-ICBTdVNFIGhhcyBhIHBvbGljeSBvZiBiYWNrcG9ydGluZyBwYXRjaGVzIHRvIG9sZCAKPj4gdmVy
-c2lvbnMsIGlmIGZlYXNpYmxlLCBpbiBjb250cmFzdCB0byBEZWJpYW4sIHdoaWNoIEkgdGhpbmsg
-d291bGQgc2VuZCAKPj4gb3V0IHRoZSBsYXRlc3QgdmVyc2lvbiBpbmNsdWRpbmcgdGhlIGxhdGVz
-dCBwYXRjaC4gIFRoZSBpZGVhIGlzIHRvIG1pbmltaXplIAo+PiBmZWF0dXJlIGNoYW5nZXMgZXhj
-ZXB0IGF0IGRpc3RybyB2ZXJzaW9uIHRyYW5zaXRpb25zLgo+Cj4gU3VyZSwgYnV0IG15IHBvaW50
-IHdhcyB0aGF0IEknbSBub3QgZmFtaWxpYXIgd2l0aCB3aGF0IHBhdGNoZXMgdGhlIFN1U0UKPiBt
-YWludGFpbmVyIG1heSBoYXZlIGFkZGVkLiBQZXJoYXBzIHRoaXMgd291bGQgYmUgYSBnb29kIHRp
-bWUgZm9yIHRoZQo+IFN1U0UgbWFpbnRhaW5lciB0byBzcGVhayB1cCwgaWYgcHJlc2VudC4KClll
-cywgSSBrbm93IGFib3V0IHRoaXMgcHJvYmxlbS4gSG93ZXZlciBJIGhhdmUgbm90IGhhZCB0aGUg
-dGltZSB5ZXQgdG8gZG8Kc29tZSBmdXJ0aGVyIGRlYnVnZ2luZy4KV2UgaGF2ZSBhIHBhdGNoIGFk
-ZHJlc3NpbmcgdGhlIG10YWIgbG9ja2luZyBwYXJ0IG9mIGZzdGFiLmMgaG93ZXZlciB0aGlzCnNl
-ZW1zIG5vdCB0byBiZSBlbm91Z2guIEFjY29yZGluZyB0byBhIHJlY2VudCBtYWlsIG9uIHRoZSB1
-dGlsLWxpbnV4LW5nIGxpc3QKdGhlcmUgaXMgYSBwcmluY2lwYWwgcHJvYmxlbSB3aXRoIHRoZSBt
-ZXRob2QgdXNlZCBpbiBtb3VudC4gVGhpcyBuZWVkcwpzb21lIG1vcmUgaW52ZXN0aWdhdGlvbi4g
-QXMgc29vbiB0aGlzIHByb2JsZW0gaXMgZml4ZWQgSSB0aGluayB0aGlzIGlzCmltcG9ydGFudCBl
-bm91Z2ggdG8gYmFja3BvcnQuCgpNYXR0aGlhcwoKCl9fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fCmF1dG9mcyBtYWlsaW5nIGxpc3QKYXV0b2ZzQGxpbnV4Lmtl
-cm5lbC5vcmcKaHR0cDovL2xpbnV4Lmtlcm5lbC5vcmcvbWFpbG1hbi9saXN0aW5mby9hdXRvZnMK
+On Tue, 2007-01-09 at 15:36 +0100, Matthias Koenig wrote:
+> >
+> > Sure, but my point was that I'm not familiar with what patches the SuSE
+> > maintainer may have added. Perhaps this would be a good time for the
+> > SuSE maintainer to speak up, if present.
+> 
+> Yes, I know about this problem. However I have not had the time yet to do
+> some further debugging.
+> We have a patch addressing the mtab locking part of fstab.c however this
+> seems not to be enough. According to a recent mail on the util-linux-ng list
+> there is a principal problem with the method used in mount. This needs
+> some more investigation. As soon this problem is fixed I think this is
+> important enough to backport.
+
+Thanks for the reply Matthias.
+
+I'm also following the discussion on util-linux-ng.
+We'll see how it develops.
+
+Ian
