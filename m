@@ -1,14 +1,16 @@
-From: Jim Carter <jimc@math.ucla.edu>
+From: Matthias Koenig <mkoenig@suse.de>
 Subject: Re: mtab corruption
-Date: Thu, 4 Jan 2007 09:03:59 -0800 (PST)
-Message-ID: <Pine.LNX.4.64.0701040855170.23215@simba.math.ucla.edu>
+Date: Tue, 09 Jan 2007 15:36:45 +0100
+Message-ID: <n7xlkkc4682.fsf@sor.suse.de>
 References: <459BD3C9.9090201@conterra.de>
 	<1167874477.3546.10.camel@raven.themaw.net>
+	<Pine.LNX.4.64.0701040855170.23215@simba.math.ucla.edu>
+	<1167962084.4289.8.camel@raven.themaw.net>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="1635810564-781230220-1167930239=:23215"
+Content-Transfer-Encoding: base64
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1167874477.3546.10.camel@raven.themaw.net>
+In-Reply-To: <1167962084.4289.8.camel@raven.themaw.net> (Ian Kent's message of
+	"Fri, 05 Jan 2007 10:54:44 +0900")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,63 +21,39 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
 To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
---1635810564-781230220-1167930239=:23215
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-X-MIME-Autoconverted: from 8bit to quoted-printable by hera.kernel.org id l0634GJP027090
-
-On Thu, 4 Jan 2007, Ian Kent wrote:
-> On Wed, 2007-01-03 at 17:03 +0100, Dieter St=FCken wrote:
-> > I frequently end up with a broken mtab. This results in a message lik=
-e:
-> > mount(nfs): warning: /home/stueken is already mounted
-
-Sorry, I don't have anything useful to add on the mtab corruption issue.
-We do a ton of NFS automounting and don't see this issue.
-
-> > I'm using a SuSE-10.1 x86_64-smp system with a 2.6.16.21-0.25-smp ker=
-nel.
-> > I upgraded from autofs-4.1.4-23 to autofs-4.1.4-37, but the mtab
->=20
-> I don't know what this means, I don't use SuSE.
-
-The trailing numbers differentiate variants of the "same" software versio=
-n,=20
-e.g. security patches.  SuSE has a policy of backporting patches to old=20
-versions, if feasible, in contrast to Debian, which I think would send=20
-out the latest version including the latest patch.  The idea is to minimi=
-ze=20
-feature changes except at distro version transitions.
-
-> Does your system use mount.nfs from nfs-utils?
-> There is an mtab locking error I spotted in nfs-utils recently.
-
-SuSE 10.1 uses /bin/mount from util-linux-2.12r-35 which does NFS=20
-intrinsically, and not mount.nfs from nfs-utils-1.0.7, which is installed=
-=20
-but minus mount.nfs.
-
-James F. Carter          Voice 310 825 2897    FAX 310 206 6673
-UCLA-Mathnet;  6115 MSA; 405 Hilgard Ave.; Los Angeles, CA, USA  90095-15=
-55
-Email: jimc@math.ucla.edu    http://www.math.ucla.edu/~jimc (q.v. for PGP=
- key)
---1635810564-781230220-1167930239=:23215
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Disposition: inline
-Content-Transfer-Encoding: 7bit
-
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
-
---1635810564-781230220-1167930239=:23215--
-
+SWFuIEtlbnQgPHJhdmVuQHRoZW1hdy5uZXQ+IHdyaXRlczoKPiBPbiBUaHUsIDIwMDctMDEtMDQg
+YXQgMDk6MDMgLTA4MDAsIEppbSBDYXJ0ZXIgd3JvdGU6Cj4+IE9uIFRodSwgNCBKYW4gMjAwNywg
+SWFuIEtlbnQgd3JvdGU6Cj4+ID4gT24gV2VkLCAyMDA3LTAxLTAzIGF0IDE3OjAzICswMTAwLCBE
+aWV0ZXIgU3TDvGtlbiB3cm90ZToKPj4gPiA+IEkgZnJlcXVlbnRseSBlbmQgdXAgd2l0aCBhIGJy
+b2tlbiBtdGFiLiBUaGlzIHJlc3VsdHMgaW4gYSBtZXNzYWdlIGxpa2U6Cj4+ID4gPiBtb3VudChu
+ZnMpOiB3YXJuaW5nOiAvaG9tZS9zdHVla2VuIGlzIGFscmVhZHkgbW91bnRlZAo+PiAKPj4gU29y
+cnksIEkgZG9uJ3QgaGF2ZSBhbnl0aGluZyB1c2VmdWwgdG8gYWRkIG9uIHRoZSBtdGFiIGNvcnJ1
+cHRpb24gaXNzdWUuCj4+IFdlIGRvIGEgdG9uIG9mIE5GUyBhdXRvbW91bnRpbmcgYW5kIGRvbid0
+IHNlZSB0aGlzIGlzc3VlLgo+PiAKPj4gPiA+IEknbSB1c2luZyBhIFN1U0UtMTAuMSB4ODZfNjQt
+c21wIHN5c3RlbSB3aXRoIGEgMi42LjE2LjIxLTAuMjUtc21wIGtlcm5lbC4KPj4gPiA+IEkgdXBn
+cmFkZWQgZnJvbSBhdXRvZnMtNC4xLjQtMjMgdG8gYXV0b2ZzLTQuMS40LTM3LCBidXQgdGhlIG10
+YWIKPj4gPiAKPj4gPiBJIGRvbid0IGtub3cgd2hhdCB0aGlzIG1lYW5zLCBJIGRvbid0IHVzZSBT
+dVNFLgo+PiAKPj4gVGhlIHRyYWlsaW5nIG51bWJlcnMgZGlmZmVyZW50aWF0ZSB2YXJpYW50cyBv
+ZiB0aGUgInNhbWUiIHNvZnR3YXJlIHZlcnNpb24sIAo+PiBlLmcuIHNlY3VyaXR5IHBhdGNoZXMu
+ICBTdVNFIGhhcyBhIHBvbGljeSBvZiBiYWNrcG9ydGluZyBwYXRjaGVzIHRvIG9sZCAKPj4gdmVy
+c2lvbnMsIGlmIGZlYXNpYmxlLCBpbiBjb250cmFzdCB0byBEZWJpYW4sIHdoaWNoIEkgdGhpbmsg
+d291bGQgc2VuZCAKPj4gb3V0IHRoZSBsYXRlc3QgdmVyc2lvbiBpbmNsdWRpbmcgdGhlIGxhdGVz
+dCBwYXRjaC4gIFRoZSBpZGVhIGlzIHRvIG1pbmltaXplIAo+PiBmZWF0dXJlIGNoYW5nZXMgZXhj
+ZXB0IGF0IGRpc3RybyB2ZXJzaW9uIHRyYW5zaXRpb25zLgo+Cj4gU3VyZSwgYnV0IG15IHBvaW50
+IHdhcyB0aGF0IEknbSBub3QgZmFtaWxpYXIgd2l0aCB3aGF0IHBhdGNoZXMgdGhlIFN1U0UKPiBt
+YWludGFpbmVyIG1heSBoYXZlIGFkZGVkLiBQZXJoYXBzIHRoaXMgd291bGQgYmUgYSBnb29kIHRp
+bWUgZm9yIHRoZQo+IFN1U0UgbWFpbnRhaW5lciB0byBzcGVhayB1cCwgaWYgcHJlc2VudC4KClll
+cywgSSBrbm93IGFib3V0IHRoaXMgcHJvYmxlbS4gSG93ZXZlciBJIGhhdmUgbm90IGhhZCB0aGUg
+dGltZSB5ZXQgdG8gZG8Kc29tZSBmdXJ0aGVyIGRlYnVnZ2luZy4KV2UgaGF2ZSBhIHBhdGNoIGFk
+ZHJlc3NpbmcgdGhlIG10YWIgbG9ja2luZyBwYXJ0IG9mIGZzdGFiLmMgaG93ZXZlciB0aGlzCnNl
+ZW1zIG5vdCB0byBiZSBlbm91Z2guIEFjY29yZGluZyB0byBhIHJlY2VudCBtYWlsIG9uIHRoZSB1
+dGlsLWxpbnV4LW5nIGxpc3QKdGhlcmUgaXMgYSBwcmluY2lwYWwgcHJvYmxlbSB3aXRoIHRoZSBt
+ZXRob2QgdXNlZCBpbiBtb3VudC4gVGhpcyBuZWVkcwpzb21lIG1vcmUgaW52ZXN0aWdhdGlvbi4g
+QXMgc29vbiB0aGlzIHByb2JsZW0gaXMgZml4ZWQgSSB0aGluayB0aGlzIGlzCmltcG9ydGFudCBl
+bm91Z2ggdG8gYmFja3BvcnQuCgpNYXR0aGlhcwoKCl9fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fCmF1dG9mcyBtYWlsaW5nIGxpc3QKYXV0b2ZzQGxpbnV4Lmtl
+cm5lbC5vcmcKaHR0cDovL2xpbnV4Lmtlcm5lbC5vcmcvbWFpbG1hbi9saXN0aW5mby9hdXRvZnMK
