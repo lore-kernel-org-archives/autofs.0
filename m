@@ -1,17 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: mtab corruption
-Date: Wed, 10 Jan 2007 00:02:21 +0900
-Message-ID: <1168354941.3641.25.camel@raven.themaw.net>
-References: <459BD3C9.9090201@conterra.de>
-	<1167874477.3546.10.camel@raven.themaw.net>
-	<Pine.LNX.4.64.0701040855170.23215@simba.math.ucla.edu>
-	<1167962084.4289.8.camel@raven.themaw.net>
-	<n7xlkkc4682.fsf@sor.suse.de>
+From: Gokdeniz Karadag <gokdeniz@cclub.metu.edu.tr>
+Subject: autofs-ldap-nfs is slow because of mtab
+Date: Wed, 17 Jan 2007 00:47:45 +0200
+Message-ID: <45AD5611.3080405@cclub.metu.edu.tr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <n7xlkkc4682.fsf@sor.suse.de>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,26 +16,34 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Matthias Koenig <mkoenig@suse.de>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Tue, 2007-01-09 at 15:36 +0100, Matthias Koenig wrote:
-> >
-> > Sure, but my point was that I'm not familiar with what patches the SuSE
-> > maintainer may have added. Perhaps this would be a good time for the
-> > SuSE maintainer to speak up, if present.
-> 
-> Yes, I know about this problem. However I have not had the time yet to do
-> some further debugging.
-> We have a patch addressing the mtab locking part of fstab.c however this
-> seems not to be enough. According to a recent mail on the util-linux-ng list
-> there is a principal problem with the method used in mount. This needs
-> some more investigation. As soon this problem is fixed I think this is
-> important enough to backport.
+Hello,
 
-Thanks for the reply Matthias.
+In my setup there are three automount mount points. They are all ldap maps. The 
+nfs shares are on the same nfs server. nfs client and automount is on a debian 
+system, nfs server is a solaris one.
 
-I'm also following the discussion on util-linux-ng.
-We'll see how it develops.
+The problem is, trying to mount a nonexisting directory fails immediately  with 
+the message, "No such file or directory" in two of the shares. But the third 
+share waits for 10-30 seconds before giving the error. The maps have 1, 9 and 
+19 items respectively.
 
-Ian
+I have run strace on the different automount processes. The quick ones show a 
+query to ldap server, then a reasonable amount of mtab stats & reads, then they 
+  finish. The process for the slow mount point queries ldap, gets mount map, 
+then for about 100000 times; opens mtab file, reads contents and then closes it.
+the trace file is full of these;
+open("/etc/mtab", O_RDONLY)             = 7
+fstat64(7, {st_mode=S_IFREG|0644, st_size=1733, ...}) = 0
+mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 
+0xa7afb000
+read(7, "/dev/sda1 / ext3 rw,errors=remou"..., 4096) = 1733
+close(7)
+
+
+Any pointers to where should I look ?
+
+
+-- 
+Gokdeniz Karadag
