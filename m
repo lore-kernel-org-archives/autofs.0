@@ -1,14 +1,11 @@
 From: jmoyer@redhat.com
-Subject: Re: autofs-ldap-nfs is slow because of mtab
-Date: Tue, 16 Jan 2007 18:09:03 -0500
-Message-ID: <m3wt3ma7sg.fsf@redhat.com>
-References: <45AD5611.3080405@cclub.metu.edu.tr>
+Subject: [autofs v4 patch] log reloads to the system log
+Date: Tue, 16 Jan 2007 20:03:41 -0500
+Message-ID: <m3sleaa2he.fsf@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <45AD5611.3080405@cclub.metu.edu.tr> (Gokdeniz Karadag's message
-	of "Wed, 17 Jan 2007 00:47:45 +0200")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,43 +16,34 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Gokdeniz Karadag <gokdeniz@cclub.metu.edu.tr>
-Cc: autofs@linux.kernel.org
+To: Ian Kent <raven@themaw.net>
+Cc: autofs <autofs@linux.kernel.org>
 
-==> Regarding [autofs] autofs-ldap-nfs is slow because of mtab; Gokdeniz Karadag <gokdeniz@cclub.metu.edu.tr> adds:
+This is a patch to address a request we had on this list not too long ago.
+/etc/init.d/autofs start/stop/restart are all logged to the system log, but
+reload is not.  This makes it so that reloads also get logged.
 
-gokdeniz> Hello, In my setup there are three automount mount points. They
-gokdeniz> are all ldap maps. The nfs shares are on the same nfs server. nfs
-gokdeniz> client and automount is on a debian system, nfs server is a
-gokdeniz> solaris one.
+Comments welcome, as usual.
 
-gokdeniz> The problem is, trying to mount a nonexisting directory fails
-gokdeniz> immediately with the message, "No such file or directory" in two
-gokdeniz> of the shares. But the third share waits for 10-30 seconds before
-gokdeniz> giving the error. The maps have 1, 9 and 19 items respectively.
+-Jeff
 
-gokdeniz> I have run strace on the different automount processes. The quick
-gokdeniz> ones show a query to ldap server, then a reasonable amount of
-gokdeniz> mtab stats & reads, then they finish. The process for the slow
-gokdeniz> mount point queries ldap, gets mount map, then for about 100000
-gokdeniz> times; opens mtab file, reads contents and then closes it.  the
-gokdeniz> trace file is full of these; open("/etc/mtab", O_RDONLY) = 7
-gokdeniz> fstat64(7, {st_mode=S_IFREG|0644, st_size=1733, ...}) = 0
-gokdeniz> mmap2(NULL, 4096, PROT_READ|PROT_WRITE,
-gokdeniz> MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0xa7afb000 read(7, "/dev/sda1
-gokdeniz> / ext3 rw,errors=remou"..., 4096) = 1733 close(7)
-
-
-gokdeniz> Any pointers to where should I look ?
-
-Well, first we need to start with a version.  ;)  What version of autofs
-are you running?  Next, you will want to gather a debug log.  My people
-page has instructions on how to do that:
-  http://people.redhat.com/jmoyer
-
-That *should* make things fairly obvious.  If it doesn't (or even if it
-does), post a follow-up message here.
-
-Thanks!
-
-Jeff
+diff --git a/samples/rc.autofs.in b/samples/rc.autofs.in
+index 5b71481..56ae82c 100644
+--- a/samples/rc.autofs.in
++++ b/samples/rc.autofs.in
+@@ -598,6 +598,7 @@ case "$1" in
+ 	if [ ! -f /var/lock/subsys/autofs ]; then
+ 		echo $"$prog not running"
+ 		RETVAL=1
++		failure "$prog reload"
+ 		return
+ 	fi
+ 	echo $"Checking for changes to /etc/auto.master ...."
+@@ -625,6 +626,7 @@ case "$1" in
+ 		fi
+         done )
+ 	rm -f $TMP1 $TMP2
++	success "$prog reload"
+ 	;;
+   status)
+ 	status
