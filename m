@@ -1,15 +1,11 @@
-From: Ian Kent <raven@themaw.net>
+From: Sandra Bonus <mrsbonus1@yahoo.com>
 Subject: Re: Windows administrative shares broken by v5
-Date: Mon, 22 Jan 2007 16:18:27 +0900
-Message-ID: <1169450307.4430.37.camel@raven.themaw.net>
-References: <530343.39699.qm@web35513.mail.mud.yahoo.com>
-	<1169449675.4430.30.camel@raven.themaw.net>
-	<1169449997.4430.33.camel@raven.themaw.net>
+Date: Mon, 22 Jan 2007 14:40:50 -0800 (PST)
+Message-ID: <758243.87483.qm@web35513.mail.mud.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1169449997.4430.33.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,8 +16,21 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org
+
+That certainly seems to work
+
+I think I'd tried quoting both the mount point and the mount device but not just the mount device as you have pointed out.
+
+Thanks
+
+----- Original Message ----
+From: Ian Kent <raven@themaw.net>
 To: Sandra Bonus <mrsbonus1@yahoo.com>
 Cc: autofs@linux.kernel.org
+Sent: Monday, January 22, 2007 6:18:27 PM
+Subject: Re: [autofs] Windows administrative shares broken by v5
 
 On Mon, 2007-01-22 at 16:13 +0900, Ian Kent wrote:
 
@@ -70,13 +79,25 @@ Keep this line as well or the keys won't preserve the spaces.
 > > >         '
 > > 
 > > $SMBCLIENT -U $SMB_USER%$SMB_PASSWORD -gNL $key 2>/dev/null| awk -v key="$key" -v opts="$opts" -F'|' -- '
-> > 	BEGIN   { ORS=""; first=1 }
-> > 	/Disk/  { if (first) { print opts; first=0 }
-> > 	dir=$2
-> > 	sub ("\\$","\\$",dir)
-> > 	print " \\\n\t /" $2, "\"://" key "/" $2 "\"";
+> >     BEGIN   { ORS=""; first=1 }
+> >     /Disk/  { if (first) { print opts; first=0 }
+> >     dir=$2
+> >     sub ("\\$","\\$",dir)
+> >     print " \\\n\t /" $2, "\"://" key "/" $2 "\"";
 > oops, that should be
-> 	  print " \\\n\t /" dir, "\"://" key "/" dir "\""
-> > 	}
-> > 	END     { if (!first) print "\n"; else exit 1 }
-> > 	'
+>       print " \\\n\t /" dir, "\"://" key "/" dir "\""
+> >     }
+> >     END     { if (!first) print "\n"; else exit 1 }
+> >     '
+
+
+
+
+
+
+
+ 
+____________________________________________________________________________________
+Don't get soaked.  Take a quick peak at the forecast
+with the Yahoo! Search weather shortcut.
+http://tools.search.yahoo.com/shortcuts/#loc_weather
