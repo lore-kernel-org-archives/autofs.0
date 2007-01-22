@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: Windows administrative shares broken by v5
-Date: Mon, 22 Jan 2007 15:02:26 +0900
-Message-ID: <1169445746.4430.16.camel@raven.themaw.net>
+Date: Mon, 22 Jan 2007 16:07:55 +0900
+Message-ID: <1169449675.4430.30.camel@raven.themaw.net>
 References: <530343.39699.qm@web35513.mail.mud.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -25,6 +25,21 @@ On Sun, 2007-01-21 at 21:36 -0800, Sandra Bonus wrote:
 > Here's the entire script
 > Note that all the shares are password protected and the user/password is loaded by /opt/maj/standard
 > This worked perfectly for autofs 4.1.4 and just stopped working after going to v5
+
+Yes, this is due to the change in the way multi-mount entries are
+handled in version 5. This change was made in order to provide on demand
+mounting of these multiple mount entries instead of requiring them all
+to be mounted at once. This results in the "$" to end up not being
+quoted causing the parser to fail.
+
+However, version 5 does support using double quotes to preserve entries
+(so far only in maps, not the master map itself) in addition to the
+usual "\" quoting. Since the "$" is special because it's used for macro
+substitution it needs to be double quoted.
+
+Try change below.
+Note that this won't work with version 4.
+
 > 
 > # $Id: auto.smb,v 1.3 2005/04/05 13:02:09 raven Exp $
 > 
@@ -53,17 +68,60 @@ On Sun, 2007-01-21 at 21:36 -0800, Sandra Bonus wrote:
 >         BEGIN   { ORS=""; first=1 }
 >         /Disk/  { if (first) { print opts; first=0 }
 >         sub(/ /, "\\ ", $2)
+This line is no longer needed
 >         dir=$2
 >         sub ("\\$","\\$",dir)
 >         print " \\\n\t /" dir, "://" key "/" dir 
+The updated print encloses each mount entry in double quotes
 >         }
 >         END     { if (!first) print "\n"; else exit 1 }
 >         '
 
-This looks ok and "sub ("\\$","\\$",dir)" seems to provide a valid mount
-entry to autofs but the "\" in "\$" is being stripped somewhere causing
-the parse of the mount entry to fail.
-
-Could you log a Bugzilla against FC-6 for this probelm please.
-
-Ian
+$SMBCLIENT -U $SMB_USER%$SMB_PASSWORD -gNL $key 2>/dev/null| awk -v key="$key" -v opts="$opts" -F'|' -- '
+	BEGIN   { ORS=""; first=1 }
+	/Disk/  { if (first) { print opts; first=0 }
+	dir=$2
+	sub ("\\$","\\$",dir)
+	print " \\\n\t /" $2, "\"://" key "/" $2 "\"";
+	}
+	END     { if (!first) print "\n"; else exit 1 }
+	'
+> 
+> 
+> 
+> 
+> ----- Original Message ----
+> From: Ian Kent <raven@themaw.net>
+> To: Sandra Bonus <mrsbonus1@yahoo.com>
+> Cc: autofs@linux.kernel.org
+> Sent: Monday, January 22, 2007 4:22:44 PM
+> Subject: Re: [autofs] Windows administrative shares broken by v5
+> 
+> On Sun, 2007-01-21 at 18:19 -0800, Sandra Bonus wrote:
+> > I'm running fedora Core
+> > 
+> > I had made a similar patch to the one described in 
+> > http://linux.kernel.org/pipermail/autofs/2006-December/003554.html
+> > 
+> > to allow the mounting of Windows administrative shares
+> > This was all fine on v4.1.4
+> > 
+> > However as soon as I installed v 5.0.1-0.rc3.2 this was broken and shares ending in $ could not be mounted. I played around with the output of /etc/auto.smb for a while but could not work out a variation that made the admin shares work again.
+> > 
+> > Any ideas?
+> 
+> What is the patch your trying to use?
+> 
+> Ian
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+>  
+> ____________________________________________________________________________________
+> Don't pick lemons.
+> See all the new 2007 cars at Yahoo! Autos.
+> http://autos.yahoo.com/new_cars.html 
