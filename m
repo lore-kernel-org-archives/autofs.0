@@ -1,7 +1,7 @@
 From: Sandra Bonus <mrsbonus1@yahoo.com>
-Subject: Re: Windows administrative shares broken by v5
-Date: Mon, 22 Jan 2007 14:40:50 -0800 (PST)
-Message-ID: <758243.87483.qm@web35513.mail.mud.yahoo.com>
+Subject: Automount USB Drive using Volume Name as Mount Point
+Date: Mon, 22 Jan 2007 14:46:17 -0800 (PST)
+Message-ID: <918171.95307.qm@web35503.mail.mud.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -16,88 +16,25 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-That certainly seems to work
+I'm not sure if this question is an autofs question or perhaps for some other software component.
+I have a couple of external USB hard drives with NTFS partitions each with different volume names eg HDD1 and HDD2
+If I connect these one at a time they both come up as /dev/sde and I have an autofs entry like 
+usb     -fstype=ntfs-3g :/dev/sde1
 
-I think I'd tried quoting both the mount point and the mount device but not just the mount device as you have pointed out.
+This mounts one drive as /misc/usb
 
-Thanks
+This works fine except it would be ideal if each drive actually mounted as 
+/misc/HDD1 and /misc/HDD2 so that scripts can more easily differentiate the disks
 
------ Original Message ----
-From: Ian Kent <raven@themaw.net>
-To: Sandra Bonus <mrsbonus1@yahoo.com>
-Cc: autofs@linux.kernel.org
-Sent: Monday, January 22, 2007 6:18:27 PM
-Subject: Re: [autofs] Windows administrative shares broken by v5
-
-On Mon, 2007-01-22 at 16:13 +0900, Ian Kent wrote:
-
-I'm being a bit hasty here.
-We'll need to do some testing with this.
-See below.
-
-> > > 
-> > > # $Id: auto.smb,v 1.3 2005/04/05 13:02:09 raven Exp $
-> > > 
-> > > # matthews improved auto.smb file
-> > > # under Fedora Core 4 it successfully mounts all shares in my network
-> > > # including shares ending in $
-> > > 
-> > > . /opt/maj/standard
-> > > 
-> > > # This file must be executable to work! chmod 755!
-> > > key="$1"
-> > > opts="-fstype=cifs,username=$SMB_USER,password=$SMB_PASSWORD"
-> > > 
-> > > for P in /bin /sbin /usr/bin /usr/sbin
-> > > do
-> > >         if [ -x $P/smbclient ]
-> > >         then
-> > >                 SMBCLIENT=$P/smbclient
-> > >                 break
-> > >         fi
-> > > done
-> > > 
-> > > [ -x $SMBCLIENT ] || exit 1
-> > > 
-> > > $SMBCLIENT -U $SMB_USER%$SMB_PASSWORD -gNL $key 2>/dev/null| awk -v key="$key" -v opts="$opts" -F'|' -- '
-> > >         BEGIN   { ORS=""; first=1 }
-> > >         /Disk/  { if (first) { print opts; first=0 }
-> > >         sub(/ /, "\\ ", $2)
-> > This line is no longer needed
-
-Keep this line as well or the keys won't preserve the spaces.
-
-> > >         dir=$2
-> > >         sub ("\\$","\\$",dir)
-> > >         print " \\\n\t /" dir, "://" key "/" dir 
-> > The updated print encloses each mount entry in double quotes
-> > >         }
-> > >         END     { if (!first) print "\n"; else exit 1 }
-> > >         '
-> > 
-> > $SMBCLIENT -U $SMB_USER%$SMB_PASSWORD -gNL $key 2>/dev/null| awk -v key="$key" -v opts="$opts" -F'|' -- '
-> >     BEGIN   { ORS=""; first=1 }
-> >     /Disk/  { if (first) { print opts; first=0 }
-> >     dir=$2
-> >     sub ("\\$","\\$",dir)
-> >     print " \\\n\t /" $2, "\"://" key "/" $2 "\"";
-> oops, that should be
->       print " \\\n\t /" dir, "\"://" key "/" dir "\""
-> >     }
-> >     END     { if (!first) print "\n"; else exit 1 }
-> >     '
-
-
-
+If I log in using Gnome then this seems to have no problem mounting each drive and placing an icon on the desktop using the volume label. However, I almost never use Gnome and the machine in question is a server. 
 
 
 
 
  
 ____________________________________________________________________________________
-Don't get soaked.  Take a quick peak at the forecast
-with the Yahoo! Search weather shortcut.
-http://tools.search.yahoo.com/shortcuts/#loc_weather
+Now that's room service!  Choose from over 150,000 hotels
+in 45,000 destinations on Yahoo! Travel to find your fit.
+http://farechase.yahoo.com/promo-generic-14795097
