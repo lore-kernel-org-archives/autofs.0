@@ -1,12 +1,13 @@
-From: "Bill Maloy" <bill.maloy@gmail.com>
-Subject: autofs v5: Problem with @network in access_lists
-Date: Wed, 24 Jan 2007 13:13:07 -0600
-Message-ID: <6a5354cc0701241113x60461168p19f83943d7da6ff9@mail.gmail.com>
+From: Jim Carter <jimc@math.ucla.edu>
+Subject: Re: Automount USB Drive using Volume Name as Mount Point
+Date: Wed, 24 Jan 2007 11:31:09 -0800 (PST)
+Message-ID: <Pine.LNX.4.64.0701241113250.4010@simba.math.ucla.edu>
+References: <918171.95307.qm@web35503.mail.mud.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <918171.95307.qm@web35503.mail.mud.yahoo.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,53 +18,39 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Sandra Bonus <mrsbonus1@yahoo.com>
+Cc: autofs@linux.kernel.org
 
-Solaris NFS servers can be configured to use a network
-specifier in the access_list of an NFS exported file
-system.
+On Mon, 22 Jan 2007, Sandra Bonus wrote:
 
-From <http://docs.sun.com/app/docs/doc/816-0211/6m6nc676n?a=view>
-"The network or subnet component is preceded by an at-sign (@). "
+> I'm not sure if this question is an autofs question or perhaps for some 
+> other software component.
 
-This feature does not play nicely with autofs-5.0.1-rc3.
+On a desktop or laptop sytem this would be handled by "the new hotplug":
+haldaemon, dbus and gnome-volume-manager.
 
-In the host_match() function within lib/rpc_subs.c, the
-initial character of the formal parameter named "pattern"
-is compared against '@' ... indicating a need to check
-the NFS client's hostname (myname) for membership
-in the given netgroup.
+> ...This mounts one drive as /misc/usb
+> This works fine except it would be ideal if each drive actually mounted as 
+> /misc/HDD1 and /misc/HDD2 so that scripts can more easily differentiate 
+> the disks
 
-However, the existing "if/else-if" logic does not
-consider the case where a network address (and mask)
-follows the '@' character -- instead of an "expected"
-netgroup name.
+Autofs mounts the drive when you refer to it.  I think what you really want 
+is to mount it when hotplugged.  Hal is smart enough to read the volume 
+label, if there is one, and create a same-name mount point.  The default 
+would be /media/$THE_LABEL (e.g. /media/HDD1).
 
-You can confirm this behavior by modifying the access
-control list of a working v5 automounting export
-(containing an @netgroup specification) to have
-a Solaris-like @network/mask specifier, instead.
+> If I log in using Gnome then this seems to have no problem mounting each 
+> drive and placing an icon on the desktop using the volume label. However, 
+> I almost never use Gnome and the machine in question is a server.
 
-The fix?  Well, if the innetgr() function supported
-"IPaddress/mask"-style strings in addition to netgroup
-names, the code as written would probably support
-access_lists containing network components.
+As it happens, I also use neither Gnome nor KDE as my window manager, and I 
+recently posted what I did to make it mount upon hotplug.  Since you want a 
+server-wide hotplug manager, rather than specific to one user (me) at the 
+console, you'll need to be creative to start it up, e.g. make a new boot 
+script.
 
-Until that day, the character following the '@' sign
-in an exports list item could be examined.  If numeric,
-the masked_match() logic of the 'else' branch could
-be used.  If non-numeric, the existing innetgr()
-logic would be used.
+	http://www.math.ucla.edu/~jimc/documents/bugfix.html
 
-This might beg for the inet_aton() logic to be
-made into a function call, since it would be
-potentially executed in the "if (*m_pattern == '@')"
-branch as well as in the else branch.
-
-I didn't feel comfortable submitting such a patch,
-since I've only just recently started looking at
-the automounter v5 source code (guess why), and
-wasn't completely sure that my analysis was correct.
-
---
-Bill.Maloy@gmail.com
+James F. Carter          Voice 310 825 2897    FAX 310 206 6673
+UCLA-Mathnet;  6115 MSA; 405 Hilgard Ave.; Los Angeles, CA, USA  90095-1555
+Email: jimc@math.ucla.edu    http://www.math.ucla.edu/~jimc (q.v. for PGP key)
