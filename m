@@ -1,14 +1,12 @@
-From: "Francesco P. Lovergine" <f.lovergine@ba.issia.cnr.it>
-Subject: Re: Automount USB Drive using Volume Name as Mount Point
-Date: Wed, 24 Jan 2007 12:21:00 +0100
-Message-ID: <20070124112100.GD3079@mithrandir>
-References: <918171.95307.qm@web35503.mail.mud.yahoo.com>
+From: "Bill Maloy" <bill.maloy@gmail.com>
+Subject: autofs v5: Problem with @network in access_lists
+Date: Wed, 24 Jan 2007 13:13:07 -0600
+Message-ID: <6a5354cc0701241113x60461168p19f83943d7da6ff9@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <918171.95307.qm@web35503.mail.mud.yahoo.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,21 +19,51 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-On Mon, Jan 22, 2007 at 02:46:17PM -0800, Sandra Bonus wrote:
-> I'm not sure if this question is an autofs question or perhaps for some other software component.
-> I have a couple of external USB hard drives with NTFS partitions each with different volume names eg HDD1 and HDD2
-> If I connect these one at a time they both come up as /dev/sde and I have an autofs entry like 
-> usb     -fstype=ntfs-3g :/dev/sde1
-> 
-> This mounts one drive as /misc/usb
-> 
-> This works fine except it would be ideal if each drive actually mounted as 
-> /misc/HDD1 and /misc/HDD2 so that scripts can more easily differentiate the disks
-> 
-> If I log in using Gnome then this seems to have no problem mounting each drive and placing an icon on the desktop using the volume label. However, I almost never use Gnome and the machine in question is a server. 
-> 
+Solaris NFS servers can be configured to use a network
+specifier in the access_list of an NFS exported file
+system.
 
-This is an udev ruling task, you should differentiate by serial id, tags or what ever
+From <http://docs.sun.com/app/docs/doc/816-0211/6m6nc676n?a=view>
+"The network or subnet component is preceded by an at-sign (@). "
 
--- 
-Francesco P. Lovergine
+This feature does not play nicely with autofs-5.0.1-rc3.
+
+In the host_match() function within lib/rpc_subs.c, the
+initial character of the formal parameter named "pattern"
+is compared against '@' ... indicating a need to check
+the NFS client's hostname (myname) for membership
+in the given netgroup.
+
+However, the existing "if/else-if" logic does not
+consider the case where a network address (and mask)
+follows the '@' character -- instead of an "expected"
+netgroup name.
+
+You can confirm this behavior by modifying the access
+control list of a working v5 automounting export
+(containing an @netgroup specification) to have
+a Solaris-like @network/mask specifier, instead.
+
+The fix?  Well, if the innetgr() function supported
+"IPaddress/mask"-style strings in addition to netgroup
+names, the code as written would probably support
+access_lists containing network components.
+
+Until that day, the character following the '@' sign
+in an exports list item could be examined.  If numeric,
+the masked_match() logic of the 'else' branch could
+be used.  If non-numeric, the existing innetgr()
+logic would be used.
+
+This might beg for the inet_aton() logic to be
+made into a function call, since it would be
+potentially executed in the "if (*m_pattern == '@')"
+branch as well as in the else branch.
+
+I didn't feel comfortable submitting such a patch,
+since I've only just recently started looking at
+the automounter v5 source code (guess why), and
+wasn't completely sure that my analysis was correct.
+
+--
+Bill.Maloy@gmail.com
