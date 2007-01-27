@@ -1,15 +1,16 @@
-From: Ian Kent <raven@themaw.net>
+From: Jan Christoph Nordholz <hesso@pool.math.tu-berlin.de>
 Subject: Re: Race condition in autofs 4.1.4
-Date: Sat, 27 Jan 2007 11:18:25 +0900
-Message-ID: <1169864306.3595.17.camel@raven.themaw.net>
+Date: Sat, 27 Jan 2007 14:10:16 +0100
+Message-ID: <20070127131016.GA18035@pool.math.tu-berlin.de>
 References: <1169828641.32447.22.camel@sangay.TechFak.Uni-Bielefeld.DE>
-	<1169831520.20795.1.camel@raven> <1169835048.6781.16.camel@localhost>
+	<1169831520.20795.1.camel@raven>
+	<1169835048.6781.16.camel@localhost>
 	<1169861439.3595.11.camel@raven.themaw.net>
+	<1169864306.3595.17.camel@raven.themaw.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============7969278046683363923=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1169861439.3595.11.camel@raven.themaw.net>
+In-Reply-To: <1169864306.3595.17.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,51 +21,60 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Lukas Kolbe <lukas@einfachkaffee.de>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Sat, 2007-01-27 at 10:30 +0900, Ian Kent wrote:
-> On Fri, 2007-01-26 at 19:10 +0100, Lukas Kolbe wrote:
-> > On Sa, 2007-01-27 at 02:12 +0900, Ian Kent wrote:
-> > 
-> > > > In syslog I get random messages like this:
-> > > > Jan 26 16:39:29 demon automount[16757]: mount(generic): warning: /homes/musr657 is already mounted
-> > > > Jan 26 16:39:42 demon automount[17062]: mount(generic): warning: /nfs4homes/musr946 is already mounted
-> > > > for exactly the mountpoints that belong to root afterwards.
-> > > 
-> > > Your mtab locking is broken.
-> > > Get a mount(8) that's not broken and then re-evaluate.
-> > 
-> > Thanks for the pointer. I found a discussion you were involved in in the
-> > util-linux-ng mailinglist at the beginning of january, is that the
-> > locking you talk about (see
-> > http://www.mail-archive.com/util-linux-ng@vger.kernel.org/msg00005.html)?
-> > 
-> > I'll have a look at it on monday and see if I can patch our mount and if
-> > it makes a difference!
-> 
-> No and yes.
-> 
-> This issue has come up fairly often over the last 3-5 years.
-> 
-> What I expect when posting a comment like this is that the relevant
-> distribution maintainer speak up and justify that mount(8) in their
-> distribution has been patched to fix this issue.
-> 
-> That of course doesn't mean that it isn't still broken but indicates
-> that the right people are aware of the problem, have attempted to fix
-> it, and will help out if needed.
-> 
-> All distributions should have something included to fix this by now but
-> it seems that may not be the case.
-> 
-> It may be worthwhile looking at
-> http://www.kernel.org/pub/linux/daemons/autofs/v4/autofs-4.1.4-configureable-locking.patch.
-> 
 
-Having checked this to the extent that I can, as I'm not very familiar
-with Debian, it looks like the above patch has been included in Debian
-testing but mount(8) locking in util-linux is broken in spite of the
-"warnings" given "every time" this comes up.
+--===============7969278046683363923==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="OXfL5xGRrasGEqWY"
+Content-Disposition: inline
 
-Ian
+
+--OXfL5xGRrasGEqWY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi Ian and Lukas,
+
+(stepping up as the new maintainer of autofs in Debian, taking over the
+work of Steinar Gundersson)
+
+I'm discussing the matter with the util-linux maintainer: the patch in
+question question is included in Debian's autofs package, but not in
+util-linux. I've only had time for a quick glance though, because I'll
+leave for a week of vacation soon. I'll keep you informed.
+
+
+Regards,
+
+Jan Nordholz
+
+--OXfL5xGRrasGEqWY
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFFu084JnGRgaR03R4RAkwMAJ9uY/j3o05sXmNJPHnmUk5F13UGbACcCLKV
+fs+lzddiW/SsHcUhNeEIBzQ=
+=sJ62
+-----END PGP SIGNATURE-----
+
+--OXfL5xGRrasGEqWY--
+
+
+--===============7969278046683363923==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--===============7969278046683363923==--
+
