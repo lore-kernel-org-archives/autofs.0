@@ -1,14 +1,16 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: automounted symlink to automount	sometimesfails,
-	doingDNS query of partial path
-Date: Sat, 03 Feb 2007 10:46:38 +0900
-Message-ID: <1170467198.28994.27.camel@raven.themaw.net>
-References: <CECD6E8A589E8447BC6E836C8369AFF50C4BB949@us-email.terastack.bluearc.com>
+From: Lukas Kolbe <lukas@einfachkaffee.de>
+Subject: Re: Race condition in autofs 4.1.4
+Date: Mon, 29 Jan 2007 16:33:50 +0100
+Message-ID: <1170084830.2817.19.camel@sangay.TechFak.Uni-Bielefeld.DE>
+References: <1169828641.32447.22.camel@sangay.TechFak.Uni-Bielefeld.DE>
+	<1169831520.20795.1.camel@raven> <1169835048.6781.16.camel@localhost>
+	<1169861439.3595.11.camel@raven.themaw.net>
+	<1170081194.2817.6.camel@sangay.TechFak.Uni-Bielefeld.DE>
+	<1170083944.2817.10.camel@sangay.TechFak.Uni-Bielefeld.DE>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="=-TuFXFAtA1iRA+ocPGhLi"
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <CECD6E8A589E8447BC6E836C8369AFF50C4BB949@us-email.terastack.bluearc.com>
+In-Reply-To: <1170083944.2817.10.camel@sangay.TechFak.Uni-Bielefeld.DE>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,58 +21,110 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Martin Dorey <mdorey@bluearc.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Fri, 2007-02-02 at 08:25 -0800, Martin Dorey wrote:
-> > I just wanted to know if typing mount<ret> showed a mount present
-> on 
-> 
-> > /net/us-titan.us.dev.bluearc.com/ARCHIVE
-> 
->  
-> 
-> I found the output from cat /proc/mounts while "wide" (the machine
-> with the older kernel) had the problem.  It alleges three mounts from
-> that server while the problem was happening:
 
-This may not be related to your problem but Jeff Moyer and I are working
-on a resolving a race between mount and expire involving symlinks right
-now.
+--=-TuFXFAtA1iRA+ocPGhLi
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-I have seen this "upercasing" before but that was an NFS problem related
-in some way to a failed NFS lookup, so perhaps you could wait till we
-have a patch and then test again.
+Am Montag, den 29.01.2007, 16:19 +0100 schrieb Lukas Kolbe:
 
-> 
->  
-> 
-> us-titan.us.dev.bluearc.com:/CALLHOME /net/us-titan.us.dev.bluearc.com/CALLHOME nfs rw,nosuid,nodev,v3,rsize=32768,wsize=32768,hard,intr,lock,proto=tcp,addr=us-
-> 
-> titan.us.dev.bluearc.com 0 0
-> 
-> us-titan.us.dev.bluearc.com:/ARCHIVE /net/us-titan.us.dev.bluearc.com/ARCHIVE nfs rw,nosuid,nodev,v3,rsize=32768,wsize=32768,hard,intr,lock,proto=tcp,addr=us-ti
-> 
-> tan.us.dev.bluearc.com 0 0
-> 
-> us-titan.us.dev.bluearc.com:/Install /net/us-titan.us.dev.bluearc.com/Install nfs rw,nosuid,nodev,v3,rsize=32768,wsize=32768,hard,intr,lock,proto=tcp,addr=us-ti
-> 
-> tan.us.dev.bluearc.com 0 0
-> 
->  
-> 
-> ("Install" is the right case but "CALLHOME" and "ARCHIVE" should both
-> be all lower-case.)
-> 
->  
-> 
-> That matches my recollection of the symptom of duezer, though I'm
-> having a hard time proving it from the console logs.
-> 
-> -------------------------------------
-> 
-> Martin's Outlook, BlueArc Engineering
-> 
->  
-> 
-> 
+> The system is now through more than 25000 mails, and hasn't hit the bug
+> yet.
+> When it finished delivering, I'll setup another mailbomb and stress it
+> over the night, let's cross fingers that it works. I'll then file a bug
+> with the debian util-linux package and attach the patch to it.
+> Not close()ing the "we_created_lockfile" in unlock_mtab() seems like a
+> bug to me, anyway ;)
+
+Okay, the race hit again. Damnit!
+
+Out of about 30000 mails, 8(!!!) didn't get delivered because:
+
+Every 2.0s: ls -al /homes/ /nfs4homes | grep root                                                                                      Mon Jan 29 16:27:55 2007
+drwxr-xr-x  7 root    root        0 2007-01-29 16:26 .
+drwxr-xr-x 24 root    root     4096 2007-01-29 15:26 ..
+dr-xr-xr-x  2 root    root        0 2007-01-29 16:11 musr352
+dr-xr-xr-x  2 root    root        0 2007-01-29 16:17 musr847
+drwxr-xr-x  8 root    root        0 2007-01-29 16:26 .
+drwxr-xr-x 24 root    root     4096 2007-01-29 15:26 ..
+dr-xr-xr-x  2 root    root        0 2007-01-29 16:17 musr847
+
+These should look like
+drwxr-xr-x  4 musr123 mailtest 4096 2007-01-17 16:59 musr123
+
+And in /var/log/syslog appears again:
+Jan 29 16:20:50 demon automount[29640]: mount(generic): warning: /homes/musr352 is already mounted
+
+This was with debian's autofs 4.1.4-13, see 
+ftp://ftp.de.debian.org/debian/pool/main/a/autofs/
+
+And mount 2.12r-15.1, see ftp://ftp.de.debian.org/debian/pool/main/u/util-linux/
+with the attached patch appliend, hence version number -15.1.
+
+So, the patch made the problem appear way less, but it won't go away
+completely. Ian, I guess that's what you suspected?
+
+I'll try the test again overnight with an autofs timeout of 300.
+
+-- 
+Lukas
+
+
+--=-TuFXFAtA1iRA+ocPGhLi
+Content-Disposition: attachment; filename=70-mount-fstab-locking.dpatch
+Content-Type: application/x-shellscript; name=70-mount-fstab-locking.dpatch
+Content-Transfer-Encoding: 7bit
+
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## 70-mount-fstab-locking.dpatch by  <linadm@smirnow.techfak.uni-bielefeld.de>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: hopefully fix lockin in fstab.c
+
+@DPATCH@
+
+--- util-linux-2.12r/mount/fstab.c      2004-12-21 19:09:24.000000000 +0000
++++ util-linux-2.12r-patched/mount/fstab.c      2007-01-29 14:17:05.000000000 +0000
+@@ -417,6 +417,7 @@
+ unlock_mtab (void) {
+        if (we_created_lockfile) {
+                unlink (MOUNTED_LOCK);
++               close(we_created_lockfile);
+                we_created_lockfile = 0;
+        }
+ }
+@@ -527,6 +528,7 @@
+                                           MOUNTED_LOCK, strerror (errsv));
+                                }
+                                /* proceed anyway */
++                               we_created_lockfile = fd;
+                        }
+                } else {
+                        static int tries = 0;
+@@ -549,9 +551,9 @@
+                                             MOUNTED_LOCK);
+                                sleep(1);
+                        }
++                       close(fd);
+                }
+
+-               close(fd);
+        }
+ }
+
+
+--=-TuFXFAtA1iRA+ocPGhLi
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--=-TuFXFAtA1iRA+ocPGhLi--
+
