@@ -1,15 +1,15 @@
 From: Lukas Kolbe <lukas@einfachkaffee.de>
-Subject: Re: automounted symlink to automount sometimes fails,
-	doing DNS query of partial path
-Date: Mon, 29 Jan 2007 14:44:47 +0100
-Message-ID: <1170078287.2817.3.camel@sangay.TechFak.Uni-Bielefeld.DE>
-References: <CECD6E8A589E8447BC6E836C8369AFF50C2E88F6@us-email.terastack.bluearc.com>
-	<1170040191.3404.9.camel@raven.themaw.net>
+Subject: Re: Race condition in autofs 4.1.4
+Date: Mon, 29 Jan 2007 15:33:14 +0100
+Message-ID: <1170081194.2817.6.camel@sangay.TechFak.Uni-Bielefeld.DE>
+References: <1169828641.32447.22.camel@sangay.TechFak.Uni-Bielefeld.DE>
+	<1169831520.20795.1.camel@raven> <1169835048.6781.16.camel@localhost>
+	<1169861439.3595.11.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1170040191.3404.9.camel@raven.themaw.net>
+In-Reply-To: <1169861439.3595.11.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,24 +22,21 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-Am Montag, den 29.01.2007, 12:09 +0900 schrieb Ian Kent:
-> On Mon, 2007-01-22 at 21:52 -0800, Martin Dorey wrote:
-> > The machine it happened on today is running a Debian
-> > 2.6.16-2-amd64-k8-smp.  aptitude show autofs reckons it's running
-> 
-> I don't really know what that means in term of patch levels.
-> Would it be possible to update a test machine to 2.6.19 or at least a
-> 2.6.17 kernel and re-test.
-> 
-> Lukas, can we find out what autofs patches, if any, have been added to
-> this kernel?
+Am Samstag, den 27.01.2007, 10:30 +0900 schrieb Ian Kent:
 
-I just looked - 2.6.16 sources are not available anymore on the debian
-servers, but 2.6.18 are, see
-ftp://ftp.debian.org/debian/pool/main/l/linux-2.6/
+> No and yes.
+> 
+> This issue has come up fairly often over the last 3-5 years.
 
-A quick grep for autofs revealed only one line in a makefile, nothing
-else.
+> It may be worthwhile looking at
+> http://www.kernel.org/pub/linux/daemons/autofs/v4/autofs-4.1.4-configureable-locking.patch.
+
+That patch contains a typo (we_created_lock_file vs.
+we_created_lockfile), but otherwise seems to work. I'm running another
+stress test currently with the modified mount(8), starting with about
+30000 mails in the queue of which 5000 are delivered now and the race
+hasn't happend yet (I set the timemout of autofs to 5 seconds to trigger
+that bug faster).
 
 > Ian
 
