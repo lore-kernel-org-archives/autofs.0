@@ -1,22 +1,14 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: Race condition in autofs 4.1.4
-Date: Tue, 30 Jan 2007 16:21:25 +0900
-Message-ID: <1170141685.3373.6.camel@raven.themaw.net>
-References: <1169828641.32447.22.camel@sangay.TechFak.Uni-Bielefeld.DE>
-	<1169831520.20795.1.camel@raven> <1169835048.6781.16.camel@localhost>
-	<1169861439.3595.11.camel@raven.themaw.net>
-	<1170081194.2817.6.camel@sangay.TechFak.Uni-Bielefeld.DE>
-	<1170083944.2817.10.camel@sangay.TechFak.Uni-Bielefeld.DE>
-	<1170089728.3404.18.camel@raven.themaw.net>
-	<1170104185.6774.11.camel@localhost>
-	<x49zm81czgq.fsf@segfault.boston.devel.redhat.com>
-	<1170105687.6774.17.camel@localhost>
-	<1170106510.31933.33.camel@psmithub>
+Subject: Re: automounted symlink to automount sometimes	fails,
+	doing DNS query of partial path
+Date: Tue, 30 Jan 2007 16:33:43 +0900
+Message-ID: <1170142423.3373.10.camel@raven.themaw.net>
+References: <CECD6E8A589E8447BC6E836C8369AFF50C3D441E@us-email.terastack.bluearc.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1170106510.31933.33.camel@psmithub>
+In-Reply-To: <CECD6E8A589E8447BC6E836C8369AFF50C3D441E@us-email.terastack.bluearc.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -27,28 +19,51 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: psmith@netezza.com
+To: Martin Dorey <mdorey@bluearc.com>
 Cc: autofs@linux.kernel.org
 
-On Mon, 2007-01-29 at 16:35 -0500, Paul Smith wrote:
-> On Mon, 2007-01-29 at 22:21 +0100, Lukas Kolbe wrote:
-> > On Mo, 2007-01-29 at 16:09 -0500, Jeff Moyer wrote:
-> > 
-> > > I don't mean to muddy the waters, but you might try adding the patch
-> > > below to autofs.  I posted it a while back, but Ian's been busy with
-> > > v5 development.  This is from my git tree, so I'm not sure if it
-> > > applies to current v4 as is.
-> > 
-> > Thanks, I'll try it tomorrow. Seems reasonable to me.
+On Mon, 2007-01-29 at 12:13 -0800, Martin Dorey wrote:
+> > I suspect that 2.6.18 (or even 17) will help with Martins problem.
 > 
-> Apropos of not much, on my embedded system using BusyBox I wanted to use
-> autofs, etc. but not install a separate mount and all that jazz; I just
-> made /etc/mtab a symlink to /proc/mounts and that works fine for me.
+> In my original post, I said:
 > 
-> I don't do the kind of serious load via autofs/NFS you are talking
-> about, though; I mainly use it for handling core dumps (so they get
-> dumped to a central system instead of onto the embedded system).
+> >> The machine which had this problem last week is running 2.6.18-3-686
+> and
+> >> autofs 4.1.4+debian-1.  I think its mount table cleared up after say
+> five
+> >> minutes.  It also contained spuriously few, spuriously capitalized
+> mount
+> >> entries (including at least ARCHIVE) before the problem went away.
+> 
+> Ian correctly divined that I was (disingenuously, sorry) being ambiguous
+> about whether it *had* been running 2.6.18 at the time of the problem.
+> That was because I couldn't think of an easy way to prove it one way or
+> the other.  I've given it some more thought and realized that I still
+> have old enough auth.log entries.  These convince me that my
+> recollection was right - that I was already running 2.6.18 at the time
+> of the first occurrence of the problem.
 
-Nevertheless that should also work.
+oops.
+
+> 
+> Jan  8 18:20:12 duezer sudo:  martind : TTY=pts/2 ;
+> PWD=/home/martind/work/misc ; USER=root ; COMMAND=/usr/X11R6/bin/apt-get
+> install linux-image-2.6.18-3-686
+> Jan  8 18:21:39 duezer sudo:  martind : TTY=pts/2 ;
+> PWD=/home/martind/work/misc ; USER=root ; COMMAND=/sbin/reboot
+> 
+> Jan 13 14:59:38 duezer sudo:  martind : TTY=pts/0 ;
+> PWD=/home/martind/work/parrot ; USER=root ; COMMAND=/bin/umount
+> /net/us-titan.us.dev.bluearc.com/ARCHIVE/
+> 
+> This is the same machine (and kernel) on which I later tried but failed
+> to reproduce the problem (and on which it still hasn't recurred in the
+> intervening time).  I can't help but suspect that the spurious
+> capitalization of some of the mount point names - like ARCHIVE - is a
+> clue.  I wonder what could cause that?
+
+Don't know but autofs doesn't change the entries so it shouldn't be
+that. Is there still a mount present on the mount-point when this
+happens.
 
 Ian
