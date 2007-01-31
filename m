@@ -1,11 +1,23 @@
-From: Richard Ray <rray@mstc.state.ms.us>
-Subject: Reducing logging
-Date: Tue, 30 Jan 2007 09:22:07 -0600 (CST)
-Message-ID: <Pine.LNX.4.64.0701300915430.24938@rray.drdc.mstc.ms.gov>
+From: Lukas Kolbe <lukas@einfachkaffee.de>
+Subject: Re: Race condition in autofs 4.1.4
+Date: Wed, 31 Jan 2007 05:46:42 +0100
+Message-ID: <1170218802.6901.8.camel@localhost>
+References: <1169828641.32447.22.camel@sangay.TechFak.Uni-Bielefeld.DE>
+	<1169831520.20795.1.camel@raven> <1169835048.6781.16.camel@localhost>
+	<1169861439.3595.11.camel@raven.themaw.net>
+	<1170081194.2817.6.camel@sangay.TechFak.Uni-Bielefeld.DE>
+	<1170083944.2817.10.camel@sangay.TechFak.Uni-Bielefeld.DE>
+	<1170089728.3404.18.camel@raven.themaw.net>
+	<1170104185.6774.11.camel@localhost>
+	<x49zm81czgq.fsf@segfault.boston.devel.redhat.com>
+	<1170105687.6774.17.camel@localhost>
+	<1170106510.31933.33.camel@psmithub>
+	<1170141685.3373.6.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <1170141685.3373.6.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,16 +28,17 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org
 
-I would like to reduce the amount of info that automount logs
-My system log is full of
+On Di, 2007-01-30 at 16:21 +0900, Ian Kent wrote:
 
-Jan 30 09:16:03 qgb automount[16694]: >> mount: dev:/sql/include failed, reason given by server: Permission denied
-Jan 30 09:16:03 qgb automount[16694]: mount(nfs): nfs: mount failure dev:/sql/include on /net/dev/sql/include
+> Nevertheless that should also work.
 
-The automount man page does not say what syslog facility it uses
-If it uses daemon how can I reduce logging from automount and not all daemons
+Sorry for being so quiet lately, I'm away until friday and give you an
+update then.
 
-Thanks
-Richard
+> Ian
+
+-- 
+Lukas
