@@ -1,7 +1,7 @@
 From: Mike Marion <mmarion@qualcomm.com>
-Subject: Ldap starting nis child?
-Date: Tue, 6 Feb 2007 14:49:10 -0800
-Message-ID: <20070206224910.GI21027@cornholio.qualcomm.com>
+Subject: Another LDAP weirdness we're seeing.
+Date: Tue, 6 Feb 2007 14:53:58 -0800
+Message-ID: <20070206225358.GJ21027@cornholio.qualcomm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -19,27 +19,30 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-We're looking into some odd issue we're starting to have with our ldap
-autofs setup, and as I test I tried starting our direct map daemon
-without the --ghost flag, and it failed miserably.  the main moint
-points started properly (--debug was on) like so:
-automount[3217]: starting automounter version 4.1.4, path = /prj, maptype = ldap, mapname =
+Trying to track down if it's in the client at all, but related to my
+last mail.. if we start the daemon with --ghost, sometimes the hosts are
+failing to start all the children of /- (or even /- itself). 
+
+The logs I've gotten when it failed were:
+Feb  6 13:32:09 k8-032 automount[2243]: starting automounter version
+4.1.4, path = /-, maptype = ldap, mapname =
 automountmapname=auto.projects,ou=automountMaps,ou=sandiego,ou=qct,dc=qualcomm,dc=com
+Feb  6 13:32:11 k8-032 automount[2243]: lookup(ldap): LDAP query failed:
+No such object
+Feb  6 13:32:11 k8-032 automount[2243]: failed to load map exiting
 
-But as soon as you tried to traverse that, it spawned a maptype=yp
-child:
-automount[7893]: starting automounter version 4.1.4, path = /prj/vlsi, maptype = yp, mapname =
- automountmapname=auto.projects,ou=automountMaps,ou=sandiego,ou=qct,dc=qualcomm,dc=com
+Trying to start it by running the autofs init script again by hand
+shortly after this, it works fine.  Is there some point in the initial
+read of the maps that has a timeout?  We're tying to narrow down if it's
+the client timing out (ldap servers not responding fast enough) or if
+the servers are actually returning a bad value (or the above 'no such
+object') which, obviously, shouldn't be happening.
 
-Which eventually failed with a "RPC failure on NIS operation" and
-bombed.
-
-We're using 4.1.4 and have all the patches applied to the daemons.
-Using a sles10 2.6.16.21-0.8smp kernel (has latest kernel patches, or at
-least these: autofs4-2.6.10-20050404.patch).
+We're still doing further testing, just wondering if anyone's seen
+anything similar that might help us fix it faster... didn't see anything
+obvious in the mails I have in my box.
 
 -- 
 Mike Marion-Unix SysAdmin/Staff IT Engineer-http://www.qualcomm.com
-[watching a baseball game]
-Stewie: Why does that man drop his club before he runs? I would bring it with me.
-==> Family Guy
+Drew: "Dear pizza, I do not care, or give a wit, that you are one day old.  
+I think you are beautiful, even when you are cold."  -- Drew Cary Show.
