@@ -1,14 +1,14 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: Filesystem continuously remounts
-Date: Mon, 05 Feb 2007 11:26:39 -0500
-Message-ID: <x49iregwoxs.fsf@segfault.boston.devel.redhat.com>
-References: <Pine.LNX.4.64.0702050929520.17633@rray.drdc.mstc.ms.gov>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: automounted symlink to automount sometimesfails,
+	doingDNS query of partial path
+Date: Tue, 06 Feb 2007 10:43:45 +0900
+Message-ID: <1170726225.3378.14.camel@raven.themaw.net>
+References: <CECD6E8A589E8447BC6E836C8369AFF50C4BB949@us-email.terastack.bluearc.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.0702050929520.17633@rray.drdc.mstc.ms.gov>
-	(Richard Ray's message of "Mon, 5 Feb 2007 09:41:04 -0600 (CST)")
+In-Reply-To: <CECD6E8A589E8447BC6E836C8369AFF50C4BB949@us-email.terastack.bluearc.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,34 +19,34 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Richard Ray <rray@mstc.state.ms.us>
+To: Martin Dorey <mdorey@bluearc.com>
 Cc: autofs@linux.kernel.org
 
-==> On Mon, 5 Feb 2007 09:41:04 -0600 (CST), Richard Ray <rray@mstc.state.ms.us> said:
+On Fri, 2007-02-02 at 08:25 -0800, Martin Dorey wrote:
+> I found the output from cat /proc/mounts while "wide" (the machine
+> with the older kernel) had the problem.  It alleges three mounts from
+> that server while the problem was happening:
+> 
+>  
+> 
+> us-titan.us.dev.bluearc.com:/CALLHOME /net/us-titan.us.dev.bluearc.com/CALLHOME nfs rw,nosuid,nodev,v3,rsize=32768,wsize=32768,hard,intr,lock,proto=tcp,addr=us-
+> 
+> titan.us.dev.bluearc.com 0 0
+> 
+> us-titan.us.dev.bluearc.com:/ARCHIVE /net/us-titan.us.dev.bluearc.com/ARCHIVE nfs rw,nosuid,nodev,v3,rsize=32768,wsize=32768,hard,intr,lock,proto=tcp,addr=us-ti
+> 
+> tan.us.dev.bluearc.com 0 0
+> 
+> us-titan.us.dev.bluearc.com:/Install /net/us-titan.us.dev.bluearc.com/Install nfs rw,nosuid,nodev,v3,rsize=32768,wsize=32768,hard,intr,lock,proto=tcp,addr=us-ti
+> 
+> tan.us.dev.bluearc.com 0 0
+> 
+>  
+> 
+> ("Install" is the right case but "CALLHOME" and "ARCHIVE" should both
+> be all lower-case.)
 
-Richard> [ddm@dc2 ~]$ less /var/log/messages
-Richard> ...
-Richard> Feb  5 09:25:22 dc2 kernel: EXT3 FS on sdb1, internal journal
-Richard> Feb  5 09:25:22 dc2 kernel: EXT3-fs: mounted filesystem with ordered 
-Richard> data mode.
-Richard> Feb  5 09:26:22 dc2 kernel: EXT3 FS on sdb1, internal journal
-Richard> Feb  5 09:26:22 dc2 kernel: EXT3-fs: mounted filesystem with ordered 
-Richard> data mode.
-Richard> Feb  5 09:27:22 dc2 kernel: EXT3 FS on sdb1, internal journal
-Richard> Feb  5 09:27:22 dc2 kernel: EXT3-fs: mounted filesystem with ordered 
-Richard> data mode.
-Richard> Feb  5 09:28:23 dc2 kernel: EXT3 FS on sdb1, internal journal
-Richard> Feb  5 09:28:23 dc2 kernel: EXT3-fs: mounted filesystem with ordered 
-Richard> data mode.
+This part really looks like an NFS problem, I'm not sure what I can do
+about it.
 
-Richard> As you can see the filesystem keeps remounting itself every 60 seconds.
-Richard> What can I do to fix this?
-
-And Ian just reminded me that some tools (like udev/hal) used to
-trigger a remount after each unmount.  This actually sounds like it
-may be your problem.  Make sure your desktop environment is up to date.
-
-Also, see this thread from the past:
-  http://linux.kernel.org/pipermail/autofs/2006-October/003350.html
-
--Jeff
+Ian
