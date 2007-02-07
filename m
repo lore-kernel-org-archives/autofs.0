@@ -1,13 +1,14 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: invalid stat result with autofs 5
-Date: Wed, 07 Feb 2007 23:12:11 +0900
-Message-ID: <1170857531.3415.22.camel@raven.themaw.net>
-References: <4525182B.9010609@inria.fr>  <45C9B0EF.20900@inria.fr>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: Ldap starting nis child?
+Date: Wed, 07 Feb 2007 11:11:35 -0500
+Message-ID: <x49tzxyuevc.fsf@segfault.boston.devel.redhat.com>
+References: <20070206224910.GI21027@cornholio.qualcomm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <45C9B0EF.20900@inria.fr>
+In-Reply-To: <20070206224910.GI21027@cornholio.qualcomm.com> (Mike Marion's
+	message of "Tue, 6 Feb 2007 14:49:10 -0800")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,58 +19,40 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Guillaume Rousse <Guillaume.Rousse@inria.fr>
+To: Mike Marion <mmarion@qualcomm.com>
 Cc: autofs@linux.kernel.org
 
-On Wed, 2007-02-07 at 11:58 +0100, Guillaume Rousse wrote:
-> Guillaume Rousse wrote:
-> > See http://qa.mandriva.com/show_bug.cgi?id=26244
-> This seems to be fixed with 5.0.1rc3.
-> 
-> However, it is impossible to create new directories directly under mount
-> point, which is quite problematic for creating new users home directories:
-> [root@etoile ldapscripts]# mkdir /home/dir/foo
-> mkdir: cannot create directory `/home/dir/foo': No such file or directory.
-> 
+==> On Tue, 6 Feb 2007 14:49:10 -0800, Mike Marion <mmarion@qualcomm.com> said:
 
-I think we need more infomation here.
+Mike> We're looking into some odd issue we're starting to have with our ldap
+Mike> autofs setup, and as I test I tried starting our direct map daemon
+Mike> without the --ghost flag, and it failed miserably.  the main moint
+Mike> points started properly (--debug was on) like so:
+Mike> automount[3217]: starting automounter version 4.1.4, path = /prj, maptype = ldap, mapname =
+Mike> automountmapname=auto.projects,ou=automountMaps,ou=sandiego,ou=qct,dc=qualcomm,dc=com
 
-What is the kernel version and have any additional patches been added?
-What is the version of autofs and have any patches been added?
+Mike> But as soon as you tried to traverse that, it spawned a maptype=yp
+Mike> child:
+Mike> automount[7893]: starting automounter version 4.1.4, path = /prj/vlsi, maptype = yp, mapname =
+Mike>  automountmapname=auto.projects,ou=automountMaps,ou=sandiego,ou=qct,dc=qualcomm,dc=com
 
-I don't quite understand the problem description either.
+Mike> Which eventually failed with a "RPC failure on NIS operation" and
+Mike> bombed.
 
-What are the maps that are being used?
-Is the browse (--ghost) option being used?
-If we get a clear description of the problem then we may need a debug
-log, but right now I wouldn't know what to look for.
+Mike> We're using 4.1.4 and have all the patches applied to the daemons.
+Mike> Using a sles10 2.6.16.21-0.8smp kernel (has latest kernel patches, or at
+Mike> least these: autofs4-2.6.10-20050404.patch).
 
-It isn't possible to create directories in an autofs filesystem itself,
-and never has been, as that is the responsibility of the user space
-daemon. Due to changes in recent kernels and the fact that I got
-criticized for autofs creating directories as root on NFS mounted file
-systems the mount point directories that you wish to mount must already
-exist on the remote server. autofs creating these directories is
-considered a security risk.
+So, you're using submounts?  Posting maps would be helpful, here!  My
+guess is that the autofs code is not looking up the maptype for the
+submounts in the name service switch.  If I'm right, I think I've
+fixed this in the RHEL package, and I should have sent that patch
+along to Ian in my last patch set.
 
-If you wished to create directories on a remote server then the parent
-directory must be mounted, one way or another, then given that you have
-permission, you could create the directories.
+As Ian says, we'd like to focus development on v5.  However, you'll
+have to tell us what your constraints are and we'll see what we can do
+to work within those.
 
-> >From /var/log/messages
-> Feb  7 11:37:04 etoile automount[25264]: rmdir_path: lstat of foo failed.
-> 
-> >From /proc/mounts
-> ou=auto.home.dir,ou=autofs,dc=msr-inria,dc=inria,dc=fr /home/dir autofs
-> rw,fd=5,pgrp=25264,timeout=300,minproto=5,maxproto=5,indirect 0 0
-> ou=auto.home.mi,ou=autofs,dc=msr-inria,dc=inria,dc=fr /home/mi autofs
-> rw,fd=10,pgrp=25264,timeout=300,minproto=5,maxproto=5,indirect 0 0
-> 
-> no-root-squash NFS option is set, so it is not a write permission
-> problem. Moreover, the problem doesn't exist if /home/dir is manually
-> mounted.
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
+Thanks!
+
+Jeff
