@@ -1,12 +1,13 @@
-From: Mike Marion <mmarion@qualcomm.com>
-Subject: Another LDAP weirdness we're seeing.
-Date: Tue, 6 Feb 2007 14:53:58 -0800
-Message-ID: <20070206225358.GJ21027@cornholio.qualcomm.com>
+From: Guillaume Rousse <Guillaume.Rousse@inria.fr>
+Subject: Re: invalid stat result with autofs 5
+Date: Wed, 07 Feb 2007 11:58:55 +0100
+Message-ID: <45C9B0EF.20900@inria.fr>
+References: <4525182B.9010609@inria.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <4525182B.9010609@inria.fr>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,30 +20,24 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-Trying to track down if it's in the client at all, but related to my
-last mail.. if we start the daemon with --ghost, sometimes the hosts are
-failing to start all the children of /- (or even /- itself). 
+Guillaume Rousse wrote:
+> See http://qa.mandriva.com/show_bug.cgi?id=26244
+This seems to be fixed with 5.0.1rc3.
 
-The logs I've gotten when it failed were:
-Feb  6 13:32:09 k8-032 automount[2243]: starting automounter version
-4.1.4, path = /-, maptype = ldap, mapname =
-automountmapname=auto.projects,ou=automountMaps,ou=sandiego,ou=qct,dc=qualcomm,dc=com
-Feb  6 13:32:11 k8-032 automount[2243]: lookup(ldap): LDAP query failed:
-No such object
-Feb  6 13:32:11 k8-032 automount[2243]: failed to load map exiting
+However, it is impossible to create new directories directly under mount
+point, which is quite problematic for creating new users home directories:
+[root@etoile ldapscripts]# mkdir /home/dir/foo
+mkdir: cannot create directory `/home/dir/foo': No such file or directory.
 
-Trying to start it by running the autofs init script again by hand
-shortly after this, it works fine.  Is there some point in the initial
-read of the maps that has a timeout?  We're tying to narrow down if it's
-the client timing out (ldap servers not responding fast enough) or if
-the servers are actually returning a bad value (or the above 'no such
-object') which, obviously, shouldn't be happening.
+From /var/log/messages
+Feb  7 11:37:04 etoile automount[25264]: rmdir_path: lstat of foo failed.
 
-We're still doing further testing, just wondering if anyone's seen
-anything similar that might help us fix it faster... didn't see anything
-obvious in the mails I have in my box.
+From /proc/mounts
+ou=auto.home.dir,ou=autofs,dc=msr-inria,dc=inria,dc=fr /home/dir autofs
+rw,fd=5,pgrp=25264,timeout=300,minproto=5,maxproto=5,indirect 0 0
+ou=auto.home.mi,ou=autofs,dc=msr-inria,dc=inria,dc=fr /home/mi autofs
+rw,fd=10,pgrp=25264,timeout=300,minproto=5,maxproto=5,indirect 0 0
 
--- 
-Mike Marion-Unix SysAdmin/Staff IT Engineer-http://www.qualcomm.com
-Drew: "Dear pizza, I do not care, or give a wit, that you are one day old.  
-I think you are beautiful, even when you are cold."  -- Drew Cary Show.
+no-root-squash NFS option is set, so it is not a write permission
+problem. Moreover, the problem doesn't exist if /home/dir is manually
+mounted.
