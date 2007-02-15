@@ -1,37 +1,103 @@
-From: Olivier Galibert <galibert@pobox.com>
-Subject: Re: [PATCH 1/2] Re: [autofs] Bad race condition in the new autofs protocol somewhere
-Date: Tue, 13 Feb 2007 21:43:10 +0100
-Message-ID: <20070213204310.GA68966@dspnet.fr.eu.org>
-References: <1170871661.3415.36.camel@raven.themaw.net> <20070207181817.GA75717@dspnet.fr.eu.org> <1170901990.3383.18.camel@raven.themaw.net> <1171262594.18376.13.camel@raven.themaw.net> <20070212135749.GA1681@dspnet.fr.eu.org> <1171327959.3377.3.camel@raven.themaw.net> <20070213085053.GA74257@dspnet.fr.eu.org> <45D1C61F.9090509@redhat.com> <20070213155405.GA33765@dspnet.fr.eu.org> <1171388115.3377.23.camel@raven.themaw.net>
+From: Ian Kent <raven@themaw.net>
+Subject: [PATCH] autofs4 - header file update
+Date: Thu, 15 Feb 2007 12:52:35 +0900 (WST)
+Message-ID: <Pine.LNX.4.64.0702151245020.8001@raven.themaw.net>
 Mime-Version: 1.0
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751075AbXBMUnN@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1171388115.3377.23.camel@raven.themaw.net>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S964893AbXBODvz@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ian Kent <raven@themaw.net>
-Cc: Chuck Ebbert <cebbert@redhat.com>, "Hack inc." <linux-kernel@vger.kernel.org>, autofs@linux.kernel.org
-
-On Wed, Feb 14, 2007 at 02:35:15AM +0900, Ian Kent wrote:
-> On Tue, 2007-02-13 at 16:54 +0100, Olivier Galibert wrote:
-> > Don't they require autofs5 to be of any use though?  That's not going
-> > to be in fc until it's out of beta I guess.
-> 
-> Not really?
-> 
-> [raven@fc6 ~]$ cat /etc/redhat-release 
-> Fedora Core release 6 (Zod)
-> [raven@fc6 ~]$ rpm -q autofs
-> autofs-5.0.1-0.rc3.16
-
-Oh cool, my guess was wrong.
+To: Andrew Morton <akpm@osdl.org>
+Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>
 
 
-> The Rawhide or FC-6 srpm should build fine on FC5.
+Hi Andrew,
 
-The .spec that comes with the tgz works without a hitch too.  I guess
-fc6 is going to have a *really* working automounter RSN then.
+The current header file definitions for autofs version 5 have
+caused a couple of problems for application builds downstream.
 
-  OG.
+This fixes the problem by separating the definitions.
+
+Signed-off-by: Ian Kent <raven@themaw.net>
+
+Ian
+
+---
+
+--- linux-2.6.20/fs/autofs4/waitq.c.packet-union-redefine	2007-02-13 13:29:53.000000000 +0900
++++ linux-2.6.20/fs/autofs4/waitq.c	2007-02-13 13:29:59.000000000 +0900
+@@ -84,7 +84,11 @@ static void autofs4_notify_daemon(struct
+ 				 struct autofs_wait_queue *wq,
+ 				 int type)
+ {
+-	union autofs_packet_union pkt;
++	union {
++		struct autofs_packet_hdr hdr;
++		union autofs_packet_union v4_pkt;
++		union autofs_v5_packet_union v5_pkt;
++	} pkt;
+ 	size_t pktsz;
+ 
+ 	DPRINTK("wait id = 0x%08lx, name = %.*s, type=%d",
+@@ -98,7 +102,7 @@ static void autofs4_notify_daemon(struct
+ 	/* Kernel protocol v4 missing and expire packets */
+ 	case autofs_ptype_missing:
+ 	{
+-		struct autofs_packet_missing *mp = &pkt.missing;
++		struct autofs_packet_missing *mp = &pkt.v4_pkt.missing;
+ 
+ 		pktsz = sizeof(*mp);
+ 
+@@ -110,7 +114,7 @@ static void autofs4_notify_daemon(struct
+ 	}
+ 	case autofs_ptype_expire_multi:
+ 	{
+-		struct autofs_packet_expire_multi *ep = &pkt.expire_multi;
++		struct autofs_packet_expire_multi *ep = &pkt.v4_pkt.expire_multi;
+ 
+ 		pktsz = sizeof(*ep);
+ 
+@@ -129,7 +133,7 @@ static void autofs4_notify_daemon(struct
+ 	case autofs_ptype_missing_direct:
+ 	case autofs_ptype_expire_direct:
+ 	{
+-		struct autofs_v5_packet *packet = &pkt.v5_packet;
++		struct autofs_v5_packet *packet = &pkt.v5_pkt.v5_packet;
+ 
+ 		pktsz = sizeof(*packet);
+ 
+--- linux-2.6.20/include/linux/auto_fs4.h.packet-union-redefine	2007-02-13 13:23:20.000000000 +0900
++++ linux-2.6.20/include/linux/auto_fs4.h	2007-02-13 13:26:35.000000000 +0900
+@@ -59,6 +59,13 @@ struct autofs_packet_expire_multi {
+ 	char name[NAME_MAX+1];
+ };
+ 
++union autofs_packet_union {
++	struct autofs_packet_hdr hdr;
++	struct autofs_packet_missing missing;
++	struct autofs_packet_expire expire;
++	struct autofs_packet_expire_multi expire_multi;
++};
++
+ /* autofs v5 common packet struct */
+ struct autofs_v5_packet {
+ 	struct autofs_packet_hdr hdr;
+@@ -78,12 +85,13 @@ typedef struct autofs_v5_packet autofs_p
+ typedef struct autofs_v5_packet autofs_packet_missing_direct_t;
+ typedef struct autofs_v5_packet autofs_packet_expire_direct_t;
+ 
+-union autofs_packet_union {
++union autofs_v5_packet_union {
+ 	struct autofs_packet_hdr hdr;
+-	struct autofs_packet_missing missing;
+-	struct autofs_packet_expire expire;
+-	struct autofs_packet_expire_multi expire_multi;
+ 	struct autofs_v5_packet v5_packet;
++	autofs_packet_missing_indirect_t missing_indirect;
++	autofs_packet_expire_indirect_t expire_indirect;
++	autofs_packet_missing_direct_t missing_direct;
++	autofs_packet_expire_direct_t expire_direct;
+ };
+ 
+ #define AUTOFS_IOC_EXPIRE_MULTI		_IOW(0x93,0x66,int)
