@@ -1,68 +1,68 @@
-From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 2/2] autofs4 - check for directory re-create in lookup
-Date: Thu, 15 Feb 2007 13:23:40 +0900 (WST)
-Message-ID: <Pine.LNX.4.64.0702151316110.8001@raven.themaw.net>
+From: "Dark Charlot" <jcldc13@gmail.com>
+Subject: Automount dies
+Date: Fri, 16 Feb 2007 10:35:56 +0100
+Message-ID: <dd64c4a50702160135o1e5ec23fyc7a0f0d63ac6033b@mail.gmail.com>
+Reply-To: test@gmail.com
 Mime-Version: 1.0
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932616AbXBOEXB@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: <autofs.vger.kernel.org>
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@osdl.org>
-Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>
+Return-path: <autofs-bounces@linux.kernel.org>
+Content-Disposition: inline
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: autofs@linux.kernel.org
 
+automout version : autofs-5.0.1-0.rc2
 
-Hi Andrew,
+Hello,
+  for a long time ago I am using automount on a cluster of 40
+computers without problems, but since I have upgraded to automount v5
+I am running into troubles. For some reasons, the automount daemon
+dies (after several days)..... Command 'ps' does not report a running
+automount process. The file /var/lock/subsys/autofs is still there.
+The only message I get from the file "/var/log/messages" is :
 
-This problem was identified and fixed some time ago by Jeff Moyer
-but it fell through the cracks somehow.
+Feb 15 04:03:29 ios automount[3058]: send_ready: AUTOFS_IOC_READY:
+error Inappropriate ioctl for device
 
-It is possible that a user space application could remove and
-re-create a directory during a request. To avoid returning a
-failure from lookup incorrectly when our current dentry is
-unhashed we need to check if another positive, hashed dentry
-matching this one exists and if so return it instead of a fail.
+ .. but I don't know if it is relevant to my problem.
 
-Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
-Signed-off-by: Ian Kent <raven@themaw.net>
+ If I restart the daemon, everything goes fine until the next death.
+As I said, it can take several days before dying and it's not easy
+reproductible.
 
-Ian
+ Here is an overview of my network :
+(I am using NIS)
 
----
+- 3 servers share their filesytems (high speed raid 5 filesystems)
 
---- linux-2.6.20/fs/autofs4/root.c.lookup-check-unhased	2007-02-12 13:49:46.000000000 +0900
-+++ linux-2.6.20/fs/autofs4/root.c	2007-02-12 13:54:58.000000000 +0900
-@@ -655,14 +655,29 @@ static struct dentry *autofs4_lookup(str
- 
- 	/*
- 	 * If this dentry is unhashed, then we shouldn't honour this
--	 * lookup even if the dentry is positive.  Returning ENOENT here
--	 * doesn't do the right thing for all system calls, but it should
--	 * be OK for the operations we permit from an autofs.
-+	 * lookup.  Returning ENOENT here doesn't do the right thing
-+	 * for all system calls, but it should be OK for the operations
-+	 * we permit from an autofs.
- 	 */
- 	if (dentry->d_inode && d_unhashed(dentry)) {
-+		/*
-+		 * A user space application can (and has done in the past)
-+		 * remove and re-create this directory during the callback.
-+		 * This can leave us with an unhashed dentry, but a
-+		 * successful mount!  So we need to perform another
-+		 * cached lookup in case the dentry now exists.
-+		 */
-+		struct dentry *parent = dentry->d_parent;
-+		struct dentry *new = d_lookup(parent, &dentry->d_name);
-+		if (new != NULL)
-+			dentry = new;
-+		else
-+			dentry = ERR_PTR(-ENOENT);
-+
- 		if (unhashed)
- 			dput(unhashed);
--		return ERR_PTR(-ENOENT);
-+
-+		return dentry;
- 	}
- 
- 	if (unhashed)
+- 30 clients (autofs-5.0.1-0.rc2) auto mount servers's filesystems
+          more than 15 clients have already had pbs with their automount
+
+- 8 clients (autofs-4.1.3) automount servers's filesystems
+         I did not have any problems with these clients for more than 2 years
+
+here is the file, /etc/autofs/auto.master:
+
+# direct map
+/net/direct /etc/auto.direct
+# 100 HD from beowulf
+/net/hd100      auto.yp_hd100
+# local filesystems
+/net/local      auto.local_pp
+# hd on LAN host
+/net/fs         auto.yp_host_fs
+# home
+/home   /etc/auto.home
+
+   Thanks in advance for your help.
+
+JC
