@@ -1,10 +1,16 @@
-From: Anders Blomdell <anders.blomdell@control.lth.se>
-Subject: Automount segfaults in do_mount_indirect
-Date: Tue, 20 Feb 2007 16:05:15 +0100
-Message-ID: <45DB0E2B.5030302@control.lth.se>
+From: "Dark Charlot" <jcldc13@gmail.com>
+Subject: Re: Automount dies
+Date: Mon, 26 Feb 2007 14:20:00 +0100
+Message-ID: <dd64c4a50702260520w754f661ay5e76294540443dab@mail.gmail.com>
+References: <dd64c4a50702160135o1e5ec23fyc7a0f0d63ac6033b@mail.gmail.com>
+	<1171635354.3383.1.camel@raven.themaw.net>
+Reply-To: test@gmail.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------050208070806040108000406"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <1171635354.3383.1.camel@raven.themaw.net>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -15,69 +21,23 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org
 
-This is a multi-part message in MIME format.
---------------050208070806040108000406
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+2007/2/16, Ian Kent <raven@themaw.net>:
+> On Fri, 2007-02-16 at 10:35 +0100, Dark Charlot wrote:
+> > automout version : autofs-5.0.1-0.rc2
+>
+> This is out of date.
+> Update to the latest package with all patches.
+>
 
-On Fedora Core 6 (autofs-5.0.1-0.rc3.21) I get occasional segfaults in 
-do_mount_indirect, the issue seems to remain in 5.0.1 version. The attached 
-patch seems to take care of the issue.
+  Hello,
 
-See also: http://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=229344
+ just to tell you that everything is working fine now (at least after
+one week of intensive tests), with the new autofs-5.0.1 release. I
+don't have anymore automount process which dies.
 
+ Thanks a lot, you've done a good work !
 
--- 
-Anders Blomdell                  Email: anders.blomdell@control.lth.se
-Department of Automatic Control
-Lund University                  Phone:    +46 46 222 4625
-P.O. Box 118                     Fax:      +46 46 138118
-SE-221 00 Lund, Sweden
-
---------------050208070806040108000406
-Content-Type: text/plain; x-mac-type="0"; x-mac-creator="0";
-	name="autofs-5.0.1-rc3-getXXXid_r.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="autofs-5.0.1-rc3-getXXXid_r.patch"
-
---- a/daemon/indirect.c	2007-02-20 14:51:08.000000000 +0100
-+++ b/daemon/indirect.c	2007-02-20 14:53:32.000000000 +0100
-@@ -806,8 +806,8 @@
- 		goto cont;
- 	}
- 
--	status = getpwuid_r(mt->uid, ppw, pw_tmp, tmplen, pppw);
--	if (status) {
-+	status = getpwuid_r(mt->uid, &pw, pw_tmp, tmplen, pppw);
-+	if (status || !ppw) {
- 		error(ap->logopt, "failed to get passwd info from getpwuid_r");
- 		free(tsv);
- 		free(pw_tmp);
-@@ -853,8 +853,8 @@
- 		goto cont;
- 	}
- 
--	status = getgrgid_r(mt->gid, pgr, gr_tmp, tmplen, ppgr);
--	if (status) {
-+	status = getgrgid_r(mt->gid, &gr, gr_tmp, tmplen, ppgr);
-+	if (status || !pgr) {
- 		error(ap->logopt, "failed to get group info from getgrgid_r");
- 		free(tsv->user);
- 		free(tsv->home);
-
---------------050208070806040108000406
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
-
---------------050208070806040108000406--
-
+ Jean-Charles.
