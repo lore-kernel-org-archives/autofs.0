@@ -1,16 +1,11 @@
-From: "Dark Charlot" <jcldc13@gmail.com>
-Subject: Re: Automount dies
-Date: Mon, 26 Feb 2007 14:20:00 +0100
-Message-ID: <dd64c4a50702260520w754f661ay5e76294540443dab@mail.gmail.com>
-References: <dd64c4a50702160135o1e5ec23fyc7a0f0d63ac6033b@mail.gmail.com>
-	<1171635354.3383.1.camel@raven.themaw.net>
-Reply-To: test@gmail.com
+From: Jordi Prats <jprats@cesca.es>
+Subject: module development
+Date: Tue, 27 Feb 2007 23:09:58 +0100
+Message-ID: <45E4AC36.3060707@cesca.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1171635354.3383.1.camel@raven.themaw.net>
-Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,23 +16,34 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-2007/2/16, Ian Kent <raven@themaw.net>:
-> On Fri, 2007-02-16 at 10:35 +0100, Dark Charlot wrote:
-> > automout version : autofs-5.0.1-0.rc2
->
-> This is out of date.
-> Update to the latest package with all patches.
->
+Hi all,
+I'm new to this list. I need to develop a module for autofs for a custom
+fs type, but I'm not really familiar with autofs. I'm supposing to do
+this I need to do a module like modules/mount_generic.c but with my
+custom stuff. For the mounting process it's all right, but to umount the
+fs I also need to do some operations.
 
-  Hello,
+There isn't any hook to do my custom operations before or after (in my
+cas doesn't matter) umounting it?
 
- just to tell you that everything is working fine now (at least after
-one week of intensive tests), with the new autofs-5.0.1 release. I
-don't have anymore automount process which dies.
+I'm sorry if this a simple or trivial question, but I didn't found how
+to do this as a module.
 
- Thanks a lot, you've done a good work !
+Thank you all,
+Jordi
 
- Jean-Charles.
+-- =
+
+......................................................................
+        __
+       / /          Jordi Prats Catal=E0
+ C E / S / C A      Departament de Sistemes
+     /_/            Centre de Supercomputaci=F3 de Catalunya
+
+ Gran Capit=E0, 2-4 (Edifici Nexus) =B7 08034 Barcelona
+ T. 93 205 6464 =B7 F.  93 205 6979 =B7 jprats@cesca.es
+......................................................................
+pgp:0x5D0D1321
+......................................................................
