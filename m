@@ -1,11 +1,13 @@
-From: Anthony Menasse <anthony.menasse@rsp.com.au>
-Subject: automount 4.1  / mount issues and possible workarounds
-Date: Fri, 23 Feb 2007 18:09:07 +1100
-Message-ID: <45DE9313.4070303@rsp.com.au>
+From: Jim Carter <jimc@math.ucla.edu>
+Subject: Re: module development
+Date: Wed, 28 Feb 2007 10:46:56 -0800 (PST)
+Message-ID: <Pine.LNX.4.64.0702280942280.528@simba.math.ucla.edu>
+References: <45E4AC36.3060707@cesca.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <45E4AC36.3060707@cesca.es>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,102 +18,40 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Jordi Prats <jprats@cesca.es>
+Cc: autofs@linux.kernel.org
 
-Hi,
+On Tue, 27 Feb 2007, Jordi Prats wrote:
 
-I was hoping for some feedback on wether the following actions are
-appropriate to fix the issues we are having with automount /mount.  I
-haven't explained the problems in detail, but from reading the mailing
-list and other sources they seem like fairly common issues. I just want
-to make sure my proposed fixes make sense. Im guessing a lot of this has
-been discussed many times before on this list, but i just wanted some
-confirmation that i am on the right track (or not). Any advice would be
-greatly appreciated.
+> I'm new to this list. I need to develop a module for autofs for a custom
+> fs type, but I'm not really familiar with autofs. I'm supposing to do
+> this I need to do a module like modules/mount_generic.c but with my
+> custom stuff. For the mounting process it's all right, but to umount the
+> fs I also need to do some operations.
 
+Special operations connected with mount or umount are a royal pain for the 
+system administrator, not just for autofs but for boot-time mounting too, 
+and hotplug mounting.  I wonder if the custom filesystem could be modified 
+to be easier to use?  The ideal is if a submodule of mount can handle all 
+the special operations and system call argument formatting, guided by the 
+mount options.  /sbin/mount.cifs is an example.  Another possibility is if 
+the filesystem driver, upon (un)mounting, starts a kernel thread that does 
+whatever userspace activities and then exits.
 
-Setup:
+But autofs does the mount system call itself because of the performance hit 
+of forking mount(1) every time.  Here's a modest proposal:  autofs knows 
+how to do NFS mounts and generic mounts (ext3, reiser, iso9660, etc. with 
+only standard options).  How about a mount option to be interpreted by 
+autofs, -nonstandard, which gives control to a module that spawns mount(1) 
+and accepts the performance hit?
 
-A bunch of NFS servers running a mixture of  RH Enterprise 4, Enterprise
-3 and X/OS linux4 and a bunch of Fedora Core 3 clients running a non
-Fedora built 2.6.11.7 kernel.
+In the interesting case of Samba/CIFS and NFSv4 mounts, a password or a 
+user's Kerberos credential is needed for non-world-readable content.  How 
+could autofs (or better, mount(1) spawned by autofs) reach back to the 
+user's context and figure out the credential cache (there could be several) 
+or run a password requesting program using the correct .Xauthority file, 
+e.g. /tmp/gdm.QwErTy?
 
-The automount update i am looking at installing is the latest  automount
-package from FC5 (4.1.4 Release 33) rebuilt for FC3 (which seems to work
-ok after some initial testing on a single box)
-
-I want to avoid updating the kernel at this point.
-
-Not sure about my strategy about updating 'mount', would you recommend
-getting the latest source or will an older package from FC3 do? In other
-words are there still serious issues with mount which mean i should be
-running the latest source or are the issues such as overriding RPC
-timeout values and locking issues with mtab only an issue with ancient
-versions of mount?
-
-Issue 1:
-
-
-nfs: mount failure chop:/export/home/rsp on /home/rsp
-
-I believe this is due to automount using a mount  retry value of 0 and
-dodgy versions of mount overriding the default RPC timeout from
-60seconds to 0.7 seconds so the attempt times out too quickly
-
-References:
-
-http://nfsworld.blogspot.com/2005/03/automounter-tuning.html
-
-http://www.mail-archive.com/autofs@linux.kernel.org/msg05281.html
-
-
-Possible Fix:
-
-I want to fix this by using --retry=2 in the auto.master file, and
-update mount where i can (i want to do both as i can't update mount on
-every machine/ platform right now)
-
-Issue 2:
-
-When accessing an unmounted automount mount point the automounter will
-complain that the directory is already mounted (even though it isn't!)
-
-You may get something like this in the log / console.
-
-BUG: <dir> already mounted
-
-I think this is due to a corrupt mtab file due to the  race /locking
-issues with older versions of mount
-
-Possible Fix:
-
-I want to update mount where i can , and link /etc/mtab to /proc/mount .
-(Are there any issues with having mtab as a link to /proc/mounts?)
-
-
-Issue 3:
-
-Wierd errors in the logs about attempts to mount files:
-
-Jan 20 18:45:36 glass automount[28315]: mount(nfs): nfs: mount failure
-hassan:/export/home/rsp/.sitecshrc on /home/rsp/.sitecshrc
-
-The initial mount is failing due to the issues described above. However
-the lookup is continued for the entire path
-
-I think i might ignore this issue until i can upgrade the kernel on the
-clients and do more testing as it seems to be related to issue 2.
-
-
-thankyou if you have actually read this far:)
-
-
-Cheers
-Anthony
-
-
--- 
-anthony menasse
-systems administrator | anthony.menasse@rsp.com.au
-rising sun pictures | www.rsp.com.au
-direct line +61 2 9384 4572
+James F. Carter          Voice 310 825 2897    FAX 310 206 6673
+UCLA-Mathnet;  6115 MSA; 405 Hilgard Ave.; Los Angeles, CA, USA  90095-1555
+Email: jimc@math.ucla.edu    http://www.math.ucla.edu/~jimc (q.v. for PGP key)
