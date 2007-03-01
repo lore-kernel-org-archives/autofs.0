@@ -1,14 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: module development
-Date: Thu, 01 Mar 2007 16:48:08 +0900
-Message-ID: <1172735288.3377.7.camel@raven.themaw.net>
-References: <45E4AC36.3060707@cesca.es>
-	<1172628050.3461.0.camel@raven.themaw.net> <45E592E9.7040104@cesca.es>
+Subject: Re: Problem with /net and dropped mounts in 2.6.17.11
+Date: Thu, 01 Mar 2007 16:49:57 +0900
+Message-ID: <1172735397.3377.9.camel@raven.themaw.net>
+References: <CECD6E8A589E8447BC6E836C8369AFF50C784AE0@us-email.terastack.bluearc.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <45E592E9.7040104@cesca.es>
+In-Reply-To: <CECD6E8A589E8447BC6E836C8369AFF50C784AE0@us-email.terastack.bluearc.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,27 +18,79 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jordi Prats <jprats@cesca.es>
+To: Martin Dorey <mdorey@bluearc.com>
 Cc: autofs@linux.kernel.org
 
-On Wed, 2007-02-28 at 15:34 +0100, Jordi Prats wrote:
-> Hi all,
-> I have modified autofs's source code to create an entry point for the 
-> umount operation. Here I attach a patch for autofs-4.1.4
+On Tue, 2007-02-27 at 18:55 -0800, Martin Dorey wrote:
+> > >> /sbin/showmount: can't get address for cvl-xp1/mnt/xp1b
 > 
-> This patch will allow to create a custom umount operation. In my case I 
-> need to perform an operation before mounting the fs and after. So, I 
-> think this could help others.
+>  
 > 
-> What I need to do to contribute this code?
+> That's one of the symptoms I recently saw twice but couldn't
+> reproduce.  In the email thread ("[autofs] automounted symlink to
+> automountsometimesfails,doingDNS query of partial path"), Ian Kent
+> said:
+> 
+>  
+> 
+> >> This may not be related to your problem but Jeff Moyer and I are
+> working
+> 
+> >> on a resolving a race between mount and expire involving symlinks
+> right
+> 
+> >> now.
 
-Sorry, you've got a bit of work to do on that patch.
+But this is a different problem.
 
-When you make a patch please make the diff from a clean source tree.
-The reason for this is that the diff should contain only the changes
-that you're proposing so the possibility of mistakes getting through is
-minimized. As it is this patch contains a more unrelated stuff than the
-changes for the proposal itself. I can't really follow it well enough to
-know what you're trying to do.
-
-Ian
+> 
+> -------------------------------------
+> Martin's Outlook, BlueArc Engineering
+> 
+> 
+>                                    
+> ______________________________________________________________________
+> From: autofs-bounces@linux.kernel.org
+> [mailto:autofs-bounces@linux.kernel.org] On Behalf Of Brian Weaver
+> Sent: Monday, February 26, 2007 7:21
+> To: autofs@linux.kernel.org
+> Subject: [autofs] Problem with /net and dropped mounts in 2.6.17.11
+> 
+> 
+>  
+> 
+> Greetings,
+> 
+> We recently moved one of our projects from 2.6.12 up to 2.6.17.11 for
+> some hardware enablement reasons, but now we are seeing mounts
+> consistently drop.
+> 
+> We have a dedicated NFS fileserver with 9 exported mount points. Our
+> Linux clients 
+> are using /etc/auto.net to mount these on /net.  Everything works fine
+> on initial
+> startup, all of the mounts show up fine, but then after a while, one
+> of the mounts
+> disappears, is no longer mounted or in /etc/mtab, and automounter logs
+> the following 
+> to syslog whenever we try to access the mount:
+> 
+> Feb 26 08:01:08 fclw436 automount[25387]: >> /sbin/showmount: can't
+> get address for cvl-xp1/mnt/xp1b 
+> Feb 26 08:01:08 fclw436 automount[25387]: lookup(program): lookup for
+> cvl-xp1/mnt/xp1b failed 
+> Feb 26 08:01:08 fclw436 automount[25387]: failed to
+> mount /net/cvl-xp1/mnt/xp1b 
+> 
+> 
+> 
+> So it looks like showmount is actually failing.. It shouldn't be
+> looking up host cvl-xp1/mnt/xp1b.. 
+> 
+> Am I just running into an old showmount bug? 
+> 
+> 
+> _______________________________________________
+> autofs mailing list
+> autofs@linux.kernel.org
+> http://linux.kernel.org/mailman/listinfo/autofs
