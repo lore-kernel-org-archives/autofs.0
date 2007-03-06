@@ -1,10 +1,11 @@
-From: Jordi Prats <jprats@cesca.es>
-Subject: snapshooting a fs
-Date: Mon, 05 Mar 2007 09:43:02 +0100
-Message-ID: <45EBD816.1000100@cesca.es>
+From: Dan Krejsa <dan.krejsa@alamedanet.net>
+Subject: automount dies almost immediately after upgrade to autofs
+	5.0.1
+Date: Mon, 05 Mar 2007 21:36:13 -0800
+Message-ID: <1173159373.3989.18.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -18,36 +19,41 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-Hi all,
-I'm going to develop a module to create a snapshoot with LVM before =
+Hi,
 
-mounting, destroying it after umounting.
+Yesterday I updated autofs, the kernel, selinux-policy, and 
+a few other things on my Fedora Core 6 laptop.  Today I brought
+my laptop in to work, and autofs failed for /net mounts.
 
-I have thought tree different ways to do it:
+Here's the relevant section of yum.log:
 
-- Do it as a module, defining a different fstype (like "ext3lvm"), using =
+Mar 04 13:12:39 Installed: kernel-xen.i686 2.6.19-1.2911.6.4.fc6
+Mar 04 13:12:51 Installed: kernel.i686 2.6.19-1.2911.6.4.fc6
+Mar 04 13:12:51 Installed: ieee80211-kmdl-2.6.19-1.2911.6.4.fc6.i686 1.2.16-17.fc6.at
+Mar 04 13:12:52 Installed: ieee80211-kmdl-2.6.19-1.2911.6.4.fc6xen.i686 1.2.16-17.fc6.at
+Mar 04 13:12:58 Updated: vim-common.i386 2:7.0.201-1.fc6
+Mar 04 13:13:01 Updated: selinux-policy.noarch 2.4.6-41.fc6
+Mar 04 13:13:03 Updated: kernel-headers.i386 2.6.19-1.2911.6.4.fc6
+Mar 04 13:13:04 Updated: readahead.i386 1:1.3-7.fc6
+Mar 04 13:13:04 Installed: ipw3945-kmdl-2.6.19-1.2911.6.4.fc6xen.i686 1.2.0-18.2.fc6.at
+Mar 04 13:13:06 Updated: autofs.i386 1:5.0.1-0.rc3.23
+Mar 04 13:13:07 Updated: vim-enhanced.i386 2:7.0.201-1.fc6
+Mar 04 13:13:14 Updated: selinux-policy-targeted.noarch 2.4.6-41.fc6
+Mar 04 13:13:15 Installed: nvidia-graphics9629-kmdl-2.6.19-1.2911.6.4.fc6.i686 1:1.0_9629-81.fc6.at
+Mar 04 13:13:15 Updated: vim-minimal.i386 2:7.0.201-1.fc6
+Mar 04 13:13:16 Installed: nvidia-graphics9629-kmdl-2.6.19-1.2911.6.4.fc6xen.i686 1:1.0_9629-81.fc6.at
+Mar 04 13:13:17 Installed: ipw3945-kmdl-2.6.19-1.2911.6.4.fc6.i686 1.2.0-18.2.fc6.at
 
-the generic module to mount and umount the real ext3 fs.
+I tried restarting autofs using '/etc/init.d/autofs start'
+and it would claim success "[OK]", but in a few seconds (probably
+less than a minute) the automount process would
+disappear and '/etc/init.d/autofs status' would report
+autofs stopped. DNS & general network connectivity were working.
 
-- Modify the generic module to add a option (like -lvmsnapshoot)
+Last Friday (before the update) I had been using automounts under
+/net with no problem, in the same environment. I'm not an autofs experts
+and haven't messed with the default auto.* configuration files.
 
-- Like Jim Carter proposed, create a module to allow mounting and =
+Any hints?
 
-umounting the fs to a script.
-
-What do you think would be best?
-
-Thank you,
-Jordi
-
--- =
-
-......................................................................
-         __
-        / /          Jordi Prats
-  C E / S / C A      Dept. de Sistemes
-      /_/            Centre de Supercomputaci=F3 de Catalunya
-
-  Gran Capit=E0, 2-4 (Edifici Nexus) =B7 08034 Barcelona
-  T. 93 205 6464 =B7 F.  93 205 6979 =B7 jprats@cesca.es
-...................................................................... =
+- Dan
