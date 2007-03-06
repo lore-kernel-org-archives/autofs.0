@@ -1,14 +1,14 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: automount dies almost immediately after upgrade
-	to	autofs 5.0.1
-Date: Tue, 06 Mar 2007 17:22:45 +0900
-Message-ID: <1173169365.3399.1.camel@raven.themaw.net>
-References: <1173159373.3989.18.camel@localhost.localdomain>
+From: Guillaume Rousse <Guillaume.Rousse@inria.fr>
+Subject: Re: [ANNOUNCE] autofs 5.0.1 release
+Date: Tue, 06 Mar 2007 11:41:30 +0100
+Message-ID: <45ED455A.60406@inria.fr>
+References: <200702200718.l1K7Ixlk029511@raven.themaw.net>	<45DC0CEA.5050502@inria.fr>
+	<1172066045.3380.16.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1173159373.3989.18.camel@localhost.localdomain>
+In-Reply-To: <1172066045.3380.16.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,43 +19,28 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Dan Krejsa <dan.krejsa@alamedanet.net>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-On Mon, 2007-03-05 at 21:36 -0800, Dan Krejsa wrote:
-> Hi,
+Ian Kent wrote:
+> Thanks for the reminder.
+> I've grabbed them again and I'll have a closer look this weekend.
 > 
-> Yesterday I updated autofs, the kernel, selinux-policy, and 
-> a few other things on my Fedora Core 6 laptop.  Today I brought
-> my laptop in to work, and autofs failed for /net mounts.
-> 
-> Here's the relevant section of yum.log:
-> 
-> Mar 04 13:12:39 Installed: kernel-xen.i686 2.6.19-1.2911.6.4.fc6
-> Mar 04 13:12:51 Installed: kernel.i686 2.6.19-1.2911.6.4.fc6
-> Mar 04 13:12:51 Installed: ieee80211-kmdl-2.6.19-1.2911.6.4.fc6.i686 1.2.16-17.fc6.at
-> Mar 04 13:12:52 Installed: ieee80211-kmdl-2.6.19-1.2911.6.4.fc6xen.i686 1.2.16-17.fc6.at
-> Mar 04 13:12:58 Updated: vim-common.i386 2:7.0.201-1.fc6
-> Mar 04 13:13:01 Updated: selinux-policy.noarch 2.4.6-41.fc6
-> Mar 04 13:13:03 Updated: kernel-headers.i386 2.6.19-1.2911.6.4.fc6
-> Mar 04 13:13:04 Updated: readahead.i386 1:1.3-7.fc6
-> Mar 04 13:13:04 Installed: ipw3945-kmdl-2.6.19-1.2911.6.4.fc6xen.i686 1.2.0-18.2.fc6.at
-> Mar 04 13:13:06 Updated: autofs.i386 1:5.0.1-0.rc3.23
-> Mar 04 13:13:07 Updated: vim-enhanced.i386 2:7.0.201-1.fc6
-> Mar 04 13:13:14 Updated: selinux-policy-targeted.noarch 2.4.6-41.fc6
-> Mar 04 13:13:15 Installed: nvidia-graphics9629-kmdl-2.6.19-1.2911.6.4.fc6.i686 1:1.0_9629-81.fc6.at
-> Mar 04 13:13:15 Updated: vim-minimal.i386 2:7.0.201-1.fc6
-> Mar 04 13:13:16 Installed: nvidia-graphics9629-kmdl-2.6.19-1.2911.6.4.fc6xen.i686 1:1.0_9629-81.fc6.at
-> Mar 04 13:13:17 Installed: ipw3945-kmdl-2.6.19-1.2911.6.4.fc6.i686 1.2.0-18.2.fc6.at
-> 
-> I tried restarting autofs using '/etc/init.d/autofs start'
-> and it would claim success "[OK]", but in a few seconds (probably
-> less than a minute) the automount process would
-> disappear and '/etc/init.d/autofs status' would report
-> autofs stopped. DNS & general network connectivity were working.
+> One thing though, I feel quite strongly about renaming the config file
+> but maybe I misunderstand what your trying to do so let me check it out
+> first.
+I guess you're refering to
+autofs-5.0.1-rc1-cleanup-config-files-names.patch here.
+Reading it now, it seems I mixed two issues:
+- make ldap_auth configuration file researched in autofs configuration
+directory, instead of having to set its full name in autofs
+configuration file, avoiding yet another subtitution during installation
+- and actually renaming autofs to autofs.conf, mainly for consistency
+between files
 
-Is there anything at all in the logs?
-You can get a debug log by following the instructions at
-http://people.redhat.com/jmoyer
-
-Ian
+I understand such changes ocurring after a final release may be
+considered a bit drastic, that's why I originally submitted quite long
+ago. The same applies to the patch renaming configuration options from
+DEFAULT_FOO to just FOO: while cleaner, it breaks existing
+configurations. If you don't want to merge them now, please consider
+them for a 5.1 release then.
