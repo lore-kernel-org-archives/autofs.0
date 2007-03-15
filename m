@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: autofs5: multiple entries with wildcards
-Date: Thu, 15 Mar 2007 12:15:42 +0900
-Message-ID: <1173928542.3379.3.camel@raven.themaw.net>
+Date: Thu, 15 Mar 2007 12:20:49 +0900
+Message-ID: <1173928849.3379.10.camel@raven.themaw.net>
 References: <1173907255.8503.12.camel@prometheus.workstation.sash-bielefeld.net>
 	<m3fy878pty.fsf@redhat.com>
 	<1173919596.12589.1.camel@prometheus.workstation.sash-bielefeld.net>
@@ -48,21 +48,11 @@ On Thu, 2007-03-15 at 01:46 +0100, Sascha Frey wrote:
 > > * -fstype=nfs,rw        homeserver1,homeserver2:/home/&
 > This doesn't solve my problem, because the NFS export directories are
 > different on both servers (sorry, my auto.homes was just a sample).
-> 
-> I've seen an autofs4 setup with the maps on NIS.
-> The map entries looked like this:
-> #ypcat auto.home
-> NFSServer:/mnt/sda1/&
-> NFSServer:/mnt/sdc3/&
-> NFSServer2:/mnt/users/&
-> ...
 
-But you haven't confirmed that the above NIS map is the same as what you
-are using in your map.
+Why not?
+Did you actually try the expanded rather than shorthand version of the
+above:
 
-Try using "ypcat -k auto.home" and see what the keys are.
-
-I don't believe that and automounter will allow you to have multiple
-wildcard entries.
+* -fstype=nfs,rw server1:/path1/& server2:/path2/&
 
 Ian
