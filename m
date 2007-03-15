@@ -1,7 +1,7 @@
-From: Ian Kent <raven@themaw.net>
+From: Matthew Costello <matthew@ottix.com>
 Subject: Re: autofs5: multiple entries with wildcards
-Date: Thu, 15 Mar 2007 12:20:49 +0900
-Message-ID: <1173928849.3379.10.camel@raven.themaw.net>
+Date: Wed, 14 Mar 2007 23:27:21 -0700
+Message-ID: <1173940041.22645.3.camel@donner.ottix.com>
 References: <1173907255.8503.12.camel@prometheus.workstation.sash-bielefeld.net>
 	<m3fy878pty.fsf@redhat.com>
 	<1173919596.12589.1.camel@prometheus.workstation.sash-bielefeld.net>
@@ -24,35 +24,19 @@ To: Sascha Frey <sfrey@acs-software.de>
 Cc: autofs@linux.kernel.org
 
 On Thu, 2007-03-15 at 01:46 +0100, Sascha Frey wrote:
-> On Wed, 2007-03-14 at 17:42 -0400, jmoyer@redhat.com wrote:
-> > ==> Regarding [autofs] autofs5: multiple entries with wildcards; Sascha Frey <sfrey@acs-software.de> adds:
-> > 
-> > sfrey> Hi,
-> > sfrey> I'm trying to set up autofs5, but I've got a problem:
-> > 
-> > sfrey> auto.master:
-> > sfrey> /homes		/etc/auto.homes
-> > 
-> > sfrey> auto.homes:
-> > sfrey> * -fstype=nfs,rw        homeserver1:/home/&
-> > sfrey> * -fstype=nfs,rw        homeserver2:/home/&
-> > 
-> > sfrey> The directories on the first server are mounted. 
-> > sfrey> But if I try to access a home which is on the second one I get a 'No
-> > sfrey> such file or directory' error.
-> > 
-> > Your configuration is not valid.  You can use a replicated server entry,
-> > but this is not the purpose for which it was intended.  Even so, it should
-> > work:
-> > 
-> > * -fstype=nfs,rw        homeserver1,homeserver2:/home/&
-> This doesn't solve my problem, because the NFS export directories are
-> different on both servers (sorry, my auto.homes was just a sample).
+> ...
+> This is what I want, but without NIS.
+> I'm testing now with local map files, but I want to store the maps in my
+> LDAP directory.
 
-Why not?
-Did you actually try the expanded rather than shorthand version of the
-above:
+I don't know if this is what you want, but this is the meat of the shell
+script I used to create the /etc/auto.home map from LDAP.  Home
+directories in my environment don't change all that often so creating a
+static map from the LDAP information gives slightly more speed and
+higher reliability.
 
-* -fstype=nfs,rw server1:/path1/& server2:/path2/&
-
-Ian
+ldapsearch -x -s sub -S cn nisMapName=auto.home cn nisMapEntry | \
+sed -e "s/`uname -n`:/:/" | \
+awk '$1 == "cn:" { cn=$2 }
+$1 == "nisMapEntry:" { printf "%-10s %s,rsize=8192,wsize=8192 %s\n", cn,
+$2,$3 }' >> $tmpfile
