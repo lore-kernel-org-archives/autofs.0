@@ -1,13 +1,11 @@
-From: Jim Carter <jimc@math.ucla.edu>
-Subject: Re: autofs5: multiple entries with wildcards
-Date: Thu, 15 Mar 2007 09:39:54 -0700 (PDT)
-Message-ID: <Pine.LNX.4.64.0703150909200.24470@simba.math.ucla.edu>
-References: <1173907255.8503.12.camel@prometheus.workstation.sash-bielefeld.net>
+From: weiler@soe.ucsc.edu
+Subject: Autofs weirdness in nsswitch.conf and other stuff...
+Date: Thu, 15 Mar 2007 15:05:00 -0700 (PDT)
+Message-ID: <60464.128.114.56.35.1173996300.squirrel@webmail.soe.ucsc.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1173907255.8503.12.camel@prometheus.workstation.sash-bielefeld.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,65 +16,54 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Sascha Frey <sfrey@acs-software.de>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Wed, 14 Mar 2007, Sascha Frey wrote:
+Hey all-
 
-> auto.master:
-> /homes		/etc/auto.homes
-> 
-> auto.homes:
-> * -fstype=nfs,rw        homeserver1:/home/&
-> * -fstype=nfs,rw        homeserver2:/home/&
-> 
-> The directories on the first server are mounted. 
-> But if I try to access a home which is on the second one I get a 'No
-> such file or directory' error.
+I'm testing out CentOS 5 (i.e. RedHat 5) and and playing around with
+autofs 5.0.1 which is the version that ships with it.  I'm noticing three
+odd things based on what I was seeing in RedHat 4.4 (which has autofs
+4.1.3):
 
-That's not a bug, that's a feature :-)  If you were to access /homes/jimc 
-then autofs would go through /etc/auto.homes until it found a match to the 
-wildcard (in the first line), mount homeserver1:/home/jimc, and its job is 
-done; it has no reason to look at subsequent lines.  
+1: Before, with autofs 4.1.3, I had in /etc/nsswitch.conf:
 
-Several people have suggested using hot failover syntax, so if the mount 
-fails it could try additional servers (on the same line).  But that's a 
-kludge, not what hot failover is for -- it's intended for when several 
-servers have identical data, so (e.g.) the department's favorite software 
-package remains available even if its primary residence site goes down.
+automount: files ldap
 
-Here at UCLA-Mathnet we handle the issue actually in two parallel ways: 
-first, a user's official homedir would be /net/$hostname/$filesys/$loginID, 
-e.g. /net/julia/h1/jimc, and a generic map causes julia:/h1 to be mounted 
-on /net/julia/h1.  This has the advantage of requiring one mount per 
-filesystem, not one mount per user, so we've never hit the limit on the 
-number of mounted filesystems.
+And I had some maps in /etc/auto.master that mounted AND I had some maps
+in LDAP that mounted, both worked OK together.  But in Autofs 5.0.1, the
+same line in nsswitch.conf only lets me use whatever is first, i.e. if
+files is listed first it automounts with flat files but not LDAP, or vice
+versa.  Is there any way to get them BOTH working again, or is this a
+nifty feature that has been removed?
 
-On the other hand, the "home" NIS map would have a key of the loginID and a 
-value of for example julia:/h1/jimc, and the automounter would mount the 
-correct subdirectory of the correct host on /home/jimc (at a cost of one 
-mount per user).  We provide this for autonomous scripts where $HOME may 
-not have a useable value and where it may be hard to resolve ~$USER, e.g. 
-/bin/sh scripts on Solaris.
+2: When it loads flat files from auto.master locally, I see all the maps
+mount at once randomly, i.e. if I have 1 map with 10 mounts listed in it,
+I see them ALL mount at once!  Even though I didn't access them.  They
+seem to come and go randomly...  Is this normal with autofs 5?
 
-Conclusion: one way or another, you need to list the server and the 
-filesystem explicitly in the NIS or LDAP map that defines the user's home 
-directory.
+3: I used to see this when I did a "ps -ef | grep automount" in autofs 4.1.3:
 
-FYI, here are our /etc/auto.* files:
+% ps -ef | grep automount
+[root@lutra ~]# ps -ef | grep automount
+root      3373     1  0 Mar14 ?        00:00:00 /usr/sbin/automount
+--timeout=6000 /cluster file /etc/auto.cluster intr
+root      3442     1  0 Mar14 ?        00:00:00 /usr/sbin/automount
+--timeout=6000 /share file /etc/auto.share
+root      3489     1  0 Mar14 ?        00:00:00 /usr/sbin/automount
+--timeout=60 --ghost /home ldap nisMapName=auto.home,dc=someuniv,dc=edu
+-hard,intr,rw
+root      3565     1  0 Mar14 ?        00:00:00 /usr/sbin/automount
+--timeout=60 --ghost /projects ldap
+nisMapName=auto.projects,dc=someuniv,dc=edu -hard,intr,rw
 
-auto.master:
-/net            /etc/auto.net.new
-/home           yp:auto.home
+But now all I see on 5.0.1 is:
 
-auto.net.new (all on 1 line):
-*       -rsize=8192,wsize=8192,retry=1,soft,fstype=autofs,-DSERVER=& \
-    file:/etc/auto.net.generic
+% ps -ef | grep automount:
+root     25274     1  0 14:43 ?        00:00:00 automount
+root     25451 18488  0 15:02 pts/1    00:00:00 grep automount
 
-auto.net.generic:
-*       ${SERVER}:/&
+Not nearly as descriptive as to *what* is actually live or not...
 
+Thanks for any hints!!
 
-James F. Carter          Voice 310 825 2897    FAX 310 206 6673
-UCLA-Mathnet;  6115 MSA; 405 Hilgard Ave.; Los Angeles, CA, USA  90095-1555
-Email: jimc@math.ucla.edu    http://www.math.ucla.edu/~jimc (q.v. for PGP key)
+-erich
