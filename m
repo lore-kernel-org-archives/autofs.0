@@ -1,18 +1,13 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: Autofs weirdness in nsswitch.conf and other stuff...
-Date: Fri, 16 Mar 2007 12:49:37 -0400
-Message-ID: <x49r6rpb0bi.fsf@segfault.boston.devel.redhat.com>
-References: <60464.128.114.56.35.1173996300.squirrel@webmail.soe.ucsc.edu>
-	<1174008860.3397.9.camel@raven.themaw.net>
-	<45FA996D.2080606@redhat.com>
-	<1174055083.3397.11.camel@raven.themaw.net>
-	<Pine.LNX.4.64.0703160904560.11089@simba.math.ucla.edu>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: how does this work?
+Date: Sat, 17 Mar 2007 01:59:52 +0900
+Message-ID: <1174064392.3397.65.camel@raven.themaw.net>
+References: <c80174f10703130359o45f0a547r6b620e862fa4de14@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.0703160904560.11089@simba.math.ucla.edu> (Jim
-	Carter's message of "Fri, 16 Mar 2007 09:25:52 -0700 (PDT)")
+In-Reply-To: <c80174f10703130359o45f0a547r6b620e862fa4de14@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -23,28 +18,59 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jim Carter <jimc@math.ucla.edu>
-Cc: autofs@linux.kernel.org, Ian Kent <raven@themaw.net>
+To: Sanjay Sha <sanjay.sha@gmail.com>
+Cc: autofs@linux.kernel.org
 
-==> On Fri, 16 Mar 2007 09:25:52 -0700 (PDT), Jim Carter <jimc@math.ucla.edu> said:
+On Tue, 2007-03-13 at 16:29 +0530, Sanjay Sha wrote:
+> Here is the scenario::
+> ~~~~~~~~~~~~~~~~
+> 
+> myhome.nfs is a CNAME to myweb.apla.com
+> (myhome.nfs.apla.com is a CNAME to myweb.apla.com)
+> 
+> autofs config looks like this::
+> 
+> /auto/myhome    myhome.nfs:/home/sanjay
 
-[snip]
-Jim> I'm inclined to say that if it didn't, it should have, and we should do it 
-Jim> "right" rather than carrying forward historical mistakes for the sake of 
-Jim> being able to drop a Linux kernel and packages among Solaris configuration 
-Jim> files and having it work out of the box (and having it NOT work out of the 
-Jim> box when a man-page-following Linux sysop upgrades).  But I can see why 
-Jim> Solaris sysadmins might think differently.  Certainly plus lines should not 
-Jim> be rejected noisily as errors.  Better to just ignore them.
+What config?
+What file is this line located in?
 
-Clearly you don't work in mixed environments, or legacy environments
-for that matter.  Support for included maps is non-negotiable.  Ian
-has spent a great deal of time making sure that the Linux automounter
-behaves identically to the automounters provided by Sun, HP, IBM, SGI,
-etc.  There's a reason for that, and the reason is customers want it.
+You need to place automount managed mount points in a master map, often
+named "auto.master" and commonly located in "/etc".
 
-And, if that's not a good enough reason, by coding to the de facto
-standard we also get a great regression test suite (connectathon) for
-free.
+For example an auto.master (master map) to mount home directories might
+have an entry (among others) like:
 
--Jeff
+/home	/etc/auto.home
+
+and then the map /etc/auto.home may have mount entries (among others)
+like:
+
+myhome	myhome.nfs:/home/sanjay
+
+
+> on the same client machine::
+> 
+> /etc/resolv.conf has 
+> search apla.com 
+> nameserver 10.10.10.245
+> nameserver 10.10.10.244
+> 
+> now ping to myhome.nfs gives
+> 
+> PING myweb.apla.com (10.10.10.12) 56(84) bytes of data
+> 64 bytes from myweb.apla.com (10.10.10.12) : icmp_seq=1 ttl=254
+> time=0.132ms
+> 
+> When I do this..
+> 
+> tech-sanjay:/auto$ cd myhome
+> -bash: cd: myhome: No such file or directory
+> 
+> I am trying to understand how the automount deamon handles the
+> requests... I am curious to know how the DNS resolution part is
+> handled.. 
+
+By standard system library calls like other programs.
+
+Ian
