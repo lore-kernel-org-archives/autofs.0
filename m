@@ -1,13 +1,20 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: how does this work?
-Date: Sat, 17 Mar 2007 01:59:52 +0900
-Message-ID: <1174064392.3397.65.camel@raven.themaw.net>
-References: <c80174f10703130359o45f0a547r6b620e862fa4de14@mail.gmail.com>
+From: Jim Carter <jimc@math.ucla.edu>
+Subject: Re: Autofs weirdness in nsswitch.conf and other stuff...
+Date: Fri, 16 Mar 2007 10:09:24 -0700 (PDT)
+Message-ID: <Pine.LNX.4.64.0703160951030.11089@simba.math.ucla.edu>
+References: <60464.128.114.56.35.1173996300.squirrel@webmail.soe.ucsc.edu>
+	<1174008860.3397.9.camel@raven.themaw.net>
+	<45FA996D.2080606@redhat.com>
+	<1174055083.3397.11.camel@raven.themaw.net>
+	<45FAABA3.8060608@redhat.com>
+	<x494polck3t.fsf@segfault.boston.devel.redhat.com>
+	<45FAB4B8.7060908@soe.ucsc.edu>
+	<1174062776.3397.51.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <c80174f10703130359o45f0a547r6b620e862fa4de14@mail.gmail.com>
+In-Reply-To: <1174062776.3397.51.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,59 +25,35 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Sanjay Sha <sanjay.sha@gmail.com>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-On Tue, 2007-03-13 at 16:29 +0530, Sanjay Sha wrote:
-> Here is the scenario::
-> ~~~~~~~~~~~~~~~~
-> 
-> myhome.nfs is a CNAME to myweb.apla.com
-> (myhome.nfs.apla.com is a CNAME to myweb.apla.com)
-> 
-> autofs config looks like this::
-> 
-> /auto/myhome    myhome.nfs:/home/sanjay
+On Sat, 17 Mar 2007, Ian Kent wrote:
 
-What config?
-What file is this line located in?
+> Let me see if I can clear this up.
+> ...
+> The first instance of a master map that is found, using nsswitch, is
+> used unless it is explicitly specified, such as "/etc/auto.master",
+> ...
+> The first instance of each autofs managed indirect mount that is found
+> in the master map is used. The corresponding map given in the entry is
+> looked for by using nsswitch specified sources unless the source is
+> explicitly given, such as "/etc/auto.mymap" in which case only that map
+> is used. Additional instances of the same indirect mount point in the
+> configuration are ignored.
+> ...
+> Automount key lookups use the same rules as the lookup of maps above and
+> the first instance of a map key found is used.
 
-You need to place automount managed mount points in a master map, often
-named "auto.master" and commonly located in "/etc".
+Yes, this does clear it up.  Autofs' philosophy differs from other 
+nsswitchable maps, where a key is looked for in potentially every listed 
+data source until found.  Whereas, autofs identifies the first map that 
+exists, and looks up a key in that map, and if it's absent, you lose.  It 
+doesn't go on to look for the key in subsequent data sources such as LDAP, 
+unless the plus kludge has been used.  (In any case, the first found 
+instance of the key is used and subsequent instances or sources are 
+not looked at.)
 
-For example an auto.master (master map) to mount home directories might
-have an entry (among others) like:
-
-/home	/etc/auto.home
-
-and then the map /etc/auto.home may have mount entries (among others)
-like:
-
-myhome	myhome.nfs:/home/sanjay
-
-
-> on the same client machine::
-> 
-> /etc/resolv.conf has 
-> search apla.com 
-> nameserver 10.10.10.245
-> nameserver 10.10.10.244
-> 
-> now ping to myhome.nfs gives
-> 
-> PING myweb.apla.com (10.10.10.12) 56(84) bytes of data
-> 64 bytes from myweb.apla.com (10.10.10.12) : icmp_seq=1 ttl=254
-> time=0.132ms
-> 
-> When I do this..
-> 
-> tech-sanjay:/auto$ cd myhome
-> -bash: cd: myhome: No such file or directory
-> 
-> I am trying to understand how the automount deamon handles the
-> requests... I am curious to know how the DNS resolution part is
-> handled.. 
-
-By standard system library calls like other programs.
-
-Ian
+James F. Carter          Voice 310 825 2897    FAX 310 206 6673
+UCLA-Mathnet;  6115 MSA; 405 Hilgard Ave.; Los Angeles, CA, USA  90095-1555
+Email: jimc@math.ucla.edu    http://www.math.ucla.edu/~jimc (q.v. for PGP key)
