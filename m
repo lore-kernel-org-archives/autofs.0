@@ -1,16 +1,17 @@
-From: Jim Carter <jimc@math.ucla.edu>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: Autofs weirdness in nsswitch.conf and other stuff...
-Date: Fri, 16 Mar 2007 09:25:52 -0700 (PDT)
-Message-ID: <Pine.LNX.4.64.0703160904560.11089@simba.math.ucla.edu>
+Date: Sat, 17 Mar 2007 01:32:56 +0900
+Message-ID: <1174062776.3397.51.camel@raven.themaw.net>
 References: <60464.128.114.56.35.1173996300.squirrel@webmail.soe.ucsc.edu>
-	<1174008860.3397.9.camel@raven.themaw.net>
-	<45FA996D.2080606@redhat.com>
-	<1174055083.3397.11.camel@raven.themaw.net>
+	<1174008860.3397.9.camel@raven.themaw.net>	<45FA996D.2080606@redhat.com>
+	<1174055083.3397.11.camel@raven.themaw.net>	<45FAABA3.8060608@redhat.com>
+	<x494polck3t.fsf@segfault.boston.devel.redhat.com>
+	<45FAB4B8.7060908@soe.ucsc.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1174055083.3397.11.camel@raven.themaw.net>
+In-Reply-To: <45FAB4B8.7060908@soe.ucsc.edu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,48 +22,60 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
+To: Erich Weiler <weiler@soe.ucsc.edu>
 Cc: autofs@linux.kernel.org
 
-On Fri, 16 Mar 2007, Ian Kent wrote:
-
-> > > That's correct.
-> > > That's the behavior of other industry standard automounters.
-> > > Adding a plus include line at the end of /etc/auto.master (as in the
-> > > default configuration) will allow the inclusion of the LDAP master map
-> > > in the above example.
-> > 
-> > Is this really true?  My impression was that autofs implementations such as
-> > the Solaris version would use the name service switch really as a switch.
-> > It would look for a map following the standard rules which apply to
-> > nsswitch.conf entries.  I can remember using a combination of NIS+ and
-> > flat files for map sources, without having to resort to the "+" tricks.
+On Fri, 2007-03-16 at 08:16 -0700, Erich Weiler wrote:
+> > You misunderstood.  Each time a lookup occurs the name service switch
+> > is consulted.
 > 
-> Think so.
-> I'll check again.
-> But I think that the first source found (master map in this case) is
-> used.
+> If it is consulted each time a lookup occurs, then why do ldap lookups 
+> fail if ldap is listed *after* files in nsswitch.conf?  It looks to me 
+> like when the automounter daemon starts it looks at nsswitch.conf once, 
+> loads the first options on the automount line (and the second if the "+" 
+> option is used) and that's it, nsswitch.conf is never consulted again. 
+> Looking in /proc/mounts shows automounters listening for specific 
+> requests only, not simply a name service switch query able type thing. 
+> Am I misunderstanding the behavior I am seeing?
 
-For other maps on Solaris such as passwd, if the key were not found in the 
-first source (files) it would normally try the next one (NIS or, on 
-advanced systems, LDAP).  According to the man page, glibc for Linux does 
-the same thing.  It's possible (Solaris and Linux) to influence this 
-behavior by reaction tags such as [NOTFOUND=return].  The plus kludge was a 
-Solaris-ism introduced in SunOS-3.x, before nsswitch.conf.  libc::getpwnam 
-etc. would always consult files first, and then if you had NIS you could 
-authorize its use by appending the plus line.  But plus lines were 
-deprecated when nsswitch.conf appeared, I think in SunOS-4.0.
+Let me see if I can clear this up.
 
-I can't remember whether Solaris autofs followed the same rule.  
+Not withstanding that the nsswitch syntax can itself prevent the lookup
+from continuing the following is how this should work.
 
-I'm inclined to say that if it didn't, it should have, and we should do it 
-"right" rather than carrying forward historical mistakes for the sake of 
-being able to drop a Linux kernel and packages among Solaris configuration 
-files and having it work out of the box (and having it NOT work out of the 
-box when a man-page-following Linux sysop upgrades).  But I can see why 
-Solaris sysadmins might think differently.  Certainly plus lines should not 
-be rejected noisily as errors.  Better to just ignore them.
+The first instance of a master map that is found, using nsswitch, is
+used unless it is explicitly specified, such as "/etc/auto.master",
+either in the autofs configuration or on the command line to the
+automount program.
 
-James F. Carter          Voice 310 825 2897    FAX 310 206 6673
-UCLA-Mathnet;  6115 MSA; 405 Hilgard Ave.; Los Angeles, CA, USA  90095-1555
-Email: jimc@math.ucla.edu    http://www.math.ucla.edu/~jimc (q.v. for PGP key)
+Since the first instance is used there can be only one of source for the
+master map. Plus map inclusion is allowed only in file based maps so
+additional master maps can be included from a file based master map
+only.
+
+The first instance of each autofs managed indirect mount that is found
+in the master map is used. The corresponding map given in the entry is
+looked for by using nsswitch specified sources unless the source is
+explicitly given, such as "/etc/auto.mymap" in which case only that map
+is used. Additional instances of the same indirect mount point in the
+configuration are ignored.
+
+Multiple direct mount entries can be specified in the master map and the
+maps are treated as one large direct mount map. The corresponding map
+given in each entry is looked for by using nsswitch specified sources
+unless the source is explicitly given, such as "/etc/auto.mymap" in
+which case only that map is used.
+
+Plus map inclusion is allowed only in file based maps so additional maps
+for both direct and indirect mount maps may be included from a file
+based map only. The plus map inclusion knows not to include itself and
+so a map of the same name may come from an nsswitch source that follows
+"files" in the nsswitch configuration.
+
+Automount key lookups use the same rules as the lookup of maps above and
+the first instance of a map key found is used.
+
+At least that what I think I implemented and I believe that the Solaris
+automounter does the same thing.
+
+Ian
