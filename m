@@ -1,14 +1,13 @@
-From: jmoyer@redhat.com
+From: Jarl Stefansson <jarl@marimo.is>
 Subject: Re: Unmount not working with 2.6.21  & 4.1.3/4.1.4
-Date: Mon, 26 Mar 2007 12:58:17 -0400
-Message-ID: <m3wt147xhy.fsf@redhat.com>
-References: <9573979.6871174927016112.JavaMail.root@holcus>
+Date: Mon, 26 Mar 2007 18:56:44 +0000 (GMT)
+Message-ID: <10913609.6901174935404793.JavaMail.root@holcus>
+References: <m3wt147xhy.fsf@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <9573979.6871174927016112.JavaMail.root@holcus> (Jarl
-	Stefansson's message of "Mon, 26 Mar 2007 16:36:56 +0000 (GMT)")
+In-Reply-To: <m3wt147xhy.fsf@redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,8 +18,29 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jarl Stefansson <jarl@marimo.is>
+To: jmoyer@redhat.com
 Cc: autofs@linux.kernel.org, Ian Kent <raven@themaw.net>
+
+Hey Jeff,
+
+Yes, I am 100% sure that there is nothing using the mounted filesystems.
+For debugging I have a system with just bare minimals, kernel + glibc + base utilities so
+there really aren't any applications which can interfere.
+
+According to what I have read I should also be getting some debug info in the log
+regarding the timeout period but I can't see any mention of timeout or unmount.
+
+Yours
+
+Jarl
+
+
+----- Original Message -----
+From: jmoyer@redhat.com
+To: Jarl Stefansson <jarl@marimo.is>
+Cc: Ian Kent <raven@themaw.net>, autofs@linux.kernel.org
+Sent: Monday, March 26, 2007 4:58:17 PM GMT Africa/Casablanca
+Subject: Re: [autofs] Unmount not working with 2.6.21  & 4.1.3/4.1.4
 
 ==> Regarding Re: [autofs] Unmount not working with 2.6.21  & 4.1.3/4.1.4; Jarl Stefansson <jarl@marimo.is> adds:
 
