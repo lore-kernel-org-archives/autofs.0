@@ -1,14 +1,13 @@
-From: jmoyer@redhat.com
+From: Jarl Stefansson <jarl@marimo.is>
 Subject: Re: Unmount not working with 2.6.21  & 4.1.3/4.1.4
-Date: Mon, 26 Mar 2007 15:29:18 -0400
-Message-ID: <m3slbr952p.fsf@redhat.com>
-References: <10913609.6901174935404793.JavaMail.root@holcus>
+Date: Tue, 27 Mar 2007 10:32:22 +0000 (GMT)
+Message-ID: <26433119.6961174991542049.JavaMail.root@holcus>
+References: <m3slbr952p.fsf@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <10913609.6901174935404793.JavaMail.root@holcus> (Jarl
-	Stefansson's message of "Mon, 26 Mar 2007 18:56:44 +0000 (GMT)")
+In-Reply-To: <m3slbr952p.fsf@redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,8 +18,24 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jarl Stefansson <jarl@marimo.is>
+To: jmoyer@redhat.com
 Cc: autofs@linux.kernel.org, Ian Kent <raven@themaw.net>
+
+Hey Jeff,
+
+Here is the debug log when set to 60 sec
+
+http://pastebin.ca/411870
+
+Jarl 
+
+
+----- Original Message -----
+From: jmoyer@redhat.com
+To: Jarl Stefansson <jarl@marimo.is>
+Cc: Ian Kent <raven@themaw.net>, autofs@linux.kernel.org
+Sent: Monday, March 26, 2007 7:29:18 PM GMT Africa/Casablanca
+Subject: Re: [autofs] Unmount not working with 2.6.21  & 4.1.3/4.1.4
 
 ==> Regarding Re: [autofs] Unmount not working with 2.6.21  & 4.1.3/4.1.4; Jarl Stefansson <jarl@marimo.is> adds:
 
