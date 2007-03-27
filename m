@@ -1,13 +1,13 @@
-From: Jarl Stefansson <jarl@marimo.is>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: Unmount not working with 2.6.21  & 4.1.3/4.1.4
-Date: Tue, 27 Mar 2007 10:32:22 +0000 (GMT)
-Message-ID: <26433119.6961174991542049.JavaMail.root@holcus>
-References: <m3slbr952p.fsf@redhat.com>
+Date: Tue, 27 Mar 2007 22:52:21 +0800
+Message-ID: <1175007141.3499.4.camel@raven.themaw.net>
+References: <26433119.6961174991542049.JavaMail.root@holcus>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <m3slbr952p.fsf@redhat.com>
+In-Reply-To: <26433119.6961174991542049.JavaMail.root@holcus>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,42 +18,54 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: jmoyer@redhat.com
-Cc: autofs@linux.kernel.org, Ian Kent <raven@themaw.net>
-
-Hey Jeff,
-
-Here is the debug log when set to 60 sec
-
-http://pastebin.ca/411870
-
-Jarl 
-
-
------ Original Message -----
-From: jmoyer@redhat.com
 To: Jarl Stefansson <jarl@marimo.is>
-Cc: Ian Kent <raven@themaw.net>, autofs@linux.kernel.org
-Sent: Monday, March 26, 2007 7:29:18 PM GMT Africa/Casablanca
-Subject: Re: [autofs] Unmount not working with 2.6.21  & 4.1.3/4.1.4
+Cc: autofs@linux.kernel.org
 
-==> Regarding Re: [autofs] Unmount not working with 2.6.21  & 4.1.3/4.1.4; Jarl Stefansson <jarl@marimo.is> adds:
+On Tue, 2007-03-27 at 10:32 +0000, Jarl Stefansson wrote:
+> Hey Jeff,
+> 
+> Here is the debug log when set to 60 sec
+> 
+> http://pastebin.ca/411870
 
-jarl> Hey Jeff, Yes, I am 100% sure that there is nothing using the mounted
-jarl> filesystems.  For debugging I have a system with just bare minimals,
-jarl> kernel + glibc + base utilities so there really aren't any
-jarl> applications which can interfere.
+Unfortunately, that hasn't helped.
+Version 4 doesn't log the pid of the process accessing the mount point,
+so we still don't know what's causing this.
 
-jarl> According to what I have read I should also be getting some debug
-jarl> info in the log regarding the timeout period but I can't see any
-jarl> mention of timeout or unmount.
+Do you have hald running?
+Does this behavior change after an hour or so?
 
-  Mar 26 01:33:54 kidsq daemon.debug automount[3626]: expire_proc: 1 remaining in /mnt/auto 
+Are there many processes running?
+If not perhaps a list of them would help.
 
-This means that (in your case) the kernel thought that the mount point was
-in use.  Could you humor me and up the timeout to something like 60 seconds
-and see if that helps matters?
-
-Thanks,
-
-Jeff
+> Jarl 
+> 
+> 
+> ----- Original Message -----
+> From: jmoyer@redhat.com
+> To: Jarl Stefansson <jarl@marimo.is>
+> Cc: Ian Kent <raven@themaw.net>, autofs@linux.kernel.org
+> Sent: Monday, March 26, 2007 7:29:18 PM GMT Africa/Casablanca
+> Subject: Re: [autofs] Unmount not working with 2.6.21  & 4.1.3/4.1.4
+> 
+> ==> Regarding Re: [autofs] Unmount not working with 2.6.21  & 4.1.3/4.1.4; Jarl Stefansson <jarl@marimo.is> adds:
+> 
+> jarl> Hey Jeff, Yes, I am 100% sure that there is nothing using the mounted
+> jarl> filesystems.  For debugging I have a system with just bare minimals,
+> jarl> kernel + glibc + base utilities so there really aren't any
+> jarl> applications which can interfere.
+> 
+> jarl> According to what I have read I should also be getting some debug
+> jarl> info in the log regarding the timeout period but I can't see any
+> jarl> mention of timeout or unmount.
+> 
+>   Mar 26 01:33:54 kidsq daemon.debug automount[3626]: expire_proc: 1 remaining in /mnt/auto 
+> 
+> This means that (in your case) the kernel thought that the mount point was
+> in use.  Could you humor me and up the timeout to something like 60 seconds
+> and see if that helps matters?
+> 
+> Thanks,
+> 
+> Jeff
+> 
