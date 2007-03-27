@@ -1,13 +1,13 @@
-From: Ian Kent <raven@themaw.net>
+From: Jarl Stefansson <jarl@marimo.is>
 Subject: Re: Unmount not working with 2.6.21  & 4.1.3/4.1.4
-Date: Tue, 27 Mar 2007 22:52:21 +0800
-Message-ID: <1175007141.3499.4.camel@raven.themaw.net>
-References: <26433119.6961174991542049.JavaMail.root@holcus>
+Date: Tue, 27 Mar 2007 15:10:52 +0000 (GMT)
+Message-ID: <24399709.7011175008252093.JavaMail.root@holcus>
+References: <1175007141.3499.4.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <26433119.6961174991542049.JavaMail.root@holcus>
+In-Reply-To: <1175007141.3499.4.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,8 +18,24 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jarl Stefansson <jarl@marimo.is>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
+
+Hey Ian,
+
+Here is a list of the processes running:
+
+http://pastebin.ca/412160
+
+Jarl 
+
+
+----- Original Message -----
+From: Ian Kent <raven@themaw.net>
+To: Jarl Stefansson <jarl@marimo.is>
+Cc: jmoyer@redhat.com, autofs@linux.kernel.org
+Sent: Tuesday, March 27, 2007 2:52:21 PM GMT Africa/Casablanca
+Subject: Re: [autofs] Unmount not working with 2.6.21  & 4.1.3/4.1.4
 
 On Tue, 2007-03-27 at 10:32 +0000, Jarl Stefansson wrote:
 > Hey Jeff,
