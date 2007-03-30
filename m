@@ -1,13 +1,13 @@
 From: Jarl Stefansson <jarl@marimo.is>
 Subject: Re: Unmount not working with 2.6.21  & 4.1.3/4.1.4
-Date: Tue, 27 Mar 2007 15:10:52 +0000 (GMT)
-Message-ID: <24399709.7011175008252093.JavaMail.root@holcus>
-References: <1175007141.3499.4.camel@raven.themaw.net>
+Date: Fri, 30 Mar 2007 09:38:28 +0000 (GMT)
+Message-ID: <5761954.7251175247508702.JavaMail.root@holcus>
+References: <24399709.7011175008252093.JavaMail.root@holcus>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1175007141.3499.4.camel@raven.themaw.net>
+In-Reply-To: <24399709.7011175008252093.JavaMail.root@holcus>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,8 +18,22 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
+To: autofs@linux.kernel.org
+
+I'm still at a loss as to why automounted file-systems are not being unmounted.
+
+Any suggestions on how to proceed with debugging this issue are appreciated, if there
+is any additional information I can provide please don't hesitate to ask.
+
+Yours
+Jarl
+
+----- Original Message -----
+From: Jarl Stefansson <jarl@marimo.is>
 To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
+Sent: Tuesday, March 27, 2007 3:10:52 PM GMT Africa/Casablanca
+Subject: Re: [autofs] Unmount not working with 2.6.21  & 4.1.3/4.1.4
 
 Hey Ian,
 
@@ -85,3 +99,9 @@ If not perhaps a list of them would help.
 > 
 > Jeff
 > 
+
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
