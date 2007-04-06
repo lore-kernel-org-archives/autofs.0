@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: Unmount not working with 2.6.21  & 4.1.3/4.1.4
-Date: Fri, 30 Mar 2007 20:43:24 +0800
-Message-ID: <1175258604.3374.28.camel@raven.themaw.net>
+Date: Fri, 06 Apr 2007 15:19:49 +0800
+Message-ID: <1175843989.3382.3.camel@raven.themaw.net>
 References: <5761954.7251175247508702.JavaMail.root@holcus>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -27,21 +27,13 @@ On Fri, 2007-03-30 at 09:38 +0000, Jarl Stefansson wrote:
 > Any suggestions on how to proceed with debugging this issue are appreciated, if there
 > is any additional information I can provide please don't hesitate to ask.
 
-I don't have any ideas about how to find out what is accessing your
-mount.
+I just installed a basic Gentoo 2006.1 with gentoo-source kernel r5 and
+autofs-4.1.3-r7. I setup a simple bind mount config and set timeout to 3
+seconds.
 
-lsof may give some information but it looks like the frequency of access
-is high and probably brief (or there's an open file or working directory
-within the automount), as there is no umount followed by mount in the
-log.
+This functions as expected.
 
-Perhaps /mnt is a bad place to put this automount in Gentoo.
-Try another location.
-
-Obviously, this isn't a usb device because as you know, once they're
-mounted, they can often be polled frequently. Don't ask me what software
-or why, I don't know.
-
+> 
 > Yours
 > Jarl
 > 
