@@ -1,13 +1,12 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Unmount not working with 2.6.21  & 4.1.3/4.1.4
-Date: Fri, 06 Apr 2007 15:19:49 +0800
-Message-ID: <1175843989.3382.3.camel@raven.themaw.net>
-References: <5761954.7251175247508702.JavaMail.root@holcus>
+From: Paul Smith <psmith@netezza.com>
+Subject: How exactly does timeout work?
+Date: Mon, 09 Apr 2007 11:45:54 -0400
+Message-ID: <1176133554.30046.175.camel@psmithub>
+Reply-To: psmith@netezza.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <5761954.7251175247508702.JavaMail.root@holcus>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,104 +17,21 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jarl Stefansson <jarl@marimo.is>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Fri, 2007-03-30 at 09:38 +0000, Jarl Stefansson wrote:
-> I'm still at a loss as to why automounted file-systems are not being unmounted.
-> 
-> Any suggestions on how to proceed with debugging this issue are appreciated, if there
-> is any additional information I can provide please don't hesitate to ask.
+I've looked around but I couldn't find an answer to this question.
+There are a lot of offhand comments saying the filesystem will be
+unmounted after timeout seconds, but that's not very precise.
 
-I just installed a basic Gentoo 2006.1 with gentoo-source kernel r5 and
-autofs-4.1.3-r7. I setup a simple bind mount config and set timeout to 3
-seconds.
+If, for example, I set --timeout=60, does that mean the FS will unmount
+60 seconds after it was last accessed?
 
-This functions as expected.
+Or, does it mean that every 60 seconds automount will wake up and see if
+anyone is using the filesystem, and if not unmount it?
 
-> 
-> Yours
-> Jarl
-> 
-> ----- Original Message -----
-> From: Jarl Stefansson <jarl@marimo.is>
-> To: Ian Kent <raven@themaw.net>
-> Cc: autofs@linux.kernel.org
-> Sent: Tuesday, March 27, 2007 3:10:52 PM GMT Africa/Casablanca
-> Subject: Re: [autofs] Unmount not working with 2.6.21  & 4.1.3/4.1.4
-> 
-> Hey Ian,
-> 
-> Here is a list of the processes running:
-> 
-> http://pastebin.ca/412160
-> 
-> Jarl 
-> 
-> 
-> ----- Original Message -----
-> From: Ian Kent <raven@themaw.net>
-> To: Jarl Stefansson <jarl@marimo.is>
-> Cc: jmoyer@redhat.com, autofs@linux.kernel.org
-> Sent: Tuesday, March 27, 2007 2:52:21 PM GMT Africa/Casablanca
-> Subject: Re: [autofs] Unmount not working with 2.6.21  & 4.1.3/4.1.4
-> 
-> On Tue, 2007-03-27 at 10:32 +0000, Jarl Stefansson wrote:
-> > Hey Jeff,
-> > 
-> > Here is the debug log when set to 60 sec
-> > 
-> > http://pastebin.ca/411870
-> 
-> Unfortunately, that hasn't helped.
-> Version 4 doesn't log the pid of the process accessing the mount point,
-> so we still don't know what's causing this.
-> 
-> Do you have hald running?
-> Does this behavior change after an hour or so?
-> 
-> Are there many processes running?
-> If not perhaps a list of them would help.
-> 
-> > Jarl 
-> > 
-> > 
-> > ----- Original Message -----
-> > From: jmoyer@redhat.com
-> > To: Jarl Stefansson <jarl@marimo.is>
-> > Cc: Ian Kent <raven@themaw.net>, autofs@linux.kernel.org
-> > Sent: Monday, March 26, 2007 7:29:18 PM GMT Africa/Casablanca
-> > Subject: Re: [autofs] Unmount not working with 2.6.21  & 4.1.3/4.1.4
-> > 
-> > ==> Regarding Re: [autofs] Unmount not working with 2.6.21  & 4.1.3/4.1.4; Jarl Stefansson <jarl@marimo.is> adds:
-> > 
-> > jarl> Hey Jeff, Yes, I am 100% sure that there is nothing using the mounted
-> > jarl> filesystems.  For debugging I have a system with just bare minimals,
-> > jarl> kernel + glibc + base utilities so there really aren't any
-> > jarl> applications which can interfere.
-> > 
-> > jarl> According to what I have read I should also be getting some debug
-> > jarl> info in the log regarding the timeout period but I can't see any
-> > jarl> mention of timeout or unmount.
-> > 
-> >   Mar 26 01:33:54 kidsq daemon.debug automount[3626]: expire_proc: 1 remaining in /mnt/auto 
-> > 
-> > This means that (in your case) the kernel thought that the mount point was
-> > in use.  Could you humor me and up the timeout to something like 60 seconds
-> > and see if that helps matters?
-> > 
-> > Thanks,
-> > 
-> > Jeff
-> > 
-> 
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
+-- 
+-----------------------------------------------------------------------------
+ Paul D. Smith <psmith@netezza.com>                       http://netezza.com
+ "Please remain calm--I may be mad, but I am a professional."--Mad Scientist
+-----------------------------------------------------------------------------
+      These are my opinions--Netezza takes no responsibility for them.
