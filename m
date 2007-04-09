@@ -1,15 +1,16 @@
-From: Jeff Moyer <jmoyer@redhat.com>
+From: Paul Smith <psmith@netezza.com>
 Subject: Re: How exactly does timeout work?
-Date: Mon, 09 Apr 2007 12:44:01 -0400
-Message-ID: <x49slb9xzu6.fsf@segfault.boston.devel.redhat.com>
+Date: Mon, 09 Apr 2007 12:48:35 -0400
+Message-ID: <1176137315.30046.185.camel@psmithub>
 References: <1176133554.30046.175.camel@psmithub>
 	<x49wt0ly17p.fsf@segfault.boston.devel.redhat.com>
+	<x49slb9xzu6.fsf@segfault.boston.devel.redhat.com>
+Reply-To: psmith@netezza.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <x49wt0ly17p.fsf@segfault.boston.devel.redhat.com> (Jeff Moyer's
-	message of "Mon, 09 Apr 2007 12:14:18 -0400")
+In-Reply-To: <x49slb9xzu6.fsf@segfault.boston.devel.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,32 +21,28 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: psmith@netezza.com
+To: Jeff Moyer <jmoyer@redhat.com>
 Cc: autofs@linux.kernel.org
 
-==> On Mon, 09 Apr 2007 12:14:18 -0400, Jeff Moyer <jmoyer@redhat.com> said:
+On Mon, 2007-04-09 at 12:44 -0400, Jeff Moyer wrote:
+> Jeff> If you set the timeout to 60 seconds, the automount daemon will
+> Jeff> wake up approximately every 15 seconds (4 times per timeout, see
+> Jeff> CHECK_RATIO in the daemon) and ask the kernel if it is okay to
+> Jeff> expire the mount.
+> 
+> I guess I should further qualify this.  Asking the kernel means
+> issuing an ioctl.  The kernel then checks the access time for the
+> mount point and, if it is > timeout seconds ago, it will try to expire
+> the mount (by calling out to the daemon).
 
-==> On Mon, 09 Apr 2007 11:45:54 -0400, Paul Smith <psmith@netezza.com> said:
-Jeff> Paul> I've looked around but I couldn't find an answer to this
-Jeff> Paul> question.  There are a lot of offhand comments saying the
-Jeff> Paul> filesystem will be unmounted after timeout seconds, but
-Jeff> that's Paul> not very precise.
+Perfect; that's what I was looking for.  So, CHECK_RATIO is a constant
+regardless of the size of the timeout?  So if I make my timeout 10 hours
+it will check every 2.5 hours (unless I change the constant in the
+daemon code)?
 
-Jeff> Paul> If, for example, I set --timeout=60, does that mean the FS
-Jeff> will Paul> unmount 60 seconds after it was last accessed?
-
-Jeff> Paul> Or, does it mean that every 60 seconds automount will wake
-Jeff> up Paul> and see if anyone is using the filesystem, and if not
-Jeff> unmount Paul> it?
-
-Jeff> If you set the timeout to 60 seconds, the automount daemon will
-Jeff> wake up approximately every 15 seconds (4 times per timeout, see
-Jeff> CHECK_RATIO in the daemon) and ask the kernel if it is okay to
-Jeff> expire the mount.
-
-I guess I should further qualify this.  Asking the kernel means
-issuing an ioctl.  The kernel then checks the access time for the
-mount point and, if it is > timeout seconds ago, it will try to expire
-the mount (by calling out to the daemon).
-
--Jeff
+-- 
+-----------------------------------------------------------------------------
+ Paul D. Smith <psmith@netezza.com>                       http://netezza.com
+ "Please remain calm--I may be mad, but I am a professional."--Mad Scientist
+-----------------------------------------------------------------------------
+      These are my opinions--Netezza takes no responsibility for them.
