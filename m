@@ -1,12 +1,13 @@
-From: Chris Walker <cwalker@pixar.com>
-Subject: determining which process triggered an automount
-Date: Wed, 11 Apr 2007 16:48:47 -0700
-Message-ID: <20070411234847.GH21698@pixar.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: determining which process triggered an automount
+Date: Thu, 12 Apr 2007 18:05:04 +0800
+Message-ID: <1176372304.3441.63.camel@raven.themaw.net>
+References: <20070411234847.GH21698@pixar.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <20070411234847.GH21698@pixar.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,18 +18,18 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Chris Walker <cwalker@pixar.com>
+Cc: autofs@linux.kernel.org
 
-I'd like to determine which process triggered an automount. Might I have
-to use Systemtap or some other tool to determine this?
+On Wed, 2007-04-11 at 16:48 -0700, Chris Walker wrote:
+> I'd like to determine which process triggered an automount. Might I have
+> to use Systemtap or some other tool to determine this?
 
-I'm on Fedora Core 5.
+Can't really do that with autofs version 4.
+It's a bit of information that the daemon doesn't get in the request
+packet from the kernel. This information is passed to the daemon in
+autofs version 5 and is logged when debug logging is enabled so you
+could try that.
 
-Thanks,
-
--- 
-Chris Walker
-Render Pipeline Group
-Pixar Animation Studios
-510/922.3736
-cwalker@pixar.com
+Sorry I can't be more help.
+Ian
