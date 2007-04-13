@@ -1,15 +1,16 @@
-From: "Peter C. Norton" <spacey-autofs@lenin.net>
+From: Fabio Olive Leite <fleite@redhat.com>
 Subject: Re: determining which process triggered an automount
-Date: Thu, 12 Apr 2007 07:13:07 -0700
-Message-ID: <20070412141307.GV5812@lenin.net>
+Date: Fri, 13 Apr 2007 01:20:58 -0300
+Message-ID: <20070413042058.GB5320@sleipnir.redhat.com>
 References: <20070411234847.GH21698@pixar.com>
 	<1176372304.3441.63.camel@raven.themaw.net>
+	<20070412141307.GV5812@lenin.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1176372304.3441.63.camel@raven.themaw.net>
+In-Reply-To: <20070412141307.GV5812@lenin.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,31 +21,40 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Thu, Apr 12, 2007 at 06:05:04PM +0800, Ian Kent wrote:
-> On Wed, 2007-04-11 at 16:48 -0700, Chris Walker wrote:
-> > I'd like to determine which process triggered an automount. Might I have
-> > to use Systemtap or some other tool to determine this?
-> 
-> Can't really do that with autofs version 4.
-> It's a bit of information that the daemon doesn't get in the request
-> packet from the kernel. This information is passed to the daemon in
-> autofs version 5 and is logged when debug logging is enabled so you
-> could try that.
-> 
-> Sorry I can't be more help.
-> Ian
+On Thu, Apr 12, 2007 at 07:13:07AM -0700, Peter C. Norton wrote:
+> =
 
-I think a system tap module could get you this, but it will take some
-time investment for you to find out how to use it.
+> I think a system tap module could get you this, but it will take some
+> time investment for you to find out how to use it.
+> =
 
-http://sourceware.org/systemtap/
+> http://sourceware.org/systemtap/
 
--Peter
+And it also takes a bit of time to find probe points that have not
+been optimized away, auto-inlined, etc. In any case, here's a working
+(in FC5) probe that will tell you who requested a directory. It could
+be improved to provide a full path, but I'm satisfied by it as is.
 
--- 
-The 5 year plan:
-In five years we'll make up another plan.
-Or just re-use this one.
+probe module("autofs4").function("autofs4_find_wait") {
+	printf("%s(%d) requested %s\n", execname(), pid(),
+		kernel_string($name))
+}
+
+The output is:
+
+$ sudo stap autofs4_notify_daemon.stap
+bash(5913) requested foobar
+bash(5913) requested foobar
+bash(5913) requested foobar
+...
+
+Maybe autofs4_find_wait is not the best place, but it works, and I
+found the more obvious autofs4_notify_daemon to be auto-inlined.
+
+Hope this helps!
+F=E1bio
+-- =
+
+ex sed lex awk yacc, e pluribus unix, amem
