@@ -1,17 +1,11 @@
-From: Chris Walker <cwalker@pixar.com>
-Subject: Re: determining which process triggered an automount
-Date: Thu, 12 Apr 2007 22:22:44 -0700
-Message-ID: <20070413052244.GV21698@pixar.com>
-References: <20070411234847.GH21698@pixar.com>
-	<1176372304.3441.63.camel@raven.themaw.net>
-	<20070412141307.GV5812@lenin.net>
-	<20070413042058.GB5320@sleipnir.redhat.com>
+From: Michael <michael@kmaclub.com>
+Subject: Strange issue with autofs5/fc6
+Date: Wed, 18 Apr 2007 09:21:45 -0700
+Message-ID: <46264599.90105@kmaclub.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20070413042058.GB5320@sleipnir.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,64 +16,47 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: autofs mailing list <autofs@linux.kernel.org>
 
-This is *exactly* what I wanted. I tried it out and it works great.
-Thanks.
+I am seeing some weird behavior with autofs/mount. 
 
-From fleite:
-> On Thu, Apr 12, 2007 at 07:13:07AM -0700, Peter C. Norton wrote:
-> > =
+/proc/mounts, mounts, and auto.master don't seem to agree.
 
-> > I think a system tap module could get you this, but it will take some
-> > time investment for you to find out how to use it.
-> > =
+/proc/mounts:
+filer:/export/users/mythtv /home/mythtv nfs 
+rw,vers=3,rsize=262144,wsize=262144,hard,proto=tcp,timeo=600,retrans=2,sec=sys,addr=filer 
+0 0
 
-> > http://sourceware.org/systemtap/
-> =
+mount:
+filer:/export/users/mythtv on /home/mythtv type nfs (rw,addr=192.168.101.1)
 
-> And it also takes a bit of time to find probe points that have not
-> been optimized away, auto-inlined, etc. In any case, here's a working
-> (in FC5) probe that will tell you who requested a directory. It could
-> be improved to provide a full path, but I'm satisfied by it as is.
-> =
+Here is my auto.master
+ypcat -k auto.master
+/home auto.home 
+bg,hard,intr,retry=10000,rsize=8192,wsize=8192,acregmin=3,acregmax=60,acdirmin=30,acdirmax=60,timeo=600,retrans=5,nfsvers=3,tcp
 
-> probe module("autofs4").function("autofs4_find_wait") {
-> 	printf("%s(%d) requested %s\n", execname(), pid(),
-> 		kernel_string($name))
-> }
-> =
+The 262144 size is strange and I don't have any idea where that is 
+coming from.
 
-> The output is:
-> =
+Also, mounting by hand:
 
-> $ sudo stap autofs4_notify_daemon.stap
-> bash(5913) requested foobar
-> bash(5913) requested foobar
-> bash(5913) requested foobar
-> ...
-> =
+[root@client ~]# mount -o rsize=8192,wsize=8192 
+filer:/export/users/mythtv /mnt
+[root@client ~]# mount | grep mnt
+filer:/export/users/mythtv on /mnt type nfs 
+(rw,rsize=8192,wsize=8192,addr=192.168.101.1)
+[root@client ~]# grep mnt /proc/mounts
+filer:/export/users/mythtv /mnt nfs 
+rw,vers=3,rsize=262144,wsize=262144,hard,proto=tcp,timeo=600,retrans=2,sec=sys,addr=filer 
+0 0
 
-> Maybe autofs4_find_wait is not the best place, but it works, and I
-> found the more obvious autofs4_notify_daemon to be auto-inlined.
-> =
+Any thoughts on what is happening here?  Is rsize really 262144 or are 
+things being reported incorrectly?
 
-> Hope this helps!
-> F=E1bio
-> -- =
+[root@client ~]# uname -a
+Linux client 2.6.20-1.2944.fc6 #1 SMP Tue Apr 10 17:46:00 EDT 2007 
+x86_64 x86_64 x86_64 GNU/Linux
+[root@client ~]# rpm -q autofs
+autofs-5.0.1-0.rc3.26
 
-> ex sed lex awk yacc, e pluribus unix, amem
-> =
-
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
-
--- =
-
-Chris Walker
-Render Pipeline Group
-Pixar Animation Studios
-510/922.3736
-cwalker@pixar.com
+Michael
