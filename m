@@ -1,13 +1,14 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Allow period in -Dvariable=value flags in auto.master
-Date: Fri, 20 Apr 2007 13:01:01 +0800
-Message-ID: <1177045261.3934.59.camel@raven.themaw.net>
-References: <40ddc4e40704191355w360b3e3bj6fa6615d6c3defa0@mail.gmail.com>
+From: Derek Reid <autofs-ml@l0ca1h0st.com>
+Subject: Re: Mounting a usb flash drive on /mnt
+Date: Thu, 19 Apr 2007 23:15:12 -0600
+Message-ID: <20070420051512.9782B3DFC3@l0ca1h0st.com>
+References: <20070419181221.73C51160C1@l0ca1h0st.com>
+	<1177045099.3934.56.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <40ddc4e40704191355w360b3e3bj6fa6615d6c3defa0@mail.gmail.com>
+In-Reply-To: <1177045099.3934.56.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,32 +19,63 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Mike Matera <spamme@fatboycentral.com>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-On Thu, 2007-04-19 at 13:55 -0700, Mike Matera wrote:
-> Hi,
-> 
-> In order to use autofs on my company network I must override OSNAME,
-> ARCH and OSREL to match other Linux boxes.  Previous automount allowed
-> the following line in auto.master:
-> 
-> /stuff yp:auto.stuff -DOSNAME=Linux -DARCH=i686 -DOSREL=2.4
-> 
-> This stopped working on my FC6 box (autofs-5.0.1-0.rc3.10) because the
-> parser choked on the '.' in 2.4.  I couldn't find anyone else who'd
-> run into this problem so I made a patch to master_tok.l that allows
-> periods in the variable values.
-> 
-> All I did was add '\.' to the character class on the right side of the
-> equal sign in the MACROSTR rule.  The code is shown below:
-> 
-> MACROSTR (-D{OPTWS}([[:alpha:]_]([[:alnum:]_\-])*)=([[:alnum:]_\-\.])+)
+Thanks for the reply, Ian.
 
-Ha .. an obvious omission on my part.
-Will fix, thanks.
+Here are the details.  I need to mount my usb flash drive on /mnt/ .
+There is no problem mounting it at least two dirs deep (/mnt/foo/ for
+example) but you can't put "/" as the key in auto.master as "/" is
+already mounted.  Which leaves the other config file (auto.usb in my
+case).  It won't accept "/", which would then indicate "/mnt/", and it
+errors with the previously mentioned message.
 
-I wonder why others haven't seen this?
-I'm sure a lot of people use macros like this.
+I'm not sure if that helps explain my goal any more clearly but to
+answer your questions:
 
-Ian
+* autofs version:
+
+  4.1.4 (Fedora Core 5 rpm)
+
+* /etc/auto.master:  
+
+  /mnt  /etc/auto.usb --timeout=3 --ghost  
+
+* /etc/auto.usb: 
+
+  /             -fstype=auto            :/dev/sdb1
+
+In short, I suppose I can sum it up in one question:  How can you
+automount something exactly one directory deep from "/"?
+
+Thanks,
+
+Derek
+
+On Fri, 2007-04-20 at 12:58 +0800, Ian Kent wrote:
+> On Thu, 2007-04-19 at 12:12 -0600, Derek Reid wrote:
+> > Hi,
+> > 
+> > I'd like to mount my usb flash drive exclusively on /mnt but I'm not
+> > sure if this is possible.
+> > 
+> > >From the docs, it looks like /etc/auto.master has to have /mnt listed as
+> > the key but in the usb autofs config, but I don't know what would need
+> > to be listed.  I've tried "/" and "." but neither seem to take.  I get
+> > the following message written to the syslog:
+> > 
+> > automount[21234]: bad map format: found indirect, expected direct
+> > exiting
+> > 
+> > Does anyone know if this *is* possible and if so, what do I need to put
+> > as the key?
+> 
+> No idea what you mean.
+> What version of autofs?
+> How about an example of what you're attempting to do with a description
+> of what you've done and what you've put in what files.
+> 
+> Ian
+> 
+> 
