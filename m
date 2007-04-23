@@ -1,15 +1,14 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Mounting a usb flash drive on /mnt
-Date: Fri, 20 Apr 2007 15:11:15 +0800
-Message-ID: <1177053076.3934.67.camel@raven.themaw.net>
-References: <20070419181221.73C51160C1@l0ca1h0st.com>
-	<1177045099.3934.56.camel@raven.themaw.net>
-	<20070420051512.9782B3DFC3@l0ca1h0st.com>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: Strange issue with autofs5/fc6
+Date: Mon, 23 Apr 2007 12:56:24 -0400
+Message-ID: <x49zm4zni6f.fsf@segfault.boston.devel.redhat.com>
+References: <46264599.90105@kmaclub.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20070420051512.9782B3DFC3@l0ca1h0st.com>
+In-Reply-To: <46264599.90105@kmaclub.com> (michael@kmaclub.com's message of
+	"Wed, 18 Apr 2007 09:21:45 -0700")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,83 +19,31 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Derek Reid <autofs-ml@l0ca1h0st.com>
-Cc: autofs@linux.kernel.org
+To: Michael <michael@kmaclub.com>
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
-On Thu, 2007-04-19 at 23:15 -0600, Derek Reid wrote:
-> Thanks for the reply, Ian.
-> 
-> Here are the details.  I need to mount my usb flash drive on /mnt/ .
-> There is no problem mounting it at least two dirs deep (/mnt/foo/ for
-> example) but you can't put "/" as the key in auto.master as "/" is
-> already mounted.  Which leaves the other config file (auto.usb in my
-> case).  It won't accept "/", which would then indicate "/mnt/", and it
-> errors with the previously mentioned message.
-> 
-> I'm not sure if that helps explain my goal any more clearly but to
-> answer your questions:
-> 
-> * autofs version:
-> 
->   4.1.4 (Fedora Core 5 rpm)
-> 
-> * /etc/auto.master:  
-> 
->   /mnt  /etc/auto.usb --timeout=3 --ghost  
-> 
-> * /etc/auto.usb: 
-> 
->   /             -fstype=auto            :/dev/sdb1
-> 
-> In short, I suppose I can sum it up in one question:  How can you
-> automount something exactly one directory deep from "/"?
+==> On Wed, 18 Apr 2007 09:21:45 -0700, Michael <michael@kmaclub.com> said:
 
-OK, I get it.
+michael> I am seeing some weird behavior with
+michael> autofs/mount. /proc/mounts, mounts, and auto.master don't
+michael> seem to agree.
 
-The only way to do that (exactly one level) is to use a direct mount
-map. This will only work with autofs version 5 with a kernel which
-supports it. Version 5 won't start if the kernel doesn't support it.
+michael> /proc/mounts: filer:/export/users/mythtv /home/mythtv nfs
+michael> rw,vers=3,rsize=262144,wsize=262144,hard,proto=tcp,timeo=600,retrans=2,sec=sys,addr=filer
+michael> 0 0
 
-In auto.master put
+michael> mount: filer:/export/users/mythtv on /home/mythtv type nfs
+michael> (rw,addr=192.168.101.1)
 
-/-	/etc/auto.usb  --timeout=3
+michael> Here is my auto.master ypcat -k auto.master /home auto.home
+michael> bg,hard,intr,retry=10000,rsize=8192,wsize=8192,acregmin=3,acregmax=60,acdirmin=30,acdirmax=60,timeo=600,retrans=5,nfsvers=3,tcp
 
-The "--ghost" option isn't needed.
+michael> The 262144 size is strange and I don't have any idea where
+michael> that is coming from.
 
-In /etc/auto.usb put
+Can you send along an automount debug log?  Perhaps automount is not
+passing the [rw]size parameters to mount.  For information on
+gathering debug logs, see:
+  http://people.redhat.com/jmoyer/
 
-/mnt	-fstype=auto	:/dev/sdb1
-
-and that should do what you want.
-
-> 
-> Thanks,
-> 
-> Derek
-> 
-> On Fri, 2007-04-20 at 12:58 +0800, Ian Kent wrote:
-> > On Thu, 2007-04-19 at 12:12 -0600, Derek Reid wrote:
-> > > Hi,
-> > > 
-> > > I'd like to mount my usb flash drive exclusively on /mnt but I'm not
-> > > sure if this is possible.
-> > > 
-> > > >From the docs, it looks like /etc/auto.master has to have /mnt listed as
-> > > the key but in the usb autofs config, but I don't know what would need
-> > > to be listed.  I've tried "/" and "." but neither seem to take.  I get
-> > > the following message written to the syslog:
-> > > 
-> > > automount[21234]: bad map format: found indirect, expected direct
-> > > exiting
-> > > 
-> > > Does anyone know if this *is* possible and if so, what do I need to put
-> > > as the key?
-> > 
-> > No idea what you mean.
-> > What version of autofs?
-> > How about an example of what you're attempting to do with a description
-> > of what you've done and what you've put in what files.
-> > 
-> > Ian
-> > 
-> > 
+-Jeff
