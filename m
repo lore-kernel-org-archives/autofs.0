@@ -1,16 +1,16 @@
-From: jmoyer@redhat.com
+From: Fabio Olive Leite <fleite@redhat.com>
 Subject: Re: Strange issue with autofs5/fc6
-Date: Mon, 23 Apr 2007 14:01:00 -0400
-Message-ID: <m3odlfj7hf.fsf@redhat.com>
+Date: Mon, 23 Apr 2007 21:02:54 -0300
+Message-ID: <20070424000254.GA2501@sleipnir.redhat.com>
 References: <46264599.90105@kmaclub.com>
 	<x49zm4zni6f.fsf@segfault.boston.devel.redhat.com>
 	<462CEB64.2020103@kmaclub.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <462CEB64.2020103@kmaclub.com> (michael@kmaclub.com's message of
-	"Mon, 23 Apr 2007 10:22:44 -0700")
+Content-Disposition: inline
+In-Reply-To: <462CEB64.2020103@kmaclub.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,47 +21,43 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Michael <michael@kmaclub.com>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+To: autofs mailing list <autofs@linux.kernel.org>
 
-==> Regarding Re: [autofs] Strange issue with autofs5/fc6; Michael <michael@kmaclub.com> adds:
+On Mon, Apr 23, 2007 at 10:22:44AM -0700, Michael wrote:
+> =
 
-michael> Jeff Moyer wrote:
->> ==> On Wed, 18 Apr 2007 09:21:45 -0700, Michael <michael@kmaclub.com>
->> said:
->> 
-michael> The 262144 size is strange and I don't have any idea where that is
-michael> coming from.
->> Can you send along an automount debug log?  Perhaps automount is not
->> passing the [rw]size parameters to mount.  For information on gathering
->> debug logs, see: http://people.redhat.com/jmoyer/
->> 
+> root@client /]# mount -o =
 
-michael> I will go capture the logs.  However, it does appear to be a
-michael> kernel/mount issue.
+> rsize=3D16384,wsize=3D16384,proto=3Dtcp,timeo=3D600,retrans=3D2  filer:/e=
+xport /mnt
+> =
 
-michael> If I do the mount by hand and not using autofs it still has the
-michael> same problem.
+> mount | grep mnt
+> filer:/export on /mnt type nfs =
 
-michael> root@client /]# mount -o
-michael> rsize=16384,wsize=16384,proto=tcp,timeo=600,retrans=2
-michael> filer:/export /mnt
+> (rw,rsize=3D16384,wsize=3D16384,proto=3Dtcp,timeo=3D600,retrans=3D2,addr=
+=3D192.168.101.1)
+> =
 
-michael> mount | grep mnt filer:/export on /mnt type nfs
-michael> (rw,rsize=16384,wsize=16384,proto=tcp,timeo=600,retrans=2,addr=192.168.101.1)
+> grep mnt /proc/mounts
+> filer:/export /mnt nfs =
 
-michael> grep mnt /proc/mounts filer:/export /mnt nfs
-michael> rw,vers=3,rsize=262144,wsize=262144,hard,proto=tcp,timeo=600,retrans=2,sec=sys,addr=filer
-michael> 0 0
+> rw,vers=3D3,rsize=3D262144,wsize=3D262144,hard,proto=3Dtcp,timeo=3D600,re=
+trans=3D2,sec=3Dsys,addr=3Dfiler =
 
-michael> So I don't know if it is just reporting incorrectly or if it is
-michael> actually mounted incorrectly.
+> 0 0
 
-Oh, I somehow missed that.
+Is the same volume from the same server already mounted somewhere else
+in this box? If so, the kernel is sharing the superblock for these two
+mounts of the same volume, and both the mount flags and nfs parameters
+have been set by the first mount.
 
-michael> I will also open an issue on bugzilla for fc6.
+For more information, check upstream commit
+54ceac4515986030c2502960be620198dd8fe25b. =
 
-OK, it's probably best to use component kernel and assign it to
-steved@redhat.com.
 
--Jeff
+Cheers,
+F=E1bio
+-- =
+
+ex sed lex awk yacc, e pluribus unix, amem
