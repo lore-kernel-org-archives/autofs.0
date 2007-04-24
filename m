@@ -1,16 +1,14 @@
-From: Fabio Olive Leite <fleite@redhat.com>
+From: Michael <michael@kmaclub.com>
 Subject: Re: Strange issue with autofs5/fc6
-Date: Mon, 23 Apr 2007 21:02:54 -0300
-Message-ID: <20070424000254.GA2501@sleipnir.redhat.com>
-References: <46264599.90105@kmaclub.com>
-	<x49zm4zni6f.fsf@segfault.boston.devel.redhat.com>
-	<462CEB64.2020103@kmaclub.com>
+Date: Mon, 23 Apr 2007 20:21:33 -0700
+Message-ID: <462D77BD.5020003@kmaclub.com>
+References: <46264599.90105@kmaclub.com>	<x49zm4zni6f.fsf@segfault.boston.devel.redhat.com>	<462CEB64.2020103@kmaclub.com>
+	<20070424000254.GA2501@sleipnir.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <462CEB64.2020103@kmaclub.com>
+In-Reply-To: <20070424000254.GA2501@sleipnir.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -23,41 +21,22 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs mailing list <autofs@linux.kernel.org>
 
-On Mon, Apr 23, 2007 at 10:22:44AM -0700, Michael wrote:
-> =
+Fabio Olive Leite wrote:
+>   
+>
+> Is the same volume from the same server already mounted somewhere else
+> in this box? If so, the kernel is sharing the superblock for these two
+> mounts of the same volume, and both the mount flags and nfs parameters
+> have been set by the first mount.
+>
+> For more information, check upstream commit
+> 54ceac4515986030c2502960be620198dd8fe25b. 
+>   
 
-> root@client /]# mount -o =
+Yes, the volume is mounted multiple times on the machine.  However, they 
+all report bogus values. 
 
-> rsize=3D16384,wsize=3D16384,proto=3Dtcp,timeo=3D600,retrans=3D2  filer:/e=
-xport /mnt
-> =
+How am I supposed to know what values are being used if I can't trust 
+/proc/mounts for any mounts?
 
-> mount | grep mnt
-> filer:/export on /mnt type nfs =
-
-> (rw,rsize=3D16384,wsize=3D16384,proto=3Dtcp,timeo=3D600,retrans=3D2,addr=
-=3D192.168.101.1)
-> =
-
-> grep mnt /proc/mounts
-> filer:/export /mnt nfs =
-
-> rw,vers=3D3,rsize=3D262144,wsize=3D262144,hard,proto=3Dtcp,timeo=3D600,re=
-trans=3D2,sec=3Dsys,addr=3Dfiler =
-
-> 0 0
-
-Is the same volume from the same server already mounted somewhere else
-in this box? If so, the kernel is sharing the superblock for these two
-mounts of the same volume, and both the mount flags and nfs parameters
-have been set by the first mount.
-
-For more information, check upstream commit
-54ceac4515986030c2502960be620198dd8fe25b. =
-
-
-Cheers,
-F=E1bio
--- =
-
-ex sed lex awk yacc, e pluribus unix, amem
+Michael
