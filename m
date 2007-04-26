@@ -1,13 +1,14 @@
-From: Ian Kent <raven@themaw.net>
+From: Jimmy Dorff <jdorff@phy.duke.edu>
 Subject: Re: FC6 automounter stops mounting NFS mounts
-Date: Thu, 26 Apr 2007 00:02:44 +0800
-Message-ID: <1177516964.3381.7.camel@raven.themaw.net>
+Date: Thu, 26 Apr 2007 10:00:14 -0400
+Message-ID: <4630B06E.3060205@phy.duke.edu>
 References: <462E1A30.3090002@phy.duke.edu>
+	<1177516964.3381.7.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <462E1A30.3090002@phy.duke.edu>
+In-Reply-To: <1177516964.3381.7.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,41 +19,35 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jimmy Dorff <jdorff@phy.duke.edu>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Tue, 2007-04-24 at 10:54 -0400, Jimmy Dorff wrote:
-> Hi,
+Ian Kent wrote:
+> Provide a debug log.
+> Provide your maps including the master map.
+> See http://people.redhat.com/jmoyer for more information about how to do
+> this.
 > 
-> I have a number of FC6 workstations that intermittently have a problem 
-> with automount, where it simply stops mounting filesystems.  If you 
-> attempt to access a directory which automount would normally mount your 
-> command simply hangs.  The automount process is running and still writes 
-> logs from the "verbose" option, but the logs don't indicate any problem. 
->   The logs just show the "mount still busy" messages from previously 
-> mounted filesystem(s).  On the NFS server I don't see any mount requests 
-> from the afflicted client.
-> 
-> To "fix" the problem, I simply restart automount via "service autofs 
-> restart" and everything works as expected.
-> 
-> We have been seeing this problem intermittently throughout our use of 
-> FC6.  I don't have any clue what makes it happen.  Any info on how I can 
-> prevent this or gather more debug info is welcomed!
+> In order to resolve problems like this I need to be able to reproduce
+> them. Any information you can provide on this would be useful.
 
-Provide a debug log.
-Provide your maps including the master map.
-See http://people.redhat.com/jmoyer for more information about how to do
-this.
+Thanks for the info.  I'll setup a test system with the additional 
+debugging and see if I can reproduce this at will.
 
-In order to resolve problems like this I need to be able to reproduce
-them. Any information you can provide on this would be useful.
+> Things such as:
+> how long is it before you see this happen?
+Systems are fine for weeks.
 
-Things such as:
-how long is it before you see this happen?
-does it always happen to the same mount?
-is the mount part of a multi-mount map entry?
+> does it always happen to the same mount?
+No.
 
-What revision of util-linux, nfs-utils and nfs-utils-lib are you using?
+> is the mount part of a multi-mount map entry?
+Nope.
 
-Ian
+> What revision of util-linux, nfs-utils and nfs-utils-lib are you using?
+
+util-linux-2.13-0.46.fc6
+nfs-utils-1.0.10-7.fc6
+nfs-utils-lib-1.0.8-7.2
+
+Thanks,
+Jimmy
