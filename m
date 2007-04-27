@@ -1,16 +1,12 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: FC6 automounter stops mounting NFS mounts
-Date: Thu, 26 Apr 2007 23:03:19 +0800
-Message-ID: <1177599799.3411.36.camel@raven.themaw.net>
-References: <462E1A30.3090002@phy.duke.edu>
-	<1177516964.3381.7.camel@raven.themaw.net>
-	<4630B06E.3060205@phy.duke.edu>
-	<1177599013.3411.27.camel@raven.themaw.net>
+From: Gerd Bavendiek <gerd.bavendiek@googlemail.com>
+Subject: autofs4 with NetApp-Filer and large export list: Stopped
+ working for me
+Date: Fri, 27 Apr 2007 14:33:24 +0200
+Message-ID: <4631ED94.70900@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1177599013.3411.27.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,471 +17,122 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jimmy Dorff <jdorff@phy.duke.edu>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Thu, 2007-04-26 at 22:50 +0800, Ian Kent wrote:
-> On Thu, 2007-04-26 at 10:00 -0400, Jimmy Dorff wrote:
-> > Ian Kent wrote:
-> > > Provide a debug log.
-> > > Provide your maps including the master map.
-> > > See http://people.redhat.com/jmoyer for more information about how to do
-> > > this.
-> > > 
-> > > In order to resolve problems like this I need to be able to reproduce
-> > > them. Any information you can provide on this would be useful.
-> > 
-> > Thanks for the info.  I'll setup a test system with the additional 
-> > debugging and see if I can reproduce this at will.
-> > 
-> > > Things such as:
-> > > how long is it before you see this happen?
-> > Systems are fine for weeks.
-> > 
-> > > does it always happen to the same mount?
-> > No.
-> > 
-> > > is the mount part of a multi-mount map entry?
-> > Nope.
-> > 
-> > > What revision of util-linux, nfs-utils and nfs-utils-lib are you using?
-> > 
-> > util-linux-2.13-0.46.fc6
-> > nfs-utils-1.0.10-7.fc6
-> > nfs-utils-lib-1.0.8-7.2
-> 
-> This looks fine.
-> 
-> Since your going to the trouble of setting up a test machine (good idea)
-> it would be good to make sure we cover all known bugs. So, if possible,
-> could you try to build a kernel
-> with /usr/share/doc/autofs-5.0.1/autofs4-2.6.20-v5-update.patch applied.
-> I think it will apply cleanly to the source of the kernel your running.
+Hi,
 
-Sorry, that patch has been updated.
+I used to use autofs4 with a NetApp-Filer as NFS server (mostly from
+SLES9 boxes). This does not seem to work any longer. So I digged a
+little bit deeper:
 
-Use this instead.
+The NetApp-Filer in question exports nearly 100 volumes:
 
----
-diff -Nurp linux-2.6.20.orig/fs/autofs4/autofs_i.h linux-2.6.20/fs/autofs4/autofs_i.h
---- linux-2.6.20.orig/fs/autofs4/autofs_i.h	2007-02-05 03:44:54.000000000 +0900
-+++ linux-2.6.20/fs/autofs4/autofs_i.h	2007-04-13 14:22:29.000000000 +0800
-@@ -52,6 +52,8 @@ struct autofs_info {
- 
- 	int		flags;
- 
-+	struct list_head rehash;
-+
- 	struct autofs_sb_info *sbi;
- 	unsigned long last_used;
- 	atomic_t count;
-@@ -110,6 +112,8 @@ struct autofs_sb_info {
- 	struct mutex wq_mutex;
- 	spinlock_t fs_lock;
- 	struct autofs_wait_queue *queues; /* Wait queue pointer */
-+	spinlock_t rehash_lock;
-+	struct list_head rehash_list;
- };
- 
- static inline struct autofs_sb_info *autofs4_sbi(struct super_block *sb)
-diff -Nurp linux-2.6.20.orig/fs/autofs4/inode.c linux-2.6.20/fs/autofs4/inode.c
---- linux-2.6.20.orig/fs/autofs4/inode.c	2007-02-05 03:44:54.000000000 +0900
-+++ linux-2.6.20/fs/autofs4/inode.c	2007-04-13 14:22:29.000000000 +0800
-@@ -48,6 +48,8 @@ struct autofs_info *autofs4_init_ino(str
- 	ino->dentry = NULL;
- 	ino->size = 0;
- 
-+	INIT_LIST_HEAD(&ino->rehash);
-+
- 	ino->last_used = jiffies;
- 	atomic_set(&ino->count, 0);
- 
-@@ -158,14 +160,13 @@ void autofs4_kill_sb(struct super_block 
- 	if (!sbi)
- 		goto out_kill_sb;
- 
--	sb->s_fs_info = NULL;
--
--	if ( !sbi->catatonic )
-+	if (!sbi->catatonic)
- 		autofs4_catatonic_mode(sbi); /* Free wait queues, close pipe */
- 
- 	/* Clean up and release dangling references */
- 	autofs4_force_release(sbi);
- 
-+	sb->s_fs_info = NULL;
- 	kfree(sbi);
- 
- out_kill_sb:
-@@ -336,6 +337,8 @@ int autofs4_fill_super(struct super_bloc
- 	mutex_init(&sbi->wq_mutex);
- 	spin_lock_init(&sbi->fs_lock);
- 	sbi->queues = NULL;
-+	spin_lock_init(&sbi->rehash_lock);
-+	INIT_LIST_HEAD(&sbi->rehash_list);
- 	s->s_blocksize = 1024;
- 	s->s_blocksize_bits = 10;
- 	s->s_magic = AUTOFS_SUPER_MAGIC;
-diff -Nurp linux-2.6.20.orig/fs/autofs4/root.c linux-2.6.20/fs/autofs4/root.c
---- linux-2.6.20.orig/fs/autofs4/root.c	2007-02-05 03:44:54.000000000 +0900
-+++ linux-2.6.20/fs/autofs4/root.c	2007-04-13 14:22:29.000000000 +0800
-@@ -263,7 +263,7 @@ static int try_to_fill_dentry(struct den
- 		 */
- 		status = d_invalidate(dentry);
- 		if (status != -EBUSY)
--			return -ENOENT;
-+			return -EAGAIN;
- 	}
- 
- 	DPRINTK("dentry=%p %.*s ino=%p",
-@@ -413,7 +413,16 @@ static int autofs4_revalidate(struct den
- 		 */
- 		status = try_to_fill_dentry(dentry, flags);
- 		if (status == 0)
--				return 1;
-+			return 1;
-+
-+		/*
-+		 * A status of EAGAIN here means that the dentry has gone
-+		 * away while waiting for an expire to complete. If we are
-+		 * racing with expire lookup will wait for it so this must
-+		 * be a revalidate and we need to send it to lookup.
-+		 */
-+		if (status == -EAGAIN)
-+			return 0;
- 
- 		return status;
- 	}
-@@ -459,6 +468,15 @@ void autofs4_dentry_release(struct dentr
- 	de->d_fsdata = NULL;
- 
- 	if (inf) {
-+		struct autofs_sb_info *sbi = autofs4_sbi(de->d_sb);
-+
-+		if (sbi) {
-+			spin_lock(&sbi->rehash_lock);
-+			if (!list_empty(&inf->rehash))
-+				list_del(&inf->rehash);
-+			spin_unlock(&sbi->rehash_lock);
-+		}
-+
- 		inf->dentry = NULL;
- 		inf->inode = NULL;
- 
-@@ -478,10 +496,80 @@ static struct dentry_operations autofs4_
- 	.d_release	= autofs4_dentry_release,
- };
- 
-+static struct dentry *autofs4_lookup_unhashed(struct autofs_sb_info *sbi, struct dentry *parent, struct qstr *name)
-+{
-+	unsigned int len = name->len;
-+	unsigned int hash = name->hash;
-+	const unsigned char *str = name->name;
-+	struct list_head *p, *head;
-+
-+	spin_lock(&dcache_lock);
-+	spin_lock(&sbi->rehash_lock);
-+	head = &sbi->rehash_list;
-+	list_for_each(p, head) {
-+		struct autofs_info *ino;
-+		struct dentry *dentry;
-+		struct qstr *qstr;
-+
-+		ino = list_entry(p, struct autofs_info, rehash);
-+		dentry = ino->dentry;
-+
-+		spin_lock(&dentry->d_lock);
-+
-+		/* Bad luck, we've already been dentry_iput */
-+		if (!dentry->d_inode)
-+			goto next;
-+
-+		qstr = &dentry->d_name;
-+
-+		if (dentry->d_name.hash != hash)
-+			goto next;
-+		if (dentry->d_parent != parent)
-+			goto next;
-+
-+		if (qstr->len != len)
-+			goto next;
-+		if (memcmp(qstr->name, str, len))
-+			goto next;
-+
-+		if (d_unhashed(dentry)) {
-+			struct autofs_info *ino = autofs4_dentry_ino(dentry);
-+			struct inode *inode = dentry->d_inode;
-+
-+			list_del_init(&ino->rehash);
-+			dget(dentry);
-+			/*
-+			 * Make the rehashed dentry negative so the VFS
-+			 * behaves as it should.
-+			 */
-+			if (inode) {
-+				dentry->d_inode = NULL;
-+				list_del_init(&dentry->d_alias);
-+				spin_unlock(&dentry->d_lock);
-+				spin_unlock(&sbi->rehash_lock);
-+				spin_unlock(&dcache_lock);
-+				iput(inode);
-+				return dentry;
-+			}
-+			spin_unlock(&dentry->d_lock);
-+			spin_unlock(&sbi->rehash_lock);
-+			spin_unlock(&dcache_lock);
-+			return dentry;
-+		}
-+next:
-+		spin_unlock(&dentry->d_lock);
-+	}
-+	spin_unlock(&sbi->rehash_lock);
-+	spin_unlock(&dcache_lock);
-+
-+	return NULL;
-+}
-+
- /* Lookups in the root directory */
- static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, struct nameidata *nd)
- {
- 	struct autofs_sb_info *sbi;
-+	struct dentry *unhashed;
- 	int oz_mode;
- 
- 	DPRINTK("name = %.*s",
-@@ -497,25 +585,46 @@ static struct dentry *autofs4_lookup(str
- 	DPRINTK("pid = %u, pgrp = %u, catatonic = %d, oz_mode = %d",
- 		 current->pid, process_group(current), sbi->catatonic, oz_mode);
- 
--	/*
--	 * Mark the dentry incomplete, but add it. This is needed so
--	 * that the VFS layer knows about the dentry, and we can count
--	 * on catching any lookups through the revalidate.
--	 *
--	 * Let all the hard work be done by the revalidate function that
--	 * needs to be able to do this anyway..
--	 *
--	 * We need to do this before we release the directory semaphore.
--	 */
--	dentry->d_op = &autofs4_root_dentry_operations;
-+	unhashed = autofs4_lookup_unhashed(sbi, dentry->d_parent, &dentry->d_name);
-+	if (!unhashed) {
-+		/*
-+		 * Mark the dentry incomplete, but add it. This is needed so
-+		 * that the VFS layer knows about the dentry, and we can count
-+		 * on catching any lookups through the revalidate.
-+		 *
-+		 * Let all the hard work be done by the revalidate function that
-+		 * needs to be able to do this anyway..
-+		 *
-+		 * We need to do this before we release the directory semaphore.
-+		 */
-+		dentry->d_op = &autofs4_root_dentry_operations;
-+
-+		dentry->d_fsdata = NULL;
-+		d_add(dentry, NULL);
-+	} else {
-+		struct autofs_info *ino = autofs4_dentry_ino(unhashed);
-+		DPRINTK("rehash %p with %p", dentry, unhashed);
-+		/*
-+		 * If we are racing with expire the request might not
-+		 * be quite complete but the directory has been removed
-+		 * so it must have been successful, so just wait for it.
-+		 */
-+		if (ino && (ino->flags & AUTOFS_INF_EXPIRING)) {
-+			DPRINTK("wait for incomplete expire %p name=%.*s",
-+				unhashed, unhashed->d_name.len,
-+				unhashed->d_name.name);
-+			autofs4_wait(sbi, unhashed, NFY_NONE);
-+			DPRINTK("request completed");
-+		}
-+		d_rehash(unhashed);
-+		dentry = unhashed;
-+	}
- 
- 	if (!oz_mode) {
- 		spin_lock(&dentry->d_lock);
- 		dentry->d_flags |= DCACHE_AUTOFS_PENDING;
- 		spin_unlock(&dentry->d_lock);
- 	}
--	dentry->d_fsdata = NULL;
--	d_add(dentry, NULL);
- 
- 	if (dentry->d_op && dentry->d_op->d_revalidate) {
- 		mutex_unlock(&dir->i_mutex);
-@@ -534,6 +643,8 @@ static struct dentry *autofs4_lookup(str
- 			if (sigismember (sigset, SIGKILL) ||
- 			    sigismember (sigset, SIGQUIT) ||
- 			    sigismember (sigset, SIGINT)) {
-+			    if (unhashed)
-+				dput(unhashed);
- 			    return ERR_PTR(-ERESTARTNOINTR);
- 			}
- 		}
-@@ -544,12 +655,33 @@ static struct dentry *autofs4_lookup(str
- 
- 	/*
- 	 * If this dentry is unhashed, then we shouldn't honour this
--	 * lookup even if the dentry is positive.  Returning ENOENT here
--	 * doesn't do the right thing for all system calls, but it should
--	 * be OK for the operations we permit from an autofs.
-+	 * lookup.  Returning ENOENT here doesn't do the right thing
-+	 * for all system calls, but it should be OK for the operations
-+	 * we permit from an autofs.
- 	 */
--	if (dentry->d_inode && d_unhashed(dentry))
--		return ERR_PTR(-ENOENT);
-+	if (dentry->d_inode && d_unhashed(dentry)) {
-+		/*
-+		 * A user space application can (and has done in the past)
-+		 * remove and re-create this directory during the callback.
-+		 * This can leave us with an unhashed dentry, but a
-+		 * successful mount!  So we need to perform another
-+		 * cached lookup in case the dentry now exists.
-+		 */
-+		struct dentry *parent = dentry->d_parent;
-+		struct dentry *new = d_lookup(parent, &dentry->d_name);
-+		if (new != NULL)
-+			dentry = new;
-+		else
-+			dentry = ERR_PTR(-ENOENT);
-+
-+		if (unhashed)
-+			dput(unhashed);
-+
-+		return dentry;
-+	}
-+
-+	if (unhashed)
-+		return dentry;
- 
- 	return NULL;
- }
-@@ -611,9 +743,10 @@ static int autofs4_dir_symlink(struct in
-  * Normal filesystems would do a "d_delete()" to tell the VFS dcache
-  * that the file no longer exists. However, doing that means that the
-  * VFS layer can turn the dentry into a negative dentry.  We don't want
-- * this, because since the unlink is probably the result of an expire.
-- * We simply d_drop it, which allows the dentry lookup to remount it
-- * if necessary.
-+ * this, because the unlink is probably the result of an expire.
-+ * We simply d_drop it and add it to a rehash candidates list in the
-+ * super block, which allows the dentry lookup to reuse it retaining
-+ * the flags, such as expire in progress, in case we're racing with expire.
-  *
-  * If a process is blocked on the dentry waiting for the expire to finish,
-  * it will invalidate the dentry and try to mount with a new one.
-@@ -642,7 +775,14 @@ static int autofs4_dir_unlink(struct ino
- 
- 	dir->i_mtime = CURRENT_TIME;
- 
--	d_drop(dentry);
-+	spin_lock(&dcache_lock);
-+	spin_lock(&sbi->rehash_lock);
-+	list_add(&ino->rehash, &sbi->rehash_list);
-+	spin_unlock(&sbi->rehash_lock);
-+	spin_lock(&dentry->d_lock);
-+	__d_drop(dentry);
-+	spin_unlock(&dentry->d_lock);
-+	spin_unlock(&dcache_lock);
- 
- 	return 0;
- }
-@@ -653,6 +793,9 @@ static int autofs4_dir_rmdir(struct inod
- 	struct autofs_info *ino = autofs4_dentry_ino(dentry);
- 	struct autofs_info *p_ino;
- 	
-+	DPRINTK("dentry %p, removing %.*s",
-+		dentry, dentry->d_name.len, dentry->d_name.name);
-+
- 	if (!autofs4_oz_mode(sbi))
- 		return -EACCES;
- 
-@@ -661,6 +804,9 @@ static int autofs4_dir_rmdir(struct inod
- 		spin_unlock(&dcache_lock);
- 		return -ENOTEMPTY;
- 	}
-+	spin_lock(&sbi->rehash_lock);
-+	list_add(&ino->rehash, &sbi->rehash_list);
-+	spin_unlock(&sbi->rehash_lock);
- 	spin_lock(&dentry->d_lock);
- 	__d_drop(dentry);
- 	spin_unlock(&dentry->d_lock);
-diff -Nurp linux-2.6.20.orig/fs/autofs4/waitq.c linux-2.6.20/fs/autofs4/waitq.c
---- linux-2.6.20.orig/fs/autofs4/waitq.c	2007-02-05 03:44:54.000000000 +0900
-+++ linux-2.6.20/fs/autofs4/waitq.c	2007-04-13 14:22:29.000000000 +0800
-@@ -84,7 +84,11 @@ static void autofs4_notify_daemon(struct
- 				 struct autofs_wait_queue *wq,
- 				 int type)
- {
--	union autofs_packet_union pkt;
-+	union {
-+		struct autofs_packet_hdr hdr;
-+		union autofs_packet_union v4_pkt;
-+		union autofs_v5_packet_union v5_pkt;
-+	} pkt;
- 	size_t pktsz;
- 
- 	DPRINTK("wait id = 0x%08lx, name = %.*s, type=%d",
-@@ -98,7 +102,7 @@ static void autofs4_notify_daemon(struct
- 	/* Kernel protocol v4 missing and expire packets */
- 	case autofs_ptype_missing:
- 	{
--		struct autofs_packet_missing *mp = &pkt.missing;
-+		struct autofs_packet_missing *mp = &pkt.v4_pkt.missing;
- 
- 		pktsz = sizeof(*mp);
- 
-@@ -110,7 +114,7 @@ static void autofs4_notify_daemon(struct
- 	}
- 	case autofs_ptype_expire_multi:
- 	{
--		struct autofs_packet_expire_multi *ep = &pkt.expire_multi;
-+		struct autofs_packet_expire_multi *ep = &pkt.v4_pkt.expire_multi;
- 
- 		pktsz = sizeof(*ep);
- 
-@@ -129,7 +133,7 @@ static void autofs4_notify_daemon(struct
- 	case autofs_ptype_missing_direct:
- 	case autofs_ptype_expire_direct:
- 	{
--		struct autofs_v5_packet *packet = &pkt.v5_packet;
-+		struct autofs_v5_packet *packet = &pkt.v5_pkt.v5_packet;
- 
- 		pktsz = sizeof(*packet);
- 
-diff -Nurp linux-2.6.20.orig/include/linux/auto_fs4.h linux-2.6.20/include/linux/auto_fs4.h
---- linux-2.6.20.orig/include/linux/auto_fs4.h	2007-02-05 03:44:54.000000000 +0900
-+++ linux-2.6.20/include/linux/auto_fs4.h	2007-04-13 14:22:29.000000000 +0800
-@@ -59,6 +59,13 @@ struct autofs_packet_expire_multi {
- 	char name[NAME_MAX+1];
- };
- 
-+union autofs_packet_union {
-+	struct autofs_packet_hdr hdr;
-+	struct autofs_packet_missing missing;
-+	struct autofs_packet_expire expire;
-+	struct autofs_packet_expire_multi expire_multi;
-+};
-+
- /* autofs v5 common packet struct */
- struct autofs_v5_packet {
- 	struct autofs_packet_hdr hdr;
-@@ -78,12 +85,13 @@ typedef struct autofs_v5_packet autofs_p
- typedef struct autofs_v5_packet autofs_packet_missing_direct_t;
- typedef struct autofs_v5_packet autofs_packet_expire_direct_t;
- 
--union autofs_packet_union {
-+union autofs_v5_packet_union {
- 	struct autofs_packet_hdr hdr;
--	struct autofs_packet_missing missing;
--	struct autofs_packet_expire expire;
--	struct autofs_packet_expire_multi expire_multi;
- 	struct autofs_v5_packet v5_packet;
-+	autofs_packet_missing_indirect_t missing_indirect;
-+	autofs_packet_expire_indirect_t expire_indirect;
-+	autofs_packet_missing_direct_t missing_direct;
-+	autofs_packet_expire_direct_t expire_direct;
- };
- 
- #define AUTOFS_IOC_EXPIRE_MULTI		_IOW(0x93,0x66,int)
+sappscmn:/root>>> showmount --no-headers -e 10.172.230.134 | wc -l
+96
+
+All of them have access restrictions:
+
+sappscmn:/root>>> showmount --no-headers -e 10.172.230.134 | awk '$2==""'
+sappscmn:/root>>>
+sappscmn:/root>>> showmount --no-headers -e 10.172.230.134 | head -5
+/vol/nb/sles8/shared_os/var_img/var-0aac118a        10.172.17.138
+/vol/nb/sles9_ia32/shared_os/root_aclm              10.172.17.99
+/vol/nb/sles9_ia32/shared_os/var_img/var-0aac1163   10.172.17.99
+/vol/nb/sles9_ia32/shared_os/root_cmsa_p
+10.172.17.122,10.172.17.123
+/vol/nb/sles9_ia32/shared_os/var_img/var-0aac1164   10.172.17.100
+
+
+My IP-address is
+
+sappscmn:/root>>> ip route list dev eth1
+10.172.230.0/24  proto kernel  scope link  src 10.172.230.142
+169.254.0.0/16  scope link
+
+There is one volume accessible from the current host:
+
+sappscmn:/root>>> showmount --no-headers -e 10.172.230.134 | grep
+10.172.230.0/24
+/vol/pcc
+172.18.144.122,172.18.11.179,172.18.214.253,172.18.144.64/26,172.18.139.0/26,10.172.139.0/26,172.18.230.0/24,10.172.230.0/24,10.172.17.0/24,10.172.144.128/26,172.24.207.0/24,172.18.139.10,172.18.30.224/27,172.18.102.0/24,172.18.107.0/24,172.18.95.0/24,172.18.228.0/24,10.172.144.192/26,10.172.144.64/26,172.18.131.0/24,10.125.1.35,172.18.28.0/24,10.172.143.0/27,172.18.170.0/24,172.18.117.133,172.18.95.180,172.18.229.0/24,172.18.30.192/27,172.18.158.0/24,172.18.96.128/25
+sappscmn:/root>>>
+
+No other volume may be mounted.
+
+Nevertheless automount tries to mount all volumes.
+
+Running /etc/auto.net gives me:
+
+sappscmn:/root>>> /etc/auto.net 10.172.230.134
+-fstype=nfs,hard,intr,nodev,nosuid \
+         /vol/acid 10.172.230.134:/vol/acid \
+         /vol/casm_log/casm_log 10.172.230.134:/vol/casm_log/casm_log \
+         /vol/casm_log 10.172.230.134:/vol/casm_log \
+         /vol/casm 10.172.230.134:/vol/casm \
+...
+         /vol/pcc 10.172.230.134:/vol/pcc \
+...
+
+sappscmn:/root>>> /etc/init.d/autofs start
+Starting service automounter                                         done
+sappscmn:/root>>> cd /net/10.172.230.134/vol/pcc
+bash: cd: /net/10.172.230.134/vol/pcc: No such file or directory
+sappscmn:/root>>>
+
+/var/log/messages shows quite clearly:
+
+Apr 27 11:25:05 sappscmn automount[7822]: >> mount: 
+10.172.230.134:/vol/acid failed, reason given by server: Permission denied
+Apr 27 11:25:05 sappscmn automount[7822]: mount(nfs): nfs: mount failure 
+10.172.230.134:/vol/acid on /net/10.172.230.134/vol/acid
+Apr 27 11:25:05 sappscmn automount[7822]: >> mount: 
+10.172.230.134:/vol/casm_log/casm_log failed, reason given by server: 
+Permission denied
+
+Up to this point there are no news. This happened always.
+
+Unfortunately the volume I want to access cannot be mounted any longer:
+
+...
+Apr 27 11:25:06 sappscmn automount[7822]: >> mount: 
+10.172.230.134:/vol/nb/sles9_ia32/shared_os/root_cms_p failed, reason 
+given by server: Permission denied
+Apr 27 11:25:06 sappscmn automount[7822]: mount(nfs): nfs: mount failure 
+10.172.230.134:/vol/nb/sles9_ia32/shared_os/root_cms_p on 
+/net/10.172.230.134/vol/nb/sles9_ia32/shared_os/root_cms_p
+Apr 27 11:25:06 sappscmn automount[7822]: >> mount: fs type, bad option, 
+bad superblock ... or too many mounted file systems
+Apr 27 11:25:06 sappscmn automount[7876]: >> /usr/sbin/showmount: can't 
+get address for 10.172.230.134/vol/pcc
+Apr 27 11:25:06 sappscmn automount[7876]: lookup(program): lookup for 
+10.172.230.134/vol/pcc failed
+Apr 27 11:25:06 sappscmn automount[7876]: failed to mount 
+/net/10.172.230.134/vol/pcc
+
+If I change /etc/auto.net from
+
+$SHOWMOUNT | LC_ALL=C sort -k 1 | \
+
+to
+
+$SHOWMOUNT | LC_ALL=C sort -k 1 | grep 10.172.230.0/24 | \
+
+everything works well.
+
+But this is a hack.
+
+So my questions:
+
+Is it possible make showmount show only volumes, I could mount
+succesful and to suppress those, that will fail ?
+
+Are there know problems with large export list (It used to work
+before, but the NetApp-Filer became bigger and bigger ...)
+
+Any other hints ?
+
+Thanks for your time !
+
+Kind regards
+
+Gerd
