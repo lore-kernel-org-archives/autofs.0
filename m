@@ -1,14 +1,13 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs4 with NetApp-Filer and large export
-	list:	Stopped working for me
-Date: Fri, 27 Apr 2007 21:19:27 +0800
-Message-ID: <1177679967.4256.5.camel@raven.themaw.net>
-References: <4631ED94.70900@googlemail.com>
+From: Jim Carter <jimc@math.ucla.edu>
+Subject: Re: Mounting a usb flash drive on /mnt
+Date: Sun, 29 Apr 2007 17:24:35 -0700 (PDT)
+Message-ID: <Pine.LNX.4.64.0704291704410.4227@xena.cft.ca.us>
+References: <20070419181221.73C51160C1@l0ca1h0st.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4631ED94.70900@googlemail.com>
+In-Reply-To: <20070419181221.73C51160C1@l0ca1h0st.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,138 +18,33 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Gerd Bavendiek <gerd.bavendiek@googlemail.com>
+To: Derek Reid <autofs-ml@l0ca1h0st.com>
 Cc: autofs@linux.kernel.org
 
-On Fri, 2007-04-27 at 14:33 +0200, Gerd Bavendiek wrote:
-> Hi,
-> 
-> I used to use autofs4 with a NetApp-Filer as NFS server (mostly from
-> SLES9 boxes). This does not seem to work any longer. So I digged a
-> little bit deeper:
-> 
-> The NetApp-Filer in question exports nearly 100 volumes:
-> 
-> sappscmn:/root>>> showmount --no-headers -e 10.172.230.134 | wc -l
-> 96
-> 
-> All of them have access restrictions:
-> 
-> sappscmn:/root>>> showmount --no-headers -e 10.172.230.134 | awk '$2==""'
-> sappscmn:/root>>>
-> sappscmn:/root>>> showmount --no-headers -e 10.172.230.134 | head -5
-> /vol/nb/sles8/shared_os/var_img/var-0aac118a        10.172.17.138
-> /vol/nb/sles9_ia32/shared_os/root_aclm              10.172.17.99
-> /vol/nb/sles9_ia32/shared_os/var_img/var-0aac1163   10.172.17.99
-> /vol/nb/sles9_ia32/shared_os/root_cmsa_p
-> 10.172.17.122,10.172.17.123
-> /vol/nb/sles9_ia32/shared_os/var_img/var-0aac1164   10.172.17.100
-> 
-> 
-> My IP-address is
-> 
-> sappscmn:/root>>> ip route list dev eth1
-> 10.172.230.0/24  proto kernel  scope link  src 10.172.230.142
-> 169.254.0.0/16  scope link
-> 
-> There is one volume accessible from the current host:
-> 
-> sappscmn:/root>>> showmount --no-headers -e 10.172.230.134 | grep
-> 10.172.230.0/24
-> /vol/pcc
-> 172.18.144.122,172.18.11.179,172.18.214.253,172.18.144.64/26,172.18.139.0/26,10.172.139.0/26,172.18.230.0/24,10.172.230.0/24,10.172.17.0/24,10.172.144.128/26,172.24.207.0/24,172.18.139.10,172.18.30.224/27,172.18.102.0/24,172.18.107.0/24,172.18.95.0/24,172.18.228.0/24,10.172.144.192/26,10.172.144.64/26,172.18.131.0/24,10.125.1.35,172.18.28.0/24,10.172.143.0/27,172.18.170.0/24,172.18.117.133,172.18.95.180,172.18.229.0/24,172.18.30.192/27,172.18.158.0/24,172.18.96.128/25
-> sappscmn:/root>>>
-> 
-> No other volume may be mounted.
-> 
-> Nevertheless automount tries to mount all volumes.
-> 
-> Running /etc/auto.net gives me:
-> 
-> sappscmn:/root>>> /etc/auto.net 10.172.230.134
-> -fstype=nfs,hard,intr,nodev,nosuid \
->          /vol/acid 10.172.230.134:/vol/acid \
->          /vol/casm_log/casm_log 10.172.230.134:/vol/casm_log/casm_log \
->          /vol/casm_log 10.172.230.134:/vol/casm_log \
->          /vol/casm 10.172.230.134:/vol/casm \
-> ...
->          /vol/pcc 10.172.230.134:/vol/pcc \
-> ...
-> 
-> sappscmn:/root>>> /etc/init.d/autofs start
-> Starting service automounter                                         done
-> sappscmn:/root>>> cd /net/10.172.230.134/vol/pcc
-> bash: cd: /net/10.172.230.134/vol/pcc: No such file or directory
-> sappscmn:/root>>>
-> 
-> /var/log/messages shows quite clearly:
-> 
-> Apr 27 11:25:05 sappscmn automount[7822]: >> mount: 
-> 10.172.230.134:/vol/acid failed, reason given by server: Permission denied
-> Apr 27 11:25:05 sappscmn automount[7822]: mount(nfs): nfs: mount failure 
-> 10.172.230.134:/vol/acid on /net/10.172.230.134/vol/acid
-> Apr 27 11:25:05 sappscmn automount[7822]: >> mount: 
-> 10.172.230.134:/vol/casm_log/casm_log failed, reason given by server: 
-> Permission denied
-> 
-> Up to this point there are no news. This happened always.
-> 
-> Unfortunately the volume I want to access cannot be mounted any longer:
-> 
-> ...
-> Apr 27 11:25:06 sappscmn automount[7822]: >> mount: 
-> 10.172.230.134:/vol/nb/sles9_ia32/shared_os/root_cms_p failed, reason 
-> given by server: Permission denied
-> Apr 27 11:25:06 sappscmn automount[7822]: mount(nfs): nfs: mount failure 
-> 10.172.230.134:/vol/nb/sles9_ia32/shared_os/root_cms_p on 
-> /net/10.172.230.134/vol/nb/sles9_ia32/shared_os/root_cms_p
-> Apr 27 11:25:06 sappscmn automount[7822]: >> mount: fs type, bad option, 
-> bad superblock ... or too many mounted file systems
-> Apr 27 11:25:06 sappscmn automount[7876]: >> /usr/sbin/showmount: can't 
-> get address for 10.172.230.134/vol/pcc
-> Apr 27 11:25:06 sappscmn automount[7876]: lookup(program): lookup for 
-> 10.172.230.134/vol/pcc failed
-> Apr 27 11:25:06 sappscmn automount[7876]: failed to mount 
-> /net/10.172.230.134/vol/pcc
-> 
-> If I change /etc/auto.net from
-> 
-> $SHOWMOUNT | LC_ALL=C sort -k 1 | \
-> 
-> to
-> 
-> $SHOWMOUNT | LC_ALL=C sort -k 1 | grep 10.172.230.0/24 | \
-> 
-> everything works well.
-> 
-> But this is a hack.
-> 
-> So my questions:
-> 
-> Is it possible make showmount show only volumes, I could mount
-> succesful and to suppress those, that will fail ?
+On Thu, 19 Apr 2007, Derek Reid wrote:
 
-This is a contentious issue.
+> I'd like to mount my usb flash drive exclusively on /mnt but I'm not
+> sure if this is possible...
 
-In version 5 exports for which the client didn't have access were pruned
-for a long time but since the validation of exports can't work from
-behind a NAT router I've disabled it in a recent patch.
+Understood that the autofs issue is mounting on an immediate subdirectory 
+of the root, but...  The USB drive can be mounted when you first refer to 
+it (using autofs), or when it's hotplugged.  This latter way is what 
+mainstream distro integrators are doing.  If you're running KDE or Gnome, 
+then gnome-volume-manager should be started.  It monitors hotplug messages 
+and should take care of telling haldaemon to mount a newly inserted device 
+or media (on /media/whatever; probably you can influence this mount point 
+choice).  But I assume you're using neither Desktop Environment.
 
-So you'll still have to put up with those annoying messages.
+I have some notes on gotcha's, including this one.  Search for "Gnome"
+in this document, about halfway through.
+    http://www.math.ucla.edu/~jimc/documents/bugfix.html
+The only thing I haven't figured out is, how do you unmount the USB drive, 
+short of yanking it out while still mounted, which seems like a recipe for 
+disaster.  On a CD drive you can press the eject button and the appropriate 
+hot(un)plug message will be sent, but not for USB storage.
 
-> 
-> Are there know problems with large export list (It used to work
-> before, but the NetApp-Filer became bigger and bigger ...)
+Hope this is useful!
 
-Yes, several.
-
-> 
-> Any other hints ?
-
-Use version 5.
-The latest version is available on kernel.org.
-Use all the patches for 5.0.1 as well.
-
-If this works for you then bug your vendor about updating to v5.
-
-Ian
+James F. Carter          Voice 310 825 2897    FAX 310 206 6673
+UCLA-Mathnet;  6115 MSA; 405 Hilgard Ave.; Los Angeles, CA, USA 90095-1555
+Email: jimc@math.ucla.edu  http://www.math.ucla.edu/~jimc (q.v. for PGP key)
