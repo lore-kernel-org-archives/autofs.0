@@ -1,14 +1,11 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: autofs5 + ldap
-Date: Wed, 06 Jun 2007 10:13:48 -0400
-Message-ID: <x496461uq5f.fsf@segfault.boston.devel.redhat.com>
-References: <370788.91736.qm@web90501.mail.mud.yahoo.com>
+From: Paul Smith <psmith@netezza.com>
+Subject: [patch] Sample auto.net provided with autofs is incorrect
+Date: Tue, 01 May 2007 17:00:09 -0400
+Message-ID: <1178053209.20217.57.camel@psmithub>
+Reply-To: psmith@netezza.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="=-ijbHVv+TzqCTT5CdubPC"
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <370788.91736.qm@web90501.mail.mud.yahoo.com> (Phy Prabab's
-	message of "Sat, 12 May 2007 22:35:54 -0700 (PDT)")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,53 +16,59 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Phy Prabab <phyprabab@yahoo.com>
-Cc: autofs@linux.kernel.org
-
-==> On Sat, 12 May 2007 22:35:54 -0700 (PDT), Phy Prabab <phyprabab@yahoo.com> said:
-
-Phy> Hello!
+To: autofs@linux.kernel.org
 
 
-Phy> I am having some issues with autofs5 + ldap configuration, I just
-Phy> can not seem to get autofs to read the auto_master map out of
-Phy> ldap.  I have tried unsuccessfully using the "samples" and my
-Phy> previous configuration (autofs414 which does work with ldap).  I
-Phy> tried to use the /etc/sysconfig/autofs config file paralleling
-Phy> the sample but using my ldap settings as well as using
-Phy> /etc/auto.master again using my ldap settings, both to no avail.
-Phy> I know the ldap settings are correct, I can search the ldap
-Phy> server without any issues and I am using it to authenticate
-Phy> (i.e. passwords).
+--=-ijbHVv+TzqCTT5CdubPC
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Phy> If anyone could lend me a suggestion, I would be most grateful.
-Phy> TIA,
-Phy> Phy
+Hi all;
+
+Please see this bug I just reported against Ubuntu:
+
+https://bugs.launchpad.net/ubuntu/+source/autofs/+bug/111612
+
+I believe this problem also exists in the original autofs package.
+However, I can't seem to find the source anywhere; the freshmeat page
+for autofs looks quite out of date and doesn't have any homepage/etc.
+info, and Google searches came up empty as well.
+
+I attach a patch below.
+
+-- 
+-----------------------------------------------------------------------------
+ Paul D. Smith <psmith@netezza.com>                       http://netezza.com
+ "Please remain calm--I may be mad, but I am a professional."--Mad Scientist
+-----------------------------------------------------------------------------
+      These are my opinions--Netezza takes no responsibility for them.
+
+--=-ijbHVv+TzqCTT5CdubPC
+Content-Disposition: attachment; filename=autofs-auto.net.patch
+Content-Type: text/x-patch; name=autofs-auto.net.patch; charset=us-ascii
+Content-Transfer-Encoding: base64
+
+LS0tIC9ldGMvYXV0by5uZXQtZGlzdAkyMDA3LTAyLTA4IDExOjIwOjA3LjAwMDAwMDAwMCAtMDUw
+MA0KKysrIC9ldGMvYXV0by5uZXQJMjAwNy0wNS0wMSAxNjoxNjoxMi4wMDAwMDAwMDAgLTA0MDAN
+CkBAIC0zNyw3ICszNyw3IEBADQogIyBOZXdlciBkaXN0cmlidXRpb25zIGdldCB0aGlzIHJpZ2h0
+DQogU0hPV01PVU5UPSIkU01OVCAtLW5vLWhlYWRlcnMgLWUgJGtleSINCiANCi0kU0hPV01PVU5U
+IHwgTENfQUxMPUMgc29ydCAtdSAtayAxIHwgXA0KKyRTSE9XTU9VTlQgfCBMQ19BTEw9QyBjdXQg
+LWRcICAtZjEgfCBMQ19BTEw9QyBzb3J0IC11IHwgXA0KIAlhd2sgLXYga2V5PSIka2V5IiAtdiBv
+cHRzPSIkb3B0cyIgLS0gJw0KIAlCRUdJTgl7IE9SUz0iIjsgZmlyc3Q9MSB9DQogCQl7IGlmIChm
+aXJzdCkgeyBwcmludCBvcHRzOyBmaXJzdD0wIH07IHByaW50ICIgXFxcblx0IiAkMSwga2V5ICI6
+IiAkMSB9DQo=
 
 
-Phy> [root@b~]# cat /etc/auto.master
-Phy> dn: automountMapName=auto_master,ou=automount,ou=defaults,ou=sanjose,ou=services,o=cadence.com
-Phy> objectClass: top
-Phy> objectClass: automountMap
-Phy> automountMapName: auto_master
-Phy> #+auto.master
+--=-ijbHVv+TzqCTT5CdubPC
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Autofs does not expect to find ldif in your /etc/auto.master.  I'm
-guessing this was a last resort attempt.  What did your configuration
-files look like under 4.1.x?
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
 
-For now, try the following.
-Make sure /etc/nsswitch.conf has this line for automount:
-automount: ldap
+--=-ijbHVv+TzqCTT5CdubPC--
 
-And in /etc/sysconfig/autofs, you want to have this line:
-MASTER_MAP_NAME="auto_master"
-
-Now try starting the automounter.  If this fails, please provide all
-of the information requested in the section entitled, "Filing bug
-reports," on my people page:
-  http://people.redhat.com/jmoyer
-
-Thanks!
-
-Jeff
