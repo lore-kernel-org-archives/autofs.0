@@ -1,16 +1,14 @@
-From: Mike Marion <mmarion@qualcomm.com>
+From: Jeff Moyer <jmoyer@redhat.com>
 Subject: Re: sasl plugin compilation failure
-Date: Thu, 3 May 2007 14:32:08 -0700
-Message-ID: <20070503213207.GA29009@qctesweb.qualcomm.com>
+Date: Thu, 03 May 2007 17:46:18 -0400
+Message-ID: <x49bqh1inrp.fsf@segfault.boston.devel.redhat.com>
 References: <44EC6AC2.3050503@inria.fr>
-	<Pine.LNX.4.64.0608241027270.3051@raven.themaw.net>
-	<44ED4AC8.1070903@inria.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <44ED4AC8.1070903@inria.fr>
+In-Reply-To: <44EC6AC2.3050503@inria.fr> (Guillaume Rousse's message of "Wed,
+	23 Aug 2006 16:48:34 +0200")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,22 +22,22 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: Guillaume Rousse <Guillaume.Rousse@inria.fr>
 Cc: autofs@linux.kernel.org
 
-On Thu, Aug 24, 2006 at 08:44:24AM +0200, Guillaume Rousse wrote:
+==> On Wed, 23 Aug 2006 16:48:34 +0200, Guillaume Rousse <Guillaume.Rousse@inria.fr> said:
 
-> >> In file included from cyrus-sasl.c:59:
-> >> ../include/lookup_ldap.h:41: error: expected specifier-qualifier-list
-> >> before 'krb5_principal'
-> >>
-> >> I had to disable sasl explicitely. I'm using gcc 4.1.1.
-> > 
-> > What version and what patches?
-> 5.0.1, with all patches applied until autofs-5.0.1-rc1-shutdown-races.patch.
+Guillaume> gcc -shared -Xlinker -rpath -Xlinker /usr/lib64/autofs -O2
+Guillaume> -g -pipe -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -DDONTSTRIP
+Guillaume> -D_REENTRANT -D_REENTRANT -I../include -I../lib -fPIC
+Guillaume> -D_GNU_SOURCE -DAUTOFS_LIB_DIR=\"/usr/lib64/autofs\"
+Guillaume> -DAUTOFS_MAP_DIR=\"/etc/autofs\" -o mount_nfs.so \
+Guillaume> mount_nfs.c replicated.o ../lib/autofs.a -lnsl In file
+Guillaume> included from cyrus-sasl.c:59: ../include/lookup_ldap.h:41:
+Guillaume> error: expected specifier-qualifier-list before
+Guillaume> 'krb5_principal'
 
-I've run into the same thing on sled10.  Did you figure out a fix for
-this?
+Guillaume> I had to disable sasl explicitely. I'm using gcc 4.1.1.  --
+Guillaume> Guillaume Rousse Projet Estime, INRIA Domaine de Voluceau
+Guillaume> Rocquencourt - B.P. 105 78153 Le Chesnay Cedex - France
 
--- 
-Mike Marion-Unix SysAdmin/Staff IT Engineer-http://www.qualcomm.com
-Sideshow Bob: "I'll be back.  You can't keep the Democrats out of the white 
-house forever, and when they get in, I'm back on the street... with all my 
-criminal buddies!  Aaah ha ha ha!" ==> Simpsons.
+Do you have krb5 development libraries installed?
+
+-Jeff
