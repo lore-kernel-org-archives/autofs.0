@@ -1,14 +1,16 @@
-From: "Douglas E. Engert" <deengert@anl.gov>
-Subject: Re: Simple BINDS over SSL/TLS
-Date: Thu, 03 May 2007 09:56:55 -0500
-Message-ID: <4639F837.9030606@anl.gov>
-References: <20070502151939.GD9348@cartman.devries.tv>
-	<20070502153310.GF9348@cartman.devries.tv>
+From: Mike Marion <mmarion@qualcomm.com>
+Subject: Re: sasl plugin compilation failure
+Date: Thu, 3 May 2007 14:32:08 -0700
+Message-ID: <20070503213207.GA29009@qctesweb.qualcomm.com>
+References: <44EC6AC2.3050503@inria.fr>
+	<Pine.LNX.4.64.0608241027270.3051@raven.themaw.net>
+	<44ED4AC8.1070903@inria.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20070502153310.GF9348@cartman.devries.tv>
+Content-Disposition: inline
+In-Reply-To: <44ED4AC8.1070903@inria.fr>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,54 +21,25 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: peter@devries.tv
+To: Guillaume Rousse <Guillaume.Rousse@inria.fr>
 Cc: autofs@linux.kernel.org
 
+On Thu, Aug 24, 2006 at 08:44:24AM +0200, Guillaume Rousse wrote:
 
+> >> In file included from cyrus-sasl.c:59:
+> >> ../include/lookup_ldap.h:41: error: expected specifier-qualifier-list
+> >> before 'krb5_principal'
+> >>
+> >> I had to disable sasl explicitely. I'm using gcc 4.1.1.
+> > 
+> > What version and what patches?
+> 5.0.1, with all patches applied until autofs-5.0.1-rc1-shutdown-races.patch.
 
-peter@devries.tv wrote:
-> On Wed, May 02, 2007 at 11:19:39AM -0400, peter@devries.tv wrote:
->> I was wondering if it is possible for autofs to do simple binds over
->> TLS/SSL rather than having to do them over SASL.
-> 
-> This may not have been clear enough.  I want autofs to authenticate to
-> the LDAP server as a user but without the use of SASL. 
-
-Looking at autofs-4.1.4, it looks like it only does anonymous,
-because it does not have a binddn or bindpw to use. It can use TLS,
-if the ldap.conf it uses has someting like:
-
-  URI ldaps://your.ldap.server.name
-  TLS_CACERTDIR path to ca certs
-
-The ldap library could fill in a binddn from a ldaprc, Its the  bindpw
-that the ldap library will not fill in, and autofs does not have an
-easy way to get it.
-
-Speakinig of SASL, the best I can tell is 4.1.4 does not support it
-directly, but could with a patch to call
-
-  ldap_sasl_interactive_bind_s
-
-I had a working patch, but got side tracked. Are there any plans
-to add SASL support to autofs, such that it ends up in Debian distribution?
-
-
-
-> Thanks,
-> Peter
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
-> 
-> 
+I've run into the same thing on sled10.  Did you figure out a fix for
+this?
 
 -- 
-
-  Douglas E. Engert  <DEEngert@anl.gov>
-  Argonne National Laboratory
-  9700 South Cass Avenue
-  Argonne, Illinois  60439
-  (630) 252-5444
+Mike Marion-Unix SysAdmin/Staff IT Engineer-http://www.qualcomm.com
+Sideshow Bob: "I'll be back.  You can't keep the Democrats out of the white 
+house forever, and when they get in, I'm back on the street... with all my 
+criminal buddies!  Aaah ha ha ha!" ==> Simpsons.
