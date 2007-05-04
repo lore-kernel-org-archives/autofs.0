@@ -1,18 +1,15 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Simple BINDS over SSL/TLS
-Date: Sat, 05 May 2007 00:58:16 +0800
-Message-ID: <1178297896.4111.47.camel@raven.themaw.net>
-References: <20070502151939.GD9348@cartman.devries.tv>
-	<20070502153310.GF9348@cartman.devries.tv> <4639F837.9030606@anl.gov>
-	<x497irpinp9.fsf@segfault.boston.devel.redhat.com>
-	<463B42C1.8000301@anl.gov>
-	<x49y7k4hcgo.fsf@segfault.boston.devel.redhat.com>
-	<463B5D12.9070901@anl.gov>
+From: Mike Marion <mmarion@qualcomm.com>
+Subject: Re: sasl plugin compilation failure
+Date: Fri, 4 May 2007 14:09:22 -0700
+Message-ID: <20070504210921.GD16190@cornholio.qualcomm.com>
+References: <44EC6AC2.3050503@inria.fr>
+	<x49bqh1inrp.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <463B5D12.9070901@anl.gov>
+Content-Disposition: inline
+In-Reply-To: <x49bqh1inrp.fsf@segfault.boston.devel.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -23,38 +20,28 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: "Douglas E. Engert" <deengert@anl.gov>
+To: Jeff Moyer <jmoyer@redhat.com>
 Cc: autofs@linux.kernel.org
 
-On Fri, 2007-05-04 at 11:19 -0500, Douglas E. Engert wrote:
-> 
-> Jeff Moyer wrote:
-> > ==> On Fri, 04 May 2007 09:27:13 -0500, "Douglas E. Engert" <deengert@anl.gov> said:
-> > 
-> > Douglas> Jeff Moyer wrote: > ==> On Thu, 03 May 2007 09:56:55 -0500,
-> > Douglas> "Douglas E. Engert" <deengert@anl.gov> said: > Douglas> I had
-> > Douglas> a working patch, but got side tracked. Are there any >
-> > Douglas> Douglas> plans to add SASL support to autofs, such that it
-> > Douglas> ends up in > Douglas> Debian distribution?  > SASL support
-> > Douglas> was introduced in autofs v5.  Testing has been limited, >
-> > Douglas> since it seems no one uses it.
-> > 
-> > Douglas> Great. I was looking at Debian, and using a Ubuntu system,
-> > Douglas> that used 4.1.4 When v5 is stable, then we can look at it
-> > Douglas> again. Is v5 in any of the RedHat distributions?
-> > 
-> > I use v5 on my workstation, and have done so for at least a couple of
-> > months, now.  We also ship it in several distributions, so let's call
-> > it stable.  If you have evidence to the contrary, then please send us
-> > problem reports!
-> 
-> I have no indications of any problems. What I meant was "stable"
-> in the terms of the Debian distributions. Debian appears to have 4.1.4
-> versions in "stable", "testing" and "unstable"
-> Unfortuneatly they don't appear to have any 5.0 versions yet.
+On Thu, May 03, 2007 at 05:46:18PM -0400, Jeff Moyer wrote:
 
-Yes, one of the difficulties with Debian is that v5 needs a fairly
-recent kernel which could cause pain for some people that can't update
-the kernel component for some reason.
+> Guillaume> I had to disable sasl explicitely. I'm using gcc 4.1.1.  --
+> Guillaume> Guillaume Rousse Projet Estime, INRIA Domaine de Voluceau
+> Guillaume> Rocquencourt - B.P. 105 78153 Le Chesnay Cedex - France
+> 
+> Do you have krb5 development libraries installed?
 
-Ian
+I know I do... SLED10 install.. all the krb5* rpms are installed (64 and
+32bit including -devel*) and all the openssl ones too.  
+
+I was able to disable sasl for now too, which is ok for the short term
+because we'd like to use sasl eventually.
+
+
+-- 
+Mike Marion-Unix SysAdmin/Staff IT Engineer-http://www.qualcomm.com
+There was once a young man who, in his youth, professed his desire
+become a great writer. When asked to define "great" he said, "I want to 
+write stuff that the whole world will read, stuff that people will react 
+to on a truly emotional level, stuff that will make them scream, cry, howl
+in pain and anger!" == He now works for Microsoft, writing error messages.
