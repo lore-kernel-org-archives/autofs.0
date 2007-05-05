@@ -1,16 +1,17 @@
-From: Jeff Moyer <jmoyer@redhat.com>
+From: Mike Marion <mmarion@qualcomm.com>
 Subject: Re: sasl plugin compilation failure
-Date: Fri, 04 May 2007 17:19:26 -0400
-Message-ID: <x49abwkguch.fsf@segfault.boston.devel.redhat.com>
+Date: Fri, 4 May 2007 17:16:44 -0700
+Message-ID: <20070505001644.GG16190@cornholio.qualcomm.com>
 References: <44EC6AC2.3050503@inria.fr>
 	<x49bqh1inrp.fsf@segfault.boston.devel.redhat.com>
 	<20070504210921.GD16190@cornholio.qualcomm.com>
+	<x49abwkguch.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20070504210921.GD16190@cornholio.qualcomm.com> (Mike Marion's
-	message of "Fri, 4 May 2007 14:09:22 -0700")
+Content-Disposition: inline
+In-Reply-To: <x49abwkguch.fsf@segfault.boston.devel.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,27 +22,19 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Mike Marion <mmarion@qualcomm.com>
+To: Jeff Moyer <jmoyer@redhat.com>
 Cc: autofs@linux.kernel.org
 
-==> On Fri, 4 May 2007 14:09:22 -0700, Mike Marion <mmarion@qualcomm.com> said:
+On Fri, May 04, 2007 at 05:19:26PM -0400, Jeff Moyer wrote:
 
-Mike> On Thu, May 03, 2007 at 05:46:18PM -0400, Jeff Moyer wrote:
-Mike> > Guillaume> I had to disable sasl explicitely. I'm using gcc 4.1.1.  --
-Mike> > Guillaume> Guillaume Rousse Projet Estime, INRIA Domaine de Voluceau
-Mike> > Guillaume> Rocquencourt - B.P. 105 78153 Le Chesnay Cedex - France
-Mike> > 
-Mike> > Do you have krb5 development libraries installed?
+> Hmm, can you add a:
+> #include <krb5.h>
+> 
+> to include/lookup_ldap.h ?
 
-Mike> I know I do... SLED10 install.. all the krb5* rpms are installed (64 and
-Mike> 32bit including -devel*) and all the openssl ones too.  
+Yep.. that did it.   Compiles and links against libsasl2.so now.
 
-Mike> I was able to disable sasl for now too, which is ok for the short term
-Mike> because we'd like to use sasl eventually.
-
-Hmm, can you add a:
-#include <krb5.h>
-
-to include/lookup_ldap.h ?
-
--Jeff
+-- 
+Mike Marion-Unix SysAdmin/Staff IT Engineer-http://www.qualcomm.com
+SCCS, the source motel!  Programs check in and never check out!  - Ken
+Thompson
