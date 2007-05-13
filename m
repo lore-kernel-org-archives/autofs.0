@@ -1,10 +1,9 @@
-From: Paul Smith <psmith@netezza.com>
-Subject: Sample auto.net provided with autofs is incorrect
-Date: Thu, 24 May 2007 13:34:21 -0400
-Message-ID: <1180028061.19818.41.camel@psmithub>
-Reply-To: psmith@netezza.com
+From: Phy Prabab <phyprabab@yahoo.com>
+Subject: autofs5 + ldap
+Date: Sat, 12 May 2007 22:35:54 -0700 (PDT)
+Message-ID: <370788.91736.qm@web90501.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-J3Ksmzk7ujtHWSoJ6yxP"
+Content-Type: multipart/mixed; boundary="===============5301685806653618612=="
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -18,49 +17,89 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
+--===============5301685806653618612==
+Content-Type: multipart/alternative; boundary="0-1642668879-1179034554=:91736"
 
---=-J3Ksmzk7ujtHWSoJ6yxP
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+--0-1642668879-1179034554=:91736
+Content-Type: text/plain; charset=ascii
 
-Hi all; I sent this on May 1 but I haven't seen it come through yet?
+Hello!
 
+I am having some issues with autofs5 + ldap configuration, I just can not seem to get autofs to read the auto_master map out of ldap.  I have tried unsuccessfully using the "samples" and my previous configuration (autofs414 which does work with ldap).  I tried to use the /etc/sysconfig/autofs config file paralleling the sample but using my ldap settings as well as using /etc/auto.master again using my ldap settings, both to no avail.  I know the ldap settings are correct, I can search the ldap server without any issues and I am using it to authenticate (i.e. passwords).
 
-Please see this bug I just reported against Ubuntu:
-
-https://bugs.launchpad.net/ubuntu/+source/autofs/+bug/111612
-
-I believe this problem also exists in the original autofs package.
-However, I can't seem to find the source anywhere; the freshmeat page
-for autofs looks quite out of date and doesn't have any homepage/etc.
-info, and Google searches came up empty as well.
-
-I attach a patch below.
-
--- 
------------------------------------------------------------------------------
- Paul D. Smith <psmith@netezza.com>                       http://netezza.com
- "Please remain calm--I may be mad, but I am a professional."--Mad Scientist
------------------------------------------------------------------------------
-      These are my opinions--Netezza takes no responsibility for them.
-
---=-J3Ksmzk7ujtHWSoJ6yxP
-Content-Disposition: attachment; filename=autofs-auto.net.patch
-Content-Type: text/x-patch; name=autofs-auto.net.patch; charset=us-ascii
-Content-Transfer-Encoding: base64
-
-LS0tIC9ldGMvYXV0by5uZXQtZGlzdAkyMDA3LTAyLTA4IDExOjIwOjA3LjAwMDAwMDAwMCAtMDUw
-MA0KKysrIC9ldGMvYXV0by5uZXQJMjAwNy0wNS0wMSAxNjoxNjoxMi4wMDAwMDAwMDAgLTA0MDAN
-CkBAIC0zNyw3ICszNyw3IEBADQogIyBOZXdlciBkaXN0cmlidXRpb25zIGdldCB0aGlzIHJpZ2h0
-DQogU0hPV01PVU5UPSIkU01OVCAtLW5vLWhlYWRlcnMgLWUgJGtleSINCiANCi0kU0hPV01PVU5U
-IHwgTENfQUxMPUMgc29ydCAtdSAtayAxIHwgXA0KKyRTSE9XTU9VTlQgfCBMQ19BTEw9QyBjdXQg
-LWRcICAtZjEgfCBMQ19BTEw9QyBzb3J0IC11IHwgXA0KIAlhd2sgLXYga2V5PSIka2V5IiAtdiBv
-cHRzPSIkb3B0cyIgLS0gJw0KIAlCRUdJTgl7IE9SUz0iIjsgZmlyc3Q9MSB9DQogCQl7IGlmIChm
-aXJzdCkgeyBwcmludCBvcHRzOyBmaXJzdD0wIH07IHByaW50ICIgXFxcblx0IiAkMSwga2V5ICI6
-IiAkMSB9DQo=
+If anyone could lend me a suggestion, I would be most grateful.
+TIA,
+Phy
 
 
---=-J3Ksmzk7ujtHWSoJ6yxP
+[root@b~]# cat /etc/auto.master
+dn: automountMapName=auto_master,ou=automount,ou=defaults,ou=sanjose,ou=services,o=cadence.com
+objectClass: top
+objectClass: automountMap
+automountMapName: auto_master
+#+auto.master
+[root@b ~]# 
+
+[root@b ~]# /usr/sbin/automount --version
+
+Linux automount version 5.0.1
+
+Directories:
+        config dir:     /etc/sysconfig
+        maps dir:       /etc
+        modules dir:    /usr/local/autofs501p1/lib/autofs
+
+Compile options:
+  ENABLE_IGNORE_BUSY_MOUNTS WITH_LDAP 
+
+[root@b ~]# ldapsearch -x -b 'ou=default,ou=region,o=test.com' automountMapName=auto_master
+version: 2
+
+#
+# filter: automountMapName=auto_master
+# requesting: ALL
+#
+
+# auto_master, automount, Default, region, test.com
+dn: automountMapName=auto_master,ou=automount,ou=Default,ou=region,ou=test.com
+objectClass: top
+objectClass: automountMap
+objectClass: nisMap
+automountMapName: auto_master
+nisMapName: auto_master
+
+# search result
+search: 2
+result: 0 Success
+
+# numResponses: 2
+# numEntries: 1
+[root@b ~]# uname -a
+Linux host1.test.com 2.6.21.1 #1 SMP Wed May 9 08:54:29 PDT 2007 i686 athlon i386 GNU/Linux
+[root@b ~]#
+
+
+
+
+
+       
+____________________________________________________________________________________Yahoo! oneSearch: Finally, mobile search 
+that gives answers, not web links. 
+http://mobile.yahoo.com/mobileweb/onesearch?refer=1ONXIC
+--0-1642668879-1179034554=:91736
+Content-Type: text/html; charset=ascii
+
+<html><head><style type="text/css"><!-- DIV {margin:0px;} --></style></head><body><div style="font-family:times new roman, new york, times, serif;font-size:12pt"><div>Hello!<br><br>I am having some issues with autofs5 + ldap configuration, I just can not seem to get autofs to read the auto_master map out of ldap.&nbsp; I have tried unsuccessfully using the "samples" and my previous configuration (autofs414 which does work with ldap).&nbsp; I tried to use the /etc/sysconfig/autofs config file paralleling the sample but using my ldap settings as well as using /etc/auto.master again using my ldap settings, both to no avail.&nbsp; I know the ldap settings are correct, I can search the ldap server without any issues and I am using it to authenticate (i.e. passwords).<br><br>If anyone could lend me a suggestion, I would be most grateful.<br>TIA,<br>Phy<br><br><br>[root@b~]# cat /etc/auto.maste
+ r<br>dn:
+ automountMapName=auto_master,ou=automount,ou=defaults,ou=sanjose,ou=services,o=cadence.com<br>objectClass: top<br>objectClass: automountMap<br>automountMapName: auto_master<br>#+auto.master<br>[root@b ~]# <br><br>[root@b ~]# /usr/sbin/automount --version<br><br>Linux automount version 5.0.1<br><br>Directories:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; config dir:&nbsp;&nbsp;&nbsp;&nbsp; /etc/sysconfig<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; maps dir:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; /etc<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; modules dir:&nbsp;&nbsp;&nbsp; /usr/local/autofs501p1/lib/autofs<br><br>Compile options:<br>&nbsp; ENABLE_IGNORE_BUSY_MOUNTS WITH_LDAP <br><br>[root@b ~]# ldapsearch -x -b 'ou=default,ou=region,o=test.com' automountMapName=auto_master<br>version: 2<br><br>#<br># filter: automountMapName=auto_master<br># requesting: ALL<br>#<br><br># auto_master,
+  automount, Default, region, test.com<br>dn:
+ automountMapName=auto_master,ou=automount,ou=Default,ou=region,ou=test.com<br>objectClass: top<br>objectClass: automountMap<br>objectClass: nisMap<br>automountMapName: auto_master<br>nisMapName: auto_master<br><br># search result<br>search: 2<br>result: 0 Success<br><br># numResponses: 2<br># numEntries: 1<br>[root@b ~]# uname -a<br>Linux host1.test.com 2.6.21.1 #1 SMP Wed May 9 08:54:29 PDT 2007 i686 athlon i386 GNU/Linux<br>[root@b ~]#<br><br></div></div><br>
+      <hr size=1>Luggage? GPS? Comic books? <br>
+Check out fitting <a href="http://us.rd.yahoo.com/evt=48249/*http://search.yahoo.com/search?fr=oni_on_mail&p=graduation+gifts&cs=bz"> gifts for grads</a> at Yahoo! Search.</body></html>
+--0-1642668879-1179034554=:91736--
+
+
+--===============5301685806653618612==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -71,5 +110,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---=-J3Ksmzk7ujtHWSoJ6yxP--
+--===============5301685806653618612==--
 
