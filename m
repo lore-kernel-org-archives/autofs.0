@@ -1,14 +1,10 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: direct maps and root mount points.
-Date: Fri, 01 Jun 2007 14:41:37 -0400
-Message-ID: <x49wsyn34bi.fsf@segfault.boston.devel.redhat.com>
-References: <BAY128-F16E4752E471E7462B7CCD2C92C0@phx.gbl>
+From: "Kevin Muller" <k.muller@sideshowdigital.com>
+Subject: autofs / davfs
+Date: Thu, 17 May 2007 12:18:47 +0300
+Message-ID: <4104f1cf0705170218ua2b6bbdu8f1456193741cd65@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============3456052310087960593=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <BAY128-F16E4752E471E7462B7CCD2C92C0@phx.gbl> (Jose Quentrequeo's
-	message of "Fri, 01 Jun 2007 18:17:04 +0000")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,24 +15,53 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jose Quentrequeo <jquentre@hotmail.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-==> On Fri, 01 Jun 2007 18:17:04 +0000, "Jose Quentrequeo" <jquentre@hotmail.com> said:
+--===============3456052310087960593==
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_22199_11001015.1179393527294"
 
-Jose> Hi, I need to setup direct maps in a linux ( 2.4.21-27) using a
+------=_Part_22199_11001015.1179393527294
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-This is an old kernel.
+autofs / davfs
 
-Jose> nis server on Solaris 8.  I know that direct mounts are
-Jose> supported if you have a non-root mount point (a mount point
-Jose> other than '/') but I have several ''root" mount points (ie
-Jose> /data).  I want to know if this problem was solved. How?  Are
-Jose> there another way to mount nis direct maps ?
+Im having a problem automounting a davfs share.
+The share is setup, and works perfect without the automount.
+but as soon as a 'ls' is done on the automount directory, and the autofs
+tries to mount it, it hangs for a while, then if ctrl-c's out of it, the
+next ls on that directory shows the files correctly.
 
-You cannot setup /data as a direct mount point using autofs version 4.
-Given your old kernel, you cannot use autofs version 5, so you are
-stuck.  If your direct maps point at, say, /data/foo, then that would
-work.
+The idea is to have the files available through Samba, and as soon as samba
+tries to access the folder it will be a webdav share that gets mounted at
+that point.
 
--Jeff
+Any suggestions at this point will be helpful.
+
+------=_Part_22199_11001015.1179393527294
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+autofs / davfs<br><br>Im having a problem automounting a davfs share.<br>The share is setup, and works perfect without the automount.<br>but as soon as a &#39;ls&#39; is done on the automount directory, and the autofs tries to mount it, it hangs for a while, then if ctrl-c&#39;s out of it, the next ls on that directory shows the files correctly.
+<br><br>The idea is to have the files available through Samba, and as soon as samba tries to access the folder it will be a webdav share that gets mounted at that point.<br><br>Any suggestions at this point will be helpful.
+<br>
+
+------=_Part_22199_11001015.1179393527294--
+
+
+--===============3456052310087960593==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--===============3456052310087960593==--
+
