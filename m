@@ -1,7 +1,7 @@
 From: "Kevin Muller" <k.muller@sideshowdigital.com>
-Subject: Fwd:  autofs / davfs
-Date: Mon, 21 May 2007 12:32:45 +0300
-Message-ID: <4104f1cf0705210232l473c077es77931f75cec6c57@mail.gmail.com>
+Subject: autofs / davfs
+Date: Mon, 21 May 2007 12:34:44 +0300
+Message-ID: <4104f1cf0705210234o6bdbb7e9n2d485f2e9b609c@mail.gmail.com>
 References: <4104f1cf0705170218ua2b6bbdu8f1456193741cd65@mail.gmail.com>
 	<4104f1cf0705172308pdd3a3f9l4b4a558e290bebbc@mail.gmail.com>
 	<x49zm428auy.fsf@segfault.boston.devel.redhat.com>
