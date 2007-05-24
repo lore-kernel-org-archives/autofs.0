@@ -1,9 +1,10 @@
-From: "Kevin Muller" <k.muller@sideshowdigital.com>
-Subject: autofs / davfs
-Date: Thu, 17 May 2007 12:18:47 +0300
-Message-ID: <4104f1cf0705170218ua2b6bbdu8f1456193741cd65@mail.gmail.com>
+From: Paul Smith <psmith@netezza.com>
+Subject: Sample auto.net provided with autofs is incorrect
+Date: Thu, 24 May 2007 13:34:21 -0400
+Message-ID: <1180028061.19818.41.camel@psmithub>
+Reply-To: psmith@netezza.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============3456052310087960593=="
+Content-Type: multipart/mixed; boundary="=-J3Ksmzk7ujtHWSoJ6yxP"
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -17,42 +18,49 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
---===============3456052310087960593==
-Content-Type: multipart/alternative; 
-	boundary="----=_Part_22199_11001015.1179393527294"
 
-------=_Part_22199_11001015.1179393527294
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+--=-J3Ksmzk7ujtHWSoJ6yxP
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
-autofs / davfs
-
-Im having a problem automounting a davfs share.
-The share is setup, and works perfect without the automount.
-but as soon as a 'ls' is done on the automount directory, and the autofs
-tries to mount it, it hangs for a while, then if ctrl-c's out of it, the
-next ls on that directory shows the files correctly.
-
-The idea is to have the files available through Samba, and as soon as samba
-tries to access the folder it will be a webdav share that gets mounted at
-that point.
-
-Any suggestions at this point will be helpful.
-
-------=_Part_22199_11001015.1179393527294
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-autofs / davfs<br><br>Im having a problem automounting a davfs share.<br>The share is setup, and works perfect without the automount.<br>but as soon as a &#39;ls&#39; is done on the automount directory, and the autofs tries to mount it, it hangs for a while, then if ctrl-c&#39;s out of it, the next ls on that directory shows the files correctly.
-<br><br>The idea is to have the files available through Samba, and as soon as samba tries to access the folder it will be a webdav share that gets mounted at that point.<br><br>Any suggestions at this point will be helpful.
-<br>
-
-------=_Part_22199_11001015.1179393527294--
+Hi all; I sent this on May 1 but I haven't seen it come through yet?
 
 
---===============3456052310087960593==
+Please see this bug I just reported against Ubuntu:
+
+https://bugs.launchpad.net/ubuntu/+source/autofs/+bug/111612
+
+I believe this problem also exists in the original autofs package.
+However, I can't seem to find the source anywhere; the freshmeat page
+for autofs looks quite out of date and doesn't have any homepage/etc.
+info, and Google searches came up empty as well.
+
+I attach a patch below.
+
+-- 
+-----------------------------------------------------------------------------
+ Paul D. Smith <psmith@netezza.com>                       http://netezza.com
+ "Please remain calm--I may be mad, but I am a professional."--Mad Scientist
+-----------------------------------------------------------------------------
+      These are my opinions--Netezza takes no responsibility for them.
+
+--=-J3Ksmzk7ujtHWSoJ6yxP
+Content-Disposition: attachment; filename=autofs-auto.net.patch
+Content-Type: text/x-patch; name=autofs-auto.net.patch; charset=us-ascii
+Content-Transfer-Encoding: base64
+
+LS0tIC9ldGMvYXV0by5uZXQtZGlzdAkyMDA3LTAyLTA4IDExOjIwOjA3LjAwMDAwMDAwMCAtMDUw
+MA0KKysrIC9ldGMvYXV0by5uZXQJMjAwNy0wNS0wMSAxNjoxNjoxMi4wMDAwMDAwMDAgLTA0MDAN
+CkBAIC0zNyw3ICszNyw3IEBADQogIyBOZXdlciBkaXN0cmlidXRpb25zIGdldCB0aGlzIHJpZ2h0
+DQogU0hPV01PVU5UPSIkU01OVCAtLW5vLWhlYWRlcnMgLWUgJGtleSINCiANCi0kU0hPV01PVU5U
+IHwgTENfQUxMPUMgc29ydCAtdSAtayAxIHwgXA0KKyRTSE9XTU9VTlQgfCBMQ19BTEw9QyBjdXQg
+LWRcICAtZjEgfCBMQ19BTEw9QyBzb3J0IC11IHwgXA0KIAlhd2sgLXYga2V5PSIka2V5IiAtdiBv
+cHRzPSIkb3B0cyIgLS0gJw0KIAlCRUdJTgl7IE9SUz0iIjsgZmlyc3Q9MSB9DQogCQl7IGlmIChm
+aXJzdCkgeyBwcmludCBvcHRzOyBmaXJzdD0wIH07IHByaW50ICIgXFxcblx0IiAkMSwga2V5ICI6
+IiAkMSB9DQo=
+
+
+--=-J3Ksmzk7ujtHWSoJ6yxP
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -63,5 +71,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---===============3456052310087960593==--
+--=-J3Ksmzk7ujtHWSoJ6yxP--
 
