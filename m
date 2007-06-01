@@ -1,11 +1,14 @@
-From: "Jose Quentrequeo" <jquentre@hotmail.com>
-Subject: direct maps and root mount points.
-Date: Fri, 01 Jun 2007 18:17:04 +0000
-Message-ID: <BAY128-F16E4752E471E7462B7CCD2C92C0@phx.gbl>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: direct maps and root mount points.
+Date: Fri, 01 Jun 2007 14:41:37 -0400
+Message-ID: <x49wsyn34bi.fsf@segfault.boston.devel.redhat.com>
+References: <BAY128-F16E4752E471E7462B7CCD2C92C0@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <BAY128-F16E4752E471E7462B7CCD2C92C0@phx.gbl> (Jose Quentrequeo's
+	message of "Fri, 01 Jun 2007 18:17:04 +0000")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,26 +19,24 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Jose Quentrequeo <jquentre@hotmail.com>
+Cc: autofs@linux.kernel.org
 
-Hi,
+==> On Fri, 01 Jun 2007 18:17:04 +0000, "Jose Quentrequeo" <jquentre@hotmail.com> said:
 
-I need to setup direct maps in a linux ( 2.4.21-27) using a nis server on =
+Jose> Hi, I need to setup direct maps in a linux ( 2.4.21-27) using a
 
-Solaris 8.
-I know that direct mounts are supported if you have a non-root mount point =
+This is an old kernel.
 
-(a mount point other than '/') but I have several ''root" mount points (ie =
+Jose> nis server on Solaris 8.  I know that direct mounts are
+Jose> supported if you have a non-root mount point (a mount point
+Jose> other than '/') but I have several ''root" mount points (ie
+Jose> /data).  I want to know if this problem was solved. How?  Are
+Jose> there another way to mount nis direct maps ?
 
-/data).
-I want to know if this problem was solved. How?
-Are there another way to mount nis direct maps ?
+You cannot setup /data as a direct mount point using autofs version 4.
+Given your old kernel, you cannot use autofs version 5, so you are
+stuck.  If your direct maps point at, say, /data/foo, then that would
+work.
 
-Thanks
-
-Jos=E9
-
-_________________________________________________________________
-Latinos en EE.UU: noticias y art=EDculos de inter=E9s para ti =
-
-http://latino.msn.com/noticias/latinoseneeuu
+-Jeff
