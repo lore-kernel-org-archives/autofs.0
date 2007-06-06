@@ -1,11 +1,13 @@
-From: jehan procaccia <jehan.procaccia@int-edu.eu>
-Subject: autofs and ldap in fedora 7
-Date: Thu, 31 May 2007 15:04:57 +0200
-Message-ID: <465EC7F9.6020400@int-edu.eu>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: Sample auto.net provided with autofs is incorrect
+Date: Wed, 06 Jun 2007 20:59:04 +0800
+Message-ID: <1181134745.3699.11.camel@raven.themaw.net>
+References: <1180028061.19818.41.camel@psmithub>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <1180028061.19818.41.camel@psmithub>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,38 +18,23 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: psmith@netezza.com
+Cc: autofs@linux.kernel.org
 
-Hello, I am trying to read autofs map from an ldap server on the brand 
-new fedora core 7 system .
- but it doesn't work :-(
-Is there a way to check / debug what the automount process reads ? in 
-fedora core 5 the init.d autofs script showed interesting information:
+On Thu, 2007-05-24 at 13:34 -0400, Paul Smith wrote:
+> Hi all; I sent this on May 1 but I haven't seen it come through yet?
+> 
+> 
+> Please see this bug I just reported against Ubuntu:
+> 
+> https://bugs.launchpad.net/ubuntu/+source/autofs/+bug/111612
+> 
+> I believe this problem also exists in the original autofs package.
+> However, I can't seem to find the source anywhere; the freshmeat page
+> for autofs looks quite out of date and doesn't have any homepage/etc.
+> info, and Google searches came up empty as well.
 
-[root@b02-05 ~]# cat /etc/redhat-release
-Fedora Core release 5 (Bordeaux)
-[root@b02-05 ~]# /etc/init.d/autofs status
-Configured Mount Points:
-------------------------
-/usr/sbin/automount --timeout=60 /net program /etc/auto.net
-/usr/sbin/automount --timeout=60 /mci ldap 
-ou=auto.mci,ou=automount,dc=int-evry,dc=fr
+Doesn't Ububtu record release version and package version against bugs?
+What is the version of autofs in Ubuntu?
 
-Active Mount Points:
---------------------
-/usr/sbin/automount --timeout=60 /net program /etc/auto.net
-/usr/sbin/automount --timeout=60 /mci ldap 
-ou=auto.mci,ou=automount,dc=int-evry,dc=fr
-
-now, in fedora 7  it only show "running" :-( ...
-[root@b008-04 ~]# uname -a
-Linux b008-04.int-evry.fr 2.6.20-1.3104.fc7 #1 SMP Sat Apr 21 22:20:43 
-EDT 2007 i686 i686 i386 GNU/Linux
-[root@b008-04 ~]# cat /etc/redhat-release
-Fedora release 7 (Rawhide)
-[root@b008-04 ~]# /etc/init.d/autofs status
-automount (pid 19446) running...
-
-
-Thanks to let me know how to check what the autmount process actually sees .
- .
+Ian
