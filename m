@@ -1,12 +1,14 @@
-From: Jeff Weber <jweber@amsuper.com>
-Subject: unmount immediately followed by remount
-Date: Fri, 8 Jun 2007 14:29:02 -0500
-Message-ID: <200706081429.02284.jweber@amsuper.com>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: unmount immediately followed by remount
+Date: Fri, 08 Jun 2007 16:10:58 -0400
+Message-ID: <m34pli4371.fsf@redhat.com>
+References: <200706081429.02284.jweber@amsuper.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <200706081429.02284.jweber@amsuper.com> (Jeff Weber's message of
+	"Fri, 8 Jun 2007 14:29:02 -0500")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,62 +19,22 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Jeff Weber <jweber@amsuper.com>
+Cc: autofs@linux.kernel.org
 
-I have 2 WinXP servers, I am automounting using smbs.  For one server, the 
-automounter unmounts the smbfs after inactivity as expected.  For the other 
-server, supermad2, the automounter expires and unmounts the 4 shares after 
-approx the 60sec timeout, as expected.  However, the shares are then 
-immediately remounted.  Thus, the shares from the server are effectively 
-continuously mounted.  Here's some sample automount debug output:
+==> On Fri, 8 Jun 2007 14:29:02 -0500, Jeff Weber <jweber@amsuper.com> said:
 
-Jun  8 14:09:36 quetzal automount[31118]: handle_packet: type = 2
-Jun  8 14:09:36 quetzal automount[31118]: handle_packet_expire_multi: token 
-297,
- name supermad2
-Jun  8 14:09:36 quetzal automount[31651]: expiring path /smb/supermad2
-Jun  8 14:09:36 quetzal automount[31651]: umount_multi: path=/smb/supermad2 
-incl
-=1
-Jun  8 14:09:36 quetzal automount[31651]: umount_multi: unmounting 
-dir=/smb/supermad2/TRANSFER
-Jun  8 14:09:36 quetzal automount[31651]: umount_multi: unmounting 
-dir=/smb/supermad2/MDUsers
-Jun  8 14:09:36 quetzal automount[31651]: umount_multi: unmounting 
-dir=/smb/supermad2/CAD
-Jun  8 14:09:36 quetzal automount[31651]: umount_multi: unmounting 
-dir=/smb/supermad2/ENG
-Jun  8 14:09:36 quetzal automount[31651]: rm_unwanted: /smb/supermad2/TRANSFER
-Jun  8 14:09:36 quetzal automount[31651]: rm_unwanted: /smb/supermad2/MDUsers
-Jun  8 14:09:36 quetzal automount[31651]: rm_unwanted: /smb/supermad2/ENG
-Jun  8 14:09:36 quetzal automount[31651]: rm_unwanted: /smb/supermad2/CAD
-Jun  8 14:09:36 quetzal automount[31651]: expired /smb/supermad2
-Jun  8 14:09:36 quetzal automount[31118]: handle_child: got pid 31651, sig 0 
-(0)
-, stat 0
-Jun  8 14:09:36 quetzal automount[31118]: sig_child: found pending iop pid 
-31651
-: signalled 0 (sig 0), exit status 0
-Jun  8 14:09:36 quetzal automount[31118]: send_ready: token=297
-Jun  8 14:09:36 quetzal automount[31118]: handle_packet: type = 0
-Jun  8 14:09:36 quetzal automount[31118]: handle_packet_missing: token 298, 
-name
- supermad2
-Jun  8 14:09:36 quetzal automount[31118]: attempting to mount 
-entry /smb/supermad2
+Jeff> I have 2 WinXP servers, I am automounting using smbs.  For one
+Jeff> server, the automounter unmounts the smbfs after inactivity as
+Jeff> expected.  For the other server, supermad2, the automounter
+Jeff> expires and unmounts the 4 shares after approx the 60sec
+Jeff> timeout, as expected.  However, the shares are then immediately
+Jeff> remounted.  Thus, the shares from the server are effectively
+Jeff> continuously mounted.  Here's some sample automount debug
+Jeff> output:
 
-lsof and fuser show the mounted filesystems are not busy.  I would think if 
-the filesystems were busy, they would not be unmounted.  I can't imagine why 
-the automounter would cycle with mount, unmount, mount, ...
-with effectively zero unmounted time.
+This used to happen with older versions of hal:
 
-my config:
-SuSE 10.1
-Linux kernel 2.6.16.27-0.9-default
-Linux automount version 4.1.4
+     https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=192923
 
-	thanks,
-	Jeff
--- 
-Jeff Weber
-American Superconductor Corp.
+-Jeff
