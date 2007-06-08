@@ -1,9 +1,9 @@
 From: Anders Blomdell <anders.blomdell@control.lth.se>
 Subject: Minor change to alarm_handler to avoid code duplication
-Date: Thu, 07 Jun 2007 15:49:35 +0200
-Message-ID: <46680CEF.2080803@control.lth.se>
+Date: Fri, 08 Jun 2007 09:19:52 +0200
+Message-ID: <46690318.5000101@control.lth.se>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------050606080104070605020809"
+Content-Type: multipart/mixed; boundary="------------060008090905050000050302"
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -18,7 +18,7 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
 This is a multi-part message in MIME format.
---------------050606080104070605020809
+--------------060008090905050000050302
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
@@ -30,7 +30,8 @@ Best regards
 
 Anders Blomdell
 
---------------050606080104070605020809
+
+--------------060008090905050000050302
 Content-Type: text/plain; x-mac-type="0"; x-mac-creator="0";
 	name="alarm_handler.patch"
 Content-Transfer-Encoding: 7bit
@@ -198,7 +199,8 @@ Content-Disposition: inline;
  
  int alarm_start_handler(void)
 
---------------050606080104070605020809
+
+--------------060008090905050000050302
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -209,5 +211,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---------------050606080104070605020809--
+--------------060008090905050000050302--
 
