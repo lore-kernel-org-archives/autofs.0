@@ -1,13 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs4 + sshfs works but autofs5 + sshfs fails
-Date: Mon, 11 Jun 2007 12:40:18 +0800
-Message-ID: <1181536818.3423.13.camel@shark.themaw.net>
-References: <2345.69.243.87.84.1181344860.squirrel@webmail.cis.jhu.edu>
+Subject: Re: Minor change to alarm_handler to avoid code	duplication
+Date: Mon, 11 Jun 2007 12:52:25 +0800
+Message-ID: <1181537545.3423.23.camel@shark.themaw.net>
+References: <46680CEF.2080803@control.lth.se>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <2345.69.243.87.84.1181344860.squirrel@webmail.cis.jhu.edu>
+In-Reply-To: <46680CEF.2080803@control.lth.se>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,39 +18,49 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: akolasny@cis.jhu.edu
+To: Anders Blomdell <anders.blomdell@control.lth.se>
 Cc: autofs@linux.kernel.org
 
-On Fri, 2007-06-08 at 19:21 -0400, akolasny@cis.jhu.edu wrote:
-> Greetings:
+On Thu, 2007-06-07 at 15:49 +0200, Anders Blomdell wrote:
+> As per request from discussions in
+> https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=241780
+> a patch against git.
 > 
-> My NIS auto.net has an entry that looks similar to:
+> Best regards
 > 
->    my_dir -fstype=fuse,reconnect,allow_other,uid=6000,gid=6000,umask=0002
-> sshfs#user@some.site:/my_dir
-> 
-> It works fine with CentOS 4 x86, x86_64 and ia64 distributions using autofs4. I
-> installed CentOS 5 x86_64
-> which uses autofs5 and this NIS mount failed.
-> 
-> Note: In order to allow NIS to properly provide the auto.net entry, I needed to
-> make a minor change to
->       the /var/yp/Makefile to allow '#' in the NIS database.
-> 
-> The 'automount -v -d' reports in /var/messages something like:
-> 
->    Jun  8 19:02:23 c1 automount[27076]: attempting to mount entry /net/my_dir
->    Jun  8 19:02:24 c1 automount[27076]: parse_mount: parse(sun): invalid location
->    Jun  8 19:02:24 c1 automount[27076]: failed to mount /net/my_dir
-> 
-> 
-> Does autofs-5.0.1/modules/parse_sun.c 'validate_location' function need to allow
-> the '#' to
-> get this working again? If it's something simple like this, would it be possible
-> to add to
-> the next release?
+> Anders Blomdell
+> plain text document attachment (alarm_handler.patch)
+> --- autofs/lib/alarm.c	2007-06-07 15:05:03.000000000 +0200
+> +++ /usr/src/autofs/autofs.patched/lib/alarm.c	2007-06-07 15:08:29.000000000 +0200
+> @@ -28,16 +28,16 @@
+>  
+>  #define alarm_lock() \
+>  do { \
+> -	int _alm_lock = pthread_mutex_lock(&mutex); \
+> -	if (_alm_lock) \
+> -		fatal(_alm_lock); \
+> +	int status = pthread_mutex_lock(&mutex); \
+> +	if (status) \
+> +		fatal(status); \
+>  } while (0)
+>  
+>  #define alarm_unlock() \
+>  do { \
+> -	int _alm_unlock = pthread_mutex_unlock(&mutex); \
+> -	if (_alm_unlock) \
+> -		fatal(_alm_unlock); \
+> +	int status = pthread_mutex_unlock(&mutex); \
+> +	if (status) \
+> +		fatal(status); \
+>  } while (0)
 
-The location validation is fairly strict in what it thinks should be a
-host name. I'll have a look.
+This isn't related to what your proposing.
+A separate patch would have been better for this so that we could
+discuss it independently of the alarm_handler patch.
+
+This patch hunk reverts the code to what I originally wrote.
+It was changed due to complaints about compile warning about reused
+symbol names and "the right thing to do for readability". Personally I
+prefer it this way but I'm not going to change this again.
 
 Ian
