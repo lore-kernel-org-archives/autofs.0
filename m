@@ -1,14 +1,10 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Minor change to alarm_handler to avoid	code	duplication
-Date: Wed, 13 Jun 2007 12:13:29 +0800
-Message-ID: <1181708009.3336.12.camel@shark.themaw.net>
-References: <46680CEF.2080803@control.lth.se>
-	<1181538390.3423.27.camel@shark.themaw.net>
+From: =?iso-8859-1?b?RWRq6Q==?= <edosseh@ub.tg>
+Subject: Autofs5:master_notify: syntax error in map near [ /home ]
+Date: Wed, 13 Jun 2007 16:45:29 +0000
+Message-ID: <1181753129.46701f29a6e26@www.univ-lome.tg>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1181538390.3423.27.camel@shark.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,157 +15,128 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Anders Blomdell <anders.blomdell@control.lth.se>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="macroman"
+To: autofs@linux.kernel.org
 
-On Mon, 2007-06-11 at 13:06 +0800, Ian Kent wrote:
-> On Thu, 2007-06-07 at 15:49 +0200, Anders Blomdell wrote:
-> > As per request from discussions in
-> > https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=241780
-> > a patch against git.
-> 
-> Yes, on closer inspection this version does look ok.
-> Let me think about it for a little while in case I missed something.
-> 
+Hello,
+Please help with autofs5 because i tried some advices without success.
+I want to mount users home with autofs5. I tried it before with nfs with
+success.
+My conf is:
 
-Hi Anders,
+--/etc/sysconfig/autofs:
+#
+# Define default options for autofs.
+#
+# DEFAULT_MASTER_MAP_NAME - default map name for the master map.
+#
+DEFAULT_MASTER_MAP_NAME=3D"auto.master"
+#
+# DEFAULT_TIMEOUT - set the default mount timeout (default 600).
+#
+DEFAULT_TIMEOUT=3D300
+#
+# DEFAULT_BROWSE_MODE - maps are browsable by default.
+#
+#DEFAULT_BROWSE_MODE=3D"no"
+#
+# DEFAULT_LOGGING - set default log level "none", "verbose" or "debug"
+#
+DEFAULT_LOGGING=3D"verbose"
+#
+# Define the default LDAP schema to use for lookups
+#
+# System default
+#
+#DEFAULT_MAP_OBJECT_CLASS=3D"nisMap"
+#DEFAULT_ENTRY_OBJECT_CLASS=3D"nisObject"
+#DEFAULT_MAP_ATTRIBUTE=3D"nisMapName"
+#DEFAULT_ENTRY_ATTRIBUTE=3D"cn"
+#DEFAULT_VALUE_ATTRIBUTE=3D"nisMapEntry"
+#
+# Other common LDAP nameing
+#
+DEFAULT_MAP_OBJECT_CLASS=3D"automountMap"
+DEFAULT_ENTRY_OBJECT_CLASS=3D"automount"
+DEFAULT_MAP_ATTRIBUTE=3D"ou"
+DEFAULT_ENTRY_ATTRIBUTE=3D"cn"
+DEFAULT_VALUE_ATTRIBUTE=3D"automountInformation"
+#
+#DEFAULT_MAP_OBJECT_CLASS=3D"automountMap"
+#DEFAULT_ENTRY_OBJECT_CLASS=3D"automount"
+#DEFAULT_MAP_ATTRIBUTE=3D"automountMapName"
+#DEFAULT_ENTRY_ATTRIBUTE=3D"automountKey"
+#DEFAULT_VALUE_ATTRIBUTE=3D"automountInformation"
+#
+# DEFAULT_AUTH_CONF_FILE - set the default location for the SASL
+#                          authentication configuration file.
+#
+DEFAULT_AUTH_CONF_FILE=3D"/etc/autofs_ldap_auth.conf"
+#
+# General global options
+#
+#OPTIONS=3D""
+#
+--------------------My auto.master's file
++auto.master
 
-This does indeed give some simplification to the alarm_handler function
-and, as far as I can tell, retains the semantics of the original
-function.
+--------------------My nsswitch.conf automount's line:
+automount:  files ldap nis
 
-I've changed the patch around a little.
-I removed the change to the mutex macros, in line with my comments
-before, and I've re-structured the code a little.
+--------------------auto.master ou entry in ldap:
 
-Could you have a look and check that I haven't made any stupid mistakes
-and that the patch still works the way you intended please.
+dn: ou=3Dauto.master,ou=3Dpersonnes,o=3Dul,c=3Dtg
+ou: auto.master
+objectClass: top
+objectClass: automountMap
 
-Ian
+dn: cn=3D/home,ou=3Dauto.master,ou=3Dpersonnes,o=3Dul,c=3Dtg
+objectClass: automount
+cn: /home
+automountInformation: ldap//192.168.210.3/ou=3Dauto.home,ou=3Dpersonnes,o=
+=3Dul,c=3Dtg
 
----
-diff --git a/lib/alarm.c b/lib/alarm.c
-index 4a72605..c6c4ba3 100755
---- a/lib/alarm.c
-+++ b/lib/alarm.c
-@@ -169,6 +169,7 @@ static void *alarm_handler(void *arg)
- {
- 	struct list_head *head;
- 	struct timespec expire;
-+	struct alarm *first;
- 	time_t now;
- 	int status;
- 
-@@ -177,78 +178,56 @@ static void *alarm_handler(void *arg)
- 	head = &alarms;
- 
- 	while (1) {
--		struct alarm *current;
- 
--		/*
--		 * If the alarm list is empty, wait until an alarm is
--		 * added.
--		 */
--		while (list_empty(head)) {
-+		if (list_empty(head)) {
-+			/* No alarms, wait for one to be added */
- 			status = pthread_cond_wait(&cond, &mutex);
- 			if (status)
- 				fatal(status);
-+			continue;
- 		}
- 
--		current = list_entry(head->next, struct alarm, list);
-+		first = list_entry(head->next, struct alarm, list);
- 
- 		now = time(NULL);
- 
--		if (current->time <= now) {
--			struct autofs_point *ap;
--
--			list_del(&current->list);
--
--			if (current->cancel) {
--				free(current);
--				continue;
--			}
--
--			ap = current->ap;
--			free(current);
--			alarm_unlock();
--
--			state_mutex_lock(ap);
--			nextstate(ap->state_pipe[1], ST_EXPIRE);
--			state_mutex_unlock(ap);
--
--			alarm_lock();
--			continue;
--		}
--
--		expire.tv_sec = current->time;
--		expire.tv_nsec = 0;
--
--		while (1) {
--			struct autofs_point *ap;
--			struct alarm *next;
-+		if (first->time > now) {
-+			/* 
-+			 * Wait for alarm to trigger or a new alarm 
-+			 * to be added.
-+			 */
-+			expire.tv_sec = first->time;
-+			expire.tv_nsec = 0;
- 
- 			status = pthread_cond_timedwait(&cond, &mutex, &expire);
- 			if (status && status != ETIMEDOUT)
- 				fatal(status);
--
--			next = list_entry(head->next, struct alarm, list);
--			if (next->cancel) {
--				list_del(&next->list);
--				free(next);
--				break;
-+		} else {
-+			/* First alarm has triggered, run it */
-+
-+			list_del(&first->list);
-+
-+			if (!first->cancel) {
-+				struct autofs_point *ap = first->ap;
-+				/* 
-+				 * We need to unlock the alarm list in case
-+				 * some other thread holds the state_mutex
-+				 *_lock(ap), and is currently trying to do
-+				 * some alarm_* function (i.e if we don't 
-+				 * unlock, we might deadlock).
-+				 */
-+				alarm_unlock(); 
-+
-+				state_mutex_lock(ap);
-+				nextstate(ap->state_pipe[1], ST_EXPIRE);
-+				state_mutex_unlock(ap);
-+
-+				alarm_lock();
- 			}
--
--			if (next != current)
--				break;
--
--			list_del(&current->list);
--			ap = current->ap;
--			free(current);
--			alarm_unlock();
--
--			state_mutex_lock(ap);
--			nextstate(ap->state_pipe[1], ST_EXPIRE);
--			state_mutex_unlock(ap);
--
--			alarm_lock();
--			break;
-+			free(first);
- 		}
- 	}
-+	/* Will never come here, so alarm_unlock is not necessary */
- }
- 
- int alarm_start_handler(void)
+-------------------auto.home ou entry in ldap:
+dn: ou=3Dauto.home,ou=3Dpersonnes,o=3Dul,c=3Dtg
+ou: auto.home
+objectClass: top
+objectClass: organizationalUnit
+
+dn: cn=3D/,ou=3Dauto.home,ou=3Dpersonnes,o=3Dul,c=3Dtg
+objectClass: automount
+automountInformation: -fstype=3Dnfs,rw 192.168.210.3:/home/&
+cn: /
+
+-------------------
+
+That is all. But if i restart autofs i read this error in log file:
+
+Jun 13 16:24:19 Sersau automount[18093]: Starting automounter version 5.0.1=
+-1,
+master map auto.master
+Jun 13 16:24:19 Sersau automount[18093]: using kernel protocol version 5.00
+Jun 13 16:24:19 Sersau automount[18093]: master_notify: syntax error in map=
+ near
+[ /home ]
+Jun 13 16:24:19 Sersau automount[18093]: mounted indirect mount on /misc wi=
+th
+timeout 300, freq 75 seconds
+Jun 13 16:24:19 Sersau automount[18093]: ghosting enabled
+Jun 13 16:24:19 Sersau automount[18093]: mounted indirect mount on /net with
+timeout 300, freq 75 seconds
+Jun 13 16:24:19 Sersau automount[18093]: ghosting enabled
+
+     It seems to notify one error in /home entry. I don't understand it.
+
+Please help!
+"Heureux ceux qui sont conscients de leur pauvret=E9 spirituelle." - Mat 5:=
+3(Les
+Saintes Ecritures - Traduction du monde nouveau).
+
+----------------------------------------------------------------
+Ce message a =C3=A9t=C3=A9 envoy=C3=A9 depuis le serveur de messagerie de l=
+'Universit=C3=A9 de
+Lom=C3=A9.
+Universit=C3=A9 de Lom=C3=A9
+BP 1515
+Lom=C3=A9 TOGO.
