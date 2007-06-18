@@ -1,15 +1,13 @@
-From: =?iso-8859-1?b?RWRq6Q==?= <edosseh@ub.tg>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: Autofs5:master_notify: syntax error in map near
 	[	/home ]
-Date: Thu, 14 Jun 2007 15:31:07 +0000
-Message-ID: <1181835067.46715f3b7d073@www.univ-lome.tg>
+Date: Mon, 18 Jun 2007 12:35:16 +0800
+Message-ID: <1182141317.16346.15.camel@raven.themaw.net>
 References: <1181753129.46701f29a6e26@www.univ-lome.tg>
-	<x49tztbok9z.fsf@segfault.boston.devel.redhat.com>
-	<1181754391.4670241762d0c@www.univ-lome.tg>
 Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: base64
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1181754391.4670241762d0c@www.univ-lome.tg>
+In-Reply-To: <1181753129.46701f29a6e26@www.univ-lome.tg>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,98 +18,59 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="macroman"
-To: autofs@linux.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+To: =?ISO-8859-1?Q?Edj=E9?= <edosseh@ub.tg>
+Cc: autofs@linux.kernel.org
 
-Selon Edj=E9 <edosseh@ub.tg>:
-
-When i put 192.168.210.3:ou=3Dauto.home,ou=3Dpersonnes,o=3Dul,c=3Dtg instea=
-d of
-ldap://192.168.210.3/ou=3Dauto.home,ou=3Dpersonnes,o=3Dul,c=3Dtg
-
-I receive this output in my log file:
-
- Starting automounter version 5.0.1-1, master map auto.master
-Jun 14 15:32:05 Sersau automount[21813]: using kernel protocol version 5.00
-Jun 14 15:32:06 Sersau automount[21813]: master_notify: syntax error in map=
- near
-[ /home ]
-
-What it means?
-
-> Jeff
-> Thank you for the interest
->
-> Selon Jeff Moyer <jmoyer@redhat.com>:
->
-> > =3D=3D> On Wed, 13 Jun 2007 16:45:29 +0000, Edj=C3=A9 <edosseh@ub.tg> s=
-aid:
-> >
-> > Edj=C3=A9> Hello,
-> > Edj=C3=A9> Please help with autofs5 because i tried some advices without
-> success.
-> > Edj=C3=A9> I want to mount users home with autofs5. I tried it before w=
-ith nfs
-> > with
-> > Edj=C3=A9> success.
-> > Edj=C3=A9> My conf is:
-> >
-> > Edj=C3=A9> dn: cn=3D/home,ou=3Dauto.master,ou=3Dpersonnes,o=3Dul,c=3Dtg
-> > Edj=C3=A9> objectClass: automount
-> > Edj=C3=A9> cn: /home
-> > Edj=C3=A9> automountInformation:
-> > ldap//192.168.210.3/ou=3Dauto.home,ou=3Dpersonnes,o=3Dul,c=3Dtg
-> >
-> > try ldap://192.168.210.3/ou=3Dauto.home,ou=3Dpersonnes,o=3Dul,c=3Dtg
-> >         ^
-> > Note the colon between ldap and '//'.
->
-> But trying give this error:
-> lookup_init: lookup(ldap): failed to get query dn
-> Jun 13 17:12:12 Sersau automount[18249]: mount_autofs_indirect: failed to
-> read
-> map for /home
-> Jun 13 17:12:12 Sersau automount[18249]: handle_mounts: mount of /home
-> failed!
-> Jun 13 17:12:12 Sersau automount[18249]: master_do_mount: failed to start=
-up
-> mount
->
-> >
-> > -Jeff
-> >
->
->
-> --
-> "Heureux ceux qui sont conscients de leur pauvret=E9 spirituelle." - Mat
-> 5:3(Les
-> Saintes Ecritures - Traduction du monde nouveau).
->
-> ----------------------------------------------------------------
-> Ce message a =C3=A9t=C3=A9 envoy=C3=A9 depuis le serveur de messagerie de=
- l'Universit=C3=A9
-> de
-> Lom=C3=A9.
-> Universit=C3=A9 de Lom=C3=A9
-> BP 1515
-> Lom=C3=A9 TOGO.
->
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
->
-
-
---
-"Heureux ceux qui sont conscients de leur pauvret=E9 spirituelle." - Mat 5:=
-3(Les
-Saintes Ecritures - Traduction du monde nouveau).
-
-----------------------------------------------------------------
-Ce message a =C3=A9t=C3=A9 envoy=C3=A9 depuis le serveur de messagerie de l=
-'Universit=C3=A9 de
-Lom=C3=A9.
-Universit=C3=A9 de Lom=C3=A9
-BP 1515
-Lom=C3=A9 TOGO.
+T24gV2VkLCAyMDA3LTA2LTEzIGF0IDE2OjQ1ICswMDAwLCBFZGrDqSB3cm90ZToKPiBIZWxsbywK
+PiBQbGVhc2UgaGVscCB3aXRoIGF1dG9mczUgYmVjYXVzZSBpIHRyaWVkIHNvbWUgYWR2aWNlcyB3
+aXRob3V0IHN1Y2Nlc3MuCj4gSSB3YW50IHRvIG1vdW50IHVzZXJzIGhvbWUgd2l0aCBhdXRvZnM1
+LiBJIHRyaWVkIGl0IGJlZm9yZSB3aXRoIG5mcyB3aXRoCj4gc3VjY2Vzcy4KPiBNeSBjb25mIGlz
+Ogo+IAo+IC0tL2V0Yy9zeXNjb25maWcvYXV0b2ZzOgo+ICMKPiAjIERlZmluZSBkZWZhdWx0IG9w
+dGlvbnMgZm9yIGF1dG9mcy4KPiAjCj4gIyBERUZBVUxUX01BU1RFUl9NQVBfTkFNRSAtIGRlZmF1
+bHQgbWFwIG5hbWUgZm9yIHRoZSBtYXN0ZXIgbWFwLgo+ICMKPiBERUZBVUxUX01BU1RFUl9NQVBf
+TkFNRT0iYXV0by5tYXN0ZXIiCj4gIwo+ICMgREVGQVVMVF9USU1FT1VUIC0gc2V0IHRoZSBkZWZh
+dWx0IG1vdW50IHRpbWVvdXQgKGRlZmF1bHQgNjAwKS4KPiAjCj4gREVGQVVMVF9USU1FT1VUPTMw
+MAo+ICMKPiAjIERFRkFVTFRfQlJPV1NFX01PREUgLSBtYXBzIGFyZSBicm93c2FibGUgYnkgZGVm
+YXVsdC4KPiAjCj4gI0RFRkFVTFRfQlJPV1NFX01PREU9Im5vIgo+ICMKPiAjIERFRkFVTFRfTE9H
+R0lORyAtIHNldCBkZWZhdWx0IGxvZyBsZXZlbCAibm9uZSIsICJ2ZXJib3NlIiBvciAiZGVidWci
+Cj4gIwo+IERFRkFVTFRfTE9HR0lORz0idmVyYm9zZSIKPiAjCj4gIyBEZWZpbmUgdGhlIGRlZmF1
+bHQgTERBUCBzY2hlbWEgdG8gdXNlIGZvciBsb29rdXBzCj4gIwo+ICMgU3lzdGVtIGRlZmF1bHQK
+PiAjCj4gI0RFRkFVTFRfTUFQX09CSkVDVF9DTEFTUz0ibmlzTWFwIgo+ICNERUZBVUxUX0VOVFJZ
+X09CSkVDVF9DTEFTUz0ibmlzT2JqZWN0Igo+ICNERUZBVUxUX01BUF9BVFRSSUJVVEU9Im5pc01h
+cE5hbWUiCj4gI0RFRkFVTFRfRU5UUllfQVRUUklCVVRFPSJjbiIKPiAjREVGQVVMVF9WQUxVRV9B
+VFRSSUJVVEU9Im5pc01hcEVudHJ5Igo+ICMKPiAjIE90aGVyIGNvbW1vbiBMREFQIG5hbWVpbmcK
+PiAjCj4gREVGQVVMVF9NQVBfT0JKRUNUX0NMQVNTPSJhdXRvbW91bnRNYXAiCj4gREVGQVVMVF9F
+TlRSWV9PQkpFQ1RfQ0xBU1M9ImF1dG9tb3VudCIKPiBERUZBVUxUX01BUF9BVFRSSUJVVEU9Im91
+Igo+IERFRkFVTFRfRU5UUllfQVRUUklCVVRFPSJjbiIKPiBERUZBVUxUX1ZBTFVFX0FUVFJJQlVU
+RT0iYXV0b21vdW50SW5mb3JtYXRpb24iCj4gIwo+ICNERUZBVUxUX01BUF9PQkpFQ1RfQ0xBU1M9
+ImF1dG9tb3VudE1hcCIKPiAjREVGQVVMVF9FTlRSWV9PQkpFQ1RfQ0xBU1M9ImF1dG9tb3VudCIK
+PiAjREVGQVVMVF9NQVBfQVRUUklCVVRFPSJhdXRvbW91bnRNYXBOYW1lIgo+ICNERUZBVUxUX0VO
+VFJZX0FUVFJJQlVURT0iYXV0b21vdW50S2V5Igo+ICNERUZBVUxUX1ZBTFVFX0FUVFJJQlVURT0i
+YXV0b21vdW50SW5mb3JtYXRpb24iCj4gIwo+ICMgREVGQVVMVF9BVVRIX0NPTkZfRklMRSAtIHNl
+dCB0aGUgZGVmYXVsdCBsb2NhdGlvbiBmb3IgdGhlIFNBU0wKPiAjICAgICAgICAgICAgICAgICAg
+ICAgICAgICBhdXRoZW50aWNhdGlvbiBjb25maWd1cmF0aW9uIGZpbGUuCj4gIwo+IERFRkFVTFRf
+QVVUSF9DT05GX0ZJTEU9Ii9ldGMvYXV0b2ZzX2xkYXBfYXV0aC5jb25mIgo+ICMKPiAjIEdlbmVy
+YWwgZ2xvYmFsIG9wdGlvbnMKPiAjCj4gI09QVElPTlM9IiIKPiAjCgpXaGF0IHZlcnNpb24gb2Yg
+YXV0b2ZzIGFyZSB5b3UgdXNpbmc/ClRoaXMgY29uZmlnIGZpbGUgaXMgb3V0IG9mIGRhdGUgKGJ1
+dCB3aWxsIHN0aWxsIHdvcmspLgpUaGUgREVGQVVMVF8gcHJlZml4IGhhcyBiZWVuIGRyb3BwZWQg
+aW4gdGhlIGxhdGVzdCBwYXRjaGVkIGF1dG9mcy4KCj4gLS0tLS0tLS0tLS0tLS0tLS0tLS1NeSBh
+dXRvLm1hc3RlcidzIGZpbGUKPiArYXV0by5tYXN0ZXIKPiAKPiAtLS0tLS0tLS0tLS0tLS0tLS0t
+LU15IG5zc3dpdGNoLmNvbmYgYXV0b21vdW50J3MgbGluZToKPiBhdXRvbW91bnQ6ICBmaWxlcyBs
+ZGFwIG5pcwo+IAo+IC0tLS0tLS0tLS0tLS0tLS0tLS0tYXV0by5tYXN0ZXIgb3UgZW50cnkgaW4g
+bGRhcDoKPiAKPiBkbjogb3U9YXV0by5tYXN0ZXIsb3U9cGVyc29ubmVzLG89dWwsYz10Zwo+IG91
+OiBhdXRvLm1hc3Rlcgo+IG9iamVjdENsYXNzOiB0b3AKPiBvYmplY3RDbGFzczogYXV0b21vdW50
+TWFwCj4gCj4gZG46IGNuPS9ob21lLG91PWF1dG8ubWFzdGVyLG91PXBlcnNvbm5lcyxvPXVsLGM9
+dGcKPiBvYmplY3RDbGFzczogYXV0b21vdW50Cj4gY246IC9ob21lCj4gYXV0b21vdW50SW5mb3Jt
+YXRpb246IGxkYXAvLzE5Mi4xNjguMjEwLjMvb3U9YXV0by5ob21lLG91PXBlcnNvbm5lcyxvPXVs
+LGM9dGcKClllcywgYXMgSmVmZiBzYXlzIHRoZSAiOiIgaXMgbWlzc2luZyBoZXJlLgpPbmNlIHRo
+aXMgaXMgYWxsIHdvcmtpbmcgeW91IG1pZ2h0IGNvbnNpZGVyIHVzaW5nICJhdXRvLmhvbWUiIGJ5
+IGl0c2VsZgphcyBuc3N3aXRjaCB3aWxsIGZpbmQgdGhlIG1hcCBhdXRvbWF0aWNhbGx5LiBJIHRo
+aW5rIGl0J3MgbXVjaCBzaW1wbGVyLgoKPiAKPiAtLS0tLS0tLS0tLS0tLS0tLS0tYXV0by5ob21l
+IG91IGVudHJ5IGluIGxkYXA6Cj4gZG46IG91PWF1dG8uaG9tZSxvdT1wZXJzb25uZXMsbz11bCxj
+PXRnCj4gb3U6IGF1dG8uaG9tZQo+IG9iamVjdENsYXNzOiB0b3AKPiBvYmplY3RDbGFzczogb3Jn
+YW5pemF0aW9uYWxVbml0CgpZb3UgbmVlZCB0byBhZGQgIm9iamVjdENsYXNzOiBhdXRvbW91bnRN
+YXAiIHRvIHRoaXMgYXMgZ2V0X3F1ZXJ5X2RuIHVzZXMKdGhpcyB0byBsb2NhdGUgdGhlIG1hcCBl
+bnRyeS4KCklhbgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fCmF1dG9mcyBtYWlsaW5nIGxpc3QKYXV0b2ZzQGxpbnV4Lmtlcm5lbC5vcmcKaHR0cDovL2xp
+bnV4Lmtlcm5lbC5vcmcvbWFpbG1hbi9saXN0aW5mby9hdXRvZnMK
