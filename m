@@ -1,98 +1,179 @@
-From: Ian Kent <ikent@redhat.com>
-Subject: [ANNOUNCE] autofs 5.0.2 release
-Date: Mon, 18 Jun 2007 18:58:45 +0800
-Message-ID: <1182164325.16346.29.camel@raven.themaw.net>
+From: =?iso-8859-1?b?RWRq6Q==?= <edosseh@ub.tg>
+Subject: Re: Autofs5:master_notify: syntax error in map near
+	[	/home ]
+Date: Tue, 19 Jun 2007 09:53:22 +0000
+Message-ID: <1182246802.4677a792993a5@www.univ-lome.tg>
+References: <1181753129.46701f29a6e26@www.univ-lome.tg>
+	<x49tztbok9z.fsf@segfault.boston.devel.redhat.com>
+	<1181754391.4670241762d0c@www.univ-lome.tg>
+	<1181835067.46715f3b7d073@www.univ-lome.tg>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Content-Transfer-Encoding: quoted-printable
+Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <1181835067.46715f3b7d073@www.univ-lome.tg>
 List-Id: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: text/plain; charset="macroman"
 To: autofs@linux.kernel.org
-Cc: linux-fsdevel@vger.kernel.org
 
-Hi all,
+Thank you,
+That works with followings:
 
-This is the first bug fix release following the initial release of
-version 5. There are many bug fixes. Two critical ones are updated
-kernel patches for kernels prior to 2.6.21, that fix a race between
-mount and expire operations and a fix for the daemon to resolve a
-possible deadlock in the alarm handler. Also of note are corrections
-to wildcard entry handling, checks for out of date maps and their
-re-reading and the addition of support for "ldaps:" as a map source.
+For auto.home:
+  dn: ou=3Dauto.home,ou=3Dpersonnes,o=3Dul,c=3Dtg
+  ou: auto.home
+  objectClass: top
+  objectClass: automountMap
 
-See below for more information.
+  dn: cn=3D/,ou=3Dauto.home,ou=3Dpersonnes,o=3Dul,c=3Dtg
+  objectClass: automount
+  cn: /
+  automountInformation: -rw,hard,intr ulns:/home/&
 
-Known issues
-============
+Because i changed organizationalUnit objectClass of
+ou:auto.home,ou=3Dpersonnes,o=3Dul,c=3Dtg to automountMap.
 
-Quoted strings in the master map are not yet handled.
-This has been delayed again, hopefully I'll be able to fix this in
-the next release.
+  Entry for auto.master stay:
 
-autofs
-======
+dn: ou=3Dauto.master,ou=3Dpersonnes,o=3Dul,c=3Dtg
+ou: auto.master
+objectClass: top
+objectClass: automountMap
 
-The package can be found at:
+dn: cn=3D/home,ou=3Dauto.master,ou=3Dpersonnes,o=3Dul,c=3Dtg
+objectClass: automount
+cn: /home
+automountInformation: ldap:ulns:ou=3Dauto.home,ou=3Dpersonnes,o=3Dul,c=3Dtg
 
-ftp://ftp.kernel.org/pub/linux/daemons/autofs/v5
-
-It is autofs-5.0.2.tar.[gz|bz2]
-
-No source rpm is there as it can be produced by using:
-
-rpmbuild -ts autofs-5.0.2.tar.gz
-
-and the binary rpm by using:
-
-rpmbuild -tb autofs-5.0.2.tar.gz
-
-See the INSTALL file for information about configure options and
-kernel requirements.
-
-Here are the entries from the CHANGELOG which outline the updates:
-
-18/06/2007 autofs-5.0.2
------------------------
-- fix return check for getpwuid_r and getgrgid_r.
-- give up trying to update exports list while host is mounted.
-- fix to "@network" matching.
-- check for fstab update and retry if not updated.
-- change file map lexer to allow white-space only blank lines.
-- remove macro substitution in automount.8 man page (Guillaume Rousse).
-- correct hesiod library check in configure (Guillaume Rousse).
-- drop "DEFAULT_" prefix from configuration names (Guillaume Rousse).
-- remove redundant ident macros.
-- various configure cleanups (Richard Daniel).
-- various code cleanups (Richard Daniel).
-- fixed numeric export match.
-- add option to select replicated server at random (instead of
-  response time).
-- fix incorrect cast in directory cleanup routines.
-- fix directory creation for browse mounts.
-- fix wildcard map handling and improve nsswitch source map re-reading.
-- fix "null" domain netgroup match for "-hosts" map.
-- update kernel patches.
-- add configuration variable to control appending of global options.
-- add command option to set a global mount options string.
-- add check for labeled local filesystems (Matthias Koenig).
-- disable exports check for "-hosts" map.
-- fix memory allocation problem with global options patch.
-- fix master map lexer to admit "." in macro values (Mike Matera).
-- make ldap attribute match case insensitive.
-- add missed man page update for APPEND_OPTIONS config option.
-- add ldaps protocol support.
-  - note: it's no longer possible to multiple hosts in an ldap map spec.
-  - note: if this is needed use only the map name and configure the URI
-    entry in the ldap client configuration.
-- correct mistake in logic test in wildcard lookup.
-- fix deadlock in alarm manager module.
-- allow for older schemas that allow "*" as a key value.
-- update master map lexer to also allow "." in macro name.
-- allow for "#" and "@" in hostname validation for sshfs mounts.
-- set working directory to base of mount before invoking program map.
-- simplify alarm_handler function (Anders Blomdell).
-
-Ian
+ But System Sessions after authentications have problems to load
+desktops(especially gnome). I use a Fedora core 4 on Client and Fedora Core=
+ 3
+on server. The error concerns problem with gdm permissions. According to so=
+me
+persons it'ld be resolved with enabling nfs lock. But i don't succeed. What=
+ can
+i do?
 
 
+> Selon Edj=E9 <edosseh@ub.tg>:
+>
+> When i put 192.168.210.3:ou=3Dauto.home,ou=3Dpersonnes,o=3Dul,c=3Dtg inst=
+ead of
+> ldap://192.168.210.3/ou=3Dauto.home,ou=3Dpersonnes,o=3Dul,c=3Dtg
+>
+> I receive this output in my log file:
+>
+>  Starting automounter version 5.0.1-1, master map auto.master
+> Jun 14 15:32:05 Sersau automount[21813]: using kernel protocol version 5.=
+00
+> Jun 14 15:32:06 Sersau automount[21813]: master_notify: syntax error in m=
+ap
+> near
+> [ /home ]
+>
+> What it means?
+>
+> > Jeff
+> > Thank you for the interest
+> >
+> > Selon Jeff Moyer <jmoyer@redhat.com>:
+> >
+> > > =3D=3D> On Wed, 13 Jun 2007 16:45:29 +0000, Edj=C3=A9 <edosseh@ub.tg>=
+ said:
+> > >
+> > > Edj=C3=A9> Hello,
+> > > Edj=C3=A9> Please help with autofs5 because i tried some advices with=
+out
+> > success.
+> > > Edj=C3=A9> I want to mount users home with autofs5. I tried it before=
+ with
+> nfs
+> > > with
+> > > Edj=C3=A9> success.
+> > > Edj=C3=A9> My conf is:
+> > >
+> > > Edj=C3=A9> dn: cn=3D/home,ou=3Dauto.master,ou=3Dpersonnes,o=3Dul,c=3D=
+tg
+> > > Edj=C3=A9> objectClass: automount
+> > > Edj=C3=A9> cn: /home
+> > > Edj=C3=A9> automountInformation:
+> > > ldap//192.168.210.3/ou=3Dauto.home,ou=3Dpersonnes,o=3Dul,c=3Dtg
+> > >
+> > > try ldap://192.168.210.3/ou=3Dauto.home,ou=3Dpersonnes,o=3Dul,c=3Dtg
+> > >         ^
+> > > Note the colon between ldap and '//'.
+> >
+> > But trying give this error:
+> > lookup_init: lookup(ldap): failed to get query dn
+> > Jun 13 17:12:12 Sersau automount[18249]: mount_autofs_indirect: failed =
+to
+> > read
+> > map for /home
+> > Jun 13 17:12:12 Sersau automount[18249]: handle_mounts: mount of /home
+> > failed!
+> > Jun 13 17:12:12 Sersau automount[18249]: master_do_mount: failed to sta=
+rtup
+> > mount
+> >
+> > >
+> > > -Jeff
+> > >
+> >
+> >
+> > --
+> > "Heureux ceux qui sont conscients de leur pauvret=E9 spirituelle." - Mat
+> > 5:3(Les
+> > Saintes Ecritures - Traduction du monde nouveau).
+> >
+> > ----------------------------------------------------------------
+> > Ce message a =C3=A9t=C3=A9 envoy=C3=A9 depuis le serveur de messagerie =
+de l'Universit=C3=A9
+> > de
+> > Lom=C3=A9.
+> > Universit=C3=A9 de Lom=C3=A9
+> > BP 1515
+> > Lom=C3=A9 TOGO.
+> >
+> > _______________________________________________
+> > autofs mailing list
+> > autofs@linux.kernel.org
+> > http://linux.kernel.org/mailman/listinfo/autofs
+> >
+>
+>
+> --
+> "Heureux ceux qui sont conscients de leur pauvret=E9 spirituelle." - Mat
+> 5:3(Les
+> Saintes Ecritures - Traduction du monde nouveau).
+>
+> ----------------------------------------------------------------
+> Ce message a =C3=A9t=C3=A9 envoy=C3=A9 depuis le serveur de messagerie de=
+ l'Universit=C3=A9
+> de
+> Lom=C3=A9.
+> Universit=C3=A9 de Lom=C3=A9
+> BP 1515
+> Lom=C3=A9 TOGO.
+>
+
+
+--
+"Heureux ceux qui sont conscients de leur pauvret=E9 spirituelle." - Mat 5:=
+3(Les
+Saintes Ecritures - Traduction du monde nouveau).
+
+----------------------------------------------------------------
+Ce message a =C3=A9t=C3=A9 envoy=C3=A9 depuis le serveur de messagerie de l=
+'Universit=C3=A9 de
+Lom=C3=A9.
+Universit=C3=A9 de Lom=C3=A9
+BP 1515
+Lom=C3=A9 TOGO.
