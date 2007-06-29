@@ -1,17 +1,10 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Autofs5:master_notify: syntax error in map
-	near	[	/home ]
-Date: Tue, 19 Jun 2007 20:08:31 +0800
-Message-ID: <1182254911.6544.5.camel@raven.themaw.net>
-References: <1181753129.46701f29a6e26@www.univ-lome.tg>
-	<x49tztbok9z.fsf@segfault.boston.devel.redhat.com>
-	<1181754391.4670241762d0c@www.univ-lome.tg>
-	<1181835067.46715f3b7d073@www.univ-lome.tg>
-	<1182246802.4677a792993a5@www.univ-lome.tg>
+From: "William Prochazka" <billprozac@gmail.com>
+Subject: autofs program user variable
+Date: Thu, 28 Jun 2007 23:31:37 -0400
+Message-ID: <812495870706282031p666550d2j15fd361e5899de9a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============2047322111341711595=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1182246802.4677a792993a5@www.univ-lome.tg>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,18 +15,49 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="iso-8859-1"
-To: =?ISO-8859-1?Q?Edj=E9?= <edosseh@ub.tg>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-T24gVHVlLCAyMDA3LTA2LTE5IGF0IDA5OjUzICswMDAwLCBFZGrDqSB3cm90ZToKPiAgQnV0IFN5
-c3RlbSBTZXNzaW9ucyBhZnRlciBhdXRoZW50aWNhdGlvbnMgaGF2ZSBwcm9ibGVtcyB0byBsb2Fk
-Cj4gZGVza3RvcHMoZXNwZWNpYWxseSBnbm9tZSkuIEkgdXNlIGEgRmVkb3JhIGNvcmUgNCBvbiBD
-bGllbnQgYW5kIEZlZG9yYSBDb3JlIDMKPiBvbiBzZXJ2ZXIuIFRoZSBlcnJvciBjb25jZXJucyBw
-cm9ibGVtIHdpdGggZ2RtIHBlcm1pc3Npb25zLiBBY2NvcmRpbmcgdG8gc29tZQo+IHBlcnNvbnMg
-aXQnbGQgYmUgcmVzb2x2ZWQgd2l0aCBlbmFibGluZyBuZnMgbG9jay4gQnV0IGkgZG9uJ3Qgc3Vj
-Y2VlZC4gV2hhdCBjYW4KPiBpIGRvPwoKSSdtIGFmcmFpZCBJIGRvbid0IHVuZGVyc3RhbmQgdGhl
-IHByb2JsZW0uCkNvdWxkIHlvdSB0cnkgdG8gZ2l2ZSBtb3JlIGluZm9ybWF0aW9uPwoKSWFuCgoK
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KYXV0b2ZzIG1h
-aWxpbmcgbGlzdAphdXRvZnNAbGludXgua2VybmVsLm9yZwpodHRwOi8vbGludXgua2VybmVsLm9y
-Zy9tYWlsbWFuL2xpc3RpbmZvL2F1dG9mcwo=
+--===============2047322111341711595==
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_50182_13195051.1183087897788"
+
+------=_Part_50182_13195051.1183087897788
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Hi, I am sort of new to autofs, but love it as it is truly great.
+We currently do all of our automounts through LDAP (works great), but I
+would love to do some programmatic mounts (improvements to the
+auto.smbscript that is distributed with FC6).  I have made a number of
+improvements,
+but I would really like to know if there is a way of determining the user
+that is attempting to traverse into the then automounted directory.  I have
+some methods of guessing the info, but they are just guesses.  Since the
+script is run by the service, $USER is worthless.  Any help would be much
+appreciated.  Thanks and great work!
+
+------=_Part_50182_13195051.1183087897788
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Hi, I am sort of new to autofs, but love it as it is truly great.<br>We currently do all of our automounts through LDAP (works great), but I would love to do some programmatic mounts (improvements to the auto.smb script that is distributed with FC6).&nbsp; I have made a number of improvements, but I would really like to know if there is a way of determining the user that is attempting to traverse into the then automounted directory.&nbsp; I have some methods of guessing the info, but they are just guesses.&nbsp; Since the script is run by the service, $USER is worthless.&nbsp; Any help would be much appreciated.&nbsp; Thanks and great work!
+<br>
+
+------=_Part_50182_13195051.1183087897788--
+
+
+--===============2047322111341711595==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--===============2047322111341711595==--
+
