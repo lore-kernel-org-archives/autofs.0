@@ -1,14 +1,14 @@
 From: Rich West <Rich.West@wesmo.com>
 Subject: Re: autofs5 + ldap + ldap replication
-Date: Mon, 16 Jul 2007 14:28:15 -0400
-Message-ID: <469BB8BF.3010404@wesmo.com>
-References: <469985DF.9010607@wesmo.com> <4699DB66.70602@int-edu.eu>
-	<469A39D5.8040304@wesmo.com>
+Date: Mon, 16 Jul 2007 14:26:48 -0400
+Message-ID: <469BB868.4080603@wesmo.com>
+References: <469985DF.9010607@wesmo.com>
+	<1184599068.3344.5.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <469A39D5.8040304@wesmo.com>
+In-Reply-To: <1184599068.3344.5.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,35 +19,30 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org
 
-The autofs5 client doesn't seem to have a problem connecting to the
-master LDAP server.  It is only having problems connecting to the
-replica (and yes, I do have those settings).
+Ian Kent wrote:
+> On Sat, 2007-07-14 at 22:26 -0400, Rich West wrote:
+>   
+>> We have an LDAP infrastructure where all of the automount maps 
+>> (auto.master and auto.home) are pulled out of LDAP.  In this instance, 
+>> we have two LDAP servers, one primary, and the other is a replica.  The 
+>> clients are all Fedora/Redhat systems.  Most of them are running 
+>> autofs4, and a few newer ones are running autofs5.
+>>     
+>
+> Version information for autofs would be good.
+> I looks like we're not getting all the debug info in the log, are you
+> sending all priorities of facility daemon to the log?
+>   
 
-As I dug in to it further, it is definitely the case where only autofs5
-can't get its maps from the replica server.  All other things (password
-auth, etc) work fine with the master and the replica..  Our autofs4
-clients happily work with the master and/or the replica.
+The Fedora Core 5 clients are using autofs 4.1.4, and the Fedora Core 6
+clients are using 5.0.1 (RC3).
+
+As far as logging goes, what is the log facility used for autofs?  I've
+got syslog splitting apart some of the messages to separate files
+(local2 is designated for named for us, with local4 designated to LDAP,
+&etc).
 
 -Rich
-
->
->> Isn't it the problem of defining which attributes to use in
->> automountmap ?
->> I had this resolved (in fedora 7) by uncommenting the necessary
->> attributes in /etc/sysconfig/autofs , have you check that ?
->>
->> in /etc/sysconfig/autofs for mine autofs ldap maps I had to uncomment
->> these:
->>
->> # Other common LDAP nameing
->> #
->> MAP_OBJECT_CLASS="automountMap"
->> ENTRY_OBJECT_CLASS="automount"
->> MAP_ATTRIBUTE="ou"
->> ENTRY_ATTRIBUTE="cn"
->> VALUE_ATTRIBUTE="automountInformation"
->>
->
->
