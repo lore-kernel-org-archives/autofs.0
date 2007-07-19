@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: Seeing some 5.0.1 stop expiring mounts
-Date: Thu, 19 Jul 2007 20:03:48 +0800
-Message-ID: <1184846628.3258.55.camel@raven.themaw.net>
+Date: Thu, 19 Jul 2007 20:12:19 +0800
+Message-ID: <1184847139.3258.63.camel@raven.themaw.net>
 References: <20070717195431.GA14624@cornholio.qualcomm.com>
 	<1184741167.4178.50.camel@raven.themaw.net>
 	<20070718213945.GA7455@cornholio.qualcomm.com>
@@ -29,45 +29,20 @@ On Wed, 2007-07-18 at 14:39 -0700, Mike Marion wrote:
 > > Might be worth considering going to 5.0.2, especially since you have a
 > > busy site, as a nasty deadlock in the alarm handler has been fixed. 
 > 
-> Unfortunately, we can't.  I've since found out (through trial and error)
-> that the patch:
-> > > autofs-5.0.1-map-update-source-only.patch
-> 
-> is completely broken for us, and it appears to be part of the 5.0.2
-> codebase now.
 
-Indeed.
+snip ...
 
-I think I've identified the problem but I'll need to look more closely
-at it.
+> With the above patch applied to 5.0.1 (or using 5.0.2) as soon as the
+> daemon gets a HUP signal, it flushes out all the auto.projects (our main
+> map) entries from /proc/mounts and they're gone forever.
 
-In the meantime it would be great if you could try this patch, in
-addition to the patch above, and check if there are any other problems
-with it.
+fwiw, the map-update-source-only patch is quite an important change from
+the point of view of the version 5 design and the correct operation of
+the map update logic. The reason it was needed is that I changed the way
+instances of maps are sorted during initial development but didn't
+properly account for it.
 
-The patch is against the current git repo but applies against a fairly
-up to date 5.0.1 tree (it looks correct) with a small offset.
+I really appreciate any time you can spare to help with this.
 
+Thanks
 Ian
-
----
-diff --git a/daemon/lookup.c b/daemon/lookup.c
-index 70b9e02..4f2b318 100644
---- a/daemon/lookup.c
-+++ b/daemon/lookup.c
-@@ -325,6 +325,7 @@ static int read_file_source_instance(struct autofs_point *ap, struct map_source
- 		instance->recurse = map->recurse;
- 		instance->depth = map->depth;
- 	}
-+	instance->stale = map->stale;
- 
- 	return do_read_map(ap, instance, age);
- }
-@@ -346,6 +347,7 @@ static int read_source_instance(struct autofs_point *ap, struct map_source *map,
- 		instance->recurse = map->recurse;
- 		instance->depth = map->depth;
- 	}
-+	instance->stale = map->stale;
- 
- 	return do_read_map(ap, instance, age);
- }
