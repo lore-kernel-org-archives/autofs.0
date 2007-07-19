@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: Seeing some 5.0.1 stop expiring mounts
-Date: Thu, 19 Jul 2007 18:08:50 +0800
-Message-ID: <1184839730.3258.47.camel@raven.themaw.net>
+Date: Thu, 19 Jul 2007 20:03:48 +0800
+Message-ID: <1184846628.3258.55.camel@raven.themaw.net>
 References: <20070717195431.GA14624@cornholio.qualcomm.com>
 	<1184741167.4178.50.camel@raven.themaw.net>
 	<20070718213945.GA7455@cornholio.qualcomm.com>
@@ -32,54 +32,42 @@ On Wed, 2007-07-18 at 14:39 -0700, Mike Marion wrote:
 > Unfortunately, we can't.  I've since found out (through trial and error)
 > that the patch:
 > > > autofs-5.0.1-map-update-source-only.patch
-
-Oops!
-
 > 
 > is completely broken for us, and it appears to be part of the 5.0.2
 > codebase now.
-> 
-> Our main setup for auotofs5 clients now is pure ldap.. auto_master is in
-> ldap, nsswitch.conf has
-> automount: ldap
-> everything is in ldap.  We remove all /etc/auto.* files too.
-> 
-> With the above patch applied to 5.0.1 (or using 5.0.2) as soon as the
-> daemon gets a HUP signal, it flushes out all the auto.projects (our main
-> map) entries from /proc/mounts and they're gone forever.
-> 
-> When first started, and until the daemon gets a HUP, it works fine.  Our
-> /proc/mounts has 6200+ entries (we have a crapload of paths) and
-> they'll mount great.  Entries look as expected, e.g.:
-> auto.projects /prj/qct/gv autofs rw,fd=6,pgrp=2571,timeout=600,minproto=5,maxproto=5,direct 0 0
-> then if you mount it, it adds in:
-> ronald:/vol/eng_ice_0014/qct_gv /prj/qct/gv nfs rw,v3,rsize=32768,wsize=32768,acregmin=1,acregmax=5,acdirmin=1,acdirmax=5,hard,lock,proto=tcp,addr=ronald 0 0
-> 
-> After the HUP, the thing flushes, then logs a ton of rm_dir errors..
-> like so:
-> 
-> Start of daemon:
-> automount[2571]: mounted direct mount on /prj/qct/gv with timeout 600, freq 150 seconds
-> 
-> Flush after HUP:
-> automount[2572]: umounted direct mount /prj/qct/gv
-> 
-> After all umounts.. these errors show for every path:
-> automount[2549]: rmdir_path: lstat of /prj/qct/gv failed.
-> 
-> I did a test with 5.0.1 with all patchs sans the
-> autofs-5.0.1-map-update-source-only.patch and it's fine... I can HUP
-> left and right, do kill -USR1 to flush, etc.  Works right.  But rebuild again
-> with that patch and first HUP breaks all our auto.projects paths.  Weird
-> thing is the /net and /usr2 (indirect home dirs) stay working.  Those
-> entries look like:
-> $ egrep 'auto.home|/net' /proc/mounts | grep -v auto.projects
-> -hosts /net autofs rw,fd=9,pgrp=13948,timeout=600,minproto=5,maxproto=5,indirect 0 0
-> auto.home /usr2 autofs rw,fd=14,pgrp=13948,timeout=600,minproto=5,maxproto=5,indirect 0 0
 
-So it sounds like the direct mounts are unhappy with this or possibly
-the LDAP module.
+Indeed.
 
-I'll try to duplicate the problem.
+I think I've identified the problem but I'll need to look more closely
+at it.
+
+In the meantime it would be great if you could try this patch, in
+addition to the patch above, and check if there are any other problems
+with it.
+
+The patch is against the current git repo but applies against a fairly
+up to date 5.0.1 tree (it looks correct) with a small offset.
 
 Ian
+
+---
+diff --git a/daemon/lookup.c b/daemon/lookup.c
+index 70b9e02..4f2b318 100644
+--- a/daemon/lookup.c
++++ b/daemon/lookup.c
+@@ -325,6 +325,7 @@ static int read_file_source_instance(struct autofs_point *ap, struct map_source
+ 		instance->recurse = map->recurse;
+ 		instance->depth = map->depth;
+ 	}
++	instance->stale = map->stale;
+ 
+ 	return do_read_map(ap, instance, age);
+ }
+@@ -346,6 +347,7 @@ static int read_source_instance(struct autofs_point *ap, struct map_source *map,
+ 		instance->recurse = map->recurse;
+ 		instance->depth = map->depth;
+ 	}
++	instance->stale = map->stale;
+ 
+ 	return do_read_map(ap, instance, age);
+ }
