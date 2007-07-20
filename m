@@ -1,9 +1,11 @@
-From: "William Prochazka" <billprozac@gmail.com>
-Subject: reload when using LDAP
-Date: Mon, 16 Jul 2007 18:21:59 -0400
-Message-ID: <812495870707161521g638be314ye81a8df6a9806582@mail.gmail.com>
+From: Jim Summers <jsummers@bachman.cs.ou.edu>
+Subject: AutoFS and LDAP
+Date: Fri, 20 Jul 2007 13:36:07 -0500
+Message-ID: <46A10097.1020403@cs.ou.edu>
+Reply-To: jsummers@bachman.cs.ou.edu
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============3177072004060504607=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -17,63 +19,49 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
---===============3177072004060504607==
-Content-Type: multipart/alternative; 
-	boundary="----=_Part_59543_30834428.1184624519987"
+Hello All,
 
-------=_Part_59543_30834428.1184624519987
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+I have been attempting to get autofs5 to work with my ldap config.  The way I 
+am set up is:
 
-We use LDAP to store all of our map data which seems to be working very well
-(all FC6 so autofs v5.0.1 RC3).  First off, we found out the hardway that
-when autofs is restarted (like as part of a cron job) and a local autofs
-filesystem is in use (direct map) ... kernel panic.  The restarting was
-originally so we could push new maps and clients we get the maps nightly.
-After the kernel panic fiasco, I nticed the reload option (should be much
-safer since in our enviornment it would almost always only be adding new
-maps).  Sounds good, but it does not work.  Reload fails as it cannot start
-TLS, so it loads a null map and kills all unused daemons.  I have no idea
-why it cannot start TLS since the service has no issues when starting and I
-can see it querying ldap for the auto.master and the mount ou.  So this
-leads to a few questions:
+FC6 / FC7 clients and redhat servers.
+auto.home info for each user is stored in ldap
+auto.master is stored locally on each client
 
-1. Does autofs only use the /etc/openldap/ldap.conf file, or does the reload
-function use the /etc/ldap.conf file I think that is a hold over for legacy
-applications)
+The mounts do not happen.  Here is what I see when starting autofs:
+======
+Jul 20 13:22:53 lch automount[3427]: Starting automounter version 5.0.1-11, 
+master map auto.master
+Jul 20 13:22:53 lch automount[3427]: using kernel protocol version 5.00
+Jul 20 13:22:53 lch automount[3427]: master_error: syntax error while parsing map.
+Jul 20 13:22:53 lch automount[3427]: mounted indirect mount on /misc with 
+timeout 300, freq 75 seconds
+Jul 20 13:22:53 lch automount[3427]: mounted indirect mount on /net with 
+timeout 300, freq 75 seconds
+======
+Here is the auto.master:
+======
+/home    ldap://129.15.1.203/ou=auto.home,dc=it,dc=ou,dc=edu
+======
+nsswitch:
+======
+automount:  files
+======
 
-2. Is there a good way to debug what exactly is failing with the reload? (I
-have logging set to debug but that give little useful info.
+While monitoring traffic on the ldap server.  I never see any traffic from the 
+client when the daemon is started.  So I am thinking that it is not able to 
+read the "/home" entry.
 
-3.  What is the best way to have clients poll for updates to the autofs
-maps?
+I have tried the old style colon syntax for an ldap entry.  No joy.  I 
+purposely made syntax errors and then it will say syntax error near "xxxxx" as 
+it should.
 
-Thanks in advance.
+Ideas / Suggestions?
 
-------=_Part_59543_30834428.1184624519987
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-We use LDAP to store all of our map data which seems to be working very well (all FC6 so autofs v5.0.1 RC3).&nbsp; First off, we found out the hardway that when autofs is restarted (like as part of a cron job) and a local autofs filesystem is in use (direct map) ... kernel panic.&nbsp; The restarting was originally so we could push new maps and clients we get the maps nightly.&nbsp; After the kernel panic fiasco, I nticed the reload option (should be much safer since in our enviornment it would almost always only be adding new maps).&nbsp; Sounds good, but it does not work.&nbsp; Reload fails as it cannot start TLS, so it loads a null map and kills all unused daemons.&nbsp; I have no idea why it cannot start TLS since the service has no issues when starting and I can see it querying ldap for the 
-auto.master and the mount ou.&nbsp; So this leads to a few questions:<br><br>1. Does autofs only use the /etc/openldap/ldap.conf file, or does the reload function use the /etc/ldap.conf file I think that is a hold over for legacy applications)
-<br><br>2. Is there a good way to debug what exactly is failing with the reload? (I have logging set to debug but that give little useful info.<br><br>3.&nbsp; What is the best way to have clients poll for updates to the autofs maps?
-<br><br>Thanks in advance.<br>
-
-------=_Part_59543_30834428.1184624519987--
+TIA
 
 
---===============3177072004060504607==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
-
---===============3177072004060504607==--
-
+-- 
+Jim Summers
+School of Computer Science-University of Oklahoma
+-------------------------------------------------
