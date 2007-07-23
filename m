@@ -1,17 +1,10 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs5 duplicate entries
-Date: Fri, 27 Jul 2007 12:14:49 +0800
-Message-ID: <1185509689.3203.22.camel@raven.themaw.net>
-References: <46A747E0.7070202@math.uni-muenster.de>
-	<1185426784.3329.2.camel@raven.themaw.net>
-	<60626.128.176.181.43.1185447773.squirrel@wwwmath1.uni-muenster.de>
-	<1185452066.3329.7.camel@raven.themaw.net>
-	<39281.128.176.181.43.1185458179.squirrel@wwwmath1.uni-muenster.de>
+From: "Hassan Iqbal" <mhiqbal80@gmail.com>
+Subject: automount: lookup(program) failed issue
+Date: Mon, 23 Jul 2007 19:03:17 +0530
+Message-ID: <121a9130707230633s6ca900afncbca7e6b65f459a4@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============3349300537815990350=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <39281.128.176.181.43.1185458179.squirrel@wwwmath1.uni-muenster.de>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,69 +15,61 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: sourani@math.uni-muenster.de
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Thu, 2007-07-26 at 15:56 +0200, sourani@math.uni-muenster.de wrote:
-> >>
-> >> Actually this is an LDAP mixed environment with solaris and linux. The
-> >> Solaris Automounter will look for %Java by default to ignore
-> >> case-sensitivity. Is there an option on autofs5 to take the first entry
-> >> for a key in case there are duplicate entries? if so, how is it done? i
-> >> am
-> >> seriously in need of some kind of workaround. is there any possibility?
+--===============3349300537815990350==
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_133116_33391972.1185197597842"
 
-Can you point me to any official documentation that describes exactly
-how this % hack is supposed to work?
+------=_Part_133116_33391972.1185197597842
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-> >
-> > There isn't .
-> > This would conflict with the work that was done to reduce the number of
-> > queries to LDAP servers.
-> >
-> > I wasn't aware of the Solaris % function.
-> > I'll check when I get some time.
-> >
-> > I could try and make a one-off patch to just use the first entry as a
-> > work around for you till we work out what to do about the % thingy.
+Hi,
+ I read the discussion thread on
+http://osdir.com/ml/kernel.autofs/2005-08/msg00018.html that deals with the
+lookup failed issue with autofs. I have linux kernel 2.6.11.7. I downloaded
+autofs-4.1.4.tar.gz from:
 
-Could you try this patch for the work around please.
-Ian
+ftp://ftp.kernel.org/pub/linux/daemons/autofs/v4/
 
----
---- autofs-5.0.2/modules/lookup_ldap.c.ignore-duplicates	2007-07-27 11:33:59.000000000 +0800
-+++ autofs-5.0.2/modules/lookup_ldap.c	2007-07-27 11:53:45.000000000 +0800
-@@ -1238,7 +1238,15 @@ static int read_one_map(struct autofs_po
- 			/* Check for the "/" and "*" and use as "/" if found */
- 			for (i = 0; i < count; i++) {
- 				/* check for wildcard */
--				if (bvKey[i]->bv_len != 1)
-+				if (bvKey[i]->bv_len > 1) {
-+					/* Sun % hack workaround */
-+					if (*bvKey[i]->bv_val == '%') {
-+						k_val = bvKey[0]->bv_val;
-+						k_len = bvKey[0]->bv_len;
-+						break;
-+					}
-+					continue;
-+				} else if (bvKey[i]->bv_len != 1)
- 					continue;
- 				if (*bvKey[i]->bv_val != '/' &&
- 				    *bvKey[i]->bv_val != '*')
-@@ -1521,7 +1529,15 @@ static int lookup_one(struct autofs_poin
- 			/* Check for the "/" and "*" and use as "/" if found */
- 			for (i = 0; i < count; i++) {
- 				/* check for wildcard */
--				if (bvKey[i]->bv_len != 1)
-+				if (bvKey[i]->bv_len > 1) {
-+					/* Sun % hack workaround */
-+					if (*bvKey[i]->bv_val == '%') {
-+						k_val = bvKey[0]->bv_val;
-+						k_len = bvKey[0]->bv_len;
-+						break;
-+					}
-+					continue;
-+				} else if (bvKey[i]->bv_len != 1)
- 					continue;
- 				if (*bvKey[i]->bv_val != '/' &&
- 				    *bvKey[i]->bv_val != '*')
+Applied the patches that are suggested in the above discussion thread.
+
+autofs-4.1.4-misc-fixes.patch
+autofs-4.1.4-multi-parse-fix.patch
+autofs-4.1.4-multi-parse-fix.patch
+
+Built and installed it on my machine. But Iam still getting that lookup
+failed messages and autofs seems to hang.
+Can anyone please point me what Iam missing here.
+
+Regards,
+Hassan
+
+------=_Part_133116_33391972.1185197597842
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Hi,<br>&nbsp;I read the discussion thread on <a class="moz-txt-link-freetext" href="http://osdir.com/ml/kernel.autofs/2005-08/msg00018.html">http://osdir.com/ml/kernel.autofs/2005-08/msg00018.html</a> that deals with the <br>lookup failed issue with autofs. I have linux kernel 
+<a href="http://2.6.11.7">2.6.11.7</a>. I downloaded autofs-4.1.4.tar.gz from:<br><br><a href="ftp://ftp.kernel.org/pub/linux/daemons/autofs/v4/">ftp://ftp.kernel.org/pub/linux/daemons/autofs/v4/</a><br><br>Applied the patches that are suggested in the above discussion thread. 
+<br><br>autofs-4.1.4-misc-fixes.patch<br>autofs-4.1.4-multi-parse-fix.patch<br>autofs-4.1.4-multi-parse-fix.patch<br><br>Built and installed it on my machine. But Iam still getting that lookup failed messages and autofs seems to hang. 
+<br>Can anyone please point me what Iam missing here.<br><br>Regards,<br>Hassan<br>
+
+------=_Part_133116_33391972.1185197597842--
+
+
+--===============3349300537815990350==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--===============3349300537815990350==--
+
