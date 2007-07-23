@@ -1,15 +1,12 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: reload when using LDAP
-Date: Mon, 23 Jul 2007 10:11:18 -0400
-Message-ID: <x49tzrvqkft.fsf@segfault.boston.devel.redhat.com>
-References: <812495870707161521g638be314ye81a8df6a9806582@mail.gmail.com>
+From: michael@cadilhac.name (=?iso-8859-1?Q?Micha=EBl?= Cadilhac)
+Subject: Re: Autofs screwed by getopt?
+Date: Mon, 23 Jul 2007 16:21:27 +0200
+Message-ID: <87myxnxkt4.fsf@lrde.org>
+References: <87vecbxmzt.fsf@lrde.org>
+	<x49y7h7qkki.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============3234249406279418438=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <812495870707161521g638be314ye81a8df6a9806582@mail.gmail.com>
-	(William Prochazka's message of "Mon\,
-	16 Jul 2007 18\:21\:59 -0400")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,49 +17,84 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: William Prochazka <billprozac@gmail.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-==> On Mon, 16 Jul 2007 18:21:59 -0400, "William Prochazka" <billprozac@gmail.com> said:
+--===============3234249406279418438==
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha1; protocol="application/pgp-signature"
 
-William> We use LDAP to store all of our map data which seems to be working very well
-William> (all FC6 so autofs v5.0.1 RC3).  First off, we found out the hardway that
-William> when autofs is restarted (like as part of a cron job) and a local autofs
-William> filesystem is in use (direct map) ... kernel panic.  The restarting was
+--=-=-=
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Did you report this bug?  If not, please do:
-  http://bugzilla.redhat.com/
+Jeff Moyer <jmoyer@redhat.com> writes:
 
-William> originally so we could push new maps and clients we get the maps nightly.
-William> After the kernel panic fiasco, I nticed the reload option (should be much
-William> safer since in our enviornment it would almost always only be adding new
-William> maps).  Sounds good, but it does not work.  Reload fails as it cannot start
+> You are most likely running into a bug in the parsing done in the init
+> script.  What does '/etc/init.d/autofs status' show?
 
-Reload, at least in the past, was used to detect added or removed
-mount points listed in /etc/auto.master.
+Well, just `started'.
 
-William> TLS, so it loads a null map and kills all unused daemons.  I have no idea
-William> why it cannot start TLS since the service has no issues when starting and I
-William> can see it querying ldap for the auto.master and the mount ou.  So this
-William> leads to a few questions:
+> I have a couple of patches to fix that up.  I don't have a gentoo
+> source tree, though.  If you can point me at one, I can likely send
+> you a patch to try.
 
-William> 1. Does autofs only use the /etc/openldap/ldap.conf file, or does the reload
-William> function use the /etc/ldap.conf file I think that is a hold over for legacy
-William> applications)
+I'm running a Gentoo, I'm root and all the stuff so I can try your
+patch.
 
-Autofs uses /etc/openldap/ldap.conf
+Micha=EBl> PS: In fact, it seems that the mount options are not applied at
+Micha=EBl> all. Don't have a clue why.
 
-William> 2. Is there a good way to debug what exactly is failing with the reload? (I
-William> have logging set to debug but that give little useful info.
+Seems like=A0:
 
-Do you have daemon.* being logged somewhere?  See
-http://people.redhat.com/jmoyer for a guide to gathering debug
-information.
+   lri4-154:/dd $ mount
+[...]
+automount(pid23161) on /special type autofs (rw,fd=3D4,pgrp=3D23161,minprot=
+o=3D2,maxproto=3D4)
+automount(pid23175) on /servers type autofs (rw,fd=3D4,pgrp=3D23175,minprot=
+o=3D2,maxproto=3D4)
+automount(pid23190) on /local type autofs (rw,fd=3D4,pgrp=3D23190,minproto=
+=3D2,maxproto=3D4)
+automount(pid23204) on /u type autofs (rw,fd=3D4,pgrp=3D23204,minproto=3D2,=
+maxproto=3D4)
+automount(pid23218) on /tmpsim type autofs (rw,fd=3D4,pgrp=3D23218,minproto=
+=3D2,maxproto=3D4)
+automount(pid23233) on /users type autofs (rw,fd=3D4,pgrp=3D23233,minproto=
+=3D2,maxproto=3D4)
 
-William> 3.  What is the best way to have clients poll for updates to the autofs
-William> maps?
 
-Autofs does this on its own.  It should detect map updates when
-performing mounts, so you can get rid of your cron jobs.
+=2D-=20
+ |   Micha=EBl `Micha' Cadilhac       |    Le copillage-collage            =
+    |
+ |   http://michael.cadilhac.name   |       tue le programmeur.            =
+  |
+ |   JID/MSN:                       |           -- Dictons LRDE            =
+  |
+ `----  michael.cadilhac@gmail.com  |                                   -  =
+--'
 
--Jeff
+--=-=-=
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.5 (GNU/Linux)
+
+iD8DBQFGpLloUJhDmOfFA3URAiCWAJwPxuuPiViBcXU2YGC9k8WEla8SDQCgxuHm
+TKub7FLBmM3CqZZoydg3TRk=
+=xHJq
+-----END PGP SIGNATURE-----
+--=-=-=--
+
+
+--===============3234249406279418438==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--===============3234249406279418438==--
+
