@@ -1,14 +1,17 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: Autofs screwed by getopt?
-Date: Mon, 23 Jul 2007 11:19:10 -0400
-Message-ID: <x491wezqhap.fsf@segfault.boston.devel.redhat.com>
-References: <87vecbxmzt.fsf@lrde.org>
+From: Rich West <Rich.West@wesmo.com>
+Subject: Re: autofs5 + ldap + ldap replication
+Date: Mon, 23 Jul 2007 12:37:45 -0400
+Message-ID: <46A4D959.8080703@wesmo.com>
+References: <469985DF.9010607@wesmo.com>	
+	<1184599068.3344.5.camel@raven.themaw.net>	<469BB868.4080603@wesmo.com>	
+	<x497ip0w4xj.fsf@segfault.boston.devel.redhat.com>	
+	<469BCCF4.50608@wesmo.com>
+	<1184653232.3188.37.camel@raven.themaw.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <87vecbxmzt.fsf@lrde.org> (=?iso-8859-1?Q?=22Micha=EBl?=
-	Cadilhac"'s message of "Mon\, 23 Jul 2007 15\:34\:14 +0200")
+In-Reply-To: <1184653232.3188.37.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,34 +22,80 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: =?iso-8859-1?Q?Micha=EBl?= Cadilhac <michael@cadilhac.name>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-=3D=3D> On Mon, 23 Jul 2007 15:34:14 +0200, michael@cadilhac.name (Micha=EB=
-l Cadilhac) said:
+Ian Kent wrote:
+> On Mon, 2007-07-16 at 15:54 -0400, Rich West wrote:
+>   
+>> Jul 16 15:21:08 myhost automount[1852]: lookup_read_master:
+>> lookup(ldap): searching for "(objectclass=automount)" under
+>> "ou=auto.master,dc=mydomain,dc=com"
+>> Jul 16 15:21:08 myhost automount[1852]: lookup_read_master:
+>> lookup(ldap): examining entries
+>> Jul 16 15:21:08 myhost automount[1852]: master_echo: .
+>> Jul 16 15:21:08 myhost automount[1852]: master_echo: .
+>> Jul 16 15:21:08 myhost automount[1852]: master_echo: :
+>> Jul 16 15:21:08 myhost automount[1852]: master_echo: .
+>>     
+>
+> This is a parse error that's not being handled.
+> What autofs is getting from the LDAP server can't be the same as what
+> it's getting from the master if the master is working.
+>
+> Can you give us an example of the output from an LDAP search to both the
+> servers please.
 
-Micha=EBl> Hi guys!
-Micha=EBl> I have a NIS based automount configuration that reads like that=
-=A0:
 
-Micha=EBl> lri4-154 linux # ypcat -k auto.master
-Micha=EBl> /special auto.special  -rw,intr,soft
-Micha=EBl> /servers auto.servers  -rw,intr,soft
-Micha=EBl> /local auto.local    -rw,intr,soft
-Micha=EBl> /u auto.u            -rw,intr,soft,nosuid
-Micha=EBl> /tmpsim auto.tmpsim     -rw,intr,soft
-Micha=EBl> /users auto.users    -rw,intr,hard,nosuid,tcp,nfsvers=3D3,timeo=
-=3D600,retrans=3D2
+Sorry for the long delay.. I missed this one.
 
-Ian pointed out the obvious to me in irc.  From the man page for auto.maste=
-r:
+Both servers are running the same version of openldap.  You have the
+output from the bad search.  I turned up logging and reloaded autofs on
+the master server and got the following (was that what you were looking
+for?):
 
-      Any remaining command line arguments without leading dashes (-) are t=
-aken as  options  (-o)  to
-      mount.  Arguments with leading dashes are considered options for the =
-maps.
+Jul 23 12:34:35 mymasterhost slapd[9859]: conn=57194 op=0 BIND dn=""
+method=128
+Jul 23 12:34:35 mymasterhost slapd[9859]: conn=57194 op=0 RESULT tag=97
+err=0 text=
+Jul 23 12:34:35 mymasterhost slapd[9859]: conn=57194 op=1 SRCH
+base="ou=auto.home,dc=mydomain,dc=com" scope=2 deref=0
+filter="(&(objectClass=nisObject)(cn=testmount))"
+Jul 23 12:34:35 mymasterhost slapd[9859]: conn=57194 op=1 SRCH attr=cn
+nisMapEntry
+Jul 23 12:34:35 mymasterhost slapd[9859]: conn=57194 op=1 SEARCH RESULT
+tag=101 err=0 nentries=0 text=
+Jul 23 12:34:35 mymasterhost slapd[9859]: conn=57194 op=2 UNBIND
+Jul 23 12:34:35 mymasterhost slapd[9859]: conn=57194 fd=44 closed
+Jul 23 12:34:35 mymasterhost slapd[9859]: conn=57195 fd=44 ACCEPT from
+IP=10.0.0.10:36741 (IP=0.0.0.0:389)
+Jul 23 12:34:35 mymasterhost slapd[9859]: conn=57195 op=0 BIND dn=""
+method=128
+Jul 23 12:34:35 mymasterhost slapd[9859]: conn=57195 op=0 RESULT tag=97
+err=0 text=
+Jul 23 12:34:35 mymasterhost slapd[9859]: conn=57195 op=1 SRCH
+base="ou=auto.home,dc=mydomain,dc=com" scope=2 deref=0
+filter="(&(objectClass=automount)(cn=testmount))"
+Jul 23 12:34:35 mymasterhost slapd[9859]: conn=57195 op=1 SRCH attr=cn
+automountInformation
+Jul 23 12:34:35 mymasterhost slapd[9859]: conn=57195 op=1 SEARCH RESULT
+tag=101 err=0 nentries=1 text=
+Jul 23 12:34:35 mymasterhost slapd[9859]: conn=57195 op=2 UNBIND
+Jul 23 12:34:35 mymasterhost slapd[9859]: conn=57195 fd=44 closed
+Jul 23 12:34:35 mymasterhost slapd[9859]: conn=57196 fd=44 ACCEPT from
+IP=10.0.0.10:36742 (IP=0.0.0.0:389)
+Jul 23 12:34:35 mymasterhost slapd[9859]: conn=57196 op=0 BIND dn=""
+method=128
+Jul 23 12:34:35 mymasterhost slapd[9859]: conn=57196 op=0 RESULT tag=97
+err=0 text=
+Jul 23 12:34:35 mymasterhost slapd[9859]: conn=57196 op=1 SRCH
+base="ou=auto.home,dc=mydomain,dc=com" scope=2 deref=0
+filter="(&(objectClass=automount)(?=undefined))"
+Jul 23 12:34:35 mymasterhost slapd[9859]: conn=57196 op=1 SRCH
+attr=automountKey automountInformation
+Jul 23 12:34:35 mymasterhost slapd[9859]: conn=57196 op=1 SEARCH RESULT
+tag=101 err=0 nentries=0 text=
+Jul 23 12:34:35 mymasterhost slapd[9859]: conn=57196 op=2 UNBIND
+Jul 23 12:34:35 mymasterhost slapd[9859]: conn=57196 fd=44 closed
 
-So, remove the '-' character from the options list and things should work a=
-s expected.
-
--Jeff
+-Rich
