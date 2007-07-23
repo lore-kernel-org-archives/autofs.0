@@ -1,13 +1,14 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: AutoFS and LDAP
-Date: Mon, 23 Jul 2007 23:07:32 +0800
-Message-ID: <1185203252.3263.6.camel@raven.themaw.net>
-References: <46A10097.1020403@cs.ou.edu>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: Autofs screwed by getopt?
+Date: Mon, 23 Jul 2007 11:19:10 -0400
+Message-ID: <x491wezqhap.fsf@segfault.boston.devel.redhat.com>
+References: <87vecbxmzt.fsf@lrde.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <46A10097.1020403@cs.ou.edu>
+In-Reply-To: <87vecbxmzt.fsf@lrde.org> (=?iso-8859-1?Q?=22Micha=EBl?=
+	Cadilhac"'s message of "Mon\, 23 Jul 2007 15\:34\:14 +0200")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,44 +19,34 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: jsummers@bachman.cs.ou.edu
+To: =?iso-8859-1?Q?Micha=EBl?= Cadilhac <michael@cadilhac.name>
 Cc: autofs@linux.kernel.org
 
-On Fri, 2007-07-20 at 13:36 -0500, Jim Summers wrote:
-> Hello All,
-> 
-> I have been attempting to get autofs5 to work with my ldap config.  The way I 
-> am set up is:
-> 
-> FC6 / FC7 clients and redhat servers.
-> auto.home info for each user is stored in ldap
-> auto.master is stored locally on each client
-> 
-> The mounts do not happen.  Here is what I see when starting autofs:
-> ======
-> Jul 20 13:22:53 lch automount[3427]: Starting automounter version 5.0.1-11, 
-> master map auto.master
-> Jul 20 13:22:53 lch automount[3427]: using kernel protocol version 5.00
-> Jul 20 13:22:53 lch automount[3427]: master_error: syntax error while parsing map.
-> Jul 20 13:22:53 lch automount[3427]: mounted indirect mount on /misc with 
-> timeout 300, freq 75 seconds
-> Jul 20 13:22:53 lch automount[3427]: mounted indirect mount on /net with 
-> timeout 300, freq 75 seconds
+=3D=3D> On Mon, 23 Jul 2007 15:34:14 +0200, michael@cadilhac.name (Micha=EB=
+l Cadilhac) said:
 
-Does this patch fix the problem?
-Ian
+Micha=EBl> Hi guys!
+Micha=EBl> I have a NIS based automount configuration that reads like that=
+=A0:
 
----
-diff --git a/lib/master_tok.l b/lib/master_tok.l
-index 9bfeefa..ff69a24 100644
---- a/lib/master_tok.l
-+++ b/lib/master_tok.l
-@@ -272,7 +272,7 @@ OPTTOUT		(-t{OPTWS}|-t{OPTWS}={OPTWS}|--timeout{OPTWS}|--timeout{OPTWS}={OPTWS})
- 		return DNSERVER;
- 	}
- 
--	{DNATTRSTR} {
-+	{DNATTRSTR}/"=" {
- 		strcpy(master_lval.strtype, master_text);
- 		return DNATTR;
- 	}
+Micha=EBl> lri4-154 linux # ypcat -k auto.master
+Micha=EBl> /special auto.special  -rw,intr,soft
+Micha=EBl> /servers auto.servers  -rw,intr,soft
+Micha=EBl> /local auto.local    -rw,intr,soft
+Micha=EBl> /u auto.u            -rw,intr,soft,nosuid
+Micha=EBl> /tmpsim auto.tmpsim     -rw,intr,soft
+Micha=EBl> /users auto.users    -rw,intr,hard,nosuid,tcp,nfsvers=3D3,timeo=
+=3D600,retrans=3D2
+
+Ian pointed out the obvious to me in irc.  From the man page for auto.maste=
+r:
+
+      Any remaining command line arguments without leading dashes (-) are t=
+aken as  options  (-o)  to
+      mount.  Arguments with leading dashes are considered options for the =
+maps.
+
+So, remove the '-' character from the options list and things should work a=
+s expected.
+
+-Jeff
