@@ -1,16 +1,14 @@
 From: michael@cadilhac.name (=?iso-8859-1?Q?Micha=EBl?= Cadilhac)
 Subject: Re: Autofs screwed by getopt?
-Date: Mon, 23 Jul 2007 17:07:14 +0200
-Message-ID: <87ejizxiot.fsf@lrde.org>
+Date: Mon, 23 Jul 2007 18:27:21 +0200
+Message-ID: <87abtnxeza.fsf@lrde.org>
 References: <87vecbxmzt.fsf@lrde.org>
-	<x49y7h7qkki.fsf@segfault.boston.devel.redhat.com>
-	<87myxnxkt4.fsf@lrde.org>
-	<x49ejizqjgj.fsf@segfault.boston.devel.redhat.com>
+	<x491wezqhap.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0683239129239414213=="
+Content-Type: multipart/mixed; boundary="===============6576271799565942968=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <x49ejizqjgj.fsf@segfault.boston.devel.redhat.com> (Jeff Moyer's
-	message of "Mon, 23 Jul 2007 10:32:28 -0400")
+In-Reply-To: <x491wezqhap.fsf@segfault.boston.devel.redhat.com> (Jeff Moyer's
+	message of "Mon, 23 Jul 2007 11:19:10 -0400")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,7 +22,7 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: Jeff Moyer <jmoyer@redhat.com>
 Cc: autofs@linux.kernel.org
 
---===============0683239129239414213==
+--===============6576271799565942968==
 Content-Type: multipart/signed; boundary="=-=-=";
 	micalg=pgp-sha1; protocol="application/pgp-signature"
 
@@ -34,92 +32,42 @@ Content-Transfer-Encoding: quoted-printable
 
 Jeff Moyer <jmoyer@redhat.com> writes:
 
-> So, can you get me the output from, 'ps auxwww | grep automount'?
-
-Here you are=A0:-)=A0:
-
-/usr/sbin/automount --pid-file /var/run/autofs.special.pid /special yp auto=
-.special -rw,intr,soft
-/usr/sbin/automount --pid-file /var/run/autofs.servers.pid /servers yp auto=
-.servers -rw,intr,soft
-/usr/sbin/automount --pid-file /var/run/autofs.local.pid /local yp auto.loc=
-al -rw,intr,soft
-/usr/sbin/automount --pid-file /var/run/autofs.u.pid /u yp auto.u -rw,intr,=
-soft,nosuid
-/usr/sbin/automount --pid-file /var/run/autofs.tmpsim.pid /tmpsim yp auto.t=
-mpsim -rw,intr,soft
-/usr/sbin/automount --pid-file /var/run/autofs.users.pid /users yp auto.use=
-rs -rw,intr,hard,nosuid,tcp,nfsvers=3D3,timeo=3D600,retrans=3D2
-
->>> I have a couple of patches to fix that up.  I don't have a gentoo
->>> source tree, though.  If you can point me at one, I can likely send
->>> you a patch to try.
+> =3D=3D> On Mon, 23 Jul 2007 15:34:14 +0200, michael@cadilhac.name (Micha=
+=EBl Cadilhac) said:
 >
-> Micha=EBl> I'm running a Gentoo, I'm root and all the stuff so I can try
-> Micha=EBl> your patch.
+> Micha=EBl> Hi guys!
+> Micha=EBl> I have a NIS based automount configuration that reads like tha=
+t=A0:
 >
-> Yes, but I don't know where to get source packages for gentoo.  I'll
-> look into it if I have time.
+> Micha=EBl> lri4-154 linux # ypcat -k auto.master
+> Micha=EBl> /special auto.special  -rw,intr,soft
+> Micha=EBl> /servers auto.servers  -rw,intr,soft
+> Micha=EBl> /local auto.local    -rw,intr,soft
+> Micha=EBl> /u auto.u            -rw,intr,soft,nosuid
+> Micha=EBl> /tmpsim auto.tmpsim     -rw,intr,soft
+> Micha=EBl> /users auto.users    -rw,intr,hard,nosuid,tcp,nfsvers=3D3,time=
+o=3D600,retrans=3D2
+>
+> Ian pointed out the obvious to me in irc.  From the man page for auto.mas=
+ter:
+>
+>       Any remaining command line arguments without leading dashes (-)
+>       are taken as options (-o) to mount.  Arguments with leading
+>       dashes are considered options for the maps.
 
-Here's how autofs is installed=A0:
+Damn=A0; I didn't see that. Well, I guess I'll have to shout (or cry) at
+my system admin, because I can't do anything to the NIS database myself.
 
->>> Emerging (1 of 1) net-fs/autofs-4.1.3-r7 to /
- 'http://gentoo.modulix.net/gentoo/distfiles/autofs-4.1.3-sock-leak-fix.pat=
-ch'
- 'http://gentoo.modulix.net/gentoo/distfiles/autofs-4.1.3-strict.patch'
- 'http://gentoo.modulix.net/gentoo/distfiles/autofs-4.1.3-replicated_server=
-_select.patch'
- 'http://gentoo.modulix.net/gentoo/distfiles/autofs-4.1.3-miscfixes.patch.g=
-z'
- 'http://gentoo.modulix.net/gentoo/distfiles/autofs-4.1.3.tar.bz2'
- 'http://gentoo.modulix.net/gentoo/distfiles/autofs-4.1.3-non_block_ping.pa=
-tch'
- 'http://gentoo.modulix.net/gentoo/distfiles/autofs-4.1.3-mtab_lock.patch'
- 'http://gentoo.modulix.net/gentoo/distfiles/autofs-4.1.3-bad_chdir.patch'
-
->>> Unpacking autofs-4.1.3.tar.bz2 to /var/tmp/portage/net-fs/autofs-4.1.3-=
-r7/work
- * Applying autofs-4.1.3-strict.patch ...
- * Applying autofs-4.1.3-mtab_lock.patch ...
- * Applying autofs-4.1.3-bad_chdir.patch ...
- * Applying autofs-4.1.3-non_block_ping.patch ...
- * Applying autofs-4.1.3-sock-leak-fix.patch ...
- * Applying autofs-4.1.3-replicated_server_select.patch ...
- * Applying autofs-4.1.3-miscfixes.patch.gz ...
- * Applying autofs-4.1.3-signal-race-fix.patch ...
-
-And signal-race-fix.patch is :
-
-=2D-- autofs-4.1.3/daemon/automount.c.orig        2004-08-18 11:23:49.43047=
-0256 -0400
-+++ autofs-4.1.3/daemon/automount.c     2004-08-18 11:24:45.047015256 -0400
-@@ -848,10 +848,10 @@ static int st_prepare_shutdown(void)
-        alarm(0);
-=20
-        /* Prevent any new mounts */
-=2D       ap.state =3D ST_SHUTDOWN_PENDING;
-=2D
-        sigprocmask(SIG_SETMASK, &lock_sigs, NULL);
-=20
-+       ap.state =3D ST_SHUTDOWN_PENDING;
-+
-        /* Unmount everything */
-        exp =3D expire_proc(1);
-=20
-
-I've tarball'ed the ending patched directory at
-http://www.lrde.org/~cadilh_m/autofs-4.1.3.tar.bz2 .
-
-Thanks=A0!
+Thank you both=A0:-)
 
 =2D-=20
- |   Micha=EBl `Micha' Cadilhac       |    Un paradoxe autor=E9f=E9rent=A0?=
-          |
- |   http://michael.cadilhac.name   |                                      =
+ |   Micha=EBl `Micha' Cadilhac       |  Si j'=E9tais sous-secr=E9taire d'=
+=C9tat     |
+ |   http://michael.cadilhac.name   |    aux choux farcis, vous entendriez =
   |
- |   JID/MSN:                       |       ... Je dis pas non=A0!         =
-    |
- `----  michael.cadilhac@gmail.com  |                                   -  =
+ |   JID/MSN:                       |  beaucoup parler des choux farcis !  =
+  |
+ `----  michael.cadilhac@gmail.com  |          -- Nicolas Sarkozy       -  =
 --'
 
 --=-=-=
@@ -128,14 +76,14 @@ Content-Type: application/pgp-signature
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2.0.5 (GNU/Linux)
 
-iD8DBQFGpMQiUJhDmOfFA3URAj7DAKCYQcGBzpvt349yM6cLlx9fcpP5sgCfciV5
-K1ZZwNfNl6AsuFABmM9iaCE=
-=uGTe
+iD8DBQFGpNbsUJhDmOfFA3URAqNMAKCcJXvsWv6p4auHwKjf1qvSqeMnegCeMLv0
+PG9cFI8VISSQzApTHE7ZktE=
+=8tqV
 -----END PGP SIGNATURE-----
 --=-=-=--
 
 
---===============0683239129239414213==
+--===============6576271799565942968==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -146,5 +94,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---===============0683239129239414213==--
+--===============6576271799565942968==--
 
