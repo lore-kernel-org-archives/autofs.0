@@ -1,14 +1,12 @@
-From: Jim Summers <jsummers@bachman.cs.ou.edu>
-Subject: Possible BUG! AutoFS and LDAP
-Date: Fri, 20 Jul 2007 15:34:10 -0500
-Message-ID: <46A11C42.60001@cs.ou.edu>
-References: <46A10097.1020403@cs.ou.edu>
-Reply-To: autofs@linux.kernel.org
+From: Stef Bon <stef@bononline.nl>
+Subject: Question about documentation/examples.
+Date: Mon, 23 Jul 2007 12:23:27 +0200
+Message-ID: <200707231223.27940.stef@bononline.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <46A10097.1020403@cs.ou.edu>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,68 +19,27 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-Jim Summers wrote:
-> Hello All,
-> 
-> I have been attempting to get autofs5 to work with my ldap config.  The 
-> way I am set up is:
-> 
-> FC6 / FC7 clients and redhat servers.
-> auto.home info for each user is stored in ldap
-> auto.master is stored locally on each client
-> 
-> The mounts do not happen.  Here is what I see when starting autofs:
-> ======
-> Jul 20 13:22:53 lch automount[3427]: Starting automounter version 
-> 5.0.1-11, master map auto.master
-> Jul 20 13:22:53 lch automount[3427]: using kernel protocol version 5.00
-> Jul 20 13:22:53 lch automount[3427]: master_error: syntax error while 
-> parsing map.
-> Jul 20 13:22:53 lch automount[3427]: mounted indirect mount on /misc 
-> with timeout 300, freq 75 seconds
-> Jul 20 13:22:53 lch automount[3427]: mounted indirect mount on /net with 
-> timeout 300, freq 75 seconds
-> ======
-> Here is the auto.master:
-> ======
-> /home    ldap://129.15.1.203/ou=auto.home,dc=it,dc=ou,dc=edu
+Hello,
 
-I may have stumbled onto the problem.  In the dn above, notice that it has 
-dc=ou.  I was trying various things and thought, let's remove that and see 
-what happens.  Sure enough the log messages start showing the attempt to get 
-the /home stuff but it fails because the ldap tree doesn't match.  I can then 
-put the dc=ou back in and it just fails with that syntax error.  This was all 
-fine in the autofs4 version.  The ldap is setup that way to match domain for 
-instance, it.ou.edu.
+I'm working on a construction which:
+- automatic discovers the Windows (Samba) network (domains/hosts/shares) and builds a network tree in the home
+directory of all the connected users 
+- automatic mount the share on a per user basis when user or application wants to enter a share. Her I use autofs for.
 
-I can test if I can find the place in the code to change it back to the way 
-that version4 was doing things and then re-compile.
+It works very good. The following links helped me a lot:
 
-Many Thanks
+http://www.howtoforge.com/accessing_windows_or_samba_shares_using_autofs
+http://www.novell.com/coolsolutions/tip/19076.html
 
+At this moment the setup I'm using works very good! I do not have to configure anything manually. 
 
+Now, I would like to experiment more with the configuration of the various auto.* files. I've been looking for 
+detailed documentation about it, but only found the manpages and an old guide on The Linux Documentation
+Project.. This  howto is aged, and the manpages give - to me - only a global impression. Sorry for the one who has written those,
+but I'm just trying te get familiar with autofs.. 
 
-> ======
-> nsswitch:
-> ======
-> automount:  files
-> ======
-> 
-> While monitoring traffic on the ldap server.  I never see any traffic 
-> from the client when the daemon is started.  So I am thinking that it is 
-> not able to read the "/home" entry.
-> 
-> I have tried the old style colon syntax for an ldap entry.  No joy.  I 
-> purposely made syntax errors and then it will say syntax error near 
-> "xxxxx" as it should.
-> 
-> Ideas / Suggestions?
-> 
-> TIA
-> 
-> 
+So my question is, is there documentation which can help me futher??
 
--- 
-Jim Summers
-School of Computer Science-University of Oklahoma
--------------------------------------------------
+Thanks in advance,
+
+Stef 
