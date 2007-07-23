@@ -1,14 +1,15 @@
 From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: Autofs screwed by getopt?
-Date: Mon, 23 Jul 2007 10:08:29 -0400
-Message-ID: <x49y7h7qkki.fsf@segfault.boston.devel.redhat.com>
-References: <87vecbxmzt.fsf@lrde.org>
+Subject: Re: reload when using LDAP
+Date: Mon, 23 Jul 2007 10:11:18 -0400
+Message-ID: <x49tzrvqkft.fsf@segfault.boston.devel.redhat.com>
+References: <812495870707161521g638be314ye81a8df6a9806582@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <87vecbxmzt.fsf@lrde.org> (=?iso-8859-1?Q?=22Micha=EBl?=
-	Cadilhac"'s message of "Mon\, 23 Jul 2007 15\:34\:14 +0200")
+In-Reply-To: <812495870707161521g638be314ye81a8df6a9806582@mail.gmail.com>
+	(William Prochazka's message of "Mon\,
+	16 Jul 2007 18\:21\:59 -0400")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,78 +20,49 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: =?iso-8859-1?Q?Micha=EBl?= Cadilhac <michael@cadilhac.name>
+To: William Prochazka <billprozac@gmail.com>
 Cc: autofs@linux.kernel.org
 
-=3D=3D> On Mon, 23 Jul 2007 15:34:14 +0200, michael@cadilhac.name (Micha=EB=
-l Cadilhac) said:
+==> On Mon, 16 Jul 2007 18:21:59 -0400, "William Prochazka" <billprozac@gmail.com> said:
 
-Micha=EBl> Hi guys!
-Micha=EBl> I have a NIS based automount configuration that reads like that=
-=A0:
+William> We use LDAP to store all of our map data which seems to be working very well
+William> (all FC6 so autofs v5.0.1 RC3).  First off, we found out the hardway that
+William> when autofs is restarted (like as part of a cron job) and a local autofs
+William> filesystem is in use (direct map) ... kernel panic.  The restarting was
 
-Micha=EBl> lri4-154 linux # ypcat -k auto.master
-Micha=EBl> /special auto.special  -rw,intr,soft
-Micha=EBl> /servers auto.servers  -rw,intr,soft
-Micha=EBl> /local auto.local    -rw,intr,soft
-Micha=EBl> /u auto.u            -rw,intr,soft,nosuid
-Micha=EBl> /tmpsim auto.tmpsim     -rw,intr,soft
-Micha=EBl> /users auto.users    -rw,intr,hard,nosuid,tcp,nfsvers=3D3,timeo=
-=3D600,retrans=3D2
+Did you report this bug?  If not, please do:
+  http://bugzilla.redhat.com/
 
-Micha=EBl> Didn't seem like a badly formatted one. So I launched autofs, an=
-d here's
-Micha=EBl> what it said=A0:
+William> originally so we could push new maps and clients we get the maps nightly.
+William> After the kernel panic fiasco, I nticed the reload option (should be much
+William> safer since in our enviornment it would almost always only be adding new
+William> maps).  Sounds good, but it does not work.  Reload fails as it cannot start
 
-Micha=EBl>  * Starting automounter ...
-Micha=EBl>  /special/usr/sbin/automount: option -t requires a numeric argum=
-ent, got r,soft
-Micha=EBl>  * Failure on /special
-Micha=EBl>  /servers/usr/sbin/automount: option -t requires a numeric argum=
-ent, got r,soft
-Micha=EBl>  * Failure on /servers
-Micha=EBl>  /local/usr/sbin/automount: option -t requires a numeric argumen=
-t, got r,soft
-Micha=EBl>  * Failure on /local
-Micha=EBl>  /u/usr/sbin/automount: option -t requires a numeric argument, g=
-ot r,soft,nosuid
-Micha=EBl>  * Failure on /u
-Micha=EBl>  /tmpsim/usr/sbin/automount: option -t requires a numeric argume=
-nt, got r,soft
-Micha=EBl>  * Failure on /tmpsim
-Micha=EBl>  /users/usr/sbin/automount: option -t requires a numeric argumen=
-t, got r,hard,nosuid,tcp,nfsvers=3D3,timeo=3D600,retrans=3D2
-Micha=EBl>  * Failure on /users
+Reload, at least in the past, was used to detect added or removed
+mount points listed in /etc/auto.master.
 
-Micha=EBl> Point is that the `-rw,int' is interpreted by the getopt like a =
-bunch of
-Micha=EBl> not understood options then a `t', as in `timeout'. So the next =
-part,
-Micha=EBl> e.g. `r,soft', is considered as the argument of `timeout' which =
-is not
-Micha=EBl> quite good.
+William> TLS, so it loads a null map and kills all unused daemons.  I have no idea
+William> why it cannot start TLS since the service has no issues when starting and I
+William> can see it querying ldap for the auto.master and the mount ou.  So this
+William> leads to a few questions:
 
-Micha=EBl> What I did is that I removed the short opts for getopt in the in=
-it.d
-Micha=EBl> script, but I'm not quite sure it's The Right Thing to Do.
+William> 1. Does autofs only use the /etc/openldap/ldap.conf file, or does the reload
+William> function use the /etc/ldap.conf file I think that is a hold over for legacy
+William> applications)
 
-Micha=EBl> Maybe the config got from nis is faulty, if so, just tell me, I'=
-ll
-Micha=EBl> despise my sysadmin.
+Autofs uses /etc/openldap/ldap.conf
 
-Micha=EBl> Thanks!
+William> 2. Is there a good way to debug what exactly is failing with the reload? (I
+William> have logging set to debug but that give little useful info.
 
-Micha=EBl> PS: In fact, it seems that the mount options are not applied at
-Micha=EBl> all. Don't have a clue why.
+Do you have daemon.* being logged somewhere?  See
+http://people.redhat.com/jmoyer for a guide to gathering debug
+information.
 
-Micha=EBl> lri4-154 linux # automount --version
-Micha=EBl> Linux automount version 4.1.3
+William> 3.  What is the best way to have clients poll for updates to the autofs
+William> maps?
 
-You are most likely running into a bug in the parsing done in the init
-script.  What does '/etc/init.d/autofs status' show?
-
-I have a couple of patches to fix that up.  I don't have a gentoo
-source tree, though.  If you can point me at one, I can likely send
-you a patch to try.
+Autofs does this on its own.  It should detect map updates when
+performing mounts, so you can get rid of your cron jobs.
 
 -Jeff
