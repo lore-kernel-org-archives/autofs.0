@@ -1,14 +1,16 @@
-From: Jim Summers <jsummers@bachman.cs.ou.edu>
-Subject: Re: Possible BUG! AutoFS and LDAP
-Date: Mon, 23 Jul 2007 09:33:21 -0500
-Message-ID: <46A4BC31.901@cs.ou.edu>
-References: <46A10097.1020403@cs.ou.edu> <46A11C42.60001@cs.ou.edu>
-Reply-To: autofs@linux.kernel.org
+From: michael@cadilhac.name (=?iso-8859-1?Q?Micha=EBl?= Cadilhac)
+Subject: Re: Autofs screwed by getopt?
+Date: Mon, 23 Jul 2007 17:07:14 +0200
+Message-ID: <87ejizxiot.fsf@lrde.org>
+References: <87vecbxmzt.fsf@lrde.org>
+	<x49y7h7qkki.fsf@segfault.boston.devel.redhat.com>
+	<87myxnxkt4.fsf@lrde.org>
+	<x49ejizqjgj.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0683239129239414213=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <46A11C42.60001@cs.ou.edu>
+In-Reply-To: <x49ejizqjgj.fsf@segfault.boston.devel.redhat.com> (Jeff Moyer's
+	message of "Mon, 23 Jul 2007 10:32:28 -0400")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,92 +21,130 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: autofs@linux.kernel.org
+
+--===============0683239129239414213==
+Content-Type: multipart/signed; boundary="=-=-=";
+	micalg=pgp-sha1; protocol="application/pgp-signature"
+
+--=-=-=
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+Jeff Moyer <jmoyer@redhat.com> writes:
+
+> So, can you get me the output from, 'ps auxwww | grep automount'?
+
+Here you are=A0:-)=A0:
+
+/usr/sbin/automount --pid-file /var/run/autofs.special.pid /special yp auto=
+.special -rw,intr,soft
+/usr/sbin/automount --pid-file /var/run/autofs.servers.pid /servers yp auto=
+.servers -rw,intr,soft
+/usr/sbin/automount --pid-file /var/run/autofs.local.pid /local yp auto.loc=
+al -rw,intr,soft
+/usr/sbin/automount --pid-file /var/run/autofs.u.pid /u yp auto.u -rw,intr,=
+soft,nosuid
+/usr/sbin/automount --pid-file /var/run/autofs.tmpsim.pid /tmpsim yp auto.t=
+mpsim -rw,intr,soft
+/usr/sbin/automount --pid-file /var/run/autofs.users.pid /users yp auto.use=
+rs -rw,intr,hard,nosuid,tcp,nfsvers=3D3,timeo=3D600,retrans=3D2
+
+>>> I have a couple of patches to fix that up.  I don't have a gentoo
+>>> source tree, though.  If you can point me at one, I can likely send
+>>> you a patch to try.
+>
+> Micha=EBl> I'm running a Gentoo, I'm root and all the stuff so I can try
+> Micha=EBl> your patch.
+>
+> Yes, but I don't know where to get source packages for gentoo.  I'll
+> look into it if I have time.
+
+Here's how autofs is installed=A0:
+
+>>> Emerging (1 of 1) net-fs/autofs-4.1.3-r7 to /
+ 'http://gentoo.modulix.net/gentoo/distfiles/autofs-4.1.3-sock-leak-fix.pat=
+ch'
+ 'http://gentoo.modulix.net/gentoo/distfiles/autofs-4.1.3-strict.patch'
+ 'http://gentoo.modulix.net/gentoo/distfiles/autofs-4.1.3-replicated_server=
+_select.patch'
+ 'http://gentoo.modulix.net/gentoo/distfiles/autofs-4.1.3-miscfixes.patch.g=
+z'
+ 'http://gentoo.modulix.net/gentoo/distfiles/autofs-4.1.3.tar.bz2'
+ 'http://gentoo.modulix.net/gentoo/distfiles/autofs-4.1.3-non_block_ping.pa=
+tch'
+ 'http://gentoo.modulix.net/gentoo/distfiles/autofs-4.1.3-mtab_lock.patch'
+ 'http://gentoo.modulix.net/gentoo/distfiles/autofs-4.1.3-bad_chdir.patch'
+
+>>> Unpacking autofs-4.1.3.tar.bz2 to /var/tmp/portage/net-fs/autofs-4.1.3-=
+r7/work
+ * Applying autofs-4.1.3-strict.patch ...
+ * Applying autofs-4.1.3-mtab_lock.patch ...
+ * Applying autofs-4.1.3-bad_chdir.patch ...
+ * Applying autofs-4.1.3-non_block_ping.patch ...
+ * Applying autofs-4.1.3-sock-leak-fix.patch ...
+ * Applying autofs-4.1.3-replicated_server_select.patch ...
+ * Applying autofs-4.1.3-miscfixes.patch.gz ...
+ * Applying autofs-4.1.3-signal-race-fix.patch ...
+
+And signal-race-fix.patch is :
+
+=2D-- autofs-4.1.3/daemon/automount.c.orig        2004-08-18 11:23:49.43047=
+0256 -0400
++++ autofs-4.1.3/daemon/automount.c     2004-08-18 11:24:45.047015256 -0400
+@@ -848,10 +848,10 @@ static int st_prepare_shutdown(void)
+        alarm(0);
+=20
+        /* Prevent any new mounts */
+=2D       ap.state =3D ST_SHUTDOWN_PENDING;
+=2D
+        sigprocmask(SIG_SETMASK, &lock_sigs, NULL);
+=20
++       ap.state =3D ST_SHUTDOWN_PENDING;
++
+        /* Unmount everything */
+        exp =3D expire_proc(1);
+=20
+
+I've tarball'ed the ending patched directory at
+http://www.lrde.org/~cadilh_m/autofs-4.1.3.tar.bz2 .
+
+Thanks=A0!
+
+=2D-=20
+ |   Micha=EBl `Micha' Cadilhac       |    Un paradoxe autor=E9f=E9rent=A0?=
+          |
+ |   http://michael.cadilhac.name   |                                      =
+  |
+ |   JID/MSN:                       |       ... Je dis pas non=A0!         =
+    |
+ `----  michael.cadilhac@gmail.com  |                                   -  =
+--'
+
+--=-=-=
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.5 (GNU/Linux)
+
+iD8DBQFGpMQiUJhDmOfFA3URAj7DAKCYQcGBzpvt349yM6cLlx9fcpP5sgCfciV5
+K1ZZwNfNl6AsuFABmM9iaCE=
+=uGTe
+-----END PGP SIGNATURE-----
+--=-=-=--
 
 
+--===============0683239129239414213==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Jim Summers wrote:
-> Jim Summers wrote:
->> Hello All,
->>
->> I have been attempting to get autofs5 to work with my ldap config.  The 
->> way I am set up is:
->>
->> FC6 / FC7 clients and redhat servers.
->> auto.home info for each user is stored in ldap
->> auto.master is stored locally on each client
->>
->> The mounts do not happen.  Here is what I see when starting autofs:
->> ======
->> Jul 20 13:22:53 lch automount[3427]: Starting automounter version 
->> 5.0.1-11, master map auto.master
->> Jul 20 13:22:53 lch automount[3427]: using kernel protocol version 5.00
->> Jul 20 13:22:53 lch automount[3427]: master_error: syntax error while 
->> parsing map.
->> Jul 20 13:22:53 lch automount[3427]: mounted indirect mount on /misc 
->> with timeout 300, freq 75 seconds
->> Jul 20 13:22:53 lch automount[3427]: mounted indirect mount on /net with 
->> timeout 300, freq 75 seconds
->> ======
->> Here is the auto.master:
->> ======
->> /home    ldap://129.15.1.203/ou=auto.home,dc=it,dc=ou,dc=edu
-> 
-> I may have stumbled onto the problem.  In the dn above, notice that it has 
-> dc=ou.  I was trying various things and thought, let's remove that and see 
-> what happens.  Sure enough the log messages start showing the attempt to get 
-> the /home stuff but it fails because the ldap tree doesn't match.  I can then 
-> put the dc=ou back in and it just fails with that syntax error.  This was all 
-> fine in the autofs4 version.  The ldap is setup that way to match domain for 
-> instance, it.ou.edu.
-> 
-> I can test if I can find the place in the code to change it back to the way 
-> that version4 was doing things and then re-compile.
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
 
-I just did another test,  this time I maintained a three level "dc" and 
-started.  This test was "dc=it,dc=xx,dc=edu".  It attempts to read from ldap 
-but of course it doesn't work.  The only time so far in my testing, it just 
-returns that unexpected 'syntax error' message in the logs.
+--===============0683239129239414213==--
 
-And I mean unexpected, because reviewing the code it doesn't seem to account 
-for this situation in the error message returned.  Seems that most of the 
-syntax error messages will return a 'near xxxxx' with it.
-
-Sure seems to be having trouble with "dc=ou".
-
-Ideas / Suggestions,
-
-Thanks
-
-
-
-> 
-> Many Thanks
-> 
-> 
-> 
->> ======
->> nsswitch:
->> ======
->> automount:  files
->> ======
->>
->> While monitoring traffic on the ldap server.  I never see any traffic 
->> from the client when the daemon is started.  So I am thinking that it is 
->> not able to read the "/home" entry.
->>
->> I have tried the old style colon syntax for an ldap entry.  No joy.  I 
->> purposely made syntax errors and then it will say syntax error near 
->> "xxxxx" as it should.
->>
->> Ideas / Suggestions?
->>
->> TIA
->>
->>
-> 
-
--- 
-Jim Summers
-School of Computer Science-University of Oklahoma
--------------------------------------------------
