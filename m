@@ -1,10 +1,14 @@
-From: "Hassan Iqbal" <mhiqbal80@gmail.com>
-Subject: automount: lookup(program) failed issue
-Date: Mon, 23 Jul 2007 19:03:17 +0530
-Message-ID: <121a9130707230633s6ca900afncbca7e6b65f459a4@mail.gmail.com>
+From: Jim Summers <jsummers@bachman.cs.ou.edu>
+Subject: Re: Possible BUG! AutoFS and LDAP
+Date: Mon, 23 Jul 2007 09:33:21 -0500
+Message-ID: <46A4BC31.901@cs.ou.edu>
+References: <46A10097.1020403@cs.ou.edu> <46A11C42.60001@cs.ou.edu>
+Reply-To: autofs@linux.kernel.org
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============3349300537815990350=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <46A11C42.60001@cs.ou.edu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,59 +21,90 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
---===============3349300537815990350==
-Content-Type: multipart/alternative; 
-	boundary="----=_Part_133116_33391972.1185197597842"
-
-------=_Part_133116_33391972.1185197597842
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Hi,
- I read the discussion thread on
-http://osdir.com/ml/kernel.autofs/2005-08/msg00018.html that deals with the
-lookup failed issue with autofs. I have linux kernel 2.6.11.7. I downloaded
-autofs-4.1.4.tar.gz from:
-
-ftp://ftp.kernel.org/pub/linux/daemons/autofs/v4/
-
-Applied the patches that are suggested in the above discussion thread.
-
-autofs-4.1.4-misc-fixes.patch
-autofs-4.1.4-multi-parse-fix.patch
-autofs-4.1.4-multi-parse-fix.patch
-
-Built and installed it on my machine. But Iam still getting that lookup
-failed messages and autofs seems to hang.
-Can anyone please point me what Iam missing here.
-
-Regards,
-Hassan
-
-------=_Part_133116_33391972.1185197597842
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Hi,<br>&nbsp;I read the discussion thread on <a class="moz-txt-link-freetext" href="http://osdir.com/ml/kernel.autofs/2005-08/msg00018.html">http://osdir.com/ml/kernel.autofs/2005-08/msg00018.html</a> that deals with the <br>lookup failed issue with autofs. I have linux kernel 
-<a href="http://2.6.11.7">2.6.11.7</a>. I downloaded autofs-4.1.4.tar.gz from:<br><br><a href="ftp://ftp.kernel.org/pub/linux/daemons/autofs/v4/">ftp://ftp.kernel.org/pub/linux/daemons/autofs/v4/</a><br><br>Applied the patches that are suggested in the above discussion thread. 
-<br><br>autofs-4.1.4-misc-fixes.patch<br>autofs-4.1.4-multi-parse-fix.patch<br>autofs-4.1.4-multi-parse-fix.patch<br><br>Built and installed it on my machine. But Iam still getting that lookup failed messages and autofs seems to hang. 
-<br>Can anyone please point me what Iam missing here.<br><br>Regards,<br>Hassan<br>
-
-------=_Part_133116_33391972.1185197597842--
 
 
---===============3349300537815990350==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Jim Summers wrote:
+> Jim Summers wrote:
+>> Hello All,
+>>
+>> I have been attempting to get autofs5 to work with my ldap config.  The 
+>> way I am set up is:
+>>
+>> FC6 / FC7 clients and redhat servers.
+>> auto.home info for each user is stored in ldap
+>> auto.master is stored locally on each client
+>>
+>> The mounts do not happen.  Here is what I see when starting autofs:
+>> ======
+>> Jul 20 13:22:53 lch automount[3427]: Starting automounter version 
+>> 5.0.1-11, master map auto.master
+>> Jul 20 13:22:53 lch automount[3427]: using kernel protocol version 5.00
+>> Jul 20 13:22:53 lch automount[3427]: master_error: syntax error while 
+>> parsing map.
+>> Jul 20 13:22:53 lch automount[3427]: mounted indirect mount on /misc 
+>> with timeout 300, freq 75 seconds
+>> Jul 20 13:22:53 lch automount[3427]: mounted indirect mount on /net with 
+>> timeout 300, freq 75 seconds
+>> ======
+>> Here is the auto.master:
+>> ======
+>> /home    ldap://129.15.1.203/ou=auto.home,dc=it,dc=ou,dc=edu
+> 
+> I may have stumbled onto the problem.  In the dn above, notice that it has 
+> dc=ou.  I was trying various things and thought, let's remove that and see 
+> what happens.  Sure enough the log messages start showing the attempt to get 
+> the /home stuff but it fails because the ldap tree doesn't match.  I can then 
+> put the dc=ou back in and it just fails with that syntax error.  This was all 
+> fine in the autofs4 version.  The ldap is setup that way to match domain for 
+> instance, it.ou.edu.
+> 
+> I can test if I can find the place in the code to change it back to the way 
+> that version4 was doing things and then re-compile.
 
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
+I just did another test,  this time I maintained a three level "dc" and 
+started.  This test was "dc=it,dc=xx,dc=edu".  It attempts to read from ldap 
+but of course it doesn't work.  The only time so far in my testing, it just 
+returns that unexpected 'syntax error' message in the logs.
 
---===============3349300537815990350==--
+And I mean unexpected, because reviewing the code it doesn't seem to account 
+for this situation in the error message returned.  Seems that most of the 
+syntax error messages will return a 'near xxxxx' with it.
 
+Sure seems to be having trouble with "dc=ou".
+
+Ideas / Suggestions,
+
+Thanks
+
+
+
+> 
+> Many Thanks
+> 
+> 
+> 
+>> ======
+>> nsswitch:
+>> ======
+>> automount:  files
+>> ======
+>>
+>> While monitoring traffic on the ldap server.  I never see any traffic 
+>> from the client when the daemon is started.  So I am thinking that it is 
+>> not able to read the "/home" entry.
+>>
+>> I have tried the old style colon syntax for an ldap entry.  No joy.  I 
+>> purposely made syntax errors and then it will say syntax error near 
+>> "xxxxx" as it should.
+>>
+>> Ideas / Suggestions?
+>>
+>> TIA
+>>
+>>
+> 
+
+-- 
+Jim Summers
+School of Computer Science-University of Oklahoma
+-------------------------------------------------
