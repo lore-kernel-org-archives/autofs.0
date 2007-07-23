@@ -1,14 +1,15 @@
-From: michael@cadilhac.name (=?iso-8859-1?Q?Micha=EBl?= Cadilhac)
-Subject: Re: Autofs screwed by getopt?
-Date: Mon, 23 Jul 2007 18:27:21 +0200
-Message-ID: <87abtnxeza.fsf@lrde.org>
-References: <87vecbxmzt.fsf@lrde.org>
-	<x491wezqhap.fsf@segfault.boston.devel.redhat.com>
+From: Jim Summers <jsummers@bachman.cs.ou.edu>
+Subject: Re: AutoFS and LDAP
+Date: Mon, 23 Jul 2007 13:26:06 -0500
+Message-ID: <46A4F2BE.9070903@cs.ou.edu>
+References: <46A10097.1020403@cs.ou.edu>
+	<1185203252.3263.6.camel@raven.themaw.net>
+Reply-To: autofs@linux.kernel.org
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6576271799565942968=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <x491wezqhap.fsf@segfault.boston.devel.redhat.com> (Jeff Moyer's
-	message of "Mon, 23 Jul 2007 11:19:10 -0400")
+In-Reply-To: <1185203252.3263.6.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,80 +20,66 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
---===============6576271799565942968==
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha1; protocol="application/pgp-signature"
+Ian Kent wrote:
+> On Fri, 2007-07-20 at 13:36 -0500, Jim Summers wrote:
+>> Hello All,
+>>
+>> I have been attempting to get autofs5 to work with my ldap config.  The way I 
+>> am set up is:
+>>
+>> FC6 / FC7 clients and redhat servers.
+>> auto.home info for each user is stored in ldap
+>> auto.master is stored locally on each client
+>>
+>> The mounts do not happen.  Here is what I see when starting autofs:
+>> ======
+>> Jul 20 13:22:53 lch automount[3427]: Starting automounter version 5.0.1-11, 
+>> master map auto.master
+>> Jul 20 13:22:53 lch automount[3427]: using kernel protocol version 5.00
+>> Jul 20 13:22:53 lch automount[3427]: master_error: syntax error while parsing map.
+>> Jul 20 13:22:53 lch automount[3427]: mounted indirect mount on /misc with 
+>> timeout 300, freq 75 seconds
+>> Jul 20 13:22:53 lch automount[3427]: mounted indirect mount on /net with 
+>> timeout 300, freq 75 seconds
+> 
+> Does this patch fix the problem?
 
---=-=-=
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-Jeff Moyer <jmoyer@redhat.com> writes:
-
-> =3D=3D> On Mon, 23 Jul 2007 15:34:14 +0200, michael@cadilhac.name (Micha=
-=EBl Cadilhac) said:
->
-> Micha=EBl> Hi guys!
-> Micha=EBl> I have a NIS based automount configuration that reads like tha=
-t=A0:
->
-> Micha=EBl> lri4-154 linux # ypcat -k auto.master
-> Micha=EBl> /special auto.special  -rw,intr,soft
-> Micha=EBl> /servers auto.servers  -rw,intr,soft
-> Micha=EBl> /local auto.local    -rw,intr,soft
-> Micha=EBl> /u auto.u            -rw,intr,soft,nosuid
-> Micha=EBl> /tmpsim auto.tmpsim     -rw,intr,soft
-> Micha=EBl> /users auto.users    -rw,intr,hard,nosuid,tcp,nfsvers=3D3,time=
-o=3D600,retrans=3D2
->
-> Ian pointed out the obvious to me in irc.  From the man page for auto.mas=
-ter:
->
->       Any remaining command line arguments without leading dashes (-)
->       are taken as options (-o) to mount.  Arguments with leading
->       dashes are considered options for the maps.
-
-Damn=A0; I didn't see that. Well, I guess I'll have to shout (or cry) at
-my system admin, because I can't do anything to the NIS database myself.
-
-Thank you both=A0:-)
-
-=2D-=20
- |   Micha=EBl `Micha' Cadilhac       |  Si j'=E9tais sous-secr=E9taire d'=
-=C9tat     |
- |   http://michael.cadilhac.name   |    aux choux farcis, vous entendriez =
-  |
- |   JID/MSN:                       |  beaucoup parler des choux farcis !  =
-  |
- `----  michael.cadilhac@gmail.com  |          -- Nicolas Sarkozy       -  =
---'
-
---=-=-=
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.5 (GNU/Linux)
-
-iD8DBQFGpNbsUJhDmOfFA3URAqNMAKCcJXvsWv6p4auHwKjf1qvSqeMnegCeMLv0
-PG9cFI8VISSQzApTHE7ZktE=
-=8tqV
------END PGP SIGNATURE-----
---=-=-=--
+Yes, that did the trick.  Now on to figuring out what type of authentication 
+autofs4 was using to do the lookups.  All that was config'd before was the 
+ldap.conf stuff, so this autofs_ldap_auth.conf is all about.
 
 
---===============6576271799565942968==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
+Thanks again.
 
---===============6576271799565942968==--
 
+> Ian
+> 
+> ---
+> diff --git a/lib/master_tok.l b/lib/master_tok.l
+> index 9bfeefa..ff69a24 100644
+> --- a/lib/master_tok.l
+> +++ b/lib/master_tok.l
+> @@ -272,7 +272,7 @@ OPTTOUT		(-t{OPTWS}|-t{OPTWS}={OPTWS}|--timeout{OPTWS}|--timeout{OPTWS}={OPTWS})
+>  		return DNSERVER;
+>  	}
+>  
+> -	{DNATTRSTR} {
+> +	{DNATTRSTR}/"=" {
+>  		strcpy(master_lval.strtype, master_text);
+>  		return DNATTR;
+>  	}
+> 
+> 
+> _______________________________________________
+> autofs mailing list
+> autofs@linux.kernel.org
+> http://linux.kernel.org/mailman/listinfo/autofs
+
+-- 
+Jim Summers
+School of Computer Science-University of Oklahoma
+-------------------------------------------------
