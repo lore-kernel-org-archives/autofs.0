@@ -1,14 +1,11 @@
-From: "Wolfe, Allan" <Allan.Wolfe@anadarko.com>
-Subject: Re: autofs5 duplicate entries
-Date: Wed, 25 Jul 2007 09:48:28 -0500
-Message-ID: <C9AD2899A176C0499022697035E7625A19CC01@houmbx5.anadarko.com>
-References: <46A747E0.7070202@math.uni-muenster.de>
+From: Simon Gao <gao@schrodinger.com>
+Subject: Autofs 5 failed unmounting Solaris 10 NFS share
+Date: Thu, 26 Jul 2007 10:57:54 -0700
+Message-ID: <46A8E0A2.3050103@schrodinger.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-class: urn:content-classes:message
-In-Reply-To: <46A747E0.7070202@math.uni-muenster.de>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,80 +18,142 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-To add a comment here. . .  The extra cn is for the benefit for Solaris
-that requires the percent sign to qualify for the capital letter in the
-string.  We will have to contend with the same issue as we move toward
-autofs version 5.
+Hi,
 
------Original Message-----
-From: autofs-bounces@linux.kernel.org
-[mailto:autofs-bounces@linux.kernel.org] On Behalf Of Nail El-Sourani
-Sent: Wednesday, July 25, 2007 7:54 AM
-To: autofs@linux.kernel.org
-Subject: [autofs] autofs5 duplicate entries
+I am seeing autofs 5 on RHEL/CentOS 5 failed auto umounting NFS shares 
+served by Solaris 10 11/06 server. However, other NFS shares got 
+unmounted just fine after expired.  All automount maps are pulled from 
+LDAP servers. All NFS shares are auto mounted under /nfs.
 
-hi everyone,
+Here are some information:
 
-i seem to have a problem with autofs+ldap on duplicate entries. i
-migrated from autofs4 settings over to autofs5 quite successfully and in
-general everything seems to work fine. ill give u a working and
-nonworking example.
+1. autofs version:      autofs-5.0.1-0.rc2.43.0.2
 
+2. kernel version:      2.6.18-8.1.8.el5xen
 
-auto.master contains:
-/share  ldap:nisMapName=auto_packages,ou=ivv5,dc=de -nosuid
+3. auto.master:
+===============================================================================
+/misc   /etc/auto.misc
+/net    -hosts
 
-ldap queries on the path to automount give me:
+# Include central master map if it can be found using
+# nsswitch sources.
++auto.ldap
+===============================================================================
 
-ldapsearch -x -LLL cn=java
-
-working:
-objectClass: nisObject
+4. auto.ldap (automount map in LDAP server):
+===============================================================================
+dn: ou=auto.master,ou=ldap,ou=autofs,ou=services,dc=example,dc=com
 objectClass: top
-cn: Java
-nisMapEntry: ...
-nisMapName: auto_package...
+objectClass: automountMap
+ou: auto.master
 
-like the above, the autofs5 mounts with no problem.
-
-but this one, not working:
-objectClass: nisObject
+dn: cn=/nfs,ou=auto.master,ou=ldap,ou=autofs,ou=services,dc=example,dc=com
+automountInformation: 
+ldap:ou=auto.nfs,ou=ldap,ou=autofs,ou=services,dc=example
+,dc=com
 objectClass: top
-cn: Java
-cn: %Java
-nisMapEntry: ...
-nisMapName: auto_package...
+objectClass: automount
+cn: /nfs
 
-gives in /var/log/messages a
+# share1
+dn: cn=share1,ou=auto.nfs,ou=ldap,ou=autofs,ou=services,dc=example,dc=com
+objectClass: top
+objectClass: automount
+automountInformation: -fstype=nfs,rw,hard,intr,nosuid,nfsvers=3,udp 
+server1:/export/zfs/nshare1
+cn: share1
 
-Jul 25 14:22:45 SEMTEX automount[4872]: attempting to mount entry
-/share/java Jul 25 14:22:45 SEMTEX automount[4872]: lookup_one:
-lookup(ldap): key Java has duplicate entries Jul 25 14:22:45 SEMTEX
-automount[4872]: failed to mount /share/java
+===============================================================================
 
-As I believe, there seems to be a Problem with cn:Java and cn:%Java
-somehow. As I understand the % seems to be there to enable both
-upper-and lowercase typing (java, Java) when entering the Path on the
-commandline (cd /share/Java, /share/java). Anyhow. in autofs4 this didnt
-seem to be a problem.
+5. /etc/sysconfig/autofs
+===============================================================================
+DEFAULT_MASTER_MAP_NAME="auto.master"
+DEFAULT_TIMEOUT=300
+DEFAULT_BROWSE_MODE="no"
+DEFAULT_LOGGING="debug"
 
-Any help would be appreciated.
+# Define the default LDAP schema to use for lookups
+DEFAULT_MAP_OBJECT_CLASS="automountMap"
+DEFAULT_ENTRY_OBJECT_CLASS="automount"
+DEFAULT_MAP_ATTRIBUTE="ou"
+DEFAULT_ENTRY_ATTRIBUTE="cn"
+DEFAULT_VALUE_ATTRIBUTE="automountInformation"
 
-*nail
+DEFAULT_AUTH_CONF_FILE="/etc/autofs_ldap_auth.conf"
 
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
------------------------------------------
+# General global options
+OPTIONS=""
+===============================================================================
 
-Anadarko Confidentiality Notice:  
-This electronic transmission and any attached documents or other
-writings are intended only for the person or entity to which it is
-addressed and may contain information that is privileged,
-confidential or otherwise protected from disclosure.  If you have
-received this communication in error, please immediately notify
-sender by return e-mail and destroy the communication. Any
-disclosure, copying, distribution or the taking of any action
-concerning the contents of this communication or any attachments by
-anyone other than the named recipient is strictly prohibited.
+6. /var/log/messages:
+===============================================================================
+
+....
+Jul 26 10:26:26 client1 automount[21073]: expiring path /home/joe
+Jul 26 10:26:26 client1 automount[21073]: unmounting dir = /home/joe
+Jul 26 10:26:26 client1 automount[21073]: expired /home/joe
+Jul 26 10:26:39 client1 automount[21073]: expiring path /nfs/share1
+Jul 26 10:26:39 client1 automount[21073]: umount_multi: could not stat 
+fs of /nfs/share1
+Jul 26 10:26:39 client1 automount[21073]: do_expire: couldn't complete 
+expire of /nfs/share1
+....
+===============================================================================
+
+7: /var/log/debug:
+===============================================================================
+.....
+
+Jul 26 10:26:26 client1 automount[21073]: st_expire: state 1 path /home
+Jul 26 10:26:26 client1 automount[21073]: expire_proc: exp_proc = 
+3076074384 path /home
+Jul 26 10:26:26 client1 automount[21073]: expire_proc_indirect: expire 
+/home/joe
+Jul 26 10:26:26 client1 automount[21073]: handle_packet: type = 4
+Jul 26 10:26:26 client1 automount[21073]: handle_packet_expire_indirect: 
+token 1900, name joe
+Jul 26 10:26:26 client1 automount[21073]: expiring path /home/joe
+Jul 26 10:26:26 client1 automount[21073]: umount_multi: path /home/joe 
+incl 1
+Jul 26 10:26:26 client1 automount[21073]: unmounting dir = /home/joe
+Jul 26 10:26:26 client1 automount[21073]: rm_unwanted_fn: removing 
+directory /home/joe
+Jul 26 10:26:26 client1 automount[21073]: expired /home/joe
+Jul 26 10:26:26 client1 automount[21073]: send_ready: token = 1900
+Jul 26 10:26:26 client1 automount[21073]: expire_cleanup: got thid 
+3076074384 path /home stat 0
+Jul 26 10:26:26 client1 automount[21073]: expire_cleanup: sigchld: exp 
+3076074384 finished, switching from 2 to 1
+Jul 26 10:26:26 client1 automount[21073]: st_ready: st_ready(): state = 
+2 path /home
+Jul 26 10:26:39 client1 automount[21073]: st_expire: state 1 path /nfs
+Jul 26 10:26:39 client1 automount[21073]: expire_proc: exp_proc = 
+3076074384 path /nfs
+Jul 26 10:26:39 client1 automount[21073]: expire_proc_indirect: expire 
+/nfs/share1
+Jul 26 10:26:39 client1 automount[21073]: handle_packet: type = 4
+Jul 26 10:26:39 client1 automount[21073]: handle_packet_expire_indirect: 
+token 1901, name share1
+Jul 26 10:26:39 client1 automount[21073]: expiring path /nfs/share1
+Jul 26 10:26:39 client1 automount[21073]: umount_multi: path /nfs/share1 
+incl 1
+Jul 26 10:26:39 client1 automount[21073]: umount_multi: could not stat 
+fs of /nfs/share1
+Jul 26 10:26:39 client1 automount[21073]: do_expire: couldn't complete 
+expire of /nfs/share1
+Jul 26 10:26:39 client1 automount[21073]: send_fail: token = 1901
+Jul 26 10:26:39 client1 automount[21073]: expire_proc_indirect: 1 
+remaining in /nfs
+Jul 26 10:26:39 client1 automount[21073]: mount still busy /nfs
+Jul 26 10:26:39 client1 automount[21073]: expire_cleanup: got thid 
+3076074384 path /nfs stat 2
+Jul 26 10:26:39 client1 automount[21073]: expire_cleanup: sigchld: exp 
+3076074384 finished, switching from 2 to 1
+Jul 26 10:26:39 client1 automount[21073]: st_ready: st_ready(): state = 
+2 path /nfs
+===============================================================================
+
+Anyone sees similar problem?
+
+Simon
