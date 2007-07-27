@@ -1,17 +1,17 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: Seeing some 5.0.1 stop expiring mounts
-Date: Fri, 27 Jul 2007 11:31:20 +0800
-Message-ID: <1185507080.3203.15.camel@raven.themaw.net>
-References: <20070717195431.GA14624@cornholio.qualcomm.com>
-	<1184741167.4178.50.camel@raven.themaw.net>
-	<20070718213945.GA7455@cornholio.qualcomm.com>
-	<1184847139.3258.63.camel@raven.themaw.net>
-	<20070719234009.GS7455@cornholio.qualcomm.com>
+Subject: Re: autofs5 duplicate entries
+Date: Fri, 27 Jul 2007 12:14:49 +0800
+Message-ID: <1185509689.3203.22.camel@raven.themaw.net>
+References: <46A747E0.7070202@math.uni-muenster.de>
+	<1185426784.3329.2.camel@raven.themaw.net>
+	<60626.128.176.181.43.1185447773.squirrel@wwwmath1.uni-muenster.de>
+	<1185452066.3329.7.camel@raven.themaw.net>
+	<39281.128.176.181.43.1185458179.squirrel@wwwmath1.uni-muenster.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20070719234009.GS7455@cornholio.qualcomm.com>
+In-Reply-To: <39281.128.176.181.43.1185458179.squirrel@wwwmath1.uni-muenster.de>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,18 +22,69 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Mike Marion <mmarion@qualcomm.com>
+To: sourani@math.uni-muenster.de
 Cc: autofs@linux.kernel.org
 
-On Thu, 2007-07-19 at 16:40 -0700, Mike Marion wrote:
-> On Thu, Jul 19, 2007 at 08:12:19PM +0800, Ian Kent wrote:
-> 
-> > I really appreciate any time you can spare to help with this.
-> 
-> No problem.  I'm finishing up some stuff needed today but should have
-> time to try out the other patch and see if it still has that expire
-> problem tomorrow.
+On Thu, 2007-07-26 at 15:56 +0200, sourani@math.uni-muenster.de wrote:
+> >>
+> >> Actually this is an LDAP mixed environment with solaris and linux. The
+> >> Solaris Automounter will look for %Java by default to ignore
+> >> case-sensitivity. Is there an option on autofs5 to take the first entry
+> >> for a key in case there are duplicate entries? if so, how is it done? i
+> >> am
+> >> seriously in need of some kind of workaround. is there any possibility?
 
-Don't mean to be a pain but have you had time to check this?
+Can you point me to any official documentation that describes exactly
+how this % hack is supposed to work?
 
+> >
+> > There isn't .
+> > This would conflict with the work that was done to reduce the number of
+> > queries to LDAP servers.
+> >
+> > I wasn't aware of the Solaris % function.
+> > I'll check when I get some time.
+> >
+> > I could try and make a one-off patch to just use the first entry as a
+> > work around for you till we work out what to do about the % thingy.
+
+Could you try this patch for the work around please.
 Ian
+
+---
+--- autofs-5.0.2/modules/lookup_ldap.c.ignore-duplicates	2007-07-27 11:33:59.000000000 +0800
++++ autofs-5.0.2/modules/lookup_ldap.c	2007-07-27 11:53:45.000000000 +0800
+@@ -1238,7 +1238,15 @@ static int read_one_map(struct autofs_po
+ 			/* Check for the "/" and "*" and use as "/" if found */
+ 			for (i = 0; i < count; i++) {
+ 				/* check for wildcard */
+-				if (bvKey[i]->bv_len != 1)
++				if (bvKey[i]->bv_len > 1) {
++					/* Sun % hack workaround */
++					if (*bvKey[i]->bv_val == '%') {
++						k_val = bvKey[0]->bv_val;
++						k_len = bvKey[0]->bv_len;
++						break;
++					}
++					continue;
++				} else if (bvKey[i]->bv_len != 1)
+ 					continue;
+ 				if (*bvKey[i]->bv_val != '/' &&
+ 				    *bvKey[i]->bv_val != '*')
+@@ -1521,7 +1529,15 @@ static int lookup_one(struct autofs_poin
+ 			/* Check for the "/" and "*" and use as "/" if found */
+ 			for (i = 0; i < count; i++) {
+ 				/* check for wildcard */
+-				if (bvKey[i]->bv_len != 1)
++				if (bvKey[i]->bv_len > 1) {
++					/* Sun % hack workaround */
++					if (*bvKey[i]->bv_val == '%') {
++						k_val = bvKey[0]->bv_val;
++						k_len = bvKey[0]->bv_len;
++						break;
++					}
++					continue;
++				} else if (bvKey[i]->bv_len != 1)
+ 					continue;
+ 				if (*bvKey[i]->bv_val != '/' &&
+ 				    *bvKey[i]->bv_val != '*')
