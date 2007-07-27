@@ -1,16 +1,19 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: autofs5 duplicate entries
-Date: Fri, 27 Jul 2007 23:16:48 +0800
-Message-ID: <1185549408.3203.64.camel@raven.themaw.net>
+Date: Fri, 27 Jul 2007 23:18:18 +0800
+Message-ID: <1185549498.3203.67.camel@raven.themaw.net>
 References: <46A747E0.7070202@math.uni-muenster.de>
-	<C9AD2899A176C0499022697035E7625A19CC01@houmbx5.anadarko.com>
-	<1185529315.3203.61.camel@raven.themaw.net>
-	<46A9C4BB.6090208@math.uni-muenster.de>
+	<1185426784.3329.2.camel@raven.themaw.net>
+	<60626.128.176.181.43.1185447773.squirrel@wwwmath1.uni-muenster.de>
+	<1185452066.3329.7.camel@raven.themaw.net>
+	<39281.128.176.181.43.1185458179.squirrel@wwwmath1.uni-muenster.de>
+	<1185509689.3203.22.camel@raven.themaw.net>
+	<46A9FE7E.5060909@math.uni-muenster.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <46A9C4BB.6090208@math.uni-muenster.de>
+In-Reply-To: <46A9FE7E.5060909@math.uni-muenster.de>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,132 +25,90 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: support@math.uni-muenster.de
-Cc: autofs@linux.kernel.org, "Wolfe, Allan" <Allan.Wolfe@anadarko.com>
+Cc: autofs@linux.kernel.org
 
-On Fri, 2007-07-27 at 12:11 +0200, Nail El-Sourani wrote:
+On Fri, 2007-07-27 at 16:17 +0200, Nail El-Sourani wrote:
 > Hi Ian,
 > 
-> since you asked for documentation on this issue, see the sourcecode of
-> the solaris automounter here:
+> tried to get your patch working. Using CentOS5 which comes with
+> autofs5.0.1-0.rc2-43... i needed to upgrade to 5.0.2. though. did this
+> from http://www.kernel.org/pub/linux/daemons/autofs/v5/, patching all
+> patches for 5.0.2 as described in patch order, then applied the patch u
+> sent me....
 
-No, I won't be looking at Copyrighted source, sorry.
-External documentation or behavioral reports only thanks.
-
-> 
-> http://src.opensolaris.org/source/xref/pef/phase_I/usr/src/cmd/fs.d/autofs/ns_ldap.c
-> 
-> line 976 ++
-> 
-> as can be seen the % apply to the character following. JaVa would be
-> queried for as %Ja%Va. Seems to be the solaris automounter not ldap
-> retaining the case sensitivity.
-
-Yes, I'll think about this but multiple key values is still illegal from
-my point of view, so we will see what further discussion brings.
+Yes, thought you might encounter that problem, as there was a change to
+deal with wildcard map entry inconsistency in later versions.
 
 > 
-> i will try the patch u sent me shortly and report back if it helped.
+> AND
+> 
+> it works!
+> 
+> thx a lot. Do you think this patch or something similar will make it
+> into mainline?
 > 
 > *nail
 > 
 > Ian Kent wrote:
-> > On Wed, 2007-07-25 at 09:48 -0500, Wolfe, Allan wrote:
-> >> To add a comment here. . .  The extra cn is for the benefit for Solaris
-> >> that requires the percent sign to qualify for the capital letter in the
-> >> string.  We will have to contend with the same issue as we move toward
-> >> autofs version 5.
+> > On Thu, 2007-07-26 at 15:56 +0200, sourani@math.uni-muenster.de wrote:
+> >>>> Actually this is an LDAP mixed environment with solaris and linux. The
+> >>>> Solaris Automounter will look for %Java by default to ignore
+> >>>> case-sensitivity. Is there an option on autofs5 to take the first entry
+> >>>> for a key in case there are duplicate entries? if so, how is it done? i
+> >>>> am
+> >>>> seriously in need of some kind of workaround. is there any possibility?
 > > 
-> > OK, since the NIS schema isn't case sensitive, right.
+> > Can you point me to any official documentation that describes exactly
+> > how this % hack is supposed to work?
 > > 
-> > I know only what I need to know about LDAP and so I don't know what the
-> > % is supposed to do. Perhaps some of the LDAP folks here can help.
+> >>> There isn't .
+> >>> This would conflict with the work that was done to reduce the number of
+> >>> queries to LDAP servers.
+> >>>
+> >>> I wasn't aware of the Solaris % function.
+> >>> I'll check when I get some time.
+> >>>
+> >>> I could try and make a one-off patch to just use the first entry as a
+> >>> work around for you till we work out what to do about the % thingy.
 > > 
-> > Does it allow LDAP to retain the case sensitivity in a case insensitive
-> > attribute or does Solaris autofs do that bit?
-> > Does the % apply to the whole entry or just the character following it?
+> > Could you try this patch for the work around please.
+> > Ian
 > > 
-> > Never the less I think it's wrong to allow multiple keys for a mount
-> > entry since the key is supposed to be unique.
+> > ---
+> > --- autofs-5.0.2/modules/lookup_ldap.c.ignore-duplicates	2007-07-27 11:33:59.000000000 +0800
+> > +++ autofs-5.0.2/modules/lookup_ldap.c	2007-07-27 11:53:45.000000000 +0800
+> > @@ -1238,7 +1238,15 @@ static int read_one_map(struct autofs_po
+> >  			/* Check for the "/" and "*" and use as "/" if found */
+> >  			for (i = 0; i < count; i++) {
+> >  				/* check for wildcard */
+> > -				if (bvKey[i]->bv_len != 1)
+> > +				if (bvKey[i]->bv_len > 1) {
+> > +					/* Sun % hack workaround */
+> > +					if (*bvKey[i]->bv_val == '%') {
+> > +						k_val = bvKey[0]->bv_val;
+> > +						k_len = bvKey[0]->bv_len;
+> > +						break;
+> > +					}
+> > +					continue;
+> > +				} else if (bvKey[i]->bv_len != 1)
+> >  					continue;
+> >  				if (*bvKey[i]->bv_val != '/' &&
+> >  				    *bvKey[i]->bv_val != '*')
+> > @@ -1521,7 +1529,15 @@ static int lookup_one(struct autofs_poin
+> >  			/* Check for the "/" and "*" and use as "/" if found */
+> >  			for (i = 0; i < count; i++) {
+> >  				/* check for wildcard */
+> > -				if (bvKey[i]->bv_len != 1)
+> > +				if (bvKey[i]->bv_len > 1) {
+> > +					/* Sun % hack workaround */
+> > +					if (*bvKey[i]->bv_val == '%') {
+> > +						k_val = bvKey[0]->bv_val;
+> > +						k_len = bvKey[0]->bv_len;
+> > +						break;
+> > +					}
+> > +					continue;
+> > +				} else if (bvKey[i]->bv_len != 1)
+> >  					continue;
+> >  				if (*bvKey[i]->bv_val != '/' &&
+> >  				    *bvKey[i]->bv_val != '*')
 > > 
-> >> -----Original Message-----
-> >> From: autofs-bounces@linux.kernel.org
-> >> [mailto:autofs-bounces@linux.kernel.org] On Behalf Of Nail El-Sourani
-> >> Sent: Wednesday, July 25, 2007 7:54 AM
-> >> To: autofs@linux.kernel.org
-> >> Subject: [autofs] autofs5 duplicate entries
-> >>
-> >> hi everyone,
-> >>
-> >> i seem to have a problem with autofs+ldap on duplicate entries. i
-> >> migrated from autofs4 settings over to autofs5 quite successfully and in
-> >> general everything seems to work fine. ill give u a working and
-> >> nonworking example.
-> >>
-> >>
-> >> auto.master contains:
-> >> /share  ldap:nisMapName=auto_packages,ou=ivv5,dc=de -nosuid
-> >>
-> >> ldap queries on the path to automount give me:
-> >>
-> >> ldapsearch -x -LLL cn=java
-> >>
-> >> working:
-> >> objectClass: nisObject
-> >> objectClass: top
-> >> cn: Java
-> >> nisMapEntry: ...
-> >> nisMapName: auto_package...
-> >>
-> >> like the above, the autofs5 mounts with no problem.
-> >>
-> >> but this one, not working:
-> >> objectClass: nisObject
-> >> objectClass: top
-> >> cn: Java
-> >> cn: %Java
-> >> nisMapEntry: ...
-> >> nisMapName: auto_package...
-> >>
-> >> gives in /var/log/messages a
-> >>
-> >> Jul 25 14:22:45 SEMTEX automount[4872]: attempting to mount entry
-> >> /share/java Jul 25 14:22:45 SEMTEX automount[4872]: lookup_one:
-> >> lookup(ldap): key Java has duplicate entries Jul 25 14:22:45 SEMTEX
-> >> automount[4872]: failed to mount /share/java
-> >>
-> >> As I believe, there seems to be a Problem with cn:Java and cn:%Java
-> >> somehow. As I understand the % seems to be there to enable both
-> >> upper-and lowercase typing (java, Java) when entering the Path on the
-> >> commandline (cd /share/Java, /share/java). Anyhow. in autofs4 this didnt
-> >> seem to be a problem.
-> >>
-> >> Any help would be appreciated.
-> >>
-> >> *nail
-> >>
-> >> _______________________________________________
-> >> autofs mailing list
-> >> autofs@linux.kernel.org
-> >> http://linux.kernel.org/mailman/listinfo/autofs
-> >> -----------------------------------------
-> >>
-> >> Anadarko Confidentiality Notice:  
-> >> This electronic transmission and any attached documents or other
-> >> writings are intended only for the person or entity to which it is
-> >> addressed and may contain information that is privileged,
-> >> confidential or otherwise protected from disclosure.  If you have
-> >> received this communication in error, please immediately notify
-> >> sender by return e-mail and destroy the communication. Any
-> >> disclosure, copying, distribution or the taking of any action
-> >> concerning the contents of this communication or any attachments by
-> >> anyone other than the named recipient is strictly prohibited.
-> >>
-> >> _______________________________________________
-> >> autofs mailing list
-> >> autofs@linux.kernel.org
-> >> http://linux.kernel.org/mailman/listinfo/autofs
-> > 
-> > _______________________________________________
-> > autofs mailing list
-> > autofs@linux.kernel.org
-> > http://linux.kernel.org/mailman/listinfo/autofs
