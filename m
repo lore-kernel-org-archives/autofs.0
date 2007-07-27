@@ -1,7 +1,7 @@
-From: Lukas Kolbe <lukas@einfachkaffee.de>
+From: Lukas Kolbe <lkolbe@techfak.uni-bielefeld.de>
 Subject: using both nfs3 and nfs4 in a single mount map
-Date: Fri, 27 Jul 2007 17:24:09 +0200
-Message-ID: <1185549849.22250.35.camel@sangay.TechFak.Uni-Bielefeld.DE>
+Date: Fri, 27 Jul 2007 17:09:00 +0200
+Message-ID: <1185548940.22250.34.camel@sangay.TechFak.Uni-Bielefeld.DE>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
