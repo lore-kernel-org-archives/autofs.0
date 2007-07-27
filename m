@@ -1,7 +1,7 @@
 From: Nail El-Sourani <sourani@math.uni-muenster.de>
 Subject: Re: autofs5 duplicate entries
-Date: Fri, 27 Jul 2007 16:17:34 +0200
-Message-ID: <46A9FE7E.5060909@math.uni-muenster.de>
+Date: Fri, 27 Jul 2007 16:21:36 +0200
+Message-ID: <46A9FF70.9010706@math.uni-muenster.de>
 References: <46A747E0.7070202@math.uni-muenster.de>	
 	<1185426784.3329.2.camel@raven.themaw.net>	
 	<60626.128.176.181.43.1185447773.squirrel@wwwmath1.uni-muenster.de>	
@@ -27,21 +27,15 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-Hi Ian,
+Oh! Seems i was too fast with my positiv answer. Your patch checks for %
+only at first position. so when cn: gives something like
 
-tried to get your patch working. Using CentOS5 which comes with
-autofs5.0.1-0.rc2-43... i needed to upgrade to 5.0.2. though. did this
-from http://www.kernel.org/pub/linux/daemons/autofs/v5/, patching all
-patches for 5.0.2 as described in patch order, then applied the patch u
-sent me....
+cn:ja%Va
 
-AND
+it will still give duplicate entry error. what needs to be modified in
+your patch to take first entry when any other one "contains" the %.
 
-it works!
-
-thx a lot. Do you think this patch or something similar will make it
-into mainline?
-
+love,
 *nail
 
 Ian Kent wrote:
