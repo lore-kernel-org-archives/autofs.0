@@ -1,13 +1,14 @@
-From: Ian Kent <raven@themaw.net>
+From: Lukas Kolbe <lukas@einfachkaffee.de>
 Subject: Re: using both nfs3 and nfs4 in a single mount map
-Date: Fri, 27 Jul 2007 23:38:59 +0800
-Message-ID: <1185550740.3203.80.camel@raven.themaw.net>
+Date: Fri, 27 Jul 2007 17:45:30 +0200
+Message-ID: <1185551130.22250.41.camel@sangay.TechFak.Uni-Bielefeld.DE>
 References: <1185549849.22250.35.camel@sangay.TechFak.Uni-Bielefeld.DE>
+	<1185550740.3203.80.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1185549849.22250.35.camel@sangay.TechFak.Uni-Bielefeld.DE>
+In-Reply-To: <1185550740.3203.80.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,28 +19,37 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Lukas Kolbe <lukas@einfachkaffee.de>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-On Fri, 2007-07-27 at 17:24 +0200, Lukas Kolbe wrote:
-> Hi!
+Hi Ian,
 > 
-> Is it possible to us nfs4 and as a fallback nfs3 in a single mount map?
-> 
-> We have /homes coming from many different servers, the older ones only
-> speak v3 and the newer ones would love to speak v4 as we would.
-> Currently, auto.master looks like this:
-> 
-> /homes  yp:auto_homes	-nosuid,grpid,nobrowse,-fstype=nfs4,proto=tcp,port=2049
-> 
-> This of course only works for the nfs4-capable fileservers. Is there any
-> way to also get the old fileservers into this game again?
-> Using only nfsv3 is no option unfortunately; as is converting all to
-> nfs4 at once :(
+> I'll have to think about for a while and have a look at the code.
 
-I'll have to think about for a while and have a look at the code.
+Thank you :)
 
-What does your auto_homes look like?
-What version of autofs and kernel?
+> What does your auto_homes look like?
 
-Ian
+ypmatch is my friend:
+
+lkolbe@komagatake ypmatch lkolbe auto_homes
+figaro:/users/rbghiwis01/rbghiwis/&
+lkolbe@komagatake ypmatch fstest auto_homes
+thor:/export/rbg/homes/staff/&
+lkolbe@komagatake ypmatch vkgnome auto_homes
+figaro:/users/stud09/stud/&
+
+Where figaro is a Solaris 8 or 9 server serving nfs3, thor is a solaris
+10 box serving nfs4 from zfs-volumes.
+
+> What version of autofs and kernel?
+> 
+I currently tried it for testing on linux 2.6.18 (ubuntu dapper), autofs
+5.0.2 (backported from debian experimental). That would be the
+production environment for a few more months :)
+
+> Ian
+> 
+
+-- 
+Lukas
