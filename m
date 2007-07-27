@@ -1,19 +1,19 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: autofs5 duplicate entries
-Date: Fri, 27 Jul 2007 23:18:18 +0800
-Message-ID: <1185549498.3203.67.camel@raven.themaw.net>
+Date: Fri, 27 Jul 2007 23:19:25 +0800
+Message-ID: <1185549565.3203.70.camel@raven.themaw.net>
 References: <46A747E0.7070202@math.uni-muenster.de>
 	<1185426784.3329.2.camel@raven.themaw.net>
 	<60626.128.176.181.43.1185447773.squirrel@wwwmath1.uni-muenster.de>
 	<1185452066.3329.7.camel@raven.themaw.net>
 	<39281.128.176.181.43.1185458179.squirrel@wwwmath1.uni-muenster.de>
 	<1185509689.3203.22.camel@raven.themaw.net>
-	<46A9FE7E.5060909@math.uni-muenster.de>
+	<46A9FF70.9010706@math.uni-muenster.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <46A9FE7E.5060909@math.uni-muenster.de>
+In-Reply-To: <46A9FF70.9010706@math.uni-muenster.de>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -27,26 +27,20 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: support@math.uni-muenster.de
 Cc: autofs@linux.kernel.org
 
-On Fri, 2007-07-27 at 16:17 +0200, Nail El-Sourani wrote:
-> Hi Ian,
+On Fri, 2007-07-27 at 16:21 +0200, Nail El-Sourani wrote:
+> Oh! Seems i was too fast with my positiv answer. Your patch checks for %
+> only at first position. so when cn: gives something like
 > 
-> tried to get your patch working. Using CentOS5 which comes with
-> autofs5.0.1-0.rc2-43... i needed to upgrade to 5.0.2. though. did this
-> from http://www.kernel.org/pub/linux/daemons/autofs/v5/, patching all
-> patches for 5.0.2 as described in patch order, then applied the patch u
-> sent me....
+> cn:ja%Va
+> 
+> it will still give duplicate entry error. what needs to be modified in
+> your patch to take first entry when any other one "contains" the %.
 
-Yes, thought you might encounter that problem, as there was a change to
-deal with wildcard map entry inconsistency in later versions.
+I'll sort that out, but a real fix will have to wait for further
+discussion about how this should be handled.
 
 > 
-> AND
-> 
-> it works!
-> 
-> thx a lot. Do you think this patch or something similar will make it
-> into mainline?
-> 
+> love,
 > *nail
 > 
 > Ian Kent wrote:
