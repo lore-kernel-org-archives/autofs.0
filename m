@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: using both nfs3 and nfs4 in a single mount map
-Date: Mon, 30 Jul 2007 22:38:58 +0800
-Message-ID: <1185806338.3210.16.camel@raven.themaw.net>
+Date: Mon, 30 Jul 2007 22:54:03 +0800
+Message-ID: <1185807243.3210.26.camel@raven.themaw.net>
 References: <1185549849.22250.35.camel@sangay.TechFak.Uni-Bielefeld.DE>
 	<1185550740.3203.80.camel@raven.themaw.net>
 	<1185551130.22250.41.camel@sangay.TechFak.Uni-Bielefeld.DE>
@@ -48,63 +48,18 @@ On Mon, 2007-07-30 at 15:36 +0200, Lukas Kolbe wrote:
 > where figaro only exports nfs v3, bongossi exports both v4 and v3 and we
 > really would like to use v4.
 
-That is difficult because the selection is supposed to return the
-largest list of servers that support the highest protocol version,
-sorted by rpc ping response time.
+Actually, a multi map entry in the master map would probably work.
+Initially I missed this out of version 5 (by accident) so you'll need
+the patch on kernel.org that adds it. In fact I'd recommend applying all
+the 5.0.2 patches.
 
-If we change it to return a list ordered by nfs version with each
-version sorted by rpc response then it no longer satisfies the
-requirements of replicated server selection.
+So forget the last suggestion and patch and apply all the 5.0.2 patches
+on kernel.org and try a line in the master map like:
 
-> 
-> In fact, we have to use v4 here as every home directory is a seperate
-> ZFS volume, and nfs3 has issues scaling to over a hundered simultanous
-> mounts on linux that nfs4 has not.
-> 
-> On the old fileservers, we have the homes sitting in about 10 to 20
-> different volumes and use a hack to only mount these few volumes per
-> nfs3 and then bind-mount each individual home locally.
-> 
-> > > 
-> > > In the master map put:
-> > > /homes	auto_homes	nosuid,grpid,nobrowse,proto=tcp,port=2049
-> > > 
-> > > In NIS auto_homes put:
-> > > *	thor:/export/rbg/homes/staff/& figaro:/users/rbghiwis01/rbghiwis/& figaro:/users/stud09/stud/&
-> > > 
-> > > With the order determined by the server likely to get the most hits.
-> > > 
-> > > Ensure that /etc/nsswitch has:
-> > > automount: files nis
-> 
-> This works indeed like a charme, autofs is also expiring the mounts
-> correctly. 
-> 
-> > > and /etc/auto_homes, either doesn't exist or contains, as the last line,
-> > > +auto_homes
-> > > 
-> > > And finally this patch.
-> > > Beware, I haven't even compile tested this and I know I excluded the
-> > > NFS4 here for a reason, which I can't remember atm.
-> 
-> I don't really know what this patch is supposed to do :), but it applied
-> and works. 
-> I suppose it should try nfs4 if no explicit -fstype= is given?
+/homes  multi yp auto_homes -fstype=nfs4,nosuid,grpid,nobrowse,proto=tcp,port=2049 -- \
+		yp auto_homes -fstype=nfs,nosuid,grpid,nobrowse,proto=tcp,port=2049
 
-At some point I found I had to treat nfs4 a little differently and
-that's why they were seperated.
+and see if that gets what you need. The nfs4 one needs to be first
+because the v4 servers provide both v4 and v3.
 
-> 
-> 
-> Apropros expiring mounts: I get 
-> 
-> Jul 30 15:31:12 sorpe automount[14121]: umount_multi: could not stat fs of /homes/yyy
-> 
-> in syslog and /homes/yyy is still mounted; but I guess this is an Issue
-> that I'll try to cover after the nfs3 versus nfs4 thing.
-
-Not sure about that but perhaps later.
-
-> By the way thanks to your patient support I slowly begin to understand
-> how autofs really works. Thanks!
-> 
+Ian
