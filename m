@@ -1,12 +1,17 @@
-From: "Chris Penney" <penney@msu.edu>
-Subject: Automount fails while manual mount works
-Date: Mon, 30 Jul 2007 08:43:33 -0400
-Message-ID: <111aefd0707300543s5166c415seae1410b91edf5f2@mail.gmail.com>
+From: Lukas Kolbe <lukas@einfachkaffee.de>
+Subject: Re: using both nfs3 and nfs4 in a single mount map
+Date: Mon, 30 Jul 2007 15:36:36 +0200
+Message-ID: <1185802596.22250.52.camel@sangay.TechFak.Uni-Bielefeld.DE>
+References: <1185549849.22250.35.camel@sangay.TechFak.Uni-Bielefeld.DE>
+	<1185550740.3203.80.camel@raven.themaw.net>
+	<1185551130.22250.41.camel@sangay.TechFak.Uni-Bielefeld.DE>
+	<1185606915.8326.22.camel@raven.themaw.net>
+	<1185607363.8326.25.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <1185607363.8326.25.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,53 +22,74 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org
 
-I have a curious problem that seems like it must be some dumb mistake,
-but I can't seem to see it.
+Hi Ian, thanks for your support!
+> > 
+> > Presumably the exports are distinct, in which case using a list of
+> > server should allow autofs to try each one?
 
-I have a SuSE Entperprise 9 (x86_64) system running automount (using
-autofs4) that is setup so that it mounts /apps areas from different
-systems as /a/<host>.  For one system I get permission denied when
-trying to cd to it, but I can mount it by hand just fine.
+Yep, they are - differnet homes come from different servers. 
+ 
+> > What about trying something like:
+> 
+> On second thoughts this may get only the nfs4 or only the nfs3 servers
+> as well.
 
-/etc/auto.master:
-/a     /etc/auto.a -nosuid,rw,hard,intr,vers=3,proto=tcp,rsize=32768,wsize=32768
+Automount now mounts fine from all servers, but still nfs3
+only. /proc/mounts shows me:
 
-/etc/auto.a:
-systema         systema.x.com:/apps
-systemb         systemb.x.com:/apps
-systemc         systemc.y.x.com:/apps
+figaro:/users/xxx /homes/xxx nfs rw,nosuid,vers=3,rsize=32768,wsize=32768,hard,intr,proto=tcp,timeo=600,retrans=2,sec=sys,addr=figaro 0 0
+bongossi:/export/yyy /homes/yyy nfs rw,nosuid,vers=3,rsize=1048576,wsize=1048576,hard,intr,proto=tcp,timeo=600,retrans=2,sec=sys,addr=bongossi 0 0
 
-When I try to cd to /a/systemc I get:
-automount[20198]: failed to mount /a/systemc
+where figaro only exports nfs v3, bongossi exports both v4 and v3 and we
+really would like to use v4.
 
-The wierd thing is that I can do this just fine:
-mount -o nosuid,rw,hard,intr,vers=3,proto=tcp,rsize=32768,wsize=32768
-systemc.y.x.com:/apps /mnt
+In fact, we have to use v4 here as every home directory is a seperate
+ZFS volume, and nfs3 has issues scaling to over a hundered simultanous
+mounts on linux that nfs4 has not.
 
-I did a tcpdump and I get:
+On the old fileservers, we have the homes sitting in about 10 to 20
+different volumes and use a hack to only mount these few volumes per
+nfs3 and then bind-mount each individual home locally.
 
-15:28:26.045956 IP (tos 0x0, ttl  64, id 0, offset 0, flags [DF],
-length: 84) myhost.x.com.870 > systemc.y.x.com.sunrpc: UDP, length: 56
-15:28:26.176648 IP (tos 0x0, ttl  56, id 0, offset 0, flags [DF],
-length: 56) systemc.y.x.com.sunrpc > myhost.x.com.870: [udp sum ok]
-UDP, length: 28
-15:28:26.177334 IP (tos 0x0, ttl  64, id 0, offset 0, flags [DF],
-length: 68) myhost.x.com.913444943 > systemc.y.x.com.nfs: 40 null
-15:28:26.307373 IP (tos 0x0, ttl  56, id 0, offset 0, flags [DF],
-length: 52) systemc.y.x.com.nfs > myhost.x.com.913444943: reply ok 24
-null
-15:28:26.307391 IP (tos 0xc0, ttl  64, id 35564, offset 0, flags
-[none], length: 80) myhost.x.com > systemc.y.x.com: icmp 60:
-myhost.x.com udp port 870 unreachable
+> > 
+> > In the master map put:
+> > /homes	auto_homes	nosuid,grpid,nobrowse,proto=tcp,port=2049
+> > 
+> > In NIS auto_homes put:
+> > *	thor:/export/rbg/homes/staff/& figaro:/users/rbghiwis01/rbghiwis/& figaro:/users/stud09/stud/&
+> > 
+> > With the order determined by the server likely to get the most hits.
+> > 
+> > Ensure that /etc/nsswitch has:
+> > automount: files nis
 
-The only thing different between systemc and systema/b (which are
-fine) is that systemc (the one with problems) is at a remote location
-on a ~0.110ms latency link, which doesn't seem like it should be a
-problem.  I don't believe that any firewalls are in between.  Again, I
-can do a mount by hand just fine, but automount fails.
+This works indeed like a charme, autofs is also expiring the mounts
+correctly. 
 
-Thanks,
+> > and /etc/auto_homes, either doesn't exist or contains, as the last line,
+> > +auto_homes
+> > 
+> > And finally this patch.
+> > Beware, I haven't even compile tested this and I know I excluded the
+> > NFS4 here for a reason, which I can't remember atm.
 
-   Chris
+I don't really know what this patch is supposed to do :), but it applied
+and works. 
+I suppose it should try nfs4 if no explicit -fstype= is given?
+
+
+Apropros expiring mounts: I get 
+
+Jul 30 15:31:12 sorpe automount[14121]: umount_multi: could not stat fs of /homes/yyy
+
+in syslog and /homes/yyy is still mounted; but I guess this is an Issue
+that I'll try to cover after the nfs3 versus nfs4 thing.
+
+By the way thanks to your patient support I slowly begin to understand
+how autofs really works. Thanks!
+
+-- 
+Lukas
