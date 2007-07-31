@@ -1,65 +1,41 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: using both nfs3 and nfs4 in a single mount map
-Date: Mon, 30 Jul 2007 22:54:03 +0800
-Message-ID: <1185807243.3210.26.camel@raven.themaw.net>
-References: <1185549849.22250.35.camel@sangay.TechFak.Uni-Bielefeld.DE>
-	<1185550740.3203.80.camel@raven.themaw.net>
-	<1185551130.22250.41.camel@sangay.TechFak.Uni-Bielefeld.DE>
-	<1185606915.8326.22.camel@raven.themaw.net>
-	<1185607363.8326.25.camel@raven.themaw.net>
-	<1185802596.22250.52.camel@sangay.TechFak.Uni-Bielefeld.DE>
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: [PATCH 34] fs/autofs4/inode.c: kmalloc + memset conversion to kzalloc
+Date: Tue, 31 Jul 2007 20:05:44 +0200
+Message-ID: <200707312005.44495.m.kozlowski@tuxland.pl>
+References: <200707311845.48807.m.kozlowski@tuxland.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1185802596.22250.52.camel@sangay.TechFak.Uni-Bielefeld.DE>
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <200707311845.48807.m.kozlowski@tuxland.pl>
+Content-Disposition: inline
+Sender: kernel-janitors-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-To: Lukas Kolbe <lukas@einfachkaffee.de>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: linux-kernel@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, raven@themaw.net, autofs@linux.kernel.org
 
-On Mon, 2007-07-30 at 15:36 +0200, Lukas Kolbe wrote:
-> Hi Ian, thanks for your support!
-> > > 
-> > > Presumably the exports are distinct, in which case using a list of
-> > > server should allow autofs to try each one?
-> 
-> Yep, they are - differnet homes come from different servers. 
->  
-> > > What about trying something like:
-> > 
-> > On second thoughts this may get only the nfs4 or only the nfs3 servers
-> > as well.
-> 
-> Automount now mounts fine from all servers, but still nfs3
-> only. /proc/mounts shows me:
-> 
-> figaro:/users/xxx /homes/xxx nfs rw,nosuid,vers=3,rsize=32768,wsize=32768,hard,intr,proto=tcp,timeo=600,retrans=2,sec=sys,addr=figaro 0 0
-> bongossi:/export/yyy /homes/yyy nfs rw,nosuid,vers=3,rsize=1048576,wsize=1048576,hard,intr,proto=tcp,timeo=600,retrans=2,sec=sys,addr=bongossi 0 0
-> 
-> where figaro only exports nfs v3, bongossi exports both v4 and v3 and we
-> really would like to use v4.
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-Actually, a multi map entry in the master map would probably work.
-Initially I missed this out of version 5 (by accident) so you'll need
-the patch on kernel.org that adds it. In fact I'd recommend applying all
-the 5.0.2 patches.
+ fs/autofs4/inode.c | 10467 -> 10435 (-32 bytes)
+ fs/autofs4/inode.o | 98576 -> 98552 (-24 bytes)
 
-So forget the last suggestion and patch and apply all the 5.0.2 patches
-on kernel.org and try a line in the master map like:
+ fs/autofs4/inode.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-/homes  multi yp auto_homes -fstype=nfs4,nosuid,grpid,nobrowse,proto=tcp,port=2049 -- \
-		yp auto_homes -fstype=nfs,nosuid,grpid,nobrowse,proto=tcp,port=2049
+--- linux-2.6.23-rc1-mm1-a/fs/autofs4/inode.c	2007-07-26 13:07:46.000000000 +0200
++++ linux-2.6.23-rc1-mm1-b/fs/autofs4/inode.c	2007-07-29 23:56:08.000000000 +0200
+@@ -312,13 +312,11 @@ int autofs4_fill_super(struct super_bloc
+ 	struct autofs_sb_info *sbi;
+ 	struct autofs_info *ino;
 
-and see if that gets what you need. The nfs4 one needs to be first
-because the v4 servers provide both v4 and v3.
+-	sbi = kmalloc(sizeof(*sbi), GFP_KERNEL);
++	sbi = kzalloc(sizeof(*sbi), GFP_KERNEL);
+ 	if (!sbi)
+ 		goto fail_unlock;
+ 	DPRINTK("starting up, sbi = %p",sbi);
 
-Ian
+-	memset(sbi, 0, sizeof(*sbi));
+-
+ 	s->s_fs_info = sbi;
+ 	sbi->magic = AUTOFS_SBI_MAGIC;
+ 	sbi->pipefd = -1;
