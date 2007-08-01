@@ -1,15 +1,15 @@
-From: "Murata, Dennis" <DENNIS.MURATA@saic.com>
-Subject: Re: using both nfs3 and nfs4 in a single mount map
-Date: Wed, 1 Aug 2007 09:27:49 -0700
-Message-ID: <56D01C1B776AEE4385D29F25E83E515C0B40973F@0599-its-exmb02.us.saic.com>
-References: <1185549849.22250.35.camel@sangay.TechFak.Uni-Bielefeld.DE><1185550740.3203.80.camel@raven.themaw.net><1185551130.22250.41.camel@sangay.TechFak.Uni-Bielefeld.DE><1185606915.8326.22.camel@raven.themaw.net><1185607363.8326.25.camel@raven.themaw.net><1185802596.22250.52.camel@sangay.TechFak.Uni-Bielefeld.DE><1185807243.3210.26.camel@raven.themaw.net>
-	<1185974022.22250.64.camel@sangay.TechFak.Uni-Bielefeld.DE>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: Autofs 4 and 5 with nfs4
+Date: Wed, 01 Aug 2007 14:50:54 -0400
+Message-ID: <x49ps276qcx.fsf@segfault.boston.redhat.com>
+References: <46A745D5.7080603@cohtech.com>
+	<1185528235.3203.47.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-class: urn:content-classes:message
-in-reply-to: <1185974022.22250.64.camel@sangay.TechFak.Uni-Bielefeld.DE>
+In-Reply-To: <1185528235.3203.47.camel@raven.themaw.net> (Ian Kent's message
+	of "Fri, 27 Jul 2007 17:23:55 +0800")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,94 +20,56 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Lukas Kolbe <lukas@einfachkaffee.de>, Ian Kent <raven@themaw.net>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-I have also tried the multi feature with autofs-5.0.2-7 on a RHEL 5
-workstation.  The auto.master entry I used on RHEL 3 autofs-4.1.3--184
-was:
+Ian Kent <raven@themaw.net> writes:
 
-/pa  multi:file /etc/auto.pa -- yp auto.pa
+> On Wed, 2007-07-25 at 13:45 +0100, Howard Wilkinson wrote:
+>> I have a site that is currently using NFS4 for most of its traffic. We
+>> have a mix of autofs4 and autofs5 clients. The following map is used
+>> to provide access to host filing system exports
+>> 
+>> Auto.master:
+>> 
+>> /hosts     auto.hosts
+>> 
+>> auto.hosts
+>> 
+>> *
+>> -fstype=nfs4,tcp,rsize=32768,wsize=32768,hard,intr,nodev,nosuid &:/
+>> 
+>> This works fine in both autofs4 and autofs5 if the client is not the
+>> server (i.e. loopback ...) However with autofs5 this returns the root
+>> of the local file system not the exported nfs4 root.
+>
+> Hahaha!!!
+>
+> Yes, that's certainly something I didn't anticipate.
+>
+> Historically, all local mounts are turned into bind mounts regardless of
+> the options specified. I can't think of an acceptable way to do this and
+> still use bind mounts so we need to consider under what conditions to
+> not mount local mounts as bind mounts.
+>
+> I had a similar report recently and said that people expect that, if a
+> mount is local, it will be bind mounted for to give map independence.
+>
+> So, this is a question for the list.
+> What do people think?
 
-The /etc/auto.pa and the yp map auto.pa were single line entries:
+Remember the nosymlink option for automount?  Well, that really meant,
+"don't do special handling for local mount points."  We could
+introduce a similar option, though it would be hard to do so for only
+the server.
 
-*  server:/local/foo/&
-and
-*  server:/local/foo1/&
- 
-I modified the auto.master entry for autofs-5.0.2-7:
+>> Is there a map syntax that would work round this? Ideally I would
+>> like the map to be the same on all hosts, I can have different maps
+>> on the autofs4 and autofs5 hosts easily but would not want to have
+>> a separate map per host.
+>
+> No there isn't.
 
-/pa multi file /etc/auto.pa -- yp auto.pa
+Well, autofs4 might still honor nosymlink.  I'd have to look.
 
-And tried to use the same /etc/auto.pa and nis auto.pa.  This did not
-work, it would not search the second entry.  If I added +auto.pa to the
-/etc/auto.pa file, it would only search the yp map.  If I changed the
-file /etc/auto.pa from using a wildcard to specifying each directory
-things started working.  Is this the problem you are seeing?  Is there
-anyway to allow wildcards in both maps?
-
-Wayne
-
------Original Message-----
-From: autofs-bounces@linux.kernel.org
-[mailto:autofs-bounces@linux.kernel.org] On Behalf Of Lukas Kolbe
-Sent: Wednesday, August 01, 2007 8:14 AM
-To: Ian Kent
-Cc: autofs@linux.kernel.org
-Subject: Re: [autofs] using both nfs3 and nfs4 in a single mount map
-
-Hi Ian,
-
-> > figaro:/users/xxx /homes/xxx nfs 
-> > rw,nosuid,vers=3,rsize=32768,wsize=32768,hard,intr,proto=tcp,timeo=6
-> > 00,retrans=2,sec=sys,addr=figaro 0 0 bongossi:/export/yyy /homes/yyy
-
-> > nfs 
-> > rw,nosuid,vers=3,rsize=1048576,wsize=1048576,hard,intr,proto=tcp,tim
-> > eo=600,retrans=2,sec=sys,addr=bongossi 0 0
-> > 
-> > where figaro only exports nfs v3, bongossi exports both v4 and v3 
-> > and we really would like to use v4.
-> 
-> Actually, a multi map entry in the master map would probably work.
-> Initially I missed this out of version 5 (by accident) so you'll need 
-> the patch on kernel.org that adds it. In fact I'd recommend applying 
-> all the 5.0.2 patches.
-> 
-> So forget the last suggestion and patch and apply all the 5.0.2 
-> patches on kernel.org and try a line in the master map like:
-
-Ok, done that :).
-
-> /homes  multi yp auto_homes
--fstype=nfs4,nosuid,grpid,nobrowse,proto=tcp,port=2049 -- \
-> 		yp auto_homes
--fstype=nfs,nosuid,grpid,nobrowse,proto=tcp,port=2049
-> 
-> and see if that gets what you need. The nfs4 one needs to be first 
-> because the v4 servers provide both v4 and v3.
-
-This only gives me the nfs4 mounts, it seems like the second part of the
-multimount is not evaluated when the first one says "I don't have that
-directory you asked me about":
-
-root@sorpe:/# ls -la /homes/yyy
-ls: /homes/yyy: Permission denied
-
-Which is correct and comes from bongossi,
-
-root@sorpe:/# ls -la /homes/xxx
-ls: /homes/xxx: No such file or directory
-
-which should also say permission denied and should come from figaro.
-
-> Ian
-
---
-Lukas
-
-
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
+-Jeff
