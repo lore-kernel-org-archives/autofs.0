@@ -1,52 +1,71 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 34] fs/autofs4/inode.c: kmalloc + memset conversion to
-	kzalloc
-Date: Wed, 01 Aug 2007 12:02:09 +0800
-Message-ID: <1185940929.3211.25.camel@raven.themaw.net>
-References: <200707311845.48807.m.kozlowski@tuxland.pl>
-	 <200707312005.44495.m.kozlowski@tuxland.pl>
+From: Lukas Kolbe <lukas@einfachkaffee.de>
+Subject: Re: using both nfs3 and nfs4 in a single mount map
+Date: Wed, 01 Aug 2007 15:13:42 +0200
+Message-ID: <1185974022.22250.64.camel@sangay.TechFak.Uni-Bielefeld.DE>
+References: <1185549849.22250.35.camel@sangay.TechFak.Uni-Bielefeld.DE>
+	<1185550740.3203.80.camel@raven.themaw.net>
+	<1185551130.22250.41.camel@sangay.TechFak.Uni-Bielefeld.DE>
+	<1185606915.8326.22.camel@raven.themaw.net>
+	<1185607363.8326.25.camel@raven.themaw.net>
+	<1185802596.22250.52.camel@sangay.TechFak.Uni-Bielefeld.DE>
+	<1185807243.3210.26.camel@raven.themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <200707312005.44495.m.kozlowski@tuxland.pl>
-Sender: kernel-janitors-owner@vger.kernel.org
-List-Id: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, autofs@linux.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <1185807243.3210.26.camel@raven.themaw.net>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org
 
-On Tue, 2007-07-31 at 20:05 +0200, Mariusz Kozlowski wrote:
-> Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Hi Ian,
 
-ACK.
+> > figaro:/users/xxx /homes/xxx nfs rw,nosuid,vers=3,rsize=32768,wsize=32768,hard,intr,proto=tcp,timeo=600,retrans=2,sec=sys,addr=figaro 0 0
+> > bongossi:/export/yyy /homes/yyy nfs rw,nosuid,vers=3,rsize=1048576,wsize=1048576,hard,intr,proto=tcp,timeo=600,retrans=2,sec=sys,addr=bongossi 0 0
+> > 
+> > where figaro only exports nfs v3, bongossi exports both v4 and v3 and we
+> > really would like to use v4.
+> 
+> Actually, a multi map entry in the master map would probably work.
+> Initially I missed this out of version 5 (by accident) so you'll need
+> the patch on kernel.org that adds it. In fact I'd recommend applying all
+> the 5.0.2 patches.
+> 
+> So forget the last suggestion and patch and apply all the 5.0.2 patches
+> on kernel.org and try a line in the master map like:
 
-> 
->  fs/autofs4/inode.c | 10467 -> 10435 (-32 bytes)
->  fs/autofs4/inode.o | 98576 -> 98552 (-24 bytes)
-> 
->  fs/autofs4/inode.c |    4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
-> 
-> --- linux-2.6.23-rc1-mm1-a/fs/autofs4/inode.c	2007-07-26 13:07:46.000000000 +0200
-> +++ linux-2.6.23-rc1-mm1-b/fs/autofs4/inode.c	2007-07-29 23:56:08.000000000 +0200
-> @@ -312,13 +312,11 @@ int autofs4_fill_super(struct super_bloc
->  	struct autofs_sb_info *sbi;
->  	struct autofs_info *ino;
-> 
-> -	sbi = kmalloc(sizeof(*sbi), GFP_KERNEL);
-> +	sbi = kzalloc(sizeof(*sbi), GFP_KERNEL);
->  	if (!sbi)
->  		goto fail_unlock;
->  	DPRINTK("starting up, sbi = %p",sbi);
-> 
-> -	memset(sbi, 0, sizeof(*sbi));
-> -
->  	s->s_fs_info = sbi;
->  	sbi->magic = AUTOFS_SBI_MAGIC;
->  	sbi->pipefd = -1;
-> -
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+Ok, done that :).
 
+> /homes  multi yp auto_homes -fstype=nfs4,nosuid,grpid,nobrowse,proto=tcp,port=2049 -- \
+> 		yp auto_homes -fstype=nfs,nosuid,grpid,nobrowse,proto=tcp,port=2049
+> 
+> and see if that gets what you need. The nfs4 one needs to be first
+> because the v4 servers provide both v4 and v3.
+
+This only gives me the nfs4 mounts, it seems like the second part of the
+multimount is not evaluated when the first one says "I don't have that
+directory you asked me about":
+
+root@sorpe:/# ls -la /homes/yyy
+ls: /homes/yyy: Permission denied
+
+Which is correct and comes from bongossi,
+
+root@sorpe:/# ls -la /homes/xxx
+ls: /homes/xxx: No such file or directory
+
+which should also say permission denied and should come from figaro.
+
+> Ian
+
+-- 
+Lukas
