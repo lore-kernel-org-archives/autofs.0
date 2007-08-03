@@ -1,18 +1,20 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: AutoFS5 Ldap base strangeness
-Date: Thu, 02 Aug 2007 17:56:08 -0400
-Message-ID: <x491weleh3b.fsf@segfault.boston.devel.redhat.com>
-References: <46B23DFB.7060200@cs.ou.edu>
-	<x49odhpek9z.fsf@segfault.boston.devel.redhat.com>
-	<46B247E7.3020902@cs.ou.edu>
-	<x498x8tej4o.fsf@segfault.boston.devel.redhat.com>
-	<46B24D15.4070306@cs.ou.edu>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: using both nfs3 and nfs4 in a single mount map
+Date: Fri, 03 Aug 2007 11:16:07 +0800
+Message-ID: <1186110967.3219.3.camel@raven.themaw.net>
+References: <1185549849.22250.35.camel@sangay.TechFak.Uni-Bielefeld.DE>
+	<1185550740.3203.80.camel@raven.themaw.net>
+	<1185551130.22250.41.camel@sangay.TechFak.Uni-Bielefeld.DE>
+	<1185606915.8326.22.camel@raven.themaw.net>
+	<1185607363.8326.25.camel@raven.themaw.net>
+	<1185802596.22250.52.camel@sangay.TechFak.Uni-Bielefeld.DE>
+	<1185807243.3210.26.camel@raven.themaw.net>
+	<1185974022.22250.64.camel@sangay.TechFak.Uni-Bielefeld.DE>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <46B24D15.4070306@cs.ou.edu> (Jim Summers's message of "Thu\,
-	02 Aug 2007 16\:31\:01 -0500")
+In-Reply-To: <1185974022.22250.64.camel@sangay.TechFak.Uni-Bielefeld.DE>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -23,38 +25,42 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: jsummers@bachman.cs.ou.edu
+To: Lukas Kolbe <lukas@einfachkaffee.de>
 Cc: autofs@linux.kernel.org
 
-Jim Summers <jsummers@bachman.cs.ou.edu> writes:
+On Wed, 2007-08-01 at 15:13 +0200, Lukas Kolbe wrote:
+> Hi Ian,
+> 
+> > > figaro:/users/xxx /homes/xxx nfs rw,nosuid,vers=3,rsize=32768,wsize=32768,hard,intr,proto=tcp,timeo=600,retrans=2,sec=sys,addr=figaro 0 0
+> > > bongossi:/export/yyy /homes/yyy nfs rw,nosuid,vers=3,rsize=1048576,wsize=1048576,hard,intr,proto=tcp,timeo=600,retrans=2,sec=sys,addr=bongossi 0 0
+> > > 
+> > > where figaro only exports nfs v3, bongossi exports both v4 and v3 and we
+> > > really would like to use v4.
+> > 
+> > Actually, a multi map entry in the master map would probably work.
+> > Initially I missed this out of version 5 (by accident) so you'll need
+> > the patch on kernel.org that adds it. In fact I'd recommend applying all
+> > the 5.0.2 patches.
+> > 
+> > So forget the last suggestion and patch and apply all the 5.0.2 patches
+> > on kernel.org and try a line in the master map like:
+> 
+> Ok, done that :).
+> 
+> > /homes  multi yp auto_homes -fstype=nfs4,nosuid,grpid,nobrowse,proto=tcp,port=2049 -- \
+> > 		yp auto_homes -fstype=nfs,nosuid,grpid,nobrowse,proto=tcp,port=2049
+> > 
+> > and see if that gets what you need. The nfs4 one needs to be first
+> > because the v4 servers provide both v4 and v3.
+> 
+> This only gives me the nfs4 mounts, it seems like the second part of the
+> multimount is not evaluated when the first one says "I don't have that
+> directory you asked me about":
 
-> Jeff Moyer wrote:
->> Jim Summers <jsummers@bachman.cs.ou.edu> writes:
->>
->>> Jeff Moyer wrote:
->>>> Jim Summers <jsummers@bachman.cs.ou.edu> writes:
->>>>
->>>>> hello all,
->>>>>
->>>>> I am just about to get my automounting working with autofs5 and my ldap.  I am
->>>>> able to start the automount daemon and it loads and reads /home map, which
->>>>> points at ou=auto.home for the user's home directory location and options.
->>>>>
->>>>> but when i attempt to su - <user> it can not mount the user's home.  here is
->>>>> what i see in the ldap server's access log:
->>>>> ===
->>>>> [31/Jul/2007:15:28:19 -0500] conn=8420 op=1 SRCH
->>>>> base="cn=sfu,ou=auto.home,dc=it,dc=ou,dc=edu" scope=2
->>>>> filter="(&(objectClass=automount)(|(automountKey=tmac)(automountKey=/)))"
->>>>> attrs="automountKey automountInformation"
->>>>> [31/Jul/2007:15:28:19 -0500] conn=8420 op=1 RESULT err=0 tag=101 nentries=0
->>>>> etime=0
->>>>> [31/Jul/2007:15:28:19 -0500] conn=8420 op=2 UNBIND
->>>>> ===
+Aaah yes, of course, sorry about that.
+That would be because the first encountered key is used to decide pass
+or fail.
 
-OK, now I'd like to get the ldap server messages that preceded this.
-Specifically, I'd like to see the query done for
-(&(objectclass=automountMap)(ou=auto.home)).  I think that's the
-schema you're using.
+We've discussed this behavior in the past so it really has to remain.
 
--Jeff
+Ian
