@@ -1,15 +1,13 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: AutoFS5 Ldap base strangeness
-Date: Fri, 03 Aug 2007 11:28:54 +0800
-Message-ID: <1186111734.3573.1.camel@raven.themaw.net>
+Date: Fri, 03 Aug 2007 11:31:29 +0800
+Message-ID: <1186111889.3573.5.camel@raven.themaw.net>
 References: <46B23DFB.7060200@cs.ou.edu>
-	<x49odhpek9z.fsf@segfault.boston.devel.redhat.com>
-	<46B247E7.3020902@cs.ou.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <46B247E7.3020902@cs.ou.edu>
+In-Reply-To: <46B23DFB.7060200@cs.ou.edu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,20 +20,50 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-On Thu, 2007-08-02 at 16:08 -0500, Jim Summers wrote:
-> Jeff Moyer wrote:
-> > Jim Summers <jsummers@bachman.cs.ou.edu> writes:
-> i do have the following installed:
+On Thu, 2007-08-02 at 15:26 -0500, Jim Summers wrote:
+> hello all,
 > 
-> autofs-5.0.1-20
-> autofs-debuginfo-5.0.1-20
+> I am just about to get my automounting working with autofs5 and my ldap.  I am
+> able to start the automount daemon and it loads and reads /home map, which
+> points at ou=auto.home for the user's home directory location and options.
 > 
-> and by the way, i am building those from source rpms. before i actually do an 
-> rpmbuild i run a patch that Ian had sent me.  it fixes a syntax issue when you 
-> have a dc that is named ou.  after the last updates it quit working, so i 
-> grabbed the src.rpm and rebuilt again.  i guess the patch hasn't made into the 
-> repos yet.
+> but when i attempt to su - <user> it can not mount the user's home.  here is
+> what i see in the ldap server's access log:
+> ===
+> [31/Jul/2007:15:28:19 -0500] conn=8420 op=1 SRCH
+> base="cn=sfu,ou=auto.home,dc=it,dc=ou,dc=edu" scope=2
+> filter="(&(objectClass=automount)(|(automountKey=tmac)(automountKey=/)))"
+> attrs="automountKey automountInformation"
+> [31/Jul/2007:15:28:19 -0500] conn=8420 op=1 RESULT err=0 tag=101 nentries=0
+> etime=0
+> [31/Jul/2007:15:28:19 -0500] conn=8420 op=2 UNBIND
+> ===
+> 
+> the weird part of the above is, in the first line it says "cn=sfu" but then
+> also says automountKey=tmac
+> 
+> the su command is:  su - tmac
+> 
+> so the correct username is tmac not sfu.
+> 
+> any ideas where the sfu thing is coming from??
+> 
+> is the info cached somewhere?  I ask because when I start the daemon, i can
+> see in the logs where it does:
+> ===
+> [31/Jul/2007:15:35:40 -0500] conn=8536 op=1 SRCH
+> base="ou=auto.home,dc=it,dc=ou,dc=edu" scope=2
+> filter="(objectClass=automount)" attrs="1.1"
+> [31/Jul/2007:15:35:40 -0500] conn=8536 op=1 RESULT err=0 tag=101 nentries=617
+> etime=0
+> ===
+> which is returning 617 entries.
+> 
+> not sure what i have wroong here??
 
-That is in autofs-5.0.2-21 which should be on the mirrors.
+Me neither.
+
+How about posting an ldapsearch of the auto.home and what's used for the
+master map.
 
 Ian
