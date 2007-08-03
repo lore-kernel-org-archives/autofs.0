@@ -1,20 +1,15 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: using both nfs3 and nfs4 in a single mount map
-Date: Fri, 03 Aug 2007 11:16:07 +0800
-Message-ID: <1186110967.3219.3.camel@raven.themaw.net>
-References: <1185549849.22250.35.camel@sangay.TechFak.Uni-Bielefeld.DE>
-	<1185550740.3203.80.camel@raven.themaw.net>
-	<1185551130.22250.41.camel@sangay.TechFak.Uni-Bielefeld.DE>
-	<1185606915.8326.22.camel@raven.themaw.net>
-	<1185607363.8326.25.camel@raven.themaw.net>
-	<1185802596.22250.52.camel@sangay.TechFak.Uni-Bielefeld.DE>
-	<1185807243.3210.26.camel@raven.themaw.net>
-	<1185974022.22250.64.camel@sangay.TechFak.Uni-Bielefeld.DE>
+Subject: Re: Autofs 4 and 5 with nfs4
+Date: Fri, 03 Aug 2007 11:19:12 +0800
+Message-ID: <1186111152.3219.5.camel@raven.themaw.net>
+References: <46A745D5.7080603@cohtech.com>
+	<1185528235.3203.47.camel@raven.themaw.net>
+	<x49ps276qcx.fsf@segfault.boston.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1185974022.22250.64.camel@sangay.TechFak.Uni-Bielefeld.DE>
+In-Reply-To: <x49ps276qcx.fsf@segfault.boston.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -25,42 +20,62 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Lukas Kolbe <lukas@einfachkaffee.de>
+To: Jeff Moyer <jmoyer@redhat.com>
 Cc: autofs@linux.kernel.org
 
-On Wed, 2007-08-01 at 15:13 +0200, Lukas Kolbe wrote:
-> Hi Ian,
+On Wed, 2007-08-01 at 14:50 -0400, Jeff Moyer wrote:
+> Ian Kent <raven@themaw.net> writes:
 > 
-> > > figaro:/users/xxx /homes/xxx nfs rw,nosuid,vers=3,rsize=32768,wsize=32768,hard,intr,proto=tcp,timeo=600,retrans=2,sec=sys,addr=figaro 0 0
-> > > bongossi:/export/yyy /homes/yyy nfs rw,nosuid,vers=3,rsize=1048576,wsize=1048576,hard,intr,proto=tcp,timeo=600,retrans=2,sec=sys,addr=bongossi 0 0
-> > > 
-> > > where figaro only exports nfs v3, bongossi exports both v4 and v3 and we
-> > > really would like to use v4.
-> > 
-> > Actually, a multi map entry in the master map would probably work.
-> > Initially I missed this out of version 5 (by accident) so you'll need
-> > the patch on kernel.org that adds it. In fact I'd recommend applying all
-> > the 5.0.2 patches.
-> > 
-> > So forget the last suggestion and patch and apply all the 5.0.2 patches
-> > on kernel.org and try a line in the master map like:
+> > On Wed, 2007-07-25 at 13:45 +0100, Howard Wilkinson wrote:
+> >> I have a site that is currently using NFS4 for most of its traffic. We
+> >> have a mix of autofs4 and autofs5 clients. The following map is used
+> >> to provide access to host filing system exports
+> >> 
+> >> Auto.master:
+> >> 
+> >> /hosts     auto.hosts
+> >> 
+> >> auto.hosts
+> >> 
+> >> *
+> >> -fstype=nfs4,tcp,rsize=32768,wsize=32768,hard,intr,nodev,nosuid &:/
+> >> 
+> >> This works fine in both autofs4 and autofs5 if the client is not the
+> >> server (i.e. loopback ...) However with autofs5 this returns the root
+> >> of the local file system not the exported nfs4 root.
+> >
+> > Hahaha!!!
+> >
+> > Yes, that's certainly something I didn't anticipate.
+> >
+> > Historically, all local mounts are turned into bind mounts regardless of
+> > the options specified. I can't think of an acceptable way to do this and
+> > still use bind mounts so we need to consider under what conditions to
+> > not mount local mounts as bind mounts.
+> >
+> > I had a similar report recently and said that people expect that, if a
+> > mount is local, it will be bind mounted for to give map independence.
+> >
+> > So, this is a question for the list.
+> > What do people think?
 > 
-> Ok, done that :).
+> Remember the nosymlink option for automount?  Well, that really meant,
+> "don't do special handling for local mount points."  We could
+> introduce a similar option, though it would be hard to do so for only
+> the server.
 > 
-> > /homes  multi yp auto_homes -fstype=nfs4,nosuid,grpid,nobrowse,proto=tcp,port=2049 -- \
-> > 		yp auto_homes -fstype=nfs,nosuid,grpid,nobrowse,proto=tcp,port=2049
-> > 
-> > and see if that gets what you need. The nfs4 one needs to be first
-> > because the v4 servers provide both v4 and v3.
+> >> Is there a map syntax that would work round this? Ideally I would
+> >> like the map to be the same on all hosts, I can have different maps
+> >> on the autofs4 and autofs5 hosts easily but would not want to have
+> >> a separate map per host.
+> >
+> > No there isn't.
 > 
-> This only gives me the nfs4 mounts, it seems like the second part of the
-> multimount is not evaluated when the first one says "I don't have that
-> directory you asked me about":
+> Well, autofs4 might still honor nosymlink.  I'd have to look.
 
-Aaah yes, of course, sorry about that.
-That would be because the first encountered key is used to decide pass
-or fail.
+Hahahah!
 
-We've discussed this behavior in the past so it really has to remain.
+Well, it's still in the code but whether it still does what's intended
+is another question. And then there's the name of the option.
 
 Ian
