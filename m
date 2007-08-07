@@ -1,15 +1,12 @@
-From: Jim Summers <jsummers@bachman.cs.ou.edu>
-Subject: AutoFS5 RPM version
-Date: Mon, 06 Aug 2007 16:16:28 -0500
-Message-ID: <46B78FAC.9040807@cs.ou.edu>
-References: <46B23DFB.7060200@cs.ou.edu>	<x49odhpek9z.fsf@segfault.boston.devel.redhat.com>	<46B247E7.3020902@cs.ou.edu>
-	<1186111734.3573.1.camel@raven.themaw.net>
-Reply-To: jsummers@bachman.cs.ou.edu
+From: Rich West <Rich.West@wesmo.com>
+Subject: Re: autofs5 + ldap + ldap replication
+Date: Mon, 06 Aug 2007 21:32:42 -0400
+Message-ID: <46B7CBBA.7080105@wesmo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1186111734.3573.1.camel@raven.themaw.net>
+References: 46A62F05.4040806@wesmo.com
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,48 +17,87 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-Ian Kent wrote:
-> On Thu, 2007-08-02 at 16:08 -0500, Jim Summers wrote:
->> Jeff Moyer wrote:
->>> Jim Summers <jsummers@bachman.cs.ou.edu> writes:
->> i do have the following installed:
->>
->> autofs-5.0.1-20
->> autofs-debuginfo-5.0.1-20
->>
->> and by the way, i am building those from source rpms. before i actually do an 
->> rpmbuild i run a patch that Ian had sent me.  it fixes a syntax issue when you 
->> have a dc that is named ou.  after the last updates it quit working, so i 
->> grabbed the src.rpm and rebuilt again.  i guess the patch hasn't made into the 
->> repos yet.
-> 
-> That is in autofs-5.0.2-21 which should be on the mirrors.
+>
+> Ian Kent wrote:
+> > On Tue, 2007-07-24 at 11:48 +0800, Ian Kent wrote:
+> >   
+> >> On Mon, 2007-07-23 at 12:37 -0400, Rich West wrote:
+> >>     
+> >>> Ian Kent wrote:
+> >>>       
+> >>>> On Mon, 2007-07-16 at 15:54 -0400, Rich West wrote:
+> >>>>   
+> >>>>         
+> >>>>> Jul 16 15:21:08 myhost automount[1852]: lookup_read_master:
+> >>>>> lookup(ldap): searching for "(objectclass=automount)" under
+> >>>>> "ou=auto.master,dc=mydomain,dc=com"
+> >>>>> Jul 16 15:21:08 myhost automount[1852]: lookup_read_master:
+> >>>>> lookup(ldap): examining entries
+> >>>>> Jul 16 15:21:08 myhost automount[1852]: master_echo: .
+> >>>>> Jul 16 15:21:08 myhost automount[1852]: master_echo: .
+> >>>>> Jul 16 15:21:08 myhost automount[1852]: master_echo: :
+> >>>>> Jul 16 15:21:08 myhost automount[1852]: master_echo: .
+> >>>>>     
+> >>>>>           
+> >>>> This is a parse error that's not being handled.
+> >>>> What autofs is getting from the LDAP server can't be the same as what
+> >>>> it's getting from the master if the master is working.
+> >>>>
+> >>>> Can you give us an example of the output from an LDAP search to both the
+> >>>> servers please.
+> >>>>         
+> >>> Sorry for the long delay.. I missed this one.
+> >>>
+> >>> Both servers are running the same version of openldap.  You have the
+> >>> output from the bad search.  I turned up logging and reloaded autofs on
+> >>> the master server and got the following (was that what you were looking
+> >>> for?):
+> >>>       
+> >> I was hoping to get the output from an ldapsearch for one of the maps
+> >> from both servers.
+> >>     
+> >
+> > Actually, the parse fail happened for the master map.
+> > How about an ldapsearch for that on bothe servers.
+>
+> Ok.. Sorry about that, too.
+>
+> master#> ldapsearch -x -b ou=auto.master,dc=mydomain,dc=com
+> '(objectclass=automount)' -LLL -h localhost
+> dn: cn=/home,ou=auto.master,dc=mydomain,dc=com
+> objectClass: automount
+> cn: /home
+> automountInformation: ldap:ldap.mydomain.com:ou=auto.home,dc=mydomain,dc=com
+>
+>
+> replica#> ldapsearch -x -b ou=auto.master,dc=mydomain,dc=com
+> '(objectclass=automount)' -LLL -h localhost
+> dn: cn=/home,ou=auto.master,dc=mydomain,dc=com
+> objectClass: automount
+> cn: /home
+> automountInformation: ldap ldap.mydomain.com:ou=auto.home,dc=mydomain,dc=com
+>
+> I just noticed that the replica is returning "ldap ldap.mydomain.com"
+> which is missing the colon between "ldap" and "ldap.mydomain.com". 
+> That's odd.  When I look at things from phpldapadmin, the entries look
+> exactly the same on both machines.  The master server is a Fedora Core 5
+> box, and the replica is a Fedora Core 6 box.
 
-Hi Ian,
+After some tinkering I did finally figure things out.  It had to do with 
+the automountInformation field.
 
-I was able to pick up the autofs with the 'dc=ou' patch in it on an FC7 
-installation I have.  But when I tried a yum -y update on an FC6 machine it 
-updated to:  autofs-5.0.1-0.rc3.32, which does not seem to have the patch in 
-it.  Do you know if the FC6 repos's will have the patched version?
+In the LDAP database, I had:
+automountInformation: ldap:ldap.mydomain.com:ou=auto.home,dc=mydomain,dc=com
 
-Thank again for all of your help.
+I found (on an obscure posting elsewhere) that I could get it to work 
+via this entry:
+automountInformation: ldap:ou=auto.home,dc=mydomain,dc=com
 
---jim
+Basically, I eliminated the LDAP server from the entry.  I'm going to 
+hazard a guess, but, since autofs sees that it is an ldap entry, it just 
+uses the system's bindings in order to resolve the ou...  Anyhow, it 
+works like a champ on FC5, FC6, and FC7.
 
-
-> 
-> Ian
-> 
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
-
--- 
-Jim Summers
-School of Computer Science-University of Oklahoma
--------------------------------------------------
+-Rich
