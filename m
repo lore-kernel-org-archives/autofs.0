@@ -1,16 +1,14 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: AutoFS5 RPM version
-Date: Tue, 07 Aug 2007 10:45:38 +0800
-Message-ID: <1186454738.3320.0.camel@raven.themaw.net>
-References: <46B23DFB.7060200@cs.ou.edu>
-	<x49odhpek9z.fsf@segfault.boston.devel.redhat.com>
-	<46B247E7.3020902@cs.ou.edu> <1186111734.3573.1.camel@raven.themaw.net>
-	<46B78FAC.9040807@cs.ou.edu>
+From: Jim Summers <jsummers@bachman.cs.ou.edu>
+Subject: Re: autofs5 + ldap + ldap replication
+Date: Tue, 07 Aug 2007 09:33:13 -0500
+Message-ID: <46B882A9.2040108@cs.ou.edu>
+References: 46A62F05.4040806@wesmo.com <46B7CBBA.7080105@wesmo.com>
+Reply-To: jsummers@bachman.cs.ou.edu
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <46B78FAC.9040807@cs.ou.edu>
+In-Reply-To: <46B7CBBA.7080105@wesmo.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,34 +19,76 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: jsummers@bachman.cs.ou.edu
+To: Rich West <Rich.West@wesmo.com>
 Cc: autofs@linux.kernel.org
 
-On Mon, 2007-08-06 at 16:16 -0500, Jim Summers wrote:
-> Ian Kent wrote:
-> > On Thu, 2007-08-02 at 16:08 -0500, Jim Summers wrote:
-> >> Jeff Moyer wrote:
-> >>> Jim Summers <jsummers@bachman.cs.ou.edu> writes:
-> >> i do have the following installed:
-> >>
-> >> autofs-5.0.1-20
-> >> autofs-debuginfo-5.0.1-20
-> >>
-> >> and by the way, i am building those from source rpms. before i actually do an 
-> >> rpmbuild i run a patch that Ian had sent me.  it fixes a syntax issue when you 
-> >> have a dc that is named ou.  after the last updates it quit working, so i 
-> >> grabbed the src.rpm and rebuilt again.  i guess the patch hasn't made into the 
-> >> repos yet.
-> > 
-> > That is in autofs-5.0.2-21 which should be on the mirrors.
-> 
-> Hi Ian,
-> 
-> I was able to pick up the autofs with the 'dc=ou' patch in it on an FC7 
-> installation I have.  But when I tried a yum -y update on an FC6 machine it 
-> updated to:  autofs-5.0.1-0.rc3.32, which does not seem to have the patch in 
-> it.  Do you know if the FC6 repos's will have the patched version?
 
-Sorry, I'll get onto it.
+Rich West wrote:
+>> Ian Kent wrote:
+>>> On Tue, 2007-07-24 at 11:48 +0800, Ian Kent wrote:
+>>>   
+> After some tinkering I did finally figure things out.  It had to do with 
+> the automountInformation field.
+> 
+> In the LDAP database, I had:
+> automountInformation: ldap:ldap.mydomain.com:ou=auto.home,dc=mydomain,dc=com
+> 
+> I found (on an obscure posting elsewhere) that I could get it to work 
+> via this entry:
+> automountInformation: ldap:ou=auto.home,dc=mydomain,dc=com
+> 
+> Basically, I eliminated the LDAP server from the entry.  I'm going to 
+> hazard a guess, but, since autofs sees that it is an ldap entry, it just 
+> uses the system's bindings in order to resolve the ou...  Anyhow, it 
+> works like a champ on FC5, FC6, and FC7.
 
-Ian
+Hi Rich,
+
+Where are you setting the ldap server?  I have my ldap config in 
+/etc/ldap.conf.  when  i start autofs with the following map in /etc/auto.master:
+
+/home   ldap:ou=auto.home,dc=it,dc=ou,dc=edu
+
+i see the following in my debug file:
+
+Aug  7 08:58:35 leech automount[11991]: master_do_mount: mounting /home
+Aug  7 08:58:35 leech automount[11991]: lookup_nss_read_map: reading map ldap 
+ou=auto.home,dc=it,dc=ou,dc=edu
+Aug  7 08:58:35 leech automount[11991]: parse_server_string: lookup(ldap): 
+Attempting to parse LDAP information from string 
+"ou=auto.home,dc=it,dc=ou,dc=edu".
+Aug  7 08:58:35 leech automount[11991]: parse_server_string: lookup(ldap): 
+server "(default)", base dn "ou=auto.home,dc=it,dc=ou,dc=edu"
+
+.....
+
+Aug  7 09:24:34 leech automount[3283]: lookup_init: lookup(ldap): cannot 
+connect to server
+
+not sure where to specify default server.  in this case, for replication, i 
+guess a list of servers.  in ldap.conf i have:
+
+uri ldaps://serve0 ldaps://serve1
+
+so i am not sure that autofs will handle the ssl connections.
+
+this would be really useful to get working so that the mounts have some 
+failover potential.
+
+ideas / suggestions?
+
+tia
+
+
+> 
+> -Rich
+> 
+> _______________________________________________
+> autofs mailing list
+> autofs@linux.kernel.org
+> http://linux.kernel.org/mailman/listinfo/autofs
+
+-- 
+Jim Summers
+School of Computer Science-University of Oklahoma
+-------------------------------------------------
