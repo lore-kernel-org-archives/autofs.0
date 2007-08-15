@@ -1,17 +1,20 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: AutoFS5
-Date: Tue, 14 Aug 2007 16:48:31 -0400
-Message-ID: <x49ir7h971c.fsf@segfault.boston.devel.redhat.com>
-References: <46C2005D.1090907@cs.ou.edu>
-	<x498x8daovy.fsf@segfault.boston.devel.redhat.com>
-	<x49vebh98nd.fsf@segfault.boston.devel.redhat.com>
-	<46C212FA.7030201@cs.ou.edu>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: autofs5 duplicate entries
+Date: Wed, 15 Aug 2007 13:00:06 +0800
+Message-ID: <1187154006.3249.7.camel@raven.themaw.net>
+References: <46A747E0.7070202@math.uni-muenster.de>
+	<C9AD2899A176C0499022697035E7625A19CC01@houmbx5.anadarko.com>
+	<1185529315.3203.61.camel@raven.themaw.net>
+	<46A9C4BB.6090208@math.uni-muenster.de>
+	<1185549408.3203.64.camel@raven.themaw.net>
+	<C9AD2899A176C0499022697035E7625A19CC2B@houmbx5.anadarko.com>
+	<1187082727.4963.13.camel@raven.themaw.net>
+	<C9AD2899A176C0499022697035E7625A19CCFE@houmbx5.anadarko.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <46C212FA.7030201@cs.ou.edu> (Jim Summers's message of "Tue\,
-	14 Aug 2007 15\:39\:22 -0500")
+In-Reply-To: <C9AD2899A176C0499022697035E7625A19CCFE@houmbx5.anadarko.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,107 +25,167 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: jsummers@bachman.cs.ou.edu
-Cc: autofs@linux.kernel.org, steved@redhat.com
+To: "Wolfe, Allan" <Allan.Wolfe@anadarko.com>
+Cc: autofs@linux.kernel.org
 
-Jim Summers <jsummers@bachman.cs.ou.edu> writes:
+On Tue, 2007-08-14 at 17:44 -0500, Wolfe, Allan wrote:
+> Good question.
+> 
+> I spent some time testing today.  They only test box I could quickly
+> test on was a Solaris 8 with patch 108993-36 applied that affects
+> autofs, NSS, PAM, ldapclient and associated user utilities (this patch
+> is quite old --> current is 108993-67).
+> 
+> The results were quite surprising as I distinctly remember having to
+> insert those delimited cn entries for the benefit of Solaris back 3
+> years ago when we integrated LDAP into our enterprise.  Bottom line, I
+> see that a delimited entry is seemingly no longer needed.  No matter
+> what the test case that was run, the cn as described in the dn prevailed
+> by default to appear as the stub.  Oddly, when accessing a mount
+> directly pathed as an alternate cn, it would mount and appear in that
+> form.  Here are notes from my testing below:
 
-> Jeff Moyer wrote:
->> Jeff Moyer <jmoyer@redhat.com> writes:
->>
->>> Jim Summers <jsummers@bachman.cs.ou.edu> writes:
->>>
->>>> Hello All,
->>>>
->>>> Just hit a hiccup with autofs5.  Everything was going along fine
->>>> and then had a user call and say they could not get their home on
->>>> a machine.  I did some quick checking and some mounts were working
->>>> and others not.  below is a bit of the debug log and some other
->>>> info.  the user, gerardo is the one who called me.  entries in the
->>>> debug log for him are the same as the tmac user.  in that it get
->>>> his ldap info tries to mount but then says it is already mounted
->>>> and then fails????
->>>>
->>>> client machine is FC6 hand compiled autofs version:
->>>> autofs-5.0.1-20
->>>> autofs-debuginfo-5.0.1-20
->>>> with a patch from Ian.
->>> What is the kernel version on the client?
->
-> 2.6.22.1-32.fc6
->
->>
->> I'm guessing that you have 2.6.22.1-13.fc6 or later installed.  These
->> kernels include the "nosharecache" patch for NFS.  This patch can
->> cause some mounts to fail with -EBUSY.  You can revert the
->> nosharecache patch to get the old behaviour back.
->
-> is this accomplished with boot option similar to 'noacpi' or something like that?
+But you guys confirmed that the % hack is present in OpenSolaris so
+perhaps the patch below will provide the behavior we need.
 
-Oh, yeah, if you update nfs-utils, you should get access to the
-nosharecache mount option.  You can probably specify this globally in
-your /etc/sysconfig/autofs file.  OPTIONS="-nosharecache", I think.
+Could someone try this patch out please.
 
->> Could you let us know what nfs mount options are used for your maps,
->> though, as this should only bite you if you try to mount from the same
->> server file system with different sets of mount options.  In other
->> words, your first mount from the server should succeed, successive
->> mount attempts of the same file system with differring options will
->> fail.
->
-> options:
->
-> amarak:
-> -rw,rsize=4096,wsize=4096
-> here is tmac:
->  -rw,actimeo=60,rsize=32768,wsize=32768,nocto
-> here is gerardo:
-> -rw,rsize=8192,wsize=8192
-> here is granville:
-> -rw,rsize=4096,wsize=4096
-> jsummers:
-> -rw,actimeo=60,rsize=32768,wsize=32768,nocto
-
-So, these days superblocks are shared when mounting the same remote
-file system.  As such, when you mount the first export it defines the
-mount options that will be used for subsequent mounts that come from
-the same file system.
-
-This is a change in behaviour from what we've had in the past, and
-there is still ongoing discussion as to how we should resolve the
-issue.
-
-> some results:
-> [root@saturn ~]# su - jsummers
-> [jsummers@saturn ~]$ exit
-> logout
-> [root@saturn ~]# su - tmac
-> su: warning: cannot change directory to /home/tmac: No such file or directory
-> -bash-3.1$ exit
-> logout
-
-Interesting.  I thought that this one would have worked.  If you can
-provide a debug log, we can probably get to the bottom of this.  It
-would also be interesting to know what the contents of /proc/mounts
-was before each of these commands was run.
-
-For information on collecting a debug log, you can consult my people
-page:
-  http://people.redhat.com/jmoyer/
-
-> [root@saturn ~]# su - granville
-> saturn@~> logout
-> [root@saturn ~]# su - amarack
-> saturn@~> logout
-> [root@saturn ~]# su - gerardo
-> su: warning: cannot change directory to /home/gerardo: No such file or directory
-> -bash-3.1$ logout
->
-> weird, huh?
-
-Definitely.  Try the nosharecache mount option.  If that resolves the
-problem, I'm not quite as interested in looking at the debug log.
-
-Thanks!
-
-Jeff
+---
+diff --git a/modules/lookup_ldap.c b/modules/lookup_ldap.c
+index de8d515..7cb4e58 100644
+--- a/modules/lookup_ldap.c
++++ b/modules/lookup_ldap.c
+@@ -1226,34 +1226,50 @@ static int read_one_map(struct autofs_point *ap,
+ 		 * value.
+ 		 */
+ 		count = ldap_count_values_len(bvKey);
+-		if (count > 2) {
+-			error(ap->logopt,
+-			      MODPREFIX
+-			      "key %.*s has duplicate entries - ignoring",
+-			      bvKey[0]->bv_len, bvKey[0]->bv_val);
+-			goto next;
+-		} else if (count == 2) {
++		if (count > 1) {
+ 			unsigned int i;
+ 
+ 			/* Check for the "/" and "*" and use as "/" if found */
+ 			for (i = 0; i < count; i++) {
+-				/* check for wildcard */
+-				if (bvKey[i]->bv_len != 1)
+-					continue;
+-				if (*bvKey[i]->bv_val != '/' &&
+-				    *bvKey[i]->bv_val != '*')
++				bvKey[i]->bv_val[bvKey[i]->bv_len] = '\0';
++
++				/*
++				 * If multiple entries are present they could
++				 * be the result of people using the "%" hack so
++				 * ignore them.
++				 */
++				if (strchr(bvKey[i]->bv_val, '%'))
+ 					continue;
+-				/* always use '/' internally */
+-				*bvKey[i]->bv_val = '/';
++
++				/* check for wildcard */
++				if (bvKey[i]->bv_len == 1 &&
++				    (*bvKey[i]->bv_val == '/' ||
++				     *bvKey[i]->bv_val == '*')) {
++					/* always use '/' internally */
++					*bvKey[i]->bv_val = '/';
++					k_val = bvKey[i]->bv_val;
++					k_len = 1;
++					break;
++				}
++
++				/*
++				 * We have a result from LDAP so this is a
++				 * valid entry. Set the result to the LDAP
++				 * key that isn't a wildcard and doesn't have
++				 * any "%" hack values present. This should be
++				 * the case insensitive match string for the
++				 * nis schema, the default value.
++				 */
+ 				k_val = bvKey[i]->bv_val;
+-				k_len = 1;
++				k_len = bvKey[i]->bv_len;
++
+ 				break;
+ 			}
+ 
+ 			if (!k_val) {
+ 				error(ap->logopt,
+ 				      MODPREFIX
+-				      "key %.*s has duplicate entries - ignoring",
++				      "invalid entry %.*s - ignoring",
+ 				      bvKey[0]->bv_len, bvKey[0]->bv_val);
+ 				goto next;
+ 			}
+@@ -1509,34 +1525,48 @@ static int lookup_one(struct autofs_point *ap,
+ 		 * value.
+ 		 */
+ 		count = ldap_count_values_len(bvKey);
+-		if (count > 2) {
+-			error(ap->logopt,
+-			      MODPREFIX
+-			      "key %.*s has duplicate entries - ignoring",
+-			      bvKey[0]->bv_len, bvKey[0]->bv_val);
+-			goto next;
+-		} else if (count == 2) {
++		if (count > 1) {
+ 			unsigned int i;
+ 
+ 			/* Check for the "/" and "*" and use as "/" if found */
+ 			for (i = 0; i < count; i++) {
+-				/* check for wildcard */
+-				if (bvKey[i]->bv_len != 1)
++				bvKey[i]->bv_val[bvKey[i]->bv_len] = '\0';
++
++				/*
++				 * If multiple entries are present they could
++				 * be the result of people using the "%" hack so
++				 * ignore them.
++				 */
++				if (strchr(bvKey[i]->bv_val, '%'))
+ 					continue;
+-				if (*bvKey[i]->bv_val != '/' &&
+-				    *bvKey[i]->bv_val != '*')
+-					continue;
+-				/* always use '/' internally */
+-				*bvKey[i]->bv_val = '/';
+-				k_val = bvKey[i]->bv_val;
+-				k_len = 1;
++
++				/* check for wildcard */
++				if (bvKey[i]->bv_len == 1 &&
++				    (*bvKey[i]->bv_val == '/' ||
++				     *bvKey[i]->bv_val == '*')) {
++					/* always use '/' internally */
++					*bvKey[i]->bv_val = '/';
++					k_val = bvKey[i]->bv_val;
++					k_len = 1;
++					break;
++				}
++
++				/*
++				 * The key was matched by LDAP so this is a
++				 * valid entry. Set the result key to the
++				 * lookup key to provide the mixed case
++				 * matching provided by the "%" hack.
++				 */
++				k_val = qKey;
++				k_len = strlen(qKey);
++
+ 				break;
+ 			}
+ 
+ 			if (!k_val) {
+ 				error(ap->logopt,
+-					MODPREFIX "key %.*s has duplicate entries",
+-					bvKey[0]->bv_len, bvKey[0]->bv_val);
++					MODPREFIX "no valid key found for %.*s",
++					qKey_len, qKey);
+ 				ret = CHE_FAIL;
+ 				goto next;
+ 			}
