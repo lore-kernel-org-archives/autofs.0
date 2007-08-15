@@ -1,32 +1,73 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [autofs] [PATCH] autofs4: deadlock during create
-Date: Wed, 15 Aug 2007 14:31:43 +0800
-Message-ID: <1187159503.3249.36.camel@raven.themaw.net>
-References: <1187087280.4963.18.camel@raven.themaw.net>
-	 <x49mywuci9i.fsf@segfault.boston.devel.redhat.com>
+Subject: Re: AutoFS5
+Date: Wed, 15 Aug 2007 13:18:24 +0800
+Message-ID: <1187155104.3249.14.camel@raven.themaw.net>
+References: <46C2005D.1090907@cs.ou.edu>
+	<x498x8daovy.fsf@segfault.boston.devel.redhat.com>
+	<x49vebh98nd.fsf@segfault.boston.devel.redhat.com>
+	<46C212FA.7030201@cs.ou.edu>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755126AbXHOGcE@vger.kernel.org>
-In-Reply-To: <x49mywuci9i.fsf@segfault.boston.devel.redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: Andrew Morton <akpm@osdl.org>, autofs mailing list <autofs@linux.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <46C212FA.7030201@cs.ou.edu>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: jsummers@bachman.cs.ou.edu
+Cc: autofs@linux.kernel.org
 
-On Tue, 2007-08-14 at 10:17 -0400, Jeff Moyer wrote:
-> Ian Kent <raven@themaw.net> writes:
-> >
-> > After spending quite a bit of time trying to resolve this on more than
-> > one occassion, using rather complex and ulgy approaches, it turns out
-> > that just delaying the hashing of the dentry until the create operation
-> > work fine.
+On Tue, 2007-08-14 at 15:39 -0500, Jim Summers wrote:
+> Jeff Moyer wrote:
+> > Jeff Moyer <jmoyer@redhat.com> writes:
+> > 
+> >> Jim Summers <jsummers@bachman.cs.ou.edu> writes:
+> >>
+> >>> Hello All,
+> >>>
+> >>> Just hit a hiccup with autofs5.  Everything was going along fine and then had 
+> >>> a user call and say they could not get their home on a machine.  I did some 
+> >>> quick checking and some mounts were working and others not.  below is a bit of 
+> >>> the debug log and some other info.  the user, gerardo is the one who called 
+> >>> me.  entries in the debug log for him are the same as the tmac user.  in that 
+> >>> it get his ldap info tries to mount but then says it is already mounted and 
+> >>> then fails????
+> >>>
+> >>> client machine is FC6 hand compiled autofs version:
+> >>> autofs-5.0.1-20
+> >>> autofs-debuginfo-5.0.1-20
+> >>> with a patch from Ian.
+> >> What is the kernel version on the client?
+> 
+> 2.6.22.1-32.fc6
+> 
+> > 
+> > I'm guessing that you have 2.6.22.1-13.fc6 or later installed.  These
+> > kernels include the "nosharecache" patch for NFS.  This patch can
+> > cause some mounts to fail with -EBUSY.  You can revert the
+> > nosharecache patch to get the old behaviour back.
+> 
+> is this accomplished with boot option similar to 'noacpi' or something like that?
 
-There seems to be an unexpected problem with the patch after removal of
-the d_rehash line left in the original by mistake.
+It's a mount option.
+Check your nfs-utils. I believe that revision 14 and above will
+understand the "nosharecache" option.
 
-I'm working on it.
-Sorry all.
+Add this as a global option by changing:
+
+#OPTIONS=""
+
+to
+
+OPTIONS="-O nosharecache"
+
+in /etc/sysconfig/autofs, near the bottom and let us know if this helps.
 
 Ian
-
