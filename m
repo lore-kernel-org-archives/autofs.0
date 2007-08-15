@@ -1,48 +1,32 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: AutoFS5
-Date: Wed, 15 Aug 2007 13:31:39 +0800
-Message-ID: <1187155899.3249.23.camel@raven.themaw.net>
-References: <46C2005D.1090907@cs.ou.edu>
-	<x498x8daovy.fsf@segfault.boston.devel.redhat.com>
-	<x49vebh98nd.fsf@segfault.boston.devel.redhat.com>
-	<46C212FA.7030201@cs.ou.edu>
-	<1187155104.3249.14.camel@raven.themaw.net>
+Subject: Re: [autofs] [PATCH] autofs4: deadlock during create
+Date: Wed, 15 Aug 2007 14:31:43 +0800
+Message-ID: <1187159503.3249.36.camel@raven.themaw.net>
+References: <1187087280.4963.18.camel@raven.themaw.net>
+	 <x49mywuci9i.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1187155104.3249.14.camel@raven.themaw.net>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755126AbXHOGcE@vger.kernel.org>
+In-Reply-To: <x49mywuci9i.fsf@segfault.boston.devel.redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-To: jsummers@bachman.cs.ou.edu
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: Andrew Morton <akpm@osdl.org>, autofs mailing list <autofs@linux.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Wed, 2007-08-15 at 13:18 +0800, Ian Kent wrote:
-> > > 
-> > > I'm guessing that you have 2.6.22.1-13.fc6 or later installed.  These
-> > > kernels include the "nosharecache" patch for NFS.  This patch can
-> > > cause some mounts to fail with -EBUSY.  You can revert the
-> > > nosharecache patch to get the old behaviour back.
-> > 
-> > is this accomplished with boot option similar to 'noacpi' or something like that?
-> 
-> It's a mount option.
-> Check your nfs-utils. I believe that revision 14 and above will
-> understand the "nosharecache" option.
+On Tue, 2007-08-14 at 10:17 -0400, Jeff Moyer wrote:
+> Ian Kent <raven@themaw.net> writes:
+> >
+> > After spending quite a bit of time trying to resolve this on more than
+> > one occassion, using rather complex and ulgy approaches, it turns out
+> > that just delaying the hashing of the dentry until the create operation
+> > work fine.
 
-That's nfs-utils-1.0.10-14 for FC6.
+There seems to be an unexpected problem with the patch after removal of
+the d_rehash line left in the original by mistake.
 
-If you happen to be using F7 or Rawhide then it's nfs-utils-1.1.0-3, but
-it doesn't look like the F7 package has got to the mirrors yet. The
-patch for the option was inadvertently missed from F7 and Rawhide when
-the patch went into the kernel.
+I'm working on it.
+Sorry all.
 
 Ian
+
