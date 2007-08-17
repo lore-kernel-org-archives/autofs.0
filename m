@@ -1,65 +1,140 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: A weird autofs problem
-Date: Fri, 17 Aug 2007 11:17:35 +0800
-Message-ID: <1187320655.3560.2.camel@raven.themaw.net>
-References: <ufa1we3xcw5.fsf@epithumia.math.uh.edu>
+Subject: Re: [PATCH] autofs4: deadlock during create
+Date: Fri, 17 Aug 2007 11:56:11 +0800
+Message-ID: <1187322972.3560.12.camel@raven.themaw.net>
+References: <1187087280.4963.18.camel@raven.themaw.net>
+	 <x49mywuci9i.fsf@segfault.boston.devel.redhat.com>
+	 <1187159503.3249.36.camel@raven.themaw.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <ufa1we3xcw5.fsf@epithumia.math.uh.edu>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757945AbXHQD4g@vger.kernel.org>
+In-Reply-To: <1187159503.3249.36.camel@raven.themaw.net>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-To: Jason L Tibbitts III <tibbs@math.uh.edu>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: autofs mailing list <autofs@linux.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Jeff Moyer <jmoyer@redhat.com>
 
-On Thu, 2007-08-16 at 18:44 -0500, Jason L Tibbitts III wrote:
-> I'm trying to debug a very weird problem I've started seeing with
-> autofs over the last couple of days.  The machines I'm seeing this on
-> are all running Fedora Core 5 i386, fully updated (autofs 4.1.4-33 and
-> kernel-smp 2.6.20-1.2320.fc5).  Yes, I'm in the process of rolling out
-> F7, but that will still take at least a couple of weeks and in the
-> meantime I'd like to get to the bottom of this if possible.
+On Wed, 2007-08-15 at 14:31 +0800, Ian Kent wrote:
+> On Tue, 2007-08-14 at 10:17 -0400, Jeff Moyer wrote:
+> > Ian Kent <raven@themaw.net> writes:
+> > >
+> > > After spending quite a bit of time trying to resolve this on more than
+> > > one occassion, using rather complex and ulgy approaches, it turns out
+> > > that just delaying the hashing of the dentry until the create operation
+> > > work fine.
 > 
-> We use autofs to automount user home directories under /home.  Some
-> users are reporting that their home directories are just disappearing
-> out from under them; attempts to write to them result in "permission
-> denied".  Only once have I seen a system in this state (users keep
-> rebooting the machines) and I don't have a screen capture, but I
-> recall that df showed the user directory as being "there" but showed
-> dashes instead of numbers for the capacity figures.  Unfortunately I
-> don't recall what showed up in the Filesystem column.
-
-That NFS problem was fixed in 2.6.18 I think.
-
+> There seems to be an unexpected problem with the patch after removal of
+> the d_rehash line left in the original by mistake.
 > 
-> I can't think of anything which has changed on the affected systems.
-> Since they're running FC5 nothing is getting updated.  The automount
-> maps are served via LDAP and as far as I can tell the queries aren't
-> failing.  The server doesn't report any problems.  Nothing has changed
-> recently on either the LDAP servers or the NFS servers.
 
-Something has changed?
+I see you haven't got to this yet, probably because I used your old
+email address, so to save hassle, here is the final patch and the
+description.
 
-> 
-> So I'm at a complete loss here.  If I can access a system while the
-> problem is manifesting I'm sure I can find some more useful
-> information but until then I was hoping that either someone might have
-> seen something liks this and had an idea of what might be causing it
-> or someone might have some idea of how I might go about debugging
-> this.  I have debugging turned on but haven't seen anything useful
-> yet.
 
-We'll need you to get a first hand look at a broken system and have a
-look around and see what really is wrong. And you know that a debug log
-would be good too.
+Due to inconsistent locking in the VFS between calls to lookup and
+revalidate deadlock can occur in the automounter.
 
-Ian
+The inconsistency is that the directory inode mutex is held for both
+lookup and revalidate calls when called via lookup_hash whereas it is
+held only for lookup during a path walk. Consequently, if the mutex
+is held during a call to revalidate autofs4 can't release the mutex
+to callback the daemon as it can't know whether it owns the mutex.
+
+This situation happens when a process tries to create a directory
+within an automount and a second process also tries to create the
+same directory between the lookup and the mkdir. Since the first
+process has dropped the mutex for the daemon callback, the second
+process takes it during revalidate leading to deadlock between the
+autofs daemon and the second process when the daemon tries to create
+the mount point directory.
+
+After spending quite a bit of time trying to resolve this on more than
+one occassion, using rather complex and ulgy approaches, it turns out
+that just delaying the hashing of the dentry until the create operation
+work fine.
+
+Signed-off-by: Ian Kent <raven@themaw.net>
+
+---
+--- linux-2.6.23-rc2-mm2/fs/autofs4/root.c.lookup-delay-hash	2007-08-17 11:52:33.000000000 +0800
++++ linux-2.6.23-rc2-mm2/fs/autofs4/root.c	2007-08-17 11:53:38.000000000 +0800
+@@ -587,19 +587,20 @@ static struct dentry *autofs4_lookup(str
+ 	unhashed = autofs4_lookup_unhashed(sbi, dentry->d_parent, &dentry->d_name);
+ 	if (!unhashed) {
+ 		/*
+-		 * Mark the dentry incomplete, but add it. This is needed so
+-		 * that the VFS layer knows about the dentry, and we can count
+-		 * on catching any lookups through the revalidate.
+-		 *
+-		 * Let all the hard work be done by the revalidate function that
+-		 * needs to be able to do this anyway..
+-		 *
+-		 * We need to do this before we release the directory semaphore.
++		 * Mark the dentry incomplete but don't hash it. We do this 
++		 * to serialize our inode creation operations (symlink and
++		 * mkdir) which prevents deadlock during the callback to
++		 * the daemon. Subsequent user space lookups for the same
++		 * dentry are placed on the wait queue while the daemon
++		 * itself is allowed passage unresticted so the create
++		 * operation itself can then hash the dentry. Finally,
++		 * we check for the hashed dentry and return the newly
++		 * hashed dentry.
+ 		 */
+ 		dentry->d_op = &autofs4_root_dentry_operations;
+ 
+ 		dentry->d_fsdata = NULL;
+-		d_add(dentry, NULL);
++		d_instantiate(dentry, NULL);
+ 	} else {
+ 		struct autofs_info *ino = autofs4_dentry_ino(unhashed);
+ 		DPRINTK("rehash %p with %p", dentry, unhashed);
+@@ -607,15 +608,17 @@ static struct dentry *autofs4_lookup(str
+ 		 * If we are racing with expire the request might not
+ 		 * be quite complete but the directory has been removed
+ 		 * so it must have been successful, so just wait for it.
++		 * We need to ensure the AUTOFS_INF_EXPIRING flag is clear
++		 * before continuing as revalidate may fail when calling
++		 * try_to_fill_dentry (returning EAGAIN) if we don't.
+ 		 */
+-		if (ino && (ino->flags & AUTOFS_INF_EXPIRING)) {
++		while (ino && (ino->flags & AUTOFS_INF_EXPIRING)) {
+ 			DPRINTK("wait for incomplete expire %p name=%.*s",
+ 				unhashed, unhashed->d_name.len,
+ 				unhashed->d_name.name);
+ 			autofs4_wait(sbi, unhashed, NFY_NONE);
+ 			DPRINTK("request completed");
+ 		}
+-		d_rehash(unhashed);
+ 		dentry = unhashed;
+ 	}
+ 
+@@ -658,7 +661,7 @@ static struct dentry *autofs4_lookup(str
+ 	 * for all system calls, but it should be OK for the operations
+ 	 * we permit from an autofs.
+ 	 */
+-	if (dentry->d_inode && d_unhashed(dentry)) {
++	if (!oz_mode && d_unhashed(dentry)) {
+ 		/*
+ 		 * A user space application can (and has done in the past)
+ 		 * remove and re-create this directory during the callback.
+@@ -716,7 +719,7 @@ static int autofs4_dir_symlink(struct in
+ 	strcpy(cp, symname);
+ 
+ 	inode = autofs4_get_inode(dir->i_sb, ino);
+-	d_instantiate(dentry, inode);
++	d_add(dentry, inode);
+ 
+ 	if (dir == dir->i_sb->s_root->d_inode)
+ 		dentry->d_op = &autofs4_root_dentry_operations;
+@@ -844,7 +847,7 @@ static int autofs4_dir_mkdir(struct inod
+ 		return -ENOSPC;
+ 
+ 	inode = autofs4_get_inode(dir->i_sb, ino);
+-	d_instantiate(dentry, inode);
++	d_add(dentry, inode);
+ 
+ 	if (dir == dir->i_sb->s_root->d_inode)
+ 		dentry->d_op = &autofs4_root_dentry_operations;
+
