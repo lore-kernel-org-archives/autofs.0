@@ -1,76 +1,153 @@
-From: Simon Gao <gao@schrodinger.com>
-Subject: Auto mounted file system has incomplete listing of
-	directories
-Date: Wed, 29 Aug 2007 11:36:59 -0700
-Message-ID: <46D5BCCB.2050205@schrodinger.com>
+From: Adrian Bunk <bunk@kernel.org>
+Subject: Re: regression of autofs for current git?
+Date: Thu, 30 Aug 2007 00:47:54 +0200
+Message-ID: <20070829224754.GW26410@stusta.de>
+References: <00f401c7ea7f$6db9fc80$492df580$@com>
 Mime-Version: 1.0
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1761354AbXH2WsJ@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <00f401c7ea7f$6db9fc80$492df580$@com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Hua Zhong <hzhong@gmail.com>
+Cc: 'Linux Kernel Mailing List' <linux-kernel@vger.kernel.org>, Ian Kent <raven@themaw.net>, autofs@linux.kernel.org
 
-Hi,
+On Wed, Aug 29, 2007 at 01:58:58PM -0700, Hua Zhong wrote:
 
-Just run into this strange problem. The file system does not list mount
-point when do "df" and lists incomplete directories (ie, fewer than
-actual number of directories and files).
+> Hi,
 
-I am seeing following errors logged:
+Hi Hua,
 
+> I am wondering if this is a known issue, but I just built the current git
+> and several autofs mounts mysteriously disappeared. Restarting autofs could
+> fix some, but then lose others. 2.6.22 was fine.
+> 
+> Is there anything I could check other than bisect? (It may take some time
+> for me to get to it)
 
-Aug 28 13:37:32 host1 automount[2255]: rmdir_path: lstat of .app1 failed.
-Aug 28 13:37:32 host1 automount[2255]: rmdir_path: lstat of
-.app1-os.tar.Z failed.
-Aug 28 13:37:32 host1 automount[2255]: rmdir_path: lstat of
-.app1-os.tar.gz failed.
-Aug 28 13:37:47 host1 automount[2255]: rmdir_path: lstat of .app1 failed.
-Aug 28 13:37:47 host1 automount[2255]: rmdir_path: lstat of
-.app1-os.tar.Z failed.
-Aug 28 13:37:47 host1 automount[2255]: rmdir_path: lstat of
-.app1-os.tar.gz failed.
-Aug 28 13:38:38 host1 automount[2255]: rmdir_path: lstat of .app1 failed.
-Aug 28 13:38:38 host1 automount[2255]: rmdir_path: lstat of
-.app1-os.tar.Z failed.
-Aug 28 13:38:38 host1 automount[2255]: rmdir_path: lstat of
-.app1-os.tar.gz failed.
-Aug 28 13:58:54 host1 automount[2255]: rmdir_path: lstat of .app1 failed.
-Aug 28 13:58:54 host1 automount[2255]: rmdir_path: lstat of
-.app1-os.tar.Z failed.
-Aug 28 13:58:54 host1 automount[2255]: rmdir_path: lstat of
-.app1-os.tar.gz failed.
-Aug 28 14:12:57 host1 automount[2255]: rmdir_path: lstat of .app1 failed.
-Aug 28 14:12:57 host1 automount[2255]: rmdir_path: lstat of
-.app1-os.tar.Z failed.
-Aug 28 14:12:57 host1 automount[2255]: rmdir_path: lstat of
-.app1-os.tar.gz failed.
-Aug 28 15:02:11 host1 automount[2255]: rmdir_path: lstat of .hidden failed.
-Aug 28 15:02:34 host1 automount[2255]: rmdir_path: lstat of .app1 failed.
-Aug 28 15:02:34 host1 automount[2255]: rmdir_path: lstat of
-.app1-os.tar.Z failed.
-Aug 28 15:02:34 host1 automount[2255]: rmdir_path: lstat of
-.app1-os.tar.gz failed.
-Aug 28 15:39:29 host1 automount[2255]: rmdir_path: lstat of jc failed.
-Aug 28 15:54:56 host1 automount[2255]: rmdir_path: lstat of jc failed.
-Aug 28 16:07:10 host1 automount[2255]: rmdir_path: lstat of .hidden failed.
-Aug 28 16:08:00 host1 automount[2255]: rmdir_path: lstat of .hidden failed.
-Aug 28 16:29:33 host1 automount[2255]: rmdir_path: lstat of .hidden failed.
-Aug 28 16:35:12 host1 automount[2255]: rmdir_path: lstat of .hidden failed.
-Aug 28 16:36:25 host1 automount[2255]: rmdir_path: lstat of .hidden failed.
+the commit below is the only autofs4 patch that went into the git tree 
+since 2.6.22.
+
+Does reverting it fix your problems?
+
+> Thanks for your help.
+> 
+> Hua
+
+cu
+Adrian
 
 
-2.6.18-8.1.8.el5xen
-autofs-5.0.1-0.rc2.43.0.2
+commit 1864f7bd58351732593def024e73eca1f75bc352
+Author: Ian Kent <raven@themaw.net>
+Date:   Wed Aug 22 14:01:54 2007 -0700
 
-Anyone has an idea what the problem is?
+    autofs4: deadlock during create
+    
+    Due to inconsistent locking in the VFS between calls to lookup and
+    revalidate deadlock can occur in the automounter.
+    
+    The inconsistency is that the directory inode mutex is held for both lookup
+    and revalidate calls when called via lookup_hash whereas it is held only
+    for lookup during a path walk.  Consequently, if the mutex is held during a
+    call to revalidate autofs4 can't release the mutex to callback the daemon
+    as it can't know whether it owns the mutex.
+    
+    This situation happens when a process tries to create a directory within an
+    automount and a second process also tries to create the same directory
+    between the lookup and the mkdir.  Since the first process has dropped the
+    mutex for the daemon callback, the second process takes it during
+    revalidate leading to deadlock between the autofs daemon and the second
+    process when the daemon tries to create the mount point directory.
+    
+    After spending quite a bit of time trying to resolve this on more than one
+    occassion, using rather complex and ulgy approaches, it turns out that just
+    delaying the hashing of the dentry until the create operation works fine.
+    
+    Signed-off-by: Ian Kent <raven@themaw.net>
+    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+    Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 
-Simon
+diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
+index 2d4c8a3..45ff3d6 100644
+--- a/fs/autofs4/root.c
++++ b/fs/autofs4/root.c
+@@ -587,19 +587,20 @@ static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, s
+ 	unhashed = autofs4_lookup_unhashed(sbi, dentry->d_parent, &dentry->d_name);
+ 	if (!unhashed) {
+ 		/*
+-		 * Mark the dentry incomplete, but add it. This is needed so
+-		 * that the VFS layer knows about the dentry, and we can count
+-		 * on catching any lookups through the revalidate.
+-		 *
+-		 * Let all the hard work be done by the revalidate function that
+-		 * needs to be able to do this anyway..
+-		 *
+-		 * We need to do this before we release the directory semaphore.
++		 * Mark the dentry incomplete but don't hash it. We do this
++		 * to serialize our inode creation operations (symlink and
++		 * mkdir) which prevents deadlock during the callback to
++		 * the daemon. Subsequent user space lookups for the same
++		 * dentry are placed on the wait queue while the daemon
++		 * itself is allowed passage unresticted so the create
++		 * operation itself can then hash the dentry. Finally,
++		 * we check for the hashed dentry and return the newly
++		 * hashed dentry.
+ 		 */
+ 		dentry->d_op = &autofs4_root_dentry_operations;
+ 
+ 		dentry->d_fsdata = NULL;
+-		d_add(dentry, NULL);
++		d_instantiate(dentry, NULL);
+ 	} else {
+ 		struct autofs_info *ino = autofs4_dentry_ino(unhashed);
+ 		DPRINTK("rehash %p with %p", dentry, unhashed);
+@@ -607,15 +608,17 @@ static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, s
+ 		 * If we are racing with expire the request might not
+ 		 * be quite complete but the directory has been removed
+ 		 * so it must have been successful, so just wait for it.
++		 * We need to ensure the AUTOFS_INF_EXPIRING flag is clear
++		 * before continuing as revalidate may fail when calling
++		 * try_to_fill_dentry (returning EAGAIN) if we don't.
+ 		 */
+-		if (ino && (ino->flags & AUTOFS_INF_EXPIRING)) {
++		while (ino && (ino->flags & AUTOFS_INF_EXPIRING)) {
+ 			DPRINTK("wait for incomplete expire %p name=%.*s",
+ 				unhashed, unhashed->d_name.len,
+ 				unhashed->d_name.name);
+ 			autofs4_wait(sbi, unhashed, NFY_NONE);
+ 			DPRINTK("request completed");
+ 		}
+-		d_rehash(unhashed);
+ 		dentry = unhashed;
+ 	}
+ 
+@@ -658,7 +661,7 @@ static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, s
+ 	 * for all system calls, but it should be OK for the operations
+ 	 * we permit from an autofs.
+ 	 */
+-	if (dentry->d_inode && d_unhashed(dentry)) {
++	if (!oz_mode && d_unhashed(dentry)) {
+ 		/*
+ 		 * A user space application can (and has done in the past)
+ 		 * remove and re-create this directory during the callback.
+@@ -716,7 +719,7 @@ static int autofs4_dir_symlink(struct inode *dir,
+ 	strcpy(cp, symname);
+ 
+ 	inode = autofs4_get_inode(dir->i_sb, ino);
+-	d_instantiate(dentry, inode);
++	d_add(dentry, inode);
+ 
+ 	if (dir == dir->i_sb->s_root->d_inode)
+ 		dentry->d_op = &autofs4_root_dentry_operations;
+@@ -844,7 +847,7 @@ static int autofs4_dir_mkdir(struct inode *dir, struct dentry *dentry, int mode)
+ 		return -ENOSPC;
+ 
+ 	inode = autofs4_get_inode(dir->i_sb, ino);
+-	d_instantiate(dentry, inode);
++	d_add(dentry, inode);
+ 
+ 	if (dir == dir->i_sb->s_root->d_inode)
+ 		dentry->d_op = &autofs4_root_dentry_operations;
