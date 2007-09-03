@@ -1,87 +1,112 @@
-From: Ian Kent <raven@themaw.net>
-Subject: RE: regression of autofs for current git?
-Date: Thu, 30 Aug 2007 11:25:58 +0800
-Message-ID: <1188444358.4090.15.camel@raven.themaw.net>
-References: <00f401c7ea7f$6db9fc80$492df580$@com>
-	 <20070829224754.GW26410@stusta.de>
-	 <1188442804.4090.10.camel@raven.themaw.net>
-	 <010401c7eab3$38d16100$aa742300$@com>
+From: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
+Subject: [1/2] 2.6.23-rc5: known regressions with patches
+Date: Mon, 03 Sep 2007 12:11:03 +0200
+Message-ID: <46DBDDB7.2090806__14726.4900886968$1188830319$gmane$org@googlemail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754275AbXH3D0e@vger.kernel.org>
-In-Reply-To: <010401c7eab3$38d16100$aa742300$@com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Hua Zhong <hzhong@gmail.com>
-Cc: 'Linux Kernel Mailing List' <linux-kernel@vger.kernel.org>, autofs@linux.kernel.org, 'Adrian Bunk' <bunk@kernel.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <autofs-bounces@linux.kernel.org>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: autofs@linux.kernel.org, Gabriel C <nix.or.die@googlemail.com>, Hua Zhong <hzhong@gmail.com>, Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>, linux-ide@vger.kernel.org, Vitaly Bordug <vitb@kernel.crashing.org>, Trond Myklebust <Trond.Myklebust@netapp.com>, LKML <linux-kernel@vger.kernel.org>, Tony Breeds <tony@bakeyournoodle.com>, Ian Kent <raven@themaw.net>, Harry Edmon <harry@atmos.washington.edu>, nfs@lists.sourceforge.net, linux-fsdevel@vger.kernel.org, Satyam Sharma <satyam.sharma@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Andrey Borzenkov <arvidjaar@mail.ru>, Bret Towe <magnade@gmail.com>, Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-On Wed, 2007-08-29 at 20:09 -0700, Hua Zhong wrote:
-> I am in the process of bisecting now. It takes a while but the bad commit is
-> between 2.6.22 and 13f9966b3ba5b45f47f2ea0eb0a90afceedfbb1f (June 28). I'll
-> continue tomorrow.
-> 
-> My system is FC4. 
-> 
-> autofs-4.1.4-26
-> nfs-utils-1.0.7-13.FC4
-> 
-> By the way, the particular autofs commit Andrian sent is innocent. It's
-> something else.
-> 
-> It will still take me about 10 reboots to bisect. If anyone has a patch for
-> me to try, I'll give it a shot tomorrow.
+Hi all,
 
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=75180df2ed467866ada839fe73cf7cc7d75c0a22
+Here is a list of some known regressions in 2.6.23-rc5
+with patches available.
 
-This (and it's related patches) may be the problem.
-I can probably tell if you post your map or if you strace the automount
-process managing the a problem mount point and look for mount returning
-EBUSY when it should succeed.
+Feel free to add new regressions/remove fixed etc.
+http://kernelnewbies.org/known_regressions
 
-> 
-> > -----Original Message-----
-> > From: Ian Kent [mailto:raven@themaw.net]
-> > Sent: Wednesday, August 29, 2007 8:00 PM
-> > To: Hua Zhong
-> > Cc: 'Linux Kernel Mailing List'; autofs@linux.kernel.org; Adrian Bunk
-> > Subject: Re: regression of autofs for current git?
-> > 
-> > On Thu, 2007-08-30 at 00:47 +0200, Adrian Bunk wrote:
-> > > On Wed, Aug 29, 2007 at 01:58:58PM -0700, Hua Zhong wrote:
-> > >
-> > > > Hi,
-> > >
-> > > Hi Hua,
-> > >
-> > > > I am wondering if this is a known issue, but I just built the
-> > current git
-> > > > and several autofs mounts mysteriously disappeared. Restarting
-> > autofs could
-> > > > fix some, but then lose others. 2.6.22 was fine.
-> > > >
-> > > > Is there anything I could check other than bisect? (It may take
-> > some time
-> > > > for me to get to it)
-> > >
-> > > the commit below is the only autofs4 patch that went into the git
-> > tree
-> > > since 2.6.22.
-> > >
-> > > Does reverting it fix your problems?
-> > 
-> > Maybe but there is an NFS change that appears to be in the current
-> > 2.6.23-rc kernel and doesn't seem to be in 2.6.22 that is known to
-> > break
-> > some autofs maps and also breaks amd.
-> > 
-> > I can't seem to locate the commit just now.
-> > In the meantime what version of user space autofs and nfs-utils are you
-> > running?
-> > And can you post your autofs maps please?
-> > 
-> > Ian
-> > 
-> > 
-> 
-> 
+List of Aces
+
+Name                    Regressions fixed since 21-Jun-2007
+Adrian Bunk                            9
+Linus Torvalds                         6
+Andi Kleen                             5
+Hugh Dickins                           5
+Andrew Morton                          4
+Al Viro                                3
+Alan Stern                             3
+Alexey Starikovskiy                    3
+Cornelia Huck                          3
+Jens Axboe                             3
+Stephen Hemminger                      3
+Tejun Heo                              3
+
+
+
+Unclassified
+
+Subject         : 8250 claims non existing device blocking IO port
+References      : http://lkml.org/lkml/2007/8/18/20
+Last known good : ?
+Submitter       : Andrey Borzenkov <arvidjaar@mail.ru>
+Caused-By       : ?
+Handled-By      : Bjorn Helgaas <bjorn.helgaas@hp.com>
+Patch           : http://lkml.org/lkml/2007/8/21/291
+Status          : patch available
+
+Subject         : Oops while modprobing phy fixed module
+References      : http://lkml.org/lkml/2007/7/14/63
+Last known good : ?
+Submitter       : Gabriel C <nix.or.die@googlemail.com>
+Caused-By       : ?
+Handled-By      : Satyam Sharma <satyam.sharma@gmail.com>
+                  Vitaly Bordug <vitb@kernel.crashing.org>
+Patch1          : http://lkml.org/lkml/2007/7/18/506
+Status          : patch available
+
+
+
+FS
+
+Subject         : NFSv4 client OOPS
+References      : http://lkml.org/lkml/2007/8/28/207
+Last known good : ?
+Submitter       : Harry Edmon <harry@atmos.washington.edu>
+Caused-By       : ?
+Handled-By      : Trond Myklebust <Trond.Myklebust@netapp.com>
+Patch           : http://lkml.org/lkml/2007/8/28/204
+Status          : patch available
+
+Subject         : autofs mounts mysteriously disappeared
+References      : http://lkml.org/lkml/2007/8/29/222
+                  http://lkml.org/lkml/2007/8/30/234
+Last known good : 2.6.22
+Submitter       : Hua Zhong <hzhong@gmail.com>
+Caused-By       : ?
+Handled-By      : Trond Myklebust <Trond.Myklebust@netapp.com>
+Patch           : http://lkml.org/lkml/2007/8/31/189
+Status          : patch available
+
+
+
+IDE
+
+Subject         : linux-2.6.23-rc4 ppc build failure
+References      : http://lkml.org/lkml/2007/8/29/154
+Last known good : ?
+Submitter       : Bret Towe <magnade@gmail.com>
+Caused-By       : ?
+Handled-By      : Tony Breeds <tony@bakeyournoodle.com>
+Patch           : http://lkml.org/lkml/2007/8/31/1
+Status          : patch was suggested
+
+
+
+Regards,
+Michal
+
+--
+LOG
+http://www.stardust.webpages.pl/log/
