@@ -1,13 +1,14 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: improving error reporting
-Date: Mon, 10 Sep 2007 22:14:18 +0800
-Message-ID: <1189433659.3175.24.camel@raven.themaw.net>
-References: <10badf220709100011w4c43daf1ha48f1a38de6940d2@mail.gmail.com>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: sasl compilation error
+Date: Mon, 10 Sep 2007 19:58:13 -0400
+Message-ID: <x49abruysx6.fsf@segfault.boston.devel.redhat.com>
+References: <46E5B0C3.9090903@inria.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <10badf220709100011w4c43daf1ha48f1a38de6940d2@mail.gmail.com>
+In-Reply-To: <46E5B0C3.9090903@inria.fr> (Guillaume Rousse's message of "Mon\,
+	10 Sep 2007 23\:01\:55 +0200")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,46 +19,34 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Shane <squindler@gmail.com>
+To: Guillaume Rousse <Guillaume.Rousse@inria.fr>
 Cc: autofs@linux.kernel.org
 
-On Mon, 2007-09-10 at 16:41 +0930, Shane wrote:
-> Hey All,
-> 
-> Does anyone know of a way I could get automount to help me report
-> which app has requested a bad / non-existant mount?
-> 
-> Eg current error of:
-> Sep 10 11:26:14 box automount[21101]: >> mount:
-> srv1:/export/home/.hidden failed, reason given by server: No such file
-> or directory
-> Sep 10 11:26:14 box automount[21101]: mount(nfs): nfs: mount failure
-> srv1:/export/home/.hidden on /home/.hidden
-> Sep 10 11:26:14 box automount[21101]: failed to mount /home/.hidden
-> 
-> this is kinda annoying to track back as either this error causes a
-> flood of requests to mount preventing other mounts so people reboot
-> workstations and we can't track the issue or the offending app gets
-> killed before we're on the scene too. ... I realise this isn't exactly
-> autofs's scope as the request comes not from the app directly, but
-> automount is the first point of failure so hopefully theres a way to
-> do this without causing too much overhead.
-
-The only way is enable debug logging but you only want to do that on a
-couple of machines.
-
-If your using autofs version 4 there isn't any way to record the pid of
-the requesting process because it isn't sent from the kernel. So you
-stuck.
-
-Version 5 will log the pid of the requesting process in syslog provided
-you are sending daemon.* somewhere. Be sure to check your syslog
-configuration and the output in syslog to ensure your getting autofs
-debug logging. Be warned there will be quite a bit of output.
-
-Why do you think autofs preventing other mounts?
-What distribution is this?
-What version of autofs?
-What kernel version?
-
-Ian
+R3VpbGxhdW1lIFJvdXNzZSA8R3VpbGxhdW1lLlJvdXNzZUBpbnJpYS5mcj4gd3JpdGVzOgoKPiBX
+aXRoIGdjYyA0LjIuMSBhbmQgbGlic2FzbCAyLjEuMjIgKGFuZCBhdXRvZnMgNS4wLjIgd2l0aCBh
+bGwgcGF0Y2hlcwo+IGFwcGxpZWQpOgo+IGdjYyAtc2hhcmVkIC1PMiAtZyAtcGlwZSAtV3AsLURf
+Rk9SVElGWV9TT1VSQ0U9MiAtZnN0YWNrLXByb3RlY3Rvcgo+IC0tcGFyYW09c3NwLWJ1ZmZlci1z
+aXplPTQgLWZleGNlcHRpb25zIC1mb21pdC1mcmFtZS1wb2ludGVyIC1tYXJjaD1pNTg2Cj4gLW10
+dW5lPWdlbmVyaWMgLWZhc3luY2hyb25vdXMtdW53aW5kLXRhYmxlcyAtZnN0YWNrLXByb3RlY3Rv
+ci1hbGwKPiAtRF9SRUVOVFJBTlQgLURfRklMRV9PRkZTRVRfQklUUz02NCAtRF9SRUVOVFJBTlQg
+LURfRklMRV9PRkZTRVRfQklUUz02NAo+IC1JLi4vaW5jbHVkZSAtSS4uL2xpYiAtZlBJQyAtRF9H
+TlVfU09VUkNFCj4gLURBVVRPRlNfTElCX0RJUj1cIi91c3IvbGliL2F1dG9mc1wiIC1EQVVUT0ZT
+X01BUF9ESVI9XCIvZXRjL2F1dG9mc1wiIC1vCj4gbW91bnRfbmZzLnNvIFwKPiAgICAgICAgICAg
+ICAgICAgbW91bnRfbmZzLmMgcmVwbGljYXRlZC5vIC4uL2xpYi9hdXRvZnMuYSAtbG5zbAo+IDog
+bW91bnRfYmluZC5zbwo+IDogbG9va3VwX25pc3BsdXMuc28KPiBjeXJ1cy1zYXNsLmM6IEluIGZ1
+bmN0aW9uIOKAmHNhc2xfZG9fa2luaXTigJk6Cj4gY3lydXMtc2FzbC5jOjQ1NDogZXJyZXVyOiBy
+ZXF1ZXN0IGZvciBtZW1iZXIg4oCYbGVuZ3Ro4oCZIGluIHNvbWV0aGluZyBub3QgYQo+IHN0cnVj
+dHVyZSBvciB1bmlvbgo+IGN5cnVzLXNhc2wuYzo0NTU6IGVycmV1cjogcmVxdWVzdCBmb3IgbWVt
+YmVyIOKAmGRhdGHigJkgaW4gc29tZXRoaW5nIG5vdCBhCj4gc3RydWN0dXJlIG9yIHVuaW9uCj4g
+Y3lydXMtc2FzbC5jOjQ1NzogZXJyZXVyOiByZXF1ZXN0IGZvciBtZW1iZXIg4oCYbGVuZ3Ro4oCZ
+IGluIHNvbWV0aGluZyBub3QgYQo+IHN0cnVjdHVyZSBvciB1bmlvbgo+IGN5cnVzLXNhc2wuYzo0
+NTg6IGVycmV1cjogcmVxdWVzdCBmb3IgbWVtYmVyIOKAmGRhdGHigJkgaW4gc29tZXRoaW5nIG5v
+dCBhCj4gc3RydWN0dXJlIG9yIHVuaW9uCgpEbyB5b3UgaGF2ZSBrcmI1IGRldmVsb3BtZW50IGxp
+YnJhcmllcyBhbmQgaGVhZGVycyBpbnN0YWxsZWQ/ICBJdCdzCmxvb2tpbmcgZm9yIHRoaXM6Cgp0
+eXBlZGVmIHN0cnVjdCBrcmI1X3ByaW5jaXBhbF9kYXRhIHsKICAgIGtyYjVfbWFnaWMgbWFnaWM7
+CiAgICBrcmI1X2RhdGEgcmVhbG07CiAgICBrcmI1X2RhdGEgKmRhdGE7ICAgICAgICAgICAgLyog
+QW4gYXJyYXkgb2Ygc3RyaW5ncyAqLwogICAga3JiNV9pbnQzMiBsZW5ndGg7CiAgICBrcmI1X2lu
+dDMyIHR5cGU7Cn0ga3JiNV9wcmluY2lwYWxfZGF0YTsKCnR5cGVkZWYga3JiNV9wcmluY2lwYWxf
+ZGF0YSAqIGtyYjVfcHJpbmNpcGFsOwoKLUplZmYKCl9fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fCmF1dG9mcyBtYWlsaW5nIGxpc3QKYXV0b2ZzQGxpbnV4Lmtl
+cm5lbC5vcmcKaHR0cDovL2xpbnV4Lmtlcm5lbC5vcmcvbWFpbG1hbi9saXN0aW5mby9hdXRvZnMK
