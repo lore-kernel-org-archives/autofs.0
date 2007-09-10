@@ -1,17 +1,12 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: basedn in /etc/sysconfig/autofs
-Date: Mon, 10 Sep 2007 11:01:36 +0800
-Message-ID: <1189393296.3175.7.camel@raven.themaw.net>
-References: <46DE1128.2020109@oracle.com>
-	<1188994602.3119.5.camel@raven.themaw.net>
-	<46DF5F67.7030901@oracle.com>
-	<1189050061.3102.27.camel@raven.themaw.net>
-	<46E4A180.2000409@oracle.com>
+From: Shane <squindler@gmail.com>
+Subject: improving error reporting
+Date: Mon, 10 Sep 2007 16:41:09 +0930
+Message-ID: <10badf220709100011w4c43daf1ha48f1a38de6940d2@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <46E4A180.2000409@oracle.com>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,147 +17,28 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: wengang wang <wen.gang.wang@oracle.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Mon, 2007-09-10 at 09:44 +0800, wengang wang wrote:
-> Hi Ian,
-> 
-> reply from custom:
-> ==>
-> Just to clarify:
->  
-> 1. We use different basedn for authentication and automount in our
-> directory. The basedn for authentoication is used from /etc/ldap.conf.
-> However we need to specify a separate basedn for automount maps
-> because they are regional.
->  
-> 2. We do not have multiple master maps just one.
->  
-> If it possible to use the MASTER_MAP_NAME without specifying the
-> server then that should solve our problem. I will test this and let
-> you know if it works.
+Hey All,
 
-It is and the master map will be found ok in this case but be aware that
-the same issue will exist for the entries in the master map themselves
-because reading the master map is distinct from reading the maps
-themselves.
+Does anyone know of a way I could get automount to help me report
+which app has requested a bad / non-existant mount?
 
-For example:
+Eg current error of:
+Sep 10 11:26:14 box automount[21101]: >> mount:
+srv1:/export/home/.hidden failed, reason given by server: No such file
+or directory
+Sep 10 11:26:14 box automount[21101]: mount(nfs): nfs: mount failure
+srv1:/export/home/.hidden on /home/.hidden
+Sep 10 11:26:14 box automount[21101]: failed to mount /home/.hidden
 
-automountInformation: auto_map
+this is kinda annoying to track back as either this error causes a
+flood of requests to mount preventing other mounts so people reboot
+workstations and we can't track the issue or the offending app gets
+killed before we're on the scene too. ... I realise this isn't exactly
+autofs's scope as the request comes not from the app directly, but
+automount is the first point of failure so hopefully theres a way to
+do this without causing too much overhead.
 
-may not find the right map if there are multiple instances of this map
-name in LDAP.
-
-But if the master map entry has something like:
-
-automountInformation: ou=auto_map,dc=themaw,dc=net
-
-will use the information in the map entry to work out the map basedn.
-
-> <==
-> 
-> thanks,
-> wengang.
-> 
-> Ian Kent wrote: 
-> > On Thu, 2007-09-06 at 10:01 +0800, wengang wang wrote:
-> >   
-> > > Hi Ian,
-> > > 
-> > > here is the exchangings:
-> > >     
-> > 
-> > It's not clear from this what the problem is.
-> > 
-> > snip ...
-> > 
-> >   
-> > > *** PLAKDAWA  08/14/07 02:06 pm *** 
-> > > Just to give you a little more information: Our automount schema is
-> > > based on 
-> > > the "automountmapname", "automountkey" and "automountinformation"
-> > > attributes. 
-> > > This works properly with the relevant settings in
-> > > the /etc/sysconfig/autofs 
-> > > file on RHEL5 if the basedn is set manually in
-> > > the /etc/openldap/ldap.conf 
-> > >     
-> > 
-> > But doesn't work if you don't set basdn in ldap.conf?
-> > Are you saying that there are multiple master maps and maps of the same
-> > name under different basedns in this setup?
-> > 
-> >   
-> > > file. However, since the openldap/ldap.conf file can be used by other 
-> > > applications, we don't want our automounter's basedn to depend on
-> > > this. 
-> > > 
-> > > The LDAP attributes of the automount maps are as shown below: 
-> > > 
-> > > [porus@rattlebag ~]$ ldapsearch -LLL -x -b 
-> > > "ou=sc,ou=ca,ou=na,dc=hyperion,dc=com"
-> > > "automountmapname=auto_nfshome" 
-> > > dn:
-> > > automountMapName=auto_nfshome,ou=sc,ou=ca,ou=na,dc=hyperion,dc=com 
-> > > objectClass: top 
-> > > objectClass: automountMap 
-> > > automountMapName: auto_nfshome 
-> > >   
-> > > [porus@rattlebag ~]$ ldapsearch -LLL -x -b 
-> > > "automountmapname=auto_nfshome,ou=sc,ou=ca,ou=na,dc=hyperion,dc=com" 
-> > > "automountkey=plakdawa" 
-> > > dn: 
-> > > automountkey=plakdawa,automountMapName=auto_nfshome,ou=sc,ou=ca,ou=na,dc=h 
-> > >  yperion,dc=com 
-> > > automountInformation: scfs3:/vol/vol2/homes/& 
-> > > automountKey: plakdawa 
-> > > objectClass: top 
-> > > objectClass: automount 
-> > >     
-> > 
-> > snip ...
-> > 
-> >   
-> > > *** PLAKDAWA  08/20/07 11:51 am *** 
-> > > The other issue with the DEFAULT_MASTER_MAP_NAME is that providing the full 
-> > > URL, will prevent the failover to the secondary LDAP server should the one 
-> > > mentioned in the URL fail. Or is it possible to add secondary entries?
-> > >     
-> > 
-> > It's possible to specify the map (master or other) without the server
-> > name.
-> > 
-> > eg.
-> > MASTER_MAP_NAME="ou=auto.master,dc=themaw,dc=net"
-> > 
-> > This will then use the above basedn for finding the master map.
-> > 
-> > However, this can't be used when autofs searches for the basedn for the
-> > maps referred to in the above master map which may not be a sensible
-> > thing to do but cannot be practically done another way. 
-> > 
-> > The only workaround for this at the moment would be to specify the
-> > basedn in the master map entries as well as in the master map as above.
-> > 
-> > eg.
-> > # /ldap, auto.master, themaw.net
-> > dn: cn=/ldap,ou=auto.master,dc=themaw,dc=net
-> > objectClass: automount
-> > cn: /ldap
-> > automountInformation: ou=auto.indirect,dc=themaw,dc=net
-> > 
-> > Ian
-> > 
-> > 
-> >   
-> 
-> -- 
-> Wengang Wang
-> Member of Technical Staff
-> Oracle Asia R&D Center
-> Open Source Technologies Development
-> 
-> Tel:      +86 10 8278 6265
-> Mobile:   +86 13381078925
+TIA
+Shane.
