@@ -1,42 +1,168 @@
-From: Greg KH <gregkh@suse.de>
-Subject: Re: [2/4] 2.6.23-rc5: known regressions v2
-Date: Sat, 8 Sep 2007 05:28:52 -0700
-Message-ID: <20070908122852.GA30315@suse.de>
-References: <46E27DEF.7060109@googlemail.com> <46E28351.8050900@googlemail.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: basedn in /etc/sysconfig/autofs
+Date: Mon, 10 Sep 2007 11:01:36 +0800
+Message-ID: <1189393296.3175.7.camel@raven.themaw.net>
+References: <46DE1128.2020109@oracle.com>
+	<1188994602.3119.5.camel@raven.themaw.net>
+	<46DF5F67.7030901@oracle.com>
+	<1189050061.3102.27.camel@raven.themaw.net>
+	<46E4A180.2000409@oracle.com>
 Mime-Version: 1.0
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <46E28351.8050900@googlemail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-List-Id: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Michal Piotrowski <michal.k.k.piotrowski@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-fsdevel@vger.kernel.org, nfs@lists.sourceforge.net, Trond Myklebust <Trond.Myklebust@netapp.com>, Andrew Clayton <andrew@digital-domain.net>, Ian Kent <raven@themaw.net>, autofs@linux.kernel.org, Daniel J Blueman <daniel.blueman@gmail.com>, Dave Kleikamp <shaggy@austin.ibm.com>, jfs-discussion@lists.sourceforge.net, linux-usb-devel@lists.sourceforge.net, Alan Stern <stern@rowland.harvard.edu>, Oliver Neukum <oliver@neukum.org>, Tino Keitel <tino.keitel@gmx.de>
+Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <46E4A180.2000409@oracle.com>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: wengang wang <wen.gang.wang@oracle.com>
+Cc: autofs@linux.kernel.org
 
-On Sat, Sep 08, 2007 at 01:11:13PM +0200, Michal Piotrowski wrote:
-> USB
+On Mon, 2007-09-10 at 09:44 +0800, wengang wang wrote:
+> Hi Ian,
 > 
-> Subject         : 2.6.23-rc1: USB hard disk broken
-> References      : http://lkml.org/lkml/2007/7/25/62
-> Last known good : ?
-> Submitter       : Tino Keitel <tino.keitel@gmx.de>
-> Caused-By       : ?
-> Handled-By      : Oliver Neukum <oliver@neukum.org>
-> Status          : unknown
+> reply from custom:
+> ==>
+> Just to clarify:
+>  
+> 1. We use different basedn for authentication and automount in our
+> directory. The basedn for authentoication is used from /etc/ldap.conf.
+> However we need to specify a separate basedn for automount maps
+> because they are regional.
+>  
+> 2. We do not have multiple master maps just one.
+>  
+> If it possible to use the MASTER_MAP_NAME without specifying the
+> server then that should solve our problem. I will test this and let
+> you know if it works.
+
+It is and the master map will be found ok in this case but be aware that
+the same issue will exist for the entries in the master map themselves
+because reading the master map is distinct from reading the maps
+themselves.
+
+For example:
+
+automountInformation: auto_map
+
+may not find the right map if there are multiple instances of this map
+name in LDAP.
+
+But if the master map entry has something like:
+
+automountInformation: ou=auto_map,dc=themaw,dc=net
+
+will use the information in the map entry to work out the map basedn.
+
+> <==
 > 
-> Subject         : USB hard disk broken in 2.6.23-rc3 (autosuspend related)
-> References      : http://bugzilla.kernel.org/show_bug.cgi?id=8892
-> Last known good : ?
-> Submitter       : Roman Jarosz <kedgedev@centrum.cz>
-> Caused-By       : ?
-> Handled-By      : Alan Stern <stern@rowland.harvard.edu>
-> Workaround      : echo -1 >/sys/bus/usb/devices/1-4/power/autosuspend
-> Status          : possible hardware problem
-
-Oliver and Alan, is there any info about these?  Anything that I can
-help out with?
-
-thanks,
-
-greg k-h
+> thanks,
+> wengang.
+> 
+> Ian Kent wrote: 
+> > On Thu, 2007-09-06 at 10:01 +0800, wengang wang wrote:
+> >   
+> > > Hi Ian,
+> > > 
+> > > here is the exchangings:
+> > >     
+> > 
+> > It's not clear from this what the problem is.
+> > 
+> > snip ...
+> > 
+> >   
+> > > *** PLAKDAWA  08/14/07 02:06 pm *** 
+> > > Just to give you a little more information: Our automount schema is
+> > > based on 
+> > > the "automountmapname", "automountkey" and "automountinformation"
+> > > attributes. 
+> > > This works properly with the relevant settings in
+> > > the /etc/sysconfig/autofs 
+> > > file on RHEL5 if the basedn is set manually in
+> > > the /etc/openldap/ldap.conf 
+> > >     
+> > 
+> > But doesn't work if you don't set basdn in ldap.conf?
+> > Are you saying that there are multiple master maps and maps of the same
+> > name under different basedns in this setup?
+> > 
+> >   
+> > > file. However, since the openldap/ldap.conf file can be used by other 
+> > > applications, we don't want our automounter's basedn to depend on
+> > > this. 
+> > > 
+> > > The LDAP attributes of the automount maps are as shown below: 
+> > > 
+> > > [porus@rattlebag ~]$ ldapsearch -LLL -x -b 
+> > > "ou=sc,ou=ca,ou=na,dc=hyperion,dc=com"
+> > > "automountmapname=auto_nfshome" 
+> > > dn:
+> > > automountMapName=auto_nfshome,ou=sc,ou=ca,ou=na,dc=hyperion,dc=com 
+> > > objectClass: top 
+> > > objectClass: automountMap 
+> > > automountMapName: auto_nfshome 
+> > >   
+> > > [porus@rattlebag ~]$ ldapsearch -LLL -x -b 
+> > > "automountmapname=auto_nfshome,ou=sc,ou=ca,ou=na,dc=hyperion,dc=com" 
+> > > "automountkey=plakdawa" 
+> > > dn: 
+> > > automountkey=plakdawa,automountMapName=auto_nfshome,ou=sc,ou=ca,ou=na,dc=h 
+> > >  yperion,dc=com 
+> > > automountInformation: scfs3:/vol/vol2/homes/& 
+> > > automountKey: plakdawa 
+> > > objectClass: top 
+> > > objectClass: automount 
+> > >     
+> > 
+> > snip ...
+> > 
+> >   
+> > > *** PLAKDAWA  08/20/07 11:51 am *** 
+> > > The other issue with the DEFAULT_MASTER_MAP_NAME is that providing the full 
+> > > URL, will prevent the failover to the secondary LDAP server should the one 
+> > > mentioned in the URL fail. Or is it possible to add secondary entries?
+> > >     
+> > 
+> > It's possible to specify the map (master or other) without the server
+> > name.
+> > 
+> > eg.
+> > MASTER_MAP_NAME="ou=auto.master,dc=themaw,dc=net"
+> > 
+> > This will then use the above basedn for finding the master map.
+> > 
+> > However, this can't be used when autofs searches for the basedn for the
+> > maps referred to in the above master map which may not be a sensible
+> > thing to do but cannot be practically done another way. 
+> > 
+> > The only workaround for this at the moment would be to specify the
+> > basedn in the master map entries as well as in the master map as above.
+> > 
+> > eg.
+> > # /ldap, auto.master, themaw.net
+> > dn: cn=/ldap,ou=auto.master,dc=themaw,dc=net
+> > objectClass: automount
+> > cn: /ldap
+> > automountInformation: ou=auto.indirect,dc=themaw,dc=net
+> > 
+> > Ian
+> > 
+> > 
+> >   
+> 
+> -- 
+> Wengang Wang
+> Member of Technical Staff
+> Oracle Asia R&D Center
+> Open Source Technologies Development
+> 
+> Tel:      +86 10 8278 6265
+> Mobile:   +86 13381078925
