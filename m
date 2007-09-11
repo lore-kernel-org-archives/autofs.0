@@ -1,13 +1,13 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: top level mount point
-Date: Tue, 11 Sep 2007 17:27:44 +0800
-Message-ID: <1189502864.3585.10.camel@raven.themaw.net>
-References: <10badf220709110016w454badfdt31a82bf6142171cc@mail.gmail.com>
+From: Guillaume Rousse <Guillaume.Rousse@inria.fr>
+Subject: Re: sasl compilation error
+Date: Tue, 11 Sep 2007 16:31:32 +0200
+Message-ID: <46E6A6C4.1060705@inria.fr>
+References: <46E5B0C3.9090903@inria.fr>
+	<x49abruysx6.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <10badf220709110016w454badfdt31a82bf6142171cc@mail.gmail.com>
+In-Reply-To: <x49abruysx6.fsf@segfault.boston.devel.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,62 +18,23 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Shane <squindler@gmail.com>
+Content-Type: text/plain; charset="iso-8859-1"
 Cc: autofs@linux.kernel.org
 
-On Tue, 2007-09-11 at 16:46 +0930, Shane wrote:
-> Hey All,
-> 
-> I'm trying to get a "top-level" automount to work.  eg
-> 
-> /home  -rw,vers=3,fstype=nfs,intr,hard,tcp,rsize=32768,wsize=32768
-> srv1:/export/home/
-> 
-> I've tried a few things so far - putting that exactly as is into
-> /etc/auto.master, created an auto.direct file and put /- auto.direct
-> into auto.master neither any joy - also tried /home  auto.home in
-> auto.master and above but with * or / as the key as contents of
-> auto.home none are working.
-
-Not valid in auto.master.
-
-An indirect map must have keys that are a directory component only, that
-is no "/"s.
-
-So, in auto.master you can have:
-
-/home	auto.home
-
-and auto.home as:
-
-*	srv1:/export/home/&
-
-to mount /home/myname as srv1:/export/home/myname
-
-You could leave out the "&" but I'm not sure that would be useful.
-
-> 
-> Firstly is this actually possible?  Though I have no idea how Apple
-> translate our maps into something automount uses they do get around
-> this but /home is a symlink to somewhere like
-> /private/var/automount/home. If its possible ...what have I missed to
-> get this working?
-
-No, not possible with version 4.
-
-Single level indirect maps aren't possible by definition.
-
-Single level direct maps are possible with version 5.
-
-So, in auto.master you could have:
-
-/-	auto.home
-
-and auto.home:
-
-/home	svr1:/export/home
-/other/dir	other:/export/other
-
-and the like.
-
-Ian
+SmVmZiBNb3llciBhIMOpY3JpdCA6Cj4gRG8geW91IGhhdmUga3JiNSBkZXZlbG9wbWVudCBsaWJy
+YXJpZXMgYW5kIGhlYWRlcnMgaW5zdGFsbGVkPyAgSXQncwo+IGxvb2tpbmcgZm9yIHRoaXM6Cj4g
+Cj4gdHlwZWRlZiBzdHJ1Y3Qga3JiNV9wcmluY2lwYWxfZGF0YSB7Cj4gICAgIGtyYjVfbWFnaWMg
+bWFnaWM7Cj4gICAgIGtyYjVfZGF0YSByZWFsbTsKPiAgICAga3JiNV9kYXRhICpkYXRhOyAgICAg
+ICAgICAgIC8qIEFuIGFycmF5IG9mIHN0cmluZ3MgKi8KPiAgICAga3JiNV9pbnQzMiBsZW5ndGg7
+Cj4gICAgIGtyYjVfaW50MzIgdHlwZTsKPiB9IGtyYjVfcHJpbmNpcGFsX2RhdGE7Cj4gCj4gdHlw
+ZWRlZiBrcmI1X3ByaW5jaXBhbF9kYXRhICoga3JiNV9wcmluY2lwYWw7CkFjdHVhbGx5LCBJIGhh
+ZCBoZWltZGFsIGxpYnJhcmllcywgaW5zdGVhZCBvZiBtaXQga2VyYmVyb3MsIGFuZCB0aGUgbGFj
+awpvZiBlcnJvciBtZXNzYWdlIGZvciBtaXNzaW5nIGhlYWRlciBmaWxlIGNvbmZ1c2VkIG1lLiBE
+ZXNwaXRlIGhhdmluZyB0aGUKc2FtZSBpbmNsdWRlIGZpbGUgbmFtZSAoa3JiNS5oKSwgaGVpbWRh
+bCBkb2VzIG5vdCBoYXZlIHRoZSBzYW1lCnN0cnVjdHVyZSBkZWZpbmVkLiBJdCB3b3VsZCBiZSB3
+aXNlIHRvIGFkZCBhIGNvbmZpZ3VyZSB0ZXN0IGZvciB0aGlzIGlzc3VlLgoKSW5zdGFsbGluZyBN
+SVQga2VyYmVyb3Mgc29sdmVkIHRoZSBpc3N1ZSwgdGhhbmtzLgotLSAKR3VpbGxhdW1lIFJvdXNz
+ZQpNb3llbnMgSW5mb3JtYXRpcXVlcyAtIElOUklBIEZ1dHVycwpUZWw6IDAxIDY5IDM1IDY5IDYy
+CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwphdXRvZnMg
+bWFpbGluZyBsaXN0CmF1dG9mc0BsaW51eC5rZXJuZWwub3JnCmh0dHA6Ly9saW51eC5rZXJuZWwu
+b3JnL21haWxtYW4vbGlzdGluZm8vYXV0b2ZzCg==
