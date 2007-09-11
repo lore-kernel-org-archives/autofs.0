@@ -1,13 +1,16 @@
-From: Guillaume Rousse <Guillaume.Rousse@inria.fr>
+From: Jeff Moyer <jmoyer@redhat.com>
 Subject: Re: sasl compilation error
-Date: Tue, 11 Sep 2007 16:31:32 +0200
-Message-ID: <46E6A6C4.1060705@inria.fr>
+Date: Tue, 11 Sep 2007 10:44:34 -0400
+Message-ID: <x49ir6h9s8d.fsf@segfault.boston.devel.redhat.com>
 References: <46E5B0C3.9090903@inria.fr>
 	<x49abruysx6.fsf@segfault.boston.devel.redhat.com>
+	<46E6A6C4.1060705@inria.fr>
 Mime-Version: 1.0
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <x49abruysx6.fsf@segfault.boston.devel.redhat.com>
+In-Reply-To: <46E6A6C4.1060705@inria.fr> (Guillaume Rousse's message of "Tue\,
+	11 Sep 2007 16\:31\:32 +0200")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,23 +21,37 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="iso-8859-1"
+To: Guillaume Rousse <Guillaume.Rousse@inria.fr>
 Cc: autofs@linux.kernel.org
 
-SmVmZiBNb3llciBhIMOpY3JpdCA6Cj4gRG8geW91IGhhdmUga3JiNSBkZXZlbG9wbWVudCBsaWJy
-YXJpZXMgYW5kIGhlYWRlcnMgaW5zdGFsbGVkPyAgSXQncwo+IGxvb2tpbmcgZm9yIHRoaXM6Cj4g
-Cj4gdHlwZWRlZiBzdHJ1Y3Qga3JiNV9wcmluY2lwYWxfZGF0YSB7Cj4gICAgIGtyYjVfbWFnaWMg
-bWFnaWM7Cj4gICAgIGtyYjVfZGF0YSByZWFsbTsKPiAgICAga3JiNV9kYXRhICpkYXRhOyAgICAg
-ICAgICAgIC8qIEFuIGFycmF5IG9mIHN0cmluZ3MgKi8KPiAgICAga3JiNV9pbnQzMiBsZW5ndGg7
-Cj4gICAgIGtyYjVfaW50MzIgdHlwZTsKPiB9IGtyYjVfcHJpbmNpcGFsX2RhdGE7Cj4gCj4gdHlw
-ZWRlZiBrcmI1X3ByaW5jaXBhbF9kYXRhICoga3JiNV9wcmluY2lwYWw7CkFjdHVhbGx5LCBJIGhh
-ZCBoZWltZGFsIGxpYnJhcmllcywgaW5zdGVhZCBvZiBtaXQga2VyYmVyb3MsIGFuZCB0aGUgbGFj
-awpvZiBlcnJvciBtZXNzYWdlIGZvciBtaXNzaW5nIGhlYWRlciBmaWxlIGNvbmZ1c2VkIG1lLiBE
-ZXNwaXRlIGhhdmluZyB0aGUKc2FtZSBpbmNsdWRlIGZpbGUgbmFtZSAoa3JiNS5oKSwgaGVpbWRh
-bCBkb2VzIG5vdCBoYXZlIHRoZSBzYW1lCnN0cnVjdHVyZSBkZWZpbmVkLiBJdCB3b3VsZCBiZSB3
-aXNlIHRvIGFkZCBhIGNvbmZpZ3VyZSB0ZXN0IGZvciB0aGlzIGlzc3VlLgoKSW5zdGFsbGluZyBN
-SVQga2VyYmVyb3Mgc29sdmVkIHRoZSBpc3N1ZSwgdGhhbmtzLgotLSAKR3VpbGxhdW1lIFJvdXNz
-ZQpNb3llbnMgSW5mb3JtYXRpcXVlcyAtIElOUklBIEZ1dHVycwpUZWw6IDAxIDY5IDM1IDY5IDYy
-CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwphdXRvZnMg
-bWFpbGluZyBsaXN0CmF1dG9mc0BsaW51eC5rZXJuZWwub3JnCmh0dHA6Ly9saW51eC5rZXJuZWwu
-b3JnL21haWxtYW4vbGlzdGluZm8vYXV0b2ZzCg==
+Guillaume Rousse <Guillaume.Rousse@inria.fr> writes:
+
+> Jeff Moyer a =E9crit :
+>> Do you have krb5 development libraries and headers installed?  It's
+>> looking for this:
+>> =
+
+>> typedef struct krb5_principal_data {
+>>     krb5_magic magic;
+>>     krb5_data realm;
+>>     krb5_data *data;            /* An array of strings */
+>>     krb5_int32 length;
+>>     krb5_int32 type;
+>> } krb5_principal_data;
+>> =
+
+>> typedef krb5_principal_data * krb5_principal;
+> Actually, I had heimdal libraries, instead of mit kerberos, and the lack
+> of error message for missing header file confused me. Despite having the
+> same include file name (krb5.h), heimdal does not have the same
+> structure defined. It would be wise to add a configure test for this issu=
+e.
+>
+> Installing MIT kerberos solved the issue, thanks.
+
+OK.  Clearly, I haven't tried using the Heimdal implementation.  I'll
+add it to my ever-growing list.  ;)
+
+Cheers,
+
+Jeff
