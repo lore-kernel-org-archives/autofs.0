@@ -1,14 +1,13 @@
-From: Jeff Moyer <jmoyer@redhat.com>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: Reports of huge CPU usage with 5.0.2
-Date: Sun, 16 Sep 2007 20:50:55 -0400
-Message-ID: <x49k5qqxggg.fsf@segfault.boston.devel.redhat.com>
+Date: Mon, 17 Sep 2007 11:19:56 +0800
+Message-ID: <1189999196.3124.6.camel@raven.themaw.net>
 References: <46ED96B6.8070305@inria.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <46ED96B6.8070305@inria.fr> (Guillaume Rousse's message of "Sun\,
-	16 Sep 2007 22\:48\:54 +0200")
+In-Reply-To: <46ED96B6.8070305@inria.fr>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,22 +21,20 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: Guillaume Rousse <Guillaume.Rousse@inria.fr>
 Cc: autofs@linux.kernel.org
 
-Guillaume Rousse <Guillaume.Rousse@inria.fr> writes:
-
+On Sun, 2007-09-16 at 22:48 +0200, Guillaume Rousse wrote:
 > Hello.
->
+> 
 > I have several reports from users having constant 20% cpu usage from
 > automounter since 5.0.2 release, but I can't reproduce myself: see
 > http://qa.mandriva.com/show_bug.cgi?id=32611
->
+> 
 > Is anyone else here facing the same problem ?
 
-Not that I know of, certainly not with that old kernel!  Can you get
-an strace of the thread that is hogging the CPU?  Also, I didn't see a
-debug log posted.  Please refer the users to my people page for
-directions on enabling debugging:
-  http://people.redhat.com/jmoyer
+About comment #4 and browsing.
 
-Cheers,
+If this is enabled the CPU usage is directly proportional to the number
+of entries in indirect maps. So, if someone has 30000+ keys CPU usage
+will be really high but if someone has 500-1500 the CPU usage should be
+OK.
 
-Jeff
+Ian
