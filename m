@@ -1,13 +1,12 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Reports of huge CPU usage with 5.0.2
-Date: Mon, 17 Sep 2007 11:19:56 +0800
-Message-ID: <1189999196.3124.6.camel@raven.themaw.net>
-References: <46ED96B6.8070305@inria.fr>
+From: "Jayanthi V" <vjnthi@gmail.com>
+Subject: automount on redhat
+Date: Fri, 21 Sep 2007 22:12:40 +0800
+Message-ID: <39f1062c0709210712q2c9a8c69oa2c21c3bded9a0d0@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <46ED96B6.8070305@inria.fr>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,23 +17,20 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Guillaume Rousse <Guillaume.Rousse@inria.fr>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Sun, 2007-09-16 at 22:48 +0200, Guillaume Rousse wrote:
-> Hello.
-> 
-> I have several reports from users having constant 20% cpu usage from
-> automounter since 5.0.2 release, but I can't reproduce myself: see
-> http://qa.mandriva.com/show_bug.cgi?id=32611
-> 
-> Is anyone else here facing the same problem ?
+Hi all,
 
-About comment #4 and browsing.
+how to automount on RedHat
+... When I start the autofs service I get these errors. ... How do I
+get it so it
+automounts my directories from my NIS domain? ... failed to load map,
+exiting ...
 
-If this is enabled the CPU usage is directly proportional to the number
-of entries in indirect maps. So, if someone has 30000+ keys CPU usage
-will be really high but if someone has 500-1500 the CPU usage should be
-OK.
+Start /usr/sbin/automount --timeout=60 /epd yp auto_epd -rw,soft
+failed to load map, exiting
+Start /usr/sbin/automount --timeout=60 /erd/doc yp auto_doc -rw,soft
+failed to load map, exiting
 
-Ian
+thanks,
+Jayanthi
