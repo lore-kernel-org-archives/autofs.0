@@ -1,14 +1,11 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: automount on redhat
-Date: Tue, 25 Sep 2007 10:07:00 -0400
-Message-ID: <x49abra7saj.fsf@segfault.boston.devel.redhat.com>
-References: <39f1062c0709210712q2c9a8c69oa2c21c3bded9a0d0@mail.gmail.com>
+From: Matthias Koenig <mkoenig@suse.de>
+Subject: [PATCH] nested mounts with loop
+Date: Tue, 25 Sep 2007 18:21:19 +0200
+Message-ID: <n7xir5ybts0.fsf@sor.suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <39f1062c0709210712q2c9a8c69oa2c21c3bded9a0d0@mail.gmail.com>
-	(Jayanthi V.'s message of "Fri\, 21 Sep 2007 22\:12\:40 +0800")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,26 +16,47 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jayanthi V <vjnthi@gmail.com>
-Cc: autofs@linux.kernel.org
+To: autofs mailing list <autofs@linux.kernel.org>
 
-"Jayanthi V" <vjnthi@gmail.com> writes:
+Hi,
 
-> Hi all,
->
-> how to automount on RedHat
-> ... When I start the autofs service I get these errors. ... How do I
-> get it so it
-> automounts my directories from my NIS domain? ... failed to load map,
-> exiting ...
->
-> Start /usr/sbin/automount --timeout=60 /epd yp auto_epd -rw,soft
-> failed to load map, exiting
-> Start /usr/sbin/automount --timeout=60 /erd/doc yp auto_doc -rw,soft
-> failed to load map, exiting
+we noticed a problem concerning loop mounts on locations that 
+have to be mounted before. E.g. consider the following situation,
+a NFS server exporting a cd image, which we want to loop mount
+locally to get access to the content:
 
-What does the 'ypwhich' command show?
-What is the output of 'ypcat -k auto_epd'?
-What is the output of 'rpm -q autofs'?
+auto.master:
+/cdimage        auto.cdimage
+/cdcontent      auto.cdcontent
 
--Jeff
+auto.cdimage:
+foo             nfsserver:/cdimage/foo.img
+
+auto.cdcontent:
+foo             -fstype=auto,loop       :/cdimage/foo/foo.img
+
+The access to /cdcontent/foo will fail, when /cdimage/foo is not 
+mounted before, because spawn_mount does not use SPAWN_OPT_ACCESS
+in this case.
+The patch below fixes this problem.
+
+Matthias
+
+Index: autofs-git20070924/daemon/spawn.c
+===================================================================
+--- autofs-git20070924.orig/daemon/spawn.c
++++ autofs-git20070924/daemon/spawn.c
+@@ -293,6 +293,13 @@ int spawn_mount(logger *log, ...)
+ 	while ((*p++ = va_arg(arg, char *)));
+ 	va_end(arg);
+ 
++#ifndef ENABLE_MOUNT_LOCKING
++	/* validate loop mounts as they could be on some location to be
++	 * mounted first */
++	if (!strcmp(argv[4], "-o") && strstr(argv[5], "loop"))
++		options = SPAWN_OPT_ACCESS;
++#endif
++
+ 	while (retries--) {
+ 		ret = do_spawn(log, options, prog, (const char **) argv);
+ 		if (ret & MTAB_NOTUPDATED)
