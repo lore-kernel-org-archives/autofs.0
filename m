@@ -1,11 +1,13 @@
-From: Matthias Koenig <mkoenig@suse.de>
-Subject: [PATCH] nested mounts with loop
-Date: Tue, 25 Sep 2007 18:21:19 +0200
-Message-ID: <n7xir5ybts0.fsf@sor.suse.de>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [PATCH] nested mounts with loop
+Date: Wed, 26 Sep 2007 02:04:09 +0800
+Message-ID: <1190743449.3116.20.camel@raven.themaw.net>
+References: <n7xir5ybts0.fsf@sor.suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <n7xir5ybts0.fsf@sor.suse.de>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,47 +18,35 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs mailing list <autofs@linux.kernel.org>
+To: Matthias Koenig <mkoenig@suse.de>
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
-Hi,
+On Tue, 2007-09-25 at 18:21 +0200, Matthias Koenig wrote:
+> Hi,
+> 
+> we noticed a problem concerning loop mounts on locations that 
+> have to be mounted before. E.g. consider the following situation,
+> a NFS server exporting a cd image, which we want to loop mount
+> locally to get access to the content:
+> 
+> auto.master:
+> /cdimage        auto.cdimage
+> /cdcontent      auto.cdcontent
+> 
+> auto.cdimage:
+> foo             nfsserver:/cdimage/foo.img
+> 
+> auto.cdcontent:
+> foo             -fstype=auto,loop       :/cdimage/foo/foo.img
+> 
+> The access to /cdcontent/foo will fail, when /cdimage/foo is not 
+> mounted before, because spawn_mount does not use SPAWN_OPT_ACCESS
+> in this case.
+> The patch below fixes this problem.
 
-we noticed a problem concerning loop mounts on locations that 
-have to be mounted before. E.g. consider the following situation,
-a NFS server exporting a cd image, which we want to loop mount
-locally to get access to the content:
+I can't remember now.
+I wonder why I don't always call access?
+I must have had a reason, let me think about it for a while.
 
-auto.master:
-/cdimage        auto.cdimage
-/cdcontent      auto.cdcontent
-
-auto.cdimage:
-foo             nfsserver:/cdimage/foo.img
-
-auto.cdcontent:
-foo             -fstype=auto,loop       :/cdimage/foo/foo.img
-
-The access to /cdcontent/foo will fail, when /cdimage/foo is not 
-mounted before, because spawn_mount does not use SPAWN_OPT_ACCESS
-in this case.
-The patch below fixes this problem.
-
-Matthias
-
-Index: autofs-git20070924/daemon/spawn.c
-===================================================================
---- autofs-git20070924.orig/daemon/spawn.c
-+++ autofs-git20070924/daemon/spawn.c
-@@ -293,6 +293,13 @@ int spawn_mount(logger *log, ...)
- 	while ((*p++ = va_arg(arg, char *)));
- 	va_end(arg);
- 
-+#ifndef ENABLE_MOUNT_LOCKING
-+	/* validate loop mounts as they could be on some location to be
-+	 * mounted first */
-+	if (!strcmp(argv[4], "-o") && strstr(argv[5], "loop"))
-+		options = SPAWN_OPT_ACCESS;
-+#endif
-+
- 	while (retries--) {
- 		ret = do_spawn(log, options, prog, (const char **) argv);
- 		if (ret & MTAB_NOTUPDATED)
+Thanks for the patch.
+Ian
