@@ -1,13 +1,15 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [BUG] 5.0.0_beta1: does not auto-unmount
-Date: Wed, 26 Sep 2007 23:26:47 +0800
-Message-ID: <1190820407.12109.23.camel@raven.themaw.net>
-References: <200709261123.41401.vda.linux@googlemail.com>
+From: Matthias Koenig <mkoenig@suse.de>
+Subject: Re: [PATCH] nested mounts with loop
+Date: Wed, 26 Sep 2007 17:32:21 +0200
+Message-ID: <n7xsl51v3wa.fsf@sor.suse.de>
+References: <n7xir5ybts0.fsf@sor.suse.de>
+	<1190743449.3116.20.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200709261123.41401.vda.linux@googlemail.com>
+In-Reply-To: <1190743449.3116.20.camel@raven.themaw.net> (Ian Kent's message
+	of "Wed\, 26 Sep 2007 02\:04\:09 +0800")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,65 +20,41 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Denys Vlasenko <vda.linux@googlemail.com>
-Cc: autofs@linux.kernel.org
+To: Ian Kent <raven@themaw.net>
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
-On Wed, 2007-09-26 at 11:23 +0100, Denys Vlasenko wrote:
-> Hi Ian,
-> 
-> I run automount like this:
-> 
-> # automount -f -s -v --timeout 15 /.local/var/service/automount/master.file
-> 
-> My master.file is one-liner:
-> 
-> /mnt/auto program:/.local/var/service/automount/mapper.sh
-> 
-> mapper.sh is attached.
-> 
-> This setup (with this exact mapper.sh) worked flawlessly
-> with 4.1.4, but with 5.0.0_beta1 I have a problem:
-> 
-> # automount -f -s -v --timeout 15 /.local/var/service/automount/master
-> Starting automounter version 5.0.0_beta1, master map /.local/var/service/automount/master
-> using kernel protocol version 5.00
-> using timeout 15 seconds; freq 4 secs
-> 
-> I do "cd /mnt/auto/vfat.sdb1" (sdb1 is my USB memory stick)
-> and automount says:
-> 
-> attempting to mount entry /.local/mnt/auto/vfat.sdb1
-> mounted /mnt/auto/vfat.sdb1
-> 
-> So far so good, mount shows:
-> /dev/sdb1 on /mnt/auto/vfat.sdb1 type vfat (rw,nosuid,noexec,fmask=0000,dmask=0000,codepage=cp866,iocharset=koi8-r,shortname=win95,quiet,uni_xlate)
-> 
-> But it never auto-unmounts. I am 100% sure nothing
-> is keeping files or directories busy on /dev/sdb1 (I cd'ed away
-> from the directory). Automount is not saying anything,
-> strace -p <PID> shows one line:
+Ian Kent <raven@themaw.net> writes:
 
-Strange, I'll try and duplicate this and see how far I get.
-If you do want to make sure nothing is asking it to remount enable debug
-and ensure facility daemon.* is being logged. If there are accesses
-keeping it open the requesting pid will be logged.
+> On Tue, 2007-09-25 at 18:21 +0200, Matthias Koenig wrote:
+>> Hi,
+>> 
+>> we noticed a problem concerning loop mounts on locations that 
+>> have to be mounted before. E.g. consider the following situation,
+>> a NFS server exporting a cd image, which we want to loop mount
+>> locally to get access to the content:
+>> 
+>> auto.master:
+>> /cdimage        auto.cdimage
+>> /cdcontent      auto.cdcontent
+>> 
+>> auto.cdimage:
+>> foo             nfsserver:/cdimage/foo.img
+>> 
+>> auto.cdcontent:
+>> foo             -fstype=auto,loop       :/cdimage/foo/foo.img
+>> 
+>> The access to /cdcontent/foo will fail, when /cdimage/foo is not 
+>> mounted before, because spawn_mount does not use SPAWN_OPT_ACCESS
+>> in this case.
+>> The patch below fixes this problem.
+>
+> I can't remember now.
+> I wonder why I don't always call access?
+> I must have had a reason, let me think about it for a while.
 
-> 
-> rt_sigtimedwait(~[CHLD CONT RTMIN RT_1],
-> 
-> I killed 4 hours of my time making automount 5.0.0 even start on my machine,
-> and it's 4:00 am here, so at this time I am a rather unhappy panda and
-> probably I'll go back to 4.1.4 instead of chasing down yet another bug.
+Yes, I first tried to set SPAWN_OPT_ACCESS as default, but this did
+not work and had the negative effect, that NFS mounts could not
+be mounted anymore, because an access() has been done on the
+NFS location description "nfsserver:/cdimage", which then fails.
 
-Ya but I'm getting there.
-The change is huge to be sure, and many things do work well.
-
-> 
-> # size autofs*/sbin/*
->    text    data     bss     dec     hex filename
->   35143     916   10084   46143    b43f autofs-4.1.4_beta1/sbin/automount
->  118494    1344     884  120722   1d792 autofs-5.0.0_beta1/sbin/automount
-> 
-> During 4.1.4 -> 5.0.0 size has *tripled*. Uncool. :(
-
-Not sure what I can do about that, sorry.
+Matthias
