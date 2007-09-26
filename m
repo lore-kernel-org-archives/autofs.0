@@ -1,12 +1,14 @@
-From: Denys Vlasenko <vda.linux@googlemail.com>
-Subject: ctrl-C doesn't work
-Date: Wed, 26 Sep 2007 11:15:20 +0100
-Message-ID: <200709261115.20136.vda.linux@googlemail.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [PATCH] 5.0.0_beta1: uncomment "-f --foreground..."
+	help text; comment out unused stuff.
+Date: Wed, 26 Sep 2007 23:08:27 +0800
+Message-ID: <1190819307.12109.2.camel@raven.themaw.net>
+References: <200709261048.48044.vda.linux@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <200709261048.48044.vda.linux@googlemail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,24 +19,18 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
+To: Denys Vlasenko <vda.linux@googlemail.com>
 Cc: autofs@linux.kernel.org
 
-Hi Ian,
+On Wed, 2007-09-26 at 10:48 +0100, Denys Vlasenko wrote:
+> Hi Ian,
+> 
+> Please apply attached trivial patch. It is run-tested.
 
-I run automounter in foreground mode, and when I start it from command line,
-it does not die on SIGINT:
+Sorry I'm so late with this Denys but please look at commit
+http://git.kernel.org/?p=linux/storage/autofs/autofs.git;a=commitdiff;h=4bfe89a5c214859eb07ad1aa7e4481d470a5bb3f
 
-automount -f -s -v --timeout 15 $PWD/master.file
-Starting automounter version 5.0.0_beta1, master map /.local/var/service/automount/master.file
-using kernel protocol version 5.00
-using timeout 15 seconds; freq 4 secs
- -- I press ctrl-C several times
-statemachine: got unexpected signal 2!
-statemachine: got unexpected signal 2!
-statemachine: got unexpected signal 2!
+I think this will cover the foreground logging issues you're having.
+The patch is also in the usual place on kernel.org.
 
-What do you think about making SIGINT equivalent to SIGTERM?
-This will be more convenient...
---
-vda
+Ian
