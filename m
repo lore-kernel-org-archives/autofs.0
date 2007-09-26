@@ -1,7 +1,7 @@
 From: Denys Vlasenko <vda.linux@googlemail.com>
-Subject: "syntax error in nsswitch config near [ syntax error ]" ?
-Date: Wed, 26 Sep 2007 11:12:35 +0100
-Message-ID: <200709261112.35225.vda.linux@googlemail.com>
+Subject: ctrl-C doesn't work
+Date: Wed, 26 Sep 2007 11:15:20 +0100
+Message-ID: <200709261115.20136.vda.linux@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -22,44 +22,19 @@ Cc: autofs@linux.kernel.org
 
 Hi Ian,
 
-I tried to start automount with command line like this one:
+I run automounter in foreground mode, and when I start it from command line,
+it does not die on SIGINT:
 
-automount -f -s -v --timeout 15 master.file
+automount -f -s -v --timeout 15 $PWD/master.file
+Starting automounter version 5.0.0_beta1, master map /.local/var/service/automount/master.file
+using kernel protocol version 5.00
+using timeout 15 seconds; freq 4 secs
+ -- I press ctrl-C several times
+statemachine: got unexpected signal 2!
+statemachine: got unexpected signal 2!
+statemachine: got unexpected signal 2!
 
-and it says:
-
-
-Starting automounter version 5.0.0_beta1, master map master.file
-syntax error in nsswitch config near [ syntax error ]
-
-lookup_nss_read_master: can't to read name service switch config.
-master_read_master: can't read master map master.file
-
-
-Well, my mistake was that I should use fully-qualified filename ($PWD/master.file),
-but error message is misleading. It says that my /etc/nsswitch.conf
-is bad (well, it doesn't even mention "/etc/nsswitch.conf", I need to
-infer that!).
-
-But my /etc/nsswitch.conf has no syntax errors:
-
-passwd:         compat
-group:          compat
-shadow:         compat
-hosts:          files dns [!UNAVAIL=return]
-networks:       files
-ethers:         files
-protocols:      files
-rpc:            files
-services:       files
-
-it just doesn't have automounter maps. This is not a crime.
-
-Message is also complains about /etc/nsswitch.conf FIRST,
-and THEN complains "can't read master map master.file",
-but actual order of these events is different - if master
-file is found, /etc/nsswitch.conf is not consulted.
-
-Can this be improved?
+What do you think about making SIGINT equivalent to SIGTERM?
+This will be more convenient...
 --
 vda
