@@ -1,13 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH] 5.0.0_beta1: use PATH in execXX()
-Date: Wed, 26 Sep 2007 23:11:02 +0800
-Message-ID: <1190819462.12109.5.camel@raven.themaw.net>
-References: <200709261100.54397.vda.linux@googlemail.com>
+Subject: Re: [PATCH] 5.0.0_beta1: glibc 2.4.0 quirk
+Date: Wed, 26 Sep 2007 23:11:53 +0800
+Message-ID: <1190819513.12109.7.camel@raven.themaw.net>
+References: <200709261103.19490.vda.linux@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200709261100.54397.vda.linux@googlemail.com>
+In-Reply-To: <200709261103.19490.vda.linux@googlemail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,41 +21,17 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: Denys Vlasenko <vda.linux@googlemail.com>
 Cc: autofs@linux.kernel.org
 
-On Wed, 2007-09-26 at 11:00 +0100, Denys Vlasenko wrote:
-> Hi Ian,
+On Wed, 2007-09-26 at 11:03 +0100, Denys Vlasenko wrote:
+> hi Ian,
 > 
-> I want automount to use PATH when it tries to run e.g. "mount",
-> because I want it to work regardless where my mount binary is
-> (/bin or /usr/bin or...). I do have different system with different
-> paths to some binaries, and it is pain in the ass - I have
-> no way to explain to automount binary that it needs to look
-> in another directory.
+> I have glibc 2.4.0 installed, and it expands pthread_cleanup_pop(1) into:
+> 
+> 	} while (0); __pthread_unregister_cancel (&__cancel_buf); if (1) __cancel_routine (__cancel_arg); } while (0);
+> 
+> This doesn't compile if you have a label before it.
+> gcc 4.2.1 says "error: label at end of compound statement".
+> 
+> This patch works around it by adding extra semicolon.
 
-Yes, people have asked for this fairly often.
-I've resisted so far but perhaps I'm just wrong to do so.
-I'll have a look at this and think about it for a little while.
-
-> 
-> I am trying to make automount using 'short' names it by passing
-> variables to configure:
-> 
-> MOUNT="mount" \
-> UMOUNT="umount" \
-> E2FSCK="fsck.ext2" \
-> E3FSCK="fsck.ext3" \
-> ./configure ............
-> 
-> I think it's reasonably safe since automount is started by root
-> and root is expected to set PATH sanely.
-> 
-> And it still doesn't work, because you are using execv(), not execvp().
-> 
-> This patch replaces execv() with execvp().
-> 
-> It should change nothing for 'normally' configured automount since
-> it passes fully qualified names ("/bin/mount") to exec and PATH
-> is not used in this case.
-> 
-> Please consider applying.
-> --
-> vda
+Cool, I'll test this out and commit it.
+Thanks
