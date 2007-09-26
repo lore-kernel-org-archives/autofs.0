@@ -1,13 +1,12 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH] nested mounts with loop
-Date: Wed, 26 Sep 2007 02:04:09 +0800
-Message-ID: <1190743449.3116.20.camel@raven.themaw.net>
-References: <n7xir5ybts0.fsf@sor.suse.de>
+From: Denys Vlasenko <vda.linux@googlemail.com>
+Subject: [BUG] 5.0.0_beta1: infinite loop on read error
+Date: Wed, 26 Sep 2007 11:05:14 +0100
+Message-ID: <200709261105.14333.vda.linux@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <n7xir5ybts0.fsf@sor.suse.de>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,35 +17,35 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Matthias Koenig <mkoenig@suse.de>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org
 
-On Tue, 2007-09-25 at 18:21 +0200, Matthias Koenig wrote:
-> Hi,
-> 
-> we noticed a problem concerning loop mounts on locations that 
-> have to be mounted before. E.g. consider the following situation,
-> a NFS server exporting a cd image, which we want to loop mount
-> locally to get access to the content:
-> 
-> auto.master:
-> /cdimage        auto.cdimage
-> /cdcontent      auto.cdcontent
-> 
-> auto.cdimage:
-> foo             nfsserver:/cdimage/foo.img
-> 
-> auto.cdcontent:
-> foo             -fstype=auto,loop       :/cdimage/foo/foo.img
-> 
-> The access to /cdcontent/foo will fail, when /cdimage/foo is not 
-> mounted before, because spawn_mount does not use SPAWN_OPT_ACCESS
-> in this case.
-> The patch below fixes this problem.
+Hi Ian,
 
-I can't remember now.
-I wonder why I don't always call access?
-I must have had a reason, let me think about it for a while.
+I was using automount 4.1.4 for many years now, and I run it like this:
 
-Thanks for the patch.
-Ian
+automount -f -s -v --timeout 15 /.local/mnt/auto program /root/bin/mapper.sh
+
+This is a valid syntax for 4.1.4, but 5.0.0 doesn't like it, and it doesn't
+error out cleanly too.
+
+It goes into infinite loop, eating 100% CPU and killable only with SIGKILL.
+As it turns out, it opens /.local/mnt/auto and reads it, and gets EISDIR,
+and ... retries, retries, retries forever. Here:
+
+modules/lookup_file.c
+
+        f = fopen(ctxt->mapname, "r");
+ ...
+        master_init_scan();
+        while(1) {
+                entry = read_one(f, path, ent);
+                if (!entry) {
+                        if (feof(f)) <===== doesnt check ferror()
+                                break;
+                        continue;
+                }
+
+Please fix.
+--
+vda
