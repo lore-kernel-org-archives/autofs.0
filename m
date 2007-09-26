@@ -1,13 +1,11 @@
 From: Denys Vlasenko <vda.linux@googlemail.com>
-Subject: [PATCH] 5.0.0_beta1: add "-s --stderr" option
-Date: Wed, 26 Sep 2007 10:51:17 +0100
-Message-ID: <200709261051.17951.vda.linux@googlemail.com>
-References: <200709261048.48044.vda.linux@googlemail.com>
+Subject: [PATCH] 5.0.0_beta1: use PATH in execXX()
+Date: Wed, 26 Sep 2007 11:00:54 +0100
+Message-ID: <200709261100.54397.vda.linux@googlemail.com>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_Vui+GaoIiHMewwn"
+  boundary="Boundary-00=_W3i+GU9hUHNJHMj"
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200709261048.48044.vda.linux@googlemail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,86 +19,90 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
---Boundary-00=_Vui+GaoIiHMewwn
+--Boundary-00=_W3i+GU9hUHNJHMj
 Content-Type: text/plain;
-  charset="iso-8859-15"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 Hi Ian,
 
-I see that almost everything is in place for this to work, only
-actual option handling is missing.
+I want automount to use PATH when it tries to run e.g. "mount",
+because I want it to work regardless where my mount binary is
+(/bin or /usr/bin or...). I do have different system with different
+paths to some binaries, and it is pain in the ass - I have
+no way to explain to automount binary that it needs to look
+in another directory.
 
-I added it and it works (run-tested).
+I am trying to make automount using 'short' names it by passing
+variables to configure:
 
-Please apply attached patch
-(should apply on top of autofs-5.0.0_beta1-fg.patch).
+MOUNT="mount" \
+UMOUNT="umount" \
+E2FSCK="fsck.ext2" \
+E3FSCK="fsck.ext3" \
+./configure ............
+
+I think it's reasonably safe since automount is started by root
+and root is expected to set PATH sanely.
+
+And it still doesn't work, because you are using execv(), not execvp().
+
+This patch replaces execv() with execvp().
+
+It should change nothing for 'normally' configured automount since
+it passes fully qualified names ("/bin/mount") to exec and PATH
+is not used in this case.
+
+Please consider applying.
 --
 vda
 
---Boundary-00=_Vui+GaoIiHMewwn
-Content-Type: text/x-diff; charset="iso-8859-15";
-	name="autofs-5.0.0_beta1-stderr.patch"
+--Boundary-00=_W3i+GU9hUHNJHMj
+Content-Type: text/x-diff; charset="us-ascii";
+	name="autofs-5.0.0_beta1-PATH.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: attachment;
-	filename="autofs-5.0.0_beta1-stderr.patch"
+	filename="autofs-5.0.0_beta1-PATH.patch"
 
-diff -d -urpN autofs-5.0.0_beta1-fg/daemon/automount.c autofs-5.0.0_beta1-stderr/daemon/automount.c
---- autofs-5.0.0_beta1-fg/daemon/automount.c	2007-09-26 10:27:30.000000000 +0100
-+++ autofs-5.0.0_beta1-stderr/daemon/automount.c	2007-09-26 10:24:17.000000000 +0100
-@@ -719,12 +719,12 @@ static int handle_packet(struct autofs_p
- 	return -1;
- }
+diff -d -urpN autofs-5.0.0_beta1-stderr/daemon/spawn.c autofs-5.0.0_beta1-PATH/daemon/spawn.c
+--- autofs-5.0.0_beta1-stderr/daemon/spawn.c	2006-05-02 08:37:35.000000000 +0100
++++ autofs-5.0.0_beta1-PATH/daemon/spawn.c	2007-09-26 10:35:59.000000000 +0100
+@@ -291,8 +291,12 @@ static int do_spawn(logger *log, int use
+ 		dup2(pipefd[1], STDERR_FILENO);
+ 		close(pipefd[1]);
  
-+static unsigned char to_stderr;
+-		execv(prog, (char *const *) argv);
+-		_exit(255);	/* execv() failed */
++		/* Why execv_p_? Normally argv[0] has fully qualified path
++		 * and it doesn't matter, but it can be overridden
++		 * at build time to e.g. simple "mount".
++		 * Clearly, user wants to use PATH in this case. */
++		execvp(prog, (char *const *) argv);
++		_exit(255);	/* exec() failed */
+ 	} else {
+ 		close(pipefd[1]);
  
- static void become_daemon(unsigned foreground)
- {
- 	FILE *pidfp;
- 	char buf[MAX_ERR_BUF];
--	unsigned to_stderr = 0;
- 	pid_t pid;
- 
- 	/* Don't BUSY any directories unnecessarily */
-@@ -1282,6 +1282,7 @@ static void usage(void)
- 		"	-v --verbose	be verbose\n"
- 		"	-d --debug	log debuging info\n"
- 		"	-f --foreground do not fork into background\n"
-+		"	-s --stderr	log to stderr instead of syslog\n"
- 		"	-V --version	print version and exit\n"
- 		, program);
- }
-@@ -1302,6 +1303,7 @@ int main(int argc, char *argv[])
- 		{"verbose", 0, 0, 'v'},
- 		{"debug", 0, 0, 'd'},
- 		{"foreground", 0, 0, 'f'},
-+		{"stderr", 0, 0, 's'},
- 		{"version", 0, 0, 'V'},
- 		{0, 0, 0, 0}
- 	};
-@@ -1318,7 +1320,7 @@ int main(int argc, char *argv[])
- 	foreground = 0;
- 
- 	opterr = 0;
--	while ((opt = getopt_long(argc, argv, "+hp:t:vdfV", long_options, NULL)) != EOF) {
-+	while ((opt = getopt_long(argc, argv, "+hp:t:vdfsV", long_options, NULL)) != EOF) {
- 		switch (opt) {
- 		case 'h':
- 			usage();
-@@ -1344,6 +1346,10 @@ int main(int argc, char *argv[])
- 			foreground = 1;
- 			break;
- 
-+		case 's':
-+			to_stderr = 1;
-+			break;
-+
- 		case 'V':
- 			printf("Linux automount version %s\n", version);
- 			exit(0);
+diff -d -urpN autofs-5.0.0_beta1-stderr/modules/lookup_program.c autofs-5.0.0_beta1-PATH/modules/lookup_program.c
+--- autofs-5.0.0_beta1-stderr/modules/lookup_program.c	2006-05-02 08:37:35.000000000 +0100
++++ autofs-5.0.0_beta1-PATH/modules/lookup_program.c	2007-09-26 10:36:24.000000000 +0100
+@@ -171,8 +171,12 @@ int lookup_mount(struct autofs_point *ap
+ 		dup2(epipefd[1], STDERR_FILENO);
+ 		close(pipefd[1]);
+ 		close(epipefd[1]);
+-		execl(ctxt->mapname, ctxt->mapname, name, NULL);
+-		_exit(255);	/* execl() failed */
++		/* Why execl_p_? Normally argv[0] has fully qualified path
++		 * and it doesn't matter, but it can be overridden
++		 * at build time to e.g. simple "mount".
++		 * Clearly, user wants to use PATH in this case. */
++		execlp(ctxt->mapname, ctxt->mapname, name, NULL);
++		_exit(255);	/* exec() failed */
+ 	}
+ 	close(pipefd[1]);
+ 	close(epipefd[1]);
 
---Boundary-00=_Vui+GaoIiHMewwn
+--Boundary-00=_W3i+GU9hUHNJHMj
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -111,5 +113,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---Boundary-00=_Vui+GaoIiHMewwn--
+--Boundary-00=_W3i+GU9hUHNJHMj--
 
