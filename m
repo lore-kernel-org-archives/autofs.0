@@ -1,10 +1,10 @@
 From: Denys Vlasenko <vda.linux@googlemail.com>
-Subject: [PATCH] 5.0.0_beta1: use PATH in execXX()
-Date: Wed, 26 Sep 2007 11:00:54 +0100
-Message-ID: <200709261100.54397.vda.linux@googlemail.com>
+Subject: [PATCH] 5.0.0_beta1: glibc 2.4.0 quirk
+Date: Wed, 26 Sep 2007 11:03:19 +0100
+Message-ID: <200709261103.19490.vda.linux@googlemail.com>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_W3i+GU9hUHNJHMj"
+  boundary="Boundary-00=_n5i+Gq5sIEMzgIB"
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -19,90 +19,61 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
---Boundary-00=_W3i+GU9hUHNJHMj
+--Boundary-00=_n5i+Gq5sIEMzgIB
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-Hi Ian,
+hi Ian,
 
-I want automount to use PATH when it tries to run e.g. "mount",
-because I want it to work regardless where my mount binary is
-(/bin or /usr/bin or...). I do have different system with different
-paths to some binaries, and it is pain in the ass - I have
-no way to explain to automount binary that it needs to look
-in another directory.
+I have glibc 2.4.0 installed, and it expands pthread_cleanup_pop(1) into:
 
-I am trying to make automount using 'short' names it by passing
-variables to configure:
+	} while (0); __pthread_unregister_cancel (&__cancel_buf); if (1) __cancel_routine (__cancel_arg); } while (0);
 
-MOUNT="mount" \
-UMOUNT="umount" \
-E2FSCK="fsck.ext2" \
-E3FSCK="fsck.ext3" \
-./configure ............
+This doesn't compile if you have a label before it.
+gcc 4.2.1 says "error: label at end of compound statement".
 
-I think it's reasonably safe since automount is started by root
-and root is expected to set PATH sanely.
-
-And it still doesn't work, because you are using execv(), not execvp().
-
-This patch replaces execv() with execvp().
-
-It should change nothing for 'normally' configured automount since
-it passes fully qualified names ("/bin/mount") to exec and PATH
-is not used in this case.
-
-Please consider applying.
+This patch works around it by adding extra semicolon.
 --
 vda
 
---Boundary-00=_W3i+GU9hUHNJHMj
+--Boundary-00=_n5i+Gq5sIEMzgIB
 Content-Type: text/x-diff; charset="us-ascii";
-	name="autofs-5.0.0_beta1-PATH.patch"
+	name="autofs-5.0.0_beta1-quirk.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: attachment;
-	filename="autofs-5.0.0_beta1-PATH.patch"
+	filename="autofs-5.0.0_beta1-quirk.patch"
 
-diff -d -urpN autofs-5.0.0_beta1-stderr/daemon/spawn.c autofs-5.0.0_beta1-PATH/daemon/spawn.c
---- autofs-5.0.0_beta1-stderr/daemon/spawn.c	2006-05-02 08:37:35.000000000 +0100
-+++ autofs-5.0.0_beta1-PATH/daemon/spawn.c	2007-09-26 10:35:59.000000000 +0100
-@@ -291,8 +291,12 @@ static int do_spawn(logger *log, int use
- 		dup2(pipefd[1], STDERR_FILENO);
- 		close(pipefd[1]);
+diff -d -urpN autofs-5.0.0_beta1-PATH/daemon/direct.c autofs-5.0.0_beta1-quirk/daemon/direct.c
+--- autofs-5.0.0_beta1-PATH/daemon/direct.c	2007-09-26 10:29:28.000000000 +0100
++++ autofs-5.0.0_beta1-quirk/daemon/direct.c	2007-09-26 10:38:01.000000000 +0100
+@@ -967,7 +967,10 @@ int handle_packet_expire_direct(struct a
  
--		execv(prog, (char *const *) argv);
--		_exit(255);	/* execv() failed */
-+		/* Why execv_p_? Normally argv[0] has fully qualified path
-+		 * and it doesn't matter, but it can be overridden
-+		 * at build time to e.g. simple "mount".
-+		 * Clearly, user wants to use PATH in this case. */
-+		execvp(prog, (char *const *) argv);
-+		_exit(255);	/* exec() failed */
- 	} else {
- 		close(pipefd[1]);
+ 	pthread_cleanup_pop(1);
+ done:
+-	pthread_cleanup_pop(1);
++	/* glibc 2.4.0 expands it into: */
++	/* } while (0); __pthread_unregister_cancel (&__cancel_buf); if (1) __cancel_routine (__cancel_arg); } while (0); */
++	/* ...and gcc 4.2.1 says "error: label at end of compound statement" */
++	; pthread_cleanup_pop(1);
+ 	return status;
+ }
  
-diff -d -urpN autofs-5.0.0_beta1-stderr/modules/lookup_program.c autofs-5.0.0_beta1-PATH/modules/lookup_program.c
---- autofs-5.0.0_beta1-stderr/modules/lookup_program.c	2006-05-02 08:37:35.000000000 +0100
-+++ autofs-5.0.0_beta1-PATH/modules/lookup_program.c	2007-09-26 10:36:24.000000000 +0100
-@@ -171,8 +171,12 @@ int lookup_mount(struct autofs_point *ap
- 		dup2(epipefd[1], STDERR_FILENO);
- 		close(pipefd[1]);
- 		close(epipefd[1]);
--		execl(ctxt->mapname, ctxt->mapname, name, NULL);
--		_exit(255);	/* execl() failed */
-+		/* Why execl_p_? Normally argv[0] has fully qualified path
-+		 * and it doesn't matter, but it can be overridden
-+		 * at build time to e.g. simple "mount".
-+		 * Clearly, user wants to use PATH in this case. */
-+		execlp(ctxt->mapname, ctxt->mapname, name, NULL);
-+		_exit(255);	/* exec() failed */
- 	}
- 	close(pipefd[1]);
- 	close(epipefd[1]);
+@@ -1258,7 +1261,10 @@ int handle_packet_missing_direct(struct 
+ 
+ 	pthread_cleanup_pop(1);
+ done:
+-	pthread_cleanup_pop(1);
++	/* glibc 2.4.0 expands it into: */
++	/* } while (0); __pthread_unregister_cancel (&__cancel_buf); if (1) __cancel_routine (__cancel_arg); } while (0); */
++	/* ...and gcc 4.2.1 says "error: label at end of compound statement" */
++	; pthread_cleanup_pop(1);
+ 	return status;
+ }
+ 
 
---Boundary-00=_W3i+GU9hUHNJHMj
+--Boundary-00=_n5i+Gq5sIEMzgIB
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -113,5 +84,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---Boundary-00=_W3i+GU9hUHNJHMj--
+--Boundary-00=_n5i+Gq5sIEMzgIB--
 
