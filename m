@@ -1,13 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH] 5.0.0_beta1: glibc 2.4.0 quirk
-Date: Wed, 26 Sep 2007 23:11:53 +0800
-Message-ID: <1190819513.12109.7.camel@raven.themaw.net>
-References: <200709261103.19490.vda.linux@googlemail.com>
+Subject: Re: [BUG] 5.0.0_beta1: infinite loop on read error
+Date: Wed, 26 Sep 2007 23:12:53 +0800
+Message-ID: <1190819573.12109.9.camel@raven.themaw.net>
+References: <200709261105.14333.vda.linux@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200709261103.19490.vda.linux@googlemail.com>
+In-Reply-To: <200709261105.14333.vda.linux@googlemail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,17 +21,19 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: Denys Vlasenko <vda.linux@googlemail.com>
 Cc: autofs@linux.kernel.org
 
-On Wed, 2007-09-26 at 11:03 +0100, Denys Vlasenko wrote:
-> hi Ian,
+On Wed, 2007-09-26 at 11:05 +0100, Denys Vlasenko wrote:
+> Hi Ian,
 > 
-> I have glibc 2.4.0 installed, and it expands pthread_cleanup_pop(1) into:
+> I was using automount 4.1.4 for many years now, and I run it like this:
 > 
-> 	} while (0); __pthread_unregister_cancel (&__cancel_buf); if (1) __cancel_routine (__cancel_arg); } while (0);
+> automount -f -s -v --timeout 15 /.local/mnt/auto program /root/bin/mapper.sh
 > 
-> This doesn't compile if you have a label before it.
-> gcc 4.2.1 says "error: label at end of compound statement".
+> This is a valid syntax for 4.1.4, but 5.0.0 doesn't like it, and it doesn't
+> error out cleanly too.
 > 
-> This patch works around it by adding extra semicolon.
+> It goes into infinite loop, eating 100% CPU and killable only with SIGKILL.
+> As it turns out, it opens /.local/mnt/auto and reads it, and gets EISDIR,
+> and ... retries, retries, retries forever. Here:
 
-Cool, I'll test this out and commit it.
+Ooops, I'll fix that.
 Thanks
