@@ -1,10 +1,10 @@
 From: Denys Vlasenko <vda.linux@googlemail.com>
-Subject: [PATCH] 5.0.0_beta1: glibc 2.4.0 quirk
-Date: Wed, 26 Sep 2007 11:03:19 +0100
-Message-ID: <200709261103.19490.vda.linux@googlemail.com>
+Subject: [BUG] 5.0.0_beta1: does not auto-unmount
+Date: Wed, 26 Sep 2007 11:23:41 +0100
+Message-ID: <200709261123.41401.vda.linux@googlemail.com>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_n5i+Gq5sIEMzgIB"
+  boundary="Boundary-00=_tMj+GsTAyJBhMeI"
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -19,61 +19,132 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
---Boundary-00=_n5i+Gq5sIEMzgIB
+--Boundary-00=_tMj+GsTAyJBhMeI
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-hi Ian,
+Hi Ian,
 
-I have glibc 2.4.0 installed, and it expands pthread_cleanup_pop(1) into:
+I run automount like this:
 
-	} while (0); __pthread_unregister_cancel (&__cancel_buf); if (1) __cancel_routine (__cancel_arg); } while (0);
+# automount -f -s -v --timeout 15 /.local/var/service/automount/master.file
 
-This doesn't compile if you have a label before it.
-gcc 4.2.1 says "error: label at end of compound statement".
+My master.file is one-liner:
 
-This patch works around it by adding extra semicolon.
+/mnt/auto program:/.local/var/service/automount/mapper.sh
+
+mapper.sh is attached.
+
+This setup (with this exact mapper.sh) worked flawlessly
+with 4.1.4, but with 5.0.0_beta1 I have a problem:
+
+# automount -f -s -v --timeout 15 /.local/var/service/automount/master
+Starting automounter version 5.0.0_beta1, master map /.local/var/service/automount/master
+using kernel protocol version 5.00
+using timeout 15 seconds; freq 4 secs
+
+I do "cd /mnt/auto/vfat.sdb1" (sdb1 is my USB memory stick)
+and automount says:
+
+attempting to mount entry /.local/mnt/auto/vfat.sdb1
+mounted /mnt/auto/vfat.sdb1
+
+So far so good, mount shows:
+/dev/sdb1 on /mnt/auto/vfat.sdb1 type vfat (rw,nosuid,noexec,fmask=0000,dmask=0000,codepage=cp866,iocharset=koi8-r,shortname=win95,quiet,uni_xlate)
+
+But it never auto-unmounts. I am 100% sure nothing
+is keeping files or directories busy on /dev/sdb1 (I cd'ed away
+from the directory). Automount is not saying anything,
+strace -p <PID> shows one line:
+
+rt_sigtimedwait(~[CHLD CONT RTMIN RT_1],
+
+I killed 4 hours of my time making automount 5.0.0 even start on my machine,
+and it's 4:00 am here, so at this time I am a rather unhappy panda and
+probably I'll go back to 4.1.4 instead of chasing down yet another bug.
+
+# size autofs*/sbin/*
+   text    data     bss     dec     hex filename
+  35143     916   10084   46143    b43f autofs-4.1.4_beta1/sbin/automount
+ 118494    1344     884  120722   1d792 autofs-5.0.0_beta1/sbin/automount
+
+During 4.1.4 -> 5.0.0 size has *tripled*. Uncool. :(
 --
 vda
 
---Boundary-00=_n5i+Gq5sIEMzgIB
-Content-Type: text/x-diff; charset="us-ascii";
-	name="autofs-5.0.0_beta1-quirk.patch"
+--Boundary-00=_tMj+GsTAyJBhMeI
+Content-Type: application/x-shellscript;
+  name="mapper.sh"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: attachment;
-	filename="autofs-5.0.0_beta1-quirk.patch"
+	filename="mapper.sh"
 
-diff -d -urpN autofs-5.0.0_beta1-PATH/daemon/direct.c autofs-5.0.0_beta1-quirk/daemon/direct.c
---- autofs-5.0.0_beta1-PATH/daemon/direct.c	2007-09-26 10:29:28.000000000 +0100
-+++ autofs-5.0.0_beta1-quirk/daemon/direct.c	2007-09-26 10:38:01.000000000 +0100
-@@ -967,7 +967,10 @@ int handle_packet_expire_direct(struct a
- 
- 	pthread_cleanup_pop(1);
- done:
--	pthread_cleanup_pop(1);
-+	/* glibc 2.4.0 expands it into: */
-+	/* } while (0); __pthread_unregister_cancel (&__cancel_buf); if (1) __cancel_routine (__cancel_arg); } while (0); */
-+	/* ...and gcc 4.2.1 says "error: label at end of compound statement" */
-+	; pthread_cleanup_pop(1);
- 	return status;
- }
- 
-@@ -1258,7 +1261,10 @@ int handle_packet_missing_direct(struct 
- 
- 	pthread_cleanup_pop(1);
- done:
--	pthread_cleanup_pop(1);
-+	/* glibc 2.4.0 expands it into: */
-+	/* } while (0); __pthread_unregister_cancel (&__cancel_buf); if (1) __cancel_routine (__cancel_arg); } while (0); */
-+	/* ...and gcc 4.2.1 says "error: label at end of compound statement" */
-+	; pthread_cleanup_pop(1);
- 	return status;
- }
- 
+#!/bin/sh
 
---Boundary-00=_n5i+Gq5sIEMzgIB
+#
+# Mountpoint mapper for automounter
+#
+
+#
+#smbfs ignores all options when it sees 'noatime'
+#
+STD="" #STD=",noatime"
+
+OPT=""
+# Replace @ by / in mount
+MOUNT=`echo $1 | sed 's/@/\//g'`
+
+# Separate mount and options: mount%options
+if test "${MOUNT/*%*/exists}" = "exists"; then # there is a '%'
+    OPT=,`echo ${MOUNT/*%/}`
+    SZ=$(( ${#MOUNT} - ${#OPT} ))
+    MOUNT=`echo ${MOUNT:0:$SZ}`
+fi
+
+OPT="$OPT$STD"
+
+while true; do
+    case "$MOUNT" in
+    ro.*)
+        OPT=",ro$OPT"
+        MOUNT="${MOUNT:3:9999}"
+        ;;
+    dev.*) # format is: dev.name[%options]
+        OPT=",fstype=auto$OPT"
+        echo "-${OPT:1:9999} :/dev/${MOUNT:4:9999}"
+        exit 0
+        ;;
+    vfat.*) # format is: vfat.name[%options]
+        OPT=",fstype=vfat,umask=000,quiet,nocase,nosuid,noexec,uni_xlate=1,codepage=866,iocharset=koi8-r$OPT"
+        echo "-${OPT:1:9999} :/dev/${MOUNT:5:9999}"
+        exit 0
+        ;;
+    ntfs.*) # format is: ntfs.name[%options]
+        OPT=",fstype=ntfs,iocharset=koi8-r,ro$OPT"
+        echo "-${OPT:1:9999} :/dev/${MOUNT:5:9999}"
+        exit 0
+        ;;
+    smb.*) # format is: smb.host@share[%options]
+        OPT=",fstype=smbfs,fmask=644,dmask=755,codepage=cp866,iocharset=koi8-r,$OPT"
+        echo "-${OPT:1:9999} ://${MOUNT:4:9999}"
+        exit 0
+        ;;
+    nfs.*) # format is: nfs.host:@dir[@dir]...[%options]
+        OPT=",fstype=nfs$OPT"
+        echo "-${OPT:1:9999} ${MOUNT:4:9999}"
+        exit 0
+        ;;
+    *) # format is: name[%options]
+        OPT=",fstype=auto$OPT"
+        echo "-${OPT:1:9999} :/dev/$MOUNT"
+        exit 0
+        ;;
+    esac
+done
+
+--Boundary-00=_tMj+GsTAyJBhMeI
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -84,5 +155,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---Boundary-00=_n5i+Gq5sIEMzgIB--
+--Boundary-00=_tMj+GsTAyJBhMeI--
 
