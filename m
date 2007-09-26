@@ -1,7 +1,7 @@
 From: Denys Vlasenko <vda.linux@googlemail.com>
-Subject: [BUG] 5.0.0_beta1: infinite loop on read error
-Date: Wed, 26 Sep 2007 11:05:14 +0100
-Message-ID: <200709261105.14333.vda.linux@googlemail.com>
+Subject: "syntax error in nsswitch config near [ syntax error ]" ?
+Date: Wed, 26 Sep 2007 11:12:35 +0100
+Message-ID: <200709261112.35225.vda.linux@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -22,30 +22,44 @@ Cc: autofs@linux.kernel.org
 
 Hi Ian,
 
-I was using automount 4.1.4 for many years now, and I run it like this:
+I tried to start automount with command line like this one:
 
-automount -f -s -v --timeout 15 /.local/mnt/auto program /root/bin/mapper.sh
+automount -f -s -v --timeout 15 master.file
 
-This is a valid syntax for 4.1.4, but 5.0.0 doesn't like it, and it doesn't
-error out cleanly too.
+and it says:
 
-It goes into infinite loop, eating 100% CPU and killable only with SIGKILL.
-As it turns out, it opens /.local/mnt/auto and reads it, and gets EISDIR,
-and ... retries, retries, retries forever. Here:
 
-modules/lookup_file.c
+Starting automounter version 5.0.0_beta1, master map master.file
+syntax error in nsswitch config near [ syntax error ]
 
-        f = fopen(ctxt->mapname, "r");
- ...
-        master_init_scan();
-        while(1) {
-                entry = read_one(f, path, ent);
-                if (!entry) {
-                        if (feof(f)) <===== doesnt check ferror()
-                                break;
-                        continue;
-                }
+lookup_nss_read_master: can't to read name service switch config.
+master_read_master: can't read master map master.file
 
-Please fix.
+
+Well, my mistake was that I should use fully-qualified filename ($PWD/master.file),
+but error message is misleading. It says that my /etc/nsswitch.conf
+is bad (well, it doesn't even mention "/etc/nsswitch.conf", I need to
+infer that!).
+
+But my /etc/nsswitch.conf has no syntax errors:
+
+passwd:         compat
+group:          compat
+shadow:         compat
+hosts:          files dns [!UNAVAIL=return]
+networks:       files
+ethers:         files
+protocols:      files
+rpc:            files
+services:       files
+
+it just doesn't have automounter maps. This is not a crime.
+
+Message is also complains about /etc/nsswitch.conf FIRST,
+and THEN complains "can't read master map master.file",
+but actual order of these events is different - if master
+file is found, /etc/nsswitch.conf is not consulted.
+
+Can this be improved?
 --
 vda
