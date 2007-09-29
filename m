@@ -1,14 +1,12 @@
-From: Jim Carter <jimc@math.ucla.edu>
-Subject: Re: [PATCH] 5.0.0_beta1: use PATH in execXX()
-Date: Fri, 28 Sep 2007 09:53:30 -0700 (PDT)
-Message-ID: <Pine.LNX.4.64.0709280935550.20980@simba.math.ucla.edu>
-References: <200709261100.54397.vda.linux@googlemail.com>
-	<1190970685.11447.6.camel@raven.themaw.net>
+From: Fabian Steiner <lists@fabis-site.net>
+Subject: Problems with Autofs and .hidden files
+Date: Sat, 29 Sep 2007 17:42:54 +0200
+Message-ID: <200709291742.54831.lists@fabis-site.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1190970685.11447.6.camel@raven.themaw.net>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,38 +17,47 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Fri, 28 Sep 2007, Ian Kent wrote:
+Hello!
 
-> On Wed, 2007-09-26 at 11:00 +0100, Denys Vlasenko wrote:
-> > I think it's reasonably safe since automount is started by root
-> > and root is expected to set PATH sanely.
- --snip--
-> I still can't agree that using $PATH to locate executable maps is OK.
-> If a system uses executable maps then I think the location of them
-> should be specified in full.
+We are using autofs in order to mount the user's home drive via NFS after a
+successfull login authenticated by ldap.
 
-Well, in the development of autofs we started with file maps, and when 
-executable maps were implemented it was natural to seem them as an 
-evolution of file maps, i.e. properly found in /etc via a full path name.  
-(/etc hasn't had generic executable content, like /etc/fsck, since 4.2BSD I 
-believe).  However, the requester has given a plausible scenario, the same 
-master map used on multiple distros with different preferred homes for 
-locally hacked executable files.  Here at UCLA-Mathnet we had (in the past, 
-thankfully) exactly this situation: Solaris, Irix, Ultrix and Linux at the 
-same time and the same master map on all of them, although we stuck with 
-the explicit path names in /etc.  (I think we may have had tweaks per OS, 
-actually, which occasionally got overwritten when some bozo installed the 
-master map "everwhere".)
+/etc/auto.master looks like this:
 
-My feeling is that programs should allow the sysop maximum flexibility for 
-possibly unique situations, absent a real operational need for the more 
-restrictive solution.  In other words, UNIX is supposed to let you shoot 
-yourself in the foot.  So I support using execvp to exec executable maps, 
-even though I definitely won't be taking advantage of the feature.
+# AUOTOFS-MAPPING
+/home/schueler =A0/etc/auto.schueler
+/home/lehrer =A0 =A0/etc/auto.lehrer
+/home/maerkte =A0 /etc/auto.maerkte
 
-James F. Carter          Voice 310 825 2897    FAX 310 206 6673
-UCLA-Mathnet;  6115 MSA; 405 Hilgard Ave.; Los Angeles, CA, USA  90095-1555
-Email: jimc@math.ucla.edu    http://www.math.ucla.edu/~jimc (q.v. for PGP key)
+/etc/auto.schueler has the following content (the same also applies for the
+other files):
+
+* =A0 =A0 =A0 -fstype=3Dnfs,rw,hard,intr,nodev,nosuid,exec,acl =A0 =A0 =A0 =
+=A0 =
+
+server.domain.de:/home/schueler/&
+
+Generally speaking this setup works like a charm but from time to time we
+encounter the following messages in syslog:
+
+Sep 24 16:46:57 server mountd[8818]: authenticated mount request from
+client.domain.de:559 for /home/schueler/.directory (/home/schueler)
+Sep 24 16:46:57 server mountd[8818]: can't stat exported
+dir /home/schueler/.directory: No such file or directory
+
+Our investigations show that these messages are probably to be created
+whenever a user tries to access /home/schueler by using Konqueror or
+Nautilus. The file .directory doesn't exist, however, and that's why these
+messages appaer. Normalley, this wouldn't be a severe problem but the
+entire is completely slowed down so that another kind of error occurs:
+
+Sep 24 16:47:00 server mountd[8818]: refused mount request from
+client.domain.de for /home/schueler/.directory (/home/schueler): illegal
+port 48337
+
+Does anybody know this issue and could provide any hints how to solve it?
+
+Cheers,
+Fabian
