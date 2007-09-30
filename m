@@ -1,11 +1,15 @@
-From: Fabian Steiner <lists@fabis-site.net>
-Subject: Problems with Autofs and .hidden files
-Date: Sat, 29 Sep 2007 17:42:54 +0200
-Message-ID: <200709291742.54831.lists@fabis-site.net>
+From: Denys Vlasenko <vda.linux@googlemail.com>
+Subject: Re: [BUG] 5.0.0_beta1: does not auto-unmount
+Date: Sun, 30 Sep 2007 02:25:16 +0100
+Message-ID: <200709300225.16952.vda.linux@googlemail.com>
+References: <200709261123.41401.vda.linux@googlemail.com>
+	<200709272114.11469.vda.linux@googlemail.com>
+	<1190949750.3464.4.camel@raven.themaw.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <1190949750.3464.4.camel@raven.themaw.net>
 Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -17,47 +21,37 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org
 
-Hello!
+> > autofs-5.0.2 still references www.kernel.org/pub/linux/daemons/autofs/v4/:
+> > 
+> > # grep -r /v4 .
+> > ./INSTALL:     from http://www.kernel.org/pub/linux/daemons/autofs/v4.
+> > ./autofs.spec:Source: ftp://ftp.kernel.org/pub/linux/daemons/autofs/v4/autofs-%{version}.tar.gz
+> > ./gentoo/net-fs/autofs/autofs-5.0.2.ebuild:SRC_URI_BASE="mirror://kernel/linux/daemons/${PN}/v4"
+> 
+> Ha, missed that completely.
+> Thnks.
+> 
+> > 
+> > What do you think about removing autofs-5.0.0_beta1.tar.* from .../v4 directory
+> > in order to prevent confusion?
+> 
+> Yes, I'd like to but I was a bit concerned that distros that pull these
+> tarballs might expect them to be present.
+> 
+> Maybe I could encourage an update if I did, which would be desirable.
 
-We are using autofs in order to mount the user's home drive via NFS after a
-successfull login authenticated by ldap.
+I mean, by removing 5.0.0beta from v4 directory you will avoid having
+confused users thinking that 5.0.0_beta1 is latest.
 
-/etc/auto.master looks like this:
+I tried 5.0.2 today, summary:
 
-# AUOTOFS-MAPPING
-/home/schueler =A0/etc/auto.schueler
-/home/lehrer =A0 =A0/etc/auto.lehrer
-/home/maerkte =A0 /etc/auto.maerkte
+-s --stderr       missing
+-f --foreground   works, not mentioned in help text
 
-/etc/auto.schueler has the following content (the same also applies for the
-other files):
-
-* =A0 =A0 =A0 -fstype=3Dnfs,rw,hard,intr,nodev,nosuid,exec,acl =A0 =A0 =A0 =
-=A0 =
-
-server.domain.de:/home/schueler/&
-
-Generally speaking this setup works like a charm but from time to time we
-encounter the following messages in syslog:
-
-Sep 24 16:46:57 server mountd[8818]: authenticated mount request from
-client.domain.de:559 for /home/schueler/.directory (/home/schueler)
-Sep 24 16:46:57 server mountd[8818]: can't stat exported
-dir /home/schueler/.directory: No such file or directory
-
-Our investigations show that these messages are probably to be created
-whenever a user tries to access /home/schueler by using Konqueror or
-Nautilus. The file .directory doesn't exist, however, and that's why these
-messages appaer. Normalley, this wouldn't be a severe problem but the
-entire is completely slowed down so that another kind of error occurs:
-
-Sep 24 16:47:00 server mountd[8818]: refused mount request from
-client.domain.de for /home/schueler/.directory (/home/schueler): illegal
-port 48337
-
-Does anybody know this issue and could provide any hints how to solve it?
-
-Cheers,
-Fabian
+I didn't go further, can't say whether it works for me.
+Will test 5.0.3 whenever you want.
+--
+vda
