@@ -1,11 +1,13 @@
 From: Lukas Kolbe <lukas@einfachkaffee.de>
-Subject: nested automounts: bind and nfs
-Date: Mon, 01 Oct 2007 16:08:43 +0200
-Message-ID: <1191247723.19265.6.camel@sangay.TechFak.Uni-Bielefeld.DE>
+Subject: Re: nested automounts: bind and nfs
+Date: Mon, 01 Oct 2007 16:17:54 +0200
+Message-ID: <1191248274.19265.9.camel@sangay.TechFak.Uni-Bielefeld.DE>
+References: <1191247723.19265.6.camel@sangay.TechFak.Uni-Bielefeld.DE>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <1191247723.19265.6.camel@sangay.TechFak.Uni-Bielefeld.DE>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,47 +20,16 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-Hi!
+Hi again,
 
-I'm having the problem that was described last year on this list:
-http://osdir.com/ml/linux.kernel.autofs/2006-08/msg00040.html
+> Should I try the patch mentioned in the thread last year? I'm currently
+> using kernel 2.6.18 (from debian, we're bound to that one since it
+> supports xen), autofs-5.0.2 with all patches from kernel.org applied.
 
-Given the following mount map:
-
-eclipse-3.1 \
-  /bin          -rw,nosuid,grpid          fileserver:/volumes/vol1/eclipse-3.1/bin.linx86 \
-
-eclipse \
-  /bin          -rw,nosuid,grpid          :/vol/eclipse-3.1/bin \
-
-We can't access /vol/eclipse/bin on the client if /vol/eclipse-3.1/bin
-is not already mounted. The log says:
-
-
-Oct  1 15:58:45 lahn automount[3329]: attempting to mount entry /vol/eclipse
-Oct  1 15:58:45 lahn automount[3329]: mounted /vol/eclipse
-Oct  1 15:58:45 lahn automount[3329]: attempting to mount entry /vol/eclipse/bin
-Oct  1 15:58:45 lahn automount[3329]: mount(nfs): nfs: mount failure :/vol/eclipse-3.1/bin on /vol/eclipse/bin
-Oct  1 15:58:45 lahn automount[3329]: failed to mount /vol/eclipse/bin
-
-This fails, after a simple ls -la /vol/eclipse/bin.
-
-Now we're doing ls -la /vol/eclipse-3.1/bin:
-
-Oct  1 15:59:04 lahn automount[3329]: attempting to mount entry /vol/eclipse-3.1
-Oct  1 15:59:04 lahn automount[3329]: mounted /vol/eclipse-3.1
-Oct  1 15:59:04 lahn automount[3329]: attempting to mount entry /vol/eclipse-3.1/bin
-Oct  1 15:59:04 lahn automount[3329]: mount(nfs): mounted fileserver:/volumes/vol1/eclipse-3.1/bin.linx86 on /vol/eclipse-3.1/bin
-Oct  1 15:59:04 lahn automount[3329]: mounted /vol/eclipse-3.1/bin
-
-And after that, ls -la /vol/eclipse/bin of course succeeds:
-
-Oct  1 15:59:06 lahn automount[3329]: attempting to mount entry /vol/eclipse/bin
-Oct  1 15:59:06 lahn automount[3329]: mounted /vol/eclipse/bin
-
-Should I try the patch mentioned in the thread last year? I'm currently
-using kernel 2.6.18 (from debian, we're bound to that one since it
-supports xen), autofs-5.0.2 with all patches from kernel.org applied.
+Correction: on this machine we're using Ubuntu's 2.6.20-15-generic
+without Xen.
+I don't think the patch from last year doesn't apply cleanly anymore ...
+I get a lot of rejects.
 
 -- 
 Lukas
