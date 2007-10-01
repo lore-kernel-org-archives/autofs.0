@@ -1,14 +1,16 @@
 From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: Problems with Autofs and .hidden files
-Date: Mon, 01 Oct 2007 10:34:02 -0400
-Message-ID: <x49sl4uykdh.fsf@segfault.boston.devel.redhat.com>
-References: <200709291742.54831.lists@fabis-site.net>
+Subject: Re: top level mount point
+Date: Mon, 01 Oct 2007 11:05:54 -0400
+Message-ID: <x49odfiyiwd.fsf@segfault.boston.devel.redhat.com>
+References: <10badf220709110016w454badfdt31a82bf6142171cc@mail.gmail.com>
+	<1189502864.3585.10.camel@raven.themaw.net>
+	<46E6D684.7010808@schrodinger.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200709291742.54831.lists@fabis-site.net> (Fabian Steiner's
-	message of "Sat\, 29 Sep 2007 17\:42\:54 +0200")
+In-Reply-To: <46E6D684.7010808@schrodinger.com> (Simon Gao's message of "Tue\,
+	11 Sep 2007 10\:55\:16 -0700")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,54 +21,104 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Fabian Steiner <lists@fabis-site.net>
-Cc: autofs@linux.kernel.org
+To: Simon Gao <gao@schrodinger.com>
+Cc: autofs@linux.kernel.org, Ian Kent <raven@themaw.net>
 
-Fabian Steiner <lists@fabis-site.net> writes:
+Simon Gao <gao@schrodinger.com> writes:
 
-> Hello!
+> Ian Kent wrote:
+>> On Tue, 2007-09-11 at 16:46 +0930, Shane wrote:
+>>   
+>>> Hey All,
+>>>
+>>> I'm trying to get a "top-level" automount to work.  eg
+>>>
+>>> /home  -rw,vers=3,fstype=nfs,intr,hard,tcp,rsize=32768,wsize=32768
+>>> srv1:/export/home/
+>>>
+>>> I've tried a few things so far - putting that exactly as is into
+>>> /etc/auto.master, created an auto.direct file and put /- auto.direct
+>>> into auto.master neither any joy - also tried /home  auto.home in
+>>> auto.master and above but with * or / as the key as contents of
+>>> auto.home none are working.
+>>>     
+>>
+>> Not valid in auto.master.
+>>
+>> An indirect map must have keys that are a directory component only, that
+>> is no "/"s.
+>>
+>> So, in auto.master you can have:
+>>
+>> /home	auto.home
+>>
+>> and auto.home as:
+>>
+>> *	srv1:/export/home/&
+>>
+>> to mount /home/myname as srv1:/export/home/myname
+>>
+>> You could leave out the "&" but I'm not sure that would be useful.
+>>
+>>   
+>>> Firstly is this actually possible?  Though I have no idea how Apple
+>>> translate our maps into something automount uses they do get around
+>>> this but /home is a symlink to somewhere like
+>>> /private/var/automount/home. If its possible ...what have I missed to
+>>> get this working?
+>>>     
+>>
+>> No, not possible with version 4.
+>>
+>> Single level indirect maps aren't possible by definition.
+>>
+>> Single level direct maps are possible with version 5.
+>>
+>> So, in auto.master you could have:
+>>
+>> /-	auto.home
+>>
+>> and auto.home:
+>>
+>> /home	svr1:/export/home
+>> /other/dir	other:/export/other
+>>
+>> and the like.
+>>
+>> Ian
+>>
+>>   
 >
-> We are using autofs in order to mount the user's home drive via NFS after=
- a
-> successfull login authenticated by ldap.
->
-> /etc/auto.master looks like this:
->
-> # AUOTOFS-MAPPING
-> /home/schueler =A0/etc/auto.schueler
-> /home/lehrer =A0 =A0/etc/auto.lehrer
-> /home/maerkte =A0 /etc/auto.maerkte
->
-> /etc/auto.schueler has the following content (the same also applies for t=
-he
-> other files):
->
-> * =A0 =A0 =A0 -fstype=3Dnfs,rw,hard,intr,nodev,nosuid,exec,acl =A0 =A0 =
-=A0 =A0 =
+> Is there a good way to set up ldap entries so autofs 4 and 5 can each
+> find and match its own version of automount maps?
 
-> server.domain.de:/home/schueler/&
->
-> Generally speaking this setup works like a charm but from time to time we
-> encounter the following messages in syslog:
->
-> Sep 24 16:46:57 server mountd[8818]: authenticated mount request from
-> client.domain.de:559 for /home/schueler/.directory (/home/schueler)
-> Sep 24 16:46:57 server mountd[8818]: can't stat exported
-> dir /home/schueler/.directory: No such file or directory
->
-> Our investigations show that these messages are probably to be created
-> whenever a user tries to access /home/schueler by using Konqueror or
-> Nautilus. The file .directory doesn't exist, however, and that's why these
-> messages appaer. Normalley, this wouldn't be a severe problem but the
-> entire is completely slowed down so that another kind of error occurs:
->
-> Sep 24 16:47:00 server mountd[8818]: refused mount request from
-> client.domain.de for /home/schueler/.directory (/home/schueler): illegal
-> port 48337
->
-> Does anybody know this issue and could provide any hints how to solve it?
+It depends on which version of autofs4 you are running.  The latest
+versions are able to determine your default search base, but older
+versions cannot.  So, if you want to be compatible across the board,
+the safest way to construct your ldap entries would be something like
+the following.  Change out the schema for whichever schema you want to
+use.
 
-Negative lookup caching will help this.  I'm not sure whether/when
-that went into the kernel.  Ian?
+dn: automountMapName=auto.master,dc=autofs,dc=test
+objectClass: top
+objectClass: automountMap
+automountMapName: auto.master
 
--Jeff
+dn: automountKey=/home,automountMapName=auto.master,dc=autofs,dc=test
+objectClass: automount
+automountKey: /home
+automountInformation: ldap: automountmapname=auto.home,dc=autofs,dc=test
+
+dn: automountMapName=auto.home,dc=autofs,dc=test
+objectClass: top
+objectClass: automountMap
+automountMapName: auto.home
+
+dn: automountKey=/,automountMapName=auto.test,dc=autofs,dc=test
+objectClass: automount
+automountKey: /
+automountInformation: srv1:/export/&
+
+Cheers,
+
+Jeff
