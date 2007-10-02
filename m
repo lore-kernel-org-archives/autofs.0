@@ -1,19 +1,16 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH] nested mounts with loop
-Date: Tue, 02 Oct 2007 21:15:05 +0800
-Message-ID: <1191330905.26331.153.camel@raven.themaw.net>
-References: <n7xir5ybts0.fsf@sor.suse.de>
-	<1190743449.3116.20.camel@raven.themaw.net>
-	<n7xsl51v3wa.fsf@sor.suse.de>
-	<1190821748.12109.33.camel@raven.themaw.net>
-	<x491wcl1kjw.fsf@segfault.boston.devel.redhat.com>
-	<1191302365.26331.36.camel@raven.themaw.net>
-	<n7x8x6lvoux.fsf@sor.suse.de>
+From: Lukas Kolbe <lukas@einfachkaffee.de>
+Subject: Re: nested automounts: bind and nfs
+Date: Tue, 02 Oct 2007 16:40:17 +0200
+Message-ID: <1191336017.19265.28.camel@sangay.TechFak.Uni-Bielefeld.DE>
+References: <1191247723.19265.6.camel@sangay.TechFak.Uni-Bielefeld.DE>
+	<1191300830.26331.24.camel@raven.themaw.net>
+	<1191321007.27255.12.camel@localhost>
+	<1191332917.26331.171.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <n7x8x6lvoux.fsf@sor.suse.de>
+In-Reply-To: <1191332917.26331.171.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,60 +21,56 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Matthias Koenig <mkoenig@suse.de>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org
 
-On Tue, 2007-10-02 at 11:37 +0200, Matthias Koenig wrote:
-> Ian Kent <raven@themaw.net> writes:
+Am Dienstag, den 02.10.2007, 21:48 +0800 schrieb Ian Kent:
+> On Tue, 2007-10-02 at 12:30 +0200, Lukas Kolbe wrote:
+> > Hi Ian!
+> > 
+> > > Can you post a debug log of this failure please.
+> > > Instructions to get what we need can be found at
+> > > http://people.redhat.com/jmoyer.
+> > 
+> > Here's the daemon.log (sorry for it being so big):
+> > 
+> > You see in 12:16:42 that it tries to mount the
+> > not-yet-existant /vol/eclipse-3.1/bin to /vol/eclipse/bin. The patch
+> > from august last year doesnt apply anymore :(
 > 
-> > On Wed, 2007-09-26 at 12:02 -0400, Jeff Moyer wrote:
-> >> Ian Kent <raven@themaw.net> writes:
-> >> 
-> >> > On Wed, 2007-09-26 at 17:32 +0200, Matthias Koenig wrote:
-> >> >> Ian Kent <raven@themaw.net> writes:
-> >> >> 
-> >> >> > On Tue, 2007-09-25 at 18:21 +0200, Matthias Koenig wrote:
-> >> >> >> Hi,
-> >> >> >> 
-> >> >> >> we noticed a problem concerning loop mounts on locations that 
-> >> >> >> have to be mounted before. E.g. consider the following situation,
-> >> >> >> a NFS server exporting a cd image, which we want to loop mount
-> >> >> >> locally to get access to the content:
-> >> >> >> 
-> >> >> >> auto.master:
-> >> >> >> /cdimage        auto.cdimage
-> >> >> >> /cdcontent      auto.cdcontent
-> >> >> >> 
-> >> >> >> auto.cdimage:
-> >> >> >> foo             nfsserver:/cdimage/foo.img
-> >> >> >> 
-> >> >> >> auto.cdcontent:
-> >> >> >> foo             -fstype=auto,loop       :/cdimage/foo/foo.img
-> >> >> >> 
-> >> >> >> The access to /cdcontent/foo will fail, when /cdimage/foo is not 
-> >> >> >> mounted before, because spawn_mount does not use SPAWN_OPT_ACCESS
-> >> >> >> in this case.
-> >> >> >> The patch below fixes this problem.
-> >> >> >
-> >> >> > I can't remember now.
-> >> >> > I wonder why I don't always call access?
-> >> >> > I must have had a reason, let me think about it for a while.
-> >> >> 
-> >> >> Yes, I first tried to set SPAWN_OPT_ACCESS as default, but this did
-> >> >> not work and had the negative effect, that NFS mounts could not
-> >> >> be mounted anymore, because an access() has been done on the
-> >> >> NFS location description "nfsserver:/cdimage", which then fails.
-> >> >
-> >> > Of course, I'll go with you're patch.
-> >> 
-> >> Are you sure the argument positions will be the same for all of the
-> >> mount modules?  Is this really the best way to fix this?
-> >
-> > Yes, it's possible that the "-o" could end up in a different position if
-> > the code is modified at some later time without thinking.
+> Yep, it's already been applied in what you're using here.
+
+Ah, okay, that would explain it :)
+
+> snip ...
+
+> The mount command looks fine to me but mount(8) is failing.
+> I'm not sure what's in the kernel your running, checking that would
+> probably be a good idea, where can I find the source for it?
+
+That specific mount comes from the ubuntu archives; 2.12r-17ubuntu2 in 
+http://archive.ubuntu.com/ubuntu/pool/main/u/util-linux/
+
+> The other thing is that it looks like the bind mount isn't triggering
+> the dependent mount which implies that the "--disable-mount-locking"
+> isn't being used with configure.
 > 
-> Maybe it is better to iterate over the options?
+> I've just looked at the Debian 5.0.2-2 package which I had lying around
+> and I see that it doesn't use this configure option. This can't work at
+> all if that configure option isn't given.
 
-Yep, I've just done something similar myself.
+Ok, thanks, I'll try that. The current source for it is in 
+http://packages.techfak.uni-bielefeld.de/pool/techfak-testing/a/autofs5/autofs5_5.0.2-4.diff.gz
+http://packages.techfak.uni-bielefeld.de/pool/techfak-testing/a/autofs5/autofs5_5.0.2.orig.tar.gz
 
-Ian
+> The other thing is that the Debian build uses both
+> --enable-force-shutdown and --enable-ignore-busy which I don't
+> recommend. One or the other should really be used and I recommend
+> --enable-ignore-busy as the better choice.
+
+Okaydokay, I'll update the packages and try again. Thanks alot!
+
+> Ian
+
+-- 
+Lukas
