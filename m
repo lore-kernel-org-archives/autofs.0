@@ -1,14 +1,19 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Problems with Autofs and .hidden files
-Date: Tue, 02 Oct 2007 14:56:54 +0800
-Message-ID: <1191308214.26331.56.camel@raven.themaw.net>
-References: <200709291742.54831.lists@fabis-site.net>
-	<x49sl4uykdh.fsf@segfault.boston.devel.redhat.com>
+From: Matthias Koenig <mkoenig@suse.de>
+Subject: Re: [PATCH] nested mounts with loop
+Date: Tue, 02 Oct 2007 11:37:42 +0200
+Message-ID: <n7x8x6lvoux.fsf@sor.suse.de>
+References: <n7xir5ybts0.fsf@sor.suse.de>
+	<1190743449.3116.20.camel@raven.themaw.net>
+	<n7xsl51v3wa.fsf@sor.suse.de>
+	<1190821748.12109.33.camel@raven.themaw.net>
+	<x491wcl1kjw.fsf@segfault.boston.devel.redhat.com>
+	<1191302365.26331.36.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <x49sl4uykdh.fsf@segfault.boston.devel.redhat.com>
+In-Reply-To: <1191302365.26331.36.camel@raven.themaw.net> (Ian Kent's message
+	of "Tue\, 02 Oct 2007 13\:19\:25 +0800")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,54 +24,77 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: autofs@linux.kernel.org
+To: Ian Kent <raven@themaw.net>
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
-On Mon, 2007-10-01 at 10:34 -0400, Jeff Moyer wrote:
-> Fabian Steiner <lists@fabis-site.net> writes:
-> 
-> > Hello!
-> >
-> > We are using autofs in order to mount the user's home drive via NFS after a
-> > successfull login authenticated by ldap.
-> >
-> > /etc/auto.master looks like this:
-> >
-> > # AUOTOFS-MAPPING
-> > /home/schueler  /etc/auto.schueler
-> > /home/lehrer    /etc/auto.lehrer
-> > /home/maerkte   /etc/auto.maerkte
-> >
-> > /etc/auto.schueler has the following content (the same also applies for the
-> > other files):
-> >
-> > *       -fstype=nfs,rw,hard,intr,nodev,nosuid,exec,acl         
-> > server.domain.de:/home/schueler/&
-> >
-> > Generally speaking this setup works like a charm but from time to time we
-> > encounter the following messages in syslog:
-> >
-> > Sep 24 16:46:57 server mountd[8818]: authenticated mount request from
-> > client.domain.de:559 for /home/schueler/.directory (/home/schueler)
-> > Sep 24 16:46:57 server mountd[8818]: can't stat exported
-> > dir /home/schueler/.directory: No such file or directory
-> >
-> > Our investigations show that these messages are probably to be created
-> > whenever a user tries to access /home/schueler by using Konqueror or
-> > Nautilus. The file .directory doesn't exist, however, and that's why these
-> > messages appaer. Normalley, this wouldn't be a severe problem but the
-> > entire is completely slowed down so that another kind of error occurs:
-> >
-> > Sep 24 16:47:00 server mountd[8818]: refused mount request from
-> > client.domain.de for /home/schueler/.directory (/home/schueler): illegal
-> > port 48337
-> >
-> > Does anybody know this issue and could provide any hints how to solve it?
-> 
-> Negative lookup caching will help this.  I'm not sure whether/when
-> that went into the kernel.  Ian?
+Ian Kent <raven@themaw.net> writes:
 
-There was a report of the patch causing a kernel panic which I've still
-not been able to duplicate. I need to return to this real soon.
+> On Wed, 2007-09-26 at 12:02 -0400, Jeff Moyer wrote:
+>> Ian Kent <raven@themaw.net> writes:
+>> 
+>> > On Wed, 2007-09-26 at 17:32 +0200, Matthias Koenig wrote:
+>> >> Ian Kent <raven@themaw.net> writes:
+>> >> 
+>> >> > On Tue, 2007-09-25 at 18:21 +0200, Matthias Koenig wrote:
+>> >> >> Hi,
+>> >> >> 
+>> >> >> we noticed a problem concerning loop mounts on locations that 
+>> >> >> have to be mounted before. E.g. consider the following situation,
+>> >> >> a NFS server exporting a cd image, which we want to loop mount
+>> >> >> locally to get access to the content:
+>> >> >> 
+>> >> >> auto.master:
+>> >> >> /cdimage        auto.cdimage
+>> >> >> /cdcontent      auto.cdcontent
+>> >> >> 
+>> >> >> auto.cdimage:
+>> >> >> foo             nfsserver:/cdimage/foo.img
+>> >> >> 
+>> >> >> auto.cdcontent:
+>> >> >> foo             -fstype=auto,loop       :/cdimage/foo/foo.img
+>> >> >> 
+>> >> >> The access to /cdcontent/foo will fail, when /cdimage/foo is not 
+>> >> >> mounted before, because spawn_mount does not use SPAWN_OPT_ACCESS
+>> >> >> in this case.
+>> >> >> The patch below fixes this problem.
+>> >> >
+>> >> > I can't remember now.
+>> >> > I wonder why I don't always call access?
+>> >> > I must have had a reason, let me think about it for a while.
+>> >> 
+>> >> Yes, I first tried to set SPAWN_OPT_ACCESS as default, but this did
+>> >> not work and had the negative effect, that NFS mounts could not
+>> >> be mounted anymore, because an access() has been done on the
+>> >> NFS location description "nfsserver:/cdimage", which then fails.
+>> >
+>> > Of course, I'll go with you're patch.
+>> 
+>> Are you sure the argument positions will be the same for all of the
+>> mount modules?  Is this really the best way to fix this?
+>
+> Yes, it's possible that the "-o" could end up in a different position if
+> the code is modified at some later time without thinking.
 
-Ian  
+Maybe it is better to iterate over the options?
+
+Matthias
+
+Index: autofs-git20070924/daemon/spawn.c
+===================================================================
+--- autofs-git20070924.orig/daemon/spawn.c
++++ autofs-git20070924/daemon/spawn.c
+@@ -293,6 +293,14 @@ int spawn_mount(logger *log, ...)
+        while ((*p++ = va_arg(arg, char *)));
+        va_end(arg);
+ 
++#ifndef ENABLE_MOUNT_LOCKING
++       /* validate loop mounts as they could be on some location to be
++        * mounted first */
++       for (p = argv; *(p+1); p++)
++               if (!strcmp(*p, "-o") && strstr(*(p+1), "loop"))
++                       options = SPAWN_OPT_ACCESS;
++#endif
++
+        while (retries--) {
+                ret = do_spawn(log, options, prog, (const char **) argv);
+                if (ret & MTAB_NOTUPDATED)
