@@ -1,16 +1,14 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [BUG] 5.0.0_beta1: does not auto-unmount
-Date: Tue, 02 Oct 2007 14:09:20 +0800
-Message-ID: <1191305360.26331.53.camel@raven.themaw.net>
-References: <200709261123.41401.vda.linux@googlemail.com>
-	<200709272114.11469.vda.linux@googlemail.com>
-	<1190949750.3464.4.camel@raven.themaw.net>
-	<200709300225.16952.vda.linux@googlemail.com>
+Subject: Re: Problems with Autofs and .hidden files
+Date: Tue, 02 Oct 2007 14:56:54 +0800
+Message-ID: <1191308214.26331.56.camel@raven.themaw.net>
+References: <200709291742.54831.lists@fabis-site.net>
+	<x49sl4uykdh.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200709300225.16952.vda.linux@googlemail.com>
+In-Reply-To: <x49sl4uykdh.fsf@segfault.boston.devel.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,56 +19,54 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Denys Vlasenko <vda.linux@googlemail.com>
+To: Jeff Moyer <jmoyer@redhat.com>
 Cc: autofs@linux.kernel.org
 
-On Sun, 2007-09-30 at 02:25 +0100, Denys Vlasenko wrote:
-> > > autofs-5.0.2 still references www.kernel.org/pub/linux/daemons/autofs/v4/:
-> > > 
-> > > # grep -r /v4 .
-> > > ./INSTALL:     from http://www.kernel.org/pub/linux/daemons/autofs/v4.
-> > > ./autofs.spec:Source: ftp://ftp.kernel.org/pub/linux/daemons/autofs/v4/autofs-%{version}.tar.gz
-> > > ./gentoo/net-fs/autofs/autofs-5.0.2.ebuild:SRC_URI_BASE="mirror://kernel/linux/daemons/${PN}/v4"
-> > 
-> > Ha, missed that completely.
-> > Thnks.
-> > 
-> > > 
-> > > What do you think about removing autofs-5.0.0_beta1.tar.* from .../v4 directory
-> > > in order to prevent confusion?
-> > 
-> > Yes, I'd like to but I was a bit concerned that distros that pull these
-> > tarballs might expect them to be present.
-> > 
-> > Maybe I could encourage an update if I did, which would be desirable.
+On Mon, 2007-10-01 at 10:34 -0400, Jeff Moyer wrote:
+> Fabian Steiner <lists@fabis-site.net> writes:
 > 
-> I mean, by removing 5.0.0beta from v4 directory you will avoid having
-> confused users thinking that 5.0.0_beta1 is latest.
-
-Yes, I think I will remove all the v5 specific stuff from the v4
-directory at the same time I post 5.0.3.
-
-It's been quite a while and people that have version 5 should be aware
-of updates and really should be using later versions.
-
+> > Hello!
+> >
+> > We are using autofs in order to mount the user's home drive via NFS after a
+> > successfull login authenticated by ldap.
+> >
+> > /etc/auto.master looks like this:
+> >
+> > # AUOTOFS-MAPPING
+> > /home/schueler  /etc/auto.schueler
+> > /home/lehrer    /etc/auto.lehrer
+> > /home/maerkte   /etc/auto.maerkte
+> >
+> > /etc/auto.schueler has the following content (the same also applies for the
+> > other files):
+> >
+> > *       -fstype=nfs,rw,hard,intr,nodev,nosuid,exec,acl         
+> > server.domain.de:/home/schueler/&
+> >
+> > Generally speaking this setup works like a charm but from time to time we
+> > encounter the following messages in syslog:
+> >
+> > Sep 24 16:46:57 server mountd[8818]: authenticated mount request from
+> > client.domain.de:559 for /home/schueler/.directory (/home/schueler)
+> > Sep 24 16:46:57 server mountd[8818]: can't stat exported
+> > dir /home/schueler/.directory: No such file or directory
+> >
+> > Our investigations show that these messages are probably to be created
+> > whenever a user tries to access /home/schueler by using Konqueror or
+> > Nautilus. The file .directory doesn't exist, however, and that's why these
+> > messages appaer. Normalley, this wouldn't be a severe problem but the
+> > entire is completely slowed down so that another kind of error occurs:
+> >
+> > Sep 24 16:47:00 server mountd[8818]: refused mount request from
+> > client.domain.de for /home/schueler/.directory (/home/schueler): illegal
+> > port 48337
+> >
+> > Does anybody know this issue and could provide any hints how to solve it?
 > 
-> I tried 5.0.2 today, summary:
-> 
-> -s --stderr       missing
-> -f --foreground   works, not mentioned in help text
+> Negative lookup caching will help this.  I'm not sure whether/when
+> that went into the kernel.  Ian?
 
-Are you sure you applied the additional foreground logging patch (well
-actually if you test 5.0.2 you should really apply all the patches
-listed in patch_order-5.0.2 to get a "current state" view).
+There was a report of the patch causing a kernel panic which I've still
+not been able to duplicate. I need to return to this real soon.
 
-Are you the same person that originally contributed these patches?
-I have the name "Denis Vlasenko" in the original patch emails.
-
-Anyway, I never quite completely apply the patches but what we have now
-is fairly close. In particular I haven't provided a distinct "log to
-stderr". Over the considerable time this has been present I've rarely
-needed to use the foreground option but when I have I've always wanted
-to send the log to my tty. Especially since you can just redirect the
-output if you need to when running in foreground.
-
-Ian
+Ian  
