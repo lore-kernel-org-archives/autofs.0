@@ -1,14 +1,16 @@
-From: Lukas Kolbe <lukas@einfachkaffee.de>
-Subject: Re: nested automounts: bind and nfs
-Date: Tue, 02 Oct 2007 12:25:53 +0200
-Message-ID: <1191320754.27255.7.camel@localhost>
-References: <1191247723.19265.6.camel@sangay.TechFak.Uni-Bielefeld.DE>
-	<1191300830.26331.24.camel@raven.themaw.net>
+From: Denys Vlasenko <vda.linux@googlemail.com>
+Subject: Re: [BUG] 5.0.0_beta1: does not auto-unmount
+Date: Tue, 2 Oct 2007 10:33:27 +0100
+Message-ID: <200710021033.27651.vda.linux@googlemail.com>
+References: <200709261123.41401.vda.linux@googlemail.com>
+	<200709300225.16952.vda.linux@googlemail.com>
+	<1191305360.26331.53.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1191300830.26331.24.camel@raven.themaw.net>
+In-Reply-To: <1191305360.26331.53.camel@raven.themaw.net>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,84 +24,36 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-
-Am Dienstag, den 02.10.2007, 12:53 +0800 schrieb Ian Kent:
-> On Mon, 2007-10-01 at 16:08 +0200, Lukas Kolbe wrote:
-> > Hi!
+On Tuesday 02 October 2007 07:09, Ian Kent wrote:
+> > I tried 5.0.2 today, summary:
 > > 
-> > I'm having the problem that was described last year on this list:
-> > http://osdir.com/ml/linux.kernel.autofs/2006-08/msg00040.html
-> > 
-> > Given the following mount map:
-> > 
+> > -s --stderr       missing
+> > -f --foreground   works, not mentioned in help text
+> 
+> Are you sure you applied the additional foreground logging patch (well
+> actually if you test 5.0.2 you should really apply all the patches
+> listed in patch_order-5.0.2 to get a "current state" view).
 
+Hmmm... no.
 
-> Can you post a debug log of this failure please.
-> Instructions to get what we need can be found at
-> http://people.redhat.com/jmoyer.
+> Are you the same person that originally contributed these patches?
+> I have the name "Denis Vlasenko" in the original patch emails.
 
-Okay:
+Yes. "Denys" is my country's officialdom's idea how to transliterate
+my name into Latin letters. [idiots]
 
-/etc/auto.master:
-/vol    /etc/auto_vol_linx_new
+> Anyway, I never quite completely apply the patches but what we have now
+> is fairly close. In particular I haven't provided a distinct "log to
+> stderr". Over the considerable time this has been present I've rarely
+> needed to use the foreground option but when I have I've always wanted
+> to send the log to my tty. Especially since you can just redirect the
+> output if you need to when running in foreground.
 
-autofs5 version: 5.0.2-4, that is the same as in debian experimental
-plus all patches from the kernel.org directory applied.
+I don't understand you. Currently, even it --foreground mode
+automount logs everything to syslog, IIRC.
+Hot do you redirect that? To where?
 
-auto_vol_linx_new contains:
-
-eclipse-3.1 \
-   /bin          -rw,nosuid,grpid          fileserver:/volumes/vol1/eclipse-3.1/bin.linx86
-eclipse \
-   /bin          -rw,nosuid,grpid          :/vol/eclipse-3.1/bin
-
-Which should bind-mount /vol/eclipse/bin from /vol/eclipse-3.1/bin, and
-nfs-mount /vol/eclipse-3.1/bin from the fileserver.
-
-lkolbe@lahn cgrep /etc/nsswitch.conf 
-passwd:         compat
-group:          compat
-shadow:         compat
-hosts:          files dns mdns
-networks:       files
-protocols:      db files
-services:       db files
-ethers:         db files
-rpc:            db files
-automount:      files nis
-netgroup:       nis
-
-lkolbe@lahn cgrep /etc/default/autofs
-MASTER_MAP_NAME="/etc/auto.master"
-TIMEOUT=300
-BROWSE_MODE="no"
-LOGGING="debug"
-
-Trying to reproduce it:
-
-lkolbe@lahn ls -la /vol/eclipse/bin/
-ls: /vol/eclipse/bin/: No such file or directory
-
-lkolbe@lahn ls -la /vol/eclipse-3.1/bin/
-total 0
-drwxrwsr-x 2 root eclipse 96 2007-09-12 14:34 .
-dr-xr-xr-x 7 root root     0 2007-10-02 12:16 ..
--rw-r--r-- 1 root eclipse  0 2007-09-12 14:34 foo
-
-lkolbe@lahn ls -la /vol/eclipse/bin/
-ls: /vol/eclipse/bin/: No such file or directory
-
-And a few seconds later:
-
-lkolbe@lahn ls -la /vol/eclipse/bin/
-total 0
-drwxrwsr-x 2 root eclipse 96 2007-09-12 14:34 .
-dr-xr-xr-x 8 root root     0 2007-10-02 12:16 ..
--rw-r--r-- 1 root eclipse  0 2007-09-12 14:34 foo
-
-daemon.log comes in the next mail.
-
-> Ian
-
--- 
-Lukas
+I want to be able to direct log to be on stderr or stdout
+(I log each daemon's output separately by capturing those).
+--
+vda
