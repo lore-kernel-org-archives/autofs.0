@@ -1,7 +1,7 @@
-From: Michael <michael@kmaclub.com>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: SLED 10 4.1.4-23-4 autofs question
-Date: Thu, 04 Oct 2007 10:46:32 -0700
-Message-ID: <470526F8.3050904@kmaclub.com>
+Date: Fri, 05 Oct 2007 09:57:52 +0800
+Message-ID: <1191549472.3159.5.camel@raven.themaw.net>
 References: <E8B9048B7B76C34591C575B63EB76D5D843F4D@phx1amfpew01.am.sanm.corp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,7 +21,7 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: "Chavez, James R." <james.chavez@sanmina-sci.com>
 Cc: autofs@linux.kernel.org
 
-Chavez, James R. wrote:
+On Thu, 2007-10-04 at 10:23 -0700, Chavez, James R. wrote:
 > Hello all,
 > I am using Autofs version 4.1.4-23-4 on Suse Linux Enterprise Desktop
 > 10. I have 2 questions.
@@ -29,22 +29,20 @@ Chavez, James R. wrote:
 > similar to Solaris and HPUX? This version boasts no direct map support.
 > I tweaked the autofs script for direct map support but it will not share
 > an automounted directory with local files.
->   
 
-Autofs5 has this capability but is not included in SLES10.  Talk to you 
-support team about getting the necessary changes backported to the SuSE 
-kernel and updated autofs packages.
+Just a quick look and I see RHEL 5, RHEL 4U6 and Fedora since 6,
+OpenSUSE (I don't know since when but it's in 10.3) all have autofs
+version 5.
+
+Bug Novel.
 
 > 2) Is there a reason I cannot automount certain NFS filesystems remotely
 > from autofs but it will work from the command line?
->
->   
-Usually this is because of the mount options specified via autofs versus 
-defaults.  For example, in autofs are you specifying a tcp mount but 
-from the command line it defaults to UDP?
 
-Mount it by hand and look at the output /proc/mounts for that mount 
-point.  Are the options the same as what are specified in your autofs 
-maps and or sysconfig file?  If not, that may be the source or your problem.
+No details, so no idea.
 
-Michael
+autofs uses mount(8) so maybe the options are getting mangled or support
+for the "-s" mount option has been dropped from you mount. That has
+happened from time to time and usually causes strange problems.
+
+Ian
