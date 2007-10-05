@@ -1,13 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: SLED 10 4.1.4-23-4 autofs question
-Date: Fri, 05 Oct 2007 09:57:52 +0800
-Message-ID: <1191549472.3159.5.camel@raven.themaw.net>
-References: <E8B9048B7B76C34591C575B63EB76D5D843F4D@phx1amfpew01.am.sanm.corp>
+From: Dan Halbert <halbert@everyzing.com>
+Subject: ENOENT on first reference to an automounted file
+Date: Fri, 05 Oct 2007 17:14:14 -0400
+Message-ID: <4706A926.8090503@everyzing.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <E8B9048B7B76C34591C575B63EB76D5D843F4D@phx1amfpew01.am.sanm.corp>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,31 +16,64 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: "Chavez, James R." <james.chavez@sanmina-sci.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Thu, 2007-10-04 at 10:23 -0700, Chavez, James R. wrote:
-> Hello all,
-> I am using Autofs version 4.1.4-23-4 on Suse Linux Enterprise Desktop
-> 10. I have 2 questions.
-> 1) Is there a version in the works that will support automount support
-> similar to Solaris and HPUX? This version boasts no direct map support.
-> I tweaked the autofs script for direct map support but it will not share
-> an automounted directory with local files.
+I have what looks like an automount race condition, and am very puzzled. 
+Any suggestions would be appreciated.
 
-Just a quick look and I see RHEL 5, RHEL 4U6 and Fedora since 6,
-OpenSUSE (I don't know since when but it's in 10.3) all have autofs
-version 5.
+The first time I reference an automounted file, it is not there 
+(ENOENT). On the second and later try, the file is there. For instance:
 
-Bug Novel.
+     $ cat /net/fileserver/fs/somefile
+     cat: /net/fileserver/fs/somefile: No such file or directory
+     $ cat /net/fileserver/fs/somefile
+     Contents of somefile.
 
-> 2) Is there a reason I cannot automount certain NFS filesystems remotely
-> from autofs but it will work from the command line?
+I watched the log on fileserver, and the automount request is logged 
+seemingly immediately after the first "cat" prints its error.
 
-No details, so no idea.
+This causes havoc with our applications, which expect files to be there 
+the first time they look for them.
 
-autofs uses mount(8) so maybe the options are getting mangled or support
-for the "-s" mount option has been dropped from you mount. That has
-happened from time to time and usually causes strange problems.
+I can repeat the problem after umounting the fileystem.
 
-Ian
+I see this problem on a CentOS 4.x system running their standard 
+autofs-4.1.3-199.3. I do NOT see it on CentOS 5.x, using 
+autofs-5.0.1-0.rc2.43.0.2. Instead I see a slight pause before "cat" 
+prints the contents of the file, presumably as the automount completes. 
+Both the CentOS4 and CentOS5 systems are completely up-to-date.
+
+I also only see this problem with our Linux NFS servers (FC5 and FC6), 
+but not with a non-Fedora NAS server we have.
+
+So I am not sure this is an automount problem, per se. Perhaps it's some 
+kind of NFS version problem?
+
+The automount options include --ghost. At first I thought it might be 
+due to --ghost, because the very first time I reference the file, say 
+after a reboot or restarting autofs, I don't get an ENOENT. The first 
+time, the mountpoint dir does not yet exist. But removing --ghost from 
+the automount options does not seem to fix it.
+
+Gory details about the automount maps are below.
+
+Thanks for any help,
+Dan Halbert
+
+---------------
+More details:
+
+Our automount maps are stored in ldap. The entry in auto.master for 
+fileserver (for cn=/net/fileserver) is:
+
+     ldap:ou=auto.fileserver,ou=autofs,dc=example,dc=com --timeout=86400 
+--ghost -o 
+rw,hard,async,noatime,intr,retrans=4,timeo=100,rsize=8192,wsize=8192
+
+
+The auto.fileserver is (for cn=*):
+
+     fileserver.example.com:/export/&
+
+We are not using the fancy executable /net maps that come with these 
+systems.
