@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: [PATCH] nested mounts with loop
-Date: Mon, 08 Oct 2007 11:49:54 +0800
-Message-ID: <1191815394.3129.6.camel@raven.themaw.net>
+Date: Mon, 08 Oct 2007 12:55:21 +0800
+Message-ID: <1191819321.3129.12.camel@raven.themaw.net>
 References: <n7xir5ybts0.fsf@sor.suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -38,10 +38,17 @@ On Tue, 2007-09-25 at 18:21 +0200, Matthias Koenig wrote:
 > 
 > auto.cdcontent:
 > foo             -fstype=auto,loop       :/cdimage/foo/foo.img
+> 
+> The access to /cdcontent/foo will fail, when /cdimage/foo is not 
+> mounted before, because spawn_mount does not use SPAWN_OPT_ACCESS
+> in this case.
 
-Just trying to test this out and it seem that this should
-read :/cdimage/foo.
+This test case seems broken to me.
+Can you check you've described this correctly please.
+Maybe even try this exact setup yourself.
 
-Correct?
+Even if the maps were correct the procedure you describe wouldn't call
+spawn_mount first, it would call spawn_bind_mount, which would then
+trigger the mount through the access call.
 
 Ian
