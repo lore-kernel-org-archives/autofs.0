@@ -1,17 +1,16 @@
-From: Matthias Koenig <mkoenig@suse.de>
-Subject: Re: [PATCH] nested mounts with loop
-Date: Mon, 08 Oct 2007 18:10:40 +0200
-Message-ID: <n7xodf91ta7.fsf@sor.suse.de>
-References: <n7xir5ybts0.fsf@sor.suse.de>
-	<1191819321.3129.12.camel@raven.themaw.net>
-	<n7xsl4l23ka.fsf@sor.suse.de>
-	<1191858699.3129.16.camel@raven.themaw.net>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: ENOENT on first reference to an automounted file
+Date: Mon, 08 Oct 2007 12:29:36 -0400
+Message-ID: <x497ilxpo27.fsf@segfault.boston.devel.redhat.com>
+References: <4706A926.8090503@everyzing.com>
+	<1191646125.3060.7.camel@raven.themaw.net>
+	<47081453.7000709@everyzing.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1191858699.3129.16.camel@raven.themaw.net> (Ian Kent's message
-	of "Mon\, 08 Oct 2007 23\:51\:39 +0800")
+In-Reply-To: <47081453.7000709@everyzing.com> (Dan Halbert's message of "Sat\,
+	06 Oct 2007 19\:03\:47 -0400")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,21 +21,36 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+To: Dan Halbert <halbert@everyzing.com>
+Cc: autofs@kernel.org
 
-Ian Kent <raven@themaw.net> writes:
+Dan Halbert <halbert@everyzing.com> writes:
 
-> Mmm .. but my comment above assumes you're autofs build uses the
-> configure option --disable-mount-locking.
+> Ian Kent wrote:
+>  > On Fri, 2007-10-05 at 17:14 -0400, Dan Halbert wrote:
+>  >> I have what looks like an automount race condition, and am very puzzled...
+>  >>
+>  >> The first time I reference an automounted file, it is not there
+>  >> (ENOENT). On the second and later try, the file is there...
+>  >
+>  > We really must have a debug log, include everything and give some
+>  > indication of when the problem occurred....
 >
-> Is that correct?
->
-> If not then this can't be done because the locking will cause a
-> deadlock, consequently the code that calls access isn't compiled in and
-> recursive mounts aren't possible.
+> Details you requested follow.
 
-Yes, the build is with the --disable-mount-locking option.
+> 	autofs-4.1.3-199.3
+> (I also reproduced the problem with autofs-4.1.3-214, the latest version
+>   at jmoyer's webpage.)
 
-Thanks,
-Matthias
+> kernel:
+> 	2.6.9-55.0.9.ELsmp x86_64
+
+I can't reproduce the problem.  Would you be willing to enable
+debugging in the kernel module.  This will generate oodles of output.
+Alternatively, I could try to come up with some pointed kprobes to get
+the information we most likely need.  The first option will definitely
+be quicker.
+
+Cheers,
+
+Jeff
