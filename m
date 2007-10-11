@@ -1,13 +1,18 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Has replicated mount failover  been implemented?
-Date: Thu, 11 Oct 2007 14:59:06 +0800
-Message-ID: <1192085946.3114.14.camel@raven.themaw.net>
-References: <836836.16914.qm@web81813.mail.mud.yahoo.com>
+From: Lukas Kolbe <lukas@einfachkaffee.de>
+Subject: Re: nested automounts: bind and nfs
+Date: Thu, 11 Oct 2007 10:24:26 +0200
+Message-ID: <1192091066.20253.8.camel@localhost>
+References: <1191247723.19265.6.camel@sangay.TechFak.Uni-Bielefeld.DE>
+	<1191300830.26331.24.camel@raven.themaw.net>
+	<1191321007.27255.12.camel@localhost>
+	<1191332917.26331.171.camel@raven.themaw.net>
+	<1192025757.27076.31.camel@sangay.TechFak.Uni-Bielefeld.DE>
+	<1192072389.3114.2.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <836836.16914.qm@web81813.mail.mud.yahoo.com>
+In-Reply-To: <1192072389.3114.2.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,35 +23,25 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: John Simon <tzzhc4@yahoo.com>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-On Wed, 2007-10-10 at 23:28 -0700, John Simon wrote:
-> We are in the process of switching from Sun blades to
-> Linux blades for our compute farm and are running into
-> issues with automount not failing over when an NFS
-> server goes down. I am wondering if it is a
-> configuration issue, if I am using a version of autofs
-> that doesn't support failover or if it hasn't been
-> implemented yet.
+Ups.
+
+> > There's an updated package in 
+> >
+> http://packages.techfak.uni-bielefeld.de/pool/techfak-testing/a/autofs5/autofs5_5.0.2-5.diff.gz - the only change being adding --disable-mount-locking and removing --enable-force-shutdown during configure.
 > 
-> Currently I am running SLES 10 with autofs 4.1.4. Here
-> are my configs. The server will pick the next host in
-> line at mount but if the failure happens after mount
-> the mount does NOT failover. Any information would be
-> greatly appreciated.:
+> File not found?
 
-Failover of active NFS mounts isn't something that autofs can do. When I
-say that I don't mean it hasn't been implemented, I mean, as far as I
-can see, it's not possible for autofs to do it. I've thought about quite
-a bit and I just can't see a way to implement it.
+Sorry about that - in the meantime I uploaded a new version with the
+latest patch (4. oct.) applied and didn't realise that the old one got
+deleted.
 
-Once autofs has selected a server and performed the mount it has no
-knowledge of what is happening in the mount itself. All that autofs
-could do (if it was implemented in the NFS client) is to pass an ordered
-list of servers to mount so it can then pass that to the kernel. This is
-essentially what the Solaris automount does.
+Try this:
+http://packages.techfak.uni-bielefeld.de/pool/techfak-testing/a/autofs5/autofs5_5.0.2-6.diff.gz 
 
-This has to be supported in the kernel NFS client and it's not. 
+I promise I won't update until I hear from you :)
 
-Ian
+-- 
+Lukas
