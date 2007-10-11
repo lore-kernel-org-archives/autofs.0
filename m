@@ -1,17 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: nested automounts: bind and nfs
-Date: Thu, 11 Oct 2007 11:13:09 +0800
-Message-ID: <1192072389.3114.2.camel@raven.themaw.net>
-References: <1191247723.19265.6.camel@sangay.TechFak.Uni-Bielefeld.DE>
-	<1191300830.26331.24.camel@raven.themaw.net>
-	<1191321007.27255.12.camel@localhost>
-	<1191332917.26331.171.camel@raven.themaw.net>
-	<1192025757.27076.31.camel@sangay.TechFak.Uni-Bielefeld.DE>
+From: John Simon <tzzhc4@yahoo.com>
+Subject: Has replicated mount failover  been implemented?
+Date: Wed, 10 Oct 2007 23:28:21 -0700 (PDT)
+Message-ID: <836836.16914.qm@web81813.mail.mud.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1192025757.27076.31.camel@sangay.TechFak.Uni-Bielefeld.DE>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,22 +16,41 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Lukas Kolbe <lukas@einfachkaffee.de>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Wed, 2007-10-10 at 16:15 +0200, Lukas Kolbe wrote:
-> Hi Ian, Jeff and list,
-> 
-> > The mount command looks fine to me but mount(8) is failing.
-> > I'm not sure what's in the kernel your running, checking that would
-> > probably be a good idea, where can I find the source for it?
-> 
-> 
-> > The other thing is that it looks like the bind mount isn't triggering
-> > the dependent mount which implies that the "--disable-mount-locking"
-> > isn't being used with configure.
-> 
-> There's an updated package in 
-> http://packages.techfak.uni-bielefeld.de/pool/techfak-testing/a/autofs5/autofs5_5.0.2-5.diff.gz - the only change being adding --disable-mount-locking and removing --enable-force-shutdown during configure.
+We are in the process of switching from Sun blades to
+Linux blades for our compute farm and are running into
+issues with automount not failing over when an NFS
+server goes down. I am wondering if it is a
+configuration issue, if I am using a version of autofs
+that doesn't support failover or if it hasn't been
+implemented yet.
 
-File not found?
+Currently I am running SLES 10 with autofs 4.1.4. Here
+are my configs. The server will pick the next host in
+line at mount but if the failure happens after mount
+the mount does NOT failover. Any information would be
+greatly appreciated.:
+
+
+/etc/auto_appl
+
+test
+-rsize=32768,wsize=32768,nfsvers=3,tcp,retrans=5,timeo=600
+test-ap01,test-ap02,test-ap03:/export/appl/test
+
+/etc/auto.master
+
+/appl   /etc/auto_appl -rw,intr,nosuid,nobrowse
+/apps   /etc/auto_apps -ro,intr,nosuid,nobrowse
+/home   /etc/auto_home -rw,intr,nosuid,nobrowse
+
+
+/etc/sysconfig/autofs
+
+AUTOFS_OPTIONS="--timeout 3600"
+
+
+      ____________________________________________________________________________________
+Tonight's top picks. What will you watch tonight? Preview the hottest shows on Yahoo! TV.
+http://tv.yahoo.com/ 
