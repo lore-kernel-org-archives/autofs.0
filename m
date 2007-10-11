@@ -1,14 +1,13 @@
-From: Jeff Moyer <jmoyer@redhat.com>
+From: Peter Staubach <staubach@redhat.com>
 Subject: Re: Has replicated mount failover  been implemented?
-Date: Thu, 11 Oct 2007 15:21:18 -0400
-Message-ID: <x494pgx1mq9.fsf@segfault.boston.devel.redhat.com>
+Date: Thu, 11 Oct 2007 15:56:11 -0400
+Message-ID: <470E7FDB.5090202@redhat.com>
 References: <145207.13740.qm@web81811.mail.mud.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <145207.13740.qm@web81811.mail.mud.yahoo.com> (John Simon's
-	message of "Thu\, 11 Oct 2007 11\:50\:03 -0700 \(PDT\)")
+In-Reply-To: <145207.13740.qm@web81811.mail.mud.yahoo.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,8 +21,7 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: John Simon <tzzhc4@yahoo.com>
 Cc: autofs@linux.kernel.org
 
-John Simon <tzzhc4@yahoo.com> writes:
-
+John Simon wrote:
 > Since client-side failover is not currently possible
 > with Linux autofs does anyone have any recommendations
 > for minimizing server side impact during when a HA-NFS
@@ -32,8 +30,16 @@ John Simon <tzzhc4@yahoo.com> writes:
 > DOS'ing the NFS server and causing it to failover
 > again and again. We have hundreds of clients.
 
-See the retry, retrans, and timeo nfs mount options.
+I don't think that I understand what the client side failover
+of Solaris was being used for in this configuration.  If the
+server is truly HA, then shouldn't the NFS service be able to
+failover from one server to the next with minimal interruption
+on the clients?
 
-Cheers,
+The Solaris client side failover required relooking up all
+file handles which referred to the dead server, so it wasn't
+cheap either.
 
-Jeff
+    Thanx...
+
+       ps
