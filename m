@@ -1,11 +1,13 @@
-From: "jehan.procaccia" <jehan.procaccia@int-edu.eu>
-Subject: hostname lookup failed: Operation not permitted
-Date: Mon, 15 Oct 2007 12:06:46 +0200
-Message-ID: <47133BB6.5010903@int-edu.eu>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: hostname lookup failed: Operation not permitted
+Date: Tue, 16 Oct 2007 16:17:26 +0800
+Message-ID: <1192522647.4443.17.camel@raven.themaw.net>
+References: <47133BB6.5010903@int-edu.eu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <47133BB6.5010903@int-edu.eu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,45 +18,31 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs mailing list <autofs@linux.kernel.org>
-Cc: "Eric. Doutreleau" <eric.doutreleau@int-evry.fr>
+To: "jehan.procaccia" <jehan.procaccia@int-edu.eu>
+Cc: autofs mailing list <autofs@linux.kernel.org>, "Eric. Doutreleau" <eric.doutreleau@int-evry.fr>
 
-Hello,
+On Mon, 2007-10-15 at 12:06 +0200, jehan.procaccia wrote:
+> Hello,
+> 
+> I have several users that cannot automount their homdir . The logs says:
+> 
+> Oct 14 15:56:47 anaconda automount[10054]: create_udp_client: hostname 
+> lookup failed: Operation not permitted
+> Oct 14 15:56:47 anaconda automount[10054]: create_tcp_client: hostname 
+> lookup failed: Operation not permitted
+> Oct 14 15:56:47 anaconda automount[10054]: lookup_mount: exports lookup 
+> failed for .directory
+> Oct 14 16:01:19 anaconda automount[10054]: create_udp_client: hostname 
+> lookup failed: Operation not permitted
+> Oct 14 16:01:19 anaconda automount[10054]: create_tcp_client: hostname 
+> lookup failed: Operation not permitted
+> Oct 14 16:01:19 anaconda automount[10054]: lookup_mount: exports lookup 
+> failed for ipv4
+> Oct 14 16:01:19 anaconda automount[10054]: create_udp_client: hostname 
+> lookup failed: Operation not permitted
+> Oct 14 16:01:19 anaconda automount[10054]: create_tcp_client: hostname 
+> lookup failed: Operation not permitted
 
-I have several users that cannot automount their homdir . The logs says:
+A missing /etc/hosts file can cause this error.
 
-Oct 14 15:56:47 anaconda automount[10054]: create_udp_client: hostname 
-lookup failed: Operation not permitted
-Oct 14 15:56:47 anaconda automount[10054]: create_tcp_client: hostname 
-lookup failed: Operation not permitted
-Oct 14 15:56:47 anaconda automount[10054]: lookup_mount: exports lookup 
-failed for .directory
-Oct 14 16:01:19 anaconda automount[10054]: create_udp_client: hostname 
-lookup failed: Operation not permitted
-Oct 14 16:01:19 anaconda automount[10054]: create_tcp_client: hostname 
-lookup failed: Operation not permitted
-Oct 14 16:01:19 anaconda automount[10054]: lookup_mount: exports lookup 
-failed for ipv4
-Oct 14 16:01:19 anaconda automount[10054]: create_udp_client: hostname 
-lookup failed: Operation not permitted
-Oct 14 16:01:19 anaconda automount[10054]: create_tcp_client: hostname 
-lookup failed: Operation not permitted
-
-Any idea of what happens ?
-
-PS: my system versions:
-[root@anaconda log]# rpm -q autofs
-autofs-5.0.1-27
-[root@anaconda log]# cat /etc/redhat-release
-Fedora release 7 (Moonshine)
-[root@anaconda log]# uname -a
-Linux anaconda.int-evry.fr 2.6.22.9-91.fc7 #1 SMP Thu Sep 27 23:10:59 
-EDT 2007 i686 i686 i386 GNU/Linux
-
-Nfs server:
-$ uname -a
-Linux cobra3.int-evry.fr 2.6.9-55.0.2.ELsmp #1 SMP Tue Jun 12 17:59:08 
-EDT 2007 i686 i686 i386 GNU/Linux
-[root@cobra3 /var/log]
-$ cat /etc/redhat-release
-Red Hat Enterprise Linux ES release 4 (Nahant Update 5)
+Ian
