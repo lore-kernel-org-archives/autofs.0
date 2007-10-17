@@ -1,13 +1,22 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: hostname lookup failed: Operation not permitted
-Date: Tue, 16 Oct 2007 16:17:26 +0800
-Message-ID: <1192522647.4443.17.camel@raven.themaw.net>
-References: <47133BB6.5010903@int-edu.eu>
+From: Lukas Kolbe <lukas@einfachkaffee.de>
+Subject: Re: nested automounts: bind and nfs
+Date: Wed, 17 Oct 2007 12:19:01 +0200
+Message-ID: <1192616341.24286.2.camel@sangay.TechFak.Uni-Bielefeld.DE>
+References: <1191247723.19265.6.camel@sangay.TechFak.Uni-Bielefeld.DE>
+	<1191300830.26331.24.camel@raven.themaw.net>
+	<1191321007.27255.12.camel@localhost>
+	<1191332917.26331.171.camel@raven.themaw.net>
+	<1192025757.27076.31.camel@sangay.TechFak.Uni-Bielefeld.DE>
+	<1192029316.3151.11.camel@raven.themaw.net>
+	<1192030146.27076.46.camel@sangay.TechFak.Uni-Bielefeld.DE>
+	<1192034852.3151.21.camel@raven.themaw.net>
+	<1192035764.20253.5.camel@localhost>
+	<1192092341.3114.38.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <47133BB6.5010903@int-edu.eu>
+In-Reply-To: <1192092341.3114.38.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,31 +27,28 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: "jehan.procaccia" <jehan.procaccia@int-edu.eu>
-Cc: autofs mailing list <autofs@linux.kernel.org>, "Eric. Doutreleau" <eric.doutreleau@int-evry.fr>
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org
 
-On Mon, 2007-10-15 at 12:06 +0200, jehan.procaccia wrote:
-> Hello,
+Hi Ian!
+
+
+> To deal with the case we have here I need to check for the LOOKUP_ACCESS
+> intent in the kernel module method that deals with catching mount
+> requests for the mount triggers during path lookup.
 > 
-> I have several users that cannot automount their homdir . The logs says:
+> The solution is fairly simple, as you can see from the patch below but
+> it begs the question "will this also catch stuff that it shouldn't
+> catch" so I need to continue testing it. 
 > 
-> Oct 14 15:56:47 anaconda automount[10054]: create_udp_client: hostname 
-> lookup failed: Operation not permitted
-> Oct 14 15:56:47 anaconda automount[10054]: create_tcp_client: hostname 
-> lookup failed: Operation not permitted
-> Oct 14 15:56:47 anaconda automount[10054]: lookup_mount: exports lookup 
-> failed for .directory
-> Oct 14 16:01:19 anaconda automount[10054]: create_udp_client: hostname 
-> lookup failed: Operation not permitted
-> Oct 14 16:01:19 anaconda automount[10054]: create_tcp_client: hostname 
-> lookup failed: Operation not permitted
-> Oct 14 16:01:19 anaconda automount[10054]: lookup_mount: exports lookup 
-> failed for ipv4
-> Oct 14 16:01:19 anaconda automount[10054]: create_udp_client: hostname 
-> lookup failed: Operation not permitted
-> Oct 14 16:01:19 anaconda automount[10054]: create_tcp_client: hostname 
-> lookup failed: Operation not permitted
+> The patch below should apply ok to most kernels you're using as there
+> haven't been changes in this area for quite a while. It would be good if
+> you could test this out and see if you observe any other side effects.
 
-A missing /etc/hosts file can cause this error.
+I can confirm now that the patch works as it should, ie it recursively
+mounts as it should and expires the mounts in the correct order. 
 
-Ian
+> Ian
+
+-- 
+Lukas
