@@ -1,12 +1,14 @@
-From: "Noam Meltzer" <tsnoam@gmail.com>
-Subject: /net (lazy mounts) doesn't see new shares
-Date: Wed, 17 Oct 2007 18:33:14 +0200
-Message-ID: <14ac2b9d0710170933u7fc05093s6d108ef0c59ca74c@mail.gmail.com>
+From: "Jim Dennis" <jdennis@cadence.com>
+Subject: Re: hostname lookup failed: Operation not permitted
+Date: Wed, 17 Oct 2007 11:07:12 -0700
+Message-ID: <920746F6DF728345915EF4D6DA610D0F03F8EFDB@MAILSJ2.global.cadence.com>
+References: <mailman.1.1192536001.24077.autofs@linux.kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
+Content-class: urn:content-classes:message
+In-Reply-To: <mailman.1.1192536001.24077.autofs@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,55 +21,44 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-Hi all,
+ 
+On Date: Tue, 16 Oct 2007 16:17:26 +0800, Ian Kent wrote:
 
-I have come across the following problem with the following versions of autofs:
-autofs-5.0.1-0.rc2.42 (available with RHEL5 GA)
-autofs-4.1.3-187 (available with RHEL4 u4)
+> Subject: Re: [autofs] hostname lookup failed: Operation not permitted
+> To: "jehan.procaccia" <jehan.procaccia@int-edu.eu>
+> Cc: autofs mailing list <autofs@linux.kernel.org>,  "Eric. Doutreleau"
+>     <eric.doutreleau@int-evry.fr>
+> Message-ID: <1192522647.4443.17.camel@raven.themaw.net>
 
-I have the following scenario:
-1. nfs client (called "rhel5") which can access an nfs server (called
-"meydele").
-2. this are the shares  on the nfs server:
+>> On Mon, 2007-10-15 at 12:06 +0200, jehan.procaccia wrote:
+>> Hello,
 
-root@meydele:~# cat /etc/exports
-/home   172.16.2.129(rw,async,no_subtree_check)
-/var    172.16.2.129(rw,async,no_subtree_check)
-/bin    172.16.2.129(rw,async,no_subtree_check)
+>> I have several users that cannot automount their homdir . The logs
+says:
 
-3. I have a process which keeps /net/meydele used (for example bash
-process with current directory "/net/meydele/home/noam").
+>> Oct 14 15:56:47 anaconda automount[10054]: create_udp_client:
+hostname
+>> lookup failed: Operation not permitted
+>> Oct 14 15:56:47 anaconda automount[10054]: create_tcp_client:
+hostname
+>> lookup failed: Operation not permitted
 
-4. I add a new share to the nfs-server (for example:
-/tmp 172.16.2.129(rw,async,no_subtree_check)
-)
+...
 
-5. the nfs client will not be able to see the new share /net/meydele
-until all mounts under it will be umounted.
+>> Oct 14 16:01:19 anaconda automount[10054]: create_tcp_client:
+hostname
 
-6. This is what I see in syslog when I turn debugging (-d) on:
+>> lookup failed: Operation not permitted
 
-Oct 17 19:10:58 rhel5 automount[4573]: mount(nfs): mounted
-meydele:/home on /net/meydele/home
-Oct 17 19:10:58 rhel5 automount[4573]: mounted /net/meydele/home
-Oct 17 19:11:01 rhel5 automount[4573]: mount still busy /net
-Oct 17 19:11:13 rhel5 automount[4573]: attempting to mount entry
-/net/meydele/tmp
-Oct 17 19:11:13 rhel5 automount[4573]: failed to mount /net/meydele/tmp
-Oct 17 19:11:13 rhel5 automount[4573]: attempting to mount entry
-/net/meydele/tmp
-Oct 17 19:11:13 rhel5 automount[4573]: failed to mount /net/meydele/tmp
-Oct 17 19:11:13 rhel5 automount[4573]: attempting to mount entry
-/net/meydele/tmp
-Oct 17 19:11:13 rhel5 automount[4573]: failed to mount /net/meydele/tmp
+> A missing /etc/hosts file can cause this error.
 
+> Ian
 
+ It seems odd to get "operation not permitted" for this failure mode.
+ However it seems obviously related to hostname resolution:
+ (/etc/nsswitch.conf, /etc/hosts.conf, NIS or LDAP maps ... DNS ...
+nscd?
+ something)
 
-Is there any way to work around this problem?
-I suspect that the problem is because automount calls /etc/auto.net
-for /net/meydele only when there are nothing mounted there, otherwise
-it calls a cached map in the memory. (but maybe I'm wrong, I haven't
-read the source code)
-
-Best regards,
-Noam Meltzer
+--
+JimD
