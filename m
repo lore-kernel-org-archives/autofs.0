@@ -1,22 +1,12 @@
-From: Lukas Kolbe <lukas@einfachkaffee.de>
-Subject: Re: nested automounts: bind and nfs
-Date: Wed, 17 Oct 2007 12:19:01 +0200
-Message-ID: <1192616341.24286.2.camel@sangay.TechFak.Uni-Bielefeld.DE>
-References: <1191247723.19265.6.camel@sangay.TechFak.Uni-Bielefeld.DE>
-	<1191300830.26331.24.camel@raven.themaw.net>
-	<1191321007.27255.12.camel@localhost>
-	<1191332917.26331.171.camel@raven.themaw.net>
-	<1192025757.27076.31.camel@sangay.TechFak.Uni-Bielefeld.DE>
-	<1192029316.3151.11.camel@raven.themaw.net>
-	<1192030146.27076.46.camel@sangay.TechFak.Uni-Bielefeld.DE>
-	<1192034852.3151.21.camel@raven.themaw.net>
-	<1192035764.20253.5.camel@localhost>
-	<1192092341.3114.38.camel@raven.themaw.net>
+From: "Noam Meltzer" <tsnoam@gmail.com>
+Subject: /net (lazy mounts) doesn't see new shares
+Date: Wed, 17 Oct 2007 18:33:14 +0200
+Message-ID: <14ac2b9d0710170933u7fc05093s6d108ef0c59ca74c@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1192092341.3114.38.camel@raven.themaw.net>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -27,28 +17,57 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-Hi Ian!
+Hi all,
+
+I have come across the following problem with the following versions of autofs:
+autofs-5.0.1-0.rc2.42 (available with RHEL5 GA)
+autofs-4.1.3-187 (available with RHEL4 u4)
+
+I have the following scenario:
+1. nfs client (called "rhel5") which can access an nfs server (called
+"meydele").
+2. this are the shares  on the nfs server:
+
+root@meydele:~# cat /etc/exports
+/home   172.16.2.129(rw,async,no_subtree_check)
+/var    172.16.2.129(rw,async,no_subtree_check)
+/bin    172.16.2.129(rw,async,no_subtree_check)
+
+3. I have a process which keeps /net/meydele used (for example bash
+process with current directory "/net/meydele/home/noam").
+
+4. I add a new share to the nfs-server (for example:
+/tmp 172.16.2.129(rw,async,no_subtree_check)
+)
+
+5. the nfs client will not be able to see the new share /net/meydele
+until all mounts under it will be umounted.
+
+6. This is what I see in syslog when I turn debugging (-d) on:
+
+Oct 17 19:10:58 rhel5 automount[4573]: mount(nfs): mounted
+meydele:/home on /net/meydele/home
+Oct 17 19:10:58 rhel5 automount[4573]: mounted /net/meydele/home
+Oct 17 19:11:01 rhel5 automount[4573]: mount still busy /net
+Oct 17 19:11:13 rhel5 automount[4573]: attempting to mount entry
+/net/meydele/tmp
+Oct 17 19:11:13 rhel5 automount[4573]: failed to mount /net/meydele/tmp
+Oct 17 19:11:13 rhel5 automount[4573]: attempting to mount entry
+/net/meydele/tmp
+Oct 17 19:11:13 rhel5 automount[4573]: failed to mount /net/meydele/tmp
+Oct 17 19:11:13 rhel5 automount[4573]: attempting to mount entry
+/net/meydele/tmp
+Oct 17 19:11:13 rhel5 automount[4573]: failed to mount /net/meydele/tmp
 
 
-> To deal with the case we have here I need to check for the LOOKUP_ACCESS
-> intent in the kernel module method that deals with catching mount
-> requests for the mount triggers during path lookup.
-> 
-> The solution is fairly simple, as you can see from the patch below but
-> it begs the question "will this also catch stuff that it shouldn't
-> catch" so I need to continue testing it. 
-> 
-> The patch below should apply ok to most kernels you're using as there
-> haven't been changes in this area for quite a while. It would be good if
-> you could test this out and see if you observe any other side effects.
 
-I can confirm now that the patch works as it should, ie it recursively
-mounts as it should and expires the mounts in the correct order. 
+Is there any way to work around this problem?
+I suspect that the problem is because automount calls /etc/auto.net
+for /net/meydele only when there are nothing mounted there, otherwise
+it calls a cached map in the memory. (but maybe I'm wrong, I haven't
+read the source code)
 
-> Ian
-
--- 
-Lukas
+Best regards,
+Noam Meltzer
