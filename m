@@ -1,13 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs problems with RHEL4
-Date: Fri, 19 Oct 2007 15:52:47 +0800
-Message-ID: <1192780369.24353.6.camel@raven.themaw.net>
-References: <BAC1D28A5AB852439A6914CA7AB4E63F041EE6D0@permls05.wde.woodside.com.au>
+Subject: Re: ENOENT on first reference to an automounted file
+Date: Fri, 19 Oct 2007 16:02:31 +0800
+Message-ID: <1192780957.24353.10.camel@raven.themaw.net>
+References: <D31A6D71-AB0C-45C0-A371-66AB549253BE@isolar.dyndns.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <BAC1D28A5AB852439A6914CA7AB4E63F041EE6D0@permls05.wde.woodside.com.au>
+In-Reply-To: <D31A6D71-AB0C-45C0-A371-66AB549253BE@isolar.dyndns.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,70 +18,38 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: "Coe, Colin C. (Unix Engineer)" <Colin.Coe@woodside.com.au>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Thu, 2007-10-18 at 09:25 +0800, Coe, Colin C. (Unix Engineer) wrote:
+On Thu, 2007-10-18 at 03:36 -0700, Greg Earle wrote:
+> Dan, Ian, Jeff:
 > 
-> Just read the autofs section in http://people.redhat.com/jmoyer
+> I work at a large U.S. Government Lab and after updating some of our
+> Ops systems from RHEL 4 Update 4 to Update 5, all Hell broke loose
+> as we have been plagued by this bug ever since - we are a Sun and
+> Red Hat shop, and our software architecture is heavily dependent upon
+> lots of automounts.  (I can very easily replicate it in our own
+> environment with a simple test script that usually provokes the
+> race condition in about 10-15 minutes, tops.)
 > 
-> Attached is the output captured using script. ~330K
+> I am getting the impression from the bug reports (and posts in
+> this thread) that this bug is *not* fixed in 2.6.9-55.0.9; and might
+> not be until some point in the future when 2.6.9-61 is available via
+> "up2date".  Am I correct in that assumption?
 > 
-> <<typescript>> 
+> If so, we may have little choice but to rollback to Update 4 by
+> doing complete reinstalls from scratch (groan).  Is there any
+> info on when this bug first crept in, and is Update 4 - with
+> autofs-4.1.3-187 - safe to roll back to?  The natives are restless,
+> and they've already shown up outside my office door with torches
+> and pitchforks.  I've got a lot of unhappy Flight Projects reps
+> on my hands.  We need to make a command decision here Real Soon Now.
 > 
-> CC
-> 
-> _____________________________________________ 
-> From:   Coe, Colin C. (Unix Engineer)  
-> Sent:   Thursday, 18 October 2007 9:05 AM 
-> To:     'autofs@linux.kernel.org' 
-> Subject:        autofs problems with RHEL4
-> 
-> 
-> Hi all
-> 
-> We run 150+ RHEL3 workstations and a handfull of RHEL4 and RHEL5
-> boxes.  Our automount maps are served from a Sun One Directory Server
-> v5.1, the main automount map contains 1258 entries.
-> 
-> On RHEL3 (update 9 fully patched) and RHEL5 (fully patched), autofs
-> behaves just fine, exactly as we need.  
-> 
-> On RHEL4 autofs behaves very differently.
-> (kernel-smp-2.6.9-55.0.9.EL, autofs-4.1.3-199.3).
-> 
-> Symptoms: 
-> 1) Weirdness with symlinks 
-> ls -ld /scratch /scratch/memconf 
-> lrwxrwxrwx    1 root     root           20 Sep  4 11:11 /scratch
-> -> /nfs/perseus/scratch 
-> lrwxrwxrwx    1 root     bin            34 Oct 16
-> 05:05 /scratch/memconf -> /nfs/wwwproxy/data/mgmtvol/memconf
-> 
-> On EL3/5, 'ls -l /scratch/memconf/' will list the contents of the
-> directory '/scratch/memconf' points at. 
-> On EL4, the first time you do a 'ls -l /scratch/memconf/' will produce
-> 'ls: /scratch/memconf/: No such file or directory'.  Repeating the
-> command will sometimes give the same error but eventually it will work
-> and once working will continue to work until the mounts expire and
-> then you're back to square one.
-> 
-> 2) Different behavior with BASH, <TAB> completions: 
-> On EL3/5, typing /scra<TAB> will complete to '/scratch/' 
-> On EL4, typing /scra<TAB> will complete to '/scratch ' (note the space
-> at the end).
-> 
-> I know this is minor but the users hate this.
+> Any illumination much appreciated.
 
-Ya .. and rightly so.
+Well, if we can't confirm the problem and resolution then I have no case
+to put for an update.
 
-Does the debug log you sent cover a time when you've tried the tab
-completion?
-
-If so could you give some indication of when (ie. where) in the log we
-should be seeing something happening.
-
-Ian
- 
+No-one has volunteered to try the patches I referred to in this thread
+and that's why I haven't posted them, so how about it, someone?
 
 Ian
