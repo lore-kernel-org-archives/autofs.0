@@ -1,18 +1,12 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: ENOENT on first reference to an automounted file
-Date: Sat, 20 Oct 2007 01:21:56 +0800
-Message-ID: <1192814519.24353.56.camel@raven.themaw.net>
-References: <D31A6D71-AB0C-45C0-A371-66AB549253BE@isolar.dyndns.org>
-	<1192780957.24353.10.camel@raven.themaw.net>
-	<4718AF15.3090204@everyzing.com>
-	<1192804644.24353.32.camel@raven.themaw.net>
-	<x49lk9zqgcp.fsf@segfault.boston.devel.redhat.com>
-	<4718E3F6.4010606@everyzing.com>
+From: Massimo Mongardini <massimo@mongardini.it>
+Subject: spurious 'executable not found' errors on nfs automounted
+	partition
+Date: Fri, 26 Oct 2007 12:59:54 +0100
+Message-ID: <4721D6BA.5020003@mongardini.it>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4718E3F6.4010606@everyzing.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -23,55 +17,79 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Dan Halbert <halbert@everyzing.com>
-Cc: autofs@kernel.org
+To: autofs@linux.kernel.org
 
-On Fri, 2007-10-19 at 13:05 -0400, Dan Halbert wrote:
-> Ian Kent wrote:
-> 
->  >Well, to be honest, I had forgotten about that comment, but that's
->  >partly good. The curious thing is, of course, is hitting this problem
->  >is quite odd because it shouldn't be that prone to occur.
-> 
-> I think the original diagnosis of an umount/mount race is only one 
-> possible way to hit the bug. We use very long timeouts and would never 
-> have hit that particular race. Since we see it with LDAP but not with a 
-> local map, I wonder if it is due to some slight additional delay caused 
-> by the LDAP lookup.
+Hi everyone,
+    I am experiencing an issue in the following circumstances:
 
-We understand what is happening now.
+os: rhel4.5
+kernel client: 2.6.9-55.0.9.ELsmp
+kernel server: 2.6.9-55.0.2.ELsmp
+autofs version 4.1.3-199.3
 
-Jeff worked it out.
+server exports folder /nfs/folder with parameters:
+async,rw,fsid=1,no_root_squash
 
-It is to do with the use of a wildcard entry and interaction of the
-daemon with the autofs internal cache and the directory create/remove
-done by the daemon. This also explains why the kernel patch prevents the
-problem from happening.
+client automounts /nfs/folder with:
 
-> 
->  >To this end I've built a RHEL4 kernel with all the patches that
->  >"should" be included. If your interested in testing it we just need to
->  >find a way to get it to you.
-> 
-> Jeff Moyer wrote:
-> > I verified that the latest release-candidate kernel for RHEL 4 U6
-> > fixes the problem.
-> > 
-> > In the mean time, you can work around the bug by turning off ghosting.
-> 
-> Ian, should I try your test kernel, or is it moot now, given what Jeff 
-> says? I can privately give you an FTP location if you would still like 
-> it tested.
+auto.master:
+/nfs    /etc/auto.nfs
 
-We probably still have to make our case for getting this into the
-revision 55 series kernel I think, given that the patches have been
-reverted. Your not the only one seeing this and I expect not everyone
-will be able or comfortable upgrading to a later revision kernel so
-perhaps we should.
+auto.nfs:
+folder        -fstype=nfs,udp,rsize=32768,wsize=32768,noatime
+fs-cluster:/nfs/folder
 
-It's pretty much up to you as anyone who can't go to the U6 kernel and
-needs this will have to test it for themselves anyway.
+default values for automount are --timeout 60
 
-I have the build now anyway.
+If I run a script that checks with a series of increasing sleep
+intervals < 120 if an exported file is executable,
+I notice that if there is a coincidence between an unmount request and a
+file request the file test fails
 
-Ian
+Thu Oct 25 17:00:28 GMT 2007 Error at DELAY: 38
+Oct 25 17:00:28 server mountd[8014]: authenticated unmount request from
+client:989 for /nfs/folder (/nfs/folder)
+Fri Oct 26 04:48:41 GMT 2007 Error at DELAY: 25
+Oct 26 04:48:41 server mountd[8014]: authenticated unmount request from
+client:846 for /nfs/folder (/nfs/folder)
+
+the test script looks like this:
+
+EXECUTABLE="/nfs/folder/somepath/exec"
+DELAY="1"
+STOPCOUNT=120
+OUT=$1
+while true
+do
+ while [ "$DELAY" -lt "$STOPCOUNT" ]
+  do
+   test -x $EXECUTABLE
+   if [ "$?" -ne "0" ]
+    then
+        echo "$(date) Error at DELAY: $DELAY" >> $OUT
+    else
+        echo "$(date) Executable found at DELAY: $DELAY" >> $OUT
+   fi
+   sleep $DELAY
+  (( DELAY++ ))
+ done
+done
+
+any help is much appreciated
+
+cheers,
+Massimo
+
+-- 
+Massimo Mongardini
+
+_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
+
+
+echo 'Jg!J!hjwf!zpv!bo!bqqmf!boe!zpv!hjwf!nf!bo!bqqmf-!uifo!xf!xjmm!ibwf!bo!bqqmf!fbdi/!Cvu!jg!J!hjwf!zpv!bo!jefb!boe!zpv!hjwf!nf!bo!jefb-!xf!xjmm!ibwf!uxp!jefbt!fbdi!' | perl -pe 's/(.)/chr(ord($1)-1)/ge'
+
+
+#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#
+
+Please avoid sending me Word or PowerPoint attachments.
+See http://www.gnu.org/philosophy/no-word-attachments.html
