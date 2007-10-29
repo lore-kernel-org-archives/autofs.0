@@ -1,14 +1,14 @@
-From: Greg Earle <earle@isolar.dyndns.org>
-Subject: Re: ENOENT on first reference to an automounted file To:
-	autofs@linux.kernel.org
-Date: Fri, 19 Oct 2007 18:28:30 -0700
-Message-ID: <6766EDC4-0232-4304-B753-64A2E4C2898E@isolar.dyndns.org>
-References: <mailman.1.1192795201.25176.autofs@linux.kernel.org>
-Mime-Version: 1.0 (Apple Message framework v752.3)
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+From: Massimo Mongardini <massimo@mongardini.it>
+Subject: Re: spurious 'executable not found' errors on
+ nfs	automounted partition
+Date: Mon, 29 Oct 2007 14:16:52 +0000
+Message-ID: <4725EB54.4070400@mongardini.it>
+References: <4721D6BA.5020003@mongardini.it>
+	<1193415615.3077.57.camel@raven.themaw.net>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============8719213265416568106=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <mailman.1.1192795201.25176.autofs@linux.kernel.org>
+In-Reply-To: <1193415615.3077.57.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,128 +19,273 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org
 
-On Oct 19, 2007, at 16:02 AM, Ian Kent <raven@themaw.net> wrote:
+This is a multi-part message in MIME format.
+--===============8719213265416568106==
+Content-Type: multipart/alternative;
+	boundary="------------050802010601000800020600"
 
-> On Thu, 2007-10-18 at 03:36 -0700, Greg Earle wrote:
->> I am getting the impression from the bug reports (and posts in
->> this thread) that this bug is *not* fixed in 2.6.9-55.0.9; and might
->> not be until some point in the future when 2.6.9-61 is available via
->> "up2date".  Am I correct in that assumption?
+This is a multi-part message in MIME format.
+--------------050802010601000800020600
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+Ian Kent wrote:
+> On Fri, 2007-10-26 at 12:59 +0100, Massimo Mongardini wrote:
+>   
+>> Hi everyone,
+>>     I am experiencing an issue in the following circumstances:
 >>
->> If so, we may have little choice but to rollback to Update 4 by
->> doing complete reinstalls from scratch (groan).  Is there any
->> info on when this bug first crept in, and is Update 4 - with
->> autofs-4.1.3-187 - safe to roll back to?  The natives are restless,
->> and they've already shown up outside my office door with torches
->> and pitchforks.  I've got a lot of unhappy Flight Projects reps
->> on my hands.  We need to make a command decision here Real Soon Now.
+>> os: rhel4.5
+>> kernel client: 2.6.9-55.0.9.ELsmp
+>> kernel server: 2.6.9-55.0.2.ELsmp
+>> autofs version 4.1.3-199.3
 >>
->> Any illumination much appreciated.
+>> server exports folder /nfs/folder with parameters:
+>> async,rw,fsid=1,no_root_squash
+>>
+>> client automounts /nfs/folder with:
+>>
+>> auto.master:
+>> /nfs    /etc/auto.nfs
+>>
+>> auto.nfs:
+>> folder        -fstype=nfs,udp,rsize=32768,wsize=32768,noatime
+>> fs-cluster:/nfs/folder
+>>
+>> default values for automount are --timeout 60
+>>
+>> If I run a script that checks with a series of increasing sleep
+>> intervals < 120 if an exported file is executable,
+>> I notice that if there is a coincidence between an unmount request and a
+>> file request the file test fails
+>>     
 >
-> Well, if we can't confirm the problem and resolution then I have no  
-> case
-> to put for an update.
+> This sounds like the mount/expire race patch and it's friends that
+> aren't present in that kernel.
+>
+> There have been a few issues discussed around these patches (or the lack
+> of them) on this list lately.
+>
+>   
+>> Thu Oct 25 17:00:28 GMT 2007 Error at DELAY: 38
+>> Oct 25 17:00:28 server mountd[8014]: authenticated unmount request from
+>> client:989 for /nfs/folder (/nfs/folder)
+>> Fri Oct 26 04:48:41 GMT 2007 Error at DELAY: 25
+>> Oct 26 04:48:41 server mountd[8014]: authenticated unmount request from
+>> client:846 for /nfs/folder (/nfs/folder)
+>>
+>> the test script looks like this:
+>>
+>> EXECUTABLE="/nfs/folder/somepath/exec"
+>> DELAY="1"
+>> STOPCOUNT=120
+>> OUT=$1
+>> while true
+>> do
+>>  while [ "$DELAY" -lt "$STOPCOUNT" ]
+>>   do
+>>    test -x $EXECUTABLE
+>>    if [ "$?" -ne "0" ]
+>>     then
+>>         echo "$(date) Error at DELAY: $DELAY" >> $OUT
+>>     else
+>>         echo "$(date) Executable found at DELAY: $DELAY" >> $OUT
+>>    fi
+>>    sleep $DELAY
+>>   (( DELAY++ ))
+>>  done
+>> done
+>>
+>> any help is much appreciated
+>>
+>> cheers,
+>> Massimo
+>>
+>>     
+>
+>   
+Ian,
+thanks for your answer.
+I saw that bug but I thought was just related to  autofs4. Since the
+client is running a maybe-patched 2.6.9-55.0.9.ELsmp version I thought
+would be wnough. Am I missing something or some useful post?
 
-I can provide you (off-line, as it has potentially sensitive host
-information) an overly-wordy e-mail I sent out to others in my
-organization about the problem, illustrated with "strace" output
-and "tshark" packet traces if you like.
+$ rpm -q --changelog kernel-smp-2.6.9-55.0.9.EL | grep -e autofs | grep race
+-revert: autofs4 fix for race between mount and expire [248126]
+-autofs4: fix race between mount and expire (Ian Kent) [248126]
+-autofs4: fix race between mount/expire (Jeff Moyer) [175778]
 
-I do have an update for you, though.  And it's very bizarre.
+The server has just:
+$ rpm -q --changelog kernel-smp-2.6.9-55.0.2.EL | grep -e autofs | grep race
+-autofs4: fix race between mount/expire (Jeff Moyer) [175778]
 
-In Dan's original report to this list, he mentions having
-turned *off* "--ghost" with his maps sourced from LDAP.
+cheers,
+Massimo
 
-We use NIS for our maps, but just for fun, I decided to test
-turning "--ghost" *on* (we default to it off, and we also use
-"-nobrowse" on our Suns, so we like to keep them consistent),
-and ...
 
-It cured the problem!  So for now, we are using that as a
-temporary kludge/workaround.
+-- 
+Massimo Mongardini
 
-My tests, which could trigger it anywhere between as little as
-4 1/2 minutes to (at most) 15 minutes, now run for an entire day
-without error.
+_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
 
-Another twist: in our "/home" map, we have about 127 individual
-entries, but most of those are for people outside of our
-particular organization with non-wildcard-able home directory
-paths.  But for the rest of us, we *do* use a single wildcard "*"
-entry:
 
-*	rhel4u5server:/export/home/&
+echo 'Jg!J!hjwf!zpv!bo!bqqmf!boe!zpv!hjwf!nf!bo!bqqmf-!uifo!xf!xjmm!ibwf!bo!bqqmf!fbdi/!Cvu!jg!J!hjwf!zpv!bo!jefb!boe!zpv!hjwf!nf!bo!jefb-!xf!xjmm!ibwf!uxp!jefbt!fbdi!' | perl -pe 's/(.)/chr(ord($1)-1)/ge'
 
-Using "--ghost" has, as expected, produced 127 phantom directories
-under "/home" after a fresh reboot of the test system with it
-enabled.  But here is what's of interest to me - the test script
-I used pummeled this system with requests from an account which
-is one of the wildcarded ones.  I would think there would be a
-potential problem with mounting that one for the first time,
-since with "--ghost" it still doesn't appear under "/home" until
-the account actually tickles it.  In short, I'd expect to see
-behavior like Dan's original query - "ENOENT on first reference".
-But I'm not.
 
-Our test setup is very simple:
+#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#
 
-rhel4u5server	- NFS server, has the home directories, RHEL 4 Update 5
-rhel4u5client	- NFS client, test machine, gets maps and password etc.
-		  entries from NIS, so user is everywhere, home directory
-		  is "/home/user", et al.
-othermachine	- Doesn't matter what it is, just used to run SSH to client
+Please avoid sending me Word or PowerPoint attachments.
+See http://www.gnu.org/philosophy/no-word-attachments.html
 
-The user whose uid we've been using for the tests has a bunch of
-machines in his $HOME/.ssh/authorized_keys file.  He's got "ssh-agent"
-set up and running so that he can fire up SSH sessions to remote hosts
-to run things - usually out of a local "cron" job - without needing a
-password to do so, since these are automated out of "crontab".
 
-So, basically, all our test script - which is run on "othermachine" -
-does is fire up constant SSH commands inside a loop:
 
-	ssh -l user@rhel4u5client ls -l .ssh
+--------------050802010601000800020600
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Since rhel4u5client is automounting /home from rhel4u5server, then
-obviously in the normal case, this works just fine.
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+</head>
+<body bgcolor="#ffffff" text="#000000">
+Ian Kent wrote:
+<blockquote cite="mid:1193415615.3077.57.camel@raven.themaw.net"
+ type="cite">
+  <pre wrap="">On Fri, 2007-10-26 at 12:59 +0100, Massimo Mongardini wrote:
+  </pre>
+  <blockquote type="cite">
+    <pre wrap="">Hi everyone,
+    I am experiencing an issue in the following circumstances:
 
-But when the bug is triggered, I see an expiry run from the
-automounter on "rhel4u5client", and it umounts the user's home
-directory, and returns ENOENT to the (rhel4u5client) SSH daemon
-when it goes to try an open the user's "authorized_keys" file
-in ".ssh".
+os: rhel4.5
+kernel client: 2.6.9-55.0.9.ELsmp
+kernel server: 2.6.9-55.0.2.ELsmp
+autofs version 4.1.3-199.3
 
-The result being that instead of it working, the script back
-on "othermachine" instead gets stopped in its tracks as it's
-prompted for a passphrase.  So it's really easy to tell when
-the bug has occurred.
+server exports folder /nfs/folder with parameters:
+async,rw,fsid=1,no_root_squash
 
-What's odd is, once the ENOENT is returned, the SSH daemon
-goes and looks for "authorized_keys2" as a backup, and that
-fails - but by now, the home directory has been magically
-remounted by the automounter, so a real live NFS lookup occurs
-(unlike with what I just described above), NFS3ERR_NOENT gets
-returned (the user doesn't have one), which is normal.
+client automounts /nfs/folder with:
 
-But after that, it asks for "authorized_keys" *again*, and I
-have no idea why.  This NFS lookup succeeds, but by then the
-SSH daemon has already taken the original ENOENT returned
-while /home/user was temporarily unmounted, and thrown up the
-demand for the passphrase - so the fact that "authorized_keys"
-exists (again) no longer matters at that point.  And the test
-script stops.
+auto.master:
+/nfs    /etc/auto.nfs
 
-I would be happy to forward the e-mail with the strace output
-and the packet traces to you and Jeff off-line, if you like.
+auto.nfs:
+folder        -fstype=nfs,udp,rsize=32768,wsize=32768,noatime
+fs-cluster:/nfs/folder
 
-> No-one has volunteered to try the patches I referred to in this thread
-> and that's why I haven't posted them, so how about it, someone?
+default values for automount are --timeout 60
 
-Due to the nature of my organization, I am not really in a
-position to test patches - but surely someone else can?  (We're
-a 24/7 Operations environment - getting downtimes to even do
-simple reboots is like pulling teeth, involving committees.)
+If I run a script that checks with a series of increasing sleep
+intervals &lt; 120 if an exported file is executable,
+I notice that if there is a coincidence between an unmount request and a
+file request the file test fails
+    </pre>
+  </blockquote>
+  <pre wrap=""><!---->
+This sounds like the mount/expire race patch and it's friends that
+aren't present in that kernel.
 
-	- Greg
+There have been a few issues discussed around these patches (or the lack
+of them) on this list lately.
+
+  </pre>
+  <blockquote type="cite">
+    <pre wrap="">Thu Oct 25 17:00:28 GMT 2007 Error at DELAY: 38
+Oct 25 17:00:28 server mountd[8014]: authenticated unmount request from
+client:989 for /nfs/folder (/nfs/folder)
+Fri Oct 26 04:48:41 GMT 2007 Error at DELAY: 25
+Oct 26 04:48:41 server mountd[8014]: authenticated unmount request from
+client:846 for /nfs/folder (/nfs/folder)
+
+the test script looks like this:
+
+EXECUTABLE="/nfs/folder/somepath/exec"
+DELAY="1"
+STOPCOUNT=120
+OUT=$1
+while true
+do
+ while [ "$DELAY" -lt "$STOPCOUNT" ]
+  do
+   test -x $EXECUTABLE
+   if [ "$?" -ne "0" ]
+    then
+        echo "$(date) Error at DELAY: $DELAY" &gt;&gt; $OUT
+    else
+        echo "$(date) Executable found at DELAY: $DELAY" &gt;&gt; $OUT
+   fi
+   sleep $DELAY
+  (( DELAY++ ))
+ done
+done
+
+any help is much appreciated
+
+cheers,
+Massimo
+
+    </pre>
+  </blockquote>
+  <pre wrap=""><!---->
+  </pre>
+</blockquote>
+Ian, <br>
+thanks for your answer.<br>
+I saw that bug but I thought was just related to&nbsp; autofs4. Since the
+client is running a maybe-patched 2.6.9-55.0.9.ELsmp version I thought
+would be wnough. Am I missing something or some useful post?<br>
+<br>
+$ rpm -q --changelog kernel-smp-2.6.9-55.0.9.EL | grep -e autofs | grep
+race<br>
+-revert: autofs4 fix for race between mount and expire [248126]<br>
+-autofs4: fix race between mount and expire (Ian Kent) [248126]<br>
+-autofs4: fix race between mount/expire (Jeff Moyer) [175778]<br>
+<br>
+The server has just:<br>
+$ rpm -q --changelog kernel-smp-2.6.9-55.0.2.EL | grep -e autofs | grep
+race<br>
+-autofs4: fix race between mount/expire (Jeff Moyer) [175778]<br>
+<br>
+cheers,<br>
+Massimo<br>
+<br>
+<br>
+<pre class="moz-signature" cols="90">-- 
+Massimo Mongardini
+
+_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
+
+
+echo 'Jg!J!hjwf!zpv!bo!bqqmf!boe!zpv!hjwf!nf!bo!bqqmf-!uifo!xf!xjmm!ibwf!bo!bqqmf!fbdi/!Cvu!jg!J!hjwf!zpv!bo!jefb!boe!zpv!hjwf!nf!bo!jefb-!xf!xjmm!ibwf!uxp!jefbt!fbdi!' | perl -pe 's/(.)/chr(ord($1)-1)/ge'
+
+
+#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#--#
+
+Please avoid sending me Word or PowerPoint attachments.
+See <a class="moz-txt-link-freetext" href="http://www.gnu.org/philosophy/no-word-attachments.html">http://www.gnu.org/philosophy/no-word-attachments.html</a>
+
+</pre>
+</body>
+</html>
+
+--------------050802010601000800020600--
+
+
+--===============8719213265416568106==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--===============8719213265416568106==--
+
