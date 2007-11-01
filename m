@@ -1,13 +1,12 @@
-From: Ian Kent <raven@themaw.net>
+From: Xiwen Cheng <xcheng@math.leidenuniv.nl>
 Subject: Re: Attempt on mounting a non-existing directory
-Date: Thu, 01 Nov 2007 20:51:54 +0900
-Message-ID: <1193917914.32086.39.camel@raven.themaw.net>
-References: <20071101101633.GJ30850@math.leidenuniv.nl>
+Date: Thu, 1 Nov 2007 16:42:47 +0100
+Message-ID: <20071101154247.GA29395@math.leidenuniv.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20071101101633.GJ30850@math.leidenuniv.nl>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,39 +17,13 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Xiwen Cheng <xcheng@math.leidenuniv.nl>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Thu, 2007-11-01 at 11:16 +0100, Xiwen Cheng wrote:
-> Recently we migrated from static nfs mounts to autofs on our webserver.
-> This concerns all /home/*/public_html/ directories which are mounted
-> read-only by default. /etc/autofs/auto.home includes some exceptions
-> whereas certain users requested their ~/public_html or even ~/ to be
-> writable. 
-> 
-> This setup works _almost_ all the time although syslog reveals some
-> extremely strange behaviors, a snippet:
-> 
-> Oct 31 17:38:02 host1 automount[14335]: mount(nfs): nfs: mount failure
-> nfs.somewhere.com:/home/user/.bash_profile/public_html on
-> /home/user/.bash_profile/public_html
-> 
-> There are numerous similair failures including normal webserver
-> requests. The above sample was the result of a "su - user" if anyone
-> wonders.
-> 
-> The big question mark is: Why does autofs try to mount ~/public_html one
-> threshold/level lower? It shouldn't look any further than
-> /home/anyuser/public_html.  
-> ~/public_html  
-> 
-> Server info
-> ===========
-> OS:			2.6.19-gentoo-r5
-> net-fs/nfs-utils:	1.0.12-r1
-> net-libs/libnfsidmap:	0.19
+On Thu, Nov 01, 2007 at 08:51:54PM +0900, Ian Kent wrote:
+> Strange you report the versions of these but not autofs, being the
+> package your asking about.
 
-Strange you report the versions of these but not autofs, being the
-package your asking about.
+Sometimes I think I deserve a slap in my face :P 
+It concerns net-fs/autofs-4.1.3-r7
 
-Ian
+xiwen
