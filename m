@@ -1,9 +1,9 @@
 From: "Newman, Edward \(GTI\)" <edward_newman@ml.com>
 Subject: AutoFS / SASL support
-Date: Mon, 29 Oct 2007 18:30:53 -0400
-Message-ID: <E5F741E838FC2043A0B843E48181813806AB71D6@MLNYC730MB.amrs.win.ml.com>
+Date: Thu, 1 Nov 2007 08:29:26 -0400
+Message-ID: <E5F741E838FC2043A0B843E48181813806AB733A@MLNYC730MB.amrs.win.ml.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4663923259855490356=="
+Content-Type: multipart/mixed; boundary="===============7576692132423361837=="
 Return-path: <autofs-bounces@linux.kernel.org>
 Content-Class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
@@ -20,15 +20,15 @@ To: autofs@linux.kernel.org
 
 This is a multi-part message in MIME format.
 
---===============4663923259855490356==
+--===============7576692132423361837==
 Content-Transfer-Encoding: 7bit
 Content-Class: urn:content-classes:message
 Content-Type: multipart/alternative;
-	boundary="----_=_NextPart_001_01C81A7B.5DF04D46"
+	boundary="----_=_NextPart_001_01C81C82.D7AB7BCB"
 
 This is a multi-part message in MIME format.
 
-------_=_NextPart_001_01C81A7B.5DF04D46
+------_=_NextPart_001_01C81C82.D7AB7BCB
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
@@ -75,7 +75,7 @@ http://www.ml.com/e-communications_terms/. By messaging with Merrill =
 Lynch you consent to the foregoing.
 --------------------------------------------------------
 
-------_=_NextPart_001_01C81A7B.5DF04D46
+------_=_NextPart_001_01C81C82.D7AB7BCB
 Content-Type: text/html;
 	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
@@ -159,18 +159,12 @@ the foregoing.</BODY></DIV>
 <DIV>
 <HR COLOR=3D"gray">
 </DIV>
-<DIV>
-<FONT COLOR=3D"#008000">
-</FONT>&nbsp;</DIV>
-<DIV>&nbsp;</DIV>
-<P>
-<FONT COLOR=3D"#008000">
-</FONT>&nbsp;</P></BODY></HTML>
+<DIV>&nbsp;</DIV></BODY></HTML>
 
-------_=_NextPart_001_01C81A7B.5DF04D46--
+------_=_NextPart_001_01C81C82.D7AB7BCB--
 
 
---===============4663923259855490356==
+--===============7576692132423361837==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -181,5 +175,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---===============4663923259855490356==--
+--===============7576692132423361837==--
 
