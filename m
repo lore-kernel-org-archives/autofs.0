@@ -1,14 +1,12 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: Attempt on mounting a non-existing directory
-Date: Thu, 01 Nov 2007 12:11:29 -0400
-Message-ID: <x493avqdjym.fsf@segfault.boston.devel.redhat.com>
-References: <20071101101633.GJ30850@math.leidenuniv.nl>
+From: "Newman, Edward \(GTI\)" <edward_newman@ml.com>
+Subject: AutoFS / SASL support
+Date: Fri, 2 Nov 2007 14:25:01 -0400
+Message-ID: <E5F741E838FC2043A0B843E48181813806AB742B@MLNYC730MB.amrs.win.ml.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20071101101633.GJ30850@math.leidenuniv.nl> (Xiwen Cheng's
-	message of "Thu\, 1 Nov 2007 11\:16\:33 +0100")
+Content-Class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,60 +17,33 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Xiwen Cheng <xcheng@math.leidenuniv.nl>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-Xiwen Cheng <xcheng@math.leidenuniv.nl> writes:
+Just wanted to confirm whether SASL support is currently broken in 5.0.2
+with all outstanding patches applied. 
 
-> Recently we migrated from static nfs mounts to autofs on our webserver.
-> This concerns all /home/*/public_html/ directories which are mounted
-> read-only by default. /etc/autofs/auto.home includes some exceptions
-> whereas certain users requested their ~/public_html or even ~/ to be
-> writable. 
->
-> This setup works _almost_ all the time although syslog reveals some
-> extremely strange behaviors, a snippet:
->
-> Oct 31 17:38:02 host1 automount[14335]: mount(nfs): nfs: mount failure
-> nfs.somewhere.com:/home/user/.bash_profile/public_html on
-> /home/user/.bash_profile/public_html
+Debug of code suggests following issues:
 
-This looks a lot like a kernel bug we've chased down and fixed.  It's
-hard to be sure, though, without more of the debug log.  I can't
-recall exactly when the fix went in, either.  Is it possible for you
-to upgrade your kernel and try again?
+- Makefile has invalid test for HAVE_SASL in configure.in and thus
+doesn't include correct libraries (-z instead of -n in test step)
+- patched code in connect_to_server in lookup_ldap.c does not call
+auth_init prior to testing for auth_required and thus fails SASL in all
+cases
+- order of code sequence currently fails to enable SASL correctly.
 
-> The big question mark is: Why does autofs try to mount ~/public_html one
-> threshold/level lower? It shouldn't look any further than
-> /home/anyuser/public_html.  
-> ~/public_html  
+I am also trying to use an existing keytab for Kerberos GSSAPI
+authentication to directory and currently sasl_kinit code appears to
+fail. Haven't worked out exact cause yet but appears to not passing a
+keytab name and environment is not picking up location from krb5.conf.
 
-http://people.redhat.com/jmoyer has a section on filing bug reports.
-If you collect the data requested on that page, then we can get
-further in diagnosing your problem.
+Please confirm above and whether this is being actively worked on at
+this time.
 
-> Server info
-> ===========
-> OS:			2.6.19-gentoo-r5
-> net-fs/nfs-utils:	1.0.12-r1
-> net-libs/libnfsidmap:	0.19
-> net-fs/autofs:	4.1.3-r7
+Thanks
 
-I have no idea what patches are applied to the kernel and the autofs
-package.
+Edward
+--------------------------------------------------------
 
-> An offtopic question: what is the real function of the -g (ghost) flag??
-> manpages aren't any help.
-
-On my systems (Red Hat based, go figure), the automount man page
-documents the flag.
-
-       -g, --ghost
-              Request  that  directories  in  the  automount  be shown but not
-              mounted until accesssed. The wildcard entry is not ghosted.
-
-This is the equivalent of browsable maps.
-
-Cheers,
-
-Jeff
+This message w/attachments (message) may be privileged, confidential or proprietary, and if you are not an intended recipient, please notify the sender, do not use or share it and delete it. Unless specifically indicated, this message is not an offer to sell or a solicitation of any investment products or other financial product or service, an official confirmation of any transaction, or an official statement of Merrill Lynch. Subject to applicable law, Merrill Lynch may monitor, review and retain e-communications (EC) traveling through its networks/systems. The laws of the country of each sender/recipient may impact the handling of EC, and EC may be archived, supervised and produced in countries other than the country in which you are located. This message cannot be guaranteed to be secur
+ e or error-free. This message is subject to terms available at the following link: http://www.ml.com/e-communications_terms/. By messaging with Merrill Lynch you consent to the foregoing.
+--------------------------------------------------------
