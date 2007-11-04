@@ -1,19 +1,14 @@
-From: Dan Halbert <halbert@everyzing.com>
-Subject: Re: ENOENT on first reference to an automounted file
-Date: Sat, 03 Nov 2007 11:27:03 -0400
-Message-ID: <472C9347.4060600@everyzing.com>
-References: <D31A6D71-AB0C-45C0-A371-66AB549253BE@isolar.dyndns.org>	
-	<1192780957.24353.10.camel@raven.themaw.net>	
-	<4718AF15.3090204@everyzing.com>	
-	<1192804644.24353.32.camel@raven.themaw.net>	
-	<x49lk9zqgcp.fsf@segfault.boston.devel.redhat.com>	
-	<4718E3F6.4010606@everyzing.com>
-	<1192814519.24353.56.camel@raven.themaw.net>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: AutoFS / SASL support
+Date: Sun, 04 Nov 2007 13:29:29 +0900
+Message-ID: <1194150569.3112.7.camel@raven.themaw.net>
+References: <E5F741E838FC2043A0B843E48181813806AB742B@MLNYC730MB.amrs.win.ml.com>
+	<x497il0saf8.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1192814519.24353.56.camel@raven.themaw.net>
+In-Reply-To: <x497il0saf8.fsf@segfault.boston.devel.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,15 +19,42 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: autofs@linux.kernel.org, "Newman, Edward (GTI)" <edward_newman@ml.com>
 
-Ian,
+On Fri, 2007-11-02 at 15:40 -0400, Jeff Moyer wrote:
+> "Newman, Edward (GTI)" <edward_newman@ml.com> writes:
+> 
+> > Just wanted to confirm whether SASL support is currently broken in 5.0.2
+> > with all outstanding patches applied. 
 
-I see that http://rhn.redhat.com/errata/RHSA-2007-0939.html, dated 
-2007-11-01, claims to include a fix for autofs bug 248126, with a new 
-kernel-2.6.9-55.0.12. Do you know if this kernel contains effectively 
-the same patches that are in the test kernel I got from you? If so, 
-great! We have been running your test kernel on about thirty machines 
-with no problems, no ENOENT's, etc.
+Are you telling us or asking us?
 
-Dan
+> 
+> Not sure what patches you're talking about, but the git tree is
+> definitely broken.
+> 
+> >
+> > Debug of code suggests following issues:
+> >
+> > - Makefile has invalid test for HAVE_SASL in configure.in and thus
+> > doesn't include correct libraries (-z instead of -n in test step)
+> 
+> I'll take your word for it.
+> 
+> > - patched code in connect_to_server in lookup_ldap.c does not call
+> > auth_init prior to testing for auth_required and thus fails SASL in all
+> > cases
+> 
+> Yes, that was broken by the following commit:
+> 
+> commit acd6985801f401f8513627a5fd1eb0753c3f2e40
+> Author: Ian Kent <raven@raven.themaw.net>
+> Date:   Mon Sep 24 13:07:36 2007 +0800
+> 
+>     - add LDAP_URI, LDAP_TIMEOUT and LDAP_NETWORK_TIMEOUT
+>       configuration options.
+
+Guilty, thought I maintained the correct sequence of calls.
+
+Ian
