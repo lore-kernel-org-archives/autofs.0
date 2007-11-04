@@ -1,20 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: ENOENT on first reference to an automounted file
-Date: Sun, 04 Nov 2007 14:12:28 +0900
-Message-ID: <1194153148.3112.15.camel@raven.themaw.net>
-References: <D31A6D71-AB0C-45C0-A371-66AB549253BE@isolar.dyndns.org>
-	<1192780957.24353.10.camel@raven.themaw.net>
-	<4718AF15.3090204@everyzing.com>
-	<1192804644.24353.32.camel@raven.themaw.net>
-	<x49lk9zqgcp.fsf@segfault.boston.devel.redhat.com>
-	<4718E3F6.4010606@everyzing.com>
-	<1192814519.24353.56.camel@raven.themaw.net>
-	<472C9347.4060600@everyzing.com>
+Subject: Re: AutoFS / SASL support
+Date: Sun, 04 Nov 2007 15:30:00 +0900
+Message-ID: <1194157800.3112.34.camel@raven.themaw.net>
+References: <E5F741E838FC2043A0B843E48181813806AB742B@MLNYC730MB.amrs.win.ml.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <472C9347.4060600@everyzing.com>
+In-Reply-To: <E5F741E838FC2043A0B843E48181813806AB742B@MLNYC730MB.amrs.win.ml.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -25,19 +18,43 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Dan Halbert <halbert@everyzing.com>
+To: "Newman, Edward (GTI)" <edward_newman@ml.com>
 Cc: autofs@linux.kernel.org
 
-On Sat, 2007-11-03 at 11:27 -0400, Dan Halbert wrote:
-> Ian,
+On Fri, 2007-11-02 at 14:25 -0400, Newman, Edward (GTI) wrote:
+> Just wanted to confirm whether SASL support is currently broken in 5.0.2
+> with all outstanding patches applied. 
 > 
-> I see that http://rhn.redhat.com/errata/RHSA-2007-0939.html, dated 
-> 2007-11-01, claims to include a fix for autofs bug 248126, with a new 
-> kernel-2.6.9-55.0.12. Do you know if this kernel contains effectively 
-> the same patches that are in the test kernel I got from you? If so, 
-> great! We have been running your test kernel on about thirty machines 
-> with no problems, no ENOENT's, etc.
+> Debug of code suggests following issues:
+> 
+> - Makefile has invalid test for HAVE_SASL in configure.in and thus
+> doesn't include correct libraries (-z instead of -n in test step)
 
-Yep, it looks good to me.
+Actually, looking at that bit, I don't think the issue is quite as simple as that.
 
-Ian
+> - patched code in connect_to_server in lookup_ldap.c does not call
+> auth_init prior to testing for auth_required and thus fails SASL in all
+> cases
+> - order of code sequence currently fails to enable SASL correctly.
+> 
+> I am also trying to use an existing keytab for Kerberos GSSAPI
+> authentication to directory and currently sasl_kinit code appears to
+> fail. Haven't worked out exact cause yet but appears to not passing a
+> keytab name and environment is not picking up location from krb5.conf.
+> 
+> Please confirm above and whether this is being actively worked on at
+> this time.
+> 
+> Thanks
+> 
+> Edward
+> --------------------------------------------------------
+> 
+> This message w/attachments (message) may be privileged, confidential or proprietary, and if you are not an intended recipient, please notify the sender, do not use or share it and delete it. Unless specifically indicated, this message is not an offer to sell or a solicitation of any investment products or other financial product or service, an official confirmation of any transaction, or an official statement of Merrill Lynch. Subject to applicable law, Merrill Lynch may monitor, review and retain e-communications (EC) traveling through its networks/systems. The laws of the country of each sender/recipient may impact the handling of EC, and EC may be archived, supervised and produced in countries other than the country in which you are located. This message cannot be guaranteed to be sec
+ ure or error-free. This message is subject to terms available at the following link: http://www.ml.com/e-communications_terms/. By messaging with Merrill Lynch you consent to the foregoing.
+> --------------------------------------------------------
+> 
+> _______________________________________________
+> autofs mailing list
+> autofs@linux.kernel.org
+> http://linux.kernel.org/mailman/listinfo/autofs
