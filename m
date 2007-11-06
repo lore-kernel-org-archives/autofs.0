@@ -1,7 +1,7 @@
 From: "Newman, Edward \(GTI\)" <edward_newman@ml.com>
 Subject: Re: AutoFS / SASL support
-Date: Tue, 6 Nov 2007 06:41:34 -0500
-Message-ID: <E5F741E838FC2043A0B843E48181813806AB750D@MLNYC730MB.amrs.win.ml.com>
+Date: Tue, 6 Nov 2007 06:51:44 -0500
+Message-ID: <E5F741E838FC2043A0B843E48181813806AB7510@MLNYC730MB.amrs.win.ml.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -20,129 +20,11 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-Ian
+In answer to the second part, I was setting default_keytab_name in
+krb5.conf. Eventually fixed issue by symlinking keytab to
+/etc/krb5.keytab. Will see about using KRB5_KTNAME.
 
-Thanks. I was going to send you the attached patch which gets SASL
-working again. I will apply your patch and retest.
-
-One thing I noticed in reviewing code is that three files have to be
-configured to set up LDAP - /etc/sysconfig/autofs,
-/etc/auto_ldap_auth.conf and /etc/openldap/ldap.conf. Is there a reason
-for this? Can I look at rationalising this? Not clear why there is made
-a dependency on XML libraries.
-
-Edward
-
-
-
-diff -U 3 -r --exclude-from=exclude-files a/configure.in b/configure.in
---- a/configure.in	2007-11-05 17:53:01.000000000 -0500
-+++ b/configure.in	2007-11-05 16:18:59.000000000 -0500
-@@ -234,7 +234,7 @@
- 		SASL_FLAGS="-I${withval}/include"
- 	fi
- )
--if test -z "$HAVE_SASL" -a "$HAVE_LIBXML" == "1"
-+if test -n "$HAVE_SASL" -a "$HAVE_LIBXML" == "1"
- then
- 	HAVE_SASL=0
- 	AC_CHECK_LIB(sasl2, sasl_client_start, HAVE_SASL=1
-LIBSASL="$LIBSASL -lsasl2", , -lsasl2 $LIBS)
-diff -U 3 -r --exclude-from=exclude-files a/modules/cyrus-sasl.c
-b/modules/cyrus-sasl.c
---- a/modules/cyrus-sasl.c	2007-11-05 17:53:01.000000000 -0500
-+++ b/modules/cyrus-sasl.c	2007-11-05 16:41:08.000000000 -0500
-@@ -386,7 +386,7 @@
- 
- 	debug(logopt,
- 	      "initializing kerberos ticket: client principal %s ",
--	      ctxt->client_princ ? "" : "autofsclient");
-+	      ctxt->client_princ ? ctxt->client_princ : "autofsclient");
- 
- 	ret = krb5_init_context(&ctxt->krb5ctxt);
- 	if (ret) {
-diff -U 3 -r --exclude-from=exclude-files a/modules/lookup_ldap.c
-b/modules/lookup_ldap.c
---- a/modules/lookup_ldap.c	2007-11-05 17:53:01.000000000 -0500
-+++ b/modules/lookup_ldap.c	2007-11-05 16:28:04.000000000 -0500
-@@ -50,6 +50,7 @@
- static unsigned int common_schema_count =
-sizeof(common_schema)/sizeof(struct ldap_schema);
- 
- static LDAP *auth_init(unsigned logopt, const char *, struct
-lookup_context *);
-+static int parse_ldap_config(unsigned logopt, struct lookup_context
-*ctxt);
- 
- int bind_ldap_anonymous(unsigned logopt, LDAP *ldap, struct
-lookup_context *ctxt)
- {
-@@ -495,8 +496,35 @@
- 	 * Determine which authentication mechanism to use if we require
- 	 * authentication.
- 	 */
-+	int ret;
-+
-+	ret = parse_ldap_config(logopt, ctxt);
-+	if (ret)
-+		return NULL;
-+
- 	if (ctxt->auth_required & LDAP_AUTH_REQUIRED) {
--		ldap = auth_init(logopt, uri, ctxt);
-+		//ldap = auth_init(logopt, uri, ctxt);
-+
-+		ldap = init_ldap_connection(logopt, uri, ctxt);
-+		if (!ldap)
-+			return NULL;
-+
-+		/*
-+	 	*  Initialize the sasl library.  It is okay if user and
-secret
-+	 	*  are NULL, here.
-+	 	*
-+	 	*  The autofs_sasl_init routine will figure out which
-mechamism
-+	 	*  to use. If kerberos is used, it will also take care
-to initialize
-+	 	*  the credential cache and the client and service
-principals.
-+	 	*/
-+		debug(logopt, "EN: Before autofs_sasl_init");
-+		ret = autofs_sasl_init(logopt, ldap, ctxt);
-+		debug(logopt, "EN: After autofs_sasl_init");
-+		if (ret) {
-+			ctxt->sasl_mech = NULL;
-+			return NULL;
-+		}
-+
- 		if (!ldap && ctxt->auth_required & LDAP_AUTH_AUTODETECT)
- 			info(logopt,
- 			     "no authentication mechanisms auto
-detected.");
-@@ -514,6 +542,8 @@
- 
- 		return ldap;
- 	}
-+	else
-+	{
- #endif
- 
- 	ldap = do_connect(logopt, uri, ctxt);
-@@ -525,6 +555,11 @@
- 	}
- 
- 	return ldap;
-+
-+#ifdef WITH_SASL
-+	}
-+#endif
-+
- }
- 
- static LDAP *find_server(unsigned logopt, struct lookup_context *ctxt)
-
-
-Edward
+Thanks
 
 ___________________________________
 Edward Newman
