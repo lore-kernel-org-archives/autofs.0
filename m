@@ -1,15 +1,12 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: AutoFS / SASL support
-Date: Tue, 06 Nov 2007 10:18:40 -0500
-Message-ID: <x49wssvl7vz.fsf@segfault.boston.devel.redhat.com>
-References: <E5F741E838FC2043A0B843E48181813806AB750D@MLNYC730MB.amrs.win.ml.com>
-	<1194351777.9373.25.camel@raven.themaw.net>
+From: "Newman, Edward \(GTI\)" <edward_newman@ml.com>
+Subject: LDAP Size limit exceeded
+Date: Tue, 6 Nov 2007 18:02:15 -0500
+Message-ID: <E5F741E838FC2043A0B843E48181813806AB75A8@MLNYC730MB.amrs.win.ml.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1194351777.9373.25.camel@raven.themaw.net> (Ian Kent's message
-	of "Tue\, 06 Nov 2007 21\:22\:57 +0900")
+Content-Class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,39 +17,20 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org, "Newman, Edward (GTI)" <edward_newman@ml.com>
+To: Jeff Moyer <jmoyer@redhat.com>, Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org
 
-Ian Kent <raven@themaw.net> writes:
+In testing with one of our production maps imported into LDAP, came
+across this in debug log
 
-> On Tue, 2007-11-06 at 06:41 -0500, Newman, Edward (GTI) wrote:
+Nov  6 17:47:18 dnycxapec01 automount[6277]: read_one_map: lookup(ldap):
+query failed for (objectclass=nisObject): Size limit exceeded
 
->> One thing I noticed in reviewing code is that three files have to be
->> configured to set up LDAP - /etc/sysconfig/autofs,
->> /etc/auto_ldap_auth.conf and /etc/openldap/ldap.conf. Is there a reason
->> for this? Can I look at rationalising this? Not clear why there is made
->> a dependency on XML libraries.
->
-> Not sure what to do about this fragmented configuration.
->
-> The dependency on /etc/openldap/ldap.conf was because we couldn't
-> specify servers to connect to or basedns to use for searching
-> in /etc/sysconfig/autofs but that has changed now with this problematic
-> enhancement (and another patch). I think allowing for the configuration
+Looks like autofs cannot cope with more than 1000 entries and may need
+to look into use of LDAP page control for large maps. This was auto.home
+with several 000s of users.
+--------------------------------------------------------
 
-The openldap libraries use /etc/openldap/ldap.conf.  For the most
-basic operations, you shouldn't have to setup anything ldap specific
-in the autofs configuration.  We shouldn't break this.
-
-> The /etc/auto_ldap_auth.conf being an XML file came along with the
-> Kerberos code that I merged from Jeff. I'm not sure why he wanted to use
-> XML and I wasn't really worried about it at the time. From memory it was
-> decided to put the authentication information in a separate, locked down
-> file, so it could be kept private while the general configuration could
-> still be read by anyone who may need to know about it.
-
-Yes, a stand-alone file that could be locked down was a requirement,
-given that it could store passwords.  I used XML because I didn't want
-to implement yet another parser.
-
--Jeff
+This message w/attachments (message) may be privileged, confidential or proprietary, and if you are not an intended recipient, please notify the sender, do not use or share it and delete it. Unless specifically indicated, this message is not an offer to sell or a solicitation of any investment products or other financial product or service, an official confirmation of any transaction, or an official statement of Merrill Lynch. Subject to applicable law, Merrill Lynch may monitor, review and retain e-communications (EC) traveling through its networks/systems. The laws of the country of each sender/recipient may impact the handling of EC, and EC may be archived, supervised and produced in countries other than the country in which you are located. This message cannot be guaranteed to be secur
+ e or error-free. This message is subject to terms available at the following link: http://www.ml.com/e-communications_terms/. By messaging with Merrill Lynch you consent to the foregoing.
+--------------------------------------------------------
