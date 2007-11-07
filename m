@@ -1,12 +1,13 @@
-From: "Coe, Colin C. (Unix Engineer)" <Colin.Coe@woodside.com.au>
-Subject: Problem with autofs_home map
-Date: Wed, 7 Nov 2007 12:23:20 +0900
-Message-ID: <BAC1D28A5AB852439A6914CA7AB4E63F041EE733@permls05.wde.woodside.com.au>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: AutoFS / SASL support
+Date: Wed, 07 Nov 2007 16:57:38 +0900
+Message-ID: <1194422258.13416.1.camel@raven.themaw.net>
+References: <E5F741E838FC2043A0B843E48181813806AB752A@MLNYC730MB.amrs.win.ml.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <E5F741E838FC2043A0B843E48181813806AB752A@MLNYC730MB.amrs.win.ml.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,52 +18,48 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: "Newman, Edward (GTI)" <edward_newman@ml.com>
+Cc: autofs@linux.kernel.org
 
+On Tue, 2007-11-06 at 09:30 -0500, Newman, Edward (GTI) wrote:
+> Ian
+> 
+> FYI - The supplied patch appears to break ldap maps with --ghost at the
+> end. Seems to be considered part of the search DN.
+> 
 
-Hi all
+Yep, I see that now.
+That was the result of another recent patch though.
 
-I'm having a strange problem my autofs_home map. 
+This additional patch should resolve it.
 
-RHEL AS4 (32bit)
-autofs-4.1.3-199.3
-Kernel 2.6.9-55.0.12
-nfs-utils 1.0.6-80
+--
+diff --git a/lib/master_tok.l b/lib/master_tok.l
+index 5450753..36aa785 100644
+--- a/lib/master_tok.l
++++ b/lib/master_tok.l
+@@ -108,8 +108,8 @@ AT_DC		([dD][[cC])
+ AT_O		([oO])
+ AT_C		([cC])
+ DNATTRSTR	{AT_CN}|{AT_NMN}|{AT_AMN}|{AT_OU}|{AT_DC}|{AT_O}|{AT_C}
+-DNNAMESTR	([[:alnum:]_.\- ]+)
+-DNNAMETRM	(,|{OPTWS}{NL}|{OPTWS}#.*|{OPTWS}\x00)
++DNNAMESTR1	([[:alnum:]_.\- ]+)
++DNNAMESTR2	([[:alnum:]_.\-]+)
  
-/etc/auto.master
----
-/rhome  autofs.home   --verbose --ghost
-nfsvers=3,tcp,rsize=32768,wsize=32768
-/-      autofs.global --verbose --ghost
-nfsvers=3,tcp,rsize=32768,wsize=32768
----
-
-/etc/nsswitch.conf
----
-snip
-automount:  ldap files
-snip
----
-
-autofs.home (from LDAP)
----
-usr4 server:/local/home-usr4
-usr3 server:/local/home-usr3
-usr2 server:/local/home-usr2
-usr1 server:/local/home-usr1
----
-
-I find that there is no '/rhome' directory and '/home' is 0 bytes in
-size where what should happen is '/home' is of 'normal' size (4096
-bytes) anf '/rhome' exists and is 0 bytes.
-
-Is this a bug or have I configured this box wrong?
-
-CC
-
-NOTICE: This email and any attachments are confidential. 
-They may contain legally privileged information or 
-copyright material. You must not read, copy, use or 
-disclose them without authorisation. If you are not an 
-intended recipient, please contact us at once by return 
-email and then delete both messages and all attachments.
+ INTMAP		(-hosts|-null)
+ MULTI		((multi)(,(sun|hesiod))?(:{OPTWS}|{WS}))
+@@ -282,7 +282,12 @@ OPTTOUT		(-t{OPTWS}|-t{OPTWS}={OPTWS}|--timeout{OPTWS}|--timeout{OPTWS}={OPTWS})
+ 		return EQUAL;
+ 	}
+ 
+-	{DNNAMESTR}/{DNNAMETRM} {
++	{DNNAMESTR1}/"," {
++		strcpy(master_lval.strtype, master_text);
++		return DNNAME;
++	}
++
++	{DNNAMESTR2} {
+ 		strcpy(master_lval.strtype, master_text);
+ 		return DNNAME;
+ 	}
