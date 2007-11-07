@@ -1,15 +1,14 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: automount deletes and fails to recreate mount points
-Date: Thu, 08 Nov 2007 00:52:32 +0900
-Message-ID: <1194450752.13416.29.camel@raven.themaw.net>
-References: <0E22C564-0BD1-4930-889E-CBB4EBF05C52@leerssen.com>
-	<1194405020.3113.8.camel@raven.themaw.net>
-	<3CE53FD7-F085-4313-AB14-8A733742BF4B@leerssen.com>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: LDAP Size limit exceeded
+Date: Wed, 07 Nov 2007 11:14:06 -0500
+Message-ID: <x49lk9ajanl.fsf@segfault.boston.devel.redhat.com>
+References: <E5F741E838FC2043A0B843E48181813806AB75A8@MLNYC730MB.amrs.win.ml.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <3CE53FD7-F085-4313-AB14-8A733742BF4B@leerssen.com>
+In-Reply-To: <E5F741E838FC2043A0B843E48181813806AB75A8@MLNYC730MB.amrs.win.ml.com>
+	(Edward Newman's message of "Tue\, 6 Nov 2007 18\:02\:15 -0500")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,74 +19,28 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Scott Leerssen <scott@leerssen.com>
-Cc: autofs@linux.kernel.org
+To: "Newman, Edward (GTI)" <edward_newman@ml.com>
+Cc: autofs@linux.kernel.org, Ian Kent <raven@themaw.net>
 
-On Wed, 2007-11-07 at 08:39 -0500, Scott Leerssen wrote:
-> 
-> On Nov 6, 2007, at 10:10 PM, Ian Kent wrote:
-> 
-> > On Mon, 2007-11-05 at 12:43 -0500, Scott Leerssen wrote:
-> > > Hi, 
-> > > 
-> > > 
-> > > 
-> > > 
-> > > A google search and scan of the archives didn't reveal an answer,
-> > > so I
-> > > apologize in advance if this subject has been beaten to death
-> > > already.  Here are a few version numbers for reference:
-> > > 
-> > > 
-> > > 
-> > > 
-> > > CentOS 5
-> > > kernel:  2.6.18-8.1.15.el5
-> > > autofs: autofs-5.0.1-0.rc2.43.0.2
-> > > SElinux: disabled
-> > > 
-> > > 
-> > > 
-> > > 
-> > > I have a stock, yum updated CentOS 5 installation on which autofs
-> > > works fine as long as the mount points are pre-existing.  However,
-> > > if
-> > > I stop the automounter with 'service autofs stop' (or by
-> > > rebooting),
-> > > the automounter deletes my /net and /misc mount points and then
-> > > fails
-> > > to recreate them on 'service autofs start'.
-> > > 
-> > > 
-> > > 
-> > > 
-> > > One caveat to the "normal" CentOS 5 install, is that I'm running
-> > > off
-> > > of an NFS root.  Is there anything in particular about having a
-> > > mount
-> > > point inside another NFS mounted directory that would make
-> > > automount
-> > > want to remove my mount points and fail to recreate them?  
-> > 
-> > 
-> > Yes.
-> > Does pre-creating them within the NFS mounted root work OK?
-> > 
-> > 
-> > Ian
-> > 
-> > 
-> 
-> Yes, if the mounts are pre-existing, they mount up fine.  When the
-> system reboots, however, they go away.  An obvious workaround is to
-> write a script that scans /etc/auto.master, parse out the mount points
-> and create them before autofs starts, but I was hoping there was a
-> less "cave man" solution.
+"Newman, Edward (GTI)" <edward_newman@ml.com> writes:
 
-The problem is that, for various reasons, autofs won't create mount
-point directories on what it thinks is a remote file system. But, if the
-directory already exists, then it shouldn't be removed at shutdown.
+> In testing with one of our production maps imported into LDAP, came
+> across this in debug log
+>
+> Nov  6 17:47:18 dnycxapec01 automount[6277]: read_one_map: lookup(ldap):
+> query failed for (objectclass=nisObject): Size limit exceeded
+>
+> Looks like autofs cannot cope with more than 1000 entries and may need
+> to look into use of LDAP page control for large maps. This was auto.home
+> with several 000s of users.
 
-I think that was fixed in revision 0.rc2.44.
+The size limit is set by the server.  A simple workaround for you
+would be to increase this size limit to the size of your largest map.
 
-Ian
+Ian, I guess we should add page control support to the TODO list.
+rfc2696, for reference.
+
+
+Cheers,
+
+Jeff
