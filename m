@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: AutoFS / SASL support
-Date: Wed, 07 Nov 2007 16:57:38 +0900
-Message-ID: <1194422258.13416.1.camel@raven.themaw.net>
+Date: Wed, 07 Nov 2007 17:22:26 +0900
+Message-ID: <1194423746.13416.24.camel@raven.themaw.net>
 References: <E5F741E838FC2043A0B843E48181813806AB752A@MLNYC730MB.amrs.win.ml.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -27,39 +27,56 @@ On Tue, 2007-11-06 at 09:30 -0500, Newman, Edward (GTI) wrote:
 > FYI - The supplied patch appears to break ldap maps with --ghost at the
 > end. Seems to be considered part of the search DN.
 > 
+> Regarding config, the issue appears to be that SASL code calls OpenLDAP
+> ldap_get_option and only returns "host" value (which is an optional
+> setting). This is used to get LDAP host name (which may be different
+> depending on your other URI code). Sort of thing I was thinking about
+> would be:
 
-Yep, I see that now.
-That was the result of another recent patch though.
+Yes, I can see your point about the round robin DNS issue.
+I don't have any ideas on how to resolve that at the moment.
 
-This additional patch should resolve it.
+> 
+> - pick up server URI(s) from /etc/ldap.conf or via override in
+> /etc/sysconfig/autofs
 
---
-diff --git a/lib/master_tok.l b/lib/master_tok.l
-index 5450753..36aa785 100644
---- a/lib/master_tok.l
-+++ b/lib/master_tok.l
-@@ -108,8 +108,8 @@ AT_DC		([dD][[cC])
- AT_O		([oO])
- AT_C		([cC])
- DNATTRSTR	{AT_CN}|{AT_NMN}|{AT_AMN}|{AT_OU}|{AT_DC}|{AT_O}|{AT_C}
--DNNAMESTR	([[:alnum:]_.\- ]+)
--DNNAMETRM	(,|{OPTWS}{NL}|{OPTWS}#.*|{OPTWS}\x00)
-+DNNAMESTR1	([[:alnum:]_.\- ]+)
-+DNNAMESTR2	([[:alnum:]_.\-]+)
- 
- INTMAP		(-hosts|-null)
- MULTI		((multi)(,(sun|hesiod))?(:{OPTWS}|{WS}))
-@@ -282,7 +282,12 @@ OPTTOUT		(-t{OPTWS}|-t{OPTWS}={OPTWS}|--timeout{OPTWS}|--timeout{OPTWS}={OPTWS})
- 		return EQUAL;
- 	}
- 
--	{DNNAMESTR}/{DNNAMETRM} {
-+	{DNNAMESTR1}/"," {
-+		strcpy(master_lval.strtype, master_text);
-+		return DNNAME;
-+	}
-+
-+	{DNNAMESTR2} {
- 		strcpy(master_lval.strtype, master_text);
- 		return DNNAME;
- 	}
+I think it's bad policy to rely on configuration files that belong to
+other applications. There's just too much that can go wrong. If we rely
+on anything that is external then we must do it via package library
+routines and in this case that means it's OpenLDAPs responsibility to
+interpret and act on the information in its configuration.
+
+> - If explicit series of hosts supplied then attempt each in turn
+> (believe your code already does this but doesn't pass host name through
+> to SASL code)
+
+What good is the hostname in the light of the round robin DNS issue?
+At the moment it will always be the same as the one obtained with the
+LDAP call, which is what the SASL code in autofs does to get it now
+anyway.
+
+> - If only one supplied then might want to add option to check DNS to see
+> whether this returns multiple IP's - either through SRV records or via
+> multiple A records
+
+But, just because a single host is given doesn't mean that it will be
+the only one that resolves to multiple IP addresses.
+
+Doing DNS lookups in this part of the code is a bad idea. There's
+already too much overhead doing LDAP lookups.
+
+It might be a better idea if we maintained a persistent connection to
+the LDAP server and did the lookup at initial connection and reconnect
+after failure, but keeping connections open is a bad idea in my opinion
+as well.
+
+> - Code might also look at checking "supportedSASLMechanisms" for host
+> that it connects to as well as getting server name (dnsHostname). I was
+> originally testing with a load-balance name and SASL failed due to wrong
+> host principle for Kerberos ("Server not found in database").
+
+I don't understand where the SASL Mechanisms comes into the IP address
+problem. I think this check is better done at SASL connect time, as it
+is now.
+
+Ian
