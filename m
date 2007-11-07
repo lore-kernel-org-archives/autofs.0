@@ -1,13 +1,12 @@
-From: Ian Kent <raven@themaw.net>
+From: "Newman, Edward \(GTI\)" <edward_newman@ml.com>
 Subject: Re: AutoFS / SASL support
-Date: Wed, 07 Nov 2007 17:22:26 +0900
-Message-ID: <1194423746.13416.24.camel@raven.themaw.net>
-References: <E5F741E838FC2043A0B843E48181813806AB752A@MLNYC730MB.amrs.win.ml.com>
+Date: Wed, 7 Nov 2007 08:15:58 -0500
+Message-ID: <E5F741E838FC2043A0B843E48181813806AB75B8@MLNYC730MB.amrs.win.ml.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <E5F741E838FC2043A0B843E48181813806AB752A@MLNYC730MB.amrs.win.ml.com>
+Content-Class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,65 +17,41 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: "Newman, Edward (GTI)" <edward_newman@ml.com>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-On Tue, 2007-11-06 at 09:30 -0500, Newman, Edward (GTI) wrote:
-> Ian
-> 
-> FYI - The supplied patch appears to break ldap maps with --ghost at the
-> end. Seems to be considered part of the search DN.
-> 
-> Regarding config, the issue appears to be that SASL code calls OpenLDAP
-> ldap_get_option and only returns "host" value (which is an optional
-> setting). This is used to get LDAP host name (which may be different
-> depending on your other URI code). Sort of thing I was thinking about
-> would be:
+The situation I am trying to support is the following:
 
-Yes, I can see your point about the round robin DNS issue.
-I don't have any ideas on how to resolve that at the moment.
+- With Active Directory all servers are made available through a common
+DNS name (i.e. domain.com)
+- The problem with this is that the DNS name alone returns many IPs and
+these can be remote across a network (round-robin of IP may return a
+remote LDAP server). So we use network location aware DNS name so that
+nearby servers are returned to those applications are not SRV or AD site
+aware. Aufos fits this category. So assume DNS name is "ad.domain.com".
+- The issue for SASL is that there is no service principal name in
+Kerberos for ad.domain.com.
+- Thus we need some way to translate the DNS name to a service principle
+- ldapost.domain.com. This can be done either through forward/reverse
+DNS lookup. A second alternative is the use of dnsHostname in the
+rootdse of the server. Have no particular preference so if DNS is bad
+idea then maybe a quick lookup to rootdse to get name will be required
+for SASL/Kerberos.
 
-> 
-> - pick up server URI(s) from /etc/ldap.conf or via override in
-> /etc/sysconfig/autofs
+I would like to avoid is having to maintain specific lists of hostnames
+in URI list as maintenance, upgrades, etc would require redeploying a
+new configuration to all servers (in my environment several thousand
+servers).
 
-I think it's bad policy to rely on configuration files that belong to
-other applications. There's just too much that can go wrong. If we rely
-on anything that is external then we must do it via package library
-routines and in this case that means it's OpenLDAPs responsibility to
-interpret and act on the information in its configuration.
+Adding a mechanism to support LDAP connection pooling seems a good idea
+as it looks like autofs creates a lot of queries - issue for a large
+data centre restarting after a powerdown.
 
-> - If explicit series of hosts supplied then attempt each in turn
-> (believe your code already does this but doesn't pass host name through
-> to SASL code)
+Let me know how I can help here.
 
-What good is the hostname in the light of the round robin DNS issue?
-At the moment it will always be the same as the one obtained with the
-LDAP call, which is what the SASL code in autofs does to get it now
-anyway.
+Edward
+--------------------------------------------------------
 
-> - If only one supplied then might want to add option to check DNS to see
-> whether this returns multiple IP's - either through SRV records or via
-> multiple A records
-
-But, just because a single host is given doesn't mean that it will be
-the only one that resolves to multiple IP addresses.
-
-Doing DNS lookups in this part of the code is a bad idea. There's
-already too much overhead doing LDAP lookups.
-
-It might be a better idea if we maintained a persistent connection to
-the LDAP server and did the lookup at initial connection and reconnect
-after failure, but keeping connections open is a bad idea in my opinion
-as well.
-
-> - Code might also look at checking "supportedSASLMechanisms" for host
-> that it connects to as well as getting server name (dnsHostname). I was
-> originally testing with a load-balance name and SASL failed due to wrong
-> host principle for Kerberos ("Server not found in database").
-
-I don't understand where the SASL Mechanisms comes into the IP address
-problem. I think this check is better done at SASL connect time, as it
-is now.
-
-Ian
+This message w/attachments (message) may be privileged, confidential or proprietary, and if you are not an intended recipient, please notify the sender, do not use or share it and delete it. Unless specifically indicated, this message is not an offer to sell or a solicitation of any investment products or other financial product or service, an official confirmation of any transaction, or an official statement of Merrill Lynch. Subject to applicable law, Merrill Lynch may monitor, review and retain e-communications (EC) traveling through its networks/systems. The laws of the country of each sender/recipient may impact the handling of EC, and EC may be archived, supervised and produced in countries other than the country in which you are located. This message cannot be guaranteed to be secur
+ e or error-free. This message is subject to terms available at the following link: http://www.ml.com/e-communications_terms/. By messaging with Merrill Lynch you consent to the foregoing.
+--------------------------------------------------------
