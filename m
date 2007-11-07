@@ -1,14 +1,13 @@
-From: Dan Halbert <halbert@everyzing.com>
-Subject: Re: ENOENT on first reference to an automounted file
-Date: Tue, 06 Nov 2007 20:53:55 -0500
-Message-ID: <47311AB3.6070305@everyzing.com>
-References: <mailman.1.1192795201.25176.autofs@linux.kernel.org>
-	<6766EDC4-0232-4304-B753-64A2E4C2898E@isolar.dyndns.org>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: automount deletes and fails to recreate mount points
+Date: Wed, 07 Nov 2007 12:10:20 +0900
+Message-ID: <1194405020.3113.8.camel@raven.themaw.net>
+References: <0E22C564-0BD1-4930-889E-CBB4EBF05C52@leerssen.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <6766EDC4-0232-4304-B753-64A2E4C2898E@isolar.dyndns.org>
+In-Reply-To: <0E22C564-0BD1-4930-889E-CBB4EBF05C52@leerssen.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,18 +18,37 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@kernel.org
+To: Scott Leerssen <scott@leerssen.com>
+Cc: autofs@linux.kernel.org
 
-Greg Earle wrote:
-> We use NIS for our maps, but just for fun, I decided to test
-> turning "--ghost" *on* (we default to it off, and we also use
-> "-nobrowse" on our Suns, so we like to keep them consistent),
-> and ...
->   
-Greg, try the latest kernel, 2.6.9-55.0.12, which is now available from 
-RedHat and has also gone downstream to various other RH-source-based 
-distributions. This works for us. I agree your ghost/non-ghost 
-differences are odd and do not match my experience. But I see 
-differences also based on client load.
+On Mon, 2007-11-05 at 12:43 -0500, Scott Leerssen wrote:
+> Hi, 
+> 
+> 
+> A google search and scan of the archives didn't reveal an answer, so I
+> apologize in advance if this subject has been beaten to death
+> already.  Here are a few version numbers for reference:
+> 
+> 
+> CentOS 5
+> kernel:  2.6.18-8.1.15.el5
+> autofs: autofs-5.0.1-0.rc2.43.0.2
+> SElinux: disabled
+> 
+> 
+> I have a stock, yum updated CentOS 5 installation on which autofs
+> works fine as long as the mount points are pre-existing.  However, if
+> I stop the automounter with 'service autofs stop' (or by rebooting),
+> the automounter deletes my /net and /misc mount points and then fails
+> to recreate them on 'service autofs start'.
+> 
+> 
+> One caveat to the "normal" CentOS 5 install, is that I'm running off
+> of an NFS root.  Is there anything in particular about having a mount
+> point inside another NFS mounted directory that would make automount
+> want to remove my mount points and fail to recreate them?  
 
-Dan
+Yes.
+Does pre-creating them within the NFS mounted root work OK?
+
+Ian
