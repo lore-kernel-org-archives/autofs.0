@@ -1,12 +1,15 @@
-From: "Newman, Edward \(GTI\)" <edward_newman@ml.com>
-Subject: Re: AutoFS / SASL support
-Date: Wed, 7 Nov 2007 08:52:36 -0500
-Message-ID: <E5F741E838FC2043A0B843E48181813806AB75BB@MLNYC730MB.amrs.win.ml.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: automount deletes and fails to recreate mount points
+Date: Thu, 08 Nov 2007 00:52:32 +0900
+Message-ID: <1194450752.13416.29.camel@raven.themaw.net>
+References: <0E22C564-0BD1-4930-889E-CBB4EBF05C52@leerssen.com>
+	<1194405020.3113.8.camel@raven.themaw.net>
+	<3CE53FD7-F085-4313-AB14-8A733742BF4B@leerssen.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-content-class: urn:content-classes:message
+In-Reply-To: <3CE53FD7-F085-4313-AB14-8A733742BF4B@leerssen.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,113 +20,74 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: "Douglas E. Engert" <deengert@anl.gov>
-Cc: autofs@linux.kernel.org, Ian Kent <raven@themaw.net>
+To: Scott Leerssen <scott@leerssen.com>
+Cc: autofs@linux.kernel.org
 
-Agreed. Ian and I were discussing (possibly off list) that adding DNS to
-automount might add additional latency that he wanted to avoid.
-
-Edward
-
-
------Original Message-----
-From: Douglas E. Engert [mailto:deengert@anl.gov] 
-Sent: 07 November 2007 08:50
-To: Newman, Edward (GTI)
-Cc: Ian Kent; autofs@linux.kernel.org
-Subject: Re: [autofs] AutoFS / SASL support
-
-
-
-
-Newman, Edward (GTI) wrote:
-> The situation I am trying to support is the following:
+On Wed, 2007-11-07 at 08:39 -0500, Scott Leerssen wrote:
 > 
-> - With Active Directory all servers are made available through a
-common
-> DNS name (i.e. domain.com)
-> - The problem with this is that the DNS name alone returns many IPs
-and
-> these can be remote across a network (round-robin of IP may return a
-> remote LDAP server). So we use network location aware DNS name so that
-> nearby servers are returned to those applications are not SRV or AD
-site
-> aware. Aufos fits this category. So assume DNS name is
-"ad.domain.com".
-> - The issue for SASL is that there is no service principal name in
-> Kerberos for ad.domain.com.
-> - Thus we need some way to translate the DNS name to a service
-principle
-> - ldapost.domain.com. This can be done either through forward/reverse
-> DNS lookup. A second alternative is the use of dnsHostname in the
-> rootdse of the server. Have no particular preference so if DNS is bad
-> idea then maybe a quick lookup to rootdse to get name will be required
-> for SASL/Kerberos.
+> On Nov 6, 2007, at 10:10 PM, Ian Kent wrote:
 > 
-
-Sounds like DNS SRV records fro LDAP. See RFC2782
-
-  http://www.ietf.org/rfc/rfc2782.txt
-
-Your AD should have these already defined, assuming the domain is
-ad.domain.com:
-
-  nslookup
-  set type=ANY
-  _ldap._tcp.ad.domain.com
-
-And it uses it for Kerberos too:
-_kerberos._tcp.ad.domain.com
-
-Not sure if OpenLDAP supports this, Google'ing for openldap srv shows
-some
-interest in it a few years ago.
-
-> I would like to avoid is having to maintain specific lists of
-hostnames
-> in URI list as maintenance, upgrades, etc would require redeploying a
-> new configuration to all servers (in my environment several thousand
-> servers).
+> > On Mon, 2007-11-05 at 12:43 -0500, Scott Leerssen wrote:
+> > > Hi, 
+> > > 
+> > > 
+> > > 
+> > > 
+> > > A google search and scan of the archives didn't reveal an answer,
+> > > so I
+> > > apologize in advance if this subject has been beaten to death
+> > > already.  Here are a few version numbers for reference:
+> > > 
+> > > 
+> > > 
+> > > 
+> > > CentOS 5
+> > > kernel:  2.6.18-8.1.15.el5
+> > > autofs: autofs-5.0.1-0.rc2.43.0.2
+> > > SElinux: disabled
+> > > 
+> > > 
+> > > 
+> > > 
+> > > I have a stock, yum updated CentOS 5 installation on which autofs
+> > > works fine as long as the mount points are pre-existing.  However,
+> > > if
+> > > I stop the automounter with 'service autofs stop' (or by
+> > > rebooting),
+> > > the automounter deletes my /net and /misc mount points and then
+> > > fails
+> > > to recreate them on 'service autofs start'.
+> > > 
+> > > 
+> > > 
+> > > 
+> > > One caveat to the "normal" CentOS 5 install, is that I'm running
+> > > off
+> > > of an NFS root.  Is there anything in particular about having a
+> > > mount
+> > > point inside another NFS mounted directory that would make
+> > > automount
+> > > want to remove my mount points and fail to recreate them?  
+> > 
+> > 
+> > Yes.
+> > Does pre-creating them within the NFS mounted root work OK?
+> > 
+> > 
+> > Ian
+> > 
+> > 
 > 
-> Adding a mechanism to support LDAP connection pooling seems a good
-idea
-> as it looks like autofs creates a lot of queries - issue for a large
-> data centre restarting after a powerdown.
-> 
-> Let me know how I can help here.
-> 
-> Edward
-> --------------------------------------------------------
-> 
-> This message w/attachments (message) may be privileged, confidential
-or proprietary, and if you are not an intended recipient, please notify
-the sender, do not use or share it and delete it. Unless specifically
-indicated, this message is not an offer to sell or a solicitation of any
-investment products or other financial product or service, an official
-confirmation of any transaction, or an official statement of Merrill
-Lynch. Subject to applicable law, Merrill Lynch may monitor, review and
-retain e-communications (EC) traveling through its networks/systems. The
-laws of the country of each sender/recipient may impact the handling of
-EC, and EC may be archived, supervised and produced in countries other
-than the country in which you are located. This message cannot be
-guaranteed to be secure or error-free. This message is subject to terms
-available at the following link:
-http://www.ml.com/e-communications_terms/. By messaging with Merrill
-Lynch you consent to the foregoing.
+> Yes, if the mounts are pre-existing, they mount up fine.  When the
+> system reboots, however, they go away.  An obvious workaround is to
+> write a script that scans /etc/auto.master, parse out the mount points
+> and create them before autofs starts, but I was hoping there was a
+> less "cave man" solution.
 
-> --------------------------------------------------------
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
-> 
-> 
+The problem is that, for various reasons, autofs won't create mount
+point directories on what it thinks is a remote file system. But, if the
+directory already exists, then it shouldn't be removed at shutdown.
 
--- 
+I think that was fixed in revision 0.rc2.44.
 
-  Douglas E. Engert  <DEEngert@anl.gov>
-  Argonne National Laboratory
-  9700 South Cass Avenue
-  Argonne, Illinois  60439
-  (630) 252-5444
+Ian
