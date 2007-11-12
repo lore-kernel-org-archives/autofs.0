@@ -1,14 +1,11 @@
-From: "Coe, Colin C. (Unix Engineer)" <Colin.Coe@woodside.com.au>
-Subject: Re: Problem with autofs_home map
-Date: Mon, 12 Nov 2007 07:34:41 +0900
-Message-ID: <BAC1D28A5AB852439A6914CA7AB4E63F041EE747@permls05.wde.woodside.com.au>
-References: <1194531302.25888.6.camel@raven.themaw.net>
+From: Guillaume Rousse <Guillaume.Rousse@inria.fr>
+Subject: sasl support breaks ldap module
+Date: Mon, 12 Nov 2007 23:09:00 +0100
+Message-ID: <4738CEFC.5000700@inria.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-class: urn:content-classes:message
-In-Reply-To: <1194531302.25888.6.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,99 +16,19 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>, Jeff Moyer <jmoyer@redhat.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
+Hello.
 
-Hi all
+I just found out than enabling sasl support caused lookup_ldap to be
+non-functionnal, because of unresolved symbols:
+Nov  7 11:31:10 etoile automount[2743]: open_lookup: cannot open lookup
+module
+ldap (/usr/lib/autofs/lookup_ldap.so: undefined symbol:
+krb5_get_init_creds_keytab)
 
-Yep, Ian is (still) right  :)
-
-CC
-
------Original Message-----
-From: Ian Kent [mailto:raven@themaw.net] 
-Sent: Thursday, 8 November 2007 11:15 PM
-To: Jeff Moyer
-Cc: Coe, Colin C. (Unix Engineer); autofs@linux.kernel.org
-Subject: Re: [autofs] Problem with autofs_home map
-
-On Wed, 2007-11-07 at 23:58 -0500, Jeff Moyer wrote:
-> "Coe, Colin C. (Unix Engineer)" <Colin.Coe@woodside.com.au> writes:
-> 
-> > Hi Jeff
-> >
-> > No the direct map (autofs.global) doesn't have any maps in /home.
-> > Hopefully the below is useful.  Nothing (useful) ended up in
-> > /var/log/debug.
-> 
-> OK, I'm guessing you have ONE_AUTO_MASTER set to 1 in
-> /etc/sysconfig/autofs, is that right?
-> 
-> > [root@las004 images]# cat /etc/auto.master
-> > /-      autofs.global --ghost nfsvers=3,tcp,rsize=32768,wsize=32768
-> > /rhome  autofs.home   --ghost nfsvers=3,tcp,rsize=32768,wsize=32768
-> > --debug
-> 
-> Notice that the listing of your configured mount points does not
-> include those from your file map, /etc/auto.master:
-> 
-> > [root@las004 images]# service autofs status
-> > Configured Mount Points:
-> > ------------------------
-> > /usr/sbin/automount --timeout=60 --ghost /home ldap
-> > automountMapName=auto_home,o=unix,dc=woodside,dc=com,dc=au
-> > nfsvers=3,tcp,rsize=32768,wsize=32768
-> > /usr/sbin/automount --timeout=60 --ghost /- ldap
-> > automountMapName=auto_global,o=unix,dc=woodside,dc=com,dc=au
-> > nfsvers=3,tcp,rsize=32768,wsize=32768
-> 
-> Which is why we also get no debug output in the log.
-> 
-> > [root@las004 images]# service autofs start
-> > Starting automount:                                        [  OK  ]
-> > [root@las004 images]# service autofs status
-> > Configured Mount Points:
-> > ------------------------
-> > /usr/sbin/automount --timeout=60 --ghost /home ldap
-> > automountMapName=auto_home,o=unix,dc=woodside,dc=com,dc=au
-> > nfsvers=3,tcp,rsize=32768,wsize=32768
-> > /usr/sbin/automount --timeout=60 --ghost /- ldap
-> > automountMapName=auto_global,o=unix,dc=woodside,dc=com,dc=au
-> > nfsvers=3,tcp,rsize=32768,wsize=32768
-> >
-> > Active Mount Points:
-> > --------------------
-> > /usr/sbin/automount --timeout=60 --ghost /home ldap
-> > automountMapName=auto_home,o=unix,dc=woodside,dc=com,dc=au
-> > nfsvers=3,tcp,rsize=32768,wsize=32768
-> > /usr/sbin/automount --timeout=60 --ghost /- ldap
-> > automountMapName=auto_global,o=unix,dc=woodside,dc=com,dc=au
-> > nfsvers=3,tcp,rsize=32768,wsize=32768
-> > /usr/sbin/automount --submount --ghost --timeout=60 /nfs ldap
-> > automountMapName=auto_global,o=unix,dc=woodside,dc=com,dc=au
-nfsvers=3
-> > tcp rsize=32768 wsize=32768
-> > /usr/sbin/automount --submount --ghost --timeout=60 /hsm ldap
-> > automountMapName=auto_global,o=unix,dc=woodside,dc=com,dc=au
-nfsvers=3
-> > tcp rsize=32768 wsize=32768
-> 
-> And now note that your direct map includes entries in the root level
-> of the file system.  This is not supported in autofs v4.  So, that's
-> the reason you're getting 0 length directories for /home, /nfs, and
-> /hsm.
-
-Actually, I think Colins direct map (probably) doesn't have single level
-mount entries (it didn't used to). So these mounts are just the result
-of the pseudo direct mount implementation in v4 mounting the top level
-directory of the tree defined by the entries in the map.
-
-Ian
-
-NOTICE: This email and any attachments are confidential. 
-They may contain legally privileged information or 
-copyright material. You must not read, copy, use or 
-disclose them without authorisation. If you are not an 
-intended recipient, please contact us at once by return 
-email and then delete both messages and all attachments.
+Shouldn't this module get linked to kerberos lib, in addition to sasl lib ?
+-- 
+Guillaume Rousse
+Moyens Informatiques - INRIA Futurs
+Tel: 01 69 35 69 62
