@@ -1,11 +1,13 @@
-From: Andre Wood <andre@stonemarche.org>
-Subject: Enhancement request: executable program maps called after
-	umount.
-Date: Fri, 16 Nov 2007 03:50:52 -0500
-Message-ID: <473D59EC.6070400@stonemarche.org>
+From: "=?ISO-8859-1?Q?Sonni_N=F8rl=F8v?=" <sonni.norlov@gmail.com>
+Subject: patch: unable to mount a nested path on a readonly
+	exported path
+Date: Fri, 16 Nov 2007 23:01:35 +0100
+Message-ID: <b103bf540711161401x6691a9c3g1fff7ec93c597728@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8064751267577907862=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,57 +20,46 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---===============8064751267577907862==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enig5145918082CF8E01213B2D1E"
+Hi,
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig5145918082CF8E01213B2D1E
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Having nested exports like:
 
-Enhancement request:
+/export (ro)
+/export/data/share (rw)
 
-Program maps need to called prior to mounting AND called again after
-unmounting.
-The reason for this is that if the script (program map) arranges for the
-"device" to be available for mounting,
-it also needs a chance to cleanup after the "device" is unmounted.  Can
-you include this enhancement into autofs?
-I would suggest calling the script with an additional parameter during
-the unmount phase, so that it is easy to determine the state.
+and running autofs 4.1.3, on gentoo 4.1.3.-r7 with Xen kernel 2.6.20
+the automounter manages to mount /export but fails when mounting
+/export/data/share with an error like "Read-only filesystem" during
+its mkdir_path call.
 
-    Andre'
+To fix this the mkdir_path must accept that when a directory exist
+read-only or not on the server it is still an existing directory.
+Below is the patch for this.
 
+Another note: why does mkdir_path return errno and not just a single
+return code stating yes or no ?
 
---------------enig5145918082CF8E01213B2D1E
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+regards
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.2 (GNU/Linux)
-
-iD8DBQFHPVnzFBtQPwPMVKYRAuLZAJ4txUUioS9Ul+QscvAGmlDSiaDecACeIazN
-FXJPRWdbImPnReI6pwnJirQ=
-=g64U
------END PGP SIGNATURE-----
-
---------------enig5145918082CF8E01213B2D1E--
+Sonni
 
 
---===============8064751267577907862==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+--- autofs-4.1.3/daemon/automount.c.org 2007-11-16 21:54:25.000000000 +0100
++++ autofs-4.1.3/daemon/automount.c     2007-11-16 21:55:38.000000000 +0100
+@@ -94,12 +94,13 @@
+                        *bp = '\0';
+                        if (mkdir(buf, mode) == -1) {
+                                /* If it already exists, make sure
+it's a directory */
+-                               if (errno == EEXIST) {
++                               if (errno == EEXIST || errno == EROFS) {
+                                        struct stat st;
 
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
-
---===============8064751267577907862==--
-
+                                        if (stat(buf, &st) == 0 &&
+!S_ISDIR(st.st_mode))
+                                                errno = ENOTDIR;
+                                        else {
++                                               errno = EEXIST;
+                                                /* last component, return -1 */
+                                                if (*cp != '\0')
+                                                        continue;
