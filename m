@@ -1,14 +1,13 @@
-From: "Coe, Colin C. (Unix Engineer)" <Colin.Coe@woodside.com.au>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: Problem with autofs_home map
-Date: Fri, 16 Nov 2007 11:07:19 +0900
-Message-ID: <BAC1D28A5AB852439A6914CA7AB4E63F041EE76E@permls05.wde.woodside.com.au>
-References: <1195178644.3131.4.camel@raven.themaw.net>
+Date: Fri, 16 Nov 2007 11:04:04 +0900
+Message-ID: <1195178644.3131.4.camel@raven.themaw.net>
+References: <BAC1D28A5AB852439A6914CA7AB4E63F041EE737@permls05.wde.woodside.com.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-class: urn:content-classes:message
-In-Reply-To: <1195178644.3131.4.camel@raven.themaw.net>
+In-Reply-To: <BAC1D28A5AB852439A6914CA7AB4E63F041EE737@permls05.wde.woodside.com.au>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,31 +18,8 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
+To: "Coe, Colin C. (Unix Engineer)" <Colin.Coe@woodside.com.au>
 Cc: autofs@linux.kernel.org
-
-
-Hey Ian
-
-OK, but the debug.log was attached previously .  It only contained:
----
-> [root@las004 images]# cat /var/log/debug
-> Nov  8 13:09:17 las004 dhcpd: DHCPDISCOVER from 00:1a:64:2c:0d:ee via
-> eth2: network 10.240.59/24: no free leases
----
-
-Nothing autofs related was put in the log file.
-
-Thanks
-
-CC
-
------Original Message-----
-From: Ian Kent [mailto:raven@themaw.net] 
-Sent: Friday, 16 November 2007 11:04 AM
-To: Coe, Colin C. (Unix Engineer)
-Cc: Jeff Moyer; autofs@linux.kernel.org
-Subject: Re: [autofs] Problem with autofs_home map
 
 On Thu, 2007-11-08 at 13:27 +0900, Coe, Colin C. (Unix Engineer) wrote:
 > Hi Jeff
@@ -108,8 +84,7 @@ Can we have the debug log anyway please.
 > /var/log/messages
 > 
 > # The authpriv file has restricted access.
-> authpriv.*
-/var/log/secure
+> authpriv.*                                              /var/log/secure
 > 
 > # Log all the mail messages in one place.
 > mail.*
@@ -123,8 +98,7 @@ Can we have the debug log anyway please.
 > *.emerg                                                 *
 > 
 > # Save news errors of level crit and higher in a special file.
-> uucp,news.crit
-/var/log/spooler
+> uucp,news.crit                                          /var/log/spooler
 > 
 > # Save boot messages also to boot.log
 > local7.*
@@ -281,10 +255,3 @@ Can we have the debug log anyway please.
 > autofs mailing list
 > autofs@linux.kernel.org
 > http://linux.kernel.org/mailman/listinfo/autofs
-
-NOTICE: This email and any attachments are confidential. 
-They may contain legally privileged information or 
-copyright material. You must not read, copy, use or 
-disclose them without authorisation. If you are not an 
-intended recipient, please contact us at once by return 
-email and then delete both messages and all attachments.
