@@ -1,9 +1,10 @@
 From: Guillaume Rousse <Guillaume.Rousse@inria.fr>
-Subject: patch: fix for dynamic logging breaking non-sasl build
-Date: Sat, 17 Nov 2007 13:22:39 +0100
-Message-ID: <473EDD0F.3070705@inria.fr>
+Subject: patch: explicitely link against kerberos libs for sasl
+	support
+Date: Sat, 17 Nov 2007 13:23:47 +0100
+Message-ID: <473EDD53.3060303@inria.fr>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------090801060108080109090906"
+Content-Type: multipart/mixed; boundary="------------030905020705060302060508"
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -18,41 +19,38 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
 This is a multi-part message in MIME format.
---------------090801060108080109090906
+--------------030905020705060302060508
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
-autofs-5.0.2-dynamic-logging.patch breaks non-sasl enabled build by
-calling autofs_sasl_done unconditonaly in lookup_ldap.c
-
-Attached patch fix this issue
+sasl support breaks ldap module for unresolved kerberos symbols.
+Attached patch fix this issue by explicitely linking against kerberos libs.
 -- 
 Guillaume Rousse
 Moyens Informatiques - INRIA Futurs
 Tel: 01 69 35 69 62
 
---------------090801060108080109090906
+--------------030905020705060302060508
 Content-Type: text/x-patch;
- name="autofs-5.0.2-dynamic-logging-fixes2.patch"
+ name="autofs-5.0.2-link-with-kerberos-lib.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
-	filename="autofs-5.0.2-dynamic-logging-fixes2.patch"
+	filename="autofs-5.0.2-link-with-kerberos-lib.patch"
 
-diff -Naur --exclude '*~' autofs-5.0.2/modules/lookup_ldap.c autofs-5.0.2-dynamic-logging-fixes2.patch/modules/lookup_ldap.c
---- autofs-5.0.2/modules/lookup_ldap.c	2007-11-17 12:02:24.000000000 +0100
-+++ autofs-5.0.2-dynamic-logging-fixes2.patch/modules/lookup_ldap.c	2007-11-17 12:03:32.000000000 +0100
-@@ -579,7 +579,9 @@
- 		list_add_tail(&this->list, ctxt->uri);
- 	}
- 
-+#ifdef WITH_SASL
- 	autofs_sasl_done(ctxt);
-+#endif
- 
- 	/* Current server failed connect, try the rest */
- 	ldap = find_server(logopt, ctxt);
+diff -Naur --exclude '*~' autofs-5.0.2/configure.in autofs-5.0.2-link-with-kerberos-lib/configure.in
+--- autofs-5.0.2/configure.in	2007-11-17 12:18:07.000000000 +0100
++++ autofs-5.0.2-link-with-kerberos-lib/configure.in	2007-11-17 12:17:26.000000000 +0100
+@@ -243,7 +243,7 @@
+ if test -z "$HAVE_SASL" -a "$HAVE_LIBXML" == "1"
+ then
+ 	HAVE_SASL=0
+-	AC_CHECK_LIB(sasl2, sasl_client_start, HAVE_SASL=1 LIBSASL="$LIBSASL -lsasl2", , -lsasl2 $LIBS)
++	AC_CHECK_LIB(sasl2, sasl_client_start, HAVE_SASL=1 LIBSASL="$LIBSASL -lsasl2 -lkrb5", , -lsasl2 $LIBS)
+ 	if test "$HAVE_SASL" == "1"; then
+ 		AC_DEFINE(WITH_SASL,1,
+ 			[Define if using SASL authentication with the LDAP module])
 
---------------090801060108080109090906
+--------------030905020705060302060508
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -63,5 +61,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---------------090801060108080109090906--
+--------------030905020705060302060508--
 
