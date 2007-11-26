@@ -1,12 +1,13 @@
-From: muzzol <muzzol@gmail.com>
-Subject: user token
-Date: Mon, 26 Nov 2007 10:49:20 +0100
-Message-ID: <4a3f02760711260149g1f5be5f9q9fcd2ea5d364b95@mail.gmail.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: user token
+Date: Tue, 27 Nov 2007 03:23:02 +0900
+Message-ID: <1196101382.3381.7.camel@raven.themaw.net>
+References: <4a3f02760711260149g1f5be5f9q9fcd2ea5d364b95@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <4a3f02760711260149g1f5be5f9q9fcd2ea5d364b95@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,39 +18,73 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: muzzol <muzzol@gmail.com>
+Cc: autofs@linux.kernel.org
 
-aGkhCgppcyBhbnkgdG9rZW4gcmVsYXRlZCB0byB1c2VyIHRyeWluZyB0byBtb3VudCBwYXNzZWQg
-dG8gYXV0b2ZzPwoKaSd2ZSB0cmllZCAkVVNFUiBhbmQgb3RoZXIgdmFyaWFibGVzIHdpdGhvdXQg
-YW55IHN1Y2Nlc3MuCgp3aGF0IGkgd2FudCB0byBkbyBpcyBzb21ldGhpbmcgbGlrZToKCj09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09CgojIS9iaW4vYmFzaAoKIyAk
-SWQ6IGF1dG8uc21iLHYgMS4zIDIwMDUvMDQvMDUgMTM6MDI6MDkgcmF2ZW4gRXhwICQKCiMgVGhp
-cyBmaWxlIG11c3QgYmUgZXhlY3V0YWJsZSB0byB3b3JrISBjaG1vZCA3NTUhCgprZXk9IiQxIgpt
-b3VudG9wdHM9Ii1mc3R5cGU9Y2lmcyIKc21ib3B0cz0iIgpjcmVkZmlsZT0iL2hvbWUvJFVTRVIv
-YXV0by5zbWIuJGtleSIKCmZvciBQIGluIC9iaW4gL3NiaW4gL3Vzci9iaW4gL3Vzci9zYmluCmRv
-CiAgICAgICAgaWYgWyAteCAkUC9zbWJjbGllbnQgXQogICAgICAgIHRoZW4KICAgICAgICAgICAg
-ICAgIFNNQkNMSUVOVD0kUC9zbWJjbGllbnQKICAgICAgICAgICAgICAgIGJyZWFrCiAgICAgICAg
-ZmkKZG9uZQoKWyAteCAkU01CQ0xJRU5UIF0gfHwgZXhpdCAxCgppZiBbIC1lICRjcmVkZmlsZSBd
-OyB0aGVuCiAgICAgICAgbW91bnRvcHRzPSIkbW91bnRvcHRzLGNyZWRlbnRpYWxzPSRjcmVkZmls
-ZSIKICAgICAgICBzbWJvcHRzPSItQSAkY3JlZGZpbGUiCmVsc2UKICAgICAgICBzbWJvcHRzPSIt
-TiIKZmkKCiRTTUJDTElFTlQgJHNtYm9wdHMgLWdMICRrZXkgMj4vZGV2L251bGx8IGF3ayAtdiBr
-ZXk9IiRrZXkiIC12Cm9wdHM9IiRtb3VudG9wdHMiIC1GJ3wnIC0tICcKICAgICAgICBCRUdJTiAg
-IHsgT1JTPSIiOyBmaXJzdD0xIH0KICAgICAgICAvRGlzay8gIHsgaWYgKGZpcnN0KSB7IHByaW50
-IG9wdHM7IGZpcnN0PTAgfTsgc3ViKC8gLywgIlxcICIsCiQyKTsgcHJpbnQgIiBcXFxuXHQgLyIg
-JDIsICI6Ly8iIGtleSAiLyIgJDIgfQogICAgICAgIEVORCAgICAgeyBpZiAoIWZpcnN0KSBwcmlu
-dCAiXG4iOyBlbHNlIGV4aXQgMSB9CiAgICAgICAgJwoKPT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT0KCm5vdGUgdGhlIGNyZWRmaWxlIGxpbmU6CgpjcmVkZmlsZT0i
-L2hvbWUvJFVTRVIvYXV0by5zbWIuJGtleSIKCmlmIHRoZXJlJ3Mgbm8gdmFyaWFibGUsIGNhbiBh
-bnkgYWRkaXRpb25hbCBwYXJhbWV0ZXIgYmUgcGFzc3dkIHRvIHRoZQpleGVjdXRhYmxlcyBtYXBw
-aW5ncyBiZXNpZGUgdGhlIGtleT8KCnJlZ2FyZHMsCgptdXp6b2wKCi0tIAo9PT09PT09PT09PT09
-PT09PT09PT09PT0KICAgICBeIF4KICAgICBPIE8KICAgIChfIF8pCm11enpvbChhKWdtYWlsLmNv
-bQo9PT09PT09PT09PT09PT09PT09PT09PT0KamFiYmVyIGlkOiBtdXp6b2woYSlqYWJiZXIuZGsK
-PT09PT09PT09PT09PT09PT09PT09PT09Ck5vIGF0cmlidWVpeGlzIHF1YWxpdGF0cyBodW1hbmVz
-IGFscyBvcmRpbmFkb3JzLgpObyBlbHMgaGkgYWdyYWRhLgo9PT09PT09PT09PT09PT09PT09PT09
-PT0KIkVsIGdvYmllcm5vIGVzcGHDsW9sIHPDs2xvIGhhYmxhIGNvbiB0ZXJyb3Jpc3RhcywgaG9t
-b3NleHVhbGVzIHkKY2F0YWxhbmVzLCBhIHZlciBjdWFuZG8gc2UgZGVjaWRlIGEgaGFibGFyIGNv
-biBnZW50ZSBub3JtYWwiCkppbcOpbmV6IExvc2FudG9zCj09PT09PT09PT09PT09PT09PT09PT09
-PQo8ZWNoZWxvbiBzcGFtbWluZz4KYm9tYiB0ZXJyb3Jpc20gYnVzaCBhem5hciB0ZWxldHViYmll
-cwo8L2VjaGVsb24gc3BhbW1pbmc+CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fXwphdXRvZnMgbWFpbGluZyBsaXN0CmF1dG9mc0BsaW51eC5rZXJuZWwub3Jn
-Cmh0dHA6Ly9saW51eC5rZXJuZWwub3JnL21haWxtYW4vbGlzdGluZm8vYXV0b2ZzCg==
+On Mon, 2007-11-26 at 10:49 +0100, muzzol wrote:
+> hi!
+> 
+> is any token related to user trying to mount passed to autofs?
+> 
+> i've tried $USER and other variables without any success.
+
+So you're not using version 5 then, or are you?
+
+Version 5 sets several variables in the environment, USER, GROUP, HOME,
+UID and GID.
+
+> 
+> what i want to do is something like:
+> 
+> ============================================
+> 
+> #!/bin/bash
+> 
+> # $Id: auto.smb,v 1.3 2005/04/05 13:02:09 raven Exp $
+> 
+> # This file must be executable to work! chmod 755!
+> 
+> key="$1"
+> mountopts="-fstype=cifs"
+> smbopts=""
+> credfile="/home/$USER/auto.smb.$key"
+> 
+> for P in /bin /sbin /usr/bin /usr/sbin
+> do
+>         if [ -x $P/smbclient ]
+>         then
+>                 SMBCLIENT=$P/smbclient
+>                 break
+>         fi
+> done
+> 
+> [ -x $SMBCLIENT ] || exit 1
+> 
+> if [ -e $credfile ]; then
+>         mountopts="$mountopts,credentials=$credfile"
+>         smbopts="-A $credfile"
+> else
+>         smbopts="-N"
+> fi
+> 
+> $SMBCLIENT $smbopts -gL $key 2>/dev/null| awk -v key="$key" -v
+> opts="$mountopts" -F'|' -- '
+>         BEGIN   { ORS=""; first=1 }
+>         /Disk/  { if (first) { print opts; first=0 }; sub(/ /, "\\ ",
+> $2); print " \\\n\t /" $2, "://" key "/" $2 }
+>         END     { if (!first) print "\n"; else exit 1 }
+>         '
+> 
+> ============================================
+> 
+> note the credfile line:
+> 
+> credfile="/home/$USER/auto.smb.$key"
+> 
+> if there's no variable, can any additional parameter be passwd to the
+> executables mappings beside the key?
+
+No other parameters can be passed to program maps.
+I don't really know of a sane way to do this.
+
+Ian
