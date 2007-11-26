@@ -1,13 +1,14 @@
-From: Ian Kent <raven@themaw.net>
+From: muzzol <muzzol@gmail.com>
 Subject: Re: user token
-Date: Tue, 27 Nov 2007 03:23:02 +0900
-Message-ID: <1196101382.3381.7.camel@raven.themaw.net>
+Date: Mon, 26 Nov 2007 20:27:10 +0100
+Message-ID: <474B1E0E.3040505@gmail.com>
 References: <4a3f02760711260149g1f5be5f9q9fcd2ea5d364b95@mail.gmail.com>
+	<1196101382.3381.7.camel@raven.themaw.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4a3f02760711260149g1f5be5f9q9fcd2ea5d364b95@mail.gmail.com>
+In-Reply-To: <1196101382.3381.7.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,73 +19,37 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: muzzol <muzzol@gmail.com>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-On Mon, 2007-11-26 at 10:49 +0100, muzzol wrote:
-> hi!
-> 
-> is any token related to user trying to mount passed to autofs?
-> 
-> i've tried $USER and other variables without any success.
+En/na Ian Kent ha escrit:
+> On Mon, 2007-11-26 at 10:49 +0100, muzzol wrote:
+> No other parameters can be passed to program maps.
+> I don't really know of a sane way to do this.
+> =
 
-So you're not using version 5 then, or are you?
 
-Version 5 sets several variables in the environment, USER, GROUP, HOME,
-UID and GID.
+is this by design?
 
-> 
-> what i want to do is something like:
-> 
-> ============================================
-> 
-> #!/bin/bash
-> 
-> # $Id: auto.smb,v 1.3 2005/04/05 13:02:09 raven Exp $
-> 
-> # This file must be executable to work! chmod 755!
-> 
-> key="$1"
-> mountopts="-fstype=cifs"
-> smbopts=""
-> credfile="/home/$USER/auto.smb.$key"
-> 
-> for P in /bin /sbin /usr/bin /usr/sbin
-> do
->         if [ -x $P/smbclient ]
->         then
->                 SMBCLIENT=$P/smbclient
->                 break
->         fi
-> done
-> 
-> [ -x $SMBCLIENT ] || exit 1
-> 
-> if [ -e $credfile ]; then
->         mountopts="$mountopts,credentials=$credfile"
->         smbopts="-A $credfile"
-> else
->         smbopts="-N"
-> fi
-> 
-> $SMBCLIENT $smbopts -gL $key 2>/dev/null| awk -v key="$key" -v
-> opts="$mountopts" -F'|' -- '
->         BEGIN   { ORS=""; first=1 }
->         /Disk/  { if (first) { print opts; first=0 }; sub(/ /, "\\ ",
-> $2); print " \\\n\t /" $2, "://" key "/" $2 }
->         END     { if (!first) print "\n"; else exit 1 }
->         '
-> 
-> ============================================
-> 
-> note the credfile line:
-> 
-> credfile="/home/$USER/auto.smb.$key"
-> 
-> if there's no variable, can any additional parameter be passwd to the
-> executables mappings beside the key?
+do you plan to add such feature in the future?
 
-No other parameters can be passed to program maps.
-I don't really know of a sane way to do this.
+-- =
 
-Ian
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+      ^ ^
+      O O
+     (_ _)
+muzzol(a)muzzol.com
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+jabber id: muzzol(a)jabber.dk
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+No atribueixis qualitats humanes als ordinadors.
+No els hi agrada.
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+"El gobierno espa=F1ol s=F3lo habla con terroristas, homosexuales y
+catalanes, a ver cuando se decide a hablar con gente normal"
+Jim=E9nez Losantos
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+<echelon spamming>
+bomb terrorism bush aznar teletubbies
+</echelon spamming>
