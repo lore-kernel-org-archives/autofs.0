@@ -1,19 +1,18 @@
-From: muzzol <muzzol@gmail.com>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: user token
-Date: Tue, 27 Nov 2007 16:13:21 +0100
-Message-ID: <4a3f02760711270713k7083ddabya43b735eba8fc509@mail.gmail.com>
+Date: Wed, 28 Nov 2007 00:40:47 +0900
+Message-ID: <1196178047.3973.44.camel@raven.themaw.net>
 References: <4a3f02760711260149g1f5be5f9q9fcd2ea5d364b95@mail.gmail.com>
-	<1196101382.3381.7.camel@raven.themaw.net>
-	<474B1E0E.3040505@gmail.com>
+	<1196101382.3381.7.camel@raven.themaw.net> <474B1E0E.3040505@gmail.com>
 	<1196129844.3973.16.camel@raven.themaw.net>
 	<4a3f02760711270019v490249fet119d1683cd41f995@mail.gmail.com>
 	<1196168788.3973.33.camel@raven.themaw.net>
+	<4a3f02760711270713k7083ddabya43b735eba8fc509@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1196168788.3973.33.camel@raven.themaw.net>
-Content-Disposition: inline
+In-Reply-To: <4a3f02760711270713k7083ddabya43b735eba8fc509@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,43 +23,64 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
+To: muzzol <muzzol@gmail.com>
 Cc: autofs@linux.kernel.org
 
-MjAwNy8xMS8yNywgSWFuIEtlbnQgPHJhdmVuQHRoZW1hdy5uZXQ+Ogo+IEkgaGF2ZSBubyBpZGVh
-IHdoYXQgeW91IGFyZSB0YWxraW5nIGFib3V0IGhlcmUuCj4KCnNvcnJ5IGZvciBub3QgYmVpbmcg
-Y2xlYXIuCgogLSBpbSB1c2luZyB2ZXJzaW9uIDUuMC4yCiAtIGkgd2FudCBhbiBleGVjdXRhYmxl
-IG1hcCB0aGF0IGFza3Mgc29tZSBpbmZvIHRvIHVzZXIuCiAtIGkgdGFrZSBhdXRvLnNtYiBhcyBi
-YXNlIGFuZCBhZGQgc29tZXRoaW5nIGxpa2UgdGhpczoKCm9wdHM9Ii1mc3R5cGU9Y2lmcyxjcmVk
-ZW50aWFscz0kQ1JFREVOVElBTFMiCgpVU0VSU0VTU0lPTj1gdyB8IGdyZXAgIngtc2Vzc2lvbi1t
-YW5hZ2VyImAKVVNFUj1gZWNobyAiJFVYU0VTU0lPTiIgfCBjdXQgLWQiICIgLWYxYApESVNQTEFZ
-PWBlY2hvICIkVVhTRVNTSU9OIiB8IHRyIC1zICIgIiB8IGN1dCAtZCIgIiAtZjJgCkNSRURFTlRJ
-QUxTPSIvaG9tZS8kVVNFUi8uc21iLmF1dGguJGtleSIKCmlmIFsgISAtZSAiJENSRURFTlRJQUxT
-IiBdOyB0aGVuCiAgICBORVdLRVk9YHplbml0eSAtLWVudHJ5IC0taGlkZS10ZXh0IC0tdGV4dD0i
-RW50ZXIgeW91ciBwYXNzIGZvciAka2V5ImAKICAgIGVjaG8gLWUgInVzZXJuYW1lPSRVU0VSXG5w
-YXNzd29yZD0kTkVXS0VZIiA+ICIkQ1JFREVOVElBTFMiCmZpCgpbLi4uXQoKdGhpcyB3b3JrcyBh
-cyBsb25nIGFzIHRoZXJlJ3Mgb25seSBvbmUgdXNlciBvbiB0aGUgbWFjaGluZSBhbmQgaXMKcHJl
-dHR5IGxpbWl0ZWQuIGlmIHVzZXIgdmFyaWFibGVzIHdlcmUgZXhwb3NlZCB0byBleGVjdXRhYmxl
-IG1hcHMgaXQKY291bGQgYmUgZWFzaWx5IGludGVncmF0ZWQgd2l0aCBaZW5pdHksIERCVVMsIHht
-ZXNzYWdlLCBvciBhbnkgb3RoZXIKdXNlciBzcGFjZSBwcm9jZXNzLgoKCj4gVGhlIFVTRVIgbWFj
-cm8gaXMgYXZhaWxhYmxlIHRvIG1hcHMgKGFsb25nIHdpdGggdGhlIG90aGVycyBJIG1lbnRpb25l
-ZAo+IGJlZm9yZSksIGluY2x1ZGluZyBleGVjdXRhYmxlIG1hcHMgYXMgYW4gZW52aXJvbm1lbnQg
-dmFyaWFibGUsIGFuZCBhcyBhCj4gbWFjcm8gdmFyaWFibGUgZm9yIG5vcm1hbCBtYXBzLCB3aGVu
-IHVzaW5nIHZlcnNpb24gNS4KPgoKYnV0IHRoaXMgaXMgX2FmdGVyXyB0aGUgZXhlY3V0YWJsZSBt
-YXAgaXMgcHJvY2Vzc2VkLCBzbyBpdHMgdXNhYmlsaXR5CmlzIHZlcnkgbGltaXRlZC4KCj4gSWYg
-eW91J3JlIHRhbGtpbmcgYWJvdXQgdmVyc2lvbiA0IHRoZW4gdGhhdCBpbmZvcm1hdGlvbiBpc24n
-dCBhdmFpbGFibGUKPiBpbiB0aGUga2VybmVsIHJlcXVlc3QgcGFja2V0IHRvIHRoZSBkYWVtb24g
-c28gaXQgY2FuJ3QgYmUgZG9uZS4KPgoKaSB3YXMgdGFsa2luZyBhYm91dCB2NSBhbGwgdGhlIHRp
-bWUsIGJ1dCBpIGhvcGUgbm93IGlzIG1vcmUgY2xlYXIuCgpyZWdhcmRzLAoKbXV6em9sCgotLSAK
-PT09PT09PT09PT09PT09PT09PT09PT09CiAgICAgXiBeCiAgICAgTyBPCiAgICAoXyBfKQptdXp6
-b2woYSlnbWFpbC5jb20KPT09PT09PT09PT09PT09PT09PT09PT09CmphYmJlciBpZDogbXV6em9s
-KGEpamFiYmVyLmRrCj09PT09PT09PT09PT09PT09PT09PT09PQpObyBhdHJpYnVlaXhpcyBxdWFs
-aXRhdHMgaHVtYW5lcyBhbHMgb3JkaW5hZG9ycy4KTm8gZWxzIGhpIGFncmFkYS4KPT09PT09PT09
-PT09PT09PT09PT09PT09CiJFbCBnb2JpZXJubyBlc3Bhw7FvbCBzw7NsbyBoYWJsYSBjb24gdGVy
-cm9yaXN0YXMsIGhvbW9zZXh1YWxlcyB5CmNhdGFsYW5lcywgYSB2ZXIgY3VhbmRvIHNlIGRlY2lk
-ZSBhIGhhYmxhciBjb24gZ2VudGUgbm9ybWFsIgpKaW3DqW5leiBMb3NhbnRvcwo9PT09PT09PT09
-PT09PT09PT09PT09PT0KPGVjaGVsb24gc3BhbW1pbmc+CmJvbWIgdGVycm9yaXNtIGJ1c2ggYXpu
-YXIgdGVsZXR1YmJpZXMKPC9lY2hlbG9uIHNwYW1taW5nPgoKX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX18KYXV0b2ZzIG1haWxpbmcgbGlzdAphdXRvZnNAbGlu
-dXgua2VybmVsLm9yZwpodHRwOi8vbGludXgua2VybmVsLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2F1
-dG9mcwo=
+On Tue, 2007-11-27 at 16:13 +0100, muzzol wrote:
+> 2007/11/27, Ian Kent <raven@themaw.net>:
+> > I have no idea what you are talking about here.
+> >
+> 
+> sorry for not being clear.
+> 
+>  - im using version 5.0.2
+>  - i want an executable map that asks some info to user.
+>  - i take auto.smb as base and add something like this:
+> 
+> opts="-fstype=cifs,credentials=$CREDENTIALS"
+> 
+> USERSESSION=`w | grep "x-session-manager"`
+> USER=`echo "$UXSESSION" | cut -d" " -f1`
+> DISPLAY=`echo "$UXSESSION" | tr -s " " | cut -d" " -f2`
+> CREDENTIALS="/home/$USER/.smb.auth.$key"
+> 
+> if [ ! -e "$CREDENTIALS" ]; then
+>     NEWKEY=`zenity --entry --hide-text --text="Enter your pass for $key"`
+>     echo -e "username=$USER\npassword=$NEWKEY" > "$CREDENTIALS"
+> fi
+> 
+> [...]
+> 
+> this works as long as there's only one user on the machine and is
+> pretty limited. if user variables were exposed to executable maps it
+> could be easily integrated with Zenity, DBUS, xmessage, or any other
+> user space process.
+
+I think this is where the problem is.
+Expose what user variables?
+The ones of the user process requesting the mount?
+They are present in the user process not the automount process and
+basically aren't known to automount.
+
+This is the fundamental problem with adding this feature.
+One suggestion is to actually decouple the mount request from automount
+and run a program from the kernel within requesting user context but
+then you can't mount because you're not root and executing a program
+from the kernel is bad news as far as I'm concerned. You just can't get
+return status.
+
+> 
+> 
+> > The USER macro is available to maps (along with the others I mentioned
+> > before), including executable maps as an environment variable, and as a
+> > macro variable for normal maps, when using version 5.
+> >
+> 
+> but this is _after_ the executable map is processed, so its usability
+> is very limited.
+
+What do you mean "after" it's processed.
+It, along with the other variables, are set in the environment prior to
+executing the map.
+
+Ian
