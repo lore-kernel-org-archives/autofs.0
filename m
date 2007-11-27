@@ -1,14 +1,17 @@
-From: Ian Kent <raven@themaw.net>
+From: muzzol <muzzol@gmail.com>
 Subject: Re: user token
-Date: Tue, 27 Nov 2007 11:17:24 +0900
-Message-ID: <1196129844.3973.16.camel@raven.themaw.net>
+Date: Tue, 27 Nov 2007 09:19:35 +0100
+Message-ID: <4a3f02760711270019t5416794bh40a3e3a15d07fd90@mail.gmail.com>
 References: <4a3f02760711260149g1f5be5f9q9fcd2ea5d364b95@mail.gmail.com>
-	<1196101382.3381.7.camel@raven.themaw.net> <474B1E0E.3040505@gmail.com>
+	<1196101382.3381.7.camel@raven.themaw.net>
+	<474B1E0E.3040505@gmail.com>
+	<1196129844.3973.16.camel@raven.themaw.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <474B1E0E.3040505@gmail.com>
+In-Reply-To: <1196129844.3973.16.camel@raven.themaw.net>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,28 +22,29 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: muzzol <muzzol@gmail.com>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-On Mon, 2007-11-26 at 20:27 +0100, muzzol wrote:
-> En/na Ian Kent ha escrit:
-> > On Mon, 2007-11-26 at 10:49 +0100, muzzol wrote:
-> > No other parameters can be passed to program maps.
-> > I don't really know of a sane way to do this.
-> > 
-> 
-> is this by design?
-
-It's been that way since before I took over maintenance of autofs.
-
-> 
-> do you plan to add such feature in the future?
-
-Like I said, I don't see any "sane" way to do this.
-There is a way to use an external environment variable withing maps but
-I haven't looked at that code for some time now.
-
-What is it that you need that the standard environment I mentioned
-doesn't provide?
-
-Ian
+MjAwNy8xMS8yNywgSWFuIEtlbnQgPHJhdmVuQHRoZW1hdy5uZXQ+Ogo+IFdoYXQgaXMgaXQgdGhh
+dCB5b3UgbmVlZCB0aGF0IHRoZSBzdGFuZGFyZCBlbnZpcm9ubWVudCBJIG1lbnRpb25lZAo+IGRv
+ZXNuJ3QgcHJvdmlkZT8KPgoKZm9yIGV4YW1wbGUgc2VuZGluZyBhIG1lc3NhZ2UgdG8gdXNlciB3
+aXRoIHplbml0eS4gZm9yIGlkZW50aWZ5aW5nCndpY2ggdXNlciBpcyBwZXJmb3JtaW5nIHRoZSBy
+ZXF1ZXN0IGkgbXVzdCBkbyBzb21lIHRyaWNreSB0aGluZ3Mgbm93LAphbmQgb25seSB3b3JrcyBv
+biBzdGF0aW9ucyB3aXRoIGp1c3Qgb25lIHVzZXIgbG9nZ2VkIGluLgoKZXhwb3Npbmcgc29tZSB1
+c2VyIHZhcmlhYmxlcyBfaW5zaWRlXyBleGVjdXRhYmxlIG1hcHBpbmdzIHdvdWxkIGhlbHAgYQps
+b3Qgd2l0aCBtb3VudHMgdGhhdCBuZWVkIHNvbWUgaW50ZXJhY3Rpb24gZnJvbSB1c2VyLgoKbG9v
+ayBvdXQgdGhpcyBwc2V1ZG8tY29kZToKCmlmIHVzZXIgcmVxdWVzdCBmb3Igc2FtYmEgbW91bnQK
+ICBpZiBub3QgZXhpc3RzIGNyZWRlbnRpYWxzIGZpbGUKICAgIGFzayBmb3IgY3JlZGVudGlhbHMK
+CmFzIGkgc2FpZCwgaSBnb3QgYSB3b3JraW5nIHNjcmlwdCwgYnV0IGlzIHZlcnkgZGlydHkgYW5k
+IHNwZWNpZmljLgoKCi0tIAo9PT09PT09PT09PT09PT09PT09PT09PT0KICAgICBeIF4KICAgICBP
+IE8KICAgIChfIF8pCm11enpvbChhKWdtYWlsLmNvbQo9PT09PT09PT09PT09PT09PT09PT09PT0K
+amFiYmVyIGlkOiBtdXp6b2woYSlqYWJiZXIuZGsKPT09PT09PT09PT09PT09PT09PT09PT09Ck5v
+IGF0cmlidWVpeGlzIHF1YWxpdGF0cyBodW1hbmVzIGFscyBvcmRpbmFkb3JzLgpObyBlbHMgaGkg
+YWdyYWRhLgo9PT09PT09PT09PT09PT09PT09PT09PT0KIkVsIGdvYmllcm5vIGVzcGHDsW9sIHPD
+s2xvIGhhYmxhIGNvbiB0ZXJyb3Jpc3RhcywgaG9tb3NleHVhbGVzIHkKY2F0YWxhbmVzLCBhIHZl
+ciBjdWFuZG8gc2UgZGVjaWRlIGEgaGFibGFyIGNvbiBnZW50ZSBub3JtYWwiCkppbcOpbmV6IExv
+c2FudG9zCj09PT09PT09PT09PT09PT09PT09PT09PQo8ZWNoZWxvbiBzcGFtbWluZz4KYm9tYiB0
+ZXJyb3Jpc20gYnVzaCBhem5hciB0ZWxldHViYmllcwo8L2VjaGVsb24gc3BhbW1pbmc+CgpfX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwphdXRvZnMgbWFpbGlu
+ZyBsaXN0CmF1dG9mc0BsaW51eC5rZXJuZWwub3JnCmh0dHA6Ly9saW51eC5rZXJuZWwub3JnL21h
+aWxtYW4vbGlzdGluZm8vYXV0b2ZzCg==
