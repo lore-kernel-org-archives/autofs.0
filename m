@@ -1,15 +1,22 @@
-From: Stef Bon <stef@bononline.nl>
-Subject: Re: user token
-Date: Wed, 28 Nov 2007 17:49:50 +0100
-Message-ID: <200711281749.50467.stef@bononline.nl>
+From: muzzol <muzzol@gmail.com>
+Subject: user token
+Date: Thu, 29 Nov 2007 15:13:39 +0100
+Message-ID: <4a3f02760711290613s20bb1948pbb693b9cca4fa5fb@mail.gmail.com>
 References: <4a3f02760711260149g1f5be5f9q9fcd2ea5d364b95@mail.gmail.com>
+	<474B1E0E.3040505@gmail.com>
 	<1196129844.3973.16.camel@raven.themaw.net>
-	<4a3f02760711270019t5416794bh40a3e3a15d07fd90@mail.gmail.com>
+	<4a3f02760711270019v490249fet119d1683cd41f995@mail.gmail.com>
+	<1196168788.3973.33.camel@raven.themaw.net>
+	<4a3f02760711270713k7083ddabya43b735eba8fc509@mail.gmail.com>
+	<1196178047.3973.44.camel@raven.themaw.net>
+	<4a3f02760711280919t6262161cvf46336a8ac018e3e@mail.gmail.com>
+	<1196343240.3217.45.camel@raven.themaw.net>
+	<4a3f02760711290612g25d4bd8fvd0ada6c893998ef3@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4a3f02760711270019t5416794bh40a3e3a15d07fd90@mail.gmail.com>
+In-Reply-To: <4a3f02760711290612g25d4bd8fvd0ada6c893998ef3@mail.gmail.com>
 Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -23,90 +30,32 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-On Tuesday 27 November 2007 09:19:35 muzzol wrote:
-> 2007/11/27, Ian Kent <raven@themaw.net>:
-> > What is it that you need that the standard environment I mentioned
-> > doesn't provide?
-> >
-> 
-> for example sending a message to user with zenity. for identifying
-> wich user is performing the request i must do some tricky things now,
-> and only works on stations with just one user logged in.
-> 
-> exposing some user variables _inside_ executable mappings would help a
-> lot with mounts that need some interaction from user.
-> 
-> look out this pseudo-code:
-> 
-> if user request for samba mount
->   if not exists credentials file
->     ask for credentials
-> 
-> as i said, i got a working script, but is very dirty and specific.
-> 
-> 
-Well i've done something like this. Look at:
-
-http://www.howtoforge.com/automatic_discovery_mounting_smb_networkshares
-
-I've been struggling with this question some time, and found a good way to deal with this USER
-variable.
-
-In short:
-. there are some scripts which are run by fcron which maintain a cache. These scripts make use of nbtscan (systemwide) and
-smbclient (per user) to find all hosts and shares. The latest make use of a credentialsfile (if found, if no then guest).
-. one of the mainthings these script create is a "windows network tree" in the homemap of all users logged in:
-~/Global Network/Windows Network/Host A/first share A
-                                                                             second share A
-                                                                 Host B/first share B
-                                                                              second share B
-
-The shares are symbolic links. For example the first share A of host A points to:
-
-/mnt/autofs/user/%USER%/smb/Host A/first share A
-
-Now on this directory my automount program is active (which for this user is started 
-when he logs in, but still is running as root), with only:
-
-auto.hosts and auto.share which look like:
-
-auto.hosts in the /var/run/autofs/user/%USER%/smb directory
-
-#!/bin/bash
-
-echo "-fstype=autofs,-Dhost=${host} file:/var/run/autofs/user/%USER%/smb/auto.share"
-
-
-and auto.share also in the /var/run/autofs/user/%USER%/smb directory
-
-* ${host}:/&
-*   -fstype=smb ://${host}/&
-
-Now this smb filesystem does not exist (only cifs and smbfs right?) I've created a script 
-mount.smb which calls mount.cifs (or mount.smbfs).
-
-To this program no variable is know which can identify the user. Simular to your problem.
-
-Now when you look at the mountpoint, the  mountpoint is always something like:
-
-/mnt/autofs/user/%USER%/smb/somehost/someshare
-
-so with a program like cut you can extract the exact userid:
-
-userid=$(echo $mountpoint | cut --delimiter "/" --fields 5 )
-
-If this is found,
-you can check in the userhomedirectory for a credentialsfile.
-
-If found, the script will call the right mountprogram (mount.cifs or mount.smbfs)
-with the credentialsfile. If not there, it will do a guest mount.
-
-Note that this construction in my mail here is newer than in the howto on howtoforge.
-
-I'm running this at home, and it's very good.
-
-Hope this helps,
-
-Stef Bon
-Voorburg
-the Netherlands
+MjAwNy8xMS8yOSwgSWFuIEtlbnQgPHJhdmVuQHRoZW1hdy5uZXQ+Ogo+IFRoZSBVU0VSIGVudmly
+b25tZW50IHZhcmlhYmxlIGlzIHNldCBpbiB0aGUgZW52aXJvbm1lbnQgYmVmb3JlIHRoZQo+IGV4
+ZWN1dGFibGUgbWFwIGlzIGV4ZWN1dGVkLiBNYXliZSB0aGVyZSdzIGEgYnVnIGluIHRoZSB3YXkg
+SSBleGVjdXRlIHRoZQo+IG1hcHMsIG5vIGRvdWJ0IGEgc3R1cGlkIG1pc3Rha2UuIEknbGwgY2hl
+Y2sgdGhhdC4KPgoKdGhlbiBpIGRvbnQga25vdyB3aGF0IHdlJ3JlIHRhbGtpbmcgYWJvdXQuIHNo
+b3VsZCB0aGF0IGV4YW1wbGUgd29yaz8KaWYgYW5zd2VyIGlzIHllcyB5b3UgbWFrZSBteSBkYXkh
+IDpECgppdCB3b3VsZCBiZSBmaW5lIGlmIHlvdSBwcm92aWRlIGluIHRoZSBkb2NzIHNvbWUgZXhh
+bXBsZXMgb2YgdmFyaWFibGVzCmluIGV4ZWN1dGFibGUgbWFwcy4gbWF5YmUgaSBjYW4gb3BlbiBh
+IGJ1ZyBhYm91dCB0aGF0IGFuZCBnaXZlIHNvbWUKaGludHMuCgoKLS0KPT09PT09PT09PT09PT09
+PT09PT09PT09CiAgICAgXiBeCiAgICAgTyBPCiAgICAoXyBfKQptdXp6b2woYSlnbWFpbC5jb20K
+PT09PT09PT09PT09PT09PT09PT09PT09CmphYmJlciBpZDogbXV6em9sKGEpamFiYmVyLmRrCj09
+PT09PT09PT09PT09PT09PT09PT09PQpObyBhdHJpYnVlaXhpcyBxdWFsaXRhdHMgaHVtYW5lcyBh
+bHMgb3JkaW5hZG9ycy4KTm8gZWxzIGhpIGFncmFkYS4KPT09PT09PT09PT09PT09PT09PT09PT09
+CiJFbCBnb2JpZXJubyBlc3Bhw7FvbCBzw7NsbyBoYWJsYSBjb24gdGVycm9yaXN0YXMsIGhvbW9z
+ZXh1YWxlcyB5CmNhdGFsYW5lcywgYSB2ZXIgY3VhbmRvIHNlIGRlY2lkZSBhIGhhYmxhciBjb24g
+Z2VudGUgbm9ybWFsIgpKaW3DqW5leiBMb3NhbnRvcwo9PT09PT09PT09PT09PT09PT09PT09PT0K
+PGVjaGVsb24gc3BhbW1pbmc+CmJvbWIgdGVycm9yaXNtIGJ1c2ggYXpuYXIgdGVsZXR1YmJpZXMK
+PC9lY2hlbG9uIHNwYW1taW5nPgoKCi0tIAo9PT09PT09PT09PT09PT09PT09PT09PT0KICAgICBe
+IF4KICAgICBPIE8KICAgIChfIF8pCm11enpvbChhKWdtYWlsLmNvbQo9PT09PT09PT09PT09PT09
+PT09PT09PT0KamFiYmVyIGlkOiBtdXp6b2woYSlqYWJiZXIuZGsKPT09PT09PT09PT09PT09PT09
+PT09PT09Ck5vIGF0cmlidWVpeGlzIHF1YWxpdGF0cyBodW1hbmVzIGFscyBvcmRpbmFkb3JzLgpO
+byBlbHMgaGkgYWdyYWRhLgo9PT09PT09PT09PT09PT09PT09PT09PT0KIkVsIGdvYmllcm5vIGVz
+cGHDsW9sIHPDs2xvIGhhYmxhIGNvbiB0ZXJyb3Jpc3RhcywgaG9tb3NleHVhbGVzIHkKY2F0YWxh
+bmVzLCBhIHZlciBjdWFuZG8gc2UgZGVjaWRlIGEgaGFibGFyIGNvbiBnZW50ZSBub3JtYWwiCkpp
+bcOpbmV6IExvc2FudG9zCj09PT09PT09PT09PT09PT09PT09PT09PQo8ZWNoZWxvbiBzcGFtbWlu
+Zz4KYm9tYiB0ZXJyb3Jpc20gYnVzaCBhem5hciB0ZWxldHViYmllcwo8L2VjaGVsb24gc3BhbW1p
+bmc+CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwphdXRv
+ZnMgbWFpbGluZyBsaXN0CmF1dG9mc0BsaW51eC5rZXJuZWwub3JnCmh0dHA6Ly9saW51eC5rZXJu
+ZWwub3JnL21haWxtYW4vbGlzdGluZm8vYXV0b2ZzCg==
