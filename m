@@ -1,23 +1,11 @@
-From: muzzol <muzzol@gmail.com>
-Subject: user token
-Date: Thu, 29 Nov 2007 15:13:39 +0100
-Message-ID: <4a3f02760711290613s20bb1948pbb693b9cca4fa5fb@mail.gmail.com>
-References: <4a3f02760711260149g1f5be5f9q9fcd2ea5d364b95@mail.gmail.com>
-	<474B1E0E.3040505@gmail.com>
-	<1196129844.3973.16.camel@raven.themaw.net>
-	<4a3f02760711270019v490249fet119d1683cd41f995@mail.gmail.com>
-	<1196168788.3973.33.camel@raven.themaw.net>
-	<4a3f02760711270713k7083ddabya43b735eba8fc509@mail.gmail.com>
-	<1196178047.3973.44.camel@raven.themaw.net>
-	<4a3f02760711280919t6262161cvf46336a8ac018e3e@mail.gmail.com>
-	<1196343240.3217.45.camel@raven.themaw.net>
-	<4a3f02760711290612g25d4bd8fvd0ada6c893998ef3@mail.gmail.com>
+From: Jim Carter <jimc@math.ucla.edu>
+Subject: knfsd: EINVAL errors on first access of new filesystem
+Date: Wed, 5 Dec 2007 09:09:09 -0800 (PST)
+Message-ID: <Pine.LNX.4.64.0712050854410.4771@simba.math.ucla.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4a3f02760711290612g25d4bd8fvd0ada6c893998ef3@mail.gmail.com>
-Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -30,32 +18,17 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-MjAwNy8xMS8yOSwgSWFuIEtlbnQgPHJhdmVuQHRoZW1hdy5uZXQ+Ogo+IFRoZSBVU0VSIGVudmly
-b25tZW50IHZhcmlhYmxlIGlzIHNldCBpbiB0aGUgZW52aXJvbm1lbnQgYmVmb3JlIHRoZQo+IGV4
-ZWN1dGFibGUgbWFwIGlzIGV4ZWN1dGVkLiBNYXliZSB0aGVyZSdzIGEgYnVnIGluIHRoZSB3YXkg
-SSBleGVjdXRlIHRoZQo+IG1hcHMsIG5vIGRvdWJ0IGEgc3R1cGlkIG1pc3Rha2UuIEknbGwgY2hl
-Y2sgdGhhdC4KPgoKdGhlbiBpIGRvbnQga25vdyB3aGF0IHdlJ3JlIHRhbGtpbmcgYWJvdXQuIHNo
-b3VsZCB0aGF0IGV4YW1wbGUgd29yaz8KaWYgYW5zd2VyIGlzIHllcyB5b3UgbWFrZSBteSBkYXkh
-IDpECgppdCB3b3VsZCBiZSBmaW5lIGlmIHlvdSBwcm92aWRlIGluIHRoZSBkb2NzIHNvbWUgZXhh
-bXBsZXMgb2YgdmFyaWFibGVzCmluIGV4ZWN1dGFibGUgbWFwcy4gbWF5YmUgaSBjYW4gb3BlbiBh
-IGJ1ZyBhYm91dCB0aGF0IGFuZCBnaXZlIHNvbWUKaGludHMuCgoKLS0KPT09PT09PT09PT09PT09
-PT09PT09PT09CiAgICAgXiBeCiAgICAgTyBPCiAgICAoXyBfKQptdXp6b2woYSlnbWFpbC5jb20K
-PT09PT09PT09PT09PT09PT09PT09PT09CmphYmJlciBpZDogbXV6em9sKGEpamFiYmVyLmRrCj09
-PT09PT09PT09PT09PT09PT09PT09PQpObyBhdHJpYnVlaXhpcyBxdWFsaXRhdHMgaHVtYW5lcyBh
-bHMgb3JkaW5hZG9ycy4KTm8gZWxzIGhpIGFncmFkYS4KPT09PT09PT09PT09PT09PT09PT09PT09
-CiJFbCBnb2JpZXJubyBlc3Bhw7FvbCBzw7NsbyBoYWJsYSBjb24gdGVycm9yaXN0YXMsIGhvbW9z
-ZXh1YWxlcyB5CmNhdGFsYW5lcywgYSB2ZXIgY3VhbmRvIHNlIGRlY2lkZSBhIGhhYmxhciBjb24g
-Z2VudGUgbm9ybWFsIgpKaW3DqW5leiBMb3NhbnRvcwo9PT09PT09PT09PT09PT09PT09PT09PT0K
-PGVjaGVsb24gc3BhbW1pbmc+CmJvbWIgdGVycm9yaXNtIGJ1c2ggYXpuYXIgdGVsZXR1YmJpZXMK
-PC9lY2hlbG9uIHNwYW1taW5nPgoKCi0tIAo9PT09PT09PT09PT09PT09PT09PT09PT0KICAgICBe
-IF4KICAgICBPIE8KICAgIChfIF8pCm11enpvbChhKWdtYWlsLmNvbQo9PT09PT09PT09PT09PT09
-PT09PT09PT0KamFiYmVyIGlkOiBtdXp6b2woYSlqYWJiZXIuZGsKPT09PT09PT09PT09PT09PT09
-PT09PT09Ck5vIGF0cmlidWVpeGlzIHF1YWxpdGF0cyBodW1hbmVzIGFscyBvcmRpbmFkb3JzLgpO
-byBlbHMgaGkgYWdyYWRhLgo9PT09PT09PT09PT09PT09PT09PT09PT0KIkVsIGdvYmllcm5vIGVz
-cGHDsW9sIHPDs2xvIGhhYmxhIGNvbiB0ZXJyb3Jpc3RhcywgaG9tb3NleHVhbGVzIHkKY2F0YWxh
-bmVzLCBhIHZlciBjdWFuZG8gc2UgZGVjaWRlIGEgaGFibGFyIGNvbiBnZW50ZSBub3JtYWwiCkpp
-bcOpbmV6IExvc2FudG9zCj09PT09PT09PT09PT09PT09PT09PT09PQo8ZWNoZWxvbiBzcGFtbWlu
-Zz4KYm9tYiB0ZXJyb3Jpc20gYnVzaCBhem5hciB0ZWxldHViYmllcwo8L2VjaGVsb24gc3BhbW1p
-bmc+CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwphdXRv
-ZnMgbWFpbGluZyBsaXN0CmF1dG9mc0BsaW51eC5rZXJuZWwub3JnCmh0dHA6Ly9saW51eC5rZXJu
-ZWwub3JnL21haWxtYW4vbGlzdGluZm8vYXV0b2ZzCg==
+I'm not having this problem, but it sounds possibly related to some 
+trouble other people have reported...  While scanning online updates for 
+OpenSuSE 10.3 I spotted this one in their update number 4749 for the 
+kernel package:
+
+++ patches.fixes/nfsacl-retval.diff: knfsd: fix spurious
+ EINVAL errors on first access of new filesystem  [#340873]
+
+I didn't do any further research to track down URLs and find out exactly 
+what problem is being fixed, but others may be interested to do so.
+
+James F. Carter          Voice 310 825 2897    FAX 310 206 6673
+UCLA-Mathnet;  6115 MSA; 405 Hilgard Ave.; Los Angeles, CA, USA  90095-1555
+Email: jimc@math.ucla.edu    http://www.math.ucla.edu/~jimc (q.v. for PGP key)
