@@ -1,10 +1,10 @@
 From: "James Richardson" <jrichardson@x-iss.com>
 Subject: Re: Slow mounts when using large round robin sets
-Date: Tue, 4 Dec 2007 13:09:49 -0600
-Message-ID: <98E55D6E1B3CFD43BDA59EEB56DD7D7244313C@sbs01.xiss.private>
+Date: Wed, 5 Dec 2007 11:35:59 -0600
+Message-ID: <98E55D6E1B3CFD43BDA59EEB56DD7D724431C0@sbs01.xiss.private>
 References: <98E55D6E1B3CFD43BDA59EEB56DD7D72442DF1@sbs01.xiss.private>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0094104728731661872=="
+Content-Type: multipart/mixed; boundary="===============1818520281327971961=="
 Return-path: <autofs-bounces@linux.kernel.org>
 Content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
@@ -21,14 +21,14 @@ To: autofs@linux.kernel.org
 
 This is a multi-part message in MIME format.
 
---===============0094104728731661872==
+--===============1818520281327971961==
 Content-class: urn:content-classes:message
 Content-Type: multipart/alternative;
-	boundary="----_=_NextPart_001_01C836A9.3D398308"
+	boundary="----_=_NextPart_001_01C83765.4B7AAB26"
 
 This is a multi-part message in MIME format.
 
-------_=_NextPart_001_01C836A9.3D398308
+------_=_NextPart_001_01C83765.4B7AAB26
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
@@ -52,7 +52,7 @@ Thanks,
 
 James T. Richardson, Jr.
 
-jrichardson@x-iss.com <mailto:jrichardson@x-iss.com>=20
+jrichardson@x-iss.com
 
 eXcellence in IS Solutions, Inc.
 
@@ -144,7 +144,7 @@ copying or disclosing the contents.
 
 
 
-------_=_NextPart_001_01C836A9.3D398308
+------_=_NextPart_001_01C83765.4B7AAB26
 Content-Type: text/html;
 	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
@@ -177,8 +177,7 @@ p://schemas.microsoft.com/exchange/services/2006/types" xmlns:ex12m=3D"http=
 ww.w3.org/TR/REC-html40">
 
 <head>
-<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; charset=3Dus-ascii"=
->
+<meta http-equiv=3DContent-Type content=3D"text/html; charset=3Dus-ascii">
 <meta name=3DGenerator content=3D"Microsoft Word 12 (filtered medium)">
 <style>
 <!--
@@ -216,15 +215,15 @@ pre
 	margin-bottom:.0001pt;
 	font-size:10.0pt;
 	font-family:"Courier New";}
-span.EmailStyle17
-	{mso-style-type:personal;
-	font-family:"Calibri","sans-serif";
-	color:windowtext;}
 span.HTMLPreformattedChar
 	{mso-style-name:"HTML Preformatted Char";
 	mso-style-priority:99;
 	mso-style-link:"HTML Preformatted";
 	font-family:Consolas;}
+span.EmailStyle19
+	{mso-style-type:personal;
+	font-family:"Calibri","sans-serif";
+	color:windowtext;}
 span.EmailStyle20
 	{mso-style-type:personal-reply;
 	font-family:"Calibri","sans-serif";
@@ -258,13 +257,11 @@ pan></p>
 </p>
 
 <p class=3DMsoNormal><span style=3D'color:#1F497D'>I&#8217;ve been trying t=
-o perform a
-stack trace on the automount process using &#8220;strace &#8211;p `pidof au=
-tomount`&#8221;.
-However, when strace attaches to this PID nothing happens. Not even when a
-mount is accessed. Is there a better way to get a stackdump of the automoun=
-t
-process? <o:p></o:p></span></p>
+o
+perform a stack trace on the automount process using &#8220;strace &#8211;p
+`pidof automount`&#8221;. However, when strace attaches to this PID nothing
+happens. Not even when a mount is accessed. Is there a better way to get a
+stackdump of the automount process? <o:p></o:p></span></p>
 
 <p class=3DMsoNormal><span style=3D'color:#1F497D'><o:p>&nbsp;</o:p></span>=
 </p>
@@ -284,15 +281,14 @@ process? <o:p></o:p></span></p>
 <o:p></o:p></span></p>
 
 <p class=3DMsoNormal><span style=3D'color:#1F497D'><a
-href=3D"mailto:jrichardson@x-iss.com"><span style=3D'color:blue'>jrichardso=
-n@x-iss.com</span></a><o:p></o:p></span></p>
+href=3D"mailto:jrichardson@x-iss.com">jrichardson@x-iss.com</a><o:p></o:p><=
+/span></p>
 
 <p class=3DMsoNormal><span style=3D'color:#1F497D'>eXcellence in IS Solutio=
 ns, Inc.<o:p></o:p></span></p>
 
-<p class=3DMsoNormal><span style=3D'color:#1F497D'>713-862-9200 x226</span>=
-<span
-style=3D'color:#1F497D'><o:p></o:p></span></p>
+<p class=3DMsoNormal><span style=3D'color:#1F497D'>713-862-9200 x226<o:p></=
+o:p></span></p>
 
 </div>
 
@@ -306,10 +302,10 @@ style=3D'color:#1F497D'><o:p></o:p></span></p>
 
 <p class=3DMsoNormal><b><span style=3D'font-size:10.0pt;font-family:"Tahoma=
 ","sans-serif"'>From:</span></b><span
-style=3D'font-size:10.0pt;font-family:"Tahoma","sans-serif"'>
-autofs-bounces@linux.kernel.org [mailto:autofs-bounces@linux.kernel.org] <b=
->On
-Behalf Of </b>James Richardson<br>
+style=3D'font-size:10.0pt;font-family:"Tahoma","sans-serif"'> autofs-bounce=
+s@linux.kernel.org
+[mailto:autofs-bounces@linux.kernel.org] <b>On Behalf Of </b>James Richards=
+on<br>
 <b>Sent:</b> Tuesday, November 27, 2007 10:11 AM<br>
 <b>To:</b> autofs@linux.kernel.org<br>
 <b>Subject:</b> [autofs] Slow mounts when using large round robin sets<o:p>=
@@ -337,11 +333,11 @@ map.
 Each of my users has their home directory located on a central NFS server w=
 ith
 multiple network interfaces (about 50). Those 50 IP&#8217;s are in a DNS ro=
-und robin
-set. When using autofs to mount one of their home directories dynamically i=
-t
-can take anywhere from one to 7-8 seconds (usually about 2 seconds). <o:p><=
-/o:p></p>
+und
+robin set. When using autofs to mount one of their home directories dynamic=
+ally
+it can take anywhere from one to 7-8 seconds (usually about 2 seconds). <o:=
+p></o:p></p>
 
 <p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
 
@@ -369,8 +365,8 @@ anywhere from 3,000-5,000 DNS queries for the NFS server.<o:p></o:p></p>
 <p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
 
 <p class=3DMsoNormal>I&#8217;m puzzled as to why this is happening or how t=
-o further
-troubleshoot the issue. <o:p></o:p></p>
+o
+further troubleshoot the issue. <o:p></o:p></p>
 
 <p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
 
@@ -411,10 +407,10 @@ copying or disclosing the contents.
 </html>
 
 
-------_=_NextPart_001_01C836A9.3D398308--
+------_=_NextPart_001_01C83765.4B7AAB26--
 
 
---===============0094104728731661872==
+--===============1818520281327971961==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -425,5 +421,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---===============0094104728731661872==--
+--===============1818520281327971961==--
 
