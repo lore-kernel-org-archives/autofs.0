@@ -1,12 +1,14 @@
-From: "James Richardson" <jrichardson@x-iss.com>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: Slow mounts when using large round robin sets
-Date: Wed, 5 Dec 2007 11:35:59 -0600
-Message-ID: <98E55D6E1B3CFD43BDA59EEB56DD7D724431C0@sbs01.xiss.private>
+Date: Thu, 06 Dec 2007 15:16:44 +0900
+Message-ID: <1196921804.3089.28.camel@raven.themaw.net>
 References: <98E55D6E1B3CFD43BDA59EEB56DD7D72442DF1@sbs01.xiss.private>
+	<98E55D6E1B3CFD43BDA59EEB56DD7D724431C0@sbs01.xiss.private>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1818520281327971961=="
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <98E55D6E1B3CFD43BDA59EEB56DD7D724431C0@sbs01.xiss.private>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,409 +19,85 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
-
-This is a multi-part message in MIME format.
-
---===============1818520281327971961==
-Content-class: urn:content-classes:message
-Content-Type: multipart/alternative;
-	boundary="----_=_NextPart_001_01C83765.4B7AAB26"
-
-This is a multi-part message in MIME format.
-
-------_=_NextPart_001_01C83765.4B7AAB26
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-
-Hello all,
-
-=20
-
-I've been trying to perform a stack trace on the automount process using
-"strace -p `pidof automount`". However, when strace attaches to this PID
-nothing happens. Not even when a mount is accessed. Is there a better
-way to get a stackdump of the automount process?=20
-
-=20
-
-Thanks,
-
-=20
-
----
-
-James T. Richardson, Jr.
-
-jrichardson@x-iss.com
-
-eXcellence in IS Solutions, Inc.
-
-713-862-9200 x226
-
-=20
-
-From: autofs-bounces@linux.kernel.org
-[mailto:autofs-bounces@linux.kernel.org] On Behalf Of James Richardson
-Sent: Tuesday, November 27, 2007 10:11 AM
-To: autofs@linux.kernel.org
-Subject: [autofs] Slow mounts when using large round robin sets
-
-=20
-
-All,
-
-=20
-
-I have stumbled upon an interesting situation when using AutoFS to mount
-nfs shares where the the NFS server is served from a large (over 20)
-round robin set.
-
-=20
-
-For example, I use NIS to distribute my auto.home NIS map. Each of my
-users has their home directory located on a central NFS server with
-multiple network interfaces (about 50). Those 50 IP's are in a DNS round
-robin set. When using autofs to mount one of their home directories
-dynamically it can take anywhere from one to 7-8 seconds (usually about
-2 seconds).=20
-
-=20
-
-When the DNS RR set is scaled down to only have 15-20 entries the
-mounting time is around half of one second - (.5 seconds).  Mounting
-directly using the mount command is the fastest and always mounts in
-under .5 seconds.
-
-=20
-
-There are no errors in the syslog (messages or daemon.log). I'm using
-kernel 2.6.21 and autofs 5.0.1`-9 (and have tested this with 5.0.2-1).
-
-=20
-
-One interesting side note, I did some packet captures with the larger
-DNS RR set, and found that for a single autofs mount, there could be
-anywhere from 3,000-5,000 DNS queries for the NFS server.
-
-=20
-
-I'm puzzled as to why this is happening or how to further troubleshoot
-the issue.=20
-
-=20
-
-Thanks,
-
-=20
-
----
-
-James T. Richardson, Jr.
-
-jrichardson@x-iss.com
-
-eXcellence in IS Solutions, Inc.
-
-713-862-9200 x226
-
-=20
-
-=20
-
-NOTICE:
-This message may contain privileged or otherwise confidential
-information.
-If you are not the intended recipient, please immediately advise the
-sender
-by reply email and delete the message and any attachments without using,
-copying or disclosing the contents.
-
-NOTICE:
-This message may contain privileged or otherwise confidential information.
-If you are not the intended recipient, please immediately advise the sender
-by reply email and delete the message and any attachments without using,
-copying or disclosing the contents.
-
-
-
-------_=_NextPart_001_01C83765.4B7AAB26
-Content-Type: text/html;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-
-<html xmlns:v=3D"urn:schemas-microsoft-com:vml" xmlns:o=3D"urn:schemas-micr=
-osoft-com:office:office" xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
-xmlns:x=3D"urn:schemas-microsoft-com:office:excel" xmlns:p=3D"urn:schemas-m=
-icrosoft-com:office:powerpoint" xmlns:a=3D"urn:schemas-microsoft-com:office=
-:access" xmlns:dt=3D"uuid:C2F41010-65B3-11d1-A29F-00AA00C14882" xmlns:s=3D"=
-uuid:BDC6E3F0-6DA3-11d1-A2A3-00AA00C14882" xmlns:rs=3D"urn:schemas-microsof=
-t-com:rowset" xmlns:z=3D"#RowsetSchema" xmlns:b=3D"urn:schemas-microsoft-co=
-m:office:publisher" xmlns:ss=3D"urn:schemas-microsoft-com:office:spreadshee=
-t" xmlns:c=3D"urn:schemas-microsoft-com:office:component:spreadsheet" xmlns=
-:oa=3D"urn:schemas-microsoft-com:office:activation" xmlns:html=3D"http://ww=
-w.w3.org/TR/REC-html40" xmlns:q=3D"http://schemas.xmlsoap.org/soap/envelope=
-/" xmlns:D=3D"DAV:" xmlns:x2=3D"http://schemas.microsoft.com/office/excel/2=
-003/xml" xmlns:ois=3D"http://schemas.microsoft.com/sharepoint/soap/ois/" xm=
-lns:dir=3D"http://schemas.microsoft.com/sharepoint/soap/directory/" xmlns:d=
-s=3D"http://www.w3.org/2000/09/xmldsig#" xmlns:dsp=3D"http://schemas.micros=
-oft.com/sharepoint/dsp" xmlns:udc=3D"http://schemas.microsoft.com/data/udc"=
- xmlns:xsd=3D"http://www.w3.org/2001/XMLSchema" xmlns:sps=3D"http://schemas=
-.microsoft.com/sharepoint/soap/" xmlns:xsi=3D"http://www.w3.org/2001/XMLSch=
-ema-instance" xmlns:udcxf=3D"http://schemas.microsoft.com/data/udc/xmlfile"=
- xmlns:wf=3D"http://schemas.microsoft.com/sharepoint/soap/workflow/" xmlns:=
-mver=3D"http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:=
-m=3D"http://schemas.microsoft.com/office/2004/12/omml" xmlns:mrels=3D"http:=
-//schemas.openxmlformats.org/package/2006/relationships" xmlns:ex12t=3D"htt=
-p://schemas.microsoft.com/exchange/services/2006/types" xmlns:ex12m=3D"http=
-://schemas.microsoft.com/exchange/services/2006/messages" xmlns=3D"http://w=
-ww.w3.org/TR/REC-html40">
-
-<head>
-<meta http-equiv=3DContent-Type content=3D"text/html; charset=3Dus-ascii">
-<meta name=3DGenerator content=3D"Microsoft Word 12 (filtered medium)">
-<style>
-<!--
- /* Font Definitions */
- @font-face
-	{font-family:"Cambria Math";
-	panose-1:2 4 5 3 5 4 6 3 2 4;}
-@font-face
-	{font-family:Calibri;
-	panose-1:2 15 5 2 2 2 4 3 2 4;}
-@font-face
-	{font-family:Tahoma;
-	panose-1:2 11 6 4 3 5 4 4 2 4;}
-@font-face
-	{font-family:Consolas;
-	panose-1:2 11 6 9 2 2 4 3 2 4;}
- /* Style Definitions */
- p.MsoNormal, li.MsoNormal, div.MsoNormal
-	{margin:0in;
-	margin-bottom:.0001pt;
-	font-size:11.0pt;
-	font-family:"Calibri","sans-serif";}
-a:link, span.MsoHyperlink
-	{mso-style-priority:99;
-	color:blue;
-	text-decoration:underline;}
-a:visited, span.MsoHyperlinkFollowed
-	{mso-style-priority:99;
-	color:purple;
-	text-decoration:underline;}
-pre
-	{mso-style-priority:99;
-	mso-style-link:"HTML Preformatted Char";
-	margin:0in;
-	margin-bottom:.0001pt;
-	font-size:10.0pt;
-	font-family:"Courier New";}
-span.HTMLPreformattedChar
-	{mso-style-name:"HTML Preformatted Char";
-	mso-style-priority:99;
-	mso-style-link:"HTML Preformatted";
-	font-family:Consolas;}
-span.EmailStyle19
-	{mso-style-type:personal;
-	font-family:"Calibri","sans-serif";
-	color:windowtext;}
-span.EmailStyle20
-	{mso-style-type:personal-reply;
-	font-family:"Calibri","sans-serif";
-	color:#1F497D;}
-.MsoChpDefault
-	{mso-style-type:export-only;
-	font-size:10.0pt;}
-@page Section1
-	{size:8.5in 11.0in;
-	margin:1.0in 1.0in 1.0in 1.0in;}
-div.Section1
-	{page:Section1;}
--->
-</style>
-<!--[if gte mso 9]><xml>
- <o:shapedefaults v:ext=3D"edit" spidmax=3D"1026" />
-</xml><![endif]--><!--[if gte mso 9]><xml>
- <o:shapelayout v:ext=3D"edit">
-  <o:idmap v:ext=3D"edit" data=3D"1" />
- </o:shapelayout></xml><![endif]-->
-</head>
-
-<body lang=3DEN-US link=3Dblue vlink=3Dpurple>
-
-<div class=3DSection1>
-
-<p class=3DMsoNormal><span style=3D'color:#1F497D'>Hello all,<o:p></o:p></s=
-pan></p>
-
-<p class=3DMsoNormal><span style=3D'color:#1F497D'><o:p>&nbsp;</o:p></span>=
-</p>
-
-<p class=3DMsoNormal><span style=3D'color:#1F497D'>I&#8217;ve been trying t=
-o
-perform a stack trace on the automount process using &#8220;strace &#8211;p
-`pidof automount`&#8221;. However, when strace attaches to this PID nothing
-happens. Not even when a mount is accessed. Is there a better way to get a
-stackdump of the automount process? <o:p></o:p></span></p>
-
-<p class=3DMsoNormal><span style=3D'color:#1F497D'><o:p>&nbsp;</o:p></span>=
-</p>
-
-<p class=3DMsoNormal><span style=3D'color:#1F497D'>Thanks,<o:p></o:p></span=
-></p>
-
-<p class=3DMsoNormal><span style=3D'color:#1F497D'><o:p>&nbsp;</o:p></span>=
-</p>
-
-<div>
-
-<p class=3DMsoNormal><span style=3D'color:#1F497D'>---<o:p></o:p></span></p=
->
-
-<p class=3DMsoNormal><span style=3D'color:#1F497D'>James T. Richardson, Jr.=
-<o:p></o:p></span></p>
-
-<p class=3DMsoNormal><span style=3D'color:#1F497D'><a
-href=3D"mailto:jrichardson@x-iss.com">jrichardson@x-iss.com</a><o:p></o:p><=
-/span></p>
-
-<p class=3DMsoNormal><span style=3D'color:#1F497D'>eXcellence in IS Solutio=
-ns, Inc.<o:p></o:p></span></p>
-
-<p class=3DMsoNormal><span style=3D'color:#1F497D'>713-862-9200 x226<o:p></=
-o:p></span></p>
-
-</div>
-
-<p class=3DMsoNormal><span style=3D'color:#1F497D'><o:p>&nbsp;</o:p></span>=
-</p>
-
-<div>
-
-<div style=3D'border:none;border-top:solid #B5C4DF 1.0pt;padding:3.0pt 0in =
-0in 0in'>
-
-<p class=3DMsoNormal><b><span style=3D'font-size:10.0pt;font-family:"Tahoma=
-","sans-serif"'>From:</span></b><span
-style=3D'font-size:10.0pt;font-family:"Tahoma","sans-serif"'> autofs-bounce=
-s@linux.kernel.org
-[mailto:autofs-bounces@linux.kernel.org] <b>On Behalf Of </b>James Richards=
-on<br>
-<b>Sent:</b> Tuesday, November 27, 2007 10:11 AM<br>
-<b>To:</b> autofs@linux.kernel.org<br>
-<b>Subject:</b> [autofs] Slow mounts when using large round robin sets<o:p>=
-</o:p></span></p>
-
-</div>
-
-</div>
-
-<p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
-
-<p class=3DMsoNormal>All,<o:p></o:p></p>
-
-<p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
-
-<p class=3DMsoNormal>I have stumbled upon an interesting situation when usi=
-ng
-AutoFS to mount nfs shares where the the NFS server is served from a large
-(over 20) round robin set.<o:p></o:p></p>
-
-<p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
-
-<p class=3DMsoNormal>For example, I use NIS to distribute my auto.home NIS =
-map.
-Each of my users has their home directory located on a central NFS server w=
-ith
-multiple network interfaces (about 50). Those 50 IP&#8217;s are in a DNS ro=
-und
-robin set. When using autofs to mount one of their home directories dynamic=
-ally
-it can take anywhere from one to 7-8 seconds (usually about 2 seconds). <o:=
-p></o:p></p>
-
-<p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
-
-<p class=3DMsoNormal>When the DNS RR set is scaled down to only have 15-20
-entries the mounting time is around half of one second - (.5 seconds).
-&nbsp;Mounting directly using the mount command is the fastest and always
-mounts in under .5 seconds.<o:p></o:p></p>
-
-<p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
-
-<p class=3DMsoNormal>There are no errors in the syslog (messages or daemon.=
-log).
-I&#8217;m using kernel 2.6.21 and autofs 5.0.1`-9 (and have tested this wit=
-h
-5.0.2-1).<o:p></o:p></p>
-
-<p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
-
-<p class=3DMsoNormal>One interesting side note, I did some packet captures =
-with
-the larger DNS RR set, and found that for a single autofs mount, there coul=
-d be
-anywhere from 3,000-5,000 DNS queries for the NFS server.<o:p></o:p></p>
-
-<p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
-
-<p class=3DMsoNormal>I&#8217;m puzzled as to why this is happening or how t=
-o
-further troubleshoot the issue. <o:p></o:p></p>
-
-<p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
-
-<p class=3DMsoNormal>Thanks,<o:p></o:p></p>
-
-<p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
-
-<p class=3DMsoNormal>---<o:p></o:p></p>
-
-<p class=3DMsoNormal>James T. Richardson, Jr.<o:p></o:p></p>
-
-<p class=3DMsoNormal><a href=3D"mailto:jrichardson@x-iss.com">jrichardson@x=
--iss.com</a><o:p></o:p></p>
-
-<p class=3DMsoNormal>eXcellence in IS Solutions, Inc.<o:p></o:p></p>
-
-<p class=3DMsoNormal>713-862-9200 x226<o:p></o:p></p>
-
-<p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
-
-<p class=3DMsoNormal><span style=3D'font-size:12.0pt;font-family:"Times New=
- Roman","serif"'><o:p>&nbsp;</o:p></span></p>
-
-<pre>NOTICE:<o:p></o:p></pre><pre>This message may contain privileged or ot=
-herwise confidential information.<o:p></o:p></pre><pre>If you are not the i=
-ntended recipient, please immediately advise the sender<o:p></o:p></pre><pr=
-e>by reply email and delete the message and any attachments without using,<=
-o:p></o:p></pre><pre>copying or disclosing the contents.<o:p></o:p></pre></=
-div>
-
-<br><pre>NOTICE:
-This message may contain privileged or otherwise confidential information.
-If you are not the intended recipient, please immediately advise the sender
-by reply email and delete the message and any attachments without using,
-copying or disclosing the contents.
-</pre></body>
-
-</html>
-
-
-------_=_NextPart_001_01C83765.4B7AAB26--
-
-
---===============1818520281327971961==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
-
---===============1818520281327971961==--
-
+To: James Richardson <jrichardson@x-iss.com>
+Cc: autofs@linux.kernel.org
+
+T24gV2VkLCAyMDA3LTEyLTA1IGF0IDExOjM1IC0wNjAwLCBKYW1lcyBSaWNoYXJkc29uIHdyb3Rl
+Ogo+IEhlbGxvIGFsbCwKPiAKPiAgCj4gCj4gSeKAmXZlIGJlZW4gdHJ5aW5nIHRvIHBlcmZvcm0g
+YSBzdGFjayB0cmFjZSBvbiB0aGUgYXV0b21vdW50IHByb2Nlc3MKPiB1c2luZyDigJxzdHJhY2Ug
+4oCTcCBgcGlkb2YgYXV0b21vdW50YOKAnS4gSG93ZXZlciwgd2hlbiBzdHJhY2UgYXR0YWNoZXMg
+dG8KPiB0aGlzIFBJRCBub3RoaW5nIGhhcHBlbnMuIE5vdCBldmVuIHdoZW4gYSBtb3VudCBpcyBh
+Y2Nlc3NlZC4gSXMgdGhlcmUKPiBhIGJldHRlciB3YXkgdG8gZ2V0IGEgc3RhY2tkdW1wIG9mIHRo
+ZSBhdXRvbW91bnQgcHJvY2Vzcz8gCgpUcnk6CnBzIC1lZkx8Z3JlcCBhdXRvbQphbmQgbG9vayBh
+dCB0aGUgb3V0cHV0LgoKRm9yIGEgY29uZmlndXJhdGlvbiB3aXRoIGEgc2luZ2xlIG1hc3RlciBt
+YXAgZW50cnkgeW91IHdvdWxkIHNlZQpzb21ldGhpbmcgbGlrZToKW3Jvb3RAcmF2ZW4gUkhFTC01
+XSMgcHMgLWVmTHxncmVwIGF1dG9tCnJvb3QgICAgICAyMDg5ICAgICAxICAyMDg5ICAwICAgIDQg
+MTA6MTUgPyAgICAgICAgMDA6MDA6MDAgYXV0b21vdW50CnJvb3QgICAgICAyMDg5ICAgICAxICAy
+MDkwICAwICAgIDQgMTA6MTUgPyAgICAgICAgMDA6MDA6MDAgYXV0b21vdW50CnJvb3QgICAgICAy
+MDg5ICAgICAxICAyMDkxICAwICAgIDQgMTA6MTUgPyAgICAgICAgMDA6MDA6MDAgYXV0b21vdW50
+CnJvb3QgICAgICAyMDg5ICAgICAxICAyMDk0ICAwICAgIDQgMTA6MTUgPyAgICAgICAgMDA6MDA6
+MDAgYXV0b21vdW50CnJvb3QgICAgIDE3Mjg0IDE3MDY3IDE3Mjg0ICAwICAgIDEgMTU6MTAgcHRz
+LzQgICAgMDA6MDA6MDAgZ3JlcCBhdXRvbQoKVGhlIGZpcnN0IHRocmVhZCBpcyB0aGUgbWFpbiB0
+aHJlYWQsIGl0IGp1c3Qgc2l0cyB3YWl0aW5nIGZvciBzaWduYWxzLgpUaGUgc2Vjb25kIGFuZCB0
+aGlyZCB0aHJlYWRzIGFyZSBzZXJ2aWNlIHRocmVhZHMgYW5kIHRoZSBmb3VydGggaXMgdGhlCnRo
+cmVhZCB0aGF0IGRvZXMgdGhlIHdvcmsuCgpZb3UgbWF5IGdldCB3aGF0J3MgbmVlZGVkIHRoZW4g
+Ynkgc3RyYWNpbmcgdGhlIGZvdXJ0aCBwcm9jZXNzIChvciBvdGhlcgptb3VudCBoYW5kbGluZyB0
+aHJlYWQpLiBUaGUgInBvbGwiIGNhbGwgaXMgdGhlIGdpdmF3YXk6Cltyb290QHJhdmVuIFJIRUwt
+NV0jIHN0cmFjZSAtZiAtcCAyMDk0ClByb2Nlc3MgMjA5MSBhdHRhY2hlZCB3aXRoIDQgdGhyZWFk
+cyAtIGludGVycnVwdCB0byBxdWl0CltwaWQgIDIwOTRdIHBvbGwoIDx1bmZpbmlzaGVkIC4uLj4K
+W3BpZCAgMjA5MV0gcmVzdGFydF9zeXNjYWxsKDwuLi4gcmVzdW1pbmcgaW50ZXJydXB0ZWQgY2Fs
+bCAuLi4+IDx1bmZpbmlzaGVkIC4uLj4KW3BpZCAgMjA5MF0gcmVzdGFydF9zeXNjYWxsKDwuLi4g
+cmVzdW1pbmcgaW50ZXJydXB0ZWQgY2FsbCAuLi4+IDx1bmZpbmlzaGVkIC4uLj4KW3BpZCAgMjA4
+OV0gcnRfc2lndGltZWR3YWl0KH5bQ0hMRCBDT05UIFJUTUlOIFJUXzFdLCAgPHVuZmluaXNoZWQg
+Li4uPgpbcGlkICAyMDkwXSA8Li4uIHJlc3RhcnRfc3lzY2FsbCByZXN1bWVkPiApID0gLTEgRVRJ
+TUVET1VUIChDb25uZWN0aW9uIHRpbWVkIG91dCkKCmFuZCBzbyBvbi4KCkZhY3QgaXMgdGhhdCBh
+dXRvbW91bnQgZG9lc24ndCBkbyBETlMgbG9va3VwcyBtdWNoIHNvIHRoaXMgbWF5IGJlCnNvbWV0
+aGluZyBvZGQgaW4gZ2xpYmMuCgo+IAo+ICAKPiAKPiBUaGFua3MsCj4gCj4gIAo+IAo+IC0tLQo+
+IAo+IEphbWVzIFQuIFJpY2hhcmRzb24sIEpyLgo+IAo+IGpyaWNoYXJkc29uQHgtaXNzLmNvbQo+
+IAo+IGVYY2VsbGVuY2UgaW4gSVMgU29sdXRpb25zLCBJbmMuCj4gCj4gNzEzLTg2Mi05MjAwIHgy
+MjYKPiAKPiAKPiAgCj4gCj4gRnJvbTogYXV0b2ZzLWJvdW5jZXNAbGludXgua2VybmVsLm9yZwo+
+IFttYWlsdG86YXV0b2ZzLWJvdW5jZXNAbGludXgua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIEph
+bWVzIFJpY2hhcmRzb24KPiBTZW50OiBUdWVzZGF5LCBOb3ZlbWJlciAyNywgMjAwNyAxMDoxMSBB
+TQo+IFRvOiBhdXRvZnNAbGludXgua2VybmVsLm9yZwo+IFN1YmplY3Q6IFthdXRvZnNdIFNsb3cg
+bW91bnRzIHdoZW4gdXNpbmcgbGFyZ2Ugcm91bmQgcm9iaW4gc2V0cwo+IAo+IAo+ICAKPiAKPiBB
+bGwsCj4gCj4gIAo+IAo+IEkgaGF2ZSBzdHVtYmxlZCB1cG9uIGFuIGludGVyZXN0aW5nIHNpdHVh
+dGlvbiB3aGVuIHVzaW5nIEF1dG9GUyB0bwo+IG1vdW50IG5mcyBzaGFyZXMgd2hlcmUgdGhlIHRo
+ZSBORlMgc2VydmVyIGlzIHNlcnZlZCBmcm9tIGEgbGFyZ2UgKG92ZXIKPiAyMCkgcm91bmQgcm9i
+aW4gc2V0Lgo+IAo+ICAKPiAKPiBGb3IgZXhhbXBsZSwgSSB1c2UgTklTIHRvIGRpc3RyaWJ1dGUg
+bXkgYXV0by5ob21lIE5JUyBtYXAuIEVhY2ggb2YgbXkKPiB1c2VycyBoYXMgdGhlaXIgaG9tZSBk
+aXJlY3RvcnkgbG9jYXRlZCBvbiBhIGNlbnRyYWwgTkZTIHNlcnZlciB3aXRoCj4gbXVsdGlwbGUg
+bmV0d29yayBpbnRlcmZhY2VzIChhYm91dCA1MCkuIFRob3NlIDUwIElQ4oCZcyBhcmUgaW4gYSBE
+TlMKPiByb3VuZCByb2JpbiBzZXQuIFdoZW4gdXNpbmcgYXV0b2ZzIHRvIG1vdW50IG9uZSBvZiB0
+aGVpciBob21lCj4gZGlyZWN0b3JpZXMgZHluYW1pY2FsbHkgaXQgY2FuIHRha2UgYW55d2hlcmUg
+ZnJvbSBvbmUgdG8gNy04IHNlY29uZHMKPiAodXN1YWxseSBhYm91dCAyIHNlY29uZHMpLiAKPiAK
+PiAgCj4gCj4gV2hlbiB0aGUgRE5TIFJSIHNldCBpcyBzY2FsZWQgZG93biB0byBvbmx5IGhhdmUg
+MTUtMjAgZW50cmllcyB0aGUKPiBtb3VudGluZyB0aW1lIGlzIGFyb3VuZCBoYWxmIG9mIG9uZSBz
+ZWNvbmQgLSAoLjUgc2Vjb25kcykuICBNb3VudGluZwo+IGRpcmVjdGx5IHVzaW5nIHRoZSBtb3Vu
+dCBjb21tYW5kIGlzIHRoZSBmYXN0ZXN0IGFuZCBhbHdheXMgbW91bnRzIGluCj4gdW5kZXIgLjUg
+c2Vjb25kcy4KPiAKPiAgCj4gCj4gVGhlcmUgYXJlIG5vIGVycm9ycyBpbiB0aGUgc3lzbG9nICht
+ZXNzYWdlcyBvciBkYWVtb24ubG9nKS4gSeKAmW0gdXNpbmcKPiBrZXJuZWwgMi42LjIxIGFuZCBh
+dXRvZnMgNS4wLjFgLTkgKGFuZCBoYXZlIHRlc3RlZCB0aGlzIHdpdGggNS4wLjItMSkuCj4gCj4g
+IAo+IAo+IE9uZSBpbnRlcmVzdGluZyBzaWRlIG5vdGUsIEkgZGlkIHNvbWUgcGFja2V0IGNhcHR1
+cmVzIHdpdGggdGhlIGxhcmdlcgo+IEROUyBSUiBzZXQsIGFuZCBmb3VuZCB0aGF0IGZvciBhIHNp
+bmdsZSBhdXRvZnMgbW91bnQsIHRoZXJlIGNvdWxkIGJlCj4gYW55d2hlcmUgZnJvbSAzLDAwMC01
+LDAwMCBETlMgcXVlcmllcyBmb3IgdGhlIE5GUyBzZXJ2ZXIuCj4gCj4gIAo+IAo+IEnigJltIHB1
+enpsZWQgYXMgdG8gd2h5IHRoaXMgaXMgaGFwcGVuaW5nIG9yIGhvdyB0byBmdXJ0aGVyIHRyb3Vi
+bGVzaG9vdAo+IHRoZSBpc3N1ZS4gCj4gCj4gIAo+IAo+IFRoYW5rcywKPiAKPiAgCj4gCj4gLS0t
+Cj4gCj4gSmFtZXMgVC4gUmljaGFyZHNvbiwgSnIuCj4gCj4ganJpY2hhcmRzb25AeC1pc3MuY29t
+Cj4gCj4gZVhjZWxsZW5jZSBpbiBJUyBTb2x1dGlvbnMsIEluYy4KPiAKPiA3MTMtODYyLTkyMDAg
+eDIyNgo+IAo+ICAKPiAKPiAgCj4gCj4gTk9USUNFOgo+IFRoaXMgbWVzc2FnZSBtYXkgY29udGFp
+biBwcml2aWxlZ2VkIG9yIG90aGVyd2lzZSBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24uCj4gSWYg
+eW91IGFyZSBub3QgdGhlIGludGVuZGVkIHJlY2lwaWVudCwgcGxlYXNlIGltbWVkaWF0ZWx5IGFk
+dmlzZSB0aGUgc2VuZGVyCj4gYnkgcmVwbHkgZW1haWwgYW5kIGRlbGV0ZSB0aGUgbWVzc2FnZSBh
+bmQgYW55IGF0dGFjaG1lbnRzIHdpdGhvdXQgdXNpbmcsCj4gY29weWluZyBvciBkaXNjbG9zaW5n
+IHRoZSBjb250ZW50cy4KPiAKPiBOT1RJQ0U6Cj4gVGhpcyBtZXNzYWdlIG1heSBjb250YWluIHBy
+aXZpbGVnZWQgb3Igb3RoZXJ3aXNlIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbi4KPiBJZiB5b3Ug
+YXJlIG5vdCB0aGUgaW50ZW5kZWQgcmVjaXBpZW50LCBwbGVhc2UgaW1tZWRpYXRlbHkgYWR2aXNl
+IHRoZSBzZW5kZXIKPiBieSByZXBseSBlbWFpbCBhbmQgZGVsZXRlIHRoZSBtZXNzYWdlIGFuZCBh
+bnkgYXR0YWNobWVudHMgd2l0aG91dCB1c2luZywKPiBjb3B5aW5nIG9yIGRpc2Nsb3NpbmcgdGhl
+IGNvbnRlbnRzLgo+IF9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fCj4gYXV0b2ZzIG1haWxpbmcgbGlzdAo+IGF1dG9mc0BsaW51eC5rZXJuZWwub3JnCj4gaHR0
+cDovL2xpbnV4Lmtlcm5lbC5vcmcvbWFpbG1hbi9saXN0aW5mby9hdXRvZnMKCl9fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmF1dG9mcyBtYWlsaW5nIGxpc3QK
+YXV0b2ZzQGxpbnV4Lmtlcm5lbC5vcmcKaHR0cDovL2xpbnV4Lmtlcm5lbC5vcmcvbWFpbG1hbi9s
+aXN0aW5mby9hdXRvZnMK
