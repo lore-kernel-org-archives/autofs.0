@@ -1,23 +1,11 @@
-From: muzzol <muzzol@gmail.com>
-Subject: Re: user token
-Date: Thu, 13 Dec 2007 09:08:18 +0100
-Message-ID: <4a3f02760712130008t14c3ab59q3c26c149a7ee6584@mail.gmail.com>
-References: <4a3f02760711260149g1f5be5f9q9fcd2ea5d364b95@mail.gmail.com>
-	<1196101382.3381.7.camel@raven.themaw.net>
-	<474B1E0E.3040505@gmail.com>
-	<1196129844.3973.16.camel@raven.themaw.net>
-	<4a3f02760711270019v490249fet119d1683cd41f995@mail.gmail.com>
-	<1196168788.3973.33.camel@raven.themaw.net>
-	<4a3f02760711270713k7083ddabya43b735eba8fc509@mail.gmail.com>
-	<1196178047.3973.44.camel@raven.themaw.net>
-	<4a3f02760711280919t6262161cvf46336a8ac018e3e@mail.gmail.com>
-	<1196343240.3217.45.camel@raven.themaw.net>
+From: Steve Thompson <smt@vgersoft.com>
+Subject: autofs breakage & fix
+Date: Tue, 18 Dec 2007 16:14:53 -0500 (EST)
+Message-ID: <alpine.LFD.0.9999.0712181504550.31763@honker.vgersoft.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1196343240.3217.45.camel@raven.themaw.net>
-Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -30,21 +18,27 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-MjAwNy8xMS8yOSwgSWFuIEtlbnQgPHJhdmVuQHRoZW1hdy5uZXQ+Ogo+ID4gb3B0cz0iLWZzdHlw
-ZT1jaWZzLGNyZWRlbnRpYWxzPS9ob21lLyRVU0VSLy5zbWIuY3JlZHMiCj4KPiBUaGUgVVNFUiBl
-bnZpcm9ubWVudCB2YXJpYWJsZSBpcyBzZXQgaW4gdGhlIGVudmlyb25tZW50IGJlZm9yZSB0aGUK
-PiBleGVjdXRhYmxlIG1hcCBpcyBleGVjdXRlZC4gTWF5YmUgdGhlcmUncyBhIGJ1ZyBpbiB0aGUg
-d2F5IEkgZXhlY3V0ZSB0aGUKPiBtYXBzLCBubyBkb3VidCBhIHN0dXBpZCBtaXN0YWtlLiBJJ2xs
-IGNoZWNrIHRoYXQuCj4KCmFueSBuZXdzIGFib3V0IHRoaXM/CgppbSB2ZXJ5IGludGVyZXN0ZWQg
-YW5kIGkgY2FuJ3QgbWFrZSBpdCB3b3JrLgoKcmVnYXJkcwoKLS0gCj09PT09PT09PT09PT09PT09
-PT09PT09PQogICAgIF4gXgogICAgIE8gTwogICAgKF8gXykKbXV6em9sKGEpbXV6em9sLmNvbQo9
-PT09PT09PT09PT09PT09PT09PT09PT0KamFiYmVyIGlkOiBtdXp6b2woYSlqYWJiZXIuZGsKPT09
-PT09PT09PT09PT09PT09PT09PT09Ck5vIGF0cmlidWVpeGlzIHF1YWxpdGF0cyBodW1hbmVzIGFs
-cyBvcmRpbmFkb3JzLgpObyBlbHMgaGkgYWdyYWRhLgo9PT09PT09PT09PT09PT09PT09PT09PT0K
-IkVsIGdvYmllcm5vIGVzcGHDsW9sIHPDs2xvIGhhYmxhIGNvbiB0ZXJyb3Jpc3RhcywgaG9tb3Nl
-eHVhbGVzIHkKY2F0YWxhbmVzLCBhIHZlciBjdWFuZG8gc2UgZGVjaWRlIGEgaGFibGFyIGNvbiBn
-ZW50ZSBub3JtYWwiCkppbcOpbmV6IExvc2FudG9zCj09PT09PT09PT09PT09PT09PT09PT09PQo8
-ZWNoZWxvbiBzcGFtbWluZz4KYm9tYiB0ZXJyb3Jpc20gYnVzaCBhem5hciB0ZWxldHViYmllcwo8
-L2VjaGVsb24gc3BhbW1pbmc+CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fXwphdXRvZnMgbWFpbGluZyBsaXN0CmF1dG9mc0BsaW51eC5rZXJuZWwub3JnCmh0
-dHA6Ly9saW51eC5rZXJuZWwub3JnL21haWxtYW4vbGlzdGluZm8vYXV0b2ZzCg==
+FYI,
+
+I upgraded an x86 CentOS 4.5 client system (autofs-4.1.3-199.3) to CentOS 
+4.6 (autofs-4.1.3-231), no other changes, and autofs broke. Maps come from 
+an LDAP server, for example:
+
+  dn: cn=common,nisMapName=auto.xxx,dc=example,dc=org
+  objectClass: nisObject
+  cn: common
+  nisMapName: auto.xxx
+  nisMapEntry: server:/mnt/mda/data1/common -rw,rsize=32768,wsize=32768
+
+When attempting to automount this, the client is passing the mount path, 
+_including the options_, to the server as the path to be mounted, and the 
+server of course says "no such file and directory". This works on 4.5.
+
+If the nisMapEntry field is rewritten to put the options first:
+
+  nisMapEntry: -rw,rsize=32768,wsize=32768 server:/mnt/mda/data1/common
+
+then it works on both versions of the OS. So something is less tolerant
+in parsing in 4.6.
+
+Steve
