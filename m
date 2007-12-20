@@ -1,14 +1,11 @@
-From: "James Richardson" <jrichardson@x-iss.com>
-Subject: Re: Slow mounts when using large round robin sets
-Date: Thu, 20 Dec 2007 16:42:48 -0600
-Message-ID: <98E55D6E1B3CFD43BDA59EEB56DD7D7244386E@sbs01.xiss.private>
-References: <98E55D6E1B3CFD43BDA59EEB56DD7D72442DF1@sbs01.xiss.private><98E55D6E1B3CFD43BDA59EEB56DD7D724431C0@sbs01.xiss.private><1196921804.3089.28.camel@raven.themaw.net><98E55D6E1B3CFD43BDA59EEB56DD7D724432D5@sbs01.xiss.private>
-	<x49zlwm5hf1.fsf@segfault.boston.devel.redhat.com>
+From: chris barry <Christopher.Barry@qlogic.com>
+Subject: fairly complex nested filesystems question
+Date: Thu, 20 Dec 2007 18:29:51 -0500
+Message-ID: <1198193391.6195.33.camel@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,100 +16,51 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-Jeff,
+Greetings,
 
-I downloaded the sources via git
-(git://git.kernel.org/pub/scm/linux/storage/autofs/autofs.git) however
-when automount starts up I get a floating point exception. I would
-appreciate those debug patches you mentioned as I'm not sure where the
-floating point exception is occurring.
+I'm trying to create a nested filesystem structure that combines an
+automounted nfs home directory, with bind mounts from the local machine.
 
-# strace automount -d
-execve("/usr/sbin/automount", ["automount", "-d"], [/* 24 vars */]) = 0
-uname({sys="Linux", node="c33n69", ...}) = 0
-brk(0)                                  = 0x80041000
---- SIGFPE (Floating point exception) @ 0 (0) ---
-+++ killed by SIGFPE +++
-Process 3702 detached
-[root@c33n69 ~]# uname -a
-Linux c33n69 2.6.21-GX #1 SMP Thu Apr 26 14:03:16 CDT 2007 i686 i686
-i386 GNU/Linux
+The structure will look like this:
+/
+|-home
+   `-user1        <-(nfs somehost:/home/user1)
+       |-myftp    <-(bind /var/ftp/users/user1)
+       `-pub_ftp  <-(bind /var/ftp/pub)
 
----
-James T. Richardson, Jr.
-jrichardson@x-iss.com
-eXcellence in IS Solutions, Inc.
-713-862-9200 x226
+The entire structure needs to get automounted as a group on login, and
+then is chrooted as users ftp into this box.
 
-Making IT Work for You
-HPC & Enterprise IT Solutions
-* HPC Application Acceleration
-* Cluster Design, Deploy, Manage, Train
-* Linux/Windows Integration
-* Remote Management, Backup, Anti-Spam/Virus
-* Network Assessments, Design
-* Security Audits, Design
-* Datacenter Design, Relocation
-* Messaging and Collaboration
+My auto.master looks like this:
+/home   /etc/auto.home --timeout=30
+
+My auto.home looks like this:
+*              -fstype=nfs,rw,intr   10.20.30.40:/home/& \
+/home/&/myftp  -fstype=file          :/var/ftp/users/& \
+/home/&/ftp    -fstype=file          :/var/ftp/pub
 
 
------Original Message-----
-From: Jeff Moyer [mailto:jmoyer@redhat.com] 
-Sent: Friday, December 07, 2007 3:22 PM
-To: James Richardson
-Cc: Ian Kent; autofs@linux.kernel.org
-Subject: Re: [autofs] Slow mounts when using large round robin sets
+My home mounts fine via nfs, and is chrooted (when I ftp in), but the
+other mounts do not occur, and no errors are thrown. Thinking it was a
+timing issue, and the chroot had occurred before the local mounts
+happened, I came in via ssh (which is not chrooted, but will not be
+available to users later), and I get the same results. Finding any
+examples of this kind of map has been challenging to say the least. 
 
-"James Richardson" <jrichardson@x-iss.com> writes:
+I'm assuming my map syntax is incorrect, or is this type of thing simply
+impossible?
 
-> Ian,
->
-> Thanks for the strace tips. By performing an strace on the 4th thread
-I do see several 'poll' calls:
->
-> [pid  3858] 11:38:47.332883 poll([{fd=4, events=POLLIN,
-revents=POLLIN}], 1, 3000) = 1
-> [pid  3858] 11:38:47.335494 poll([{fd=40, events=POLLOUT,
-revents=POLLOUT}], 1, 0) = 1
-> [pid  3858] 11:38:47.335704 poll([{fd=40, events=POLLIN,
-revents=POLLIN}], 1, 5000) = 1
-> [pid  3858] 11:38:47.339133 poll([{fd=40, events=POLLIN,
-revents=POLLIN}], 1, 5000) = 1
->
->
-> I did not see any of the "restart_syscall".
->
-> One interesting fact is that it opened /etc/hosts 290 times:
-> 	[pid  3858] 11:38:45.008533 open("/etc/hosts", O_RDONLY) = 4
-> 	
-> 	# cat autofs.debug.out | grep "/etc/hosts" | wc
-> 	290    2030   17882
->
-> I have determined that this issue started occurring since we
-> upgraded to kernel 2.6.21 and autofs5. Using the stock CentOS 4.2
-> kernel (2.6.9-22.EL) and autofs-4.1.3-155 this behavior is not
-> exhibited.
 
-That's a pretty big difference in code!
+Unfortunately, I have to stay at these versions.
+RHEL4U5 2.6.9-55.ELsmp
+ProFTPD  Version 1.3.1
+Linux automount version 4.1.3-199.3
 
-Are you comfortable using git and make?  If so, you might try
-building and testing the latest git sources.  The reason I say this is
-there is a fix in there that avoids calling into the replicated server
-code for singleton entries, and that code is the only place I believe
-the resolver is consulted.
 
-If that fixes your problem, then I'd be very interested to figure out
-exactly why.  I can give you some debug patches if necessary.
+What am I doing wrong here?
+
 
 Thanks,
-
-Jeff
-
-NOTICE:
-This message may contain privileged or otherwise confidential information.
-If you are not the intended recipient, please immediately advise the sender
-by reply email and delete the message and any attachments without using,
-copying or disclosing the contents.
+-C
