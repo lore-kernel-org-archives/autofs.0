@@ -1,11 +1,11 @@
 From: "James Richardson" <jrichardson@x-iss.com>
 Subject: Re: Slow mounts when using large round robin sets
-Date: Fri, 21 Dec 2007 15:04:30 -0600
-Message-ID: <98E55D6E1B3CFD43BDA59EEB56DD7D724438C2@sbs01.xiss.private>
-References: <98E55D6E1B3CFD43BDA59EEB56DD7D72442DF1@sbs01.xiss.private><98E55D6E1B3CFD43BDA59EEB56DD7D724431C0@sbs01.xiss.private><1196921804.3089.28.camel@raven.themaw.net><98E55D6E1B3CFD43BDA59EEB56DD7D724432D5@sbs01.xiss.private><x49zlwm5hf1.fsf@segfault.boston.devel.redhat.com><98E55D6E1B3CFD43BDA59EEB56DD7D7244386E@sbs01.xiss.private><1198241367.3488.26.camel@raven.themaw.net>
-	<x49odck175r.fsf@segfault.boston.devel.redhat.com>
+Date: Fri, 21 Dec 2007 16:56:27 -0600
+Message-ID: <98E55D6E1B3CFD43BDA59EEB56DD7D724438CB@sbs01.xiss.private>
+References: <98E55D6E1B3CFD43BDA59EEB56DD7D72442DF1@sbs01.xiss.private><98E55D6E1B3CFD43BDA59EEB56DD7D724431C0@sbs01.xiss.private><1196921804.3089.28.camel@raven.themaw.net><98E55D6E1B3CFD43BDA59EEB56DD7D724432D5@sbs01.xiss.private><x49zlwm5hf1.fsf@segfault.boston.devel.redhat.com><98E55D6E1B3CFD43BDA59EEB56DD7D7244386E@sbs01.xiss.private><1198241367.3488.26.camel@raven.themaw.net><x49odck175r.fsf@segfault.boston.devel.redhat.com><98E55D6E1B3CFD43BDA59EEB56DD7D724438C2@sbs01.xiss.private>
+	<x49fxxvzpp5.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8449616581004014528=="
+Content-Type: multipart/mixed; boundary="===============4902962447093812658=="
 Return-path: <autofs-bounces@linux.kernel.org>
 Content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
@@ -18,19 +18,19 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>, Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: autofs@linux.kernel.org, Ian Kent <raven@themaw.net>
 
 This is a multi-part message in MIME format.
 
---===============8449616581004014528==
+--===============4902962447093812658==
 Content-class: urn:content-classes:message
 Content-Type: multipart/alternative;
-	boundary="----_=_NextPart_001_01C84415.16B71EE1"
+	boundary="----_=_NextPart_001_01C84424.B735B19F"
 
 This is a multi-part message in MIME format.
 
-------_=_NextPart_001_01C84415.16B71EE1
+------_=_NextPart_001_01C84424.B735B19F
 Content-Type: text/plain;
 	charset="US-ASCII"
 Content-Transfer-Encoding: quoted-printable
@@ -39,66 +39,492 @@ Jeff,
 
 =20
 
-Using the latest Autofs source code from I received the following
-results:
+I applied the patch and here is what was recorded.=20
 
 =20
 
-large-rr.domain.tld contains 49 A records in DNS.
+Dec 21 16:52:13 myhost autofs: automount startup succeeded
 
-small-rr.domain.tld contains 16 A records (a subset of large-rr).
+Dec 21 16:52:42 myhost automount[3909]: add_host_addrs:883:
+gethostbyname_r
 
-=20
+Dec 21 16:52:42 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
 
-=20
+Dec 21 16:52:42 myhost last message repeated 2 times
 
-Test 1:
+Dec 21 16:52:42 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
 
-I configured auto.home with the entry:
+Dec 21 16:52:42 myhost last message repeated 2 times
 
-      brian -rsize=3D8192,wsize=3D8192,proto=3Dtcp,vers=3D3
-large-rr:/home/brian
+Dec 21 16:52:42 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
 
-=20
+Dec 21 16:52:42 myhost last message repeated 2 times
 
-# time ls /home/brian/.bash_history
+Dec 21 16:52:42 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
 
-/home/brian/.bash_history
+Dec 21 16:52:42 myhost last message repeated 2 times
 
-real    0m0.734s
+Dec 21 16:52:42 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
 
-user    0m0.000s
+Dec 21 16:52:42 myhost last message repeated 2 times
 
-sys     0m0.000s
+Dec 21 16:52:42 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
 
-=20
+Dec 21 16:52:42 myhost last message repeated 2 times
 
-Test 2:
+Dec 21 16:52:42 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
 
-I then rebooted the server to remove any local cached anything and
-updated auto.home to have:
+Dec 21 16:52:42 myhost last message repeated 2 times
 
-      brian -rsize=3D8192,wsize=3D8192,proto=3Dtcp,vers=3D3
-small-rr:/home/brian
+Dec 21 16:52:42 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
 
-=20
+Dec 21 16:52:42 myhost last message repeated 2 times
 
-# time ls -alht /home/brian/.bash_history
+Dec 21 16:52:42 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
 
--rw-------  1 brian support 13K Nov 15 10:39=20
+Dec 21 16:52:42 myhost last message repeated 2 times
 
-real    0m0.126s
+Dec 21 16:52:42 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
 
-user    0m0.000s
+Dec 21 16:52:42 myhost last message repeated 2 times
 
-sys     0m0.004s
+Dec 21 16:52:42 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
 
-=20
+Dec 21 16:52:42 myhost last message repeated 2 times
 
-=20
+Dec 21 16:52:42 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
 
-During Test 1 there were 1,160 DNS packets (580 UDP packets, 580 TCP
-packets). During Test 2 there were 196 packets (all UDP).
+Dec 21 16:52:42 myhost last message repeated 2 times
+
+Dec 21 16:52:42 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:42 myhost last message repeated 2 times
+
+Dec 21 16:52:42 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:42 myhost last message repeated 2 times
+
+Dec 21 16:52:42 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:42 myhost last message repeated 2 times
+
+Dec 21 16:52:42 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:42 myhost last message repeated 2 times
+
+Dec 21 16:52:43 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:43 myhost last message repeated 2 times
+
+Dec 21 16:52:43 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:43 myhost last message repeated 2 times
+
+Dec 21 16:52:43 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:43 myhost last message repeated 2 times
+
+Dec 21 16:52:43 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:43 myhost last message repeated 2 times
+
+Dec 21 16:52:43 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:43 myhost last message repeated 2 times
+
+Dec 21 16:52:43 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:43 myhost last message repeated 2 times
+
+Dec 21 16:52:43 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:43 myhost last message repeated 2 times
+
+Dec 21 16:52:43 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:43 myhost last message repeated 2 times
+
+Dec 21 16:52:43 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:43 myhost last message repeated 2 times
+
+Dec 21 16:52:43 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:43 myhost last message repeated 2 times
+
+Dec 21 16:52:43 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:43 myhost last message repeated 2 times
+
+Dec 21 16:52:43 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:43 myhost last message repeated 2 times
+
+Dec 21 16:52:43 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:43 myhost last message repeated 2 times
+
+Dec 21 16:52:43 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:43 myhost last message repeated 2 times
+
+Dec 21 16:52:43 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:43 myhost last message repeated 2 times
+
+Dec 21 16:52:43 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:43 myhost last message repeated 2 times
+
+Dec 21 16:52:43 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:43 myhost last message repeated 2 times
+
+Dec 21 16:52:43 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:43 myhost last message repeated 2 times
+
+Dec 21 16:52:43 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:43 myhost last message repeated 2 times
+
+Dec 21 16:52:43 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:43 myhost last message repeated 2 times
+
+Dec 21 16:52:43 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:43 myhost last message repeated 2 times
+
+Dec 21 16:52:43 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:43 myhost last message repeated 2 times
+
+Dec 21 16:52:43 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:43 myhost last message repeated 2 times
+
+Dec 21 16:52:43 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:43 myhost last message repeated 2 times
+
+Dec 21 16:52:43 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:43 myhost last message repeated 2 times
+
+Dec 21 16:52:43 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:43 myhost last message repeated 2 times
+
+Dec 21 16:52:43 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:43 myhost last message repeated 2 times
+
+Dec 21 16:52:43 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:43 myhost last message repeated 2 times
+
+Dec 21 16:52:43 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:43 myhost last message repeated 2 times
+
+Dec 21 16:52:43 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:43 myhost last message repeated 2 times
+
+Dec 21 16:52:43 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:44 myhost last message repeated 2 times
+
+Dec 21 16:52:44 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:44 myhost last message repeated 2 times
+
+Dec 21 16:52:44 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:44 myhost last message repeated 2 times
+
+Dec 21 16:52:44 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:44 myhost last message repeated 2 times
+
+Dec 21 16:52:44 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:44 myhost last message repeated 2 times
+
+Dec 21 16:52:44 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:44 myhost last message repeated 2 times
+
+Dec 21 16:52:44 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:44 myhost last message repeated 2 times
+
+Dec 21 16:52:44 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:44 myhost last message repeated 2 times
+
+Dec 21 16:52:44 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:44 myhost last message repeated 2 times
+
+Dec 21 16:52:44 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:44 myhost last message repeated 2 times
+
+Dec 21 16:52:44 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:44 myhost last message repeated 2 times
+
+Dec 21 16:52:44 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:44 myhost last message repeated 2 times
+
+Dec 21 16:52:44 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:44 myhost last message repeated 2 times
+
+Dec 21 16:52:44 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:44 myhost last message repeated 2 times
+
+Dec 21 16:52:44 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:44 myhost last message repeated 2 times
+
+Dec 21 16:52:44 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:44 myhost last message repeated 2 times
+
+Dec 21 16:52:44 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:44 myhost last message repeated 2 times
+
+Dec 21 16:52:44 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:44 myhost last message repeated 2 times
+
+Dec 21 16:52:44 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:44 myhost last message repeated 2 times
+
+Dec 21 16:52:44 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:44 myhost last message repeated 2 times
+
+Dec 21 16:52:44 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:44 myhost last message repeated 2 times
+
+Dec 21 16:52:44 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:44 myhost last message repeated 2 times
+
+Dec 21 16:52:44 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:44 myhost last message repeated 2 times
+
+Dec 21 16:52:44 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:44 myhost last message repeated 2 times
+
+Dec 21 16:52:44 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:44 myhost last message repeated 2 times
+
+Dec 21 16:52:44 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:44 myhost last message repeated 2 times
+
+Dec 21 16:52:44 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:44 myhost last message repeated 2 times
+
+Dec 21 16:52:44 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:44 myhost last message repeated 2 times
+
+Dec 21 16:52:44 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:44 myhost last message repeated 2 times
+
+Dec 21 16:52:44 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:44 myhost last message repeated 2 times
+
+Dec 21 16:52:44 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:44 myhost last message repeated 2 times
+
+Dec 21 16:52:44 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:44 myhost last message repeated 2 times
+
+Dec 21 16:52:44 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:45 myhost last message repeated 2 times
+
+Dec 21 16:52:45 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:45 myhost last message repeated 2 times
+
+Dec 21 16:52:45 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:45 myhost last message repeated 2 times
+
+Dec 21 16:52:45 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:45 myhost last message repeated 2 times
+
+Dec 21 16:52:45 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:45 myhost last message repeated 2 times
+
+Dec 21 16:52:45 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:45 myhost last message repeated 2 times
+
+Dec 21 16:52:45 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:45 myhost last message repeated 2 times
+
+Dec 21 16:52:45 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:45 myhost last message repeated 2 times
+
+Dec 21 16:52:45 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:45 myhost last message repeated 2 times
+
+Dec 21 16:52:45 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:45 myhost last message repeated 2 times
+
+Dec 21 16:52:45 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:45 myhost last message repeated 2 times
+
+Dec 21 16:52:45 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:45 myhost last message repeated 2 times
+
+Dec 21 16:52:45 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:45 myhost last message repeated 2 times
+
+Dec 21 16:52:45 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:45 myhost last message repeated 2 times
+
+Dec 21 16:52:45 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:45 myhost last message repeated 2 times
+
+Dec 21 16:52:45 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
+
+Dec 21 16:52:45 myhost last message repeated 2 times
+
+Dec 21 16:52:45 myhost automount[3909]: create_udp_client:94:
+gethostbyname_r
+
+Dec 21 16:52:45 myhost last message repeated 2 times
+
+Dec 21 16:52:45 myhost automount[3909]: create_tcp_client:304:
+gethostbyname_r
 
 =20
 
@@ -142,87 +568,220 @@ HPC & Enterprise IT Solutions
 
 -----Original Message-----
 From: Jeff Moyer [mailto:jmoyer@redhat.com]=20
-Sent: Friday, December 21, 2007 7:58 AM
-To: Ian Kent
-Cc: James Richardson; autofs@linux.kernel.org
+Sent: Friday, December 21, 2007 3:46 PM
+To: James Richardson
+Cc: Ian Kent; autofs@linux.kernel.org
 Subject: Re: [autofs] Slow mounts when using large round robin sets
 
 =20
 
-Ian Kent <raven@themaw.net> writes:
+"James Richardson" <jrichardson@x-iss.com> writes:
 
 =20
 
-> On Thu, 2007-12-20 at 16:42 -0600, James Richardson wrote:
-
->> Jeff,
-
->>=20
-
->> I downloaded the sources via git
-
->> (git://git.kernel.org/pub/scm/linux/storage/autofs/autofs.git)
-however
-
->> when automount starts up I get a floating point exception. I would
-
->> appreciate those debug patches you mentioned as I'm not sure where
-the
-
->> floating point exception is occurring.
+> Jeff,
 
 >=20
 
-> I don't remember saying anything about debugging patches?
+> Using the latest Autofs source code from I received the following
 
-=20
-
-I mentioned that we could provide targeted debugging patches to
-
-try to figure out the problem.  They do not exist yet, and they
-
-certainly would not point out why he's getting a floating point
-
-exception!  ;)
-
-=20
-
->> # strace automount -d
-
->> execve("/usr/sbin/automount", ["automount", "-d"], [/* 24 vars */]) =3D
-0
-
->> uname({sys=3D"Linux", node=3D"c33n69", ...}) =3D 0
-
->> brk(0)                                  =3D 0x80041000
-
->> --- SIGFPE (Floating point exception) @ 0 (0) ---
-
->> +++ killed by SIGFPE +++
-
->> Process 3702 detached
-
->> [root@c33n69 ~]# uname -a
-
->> Linux c33n69 2.6.21-GX #1 SMP Thu Apr 26 14:03:16 CDT 2007 i686 i686
-
->> i386 GNU/Linux
+> results:
 
 >=20
 
-> I really don't know what's happening here.
+> large-rr.domain.tld contains 49 A records in DNS.
 
-> There's not enough info.
+>=20
+
+> small-rr.domain.tld contains 16 A records (a subset of large-rr).
+
+>=20
+
+> Test 1:
+
+>=20
+
+> I configured auto.home with the entry:
+
+>=20
+
+>       brian -rsize=3D8192,wsize=3D8192,proto=3Dtcp,vers=3D3
+
+> large-rr:/home/brian
+
+>=20
+
+>=20
+
+> # time ls /home/brian/.bash_history
+
+>=20
+
+> /home/brian/.bash_history
+
+>=20
+
+> real    0m0.734s
+
+>=20
+
+> user    0m0.000s
+
+>=20
+
+> sys     0m0.000s
+
+> =20
+
+>=20
+
+> Test 2:
+
+>=20
+
+> I then rebooted the server to remove any local cached anything and
+
+> updated auto.home to have:
+
+>=20
+
+>       brian -rsize=3D8192,wsize=3D8192,proto=3Dtcp,vers=3D3
+
+> small-rr:/home/brian
+
+>=20
+
+>=20
+
+> # time ls -alht /home/brian/.bash_history
+
+>=20
+
+> -rw-------  1 brian support 13K Nov 15 10:39=20
+
+>=20
+
+> real    0m0.126s
+
+>=20
+
+> user    0m0.000s
+
+>=20
+
+> sys     0m0.004s
+
+> =20
+
+>=20
+
+> During Test 1 there were 1,160 DNS packets (580 UDP packets, 580 TCP
+
+> packets). During Test 2 there were 196 packets (all UDP).
 
 =20
 
-What Ian means is that you'd have to provide a stack trace from gdb at
+Very strange.  I don't have round-robin DNS configured, but in my
 
-the very least.  The output from automount -V wouldn't hurt, either.
+testing, autofs only called into the resolver once, but there were 6-8
+
+queries logged by tcpdump.
+
+=20
+
+You can apply this patch and see what it outputs.  Turn off debug
+
+logging, as it will just clutter the logs.  Results should be printed
+
+in /var/log/messages:
+
+=20
+
+Dec 21 16:37:28 sig11 automount[3763]: add_host_addrs:883:
+gethostbyname_r
+
+=20
+
+See how many of these print.  If it's not many, then we'll have to
+
+look elsewhere for your problem (or I've missed some resolver queries
+
+from autofs!).
 
 =20
 
 -Jeff
+
+=20
+
+=20
+
+diff --git a/lib/rpc_subs.c b/lib/rpc_subs.c
+
+index 5797639..90bf768 100644
+
+--- a/lib/rpc_subs.c
+
++++ b/lib/rpc_subs.c
+
+@@ -91,6 +91,7 @@ static CLIENT *create_udp_client(struct conn_info
+*info)
+
+=20
+
+      memset(&hp, 0, sizeof(struct hostent));
+
+=20
+
++     logerr("gethostbyname_r");
+
+      ret =3D gethostbyname_r(info->host, php,
+
+                  buf, HOST_ENT_BUF_SIZE, &result, &ghn_errno);
+
+      if (ret || !result) {
+
+@@ -300,6 +301,7 @@ static CLIENT *create_tcp_client(struct conn_info
+*info)
+
+=20
+
+      memset(&hp, 0, sizeof(struct hostent));
+
+=20
+
++     logerr("gethostbyname_r");
+
+      ret =3D gethostbyname_r(info->host, php,
+
+                  buf, HOST_ENT_BUF_SIZE, &result, &ghn_errno);
+
+      if (ret || !result) {
+
+diff --git a/modules/replicated.c b/modules/replicated.c
+
+index 90b2925..5171beb 100644
+
+--- a/modules/replicated.c
+
++++ b/modules/replicated.c
+
+@@ -880,6 +880,7 @@ static int add_host_addrs(struct host **list, const
+char *host, unsigned int wei
+
+      memset(buf, 0, MAX_IFC_BUF);
+
+      memset(&he, 0, sizeof(struct hostent));
+
+=20
+
++     logerr("gethostbyname_r");
+
+      ret =3D gethostbyname_r(host, phe,
+
+                  buf, MAX_IFC_BUF, &result, &ghn_errno);
+
+      if (ret || !result) {
 
 
 NOTICE:
@@ -233,19 +792,20 @@ copying or disclosing the contents.
 
 
 
-------_=_NextPart_001_01C84415.16B71EE1
+------_=_NextPart_001_01C84424.B735B19F
 Content-Type: text/html;
 	charset="US-ASCII"
 Content-Transfer-Encoding: quoted-printable
 
 <html xmlns:v=3D"urn:schemas-microsoft-com:vml" xmlns:o=3D"urn:schemas-micr=
 osoft-com:office:office" xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
-xmlns:x=3D"urn:schemas-microsoft-com:office:excel" xmlns:m=3D"http://schema=
-s.microsoft.com/office/2004/12/omml" xmlns=3D"http://www.w3.org/TR/REC-html=
-40">
+xmlns:x=3D"urn:schemas-microsoft-com:office:excel" xmlns:dt=3D"uuid:C2F4101=
+0-65B3-11d1-A29F-00AA00C14882" xmlns:m=3D"http://schemas.microsoft.com/offi=
+ce/2004/12/omml" xmlns=3D"http://www.w3.org/TR/REC-html40">
 
 <head>
-<meta http-equiv=3DContent-Type content=3D"text/html; charset=3Dus-ascii">
+<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; charset=3Dus-ascii"=
+>
 <meta name=3DGenerator content=3D"Microsoft Word 12 (filtered medium)">
 <style>
 <!--
@@ -310,90 +870,687 @@ div.Section1
 
 <p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
 
-<p class=3DMsoPlainText>Using the latest Autofs source code from I received=
- the
-following results:<o:p></o:p></p>
+<p class=3DMsoPlainText>I applied the patch and here is what was recorded. =
+<o:p></o:p></p>
 
-<p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
+<p class=3DMsoPlainText style=3D'margin-left:.5in'><o:p>&nbsp;</o:p></p>
 
-<p class=3DMsoPlainText>large-rr.domain.tld contains 49 A records in DNS.<o=
-:p></o:p></p>
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:13 myhost a=
+utofs:
+automount startup succeeded<o:p></o:p></p>
 
-<p class=3DMsoPlainText>small-rr.domain.tld contains 16 A records (a subset=
- of
-large-rr).<o:p></o:p></p>
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost
+automount[3909]: add_host_addrs:883: gethostbyname_r<o:p></o:p></p>
 
-<p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
 
-<p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
 
-<p class=3DMsoPlainText>Test 1:<o:p></o:p></p>
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
 
-<p class=3DMsoPlainText>I configured auto.home with the entry:<o:p></o:p></=
-p>
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
 
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; brian
--rsize=3D8192,wsize=3D8192,proto=3Dtcp,vers=3D3&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
-p;&nbsp;&nbsp;&nbsp;
-large-rr:/home/brian<o:p></o:p></p>
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
 
-<p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
 
-<p class=3DMsoPlainText style=3D'margin-left:.5in'># time ls
-/home/brian/.bash_history<o:p></o:p></p>
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
 
-<p class=3DMsoPlainText style=3D'margin-left:.5in'>/home/brian/.bash_histor=
-y<o:p></o:p></p>
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
 
-<p class=3DMsoPlainText style=3D'margin-left:.5in'>real&nbsp;&nbsp;&nbsp; 0=
-m0.734s<o:p></o:p></p>
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
 
-<p class=3DMsoPlainText style=3D'margin-left:.5in'>user&nbsp;&nbsp;&nbsp; 0=
-m0.000s<o:p></o:p></p>
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
 
-<p class=3DMsoPlainText style=3D'margin-left:.5in'>sys&nbsp;&nbsp;&nbsp;&nb=
-sp;
-0m0.000s<o:p></o:p></p>
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
 
-<p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost l=
+ast message
+repeated 2 times<o:p></o:p></p>
 
-<p class=3DMsoPlainText>Test 2:<o:p></o:p></p>
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
 
-<p class=3DMsoPlainText>I then rebooted the server to remove any local cach=
-ed
-anything and updated auto.home to have:<o:p></o:p></p>
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
 
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; brian
--rsize=3D8192,wsize=3D8192,proto=3Dtcp,vers=3D3&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
-p;&nbsp;&nbsp;&nbsp;
-small-rr:/home/brian<o:p></o:p></p>
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
 
-<p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
 
-<p class=3DMsoPlainText style=3D'margin-left:.5in'># time ls -alht
-/home/brian/.bash_history<o:p></o:p></p>
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
 
-<p class=3DMsoPlainText style=3D'margin-left:.5in'>-rw-------&nbsp; 1 brian=
- support
-13K Nov 15 10:39 <o:p></o:p></p>
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
 
-<p class=3DMsoPlainText style=3D'margin-left:.5in'>real&nbsp;&nbsp;&nbsp; 0=
-m0.126s<o:p></o:p></p>
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
 
-<p class=3DMsoPlainText style=3D'margin-left:.5in'>user&nbsp;&nbsp;&nbsp; 0=
-m0.000s<o:p></o:p></p>
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
 
-<p class=3DMsoPlainText style=3D'margin-left:.5in'>sys&nbsp;&nbsp;&nbsp;&nb=
-sp;
-0m0.004s<o:p></o:p></p>
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
 
-<p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
 
-<p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
 
-<p class=3DMsoPlainText>During Test 1 there were 1,160 DNS packets (580 UDP
-packets, 580 TCP packets). During Test 2 there were 196 packets (all UDP).<=
-o:p></o:p></p>
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:42 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost l=
+ast message
+repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost l=
+ast message
+repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:43 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost a=
+utomount[3909]:
+create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost l=
+ast message
+repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:44 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost a=
+utomount[3909]:
+create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost l=
+ast message
+repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost
+automount[3909]: create_udp_client:94: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost l=
+ast
+message repeated 2 times<o:p></o:p></p>
+
+<p class=3DMsoPlainText style=3D'margin-left:.5in'>Dec 21 16:52:45 myhost
+automount[3909]: create_tcp_client:304: gethostbyname_r<o:p></o:p></p>
 
 <p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
 
@@ -440,118 +1597,278 @@ o:p></o:p></p>
 
 <p class=3DMsoPlainText>-----Original Message-----<br>
 From: Jeff Moyer [mailto:jmoyer@redhat.com] <br>
-Sent: Friday, December 21, 2007 7:58 AM<br>
-To: Ian Kent<br>
-Cc: James Richardson; autofs@linux.kernel.org<br>
+Sent: Friday, December 21, 2007 3:46 PM<br>
+To: James Richardson<br>
+Cc: Ian Kent; autofs@linux.kernel.org<br>
 Subject: Re: [autofs] Slow mounts when using large round robin sets<o:p></o=
 :p></p>
 
 <p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
 
-<p class=3DMsoPlainText>Ian Kent &lt;raven@themaw.net&gt; writes:<o:p></o:p=
-></p>
+<p class=3DMsoPlainText>&quot;James Richardson&quot;
+&lt;jrichardson@x-iss.com&gt; writes:<o:p></o:p></p>
 
 <p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
 
-<p class=3DMsoPlainText>&gt; On Thu, 2007-12-20 at 16:42 -0600, James Richa=
-rdson
-wrote:<o:p></o:p></p>
+<p class=3DMsoPlainText>&gt; Jeff,<o:p></o:p></p>
 
-<p class=3DMsoPlainText>&gt;&gt; Jeff,<o:p></o:p></p>
+<p class=3DMsoPlainText>&gt;<o:p>&nbsp;</o:p></p>
 
-<p class=3DMsoPlainText>&gt;&gt; <o:p></o:p></p>
+<p class=3DMsoPlainText>&gt; Using the latest Autofs source code from I rec=
+eived
+the following<o:p></o:p></p>
 
-<p class=3DMsoPlainText>&gt;&gt; I downloaded the sources via git<o:p></o:p=
+<p class=3DMsoPlainText>&gt; results:<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&gt;<o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoPlainText>&gt; large-rr.domain.tld contains 49 A records in D=
+NS.<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&gt;<o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoPlainText>&gt; small-rr.domain.tld contains 16 A records (a s=
+ubset
+of large-rr).<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&gt;<o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoPlainText>&gt; Test 1:<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&gt;<o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoPlainText>&gt; I configured auto.home with the entry:<o:p></o=
+:p></p>
+
+<p class=3DMsoPlainText>&gt;<o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoPlainText>&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; brian -rsi=
+ze=3D8192,wsize=3D8192,proto=3Dtcp,vers=3D3<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&gt; large-rr:/home/brian<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&gt;<o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoPlainText>&gt;<o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoPlainText>&gt; # time ls /home/brian/.bash_history<o:p></o:p>=
+</p>
+
+<p class=3DMsoPlainText>&gt;<o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoPlainText>&gt; /home/brian/.bash_history<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&gt;<o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoPlainText>&gt; real&nbsp;&nbsp;&nbsp; 0m0.734s<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&gt;<o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoPlainText>&gt; user&nbsp;&nbsp;&nbsp; 0m0.000s<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&gt;<o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoPlainText>&gt; sys&nbsp;&nbsp;&nbsp;&nbsp; 0m0.000s<o:p></o:p=
 ></p>
 
-<p class=3DMsoPlainText>&gt;&gt;
-(git://git.kernel.org/pub/scm/linux/storage/autofs/autofs.git) however<o:p>=
+<p class=3DMsoPlainText>&gt;&nbsp; <o:p></o:p></p>
+
+<p class=3DMsoPlainText>&gt;<o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoPlainText>&gt; Test 2:<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&gt;<o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoPlainText>&gt; I then rebooted the server to remove any local
+cached anything and<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&gt; updated auto.home to have:<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&gt;<o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoPlainText>&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; brian -rsi=
+ze=3D8192,wsize=3D8192,proto=3Dtcp,vers=3D3<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&gt; small-rr:/home/brian<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&gt;<o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoPlainText>&gt;<o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoPlainText>&gt; # time ls -alht /home/brian/.bash_history<o:p>=
 </o:p></p>
 
-<p class=3DMsoPlainText>&gt;&gt; when automount starts up I get a floating =
-point
-exception. I would<o:p></o:p></p>
+<p class=3DMsoPlainText>&gt;<o:p>&nbsp;</o:p></p>
 
-<p class=3DMsoPlainText>&gt;&gt; appreciate those debug patches you mention=
-ed as
-I'm not sure where the<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&gt;&gt; floating point exception is occurring.<o:p=
-></o:p></p>
+<p class=3DMsoPlainText>&gt; -rw-------&nbsp; 1 brian support 13K Nov 15 10=
+:39 <o:p></o:p></p>
 
 <p class=3DMsoPlainText>&gt;<o:p>&nbsp;</o:p></p>
 
-<p class=3DMsoPlainText>&gt; I don't remember saying anything about debuggi=
-ng
-patches?<o:p></o:p></p>
-
-<p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
-
-<p class=3DMsoPlainText>I mentioned that we could provide targeted debuggin=
-g
-patches to<o:p></o:p></p>
-
-<p class=3DMsoPlainText>try to figure out the problem.&nbsp; They do not ex=
-ist
-yet, and they<o:p></o:p></p>
-
-<p class=3DMsoPlainText>certainly would not point out why he's getting a fl=
-oating
-point<o:p></o:p></p>
-
-<p class=3DMsoPlainText>exception!&nbsp; ;)<o:p></o:p></p>
-
-<p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
-
-<p class=3DMsoPlainText>&gt;&gt; # strace automount -d<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&gt;&gt; execve(&quot;/usr/sbin/automount&quot;,
-[&quot;automount&quot;, &quot;-d&quot;], [/* 24 vars */]) =3D 0<o:p></o:p><=
-/p>
-
-<p class=3DMsoPlainText>&gt;&gt; uname({sys=3D&quot;Linux&quot;,
-node=3D&quot;c33n69&quot;, ...}) =3D 0<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&gt;&gt;
-brk(0)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-=3D 0x80041000<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&gt;&gt; --- SIGFPE (Floating point exception) @ 0 =
-(0)
----<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&gt;&gt; +++ killed by SIGFPE +++<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&gt;&gt; Process 3702 detached<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&gt;&gt; [root@c33n69 ~]# uname -a<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&gt;&gt; Linux c33n69 2.6.21-GX #1 SMP Thu Apr 26
-14:03:16 CDT 2007 i686 i686<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&gt;&gt; i386 GNU/Linux<o:p></o:p></p>
+<p class=3DMsoPlainText>&gt; real&nbsp;&nbsp;&nbsp; 0m0.126s<o:p></o:p></p>
 
 <p class=3DMsoPlainText>&gt;<o:p>&nbsp;</o:p></p>
 
-<p class=3DMsoPlainText>&gt; I really don't know what's happening here.<o:p=
-></o:p></p>
+<p class=3DMsoPlainText>&gt; user&nbsp;&nbsp;&nbsp; 0m0.000s<o:p></o:p></p>
 
-<p class=3DMsoPlainText>&gt; There's not enough info.<o:p></o:p></p>
+<p class=3DMsoPlainText>&gt;<o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoPlainText>&gt; sys&nbsp;&nbsp;&nbsp;&nbsp; 0m0.004s<o:p></o:p=
+></p>
+
+<p class=3DMsoPlainText>&gt;&nbsp; <o:p></o:p></p>
+
+<p class=3DMsoPlainText>&gt;<o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoPlainText>&gt; During Test 1 there were 1,160 DNS packets (58=
+0 UDP
+packets, 580 TCP<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&gt; packets). During Test 2 there were 196 packets=
+ (all
+UDP).<o:p></o:p></p>
 
 <p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
 
-<p class=3DMsoPlainText>What Ian means is that you'd have to provide a stac=
-k
-trace from gdb at<o:p></o:p></p>
+<p class=3DMsoPlainText>Very strange.&nbsp; I don't have round-robin DNS co=
+nfigured,
+but in my<o:p></o:p></p>
 
-<p class=3DMsoPlainText>the very least.&nbsp; The output from automount -V
-wouldn't hurt, either.<o:p></o:p></p>
+<p class=3DMsoPlainText>testing, autofs only called into the resolver once,=
+ but
+there were 6-8<o:p></o:p></p>
+
+<p class=3DMsoPlainText>queries logged by tcpdump.<o:p></o:p></p>
+
+<p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoPlainText>You can apply this patch and see what it outputs.&n=
+bsp; Turn
+off debug<o:p></o:p></p>
+
+<p class=3DMsoPlainText>logging, as it will just clutter the logs.&nbsp; Re=
+sults
+should be printed<o:p></o:p></p>
+
+<p class=3DMsoPlainText>in /var/log/messages:<o:p></o:p></p>
+
+<p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoPlainText>Dec 21 16:37:28 sig11 automount[3763]:
+add_host_addrs:883: gethostbyname_r<o:p></o:p></p>
+
+<p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoPlainText>See how many of these print.&nbsp; If it's not many=
+, then
+we'll have to<o:p></o:p></p>
+
+<p class=3DMsoPlainText>look elsewhere for your problem (or I've missed som=
+e
+resolver queries<o:p></o:p></p>
+
+<p class=3DMsoPlainText>from autofs!).<o:p></o:p></p>
 
 <p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
 
 <p class=3DMsoPlainText>-Jeff<o:p></o:p></p>
+
+<p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
+
+<p class=3DMsoPlainText>diff --git a/lib/rpc_subs.c b/lib/rpc_subs.c<o:p></=
+o:p></p>
+
+<p class=3DMsoPlainText>index 5797639..90bf768 100644<o:p></o:p></p>
+
+<p class=3DMsoPlainText>--- a/lib/rpc_subs.c<o:p></o:p></p>
+
+<p class=3DMsoPlainText>+++ b/lib/rpc_subs.c<o:p></o:p></p>
+
+<p class=3DMsoPlainText>@@ -91,6 +91,7 @@ static CLIENT *create_udp_client(=
+struct
+conn_info *info)<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&nbsp;<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; memset(&amp;hp, 0, s=
+izeof(struct hostent));<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&nbsp;<o:p></o:p></p>
+
+<p class=3DMsoPlainText>+&nbsp;&nbsp;&nbsp;&nbsp; logerr(&quot;gethostbynam=
+e_r&quot;);<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ret =3D gethostbynam=
+e_r(info-&gt;host, php,<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
+sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; buf, HOST_ENT_BUF_SIZE,=
+ &amp;result,
+&amp;ghn_errno);<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (ret || !result) =
+{<o:p></o:p></p>
+
+<p class=3DMsoPlainText>@@ -300,6 +301,7 @@ static CLIENT
+*create_tcp_client(struct conn_info *info)<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&nbsp;<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; memset(&amp;hp, 0, s=
+izeof(struct hostent));<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&nbsp;<o:p></o:p></p>
+
+<p class=3DMsoPlainText>+&nbsp;&nbsp;&nbsp;&nbsp; logerr(&quot;gethostbynam=
+e_r&quot;);<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ret =3D gethostbynam=
+e_r(info-&gt;host, php,<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
+sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; buf, HOST_ENT_BUF_SIZE,=
+ &amp;result,
+&amp;ghn_errno);<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (ret || !result) =
+{<o:p></o:p></p>
+
+<p class=3DMsoPlainText>diff --git a/modules/replicated.c b/modules/replica=
+ted.c<o:p></o:p></p>
+
+<p class=3DMsoPlainText>index 90b2925..5171beb 100644<o:p></o:p></p>
+
+<p class=3DMsoPlainText>--- a/modules/replicated.c<o:p></o:p></p>
+
+<p class=3DMsoPlainText>+++ b/modules/replicated.c<o:p></o:p></p>
+
+<p class=3DMsoPlainText>@@ -880,6 +880,7 @@ static int add_host_addrs(struc=
+t host
+**list, const char *host, unsigned int wei<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; memset(buf, 0, MAX_I=
+FC_BUF);<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; memset(&amp;he, 0, s=
+izeof(struct hostent));<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&nbsp;<o:p></o:p></p>
+
+<p class=3DMsoPlainText>+&nbsp;&nbsp;&nbsp;&nbsp; logerr(&quot;gethostbynam=
+e_r&quot;);<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ret =3D gethostbynam=
+e_r(host, phe,<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
+sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; buf, MAX_IFC_BUF, &amp;=
+result,
+&amp;ghn_errno);<o:p></o:p></p>
+
+<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (ret || !result) =
+{<o:p></o:p></p>
 
 </div>
 
@@ -565,10 +1882,10 @@ copying or disclosing the contents.
 </html>
 
 
-------_=_NextPart_001_01C84415.16B71EE1--
+------_=_NextPart_001_01C84424.B735B19F--
 
 
---===============8449616581004014528==
+--===============4902962447093812658==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -579,5 +1896,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---===============8449616581004014528==--
+--===============4902962447093812658==--
 
