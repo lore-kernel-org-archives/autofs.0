@@ -1,14 +1,15 @@
-From: "James Richardson" <jrichardson@x-iss.com>
-Subject: Re: Slow mounts when using large round robin sets
-Date: Fri, 21 Dec 2007 10:57:25 -0600
-Message-ID: <98E55D6E1B3CFD43BDA59EEB56DD7D72443897@sbs01.xiss.private>
-References: <98E55D6E1B3CFD43BDA59EEB56DD7D72442DF1@sbs01.xiss.private><98E55D6E1B3CFD43BDA59EEB56DD7D724431C0@sbs01.xiss.private><1196921804.3089.28.camel@raven.themaw.net><98E55D6E1B3CFD43BDA59EEB56DD7D724432D5@sbs01.xiss.private><x49zlwm5hf1.fsf@segfault.boston.devel.redhat.com><98E55D6E1B3CFD43BDA59EEB56DD7D7244386E@sbs01.xiss.private><1198241367.3488.26.camel@raven.themaw.net>
-	<x49odck175r.fsf@segfault.boston.devel.redhat.com>
+From: Mike Marion <mmarion@qualcomm.com>
+Subject: Re: Seeing autofs-5.0.2 core dumping
+Date: Fri, 21 Dec 2007 11:27:45 -0800
+Message-ID: <20071221192744.GA14860@cornholio.qualcomm.com>
+References: <20071221023024.GB10904@cornholio.qualcomm.com>
+	<1198236856.3488.11.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-class: urn:content-classes:message
+Content-Disposition: inline
+In-Reply-To: <1198236856.3488.11.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,82 +20,51 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>, Ian Kent <raven@themaw.net>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-FYI, I solved the crashing exception... not sure why it matters but I
-compiled it on a different host than before and it appears to working.
-Once I have some test results I will post them to the list.
+On Fri, Dec 21, 2007 at 08:34:16PM +0900, Ian Kent wrote:
 
-Thanks,
+> There was a bug that caused the direct map to be pruned out of existence
+> when a server connection failed for some reason. I don't remember seeing
+> a SEGV although I wasn't paying attention to that when I worked on it.
 
----
-James T. Richardson, Jr.
-jrichardson@x-iss.com
-eXcellence in IS Solutions, Inc.
-713-862-9200 x226
+Yeah, we're digging into trying to get more info via debugging.  The
+weird thing is that every host with an issue seems to be doing the
+umount/rmdir on the exact same subset of paths (about 13 out of almost
+7000 entries) and I'm positive that at least 1 path was changed 2 days
+ago.  Changed in that the local path is different, but the mount point
+(server:/path) is the same.  So we're going to try to re-create this on
+a host by hand to see if it has to do with the daemon seeing a change in
+what it has cached vs what the maps now answer with.
 
-Making IT Work for You
-HPC & Enterprise IT Solutions
-* HPC Application Acceleration
-* Cluster Design, Deploy, Manage, Train
-* Linux/Windows Integration
-* Remote Management, Backup, Anti-Spam/Virus
-* Network Assessments, Design
-* Security Audits, Design
-* Datacenter Design, Relocation
-* Messaging and Collaboration
+Even a new daemon seems to show this problem eventually too (if
+restarted on a host after the daemon core dumped before) so it might be
+that the change can be seen between what's in /proc/mounts still vs the
+ldap map entries, and can poison the new daemon too.
 
+BTW, not positive on this yet, but it seems like setting the logging to
+debug (vs verbose) in /etc/sysconfig/autofs doesn't seem to trigger the 
+same logging with 5.0.2 that it did/does with 5.0.1.  
 
------Original Message-----
-From: Jeff Moyer [mailto:jmoyer@redhat.com] 
-Sent: Friday, December 21, 2007 7:58 AM
-To: Ian Kent
-Cc: James Richardson; autofs@linux.kernel.org
-Subject: Re: [autofs] Slow mounts when using large round robin sets
+> That shouldn't be a problem except that expires and map reads will take
+> much longer. If there are problems with synchronization I expect you
+> will see them before most others.
 
-Ian Kent <raven@themaw.net> writes:
+Yeah, what takes a _really_ long time, but actually works well (a credit
+to the autofs5 code) is that if the running daemon is dorked or dies or
+whatever... you can start up a new one, and it'll parse the entire
+/proc/mounts path and take over the existing mounts and such just fine.
 
-> On Thu, 2007-12-20 at 16:42 -0600, James Richardson wrote:
->> Jeff,
->> 
->> I downloaded the sources via git
->> (git://git.kernel.org/pub/scm/linux/storage/autofs/autofs.git)
-however
->> when automount starts up I get a floating point exception. I would
->> appreciate those debug patches you mentioned as I'm not sure where
-the
->> floating point exception is occurring.
->
-> I don't remember saying anything about debugging patches?
+> I would prefer to work from fully patched source if possible.
 
-I mentioned that we could provide targeted debugging patches to
-try to figure out the problem.  They do not exist yet, and they
-certainly would not point out why he's getting a floating point
-exception!  ;)
+We'll be doing some testing on this as well.  Just harder for us to get
+buy-in to push out an update on something this important to the compute
+pool.. but if we can prove it's more stable and fixes a problem, it's
+a little easier.
 
->> # strace automount -d
->> execve("/usr/sbin/automount", ["automount", "-d"], [/* 24 vars */]) =
-0
->> uname({sys="Linux", node="c33n69", ...}) = 0
->> brk(0)                                  = 0x80041000
->> --- SIGFPE (Floating point exception) @ 0 (0) ---
->> +++ killed by SIGFPE +++
->> Process 3702 detached
->> [root@c33n69 ~]# uname -a
->> Linux c33n69 2.6.21-GX #1 SMP Thu Apr 26 14:03:16 CDT 2007 i686 i686
->> i386 GNU/Linux
->
-> I really don't know what's happening here.
-> There's not enough info.
-
-What Ian means is that you'd have to provide a stack trace from gdb at
-the very least.  The output from automount -V wouldn't hurt, either.
-
--Jeff
-
-NOTICE:
-This message may contain privileged or otherwise confidential information.
-If you are not the intended recipient, please immediately advise the sender
-by reply email and delete the message and any attachments without using,
-copying or disclosing the contents.
+-- 
+Mike Marion-Unix SysAdmin/Staff IT Engineer-http://www.qualcomm.com
+Peggy: "12 years old and drinking a beer!?!"
+Bobby: "I didn't even like it!"
+Hank: "Well now you're just trying to get me mad!" ==> King of the Hill
