@@ -1,11 +1,12 @@
-From: chris barry <Christopher.Barry@qlogic.com>
-Subject: fairly complex nested filesystems question
-Date: Thu, 20 Dec 2007 18:29:51 -0500
-Message-ID: <1198193391.6195.33.camel@localhost>
+From: Mike Marion <mmarion@qualcomm.com>
+Subject: Seeing autofs-5.0.2 core dumping
+Date: Thu, 20 Dec 2007 18:30:25 -0800
+Message-ID: <20071221023024.GB10904@cornholio.qualcomm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,49 +19,57 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-Greetings,
+In the last 2 days we're seeing our autofs 5.0.2 daemon dumping core,
+and it seems to be triggerd by a kill -HUP call to it to make it re-read
+the maps.  Using all LDAP maps (and if HUP isn't needed there, we can
+turn it off) and it only seems to trigger if the daemon has been running
+for a least a few hours, as I can send it numerous HUP signals after
+restarting it and it won't crash.
 
-I'm trying to create a nested filesystem structure that combines an
-automounted nfs home directory, with bind mounts from the local machine.
+It looks like the HUP is making it try to shut down a subset of the
+paths (and I see this in syslog sometimes without segfaulting too)..
+where it does several entries of:
 
-The structure will look like this:
-/
-|-home
-   `-user1        <-(nfs somehost:/home/user1)
-       |-myftp    <-(bind /var/ftp/users/user1)
-       `-pub_ftp  <-(bind /var/ftp/pub)
+ automount[2475]: umounted direct mount <path>
+followed by the same paths in the same order:
+ automount[2475]: rmdir_path: lstat of <path> failed
+and then it core dumps:
+automount[7419]: segfault at 00002aaaac141e08 rip 0000000000410d63 rsp
+0000000040627030 error 4
 
-The entire structure needs to get automounted as a group on login, and
-then is chrooted as users ftp into this box.
+Sometimes that happens after 1 of the above failed rmdir_path lines,
+sometimes after most or all.
 
-My auto.master looks like this:
-/home   /etc/auto.home --timeout=30
+gdb shows them all crashing at the same point:
+#0  lookup_prune_cache (ap=0x54ace0, age=1198202622) at lookup.c:1014
 
-My auto.home looks like this:
-*              -fstype=nfs,rw,intr   10.20.30.40:/home/& \
-/home/&/myftp  -fstype=file          :/var/ftp/users/& \
-/home/&/ftp    -fstype=file          :/var/ftp/pub
+Unfortunately I don't have the exact same patched copy of lookup.c, or
+at least it didn't line up to a line with anything in it (was blank)
+when I ran the build again and then used the file after rpm patched it.
 
+This has only cropped up in the last few days.. 
 
-My home mounts fine via nfs, and is chrooted (when I ftp in), but the
-other mounts do not occur, and no errors are thrown. Thinking it was a
-timing issue, and the chroot had occurred before the local mounts
-happened, I came in via ssh (which is not chrooted, but will not be
-available to users later), and I get the same results. Finding any
-examples of this kind of map has been challenging to say the least. 
+Running SLES9-SP3 hosts with 2.6.16.21-0.8 kernel from sles10 built on
+it (using src.rpm) with autofs5 patch added.  Autofs-5.0.2 with patches 
+as of June of this year (I believe).
 
-I'm assuming my map syntax is incorrect, or is this type of thing simply
-impossible?
+First possible thing that comes to mind:
+- Are our maps just too big now?  We have huge maps now, a typical
+  /proc/mounts has values like so:
+$ grep ^auto. /proc/mounts  |wc
+   6940   41640  815531
 
+Yes.. we have almost 7000 mounts in the maps.  Those are all direct
+mounts.  We have > 25,000 mounts in our homedir map, but that's an
+indirect map.
 
-Unfortunately, I have to stay at these versions.
-RHEL4U5 2.6.9-55.ELsmp
-ProFTPD  Version 1.3.1
-Linux automount version 4.1.3-199.3
+If one of the newer patches in the last few months might address this,
+I'll be happy to patch up.  
 
-
-What am I doing wrong here?
-
-
-Thanks,
--C
+-- 
+Mike Marion-Unix SysAdmin/Staff IT Engineer-http://www.qualcomm.com
+Groundskeeper Willie: "What? Have you gone waxie in your pister? I canna' fit
+in the wee vent, you croquet playing mint muncher."
+Principal Skinner: "Greese yourself up and go in you... you, guff speaking work
+slacker!"
+Willie: "Oooh.  Good comeback."  ==> Simpsons.
