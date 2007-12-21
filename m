@@ -1,13 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: Seeing autofs-5.0.2 core dumping
-Date: Fri, 21 Dec 2007 20:34:16 +0900
-Message-ID: <1198236856.3488.11.camel@raven.themaw.net>
-References: <20071221023024.GB10904@cornholio.qualcomm.com>
+Subject: Re: fairly complex nested filesystems question
+Date: Fri, 21 Dec 2007 20:44:12 +0900
+Message-ID: <1198237452.3488.22.camel@raven.themaw.net>
+References: <1198193391.6195.33.camel@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20071221023024.GB10904@cornholio.qualcomm.com>
+In-Reply-To: <1198193391.6195.33.camel@localhost>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,79 +18,41 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Mike Marion <mmarion@qualcomm.com>
+To: chris barry <Christopher.Barry@qlogic.com>
 Cc: autofs@linux.kernel.org
 
-On Thu, 2007-12-20 at 18:30 -0800, Mike Marion wrote:
-> In the last 2 days we're seeing our autofs 5.0.2 daemon dumping core,
-> and it seems to be triggerd by a kill -HUP call to it to make it re-read
-> the maps.  Using all LDAP maps (and if HUP isn't needed there, we can
-> turn it off) and it only seems to trigger if the daemon has been running
-> for a least a few hours, as I can send it numerous HUP signals after
-> restarting it and it won't crash.
-
-When it rains it pours.
-Second SEGV report today.
-
+On Thu, 2007-12-20 at 18:29 -0500, chris barry wrote:
+> Greetings,
 > 
-> It looks like the HUP is making it try to shut down a subset of the
-> paths (and I see this in syslog sometimes without segfaulting too)..
-> where it does several entries of:
+> I'm trying to create a nested filesystem structure that combines an
+> automounted nfs home directory, with bind mounts from the local machine.
 > 
->  automount[2475]: umounted direct mount <path>
-> followed by the same paths in the same order:
->  automount[2475]: rmdir_path: lstat of <path> failed
-> and then it core dumps:
-> automount[7419]: segfault at 00002aaaac141e08 rip 0000000000410d63 rsp
-> 0000000040627030 error 4
+> The structure will look like this:
+> /
+> |-home
+>    `-user1        <-(nfs somehost:/home/user1)
+>        |-myftp    <-(bind /var/ftp/users/user1)
+>        `-pub_ftp  <-(bind /var/ftp/pub)
+> 
+> The entire structure needs to get automounted as a group on login, and
+> then is chrooted as users ftp into this box.
+> 
+> My auto.master looks like this:
+> /home   /etc/auto.home --timeout=30
+> 
+> My auto.home looks like this:
+> *              -fstype=nfs,rw,intr   10.20.30.40:/home/& \
+> /home/&/myftp  -fstype=file          :/var/ftp/users/& \
+> /home/&/ftp    -fstype=file          :/var/ftp/pub
 
-There was a bug that caused the direct map to be pruned out of existence
-when a server connection failed for some reason. I don't remember seeing
-a SEGV although I wasn't paying attention to that when I worked on it.
-
-> 
-> Sometimes that happens after 1 of the above failed rmdir_path lines,
-> sometimes after most or all.
-> 
-> gdb shows them all crashing at the same point:
-> #0  lookup_prune_cache (ap=0x54ace0, age=1198202622) at lookup.c:1014
-> 
-> Unfortunately I don't have the exact same patched copy of lookup.c, or
-> at least it didn't line up to a line with anything in it (was blank)
-> when I ran the build again and then used the file after rpm patched it.
-> 
-> This has only cropped up in the last few days.. 
-> 
-> Running SLES9-SP3 hosts with 2.6.16.21-0.8 kernel from sles10 built on
-> it (using src.rpm) with autofs5 patch added.  Autofs-5.0.2 with patches 
-> as of June of this year (I believe).
-
-I'm not quite sure what that means but this doesn't sound like a kernel
-problem so far.
-
-> 
-> First possible thing that comes to mind:
-> - Are our maps just too big now?  We have huge maps now, a typical
->   /proc/mounts has values like so:
-> $ grep ^auto. /proc/mounts  |wc
->    6940   41640  815531
-> 
-> Yes.. we have almost 7000 mounts in the maps.  Those are all direct
-> mounts.  We have > 25,000 mounts in our homedir map, but that's an
-> indirect map.
-
-That shouldn't be a problem except that expires and map reads will take
-much longer. If there are problems with synchronization I expect you
-will see them before most others.
-
-> 
-> If one of the newer patches in the last few months might address this,
-> I'll be happy to patch up.  
-
-There are a lot of patches, about 62 now.
-I need to consolidate and release 5.0.3 but I'm still testing and now
-have a couple more bugs.
-
-I would prefer to work from fully patched source if possible.
+This is not valid for a couple of reasons.
+First the * will match every key and so nothing else will be seen.
+The second and third entries aren't valid map entries for an indirect
+map either. Even if they were then the & can't be used on the left hand
+side of a map entry. This is because the & is replaced by the key that
+has been matched and so can't be used within the key itself. The -fstype
+should refer to a valid filesystem but I don't think file is a valid
+filesystem. If you're intending this to indicate a bind mount then just
+leave out the -fstype=file and leave the :<path>. 
 
 Ian
