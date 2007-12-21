@@ -1,17 +1,12 @@
-From: Mike Marion <mmarion@qualcomm.com>
-Subject: Re: Seeing autofs-5.0.2 core dumping
-Date: Fri, 21 Dec 2007 13:50:16 -0800
-Message-ID: <20071221215016.GE29941@cornholio.qualcomm.com>
-References: <20071221023024.GB10904@cornholio.qualcomm.com>
-	<1198236856.3488.11.camel@raven.themaw.net>
-	<20071221192744.GA14860@cornholio.qualcomm.com>
-	<20071221211259.GC29941@cornholio.qualcomm.com>
+From: "David Mack" <davidwmack@gmail.com>
+Subject: Linux+Solaris - NIS auto.master versus autofs5
+Date: Fri, 21 Dec 2007 14:00:00 -0800
+Message-ID: <753ec7300712211400g3eb45b21n1f236fe7056f87a1@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20071221211259.GC29941@cornholio.qualcomm.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,20 +19,44 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-On Fri, Dec 21, 2007 at 01:13:00PM -0800, Mike Marion wrote:
+I work in an environment in which Solaris and Linux machines NIS mount
+the same automount maps, including auto.master. Typically,
+/etc/auto.master just contains "+auto.master" on all of them.
 
-> Setting up a debug log and going to strace daemon at same time.
+With the advent of autofs5, this has started breaking. To get the
+Linux machines running autofs5 to work, we've had to replace
+/etc/auto.master with a version that looks something like this:
 
-Gah.. haven't seen a repeat on that with multiple restart and reboots
-though.  
+/volume yp:auto.vols
+/system yp:auto.home
+/local yp:auto.local
+/homes yp:auto.homes
+/home yp:auto.home
+/xfn -xfn
+/net -hosts             -nosuid
 
-Fixed what I mentioned about debug logging too.. turns out I'm a doofus
-and missed that we weren't specifically loggin daemon.debug on all
-hosts.  *smack*
+The NIS version (used by Solaris and older Linux machines) looks like this:
 
-About to debug log a case where we (which is easy to reproduce) the HUP
-triggering the umounted direct mount.. issue.
+/volume auto.vols -intr,bg,tcp
+/system auto.home
+/local auto.local
+/homes auto.homes -intr,bg,tcp
+/home auto.home
+/xfn -xfn
+/net -hosts             -nosuid
 
--- 
-Mike Marion-Unix SysAdmin/Staff IT Engineer-http://www.qualcomm.com
-Sorry, please try again. Thank you for taking the Turing test.
+
+Needless to say, I'm not wild about having to install a separate
+/etc/auto.master on every new Linux machine.
+
+It appears that the problem is that autofs5 doesn't like parameters
+introduces with hyphens in auto.master, which Solaris unfortunately
+requires.
+
+Is there any way around this situation that will allow me to continue
+to use a NIS-mounted auto.master on all of my machines?
+
+I apologize if this was discussed to death a couple of years ago - I
+looked in the archive and didn't find anything.
+
+Dave
