@@ -1,20 +1,16 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: Slow mounts when using large round robin sets
-Date: Fri, 21 Dec 2007 08:58:24 -0500
-Message-ID: <x49odck175r.fsf@segfault.boston.devel.redhat.com>
-References: <98E55D6E1B3CFD43BDA59EEB56DD7D72442DF1@sbs01.xiss.private>
-	<98E55D6E1B3CFD43BDA59EEB56DD7D724431C0@sbs01.xiss.private>
-	<1196921804.3089.28.camel@raven.themaw.net>
-	<98E55D6E1B3CFD43BDA59EEB56DD7D724432D5@sbs01.xiss.private>
-	<x49zlwm5hf1.fsf@segfault.boston.devel.redhat.com>
-	<98E55D6E1B3CFD43BDA59EEB56DD7D7244386E@sbs01.xiss.private>
-	<1198241367.3488.26.camel@raven.themaw.net>
+From: chris barry <Christopher.Barry@qlogic.com>
+Subject: Re: fairly complex nested filesystems question
+Date: Fri, 21 Dec 2007 09:51:43 -0500
+Message-ID: <1198248703.10225.18.camel@localhost>
+References: <1198193391.6195.33.camel@localhost>
+	<1198237452.3488.22.camel@raven.themaw.net>
+	<1198246430.10225.15.camel@localhost>
+	<1198247849.3488.44.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1198241367.3488.26.camel@raven.themaw.net> (Ian Kent's message
-	of "Fri\, 21 Dec 2007 21\:49\:27 +0900")
+In-Reply-To: <1198247849.3488.44.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -25,42 +21,90 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-Ian Kent <raven@themaw.net> writes:
+On Fri, 2007-12-21 at 23:37 +0900, Ian Kent wrote:
+> On Fri, 2007-12-21 at 09:13 -0500, chris barry wrote:
+> > On Fri, 2007-12-21 at 20:44 +0900, Ian Kent wrote:
+> > > On Thu, 2007-12-20 at 18:29 -0500, chris barry wrote:
+> > > > Greetings,
+> > > > 
+> > > > I'm trying to create a nested filesystem structure that combines an
+> > > > automounted nfs home directory, with bind mounts from the local machine.
+> > > > 
+> > > > The structure will look like this:
+> > > > /
+> > > > |-home
+> > > >    `-user1        <-(nfs somehost:/home/user1)
+> > > >        |-myftp    <-(bind /var/ftp/users/user1)
+> > > >        `-pub_ftp  <-(bind /var/ftp/pub)
+> > > > 
+> > > > The entire structure needs to get automounted as a group on login, and
+> > > > then is chrooted as users ftp into this box.
+> > > > 
+> > > > My auto.master looks like this:
+> > > > /home   /etc/auto.home --timeout=30
+> > > > 
+> > > > My auto.home looks like this:
+> > > > *              -fstype=nfs,rw,intr   10.20.30.40:/home/& \
+> > > > /home/&/myftp  -fstype=file          :/var/ftp/users/& \
+> > > > /home/&/ftp    -fstype=file          :/var/ftp/pub
+> > > 
+> > > This is not valid for a couple of reasons.
+> > > First the * will match every key and so nothing else will be seen.
+> > > The second and third entries aren't valid map entries for an indirect
+> > > map either. Even if they were then the & can't be used on the left hand
+> > > side of a map entry. This is because the & is replaced by the key that
+> > > has been matched and so can't be used within the key itself. The -fstype
+> > > should refer to a valid filesystem but I don't think file is a valid
+> > > filesystem. If you're intending this to indicate a bind mount then just
+> > > leave out the -fstype=file and leave the :<path>. 
+> > > 
+> > > Ian
+> > > 
+> > 
+> > Ian,
+> > 
+> > Thanks so much for your response. I got that one wrong totally wrong. 
+> > 
+> > Given the drawing and intent though, is the idea itself even possible,
+> > or is it simply not workable in any way? If it /is/ possible, any idea
+> > on how it should be done? From your explanation, I'm (taking a blind
+> > stab here) thinking something like:
+> > 
+> > *    -fstype=nfs,rw,intr   10.20.30.40:/home/& \
+> >      ./myftp                 :/var/ftp/users/& \
+> >      ./ftp                   :/var/ftp/pub
+> 
+> Hehe, that's not quite right either.
+> Sorry for the curt e-mail, I'm a bit loaded up at the moment.
+> 
+> We didn't get the autofs version you're using for this either.
+> 
+> That's interesting use of the wildcard key, I'm not sure whether that
+> would work but, in theory, it just might.
+> 
+> So a map would need to be something like:
+> 
+> *	/	-fstype=nfs,rw,intr   10.20.30.40:/home/& \
+> 	/myftp  	               :/var/ftp/users/& \
+> 	/ftp    	               :/var/ftp/pub
+> 
+> The initial "/" (the root of the multi-mount) is allowed to be omitted
+> as an accepted shortcut. The "." isn't legal the way it is specified
+> above.
+> 
+> Strictly speaking the mount-point directories (such
+> as /home/<someuser>/myftp and /home/<someuser>/ftp) must already exist
+> as autofs doesn't, and often can't (and should'nt be able to) create
+> directories on a remote server as it's operating as root.
+> 
+> Ian
+> 
+> 
+(putting back on the list)
 
-> On Thu, 2007-12-20 at 16:42 -0600, James Richardson wrote:
->> Jeff,
->> 
->> I downloaded the sources via git
->> (git://git.kernel.org/pub/scm/linux/storage/autofs/autofs.git) however
->> when automount starts up I get a floating point exception. I would
->> appreciate those debug patches you mentioned as I'm not sure where the
->> floating point exception is occurring.
->
-> I don't remember saying anything about debugging patches?
+Thanks Ian! I'll give that a go.
 
-I mentioned that we could provide targeted debugging patches to
-try to figure out the problem.  They do not exist yet, and they
-certainly would not point out why he's getting a floating point
-exception!  ;)
-
->> # strace automount -d
->> execve("/usr/sbin/automount", ["automount", "-d"], [/* 24 vars */]) = 0
->> uname({sys="Linux", node="c33n69", ...}) = 0
->> brk(0)                                  = 0x80041000
->> --- SIGFPE (Floating point exception) @ 0 (0) ---
->> +++ killed by SIGFPE +++
->> Process 3702 detached
->> [root@c33n69 ~]# uname -a
->> Linux c33n69 2.6.21-GX #1 SMP Thu Apr 26 14:03:16 CDT 2007 i686 i686
->> i386 GNU/Linux
->
-> I really don't know what's happening here.
-> There's not enough info.
-
-What Ian means is that you'd have to provide a stack trace from gdb at
-the very least.  The output from automount -V wouldn't hurt, either.
-
--Jeff
+Cheers,
+-C
