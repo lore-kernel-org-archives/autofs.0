@@ -1,14 +1,19 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Linux+Solaris - NIS auto.master versus autofs5
-Date: Sat, 22 Dec 2007 17:46:14 +0900
-Message-ID: <1198313175.3114.74.camel@raven.themaw.net>
-References: <753ec7300712211400g3eb45b21n1f236fe7056f87a1@mail.gmail.com>
-	<1198312105.3114.71.camel@raven.themaw.net>
+From: Mike Marion <mmarion@qualcomm.com>
+Subject: Re: Seeing autofs-5.0.2 core dumping
+Date: Sun, 23 Dec 2007 23:40:30 -0800
+Message-ID: <20071224074029.GC2644@cornholio.qualcomm.com>
+References: <20071221023024.GB10904@cornholio.qualcomm.com>
+	<1198236856.3488.11.camel@raven.themaw.net>
+	<20071221192744.GA14860@cornholio.qualcomm.com>
+	<20071221211259.GC29941@cornholio.qualcomm.com>
+	<20071221224722.GK29941@cornholio.qualcomm.com>
+	<1198311611.3114.63.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1198312105.3114.71.camel@raven.themaw.net>
+Content-Disposition: inline
+In-Reply-To: <1198311611.3114.63.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,22 +24,22 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: David Mack <davidwmack@gmail.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Sat, 2007-12-22 at 17:28 +0900, Ian Kent wrote:
-> > 
-> > It appears that the problem is that autofs5 doesn't like parameters
-> > introduces with hyphens in auto.master, which Solaris unfortunately
-> > requires.
-> 
-> OK, I don't think that's correct.
-> Perhaps it has been fixed over time and I missed that I fixed it.
-> 
-> It is true that the man page specifies no "-" but I believe it is
-> accepted and works.
+On Sat, Dec 22, 2007 at 05:20:11PM +0900, Ian Kent wrote:
 
-And a quick test here confirms that this work for me even with a
-relatively old verion 5.
+> That's good news at least.
+> Any info you manage to get will be appreciated.
 
-Ian
+Later this week (after holiday) I'm going to see if we can setup a box
+that keeps alternating between 2 test ldap servers that reproduce what
+we were seeing here... basically just remove some paths from one so that
+each update keeps making it drop, then re-add the paths.  Will make sure
+to turn on full debug logging and also likely will strace the daemon.
+Hopefully we can re-create the crash and gather some good data on it.
+
+-- 
+Mike Marion-Unix SysAdmin/Staff IT Engineer-http://www.qualcomm.com
+Ned: "How do you do it Homer?  How do you silence that little voice that says
+think?"
+Homer: "You mean Lisa?"  ==> Simpsons
