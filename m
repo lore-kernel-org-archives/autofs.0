@@ -1,66 +1,25 @@
-From: Julia Lawall <julia@diku.dk>
-Subject: [PATCH 1/4] fs/autofs: Use time_before, time_before_eq, etc.
-Date: Wed, 26 Dec 2007 16:21:37 +0100 (MET)
-Message-ID: <Pine.LNX.4.58.0712261621000.1185@pc-041.diku.dk>
+From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: [PATCH 1/4] fs/autofs: Use time_before, time_before_eq, etc.
+Date: Wed, 26 Dec 2007 09:48:35 -0800
+Message-ID: <477293F3.60304@zytor.com>
+References: <Pine.LNX.4.58.0712261621000.1185@pc-041.diku.dk>
 Mime-Version: 1.0
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752038AbXLZPWu@vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752029AbXLZRtO@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.58.0712261621000.1185@pc-041.diku.dk>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: hpa@zytor.com, autofs@linux.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: Julia Lawall <julia@diku.dk>
+Cc: autofs@linux.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 
-From: Julia Lawall <julia@diku.dk>
+Julia Lawall wrote:
+> From: Julia Lawall <julia@diku.dk>
+> 
+> The functions time_before, time_before_eq, time_after, and time_after_eq
+> are more robust for comparing jiffies against other values.
+> 
 
-The functions time_before, time_before_eq, time_after, and time_after_eq
-are more robust for comparing jiffies against other values.
+More robust, how?  You already almost introduced a bug here...
 
-A simplified version of the semantic patch making this change is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@ change_compare_np @
-expression E;
-@@
-
-(
-- jiffies <= E
-+ time_before_eq(jiffies,E)
-|
-- jiffies >= E
-+ time_after_eq(jiffies,E)
-|
-- jiffies < E
-+ time_before(jiffies,E)
-|
-- jiffies > E
-+ time_after(jiffies,E)
-)
-
-@ include depends on change_compare_np @
-@@
-
-#include <linux/jiffies.h>
-
-@ no_include depends on !include && change_compare_np @
-@@
-
-  #include <linux/...>
-+ #include <linux/jiffies.h>
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
----
-
-diff -u -p linux-2.6/fs/autofs/dirhash.c linuxcopy/fs/autofs/dirhash.c
---- linux-2.6/fs/autofs/dirhash.c	2006-11-30 19:05:26.000000000 +0100
-+++ linuxcopy/fs/autofs/dirhash.c	2007-12-25 20:53:48.000000000 +0100
-@@ -47,7 +47,7 @@ struct autofs_dir_ent *autofs_expire(str
- 			return NULL;	/* No entries */
- 		/* We keep the list sorted by last_usage and want old stuff */
- 		ent = list_entry(dh->expiry_head.next, struct autofs_dir_ent, exp);
--		if (jiffies - ent->last_usage < timeout)
-+		if (time_before(jiffies, ent->last_usage + timeout))
- 			break;
- 		/* Move to end of list in case expiry isn't desirable */
- 		autofs_update_usage(dh, ent);
+	-hpa
