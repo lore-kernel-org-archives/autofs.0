@@ -1,38 +1,81 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [PATCH 1/4] fs/autofs: Use time_before, time_before_eq, etc.
-Date: Wed, 26 Dec 2007 12:45:32 -0800
-Message-ID: <4772BD6C.1010502@zytor.com>
-References: <Pine.LNX.4.58.0712261621000.1185@pc-041.diku.dk> <2c0942db0712261158q34cddebeifceef6ceda683320@mail.gmail.com>
+From: Stef Bon <stef@bononline.nl>
+Subject: Re: No mount possible when only listing?
+Date: Wed, 26 Dec 2007 21:45:22 +0100
+Message-ID: <200712262145.22593.stef@bononline.nl>
+References: <200712251137.39694.stef@bononline.nl>
+	<1198673384.9481.22.camel@raven.themaw.net>
 Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753161AbXLZUqK@vger.kernel.org>
-In-Reply-To: <2c0942db0712261158q34cddebeifceef6ceda683320@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Ray Lee <ray-lk@madrabbit.org>
-Cc: Julia Lawall <julia@diku.dk>, autofs@linux.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <1198673384.9481.22.camel@raven.themaw.net>
+Content-Disposition: inline
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: autofs@linux.kernel.org
 
-Ray Lee wrote:
-> On Dec 26, 2007 7:21 AM, Julia Lawall <julia@diku.dk> wrote:
->> -               if (jiffies - ent->last_usage < timeout)
->> +               if (time_before(jiffies, ent->last_usage + timeout))
+On Wednesday 26 December 2007 13:49:44 you wrote:
+> On Tue, 2007-12-25 at 11:37 +0100, Stef Bon wrote:
+> > works with shares which are symlinks pointing from a "networktree" in the homedirectory of the user
+> > to this autofs directory. In my case it looks like:
+> > 
+> > /home/sbon/Global Network/Windows Network/hostA/firstsharehostA -> /mydomain/hostA/firstsharehostA
+> > /home/sbon/Global Network/Windows Network/hostA/secondsharehostA -> /mydomain/hostA/secondsharehostA
+> > /home/sbon/Global Network/Windows Network/hostA/thirdsharehostA -> /mydomain/hostA/thirdsharehostA
+> > 
+> > In my howto on howtoforge I've used a different setup, but basically it's exactly the same.
 > 
-> I don't think this is a safe change? subtraction is always safe (if
-> you think about it as 'distance'), addition isn't always safe unless
-> you know the range. The time_before macro will expand that out to
-> (effectively):
+> The auto.mydomain.sub is not a legal map and I can't say that it will
+> continue to work that way you expect it to.
 > 
->   if ( (long)(ent->last_usage + timeout) - (long)(jiffies) < 0 )
+> Only one wildcard entry is allowed in a map.
 > 
-> which seems to introduce an overflow condition in the first term.
-> 
-> Dunno, I may be wrong (happens often), but at the very least what
-> you've transformed it into is no longer obviously correct, and so it's
-> not a great change.
+Well, that's not very good news. This makes that my construction is not supported by version 5 of autofs.
+I asume there is a reason for this. Can you explain?
 
-Indeed.  The bottom form will have overflow issues at time 
-jiffies_wraparound/2, whereas the top form will have overflow issues 
-only near jiffies_wraparound/1.
+> > which is not necessary at all. I only want the content of hostA, not the content of the shares.
+> > 
+> > I can explain the behaviour. The ls command follows the symlink. When looking to where it is pointing to,
+> > the automounter is activated, and does a mount.
+> > 
+> > It is somehow possible to instruct the automounter, that when it comes to a simple "readlink" it does not mount
+> > the shares, but shows some sort of preview.
+> 
+> I'm not sure I understand what you're saying but I think you're
+> referring to a directory that contains symlinks. The directory that
+> contains the symlinks isn't an automount managed directory and so autofs
+> has no knowledge of what happens their. If you use color "ls" it will
+> stat the links that point to valid automount mounts, performing a path
+> walk on each, causing it to be mounted. I don't think there's much that
+> can be done about this within the submounted setup that you're using.
+> 
+Indeed the ls command is responsible for the following of the symlinks. On my system there
+is an alias for ls: ls ='ls --color=auto'
+I've tried to do a ls by invoking the command with the whole path (/bin/ls) and the behaviour
+is what I want: no mounting.
+I can undo the creating of the alias, but the problem will remain when using the tools in a graphical
+environment like KDE. The default filemanager does follow the symlinks 
+(and does probably a stat or something).
 
-	-hpa
+So the problem remains. But it is no showstopper: it would be very nice when solved, 
+but no disaster if it isn't.
+
+> I think the only way to get around this would be to enhance the setup
+> using something along the lines of the auto.smb example program map in
+> the distribution and version 5 of autofs.
+
+Now my construction does not use smbclient when mounting. Instead is makes use
+of a cache (which is build with nbtscan and smbclient). 
+But anyhow, I cannot see directly how the auto.smb program can do this. Can you 
+explain your idea more a little bit?
+
+
+Stef Bon
