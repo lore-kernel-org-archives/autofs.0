@@ -1,7 +1,7 @@
 From: "James Richardson" <jrichardson@x-iss.com>
 Subject: Re: Slow mounts when using large round robin sets
-Date: Wed, 26 Dec 2007 16:15:44 -0600
-Message-ID: <98E55D6E1B3CFD43BDA59EEB56DD7D72443928@sbs01.xiss.private>
+Date: Thu, 27 Dec 2007 15:47:02 -0600
+Message-ID: <98E55D6E1B3CFD43BDA59EEB56DD7D72443981@sbs01.xiss.private>
 References: <98E55D6E1B3CFD43BDA59EEB56DD7D72442DF1@sbs01.xiss.private>
 	<98E55D6E1B3CFD43BDA59EEB56DD7D724431C0@sbs01.xiss.private>
 	<1196921804.3089.28.camel@raven.themaw.net>
@@ -15,8 +15,10 @@ References: <98E55D6E1B3CFD43BDA59EEB56DD7D72442DF1@sbs01.xiss.private>
 	<98E55D6E1B3CFD43BDA59EEB56DD7D724438CB@sbs01.xiss.private>
 	<1198304664.3114.49.camel@raven.themaw.net>
 	<1198307519.3114.59.camel@raven.themaw.net>
+	<98E55D6E1B3CFD43BDA59EEB56DD7D72443928@sbs01.xiss.private>
+	<1198739265.3169.81.camel@raven.themaw.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============7800250309588021401=="
+Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01C848D2.04C1CD25"
 Return-path: <autofs-bounces@linux.kernel.org>
 Content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
@@ -34,2852 +36,990 @@ Cc: autofs@linux.kernel.org
 
 This is a multi-part message in MIME format.
 
---===============7800250309588021401==
-Content-class: urn:content-classes:message
+------_=_NextPart_001_01C848D2.04C1CD25
 Content-Type: multipart/alternative;
-	boundary="----_=_NextPart_001_01C8480C.D9F79B4F"
+	boundary="----_=_NextPart_002_01C848D2.04C1CD25"
 
-This is a multi-part message in MIME format.
 
-------_=_NextPart_001_01C8480C.D9F79B4F
+------_=_NextPart_002_01C848D2.04C1CD25
 Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-Ian,
-
-=20
-
-I applied the last set of patches you sent and have attached the results.
-
-=20
-
-What I have done to run this test is:
-
-=20
-
-      - Installed latest autofs w/ patches
-
-      - Rebooted test server w/ new autofs
-
-      - Updated /etc/syslog.conf to remove debug logging to /var/log/daemon=
-.log
-
-      - Restarted syslog daemon
-
-      - Ran 'ls' test
-
-=20
-
-[root@myhost ~]# time ls /home/brian/.bash_history
-
-/home/brian/.bash_history
-
-=20
-
-real    0m5.016s
-
-user    0m0.000s
-
-sys     0m0.004s
-
-=20
-
-The speed at which this test runs seems to take longer with the debug patch=
-es provided - my assumption is to the additional debug logged messages. How=
-ever, below is what is captured by syslog:
-
-=20
-
-Dec 26 16:00:02 myhost automount[3060]: handle_packet: type =3D 3
-
-Dec 26 16:00:02 myhost automount[3060]: handle_packet_missing_indirect: tok=
-en 1, name brian, request pid 3688
-
-Dec 26 16:00:02 myhost automount[3060]: attempting to mount entry /home/bri=
-an
-
-Dec 26 16:00:02 myhost automount[3060]: lookup_mount: lookup(yp): looking u=
-p brian
-
-Dec 26 16:00:02 myhost automount[3060]: lookup_mount: lookup(yp): brian -> =
--rsize=3D8192,wsize=3D8192,proto=3Dtcp,vers=3D3         large-rr:/home/bria=
-n
-
-Dec 26 16:00:02 myhost automount[3060]: parse_mount: parse(sun): expanded e=
-ntry: -rsize=3D8192,wsize=3D8192,proto=3Dtcp,vers=3D3         large-rr:/hom=
-e/brian
-
-Dec 26 16:00:02 myhost automount[3060]: parse_mount: parse(sun): gathered o=
-ptions: nosuid,retry=3D10,rsize=3D8192,wsize=3D8192,proto=3Dtcp,vers=3D3
-
-Dec 26 16:00:02 myhost automount[3060]: parse_mount: parse(sun): dequote("l=
-arge-rr:/home/brian") -> large-rr:/home/brian
-
-Dec 26 16:00:02 myhost automount[3060]: parse_mount: parse(sun): core of en=
-try: options=3Dnosuid,retry=3D10,rsize=3D8192,wsize=3D8192,proto=3Dtcp,vers=
-=3D3, loc=3Dlarge-rr:/home/brian
-
-Dec 26 16:00:02 myhost automount[3060]: sun_mount: parse(sun): mounting roo=
-t /home, mountpoint brian, what large-rr:/home/brian, fstype nfs, options n=
-osuid,retry=3D10,rsize=3D8192,wsize=3D8192,proto=3Dtcp,vers=3D3
-
-Dec 26 16:00:02 myhost automount[3060]: mount_mount: mount(nfs): root=3D/ho=
-me name=3Dbrian what=3Dlarge-rr:/home/brian, fstype=3Dnfs, options=3Dnosuid=
-,retry=3D10,rsize=3D8192,wsize=3D8192,proto=3Dtcp,vers=3D3
-
-Dec 26 16:00:02 myhost automount[3060]: mount_mount: mount(nfs): nfs option=
-s=3D"nosuid,retry=3D10,rsize=3D8192,wsize=3D8192,proto=3Dtcp,vers=3D3", nos=
-ymlink=3D0, ro=3D0
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:885: gethostbyname_r=
- large-rr
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s =C0Tm=B7=C8Tm=B7=D0Tm=B7=D8Tm=B7=E0Tm=B7=E8Tm=B7=F0Tm=B7=F8Tm=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s =C8Tm=B7=D0Tm=B7=D8Tm=B7=E0Tm=B7=E8Tm=B7=F0Tm=B7=F8Tm=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s =D0Tm=B7=D8Tm=B7=E0Tm=B7=E8Tm=B7=F0Tm=B7=F8Tm=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s =D8Tm=B7=E0Tm=B7=E8Tm=B7=F0Tm=B7=F8Tm=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s =E0Tm=B7=E8Tm=B7=F0Tm=B7=F8Tm=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s =E8Tm=B7=F0Tm=B7=F8Tm=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s =F0Tm=B7=F8Tm=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s =F8Tm=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-sUm=B7Um=B7Um=B7 Um=B7(Um=B70Um=B78Um=B7@Um=B7HUm=B7PUm=B7XUm=B7`Um=B7hUm=
-=B7pUm=B7xUm=B7Um=B7Um=B7Um=B7Um=B7 Um=B7=A8Um=B7=B0Um=B7=B8Um=B7=C0Um=B7=
-=C8Um=B7=D0Um=B7=D8Um=B7=E0Um=B7=E8Um=B7=F0Um=B7=F8Um=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s Um=B7Um=B7 Um=B7(Um=B70Um=B78Um=B7@Um=B7HUm=B7PUm=B7XUm=B7`Um=B7hUm=B7pUm=
-=B7xUm=B7Um=B7Um=B7Um=B7Um=B7 Um=B7=A8Um=B7=B0Um=B7=B8Um=B7=C0Um=B7=C8Um=B7=
-=D0Um=B7=D8Um=B7=E0Um=B7=E8Um=B7=F0Um=B7=F8Um=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s Um=B7 Um=B7(Um=B70Um=B78Um=B7@Um=B7HUm=B7PUm=B7XUm=B7`Um=B7hUm=B7pUm=B7xU=
-m=B7Um=B7Um=B7Um=B7Um=B7 Um=B7=A8Um=B7=B0Um=B7=B8Um=B7=C0Um=B7=C8Um=B7=D0Um=
-=B7=D8Um=B7=E0Um=B7=E8Um=B7=F0Um=B7=F8Um=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s  Um=B7(Um=B70Um=B78Um=B7@Um=B7HUm=B7PUm=B7XUm=B7`Um=B7hUm=B7pUm=B7xUm=B7U=
-m=B7Um=B7Um=B7Um=B7 Um=B7=A8Um=B7=B0Um=B7=B8Um=B7=C0Um=B7=C8Um=B7=D0Um=B7=
-=D8Um=B7=E0Um=B7=E8Um=B7=F0Um=B7=F8Um=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s (Um=B70Um=B78Um=B7@Um=B7HUm=B7PUm=B7XUm=B7`Um=B7hUm=B7pUm=B7xUm=B7Um=B7Um=
-=B7Um=B7Um=B7 Um=B7=A8Um=B7=B0Um=B7=B8Um=B7=C0Um=B7=C8Um=B7=D0Um=B7=D8Um=B7=
-=E0Um=B7=E8Um=B7=F0Um=B7=F8Um=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s 0Um=B78Um=B7@Um=B7HUm=B7PUm=B7XUm=B7`Um=B7hUm=B7pUm=B7xUm=B7Um=B7Um=B7Um=
-=B7Um=B7 Um=B7=A8Um=B7=B0Um=B7=B8Um=B7=C0Um=B7=C8Um=B7=D0Um=B7=D8Um=B7=E0Um=
-=B7=E8Um=B7=F0Um=B7=F8Um=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s 8Um=B7@Um=B7HUm=B7PUm=B7XUm=B7`Um=B7hUm=B7pUm=B7xUm=B7Um=B7Um=B7Um=B7Um=
-=B7 Um=B7=A8Um=B7=B0Um=B7=B8Um=B7=C0Um=B7=C8Um=B7=D0Um=B7=D8Um=B7=E0Um=B7=
-=E8Um=B7=F0Um=B7=F8Um=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s @Um=B7HUm=B7PUm=B7XUm=B7`Um=B7hUm=B7pUm=B7xUm=B7Um=B7Um=B7Um=B7Um=B7 Um=
-=B7=A8Um=B7=B0Um=B7=B8Um=B7=C0Um=B7=C8Um=B7=D0Um=B7=D8Um=B7=E0Um=B7=E8Um=B7=
-=F0Um=B7=F8Um=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s HUm=B7PUm=B7XUm=B7`Um=B7hUm=B7pUm=B7xUm=B7Um=B7Um=B7Um=B7Um=B7 Um=B7=A8Um=
-=B7=B0Um=B7=B8Um=B7=C0Um=B7=C8Um=B7=D0Um=B7=D8Um=B7=E0Um=B7=E8Um=B7=F0Um=B7=
-=F8Um=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s PUm=B7XUm=B7`Um=B7hUm=B7pUm=B7xUm=B7Um=B7Um=B7Um=B7Um=B7 Um=B7=A8Um=B7=B0=
-Um=B7=B8Um=B7=C0Um=B7=C8Um=B7=D0Um=B7=D8Um=B7=E0Um=B7=E8Um=B7=F0Um=B7=F8Um=
-=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s XUm=B7`Um=B7hUm=B7pUm=B7xUm=B7Um=B7Um=B7Um=B7Um=B7 Um=B7=A8Um=B7=B0Um=B7=
-=B8Um=B7=C0Um=B7=C8Um=B7=D0Um=B7=D8Um=B7=E0Um=B7=E8Um=B7=F0Um=B7=F8Um=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s `Um=B7hUm=B7pUm=B7xUm=B7Um=B7Um=B7Um=B7Um=B7 Um=B7=A8Um=B7=B0Um=B7=B8Um=
-=B7=C0Um=B7=C8Um=B7=D0Um=B7=D8Um=B7=E0Um=B7=E8Um=B7=F0Um=B7=F8Um=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s hUm=B7pUm=B7xUm=B7Um=B7Um=B7Um=B7Um=B7 Um=B7=A8Um=B7=B0Um=B7=B8Um=B7=C0Um=
-=B7=C8Um=B7=D0Um=B7=D8Um=B7=E0Um=B7=E8Um=B7=F0Um=B7=F8Um=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s pUm=B7xUm=B7Um=B7Um=B7Um=B7Um=B7 Um=B7=A8Um=B7=B0Um=B7=B8Um=B7=C0Um=B7=C8=
-Um=B7=D0Um=B7=D8Um=B7=E0Um=B7=E8Um=B7=F0Um=B7=F8Um=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s xUm=B7Um=B7Um=B7Um=B7Um=B7 Um=B7=A8Um=B7=B0Um=B7=B8Um=B7=C0Um=B7=C8Um=B7=
-=D0Um=B7=D8Um=B7=E0Um=B7=E8Um=B7=F0Um=B7=F8Um=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s Um=B7Um=B7Um=B7Um=B7 Um=B7=A8Um=B7=B0Um=B7=B8Um=B7=C0Um=B7=C8Um=B7=D0Um=
-=B7=D8Um=B7=E0Um=B7=E8Um=B7=F0Um=B7=F8Um=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s Um=B7Um=B7Um=B7 Um=B7=A8Um=B7=B0Um=B7=B8Um=B7=C0Um=B7=C8Um=B7=D0Um=B7=D8U=
-m=B7=E0Um=B7=E8Um=B7=F0Um=B7=F8Um=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s Um=B7Um=B7 Um=B7=A8Um=B7=B0Um=B7=B8Um=B7=C0Um=B7=C8Um=B7=D0Um=B7=D8Um=B7=
-=E0Um=B7=E8Um=B7=F0Um=B7=F8Um=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s Um=B7 Um=B7=A8Um=B7=B0Um=B7=B8Um=B7=C0Um=B7=C8Um=B7=D0Um=B7=D8Um=B7=E0Um=
-=B7=E8Um=B7=F0Um=B7=F8Um=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s  Um=B7=A8Um=B7=B0Um=B7=B8Um=B7=C0Um=B7=C8Um=B7=D0Um=B7=D8Um=B7=E0Um=B7=E8=
-Um=B7=F0Um=B7=F8Um=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s =A8Um=B7=B0Um=B7=B8Um=B7=C0Um=B7=C8Um=B7=D0Um=B7=D8Um=B7=E0Um=B7=E8Um=B7=
-=F0Um=B7=F8Um=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s =B0Um=B7=B8Um=B7=C0Um=B7=C8Um=B7=D0Um=B7=D8Um=B7=E0Um=B7=E8Um=B7=F0Um=B7=
-=F8Um=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s =B8Um=B7=C0Um=B7=C8Um=B7=D0Um=B7=D8Um=B7=E0Um=B7=E8Um=B7=F0Um=B7=F8Um=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s =C0Um=B7=C8Um=B7=D0Um=B7=D8Um=B7=E0Um=B7=E8Um=B7=F0Um=B7=F8Um=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s =C8Um=B7=D0Um=B7=D8Um=B7=E0Um=B7=E8Um=B7=F0Um=B7=F8Um=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s =D0Um=B7=D8Um=B7=E0Um=B7=E8Um=B7=F0Um=B7=F8Um=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s =D8Um=B7=E0Um=B7=E8Um=B7=F0Um=B7=F8Um=B7
-
-Dec 26 16:00:02 myhost automount[3060]: add_host_addrs:901: add host addres=
-s =E0Um=B7=E8Um=B7=F0Um=B7=F8Um=B7
-
-Dec 26 16:00:03 myhost automount[3060]: add_host_addrs:901: add host addres=
-s =E8Um=B7=F0Um=B7=F8Um=B7
-
-Dec 26 16:00:03 myhost automount[3060]: add_host_addrs:901: add host addres=
-s =F0Um=B7=F8Um=B7
-
-Dec 26 16:00:03 myhost automount[3060]: add_host_addrs:901: add host addres=
-s =F8Um=B7
-
-Dec 26 16:00:03 myhost automount[3060]: add_host_addrs:901: add host addres=
-s
-
-Dec 26 16:00:03 myhost automount[3060]: add_host_addrs:901: add host addres=
-sVm=B7Vm=B7Vm=B7 Vm=B7(Vm=B70Vm=B78Vm=B7
-
-Dec 26 16:00:03 myhost automount[3060]: add_host_addrs:901: add host addres=
-s Vm=B7Vm=B7 Vm=B7(Vm=B70Vm=B78Vm=B7
-
-Dec 26 16:00:03 myhost automount[3060]: add_host_addrs:901: add host addres=
-s Vm=B7 Vm=B7(Vm=B70Vm=B78Vm=B7
-
-Dec 26 16:00:03 myhost automount[3060]: add_host_addrs:901: add host addres=
-s  Vm=B7(Vm=B70Vm=B78Vm=B7
-
-Dec 26 16:00:03 myhost automount[3060]: add_host_addrs:901: add host addres=
-s (Vm=B70Vm=B78Vm=B7
-
-Dec 26 16:00:03 myhost automount[3060]: add_host_addrs:901: add host addres=
-s 0Vm=B78Vm=B7
-
-Dec 26 16:00:03 myhost automount[3060]: add_host_addrs:901: add host addres=
-s 8Vm=B7
-
-Dec 26 16:00:03 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:03 myhost last message repeated 2 times
-
-Dec 26 16:00:03 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:03 myhost last message repeated 2 times
-
-Dec 26 16:00:03 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:03 myhost last message repeated 2 times
-
-Dec 26 16:00:03 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:03 myhost last message repeated 2 times
-
-Dec 26 16:00:03 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:03 myhost last message repeated 2 times
-
-Dec 26 16:00:03 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:03 myhost last message repeated 2 times
-
-Dec 26 16:00:03 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:03 myhost last message repeated 2 times
-
-Dec 26 16:00:03 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:03 myhost last message repeated 2 times
-
-Dec 26 16:00:03 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:03 myhost last message repeated 2 times
-
-Dec 26 16:00:03 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:03 myhost last message repeated 2 times
-
-Dec 26 16:00:03 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:03 myhost last message repeated 2 times
-
-Dec 26 16:00:03 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:03 myhost last message repeated 2 times
-
-Dec 26 16:00:03 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:03 myhost last message repeated 2 times
-
-Dec 26 16:00:03 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:03 myhost last message repeated 2 times
-
-Dec 26 16:00:03 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:03 myhost last message repeated 2 times
-
-Dec 26 16:00:03 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:03 myhost last message repeated 2 times
-
-Dec 26 16:00:03 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:03 myhost last message repeated 2 times
-
-Dec 26 16:00:03 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:03 myhost last message repeated 2 times
-
-Dec 26 16:00:03 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:03 myhost last message repeated 2 times
-
-Dec 26 16:00:03 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:03 myhost last message repeated 2 times
-
-Dec 26 16:00:03 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:03 myhost last message repeated 2 times
-
-Dec 26 16:00:03 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:03 myhost last message repeated 2 times
-
-Dec 26 16:00:03 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:03 myhost last message repeated 2 times
-
-Dec 26 16:00:03 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:04 myhost last message repeated 2 times
-
-Dec 26 16:00:04 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:04 myhost last message repeated 2 times
-
-Dec 26 16:00:04 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:04 myhost last message repeated 2 times
-
-Dec 26 16:00:04 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:04 myhost last message repeated 2 times
-
-Dec 26 16:00:04 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:04 myhost last message repeated 2 times
-
-Dec 26 16:00:04 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:04 myhost last message repeated 2 times
-
-Dec 26 16:00:04 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:04 myhost last message repeated 2 times
-
-Dec 26 16:00:04 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:04 myhost last message repeated 2 times
-
-Dec 26 16:00:04 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:04 myhost last message repeated 2 times
-
-Dec 26 16:00:04 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:04 myhost last message repeated 2 times
-
-Dec 26 16:00:04 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:04 myhost last message repeated 2 times
-
-Dec 26 16:00:04 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:04 myhost last message repeated 2 times
-
-Dec 26 16:00:04 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:04 myhost last message repeated 2 times
-
-Dec 26 16:00:04 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:04 myhost last message repeated 2 times
-
-Dec 26 16:00:04 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:04 myhost last message repeated 2 times
-
-Dec 26 16:00:04 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:04 myhost last message repeated 2 times
-
-Dec 26 16:00:04 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:04 myhost last message repeated 2 times
-
-Dec 26 16:00:04 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:04 myhost last message repeated 2 times
-
-Dec 26 16:00:04 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:04 myhost last message repeated 2 times
-
-Dec 26 16:00:04 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:04 myhost last message repeated 2 times
-
-Dec 26 16:00:04 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:04 myhost last message repeated 2 times
-
-Dec 26 16:00:04 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:04 myhost last message repeated 2 times
-
-Dec 26 16:00:04 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:04 myhost last message repeated 2 times
-
-Dec 26 16:00:04 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:04 myhost last message repeated 2 times
-
-Dec 26 16:00:04 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:04 myhost last message repeated 2 times
-
-Dec 26 16:00:04 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:04 myhost last message repeated 2 times
-
-Dec 26 16:00:04 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:04 myhost last message repeated 2 times
-
-Dec 26 16:00:04 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:04 myhost last message repeated 2 times
-
-Dec 26 16:00:04 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:04 myhost last message repeated 2 times
-
-Dec 26 16:00:04 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:04 myhost last message repeated 2 times
-
-Dec 26 16:00:04 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:04 myhost last message repeated 2 times
-
-Dec 26 16:00:04 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:04 myhost last message repeated 2 times
-
-Dec 26 16:00:04 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:05 myhost last message repeated 2 times
-
-Dec 26 16:00:05 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:05 myhost last message repeated 2 times
-
-Dec 26 16:00:05 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:05 myhost last message repeated 2 times
-
-Dec 26 16:00:05 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:05 myhost last message repeated 2 times
-
-Dec 26 16:00:05 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:05 myhost last message repeated 2 times
-
-Dec 26 16:00:05 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:05 myhost last message repeated 2 times
-
-Dec 26 16:00:05 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:05 myhost last message repeated 2 times
-
-Dec 26 16:00:05 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:05 myhost last message repeated 2 times
-
-Dec 26 16:00:05 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:05 myhost last message repeated 2 times
-
-Dec 26 16:00:05 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:05 myhost last message repeated 2 times
-
-Dec 26 16:00:05 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:05 myhost last message repeated 2 times
-
-Dec 26 16:00:05 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:05 myhost last message repeated 2 times
-
-Dec 26 16:00:05 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:05 myhost last message repeated 2 times
-
-Dec 26 16:00:05 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:05 myhost last message repeated 2 times
-
-Dec 26 16:00:05 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:05 myhost last message repeated 2 times
-
-Dec 26 16:00:05 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:05 myhost last message repeated 2 times
-
-Dec 26 16:00:05 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:05 myhost last message repeated 2 times
-
-Dec 26 16:00:05 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:05 myhost last message repeated 2 times
-
-Dec 26 16:00:05 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:05 myhost last message repeated 2 times
-
-Dec 26 16:00:05 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:05 myhost last message repeated 2 times
-
-Dec 26 16:00:05 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:05 myhost last message repeated 2 times
-
-Dec 26 16:00:05 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:05 myhost last message repeated 2 times
-
-Dec 26 16:00:05 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:05 myhost last message repeated 2 times
-
-Dec 26 16:00:05 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:05 myhost last message repeated 2 times
-
-Dec 26 16:00:05 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:05 myhost last message repeated 2 times
-
-Dec 26 16:00:05 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:05 myhost last message repeated 2 times
-
-Dec 26 16:00:05 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:05 myhost last message repeated 2 times
-
-Dec 26 16:00:05 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:05 myhost last message repeated 2 times
-
-Dec 26 16:00:05 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:05 myhost last message repeated 2 times
-
-Dec 26 16:00:05 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:05 myhost last message repeated 2 times
-
-Dec 26 16:00:05 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:05 myhost last message repeated 2 times
-
-Dec 26 16:00:05 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:05 myhost last message repeated 2 times
-
-Dec 26 16:00:05 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:06 myhost last message repeated 2 times
-
-Dec 26 16:00:06 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:06 myhost last message repeated 2 times
-
-Dec 26 16:00:06 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:06 myhost last message repeated 2 times
-
-Dec 26 16:00:06 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:06 myhost last message repeated 2 times
-
-Dec 26 16:00:06 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:06 myhost last message repeated 2 times
-
-Dec 26 16:00:06 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:06 myhost last message repeated 2 times
-
-Dec 26 16:00:06 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:06 myhost last message repeated 2 times
-
-Dec 26 16:00:06 myhost automount[3060]: create_udp_client:96: gethostbyname=
-_r large-rr
-
-Dec 26 16:00:06 myhost last message repeated 2 times
-
-Dec 26 16:00:06 myhost automount[3060]: create_tcp_client:308: gethostbynam=
-e_r large-rr
-
-Dec 26 16:00:06 myhost last message repeated 2 times
-
-Dec 26 16:00:06 myhost automount[3060]: mount_mount: mount(nfs): calling mk=
-dir_path /home/brian
-
-Dec 26 16:00:06 myhost automount[3060]: mount_mount: mount(nfs): calling mo=
-unt -t nfs -s -o nosuid,retry=3D10,rsize=3D8192,wsize=3D8192,proto=3Dtcp,ve=
-rs=3D3 large-rr:/home/brian /home/brian
-
-Dec 26 16:00:06 myhost automount[3060]: mount(nfs): mounted large-rr:/home/=
-brian on /home/brian
-
-Dec 26 16:00:06 myhost automount[3060]: send_ready: token =3D 1
-
-Dec 26 16:00:06 myhost automount[3060]: mounted /home/brian
-
-=20
-
-
-
-
-
----
-
-James T. Richardson, Jr.
-
-jrichardson@x-iss.com
-
-eXcellence in IS Solutions, Inc.
-
-713-862-9200 x226
-
-=20
-
-Making IT Work for You
-
-HPC & Enterprise IT Solutions
-
-* HPC Application Acceleration
-
-* Cluster Design, Deploy, Manage, Train
-
-* Linux/Windows Integration
-
-* Remote Management, Backup, Anti-Spam/Virus
-
-* Network Assessments, Design
-
-* Security Audits, Design
-
-* Datacenter Design, Relocation
-
-* Messaging and Collaboration
-
-=20
-
-=20
-
------Original Message-----
-From: Ian Kent [mailto:raven@themaw.net]=20
-Sent: Saturday, December 22, 2007 1:12 AM
-To: James Richardson
-Cc: Jeff Moyer; autofs@linux.kernel.org
-Subject: RE: [autofs] Slow mounts when using large round robin sets
-
-=20
-
-On Sat, 2007-12-22 at 15:24 +0900, Ian Kent wrote:
-
-> On Fri, 2007-12-21 at 16:56 -0600, James Richardson wrote:
-
-> > Jeff,
-
-> >=20
-
-> > =20
-
-> >=20
-
-> > I applied the patch and here is what was recorded.=20
-
->=20
-
-> What were the actions carried out from the start to the finish of this
-
-> logging?
-
->=20
-
-> I think we'll also need to add the hostname to the logging.
-
-=20
-
-Actually it looks like we're adding an entry for every host ip address
-
-and but not using the address to probe availability.
-
-=20
-
-So having multiple IPs associated with a host ends up being the same as
-
-specifying several host names in a mount. autofs then checks to see
-
-which is closest and calculates a load metric based on a ping to the NFS
-
-NULL proc and chooses one.
-
-=20
-
-I don't think we should be doing a name lookup for every address though
-
-and that may be the source of the problem.
-
-=20
-
-How about trying this patch.
-
-I've added the host name and an extra report when an address is added.
-
-I've also attempted to use the addresses from the original lookup.
-
-It replaces Jeffs patch.
-
-=20
-
----
-
-diff --git a/include/rpc_subs.h b/include/rpc_subs.h
-
-index 3292e01..3f15ef5 100644
-
---- a/include/rpc_subs.h
-
-+++ b/include/rpc_subs.h
-
-@@ -46,6 +46,7 @@
-
-=20
-
- struct conn_info {
-
-      const char *host;
-
-+     const char *addr;
-
-      unsigned short port;
-
-      unsigned long program;
-
-      unsigned long version;
-
-diff --git a/lib/rpc_subs.c b/lib/rpc_subs.c
-
-index 5797639..0778558 100644
-
---- a/lib/rpc_subs.c
-
-+++ b/lib/rpc_subs.c
-
-@@ -66,6 +66,7 @@ static CLIENT *create_udp_client(struct conn_info
-
-*info)
-
-      struct hostent *php =3D &hp;
-
-      struct hostent *result;
-
-      char buf[HOST_ENT_BUF_SIZE];
-
-+     const char *haddr;
-
-      size_t len;
-
-=20
-
-      if (info->proto->p_proto !=3D IPPROTO_UDP)
-
-@@ -86,11 +87,13 @@ static CLIENT *create_udp_client(struct conn_info
-
-*info)
-
-      memset(&raddr, 0, sizeof(raddr));
-
-=20
-
-      raddr.sin_family =3D AF_INET;
-
--     if (inet_aton(info->host, &raddr.sin_addr))
-
-+     haddr =3D info->addr ? info->addr : info->host;
-
-+     if (inet_aton(haddr, &raddr.sin_addr))
-
-            goto got_addr;
-
-=20
-
-      memset(&hp, 0, sizeof(struct hostent));
-
-=20
-
-+     logerr("gethostbyname_r %s", info->host);
-
-      ret =3D gethostbyname_r(info->host, php,
-
-                  buf, HOST_ENT_BUF_SIZE, &result, &ghn_errno);
-
-      if (ret || !result) {
-
-@@ -276,6 +279,7 @@ static CLIENT *create_tcp_client(struct conn_info
-
-*info)
-
-      struct hostent *php =3D &hp;
-
-      struct hostent *result;
-
-      char buf[HOST_ENT_BUF_SIZE];
-
-+     const char *haddr;
-
-      int ret;
-
-=20
-
-      if (info->proto->p_proto !=3D IPPROTO_TCP)
-
-@@ -295,11 +299,13 @@ static CLIENT *create_tcp_client(struct conn_info
-
-*info)
-
-      memset(&addr, 0, sizeof(addr));
-
-=20
-
-      addr.sin_family =3D AF_INET;
-
--     if (inet_aton(info->host, &addr.sin_addr))
-
-+     haddr =3D info->addr ? info->addr : info->host;
-
-+     if (inet_aton(haddr, &addr.sin_addr))
-
-            goto got_addr;
-
-=20
-
-      memset(&hp, 0, sizeof(struct hostent));
-
-=20
-
-+     logerr("gethostbyname_r %s", info->host);
-
-      ret =3D gethostbyname_r(info->host, php,
-
-                  buf, HOST_ENT_BUF_SIZE, &result, &ghn_errno);
-
-      if (ret || !result) {
-
-@@ -418,6 +424,7 @@ int rpc_portmap_getclient(struct conn_info *info,
-
-            return 0;
-
-=20
-
-      info->host =3D host;
-
-+     info->addr =3D NULL;
-
-      info->program =3D PMAPPROG;
-
-      info->port =3D PMAPPORT;
-
-      info->version =3D PMAPVERS;
-
-@@ -462,6 +469,7 @@ unsigned short rpc_portmap_getport(struct conn_info
-
-*info, struct pmap *parms)
-
-            client =3D info->client;
-
-      else {
-
-            pmap_info.host =3D info->host;
-
-+           pmap_info.addr =3D NULL;
-
-            pmap_info.port =3D PMAPPORT;
-
-            pmap_info.program =3D PMAPPROG;
-
-            pmap_info.version =3D PMAPVERS;
-
-@@ -589,6 +597,7 @@ static unsigned int __rpc_ping(const char *host,
-
-      struct pmap parms;
-
-=20
-
-      info.host =3D host;
-
-+     info.addr =3D NULL;
-
-      info.program =3D NFS_PROGRAM;
-
-      info.version =3D version;
-
-      info.send_sz =3D 0;
-
-@@ -769,6 +778,7 @@ exports rpc_get_exports(const char *host, long
-
-seconds, long micros, unsigned in
-
-      int status;
-
-=20
-
-      info.host =3D host;
-
-+     info.addr =3D NULL;
-
-      info.program =3D MOUNTPROG;
-
-      info.version =3D MOUNTVERS;
-
-      info.send_sz =3D 0;
-
-diff --git a/modules/replicated.c b/modules/replicated.c
-
-index 90b2925..d64f74a 100644
-
---- a/modules/replicated.c
-
-+++ b/modules/replicated.c
-
-@@ -551,6 +551,7 @@ static int get_vers_and_cost(unsigned logopt, struct
-
-host *host,
-
-            timeout =3D RPC_TIMEOUT * 8;
-
-=20
-
-      rpc_info.host =3D host->name;
-
-+     rpc_info.addr =3D host->addr;
-
-      rpc_info.program =3D NFS_PROGRAM;
-
-      rpc_info.timeout.tv_sec =3D timeout;
-
-      rpc_info.close_option =3D RPC_CLOSE_DEFAULT;
-
-@@ -606,6 +607,7 @@ static int get_supported_ver_and_cost(unsigned
-
-logopt, struct host *host,
-
-            timeout =3D RPC_TIMEOUT * 8;
-
-=20
-
-      rpc_info.host =3D host->name;
-
-+     rpc_info.addr =3D host->addr;
-
-      rpc_info.program =3D NFS_PROGRAM;
-
-      rpc_info.timeout.tv_sec =3D timeout;
-
-      rpc_info.close_option =3D RPC_CLOSE_DEFAULT;
-
-@@ -880,6 +882,7 @@ static int add_host_addrs(struct host **list, const
-
-char *host, unsigned int wei
-
-      memset(buf, 0, MAX_IFC_BUF);
-
-      memset(&he, 0, sizeof(struct hostent));
-
-=20
-
-+     logerr("gethostbyname_r %s", host);
-
-      ret =3D gethostbyname_r(host, phe,
-
-                  buf, MAX_IFC_BUF, &result, &ghn_errno);
-
-      if (ret || !result) {
-
-@@ -895,6 +898,7 @@ static int add_host_addrs(struct host **list, const
-
-char *host, unsigned int wei
-
-            if (prx =3D=3D PROXIMITY_ERROR)
-
-                  return 0;
-
-=20
-
-+           logerr("add host address %s", haddr);
-
-            if (!(new =3D new_host(host, *haddr, prx, weight)))
-
-                  return 0;
-
-=20
-
-=20
-
-=20
-
-
-NOTICE:
-This message may contain privileged or otherwise confidential information.
-If you are not the intended recipient, please immediately advise the sender
-by reply email and delete the message and any attachments without using,
-copying or disclosing the contents.
-
-
-
-------_=_NextPart_001_01C8480C.D9F79B4F
+	charset="utf-8"
+Content-Transfer-Encoding: base64
+
+SWFuLA0KDQogDQoNCkkgdXBkYXRlZCB5b3VyIHBhdGNoIGEgbGl0dGxlIHRvIHByb3ZpZGUgY2xl
+YXJlciBkZWJ1ZyBvdXRwdXQgaW4gdGhlICdhZGRfaG9zdCcgZnVuY3Rpb24uIEkndmUgYXR0YWNo
+ZWQgdGhlIHBhdGNoIHRvIHRoaXMgZS1tYWlsLiAoSSdtIHN0aWxsIGdldHRpbmcgZmFtaWxpYXIg
+d2l0aCBnaXQsIG15IGFwb2xvZ2llcyBpZiB0aGUgZGlmZiBpcyBub3QgaW4gdGhlIGNvcnJlY3Qg
+Zm9ybWF0KS4gSSB1cGRhdGVkIHRoZSBsb2dlcnIgY2FsbCBpbiByZXBsaWNhdGVkLmMgdG86DQoN
+CiANCg0KbG9nZXJyKCJhZGQgaG9zdCAlcyBhZGRyZXNzICVzIiwgaG9zdCwgaW5ldF9udG9hKCoo
+KHN0cnVjdCBpbl9hZGRyICopcGhlLT5oX2FkZHIpKSk7DQoNCiANCg0KQmVsb3cgaXMgdGhlIG91
+dHB1dCBhZnRlciBteSBzaW1wbGUgJ2xzJyB0ZXN0LiBJdCBpcyBpbnRlcmVzdGluZyB0aGF0ICdh
+ZGQgaG9zdCBsYXJnZS1yciBhZGRyZXNzIDE3Mi4yMS4xNS4zNycgbGluZSBpcyBjYWxsZWQgNDgg
+dGltZXMgLSB0aGVyZSBhcmUgNDggZW50cmllcyBpbiB0aGUgbGFyZ2UtcnIgcm91bmQgcm9iaW4g
+4oCTIEkgd291bGQgaGF2ZSBhc3N1bWVkIGl0IHdvdWxkIGhhdmUgY2FsbGVkIGl0IGZvciBlYWNo
+IGFkZHJlc3MgaW4gdGhlIHJvdW5kIHJvYmluLCBub3QgNDggdGltZXMgZm9yIHRoZSBzYW1lIGFk
+ZHJlc3MuDQoNCiANCg0KIA0KDQogDQoNCkRlYyAyNyAxNTozNjoyNiBteWhvc3QgYXV0b2ZzOiBh
+dXRvbW91bnQgc3RhcnR1cCBzdWNjZWVkZWQNCg0KRGVjIDI3IDE1OjM2OjMwIG15aG9zdCBhdXRv
+bW91bnRbMTUxMTddOiBhZGRfaG9zdF9hZGRyczo4ODY6IGdldGhvc3RieW5hbWVfciBsYXJnZS1y
+cg0KDQpEZWMgMjcgMTU6MzY6MzAgbXlob3N0IGF1dG9tb3VudFsxNTExN106IGFkZF9ob3N0X2Fk
+ZHJzOjkwMjogYWRkIGhvc3QgbGFyZ2UtcnIgYWRkcmVzcyAxNzIuMjEuMTUuMzcNCg0KRGVjIDI3
+IDE1OjM2OjMwIG15aG9zdCBsYXN0IG1lc3NhZ2UgcmVwZWF0ZWQgNDcgdGltZXMNCg0KRGVjIDI3
+IDE1OjM2OjMwIG15aG9zdCBhdXRvbW91bnRbMTUxMTddOiBjcmVhdGVfdWRwX2NsaWVudDo5Njog
+Z2V0aG9zdGJ5bmFtZV9yIGxhcmdlLXJyDQoNCkRlYyAyNyAxNTozNjozMCBteWhvc3QgbGFzdCBt
+ZXNzYWdlIHJlcGVhdGVkIDIgdGltZXMNCg0KRGVjIDI3IDE1OjM2OjMwIG15aG9zdCBhdXRvbW91
+bnRbMTUxMTddOiBjcmVhdGVfdGNwX2NsaWVudDozMDg6IGdldGhvc3RieW5hbWVfciBsYXJnZS1y
+cg0KDQpEZWMgMjcgMTU6MzY6MzAgbXlob3N0IGxhc3QgbWVzc2FnZSByZXBlYXRlZCAyIHRpbWVz
+DQoNCkRlYyAyNyAxNTozNjozMCBteWhvc3QgYXV0b21vdW50WzE1MTE3XTogY3JlYXRlX3VkcF9j
+bGllbnQ6OTY6IGdldGhvc3RieW5hbWVfciBsYXJnZS1ycg0KDQpEZWMgMjcgMTU6MzY6MzAgbXlo
+b3N0IGxhc3QgbWVzc2FnZSByZXBlYXRlZCAyIHRpbWVzDQoNCkRlYyAyNyAxNTozNjozMCBteWhv
+c3QgYXV0b21vdW50WzE1MTE3XTogY3JlYXRlX3RjcF9jbGllbnQ6MzA4OiBnZXRob3N0YnluYW1l
+X3IgbGFyZ2UtcnINCg0KRGVjIDI3IDE1OjM2OjMwIG15aG9zdCBsYXN0IG1lc3NhZ2UgcmVwZWF0
+ZWQgMiB0aW1lcw0KDQpEZWMgMjcgMTU6MzY6MzAgbXlob3N0IGF1dG9tb3VudFsxNTExN106IGNy
+ZWF0ZV91ZHBfY2xpZW50Ojk2OiBnZXRob3N0YnluYW1lX3IgbGFyZ2UtcnINCg0KRGVjIDI3IDE1
+OjM2OjMwIG15aG9zdCBsYXN0IG1lc3NhZ2UgcmVwZWF0ZWQgMiB0aW1lcw0KDQpEZWMgMjcgMTU6
+MzY6MzAgbXlob3N0IGF1dG9tb3VudFsxNTExN106IGNyZWF0ZV90Y3BfY2xpZW50OjMwODogZ2V0
+aG9zdGJ5bmFtZV9yIGxhcmdlLXJyDQoNCkRlYyAyNyAxNTozNjozMCBteWhvc3QgbGFzdCBtZXNz
+YWdlIHJlcGVhdGVkIDIgdGltZXMNCg0KRGVjIDI3IDE1OjM2OjMwIG15aG9zdCBhdXRvbW91bnRb
+MTUxMTddOiBjcmVhdGVfdWRwX2NsaWVudDo5NjogZ2V0aG9zdGJ5bmFtZV9yIGxhcmdlLXJyDQoN
+CkRlYyAyNyAxNTozNjozMCBteWhvc3QgbGFzdCBtZXNzYWdlIHJlcGVhdGVkIDIgdGltZXMNCg0K
+RGVjIDI3IDE1OjM2OjMwIG15aG9zdCBhdXRvbW91bnRbMTUxMTddOiBjcmVhdGVfdGNwX2NsaWVu
+dDozMDg6IGdldGhvc3RieW5hbWVfciBsYXJnZS1ycg0KDQpEZWMgMjcgMTU6MzY6MzAgbXlob3N0
+IGxhc3QgbWVzc2FnZSByZXBlYXRlZCAyIHRpbWVzDQoNCkRlYyAyNyAxNTozNjozMCBteWhvc3Qg
+YXV0b21vdW50WzE1MTE3XTogY3JlYXRlX3VkcF9jbGllbnQ6OTY6IGdldGhvc3RieW5hbWVfciBs
+YXJnZS1ycg0KDQpEZWMgMjcgMTU6MzY6MzAgbXlob3N0IGxhc3QgbWVzc2FnZSByZXBlYXRlZCAy
+IHRpbWVzDQoNCkRlYyAyNyAxNTozNjozMCBteWhvc3QgYXV0b21vdW50WzE1MTE3XTogY3JlYXRl
+X3RjcF9jbGllbnQ6MzA4OiBnZXRob3N0YnluYW1lX3IgbGFyZ2UtcnINCg0KRGVjIDI3IDE1OjM2
+OjMwIG15aG9zdCBsYXN0IG1lc3NhZ2UgcmVwZWF0ZWQgMiB0aW1lcw0KDQpEZWMgMjcgMTU6MzY6
+MzAgbXlob3N0IGF1dG9tb3VudFsxNTExN106IGNyZWF0ZV91ZHBfY2xpZW50Ojk2OiBnZXRob3N0
+YnluYW1lX3IgbGFyZ2UtcnINCg0KRGVjIDI3IDE1OjM2OjMwIG15aG9zdCBsYXN0IG1lc3NhZ2Ug
+cmVwZWF0ZWQgMiB0aW1lcw0KDQpEZWMgMjcgMTU6MzY6MzAgbXlob3N0IGF1dG9tb3VudFsxNTEx
+N106IGNyZWF0ZV90Y3BfY2xpZW50OjMwODogZ2V0aG9zdGJ5bmFtZV9yIGxhcmdlLXJyDQoNCkRl
+YyAyNyAxNTozNjozMCBteWhvc3QgbGFzdCBtZXNzYWdlIHJlcGVhdGVkIDIgdGltZXMNCg0KRGVj
+IDI3IDE1OjM2OjMwIG15aG9zdCBhdXRvbW91bnRbMTUxMTddOiBjcmVhdGVfdWRwX2NsaWVudDo5
+NjogZ2V0aG9zdGJ5bmFtZV9yIGxhcmdlLXJyDQoNCkRlYyAyNyAxNTozNjozMCBteWhvc3QgbGFz
+dCBtZXNzYWdlIHJlcGVhdGVkIDIgdGltZXMNCg0KRGVjIDI3IDE1OjM2OjMwIG15aG9zdCBhdXRv
+bW91bnRbMTUxMTddOiBjcmVhdGVfdGNwX2NsaWVudDozMDg6IGdldGhvc3RieW5hbWVfciBsYXJn
+ZS1ycg0KDQpEZWMgMjcgMTU6MzY6MzAgbXlob3N0IGxhc3QgbWVzc2FnZSByZXBlYXRlZCAyIHRp
+bWVzDQoNCkRlYyAyNyAxNTozNjozMCBteWhvc3QgYXV0b21vdW50WzE1MTE3XTogY3JlYXRlX3Vk
+cF9jbGllbnQ6OTY6IGdldGhvc3RieW5hbWVfciBsYXJnZS1ycg0KDQpEZWMgMjcgMTU6MzY6MzAg
+bXlob3N0IGxhc3QgbWVzc2FnZSByZXBlYXRlZCAyIHRpbWVzDQoNCkRlYyAyNyAxNTozNjozMCBt
+eWhvc3QgYXV0b21vdW50WzE1MTE3XTogY3JlYXRlX3RjcF9jbGllbnQ6MzA4OiBnZXRob3N0Ynlu
+YW1lX3IgbGFyZ2UtcnINCg0KRGVjIDI3IDE1OjM2OjMxIG15aG9zdCBsYXN0IG1lc3NhZ2UgcmVw
+ZWF0ZWQgMiB0aW1lcw0KDQpEZWMgMjcgMTU6MzY6MzEgbXlob3N0IGF1dG9tb3VudFsxNTExN106
+IGNyZWF0ZV91ZHBfY2xpZW50Ojk2OiBnZXRob3N0YnluYW1lX3IgbGFyZ2UtcnINCg0KRGVjIDI3
+IDE1OjM2OjMxIG15aG9zdCBsYXN0IG1lc3NhZ2UgcmVwZWF0ZWQgMiB0aW1lcw0KDQpEZWMgMjcg
+MTU6MzY6MzEgbXlob3N0IGF1dG9tb3VudFsxNTExN106IGNyZWF0ZV90Y3BfY2xpZW50OjMwODog
+Z2V0aG9zdGJ5bmFtZV9yIGxhcmdlLXJyDQoNCkRlYyAyNyAxNTozNjozMSBteWhvc3QgbGFzdCBt
+ZXNzYWdlIHJlcGVhdGVkIDIgdGltZXMNCg0KRGVjIDI3IDE1OjM2OjMxIG15aG9zdCBhdXRvbW91
+bnRbMTUxMTddOiBjcmVhdGVfdWRwX2NsaWVudDo5NjogZ2V0aG9zdGJ5bmFtZV9yIGxhcmdlLXJy
+DQoNCkRlYyAyNyAxNTozNjozMSBteWhvc3QgbGFzdCBtZXNzYWdlIHJlcGVhdGVkIDIgdGltZXMN
+Cg0KRGVjIDI3IDE1OjM2OjMxIG15aG9zdCBhdXRvbW91bnRbMTUxMTddOiBjcmVhdGVfdGNwX2Ns
+aWVudDozMDg6IGdldGhvc3RieW5hbWVfciBsYXJnZS1ycg0KDQpEZWMgMjcgMTU6MzY6MzEgbXlo
+b3N0IGxhc3QgbWVzc2FnZSByZXBlYXRlZCAyIHRpbWVzDQoNCkRlYyAyNyAxNTozNjozMSBteWhv
+c3QgYXV0b21vdW50WzE1MTE3XTogY3JlYXRlX3VkcF9jbGllbnQ6OTY6IGdldGhvc3RieW5hbWVf
+ciBsYXJnZS1ycg0KDQpEZWMgMjcgMTU6MzY6MzEgbXlob3N0IGxhc3QgbWVzc2FnZSByZXBlYXRl
+ZCAyIHRpbWVzDQoNCkRlYyAyNyAxNTozNjozMSBteWhvc3QgYXV0b21vdW50WzE1MTE3XTogY3Jl
+YXRlX3RjcF9jbGllbnQ6MzA4OiBnZXRob3N0YnluYW1lX3IgbGFyZ2UtcnINCg0KRGVjIDI3IDE1
+OjM2OjMxIG15aG9zdCBsYXN0IG1lc3NhZ2UgcmVwZWF0ZWQgMiB0aW1lcw0KDQpEZWMgMjcgMTU6
+MzY6MzEgbXlob3N0IGF1dG9tb3VudFsxNTExN106IGNyZWF0ZV91ZHBfY2xpZW50Ojk2OiBnZXRo
+b3N0YnluYW1lX3IgbGFyZ2UtcnINCg0KRGVjIDI3IDE1OjM2OjMxIG15aG9zdCBsYXN0IG1lc3Nh
+Z2UgcmVwZWF0ZWQgMiB0aW1lcw0KDQpEZWMgMjcgMTU6MzY6MzEgbXlob3N0IGF1dG9tb3VudFsx
+NTExN106IGNyZWF0ZV90Y3BfY2xpZW50OjMwODogZ2V0aG9zdGJ5bmFtZV9yIGxhcmdlLXJyDQoN
+CkRlYyAyNyAxNTozNjozMSBteWhvc3QgbGFzdCBtZXNzYWdlIHJlcGVhdGVkIDIgdGltZXMNCg0K
+RGVjIDI3IDE1OjM2OjMxIG15aG9zdCBhdXRvbW91bnRbMTUxMTddOiBjcmVhdGVfdWRwX2NsaWVu
+dDo5NjogZ2V0aG9zdGJ5bmFtZV9yIGxhcmdlLXJyDQoNCkRlYyAyNyAxNTozNjozMSBteWhvc3Qg
+bGFzdCBtZXNzYWdlIHJlcGVhdGVkIDIgdGltZXMNCg0KRGVjIDI3IDE1OjM2OjMxIG15aG9zdCBh
+dXRvbW91bnRbMTUxMTddOiBjcmVhdGVfdGNwX2NsaWVudDozMDg6IGdldGhvc3RieW5hbWVfciBs
+YXJnZS1ycg0KDQpEZWMgMjcgMTU6MzY6MzEgbXlob3N0IGxhc3QgbWVzc2FnZSByZXBlYXRlZCAy
+IHRpbWVzDQoNCkRlYyAyNyAxNTozNjozMSBteWhvc3QgYXV0b21vdW50WzE1MTE3XTogY3JlYXRl
+X3VkcF9jbGllbnQ6OTY6IGdldGhvc3RieW5hbWVfciBsYXJnZS1ycg0KDQpEZWMgMjcgMTU6MzY6
+MzEgbXlob3N0IGxhc3QgbWVzc2FnZSByZXBlYXRlZCAyIHRpbWVzDQoNCkRlYyAyNyAxNTozNjoz
+MSBteWhvc3QgYXV0b21vdW50WzE1MTE3XTogY3JlYXRlX3RjcF9jbGllbnQ6MzA4OiBnZXRob3N0
+YnluYW1lX3IgbGFyZ2UtcnINCg0KRGVjIDI3IDE1OjM2OjMxIG15aG9zdCBsYXN0IG1lc3NhZ2Ug
+cmVwZWF0ZWQgMiB0aW1lcw0KDQpEZWMgMjcgMTU6MzY6MzEgbXlob3N0IGF1dG9tb3VudFsxNTEx
+N106IGNyZWF0ZV91ZHBfY2xpZW50Ojk2OiBnZXRob3N0YnluYW1lX3IgbGFyZ2UtcnINCg0KRGVj
+IDI3IDE1OjM2OjMxIG15aG9zdCBsYXN0IG1lc3NhZ2UgcmVwZWF0ZWQgMiB0aW1lcw0KDQpEZWMg
+MjcgMTU6MzY6MzEgbXlob3N0IGF1dG9tb3VudFsxNTExN106IGNyZWF0ZV90Y3BfY2xpZW50OjMw
+ODogZ2V0aG9zdGJ5bmFtZV9yIGxhcmdlLXJyDQoNCkRlYyAyNyAxNTozNjozMSBteWhvc3QgbGFz
+dCBtZXNzYWdlIHJlcGVhdGVkIDIgdGltZXMNCg0KRGVjIDI3IDE1OjM2OjMxIG15aG9zdCBhdXRv
+bW91bnRbMTUxMTddOiBjcmVhdGVfdWRwX2NsaWVudDo5NjogZ2V0aG9zdGJ5bmFtZV9yIGxhcmdl
+LXJyDQoNCkRlYyAyNyAxNTozNjozMSBteWhvc3QgbGFzdCBtZXNzYWdlIHJlcGVhdGVkIDIgdGlt
+ZXMNCg0KRGVjIDI3IDE1OjM2OjMxIG15aG9zdCBhdXRvbW91bnRbMTUxMTddOiBjcmVhdGVfdGNw
+X2NsaWVudDozMDg6IGdldGhvc3RieW5hbWVfciBsYXJnZS1ycg0KDQpEZWMgMjcgMTU6MzY6MzEg
+bXlob3N0IGxhc3QgbWVzc2FnZSByZXBlYXRlZCAyIHRpbWVzDQoNCkRlYyAyNyAxNTozNjozMSBt
+eWhvc3QgYXV0b21vdW50WzE1MTE3XTogY3JlYXRlX3VkcF9jbGllbnQ6OTY6IGdldGhvc3RieW5h
+bWVfciBsYXJnZS1ycg0KDQpEZWMgMjcgMTU6MzY6MzEgbXlob3N0IGxhc3QgbWVzc2FnZSByZXBl
+YXRlZCAyIHRpbWVzDQoNCkRlYyAyNyAxNTozNjozMSBteWhvc3QgYXV0b21vdW50WzE1MTE3XTog
+Y3JlYXRlX3RjcF9jbGllbnQ6MzA4OiBnZXRob3N0YnluYW1lX3IgbGFyZ2UtcnINCg0KRGVjIDI3
+IDE1OjM2OjMxIG15aG9zdCBsYXN0IG1lc3NhZ2UgcmVwZWF0ZWQgMiB0aW1lcw0KDQpEZWMgMjcg
+MTU6MzY6MzEgbXlob3N0IGF1dG9tb3VudFsxNTExN106IGNyZWF0ZV91ZHBfY2xpZW50Ojk2OiBn
+ZXRob3N0YnluYW1lX3IgbGFyZ2UtcnINCg0KRGVjIDI3IDE1OjM2OjMxIG15aG9zdCBsYXN0IG1l
+c3NhZ2UgcmVwZWF0ZWQgMiB0aW1lcw0KDQpEZWMgMjcgMTU6MzY6MzEgbXlob3N0IGF1dG9tb3Vu
+dFsxNTExN106IGNyZWF0ZV90Y3BfY2xpZW50OjMwODogZ2V0aG9zdGJ5bmFtZV9yIGxhcmdlLXJy
+DQoNCkRlYyAyNyAxNTozNjozMSBteWhvc3QgbGFzdCBtZXNzYWdlIHJlcGVhdGVkIDIgdGltZXMN
+Cg0KRGVjIDI3IDE1OjM2OjMxIG15aG9zdCBhdXRvbW91bnRbMTUxMTddOiBjcmVhdGVfdWRwX2Ns
+aWVudDo5NjogZ2V0aG9zdGJ5bmFtZV9yIGxhcmdlLXJyDQoNCkRlYyAyNyAxNTozNjozMSBteWhv
+c3QgbGFzdCBtZXNzYWdlIHJlcGVhdGVkIDIgdGltZXMNCg0KRGVjIDI3IDE1OjM2OjMxIG15aG9z
+dCBhdXRvbW91bnRbMTUxMTddOiBjcmVhdGVfdGNwX2NsaWVudDozMDg6IGdldGhvc3RieW5hbWVf
+ciBsYXJnZS1ycg0KDQpEZWMgMjcgMTU6MzY6MzEgbXlob3N0IGxhc3QgbWVzc2FnZSByZXBlYXRl
+ZCAyIHRpbWVzDQoNCkRlYyAyNyAxNTozNjozMSBteWhvc3QgYXV0b21vdW50WzE1MTE3XTogY3Jl
+YXRlX3VkcF9jbGllbnQ6OTY6IGdldGhvc3RieW5hbWVfciBsYXJnZS1ycg0KDQpEZWMgMjcgMTU6
+MzY6MzIgbXlob3N0IGxhc3QgbWVzc2FnZSByZXBlYXRlZCAyIHRpbWVzDQoNCkRlYyAyNyAxNToz
+NjozMiBteWhvc3QgYXV0b21vdW50WzE1MTE3XTogY3JlYXRlX3RjcF9jbGllbnQ6MzA4OiBnZXRo
+b3N0YnluYW1lX3IgbGFyZ2UtcnINCg0KRGVjIDI3IDE1OjM2OjMyIG15aG9zdCBsYXN0IG1lc3Nh
+Z2UgcmVwZWF0ZWQgMiB0aW1lcw0KDQpEZWMgMjcgMTU6MzY6MzIgbXlob3N0IGF1dG9tb3VudFsx
+NTExN106IGNyZWF0ZV91ZHBfY2xpZW50Ojk2OiBnZXRob3N0YnluYW1lX3IgbGFyZ2UtcnINCg0K
+RGVjIDI3IDE1OjM2OjMyIG15aG9zdCBsYXN0IG1lc3NhZ2UgcmVwZWF0ZWQgMiB0aW1lcw0KDQpE
+ZWMgMjcgMTU6MzY6MzIgbXlob3N0IGF1dG9tb3VudFsxNTExN106IGNyZWF0ZV90Y3BfY2xpZW50
+OjMwODogZ2V0aG9zdGJ5bmFtZV9yIGxhcmdlLXJyDQoNCkRlYyAyNyAxNTozNjozMiBteWhvc3Qg
+bGFzdCBtZXNzYWdlIHJlcGVhdGVkIDIgdGltZXMNCg0KRGVjIDI3IDE1OjM2OjMyIG15aG9zdCBh
+dXRvbW91bnRbMTUxMTddOiBjcmVhdGVfdWRwX2NsaWVudDo5NjogZ2V0aG9zdGJ5bmFtZV9yIGxh
+cmdlLXJyDQoNCkRlYyAyNyAxNTozNjozMiBteWhvc3QgbGFzdCBtZXNzYWdlIHJlcGVhdGVkIDIg
+dGltZXMNCg0KRGVjIDI3IDE1OjM2OjMyIG15aG9zdCBhdXRvbW91bnRbMTUxMTddOiBjcmVhdGVf
+dGNwX2NsaWVudDozMDg6IGdldGhvc3RieW5hbWVfciBsYXJnZS1ycg0KDQpEZWMgMjcgMTU6MzY6
+MzIgbXlob3N0IGxhc3QgbWVzc2FnZSByZXBlYXRlZCAyIHRpbWVzDQoNCkRlYyAyNyAxNTozNjoz
+MiBteWhvc3QgYXV0b21vdW50WzE1MTE3XTogY3JlYXRlX3VkcF9jbGllbnQ6OTY6IGdldGhvc3Ri
+eW5hbWVfciBsYXJnZS1ycg0KDQpEZWMgMjcgMTU6MzY6MzIgbXlob3N0IGxhc3QgbWVzc2FnZSBy
+ZXBlYXRlZCAyIHRpbWVzDQoNCkRlYyAyNyAxNTozNjozMiBteWhvc3QgYXV0b21vdW50WzE1MTE3
+XTogY3JlYXRlX3RjcF9jbGllbnQ6MzA4OiBnZXRob3N0YnluYW1lX3IgbGFyZ2UtcnINCg0KRGVj
+IDI3IDE1OjM2OjMyIG15aG9zdCBsYXN0IG1lc3NhZ2UgcmVwZWF0ZWQgMiB0aW1lcw0KDQpEZWMg
+MjcgMTU6MzY6MzIgbXlob3N0IGF1dG9tb3VudFsxNTExN106IGNyZWF0ZV91ZHBfY2xpZW50Ojk2
+OiBnZXRob3N0YnluYW1lX3IgbGFyZ2UtcnINCg0KRGVjIDI3IDE1OjM2OjMyIG15aG9zdCBsYXN0
+IG1lc3NhZ2UgcmVwZWF0ZWQgMiB0aW1lcw0KDQpEZWMgMjcgMTU6MzY6MzIgbXlob3N0IGF1dG9t
+b3VudFsxNTExN106IGNyZWF0ZV90Y3BfY2xpZW50OjMwODogZ2V0aG9zdGJ5bmFtZV9yIGxhcmdl
+LXJyDQoNCiANCg0KIA0KDQotLS0NCg0KSmFtZXMgVC4gUmljaGFyZHNvbiwgSnIuDQoNCmpyaWNo
+YXJkc29uQHgtaXNzLmNvbQ0KDQplWGNlbGxlbmNlIGluIElTIFNvbHV0aW9ucywgSW5jLg0KDQo3
+MTMtODYyLTkyMDAgeDIyNg0KDQogDQoNCk1ha2luZyBJVCBXb3JrIGZvciBZb3UNCg0KSFBDICYg
+RW50ZXJwcmlzZSBJVCBTb2x1dGlvbnMNCg0K4oCiIEhQQyBBcHBsaWNhdGlvbiBBY2NlbGVyYXRp
+b24NCg0K4oCiIENsdXN0ZXIgRGVzaWduLCBEZXBsb3ksIE1hbmFnZSwgVHJhaW4NCg0K4oCiIExp
+bnV4L1dpbmRvd3MgSW50ZWdyYXRpb24NCg0K4oCiIFJlbW90ZSBNYW5hZ2VtZW50LCBCYWNrdXAs
+IEFudGktU3BhbS9WaXJ1cw0KDQrigKIgTmV0d29yayBBc3Nlc3NtZW50cywgRGVzaWduDQoNCuKA
+oiBTZWN1cml0eSBBdWRpdHMsIERlc2lnbg0KDQrigKIgRGF0YWNlbnRlciBEZXNpZ24sIFJlbG9j
+YXRpb24NCg0K4oCiIE1lc3NhZ2luZyBhbmQgQ29sbGFib3JhdGlvbg0KDQogDQoNCiANCg0KLS0t
+LS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCkZyb206IElhbiBLZW50IFttYWlsdG86cmF2ZW5AdGhl
+bWF3Lm5ldF0gDQpTZW50OiBUaHVyc2RheSwgRGVjZW1iZXIgMjcsIDIwMDcgMTowOCBBTQ0KVG86
+IEphbWVzIFJpY2hhcmRzb24NCkNjOiBKZWZmIE1veWVyOyBhdXRvZnNAbGludXgua2VybmVsLm9y
+Zw0KU3ViamVjdDogUkU6IFthdXRvZnNdIFNsb3cgbW91bnRzIHdoZW4gdXNpbmcgbGFyZ2Ugcm91
+bmQgcm9iaW4gc2V0cw0KDQogDQoNCk9uIFdlZCwgMjAwNy0xMi0yNiBhdCAxNjoxNSAtMDYwMCwg
+SmFtZXMgUmljaGFyZHNvbiB3cm90ZToNCg0KPiBEZWMgMjYgMTY6MDA6MDIgbXlob3N0IGF1dG9t
+b3VudFszMDYwXTogYWRkX2hvc3RfYWRkcnM6ODg1Og0KDQo+IGdldGhvc3RieW5hbWVfciBsYXJn
+ZS1ycg0KDQo+IA0KDQo+IERlYyAyNiAxNjowMDowMiBteWhvc3QgYXV0b21vdW50WzMwNjBdOiBh
+ZGRfaG9zdF9hZGRyczo5MDE6IGFkZCBob3N0DQoNCj4gYWRkcmVzcyDDgFRtwrfDiFRtwrfDkFRt
+wrfDmFRtwrfDoFRtwrfDqFRtwrfDsFRtwrfDuFRtwrcNCg0KIA0KDQpJIG9idmlvdXNseSBoYXZl
+IGEgbWlzdGFrZSBpbiB0aGUgcGF0Y2ggYnV0IEkgc3RpbGwgbmVlZCB0byBrbm93IHdoYXQncw0K
+DQpnb2luZyBvbiBzbyBjb3VsZCB5b3UgdHJ5IGFnYWluIHdpdGggdGhpcyBwYXRjaCBwbGVhc2Uu
+DQoNCiANCg0KLS0tDQoNCmRpZmYgLS1naXQgYS9pbmNsdWRlL3JwY19zdWJzLmggYi9pbmNsdWRl
+L3JwY19zdWJzLmgNCg0KaW5kZXggMzI5MmUwMS4uMTRiNDU5ZiAxMDA2NDQNCg0KLS0tIGEvaW5j
+bHVkZS9ycGNfc3Vicy5oDQoNCisrKyBiL2luY2x1ZGUvcnBjX3N1YnMuaA0KDQpAQCAtNDYsNiAr
+NDYsNyBAQA0KDQogDQoNCiBzdHJ1Y3QgY29ubl9pbmZvIHsNCg0KICAgICAgY29uc3QgY2hhciAq
+aG9zdDsNCg0KKyAgICAgY29uc3QgY2hhciAqYWRkcjsNCg0KICAgICAgdW5zaWduZWQgc2hvcnQg
+cG9ydDsNCg0KICAgICAgdW5zaWduZWQgbG9uZyBwcm9ncmFtOw0KDQogICAgICB1bnNpZ25lZCBs
+b25nIHZlcnNpb247DQoNCkBAIC02MSw3ICs2Miw3IEBAIGludCBycGNfdWRwX2dldGNsaWVudChz
+dHJ1Y3QgY29ubl9pbmZvICosIHVuc2lnbmVkIGludCwgdW5zaWduZWQgaW50KTsNCg0KIHZvaWQg
+cnBjX2Rlc3Ryb3lfdWRwX2NsaWVudChzdHJ1Y3QgY29ubl9pbmZvICopOw0KDQogaW50IHJwY190
+Y3BfZ2V0Y2xpZW50KHN0cnVjdCBjb25uX2luZm8gKiwgdW5zaWduZWQgaW50LCB1bnNpZ25lZCBp
+bnQpOw0KDQogdm9pZCBycGNfZGVzdHJveV90Y3BfY2xpZW50KHN0cnVjdCBjb25uX2luZm8gKik7
+DQoNCi1pbnQgcnBjX3BvcnRtYXBfZ2V0Y2xpZW50KHN0cnVjdCBjb25uX2luZm8gKiwgY29uc3Qg
+Y2hhciAqLCBjb25zdCBjaGFyICosIHVuc2lnbmVkIGludCk7DQoNCitpbnQgcnBjX3BvcnRtYXBf
+Z2V0Y2xpZW50KHN0cnVjdCBjb25uX2luZm8gKiwgY29uc3QgY2hhciAqLCBjb25zdCBjaGFyICos
+IGNvbnN0IGNoYXIgKiwgdW5zaWduZWQgaW50KTsNCg0KIHVuc2lnbmVkIHNob3J0IHJwY19wb3J0
+bWFwX2dldHBvcnQoc3RydWN0IGNvbm5faW5mbyAqLCBzdHJ1Y3QgcG1hcCAqKTsNCg0KIGludCBy
+cGNfcGluZ19wcm90byhzdHJ1Y3QgY29ubl9pbmZvICopOw0KDQogaW50IHJwY19waW5nKGNvbnN0
+IGNoYXIgKiwgbG9uZywgbG9uZywgdW5zaWduZWQgaW50KTsNCg0KZGlmZiAtLWdpdCBhL2xpYi9y
+cGNfc3Vicy5jIGIvbGliL3JwY19zdWJzLmMNCg0KaW5kZXggNTc5NzYzOS4uY2M2MzJhNCAxMDA2
+NDQNCg0KLS0tIGEvbGliL3JwY19zdWJzLmMNCg0KKysrIGIvbGliL3JwY19zdWJzLmMNCg0KQEAg
+LTY2LDYgKzY2LDcgQEAgc3RhdGljIENMSUVOVCAqY3JlYXRlX3VkcF9jbGllbnQoc3RydWN0IGNv
+bm5faW5mbyAqaW5mbykNCg0KICAgICAgc3RydWN0IGhvc3RlbnQgKnBocCA9ICZocDsNCg0KICAg
+ICAgc3RydWN0IGhvc3RlbnQgKnJlc3VsdDsNCg0KICAgICAgY2hhciBidWZbSE9TVF9FTlRfQlVG
+X1NJWkVdOw0KDQorICAgICBjb25zdCBjaGFyICpoYWRkcjsNCg0KICAgICAgc2l6ZV90IGxlbjsN
+Cg0KIA0KDQogICAgICBpZiAoaW5mby0+cHJvdG8tPnBfcHJvdG8gIT0gSVBQUk9UT19VRFApDQoN
+CkBAIC04NiwxMSArODcsMTMgQEAgc3RhdGljIENMSUVOVCAqY3JlYXRlX3VkcF9jbGllbnQoc3Ry
+dWN0IGNvbm5faW5mbyAqaW5mbykNCg0KICAgICAgbWVtc2V0KCZyYWRkciwgMCwgc2l6ZW9mKHJh
+ZGRyKSk7DQoNCiANCg0KICAgICAgcmFkZHIuc2luX2ZhbWlseSA9IEFGX0lORVQ7DQoNCi0gICAg
+IGlmIChpbmV0X2F0b24oaW5mby0+aG9zdCwgJnJhZGRyLnNpbl9hZGRyKSkNCg0KKyAgICAgaGFk
+ZHIgPSBpbmZvLT5hZGRyID8gaW5mby0+YWRkciA6IGluZm8tPmhvc3Q7DQoNCisgICAgIGlmIChp
+bmV0X2F0b24oaGFkZHIsICZyYWRkci5zaW5fYWRkcikpDQoNCiAgICAgICAgICAgIGdvdG8gZ290
+X2FkZHI7DQoNCiANCg0KICAgICAgbWVtc2V0KCZocCwgMCwgc2l6ZW9mKHN0cnVjdCBob3N0ZW50
+KSk7DQoNCiANCg0KKyAgICAgbG9nZXJyKCJnZXRob3N0YnluYW1lX3IgJXMiLCBpbmZvLT5ob3N0
+KTsNCg0KICAgICAgcmV0ID0gZ2V0aG9zdGJ5bmFtZV9yKGluZm8tPmhvc3QsIHBocCwNCg0KICAg
+ICAgICAgICAgICAgICAgYnVmLCBIT1NUX0VOVF9CVUZfU0laRSwgJnJlc3VsdCwgJmdobl9lcnJu
+byk7DQoNCiAgICAgIGlmIChyZXQgfHwgIXJlc3VsdCkgew0KDQpAQCAtMjc2LDYgKzI3OSw3IEBA
+IHN0YXRpYyBDTElFTlQgKmNyZWF0ZV90Y3BfY2xpZW50KHN0cnVjdCBjb25uX2luZm8gKmluZm8p
+DQoNCiAgICAgIHN0cnVjdCBob3N0ZW50ICpwaHAgPSAmaHA7DQoNCiAgICAgIHN0cnVjdCBob3N0
+ZW50ICpyZXN1bHQ7DQoNCiAgICAgIGNoYXIgYnVmW0hPU1RfRU5UX0JVRl9TSVpFXTsNCg0KKyAg
+ICAgY29uc3QgY2hhciAqaGFkZHI7DQoNCiAgICAgIGludCByZXQ7DQoNCiANCg0KICAgICAgaWYg
+KGluZm8tPnByb3RvLT5wX3Byb3RvICE9IElQUFJPVE9fVENQKQ0KDQpAQCAtMjk1LDExICsyOTks
+MTMgQEAgc3RhdGljIENMSUVOVCAqY3JlYXRlX3RjcF9jbGllbnQoc3RydWN0IGNvbm5faW5mbyAq
+aW5mbykNCg0KICAgICAgbWVtc2V0KCZhZGRyLCAwLCBzaXplb2YoYWRkcikpOw0KDQogDQoNCiAg
+ICAgIGFkZHIuc2luX2ZhbWlseSA9IEFGX0lORVQ7DQoNCi0gICAgIGlmIChpbmV0X2F0b24oaW5m
+by0+aG9zdCwgJmFkZHIuc2luX2FkZHIpKQ0KDQorICAgICBoYWRkciA9IGluZm8tPmFkZHIgPyBp
+bmZvLT5hZGRyIDogaW5mby0+aG9zdDsNCg0KKyAgICAgaWYgKGluZXRfYXRvbihoYWRkciwgJmFk
+ZHIuc2luX2FkZHIpKQ0KDQogICAgICAgICAgICBnb3RvIGdvdF9hZGRyOw0KDQogDQoNCiAgICAg
+IG1lbXNldCgmaHAsIDAsIHNpemVvZihzdHJ1Y3QgaG9zdGVudCkpOw0KDQogDQoNCisgICAgIGxv
+Z2VycigiZ2V0aG9zdGJ5bmFtZV9yICVzIiwgaW5mby0+aG9zdCk7DQoNCiAgICAgIHJldCA9IGdl
+dGhvc3RieW5hbWVfcihpbmZvLT5ob3N0LCBwaHAsDQoNCiAgICAgICAgICAgICAgICAgIGJ1Ziwg
+SE9TVF9FTlRfQlVGX1NJWkUsICZyZXN1bHQsICZnaG5fZXJybm8pOw0KDQogICAgICBpZiAocmV0
+IHx8ICFyZXN1bHQpIHsNCg0KQEAgLTQwNyw3ICs0MTMsNyBAQCB2b2lkIHJwY19kZXN0cm95X3Rj
+cF9jbGllbnQoc3RydWN0IGNvbm5faW5mbyAqaW5mbykNCg0KIH0NCg0KIA0KDQogaW50IHJwY19w
+b3J0bWFwX2dldGNsaWVudChzdHJ1Y3QgY29ubl9pbmZvICppbmZvLA0KDQotICAgICAgICAgICAg
+ICAgICAgIGNvbnN0IGNoYXIgKmhvc3QsIGNvbnN0IGNoYXIgKnByb3RvLA0KDQorICAgICAgICAg
+ICAgICAgICAgIGNvbnN0IGNoYXIgKmhvc3QsIGNvbnN0IGNoYXIgKmFkZHIsIGNvbnN0IGNoYXIg
+KnByb3RvLA0KDQogICAgICAgICAgICAgICAgICAgIHVuc2lnbmVkIGludCBvcHRpb24pDQoNCiB7
+DQoNCiAgICAgIHN0cnVjdCBwcm90b2VudCAqcGVfcHJvdG87DQoNCkBAIC00MTgsNiArNDI0LDcg
+QEAgaW50IHJwY19wb3J0bWFwX2dldGNsaWVudChzdHJ1Y3QgY29ubl9pbmZvICppbmZvLA0KDQog
+ICAgICAgICAgICByZXR1cm4gMDsNCg0KIA0KDQogICAgICBpbmZvLT5ob3N0ID0gaG9zdDsNCg0K
+KyAgICAgaW5mby0+YWRkciA9IGFkZHI7DQoNCiAgICAgIGluZm8tPnByb2dyYW0gPSBQTUFQUFJP
+RzsNCg0KICAgICAgaW5mby0+cG9ydCA9IFBNQVBQT1JUOw0KDQogICAgICBpbmZvLT52ZXJzaW9u
+ID0gUE1BUFZFUlM7DQoNCkBAIC00NjIsNiArNDY5LDcgQEAgdW5zaWduZWQgc2hvcnQgcnBjX3Bv
+cnRtYXBfZ2V0cG9ydChzdHJ1Y3QgY29ubl9pbmZvICppbmZvLCBzdHJ1Y3QgcG1hcCAqcGFybXMp
+DQoNCiAgICAgICAgICAgIGNsaWVudCA9IGluZm8tPmNsaWVudDsNCg0KICAgICAgZWxzZSB7DQoN
+CiAgICAgICAgICAgIHBtYXBfaW5mby5ob3N0ID0gaW5mby0+aG9zdDsNCg0KKyAgICAgICAgICAg
+cG1hcF9pbmZvLmFkZHIgPSBpbmZvLT5hZGRyOw0KDQogICAgICAgICAgICBwbWFwX2luZm8ucG9y
+dCA9IFBNQVBQT1JUOw0KDQogICAgICAgICAgICBwbWFwX2luZm8ucHJvZ3JhbSA9IFBNQVBQUk9H
+Ow0KDQogICAgICAgICAgICBwbWFwX2luZm8udmVyc2lvbiA9IFBNQVBWRVJTOw0KDQpAQCAtNTg5
+LDYgKzU5Nyw3IEBAIHN0YXRpYyB1bnNpZ25lZCBpbnQgX19ycGNfcGluZyhjb25zdCBjaGFyICpo
+b3N0LA0KDQogICAgICBzdHJ1Y3QgcG1hcCBwYXJtczsNCg0KIA0KDQogICAgICBpbmZvLmhvc3Qg
+PSBob3N0Ow0KDQorICAgICBpbmZvLmFkZHIgPSBOVUxMOw0KDQogICAgICBpbmZvLnByb2dyYW0g
+PSBORlNfUFJPR1JBTTsNCg0KICAgICAgaW5mby52ZXJzaW9uID0gdmVyc2lvbjsNCg0KICAgICAg
+aW5mby5zZW5kX3N6ID0gMDsNCg0KQEAgLTc2OSw2ICs3NzgsNyBAQCBleHBvcnRzIHJwY19nZXRf
+ZXhwb3J0cyhjb25zdCBjaGFyICpob3N0LCBsb25nIHNlY29uZHMsIGxvbmcgbWljcm9zLCB1bnNp
+Z25lZCBpbg0KDQogICAgICBpbnQgc3RhdHVzOw0KDQogDQoNCiAgICAgIGluZm8uaG9zdCA9IGhv
+c3Q7DQoNCisgICAgIGluZm8uYWRkciA9IE5VTEw7DQoNCiAgICAgIGluZm8ucHJvZ3JhbSA9IE1P
+VU5UUFJPRzsNCg0KICAgICAgaW5mby52ZXJzaW9uID0gTU9VTlRWRVJTOw0KDQogICAgICBpbmZv
+LnNlbmRfc3ogPSAwOw0KDQpkaWZmIC0tZ2l0IGEvbW9kdWxlcy9yZXBsaWNhdGVkLmMgYi9tb2R1
+bGVzL3JlcGxpY2F0ZWQuYw0KDQppbmRleCA5MGIyOTI1Li5kYWE0NTMxIDEwMDY0NA0KDQotLS0g
+YS9tb2R1bGVzL3JlcGxpY2F0ZWQuYw0KDQorKysgYi9tb2R1bGVzL3JlcGxpY2F0ZWQuYw0KDQpA
+QCAtNDM3LDcgKzQzNyw3IEBAIHN0YXRpYyB1bnNpZ25lZCBpbnQgZ2V0X25mc19pbmZvKHVuc2ln
+bmVkIGxvZ29wdCwgc3RydWN0IGhvc3QgKmhvc3QsDQoNCiB2M192ZXI6DQoNCiAgICAgIGlmICgh
+aGF2ZV9wb3J0X29wdCkgew0KDQogICAgICAgICAgICBzdGF0dXMgPSBycGNfcG9ydG1hcF9nZXRj
+bGllbnQocG1faW5mbywNCg0KLSAgICAgICAgICAgICAgICAgICAgICAgaG9zdC0+bmFtZSwgcHJv
+dG8sIFJQQ19DTE9TRV9ERUZBVUxUKTsNCg0KKyAgICAgICAgICAgICAgICAgICAgICAgaG9zdC0+
+bmFtZSwgaG9zdC0+YWRkciwgcHJvdG8sIFJQQ19DTE9TRV9ERUZBVUxUKTsNCg0KICAgICAgICAg
+ICAgaWYgKCFzdGF0dXMpDQoNCiAgICAgICAgICAgICAgICAgIGdvdG8gZG9uZV92ZXI7DQoNCiAg
+ICAgIH0NCg0KQEAgLTU1MSw2ICs1NTEsNyBAQCBzdGF0aWMgaW50IGdldF92ZXJzX2FuZF9jb3N0
+KHVuc2lnbmVkIGxvZ29wdCwgc3RydWN0IGhvc3QgKmhvc3QsDQoNCiAgICAgICAgICAgIHRpbWVv
+dXQgPSBSUENfVElNRU9VVCAqIDg7DQoNCiANCg0KICAgICAgcnBjX2luZm8uaG9zdCA9IGhvc3Qt
+Pm5hbWU7DQoNCisgICAgIHJwY19pbmZvLmFkZHIgPSBob3N0LT5hZGRyOw0KDQogICAgICBycGNf
+aW5mby5wcm9ncmFtID0gTkZTX1BST0dSQU07DQoNCiAgICAgIHJwY19pbmZvLnRpbWVvdXQudHZf
+c2VjID0gdGltZW91dDsNCg0KICAgICAgcnBjX2luZm8uY2xvc2Vfb3B0aW9uID0gUlBDX0NMT1NF
+X0RFRkFVTFQ7DQoNCkBAIC02MDYsNiArNjA3LDcgQEAgc3RhdGljIGludCBnZXRfc3VwcG9ydGVk
+X3Zlcl9hbmRfY29zdCh1bnNpZ25lZCBsb2dvcHQsIHN0cnVjdCBob3N0ICpob3N0LA0KDQogICAg
+ICAgICAgICB0aW1lb3V0ID0gUlBDX1RJTUVPVVQgKiA4Ow0KDQogDQoNCiAgICAgIHJwY19pbmZv
+Lmhvc3QgPSBob3N0LT5uYW1lOw0KDQorICAgICBycGNfaW5mby5hZGRyID0gaG9zdC0+YWRkcjsN
+Cg0KICAgICAgcnBjX2luZm8ucHJvZ3JhbSA9IE5GU19QUk9HUkFNOw0KDQogICAgICBycGNfaW5m
+by50aW1lb3V0LnR2X3NlYyA9IHRpbWVvdXQ7DQoNCiAgICAgIHJwY19pbmZvLmNsb3NlX29wdGlv
+biA9IFJQQ19DTE9TRV9ERUZBVUxUOw0KDQpAQCAtNjUyLDcgKzY1NCw3IEBAIHN0YXRpYyBpbnQg
+Z2V0X3N1cHBvcnRlZF92ZXJfYW5kX2Nvc3QodW5zaWduZWQgbG9nb3B0LCBzdHJ1Y3QgaG9zdCAq
+aG9zdCwNCg0KICAgICAgICAgICAgICAgICAgcmV0dXJuIDA7DQoNCiAgICAgIH0gZWxzZSB7DQoN
+CiAgICAgICAgICAgIGludCByZXQgPSBycGNfcG9ydG1hcF9nZXRjbGllbnQoJnBtX2luZm8sDQoN
+Ci0gICAgICAgICAgICAgICAgICAgICAgIGhvc3QtPm5hbWUsIHByb3RvLCBSUENfQ0xPU0VfREVG
+QVVMVCk7DQoNCisgICAgICAgICAgICAgICAgICAgICAgIGhvc3QtPm5hbWUsIGhvc3QtPmFkZHIs
+IHByb3RvLCBSUENfQ0xPU0VfREVGQVVMVCk7DQoNCiAgICAgICAgICAgIGlmICghcmV0KQ0KDQog
+ICAgICAgICAgICAgICAgICByZXR1cm4gMDsNCg0KIA0KDQpAQCAtODgwLDYgKzg4Miw3IEBAIHN0
+YXRpYyBpbnQgYWRkX2hvc3RfYWRkcnMoc3RydWN0IGhvc3QgKipsaXN0LCBjb25zdCBjaGFyICpo
+b3N0LCB1bnNpZ25lZCBpbnQgd2VpDQoNCiAgICAgIG1lbXNldChidWYsIDAsIE1BWF9JRkNfQlVG
+KTsNCg0KICAgICAgbWVtc2V0KCZoZSwgMCwgc2l6ZW9mKHN0cnVjdCBob3N0ZW50KSk7DQoNCiAN
+Cg0KKyAgICAgbG9nZXJyKCJnZXRob3N0YnluYW1lX3IgJXMiLCBob3N0KTsNCg0KICAgICAgcmV0
+ID0gZ2V0aG9zdGJ5bmFtZV9yKGhvc3QsIHBoZSwNCg0KICAgICAgICAgICAgICAgICAgYnVmLCBN
+QVhfSUZDX0JVRiwgJnJlc3VsdCwgJmdobl9lcnJubyk7DQoNCiAgICAgIGlmIChyZXQgfHwgIXJl
+c3VsdCkgew0KDQpAQCAtODk1LDYgKzg5OCw3IEBAIHN0YXRpYyBpbnQgYWRkX2hvc3RfYWRkcnMo
+c3RydWN0IGhvc3QgKipsaXN0LCBjb25zdCBjaGFyICpob3N0LCB1bnNpZ25lZCBpbnQgd2VpDQoN
+CiAgICAgICAgICAgIGlmIChwcnggPT0gUFJPWElNSVRZX0VSUk9SKQ0KDQogICAgICAgICAgICAg
+ICAgICByZXR1cm4gMDsNCg0KIA0KDQorICAgICAgICAgICBsb2dlcnIoImFkZCBob3N0ICVzIGFk
+ZHJlc3MgJXMiLCBob3N0LCAqaGFkZHIpOw0KDQogICAgICAgICAgICBpZiAoIShuZXcgPSBuZXdf
+aG9zdChob3N0LCAqaGFkZHIsIHByeCwgd2VpZ2h0KSkpDQoNCiAgICAgICAgICAgICAgICAgIHJl
+dHVybiAwOw0KDQogDQoNCiANCg0KIA0KDQogDQoNCgpOT1RJQ0U6ClRoaXMgbWVzc2FnZSBtYXkg
+Y29udGFpbiBwcml2aWxlZ2VkIG9yIG90aGVyd2lzZSBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24u
+CklmIHlvdSBhcmUgbm90IHRoZSBpbnRlbmRlZCByZWNpcGllbnQsIHBsZWFzZSBpbW1lZGlhdGVs
+eSBhZHZpc2UgdGhlIHNlbmRlcgpieSByZXBseSBlbWFpbCBhbmQgZGVsZXRlIHRoZSBtZXNzYWdl
+IGFuZCBhbnkgYXR0YWNobWVudHMgd2l0aG91dCB1c2luZywKY29weWluZyBvciBkaXNjbG9zaW5n
+IHRoZSBjb250ZW50cy4KCm==
+
+------_=_NextPart_002_01C848D2.04C1CD25
 Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; charset=3Diso-8859-=
-1">
-<html xmlns:v=3D"urn:schemas-microsoft-com:vml" xmlns:o=3D"urn:schemas-micr=
-osoft-com:office:office" xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
-xmlns:m=3D"http://schemas.microsoft.com/office/2004/12/omml" xmlns=3D"http:=
-//www.w3.org/TR/REC-html40">
-
-<head>
-
-<meta name=3DGenerator content=3D"Microsoft Word 12 (filtered medium)">
-<style>
-<!--
- /* Font Definitions */
- @font-face
-	{font-family:Calibri;
-	panose-1:2 15 5 2 2 2 4 3 2 4;}
-@font-face
-	{font-family:Consolas;
-	panose-1:2 11 6 9 2 2 4 3 2 4;}
- /* Style Definitions */
- p.MsoNormal, li.MsoNormal, div.MsoNormal
-	{margin:0in;
-	margin-bottom:.0001pt;
-	font-size:11.0pt;
-	font-family:"Calibri","sans-serif";}
-a:link, span.MsoHyperlink
-	{mso-style-priority:99;
-	color:blue;
-	text-decoration:underline;}
-a:visited, span.MsoHyperlinkFollowed
-	{mso-style-priority:99;
-	color:purple;
-	text-decoration:underline;}
-p.MsoPlainText, li.MsoPlainText, div.MsoPlainText
-	{mso-style-priority:99;
-	mso-style-link:"Plain Text Char";
-	margin:0in;
-	margin-bottom:.0001pt;
-	font-size:10.5pt;
-	font-family:Consolas;}
-span.PlainTextChar
-	{mso-style-name:"Plain Text Char";
-	mso-style-priority:99;
-	mso-style-link:"Plain Text";
-	font-family:Consolas;}
-.MsoChpDefault
-	{mso-style-type:export-only;}
-@page Section1
-	{size:8.5in 11.0in;
-	margin:1.0in 1.0in 1.0in 1.0in;}
-div.Section1
-	{page:Section1;}
--->
-</style>
-<!--[if gte mso 9]><xml>
- <o:shapedefaults v:ext=3D"edit" spidmax=3D"1026" />
-</xml><![endif]--><!--[if gte mso 9]><xml>
- <o:shapelayout v:ext=3D"edit">
-  <o:idmap v:ext=3D"edit" data=3D"1" />
- </o:shapelayout></xml><![endif]-->
-</head>
-
-<body lang=3DEN-US link=3Dblue vlink=3Dpurple>
-
-<div class=3DSection1>
-
-<p class=3DMsoPlainText>Ian,<o:p></o:p></p>
-
-<p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
-
-<p class=3DMsoPlainText>I applied the last set of patches you sent and have
-attached the results.<o:p></o:p></p>
-
-<p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
-
-<p class=3DMsoPlainText>What I have done to run this test is:<o:p></o:p></p=
->
-
-<p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - Installed latest a=
-utofs
-w/ patches<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - Rebooted test serv=
-er w/
-new autofs<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - Updated /etc/syslo=
-g.conf
-to remove debug logging to /var/log/daemon.log<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - Restarted syslog d=
-aemon<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - Ran 'ls' test<o:p>=
-</o:p></p>
-
-<p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
-
-<p class=3DMsoPlainText style=3D'margin-left:.5in'><b>[root@myhost ~]# time=
- ls
-/home/brian/.bash_history<o:p></o:p></b></p>
-
-<p class=3DMsoPlainText style=3D'margin-left:.5in'><b>/home/brian/.bash_his=
-tory<o:p></o:p></b></p>
-
-<p class=3DMsoPlainText style=3D'margin-left:.5in'><b><o:p>&nbsp;</o:p></b>=
-</p>
-
-<p class=3DMsoPlainText style=3D'margin-left:.5in'><b>real&nbsp;&nbsp;&nbsp=
-;
-0m5.016s<o:p></o:p></b></p>
-
-<p class=3DMsoPlainText style=3D'margin-left:.5in'><b>user&nbsp;&nbsp;&nbsp=
-;
-0m0.000s<o:p></o:p></b></p>
-
-<p class=3DMsoPlainText style=3D'margin-left:.5in'><b>sys&nbsp;&nbsp;&nbsp;=
-&nbsp;
-0m0.004s<o:p></o:p></b></p>
-
-<p class=3DMsoPlainText style=3D'margin-left:.5in'><b><o:p>&nbsp;</o:p></b>=
-</p>
-
-<p class=3DMsoPlainText>The speed at which this test runs seems to take lon=
-ger
-with the debug patches provided &#8211; my assumption is to the additional
-debug logged messages. However, below is what is captured by syslog:<o:p></=
-o:p></p>
-
-<p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]: handle_pack=
-et:
-type =3D 3<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-handle_packet_missing_indirect: token 1, name brian, request pid 3688<o:p><=
-/o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]: attempting =
-to
-mount entry /home/brian<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]: lookup_moun=
-t:
-lookup(yp): looking up brian<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]: lookup_moun=
-t:
-lookup(yp): brian -&gt;
--rsize=3D8192,wsize=3D8192,proto=3Dtcp,vers=3D3&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
-p;&nbsp;&nbsp;&nbsp;
-large-rr:/home/brian<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]: parse_mount=
-:
-parse(sun): expanded entry:
--rsize=3D8192,wsize=3D8192,proto=3Dtcp,vers=3D3&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
-p;&nbsp;&nbsp;&nbsp;
-large-rr:/home/brian<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]: parse_mount=
-:
-parse(sun): gathered options: nosuid,retry=3D10,rsize=3D8192,wsize=3D8192,p=
-roto=3Dtcp,vers=3D3<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]: parse_mount=
-:
-parse(sun): dequote(&quot;large-rr:/home/brian&quot;) -&gt;
-large-rr:/home/brian<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]: parse_mount=
-:
-parse(sun): core of entry: options=3Dnosuid,retry=3D10,rsize=3D8192,wsize=
-=3D8192,proto=3Dtcp,vers=3D3,
-loc=3Dlarge-rr:/home/brian<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]: sun_mount:
-parse(sun): mounting root /home, mountpoint brian, what large-rr:/home/bria=
-n,
-fstype nfs, options nosuid,retry=3D10,rsize=3D8192,wsize=3D8192,proto=3Dtcp=
-,vers=3D3<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]: mount_mount=
-:
-mount(nfs): root=3D/home name=3Dbrian what=3Dlarge-rr:/home/brian, fstype=
-=3Dnfs,
-options=3Dnosuid,retry=3D10,rsize=3D8192,wsize=3D8192,proto=3Dtcp,vers=3D3<=
-o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]: mount_mount=
-:
-mount(nfs): nfs
-options=3D&quot;nosuid,retry=3D10,rsize=3D8192,wsize=3D8192,proto=3Dtcp,ver=
-s=3D3&quot;,
-nosymlink=3D0, ro=3D0<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:885: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address
-&Agrave;Tm&middot;&Egrave;Tm&middot;&ETH;Tm&middot;&Oslash;Tm&middot;&agrav=
-e;Tm&middot;&egrave;Tm&middot;&eth;Tm&middot;&oslash;Tm&middot;<o:p></o:p><=
-/p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address
-&Egrave;Tm&middot;&ETH;Tm&middot;&Oslash;Tm&middot;&agrave;Tm&middot;&egrav=
-e;Tm&middot;&eth;Tm&middot;&oslash;Tm&middot;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address
-&ETH;Tm&middot;&Oslash;Tm&middot;&agrave;Tm&middot;&egrave;Tm&middot;&eth;T=
-m&middot;&oslash;Tm&middot;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address
-&Oslash;Tm&middot;&agrave;Tm&middot;&egrave;Tm&middot;&eth;Tm&middot;&oslas=
-h;Tm&middot;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address
-&agrave;Tm&middot;&egrave;Tm&middot;&eth;Tm&middot;&oslash;Tm&middot;<o:p><=
-/o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address
-&egrave;Tm&middot;&eth;Tm&middot;&oslash;Tm&middot;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address &eth;Tm&middot;&oslash;Tm&middot;<o:p>=
-</o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address &oslash;Tm&middot;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host addressUm&middot;Um&middot;Um&middot;
-Um&middot;(Um&middot;0Um&middot;8Um&middot;@Um&middot;HUm&middot;PUm&middot=
-;XUm&middot;`Um&middot;hUm&middot;pUm&middot;xUm&middot;Um&middot;Um&middot=
-;Um&middot;Um&middot;&nbsp;Um&middot;&uml;Um&middot;&deg;Um&middot;&cedil;U=
-m&middot;&Agrave;Um&middot;&Egrave;Um&middot;&ETH;Um&middot;&Oslash;Um&midd=
-ot;&agrave;Um&middot;&egrave;Um&middot;&eth;Um&middot;&oslash;Um&middot;<o:=
-p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]: add_host_ad=
-drs:901:
-add host address Um&middot;Um&middot;
-Um&middot;(Um&middot;0Um&middot;8Um&middot;@Um&middot;HUm&middot;PUm&middot=
-;XUm&middot;`Um&middot;hUm&middot;pUm&middot;xUm&middot;Um&middot;Um&middot=
-;Um&middot;Um&middot;&nbsp;Um&middot;&uml;Um&middot;&deg;Um&middot;&cedil;U=
-m&middot;&Agrave;Um&middot;&Egrave;Um&middot;&ETH;Um&middot;&Oslash;Um&midd=
-ot;&agrave;Um&middot;&egrave;Um&middot;&eth;Um&middot;&oslash;Um&middot;<o:=
-p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address Um&middot;
-Um&middot;(Um&middot;0Um&middot;8Um&middot;@Um&middot;HUm&middot;PUm&middot=
-;XUm&middot;`Um&middot;hUm&middot;pUm&middot;xUm&middot;Um&middot;Um&middot=
-;Um&middot;Um&middot;&nbsp;Um&middot;&uml;Um&middot;&deg;Um&middot;&cedil;U=
-m&middot;&Agrave;Um&middot;&Egrave;Um&middot;&ETH;Um&middot;&Oslash;Um&midd=
-ot;&agrave;Um&middot;&egrave;Um&middot;&eth;Um&middot;&oslash;Um&middot;<o:=
-p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address&nbsp;
-Um&middot;(Um&middot;0Um&middot;8Um&middot;@Um&middot;HUm&middot;PUm&middot=
-;XUm&middot;`Um&middot;hUm&middot;pUm&middot;xUm&middot;Um&middot;Um&middot=
-;Um&middot;Um&middot;&nbsp;Um&middot;&uml;Um&middot;&deg;Um&middot;&cedil;U=
-m&middot;&Agrave;Um&middot;&Egrave;Um&middot;&ETH;Um&middot;&Oslash;Um&midd=
-ot;&agrave;Um&middot;&egrave;Um&middot;&eth;Um&middot;&oslash;Um&middot;<o:=
-p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address
-(Um&middot;0Um&middot;8Um&middot;@Um&middot;HUm&middot;PUm&middot;XUm&middo=
-t;`Um&middot;hUm&middot;pUm&middot;xUm&middot;Um&middot;Um&middot;Um&middot=
-;Um&middot;&nbsp;Um&middot;&uml;Um&middot;&deg;Um&middot;&cedil;Um&middot;&=
-Agrave;Um&middot;&Egrave;Um&middot;&ETH;Um&middot;&Oslash;Um&middot;&agrave=
-;Um&middot;&egrave;Um&middot;&eth;Um&middot;&oslash;Um&middot;<o:p></o:p></=
-p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address
-0Um&middot;8Um&middot;@Um&middot;HUm&middot;PUm&middot;XUm&middot;`Um&middo=
-t;hUm&middot;pUm&middot;xUm&middot;Um&middot;Um&middot;Um&middot;Um&middot;=
-&nbsp;Um&middot;&uml;Um&middot;&deg;Um&middot;&cedil;Um&middot;&Agrave;Um&m=
-iddot;&Egrave;Um&middot;&ETH;Um&middot;&Oslash;Um&middot;&agrave;Um&middot;=
-&egrave;Um&middot;&eth;Um&middot;&oslash;Um&middot;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address
-8Um&middot;@Um&middot;HUm&middot;PUm&middot;XUm&middot;`Um&middot;hUm&middo=
-t;pUm&middot;xUm&middot;Um&middot;Um&middot;Um&middot;Um&middot;&nbsp;Um&mi=
-ddot;&uml;Um&middot;&deg;Um&middot;&cedil;Um&middot;&Agrave;Um&middot;&Egra=
-ve;Um&middot;&ETH;Um&middot;&Oslash;Um&middot;&agrave;Um&middot;&egrave;Um&=
-middot;&eth;Um&middot;&oslash;Um&middot;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address
-@Um&middot;HUm&middot;PUm&middot;XUm&middot;`Um&middot;hUm&middot;pUm&middo=
-t;xUm&middot;Um&middot;Um&middot;Um&middot;Um&middot;&nbsp;Um&middot;&uml;U=
-m&middot;&deg;Um&middot;&cedil;Um&middot;&Agrave;Um&middot;&Egrave;Um&middo=
-t;&ETH;Um&middot;&Oslash;Um&middot;&agrave;Um&middot;&egrave;Um&middot;&eth=
-;Um&middot;&oslash;Um&middot;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address
-HUm&middot;PUm&middot;XUm&middot;`Um&middot;hUm&middot;pUm&middot;xUm&middo=
-t;Um&middot;Um&middot;Um&middot;Um&middot;&nbsp;Um&middot;&uml;Um&middot;&d=
-eg;Um&middot;&cedil;Um&middot;&Agrave;Um&middot;&Egrave;Um&middot;&ETH;Um&m=
-iddot;&Oslash;Um&middot;&agrave;Um&middot;&egrave;Um&middot;&eth;Um&middot;=
-&oslash;Um&middot;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address
-PUm&middot;XUm&middot;`Um&middot;hUm&middot;pUm&middot;xUm&middot;Um&middot=
-;Um&middot;Um&middot;Um&middot;&nbsp;Um&middot;&uml;Um&middot;&deg;Um&middo=
-t;&cedil;Um&middot;&Agrave;Um&middot;&Egrave;Um&middot;&ETH;Um&middot;&Osla=
-sh;Um&middot;&agrave;Um&middot;&egrave;Um&middot;&eth;Um&middot;&oslash;Um&=
-middot;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address
-XUm&middot;`Um&middot;hUm&middot;pUm&middot;xUm&middot;Um&middot;Um&middot;=
-Um&middot;Um&middot;&nbsp;Um&middot;&uml;Um&middot;&deg;Um&middot;&cedil;Um=
-&middot;&Agrave;Um&middot;&Egrave;Um&middot;&ETH;Um&middot;&Oslash;Um&middo=
-t;&agrave;Um&middot;&egrave;Um&middot;&eth;Um&middot;&oslash;Um&middot;<o:p=
-></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address `Um&middot;hUm&middot;pUm&middot;xUm&m=
-iddot;Um&middot;Um&middot;Um&middot;Um&middot;&nbsp;Um&middot;&uml;Um&middo=
-t;&deg;Um&middot;&cedil;Um&middot;&Agrave;Um&middot;&Egrave;Um&middot;&ETH;=
-Um&middot;&Oslash;Um&middot;&agrave;Um&middot;&egrave;Um&middot;&eth;Um&mid=
-dot;&oslash;Um&middot;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address
-hUm&middot;pUm&middot;xUm&middot;Um&middot;Um&middot;Um&middot;Um&middot;&n=
-bsp;Um&middot;&uml;Um&middot;&deg;Um&middot;&cedil;Um&middot;&Agrave;Um&mid=
-dot;&Egrave;Um&middot;&ETH;Um&middot;&Oslash;Um&middot;&agrave;Um&middot;&e=
-grave;Um&middot;&eth;Um&middot;&oslash;Um&middot;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]: add_host_ad=
-drs:901:
-add host address
-pUm&middot;xUm&middot;Um&middot;Um&middot;Um&middot;Um&middot;&nbsp;Um&midd=
-ot;&uml;Um&middot;&deg;Um&middot;&cedil;Um&middot;&Agrave;Um&middot;&Egrave=
-;Um&middot;&ETH;Um&middot;&Oslash;Um&middot;&agrave;Um&middot;&egrave;Um&mi=
-ddot;&eth;Um&middot;&oslash;Um&middot;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address
-xUm&middot;Um&middot;Um&middot;Um&middot;Um&middot;&nbsp;Um&middot;&uml;Um&=
-middot;&deg;Um&middot;&cedil;Um&middot;&Agrave;Um&middot;&Egrave;Um&middot;=
-&ETH;Um&middot;&Oslash;Um&middot;&agrave;Um&middot;&egrave;Um&middot;&eth;U=
-m&middot;&oslash;Um&middot;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address
-Um&middot;Um&middot;Um&middot;Um&middot;&nbsp;Um&middot;&uml;Um&middot;&deg=
-;Um&middot;&cedil;Um&middot;&Agrave;Um&middot;&Egrave;Um&middot;&ETH;Um&mid=
-dot;&Oslash;Um&middot;&agrave;Um&middot;&egrave;Um&middot;&eth;Um&middot;&o=
-slash;Um&middot;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address
-Um&middot;Um&middot;Um&middot;&nbsp;Um&middot;&uml;Um&middot;&deg;Um&middot=
-;&cedil;Um&middot;&Agrave;Um&middot;&Egrave;Um&middot;&ETH;Um&middot;&Oslas=
-h;Um&middot;&agrave;Um&middot;&egrave;Um&middot;&eth;Um&middot;&oslash;Um&m=
-iddot;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address
-Um&middot;Um&middot;&nbsp;Um&middot;&uml;Um&middot;&deg;Um&middot;&cedil;Um=
-&middot;&Agrave;Um&middot;&Egrave;Um&middot;&ETH;Um&middot;&Oslash;Um&middo=
-t;&agrave;Um&middot;&egrave;Um&middot;&eth;Um&middot;&oslash;Um&middot;<o:p=
-></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address
-Um&middot;&nbsp;Um&middot;&uml;Um&middot;&deg;Um&middot;&cedil;Um&middot;&A=
-grave;Um&middot;&Egrave;Um&middot;&ETH;Um&middot;&Oslash;Um&middot;&agrave;=
-Um&middot;&egrave;Um&middot;&eth;Um&middot;&oslash;Um&middot;<o:p></o:p></p=
->
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address
-&nbsp;Um&middot;&uml;Um&middot;&deg;Um&middot;&cedil;Um&middot;&Agrave;Um&m=
-iddot;&Egrave;Um&middot;&ETH;Um&middot;&Oslash;Um&middot;&agrave;Um&middot;=
-&egrave;Um&middot;&eth;Um&middot;&oslash;Um&middot;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address
-&uml;Um&middot;&deg;Um&middot;&cedil;Um&middot;&Agrave;Um&middot;&Egrave;Um=
-&middot;&ETH;Um&middot;&Oslash;Um&middot;&agrave;Um&middot;&egrave;Um&middo=
-t;&eth;Um&middot;&oslash;Um&middot;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address
-&deg;Um&middot;&cedil;Um&middot;&Agrave;Um&middot;&Egrave;Um&middot;&ETH;Um=
-&middot;&Oslash;Um&middot;&agrave;Um&middot;&egrave;Um&middot;&eth;Um&middo=
-t;&oslash;Um&middot;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address
-&cedil;Um&middot;&Agrave;Um&middot;&Egrave;Um&middot;&ETH;Um&middot;&Oslash=
-;Um&middot;&agrave;Um&middot;&egrave;Um&middot;&eth;Um&middot;&oslash;Um&mi=
-ddot;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address
-&Agrave;Um&middot;&Egrave;Um&middot;&ETH;Um&middot;&Oslash;Um&middot;&agrav=
-e;Um&middot;&egrave;Um&middot;&eth;Um&middot;&oslash;Um&middot;<o:p></o:p><=
-/p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address
-&Egrave;Um&middot;&ETH;Um&middot;&Oslash;Um&middot;&agrave;Um&middot;&egrav=
-e;Um&middot;&eth;Um&middot;&oslash;Um&middot;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address
-&ETH;Um&middot;&Oslash;Um&middot;&agrave;Um&middot;&egrave;Um&middot;&eth;U=
-m&middot;&oslash;Um&middot;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address
-&Oslash;Um&middot;&agrave;Um&middot;&egrave;Um&middot;&eth;Um&middot;&oslas=
-h;Um&middot;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:02 myhost automount[3060]:
-add_host_addrs:901: add host address
-&agrave;Um&middot;&egrave;Um&middot;&eth;Um&middot;&oslash;Um&middot;<o:p><=
-/o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]:
-add_host_addrs:901: add host address
-&egrave;Um&middot;&eth;Um&middot;&oslash;Um&middot;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]:
-add_host_addrs:901: add host address &eth;Um&middot;&oslash;Um&middot;<o:p>=
-</o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]:
-add_host_addrs:901: add host address &oslash;Um&middot;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]:
-add_host_addrs:901: add host address<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]:
-add_host_addrs:901: add host addressVm&middot;Vm&middot;Vm&middot;
-Vm&middot;(Vm&middot;0Vm&middot;8Vm&middot;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]:
-add_host_addrs:901: add host address Vm&middot;Vm&middot;
-Vm&middot;(Vm&middot;0Vm&middot;8Vm&middot;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]:
-add_host_addrs:901: add host address Vm&middot;
-Vm&middot;(Vm&middot;0Vm&middot;8Vm&middot;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]:
-add_host_addrs:901: add host address&nbsp;
-Vm&middot;(Vm&middot;0Vm&middot;8Vm&middot;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]:
-add_host_addrs:901: add host address (Vm&middot;0Vm&middot;8Vm&middot;<o:p>=
-</o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]:
-add_host_addrs:901: add host address 0Vm&middot;8Vm&middot;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]: add_host_ad=
-drs:901:
-add host address 8Vm&middot;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]: create_tcp_=
-client:308:
-gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]: create_tcp_=
-client:308:
-gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:03 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost automount[3060]: create_tcp_=
-client:308:
-gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost automount[3060]: create_tcp_=
-client:308:
-gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:04 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost automount[3060]: create_tcp_=
-client:308:
-gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost automount[3060]: create_tcp_=
-client:308:
-gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:05 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:06 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:06 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:06 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:06 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:06 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:06 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:06 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:06 myhost automount[3060]: create_tcp_=
-client:308:
-gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:06 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:06 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:06 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:06 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:06 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:06 myhost automount[3060]:
-create_udp_client:96: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:06 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:06 myhost automount[3060]:
-create_tcp_client:308: gethostbyname_r large-rr<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:06 myhost last message repeated 2 time=
-s<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:06 myhost automount[3060]: mount_mount=
-:
-mount(nfs): calling mkdir_path /home/brian<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:06 myhost automount[3060]: mount_mount=
-:
-mount(nfs): calling mount -t nfs -s -o
-nosuid,retry=3D10,rsize=3D8192,wsize=3D8192,proto=3Dtcp,vers=3D3 large-rr:/=
-home/brian
-/home/brian<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:06 myhost automount[3060]: mount(nfs):
-mounted large-rr:/home/brian on /home/brian<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:06 myhost automount[3060]: send_ready:=
- token
-=3D 1<o:p></o:p></p>
-
-<p class=3DMsoPlainText>Dec 26 16:00:06 myhost automount[3060]: mounted
-/home/brian<o:p></o:p></p>
-
-<p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
-
-<p class=3DMsoPlainText><br>
-<br>
-<o:p></o:p></p>
-
-<p class=3DMsoPlainText>---<o:p></o:p></p>
-
-<p class=3DMsoPlainText>James T. Richardson, Jr.<o:p></o:p></p>
-
-<p class=3DMsoPlainText>jrichardson@x-iss.com<o:p></o:p></p>
-
-<p class=3DMsoPlainText>eXcellence in IS Solutions, Inc.<o:p></o:p></p>
-
-<p class=3DMsoPlainText>713-862-9200 x226<o:p></o:p></p>
-
-<p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
-
-<p class=3DMsoPlainText>Making IT Work for You<o:p></o:p></p>
-
-<p class=3DMsoPlainText>HPC &amp; Enterprise IT Solutions<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&#8226; HPC Application Acceleration<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&#8226; Cluster Design, Deploy, Manage, Train<o:p><=
-/o:p></p>
-
-<p class=3DMsoPlainText>&#8226; Linux/Windows Integration<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&#8226; Remote Management, Backup, Anti-Spam/Virus<=
-o:p></o:p></p>
-
-<p class=3DMsoPlainText>&#8226; Network Assessments, Design<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&#8226; Security Audits, Design<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&#8226; Datacenter Design, Relocation<o:p></o:p></p=
->
-
-<p class=3DMsoPlainText>&#8226; Messaging and Collaboration<o:p></o:p></p>
-
-<p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
-
-<p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
-
-<p class=3DMsoPlainText>-----Original Message-----<br>
-From: Ian Kent [mailto:raven@themaw.net] <br>
-Sent: Saturday, December 22, 2007 1:12 AM<br>
-To: James Richardson<br>
-Cc: Jeff Moyer; autofs@linux.kernel.org<br>
-Subject: RE: [autofs] Slow mounts when using large round robin sets<o:p></o=
-:p></p>
-
-<p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
-
-<p class=3DMsoPlainText>On Sat, 2007-12-22 at 15:24 +0900, Ian Kent wrote:<=
-o:p></o:p></p>
-
-<p class=3DMsoPlainText>&gt; On Fri, 2007-12-21 at 16:56 -0600, James Richa=
-rdson
-wrote:<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&gt; &gt; Jeff,<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&gt; &gt; <o:p></o:p></p>
-
-<p class=3DMsoPlainText>&gt; &gt;&nbsp; <o:p></o:p></p>
-
-<p class=3DMsoPlainText>&gt; &gt; <o:p></o:p></p>
-
-<p class=3DMsoPlainText>&gt; &gt; I applied the patch and here is what was
-recorded. <o:p></o:p></p>
-
-<p class=3DMsoPlainText>&gt; <o:p></o:p></p>
-
-<p class=3DMsoPlainText>&gt; What were the actions carried out from the sta=
-rt to
-the finish of this<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&gt; logging?<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&gt; <o:p></o:p></p>
-
-<p class=3DMsoPlainText>&gt; I think we'll also need to add the hostname to=
- the
-logging.<o:p></o:p></p>
-
-<p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
-
-<p class=3DMsoPlainText>Actually it looks like we're adding an entry for ev=
-ery
-host ip address<o:p></o:p></p>
-
-<p class=3DMsoPlainText>and but not using the address to probe availability=
-.<o:p></o:p></p>
-
-<p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
-
-<p class=3DMsoPlainText>So having multiple IPs associated with a host ends =
-up
-being the same as<o:p></o:p></p>
-
-<p class=3DMsoPlainText>specifying several host names in a mount. autofs th=
-en
-checks to see<o:p></o:p></p>
-
-<p class=3DMsoPlainText>which is closest and calculates a load metric based=
- on a
-ping to the NFS<o:p></o:p></p>
-
-<p class=3DMsoPlainText>NULL proc and chooses one.<o:p></o:p></p>
-
-<p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
-
-<p class=3DMsoPlainText>I don't think we should be doing a name lookup for =
-every
-address though<o:p></o:p></p>
-
-<p class=3DMsoPlainText>and that may be the source of the problem.<o:p></o:=
-p></p>
-
-<p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
-
-<p class=3DMsoPlainText>How about trying this patch.<o:p></o:p></p>
-
-<p class=3DMsoPlainText>I've added the host name and an extra report when a=
-n
-address is added.<o:p></o:p></p>
-
-<p class=3DMsoPlainText>I've also attempted to use the addresses from the
-original lookup.<o:p></o:p></p>
-
-<p class=3DMsoPlainText>It replaces Jeffs patch.<o:p></o:p></p>
-
-<p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
-
-<p class=3DMsoPlainText>---<o:p></o:p></p>
-
-<p class=3DMsoPlainText>diff --git a/include/rpc_subs.h b/include/rpc_subs.=
-h<o:p></o:p></p>
-
-<p class=3DMsoPlainText>index 3292e01..3f15ef5 100644<o:p></o:p></p>
-
-<p class=3DMsoPlainText>--- a/include/rpc_subs.h<o:p></o:p></p>
-
-<p class=3DMsoPlainText>+++ b/include/rpc_subs.h<o:p></o:p></p>
-
-<p class=3DMsoPlainText>@@ -46,6 +46,7 @@<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;struct conn_info {<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; const char *host;<o:=
-p></o:p></p>
-
-<p class=3DMsoPlainText>+&nbsp;&nbsp;&nbsp;&nbsp; const char *addr;<o:p></o=
-:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; unsigned short port;=
-<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; unsigned long progra=
-m;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; unsigned long versio=
-n;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>diff --git a/lib/rpc_subs.c b/lib/rpc_subs.c<o:p></=
-o:p></p>
-
-<p class=3DMsoPlainText>index 5797639..0778558 100644<o:p></o:p></p>
-
-<p class=3DMsoPlainText>--- a/lib/rpc_subs.c<o:p></o:p></p>
-
-<p class=3DMsoPlainText>+++ b/lib/rpc_subs.c<o:p></o:p></p>
-
-<p class=3DMsoPlainText>@@ -66,6 +66,7 @@ static CLIENT *create_udp_client(=
-struct
-conn_info<o:p></o:p></p>
-
-<p class=3DMsoPlainText>*info)<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; struct hostent *php =
-=3D
-&amp;hp;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; struct hostent *resu=
-lt;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; char
-buf[HOST_ENT_BUF_SIZE];<o:p></o:p></p>
-
-<p class=3DMsoPlainText>+&nbsp;&nbsp;&nbsp;&nbsp; const char *haddr;<o:p></=
-o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; size_t len;<o:p></o:=
-p></p>
-
-<p class=3DMsoPlainText>&nbsp;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if
-(info-&gt;proto-&gt;p_proto !=3D IPPROTO_UDP)<o:p></o:p></p>
-
-<p class=3DMsoPlainText>@@ -86,11 +87,13 @@ static CLIENT
-*create_udp_client(struct conn_info<o:p></o:p></p>
-
-<p class=3DMsoPlainText>*info)<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; memset(&amp;raddr, 0=
-,
-sizeof(raddr));<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; raddr.sin_family =3D
-AF_INET;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>-&nbsp;&nbsp;&nbsp;&nbsp; if (inet_aton(info-&gt;ho=
-st,
-&amp;raddr.sin_addr))<o:p></o:p></p>
-
-<p class=3DMsoPlainText>+&nbsp;&nbsp;&nbsp;&nbsp; haddr =3D info-&gt;addr ?
-info-&gt;addr : info-&gt;host;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>+&nbsp;&nbsp;&nbsp;&nbsp; if (inet_aton(haddr,
-&amp;raddr.sin_addr))<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp; goto
-got_addr;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; memset(&amp;hp, 0,
-sizeof(struct hostent));<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>+&nbsp;&nbsp;&nbsp;&nbsp; logerr(&quot;gethostbynam=
-e_r %s&quot;,
-info-&gt;host);<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ret =3D
-gethostbyname_r(info-&gt;host, php,<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; buf,
-HOST_ENT_BUF_SIZE, &amp;result, &amp;ghn_errno);<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (ret || !result) =
-{<o:p></o:p></p>
-
-<p class=3DMsoPlainText>@@ -276,6 +279,7 @@ static CLIENT
-*create_tcp_client(struct conn_info<o:p></o:p></p>
-
-<p class=3DMsoPlainText>*info)<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; struct hostent *php =
-=3D
-&amp;hp;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; struct hostent *resu=
-lt;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; char
-buf[HOST_ENT_BUF_SIZE];<o:p></o:p></p>
-
-<p class=3DMsoPlainText>+&nbsp;&nbsp;&nbsp;&nbsp; const char *haddr;<o:p></=
-o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; int ret;<o:p></o:p><=
-/p>
-
-<p class=3DMsoPlainText>&nbsp;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if
-(info-&gt;proto-&gt;p_proto !=3D IPPROTO_TCP)<o:p></o:p></p>
-
-<p class=3DMsoPlainText>@@ -295,11 +299,13 @@ static CLIENT
-*create_tcp_client(struct conn_info<o:p></o:p></p>
-
-<p class=3DMsoPlainText>*info)<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; memset(&amp;addr, 0,
-sizeof(addr));<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; addr.sin_family =3D =
-AF_INET;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>-&nbsp;&nbsp;&nbsp;&nbsp; if (inet_aton(info-&gt;ho=
-st,
-&amp;addr.sin_addr))<o:p></o:p></p>
-
-<p class=3DMsoPlainText>+&nbsp;&nbsp;&nbsp;&nbsp; haddr =3D info-&gt;addr ?
-info-&gt;addr : info-&gt;host;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>+&nbsp;&nbsp;&nbsp;&nbsp; if (inet_aton(haddr,
-&amp;addr.sin_addr))<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp; goto
-got_addr;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; memset(&amp;hp, 0,
-sizeof(struct hostent));<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>+&nbsp;&nbsp;&nbsp;&nbsp; logerr(&quot;gethostbynam=
-e_r
-%s&quot;, info-&gt;host);<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ret =3D
-gethostbyname_r(info-&gt;host, php,<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; buf,
-HOST_ENT_BUF_SIZE, &amp;result, &amp;ghn_errno);<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (ret || !result) =
-{<o:p></o:p></p>
-
-<p class=3DMsoPlainText>@@ -418,6 +424,7 @@ int rpc_portmap_getclient(struc=
-t
-conn_info *info,<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp; return
-0;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; info-&gt;host =3D ho=
-st;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>+&nbsp;&nbsp;&nbsp;&nbsp; info-&gt;addr =3D NULL;<o=
-:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; info-&gt;program =3D
-PMAPPROG;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; info-&gt;port =3D PM=
-APPORT;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; info-&gt;version =3D
-PMAPVERS;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>@@ -462,6 +469,7 @@ unsigned short
-rpc_portmap_getport(struct conn_info<o:p></o:p></p>
-
-<p class=3DMsoPlainText>*info, struct pmap *parms)<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp; client
-=3D info-&gt;client;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; else {<o:p></o:p></p=
->
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp; pmap_info.host
-=3D info-&gt;host;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
-bsp;&nbsp; pmap_info.addr
-=3D NULL;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp; pmap_info.port
-=3D PMAPPORT;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp; pmap_info.program
-=3D PMAPPROG;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp; pmap_info.version
-=3D PMAPVERS;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>@@ -589,6 +597,7 @@ static unsigned int __rpc_ping(=
-const
-char *host,<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; struct pmap parms;<o=
-:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; info.host =3D host;<=
-o:p></o:p></p>
-
-<p class=3DMsoPlainText>+&nbsp;&nbsp;&nbsp;&nbsp; info.addr =3D NULL;<o:p><=
-/o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; info.program =3D
-NFS_PROGRAM;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; info.version =3D ver=
-sion;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; info.send_sz =3D 0;<=
-o:p></o:p></p>
-
-<p class=3DMsoPlainText>@@ -769,6 +778,7 @@ exports rpc_get_exports(const c=
-har
-*host, long<o:p></o:p></p>
-
-<p class=3DMsoPlainText>seconds, long micros, unsigned in<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; int status;<o:p></o:=
-p></p>
-
-<p class=3DMsoPlainText>&nbsp;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; info.host =3D host;<=
-o:p></o:p></p>
-
-<p class=3DMsoPlainText>+&nbsp;&nbsp;&nbsp;&nbsp; info.addr =3D NULL;<o:p><=
-/o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; info.program =3D MOU=
-NTPROG;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; info.version =3D MOU=
-NTVERS;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; info.send_sz =3D 0;<=
-o:p></o:p></p>
-
-<p class=3DMsoPlainText>diff --git a/modules/replicated.c b/modules/replica=
-ted.c<o:p></o:p></p>
-
-<p class=3DMsoPlainText>index 90b2925..d64f74a 100644<o:p></o:p></p>
-
-<p class=3DMsoPlainText>--- a/modules/replicated.c<o:p></o:p></p>
-
-<p class=3DMsoPlainText>+++ b/modules/replicated.c<o:p></o:p></p>
-
-<p class=3DMsoPlainText>@@ -551,6 +551,7 @@ static int get_vers_and_cost(un=
-signed
-logopt, struct<o:p></o:p></p>
-
-<p class=3DMsoPlainText>host *host,<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp; timeout
-=3D RPC_TIMEOUT * 8;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; rpc_info.host =3D
-host-&gt;name;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>+&nbsp;&nbsp;&nbsp;&nbsp; rpc_info.addr =3D host-&g=
-t;addr;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; rpc_info.program =3D
-NFS_PROGRAM;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; rpc_info.timeout.tv_=
-sec =3D
-timeout;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; rpc_info.close_optio=
-n =3D
-RPC_CLOSE_DEFAULT;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>@@ -606,6 +607,7 @@ static int
-get_supported_ver_and_cost(unsigned<o:p></o:p></p>
-
-<p class=3DMsoPlainText>logopt, struct host *host,<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp; timeout
-=3D RPC_TIMEOUT * 8;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; rpc_info.host =3D
-host-&gt;name;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>+&nbsp;&nbsp;&nbsp;&nbsp; rpc_info.addr =3D host-&g=
-t;addr;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; rpc_info.program =3D
-NFS_PROGRAM;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; rpc_info.timeout.tv_=
-sec =3D
-timeout;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; rpc_info.close_optio=
-n =3D
-RPC_CLOSE_DEFAULT;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>@@ -880,6 +882,7 @@ static int add_host_addrs(struc=
-t host
-**list, const<o:p></o:p></p>
-
-<p class=3DMsoPlainText>char *host, unsigned int wei<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; memset(buf, 0,
-MAX_IFC_BUF);<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; memset(&amp;he, 0,
-sizeof(struct hostent));<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>+&nbsp;&nbsp;&nbsp;&nbsp; logerr(&quot;gethostbynam=
-e_r
-%s&quot;, host);<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ret =3D
-gethostbyname_r(host, phe,<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; buf,
-MAX_IFC_BUF, &amp;result, &amp;ghn_errno);<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (ret || !result) =
-{<o:p></o:p></p>
-
-<p class=3DMsoPlainText>@@ -895,6 +898,7 @@ static int add_host_addrs(struc=
-t host
-**list, const<o:p></o:p></p>
-
-<p class=3DMsoPlainText>char *host, unsigned int wei<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp; if
-(prx =3D=3D PROXIMITY_ERROR)<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return
-0;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>+&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&=
-nbsp; logerr(&quot;add
-host address %s&quot;, haddr);<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp; if
-(!(new =3D new_host(host, *haddr, prx, weight)))<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
-sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return
-0;<o:p></o:p></p>
-
-<p class=3DMsoPlainText>&nbsp;<o:p></o:p></p>
-
-<p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
-
-<p class=3DMsoPlainText><o:p>&nbsp;</o:p></p>
-
-</div>
-
-<br><pre>NOTICE:
-This message may contain privileged or otherwise confidential information.
-If you are not the intended recipient, please immediately advise the sender
-by reply email and delete the message and any attachments without using,
-copying or disclosing the contents.
-</pre></body>
-
-</html>
-
-
-------_=_NextPart_001_01C8480C.D9F79B4F--
-
-
---===============7800250309588021401==
+	charset="utf-8"
+Content-Transfer-Encoding: base64
+
+PGh0bWwgeG1sbnM6dj0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTp2bWwiIHhtbG5zOm89InVy
+bjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOm9mZmljZSIgeG1sbnM6dz0idXJuOnNjaGVt
+YXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6d29yZCIgeG1sbnM6bT0iaHR0cDovL3NjaGVtYXMubWlj
+cm9zb2Z0LmNvbS9vZmZpY2UvMjAwNC8xMi9vbW1sIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcv
+VFIvUkVDLWh0bWw0MCI+DQoNCjxoZWFkPg0KPG1ldGEgaHR0cC1lcXVpdj1Db250ZW50LVR5cGUg
+Y29udGVudD0idGV4dC9odG1sOyBjaGFyc2V0PXV0Zi04Ij4NCjxtZXRhIG5hbWU9R2VuZXJhdG9y
+IGNvbnRlbnQ9Ik1pY3Jvc29mdCBXb3JkIDEyIChmaWx0ZXJlZCBtZWRpdW0pIj4NCjxzdHlsZT4N
+CjwhLS0NCiAvKiBGb250IERlZmluaXRpb25zICovDQogQGZvbnQtZmFjZQ0KCXtmb250LWZhbWls
+eToiQ2FtYnJpYSBNYXRoIjsNCglwYW5vc2UtMToyIDQgNSAzIDUgNCA2IDMgMiA0O30NCkBmb250
+LWZhY2UNCgl7Zm9udC1mYW1pbHk6Q2FsaWJyaTsNCglwYW5vc2UtMToyIDE1IDUgMiAyIDIgNCAz
+IDIgNDt9DQpAZm9udC1mYWNlDQoJe2ZvbnQtZmFtaWx5OkNvbnNvbGFzOw0KCXBhbm9zZS0xOjIg
+MTEgNiA5IDIgMiA0IDMgMiA0O30NCiAvKiBTdHlsZSBEZWZpbml0aW9ucyAqLw0KIHAuTXNvTm9y
+bWFsLCBsaS5Nc29Ob3JtYWwsIGRpdi5Nc29Ob3JtYWwNCgl7bWFyZ2luOjBpbjsNCgltYXJnaW4t
+Ym90dG9tOi4wMDAxcHQ7DQoJZm9udC1zaXplOjExLjBwdDsNCglmb250LWZhbWlseToiQ2FsaWJy
+aSIsInNhbnMtc2VyaWYiO30NCmE6bGluaywgc3Bhbi5Nc29IeXBlcmxpbmsNCgl7bXNvLXN0eWxl
+LXByaW9yaXR5Ojk5Ow0KCWNvbG9yOmJsdWU7DQoJdGV4dC1kZWNvcmF0aW9uOnVuZGVybGluZTt9
+DQphOnZpc2l0ZWQsIHNwYW4uTXNvSHlwZXJsaW5rRm9sbG93ZWQNCgl7bXNvLXN0eWxlLXByaW9y
+aXR5Ojk5Ow0KCWNvbG9yOnB1cnBsZTsNCgl0ZXh0LWRlY29yYXRpb246dW5kZXJsaW5lO30NCnAu
+TXNvUGxhaW5UZXh0LCBsaS5Nc29QbGFpblRleHQsIGRpdi5Nc29QbGFpblRleHQNCgl7bXNvLXN0
+eWxlLXByaW9yaXR5Ojk5Ow0KCW1zby1zdHlsZS1saW5rOiJQbGFpbiBUZXh0IENoYXIiOw0KCW1h
+cmdpbjowaW47DQoJbWFyZ2luLWJvdHRvbTouMDAwMXB0Ow0KCWZvbnQtc2l6ZToxMC41cHQ7DQoJ
+Zm9udC1mYW1pbHk6Q29uc29sYXM7fQ0Kc3Bhbi5QbGFpblRleHRDaGFyDQoJe21zby1zdHlsZS1u
+YW1lOiJQbGFpbiBUZXh0IENoYXIiOw0KCW1zby1zdHlsZS1wcmlvcml0eTo5OTsNCgltc28tc3R5
+bGUtbGluazoiUGxhaW4gVGV4dCI7DQoJZm9udC1mYW1pbHk6Q29uc29sYXM7fQ0KLk1zb0NocERl
+ZmF1bHQNCgl7bXNvLXN0eWxlLXR5cGU6ZXhwb3J0LW9ubHk7fQ0KQHBhZ2UgU2VjdGlvbjENCgl7
+c2l6ZTo4LjVpbiAxMS4waW47DQoJbWFyZ2luOjEuMGluIDEuMGluIDEuMGluIDEuMGluO30NCmRp
+di5TZWN0aW9uMQ0KCXtwYWdlOlNlY3Rpb24xO30NCi0tPg0KPC9zdHlsZT4NCjwhLS1baWYgZ3Rl
+IG1zbyA5XT48eG1sPg0KIDxvOnNoYXBlZGVmYXVsdHMgdjpleHQ9ImVkaXQiIHNwaWRtYXg9IjEw
+MjYiIC8+DQo8L3htbD48IVtlbmRpZl0tLT48IS0tW2lmIGd0ZSBtc28gOV0+PHhtbD4NCiA8bzpz
+aGFwZWxheW91dCB2OmV4dD0iZWRpdCI+DQogIDxvOmlkbWFwIHY6ZXh0PSJlZGl0IiBkYXRhPSIx
+IiAvPg0KIDwvbzpzaGFwZWxheW91dD48L3htbD48IVtlbmRpZl0tLT4NCjwvaGVhZD4NCg0KPGJv
+ZHkgbGFuZz1FTi1VUyBsaW5rPWJsdWUgdmxpbms9cHVycGxlPg0KDQo8ZGl2IGNsYXNzPVNlY3Rp
+b24xPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+SWFuLDxvOnA+PC9vOnA+PC9wPg0KDQo8cCBj
+bGFzcz1Nc29QbGFpblRleHQ+PG86cD4mbmJzcDs8L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1Bs
+YWluVGV4dD5JIHVwZGF0ZWQgeW91ciBwYXRjaCBhIGxpdHRsZSB0byBwcm92aWRlIGNsZWFyZXIg
+ZGVidWcgb3V0cHV0DQppbiB0aGUgJ2FkZF9ob3N0JyBmdW5jdGlvbi4gSSd2ZSBhdHRhY2hlZCB0
+aGUgcGF0Y2ggdG8gdGhpcyBlLW1haWwuIChJJ20gc3RpbGwNCmdldHRpbmcgZmFtaWxpYXIgd2l0
+aCBnaXQsIG15IGFwb2xvZ2llcyBpZiB0aGUgZGlmZiBpcyBub3QgaW4gdGhlIGNvcnJlY3QNCmZv
+cm1hdCkuIEkgdXBkYXRlZCB0aGUgbG9nZXJyIGNhbGwgaW4gcmVwbGljYXRlZC5jIHRvOjxvOnA+
+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+PG86cD4mbmJzcDs8L286cD48L3A+
+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dCBzdHlsZT0nbWFyZ2luLWxlZnQ6LjVpbic+PGI+bG9n
+ZXJyKCZxdW90O2FkZCBob3N0ICVzDQphZGRyZXNzICVzJnF1b3Q7LCBob3N0LCBpbmV0X250b2Eo
+Kigoc3RydWN0IGluX2FkZHIgKilwaGUtJmd0O2hfYWRkcikpKTs8bzpwPjwvbzpwPjwvYj48L3A+
+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD48bzpwPiZuYnNwOzwvbzpwPjwvcD4NCg0KPHAgY2xh
+c3M9TXNvUGxhaW5UZXh0PkJlbG93IGlzIHRoZSBvdXRwdXQgYWZ0ZXIgbXkgc2ltcGxlICdscycg
+dGVzdC4gSXQgaXMNCmludGVyZXN0aW5nIHRoYXQgJ2FkZCBob3N0IGxhcmdlLXJyIGFkZHJlc3Mg
+MTcyLjIxLjE1LjM3JyBsaW5lIGlzIGNhbGxlZCA0OA0KdGltZXMgLSB0aGVyZSBhcmUgNDggZW50
+cmllcyBpbiB0aGUgbGFyZ2UtcnIgcm91bmQgcm9iaW4g4oCTIEkgd291bGQgaGF2ZSBhc3N1bWVk
+DQppdCB3b3VsZCBoYXZlIGNhbGxlZCBpdCBmb3IgZWFjaCBhZGRyZXNzIGluIHRoZSByb3VuZCBy
+b2Jpbiwgbm90IDQ4IHRpbWVzIGZvcg0KdGhlIHNhbWUgYWRkcmVzcy48bzpwPjwvbzpwPjwvcD4N
+Cg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PjxvOnA+Jm5ic3A7PC9vOnA+PC9wPg0KDQo8cCBjbGFz
+cz1Nc29QbGFpblRleHQ+PG86cD4mbmJzcDs8L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWlu
+VGV4dD48bzpwPiZuYnNwOzwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PkRlYyAy
+NyAxNTozNjoyNiBteWhvc3QgYXV0b2ZzOiBhdXRvbW91bnQgc3RhcnR1cA0Kc3VjY2VlZGVkPG86
+cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD5EZWMgMjcgMTU6MzY6MzAgbXlo
+b3N0IGF1dG9tb3VudFsxNTExN106DQphZGRfaG9zdF9hZGRyczo4ODY6IGdldGhvc3RieW5hbWVf
+ciBsYXJnZS1ycjxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+RGVjIDI3
+IDE1OjM2OjMwIG15aG9zdCBhdXRvbW91bnRbMTUxMTddOg0KYWRkX2hvc3RfYWRkcnM6OTAyOiBh
+ZGQgaG9zdCBsYXJnZS1yciBhZGRyZXNzIDE3Mi4yMS4xNS4zNzxvOnA+PC9vOnA+PC9wPg0KDQo8
+cCBjbGFzcz1Nc29QbGFpblRleHQ+RGVjIDI3IDE1OjM2OjMwIG15aG9zdCBsYXN0IG1lc3NhZ2Ug
+cmVwZWF0ZWQgNDcgdGltZXM8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0
+PkRlYyAyNyAxNTozNjozMCBteWhvc3QgYXV0b21vdW50WzE1MTE3XToNCmNyZWF0ZV91ZHBfY2xp
+ZW50Ojk2OiBnZXRob3N0YnluYW1lX3IgbGFyZ2UtcnI8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xh
+c3M9TXNvUGxhaW5UZXh0PkRlYyAyNyAxNTozNjozMCBteWhvc3QgbGFzdCBtZXNzYWdlIHJlcGVh
+dGVkIDIgdGltZXM8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PkRlYyAy
+NyAxNTozNjozMCBteWhvc3QgYXV0b21vdW50WzE1MTE3XToNCmNyZWF0ZV90Y3BfY2xpZW50OjMw
+ODogZ2V0aG9zdGJ5bmFtZV9yIGxhcmdlLXJyPG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1z
+b1BsYWluVGV4dD5EZWMgMjcgMTU6MzY6MzAgbXlob3N0IGxhc3QgbWVzc2FnZSByZXBlYXRlZCAy
+IHRpbWVzPG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD5EZWMgMjcgMTU6
+MzY6MzAgbXlob3N0IGF1dG9tb3VudFsxNTExN106DQpjcmVhdGVfdWRwX2NsaWVudDo5NjogZ2V0
+aG9zdGJ5bmFtZV9yIGxhcmdlLXJyPG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWlu
+VGV4dD5EZWMgMjcgMTU6MzY6MzAgbXlob3N0IGxhc3QgbWVzc2FnZSByZXBlYXRlZCAyIHRpbWVz
+PG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD5EZWMgMjcgMTU6MzY6MzAg
+bXlob3N0IGF1dG9tb3VudFsxNTExN106DQpjcmVhdGVfdGNwX2NsaWVudDozMDg6IGdldGhvc3Ri
+eW5hbWVfciBsYXJnZS1ycjxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+
+RGVjIDI3IDE1OjM2OjMwIG15aG9zdCBsYXN0IG1lc3NhZ2UgcmVwZWF0ZWQgMiB0aW1lczxvOnA+
+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+RGVjIDI3IDE1OjM2OjMwIG15aG9z
+dCBhdXRvbW91bnRbMTUxMTddOiBjcmVhdGVfdWRwX2NsaWVudDo5NjoNCmdldGhvc3RieW5hbWVf
+ciBsYXJnZS1ycjxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+RGVjIDI3
+IDE1OjM2OjMwIG15aG9zdCBsYXN0IG1lc3NhZ2UgcmVwZWF0ZWQgMiB0aW1lczxvOnA+PC9vOnA+
+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+RGVjIDI3IDE1OjM2OjMwIG15aG9zdCBhdXRv
+bW91bnRbMTUxMTddOg0KY3JlYXRlX3RjcF9jbGllbnQ6MzA4OiBnZXRob3N0YnluYW1lX3IgbGFy
+Z2UtcnI8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PkRlYyAyNyAxNToz
+NjozMCBteWhvc3QgbGFzdCBtZXNzYWdlIHJlcGVhdGVkIDIgdGltZXM8bzpwPjwvbzpwPjwvcD4N
+Cg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PkRlYyAyNyAxNTozNjozMCBteWhvc3QgYXV0b21vdW50
+WzE1MTE3XToNCmNyZWF0ZV91ZHBfY2xpZW50Ojk2OiBnZXRob3N0YnluYW1lX3IgbGFyZ2UtcnI8
+bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PkRlYyAyNyAxNTozNjozMCBt
+eWhvc3QgbGFzdCBtZXNzYWdlIHJlcGVhdGVkIDIgdGltZXM8bzpwPjwvbzpwPjwvcD4NCg0KPHAg
+Y2xhc3M9TXNvUGxhaW5UZXh0PkRlYyAyNyAxNTozNjozMCBteWhvc3QgYXV0b21vdW50WzE1MTE3
+XToNCmNyZWF0ZV90Y3BfY2xpZW50OjMwODogZ2V0aG9zdGJ5bmFtZV9yIGxhcmdlLXJyPG86cD48
+L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD5EZWMgMjcgMTU6MzY6MzAgbXlob3N0
+IGxhc3QgbWVzc2FnZSByZXBlYXRlZCAyIHRpbWVzPG86cD48L286cD48L3A+DQoNCjxwIGNsYXNz
+PU1zb1BsYWluVGV4dD5EZWMgMjcgMTU6MzY6MzAgbXlob3N0IGF1dG9tb3VudFsxNTExN106DQpj
+cmVhdGVfdWRwX2NsaWVudDo5NjogZ2V0aG9zdGJ5bmFtZV9yIGxhcmdlLXJyPG86cD48L286cD48
+L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD5EZWMgMjcgMTU6MzY6MzAgbXlob3N0IGxhc3Qg
+bWVzc2FnZSByZXBlYXRlZCAyIHRpbWVzPG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1Bs
+YWluVGV4dD5EZWMgMjcgMTU6MzY6MzAgbXlob3N0IGF1dG9tb3VudFsxNTExN106DQpjcmVhdGVf
+dGNwX2NsaWVudDozMDg6IGdldGhvc3RieW5hbWVfciBsYXJnZS1ycjxvOnA+PC9vOnA+PC9wPg0K
+DQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+RGVjIDI3IDE1OjM2OjMwIG15aG9zdCBsYXN0IG1lc3Nh
+Z2UgcmVwZWF0ZWQgMiB0aW1lczxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRl
+eHQ+RGVjIDI3IDE1OjM2OjMwIG15aG9zdCBhdXRvbW91bnRbMTUxMTddOg0KY3JlYXRlX3VkcF9j
+bGllbnQ6OTY6IGdldGhvc3RieW5hbWVfciBsYXJnZS1ycjxvOnA+PC9vOnA+PC9wPg0KDQo8cCBj
+bGFzcz1Nc29QbGFpblRleHQ+RGVjIDI3IDE1OjM2OjMwIG15aG9zdCBsYXN0IG1lc3NhZ2UgcmVw
+ZWF0ZWQgMiB0aW1lczxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+RGVj
+IDI3IDE1OjM2OjMwIG15aG9zdCBhdXRvbW91bnRbMTUxMTddOg0KY3JlYXRlX3RjcF9jbGllbnQ6
+MzA4OiBnZXRob3N0YnluYW1lX3IgbGFyZ2UtcnI8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9
+TXNvUGxhaW5UZXh0PkRlYyAyNyAxNTozNjozMCBteWhvc3QgbGFzdCBtZXNzYWdlIHJlcGVhdGVk
+IDIgdGltZXM8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PkRlYyAyNyAx
+NTozNjozMCBteWhvc3QgYXV0b21vdW50WzE1MTE3XToNCmNyZWF0ZV91ZHBfY2xpZW50Ojk2OiBn
+ZXRob3N0YnluYW1lX3IgbGFyZ2UtcnI8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxh
+aW5UZXh0PkRlYyAyNyAxNTozNjozMCBteWhvc3QgbGFzdCBtZXNzYWdlIHJlcGVhdGVkIDIgdGlt
+ZXM8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PkRlYyAyNyAxNTozNjoz
+MCBteWhvc3QgYXV0b21vdW50WzE1MTE3XToNCmNyZWF0ZV90Y3BfY2xpZW50OjMwODogZ2V0aG9z
+dGJ5bmFtZV9yIGxhcmdlLXJyPG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4
+dD5EZWMgMjcgMTU6MzY6MzAgbXlob3N0IGxhc3QgbWVzc2FnZSByZXBlYXRlZCAyIHRpbWVzPG86
+cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD5EZWMgMjcgMTU6MzY6MzAgbXlo
+b3N0IGF1dG9tb3VudFsxNTExN106DQpjcmVhdGVfdWRwX2NsaWVudDo5NjogZ2V0aG9zdGJ5bmFt
+ZV9yIGxhcmdlLXJyPG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD5EZWMg
+MjcgMTU6MzY6MzAgbXlob3N0IGxhc3QgbWVzc2FnZSByZXBlYXRlZCAyIHRpbWVzPG86cD48L286
+cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD5EZWMgMjcgMTU6MzY6MzAgbXlob3N0IGF1
+dG9tb3VudFsxNTExN106DQpjcmVhdGVfdGNwX2NsaWVudDozMDg6IGdldGhvc3RieW5hbWVfciBs
+YXJnZS1ycjxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+RGVjIDI3IDE1
+OjM2OjMxIG15aG9zdCBsYXN0IG1lc3NhZ2UgcmVwZWF0ZWQgMiB0aW1lczxvOnA+PC9vOnA+PC9w
+Pg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+RGVjIDI3IDE1OjM2OjMxIG15aG9zdCBhdXRvbW91
+bnRbMTUxMTddOg0KY3JlYXRlX3VkcF9jbGllbnQ6OTY6IGdldGhvc3RieW5hbWVfciBsYXJnZS1y
+cjxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+RGVjIDI3IDE1OjM2OjMx
+IG15aG9zdCBsYXN0IG1lc3NhZ2UgcmVwZWF0ZWQgMiB0aW1lczxvOnA+PC9vOnA+PC9wPg0KDQo8
+cCBjbGFzcz1Nc29QbGFpblRleHQ+RGVjIDI3IDE1OjM2OjMxIG15aG9zdCBhdXRvbW91bnRbMTUx
+MTddOg0KY3JlYXRlX3RjcF9jbGllbnQ6MzA4OiBnZXRob3N0YnluYW1lX3IgbGFyZ2UtcnI8bzpw
+PjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PkRlYyAyNyAxNTozNjozMSBteWhv
+c3QgbGFzdCBtZXNzYWdlIHJlcGVhdGVkIDIgdGltZXM8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xh
+c3M9TXNvUGxhaW5UZXh0PkRlYyAyNyAxNTozNjozMSBteWhvc3QgYXV0b21vdW50WzE1MTE3XToN
+CmNyZWF0ZV91ZHBfY2xpZW50Ojk2OiBnZXRob3N0YnluYW1lX3IgbGFyZ2UtcnI8bzpwPjwvbzpw
+PjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PkRlYyAyNyAxNTozNjozMSBteWhvc3QgbGFz
+dCBtZXNzYWdlIHJlcGVhdGVkIDIgdGltZXM8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNv
+UGxhaW5UZXh0PkRlYyAyNyAxNTozNjozMSBteWhvc3QgYXV0b21vdW50WzE1MTE3XToNCmNyZWF0
+ZV90Y3BfY2xpZW50OjMwODogZ2V0aG9zdGJ5bmFtZV9yIGxhcmdlLXJyPG86cD48L286cD48L3A+
+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD5EZWMgMjcgMTU6MzY6MzEgbXlob3N0IGxhc3QgbWVz
+c2FnZSByZXBlYXRlZCAyIHRpbWVzPG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWlu
+VGV4dD5EZWMgMjcgMTU6MzY6MzEgbXlob3N0IGF1dG9tb3VudFsxNTExN106DQpjcmVhdGVfdWRw
+X2NsaWVudDo5NjogZ2V0aG9zdGJ5bmFtZV9yIGxhcmdlLXJyPG86cD48L286cD48L3A+DQoNCjxw
+IGNsYXNzPU1zb1BsYWluVGV4dD5EZWMgMjcgMTU6MzY6MzEgbXlob3N0IGxhc3QgbWVzc2FnZSBy
+ZXBlYXRlZCAyIHRpbWVzPG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD5E
+ZWMgMjcgMTU6MzY6MzEgbXlob3N0IGF1dG9tb3VudFsxNTExN106DQpjcmVhdGVfdGNwX2NsaWVu
+dDozMDg6IGdldGhvc3RieW5hbWVfciBsYXJnZS1ycjxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFz
+cz1Nc29QbGFpblRleHQ+RGVjIDI3IDE1OjM2OjMxIG15aG9zdCBsYXN0IG1lc3NhZ2UgcmVwZWF0
+ZWQgMiB0aW1lczxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+RGVjIDI3
+IDE1OjM2OjMxIG15aG9zdCBhdXRvbW91bnRbMTUxMTddOg0KY3JlYXRlX3VkcF9jbGllbnQ6OTY6
+IGdldGhvc3RieW5hbWVfciBsYXJnZS1ycjxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29Q
+bGFpblRleHQ+RGVjIDI3IDE1OjM2OjMxIG15aG9zdCBsYXN0IG1lc3NhZ2UgcmVwZWF0ZWQgMiB0
+aW1lczxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+RGVjIDI3IDE1OjM2
+OjMxIG15aG9zdCBhdXRvbW91bnRbMTUxMTddOg0KY3JlYXRlX3RjcF9jbGllbnQ6MzA4OiBnZXRo
+b3N0YnluYW1lX3IgbGFyZ2UtcnI8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5U
+ZXh0PkRlYyAyNyAxNTozNjozMSBteWhvc3QgbGFzdCBtZXNzYWdlIHJlcGVhdGVkIDIgdGltZXM8
+bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PkRlYyAyNyAxNTozNjozMSBt
+eWhvc3QgYXV0b21vdW50WzE1MTE3XToNCmNyZWF0ZV91ZHBfY2xpZW50Ojk2OiBnZXRob3N0Ynlu
+YW1lX3IgbGFyZ2UtcnI8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PkRl
+YyAyNyAxNTozNjozMSBteWhvc3QgbGFzdCBtZXNzYWdlIHJlcGVhdGVkIDIgdGltZXM8bzpwPjwv
+bzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PkRlYyAyNyAxNTozNjozMSBteWhvc3Qg
+YXV0b21vdW50WzE1MTE3XToNCmNyZWF0ZV90Y3BfY2xpZW50OjMwODogZ2V0aG9zdGJ5bmFtZV9y
+IGxhcmdlLXJyPG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD5EZWMgMjcg
+MTU6MzY6MzEgbXlob3N0IGxhc3QgbWVzc2FnZSByZXBlYXRlZCAyIHRpbWVzPG86cD48L286cD48
+L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD5EZWMgMjcgMTU6MzY6MzEgbXlob3N0IGF1dG9t
+b3VudFsxNTExN106DQpjcmVhdGVfdWRwX2NsaWVudDo5NjogZ2V0aG9zdGJ5bmFtZV9yIGxhcmdl
+LXJyPG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD5EZWMgMjcgMTU6MzY6
+MzEgbXlob3N0IGxhc3QgbWVzc2FnZSByZXBlYXRlZCAyIHRpbWVzPG86cD48L286cD48L3A+DQoN
+CjxwIGNsYXNzPU1zb1BsYWluVGV4dD5EZWMgMjcgMTU6MzY6MzEgbXlob3N0IGF1dG9tb3VudFsx
+NTExN106DQpjcmVhdGVfdGNwX2NsaWVudDozMDg6IGdldGhvc3RieW5hbWVfciBsYXJnZS1ycjxv
+OnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+RGVjIDI3IDE1OjM2OjMxIG15
+aG9zdCBsYXN0IG1lc3NhZ2UgcmVwZWF0ZWQgMiB0aW1lczxvOnA+PC9vOnA+PC9wPg0KDQo8cCBj
+bGFzcz1Nc29QbGFpblRleHQ+RGVjIDI3IDE1OjM2OjMxIG15aG9zdCBhdXRvbW91bnRbMTUxMTdd
+Og0KY3JlYXRlX3VkcF9jbGllbnQ6OTY6IGdldGhvc3RieW5hbWVfciBsYXJnZS1ycjxvOnA+PC9v
+OnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+RGVjIDI3IDE1OjM2OjMxIG15aG9zdCBs
+YXN0IG1lc3NhZ2UgcmVwZWF0ZWQgMiB0aW1lczxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1N
+c29QbGFpblRleHQ+RGVjIDI3IDE1OjM2OjMxIG15aG9zdCBhdXRvbW91bnRbMTUxMTddOg0KY3Jl
+YXRlX3RjcF9jbGllbnQ6MzA4OiBnZXRob3N0YnluYW1lX3IgbGFyZ2UtcnI8bzpwPjwvbzpwPjwv
+cD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PkRlYyAyNyAxNTozNjozMSBteWhvc3QgbGFzdCBt
+ZXNzYWdlIHJlcGVhdGVkIDIgdGltZXM8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxh
+aW5UZXh0PkRlYyAyNyAxNTozNjozMSBteWhvc3QgYXV0b21vdW50WzE1MTE3XToNCmNyZWF0ZV91
+ZHBfY2xpZW50Ojk2OiBnZXRob3N0YnluYW1lX3IgbGFyZ2UtcnI8bzpwPjwvbzpwPjwvcD4NCg0K
+PHAgY2xhc3M9TXNvUGxhaW5UZXh0PkRlYyAyNyAxNTozNjozMSBteWhvc3QgbGFzdCBtZXNzYWdl
+IHJlcGVhdGVkIDIgdGltZXM8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0
+PkRlYyAyNyAxNTozNjozMSBteWhvc3QgYXV0b21vdW50WzE1MTE3XToNCmNyZWF0ZV90Y3BfY2xp
+ZW50OjMwODogZ2V0aG9zdGJ5bmFtZV9yIGxhcmdlLXJyPG86cD48L286cD48L3A+DQoNCjxwIGNs
+YXNzPU1zb1BsYWluVGV4dD5EZWMgMjcgMTU6MzY6MzEgbXlob3N0IGxhc3QgbWVzc2FnZSByZXBl
+YXRlZCAyIHRpbWVzPG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD5EZWMg
+MjcgMTU6MzY6MzEgbXlob3N0IGF1dG9tb3VudFsxNTExN106DQpjcmVhdGVfdWRwX2NsaWVudDo5
+NjogZ2V0aG9zdGJ5bmFtZV9yIGxhcmdlLXJyPG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1z
+b1BsYWluVGV4dD5EZWMgMjcgMTU6MzY6MzEgbXlob3N0IGxhc3QgbWVzc2FnZSByZXBlYXRlZCAy
+IHRpbWVzPG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD5EZWMgMjcgMTU6
+MzY6MzEgbXlob3N0IGF1dG9tb3VudFsxNTExN106DQpjcmVhdGVfdGNwX2NsaWVudDozMDg6IGdl
+dGhvc3RieW5hbWVfciBsYXJnZS1ycjxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFp
+blRleHQ+RGVjIDI3IDE1OjM2OjMxIG15aG9zdCBsYXN0IG1lc3NhZ2UgcmVwZWF0ZWQgMiB0aW1l
+czxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+RGVjIDI3IDE1OjM2OjMx
+IG15aG9zdCBhdXRvbW91bnRbMTUxMTddOg0KY3JlYXRlX3VkcF9jbGllbnQ6OTY6IGdldGhvc3Ri
+eW5hbWVfciBsYXJnZS1ycjxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+
+RGVjIDI3IDE1OjM2OjMxIG15aG9zdCBsYXN0IG1lc3NhZ2UgcmVwZWF0ZWQgMiB0aW1lczxvOnA+
+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+RGVjIDI3IDE1OjM2OjMxIG15aG9z
+dCBhdXRvbW91bnRbMTUxMTddOg0KY3JlYXRlX3RjcF9jbGllbnQ6MzA4OiBnZXRob3N0YnluYW1l
+X3IgbGFyZ2UtcnI8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PkRlYyAy
+NyAxNTozNjozMSBteWhvc3QgbGFzdCBtZXNzYWdlIHJlcGVhdGVkIDIgdGltZXM8bzpwPjwvbzpw
+PjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PkRlYyAyNyAxNTozNjozMSBteWhvc3QgYXV0
+b21vdW50WzE1MTE3XToNCmNyZWF0ZV91ZHBfY2xpZW50Ojk2OiBnZXRob3N0YnluYW1lX3IgbGFy
+Z2UtcnI8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PkRlYyAyNyAxNToz
+NjozMSBteWhvc3QgbGFzdCBtZXNzYWdlIHJlcGVhdGVkIDIgdGltZXM8bzpwPjwvbzpwPjwvcD4N
+Cg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PkRlYyAyNyAxNTozNjozMSBteWhvc3QgYXV0b21vdW50
+WzE1MTE3XToNCmNyZWF0ZV90Y3BfY2xpZW50OjMwODogZ2V0aG9zdGJ5bmFtZV9yIGxhcmdlLXJy
+PG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD5EZWMgMjcgMTU6MzY6MzEg
+bXlob3N0IGxhc3QgbWVzc2FnZSByZXBlYXRlZCAyIHRpbWVzPG86cD48L286cD48L3A+DQoNCjxw
+IGNsYXNzPU1zb1BsYWluVGV4dD5EZWMgMjcgMTU6MzY6MzEgbXlob3N0IGF1dG9tb3VudFsxNTEx
+N106DQpjcmVhdGVfdWRwX2NsaWVudDo5NjogZ2V0aG9zdGJ5bmFtZV9yIGxhcmdlLXJyPG86cD48
+L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD5EZWMgMjcgMTU6MzY6MzIgbXlob3N0
+IGxhc3QgbWVzc2FnZSByZXBlYXRlZCAyIHRpbWVzPG86cD48L286cD48L3A+DQoNCjxwIGNsYXNz
+PU1zb1BsYWluVGV4dD5EZWMgMjcgMTU6MzY6MzIgbXlob3N0IGF1dG9tb3VudFsxNTExN106DQpj
+cmVhdGVfdGNwX2NsaWVudDozMDg6IGdldGhvc3RieW5hbWVfciBsYXJnZS1ycjxvOnA+PC9vOnA+
+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+RGVjIDI3IDE1OjM2OjMyIG15aG9zdCBsYXN0
+IG1lc3NhZ2UgcmVwZWF0ZWQgMiB0aW1lczxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29Q
+bGFpblRleHQ+RGVjIDI3IDE1OjM2OjMyIG15aG9zdCBhdXRvbW91bnRbMTUxMTddOg0KY3JlYXRl
+X3VkcF9jbGllbnQ6OTY6IGdldGhvc3RieW5hbWVfciBsYXJnZS1ycjxvOnA+PC9vOnA+PC9wPg0K
+DQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+RGVjIDI3IDE1OjM2OjMyIG15aG9zdCBsYXN0IG1lc3Nh
+Z2UgcmVwZWF0ZWQgMiB0aW1lczxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRl
+eHQ+RGVjIDI3IDE1OjM2OjMyIG15aG9zdCBhdXRvbW91bnRbMTUxMTddOg0KY3JlYXRlX3RjcF9j
+bGllbnQ6MzA4OiBnZXRob3N0YnluYW1lX3IgbGFyZ2UtcnI8bzpwPjwvbzpwPjwvcD4NCg0KPHAg
+Y2xhc3M9TXNvUGxhaW5UZXh0PkRlYyAyNyAxNTozNjozMiBteWhvc3QgbGFzdCBtZXNzYWdlIHJl
+cGVhdGVkIDIgdGltZXM8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PkRl
+YyAyNyAxNTozNjozMiBteWhvc3QgYXV0b21vdW50WzE1MTE3XToNCmNyZWF0ZV91ZHBfY2xpZW50
+Ojk2OiBnZXRob3N0YnluYW1lX3IgbGFyZ2UtcnI8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9
+TXNvUGxhaW5UZXh0PkRlYyAyNyAxNTozNjozMiBteWhvc3QgbGFzdCBtZXNzYWdlIHJlcGVhdGVk
+IDIgdGltZXM8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PkRlYyAyNyAx
+NTozNjozMiBteWhvc3QgYXV0b21vdW50WzE1MTE3XToNCmNyZWF0ZV90Y3BfY2xpZW50OjMwODog
+Z2V0aG9zdGJ5bmFtZV9yIGxhcmdlLXJyPG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1Bs
+YWluVGV4dD5EZWMgMjcgMTU6MzY6MzIgbXlob3N0IGxhc3QgbWVzc2FnZSByZXBlYXRlZCAyIHRp
+bWVzPG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD5EZWMgMjcgMTU6MzY6
+MzIgbXlob3N0IGF1dG9tb3VudFsxNTExN106DQpjcmVhdGVfdWRwX2NsaWVudDo5NjogZ2V0aG9z
+dGJ5bmFtZV9yIGxhcmdlLXJyPG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4
+dD5EZWMgMjcgMTU6MzY6MzIgbXlob3N0IGxhc3QgbWVzc2FnZSByZXBlYXRlZCAyIHRpbWVzPG86
+cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD5EZWMgMjcgMTU6MzY6MzIgbXlo
+b3N0IGF1dG9tb3VudFsxNTExN106DQpjcmVhdGVfdGNwX2NsaWVudDozMDg6IGdldGhvc3RieW5h
+bWVfciBsYXJnZS1ycjxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+RGVj
+IDI3IDE1OjM2OjMyIG15aG9zdCBsYXN0IG1lc3NhZ2UgcmVwZWF0ZWQgMiB0aW1lczxvOnA+PC9v
+OnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+RGVjIDI3IDE1OjM2OjMyIG15aG9zdCBh
+dXRvbW91bnRbMTUxMTddOg0KY3JlYXRlX3VkcF9jbGllbnQ6OTY6IGdldGhvc3RieW5hbWVfciBs
+YXJnZS1ycjxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+RGVjIDI3IDE1
+OjM2OjMyIG15aG9zdCBsYXN0IG1lc3NhZ2UgcmVwZWF0ZWQgMiB0aW1lczxvOnA+PC9vOnA+PC9w
+Pg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+RGVjIDI3IDE1OjM2OjMyIG15aG9zdCBhdXRvbW91
+bnRbMTUxMTddOg0KY3JlYXRlX3RjcF9jbGllbnQ6MzA4OiBnZXRob3N0YnluYW1lX3IgbGFyZ2Ut
+cnI8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PjxvOnA+Jm5ic3A7PC9v
+OnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+PG86cD4mbmJzcDs8L286cD48L3A+DQoN
+CjxwIGNsYXNzPU1zb1BsYWluVGV4dD4tLS08bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNv
+UGxhaW5UZXh0PkphbWVzIFQuIFJpY2hhcmRzb24sIEpyLjxvOnA+PC9vOnA+PC9wPg0KDQo8cCBj
+bGFzcz1Nc29QbGFpblRleHQ+anJpY2hhcmRzb25AeC1pc3MuY29tPG86cD48L286cD48L3A+DQoN
+CjxwIGNsYXNzPU1zb1BsYWluVGV4dD5lWGNlbGxlbmNlIGluIElTIFNvbHV0aW9ucywgSW5jLjxv
+OnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+NzEzLTg2Mi05MjAwIHgyMjY8
+bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PjxvOnA+Jm5ic3A7PC9vOnA+
+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+TWFraW5nIElUIFdvcmsgZm9yIFlvdTxvOnA+
+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+SFBDICZhbXA7IEVudGVycHJpc2Ug
+SVQgU29sdXRpb25zPG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD7igKIg
+SFBDIEFwcGxpY2F0aW9uIEFjY2VsZXJhdGlvbjxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1N
+c29QbGFpblRleHQ+4oCiIENsdXN0ZXIgRGVzaWduLCBEZXBsb3ksIE1hbmFnZSwgVHJhaW48bzpw
+PjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PuKAoiBMaW51eC9XaW5kb3dzIElu
+dGVncmF0aW9uPG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD7igKIgUmVt
+b3RlIE1hbmFnZW1lbnQsIEJhY2t1cCwgQW50aS1TcGFtL1ZpcnVzPG86cD48L286cD48L3A+DQoN
+CjxwIGNsYXNzPU1zb1BsYWluVGV4dD7igKIgTmV0d29yayBBc3Nlc3NtZW50cywgRGVzaWduPG86
+cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD7igKIgU2VjdXJpdHkgQXVkaXRz
+LCBEZXNpZ248bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PuKAoiBEYXRh
+Y2VudGVyIERlc2lnbiwgUmVsb2NhdGlvbjxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29Q
+bGFpblRleHQ+4oCiIE1lc3NhZ2luZyBhbmQgQ29sbGFib3JhdGlvbjxvOnA+PC9vOnA+PC9wPg0K
+DQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+PG86cD4mbmJzcDs8L286cD48L3A+DQoNCjxwIGNsYXNz
+PU1zb1BsYWluVGV4dD48bzpwPiZuYnNwOzwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5U
+ZXh0Pi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tPGJyPg0KRnJvbTogSWFuIEtlbnQgW21haWx0
+bzpyYXZlbkB0aGVtYXcubmV0XSA8YnI+DQpTZW50OiBUaHVyc2RheSwgRGVjZW1iZXIgMjcsIDIw
+MDcgMTowOCBBTTxicj4NClRvOiBKYW1lcyBSaWNoYXJkc29uPGJyPg0KQ2M6IEplZmYgTW95ZXI7
+IGF1dG9mc0BsaW51eC5rZXJuZWwub3JnPGJyPg0KU3ViamVjdDogUkU6IFthdXRvZnNdIFNsb3cg
+bW91bnRzIHdoZW4gdXNpbmcgbGFyZ2Ugcm91bmQgcm9iaW4gc2V0czxvOnA+PC9vOnA+PC9wPg0K
+DQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+PG86cD4mbmJzcDs8L286cD48L3A+DQoNCjxwIGNsYXNz
+PU1zb1BsYWluVGV4dD5PbiBXZWQsIDIwMDctMTItMjYgYXQgMTY6MTUgLTA2MDAsIEphbWVzIFJp
+Y2hhcmRzb24NCndyb3RlOjxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+
+Jmd0OyBEZWMgMjYgMTY6MDA6MDIgbXlob3N0IGF1dG9tb3VudFszMDYwXToNCmFkZF9ob3N0X2Fk
+ZHJzOjg4NTo8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PiZndDsgZ2V0
+aG9zdGJ5bmFtZV9yIGxhcmdlLXJyPG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWlu
+VGV4dD4mZ3Q7IDxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+Jmd0OyBE
+ZWMgMjYgMTY6MDA6MDIgbXlob3N0IGF1dG9tb3VudFszMDYwXToNCmFkZF9ob3N0X2FkZHJzOjkw
+MTogYWRkIGhvc3Q8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PiZndDsg
+YWRkcmVzcyDDgFRtwrfDiFRtwrfDkFRtwrfDmFRtwrfDoFRtwrfDqFRtwrfDsFRtwrfDuFRtwrc8
+bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PjxvOnA+Jm5ic3A7PC9vOnA+
+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+SSBvYnZpb3VzbHkgaGF2ZSBhIG1pc3Rha2Ug
+aW4gdGhlIHBhdGNoIGJ1dCBJIHN0aWxsIG5lZWQNCnRvIGtub3cgd2hhdCdzPG86cD48L286cD48
+L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD5nb2luZyBvbiBzbyBjb3VsZCB5b3UgdHJ5IGFn
+YWluIHdpdGggdGhpcyBwYXRjaCBwbGVhc2UuPG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1z
+b1BsYWluVGV4dD48bzpwPiZuYnNwOzwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0
+Pi0tLTxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+ZGlmZiAtLWdpdCBh
+L2luY2x1ZGUvcnBjX3N1YnMuaCBiL2luY2x1ZGUvcnBjX3N1YnMuaDxvOnA+PC9vOnA+PC9wPg0K
+DQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+aW5kZXggMzI5MmUwMS4uMTRiNDU5ZiAxMDA2NDQ8bzpw
+PjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0Pi0tLSBhL2luY2x1ZGUvcnBjX3N1
+YnMuaDxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+KysrIGIvaW5jbHVk
+ZS9ycGNfc3Vicy5oPG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD5AQCAt
+NDYsNiArNDYsNyBAQDxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+wqA8
+bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PsKgc3RydWN0IGNvbm5faW5m
+byB7PG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD7CoMKgwqDCoMKgIGNv
+bnN0IGNoYXIgKmhvc3Q7PG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD4r
+wqDCoMKgwqAgY29uc3QgY2hhciAqYWRkcjs8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNv
+UGxhaW5UZXh0PsKgwqDCoMKgwqAgdW5zaWduZWQgc2hvcnQgcG9ydDs8bzpwPjwvbzpwPjwvcD4N
+Cg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PsKgwqDCoMKgwqAgdW5zaWduZWQgbG9uZyBwcm9ncmFt
+OzxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+wqDCoMKgwqDCoCB1bnNp
+Z25lZCBsb25nIHZlcnNpb247PG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4
+dD5AQCAtNjEsNyArNjIsNyBAQCBpbnQgcnBjX3VkcF9nZXRjbGllbnQoc3RydWN0IGNvbm5faW5m
+bw0KKiwgdW5zaWduZWQgaW50LCB1bnNpZ25lZCBpbnQpOzxvOnA+PC9vOnA+PC9wPg0KDQo8cCBj
+bGFzcz1Nc29QbGFpblRleHQ+wqB2b2lkIHJwY19kZXN0cm95X3VkcF9jbGllbnQoc3RydWN0IGNv
+bm5faW5mbyAqKTs8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PsKgaW50
+IHJwY190Y3BfZ2V0Y2xpZW50KHN0cnVjdCBjb25uX2luZm8gKiwgdW5zaWduZWQgaW50LA0KdW5z
+aWduZWQgaW50KTs8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PsKgdm9p
+ZCBycGNfZGVzdHJveV90Y3BfY2xpZW50KHN0cnVjdCBjb25uX2luZm8gKik7PG86cD48L286cD48
+L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD4taW50IHJwY19wb3J0bWFwX2dldGNsaWVudChz
+dHJ1Y3QgY29ubl9pbmZvICosIGNvbnN0IGNoYXINCiosIGNvbnN0IGNoYXIgKiwgdW5zaWduZWQg
+aW50KTs8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PitpbnQgcnBjX3Bv
+cnRtYXBfZ2V0Y2xpZW50KHN0cnVjdCBjb25uX2luZm8gKiwgY29uc3QgY2hhcg0KKiwgY29uc3Qg
+Y2hhciAqLCBjb25zdCBjaGFyICosIHVuc2lnbmVkIGludCk7PG86cD48L286cD48L3A+DQoNCjxw
+IGNsYXNzPU1zb1BsYWluVGV4dD7CoHVuc2lnbmVkIHNob3J0IHJwY19wb3J0bWFwX2dldHBvcnQo
+c3RydWN0IGNvbm5faW5mbyAqLCBzdHJ1Y3QNCnBtYXAgKik7PG86cD48L286cD48L3A+DQoNCjxw
+IGNsYXNzPU1zb1BsYWluVGV4dD7CoGludCBycGNfcGluZ19wcm90byhzdHJ1Y3QgY29ubl9pbmZv
+ICopOzxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+wqBpbnQgcnBjX3Bp
+bmcoY29uc3QgY2hhciAqLCBsb25nLCBsb25nLCB1bnNpZ25lZCBpbnQpOzxvOnA+PC9vOnA+PC9w
+Pg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+ZGlmZiAtLWdpdCBhL2xpYi9ycGNfc3Vicy5jIGIv
+bGliL3JwY19zdWJzLmM8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0Pmlu
+ZGV4IDU3OTc2MzkuLmNjNjMyYTQgMTAwNjQ0PG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1z
+b1BsYWluVGV4dD4tLS0gYS9saWIvcnBjX3N1YnMuYzxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFz
+cz1Nc29QbGFpblRleHQ+KysrIGIvbGliL3JwY19zdWJzLmM8bzpwPjwvbzpwPjwvcD4NCg0KPHAg
+Y2xhc3M9TXNvUGxhaW5UZXh0PkBAIC02Niw2ICs2Niw3IEBAIHN0YXRpYyBDTElFTlQgKmNyZWF0
+ZV91ZHBfY2xpZW50KHN0cnVjdA0KY29ubl9pbmZvICppbmZvKTxvOnA+PC9vOnA+PC9wPg0KDQo8
+cCBjbGFzcz1Nc29QbGFpblRleHQ+wqDCoMKgwqDCoCBzdHJ1Y3QgaG9zdGVudCAqcGhwID0gJmFt
+cDtocDs8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PsKgwqDCoMKgwqAg
+c3RydWN0IGhvc3RlbnQgKnJlc3VsdDs8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxh
+aW5UZXh0PsKgwqDCoMKgwqAgY2hhciBidWZbSE9TVF9FTlRfQlVGX1NJWkVdOzxvOnA+PC9vOnA+
+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+K8KgwqDCoMKgIGNvbnN0IGNoYXIgKmhhZGRy
+OzxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+wqDCoMKgwqDCoCBzaXpl
+X3QgbGVuOzxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+wqA8bzpwPjwv
+bzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PsKgwqDCoMKgwqAgaWYgKGluZm8tJmd0
+O3Byb3RvLSZndDtwX3Byb3RvICE9IElQUFJPVE9fVURQKTxvOnA+PC9vOnA+PC9wPg0KDQo8cCBj
+bGFzcz1Nc29QbGFpblRleHQ+QEAgLTg2LDExICs4NywxMyBAQCBzdGF0aWMgQ0xJRU5UICpjcmVh
+dGVfdWRwX2NsaWVudChzdHJ1Y3QNCmNvbm5faW5mbyAqaW5mbyk8bzpwPjwvbzpwPjwvcD4NCg0K
+PHAgY2xhc3M9TXNvUGxhaW5UZXh0PsKgwqDCoMKgwqAgbWVtc2V0KCZhbXA7cmFkZHIsIDAsIHNp
+emVvZihyYWRkcikpOzxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+wqA8
+bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PsKgwqDCoMKgwqAgcmFkZHIu
+c2luX2ZhbWlseSA9IEFGX0lORVQ7PG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWlu
+VGV4dD4twqDCoMKgwqAgaWYgKGluZXRfYXRvbihpbmZvLSZndDtob3N0LCAmYW1wO3JhZGRyLnNp
+bl9hZGRyKSk8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PivCoMKgwqDC
+oCBoYWRkciA9IGluZm8tJmd0O2FkZHIgPyBpbmZvLSZndDthZGRyIDoNCmluZm8tJmd0O2hvc3Q7
+PG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD4rwqDCoMKgwqAgaWYgKGlu
+ZXRfYXRvbihoYWRkciwgJmFtcDtyYWRkci5zaW5fYWRkcikpPG86cD48L286cD48L3A+DQoNCjxw
+IGNsYXNzPU1zb1BsYWluVGV4dD7CoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGdvdG8gZ290X2FkZHI7
+PG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD7CoDxvOnA+PC9vOnA+PC9w
+Pg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+wqDCoMKgwqDCoCBtZW1zZXQoJmFtcDtocCwgMCwg
+c2l6ZW9mKHN0cnVjdCBob3N0ZW50KSk7PG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1Bs
+YWluVGV4dD7CoDxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+K8KgwqDC
+oMKgIGxvZ2VycigmcXVvdDtnZXRob3N0YnluYW1lX3IgJXMmcXVvdDssDQppbmZvLSZndDtob3N0
+KTs8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PsKgwqDCoMKgwqAgcmV0
+ID0gZ2V0aG9zdGJ5bmFtZV9yKGluZm8tJmd0O2hvc3QsIHBocCw8bzpwPjwvbzpwPjwvcD4NCg0K
+PHAgY2xhc3M9TXNvUGxhaW5UZXh0PsKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAg
+YnVmLCBIT1NUX0VOVF9CVUZfU0laRSwgJmFtcDtyZXN1bHQsDQomYW1wO2dobl9lcnJubyk7PG86
+cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD7CoMKgwqDCoMKgIGlmIChyZXQg
+fHwgIXJlc3VsdCkgezxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+QEAg
+LTI3Niw2ICsyNzksNyBAQCBzdGF0aWMgQ0xJRU5UICpjcmVhdGVfdGNwX2NsaWVudChzdHJ1Y3QN
+CmNvbm5faW5mbyAqaW5mbyk8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0
+PsKgwqDCoMKgwqAgc3RydWN0IGhvc3RlbnQgKnBocCA9ICZhbXA7aHA7PG86cD48L286cD48L3A+
+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD7CoMKgwqDCoMKgIHN0cnVjdCBob3N0ZW50ICpyZXN1
+bHQ7PG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD7CoMKgwqDCoMKgIGNo
+YXIgYnVmW0hPU1RfRU5UX0JVRl9TSVpFXTs8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNv
+UGxhaW5UZXh0PivCoMKgwqDCoCBjb25zdCBjaGFyICpoYWRkcjs8bzpwPjwvbzpwPjwvcD4NCg0K
+PHAgY2xhc3M9TXNvUGxhaW5UZXh0PsKgwqDCoMKgwqAgaW50IHJldDs8bzpwPjwvbzpwPjwvcD4N
+Cg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PsKgPG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1z
+b1BsYWluVGV4dD7CoMKgwqDCoMKgIGlmIChpbmZvLSZndDtwcm90by0mZ3Q7cF9wcm90byAhPSBJ
+UFBST1RPX1RDUCk8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PkBAIC0y
+OTUsMTEgKzI5OSwxMyBAQCBzdGF0aWMgQ0xJRU5UDQoqY3JlYXRlX3RjcF9jbGllbnQoc3RydWN0
+IGNvbm5faW5mbyAqaW5mbyk8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0
+PsKgwqDCoMKgwqAgbWVtc2V0KCZhbXA7YWRkciwgMCwgc2l6ZW9mKGFkZHIpKTs8bzpwPjwvbzpw
+PjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PsKgPG86cD48L286cD48L3A+DQoNCjxwIGNs
+YXNzPU1zb1BsYWluVGV4dD7CoMKgwqDCoMKgIGFkZHIuc2luX2ZhbWlseSA9IEFGX0lORVQ7PG86
+cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD4twqDCoMKgwqAgaWYgKGluZXRf
+YXRvbihpbmZvLSZndDtob3N0LCAmYW1wO2FkZHIuc2luX2FkZHIpKTxvOnA+PC9vOnA+PC9wPg0K
+DQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+K8KgwqDCoMKgIGhhZGRyID0gaW5mby0mZ3Q7YWRkciA/
+IGluZm8tJmd0O2FkZHIgOg0KaW5mby0mZ3Q7aG9zdDs8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xh
+c3M9TXNvUGxhaW5UZXh0PivCoMKgwqDCoCBpZiAoaW5ldF9hdG9uKGhhZGRyLCAmYW1wO2FkZHIu
+c2luX2FkZHIpKTxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+wqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoCBnb3RvIGdvdF9hZGRyOzxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFz
+cz1Nc29QbGFpblRleHQ+wqA8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0
+PsKgwqDCoMKgwqAgbWVtc2V0KCZhbXA7aHAsIDAsIHNpemVvZihzdHJ1Y3QgaG9zdGVudCkpOzxv
+OnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+wqA8bzpwPjwvbzpwPjwvcD4N
+Cg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PivCoMKgwqDCoCBsb2dlcnIoJnF1b3Q7Z2V0aG9zdGJ5
+bmFtZV9yICVzJnF1b3Q7LA0KaW5mby0mZ3Q7aG9zdCk7PG86cD48L286cD48L3A+DQoNCjxwIGNs
+YXNzPU1zb1BsYWluVGV4dD7CoMKgwqDCoMKgIHJldCA9IGdldGhvc3RieW5hbWVfcihpbmZvLSZn
+dDtob3N0LCBwaHAsPG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD7CoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGJ1ZiwgSE9TVF9FTlRfQlVGX1NJWkUsICZh
+bXA7cmVzdWx0LA0KJmFtcDtnaG5fZXJybm8pOzxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1N
+c29QbGFpblRleHQ+wqDCoMKgwqDCoCBpZiAocmV0IHx8ICFyZXN1bHQpIHs8bzpwPjwvbzpwPjwv
+cD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PkBAIC00MDcsNyArNDEzLDcgQEAgdm9pZCBycGNf
+ZGVzdHJveV90Y3BfY2xpZW50KHN0cnVjdA0KY29ubl9pbmZvICppbmZvKTxvOnA+PC9vOnA+PC9w
+Pg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+wqB9PG86cD48L286cD48L3A+DQoNCjxwIGNsYXNz
+PU1zb1BsYWluVGV4dD7CoDxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+
+wqBpbnQgcnBjX3BvcnRtYXBfZ2V0Y2xpZW50KHN0cnVjdCBjb25uX2luZm8gKmluZm8sPG86cD48
+L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD4twqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqAgwqAgY29uc3QgY2hhciAqaG9zdCwgY29uc3QgY2hhciAqcHJvdG8sPG86cD48
+L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD4rwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqAgwqAgY29uc3QgY2hhciAqaG9zdCwgY29uc3QgY2hhciAqYWRkciwNCmNvbnN0
+IGNoYXIgKnByb3RvLDxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+wqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCDCoCB1bnNpZ25lZCBpbnQgb3B0aW9uKTxv
+OnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+wqB7PG86cD48L286cD48L3A+
+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD7CoMKgwqDCoMKgIHN0cnVjdCBwcm90b2VudCAqcGVf
+cHJvdG87PG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD5AQCAtNDE4LDYg
+KzQyNCw3IEBAIGludCBycGNfcG9ydG1hcF9nZXRjbGllbnQoc3RydWN0DQpjb25uX2luZm8gKmlu
+Zm8sPG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD7CoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgIHJldHVybiAwOzxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRl
+eHQ+wqA8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PsKgwqDCoMKgwqAg
+aW5mby0mZ3Q7aG9zdCA9IGhvc3Q7PG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWlu
+VGV4dD4rwqDCoMKgwqAgaW5mby0mZ3Q7YWRkciA9IGFkZHI7PG86cD48L286cD48L3A+DQoNCjxw
+IGNsYXNzPU1zb1BsYWluVGV4dD7CoMKgwqDCoMKgIGluZm8tJmd0O3Byb2dyYW0gPSBQTUFQUFJP
+Rzs8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PsKgwqDCoMKgwqAgaW5m
+by0mZ3Q7cG9ydCA9IFBNQVBQT1JUOzxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFp
+blRleHQ+wqDCoMKgwqDCoCBpbmZvLSZndDt2ZXJzaW9uID0gUE1BUFZFUlM7PG86cD48L286cD48
+L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD5AQCAtNDYyLDYgKzQ2OSw3IEBAIHVuc2lnbmVk
+IHNob3J0DQpycGNfcG9ydG1hcF9nZXRwb3J0KHN0cnVjdCBjb25uX2luZm8gKmluZm8sIHN0cnVj
+dCBwbWFwICpwYXJtcyk8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PsKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqAgY2xpZW50ID0gaW5mby0mZ3Q7Y2xpZW50OzxvOnA+PC9vOnA+
+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+wqDCoMKgwqDCoCBlbHNlIHs8bzpwPjwvbzpw
+PjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PsKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgcG1h
+cF9pbmZvLmhvc3QgPSBpbmZvLSZndDtob3N0OzxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1N
+c29QbGFpblRleHQ+K8KgwqDCoMKgwqDCoMKgwqDCoMKgIHBtYXBfaW5mby5hZGRyID0gaW5mby0m
+Z3Q7YWRkcjs8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PsKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqAgcG1hcF9pbmZvLnBvcnQgPSBQTUFQUE9SVDs8bzpwPjwvbzpwPjwvcD4N
+Cg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PsKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgcG1hcF9pbmZv
+LnByb2dyYW0gPSBQTUFQUFJPRzs8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5U
+ZXh0PsKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgcG1hcF9pbmZvLnZlcnNpb24gPSBQTUFQVkVSUzs8
+bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PkBAIC01ODksNiArNTk3LDcg
+QEAgc3RhdGljIHVuc2lnbmVkIGludCBfX3JwY19waW5nKGNvbnN0DQpjaGFyICpob3N0LDxvOnA+
+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+wqDCoMKgwqDCoCBzdHJ1Y3QgcG1h
+cCBwYXJtczs8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PsKgPG86cD48
+L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD7CoMKgwqDCoMKgIGluZm8uaG9zdCA9
+IGhvc3Q7PG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD4rwqDCoMKgwqAg
+aW5mby5hZGRyID0gTlVMTDs8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0
+PsKgwqDCoMKgwqAgaW5mby5wcm9ncmFtID0gTkZTX1BST0dSQU07PG86cD48L286cD48L3A+DQoN
+CjxwIGNsYXNzPU1zb1BsYWluVGV4dD7CoMKgwqDCoMKgIGluZm8udmVyc2lvbiA9IHZlcnNpb247
+PG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD7CoMKgwqDCoMKgIGluZm8u
+c2VuZF9zeiA9IDA7PG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD5AQCAt
+NzY5LDYgKzc3OCw3IEBAIGV4cG9ydHMgcnBjX2dldF9leHBvcnRzKGNvbnN0IGNoYXINCipob3N0
+LCBsb25nIHNlY29uZHMsIGxvbmcgbWljcm9zLCB1bnNpZ25lZCBpbjxvOnA+PC9vOnA+PC9wPg0K
+DQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+wqDCoMKgwqDCoCBpbnQgc3RhdHVzOzxvOnA+PC9vOnA+
+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+wqA8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xh
+c3M9TXNvUGxhaW5UZXh0PsKgwqDCoMKgwqAgaW5mby5ob3N0ID0gaG9zdDs8bzpwPjwvbzpwPjwv
+cD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PivCoMKgwqDCoCBpbmZvLmFkZHIgPSBOVUxMOzxv
+OnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+wqDCoMKgwqDCoCBpbmZvLnBy
+b2dyYW0gPSBNT1VOVFBST0c7PG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4
+dD7CoMKgwqDCoMKgIGluZm8udmVyc2lvbiA9IE1PVU5UVkVSUzs8bzpwPjwvbzpwPjwvcD4NCg0K
+PHAgY2xhc3M9TXNvUGxhaW5UZXh0PsKgwqDCoMKgwqAgaW5mby5zZW5kX3N6ID0gMDs8bzpwPjwv
+bzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PmRpZmYgLS1naXQgYS9tb2R1bGVzL3Jl
+cGxpY2F0ZWQuYyBiL21vZHVsZXMvcmVwbGljYXRlZC5jPG86cD48L286cD48L3A+DQoNCjxwIGNs
+YXNzPU1zb1BsYWluVGV4dD5pbmRleCA5MGIyOTI1Li5kYWE0NTMxIDEwMDY0NDxvOnA+PC9vOnA+
+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+LS0tIGEvbW9kdWxlcy9yZXBsaWNhdGVkLmM8
+bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PisrKyBiL21vZHVsZXMvcmVw
+bGljYXRlZC5jPG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD5AQCAtNDM3
+LDcgKzQzNyw3IEBAIHN0YXRpYyB1bnNpZ25lZCBpbnQNCmdldF9uZnNfaW5mbyh1bnNpZ25lZCBs
+b2dvcHQsIHN0cnVjdCBob3N0ICpob3N0LDxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29Q
+bGFpblRleHQ+wqB2M192ZXI6PG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4
+dD7CoMKgwqDCoMKgIGlmICghaGF2ZV9wb3J0X29wdCkgezxvOnA+PC9vOnA+PC9wPg0KDQo8cCBj
+bGFzcz1Nc29QbGFpblRleHQ+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBzdGF0dXMgPSBycGNfcG9y
+dG1hcF9nZXRjbGllbnQocG1faW5mbyw8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxh
+aW5UZXh0Pi3CoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCAgaG9z
+dC0mZ3Q7bmFtZSwgcHJvdG8sDQpSUENfQ0xPU0VfREVGQVVMVCk7PG86cD48L286cD48L3A+DQoN
+CjxwIGNsYXNzPU1zb1BsYWluVGV4dD4rwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqAgIGhvc3QtJmd0O25hbWUsIGhvc3QtJmd0O2FkZHIsDQpwcm90bywgUlBDX0NM
+T1NFX0RFRkFVTFQpOzxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+wqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoCBpZiAoIXN0YXR1cyk8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xh
+c3M9TXNvUGxhaW5UZXh0PsKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgZ290byBk
+b25lX3Zlcjs8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PsKgwqDCoMKg
+wqAgfTxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+QEAgLTU1MSw2ICs1
+NTEsNyBAQCBzdGF0aWMgaW50IGdldF92ZXJzX2FuZF9jb3N0KHVuc2lnbmVkDQpsb2dvcHQsIHN0
+cnVjdCBob3N0ICpob3N0LDxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB0aW1lb3V0ID0gUlBDX1RJTUVPVVQgKiA4OzxvOnA+PC9v
+OnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+wqA8bzpwPjwvbzpwPjwvcD4NCg0KPHAg
+Y2xhc3M9TXNvUGxhaW5UZXh0PsKgwqDCoMKgwqAgcnBjX2luZm8uaG9zdCA9IGhvc3QtJmd0O25h
+bWU7PG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD4rwqDCoMKgwqAgcnBj
+X2luZm8uYWRkciA9IGhvc3QtJmd0O2FkZHI7PG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1z
+b1BsYWluVGV4dD7CoMKgwqDCoMKgIHJwY19pbmZvLnByb2dyYW0gPSBORlNfUFJPR1JBTTs8bzpw
+PjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PsKgwqDCoMKgwqAgcnBjX2luZm8u
+dGltZW91dC50dl9zZWMgPSB0aW1lb3V0OzxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29Q
+bGFpblRleHQ+wqDCoMKgwqDCoCBycGNfaW5mby5jbG9zZV9vcHRpb24gPSBSUENfQ0xPU0VfREVG
+QVVMVDs8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PkBAIC02MDYsNiAr
+NjA3LDcgQEAgc3RhdGljIGludA0KZ2V0X3N1cHBvcnRlZF92ZXJfYW5kX2Nvc3QodW5zaWduZWQg
+bG9nb3B0LCBzdHJ1Y3QgaG9zdCAqaG9zdCw8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNv
+UGxhaW5UZXh0PsKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgdGltZW91dCA9IFJQQ19USU1FT1VUICog
+ODs8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PsKgPG86cD48L286cD48
+L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD7CoMKgwqDCoMKgIHJwY19pbmZvLmhvc3QgPSBo
+b3N0LSZndDtuYW1lOzxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+K8Kg
+wqDCoMKgIHJwY19pbmZvLmFkZHIgPSBob3N0LSZndDthZGRyOzxvOnA+PC9vOnA+PC9wPg0KDQo8
+cCBjbGFzcz1Nc29QbGFpblRleHQ+wqDCoMKgwqDCoCBycGNfaW5mby5wcm9ncmFtID0gTkZTX1BS
+T0dSQU07PG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD7CoMKgwqDCoMKg
+IHJwY19pbmZvLnRpbWVvdXQudHZfc2VjID0gdGltZW91dDs8bzpwPjwvbzpwPjwvcD4NCg0KPHAg
+Y2xhc3M9TXNvUGxhaW5UZXh0PsKgwqDCoMKgwqAgcnBjX2luZm8uY2xvc2Vfb3B0aW9uID0gUlBD
+X0NMT1NFX0RFRkFVTFQ7PG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD5A
+QCAtNjUyLDcgKzY1NCw3IEBAIHN0YXRpYyBpbnQgZ2V0X3N1cHBvcnRlZF92ZXJfYW5kX2Nvc3Qo
+dW5zaWduZWQNCmxvZ29wdCwgc3RydWN0IGhvc3QgKmhvc3QsPG86cD48L286cD48L3A+DQoNCjxw
+IGNsYXNzPU1zb1BsYWluVGV4dD7CoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHJl
+dHVybiAwOzxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+wqDCoMKgwqDC
+oCB9IGVsc2UgezxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+wqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoCBpbnQgcmV0ID0gcnBjX3BvcnRtYXBfZ2V0Y2xpZW50KCZhbXA7cG1f
+aW5mbyw8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0Pi3CoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCAgaG9zdC0mZ3Q7bmFtZSwgcHJvdG8s
+DQpSUENfQ0xPU0VfREVGQVVMVCk7PG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWlu
+VGV4dD4rwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgIGhvc3Qt
+Jmd0O25hbWUsIGhvc3QtJmd0O2FkZHIsDQpwcm90bywgUlBDX0NMT1NFX0RFRkFVTFQpOzxvOnA+
+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+wqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oCBpZiAoIXJldCk8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PsKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgcmV0dXJuIDA7PG86cD48L286cD48L3A+DQoN
+CjxwIGNsYXNzPU1zb1BsYWluVGV4dD7CoDxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29Q
+bGFpblRleHQ+QEAgLTg4MCw2ICs4ODIsNyBAQCBzdGF0aWMgaW50IGFkZF9ob3N0X2FkZHJzKHN0
+cnVjdCBob3N0DQoqKmxpc3QsIGNvbnN0IGNoYXIgKmhvc3QsIHVuc2lnbmVkIGludCB3ZWk8bzpw
+PjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PsKgwqDCoMKgwqAgbWVtc2V0KGJ1
+ZiwgMCwgTUFYX0lGQ19CVUYpOzxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRl
+eHQ+wqDCoMKgwqDCoCBtZW1zZXQoJmFtcDtoZSwgMCwgc2l6ZW9mKHN0cnVjdCBob3N0ZW50KSk7
+PG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD7CoDxvOnA+PC9vOnA+PC9w
+Pg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+K8KgwqDCoMKgIGxvZ2VycigmcXVvdDtnZXRob3N0
+YnluYW1lX3IgJXMmcXVvdDssIGhvc3QpOzxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29Q
+bGFpblRleHQ+wqDCoMKgwqDCoCByZXQgPSBnZXRob3N0YnluYW1lX3IoaG9zdCwgcGhlLDxvOnA+
+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+wqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoCBidWYsIE1BWF9JRkNfQlVGLCAmYW1wO3Jlc3VsdCwNCiZhbXA7Z2huX2Vy
+cm5vKTs8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PsKgwqDCoMKgwqAg
+aWYgKHJldCB8fCAhcmVzdWx0KSB7PG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWlu
+VGV4dD5AQCAtODk1LDYgKzg5OCw3IEBAIHN0YXRpYyBpbnQgYWRkX2hvc3RfYWRkcnMoc3RydWN0
+IGhvc3QNCioqbGlzdCwgY29uc3QgY2hhciAqaG9zdCwgdW5zaWduZWQgaW50IHdlaTxvOnA+PC9v
+OnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBp
+ZiAocHJ4ID09IFBST1hJTUlUWV9FUlJPUik8bzpwPjwvbzpwPjwvcD4NCg0KPHAgY2xhc3M9TXNv
+UGxhaW5UZXh0PsKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgcmV0dXJuIDA7PG86
+cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD7CoDxvOnA+PC9vOnA+PC9wPg0K
+DQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+K8KgwqDCoMKgwqDCoMKgwqDCoMKgIGxvZ2VycigmcXVv
+dDthZGQgaG9zdCAlcyBhZGRyZXNzICVzJnF1b3Q7LA0KaG9zdCwgKmhhZGRyKTs8bzpwPjwvbzpw
+PjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PsKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgaWYg
+KCEobmV3ID0gbmV3X2hvc3QoaG9zdCwgKmhhZGRyLCBwcngsDQp3ZWlnaHQpKSk8bzpwPjwvbzpw
+PjwvcD4NCg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PsKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqAgcmV0dXJuIDA7PG86cD48L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4
+dD7CoDxvOnA+PC9vOnA+PC9wPg0KDQo8cCBjbGFzcz1Nc29QbGFpblRleHQ+PG86cD4mbmJzcDs8
+L286cD48L3A+DQoNCjxwIGNsYXNzPU1zb1BsYWluVGV4dD48bzpwPiZuYnNwOzwvbzpwPjwvcD4N
+Cg0KPHAgY2xhc3M9TXNvUGxhaW5UZXh0PjxvOnA+Jm5ic3A7PC9vOnA+PC9wPg0KDQo8L2Rpdj4N
+Cg0KPGJyPjxwcmU+Tk9USUNFOgpUaGlzIG1lc3NhZ2UgbWF5IGNvbnRhaW4gcHJpdmlsZWdlZCBv
+ciBvdGhlcndpc2UgY29uZmlkZW50aWFsIGluZm9ybWF0aW9uLgpJZiB5b3UgYXJlIG5vdCB0aGUg
+aW50ZW5kZWQgcmVjaXBpZW50LCBwbGVhc2UgaW1tZWRpYXRlbHkgYWR2aXNlIHRoZSBzZW5kZXIK
+YnkgcmVwbHkgZW1haWwgYW5kIGRlbGV0ZSB0aGUgbWVzc2FnZSBhbmQgYW55IGF0dGFjaG1lbnRz
+IHdpdGhvdXQgdXNpbmcsCmNvcHlpbmcgb3IgZGlzY2xvc2luZyB0aGUgY29udGVudHMuCjwvcHJl
+PjwvYm9keT4NCg0KPC9odG1sPg0K
+
+------_=_NextPart_002_01C848D2.04C1CD25--
+
+------_=_NextPart_001_01C848D2.04C1CD25
+Content-Type: application/octet-stream;
+	name="aufofs-debug.patch"
+Content-Transfer-Encoding: base64
+Content-Description: aufofs-debug.patch
+Content-Disposition: attachment;
+	filename="aufofs-debug.patch"
+
+ZGlmZiAtLWdpdCBhL2luY2x1ZGUvcnBjX3N1YnMuaCBiL2luY2x1ZGUvcnBjX3N1YnMuaA0KaW5k
+ZXggMzI5MmUwMS4uMTRiNDU5ZiAxMDA2NDQNCi0tLSBhL2luY2x1ZGUvcnBjX3N1YnMuaA0KKysr
+IGIvaW5jbHVkZS9ycGNfc3Vicy5oDQpAQCAtNDYsNiArNDYsNyBAQA0KDQogc3RydWN0IGNvbm5f
+aW5mbyB7DQogICAgICAgIGNvbnN0IGNoYXIgKmhvc3Q7DQorICAgICAgIGNvbnN0IGNoYXIgKmFk
+ZHI7DQogICAgICAgIHVuc2lnbmVkIHNob3J0IHBvcnQ7DQogICAgICAgIHVuc2lnbmVkIGxvbmcg
+cHJvZ3JhbTsNCiAgICAgICAgdW5zaWduZWQgbG9uZyB2ZXJzaW9uOw0KQEAgLTYxLDcgKzYyLDcg
+QEAgaW50IHJwY191ZHBfZ2V0Y2xpZW50KHN0cnVjdCBjb25uX2luZm8gKiwgdW5zaWduZWQgaW50
+LCB1bnNpZ25lZCBpbnQpOw0KIHZvaWQgcnBjX2Rlc3Ryb3lfdWRwX2NsaWVudChzdHJ1Y3QgY29u
+bl9pbmZvICopOw0KIGludCBycGNfdGNwX2dldGNsaWVudChzdHJ1Y3QgY29ubl9pbmZvICosIHVu
+c2lnbmVkIGludCwgdW5zaWduZWQgaW50KTsNCiB2b2lkIHJwY19kZXN0cm95X3RjcF9jbGllbnQo
+c3RydWN0IGNvbm5faW5mbyAqKTsNCi1pbnQgcnBjX3BvcnRtYXBfZ2V0Y2xpZW50KHN0cnVjdCBj
+b25uX2luZm8gKiwgY29uc3QgY2hhciAqLCBjb25zdCBjaGFyICosIHVuc2lnbmVkIGludCk7DQor
+aW50IHJwY19wb3J0bWFwX2dldGNsaWVudChzdHJ1Y3QgY29ubl9pbmZvICosIGNvbnN0IGNoYXIg
+KiwgY29uc3QgY2hhciAqLCBjb25zdCBjaGFyICosIHVuc2lnbmVkIGludCk7DQogdW5zaWduZWQg
+c2hvcnQgcnBjX3BvcnRtYXBfZ2V0cG9ydChzdHJ1Y3QgY29ubl9pbmZvICosIHN0cnVjdCBwbWFw
+ICopOw0KIGludCBycGNfcGluZ19wcm90byhzdHJ1Y3QgY29ubl9pbmZvICopOw0KIGludCBycGNf
+cGluZyhjb25zdCBjaGFyICosIGxvbmcsIGxvbmcsIHVuc2lnbmVkIGludCk7DQpkaWZmIC0tZ2l0
+IGEvbGliL3JwY19zdWJzLmMgYi9saWIvcnBjX3N1YnMuYw0KaW5kZXggNTc5NzYzOS4uY2M2MzJh
+NCAxMDA2NDQNCi0tLSBhL2xpYi9ycGNfc3Vicy5jDQorKysgYi9saWIvcnBjX3N1YnMuYw0KQEAg
+LTY2LDYgKzY2LDcgQEAgc3RhdGljIENMSUVOVCAqY3JlYXRlX3VkcF9jbGllbnQoc3RydWN0IGNv
+bm5faW5mbyAqaW5mbykNCiAgICAgICAgc3RydWN0IGhvc3RlbnQgKnBocCA9ICZocDsNCiAgICAg
+ICAgc3RydWN0IGhvc3RlbnQgKnJlc3VsdDsNCiAgICAgICAgY2hhciBidWZbSE9TVF9FTlRfQlVG
+X1NJWkVdOw0KKyAgICAgICBjb25zdCBjaGFyICpoYWRkcjsNCiAgICAgICAgc2l6ZV90IGxlbjsN
+Cg0KICAgICAgICBpZiAoaW5mby0+cHJvdG8tPnBfcHJvdG8gIT0gSVBQUk9UT19VRFApDQpAQCAt
+ODYsMTEgKzg3LDEzIEBAIHN0YXRpYyBDTElFTlQgKmNyZWF0ZV91ZHBfY2xpZW50KHN0cnVjdCBj
+b25uX2luZm8gKmluZm8pDQogICAgICAgIG1lbXNldCgmcmFkZHIsIDAsIHNpemVvZihyYWRkcikp
+Ow0KDQogICAgICAgIHJhZGRyLnNpbl9mYW1pbHkgPSBBRl9JTkVUOw0KLSAgICAgICBpZiAoaW5l
+dF9hdG9uKGluZm8tPmhvc3QsICZyYWRkci5zaW5fYWRkcikpDQorICAgICAgIGhhZGRyID0gaW5m
+by0+YWRkciA/IGluZm8tPmFkZHIgOiBpbmZvLT5ob3N0Ow0KKyAgICAgICBpZiAoaW5ldF9hdG9u
+KGhhZGRyLCAmcmFkZHIuc2luX2FkZHIpKQ0KICAgICAgICAgICAgICAgIGdvdG8gZ290X2FkZHI7
+DQoNCiAgICAgICAgbWVtc2V0KCZocCwgMCwgc2l6ZW9mKHN0cnVjdCBob3N0ZW50KSk7DQoNCisg
+ICAgICAgbG9nZXJyKCJnZXRob3N0YnluYW1lX3IgJXMiLCBpbmZvLT5ob3N0KTsNCiAgICAgICAg
+cmV0ID0gZ2V0aG9zdGJ5bmFtZV9yKGluZm8tPmhvc3QsIHBocCwNCiAgICAgICAgICAgICAgICAg
+ICAgICAgIGJ1ZiwgSE9TVF9FTlRfQlVGX1NJWkUsICZyZXN1bHQsICZnaG5fZXJybm8pOw0KICAg
+ICAgICBpZiAocmV0IHx8ICFyZXN1bHQpIHsNCkBAIC0yNzYsNiArMjc5LDcgQEAgc3RhdGljIENM
+SUVOVCAqY3JlYXRlX3RjcF9jbGllbnQoc3RydWN0IGNvbm5faW5mbyAqaW5mbykNCiAgICAgICAg
+c3RydWN0IGhvc3RlbnQgKnBocCA9ICZocDsNCiAgICAgICAgc3RydWN0IGhvc3RlbnQgKnJlc3Vs
+dDsNCiAgICAgICAgY2hhciBidWZbSE9TVF9FTlRfQlVGX1NJWkVdOw0KKyAgICAgICBjb25zdCBj
+aGFyICpoYWRkcjsNCiAgICAgICAgaW50IHJldDsNCg0KICAgICAgICBpZiAoaW5mby0+cHJvdG8t
+PnBfcHJvdG8gIT0gSVBQUk9UT19UQ1ApDQpAQCAtMjk1LDExICsyOTksMTMgQEAgc3RhdGljIENM
+SUVOVCAqY3JlYXRlX3RjcF9jbGllbnQoc3RydWN0IGNvbm5faW5mbyAqaW5mbykNCiAgICAgICAg
+bWVtc2V0KCZhZGRyLCAwLCBzaXplb2YoYWRkcikpOw0KDQogICAgICAgIGFkZHIuc2luX2ZhbWls
+eSA9IEFGX0lORVQ7DQotICAgICAgIGlmIChpbmV0X2F0b24oaW5mby0+aG9zdCwgJmFkZHIuc2lu
+X2FkZHIpKQ0KKyAgICAgICBoYWRkciA9IGluZm8tPmFkZHIgPyBpbmZvLT5hZGRyIDogaW5mby0+
+aG9zdDsNCisgICAgICAgaWYgKGluZXRfYXRvbihoYWRkciwgJmFkZHIuc2luX2FkZHIpKQ0KICAg
+ICAgICAgICAgICAgIGdvdG8gZ290X2FkZHI7DQoNCiAgICAgICAgbWVtc2V0KCZocCwgMCwgc2l6
+ZW9mKHN0cnVjdCBob3N0ZW50KSk7DQoNCisgICAgICAgbG9nZXJyKCJnZXRob3N0YnluYW1lX3Ig
+JXMiLCBpbmZvLT5ob3N0KTsNCiAgICAgICAgcmV0ID0gZ2V0aG9zdGJ5bmFtZV9yKGluZm8tPmhv
+c3QsIHBocCwNCiAgICAgICAgICAgICAgICAgICAgICAgIGJ1ZiwgSE9TVF9FTlRfQlVGX1NJWkUs
+ICZyZXN1bHQsICZnaG5fZXJybm8pOw0KICAgICAgICBpZiAocmV0IHx8ICFyZXN1bHQpIHsNCkBA
+IC00MDcsNyArNDEzLDcgQEAgdm9pZCBycGNfZGVzdHJveV90Y3BfY2xpZW50KHN0cnVjdCBjb25u
+X2luZm8gKmluZm8pDQogfQ0KDQogaW50IHJwY19wb3J0bWFwX2dldGNsaWVudChzdHJ1Y3QgY29u
+bl9pbmZvICppbmZvLA0KLSAgICAgICAgICAgICAgICAgICAgICAgICBjb25zdCBjaGFyICpob3N0
+LCBjb25zdCBjaGFyICpwcm90bywNCisgICAgICAgICAgICAgICAgICAgICAgICAgY29uc3QgY2hh
+ciAqaG9zdCwgY29uc3QgY2hhciAqYWRkciwgY29uc3QgY2hhciAqcHJvdG8sDQogICAgICAgICAg
+ICAgICAgICAgICAgICAgIHVuc2lnbmVkIGludCBvcHRpb24pDQogew0KICAgICAgICBzdHJ1Y3Qg
+cHJvdG9lbnQgKnBlX3Byb3RvOw0KQEAgLTQxOCw2ICs0MjQsNyBAQCBpbnQgcnBjX3BvcnRtYXBf
+Z2V0Y2xpZW50KHN0cnVjdCBjb25uX2luZm8gKmluZm8sDQogICAgICAgICAgICAgICAgcmV0dXJu
+IDA7DQoNCiAgICAgICAgaW5mby0+aG9zdCA9IGhvc3Q7DQorICAgICAgIGluZm8tPmFkZHIgPSBh
+ZGRyOw0KICAgICAgICBpbmZvLT5wcm9ncmFtID0gUE1BUFBST0c7DQogICAgICAgIGluZm8tPnBv
+cnQgPSBQTUFQUE9SVDsNCiAgICAgICAgaW5mby0+dmVyc2lvbiA9IFBNQVBWRVJTOw0KQEAgLTQ2
+Miw2ICs0NjksNyBAQCB1bnNpZ25lZCBzaG9ydCBycGNfcG9ydG1hcF9nZXRwb3J0KHN0cnVjdCBj
+b25uX2luZm8gKmluZm8sIHN0cnVjdCBwbWFwICpwYXJtcykNCiAgICAgICAgICAgICAgICBjbGll
+bnQgPSBpbmZvLT5jbGllbnQ7DQogICAgICAgIGVsc2Ugew0KICAgICAgICAgICAgICAgIHBtYXBf
+aW5mby5ob3N0ID0gaW5mby0+aG9zdDsNCisgICAgICAgICAgICAgICBwbWFwX2luZm8uYWRkciA9
+IGluZm8tPmFkZHI7DQogICAgICAgICAgICAgICAgcG1hcF9pbmZvLnBvcnQgPSBQTUFQUE9SVDsN
+CiAgICAgICAgICAgICAgICBwbWFwX2luZm8ucHJvZ3JhbSA9IFBNQVBQUk9HOw0KICAgICAgICAg
+ICAgICAgIHBtYXBfaW5mby52ZXJzaW9uID0gUE1BUFZFUlM7DQpAQCAtNTg5LDYgKzU5Nyw3IEBA
+IHN0YXRpYyB1bnNpZ25lZCBpbnQgX19ycGNfcGluZyhjb25zdCBjaGFyICpob3N0LA0KICAgICAg
+ICBzdHJ1Y3QgcG1hcCBwYXJtczsNCg0KICAgICAgICBpbmZvLmhvc3QgPSBob3N0Ow0KKyAgICAg
+ICBpbmZvLmFkZHIgPSBOVUxMOw0KICAgICAgICBpbmZvLnByb2dyYW0gPSBORlNfUFJPR1JBTTsN
+CiAgICAgICAgaW5mby52ZXJzaW9uID0gdmVyc2lvbjsNCiAgICAgICAgaW5mby5zZW5kX3N6ID0g
+MDsNCkBAIC03NjksNiArNzc4LDcgQEAgZXhwb3J0cyBycGNfZ2V0X2V4cG9ydHMoY29uc3QgY2hh
+ciAqaG9zdCwgbG9uZyBzZWNvbmRzLCBsb25nIG1pY3JvcywgdW5zaWduZWQgaW4NCiAgICAgICAg
+aW50IHN0YXR1czsNCg0KICAgICAgICBpbmZvLmhvc3QgPSBob3N0Ow0KKyAgICAgICBpbmZvLmFk
+ZHIgPSBOVUxMOw0KICAgICAgICBpbmZvLnByb2dyYW0gPSBNT1VOVFBST0c7DQogICAgICAgIGlu
+Zm8udmVyc2lvbiA9IE1PVU5UVkVSUzsNCiAgICAgICAgaW5mby5zZW5kX3N6ID0gMDsNCmRpZmYg
+LS1naXQgYS9tb2R1bGVzL3JlcGxpY2F0ZWQuYyBiL21vZHVsZXMvcmVwbGljYXRlZC5jDQppbmRl
+eCA5MGIyOTI1Li4wNDIyN2VkIDEwMDY0NA0KLS0tIGEvbW9kdWxlcy9yZXBsaWNhdGVkLmMNCisr
+KyBiL21vZHVsZXMvcmVwbGljYXRlZC5jDQpAQCAtNDM3LDcgKzQzNyw3IEBAIHN0YXRpYyB1bnNp
+Z25lZCBpbnQgZ2V0X25mc19pbmZvKHVuc2lnbmVkIGxvZ29wdCwgc3RydWN0IGhvc3QgKmhvc3Qs
+DQogdjNfdmVyOg0KICAgICAgICBpZiAoIWhhdmVfcG9ydF9vcHQpIHsNCiAgICAgICAgICAgICAg
+ICBzdGF0dXMgPSBycGNfcG9ydG1hcF9nZXRjbGllbnQocG1faW5mbywNCi0gICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgIGhvc3QtPm5hbWUsIHByb3RvLCBSUENfQ0xPU0VfREVGQVVMVCk7
+DQorICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBob3N0LT5uYW1lLCBob3N0LT5hZGRy
+LCBwcm90bywgUlBDX0NMT1NFX0RFRkFVTFQpOw0KICAgICAgICAgICAgICAgIGlmICghc3RhdHVz
+KQ0KICAgICAgICAgICAgICAgICAgICAgICAgZ290byBkb25lX3ZlcjsNCiAgICAgICAgfQ0KQEAg
+LTU1MSw2ICs1NTEsNyBAQCBzdGF0aWMgaW50IGdldF92ZXJzX2FuZF9jb3N0KHVuc2lnbmVkIGxv
+Z29wdCwgc3RydWN0IGhvc3QgKmhvc3QsDQogICAgICAgICAgICAgICAgdGltZW91dCA9IFJQQ19U
+SU1FT1VUICogODsNCg0KICAgICAgICBycGNfaW5mby5ob3N0ID0gaG9zdC0+bmFtZTsNCisgICAg
+ICAgcnBjX2luZm8uYWRkciA9IGhvc3QtPmFkZHI7DQogICAgICAgIHJwY19pbmZvLnByb2dyYW0g
+PSBORlNfUFJPR1JBTTsNCiAgICAgICAgcnBjX2luZm8udGltZW91dC50dl9zZWMgPSB0aW1lb3V0
+Ow0KICAgICAgICBycGNfaW5mby5jbG9zZV9vcHRpb24gPSBSUENfQ0xPU0VfREVGQVVMVDsNCkBA
+IC02MDYsNiArNjA3LDcgQEAgc3RhdGljIGludCBnZXRfc3VwcG9ydGVkX3Zlcl9hbmRfY29zdCh1
+bnNpZ25lZCBsb2dvcHQsIHN0cnVjdCBob3N0ICpob3N0LA0KICAgICAgICAgICAgICAgIHRpbWVv
+dXQgPSBSUENfVElNRU9VVCAqIDg7DQoNCiAgICAgICAgcnBjX2luZm8uaG9zdCA9IGhvc3QtPm5h
+bWU7DQorICAgICAgIHJwY19pbmZvLmFkZHIgPSBob3N0LT5hZGRyOw0KICAgICAgICBycGNfaW5m
+by5wcm9ncmFtID0gTkZTX1BST0dSQU07DQogICAgICAgIHJwY19pbmZvLnRpbWVvdXQudHZfc2Vj
+ID0gdGltZW91dDsNCiAgICAgICAgcnBjX2luZm8uY2xvc2Vfb3B0aW9uID0gUlBDX0NMT1NFX0RF
+RkFVTFQ7DQpAQCAtNjUyLDcgKzY1NCw3IEBAIHN0YXRpYyBpbnQgZ2V0X3N1cHBvcnRlZF92ZXJf
+YW5kX2Nvc3QodW5zaWduZWQgbG9nb3B0LCBzdHJ1Y3QgaG9zdCAqaG9zdCwNCiAgICAgICAgICAg
+ICAgICAgICAgICAgIHJldHVybiAwOw0KICAgICAgICB9IGVsc2Ugew0KICAgICAgICAgICAgICAg
+IGludCByZXQgPSBycGNfcG9ydG1hcF9nZXRjbGllbnQoJnBtX2luZm8sDQotICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICBob3N0LT5uYW1lLCBwcm90bywgUlBDX0NMT1NFX0RFRkFVTFQp
+Ow0KKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgaG9zdC0+bmFtZSwgaG9zdC0+YWRk
+ciwgcHJvdG8sIFJQQ19DTE9TRV9ERUZBVUxUKTsNCiAgICAgICAgICAgICAgICBpZiAoIXJldCkN
+CiAgICAgICAgICAgICAgICAgICAgICAgIHJldHVybiAwOw0KDQpAQCAtODc5LDcgKzg4MSw5IEBA
+IHN0YXRpYyBpbnQgYWRkX2hvc3RfYWRkcnMoc3RydWN0IGhvc3QgKipsaXN0LCBjb25zdCBjaGFy
+ICpob3N0LCB1bnNpZ25lZCBpbnQgd2VpDQoNCiAgICAgICAgbWVtc2V0KGJ1ZiwgMCwgTUFYX0lG
+Q19CVUYpOw0KICAgICAgICBtZW1zZXQoJmhlLCAwLCBzaXplb2Yoc3RydWN0IGhvc3RlbnQpKTsN
+CisgICAgICAgbWVtc2V0KHBoZSwgMCwgc2l6ZW9mKHN0cnVjdCBob3N0ZW50KSk7DQoNCisgICAg
+ICAgbG9nZXJyKCJnZXRob3N0YnluYW1lX3IgJXMiLCBob3N0KTsNCiAgICAgICAgcmV0ID0gZ2V0
+aG9zdGJ5bmFtZV9yKGhvc3QsIHBoZSwNCiAgICAgICAgICAgICAgICAgICAgICAgIGJ1ZiwgTUFY
+X0lGQ19CVUYsICZyZXN1bHQsICZnaG5fZXJybm8pOw0KICAgICAgICBpZiAocmV0IHx8ICFyZXN1
+bHQpIHsNCkBAIC04OTUsNiArODk5LDcgQEAgc3RhdGljIGludCBhZGRfaG9zdF9hZGRycyhzdHJ1
+Y3QgaG9zdCAqKmxpc3QsIGNvbnN0IGNoYXIgKmhvc3QsIHVuc2lnbmVkIGludCB3ZWkNCiAgICAg
+ICAgICAgICAgICBpZiAocHJ4ID09IFBST1hJTUlUWV9FUlJPUikNCiAgICAgICAgICAgICAgICAg
+ICAgICAgIHJldHVybiAwOw0KDQorICAgICAgICAgICAgICAgbG9nZXJyKCJhZGQgaG9zdCAlcyBh
+ZGRyZXNzICVzIiwgaG9zdCwgaW5ldF9udG9hKCooKHN0cnVjdCBpbl9hZGRyICopcGhlLT5oX2Fk
+ZHIpKSk7DQogICAgICAgICAgICAgICAgaWYgKCEobmV3ID0gbmV3X2hvc3QoaG9zdCwgKmhhZGRy
+LCBwcngsIHdlaWdodCkpKQ0KICAgICAgICAgICAgICAgICAgICAgICAgcmV0dXJuIDA7DQo=
+
+------_=_NextPart_001_01C848D2.04C1CD25
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -2890,5 +1030,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---===============7800250309588021401==--
+------_=_NextPart_001_01C848D2.04C1CD25--
 
