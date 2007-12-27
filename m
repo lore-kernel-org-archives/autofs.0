@@ -1,15 +1,13 @@
-From: Stef Bon <stef@bononline.nl>
-Subject: Re: No mount possible when only listing?
-Date: Wed, 26 Dec 2007 21:45:22 +0100
-Message-ID: <200712262145.22593.stef@bononline.nl>
-References: <200712251137.39694.stef@bononline.nl>
-	<1198673384.9481.22.camel@raven.themaw.net>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: Linux+Solaris - NIS auto.master versus autofs5
+Date: Thu, 27 Dec 2007 11:22:14 +0900
+Message-ID: <1198722134.3169.0.camel@raven.themaw.net>
+References: <753ec7300712211400g3eb45b21n1f236fe7056f87a1@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1198673384.9481.22.camel@raven.themaw.net>
-Content-Disposition: inline
+In-Reply-To: <753ec7300712211400g3eb45b21n1f236fe7056f87a1@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,62 +18,53 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: David Mack <davidwmack@gmail.com>
+Cc: autofs@linux.kernel.org
 
-On Wednesday 26 December 2007 13:49:44 you wrote:
-> On Tue, 2007-12-25 at 11:37 +0100, Stef Bon wrote:
-> > works with shares which are symlinks pointing from a "networktree" in the homedirectory of the user
-> > to this autofs directory. In my case it looks like:
-> > 
-> > /home/sbon/Global Network/Windows Network/hostA/firstsharehostA -> /mydomain/hostA/firstsharehostA
-> > /home/sbon/Global Network/Windows Network/hostA/secondsharehostA -> /mydomain/hostA/secondsharehostA
-> > /home/sbon/Global Network/Windows Network/hostA/thirdsharehostA -> /mydomain/hostA/thirdsharehostA
-> > 
-> > In my howto on howtoforge I've used a different setup, but basically it's exactly the same.
+On Fri, 2007-12-21 at 14:00 -0800, David Mack wrote:
+> I work in an environment in which Solaris and Linux machines NIS mount
+> the same automount maps, including auto.master. Typically,
+> /etc/auto.master just contains "+auto.master" on all of them.
 > 
-> The auto.mydomain.sub is not a legal map and I can't say that it will
-> continue to work that way you expect it to.
+> With the advent of autofs5, this has started breaking. To get the
+> Linux machines running autofs5 to work, we've had to replace
+> /etc/auto.master with a version that looks something like this:
 > 
-> Only one wildcard entry is allowed in a map.
+> /volume yp:auto.vols
+> /system yp:auto.home
+> /local yp:auto.local
+> /homes yp:auto.homes
+> /home yp:auto.home
+> /xfn -xfn
+> /net -hosts             -nosuid
 > 
-Well, that's not very good news. This makes that my construction is not supported by version 5 of autofs.
-I asume there is a reason for this. Can you explain?
-
-> > which is not necessary at all. I only want the content of hostA, not the content of the shares.
-> > 
-> > I can explain the behaviour. The ls command follows the symlink. When looking to where it is pointing to,
-> > the automounter is activated, and does a mount.
-> > 
-> > It is somehow possible to instruct the automounter, that when it comes to a simple "readlink" it does not mount
-> > the shares, but shows some sort of preview.
+> The NIS version (used by Solaris and older Linux machines) looks like this:
 > 
-> I'm not sure I understand what you're saying but I think you're
-> referring to a directory that contains symlinks. The directory that
-> contains the symlinks isn't an automount managed directory and so autofs
-> has no knowledge of what happens their. If you use color "ls" it will
-> stat the links that point to valid automount mounts, performing a path
-> walk on each, causing it to be mounted. I don't think there's much that
-> can be done about this within the submounted setup that you're using.
+> /volume auto.vols -intr,bg,tcp
+> /system auto.home
+> /local auto.local
+> /homes auto.homes -intr,bg,tcp
+> /home auto.home
+> /xfn -xfn
+> /net -hosts             -nosuid
 > 
-Indeed the ls command is responsible for the following of the symlinks. On my system there
-is an alias for ls: ls ='ls --color=auto'
-I've tried to do a ls by invoking the command with the whole path (/bin/ls) and the behaviour
-is what I want: no mounting.
-I can undo the creating of the alias, but the problem will remain when using the tools in a graphical
-environment like KDE. The default filemanager does follow the symlinks 
-(and does probably a stat or something).
-
-So the problem remains. But it is no showstopper: it would be very nice when solved, 
-but no disaster if it isn't.
-
-> I think the only way to get around this would be to enhance the setup
-> using something along the lines of the auto.smb example program map in
-> the distribution and version 5 of autofs.
-
-Now my construction does not use smbclient when mounting. Instead is makes use
-of a cache (which is build with nbtscan and smbclient). 
-But anyhow, I cannot see directly how the auto.smb program can do this. Can you 
-explain your idea more a little bit?
-
-
-Stef Bon
+> 
+> Needless to say, I'm not wild about having to install a separate
+> /etc/auto.master on every new Linux machine.
+> 
+> It appears that the problem is that autofs5 doesn't like parameters
+> introduces with hyphens in auto.master, which Solaris unfortunately
+> requires.
+> 
+> Is there any way around this situation that will allow me to continue
+> to use a NIS-mounted auto.master on all of my machines?
+> 
+> I apologize if this was discussed to death a couple of years ago - I
+> looked in the archive and didn't find anything.
+> 
+> Dave
+> 
+> _______________________________________________
+> autofs mailing list
+> autofs@linux.kernel.org
+> http://linux.kernel.org/mailman/listinfo/autofs
