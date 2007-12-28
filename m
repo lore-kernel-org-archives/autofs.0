@@ -1,57 +1,71 @@
-From: Julia Lawall <julia@diku.dk>
-Subject: Re: [PATCH 1/4] fs/autofs: Use time_before, time_before_eq, etc.
-Date: Fri, 28 Dec 2007 10:27:06 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0712281016290.15274@ask.diku.dk>
-References: <Pine.LNX.4.58.0712261621000.1185@pc-041.diku.dk>
- <2c0942db0712261158q34cddebeifceef6ceda683320@mail.gmail.com>
- <4772BD6C.1010502@zytor.com>
+From: Fabio Olive Leite <fleite@redhat.com>
+Subject: Re: [autofs] [PATCH 1/4] fs/autofs: Use time_before, time_before_eq, etc.
+Date: Fri, 28 Dec 2007 12:21:09 -0200
+Message-ID: <20071228142109.GA3801@sleipnir.redhat.com>
+References: <Pine.LNX.4.58.0712261621000.1185@pc-041.diku.dk> <2c0942db0712261158q34cddebeifceef6ceda683320@mail.gmail.com>
 Mime-Version: 1.0
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753332AbXL1J2s@vger.kernel.org>
-In-Reply-To: <4772BD6C.1010502@zytor.com>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754687AbXL1OWF@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <2c0942db0712261158q34cddebeifceef6ceda683320@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ray Lee <ray-lk@madrabbit.org>, autofs@linux.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org, yoshfuji@linux-ipv6.org
+Content-Type: text/plain; charset="iso-8859-1"
+To: Ray Lee <ray-lk@madrabbit.org>
+Cc: Julia Lawall <julia@diku.dk>, autofs@linux.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org, hpa@zytor.com
 
-On Wed, 26 Dec 2007, H. Peter Anvin wrote:
+On Wed, Dec 26, 2007 at 11:58:56AM -0800, Ray Lee wrote:
+>=20
+> On Dec 26, 2007 7:21 AM, Julia Lawall <julia@diku.dk> wrote:
+> > -               if (jiffies - ent->last_usage < timeout)
+> > +               if (time_before(jiffies, ent->last_usage + timeout)=
+)
+>=20
+> I don't think this is a safe change? subtraction is always safe (if
+> you think about it as 'distance'), addition isn't always safe unless
+> you know the range.
 
-> Ray Lee wrote:
-> > On Dec 26, 2007 7:21 AM, Julia Lawall <julia@diku.dk> wrote:
-> > > -               if (jiffies - ent->last_usage < timeout)
-> > > +               if (time_before(jiffies, ent->last_usage + timeout))
-> > 
-> > I don't think this is a safe change? subtraction is always safe (if
-> > you think about it as 'distance'), addition isn't always safe unless
-> > you know the range. The time_before macro will expand that out to
-> > (effectively):
-> > 
-> >   if ( (long)(ent->last_usage + timeout) - (long)(jiffies) < 0 )
-> > 
-> > which seems to introduce an overflow condition in the first term.
-> > 
-> > Dunno, I may be wrong (happens often), but at the very least what
-> > you've transformed it into is no longer obviously correct, and so it's
-> > not a great change.
-> 
-> Indeed.  The bottom form will have overflow issues at time
-> jiffies_wraparound/2, whereas the top form will have overflow issues only near
-> jiffies_wraparound/1.
+This thinking is wrong, and is exactly the kind of wrong thinking that
+led to the time_{before,after}{,_eq} macros. If jiffies just wrapped,
+your safe subtraction will underflow, and you'll be comparing very
+different unsigned values.
 
-Isn't this only the case if timeout is a potentially large number? In this 
-case, timeout may ultimately depend on a value that come from the user 
-level, so I don't know what ranges are expected, but in many other cases 
-one of the summands is a constant multiplied by HZ.  If the constant is 
-small, then I guess that the likelihood that jiffies overflows and the 
-likelihood that the sum overflows are essentially the same.  One then has 
-to consider whether:
+This is only a concern for 32bit architectures, of course. With 64bit
+jiffies, even if HZ is set to 1000000 in the far future, this
+civilization will still not outlive the jiffies counter (insert
+shocking soundtrack!) as it will wrap in half a million years.
 
-overflowed - correct </>/<=/>= small constant
+Sadly with 32bit jiffies it currently wraps every 50 days, and the
+sign (if cast to signed) changes every 25 days.
 
-is more or less desirable than
+> The time_before macro will expand that out to
+> (effectively):
+>=20
+>   if ( (long)(ent->last_usage + timeout) - (long)(jiffies) < 0 )
 
-time_before/after/before_eq/after_eq(correct, overflowed_by_small_constant)
+After contemplating this for a very long time (for an NFS fix at the
+time) I _think_ the magic is in the casts to signed. The construct
+manages to compare correctly any given jiffie values within 2^31 of
+each other (on 32bit arches) even with wraps, assuming you really have
+timestamps where the second one is taken less than 2^31 jiffies after
+the first.
 
-julia
+Of course, if the highest jiffies bit wraps twice between the first
+and second timestamps, you'll be comparing apples and oranges. If the
+timing is right this can happen if you compare two timestamps i.e. 26
+days from each other, but I think only NFS is wicked enough to produce
+such long living (and stale) kernel data structures.
 
+So in summary: don't question time_after and friends. Not without a
+very good analysis and testing with a matrix of timestamps. :)
+
+Cheers!
+=46=E1bio Oliv=E9
+--=20
+ex sed lex awk yacc, e pluribus unix, amem
+--
+To unsubscribe from this list: send the line "unsubscribe linux-kernel"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please read the FAQ at  http://www.tux.org/lkml/
