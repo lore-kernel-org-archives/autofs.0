@@ -1,13 +1,15 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: How does autofs know when the maps have changed?
-Date: Wed, 02 Jan 2008 15:39:12 +0900
-Message-ID: <1199255952.3072.20.camel@raven.themaw.net>
-References: <BAC1D28A5AB852439A6914CA7AB4E63F051929A1@permls05.wde.woodside.com.au>
+From: "James Richardson" <jrichardson@x-iss.com>
+Subject: Re: Slow mounts when using large round robin sets
+Date: Wed, 2 Jan 2008 08:18:49 -0600
+Message-ID: <98E55D6E1B3CFD43BDA59EEB56DD7D724BEF72@sbs01.xiss.private>
+References: <98E55D6E1B3CFD43BDA59EEB56DD7D72442DF1@sbs01.xiss.private><98E55D6E1B3CFD43BDA59EEB56DD7D724431C0@sbs01.xiss.private><1196921804.3089.28.camel@raven.themaw.net><98E55D6E1B3CFD43BDA59EEB56DD7D724432D5@sbs01.xiss.private><x49zlwm5hf1.fsf@segfault.boston.devel.redhat.com><98E55D6E1B3CFD43BDA59EEB56DD7D7244386E@sbs01.xiss.private><1198241367.3488.26.camel@raven.themaw.net><x49odck175r.fsf@segfault.boston.devel.redhat.com><98E55D6E1B3CFD43BDA59EEB56DD7D724438C2@sbs01.xiss.private><x49fxxvzpp5.fsf@segfault.boston.devel.redhat.com><98E55D6E1B3CFD43BDA59EEB56DD7D724438CB@sbs01.xiss.private><1198304664.3114.49.camel@raven.themaw.net><1198307519.3114.59.camel@raven.themaw.net><98E55D6E1B3CFD43BDA59EEB56DD7D72443928@sbs01.xiss.private><1198739265.3169.81.camel@raven.themaw.net><98E55D6E1
+ B3CFD43BDA59EEB56DD7D72443981@sbs01.xiss.private><1198822909.3089.28.camel@raven.themaw.net>
+	<98E55D6E1B3CFD43BDA59EEB56DD7D724BEEFA@sbs01.xiss.private>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <BAC1D28A5AB852439A6914CA7AB4E63F051929A1@permls05.wde.woodside.com.au>
+Content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,41 +20,468 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: "Coe, Colin C. (Unix Engineer)" <Colin.Coe@woodside.com.au>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-On Wed, 2008-01-02 at 11:05 +0900, Coe, Colin C. (Unix Engineer) wrote:
-> Hi Ian
-> 
-> Thanks for this :)
-> 
-> At the behest of one of the data admins, I scheduled a '/sbin/service
-> autofs reload' at 8AM, 12PM, 3PM and 6PM.  In addition to this, there is
-> a nightly autofs reload.  The day after putting in the addition reloads,
-> most of our EL3 boxes had stale mounts.  Stopping the autofs reloads
-> during the day stopped the stale mounts occuring.  Do you have any
-> recommendations for scheduling regular autofs updates? 
+Ian,
 
-EL3 is a bit old.
-What version of autofs?
-Maybe there's is an update available or maybe we need to build a later
-version for your EL3 boxes.
+Have you had the chance to review this additional debug output?
 
+Thanks,
+
+---
+James T. Richardson, Jr.
+jrichardson@x-iss.com
+eXcellence in IS Solutions, Inc.
+713-862-9200 x226
+
+Making IT Work for You
+HPC & Enterprise IT Solutions
+* HPC Application Acceleration
+* Cluster Design, Deploy, Manage, Train
+* Linux/Windows Integration
+* Remote Management, Backup, Anti-Spam/Virus
+* Network Assessments, Design
+* Security Audits, Design
+* Datacenter Design, Relocation
+* Messaging and Collaboration
+
+
+-----Original Message-----
+From: autofs-bounces@linux.kernel.org
+[mailto:autofs-bounces@linux.kernel.org] On Behalf Of James Richardson
+Sent: Friday, December 28, 2007 2:07 PM
+To: Ian Kent
+Cc: autofs@linux.kernel.org
+Subject: Re: [autofs] Slow mounts when using large round robin sets
+
+Ian,
+
+Below you will find the syslog output resulting from the most recent
+patch.
+
+
+Dec 28 12:58:34 myhost autofs: automount startup succeeded
+Dec 28 12:58:42 myhost automount[24624]: add_host_addrs:893:
+gethostbyname_r large-rr
+Dec 28 12:58:42 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.21.15.45
+Dec 28 12:58:42 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.21.15.47
+Dec 28 12:58:42 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.30.252.201
+Dec 28 12:58:42 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.30.252.202
+Dec 28 12:58:42 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.30.252.203
+Dec 28 12:58:42 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.30.252.204
+Dec 28 12:58:42 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.30.252.205
+Dec 28 12:58:42 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.30.252.206
+Dec 28 12:58:42 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.30.252.207
+Dec 28 12:58:42 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.30.252.208
+Dec 28 12:58:42 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.30.252.209
+Dec 28 12:58:42 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.30.252.210
+Dec 28 12:58:42 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.30.252.211
+Dec 28 12:58:42 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.30.252.212
+Dec 28 12:58:42 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.30.252.213
+Dec 28 12:58:42 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.30.252.214
+Dec 28 12:58:42 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.30.252.215
+Dec 28 12:58:42 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.30.252.216
+Dec 28 12:58:42 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.30.252.217
+Dec 28 12:58:42 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.30.252.218
+Dec 28 12:58:42 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.30.252.219
+Dec 28 12:58:42 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.30.252.220
+Dec 28 12:58:42 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.30.252.221
+Dec 28 12:58:42 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.30.252.222
+Dec 28 12:58:43 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.30.252.223
+Dec 28 12:58:43 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.30.252.224
+Dec 28 12:58:43 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.21.15.1
+Dec 28 12:58:43 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.21.15.3
+Dec 28 12:58:43 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.21.15.5
+Dec 28 12:58:43 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.21.15.7
+Dec 28 12:58:43 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.21.15.9
+Dec 28 12:58:43 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.21.15.11
+Dec 28 12:58:43 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.21.15.13
+Dec 28 12:58:43 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.21.15.15
+Dec 28 12:58:43 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.21.15.17
+Dec 28 12:58:43 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.21.15.19
+Dec 28 12:58:43 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.21.15.21
+Dec 28 12:58:43 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.21.15.23
+Dec 28 12:58:43 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.21.15.25
+Dec 28 12:58:43 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.21.15.27
+Dec 28 12:58:43 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.21.15.29
+Dec 28 12:58:43 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.21.15.31
+Dec 28 12:58:43 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.21.15.33
+Dec 28 12:58:43 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.21.15.35
+Dec 28 12:58:43 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.21.15.37
+Dec 28 12:58:43 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.21.15.39
+Dec 28 12:58:43 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.21.15.41
+Dec 28 12:58:43 myhost automount[24624]: add_host_addrs:912: add host
+large-rr address 172.21.15.43
+
+
+Is this expected? I'm curious as to why automount is pulling the entire
+RR set. I'm not sure if I know of any other application that does
+"stuff" to all of the results. As it is, we have our DNS infrastructure
+configured to sort/order the returned query to balance the RR
+efficiently. 
+
+---
+James T. Richardson, Jr.
+jrichardson@x-iss.com
+eXcellence in IS Solutions, Inc.
+713-862-9200 x226
+
+Making IT Work for You
+HPC & Enterprise IT Solutions
+* HPC Application Acceleration
+* Cluster Design, Deploy, Manage, Train
+* Linux/Windows Integration
+* Remote Management, Backup, Anti-Spam/Virus
+* Network Assessments, Design
+* Security Audits, Design
+* Datacenter Design, Relocation
+* Messaging and Collaboration
+
+
+-----Original Message-----
+From: Ian Kent [mailto:raven@themaw.net] 
+Sent: Friday, December 28, 2007 12:22 AM
+To: James Richardson
+Cc: Jeff Moyer; autofs@linux.kernel.org
+Subject: RE: [autofs] Slow mounts when using large round robin sets
+
+On Thu, 2007-12-27 at 15:47 -0600, James Richardson wrote:
+> Ian,
+> 
 >  
 > 
-> Something like DNS style serial numbers would be nice to be able to
-> query the clients to make sure their maps are up to date.  Yep, I
-> realise this is next to impossible to implement and maintain
-> compatibility with the rest of the world...
+> I updated your patch a little to provide clearer debug output in the
+> 'add_host' function. I've attached the patch to this e-mail. (I'm
+> still getting familiar with git, my apologies if the diff is not in
+> the correct format). I updated the logerr call in replicated.c to:
 
-The problem of recognizing whether a map needs an update has been around
-for a long time and a lot of time has gone into making autofs aware of
-updates to maps when they are present. We can't really add fields to
-maps because that would make autofs different from other implementations
-not to mention how difficult it would be to do for the various map
-sources. Where a generation stamp is available, such as in NIS, it has
-been used in later updates.
+And here's another try at this.
 
-However, the stale mounts is likely a different problem.
+---
+diff --git a/include/replicated.h b/include/replicated.h
+index 672f853..88cd08a 100644
+--- a/include/replicated.h
++++ b/include/replicated.h
+@@ -52,6 +52,7 @@
+ struct host {
+ 	char *name;
+ 	char *addr;
++	size_t addr_len;
+ 	char *path;
+ 	unsigned int version;
+ 	unsigned int proximity;
+diff --git a/include/rpc_subs.h b/include/rpc_subs.h
+index 3292e01..e20a89d 100644
+--- a/include/rpc_subs.h
++++ b/include/rpc_subs.h
+@@ -46,6 +46,8 @@
+ 
+ struct conn_info {
+ 	const char *host;
++	const char *addr;
++	size_t addr_len;
+ 	unsigned short port;
+ 	unsigned long program;
+ 	unsigned long version;
+@@ -61,7 +63,7 @@ int rpc_udp_getclient(struct conn_info *, unsigned
+int, unsigned int);
+ void rpc_destroy_udp_client(struct conn_info *);
+ int rpc_tcp_getclient(struct conn_info *, unsigned int, unsigned int);
+ void rpc_destroy_tcp_client(struct conn_info *);
+-int rpc_portmap_getclient(struct conn_info *, const char *, const char
+*, unsigned int);
++int rpc_portmap_getclient(struct conn_info *, const char *, const char
+*, size_t, const char *, unsigned int);
+ unsigned short rpc_portmap_getport(struct conn_info *, struct pmap *);
+ int rpc_ping_proto(struct conn_info *);
+ int rpc_ping(const char *, long, long, unsigned int);
+diff --git a/lib/rpc_subs.c b/lib/rpc_subs.c
+index 5797639..be2955d 100644
+--- a/lib/rpc_subs.c
++++ b/lib/rpc_subs.c
+@@ -86,11 +86,17 @@ static CLIENT *create_udp_client(struct conn_info
+*info)
+ 	memset(&raddr, 0, sizeof(raddr));
+ 
+ 	raddr.sin_family = AF_INET;
++	if (info->addr) {
++		memcpy(&raddr.sin_addr.s_addr, info->addr,
+info->addr_len);
++		goto got_addr;
++	}
++
+ 	if (inet_aton(info->host, &raddr.sin_addr))
+ 		goto got_addr;
+ 
+ 	memset(&hp, 0, sizeof(struct hostent));
+ 
++	logerr("gethostbyname_r %s", info->host);
+ 	ret = gethostbyname_r(info->host, php,
+ 			buf, HOST_ENT_BUF_SIZE, &result, &ghn_errno);
+ 	if (ret || !result) {
+@@ -295,11 +301,18 @@ static CLIENT *create_tcp_client(struct conn_info
+*info)
+ 	memset(&addr, 0, sizeof(addr));
+ 
+ 	addr.sin_family = AF_INET;
++
++	if (info->addr) {
++		memcpy(&addr.sin_addr.s_addr, info->addr,
+info->addr_len);
++		goto got_addr;
++	}
++
+ 	if (inet_aton(info->host, &addr.sin_addr))
+ 		goto got_addr;
+ 
+ 	memset(&hp, 0, sizeof(struct hostent));
+ 
++	logerr("gethostbyname_r %s", info->host);
+ 	ret = gethostbyname_r(info->host, php,
+ 			buf, HOST_ENT_BUF_SIZE, &result, &ghn_errno);
+ 	if (ret || !result) {
+@@ -407,8 +420,8 @@ void rpc_destroy_tcp_client(struct conn_info *info)
+ }
+ 
+ int rpc_portmap_getclient(struct conn_info *info,
+-			  const char *host, const char *proto,
+-			  unsigned int option)
++			  const char *host, const char *addr, size_t
+addr_len,
++			  const char *proto, unsigned int option)
+ {
+ 	struct protoent *pe_proto;
+ 	CLIENT *client;
+@@ -418,6 +431,8 @@ int rpc_portmap_getclient(struct conn_info *info,
+ 		return 0;
+ 
+ 	info->host = host;
++	info->addr = addr;
++	info->addr_len = addr_len;
+ 	info->program = PMAPPROG;
+ 	info->port = PMAPPORT;
+ 	info->version = PMAPVERS;
+@@ -462,6 +477,8 @@ unsigned short rpc_portmap_getport(struct conn_info
+*info, struct pmap *parms)
+ 		client = info->client;
+ 	else {
+ 		pmap_info.host = info->host;
++		pmap_info.addr = info->addr;
++		pmap_info.addr_len = info->addr_len;
+ 		pmap_info.port = PMAPPORT;
+ 		pmap_info.program = PMAPPROG;
+ 		pmap_info.version = PMAPVERS;
+@@ -589,6 +606,8 @@ static unsigned int __rpc_ping(const char *host,
+ 	struct pmap parms;
+ 
+ 	info.host = host;
++	info.addr = NULL;
++	info.addr_len = 0;
+ 	info.program = NFS_PROGRAM;
+ 	info.version = version;
+ 	info.send_sz = 0;
+@@ -769,6 +788,8 @@ exports rpc_get_exports(const char *host, long
+seconds, long micros, unsigned in
+ 	int status;
+ 
+ 	info.host = host;
++	info.addr = NULL;
++	info.addr_len = 0;
+ 	info.program = MOUNTPROG;
+ 	info.version = MOUNTVERS;
+ 	info.send_sz = 0;
+diff --git a/modules/replicated.c b/modules/replicated.c
+index 90b2925..0030ab1 100644
+--- a/modules/replicated.c
++++ b/modules/replicated.c
+@@ -225,7 +225,9 @@ static unsigned int get_proximity(const char
+*host_addr, int addr_len)
+ 	return PROXIMITY_OTHER;
+ }
+ 
+-static struct host *new_host(const char *name, const char *addr,
+unsigned int proximity, unsigned int weight)
++static struct host *new_host(const char *name,
++			     const char *addr, size_t addr_len,
++			     unsigned int proximity, unsigned int
+weight)
+ {
+ 	struct host *new;
+ 	char *tmp1, *tmp2;
+@@ -237,11 +239,12 @@ static struct host *new_host(const char *name,
+const char *addr, unsigned int pr
+ 	if (!tmp1)
+ 		return NULL;
+ 
+-	tmp2 = strdup(addr);
++	tmp2 = malloc(addr_len);
+ 	if (!tmp2) {
+ 		free(tmp1);
+ 		return NULL;
+ 	}
++	memcpy(tmp2, addr, addr_len);
+ 
+ 	new = malloc(sizeof(struct host));
+ 	if (!new) {
+@@ -253,6 +256,7 @@ static struct host *new_host(const char *name, const
+char *addr, unsigned int pr
+ 	memset(new, 0, sizeof(struct host));
+ 
+ 	new->name = tmp1;
++	new->addr_len = addr_len;
+ 	new->addr = tmp2;
+ 	new->proximity = proximity;
+ 	new->weight = weight;
+@@ -437,7 +441,8 @@ static unsigned int get_nfs_info(unsigned logopt,
+struct host *host,
+ v3_ver:
+ 	if (!have_port_opt) {
+ 		status = rpc_portmap_getclient(pm_info,
+-				 host->name, proto, RPC_CLOSE_DEFAULT);
++				host->name, host->addr, host->addr_len,
++				proto, RPC_CLOSE_DEFAULT);
+ 		if (!status)
+ 			goto done_ver;
+ 	}
+@@ -551,6 +556,8 @@ static int get_vers_and_cost(unsigned logopt, struct
+host *host,
+ 		timeout = RPC_TIMEOUT * 8;
+ 
+ 	rpc_info.host = host->name;
++	rpc_info.addr = host->addr;
++	rpc_info.addr_len = host->addr_len;
+ 	rpc_info.program = NFS_PROGRAM;
+ 	rpc_info.timeout.tv_sec = timeout;
+ 	rpc_info.close_option = RPC_CLOSE_DEFAULT;
+@@ -606,6 +613,8 @@ static int get_supported_ver_and_cost(unsigned
+logopt, struct host *host,
+ 		timeout = RPC_TIMEOUT * 8;
+ 
+ 	rpc_info.host = host->name;
++	rpc_info.addr = host->addr;
++	rpc_info.addr_len = host->addr_len;
+ 	rpc_info.program = NFS_PROGRAM;
+ 	rpc_info.timeout.tv_sec = timeout;
+ 	rpc_info.close_option = RPC_CLOSE_DEFAULT;
+@@ -652,7 +661,8 @@ static int get_supported_ver_and_cost(unsigned
+logopt, struct host *host,
+ 			return 0;
+ 	} else {
+ 		int ret = rpc_portmap_getclient(&pm_info,
+-				 host->name, proto, RPC_CLOSE_DEFAULT);
++				host->name, host->addr, host->addr_len,
++				proto, RPC_CLOSE_DEFAULT);
+ 		if (!ret)
+ 			return 0;
+ 
+@@ -868,7 +878,7 @@ static int add_host_addrs(struct host **list, const
+char *host, unsigned int wei
+ 		if (prx == PROXIMITY_ERROR)
+ 			return 0;
+ 
+-		if (!(new = new_host(host, thost, prx, weight)))
++		if (!(new = new_host(host, thost,
+sizeof(saddr.sin_addr), prx, weight)))
+ 			return 0;
+ 
+ 		if (!add_host(list, new))
+@@ -880,6 +890,7 @@ static int add_host_addrs(struct host **list, const
+char *host, unsigned int wei
+ 	memset(buf, 0, MAX_IFC_BUF);
+ 	memset(&he, 0, sizeof(struct hostent));
+ 
++	logerr("gethostbyname_r %s", host);
+ 	ret = gethostbyname_r(host, phe,
+ 			buf, MAX_IFC_BUF, &result, &ghn_errno);
+ 	if (ret || !result) {
+@@ -891,11 +902,15 @@ static int add_host_addrs(struct host **list,
+const char *host, unsigned int wei
+ 	}
+ 
+ 	for (haddr = phe->h_addr_list; *haddr; haddr++) {
++		struct in_addr tt;
++
+ 		prx = get_proximity(*haddr, phe->h_length);
+ 		if (prx == PROXIMITY_ERROR)
+ 			return 0;
+ 
+-		if (!(new = new_host(host, *haddr, prx, weight)))
++		memcpy(&tt, *haddr, sizeof(struct in_addr));
++		logerr("add host %s address %s", host, inet_ntoa(tt));
++		if (!(new = new_host(host, *haddr, phe->h_length, prx,
+weight)))
+ 			return 0;
+ 
+ 		if (!add_host(list, new)) {
 
-Ian
+
+
+
+NOTICE:
+This message may contain privileged or otherwise confidential
+information.
+If you are not the intended recipient, please immediately advise the
+sender
+by reply email and delete the message and any attachments without using,
+copying or disclosing the contents.
+
+
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+NOTICE:
+This message may contain privileged or otherwise confidential information.
+If you are not the intended recipient, please immediately advise the sender
+by reply email and delete the message and any attachments without using,
+copying or disclosing the contents.
