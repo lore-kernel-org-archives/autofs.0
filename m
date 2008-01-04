@@ -1,33 +1,16 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: Slow mounts when using large round robin sets
-Date: Fri, 04 Jan 2008 11:01:10 +0900
-Message-ID: <1199412070.3288.24.camel@raven.themaw.net>
-References: <98E55D6E1B3CFD43BDA59EEB56DD7D72442DF1@sbs01.xiss.private>
-	<98E55D6E1B3CFD43BDA59EEB56DD7D724432D5@sbs01.xiss.private>
-	<x49zlwm5hf1.fsf@segfault.boston.devel.redhat.com>
-	<98E55D6E1B3CFD43BDA59EEB56DD7D7244386E@sbs01.xiss.private>
-	<1198241367.3488.26.camel@raven.themaw.net>
-	<x49odck175r.fsf@segfault.boston.devel.redhat.com>
-	<98E55D6E1B3CFD43BDA59EEB56DD7D724438C2@sbs01.xiss.private>
-	<x49fxxvzpp5.fsf@segfault.boston.devel.redhat.com>
-	<98E55D6E1B3CFD43BDA59EEB56DD7D724438CB@sbs01.xiss.private>
-	<1198304664.3114.49.camel@raven.themaw.net>
-	<1198307519.3114.59.camel@raven.themaw.net>
-	<98E55D6E1B3CFD43BDA59EEB56DD7D72443928@sbs01.xiss.private>
-	<1198739265.3169.81.camel@raven.themaw.net>
-	<98E55D6E1B3CFD43BDA59EEB56DD7D72443981@sbs01.xiss.private>
-	<1198822909.3089.28.camel@raven.themaw.net>
-	<98E55D6E1B3CFD43BDA59EEB56DD7D724BEEFA@sbs01.xiss.private>
-	<98E55D6E1B3CFD43BDA59EEB56DD7D724BEF72@sbs01.xiss.private>
-	<1199285141.3072.50.camel@raven.themaw.net>
-	<alpine.LFD.0.9999.0801021742120.1247@h onker.vg ersoft.com>
-	<1199324040.3175.4.camel@raven.themaw.net>
-	<98E55D6E1B3CFD43BDA59EEB56DD7D724BF032@sbs01.xiss.private>
+Subject: Re: automount won't start - just hangs
+Date: Fri, 04 Jan 2008 11:23:27 +0900
+Message-ID: <1199413407.3288.39.camel@raven.themaw.net>
+References: <flbove$pg9$1@ger.gmane.org>
+	<1199188197.3246.1.camel@raven.themaw.net> <fldr8g$t60$1@ger.gmane.org>
+	<1199238944.3072.10.camel@raven.themaw.net>	<flgmj7$j1l$1@ger.gmane.org>
+	<1199325175.3175.9.camel@raven.themaw.net> <flk3m8$uuv$1@ger.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <98E55D6E1B3CFD43BDA59EEB56DD7D724BF032@sbs01.xiss.private>
+In-Reply-To: <flk3m8$uuv$1@ger.gmane.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -38,31 +21,73 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: James Richardson <jrichardson@x-iss.com>
+To: Jim Duda <jim@duda.tzo.com>
 Cc: autofs@linux.kernel.org
 
-On Thu, 2008-01-03 at 19:33 -0600, James Richardson wrote:
-> Is there any way to disable all of that selection code?
+On Thu, 2008-01-03 at 20:55 -0500, Jim Duda wrote:
+> Ian,
+> 
+> Adding *.daemon simply resulted in the same information being dumped to 
+> the syslog file, however, twice.  So, no new information.
 
-No.
+That should be daemon.* and usually you would log it to a different file
+when adding a syslog entry like that but I don't think that will make
+any difference.
+
+I can't remember how logging to a syslog server works now but does the
+syslog configuration on the server also limit what is logged?
 
 > 
-> We are currently using Bind server side sort lists to optimize the sort
-> order of the addresses returned by our DNS servers so that networks
-> directly accessible to the nfs client are returned first in the RRset.
+> Once automount gets wedged, I cannot use gdb to interrogate the threads, 
+> I cannot break into the program after it's wedged.
+> 
+> I'm by no means a power gdb user.
 
-The real question is whether it is useful to use the addresses returned
-in this way or to always use only the first address.
+Me nether.
 
 > 
-> I am not looking at my test matrix at the moment, but I'm 99% sure that
-> this wasn't an issue in CentOS4.2 with a 2.6.9 kernel and autofs4; but
-> using autofs5 with a 2.6.21 kernel there is a noticeable "slowdown". It
-> appears as "something" has changed.
+> I did:
+> 
+> set detach-on-fork off, simply based on a recommended help from ddd.
+> 
+> I traced the program all the way down into mount_bind.c, in the 
+> mount_init function, then into spawn.c, where it did the first fork. 
+> The program was wedged in spawn.c on line 186 at the first do while loop 
+> after the fork.
+> 
+> The program though do_read_master, mod->lookup_int, then into open_mount 
+> for "nfs" before it got to the first spawn.
+> 
+> I don't know how helpful any of this information is for you in helping 
+> me determine what is different about my funky root file system which 
+> causes a lockup, but thanks for trying.
 
-No it wasn't.
-There are significant changes to this code between version 4 and version
-5 as the version 4 code was a constant problem and didn't work
-correctly.
+I'm not sure either but one thing is sure, problems are almost always
+different from what you think they are when you finally get hard
+evidence.
 
-Ian
+In autofs-5.0.1-31, line 186 corresponds to an if statement?
+
+How about we try getting rid of a recent patch to this area of the code
+and rebuild autofs and see if that helps. The one I have in mind is
+close to the chopping block already.
+
+In particular:
+
+[raven@raven F-7]$ cvs diff -u autofs.spec 
+Index: autofs.spec
+===================================================================
+RCS file: /cvs/pkgs/rpms/autofs/F-7/autofs.spec,v
+retrieving revision 1.221
+diff -u -r1.221 autofs.spec
+--- autofs.spec 21 Dec 2007 10:21:18 -0000      1.221
++++ autofs.spec 4 Jan 2008 02:20:20 -0000
+@@ -127,7 +127,7 @@
+ %patch35 -p1
+ %patch36 -p1
+ %patch37 -p1
+-%patch38 -p1
++#%patch38 -p1
+ %patch39 -p1
+ 
+ %build
