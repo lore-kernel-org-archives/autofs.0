@@ -1,13 +1,11 @@
 From: Lukas Kolbe <lukas@einfachkaffee.de>
-Subject: Re: Linux+Solaris - NIS auto.master versus autofs5
-Date: Tue, 08 Jan 2008 11:19:43 +0100
-Message-ID: <1199787583.26268.12.camel@srss>
-References: <753ec7300712211400g3eb45b21n1f236fe7056f87a1@mail.gmail.com>
+Subject: Kernel patch to better support bind-mounts
+Date: Tue, 08 Jan 2008 11:38:17 +0100
+Message-ID: <1199788697.26268.24.camel@srss>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <753ec7300712211400g3eb45b21n1f236fe7056f87a1@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,38 +16,90 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: David Mack <davidwmack@gmail.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
 Hi!
 
-A late reply, but a similar thing has bitten me in the past:
+Ian, you made a patch for our problem here late laste year that didn't
+quite work for all of our cases. I don't really understand the code in
+the kernel module, but logic tells me that this patch should be safe.
+Plus, it's solving our problems and is straightforward. Your patch was:
 
-> I work in an environment in which Solaris and Linux machines NIS mount
-> the same automount maps, including auto.master. Typically,
-> /etc/auto.master just contains "+auto.master" on all of them.
-> 
-> With the advent of autofs5, this has started breaking. To get the
-> Linux machines running autofs5 to work, we've had to replace
-> /etc/auto.master with a version that looks something like this:
-> 
-> /volume yp:auto.vols
-> /system yp:auto.home
-> /local yp:auto.local
-> /homes yp:auto.homes
-> /home yp:auto.home
-> /xfn -xfn
-> /net -hosts             -nosuid
+diff -up linux-2.6.21/fs/autofs4/root.c.lookup_access-intent linux-2.6.21/fs/autofs4/root.c
+--- linux-2.6.21/fs/autofs4/root.c.lookup_access-intent 2007-10-11 16:32:07.000000000 +0800
++++ linux-2.6.21/fs/autofs4/root.c      2007-10-11 16:34:59.000000000 +0800
+@@ -20,6 +20,8 @@
+ #include <linux/smp_lock.h>
+ #include "autofs_i.h"
+ 
++#define DIRECT_TRIGGER_FLAGS (LOOKUP_CONTINUE|LOOKUP_DIRECTORY|LOOKUP_ACCESS)
++
+ static int autofs4_dir_symlink(struct inode *,struct dentry *,const char *);
+ static int autofs4_dir_unlink(struct inode *,struct dentry *);
+ static int autofs4_dir_rmdir(struct inode *,struct dentry *);
+@@ -336,7 +338,7 @@ static void *autofs4_follow_link(struct 
+                nd->flags);
+ 
+        /* If it's our master or we shouldn't trigger a mount we're done */
+-       lookup_type = nd->flags & (LOOKUP_CONTINUE | LOOKUP_DIRECTORY);
++       lookup_type = nd->flags & DIRECT_TRIGGER_FLAGS;
+        if (oz_mode || !lookup_type)
+                goto done;
 
-With autofs5, it does honor settings in /etc/nsswitch.conf.
-A line like
 
-automount:      nis files
+This helps for a map like this:
 
-in there does tell autofs5 to lookup the maps first via nis, then via
-files, so there shouldn't be a need to explicitly specify yp: maps in
-the /etc/auto.master anymore so principially the old auto_master should
-work?
+eclipse-3.1 \
+  /bin          -rw,nosuid,grpid          fileserver:/volumes/vol1/eclipse-3.1/bin.linx86
+eclipse \
+  /bin          -rw,nosuid,grpid          :/vol/eclipse-3.1/bin
+
+Accessing /vol/eclipse/bin now works flawlessly. But given this map:
+
+jdk-1.5.13 -rw,nosuid,grpid fileserver:/export/stud/vol/jdk-1.5.13/linx86
+jdk-1.5    -rw,nosuid,grpid :/vol/jdk-1.5.13
+
+accessing /vol/jdk-1.5 doesn't work always (ie only when /vol/jdk-1.5.13
+was accessed first). I changed the patch to the one below, and this
+problem is now also fixed.
+
+Ian, can you comment on the sanity of this one? If it's OK, I'd like to
+see it pushed upstream. We're building our own kernel anyway now (had
+known large-scale linux was so damn difficult I bet I wouldn't have
+started in the first plate), but it would be nice to see upstream.
+
 
 -- 
 Lukas
+
+
+diff -ru linux-2.6-2.6.23-a/fs/autofs4/root.c linux-2.6-2.6.23/fs/autofs4/root.c
+--- linux-2.6-2.6.23-a/fs/autofs4/root.c        2007-11-30 16:20:33.000000000 +0100
++++ linux-2.6-2.6.23/fs/autofs4/root.c  2007-11-30 16:22:24.000000000 +0100
+@@ -19,6 +19,9 @@
+ #include <linux/time.h>
+ #include "autofs_i.h"
+
++#define DIRECT_TRIGGER_FLAGS (LOOKUP_CONTINUE|LOOKUP_DIRECTORY|LOOKUP_ACCESS)
++
++
+ static int autofs4_dir_symlink(struct inode *,struct dentry *,const char *);
+ static int autofs4_dir_unlink(struct inode *,struct dentry *);
+ static int autofs4_dir_rmdir(struct inode *,struct dentry *);
+@@ -291,7 +294,7 @@
+                        return status;
+                }
+        /* Trigger mount for path component or follow link */
+-       } else if (flags & (LOOKUP_CONTINUE | LOOKUP_DIRECTORY) ||
++       } else if (flags & DIRECT_TRIGGER_FLAGS ||
+                        current->link_count) {
+                DPRINTK("waiting for mount name=%.*s",
+                        dentry->d_name.len, dentry->d_name.name);
+@@ -335,7 +338,7 @@
+                nd->flags);
+
+        /* If it's our master or we shouldn't trigger a mount we're done */
+-       lookup_type = nd->flags & (LOOKUP_CONTINUE | LOOKUP_DIRECTORY);
++       lookup_type = nd->flags & DIRECT_TRIGGER_FLAGS;
+        if (oz_mode || !lookup_type)
+                goto done;
