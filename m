@@ -1,14 +1,16 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: Autofs leaking map entries
-Date: Wed, 09 Jan 2008 08:21:24 -0500
-Message-ID: <x49d4sbxhgr.fsf@segfault.boston.devel.redhat.com>
-References: <BAC1D28A5AB852439A6914CA7AB4E63F051929CD@permls05.wde.woodside.com.au>
+From: "James Richardson" <jrichardson@x-iss.com>
+Subject: Re: Slow mounts when using large round robin sets
+Date: Wed, 9 Jan 2008 12:11:24 -0600
+Message-ID: <98E55D6E1B3CFD43BDA59EEB56DD7D724BF19F@sbs01.xiss.private>
+References: <98E55D6E1B3CFD43BDA59EEB56DD7D72442DF1@sbs01.xiss.private><98E55D6E1B3CFD43BDA59EEB56DD7D724432D5@sbs01.xiss.private><x49zlwm5hf1.fsf@segfault.boston.devel.redhat.com><98E55D6E1B3CFD43BDA59EEB56DD7D7244386E@sbs01.xiss.private><1198241367.3488.26.camel@raven.themaw.net><x49odck175r.fsf@segfault.boston.devel.redhat.com><98E55D6E1B3CFD43BDA59EEB56DD7D724438C2@sbs01.xiss.private><x49fxxvzpp5.fsf@segfault.boston.devel.redhat.com><98E55D6E1B3CFD43BDA59EEB56DD7D724438CB@sbs01.xiss.private><1198304664.3114.49.camel@raven.themaw.net><1198307519.3114.59.camel@raven.themaw.net><98E55D6E1B3CFD43BDA59EEB56DD7D72443928@sbs01.xiss.private><1198739265.3169.81.camel@raven.themaw.net><98E55D6E1B3CFD43BDA59EEB56DD7D72443981@sbs01.xiss.private><1198822909.3089.28.camel@raven.themaw.net><98E55D6E1
+ B3CFD43BDA59EEB56DD7D724BEEFA@sbs01.xiss.private><98E55D6E1B3CFD43BDA59EEB56DD7D724BEF72@sbs01.xiss.private><1199285141.3072.50.camel@raven.themaw.net><alpine.LFD.0.9999.0801021742120.1247@!
+ honker.vg
+	ersoft.com> <1199324040.3175.4.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <BAC1D28A5AB852439A6914CA7AB4E63F051929CD@permls05.wde.woodside.com.au>
-	(Colin C. Coe's message of "Wed\, 9 Jan 2008 13\:55\:24 +0900")
+Content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,102 +21,107 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: "Coe, Colin C. (Unix Engineer)" <Colin.Coe@woodside.com.au>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-"Coe, Colin C. (Unix Engineer)" <Colin.Coe@woodside.com.au> writes:
+Ian,
 
-> Hi All
->
-> I saw on this list some time ago that someone was having problems with
-> autofs working fine for a while and then starting to 'forget' map
-> entries but I can't find those threads now.  Anyway, we are now seeing
-> this problem on RHEL5.
->
-> This machine was working fine until today.  (It's been up for only 4
-> days).
->
-> Once again, I haven't included the auto_global or auto_home maps.
+For my particular application it would be best to always have AutoFS use
+the first address returned from a round robin set. That being said, I
+can also envision scenarios where the current implementation would be
+useful.
 
-We'll at least need a debug log.  See http://people.redhat.com/jmoyer.
+Since both situations need to be supported, I propose the addition of a
+flag variable: (for example) CHECK_MULTIPLE_RESULTSET= [ none |
+proximity ]. When none is set, it just uses the first address returned.
+If multiple addresses are returned and 'proximity' is set, AutoFS could
+then validate each address in the return set using the proximity logic
+currently in place.
 
-Thanks!
+If you would like, I can work on adding support for adding this feature
+so that you can review and include it. Do you have any recommendations
+on methods for implementing this?
 
-Jeff
+---
+James T. Richardson, Jr.
+jrichardson@x-iss.com
+eXcellence in IS Solutions, Inc.
+713-862-9200 x226
 
-> Autofs version
-> autofs-5.0.1-0.rc2.55.el5.2
->
-> Kernel version
-> 2.6.18-53.1.4.el5
->
-> Autofs global map
-> same as previous post
->
-> Autofs home map
-> same as previous post
->
-> Contents of /etc/nsswitch.conf
-> #
-> # /etc/nsswitch.conf
-> #
-> passwd:     files ldap
-> shadow:     files ldap
-> group:      files ldap
->
-> # Warning: "getent hosts | grep hostname" probably won't do what you
-> want
-> # Do a "getent hosts hostname" instead
-> hosts:      files dns
->
-> bootparams: files ldap
-> ethers:     files ldap
->
-> netmasks:   files ldap
-> networks:   files ldap
->
-> protocols:  files ldap
-> rpc:        files ldap
-> publickey:  files ldap
-> services:   files ldap
->
-> netgroup:   files ldap
-> automount:  ldap files
-> aliases:    files ldap
->
-> Contents of /etc/sysconfig/autofs
-> LOCALOPTIONS=""
-> DAEMONOPTIONS="--timeout=60"
-> UNDERSCORETODOT=0
-> DISABLE_DIRECT=0
->
-> DEFAULT_MAP_OBJECT_CLASS="automountMap"
-> DEFAULT_ENTRY_OBJECT_CLASS="automount"
-> DEFAULT_MAP_ATTRIBUTE="automountMapName"
-> DEFAULT_ENTRY_ATTRIBUTE="automountKey"
-> DEFAULT_VALUE_ATTRIBUTE="automountInformation"
->
->
-> Contents of /etc/auto.master
-> # This is a managed by RedHat satellite server, do not edit
->
-> /home   autofs.home   --verbose --ghost
-> nfsvers=3,tcp,rsize=32768,wsize=32768
-> /-      autofs.global --verbose --ghost
-> nfsvers=3,tcp,rsize=32768,wsize=32768
->
-> Thanks
->
-> CC
->
-> NOTICE: This email and any attachments are confidential. 
-> They may contain legally privileged information or 
-> copyright material. You must not read, copy, use or 
-> disclose them without authorisation. If you are not an 
-> intended recipient, please contact us at once by return 
-> email and then delete both messages and all attachments.
->
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
+Making IT Work for You
+HPC & Enterprise IT Solutions
+* HPC Application Acceleration
+* Cluster Design, Deploy, Manage, Train
+* Linux/Windows Integration
+* Remote Management, Backup, Anti-Spam/Virus
+* Network Assessments, Design
+* Security Audits, Design
+* Datacenter Design, Relocation
+* Messaging and Collaboration
+
+
+-----Original Message-----
+From: autofs-bounces@linux.kernel.org
+[mailto:autofs-bounces@linux.kernel.org] On Behalf Of Ian Kent
+Sent: Wednesday, January 02, 2008 7:34 PM
+To: Steve Thompson
+Cc: autofs@linux.kernel.org
+Subject: Re: [autofs] Slow mounts when using large round robin sets
+
+On Wed, 2008-01-02 at 17:43 -0500, Steve Thompson wrote:
+> On Wed, 2 Jan 2008, Ian Kent wrote:
+> 
+> > But, when multiple addresses are returned, autofs uses them as
+though
+> > they were multiple names and checks to see if they are up and what
+the
+> > response to an NULL procedure ping is so it can put them in least
+loaded
+> > order, assuming the servers are at the same proximity.
+> 
+> How about dividing those IP addresses into two sets: those on the same
+> subnet as the client and those that aren't, and then proceding as
+> above? That might save a hop or two for "close" clients.
+
+From the comment in modules/replicated.c (including spelling mistakes):
+
+A priority ordered list of hosts is created by using the following
+selection rules.
+
+   1) Highest priority in selection is proximity.
+      Proximity, in order of precedence is:
+        - PROXIMITY_LOCAL, host corresponds to a local interface.
+        - PROXIMITY_SUBNET, host is located in a subnet reachable
+          through a local interface.
+        - PROXIMITY_NETWORK, host is located in a network reachable
+          through a local interface.
+        - PROXIMITY_OTHER, host is on a network not directlty
+          reachable through a local interface.
+
+   2) NFS version and protocol is selected by caclculating the largest
+      number of hosts supporting an NFS version and protocol that
+      have the closest proximity. These hosts are added to the list
+      in response time order. Hosts may have a corresponding weight
+      which essentially increaes response time and so influences the
+      host order.
+
+   3) Hosts at further proximity that support the selected NFS version
+      and protocol are also added to the list in response time order as
+      in 2 above.
+
+At least that's how I think it works and hopefully I haven't changed
+that with subsequent changes.
+
+Ian
+
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+NOTICE:
+This message may contain privileged or otherwise confidential information.
+If you are not the intended recipient, please immediately advise the sender
+by reply email and delete the message and any attachments without using,
+copying or disclosing the contents.
