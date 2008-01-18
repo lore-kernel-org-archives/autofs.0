@@ -1,7 +1,8 @@
-From: Guillaume Rousse <Guillaume.Rousse@inria.fr>
-Subject: autofs breaking nfs4 protocol by sending udp probes ?
-Date: Thu, 17 Jan 2008 16:51:05 +0100
-Message-ID: <478F7969.4080209@inria.fr>
+From: Olivier Blin <blino@mandriva.com>
+Subject: mount options can not be parsed in auto.master with ldap
+	map
+Date: Fri, 18 Jan 2008 17:44:31 +0100
+Message-ID: <m3hchbdqxc.fsf@dynamo.mandriva.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,9 +19,28 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-According to nfs4 developpers, autofs is suspect there:
-http://linux-nfs.org/pipermail/nfsv4/2007-December/007332.html
+Hello,
+
+Since the "LDAP base dns with spaces" patch series has been applied,
+automount can't parse anymore the mount options in auto.master.
+It looks like it includes the mount options after the space when
+parsing the base dn.
+
+Here is my auto.master file:
+$ grep -v "^#" /chroot/cooker/etc/autofs/auto.master
+/home   ldap:ou=auto.home,ou=Mounts,dc=mandriva,dc=com rw,nosuid,nodev,soft,intr,relatime
+
+It fails this way:
+# automount -d -f
+Starting automounter version 5.0.3, master map auto.master
+using kernel protocol version 5.00
+lookup_nss_read_master: reading master files auto.master
+parse_init: parse(sun): init gathered global options: (null)
+lookup_read_master: lookup(file): read entry /home
+syntax error in map near [ nosuid ]
+no mounts in table
+
+Regards,
+
 -- 
-Guillaume Rousse
-Moyens Informatiques - INRIA Futurs
-Tel: 01 69 35 69 62
+Olivier Blin (blino) - Mandriva
