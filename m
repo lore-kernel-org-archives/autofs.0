@@ -1,14 +1,12 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: mount options can not be parsed in auto.master
-	with	ldap map
-Date: Mon, 21 Jan 2008 12:24:03 +0900
-Message-ID: <1200885843.10357.40.camel@raven.themaw.net>
-References: <m3hchbdqxc.fsf@dynamo.mandriva.com>
+From: "Marty Leisner" <leisner@rochester.rr.com>
+Subject: autofs 5.0.3 problems
+Date: Sun, 20 Jan 2008 22:59:08 -0500
+Message-ID: <200801210359.m0L3x8Bs032116@dell2.home>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <m3hchbdqxc.fsf@dynamo.mandriva.com>
+Content-ID: <32113.1200887948.1@dell2.home>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,33 +17,50 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Olivier Blin <blino@mandriva.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
+
+I want to build and install autofs 5.0.3 as nonroot
+on ubuntu gutsy gibbon.
+(other recent systems have autofs5,  ubuntu gutsy gibbon doesn't, 
+I'm very pleased that direct mounts work in autofs5 -- I've waited 
+for this for years).
 
 
-On Fri, 2008-01-18 at 17:44 +0100, Olivier Blin wrote:
-> Hello,
-> 
-> Since the "LDAP base dns with spaces" patch series has been applied,
-> automount can't parse anymore the mount options in auto.master.
-> It looks like it includes the mount options after the space when
-> parsing the base dn.
-> 
-> Here is my auto.master file:
-> $ grep -v "^#" /chroot/cooker/etc/autofs/auto.master
-> /home   ldap:ou=auto.home,ou=Mounts,dc=mandriva,dc=com rw,nosuid,nodev,soft,intr,relatime
-> 
-> It fails this way:
-> # automount -d -f
-> Starting automounter version 5.0.3, master map auto.master
-> using kernel protocol version 5.00
-> lookup_nss_read_master: reading master files auto.master
-> parse_init: parse(sun): init gathered global options: (null)
-> lookup_read_master: lookup(file): read entry /home
-> syntax error in map near [ nosuid ]
-> no mounts in table
+I wanted to install all files in /usr/local/autofs-5.0.3
 
-Please give this patch a try
-http://www.kernel.org/pub/linux/daemons/autofs/v5/autofs-5.0.3-basedn-with-spaces-fix-3.patch
+Just doing
+./configure --prefix=/usr/local/autofs-5.0.3
+didn't do everything I needed.
 
-Ian
+I had to:
+
+: leisner@gateway 10:45:40;rcsdiff -u Makefile.conf
+===================================================================
+RCS file: Makefile.conf,v
+retrieving revision 1.2
+diff -u -r1.2 Makefile.conf
+--- Makefile.conf       2008/01/21 00:20:10     1.2
++++ Makefile.conf       2008/01/21 00:20:47
+@@ -78,6 +78,8 @@
+ sbindir = ${exec_prefix}/sbin
+
+ # Where to install man pages
++# datarootdir is undefined??
++datarootdir=${prefix}/share
+ mandir = ${datarootdir}/man
+
+ # Location for init.d files
+
+since datarootdir wasn't defined...
+(it should default to ${prefix}/share according to configure).
+
+I had to manually do
+make install INSTALLROOT=/usr/local/autofs-5.0.3
+to get the man pages to install in the right place.
+
+I also started in the init.d/autofs $DAEMON instead of $prog
+(so it prepended the pathname).
+
+The README file mentions a README.options file, I don't see one there.
+
+marty
