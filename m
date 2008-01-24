@@ -1,13 +1,15 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [Fwd: linking issues with ldap]
-Date: Thu, 24 Jan 2008 14:35:05 +0900
-Message-ID: <1201152905.3061.31.camel@raven.themaw.net>
-References: <47977B5B.300@inria.fr>
+Subject: Re: parsing issue in master map file: tabs works,
+	space	don't
+Date: Thu, 24 Jan 2008 14:36:14 +0900
+Message-ID: <1201152974.3061.34.camel@raven.themaw.net>
+References: <47977DAB.5030207@inria.fr>
+	<1201139305.3061.1.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <47977B5B.300@inria.fr>
+In-Reply-To: <1201139305.3061.1.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,24 +24,18 @@ To: Guillaume Rousse <Guillaume.Rousse@inria.fr>
 Cc: autofs@linux.kernel.org
 
 
-On Wed, 2008-01-23 at 18:37 +0100, Guillaume Rousse wrote:
-> Sending again, first attempt failed.
-> email message attachment (linking issues with ldap.eml)
-> > -------- Forwarded Message --------
-> > From: Guillaume Rousse <Guillaume.Rousse@inria.fr>
-> > To: autofs@linux.kernel.org
-> > Subject: linking issues with ldap
-> > Date: Thu, 17 Jan 2008 16:48:42 +0100
+On Thu, 2008-01-24 at 10:48 +0900, Ian Kent wrote:
+> On Wed, 2008-01-23 at 18:47 +0100, Guillaume Rousse wrote:
+> > See
+> > http://qa.mandriva.com/show_bug.cgi?id=37107 for details.
 > > 
-> > Hello list.
-> > 
-> > Latest release (5.0.3) attempt to link against libldap_r, and fails on
-> > mandriva because of unresolved pthread symbols. However, according to
-> > ldap maintainer, libldap_r is supposed to be a private library. Hence
-> > autofs should use -lldap, not -lldap_r. Attached patch fix this.
+> > I reproduced the issue myself.
+> 
+> Please check the patches on kernel.org.
 
-Think you missed one.
-Can you try this patch and let me know how it goes please.
-http://www.kernel.org/pub/linux/daemons/autofs/v5/autofs-5.0.3-correct-ldap-lib.patch
+In fact please try
+http://www.kernel.org/pub/linux/daemons/autofs/v5/autofs-5.0.3-basedn-with-spaces-fix-3.patch
+
+This patch was just updated as it wasn't quite right.
 
 Ian
