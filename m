@@ -1,14 +1,16 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Transient chdir() failures: cd initially fails,
-	where	ls works
-Date: Fri, 25 Jan 2008 22:25:47 +0900
-Message-ID: <1201267547.3040.68.camel@raven.themaw.net>
-References: <920746F6DF728345915EF4D6DA610D0F04710E16@MAILSJ2.global.cadence.com>
+From: Guillaume Rousse <Guillaume.Rousse@inria.fr>
+Subject: Re: parsing issue in master map file: tabs works,
+ space don't
+Date: Fri, 25 Jan 2008 22:50:29 +0100
+Message-ID: <479A59A5.3010408@inria.fr>
+References: <47977DAB.5030207@inria.fr>	
+	<1201139305.3061.1.camel@raven.themaw.net>
+	<1201152974.3061.34.camel@raven.themaw.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <920746F6DF728345915EF4D6DA610D0F04710E16@MAILSJ2.global.cadence.com>
+In-Reply-To: <1201152974.3061.34.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,25 +21,28 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jim Dennis <jdennis@cadence.com>
-Cc: autofs@linux.kernel.org
+To: Ian Kent <raven@themaw.net>, autofs@linux.kernel.org
 
+Ian Kent a =E9crit :
+> On Thu, 2008-01-24 at 10:48 +0900, Ian Kent wrote:
+>> On Wed, 2008-01-23 at 18:47 +0100, Guillaume Rousse wrote:
+>>> See
+>>> http://qa.mandriva.com/show_bug.cgi?id=3D37107 for details.
+>>>
+>>> I reproduced the issue myself.
+>> Please check the patches on kernel.org.
+> =
 
-On Thu, 2008-01-24 at 15:37 -0800, Jim Dennis wrote:
+> In fact please try
+> http://www.kernel.org/pub/linux/daemons/autofs/v5/autofs-5.0.3-basedn-wit=
+h-spaces-fix-3.patch
+> =
 
->  The early automount lookup_read_master:lookup(nisplus) seems to to be something in the
->  initrd or very early in the boot process (it's not part of our configuration).
+> This patch was just updated as it wasn't quite right.
+Works OK, thanks.
 
-It is part of your configuration.
-You have nisplus as an LDAP source, put there by another package install
-no doubt, and you haven't bothered to remove it.
+-- =
 
->  
->  The segfaults are worrisome --- and it's notable that they all occurred during the interval when I was
->  restarting autofs for reproducing the behavior here.
->  
->  I will try these tests with a fresh reboot and nscd disable.
-
-nscd is nothing to do with autofs.
-
-Ian
+Guillaume Rousse
+Moyens Informatiques - INRIA Futurs
+Tel: 01 69 35 69 62
