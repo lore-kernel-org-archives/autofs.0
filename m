@@ -1,15 +1,14 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Mount very when reboot
-Date: Tue, 12 Feb 2008 15:31:45 +0900
-Message-ID: <1202797905.3233.57.camel@raven.themaw.net>
-References: <3a98c5000802080122q56d81c92x67806c7d15aeb108@mail.gmail.com>
-	<1202717516.24318.8.camel@raven.themaw.net>
-	<3a98c5000802110737y52bce2f0s2e0d3a07b9a1cf1e@mail.gmail.com>
+From: Stef Bon <sbon@bononline.nl>
+Subject: Re: bind mounting into a generated multi-level directory
+ structure
+Date: Sun, 10 Feb 2008 15:18:39 +0100
+Message-ID: <47AF07BF.2040405@bononline.nl>
+References: <Pine.LNX.4.64.0802090220120.18112@potato.cts.ucla.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <3a98c5000802110737y52bce2f0s2e0d3a07b9a1cf1e@mail.gmail.com>
+In-Reply-To: <Pine.LNX.4.64.0802090220120.18112@potato.cts.ucla.edu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,31 +19,18 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Vincent LEFORT <vincent.lefort@gmail.com>
 Cc: autofs@linux.kernel.org
 
+Chris Stromsoe wrote:
+> I have a set of directories that are created and removed programmatically, 
+> and are hashed three levels deep (/top/hash/hash/name).  The depth is 
+> constant, the hashes and names are not.  There are around 35k at any time. 
+> I would like to bind mount a common directory into each top-level 
+> (/top/hash/hash/name/data) on demand.
+>
+> Can I use autofs to do that without having to explicitly list all of the 
+> directory paths in auto.master?
+>   
+Why not use symlinks to this shared common directory, and mount that one?
 
-On Mon, 2008-02-11 at 16:37 +0100, Vincent LEFORT wrote:
-> So 
-> 
-> rpm -q autofs : autofs-4.1.4-6
-> uname -r : 2.6.13-15.18-smp
-> 
-> auto.master on clients : 
->      /serveurpst /etc/auto.pst --timeout 60
-> 
-> auto.pst on clients :
->     prods1  -soft,intr,rsize=8192,wsize=8192,timeo=15,rw
-> 192.168.0.48:/media/disk1_prods1
-> 
-
-snip ...
-
-> 
-> I will do the debug output, do you see some problems here ?
-
-This all looks OK.
-Have you checked the order of the startup on you're distribution?
-If the network isn't up before autofs starts that will be a problem.
-
-Ian
+Stef Bon
