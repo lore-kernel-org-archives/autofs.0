@@ -1,13 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: auto mounting floppies
-Date: Mon, 11 Feb 2008 17:09:56 +0900
-Message-ID: <1202717396.24318.6.camel@raven.themaw.net>
-References: <47AF37A6.1010004@writeme.com>
+Subject: Re: Mount very when reboot
+Date: Mon, 11 Feb 2008 17:11:56 +0900
+Message-ID: <1202717516.24318.8.camel@raven.themaw.net>
+References: <3a98c5000802080122q56d81c92x67806c7d15aeb108@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <47AF37A6.1010004@writeme.com>
+In-Reply-To: <3a98c5000802080122q56d81c92x67806c7d15aeb108@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,40 +18,32 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: stephanos@writeme.com
-Cc: Auto FS Mailing List <autofs@linux.kernel.org>
+To: Vincent LEFORT <vincent.lefort@gmail.com>
+Cc: autofs@linux.kernel.org
 
 
-On Sun, 2008-02-10 at 17:43 +0000, Stephen Constantinou wrote:
-> Dear All
+On Fri, 2008-02-08 at 10:22 +0100, Vincent LEFORT wrote:
+> Hello, it's my first message so be nice with me :)
 > 
-> I received technical support from Mandriva up to the point where they 
-> suggest I read the manual.  I did and understood very little and was 
-> surprised that they would go no further.
+> I'm about 20 computers in a network with suse 10.0 x86_64. I had
+> install nfs with autofs on all my computer and this works almost fine.
 > 
-> It took several attempts to get over to them that although I can mount 
-> floppies manually at the command line as root and I can mount floppies 
-> using a "Link to Device" icon I made for the desktop I was trying to 
-> achieve in Mandriva 2008 what I had taken for granted in Mandriva 2007. 
->   That is as follows:
->    "In 2007 I can insert a floppy and navigate in
->     konqueror to /media/floppy and click on the
->     directory and then the floppy is mounted and
->     the content of the floppy appears in konqueror."
-
-None of this has anything to do with autofs.
-
+> In fact when start, first time my computer, its well, i can connect on
+> my folder and this one automount. Now if a reboot, when i try to
+> access to my folder it's very slow to connect to him...
 > 
-> The floppy instruction of /etc/fstab is as follows
-> "/dev/fd0 /media/floppy/ auto umask=0022,users,auto,exec,flush 0 0"
-
-And neither does this.
-
+> When i read /var/log/messages i can read sometimes : rpc error 5 or
+> cant read superblock.
 > 
-> In Control Centre I checked the packages and found that
-> "autofs 5.0.2-8" was already installed.
+> For me i think when i reboot and i'm already connected, when i reboot
+> the computer, he want connect to server but server said "ho baby, i'm
+> you are already connected... don't understand..."
+> 
+> Can you have some solutions because its very boring for user (and if
+> the user put a link on their desktop the desktop will not be
+> displayed...)
 
-Generally, autofs is not the best thing to use for automounting
-removable media. Try investigating a possible problem with HAL.
+How about providing the information described at
+http://people.redhat.com/jmoyer.
 
 Ian
