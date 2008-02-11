@@ -1,13 +1,14 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: Mount very when reboot
-Date: Mon, 11 Feb 2008 17:11:56 +0900
-Message-ID: <1202717516.24318.8.camel@raven.themaw.net>
-References: <3a98c5000802080122q56d81c92x67806c7d15aeb108@mail.gmail.com>
+Subject: Re: bind mounting into a generated multi-level
+	directory	structure
+Date: Mon, 11 Feb 2008 17:13:49 +0900
+Message-ID: <1202717629.24318.11.camel@raven.themaw.net>
+References: <Pine.LNX.4.64.0802090220120.18112@potato.cts.ucla.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <3a98c5000802080122q56d81c92x67806c7d15aeb108@mail.gmail.com>
+In-Reply-To: <Pine.LNX.4.64.0802090220120.18112@potato.cts.ucla.edu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,32 +19,23 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Vincent LEFORT <vincent.lefort@gmail.com>
+To: Chris Stromsoe <cbs@cts.ucla.edu>
 Cc: autofs@linux.kernel.org
 
 
-On Fri, 2008-02-08 at 10:22 +0100, Vincent LEFORT wrote:
-> Hello, it's my first message so be nice with me :)
-> 
-> I'm about 20 computers in a network with suse 10.0 x86_64. I had
-> install nfs with autofs on all my computer and this works almost fine.
-> 
-> In fact when start, first time my computer, its well, i can connect on
-> my folder and this one automount. Now if a reboot, when i try to
-> access to my folder it's very slow to connect to him...
-> 
-> When i read /var/log/messages i can read sometimes : rpc error 5 or
-> cant read superblock.
-> 
-> For me i think when i reboot and i'm already connected, when i reboot
-> the computer, he want connect to server but server said "ho baby, i'm
-> you are already connected... don't understand..."
-> 
-> Can you have some solutions because its very boring for user (and if
-> the user put a link on their desktop the desktop will not be
-> displayed...)
+On Sun, 2008-02-10 at 00:29 -0800, Chris Stromsoe wrote:
+> I have a set of directories that are created and removed programmatically, 
+> and are hashed three levels deep (/top/hash/hash/name).  The depth is 
+> constant, the hashes and names are not.  There are around 35k at any time. 
+> I would like to bind mount a common directory into each top-level 
+> (/top/hash/hash/name/data) on demand.
 
-How about providing the information described at
-http://people.redhat.com/jmoyer.
+I'm not clear on what you mean by "top"?
+
+> 
+> Can I use autofs to do that without having to explicitly list all of the 
+> directory paths in auto.master?
+
+What version of autofs are you using?
 
 Ian
