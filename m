@@ -1,16 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: bind mounting into a generated multi-level
-	directory	structure
-Date: Mon, 11 Feb 2008 19:34:26 +0900
-Message-ID: <1202726066.24318.35.camel@raven.themaw.net>
-References: <Pine.LNX.4.64.0802090220120.18112@potato.cts.ucla.edu>
-	<1202717629.24318.11.camel@raven.themaw.net>
-	<Pine.LNX.4.64.0802110125580.18112@potato.cts.ucla.edu>
+From: Stef Bon <stef@bononline.nl>
+Subject: User token activating the mount.
+Date: Mon, 11 Feb 2008 14:49:42 +0100
+Message-ID: <47B05276.6080800@bononline.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.0802110125580.18112@potato.cts.ucla.edu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,106 +16,80 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Chris Stromsoe <cbs@cts.ucla.edu>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
+
+Hello,
+
+some time I've been experimenting with the automounter to mount smb
+shares for ordinary
+users.
+
+I've got autofs-5.0.3 installed with patches for my linux-2.6.23.11 kernel.
+
+My auto.master looks like:
+
+/mnt/autofs/network    /etc/auto.network
+
+and /etc/auto.network is:
+
+* -fstype=network :/&%$USER
+
+I've read that in construction of the key some variables are possible.
+So this auto.network adds the username
+to the key, seperated with a %.
+
+Now with this construction the mount wrapper mount.network is called.
+Basically it analyses
+the key and constructs the real unc_address out of it. My construction
+uses mountpoints like:
 
 
-On Mon, 2008-02-11 at 01:53 -0800, Chris Stromsoe wrote:
-> On Mon, 11 Feb 2008, Ian Kent wrote:
-> > On Sun, 2008-02-10 at 00:29 -0800, Chris Stromsoe wrote:
-> >
-> >> I have a set of directories that are created and removed 
-> >> programmatically, and are hashed three levels deep 
-> >> (/top/hash/hash/name).  The depth is constant, the hashes and names are 
-> >> not.  There are around 35k at any time. I would like to bind mount a 
-> >> common directory into each top-level (/top/hash/hash/name/data) on 
-> >> demand.
-> >
-> > I'm not clear on what you mean by "top"?
-> 
-> "/top" is the root of my directory tree.  I have roughly 35k directories 
-> that are stored as /top/hash1/hash2/name, where hash1 is one hash of 
-> "name" and hash2 is a different hash of "name".  Beneath "name" there are 
-> a variety of other files and directories.  New "name" directories are 
-> hashed, created, and populated on the fly.
-> 
-> I would like to bind mount a common directory onto 
-> /top/hash1/hash2/name/data, so that I can chroot into .../name/ and run 
-> common code, minimizing exposure to the rest of the system.  I would like 
-> to use autofs if possible, so that I don't have to copy 20Mb+ of data 35k 
-> times or maintain 35k bind mounts or do something else that continously 
-> uses resources.
-> 
-> I also don't want to have to edit auto.master every time I add or remove a 
-> "name" directory, or have to maintain 35k entries in a flat file.
-> 
-> >> Can I use autofs to do that without having to explicitly list all of 
-> >> the directory paths in auto.master?
-> >
-> > What version of autofs are you using?
-> 
-> I've been playing with 4.1.4, from Debian stable, but am more than willing 
-> to use 5.0.3 if it will do what I need.
-> 
-> Playing around so far, the best I've been able to come up with is doing a 
-> bind mount of /top/hash1/hash2/name to a simpler /mnt/name (using a 
-> program map to compute the hashes), then hopfully submounting the "/data" 
-> directory, but I haven't been able to figure out how to get /mnt/name/data 
-> mounted.  Can you do submounts of a program map?
+/home/sbon/Global Network/Windows Network/WORKGROUP/SERVER/firstshare ->
 
-So let me see if I've got this yet.
+    /mnt/autofs/network/smb:%%u_sbon@SERVER@WORKGROUP%firstshare
 
-You're happy to use a program map to generate the hash
-directory, /top/hash1/hash2/name on something like /mnt/name.
+Note this is a single directory, containing several "fields":
+- smb is the protocol
+- u_sbon is the indicator that the mount should be done as the normal
+user sbon
+- SERVER and WORKGROUP speak for themselves
+- firstshare is the share on SERVER
 
-You need to be able to submount path /top/hash1/hash2/name/data onto
-something like /mnt/name/data.
+Now, the mount.network wrapper contruct out of this:
 
-> 
-> My auto.master is:
-> 
-> /mnt	/etc/auto.mnt
-> 
-> And /etc/auto.mnt is (I'm using bogus "hash" values for test purposes):
-> 
-> #!/usr/bin/perl
-> my $f = lc shift @ARGV;
-> my $d = sprintf "/top/a/a/%s", $f;
-> exit 1 if ! -d $d;
-> printf ":%s\n", $d;
+mount.cifs //SERVER/firstshare
+/mnt/autofs/network/smb:%%u_sbon@SERVER@WORKGROUP%firstshare -o
+credentials=/home/sbon/.autofssession/smb/mount.cred
 
-So if my reading is correct then you probably need to generate a mount
-string from the program map that looks something like (I haven't had to
-work with macro defines for a while so the syntax might not be quite
-right):
+I can add an extra command to log the environment with:
 
--fstype=autofs -Dhash1=$h1 -Dhash2=$h2 -Dname=$f /etc/auto.submount
+set >> /var/log/mount.network.log
 
-In the above the $h1, $h2 and $f need to be substituted with the values
-computed by the script, probably using something like you're printf
-above.
+I do not do this because I hope the environment variable USER will be
+the user which activated the automounter,
+but I can look at the arguments the script mount.network gets. And look:
 
-The /etc/auto.submount would be something like:
+cat /var/log/mount.network.log | grep ^BASH_ARGV
 
-*	:/top/$(hash1}/$hash2}/${name}/data
+and look at the last added line1, and then to the argument corresponding
+with the key ( or extern address):
 
-or if "data" was actually the key
+a %root is added to this key when I do a ls (as root):
 
-*	:/top/$(hash1}/$hash2}/${name}/&
+ls -al /mnt/autofs/network/smb:%%u_sbon@SERVER@WORKGROUP%public
 
-Other thoughts.
+the automounter has added the user (which is now root) to the key:
 
-I can't be sure this will work so you'll need to try it out and see how
-you go.
+[3]="/smb:%%u_son@SERVER@WORKGROUP%public%root"
 
-The $f above in -Dname=$f might be able to be substituted with &, the
-value of the key, but that might confuse the autofs macro substitution
-code.
+Now this happens also, when I do this as myself (sbon).
+The only thing is that it does not always does this. Sometimes this
+field is empty. I'm still testing.
 
-I can't remember whether we have to ":" escape the leading "/" of a
-submount map, I'm sure you'll work that out fairly quickly though.
+So good news! With this extra field indicating the user which is
+activating the mount, it is possible
+to do an extra security check. An mount on behalf of an user can only be
+activated by himself. And everybody
+can do a guest mount.
 
-There are clearly a number of variations on this but you will need to
-work out what is best.
-
-Ian
+Stef Bon
