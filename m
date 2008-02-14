@@ -1,16 +1,13 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: mount options can not be parsed in auto.master
-	with	ldap map
-Date: Wed, 13 Feb 2008 21:41:45 +0900
-Message-ID: <1202906505.3177.1.camel@raven.themaw.net>
-References: <m3hchbdqxc.fsf@dynamo.mandriva.com>
-	<1200885843.10357.40.camel@raven.themaw.net>
-	<m3odbfpnom.fsf@dynamo.mandriva.com>  <fot7k2$u9a$1@ger.gmane.org>
+From: Stef Bon <stef@bononline.nl>
+Subject: Re: User token activating the mount.
+Date: Thu, 14 Feb 2008 09:57:58 +0100
+Message-ID: <47B40296.8070403@bononline.nl>
+References: <47B05276.6080800@bononline.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <fot7k2$u9a$1@ger.gmane.org>
+In-Reply-To: <47B05276.6080800@bononline.nl>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,33 +18,28 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Orion Poplawski <orion@cora.nwra.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
+Stef Bon wrote:
+> So good news! With this extra field indicating the user which is
+> activating the mount, it is possible
+> to do an extra security check. An mount on behalf of an user can only be
+> activated by himself. And everybody
+> can do a guest mount.
+>   
+Hi Stef,
 
-On Tue, 2008-02-12 at 15:46 -0700, Orion Poplawski wrote:
-> Olivier Blin wrote:
-> > Ian Kent <raven@themaw.net> writes:
-> > 
-> >> On Fri, 2008-01-18 at 17:44 +0100, Olivier Blin wrote:
-> >>> It fails this way:
-> >>> # automount -d -f
-> >>> Starting automounter version 5.0.3, master map auto.master
-> >>> using kernel protocol version 5.00
-> >>> lookup_nss_read_master: reading master files auto.master
-> >>> parse_init: parse(sun): init gathered global options: (null)
-> >>> lookup_read_master: lookup(file): read entry /home
-> >>> syntax error in map near [ nosuid ]
-> >>> no mounts in table
-> >> Please give this patch a try
-> >> http://www.kernel.org/pub/linux/daemons/autofs/v5/autofs-5.0.3-basedn-with-spaces-fix-3.patch
-> > 
-> > It works great, thanks a lot!
-> > 
-> 
-> Lucky me, I ran into this with Fedora 8 just as I'm testing our 
-> migration to LDAP.  Will we see an update for F8 soon?
+this is very good! The automounter is a very powerfull tool, and this 
+power can be abused.
+It does not check who's activating the mount, and I can imagine that 
+this "anybody can mount situation"
+is very insecure. The automounter - running under the account root - can 
+do anything. Check credentials for example
+which are normally hidden to the user activating the mount, and perform 
+a mount with these credentials.
 
-Oops, I've been a bit busy, I need to update F8, yes, soon as I can.
+So a check on the userid and only performing the action this user is 
+allowed to is a good idea!
+I will check this out.
 
-Ian
+Stef
