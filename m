@@ -1,7 +1,7 @@
-From: Heinrich Rebehn <rebehn@ant.uni-bremen.de>
+From: Frank Bonnet <f.bonnet@esiee.fr>
 Subject: Re: Debian Etch autofs-ldap tutorial ?
-Date: Wed, 20 Feb 2008 14:22:31 +0100
-Message-ID: <47BC2997.9020701@ant.uni-bremen.de>
+Date: Wed, 20 Feb 2008 15:20:30 +0100
+Message-ID: <47BC372E.9000607@esiee.fr>
 References: <47BC1BE6.8030309@esiee.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -18,8 +18,7 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Frank Bonnet <f.bonnet@esiee.fr>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
 Frank Bonnet wrote:
 > Hello
@@ -29,11 +28,12 @@ Frank Bonnet wrote:
 > I'm still in trouble with the message
 > 
 > no automount maps defined
+> 
+> I understand what this message means but I'm a bit confused on how and where
+> to put LDAP records to make it works ...
+> 
+> Thanks a lot.
+> 
 
-could be as simple as a forgotten
-
-automount:     ldap
-
-in /etc/nsswitch.conf
-
--Heinrich
+well as usual I found my mistake JUST after posting ...
+sorry for the noise.
