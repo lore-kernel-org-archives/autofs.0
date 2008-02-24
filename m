@@ -1,13 +1,11 @@
-From: Frank Bonnet <f.bonnet@esiee.fr>
-Subject: Re: Debian Etch autofs-ldap tutorial ?
-Date: Wed, 20 Feb 2008 15:20:30 +0100
-Message-ID: <47BC372E.9000607@esiee.fr>
-References: <47BC1BE6.8030309@esiee.fr>
+From: chris barry <Christopher.Barry@qlogic.com>
+Subject: sudo and autofs
+Date: Sat, 23 Feb 2008 23:53:17 -0500
+Message-ID: <1203828797.5413.355.camel@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <47BC1BE6.8030309@esiee.fr>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,20 +18,20 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-Frank Bonnet wrote:
-> Hello
-> 
-> I need such tutorial I found some, but it seems a bit fuzzy for me
-> 
-> I'm still in trouble with the message
-> 
-> no automount maps defined
-> 
-> I understand what this message means but I'm a bit confused on how and where
-> to put LDAP records to make it works ...
-> 
-> Thanks a lot.
-> 
+Hey everyone. This is a little off topic, but I figured some here have
+solved this already.
 
-well as usual I found my mistake JUST after posting ...
-sorry for the noise.
+lab machine automounts users home from production environment.
+user needs to use sudo to install a file on the local lab box that is in
+his automounted home. 
+result: permission denied. 
+
+Makes sense, as root_squash is the default mount option. 
+
+The question is, is there any way to make this work while preventing a
+user from accessing another user's home? Some slick program type
+automount map or something? anything...?
+
+
+Thanks,
+-C
