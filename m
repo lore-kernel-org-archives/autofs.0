@@ -1,7 +1,7 @@
-From: chris barry <Christopher.Barry@qlogic.com>
-Subject: sudo and autofs
-Date: Sat, 23 Feb 2008 23:53:17 -0500
-Message-ID: <1203828797.5413.355.camel@localhost>
+From: Steve Thompson <smt@vgersoft.com>
+Subject: bind mounts apparently not working
+Date: Sun, 24 Feb 2008 09:13:40 -0500 (EST)
+Message-ID: <alpine.LRH.0.9999.0802240858190.1590@vger.vgersoft.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,20 +18,32 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-Hey everyone. This is a little off topic, but I figured some here have
-solved this already.
+CentOS 5.1, i686, 2.6.18-53.1.13.el5 SMP, autofs-5.0.1-0.rc2.55.el5.3. 
+Fully updated. Two processors. Multi-homed system (3 interfaces, DNS 
+reports all IP/names in both directions). Server is also a NIS master and 
+DNS server.
 
-lab machine automounts users home from production environment.
-user needs to use sudo to install a file on the local lab box that is in
-his automounted home. 
-result: permission denied. 
+Automounting of file systems on the server is apparently going through the 
+NFS stack w/o a bind mount:
 
-Makes sense, as root_squash is the default mount option. 
+In /etc/auto.master:
+ 	+auto.master
 
-The question is, is there any way to make this work while preventing a
-user from accessing another user's home? Some slick program type
-automount map or something? anything...?
+In the NIS auto.master map:
+ 	/fs/home auto.home rw,rsize=32768,wsize=32768
 
+In the NIS auto.home map:
+ 	username  server-fqdn:/local/home/path/&
 
-Thanks,
--C
+So, on doing a "cd /fs/home/username", we get an NFS mount:
+
+ 	server-fqdn:/local/home/path/username on /fs/home/username type
+ 		nfs (rw,rsize=32768,wsize=32768,addr=one-of-server-IP)
+
+Everything works fine, but doing, for example, a large "make -j2" within 
+/fs/home/username results in several nfsd threads consuming approximately 
+80% of one CPU, and performance drops through the floor. Autofs not 
+recognizing the server-fqdn as the name corresponding to the primary IP on 
+each interface? Worked properly with autofs4. Thoughts? TIA,
+
+-steve
