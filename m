@@ -1,34 +1,28 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: bind mounts apparently not working
-Date: Mon, 25 Feb 2008 11:33:56 +0900
-Message-ID: <1203906836.3087.27.camel@raven.themaw.net>
-References: <alpine.LRH.0.9999.0802240858190.1590@vger.vgersoft.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH 0/4] autofs4 - implement a miscelaneous device for ioctl
+ control
+Date: Mon, 25 Feb 2008 00:17:52 -0800
+Message-ID: <20080225001752.d154e88b.akpm@linux-foundation.org>
+References: <1203925954.3087.64.camel@raven.themaw.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <alpine.LRH.0.9999.0802240858190.1590@vger.vgersoft.com>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-To: Steve Thompson <smt@vgersoft.com>
-Cc: autofs@linux.kernel.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <1203925954.3087.64.camel@raven.themaw.net>
+Sender: linux-fsdevel-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: Ian Kent <raven@themaw.net>
+Cc: linux-kernel@vger.kernel.org, autofs@linux.kernel.org, linux-fsdevel@vger.kernel.org
 
+We have four patches, all with the same title - please avoid doing this.
 
-On Sun, 2008-02-24 at 09:13 -0500, Steve Thompson wrote:
-> Everything works fine, but doing, for example, a large "make -j2" within 
-> /fs/home/username results in several nfsd threads consuming approximately 
-> 80% of one CPU, and performance drops through the floor. Autofs not 
-> recognizing the server-fqdn as the name corresponding to the primary IP on 
-> each interface? Worked properly with autofs4. Thoughts? TIA,
+I could invent titles for them (as I often have to do), but I think it
+would be best if you were to do so.  That way, we avoid confusion and
+people who later google for the patch's title to understand the patch's
+background will get better coverage.
 
-What does "getent <the-ip-address>" return?
+So... resend, please?
 
-Ian
+Documentation/SubmittingPatches has some tips on all of this - search term
+is "Subject:".
+
