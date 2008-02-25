@@ -1,36 +1,47 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 0/4] autofs4 - implement a miscelaneous device for
-	ioctl control
-Date: Mon, 25 Feb 2008 18:29:39 +0900
-Message-ID: <1203931779.3087.78.camel@raven.themaw.net>
-References: <1203925954.3087.64.camel@raven.themaw.net>
-	 <20080225001752.d154e88b.akpm@linux-foundation.org>
+From: Steve Thompson <smt@vgersoft.com>
+Subject: Re: bind mounts apparently not working
+Date: Mon, 25 Feb 2008 06:33:41 -0500 (EST)
+Message-ID: <alpine.LRH.0.9999.0802250621050.22906@vger.vgersoft.com>
+References: <alpine.LRH.0.9999.0802240858190.1590@vger.vgersoft.com>
+	<1203906836.3087.27.camel@raven.themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <20080225001752.d154e88b.akpm@linux-foundation.org>
-Sender: linux-fsdevel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, autofs@linux.kernel.org, linux-fsdevel@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <1203906836.3087.27.camel@raven.themaw.net>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org
 
+On Mon, 25 Feb 2008, Ian Kent wrote:
 
-On Mon, 2008-02-25 at 00:17 -0800, Andrew Morton wrote:
-> We have four patches, all with the same title - please avoid doing this.
-> 
-> I could invent titles for them (as I often have to do), but I think it
-> would be best if you were to do so.  That way, we avoid confusion and
-> people who later google for the patch's title to understand the patch's
-> background will get better coverage.
-> 
-> So... resend, please?
+>
+> On Sun, 2008-02-24 at 09:13 -0500, Steve Thompson wrote:
+>> Everything works fine, but doing, for example, a large "make -j2" within
+>> /fs/home/username results in several nfsd threads consuming approximately
+>> 80% of one CPU, and performance drops through the floor. Autofs not
+>> recognizing the server-fqdn as the name corresponding to the primary IP on
+>> each interface? Worked properly with autofs4. Thoughts? TIA,
+>
+> What does "getent <the-ip-address>" return?
 
-OK, sorry.
-I was waiting to hear from you anyway as, for some reason, at least one
-of the posts had HTML and so was bounced form lkml and fsdevel. I'll
-just re-send'em all.
+Aha!
 
-Ian
+"getent hosts <ip>" returns the FQDN of the server for two of the three IP 
+addresses (the exact same string as the server name in the map), but the 
+FQDN _and_ the unqualified name for the third IP address. This was because 
+of the setup of the NIS hosts map. On removing the NIS hosts map, and 
+using DNS alone, autofs now does bind mounts properly. Interestingly, this 
+NIS hosts map had been like this for a looong time, and I had forgotten 
+about it; it did not cause autofs4 any problems. Thank you!
 
-
+Steve
