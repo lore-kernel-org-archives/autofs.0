@@ -1,12 +1,16 @@
-From: "Murata, Dennis" <DENNIS.MURATA@saic.com>
-Subject: New autofs behavior in RHEL 4U6
-Date: Mon, 25 Feb 2008 15:28:36 -0800
-Message-ID: <620E93B2E5CC3B46BD811165E3335B87165B9D@0461-its-exmb02.us.saic.com>
+From: Steve Thompson <smt@vgersoft.com>
+Subject: Re: bind mounts apparently not working
+Date: Mon, 25 Feb 2008 18:55:25 -0500 (EST)
+Message-ID: <alpine.LRH.0.9999.0802251845440.2244@vger.vgersoft.com>
+References: <alpine.LRH.0.9999.0802240858190.1590@vger.vgersoft.com>
+	<1203906836.3087.27.camel@raven.themaw.net>
+	<alpine.LRH.0.9999.0802250621050.22906@vger.vgersoft.com>
+	<1203941638.3087.81.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <1203941638.3087.81.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,51 +21,50 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org
 
-Has the multi option changed in RHEL 4U6?  The following mount has been
-working with RHEL 3U7:
+On Mon, 25 Feb 2008, Ian Kent wrote:
 
-/etc/auto.master:
+>
+> On Mon, 2008-02-25 at 06:33 -0500, Steve Thompson wrote:
+>> On Mon, 25 Feb 2008, Ian Kent wrote:
+>>> On Sun, 2008-02-24 at 09:13 -0500, Steve Thompson wrote:
+>>>> Everything works fine, but doing, for example, a large "make -j2" within
+>>>> /fs/home/username results in several nfsd threads consuming approximately
+>>>> 80% of one CPU, and performance drops through the floor. Autofs not
+>>>> recognizing the server-fqdn as the name corresponding to the primary IP on
+>>>> each interface? Worked properly with autofs4. Thoughts? TIA,
+>>> What does "getent <the-ip-address>" return?
+>> "getent hosts <ip>" returns the FQDN of the server for two of the three IP
+>> addresses (the exact same string as the server name in the map), but the
+>> FQDN _and_ the unqualified name for the third IP address. This was because
+>> of the setup of the NIS hosts map. On removing the NIS hosts map, and
+>> using DNS alone, autofs now does bind mounts properly. Interestingly, this
+>> NIS hosts map had been like this for a looong time, and I had forgotten
+>> about it; it did not cause autofs4 any problems. Thank you!
+>
+> That's because v4 doesn't check the each interface to determine if the
+> hostname is really local.
 
-/foo  multi:file /etc/auto.too -- yp auto.foo
+Let me follow up on this a little more. The NFS server (and client) has 
+three network interfaces, with IP addresses (say) 192.168.1.1, 192.168.2.1 
+and 192.168.3.1 (netmask 255.255.255.0 for each subnet). The server's FQDN 
+is foo.domain.org. Then what I actually had was:
 
-with auto.too:
+ 	# getent hosts 192.168.1.1
+ 	192.168.1.1	foo.domain.org
 
-*  -fstype=nfs,rsize=32768,intr,rw server:/local/too/&
+ 	# getent hosts 192.168.2.1
+ 	192.168.2.1	foo.domain.org
 
-and auto.foo
+ 	# getent hosts 192.168.3.1
+ 	192.168.3.1	foo.domain.org foo
 
-*  -rsize=32768,wsize=32768,intr,hard server:/local/foo/&
+The third of these is apparently sufficient to stop autofs5 from doing a 
+bind mount. After removing the short name "foo" from the third entry, it 
+works. This doesn't seem right; after all, the FQDN of the server does 
+match one of the names for each of the entries. The NFS server name is the 
+map is "foo.domain.org". Or is that right after all?
 
-If a requested directory, 3, is not exported from server:/local/too,
-there is a denied request then the mount server:/local/foo is searched
-for the requested directory.  If it is found there it is mounted.  The
-workstation mount point is /foo/01a regardless if the server directory
-is /local/too/01a or /local/foo/01a.
-
-I have been testing a modified RHEL 4U6 workstation:
-(bash)-6-$ uname -a 
-Linux myhost 2.6.9-67.0.1.ELsmp #1 SMP Fri Nov 30 11:57:43 EST 2007
-x86_64 x86_64 x86_64 GNU/Linux
-(bash)-3-$ rpm -qa | grep autofs 
-autofs-4.1.3-231.x86_64
-(bash)-8-$ rpm -qa | grep nfs 
-nfs-utils-1.0.6-84.EL4.x86_64 
-nfs-utils-lib-1.0.6-8.z1.x86_64 
-(bash)-9-$ rpm -qa | grep util-linux 
-util-linux-2.12a-17.el4_6.1.x86_64
-
-From the man pages it looks like the multi feature is no longer
-supported.  I can get the failover behavior to work if I use a map like
-auto.foo:
-*  -fstype=nfs,rsize=32768,intr server:/local/too/& server:/local/foo/&
-
-The desired result is to have mounts from /local/too to be rw, those
-from /local/foo ro, is this possible?  I have the exports on the server
-as ro and rw, but all the mounts on the workstation so far seem to be
-ro.
-
-I have debug logs if needed.
-
-Wayne
+Steve
