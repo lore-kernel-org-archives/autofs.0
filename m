@@ -1,17 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: bind mounts apparently not working
-Date: Tue, 26 Feb 2008 11:01:53 +0900
-Message-ID: <1203991313.3173.0.camel@raven.themaw.net>
-References: <alpine.LRH.0.9999.0802240858190.1590@vger.vgersoft.com>
-	<1203906836.3087.27.camel@raven.themaw.net>
-	<alpine.LRH.0.9999.0802250621050.22906@vger.vgersoft.com>
-	<1203941638.3087.81.camel@raven.themaw.net>
-	<alpine.LRH.0.9999.0802251845440.2244@vger.vgersoft.com>
+Subject: Re: New autofs behavior in RHEL 4U6
+Date: Tue, 26 Feb 2008 11:10:40 +0900
+Message-ID: <1203991840.3173.4.camel@raven.themaw.net>
+References: <620E93B2E5CC3B46BD811165E3335B87165B9D@0461-its-exmb02.us.saic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <alpine.LRH.0.9999.0802251845440.2244@vger.vgersoft.com>
+In-Reply-To: <620E93B2E5CC3B46BD811165E3335B87165B9D@0461-its-exmb02.us.saic.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,37 +18,23 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Steve Thompson <smt@vgersoft.com>
+To: "Murata, Dennis" <DENNIS.MURATA@saic.com>
 Cc: autofs@linux.kernel.org
 
 
-On Mon, 2008-02-25 at 18:55 -0500, Steve Thompson wrote:
-> >
-> > That's because v4 doesn't check the each interface to determine if the
-> > hostname is really local.
+On Mon, 2008-02-25 at 15:28 -0800, Murata, Dennis wrote:
+> >From the man pages it looks like the multi feature is no longer
+> supported.  I can get the failover behavior to work if I use a map like
+> auto.foo:
+> *  -fstype=nfs,rsize=32768,intr server:/local/too/& server:/local/foo/&
 > 
-> Let me follow up on this a little more. The NFS server (and client) has 
-> three network interfaces, with IP addresses (say) 192.168.1.1, 192.168.2.1 
-> and 192.168.3.1 (netmask 255.255.255.0 for each subnet). The server's FQDN 
-> is foo.domain.org. Then what I actually had was:
-> 
->  	# getent hosts 192.168.1.1
->  	192.168.1.1	foo.domain.org
-> 
->  	# getent hosts 192.168.2.1
->  	192.168.2.1	foo.domain.org
-> 
->  	# getent hosts 192.168.3.1
->  	192.168.3.1	foo.domain.org foo
-> 
-> The third of these is apparently sufficient to stop autofs5 from doing a 
-> bind mount. After removing the short name "foo" from the third entry, it 
-> works. This doesn't seem right; after all, the FQDN of the server does 
-> match one of the names for each of the entries. The NFS server name is the 
-> map is "foo.domain.org". Or is that right after all?
+> The desired result is to have mounts from /local/too to be rw, those
+> from /local/foo ro, is this possible?  I have the exports on the server
+> as ro and rw, but all the mounts on the workstation so far seem to be
+> ro.
 
-This should work OK.
-I'll check it out.
-At least you have a workaround, for now.
+Are these exports from the same filesystem?
+If they are then all the mounts will inherit the options of the first
+made mount (at least I think that's kernel behaves like that).
 
 Ian
