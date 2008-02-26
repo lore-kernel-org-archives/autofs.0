@@ -1,40 +1,45 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: New autofs behavior in RHEL 4U6
-Date: Tue, 26 Feb 2008 11:10:40 +0900
-Message-ID: <1203991840.3173.4.camel@raven.themaw.net>
-References: <620E93B2E5CC3B46BD811165E3335B87165B9D@0461-its-exmb02.us.saic.com>
+Subject: [PATCH 0/4] autofs4 - autofs needs a miscelaneous device for ioctls
+Date: Tue, 26 Feb 2008 12:21:58 +0900 (WST)
+Message-ID: <Pine.LNX.4.64.0802261151400.8490@raven.themaw.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Sender: linux-fsdevel-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <620E93B2E5CC3B46BD811165E3335B87165B9D@0461-its-exmb02.us.saic.com>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-To: "Murata, Dennis" <DENNIS.MURATA@saic.com>
-Cc: autofs@linux.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
 
-On Mon, 2008-02-25 at 15:28 -0800, Murata, Dennis wrote:
-> >From the man pages it looks like the multi feature is no longer
-> supported.  I can get the failover behavior to work if I use a map like
-> auto.foo:
-> *  -fstype=nfs,rsize=32768,intr server:/local/too/& server:/local/foo/&
-> 
-> The desired result is to have mounts from /local/too to be rw, those
-> from /local/foo ro, is this possible?  I have the exports on the server
-> as ro and rw, but all the mounts on the workstation so far seem to be
-> ro.
+Hi Andrew,
 
-Are these exports from the same filesystem?
-If they are then all the mounts will inherit the options of the first
-made mount (at least I think that's kernel behaves like that).
+There is a problem with active restarts in autofs (that is to
+say restarting autofs when there are busy mounts).
+
+Currently autofs uses "umount -l" to clear active mounts at
+restart. While using lazy umount works for most cases, anything
+that needs to walk back up the mount tree to construct a path,
+such as getcwd(2) and the proc file system /proc/<pid>/cwd, no
+longer works because the point from which the path is constructed
+has been detached from the mount tree.
+
+The actual problem with autofs is that it can't reconnect to
+existing mounts. Immediately one things of just adding the
+ability to remount autofs file systems would solve it, but
+alas, that can't work. This is because autofs direct mounts
+and the implementation of "on demand mount and expire" of
+nested mount trees have the file system mounted on top of
+the mount trigger dentry.
+
+To resolve this a miscellaneous device node for routing ioctl
+commands to these mount points has been implemented for the
+autofs4 kernel module.
+
+For those wishing to test this out an updated user space daemon
+is needed. Checking out and building from the git repo or
+applying all the current patches to the 5.0.3 tar distribution
+will do the trick. This is all available at the usual location
+on kernel.org.
 
 Ian
