@@ -1,70 +1,40 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [PATCH 3/4] autofs4 - track uid and gid of last mount requestor
-Date: Thu, 28 Feb 2008 12:13:50 -0500
-Message-ID: <x494pbtxaup.fsf@segfault.boston.devel.redhat.com>
-References: <Pine.LNX.4.64.0802261151400.8490@raven.themaw.net>
-	<Pine.LNX.4.64.0802261208400.8490@raven.themaw.net>
-	<20080227204546.72e16e8d.akpm@linux-foundation.org>
-	<1204179747.3501.21.camel@raven.themaw.net>
-	<20080227223734.caab0165.akpm@linux-foundation.org>
-	<1204182500.3501.49.camel@raven.themaw.net>
-	<20080227232339.af6e904a.akpm@linux-foundation.org>
-	<1204185623.3501.84.camel@raven.themaw.net>
+From: Stef Bon <stef@bononline.nl>
+Subject: UID not always available.
+Date: Thu, 28 Feb 2008 20:20:21 +0100
+Message-ID: <47C70975.2090505@bononline.nl>
 Mime-Version: 1.0
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <1204185623.3501.84.camel@raven.themaw.net> (Ian Kent's message
-	of "Thu, 28 Feb 2008 17:00:23 +0900")
-Sender: linux-fsdevel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ian Kent <raven@themaw.net>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Pavel Emelyanov <xemul@openvz.org>, "Eric W. Biederman" <ebiederm@xmission.com>
+Return-path: <autofs-bounces@linux.kernel.org>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: autofs@linux.kernel.org
 
-Ian Kent <raven@themaw.net> writes:
+Hello,
 
-> On Wed, 2008-02-27 at 23:23 -0800, Andrew Morton wrote:
->> On Thu, 28 Feb 2008 16:08:20 +0900 Ian Kent <raven@themaw.net> wrote:
->> > which includes the process uid and gid, and as part of
->> > the lookup we set macros for several mount map substitution variables,
->> > derived from the uid and gid of the process requesting the mount and
->> > they can be used within autofs maps.
->> 
->> yeah, could be a problem.  Hopefully the namespace people can advise. 
->> Perhaps we need a concept of an exportable-to-userspace namespace-id+uid,
->> namespace-id+gid, namespace-id+pid, etc for this sort of thing.  It has
->> come up before.  Recently, but I forget what the context was.
->
-> I'm all ears to any feedback from others on this, please.
+I know there is some discussion about patches concerning the uid of the 
+user/proces activating the mount.
+I've been experimenting with it (I've posted some messages before about 
+it) and it works, what is very good news.
 
-I think there is some confusion surrounding what the UID and GID are
-used for in this context.  I'll try to explain it as best I can.
+In my construction the automounter can activate a mount using the 
+credentials of another user.
+So this information about user activating the mount is very usefull. An 
+user can only get mounts using
+his own credentials, or as guest.
 
-When the automount daemon parses a map entry, it will do some amount of
-variable substitution.  So, let's say you're running on an i386 box, and
-you want to mount a library directory from a server.  You might have a
-map entry that looks like this:
+But it's not working always. In about 40% of the cases the USER field is 
+empty.
 
-lib	server:/export/$ARCH/lib
+Is this behaviour reckognized? Or do I have to supply more info?
+More info you can read in my post of 11 februari this year.
 
-In this case, the automount daemon will replace $ARCH with i386, and
-will try the following mount command:
-
-mount -t nfs server:/export/i386/lib /automountdir/lib
-
-There are cases where it would be helpful to use the requesting
-process's UID in such a variable substitution.  Consider the case of a
-CIFS share, where the automount daemon runs as user root, but we want to
-mount the share using the credentials of the requesting user.  In this
-case, the UID and GID can be helpful in formatting the mount options for
-mounting the share.
-
-So, the UID and GID are used only for map substitutions.  Now, having
-said all of that, I'll have to look more closely at why we even need to
-keep track of it, given that it only needs to be used when performing
-the lookup, and at that time we have information on the requesting UID
-and GID.
-
-Cheers,
-
-Jeff
+Stef Bon
