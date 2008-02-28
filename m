@@ -1,35 +1,73 @@
 From: Fabio Olive Leite <fleite@redhat.com>
-Subject: Re: [autofs] [PATCH 3/4] autofs4 - track uid and gid of last mount requestor
-Date: Thu, 28 Feb 2008 09:31:50 -0300
-Message-ID: <20080228123150.GA3915@sleipnir.redhat.com>
-References: <Pine.LNX.4.64.0802261151400.8490@raven.themaw.net> <Pine.LNX.4.64.0802261208400.8490@raven.themaw.net> <20080227204546.72e16e8d.akpm@linux-foundation.org> <1204179747.3501.21.camel@raven.themaw.net> <20080227223734.caab0165.akpm@linux-foundation.org> <1204182500.3501.49.camel@raven.themaw.net> <47C667EC.6060700@openvz.org> <20080227235952.70a31d9f.akpm@linux-foundation.org> <1204185971.3501.87.camel@raven.themaw.net>
+Subject: Re: Mount very when reboot
+Date: Thu, 28 Feb 2008 09:57:06 -0300
+Message-ID: <20080228125706.GB3915@sleipnir.redhat.com>
+References: <3a98c5000802080122q56d81c92x67806c7d15aeb108@mail.gmail.com>
+	<1202717516.24318.8.camel@raven.themaw.net>
+	<3a98c5000802110737y52bce2f0s2e0d3a07b9a1cf1e@mail.gmail.com>
+	<1202797905.3233.57.camel@raven.themaw.net>
+	<3a98c5000802190105v3ccb2c4h6153f334a1610004@mail.gmail.com>
+	<1203413746.16791.12.camel@raven.themaw.net>
+	<3a98c5000802260008l28a2ccb1qbc49953bd03bcdff@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1204185971.3501.87.camel@raven.themaw.net>
-Sender: linux-fsdevel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="iso-8859-1"
-To: Ian Kent <raven@themaw.net>
-Cc: Andrew Morton <akpm@linux-foundation.org>, autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, "Eric W. Biederman" <ebiederm@xmission.com>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Pavel Emelyanov <xemul@openvz.org>
+Content-Transfer-Encoding: quoted-printable
+Return-path: <autofs-bounces@linux.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <3a98c5000802260008l28a2ccb1qbc49953bd03bcdff@mail.gmail.com>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Thu, Feb 28, 2008 at 05:06:11PM +0900, Ian Kent wrote:
->=20
-> Dumb old me, I really only need the uid.
-> The gid can come from the get user info functions of glibc.
+On Tue, Feb 26, 2008 at 09:08:04AM +0100, Vincent LEFORT wrote:
+> =
 
-In case the process was executed from a setgid executable, you might
-have a different gid from what the user has. In fact, I don't know why
-you may need more than the pid, since with the pid you can get to the
-task's effective uid/gid and maybe other such information you need.
+> In the shower this morning, I thought : "Hey you put a link
+> S22autofs to start autofs automatically but you havn't put a link to
+> shutdown them when stop"...
 
-Cheers,
-=46=E1bio Oliv=E9
---=20
+Good ideas frequently come in the shower... :)
+
+> So i put au link : K11autos juste before nfs (K12nfs) and now when i
+> reboot all its ok... I can connect directly to the server...
+
+Does SuSE not have the chkconfig command? See:
+
+$ whatis chkconfig
+chkconfig  (8)  - updates and queries runlevel information for system servi=
+ces
+chkconfig (rpm) - A system tool for maintaining the /etc/rc*.d hierarchy.
+
+$ sudo chkconfig --add autofs
+$ chkconfig --list autofs
+autofs          0:off   1:off   2:off   3:on    4:on    5:on    6:off
+
+$ ls -l /etc/rc*.d/*autofs
+lrwxrwxrwx 1 root root 16 Feb 28 09:51 /etc/rc0.d/K72autofs -> ../init.d/au=
+tofs
+lrwxrwxrwx 1 root root 16 Feb 28 09:51 /etc/rc1.d/K72autofs -> ../init.d/au=
+tofs
+lrwxrwxrwx 1 root root 16 Feb 28 09:51 /etc/rc2.d/K72autofs -> ../init.d/au=
+tofs
+lrwxrwxrwx 1 root root 16 Feb 28 09:51 /etc/rc3.d/S28autofs -> ../init.d/au=
+tofs
+lrwxrwxrwx 1 root root 16 Feb 28 09:51 /etc/rc4.d/S28autofs -> ../init.d/au=
+tofs
+lrwxrwxrwx 1 root root 16 Feb 28 09:51 /etc/rc5.d/S28autofs -> ../init.d/au=
+tofs
+lrwxrwxrwx 1 root root 16 Feb 28 09:51 /etc/rc6.d/K72autofs -> ../init.d/au=
+tofs
+
+Cheers!
+F=E1bio Oliv=E9
+-- =
+
 ex sed lex awk yacc, e pluribus unix, amem
--
-To unsubscribe from this list: send the line "unsubscribe linux-fsdevel=
-" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
