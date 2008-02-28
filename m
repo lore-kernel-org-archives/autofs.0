@@ -1,52 +1,74 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 3/4] autofs4 - track uid and gid of last mount requestor
- - correction
-Date: Tue, 26 Feb 2008 14:14:11 +0900 (WST)
-Message-ID: <Pine.LNX.4.64.0802261410110.15583@raven.themaw.net>
-References: <Pine.LNX.4.64.0802261151400.8490@raven.themaw.net>
- <Pine.LNX.4.64.0802261208400.8490@raven.themaw.net>
+From: wengang wang <wen.gang.wang@oracle.com>
+Subject: SEGV when auto.master in yp-server is with a blank line at
+	last
+Date: Thu, 28 Feb 2008 10:06:27 +0800
+Message-ID: <47C61723.2010006@oracle.com>
 Mime-Version: 1.0
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.0802261208400.8490@raven.themaw.net>
-Sender: linux-fsdevel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Return-path: <autofs-bounces@linux.kernel.org>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Tue, 26 Feb 2008, Ian Kent wrote:
-> +
-> +		/* Set mount requestor */
-> +		if (ino) {
-> +			if (ino) {
-> +				ino->uid = wq->uid;
-> +				ino->gid = wq->gid;
-> +			}
-> +		}
-> +
+Hi experts,
 
-As has been spotted, this is obviously wrong.
-And here is the correction.
+Recently I met a problem on RHEL5.1 with autofs-5.0.1-0.rc2.55
 
-Signed-off-by: Ian Kent <raven@themaw.net>
+automount SEGV core dumps when running with configs:
 
-Ian
+/etc/auto.master
+===
++auto.master
+===
 
----
-diff -up linux-2.6.25-rc2-mm1/fs/autofs4/waitq.c.track-last-mount-ids-fix linux-2.6.25-rc2-mm1/fs/autofs4/waitq.c
---- linux-2.6.25-rc2-mm1/fs/autofs4/waitq.c.track-last-mount-ids-fix	2008-02-26 14:02:05.000000000 +0900
-+++ linux-2.6.25-rc2-mm1/fs/autofs4/waitq.c	2008-02-26 14:02:20.000000000 +0900
-@@ -385,10 +385,8 @@ int autofs4_wait(struct autofs_sb_info *
+
+/etc/nsswitch.conf
+===
+automount:  files nis
+===
+
+
+ypcat -k auto.master | cat -A
+===
+/nfs/opsutils auto.opsutils^I^I-rw,soft$
+/nfs/private auto.private^I-rw,intr,nosuid$
+/nfs/roview auto.roview        -rw,intr,nosuid$
+/nfs/group auto.group^I^I-rw,intr$
+/nfs/floor auto.floor^I^I-ro,soft$
+/nfs/net -hosts^I^I^I-ro,soft,nosuid$
+/nfs/log auto.log-hq^I-rw,intr$
+/netvobs auto.vobs^I-rw,hard,intr,nosuid$
+/netview auto.view^I-rw,hard,intr,nosuid$
+/home auto.home^I^I-rw,intr,nosuid$
+/SCM auto.scm^I-rw,hard,intr,nosuid$
+$
+
+I found the core dump is caused by the last blank line in auto.master. 
+and I wrote a patch on it.
+--- ./modules/lookup_yp.c.bug   2008-02-27 22:50:26.000000000 -0500
++++ ./modules/lookup_yp.c       2008-02-27 22:51:40.000000000 -0500
+@@ -175,6 +175,9 @@
+        if (*ypkey == '+')
+                return 0;
  
- 		/* Set mount requestor */
- 		if (ino) {
--			if (ino) {
--				ino->uid = wq->uid;
--				ino->gid = wq->gid;
--			}
-+			ino->uid = wq->uid;
-+			ino->gid = wq->gid;
- 		}
++       if (ypkeylen == 0)
++               return 0;
++
+        *(ypkey + ypkeylen) = '\0';
+        *(val + vallen) = '\0';
  
- 		if (de)
+and seems this patch fixes the problem.
+
+Is there anything wrong with the patch?
+
+thanks,
+wengang.
