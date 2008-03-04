@@ -1,75 +1,67 @@
-From: "Serge E. Hallyn" <serue@us.ibm.com>
-Subject: Re: [PATCH 3/4] autofs4 - track uid and gid of last mount requestor
-Date: Mon, 3 Mar 2008 09:28:55 -0600
-Message-ID: <20080303152855.GB25643@sergelap.austin.ibm.com>
-References: <1204179747.3501.21.camel@raven.themaw.net> <20080227223734.caab0165.akpm@linux-foundation.org> <1204182500.3501.49.camel@raven.themaw.net> <20080227232339.af6e904a.akpm@linux-foundation.org> <1204185623.3501.84.camel@raven.themaw.net> <x494pbtxaup.fsf@segfault.boston.devel.redhat.com> <20080228195118.GA16634@sergelap.austin.ibm.com> <1204255932.3969.86.camel@raven.themaw.net> <20080229160921.GA24296@sergelap.ibm.com> <m1bq5y3p2o.fsf@ebiederm.dsl.xmission.com>
+From: Lukas Kolbe <lukas@einfachkaffee.de>
+Subject: Re: Kernel patch to better support bind-mounts
+Date: Tue, 04 Mar 2008 13:47:52 +0100
+Message-ID: <1204634872.11825.79.camel@srss>
+References: <1199788697.26268.24.camel@srss>
 Mime-Version: 1.0
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757441AbYCCP3R@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <m1bq5y3p2o.fsf@ebiederm.dsl.xmission.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: "Serge E. Hallyn" <serue@us.ibm.com>, Ian Kent <raven@themaw.net>, Jeff Moyer <jmoyer@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Pavel Emelyanov <xemul@openvz.org>
+Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <1199788697.26268.24.camel@srss>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: autofs@linux.kernel.org
+Cc: Ian Kent <raven@themaw.net>
 
-Quoting Eric W. Biederman (ebiederm@xmission.com):
-> "Serge E. Hallyn" <serue@us.ibm.com> writes:
-> >
-> > The way the user namespaces work right now is similar to say the IPC
-> > namespace - a task belongs to one user, that user belongs to precisely
-> > one user namespace.
-> >
-> > Even in my additional userns patches, I was changing uid to store the
-> > (uid, userns) so a struct user still belonged to just one user
-> > namespace.
-> >
-> > In contrast, with pid namespaces a task is associated with a 'struct
-> > pid' which links it to multiple process ids, one in each pid namespace
-> > to which it belongs.
-> >
-> > Perhaps we should be treating user namespaces like pid namespaces?
-> >
-> > For autofs this would mean that when autofs wants a uid for some task,
-> > it would be given the uid in the user namespace which autofs 'knows'.
-> >
-> > It would also help me fix the siginfo problems I haven't solved yet -
-> > rather than having to worry about user namespace lifetimes with siginfos
-> > (which last a little while but have no clearly defined lifespan) we
-> > could send the uid in an init user namespace or the uid in the target
-> > uid namespace, or just a lightweight user struct proxy akin to 'struct
-> > pid'.
-> >
-> > And it also obviates the need for any sort of delegation.
-> >
-> > So if I'm user 500 in what I think is the initial user namespace, I can
-> > create a container with a new user namespace, the init task of which is
-> > both uid 0 in the child userns, and uid 500 in the higher level,
-> > automatically giving the container access to any files I own.
-> >
-> > Eric, when you get a chance (I know you're overloaded atm) I'd love to
-> > hear your thoughts on this...
-> 
-> Succinctly.
-> 
-> I think the concept of mapping uids between user namespaces is
-> fundamental to properly describing and thinking about the semantics of
-> user namespaces correct.
+Hi Ian!
 
-Earlier I had thought this could just be done using a special keyring,
-but atm I'm thinking that would be far uglier than just having a
-struct pid-like credential proxy in the kernel to pass around in place
-of uids.
+Ping? :)
 
-> We don't have to start out anything except handling the case when
-> no mapping exists, but asking the question how does this uid map
-> between from one namespace to another is fundamental.
+We use this patch now for several servers and clients (debian etch with
+2.6.18, ubuntu feisty with 2.6.20 and some test systems with 2.6.23),
+and have seen no regression so far, only working automounts :)
+I'd love to see this change upstream, so that I don't have to worry
+about constantly patching my own kernel anymore :)
 
-True.
+-- 
+Lukas
 
-But in any case I'm happy letting other things like netns and related
-sys be completed before prototyping this.
 
-thanks,
--serge
+diff -ru linux-2.6-2.6.23-a/fs/autofs4/root.c linux-2.6-2.6.23/fs/autofs4/root.c
+--- linux-2.6-2.6.23-a/fs/autofs4/root.c        2007-11-30 16:20:33.000000000 +0100
++++ linux-2.6-2.6.23/fs/autofs4/root.c  2007-11-30 16:22:24.000000000 +0100
+@@ -19,6 +19,9 @@
+ #include <linux/time.h>
+ #include "autofs_i.h"
+
++#define DIRECT_TRIGGER_FLAGS (LOOKUP_CONTINUE|LOOKUP_DIRECTORY|LOOKUP_ACCESS)
++
++
+ static int autofs4_dir_symlink(struct inode *,struct dentry *,const char *);
+ static int autofs4_dir_unlink(struct inode *,struct dentry *);
+ static int autofs4_dir_rmdir(struct inode *,struct dentry *);
+@@ -291,7 +294,7 @@
+                        return status;
+                }
+        /* Trigger mount for path component or follow link */
+-       } else if (flags & (LOOKUP_CONTINUE | LOOKUP_DIRECTORY) ||
++       } else if (flags & DIRECT_TRIGGER_FLAGS ||
+                        current->link_count) {
+                DPRINTK("waiting for mount name=%.*s",
+                        dentry->d_name.len, dentry->d_name.name);
+@@ -335,7 +338,7 @@
+                nd->flags);
+
+        /* If it's our master or we shouldn't trigger a mount we're done */
+-       lookup_type = nd->flags & (LOOKUP_CONTINUE | LOOKUP_DIRECTORY);
++       lookup_type = nd->flags & DIRECT_TRIGGER_FLAGS;
+        if (oz_mode || !lookup_type)
+                goto done;
