@@ -1,16 +1,16 @@
-From: Lukas Kolbe <lukas@einfachkaffee.de>
+From: Peter Staubach <staubach@redhat.com>
 Subject: Re: Kernel patch to better support bind-mounts
-Date: Wed, 05 Mar 2008 15:24:12 +0100
-Message-ID: <1204727052.3678.3.camel@srss>
-References: <1199788697.26268.24.camel@srss>
-	<1204634872.11825.79.camel@srss>  <47CD4DC9.2030703@redhat.com>
+Date: Wed, 05 Mar 2008 09:29:15 -0500
+Message-ID: <47CEAE3B.30003@redhat.com>
+References: <1199788697.26268.24.camel@srss>	 <1204634872.11825.79.camel@srss>
+	<47CD4DC9.2030703@redhat.com>	
 	<1204685216.3081.7.camel@raven.themaw.net>
-	<47CEABF9.8090108@redhat.com>
+	<47CEABF9.8090108@redhat.com> <1204727052.3678.3.camel@srss>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <47CEABF9.8090108@redhat.com>
+In-Reply-To: <1204727052.3678.3.camel@srss>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,26 +21,35 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Peter Staubach <staubach@redhat.com>
+To: Lukas Kolbe <lukas@einfachkaffee.de>
 Cc: autofs@linux.kernel.org, Ian Kent <raven@themaw.net>
 
-Hi Peter!
+Lukas Kolbe wrote:
+> Hi Peter!
+>
+>   
+>>> Lucas has recursive maps.
+>>> For these mounts to work, we need to ensure that there aren't dependent
+>>> mounts in the mount point path itself before proceeding. We've used the
+>>> access system call, made just prior to performing the mount, to make
+>>> this happen. In this case, however, the lookup flags in the kernel where
+>>> not triggering the mount.
+>>>       
+>> And this does not trigger mounts by other applications, such as ls, too?
+>>     
+>
+> Nope. If I only 'ls -la' my /vol/ or /homes, nothing gets mounted at
+> all.
+>
+>   
 
->> Lucas has recursive maps.
-> > For these mounts to work, we need to ensure that there aren't dependent
-> > mounts in the mount point path itself before proceeding. We've used the
-> > access system call, made just prior to performing the mount, to make
-> > this happen. In this case, however, the lookup flags in the kernel where
-> > not triggering the mount.
-> 
-> And this does not trigger mounts by other applications, such as ls, too?
+Cool.  Thanx!
 
-Nope. If I only 'ls -la' my /vol/ or /homes, nothing gets mounted at
-all.
+       ps
 
->     Thanx...
-> 
->        ps
-
--- 
-Lukas
+>>     Thanx...
+>>
+>>        ps
+>>     
+>
+>   
