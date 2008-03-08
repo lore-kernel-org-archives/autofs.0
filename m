@@ -1,11 +1,16 @@
-From: Matthew Jurgens <autofs@edcint.co.nz>
-Subject: Can't mount shares ending in $
-Date: Tue, 11 Mar 2008 11:06:46 +1100
-Message-ID: <47D5CD16.5000807@edcint.co.nz>
+From: "Colin Simpson" <Colin.Simpson@iongeo.com>
+Subject: Re: Authenticated LDAP changed or broken in F8 5.0.2-27?
+Date: Sat, 08 Mar 2008 15:33:05 +0000
+Message-ID: <1204990385.29708.4.camel@cowie.iouk.ioroot.tld>
+References: <1204628905.26396.48.camel@cowie.iouk.ioroot.tld>
+	<1204946877.3000.15.camel@raven.themaw.net>
+Reply-To: Colin.Simpson@iongeo.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <1204946877.3000.15.camel@raven.themaw.net>
+Content-Class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,46 +21,44 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
-
-Debug files available at http://www.mmcit.co.nz/debug.zip
-
-I recently (about a month ago) upgraded to Fedora 8 (previously on
-
-Fedora 6).
-
-Autofs mounting of shares ending in $ worked on FC6. I think this is the 
-first time I've tried since on Fedora 8.
-I've got another Fedora 6 box and shares ending in $ still work ok on 
-this box.
-
-I've tried playing around with the auto.samba script I use but no luck.
-Output from it is:
-
-RUN:  auto.samba matthew
--fstype=cifs,username=mjurgens,password=parallel12 \
-         /cd "://matthew/cd" \
-         /C "://matthew/C" \
-         /G\$ "://matthew/G\$" \
-         /E "://matthew/E" \
-         /G "://matthew/G" \
-         /ADMIN\$ "://matthew/ADMIN\$" \
-         /C\$ "://matthew/C\$"
-(This is the exact same result as the Fedora6 box)
-
- From the debug info, the mount command that fails is:
-mount -t cifs -s -o username=USER,password=PASSWORD //matthew/C\$ /smb/matthew/C$
-This works manually if I:
-mount -t cifs -s -o username=USER,password=PASSWORD //matthew/C\$ /mnt/matthew
-The other share to the same location works fine through autofs:
-mount -t cifs -s -o username=USER,password=PASSWORD //matthew/C /smb/matthew/C
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org
 
 
-Autofs Version = autofs-5.0.2-27
-uname -r = 2.6.22.14-72.fc6PAE (I know its an FC6 kernel, everything 
-else is FC8 and I've been running on this since the upgrade due to a 
-problem with either mkintrd or nash)
+On Sat, 2008-03-08 at 03:27 +0000, Ian Kent wrote:
+> 
+>
+> > Did I see someone saying that hardly anyone was using this
+> > functionality? We thought we'd test this functionality and try and
+> move
+> > towards getting rid of anonymous binds from our LDAP servers. It
+> seems
+> > the right thing to do.
+> >
+> > We were using a setup like this:
+> >
+> > <autofs_ldap_sasl_conf
+> >         usetls="yes"
+> >         tlsrequired="yes"
+> >         authrequired="yes"
+> >         authtype="LOGIN"
+> > />
+> 
+> How does this get a user and secret?
+> 
+Does it not come from bind info in /etc/ldap.conf ?
 
-Reference to an earlier problem with a fix to shares ending in $ where I 
-got the map from:
-http://www.mail-archive.com/autofs@linux.kernel.org/msg05691.html
+I'll send through the debug.
+
+Colin
+
+-- 
+Colin Simpson
+Manager of Information Technology Europe
+ION 
+[direct]  +44 131 200 4788 
+[office]  +44 131 557 5595 
+
+www.iongeo.com    
+
+This email and any files transmitted with it are confidential and are intended solely for the use of the individual or entity to whom they are addressed.  If you are not the original recipient or the person responsible for delivering the email to the intended recipient, be advised that you have received this email in error, and that any use, dissemination, forwarding, printing, or copying of this email is strictly prohibited. If you received this email in error, please immediately notify the sender and delete the original.
