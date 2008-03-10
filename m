@@ -1,9 +1,9 @@
-From: Matthew Jurgens <mjurgens@edcint.co.nz>
+From: Matthew Jurgens <autofs@edcint.co.nz>
 Subject: Can't mount shares ending in $.
-Date: Tue, 11 Mar 2008 10:35:26 +1100
-Message-ID: <47D5C5BE.9030306@edcint.co.nz>
+Date: Tue, 11 Mar 2008 10:40:32 +1100
+Message-ID: <47D5C6F0.4000507@edcint.co.nz>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------010900090705030704030601"
+Content-Type: multipart/mixed; boundary="------------070402000308010207090807"
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -18,11 +18,12 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
 This is a multi-part message in MIME format.
---------------010900090705030704030601
+--------------070402000308010207090807
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
-I recently (about a month ago) upgraded to Fedora 8 (previously on 
+I recently (about a month ago) upgraded to Fedora 8 (previously on
+
 Fedora 6).
 
 Autofs mounting of shares ending in $ worked on FC6. I think this is the 
@@ -69,7 +70,9 @@ http://www.mail-archive.com/autofs@linux.kernel.org/msg05691.html
 
 
 
---------------010900090705030704030601
+
+
+--------------070402000308010207090807
 Content-Type: application/x-zip-compressed;
  name="debug.zip"
 Content-Transfer-Encoding: base64
@@ -173,7 +176,7 @@ Bk6xAgAAkQYAAA0AAAAAAAAAAQAgALaBdgsAAG5zc3dpdGNoLmNvbmZQSwECFAAUAAAACAAn
 lU44DBd3Os4DAADRCAAABgAAAAAAAAABACAAtoFSDgAAYXV0b2ZzUEsBAhQAFAAAAAgApaRp
 OM4P8gF3AAAAGgEAAAsAAAAAAAAAAQAgALaBRBIAAEZlZG9yYTgudHh0UEsFBgAAAAAGAAYA
 UAEAAOQSAAAAAA==
---------------010900090705030704030601
+--------------070402000308010207090807
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -184,5 +187,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---------------010900090705030704030601--
+--------------070402000308010207090807--
 
