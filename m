@@ -1,11 +1,23 @@
-From: Stef Bon <stef@bononline.nl>
-Subject: More directories?
-Date: Sun, 09 Mar 2008 21:11:10 +0100
-Message-ID: <47D4445E.10100@bononline.nl>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: Debug of autofs 5.0.2-27
+Date: Mon, 10 Mar 2008 11:02:11 +0900
+Message-ID: <1205114531.3025.13.camel@raven.themaw.net>
+References: <1204628905.26396.48.camel@cowie.iouk.ioroot.tld>
+	<1204984653.4451.2.camel@raven.themaw.net>
+	<1204996041.30569.14.camel@cowie.iouk.ioroot.tld>
+	<1204997239.4451.8.camel@raven.themaw.net>
+	<1204997376.19321.1.camel@raven.themaw.net>
+	<1204997597.30569.19.camel@cowie.iouk.ioroot.tld>
+	<1204998824.4502.1.camel@raven.themaw.net>
+	<1204999782.30569.34.camel@cowie.iouk.ioroot.tld>
+	<1205000622.4502.16.camel@raven.themaw.net>
+	<1205045314.2950.11.camel@raven.themaw.net>
+	<1205085525.20863.17.camel@cowie.iouk.ioroot.tld>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <1205085525.20863.17.camel@cowie.iouk.ioroot.tld>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,21 +28,81 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Colin.Simpson@iongeo.com
+Cc: autofs@linux.kernel.org
 
-Hello,
 
-some time now I've been experimenting with mounting smb shares. Now the 
-script
-auto.smb which comes with the autofs package, generates given a server, 
-all the shares.
+On Sun, 2008-03-09 at 17:58 +0000, Colin Simpson wrote:
+> That seems happier, it starts up now without the SEGV!
 
-../server/share/<mounted samba share>
+Really, I didn't think it would fix that!
+I'll need to think more about that to understand why.
 
-Thus, it creates one level deep paths. I'm wondering, is it possible to 
-create two or even more
-level deep directories with a script simular to auto.smb??
+> 
+> So far all I've done testing wise is to take SRPRM for F8 and patched.
+> It rebuilt the lookup_ldap.so, I took an unstripped version of that and
+> put it in /usr/lib/autofs. 
+> 
+> Will this also fix the autofs Kerberos ticket expiring? Or is that
+> something else? I guess I'll find out in 10 hours time.
 
-I haven't been experimenting with it.
+I'm not sure but part of the changes relate to improving the
+reconnection logic, which should include refreshing the ticket. I'll
+need to check what happens when the server is explicitly given in the
+map entry or the default is used, rather than setting them in the
+config.
 
-Stef Bon
+Lets wait and see anyway and we'll deal with that next.
+
+> 
+> I still need the minssf=0 (fails to work with minssf=128) in the
+> sasl-secprops option in openldap's slapd.conf
+
+I'll need to check that.
+
+> 
+> Thanks again
+> 
+> Colin
+> 
+> On Sun, 2008-03-09 at 06:48 +0000, Ian Kent wrote:
+> > 
+> > On Sun, 2008-03-09 at 03:23 +0900, Ian Kent wrote:
+> > > >
+> > > > In this version 5.0.2-27 in order to get autofs to bind to ldap
+> > with
+> > > > gssapi we had to change in slapd.conf on the openldap server:
+> > > >
+> > > > sasl-secprops  noplain,noactive,noanonymous,minssf=128
+> > > > to
+> > > > sasl-secprops  noplain,noactive,noanonymous,minssf=0
+> > > >
+> > > > But for some reason autofs-5.0.2-16.i386.rpm is happy with
+> > > > minssf=128 and binds fine, and works fine until the kerberos
+> > ticket
+> > > > expires.
+> > >
+> > > I'll investigate.
+> > > But the debug stuff appears to imply that the library callbacks
+> > aren't
+> > > set, which is odd, maybe there's something unusual about the way the
+> > > shared library data segments are handled.
+> > 
+> > After looking at the sasl library code these global callbacks
+> > shouldn't
+> > go away until the sasl library is unloaded, which would be a bit
+> > strange
+> > since we are using it at the time this happens. Additionally, this
+> > could
+> > be caused by to many calls to sasl_done() which autofs didn't call at
+> > all.
+> > 
+> > Anyway, autofs isn't doing things quite right, not that that should
+> > lead
+> > to this issue. The patch below shouldn't resolve this but it would be
+> > good if you could try it in case I'm not understanding something about
+> > shared library local data handling.
+> 
+> This email and any files transmitted with it are confidential and are intended solely for the use of the individual or entity to whom they are addressed.  If you are not the original recipient or the person responsible for delivering the email to the intended recipient, be advised that you have received this email in error, and that any use, dissemination, forwarding, printing, or copying of this email is strictly prohibited. If you received this email in error, please immediately notify the sender and delete the original.
+> 
+> 
