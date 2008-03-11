@@ -1,13 +1,10 @@
 From: Matthew Jurgens <autofs@edcint.co.nz>
 Subject: Re: Can't mount shares ending in $
-Date: Tue, 11 Mar 2008 12:43:36 +1100
-Message-ID: <47D5E3C8.1040100@edcint.co.nz>
-References: <47D5CD16.5000807@edcint.co.nz>
-	<1205198214.2955.7.camel@raven.themaw.net>
+Date: Tue, 11 Mar 2008 16:21:22 +1100
+Message-ID: <47D616D2.2070008@edcint.co.nz>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1348960042773954180=="
+Content-Type: multipart/mixed; boundary="===============3183768834810601824=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1205198214.2955.7.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,15 +15,15 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
 
 This is a multi-part message in MIME format.
---===============1348960042773954180==
+--===============3183768834810601824==
 Content-Type: multipart/alternative;
-	boundary="------------020109050005090109040508"
+	boundary="------------090302070401050204020904"
 
 This is a multi-part message in MIME format.
---------------020109050005090109040508
+--------------090302070401050204020904
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
@@ -56,7 +53,7 @@ Ian Kent wrote:
 >
 >   
 
---------------020109050005090109040508
+--------------090302070401050204020904
 Content-Type: text/html; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
@@ -66,6 +63,7 @@ Content-Transfer-Encoding: 7bit
   <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
 </head>
 <body bgcolor="#ffffff" text="#000000">
+<meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
 Before you sent this I installed the original Fedora 8 release of
 autofs (autofs-5.0.2-16).<br>
 I had originally yum upgraded to Fedora 8 and so had installed the
@@ -100,10 +98,10 @@ Ian
 </body>
 </html>
 
---------------020109050005090109040508--
+--------------090302070401050204020904--
 
 
---===============1348960042773954180==
+--===============3183768834810601824==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -114,5 +112,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---===============1348960042773954180==--
+--===============3183768834810601824==--
 
