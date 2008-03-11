@@ -1,14 +1,11 @@
-From: Stef Bon <stef@bononline.nl>
-Subject: Re: More directories?
-Date: Mon, 10 Mar 2008 08:15:08 +0100
-Message-ID: <47D4DFFC.8010705@bononline.nl>
-References: <47D4445E.10100@bononline.nl>
-	<1205114970.3025.19.camel@raven.themaw.net>
+From: Matthew Jurgens <autofs@edcint.co.nz>
+Subject: Can't mount shares ending in $
+Date: Tue, 11 Mar 2008 11:06:46 +1100
+Message-ID: <47D5CD16.5000807@edcint.co.nz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1205114970.3025.19.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,25 +16,46 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-Ian Kent wrote:
-> Its totally dependent on what is returned from the script.
-> The example script, auto.smb, just returns an entry with a multi-mount
-> offset for each share. If a more complex multi-mount is returned that
-> should work fine. The old auto.hosts would often return a more complex
-> multi-mount entry as NFS exports are often deeper than a single level.
->
-> Ian
->
->   
-Ok, That's clear. I know that's it's the script which should return it.
+Debug files available at http://www.mmcit.co.nz/debug.zip
 
-What I want to know is, is it possible to use mountpoint's like:
+I recently (about a month ago) upgraded to Fedora 8 (previously on
 
-../<USER>/server/share/<mounted smb share>
+Fedora 6).
 
-A multimount with the first key the <USER>.
+Autofs mounting of shares ending in $ worked on FC6. I think this is the 
+first time I've tried since on Fedora 8.
+I've got another Fedora 6 box and shares ending in $ still work ok on 
+this box.
 
-Stef Bon
+I've tried playing around with the auto.samba script I use but no luck.
+Output from it is:
+
+RUN:  auto.samba matthew
+-fstype=cifs,username=mjurgens,password=parallel12 \
+         /cd "://matthew/cd" \
+         /C "://matthew/C" \
+         /G\$ "://matthew/G\$" \
+         /E "://matthew/E" \
+         /G "://matthew/G" \
+         /ADMIN\$ "://matthew/ADMIN\$" \
+         /C\$ "://matthew/C\$"
+(This is the exact same result as the Fedora6 box)
+
+ From the debug info, the mount command that fails is:
+mount -t cifs -s -o username=USER,password=PASSWORD //matthew/C\$ /smb/matthew/C$
+This works manually if I:
+mount -t cifs -s -o username=USER,password=PASSWORD //matthew/C\$ /mnt/matthew
+The other share to the same location works fine through autofs:
+mount -t cifs -s -o username=USER,password=PASSWORD //matthew/C /smb/matthew/C
+
+
+Autofs Version = autofs-5.0.2-27
+uname -r = 2.6.22.14-72.fc6PAE (I know its an FC6 kernel, everything 
+else is FC8 and I've been running on this since the upgrade due to a 
+problem with either mkintrd or nash)
+
+Reference to an earlier problem with a fix to shares ending in $ where I 
+got the map from:
+http://www.mail-archive.com/autofs@linux.kernel.org/msg05691.html
