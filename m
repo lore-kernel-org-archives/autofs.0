@@ -1,15 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: More directories?
-Date: Tue, 11 Mar 2008 10:12:58 +0900
-Message-ID: <1205197978.2955.5.camel@raven.themaw.net>
-References: <47D4445E.10100@bononline.nl>
-	<1205114970.3025.19.camel@raven.themaw.net>
-	<47D4DFFC.8010705@bononline.nl>
+Subject: Re: Can't mount shares ending in $
+Date: Tue, 11 Mar 2008 10:16:53 +0900
+Message-ID: <1205198214.2955.7.camel@raven.themaw.net>
+References: <47D5CD16.5000807@edcint.co.nz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <47D4DFFC.8010705@bononline.nl>
+In-Reply-To: <47D5CD16.5000807@edcint.co.nz>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,38 +18,14 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Stef Bon <stef@bononline.nl>
+To: Matthew Jurgens <autofs@edcint.co.nz>
 Cc: autofs@linux.kernel.org
 
 
-On Mon, 2008-03-10 at 08:15 +0100, Stef Bon wrote:
-> Ian Kent wrote:
-> > Its totally dependent on what is returned from the script.
-> > The example script, auto.smb, just returns an entry with a multi-mount
-> > offset for each share. If a more complex multi-mount is returned that
-> > should work fine. The old auto.hosts would often return a more complex
-> > multi-mount entry as NFS exports are often deeper than a single level.
-> >
-> > Ian
-> >
-> >   
-> Ok, That's clear. I know that's it's the script which should return it.
-> 
-> What I want to know is, is it possible to use mountpoint's like:
-> 
-> ../<USER>/server/share/<mounted smb share>
-> 
-> A multimount with the first key the <USER>.
+On Tue, 2008-03-11 at 11:06 +1100, Matthew Jurgens wrote:
+>  From the debug info, the mount command that fails is:
+> mount -t cifs -s -o username=USER,password=PASSWORD //matthew/C\$ /smb/matthew/C$
 
-Return everything else but the key as usual.
-Format like:
-
-[-fstype=<type>,<options] [[/] [localtion] \
-	/<dir> location \
-	/<dir> location ....
-
-The leading "/" is required and the root mount "/" is optional.
-It's been a while since I played with this but I think the offsets of
-the multi-mount need to be in depth order.
+Does this command work if you run it manually?
 
 Ian
