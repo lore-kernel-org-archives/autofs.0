@@ -1,17 +1,15 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Can't mount shares ending in $
-Date: Wed, 12 Mar 2008 17:29:34 +0900
-Message-ID: <1205310575.2949.23.camel@raven.themaw.net>
-References: <47D5CD16.5000807@edcint.co.nz>
-	<1205198214.2955.7.camel@raven.themaw.net>
-	<47D70295.2000709@edcint.co.nz>
-	<1205291655.2949.22.camel@raven.themaw.net>
-	<47D7918A.1060306@edcint.co.nz>
+From: Stef Bon <stef@bononline.nl>
+Subject: Re: More directories?
+Date: Wed, 12 Mar 2008 10:45:22 +0100
+Message-ID: <47D7A632.8010101@bononline.nl>
+References: <47D4445E.10100@bononline.nl>	<1205114970.3025.19.camel@raven.themaw.net>
+	<47D4DFFC.8010705@bononline.nl>
+	<1205197978.2955.5.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <47D7918A.1060306@edcint.co.nz>
+In-Reply-To: <1205197978.2955.5.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,15 +20,41 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Matthew Jurgens <autofs@edcint.co.nz>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
+Ian Kent wrote:
+>
+>
+> Return everything else but the key as usual.
+> Format like:
+>
+> [-fstype=<type>,<options] [[/] [localtion] \
+> 	/<dir> location \
+> 	/<dir> location ....
+>
+> The leading "/" is required and the root mount "/" is optional.
+> It's been a while since I played with this but I think the offsets of
+> the multi-mount need to be in depth order.
+>
+> Ian
+>
+>   
+Ok, this format you give returns a list. This list is interpreted by the 
+automount daemon,
+and it determines which entry applies.
 
-On Wed, 2008-03-12 at 19:17 +1100, Matthew Jurgens wrote:
-> So, no it handles mounting with the unescaped $
-> It seems to be something broken when going from 
-> autofs-5.0.2-16 to autofs-5.0.2-27
+Now it should be possible to let this script (it has to be a script) 
+only show the entry which applies:
 
-Any chance of getting a debug log from autofs-5.0.2-16?
+-fstype=cifs,credentials=/home/sbon/.smb/mount.cred     / \
+                         /sbon/lfs20060812/public ://lfs20060812/public
 
-Ian
+
+if I give the command:
+
+ls <autofsmountpoint>/sbon/lfs20060812/public
+
+This way the script is more "smart".
+
+Stef Bon
