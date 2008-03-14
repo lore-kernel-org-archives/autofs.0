@@ -1,82 +1,20 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [RFC] Re: [PATCH 4/4] autofs4 - add miscelaneous device for
- ioctls
-Date: Fri, 14 Mar 2008 11:45:38 +0900 (WST)
-Message-ID: <Pine.LNX.4.64.0803141141400.8730@raven.themaw.net>
-References: <Pine.LNX.4.64.0802261151400.8490@raven.themaw.net> 
- <Pine.LNX.4.64.0802261218230.8490@raven.themaw.net> 
- <20080227211723.d5d27c09.akpm@linux-foundation.org> <1204179539.3501.17.camel@raven.themaw.net>
- <Pine.LNX.4.64.0803131408460.4608@raven.themaw.net>
+From: Thomas Graf <tgraf@suug.ch>
+Subject: Re: [RFC] Re: [PATCH 4/4] autofs4 - add miscelaneous device for ioctls
+Date: Fri, 14 Mar 2008 13:45:51 +0100
+Message-ID: <20080314124551.GN20815@postel.suug.ch>
+References: <Pine.LNX.4.64.0802261151400.8490@raven.themaw.net> <Pine.LNX.4.64.0802261218230.8490@raven.themaw.net> <20080227211723.d5d27c09.akpm@linux-foundation.org> <1204179539.3501.17.camel@raven.themaw.net> <Pine.LNX.4.64.0803131408460.4608@raven.themaw.net>
 Mime-Version: 1.0
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Content-Disposition: inline
 In-Reply-To: <Pine.LNX.4.64.0803131408460.4608@raven.themaw.net>
 Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Thomas Graf <tgraf@redhat.com>
-Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+To: Ian Kent <raven@themaw.net>
+Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, Al Viro <viro@zeniv.linux.org.uk>
 
-On Thu, 13 Mar 2008, Ian Kent wrote:
-
-Thomas, could you comment on the Netlink related questions I have posed 
-blow please.
-
-> On Thu, 28 Feb 2008, Ian Kent wrote:
-> 
-> > > 
-> > > We seem to be passing some string into a misc-device ioctl and getting some
-> > > results back.  Be aware that this won't be a terribly popular proposal, so
-> > > I'd suggest that you fully describe the problem which it's trying to solve,
-> > > and how it solves it, and why the various alternatives (sysfs, netlink,
-> > > mount options, etc) were judged unsuitable.
-> > 
-> > Yes, as I said above.
-> > 
-> > I don't expect that people that aren't close to the development of
-> > autofs will "get" the problem description in the leading post but I will
-> > try and expand on it as best I can.
-> > 
-> > As for the possible alternatives, it sounds like I have some more work
-> > to do on that. Mount options can't be used as I described in the lead in
-> > post and, as far as my understanding of sysfs goes, I don't think it's
-> > appropriate. But, I'm not aware of what the netlink interface may be
-> > able to do for me so I will need to check on that.
-> > 
-> 
-> I've attempted an implementation of this using the Generic Netlink 
-> interface and I've struck a difficulty. I would like to use current 
-> recommended development policy but I'm not sure how far I should go with 
-> this in order to avoid using an ioctl implementation so I'm after some 
-> advice and suggestions.
-> 
-> So, onto the description.
-> Sorry about the length of the post.
-> 
-> Autofs user space uses a number of ioctls for mount control.
-> 
-> I have a problem that can only be resolved by adding an additional control 
-> function that doesn't need to open the autofs mount point path directly 
-> to issue ioctl commands. So I decided to re-implement the the control 
-> interface, hopefully, in a cleaner way and solve a couple of other 
-> problems at the same time (by adding two additional control functions 
-> giving a total of three new functions) and improving one of the existing 
-> functions.
-> 
-> My initial proposal used a miscellaneous device to route ioctl commands to 
-> autofs mounts and the question of why current recommended alternatives 
-> were not suitable was asked. The only alternative that may be suitable is 
-> the Netlink interface.
-> 
-> I won't go into the details of the new functions now but focus on the 
-> difficulty I have found implementing one of the existing functions using 
-> the Netlink interface.
-> 
-> There are some restrictions on the scope of the change.
-> The scope is only the ioctl interface. I don't want change too many things 
-> at once, in particular things that are currently working OK. And I'd like 
-> to retain the existing semantic behavior of the interface.
-> 
+* Ian Kent <raven@themaw.net> 2008-03-13 16:00
 > The function that is a problem is the sending of expire requests. In the 
 > current implementation this function is synchronous. An ioctl is used to 
 > ask the kernel module (autofs4) to check for mounts that can be expired 
@@ -90,16 +28,7 @@ blow please.
 > since the socket receive function is bracketed by a single mutex. So I would 
 > need to use a workqueue to queue the request but that has it's own set of 
 > problems.
-> 
-> A workqueue can have only one active request going at a time but I may 
-> have a number of concurrent expires happening at any one time and the 
-> request could block for a significant amount of time so I would have to 
-> use multiple queues. Also there isn't a one-to-one correspondence 
-> between autofs super blocks and the stream of expire requests so the 
-> number of needed workqueues isn't known. Hence, a workqueue would need to 
-> be created, used and destroyed for every umount request or some other 
-> elaborate mechanism developed to re-use workqueues. Ideas?
-> 
+>
 > The next issue is that in order to keep track of multiple in flight 
 > requests a separate Netlink socket would need to be opened for every 
 > expire request in order to ensure that the Netlink completion reply makes 
@@ -110,26 +39,23 @@ blow please.
 > when a mount or umount is spawned by the automount daemon. This can 
 > obviously be resolved by adding a mutex around the fork/exec code but 
 > isn't a popular idea due to added performance overhead.
-> 
-> That's about it for a Generic Netlink solution.
-> 
-> It looks like it may be possible to avoid the need to use workqueues by 
-> adding a new netlink protocol. I didn't notice any mutual exclusion 
-> issues in the code but I may not have looked far enough (comments 
-> please?). This approach would still have the issue of needing a new socket 
-> opened for each expire for the tracking multiple requests and a 
-> considerable increase in complexity in the autofs4 module for netlink 
-> communication.
-> 
-> I'm concerned about the effort I would need to devote to make this work  
-> and the increase in complexity that may be needed, especially if the 
-> implementation is ultimately not satisfactory for inclusion in the kernel.
-> 
-> Please help!
-> Ian
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
+
+Netlink is a messaging protocol, synchronization is up to the user.
+
+I suggest that you send a netlink notification to a multicast group for
+every expire candiate when an expire request is received. Unmount
+daemons simply subscribe to the group and wait for work to do. Put the
+request onto a list including the netlink pid and sequence number so you
+can address the orignal source of the request later on. Exit the netlink
+receive function and wait for the userspace daemon to get back to you.
+
+The userspace daemon notifies you of successful or unsuccesful unmount
+attempts by sending notifications. Update your list entry accordingly
+and once the request is fullfilled send a notification to the original
+source of the request by using the stored pid and sequence number.
+
+The userspace application requesting the expire can simply block on the
+receival of this notification in order to make the whole operation
+synchronous.
+
+Sounds acceptable?
