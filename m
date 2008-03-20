@@ -1,107 +1,226 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [RFC] Re: [PATCH 4/4] autofs4 - add miscelaneous device for
-	ioctls
-Date: Fri, 14 Mar 2008 23:10:11 +0900
-Message-ID: <1205503811.3162.38.camel@raven.themaw.net>
-References: <Pine.LNX.4.64.0802261151400.8490@raven.themaw.net>
-	 <Pine.LNX.4.64.0802261218230.8490@raven.themaw.net>
-	 <20080227211723.d5d27c09.akpm@linux-foundation.org>
-	 <1204179539.3501.17.camel@raven.themaw.net>
-	 <Pine.LNX.4.64.0803131408460.4608@raven.themaw.net>
-	 <20080314124551.GN20815@postel.suug.ch>
+From: jimc@math.ucla.edu (Jim Carter)
+Subject: Long timeout on broken DNS server
+Date: Wed, 19 Mar 2008 22:06:35 -0700 (PDT)
+Message-ID: <20080320050635.E2FA33C3B0@xena.cft.ca.us>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <20080314124551.GN20815@postel.suug.ch>
-Sender: linux-fsdevel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Thomas Graf <tgraf@suug.ch>
-Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, Al Viro <viro@zeniv.linux.org.uk>
+Content-Transfer-Encoding: 7bit
+Return-path: <autofs-bounces@linux.kernel.org>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: autofs@linux.kernel.org
+
+Today I upgraded one of my three DNS servers, the first listed in
+/etc/resolv.conf, and until I got it back on the air, autofs mounting
+was glacial.  To investigate, on my own workstation I prepended an IP
+address not assigned to any machine, and reproduced the problem.  The
+symptom is that automount takes 40 to 45 seconds, while other actions 
+involving DNS or hostnames take around 5 seconds, as expected: 
+"dig math.ucla.edu. soa" and "mount -t nfs tupelo:/h1 /mnt" were 
+tested.  The command to test automounting was "ls /net/$HOST/$DIR/.",
+in this case, "ls /net/serval/h1/." but I use a different host each 
+time to make sure DNS resolution happens.  We use nscd, but the result
+is the same whether or not it is running.
+
+I've appended a debug log, but there is no smoking gun; in fact there
+is no sign of any misbehavior except for a long delay.  Does anyone
+have any idea why, when autofs resolves a hostname, the DNS timeout
+is so much longer than the default of 5 seconds?
+
+The distro on the test machine is OpenSuSE 10.3.  The autofs version
+is 5.0.2, although 4.1.4 is affected similarly.  Kernel is 2.6.22.17
+(SMP).  
+
+=-- auto.master --- (comments omitted in all conf files)
+/net            /etc/auto.net		<== giving trouble
+/home           yp:auto.home
+
+=-- auto.net ---
+*       -rsize=8192,wsize=8192,retry=1,soft,fstype=autofs,-DSERVER=&    file:/etc/auto.net.generic
+
+=-- auto.net.generic ---
+*       ${SERVER}:/&
+
+(The effect is that when you refer to /net/$HOST/$DIR it starts a 
+sub-daemon for $HOST which then mounts the exported filesystem(s).)
+
+=-- nsswitch.conf --
+passwd:         compat nis
+shadow:         compat nis
+group:          compat nis
+
+hosts:          files dns	<== servers tested are not in /etc/hosts
+networks:       files dns
+
+netgroup:       nis
+aliases:        files nis
+
+services:       files
+protocols:      files
+rpc:            files
+ethers:         files
+netmasks:       files
+publickey:      files
+
+bootparams:     files
+automount:      files
+
+=-- resolv.conf ---
+nameserver	128.97.4.35	<== dead machine prepended for test
+nameserver      128.97.4.254
+nameserver      128.97.12.3
+search          math.ucla.edu pic.ucla.edu
 
 
-On Fri, 2008-03-14 at 13:45 +0100, Thomas Graf wrote:
-> * Ian Kent <raven@themaw.net> 2008-03-13 16:00
-> > The function that is a problem is the sending of expire requests. In the 
-> > current implementation this function is synchronous. An ioctl is used to 
-> > ask the kernel module (autofs4) to check for mounts that can be expired 
-> > and, if a candidate is found the module sends a request to the user space 
-> > daemon asking it to try and umount the select mount after which the daemon 
-> > sends a success or fail status back to the module which marks the 
-> > completion of the original ioctl expire request.
-> > 
-> > The Generic Netlink interface won't allow this because only one concurrent 
-> > send request can be active for "all" Generic Netlink Families in use, 
-> > since the socket receive function is bracketed by a single mutex. So I would 
-> > need to use a workqueue to queue the request but that has it's own set of 
-> > problems.
-> >
-> > The next issue is that in order to keep track of multiple in flight 
-> > requests a separate Netlink socket would need to be opened for every 
-> > expire request in order to ensure that the Netlink completion reply makes 
-> > it back to the original requesting thread (Is that actually correct?). Not 
-> > really such a big problem but it defeats another aim of the 
-> > re-implementation, which is to reduce the selinux user space exposure to 
-> > file descriptors that are open but don't yet have close-on-exec flag set 
-> > when a mount or umount is spawned by the automount daemon. This can 
-> > obviously be resolved by adding a mutex around the fork/exec code but 
-> > isn't a popular idea due to added performance overhead.
-> 
-> Netlink is a messaging protocol, synchronization is up to the user.
+=-- /etc/sysconfig/autofs --- (comments deleted)
+AUTOFS_OPTIONS=""
+NISMASTERMAP="auto.master"		<== map exists but not actually used
+UNDERSCORETODOT="yes"			<== we have no underscores
+LOCAL_OPTIONS=""
+APPEND_OPTIONS="yes"
+DEFAULT_MASTER_MAP_NAME="auto.master"
+DEFAULT_TIMEOUT=600
+DEFAULT_BROWSE_MODE="yes"
+DEFAULT_LOGGING="none"			<== changed to "debug"
 
-Yes, I realize that, but what I'm curious about are the options that I
-have within the messaging system to control delivery of message replies,
-other than using separate sockets. Can this be achieved by using the pid
-set in the originating message?
+DEFAULT_MAP_OBJECT_CLASS="nisMap"	<== pro forma; we have no LDAP
+DEFAULT_ENTRY_OBJECT_CLASS="nisObject"
+DEFAULT_MAP_ATTRIBUTE="nisMapName"
+DEFAULT_ENTRY_ATTRIBUTE="cn"
+DEFAULT_VALUE_ATTRIBUTE="nisMapEntry"
+DEFAULT_AUTH_CONF_FILE="etc/autofs_ldap_auth.conf"
 
-> 
-> I suggest that you send a netlink notification to a multicast group for
-> every expire candiate when an expire request is received. Unmount
-> daemons simply subscribe to the group and wait for work to do. Put the
-> request onto a list including the netlink pid and sequence number so you
-> can address the orignal source of the request later on. Exit the netlink
-> receive function and wait for the userspace daemon to get back to you.
+=-- Debug output (annotated) ---
+Mar 19 21:14:06 simba automount[4468]: handle_packet: type = 3
+Mar 19 21:14:06 simba automount[4468]: handle_packet_missing_indirect: 
+    token 41600, name serval, request pid 4529
+Mar 19 21:14:06 simba automount[4468]: attempting to mount entry /net/serval
+Mar 19 21:14:06 simba automount[4468]: lookup_mount: lookup(file): 
+    looking up serval
+Mar 19 21:14:06 simba automount[4468]: lookup_mount: lookup(file): 
+    serval -> -rsize=8192,wsize=8192,retry=1,soft,fstype=autofs,-DSERVER=&
+    file:/etc/auto.net.generic
+Mar 19 21:14:06 simba automount[4468]: parse_mount: parse(sun): 
+    expanded entry: -rsize=8192,wsize=8192,retry=1,soft,fstype=autofs,
+    -DSERVER=serval file:/etc/auto.net.generic
+Mar 19 21:14:06 simba automount[4468]: parse_mount: parse(sun): 
+    gathered options: rsize=8192,wsize=8192,retry=1,soft,fstype=autofs,
+    -DSERVER=serval
+Mar 19 21:14:06 simba automount[4468]: parse_mount: parse(sun): 
+    dequote("file:/etc/auto.net.generic") -> file:/etc/auto.net.generic
+Mar 19 21:14:06 simba automount[4468]: parse_mount: parse(sun): 
+    core of entry: options=rsize=8192,wsize=8192,retry=1,soft,
+    fstype=autofs,-DSERVER=serval, loc=file:/etc/auto.net.generic
+Mar 19 21:14:06 simba automount[4468]: sun_mount: parse(sun): 
+    mounting root /net, mountpoint serval, what file:/etc/auto.net.generic, 
+    fstype autofs, options rsize=8192,wsize=8192,retry=1,soft,-DSERVER=serval
+Mar 19 21:14:06 simba automount[4468]: do_mount: 
+    file:/etc/auto.net.generic /net/serval type autofs options 
+    rsize=8192,wsize=8192,retry=1,soft,-DSERVER=serval using module autofs
+Mar 19 21:14:06 simba automount[4468]: mount_mount: mount(autofs): 
+    fullpath=/net/serval what=file:/etc/auto.net.generic 
+    options=rsize=8192,wsize=8192,retry=1,soft,-DSERVER=serval
+Mar 19 21:14:06 simba automount[4468]: lookup_nss_read_map: reading map 
+    file /etc/auto.net.generic
+Mar 19 21:14:06 simba automount[4468]: parse_init: parse(sun): 
+    init gathered global options: rsize=8192,wsize=8192,retry=1,soft
+Mar 19 21:14:06 simba automount[4468]: mounted indirect mount on 
+    /net/serval with timeout 600, freq 150 seconds
+Mar 19 21:14:06 simba automount[4468]: ghosting enabled
+Mar 19 21:14:06 simba automount[4468]: send_ready: token = 41600
+Mar 19 21:14:06 simba automount[4468]: mounted /net/serval
+Mar 19 21:14:06 simba automount[4468]: handle_packet: type = 3
+Mar 19 21:14:06 simba automount[4468]: handle_packet_missing_indirect: 
+    token 41601, name m1, request pid 4529
+Mar 19 21:14:06 simba automount[4468]: attempting to mount 
+    entry /net/serval/m1
+Mar 19 21:14:06 simba automount[4468]: lookup_mount: lookup(file): 
+    looking up m1
+Mar 19 21:14:06 simba automount[4468]: lookup_mount: lookup(file): 
+    m1 -> ${SERVER}:/&
+Mar 19 21:14:06 simba automount[4468]: parse_mount: parse(sun): 
+    expanded entry: serval:/m1
+Mar 19 21:14:06 simba automount[4468]: parse_mount: parse(sun): 
+    gathered options: rsize=8192,wsize=8192,retry=1,soft
+Mar 19 21:14:06 simba automount[4468]: parse_mount: parse(sun): 
+    dequote("serval:/m1") -> serval:/m1
+Mar 19 21:14:06 simba automount[4468]: parse_mount: parse(sun): 
+    core of entry: options=rsize=8192,wsize=8192,retry=1,soft, loc=serval:/m1
+Mar 19 21:14:06 simba automount[4468]: sun_mount: parse(sun): 
+    mounting root /net/serval, mountpoint m1, what serval:/m1, fstype nfs, 
+    options rsize=8192,wsize=8192,retry=1,soft
+Mar 19 21:14:06 simba automount[4468]: mount_mount: mount(nfs): 
+    root=/net/serval name=m1 what=serval:/m1, fstype=nfs, 
+    options=rsize=8192,wsize=8192,retry=1,soft
+Mar 19 21:14:06 simba automount[4468]: mount_mount: mount(nfs): nfs 
+    options="rsize=8192,wsize=8192,retry=1,soft", nosymlink=0, ro=0
 
-I'll have to think about what you've said here to relate it to the
-situation I have. I don't actually have umount daemons, at the moment I
-request an expire and the daemon creates a thread to do the umount and
-sends a status message to the kernel module. But that may not matter,
-see below.
+=== While waiting, mounts from previous testing expired.
+Mar 19 21:14:14 simba automount[4468]: st_expire: state 1 path /net
+Mar 19 21:14:14 simba automount[4468]: expire_proc: exp_proc = 3046157200 
+    path /net
+Mar 19 21:14:14 simba automount[4468]: expire_proc_indirect: 
+    expire /net/bustamove/m1
+Mar 19 21:14:14 simba automount[4468]: st_expire: state 1 path /net/bustamove
+Mar 19 21:14:14 simba automount[4468]: expire_proc: exp_proc = 3045104528 
+    path /net/bustamove
+Mar 19 21:14:14 simba automount[4468]: expire_proc_indirect: 
+    expire /net/bustamove/m1
+Mar 19 21:14:15 simba automount[4468]: expire_proc_indirect: 1 remaining 
+    in /net/bustamove
+Mar 19 21:14:15 simba automount[4468]: mount still busy /net/bustamove
+Mar 19 21:14:15 simba automount[4468]: expire_cleanup: got thid 3045104528 
+    path /net/bustamove stat 2
+Mar 19 21:14:15 simba automount[4468]: expire_cleanup: sigchld: 
+    exp 3045104528 finished, switching from 2 to 1
+Mar 19 21:14:15 simba automount[4468]: st_ready: st_ready(): state = 2 
+    path /net/bustamove
 
-> 
-> The userspace daemon notifies you of successful or unsuccesful unmount
-> attempts by sending notifications. Update your list entry accordingly
-> and once the request is fullfilled send a notification to the original
-> source of the request by using the stored pid and sequence number.
-> 
-> The userspace application requesting the expire can simply block on the
-> receival of this notification in order to make the whole operation
-> synchronous.
+=== and 2 more, omitted, then it noticed it was working on Serval:
+Mar 19 21:14:17 simba automount[4468]: mount still busy /net/serval
+Mar 19 21:14:17 simba automount[4468]: expire_cleanup: got thid 3045104528 
+    path /net/serval stat 0
+Mar 19 21:14:17 simba automount[4468]: expire_cleanup: sigchld: 
+    exp 3045104528 finished, switching from 2 to 1
+Mar 19 21:14:17 simba automount[4468]: st_ready: st_ready(): state = 2 
+    path /net/serval
+Mar 19 21:14:17 simba automount[4468]: st_expire: state 1 path /net/simba
 
-Actually, I've progressed on this since posting.
+=== omitted stuff for (not) expiring Simba and Julia
+Mar 19 21:14:22 simba automount[4468]: expire_proc_indirect: 
+    4 submounts remaining in /net
+Mar 19 21:14:22 simba automount[4468]: expire_proc_indirect: 
+    4 remaining in /net
+Mar 19 21:14:22 simba automount[4468]: mount still busy /net
+Mar 19 21:14:22 simba automount[4468]: expire_cleanup: got thid 3046157200 
+    path /net stat 5
+Mar 19 21:14:22 simba automount[4468]: expire_cleanup: sigchld: 
+    exp 3046157200 finished, switching from 2 to 1
+Mar 19 21:14:22 simba automount[4468]: st_ready: st_ready(): 
+    state = 2 path /net
 
-I've implemented the first steps toward using a workqueue to perform the
-expire and, to my surprise, my code worked for a simple test case.
-Basically, a thread in the daemon issues the expire, the kernel module
-queues the work and replies. The expire workqueue task does the expire
-check and if no candidates are found it sends an expire complete
-notification, or it sends a umount request to the daemon and waits for
-the status result, then returns that result as the expire compete
-notification. Seems to work quite well.
+=== It sits there for 20 seconds more...
+Mar 19 21:14:41 simba automount[4468]: mount_mount: mount(nfs): 
+    calling mkdir_path /net/serval/m1
+Mar 19 21:14:41 simba automount[4468]: mount_mount: mount(nfs): calling 
+    mount -t nfs -s -o rsize=8192,wsize=8192,retry=1,soft 
+    serval:/m1 /net/serval/m1
 
-I expect this is possibly the method you're suggesting above anyway.
+=== Looks like a normal 5 second timeout in /sbin/mount
+Mar 19 21:14:46 simba automount[4468]: mount(nfs): 
+    mounted serval:/m1 on /net/serval/m1
+Mar 19 21:14:46 simba automount[4468]: send_ready: token = 41601
+Mar 19 21:14:46 simba automount[4468]: mounted /net/serval/m1
+=== and the content was delivered.
 
-Unfortunately, having now stepped up intensity of the testing, I'm
-getting a hard hang on my system. I've setup to reduce the message
-functions used to only two simple notification messages to the kernel
-module to ensure it isn't the expire implementation causing the problem.
-It's hard to see where I could have messed these two functions as they
-are essentially re-entrant but there is fairly heavy mount activity of
-about 10-15 mounts a second. Such is life!
-
-Any ideas on what might be causing this?
-
-Ian
-
-
-
+James F. Carter          Voice 310 825 2897    FAX 310 206 6673
+UCLA-Mathnet;  6115 MSA; 405 Hilgard Ave.; Los Angeles, CA, USA 90095-1555
+Email: jimc@math.ucla.edu  http://www.math.ucla.edu/~jimc (q.v. for PGP key)
