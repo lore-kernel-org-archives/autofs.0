@@ -1,13 +1,13 @@
-From: Jim Carter <jimc@math.ucla.edu>
-Subject: Re: sudo and autofs
-Date: Fri, 21 Mar 2008 08:47:54 -0700 (PDT)
-Message-ID: <Pine.LNX.4.64.0803210832590.3306@simba.math.ucla.edu>
-References: <1203828797.5413.355.camel@localhost> <47E391D4.9050107@inria.fr>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: autofs expire_indirect errors in syslog
+Date: Mon, 24 Mar 2008 14:24:46 +0900
+Message-ID: <1206336287.2993.4.camel@raven.themaw.net>
+References: <66d392400803192215p36cc021bv6bfae3c09e173602@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="1635810564-1894731571-1206114474=:3306"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <47E391D4.9050107@inria.fr>
+In-Reply-To: <66d392400803192215p36cc021bv6bfae3c09e173602@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,55 +18,23 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Kamil Kisiel <kamil@kamilkisiel.net>
+Cc: autofs@linux.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
 
---1635810564-1894731571-1206114474=:3306
-Content-Type: TEXT/PLAIN; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-X-MIME-Autoconverted: from 8bit to quoted-printable by hera.kernel.org id m2O4vWkb031803
+On Wed, 2008-03-19 at 22:15 -0700, Kamil Kisiel wrote:
+> I'm using autofs to mount some NFS shares, but occasionally some of
+> the machines on the network get their syslog filling up with errors
+> like this:
 
-On Fri, 21 Mar 2008, Guillaume Rousse wrote:
-> chris barry a =E9crit :
-> > The question is, is there any way to make this work while preventing =
-a
-> > user from accessing another user's home? Some slick program type
-> > automount map or something? anything...?
-> ugly workaround: have users copy the file in the local /tmp directory
-> first, before accessing it with sudo second.
->=20
-> Otherwise, you may have a look at kerberized nfs for a much better
-> security, but that's not something easy to install.
+Version info, distribution and autofs?
 
-I have a brief writeup on NFSv4:=20
-http://www.math.ucla.edu/~jimc/documents/nfsv4-0601.html
-
-Unfortunately Kerberos is used to authenticate the client *host*, so=20
-hostbased impersonation schemes (rogue laptops) no longer work, but it=20
-still relies on the client to honestly report the alphabetic loginID and=20
-group ID of the client user, and so is vulnerable to a generic root explo=
-it=20
-on the client. =20
-
-I show an autofs map row that mounts NFSv4, at the end.
-
-James F. Carter          Voice 310 825 2897    FAX 310 206 6673
-UCLA-Mathnet;  6115 MSA; 520 Portola Plaza; Los Angeles, CA, USA  90095-1=
-555
-Email: jimc@math.ucla.edu    http://www.math.ucla.edu/~jimc (q.v. for PGP=
- key)
---1635810564-1894731571-1206114474=:3306
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Disposition: inline
-Content-Transfer-Encoding: 7bit
-
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
-
---1635810564-1894731571-1206114474=:3306--
-
+> 
+> Mar 19 21:11:05 <hostname> automount[6762]: expire_indirect: fstat
+> failed: Bad file descriptor
+> Mar 19 21:12:20 <hostname> automount[6762]: expire_indirect: fstat
+> failed: Bad file descriptor
+> Mar 19 21:13:35 <hostname> automount[6762]: expire_indirect: fstat
+> failed: Bad file descriptor
+> 
+> Any suggestions as to why this might be, or steps to take to debug?
