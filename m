@@ -1,15 +1,12 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs expire_indirect errors in syslog
-Date: Mon, 24 Mar 2008 14:47:42 +0900
-Message-ID: <1206337662.2993.18.camel@raven.themaw.net>
-References: <66d392400803192215p36cc021bv6bfae3c09e173602@mail.gmail.com>
-	<1206336287.2993.4.camel@raven.themaw.net>
-	<66d392400803232231pcc78fe5g514976d8288b0383@mail.gmail.com>
+From: "Brooks, Jason" <Jason.Brooks@windriver.com>
+Subject: Loopback filesystems via autofs
+Date: Mon, 24 Mar 2008 14:42:18 -0700
+Message-ID: <B4C19C70C5B3F84399FEFE0BB2E264BA31F763@ala-mail10.corp.ad.wrs.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <66d392400803232231pcc78fe5g514976d8288b0383@mail.gmail.com>
+Content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,52 +17,26 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Kamil Kisiel <kamil@kamilkisiel.net>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
+Hello,
 
-On Sun, 2008-03-23 at 22:31 -0700, Kamil Kisiel wrote:
-> On Sun, Mar 23, 2008 at 10:24 PM, Ian Kent <raven@themaw.net> wrote:
-> >
-> >  On Wed, 2008-03-19 at 22:15 -0700, Kamil Kisiel wrote:
-> >  > I'm using autofs to mount some NFS shares, but occasionally some of
-> >  > the machines on the network get their syslog filling up with errors
-> >  > like this:
-> >
-> >  Version info, distribution and autofs?
-> >
-> >
-> >
-> >  >
-> >  > Mar 19 21:11:05 <hostname> automount[6762]: expire_indirect: fstat
-> >  > failed: Bad file descriptor
-> >  > Mar 19 21:12:20 <hostname> automount[6762]: expire_indirect: fstat
-> >  > failed: Bad file descriptor
-> >  > Mar 19 21:13:35 <hostname> automount[6762]: expire_indirect: fstat
-> >  > failed: Bad file descriptor
-> >  >
-> >  > Any suggestions as to why this might be, or steps to take to debug?
-> >
-> >
-> 
-> I'm using kernel 2.6.24 for x86_64 on an AMD 64 and autofs version
-> 5.0.3. The distribution is Gentoo Linux. This behavior is not isolated
-> to one machine, all of the machines running the same system image
-> exhibit the same symptoms every now and then.
+I am setting up an iso jukebox on a system.  Other than the /dev/loop*
+files, is there a limit to the number of loop devices that can be
+mounted?
 
-I've changed that message to debug logging in the latest revision.
-I had a look around but couldn't find anything and so I didn't track it
-down. So we can get expire requests for stale mounts now and again and,
-as far as I can see, it's not otherwise a problem.
+--jason
 
-Looks like the Gentoo package is close to up to date wrt. 5.0.3.
+ 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Jason Brooks ~ (503) 641-3440 x1861
+      Direct ~ (503) 924-1861
+      Cell   ~ (503) 467-1908
+      jason.brooks@windriver.com
+http://twiki.wrs.com/do/view/Main/JasonBrooks
+http://twiki.wrs.com/do/view/PBUeng/LabOperations
 
-The patches on kernel.org:
-autofs-5.0.3-expire-works-too-hard-update.patch
-autofs-5.0.3-expire-works-too-hard-update-2.patch
-
-together change the log message from error to debug (the later reverts a
-hunk of the first that was incorrect) since I still want to know how
-often it happens when debugging.
-
-Ian
+Senior Lab Engineer 
+Wind River Systems
+8905 SW Nimbus ~ Suite 255	
+Beaverton, Or 97008
