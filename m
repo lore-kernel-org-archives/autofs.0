@@ -1,15 +1,11 @@
-From: Paul Smith <psmith@netezza.com>
-Subject: Re: Cross-compilation still broken on 5.0.3
-Date: Thu, 27 Mar 2008 23:05:31 -0400
-Message-ID: <1206673532.3615.83.camel@homebase.localnet>
-References: <1206658652.23286.2.camel@pioneer.netezza.com>
-	<1206669260.2834.29.camel@raven.themaw.net>
-Reply-To: psmith@netezza.com
+From: Stef Bon <stef@bononline.nl>
+Subject: Testing the UID var.
+Date: Fri, 28 Mar 2008 10:20:04 +0100
+Message-ID: <47ECB844.8080405@bononline.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1206669260.2834.29.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,16 +16,74 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Fri, 2008-03-28 at 10:54 +0900, Ian Kent wrote:
-> But is this patch to configure.in really all that's needed?
+Hello,
 
-What that patch does is assume that PIE is disabled in all
-cross-compiled environments.
+the latest weeks I've been testing with the paramters UID, USER etc. 
+provided by the automounter,
+indicating the user activating the mount. I've changed the default 
+auto.smb script to make use of this var:
+(earlier I had another constructing which was not so comprehensive)
 
-Jeff feels we should do something different: have a --with-pie flag
-rather than assuming no PIE for a cross-compiled environment.  That's
-certainly more flexible.  I can try to put something together that does
-that if that's the way you'd prefer to go.
+---------
+
+#!/bin/bash
+
+key="$1"
+opts='-fstype=smbtest,auid=$UID'
+
+SMBCLIENT=/usr/bin/smbclient
+
+[ -x $SMBCLIENT ] || exit 1
+
+# echo $key
+
+$SMBCLIENT -gNL $key 2>/dev/null| awk -v key="$key" -v opts="$opts" 
+-F'|' -- '
+        BEGIN   { ORS=""; first=1 }
+        /Disk/  { if (first) { print opts; first=0 }; sub(/ /, "\\ ", 
+$2); print " \\\n\t /" $2, "://" key "/" $2 }
+        END     { if (!first) print "\n"; else exit 1 }
+        '
+--------
+
+Note:
+a. I've made this script I little bit simpler by letting it not search 
+the smbclient script.
+b. the fstype is not smb but smbtest. I've created a wrapper 
+mount.smbtest which will filter the parameter
+auid out. This value can be used for permissions and authentification
+c. the extra opion auid (activating user) which will be assigned when 
+the automounter does the mount, not when running this script. That's why 
+there are single quotes around it.
+
+Futher I use this wrapper mount.smbtest, which is a little bit too big 
+to show here. In pseudo code:
+
+---------
+
+#!/bin/sh
+
+# log the parameters, important to see how this script is called
+# and what the value of auid is
+
+set | grep "^BASH_ARGV" >> /var/log/mount.smbtest.log
+
+seperate the value auid from the rest of the paramaters
+if this auid is not empty, and does exist (an existing user on the system)
+check there are credentials for this user
+
+if so then perform a mount.smb with the credentials, with all the right 
+options (mountpoint, unc_address and other options)
+else do a guest mount ( with the right options)
+
+
+----------
+
+When looking to the logfile, sometimes the auid is correct, but in about 
+50% of the cases it's empty.
+
+If you would like to test with this I can provide this mount.smbtest script.
+
+Stef Bon
