@@ -1,13 +1,17 @@
-From: Stef Bon <stef@bononline.nl>
-Subject: Re: Testing the UID var.
-Date: Fri, 28 Mar 2008 12:50:28 +0100
-Message-ID: <47ECDB84.5010301@bononline.nl>
-References: <47ECB844.8080405@bononline.nl>
+From: christopher barry <Christopher.Barry@qlogic.com>
+Subject: Re: sudo and autofs
+Date: Tue, 01 Apr 2008 16:27:29 -0400
+Message-ID: <1207081649.5226.29.camel@localhost>
+References: <1203828797.5413.355.camel@localhost> <47E391D4.9050107@inria.fr>
+	<Pine.LNX.4.64.0803210832590.3306@simba.math.ucla.edu>
+	<Pine.GSO.4.55.0803241350360.14855@loogie.intranet.csupomona.edu>
+	<Pine.LNX.4.64.0803242227320.21910@xena.cft.ca.us>
+	<Pine.GSO.4.55.0803251247380.15841@loogie.intranet.csupomona.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <47ECB844.8080405@bononline.nl>
+In-Reply-To: <Pine.GSO.4.55.0803251247380.15841@loogie.intranet.csupomona.edu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,49 +24,31 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-Stef Bon wrote:
-> ---------
->
-> #!/bin/bash
->
-> key="$1"
-> opts='-fstype=smbtest,auid=$UID'
->
-> SMBCLIENT=/usr/bin/smbclient
->
-> [ -x $SMBCLIENT ] || exit 1
->
-> # echo $key
->
-> $SMBCLIENT -gNL $key 2>/dev/null| awk -v key="$key" -v opts="$opts" 
-> -F'|' -- '
->         BEGIN   { ORS=""; first=1 }
->         /Disk/  { if (first) { print opts; first=0 }; sub(/ /, "\\ ", 
-> $2); print " \\\n\t /" $2, "://" key "/" $2 }
->         END     { if (!first) print "\n"; else exit 1 }
->         '
-> --------
->
-> Note:
-> a. I've made this script I little bit simpler by letting it not search 
-> the smbclient script.
-> b. the fstype is not smb but smbtest. I've created a wrapper 
-> mount.smbtest which will filter the parameter
-> auid out. This value can be used for permissions and authentification
-> c. the extra opion auid (activating user) which will be assigned when 
-> the automounter does the mount, not when running this script. That's why 
-> there are single quotes around it.
->   
+On Tue, 2008-03-25 at 12:51 -0800, Paul B. Henson wrote:
+> On Mon, 24 Mar 2008, Jim Carter wrote:
+> 
+> > There are complaints that rpc.gssd only looks for /tmp/krb5cc_${UID}
+> > whereas pam_krb5 uses /tmp/krb5cc__{UID}_XXXXXX (randomized by mktemp).
+> > There is supposed to be a patch for this but I haven't discovered yet
+> > whether I have it.
+> 
+> Even Red Hat 4 appears to have an rpc.gssd that does a more extensive
+> search for credentials, presumably any reasonably modern distribution will
+> as well.
+> 
+> > Access will not happen unless the KDC has nfs/${fqdn}@REALM for both hosts
+> > (can't mount) and for the user (can't create security context for
+> > read/write).
+> 
+> With newer versions of rpc.gssd you can tell it to use supplied credentials
+> rather than machine credentials for the mount and for root access. This
+> allows you to use secure NFS from a client on which you cannot obtain a
+> host principal. It's not particularly convenient though...
 
-I would like to add that the mount will use the userid of the activating 
-user, but that the smbclient does a guest
-lookup. It is with this construction not possible to make use of this 
-"activating userid" in auto.smb. In general I find it very difficult to 
-figure out a construction which does support mounting for every ordinary 
-user which:
-- give enough permissions so that user one cannot access other users 
-mountpoint (if more than one user is logged in)
-- use the activating user in the mount program as the lookup program as well
+Are both of you implying that with kerberized nfs, the local root user
+can access a regular users nfs automounted home mounted with
+-oroot_squash? Eg. Is this the answer I was looking for at the top of
+this thread?
 
-
-Stef Bon
+Regards,
+-C
