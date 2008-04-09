@@ -1,15 +1,11 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [patch] FD_CLOEXEC cleanups
-Date: Wed, 02 Apr 2008 12:08:10 -0400
-Message-ID: <x49myocgryt.fsf@segfault.boston.devel.redhat.com>
-References: <x49od8te2wh.fsf@segfault.boston.devel.redhat.com>
-	<1207152164.23879.11.camel@raven.themaw.net>
+From: "Paul B. Henson" <henson@acm.org>
+Subject: error returned upon mount failure
+Date: Tue, 8 Apr 2008 19:36:36 -0700 (PDT)
+Message-ID: <Pine.GSO.4.55.0804081730320.21655@loogie.intranet.csupomona.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1207152164.23879.11.camel@raven.themaw.net> (Ian Kent's message
-	of "Thu\, 03 Apr 2008 00\:02\:44 +0800")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,24 +16,38 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-Ian Kent <raven@themaw.net> writes:
 
-> On Tue, 2008-04-01 at 16:27 -0400, Jeff Moyer wrote:
->> Hi, Ian,
->> 
->> We set the close on exec flag all over the place.  This patch just
->> cleans things up a bit.
->
-> Yep, good idea.
->
-> I would like to postpone this till after the mount control work is done
-> because a number of these will be moved to the single open routine.
+I was working with automount 5 on a fairly recent 2.6.23 kernel, and got
+the following error when trying to access an automounted directory:
 
-OK, I'll hold off on further cleanups until that work is in.
+gentoo ~ # ls /user/henson
+ls: cannot access /user/henson: No such file or directory
 
-Thanks!
 
-Jeff
+The directory did exist, and the automounter configuration was correct,
+but the actual mount failed:
+
+gentoo ~ # mount -t nfs4 -o sec=krb5i zfs1:/export/user/henson /mnt
+mount.nfs4: Permission denied
+
+
+On a Solaris 10 system, attempting to access the same directory gave a more
+appropriate error message:
+
+root@s10 ~ # ls /user/henson
+/user/henson: Permission denied
+
+root@s10 ~ # mount -o vers=4 zfs1:/export/user/henson /mnt
+nfs mount: mount: /mnt: Permission denied
+
+
+Would it be possible to have the Linux automounter give a more accurate
+error message for this case?
+
+
+-- 
+Paul B. Henson  |  (909) 979-6361  |  http://www.csupomona.edu/~henson/
+Operating Systems and Network Analyst  |  henson@csupomona.edu
+California State Polytechnic University  |  Pomona CA 91768
