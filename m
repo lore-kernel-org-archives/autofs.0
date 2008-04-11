@@ -1,165 +1,219 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 4/4] autofs4 - add miscelaneous device for ioctls
-Date: Mon, 14 Apr 2008 12:45:27 +0800
-Message-ID: <1208148327.3505.65.camel@raven.themaw.net>
-References: <Pine.LNX.4.64.0802261151400.8490@raven.themaw.net>
-	 <Pine.LNX.4.64.0802261218230.8490@raven.themaw.net>
-	 <20080227211723.d5d27c09.akpm@linux-foundation.org>
-	 <1204302250.19890.22.camel@raven.themaw.net>
-	 <Pine.LNX.4.64.0804111425290.32624@raven.themaw.net>
-	 <20080411210316.6e385236.akpm@linux-foundation.org>
+From: Robert Kuropkat <robert.a.kuropkat@saic.com>
+Subject: [Fwd: Fwd:  autofs-5.0.1-0.rc2.55.el5.3 core dump]
+Date: Fri, 11 Apr 2008 14:42:57 -0400
+Message-ID: <47FFB131.5070603@saic.com>
 Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="------------040701020108020800090309"
+Return-path: <autofs-bounces@linux.kernel.org>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: autofs@linux.kernel.org
+
+This is a multi-part message in MIME format.
+--------------040701020108020800090309
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <20080411210316.6e385236.akpm@linux-foundation.org>
-Sender: linux-fsdevel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
+
+
+I am also have this problem on FC6 with:
+
+Name   : autofs
+Arch   : i386
+Epoch  : 1
+Version: 5.0.1
+Release: 0.rc3.33
+
+I **believe** the core dumps started after I updated to this version but 
+can't be sure about that.  I also can supply a core dump if you post 
+where to send it.
+
+Additionally, I am using autofs in conjunction with LDAP.
+
+Robert Kuropkat
+
+
+
+--------------040701020108020800090309
+Content-Type: message/rfc822;
+	name="Fwd: [autofs] autofs-5.0.1-0.rc2.55.el5.3 core dump"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+	filename="Fwd: [autofs] autofs-5.0.1-0.rc2.55.el5.3 core dump"
+
+Return-Path: <peter@devries.tv>
+X-Spam-Checker-Version: SpamAssassin 3.1.9 (2007-02-13) on
+	orbit.objectsciences.com
+X-Spam-Level: 
+X-Spam-Status: No, score=0.0 required=3.3 tests=HTML_MESSAGE autolearn=failed
+	version=3.1.9
+Received: from rn-out-0910.google.com (rn-out-0910.google.com [64.233.170.184])
+	by orbit.objectsciences.com (8.14.1/8.13.8) with ESMTP id
+	m3BIDl1M012351
+	for <rkuropkat@objectsciences.com>; Fri, 11 Apr 2008 14:13:47 -0400
+Received: by rn-out-0910.google.com with SMTP id e21so583841rng.6
+	for <rkuropkat@objectsciences.com>;
+	Fri, 11 Apr 2008 11:25:59 -0700 (PDT)
+Received: by 10.114.130.1 with SMTP id c1mr622081wad.156.1207938358493;
+	Fri, 11 Apr 2008 11:25:58 -0700 (PDT)
+Received: by 10.114.95.13 with HTTP; Fri, 11 Apr 2008 11:25:58 -0700 (PDT)
+Message-ID: <50cd6cea0804111125x7d00e0eeyb8cb96821d256695@mail.gmail.com>
+Date: Fri, 11 Apr 2008 14:25:58 -0400
+From: "Peter DeVries" <peter@devries.tv>
+To: "Robert Kuropkat" <rkuropkat@objectsciences.com>
+Subject: Fwd: [autofs] autofs-5.0.1-0.rc2.55.el5.3 core dump
+In-Reply-To: <47FF8D07.7080208@schrodinger.com>
+MIME-Version: 1.0
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_8258_30127449.1207938358489"
+References: <47FF8D07.7080208@schrodinger.com>
+X-Virus-Scanned: ClamAV 0.88.7/6704/Fri Apr 11 09:41:43 2008 on
+	orbit.objectsciences.com
+X-Virus-Status: Clean
+
+------=_Part_8258_30127449.1207938358489
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+If your were monitoring this list you would see these things
+
+---------- Forwarded message ----------
+From: Simon Gao <gao@schrodinger.com>
+Date: Fri, Apr 11, 2008 at 12:08 PM
+Subject: [autofs] autofs-5.0.1-0.rc2.55.el5.3 core dump
+To: autofs@linux.kernel.org
+
+
+Hi,
+
+We have many RHEL 5.1 desktops running 2.6.18-53.1.14 X86_64. Many of
+them have core dump files related to autofs. The autofs package is
+autofs-5.0.1-0.rc2.55.el5.3.
+
+# strings core.2594 | head
+@UUUU
+@xUUU
+PxUUU
+QqUU
+CORE
+P*fqUU
+dgqUU
+CORE
+automount
+automount -DOSNAME=rhel -DOSREL=5
+
+# strings core.3666 | head
+@UUUU
+ xUUU
+@xUUU
+BWUU
+CORE
+6xUUU
+VWUU
+XWUU
+CORE
+automount
+
+What caused autofs to core dump? Is there a fix by upgrading to newer
+version?
+
+Simon
+
+
+
+
+
+
+
+
+
+
+
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+------=_Part_8258_30127449.1207938358489
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+If your were monitoring this list you would see these things<br><br><div class="gmail_quote">---------- Forwarded message ----------<br>From: <b class="gmail_sendername">Simon Gao</b> &lt;<a href="mailto:gao@schrodinger.com">gao@schrodinger.com</a>&gt;<br>
+Date: Fri, Apr 11, 2008 at 12:08 PM<br>Subject: [autofs] autofs-5.0.1-0.rc2.55.el5.3 core dump<br>To: <a href="mailto:autofs@linux.kernel.org">autofs@linux.kernel.org</a><br><br><br>Hi,<br>
+<br>
+We have many RHEL 5.1 desktops running 2.6.18-53.1.14 X86_64. Many of<br>
+them have core dump files related to autofs. The autofs package is<br>
+autofs-5.0.1-0.rc2.55.el5.3.<br>
+<br>
+# strings core.2594 | head<br>
+@UUUU<br>
+@xUUU<br>
+PxUUU<br>
+QqUU<br>
+CORE<br>
+P*fqUU<br>
+dgqUU<br>
+CORE<br>
+automount<br>
+automount -DOSNAME=rhel -DOSREL=5<br>
+<br>
+# strings core.3666 | head<br>
+@UUUU<br>
+&nbsp;xUUU<br>
+@xUUU<br>
+BWUU<br>
+CORE<br>
+6xUUU<br>
+VWUU<br>
+XWUU<br>
+CORE<br>
+automount<br>
+<br>
+What caused autofs to core dump? Is there a fix by upgrading to newer<br>
+version?<br>
+<br>
+Simon<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+_______________________________________________<br>
+autofs mailing list<br>
+<a href="mailto:autofs@linux.kernel.org">autofs@linux.kernel.org</a><br>
+<a href="http://linux.kernel.org/mailman/listinfo/autofs" target="_blank">http://linux.kernel.org/mailman/listinfo/autofs</a><br>
+</div><br>
+
+------=_Part_8258_30127449.1207938358489--
+
+
+--------------040701020108020800090309
 Content-Type: text/plain; charset="us-ascii"
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, Al Viro <viro@zeniv.linux.org.uk>, Thomas Graf <tgraf@redhat.com>, netdev@vger.kernel.org
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
 
-On Fri, 2008-04-11 at 21:03 -0700, Andrew Morton wrote: 
-> On Fri, 11 Apr 2008 15:02:39 +0800 (WST) Ian Kent <raven@themaw.net> wrote:
-> 
-> > On Sat, 1 Mar 2008, Ian Kent wrote:
-> > 
-> > > 
-> > > On Wed, 2008-02-27 at 21:17 -0800, Andrew Morton wrote:
-> > > > On Tue, 26 Feb 2008 12:23:55 +0900 (WST) Ian Kent <raven@themaw.net> wrote:
-> > > > 
-> > > > > Hi Andrew,
-> > > > > 
-> > > > > Patch to add miscellaneous device to autofs4 module for
-> > > > > ioctls.
-> > > > 
-> > > > Could you please document the new kernel interface which you're proposing? 
-> > > > In Docmentation/ or in the changelog?
-> > > > 
-> > > > We seem to be passing some string into a miscdevice ioctl and getting some
-> > > > results back.  Be aware that this won't be a terribly popular proposal, so
-> > > > I'd suggest that you fully describe the problem which it's trying to solve,
-> > > > and how it solves it, and why the various alternatives (sysfs, netlink,
-> > > > mount options, etc) were judged unsuitable.
-> > > 
-> > > It appears I could do this with the generic netlink subsystem.
-> > > I'll have a go at it.
-> > > 
-> > 
-> > I've spent several weeks on this now and I'm having considerable 
-> > difficulty with the expire function.
-> > 
-> > First, I think using a raw netlink implementation defeats the point of 
-> > using this approach at all due to increased complexity. So I've used the 
-> > generic netlink facility and the libnl library for user space. While the 
-> > complexity on the kernel side is acceptable that isn't the case in user 
-> > space, the code for the library to issue mount point control commands has 
-> > more than doubled in size and is still not working for mount point 
-> > expiration.  This has been made more difficult because libnl isn't 
-> > thread safe, but I have overcome this limitation for everything but 
-> > the expire function, I now can't determine whether the problem I have with 
-> > receiving multicast messages, possibly out of order, on individual 
-> > netlink sockets opened specifically for this purpose, is due to this or is 
-> > something I'm doing wrong.
-> > 
-> > The generic netlink implementation allows only one message to be in flight 
-> > at a time. But my expire selects an expire candidate (if possible), sends 
-> > a request to the daemon to do the umount, obtains the result status and 
-> > returns this as the result to the original expire request. Consequently, I 
-> > need to spawn a kernel thread to do this and return, then listen for the
-> > matching multicast message containing the result. I don't particularly 
-> > like spawning a thread to do this because it opens the possibility of 
-> > orphaned threads which introduces other difficulties cleaning them up if 
-> > the user space application goes away or misbehaves. But I'm also having 
-> > problems catching the multicast messages. This works fine in normal 
-> > operation but fails badly when I have multiple concurrent expires 
-> > happening, such as when shutting down the daemon with several hundred 
-> > active mounts. I can't avoid the fact that netlink doesn't provide the 
-> > same functionality as the ioctl interface and clearly isn't meant to.
-> 
-> Gee, it sounds like you went above and beyond the call there.
-
-Hahaha, maybe, but I have to be sure it's not just my own lack of
-understanding giving me grief!
-
-> 
-> The one-message-in-flight limitation of genetlink is suprising - one would
-> expect a kernel subsystem (especially a networking one) to support
-> queueing.  I guess it was expedient and the need had not arisen.
-
-I'm not sure but I think there are some special requirements for such a
-message bus architecture. I've only skimmed the code but it looked like
-a mutex for each genetlink family or, ideally, for each socket should
-be possible.
-
-We also need to face the fact that this isn't designed to be a drop in
-replacement for ioctls as it can't provide (and probably can never
-provide) the not often used independently re-entrant function call like
-semantic of the ioctl interface.
-
-> 
-> > So, the question is, what are the criteria to use for deciding that a 
-> > netlink based implementation isn't appropriate because I think I'm well 
-> > past it now?
-> > 
-> > Comments please.
-> 
-> Do I recall correctly in remembering that your original design didn't
-> really add any _new_ concepts to autofs interfacing?  That inasmuch as
-> the patch sinned, it was repeating already-committed sins?
-
-Almost, it is a re-implementation of the existing ioctl interface.
-
-It has an extra entry point so we can obtain a file handle to an autofs
-mount that has been over mounted and another to get owner info for mount
-re-construction on daemon restart. Which is what we need to be able to
-solve the active restart problem.
-
-I also made a couple of improvements, namely, allow actual failure
-status to be returned from the daemon to the kernel rather than always
-using ENOENT (long overdue, still need to update the daemon though) and
-added an additional entry point to check if a path is a mount point so
-we can eliminate some of the high overhead mount table scanning in the
-daemon.
-
-> 
-> And: you know more about this than anyone else, and you are (now) unbiased
-> by the presence of existing code.  What's your opinion?
-
-There's no question that genetlink is an elegant solution for common
-case ioctl functions but, as I say, it's not a complete replacement
-probably because it's primary purpose in life is to be a message bus
-implementation rather than specifically an ioctl replacement.
-
-As is often the case after posting a "please help" message it occurred
-to me that there is another way I might be able to do this. Instead of
-sending an independent umount request I could check, and if a candidate
-is found, set the expiring flag and return a "yes" status to the daemon
-and have the same function do the umount, then clear the when returning
-the status. That would eliminate the ugliness in the daemon and the need
-to use kernel threads but would open the possibility of the "expiring
-flag" remaining set if the daemon went away. That would prevent lookups
-(since we wait for expires to complete) and so prevent manual umount
-cleanup so I'm not sure yet what the implications of this really are.
-
-There is one other concern, the expire in the daemon has become far to
-complex because I enumerate umount candidates, almost for no other
-reason than to "count" the number of times I need to call the expire
-ioctl. This involves scanning the mount table which has proven to be a
-bit of a killer for large maps. I think the best way to improve this is
-try and get back to the way the expire was done long ago. That is, when
-an expire comes in for a mount (file handle) continually call back to
-the daemon until we can't umount any more mounts, then return the
-appropriate status to the daemon (now we just expire one mount at a
-time). This changed because we were getting infinite loops on umount
-fails in some cases but I think my approach to fixing that was just
-plain wrong. A genetlink implementation will exclude this possibility
-and due to the requirements of the message bus architecture I don't
-think that is likely to change any time soon, if ever.
-
-All things considered I'm leaning toward using a misc device to route
-the ioctls.
-
-Ian
-
+--------------040701020108020800090309--
 
