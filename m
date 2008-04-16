@@ -1,14 +1,13 @@
-From: Guillaume Rousse <Guillaume.Rousse@inria.fr>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: user reporting memory leak with ldap maps
-Date: Tue, 15 Apr 2008 23:54:09 +0200
-Message-ID: <48052401.4090702@inria.fr>
+Date: Wed, 16 Apr 2008 10:29:52 +0800
+Message-ID: <1208312992.3048.0.camel@raven.themaw.net>
 References: <48036EE7.3070805@inria.fr>
-	<1208228681.3101.8.camel@raven.themaw.net>
+	<1208228681.3101.8.camel@raven.themaw.net> <48052401.4090702@inria.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: base64
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1208228681.3101.8.camel@raven.themaw.net>
+In-Reply-To: <48052401.4090702@inria.fr>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,45 +18,36 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+To: Guillaume Rousse <Guillaume.Rousse@inria.fr>
 Cc: autofs@linux.kernel.org
 
-Ian Kent a =E9crit :
-> On Mon, 2008-04-14 at 16:49 +0200, Guillaume Rousse wrote:
->> A mdv user complains about a memory leak in autofs 5.0.2. I can't
->> reproduce myself, but I don't have the same version available for testin=
-g.
->>
->> See https://qa.mandriva.com/show_bug.cgi?id=3D39911 for full report.
-> =
-
-> That's quite possible but why hasn't any pertinent information been
-> obtained from the reporter?
-> =
-
-> What are the maps in use?
-> What is the memory usage at startup, after 2 hours, 4 hours, at least
-> two samples the following day, etc. (for at least two days)?
-> Does the same thing happen if they setup file maps for everything
-> instead?
-I did ask.
-
-> What process did you follow when trying to reproduce it?
-> =
-
-> As far as the version goes I don't know what may have been added to make
-> up that package.
-If you're refering to mandriva specific modifications, everything is
-available at
-http://svn.mandriva.com/cgi-bin/viewvc.cgi/packages/cooker/autofs/releases/=
-5.0.2/8mdv2008.1/
-
-Most patches are upstream patches, excepted the following ones:
-Patch101:       autofs-5.0.2-set-default-browse-mode.patch
-Patch102:       autofs-5.0.2-separate-config-files.patch
-Patch103:       autofs-5.0.2-rename-configuration-file.patch
-Patch105:       autofs-5.0.1-rc3-comment-default-master-map.patch
--- =
-
-Guillaume Rousse
-Moyens Informatiques - INRIA Futurs
-Tel: 01 69 35 69 62
+Ck9uIFR1ZSwgMjAwOC0wNC0xNSBhdCAyMzo1NCArMDIwMCwgR3VpbGxhdW1lIFJvdXNzZSB3cm90
+ZToKPiBJYW4gS2VudCBhIMOpY3JpdCA6Cj4gPiBPbiBNb24sIDIwMDgtMDQtMTQgYXQgMTY6NDkg
+KzAyMDAsIEd1aWxsYXVtZSBSb3Vzc2Ugd3JvdGU6Cj4gPj4gQSBtZHYgdXNlciBjb21wbGFpbnMg
+YWJvdXQgYSBtZW1vcnkgbGVhayBpbiBhdXRvZnMgNS4wLjIuIEkgY2FuJ3QKPiA+PiByZXByb2R1
+Y2UgbXlzZWxmLCBidXQgSSBkb24ndCBoYXZlIHRoZSBzYW1lIHZlcnNpb24gYXZhaWxhYmxlIGZv
+ciB0ZXN0aW5nLgo+ID4+Cj4gPj4gU2VlIGh0dHBzOi8vcWEubWFuZHJpdmEuY29tL3Nob3dfYnVn
+LmNnaT9pZD0zOTkxMSBmb3IgZnVsbCByZXBvcnQuCj4gPiAKPiA+IFRoYXQncyBxdWl0ZSBwb3Nz
+aWJsZSBidXQgd2h5IGhhc24ndCBhbnkgcGVydGluZW50IGluZm9ybWF0aW9uIGJlZW4KPiA+IG9i
+dGFpbmVkIGZyb20gdGhlIHJlcG9ydGVyPwo+ID4gCj4gPiBXaGF0IGFyZSB0aGUgbWFwcyBpbiB1
+c2U/Cj4gPiBXaGF0IGlzIHRoZSBtZW1vcnkgdXNhZ2UgYXQgc3RhcnR1cCwgYWZ0ZXIgMiBob3Vy
+cywgNCBob3VycywgYXQgbGVhc3QKPiA+IHR3byBzYW1wbGVzIHRoZSBmb2xsb3dpbmcgZGF5LCBl
+dGMuIChmb3IgYXQgbGVhc3QgdHdvIGRheXMpPwo+ID4gRG9lcyB0aGUgc2FtZSB0aGluZyBoYXBw
+ZW4gaWYgdGhleSBzZXR1cCBmaWxlIG1hcHMgZm9yIGV2ZXJ5dGhpbmcKPiA+IGluc3RlYWQ/Cj4g
+SSBkaWQgYXNrLgo+IAo+ID4gV2hhdCBwcm9jZXNzIGRpZCB5b3UgZm9sbG93IHdoZW4gdHJ5aW5n
+IHRvIHJlcHJvZHVjZSBpdD8KPiA+IAo+ID4gQXMgZmFyIGFzIHRoZSB2ZXJzaW9uIGdvZXMgSSBk
+b24ndCBrbm93IHdoYXQgbWF5IGhhdmUgYmVlbiBhZGRlZCB0byBtYWtlCj4gPiB1cCB0aGF0IHBh
+Y2thZ2UuCj4gSWYgeW91J3JlIHJlZmVyaW5nIHRvIG1hbmRyaXZhIHNwZWNpZmljIG1vZGlmaWNh
+dGlvbnMsIGV2ZXJ5dGhpbmcgaXMKPiBhdmFpbGFibGUgYXQKPiBodHRwOi8vc3ZuLm1hbmRyaXZh
+LmNvbS9jZ2ktYmluL3ZpZXd2Yy5jZ2kvcGFja2FnZXMvY29va2VyL2F1dG9mcy9yZWxlYXNlcy81
+LjAuMi84bWR2MjAwOC4xLwoKVGhhdCdzIHdoYXQgSSBuZWVkLgpJJ2xsIGhhdmUgYSBnbyBhdCBz
+ZXR0aW5nIHVwIGEgdGVzdC4KCj4gCj4gTW9zdCBwYXRjaGVzIGFyZSB1cHN0cmVhbSBwYXRjaGVz
+LCBleGNlcHRlZCB0aGUgZm9sbG93aW5nIG9uZXM6Cj4gUGF0Y2gxMDE6ICAgICAgIGF1dG9mcy01
+LjAuMi1zZXQtZGVmYXVsdC1icm93c2UtbW9kZS5wYXRjaAo+IFBhdGNoMTAyOiAgICAgICBhdXRv
+ZnMtNS4wLjItc2VwYXJhdGUtY29uZmlnLWZpbGVzLnBhdGNoCj4gUGF0Y2gxMDM6ICAgICAgIGF1
+dG9mcy01LjAuMi1yZW5hbWUtY29uZmlndXJhdGlvbi1maWxlLnBhdGNoCj4gUGF0Y2gxMDU6ICAg
+ICAgIGF1dG9mcy01LjAuMS1yYzMtY29tbWVudC1kZWZhdWx0LW1hc3Rlci1tYXAucGF0Y2gKCl9f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmF1dG9mcyBtYWls
+aW5nIGxpc3QKYXV0b2ZzQGxpbnV4Lmtlcm5lbC5vcmcKaHR0cDovL2xpbnV4Lmtlcm5lbC5vcmcv
+bWFpbG1hbi9saXN0aW5mby9hdXRvZnMK
