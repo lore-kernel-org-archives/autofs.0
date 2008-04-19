@@ -1,13 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: user reporting memory leak with ldap maps
-Date: Wed, 16 Apr 2008 10:29:52 +0800
-Message-ID: <1208312992.3048.0.camel@raven.themaw.net>
-References: <48036EE7.3070805@inria.fr>
-	<1208228681.3101.8.camel@raven.themaw.net> <48052401.4090702@inria.fr>
+Subject: Re: wait_for_lock() in mount
+Date: Sat, 19 Apr 2008 11:35:46 +0800
+Message-ID: <1208576146.3090.5.camel@raven.themaw.net>
+References: <3307cdf90804180939t42fed2d7k8fc96304f8d01455@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <48052401.4090702@inria.fr>
+In-Reply-To: <3307cdf90804180939t42fed2d7k8fc96304f8d01455@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,36 +18,75 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="iso-8859-1"
-To: Guillaume Rousse <Guillaume.Rousse@inria.fr>
+To: Rajouri Jammu <rajouri.jammu@gmail.com>
 Cc: autofs@linux.kernel.org
 
-Ck9uIFR1ZSwgMjAwOC0wNC0xNSBhdCAyMzo1NCArMDIwMCwgR3VpbGxhdW1lIFJvdXNzZSB3cm90
-ZToKPiBJYW4gS2VudCBhIMOpY3JpdCA6Cj4gPiBPbiBNb24sIDIwMDgtMDQtMTQgYXQgMTY6NDkg
-KzAyMDAsIEd1aWxsYXVtZSBSb3Vzc2Ugd3JvdGU6Cj4gPj4gQSBtZHYgdXNlciBjb21wbGFpbnMg
-YWJvdXQgYSBtZW1vcnkgbGVhayBpbiBhdXRvZnMgNS4wLjIuIEkgY2FuJ3QKPiA+PiByZXByb2R1
-Y2UgbXlzZWxmLCBidXQgSSBkb24ndCBoYXZlIHRoZSBzYW1lIHZlcnNpb24gYXZhaWxhYmxlIGZv
-ciB0ZXN0aW5nLgo+ID4+Cj4gPj4gU2VlIGh0dHBzOi8vcWEubWFuZHJpdmEuY29tL3Nob3dfYnVn
-LmNnaT9pZD0zOTkxMSBmb3IgZnVsbCByZXBvcnQuCj4gPiAKPiA+IFRoYXQncyBxdWl0ZSBwb3Nz
-aWJsZSBidXQgd2h5IGhhc24ndCBhbnkgcGVydGluZW50IGluZm9ybWF0aW9uIGJlZW4KPiA+IG9i
-dGFpbmVkIGZyb20gdGhlIHJlcG9ydGVyPwo+ID4gCj4gPiBXaGF0IGFyZSB0aGUgbWFwcyBpbiB1
-c2U/Cj4gPiBXaGF0IGlzIHRoZSBtZW1vcnkgdXNhZ2UgYXQgc3RhcnR1cCwgYWZ0ZXIgMiBob3Vy
-cywgNCBob3VycywgYXQgbGVhc3QKPiA+IHR3byBzYW1wbGVzIHRoZSBmb2xsb3dpbmcgZGF5LCBl
-dGMuIChmb3IgYXQgbGVhc3QgdHdvIGRheXMpPwo+ID4gRG9lcyB0aGUgc2FtZSB0aGluZyBoYXBw
-ZW4gaWYgdGhleSBzZXR1cCBmaWxlIG1hcHMgZm9yIGV2ZXJ5dGhpbmcKPiA+IGluc3RlYWQ/Cj4g
-SSBkaWQgYXNrLgo+IAo+ID4gV2hhdCBwcm9jZXNzIGRpZCB5b3UgZm9sbG93IHdoZW4gdHJ5aW5n
-IHRvIHJlcHJvZHVjZSBpdD8KPiA+IAo+ID4gQXMgZmFyIGFzIHRoZSB2ZXJzaW9uIGdvZXMgSSBk
-b24ndCBrbm93IHdoYXQgbWF5IGhhdmUgYmVlbiBhZGRlZCB0byBtYWtlCj4gPiB1cCB0aGF0IHBh
-Y2thZ2UuCj4gSWYgeW91J3JlIHJlZmVyaW5nIHRvIG1hbmRyaXZhIHNwZWNpZmljIG1vZGlmaWNh
-dGlvbnMsIGV2ZXJ5dGhpbmcgaXMKPiBhdmFpbGFibGUgYXQKPiBodHRwOi8vc3ZuLm1hbmRyaXZh
-LmNvbS9jZ2ktYmluL3ZpZXd2Yy5jZ2kvcGFja2FnZXMvY29va2VyL2F1dG9mcy9yZWxlYXNlcy81
-LjAuMi84bWR2MjAwOC4xLwoKVGhhdCdzIHdoYXQgSSBuZWVkLgpJJ2xsIGhhdmUgYSBnbyBhdCBz
-ZXR0aW5nIHVwIGEgdGVzdC4KCj4gCj4gTW9zdCBwYXRjaGVzIGFyZSB1cHN0cmVhbSBwYXRjaGVz
-LCBleGNlcHRlZCB0aGUgZm9sbG93aW5nIG9uZXM6Cj4gUGF0Y2gxMDE6ICAgICAgIGF1dG9mcy01
-LjAuMi1zZXQtZGVmYXVsdC1icm93c2UtbW9kZS5wYXRjaAo+IFBhdGNoMTAyOiAgICAgICBhdXRv
-ZnMtNS4wLjItc2VwYXJhdGUtY29uZmlnLWZpbGVzLnBhdGNoCj4gUGF0Y2gxMDM6ICAgICAgIGF1
-dG9mcy01LjAuMi1yZW5hbWUtY29uZmlndXJhdGlvbi1maWxlLnBhdGNoCj4gUGF0Y2gxMDU6ICAg
-ICAgIGF1dG9mcy01LjAuMS1yYzMtY29tbWVudC1kZWZhdWx0LW1hc3Rlci1tYXAucGF0Y2gKCl9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmF1dG9mcyBtYWls
-aW5nIGxpc3QKYXV0b2ZzQGxpbnV4Lmtlcm5lbC5vcmcKaHR0cDovL2xpbnV4Lmtlcm5lbC5vcmcv
-bWFpbG1hbi9saXN0aW5mby9hdXRvZnMK
+
+On Fri, 2008-04-18 at 09:39 -0700, Rajouri Jammu wrote:
+> Hi,
+> 
+> 
+> I'm trying to bring up a stacked file system on top of an NFS mount
+> point both via automount.
+> 
+> 
+> For example:
+> On my client system I have two directories /data1 and /data2
+> /data1/nfs_01
+> /data2/nfs_01
+> 
+> 
+> nfs_server:/data/nfs_01 is mounted on /data1/nfs_01 (type nfs)
+> 
+> 
+> /data1/nfs_01 is mounted on /data2/nfs_01
+> 
+> 
+> The automount config files look like:
+> /etc/auto.data1:
+> nfs_01   nfs_server:/data/nfs_01
+> 
+> 
+> 
+> /etc/auto.data2:
+> nfs_01   -fstype=ecryptfs :/data1/nfs_01
+> 
+> 
+> 
+> 
+> The problem:
+> 
+> 
+> When I try to access /data2/nfs_01 it kicks in automount to
+> mount /data1/nfs_01, which in turn kicks in automount again to mount
+> nfs_server:/data/nfs_01 on /data1/nfs_01.
+> 
+> 
+> The second mount waits for 10secs for a lock file held by the first
+> mount in mount_nfs.c after mkdir_path().
+
+So you're running version 4?
+
+> 
+> 
+> Is there a way I can configure things such that the second mount
+> doesn't wait?
+
+There is a patch around to add a configure option
+"--disable-mount-locking" but you need to be sure you're mount(8) is at
+least reasonably up to date.
+
+You may want to look in
+http://www.kernel.org/pub/linux/daemons/autofs/v4/
+
+> 
+> 
+> 
+> The lock file is a single global.
+> 
+> Should the file be specific to the mount point?
+
+No, it is meant help prevent corruption of /etc/mtab as the locking in
+mount(8) was broken for a long time.
+
+Ian
