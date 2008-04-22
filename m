@@ -1,15 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: wait_for_lock() in mount
-Date: Sun, 20 Apr 2008 22:50:47 +0800
-Message-ID: <1208703048.3632.8.camel@raven.themaw.net>
-References: <3307cdf90804180939t42fed2d7k8fc96304f8d01455@mail.gmail.com>
-	<1208576146.3090.5.camel@raven.themaw.net>
-	<3307cdf90804191052v194cc2bctb25b6aab612e903d@mail.gmail.com>
+From: Stef Bon <stef@bononline.nl>
+Subject: Indirect mounts: name of network as key.
+Date: Tue, 22 Apr 2008 10:48:43 +0200
+Message-ID: <480DA66B.9020806@bononline.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <3307cdf90804191052v194cc2bctb25b6aab612e903d@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,43 +16,89 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Rajouri Jammu <rajouri.jammu@gmail.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
+Hello,
 
-On Sat, 2008-04-19 at 10:52 -0700, Rajouri Jammu wrote:
-> Thank you for the prompt response.
-> 
-> 
-> Yes, I'm using autofs4 which came with CentOS release 4.6 
+since some time I'm working on a sollution to provide access to the 
+network with autofs.
+My construction adds an entry to the auto.master file:
 
-RHEL-4 U6 should be OK.
-But I don't think any of the versions of mount are 100%.
+/home/sbon/Global\ Network    /etc/autofs/session/auto.network.sbon --browse
 
-> 
-> 
-> mount -V
-> mount: mount-2.12a
-> 
-> 
-> 
-> Is that version of mount OK or do I need a newer version to work with
-> the locking path?
-> If I need a newer version can you please let me know approximately
-> which one?
-> 
-> 
-> Lastly, does autofs5 not have this issue?
+The auto.network.sbon file is a symlink to auto.network.
 
-This is a problem with mount and any version of autofs that
-uses /etc/mtab will have this problem.
+The directory "Global Network" is owned by root.
 
-The later revisions of autofs v4 and autofs v5 use /etc/mtab somewhat
-less and so are less vulnerable.
+The script auto.network.sbon creates a map depending the key. The key is 
+the name
+of the network. When the key is for example "Windows Network", it's 
+output is:
 
-Using the patch requires a configure option to be specified.
-I'm not sure if this patch has been added to the RHEL-4 package, you'll
-need to check. In RHEL-5 the configure option is used when the package
-is built so CentOS 5 will have this already.
+-fstype=cifs,credentials=/home/sbon/.autofssession/smb/mount.cred \
+    /BONONLINE/LFS20060812/bononline -rw,ip=192.168.0.2 
+://LFS20060812/bononline \
+    /BONONLINE/LFS20060812/ftp -rw,ip=192.168.0.2 ://LFS20060812/ftp \
+    /BONONLINE/LFS20060812/sbon -rw,ip=192.168.0.2 ://LFS20060812/sbon \
+    /BONONLINE/LFS20060812/video -rw,ip=192.168.0.2 ://LFS20060812/video \
+    /CWWERKGROEP/ROUTER/public -rw,ip=192.168.0.1 ://ROUTER/public \
+    /CWWERKGROEP/ROUTER/sbon -rw,ip=192.168.0.1 ://ROUTER/sbon
 
-Ian
+When the key is "SSH hosts", it's output is:
+
+-fstype=sshfs \
+    /192.168.0.1 -rw,nodev,nonempty,noatime ://sbon@192.168.0.1:/ \
+    /192.168.0.2 -rw,nodev,nonempty,noatime ://sbon@192.168.0.2:/ \
+
+(the mount.sshfs is a script which calls the sshfs fuse program with the 
+right parameters)
+( the script auto.network determines these maps dynamically..)
+
+Now when a session for a user starts, the line for this 
+("/home/sbon/Global\ Network  /etc/autofs/se...")
+is added to the auto.master file.
+If the automount daemon is not running, it is started here, else the 
+running automounter gets a reload.
+
+This construction gives a very good way to access the network. It comes 
+very near to what I'm looking for. It provides
+easy access to various network services. At the same time, because of 
+the use of cifs for smb networks, advanced
+features are supported.
+
+The only problem to activate the map, and to keep is "up". Normally when 
+I do something like:
+
+:> cd "/home/sbon/Global Network"
+:> ls
+(gives no output, I have to do:)
+:> ls "Windows Network"
+BONONLINE CWWERKGROEP
+(now I've got a browseable map, where the shares are only mounted when 
+accessed, what is good! Simular:)
+:> ls "SSH hosts"
+192.168.0.1 192.168.0.2
+
+I solve this by doing a ls "%Network Name%" for all the networks 
+available to an user. Well a script does that.
+
+There is only one thing where this construction goes wrong, and that is 
+that the automounter sometimes "forgets"
+the whole tree, for example the "Windows Network" tree. Than I see only 
+the tree "SSH hosts".
+This has something to do with the timeout option. This option applys to 
+the active mounts (cifs and sshfs here),
+but as far I can see also to the whole browseable tree.
+Now it's obvious, when setting this value here to zero, and thus 
+disabling this behaviour, solves the problem.
+It leaves the whole browseable tree intact. But now the cifs and sshfs 
+shares are not unmounted anymore, when they are
+unused for some time... This is not so good, because this is one of the 
+pros of the automounter.
+
+Is there a way to make the timeout option only apply to the actual 
+external mounts, and leave the browseable tree?
+
+Thanks in advance,
+
+Stef Bon
