@@ -1,15 +1,14 @@
-From: Robert Kuropkat <robert.a.kuropkat@saic.com>
-Subject: Re: autofs-5.0.1-0.rc2.55.el5.3 core dump
-Date: Wed, 23 Apr 2008 16:33:00 -0400
-Message-ID: <480F9CFC.9040206@saic.com>
-References: <47FF8D07.7080208@schrodinger.com>	<x49iqyo9x8i.fsf@segfault.boston.devel.redhat.com>	<47FF9443.4020305@schrodinger.com>	<1207970551.3138.9.camel@raven.themaw.net>
-	<480E5E0A.2050702@saic.com>	<1208946658.3207.26.camel@raven.themaw.net>	<480F8D64.2070204@saic.com>
-	<x49abjkic62.fsf@segfault.boston.devel.redhat.com>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: (no subject)
+Date: Wed, 23 Apr 2008 16:04:44 -0400
+Message-ID: <x4963u8ibhf.fsf@segfault.boston.devel.redhat.com>
+References: <20080423185018.122C53C3B1@xena.cft.ca.us>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <x49abjkic62.fsf@segfault.boston.devel.redhat.com>
+In-Reply-To: <20080423185018.122C53C3B1@xena.cft.ca.us> (Jim Carter's message
+	of "Wed, 23 Apr 2008 11:50:17 -0700 (PDT)")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,36 +19,89 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: autofs@linux.kernel.org, Ian Kent <raven@themaw.net>
+To: Jim Carter <jimc@math.ucla.edu>
+Cc: autofs@linux.kernel.org
 
+jimc@math.ucla.edu (Jim Carter) writes:
 
+> Our two webservers serve UserDirs that are automounted (NFS) from other
+> hosts.  Every few days we discover a catatonic webserver (Apache2) with
+> $ServerLimit child processes (150 of them), and many but not all home
+> directories cannot be accessed manually (ls -d ~$user, which hangs).
+> This started immediately after we upgraded the server host from SuSE
+> 10.1 to SuSE 10.3; autofs version changed from 4.1.4 to 5.0.2.
 
-Jeff Moyer wrote:
-> Robert Kuropkat <robert.a.kuropkat@saic.com> writes:
-> 
->> Ian,
->>
->> Ian Kent wrote:
->>> On Tue, 2008-04-22 at 17:52 -0400, Robert Kuropkat wrote:
->>>> Ian,
->>>>
+That's a big jump!
 
-<snip>
+> I was hoping to include debug output from autofs, but when I set
+> DEFAULT_LOGGING=debug and started the test program it totally locked up
+> the machine and I haven't been able to get on it since (because I'm
+> working from home).  Update: a co-worker rebooted it for me and I was
+> able to clear the debug switch and recover the syslog output (attached).
+> But evidently the test program also seized up; I don't see a lot of
+> actual mounting going on.  Anyway I've included it, for what it's worth.
 
->>
->> and then of course, all entries end.  This does not seem very verbose.
->> Is there another log file somewhere I am missing?
-> 
-> Check out http://people.redhat.com/jmoyer for instructions on collecting
-> debug information.  You need to tell syslog to put that stuff somewhere,
-> is all, so look for the bits on setting up /etc/syslog.conf.
-> 
-> Cheers,
-> 
-> Jeff
-> 
+That's strange.  Given the number of mounts you're talking about,
+though, it may just be that you overcommitted the boxes memory.  It will
+be hard to say without further digging.
 
-Done, thank you very much.  When it crashes again, I'll post the results.
+> I was hoping to include useful strace output, and I have 80 Mbytes of
+> turgid information (on a different machine), but I have a feeling that
+> it's going to be more useful to include the test program and let 
+> someone overload their own testbed system.  Here's my impression of the
+> traces:  
 
-Robert Kuropkat
+Or, you could just give us a backtrace of the automount process when
+things go pear-shaped.  See below.
+
+> /bin/mount used to have notorious problems locking /etc/mtab.  But I
+> compare /etc/mtab with /proc/mounts before forking the directory access
+> process, and it was the same on several thousand comparisons with only
+> two unequal comparisons; in both cases the filesystem about to be
+> accessed (remounted) was in mtab and not /proc/mounts, and at most 8
+> seconds later it was in both and the content had been read.  2 minutes
+> after the second such event, and 38 minutes into the test run, client
+> processes started to hang.
+
+This is less of a problem these days, due to the fact that we've fixed
+the bugs we've found in util-linux and the fact that we don't use mtab
+anymore.  ;)
+
+>
+> Here are the particulars of our autofs setup.
+>
+> Distro:		OpenSuSE 10.3
+> Kernel:		2.6.22.17 (kernel-default-2.6.22.17-0.1)
+> Autofs:		5.0.2-30.2 (recompiled with the DNS timeout mitigation 
+> 		patch that Ian Kent made for us) (and identical behavior 
+> 		without the patch)
+> Mount program:	util-linux-2.12r+2.13rc2+git20070725-24.2 (/bin/mount)
+> NFS:		nfs-client-1.1.0-8 (/sbin/mount.nfs)
+>
+> =-- auto.master --- (comments omitted in all conf files)
+> /net            /etc/auto.net		<== giving trouble
+> /home           yp:auto.home
+>
+> =-- auto.net ---
+> *       -rsize=8192,wsize=8192,retry=1,soft,fstype=autofs,-DSERVER=&    file:/etc/auto.net.generic
+
+A ha!  Submounts!  We're currently chasing a couple of issues in this
+area.
+
+> =------------- Output from DEFAULT_LOGGING=debug -------
+[snip]
+
+Jim, I'm not sure I see anything out of the ordinary in this snippet of
+the debug log.  Can you search your logs for a message that contains,
+"ask umount returned busy"?  If you see that, then we're looking at the
+same problem.  If you don't, well, we'll have to get more information
+from you.
+
+For starters, can you install the autofs debuginfo package and attach to
+the running automounter (when in a bad state) and get the output from:
+
+gdb> thr a a bt
+
+?  That would be a great help.
+
+-Jeff
