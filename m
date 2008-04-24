@@ -1,18 +1,20 @@
 From: Jeff Moyer <jmoyer@redhat.com>
 Subject: Re: LDAP Server
-Date: Thu, 24 Apr 2008 15:19:59 -0400
-Message-ID: <x49lk33giw0.fsf@segfault.boston.devel.redhat.com>
+Date: Thu, 24 Apr 2008 15:48:20 -0400
+Message-ID: <x493apbghkr.fsf@segfault.boston.devel.redhat.com>
 References: <07A371D457B501478C1DB3C3DE8372D701783790@GSBHEX2V.gsb.uchicago.edu>
 	<x49wsmngmjq.fsf@segfault.boston.devel.redhat.com>
 	<07A371D457B501478C1DB3C3DE8372D7017837DC@GSBHEX2V.gsb.uchicago.edu>
 	<x49skxbgll7.fsf@segfault.boston.devel.redhat.com>
 	<07A371D457B501478C1DB3C3DE8372D70178387D@GSBHEX2V.gsb.uchicago.edu>
+	<x49lk33giw0.fsf@segfault.boston.devel.redhat.com>
+	<07A371D457B501478C1DB3C3DE8372D7017838DA@GSBHEX2V.gsb.uchicago.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <07A371D457B501478C1DB3C3DE8372D70178387D@GSBHEX2V.gsb.uchicago.edu>
-	(Darren Young's message of "Thu, 24 Apr 2008 13:59:09 -0500")
+In-Reply-To: <07A371D457B501478C1DB3C3DE8372D7017838DA@GSBHEX2V.gsb.uchicago.edu>
+	(Darren Young's message of "Thu, 24 Apr 2008 14:38:33 -0500")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -28,15 +30,35 @@ Cc: autofs@linux.kernel.org
 
 "Young, Darren" <Darren.Young@ChicagoGSB.edu> writes:
 
-> Yep, sure can.
+> Says:
 >
-> ldapsearch -x -h <ldap_host> -D "cn=Directory Manager" -b
-> "o=gsb,dc=uchicago,dc=edu" -w <password>' uid=dyoung2 cn
+> supportedSASLMechanisms: EXTERNAL
+> supportedSASLMechanisms: GSSAPI
+> supportedSASLMechanisms: DIGEST-MD5
+>
+> So I set autofs_ldap_auth.conf to:
+> <autofs_ldap_sasl_conf
+>         usetls="no"
+>         tlsrequired="no"
+>         authrequired="yes"
+>         authtype="DIGEST-MD5"
+>         user="cn=Directory Manager"
+>         secret="xxxxx"
+> />
+>
+> And get:
+> Apr 24 14:34:44 gsbtestfilervm automount[8097]: sasl_log_func: No worthy
+> mechs found
+> Apr 24 14:34:44 gsbtestfilervm automount[8097]: sasl_bind_mech:
+> sasl_client start failed with error: SASL(-4): no mechanism available:
+> No worthy mechs found
+> Apr 24 14:34:44 gsbtestfilervm automount[8097]: lookup_init:
+> lookup(ldap): cannot initialize authentication setup
+> Apr 24 14:34:44 gsbtestfilervm automount[8097]: lookup_read_master:
+> lookup(file): failed to read included master map auto.master
 
-The "-x" option tells ldapsearch to use simple authentication (not
-SASL).  Can you specify a SASL mechanism (using -Y)?  To get a list of
-supported mechanisms, you can look for 'supportedSASLMechanisms' in your
-directory root.
+OK, what version of autofs are you running, and are you logging daemon.*
+to your log file?
 
 Cheers,
 
