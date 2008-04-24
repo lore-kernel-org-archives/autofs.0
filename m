@@ -1,15 +1,22 @@
-From: "Young, Darren" <Darren.Young@chicagogsb.edu>
+From: Jeff Moyer <jmoyer@redhat.com>
 Subject: Re: LDAP Server
-Date: Thu, 24 Apr 2008 13:10:37 -0500
-Message-ID: <07A371D457B501478C1DB3C3DE8372D7017837DC@GSBHEX2V.gsb.uchicago.edu>
+Date: Thu, 24 Apr 2008 16:58:53 -0400
+Message-ID: <x49mynjezqq.fsf@segfault.boston.devel.redhat.com>
 References: <07A371D457B501478C1DB3C3DE8372D701783790@GSBHEX2V.gsb.uchicago.edu>
 	<x49wsmngmjq.fsf@segfault.boston.devel.redhat.com>
+	<07A371D457B501478C1DB3C3DE8372D7017837DC@GSBHEX2V.gsb.uchicago.edu>
+	<x49skxbgll7.fsf@segfault.boston.devel.redhat.com>
+	<07A371D457B501478C1DB3C3DE8372D70178387D@GSBHEX2V.gsb.uchicago.edu>
+	<x49lk33giw0.fsf@segfault.boston.devel.redhat.com>
+	<07A371D457B501478C1DB3C3DE8372D7017838DA@GSBHEX2V.gsb.uchicago.edu>
+	<x493apbghkr.fsf@segfault.boston.devel.redhat.com>
+	<07A371D457B501478C1DB3C3DE8372D701783912@GSBHEX2V.gsb.uchicago.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-reply-to: <x49wsmngmjq.fsf@segfault.boston.devel.redhat.com>
-Content-class: urn:content-classes:message
+In-Reply-To: <07A371D457B501478C1DB3C3DE8372D701783912@GSBHEX2V.gsb.uchicago.edu>
+	(Darren Young's message of "Thu, 24 Apr 2008 14:54:25 -0500")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,58 +27,39 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>
+To: "Young, Darren" <Darren.Young@ChicagoGSB.edu>
 Cc: autofs@linux.kernel.org
 
-Getting there, have this one now:
+"Young, Darren" <Darren.Young@ChicagoGSB.edu> writes:
 
-Apr 22 09:14:09 gsbtestfilervm automount[7775]: do_sasl_bind: Error
-parsing response to sasl_bind request: Authentication method not
-supported.
-Apr 22 09:14:09 gsbtestfilervm automount[7775]: do_sasl_bind: The LDAP
-server indicated that the LDAP SASL bind was incomplete, but did not
-provide the required data to proceed. LDAP SASL bind with mechanism
-LOGIN failed.
-Apr 22 09:14:09 gsbtestfilervm automount[7775]: sasl_bind_mech: sasl
-bind with mechanism LOGIN failed
-Apr 22 09:14:09 gsbtestfilervm automount[7775]: lookup_init:
-lookup(ldap): cannot initialize authentication setup
+> Apr 24 14:35:33 gsbtestfilervm automount[8138]: Starting automounter
+> version 5.0.1-0.rc2.55, master map auto.master
+>
+> On:
+>
+> [root@gsbtestfilervm log]# cat /etc/redhat-release 
+> Red Hat Enterprise Linux Server release 5.1 (Tikanga)
+>
+> Added daemon.* to syslog and started autofs:
+>
+> Apr 24 14:47:16 gsbtestfilervm automount[8283]: parse_ldap_config: ldap
+> authentication configured with the following options: 
+> Apr 24 14:47:16 gsbtestfilervm automount[8283]: parse_ldap_config:
+> use_tls: 0, tls_required: 0, auth_required: 2, sasl_mech: DIGEST-MD5 
+> Apr 24 14:47:16 gsbtestfilervm automount[8283]: parse_ldap_config: user:
+> cn=Directory Manager, secret: specified, client principal: (null) 
+> Apr 24 14:47:16 gsbtestfilervm automount[8283]: sasl_bind_mech:
+> Attempting sasl bind with mechanism DIGEST-MD5
+> Apr 24 14:47:16 gsbtestfilervm automount[8283]: sasl_log_func: No worthy
+> mechs found
+> Apr 24 14:47:16 gsbtestfilervm automount[8283]: sasl_bind_mech:
+> sasl_client start failed with error: SASL(-4): no mechanism available:
+> No worthy mechs found
 
-LDAP is Sun directory 5.2 and I thought it supported SASL. Tried PLAIN
-and LOGIN methods, same thing. Anonymous bind is disabled on our LDAP
-hosts.
+Hmm.  Do you have the cyrus-sasl-md5 package installed?  rpm -q
+cyrus-sasl-md5 will tell you.  If so, then can you get a packet capture
+during the autofs start (and failure)?  Be sure to capture packet data
+by specifying a snaplen of 0 if using tcpdump.
 
-> -----Original Message-----
-> From: Jeff Moyer [mailto:jmoyer@redhat.com]
-> Sent: Thursday, April 24, 2008 1:01 PM
-> To: Young, Darren
-> Cc: autofs@linux.kernel.org
-> Subject: Re: [autofs] LDAP Server
-> 
-> "Young, Darren" <Darren.Young@chicagogsb.edu> writes:
-> 
-> > Getting the following on a RHEL 5 system:
-> >
-> > Apr 22 08:47:29 gsbtestfilervm automount[7607]: using kernel
-protocol
-> > version 5.00
-> > Apr 22 08:47:30 gsbtestfilervm automount[7607]: do_sasl_bind: Error
-> > sending sasl_bind request to the server: Can't contact LDAP server
-> > Apr 22 08:47:30 gsbtestfilervm automount[7607]: sasl_bind_mech: sasl
-> > bind with mechanism PLAIN failed
-> > Apr 22 08:47:30 gsbtestfilervm automount[7607]: lookup_init:
-> > lookup(ldap): cannot initialize authentication setup
-> > Apr 22 08:47:30 gsbtestfilervm automount[7607]: lookup_read_master:
-> > lookup(file): failed to read included master map auto.master
-> >
-> > Where does autofs obtain the server to connect to from? Ldap.conf?
-> 
-> If no server is specified in your automounter configuration, it uses
-> the
-> defaults (which depend on the library used).  For openldap, this will
-> be
-> /etc/openldap/ldap.conf.
-> 
-> Cheers,
-> 
-> Jeff
+Thanks!
+Jeff
