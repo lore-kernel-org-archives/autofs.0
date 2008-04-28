@@ -1,54 +1,69 @@
-From: Stef Bon <stef@bononline.nl>
-Subject: Re: include a master file: where does the automounter look
-Date: Mon, 28 Apr 2008 16:27:09 +0200
-Message-ID: <4815DEBD.1040301@bononline.nl>
-References: <48158BB4.3050008@bononline.nl>
-	<1209372832.3243.23.camel@raven.themaw.net>
-Mime-Version: 1.0
+From: Jan Blunck <jblunck@suse.de>
+Subject: [PATCH 3/3] AutoFS: path_{get,put}() cleanups
+Date: Mon, 28 Apr 2008 18:37:34 +0200
+Message-ID: <20080428163732.201203178@T61.localnet>
+References: <20080428163731.774191296@T61.localnet>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Content-Disposition: inline; filename=vfs/path_get_put-cleanups-autofs.diff
+Sender: linux-fsdevel-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1209372832.3243.23.camel@raven.themaw.net>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+To: Linux-Kernel Mailinglist <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linux-fsdevel Mailinglist <linux-fsdevel@vger.kernel.org>
+Cc: raven@themaw.net, autofs@linux.kernel.org
 
-Ian Kent wrote:
-> On Mon, 2008-04-28 at 10:32 +0200, Stef Bon wrote:
->   
->> Hello,
->>
->> when I read the manpage for auto.master (and other docs) I see that I 
->> can include another master file by doing:
->>
->> +auto.master
->>
->> The comment says that by doing so, the you can specify a master map 
->> which is found using
->> nsswitch sources.
->> What happens then? Where does it look then?
->>     
->
-> If you have a line in /etc/nsswitch.conf like:
->
-> automount: files nis
->
-> it will look in /etc for auto.master (files) and try to connect to a nis
-> server and ask for auto.master.
->   
-Ok, it will search for the files first and after that the nis thing.
-But here: this line which instructed the automounter to look in the 
-nsswitch.conf file is in a auto.master file, and then you instruct it to 
-look for the same file again.
-This does not make sense to me...
+Here are some more places where path_{get,put}() can be used instead of
+dput()/mntput() pair. Besides that it fixes a bug in autofs4_mount_busy()
+where mntput() was called before dput().
 
-Stef Bon
+Signed-off-by: Jan Blunck <jblunck@suse.de>
+---
+ fs/autofs4/expire.c |    2 +-
+ fs/autofs4/root.c   |   12 ++++++------
+ 2 files changed, 7 insertions(+), 7 deletions(-)
+
+Index: b/fs/autofs4/expire.c
+===================================================================
+--- a/fs/autofs4/expire.c
++++ b/fs/autofs4/expire.c
+@@ -73,8 +73,8 @@ static int autofs4_mount_busy(struct vfs
+ 	status = 0;
+ done:
+ 	DPRINTK("returning = %d", status);
+-	mntput(mnt);
+ 	dput(dentry);
++	mntput(mnt);
+ 	return status;
+ }
+ 
+Index: b/fs/autofs4/root.c
+===================================================================
+--- a/fs/autofs4/root.c
++++ b/fs/autofs4/root.c
+@@ -146,17 +146,17 @@ static int autofs4_dir_open(struct inode
+ 
+ 	if (d_mountpoint(dentry)) {
+ 		struct file *fp = NULL;
+-		struct vfsmount *fp_mnt = mntget(mnt);
+-		struct dentry *fp_dentry = dget(dentry);
++		struct path fp_path = { .dentry = dentry, .mnt = mnt };
+ 
+-		if (!autofs4_follow_mount(&fp_mnt, &fp_dentry)) {
+-			dput(fp_dentry);
+-			mntput(fp_mnt);
++		path_get(&fp_path);
++
++		if (!autofs4_follow_mount(&fp_path.mnt, &fp_path.dentry)) {
++			path_put(&fp_path);
+ 			dcache_dir_close(inode, file);
+ 			goto out;
+ 		}
+ 
+-		fp = dentry_open(fp_dentry, fp_mnt, file->f_flags);
++		fp = dentry_open(fp_path.dentry, fp_path.mnt, file->f_flags);
+ 		status = PTR_ERR(fp);
+ 		if (IS_ERR(fp)) {
+ 			dcache_dir_close(inode, file);
+
+
