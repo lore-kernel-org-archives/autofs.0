@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH] autofs4 - fix compile warning in waitq.c:autofs4_expire_indirect()
-Date: Mon, 28 Apr 2008 14:19:06 +0800 (WST)
-Message-ID: <Pine.LNX.4.64.0804281417080.10684@raven.themaw.net>
+Subject: [PATCH] autofs4 - check for invalid dentry in getpath
+Date: Mon, 28 Apr 2008 14:21:21 +0800 (WST)
+Message-ID: <Pine.LNX.4.64.0804281419430.10684@raven.themaw.net>
 Mime-Version: 1.0
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
 Sender: linux-fsdevel-owner@vger.kernel.org
@@ -14,70 +14,27 @@ Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, autofs mailing list <aut
 
 Hi Andrew,
 
-This patch re-orders some code in expire.c:autofs4_expire_indirect()
-to avoid compile warning, reported by Harvey Harrison:
-
- CHECK   fs/autofs4/expire.c
-fs/autofs4/expire.c:383:2: warning: context imbalance in
-'autofs4_expire_indirect' - unexpected unlock
+Patch to catch invalid dentry when calculating it's path.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 
+Ian
+
 ---
-diff -up linux-2.6.25-mm1/fs/autofs4/expire.c.cleanup-expire-indirect linux-2.6.25-mm1/fs/autofs4/expire.c
---- linux-2.6.25-mm1/fs/autofs4/expire.c.cleanup-expire-indirect	2008-04-28 11:38:55.000000000 +0800
-+++ linux-2.6.25-mm1/fs/autofs4/expire.c	2008-04-28 11:39:17.000000000 +0800
-@@ -333,7 +333,7 @@ static struct dentry *autofs4_expire_ind
- 			/* Can we expire this guy */
- 			if (autofs4_can_expire(dentry, timeout, do_now)) {
- 				expired = dentry;
--				break;
-+				goto found;
- 			}
- 			goto next;
- 		}
-@@ -352,7 +352,7 @@ static struct dentry *autofs4_expire_ind
- 				inf->flags |= AUTOFS_INF_EXPIRING;
- 				spin_unlock(&sbi->fs_lock);
- 				expired = dentry;
--				break;
-+				goto found;
- 			}
- 			spin_unlock(&sbi->fs_lock);
- 		/*
-@@ -363,7 +363,7 @@ static struct dentry *autofs4_expire_ind
- 			expired = autofs4_check_leaves(mnt, dentry, timeout, do_now);
- 			if (expired) {
- 				dput(dentry);
--				break;
-+				goto found;
- 			}
- 		}
- next:
-@@ -371,18 +371,16 @@ next:
- 		spin_lock(&dcache_lock);
- 		next = next->next;
- 	}
--
--	if (expired) {
--		DPRINTK("returning %p %.*s",
--			expired, (int)expired->d_name.len, expired->d_name.name);
--		spin_lock(&dcache_lock);
--		list_move(&expired->d_parent->d_subdirs, &expired->d_u.d_child);
--		spin_unlock(&dcache_lock);
--		return expired;
--	}
- 	spin_unlock(&dcache_lock);
--
- 	return NULL;
-+
-+found:
-+	DPRINTK("returning %p %.*s",
-+		expired, (int)expired->d_name.len, expired->d_name.name);
-+	spin_lock(&dcache_lock);
-+	list_move(&expired->d_parent->d_subdirs, &expired->d_u.d_child);
-+	spin_unlock(&dcache_lock);
-+	return expired;
- }
+diff -up linux-2.6.25-rc2-mm1/fs/autofs4/waitq.c.getpath-check-valid-dentry linux-2.6.25-rc2-mm1/fs/autofs4/waitq.c
+--- linux-2.6.25-rc2-mm1/fs/autofs4/waitq.c.getpath-check-valid-dentry	2008-02-20 12:55:39.000000000 +0900
++++ linux-2.6.25-rc2-mm1/fs/autofs4/waitq.c	2008-02-20 12:54:46.000000000 +0900
+@@ -171,7 +171,7 @@ static int autofs4_getpath(struct autofs
+ 	for (tmp = dentry ; tmp != root ; tmp = tmp->d_parent)
+ 		len += tmp->d_name.len + 1;
  
- /* Perform an expiry operation */
+-	if (--len > NAME_MAX) {
++	if (!len || --len > NAME_MAX) {
+ 		spin_unlock(&dcache_lock);
+ 		return 0;
+ 	}
+--
+To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please read the FAQ at  http://www.tux.org/lkml/
