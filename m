@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 1/2] autofs4 - fix execution order race in mount request code
-Date: Mon, 28 Apr 2008 14:26:34 +0800 (WST)
-Message-ID: <Pine.LNX.4.64.0804281422060.10684@raven.themaw.net>
+Subject: [PATCH 2/2] autofs4 - fix incorect return from root.c:try_to_fill_dentry()
+Date: Mon, 28 Apr 2008 14:30:29 +0800 (WST)
+Message-ID: <Pine.LNX.4.64.0804281427050.10684@raven.themaw.net>
 Mime-Version: 1.0
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
 Sender: linux-fsdevel-owner@vger.kernel.org
@@ -14,42 +14,28 @@ Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, autofs mailing list <aut
 
 Hi Andrew,
 
-Jeff Moyer has identified a race in due to an execution order dependency
-in the autofs4 function root.c:try_to_fill_dentry().
+Jeff Moyer has identified a case where the autofs4 function
+root.c:try_to_fill_dentry() can return -EBUSY when it should return
+0.
 
-Jeffs description of this race is:
+Jeffs description of the way this happens is:
 
-"P1 does a lookup of /mount/submount/foo.  Since the VFS can't find
-an entry for "foo" under /mount/submount, it calls into the autofs4
-kernel module to allocate a new dentry, D1. The kernel creates a new
-waitq for this lookup and calls the daemon to perform the mount.
+"automount starts an expire for directory d.
+after the callout to the daemon, but before the rmdir, another
+process tries to walk into the same directory.  It puts itself
+onto the waitq, pending the expiration.
 
-The daemon performs a mkdir of the "foo" directory under /mount/submount,
-which ends up creating a *new* dentry, D2.
+When the expire finishes, the second process is woken up.  In
+try_to_fill_dentry, it does this check:
 
-Then, P2 does a lookup of /mount/submount/foo.  The VFS path walking
-logic finds a dentry in the dcache, D2, and calls the revalidate
-function with this.  In the autofs4 revalidate code, we then trigger
-a mount, since the dentry is an empty directory that isn't a mountpoint,
-and so set DCACHE_AUTOFS_PENDING and call into the wait code to trigger
-the mount.
+                status = d_invalidate(dentry);
+                if (status != -EBUSY)
+                        return -EAGAIN;
 
-The wait code finds our existing waitq entry (since it is keyed off
-of the directory name) and adds itself to the list of waiters.
+And status is EBUSY.  The dentry still has a non-zero d_inode, and the
+flags do not contain LOOKUP_CONTINUE or LOOKUP_DIRECTORY
 
-After the daemon finishes the mount, it calls back into the kernel
-to release the waiters. When this happens, P1 is woken up and goes
-about clearing the DCACHE_AUTOFS_PENDING flag, but it does this in
-D1!  So, given that P1 in our case is a program that will immediately
-try to access a file under /mount/submount/foo, we end up finding the
-dentry D2 which still has the pending flag set, and we set out to
-wait for a mount *again*!
-
-So, one way to address this is to re-do the lookup at the end
-of try_to_fill_dentry, and to clear the pending flag on the hashed
-dentry.  This seems a sane approach to me."
-
-And Jeffs patch does this.
+So, we fall through and return -EBUSY to the caller."
 
 Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
 Acked-by: Ian Kent <raven@themaw.net>
@@ -57,42 +43,24 @@ Acked-by: Ian Kent <raven@themaw.net>
 Ian
 
 ---
-diff -up linux-2.6.25-mm1/fs/autofs4/root.c.redo-lookup-in-ttfd linux-2.6.25-mm1/fs/autofs4/root.c
---- linux-2.6.25-mm1/fs/autofs4/root.c.redo-lookup-in-ttfd	2008-04-28 11:43:30.000000000 +0800
-+++ linux-2.6.25-mm1/fs/autofs4/root.c	2008-04-28 11:45:29.000000000 +0800
-@@ -244,6 +244,7 @@ static int try_to_fill_dentry(struct den
- {
+diff -up linux-2.6.25-mm1/fs/autofs4/root.c.correct-return-in-ttfd linux-2.6.25-mm1/fs/autofs4/root.c
+--- linux-2.6.25-mm1/fs/autofs4/root.c.correct-return-in-ttfd	2008-04-28 11:47:20.000000000 +0800
++++ linux-2.6.25-mm1/fs/autofs4/root.c	2008-04-28 11:48:00.000000000 +0800
+@@ -245,7 +245,7 @@ static int try_to_fill_dentry(struct den
  	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
  	struct autofs_info *ino = autofs4_dentry_ino(dentry);
-+	struct dentry *new;
- 	int status = 0;
+ 	struct dentry *new;
+-	int status = 0;
++	int status;
  
  	/* Block on any pending expiry here; invalidate the dentry
-@@ -320,6 +321,27 @@ static int try_to_fill_dentry(struct den
- 	spin_lock(&dentry->d_lock);
- 	dentry->d_flags &= ~DCACHE_AUTOFS_PENDING;
- 	spin_unlock(&dentry->d_lock);
-+
-+	/*
-+	 * The dentry that is passed in from lookup may not be the one
-+	 * we end up using, as mkdir can create a new one.  If this
-+	 * happens, and another process tries the lookup at the same time,
-+	 * it will set the PENDING flag on this new dentry, but add itself
-+	 * to our waitq.  Then, if after the lookup succeeds, the first
-+	 * process that requested the mount performs another lookup of the
-+	 * same directory, it will show up as still pending!  So, we need
-+	 * to redo the lookup here and clear pending on that dentry.
-+	 */
-+	if (d_unhashed(dentry)) {
-+		new = d_lookup(dentry->d_parent, &dentry->d_name);
-+		if (new) {
-+			spin_lock(&new->d_lock);
-+			new->d_flags &= ~DCACHE_AUTOFS_PENDING;
-+			spin_unlock(&new->d_lock);
-+			dput(new);
-+		}
-+	}
-+
- 	return status;
+            when expiration is done to trigger mount request with a new
+@@ -342,7 +342,7 @@ static int try_to_fill_dentry(struct den
+ 		}
+ 	}
+ 
+-	return status;
++	return 0;
  }
  
+ /* For autofs direct mounts the follow link triggers the mount */
