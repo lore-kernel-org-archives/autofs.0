@@ -1,69 +1,52 @@
-From: Jan Blunck <jblunck@suse.de>
-Subject: [PATCH 3/3] AutoFS: path_{get,put}() cleanups
-Date: Mon, 28 Apr 2008 18:37:34 +0200
-Message-ID: <20080428163732.201203178@T61.localnet>
-References: <20080428163731.774191296@T61.localnet>
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Content-Disposition: inline; filename=vfs/path_get_put-cleanups-autofs.diff
-Sender: linux-fsdevel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
-MIME-Version: 1.0
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: Add mountpoints to mastermap dynamically.
+Date: Mon, 28 Apr 2008 10:36:55 -0400
+Message-ID: <x49zlredp14.fsf@segfault.boston.devel.redhat.com>
+References: <4815DC61.1080501@bononline.nl>
+Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linux-Kernel Mailinglist <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linux-fsdevel Mailinglist <linux-fsdevel@vger.kernel.org>
-Cc: raven@themaw.net, autofs@linux.kernel.org
+Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <4815DC61.1080501@bononline.nl> (Stef Bon's message of "Mon, 28
+	Apr 2008 16:17:05 +0200")
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: Stef Bon <stef@bononline.nl>
+Cc: autofs@linux.kernel.org
 
-Here are some more places where path_{get,put}() can be used instead of
-dput()/mntput() pair. Besides that it fixes a bug in autofs4_mount_busy()
-where mntput() was called before dput().
+Stef Bon <stef@bononline.nl> writes:
 
-Signed-off-by: Jan Blunck <jblunck@suse.de>
----
- fs/autofs4/expire.c |    2 +-
- fs/autofs4/root.c   |   12 ++++++------
- 2 files changed, 7 insertions(+), 7 deletions(-)
+> Hello,
+>
+> again a question.
+>
+> The construction I'm working on does add a mountpoint dynamically to an 
+> existing map.
 
-Index: b/fs/autofs4/expire.c
-===================================================================
---- a/fs/autofs4/expire.c
-+++ b/fs/autofs4/expire.c
-@@ -73,8 +73,8 @@ static int autofs4_mount_busy(struct vfs
- 	status = 0;
- done:
- 	DPRINTK("returning = %d", status);
--	mntput(mnt);
- 	dput(dentry);
-+	mntput(mnt);
- 	return status;
- }
- 
-Index: b/fs/autofs4/root.c
-===================================================================
---- a/fs/autofs4/root.c
-+++ b/fs/autofs4/root.c
-@@ -146,17 +146,17 @@ static int autofs4_dir_open(struct inode
- 
- 	if (d_mountpoint(dentry)) {
- 		struct file *fp = NULL;
--		struct vfsmount *fp_mnt = mntget(mnt);
--		struct dentry *fp_dentry = dget(dentry);
-+		struct path fp_path = { .dentry = dentry, .mnt = mnt };
- 
--		if (!autofs4_follow_mount(&fp_mnt, &fp_dentry)) {
--			dput(fp_dentry);
--			mntput(fp_mnt);
-+		path_get(&fp_path);
-+
-+		if (!autofs4_follow_mount(&fp_path.mnt, &fp_path.dentry)) {
-+			path_put(&fp_path);
- 			dcache_dir_close(inode, file);
- 			goto out;
- 		}
- 
--		fp = dentry_open(fp_dentry, fp_mnt, file->f_flags);
-+		fp = dentry_open(fp_path.dentry, fp_path.mnt, file->f_flags);
- 		status = PTR_ERR(fp);
- 		if (IS_ERR(fp)) {
- 			dcache_dir_close(inode, file);
+The subject says you're adding a new entry to the master map.  This
+sentence sounds like you're adding an entry to an existing map.  The
+second should be caught automatically by the daemon, so no need to
+reload.
 
+> After added (first some checking the mountpoint is not already included) 
+> a reload is
+> done with the running automount (HUP signal). The same after removing a 
+> mountpoint.
+>
+> It works very good, but I'm wondering, is this the way to do this??
+> Isn't there a autofsctl program???
 
+You could do, 'service autofs reload' instead.  Or maybe you should
+investigate direct maps.  I'm not sure, since I know very little of your
+setup.
+
+Cheers,
+Jeff
