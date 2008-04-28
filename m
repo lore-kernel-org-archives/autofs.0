@@ -1,8 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH] autofs4 - use lookup access intent to support recursive bind
- mounts
-Date: Mon, 28 Apr 2008 14:14:54 +0800 (WST)
-Message-ID: <Pine.LNX.4.64.0804281410160.10684@raven.themaw.net>
+Subject: [PATCH] autofs4 - fix compile warning in waitq.c:autofs4_expire_indirect()
+Date: Mon, 28 Apr 2008 14:19:06 +0800 (WST)
+Message-ID: <Pine.LNX.4.64.0804281417080.10684@raven.themaw.net>
 Mime-Version: 1.0
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
 Sender: linux-fsdevel-owner@vger.kernel.org
@@ -15,46 +14,70 @@ Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, autofs mailing list <aut
 
 Hi Andrew,
 
-For autofs maps that recursively reference other map entries in their
-mount point path we need to ensure that these mounts are performed
-prior to the current mount request being done. We've used the access
-system call, made just prior to performing the mount, to make this
-happen. In the case of bind mounts, however, the lookup flags in 
-the path walk don't trigger a mount. To do this we need to also
-trigger a mount when we see the LOOKUP_ACCESS flag.
+This patch re-orders some code in expire.c:autofs4_expire_indirect()
+to avoid compile warning, reported by Harvey Harrison:
+
+ CHECK   fs/autofs4/expire.c
+fs/autofs4/expire.c:383:2: warning: context imbalance in
+'autofs4_expire_indirect' - unexpected unlock
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 
-Ian
-
 ---
-diff -up linux-2.6.25-mm1/fs/autofs4/root.c.lookup-access-intent-trigger linux-2.6.25-mm1/fs/autofs4/root.c
---- linux-2.6.25-mm1/fs/autofs4/root.c.lookup-access-intent-trigger	2008-04-28 11:33:20.000000000 +0800
-+++ linux-2.6.25-mm1/fs/autofs4/root.c	2008-04-28 11:36:06.000000000 +0800
-@@ -19,6 +19,8 @@
- #include <linux/time.h>
- #include "autofs_i.h"
- 
-+#define LOOKUP_TRIGGER_FLAGS (LOOKUP_CONTINUE|LOOKUP_DIRECTORY|LOOKUP_ACCESS)
-+
- static int autofs4_dir_symlink(struct inode *,struct dentry *,const char *);
- static int autofs4_dir_unlink(struct inode *,struct dentry *);
- static int autofs4_dir_rmdir(struct inode *,struct dentry *);
-@@ -291,7 +293,7 @@ static int try_to_fill_dentry(struct den
- 			return status;
+diff -up linux-2.6.25-mm1/fs/autofs4/expire.c.cleanup-expire-indirect linux-2.6.25-mm1/fs/autofs4/expire.c
+--- linux-2.6.25-mm1/fs/autofs4/expire.c.cleanup-expire-indirect	2008-04-28 11:38:55.000000000 +0800
++++ linux-2.6.25-mm1/fs/autofs4/expire.c	2008-04-28 11:39:17.000000000 +0800
+@@ -333,7 +333,7 @@ static struct dentry *autofs4_expire_ind
+ 			/* Can we expire this guy */
+ 			if (autofs4_can_expire(dentry, timeout, do_now)) {
+ 				expired = dentry;
+-				break;
++				goto found;
+ 			}
+ 			goto next;
  		}
- 	/* Trigger mount for path component or follow link */
--	} else if (flags & (LOOKUP_CONTINUE | LOOKUP_DIRECTORY) ||
-+	} else if (flags & LOOKUP_TRIGGER_FLAGS ||
- 			current->link_count) {
- 		DPRINTK("waiting for mount name=%.*s",
- 			dentry->d_name.len, dentry->d_name.name);
-@@ -335,7 +337,7 @@ static void *autofs4_follow_link(struct 
- 		nd->flags);
+@@ -352,7 +352,7 @@ static struct dentry *autofs4_expire_ind
+ 				inf->flags |= AUTOFS_INF_EXPIRING;
+ 				spin_unlock(&sbi->fs_lock);
+ 				expired = dentry;
+-				break;
++				goto found;
+ 			}
+ 			spin_unlock(&sbi->fs_lock);
+ 		/*
+@@ -363,7 +363,7 @@ static struct dentry *autofs4_expire_ind
+ 			expired = autofs4_check_leaves(mnt, dentry, timeout, do_now);
+ 			if (expired) {
+ 				dput(dentry);
+-				break;
++				goto found;
+ 			}
+ 		}
+ next:
+@@ -371,18 +371,16 @@ next:
+ 		spin_lock(&dcache_lock);
+ 		next = next->next;
+ 	}
+-
+-	if (expired) {
+-		DPRINTK("returning %p %.*s",
+-			expired, (int)expired->d_name.len, expired->d_name.name);
+-		spin_lock(&dcache_lock);
+-		list_move(&expired->d_parent->d_subdirs, &expired->d_u.d_child);
+-		spin_unlock(&dcache_lock);
+-		return expired;
+-	}
+ 	spin_unlock(&dcache_lock);
+-
+ 	return NULL;
++
++found:
++	DPRINTK("returning %p %.*s",
++		expired, (int)expired->d_name.len, expired->d_name.name);
++	spin_lock(&dcache_lock);
++	list_move(&expired->d_parent->d_subdirs, &expired->d_u.d_child);
++	spin_unlock(&dcache_lock);
++	return expired;
+ }
  
- 	/* If it's our master or we shouldn't trigger a mount we're done */
--	lookup_type = nd->flags & (LOOKUP_CONTINUE | LOOKUP_DIRECTORY);
-+	lookup_type = nd->flags & LOOKUP_TRIGGER_FLAGS;
- 	if (oz_mode || !lookup_type)
- 		goto done;
- 
+ /* Perform an expiry operation */
