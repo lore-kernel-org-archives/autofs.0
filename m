@@ -1,14 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Map errors
-Date: Thu, 01 May 2008 23:07:10 +0800
-Message-ID: <1209654430.19249.16.camel@raven.themaw.net>
-References: <07A371D457B501478C1DB3C3DE8372D7017C265B@GSBHEX2V.gsb.uchicago.edu>
-	<x49fxt3che8.fsf@segfault.boston.devel.redhat.com>
+From: Stef Bon <stef@bononline.nl>
+Subject: Some reload problems.
+Date: Mon, 05 May 2008 16:13:55 +0200
+Message-ID: <481F1623.1050505@bononline.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <x49fxt3che8.fsf@segfault.boston.devel.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,33 +16,90 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: "Young, Darren" <Darren.Young@chicagogsb.edu>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
+
+Hello,
+
+I'm working on a construction which makes it able for ordinary users to 
+browse (and mount) the network over
+different services like SSH and SMB.
+
+It creates a networkmap in the homedirectory:
+
+/home/sbon/Global Network
+
+for example.
+
+Now this contruction creates and uses a temporarly master map in 
+/var/run/autofs:
+
+/var/run/autofs.master
+
+which in my single user case looks like:
+
+/home/sbon/Global\ Network     /etc/autofs/session/auto.network.sbon -browse
+
+The map is in /var/run, because it only contains runtime data.
+The line is added by a script run by KDM, when my session starts.
+(and removed by another script run by KDM, when a sessions ends)
+
+Now I'v added this "networkrelated/usersession auto.master" to the 
+"main" auto.master:
+
+#
+# other mountpoints and maps here....
+#
++/var/run/autofs/auto.master
 
 
-On Wed, 2008-04-30 at 14:43 -0400, Jeff Moyer wrote:
-> "Young, Darren" <Darren.Young@chicagogsb.edu> writes:
-> 
-> > Ok, so I set /etc/sysconfig/autofs to what looks to be the format Sun
-> > wants:
-> >
-> >  
-> >
-> > DEFAULT_MAP_OBJECT_CLASS="automountMap"
-> > DEFAULT_ENTRY_OBJECT_CLASS="automount"
-> > DEFAULT_MAP_ATTRIBUTE="automountMapName"
-> > DEFAULT_ENTRY_ATTRIBUTE="automountKey"
-> > DEFAULT_VALUE_ATTRIBUTE="automountInformation"
-> 
-> Good so far.
-> 
-> > And I set the following there:
-> > DEFAULT_MASTER_MAP_NAME="ldap:automountMapName=auto_home"
+Now, there is an (I think reasonable) assumption:
+- when the automount daemon is not started at boottime, the creation of 
+the networkfolders should not be done
+(this construction does not start it, it should already be running)
+- the daemon will start and continu running with an empty master map
+- a reload hasn't much consequences for existing trees.
 
-Judging by the error messages you're seeing I'll bet this is actually an
-indirect map that is normally referred to by the master map.
+But what is necessary, is that after any change in the 
+/var/run/autofs/auto.master file, the daemon should get a reload.
 
-The master map has quite a different format to the maps themselves.
-See auto.master(5) and autofs(5).
+Now my experience is that the first issue is ok. There is even a patch 
+for it. (I'm using version 5.0.3)
+The daemon starts, even with an empty auto.master file (and an empty 
+/var/run/autofs/auto.master).
 
-Ian
+It's also ok when a line is added. But there are some problems when 
+stopping.
+When stopping a session (by logging out), the line in 
+/var/run/autofs/auto.master is removed and the
+daemon gets a reload. Now, when there are no other lines here, and there 
+also no other mountpoints in the main mastermap, the daemon stops.
+
+To avoid this problem, I've added valid mountpoint to the main 
+mastermap, and this problem did not occur anymore.
+But, what remained is that the top level directory of a unused 
+"browseable network tree" was removed after a reload. I have to avtivate 
+it again.
+
+Let me explain: my construction supports two services at this moment: 
+SSH and SMB.
+When I login, both are activated by a litlle script which does:
+
+ls -A "/home/sbon/Global Network/Windows Network" and
+ls -A "/home/sbon/Global Network/SSH hosts"
+
+Now I can browse the network. (I've discussed this earlier..)
+
+The /var/run/autofs/auto.master file has two lines, one for me and one 
+for root.
+There are smb shares for me (sbon) mounted, so there are active mounts. 
+No ssh host is mounted
+for sbon.
+When root is logging out, the  line with for root is removed, and the 
+daemon gets a reload.
+The result is that the Windows Network does still exist in 
+"/home/sbon/Global Network", but "SSH hosts" not
+anymore, which should not be the case.
+
+I hope you're able to understand the situation.
+
+Stef Bon
