@@ -1,9 +1,9 @@
 From: "Stephen Biggs" <sbiggs@nvidia.com>
 Subject: Automounter losing mount points on restart
-Date: Thu, 8 May 2008 13:27:53 -0700
-Message-ID: <A2ECBF49F352C24F9DF65BB529DCBC7014E02BB7@hqemmail01.nvidia.com>
+Date: Thu, 8 May 2008 13:59:42 -0700
+Message-ID: <A2ECBF49F352C24F9DF65BB529DCBC7014E02BB8@hqemmail01.nvidia.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1872329582552826904=="
+Content-Type: multipart/mixed; boundary="===============6060297589475466307=="
 Return-path: <autofs-bounces@linux.kernel.org>
 Content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
@@ -20,20 +20,21 @@ To: autofs@linux.kernel.org
 
 This is a multi-part message in MIME format.
 
---===============1872329582552826904==
+--===============6060297589475466307==
 Content-class: urn:content-classes:message
 Content-Type: multipart/alternative;
-	boundary="----_=_NextPart_001_01C8B149.FE277554"
+	boundary="----_=_NextPart_001_01C8B14E.701E5A0C"
 
 This is a multi-part message in MIME format.
 
-------_=_NextPart_001_01C8B149.FE277554
+------_=_NextPart_001_01C8B14E.701E5A0C
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 
-(Resending, as I might not have been subscribed correctly the first
-time.)
+(This is my third try at sending this, as I might not have been
+subscribed correctly the first time. Apologies in advance for any
+duplicates or other noise.)
 
 We have a system with an NIS yp home directory.  Running a Whitebox
 distribution, so Redhatish, with vanilla 2.6.24 kernel, automounter
@@ -92,7 +93,6 @@ known bug? I ran a couple of searches in the archives of this mailing
 list but didn't find much that was germane.
 
 TIA
-=20
 
 
 -------------------------------------------------------------------------=
@@ -107,7 +107,7 @@ reply email and destroy all copies of the original message.
 -------------------------------------------------------------------------=
 ----------
 
-------_=_NextPart_001_01C8B149.FE277554
+------_=_NextPart_001_01C8B14E.701E5A0C
 Content-Type: text/html;
 	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
@@ -124,9 +124,9 @@ i">
 <BODY>
 <!-- Converted from text/rtf format -->
 
-<P><FONT SIZE=3D2 FACE=3D"Arial">(Resending, as I might not have been sub=
-scribed correctly the first time.)</FONT>
-</P>
+<P><FONT SIZE=3D2 FACE=3D"Arial">(This is my third try at sending this, a=
+s I might not have been subscribed correctly the first time. Apologies in=
+=20advance for any duplicates or other noise.)</FONT></P>
 
 <P><FONT SIZE=3D2 FACE=3D"Arial">We have a system with an NIS yp home dir=
 ectory.&nbsp; Running a Whitebox distribution, so Redhatish, with vanilla=
@@ -220,7 +220,7 @@ n the archives of this mailing list but didn't find much that was germane=
 .</FONT></P>
 
 <P><FONT SIZE=3D2 FACE=3D"Arial">TIA<BR>
-&nbsp;</FONT>
+</FONT>
 </P>
 
 
@@ -243,10 +243,10 @@ message. </DIV>
 </BODY>
 </HTML>
 
-------_=_NextPart_001_01C8B149.FE277554--
+------_=_NextPart_001_01C8B14E.701E5A0C--
 
 
---===============1872329582552826904==
+--===============6060297589475466307==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -257,5 +257,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---===============1872329582552826904==--
+--===============6060297589475466307==--
 
