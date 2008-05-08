@@ -1,9 +1,9 @@
 From: "Stephen Biggs" <sbiggs@nvidia.com>
-Subject: Automounter losing mounts on restart
-Date: Thu, 8 May 2008 12:32:48 -0700
-Message-ID: <A2ECBF49F352C24F9DF65BB529DCBC7014E02BB5@hqemmail01.nvidia.com>
+Subject: Automounter losing mount points on restart
+Date: Thu, 8 May 2008 13:27:53 -0700
+Message-ID: <A2ECBF49F352C24F9DF65BB529DCBC7014E02BB7@hqemmail01.nvidia.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8729592710785212621=="
+Content-Type: multipart/mixed; boundary="===============1872329582552826904=="
 Return-path: <autofs-bounces@linux.kernel.org>
 Content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
@@ -20,17 +20,20 @@ To: autofs@linux.kernel.org
 
 This is a multi-part message in MIME format.
 
---===============8729592710785212621==
+--===============1872329582552826904==
 Content-class: urn:content-classes:message
 Content-Type: multipart/alternative;
-	boundary="----_=_NextPart_001_01C8B142.4C1E40F6"
+	boundary="----_=_NextPart_001_01C8B149.FE277554"
 
 This is a multi-part message in MIME format.
 
-------_=_NextPart_001_01C8B142.4C1E40F6
+------_=_NextPart_001_01C8B149.FE277554
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
+
+(Resending, as I might not have been subscribed correctly the first
+time.)
 
 We have a system with an NIS yp home directory.  Running a Whitebox
 distribution, so Redhatish, with vanilla 2.6.24 kernel, automounter
@@ -85,10 +88,12 @@ directories and at any given time, quite a few of them have the
 erroneous relative path/lost mount point CWD.
 
 Can anybody give any insight as to what to do about this?  Is this a
-known bug?
+known bug? I ran a couple of searches in the archives of this mailing
+list but didn't find much that was germane.
 
 TIA
 =20
+
 
 -------------------------------------------------------------------------=
 ----------
@@ -102,7 +107,7 @@ reply email and destroy all copies of the original message.
 -------------------------------------------------------------------------=
 ----------
 
-------_=_NextPart_001_01C8B142.4C1E40F6
+------_=_NextPart_001_01C8B149.FE277554
 Content-Type: text/html;
 	charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
@@ -114,10 +119,14 @@ Content-Transfer-Encoding: quoted-printable
 i">
 <META NAME=3D"Generator" CONTENT=3D"MS Exchange Server version 6.5.7652.2=
 4">
-<TITLE>Automounter losing mounts on restart</TITLE>
+<TITLE>Automounter losing mount points on restart</TITLE>
 </HEAD>
 <BODY>
 <!-- Converted from text/rtf format -->
+
+<P><FONT SIZE=3D2 FACE=3D"Arial">(Resending, as I might not have been sub=
+scribed correctly the first time.)</FONT>
+</P>
 
 <P><FONT SIZE=3D2 FACE=3D"Arial">We have a system with an NIS yp home dir=
 ectory.&nbsp; Running a Whitebox distribution, so Redhatish, with vanilla=
@@ -206,8 +215,9 @@ ave a huge amount of automounted directories and at any given time, quite=
 FONT></P>
 
 <P><FONT SIZE=3D2 FACE=3D"Arial">Can anybody give any insight as to what =
-to do about this?&nbsp; Is this a known bug?</FONT>
-</P>
+to do about this?&nbsp; Is this a known bug? I ran a couple of searches i=
+n the archives of this mailing list but didn't find much that was germane=
+.</FONT></P>
 
 <P><FONT SIZE=3D2 FACE=3D"Arial">TIA<BR>
 &nbsp;</FONT>
@@ -233,10 +243,10 @@ message. </DIV>
 </BODY>
 </HTML>
 
-------_=_NextPart_001_01C8B142.4C1E40F6--
+------_=_NextPart_001_01C8B149.FE277554--
 
 
---===============8729592710785212621==
+--===============1872329582552826904==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -247,5 +257,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---===============8729592710785212621==--
+--===============1872329582552826904==--
 
