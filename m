@@ -1,14 +1,14 @@
-From: "P.V.Anthony" <pvantony@singnet.com.sg>
-Subject: Re: How to change the FSINFO for nfsd?
-Date: Thu, 08 May 2008 08:49:22 +0800
-Message-ID: <48224E12.8010109@singnet.com.sg>
-References: <4821BEAC.4070802@singnet.com.sg>
-	<x49skwunmju.fsf@dhcp-100-18-209.bos.redhat.com>
+From: jimc@math.ucla.edu (Jim Carter)
+Subject: Re: clients suddenly start hanging (was: (no subject))
+Date: Wed,  7 May 2008 21:52:34 -0700 (PDT)
+Message-ID: <20080508045235.13C9EF8ED9@serval.math.ucla.edu>
+References: <20080423185018.122C53C3B1@xena.cft.ca.us>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <x49skwunmju.fsf@dhcp-100-18-209.bos.redhat.com>
+In-Reply-To: <Pine.LNX.4.64.0804281422060.10684@raven.themaw.net>
+	(Ian Kent "Mon, 28 Apr 2008 14:26:34 +0800")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,39 +19,56 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: jmoyer@redhat.com
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
+Cc: Ian Kent <raven@themaw.net>
 
-Jeff Moyer wrote:
+On Mon, 28 Apr 2008 14:26:34 +0800 Ian Kent wrote:
 
-> You're really stabbing in the dark, here.  I suggest you email the
-> software manufacturer of Final Cut Pro (Apple?) with a support request.
+> Jeff Moyer has identified a race in due to an execution order dependency
+> in the autofs4 function root.c:try_to_fill_dentry().
+--snip--
+> After the daemon finishes the mount, it calls back into the kernel
+> to release the waiters. When this happens, P1 is woken up and goes
+> about clearing the DCACHE_AUTOFS_PENDING flag, but it does this in
+> D1!  So, given that P1 in our case is a program that will immediately
+> try to access a file under /mount/submount/foo, we end up finding the
+> dentry D2 which still has the pending flag set, and we set out to
+> wait for a mount *again*!
 
-You are right but Apple is not going to help because I am using Linux.
-They would ask me to buy a Apple Xserve.
+I applied the two patches (redo-lookup-in-ttfd and correct-return-in-ttfd)
+and restarted/reloaded the resulting module, but unfortunately it did 
+not improve the issue of hanging client processes in my submount case.
 
-I know it will work because the commercial company made the changes and
-it works. I also understand that they will not share the code change
-because it is a commercial thing.
+I've improved my test program and picked up some behaviors that were not
+obvious before.  Expected expiration is not happening.  Some but usually
+not all (once it *was* all) of the filesystems stay mounted for 900
+secs, much longer than the default expiration of 300 secs.  But
+eventually many of them get expired.  (There are no competing processes
+that might "cd" into an automounted directory and prevent expiry, except
+for the filesystem containing my home directory.)
 
-Here is their email. At least they are willing to share this.
--------------- start ----------------------
+In one case a set of 3 filesystems from the same machine (submount)
+stayed mounted for 103 minutes straight (never expired as far as I can
+see), being tested with successful access every 900 secs.  Then all
+three became absent from /proc/mounts, and were tested.  One of them
+returned ENOENT from opendir(); the other two test processes hung likely
+in opendir().
 
-Yes we arrive to an interesting conclusion. Over NFS the Max OSX10.5
-client uses the NFS FSINFO request to discover NFS server capabilities
-such as the max file size. Specifically Mac NFS servers return a value
-of all '1's for the max file size field in the FSINFO response. This
-value is not realistic but tell the Mac client that this is a Mac NFS
-server that can handle files larger then 2GB.
+In another case a machine exports only one filesystem, and it was
+accessed and expired normally for about three repetitions; then it
+stayed mounted for 900 secs.  It was accessed successfully, but then
+after only 266 secs it disappeared from /proc/mounts, was tested, and
+got ENOENT.  900 secs later it was re-tested (I assume it was not
+mounted), and the test process hung.
 
-We are a storage vendor so we changed the code for our NFS server to
-return the same FSINFO information and that resolved the file chopping
-problem. It also fixed another bug where copies over the finder of files
-over 4GB failed. Now they don't.
+I have the test output including backtraces with symbols, immediately
+after each of the three hangs (actually, 25 secs after the process
+started, which is the criterion I use for hanging).  But it's 5627 lines
+or 282 Kb and it's pretty much the same as the one I sent in earlier
+except for more diagnostic output.  How about I send it direct, if you
+want it, rather than filling up everyone's mailbox?  Or would it be
+better to have the output in the mail archive even though it's bloated?
 
--------------- end   ----------------------
-
-If possible, please share how to change the code to make the FSINFO
-present all '1's for the max file size field.
-
-P.V.Anthony
+James F. Carter          Voice 310 825 2897    FAX 310 206 6673
+UCLA-Mathnet;  6115 MSA; 520 Portola Plaza; Los Angeles, CA, USA  90095-1555
+Email: jimc@math.ucla.edu    http://www.math.ucla.edu/~jimc (q.v. for PGP key)
