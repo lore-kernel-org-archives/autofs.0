@@ -1,13 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs and ldap
-Date: Tue, 13 May 2008 11:15:11 +0800
-Message-ID: <1210648511.3006.129.camel@raven.themaw.net>
-References: <482059CB.8050808@cptec.inpe.br>
+From: Martin von Gagern <Martin.vGagern@gmx.net>
+Subject: sasl with heimdal kerberos
+Date: Thu, 15 May 2008 16:02:08 +0200
+Message-ID: <482C4260.3090308@gmx.net>
+Reply-To: autofs@linux.kernel.org, Martin von Gagern <Martin.vGagern@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============3741358419745250022=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <482059CB.8050808@cptec.inpe.br>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,108 +16,129 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Luciana Romeiro Rodrigues <luciana.romeiro@cptec.inpe.br>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
+
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--===============3741358419745250022==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig73B7467E013888297C53A21A"
+
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig73B7467E013888297C53A21A
+Content-Type: multipart/mixed; boundary="------------020809070505000003080602"
+
+This is a multi-part message in MIME format.
+--------------020809070505000003080602
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
+
+Hi!
+
+I'm using Gentoo Linux with autofs-5.0.3, cyrus-sasl-2.1.22 and heimdal
+0.7.2. I got compile time error messages when trying to compile autofs
+with sasl support. I reported them as https://bugs.gentoo.org/210762
+
+Today I was made aware that the same issues were already mentioned on
+this mailing list here, in a thread titled "sasl compilation error"
+http://www.mail-archive.com/autofs@linux.kernel.org/msg06165.html
+
+I just had a closer look at this, and found two useful macros defined in
+the heimdal headers, called krb5_realm_length and krb5_realm_data. MIT
+kerberos doesn't seem to define them, but a simple preprocessor siwtch
+is enough to introduce them in a MIT-compatible fashion.
+
+With this I created a patch that causes autofs to compile on my system,
+and which I would expect to compile for all sane Heimdal and MIT setups,
+and to work correctly as well. Be warned, though, that I haven't got any
+real Kerberos set up here, so I didn't actually test that things work.
+
+Greetings,
+   Martin von Gagern
+
+P.S.: This is a repost of my original message from 2008-04-28.
+       Looks like that got lost as I wasn't subscribed at the time.
 
 
-On Tue, 2008-05-06 at 10:14 -0300, Luciana Romeiro Rodrigues wrote:
-> Hi!
-> I run SLES 10.0 with openldap-stable-20071118.
-> 
-> Could anyone offer me some advice, or point me in the right direction?
+--------------020809070505000003080602
+Content-Type: text/plain;
+ name="autofs-heimdal-support.patch"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline;
+ filename="autofs-heimdal-support.patch"
 
-Provide the information, not already included here, specified at
-http://people.redhat.com/jmoyer.
+--- autofs-5.0.3.orig/modules/cyrus-sasl.c	2008-04-28 16:17:03.000000000 =
++0200
++++ autofs-5.0.3/modules/cyrus-sasl.c	2008-04-28 16:41:58.000000000 +0200=
 
-> 
-> Thanks,
-> 
-> Luciana
-> 
-> 
-> 
-> Follows the settings:
-> 
-> 
-> 1- /etc/nsswitch.conf:
-> automount: ldap
-> 
-> 2- ldif:
-> 
-> dn: ou=automount,dc=cp,dc=br
-> ou: automount
-> objectClass: top
-> objectClass: organizationalUnit
-> 
-> dn: ou=auto.master,ou=automount,dc=cp,dc=br
-> ou: auto.master
-> objectClass: top
-> objectClass: automountMap
-> 
-> dn: cn=/home, ou=auto.master,ou=automount,dc=cp,dc=br
-> objectClass: top
-> objectClass: automount
-> automountInformation: ldap:
-> server-ldap.cp.br:ou=auto.home,ou=automount,dc=
-> cp,dc=br
-> cn: /home
-> 
-> dn: ou=auto.home, ou=automount,dc=cp,dc=br
-> ou: auto.home
-> objectClass: top
-> objectClass: automountMap
-> 
-> 
-> Users:
-> 
-> dn: uid=lu,ou=auto.home,ou=automount,dc=cp,dc=br
-> uid: lu
-> cn: teste
-> objectClass: automount
-> automountInformation: -rw,soft,retrans=10,intr
-> nfsserver.cp.br:/extra/home/lu
-> 
-> 3- /etc/ldap.conf
-> 
-> host    127.0.0.1 
-> base    dc=cp,dc=br
-> 
-> 
-> 4-
-> 
-> 
-> tembiru:/home # service autofs status
-> 
-> Checking for service autofs:
-> unused
-> 
-> Configured Mount Points:
-> 
-> ------------------------
-> 
-> /usr/sbin/automount  /home ldap:
-> "server-ldap.cp.br:ou=auto.home,ou=automount,dc=cp,dc=br"
-> 
-> Active Mount Points:
-> 
->  
-> 
-> 5- su - lu
->  warning: cannot change directory to /home/lu: No such file or
-> directory
-> 
-> 
-> 
-> 
-> -- 
-> ========================================================
-> Luciana F.Romeiro Rodrigues
-> Analista de Suporte
-> Fone: 3186-8513 - 
-> 
-> Novo Email: luciana.romeiro@cptec.inpe.br
-> ========================================================
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
+@@ -66,6 +66,15 @@
+ #endif
+ #endif
+=20
++/**
++ * The type of a principal is different for MIT Krb5 and Heimdal.
++ * These macros are provided by Heimdal, and introduced here for MIT.
++ */
++#ifndef krb5_realm_length
++#define krb5_realm_length(r) ((r).length)
++#define krb5_realm_data(r) ((r).data)
++#endif
++
+ /*
+  *  Once a krb5 credentials cache is setup, we need to set the KRB5CCNAM=
+E
+  *  environment variable so that the library knows where to find it.
+@@ -452,11 +461,11 @@
+=20
+ 	/* setup a principal for the ticket granting service */
+ 	ret =3D krb5_build_principal_ext(ctxt->krb5ctxt, &tgs_princ,
+-		krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ)->length,
+-		krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ)->data,
++		krb5_realm_length(*krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ)=
+),
++		krb5_realm_data(*krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ)),=
+
+ 		strlen(KRB5_TGS_NAME), KRB5_TGS_NAME,
+-		krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ)->length,
+-		krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ)->data,
++		krb5_realm_length(*krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ)=
+),
++		krb5_realm_data(*krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ)),=
+
+ 		0);
+ 	if (ret) {
+ 		error(logopt,
+
+
+--------------020809070505000003080602--
+
+--------------enig73B7467E013888297C53A21A
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.7 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iD8DBQFILEJmRhp6o4m9dFsRAvVCAJoCtnpDijaYMWh7dKTeG+1aybwllACgmftL
+aEboKQtSoM638erDJn5h8wk=
+=RHYD
+-----END PGP SIGNATURE-----
+
+--------------enig73B7467E013888297C53A21A--
+
+
+--===============3741358419745250022==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--===============3741358419745250022==--
+
