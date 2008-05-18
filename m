@@ -1,13 +1,14 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: sasl with heimdal kerberos
-Date: Fri, 16 May 2008 11:03:58 +0800
-Message-ID: <1210907038.3151.26.camel@raven.themaw.net>
-References: <482C4260.3090308@gmx.net>
+Subject: Re: Help mounting something other than /home
+Date: Sun, 18 May 2008 11:55:18 +0800
+Message-ID: <1211082918.3118.1.camel@raven.themaw.net>
+References: <20080515135124.ya89z47v0g4sco4w@www.vanhlebarsoftware.com>
+	<20080515155648.q29ovbfbi8kc8cwo@www.vanhlebarsoftware.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <482C4260.3090308@gmx.net>
+In-Reply-To: <20080515155648.q29ovbfbi8kc8cwo@www.vanhlebarsoftware.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,33 +19,60 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org, Martin von Gagern <Martin.vGagern@gmx.net>
+To: "Eric A. Bonney" <mailinglists@vanhlebarsoftware.com>
+Cc: autofs@linux.kernel.org
 
 
-On Thu, 2008-05-15 at 16:02 +0200, Martin von Gagern wrote:
-> Hi!
+On Thu, 2008-05-15 at 15:56 -0400, Eric A. Bonney wrote:
+> Quoting "Eric A. Bonney" <mailinglists@vanhlebarsoftware.com>:
 > 
-> I'm using Gentoo Linux with autofs-5.0.3, cyrus-sasl-2.1.22 and heimdal
-> 0.7.2. I got compile time error messages when trying to compile autofs
-> with sasl support. I reported them as https://bugs.gentoo.org/210762
-> 
-> Today I was made aware that the same issues were already mentioned on
-> this mailing list here, in a thread titled "sasl compilation error"
-> http://www.mail-archive.com/autofs@linux.kernel.org/msg06165.html
-> 
-> I just had a closer look at this, and found two useful macros defined in
-> the heimdal headers, called krb5_realm_length and krb5_realm_data. MIT
-> kerberos doesn't seem to define them, but a simple preprocessor siwtch
-> is enough to introduce them in a MIT-compatible fashion.
+> > I was able to sucessfully mount the /home directories for my users on
+> > my home network when they login just fine using autofs. The issue that
+> > I have now is that I would like to mount some additional NFS exports
+> > under /home/user but I need to be able to set up some kind of script
+> > or testing so that I can only mount certain exports depending on
+> > groups the user belongs to.
+> >
+> > I have just the basic configuration for sharing the /home at this point.
+> >
+> > In auto.master:
+> > /home                     /etc/auto.home
+> >
+> > In auto.home:
+> > *                   serveripaddress:/home/&
+> >
+> > This is working fine on one machine but not another, but I haven't had
+> > time to look at the machine that isn't working yet.
+> >
+> > An example of what I want to do is this:
+> > If the user belongs to Kids OR Adults then I want to mount the Music
+> > directory as such:
+> > /home/user/Music
+> >
+> > If the user is a memeber of Adults only then I want to mount Music and
+> > Financial as such:
+> > /home/user/Music
+> > /home/user/Financial
+> >
+> > To be honest at this point I would even take mounting Music off of
+> > root if that would work, but I can't even get that to work. I have
+> > tried it like this:
+> >
+> > In auto.master:
+> > /Music                     /etc/auto.music
+> >
+> > In auto.music:
+> > /Music                    serveripaddress:/media/usb0/Music
+> >
+> > AND this
+> > *                         serveripaddress:/media/usb0/Music
+> >
+> > Nothing seems to be working other than the mounting of /home. I have
+> > googled for days and I have read the docs, but I can't seem to figure
+> > this out. It doesn't seem like it should be that hard, but I seem to
+> > be making it hard. :)
 
-Interesting.
-
-> 
-> With this I created a patch that causes autofs to compile on my system,
-> and which I would expect to compile for all sane Heimdal and MIT setups,
-> and to work correctly as well. Be warned, though, that I haven't got any
-> real Kerberos set up here, so I didn't actually test that things work.
-
-It would be good if someone could check this out.
+Have a look at the example script auto.net.
+It constructs a mount entry similar to what you would need.
 
 Ian
