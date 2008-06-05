@@ -1,13 +1,15 @@
-From: Ian Kent <raven@themaw.net>
+From: Shane <squindler@gmail.com>
 Subject: Re: multi-level deep ldap automount possible?
-Date: Thu, 05 Jun 2008 15:55:02 +0800
-Message-ID: <1212652503.3047.64.camel@raven.themaw.net>
+Date: Thu, 5 Jun 2008 18:23:15 +0930
+Message-ID: <10badf220806050153v3a0d3242t44e6e34b8ae3adc@mail.gmail.com>
 References: <10badf220806042312p6ca4adf0h5836a8e046f2075a@mail.gmail.com>
+	<1212652503.3047.64.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <10badf220806042312p6ca4adf0h5836a8e046f2075a@mail.gmail.com>
+In-Reply-To: <1212652503.3047.64.camel@raven.themaw.net>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,74 +20,70 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Shane <squindler@gmail.com>
 Cc: autofs@linux.kernel.org
 
+apologies that my first message wasn't as clear as I'd hoped ...
 
-On Thu, 2008-06-05 at 15:42 +0930, Shane wrote:
-> Hello,
-> 
-> Hoping someone can help me figure out if its possible to do
-> multi-level deep automounts via ldap. I've seen a few examples of this
-> using files but can't get it to work using LDAP.
-> 
-> eg I want:
-> server1:/export/protemp  -  /nfs/tmp/production
-> server2:/export/tmp/weekly  -  /nfs/tmp/weekly
-> server2:/export/tmp/hourly  -  /nfs/tmp/hourly
-> 
+currently the setup basically is as below just with lots more mounts etc ...
 
-It isn't clear what you're saying.
-
-> pseudo ldap implementation
-> cn=nfs,ou=auto.master: ldap: ou=auto.nfs  objectClass = automountMap
-
-Do you mean something like:
-
-dn: ou=auto.master,dc=bogus
-objectClass: top
+dn: ou=auto.master,dc=blah
 objectClass: automountMap
-ou: ldap:ou=auto.master
-
-dn: cn=/nfs/tmp,ou=auto.master,dc=bogus
-objectClass: automount
-cn: /nfs/tmp
-automountInformation: ldap:ou=auto.tmp
-
-which might not work, I can't remember, there is one case where a
-partial dn doesn't work, you'll need to test it out. This is a master
-map entry so you need to use the path to the indirect mount, /nfs/tmp.
-
-> cn=tmp,ou=auto.nfs: ldap ou=outo.tmp,ou=auto.nfs  objectClass = automount
-> ou=auto.tmp,ou=auto.nfs: objectClass automountMap
-> cn=production,ou=auto.tmp,ou=auto.nfs: -rw,hard,intr,tcp
-> server1:/export/protemp  objectClass = automount
-
-I have no idea what you're trying to say above.
-
-Perhaps this is close to what you're looking for:
-
-dn: ou=auto.tmp,dc=bogus
 objectClass: top
+ou=auto.master
+
+dn: cn=/nfs,ou=auto.master,dc=blah
+automountInformation: ldap:ou=auto.nfs,dc=blah
+objectClass: automount
+
+dn: ou=auto.nfs,dc=blah
 objectClass: automountMap
-ou: auto.tmp
+objectClass: top
+ou=auto.nfs
 
-dn: cn=production,ou=auto.tmp,dc=bogus
+dn: cn=tmp,ou=auto.nfs,dc=blah
+automountInformation: -rw,hard,intr,tcp,vers=3 server1:/export/tmp
 objectClass: automount
-cn: production
-automountInformation:   server1:/export/protemp
 
-dn: cn=weekly,ou=auto.tmp,dc=bogus
+The problem is that one or two dirs in our tmp structure have become
+project dependencies & are put under very high load which our tmp
+server can't handle - simply moving the data would be awesome but
+unfortunately the paths have been hard coded into a few apps which
+will take longer to fix & re-deploy than re-doing mount exports
+(hopefully) ...
+
+Basically I'm trying to achieve in LDAP the equivalent of this little
+example from a files way of doing things:
+tmp    -rw,hard,intr    / -ro myserver.me.org:/ \
+           /usr myserver.me.org:/usr \
+           /home myserver.me.org:/home
+
+I was *hoping* this [below] would work, as its a little more readable
+than jamming everything into an automountInformation attribute ...
+
+dn: cn=tmp,ou=auto.nfs,dc=blah
+automountInformation: ldap:ou=auto.tmp,ou=auto.nfs,dc=blah
 objectClass: automount
-cn: weekly
-automountInformation:   server1:/export/tmp/weekly
 
-dn: cn=hourly,ou=auto.tmp,dc=bogus
+dn: ou=auto.tmp,ou=auto.nfs,dc=blah
+objectClass: automountMap
+objectClass: top
+ou=auto.tmp
+
+dn: cn=weekly,ou=auto.tmp,ou=auto.nfs,dc=blah
+automountInformation: -rw,hard,intr,tcp,vers=3 server1:/export/tmp/weekly
 objectClass: automount
-cn: hourly
-automountInformation:   server1:/export/tmp/hourly
 
-This is the indirect map so you must use keys that correspond to the
-mount point directories, not a path.
+dn: ... one for each /nfs/tmp/* mount
 
-Ian
+I guess if it comes to it
+
+dn: cn=tmp,ou=auto.nfs,dc=blah
+automountInformation: -rw,hard,intr,tcp,vers=3  /weekly
+server1:/export/tmp/weekly  /hourly server1:/export/tmp/hourly
+/production server2:/export/prodTemp
+objectClass: automount
+
+isn't *too* bad ...
+
+TIA,
+Shane
