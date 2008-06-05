@@ -1,16 +1,11 @@
-From: Paul Smith <psmith@netezza.com>
-Subject: Re: System hanging in /proc/mounts almost every
-	night...	help!
-Date: Thu, 05 Jun 2008 11:25:44 -0400
-Message-ID: <1212679544.6879.37.camel@psmithub.netezza.com>
-References: <1212521944.7156.93.camel@psmithub.netezza.com>
-	<x49ve0picd3.fsf@segfault.boston.devel.redhat.com>
-Reply-To: psmith@netezza.com
+From: Lukas Kolbe <lukas@einfachkaffee.de>
+Subject: Building autofs 5.0.3 on Debian Etch
+Date: Thu, 05 Jun 2008 18:41:51 +0200
+Message-ID: <1212684111.3160.12.camel@vesuv.TechFak.Uni-Bielefeld.DE>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <x49ve0picd3.fsf@segfault.boston.devel.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,19 +16,30 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Wed, 2008-06-04 at 09:00 -0400, Jeff Moyer wrote:
-> My advice for further debugging is to enabled autofs debug logging
-> (see http://people.redhat.com/jmoyer), and when hung, get the output
-> from sysrq-t.
+Hi again!
 
-Oh for...
+I try to build the latest and greatest autofs5 (5.0.3, with all patches
+from kernel.org applied) on a plain debian etch (4.0) system, but it
+fails on LDAP:
 
-and of course it didn't hang last night, for the first time.  I do have
-to say that I installed a new kernel from the Ubuntu repositories
-yesterday, with some security etc. fixes.  I didn't see any changes in
-that update related to autofs or mounts but you never know.
+lookup_ldap.c:88: error: 'LDAP_CONTROL_PAGEDRESULTS' undeclared (first use in this function)
+lookup_ldap.c:88: error: (Each undeclared identifier is reported only once
+lookup_ldap.c:88: error: for each function it appears in.)
+lookup_ldap.c: In function 'ldap_parse_page_control':
+lookup_ldap.c:103: error: 'LDAP_CONTROL_PAGEDRESULTS' undeclared (first use in this function)
 
-I'll keep testing and see if it recurs.
+Whereas autofs5 5.0.2 (with all patches from kernel.org applied) builds
+and works just fine.
+
+LDAP_CONTROL_PAGEDRESULTS seems to have been introduced somewhere in
+between openldap 2.1.30-13.3, which debian etch uses, and 2.4.7, which
+Ubuntu Hardy uses. On Hardy, autofs5 5.0.3 compiles just fine.
+
+Is there any way to work around this? I did try to backport a newer
+openldap as well, but that's a major PITA because it itself requires a
+newer GnuTLS which itself requires newer libgcrypt and other stuff.
+
+Thanks alot,
+Lukas
