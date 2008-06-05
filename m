@@ -1,73 +1,55 @@
-From: Jesper Krogh <jesper@krogh.cc>
-Subject: Re: Linux 2.6.26-rc4
-Date: Wed, 04 Jun 2008 19:51:39 +0200
-Message-ID: <4846D62B.4030103@krogh.cc>
-References: <alpine.LFD.1.10.0805261127030.2958@woody.linux-foundation.org>
+From: Shane <squindler@gmail.com>
+Subject: multi-level deep ldap automount possible?
+Date: Thu, 5 Jun 2008 15:42:24 +0930
+Message-ID: <10badf220806042312p6ca4adf0h5836a8e046f2075a@mail.gmail.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1761583AbYFDRwW@vger.kernel.org>
-In-Reply-To: <alpine.LFD.1.10.0805261127030.2958@woody.linux-foundation.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, autofs@linux.kernel.org
+Return-path: <autofs-bounces@linux.kernel.org>
+Content-Disposition: inline
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: autofs@linux.kernel.org
 
-Hi.
+Hello,
 
-Unrelated to the 2 other reports against the 2.6.26-rc4 kernel. I got 
-this message. The system still operates fine so it is not critical in 
-anyway. I thought I'd report it anyway. CC'ing the autofs-mailing list
-since it seems autofs related.
+Hoping someone can help me figure out if its possible to do
+multi-level deep automounts via ldap. I've seen a few examples of this
+using files but can't get it to work using LDAP.
 
-[43071687.620727] INFO: task automount:23131 blocked for more than 120 
-seconds.
-[43071687.740715] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" 
-disables this message.
-[43071687.862459] automount     D ffff810103a2b380     0 23131   7655
-[43071687.862466]  ffff8101fb5d9b28 0000000000000082 0000000000000000 
-0000000000000000
-[43071687.862472]  ffffffff8069e380 ffffffff8069e380 ffffffff8069a4c0 
-ffffffff8069e380
-[43071687.862475]  ffff8101e8d1af00 ffff8101fb5d9ae8 ffff8101fb5d9ad8 
-ffff8101fb5d9af4
-[43071687.862480] Call Trace:
-[43071687.862556]  [<ffffffffa03c47c0>] 
-:sunrpc:rpc_wait_bit_killable+0x0/0x40
-[43071687.862570]  [<ffffffffa03c47dc>] 
-:sunrpc:rpc_wait_bit_killable+0x1c/0x40
-[43071687.862581]  [<ffffffff804764bf>] __wait_on_bit+0x4f/0x80
-[43071687.862594]  [<ffffffffa03c47c0>] 
-:sunrpc:rpc_wait_bit_killable+0x0/0x40
-[43071687.862600]  [<ffffffff8047656a>] out_of_line_wait_on_bit+0x7a/0xa0
-[43071687.862606]  [<ffffffff8024c060>] wake_bit_function+0x0/0x30
-[43071687.862618]  [<ffffffffa03c0e13>] :sunrpc:xprt_connect+0x83/0x170
-[43071687.862633]  [<ffffffffa03c4e69>] :sunrpc:__rpc_execute+0xc9/0x270
-[43071687.862645]  [<ffffffffa03bded4>] :sunrpc:rpc_run_task+0x34/0x70
-[43071687.862657]  [<ffffffffa03bdfac>] :sunrpc:rpc_call_sync+0x3c/0x60
-[43071687.862667]  [<ffffffff802b9379>] __follow_mount+0x29/0xa0
-[43071687.862696]  [<ffffffffa042220a>] :nfs:nfs3_rpc_wrapper+0x3a/0x60
-[43071687.862711]  [<ffffffffa04225e1>] :nfs:nfs3_proc_getattr+0x51/0x90
-[43071687.862724]  [<ffffffffa0415273>] 
-:nfs:__nfs_revalidate_inode+0x183/0x2b0
-[43071687.862733]  [<ffffffff802ca0b1>] mntput_no_expire+0x21/0x140
-[43071687.862738]  [<ffffffff802ca0b1>] mntput_no_expire+0x21/0x140
-[43071687.862744]  [<ffffffff802bc2e1>] path_walk+0xb1/0xd0
-[43071687.862759]  [<ffffffffa0415c9a>] :nfs:nfs_getattr+0x7a/0x120
-[43071687.862765]  [<ffffffff802b4d53>] vfs_lstat_fd+0x43/0x70
-[43071687.862774]  [<ffffffff802c3e88>] d_kill+0x48/0x70
-[43071687.862780]  [<ffffffff802c417f>] dput+0x1f/0xf0
-[43071687.862784]  [<ffffffff802d1440>] dcache_dir_close+0x10/0x20
-[43071687.862788]  [<ffffffff802b4da7>] sys_newlstat+0x27/0x50
-[43071687.862792]  [<ffffffff802ca0b1>] mntput_no_expire+0x21/0x140
-[43071687.862798]  [<ffffffff802aef04>] filp_close+0x54/0x90
-[43071687.862802]  [<ffffffff802b0694>] sys_close+0x94/0xe0
-[43071687.862808]  [<ffffffff8020c2bb>] system_call_after_swapgs+0x7b/0x80
-[43071687.862816]
+eg I want:
+server1:/export/protemp  -  /nfs/tmp/production
+server2:/export/tmp/weekly  -  /nfs/tmp/weekly
+server2:/export/tmp/hourly  -  /nfs/tmp/hourly
 
-The system is a "quite hard" loaded 8x dual-core Sun X4600 server
-(amd64).
+pseudo ldap implementation
+cn=nfs,ou=auto.master: ldap: ou=auto.nfs  objectClass = automountMap
+cn=tmp,ou=auto.nfs: ldap ou=outo.tmp,ou=auto.nfs  objectClass = automount
+ou=auto.tmp,ou=auto.nfs: objectClass automountMap
+cn=production,ou=auto.tmp,ou=auto.nfs: -rw,hard,intr,tcp
+server1:/export/protemp  objectClass = automount
+...
 
-Jesper
--- 
-Jesper Krogh
+It more or less makes sense to me why automount isn't picking this up
+- I'm using RedHat derivatives to the automount init status command
+gives me a list of configured automounts which is basically everything
+in auto.master - so automount isn't loading the map for /nfs/tmp
+(ou=auto.tmp,ou=auto.nfs) ... not sure how to make this happen ... I
+tried having both /nfs and /nfs/tmp under auto.master but that didn't
+work either.
+
+So -
+a) is this possible?
+b) whats the "correct" way to implement on the LDAP server side?
+c) possible alternate solution?
+
+TIA,
+Shane.
