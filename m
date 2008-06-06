@@ -1,14 +1,14 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: multi-level deep ldap automount possible?
-Date: Fri, 06 Jun 2008 10:10:12 -0400
-Message-ID: <x49lk1id58b.fsf@segfault.boston.devel.redhat.com>
-References: <10badf220806042312p6ca4adf0h5836a8e046f2075a@mail.gmail.com>
+From: Lukas Kolbe <lukas@einfachkaffee.de>
+Subject: Re: Building autofs 5.0.3 on Debian Etch
+Date: Fri, 06 Jun 2008 16:00:09 +0200
+Message-ID: <1212760809.3160.17.camel@vesuv.TechFak.Uni-Bielefeld.DE>
+References: <1212684111.3160.12.camel@vesuv.TechFak.Uni-Bielefeld.DE>
+	<1212721768.3035.22.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <10badf220806042312p6ca4adf0h5836a8e046f2075a@mail.gmail.com>
-	(Shane's message of "Thu, 5 Jun 2008 15:42:24 +0930")
+In-Reply-To: <1212721768.3035.22.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,50 +19,42 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Shane <squindler@gmail.com>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-Shane <squindler@gmail.com> writes:
+Hi,
 
-> Hello,
->
-> Hoping someone can help me figure out if its possible to do
-> multi-level deep automounts via ldap. I've seen a few examples of this
-> using files but can't get it to work using LDAP.
->
-> eg I want:
-> server1:/export/protemp  -  /nfs/tmp/production
-> server2:/export/tmp/weekly  -  /nfs/tmp/weekly
-> server2:/export/tmp/hourly  -  /nfs/tmp/hourly
->
-> pseudo ldap implementation
+Thanks to autofs and kernel rebuilds I'm getting quite confident in
+packaging and patching debian and ubuntu packages :)
 
-It's better to just include your ldif.  Your pseudo code doesn't make
-any sense to me.  My guess is that you want something like the
-following:
+> > LDAP_CONTROL_PAGEDRESULTS seems to have been introduced somewhere in
+> > between openldap 2.1.30-13.3, which debian etch uses, and 2.4.7, which
+> > Ubuntu Hardy uses. On Hardy, autofs5 5.0.3 compiles just fine.
+> 
+> Caught by a missing definition.
+> It must have been defined in the version of Openldap I originally used,
+> even though the page control functions weren't present.
 
-dn: ou=auto.master,dc=<DOMAIN1>,dc=<DOMAIN2>
-objectClass: automountMap
-objectClass: organizationalUnit
+Openldap is/was very scary, at least it runs quite stable since quite a
+while now. But it's very promising to replace our NIS/YP in the coming
+(weeks/months/years/whatever) with something that's more manageable :)
+ 
+> It may be enough to add the definition but it's also possible that calls
+> I've used in the functions (when configure finds they are missing)
+> aren't present in older openldap installs either.
+> I'll check it out soon as I can.
+> 
+> >From /usr/include/ldap.h.
+> 
+> /*      non-standard track controls */
+> #define LDAP_CONTROL_PAGEDRESULTS       "1.2.840.113556.1.4.319"   /* RFC 2696 */
 
-dn: cn=/nfs,ou=auto.master,dc=<DOMAIN1>,dc=<DOMAIN2>
-objectClass: automount
-automountInformation: auto.nfs
+I introduced this via ifndef in lookup_ldap.c, where it was used, and at
+least it compiles on Debian etch. Haven't yet tested it, though :)
 
-dn: ou=auto.nfs,dc=<DOMAIN1>,dc=<DOMAIN2>
-objectClass: organizationalUnit
-objectClass: automountMap
+Thanks for looking on this.
 
-dn: automountKey=tmp,ou=auto.nfs,dc=<DOMAIN1>,dc=<DOMAIN2>
-automountKey: tmp
-automountInformation: -rw,hard,intr,tcp  /production server1:/export/protemp /weekly server2:/export/tmp/weekly /hourly server2:/export/tmp/hourly
+> Ian
 
-
-I didn't test the above, so there may be problems with my ldif -- sorry!
-
-If you haven't decided on a schema to use yet, then I'd recommend
-rfc2307bis.  The schema above uses cn, which is not case sensitive.
-
-Cheers,
-
-Jeff
+-- 
+Lukas
