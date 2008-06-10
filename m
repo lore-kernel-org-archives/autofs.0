@@ -1,7 +1,7 @@
-From: "Max Harvest" <rootserver94@googlemail.com>
+From: Max Harvest <max_h@limbus.net>
 Subject: automount ignores remote logins
-Date: Fri, 6 Jun 2008 01:11:47 +0200
-Message-ID: <9e9c61c30806051611k7a8c57fev9aa0d7b27655608@mail.gmail.com>
+Date: Tue, 10 Jun 2008 10:43:46 +0200
+Message-ID: <20080610104346.uyi17283k04ooo8o@webmail.df.eu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
