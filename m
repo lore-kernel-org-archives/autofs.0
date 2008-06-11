@@ -1,12 +1,11 @@
-From: Max Harvest <max_h@limbus.net>
-Subject: automount ignores remote logins
-Date: Tue, 10 Jun 2008 10:43:46 +0200
-Message-ID: <20080610104346.uyi17283k04ooo8o@webmail.df.eu>
+From: cedric briner <work@infomaniak.ch>
+Subject: automount reload
+Date: Wed, 11 Jun 2008 08:07:38 +0200
+Message-ID: <484F6BAA.2050703@infomaniak.ch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,48 +16,42 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: autofs <autofs@linux.kernel.org>
 
-Hello everybody,
+ubuntu: 8.04
 
-since I'm using the automount 5, I'm confronted with a very strange
-behaviour. I use it to mount user directories over nfs. The automounter
-maps are provided by NIS und users usually have to login only into
-client computers remotely using rsh or ssh. Now i encounter the following
-misbehaviour:
+#uname -a
+Linux obslw32 2.6.24-17-generic #1 SMP Thu May 1 13:57:17 UTC 2008 
+x86_64 GNU/Linux
 
-At the init, automounter seems to start properly, but if someone logins
-over the network into the client machine, the automounter ignores all
-mount requests (i.e. there is no automounter activity at all). Even a
-restart changes nothing. But if someone log ins on the client machine
-over a tty, everything works fine. Therefor i enabled debug mode
-verbosity and this is the output from syslog:
+# dpkg -l autofs
+ii  autofs                                4.1.4+debian-2.1ubuntu1 
+        kernel-based automounter for Linux
 
-after the start up during boot or after a restart later:
+-----------------------------------------------
 
-automount[1910]: Starting automounter version 5.0.2, master map auto.master
-automount[1910]: using kernel protocol version 5.00
-automount[1910]: lookup_nss_read_master: reading master nis auto.master
-automount[1910]: lookup_init: lookup(yp): ctxt->mapname=auto.master
-automount[1910]: parse_init: parse(sun): init gathered global options: (null)
-automount[1910]: mount_init: mount(bind): bind_works = 1
+Hello the autofs team,
 
-after login per tty:
+I'm using autofs in team with nis. I do have defined auto_home with a 
+list of users and their respectives ressources. And I use intensively nfs.
 
-automount[1910]: master_do_mount: mounting /users
-automount[1910]: lookup_nss_read_map: reading map yp auto.users
-automount[1910]: lookup_init: lookup(yp): ctxt->mapname=auto.users
-automount[1910]: parse_init: parse(sun): init gathered global options: (null)
-automount[1910]: mount_init: mount(bind): bind_works = 1
-automount[1910]: mounted indirect mount on /users with timeout 600,
-freq 150 seconds
-automount[1910]: ghosting enabled
+The question is.
+How should I proceed when I'd like to move, let'say, user joe 
+(/home/joe) from hostA:/export/joe to hostB:/export/joe when he is 
+actually log in hostW(ork)
 
-It seems, that a login through tty sends an wake up event to the
-automount deamon, because all remote logins are ignored. This
-behaviour seems also to be independent of all different automounter
-and NIS configuration variants or options. I have tried a lot of different
-(properly working over tty) configurations without any effect on this
-strange behaviour.
+I thought, I'll do in this order:
+ask joe to log out
+rsync hostA:/export/joe to hostB:/export/joe
+on hostB: exportfs of hostB:/export/joe
 
-Any idea?
+in nis: auto_home, I move joe hostA:/export/joe to
+                               hostB:/export/joe
+
+on hostW: /etc/init.d/autofs reload
+
+but it is not working.
+-- 
+
+Cedric BRINER
+Geneva - Switzerland
