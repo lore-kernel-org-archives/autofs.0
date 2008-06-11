@@ -1,57 +1,47 @@
-From: Lukas Kolbe <lukas@einfachkaffee.de>
-Subject: Re: automount reload
-Date: Wed, 11 Jun 2008 11:04:54 +0200
-Message-ID: <1213175094.11668.2.camel@eldorado>
-References: <484F6BAA.2050703@infomaniak.ch>
+From: Pavel Emelyanov <xemul@openvz.org>
+Subject: [PATCH] autofs4: fix 32-bit userspace vs 64-bit kernel communications
+Date: Wed, 11 Jun 2008 13:54:00 +0400
+Message-ID: <484FA0B8.2000002@openvz.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <484F6BAA.2050703@infomaniak.ch>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-To: cedric briner <work@infomaniak.ch>
-Cc: autofs <autofs@linux.kernel.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753789AbYFKKDM@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: Ian Kent <raven@themaw.net>
+Cc: autofs mailing list <autofs@linux.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Konstantin Khlebnikov <khlebnikov@openvz.org>
 
-Hello Cedric,
+From: Konstantin Khlebnikov <khlebnikov@openvz.org>
 
-> # dpkg -l autofs
-> ii  autofs                                4.1.4+debian-2.1ubuntu1 
->         kernel-based automounter for Linux
+The struct autofs_v5_packet has only one difference between
+32-bit and 64-bit versions - on 64-bit gcc aligns its size and
+it is 4 bytes larger that it is on 32-bit kernel. This confuses
+32-bit user-space daemon, when talking to 64-bit kernel.
 
-That problem was one of the reasons we took the effort to backport
-current (autofs5-5.0.2) versions of autofs to our debian and ubuntu
-installations. I can't think of any reason why ubuntu doesn't ship
-versopn 5 anymore, but heck ... 
+This is very critical for containerized setups, when containers
+with <different>-bit tolls are used.
 
-A simple autofs reload would work if you would be using autofs5. But if
-you decide to do so, please test extensively beforehand (you'll never
-know). For us, it works quite well.
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Acked-by: Pavel Emelyanov <xemul@openvz.org>
 
-> I thought, I'll do in this order:
-> ask joe to log out
-> rsync hostA:/export/joe to hostB:/export/joe
-> on hostB: exportfs of hostB:/export/joe
-> 
-> in nis: auto_home, I move joe hostA:/export/joe to
->                                hostB:/export/joe
+---
 
-That's exactly how it's supposed to work.
-
-> on hostW: /etc/init.d/autofs reload
-
-Autofs4 is ... <insert non politically correct swearword here>. Thanks
-to Ian and Jeff for their good work on autofs5!
-
-> but it is not working.
-
--- 
-Lukas
+diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
+index 1e4a539..9855b6e 100644
+--- a/fs/autofs4/waitq.c
++++ b/fs/autofs4/waitq.c
+@@ -132,6 +132,14 @@ static void autofs4_notify_daemon(struct autofs_sb_info *sbi,
+ 		struct autofs_v5_packet *packet = &pkt.v5_pkt.v5_packet;
+ 
+ 		pktsz = sizeof(*packet);
++#if defined(CONFIG_X86_64) && defined(CONFIG_IA32_EMULATION)
++		/*
++		 * On x86_64 autofs_v5_packet struct is padded with 4 bytes
++		 * which breaks 32-bit autofs daemon.
++		 */
++		if (test_thread_flag(TIF_IA32))
++			pktsz -= 4;
++#endif
+ 
+ 		packet->wait_queue_token = wq->wait_queue_token;
+ 		packet->len = wq->len;
