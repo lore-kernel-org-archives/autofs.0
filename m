@@ -1,13 +1,12 @@
-From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 09/10] autofs4 - use struct qstr in waitq.c
-Date: Thu, 12 Jun 2008 12:51:31 +0800
-Message-ID: <20080612045130.25151.81865.stgit@raven.themaw.net>
-References: <20080612044425.25151.58126.stgit@raven.themaw.net>
+From: Max Harvest <max_h@limbus.net>
+Subject: Re: automount ignores remote logins
+Date: Wed, 11 Jun 2008 17:55:24 +0200
+Message-ID: <20080611175524.aytzfqk80ksgowkc@webmail.df.eu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20080612044425.25151.58126.stgit@raven.themaw.net>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,261 +17,42 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jim Carter <jimc@math.ucla.edu>, autofs mailing list <autofs@linux.kernel.org>
+To: autofs@linux.kernel.org
 
-From: Jeff Moyer <jmoyer@redhat.com>
+On Wed, Jun 11, 2008 at 4:09 PM, Jeff Moyer <jmoyer@redhat.com> wrote:
+> "Max Harvest" <rootserver94@googlemail.com> writes:
+>
+>> Hello everybody,
+>>
+>> since i'm using the automount 5, i'm confronted with a very strange
+>> behaviour. I use it to mount user directories over nfs. The automounter
+>
+> Are you saying that you did not experience this problem with autofs v4?
+>
 
-The autofs_wait_queue already contains all of the fields of the
-struct qstr, so change it into a qstr.
+yes. I have downgraded to version 4 and everything works fine, but  
+this is not very satisfactory.
 
-This patch, from Jeff Moyer, has been modified a liitle by myself.
+>> maps are provided by NIS und users ususally have to login only into
+>> client computers remotely using rsh or ssh. Now i encounter the following
+>> missbehaviour:
+>>
+>> At the init, automounter seems to start propperly, but if someone logins
+>> over the network into the client machine, the automounter ignores all
+>> mount requests (i.e. there is no automounter activity at all). Even a
+>
+> This is probably because there is no lookup performed (meaning it never
+> gets to autofs).  What errors are displayed in the ssh session when a
+> user logs in?  Is there anything in /var/log/secure or /var/log/messages
+> that may indicate a problem elsewhere?
 
----
+of course there are lookups. But if an ssh or rsh login occurs, the message
+is 'no such file or directory'. There is no message from automount in syslog
+(only from ssh, that confirms a login). It happens exactly as i wrote, a
+login through tty lets automount read the indirect maps and from this point
+automunt also reacts to lookups on remote logins. The strange thing is, that
+reading the indirect map happens without any lookup, just a login on tty
+(e.g. root login). I'm just curious which event cause the secoud part of the
+output i posted earlier.
 
- fs/autofs4/autofs_i.h |    4 +-
- fs/autofs4/waitq.c    |   86 ++++++++++++++++++++++++++-----------------------
- 2 files changed, 46 insertions(+), 44 deletions(-)
-
-
-diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
-index e285273..bd42584 100644
---- a/fs/autofs4/autofs_i.h
-+++ b/fs/autofs4/autofs_i.h
-@@ -75,9 +75,7 @@ struct autofs_wait_queue {
- 	struct autofs_wait_queue *next;
- 	autofs_wqt_t wait_queue_token;
- 	/* We use the following to see what we are waiting for */
--	unsigned int hash;
--	unsigned int len;
--	char *name;
-+	struct qstr name;
- 	u32 dev;
- 	u64 ino;
- 	uid_t uid;
-diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
-index 75e5955..5208cfb 100644
---- a/fs/autofs4/waitq.c
-+++ b/fs/autofs4/waitq.c
-@@ -36,8 +36,10 @@ void autofs4_catatonic_mode(struct autofs_sb_info *sbi)
- 	while (wq) {
- 		nwq = wq->next;
- 		wq->status = -ENOENT; /* Magic is gone - report failure */
--		kfree(wq->name);
--		wq->name = NULL;
-+		if (wq->name.name) {
-+			kfree(wq->name.name);
-+			wq->name.name = NULL;
-+		}
- 		wake_up_interruptible(&wq->queue);
- 		wq = nwq;
- 	}
-@@ -92,7 +94,7 @@ static void autofs4_notify_daemon(struct autofs_sb_info *sbi,
- 	size_t pktsz;
- 
- 	DPRINTK("wait id = 0x%08lx, name = %.*s, type=%d",
--		wq->wait_queue_token, wq->len, wq->name, type);
-+		wq->wait_queue_token, wq->name.len, wq->name.name, type);
- 
- 	memset(&pkt,0,sizeof pkt); /* For security reasons */
- 
-@@ -107,9 +109,9 @@ static void autofs4_notify_daemon(struct autofs_sb_info *sbi,
- 		pktsz = sizeof(*mp);
- 
- 		mp->wait_queue_token = wq->wait_queue_token;
--		mp->len = wq->len;
--		memcpy(mp->name, wq->name, wq->len);
--		mp->name[wq->len] = '\0';
-+		mp->len = wq->name.len;
-+		memcpy(mp->name, wq->name.name, wq->name.len);
-+		mp->name[wq->name.len] = '\0';
- 		break;
- 	}
- 	case autofs_ptype_expire_multi:
-@@ -119,9 +121,9 @@ static void autofs4_notify_daemon(struct autofs_sb_info *sbi,
- 		pktsz = sizeof(*ep);
- 
- 		ep->wait_queue_token = wq->wait_queue_token;
--		ep->len = wq->len;
--		memcpy(ep->name, wq->name, wq->len);
--		ep->name[wq->len] = '\0';
-+		ep->len = wq->name.len;
-+		memcpy(ep->name, wq->name.name, wq->name.len);
-+		ep->name[wq->name.len] = '\0';
- 		break;
- 	}
- 	/*
-@@ -138,9 +140,9 @@ static void autofs4_notify_daemon(struct autofs_sb_info *sbi,
- 		pktsz = sizeof(*packet);
- 
- 		packet->wait_queue_token = wq->wait_queue_token;
--		packet->len = wq->len;
--		memcpy(packet->name, wq->name, wq->len);
--		packet->name[wq->len] = '\0';
-+		packet->len = wq->name.len;
-+		memcpy(packet->name, wq->name.name, wq->name.len);
-+		packet->name[wq->name.len] = '\0';
- 		packet->dev = wq->dev;
- 		packet->ino = wq->ino;
- 		packet->uid = wq->uid;
-@@ -191,15 +193,15 @@ static int autofs4_getpath(struct autofs_sb_info *sbi,
- }
- 
- static struct autofs_wait_queue *
--autofs4_find_wait(struct autofs_sb_info *sbi,
--		  char *name, unsigned int hash, unsigned int len)
-+autofs4_find_wait(struct autofs_sb_info *sbi, struct qstr *qstr)
- {
- 	struct autofs_wait_queue *wq;
- 
- 	for (wq = sbi->queues; wq; wq = wq->next) {
--		if (wq->hash == hash &&
--		    wq->len == len &&
--		    wq->name && !memcmp(wq->name, name, len))
-+		if (wq->name.hash == qstr->hash &&
-+		    wq->name.len == qstr->len &&
-+		    wq->name.name &&
-+			 !memcmp(wq->name.name, qstr->name, qstr->len))
- 			break;
- 	}
- 	return wq;
-@@ -210,9 +212,8 @@ int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
- {
- 	struct autofs_info *ino;
- 	struct autofs_wait_queue *wq;
-+	struct qstr qstr;
- 	char *name;
--	unsigned int len = 0;
--	unsigned int hash = 0;
- 	int status, type;
- 
- 	/* In catatonic mode, we don't wait for nobody */
-@@ -225,22 +226,23 @@ int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
- 
- 	/* If this is a direct mount request create a dummy name */
- 	if (IS_ROOT(dentry) && (sbi->type & AUTOFS_TYPE_DIRECT))
--		len = sprintf(name, "%p", dentry);
-+		qstr.len = sprintf(name, "%p", dentry);
- 	else {
--		len = autofs4_getpath(sbi, dentry, &name);
--		if (!len) {
-+		qstr.len = autofs4_getpath(sbi, dentry, &name);
-+		if (!qstr.len) {
- 			kfree(name);
- 			return -ENOENT;
- 		}
- 	}
--	hash = full_name_hash(name, len);
-+	qstr.name = name;
-+	qstr.hash = full_name_hash(name, qstr.len);
- 
- 	if (mutex_lock_interruptible(&sbi->wq_mutex)) {
--		kfree(name);
-+		kfree(qstr.name);
- 		return -EINTR;
- 	}
- 
--	wq = autofs4_find_wait(sbi, name, hash, len);
-+	wq = autofs4_find_wait(sbi, &qstr);
- 	ino = autofs4_dentry_ino(dentry);
- 	if (!wq && ino && notify == NFY_NONE) {
- 		/*
-@@ -254,10 +256,10 @@ int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
- 			mutex_unlock(&sbi->wq_mutex);
- 			schedule_timeout_interruptible(HZ/10);
- 			if (mutex_lock_interruptible(&sbi->wq_mutex)) {
--				kfree(name);
-+				kfree(qstr.name);
- 				return -EINTR;
- 			}
--			wq = autofs4_find_wait(sbi, name, hash, len);
-+			wq = autofs4_find_wait(sbi, &qstr);
- 			if (wq)
- 				break;
- 		}
-@@ -268,7 +270,7 @@ int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
- 		 * return status of the wait.
- 		 */
- 		if (!wq) {
--			kfree(name);
-+			kfree(qstr.name);
- 			mutex_unlock(&sbi->wq_mutex);
- 			return 0;
- 		}
-@@ -278,7 +280,7 @@ int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
- 		/* Create a new wait queue */
- 		wq = kmalloc(sizeof(struct autofs_wait_queue),GFP_KERNEL);
- 		if (!wq) {
--			kfree(name);
-+			kfree(qstr.name);
- 			mutex_unlock(&sbi->wq_mutex);
- 			return -ENOMEM;
- 		}
-@@ -289,9 +291,7 @@ int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
- 		wq->next = sbi->queues;
- 		sbi->queues = wq;
- 		init_waitqueue_head(&wq->queue);
--		wq->hash = hash;
--		wq->name = name;
--		wq->len = len;
-+		memcpy(&wq->name, &qstr, sizeof(struct qstr));
- 		wq->dev = autofs4_get_dev(sbi);
- 		wq->ino = autofs4_get_ino(sbi);
- 		wq->uid = current->uid;
-@@ -319,16 +319,18 @@ int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
- 		}
- 
- 		DPRINTK("new wait id = 0x%08lx, name = %.*s, nfy=%d\n",
--			(unsigned long) wq->wait_queue_token, wq->len, wq->name, notify);
-+			(unsigned long) wq->wait_queue_token, wq->name.len,
-+			wq->name.name, notify);
- 
- 		/* autofs4_notify_daemon() may block */
- 		autofs4_notify_daemon(sbi, wq, type);
- 	} else {
- 		atomic_inc(&wq->wait_ctr);
- 		mutex_unlock(&sbi->wq_mutex);
--		kfree(name);
-+		kfree(qstr.name);
- 		DPRINTK("existing wait id = 0x%08lx, name = %.*s, nfy=%d",
--			(unsigned long) wq->wait_queue_token, wq->len, wq->name, notify);
-+			(unsigned long) wq->wait_queue_token, wq->name.len,
-+			wq->name.name, notify);
- 	}
- 
- 	/* wq->name is NULL if and only if the lock is already released */
-@@ -336,11 +338,13 @@ int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
- 	if (sbi->catatonic) {
- 		/* We might have slept, so check again for catatonic mode */
- 		wq->status = -ENOENT;
--		kfree(wq->name);
--		wq->name = NULL;
-+		if (wq->name.name) {
-+			kfree(wq->name.name);
-+			wq->name.name = NULL;
-+		}
- 	}
- 
--	if (wq->name) {
-+	if (wq->name.name) {
- 		/* Block all but "shutdown" signals while waiting */
- 		sigset_t oldset;
- 		unsigned long irqflags;
-@@ -351,7 +355,7 @@ int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
- 		recalc_sigpending();
- 		spin_unlock_irqrestore(&current->sighand->siglock, irqflags);
- 
--		wait_event_interruptible(wq->queue, wq->name == NULL);
-+		wait_event_interruptible(wq->queue, wq->name.name == NULL);
- 
- 		spin_lock_irqsave(&current->sighand->siglock, irqflags);
- 		current->blocked = oldset;
-@@ -388,8 +392,8 @@ int autofs4_wait_release(struct autofs_sb_info *sbi, autofs_wqt_t wait_queue_tok
- 
- 	*wql = wq->next;	/* Unlink from chain */
- 	mutex_unlock(&sbi->wq_mutex);
--	kfree(wq->name);
--	wq->name = NULL;	/* Do not wait on this queue */
-+	kfree(wq->name.name);
-+	wq->name.name = NULL;	/* Do not wait on this queue */
- 
- 	wq->status = status;
+Max
