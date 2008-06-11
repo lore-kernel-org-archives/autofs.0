@@ -1,14 +1,15 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: the debug info of the autofs
-Date: Wed, 11 Jun 2008 10:11:25 -0400
-Message-ID: <x49bq2883jm.fsf@segfault.boston.devel.redhat.com>
-References: <5a26be460805281833i5ef9856cyd0986016a86cdf76@mail.gmail.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: Is there a known problem with recent Fedora
+	systems	core dumping?
+Date: Wed, 11 Jun 2008 22:37:02 +0800
+Message-ID: <1213195022.4994.67.camel@raven.themaw.net>
+References: <E1K4BIO-0007Ps-00@mta2.cl.cam.ac.uk>
+	<x49fxrk83kf.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <5a26be460805281833i5ef9856cyd0986016a86cdf76@mail.gmail.com>
-	(Binbin Wang's message of "Thu, 29 May 2008 09:33:49 +0800")
+In-Reply-To: <x49fxrk83kf.fsf@segfault.boston.devel.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,32 +20,37 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Binbin Wang <binbinwang118@gmail.com>
-Cc: autofs@linux.kernel.org
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: autofs@linux.kernel.org, Piete Brooks <Piete.Brooks@cl.cam.ac.uk>
 
-"Binbin Wang" <binbinwang118@gmail.com> writes:
 
-> Hi,
->
-> I am using the autofs-4.1.3-155 (RHEL4.2). I have seen the man page.
->
-> man automount
-> -v, --verbose
->               Enables printing of general status and progress messages.
->
-> -d, --debug
->               Enables printing of general status and progress messages as
-> well as debug-
->               ing messages.
->
-> I found that all these debug information have been writen to the system log
-> file (/var/log/message)
->
-> I wang to know that whether I can define the output file of the debug
-> information. Thank you very much!
+On Wed, 2008-06-11 at 10:10 -0400, Jeff Moyer wrote:
+> Piete Brooks <Piete.Brooks@cl.cam.ac.uk> writes:
+> 
+> > I've not managed to get a useful backtrace from the core dumps I get, but is 
+> > there a known problem with the recent (6 .. 9) Fedora RPMs?
+> > We use recursive mounts, but I think I've seen it when they aren't being used.
+> > Basically a core dump appears in / and some part of the automount space stops 
+> > working (but other bits still work).
+> >
+> > Under Fedora Core 6 (autofs-5.0.1-0.rc3.33) it happened to just one research 
+> > group (who do things differently from everyone else), but as of Fedora 9 
+> > (autofs-5.0.3-15) it appears to happen to others (e.g. me!).
+> > It's intermittent (e.g. about once per day)
+> >
+> > Has anyone come across such a problem?
 
-Sure.  See http://people.redhat.com/jmoyer/.
+There have been a few over time but autofs-5.0.1-0.rc3.33 is way old
+now. I'd recommend building a later source rpm to start with.
 
-Cheers,
+It is unlikely the above problems are the same.
+A later package revision and more info is needed.
 
-Jeff
+> 
+> If you are using ldap for your maps, then yes, and upgrading openssl
+> will fix your problems.  If not, then I'll have to defer to Ian on this.
+
+But of course we've seen a recent problem on f9, not specifically autofs
+though. Should be an update out for that soon though.
+
+Ian
