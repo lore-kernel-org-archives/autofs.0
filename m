@@ -1,13 +1,13 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: [PATCH] autofs4: fix 32-bit userspace vs 64-bit
 	kernel	communications
-Date: Wed, 11 Jun 2008 21:08:33 +0800
-Message-ID: <1213189713.4994.47.camel@raven.themaw.net>
+Date: Wed, 11 Jun 2008 21:15:00 +0800
+Message-ID: <1213190100.4994.54.camel@raven.themaw.net>
 References: <484FA0B8.2000002@openvz.org>
 	 <1213187579.4994.25.camel@raven.themaw.net>  <484FC94E.1000209@openvz.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755390AbYFKNM2@vger.kernel.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754024AbYFKNS7@vger.kernel.org>
 In-Reply-To: <484FC94E.1000209@openvz.org>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
@@ -34,15 +34,6 @@ On Wed, 2008-06-11 at 16:47 +0400, Pavel Emelyanov wrote:
 > What program do mean here? The problem arises right on the kernel-daemon
 > boundary - the latter refuses to accept the message with larger length.
 > No other software required.
-
-Any program that is compiled to use the autofs4 module with the version
-5 communication protocol. As far as I know only autofs version 5 uses
-this at the moment.
-
-This isn't a problem for a 32-bit daemon running within a 32-bit user
-space environment or a 64-bit daemon running within a 64-bit user space
-environment.
-
 > 
 > >> This is very critical for containerized setups, when containers
 > >> with <different>-bit tolls are used.
@@ -52,19 +43,6 @@ environment.
 > > automount daemon does now?
 > 
 > 64-bit daemons *still* work OK and 32-bit *start* to after this fix :)
-
-My point is that I think this change may adversely affect existing
-compiled user space applications and I want know if I'm right.
-
-I acknowledge that the struct padding is a problem and I am aware of it
-but it is potentially a big problem to just change the kernel structure
-size.
-
-Does the test_thread_flag(TIF_IA32) macro only return true for a 32-bit
-user-space process running within a 64-bit user space environment
-(perhaps I can do away with the check in the autofs daemon, perhaps it
-doesn't quite work correctly)?
-
 > 
 > >> Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
 > >> Acked-by: Pavel Emelyanov <xemul@openvz.org>
@@ -80,6 +58,16 @@ doesn't quite work correctly)?
 > >>  
 > >>  		pktsz = sizeof(*packet);
 > >> +#if defined(CONFIG_X86_64) && defined(CONFIG_IA32_EMULATION)
+
+Oh .. so maybe the answer to my question is yes?
+
+What about other arches offer 32-bit within a 64-bit environment (has
+this been the case on sparc64 at some point)?
+What about the compiler padding on these?
+
+Don't get me wrong, I'm not against fixing this, in fact I'd like to,
+but I'm concerned it may end up a bit of a can of worms.
+
 > >> +		/*
 > >> +		 * On x86_64 autofs_v5_packet struct is padded with 4 bytes
 > >> +		 * which breaks 32-bit autofs daemon.
