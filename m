@@ -1,14 +1,15 @@
 From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: automount ignores remote logins
-Date: Wed, 11 Jun 2008 10:09:45 -0400
-Message-ID: <x49k5gw83me.fsf@segfault.boston.devel.redhat.com>
-References: <9e9c61c30806050816l18e0cf5ao973cb3332ee9b9d2@mail.gmail.com>
+Subject: Re: Is there a known problem with recent Fedora systems
+	core dumping?
+Date: Wed, 11 Jun 2008 10:10:56 -0400
+Message-ID: <x49fxrk83kf.fsf@segfault.boston.devel.redhat.com>
+References: <E1K4BIO-0007Ps-00@mta2.cl.cam.ac.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <9e9c61c30806050816l18e0cf5ao973cb3332ee9b9d2@mail.gmail.com>
-	(Max Harvest's message of "Thu, 5 Jun 2008 17:16:22 +0200")
+In-Reply-To: <E1K4BIO-0007Ps-00@mta2.cl.cam.ac.uk> (Piete Brooks's message of
+	"Thu, 05 Jun 2008 09:58:08 +0100")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,29 +20,27 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Max Harvest <rootserver94@googlemail.com>
+To: Piete Brooks <Piete.Brooks@cl.cam.ac.uk>
 Cc: autofs@linux.kernel.org
 
-"Max Harvest" <rootserver94@googlemail.com> writes:
+Piete Brooks <Piete.Brooks@cl.cam.ac.uk> writes:
 
-> Hello everybody,
+> I've not managed to get a useful backtrace from the core dumps I get, but is 
+> there a known problem with the recent (6 .. 9) Fedora RPMs?
+> We use recursive mounts, but I think I've seen it when they aren't being used.
+> Basically a core dump appears in / and some part of the automount space stops 
+> working (but other bits still work).
 >
-> since i'm using the automount 5, i'm confronted with a very strange
-> behaviour. I use it to mount user directories over nfs. The automounter
-
-Are you saying that you did not experience this problem with autofs v4?
-
-> maps are provided by NIS und users ususally have to login only into
-> client computers remotely using rsh or ssh. Now i encounter the following
-> missbehaviour:
+> Under Fedora Core 6 (autofs-5.0.1-0.rc3.33) it happened to just one research 
+> group (who do things differently from everyone else), but as of Fedora 9 
+> (autofs-5.0.3-15) it appears to happen to others (e.g. me!).
+> It's intermittent (e.g. about once per day)
 >
-> At the init, automounter seems to start propperly, but if someone logins
-> over the network into the client machine, the automounter ignores all
-> mount requests (i.e. there is no automounter activity at all). Even a
+> Has anyone come across such a problem?
 
-This is probably because there is no lookup performed (meaning it never
-gets to autofs).  What errors are displayed in the ssh session when a
-user logs in?  Is there anything in /var/log/secure or /var/log/messages
-that may indicate a problem elsewhere?
+If you are using ldap for your maps, then yes, and upgrading openssl
+will fix your problems.  If not, then I'll have to defer to Ian on this.
 
--Jeff
+Cheers,
+
+Jeff
