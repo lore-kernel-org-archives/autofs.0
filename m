@@ -1,13 +1,11 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 01/10] autofs4 - check for invalid dentry in getpath
-Date: Thu, 12 Jun 2008 12:50:48 +0800
-Message-ID: <20080612045048.25151.55358.stgit@raven.themaw.net>
-References: <20080612044425.25151.58126.stgit@raven.themaw.net>
+Subject: [PATCH 00/10] Kernel patch series
+Date: Thu, 12 Jun 2008 12:50:42 +0800
+Message-ID: <20080612044425.25151.58126.stgit@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20080612044425.25151.58126.stgit@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,28 +18,44 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: Jim Carter <jimc@math.ucla.edu>, autofs mailing list <autofs@linux.kernel.org>
 
-Catch invalid dentry when calculating its path.
+Jim,
 
-When autofs4_getpath() is called without the BKL (as it is when called
-via ->unlocked_ioctl) it is possible to encounter a dentry that is in
-the process of being freed which has a zero length name.
+Here are the kernel patches I recommend we use while testing
+the submount hang problem.
+
+Some are upstream in recent kernels while others address known
+problems. They were amde against a 2.6.24 source base but should
+apply to earlier kernels. They may not be in thier final state
+as testing is still being done.
+
+I'm not sure that they will make a difference to the problem that
+your seeing but I would like you to use them when testing the daemon
+patches anyway, at least for now.
+
+Ian
 
 ---
 
- fs/autofs4/waitq.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Ian Kent (8):
+      autofs4 - fix pending mount race.
+      autofs4 - use lookup intent flags to trigger mounts
+      autofs4 - don't release directory mutex if called in oz_mode
+      autofs4 - use look aside list for lookups
+      autofs4 - don't make expiring dentry negative
+      autofs4 - fix mntput, dput order bug
+      autofs4 - fix sparse warning in waitq.c:autofs4_expire_indirect()
+      autofs4 - check for invalid dentry in getpath
+
+Jeff Moyer (2):
+      autofs4 - use struct qstr in waitq.c
+      autofs4 - fix incorrect return from root.c:try_to_fill_dentry()
 
 
-diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
-index 1fe28e4..75e5955 100644
---- a/fs/autofs4/waitq.c
-+++ b/fs/autofs4/waitq.c
-@@ -171,7 +171,7 @@ static int autofs4_getpath(struct autofs_sb_info *sbi,
- 	for (tmp = dentry ; tmp != root ; tmp = tmp->d_parent)
- 		len += tmp->d_name.len + 1;
- 
--	if (--len > NAME_MAX) {
-+	if (!len || --len > NAME_MAX) {
- 		spin_unlock(&dcache_lock);
- 		return 0;
- 	}
+ fs/autofs4/autofs_i.h |   12 +-
+ fs/autofs4/expire.c   |   26 ++---
+ fs/autofs4/inode.c    |   29 +++---
+ fs/autofs4/root.c     |  248 +++++++++++++++++++++++++++++++++----------------
+ fs/autofs4/waitq.c    |  203 ++++++++++++++++++++++++++--------------
+ 5 files changed, 333 insertions(+), 185 deletions(-)
+
+-- 
