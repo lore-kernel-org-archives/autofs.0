@@ -1,14 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 07/10] autofs4 - don't release directory mutex if
-	called in	oz_mode
-Date: Thu, 12 Jun 2008 12:51:20 +0800
-Message-ID: <20080612045120.25151.62414.stgit@raven.themaw.net>
-References: <20080612044425.25151.58126.stgit@raven.themaw.net>
+Subject: Re: automount ignores remote logins
+Date: Thu, 12 Jun 2008 14:00:12 +0800
+Message-ID: <1213250412.4994.95.camel@raven.themaw.net>
+References: <20080611175524.aytzfqk80ksgowkc@webmail.df.eu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20080612044425.25151.58126.stgit@raven.themaw.net>
+In-Reply-To: <20080611175524.aytzfqk80ksgowkc@webmail.df.eu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,47 +18,64 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jim Carter <jimc@math.ucla.edu>, autofs mailing list <autofs@linux.kernel.org>
-
-Since we now delay hashing of dentrys until the ->mkdir() call,
-droping and re-taking the directory mutex within the ->lookup()
-function when we are being called by user space is not needed.
-This can lead to a race when other processes are attempting to
-access the same directory during mount point directory creation.
-
-In this case we need to hang onto the mutex to ensure we don't
-get user processes trying to create a mount request for a newly
-created dentry after the mount point entry has already been
-created. This ensures that when we need to check a dentry passed
-to autofs4_wait(), if it is hashed, it is always the mount point
-dentry and not a new dentry created by another lookup during
-directory creation.
-
----
-
- fs/autofs4/root.c |   11 +++++------
- 1 files changed, 5 insertions(+), 6 deletions(-)
+To: Max Harvest <max_h@limbus.net>
+Cc: autofs@linux.kernel.org
 
 
-diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
-index a415ebd..8a94717 100644
---- a/fs/autofs4/root.c
-+++ b/fs/autofs4/root.c
-@@ -681,12 +681,11 @@ static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, s
- 		spin_lock(&dentry->d_lock);
- 		dentry->d_flags |= DCACHE_AUTOFS_PENDING;
- 		spin_unlock(&dentry->d_lock);
--	}
--
--	if (dentry->d_op && dentry->d_op->d_revalidate) {
--		mutex_unlock(&dir->i_mutex);
--		(dentry->d_op->d_revalidate)(dentry, nd);
--		mutex_lock(&dir->i_mutex);
-+		if (dentry->d_op && dentry->d_op->d_revalidate) {
-+			mutex_unlock(&dir->i_mutex);
-+			(dentry->d_op->d_revalidate)(dentry, nd);
-+			mutex_lock(&dir->i_mutex);
-+		}
- 	}
- 
- 	/*
+On Wed, 2008-06-11 at 17:55 +0200, Max Harvest wrote:
+> On Wed, Jun 11, 2008 at 4:09 PM, Jeff Moyer <jmoyer@redhat.com> wrote:
+> > "Max Harvest" <rootserver94@googlemail.com> writes:
+> >
+> >> Hello everybody,
+> >>
+> >> since i'm using the automount 5, i'm confronted with a very strange
+> >> behaviour. I use it to mount user directories over nfs. The automounter
+> >
+> > Are you saying that you did not experience this problem with autofs v4?
+> >
+> 
+> yes. I have downgraded to version 4 and everything works fine, but  
+> this is not very satisfactory.
+> 
+> >> maps are provided by NIS und users ususally have to login only into
+> >> client computers remotely using rsh or ssh. Now i encounter the following
+> >> missbehaviour:
+> >>
+> >> At the init, automounter seems to start propperly, but if someone logins
+> >> over the network into the client machine, the automounter ignores all
+> >> mount requests (i.e. there is no automounter activity at all). Even a
+> >
+> > This is probably because there is no lookup performed (meaning it never
+> > gets to autofs).  What errors are displayed in the ssh session when a
+> > user logs in?  Is there anything in /var/log/secure or /var/log/messages
+> > that may indicate a problem elsewhere?
+> 
+> of course there are lookups. But if an ssh or rsh login occurs, the message
+> is 'no such file or directory'. There is no message from automount in syslog
+> (only from ssh, that confirms a login). It happens exactly as i wrote, a
+> login through tty lets automount read the indirect maps and from this point
+> automunt also reacts to lookups on remote logins. The strange thing is, that
+> reading the indirect map happens without any lookup, just a login on tty
+> (e.g. root login). I'm just curious which event cause the secoud part of the
+> output i posted earlier.
+
+This description and the information you provided is not sufficient to
+work out what's going on.
+
+Do this on a test machine:
+
+Ensure autofs debug logging is enabled.
+With autofs stopped (obviously you need to log into an account that
+doesn't use automounted directories).
+Check that no automount related mounts are active by
+inspecting /proc/mounts.
+Start autofs.
+Attempt to log in from a remote machine using an account that does use
+an automounted directory.
+Attempt to log in locally using an account that does use an automounted
+directory.
+Log both sessions out.
+Stop autofs.
+Post resulting log here.
+
+Ian
