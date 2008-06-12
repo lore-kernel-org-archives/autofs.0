@@ -1,8 +1,8 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 1/5] autofs-5.0.3 - Another fix for don't fail on
-	empty master	map.
-Date: Thu, 12 Jun 2008 13:04:29 +0800
-Message-ID: <20080612050429.27161.28412.stgit@raven.themaw.net>
+Subject: [PATCH 4/5] autofs-5.0.3 - don't abuse the ap->ghost field
+	on NFS	mount
+Date: Thu, 12 Jun 2008 13:04:45 +0800
+Message-ID: <20080612050445.27161.71736.stgit@raven.themaw.net>
 References: <20080612045519.27161.92549.stgit@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,52 +21,82 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: Jim Carter <jimc@math.ucla.edu>, autofs mailing list <autofs@linux.kernel.org>
 
-autofs-5.0.3-dont-fail-on-empty-master-fix-2.patch
+autofs-5.0.3-dont-abuse-ap-ghost-field.patch
+
+Using the ap->ghost field in the autofs mount point struct, to prevent
+the mount point directory from being removed, when attempting a bind
+mount when an NFS mount is local may lead to incorrectly reading and
+ghosting the map. This can happen if a mount request comes in during
+a map re-read when the autofs map doesn't have the browse option set.
+This patch corrects that by using the existence check in the bind mount
+module instead of the hack of changing the struct field.
 
 ---
 
- lib/master.c          |   12 ++----------
- modules/lookup_file.c |    1 +
- 2 files changed, 3 insertions(+), 10 deletions(-)
+ modules/mount_bind.c |    2 +-
+ modules/mount_nfs.c  |   11 -----------
+ 2 files changed, 1 insertions(+), 12 deletions(-)
 
 
-diff --git a/lib/master.c b/lib/master.c
-index ed82131..4a34dd4 100644
---- a/lib/master.c
-+++ b/lib/master.c
-@@ -799,21 +799,13 @@ int master_read_master(struct master *master, time_t age, int readall)
+diff --git a/modules/mount_bind.c b/modules/mount_bind.c
+index ef973e1..e4a04d0 100644
+--- a/modules/mount_bind.c
++++ b/modules/mount_bind.c
+@@ -144,7 +144,7 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name, int
+ 			if (ap->type != LKP_INDIRECT)
+ 				return 1;
  
- 	master_init_scan();
+-			if ((!ap->ghost && name_len) || !existed)
++			if ((!ap->ghost && name_len) && !existed)
+ 				rmdir_path(ap, fullpath, ap->dev);
  
--	if (!lookup_nss_read_master(master, age)) {
--		error(logopt,
--		      "can't read master map %s", master->name);
--		return 0;
--	}
+ 			return err;
+diff --git a/modules/mount_nfs.c b/modules/mount_nfs.c
+index 0e7aebe..6b612d9 100644
+--- a/modules/mount_nfs.c
++++ b/modules/mount_nfs.c
+@@ -62,7 +62,6 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name, int
+ {
+ 	char *fullpath, buf[MAX_ERR_BUF];
+ 	struct host *this, *hosts = NULL;
+-	unsigned int save_ghost = ap->ghost;
+ 	unsigned int vers;
+ 	char *nfsoptions = NULL;
+ 	int len, rlen, status, err, existed = 1;
+@@ -186,13 +185,6 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name, int
+ 	if (!status)
+ 		existed = 0;
+ 
+-	/*
+-	 * We need to stop the bind mount module from removing the
+-	 * mount point directory if a bind attempt fails so abuse
+-	 * the ap->ghost field for this.
+-	 */
+-	ap->ghost = 1;
 -
-+	lookup_nss_read_master(master, age);
- 	master_mount_mounts(master, age, readall);
+ 	this = hosts;
+ 	while (this) {
+ 		char *loc, *port_opt = NULL;
+@@ -229,7 +221,6 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name, int
+ 			/* Success - we're done */
+ 			if (!err) {
+ 				free_host_list(&hosts);
+-				ap->ghost = save_ghost;
+ 				return 0;
+ 			}
  
- 	master_mutex_lock();
+@@ -271,7 +262,6 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name, int
+ 			info(ap->logopt, MODPREFIX "mounted %s on %s", loc, fullpath);
+ 			free(loc);
+ 			free_host_list(&hosts);
+-			ap->ghost = save_ghost;
+ 			return 0;
+ 		}
  
--	if (list_empty(&master->mounts)) {
--		master_mutex_unlock();
-+	if (list_empty(&master->mounts))
- 		warn(logopt, "no mounts in table");
--		return 1;
--	}
+@@ -281,7 +271,6 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name, int
  
- 	master_mutex_unlock();
+ forced_fail:
+ 	free_host_list(&hosts);
+-	ap->ghost = save_ghost;
  
-diff --git a/modules/lookup_file.c b/modules/lookup_file.c
-index b01eea6..466690a 100644
---- a/modules/lookup_file.c
-+++ b/modules/lookup_file.c
-@@ -475,6 +475,7 @@ int lookup_read_master(struct master *master, time_t age, void *context)
- 				     "failed to read included master map %s",
- 				     master->name);
- 				if (!master->recurse) {
-+					master->name = save_name;
- 					master->depth--;
- 					master->recurse = 0;
- 					fclose(f);
+ 	/* If we get here we've failed to complete the mount */
