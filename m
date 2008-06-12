@@ -1,8 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 08/10] autofs4 - use lookup intent flags to trigger
-	mounts
-Date: Thu, 12 Jun 2008 12:51:25 +0800
-Message-ID: <20080612045125.25151.37880.stgit@raven.themaw.net>
+Subject: [PATCH 05/10] autofs4 - don't make expiring dentry negative
+Date: Thu, 12 Jun 2008 12:51:09 +0800
+Message-ID: <20080612045109.25151.5839.stgit@raven.themaw.net>
 References: <20080612044425.25151.58126.stgit@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,74 +20,293 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: Jim Carter <jimc@math.ucla.edu>, autofs mailing list <autofs@linux.kernel.org>
 
-When an open(2) call is made on an autofs mount point directory that
-already exists and the O_DIRECTORY flag is not used the needed mount
-callback to the daemon is not done. This leads to the path walk
-continuing resulting in a callback to the daemon with an incorrect
-key. open(2) is called without O_DIRECTORY by the "find" utility but
-this should be handled properly anyway.
+Correct the error of making a positive dentry negative after it has been
+instantiated.
 
-This happens because autofs needs to use the lookup flags to decide
-when to callback to the daemon to perform a mount to prevent mount
-storms. For example, an autofs indirect mount map that has the "browse"
-option will have the mount point directories are pre-created and the
-stat(2) call made by a color ls against each directory will cause all
-these directories to be mounted. It is unfortunate we need to resort
-to this but mount maps can be quite large. Additionally, if a user
-manually umounts an autofs indirect mount the directory isn't removed
-which also leads to this situation.
-
-To resolve this autofs needs to use the lookup intent flags to enable
-it to make this decision. This patch adds this check and triggers a
-call back if any of the lookup intent flags are set as all these calls
-warrant a mount attempt be requested.
-
-I know that external VFS code which uses the lookup flags is something
-that the VFS would like to eliminate but I have no choice as I can't
-see any other way to do this. A VFS dentry or inode operation callback
-which returns the lookup "type" (requires a definition) would be
-sufficient. But this change is needed now and I'm not aware of the form
-that coming VFS changes will take so I'm not willing to propose anything
-along these lines.
-
-If anyone can provide an alternate method I would be happy to use it.
+This involves removing the code in autofs4_lookup_unhashed() that makes
+the dentry negative and updating autofs4_lookup() to check for an
+unfinished expire and wait if needed. The dentry used for the lookup
+must be negative for mounts to trigger in the required cases so the
+dentry can't be re-used (which is probably for the better anyway).
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 
 ---
 
- fs/autofs4/root.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
+ fs/autofs4/autofs_i.h |    6 +--
+ fs/autofs4/inode.c    |    6 +--
+ fs/autofs4/root.c     |  115 ++++++++++++++++++-------------------------------
+ 3 files changed, 49 insertions(+), 78 deletions(-)
 
 
+diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
+index 2d4ae40..f36d0c5 100644
+--- a/fs/autofs4/autofs_i.h
++++ b/fs/autofs4/autofs_i.h
+@@ -52,7 +52,7 @@ struct autofs_info {
+ 
+ 	int		flags;
+ 
+-	struct list_head rehash;
++	struct list_head expiring;
+ 
+ 	struct autofs_sb_info *sbi;
+ 	unsigned long last_used;
+@@ -112,8 +112,8 @@ struct autofs_sb_info {
+ 	struct mutex wq_mutex;
+ 	spinlock_t fs_lock;
+ 	struct autofs_wait_queue *queues; /* Wait queue pointer */
+-	spinlock_t rehash_lock;
+-	struct list_head rehash_list;
++	spinlock_t lookup_lock;
++	struct list_head expiring_list;
+ };
+ 
+ static inline struct autofs_sb_info *autofs4_sbi(struct super_block *sb)
+diff --git a/fs/autofs4/inode.c b/fs/autofs4/inode.c
+index 7f05d6c..fc04334 100644
+--- a/fs/autofs4/inode.c
++++ b/fs/autofs4/inode.c
+@@ -47,7 +47,7 @@ struct autofs_info *autofs4_init_ino(struct autofs_info *ino,
+ 	ino->dentry = NULL;
+ 	ino->size = 0;
+ 
+-	INIT_LIST_HEAD(&ino->rehash);
++	INIT_LIST_HEAD(&ino->expiring);
+ 
+ 	ino->last_used = jiffies;
+ 	atomic_set(&ino->count, 0);
+@@ -333,8 +333,8 @@ int autofs4_fill_super(struct super_block *s, void *data, int silent)
+ 	mutex_init(&sbi->wq_mutex);
+ 	spin_lock_init(&sbi->fs_lock);
+ 	sbi->queues = NULL;
+-	spin_lock_init(&sbi->rehash_lock);
+-	INIT_LIST_HEAD(&sbi->rehash_list);
++	spin_lock_init(&sbi->lookup_lock);
++	INIT_LIST_HEAD(&sbi->expiring_list);
+ 	s->s_blocksize = 1024;
+ 	s->s_blocksize_bits = 10;
+ 	s->s_magic = AUTOFS_SUPER_MAGIC;
 diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
-index 8a94717..2c878e5 100644
+index 2c5dfe8..d5b36e4 100644
 --- a/fs/autofs4/root.c
 +++ b/fs/autofs4/root.c
-@@ -31,6 +31,9 @@ static int autofs4_root_readdir(struct file * filp, void * dirent, filldir_t fil
- static struct dentry *autofs4_lookup(struct inode *,struct dentry *, struct nameidata *);
- static void *autofs4_follow_link(struct dentry *, struct nameidata *);
+@@ -470,10 +470,10 @@ void autofs4_dentry_release(struct dentry *de)
+ 		struct autofs_sb_info *sbi = autofs4_sbi(de->d_sb);
  
-+#define TRIGGER_FLAGS   (LOOKUP_CONTINUE | LOOKUP_DIRECTORY)
-+#define TRIGGER_INTENTS (LOOKUP_OPEN | LOOKUP_ACCESS | LOOKUP_CREATE)
-+
- const struct file_operations autofs4_root_operations = {
- 	.open		= dcache_dir_open,
- 	.release	= dcache_dir_close,
-@@ -291,7 +294,7 @@ static int try_to_fill_dentry(struct dentry *dentry, int flags)
- 			return status;
+ 		if (sbi) {
+-			spin_lock(&sbi->rehash_lock);
+-			if (!list_empty(&inf->rehash))
+-				list_del(&inf->rehash);
+-			spin_unlock(&sbi->rehash_lock);
++			spin_lock(&sbi->lookup_lock);
++			if (!list_empty(&inf->expiring))
++				list_del(&inf->expiring);
++			spin_unlock(&sbi->lookup_lock);
  		}
- 	/* Trigger mount for path component or follow link */
--	} else if (flags & (LOOKUP_CONTINUE | LOOKUP_DIRECTORY) ||
-+	} else if (flags & (TRIGGER_FLAGS | TRIGGER_INTENTS) ||
- 			current->link_count) {
- 		DPRINTK("waiting for mount name=%.*s",
- 			dentry->d_name.len, dentry->d_name.name);
-@@ -335,7 +338,7 @@ static void *autofs4_follow_link(struct dentry *dentry, struct nameidata *nd)
- 		nd->flags);
  
- 	/* If it's our master or we shouldn't trigger a mount we're done */
--	lookup_type = nd->flags & (LOOKUP_CONTINUE | LOOKUP_DIRECTORY);
-+	lookup_type = nd->flags & (TRIGGER_FLAGS | TRIGGER_INTENTS);
- 	if (oz_mode || !lookup_type)
- 		goto done;
+ 		inf->dentry = NULL;
+@@ -495,7 +495,7 @@ static struct dentry_operations autofs4_dentry_operations = {
+ 	.d_release	= autofs4_dentry_release,
+ };
+ 
+-static struct dentry *autofs4_lookup_unhashed(struct autofs_sb_info *sbi, struct dentry *parent, struct qstr *name)
++static struct dentry *autofs4_lookup_expiring(struct autofs_sb_info *sbi, struct dentry *parent, struct qstr *name)
+ {
+ 	unsigned int len = name->len;
+ 	unsigned int hash = name->hash;
+@@ -503,14 +503,14 @@ static struct dentry *autofs4_lookup_unhashed(struct autofs_sb_info *sbi, struct
+ 	struct list_head *p, *head;
+ 
+ 	spin_lock(&dcache_lock);
+-	spin_lock(&sbi->rehash_lock);
+-	head = &sbi->rehash_list;
++	spin_lock(&sbi->lookup_lock);
++	head = &sbi->expiring_list;
+ 	list_for_each(p, head) {
+ 		struct autofs_info *ino;
+ 		struct dentry *dentry;
+ 		struct qstr *qstr;
+ 
+-		ino = list_entry(p, struct autofs_info, rehash);
++		ino = list_entry(p, struct autofs_info, expiring);
+ 		dentry = ino->dentry;
+ 
+ 		spin_lock(&dentry->d_lock);
+@@ -532,33 +532,17 @@ static struct dentry *autofs4_lookup_unhashed(struct autofs_sb_info *sbi, struct
+ 			goto next;
+ 
+ 		if (d_unhashed(dentry)) {
+-			struct autofs_info *ino = autofs4_dentry_ino(dentry);
+-			struct inode *inode = dentry->d_inode;
+-
+-			list_del_init(&ino->rehash);
++			list_del_init(&ino->expiring);
+ 			dget(dentry);
+-			/*
+-			 * Make the rehashed dentry negative so the VFS
+-			 * behaves as it should.
+-			 */
+-			if (inode) {
+-				dentry->d_inode = NULL;
+-				list_del_init(&dentry->d_alias);
+-				spin_unlock(&dentry->d_lock);
+-				spin_unlock(&sbi->rehash_lock);
+-				spin_unlock(&dcache_lock);
+-				iput(inode);
+-				return dentry;
+-			}
+ 			spin_unlock(&dentry->d_lock);
+-			spin_unlock(&sbi->rehash_lock);
++			spin_unlock(&sbi->lookup_lock);
+ 			spin_unlock(&dcache_lock);
+ 			return dentry;
+ 		}
+ next:
+ 		spin_unlock(&dentry->d_lock);
+ 	}
+-	spin_unlock(&sbi->rehash_lock);
++	spin_unlock(&sbi->lookup_lock);
+ 	spin_unlock(&dcache_lock);
+ 
+ 	return NULL;
+@@ -568,7 +552,7 @@ next:
+ static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, struct nameidata *nd)
+ {
+ 	struct autofs_sb_info *sbi;
+-	struct dentry *unhashed;
++	struct dentry *expiring;
+ 	int oz_mode;
+ 
+ 	DPRINTK("name = %.*s",
+@@ -584,44 +568,40 @@ static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, s
+ 	DPRINTK("pid = %u, pgrp = %u, catatonic = %d, oz_mode = %d",
+ 		 current->pid, task_pgrp_nr(current), sbi->catatonic, oz_mode);
+ 
+-	unhashed = autofs4_lookup_unhashed(sbi, dentry->d_parent, &dentry->d_name);
+-	if (!unhashed) {
+-		/*
+-		 * Mark the dentry incomplete but don't hash it. We do this
+-		 * to serialize our inode creation operations (symlink and
+-		 * mkdir) which prevents deadlock during the callback to
+-		 * the daemon. Subsequent user space lookups for the same
+-		 * dentry are placed on the wait queue while the daemon
+-		 * itself is allowed passage unresticted so the create
+-		 * operation itself can then hash the dentry. Finally,
+-		 * we check for the hashed dentry and return the newly
+-		 * hashed dentry.
+-		 */
+-		dentry->d_op = &autofs4_root_dentry_operations;
+-
+-		dentry->d_fsdata = NULL;
+-		d_instantiate(dentry, NULL);
+-	} else {
+-		struct autofs_info *ino = autofs4_dentry_ino(unhashed);
+-		DPRINTK("rehash %p with %p", dentry, unhashed);
++	expiring = autofs4_lookup_expiring(sbi, dentry->d_parent, &dentry->d_name);
++	if (expiring) {
++		struct autofs_info *ino = autofs4_dentry_ino(expiring);
+ 		/*
+ 		 * If we are racing with expire the request might not
+ 		 * be quite complete but the directory has been removed
+ 		 * so it must have been successful, so just wait for it.
+-		 * We need to ensure the AUTOFS_INF_EXPIRING flag is clear
+-		 * before continuing as revalidate may fail when calling
+-		 * try_to_fill_dentry (returning EAGAIN) if we don't.
+ 		 */
+ 		while (ino && (ino->flags & AUTOFS_INF_EXPIRING)) {
+ 			DPRINTK("wait for incomplete expire %p name=%.*s",
+-				unhashed, unhashed->d_name.len,
+-				unhashed->d_name.name);
+-			autofs4_wait(sbi, unhashed, NFY_NONE);
++				expiring, expiring->d_name.len,
++				expiring->d_name.name);
++			autofs4_wait(sbi, expiring, NFY_NONE);
+ 			DPRINTK("request completed");
+ 		}
+-		dentry = unhashed;
++		dput(expiring);
+ 	}
+ 
++	/*
++	 * Mark the dentry incomplete but don't hash it. We do this
++	 * to serialize our inode creation operations (symlink and
++	 * mkdir) which prevents deadlock during the callback to
++	 * the daemon. Subsequent user space lookups for the same
++	 * dentry are placed on the wait queue while the daemon
++	 * itself is allowed passage unresticted so the create
++	 * operation itself can then hash the dentry. Finally,
++	 * we check for the hashed dentry and return the newly
++	 * hashed dentry.
++	 */
++	dentry->d_op = &autofs4_root_dentry_operations;
++
++	dentry->d_fsdata = NULL;
++	d_instantiate(dentry, NULL);
++
+ 	if (!oz_mode) {
+ 		spin_lock(&dentry->d_lock);
+ 		dentry->d_flags |= DCACHE_AUTOFS_PENDING;
+@@ -645,8 +625,6 @@ static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, s
+ 			if (sigismember (sigset, SIGKILL) ||
+ 			    sigismember (sigset, SIGQUIT) ||
+ 			    sigismember (sigset, SIGINT)) {
+-			    if (unhashed)
+-				dput(unhashed);
+ 			    return ERR_PTR(-ERESTARTNOINTR);
+ 			}
+ 		}
+@@ -676,15 +654,9 @@ static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, s
+ 		else
+ 			dentry = ERR_PTR(-ENOENT);
+ 
+-		if (unhashed)
+-			dput(unhashed);
+-
+ 		return dentry;
+ 	}
+ 
+-	if (unhashed)
+-		return dentry;
+-
+ 	return NULL;
+ }
+ 
+@@ -746,9 +718,8 @@ static int autofs4_dir_symlink(struct inode *dir,
+  * that the file no longer exists. However, doing that means that the
+  * VFS layer can turn the dentry into a negative dentry.  We don't want
+  * this, because the unlink is probably the result of an expire.
+- * We simply d_drop it and add it to a rehash candidates list in the
+- * super block, which allows the dentry lookup to reuse it retaining
+- * the flags, such as expire in progress, in case we're racing with expire.
++ * We simply d_drop it and add it to a expiring list in the super block,
++ * which allows the dentry lookup to check for an incomplete expire.
+  *
+  * If a process is blocked on the dentry waiting for the expire to finish,
+  * it will invalidate the dentry and try to mount with a new one.
+@@ -778,9 +749,9 @@ static int autofs4_dir_unlink(struct inode *dir, struct dentry *dentry)
+ 	dir->i_mtime = CURRENT_TIME;
+ 
+ 	spin_lock(&dcache_lock);
+-	spin_lock(&sbi->rehash_lock);
+-	list_add(&ino->rehash, &sbi->rehash_list);
+-	spin_unlock(&sbi->rehash_lock);
++	spin_lock(&sbi->lookup_lock);
++	list_add(&ino->expiring, &sbi->expiring_list);
++	spin_unlock(&sbi->lookup_lock);
+ 	spin_lock(&dentry->d_lock);
+ 	__d_drop(dentry);
+ 	spin_unlock(&dentry->d_lock);
+@@ -806,9 +777,9 @@ static int autofs4_dir_rmdir(struct inode *dir, struct dentry *dentry)
+ 		spin_unlock(&dcache_lock);
+ 		return -ENOTEMPTY;
+ 	}
+-	spin_lock(&sbi->rehash_lock);
+-	list_add(&ino->rehash, &sbi->rehash_list);
+-	spin_unlock(&sbi->rehash_lock);
++	spin_lock(&sbi->lookup_lock);
++	list_add(&ino->expiring, &sbi->expiring_list);
++	spin_unlock(&sbi->lookup_lock);
+ 	spin_lock(&dentry->d_lock);
+ 	__d_drop(dentry);
+ 	spin_unlock(&dentry->d_lock);
