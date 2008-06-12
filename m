@@ -1,13 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 0/5] Series short description
-Date: Thu, 12 Jun 2008 14:15:52 +0800
-Message-ID: <1213251352.4994.98.camel@raven.themaw.net>
-References: <20080612045316.26687.61963.stgit@raven.themaw.net>
+From: Stef Bon <stef@bononline.nl>
+Subject: Very good the patches.
+Date: Thu, 12 Jun 2008 09:58:36 +0200
+Message-ID: <4850D72C.8000301@bononline.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20080612045316.26687.61963.stgit@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,37 +16,29 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jim Carter <jimc@math.ucla.edu>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+To: autofs@linux.kernel.org
+
+Hello,
+
+thanks for the patches.
+
+I experienced some problems with my construction on autofs managed 
+network maps:
+
+- still problems on not wanting to run when auto.master file is empty, 
+and the included /var/run/autofs.auto.master is not found
+- unmounting everything when sutting down with the signal USR2 (and 
+compiled with the enable-forcesd-shutdown) does not what it's supposed to do
+- when I've got two networks, I've got two toplevel directories on my 
+mountpoint. When both are expired and there are no mounts, one will 
+disappear. This is not what I want. The best for my construction is that 
+the toplevel directories (for example "Windows Network" and "SSH hosts")
+will remain.
 
 
-Another false start.
-Wish I could tell StGIT to cancel the send when I decide I don't want to
-proceed when editing the cover mail.
+Well anyway,
 
-On Thu, 2008-06-12 at 12:54 +0800, Ian Kent wrote:
-> The following series implements...
-> 
-> ---
-> 
-> Ian Kent (5):
->       autofs-5.0.3 - fix submount shutdown handling.
->       autofs-5.0.3 - don't abuse the ap->ghost field on NFS mount
->       autofs-5.0.3 - mount thread create condition handling fix
->       Fix incorrect pthreads condition handling for mount requests.
->       Another fix for don't fail on empty master map.
-> 
-> 
->  daemon/automount.c     |   82 ++++++++++++------------
->  daemon/direct.c        |  100 +++++++++++++++++------------
->  daemon/indirect.c      |  164 ++++++++++++++++++++++++++++++++++--------------
->  daemon/lookup.c        |    3 -
->  daemon/state.c         |    5 +
->  include/automount.h    |   19 +++++-
->  lib/master.c           |   63 +++++++++++-------
->  modules/lookup_file.c  |    1 
->  modules/mount_autofs.c |    4 +
->  modules/mount_bind.c   |    2 -
->  modules/mount_nfs.c    |   11 ---
->  11 files changed, 277 insertions(+), 177 deletions(-)
-> 
+I'll try the patches. Can I actually apply them? I've been looking in 
+the source, and the latest patch is from may...
+
+Stef Bon
