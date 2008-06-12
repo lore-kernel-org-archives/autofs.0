@@ -1,13 +1,11 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: automount ignores remote logins
-Date: Thu, 12 Jun 2008 14:00:12 +0800
-Message-ID: <1213250412.4994.95.camel@raven.themaw.net>
-References: <20080611175524.aytzfqk80ksgowkc@webmail.df.eu>
+Subject: [PATCH 0/5] Patch series to attempt to fix submount hang
+Date: Thu, 12 Jun 2008 13:04:23 +0800
+Message-ID: <20080612045519.27161.92549.stgit@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20080611175524.aytzfqk80ksgowkc@webmail.df.eu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,64 +16,46 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Max Harvest <max_h@limbus.net>
-Cc: autofs@linux.kernel.org
+To: Jim Carter <jimc@math.ucla.edu>, autofs mailing list <autofs@linux.kernel.org>
 
+Jim,
 
-On Wed, 2008-06-11 at 17:55 +0200, Max Harvest wrote:
-> On Wed, Jun 11, 2008 at 4:09 PM, Jeff Moyer <jmoyer@redhat.com> wrote:
-> > "Max Harvest" <rootserver94@googlemail.com> writes:
-> >
-> >> Hello everybody,
-> >>
-> >> since i'm using the automount 5, i'm confronted with a very strange
-> >> behaviour. I use it to mount user directories over nfs. The automounter
-> >
-> > Are you saying that you did not experience this problem with autofs v4?
-> >
-> 
-> yes. I have downgraded to version 4 and everything works fine, but  
-> this is not very satisfactory.
-> 
-> >> maps are provided by NIS und users ususally have to login only into
-> >> client computers remotely using rsh or ssh. Now i encounter the following
-> >> missbehaviour:
-> >>
-> >> At the init, automounter seems to start propperly, but if someone logins
-> >> over the network into the client machine, the automounter ignores all
-> >> mount requests (i.e. there is no automounter activity at all). Even a
-> >
-> > This is probably because there is no lookup performed (meaning it never
-> > gets to autofs).  What errors are displayed in the ssh session when a
-> > user logs in?  Is there anything in /var/log/secure or /var/log/messages
-> > that may indicate a problem elsewhere?
-> 
-> of course there are lookups. But if an ssh or rsh login occurs, the message
-> is 'no such file or directory'. There is no message from automount in syslog
-> (only from ssh, that confirms a login). It happens exactly as i wrote, a
-> login through tty lets automount read the indirect maps and from this point
-> automunt also reacts to lookups on remote logins. The strange thing is, that
-> reading the indirect map happens without any lookup, just a login on tty
-> (e.g. root login). I'm just curious which event cause the secoud part of the
-> output i posted earlier.
+Here is the latest patch series I'm using to try and fix the submount hang
+that your seeing.
 
-This description and the information you provided is not sufficient to
-work out what's going on.
+After our initial investigation I was able to use one of the tests in the
+connectathon test suite to fairly easily reproduce the problem. I've used
+that to test these current patches and I hope they are an improvement.
 
-Do this on a test machine:
+One of my test runs (the latest one) produced a totally different error
+after only 17 hours so it looks like there is another issue. I'll continue
+to work on that but in the mean time could you give these patches a try.
 
-Ensure autofs debug logging is enabled.
-With autofs stopped (obviously you need to log into an account that
-doesn't use automounted directories).
-Check that no automount related mounts are active by
-inspecting /proc/mounts.
-Start autofs.
-Attempt to log in from a remote machine using an account that does use
-an automounted directory.
-Attempt to log in locally using an account that does use an automounted
-directory.
-Log both sessions out.
-Stop autofs.
-Post resulting log here.
+They were made against the source of the SuSE autofs-5.0.3-6.1 rpm.
 
 Ian
+
+---
+
+Ian Kent (5):
+      autofs-5.0.3 - fix submount shutdown handling.
+      autofs-5.0.3 - don't abuse the ap->ghost field on NFS mount
+      autofs-5.0.3 - mount thread create condition handling fix
+      autofs-5.0.3 - Fix incorrect pthreads condition handling for mount requests.
+      autofs-5.0.3 - Another fix for don't fail on empty master map.
+
+
+ daemon/automount.c     |   82 ++++++++++++------------
+ daemon/direct.c        |  100 +++++++++++++++++------------
+ daemon/indirect.c      |  164 ++++++++++++++++++++++++++++++++++--------------
+ daemon/lookup.c        |    3 -
+ daemon/state.c         |    5 +
+ include/automount.h    |   19 +++++-
+ lib/master.c           |   63 +++++++++++-------
+ modules/lookup_file.c  |    1 
+ modules/mount_autofs.c |    4 +
+ modules/mount_bind.c   |    2 -
+ modules/mount_nfs.c    |   11 ---
+ 11 files changed, 277 insertions(+), 177 deletions(-)
+
+-- 
