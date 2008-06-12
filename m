@@ -1,11 +1,14 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 00/10] Kernel patch series
-Date: Thu, 12 Jun 2008 12:50:42 +0800
-Message-ID: <20080612044425.25151.58126.stgit@raven.themaw.net>
+Subject: [PATCH 02/10] autofs4 - fix sparse warning
+	in	waitq.c:autofs4_expire_indirect()
+Date: Thu, 12 Jun 2008 12:50:53 +0800
+Message-ID: <20080612045053.25151.70437.stgit@raven.themaw.net>
+References: <20080612044425.25151.58126.stgit@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <20080612044425.25151.58126.stgit@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,44 +21,74 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: Jim Carter <jimc@math.ucla.edu>, autofs mailing list <autofs@linux.kernel.org>
 
-Jim,
+Re-order some code in expire.c:autofs4_expire_indirect() to avoid compile
+warning, reported by Harvey Harrison:
 
-Here are the kernel patches I recommend we use while testing
-the submount hang problem.
-
-Some are upstream in recent kernels while others address known
-problems. They were amde against a 2.6.24 source base but should
-apply to earlier kernels. They may not be in thier final state
-as testing is still being done.
-
-I'm not sure that they will make a difference to the problem that
-your seeing but I would like you to use them when testing the daemon
-patches anyway, at least for now.
-
-Ian
+ CHECK   fs/autofs4/expire.c
+fs/autofs4/expire.c:383:2: warning: context imbalance in
+'autofs4_expire_indirect' - unexpected unlock
 
 ---
 
-Ian Kent (8):
-      autofs4 - fix pending mount race.
-      autofs4 - use lookup intent flags to trigger mounts
-      autofs4 - don't release directory mutex if called in oz_mode
-      autofs4 - use look aside list for lookups
-      autofs4 - don't make expiring dentry negative
-      autofs4 - fix mntput, dput order bug
-      autofs4 - fix sparse warning in waitq.c:autofs4_expire_indirect()
-      autofs4 - check for invalid dentry in getpath
-
-Jeff Moyer (2):
-      autofs4 - use struct qstr in waitq.c
-      autofs4 - fix incorrect return from root.c:try_to_fill_dentry()
+ fs/autofs4/expire.c |   24 +++++++++++-------------
+ 1 files changed, 11 insertions(+), 13 deletions(-)
 
 
- fs/autofs4/autofs_i.h |   12 +-
- fs/autofs4/expire.c   |   26 ++---
- fs/autofs4/inode.c    |   29 +++---
- fs/autofs4/root.c     |  248 +++++++++++++++++++++++++++++++++----------------
- fs/autofs4/waitq.c    |  203 ++++++++++++++++++++++++++--------------
- 5 files changed, 333 insertions(+), 185 deletions(-)
-
--- 
+diff --git a/fs/autofs4/expire.c b/fs/autofs4/expire.c
+index d96e5c1..cfa12db 100644
+--- a/fs/autofs4/expire.c
++++ b/fs/autofs4/expire.c
+@@ -333,7 +333,7 @@ static struct dentry *autofs4_expire_indirect(struct super_block *sb,
+ 			/* Can we expire this guy */
+ 			if (autofs4_can_expire(dentry, timeout, do_now)) {
+ 				expired = dentry;
+-				break;
++				goto found;
+ 			}
+ 			goto next;
+ 		}
+@@ -352,7 +352,7 @@ static struct dentry *autofs4_expire_indirect(struct super_block *sb,
+ 				inf->flags |= AUTOFS_INF_EXPIRING;
+ 				spin_unlock(&sbi->fs_lock);
+ 				expired = dentry;
+-				break;
++				goto found;
+ 			}
+ 			spin_unlock(&sbi->fs_lock);
+ 		/*
+@@ -363,7 +363,7 @@ static struct dentry *autofs4_expire_indirect(struct super_block *sb,
+ 			expired = autofs4_check_leaves(mnt, dentry, timeout, do_now);
+ 			if (expired) {
+ 				dput(dentry);
+-				break;
++				goto found;
+ 			}
+ 		}
+ next:
+@@ -371,18 +371,16 @@ next:
+ 		spin_lock(&dcache_lock);
+ 		next = next->next;
+ 	}
+-
+-	if (expired) {
+-		DPRINTK("returning %p %.*s",
+-			expired, (int)expired->d_name.len, expired->d_name.name);
+-		spin_lock(&dcache_lock);
+-		list_move(&expired->d_parent->d_subdirs, &expired->d_u.d_child);
+-		spin_unlock(&dcache_lock);
+-		return expired;
+-	}
+ 	spin_unlock(&dcache_lock);
+-
+ 	return NULL;
++
++found:
++	DPRINTK("returning %p %.*s",
++		expired, (int)expired->d_name.len, expired->d_name.name);
++	spin_lock(&dcache_lock);
++	list_move(&expired->d_parent->d_subdirs, &expired->d_u.d_child);
++	spin_unlock(&dcache_lock);
++	return expired;
+ }
+ 
+ /* Perform an expiry operation */
