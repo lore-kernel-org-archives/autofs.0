@@ -1,12 +1,13 @@
-From: Max Harvest <max_h@limbus.net>
-Subject: Re: automount ignores remote logins
-Date: Wed, 11 Jun 2008 17:55:24 +0200
-Message-ID: <20080611175524.aytzfqk80ksgowkc@webmail.df.eu>
+From: Ian Kent <raven@themaw.net>
+Subject: [PATCH 04/10] autofs4 - fix mntput, dput order bug
+Date: Thu, 12 Jun 2008 12:51:04 +0800
+Message-ID: <20080612045104.25151.30461.stgit@raven.themaw.net>
+References: <20080612044425.25151.58126.stgit@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <20080612044425.25151.58126.stgit@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,42 +18,27 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Jim Carter <jimc@math.ucla.edu>, autofs mailing list <autofs@linux.kernel.org>
 
-On Wed, Jun 11, 2008 at 4:09 PM, Jeff Moyer <jmoyer@redhat.com> wrote:
-> "Max Harvest" <rootserver94@googlemail.com> writes:
->
->> Hello everybody,
->>
->> since i'm using the automount 5, i'm confronted with a very strange
->> behaviour. I use it to mount user directories over nfs. The automounter
->
-> Are you saying that you did not experience this problem with autofs v4?
->
+Fix a bug in autofs4_mount_busy() where mntput() was called before dput().
+This is a hunk taken from an LKML submission by Jan Blunck <jblunck@suse.de>.
 
-yes. I have downgraded to version 4 and everything works fine, but  
-this is not very satisfactory.
+---
 
->> maps are provided by NIS und users ususally have to login only into
->> client computers remotely using rsh or ssh. Now i encounter the following
->> missbehaviour:
->>
->> At the init, automounter seems to start propperly, but if someone logins
->> over the network into the client machine, the automounter ignores all
->> mount requests (i.e. there is no automounter activity at all). Even a
->
-> This is probably because there is no lookup performed (meaning it never
-> gets to autofs).  What errors are displayed in the ssh session when a
-> user logs in?  Is there anything in /var/log/secure or /var/log/messages
-> that may indicate a problem elsewhere?
+ fs/autofs4/expire.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-of course there are lookups. But if an ssh or rsh login occurs, the message
-is 'no such file or directory'. There is no message from automount in syslog
-(only from ssh, that confirms a login). It happens exactly as i wrote, a
-login through tty lets automount read the indirect maps and from this point
-automunt also reacts to lookups on remote logins. The strange thing is, that
-reading the indirect map happens without any lookup, just a login on tty
-(e.g. root login). I'm just curious which event cause the secoud part of the
-output i posted earlier.
 
-Max
+diff --git a/fs/autofs4/expire.c b/fs/autofs4/expire.c
+index cfa12db..894fee5 100644
+--- a/fs/autofs4/expire.c
++++ b/fs/autofs4/expire.c
+@@ -73,8 +73,8 @@ static int autofs4_mount_busy(struct vfsmount *mnt, struct dentry *dentry)
+ 	status = 0;
+ done:
+ 	DPRINTK("returning = %d", status);
+-	mntput(mnt);
+ 	dput(dentry);
++	mntput(mnt);
+ 	return status;
+ }
