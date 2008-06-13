@@ -1,15 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: user reporting memory leak with ldap maps
-Date: Fri, 13 Jun 2008 13:11:51 +0800
-Message-ID: <1213333911.4994.213.camel@raven.themaw.net>
-References: <48036EE7.3070805@inria.fr>
-	<1208228681.3101.8.camel@raven.themaw.net> <48052401.4090702@inria.fr>
-	<48518371.9060308@inria.fr>
+From: Matthias Koenig <mkoenig@suse.de>
+Subject: autofs mountopints on NFS mounted filesystems
+Date: Fri, 13 Jun 2008 11:51:23 +0200
+Message-ID: <n7xiqwdslwk.fsf@sor.suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <48518371.9060308@inria.fr>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,36 +16,19 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Guillaume Rousse <Guillaume.Rousse@inria.fr>
-Cc: autofs@linux.kernel.org
+To: autofs mailing list <autofs@linux.kernel.org>
 
-Ck9uIFRodSwgMjAwOC0wNi0xMiBhdCAyMjoxMyArMDIwMCwgR3VpbGxhdW1lIFJvdXNzZSB3cm90
-ZToKPiBHdWlsbGF1bWUgUm91c3NlIGEgw6ljcml0IDoKPiA+IElhbiBLZW50IGEgw6ljcml0IDoK
-PiA+PiBPbiBNb24sIDIwMDgtMDQtMTQgYXQgMTY6NDkgKzAyMDAsIEd1aWxsYXVtZSBSb3Vzc2Ug
-d3JvdGU6Cj4gPj4+IEEgbWR2IHVzZXIgY29tcGxhaW5zIGFib3V0IGEgbWVtb3J5IGxlYWsgaW4g
-YXV0b2ZzIDUuMC4yLiBJIGNhbid0Cj4gPj4+IHJlcHJvZHVjZSBteXNlbGYsIGJ1dCBJIGRvbid0
-IGhhdmUgdGhlIHNhbWUgdmVyc2lvbiBhdmFpbGFibGUgZm9yIHRlc3RpbmcuCj4gPj4+Cj4gPj4+
-IFNlZSBodHRwczovL3FhLm1hbmRyaXZhLmNvbS9zaG93X2J1Zy5jZ2k/aWQ9Mzk5MTEgZm9yIGZ1
-bGwgcmVwb3J0Lgo+ID4+IFRoYXQncyBxdWl0ZSBwb3NzaWJsZSBidXQgd2h5IGhhc24ndCBhbnkg
-cGVydGluZW50IGluZm9ybWF0aW9uIGJlZW4KPiA+PiBvYnRhaW5lZCBmcm9tIHRoZSByZXBvcnRl
-cj8KPiA+Pgo+ID4+IFdoYXQgYXJlIHRoZSBtYXBzIGluIHVzZT8KPiA+PiBXaGF0IGlzIHRoZSBt
-ZW1vcnkgdXNhZ2UgYXQgc3RhcnR1cCwgYWZ0ZXIgMiBob3VycywgNCBob3VycywgYXQgbGVhc3QK
-PiA+PiB0d28gc2FtcGxlcyB0aGUgZm9sbG93aW5nIGRheSwgZXRjLiAoZm9yIGF0IGxlYXN0IHR3
-byBkYXlzKT8KPiA+PiBEb2VzIHRoZSBzYW1lIHRoaW5nIGhhcHBlbiBpZiB0aGV5IHNldHVwIGZp
-bGUgbWFwcyBmb3IgZXZlcnl0aGluZwo+ID4+IGluc3RlYWQ/Cj4gPiBJIGRpZCBhc2suCj4gVGhl
-IHVzZXIganVzdCB1cGRhdGVkIHRoZSB0aWNrZXQgd2l0aCBtZW1vcnkgdXNhZ2UgZm9yIGJvdGgg
-ZmlsZSBhbmQgCj4gbGRhcC1iYXNlZCBjb25maWd1cmF0aW9uLgoKVGhhbmsgdGhlbSBmb3IgdGhp
-cyBpbmZvcm1hdGlvbiBwbGVhc2UuCkknbGwgdGVzdCB0aGlzIG91dCB3aGVuIEkndmUgZ290IG9u
-IHRvcCBvZiB0aGUgY3VycmVudCBpc3N1ZXMgSSdtCndvcmtpbmcgb24uCgpJIGhhdmUgdG8gbWVu
-dGlvbiB0aGF0IEkgc3BlbnQgYSBmYWlyIGFtb3VudCBvZiB0aW1lIGNoZWNraW5nIG1lbW9yeQp1
-c2FnZSBkdXJpbmcgdjUgZGV2ZWxvcG1lbnQsIGJ1dCBpdCdzIGJlZW4gYSB3aGlsZSBzaW5jZSBJ
-J3ZlIGRvbmUgdGhpcwpub3cgYW5kIHRoZXJlIGhhdmUgYmVlbiBxdWl0ZSBhIGZldyBjaGFuZ2Vz
-IHNpbmNlLiBUaGUgcXVpY2sgY2hlY2sgSSBkaWQKYWZ0ZXIgeW91ciBwb3N0IGluZGljYXRlZCAo
-YXMgSSBleHBlY3RlZCkgdGhhdCB0aGlzIG1vc3QgbGlrZWx5IGlzbid0Cmp1c3QgYSBjb3VwbGUg
-b2Ygc2ltcGxlIGF1dG9mcyBlcnJvcnMgYXMgdGhlIHZhbGdyaW5kIHJlcG9ydCBzdWdnZXN0ZWQK
-dGhhdCBmdW5jdGlvbnMgb3V0c2lkZSBvZiBhdXRvZnMgd2VyZSBub3QgZnJlZWluZyBtZW1vcnks
-IHdoaWNoIG1heSBvcgptYXkgbm90IHJlYWxseSBiZSB0aGUgY2FzZSBvciB0aGUgcmVwb3J0IGNv
-dWxkIGJlIGNvbXBsZXRlbHkgbWlzZ3VpZGVkLgoKSWFuCgoKX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX18KYXV0b2ZzIG1haWxpbmcgbGlzdAphdXRvZnNAbGlu
-dXgua2VybmVsLm9yZwpodHRwOi8vbGludXgua2VybmVsLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2F1
-dG9mcwo=
+Hi,
+
+autofs will not create the autofs mountpoint path
+if the filesystem is not a locally mounted filesystem
+(e.g. a NFS mounted filesystem).
+contained_in_local_fs() returns false in this case.
+This might be intentional in most cases.
+
+But how about if the root filesystem mounted via NFS?
+Do you see any problems adding an exceptional rule for this
+case?
+
+Regards,
+Matthias
