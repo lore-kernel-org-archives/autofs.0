@@ -1,17 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: automount ignores remote logins
-Date: Fri, 13 Jun 2008 20:34:29 +0800
-Message-ID: <1213360469.18072.0.camel@raven.themaw.net>
-References: <20080612111400.pq5zr4r14cwgk44s@webmail.df.eu>
-	<1213273474.4994.109.camel@raven.themaw.net>
-	<20080612154548.6p0bxb31wkccssgc@webmail.df.eu>
-	<1213281395.4994.146.camel@raven.themaw.net>
-	<20080612165932.bpw9ha9wow4o0448@webmail.df.eu>
+Subject: Re: autofs mountopints on NFS mounted filesystems
+Date: Fri, 13 Jun 2008 20:36:05 +0800
+Message-ID: <1213360565.18072.3.camel@raven.themaw.net>
+References: <n7xiqwdslwk.fsf@sor.suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20080612165932.bpw9ha9wow4o0448@webmail.df.eu>
+In-Reply-To: <n7xiqwdslwk.fsf@sor.suse.de>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,17 +18,23 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Max Harvest <max_h@limbus.net>
-Cc: autofs@linux.kernel.org
+To: Matthias Koenig <mkoenig@suse.de>
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
 
-On Thu, 2008-06-12 at 16:59 +0200, Max Harvest wrote:
-> > The gaps in time stamps in the log make me suspicious that we're not
-> > getting the whole story. Is that really the case?
-> The gaps result from (slow) interaction. The computer is a diskless  
-> client and the local and remote console are in different locations.  
-> The log is complete.
+On Fri, 2008-06-13 at 11:51 +0200, Matthias Koenig wrote:
+> Hi,
+> 
+> autofs will not create the autofs mountpoint path
+> if the filesystem is not a locally mounted filesystem
+> (e.g. a NFS mounted filesystem).
+> contained_in_local_fs() returns false in this case.
+> This might be intentional in most cases.
+> 
+> But how about if the root filesystem mounted via NFS?
+> Do you see any problems adding an exceptional rule for this
+> case?
 
-If it is diskless, what is the root fs.
+Yeah, sounds sensible.
 
 Ian
