@@ -1,275 +1,419 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 6/7] autofs4 - use struct qstr in waitq.c
-Date: Tue, 17 Jun 2008 20:24:06 +0800
-Message-ID: <20080617122406.14725.84758.stgit@raven.themaw.net>
+Subject: [PATCH 3/7] autofs4 - use look aside list for lookups
+Date: Tue, 17 Jun 2008 20:23:49 +0800
+Message-ID: <20080617122349.14725.64578.stgit@raven.themaw.net>
 References: <20080617122336.14725.64829.stgit@raven.themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <20080617122336.14725.64829.stgit@raven.themaw.net>
-Sender: linux-fsdevel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <20080617122336.14725.64829.stgit@raven.themaw.net>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
 To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Cc: autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-From: Jeff Moyer <jmoyer@redhat.com>
+A while ago a patch to resolve a deadlock during directory creation
+was merged. This delayed the hashing of lookup dentrys until the
+->mkdir() (or ->symlink()) operation completed to ensure we always
+went through ->lookup() instead of also having processes go through
+->revalidate() so our VFS locking remained consistent.
 
-The autofs_wait_queue already contains all of the fields of the
-struct qstr, so change it into a qstr.
+Now we are seeing a couple of side affects of that change in situations
+with heavy mount activity.
 
-This patch, from Jeff Moyer, has been modified a liitle by myself.
+Two cases have been identified:
 
-Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
+1) When a mount request is triggered, due to the delayed hashing, the
+directory created by user space for the mount point doesn't have the
+DCACHE_AUTOFS_PENDING flag set. In the case of an autofs multi-mount
+where a tree of mount point directories are created this can lead to
+the path walk continuing rather than the dentry being sent to the wait
+queue to wait for request completion. This is because, if the pending
+flag isn't set, the criteria for deciding this is a mount in progress
+fails to hold, namely that the dentry is not a mount point and has no
+subdirectories.
+
+2) A mount request dentry is initially created negative and unhashed.
+It remains this way until the ->mkdir() callback completes. Since it is
+unhashed a fresh dentry is used when the user space mount request creates
+the mount point directory. This leaves the original dentry negative and
+unhashed. But revalidate has no way to tell the VFS that the dentry has
+changed, other than to force another ->lookup() by returning false, which
+is at best wastefull and at worst not possible. This results in an
+-ENOENT return from the original path walk when in fact the mount succeeded.
+
+To resolve this we need to ensure that the same dentry is used in all
+calls to ->lookup() during the course of a mount request. This patch
+achieves that by adding the initial dentry to a look aside list and
+removes it at ->mkdir() or ->symlink() completion (or when the dentry
+is released), since these are the only create operations autofs4 supports.
+
 Signed-off-by: Ian Kent <raven@themaw.net>
 
 ---
 
- fs/autofs4/autofs_i.h |    4 +-
- fs/autofs4/waitq.c    |   86 ++++++++++++++++++++++++++-----------------------
- 2 files changed, 46 insertions(+), 44 deletions(-)
+ fs/autofs4/autofs_i.h |    2 +
+ fs/autofs4/inode.c    |   25 ++++---
+ fs/autofs4/root.c     |  169 ++++++++++++++++++++++++++++++++++++++++---------
+ 3 files changed, 156 insertions(+), 40 deletions(-)
 
 
 diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
-index 2dce233..da8882f 100644
+index 69b1497..2dce233 100644
 --- a/fs/autofs4/autofs_i.h
 +++ b/fs/autofs4/autofs_i.h
-@@ -75,9 +75,7 @@ struct autofs_wait_queue {
- 	struct autofs_wait_queue *next;
- 	autofs_wqt_t wait_queue_token;
- 	/* We use the following to see what we are waiting for */
--	unsigned int hash;
--	unsigned int len;
--	char *name;
-+	struct qstr name;
- 	u32 dev;
- 	u64 ino;
- 	uid_t uid;
-diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
-index 75e5955..5208cfb 100644
---- a/fs/autofs4/waitq.c
-+++ b/fs/autofs4/waitq.c
-@@ -36,8 +36,10 @@ void autofs4_catatonic_mode(struct autofs_sb_info *sbi)
- 	while (wq) {
- 		nwq = wq->next;
- 		wq->status = -ENOENT; /* Magic is gone - report failure */
--		kfree(wq->name);
--		wq->name = NULL;
-+		if (wq->name.name) {
-+			kfree(wq->name.name);
-+			wq->name.name = NULL;
-+		}
- 		wake_up_interruptible(&wq->queue);
- 		wq = nwq;
- 	}
-@@ -92,7 +94,7 @@ static void autofs4_notify_daemon(struct autofs_sb_info *sbi,
- 	size_t pktsz;
+@@ -52,6 +52,7 @@ struct autofs_info {
  
- 	DPRINTK("wait id = 0x%08lx, name = %.*s, type=%d",
--		wq->wait_queue_token, wq->len, wq->name, type);
-+		wq->wait_queue_token, wq->name.len, wq->name.name, type);
+ 	int		flags;
  
- 	memset(&pkt,0,sizeof pkt); /* For security reasons */
++	struct list_head active;
+ 	struct list_head expiring;
  
-@@ -107,9 +109,9 @@ static void autofs4_notify_daemon(struct autofs_sb_info *sbi,
- 		pktsz = sizeof(*mp);
+ 	struct autofs_sb_info *sbi;
+@@ -113,6 +114,7 @@ struct autofs_sb_info {
+ 	spinlock_t fs_lock;
+ 	struct autofs_wait_queue *queues; /* Wait queue pointer */
+ 	spinlock_t lookup_lock;
++	struct list_head active_list;
+ 	struct list_head expiring_list;
+ };
  
- 		mp->wait_queue_token = wq->wait_queue_token;
--		mp->len = wq->len;
--		memcpy(mp->name, wq->name, wq->len);
--		mp->name[wq->len] = '\0';
-+		mp->len = wq->name.len;
-+		memcpy(mp->name, wq->name.name, wq->name.len);
-+		mp->name[wq->name.len] = '\0';
- 		break;
- 	}
- 	case autofs_ptype_expire_multi:
-@@ -119,9 +121,9 @@ static void autofs4_notify_daemon(struct autofs_sb_info *sbi,
- 		pktsz = sizeof(*ep);
+diff --git a/fs/autofs4/inode.c b/fs/autofs4/inode.c
+index 94bfc15..e3e7099 100644
+--- a/fs/autofs4/inode.c
++++ b/fs/autofs4/inode.c
+@@ -24,8 +24,10 @@
  
- 		ep->wait_queue_token = wq->wait_queue_token;
--		ep->len = wq->len;
--		memcpy(ep->name, wq->name, wq->len);
--		ep->name[wq->len] = '\0';
-+		ep->len = wq->name.len;
-+		memcpy(ep->name, wq->name.name, wq->name.len);
-+		ep->name[wq->name.len] = '\0';
- 		break;
- 	}
- 	/*
-@@ -138,9 +140,9 @@ static void autofs4_notify_daemon(struct autofs_sb_info *sbi,
- 		pktsz = sizeof(*packet);
- 
- 		packet->wait_queue_token = wq->wait_queue_token;
--		packet->len = wq->len;
--		memcpy(packet->name, wq->name, wq->len);
--		packet->name[wq->len] = '\0';
-+		packet->len = wq->name.len;
-+		memcpy(packet->name, wq->name.name, wq->name.len);
-+		packet->name[wq->name.len] = '\0';
- 		packet->dev = wq->dev;
- 		packet->ino = wq->ino;
- 		packet->uid = wq->uid;
-@@ -191,15 +193,15 @@ static int autofs4_getpath(struct autofs_sb_info *sbi,
+ static void ino_lnkfree(struct autofs_info *ino)
+ {
+-	kfree(ino->u.symlink);
+-	ino->u.symlink = NULL;
++	if (ino->u.symlink) {
++		kfree(ino->u.symlink);
++		ino->u.symlink = NULL;
++	}
  }
  
- static struct autofs_wait_queue *
--autofs4_find_wait(struct autofs_sb_info *sbi,
--		  char *name, unsigned int hash, unsigned int len)
-+autofs4_find_wait(struct autofs_sb_info *sbi, struct qstr *qstr)
+ struct autofs_info *autofs4_init_ino(struct autofs_info *ino,
+@@ -41,16 +43,18 @@ struct autofs_info *autofs4_init_ino(struct autofs_info *ino,
+ 	if (ino == NULL)
+ 		return NULL;
+ 
+-	ino->flags = 0;
+-	ino->mode = mode;
+-	ino->inode = NULL;
+-	ino->dentry = NULL;
+-	ino->size = 0;
+-
+-	INIT_LIST_HEAD(&ino->expiring);
++	if (!reinit) {
++		ino->flags = 0;
++		ino->inode = NULL;
++		ino->dentry = NULL;
++		ino->size = 0;
++		INIT_LIST_HEAD(&ino->active);
++		INIT_LIST_HEAD(&ino->expiring);
++		atomic_set(&ino->count, 0);
++	}
+ 
++	ino->mode = mode;
+ 	ino->last_used = jiffies;
+-	atomic_set(&ino->count, 0);
+ 
+ 	ino->sbi = sbi;
+ 
+@@ -339,6 +343,7 @@ int autofs4_fill_super(struct super_block *s, void *data, int silent)
+ 	spin_lock_init(&sbi->fs_lock);
+ 	sbi->queues = NULL;
+ 	spin_lock_init(&sbi->lookup_lock);
++	INIT_LIST_HEAD(&sbi->active_list);
+ 	INIT_LIST_HEAD(&sbi->expiring_list);
+ 	s->s_blocksize = 1024;
+ 	s->s_blocksize_bits = 10;
+diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
+index 8511cb2..7fa303d 100644
+--- a/fs/autofs4/root.c
++++ b/fs/autofs4/root.c
+@@ -473,6 +473,8 @@ void autofs4_dentry_release(struct dentry *de)
+ 
+ 		if (sbi) {
+ 			spin_lock(&sbi->lookup_lock);
++			if (!list_empty(&inf->active))
++				list_del(&inf->active);
+ 			if (!list_empty(&inf->expiring))
+ 				list_del(&inf->expiring);
+ 			spin_unlock(&sbi->lookup_lock);
+@@ -497,6 +499,58 @@ static struct dentry_operations autofs4_dentry_operations = {
+ 	.d_release	= autofs4_dentry_release,
+ };
+ 
++static struct dentry *autofs4_lookup_active(struct autofs_sb_info *sbi, struct dentry *parent, struct qstr *name)
++{
++	unsigned int len = name->len;
++	unsigned int hash = name->hash;
++	const unsigned char *str = name->name;
++	struct list_head *p, *head;
++
++	spin_lock(&dcache_lock);
++	spin_lock(&sbi->lookup_lock);
++	head = &sbi->active_list;
++	list_for_each(p, head) {
++		struct autofs_info *ino;
++		struct dentry *dentry;
++		struct qstr *qstr;
++
++		ino = list_entry(p, struct autofs_info, active);
++		dentry = ino->dentry;
++
++		spin_lock(&dentry->d_lock);
++
++		/* Already gone? */
++		if (atomic_read(&dentry->d_count) == 0)
++			goto next;
++
++		qstr = &dentry->d_name;
++
++		if (dentry->d_name.hash != hash)
++			goto next;
++		if (dentry->d_parent != parent)
++			goto next;
++
++		if (qstr->len != len)
++			goto next;
++		if (memcmp(qstr->name, str, len))
++			goto next;
++
++		if (d_unhashed(dentry)) {
++			dget(dentry);
++			spin_unlock(&dentry->d_lock);
++			spin_unlock(&sbi->lookup_lock);
++			spin_unlock(&dcache_lock);
++			return dentry;
++		}
++next:
++		spin_unlock(&dentry->d_lock);
++	}
++	spin_unlock(&sbi->lookup_lock);
++	spin_unlock(&dcache_lock);
++
++	return NULL;
++}
++
+ static struct dentry *autofs4_lookup_expiring(struct autofs_sb_info *sbi, struct dentry *parent, struct qstr *name)
  {
- 	struct autofs_wait_queue *wq;
- 
- 	for (wq = sbi->queues; wq; wq = wq->next) {
--		if (wq->hash == hash &&
--		    wq->len == len &&
--		    wq->name && !memcmp(wq->name, name, len))
-+		if (wq->name.hash == qstr->hash &&
-+		    wq->name.len == qstr->len &&
-+		    wq->name.name &&
-+			 !memcmp(wq->name.name, qstr->name, qstr->len))
- 			break;
- 	}
- 	return wq;
-@@ -210,9 +212,8 @@ int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
+ 	unsigned int len = name->len;
+@@ -554,7 +608,8 @@ next:
+ static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, struct nameidata *nd)
  {
- 	struct autofs_info *ino;
- 	struct autofs_wait_queue *wq;
-+	struct qstr qstr;
- 	char *name;
--	unsigned int len = 0;
--	unsigned int hash = 0;
- 	int status, type;
+ 	struct autofs_sb_info *sbi;
+-	struct dentry *expiring;
++	struct autofs_info *ino;
++	struct dentry *expiring, *unhashed;
+ 	int oz_mode;
  
- 	/* In catatonic mode, we don't wait for nobody */
-@@ -225,22 +226,23 @@ int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
+ 	DPRINTK("name = %.*s",
+@@ -572,12 +627,12 @@ static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, s
  
- 	/* If this is a direct mount request create a dummy name */
- 	if (IS_ROOT(dentry) && (sbi->type & AUTOFS_TYPE_DIRECT))
--		len = sprintf(name, "%p", dentry);
-+		qstr.len = sprintf(name, "%p", dentry);
- 	else {
--		len = autofs4_getpath(sbi, dentry, &name);
--		if (!len) {
-+		qstr.len = autofs4_getpath(sbi, dentry, &name);
-+		if (!qstr.len) {
- 			kfree(name);
- 			return -ENOENT;
- 		}
- 	}
--	hash = full_name_hash(name, len);
-+	qstr.name = name;
-+	qstr.hash = full_name_hash(name, qstr.len);
- 
- 	if (mutex_lock_interruptible(&sbi->wq_mutex)) {
--		kfree(name);
-+		kfree(qstr.name);
- 		return -EINTR;
- 	}
- 
--	wq = autofs4_find_wait(sbi, name, hash, len);
-+	wq = autofs4_find_wait(sbi, &qstr);
- 	ino = autofs4_dentry_ino(dentry);
- 	if (!wq && ino && notify == NFY_NONE) {
+ 	expiring = autofs4_lookup_expiring(sbi, dentry->d_parent, &dentry->d_name);
+ 	if (expiring) {
+-		struct autofs_info *ino = autofs4_dentry_ino(expiring);
  		/*
-@@ -254,10 +256,10 @@ int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
- 			mutex_unlock(&sbi->wq_mutex);
- 			schedule_timeout_interruptible(HZ/10);
- 			if (mutex_lock_interruptible(&sbi->wq_mutex)) {
--				kfree(name);
-+				kfree(qstr.name);
- 				return -EINTR;
- 			}
--			wq = autofs4_find_wait(sbi, name, hash, len);
-+			wq = autofs4_find_wait(sbi, &qstr);
- 			if (wq)
- 				break;
- 		}
-@@ -268,7 +270,7 @@ int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
- 		 * return status of the wait.
+ 		 * If we are racing with expire the request might not
+ 		 * be quite complete but the directory has been removed
+ 		 * so it must have been successful, so just wait for it.
  		 */
- 		if (!wq) {
--			kfree(name);
-+			kfree(qstr.name);
- 			mutex_unlock(&sbi->wq_mutex);
- 			return 0;
- 		}
-@@ -278,7 +280,7 @@ int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
- 		/* Create a new wait queue */
- 		wq = kmalloc(sizeof(struct autofs_wait_queue),GFP_KERNEL);
- 		if (!wq) {
--			kfree(name);
-+			kfree(qstr.name);
- 			mutex_unlock(&sbi->wq_mutex);
- 			return -ENOMEM;
- 		}
-@@ -289,9 +291,7 @@ int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
- 		wq->next = sbi->queues;
- 		sbi->queues = wq;
- 		init_waitqueue_head(&wq->queue);
--		wq->hash = hash;
--		wq->name = name;
--		wq->len = len;
-+		memcpy(&wq->name, &qstr, sizeof(struct qstr));
- 		wq->dev = autofs4_get_dev(sbi);
- 		wq->ino = autofs4_get_ino(sbi);
- 		wq->uid = current->uid;
-@@ -319,16 +319,18 @@ int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
- 		}
- 
- 		DPRINTK("new wait id = 0x%08lx, name = %.*s, nfy=%d\n",
--			(unsigned long) wq->wait_queue_token, wq->len, wq->name, notify);
-+			(unsigned long) wq->wait_queue_token, wq->name.len,
-+			wq->name.name, notify);
- 
- 		/* autofs4_notify_daemon() may block */
- 		autofs4_notify_daemon(sbi, wq, type);
- 	} else {
- 		atomic_inc(&wq->wait_ctr);
- 		mutex_unlock(&sbi->wq_mutex);
--		kfree(name);
-+		kfree(qstr.name);
- 		DPRINTK("existing wait id = 0x%08lx, name = %.*s, nfy=%d",
--			(unsigned long) wq->wait_queue_token, wq->len, wq->name, notify);
-+			(unsigned long) wq->wait_queue_token, wq->name.len,
-+			wq->name.name, notify);
++		ino = autofs4_dentry_ino(expiring);
+ 		while (ino && (ino->flags & AUTOFS_INF_EXPIRING)) {
+ 			DPRINTK("wait for incomplete expire %p name=%.*s",
+ 				expiring, expiring->d_name.len,
+@@ -588,21 +643,41 @@ static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, s
+ 		dput(expiring);
  	}
  
- 	/* wq->name is NULL if and only if the lock is already released */
-@@ -336,11 +338,13 @@ int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
- 	if (sbi->catatonic) {
- 		/* We might have slept, so check again for catatonic mode */
- 		wq->status = -ENOENT;
--		kfree(wq->name);
--		wq->name = NULL;
-+		if (wq->name.name) {
-+			kfree(wq->name.name);
-+			wq->name.name = NULL;
+-	/*
+-	 * Mark the dentry incomplete but don't hash it. We do this
+-	 * to serialize our inode creation operations (symlink and
+-	 * mkdir) which prevents deadlock during the callback to
+-	 * the daemon. Subsequent user space lookups for the same
+-	 * dentry are placed on the wait queue while the daemon
+-	 * itself is allowed passage unresticted so the create
+-	 * operation itself can then hash the dentry. Finally,
+-	 * we check for the hashed dentry and return the newly
+-	 * hashed dentry.
+-	 */
+-	dentry->d_op = &autofs4_root_dentry_operations;
++	unhashed = autofs4_lookup_active(sbi, dentry->d_parent, &dentry->d_name);
++	if (unhashed)
++		dentry = unhashed;
++	else {
++		/*
++		 * Mark the dentry incomplete but don't hash it. We do this
++		 * to serialize our inode creation operations (symlink and
++		 * mkdir) which prevents deadlock during the callback to
++		 * the daemon. Subsequent user space lookups for the same
++		 * dentry are placed on the wait queue while the daemon
++		 * itself is allowed passage unresticted so the create
++		 * operation itself can then hash the dentry. Finally,
++		 * we check for the hashed dentry and return the newly
++		 * hashed dentry.
++		 */
++		dentry->d_op = &autofs4_root_dentry_operations;
+ 
+-	dentry->d_fsdata = NULL;
+-	d_instantiate(dentry, NULL);
++		/*
++		 * And we need to ensure that the same dentry is used for
++		 * all following lookup calls until it is hashed so that
++		 * the dentry flags are persistent throughout the request.
++		 */
++		ino = autofs4_init_ino(NULL, sbi, 0555);
++		if (!ino)
++			return ERR_PTR(-ENOMEM);
++
++		dentry->d_fsdata = ino;
++		ino->dentry = dentry;
++
++		spin_lock(&sbi->lookup_lock);
++		list_add(&ino->active, &sbi->active_list);
++		spin_unlock(&sbi->lookup_lock);
++
++		d_instantiate(dentry, NULL);
++	}
+ 
+ 	if (!oz_mode) {
+ 		spin_lock(&dentry->d_lock);
+@@ -627,12 +702,16 @@ static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, s
+ 			if (sigismember (sigset, SIGKILL) ||
+ 			    sigismember (sigset, SIGQUIT) ||
+ 			    sigismember (sigset, SIGINT)) {
++			    if (unhashed)
++				dput(unhashed);
+ 			    return ERR_PTR(-ERESTARTNOINTR);
+ 			}
+ 		}
+-		spin_lock(&dentry->d_lock);
+-		dentry->d_flags &= ~DCACHE_AUTOFS_PENDING;
+-		spin_unlock(&dentry->d_lock);
++		if (!oz_mode) {
++			spin_lock(&dentry->d_lock);
++			dentry->d_flags &= ~DCACHE_AUTOFS_PENDING;
++			spin_unlock(&dentry->d_lock);
 +		}
  	}
  
--	if (wq->name) {
-+	if (wq->name.name) {
- 		/* Block all but "shutdown" signals while waiting */
- 		sigset_t oldset;
- 		unsigned long irqflags;
-@@ -351,7 +355,7 @@ int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
- 		recalc_sigpending();
- 		spin_unlock_irqrestore(&current->sighand->siglock, irqflags);
+ 	/*
+@@ -656,9 +735,15 @@ static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, s
+ 		else
+ 			dentry = ERR_PTR(-ENOENT);
  
--		wait_event_interruptible(wq->queue, wq->name == NULL);
-+		wait_event_interruptible(wq->queue, wq->name.name == NULL);
++		if (unhashed)
++			dput(unhashed);
++
+ 		return dentry;
+ 	}
  
- 		spin_lock_irqsave(&current->sighand->siglock, irqflags);
- 		current->blocked = oldset;
-@@ -388,8 +392,8 @@ int autofs4_wait_release(struct autofs_sb_info *sbi, autofs_wqt_t wait_queue_tok
++	if (unhashed)
++		return unhashed;
++
+ 	return NULL;
+ }
  
- 	*wql = wq->next;	/* Unlink from chain */
- 	mutex_unlock(&sbi->wq_mutex);
--	kfree(wq->name);
--	wq->name = NULL;	/* Do not wait on this queue */
-+	kfree(wq->name.name);
-+	wq->name.name = NULL;	/* Do not wait on this queue */
+@@ -679,20 +764,30 @@ static int autofs4_dir_symlink(struct inode *dir,
+ 		return -EACCES;
  
- 	wq->status = status;
+ 	ino = autofs4_init_ino(ino, sbi, S_IFLNK | 0555);
+-	if (ino == NULL)
+-		return -ENOSPC;
++	if (!ino)
++		return -ENOMEM;
  
+-	ino->size = strlen(symname);
+-	ino->u.symlink = cp = kmalloc(ino->size + 1, GFP_KERNEL);
++	spin_lock(&sbi->lookup_lock);
++	if (!list_empty(&ino->active))
++		list_del_init(&ino->active);
++	spin_unlock(&sbi->lookup_lock);
+ 
+-	if (cp == NULL) {
+-		kfree(ino);
+-		return -ENOSPC;
++	cp = kmalloc(ino->size + 1, GFP_KERNEL);
++	if (!cp) {
++		if (!dentry->d_fsdata)
++			kfree(ino);
++		return -ENOMEM;
+ 	}
+ 
+ 	strcpy(cp, symname);
+ 
+ 	inode = autofs4_get_inode(dir->i_sb, ino);
++	if (!inode) {
++		kfree(cp);
++		if (!dentry->d_fsdata)
++			kfree(ino);
++		return -ENOMEM;
++	}
+ 	d_add(dentry, inode);
+ 
+ 	if (dir == dir->i_sb->s_root->d_inode)
+@@ -708,6 +803,8 @@ static int autofs4_dir_symlink(struct inode *dir,
+ 		atomic_inc(&p_ino->count);
+ 	ino->inode = inode;
+ 
++	ino->size = strlen(symname);
++	ino->u.symlink = cp;
+ 	dir->i_mtime = CURRENT_TIME;
+ 
+ 	return 0;
+@@ -752,7 +849,8 @@ static int autofs4_dir_unlink(struct inode *dir, struct dentry *dentry)
+ 
+ 	spin_lock(&dcache_lock);
+ 	spin_lock(&sbi->lookup_lock);
+-	list_add(&ino->expiring, &sbi->expiring_list);
++	if (list_empty(&ino->expiring))
++		list_add(&ino->expiring, &sbi->expiring_list);
+ 	spin_unlock(&sbi->lookup_lock);
+ 	spin_lock(&dentry->d_lock);
+ 	__d_drop(dentry);
+@@ -780,7 +878,8 @@ static int autofs4_dir_rmdir(struct inode *dir, struct dentry *dentry)
+ 		return -ENOTEMPTY;
+ 	}
+ 	spin_lock(&sbi->lookup_lock);
+-	list_add(&ino->expiring, &sbi->expiring_list);
++	if (list_empty(&ino->expiring))
++		list_add(&ino->expiring, &sbi->expiring_list);
+ 	spin_unlock(&sbi->lookup_lock);
+ 	spin_lock(&dentry->d_lock);
+ 	__d_drop(dentry);
+@@ -816,10 +915,20 @@ static int autofs4_dir_mkdir(struct inode *dir, struct dentry *dentry, int mode)
+ 		dentry, dentry->d_name.len, dentry->d_name.name);
+ 
+ 	ino = autofs4_init_ino(ino, sbi, S_IFDIR | 0555);
+-	if (ino == NULL)
+-		return -ENOSPC;
++	if (!ino)
++		return -ENOMEM;
++
++	spin_lock(&sbi->lookup_lock);
++	if (!list_empty(&ino->active))
++		list_del_init(&ino->active);
++	spin_unlock(&sbi->lookup_lock);
+ 
+ 	inode = autofs4_get_inode(dir->i_sb, ino);
++	if (!inode) {
++		if (!dentry->d_fsdata)
++			kfree(ino);
++		return -ENOMEM;
++	}
+ 	d_add(dentry, inode);
+ 
+ 	if (dir == dir->i_sb->s_root->d_inode)
