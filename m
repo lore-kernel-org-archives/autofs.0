@@ -1,12 +1,14 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: Suggested minor patches for the automounter daemon...
-Date: Tue, 17 Jun 2008 10:15:00 +0800
-Message-ID: <1213668900.18072.55.camel@raven.themaw.net>
+Date: Tue, 17 Jun 2008 10:39:00 +0800
+Message-ID: <1213670340.18072.60.camel@raven.themaw.net>
 References: <A2ECBF49F352C24F9DF65BB529DCBC7014E02CF0@hqemmail01.nvidia.com>
+	<1213668900.18072.55.camel@raven.themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <A2ECBF49F352C24F9DF65BB529DCBC7014E02CF0@hqemmail01.nvidia.com>
+In-Reply-To: <1213668900.18072.55.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,95 +19,42 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="windows-1252"
 To: Stephen Biggs <sbiggs@nvidia.com>
 Cc: autofs@linux.kernel.org
 
-Ck9uIE1vbiwgMjAwOC0wNi0xNiBhdCAxMjo1NiAtMDcwMCwgU3RlcGhlbiBCaWdncyB3cm90ZToK
-PiAgSGnigKYKPiAKPiAgQXMgcGFydCBvZiBteSBjb21waWxhdGlvbiBhbmQgZXhlY3V0aW9uIGVm
-Zm9ydHMsIEkgaGF2ZSBhY2N1bXVsYXRlZCBhCj4gc21hbGwgc2V0IG9mIG1pbm9yIGZpeGVzIHRv
-IHNvbWUgb2YgdGhlIGF1dG9tb3VudGVyIGRhZW1vbiBmaWxlcy4KPiBQcmVzZW50ZWQgZm9yIHlv
-dXIgYXBwcm92YWwuIFRoZXNlIGFwcGx5IHRvIHRoZSBnaXQgSEVBRCBhbmQgdGhlCj4gcHJldmlv
-dXMgc2V0IG9mIHBhdGNoZXMgdGhhdCBJYW4gaGFkIHByb3ZpZGVkIHRvIG1lLiAgVGhlIGJpZ2dl
-c3QgZml4Cj4gaXMgdGhlIG9uZSBmb3IgcmVkaGF0J2lzaCBzeXN0ZW1zIGluIHJjLmF1dG9mcy5p
-biB0aGF0IGZpeGVzIHRoZQo+IGRhZW1vbiAic3RvcCIgZnVuY3Rpb24uCj4gCj4gIEkgYW0gQ0Mn
-aW5nIHRoaXMgZGlyZWN0bHkgdG8gSWFuIGp1c3QgaW4gY2FzZSB0aGVyZSBpcyBhIHByb2JsZW0g
-d2l0aAo+IHBvc3RpbmcgdG8gdGhlIGF1dG9mcyBsaXN0LiAgU29ycnkgZm9yIGFueSBub2lzZS4K
-PiAKPiAtLS0tCj4gCj4gIGRhZW1vbi9hdXRvbW91bnQuYzogUmVtb3ZlIGNvbXBpbGUgd2Fybmlu
-ZyBvZiB1bnVzZWQgdmFyaWFibGUgCj4gIE1ha2VmaWxlOiBSZW1vdmUgIm1vZGlmaWNhdGlvbiB0
-aW1lIGluIHRoZSBmdXR1cmUiIG1lc3NhZ2VzIGdlbmVyYXRlZAo+IGJ5IHBhcmFsbGVsaXNtIGlu
-IHNvbWUgdmVyc2lvbnMgb2YgbWFrZSAKPiAgbW9kdWxlcy9NYWtlZmlsZTogQXZvaWQgY3JlYXRp
-bmcgc29mdCBsaW5rIHRvIG5vbi1leGlzdGVudCBsaWJyYXJ5IGlmCj4gTERBUCBub3Qgc3BlY2lm
-aWVkIGluIGNvbmZpZ3VyZSAKPiAgc2FtcGxlcy9yYy5hdXRvZnMuaW46IFNwZWNpZnkgZnVsbCBw
-YXRoIGZvciBpbnZvY2F0aW9uIG9mIGRhZW1vbiwKPiBtYWtpbmcgcGtpbGwgZnVuY3Rpb24gbW9y
-ZSBleGFjdCwgCj4gICAgICAgICAgICAgICAgICAgICAgICBSZXZlcnNlIHNlbnNlIG9mIHRlc3Qg
-b2YgcmV0dXJuIG9mIHBpZG9mIHRvCj4gY29ycmVjdGx5IGtpbGwgZGFlbW9uIG9uIHN0b3AgZnVu
-Y3Rpb24uCj4gCj4gLS0tCj4gCj4gCj4gIE1ha2VmaWxlICAgICAgICAgICAgIHwgICAgMiArKyAK
-PiAgZGFlbW9uL2F1dG9tb3VudC5jICAgfCAgICAxIC0gCj4gIG1vZHVsZXMvTWFrZWZpbGUgICAg
-IHwgICAgMiArKyAKPiAgc2FtcGxlcy9yYy5hdXRvZnMuaW4gfCAgICA0ICsrLS0gCj4gIDQgZmls
-ZXMgY2hhbmdlZCwgNiBpbnNlcnRpb25zKCspLCAzIGRlbGV0aW9ucygtKQo+IAo+IAo+IGRpZmYg
-LXVyZCBhdXRvZnMtNS4wLjMtZ2l0LWlhbl9rZW50X3BhdGNoZXMtdmFuaWxsYS9kYWVtb24vYXV0
-b21vdW50LmMKPiBhdXRvZnMtNS4wLjMtZ2l0LWlhbl9rZW50X3BhdGNoZXMvZGFlbW9uL2F1dG9t
-b3VudC5jCj4gCj4gLS0tIGF1dG9mcy01LjAuMy1naXQtaWFuX2tlbnRfcGF0Y2hlcy12YW5pbGxh
-L2RhZW1vbi9hdXRvbW91bnQuYwo+IDIwMDgtMDUtMTkgMTc6MDI6MTcuMDgzMjE5MDAwIC0wNzAw
-IAo+ICsrKyBhdXRvZnMtNS4wLjMtZ2l0LWlhbl9rZW50X3BhdGNoZXMvZGFlbW9uL2F1dG9tb3Vu
-dC5jCj4gMjAwOC0wNS0xOSAxMzo1NToxMC42MDgzMzAwMDAgLTA3MDAgCj4gQEAgLTE1NTQsNyAr
-MTU1NCw2IEBACj4gCj4gICAgICAgICB3aGlsZSAoYXAtPnN0YXRlICE9IFNUX1NIVVRET1dOKSB7
-IAo+ICAgICAgICAgICAgICAgICBpZiAoaGFuZGxlX3BhY2tldChhcCkpIHsgCj4gLSAgICAgICAg
-ICAgICAgICAgICAgICAgc3RydWN0IGlvY3RsX29wcyAqb3BzID0gZ2V0X2lvY3RsX29wcygpOyAK
-PiAgICAgICAgICAgICAgICAgICAgICAgICBpbnQgcmV0LCBjdXJfc3RhdGU7Cj4gCj4gICAgICAg
-ICAgICAgICAgICAgICAgICAgLyogCgpZZXMsIGFscmVhZHkgc3BvdHRlZCB0aGlzLCBpdCdzIGFs
-cmVhZHkgZG9uZS4KCj4gZGlmZiAtdXJkIGF1dG9mcy01LjAuMy1naXQtaWFuX2tlbnRfcGF0Y2hl
-cy12YW5pbGxhL01ha2VmaWxlCj4gYXV0b2ZzLTUuMC4zLWdpdC1pYW5fa2VudF9wYXRjaGVzL01h
-a2VmaWxlIAo+IC0tLSBhdXRvZnMtNS4wLjMtZ2l0LWlhbl9rZW50X3BhdGNoZXMtdmFuaWxsYS9N
-YWtlZmlsZSAgMjAwOC0wNS0xOQo+IDExOjU5OjE1LjMzMzc4NTAwMCAtMDcwMCAKPiArKysgYXV0
-b2ZzLTUuMC4zLWdpdC1pYW5fa2VudF9wYXRjaGVzL01ha2VmaWxlICAyMDA4LTA1LTE5Cj4gMTg6
-Mjg6MzMuOTE2MDY3MDAwIC0wNzAwIAo+IEBAIC0zOSw2ICszOSw4IEBAIAo+ICAgICAgICAgc2Vk
-IC1lICJzLyhcLmF1dG9mcy1bMC05Ll1cKykvKC5hdXRvZnMtYGNhdCAudmVyc2lvbmApLyIgPAo+
-IGNvbmZpZ3VyZS5pbiA+IGNvbmZpZ3VyZS5pbi50bXAgCj4gICAgICAgICBtdiAtZiBjb25maWd1
-cmUuaW4udG1wIGNvbmZpZ3VyZS5pbiAKPiAgICAgICAgIHJtIC1mIGNvbmZpZ3VyZSAKPiArIyBn
-ZXQgcmlkIG9mICJtb2RpZmljYXRpb24gdGltZSBpbiB0aGUgZnV0dXJlIiBtZXNzYWdlcyAKPiAr
-ICAgICAgIEBzbGVlcCAxIAo+ICAgICAgICAgJChNQUtFKSBjb25maWd1cmUKCkhvdyBkb2VzIHRo
-aXMgaGVscCBpZiB5b3UncmUgY2xvY2sgaXMgbW9yZSB0aGFuIG9uZSBzZWNvbmQgb3V0PwpXaHkg
-aXMgdGhlIHRpbWUgb24geW91J3JlIE5GUyBtYWNoaW5lcyBub3Qgc3luY2hyb25pemVkPwoKPiAK
-PiAgVE9EQVkgIDo9ICQoc2hlbGwgZGF0ZSArJyVZJW0lZCcpIAo+IGRpZmYgLXVyZCBhdXRvZnMt
-NS4wLjMtZ2l0LWlhbl9rZW50X3BhdGNoZXMtdmFuaWxsYS9tb2R1bGVzL01ha2VmaWxlCj4gYXV0
-b2ZzLTUuMC4zLWdpdC1pYW5fa2VudF9wYXRjaGVzL21vZHVsZXMvTWFrZWZpbGUgCj4gLS0tIGF1
-dG9mcy01LjAuMy1naXQtaWFuX2tlbnRfcGF0Y2hlcy12YW5pbGxhL21vZHVsZXMvTWFrZWZpbGUK
-PiAyMDA4LTA1LTE5IDExOjU5OjE1LjUyODk3NzAwMCAtMDcwMCAKPiArKysgYXV0b2ZzLTUuMC4z
-LWdpdC1pYW5fa2VudF9wYXRjaGVzL21vZHVsZXMvTWFrZWZpbGUgIDIwMDgtMDUtMTkKPiAxMzo1
-Mjo0MC40NjYzNjYwMDAgLTA3MDAgCj4gQEAgLTYzLDcgKzYzLDkgQEAgCj4gICAgICAgICAtcm0g
-LWYgJChJTlNUQUxMUk9PVCkkKGF1dG9mc2xpYmRpcikvbW91bnRfc21iZnMuc28gCgpXaHk/Cldo
-eSBub3QgYWRkIGEgdGVzdCBmb3IgZXhpc3RlbmNlIGluc3RlYWQgb2YganVzdCByZW1vdmluZyBp
-dD8KCj4gICAgICAgICBsbiAtZnMgbG9va3VwX2ZpbGUuc28KPiAkKElOU1RBTExST09UKSQoYXV0
-b2ZzbGliZGlyKS9sb29rdXBfZmlsZXMuc28gCj4gICAgICAgICBsbiAtZnMgbG9va3VwX3lwLnNv
-Cj4gJChJTlNUQUxMUk9PVCkkKGF1dG9mc2xpYmRpcikvbG9va3VwX25pcy5zbyAKPiAraWZlcSAo
-JChMREFQKSwgMSkgCj4gICAgICAgICBsbiAtZnMgbG9va3VwX2xkYXAuc28KPiAkKElOU1RBTExS
-T09UKSQoYXV0b2ZzbGliZGlyKS9sb29rdXBfbGRhcHMuc28gCj4gK2VuZGlmIAoKWWVhaCwgbWF5
-YmU/Cgo+ICAgICAgICAgbG4gLWZzIG1vdW50X25mcy5zbwo+ICQoSU5TVEFMTFJPT1QpJChhdXRv
-ZnNsaWJkaXIpL21vdW50X25mczQuc28gCj4gIGlmZXEgKCQoRVhUMkZTKSwgMSkgCj4gICBpZmVx
-ICgkKEVYVDNGUyksIDEpIAo+IGRpZmYgLXVyZAo+IGF1dG9mcy01LjAuMy1naXQtaWFuX2tlbnRf
-cGF0Y2hlcy12YW5pbGxhL3NhbXBsZXMvcmMuYXV0b2ZzLmluCj4gYXV0b2ZzLTUuMC4zLWdpdC1p
-YW5fa2VudF9wYXRjaGVzL3NhbXBsZXMvcmMuYXV0b2ZzLmluCj4gCj4gLS0tIGF1dG9mcy01LjAu
-My1naXQtaWFuX2tlbnRfcGF0Y2hlcy12YW5pbGxhL3NhbXBsZXMvcmMuYXV0b2ZzLmluCj4gMjAw
-OC0wNS0xOSAxNzowMjoxNy4wNzEyMzQwMDAgLTA3MDAgCj4gKysrIGF1dG9mcy01LjAuMy1naXQt
-aWFuX2tlbnRfcGF0Y2hlcy9zYW1wbGVzL3JjLmF1dG9mcy5pbgo+IDIwMDgtMDUtMTkgMTg6MTU6
-MzkuODgxNDA4MDAwIC0wNzAwIAo+IEBAIC01Niw3ICs1Niw3IEBAIAo+ICAgICAgICAgICAgICAg
-ICBmaSAKPiAgICAgICAgIGZpCj4gCj4gLSAgICAgICAkcHJvZyAkT1BUSU9OUyAKPiArICAgICAg
-ICREQUVNT04gJE9QVElPTlMgCj4gICAgICAgICBSRVRWQUw9JD8gCj4gICAgICAgICBpZiBbICRS
-RVRWQUwgLWVxIDAgXSA7IHRoZW4gCj4gICAgICAgICAgICAgICAgIGVjaG8gImRvbmUuIiAKPiBA
-QCAtNzUsNyArNzUsNyBAQCAKPiAgICAgICAgICAgICAgICAgWyAkUkVUVkFMID0gMCAtYSAteiAi
-YHBpZG9mICREQUVNT05gIiBdIHx8IHNsZWVwIDMgCj4gICAgICAgICAgICAgICAgIGNvdW50PWBl
-eHByICRjb3VudCArIDFgIAo+ICAgICAgICAgZG9uZSAKPiAtICAgICAgIGlmIFsgLW4gImBwaWRv
-ZiAkREFFTU9OYCIgXSA7IHRoZW4gCj4gKyAgICAgICBpZiBbIC16ICJgcGlkb2YgJERBRU1PTmAi
-IF0gOyB0aGVuIAo+ICAgICAgICAgICAgICAgICBlY2hvICJkb25lLiIgCj4gICAgICAgICBlbHNl
-IAo+ICAgICAgICAgICAgICAgICBlY2hvICJmYWlsZWQuIgo+IAoKQm90aCB0aGVzZSBoYXZlIGNv
-bWUgdXAgYmVmb3JlLgpJbiBmYWN0IEkgdGhpbmsgSSBjaGFuZ2VkIHRoZSBpZiB0ZXN0LCBzbyBu
-b3cgZG8gd2UgY2hhbmdlIGl0IGJhY2s/CkknbSBub3Qgc3VyZSB3aHkgSSBkaWRuJ3QgY2hhbmdl
-IHRoZSBkYWVtb24gcGF0aCBiZWZvcmUgYnV0IG1heWJlIHRoZXJlCndhcyBhIHJlYXNvbiBmb3Ig
-aXQuIEknbGwgbmVlZCB0byB0aGluayBhYm91dCB0aGF0LgoKUGVyaGFwcyBzb21lb25lIGVsc2Ug
-Y2FuIHJlbWVtYmVyLgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCklhbgoKCl9fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fCmF1dG9mcyBtYWlsaW5nIGxpc3QKYXV0b2ZzQGxp
-bnV4Lmtlcm5lbC5vcmcKaHR0cDovL2xpbnV4Lmtlcm5lbC5vcmcvbWFpbG1hbi9saXN0aW5mby9h
-dXRvZnMK
+
+On Tue, 2008-06-17 at 10:15 +0800, Ian Kent wrote:
+> > --- autofs-5.0.3-git-ian_kent_patches-vanilla/samples/rc.autofs.in
+> > 2008-05-19 17:02:17.071234000 -0700 
+> > +++ autofs-5.0.3-git-ian_kent_patches/samples/rc.autofs.in
+> > 2008-05-19 18:15:39.881408000 -0700 
+> > @@ -56,7 +56,7 @@ 
+> >                 fi 
+> >         fi
+> > 
+> > -       $prog $OPTIONS 
+> > +       $DAEMON $OPTIONS 
+> >         RETVAL=$? 
+> >         if [ $RETVAL -eq 0 ] ; then 
+> >                 echo "done." 
+> > @@ -75,7 +75,7 @@ 
+> >                 [ $RETVAL = 0 -a -z "`pidof $DAEMON`" ] || sleep 3 
+> >                 count=`expr $count + 1` 
+> >         done 
+> > -       if [ -n "`pidof $DAEMON`" ] ; then 
+> > +       if [ -z "`pidof $DAEMON`" ] ; then 
+> >                 echo "done." 
+> >         else 
+> >                 echo "failed."
+> > 
+> 
+> Both these have come up before.
+> In fact I think I changed the if test, so now do we change it back?
+> I'm not sure why I didn't change the daemon path before but maybe there
+> was a reason for it. I'll need to think about that.
+
+Ahhh, but this last hunk was fixed in redhat/autofs.init.in and not in
+samples/rc.autofs.in. To keep these consistent I'll change the messages
+instead of the if.
+
+Ian
