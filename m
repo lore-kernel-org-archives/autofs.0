@@ -1,8 +1,8 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 4/7] autofs4 - don't release directory mutex if
-	called in	oz_mode
-Date: Tue, 17 Jun 2008 20:23:55 +0800
-Message-ID: <20080617122355.14725.46170.stgit@raven.themaw.net>
+Subject: [PATCH 5/7] autofs4 - use lookup intent flags to trigger
+	mounts
+Date: Tue, 17 Jun 2008 20:24:00 +0800
+Message-ID: <20080617122400.14725.61435.stgit@raven.themaw.net>
 References: <20080617122336.14725.64829.stgit@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,47 +22,74 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: Andrew Morton <akpm@linux-foundation.org>
 Cc: autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Since we now delay hashing of dentrys until the ->mkdir() call,
-droping and re-taking the directory mutex within the ->lookup()
-function when we are being called by user space is not needed.
-This can lead to a race when other processes are attempting to
-access the same directory during mount point directory creation.
+When an open(2) call is made on an autofs mount point directory that
+already exists and the O_DIRECTORY flag is not used the needed mount
+callback to the daemon is not done. This leads to the path walk
+continuing resulting in a callback to the daemon with an incorrect
+key. open(2) is called without O_DIRECTORY by the "find" utility but
+this should be handled properly anyway.
 
-In this case we need to hang onto the mutex to ensure we don't
-get user processes trying to create a mount request for a newly
-created dentry after the mount point entry has already been
-created. This ensures that when we need to check a dentry passed
-to autofs4_wait(), if it is hashed, it is always the mount point
-dentry and not a new dentry created by another lookup during
-directory creation.
+This happens because autofs needs to use the lookup flags to decide
+when to callback to the daemon to perform a mount to prevent mount
+storms. For example, an autofs indirect mount map that has the "browse"
+option will have the mount point directories are pre-created and the
+stat(2) call made by a color ls against each directory will cause all
+these directories to be mounted. It is unfortunate we need to resort
+to this but mount maps can be quite large. Additionally, if a user
+manually umounts an autofs indirect mount the directory isn't removed
+which also leads to this situation.
+
+To resolve this autofs needs to use the lookup intent flags to enable
+it to make this decision. This patch adds this check and triggers a
+call back if any of the lookup intent flags are set as all these calls
+warrant a mount attempt be requested.
+
+I know that external VFS code which uses the lookup flags is something
+that the VFS would like to eliminate but I have no choice as I can't
+see any other way to do this. A VFS dentry or inode operation callback
+which returns the lookup "type" (requires a definition) would be
+sufficient. But this change is needed now and I'm not aware of the form
+that coming VFS changes will take so I'm not willing to propose anything
+along these lines.
+
+If anyone can provide an alternate method I would be happy to use it.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 
 ---
 
- fs/autofs4/root.c |   11 +++++------
- 1 files changed, 5 insertions(+), 6 deletions(-)
+ fs/autofs4/root.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
 
 
 diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
-index 7fa303d..236eb9b 100644
+index 236eb9b..7f3ebf1 100644
 --- a/fs/autofs4/root.c
 +++ b/fs/autofs4/root.c
-@@ -683,12 +683,11 @@ static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, s
- 		spin_lock(&dentry->d_lock);
- 		dentry->d_flags |= DCACHE_AUTOFS_PENDING;
- 		spin_unlock(&dentry->d_lock);
--	}
--
--	if (dentry->d_op && dentry->d_op->d_revalidate) {
--		mutex_unlock(&dir->i_mutex);
--		(dentry->d_op->d_revalidate)(dentry, nd);
--		mutex_lock(&dir->i_mutex);
-+		if (dentry->d_op && dentry->d_op->d_revalidate) {
-+			mutex_unlock(&dir->i_mutex);
-+			(dentry->d_op->d_revalidate)(dentry, nd);
-+			mutex_lock(&dir->i_mutex);
-+		}
- 	}
+@@ -31,6 +31,9 @@ static int autofs4_root_readdir(struct file * filp, void * dirent, filldir_t fil
+ static struct dentry *autofs4_lookup(struct inode *,struct dentry *, struct nameidata *);
+ static void *autofs4_follow_link(struct dentry *, struct nameidata *);
  
- 	/*
++#define TRIGGER_FLAGS   (LOOKUP_CONTINUE | LOOKUP_DIRECTORY)
++#define TRIGGER_INTENTS (LOOKUP_OPEN | LOOKUP_ACCESS | LOOKUP_CREATE)
++
+ const struct file_operations autofs4_root_operations = {
+ 	.open		= dcache_dir_open,
+ 	.release	= dcache_dir_close,
+@@ -291,7 +294,7 @@ static int try_to_fill_dentry(struct dentry *dentry, int flags)
+ 			return status;
+ 		}
+ 	/* Trigger mount for path component or follow link */
+-	} else if (flags & (LOOKUP_CONTINUE | LOOKUP_DIRECTORY) ||
++	} else if (flags & (TRIGGER_FLAGS | TRIGGER_INTENTS) ||
+ 			current->link_count) {
+ 		DPRINTK("waiting for mount name=%.*s",
+ 			dentry->d_name.len, dentry->d_name.name);
+@@ -336,7 +339,7 @@ static void *autofs4_follow_link(struct dentry *dentry, struct nameidata *nd)
+ 		nd->flags);
+ 
+ 	/* If it's our master or we shouldn't trigger a mount we're done */
+-	lookup_type = nd->flags & (LOOKUP_CONTINUE | LOOKUP_DIRECTORY);
++	lookup_type = nd->flags & (TRIGGER_FLAGS | TRIGGER_INTENTS);
+ 	if (oz_mode || !lookup_type)
+ 		goto done;
