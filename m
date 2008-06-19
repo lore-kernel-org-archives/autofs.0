@@ -1,16 +1,12 @@
-From: Jim Carter <jimc@math.ucla.edu>
-Subject: Re: clients suddenly start hanging (was: (no subject))
-Date: Thu, 19 Jun 2008 10:08:07 -0700 (PDT)
-Message-ID: <Pine.LNX.4.64.0806191004170.24525@simba.math.ucla.edu>
-References: <20080423185018.122C53C3B1@xena.cft.ca.us> 
-	<1213414942.18072.26.camel@raven.themaw.net>
-	<20080619004048.05EC42111B0@simba.math.ucla.edu>
-	<1213845274.2971.11.camel@raven.themaw.net>
+From: "Stephen Biggs" <sbiggs@nvidia.com>
+Subject: Automounter stops mounting home directories.
+Date: Thu, 19 Jun 2008 10:58:53 -0700
+Message-ID: <A2ECBF49F352C24F9DF65BB529DCBC7014E02D1D@hqemmail01.nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1213845274.2971.11.camel@raven.themaw.net>
+Content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,26 +17,84 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
+Cc: Ian Kent <raven@themaw.net>
 
-On Thu, 19 Jun 2008, Ian Kent wrote:
+[root@server1 root]# /usr/sbin/automount --version
 
-> On Wed, 2008-06-18 at 17:40 -0700, Jim Carter wrote:
-> > At first I thought it was still failing as before, but on looking more
-> > closely at the output I see a new behavior which is much better than 
-> > failing.  After 35 minutes and about 1200 mount/unmount cycles, it took
-> > over 25 seconds to mount (and readdir) 12 filesystems distributed over
-> > 6 machines.  2 minutes later these all had been mounted...
-> 
-> Sorry, I'm not entirely clear on what you described here.
-> Are you saying that there were no hangs but you observed only, what
-> appeared to be, significant delays.
+Linux automount version 5.0.3
 
-Yes, at that point the program was triggering on unexpectedly long delays 
-which eventually concluded in mounting the filesystem.  However...  See 
-the soon-to-be-posted report (with backtrace).
+Directories:
+        config dir:     /etc/sysconfig
+        maps dir:       /etc
+        modules dir:    /usr/lib/autofs
 
-James F. Carter          Voice 310 825 2897    FAX 310 206 6673
-UCLA-Mathnet;  6115 MSA; 520 Portola Plaza; Los Angeles, CA, USA  90095-1555
-Email: jimc@math.ucla.edu    http://www.math.ucla.edu/~jimc (q.v. for PGP key)
+Compile options:
+
+
+[root@server1 root]# uname -a
+Linux l-xterm-13 2.6.24 #2 SMP PREEMPT Wed Feb 6 13:33:24 PST 2008 i686
+i686 i386 GNU/Linux
+[root@server1 root]#
+
+Active options in /etc/sysconfig/autofs are:
+DEFAULT_TIMEOUT=600
+DEFAULT_BROWSE_MODE="no"
+DEFAULT_LOGGING="debug"
+
+All vanilla.
+
+A situation occurs where indirectly automounted home directories stop
+being mounted at login.
+
+First is seen in /var/log messages:
+Jun 19 09:30:56 server1 automount[18399]: statemachine:1383: got
+unexpected signal -2147417261!
+... The same message occurs once more 15 seconds later... I don't know
+what may have happened to cause this, I don't believe I have ever seen
+this before and this may be a red herring; possibly due to some other
+hardware related issue?
+
+Then, trying to do 'kill -USR1 `pgrep automount` ; kill -HUP `pgrep
+automount`' gives this in the messages:
+
+Jun 19 10:32:23 server1 automount[18399]: do_notify_state: signal 10
+Jun 19 10:32:23 server1 automount[18399]: master.c:986: assertion
+failed: ap->state == ST_READY
+Jun 19 10:32:23 server1 automount[18399]: master_notify_state_change:
+sig 10 switching /home from 2 to 3
+
+...in response to the USR1 signal.
+
+It looks like it is stuck in some sort of expire limbo.  It was quite
+possible that the NFS server did not respond to the mount or unmount
+request from the automounter and sent the automounter into some sort of
+black hole.
+
+In response to the HUP signal:
+Jun 19 10:32:29 server1 automount[18399]: re-reading master map
+auto.master
+Jun 19 10:32:29 server1 automount[18399]: lookup_nss_read_master:
+reading master files auto.master
+Jun 19 10:32:29 server1 automount[18399]: parse_init: parse(sun): init
+gathered global options: (null)
+Jun 19 10:32:29 server1 automount[18399]: lookup_read_master:
+lookup(file): read entry /home
+
+...but directories are still not being mounted.  The automounter seems
+to be running correctly, but not responding to mount requests.
+
+Our only solution now is to kill -9 the automounter and rpciod (to force
+any pending mount/umount requests to fail immediately) and then restart
+the automounter.  This works but still truncates the pwd of any process
+that is accessing an automounted directory due to the 'umount -l' at
+automount startup.
+
+Is this a known problem and will Ian's patches take care of this? TIA.
+
+-----------------------------------------------------------------------------------
+This email message is for the sole use of the intended recipient(s) and may contain
+confidential information.  Any unauthorized review, use, disclosure or distribution
+is prohibited.  If you are not the intended recipient, please contact the sender by
+reply email and destroy all copies of the original message.
+-----------------------------------------------------------------------------------
