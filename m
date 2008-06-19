@@ -1,7 +1,7 @@
 From: "Stephen Biggs" <sbiggs@nvidia.com>
 Subject: Re: Automounter stops mounting home directories.
-Date: Thu, 19 Jun 2008 16:43:35 -0700
-Message-ID: <A2ECBF49F352C24F9DF65BB529DCBC70187A5766@hqemmail01.nvidia.com>
+Date: Thu, 19 Jun 2008 16:57:12 -0700
+Message-ID: <A2ECBF49F352C24F9DF65BB529DCBC70187A5768@hqemmail01.nvidia.com>
 References: <A2ECBF49F352C24F9DF65BB529DCBC7014E02D1D@hqemmail01.nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,6 +21,9 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 Cc: Ian Kent <raven@themaw.net>
+
+Verified... The thread is hung up in do_expire waiting on a thread
+signal (sig_wait) probably from umount_multi...
 
 > -----Original Message-----
 > From: autofs-bounces@linux.kernel.org 
@@ -105,22 +108,22 @@ Cc: Ian Kent <raven@themaw.net>
 > 
 > Is this a known problem and will Ian's patches take care of this? TIA.
 > 
-Replying to myself, but I may have seen what the problem is, at least
-narrowing down what the symptoms are:
-
-I notice that it trys to expire a mounted directory who's key is no
-longer valid, possibly due to editing of the remote NIS auto.home to
-remove the key as part of system maintenance.  What needs to be done
-first so we don't bork the automounter in this situation? It seems to
-get stuck in the expire code and I never see another expire attempt
-message.  Also, running strace df hangs on that directory.  Umount -l of
-the offending directory seems to clear up the df problem, but then,
-sending a USR1 signal to the automounter daemon gets back the assert
-message.
-
-HTH.
-
-Is this the same problem as Jim Carter's?
+> --------------------------------------------------------------
+> ---------------------
+> This email message is for the sole use of the intended 
+> recipient(s) and may contain confidential information.  Any 
+> unauthorized review, use, disclosure or distribution is 
+> prohibited.  If you are not the intended recipient, please 
+> contact the sender by reply email and destroy all copies of 
+> the original message.
+> --------------------------------------------------------------
+> ---------------------
+> 
+> _______________________________________________
+> autofs mailing list
+> autofs@linux.kernel.org
+> http://linux.kernel.org/mailman/listinfo/autofs
+> 
 -----------------------------------------------------------------------------------
 This email message is for the sole use of the intended recipient(s) and may contain
 confidential information.  Any unauthorized review, use, disclosure or distribution
