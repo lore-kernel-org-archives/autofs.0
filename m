@@ -1,30 +1,42 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [PATCH] autofs4 - add missing kfree
-Date: Fri, 20 Jun 2008 09:02:32 -0400
-Message-ID: <x49ej6stg2f.fsf@segfault.boston.devel.redhat.com>
-References: <20080620070923.17224.33149.stgit@raven.themaw.net>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [PATCH] autofs4 - detect invalid direct mount requests
+Date: Fri, 20 Jun 2008 21:12:12 +0800
+Message-ID: <1213967533.2971.98.camel@raven.themaw.net>
+References: <20080620051301.9988.94307.stgit@raven.themaw.net>
+	 <x49iqw4tg63.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <20080620070923.17224.33149.stgit@raven.themaw.net> (Ian Kent's
-	message of "Fri, 20 Jun 2008 15:09:25 +0800")
+In-Reply-To: <x49iqw4tg63.fsf@segfault.boston.devel.redhat.com>
 Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Ian Kent <raven@themaw.net>
+To: Jeff Moyer <jmoyer@redhat.com>
 Cc: Andrew Morton <akpm@linux-foundation.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-Ian Kent <raven@themaw.net> writes:
 
-> It see that the patch tittled "autofs4 - fix pending mount race" is
-> missing a change that I had recently made.
->
-> It's missing a kfree for the case mutex_lock_interruptible() fails
-> to aquire the wait queue mutex.
+On Fri, 2008-06-20 at 09:00 -0400, Jeff Moyer wrote:
+> Ian Kent <raven@themaw.net> writes:
+> 
+> > autofs v5 dierct and offset mounts within an autofs filesystem are
+> > triggered by existing autofs triger mounts so the mount point dentry
+> > must be positive. If the mount point dentry is negative then the
+> > trigger doesn't exist so we can return fail immediately.
+> 
+> What are the conditions that lead us here in that case?
 
-Yeah, missed that in the translation to the embedded qstr.
+v5 doesn't need to get those dir/otherdir messages that we can't avoid
+for v4.
 
-> Ian
->
-> Signed-off-by: Ian Kent <raven@themaw.net>
-Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
+Basically, attempts to access a non-existent directory in multi-mount
+tree leads to a negative dentry being sent to the wait queue, but v5
+direct and offset mounts must always have an existing (non-negative
+dentry) directory upon which to mount. This is only relevant for
+multi-mounts that don't have an explicit multi-mount root so that the
+lookups occur within the autofs file system.
+
+Sorry, I still can't think of a way to avoid this for v4.
+
+Ian
+
+
