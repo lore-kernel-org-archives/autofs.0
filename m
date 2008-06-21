@@ -1,21 +1,22 @@
-From: Ian Kent <raven@themaw.net>
+From: "H. Peter Anvin" <hpa@zytor.com>
 Subject: Re: Horrible denial of service bug in autmount 5
-Date: Sat, 21 Jun 2008 00:27:26 +0800
-Message-ID: <1213979247.4975.35.camel@raven.themaw.net>
-References: <8332BEF1-7FA5-434F-B444-9F8820A61B83@cam.ac.uk>
-	<1213969464.2971.107.camel@raven.themaw.net>
-	<5A1DEB9E-FD94-455E-AB89-05D9E74084B5@cam.ac.uk>
-	<1213974299.4975.15.camel@raven.themaw.net>
-	<095037D1-F2F1-4A08-A6D2-841C22D8BC5C@cam.ac.uk>
+Date: Fri, 20 Jun 2008 21:27:56 -0700
+Message-ID: <485C834C.6010507@zytor.com>
+References: <8332BEF1-7FA5-434F-B444-9F8820A61B83@cam.ac.uk>	
+	<1213969464.2971.107.camel@raven.themaw.net>	
+	<5A1DEB9E-FD94-455E-AB89-05D9E74084B5@cam.ac.uk>	
+	<1213974299.4975.15.camel@raven.themaw.net>	
+	<095037D1-F2F1-4A08-A6D2-841C22D8BC5C@cam.ac.uk>	
 	<1213975734.4975.17.camel@raven.themaw.net>
-	<alpine.LSU.1.10.0806201632560.22566@hermes-1.csi.cam.ac.uk>
-	<1213978033.4975.29.camel@raven.themaw.net>
-	<alpine.LSU.1.10.0806201719120.22566@hermes-1.csi.cam.ac.uk>
+	<485BE2E6.9080509@zytor.com>	
+	<1213986137.4975.39.camel@raven.themaw.net>
+	<485BFF00.7020205@zytor.com>
+	<1214016215.4975.50.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <alpine.LSU.1.10.0806201719120.22566@hermes-1.csi.cam.ac.uk>
+In-Reply-To: <1214016215.4975.50.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -26,31 +27,32 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: "J.P. King" <jpk28@cam.ac.uk>
-Cc: autofs@linux.kernel.org, Anton Altaparmakov <aia21@cam.ac.uk>, Unix Support <unix-support@ucs.cam.ac.uk>, hpa@zytor.com
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org, Anton Altaparmakov <aia21@cam.ac.uk>, Unix Support <unix-support@ucs.cam.ac.uk>
 
+Ian Kent wrote:
+>> But it is an utterly daft way to implement something like that.  If you 
+>> want a lock, create an explicit lock, but doing string-matching on 
+>> command lines is idiotic.
+> 
+> This isn't a lock or anything remotely like it.
 
-On Fri, 2008-06-20 at 17:22 +0100, J.P. King wrote:
-> > Oh .. some people have it good.
-> 
-> He did get in rather early, and it has been a rather hard month! 
-> Yesterday was our deadline for the desktop image (800ish machines) and 
-> next week we do the remote access servers.
-> 
-> > I must say I wasn't exactly impressed receiving Antons mail after more
-> > than 11 hours of work, but you get that.
-> 
-> My commiserations, but Anton wasn't to know how your work day had gone.
-> 
-> > As far as a solution goes, I want to keep the check, in some form, which
-> > I'm not sure of yet, but adding an option to bypass the check is an
-> > obvious and simple way to address the issue for yourselves and I'll do
-> > that to start with.
-> 
-> Once we know your solution we'll port that into our setup with the 
-> expectation that it will have made it into our upstream distribution by 
-> the time we next upgrade in 9-12 months time.
+It is a lock, or at least something remotely like it.
 
-I'll let you know when I have done it.
+> And, yes, if run together closely enough the check could easily fail to
+> work but that isn't what the check is about.
 
-Ian
+What is it about, then?
+
+> Put another way, running multiple instances of the autofs version 5
+> daemon isn't supported at the moment.
+> 
+> For the common case usage multiple instances of the daemon aren't
+> needed.
+
+Pardon my earlier abrasiveness (I'm having a horrible day), but why not 
+simply have /var/lock/automount and flock() it?
+
+That way there is a sane workaround if the special cases, too.
+
+	-hpa
