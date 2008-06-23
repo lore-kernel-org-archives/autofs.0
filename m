@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: Horrible denial of service bug in autmount 5
-Date: Mon, 23 Jun 2008 15:45:42 +0800
-Message-ID: <1214207143.12623.8.camel@raven.themaw.net>
+Date: Mon, 23 Jun 2008 17:03:10 +0800
+Message-ID: <1214211791.12623.58.camel@raven.themaw.net>
 References: <8332BEF1-7FA5-434F-B444-9F8820A61B83@cam.ac.uk>
 	<1213969464.2971.107.camel@raven.themaw.net>
 	<5A1DEB9E-FD94-455E-AB89-05D9E74084B5@cam.ac.uk>
@@ -17,15 +17,13 @@ References: <8332BEF1-7FA5-434F-B444-9F8820A61B83@cam.ac.uk>
 	<alpine.LSU.1.10.0806211007570.22566@hermes-1.csi.cam.ac.uk>
 	<1214186003.3098.10.camel@raven.themaw.net>
 	<alpine.LSU.1.10.0806230318150.22566@hermes-1.csi.cam.ac.uk>
-	<1214188853.3098.19.camel@raven.themaw.net>
-	<alpine.LSU.1.10.0806230354360.22566@hermes-1.csi.cam.ac.uk>
-	<1214190626.3098.25.camel@raven.themaw.net>
-	<26500E84-1F8B-4711-80B7-6A6C5496CCE5@cam.ac.uk>
+	<485EF785.3020308@zytor.com>
+	<8109C868-FFB0-4AF3-A667-FEA9F6693558@cam.ac.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <26500E84-1F8B-4711-80B7-6A6C5496CCE5@cam.ac.uk>
+In-Reply-To: <8109C868-FFB0-4AF3-A667-FEA9F6693558@cam.ac.uk>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -40,42 +38,264 @@ To: Anton Altaparmakov <aia21@cam.ac.uk>
 Cc: autofs@linux.kernel.org, "J.P. King" <jpk28@cam.ac.uk>, Unix Support <unix-support@ucs.cam.ac.uk>, "H. Peter Anvin" <hpa@zytor.com>
 
 
-On Mon, 2008-06-23 at 08:15 +0100, Anton Altaparmakov wrote:
-> Good morning,
+On Mon, 2008-06-23 at 09:06 +0100, Anton Altaparmakov wrote:
+> Hi,
 > 
-> On 23 Jun 2008, at 04:10, Ian Kent wrote:
-> > I see, btw, what is the OpenSuSE rpm revision you are working with?
-> > I see an rpm of autofs-5.0.2-30.2.i586.rpm and I'm assuming the
-> > autofs.rpm is the source corresponding to that or am I missing  
-> > something
-> > about the OpenSuSE packaging.
+> On 23 Jun 2008, at 02:08, H. Peter Anvin wrote:
+> > J.P. King wrote:
+> >> As I said previously, because this is quite hard.  The maps need to  
+> >> be changed by the login process.  We currently do this in the PAM  
+> >> configuration.  Given that we can have multiple log in at the same  
+> >> time this means we need to do a lot of careful locking.
+> >> Ideally we would do something like include all the files from a  
+> >> configuration directory and have a HUP get it to re-read all these  
+> >> configuration snippets.  This would be a relatively involved change  
+> >> however.
+> >
+> > This sounds like a perfect use of an executable map to me.
 > 
-> 
-> The one we are using is indeed autofs-5.0.2-30.2.i586.rpm and the  
-> corresponding source rpm is autofs-5.0.2-30.2.src.rpm and it can be  
-> obtained for example here:
-> 
-> 	http://www.mirrorservice.org/sites/ftp.opensuse.org/pub/opensuse/update/10.3/rpm/src/autofs-5.0.2-30.2.src.rpm
+> Sounds like something that is certainly worth investigating.
 
-Got it.
-Will check patches against it and make any changes needed.
+I suspect that you'll find that some existing bugs will prevent you from
+moving to a single master map with 5.0.2 (and 5.0.3 as I'm currently
+working on problems submount handling). I also think there is more than
+one way to do this as well but there is no way to do a forced expire on
+a specific mount point at the moment.
+
+I'll just walk through the email and try to describe an alternate
+approach in spite of the caveats above. I'm not sure that my suggestions
+will be quite what you need, specifically wrt. the need for a forced
+expire on a specific automount.
 
 > 
-> Regarding the need to run a single instance: you do realise that init  
-> scripts do the exclusion already?  So there should not be any reason  
-> to repeat the exclusion in the daemon itself...  At least on SuSE  
-> systems this is done by executing daemons using "/sbin/startproc"  
-> rather than running the daemons themselves.  So you are basically  
-> repeating everything the init script is already doing in the automount  
-> daemon which IMHO is rather pointless given I assume all Linux  
-> flavours use an analogous init script to launch the automount daemon.
+> > I don't know exactly what your maps look like, but it seems to me  
+> > that since you have an unusual local requirement it would make sense  
+> > to deal with it in a manner external to autofs itself.
+> 
+> 
+> This is what ours look like at present.  When a user logs in we  
+> generate two files (below $user is the user name of the user logging  
+> in):
+> 
+> /var/run/pwfautomount/master.$user
+> /var/run/pwfautomount/auto.$user
+> 
+> I.e. for me with user name aia21 the files are:
+> 
+> /var/run/pwfautomount/master.aia21
+> /var/run/pwfautomount/auto.aia21
+> 
+> Where the first file is the master map for that user and it contains a  
+> single line like this (in this example the user logging in is me, i.e.  
+> aia21, hence the two "aia21" strings, those would be set to the  
+> currently logging in user):
+> 
+> /servers/aia21 file:/var/run/pwfautomount/auto.aia21
 
-Yeah, not all distributions use a function like this.
+Here we might use:
+/servers	file:/<any dir you want>/auto.user
 
-The idea here is that, if someone runs the program directly from the
-command line, I want the same behavior except for possibly command line
-arguments present in the configuration. Such as if someone runs the
-program in the foreground maybe with debug enabled. A check to see if it
-is already running is just a small part of that.
+For the map entries below this might be something like:
+* -fstype=autofs file:/var/run/pwfautomount/auto.&
+
+The point of using a submount is that autofs will mount /servers/<user>
+(for issuing control commands) and get it's map entries from the
+map /var/run/pwfautomount/auto.<user> and when it expires away the mount
+itself will also go away. Quite similar to what you have now and should
+actually work with both v4 and v5 (or would if I didn't have bugs with
+submounts in v5 at the moment and if v4 had a forced expire).
+
+The problem for your setup is be not being able to send a forced expire
+(USR2) to a specific mount which will of course cause mounts you don't
+want umounted to be umounted. This is an example of the type of control
+function we want to provide either by using the daemon or another
+control program. The way this would work is similar to the way in which
+we dynamically change the log level now (sorry, added in 5.0.3),
+optionally specifying an autofs mount point.
+
+But, yes, it ain't there now.
+
+> 
+> And the second file contains at present for my user "aia21":
+> 
+> PWF-HOME1	- 
+> fstype 
+> = 
+> ncp 
+> ,ipserver 
+> = 
+> 172.16.3.42 
+> ,owner 
+> = 
+> aia21 
+> ,uid 
+> = 
+> aia21 
+> ,gid 
+> = 
+> aia21 
+> ,hard 
+> ,nodev 
+> ,nosuid 
+> ,nfsextras 
+> ,strong,codepage=cp850,iocharset=utf8,filemode=640,dirmode=750,a=/ 
+> authcon/aia21	:PWF-HOME1/aia21.Aliases
+> PWF-HOME2	- 
+> fstype 
+> = 
+> ncp 
+> ,ipserver 
+> = 
+> 172.16.3.43 
+> ,owner 
+> = 
+> aia21 
+> ,uid 
+> = 
+> aia21 
+> ,gid 
+> = 
+> aia21 
+> ,hard 
+> ,nodev 
+> ,nosuid 
+> ,nfsextras 
+> ,strong,codepage=cp850,iocharset=utf8,filemode=640,dirmode=750,a=/ 
+> authcon/aia21	:PWF-HOME2/aia21.Aliases
+> PWF-HOME3	- 
+> fstype 
+> = 
+> ncp 
+> ,ipserver 
+> = 
+> 172.16.3.44 
+> ,owner 
+> = 
+> aia21 
+> ,uid 
+> = 
+> aia21 
+> ,gid 
+> = 
+> aia21 
+> ,hard 
+> ,nodev 
+> ,nosuid 
+> ,nfsextras 
+> ,strong,codepage=cp850,iocharset=utf8,filemode=640,dirmode=750,a=/ 
+> authcon/aia21	:PWF-HOME3/aia21.Aliases
+> PWF-HOME4	- 
+> fstype 
+> = 
+> ncp 
+> ,ipserver 
+> = 
+> 172.16.3.45 
+> ,owner 
+> = 
+> aia21 
+> ,uid 
+> = 
+> aia21 
+> ,gid 
+> = 
+> aia21 
+> ,hard 
+> ,nodev 
+> ,nosuid 
+> ,nfsextras 
+> ,strong,codepage=cp850,iocharset=utf8,filemode=640,dirmode=750,a=/ 
+> authcon/aia21	:PWF-HOME4/aia21.Aliases
+> PWF-SHARED	- 
+> fstype 
+> = 
+> ncp 
+> ,ipserver 
+> = 
+> 172.16.3.8 
+> ,owner 
+> = 
+> aia21 
+> ,uid 
+> = 
+> aia21 
+> ,gid 
+> = 
+> aia21 
+> ,hard 
+> ,nodev 
+> ,nosuid 
+> ,nfsextras 
+> ,strong,codepage=cp850,iocharset=utf8,filemode=640,dirmode=750,a=/ 
+> authcon/aia21	:PWF-SHARED/aia21.Aliases
+> 
+> Note that these lines are generated by querying the Netware e- 
+> Directory and have to be regenerated each time a user logs in as the  
+> list can have changed between logins and in particular the list can be  
+> different between different people logging in.
+> 
+> We then launch the automount process like so:
+> 
+> perl -e 'exec {"automount"} @ARGV' pwf-amnt \
+>      -p "/var/run/pwfautomount/pid.$user" "/var/run/pwfautomount/ 
+> master.$user"
+> 
+> Note the perl exec magic is only needed with the new automount from  
+> autofs 5.  With autofs 4 we simply ran automount with appropriate  
+> options...
+> 
+> 
+> Further, when a user logs out, we ask the automount process for that  
+> user to shut down, thus causing all those mounts to disappear like so:
+> 
+> # Tidy up the user's automounter(s)
+> ampid=$(cat "/var/run/pwfautomount/pid.$user")
+> 
+> # Kill user's processes politely at first, then less so.
+> su -c "kill -TERM -1" $user
+> sleep 1
+> su -c "kill -KILL -1" $user
+> sleep 1
+> 
+> rm -f /var/run/pwfautomount/auto.$user /var/run/pwfautomount/pw.$user \
+>        /var/run/pwfautomount/master.$user
+> 
+> # Repeatedly ask the automounter to shut down until it succeeds (and  
+> hence the
+> # "kill" fails).
+> (
+>      while kill -USR2 $ampid 2>/dev/null; do
+>          sleep 1
+>      done
+> ) >/dev/null 2>&1
+
+We would probably take this logic into the forced-expire control
+function, but for the general case, where forced umounting might not be
+enabled, there's also the question of how long we try to get rid of the
+mounts and the form of the communication of the result to the requester
+(possibly a numeric return code?).
+
+> 
+> So we have a direct benefit of having multiple automount instances  
+> because it makes it very easy to cause all the user's automounts to be  
+> unmounted on logout.
+
+And probably will need continue this way for a while yet I think due to
+the USR2 issue.
+
+> 
+> We do not want them to remain as the number of connections to the  
+> Novell e-Directory is limited per user thus if the automount mounts  
+> were to remain for some reason each of them would count as a  
+> "connection" and a user could easily get into a situation where they  
+> can't log in at all any more because of old automount mounts sitting  
+> around on various other servers/workstations.
+> 
+> How would we be able to perform such cleanup if using one automount  
+> instance with an executable map?
+
+Perhaps someone else could post an approach using an executable map but 
+
+I'm not sure we can get around the forced-expire difficulty though.
 
 Ian
