@@ -1,28 +1,19 @@
-From: "J.P. King" <jpk28@cam.ac.uk>
-Subject: Re: Horrible denial of service bug in autmount 5
-Date: Mon, 23 Jun 2008 03:55:40 +0100 (BST)
-Message-ID: <alpine.LSU.1.10.0806230354360.22566@hermes-1.csi.cam.ac.uk>
-References: <8332BEF1-7FA5-434F-B444-9F8820A61B83@cam.ac.uk>
-	<1213969464.2971.107.camel@raven.themaw.net>
-	<5A1DEB9E-FD94-455E-AB89-05D9E74084B5@cam.ac.uk>
-	<1213974299.4975.15.camel@raven.themaw.net>
-	<095037D1-F2F1-4A08-A6D2-841C22D8BC5C@cam.ac.uk> 
-	<1213975734.4975.17.camel@raven.themaw.net>
-	<485BE2E6.9080509@zytor.com>
-	<1213986137.4975.39.camel@raven.themaw.net>
-	<485BFF00.7020205@zytor.com>
-	<1214016215.4975.50.camel@raven.themaw.net>
-	<485C834C.6010507@zytor.com>
-	<1214023459.4975.90.camel@raven.themaw.net>
-	<alpine.LSU.1.10.0806211007570.22566@hermes-1.csi.cam.ac.uk>
-	<1214186003.3098.10.camel@raven.themaw.net>
-	<alpine.LSU.1.10.0806230318150.22566@hermes-1.csi.cam.ac.uk>
-	<1214188853.3098.19.camel@raven.themaw.net>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: clients suddenly start hanging (was: (no subject))
+Date: Mon, 23 Jun 2008 12:15:50 +0800
+Message-ID: <1214194551.3098.28.camel@raven.themaw.net>
+References: <20080423185018.122C53C3B1@xena.cft.ca.us>
+	<1213414942.18072.26.camel@raven.themaw.net>
+	<1213845274.2971.11.camel@raven.themaw.net>
+	<20080619183446.532D82111B1@simba.math.ucla.edu>
+	<1213934961.2971.69.camel@raven.themaw.net>
+	<Pine.LNX.4.64.0806201713350.13828@xena.cft.ca.us>
+	<1214017944.4975.60.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1214188853.3098.19.camel@raven.themaw.net>
+In-Reply-To: <1214017944.4975.60.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -33,26 +24,39 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org, Anton Altaparmakov <aia21@cam.ac.uk>, Unix Support <unix-support@ucs.cam.ac.uk>, "H. Peter Anvin" <hpa@zytor.com>
+To: Jim Carter <jimc@math.ucla.edu>
+Cc: autofs@linux.kernel.org
 
 
->> our problem.  You have a bug/DOS which we identified whilst looking for a
->> reason that something had broken between OpenSUSE 10.2 and OpenSUSE 10.3.
->> Clearly we are going to hope that when you fix your bug we can backport
->> the solution and solve our problem.  If we can't we can't, and we will
->> work around whatever issues we have left.
->
-> You keep on about this, I've already said I'll fix it, let it go!
+On Sat, 2008-06-21 at 11:12 +0800, Ian Kent wrote:
+> On Fri, 2008-06-20 at 18:02 -0700, Jim Carter wrote:
+> > On Fri, 20 Jun 2008, Ian Kent wrote:
+> > 
+> > > So here is autofs-5.0.3-submount-shutdown-recovery-8.patch.
+> > > Please try it instead of revision 7.
+> > 
+> > The patch went on cleanly.  However, there was a problem in execution.
+> > The output was:
+> > 
+> > 17:00:14 --                   #1, chkd 0, run 0, OK 570, mtd 2, of 570
+> > 
+> > Jun 20 17:00:22 serval automount[2799]: unexpected pthreads error: -1 at 
+> > 901 in master.c
+> 
+> Ooops, I didn't pay enough attention when I read the pthread barrier man
+> page. That isn't actually an error return but now I'm wondering why I
+> haven't seen it in my test, very odd.
+> 
+> Let me fix it and we'll try again.
+> 
+> There are other problems but I need to know if this is a viable approach
+> before going further with it.
+> 
+> Try this instead.
+> 
+> autofs-5.0.3 - fix submount shutdown handling.
 
-I'm trying to emphasise that we aren't demanding that you make changes to 
-meet our needs!  I don't want anyone reading this thread to think that 
-we're throwing our toys out of the pram demanding that changes be made to 
-suit our needs.
+Actually it might be better to wait for a little and give me a chance to
+try and fix the expiration.
 
-> Ian
-
-Julian
---
-Julian King
-Computer Officer, University of Cambridge, Unix Support
+Ian
