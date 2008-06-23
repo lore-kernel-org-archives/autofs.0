@@ -1,7 +1,7 @@
 From: Jim Carter <jimc@math.ucla.edu>
 Subject: Re: Horrible denial of service bug in autmount 5
-Date: Sun, 22 Jun 2008 22:27:54 -0700 (PDT)
-Message-ID: <Pine.LNX.4.64.0806222215570.18218@xena.cft.ca.us>
+Date: Sun, 22 Jun 2008 22:33:35 -0700 (PDT)
+Message-ID: <Pine.LNX.4.64.0806222230010.18218@xena.cft.ca.us>
 References: <8332BEF1-7FA5-434F-B444-9F8820A61B83@cam.ac.uk>
 	<1213969464.2971.107.camel@raven.themaw.net>
 	<5A1DEB9E-FD94-455E-AB89-05D9E74084B5@cam.ac.uk>
@@ -16,11 +16,13 @@ References: <8332BEF1-7FA5-434F-B444-9F8820A61B83@cam.ac.uk>
 	<1214023459.4975.90.camel@raven.themaw.net>
 	<alpine.LSU.1.10.0806211007570.22566@hermes-1.csi.cam.ac.uk>
 	<1214186003.3098.10.camel@raven.themaw.net>
+	<alpine.LSU.1.10.0806230318150.22566@hermes-1.csi.cam.ac.uk>
+	<485EF785.3020308@zytor.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1214186003.3098.10.camel@raven.themaw.net>
+In-Reply-To: <485EF785.3020308@zytor.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -31,27 +33,26 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org, Anton Altaparmakov <aia21@cam.ac.uk>, "J.P. King" <jpk28@cam.ac.uk>, Unix Support <unix-support@ucs.cam.ac.uk>, "H. Peter Anvin" <hpa@zytor.com>
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: autofs@linux.kernel.org, Anton Altaparmakov <aia21@cam.ac.uk>, "J.P. King" <jpk28@cam.ac.uk>, Unix Support <unix-support@ucs.cam.ac.uk>, Ian Kent <raven@themaw.net>
 
-On Mon, 23 Jun 2008, Ian Kent wrote:
+On Sun, 22 Jun 2008, H. Peter Anvin wrote:
 
-> Is there some reason you can't update the master map and send a HUP
-> signal to the daemon?
+> J.P. King wrote:
+> > Ideally we would do something like include all the files from a 
+> > configuration directory and have a HUP get it to re-read all these 
+> > configuration snippets.  This would be a relatively involved change 
+> > however.
+> > 
+> 
+> This sounds like a perfect use of an executable map to me.  I don't know 
+> exactly what your maps look like, but it seems to me that since you have 
+> an unusual local requirement it would make sense to deal with it in a 
+> manner external to autofs itself.
 
-Actually we have a (simpler) setup: the master map refers to a NIS map for 
-home directories (would be LDAP on a non-Solaris-derived installation).  
-This map is rebuilt whenever a user is added, removed or relocated, and 
-automount sees the change for $USER at the next attempt to mount 
-/home/$USER.
-
-When users have special file storage they refer to /net/$HOST/$filesys
-(example: /net/julia/h1) and whatever path components are below it.  If 
-it's not acceptable to hard-code the host (and with 30,000 users where 
-potentially all of them need to do this, likely hardcoded hostnames and 
-partitions are not cool), we would create another NIS or LDAP map analogous 
-to auto.home, and update and republish it whenever a user's special storage 
-was altered.
+That's an excellent suggestion!  At my site we used an executable map to 
+get the effect of submounts, before I figured out how to do the job with 
+submounts.  It was reliable and reasonably efficient.
 
 James F. Carter          Voice 310 825 2897    FAX 310 206 6673
 UCLA-Mathnet;  6115 MSA; 405 Hilgard Ave.; Los Angeles, CA, USA 90095-1555
