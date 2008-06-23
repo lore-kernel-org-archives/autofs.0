@@ -1,19 +1,26 @@
-From: Jim Carter <jimc@math.ucla.edu>
-Subject: Re: clients suddenly start hanging (was: (no subject))
-Date: Sun, 22 Jun 2008 20:49:24 -0700 (PDT)
-Message-ID: <Pine.LNX.4.64.0806222024150.18218@xena.cft.ca.us>
-References: <20080423185018.122C53C3B1@xena.cft.ca.us> 
-	<1213414942.18072.26.camel@raven.themaw.net>
-	<1213845274.2971.11.camel@raven.themaw.net>
-	<20080619183446.532D82111B1@simba.math.ucla.edu>
-	<1213934961.2971.69.camel@raven.themaw.net>
-	<Pine.LNX.4.64.0806201713350.13828@xena.cft.ca.us>
-	<1214017944.4975.60.camel@raven.themaw.net>
+From: "J.P. King" <jpk28@cam.ac.uk>
+Subject: Re: Horrible denial of service bug in autmount 5
+Date: Mon, 23 Jun 2008 03:26:09 +0100 (BST)
+Message-ID: <alpine.LSU.1.10.0806230318150.22566@hermes-1.csi.cam.ac.uk>
+References: <8332BEF1-7FA5-434F-B444-9F8820A61B83@cam.ac.uk>
+	<1213969464.2971.107.camel@raven.themaw.net>
+	<5A1DEB9E-FD94-455E-AB89-05D9E74084B5@cam.ac.uk>
+	<1213974299.4975.15.camel@raven.themaw.net>
+	<095037D1-F2F1-4A08-A6D2-841C22D8BC5C@cam.ac.uk> 
+	<1213975734.4975.17.camel@raven.themaw.net>
+	<485BE2E6.9080509@zytor.com>
+	<1213986137.4975.39.camel@raven.themaw.net>
+	<485BFF00.7020205@zytor.com>
+	<1214016215.4975.50.camel@raven.themaw.net>
+	<485C834C.6010507@zytor.com>
+	<1214023459.4975.90.camel@raven.themaw.net>
+	<alpine.LSU.1.10.0806211007570.22566@hermes-1.csi.cam.ac.uk>
+	<1214186003.3098.10.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1214017944.4975.60.camel@raven.themaw.net>
+In-Reply-To: <1214186003.3098.10.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -25,58 +32,32 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+Cc: autofs@linux.kernel.org, Anton Altaparmakov <aia21@cam.ac.uk>, Unix Support <unix-support@ucs.cam.ac.uk>, "H. Peter Anvin" <hpa@zytor.com>
 
-On Sat, 21 Jun 2008, Ian Kent wrote:
 
-> Ooops, I didn't pay enough attention when I read the pthread barrier man
-> page. That isn't actually an error return but now I'm wondering why I
-> haven't seen it in my test, very odd.
-> 
-> Let me fix it and we'll try again.
-> 
-> There are other problems but I need to know if this is a viable approach
-> before going further with it.
-> 
-> Try this instead.
+> Is there some reason you can't update the master map and send a HUP
+> signal to the daemon?
 
-OK!!!  The test program has been running for 28 hours continuously, 32 
-hours total, and is still going, having done 37300 mount-unmount cycles so 
-far.  There are normally 244 filesystems mounted from 125 different 
-machines.
+As I said previously, because this is quite hard.  The maps need to be 
+changed by the login process.  We currently do this in the PAM 
+configuration.  Given that we can have multiple log in at the same time 
+this means we need to do a lot of careful locking.
 
-There have been no hung processes, i.e. automount either mounts the 
-filesystem or returns ENOENT in response to readdir(), within 120 secs.  
-There have been no omitted unmounts, i.e. every mounted filesystem (that 
-was unused) was unmounted within 1800 secs (the default timeout of 300 secs 
-is used).
+Ideally we would do something like include all the files from a 
+configuration directory and have a HUP get it to re-read all these 
+configuration snippets.  This would be a relatively involved change 
+however.
 
-There was one error reported.  I ran the test program, and someone powered 
-off a workstation whose filesystem I had mounted.  The resulting NFS 
-timeout(s) caused the program to think the test thread was hung, so it 
-tried to produce a backtrace, but there was a bug and the trace was spoiled 
-(you've seen these spoiled traces before in files I've sent in).  I 
-improved the trace procedure and attempted to restart.  I did a forced 
-umount by "kill -USR1 $PID", but automount said on syslog:
+Please do remember where we came in though - we have our needs, which is 
+our problem.  You have a bug/DOS which we identified whilst looking for a 
+reason that something had broken between OpenSUSE 10.2 and OpenSUSE 10.3.
+Clearly we are going to hope that when you fix your bug we can backport 
+the solution and solve our problem.  If we can't we can't, and we will 
+work around whatever issues we have left.
 
-Jun 21 15:58:47 bustamove automount[2880]: master.c:957: assertion failed: 
-ap->state == ST_READY
+> Ian
 
-And it didn't unmount anything.  So I rebooted and started the test on a 
-clean machine.  
-
-There is a pattern of failure that may not be automount's fault.  On 
-almost exactly 0.1% of the attempted mounts, the readdir eventually fails 
-with ENOENT.  The test program leaves these filesystems alone for 1800 
-secs, then tries again to mount and test them, which invariably succeeds. I 
-don't see any pattern to the type of the machine: workstation, server, 
-compute node, heavily loaded, totally idle, etc.  But if multiple 
-filesystems from one machine (submount) are unmounted and remounted at the 
-"same" time (0.2 secs apart), if any one fails, there is a tendency for 
-several others to also fail.
-
-So I think we're closing in on the problem.
-
-James F. Carter          Voice 310 825 2897    FAX 310 206 6673
-UCLA-Mathnet;  6115 MSA; 405 Hilgard Ave.; Los Angeles, CA, USA 90095-1555
-Email: jimc@math.ucla.edu  http://www.math.ucla.edu/~jimc (q.v. for PGP key)
+Julian
+--
+Julian King
+Computer Officer, University of Cambridge, Unix Support
