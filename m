@@ -1,7 +1,7 @@
-From: Anton Altaparmakov <aia21@cam.ac.uk>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: Horrible denial of service bug in autmount 5
-Date: Mon, 23 Jun 2008 09:06:02 +0100
-Message-ID: <8109C868-FFB0-4AF3-A667-FEA9F6693558@cam.ac.uk>
+Date: Mon, 23 Jun 2008 17:18:38 +0800
+Message-ID: <1214212719.12623.71.camel@raven.themaw.net>
 References: <8332BEF1-7FA5-434F-B444-9F8820A61B83@cam.ac.uk>
 	<1213969464.2971.107.camel@raven.themaw.net>
 	<5A1DEB9E-FD94-455E-AB89-05D9E74084B5@cam.ac.uk>
@@ -18,11 +18,14 @@ References: <8332BEF1-7FA5-434F-B444-9F8820A61B83@cam.ac.uk>
 	<1214186003.3098.10.camel@raven.themaw.net>
 	<alpine.LSU.1.10.0806230318150.22566@hermes-1.csi.cam.ac.uk>
 	<485EF785.3020308@zytor.com>
-Mime-Version: 1.0 (Apple Message framework v924)
+	<8109C868-FFB0-4AF3-A667-FEA9F6693558@cam.ac.uk>
+	<1214211791.12623.58.camel@raven.themaw.net>
+	<1214212340.12623.67.camel@raven.themaw.net>
+Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <485EF785.3020308@zytor.com>
+In-Reply-To: <1214212340.12623.67.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -33,221 +36,36 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: autofs@linux.kernel.org, "J.P. King" <jpk28@cam.ac.uk>, Unix Support <unix-support@ucs.cam.ac.uk>, Ian Kent <raven@themaw.net>
-
-Hi,
-
-On 23 Jun 2008, at 02:08, H. Peter Anvin wrote:
-> J.P. King wrote:
->> As I said previously, because this is quite hard.  The maps need to  
->> be changed by the login process.  We currently do this in the PAM  
->> configuration.  Given that we can have multiple log in at the same  
->> time this means we need to do a lot of careful locking.
->> Ideally we would do something like include all the files from a  
->> configuration directory and have a HUP get it to re-read all these  
->> configuration snippets.  This would be a relatively involved change  
->> however.
->
-> This sounds like a perfect use of an executable map to me.
-
-Sounds like something that is certainly worth investigating.
-
-> I don't know exactly what your maps look like, but it seems to me  
-> that since you have an unusual local requirement it would make sense  
-> to deal with it in a manner external to autofs itself.
+To: Anton Altaparmakov <aia21@cam.ac.uk>
+Cc: autofs@linux.kernel.org, "J.P. King" <jpk28@cam.ac.uk>, Unix Support <unix-support@ucs.cam.ac.uk>, "H. Peter Anvin" <hpa@zytor.com>
 
 
-This is what ours look like at present.  When a user logs in we  
-generate two files (below $user is the user name of the user logging  
-in):
+On Mon, 2008-06-23 at 17:12 +0800, Ian Kent wrote:
+> On Mon, 2008-06-23 at 17:03 +0800, Ian Kent wrote:
+> > > 
+> > > /servers/aia21 file:/var/run/pwfautomount/auto.aia21
+> > 
+> > Here we might use:
+> > /servers	file:/<any dir you want>/auto.user
+> > 
+> > For the map entries below this might be something like:
+> > * -fstype=autofs file:/var/run/pwfautomount/auto.&
+> > 
+> 
+> Clearly this could well be "program:/var/run/pwfautomount/auto.&" and
+> contain the logic to generate the mount location. But it would be called
+> to lookup the mount location whenever a request to mount a given <key>
+> comes in (eg. /devsers/<user>/<key>) which may introduce unacceptable
+> overhead.
+> 
+> If this was used then the program map would return:
+> 
+> -fstype=autofs file:/var/run/pwfautomount/auto.&
 
-/var/run/pwfautomount/master.$user
-/var/run/pwfautomount/auto.$user
+Oops, that's not right.
+It would return the location corresponding to the passed in key.
 
-I.e. for me with user name aia21 the files are:
+Ignore my comment about a program map, it's not right, I'll need to
+re-think that.
 
-/var/run/pwfautomount/master.aia21
-/var/run/pwfautomount/auto.aia21
-
-Where the first file is the master map for that user and it contains a  
-single line like this (in this example the user logging in is me, i.e.  
-aia21, hence the two "aia21" strings, those would be set to the  
-currently logging in user):
-
-/servers/aia21 file:/var/run/pwfautomount/auto.aia21
-
-And the second file contains at present for my user "aia21":
-
-PWF-HOME1	- 
-fstype 
-= 
-ncp 
-,ipserver 
-= 
-172.16.3.42 
-,owner 
-= 
-aia21 
-,uid 
-= 
-aia21 
-,gid 
-= 
-aia21 
-,hard 
-,nodev 
-,nosuid 
-,nfsextras 
-,strong,codepage=cp850,iocharset=utf8,filemode=640,dirmode=750,a=/ 
-authcon/aia21	:PWF-HOME1/aia21.Aliases
-PWF-HOME2	- 
-fstype 
-= 
-ncp 
-,ipserver 
-= 
-172.16.3.43 
-,owner 
-= 
-aia21 
-,uid 
-= 
-aia21 
-,gid 
-= 
-aia21 
-,hard 
-,nodev 
-,nosuid 
-,nfsextras 
-,strong,codepage=cp850,iocharset=utf8,filemode=640,dirmode=750,a=/ 
-authcon/aia21	:PWF-HOME2/aia21.Aliases
-PWF-HOME3	- 
-fstype 
-= 
-ncp 
-,ipserver 
-= 
-172.16.3.44 
-,owner 
-= 
-aia21 
-,uid 
-= 
-aia21 
-,gid 
-= 
-aia21 
-,hard 
-,nodev 
-,nosuid 
-,nfsextras 
-,strong,codepage=cp850,iocharset=utf8,filemode=640,dirmode=750,a=/ 
-authcon/aia21	:PWF-HOME3/aia21.Aliases
-PWF-HOME4	- 
-fstype 
-= 
-ncp 
-,ipserver 
-= 
-172.16.3.45 
-,owner 
-= 
-aia21 
-,uid 
-= 
-aia21 
-,gid 
-= 
-aia21 
-,hard 
-,nodev 
-,nosuid 
-,nfsextras 
-,strong,codepage=cp850,iocharset=utf8,filemode=640,dirmode=750,a=/ 
-authcon/aia21	:PWF-HOME4/aia21.Aliases
-PWF-SHARED	- 
-fstype 
-= 
-ncp 
-,ipserver 
-= 
-172.16.3.8 
-,owner 
-= 
-aia21 
-,uid 
-= 
-aia21 
-,gid 
-= 
-aia21 
-,hard 
-,nodev 
-,nosuid 
-,nfsextras 
-,strong,codepage=cp850,iocharset=utf8,filemode=640,dirmode=750,a=/ 
-authcon/aia21	:PWF-SHARED/aia21.Aliases
-
-Note that these lines are generated by querying the Netware e- 
-Directory and have to be regenerated each time a user logs in as the  
-list can have changed between logins and in particular the list can be  
-different between different people logging in.
-
-We then launch the automount process like so:
-
-perl -e 'exec {"automount"} @ARGV' pwf-amnt \
-     -p "/var/run/pwfautomount/pid.$user" "/var/run/pwfautomount/ 
-master.$user"
-
-Note the perl exec magic is only needed with the new automount from  
-autofs 5.  With autofs 4 we simply ran automount with appropriate  
-options...
-
-
-Further, when a user logs out, we ask the automount process for that  
-user to shut down, thus causing all those mounts to disappear like so:
-
-# Tidy up the user's automounter(s)
-ampid=$(cat "/var/run/pwfautomount/pid.$user")
-
-# Kill user's processes politely at first, then less so.
-su -c "kill -TERM -1" $user
-sleep 1
-su -c "kill -KILL -1" $user
-sleep 1
-
-rm -f /var/run/pwfautomount/auto.$user /var/run/pwfautomount/pw.$user \
-       /var/run/pwfautomount/master.$user
-
-# Repeatedly ask the automounter to shut down until it succeeds (and  
-hence the
-# "kill" fails).
-(
-     while kill -USR2 $ampid 2>/dev/null; do
-         sleep 1
-     done
-) >/dev/null 2>&1
-
-So we have a direct benefit of having multiple automount instances  
-because it makes it very easy to cause all the user's automounts to be  
-unmounted on logout.
-
-We do not want them to remain as the number of connections to the  
-Novell e-Directory is limited per user thus if the automount mounts  
-were to remain for some reason each of them would count as a  
-"connection" and a user could easily get into a situation where they  
-can't log in at all any more because of old automount mounts sitting  
-around on various other servers/workstations.
-
-How would we be able to perform such cleanup if using one automount  
-instance with an executable map?
-
-Best regards,
-
-	Anton
--- 
-Anton Altaparmakov <aia21 at cam.ac.uk> (replace at with @)
-Unix Support, Computing Service, University of Cambridge, CB2 3QH, UK
-Linux NTFS maintainer, http://www.linux-ntfs.org/
+Ian
