@@ -1,7 +1,7 @@
 From: Anton Altaparmakov <aia21@cam.ac.uk>
 Subject: Re: Horrible denial of service bug in autmount 5
-Date: Mon, 23 Jun 2008 08:15:36 +0100
-Message-ID: <26500E84-1F8B-4711-80B7-6A6C5496CCE5@cam.ac.uk>
+Date: Mon, 23 Jun 2008 09:06:02 +0100
+Message-ID: <8109C868-FFB0-4AF3-A667-FEA9F6693558@cam.ac.uk>
 References: <8332BEF1-7FA5-434F-B444-9F8820A61B83@cam.ac.uk>
 	<1213969464.2971.107.camel@raven.themaw.net>
 	<5A1DEB9E-FD94-455E-AB89-05D9E74084B5@cam.ac.uk>
@@ -17,14 +17,12 @@ References: <8332BEF1-7FA5-434F-B444-9F8820A61B83@cam.ac.uk>
 	<alpine.LSU.1.10.0806211007570.22566@hermes-1.csi.cam.ac.uk>
 	<1214186003.3098.10.camel@raven.themaw.net>
 	<alpine.LSU.1.10.0806230318150.22566@hermes-1.csi.cam.ac.uk>
-	<1214188853.3098.19.camel@raven.themaw.net>
-	<alpine.LSU.1.10.0806230354360.22566@hermes-1.csi.cam.ac.uk>
-	<1214190626.3098.25.camel@raven.themaw.net>
+	<485EF785.3020308@zytor.com>
 Mime-Version: 1.0 (Apple Message framework v924)
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1214190626.3098.25.camel@raven.themaw.net>
+In-Reply-To: <485EF785.3020308@zytor.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -35,189 +33,221 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org, "J.P. King" <jpk28@cam.ac.uk>, Unix Support <unix-support@ucs.cam.ac.uk>, "H. Peter Anvin" <hpa@zytor.com>
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: autofs@linux.kernel.org, "J.P. King" <jpk28@cam.ac.uk>, Unix Support <unix-support@ucs.cam.ac.uk>, Ian Kent <raven@themaw.net>
 
-R29vZCBtb3JuaW5nLAoKT24gMjMgSnVuIDIwMDgsIGF0IDA0OjEwLCBJYW4gS2VudCB3cm90ZToK
-PiBJIHNlZSwgYnR3LCB3aGF0IGlzIHRoZSBPcGVuU3VTRSBycG0gcmV2aXNpb24geW91IGFyZSB3
-b3JraW5nIHdpdGg/Cj4gSSBzZWUgYW4gcnBtIG9mIGF1dG9mcy01LjAuMi0zMC4yLmk1ODYucnBt
-IGFuZCBJJ20gYXNzdW1pbmcgdGhlCj4gYXV0b2ZzLnJwbSBpcyB0aGUgc291cmNlIGNvcnJlc3Bv
-bmRpbmcgdG8gdGhhdCBvciBhbSBJIG1pc3NpbmcgIAo+IHNvbWV0aGluZwo+IGFib3V0IHRoZSBP
-cGVuU3VTRSBwYWNrYWdpbmcuCgoKVGhlIG9uZSB3ZSBhcmUgdXNpbmcgaXMgaW5kZWVkIGF1dG9m
-cy01LjAuMi0zMC4yLmk1ODYucnBtIGFuZCB0aGUgIApjb3JyZXNwb25kaW5nIHNvdXJjZSBycG0g
-aXMgYXV0b2ZzLTUuMC4yLTMwLjIuc3JjLnJwbSBhbmQgaXQgY2FuIGJlICAKb2J0YWluZWQgZm9y
-IGV4YW1wbGUgaGVyZToKCglodHRwOi8vd3d3Lm1pcnJvcnNlcnZpY2Uub3JnL3NpdGVzL2Z0cC5v
-cGVuc3VzZS5vcmcvcHViL29wZW5zdXNlL3VwZGF0ZS8xMC4zL3JwbS9zcmMvYXV0b2ZzLTUuMC4y
-LTMwLjIuc3JjLnJwbQoKUmVnYXJkaW5nIHRoZSBuZWVkIHRvIHJ1biBhIHNpbmdsZSBpbnN0YW5j
-ZTogeW91IGRvIHJlYWxpc2UgdGhhdCBpbml0ICAKc2NyaXB0cyBkbyB0aGUgZXhjbHVzaW9uIGFs
-cmVhZHk/ICBTbyB0aGVyZSBzaG91bGQgbm90IGJlIGFueSByZWFzb24gIAp0byByZXBlYXQgdGhl
-IGV4Y2x1c2lvbiBpbiB0aGUgZGFlbW9uIGl0c2VsZi4uLiAgQXQgbGVhc3Qgb24gU3VTRSAgCnN5
-c3RlbXMgdGhpcyBpcyBkb25lIGJ5IGV4ZWN1dGluZyBkYWVtb25zIHVzaW5nICIvc2Jpbi9zdGFy
-dHByb2MiICAKcmF0aGVyIHRoYW4gcnVubmluZyB0aGUgZGFlbW9ucyB0aGVtc2VsdmVzLiAgU28g
-eW91IGFyZSBiYXNpY2FsbHkgIApyZXBlYXRpbmcgZXZlcnl0aGluZyB0aGUgaW5pdCBzY3JpcHQg
-aXMgYWxyZWFkeSBkb2luZyBpbiB0aGUgYXV0b21vdW50ICAKZGFlbW9uIHdoaWNoIElNSE8gaXMg
-cmF0aGVyIHBvaW50bGVzcyBnaXZlbiBJIGFzc3VtZSBhbGwgTGludXggIApmbGF2b3VycyB1c2Ug
-YW4gYW5hbG9nb3VzIGluaXQgc2NyaXB0IHRvIGxhdW5jaCB0aGUgYXV0b21vdW50IGRhZW1vbi4K
-CkkgaGF2ZSBpbmNsdWRlZCBiZWxvdyB0aGUgc3RhcnRwcm9jIG1hbiBwYWdlIGlmIHlvdSB3YW50
-IHRvIGhhdmUgYSAgCmxvb2sgd2hhdCBpdCBkb2VzLi4uCgpBbmQgZm9yIHBlb3BsZSBsaWtlIHVz
-IHdobyBhcmUgbm90IHVzaW5nIGFuIGluaXQgc2NyaXB0IHlvdSBjYW4gc2FmZWx5ICAKYXNzdW1l
-IHdlIGtub3cgd2hhdCB3ZSBhcmUgZG9pbmcgYW5kIHRoYXQgd2UgYXJlIGludm9raW5nIHRoZSAg
-CmF1dG9tb3VudCBkYWVtb24gbXVsdGlwbGUgdGltZXMgYmVjYXVzZSB3ZSB3YW50IHRvIHJhdGhl
-ciB0aGFuIGJlY2F1c2UgIAp3ZSBhcmUgc3R1cGlkIGFuZCBuZWVkIHRvIGJlIHByb3RlY3RlZCBm
-cm9tIG91cnNlbHZlcy4gICgtOgoKQmVzdCByZWdhcmRzLAoKCUFudG9uCi0tIApBbnRvbiBBbHRh
-cGFybWFrb3YgPGFpYTIxIGF0IGNhbS5hYy51az4gKHJlcGxhY2UgYXQgd2l0aCBAKQpVbml4IFN1
-cHBvcnQsIENvbXB1dGluZyBTZXJ2aWNlLCBVbml2ZXJzaXR5IG9mIENhbWJyaWRnZSwgQ0IyIDNR
-SCwgVUsKTGludXggTlRGUyBtYWludGFpbmVyLCBodHRwOi8vd3d3LmxpbnV4LW50ZnMub3JnLwoK
-CjxxdW90ZSAibWFuIHN0YXJ0cHJvYyI+ClNUQVJUUFJPQyg4KSAgICAgICAgICAgICAgICAgVGhl
-IFN1U0UgYm9vdCBjb25jZXB0ICAgICAgICAgICAgICAgICAKU1RBUlRQUk9DKDgpCgoKCk5BTUUK
-ICAgICAgICBTdGFydHByb2MgLSBTdGFydCBwcm9jZXNzZXMgaWRlbnRpZmllZCBieSBwYXRoIG5h
-bWUKICAgICAgICBTdGFydF9kYWVtb24gLSBTdGFydCBwcm9jZXNzZXMgaWRlbnRpZmllZCBieSBw
-YXRoIG5hbWUKClNZTk9QU0lTCiAgICAgICAgc3RhcnRwcm9jIFstZl0gWy1MXSBbWy1uIF0rLy08
-cHJpbz5dIFstc10gWy10IHNlY10gWy11IHVzZXJdIFstIApnIGdyb3VwXQogICAgICAgIFstdl0g
-Wy1lXSBbLWwgbG9nX2ZpbGUgfC1xfC1kXSBbLXAgcGlkX2ZpbGVdIFstaSBpZ25vcmVfZmlsZV0g
-IApbLWMgcm9vdF0KICAgICAgICAvcGF0aC90by9leGVjdXRhYmxlIFthcmd1bWVudHMgZm9yIGV4
-ZWN1dGFibGVdCgogICAgICAgIHN0YXJ0X2RhZW1vbiAgWy1mXSAgWy1uICArLy08cHJpbz5dICAv
-cGF0aC90by9leGVjdXRhYmxlICAKW2FyZ3VtZW50cyBmb3IKICAgICAgICBleGVjdXRhYmxlXQoK
-REVTQ1JJUFRJT04KICAgICAgICBzdGFydHByb2MgYW5kIHRoZSBMU0IgdmFyaWFudCBzdGFydF9k
-YWVtb24gY2hlY2sgZm9yIGFsbCAgIApwcm9jZXNzZXMgIG9mCiAgICAgICAgdGhlICBzcGVjaWZp
-ZWQgZXhlY3V0YWJsZSBhbmQgc3RhcnRzIGl0IGlmIG5vIHByb2Nlc3NlcyBhcmUgIApmb3VuZC4g
-Tm90ZQogICAgICAgIHRoYXQgc3RhcnRwcm9jIGlzIGRlc2lnbmVkIHRvIHN0YXJ0IGEgZGFlbW9u
-IGJ1dCBub3QgYSBrZXJuZWwgIAp0aHJlYWQgb3IKICAgICAgICBhIHByb2dyYW0gd2hpY2ggZW5h
-YmxlcyBhIGtlcm5lbCB0aHJlYWQuCgogICAgICAgIHN0YXJ0cHJvYyAgZG9lcyAgbm90ICB1c2Ug
-IHRoZSBwaWQgdG8gc2VhcmNoIGZvciBhIHByb2Nlc3MgYnV0ICAKdGhlIGZ1bGwKICAgICAgICBw
-YXRoIG9mIHRoZSBjb3JyZXNwb25kaW5nIHByb2dyYW0gd2hpY2ggaXMgdXNlZCB0byAgaWRlbnRp
-ZnkgICAKdGhlICBleGXigJAKICAgICAgICBjdXRhYmxlICAoc2VlIHByb2MoNSkpLiAgT25seSBp
-ZiB0aGUgaW5vZGUgbnVtYmVyICgvcHJvYy88cGlkPi8gCmV4ZSkgYW5kCiAgICAgICAgdGhlIGZ1
-bGwgbmFtZSBhcmUgdW5hdmFpbGFibGUgICgvcHJvYy88cGlkPi9jbWRsaW5lKSAgb3IgIGlmICAg
-CnRoZSAgZXhl4oCQCiAgICAgICAgY3V0YWJsZSAgY2hhbmdlcyAgaXRzICB6ZXJvdGggIGFyZ3Vt
-ZW50LCAgc3RhcnRwcm9jICB1c2VzIHRoZSAgCmJhc2UgbmFtZQogICAgICAgICgvcHJvYy88cGlk
-Pi9zdGF0KSB0byBpZGVudGlmeSB0aGUgcnVubmluZyBwcm9ncmFtLgoKICAgICAgICBFeHRlbmRl
-ZCBmdW5jdGlvbmFsaXR5IGlzIHByb3ZpZGVkIGJ5IHRoZSAtcCBvcHRpb24gKGZvcm1lciAgIApv
-cHRpb24gIC1mCiAgICAgICAgY2hhbmdlZCAgZHVlICB0byAgdGhlIExTQiBzcGVjaWZpY2F0aW9u
-KS4gIElmIHRoaXMgb3B0aW9uIGlzICAKc3BlY2lmaWVkLAogICAgICAgIHN0YXJ0cHJvYyB0cmll
-cyB0byBjaGVjayBhZ2FpbnN0IHRoZSBwaWQgcmVhZCBmcm9tIHRoaXMgZmlsZSAgCmluc3RlYWQg
-b2YKICAgICAgICB0aGUgIGRlZmF1bHQgKC92YXIvcnVuLzxiYXNlbmFtZT4ucGlkKS4gIFRoZSBw
-aWQgcmVhZCBmcm9tICAKdGhpcyBmaWxlIGlzCiAgICAgICAgY29tcGFyZWQgYWdhaW5zdCB0aGUg
-cGlkcyBvZiBwb3NzaWJsZSBydW5uaW5nIHByb2Nlc3NlcyAgdGhhdCAgIAp1c2UgIHRoZQogICAg
-ICAgIHNwZWNpZmllZCBleGVjdXRhYmxlLiBJbiBvcmRlciB0byBhdm9pZCBjb25mdXNpb24gd2l0
-aCBzdGFsZSAgCnBpZCBmaWxlcywKICAgICAgICBhIG5vdCB1cC10by1kYXRlIHBpZCB3aWxsIGJl
-IGlnbm9yZWQuCgogICAgICAgIEZvciB0aGUgcG9zc2liaWxpdHkgb2YgaGF2aW5nIHR3byBkaWZm
-ZXJlbnQgc2Vzc2lvbnMgb2Ygb25lICAKYmluYXJ5IHByb+KAkAogICAgICAgIGdyYW0sICB0aGUg
-b3B0aW9uIC1pIGlnbm9yZV9maWxlIGFsbG93cyB0byBzcGVjaWZ5IGEgcGlkIGZpbGUgIAp3aGlj
-aCBwaWQKICAgICAgICBudW1iZXIgaXMgdXNlZCB0byBpZ25vcmUgYWxsIHByb2Nlc3NlcyBvZiAg
-Y29ycmVzcG9uZGluZyAgIApwcm9jZXNzICBzZXPigJAKICAgICAgICBzaW9uLgoKICAgICAgICBU
-aGUgb3B0aW9uIC12IG1ha2VzIHN0YXJ0cHJvYyBwcmludCBvdXQgdmVyYm9zZSBkaWFnbm9zdGlj
-cy4KClJFUVVJUkVECiAgICAgICAgL3BhdGgvdG8vZXhlY3V0YWJsZQogICAgICAgICAgICAgICBT
-cGVjaWZpZXMgdGhlIGV4ZWN1dGFibGUgYnkgaXRzIGZ1bGwgcGF0aCBuYW1lLiBUaGlzICAKYXJn
-dW1lbnQgaXMKICAgICAgICAgICAgICAgYWx3YXlzIHJlcXVpcmVkLiBFdmVyeXRoaW5nIHRoYXQg
-Zm9sbG93cyB0aGlzIHBhdGggaXMgIApjb25zaWRlcmVkCiAgICAgICAgICAgICAgIG9wdGlvbnMg
-IGZvciAgdGhlIGV4ZWN1dGFibGUgdG8gYmUgbGF1bmNoZWQuIEZ1cnRoZXIgIAppbmZvcm1hdGlv
-bgogICAgICAgICAgICAgICBjYW4gYmUgb2J0YWluZWQgZnJvbSB0aGUgcmVzcGVjdGl2ZSBtYW5w
-YWdlKHMpLgoKCk9QVElPTlMKICAgICAgICBbLW4gXSsvLTxwcmlvPgogICAgICAgICAgICAgICBT
-ZXQgdGhlIG5pY2UgbGV2ZWwgZm9yIHRoZSBwcm9jZXNzLiBJZiB1c2VkLCB0aGlzICAKb3B0aW9u
-ICBzaG91bGQKICAgICAgICAgICAgICAgYWx3YXlzICBiZSB0aGUgZmlyc3QgaW4gdGhlIGNvbW1h
-bmQgbGluZS4gIFRoZSBuaWNlICAKbGV2ZWwgPHByaW8+CiAgICAgICAgICAgICAgIG1heSBiZSBz
-cGVjaWZpZWQgaW4gdGhlIHJhbmdlIGJldHdlZW4gLTIwIGFuZCArMjAuICAgCk9ubHkgcm9vdCBp
-cwogICAgICAgICAgICAgICBhbGxvd2VkIHRvIHNldCBuZWdhdGl2ZSBuaWNlIHZhbHVlcy4KCiAg
-ICAgICAgLWUgICAgIEJlcXVlYXRoICBvbmx5IGEgbWluaW1hbCBzZXQgb2YgZW52aXJvbm1lbnQg
-dmFyaWFibGVzICAKdG8gdGhlIG5ldwogICAgICAgICAgICAgICBwcm9jZXNzOiBIT01FLCBQQVRI
-LCBTSEVMTCwgUlVOTEVWRUwsIGFuZCBQUkVWTEVWRUwuCgogICAgICAgIC1wIHBpZF9maWxlCiAg
-ICAgICAgICAgICAgIChGb3JtZXIgb3B0aW9uIC1mIGNoYW5nZWQgZHVlIHRvIHRoZSBMU0IgIApz
-cGVjaWZpY2F0aW9uLikgIFVzZSBhbgogICAgICAgICAgICAgICBhbHRlcm5hdGUgIHBpZCAgZmls
-ZSAgaW5zdGVhZCAgb2YgIHRoZSAgZGVmYXVsdCAoL3Zhci8gCnJ1bi88YmFzZeKAkAogICAgICAg
-ICAgICAgICBuYW1lPi5waWQpLiAgVGhlIHBpZCAgcmVhZCAgZnJvbSAgdGhpcyAgZmlsZSAgaXMg
-ICAKYmVpbmcgIG1hdGNoZWQKICAgICAgICAgICAgICAgYWdhaW5zdCAgdGhlICBwaWQgIG9mICBy
-dW5uaW5nIHByb2Nlc3NlcyB0aGF0IGhhdmUgYW4gIApleGVjdXRhYmxlCiAgICAgICAgICAgICAg
-IHdpdGggc3BlY2lmaWVkIHBhdGguICBvZiB0aGUgcHJvZ3JhbS4gIEluIG9yZGVyIHRvICAKYXZv
-aWQgIGNvbmZ14oCQCiAgICAgICAgICAgICAgIHNpb24gd2l0aCBzdGFsZSBwaWQgZmlsZXMsIGEg
-bm90IHVwLXRvLWRhdGUgcGlkIHdpbGwgYmUgIAppZ25vcmVkLgoKICAgICAgICAtaSBpZ25vcmVf
-ZmlsZQogICAgICAgICAgICAgICBUaGUgcGlkIGZvdW5kIGluIHRoaXMgZmlsZSBpcyB1c2VkIGFz
-IHNlc3Npb24gIGlkICBvZiAgIAp0aGUgIHNhbWUKICAgICAgICAgICAgICAgYmluYXJ5IHByb2dy
-YW0gd2hpY2ggc2hvdWxkIGJlIGlnbm9yZWQgYnkgc3RhcnRwcm9jLgoKICAgICAgICAtZiAgICAg
-VGhpcyBvcHRpb24gaXMgcmVxdWlyZWQgYnkgdGhlIExpbnV4IFN0YW5kYXJkIEJhc2UgIApTcGVj
-aWZpY2F0aW9uCiAgICAgICAgICAgICAgIChMU0IpLiAgV2l0aCB0aGlzIG9wdGlvbiB0aGUgc3Rh
-cnQgb2YgYSBwcm9jZXNzIGlzICAKZm9yY2VkLgoKICAgICAgICAtZyBncm91cAogICAgICAgICAg
-ICAgICBTZXRzIHRoZSBncm91cCBJRCBvZiB0aGUgcHJvY2VzcyB0byBnaWQuCgogICAgICAgIC1s
-IGxvZ19maWxlCiAgICAgICAgICAgICAgIFJlZGlyZWN0IHRoZSBwcm9jZXNzIHN0YW5kYXJkIG91
-dHB1dCBhbmQgc3RhbmRhcmQgIAplcnJvciAgdG8gIHRoZQogICAgICAgICAgICAgICBmaWxlIGxv
-Z19maWxlLgoKICAgICAgICAtTCAgICAgVGhpcyAgb3B0aW9uICBjYXVzZXMgIHN5bWxpbmtzIHRv
-IGJlIGZvbGxvd2VkLCBhcyB0aGUgIApsaWtlLW5hbWVkCiAgICAgICAgICAgICAgIG9wdGlvbiBp
-biBscygxKS4gIEJSIE5vdGUgOiBmb3IgdGhlIGZpbGUgbmFtZSB0aGUgIApvcmlnaW5hbCAgbmFt
-ZQogICAgICAgICAgICAgICBvZiB0aGUgcHJvZ3JhbSBpcyB1c2VkIGluc3RlYWQgb2YgdGhlIG5h
-bWUgb2YgdGhlICAKc3ltYm9saWMgbGluay4KCiAgICAgICAgLWMgcm9vdAogICAgICAgICAgICAg
-ICBDaGFuZ2Ugcm9vdCBkaXJlY3RvcnkgdG8gcm9vdC4gIFNlcnZpY2VzIHdoaWNoIGhhdmUgIApi
-ZWVuIHN0YXJ0ZWQKICAgICAgICAgICAgICAgd2l0aCAgdGhpcyAgb3B0aW9uICBjYW4gb25seSBi
-ZSBjaGVja2VkIGJ5IGNoZWNrcHJvYyg4KSAgCmFuZCBzaWfigJAKICAgICAgICAgICAgICAgbmFs
-ZWQgYnkga2lsbHByb2MoOCkgaWYgY2hlY2twcm9jKDgpIGFuZCBraWxscHJvYyg4KSAgCmFyZSAg
-Y2FsbGVkCiAgICAgICAgICAgICAgIHdpdGggdGhlIHNhbWUgb3B0aW9uIGFyZ3VtZW50IGZvciB0
-aGUgb3B0aW9uIC1jLgoKICAgICAgICAtcSAgICAgRXF1YWxzIHRvIC1sIC9kZXYvbnVsbCAoc3Vw
-cmVzc2VzIG91dHB1dCkuCgogICAgICAgIC1kICAgICBMZXQgIHN0YXJ0cHJvYyAgZXhwZWN0IHRo
-YXQgdGhlIHN0YXJ0ZWQgc2VydmljZSB3aWxsIGRvICAKYSBkaWFsb2cKICAgICAgICAgICAgICAg
-YnkgcHJvbXB0aW5nIGZvciwgZS5nLiBhICBwYXNzcGhyYXNlLiAgIFRoaXMgIG9wdGlvbiAgIApp
-bXBsaWVzICBhCiAgICAgICAgICAgICAgIHRpbWVvdXQgb2YgMTUgc2Vjb25kcyAoLXQgMTUpLgoK
-ICAgICAgICAtcyAgICAgU3RhcnRzICB0aGUgIHByb2Nlc3MgaW4gYSBuZXcgc2Vzc2lvbi4gVGhl
-IG5ldyB0YXNrIGlzICAKYSBwcm9jZXNzCiAgICAgICAgICAgICAgIGdyb3VwIGxlYWRlciBhbmQg
-aGFzIG5vIGNvbnRyb2xsaW5nIHR0eS4KCiAgICAgICAgLXQgc2VjIFRoZSBudW1iZXIgb2Ygc2Vj
-b25kcyB0byB3YWl0IGFmdGVyIHRoZSBzdWNjZXNzZnVsICAgCnN0YXJ0ICBvZiAgYQogICAgICAg
-ICAgICAgICBzZXJ2aWNlLiAgIFRoaXMgIG9wdGlvbnMgIGFjY2VwdHMgdGhlIG51bWJlciBvZiBz
-ZWNvbmRzICAKdG8gd2FpdC4KICAgICAgICAgICAgICAgWW91IGNhbiBzcGVjaWZ5IHNvbWUgdW5p
-dHMgYWZ0ZXIgYSBnaXZlbiBudW1iZXI6IHMgZm9yICAgCnNlY29uZHMsCiAgICAgICAgICAgICAg
-IG0gZm9yIG1pbnV0ZXMsIGFuZCBoIGZvciBob3VycyB0byB3YWl0LgoKICAgICAgICAtdSB1c2Vy
-CiAgICAgICAgICAgICAgIFNldHMgdGhlIHVzZXIgSUQgb2YgdGhlIHByb2Nlc3MgdG8gdXNlci4K
-CiAgICAgICAgLXYgICAgIFZlcmJvc2Ugb3V0cHV0LgoKRVhBTVBMRQogICAgICAgIHN0YXJ0cHJv
-YyAvdXNyL3NiaW4vc2VuZG1haWwKCiAgICAgICAgICAgICAgIHN0YXJ0cyAgL3Vzci9zYmluL3Nl
-bmRtYWlsIGlmIG5vIHNlbmRtYWlsIHByb2Nlc3MgaXMgIApmb3VuZC4gSWYgYQogICAgICAgICAg
-ICAgICBwaWQgZmlsZSBzZW5kbWFpbC5waWQgZXhpc3RzIGluIC92YXIvcnVuLywgdGhlbiB0aGUg
-cGlkICAKZm91bmQgaW4KICAgICAgICAgICAgICAgdGhpcyBmaWxlIGlzIHVzZWQgdG8gc2VhcmNo
-IHRoZSBwcm9jZXNzIHRhYmxlIGZvciBhICAKcHJvY2VzcyB3aXRoCiAgICAgICAgICAgICAgIGFu
-ICAgZXhlY3V0YWJsZSAgIHRoYXQgICBtYXRjaGVzICAgdGhlICAgIHNwZWNpZmllZCAgICAgCnBh
-dGhuYW1lLAogICAgICAgICAgICAgICAvdXNyL3NiaW4vc2VuZG1haWwuICAgIElmICAgbm8gICBt
-YXRjaGluZyAgIHByb2Nlc3MgICAgCmlzICBmb3VuZCwKICAgICAgICAgICAgICAgL3Vzci9zYmlu
-L3NlbmRtYWlsIGlzIGxhdW5jaGVkLgoKICAgICAgICBzdGFydHByb2MgLXAgL3Zhci9teXJ1bi9s
-cGQucGlkIC91c3Ivc2Jpbi9scGQKCiAgICAgICAgICAgICAgIHN0YXJ0cyAvdXNyL3NiaW4vbHBk
-IGlmIHRoZXJlIGlzIG5vIHByb2Nlc3Mgd2l0aCB0aGUgICAKcGlkICBmb3VuZAogICAgICAgICAg
-ICAgICBpbiAvdmFyL215cnVuL2xwZC5waWQgYW5kIG5vIHByb2Nlc3MgaW4gdGhlIGFjdHVhbCAg
-CnByb2Nlc3MgdGFibGUKICAgICAgICAgICAgICAgZXhpc3RzIHRoYXQgdXNlcyB0aGUgc3BlY2lm
-aWVkIGJpbmFyeS4KCkVYSVQgQ09ERVMKICAgICAgICBUaGUgZXhpdCBjb2RlcyBoYXZlIHRoZSBm
-b2xsb3dpbmcgTFNCIGNvbmZvcm0gY29uZGl0aW9uczoKCgogICAgICAgICAgICAgICAwICAgIFN1
-Y2Nlc3MKCiAgICAgICAgICAgICAgIDEgICAgR2VuZXJpYyBvciB1bnNwZWNpZmllZCBlcnJvcgoK
-ICAgICAgICAgICAgICAgMiAgICBJbnZhbGlkIG9yIGV4Y2VzcyBhcmd1bWVudChzKQoKICAgICAg
-ICAgICAgICAgNCAgICBJbnN1ZmZpY2llbnQgcHJpdmlsZWdlKHMpCgogICAgICAgICAgICAgICA1
-ICAgIFByb2dyYW0gaXMgbm90IGluc3RhbGxlZAoKICAgICAgICAgICAgICAgNyAgICBQcm9ncmFt
-IGlzIG5vdCBydW5uaW5nCgogICAgICAgIEluIHNvbWUgZXJyb3IgY2FzZXMsIGRpYWdub3N0aWMg
-b3V0cHV0IGlzIHNlbnQgdG8gc3RhbmRhcmQgICAKZXJyb3IsICBvciwKICAgICAgICBpZiBzdGFu
-ZGFyZCBlcnJvciBpcyBub3QgYXZhaWxhYmxlLCBzeXNsb2dkKDgpIGlzIGJlaW5nIHVzZWQuCgpO
-T1RFCiAgICAgICAgc3RhcnRwcm9jICBpcyAgYSByZXBsYWNlbWVudCBmb3IgdGhlIEJvdXJuZSBz
-aGVsbCBmdW5jdGlvbiAgCmRhZW1vbiBmb3VuZAogICAgICAgIGluICB0aGUgIHdpZGVseSAgdXNl
-ZCAgU3lzVmluaXQgIHBhY2thZ2UgIG9mICBNaXF1ZWwgIHZhbiAgIApTbW9vcmVuYnVyZywKICAg
-ICAgICA8bWlxdWVsc0BjaXN0cm9uLm5sPi4gIHN0YXJ0cHJvYyBpcyBub3QgdXNlZnVsIHRvIHN0
-YXJ0IGtlcm5lbCAgCnRocmVhZHMuCiAgICAgICAgVGhpcyBzaG91bGQgYmUgZG9uZSBieSBzZXJ2
-aWNlIHV0aWxpdGllcyBkZXNpZ25lZCBmb3IgIHRoZSAgIApwdXJwb3NlICB0bwogICAgICAgIGFj
-Y29tcGxpc2ggdGhpcyB0YXNrLgoKQlVHUwogICAgICAgIElkZW50aWZ5aW5nICBhIHByb2Nlc3Mg
-YmFzZWQgb24gdGhlIGV4ZWN1dGFibGUgZmlsZSBhbmQgdGhlICAKY29ycmVzcG9uZOKAkAogICAg
-ICAgIGluZyBpbm9kZSBudW1iZXIgb25seSB3b3JrcyBpZiB0aGUgcHJvY2VzcyBzdGF5cyAgYWxp
-dmUgICAKZHVyaW5nICBzdGFydOKAkAogICAgICAgIHByb2MncyAgZXhlY3V0aW9uLiAgUHJvY2Vz
-c2VzICByZXdyaXRpbmcgdGhlaXIgemVyb3RoIGFyZ3VtZW50ICAKb3Igc2hlbGwKICAgICAgICBz
-Y3JpcHRzICh0aGUgaW5vZGUgbnVtYmVyIG9mIHRoZSBzaGVsbCBleGVjdXRhYmxlIGZpbGUgaXMg
-bm90ICAKaWRlbnRpY2FsCiAgICAgICAgdG8gdGhhdCBvZiB0aGUgc2NyaXB0IGZpbGUpIG1heSBu
-b3QgYmUgaWRlbnRpZmllZCBieSBhICAKZmlsZW5hbWUgcGF0aC4KCiAgICAgICAgU3RhcnRwcm9j
-IGRvZXMgbm90IHN0YXJ0IGEgcHJvY2VzcyBpZiB0aGVyZSBhbHJlYWR5IGV4aXN0cyBvbmUgIApi
-ZWluZyBpbgogICAgICAgIHRoZSB6b21iaWUgc3RhdGUuICBab21iaWVzIGFyZSBwcm9jZXNzZXMg
-d2hpY2ggYXJuJ3QgYWxpdmUgICAKYnV0ICBsaXN0ZWQKICAgICAgICBpbiAgdGhlIHByb2Nlc3Mg
-dGFibGUgdG8gaGF2ZSB0aGUgZXhpdCBzdGF0dXMgcmVhZHkgZm9yIHRoZSAgCmNvcnJlc3BvbmTi
-gJAKICAgICAgICBpbmcgcGFyZW50IHByb2Nlc3Nlcy4gIFRoZXJlZm9yZSB0aGUgcGFyZW50IHBy
-b2Nlc3NlcyBzaG91bGQgICAKYmUgIGNoZWNrCiAgICAgICAgb3V0LgoKRklMRVMKICAgICAgICAv
-cHJvYy8gcGF0aCB0byB0aGUgcHJvYyBmaWxlIHN5c3RlbSAoc2VlIHByb2MoNSkpLgoKICAgICAg
-ICAvZXRjL2luaXQuZC8KICAgICAgICAgICAgICAgcGF0aCAgdG8gdGhlIFN1U0UgYm9vdCBjb25j
-ZXB0IHNjcmlwdCBiYXNlIGRpcmVjdG9yeSBhcyAgCnJlcXVpcmVkCiAgICAgICAgICAgICAgIGJ5
-ICB0aGUgIExpbnV4ICBTdGFuZGFyZCAgICBCYXNlICAgIFNwZWNpZmljYXRpb24gICAgCihMU0Ip
-ICAgKHNlZQogICAgICAgICAgICAgICBpbml0LmQoNykpLgoKU0VFIEFMU08KICAgICAgICBjaGVj
-a3Byb2MoOCksICBraWxscHJvYyg4KSwgIGluc3NlcnYoOCksICBpbml0LmQoNyksIGtpbGwoMSks
-ICAKc2tpbGwoMSksCiAgICAgICAga2lsbGFsbCg4KSwga2lsbGFsbDUoOCksIHNpZ25hbCg3KSwg
-cHJvYyg1KS4KCkNPUFlSSUdIVAogICAgICAgIDE5OTQtMjAwMCBXZXJuZXIgRmluaywgMTk5Ni0y
-MDAwIFN1U0UgR21iSCBOdWVybmJlcmcsIEdlcm1hbnkuCgpBVVRIT1IKICAgICAgICBXZXJuZXIg
-RmluayA8d2VybmVyQHN1c2UuZGU+CgoKCjNyZCBCZXJrZWxleSBEaXN0cmlidXRpb24gICAgICAg
-IE5vdiAxMCwgMjAwMCAgICAgICAgICAgICAgICAgICAgICAKU1RBUlRQUk9DKDgpCjwvcXVvdGU+
-CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwphdXRvZnMg
-bWFpbGluZyBsaXN0CmF1dG9mc0BsaW51eC5rZXJuZWwub3JnCmh0dHA6Ly9saW51eC5rZXJuZWwu
-b3JnL21haWxtYW4vbGlzdGluZm8vYXV0b2ZzCg==
+Hi,
+
+On 23 Jun 2008, at 02:08, H. Peter Anvin wrote:
+> J.P. King wrote:
+>> As I said previously, because this is quite hard.  The maps need to  
+>> be changed by the login process.  We currently do this in the PAM  
+>> configuration.  Given that we can have multiple log in at the same  
+>> time this means we need to do a lot of careful locking.
+>> Ideally we would do something like include all the files from a  
+>> configuration directory and have a HUP get it to re-read all these  
+>> configuration snippets.  This would be a relatively involved change  
+>> however.
+>
+> This sounds like a perfect use of an executable map to me.
+
+Sounds like something that is certainly worth investigating.
+
+> I don't know exactly what your maps look like, but it seems to me  
+> that since you have an unusual local requirement it would make sense  
+> to deal with it in a manner external to autofs itself.
+
+
+This is what ours look like at present.  When a user logs in we  
+generate two files (below $user is the user name of the user logging  
+in):
+
+/var/run/pwfautomount/master.$user
+/var/run/pwfautomount/auto.$user
+
+I.e. for me with user name aia21 the files are:
+
+/var/run/pwfautomount/master.aia21
+/var/run/pwfautomount/auto.aia21
+
+Where the first file is the master map for that user and it contains a  
+single line like this (in this example the user logging in is me, i.e.  
+aia21, hence the two "aia21" strings, those would be set to the  
+currently logging in user):
+
+/servers/aia21 file:/var/run/pwfautomount/auto.aia21
+
+And the second file contains at present for my user "aia21":
+
+PWF-HOME1	- 
+fstype 
+= 
+ncp 
+,ipserver 
+= 
+172.16.3.42 
+,owner 
+= 
+aia21 
+,uid 
+= 
+aia21 
+,gid 
+= 
+aia21 
+,hard 
+,nodev 
+,nosuid 
+,nfsextras 
+,strong,codepage=cp850,iocharset=utf8,filemode=640,dirmode=750,a=/ 
+authcon/aia21	:PWF-HOME1/aia21.Aliases
+PWF-HOME2	- 
+fstype 
+= 
+ncp 
+,ipserver 
+= 
+172.16.3.43 
+,owner 
+= 
+aia21 
+,uid 
+= 
+aia21 
+,gid 
+= 
+aia21 
+,hard 
+,nodev 
+,nosuid 
+,nfsextras 
+,strong,codepage=cp850,iocharset=utf8,filemode=640,dirmode=750,a=/ 
+authcon/aia21	:PWF-HOME2/aia21.Aliases
+PWF-HOME3	- 
+fstype 
+= 
+ncp 
+,ipserver 
+= 
+172.16.3.44 
+,owner 
+= 
+aia21 
+,uid 
+= 
+aia21 
+,gid 
+= 
+aia21 
+,hard 
+,nodev 
+,nosuid 
+,nfsextras 
+,strong,codepage=cp850,iocharset=utf8,filemode=640,dirmode=750,a=/ 
+authcon/aia21	:PWF-HOME3/aia21.Aliases
+PWF-HOME4	- 
+fstype 
+= 
+ncp 
+,ipserver 
+= 
+172.16.3.45 
+,owner 
+= 
+aia21 
+,uid 
+= 
+aia21 
+,gid 
+= 
+aia21 
+,hard 
+,nodev 
+,nosuid 
+,nfsextras 
+,strong,codepage=cp850,iocharset=utf8,filemode=640,dirmode=750,a=/ 
+authcon/aia21	:PWF-HOME4/aia21.Aliases
+PWF-SHARED	- 
+fstype 
+= 
+ncp 
+,ipserver 
+= 
+172.16.3.8 
+,owner 
+= 
+aia21 
+,uid 
+= 
+aia21 
+,gid 
+= 
+aia21 
+,hard 
+,nodev 
+,nosuid 
+,nfsextras 
+,strong,codepage=cp850,iocharset=utf8,filemode=640,dirmode=750,a=/ 
+authcon/aia21	:PWF-SHARED/aia21.Aliases
+
+Note that these lines are generated by querying the Netware e- 
+Directory and have to be regenerated each time a user logs in as the  
+list can have changed between logins and in particular the list can be  
+different between different people logging in.
+
+We then launch the automount process like so:
+
+perl -e 'exec {"automount"} @ARGV' pwf-amnt \
+     -p "/var/run/pwfautomount/pid.$user" "/var/run/pwfautomount/ 
+master.$user"
+
+Note the perl exec magic is only needed with the new automount from  
+autofs 5.  With autofs 4 we simply ran automount with appropriate  
+options...
+
+
+Further, when a user logs out, we ask the automount process for that  
+user to shut down, thus causing all those mounts to disappear like so:
+
+# Tidy up the user's automounter(s)
+ampid=$(cat "/var/run/pwfautomount/pid.$user")
+
+# Kill user's processes politely at first, then less so.
+su -c "kill -TERM -1" $user
+sleep 1
+su -c "kill -KILL -1" $user
+sleep 1
+
+rm -f /var/run/pwfautomount/auto.$user /var/run/pwfautomount/pw.$user \
+       /var/run/pwfautomount/master.$user
+
+# Repeatedly ask the automounter to shut down until it succeeds (and  
+hence the
+# "kill" fails).
+(
+     while kill -USR2 $ampid 2>/dev/null; do
+         sleep 1
+     done
+) >/dev/null 2>&1
+
+So we have a direct benefit of having multiple automount instances  
+because it makes it very easy to cause all the user's automounts to be  
+unmounted on logout.
+
+We do not want them to remain as the number of connections to the  
+Novell e-Directory is limited per user thus if the automount mounts  
+were to remain for some reason each of them would count as a  
+"connection" and a user could easily get into a situation where they  
+can't log in at all any more because of old automount mounts sitting  
+around on various other servers/workstations.
+
+How would we be able to perform such cleanup if using one automount  
+instance with an executable map?
+
+Best regards,
+
+	Anton
+-- 
+Anton Altaparmakov <aia21 at cam.ac.uk> (replace at with @)
+Unix Support, Computing Service, University of Cambridge, CB2 3QH, UK
+Linux NTFS maintainer, http://www.linux-ntfs.org/
