@@ -1,18 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH] autofs4 - detect invalid direct mount requests
-Date: Thu, 03 Jul 2008 09:57:47 +0800
-Message-ID: <1215050268.3046.84.camel@raven.themaw.net>
-References: <20080620051301.9988.94307.stgit@raven.themaw.net>
-	<20080701141715.62a2132b.akpm@linux-foundation.org>
-	<1214989192.3046.34.camel@raven.themaw.net>
-	<x49tzf8pflh.fsf@segfault.boston.devel.redhat.com>
-	<1215006622.3046.75.camel@raven.themaw.net>
-	<20080702095459.f3761ff4.akpm@linux-foundation.org>
+From: Alex AlexAlex <alex_unix20@yahoo.com>
+Subject: Ldap access
+Date: Thu, 26 Jun 2008 15:36:36 -0700 (PDT)
+Message-ID: <292822.59991.qm@web32402.mail.mud.yahoo.com>
+Reply-To: alex_unix20@yahoo.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============3081201518239365248=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20080702095459.f3761ff4.akpm@linux-foundation.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -23,33 +16,74 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: autofs@linux.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: autofs@linux.kernel.org
+
+--===============3081201518239365248==
+Content-Type: multipart/alternative; boundary="0-605978589-1214519796=:59991"
+
+--0-605978589-1214519796=:59991
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
+
+Hi Gurus,
+=A0
+This is an interesting group regarding ldap issues. =A0So please let me kno=
+w if you can help with the following;
+I am currently testing the Ldap Directory Server version 6.3. I am able to =
+use netgroup to control access for a particular node. This means when we bu=
+ild the client the /etc/passwd and /etc/shadow must have an entry for acces=
+s control. ( +@<netgroup1> ). So, we have to make changes with regard to ac=
+cess both on the server and on the client.
+=A0
+Is there a way to manage all the changes on the server without ever touchin=
+g the client?
+=A0
+Thanks=85
+-alex=0A=0A=0A      
+--0-605978589-1214519796=:59991
+Content-Type: text/html; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
+
+<table cellspacing=3D'0' cellpadding=3D'0' border=3D'0' ><tr><td valign=3D'=
+top' style=3D'font: inherit;'><P class=3DMsoNormal style=3D"MARGIN: 0in 0in=
+ 0pt"><FONT face=3D"Times New Roman" size=3D3>Hi Gurus,</FONT></P>
+<P class=3DMsoNormal style=3D"MARGIN: 0in 0in 0pt"><?xml:namespace prefix =
+=3D o ns =3D "urn:schemas-microsoft-com:office:office" /><o:p><FONT face=3D=
+"Times New Roman" size=3D3>&nbsp;</FONT></o:p></P>
+<P class=3DMsoNormal style=3D"MARGIN: 0in 0in 0pt"><FONT face=3D"Times New =
+Roman" size=3D3>This is an interesting group regarding ldap issues. <SPAN s=
+tyle=3D"mso-spacerun: yes">&nbsp;</SPAN>So please let me know if you can he=
+lp with the following;</FONT></P>
+<P class=3DMsoNormal style=3D"MARGIN: 0in 0in 0pt"><FONT face=3D"Times New =
+Roman" size=3D3>I am currently testing the Ldap Directory Server version 6.=
+3. I am able to use netgroup to control access for a particular node. This =
+means when we build the client the /etc/passwd and /etc/shadow must have an=
+ entry for access control. ( +@&lt;netgroup1&gt; ). So, we have to make cha=
+nges with regard to access both on the server and on the client.</FONT></P>
+<P class=3DMsoNormal style=3D"MARGIN: 0in 0in 0pt"><o:p><FONT face=3D"Times=
+ New Roman" size=3D3>&nbsp;</FONT></o:p></P>
+<P class=3DMsoNormal style=3D"MARGIN: 0in 0in 0pt"><FONT face=3D"Times New =
+Roman" size=3D3>Is there a way to manage all the changes on the server with=
+out ever touching the client?</FONT></P>
+<P class=3DMsoNormal style=3D"MARGIN: 0in 0in 0pt"><o:p><FONT face=3D"Times=
+ New Roman" size=3D3>&nbsp;</FONT></o:p></P>
+<P class=3DMsoNormal style=3D"MARGIN: 0in 0in 0pt"><FONT face=3D"Times New =
+Roman" size=3D3>Thanks=85</FONT></P>
+<P class=3DMsoNormal style=3D"MARGIN: 0in 0in 0pt"><FONT face=3D"Times New =
+Roman" size=3D3>-alex</FONT></P></td></tr></table><br>=0A=0A=0A=0A      
+--0-605978589-1214519796=:59991--
 
 
-On Wed, 2008-07-02 at 09:54 -0700, Andrew Morton wrote:
-> On Wed, 02 Jul 2008 21:50:21 +0800 Ian Kent <raven@themaw.net> wrote:
-> 
-> > > > serious bug fixes. It gets rid of an annoyance more than anything as the
-> > > > daemon still has to check for it.
-> > > >
-> > > > It isn't important or urgent, just useful.
-> > > 
-> > > And I'd still like to see a comment in there!  ;)
-> > 
-> > OK.
-> > 
-> > Andrew, could you drop that patch and I'll re-submit it with a better
-> > change log entry.
-> 
-> nope ;)
+--===============3081201518239365248==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Hahahaha, OK.
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
 
-> 
-> Today is try-to-get-rc8-mm1-to-work day and that's likely the last
-> 2.6.26-rcX-mmY.  We need to get everything we can runtime tested a bit.
+--===============3081201518239365248==--
 
-Yep, understood.
-
-Ian
