@@ -1,16 +1,15 @@
-From: Ian Kent <raven@themaw.net>
+From: "Stephen Biggs" <sbiggs@nvidia.com>
 Subject: Re: Direct mount newbie question
-Date: Thu, 26 Jun 2008 21:42:05 +0800
-Message-ID: <1214487726.3087.9.camel@raven.themaw.net>
+Date: Thu, 26 Jun 2008 11:35:58 -0700
+Message-ID: <A2ECBF49F352C24F9DF65BB529DCBC70187A5798@hqemmail01.nvidia.com>
 References: <A2ECBF49F352C24F9DF65BB529DCBC70187A578E@hqemmail01.nvidia.com>
-	<Pine.LNX.4.64.0806251647250.15233@xena.cft.ca.us>
-	<A2ECBF49F352C24F9DF65BB529DCBC70187A5793@hqemmail01.nvidia.com>
-	<x49wskc5o9c.fsf@segfault.boston.devel.redhat.com>
+	<1214451597.12623.276.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <x49wskc5o9c.fsf@segfault.boston.devel.redhat.com>
+In-Reply-To: <1214451597.12623.276.camel@raven.themaw.net>
+Content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,38 +20,34 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-
-On Thu, 2008-06-26 at 09:17 -0400, Jeff Moyer wrote:
-> "Stephen Biggs" <sbiggs@nvidia.com> writes:
+> -----Original Message-----
+> From: Ian Kent [mailto:raven@themaw.net] 
+> Sent: Wednesday, June 25, 2008 8:40 PM
+> To: Stephen Biggs
+> Cc: autofs@linux.kernel.org
+> Subject: Re: [autofs] Direct mount newbie question
 > 
-> >> -----Original Message-----
-> >> From: jimc@xena.cft.ca.us [mailto:jimc@xena.cft.ca.us] On 
-> >> Behalf Of Jim Carter
-> >> Sent: Wednesday, June 25, 2008 5:07 PM
-> >> To: Stephen Biggs
-> >> Cc: autofs@linux.kernel.org
-> >> Subject: Re: [autofs] Direct mount newbie question
-> ...
-> > The only time this becomes a problem is when it tries to open
-> > /home/.junk.  This triggers the automounter to go across the net to find
-> > the directory in the map.  I may be wrong about any NFS chatter. In any
-> > case, this access of the map across the network can take up to 300 ms to
-> > query and then return a failure.
-> >
-> > It has nothing to do with which user is running. The problem is that "Q"
-> > is stupidly written and does this futile search many, MANY times in the
-> > running of a job, not taking no for an answer. Again, as I said before,
-> > I have no control over this application and cannot fix its ridiculous
-> > behavior.
+
+--snip--
+
 > 
-> Ian, this should be fixed by the negative lookup caching, right?  I take
-> it that's not in 5.0.3.
+> What about having an entry in the indirect map with a key 
+> .junk that mounts a temporary local mount instead of an 
+> actual direct mount?
 
-Maybe the function isn't quite right.
-Maybe I'm not marking it as a failed mount because it isn't found in the
-map, which isn't very sensible but I'll bet that's what it is.
+Yes, this did the trick for us.  I was a bit leery of changing the
+system-wide map file, but this seems to work seamlessly and it fits
+within the indirect mount structure we have without throwing direct
+automounts into the mix.  Thanks, Ian!
 
-Ian
+--snip--
+
+-----------------------------------------------------------------------------------
+This email message is for the sole use of the intended recipient(s) and may contain
+confidential information.  Any unauthorized review, use, disclosure or distribution
+is prohibited.  If you are not the intended recipient, please contact the sender by
+reply email and destroy all copies of the original message.
+-----------------------------------------------------------------------------------
