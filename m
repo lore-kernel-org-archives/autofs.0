@@ -1,13 +1,16 @@
-From: Ian Kent <raven@themaw.net>
+From: Jeff Moyer <jmoyer@redhat.com>
 Subject: Re: Direct mount newbie question
-Date: Thu, 26 Jun 2008 11:39:55 +0800
-Message-ID: <1214451597.12623.276.camel@raven.themaw.net>
+Date: Thu, 26 Jun 2008 09:17:35 -0400
+Message-ID: <x49wskc5o9c.fsf@segfault.boston.devel.redhat.com>
 References: <A2ECBF49F352C24F9DF65BB529DCBC70187A578E@hqemmail01.nvidia.com>
+	<Pine.LNX.4.64.0806251647250.15233@xena.cft.ca.us>
+	<A2ECBF49F352C24F9DF65BB529DCBC70187A5793@hqemmail01.nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <A2ECBF49F352C24F9DF65BB529DCBC70187A578E@hqemmail01.nvidia.com>
+In-Reply-To: <A2ECBF49F352C24F9DF65BB529DCBC70187A5793@hqemmail01.nvidia.com>
+	(Stephen Biggs's message of "Wed, 25 Jun 2008 17:39:31 -0700")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,94 +21,34 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Stephen Biggs <sbiggs@nvidia.com>
+To: raven@themaw.net, Stephen Biggs <sbiggs@nvidia.com>
 Cc: autofs@linux.kernel.org
 
+"Stephen Biggs" <sbiggs@nvidia.com> writes:
 
-On Wed, 2008-06-25 at 15:41 -0700, Stephen Biggs wrote:
-> Automounter 5.0.3 unpatched, vanilla, 2.6.24 Linux kernel also vanilla.
-> 
-> This is probably a really dumb question and the way I am doing it is
-> probably cause for some mirth, but if anybody have a better way, I am
-> all ears.
-> 
-> I have /home as an indirect mount point using a yp:auto.home key file.
-> 
-> I have an application that I have no control over nor ability to change
-> its behavior. It does many many searches for a file that I will call
-> .junk, starting at the cwd and going up the tree until it either finds /
-> or the file.  If the user is anywhere under the /home directory, this
-> search eventually tries to open /home/.junk and fails, but not until it
-> triggers the automounter to try to mount a non-existent directory named
-> .junk.  Because of the many searches, it seriously slows down execution
-> due to the automounting storm and consequent NFS dialogs over the
-> network.
-> 
-> A solution would be to have a permanent empty /home/.junk file present
-> as a last resort fail point for an application that searches for this
-> file and causes an automount storm since it  This seems to not be
-> possible because /home is a pseudo directory created by autofs as a
-> place to hang mounts off of (please correct me if this is an invalid
-> assumption).
+>> -----Original Message-----
+>> From: jimc@xena.cft.ca.us [mailto:jimc@xena.cft.ca.us] On 
+>> Behalf Of Jim Carter
+>> Sent: Wednesday, June 25, 2008 5:07 PM
+>> To: Stephen Biggs
+>> Cc: autofs@linux.kernel.org
+>> Subject: Re: [autofs] Direct mount newbie question
+...
+> The only time this becomes a problem is when it tries to open
+> /home/.junk.  This triggers the automounter to go across the net to find
+> the directory in the map.  I may be wrong about any NFS chatter. In any
+> case, this access of the map across the network can take up to 300 ms to
+> query and then return a failure.
+>
+> It has nothing to do with which user is running. The problem is that "Q"
+> is stupidly written and does this futile search many, MANY times in the
+> running of a job, not taking no for an answer. Again, as I said before,
+> I have no control over this application and cannot fix its ridiculous
+> behavior.
 
-Yes, only the owner daemon can do anything in an autofs file system.
+Ian, this should be fixed by the negative lookup caching, right?  I take
+it that's not in 5.0.3.
 
-What about having an entry in the indirect map with a key .junk that
-mounts a temporary local mount instead of an actual direct mount?
+Cheers,
 
-> 
-> The best compromise I could think of was to have a /home/.junk directory
-> that is there the moment automounter comes up and stays there, on all my
-> systems. Then, the application can try to open it but not trigger the
-> automounter, at least no more than once.
-> 
-> The best way I could see to do it was as such:
-> 
-> On the local auto.master, I added the line:
-> /- /etc/auto.data
-> 
-> ...before the /home entry.  /etc/auto.data can be on the YP repository
-> some time in the future.
-> 
-> In /etc/auto.data, I have one line:
-> /home/.junk -mode=555,fstype=tmpfs,ro :/.junk
-
-Haha, my first impulse was to say "you can't do that" since nesting
-isn't allowed (although it isn't checked for) with direct mounts, except
-when the direct mount entry is itself a multi-mount entry.
-
-But, thinking about it, the autofs mount on /home is just another
-mounted file system so, in theory, having a direct mount in it should
-work OK. But expect you will get difficulties with the direct and
-indirect mounts interfering with one another in strange ways.
-
-> 
-> This seems to work just fine, except for a couple of weirdnesses:
-> 1. When I applied a -HUP to the automounter, it created a ghosted
-> directory with mode of 755 instead of 555. This may be fixed by Ian's
-> patches regarding "abuse" of ghosting.  But, upon first access, the
-> directory (using ls -ld /home/.junkdirectory) then has the correct mode.
-> It looks like the local directory is remounted using the -bind option
-> and the proper mode.
-
-Yep, probably the unpredictable strangeness I mention above.
-Don't really have time to go into this at the moment but it may be worth
-trying to make this work. I suspect it will be fairly difficult though.
-
-> 
-> 2. I think I saw the directory get expired and also all /- entries in
-> /var/log/messages.  Then, "ls /home/.junkdirectory" came back with "ls:
-> /home/.junkdirectory: No such file or directory".  If this is true (that
-> it will not be automounted again after expiration), then this is not a
-> good solution.  If so, I am obviously misunderstanding direct mounts.
-> This may have been because of my testing where I needed to remove the
-> entry for /- in /etc/auto.master and forgot to send another HUP signal
-> to the automounter when I put it back in.  If this is true, then there
-> should be no problem  Is it possible that this can be expired off to the
-> point of not being able to be remounted?
-
-Could be anything causing that.
-Perhaps the order of checking, umounting and mounting again is causing
-over mounting but it's hard to say without spending time on it.
-
-Ian
+Jeff
