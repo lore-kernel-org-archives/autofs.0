@@ -1,15 +1,11 @@
-From: "Stephen Biggs" <sbiggs@nvidia.com>
-Subject: Re: Direct mount newbie question
-Date: Thu, 26 Jun 2008 11:35:58 -0700
-Message-ID: <A2ECBF49F352C24F9DF65BB529DCBC70187A5798@hqemmail01.nvidia.com>
-References: <A2ECBF49F352C24F9DF65BB529DCBC70187A578E@hqemmail01.nvidia.com>
-	<1214451597.12623.276.camel@raven.themaw.net>
+From: Carsten Aulbert <carsten.aulbert@aei.mpg.de>
+Subject: automount in status D
+Date: Fri, 27 Jun 2008 10:05:45 +0200
+Message-ID: <48649F59.2050206@aei.mpg.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1214451597.12623.276.camel@raven.themaw.net>
-Content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,34 +16,34 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-> -----Original Message-----
-> From: Ian Kent [mailto:raven@themaw.net] 
-> Sent: Wednesday, June 25, 2008 8:40 PM
-> To: Stephen Biggs
-> Cc: autofs@linux.kernel.org
-> Subject: Re: [autofs] Direct mount newbie question
-> 
+Hi all,
 
---snip--
+we have a weird problem here and I fear I need to reboot the box
+(painful, many users involved), but maybe there is a way out:
 
-> 
-> What about having an entry in the indirect map with a key 
-> .junk that mounts a temporary local mount instead of an 
-> actual direct mount?
+I'm automounting many nodes and usually everything seems to work nicely.
+However, I'm seeing this here right now:
 
-Yes, this did the trick for us.  I was a bit leery of changing the
-system-wide map file, but this seems to work seamlessly and it fits
-within the indirect mount structure we have without throwing direct
-automounts into the mix.  Thanks, Ian!
+# ps aux|grep auto.node
+root      2022  0.0  0.0  30304  1240 ?        Ds   Jun19   0:21 /usr/sbin/automount --pid-file=/var/run/autofs/_atlas_node.pid --timeout=5 /atlas/node yp auto.node_local
+root     11489  0.0  0.0  30516  1108 ?        D    Jun26   0:00 /usr/sbin/automount --pid-file=/var/run/autofs/_atlas_node.pid --timeout=5 /atlas/node yp auto.node_local
+root     28610  0.0  0.0   2736   656 pts/31   S+   10:03   0:00 grep auto.node
 
---snip--
 
------------------------------------------------------------------------------------
-This email message is for the sole use of the intended recipient(s) and may contain
-confidential information.  Any unauthorized review, use, disclosure or distribution
-is prohibited.  If you are not the intended recipient, please contact the sender by
-reply email and destroy all copies of the original message.
------------------------------------------------------------------------------------
+As you can see there are two automounter processes in D (or Ds) state sitting there for the same mount point (the PID-file contains 2022). 
+
+My questions:
+
+Any idea how this happened?
+
+Any idea how to get this resolved (possibly without a reboot)?
+
+TIA
+
+Carsten
+
+PS: 
+# ypcat auto.node_local
+-fstype=nfs,nfsvers=3,soft,intr,rsize=32768,wsize=32768,tcp       &:/local
