@@ -1,16 +1,17 @@
-From: Carsten Aulbert <carsten.aulbert@aei.mpg.de>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: More autofs problems
-Date: Mon, 30 Jun 2008 15:18:52 +0200
-Message-ID: <4868DD3C.5020706@aei.mpg.de>
-References: <4868946B.7050801@aei.mpg.de>	
+Date: Mon, 30 Jun 2008 21:26:23 +0800
+Message-ID: <1214832384.3008.27.camel@raven.themaw.net>
+References: <4868946B.7050801@aei.mpg.de>
 	<1214815665.3008.11.camel@raven.themaw.net>
 	<4868B0BA.9040208@aei.mpg.de>
 	<1214822142.3008.18.camel@raven.themaw.net>
+	<4868DD3C.5020706@aei.mpg.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1214822142.3008.18.camel@raven.themaw.net>
+In-Reply-To: <4868DD3C.5020706@aei.mpg.de>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,21 +22,21 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
+To: Carsten Aulbert <carsten.aulbert@aei.mpg.de>
 Cc: autofs@linux.kernel.org
 
-Hi Ian,
 
-Ian Kent wrote:
+On Mon, 2008-06-30 at 15:18 +0200, Carsten Aulbert wrote:
+> Hi Ian,
 > 
-> This patch is a combined diff of the current bug fixes for autofs4,
-> against 2.6.24 (it applied OK to vanilla 2.6.24.4).
+> Ian Kent wrote:
+> > 
+> > This patch is a combined diff of the current bug fixes for autofs4,
+> > against 2.6.24 (it applied OK to vanilla 2.6.24.4).
+> 
+> It applies fine and we are about to test it on a single test node now.
+> If that succeeds we will push it onto the cluster.
 
-It applies fine and we are about to test it on a single test node now.
-If that succeeds we will push it onto the cluster.
+Make sure you test thoroughly.
 
-Keeping my fingers crossed
-
-Thanks!
-
-Carsten
+Ian
