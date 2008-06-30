@@ -1,13 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 2/2] autofs-5.0.3 - fix submount shutdown handling.
-Date: Mon, 30 Jun 2008 14:51:09 +0800
-Message-ID: <20080630065107.20857.36575.stgit@raven.themaw.net>
-References: <20080630064340.20857.84258.stgit@raven.themaw.net>
+From: Carsten Aulbert <carsten.aulbert@aei.mpg.de>
+Subject: More autofs problems
+Date: Mon, 30 Jun 2008 10:08:11 +0200
+Message-ID: <4868946B.7050801@aei.mpg.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20080630064340.20857.84258.stgit@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,533 +16,110 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jim Carter <jimc@math.ucla.edu>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+To: autofs@linux.kernel.org
 
-autofs-5.0.3-submount-shutdown-recovery-9.patch
+Hi again,
 
-When using submount maps on a busy system autofs can hang.
+last weekend went quite bad for our nodes and autofs seem to die quite often. 
+Caveat: We had some networking problems during the weekend as well so this might
+be triggered by failing network connections:
 
-This patch improves the submount shutdown logic and allows
-submounts that become busy during shutdown to recover.
+Jun 28 01:05:17 n1035 mountd[32688]: authenticated mount request from 10.10.11.47:603 for /local (/local)
+Jun 28 01:05:24 n1035 mountd[32665]: authenticated mount request from 10.10.10.33:644 for /local (/local)
+Jun 28 01:05:32 n1035 kernel: [1956924.510009] Unable to handle kernel NULL pointer dereference at 0000000000000028 RIP:
+Jun 28 01:05:32 n1035 kernel: [1956924.510027]  [<ffffffff802710c4>] fput+0x0/0x11
+Jun 28 01:05:32 n1035 kernel: [1956924.510466] PGD d0a52067 PUD d0841067 PMD 0
+Jun 28 01:05:32 n1035 kernel: [1956924.510621] Oops: 0002 [1] SMP
+Jun 28 01:05:32 n1035 kernel: [1956924.510773] CPU 3
+Jun 28 01:05:32 n1035 kernel: [1956924.510919] Modules linked in: nfs nfsd lockd nfs_acl auth_rpcgss sunrpc exportfs autofs4 ipmi_si ipmi_devintf i
+pmi_watchdog ipmi_poweroff ipmi_msghandler i2c_i801 8250_pnp 8250 i2c_core e1000 serial_core
+Jun 28 01:05:32 n1035 kernel: [1956924.511407] Pid: 25000, comm: get_file Not tainted 2.6.24.4-nodes #1
+Jun 28 01:05:32 n1035 kernel: [1956924.511567] RIP: 0010:[<ffffffff802710c4>]  [<ffffffff802710c4>] fput+0x0/0x11
+Jun 28 01:05:32 n1035 kernel: [1956924.511862] RSP: 0018:ffff8100e792b950  EFLAGS: 00010246
+Jun 28 01:05:32 n1035 kernel: [1956924.512014] RAX: 0000000000000001 RBX: ffff81020f26d180 RCX: ffff810216941408
+Jun 28 01:05:32 n1035 kernel: [1956924.512307] RDX: fffffffffffffe00 RSI: 0000000000000206 RDI: 0000000000000000
+Jun 28 01:05:32 n1035 kernel: [1956924.512608] RBP: 0000000000000000 R08: ffff8100e792a000 R09: 0000000000000000
+Jun 28 01:05:32 n1035 kernel: [1956924.512902] R10: 0000000000000000 R11: ffff810216ae2e80 R12: ffff81020b2a8a80
+Jun 28 01:05:32 n1035 kernel: [1956924.513197] R13: ffff8100e792b9e8 R14: ffff810000000000 R15: 0000000000000000
+Jun 28 01:05:32 n1035 kernel: [1956924.513492] FS:  0000000040401960(0063) GS:ffff810217c771c0(0000) knlGS:0000000000000000
+Jun 28 01:05:32 n1035 kernel: [1956924.513791] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+Jun 28 01:05:32 n1035 kernel: [1956924.513945] CR2: 0000000000000028 CR3: 00000000e4c85000 CR4: 00000000000006e0
+Jun 28 01:05:32 n1035 kernel: [1956924.514239] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+Jun 28 01:05:32 n1035 kernel: [1956924.514535] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Jun 28 01:05:32 n1035 kernel: [1956924.514831] Process get_file (pid: 25000, threadinfo ffff8100e792a000, task ffff8100d3005850)
+Jun 28 01:05:32 n1035 kernel: [1956924.515128] Stack:  ffffffff8806dc26 ffff81020f26d180 ffff81012d1db5c0 0000000000000110
+Jun 28 01:05:32 n1035 kernel: [1956924.515433]  ffffffff8806e222 000000011781cb40 ffff81020b2a8a80 ffff81021781cb40
+Jun 28 01:05:32 n1035 kernel: [1956924.515734]  ffff810217c2d680 ffff8100e792ba18 0000000000000000 0000000000000000
+Jun 28 01:05:32 n1035 kernel: [1956924.515895] Call Trace:
+Jun 28 01:05:32 n1035 kernel: [1956924.516186]  [<ffffffff8806dc26>] :autofs4:autofs4_catatonic_mode+0x5e/0x6c
+Jun 28 01:05:32 n1035 kernel: [1956924.516346]  [<ffffffff8806e222>] :autofs4:autofs4_wait+0x5a2/0x76d
+Jun 28 01:05:32 n1035 kernel: [1956924.516509]  [<ffffffff8027ec71>] dput+0x1c/0x10b
+Jun 28 01:05:32 n1035 kernel: [1956924.516667]  [<ffffffff8806ccfd>] :autofs4:try_to_fill_dentry+0x6d/0xf1
+Jun 28 01:05:32 n1035 kernel: [1956924.516826]  [<ffffffff8806cf7b>] :autofs4:autofs4_revalidate+0xa6/0x17e
+Jun 28 01:05:32 n1035 kernel: [1956924.516983]  [<ffffffff8031ef47>] xfs_vn_permission+0x0/0x17
+Jun 28 01:05:32 n1035 kernel: [1956924.517139]  [<ffffffff8806d35f>] :autofs4:autofs4_lookup+0x289/0x33e
+Jun 28 01:05:32 n1035 kernel: [1956924.517297]  [<ffffffff80276cc6>] do_lookup+0xc2/0x1b8
+Jun 28 01:05:32 n1035 kernel: [1956924.517452]  [<ffffffff8027725e>] __link_path_walk+0x365/0xd0a
+Jun 28 01:05:32 n1035 kernel: [1956924.517627]  [<ffffffff8811abc6>] :nfs:nfs_writepages_callback+0x0/0x1e
+Jun 28 01:05:32 n1035 kernel: [1956924.517785]  [<ffffffff80277c52>] link_path_walk+0x4f/0xcb
+Jun 28 01:05:32 n1035 kernel: [1956924.517941]  [<ffffffff8026f7cc>] get_unused_fd_flags+0x77/0x112
+Jun 28 01:05:32 n1035 kernel: [1956924.518097]  [<ffffffff80277e6f>] do_path_lookup+0x1a1/0x1c5
+Jun 28 01:05:32 n1035 kernel: [1956924.518252]  [<ffffffff80277fa8>] __path_lookup_intent_open+0x50/0x8d
+Jun 28 01:05:32 n1035 kernel: [1956924.518409]  [<ffffffff802787e2>] open_namei+0x86/0x606
+Jun 28 01:05:32 n1035 kernel: [1956924.518568]  [<ffffffff8026f652>] do_filp_open+0x1c/0x3d
+Jun 28 01:05:32 n1035 kernel: [1956924.518723]  [<ffffffff8026f7cc>] get_unused_fd_flags+0x77/0x112
+Jun 28 01:05:32 n1035 kernel: [1956924.518880]  [<ffffffff8026f979>] do_sys_open+0x46/0xca
+Jun 28 01:05:32 n1035 kernel: [1956924.519034]  [<ffffffff8020be0e>] system_call+0x7e/0x83
+Jun 28 01:05:32 n1035 kernel: [1956924.519187]
+Jun 28 01:05:32 n1035 kernel: [1956924.519331]
+Jun 28 01:05:32 n1035 kernel: [1956924.519332] Code: f0 ff 4f 28 0f 94 c0 84 c0 74 05 e9 92 fe ff ff c3 65 48 8b
+Jun 28 01:05:32 n1035 kernel: [1956924.519813] RIP  [<ffffffff802710c4>] fput+0x0/0x11
+Jun 28 01:05:32 n1035 kernel: [1956924.519967]  RSP <ffff8100e792b950>
+Jun 28 01:05:32 n1035 kernel: [1956924.520115] CR2: 0000000000000028
+Jun 28 01:05:32 n1035 kernel: [1956924.521139] ---[ end trace 436b46a0e9d6c8a6 ]---
 
----
+We get several of these after one antoher. A little bit later we get:
 
- daemon/automount.c  |   91 +++++++++++++++++++++++++++-----------------------
- daemon/direct.c     |    4 +-
- daemon/indirect.c   |   93 +++++++++++++++++++++++++++++++++++++++------------
- daemon/lookup.c     |    3 --
- daemon/state.c      |    5 ++-
- include/automount.h |    4 +-
- include/master.h    |    3 +-
- lib/master.c        |   50 ++++++++++++---------------
- 8 files changed, 150 insertions(+), 103 deletions(-)
+Jun 28 01:05:32 n1035 rpc.idmapd[2133]: nfsopen: open(/var/lib/nfs/rpc_pipefs/nfs/clnt32d3/idmap): Too many open files
+Jun 28 01:05:32 n1035 last message repeated 2 times
+Jun 28 01:05:35 n1035 mountd[32665]: authenticated unmount request from 10.10.8.70:867 for /local (/local)
+Jun 28 01:05:50 n1035 mountd[32627]: authenticated unmount request from 10.10.13.37:600 for /local (/local)
+Jun 28 01:05:52 n1035 rpc.idmapd[2133]: nfsopen: open(/var/lib/nfs/rpc_pipefs/nfs/clnt32d3/idmap): Too many open files
+Jun 28 01:05:52 n1035 last message repeated 2 times
+Jun 28 01:05:52 n1035 automount[18299]: AUTOFS_IOC_READY: Invalid argument
+Jun 28 01:05:52 n1035 last message repeated 5 times
+Jun 28 01:05:52 n1035 rpc.idmapd[2133]: nfsopen: open(/var/lib/nfs/rpc_pipefs/nfs/clnt32d3/idmap): Too many open files
+Jun 28 01:05:53 n1035 last message repeated 10 times
+Jun 28 01:05:53 n1035 automount[31737]: >> mount: n1037:/local failed, reason given by server: Permission denied
+Jun 28 01:05:53 n1035 automount[31756]: >> mount: n0197:/local failed, reason given by server: Permission denied
+Jun 28 01:05:53 n1035 automount[31743]: >> nfs bindresvport: Address already in use
+Jun 28 01:05:53 n1035 automount[31766]: >> mount: n0365:/local: can't read superblock
+Jun 28 01:05:53 n1035 automount[31754]: >> mount: n0717:/local: can't read superblock
+Jun 28 01:05:53 n1035 automount[31778]: >> mount: n0986:/local: can't read superblock
+Jun 28 01:05:53 n1035 automount[31739]: >> mount: n1315:/local: can't read superblock
+Jun 28 01:05:53 n1035 automount[31774]: >> mount: n0919:/local: can't read superblock
+Jun 28 01:05:53 n1035 automount[31781]: >> mount: n0006:/local: can't read superblock
+Jun 28 01:05:53 n1035 automount[31741]: >> mount: n0592:/local: can't read superblock
+Jun 28 01:05:53 n1035 automount[31753]: >> mount: n1080:/local: can't read superblock
+Jun 28 01:05:53 n1035 automount[31757]: >> mount: n0168:/local: can't read superblock
+Jun 28 01:05:53 n1035 automount[18299]: AUTOFS_IOC_READY: Invalid argument
+Jun 28 01:05:53 n1035 automount[31787]: >> mount: n0677:/local: can't read superblock
+Jun 28 01:05:53 n1035 automount[31785]: >> mount: n0806:/local: can't read superblock
+Jun 28 01:05:53 n1035 automount[31760]: >> mount: n0868:/local: can't read superblock
+Jun 28 01:05:53 n1035 automount[31756]: mount(nfs): nfs: mount failure n0197:/local on /atlas/node/n0197
+Jun 28 01:05:53 n1035 automount[31737]: mount(nfs): nfs: mount failure n1037:/local on /atlas/node/n1037
+Jun 28 01:05:53 n1035 automount[31745]: >> mount: n1105:/local: can't read superblock
+Jun 28 01:05:53 n1035 automount[31743]: mount(nfs): nfs: mount failure n0937:/local on /atlas/node/n0937
+Jun 28 01:05:53 n1035 rpc.idmapd[2133]: nfsopen: open(/var/lib/nfs/rpc_pipefs/nfs/clnt32d3/idmap): Too many open files
+Jun 28 01:05:53 n1035 automount[31753]: mount(nfs): nfs: mount failure n1080:/local on /atlas/node/n1080
 
 
-diff --git a/daemon/automount.c b/daemon/automount.c
-index 4b94028..96bcf2f 100644
---- a/daemon/automount.c
-+++ b/daemon/automount.c
-@@ -1514,13 +1514,11 @@ static void handle_mounts_cleanup(void *arg)
- 	/* If we have been canceled then we may hold the state mutex. */
- 	mutex_operation_wait(&ap->state_mutex);
- 
--	alarm_delete(ap);
--	st_remove_tasks(ap);
--
--	umount_autofs(ap, 1);
--
- 	destroy_logpri_fifo(ap);
--	master_signal_submount(ap, MASTER_SUBMNT_JOIN);
-+	if (submount) {
-+		master_source_unlock(ap->parent->entry);
-+		master_signal_submount(ap, MASTER_SUBMNT_SHUTDOWN);
-+	}
- 	master_remove_mapent(ap->entry);
- 	master_free_mapent_sources(ap->entry, 1);
- 	master_free_mapent(ap->entry);
-@@ -1585,71 +1583,82 @@ void *handle_mounts(void *arg)
- 	if (!ap->submount && ap->exp_timeout)
- 		alarm_add(ap, ap->exp_runfreq + rand() % ap->exp_runfreq);
- 
--	pthread_cleanup_push(handle_mounts_cleanup, ap);
--	pthread_setcancelstate(cancel_state, NULL);
--
- 	state_mutex_unlock(ap);
-+	pthread_setcancelstate(cancel_state, NULL);
- 
- 	while (ap->state != ST_SHUTDOWN) {
- 		if (handle_packet(ap)) {
--			int ret, result;
-+			int ret, cur_state;
-+
-+			/*
-+			 * If we're a submount we need to ensure our parent
-+			 * doesn't try to mount us again until our shutdown
-+			 * is complete and that any outstanding mounts are
-+			 * completed before we try to shutdown.
-+			 */
-+			pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &cur_state);
-+
-+			if (ap->submount)
-+				master_source_writelock(ap->parent->entry);
- 
- 			state_mutex_lock(ap);
-+
-+			if (ap->state != ST_SHUTDOWN) {
-+				if (!ap->submount)
-+					alarm_add(ap, ap->exp_runfreq);
-+				state_mutex_unlock(ap);
-+				/* Return to ST_READY is done immediately */
-+				if (ap->submount)
-+					master_source_unlock(ap->parent->entry);
-+				st_add_task(ap, ST_READY);
-+				pthread_setcancelstate(cur_state, NULL);
-+				continue;
-+			}
-+
-+			alarm_delete(ap);
-+			st_remove_tasks(ap);
-+
- 			/*
- 			 * For a direct mount map all mounts have already gone
--			 * by the time we get here.
-+			 * by the time we get here and since we only ever
-+			 * umount direct mounts at shutdown there is no need
-+			 * to check for possible recovery.
- 			 */
- 			if (ap->type == LKP_DIRECT) {
--				status = 1;
-+				umount_autofs(ap, 1);
- 				state_mutex_unlock(ap);
- 				break;
- 			}
- 
- 			/*
--			 * If the ioctl fails assume the kernel doesn't have
--			 * AUTOFS_IOC_ASKUMOUNT and just continue.
-+			 * If umount_autofs returns non-zero it wasn't able
-+			 * to complete the umount and has left the mount intact
-+			 * so we can continue. This can happen if a lookup
-+			 * occurs while we're trying to umount.
- 			 */
--			ret = ioctl(ap->ioctlfd, AUTOFS_IOC_ASKUMOUNT, &result);
--			if (ret == -1) {
-+			ret = umount_autofs(ap, 1);
-+			if (!ret) {
- 				state_mutex_unlock(ap);
- 				break;
- 			}
- 
--			/* OK to exit */
--			if (ap->state == ST_SHUTDOWN) {
--				if (result) {
--					state_mutex_unlock(ap);
--					break;
--				}
--#ifdef ENABLE_IGNORE_BUSY_MOUNTS
--				/*
--				 * There weren't any active mounts but if the
--				 * filesystem is busy there may be a mount
--				 * request in progress so return to the ready
--				 * state unless a shutdown has been explicitly
--				 * requested.
--				 */
--				if (ap->shutdown) {
--					state_mutex_unlock(ap);
--					break;
--				}
--#endif
--			}
--
- 			/* Failed shutdown returns to ready */
- 			warn(ap->logopt,
- 			     "can't shutdown: filesystem %s still busy",
- 			     ap->path);
- 			if (!ap->submount)
- 				alarm_add(ap, ap->exp_runfreq);
--			nextstate(ap->state_pipe[1], ST_READY);
--
- 			state_mutex_unlock(ap);
-+			if (ap->submount)
-+				master_source_unlock(ap->parent->entry);
-+			/* Return to ST_READY is done immediately */
-+			st_add_task(ap, ST_READY);
-+			pthread_setcancelstate(cur_state, NULL);
-+
- 		}
- 	}
- 
--	pthread_cleanup_pop(1);
--	sched_yield();
-+	handle_mounts_cleanup(ap);
- 
- 	return NULL;
- }
-diff --git a/daemon/direct.c b/daemon/direct.c
-index cc03ccd..f7a78b9 100644
---- a/daemon/direct.c
-+++ b/daemon/direct.c
-@@ -867,12 +867,12 @@ void *expire_proc_direct(void *arg)
- 	if (status)
- 		fatal(status);
- 
-+	pthread_cleanup_push(expire_cleanup, &ec);
-+
- 	status = pthread_mutex_unlock(&ea->mutex);
- 	if (status)
- 		fatal(status);
- 
--	pthread_cleanup_push(expire_cleanup, &ec);
--
- 	left = 0;
- 
- 	mnts = tree_make_mnt_tree(_PROC_MOUNTS, "/");
-diff --git a/daemon/indirect.c b/daemon/indirect.c
-index c32b658..41afe30 100644
---- a/daemon/indirect.c
-+++ b/daemon/indirect.c
-@@ -233,11 +233,8 @@ int mount_autofs_indirect(struct autofs_point *ap)
- 	return 0;
- }
- 
--int umount_autofs_indirect(struct autofs_point *ap)
-+static void close_mount_fds(struct autofs_point *ap)
- {
--	char buf[MAX_ERR_BUF];
--	int ret, rv, retries;
--
- 	/*
- 	 * Since submounts look after themselves the parent never knows
- 	 * it needs to close the ioctlfd for offset mounts so we have
-@@ -247,6 +244,25 @@ int umount_autofs_indirect(struct autofs_point *ap)
- 	if (ap->submount)
- 		lookup_source_close_ioctlfd(ap->parent, ap->path);
- 
-+	close(ap->state_pipe[0]);
-+	close(ap->state_pipe[1]);
-+	ap->state_pipe[0] = -1;
-+	ap->state_pipe[1] = -1;
-+
-+	if (ap->pipefd >= 0)
-+		close(ap->pipefd);
-+
-+	if (ap->kpipefd >= 0)
-+		close(ap->kpipefd);
-+
-+	return;
-+}
-+
-+int umount_autofs_indirect(struct autofs_point *ap)
-+{
-+	char buf[MAX_ERR_BUF];
-+	int ret, rv, retries;
-+
- 	/* If we are trying to shutdown make sure we can umount */
- 	rv = ioctl(ap->ioctlfd, AUTOFS_IOC_ASKUMOUNT, &ret);
- 	if (rv == -1) {
-@@ -255,23 +271,19 @@ int umount_autofs_indirect(struct autofs_point *ap)
- 		return 1;
- 	} else if (!ret) {
- 		error(ap->logopt, "ask umount returned busy %s", ap->path);
-+#if defined(ENABLE_IGNORE_BUSY_MOUNTS) || defined(ENABLE_FORCED_SHUTDOWN)
-+		if (!ap->shutdown)
-+			return 1;
-+#else
- 		return 1;
-+#endif
- 	}
- 
--	ioctl(ap->ioctlfd, AUTOFS_IOC_CATATONIC, 0);
-+	if (ap->shutdown)
-+		ioctl(ap->ioctlfd, AUTOFS_IOC_CATATONIC, 0);
-+
- 	close(ap->ioctlfd);
- 	ap->ioctlfd = -1;
--	close(ap->state_pipe[0]);
--	close(ap->state_pipe[1]);
--	ap->state_pipe[0] = -1;
--	ap->state_pipe[1] = -1;
--
--	if (ap->pipefd >= 0)
--		close(ap->pipefd);
--
--	if (ap->kpipefd >= 0)
--		close(ap->kpipefd);
--
- 	sched_yield();
- 
- 	retries = UMOUNT_RETRIES;
-@@ -288,24 +300,61 @@ int umount_autofs_indirect(struct autofs_point *ap)
- 		case EINVAL:
- 			error(ap->logopt,
- 			      "mount point %s does not exist", ap->path);
-+			close_mount_fds(ap);
- 			return 0;
- 			break;
- 		case EBUSY:
--			error(ap->logopt,
-+			debug(ap->logopt,
- 			      "mount point %s is in use", ap->path);
--			if (ap->state == ST_SHUTDOWN_FORCE)
-+			if (ap->state == ST_SHUTDOWN_FORCE) {
-+				close_mount_fds(ap);
- 				goto force_umount;
--			else
--				return 0;
-+			} else {
-+				int cl_flags;
-+				/*
-+				 * If the umount returns EBUSY there may be
-+				 * a mount request in progress so we need to
-+				 * recover unless we have been explicitly
-+				 * asked to shutdown and configure option
-+				 * ENABLE_IGNORE_BUSY_MOUNTS is enabled.
-+				 */
-+#ifdef ENABLE_IGNORE_BUSY_MOUNTS
-+				if (ap->shutdown) {
-+					close_mount_fds(ap);
-+					return 0;
-+				}
-+#endif
-+				ap->ioctlfd = open(ap->path, O_RDONLY);
-+				if (ap->ioctlfd < 0) {
-+					warn(ap->logopt,
-+					     "could not recover autofs path %s",
-+					     ap->path);
-+					close_mount_fds(ap);
-+					return 0;
-+				}
-+
-+				if ((cl_flags = fcntl(ap->ioctlfd, F_GETFD, 0)) != -1) {
-+					cl_flags |= FD_CLOEXEC;
-+					fcntl(ap->ioctlfd, F_SETFD, cl_flags);
-+				}
-+			}
- 			break;
- 		case ENOTDIR:
- 			error(ap->logopt, "mount point is not a directory");
-+			close_mount_fds(ap);
- 			return 0;
- 			break;
- 		}
- 		return 1;
- 	}
- 
-+	/*
-+	 * We have successfully umounted the mount so we now close
-+	 * the descriptors. The kernel end of the kernel pipe will
-+	 * have been put during the umount super block cleanup.
-+	 */
-+	close_mount_fds(ap);
-+
- force_umount:
- 	if (rv != 0) {
- 		warn(ap->logopt,
-@@ -394,12 +443,12 @@ void *expire_proc_indirect(void *arg)
- 	if (status)
- 		fatal(status);
- 
-+	pthread_cleanup_push(expire_cleanup, &ec);
-+
- 	status = pthread_mutex_unlock(&ea->mutex);
- 	if (status)
- 		fatal(status);
- 
--	pthread_cleanup_push(expire_cleanup, &ec);
--
- 	left = 0;
- 
- 	/* Get a list of real mounts and expire them if possible */
-diff --git a/daemon/lookup.c b/daemon/lookup.c
-index eac6053..af70fde 100644
---- a/daemon/lookup.c
-+++ b/daemon/lookup.c
-@@ -1139,8 +1139,6 @@ int lookup_source_close_ioctlfd(struct autofs_point *ap, const char *key)
- 	struct mapent *me;
- 	int ret = 0;
- 
--	pthread_cleanup_push(master_source_lock_cleanup, entry);
--	master_source_readlock(entry);
- 	map = entry->maps;
- 	while (map) {
- 		mc = map->mc;
-@@ -1158,7 +1156,6 @@ int lookup_source_close_ioctlfd(struct autofs_point *ap, const char *key)
- 		cache_unlock(mc);
- 		map = map->next;
- 	}
--	pthread_cleanup_pop(1);
- 
- 	return ret;
- }
-diff --git a/daemon/state.c b/daemon/state.c
-index 5804707..8a1c29e 100644
---- a/daemon/state.c
-+++ b/daemon/state.c
-@@ -213,8 +213,10 @@ static unsigned int st_ready(struct autofs_point *ap)
- 	debug(ap->logopt,
- 	      "st_ready(): state = %d path %s", ap->state, ap->path);
- 
-+	state_mutex_lock(ap);
- 	ap->shutdown = 0;
- 	ap->state = ST_READY;
-+	state_mutex_unlock(ap);
- 
- 	if (ap->submount)
- 		master_signal_submount(ap, MASTER_SUBMNT_CONTINUE);
-@@ -677,9 +679,8 @@ int st_add_task(struct autofs_point *ap, enum states state)
- 
- 	/* Task termination marker, poke state machine */
- 	if (state == ST_READY) {
--		state_mutex_lock(ap);
-+		/* NOTE: no state mutex lock here */
- 		st_ready(ap);
--		state_mutex_unlock(ap);
- 
- 		st_mutex_lock();
- 
-diff --git a/include/automount.h b/include/automount.h
-index 76e5478..b26fa73 100644
---- a/include/automount.h
-+++ b/include/automount.h
-@@ -461,8 +461,8 @@ struct autofs_point {
- 					 * host from which to mount */
- 	struct autofs_point *parent;	/* Owner of mounts list for submount */
- 	pthread_mutex_t mounts_mutex;	/* Protect mount lists */
--	pthread_cond_t mounts_cond;	/* Submounts condition variable */
--	unsigned int mounts_signaled;	/* Submount signals task complete */
-+	unsigned int submount_wait;	/* We need to wait on barrier */
-+	pthread_barrier_t submount_barrier; /* Submount completion barrier */
- 	struct list_head mounts;	/* List of autofs mounts at current level */
- 	unsigned int submount;		/* Is this a submount */
- 	unsigned int shutdown;		/* Shutdown notification */
-diff --git a/include/master.h b/include/master.h
-index 5f10d1f..24dddec 100644
---- a/include/master.h
-+++ b/include/master.h
-@@ -20,9 +20,8 @@
- #ifndef MASTER_H
- #define MASTER_H
- 
--#define MASTER_SUBMNT_WAIT	0
- #define MASTER_SUBMNT_CONTINUE	1
--#define MASTER_SUBMNT_JOIN	2
-+#define MASTER_SUBMNT_SHUTDOWN	2
- 
- struct map_source {
- 	char *type;
-diff --git a/lib/master.c b/lib/master.c
-index edd3bdc..ae52954 100644
---- a/lib/master.c
-+++ b/lib/master.c
-@@ -113,7 +113,8 @@ int master_add_autofs_point(struct master_mapent *entry,
- 		return 0;
- 	}
- 
--	status = pthread_cond_init(&ap->mounts_cond, NULL);
-+	ap->submount_wait = 0;
-+	status = pthread_barrier_init(&ap->submount_barrier, NULL, 2);
- 	if (status) {
- 		status = pthread_mutex_destroy(&ap->mounts_mutex);
- 		if (status)
-@@ -125,6 +126,7 @@ int master_add_autofs_point(struct master_mapent *entry,
- 		free(ap);
- 		return 0;
- 	}
-+
- 	entry->ap = ap;
- 
- 	return 1;
-@@ -145,7 +147,7 @@ void master_free_autofs_point(struct autofs_point *ap)
- 	if (status)
- 		fatal(status);
- 
--	status = pthread_cond_destroy(&ap->mounts_cond);
-+	status = pthread_barrier_destroy(&ap->submount_barrier);
- 	if (status)
- 		fatal(status);
- 
-@@ -828,7 +830,6 @@ int master_notify_submount(struct autofs_point *ap, const char *path, enum state
- {
- 	struct list_head *head, *p;
- 	struct autofs_point *this;
--	pthread_t thid;
- 	size_t plen = strlen(path);
- 	int status, ret = 1;
- 
-@@ -880,22 +881,14 @@ int master_notify_submount(struct autofs_point *ap, const char *path, enum state
- 
- 		state_mutex_unlock(this);
- 
--		thid = this->thid;
--		ap->mounts_signaled = MASTER_SUBMNT_WAIT;
--		while (ap->mounts_signaled == MASTER_SUBMNT_WAIT) {
--			status = pthread_cond_wait(&ap->mounts_cond, &ap->mounts_mutex);
--			if (status)
--				fatal(status);
--		}
-+		mounts_mutex_unlock(ap);
- 
--		if (ap->mounts_signaled == MASTER_SUBMNT_JOIN) {
--			status = pthread_join(thid, NULL);
--			if (status)
--				fatal(status);
--		} else
--			ret = 0;
-+		this->submount_wait = 1;
-+		status = pthread_barrier_wait(&this->submount_barrier);
-+		if (status && status != PTHREAD_BARRIER_SERIAL_THREAD)
-+			fatal(status);
- 
--		break;
-+		return ret;
- 	}
- 
- 	mounts_mutex_unlock(ap);
-@@ -903,28 +896,26 @@ int master_notify_submount(struct autofs_point *ap, const char *path, enum state
- 	return ret;
- }
- 
--void master_signal_submount(struct autofs_point *ap, unsigned int join)
-+/* Parent ap->mounts_mutex must already be held if joining on shutdown */
-+void master_signal_submount(struct autofs_point *ap, unsigned int action)
- {
- 	int status;
- 
- 	if (!ap->parent || !ap->submount)
- 		return;
- 
--	mounts_mutex_lock(ap->parent);
--
--	ap->parent->mounts_signaled = join;
--
--	if (join == MASTER_SUBMNT_JOIN) {
-+	if (action == MASTER_SUBMNT_SHUTDOWN) {
- 		/* We are finishing up */
- 		ap->parent->submnt_count--;
--		list_del(&ap->mounts);
-+		list_del_init(&ap->mounts);
- 	}
- 
--	status = pthread_cond_signal(&ap->parent->mounts_cond);
--	if (status)
--		fatal(status);
--
--	mounts_mutex_unlock(ap->parent);
-+	if (ap->submount_wait) {
-+		ap->submount_wait = 0;
-+		status = pthread_barrier_wait(&ap->submount_barrier);
-+		if (status && status != PTHREAD_BARRIER_SERIAL_THREAD)
-+			fatal(status);
-+	}
- 
- 	return;
- }
-@@ -970,6 +961,7 @@ void master_notify_state_change(struct master *master, int sig)
- 			if (ap->state != ST_SHUTDOWN_FORCE &&
- 			    ap->state != ST_SHUTDOWN_PENDING) {
- 				next = ST_SHUTDOWN_FORCE;
-+				ap->shutdown = 1;
- 				nextstate(state_pipe, next);
- 			}
- 			break;
+I guess since the mounts are not umounted anymore that should explain why we run out of ports.
+
+Any suggestions? Do you know this error?
+
+Again these boxes are all Debian Etch with 2.6.24.4 kernel (vanilla). and autof  4.1.4-13 on amd64.
+
+TIA
+
+Carsten
