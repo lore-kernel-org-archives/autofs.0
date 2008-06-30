@@ -1,19 +1,20 @@
-From: Ian Kent <raven@themaw.net>
+From: Carsten Aulbert <carsten.aulbert@aei.mpg.de>
 Subject: Re: More autofs problems
-Date: Mon, 30 Jun 2008 22:20:15 +0800
-Message-ID: <1214835616.3008.35.camel@raven.themaw.net>
-References: <4868946B.7050801@aei.mpg.de>
+Date: Mon, 30 Jun 2008 16:32:17 +0200
+Message-ID: <4868EE71.7070607@aei.mpg.de>
+References: <4868946B.7050801@aei.mpg.de>	
 	<1214815665.3008.11.camel@raven.themaw.net>
-	<4868B0BA.9040208@aei.mpg.de>
+	<4868B0BA.9040208@aei.mpg.de>	
 	<1214822142.3008.18.camel@raven.themaw.net>
-	<4868DD3C.5020706@aei.mpg.de>
+	<4868DD3C.5020706@aei.mpg.de>	
 	<1214832384.3008.27.camel@raven.themaw.net>
 	<4868EA97.4000103@aei.mpg.de>
+	<1214835616.3008.35.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4868EA97.4000103@aei.mpg.de>
+In-Reply-To: <1214835616.3008.35.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,33 +25,25 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Carsten Aulbert <carsten.aulbert@aei.mpg.de>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
 
-On Mon, 2008-06-30 at 16:15 +0200, Carsten Aulbert wrote:
-> 
-> Ian Kent wrote:
-> 
-> > Make sure you test thoroughly.
-> 
-> Sure! Hopefully we can stress it hard enough. Right now we are running
-> out of files for nfsopen *without* hitting a kernel trace again so far!
-> (good for you, somewhat bad for us ;)).
-> 
-> Can we do anything to help you and the autofs package? Give you a box
-> for testing, offer you a plane ticket + hotel to come here and do
-> massive debugging on our system,...?
 
-Hahahaha!
+Ian Kent wrote:
 
-Nothing is that simple, especially for me, enough said.
+> Encouraging the Debian folks to qa version 5 would be probably the best
+> thing you could do for everyone.
 
-But your using version 4 which is a big minus for me as all my effort
-has been going into version 5 for over 3 years now (admittedly it's only
-been released for about 18 months).
+It's already in Debian, but only for the next stable version aka lenny:
 
-Encouraging the Debian folks to qa version 5 would be probably the best
-thing you could do for everyone.
+http://packages.debian.org/search?keywords=autofs5&searchon=names&suite=all&section=all
 
-Ian
+So, I don't know how much effort it would be to backport them to glibc
+2.3 instead of 2.7 and so on...
+
+Might be worth a try, if you say it's stable enough ;)
+
+Cheers
+
+Carsten
