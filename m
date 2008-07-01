@@ -1,8 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 4/5] autofs4 - check kernel communication pipe is valid for
-	write
-Date: Tue, 01 Jul 2008 17:26:15 +0800
-Message-ID: <20080701092613.12041.19457.stgit@raven.themaw.net>
+Subject: [PATCH 2/5] autofs4 - dont make expiring dentry negative fix
+Date: Tue, 01 Jul 2008 17:25:58 +0800
+Message-ID: <20080701092557.12041.32586.stgit@raven.themaw.net>
 References: <20080701092548.12041.69868.stgit@raven.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -14,50 +13,41 @@ Content-Type: text/plain; charset="us-ascii"
 To: Andrew Morton <akpm@linux-foundation.org>
 Cc: autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-It is possible for an autofs mount to become catatonic (and for the
-daemon communication pipe to become NULL) after a wait has been
-initiallized but before the request has been sent to the daemon. We
-need to check for this before sending the request packet.
+The correction to not make a dentry negative has an error.
+Currently ->lookup() checks if an expire is in progress and removes
+the entry from the list, before the expire is complete so if more
+than one process is performing a lookup at this time only one will
+wait for expire completion. We need to not remove the list entry
+until after waiting for expire completion.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 
 ---
 
- fs/autofs4/waitq.c |   16 ++++++++++++++--
- 1 files changed, 14 insertions(+), 2 deletions(-)
+ fs/autofs4/root.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
 
 
-diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
-index f8dee31..aa7b526 100644
---- a/fs/autofs4/waitq.c
-+++ b/fs/autofs4/waitq.c
-@@ -99,6 +99,7 @@ static void autofs4_notify_daemon(struct autofs_sb_info *sbi,
- 		union autofs_packet_union v4_pkt;
- 		union autofs_v5_packet_union v5_pkt;
- 	} pkt;
-+	struct file *pipe = NULL;
- 	size_t pktsz;
+diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
+index 10add99..2a1a631 100644
+--- a/fs/autofs4/root.c
++++ b/fs/autofs4/root.c
+@@ -591,7 +591,6 @@ static struct dentry *autofs4_lookup_expiring(struct autofs_sb_info *sbi, struct
+ 			goto next;
  
- 	DPRINTK("wait id = 0x%08lx, name = %.*s, type=%d",
-@@ -164,8 +165,19 @@ static void autofs4_notify_daemon(struct autofs_sb_info *sbi,
- 		return;
+ 		if (d_unhashed(dentry)) {
+-			list_del_init(&ino->expiring);
+ 			dget(dentry);
+ 			spin_unlock(&dentry->d_lock);
+ 			spin_unlock(&sbi->lookup_lock);
+@@ -643,6 +642,10 @@ static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, s
+ 			autofs4_wait(sbi, expiring, NFY_NONE);
+ 			DPRINTK("request completed");
+ 		}
++		spin_lock(&sbi->lookup_lock);
++		if (!list_empty(&ino->expiring))
++			list_del_init(&ino->expiring);
++		spin_unlock(&sbi->lookup_lock);
+ 		dput(expiring);
  	}
  
--	if (autofs4_write(sbi->pipe, &pkt, pktsz))
--		autofs4_catatonic_mode(sbi);
-+	/* Check if we have become catatonic */
-+	mutex_lock(&sbi->wq_mutex);
-+	if (!sbi->catatonic) {
-+		pipe = sbi->pipe;
-+		get_file(pipe);
-+	}
-+	mutex_unlock(&sbi->wq_mutex);
-+
-+	if (pipe) {
-+		if (autofs4_write(pipe, &pkt, pktsz))
-+			autofs4_catatonic_mode(sbi);
-+		fput(pipe);
-+	}
- }
- 
- static int autofs4_getpath(struct autofs_sb_info *sbi,
