@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 2/5] autofs4 - dont make expiring dentry negative fix
-Date: Tue, 01 Jul 2008 17:25:58 +0800
-Message-ID: <20080701092557.12041.32586.stgit@raven.themaw.net>
+Subject: [PATCH 3/5] autofs4 - fix waitq locking
+Date: Tue, 01 Jul 2008 17:26:06 +0800
+Message-ID: <20080701092605.12041.64298.stgit@raven.themaw.net>
 References: <20080701092548.12041.69868.stgit@raven.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -13,41 +13,80 @@ Content-Type: text/plain; charset="us-ascii"
 To: Andrew Morton <akpm@linux-foundation.org>
 Cc: autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-The correction to not make a dentry negative has an error.
-Currently ->lookup() checks if an expire is in progress and removes
-the entry from the list, before the expire is complete so if more
-than one process is performing a lookup at this time only one will
-wait for expire completion. We need to not remove the list entry
-until after waiting for expire completion.
+The autofs4_catatonic_mode() function accesses the wait queue without
+any locking but can be called at any time. This could lead to a
+possible double free of the name field of the wait and a double fput
+of the daemon communication pipe or an fput of a NULL file pointer.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 
 ---
 
- fs/autofs4/root.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+ fs/autofs4/inode.c |    4 ++--
+ fs/autofs4/waitq.c |   23 ++++++++++++-----------
+ 2 files changed, 14 insertions(+), 13 deletions(-)
 
 
-diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
-index 10add99..2a1a631 100644
---- a/fs/autofs4/root.c
-+++ b/fs/autofs4/root.c
-@@ -591,7 +591,6 @@ static struct dentry *autofs4_lookup_expiring(struct autofs_sb_info *sbi, struct
- 			goto next;
+diff --git a/fs/autofs4/inode.c b/fs/autofs4/inode.c
+index e3e7099..7bb3e5b 100644
+--- a/fs/autofs4/inode.c
++++ b/fs/autofs4/inode.c
+@@ -163,8 +163,8 @@ void autofs4_kill_sb(struct super_block *sb)
+ 	if (!sbi)
+ 		goto out_kill_sb;
  
- 		if (d_unhashed(dentry)) {
--			list_del_init(&ino->expiring);
- 			dget(dentry);
- 			spin_unlock(&dentry->d_lock);
- 			spin_unlock(&sbi->lookup_lock);
-@@ -643,6 +642,10 @@ static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, s
- 			autofs4_wait(sbi, expiring, NFY_NONE);
- 			DPRINTK("request completed");
- 		}
-+		spin_lock(&sbi->lookup_lock);
-+		if (!list_empty(&ino->expiring))
-+			list_del_init(&ino->expiring);
-+		spin_unlock(&sbi->lookup_lock);
- 		dput(expiring);
+-	if (!sbi->catatonic)
+-		autofs4_catatonic_mode(sbi); /* Free wait queues, close pipe */
++	/* Free wait queues, close pipe */
++	autofs4_catatonic_mode(sbi);
+ 
+ 	/* Clean up and release dangling references */
+ 	autofs4_force_release(sbi);
+diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
+index d291b07..f8dee31 100644
+--- a/fs/autofs4/waitq.c
++++ b/fs/autofs4/waitq.c
+@@ -28,6 +28,12 @@ void autofs4_catatonic_mode(struct autofs_sb_info *sbi)
+ {
+ 	struct autofs_wait_queue *wq, *nwq;
+ 
++	mutex_lock(&sbi->wq_mutex);
++	if (sbi->catatonic) {
++		mutex_unlock(&sbi->wq_mutex);
++		return;
++	}
++
+ 	DPRINTK("entering catatonic mode");
+ 
+ 	sbi->catatonic = 1;
+@@ -45,6 +51,8 @@ void autofs4_catatonic_mode(struct autofs_sb_info *sbi)
+ 	}
+ 	fput(sbi->pipe);	/* Close the pipe */
+ 	sbi->pipe = NULL;
++	sbi->pipefd = -1;
++	mutex_unlock(&sbi->wq_mutex);
+ }
+ 
+ static int autofs4_write(struct file *file, const void *addr, int bytes)
+@@ -398,17 +406,10 @@ int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
+ 			wq->name.name, notify);
  	}
  
+-	/* wq->name is NULL if and only if the lock is already released */
+-
+-	if (sbi->catatonic) {
+-		/* We might have slept, so check again for catatonic mode */
+-		wq->status = -ENOENT;
+-		if (wq->name.name) {
+-			kfree(wq->name.name);
+-			wq->name.name = NULL;
+-		}
+-	}
+-
++	/*
++	 * wq->name.name is NULL iff the lock is already released
++	 * or the mount has been made catatonic.
++	 */
+ 	if (wq->name.name) {
+ 		/* Block all but "shutdown" signals while waiting */
+ 		sigset_t oldset;
