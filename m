@@ -1,66 +1,41 @@
 From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [PATCH] autofs4 - detect invalid direct mount requests
-Date: Wed, 02 Jul 2008 09:42:34 -0400
-Message-ID: <x49tzf8pflh.fsf@segfault.boston.devel.redhat.com>
-References: <20080620051301.9988.94307.stgit@raven.themaw.net>
-	<20080701141715.62a2132b.akpm@linux-foundation.org>
-	<1214989192.3046.34.camel@raven.themaw.net>
+Subject: Re: How can I synchronize among different nfs clients?
+Date: Wed, 02 Jul 2008 09:45:11 -0400
+Message-ID: <x49od5gpfh4.fsf@segfault.boston.devel.redhat.com>
+References: <ec9e7ff10807010459q300bf6e4kc04a1abb500233aa@mail.gmail.com>
 Mime-Version: 1.0
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <1214989192.3046.34.camel@raven.themaw.net> (Ian Kent's message
-	of "Wed, 02 Jul 2008 16:59:50 +0800")
-Sender: linux-fsdevel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ian Kent <raven@themaw.net>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, autofs@linux.kernel.org, linux-fsdevel@vger.kernel.org
+Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <ec9e7ff10807010459q300bf6e4kc04a1abb500233aa@mail.gmail.com>
+	(Kun Niu's message of "Tue, 1 Jul 2008 19:59:04 +0800")
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: Kun Niu <haoniukun@gmail.com>
+Cc: autofs@linux.kernel.org
 
-Ian Kent <raven@themaw.net> writes:
+"Kun Niu" <haoniukun@gmail.com> writes:
 
-> On Tue, 2008-07-01 at 14:17 -0700, Andrew Morton wrote:
->> On Fri, 20 Jun 2008 13:13:03 +0800
->> Ian Kent <raven@themaw.net> wrote:
->> 
->> > autofs v5 dierct and offset mounts within an autofs filesystem are
->> > triggered by existing autofs triger mounts so the mount point dentry
->> > must be positive. If the mount point dentry is negative then the
->> > trigger doesn't exist so we can return fail immediately.
->> > 
->> > Signed-off-by: Ian Kent <raven@themaw.net>
->> > 
->> > ---
->> > 
->> >  fs/autofs4/waitq.c |    4 ++++
->> >  1 files changed, 4 insertions(+), 0 deletions(-)
->> > 
->> > 
->> > diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
->> > index cd21fd4..ae637d9 100644
->> > --- a/fs/autofs4/waitq.c
->> > +++ b/fs/autofs4/waitq.c
->> > @@ -307,6 +307,10 @@ int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
->> >  	if (sbi->catatonic)
->> >  		return -ENOENT;
->> >  
->> > +	if (!dentry->d_inode &&
->> > +	    (sbi->type & (AUTOFS_TYPE_DIRECT | AUTOFS_TYPE_OFFSET)))
->> > +		return -ENOENT;
->> > +
->> >  	name = kmalloc(NAME_MAX + 1, GFP_KERNEL);
->> >  	if (!name)
->> >  		return -ENOMEM;
->> 
->> A good changelog would allow little old me to determine whether this
->> patch should be merged into 2.6.25 and/or 2.6.26 and/or 2.6.27.  This
->> wasn't a good changelog :(
->
-> Sorry, I guess I shouldn't have included it along with the other more
-> serious bug fixes. It gets rid of an annoyance more than anything as the
-> daemon still has to check for it.
->
-> It isn't important or urgent, just useful.
+> Dear all,
+> I'm using nfs among different computers which have ubuntu 8.04 installed.
+> I found it worked fine until much of memory used by cache almost used
+> my memory up.
+> After that, the directory I made on one computer didn't appear on other ones.
+> Are there any log I can track to solve the problem?
+> Thanks in advance for any advice.
 
-And I'd still like to see a comment in there!  ;)
+First, this post belongs on linux-fsdevel@vger.kernel.org.  Second,
+you'll want to provide the kernel version you are using and a better
+problem description.
 
--jeff
+Cheers,
+
+Jeff
