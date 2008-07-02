@@ -1,18 +1,10 @@
-From: Matthew Jurgens <autofs@edcint.co.nz>
-Subject: Re: Can't mount shares ending in $
-Date: Wed, 02 Jul 2008 17:43:11 +1000
-Message-ID: <486B318F.6000109@edcint.co.nz>
-References: <47D5CD16.5000807@edcint.co.nz>	
-	<1205198214.2955.7.camel@raven.themaw.net>
-	<47D70295.2000709@edcint.co.nz>	
-	<1205291655.2949.22.camel@raven.themaw.net>
-	<47D7918A.1060306@edcint.co.nz>
-	<1205310575.2949.23.camel@raven.themaw.net>
-	<47D87076.70604@edcint.co.nz>
+From: Guillaume Rousse <Guillaume.Rousse@inria.fr>
+Subject: [patch] fix ldap capacities detection
+Date: Wed, 02 Jul 2008 13:35:38 +0200
+Message-ID: <486B680A.8050005@inria.fr>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6859490366982697169=="
+Content-Type: multipart/mixed; boundary="------------030908040401010504030108"
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <47D87076.70604@edcint.co.nz>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -23,97 +15,91 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
 This is a multi-part message in MIME format.
---===============6859490366982697169==
-Content-Type: multipart/alternative;
- boundary="------------060409040408040005030101"
-
-This is a multi-part message in MIME format.
---------------060409040408040005030101
+--------------030908040401010504030108
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
-I inadvertently "upgraded" to v5.0.2-29 and found that it also has the 
-same problem - where the debug logs shows a mount command that works 
-manually but not when executed by autofs - maybe the mount points are 
-not getting created correctly?
+When using -Wl,-a-s-needed linker flags (which is becoming the standard 
+in most linux distributions), compilation will fail if -lldap is passed 
+before the test file in gcc command:
+[guillomovitch@n2 autofs]$ gcc -o conftest -O2 -g -pipe 
+-Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector 
+--param=ssp-buffer-size=4 -fstack-protector-all -fomit-frame-pointer 
+-march=i586 -mtune=generic -fasynchronous-unwind-tables
+-Wl,--as-needed -Wl,--no-undefined -lldap conftest.c
+/home/guillomovitch/tmp/ccsbs3BH.o: In function `main':
+/home/guillomovitch/cooker/autofs/BUILD/autofs-5.0.3/conftest.c:45: 
+undefined reference to `ldap_create_page_control'
 
-Matthew Jurgens wrote:
-> debug for successful mount of C$ share for autofs-5.0.2-16 available at http://www.mmcit.co.nz/autofs-5.0.2-16.debug.zip
->
->   
-> Ian Kent wrote:
->> On Wed, 2008-03-12 at 19:17 +1100, Matthew Jurgens wrote:
->>   
->>> So, no it handles mounting with the unescaped $
->>> It seems to be something broken when going from 
->>> autofs-5.0.2-16 to autofs-5.0.2-27
->>>     
->>
->> Any chance of getting a debug log from autofs-5.0.2-16?
->>
->> Ian
->>
->>
->>
->>   
+The proper solution is to pass -lldap trough $LIBS variable instead of 
+$LDFLAGS.
+-- 
+Guillaume Rousse
+Moyens Informatiques - INRIA Futurs
+Tel: 01 69 35 69 62
 
---------------060409040408040005030101
-Content-Type: text/html; charset=ISO-8859-1
+--------------030908040401010504030108
+Content-Type: text/x-patch;
+ name="autofs-5.0.3-fix-ldap-detection.patch"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="autofs-5.0.3-fix-ldap-detection.patch"
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
-  <title></title>
-</head>
-<body bgcolor="#ffffff" text="#000000">
-I inadvertently "upgraded" to v5.0.2-29 and found that it also has the
-same problem - where the debug logs shows a mount command that works
-manually but not when executed by autofs - maybe the mount points are
-not getting created correctly?<br>
-<br>
-Matthew Jurgens wrote:
-<blockquote cite="mid:47D87076.70604@edcint.co.nz" type="cite">
-  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
-  <title></title>
-  <pre wrap="">debug for successful mount of C$ share for autofs-5.0.2-16 available at <a
- moz-do-not-send="true" class="moz-txt-link-freetext"
- href="http://www.mmcit.co.nz/autofs-5.0.2-16.debug.zip">http://www.mmcit.co.nz/autofs-5.0.2-16.debug.zip</a>
+diff -Naur --exclude '*~' autofs-5.0.3/aclocal.m4 autofs-5.0.3-fix-ldap-detection/aclocal.m4
+--- autofs-5.0.3/aclocal.m4	2008-07-02 13:26:00.000000000 +0200
++++ autofs-5.0.3-fix-ldap-detection/aclocal.m4	2008-07-02 13:28:04.000000000 +0200
+@@ -230,9 +230,9 @@
+ AC_DEFUN([AF_CHECK_FUNC_LDAP_CREATE_PAGE_CONTROL],
+ [AC_MSG_CHECKING(for ldap_create_page_control in -lldap)
+ 
+-# save current ldflags
+-af_check_ldap_create_page_control_save_ldflags="$LDFLAGS"
+-LDFLAGS="$LDFLAGS -lldap"
++# save current libs
++af_check_ldap_create_page_control_save_libs="$LIBS"
++LIBS="$LIBS -lldap"
+ 
+ AC_TRY_LINK(
+   [ #include <ldap.h> ],
+@@ -251,8 +251,8 @@
+         [Define to 1 if you have the `ldap_create_page_control' function.])
+ fi
+ 
+-# restore ldflags
+-LDFLAGS="$af_check_ldap_create_page_control_save_ldflags"
++# restore libs
++LIBS="$af_check_ldap_create_page_control_save_libs"
+ ])
+ 
+ dnl --------------------------------------------------------------------------
+@@ -263,9 +263,9 @@
+ AC_DEFUN([AF_CHECK_FUNC_LDAP_PARSE_PAGE_CONTROL],
+ [AC_MSG_CHECKING(for ldap_parse_page_control in -lldap)
+ 
+-# save current ldflags
+-af_check_ldap_parse_page_control_save_ldflags="$LDFLAGS"
+-LDFLAGS="$LDFLAGS -lldap"
++# save current libs
++af_check_ldap_parse_page_control_save_libs="$LIBS"
++LIBS="$LIBS -lldap"
+ 
+ AC_TRY_LINK(
+   [ #include <ldap.h> ],
+@@ -284,7 +284,7 @@
+         [Define to 1 if you have the `ldap_parse_page_control' function.])
+ fi
+ 
+-# restore ldflags
+-LDFLAGS="$af_check_ldap_parse_page_control_save_ldflags"
++# restore libs
++LIBS="$af_check_ldap_parse_page_control_save_libs"
+ ])
+ 
 
-  </pre>
-Ian Kent wrote:
-  <blockquote cite="mid:1205310575.2949.23.camel@raven.themaw.net"
- type="cite">
-    <pre wrap="">On Wed, 2008-03-12 at 19:17 +1100, Matthew Jurgens wrote:
-  </pre>
-    <blockquote type="cite">
-      <pre wrap="">So, no it handles mounting with the unescaped $
-It seems to be something broken when going from 
-autofs-5.0.2-16 to autofs-5.0.2-27
-    </pre>
-    </blockquote>
-    <pre wrap=""><!---->
-Any chance of getting a debug log from autofs-5.0.2-16?
-
-Ian
-
-
-
-  </pre>
-  </blockquote>
-</blockquote>
-</body>
-</html>
-
---------------060409040408040005030101--
-
-
---===============6859490366982697169==
+--------------030908040401010504030108
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -124,5 +110,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---===============6859490366982697169==--
+--------------030908040401010504030108--
 
