@@ -1,41 +1,35 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: How can I synchronize among different nfs clients?
-Date: Wed, 02 Jul 2008 09:45:11 -0400
-Message-ID: <x49od5gpfh4.fsf@segfault.boston.devel.redhat.com>
-References: <ec9e7ff10807010459q300bf6e4kc04a1abb500233aa@mail.gmail.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [PATCH] autofs4 - detect invalid direct mount requests
+Date: Wed, 02 Jul 2008 21:46:41 +0800
+Message-ID: <1215006402.3046.72.camel@raven.themaw.net>
+References: <20080620051301.9988.94307.stgit@raven.themaw.net>
+	 <x49iqw4tg63.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <ec9e7ff10807010459q300bf6e4kc04a1abb500233aa@mail.gmail.com>
-	(Kun Niu's message of "Tue, 1 Jul 2008 19:59:04 +0800")
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-To: Kun Niu <haoniukun@gmail.com>
-Cc: autofs@linux.kernel.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <x49iqw4tg63.fsf@segfault.boston.devel.redhat.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-"Kun Niu" <haoniukun@gmail.com> writes:
 
-> Dear all,
-> I'm using nfs among different computers which have ubuntu 8.04 installed.
-> I found it worked fine until much of memory used by cache almost used
-> my memory up.
-> After that, the directory I made on one computer didn't appear on other ones.
-> Are there any log I can track to solve the problem?
-> Thanks in advance for any advice.
+On Fri, 2008-06-20 at 09:00 -0400, Jeff Moyer wrote:
+> Ian Kent <raven@themaw.net> writes:
+> 
+> > autofs v5 dierct and offset mounts within an autofs filesystem are
+> > triggered by existing autofs triger mounts so the mount point dentry
+> > must be positive. If the mount point dentry is negative then the
+> > trigger doesn't exist so we can return fail immediately.
+> 
+> What are the conditions that lead us here in that case?
 
-First, this post belongs on linux-fsdevel@vger.kernel.org.  Second,
-you'll want to provide the kernel version you are using and a better
-problem description.
+A multi-mount that has no root mount gets a lookup for an offset that
+doesn't exist (ie. the trigger hasn't been mounted). Then ->lookup()
+will create a negative dentry and send a mount request to the daemon. It
+is a bit of a special case but it helps a little.
 
-Cheers,
+Ian
 
-Jeff
+
