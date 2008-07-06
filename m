@@ -1,10 +1,13 @@
-From: Guillaume Rousse <Guillaume.Rousse@inria.fr>
-Subject: [patch] fix ldap capacities detection
-Date: Wed, 02 Jul 2008 13:35:38 +0200
-Message-ID: <486B680A.8050005@inria.fr>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: autofs errors - expire_cleanup, st_expire, etc.
+Date: Sun, 06 Jul 2008 14:53:58 +0800
+Message-ID: <1215327239.3073.164.camel@raven.themaw.net>
+References: <bb02c53c0806272135m3958f08el6adecac4aea5c15a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------030908040401010504030108"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <bb02c53c0806272135m3958f08el6adecac4aea5c15a@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -15,100 +18,72 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Darren Gitelman <d.gitelman@gmail.com>
+Cc: autofs@linux.kernel.org
 
-This is a multi-part message in MIME format.
---------------030908040401010504030108
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 
-When using -Wl,-a-s-needed linker flags (which is becoming the standard 
-in most linux distributions), compilation will fail if -lldap is passed 
-before the test file in gcc command:
-[guillomovitch@n2 autofs]$ gcc -o conftest -O2 -g -pipe 
--Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector 
---param=ssp-buffer-size=4 -fstack-protector-all -fomit-frame-pointer 
--march=i586 -mtune=generic -fasynchronous-unwind-tables
--Wl,--as-needed -Wl,--no-undefined -lldap conftest.c
-/home/guillomovitch/tmp/ccsbs3BH.o: In function `main':
-/home/guillomovitch/cooker/autofs/BUILD/autofs-5.0.3/conftest.c:45: 
-undefined reference to `ldap_create_page_control'
+On Fri, 2008-06-27 at 23:35 -0500, Darren Gitelman wrote:
+> Within the last 2 weeks automount has started to generate thousands of
+> errors (about every 10-15 secs) in the system log (/var/log/messages).
+> The directories all seem to mount properly but all these error
+> messages must be having some impact. I cannot find anything about
+> this. Turning off autofs stops the errors. I have the exact same
+> configuration and program versions on 2 other machines, but don't see
+> these errors. 
+> 
+> Any help appreciated.
+> 
+> 
+> Jun 27 16:21:47 mistral automount[3353]: st_ready: st_ready(): state =
+> 2 path /-
+> Jun 27 16:21:47 mistral automount[3353]: st_ready: st_ready(): state =
+> 2 path /home/users
+> Jun 27 16:22:02 mistral automount[3353]: st_expire: state 1 path /-
+> Jun 27 16:22:02 mistral automount[3353]: expire_proc: exp_proc =
+> 3081669520 path /-
+> Jun 27 16:22:02 mistral automount[3353]: expire_cleanup: got thid
+> 3081669520 path /- stat 0
+> Jun 27 16:22:02 mistral automount[3353]: expire_cleanup: sigchld: exp
+> 3081669520 finished, switching from 2 to 1
+> Jun 27 16:22:02 mistral automount[3353]: st_ready: st_ready(): state =
+> 2 path /-
+> Jun 27 16:22:17 mistral automount[3353]: st_expire: state 1
+> path /home/users
+> Jun 27 16:22:17 mistral automount[3353]: expire_proc: exp_proc =
+> 3081669520 path /home/users
+> Jun 27 16:22:17 mistral automount[3353]: st_expire: state 1 path /-
+> Jun 27 16:22:17 mistral automount[3353]: expire_proc: exp_proc =
+> 3078917008 path /-
+> Jun 27 16:22:17 mistral automount[3353]: expire_cleanup: got thid
+> 3081669520 path /home/users stat 0
+> Jun 27 16:22:17 mistral automount[3353]: expire_cleanup: sigchld: exp
+> 3081669520 finished, switching from 2 to 1
+> Jun 27 16:22:17 mistral automount[3353]: expire_cleanup: got thid
+> 3078917008 path /- stat 0
+> Jun 27 16:22:17 mistral automount[3353]: expire_cleanup: sigchld: exp
+> 3078917008 finished, switching from 2 to 1
+> 
+> [root@mistral log]$ automount --version
+> Linux automount version 5.0.1-0.rc2.88
+> 
+> Directories:
+>         config dir:     /etc/sysconfig
+>         maps dir:       /etc
+>         modules dir:    /usr/lib/autofs
+> 
+> Compile options:
+>   DISABLE_MOUNT_LOCKING ENABLE_IGNORE_BUSY_MOUNTS WITH_HESIOD
+> WITH_LDAP 
+>   WITH_SASL 
+> 
+> The /etc/sysconfig/autofs file contains all default entries.
 
-The proper solution is to pass -lldap trough $LIBS variable instead of 
-$LDFLAGS.
--- 
-Guillaume Rousse
-Moyens Informatiques - INRIA Futurs
-Tel: 01 69 35 69 62
+No, it doesn't.
 
---------------030908040401010504030108
-Content-Type: text/x-patch;
- name="autofs-5.0.3-fix-ldap-detection.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="autofs-5.0.3-fix-ldap-detection.patch"
+This is debug logging output.
+You have LOGGING="debug" or DEFAULT_LOGGING="debug" in your
+configuration which isn't the default.
 
-diff -Naur --exclude '*~' autofs-5.0.3/aclocal.m4 autofs-5.0.3-fix-ldap-detection/aclocal.m4
---- autofs-5.0.3/aclocal.m4	2008-07-02 13:26:00.000000000 +0200
-+++ autofs-5.0.3-fix-ldap-detection/aclocal.m4	2008-07-02 13:28:04.000000000 +0200
-@@ -230,9 +230,9 @@
- AC_DEFUN([AF_CHECK_FUNC_LDAP_CREATE_PAGE_CONTROL],
- [AC_MSG_CHECKING(for ldap_create_page_control in -lldap)
- 
--# save current ldflags
--af_check_ldap_create_page_control_save_ldflags="$LDFLAGS"
--LDFLAGS="$LDFLAGS -lldap"
-+# save current libs
-+af_check_ldap_create_page_control_save_libs="$LIBS"
-+LIBS="$LIBS -lldap"
- 
- AC_TRY_LINK(
-   [ #include <ldap.h> ],
-@@ -251,8 +251,8 @@
-         [Define to 1 if you have the `ldap_create_page_control' function.])
- fi
- 
--# restore ldflags
--LDFLAGS="$af_check_ldap_create_page_control_save_ldflags"
-+# restore libs
-+LIBS="$af_check_ldap_create_page_control_save_libs"
- ])
- 
- dnl --------------------------------------------------------------------------
-@@ -263,9 +263,9 @@
- AC_DEFUN([AF_CHECK_FUNC_LDAP_PARSE_PAGE_CONTROL],
- [AC_MSG_CHECKING(for ldap_parse_page_control in -lldap)
- 
--# save current ldflags
--af_check_ldap_parse_page_control_save_ldflags="$LDFLAGS"
--LDFLAGS="$LDFLAGS -lldap"
-+# save current libs
-+af_check_ldap_parse_page_control_save_libs="$LIBS"
-+LIBS="$LIBS -lldap"
- 
- AC_TRY_LINK(
-   [ #include <ldap.h> ],
-@@ -284,7 +284,7 @@
-         [Define to 1 if you have the `ldap_parse_page_control' function.])
- fi
- 
--# restore ldflags
--LDFLAGS="$af_check_ldap_parse_page_control_save_ldflags"
-+# restore libs
-+LIBS="$af_check_ldap_parse_page_control_save_libs"
- ])
- 
+You have also increased the syslog log level for facility daemon.
 
---------------030908040401010504030108
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
-
---------------030908040401010504030108--
-
+Ian
