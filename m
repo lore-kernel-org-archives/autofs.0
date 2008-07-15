@@ -1,13 +1,23 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs errors - expire_cleanup, st_expire, etc.
-Date: Sun, 06 Jul 2008 14:53:58 +0800
-Message-ID: <1215327239.3073.164.camel@raven.themaw.net>
-References: <bb02c53c0806272135m3958f08el6adecac4aea5c15a@mail.gmail.com>
+From: Steffen Grunewald <steffen.grunewald@aei.mpg.de>
+Subject: Re: More autofs problems
+Date: Tue, 15 Jul 2008 16:23:40 +0200
+Message-ID: <20080715142340.GM11428@casco.aei.mpg.de>
+References: <4868B0BA.9040208@aei.mpg.de>
+	<1214822142.3008.18.camel@raven.themaw.net>
+	<4868DD3C.5020706@aei.mpg.de>
+	<1214832384.3008.27.camel@raven.themaw.net>
+	<4868EA97.4000103@aei.mpg.de>
+	<1214835616.3008.35.camel@raven.themaw.net>
+	<4868EE71.7070607@aei.mpg.de>
+	<1214836889.3008.45.camel@raven.themaw.net>
+	<4869C550.6040708@aei.mpg.de>
+	<1214892205.3017.23.camel@raven.themaw.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <bb02c53c0806272135m3958f08el6adecac4aea5c15a@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <1214892205.3017.23.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,72 +28,25 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Darren Gitelman <d.gitelman@gmail.com>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
+On Tue, Jul 01, 2008 at 02:03:23PM +0800, Ian Kent wrote:
+> =
 
-On Fri, 2008-06-27 at 23:35 -0500, Darren Gitelman wrote:
-> Within the last 2 weeks automount has started to generate thousands of
-> errors (about every 10-15 secs) in the system log (/var/log/messages).
-> The directories all seem to mount properly but all these error
-> messages must be having some impact. I cannot find anything about
-> this. Turning off autofs stops the errors. I have the exact same
-> configuration and program versions on 2 other machines, but don't see
-> these errors. 
-> 
-> Any help appreciated.
-> 
-> 
-> Jun 27 16:21:47 mistral automount[3353]: st_ready: st_ready(): state =
-> 2 path /-
-> Jun 27 16:21:47 mistral automount[3353]: st_ready: st_ready(): state =
-> 2 path /home/users
-> Jun 27 16:22:02 mistral automount[3353]: st_expire: state 1 path /-
-> Jun 27 16:22:02 mistral automount[3353]: expire_proc: exp_proc =
-> 3081669520 path /-
-> Jun 27 16:22:02 mistral automount[3353]: expire_cleanup: got thid
-> 3081669520 path /- stat 0
-> Jun 27 16:22:02 mistral automount[3353]: expire_cleanup: sigchld: exp
-> 3081669520 finished, switching from 2 to 1
-> Jun 27 16:22:02 mistral automount[3353]: st_ready: st_ready(): state =
-> 2 path /-
-> Jun 27 16:22:17 mistral automount[3353]: st_expire: state 1
-> path /home/users
-> Jun 27 16:22:17 mistral automount[3353]: expire_proc: exp_proc =
-> 3081669520 path /home/users
-> Jun 27 16:22:17 mistral automount[3353]: st_expire: state 1 path /-
-> Jun 27 16:22:17 mistral automount[3353]: expire_proc: exp_proc =
-> 3078917008 path /-
-> Jun 27 16:22:17 mistral automount[3353]: expire_cleanup: got thid
-> 3081669520 path /home/users stat 0
-> Jun 27 16:22:17 mistral automount[3353]: expire_cleanup: sigchld: exp
-> 3081669520 finished, switching from 2 to 1
-> Jun 27 16:22:17 mistral automount[3353]: expire_cleanup: got thid
-> 3078917008 path /- stat 0
-> Jun 27 16:22:17 mistral automount[3353]: expire_cleanup: sigchld: exp
-> 3078917008 finished, switching from 2 to 1
-> 
-> [root@mistral log]$ automount --version
-> Linux automount version 5.0.1-0.rc2.88
-> 
-> Directories:
->         config dir:     /etc/sysconfig
->         maps dir:       /etc
->         modules dir:    /usr/lib/autofs
-> 
-> Compile options:
->   DISABLE_MOUNT_LOCKING ENABLE_IGNORE_BUSY_MOUNTS WITH_HESIOD
-> WITH_LDAP 
->   WITH_SASL 
-> 
-> The /etc/sysconfig/autofs file contains all default entries.
+> btw, I discovered a mistake in one of the patches included in the
+> previous patch. I'll post an updated patch later today. Sorry for the
+> trouble.
 
-No, it doesn't.
+Now that 2.6.26 is out, how many of your patches are left over (and
+would still be recommended) ?
 
-This is debug logging output.
-You have LOGGING="debug" or DEFAULT_LOGGING="debug" in your
-configuration which isn't the default.
+Cheers
+ Steffen
 
-You have also increased the syslog log level for facility daemon.
+-- =
 
-Ian
+Steffen Grunewald * MPI Grav.Phys.(AEI) * Am M=FChlenberg 1, D-14476 Potsdam
+Cluster Admin * http://pandora.aei.mpg.de/merlin/ * http://www.aei.mpg.de/
+* e-mail: steffen.grunewald(*)aei.mpg.de * +49-331-567-{fon:7233,fax:7298}
+No Word/PPT mails - http://www.gnu.org/philosophy/no-word-attachments.html
