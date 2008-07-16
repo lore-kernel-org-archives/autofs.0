@@ -1,11 +1,13 @@
-From: Michael Coffman <coffman@ftc.avagotech.com>
-Subject: Unexpected autofs behaviour
-Date: Tue, 15 Jul 2008 10:32:16 -0600 (MDT)
-Message-ID: <Pine.LNX.4.64.0807151027190.17891@sixgun.ftc.avagotech.net>
+From: Jonathan Loran <jonathan@loran.name>
+Subject: Re: statfs() and autofs
+Date: Tue, 15 Jul 2008 22:21:31 -0700
+Message-ID: <487D855B.8000405@loran.name>
+References: <20080715204839.GU5858@pixar.com>
+	<1216179794.22783.46.camel@raven.themaw.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============5564912433753830772=="
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <1216179794.22783.46.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,54 +18,145 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org
 
-I have a question about the behaviour of autofs.  It seems like it is
-very easy to hit a situation where autofs will unmount a file system
-and an active process will lose access to a file and fail to read it.
-This seems to happen with both direct and indirect mapping.
+This is a multi-part message in MIME format.
+--===============5564912433753830772==
+Content-Type: multipart/alternative;
+ boundary="------------070304010803090202070509"
 
-Specifics about what I am running:
+This is a multi-part message in MIME format.
+--------------070304010803090202070509
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-    autofs-4.1.3-199.3
-    kernel - 2.6.9-55.ELsmp
-    arch - x86_64
-    OS - Red Hat Enterprise Linux WS release 4 (Nahant Update 5
 
-autofs is configured to use the defaults and has host mapping
-enabled.  When I run the following simple test:
 
-   date;while [[ -r /net/hostname/test ]]; do :; done; date
+Ian Kent wrote:
+> On Tue, 2008-07-15 at 13:48 -0700, Chris Walker wrote:
+>   
+>> autofs 5.0.3
+>> linux 2.6.18
+>>
+>> When statfs() is called on an automounted directory, it returns before
+>> the automount occurs. This results in output like this initially:
+>>     
+>
+> That may be because there are a group of system calls that don't trigger
+> a mount because we have to avoid mount storms for map entries that use
+> the browse option. In particular stat(2) and calls that use the same
+> kernel path lookup flags, such as statfs(2).
+>
+> Basically, if the mount point directory exists in the autofs file system
+> but doesn't currently have a mount for some reason (perhaps it wasn't
+> removed at expire or the entry uses the browse option), these calls will
+> return the attributes of the autofs directory without performing a
+> mount.
+>
+>   
+Hi Ian,
 
-command output:
-   Fri Jul 11 09:02:46 MDT 2008
-   Fri Jul 11 09:03:59 MDT 2008
-command output run 2:
-   Fri Jul 11 09:11:42 MDT 2008
-   Fri Jul 11 09:12:45 MDT 2008
+I need to say that this basically has to be declared a bug.  I have been 
+silent on this until now because I am so over committed with other 
+tasks, and haven't had time to test it so cleanly as Chris has.
 
-As you can see, I lose read access typically shortly after the mount is
-supposed to time out.
+At my lab we find that on machines that do large batch processing, 
+automounted directories often aren't there at the time that they are 
+stat-ed.  The workaround has been to put in some nanosleeps to give the 
+mount point a chance to mount, but that is very much a hack, since now 
+the code authors need to know the point where an automount is joined, or 
+they at least have to find it out empirically.  The code they write has 
+become unportable and for all we know, incompatible on other systems if 
+the autofs mount points are different. 
 
-The file system options from /proc/mounts are:
+To throw this in the mix, somehow, our Solaris systems, which share 
+identical automount maps, simply never have this issue.  Is there an 
+architectural reason for this?  And if so, can we learn how this is so, 
+and apply similar logic to the Linux autofs/mount path?
 
-nfs rw,nosuid,nodev,v3,rsize=32768,wsize=32768,soft,intr,tcp,lock,proto=tcp,timeo=600,retrans=5,addr=farmall 
-0 0
+Thanks,
 
-I believe that after the timeout, autofs tries to unmount file systems and
-if they are busy, resets the timeout counter and remounts any unmounted
-mount points if it is a host map.
+Jon
 
-But in general, I would think that I should never lose read access to the
-file.  Shouldn't autofs just remount it if it has been unmounted?
+--------------070304010803090202070509
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-I see the same behaviour on ubuntu 7.04 autofs version 4.1.4-13
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+</head>
+<body bgcolor="#ffffff" text="#000000">
+<br>
+<br>
+Ian Kent wrote:
+<blockquote cite="mid:1216179794.22783.46.camel@raven.themaw.net"
+ type="cite">
+  <pre wrap="">On Tue, 2008-07-15 at 13:48 -0700, Chris Walker wrote:
+  </pre>
+  <blockquote type="cite">
+    <pre wrap="">autofs 5.0.3
+linux 2.6.18
 
-Anyone have any insight?
+When statfs() is called on an automounted directory, it returns before
+the automount occurs. This results in output like this initially:
+    </pre>
+  </blockquote>
+  <pre wrap=""><!---->
+That may be because there are a group of system calls that don't trigger
+a mount because we have to avoid mount storms for map entries that use
+the browse option. In particular stat(2) and calls that use the same
+kernel path lookup flags, such as statfs(2).
 
-BTW: am-utils (amd) does not behave this way.  I am guessing this
-      has to do with the fact that it runs in user space.
+Basically, if the mount point directory exists in the autofs file system
+but doesn't currently have a mount for some reason (perhaps it wasn't
+removed at expire or the entry uses the browse option), these calls will
+return the attributes of the autofs directory without performing a
+mount.
 
-Thanks.
---
--MichaelC
+  </pre>
+</blockquote>
+Hi Ian,<br>
+<br>
+I need to say that this basically has to be declared a bug.&nbsp; I have
+been silent on this until now because I am so over committed with other
+tasks, and haven't had time to test it so cleanly as Chris has.<br>
+<br>
+At my lab we find that on machines that do large batch processing,
+automounted directories often aren't there at the time that they are
+stat-ed.&nbsp; The workaround has been to put in some nanosleeps to give the
+mount point a chance to mount, but that is very much a hack, since now
+the code authors need to know the point where an automount is joined,
+or they at least have to find it out empirically.&nbsp; The code they write
+has become unportable and for all we know, incompatible on other
+systems if the autofs mount points are different.&nbsp; <br>
+<br>
+To throw this in the mix, somehow, our Solaris systems, which share
+identical automount maps, simply never have this issue.&nbsp; Is there an
+architectural reason for this?&nbsp; And if so, can we learn how this is so,
+and apply similar logic to the Linux autofs/mount path?<br>
+<br>
+Thanks,<br>
+<br>
+Jon<br>
+</body>
+</html>
+
+--------------070304010803090202070509--
+
+
+--===============5564912433753830772==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--===============5564912433753830772==--
+
