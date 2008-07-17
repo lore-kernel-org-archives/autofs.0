@@ -1,14 +1,14 @@
 From: "Coe, Colin C. (Unix Engineer)" <Colin.Coe@woodside.com.au>
 Subject: Re: Autofs doesn't look at second LDAP server
-Date: Fri, 18 Jul 2008 07:54:26 +0800
-Message-ID: <BAC1D28A5AB852439A6914CA7AB4E63F05192E7C@permls05.wde.woodside.com.au>
-References: <1216290328.22783.74.camel@raven.themaw.net>
+Date: Fri, 18 Jul 2008 07:57:21 +0800
+Message-ID: <BAC1D28A5AB852439A6914CA7AB4E63F05192E7D@permls05.wde.woodside.com.au>
+References: <487F90B1.1090405@inria.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
 Content-class: urn:content-classes:message
-In-Reply-To: <1216290328.22783.74.camel@raven.themaw.net>
+In-Reply-To: <487F90B1.1090405@inria.fr>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,92 +19,68 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
+To: Guillaume Rousse <Guillaume.Rousse@inria.fr>
 Cc: autofs@linux.kernel.org
 
 
-Hi Ian
+Hi =
 
-Trimmed and sent off list.
+
+I was trying to sanitise the logs a bit and didn't do a good job of it.  /e=
+tc/sysconfig/autofs, /etc/ldap.conf and /etc/openldap/ldap.conf all refer t=
+o the same LDAP servers.
+
+grep aer /etc/sysconfig/autofs /etc/ldap.conf /etc/openldap/ldap.conf
+/etc/sysconfig/autofs:LDAP_URI=3D"ldaps://aether.woodside.com.au:636 ldaps:=
+//aer.woodside.com.au:636"
+/etc/ldap.conf:uri ldaps://aether.woodside.com.au:636 ldaps://aer.woodside.=
+com.au:636
+/etc/openldap/ldap.conf:URI ldaps://aether.woodside.com.au:636 ldaps://aer.=
+woodside.com.au:636
 
 CC
+ =
+
 
 > -----Original Message-----
-> From: Ian Kent [mailto:raven@themaw.net] 
-> Sent: Thursday, 17 July 2008 6:25 PM
-> To: Coe, Colin C. (Unix Engineer)
-> Cc: autofs@linux.kernel.org
-> Subject: RE: [autofs] Autofs doesn't look at second LDAP server
-> 
-> 
-> On Thu, 2008-07-17 at 11:20 +0800, Coe, Colin C. (Unix 
-> Engineer) wrote:
-> > Doh.  Sorry, I was trying to sanitise the logs.  Aether is 
-> ldap2.  Aer
-> > is ldap1. 
-> > 
-> > The full debug log is ~800MB in size, how would you like it?
-> 
-> Can you grep out everything except for the few days prior to the fail
-> and stick it on your external ftp server?
-> 
-> > 
-> > CC
-> > 
-> > > -----Original Message-----
-> > > From: Ian Kent [mailto:raven@themaw.net] 
-> > > Sent: Thursday, 17 July 2008 11:14 AM
-> > > To: Coe, Colin C. (Unix Engineer)
-> > > Cc: autofs@linux.kernel.org
-> > > Subject: Re: [autofs] Autofs doesn't look at second LDAP server
-> > > 
-> > > 
-> > > On Wed, 2008-07-16 at 09:20 +0800, Coe, Colin C. (Unix 
-> > > Engineer) wrote:
-> > > > Jul 13 04:03:01 las006 automount[31280]: parse_ldap_config:
-> > > > lookup(ldap): user: (null), secret: unspecified, client 
-> principal:
-> > > > (null) credential cache: (null)
-> > > > Jul 13 04:03:01 las006 automount[31280]: parse_ldap_config:
-> > > > lookup(ldap): user: (null), secret: unspecified, client 
-> principal:
-> > > > (null) credential cache: (null)
-> > > > Jul 13 04:03:01 las006 automount[31280]: find_server: 
-> trying server
-> > > > ldaps://aether.woodside.com.au:636
-> > > > Jul 13 04:03:01 las006 automount[31280]: find_server: 
-> trying server
-> > > > ldaps://aether.woodside.com.au:636
-> > > 
-> > > I wonder if it's getting the server from the config at all?
-> > > It should be.
-> > > 
-> > > LDAP_URI="ldaps://ldap2.woodside.com.au:636 
-> > > ldaps://ldap1.woodside.com.au:636"
-> > > 
-> > > given that the name here is different from the one being used.
-> > > Can you send the full debug log to me please.
-> > > 
-> > > But that's probably another issue.
-> > > 
-> > > Ian
-> > > 
-> > > 
-> > > 
-> > 
-> > NOTICE: This email and any attachments are confidential. 
-> > They may contain legally privileged information or 
-> > copyright material. You must not read, copy, use or 
-> > disclose them without authorisation. If you are not an 
-> > intended recipient, please contact us at once by return 
-> > email and then delete both messages and all attachments.
-> > 
-> 
-> 
+> From: autofs-bounces@linux.kernel.org =
 
-NOTICE: This email and any attachments are confidential. 
-They may contain legally privileged information or 
-copyright material. You must not read, copy, use or 
-disclose them without authorisation. If you are not an 
-intended recipient, please contact us at once by return 
+> [mailto:autofs-bounces@linux.kernel.org] On Behalf Of Guillaume Rousse
+> Sent: Friday, 18 July 2008 2:34 AM
+> Cc: autofs@linux.kernel.org
+> Subject: Re: [autofs] Autofs doesn't look at second LDAP server
+> =
+
+> Ian Kent a =E9crit :
+> > I wonder if it's getting the server from the config at all?
+> > It should be.
+> > =
+
+> > LDAP_URI=3D"ldaps://ldap2.woodside.com.au:636 =
+
+> ldaps://ldap1.woodside.com.au:636"
+> If this isn't explicitely set in autofs configuration, are =
+
+> the different =
+
+> servers configured for openldap library used instead ?
+> =
+
+> _______________________________________________
+> autofs mailing list
+> autofs@linux.kernel.org
+> http://linux.kernel.org/mailman/listinfo/autofs
+> =
+
+
+NOTICE: This email and any attachments are confidential. =
+
+They may contain legally privileged information or =
+
+copyright material. You must not read, copy, use or =
+
+disclose them without authorisation. If you are not an =
+
+intended recipient, please contact us at once by return =
+
 email and then delete both messages and all attachments.
