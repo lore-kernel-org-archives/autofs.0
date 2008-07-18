@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 6/7] autofs4 - reorganize expire pending wait function calls
-Date: Fri, 18 Jul 2008 10:37:44 +0800
-Message-ID: <20080718023737.12802.24898.stgit@raven.themaw.net>
+Subject: [PATCH 7/7] autofs4 - remove unused ioctls
+Date: Fri, 18 Jul 2008 10:37:52 +0800
+Message-ID: <20080718023751.12802.96268.stgit@raven.themaw.net>
 References: <20080718023651.12802.59107.stgit@raven.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -13,183 +13,150 @@ Content-Type: text/plain; charset="us-ascii"
 To: Andrew Morton <akpm@linux-foundation.org>
 Cc: autofs mailing list <autofs@linux.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Al Viro <viro@ZenIV.linux.org.uk>, Linus Torvalds <torvalds@linux-foundation.org>
 
-This patch re-orgnirzes the checking for and waiting on
-active expires and elininates redundant checks.
+The ioctls AUTOFS_IOC_TOGGLEREGHOST and AUTOFS_IOC_ASKREGHOST were
+added several years ago but what they were intended for has never
+been implemented (as far as I'm aware noone uses them) so remove them.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 
 ---
 
- fs/autofs4/autofs_i.h |    1 +
- fs/autofs4/expire.c   |   29 +++++++++++++++++++
- fs/autofs4/root.c     |   75 +++++++------------------------------------------
- 3 files changed, 40 insertions(+), 65 deletions(-)
+ fs/autofs4/root.c        |   68 +---------------------------------------------
+ fs/compat_ioctl.c        |    2 -
+ include/linux/auto_fs4.h |    2 -
+ 3 files changed, 1 insertions(+), 71 deletions(-)
 
 
-diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
-index 4b40cbc..69a2f5c 100644
---- a/fs/autofs4/autofs_i.h
-+++ b/fs/autofs4/autofs_i.h
-@@ -163,6 +163,7 @@ void autofs4_free_ino(struct autofs_info *);
- 
- /* Expiration */
- int is_autofs4_dentry(struct dentry *);
-+int autofs4_expire_wait(struct dentry *dentry);
- int autofs4_expire_run(struct super_block *, struct vfsmount *,
- 			struct autofs_sb_info *,
- 			struct autofs_packet_expire __user *);
-diff --git a/fs/autofs4/expire.c b/fs/autofs4/expire.c
-index 705b9f0..cdabb79 100644
---- a/fs/autofs4/expire.c
-+++ b/fs/autofs4/expire.c
-@@ -402,6 +402,35 @@ found:
- 	return expired;
- }
- 
-+int autofs4_expire_wait(struct dentry *dentry)
-+{
-+	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
-+	struct autofs_info *ino = autofs4_dentry_ino(dentry);
-+	int status;
-+
-+	/* Block on any pending expire */
-+	spin_lock(&sbi->fs_lock);
-+	if (ino->flags & AUTOFS_INF_EXPIRING) {
-+		spin_unlock(&sbi->fs_lock);
-+
-+		DPRINTK("waiting for expire %p name=%.*s",
-+			 dentry, dentry->d_name.len, dentry->d_name.name);
-+
-+		status = autofs4_wait(sbi, dentry, NFY_NONE);
-+		wait_for_completion(&ino->expire_complete);
-+
-+		DPRINTK("expire done status=%d", status);
-+
-+		if (d_unhashed(dentry))
-+			return -EAGAIN;
-+
-+		return status;
-+	}
-+	spin_unlock(&sbi->fs_lock);
-+
-+	return 0;
-+}
-+
- /* Perform an expiry operation */
- int autofs4_expire_run(struct super_block *sb,
- 		      struct vfsmount *mnt,
 diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
-index bdf190b..9c39fa7 100644
+index 9c39fa7..b1536c1 100644
 --- a/fs/autofs4/root.c
 +++ b/fs/autofs4/root.c
-@@ -130,34 +130,6 @@ static int try_to_fill_dentry(struct dentry *dentry, int flags)
- 	struct autofs_info *ino = autofs4_dentry_ino(dentry);
- 	int status;
+@@ -25,7 +25,6 @@ static int autofs4_dir_rmdir(struct inode *,struct dentry *);
+ static int autofs4_dir_mkdir(struct inode *,struct dentry *,int);
+ static int autofs4_root_ioctl(struct inode *, struct file *,unsigned int,unsigned long);
+ static int autofs4_dir_open(struct inode *inode, struct file *file);
+-static int autofs4_root_readdir(struct file * filp, void * dirent, filldir_t filldir);
+ static struct dentry *autofs4_lookup(struct inode *,struct dentry *, struct nameidata *);
+ static void *autofs4_follow_link(struct dentry *, struct nameidata *);
  
--	/* Block on any pending expiry here; invalidate the dentry
--           when expiration is done to trigger mount request with a new
--           dentry */
--	spin_lock(&sbi->fs_lock);
--	if (ino->flags & AUTOFS_INF_EXPIRING) {
--		spin_unlock(&sbi->fs_lock);
--
--		DPRINTK("waiting for expire %p name=%.*s",
--			 dentry, dentry->d_name.len, dentry->d_name.name);
--
--		status = autofs4_wait(sbi, dentry, NFY_NONE);
--		wait_for_completion(&ino->expire_complete);
--
--		DPRINTK("expire done status=%d", status);
--
--		/*
--		 * If the directory still exists the mount request must
--		 * continue otherwise it can't be followed at the right
--		 * time during the walk.
--		 */
--		status = d_invalidate(dentry);
--		if (status != -EBUSY)
--			return -EAGAIN;
--
--		goto cont;
--	}
--	spin_unlock(&sbi->fs_lock);
--cont:
- 	DPRINTK("dentry=%p %.*s ino=%p",
- 		 dentry, dentry->d_name.len, dentry->d_name.name, dentry->d_inode);
+@@ -36,7 +35,7 @@ const struct file_operations autofs4_root_operations = {
+ 	.open		= dcache_dir_open,
+ 	.release	= dcache_dir_close,
+ 	.read		= generic_read_dir,
+-	.readdir	= autofs4_root_readdir,
++	.readdir	= dcache_readdir,
+ 	.ioctl		= autofs4_root_ioctl,
+ };
  
-@@ -254,22 +226,8 @@ static void *autofs4_follow_link(struct dentry *dentry, struct nameidata *nd)
- 	}
+@@ -71,28 +70,6 @@ const struct inode_operations autofs4_dir_inode_operations = {
+ 	.rmdir		= autofs4_dir_rmdir,
+ };
  
- 	/* If an expire request is pending everyone must wait. */
--	spin_lock(&sbi->fs_lock);
--	if (ino->flags & AUTOFS_INF_EXPIRING) {
--		spin_unlock(&sbi->fs_lock);
+-static int autofs4_root_readdir(struct file *file, void *dirent,
+-				filldir_t filldir)
+-{
+-	struct autofs_sb_info *sbi = autofs4_sbi(file->f_path.dentry->d_sb);
+-	int oz_mode = autofs4_oz_mode(sbi);
 -
--		DPRINTK("waiting for active request %p name=%.*s",
--			dentry, dentry->d_name.len, dentry->d_name.name);
+-	DPRINTK("called, filp->f_pos = %lld", file->f_pos);
 -
--		status = autofs4_wait(sbi, dentry, NFY_NONE);
--		wait_for_completion(&ino->expire_complete);
-+	autofs4_expire_wait(dentry);
+-	/*
+-	 * Don't set reghost flag if:
+-	 * 1) f_pos is larger than zero -- we've already been here.
+-	 * 2) we haven't even enabled reghosting in the 1st place.
+-	 * 3) this is the daemon doing a readdir
+-	 */
+-	if (oz_mode && file->f_pos == 0 && sbi->reghost_enabled)
+-		sbi->needs_reghost = 1;
+-
+-	DPRINTK("needs_reghost = %d", sbi->needs_reghost);
+-
+-	return dcache_readdir(file, dirent, filldir);
+-}
+-
+ static int autofs4_dir_open(struct inode *inode, struct file *file)
+ {
+ 	struct dentry *dentry = file->f_path.dentry;
+@@ -865,44 +842,6 @@ static inline int autofs4_get_protosubver(struct autofs_sb_info *sbi, int __user
+ }
  
--		DPRINTK("request done status=%d", status);
+ /*
+- * Tells the daemon whether we need to reghost or not. Also, clears
+- * the reghost_needed flag.
+- */
+-static inline int autofs4_ask_reghost(struct autofs_sb_info *sbi, int __user *p)
+-{
+-	int status;
 -
--		goto cont;
--	}
--	spin_unlock(&sbi->fs_lock);
--cont:
- 	/* We trigger a mount for almost all flags */
- 	lookup_type = nd->flags & (TRIGGER_FLAGS | TRIGGER_INTENTS);
- 	if (!(lookup_type || dentry->d_flags & DCACHE_AUTOFS_PENDING))
-@@ -338,6 +296,14 @@ static int autofs4_revalidate(struct dentry *dentry, struct nameidata *nd)
- 			return 1;
- 
- 		/*
-+		 * If the directory has gone away due to an expire
-+		 * we have been called as ->d_revalidate() and so
-+		 * we need to return false and proceed to ->lookup().
-+		 */
-+		if (autofs4_expire_wait(dentry) == -EAGAIN)
-+			return 0;
-+
-+		/*
- 		 * A zero status is success otherwise we have a
- 		 * negative error code.
- 		 */
-@@ -345,15 +311,6 @@ static int autofs4_revalidate(struct dentry *dentry, struct nameidata *nd)
- 		if (status == 0)
- 			return 1;
- 
--		/*
--		 * A status of EAGAIN here means that the dentry has gone
--		 * away while waiting for an expire to complete. If we are
--		 * racing with expire lookup will wait for it so this must
--		 * be a revalidate and we need to send it to lookup.
--		 */
--		if (status == -EAGAIN)
--			return 0;
+-	DPRINTK("returning %d", sbi->needs_reghost);
 -
- 		return status;
- 	}
- 	spin_unlock(&sbi->fs_lock);
-@@ -563,19 +520,7 @@ static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, s
- 		 * so it must have been successful, so just wait for it.
- 		 */
- 		ino = autofs4_dentry_ino(expiring);
--		spin_lock(&sbi->fs_lock);
--		if (ino->flags & AUTOFS_INF_EXPIRING) {
--			spin_unlock(&sbi->fs_lock);
--			DPRINTK("wait for incomplete expire %p name=%.*s",
--				expiring, expiring->d_name.len,
--				expiring->d_name.name);
--			autofs4_wait(sbi, expiring, NFY_NONE);
--			wait_for_completion(&ino->expire_complete);
--			DPRINTK("request completed");
--			goto cont;
--		}
--		spin_unlock(&sbi->fs_lock);
--cont:
-+		autofs4_expire_wait(expiring);
- 		spin_lock(&sbi->lookup_lock);
- 		if (!list_empty(&ino->expiring))
- 			list_del_init(&ino->expiring);
+-	status = put_user(sbi->needs_reghost, p);
+-	if (status)
+-		return status;
+-
+-	sbi->needs_reghost = 0;
+-	return 0;
+-}
+-
+-/*
+- * Enable / Disable reghosting ioctl() operation
+- */
+-static inline int autofs4_toggle_reghost(struct autofs_sb_info *sbi, int __user *p)
+-{
+-	int status;
+-	int val;
+-
+-	status = get_user(val, p);
+-
+-	DPRINTK("reghost = %d", val);
+-
+-	if (status)
+-		return status;
+-
+-	/* turn on/off reghosting, with the val */
+-	sbi->reghost_enabled = val;
+-	return 0;
+-}
+-
+-/*
+ * Tells the daemon whether it can umount the autofs mount.
+ */
+ static inline int autofs4_ask_umount(struct vfsmount *mnt, int __user *p)
+@@ -966,11 +905,6 @@ static int autofs4_root_ioctl(struct inode *inode, struct file *filp,
+ 	case AUTOFS_IOC_SETTIMEOUT:
+ 		return autofs4_get_set_timeout(sbi, p);
+ 
+-	case AUTOFS_IOC_TOGGLEREGHOST:
+-		return autofs4_toggle_reghost(sbi, p);
+-	case AUTOFS_IOC_ASKREGHOST:
+-		return autofs4_ask_reghost(sbi, p);
+-
+ 	case AUTOFS_IOC_ASKUMOUNT:
+ 		return autofs4_ask_umount(filp->f_path.mnt, p);
+ 
+diff --git a/fs/compat_ioctl.c b/fs/compat_ioctl.c
+index 44e9f05..c6663c5 100644
+--- a/fs/compat_ioctl.c
++++ b/fs/compat_ioctl.c
+@@ -2290,8 +2290,6 @@ COMPATIBLE_IOCTL(AUTOFS_IOC_PROTOVER)
+ COMPATIBLE_IOCTL(AUTOFS_IOC_EXPIRE)
+ COMPATIBLE_IOCTL(AUTOFS_IOC_EXPIRE_MULTI)
+ COMPATIBLE_IOCTL(AUTOFS_IOC_PROTOSUBVER)
+-COMPATIBLE_IOCTL(AUTOFS_IOC_ASKREGHOST)
+-COMPATIBLE_IOCTL(AUTOFS_IOC_TOGGLEREGHOST)
+ COMPATIBLE_IOCTL(AUTOFS_IOC_ASKUMOUNT)
+ /* Raw devices */
+ COMPATIBLE_IOCTL(RAW_SETBIND)
+diff --git a/include/linux/auto_fs4.h b/include/linux/auto_fs4.h
+index 31a2954..b785c6f 100644
+--- a/include/linux/auto_fs4.h
++++ b/include/linux/auto_fs4.h
+@@ -98,8 +98,6 @@ union autofs_v5_packet_union {
+ #define AUTOFS_IOC_EXPIRE_INDIRECT	AUTOFS_IOC_EXPIRE_MULTI
+ #define AUTOFS_IOC_EXPIRE_DIRECT	AUTOFS_IOC_EXPIRE_MULTI
+ #define AUTOFS_IOC_PROTOSUBVER		_IOR(0x93,0x67,int)
+-#define AUTOFS_IOC_ASKREGHOST           _IOR(0x93,0x68,int)
+-#define AUTOFS_IOC_TOGGLEREGHOST        _IOR(0x93,0x69,int)
+ #define AUTOFS_IOC_ASKUMOUNT		_IOR(0x93,0x70,int)
+ 
+ 
