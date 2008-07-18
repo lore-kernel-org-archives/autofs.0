@@ -1,86 +1,101 @@
-From: "Coe, Colin C. (Unix Engineer)" <Colin.Coe@woodside.com.au>
-Subject: Re: Autofs doesn't look at second LDAP server
-Date: Fri, 18 Jul 2008 07:57:21 +0800
-Message-ID: <BAC1D28A5AB852439A6914CA7AB4E63F05192E7D@permls05.wde.woodside.com.au>
-References: <487F90B1.1090405@inria.fr>
+From: Ian Kent <raven@themaw.net>
+Subject: [PATCH 1/7] autofs4 - indirect dentry must almost always be positive
+Date: Fri, 18 Jul 2008 10:36:53 +0800
+Message-ID: <20080718023651.12802.59107.stgit@raven.themaw.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <autofs-bounces@linux.kernel.org>
-Content-class: urn:content-classes:message
-In-Reply-To: <487F90B1.1090405@inria.fr>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-To: Guillaume Rousse <Guillaume.Rousse@inria.fr>
-Cc: autofs@linux.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Sender: linux-fsdevel-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: autofs mailing list <autofs@linux.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Al Viro <viro@ZenIV.linux.org.uk>, Linus Torvalds <torvalds@linux-foundation.org>
+
+We have been seeing mount requests comming to the automount daemon
+for keys of the form "<map key>/<non key directory>" which are
+lookups for invalid map keys. But we can check for this in the
+kernel module and return a fail immediately, without having to
+send a request to the daemon.
+
+It is possible to recognise these requests are invalid based on
+whether the request dentry is negative and its relation to the
+autofs file system root.
+
+For example, given the indirect multi-mount map entry:
+
+idm1  \
+    /mm1  <server>:/<path1>
+    /mm2  <server>:/<path2>
+
+For a request to mount idm1, IS_ROOT((idm1)->d_parent) will be
+always be true and the dentry may be negative. But directories
+idm1/mm1 and idm1/mm2 will always be created as part of the
+mount request for idm1. So any mount request within idm1 itself
+must have a positive dentry otherwise the map key is invalid.
+
+In version 4 these multi-mount entries are all mounted and umounted
+as a single request and in version 5 the directories idm1/mm1 and
+idm1/mm2 are created and an autofs fs mounted on them to act as a
+mount trigger so the above is also true.
+
+This also holds true for the autofs version 4 pseudo direct mount
+feature. When this feature is used without the "--ghost" option
+automount(8) will create internal submounts as we go down the
+map key paths which are essentially normal indirect mounts for
+which the above holds. If the "--ghost" option is given the
+directories for map keys are created at daemon startup so valid
+map entries correspond to postive dentries in the autofs fs.
+
+autofs version 5 direct mount maps are similar except that the
+IS_ROOT check is not needed. This has been addressed in a previous
+patch tittled "autofs4 - detect invalid direct mount requests".
+
+For example, given the direct multi-mount map entry:
+
+/test/dm1  \
+    /mm1  <server>:/<path1>
+    /mm2  <server>:/<path2>
+
+An autofs fs is mounted on /test/dm1 as a trigger mount and when
+a mount is triggered for /test/dm1, the multi-mount offset
+directories /test/dm1/mm1 and /test/dm1/mm2 are created and an
+autofs fs is mounted on them to act as mount triggers. So valid
+direct mount requests must always have a positive dentry if they
+correspond to a valid map entry.
+
+Signed-off-by: Ian Kent <raven@themaw.net>
+
+---
+
+ fs/autofs4/waitq.c |   17 ++++++++++++++---
+ 1 files changed, 14 insertions(+), 3 deletions(-)
 
 
-Hi =
-
-
-I was trying to sanitise the logs a bit and didn't do a good job of it.  /e=
-tc/sysconfig/autofs, /etc/ldap.conf and /etc/openldap/ldap.conf all refer t=
-o the same LDAP servers.
-
-grep aer /etc/sysconfig/autofs /etc/ldap.conf /etc/openldap/ldap.conf
-/etc/sysconfig/autofs:LDAP_URI=3D"ldaps://aether.woodside.com.au:636 ldaps:=
-//aer.woodside.com.au:636"
-/etc/ldap.conf:uri ldaps://aether.woodside.com.au:636 ldaps://aer.woodside.=
-com.au:636
-/etc/openldap/ldap.conf:URI ldaps://aether.woodside.com.au:636 ldaps://aer.=
-woodside.com.au:636
-
-CC
- =
-
-
-> -----Original Message-----
-> From: autofs-bounces@linux.kernel.org =
-
-> [mailto:autofs-bounces@linux.kernel.org] On Behalf Of Guillaume Rousse
-> Sent: Friday, 18 July 2008 2:34 AM
-> Cc: autofs@linux.kernel.org
-> Subject: Re: [autofs] Autofs doesn't look at second LDAP server
-> =
-
-> Ian Kent a =E9crit :
-> > I wonder if it's getting the server from the config at all?
-> > It should be.
-> > =
-
-> > LDAP_URI=3D"ldaps://ldap2.woodside.com.au:636 =
-
-> ldaps://ldap1.woodside.com.au:636"
-> If this isn't explicitely set in autofs configuration, are =
-
-> the different =
-
-> servers configured for openldap library used instead ?
-> =
-
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
-> =
-
-
-NOTICE: This email and any attachments are confidential. =
-
-They may contain legally privileged information or =
-
-copyright material. You must not read, copy, use or =
-
-disclose them without authorisation. If you are not an =
-
-intended recipient, please contact us at once by return =
-
-email and then delete both messages and all attachments.
+diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
+index bcb6c52..35216d1 100644
+--- a/fs/autofs4/waitq.c
++++ b/fs/autofs4/waitq.c
+@@ -328,9 +328,20 @@ int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
+ 	if (sbi->catatonic)
+ 		return -ENOENT;
+ 
+-	if (!dentry->d_inode &&
+-	    (sbi->type & (AUTOFS_TYPE_DIRECT | AUTOFS_TYPE_OFFSET)))
+-		return -ENOENT;
++	if (!dentry->d_inode) {
++		/*
++		 * A wait for a negative dentry is invalid for certain
++		 * cases. A direct or offset mount "always" has its mount
++		 * point directory created and so the request dentry must
++		 * be positive or the map key doesn't exist. The situation
++		 * is very similar for indirect mounts except only dentrys
++		 * in the root of the autofs file system may be negative.
++		 */
++		if (sbi->type & (AUTOFS_TYPE_DIRECT|AUTOFS_TYPE_OFFSET))
++			return -ENOENT;
++		else if (!IS_ROOT(dentry->d_parent))
++			return -ENOENT;
++	}
+ 
+ 	name = kmalloc(NAME_MAX + 1, GFP_KERNEL);
+ 	if (!name)
