@@ -1,40 +1,66 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Autofs doesn't look at second LDAP server
-Date: Fri, 18 Jul 2008 11:30:43 +0800
-Message-ID: <1216351844.3898.6.camel@raven.themaw.net>
-References: <BAC1D28A5AB852439A6914CA7AB4E63F05192E66@permls05.wde.woodside.com.au>
-	<1216264449.22783.66.camel@raven.themaw.net>
-	<487F90B1.1090405@inria.fr>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: [PATCH 1/7] autofs4 - indirect dentry must almost always be positive
+Date: Fri, 18 Jul 2008 07:56:34 -0400
+Message-ID: <x49k5fje77x.fsf@segfault.boston.devel.redhat.com>
+References: <20080718023651.12802.59107.stgit@raven.themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: base64
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <487F90B1.1090405@inria.fr>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="iso-8859-1"
-To: Guillaume Rousse <Guillaume.Rousse@inria.fr>
-Cc: autofs@linux.kernel.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <20080718023651.12802.59107.stgit@raven.themaw.net> (Ian Kent's
+	message of "Fri, 18 Jul 2008 10:36:53 +0800")
+Sender: linux-fsdevel-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Ian Kent <raven@themaw.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>, autofs mailing list <autofs@linux.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Al Viro <viro@ZenIV.linux.org.uk>, Linus Torvalds <torvalds@linux-foundation.org>
 
-Ck9uIFRodSwgMjAwOC0wNy0xNyBhdCAyMDozNCArMDIwMCwgR3VpbGxhdW1lIFJvdXNzZSB3cm90
-ZToKPiBJYW4gS2VudCBhIMOpY3JpdCA6Cj4gPiBJIHdvbmRlciBpZiBpdCdzIGdldHRpbmcgdGhl
-IHNlcnZlciBmcm9tIHRoZSBjb25maWcgYXQgYWxsPwo+ID4gSXQgc2hvdWxkIGJlLgo+ID4gCj4g
-PiBMREFQX1VSST0ibGRhcHM6Ly9sZGFwMi53b29kc2lkZS5jb20uYXU6NjM2IGxkYXBzOi8vbGRh
-cDEud29vZHNpZGUuY29tLmF1OjYzNiIKPiBJZiB0aGlzIGlzbid0IGV4cGxpY2l0ZWx5IHNldCBp
-biBhdXRvZnMgY29uZmlndXJhdGlvbiwgYXJlIHRoZSBkaWZmZXJlbnQgCj4gc2VydmVycyBjb25m
-aWd1cmVkIGZvciBvcGVubGRhcCBsaWJyYXJ5IHVzZWQgaW5zdGVhZCA/CgpJIGJlbGlldmUgc28u
-CldoYXRldmVyIHRoZSBsaWJyYXJ5IHdpbGwgZG8gaW4gdGhpcyBjYXNlIGlzIHdoYXQgd291bGQg
-YmUgZG9uZS4KClRoZSBvcHRpb24gaXMgcHJlc2VudCBzbyB0aGF0IHBlb3BsZSBjYW4gdXNlIGVp
-dGhlciBhIGRpZmZlcmVudCBwcm90b2NvbAoobGRhcCBpbnN0ZWFkIG9mIGxkYXBzKSBvciBwb3Nz
-aWJseSBkaWZmZXJlbnQgc2VydmVycyBmb3IgdGhlaXIgbWFwcyBhbmQKZm9yIGNvbXBsZXRlbmVz
-cyB0byBjb21wbGVtZW50IHRoZSBTRUFSQ0hfQkFTRSBvcHRpb24uCgpJYW4KCgpfX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwphdXRvZnMgbWFpbGluZyBsaXN0
-CmF1dG9mc0BsaW51eC5rZXJuZWwub3JnCmh0dHA6Ly9saW51eC5rZXJuZWwub3JnL21haWxtYW4v
-bGlzdGluZm8vYXV0b2ZzCg==
+Ian Kent <raven@themaw.net> writes:
+
+> Signed-off-by: Ian Kent <raven@themaw.net>
+
+Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
+
+Cheers,
+
+Jeff
+
+>
+> ---
+>
+>  fs/autofs4/waitq.c |   17 ++++++++++++++---
+>  1 files changed, 14 insertions(+), 3 deletions(-)
+>
+>
+> diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
+> index bcb6c52..35216d1 100644
+> --- a/fs/autofs4/waitq.c
+> +++ b/fs/autofs4/waitq.c
+> @@ -328,9 +328,20 @@ int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
+>  	if (sbi->catatonic)
+>  		return -ENOENT;
+>  
+> -	if (!dentry->d_inode &&
+> -	    (sbi->type & (AUTOFS_TYPE_DIRECT | AUTOFS_TYPE_OFFSET)))
+> -		return -ENOENT;
+> +	if (!dentry->d_inode) {
+> +		/*
+> +		 * A wait for a negative dentry is invalid for certain
+> +		 * cases. A direct or offset mount "always" has its mount
+> +		 * point directory created and so the request dentry must
+> +		 * be positive or the map key doesn't exist. The situation
+> +		 * is very similar for indirect mounts except only dentrys
+> +		 * in the root of the autofs file system may be negative.
+> +		 */
+> +		if (sbi->type & (AUTOFS_TYPE_DIRECT|AUTOFS_TYPE_OFFSET))
+> +			return -ENOENT;
+> +		else if (!IS_ROOT(dentry->d_parent))
+> +			return -ENOENT;
+> +	}
+>  
+>  	name = kmalloc(NAME_MAX + 1, GFP_KERNEL);
+>  	if (!name)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
