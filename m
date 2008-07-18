@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 3/7] autofs4 - fix pending checks
-Date: Fri, 18 Jul 2008 10:37:10 +0800
-Message-ID: <20080718023708.12802.82980.stgit@raven.themaw.net>
+Subject: [PATCH 5/7] autofs4 - fix direct mount pending expire race
+Date: Fri, 18 Jul 2008 10:37:27 +0800
+Message-ID: <20080718023725.12802.74137.stgit@raven.themaw.net>
 References: <20080718023651.12802.59107.stgit@raven.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -13,62 +13,237 @@ Content-Type: text/plain; charset="us-ascii"
 To: Andrew Morton <akpm@linux-foundation.org>
 Cc: autofs mailing list <autofs@linux.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Al Viro <viro@ZenIV.linux.org.uk>, Linus Torvalds <torvalds@linux-foundation.org>
 
-There are two cases for which a dentry that has a pending mount request
-does not wait for completion. One is via autofs4_revalidate() and the
-other via autofs4_follow_link().
+For direct and offset type mounts that are covered by another mount
+we cannot check the AUTOFS_INF_EXPIRING flag during a path walk
+which leads to lookups walking into an expiring mount while it is
+being expired.
 
-In revalidate, after the mount point directory is created, but before
-the mount is done, the check in try_to_fill_dentry() can can fail to
-send the dentry to the wait queue since the dentry is positive and the
-lookup flags may contain only LOOKUP_FOLLOW. Although we don't trigger
-a mount for the LOOKUP_FOLLOW flag, if ther's one pending we might as
-well wait and use the mounted dentry for the lookup.
+For example, for the direct multi-mount map entry with a couple of
+offsets:
 
-In autofs4_follow_link() the dentry is not checked to see if it is
-pending so it may fail to call try_to_fill_dentry() and not wait
-for mount completion.
+/race/mm1  /      <server1>:/<path1>
+           /om1   <server2>:/<path2>
+           /om2   <server1>:/<path3>
 
-A dentry that is pending must always be sent to the wait queue.
+an autofs trigger mount is mounted on /race/mm1 and when accessed
+it is over mounted and trigger mounts made for /race/mm1/om1 and
+/race/mm1/om2. So it isn't possible for path walks to see the
+expiring flag at all and they happily walk into the file system
+while it is expiring.
+
+When expiring these mounts follow_down() must stop at the autofs
+mount and all processes must block in the ->follow_link() method
+(except the daemon) until the expire is complete. This is done by
+decrementing the d_mounted field of the autofs trigger mount root
+dentry until the expire is completed. In ->follow_link() all
+processes wait on the expire and the mount following is completed
+for the daemon until the expire is complete.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 
 ---
 
- fs/autofs4/root.c |    9 ++++++---
- 1 files changed, 6 insertions(+), 3 deletions(-)
+ fs/autofs4/autofs_i.h |    3 ++
+ fs/autofs4/expire.c   |   16 +++++++++--
+ fs/autofs4/root.c     |   72 +++++++++++++++++++++++++++++++++----------------
+ 3 files changed, 65 insertions(+), 26 deletions(-)
 
 
+diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
+index 5d90ed3..4b40cbc 100644
+--- a/fs/autofs4/autofs_i.h
++++ b/fs/autofs4/autofs_i.h
+@@ -52,6 +52,8 @@ struct autofs_info {
+ 
+ 	int		flags;
+ 
++	struct completion expire_complete;
++
+ 	struct list_head active;
+ 	struct list_head expiring;
+ 
+@@ -69,6 +71,7 @@ struct autofs_info {
+ };
+ 
+ #define AUTOFS_INF_EXPIRING	(1<<0) /* dentry is in the process of expiring */
++#define AUTOFS_INF_MOUNTPOINT	(1<<1) /* mountpoint status for direct expire */
+ 
+ struct autofs_wait_queue {
+ 	wait_queue_head_t queue;
+diff --git a/fs/autofs4/expire.c b/fs/autofs4/expire.c
+index 19f5bea..705b9f0 100644
+--- a/fs/autofs4/expire.c
++++ b/fs/autofs4/expire.c
+@@ -259,13 +259,15 @@ static struct dentry *autofs4_expire_direct(struct super_block *sb,
+ 	now = jiffies;
+ 	timeout = sbi->exp_timeout;
+ 
+-	/* Lock the tree as we must expire as a whole */
+ 	spin_lock(&sbi->fs_lock);
+ 	if (!autofs4_direct_busy(mnt, root, timeout, do_now)) {
+ 		struct autofs_info *ino = autofs4_dentry_ino(root);
+-
+-		/* Set this flag early to catch sys_chdir and the like */
++		if (d_mountpoint(root)) {
++			ino->flags |= AUTOFS_INF_MOUNTPOINT;
++			root->d_mounted--;
++		}
+ 		ino->flags |= AUTOFS_INF_EXPIRING;
++		init_completion(&ino->expire_complete);
+ 		spin_unlock(&sbi->fs_lock);
+ 		return root;
+ 	}
+@@ -392,6 +394,7 @@ found:
+ 		expired, (int)expired->d_name.len, expired->d_name.name);
+ 	ino = autofs4_dentry_ino(expired);
+ 	ino->flags |= AUTOFS_INF_EXPIRING;
++	init_completion(&ino->expire_complete);
+ 	spin_unlock(&sbi->fs_lock);
+ 	spin_lock(&dcache_lock);
+ 	list_move(&expired->d_parent->d_subdirs, &expired->d_u.d_child);
+@@ -429,6 +432,7 @@ int autofs4_expire_run(struct super_block *sb,
+ 	spin_lock(&sbi->fs_lock);
+ 	ino = autofs4_dentry_ino(dentry);
+ 	ino->flags &= ~AUTOFS_INF_EXPIRING;
++	complete_all(&ino->expire_complete);
+ 	spin_unlock(&sbi->fs_lock);
+ 
+ 	return ret;
+@@ -457,8 +461,14 @@ int autofs4_expire_multi(struct super_block *sb, struct vfsmount *mnt,
+ 		/* This is synchronous because it makes the daemon a
+                    little easier */
+ 		ret = autofs4_wait(sbi, dentry, NFY_EXPIRE);
++
+ 		spin_lock(&sbi->fs_lock);
++		if (ino->flags & AUTOFS_INF_MOUNTPOINT) {
++			sb->s_root->d_mounted++;
++			ino->flags &= ~AUTOFS_INF_MOUNTPOINT;
++		}
+ 		ino->flags &= ~AUTOFS_INF_EXPIRING;
++		complete_all(&ino->expire_complete);
+ 		spin_unlock(&sbi->fs_lock);
+ 		dput(dentry);
+ 	}
 diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
-index e842b0a..2944b28 100644
+index 2ed2a51..bdf190b 100644
 --- a/fs/autofs4/root.c
 +++ b/fs/autofs4/root.c
-@@ -177,7 +177,8 @@ static int try_to_fill_dentry(struct dentry *dentry, int flags)
- 			return status;
- 		}
- 	/* Trigger mount for path component or follow link */
--	} else if (flags & (TRIGGER_FLAGS | TRIGGER_INTENTS) ||
-+	} else if (dentry->d_flags & DCACHE_AUTOFS_PENDING ||
-+			flags & (TRIGGER_FLAGS | TRIGGER_INTENTS) ||
- 			current->link_count) {
- 		DPRINTK("waiting for mount name=%.*s",
- 			dentry->d_name.len, dentry->d_name.name);
-@@ -223,7 +224,8 @@ static void *autofs4_follow_link(struct dentry *dentry, struct nameidata *nd)
+@@ -141,6 +141,7 @@ static int try_to_fill_dentry(struct dentry *dentry, int flags)
+ 			 dentry, dentry->d_name.len, dentry->d_name.name);
  
- 	/* If it's our master or we shouldn't trigger a mount we're done */
- 	lookup_type = nd->flags & (TRIGGER_FLAGS | TRIGGER_INTENTS);
--	if (oz_mode || !lookup_type)
-+	if (oz_mode ||
-+	    !(lookup_type || dentry->d_flags & DCACHE_AUTOFS_PENDING))
+ 		status = autofs4_wait(sbi, dentry, NFY_NONE);
++		wait_for_completion(&ino->expire_complete);
+ 
+ 		DPRINTK("expire done status=%d", status);
+ 
+@@ -227,14 +228,32 @@ static void *autofs4_follow_link(struct dentry *dentry, struct nameidata *nd)
+ 	DPRINTK("dentry=%p %.*s oz_mode=%d nd->flags=%d",
+ 		dentry, dentry->d_name.len, dentry->d_name.name, oz_mode,
+ 		nd->flags);
+-
+-	/* If it's our master or we shouldn't trigger a mount we're done */
+-	lookup_type = nd->flags & (TRIGGER_FLAGS | TRIGGER_INTENTS);
+-	if (oz_mode ||
+-	    !(lookup_type || dentry->d_flags & DCACHE_AUTOFS_PENDING))
++	/*
++	 * For an expire of a covered direct or offset mount we need
++	 * to beeak out of follow_down() at the autofs mount trigger
++	 * (d_mounted--), so we can see the expiring flag, and manage
++	 * the blocking and following here until the expire is completed.
++	 */
++	if (oz_mode) {
++		spin_lock(&sbi->fs_lock);
++		if (ino->flags & AUTOFS_INF_EXPIRING) {
++			spin_unlock(&sbi->fs_lock);
++			/* Follow down to our covering mount. */
++			if (!follow_down(&nd->path.mnt, &nd->path.dentry))
++				goto done;
++			/*
++			 * We shouldn't need to do this but we have no way
++			 * of knowing what may have been done so try a follow
++			 * just in case.
++			 */
++			autofs4_follow_mount(&nd->path.mnt, &nd->path.dentry);
++			goto done;
++		}
++		spin_unlock(&sbi->fs_lock);
  		goto done;
++	}
  
- 	/* If an expire request is pending wait for it. */
-@@ -242,7 +244,8 @@ static void *autofs4_follow_link(struct dentry *dentry, struct nameidata *nd)
- 	 * don't try to mount it again.
+-	/* If an expire request is pending wait for it. */
++	/* If an expire request is pending everyone must wait. */
+ 	spin_lock(&sbi->fs_lock);
+ 	if (ino->flags & AUTOFS_INF_EXPIRING) {
+ 		spin_unlock(&sbi->fs_lock);
+@@ -243,6 +262,7 @@ static void *autofs4_follow_link(struct dentry *dentry, struct nameidata *nd)
+ 			dentry, dentry->d_name.len, dentry->d_name.name);
+ 
+ 		status = autofs4_wait(sbi, dentry, NFY_NONE);
++		wait_for_completion(&ino->expire_complete);
+ 
+ 		DPRINTK("request done status=%d", status);
+ 
+@@ -250,10 +270,15 @@ static void *autofs4_follow_link(struct dentry *dentry, struct nameidata *nd)
+ 	}
+ 	spin_unlock(&sbi->fs_lock);
+ cont:
++	/* We trigger a mount for almost all flags */
++	lookup_type = nd->flags & (TRIGGER_FLAGS | TRIGGER_INTENTS);
++	if (!(lookup_type || dentry->d_flags & DCACHE_AUTOFS_PENDING))
++		goto done;
++
+ 	/*
+-	 * If the dentry contains directories then it is an
+-	 * autofs multi-mount with no root mount offset. So
+-	 * don't try to mount it again.
++	 * If the dentry contains directories then it is an autofs
++	 * multi-mount with no root mount offset. So don't try to
++	 * mount it again.
  	 */
  	spin_lock(&dcache_lock);
--	if (!d_mountpoint(dentry) && __simple_empty(dentry)) {
-+	if (dentry->d_flags & DCACHE_AUTOFS_PENDING ||
-+	    (!d_mountpoint(dentry) && __simple_empty(dentry))) {
- 		spin_unlock(&dcache_lock);
+ 	if (dentry->d_flags & DCACHE_AUTOFS_PENDING ||
+@@ -264,22 +289,22 @@ cont:
+ 		if (status)
+ 			goto out_error;
  
- 		status = try_to_fill_dentry(dentry, 0);
+-		/*
+-		 * The mount succeeded but if there is no root mount
+-		 * it must be an autofs multi-mount with no root offset
+-		 * so we don't need to follow the mount.
+-		 */
+-		if (d_mountpoint(dentry)) {
+-			if (!autofs4_follow_mount(&nd->path.mnt,
+-						  &nd->path.dentry)) {
+-				status = -ENOENT;
+-				goto out_error;
+-			}
+-		}
+-
+-		goto done;
++		goto follow;
+ 	}
+ 	spin_unlock(&dcache_lock);
++follow:
++	/*
++	 * If there is no root mount it must be an autofs
++	 * multi-mount with no root offset so we don't need
++	 * to follow it.
++	 */
++	if (d_mountpoint(dentry)) {
++		if (!autofs4_follow_mount(&nd->path.mnt,
++					  &nd->path.dentry)) {
++			status = -ENOENT;
++			goto out_error;
++		}
++	}
+ 
+ done:
+ 	return NULL;
+@@ -545,6 +570,7 @@ static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, s
+ 				expiring, expiring->d_name.len,
+ 				expiring->d_name.name);
+ 			autofs4_wait(sbi, expiring, NFY_NONE);
++			wait_for_completion(&ino->expire_complete);
+ 			DPRINTK("request completed");
+ 			goto cont;
+ 		}
