@@ -1,7 +1,7 @@
-From: Ian Kent <raven@themaw.net>
+From: Chris Walker <cwalker@pixar.com>
 Subject: Re: statfs() and autofs
-Date: Mon, 21 Jul 2008 12:56:16 +0800
-Message-ID: <1216616177.3093.13.camel@raven.themaw.net>
+Date: Sun, 20 Jul 2008 22:00:59 -0700
+Message-ID: <20080721050059.GW5858@pixar.com>
 References: <20080715204839.GU5858@pixar.com>
 	<1216179794.22783.46.camel@raven.themaw.net>
 	<487D855B.8000405@loran.name>
@@ -12,6 +12,7 @@ Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+Content-Disposition: inline
 In-Reply-To: <1216615194.3093.8.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -23,20 +24,9 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Chris Walker <cwalker@pixar.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-
-On Mon, 2008-07-21 at 12:39 +0800, Ian Kent wrote:
-> On Sun, 2008-07-20 at 20:41 -0700, Chris Walker wrote:
-> > From jimc [07/20 15:31]:
-> > > Actually, only the sysop knows which is more important: doing the mount 
-> > > storm to respond to stat() or statfs(), or avoiding the storm.
-> > 
-> > Agreed. In our case, we have 'heavily discouraged' use of /net on our
-> > big servers and we would prefer that statfs()/stat() waited for the
-> > automount to complete.
-> 
+From raven [07/20 21:43]:
 > Just to be absolutely clear.
 > 
 > The "browse" or "--ghost option isn't being used, in oder to avoid mount
@@ -46,11 +36,9 @@ On Mon, 2008-07-21 at 12:39 +0800, Ian Kent wrote:
 > Is that right?
 > Is anyone in a position to test a kernel patch?
 
-We could add a third case to the description of the recently posted
-"[autofs] [PATCH 3/7] autofs4 - fix pending checks" patch but it's
-already been posted.
+This is what I'm seeing and I'm only running automount with the --debug
+option. If I don't pass --ghost to automount, is there any other way
+browsing is enabled?
 
-This can also happen via ->lookup() when only the LOOKUP_FOLLOW flag is
-present, as is the case for stat(2) and statfs(2) and the like.
-
-Ian
+-- 
+Chris Walker -- cwalker@pixar.com
