@@ -1,14 +1,13 @@
-From: "Coe, Colin C. (Unix Engineer)" <Colin.Coe@woodside.com.au>
-Subject: Re: Autofs doesn't look at second LDAP server
-Date: Mon, 21 Jul 2008 15:18:22 +0800
-Message-ID: <BAC1D28A5AB852439A6914CA7AB4E63F05AD77CD@permls05.wde.woodside.com.au>
-References: <BAC1D28A5AB852439A6914CA7AB4E63F05192E66@permls05.wde.woodside.com.au>
-	<1216614624.3093.0.camel@raven.themaw.net>
+From: Jonathan Loran <jonathan@loran.name>
+Subject: Re: statfs() and autofs
+Date: Sun, 20 Jul 2008 22:08:27 -0700
+Message-ID: <488419CB.6090108@loran.name>
+References: <20080715204839.GU5858@pixar.com>	<1216179794.22783.46.camel@raven.themaw.net>	<487D855B.8000405@loran.name>	<Pine.LNX.4.64.0807201441330.3491@simba.math.ucla.edu>	<20080721034112.GU5858@pixar.com>
+	<1216615194.3093.8.camel@raven.themaw.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1989262481602767571=="
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <1216615194.3093.8.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,48 +21,123 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-It's not predictable.  But each machine that has failed has had aether as it's primary LDAP server rather than aer.
- 
-We can go weeks without seeing the problem and then have several machines effected within a few days.
- 
-We usually only see one machine fail a day but we only have a handful of EL5 machines (EL5 is affected only that I can see).
- 
-CC
+This is a multi-part message in MIME format.
+--===============1989262481602767571==
+Content-Type: multipart/alternative;
+ boundary="------------030706080609090100070100"
 
-________________________________
-
-From: Ian Kent [mailto:raven@themaw.net]
-Sent: Mon 7/21/2008 12:30 PM
-To: Coe, Colin C. (Unix Engineer)
-Cc: autofs@linux.kernel.org
-Subject: Re: [autofs] Autofs doesn't look at second LDAP server
+This is a multi-part message in MIME format.
+--------------030706080609090100070100
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
 
 
-
-On Wed, 2008-07-16 at 09:20 +0800, Coe, Colin C. (Unix Engineer) wrote:
-> Hi all
+Ian Kent wrote:
+> On Sun, 2008-07-20 at 20:41 -0700, Chris Walker wrote:
+>   
+>> From jimc [07/20 15:31]:
+>>     
+>>> Actually, only the sysop knows which is more important: doing the mount 
+>>> storm to respond to stat() or statfs(), or avoiding the storm.
+>>>       
+>> Agreed. In our case, we have 'heavily discouraged' use of /net on our
+>> big servers and we would prefer that statfs()/stat() waited for the
+>> automount to complete.
+>>     
 >
-> I've noticed that, after a period of stability, autofs is dumping core
-> again.
+> Just to be absolutely clear.
 >
-> The common thread is the time the core dumping happens, 4AM (give or
-> take a few minutes) which is when our 'cron daily' process runs.  This
-> 'cron daily' lives on an NFS mount that is in the auto_global map
-> ('/nfs/appl server:/vol/oldserver_appl').
+> The "browse" or "--ghost option isn't being used, in oder to avoid mount
+> storms, but we still see stat(2) and statfs(2) (et. al.) not wait for a
+> mount to complete.
+>
+> Is that right?
+> Is anyone in a position to test a kernel patch?
+>
+>   
+I may be willing to try the patch, but first I need to see if I can 
+recreate the problem reliably.  If not, there isn't much use.  I just 
+know that on our "faster" servers, the programmers I work with have 
+demonstrated the issue.  I will need their help.  I'll let know if I 
+make head way.  Thanks,
 
-Are you able to duplicate this?
-IOW, does it happen predicatably?
+Jon
 
-Ian
-
-
+P.S. Chris, can you reliably demonstrate the not waiting for the mount 
+problem?
 
 
+--------------030706080609090100070100
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-NOTICE: This email and any attachments are confidential. 
-They may contain legally privileged information or 
-copyright material. You must not read, copy, use or 
-disclose them without authorisation. If you are not an 
-intended recipient, please contact us at once by return 
-email and then delete both messages and all attachments.
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+  <title></title>
+</head>
+<body bgcolor="#ffffff" text="#000000">
+<br>
+<br>
+Ian Kent wrote:
+<blockquote cite="mid:1216615194.3093.8.camel@raven.themaw.net"
+ type="cite">
+  <pre wrap="">On Sun, 2008-07-20 at 20:41 -0700, Chris Walker wrote:
+  </pre>
+  <blockquote type="cite">
+    <pre wrap="">From jimc [07/20 15:31]:
+    </pre>
+    <blockquote type="cite">
+      <pre wrap="">Actually, only the sysop knows which is more important: doing the mount 
+storm to respond to stat() or statfs(), or avoiding the storm.
+      </pre>
+    </blockquote>
+    <pre wrap="">Agreed. In our case, we have 'heavily discouraged' use of /net on our
+big servers and we would prefer that statfs()/stat() waited for the
+automount to complete.
+    </pre>
+  </blockquote>
+  <pre wrap=""><!---->
+Just to be absolutely clear.
+
+The "browse" or "--ghost option isn't being used, in oder to avoid mount
+storms, but we still see stat(2) and statfs(2) (et. al.) not wait for a
+mount to complete.
+
+Is that right?
+Is anyone in a position to test a kernel patch?
+
+  </pre>
+</blockquote>
+I may be willing to try the patch, but first I need to see if I can
+recreate the problem reliably.&nbsp; If not, there isn't much use.&nbsp; I just
+know that on our "faster" servers, the programmers I work with have
+demonstrated the issue.&nbsp; I will need their help.&nbsp; I'll let know if I
+make head way.&nbsp; Thanks,<br>
+<br>
+Jon<br>
+<br>
+P.S. Chris, can you reliably demonstrate the not waiting for the mount
+problem?<br>
+<br>
+</body>
+</html>
+
+--------------030706080609090100070100--
+
+
+--===============1989262481602767571==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--===============1989262481602767571==--
+
