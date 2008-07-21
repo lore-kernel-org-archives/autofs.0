@@ -1,15 +1,19 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: Autofs doesn't look at second LDAP server
-Date: Mon, 21 Jul 2008 15:25:32 +0800
-Message-ID: <1216625133.3093.23.camel@raven.themaw.net>
-References: <BAC1D28A5AB852439A6914CA7AB4E63F05192E66@permls05.wde.woodside.com.au>
-	<1216614624.3093.0.camel@raven.themaw.net>
-	<BAC1D28A5AB852439A6914CA7AB4E63F05AD77CD@permls05.wde.woodside.com.au>
+Subject: Re: statfs() and autofs
+Date: Mon, 21 Jul 2008 15:35:35 +0800
+Message-ID: <1216625736.3093.33.camel@raven.themaw.net>
+References: <20080715204839.GU5858@pixar.com>
+	<1216179794.22783.46.camel@raven.themaw.net>
+	<487D855B.8000405@loran.name>
+	<Pine.LNX.4.64.0807201441330.3491@simba.math.ucla.edu>
+	<20080721034112.GU5858@pixar.com>
+	<1216615194.3093.8.camel@raven.themaw.net>
+	<488419CB.6090108@loran.name> <20080721055040.GX5858@pixar.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <BAC1D28A5AB852439A6914CA7AB4E63F05AD77CD@permls05.wde.woodside.com.au>
+In-Reply-To: <20080721055040.GX5858@pixar.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,65 +24,24 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: "Coe, Colin C. (Unix Engineer)" <Colin.Coe@woodside.com.au>
+To: Chris Walker <cwalker@pixar.com>
 Cc: autofs@linux.kernel.org
 
 
-On Mon, 2008-07-21 at 15:18 +0800, Coe, Colin C. (Unix Engineer) wrote:
-> It's not predictable.  But each machine that has failed has had aether as it's primary LDAP server rather than aer.
->  
-> We can go weeks without seeing the problem and then have several machines effected within a few days.
->  
-> We usually only see one machine fail a day but we only have a handful of EL5 machines (EL5 is affected only that I can see).
+On Sun, 2008-07-20 at 22:50 -0700, Chris Walker wrote:
+> From jonathan [07/20 22:08]:
+> > P.S. Chris, can you reliably demonstrate the not waiting for the mount 
+> > problem?
+> 
+> I can, but I'm a few revs back. I'll see if I can replicate on current
+> revs of linux and autofs.
 
-From the gdb trace it looks like the lookup context is getting clobbered
-but I can't see any way that can happen.
+It should be reproducible on any version of autofs and any kernel, if I
+understand correctly what is causing it. But, the real gotcha is stat(2)
+or statfs(2) are often accompanied by other system calls that will wait
+for the mount to complete. The mount can complete sometimes before but
+also sometimes after, and possibly independent of system call order (due
+to scheduling) so the problem should be intermittent and appear
+unpredictable.
 
-But I do see that I don't have any locking on the servers list which I'm
-still trying to understand how I could have possibly done. That's really
-dumb.
-
-So maybe the servers list is becoming corrupt sometime before the HUP
-signal. I can sent a patch to add that locking if your willing test it.
-
->  
-> CC
-> 
-> ________________________________
-> 
-> From: Ian Kent [mailto:raven@themaw.net]
-> Sent: Mon 7/21/2008 12:30 PM
-> To: Coe, Colin C. (Unix Engineer)
-> Cc: autofs@linux.kernel.org
-> Subject: Re: [autofs] Autofs doesn't look at second LDAP server
-> 
-> 
-> 
-> 
-> On Wed, 2008-07-16 at 09:20 +0800, Coe, Colin C. (Unix Engineer) wrote:
-> > Hi all
-> >
-> > I've noticed that, after a period of stability, autofs is dumping core
-> > again.
-> >
-> > The common thread is the time the core dumping happens, 4AM (give or
-> > take a few minutes) which is when our 'cron daily' process runs.  This
-> > 'cron daily' lives on an NFS mount that is in the auto_global map
-> > ('/nfs/appl server:/vol/oldserver_appl').
-> 
-> Are you able to duplicate this?
-> IOW, does it happen predicatably?
-> 
-> Ian
-> 
-> 
-> 
-> 
-> 
-> NOTICE: This email and any attachments are confidential. 
-> They may contain legally privileged information or 
-> copyright material. You must not read, copy, use or 
-> disclose them without authorisation. If you are not an 
-> intended recipient, please contact us at once by return 
-> email and then delete both messages and all attachments.
-> 
+Ian
