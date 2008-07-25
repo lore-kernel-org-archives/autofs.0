@@ -1,22 +1,12 @@
-From: Chris Walker <cwalker@pixar.com>
-Subject: Re: statfs() and autofs
-Date: Wed, 23 Jul 2008 14:39:54 -0700
-Message-ID: <20080723213953.GI31479@pixar.com>
-References: <20080715204839.GU5858@pixar.com>
-	<1216179794.22783.46.camel@raven.themaw.net>
-	<487D855B.8000405@loran.name>
-	<Pine.LNX.4.64.0807201441330.3491@simba.math.ucla.edu>
-	<20080721034112.GU5858@pixar.com>
-	<1216615194.3093.8.camel@raven.themaw.net>
-	<488419CB.6090108@loran.name> <20080721055040.GX5858@pixar.com>
-	<1216625736.3093.33.camel@raven.themaw.net>
-	<20080722163900.GB6362@pixar.com>
+From: Mike Marion <mmarion@qualcomm.com>
+Subject: "no hosts available"
+Date: Fri, 25 Jul 2008 15:44:30 -0700
+Message-ID: <20080725224430.GL13495@u20m2mm.qualcomm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20080722163900.GB6362@pixar.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -29,31 +19,23 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-From cwalker [07/22 10:20]:
-> From raven [07/21 00:39]:
-> > 
-> > On Sun, 2008-07-20 at 22:50 -0700, Chris Walker wrote:
-> > > From jonathan [07/20 22:08]:
-> > > > P.S. Chris, can you reliably demonstrate the not waiting for the mount 
-> > > > problem?
-> > > 
-> > > I can, but I'm a few revs back. I'll see if I can replicate on current
-> > > revs of linux and autofs.
-> > 
-> > It should be reproducible on any version of autofs and any kernel, if I
-> > understand correctly what is causing it. But, the real gotcha is stat(2)
-> > or statfs(2) are often accompanied by other system calls that will wait
-> > for the mount to complete. The mount can complete sometimes before but
-> > also sometimes after, and possibly independent of system call order (due
-> > to scheduling) so the problem should be intermittent and appear
-> > unpredictable.
-> 
-> I cannot reproduce this on fedora 9 (kernel: 2.6.25.6, autofs: autofs-5.0.3).
-> Maybe I'll do some git bisecting to see where it got fixed.
+Google didn't help much, nothing I see in RH's bugzilla, and I don't understand 
+the code enough to figure out... what are a couple ideas of what could trigger the
+following error on an attempted mount:
 
-Looks like git bisect only helps to find introduced bugs, but not where
-something got fixed. Oh well. I think we were going to upgrade to 2.6.25
-anyway... :)
+automount[32110]: mount_mount: mount(nfs): no hosts available
+
+Note, this is across a WAN connection to a filer at another site.. so
+could network issues do this?  Just trying to track down possible causes
+of periodic failures to mount.
+
+Will attempt to catch on a host with debug log vs verbose.
 
 -- 
-Chris Walker -- cwalker@pixar.com
+Mike Marion-Unix SysAdmin/Staff IT Engineer-http://www.qualcomm.com
+[Joe just pulled Antonio away from a beautiful woman he was talking to, to move
+a cabinet a tiny bit]
+Antonio: "We barely moved it!"   Joe: "Yeah I know, but it was askew!  Isn't it 
+amazing how something like that can throw off your whole day?"
+Antonio: "Yes, and you know I only wish I could stay and slap you senseless.. 
+but there's a goddess waiting for me in the terminal." -- Wings
