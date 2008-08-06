@@ -1,22 +1,11 @@
-From: Chris Walker <cwalker@pixar.com>
-Subject: Re: statfs() and autofs
-Date: Mon, 4 Aug 2008 10:17:53 -0700
-Message-ID: <20080804171753.GX848@pixar.com>
-References: <20080715204839.GU5858@pixar.com>
-	<1216179794.22783.46.camel@raven.themaw.net>
-	<487D855B.8000405@loran.name>
-	<Pine.LNX.4.64.0807201441330.3491@simba.math.ucla.edu>
-	<20080721034112.GU5858@pixar.com>
-	<1216615194.3093.8.camel@raven.themaw.net>
-	<488419CB.6090108@loran.name> <20080721055040.GX5858@pixar.com>
-	<1216625736.3093.33.camel@raven.themaw.net>
-	<20080722163900.GB6362@pixar.com>
+From: Nail El-Sourani <sourani@math.uni-muenster.de>
+Subject: program map | cifs | autofs4
+Date: Wed, 06 Aug 2008 16:58:18 +0200
+Message-ID: <4899BC0A.8020303@math.uni-muenster.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20080722163900.GB6362@pixar.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -29,31 +18,64 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-From cwalker [07/22 10:20]:
-> From raven [07/21 00:39]:
-> > 
-> > On Sun, 2008-07-20 at 22:50 -0700, Chris Walker wrote:
-> > > From jonathan [07/20 22:08]:
-> > > > P.S. Chris, can you reliably demonstrate the not waiting for the mount 
-> > > > problem?
-> > > 
-> > > I can, but I'm a few revs back. I'll see if I can replicate on current
-> > > revs of linux and autofs.
-> > 
-> > It should be reproducible on any version of autofs and any kernel, if I
-> > understand correctly what is causing it. But, the real gotcha is stat(2)
-> > or statfs(2) are often accompanied by other system calls that will wait
-> > for the mount to complete. The mount can complete sometimes before but
-> > also sometimes after, and possibly independent of system call order (due
-> > to scheduling) so the problem should be intermittent and appear
-> > unpredictable.
-> 
-> I cannot reproduce this on fedora 9 (kernel: 2.6.25.6, autofs: autofs-5.0.3).
-> Maybe I'll do some git bisecting to see where it got fixed.
+Hi Guys,
 
-Just closing the loop on this one--it turns out browsing was on.
-Disabling browsing (-nobrowse for each map in auto.master) corrected
-this behavior.
+maybe some of u gurus can help. This is a mixed environment, suse10.2 
+(so im stuck with autofs4), userinfo is stored in an ldap db.
 
--- 
-Chris Walker -- cwalker@pixar.com
+current auto.master
+# $Id: auto.master,v 1.1 2001/04/17 11:43:02 arvin Exp arvin $
+# Sample auto.master file
+# Format of this file:
+# mountpoint map options
+# Also see variable AUTOFS_OPTIONS in /etc/sysconfig/autofs
+# For details of the format look at autofs(8).
+/rz     ldap    nisMapName=auto_rz,ou=ivv5,dc=uni-muenster,dc=de
+/share  ldap    nisMapName=auto_packages,ou=ivv5,dc=uni-muenster,dc=de 
+-nosuid,hard,intr,rsize=8192,wsize=8192,tcp
+/u      ldap    nisMapName=auto_home,ou=ivv5,dc=uni-muenster,dc=de 
+-rw,hard,intr,nosuid,retry=2,rsize=8192,wsize=8192,tcp
+
+everything is working fine like this, but homes in /u/$username are 
+mounted via nfs. i want this to be mounted via cifs.
+
+so i changed the last line of auto.master to:
+/u /etc/auto.cifs
+
+compiled a pam_storepw module to save a credentials-file to 
+/var/run/pw/$user
+
+then wrote a auto.cifs file like this:
+____________________________________________________________________________
+#!/bin/bash
+key=$1
+username=$key
+userpass=from credentialsfile
+dom=MATH
+mountoptions=-fstype=cifs,file_mode=0644,dir_mode=0755,username=$username,password=$password,dom=$dom 
+
+echo "$username $mountoptions /$username ://sambaserver/$username
+_____________________________________________________________________________
+
+the sambaserver exports homes via /$username
+
+all i want is this to mount the home of user "test" to /u/test from 
+://sambaserver/test as soon as test logs in.
+
+this doesnt seem to work. i tried all possible combinations of the 
+echo-line in above auto.cifs, all i get is some weird mounts like home 
+getting mountet to /u/test/test oder /u/test/bin/test/test - totally 
+weird. what's the correct syntax? i thought the above as stated by manpage.
+
+i tried all this with a direct map as in:
+test 
+-fstype=cifs,file_mode=0644,dir_mode=0755,username=test,password=$password,dom=MATH 
+://sambaserver/tesst
+
+and it worked. where's the difference? putting the same syntax into a 
+program map gives me a program lookup error on syslog.
+
+this seems outta reach for me, any hints?
+
+sincerely,
+*nail
