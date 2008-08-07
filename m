@@ -1,11 +1,14 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 1/4] autofs4 - cleanup autofs mount type usage
-Date: Thu, 07 Aug 2008 19:40:06 +0800
-Message-ID: <20080807114002.4142.30417.stgit@web.messagingengine.com>
+Subject: [PATCH 2/4] autofs4 - track uid and gid of last mount
+	requester
+Date: Thu, 07 Aug 2008 19:40:14 +0800
+Message-ID: <20080807114012.4142.83607.stgit@web.messagingengine.com>
+References: <20080807114002.4142.30417.stgit@web.messagingengine.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <20080807114002.4142.30417.stgit@web.messagingengine.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,138 +22,88 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: Andrew Morton <akpm@linux-foundation.org>
 Cc: autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Usage of the AUTOFS_TYPE_* defines is a little confusing and
-appears inconsistent.
+Patch to track the uid and gid of the last process to request a mount
+for on an autofs dentry.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 
 ---
 
- fs/autofs4/autofs_i.h    |    6 ++----
- fs/autofs4/expire.c      |    2 +-
- fs/autofs4/inode.c       |    6 +++---
- fs/autofs4/waitq.c       |    8 ++++----
- include/linux/auto_fs4.h |    5 +++++
- 5 files changed, 15 insertions(+), 12 deletions(-)
+ fs/autofs4/autofs_i.h |    3 +++
+ fs/autofs4/inode.c    |    2 ++
+ fs/autofs4/waitq.c    |   34 ++++++++++++++++++++++++++++++++++
+ 3 files changed, 39 insertions(+), 0 deletions(-)
 
 
 diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
-index 69a2f5c..ea024d8 100644
+index ea024d8..fa76d18 100644
 --- a/fs/autofs4/autofs_i.h
 +++ b/fs/autofs4/autofs_i.h
-@@ -21,6 +21,8 @@
- #define AUTOFS_IOC_FIRST     AUTOFS_IOC_READY
- #define AUTOFS_IOC_COUNT     32
+@@ -63,6 +63,9 @@ struct autofs_info {
+ 	unsigned long last_used;
+ 	atomic_t count;
  
-+#define AUTOFS_TYPE_TRIGGER	(AUTOFS_TYPE_DIRECT|AUTOFS_TYPE_OFFSET)
++	uid_t uid;
++	gid_t gid;
 +
- #include <linux/kernel.h>
- #include <linux/slab.h>
- #include <linux/time.h>
-@@ -92,10 +94,6 @@ struct autofs_wait_queue {
+ 	mode_t	mode;
+ 	size_t	size;
  
- #define AUTOFS_SBI_MAGIC 0x6d4a556d
- 
--#define AUTOFS_TYPE_INDIRECT     0x0001
--#define AUTOFS_TYPE_DIRECT       0x0002
--#define AUTOFS_TYPE_OFFSET       0x0004
--
- struct autofs_sb_info {
- 	u32 magic;
- 	int pipefd;
-diff --git a/fs/autofs4/expire.c b/fs/autofs4/expire.c
-index cdabb79..e79dd09 100644
---- a/fs/autofs4/expire.c
-+++ b/fs/autofs4/expire.c
-@@ -479,7 +479,7 @@ int autofs4_expire_multi(struct super_block *sb, struct vfsmount *mnt,
- 	if (arg && get_user(do_now, arg))
- 		return -EFAULT;
- 
--	if (sbi->type & AUTOFS_TYPE_DIRECT)
-+	if (sbi->type & AUTOFS_TYPE_TRIGGER)
- 		dentry = autofs4_expire_direct(sb, mnt, sbi, do_now);
- 	else
- 		dentry = autofs4_expire_indirect(sb, mnt, sbi, do_now);
 diff --git a/fs/autofs4/inode.c b/fs/autofs4/inode.c
-index 7bb3e5b..9ca2d07 100644
+index 9ca2d07..9408507 100644
 --- a/fs/autofs4/inode.c
 +++ b/fs/autofs4/inode.c
-@@ -288,7 +288,7 @@ static int parse_options(char *options, int *pipefd, uid_t *uid, gid_t *gid,
- 			*type = AUTOFS_TYPE_DIRECT;
- 			break;
- 		case Opt_offset:
--			*type = AUTOFS_TYPE_DIRECT | AUTOFS_TYPE_OFFSET;
-+			*type = AUTOFS_TYPE_OFFSET;
- 			break;
- 		default:
- 			return 1;
-@@ -336,7 +336,7 @@ int autofs4_fill_super(struct super_block *s, void *data, int silent)
- 	sbi->sb = s;
- 	sbi->version = 0;
- 	sbi->sub_version = 0;
--	sbi->type = 0;
-+	sbi->type = AUTOFS_TYPE_INDIRECT;
- 	sbi->min_proto = 0;
- 	sbi->max_proto = 0;
- 	mutex_init(&sbi->wq_mutex);
-@@ -378,7 +378,7 @@ int autofs4_fill_super(struct super_block *s, void *data, int silent)
+@@ -53,6 +53,8 @@ struct autofs_info *autofs4_init_ino(struct autofs_info *ino,
+ 		atomic_set(&ino->count, 0);
  	}
  
- 	root_inode->i_fop = &autofs4_root_operations;
--	root_inode->i_op = sbi->type & AUTOFS_TYPE_DIRECT ?
-+	root_inode->i_op = sbi->type & AUTOFS_TYPE_TRIGGER ?
- 			&autofs4_direct_root_inode_operations :
- 			&autofs4_indirect_root_inode_operations;
++	ino->uid = 0;
++	ino->gid = 0;
+ 	ino->mode = mode;
+ 	ino->last_used = jiffies;
  
 diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
-index 35216d1..6d87bb1 100644
+index 6d87bb1..7c60c0b 100644
 --- a/fs/autofs4/waitq.c
 +++ b/fs/autofs4/waitq.c
-@@ -337,7 +337,7 @@ int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
- 		 * is very similar for indirect mounts except only dentrys
- 		 * in the root of the autofs file system may be negative.
- 		 */
--		if (sbi->type & (AUTOFS_TYPE_DIRECT|AUTOFS_TYPE_OFFSET))
-+		if (sbi->type & AUTOFS_TYPE_TRIGGER)
- 			return -ENOENT;
- 		else if (!IS_ROOT(dentry->d_parent))
- 			return -ENOENT;
-@@ -348,7 +348,7 @@ int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
- 		return -ENOMEM;
+@@ -457,6 +457,40 @@ int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
  
- 	/* If this is a direct mount request create a dummy name */
--	if (IS_ROOT(dentry) && (sbi->type & AUTOFS_TYPE_DIRECT))
-+	if (IS_ROOT(dentry) && sbi->type & AUTOFS_TYPE_TRIGGER)
- 		qstr.len = sprintf(name, "%p", dentry);
- 	else {
- 		qstr.len = autofs4_getpath(sbi, dentry, &name);
-@@ -406,11 +406,11 @@ int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
- 				type = autofs_ptype_expire_multi;
- 		} else {
- 			if (notify == NFY_MOUNT)
--				type = (sbi->type & AUTOFS_TYPE_DIRECT) ?
-+				type = (sbi->type & AUTOFS_TYPE_TRIGGER) ?
- 					autofs_ptype_missing_direct :
- 					 autofs_ptype_missing_indirect;
- 			else
--				type = (sbi->type & AUTOFS_TYPE_DIRECT) ?
-+				type = (sbi->type & AUTOFS_TYPE_TRIGGER) ?
- 					autofs_ptype_expire_direct :
- 					autofs_ptype_expire_indirect;
- 		}
-diff --git a/include/linux/auto_fs4.h b/include/linux/auto_fs4.h
-index b785c6f..aa96a04 100644
---- a/include/linux/auto_fs4.h
-+++ b/include/linux/auto_fs4.h
-@@ -29,6 +29,11 @@
- #define AUTOFS_EXP_IMMEDIATE		1
- #define AUTOFS_EXP_LEAVES		2
+ 	status = wq->status;
  
-+#define AUTOFS_TYPE_ANY			0x0000
-+#define AUTOFS_TYPE_INDIRECT		0x0001
-+#define AUTOFS_TYPE_DIRECT		0x0002
-+#define AUTOFS_TYPE_OFFSET		0x0004
++	/*
++	 * For direct and offset mounts we need to track the requestrer
++	 * uid and gid in the dentry info struct. This is so it can be
++	 * supplied, on request, by the misc device ioctl interface.
++	 * This is needed during daemon resatart when reconnecting
++	 * to existing, active, autofs mounts. The uid and gid (and
++	 * related string values) may be used for macro substitution
++	 * in autofs mount maps.
++	 */
++	if (!status) {
++		struct autofs_info *ino;
++		struct dentry *de = NULL;
 +
- /* Daemon notification packet types */
- enum autofs_notify {
- 	NFY_NONE,
++		/* direct mount or browsable map */
++		ino = autofs4_dentry_ino(dentry);
++		if (!ino) {
++			/* If not lookup actual dentry used */
++			de = d_lookup(dentry->d_parent, &dentry->d_name);
++			if (de)
++				ino = autofs4_dentry_ino(de);
++		}
++
++		/* Set mount requester */
++		if (ino) {
++			spin_lock(&sbi->fs_lock);
++			ino->uid = wq->uid;
++			ino->gid = wq->gid;
++			spin_unlock(&sbi->fs_lock);
++		}
++
++		if (de)
++			dput(de);
++	}
++
+ 	/* Are we the last process to need status? */
+ 	mutex_lock(&sbi->wq_mutex);
+ 	if (!--wq->wait_ctr)
