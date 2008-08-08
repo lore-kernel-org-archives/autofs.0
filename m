@@ -1,92 +1,123 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 3/4] autofs4 - devicer node
-	ioctl	docoumentation.
-Date: Fri, 08 Aug 2008 11:23:18 +0800
-Message-ID: <1218165799.17093.55.camel@raven.themaw.net>
+Subject: Re: [PATCH 2/4] autofs4 - track uid and gid of last mount requester
+Date: Fri, 08 Aug 2008 11:25:30 +0800
+Message-ID: <1218165931.17093.58.camel@raven.themaw.net>
 References: <20080807114002.4142.30417.stgit@web.messagingengine.com>
-	<20080807114021.4142.39621.stgit@web.messagingengine.com>
-	<Pine.LNX.4.64.0808070944460.18832@simba.math.ucla.edu>
+	 <20080807114012.4142.83607.stgit@web.messagingengine.com>
+	 <20080807134650.a6a51f7d.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.0808070944460.18832@simba.math.ucla.edu>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-To: Jim Carter <jimc@math.ucla.edu>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <20080807134650.a6a51f7d.akpm@linux-foundation.org>
+Sender: linux-fsdevel-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: autofs@linux.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, containers@lists.osdl.org
 
 
-On Thu, 2008-08-07 at 10:38 -0700, Jim Carter wrote:
-> On Thu, 7 Aug 2008, Ian Kent wrote:
+On Thu, 2008-08-07 at 13:46 -0700, Andrew Morton wrote:
+> On Thu, 07 Aug 2008 19:40:14 +0800
+> Ian Kent <raven@themaw.net> wrote:
 > 
-> > Patch to add documentation for the miscellaneous device module of
-> > autofs4.
+> > Patch to track the uid and gid of the last process to request a mount
+> > for on an autofs dentry.
 > 
-> > +AUTOFS_DEV_IOCTL_SETPIPEFD_CMD
-> > +------------------------------
+> pet peeve: changelog should not tell the reader that this is a "patch".
+> Because when someone is reading the changelog in the git repository,
+> they hopefully already know that.
+> 
+> > Signed-off-by: Ian Kent <raven@themaw.net>
+> > 
+> > ---
+> > 
+> >  fs/autofs4/autofs_i.h |    3 +++
+> >  fs/autofs4/inode.c    |    2 ++
+> >  fs/autofs4/waitq.c    |   34 ++++++++++++++++++++++++++++++++++
+> >  3 files changed, 39 insertions(+), 0 deletions(-)
+> > 
+> > 
+> > diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
+> > index ea024d8..fa76d18 100644
+> > --- a/fs/autofs4/autofs_i.h
+> > +++ b/fs/autofs4/autofs_i.h
+> > @@ -63,6 +63,9 @@ struct autofs_info {
+> >  	unsigned long last_used;
+> >  	atomic_t count;
+> >  
+> > +	uid_t uid;
+> > +	gid_t gid;
 > > +
-> > +Set the pipe file descriptor used for kernel communication to the daemon.
-> > +...In order to protect mounts against
-> > +incorrectly setting the pipe descriptor we also require that the autofs
-> > +mount be catatonic (see next call).
+> >  	mode_t	mode;
+> >  	size_t	size;
+> >  
+> > diff --git a/fs/autofs4/inode.c b/fs/autofs4/inode.c
+> > index 9ca2d07..9408507 100644
+> > --- a/fs/autofs4/inode.c
+> > +++ b/fs/autofs4/inode.c
+> > @@ -53,6 +53,8 @@ struct autofs_info *autofs4_init_ino(struct autofs_info *ino,
+> >  		atomic_set(&ino->count, 0);
+> >  	}
+> >  
+> > +	ino->uid = 0;
+> > +	ino->gid = 0;
+> >  	ino->mode = mode;
+> >  	ino->last_used = jiffies;
+> >  
+> > diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
+> > index 6d87bb1..7c60c0b 100644
+> > --- a/fs/autofs4/waitq.c
+> > +++ b/fs/autofs4/waitq.c
+> > @@ -457,6 +457,40 @@ int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
+> >  
+> >  	status = wq->status;
+> >  
+> > +	/*
+> > +	 * For direct and offset mounts we need to track the requestrer
+> 
+> typo which I'll fix.
+> 
+> > +	 * uid and gid in the dentry info struct. This is so it can be
+> > +	 * supplied, on request, by the misc device ioctl interface.
+> > +	 * This is needed during daemon resatart when reconnecting
+> > +	 * to existing, active, autofs mounts. The uid and gid (and
+> > +	 * related string values) may be used for macro substitution
+> > +	 * in autofs mount maps.
+> > +	 */
+> > +	if (!status) {
+> > +		struct autofs_info *ino;
+> > +		struct dentry *de = NULL;
 > > +
-> > +The call requires an initialized struct autofs_dev_ioctl with the
-> > +ioctlfd field set to the descriptor obtained from the open call...
-> 
-> > +AUTOFS_DEV_IOCTL_CATATONIC_CMD
-> > +------------------------------
+> > +		/* direct mount or browsable map */
+> > +		ino = autofs4_dentry_ino(dentry);
+> > +		if (!ino) {
+> > +			/* If not lookup actual dentry used */
+> > +			de = d_lookup(dentry->d_parent, &dentry->d_name);
+> > +			if (de)
+> > +				ino = autofs4_dentry_ino(de);
+> > +		}
 > > +
-> > +Make the autofs mount point catatonic...
+> > +		/* Set mount requester */
+> > +		if (ino) {
+> > +			spin_lock(&sbi->fs_lock);
+> > +			ino->uid = wq->uid;
+> > +			ino->gid = wq->gid;
+> > +			spin_unlock(&sbi->fs_lock);
+> > +		}
 > > +
-> > +The call requires an initialized struct autofs_dev_ioctl with the
-> > +ioctlfd field set to the descriptor obtained from the open call.
+> > +		if (de)
+> > +			dput(de);
+> > +	}
+> > +
 > 
-> I probably have it mixed up, which file descriptor is involved.  Suppose 
-> the former incarnation of the userspace daemon just dies (kill -9, etc.)  
-> It will not set any mount points catatonic, so the new incarnation needs 
-> to do it, like this:
-> 
->     const char* mtpt = "/net/whatever";
->     int len = strlen(mtpt);
->     if (len >= PATH_MAX) len = PATH_MAX - 1;
->     int fdlist[2];
->     int autoFD = open("/dev/autofs", flags);
->     struct autofs_dev_ioctl* parms = 
-> 	calloc(1, sizeof(struct autofs_dev_ioctl) + PATH_MAX);
->     parms->size = sizeof(struct autofs_dev_ioctl) + len + 1;
->     memcpy(parms->path, mtpt, len+1);
->     parms->ioctlfd = ?????;
->     ioctl(autoFD, AUTOFS_DEV_IOCTL_CATATONIC_CMD, parms);
->     socketpair(AF_UNIX, SOCK_DGRAM, 0, fdlist); 
->     parms>ioctlfd = fdlist[1];
->     ioctl(autoFD, AUTOFS_DEV_IOCTL_SETPIPEFD_CMD, parms);
+> Please remind me again why autofs's use of current->uid and
+> current->gid is not busted in the presence of PID namespaces, where
+> these things are no longer system-wide unique?
 
-This isn't quite how the interface is used.
+We didn't really get to the bottom of that last time I posted this but
+hopefully Serge will get right on this and we can sort out what, idf
+anything I need to do.
 
-> 
-> I don't see how userspace can unilaterally set the mount point catatonic, 
-> because it needs to set the mount point's file descriptor first, which can 
-> only be done if the mount point is already catatonic.
-> 
-> Perhaps the documentation could be changed to head off the kind of 
-> misunderstanding(s) I think I have here.
+Ian
 
-It's probably better to wait for the user space patches that check for
-and use this interface before we decide what changes are needed to the
-documentation. There is a library of routines that demonstrate how the
-interface is used. Give me a change to deal with the feedback on the
-kernel patches before I post the daemon patches.
 
-> 
-> James F. Carter          Voice 310 825 2897    FAX 310 206 6673
-> UCLA-Mathnet;  6115 MSA; 520 Portola Plaza; Los Angeles, CA, USA  90095-1555
-> Email: jimc@math.ucla.edu    http://www.math.ucla.edu/~jimc (q.v. for PGP key)
