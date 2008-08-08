@@ -1,82 +1,124 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 2/4] autofs4 - track uid and gid of last mount requester
-Date: Fri, 08 Aug 2008 12:44:02 +0800
-Message-ID: <1218170643.17093.88.camel@raven.themaw.net>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH 4/4] autofs4 - add miscelaneous device for ioctls
+Date: Thu, 7 Aug 2008 22:31:09 -0700
+Message-ID: <20080807223109.e67f46e4.akpm@linux-foundation.org>
 References: <20080807114002.4142.30417.stgit@web.messagingengine.com>
-	 <20080807114012.4142.83607.stgit@web.messagingengine.com>
-	 <20080807134650.a6a51f7d.akpm@linux-foundation.org>
-	 <20080807221242.GA27032@us.ibm.com>
-	 <1218167314.17093.79.camel@raven.themaw.net>
+	<20080807114030.4142.76568.stgit@web.messagingengine.com>
+	<20080807141041.e0d5cccc.akpm@linux-foundation.org>
+	<1218166760.17093.69.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <1218167314.17093.79.camel@raven.themaw.net>
+In-Reply-To: <1218166760.17093.69.camel@raven.themaw.net>
 Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: "Serge E. Hallyn" <serue@us.ibm.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, autofs@linux.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, containers@lists.osdl.org
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
+On Fri, 08 Aug 2008 11:39:19 +0800 Ian Kent <raven@themaw.net> wrote:
 
-On Fri, 2008-08-08 at 11:48 +0800, Ian Kent wrote:
+> 
+> On Thu, 2008-08-07 at 14:10 -0700, Andrew Morton wrote:
+> > On Thu, 07 Aug 2008 19:40:31 +0800
+> > Ian Kent <raven@themaw.net> wrote:
+> > >
+> > > Subject: [PATCH 4/4] autofs4 - add miscelaneous device for ioctls
+> > 
+> > I fixed that spello
+> > 
+> > > Patch to add a miscellaneous device to the autofs4 module for routing
+> > > ioctls. This provides the ability to obtain an ioctl file handle for
+> > > an autofs mount point that is possibly covered by another mount.
 > > > 
-> > > Please remind me again why autofs's use of current->uid and
-> > > current->gid is not busted in the presence of PID namespaces, where
-> > > these things are no longer system-wide unique?
+> > > The actual problem with autofs is that it can't reconnect to existing
+> > > mounts. Immediately one things of just adding the ability to remount
+> > > autofs file systems would solve it, but alas, that can't work. This is
+> > > because autofs direct mounts and the implementation of "on demand mount
+> > > and expire" of nested mount trees have the file system mounted on top of
+> > > the mount trigger dentry.
+> > > 
+> > > To resolve this a miscellaneous device node for routing ioctl commands
+> > > to these mount points has been implemented in the autofs4 kernel module
+> > > and a library added to autofs. This provides the ability to open a file
+> > > descriptor for these over mounted autofs mount points.
+> > > 
+> > > Please refer to Documentation/filesystems/autofs4-mount-control.txt for
+> > > a discussion of the problem, implementation alternatives considered and
+> > > a description of the interface.
+> > > 
+> > >
+> > > ...
+> > >
+> > > +
+> > > +#define AUTOFS_DEV_IOCTL_SIZE	sizeof(struct autofs_dev_ioctl)
+> > > +
+> > > +typedef int (*ioctl_fn)(struct file *,
+> > > +struct autofs_sb_info *, struct autofs_dev_ioctl *);
 > > 
-> > I actually don't see what the autofs4_waitq->pid is used for.  It's
-> > copied from current into wq->pid at autofs4_wait, and into a packet to
-> > send to userspace (I assume) at autofs4_notify_daemon.
+> > Weird layout, which I fixed.
+> 
+> Auuuhh .. didn't want to do this. I personally like declarations like
+> this to be on a single line but checkpatch.pl complained about it.
+
+Well, that's why it's a checkpatch warning, not an error.  The way I
+look at checkpatch is that it is for detecting possible mistakes.  Did
+you _really_ mean to do that?  Usually the answer is "nope, and I
+wouldn't have noticed unless you told me".  But sometimes the answer is
+"yes, I really did mean that".
+
+I routinely ignore checkpatch 80-col warnings, unless they are flagging
+something which is just egregiously revolting.
+
+Anyway, that's an aside.  Given that you decided to fit that typedef
+into 80 cols, the way you did it was weird ;)
+
+> > > +static void autofs_dev_ioctl_fd_install(unsigned int fd, struct file *file)
+> > > +{
+> > > +	struct files_struct *files = current->files;
+> > > +	struct fdtable *fdt;
+> > > +
+> > > +	spin_lock(&files->file_lock);
+> > > +	fdt = files_fdtable(files);
+> > > +	rcu_assign_pointer(fdt->fd[fd], file);
+> > > +	FD_SET(fd, fdt->close_on_exec);
+> > > +	spin_unlock(&files->file_lock);
+> > > +}
 > > 
-> > So as long as a daemon can serve multiple pid namespaces (which
-> > doubtless it can), the pid could be confusing (or erroneous) for the
-> > daemon.
-> 
-> Your point is well taken.
-> 
-> The pid is used purely for logging purposes to aid in debugging in user
-> space. I'm not sure it is worth worrying about it too much as the daemon
-> has no business interfering with user space processes it is not the
-> owner of.
-> 
+> > urgh, it's bad to have done a copy-n-paste on fd_install() here.  It
+> > means that if we go and change the locking in core kernel (quite
+> > possible) then people won't udpate this code.
 > > 
-> > If I'm remotely right about how the pid is being used, then the thing to
-> > do would be to 
-> > 	1. store the daemon's pid namespace  (would that belong in
-> > 	the autofs_sb_info?)
->  
-> Yep.
-> 
-> > 	2. store the task_pid(current) in the waitqueue
-> > 	3. retrieve the pid_t for the waiting task in the daemon's
-> > 	pid namespace, and put that into the packet at
-> > 	autofs4_notify_daemon.
+> > Do we have alternative here?  Can we set close_on_exec outside the lock
+> > and just call fd_install()?  Probably not.
 > > 
-> > I realize this patch was about the *uids*, but the pids seem more
-> > urgent.
+> > Can we export set_close_on_exec() then call that after having called
+> > fd_install()?  I think so.
+> > 
+> > But not this, please.
 > 
-> OK, I get it.
-> I'll have a go at doing this for completeness.
-
-On second thoughts I'm not sure about this.
-
-The pid that is logged needs to relate to a process in the name space of
-the one that caused the mount to be done.
-
-For example, suppose a GUI user finds mounts never expiring, then we get
-a debug log to try and identify the culprit. So the pid should
-correspond to a process that the user sees (So I guess in the namespace
-of that user).
-
-This is the only reason I added the pid to the request packet in the
-first place.
-
-Please correct me if my understanding of this is not right.
-
-Ian
-
-
+> No problem.
+> You mentioned this last time as well.
 > 
-> Ian
+> Since there are a couple of possible approaches and I wasn't sure which
+> way to go I thought I'd post it as is and get feedback then make it a
+> followup patch.
 > 
+> Could the pthreads user space daemon exec something between fd_install()
+> and set_close_on_exec()? 
+
+Gee, I don't know, it would depend on the context.
+
+Is that a private file*?  Was it just created, and is there no
+possibility that any other thread can be sharing it anyway?  If so,
+there's no problem.
+
+> Perhaps there are some other alternative approaches to this.
+> 
+> Suggestions?
+
+I don't know enough about autofs nor about what problem you're
+attacking here to be able to say, sorry.  I don't even know why
+close_on_exec is being set?
+
 
