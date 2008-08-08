@@ -1,7 +1,7 @@
 From: "Jim Dennis" <jdennis@cadence.com>
 Subject: Re: autofs Digest, Vol 65, Issue 7
-Date: Fri, 8 Aug 2008 12:19:26 -0700
-Message-ID: <920746F6DF728345915EF4D6DA610D0F0584C770@MAILSJ2.global.cadence.com>
+Date: Fri, 8 Aug 2008 12:21:46 -0700
+Message-ID: <920746F6DF728345915EF4D6DA610D0F0584C771@MAILSJ2.global.cadence.com>
 References: <mailman.1.1218196801.27507.autofs@linux.kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
