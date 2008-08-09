@@ -1,192 +1,61 @@
-From: "Serge E. Hallyn" <serue@us.ibm.com>
-Subject: Re: [PATCH 2/4] autofs4 - track uid and gid of last mount requester
-Date: Sat, 9 Aug 2008 08:31:43 -0500
-Message-ID: <20080809133143.GA11490@us.ibm.com>
-References: <20080807114002.4142.30417.stgit@web.messagingengine.com> <20080807114012.4142.83607.stgit@web.messagingengine.com> <20080807134650.a6a51f7d.akpm@linux-foundation.org> <20080807221242.GA27032@us.ibm.com> <1218167314.17093.79.camel@raven.themaw.net> <1218170643.17093.88.camel@raven.themaw.net> <20080808145824.GB10179@us.ibm.com> <1218261950.2994.37.camel@raven.themaw.net>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [PATCH 1/4] autofs4 - cleanup autofs mount type usage
+Date: Sat, 09 Aug 2008 23:17:18 +0800
+Message-ID: <1218295039.2994.49.camel@raven.themaw.net>
+References: <20080807114002.4142.30417.stgit@web.messagingengine.com>
+	 <20080809124739.GA16308@infradead.org>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1218261950.2994.37.camel@raven.themaw.net>
+In-Reply-To: <20080809124739.GA16308@infradead.org>
 Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Ian Kent <raven@themaw.net>
-Cc: Andrew Morton <akpm@linux-foundation.org>, autofs@linux.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, containers@lists.osdl.org
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, autofs mailing list <autofs@linux.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-Quoting Ian Kent (raven@themaw.net):
+
+On Sat, 2008-08-09 at 08:47 -0400, Christoph Hellwig wrote:
+> On Thu, Aug 07, 2008 at 07:40:06PM +0800, Ian Kent wrote:
+> > Usage of the AUTOFS_TYPE_* defines is a little confusing and
+> > appears inconsistent.
 > 
-> On Fri, 2008-08-08 at 09:58 -0500, Serge E. Hallyn wrote:
-> > Quoting Ian Kent (raven@themaw.net):
-> > > 
-> > > On Fri, 2008-08-08 at 11:48 +0800, Ian Kent wrote:
-> > > > > > 
-> > > > > > Please remind me again why autofs's use of current->uid and
-> > > > > > current->gid is not busted in the presence of PID namespaces, where
-> > > > > > these things are no longer system-wide unique?
-> > > > > 
-> > > > > I actually don't see what the autofs4_waitq->pid is used for.  It's
-> > > > > copied from current into wq->pid at autofs4_wait, and into a packet to
-> > > > > send to userspace (I assume) at autofs4_notify_daemon.
-> > > > > 
-> > > > > So as long as a daemon can serve multiple pid namespaces (which
-> > > > > doubtless it can), the pid could be confusing (or erroneous) for the
-> > > > > daemon.
-> > > > 
-> > > > Your point is well taken.
-> > > > 
-> > > > The pid is used purely for logging purposes to aid in debugging in user
-> > > > space. I'm not sure it is worth worrying about it too much as the daemon
-> > > > has no business interfering with user space processes it is not the
-> > > > owner of.
-> > > > 
-> > > > > 
-> > > > > If I'm remotely right about how the pid is being used, then the thing to
-> > > > > do would be to 
-> > > > > 	1. store the daemon's pid namespace  (would that belong in
-> > > > > 	the autofs_sb_info?)
-> > > >  
-> > > > Yep.
-> > > > 
-> > > > > 	2. store the task_pid(current) in the waitqueue
-> > > > > 	3. retrieve the pid_t for the waiting task in the daemon's
-> > > > > 	pid namespace, and put that into the packet at
-> > > > > 	autofs4_notify_daemon.
-> > > > > 
-> > > > > I realize this patch was about the *uids*, but the pids seem more
-> > > > > urgent.
-> > > > 
-> > > > OK, I get it.
-> > > > I'll have a go at doing this for completeness.
-> > > 
-> > > On second thoughts I'm not sure about this.
-> > > 
-> > > The pid that is logged needs to relate to a process in the name space of
-> > > the one that caused the mount to be done.
-> > > 
-> > > For example, suppose a GUI user finds mounts never expiring, then we get
-> > > a debug log to try and identify the culprit. So the pid should
-> > > correspond to a process that the user sees (So I guess in the namespace
-> > > of that user).
-> > > 
-> > > This is the only reason I added the pid to the request packet in the
-> > > first place.
-> > > 
-> > > Please correct me if my understanding of this is not right.
-> > 
-> > It's not wrong, but we just have to think through which value is the
-> > most useful.
-> > 
-> > Any process executing clone(CLONE_NEWPID) (with CAP_SYS_ADMIN) can start
-> > an application in a new pid namespace.  So imagine the user at the
-> > desktop clicking some button which runs an application in a new pid
-> > namespace.  Now if the user starts an xterm and runs ps -ef, the pid
-> > values he'll see for the tasks in that new namespace will not be the
-> > same as those which the application sees for itself, and not the same as
-> > those which, right now, autofs would report.
-> > 
-> > For instance, if I start a shell in a new pid namespace, then within the
-> > new pid namespace ps -ef gives me:
-> > 
-> > sh-3.2# ps -ef
-> > UID        PID  PPID  C STIME TTY          TIME CMD
-> > root         1     0  0 10:54 pts/1    00:00:00 /bin/sh
-> > root         5     1  0 10:54 pts/1    00:00:00 /bin/sleep 100
-> > root         6     1  0 10:54 pts/1    00:00:00 ps -ef
-> > 
-> > but from another shell as the same user, partial output of ps -ef
-> > gives me:
-> > 
-> > root      2877  2876  0 10:54 pts/1    00:00:00 /bin/sh
-> > root      2881  2877  0 10:54 pts/1    00:00:00 /bin/sleep 100
-> > 
-> > And so what we're trying to decide is whether autofs should send
-> > pid 5 or pid 2881 for a message about the "/bin/sleep 100" task.
-> > 
-> > In fact, if the user clicks that button twice, chances are both
-> > instances of the application will have the same pid values for each
-> > process in the application.  So now if autofs sends a message to the
-> > user about the application, the user cannot tell which process is at
-> > fault.
-> > 
-> > Autofs will be sending the user some message about 'process 5'.  The
-> > user won't know whether it means "the real" pid 5, [watchdog/0],
-> > pid 5 in the first instance of the application, or pid 5 in the
-> > second instance.
-> > 
-> > Now it's true that the user's xterm may still be in a different
-> > (descendent) pidns of the autofs daemon.  But we can't expect
-> > the autofs daemon to do pid_t translation for the user, so I
-> > think what we have to aim for is making sure that the values
-> > reported are unique within the pidns of the autofs daemon.  And
-> > that means sending back either the pid values in the autofs
-> > daemon's pid namespace, or using the top-level pid_ts, that is,
-> > the pid values in the init namespace, which will be unique
-> > on the whole system.
-> > 
-> > Sorry this turned out long-winded, I hope it makes sense.
-> > And if I'm just showing a misunderstanding of what you're doing,
-> > please do correct me :)
+> Not enough of an explanation for this patch.
+
+OK, I'll re-submit this with an updated description.
+
 > 
-> Yes, it's a bit tricky.
+> It does:
 > 
-> In reality this information is only logged when debug logging is enabled
-> and generally is only used by myself or others that maintain autofs. But
-> getting sensible logging is important so it's worth sorting this out.
-> 
-> I think it would be best to use the pid of the highest view namespace
-> which I think is the gist of what you said in the beginning. Then (at
-> some future time), if there was a user space API, the daemon could
-> report additional pid information related to subordinate pid namespaces.
-> I am assuming that, to be useful, an autofs daemon that is able to serve
-> multiple namespaces would be higher up in the tree. But the forgoing
-> description sounds like there's not a necessarily a hierarchic structure
-> to pid namespaces?
+>  - move AUTOFS_TYPE_INDIRECT/AUTOFS_TYPE_DIRECT/AUTOFS_TYPE_OFFSET
+>    to include/linux/auto_fs4.h.  Obviously okay but should mentioned
+>    in the changelog.
 
-It is a simple tree, but of course if you have 3 autofs daemons in
-separate containers, and one on the main host, then the pid namespaces for
-each of the 3 container autofs daemons will be siblings, so they won't
-have meaningful translations for each others' pids, while pids in
-each container will have meaningful translations in the host system's
-pid namespace (the init_pid_ns).
+So that user space can use consistent definitions.
 
-> The other issue that comes up is, after storing (a reference to) the
-> daemon namespace in the super block info struct a "kill -9" on the
-> daemon would render the namespace invalid. At the moment, when this
-> happens the write on the kernel pipe fails causing the autofs mount to
-> become catatonic, but for the namespace aware case the namespace is now
-> invalid so we won't get that far. I could make the mount catatonic when
+>  - add a new, unused AUTOFS_TYPE_ANY constant. Why?
 
-I figured you would grab a reference to the pid namespace, so it
-wouldn't go away until you released the superblock or registered a new
-daemon for it.
+It is used by the later ioctl implementation patch.
 
-> I detect that the namespace has become invalid but I'm not sure how to
-> check it. Is there a way I can to do this? Would there be any issues
-> with namespace (pid) reuse for such a check?
+>  - add a new AUTOFS_TYPE_TRIGGER and use it instead of
+>    AUTOFS_TYPE_DIRECT or in one single case
+>    (AUTOFS_TYPE_DIRECT|AUTOFS_TYPE_OFFSET).  Definitively needs a good
+>    explanation.
 
-I'm not sure what you mean - but struct pid is never reused so long
-as you have a reference to one.  So you could store
-get_pid(task_pid(autofs_daemon)) and check whether the autofs daemon's
-pid has changed that way, I suppose.  But grabbing a struct pid reference
-does not pin the pid_ns iirc.
+The direct and offset autofs mount types are, to a large extent, treated
+the same way in the kernel module but are used a little differently in
+user space. Previously, an offset mount had it's type set to
+AUTOFS_TYPE_DIRECT|AUTOFS_TYPE_OFFSET but, the subsequent ioctl
+implementation patch needs to be able to identify all three types of
+autofs mount distinctly.
 
-Maybe you're right about just getting the top-level pid_nr.
+>  - replaces one use of sbi->type = 0 with AUTOFS_TYPE_INDIRECT (0x0001).
+>    Why?
 
-> Sorry to seem so thick about this but the implications of namespaces for
-> autofs are quite new to me and it is important that autofs "plays well
-> with others" as the development progresses.
->
-> Anyway, assuming I'm on the right track I'll poke around further and see
-> if I can work out how I to do this.
+Previously, a type of 0 was implicitly assumed to be type
+AUTOFS_TYPE_INDIRECT but that was not clear and doesn't lend itself to
+clearly defined logic when trying to locate a specific type of autofs
+mount in the later patch in the series.
 
-Yes I think you're on the right track.  And registering the top-level
-pid may be the simplest thing to do.  You'd get that by grabbing
-pid_nr(task_pid(task)).  Then you don't have to do any sort of pid
-namespace storing at all.
+Ian
 
-The other approach has its appeal, but maybe it's not worth the
-complications at this point.
-
-thanks,
--serge
