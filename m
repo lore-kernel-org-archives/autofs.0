@@ -1,7 +1,7 @@
-From: Ondrej Valousek <webserv@s3group.cz>
-Subject: Automounter hangs...
-Date: Mon, 11 Aug 2008 15:11:55 +0200
-Message-ID: <48A03A9B.2070402@s3group.cz>
+From: Joe Pruett <joey@clean.q7.com>
+Subject: something changed from 4 to 5
+Date: Tue, 12 Aug 2008 09:53:11 -0700 (PDT)
+Message-ID: <alpine.LRH.1.10.0808120940350.4317@q7.q7.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,32 +18,48 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-Hi List,
+i have been using mounts like this:
 
-I have strange error (RHEL-4, autofs 4.1.3-234). Using automounter to
-mount home directories for users. After a while, /home got unusable and
-I see the following:
+auto.master:
+/disks	auto.disks
+/home	auto.home
 
-root     17345 20453  0 10:33 ?        00:00:00 [automount] <defunct>
-root     17348 20453  0 10:33 ?        00:00:00 [automount] <defunct>
-root     20453     1  0 Aug05 ?        00:00:15 /usr/sbin/automount
---timeout=60 --debug /home yp auto.home -rw
+auto.disks:
+server.1	server:/disk/1
+server.2	server:/disk/2
+other.1		other:/disk/1
+other.2		other:/disk/2
 
+auto.home:
+user1		:/disks/server.1/user1
+user2		:/disks/server.2/user2
+user3		:/disks/other.1/user3
+user4		:/disks/other.2/user4
 
-I can not kill any of the processes listed (tried even kill -9).
-The last I can see in /var/log/messages is the following:
-Aug 11 10:32:39 login01 automount[17100]: expired /home/login
-Aug 11 10:33:01 login01 automount[20453]: attempting to mount entry
-/home/login
-Aug 11 10:33:01 login01 automount[17185]: mount(nfs): mounted
-belfast:/vol/users/users/login on /home/login
-Aug 11 10:33:09 login01 automount[17346]: expired /home/localmgr
-Aug 11 10:33:09 login01 automount[17348]: expired /home/support
+this is to avoid ending up with 100s or 1000s of nfs mounts and instead 
+just have a few nfs mounts and then lots of bind mounts.  it has been 
+working pretty well until the last few months.  i am using a mix of centos 
+4 and centos 5 systems, and they all are using the supplied autofs 5 
+binaries (autofs5-5.0.1-0.rc2.55.el4_6.2 and autofs-5.0.1-0.rc2.88).
 
-Maybe, the processes 17346 and 17348 failed to unmount /home/support and
-/home/localmgr. This perhaps caused even the parent process 20453 to hang.
+what has started happening is that occasionally an automount child will 
+get stuck and all access to /disks/something will stop.  other /disks/ 
+entries are fine.  when i strace the confused child, it shows exit_group
+and then exits and then things are fine.  i think the parameter to 
+exit_group is 4, but i haven't kept a log (i will now).
 
-Has anyone seen anything similar? Is there any solution to this?
-Thanks,
+so here are a few questions:
 
-Ondrej
+1. is there a better way to do this?  in the old sun days, it was like:
+
+user1	server:/disk/1:user1
+user2	server:/disk/1:user2
+
+and server:/disk/1 would only get mounted once with symlinks for user1 and 
+user2.
+
+2. i see some comments about submounts in the 5.0.3 changelog.  is this a 
+submount?  or is that something different?
+
+3. is this a known issue?  aside from installing a 5.0.3 version (which 
+i'd like to avoid), might there be a suggested workaround?
