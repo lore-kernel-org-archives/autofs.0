@@ -1,12 +1,12 @@
-From: Thanh Tran <ttran7700@yahoo.com>
-Subject: Automount Not Working Under Fedora 8
-Date: Tue, 12 Aug 2008 07:21:44 -0700 (PDT)
-Message-ID: <17100.60638.qm@web54301.mail.re2.yahoo.com>
-Reply-To: ttran7700@yahoo.com
+From: Carsten Aulbert <carsten.aulbert@aei.mpg.de>
+Subject: Re: Automounter losing track of mounts...
+Date: Wed, 13 Aug 2008 21:04:18 +0200
+Message-ID: <48A33032.1060506@aei.mpg.de>
+References: <A2ECBF49F352C24F9DF65BB529DCBC70187A58BD@hqemmail01.nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="------------030401020600000505050602"
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <A2ECBF49F352C24F9DF65BB529DCBC70187A58BD@hqemmail01.nvidia.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,4 +19,61 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-I've been working with Fedora 5.  I got automounter to work perfectly.  I recently moved to Fedora 8.  Now I can't get automount to do anything.  After moving to Fedora 8, I did a yum install autofs.  I noticed Fedora 5 uses version 4 of autofs while 5 uses version 5.  I modified my auto.master to match the one on Fedora 5.  It should work but does not.  I think the auto.master is not loading.  How can I get it working?  Is there a tutorial for version 5 of autofs?  I tried the wiki and it looks pretty empty.  Judging by the difference in the autofs scripts, the two versions must be very different.
+This is a multi-part message in MIME format.
+--------------030401020600000505050602
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+
+
+Stephen Biggs wrote:
+
+> 
+> This seems to indicate failure to lock /etc/mtab (??) and then failing
+> to retry correctly, but setting its mount table as if it succeeded.
+
+We had a related issue quite a bit and /etc/mtab and /proc/mounts went
+out of sync. Right now we are symlinking /etc/mtab to /proc/mounts. It
+works, but I don't know if that's the best solution for it.
+
+HTH
+
+Carsten
+
+--------------030401020600000505050602
+Content-Type: text/x-vcard; charset=utf-8;
+ name="carsten_aulbert.vcf"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="carsten_aulbert.vcf"
+
+begin:vcard
+fn:Carsten Aulbert
+n:Aulbert;Carsten
+org:Max Planck Institute for Gravitational Physics;Observational Relativity and Cosmology
+adr:;;Callinstrasse 38;Hannover;;30167;Germany
+email;internet:carsten.aulbert@aei.mpg.de
+title:Dr
+tel;work:+49 511 762 17185
+tel;fax:+49 511 762 17193
+tel;home:+49 511 220 4537
+tel;cell:+49 1577 398 7963
+x-mozilla-html:FALSE
+url:http://www.aei.mpg.de/
+version:2.1
+end:vcard
+
+
+--------------030401020600000505050602
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--------------030401020600000505050602--
+
