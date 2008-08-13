@@ -1,14 +1,14 @@
-From: Joe Pruett <joey@clean.q7.com>
-Subject: Re: something changed from 4 to 5
-Date: Tue, 12 Aug 2008 21:11:00 -0700 (PDT)
-Message-ID: <alpine.LRH.1.10.0808122106340.23639@q7.q7.com>
-References: <alpine.LRH.1.10.0808120940350.4317@q7.q7.com>
-	<1218596289.3148.8.camel@raven.themaw.net>
+From: Thanh Tran <ttran7700@yahoo.com>
+Subject: Re: Fedora 8 And Autofs
+Date: Wed, 13 Aug 2008 05:43:10 -0700 (PDT)
+Message-ID: <274390.64191.qm@web54304.mail.re2.yahoo.com>
+References: <1218595897.3148.3.camel@raven.themaw.net>
+Reply-To: ttran7700@yahoo.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1218596289.3148.8.camel@raven.themaw.net>
+In-Reply-To: <1218595897.3148.3.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,33 +19,85 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-> Install the autofs-debuginfo package and when you see this use gdb to
-> get a backtrace of the running threads.
->
-> gdb -p <automount pid> /usr/sbin/automount
-> gdb> thr a a bt
+Thanks for the reply.
 
-will do.
+My auto.master file looks like this.
 
->> 1. is there a better way to do this?  in the old sun days, it was like:
->>
->> user1	server:/disk/1:user1
->> user2	server:/disk/1:user2
->
-> When was this syntax used, I don't remember it?
-> And exactly how is it supposed to work?
+/mnt/cdrom /etc/auto.cdrom --timeout 2
+/mnt/floppy /etc/auto.floppy --timeout 1
+/mnt/usbdrive /etc/auto.usbdrive --timeout 2
 
-that was the original automount in sunos.  i'm pretty sure that sun 
-deprecated it as well and just treated the extra : as a slash.  but it 
-worked almost exactly like i want.  a single nfs mount is made, no matter 
-how many subdirectories were referenced.  i can't recall exactly how the 
-mounts were laid out to make it all happen.  but it was extremely useful 
-in the days when a system could only handle 32 or some really small number 
-of nfs mounted file systems.  that isn't such an issue today, but i still 
-worry about it for a mail or web server that may touch 1000s of home 
-directories at once so that is why i use the recursive automounts.  it 
-also makes df output much more readable.  like i say, it has been working 
-pretty well until recently (i think when i started using autofs v5).
+My auto.cdrom looks like this.
+
+cdrom    -fstype=iso9660,user,suid   :/dev/cdrom
+
+I did a lshal -monitor to make sure the physical devices were at least being detected when I inserted them to the USB.  
+
+I did a "/etc/rc.d/init.d/autofs status" under Fedora 8 and only got this.
+
+automount (pid 1524) is running...
+
+I did the same call under Fedora 5 and got this.
+
+Configured Mount Points:
+------------------------
+/usr/sbin/automount --timeout=60 /mnt/cdrom file /etc/auto.cdrom
+/usr/sbin/automount --timeout=60 /mnt/floppy file /etc/auto.floppy
+/usr/sbin/automount --timeout=60 /mnt/usbdrive file /etc/auto.usbdrive
+
+Active Mount Points:
+--------------------
+/usr/sbin/automount --timeout=60 /mnt/cdrom file /etc/auto.cdrom
+/usr/sbin/automount --timeout=60 /mnt/floppy file /etc/auto.floppy
+/usr/sbin/automount --timeout=60 /mnt/usbdrive file /etc/auto.usbdrive
+
+This output leads me to believe the auto.master is not loading correctly under Fedora 8.  
+
+Thanks.
+
+--- On Tue, 8/12/08, Ian Kent <raven@themaw.net> wrote:
+
+> From: Ian Kent <raven@themaw.net>
+> Subject: Re: [autofs] Fedora 8 And Autofs
+> To: ttran7700@yahoo.com
+> Cc: autofs@linux.kernel.org
+> Date: Tuesday, August 12, 2008, 10:51 PM
+> On Tue, 2008-08-12 at 16:03 -0700, Thanh Tran wrote:
+> > I'm sorry if this is a repost.  I'm not sure
+> if the 1st one got
+> > through.  I've been using autofs just fine on
+> Fedora 5.  I recently
+> > upgraded to Fedora 8.  I ran yum install autofs to get
+> the latest.
+> > Then, I updated my auto.master file to match my old
+> one under Fedora
+> 
+> So what is in your auto.master?
+> 
+> >  5.  It does not seem to work.  The autofs does not
+> seem to load my
+> > master mount file.  I checked hal and it's happy
+> as a clam.  It sees
+> 
+> Any messages in the system log.
+> What has hal got to do with this?
+> 
+> >  new devices being added when I plug my usb cdrom and
+> usb memory
+> > stick.  I looked at the autofs script in /etc/init.d
+> and compared it
+> > to the one on Fedora 5 and they totally different. 
+> Could someone
+> > please direct me to a tutorial?  I never had this much
+> trouble on
+> > Fedora 5.
+> > 
+> > 
+> >       
+> > 
+> > _______________________________________________
+> > autofs mailing list
+> > autofs@linux.kernel.org
+> > http://linux.kernel.org/mailman/listinfo/autofs
