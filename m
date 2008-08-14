@@ -1,13 +1,15 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: Fedora 8 And Autofs
-Date: Fri, 15 Aug 2008 01:39:32 +0800
-Message-ID: <1218735574.3216.11.camel@raven.themaw.net>
-References: <66342.23825.qm@web54301.mail.re2.yahoo.com>
+Subject: Re: Automounter losing track of mounts...
+Date: Fri, 15 Aug 2008 01:42:24 +0800
+Message-ID: <1218735745.3216.13.camel@raven.themaw.net>
+References: <A2ECBF49F352C24F9DF65BB529DCBC70187A58BD@hqemmail01.nvidia.com>
+	<1218691003.27280.92.camel@raven.themaw.net>
+	<A2ECBF49F352C24F9DF65BB529DCBC70187A58C9@hqemmail01.nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <66342.23825.qm@web54301.mail.re2.yahoo.com>
+In-Reply-To: <A2ECBF49F352C24F9DF65BB529DCBC70187A58C9@hqemmail01.nvidia.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,202 +20,88 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: ttran7700@yahoo.com
+To: Stephen Biggs <sbiggs@nvidia.com>
 Cc: autofs@linux.kernel.org
 
 
-On Thu, 2008-08-14 at 09:07 -0700, Thanh Tran wrote:
-> > And where is the auto.master, that you believe should be
-> > used, located?
+On Thu, 2008-08-14 at 10:14 -0700, Stephen Biggs wrote:
+> > -----Original Message-----
+> > From: Ian Kent [mailto:raven@themaw.net] 
+> > Sent: Wednesday, August 13, 2008 10:17 PM
+> > To: Stephen Biggs
+> > Cc: autofs@linux.kernel.org
+> > Subject: Re: [autofs] Automounter losing track of mounts...
+> > 
+> > 
+> > On Wed, 2008-08-13 at 09:42 -0700, Stephen Biggs wrote:
+> > > I am running Linux kernel version 2.6.24 and automounter 5.0.3 with 
+> > > all patches from the kernel.org repository as of 29 June 2008 
+> > > (Actually 30 June 2008 due to international date issues 
+> > with Ian being 
+> > > in Australia and me in the USA).
+> > > 
+> > > We came across a strange issue where the automounter seems 
+> > to report 
+> > > an automounted mount point being expired and unmounted without 
+> > > problems and the directory is removed, but the next time it 
+> > tries to 
+> > > remount it, the remount fails because it says it's already 
+> > mounted... 
+> > > But the directory isn't there.  "umount -a" clears up this problem.
+> > > 
+> > > FWIW, there is also this error:
+> > > "spawn_mount: mount failed with error code 16, retrying with the -f 
+> > > option"
+> > > 
+> > > This seems to indicate failure to lock /etc/mtab (??) and 
+> > then failing 
+> > > to retry correctly, but setting its mount table as if it succeeded.
+> > 
+> > It does imply that.
+> > It means that the mount(8) claimed that the mtab wasn't 
+> > updated during the mount so we retry the mount with the "-f" 
+> > option to give mount(8) a chance to do the update.
+> > 
+> > But if the mtab lock is really failing you should be seeing 
+> > messages in the log from mount(8).
 > 
-> It's in /etc/auto.master
+> Perhaps. It could even be a bug in the mount userland software. But, in
+> any case, the automounter should handle this correctly and not update
+> its tables if the mount doesn't succeed for any reason. That seems to be
+> the real problem here.
 
-So you say but it it's not being parsed and mounted.
-Anything in the system log?
-And, what about the debug log I asked for.
+What tables?
+Keeping the mtab up to date in mounts' job not autofs.
 
 > 
-> I'm expecting my cdrom to mount to /mnt/cdrom.  I have the same rules
-> for other drives.  When mounted, the cdrom would be
-> on /mnt/cdrom/cdrom.  Kind of strange naming but should still work.
+> Is the automounter checking the failure of the "mount -f" spawn also and
+> dealing with its tables accordingly?
 > 
-> My /etc/nsswitch.conf file contains the following.  I removed the comments.
+> > 
+> > The other possibility is a kernel bug where a second mount 
+> > request comes in immediately following a successful mount. I 
+> > can provide an updated kernel patch that should resolve that.
 > 
-> passwd:     files
-> shadow:     files
-> group:      files
-> hosts:      files dns
-> bootparams: nisplus [NOTFOUND=return] files
+> I don't think that we can use a kernel patch for this due to us having a
+> few versions of the kernel on lots of systems.  
 > 
-> ethers:     files
-> netmasks:   files
-> networks:   files
-> protocols:  files
-> rpc:        files
-> services:   files
-> netgroup:   nisplus
-> publickey:  nisplus
-> automount:  files nisplus
-> aliases:    files nisplus
+> > 
+> > Are you using any additional autofs kernel patches with your kernel?
 > 
-> My options for autofs contain the following.
+> No patches to the kernel - straight vanilla, sorry for any confusion in
+> how I worded it above; only daemon patches and those as of 29 June 2008.
 > 
-> MASTER_MAP_NAME="auto.master"
-> TIMEOUT=300
-> BROWSE_MODE="no"
+> There are no kernel patches provided in the tarball 'patch' directory
+> for kernel versions after version 2.6.23.
 > 
-> Everything else was commented out.  
-> 
-> Thanks for all the help.  I'm still working on the jmoyer thing.  Maybe, I'll see something there.
-> 
-> 
-> > > --- On Thu, 8/14/08, Thanh Tran
-> > <ttran7700@yahoo.com> wrote:
-> > > 
-> > > > From: Thanh Tran <ttran7700@yahoo.com>
-> > > > Subject: Re: [autofs] Fedora 8 And Autofs
-> > > > To: "Ian Kent" <raven@themaw.net>
-> > > > Cc: autofs@linux.kernel.org
-> > > > Date: Thursday, August 14, 2008, 8:55 AM
-> > > > Thank you for your reply.  I'm using autofs
-> > because my
-> > > > system is stripped down.  I'm not running any
-> > GUI's.
-> > > >  It's all command lines for me.  Only
-> > esseintial
-> > > > services and apps were installed.  I did the same
-> > thing
-> > > > under Fedora 5 and didn't have any problems. 
-> > Perhaps,
-> > > > I'm missing a service that autofs needs???
-> > > > 
-> > > > 
-> > > > --- On Thu, 8/14/08, Ian Kent
-> > <raven@themaw.net>
-> > > > wrote:
-> > > > 
-> > > > > From: Ian Kent <raven@themaw.net>
-> > > > > Subject: Re: [autofs] Fedora 8 And Autofs
-> > > > > To: ttran7700@yahoo.com
-> > > > > Cc: autofs@linux.kernel.org
-> > > > > Date: Thursday, August 14, 2008, 1:00 AM
-> > > > > On Wed, 2008-08-13 at 05:43 -0700, Thanh
-> > Tran wrote:
-> > > > > > Thanks for the reply.
-> > > > > > 
-> > > > > > My auto.master file looks like this.
-> > > > > > 
-> > > > > > /mnt/cdrom /etc/auto.cdrom --timeout 2
-> > > > > > /mnt/floppy /etc/auto.floppy --timeout
-> > 1
-> > > > > > /mnt/usbdrive /etc/auto.usbdrive
-> > --timeout 2
-> > > > > > 
-> > > > > > My auto.cdrom looks like this.
-> > > > > > 
-> > > > > > cdrom    -fstype=iso9660,user,suid  
-> > :/dev/cdrom
-> > > > > > 
-> > > > > > I did a lshal -monitor to make sure the
-> > physical
-> > > > > devices were at least being detected when I
-> > inserted
-> > > > them to
-> > > > > the USB.  
-> > > > > 
-> > > > > And I suppose you've configured Gnome to
-> > not mount
-> > > > > these removable
-> > > > > devices for you when they are become
-> > available?
-> > > > > 
-> > > > > Fact is that GUI handling of removable
-> > devices is
-> > > > usually
-> > > > > better than
-> > > > > using autofs for these, but I guess you use
-> > autofs
-> > > > rather
-> > > > > than the GUI
-> > > > > for a reason.
-> > > > > 
-> > > > > > 
-> > > > > > I did a "/etc/rc.d/init.d/autofs
-> > > > status"
-> > > > > under Fedora 8 and only got this.
-> > > > > > 
-> > > > > > automount (pid 1524) is running...
-> > > > > > 
-> > > > > > I did the same call under Fedora 5 and
-> > got this.
-> > > > > > 
-> > > > > > Configured Mount Points:
-> > > > > > ------------------------
-> > > > > > /usr/sbin/automount --timeout=60
-> > /mnt/cdrom file
-> > > > > /etc/auto.cdrom
-> > > > > > /usr/sbin/automount --timeout=60
-> > /mnt/floppy file
-> > > > > /etc/auto.floppy
-> > > > > > /usr/sbin/automount --timeout=60
-> > /mnt/usbdrive
-> > > > file
-> > > > > /etc/auto.usbdrive
-> > > > > > 
-> > > > > > Active Mount Points:
-> > > > > > --------------------
-> > > > > > /usr/sbin/automount --timeout=60
-> > /mnt/cdrom file
-> > > > > /etc/auto.cdrom
-> > > > > > /usr/sbin/automount --timeout=60
-> > /mnt/floppy file
-> > > > > /etc/auto.floppy
-> > > > > > /usr/sbin/automount --timeout=60
-> > /mnt/usbdrive
-> > > > file
-> > > > > /etc/auto.usbdrive
-> > > > > > 
-> > > > > > This output leads me to believe the
-> > auto.master
-> > > > is not
-> > > > > loading correctly under Fedora 8.  
-> > > > > 
-> > > > > There isn't a simple way for the init
-> > script to
-> > > > get
-> > > > > this information
-> > > > > from version 5 yet. You can "cat
-> > > > /proc/mounts|grep
-> > > > > autofs" if you want
-> > > > > to see what autofs mounts have been made but
-> > there are
-> > > > no
-> > > > > individual
-> > > > > processes any more. Having the init script
-> > interrogate
-> > > > > /proc/mounts was
-> > > > > considered at one stage but that hasn't
-> > been done
-> > > > > because we would
-> > > > > rather get the information from the daemon.
-> > > > > 
-> > > > > Ian
-> > > > 
-> > > > 
-> > > >       
-> > > > 
-> > > > _______________________________________________
-> > > > autofs mailing list
-> > > > autofs@linux.kernel.org
-> > > > http://linux.kernel.org/mailman/listinfo/autofs
-> > > 
-> > > 
-> > >       
-> > > 
-> > > _______________________________________________
-> > > autofs mailing list
-> > > autofs@linux.kernel.org
-> > > http://linux.kernel.org/mailman/listinfo/autofs
-> 
-> 
->       
+> > 
+> > Ian
+> > 
+> > 
+> > 
+> -----------------------------------------------------------------------------------
+> This email message is for the sole use of the intended recipient(s) and may contain
+> confidential information.  Any unauthorized review, use, disclosure or distribution
+> is prohibited.  If you are not the intended recipient, please contact the sender by
+> reply email and destroy all copies of the original message.
+> -----------------------------------------------------------------------------------
