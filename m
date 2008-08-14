@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: Fedora 8 And Autofs
-Date: Thu, 14 Aug 2008 22:14:29 +0800
-Message-ID: <1218723270.3216.1.camel@raven.themaw.net>
+Date: Thu, 14 Aug 2008 22:16:27 +0800
+Message-ID: <1218723388.3216.4.camel@raven.themaw.net>
 References: <62560.18090.qm@web54304.mail.re2.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,16 +23,7 @@ Cc: autofs@linux.kernel.org
 
 
 On Thu, 2008-08-14 at 05:55 -0700, Thanh Tran wrote:
-> Thank you for your reply.  I'm using autofs because my system is
-> stripped down.  I'm not running any GUI's.  It's all command lines for
-> me.  Only esseintial services and apps were installed.  I did the same
-> thing under Fedora 5 and didn't have any problems.  Perhaps, I'm
-> missing a service that autofs needs???
-
-OK, then get a debug log by following the instructions at
-http://people.redhat.com/jmoyer and we'll see if we can see what's going
-on.
-
+> Thank you for your reply.  I'm using autofs because my system is stripped down.  I'm not running any GUI's.  It's all command lines for me.  Only esseintial services and apps were installed.  I did the same thing under Fedora 5 and didn't have any problems.  Perhaps, I'm missing a service that autofs needs???
 > 
 > 
 > --- On Thu, 8/14/08, Ian Kent <raven@themaw.net> wrote:
@@ -50,6 +41,11 @@ on.
 > > > /mnt/cdrom /etc/auto.cdrom --timeout 2
 > > > /mnt/floppy /etc/auto.floppy --timeout 1
 > > > /mnt/usbdrive /etc/auto.usbdrive --timeout 2
+
+Hang on.
+So you expect to access the cdrom as directory /mnt/cdrom/cdrom?
+And so on for the other devices, right.
+
 > > > 
 > > > My auto.cdrom looks like this.
 > > > 
