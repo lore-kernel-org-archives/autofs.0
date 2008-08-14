@@ -1,12 +1,13 @@
-From: "Stephen Biggs" <sbiggs@nvidia.com>
-Subject: Automounter losing track of mounts...
-Date: Wed, 13 Aug 2008 09:42:37 -0700
-Message-ID: <A2ECBF49F352C24F9DF65BB529DCBC70187A58BD@hqemmail01.nvidia.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: Fedora 8 And Autofs
+Date: Thu, 14 Aug 2008 13:00:40 +0800
+Message-ID: <1218690041.27280.82.camel@raven.themaw.net>
+References: <274390.64191.qm@web54304.mail.re2.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <274390.64191.qm@web54304.mail.re2.yahoo.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,30 +18,58 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: ttran7700@yahoo.com
+Cc: autofs@linux.kernel.org
 
-I am running Linux kernel version 2.6.24 and automounter 5.0.3 with all
-patches from the kernel.org repository as of 29 June 2008 (Actually 30
-June 2008 due to international date issues with Ian being in Australia
-and me in the USA).
 
-We came across a strange issue where the automounter seems to report an
-automounted mount point being expired and unmounted without problems and
-the directory is removed, but the next time it tries to remount it, the
-remount fails because it says it's already mounted... But the directory
-isn't there.  "umount -a" clears up this problem.
+On Wed, 2008-08-13 at 05:43 -0700, Thanh Tran wrote:
+> Thanks for the reply.
+> 
+> My auto.master file looks like this.
+> 
+> /mnt/cdrom /etc/auto.cdrom --timeout 2
+> /mnt/floppy /etc/auto.floppy --timeout 1
+> /mnt/usbdrive /etc/auto.usbdrive --timeout 2
+> 
+> My auto.cdrom looks like this.
+> 
+> cdrom    -fstype=iso9660,user,suid   :/dev/cdrom
+> 
+> I did a lshal -monitor to make sure the physical devices were at least being detected when I inserted them to the USB.  
 
-FWIW, there is also this error:
-"spawn_mount: mount failed with error code 16, retrying with the -f
-option"
+And I suppose you've configured Gnome to not mount these removable
+devices for you when they are become available?
 
-This seems to indicate failure to lock /etc/mtab (??) and then failing
-to retry correctly, but setting its mount table as if it succeeded.
+Fact is that GUI handling of removable devices is usually better than
+using autofs for these, but I guess you use autofs rather than the GUI
+for a reason.
 
-Is this already in a patch somewhere or is this a fresh bug?
------------------------------------------------------------------------------------
-This email message is for the sole use of the intended recipient(s) and may contain
-confidential information.  Any unauthorized review, use, disclosure or distribution
-is prohibited.  If you are not the intended recipient, please contact the sender by
-reply email and destroy all copies of the original message.
------------------------------------------------------------------------------------
+> 
+> I did a "/etc/rc.d/init.d/autofs status" under Fedora 8 and only got this.
+> 
+> automount (pid 1524) is running...
+> 
+> I did the same call under Fedora 5 and got this.
+> 
+> Configured Mount Points:
+> ------------------------
+> /usr/sbin/automount --timeout=60 /mnt/cdrom file /etc/auto.cdrom
+> /usr/sbin/automount --timeout=60 /mnt/floppy file /etc/auto.floppy
+> /usr/sbin/automount --timeout=60 /mnt/usbdrive file /etc/auto.usbdrive
+> 
+> Active Mount Points:
+> --------------------
+> /usr/sbin/automount --timeout=60 /mnt/cdrom file /etc/auto.cdrom
+> /usr/sbin/automount --timeout=60 /mnt/floppy file /etc/auto.floppy
+> /usr/sbin/automount --timeout=60 /mnt/usbdrive file /etc/auto.usbdrive
+> 
+> This output leads me to believe the auto.master is not loading correctly under Fedora 8.  
+
+There isn't a simple way for the init script to get this information
+from version 5 yet. You can "cat /proc/mounts|grep autofs" if you want
+to see what autofs mounts have been made but there are no individual
+processes any more. Having the init script interrogate /proc/mounts was
+considered at one stage but that hasn't been done because we would
+rather get the information from the daemon.
+
+Ian
