@@ -1,13 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: Fedora 8 And Autofs
-Date: Thu, 14 Aug 2008 13:00:40 +0800
-Message-ID: <1218690041.27280.82.camel@raven.themaw.net>
-References: <274390.64191.qm@web54304.mail.re2.yahoo.com>
+Subject: Re: Automounter losing track of mounts...
+Date: Thu, 14 Aug 2008 13:16:43 +0800
+Message-ID: <1218691003.27280.92.camel@raven.themaw.net>
+References: <A2ECBF49F352C24F9DF65BB529DCBC70187A58BD@hqemmail01.nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <274390.64191.qm@web54304.mail.re2.yahoo.com>
+In-Reply-To: <A2ECBF49F352C24F9DF65BB529DCBC70187A58BD@hqemmail01.nvidia.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,58 +18,41 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: ttran7700@yahoo.com
+To: Stephen Biggs <sbiggs@nvidia.com>
 Cc: autofs@linux.kernel.org
 
 
-On Wed, 2008-08-13 at 05:43 -0700, Thanh Tran wrote:
-> Thanks for the reply.
+On Wed, 2008-08-13 at 09:42 -0700, Stephen Biggs wrote:
+> I am running Linux kernel version 2.6.24 and automounter 5.0.3 with all
+> patches from the kernel.org repository as of 29 June 2008 (Actually 30
+> June 2008 due to international date issues with Ian being in Australia
+> and me in the USA).
 > 
-> My auto.master file looks like this.
+> We came across a strange issue where the automounter seems to report an
+> automounted mount point being expired and unmounted without problems and
+> the directory is removed, but the next time it tries to remount it, the
+> remount fails because it says it's already mounted... But the directory
+> isn't there.  "umount -a" clears up this problem.
 > 
-> /mnt/cdrom /etc/auto.cdrom --timeout 2
-> /mnt/floppy /etc/auto.floppy --timeout 1
-> /mnt/usbdrive /etc/auto.usbdrive --timeout 2
+> FWIW, there is also this error:
+> "spawn_mount: mount failed with error code 16, retrying with the -f
+> option"
 > 
-> My auto.cdrom looks like this.
-> 
-> cdrom    -fstype=iso9660,user,suid   :/dev/cdrom
-> 
-> I did a lshal -monitor to make sure the physical devices were at least being detected when I inserted them to the USB.  
+> This seems to indicate failure to lock /etc/mtab (??) and then failing
+> to retry correctly, but setting its mount table as if it succeeded.
 
-And I suppose you've configured Gnome to not mount these removable
-devices for you when they are become available?
+It does imply that.
+It means that the mount(8) claimed that the mtab wasn't updated during
+the mount so we retry the mount with the "-f" option to give mount(8) a
+chance to do the update.
 
-Fact is that GUI handling of removable devices is usually better than
-using autofs for these, but I guess you use autofs rather than the GUI
-for a reason.
+But if the mtab lock is really failing you should be seeing messages in
+the log from mount(8).
 
-> 
-> I did a "/etc/rc.d/init.d/autofs status" under Fedora 8 and only got this.
-> 
-> automount (pid 1524) is running...
-> 
-> I did the same call under Fedora 5 and got this.
-> 
-> Configured Mount Points:
-> ------------------------
-> /usr/sbin/automount --timeout=60 /mnt/cdrom file /etc/auto.cdrom
-> /usr/sbin/automount --timeout=60 /mnt/floppy file /etc/auto.floppy
-> /usr/sbin/automount --timeout=60 /mnt/usbdrive file /etc/auto.usbdrive
-> 
-> Active Mount Points:
-> --------------------
-> /usr/sbin/automount --timeout=60 /mnt/cdrom file /etc/auto.cdrom
-> /usr/sbin/automount --timeout=60 /mnt/floppy file /etc/auto.floppy
-> /usr/sbin/automount --timeout=60 /mnt/usbdrive file /etc/auto.usbdrive
-> 
-> This output leads me to believe the auto.master is not loading correctly under Fedora 8.  
+The other possibility is a kernel bug where a second mount request comes
+in immediately following a successful mount. I can provide an updated
+kernel patch that should resolve that.
 
-There isn't a simple way for the init script to get this information
-from version 5 yet. You can "cat /proc/mounts|grep autofs" if you want
-to see what autofs mounts have been made but there are no individual
-processes any more. Having the init script interrogate /proc/mounts was
-considered at one stage but that hasn't been done because we would
-rather get the information from the daemon.
+Are you using any additional autofs kernel patches with your kernel?
 
 Ian
