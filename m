@@ -1,13 +1,14 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: broken mount
-Date: Fri, 15 Aug 2008 19:50:04 +0800
-Message-ID: <1218801005.12073.9.camel@raven.themaw.net>
-References: <1218733121.10481.20.camel@vesuv.TechFak.Uni-Bielefeld.DE>
+From: Thanh Tran <ttran7700@yahoo.com>
+Subject: Re: Fedora 8 And Autofs SOLVED!!
+Date: Fri, 15 Aug 2008 06:22:13 -0700 (PDT)
+Message-ID: <797320.57650.qm@web54306.mail.re2.yahoo.com>
+References: <48A493C7.7030305@ssa.crane.navy.mil>
+Reply-To: ttran7700@yahoo.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1218733121.10481.20.camel@vesuv.TechFak.Uni-Bielefeld.DE>
+In-Reply-To: <48A493C7.7030305@ssa.crane.navy.mil>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,40 +19,6 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Lukas Kolbe <lukas@einfachkaffee.de>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-
-On Thu, 2008-08-14 at 18:58 +0200, Lukas Kolbe wrote:
-> Hi all,
-> 
-> I obviously  have a broken /etc/mtab locking. mount says there are 1280
-> mounts of this kind:
-> 
-> filesrv:/export/support/vol/adm/share on /tmp/autoMcOAUm type nfs4
-> filesrv:/export/support/vol/adm/share on /tmp/auto2pnUBs type nfs4
-> filesrv:/export/support/vol/adm/share on /tmp/autovVvZv2 type nfs4
-> 
-> consulting /proc/mounts, none(!) of them actually exist. 
-
-Urrrmmm .. what have I done to nfs4 mounts?
-
-That looks like it's being done by
-autofs-5.0.3-fix-multi-mount-race.patch
-
-> I don't really know which other list better to contact for this, sorry :(.
-> 
-> The util-linux we use is version 2.12r from debian etch with the patch
-> from the autofs source already applied (it is supposed to
-> fix /etc/mtab-locking in mount, right?).
-
-Is "mount --move" supported with 2.12r?
-What does the man page say?
-
-> 
-> Our system is currently a bit of a mess, but since this is a prudiction
-> system we can't do much about it at the moment.
-> 
-> autofs is version 5.0.3, with all patches from kernel.org applied. Any
-> help?
-> 
+After a lot of digging and lot of help from Ian, I have solved the problem.  It might not be the best answer, but it works good enough for now.  In my auto.master file I reference several map files (one for cdrom's, one for usb HD/solid state memory, and one for floopy).  After examining the debug output from the service, I noticed only one of the map files was being read.  My solution was to combine the contents of all the map files into one file.  I also had an error when referencing a usb device.  I didn't realize Fedora 8 maps usb drives to /dev/sdb1.  I always used sda1 under Fedora 5.  I'm not sure why autofs version 5 didn't let me reference more than one map file in my auto.master.  Thanks for all the help.
