@@ -1,14 +1,14 @@
 From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: Is Autofs 5 Slower Than 4
-Date: Wed, 20 Aug 2008 11:06:15 -0400
-Message-ID: <x4963pvybdk.fsf@segfault.boston.devel.redhat.com>
-References: <241046.64511.qm@web54306.mail.re2.yahoo.com>
+Subject: Re: Auto Unmount???
+Date: Wed, 20 Aug 2008 11:32:12 -0400
+Message-ID: <x49skszwvlv.fsf@segfault.boston.devel.redhat.com>
+References: <933512.68167.qm@web54307.mail.re2.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <241046.64511.qm@web54306.mail.re2.yahoo.com> (Thanh Tran's
-	message of "Wed, 20 Aug 2008 08:00:12 -0700 (PDT)")
+In-Reply-To: <933512.68167.qm@web54307.mail.re2.yahoo.com> (Thanh Tran's
+	message of "Wed, 20 Aug 2008 08:20:47 -0700 (PDT)")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,18 +24,13 @@ Cc: autofs@linux.kernel.org
 
 Thanh Tran <ttran7700@yahoo.com> writes:
 
-> I upgraded my entire OS from Fedora 5 to 8.  By slow, I mean around 20
-> seconds to detect and mount.  There are too many variables.  I was
-> hoping it would be a simple polling flag that could be switched in
-> autofs.  I can live with the slower time.  I did notice that it took a
-> long time only when I physically removed the drive and re-inserted the
-> drive.  When I use the "umount" command and not remove the drive, I
-> can quickly change directory back to drive and it mounts in like 2
-> seconds at most.  Thanks for the help.
+> I did notice some timeout values in my sysconf/autofs.  I thought
+> those flags set the amount of time autofs would try to mount something
+> before giving up.  Which flag sets the timeout?  Perhaps, you mean the
+> option flag?  Thanks.
 
-I'm still a little unclear on your use case.  Are you sure you're using
-autofs to mount your (usb?) drive?  This is typically handled by hal in
-newer distributions.
+The timeout specifies the length of inactivity before a mount is
+expired.  Please see the man page for auto.master.
 
 Cheers,
 
