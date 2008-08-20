@@ -1,14 +1,14 @@
 From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: Auto Unmount???
-Date: Wed, 20 Aug 2008 10:06:28 -0400
-Message-ID: <x49ljyrye57.fsf@segfault.boston.devel.redhat.com>
-References: <337607.86418.qm@web54303.mail.re2.yahoo.com>
+Subject: Re: Is Autofs 5 Slower Than 4
+Date: Wed, 20 Aug 2008 10:07:36 -0400
+Message-ID: <x49hc9fye3b.fsf@segfault.boston.devel.redhat.com>
+References: <750043.92565.qm@web54305.mail.re2.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <337607.86418.qm@web54303.mail.re2.yahoo.com> (Thanh Tran's
-	message of "Mon, 18 Aug 2008 11:53:08 -0700 (PDT)")
+In-Reply-To: <750043.92565.qm@web54305.mail.re2.yahoo.com> (Thanh Tran's
+	message of "Tue, 19 Aug 2008 11:16:42 -0700 (PDT)")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,12 +24,15 @@ Cc: autofs@linux.kernel.org
 
 Thanh Tran <ttran7700@yahoo.com> writes:
 
-> Is auto unmounting supported in autofs version 5?  If so, how do you set the timeout?
+> The Autofs automounting was never blazing fast.  However, autofs 5
+> seems much slower than the previous version.  It takes a long time for
+> autofs to mount my detachable drives.  It eventually happens; it just
+> takes a long time.  Is there a way to improve this speed?  Thanks.
 
-You can either set it per mount point or globally.  Per mount point
-requires a --timeout=X on the line for the mount point in the master
-map.  Globally, it can be set in /etc/sysconfig/autofs (on systems that
-use the sysconfig directory).
+Could you quantify this?  What exactly are you doing?  Are you sure
+autofs is the cause of the sluggishness?  Did you upgrade your entire
+operating system or just autofs from version 4 to 5?  Can you provide a
+debug log?
 
 Cheers,
 
