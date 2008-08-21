@@ -1,14 +1,11 @@
-From: Thanh Tran <ttran7700@yahoo.com>
-Subject: Re: Is Autofs 5 Slower Than 4
-Date: Wed, 20 Aug 2008 09:38:33 -0700 (PDT)
-Message-ID: <823599.53712.qm@web54303.mail.re2.yahoo.com>
-References: <Pine.LNX.4.64.0808200851290.24770@simba.math.ucla.edu>
-Reply-To: ttran7700@yahoo.com
+From: jblaine@kickflop.net
+Subject: LDAP-based "auto.net" for /net
+Date: Thu, 21 Aug 2008 04:22:31 -0700 (PDT)
+Message-ID: <39967.129.83.31.3.1219317751.squirrel@webmail.kickflop.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.0808200851290.24770@simba.math.ucla.edu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,91 +16,15 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jim Carter <jimc@math.ucla.edu>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-Thanks for all the cool info.
+If anyone has been successful in getting /net/hostname
+automounting working with LDAP-based autofs maps (not
+a local /etc/auto.net file), I would love to see your
+LDIF information showing how you configured it.
 
-In the past, I have tried to run lshal -monitor.  HAL seems to detect my devices just fine and in good speed.  I'll try some of your suggestions.
+Thanks
 
-> (the ending /. makes sure that the command cannot finish
-> until the referent 
-> is actually mounted -- with "ls
-
-I never realized you could do this.  Beats the heck out of sending the command over and over until the thing is finally mounted.
-
-
---- On Wed, 8/20/08, Jim Carter <jimc@math.ucla.edu> wrote:
-
-> From: Jim Carter <jimc@math.ucla.edu>
-> Subject: Re: [autofs] Is Autofs 5 Slower Than 4
-> To: "Thanh Tran" <ttran7700@yahoo.com>
-> Cc: "Jeff Moyer" <jmoyer@redhat.com>, autofs@linux.kernel.org
-> Date: Wednesday, August 20, 2008, 12:28 PM
-> On Wed, 20 Aug 2008, Thanh Tran wrote:
-> 
-> > I upgraded my entire OS from Fedora 5 to 8.  By slow,
-> I mean around 20 
-> > seconds to detect and mount.  There are too many
-> variables.  I was hoping 
-> > it would be a simple polling flag that could be
-> switched in autofs.  I 
-> > can live with the slower time.  I did notice that it
-> took a long time 
-> > only when I physically removed the drive and
-> re-inserted the drive.  
-> > When I use the "umount" command and not
-> remove the drive, I can quickly 
-> > change directory back to drive and it mounts in like 2
-> seconds at most.  
-> > Thanks for the help.
-> 
-> It sounds like the issue is with hotplug -- automount
-> can't mount a drive 
-> when the kernel doesn't admit that it exists.  If you
-> could capture syslog 
-> traffic from the kernel at the "debug" level, you
-> could see from the 
-> timestamps exactly how long it took to get the USB device
-> alive enough to 
-> be mounted.  Also, I can easily imagine a race condition in
-> which the 
-> device is partially hotplugged, enough that the mount
-> command doesn't fail 
-> but does get stuck in some kind of timeout.  If you wanted
-> to put a lot of 
-> work into the project, you could do this:
-> 
-> Starting with the device unmounted and removed, insert it
-> and 
-> simultaneously press enter on a command like this:
->     time /bin/sh -c "sleep 1 ; ls -ld
-> /media/myusbdrive/."
-> (the ending /. makes sure that the command cannot finish
-> until the referent 
-> is actually mounted -- with "ls
-> /media/myusbdrive" you wonder if an 
-> optimization might deliver only confirmation that the mount
-> point is in the 
-> /media directory.)  Unmount and repeat, varying the sleep
-> time from 1 to 20 
-> secs, and see if there's a specific time, probably
-> about 5 secs, where 
-> the long extra delay does not happen.
-> 
-> Jeff Moyer mentioned that most people use HAL and friends
-> to mount 
-> hotplugged volumes.  I've written up a small
-> "howto" on this topic.  See 
-> "Jim Carter's Bugfixes", 
-> http://www.math.ucla.edu/~jimc/documents/bugfix.html
-> about halfway through, the item titled "Automatic
-> Volume Mounting Without 
-> KDE or Gnome", and the items following.
-> 
-> James F. Carter          Voice 310 825 2897    FAX 310 206
-> 6673
-> UCLA-Mathnet;  6115 MSA; 520 Portola Plaza; Los Angeles,
-> CA, USA  90095-1555
-> Email: jimc@math.ucla.edu    http://www.math.ucla.edu/~jimc
-> (q.v. for PGP key)
+PS: wiki.autofs.net might as well be taken off the net.
+    It contains absolutely nothing of worth other than
+    a link to the mailing list stuff.
