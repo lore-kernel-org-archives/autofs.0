@@ -1,13 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: Not correctly mount SMB shares ending in $
-Date: Wed, 10 Sep 2008 11:49:46 +0800
-Message-ID: <1221018586.3030.63.camel@raven.themaw.net>
-References: <48C5F518.9010800@edcint.co.nz>
+Subject: Re: 5.0.3 oddity with LDAP map
+Date: Wed, 10 Sep 2008 11:54:50 +0800
+Message-ID: <1221018890.3030.66.camel@raven.themaw.net>
+References: <20080909220416.GB22997@u20m2mm.qualcomm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <48C5F518.9010800@edcint.co.nz>
+In-Reply-To: <20080909220416.GB22997@u20m2mm.qualcomm.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,29 +18,30 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Matthew Jurgens <autofs@edcint.co.nz>
-Cc: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
+To: Mike Marion <mmarion@qualcomm.com>
+Cc: autofs@kernel.org
 
-On Tue, 2008-09-09 at 14:01 +1000, Matthew Jurgens wrote:
-> Hi
+On Tue, 2008-09-09 at 15:04 -0700, Mike Marion wrote:
+> Taking my first real stab at testing 5.0.3 (patched up to all patches in
+> the patch_order file from last night).  Have been sticking to supported
+> autofs5 from Novell on our hosts thus far, but still having some issues
+> here and there (long story, mostly because we have HUGE maps I think)
+> but ran into a problem starting 5.0.3.  It seems to be truncating info
+> the ldap server gives it.  The patches all successfully applied and the
+> compile went smoothly.
 > 
-> I recently upgraded to Fedora 9 and autofs-5.0.3-15.i386.
-> I use SMB shares ending in $ quite often and have noticed that in this 
-> release they are broken.
-> They are mounting in the wrong place. Contrast the 2 shares  below, one 
-> the C share, the other the C$ share. The wrong slash is in the remote 
-> service name
-> 
-> Autofs mounted:
-> //xp0/C on /smb/xp0/C type cifs (rw,mand)               <--- this one 
-> workes ok
-> //xp0/C/$ on /smb/xp0/C$ type cifs (rw,mand)          <----- this one is 
-> broken
-> 
-> Manually mounted and working:
-> //xp0/C$ on /mnt type cifs (rw,mand)
+> The debug info shows failure to mount like:
+> do_bind: lookup(ldap): ldap anonymous bind returned 0
+> get_query_dn: lookup(ldap): query succeeded, no matches for (&(objectclass=automountMap)(automountMapName=o.projects))
+> do_bind: lookup(ldap): failed to get query dn
+> lookup(ldap): couldn't connect to server default
+> do_read_map: lookup module ldap failed
+> mount_autofs_direct: failed to read direct map
+> handle_mounts: mount of /- failed!
+> master_do_mount: failed to startup mount
 
-Can you post the output of the program map please.
-That's probably "sh /etc/auto.smb <server name>".
+Mmmm .. what have I done now!
+
+Lets have a look at the maps and I'll try to duplicate it.
 
 Ian
