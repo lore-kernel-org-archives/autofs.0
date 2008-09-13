@@ -1,16 +1,17 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: Execute script on expire.
-Date: Fri, 12 Sep 2008 16:52:46 -0400
-Message-ID: <x49d4j99jdt.fsf@segfault.boston.devel.redhat.com>
-References: <e788514b0809121300t3eba11a2j5833cc071db29b54@mail.gmail.com>
-	<x49hc8l9kk8.fsf@segfault.boston.devel.redhat.com>
-	<e788514b0809121341p4128b352n9dc592ef91a0b722@mail.gmail.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: Not correctly mount SMB shares ending in $
+Date: Sat, 13 Sep 2008 11:09:20 +0800
+Message-ID: <1221275360.2965.3.camel@raven.themaw.net>
+References: <48C5F518.9010800@edcint.co.nz>
+	<1221018586.3030.63.camel@raven.themaw.net>
+	<48C8D7FE.9000501@edcint.co.nz>
+	<1221142584.28271.15.camel@raven.themaw.net>
+	<48CB1F71.50407@edcint.co.nz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <e788514b0809121341p4128b352n9dc592ef91a0b722@mail.gmail.com>
-	(Alexander's message of "Fri, 12 Sep 2008 13:41:17 -0700")
+In-Reply-To: <48CB1F71.50407@edcint.co.nz>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,31 +22,80 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Alexander <normalex@gmail.com>
-Cc: autofs@linux.kernel.org
+To: Matthew Jurgens <autofs@edcint.co.nz>
+Cc: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
 
-Alexander <normalex@gmail.com> writes:
+On Sat, 2008-09-13 at 12:03 +1000, Matthew Jurgens wrote:
+> Ok, so I updated the script to the RPM version and added the
+> authentication parts:
 
-> 2008/9/12 Jeff Moyer <jmoyer@redhat.com>:
->> Alexander <normalex@gmail.com> writes:
->>
->>> Hello mailing list,
->>>
->>> was looking everywhere and could find info on whether or not autofs 4
->>> or 5 has a feature of executing designated script on expire, just
->>> before unmounting.
->>
->> The short answer is no.
+Right, the reason the script changed was because of the "$" shares.
+I thought it was working ok but maybe a subsequent change to the daemon
+has broken it.
 
-> Is it somewhere in the development plans or will never be implemented by design?
+I'll try to duplicate the problem here but a debug log would also be
+useful. See http://people.redhat.com/jmoyer for details.
 
-I believe there was one other requestor of this feature.  The tricky
-part is defining the map syntax and not breaking compatibility.  There
-is also the question of semantics with offset mounts.
-
-If someone is motivated enough to come up with a proposal for the syntax
-and semantics, I'm sure Ian and I can find some time to review it.
-
-Cheers,
-
-Jeff
+> 
+> #!/bin/bash
+> 
+> # This file must be executable to work! chmod 755!
+> key="$1" # key comes is as something like a hostname eg matthew
+> opts="-fstype=cifs,username=$SMB_USER,password=$SMB_PASSWORD"
+> 
+> smbauthfile=/tmp/smbauth.tmp
+> cat << EOT > $smbauthfile
+> username=$SMB_USER
+> password=$SMB_PASSWORD
+> EOT
+> 
+> for P in /bin /sbin /usr/bin /usr/sbin
+> do
+>         if [ -x $P/smbclient ]
+>         then
+>                 SMBCLIENT=$P/smbclient
+>                 break
+>         fi
+> done
+> 
+> [ -x $SMBCLIENT ] || exit 1
+> 
+> $SMBCLIENT -A $smbauthfile -gL $key 2>/dev/null| awk -v key="$key" -v
+> opts="$opts" -F'|' -- '
+>         BEGIN   { ORS=""; first=1 }
+>         /Disk/  {
+>                   if (first)
+>                         print opts; first=0
+>                   dir = $2
+>                   loc = $2
+>                   # Enclose mount dir and location in quotes
+>                   # Double quote "$" in location as it is special
+>                   gsub(/\$$/, "\\$", loc);
+>                   print " \\\n\t \"/" dir "\"", "\"://" key "/" loc
+> "\""
+>                 }
+>         END     { if (!first) print "\n"; else exit 1 }
+>         '
+> 
+> 
+> 
+> Now its output is slightly different but the result is still the same
+> -fstype=cifs,username=USER,password=PASSWORD \
+>          "/C" "://xp0/C" \
+>          "/ADMIN$" "://xp0/ADMIN\$" \
+>          "/C$" "://xp0/C\$"
+> 
+> vs the older output
+> -fstype=cifs,username=USER,password=PASSWORD \
+>          /C "://xp0/C" \
+>          /ADMIN\$ "://xp0/ADMIN\$" \
+>          /C\$ "://xp0/C\$"
+> mount:
+> //xp0/C/$ on /smb/xp0/C$ type cifs (rw,mand)
+> 
+> 
+> > 
+> > That doesn't look quite right.
+> > It might be an out of date script, how about posting the script as well
+> >   
+> > 
