@@ -1,17 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: Not correctly mount SMB shares ending in $
-Date: Sat, 13 Sep 2008 11:09:20 +0800
-Message-ID: <1221275360.2965.3.camel@raven.themaw.net>
-References: <48C5F518.9010800@edcint.co.nz>
-	<1221018586.3030.63.camel@raven.themaw.net>
-	<48C8D7FE.9000501@edcint.co.nz>
-	<1221142584.28271.15.camel@raven.themaw.net>
-	<48CB1F71.50407@edcint.co.nz>
+Subject: Re: How to use the user mount option
+Date: Sat, 13 Sep 2008 11:21:20 +0800
+Message-ID: <1221276080.2965.12.camel@raven.themaw.net>
+References: <Pine.LNX.4.64.0809121259080.30744@rray.drdc.mstc.ms.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <48CB1F71.50407@edcint.co.nz>
+In-Reply-To: <Pine.LNX.4.64.0809121259080.30744@rray.drdc.mstc.ms.gov>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,80 +18,46 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Matthew Jurgens <autofs@edcint.co.nz>
-Cc: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
+To: Richard Ray <rray@mstc.state.ms.us>
+Cc: autofs@linux.kernel.org
 
-On Sat, 2008-09-13 at 12:03 +1000, Matthew Jurgens wrote:
-> Ok, so I updated the script to the RPM version and added the
-> authentication parts:
+On Fri, 2008-09-12 at 13:08 -0500, Richard Ray wrote:
+> I feel this must be a simple thing but it is not working for me.
+> In auto.misc I have
+> 
+> flash -fstype=auto,rw,sync,flush,user    :/dev/sdb1
+> 
+> In auto.master I have
+> 
+> /misc file:/etc/auto.misc
+> 
+> If I cd /misc/flash the device will mount but all files belong to root
+> If I add uid= to auto.misc the files belong to me
+> Should not the user option do that without specifying a uid
 
-Right, the reason the script changed was because of the "$" shares.
-I thought it was working ok but maybe a subsequent change to the daemon
-has broken it.
+The "user" option is an fstab only option.
 
-I'll try to duplicate the problem here but a debug log would also be
-useful. See http://people.redhat.com/jmoyer for details.
+So, since autofs specifies the device and the mount point mount(8)
+doesn't consult the fstab.
+
+The only option you have is something like:
+flash -fstype=auto,rw,sync,flush,uid=$UID,gid=$GID    :/dev/sdb1
+
+As long as the requester is a valid user on the system it should mount
+as that user.
 
 > 
-> #!/bin/bash
+> Name        : autofs
+> Version     : 5.0.2
+> Release     : 27
 > 
-> # This file must be executable to work! chmod 755!
-> key="$1" # key comes is as something like a hostname eg matthew
-> opts="-fstype=cifs,username=$SMB_USER,password=$SMB_PASSWORD"
+> Fedora 8
+> kernel: 2.6.24.4-64.fc8
 > 
-> smbauthfile=/tmp/smbauth.tmp
-> cat << EOT > $smbauthfile
-> username=$SMB_USER
-> password=$SMB_PASSWORD
-> EOT
+> Thanks
+> Richard Ray
 > 
-> for P in /bin /sbin /usr/bin /usr/sbin
-> do
->         if [ -x $P/smbclient ]
->         then
->                 SMBCLIENT=$P/smbclient
->                 break
->         fi
-> done
-> 
-> [ -x $SMBCLIENT ] || exit 1
-> 
-> $SMBCLIENT -A $smbauthfile -gL $key 2>/dev/null| awk -v key="$key" -v
-> opts="$opts" -F'|' -- '
->         BEGIN   { ORS=""; first=1 }
->         /Disk/  {
->                   if (first)
->                         print opts; first=0
->                   dir = $2
->                   loc = $2
->                   # Enclose mount dir and location in quotes
->                   # Double quote "$" in location as it is special
->                   gsub(/\$$/, "\\$", loc);
->                   print " \\\n\t \"/" dir "\"", "\"://" key "/" loc
-> "\""
->                 }
->         END     { if (!first) print "\n"; else exit 1 }
->         '
-> 
-> 
-> 
-> Now its output is slightly different but the result is still the same
-> -fstype=cifs,username=USER,password=PASSWORD \
->          "/C" "://xp0/C" \
->          "/ADMIN$" "://xp0/ADMIN\$" \
->          "/C$" "://xp0/C\$"
-> 
-> vs the older output
-> -fstype=cifs,username=USER,password=PASSWORD \
->          /C "://xp0/C" \
->          /ADMIN\$ "://xp0/ADMIN\$" \
->          /C\$ "://xp0/C\$"
-> mount:
-> //xp0/C/$ on /smb/xp0/C$ type cifs (rw,mand)
-> 
-> 
-> > 
-> > That doesn't look quite right.
-> > It might be an out of date script, how about posting the script as well
-> >   
-> > 
+> _______________________________________________
+> autofs mailing list
+> autofs@linux.kernel.org
+> http://linux.kernel.org/mailman/listinfo/autofs
