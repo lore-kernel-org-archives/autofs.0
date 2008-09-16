@@ -1,17 +1,18 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: Not correctly mount SMB shares ending in $
-Date: Tue, 16 Sep 2008 12:16:42 +0800
-Message-ID: <1221538602.3084.8.camel@raven.themaw.net>
+Date: Tue, 16 Sep 2008 12:48:33 +0800
+Message-ID: <1221540513.3084.16.camel@raven.themaw.net>
 References: <48C5F518.9010800@edcint.co.nz>
 	<1221018586.3030.63.camel@raven.themaw.net>
 	<48C8D7FE.9000501@edcint.co.nz>
 	<1221142584.28271.15.camel@raven.themaw.net>
 	<48CB1F71.50407@edcint.co.nz>
+	<1221539403.15861.108.camel@homebase.localnet>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <48CB1F71.50407@edcint.co.nz>
+In-Reply-To: <1221539403.15861.108.camel@homebase.localnet>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,72 +23,36 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Matthew Jurgens <autofs@edcint.co.nz>
-Cc: "autofs@linux.kernel.org" <autofs@linux.kernel.org>, Jeffrey Layton <jlayton@redhat.com>
+To: psmith@netezza.com
+Cc: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
 
-On Sat, 2008-09-13 at 12:03 +1000, Matthew Jurgens wrote:
-> Ok, so I updated the script to the RPM version and added the
-> authentication parts:
+On Tue, 2008-09-16 at 00:30 -0400, Paul Smith wrote:
+> On Sat, 2008-09-13 at 12:03 +1000, Matthew Jurgens wrote:
+> > Ok, so I updated the script to the RPM version and added the
+> > authentication parts:
+> > 
+> > #!/bin/bash
 > 
-> #!/bin/bash
+> I guess maybe it's my pet peeve (like people who write "loose" when they
+> mean "lose", and vice versa), but I'd really, really love it if we could
+> avoid using bash in shell scripts, especially where (as in this case)
+> it's completely unnecessary.
 > 
-> # This file must be executable to work! chmod 755!
-> key="$1" # key comes is as something like a hostname eg matthew
-> opts="-fstype=cifs,username=$SMB_USER,password=$SMB_PASSWORD"
+> Can't we write our scripts in /bin/sh?
 > 
-> smbauthfile=/tmp/smbauth.tmp
-> cat << EOT > $smbauthfile
-> username=$SMB_USER
-> password=$SMB_PASSWORD
-> EOT
-> 
-> for P in /bin /sbin /usr/bin /usr/sbin
-> do
->         if [ -x $P/smbclient ]
->         then
->                 SMBCLIENT=$P/smbclient
->                 break
->         fi
-> done
-> 
-> [ -x $SMBCLIENT ] || exit 1
-> 
-> $SMBCLIENT -A $smbauthfile -gL $key 2>/dev/null| awk -v key="$key" -v
-> opts="$opts" -F'|' -- '
->         BEGIN   { ORS=""; first=1 }
->         /Disk/  {
->                   if (first)
->                         print opts; first=0
->                   dir = $2
->                   loc = $2
->                   # Enclose mount dir and location in quotes
->                   # Double quote "$" in location as it is special
->                   gsub(/\$$/, "\\$", loc);
->                   print " \\\n\t \"/" dir "\"", "\"://" key "/" loc
-> "\""
->                 }
->         END     { if (!first) print "\n"; else exit 1 }
->         '
-> 
-> 
-> 
-> Now its output is slightly different but the result is still the same
-> -fstype=cifs,username=USER,password=PASSWORD \
->          "/C" "://xp0/C" \
->          "/ADMIN$" "://xp0/ADMIN\$" \
->          "/C$" "://xp0/C\$"
-> 
-> vs the older output
-> -fstype=cifs,username=USER,password=PASSWORD \
->          /C "://xp0/C" \
->          /ADMIN\$ "://xp0/ADMIN\$" \
->          /C\$ "://xp0/C\$"
-> mount:
-> //xp0/C/$ on /smb/xp0/C$ type cifs (rw,mand)
+> I have some embedded systems that use autofs and I surely don't want to
+> have to build and install bash in my nice, small, busybox-based RAMDISK
+> just to run a few support scripts.  And it would be nice if I didn't
+> have to gin up custom patches for them either.  It's very, very simple
+> in virtually all cases to write your script in POSIX-standard sh rather
+> than bash... it just requires a bit of diligence.
 
-As I said before, the mount command looks OK, but I wonder if any recent
-CIFS kernel changes are getting confused by the "\" in the location
-(aka //xp0/C\$). That would be a bit of a bummer as autofs needs it but
-getting rid of it before the actual mount isn't straight forward.
+I admit I don't usually think of embedded systems.
+I'll have to get onto that but I don't think version 5 is appropriate
+for an embedded system (maybe too big) and version 4 hasn't seen much
+love for a good while now.
+
+Anyway, I expect you have more than enough trouble setting up working
+tool chains than to have to worry about this sort of thing, ;)
 
 Ian
