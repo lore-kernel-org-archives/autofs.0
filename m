@@ -1,19 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Not correctly mount SMB shares ending in $
-Date: Tue, 16 Sep 2008 20:30:31 +0800
-Message-ID: <1221568231.3084.31.camel@raven.themaw.net>
-References: <48C5F518.9010800@edcint.co.nz>
-	<1221018586.3030.63.camel@raven.themaw.net>
-	<48C8D7FE.9000501@edcint.co.nz>
-	<1221142584.28271.15.camel@raven.themaw.net>
-	<48CB1F71.50407@edcint.co.nz>
-	<1221275360.2965.3.camel@raven.themaw.net>
-	<48CBB26A.2040205@edcint.co.nz>
+From: Joe Pruett <joey@clean.q7.com>
+Subject: latest autofs from centos 4
+Date: Tue, 16 Sep 2008 17:22:31 -0700 (PDT)
+Message-ID: <alpine.LRH.2.00.0809161716010.13560@q7.q7.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <48CBB26A.2040205@edcint.co.nz>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,33 +16,16 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Matthew Jurgens <autofs@edcint.co.nz>
-Cc: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
+To: autofs@linux.kernel.org
 
-On Sat, 2008-09-13 at 22:30 +1000, Matthew Jurgens wrote:
-> Debug Log:
-> 
+it looks like some recent changes to both autofs v4 and v5 has caused the 
+siogcifconf buffer to be only 128 bytes.  this means that on our servers, 
+it can't correctly match a local address since that is only enough room 
+for 3 addresses and we're in the middle of a renumbering so we have 5-10 
+addresses per machine.  this was working fine until i just updated to 
+centos 4.7.  from looking at the code, it looks like someone created a 
+MAX_IF_BUF #define at 2048, but didn't use it for the ioctl call.  is that 
+a mistake?
 
-snip ...
-
-> Sep 16 01:03:13 tempgw automount[17954]: mounted /smb/xp0
-> Sep 16 01:03:13 tempgw automount[17954]: do_mount: //xp0/C\
-> $ /smb//smb/xp0/C$ type cifs options username=USER,password=PASSWORD
-> using module generic
-> Sep 16 01:03:13 tempgw automount[17954]: mount_mount: mount(generic):
-> calling mkdir_path /smb/xp0/C$
-> Sep 16 01:03:13 tempgw automount[17954]: mount_mount: mount(generic):
-> calling mount -t cifs -s -o username=USER,password=PASSWORD //xp0/C\
-> $ /smb/xp0/C$
-
-This is the mount command we actually use.
-We get rid of the quotes during the parsing of the entry but still the
-backslash quote could be causing a problem. Do you agree or should I be
-looking elsewhere?
-
-> Sep 16 01:03:13 tempgw automount[17954]: mount(generic):
-> mounted //xp0/C\$ type cifs on /smb/xp0/C$
-> Sep 16 01:03:13 tempgw automount[17954]: send_ready: token = 345
-> Sep 16 01:03:13 tempgw automount[17954]: mounted /smb/xp0/C$
-
-Ian
+i'll try a patched rpm locally and make sure this is the source of my 
+woes.
