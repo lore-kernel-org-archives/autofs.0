@@ -1,7 +1,7 @@
-From: Jeff Moyer <jmoyer@redhat.com>
+From: Joe Pruett <joey@clean.q7.com>
 Subject: Re: latest autofs from centos 4
-Date: Wed, 17 Sep 2008 14:03:18 -0400
-Message-ID: <x49d4j2bqft.fsf@segfault.boston.devel.redhat.com>
+Date: Wed, 17 Sep 2008 11:50:07 -0700 (PDT)
+Message-ID: <alpine.LRH.2.00.0809171142290.12947@q7.q7.com>
 References: <alpine.LRH.2.00.0809161716010.13560@q7.q7.com>
 	<1221621937.3001.3.camel@raven.themaw.net>
 	<alpine.LRH.2.00.0809170858590.29177@q7.q7.com>
@@ -12,12 +12,12 @@ References: <alpine.LRH.2.00.0809161716010.13560@q7.q7.com>
 	<alpine.LRH.2.00.0809171021540.12947@q7.q7.com>
 	<x49prn2br6i.fsf@segfault.boston.devel.redhat.com>
 	<alpine.LRH.2.00.0809171049520.12947@q7.q7.com>
+	<x49d4j2bqft.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <alpine.LRH.2.00.0809171049520.12947@q7.q7.com> (Joe Pruett's
-	message of "Wed, 17 Sep 2008 10:59:24 -0700 (PDT)")
+In-Reply-To: <x49d4j2bqft.fsf@segfault.boston.devel.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -28,40 +28,51 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Joe Pruett <joey@clean.q7.com>
+To: Jeff Moyer <jmoyer@redhat.com>
 Cc: autofs@linux.kernel.org, Ian Kent <raven@themaw.net>
 
-Joe Pruett <joey@clean.q7.com> writes:
+> Details would be welcome.  The biggest offender we found was that the
+> portmapper interfaces would use reserved ports.  That is simply not
+> necessary, and those issues have been fixed in autofs and mount.nfs.  In
+> fact, we've got regression tests that make sure that this is the case.
 
->>> well, it's a production box and only seems to show the problem at boot
->>> time.  from looking at the logs, i think this is the underlying
->>> culprit:
->>>
->>> Sep 17 09:18:08 hyperion kernel: RPC: Can't bind to reserved port (98).
->>> Sep 17 09:18:08 hyperion kernel: RPC: can't bind to reserved port.
->>> Sep 17 09:18:08 hyperion kernel: RPC: error 5 connecting to server jupiter.spiretech.com
->>> Sep 17 09:18:08 hyperion kernel: RPC: Can't bind to reserved port (98).
->>> Sep 17 09:18:08 hyperion kernel: RPC: can't bind to reserved port.
->>> Sep 17 09:18:08 hyperion kernel: RPC: error 5 connecting to server jupiter.spiretech.com
->>
->>> that is from the client trying to talk to the server.
->>
->> That's strange.  Errno 98 is EADDRINUSE.  So, this means that you cycled
->> through the entire port range and all of the ports were bound.  Do you
->> do a lot of mounts upon boot?  Can you try tweaking sunrpc.min_resvport
->> and sunrpc.max_resvport?  Max can't be more than 1023.  Try pushing min
->> down to 500 or so.
->
-> i have run into this kind of problem in the past (running out of
-> privileged ports).  i found some code in glibc that seemed to be the
-> biggest problem and never got around to trying to fix it.  i'll look
-> at what my current settings are and see about tweaking them.
+yes, i have found that as well.  i think the biggest consumer is ypserv 
+tcp connections for doing a full map dump.
 
-Details would be welcome.  The biggest offender we found was that the
-portmapper interfaces would use reserved ports.  That is simply not
-necessary, and those issues have been fixed in autofs and mount.nfs.  In
-fact, we've got regression tests that make sure that this is the case.
+here is my rpcinfo:
 
-Cheers,
-
-Jeff
+    program vers proto   port
+     100000    2   tcp    111  portmapper
+     100000    2   udp    111  portmapper
+     100024    1   udp    844  status
+     100024    1   tcp    847  status
+     100004    2   udp    994  ypserv
+     100004    1   udp    994  ypserv
+     100004    2   tcp    997  ypserv
+     100004    1   tcp    997  ypserv
+     100007    2   udp   1007  ypbind
+     100007    1   udp   1007  ypbind
+     100007    2   tcp   1010  ypbind
+     100007    1   tcp   1010  ypbind
+     100011    1   udp    835  rquotad
+     100011    2   udp    835  rquotad
+     100011    1   tcp    838  rquotad
+     100011    2   tcp    838  rquotad
+     100003    2   udp   2049  nfs
+     100003    3   udp   2049  nfs
+     100003    4   udp   2049  nfs
+     100003    2   tcp   2049  nfs
+     100003    3   tcp   2049  nfs
+     100003    4   tcp   2049  nfs
+     100021    1   udp  39755  nlockmgr
+     100021    3   udp  39755  nlockmgr
+     100021    4   udp  39755  nlockmgr
+     100021    1   tcp  32773  nlockmgr
+     100021    3   tcp  32773  nlockmgr
+     100021    4   tcp  32773  nlockmgr
+     100005    1   udp    852  mountd
+     100005    1   tcp    855  mountd
+     100005    2   udp    852  mountd
+     100005    2   tcp    855  mountd
+     100005    3   udp    852  mountd
+     100005    3   tcp    855  mountd
