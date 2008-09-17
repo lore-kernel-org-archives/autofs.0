@@ -1,15 +1,16 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: latest autofs from centos 4
-Date: Wed, 17 Sep 2008 23:48:37 +0800
-Message-ID: <1221666517.3001.18.camel@raven.themaw.net>
+Date: Wed, 17 Sep 2008 23:51:27 +0800
+Message-ID: <1221666687.3001.22.camel@raven.themaw.net>
 References: <alpine.LRH.2.00.0809161716010.13560@q7.q7.com>
 	<1221621937.3001.3.camel@raven.themaw.net>
 	<alpine.LRH.2.00.0809170712020.14205@q7.q7.com>
+	<x493ajybwuu.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <alpine.LRH.2.00.0809170712020.14205@q7.q7.com>
+In-Reply-To: <x493ajybwuu.fsf@segfault.boston.devel.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,45 +21,55 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Joe Pruett <joey@clean.q7.com>
+To: Jeff Moyer <jmoyer@redhat.com>
 Cc: autofs@linux.kernel.org
 
-On Wed, 2008-09-17 at 07:15 -0700, Joe Pruett wrote:
-> On Wed, 17 Sep 2008, Ian Kent wrote:
+On Wed, 2008-09-17 at 11:44 -0400, Jeff Moyer wrote:
+> Joe Pruett <joey@clean.q7.com> writes:
 > 
-> > On Tue, 2008-09-16 at 17:22 -0700, Joe Pruett wrote:
-> >> it looks like some recent changes to both autofs v4 and v5 has caused the
-> >> siogcifconf buffer to be only 128 bytes.  this means that on our servers,
-> >> it can't correctly match a local address since that is only enough room
-> >> for 3 addresses and we're in the middle of a renumbering so we have 5-10
-> >> addresses per machine.  this was working fine until i just updated to
-> >> centos 4.7.  from looking at the code, it looks like someone created a
-> >> MAX_IF_BUF #define at 2048, but didn't use it for the ioctl call.  is that
-> >> a mistake?
-> >>
-> >> i'll try a patched rpm locally and make sure this is the source of my
-> >> woes.
+> > On Wed, 17 Sep 2008, Ian Kent wrote:
 > >
-> > Yeah, known issue.
-> > It's resolved in RHEL-5.3.
+> >> On Tue, 2008-09-16 at 17:22 -0700, Joe Pruett wrote:
+> >>> it looks like some recent changes to both autofs v4 and v5 has caused the
+> >>> siogcifconf buffer to be only 128 bytes.  this means that on our servers,
+> >>> it can't correctly match a local address since that is only enough room
+> >>> for 3 addresses and we're in the middle of a renumbering so we have 5-10
+> >>> addresses per machine.  this was working fine until i just updated to
+> >>> centos 4.7.  from looking at the code, it looks like someone created a
+> >>> MAX_IF_BUF #define at 2048, but didn't use it for the ioctl call.  is that
+> >>> a mistake?
+> >>>
+> >>> i'll try a patched rpm locally and make sure this is the source of my
+> >>> woes.
+> >>
+> >> Yeah, known issue.
+> >> It's resolved in RHEL-5.3.
+> >
+> > it seems like it got worse with the latest 4.7 stuff.  maybe i just didn't 
+> > notice machines talking to themselves over nfs previously.  has it always 
+> > been 128 bytes?
+
+Oops, yes, forgot that we have this in v4 too now.
+
 > 
-> it seems like it got worse with the latest 4.7 stuff.  maybe i just didn't 
-> notice machines talking to themselves over nfs previously.  has it always 
-> been 128 bytes?
+> It may have regressed, if that was the update that pulled in the v5
+> version of the replicated server handling code.
+> 
+> > i'm concerned about the patch for my web hosting machine.  right now it 
+> > has over 1024 interfaces.  the amount of time all that malloc/free is 
+> > going to take for every mount seems pretty expensive.  would any kind of 
+> > caching make sense?
+> 
+> There's no doubt that we could be smarter about this.  It may be enough
+> to make last_len in alloc_ifreq a static.  Ian, what do you think about
+> doing that?
 
-Only the autofs5 package in 4.7 would be affected by this.
-Version 5 has had this mistake from the beginning.
+Ahhh .. that's a good idea. I'll think about that.
 
 > 
-> i'm concerned about the patch for my web hosting machine.  right now it 
-> has over 1024 interfaces.  the amount of time all that malloc/free is 
-> going to take for every mount seems pretty expensive.  would any kind of 
-> caching make sense?
-
-Yeah, that's not good but I have to do something to fix it.
-
-We could double the buffer size each time we allocate it but that would
-lead to considerable waste. Or maybe increasing the increment to 4k
-would be better. The current 2k will lead to 10 or 11 allocations.
-
-Ian
+> But honestly, malloc/free is pretty cheap.  I doubt you'll see
+> performance problems due to that.
+> 
+> Cheers,
+> 
+> Jeff
