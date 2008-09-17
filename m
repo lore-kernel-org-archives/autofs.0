@@ -1,18 +1,14 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: broken mount
-Date: Wed, 17 Sep 2008 15:05:27 +0800
-Message-ID: <1221635127.3001.7.camel@raven.themaw.net>
-References: <1218733121.10481.20.camel@vesuv.TechFak.Uni-Bielefeld.DE>
-	<1218801005.12073.9.camel@raven.themaw.net>
-	<1218816537.31914.3.camel@vesuv.TechFak.Uni-Bielefeld.DE>
-	<1218817361.12073.21.camel@raven.themaw.net>
-	<1219063906.31914.26.camel@vesuv.TechFak.Uni-Bielefeld.DE>
-	<1219071074.3188.10.camel@raven.themaw.net>
+From: Joe Pruett <joey@clean.q7.com>
+Subject: Re: latest autofs from centos 4
+Date: Wed, 17 Sep 2008 07:15:02 -0700 (PDT)
+Message-ID: <alpine.LRH.2.00.0809170712020.14205@q7.q7.com>
+References: <alpine.LRH.2.00.0809161716010.13560@q7.q7.com>
+	<1221621937.3001.3.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1219071074.3188.10.camel@raven.themaw.net>
+In-Reply-To: <1221621937.3001.3.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -23,41 +19,32 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Lukas Kolbe <lukas@einfachkaffee.de>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-On Mon, 2008-08-18 at 22:51 +0800, Ian Kent wrote:
-> On Mon, 2008-08-18 at 14:51 +0200, Lukas Kolbe wrote:
-> > On Sat, 2008-08-16 at 00:22 +0800, Ian Kent wrote:
-> > 
-> > > > > > The util-linux we use is version 2.12r from debian etch with the patch
-> > > > > > from the autofs source already applied (it is supposed to
-> > > > > > fix /etc/mtab-locking in mount, right?).
-> > > > > 
-> > > > > Is "mount --move" supported with 2.12r?
-> > > > > What does the man page say?
-> > > > 
-> > > > manpage says yes. 
-> > > > 
-> > > 
-> > > Backing out the above patch should solve the problem.
-> > > How about a debug log (before you back out the patch of course).
-> > 
-> > See the pm. So far, after backing out the patch we still have 2065
-> > entries containing /tmp/auto in /etc/mtab, but the number is not rising
-> > anymore and the mounts seem to work well ;). We probably need a reboot
-> > on this machine soon ...
-> 
-> The only thing I can see in the log is that for fstype=nfs4 and and an
-> escaped path as the mount target we get a fail, which fails for the
-> wrong reason (the ":" gets removed). But that problem looks like it was
-> present before the last set of patches were posted?
-> 
-> It would be good if we could relate the mount target to a map entry for
-> the things that are showing up in the mtab.
+On Wed, 17 Sep 2008, Ian Kent wrote:
 
-Think we need to find some time to get to the bottom of this or you
-might end up stuck with it in 5.0.4. There's a newish patch on
-kernel.org that might help.
+> On Tue, 2008-09-16 at 17:22 -0700, Joe Pruett wrote:
+>> it looks like some recent changes to both autofs v4 and v5 has caused the
+>> siogcifconf buffer to be only 128 bytes.  this means that on our servers,
+>> it can't correctly match a local address since that is only enough room
+>> for 3 addresses and we're in the middle of a renumbering so we have 5-10
+>> addresses per machine.  this was working fine until i just updated to
+>> centos 4.7.  from looking at the code, it looks like someone created a
+>> MAX_IF_BUF #define at 2048, but didn't use it for the ioctl call.  is that
+>> a mistake?
+>>
+>> i'll try a patched rpm locally and make sure this is the source of my
+>> woes.
+>
+> Yeah, known issue.
+> It's resolved in RHEL-5.3.
 
-Ian
+it seems like it got worse with the latest 4.7 stuff.  maybe i just didn't 
+notice machines talking to themselves over nfs previously.  has it always 
+been 128 bytes?
+
+i'm concerned about the patch for my web hosting machine.  right now it 
+has over 1024 interfaces.  the amount of time all that malloc/free is 
+going to take for every mount seems pretty expensive.  would any kind of 
+caching make sense?
