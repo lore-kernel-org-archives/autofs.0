@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: latest autofs from centos 4
-Date: Thu, 18 Sep 2008 00:17:44 +0800
-Message-ID: <1221668264.3001.25.camel@raven.themaw.net>
+Date: Thu, 18 Sep 2008 00:19:32 +0800
+Message-ID: <1221668372.3001.28.camel@raven.themaw.net>
 References: <alpine.LRH.2.00.0809161716010.13560@q7.q7.com>
 	<1221621937.3001.3.camel@raven.themaw.net>
 	<alpine.LRH.2.00.0809170858590.29177@q7.q7.com>
@@ -27,16 +27,11 @@ On Wed, 2008-09-17 at 09:02 -0700, Joe Pruett wrote:
 > i was to onervous to try the real patch for now.  so i just quickly hacked 
 > in another buffer using the MAX_IFC_LEN.  so far it seems to be happy.  i 
 > guess i'll find out about the new malloc setup when i go to 5.3.
+
+Don't get me wrong, I think your caution is a sensible and responsible
+approach to an unknown patch. I understand this only too well.
+
 > 
-
-But that shouldn't work because the ifc struct is 40 chars so
-MAX_IFC_BUF will allow 51 such buffers, not nearly close enough to 1000.
-
-Also the patch starts with an alloc of MAX_IFC_BUF and add MAX_IFC_BUF
-each time it find it not large enough.
-
-The static buffer length variable is the way to go I think.
-
 > diff -ru autofs-5.0.1/modules/replicated.c autofs-new/modules/replicated.c
 > --- autofs-5.0.1/modules/replicated.c   2008-09-16 12:08:03.000000000 -0700
 > +++ autofs-new/modules/replicated.c     2008-09-17 08:01:58.000000000 -0700
