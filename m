@@ -1,19 +1,13 @@
-From: Alexander <normalex@gmail.com>
-Subject: Re: Execute script on expire.
-Date: Tue, 16 Sep 2008 17:44:53 -0700
-Message-ID: <e788514b0809161744r3a91eec4v146c9852240f447f@mail.gmail.com>
-References: <e788514b0809121300t3eba11a2j5833cc071db29b54@mail.gmail.com>
-	<x49hc8l9kk8.fsf@segfault.boston.devel.redhat.com>
-	<e788514b0809121341p4128b352n9dc592ef91a0b722@mail.gmail.com>
-	<x49d4j99jdt.fsf@segfault.boston.devel.redhat.com>
-	<e788514b0809121449v37289904y3dde16bb162e6083@mail.gmail.com>
-	<x493ak0j7ng.fsf@segfault.boston.devel.redhat.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: latest autofs from centos 4
+Date: Wed, 17 Sep 2008 11:25:37 +0800
+Message-ID: <1221621937.3001.3.camel@raven.themaw.net>
+References: <alpine.LRH.2.00.0809161716010.13560@q7.q7.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <x493ak0j7ng.fsf@segfault.boston.devel.redhat.com>
-Content-Disposition: inline
+In-Reply-To: <alpine.LRH.2.00.0809161716010.13560@q7.q7.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,112 +18,156 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>
+To: Joe Pruett <joey@clean.q7.com>
 Cc: autofs@linux.kernel.org
 
-Thank you for response.
-I simply forgot to CC the list. Now it should work.
+On Tue, 2008-09-16 at 17:22 -0700, Joe Pruett wrote:
+> it looks like some recent changes to both autofs v4 and v5 has caused the 
+> siogcifconf buffer to be only 128 bytes.  this means that on our servers, 
+> it can't correctly match a local address since that is only enough room 
+> for 3 addresses and we're in the middle of a renumbering so we have 5-10 
+> addresses per machine.  this was working fine until i just updated to 
+> centos 4.7.  from looking at the code, it looks like someone created a 
+> MAX_IF_BUF #define at 2048, but didn't use it for the ioctl call.  is that 
+> a mistake?
+> 
+> i'll try a patched rpm locally and make sure this is the source of my 
+> woes.
 
-This is a simplified situation of using automatic squashfs container
-generation with autofs.
----------------------------------------------------------------------------------------------------
+Yeah, known issue.
+It's resolved in RHEL-5.3.
 
-User: john.
-autofs path to make squashfs: /makesqfs
-access mask: /makesqfs/<username>/<file name>
+Not sure if this will apply to your package source but give it a try.
 
-autofs path to access sqfs: /usercontainers
-access mask: /usercontainers/<username>/<file name>
+---
+autofs-5.0.3 - fix interface config buffer size
 
-John wants to put one of his folders (/home/john/foldertoprocess) in a
-secure storage as a squashfs container which can be accessed
-automatically anytime.
+From: Ian Kent <raven@themaw.net>
 
-he could make it by isssuing regular command
-mksquashfs <source> <destination file name> -<options>
-and copy resulted file to secure storage.
+When getting the interface configuration information autofs uses a
+fixed size buffer for the interface information. If there are many
+interfaces this causes the check to fail.
+---
 
-be he wants to use something simpler and robust.
-
-Instead, John issues the following command:
-cp /home/john/foldertoprocess /makesqfs/john/marketanalyzis
-
-after some time he (and may be other users in the system) can access
-his securely stored and read only files by following this symbolic
-link
-/containers/john/marketanalyzis
-
-
-what happens on backend?
-======================
-
-when he copies files to
-/makesqfs/john/marketanalyzis
-autofs executes a script that prepares temporary folder somewhere
-(/tmp/john/marketanalyzis)
-and mounts it as /makesqfs/john/marketanalyzis
-
-when copying finishes and timeout of 5 minutes of inactivity fires in autofs,
-it executes a designated script and passes /makesqfs/john/marketanalyzis
-as a parameter.
-script makes a squashfs container marketanalyzis.sfs and puts it
-somewhere in secure location, and then makes a symbolic link at
-/containers/john/marketanalyzis
-which points to
-/usercontainers/john/marketanalyzis
-
-after script is done, autofs successfully unmounts
-/makesqfs/john/marketanalyzis
-
-Notes:
-i think script can also remount /makesqfs/john/marketanalyzis as read
-only before making actual mksquashfs command.
-with such approach squashfs container creation may be done on separate
-computer, while mounting part can also be done from different
-locations.
+ modules/replicated.c |   51 ++++++++++++++++++++++++++++++++++++++++++--------
+ 1 files changed, 43 insertions(+), 8 deletions(-)
 
 
-2008/9/16 Jeff Moyer <jmoyer@redhat.com>:
-> Alexander <normalex@gmail.com> writes:
->
->> truly speaking i don't know what is semantics with offset mounts, but
->> can describe following situation.
->>
->> client access the folder /tmpstorage/filestocompress
->> it mounts as /tmp/filestocompress (where /tmp is a tmpfs/shmfs or
->> unionfs with different underlying mount points)
->> client then copies his files there and after time of inactivity
->> autofs executes script /bin/compress and after it's completion
->> unmounts all corresponding mount points.
->
-> I'm not quite sure I follow.  If you could list the steps, taking
-> automount out of the picture, that would be helpful.  So, what is the
-> ordered list of steps to perform, using *exact* path names.  Above,
-> what's confusing me is that an access to /tmpstorage/filestocompress
-> would mount anything on /tmp.  Autofs simply doesn't work that way.
->
->> the /bin/compress script does following:
->> 0. it gets parameter of what path is going to be unmounted, in our
->> example it is /tmp/filestocompress
->> 1. makes compressed tar, bzip, or squashfs container from
->> /tmp/filestocompress in /users/username/filestocompress.tar
->> 2. optionaly deletes all files in /tmp/filestocompress and exits
->>
->> something like that
->
-> Again, a specific example would be more helpful (with real commands and
-> paths).
->
-> I'm curious to know why you didn't CC the list on your response.  Is it
-> okay if we continue discussions there?
->
-> Thanks!
->
-> Jeff
->
-
-
-
--- 
-Sincerely,
-Alexandr N.
+diff --git a/modules/replicated.c b/modules/replicated.c
+index 362ab1b..ad1ede2 100644
+--- a/modules/replicated.c
++++ b/modules/replicated.c
+@@ -95,6 +95,41 @@ void seed_random(void)
+ 	return;
+ }
+ 
++static int alloc_ifreq(struct ifconf *ifc, int sock)
++{
++	int ret, lastlen = 0, len = MAX_IFC_BUF;
++	char err_buf[MAX_ERR_BUF], *buf;
++
++	while (1) {
++		buf = malloc(len);
++		if (!buf) {
++			char *estr = strerror_r(errno, err_buf, MAX_ERR_BUF);
++			logerr("malloc: %s", estr);
++			return 0;
++		}
++
++		ifc->ifc_len = len;
++		ifc->ifc_req = (struct ifreq *) buf;
++
++		ret = ioctl(sock, SIOCGIFCONF, ifc);
++		if (ret == -1) {
++			char *estr = strerror_r(errno, err_buf, MAX_ERR_BUF);
++			logerr("ioctl: %s", estr);
++			free(buf);
++			return 0;
++		}
++
++		if (ifc->ifc_len == lastlen)
++			break;
++
++		lastlen = ifc->ifc_len;
++		len += MAX_IFC_BUF;
++		free(buf);
++	}
++
++	return 1;
++}
++
+ static unsigned int get_proximity(const char *host_addr, int addr_len)
+ {
+ 	struct sockaddr_in *msk_addr, *if_addr;
+@@ -122,12 +157,7 @@ static unsigned int get_proximity(const char *host_addr, int addr_len)
+ 		fcntl(sock, F_SETFD, cl_flags);
+ 	}
+ 
+-	ifc.ifc_len = sizeof(buf);
+-	ifc.ifc_req = (struct ifreq *) buf;
+-	ret = ioctl(sock, SIOCGIFCONF, &ifc);
+-	if (ret == -1) {
+-		char *estr = strerror_r(errno, buf, MAX_ERR_BUF);
+-		logerr("ioctl: %s", estr);
++	if (!alloc_ifreq(&ifc, sock)) {
+ 		close(sock);
+ 		return PROXIMITY_ERROR;
+ 	}
+@@ -138,7 +168,7 @@ static unsigned int get_proximity(const char *host_addr, int addr_len)
+ 	i = 0;
+ 	ptr = (char *) &ifc.ifc_buf[0];
+ 
+-	while (ptr < buf + ifc.ifc_len) {
++	while (ptr < (char *) ifc.ifc_req + ifc.ifc_len) {
+ 		ifr = (struct ifreq *) ptr;
+ 
+ 		switch (ifr->ifr_addr.sa_family) {
+@@ -147,6 +177,7 @@ static unsigned int get_proximity(const char *host_addr, int addr_len)
+ 			ret = memcmp(&if_addr->sin_addr, hst_addr, addr_len);
+ 			if (!ret) {
+ 				close(sock);
++				free(ifc.ifc_req);
+ 				return PROXIMITY_LOCAL;
+ 			}
+ 			break;
+@@ -162,7 +193,7 @@ static unsigned int get_proximity(const char *host_addr, int addr_len)
+ 	i = 0;
+ 	ptr = (char *) &ifc.ifc_buf[0];
+ 
+-	while (ptr < buf + ifc.ifc_len) {
++	while (ptr < (char *) ifc.ifc_req + ifc.ifc_len) {
+ 		ifr = (struct ifreq *) ptr;
+ 
+ 		switch (ifr->ifr_addr.sa_family) {
+@@ -178,6 +209,7 @@ static unsigned int get_proximity(const char *host_addr, int addr_len)
+ 				char *estr = strerror_r(errno, buf, MAX_ERR_BUF);
+ 				logerr("ioctl: %s", estr);
+ 				close(sock);
++				free(ifc.ifc_req);
+ 				return PROXIMITY_ERROR;
+ 			}
+ 
+@@ -186,6 +218,7 @@ static unsigned int get_proximity(const char *host_addr, int addr_len)
+ 
+ 			if ((ia & mask) == (ha & mask)) {
+ 				close(sock);
++				free(ifc.ifc_req);
+ 				return PROXIMITY_SUBNET;
+ 			}
+ 
+@@ -208,6 +241,7 @@ static unsigned int get_proximity(const char *host_addr, int addr_len)
+ 
+ 			if ((ia & mask) == (ha & mask)) {
+ 				close(sock);
++				free(ifc.ifc_req);
+ 				return PROXIMITY_NET;
+ 			}
+ 			break;
+@@ -221,6 +255,7 @@ static unsigned int get_proximity(const char *host_addr, int addr_len)
+ 	}
+ 
+ 	close(sock);
++	free(ifc.ifc_req);
+ 
+ 	return PROXIMITY_OTHER;
+ }
