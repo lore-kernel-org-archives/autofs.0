@@ -1,13 +1,18 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: latest autofs from centos 4
-Date: Wed, 17 Sep 2008 11:25:37 +0800
-Message-ID: <1221621937.3001.3.camel@raven.themaw.net>
-References: <alpine.LRH.2.00.0809161716010.13560@q7.q7.com>
+Subject: Re: broken mount
+Date: Wed, 17 Sep 2008 15:05:27 +0800
+Message-ID: <1221635127.3001.7.camel@raven.themaw.net>
+References: <1218733121.10481.20.camel@vesuv.TechFak.Uni-Bielefeld.DE>
+	<1218801005.12073.9.camel@raven.themaw.net>
+	<1218816537.31914.3.camel@vesuv.TechFak.Uni-Bielefeld.DE>
+	<1218817361.12073.21.camel@raven.themaw.net>
+	<1219063906.31914.26.camel@vesuv.TechFak.Uni-Bielefeld.DE>
+	<1219071074.3188.10.camel@raven.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <alpine.LRH.2.00.0809161716010.13560@q7.q7.com>
+In-Reply-To: <1219071074.3188.10.camel@raven.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,156 +23,41 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Joe Pruett <joey@clean.q7.com>
+To: Lukas Kolbe <lukas@einfachkaffee.de>
 Cc: autofs@linux.kernel.org
 
-On Tue, 2008-09-16 at 17:22 -0700, Joe Pruett wrote:
-> it looks like some recent changes to both autofs v4 and v5 has caused the 
-> siogcifconf buffer to be only 128 bytes.  this means that on our servers, 
-> it can't correctly match a local address since that is only enough room 
-> for 3 addresses and we're in the middle of a renumbering so we have 5-10 
-> addresses per machine.  this was working fine until i just updated to 
-> centos 4.7.  from looking at the code, it looks like someone created a 
-> MAX_IF_BUF #define at 2048, but didn't use it for the ioctl call.  is that 
-> a mistake?
+On Mon, 2008-08-18 at 22:51 +0800, Ian Kent wrote:
+> On Mon, 2008-08-18 at 14:51 +0200, Lukas Kolbe wrote:
+> > On Sat, 2008-08-16 at 00:22 +0800, Ian Kent wrote:
+> > 
+> > > > > > The util-linux we use is version 2.12r from debian etch with the patch
+> > > > > > from the autofs source already applied (it is supposed to
+> > > > > > fix /etc/mtab-locking in mount, right?).
+> > > > > 
+> > > > > Is "mount --move" supported with 2.12r?
+> > > > > What does the man page say?
+> > > > 
+> > > > manpage says yes. 
+> > > > 
+> > > 
+> > > Backing out the above patch should solve the problem.
+> > > How about a debug log (before you back out the patch of course).
+> > 
+> > See the pm. So far, after backing out the patch we still have 2065
+> > entries containing /tmp/auto in /etc/mtab, but the number is not rising
+> > anymore and the mounts seem to work well ;). We probably need a reboot
+> > on this machine soon ...
 > 
-> i'll try a patched rpm locally and make sure this is the source of my 
-> woes.
+> The only thing I can see in the log is that for fstype=nfs4 and and an
+> escaped path as the mount target we get a fail, which fails for the
+> wrong reason (the ":" gets removed). But that problem looks like it was
+> present before the last set of patches were posted?
+> 
+> It would be good if we could relate the mount target to a map entry for
+> the things that are showing up in the mtab.
 
-Yeah, known issue.
-It's resolved in RHEL-5.3.
+Think we need to find some time to get to the bottom of this or you
+might end up stuck with it in 5.0.4. There's a newish patch on
+kernel.org that might help.
 
-Not sure if this will apply to your package source but give it a try.
-
----
-autofs-5.0.3 - fix interface config buffer size
-
-From: Ian Kent <raven@themaw.net>
-
-When getting the interface configuration information autofs uses a
-fixed size buffer for the interface information. If there are many
-interfaces this causes the check to fail.
----
-
- modules/replicated.c |   51 ++++++++++++++++++++++++++++++++++++++++++--------
- 1 files changed, 43 insertions(+), 8 deletions(-)
-
-
-diff --git a/modules/replicated.c b/modules/replicated.c
-index 362ab1b..ad1ede2 100644
---- a/modules/replicated.c
-+++ b/modules/replicated.c
-@@ -95,6 +95,41 @@ void seed_random(void)
- 	return;
- }
- 
-+static int alloc_ifreq(struct ifconf *ifc, int sock)
-+{
-+	int ret, lastlen = 0, len = MAX_IFC_BUF;
-+	char err_buf[MAX_ERR_BUF], *buf;
-+
-+	while (1) {
-+		buf = malloc(len);
-+		if (!buf) {
-+			char *estr = strerror_r(errno, err_buf, MAX_ERR_BUF);
-+			logerr("malloc: %s", estr);
-+			return 0;
-+		}
-+
-+		ifc->ifc_len = len;
-+		ifc->ifc_req = (struct ifreq *) buf;
-+
-+		ret = ioctl(sock, SIOCGIFCONF, ifc);
-+		if (ret == -1) {
-+			char *estr = strerror_r(errno, err_buf, MAX_ERR_BUF);
-+			logerr("ioctl: %s", estr);
-+			free(buf);
-+			return 0;
-+		}
-+
-+		if (ifc->ifc_len == lastlen)
-+			break;
-+
-+		lastlen = ifc->ifc_len;
-+		len += MAX_IFC_BUF;
-+		free(buf);
-+	}
-+
-+	return 1;
-+}
-+
- static unsigned int get_proximity(const char *host_addr, int addr_len)
- {
- 	struct sockaddr_in *msk_addr, *if_addr;
-@@ -122,12 +157,7 @@ static unsigned int get_proximity(const char *host_addr, int addr_len)
- 		fcntl(sock, F_SETFD, cl_flags);
- 	}
- 
--	ifc.ifc_len = sizeof(buf);
--	ifc.ifc_req = (struct ifreq *) buf;
--	ret = ioctl(sock, SIOCGIFCONF, &ifc);
--	if (ret == -1) {
--		char *estr = strerror_r(errno, buf, MAX_ERR_BUF);
--		logerr("ioctl: %s", estr);
-+	if (!alloc_ifreq(&ifc, sock)) {
- 		close(sock);
- 		return PROXIMITY_ERROR;
- 	}
-@@ -138,7 +168,7 @@ static unsigned int get_proximity(const char *host_addr, int addr_len)
- 	i = 0;
- 	ptr = (char *) &ifc.ifc_buf[0];
- 
--	while (ptr < buf + ifc.ifc_len) {
-+	while (ptr < (char *) ifc.ifc_req + ifc.ifc_len) {
- 		ifr = (struct ifreq *) ptr;
- 
- 		switch (ifr->ifr_addr.sa_family) {
-@@ -147,6 +177,7 @@ static unsigned int get_proximity(const char *host_addr, int addr_len)
- 			ret = memcmp(&if_addr->sin_addr, hst_addr, addr_len);
- 			if (!ret) {
- 				close(sock);
-+				free(ifc.ifc_req);
- 				return PROXIMITY_LOCAL;
- 			}
- 			break;
-@@ -162,7 +193,7 @@ static unsigned int get_proximity(const char *host_addr, int addr_len)
- 	i = 0;
- 	ptr = (char *) &ifc.ifc_buf[0];
- 
--	while (ptr < buf + ifc.ifc_len) {
-+	while (ptr < (char *) ifc.ifc_req + ifc.ifc_len) {
- 		ifr = (struct ifreq *) ptr;
- 
- 		switch (ifr->ifr_addr.sa_family) {
-@@ -178,6 +209,7 @@ static unsigned int get_proximity(const char *host_addr, int addr_len)
- 				char *estr = strerror_r(errno, buf, MAX_ERR_BUF);
- 				logerr("ioctl: %s", estr);
- 				close(sock);
-+				free(ifc.ifc_req);
- 				return PROXIMITY_ERROR;
- 			}
- 
-@@ -186,6 +218,7 @@ static unsigned int get_proximity(const char *host_addr, int addr_len)
- 
- 			if ((ia & mask) == (ha & mask)) {
- 				close(sock);
-+				free(ifc.ifc_req);
- 				return PROXIMITY_SUBNET;
- 			}
- 
-@@ -208,6 +241,7 @@ static unsigned int get_proximity(const char *host_addr, int addr_len)
- 
- 			if ((ia & mask) == (ha & mask)) {
- 				close(sock);
-+				free(ifc.ifc_req);
- 				return PROXIMITY_NET;
- 			}
- 			break;
-@@ -221,6 +255,7 @@ static unsigned int get_proximity(const char *host_addr, int addr_len)
- 	}
- 
- 	close(sock);
-+	free(ifc.ifc_req);
- 
- 	return PROXIMITY_OTHER;
- }
+Ian
