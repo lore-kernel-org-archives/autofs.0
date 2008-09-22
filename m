@@ -1,14 +1,14 @@
-From: "Douglas E. Engert" <deengert@anl.gov>
-Subject: Re: autofs+LDAP
-Date: Mon, 22 Sep 2008 11:33:40 -0500
-Message-ID: <48D7C8E4.9040005@anl.gov>
-References: <48D6BF37.1050404@irontec.com>
-	<1222058110.3163.78.camel@raven.themaw.net>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: 'browse mode' issue
+Date: Mon, 22 Sep 2008 13:11:34 -0400
+Message-ID: <x49prmwjebd.fsf@segfault.boston.devel.redhat.com>
+References: <48D7BF38.5020709@inria.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1222058110.3163.78.camel@raven.themaw.net>
+In-Reply-To: <48D7BF38.5020709@inria.fr> (Guillaume Rousse's message of "Mon, 
+	22 Sep 2008 17:52:24 +0200")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,63 +19,45 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
+To: Guillaume Rousse <Guillaume.Rousse@inria.fr>
 Cc: autofs@linux.kernel.org
 
+Guillaume Rousse <Guillaume.Rousse@inria.fr> writes:
 
+> Hello list. I've several questions about browse mode option.
+>
+> First, I have opposite reports about the effects of 'browse mode' option 
+> in automount configuration. Some times ago, a user reported than setting 
+> it to 'no' was CPU-unfriendly, so we turned it to 'yes' by default in 
 
-Ian Kent wrote:
-> On Sun, 2008-09-21 at 23:40 +0200, Mikel Jimenez wrote:
->> Hello Guys
->>
->> I have a OpenLDAP server with user accounts. Actually, i autheticate my 
->> LAN machines to LDAP server and ALL OK.
->>
->> I want that:
->>
->> EXAMPLE:
->> day 1:
->> user1 login in machine1 and I want to mount via NFS, the home of this 
->> user, that is in another storage server
->>
->> day 2: user 1 login in machine6 and I want to mount via NFS, the home of 
->> this user, that is in another storage server
->>
->>
->> I want to have all users homes, in a centralized storage server, and 
->> give the posibility to users to login in any machine of the LAN, and 
->> have they home directory mounted automaticaly.
->>
->> Is that posible with autofs+LDAP?
+That's the first time I've ever heard that!  What data did your user use
+to support that conclusion?
 
-In auto.master, you can have an entry like:
-/home ldap:nisMapName=auto_XXXXX,ou=Autofs,....
-and have each system specify a different auto_XXXXX location in LDAP to
-start from.
+> However, I now have another report than allowing browse was harmful on 
+> large networks, causing lots of IP collisions.
 
-Or you could have have script in place of the auto.home entry:
-/home auto_select_script,....
-where auto_select_script is a script that is passed the username.
-It can use ldap to determine what to do.
+My knowledge in this area is dated, sadly.  I'll let Ian address the
+specific implementation details.
 
-> 
-> Basically yes, but there are a number of decisions about how this might
-> be setup at your site that don't relate specifically to autofs.
-> 
-> Ian
-> 
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
-> 
-> 
+> So, I'm curious at what should be a good default value for this option.
+>
+> Second, having a look at the code, it seems 'yes' is the default in the 
+> binary, but, but default configuration file set it to 'no', which is 
+> quite disturbing. If there is a good default value for this option (and 
+> even if there was not), I'd rather have consistent default values in 
+> both places.
 
--- 
+Well, for RHEL at least, we wanted to make things continue to work as
+they did before.  That means configuring autofs to default to nobrowse.
+I'm not sure why the daemon defaults to browsing.
 
-  Douglas E. Engert  <DEEngert@anl.gov>
-  Argonne National Laboratory
-  9700 South Cass Avenue
-  Argonne, Illinois  60439
-  (630) 252-5444
+> Last issue, I can't find a correct description on what this option does 
+> exactly anywhere :)
+
+http://docs.sun.com/app/docs/doc/816-0211/6m6nc66nc?a=view
+
+Scroll down to the section entitled, "Browsing."
+
+Cheers,
+
+Jeff
