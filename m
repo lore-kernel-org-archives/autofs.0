@@ -1,14 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs+LDAP
-Date: Mon, 22 Sep 2008 19:12:00 +0800
-Message-ID: <1222081920.3163.201.camel@raven.themaw.net>
-References: <48D6BF37.1050404@irontec.com>
-	<1222058110.3163.78.camel@raven.themaw.net>
-	<48D74B1A.7020403@irontec.com>
+From: Guillaume Rousse <Guillaume.Rousse@inria.fr>
+Subject: 'browse mode' issue
+Date: Mon, 22 Sep 2008 17:52:24 +0200
+Message-ID: <48D7BF38.5020709@inria.fr>
 Mime-Version: 1.0
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <48D74B1A.7020403@irontec.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,42 +16,30 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="iso-8859-1"
-To: Mikel Jimenez <mikel@irontec.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org, sterjan@mandriva.com
 
-T24gTW9uLCAyMDA4LTA5LTIyIGF0IDA5OjM2ICswMjAwLCBNaWtlbCBKaW1lbmV6IHdyb3RlOgo+
-IElhbiBLZW50IGVzY3JpYmnDszoKPiA+IE9uIFN1biwgMjAwOC0wOS0yMSBhdCAyMzo0MCArMDIw
-MCwgTWlrZWwgSmltZW5leiB3cm90ZToKPiA+ICAgCj4gPj4gSGVsbG8gR3V5cwo+ID4+Cj4gPj4g
-SSBoYXZlIGEgT3BlbkxEQVAgc2VydmVyIHdpdGggdXNlciBhY2NvdW50cy4gQWN0dWFsbHksIGkg
-YXV0aGV0aWNhdGUgbXkgCj4gPj4gTEFOIG1hY2hpbmVzIHRvIExEQVAgc2VydmVyIGFuZCBBTEwg
-T0suCj4gPj4KPiA+PiBJIHdhbnQgdGhhdDoKPiA+Pgo+ID4+IEVYQU1QTEU6Cj4gPj4gZGF5IDE6
-Cj4gPj4gdXNlcjEgbG9naW4gaW4gbWFjaGluZTEgYW5kIEkgd2FudCB0byBtb3VudCB2aWEgTkZT
-LCB0aGUgaG9tZSBvZiB0aGlzIAo+ID4+IHVzZXIsIHRoYXQgaXMgaW4gYW5vdGhlciBzdG9yYWdl
-IHNlcnZlcgo+ID4+Cj4gPj4gZGF5IDI6IHVzZXIgMSBsb2dpbiBpbiBtYWNoaW5lNiBhbmQgSSB3
-YW50IHRvIG1vdW50IHZpYSBORlMsIHRoZSBob21lIG9mIAo+ID4+IHRoaXMgdXNlciwgdGhhdCBp
-cyBpbiBhbm90aGVyIHN0b3JhZ2Ugc2VydmVyCj4gPj4KPiA+Pgo+ID4+IEkgd2FudCB0byBoYXZl
-IGFsbCB1c2VycyBob21lcywgaW4gYSBjZW50cmFsaXplZCBzdG9yYWdlIHNlcnZlciwgYW5kIAo+
-ID4+IGdpdmUgdGhlIHBvc2liaWxpdHkgdG8gdXNlcnMgdG8gbG9naW4gaW4gYW55IG1hY2hpbmUg
-b2YgdGhlIExBTiwgYW5kIAo+ID4+IGhhdmUgdGhleSBob21lIGRpcmVjdG9yeSBtb3VudGVkIGF1
-dG9tYXRpY2FseS4KPiA+Pgo+ID4+IElzIHRoYXQgcG9zaWJsZSB3aXRoIGF1dG9mcytMREFQPwo+
-ID4+ICAgICAKPiA+Cj4gPiBCYXNpY2FsbHkgeWVzLCBidXQgdGhlcmUgYXJlIGEgbnVtYmVyIG9m
-IGRlY2lzaW9ucyBhYm91dCBob3cgdGhpcyBtaWdodAo+ID4gYmUgc2V0dXAgYXQgeW91ciBzaXRl
-IHRoYXQgZG9uJ3QgcmVsYXRlIHNwZWNpZmljYWxseSB0byBhdXRvZnMuCj4gPgo+ID4gSWFuCj4g
-Pgo+ID4KPiA+ICAgCj4gT2suIFRoYW5rcyBhIGxvdCBmb3IgeW91ciB0aW1lLgo+IAo+IENhbiB5
-b3UgZ3VpZGUgbWUgPwoKTm90IHJlYWxseSwgbXVjaCBvZiB0aGlzIGlzIHNpdGUgYW5kIHByZWZl
-cmVuY2Ugc3BlY2lmaWMuCgpGb3IgZXhhbXBsZSwgeW91IG5lZWQgdG8gZGVjaWRlIHdoYXQgZm9y
-bSB5b3Ugd2FudCBmb3IgdGhlIGhvbWUKZGlyZWN0b3J5IHBhdGhzIHRvIGJlLgoKRXNzZW50aWFs
-bHksIHRoaXMgbWVhbnMgdGhhdCBpZiB5b3UgaGF2ZSBvciBleHBlY3QgdG8gaGF2ZSBhdCBzb21l
-CmZ1dHVyZSB0aW1lLCBzZXZlcmFsIGhvbWUgZGlyZWN0b3J5IHNlcnZlcnMsIHRoZW4gZG8geW91
-IHdhbnQgKGFuZCBoYXZlCnlvdSBnb3QgcHJvY2VkdXJlcyBpbiBwbGFjZSB0byBtYWludGFpbiB0
-aGUgdXNlciBhY2NvdW50IGluZm8pIHlvdXIgaG9tZQpkaXJlY3RvcmllcyB0byBiZSAvaG9tZS88
-c2VydmVyIG5hbWU+IG9yIC9leHBvcnQvaG9tZS88c2VydmVyPiBvciBzb21lCm90aGVyIHZhcmlh
-dGlvbiBhbmQgcGVyZm9ybSBhIHNpbmdsZSBhdXRvbW91bnQgZm9yIGEgYWxsIHVzZXJzIG9mIGEK
-Z2l2ZW4gc2VydmVyIG9yIHVzZSBhIHBhdGggaW5kZXBlbmRlbnQgb2Ygc2VydmVyIGFuZCBwZXJm
-b3JtIGFuCmF1dG9tb3VudCBmb3IgZXZlcnkgaW5kaXZpZHVhbCB1c2VyLiBPciBzb21lIG90aGVy
-IGVudGlyZWx5IGRpZmZlcmVudAphcHByb2FjaC4KClVudGlsIHlvdSBkZWNpZGUgd2hhdCB5b3Ug
-d2FudCB0byB1c2UgZm9yIHRoZSBob21lIGRpcmVjdG9yeSBwYXRocyB5b3UKY2FuJ3QgcmVhbGx5
-IGRvIGFueXRoaW5nLgoKSWFuCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KYXV0b2ZzIG1haWxpbmcgbGlzdAphdXRvZnNAbGludXgua2VybmVsLm9yZwpo
-dHRwOi8vbGludXgua2VybmVsLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2F1dG9mcwo=
+Hello list. I've several questions about browse mode option.
+
+First, I have opposite reports about the effects of 'browse mode' option 
+in automount configuration. Some times ago, a user reported than setting 
+it to 'no' was CPU-unfriendly, so we turned it to 'yes' by default in 
+mandriva package:
+https://qa.mandriva.com/show_bug.cgi?id=31901
+
+However, I now have another report than allowing browse was harmful on 
+large networks, causing lots of IP collisions.
+
+So, I'm curious at what should be a good default value for this option.
+
+Second, having a look at the code, it seems 'yes' is the default in the 
+binary, but, but default configuration file set it to 'no', which is 
+quite disturbing. If there is a good default value for this option (and 
+even if there was not), I'd rather have consistent default values in 
+both places.
+
+Last issue, I can't find a correct description on what this option does 
+exactly anywhere :)
+-- 
+Guillaume Rousse
+Moyens Informatiques - INRIA Futurs
+Tel: 01 69 35 69 62
