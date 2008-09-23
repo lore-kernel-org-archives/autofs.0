@@ -1,14 +1,14 @@
-From: Mikel Jimenez <mikel@irontec.com>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: Fwd: Re:  autofs+LDAP
-Date: Tue, 23 Sep 2008 09:08:02 +0200
-Message-ID: <48D895D2.7020502@irontec.com>
+Date: Tue, 23 Sep 2008 15:28:27 +0800
+Message-ID: <1222154907.8564.112.camel@raven.themaw.net>
 References: <ab2c1458ef71935d134b68a0b988d9bb@irontec.com>
 	<1222135728.8564.62.camel@raven.themaw.net>
+	<48D895D2.7020502@irontec.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: base64
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1222135728.8564.62.camel@raven.themaw.net>
+In-Reply-To: <48D895D2.7020502@irontec.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,124 +19,82 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
+Content-Type: text/plain; charset="iso-8859-1"
+To: Mikel Jimenez <mikel@irontec.com>
 Cc: autofs@linux.kernel.org
 
-Ian Kent escribi=F3:
-> On Mon, 2008-09-22 at 20:15 +0200, mikel wrote:
->   =
-
->> -------- Original Message --------
->> Subject: Re: [autofs] autofs+LDAP
->> Date: Mon, 22 Sep 2008 20:14:21 +0200
->> From: mikel <mikel@irontec.com>
->> To: "Douglas E. Engert" <deengert@anl.gov>
->>
->> mmm very interesting... that is what I need!!
->>
->> I want to have the capability to personalize automount for each user.
->>
->> I want user1 have in /home mass_storage_ip:/remote_homes/user1
->>
->> and user2:  /home mass_storage_ip:/remote_homes/user2
->>     =
-
->
-> You really don't want to do it this way exactly do you?
->
-> Surely you mean you want the mounts to be:
-> user1: /home/user1   mass_storage_ip:/remote_homes/user1
-> user2: /home/user2   mass_storage_ip:/remote_homes/user2
->
->   =
-
->> Guide to do that...
->> A lot of thanks!! really
->>
->> On Mon, 22 Sep 2008 11:33:40 -0500, "Douglas E. Engert" <deengert@anl.go=
-v>
->> wrote:
->>     =
-
->>> Ian Kent wrote:
->>>       =
-
->>>> On Sun, 2008-09-21 at 23:40 +0200, Mikel Jimenez wrote:
->>>>         =
-
->>>>> Hello Guys
->>>>>
->>>>> I have a OpenLDAP server with user accounts. Actually, i autheticate =
-my
->>>>> LAN machines to LDAP server and ALL OK.
->>>>>
->>>>> I want that:
->>>>>
->>>>> EXAMPLE:
->>>>> day 1:
->>>>> user1 login in machine1 and I want to mount via NFS, the home of this
->>>>> user, that is in another storage server
->>>>>
->>>>> day 2: user 1 login in machine6 and I want to mount via NFS, the home
->>>>>           =
-
->>> of
->>>       =
-
->>>>> this user, that is in another storage server
->>>>>
->>>>>
->>>>> I want to have all users homes, in a centralized storage server, and
->>>>> give the posibility to users to login in any machine of the LAN, and
->>>>> have they home directory mounted automaticaly.
->>>>>
->>>>> Is that posible with autofs+LDAP?
->>>>>           =
-
->>> In auto.master, you can have an entry like:
->>> /home ldap:nisMapName=3Dauto_XXXXX,ou=3DAutofs,....
->>> and have each system specify a different auto_XXXXX location in LDAP to
->>> start from.
->>>
->>> Or you could have have script in place of the auto.home entry:
->>> /home auto_select_script,....
->>> where auto_select_script is a script that is passed the username.
->>> It can use ldap to determine what to do.
->>>
->>>       =
-
->>>> Basically yes, but there are a number of decisions about how this might
->>>> be setup at your site that don't relate specifically to autofs.
->>>>
->>>> Ian
->>>>
->>>>
->>>> _______________________________________________
->>>> autofs mailing list
->>>> autofs@linux.kernel.org
->>>> http://linux.kernel.org/mailman/listinfo/autofs
->>>>
->>>>
->>>>         =
-
->>> --
->>>
->>>   Douglas E. Engert  <DEEngert@anl.gov>
->>>   Argonne National Laboratory
->>>   9700 South Cass Avenue
->>>   Argonne, Illinois  60439
->>>   (630) 252-5444
->>>       =
-
->> _______________________________________________
->> autofs mailing list
->> autofs@linux.kernel.org
->> http://linux.kernel.org/mailman/listinfo/autofs
->>     =
-
->
->   =
-
-YES YES!!
-
-That is it!!
+T24gVHVlLCAyMDA4LTA5LTIzIGF0IDA5OjA4ICswMjAwLCBNaWtlbCBKaW1lbmV6IHdyb3RlOgo+
+IElhbiBLZW50IGVzY3JpYmnDszoKPiA+IE9uIE1vbiwgMjAwOC0wOS0yMiBhdCAyMDoxNSArMDIw
+MCwgbWlrZWwgd3JvdGU6Cj4gPiAgIAo+ID4+IC0tLS0tLS0tIE9yaWdpbmFsIE1lc3NhZ2UgLS0t
+LS0tLS0KPiA+PiBTdWJqZWN0OiBSZTogW2F1dG9mc10gYXV0b2ZzK0xEQVAKPiA+PiBEYXRlOiBN
+b24sIDIyIFNlcCAyMDA4IDIwOjE0OjIxICswMjAwCj4gPj4gRnJvbTogbWlrZWwgPG1pa2VsQGly
+b250ZWMuY29tPgo+ID4+IFRvOiAiRG91Z2xhcyBFLiBFbmdlcnQiIDxkZWVuZ2VydEBhbmwuZ292
+Pgo+ID4+Cj4gPj4gbW1tIHZlcnkgaW50ZXJlc3RpbmcuLi4gdGhhdCBpcyB3aGF0IEkgbmVlZCEh
+Cj4gPj4KPiA+PiBJIHdhbnQgdG8gaGF2ZSB0aGUgY2FwYWJpbGl0eSB0byBwZXJzb25hbGl6ZSBh
+dXRvbW91bnQgZm9yIGVhY2ggdXNlci4KPiA+Pgo+ID4+IEkgd2FudCB1c2VyMSBoYXZlIGluIC9o
+b21lIG1hc3Nfc3RvcmFnZV9pcDovcmVtb3RlX2hvbWVzL3VzZXIxCj4gPj4KPiA+PiBhbmQgdXNl
+cjI6ICAvaG9tZSBtYXNzX3N0b3JhZ2VfaXA6L3JlbW90ZV9ob21lcy91c2VyMgo+ID4+ICAgICAK
+PiA+Cj4gPiBZb3UgcmVhbGx5IGRvbid0IHdhbnQgdG8gZG8gaXQgdGhpcyB3YXkgZXhhY3RseSBk
+byB5b3U/Cj4gPgo+ID4gU3VyZWx5IHlvdSBtZWFuIHlvdSB3YW50IHRoZSBtb3VudHMgdG8gYmU6
+Cj4gPiB1c2VyMTogL2hvbWUvdXNlcjEgICBtYXNzX3N0b3JhZ2VfaXA6L3JlbW90ZV9ob21lcy91
+c2VyMQo+ID4gdXNlcjI6IC9ob21lL3VzZXIyICAgbWFzc19zdG9yYWdlX2lwOi9yZW1vdGVfaG9t
+ZXMvdXNlcjIKPiA+Cj4gPiAgIAo+ID4+IEd1aWRlIHRvIGRvIHRoYXQuLi4KPiA+PiBBIGxvdCBv
+ZiB0aGFua3MhISByZWFsbHkKPiA+Pgo+ID4+IE9uIE1vbiwgMjIgU2VwIDIwMDggMTE6MzM6NDAg
+LTA1MDAsICJEb3VnbGFzIEUuIEVuZ2VydCIgPGRlZW5nZXJ0QGFubC5nb3Y+Cj4gPj4gd3JvdGU6
+Cj4gPj4gICAgIAo+ID4+PiBJYW4gS2VudCB3cm90ZToKPiA+Pj4gICAgICAgCj4gPj4+PiBPbiBT
+dW4sIDIwMDgtMDktMjEgYXQgMjM6NDAgKzAyMDAsIE1pa2VsIEppbWVuZXogd3JvdGU6Cj4gPj4+
+PiAgICAgICAgIAo+ID4+Pj4+IEhlbGxvIEd1eXMKPiA+Pj4+Pgo+ID4+Pj4+IEkgaGF2ZSBhIE9w
+ZW5MREFQIHNlcnZlciB3aXRoIHVzZXIgYWNjb3VudHMuIEFjdHVhbGx5LCBpIGF1dGhldGljYXRl
+IG15Cj4gPj4+Pj4gTEFOIG1hY2hpbmVzIHRvIExEQVAgc2VydmVyIGFuZCBBTEwgT0suCj4gPj4+
+Pj4KPiA+Pj4+PiBJIHdhbnQgdGhhdDoKPiA+Pj4+Pgo+ID4+Pj4+IEVYQU1QTEU6Cj4gPj4+Pj4g
+ZGF5IDE6Cj4gPj4+Pj4gdXNlcjEgbG9naW4gaW4gbWFjaGluZTEgYW5kIEkgd2FudCB0byBtb3Vu
+dCB2aWEgTkZTLCB0aGUgaG9tZSBvZiB0aGlzCj4gPj4+Pj4gdXNlciwgdGhhdCBpcyBpbiBhbm90
+aGVyIHN0b3JhZ2Ugc2VydmVyCj4gPj4+Pj4KPiA+Pj4+PiBkYXkgMjogdXNlciAxIGxvZ2luIGlu
+IG1hY2hpbmU2IGFuZCBJIHdhbnQgdG8gbW91bnQgdmlhIE5GUywgdGhlIGhvbWUKPiA+Pj4+PiAg
+ICAgICAgICAgCj4gPj4+IG9mCj4gPj4+ICAgICAgIAo+ID4+Pj4+IHRoaXMgdXNlciwgdGhhdCBp
+cyBpbiBhbm90aGVyIHN0b3JhZ2Ugc2VydmVyCj4gPj4+Pj4KPiA+Pj4+Pgo+ID4+Pj4+IEkgd2Fu
+dCB0byBoYXZlIGFsbCB1c2VycyBob21lcywgaW4gYSBjZW50cmFsaXplZCBzdG9yYWdlIHNlcnZl
+ciwgYW5kCj4gPj4+Pj4gZ2l2ZSB0aGUgcG9zaWJpbGl0eSB0byB1c2VycyB0byBsb2dpbiBpbiBh
+bnkgbWFjaGluZSBvZiB0aGUgTEFOLCBhbmQKPiA+Pj4+PiBoYXZlIHRoZXkgaG9tZSBkaXJlY3Rv
+cnkgbW91bnRlZCBhdXRvbWF0aWNhbHkuCj4gPj4+Pj4KPiA+Pj4+PiBJcyB0aGF0IHBvc2libGUg
+d2l0aCBhdXRvZnMrTERBUD8KPiA+Pj4+PiAgICAgICAgICAgCj4gPj4+IEluIGF1dG8ubWFzdGVy
+LCB5b3UgY2FuIGhhdmUgYW4gZW50cnkgbGlrZToKPiA+Pj4gL2hvbWUgbGRhcDpuaXNNYXBOYW1l
+PWF1dG9fWFhYWFgsb3U9QXV0b2ZzLC4uLi4KPiA+Pj4gYW5kIGhhdmUgZWFjaCBzeXN0ZW0gc3Bl
+Y2lmeSBhIGRpZmZlcmVudCBhdXRvX1hYWFhYIGxvY2F0aW9uIGluIExEQVAgdG8KPiA+Pj4gc3Rh
+cnQgZnJvbS4KPiA+Pj4KPiA+Pj4gT3IgeW91IGNvdWxkIGhhdmUgaGF2ZSBzY3JpcHQgaW4gcGxh
+Y2Ugb2YgdGhlIGF1dG8uaG9tZSBlbnRyeToKPiA+Pj4gL2hvbWUgYXV0b19zZWxlY3Rfc2NyaXB0
+LC4uLi4KPiA+Pj4gd2hlcmUgYXV0b19zZWxlY3Rfc2NyaXB0IGlzIGEgc2NyaXB0IHRoYXQgaXMg
+cGFzc2VkIHRoZSB1c2VybmFtZS4KPiA+Pj4gSXQgY2FuIHVzZSBsZGFwIHRvIGRldGVybWluZSB3
+aGF0IHRvIGRvLgo+ID4+Pgo+ID4+PiAgICAgICAKPiA+Pj4+IEJhc2ljYWxseSB5ZXMsIGJ1dCB0
+aGVyZSBhcmUgYSBudW1iZXIgb2YgZGVjaXNpb25zIGFib3V0IGhvdyB0aGlzIG1pZ2h0Cj4gPj4+
+PiBiZSBzZXR1cCBhdCB5b3VyIHNpdGUgdGhhdCBkb24ndCByZWxhdGUgc3BlY2lmaWNhbGx5IHRv
+IGF1dG9mcy4KPiA+Pj4+Cj4gPj4+PiBJYW4KPiA+Pj4+Cj4gPj4+Pgo+ID4+Pj4gX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KPiA+Pj4+IGF1dG9mcyBtYWls
+aW5nIGxpc3QKPiA+Pj4+IGF1dG9mc0BsaW51eC5rZXJuZWwub3JnCj4gPj4+PiBodHRwOi8vbGlu
+dXgua2VybmVsLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2F1dG9mcwo+ID4+Pj4KPiA+Pj4+Cj4gPj4+
+PiAgICAgICAgIAo+ID4+PiAtLQo+ID4+Pgo+ID4+PiAgIERvdWdsYXMgRS4gRW5nZXJ0ICA8REVF
+bmdlcnRAYW5sLmdvdj4KPiA+Pj4gICBBcmdvbm5lIE5hdGlvbmFsIExhYm9yYXRvcnkKPiA+Pj4g
+ICA5NzAwIFNvdXRoIENhc3MgQXZlbnVlCj4gPj4+ICAgQXJnb25uZSwgSWxsaW5vaXMgIDYwNDM5
+Cj4gPj4+ICAgKDYzMCkgMjUyLTU0NDQKPiA+Pj4gICAgICAgCj4gPj4gX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KPiA+PiBhdXRvZnMgbWFpbGluZyBsaXN0
+Cj4gPj4gYXV0b2ZzQGxpbnV4Lmtlcm5lbC5vcmcKPiA+PiBodHRwOi8vbGludXgua2VybmVsLm9y
+Zy9tYWlsbWFuL2xpc3RpbmZvL2F1dG9mcwo+ID4+ICAgICAKPiA+Cj4gPiAgIAo+IFlFUyBZRVMh
+IQo+IAo+IFRoYXQgaXMgaXQhIQoKWW91IHNvdW5kIGxpa2UgeW91ciB3YWl0aW5nIGZvciBzdGVw
+IGJ5IHN0ZXAgaW5zdHJ1Y3Rpb25zLgpUaGF0J3Mgbm90IGdvaW5nIHRvIGhhcHBlbiwgYXQgbGVh
+c3Qgbm90IGZyb20gbWUsIGJlY2F1c2UgeW91J2xsIGVuZCB1cAp3aXRoIGEgc2V0dXAgeW91IGRv
+bid0IHVuZGVyc3RhbmQuCgpCdXQgdGhlcmUgYXJlIGEgY291cGxlIG9mIG90aGVyIHRoaW5ncyB5
+b3UgbmVlZCB0byBkZWNpZGUgb24uCldoYXQgTERBUCBzY2hlbWEgdG8gdXNlIGFuZCB3aGV0aGVy
+IHlvdSB3aWxsIHVzZSBhIG1hc3RlciBtYXAgaGVsZCBpbgpMREFQIG9yIGEgZmlsZSBiYXNlZCBv
+bmUuIFRoZXJlIGFyZSBhIGZldyBnb3RjaGFzIGFuZCB0aGluZ3MgeW91IG1pZ2h0Cm5lZWQgdG8g
+Y2hhbmdlIGJ1dCBmaXJzdCBkZWNpZGUgaG93IHlvdSB3YW50IHRvIGRvIGl0IGFuZCBjb25zdHJ1
+Y3QKc2ltcGxlIG1hcHMgdG8gdGVzdCBhbmQgc2VlIGhvdyBmYXIgeW91IGdldC4KCkxvb2sgYXQg
+dGhlIGV4YW1wbGVzIGluIHNhbXBsZXMvbGRhcC0qLm1hc3RlciBhbmQKc2FtcGxlcy9sZGFwLSou
+aW5kaXJlY3QgZm9yIGV4YW1wbGVzIG9mIExEQVAgbWFwcyBmb3IgdGhlIGRpZmZlcmVudApjb21t
+b25seSB1c2VkIHNjaGVtYS4gQW4gaW5kaXJlY3QgbWFwIG1vdW50ZWQgb24gL2hvbWUgaXMgd2hh
+dCB5b3Ugd2FudApieSB0aGUgc291bmQgb2YgaXQuIFRoZSBtYXN0ZXIgbWFwIGVudHJpZXMgY29u
+dGFpbiB0aGUgYXV0b21vdW50cyBpbgp1c2UsIHN1Y2ggL2hvbWUgaW4gdGhpcyBjYXNlLCBhbmQg
+c3BlY2lmaWVzIHRoZSBhdXRvbW91bnQgbWFwIHdoaWNoCmNvbnRhaW5zIHRoZSBrZXlzIHByb3Zp
+ZGVkIGJ5IHRoZSBtYXAsIHN1Y2ggYXMgdXNlcjEgYW5kIHVzZXIyLCBpbiB0aGlzCmNhc2UuCgpJ
+YW4KCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwphdXRv
+ZnMgbWFpbGluZyBsaXN0CmF1dG9mc0BsaW51eC5rZXJuZWwub3JnCmh0dHA6Ly9saW51eC5rZXJu
+ZWwub3JnL21haWxtYW4vbGlzdGluZm8vYXV0b2ZzCg==
