@@ -1,13 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: 'browse mode' issue
-Date: Tue, 23 Sep 2008 10:05:35 +0800
-Message-ID: <1222135535.8564.58.camel@raven.themaw.net>
-References: <48D7BF38.5020709@inria.fr>
+Subject: Re: Fwd: Re:  autofs+LDAP
+Date: Tue, 23 Sep 2008 10:08:48 +0800
+Message-ID: <1222135728.8564.62.camel@raven.themaw.net>
+References: <ab2c1458ef71935d134b68a0b988d9bb@irontec.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <48D7BF38.5020709@inria.fr>
+In-Reply-To: <ab2c1458ef71935d134b68a0b988d9bb@irontec.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,78 +18,98 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Guillaume Rousse <Guillaume.Rousse@inria.fr>
+To: mikel <mikel@irontec.com>
 Cc: autofs@linux.kernel.org
 
-On Mon, 2008-09-22 at 17:52 +0200, Guillaume Rousse wrote:
-> Hello list. I've several questions about browse mode option.
+On Mon, 2008-09-22 at 20:15 +0200, mikel wrote:
 > 
-> First, I have opposite reports about the effects of 'browse mode' option 
-> in automount configuration. Some times ago, a user reported than setting 
-> it to 'no' was CPU-unfriendly, so we turned it to 'yes' by default in 
-> mandriva package:
-> https://qa.mandriva.com/show_bug.cgi?id=31901
-
-That is a bit puzzling for sure.
-
-Debugging this will be difficult but we would need to look at the debug
-log and the maps at least.
-
 > 
-> However, I now have another report than allowing browse was harmful on 
-> large networks, causing lots of IP collisions.
+> -------- Original Message --------
+> Subject: Re: [autofs] autofs+LDAP
+> Date: Mon, 22 Sep 2008 20:14:21 +0200
+> From: mikel <mikel@irontec.com>
+> To: "Douglas E. Engert" <deengert@anl.gov>
+> 
+> mmm very interesting... that is what I need!!
+> 
+> I want to have the capability to personalize automount for each user.
+> 
+> I want user1 have in /home mass_storage_ip:/remote_homes/user1
+> 
+> and user2:  /home mass_storage_ip:/remote_homes/user2
 
-Setting browse to "yes" shouldn't make a great deal of difference for
-small configurations but for large configurations it will impact both
-CPU and network traffic.
+You really don't want to do it this way exactly do you?
 
-If the maps are large then autofs needs to read the entire map at
-startup and again every time it thinks there has been a change. This
-will significantly impact network traffic. Also, given that we have a
-large map and the mount point directories all exist, when an expire is
-run every directory key must be checked which will lead to increased CPU
-usage, mostly within the kernel module.
-
-The exception to this is direct maps which must always be read at start
-and when a change is detected, the difference being that the CPU
-overhead during expire is largely within user space.
-
-To make matters worse there may be a bug which causes maps to be re-read
-more often than they need to be but that is quite hard to pick. Maybe a
-debug log will give a clue as to whether this is the case.
+Surely you mean you want the mounts to be:
+user1: /home/user1   mass_storage_ip:/remote_homes/user1
+user2: /home/user2   mass_storage_ip:/remote_homes/user2
 
 > 
-> So, I'm curious at what should be a good default value for this option.
+> Guide to do that...
+> A lot of thanks!! really
 > 
-> Second, having a look at the code, it seems 'yes' is the default in the 
-> binary, but, but default configuration file set it to 'no', which is 
-> quite disturbing. If there is a good default value for this option (and 
-> even if there was not), I'd rather have consistent default values in 
-> both places.
-
-That's right.
-
-First the reason for this is that for the industry standard automounter
-(not mentioning it by name) the default browse option is "yes" so the
-program internal default is this but the version 4 default is "no".
-Given the large map issue and the v4 default, the v5 default
-configuration overrides this and sets it to "no". I hope that one day we
-not need to override this in the configuration but that isn't the case
-now.
-
-Also, in v4 maps were always read entirely so it didn't make a lot of
-difference but large maps were a killer so in v5 this was changed so
-that, when browse is set to "no", maps (other than direct maps) are
-never read in full so it can make a big difference. Once again the
-reason for the over-ride in the configuration.  
-
+> On Mon, 22 Sep 2008 11:33:40 -0500, "Douglas E. Engert" <deengert@anl.gov>
+> wrote:
+> >
+> >
+> > Ian Kent wrote:
+> >> On Sun, 2008-09-21 at 23:40 +0200, Mikel Jimenez wrote:
+> >>> Hello Guys
+> >>>
+> >>> I have a OpenLDAP server with user accounts. Actually, i autheticate my
+> >>> LAN machines to LDAP server and ALL OK.
+> >>>
+> >>> I want that:
+> >>>
+> >>> EXAMPLE:
+> >>> day 1:
+> >>> user1 login in machine1 and I want to mount via NFS, the home of this
+> >>> user, that is in another storage server
+> >>>
+> >>> day 2: user 1 login in machine6 and I want to mount via NFS, the home
+> > of
+> >>> this user, that is in another storage server
+> >>>
+> >>>
+> >>> I want to have all users homes, in a centralized storage server, and
+> >>> give the posibility to users to login in any machine of the LAN, and
+> >>> have they home directory mounted automaticaly.
+> >>>
+> >>> Is that posible with autofs+LDAP?
+> >
+> > In auto.master, you can have an entry like:
+> > /home ldap:nisMapName=auto_XXXXX,ou=Autofs,....
+> > and have each system specify a different auto_XXXXX location in LDAP to
+> > start from.
+> >
+> > Or you could have have script in place of the auto.home entry:
+> > /home auto_select_script,....
+> > where auto_select_script is a script that is passed the username.
+> > It can use ldap to determine what to do.
+> >
+> >>
+> >> Basically yes, but there are a number of decisions about how this might
+> >> be setup at your site that don't relate specifically to autofs.
+> >>
+> >> Ian
+> >>
+> >>
+> >> _______________________________________________
+> >> autofs mailing list
+> >> autofs@linux.kernel.org
+> >> http://linux.kernel.org/mailman/listinfo/autofs
+> >>
+> >>
+> >
+> > --
+> >
+> >   Douglas E. Engert  <DEEngert@anl.gov>
+> >   Argonne National Laboratory
+> >   9700 South Cass Avenue
+> >   Argonne, Illinois  60439
+> >   (630) 252-5444
 > 
-> Last issue, I can't find a correct description on what this option does 
-> exactly anywhere :)
-
-So the recommended setting for this is "no" for large maps and either
-for smallish maps. Just what constitutes a "large" map is very much site
-dependent but a couple of hundred entries is usually ok but a few
-thousand almost certainly won't be.
-
-Ian
+> _______________________________________________
+> autofs mailing list
+> autofs@linux.kernel.org
+> http://linux.kernel.org/mailman/listinfo/autofs
