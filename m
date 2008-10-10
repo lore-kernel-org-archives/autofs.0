@@ -1,13 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Autofs doesn't look at second LDAP server
-Date: Tue, 07 Oct 2008 13:00:49 +0800
-Message-ID: <1223355649.3031.18.camel@raven.themaw.net>
-References: <BAC1D28A5AB852439A6914CA7AB4E63F05192E66@permls05.wde.woodside.com.au>
+From: Benjamin Hanzelmann <benjamin.hanzelmann@cs.uni-dortmund.de>
+Subject: 'nfsstat -m' shows many mounts - normal behavior?
+Date: Fri, 10 Oct 2008 11:36:04 +0200
+Message-ID: <48EF2204.2050806@cs.uni-dortmund.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <BAC1D28A5AB852439A6914CA7AB4E63F05192E66@permls05.wde.woodside.com.au>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,42 +16,100 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: "Coe, Colin C. (Unix Engineer)" <Colin.Coe@woodside.com.au>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Wed, 2008-07-16 at 09:20 +0800, Coe, Colin C. (Unix Engineer) wrote:
-> Hi all
-> 
-> I've noticed that, after a period of stability, autofs is dumping core
-> again.
-> 
-> The common thread is the time the core dumping happens, 4AM (give or
-> take a few minutes) which is when our 'cron daily' process runs.  This
-> 'cron daily' lives on an NFS mount that is in the auto_global map
-> ('/nfs/appl server:/vol/oldserver_appl').
-> 
-> Looking through the logs I see that autofs couldn't talk to the ldap
-> server.  We have two ldap servers in case one isn't available.  Looks
-> like autofs isn't trying the second ldap server, is this a known issue?
-> 
+Hello everybody,
 
-snip ...
+at work we're having trouble with undeletable directories.
+We use autofs 4.1.4+debian-2.1ubuntu1 (Hardy).
+Sometimes (possibly after many file operations for
+example with maven, eclipse, svn) there are directories
+that cannot be deleted anymore. Home directories
+are mounted from a Solaris NFS server, which seems to be
+running okay (nothing shows up server side if this happens).
 
-> Jul 13 04:03:01 las006 automount[31280]: parse_ldap_config:
-> lookup(ldap): user: (null), secret: unspecified, client principal:
-> (null) credential cache: (null)
-> Jul 13 04:03:01 las006 automount[31280]: parse_ldap_config:
-> lookup(ldap): user: (null), secret: unspecified, client principal:
-> (null) credential cache: (null)
-> Jul 13 04:03:01 las006 automount[31280]: find_server: trying server
-> ldaps://aether.woodside.com.au:636
-> Jul 13 04:03:01 las006 automount[31280]: find_server: trying server
-> ldaps://aether.woodside.com.au:636
+On the client, 'nfsstat -m' shows many mount points inside
+the home directory, one of them the directory that cannot
+be deleted (see below, the directory this time was
+'/ldaphome/hanzelm/workspace/ls5/jabc-core/jabc-editor/target/classes/de'.
+'/home/hanzelm' is coming from a near-obsolete NIS auto_home,
+but I'm working in /ldaphome.)
 
-Looking at this again, this doesn't necessarily mean autofs isn't
-looking at additional configured servers as each map mount will have its
-own context with a copy of the servers and should independently try each
-of the servers. This log fragment only indicates that each map is trying
-the first server in its list.
+Is this normal behaviour for autofs/nfs?
 
-Ian
+Regards,
+Benjamin Hanzelmann
+
+>>>>>>> paste <<<<<<<<
+hanzelm@ls5ray01:~# nfsstat -m
+[...]
+[ other user home directories ]
+[...]
+
+/ldaphome/hanzelm from ls5file02:/san02vol02pool/nfs/export/home02/hanzelm
+ Flags:
+rw,vers=3,rsize=1048576,wsize=1048576,hard,intr,proto=tcp,timeo=600,retrans=2,sec=sys,addr=ls5file02
+
+/home/hanzelm from ls5file02:/san02vol02pool/nfs/export/home02/hanzelm
+ Flags:
+rw,vers=3,rsize=1048576,wsize=1048576,hard,proto=tcp,timeo=600,retrans=2,sec=sys,addr=ls5file02
+
+/ldaphome/hanzelm/.mozilla-thunderbird/ml8g9zbw.default/ImapMail/mail.speutel.de/INBOX.sbd/work--ls5.sbd
+from
+ls5file02:/san02vol02pool/nfs/export/home02/hanzelm/.mozilla-thunderbird/ml8g9zbw.default/ImapMail/mail.speutel.de/INBOX.sbd/work--ls5.sbd
+ Flags:
+rw,vers=3,rsize=1048576,wsize=1048576,hard,intr,proto=tcp,timeo=600,retrans=2,sec=sys,addr=ls5file02
+
+/ldaphome/hanzelm/workspace/ls5/da/text/Konzept from
+ls5file02:/san02vol02pool/nfs/export/home02/hanzelm/workspace/ls5/da/text/Konzept
+ Flags:
+rw,vers=3,rsize=1048576,wsize=1048576,hard,intr,proto=tcp,timeo=600,retrans=2,sec=sys,addr=ls5file02
+
+/ldaphome/hanzelm/.eclipse/org.eclipse.platform_3.3.0_1148896627 from
+ls5file02:/san02vol02pool/nfs/export/home02/hanzelm/.eclipse/org.eclipse.platform_3.3.0_1148896627
+ Flags:
+rw,vers=3,rsize=1048576,wsize=1048576,hard,intr,proto=tcp,timeo=600,retrans=2,sec=sys,addr=ls5file02
+
+/ldaphome/hanzelm/workspace/.metadata/.plugins from
+ls5file02:/san02vol02pool/nfs/export/home02/hanzelm/workspace/.metadata/.plugins
+ Flags:
+rw,vers=3,rsize=1048576,wsize=1048576,hard,intr,proto=tcp,timeo=600,retrans=2,sec=sys,addr=ls5file02
+
+/ldaphome/hanzelm/workspace/ls5/.metadata/.plugins/org.eclipse.core.resources/.projects/jabc-editor
+from
+ls5file02:/san02vol02pool/nfs/export/home02/hanzelm/workspace/ls5/.metadata/.plugins/org.eclipse.core.resources/.projects/jabc-editor
+ Flags:
+rw,vers=3,rsize=1048576,wsize=1048576,hard,intr,proto=tcp,timeo=600,retrans=2,sec=sys,addr=ls5file02
+
+/ldaphome/hanzelm/workspace/ls5/.metadata/.plugins/org.eclipse.core.resources/.projects/jabc-framework
+from
+ls5file02:/san02vol02pool/nfs/export/home02/hanzelm/workspace/ls5/.metadata/.plugins/org.eclipse.core.resources/.projects/jabc-framework
+ Flags:
+rw,vers=3,rsize=1048576,wsize=1048576,hard,intr,proto=tcp,timeo=600,retrans=2,sec=sys,addr=ls5file02
+
+/ldaphome/hanzelm/workspace/ls5/.metadata/.plugins/org.eclipse.core.resources/.projects/maven-server-plugin
+from
+ls5file02:/san02vol02pool/nfs/export/home02/hanzelm/workspace/ls5/.metadata/.plugins/org.eclipse.core.resources/.projects/maven-server-plugin
+ Flags:
+rw,vers=3,rsize=1048576,wsize=1048576,hard,intr,proto=tcp,timeo=600,retrans=2,sec=sys,addr=ls5file02
+
+/ldaphome/hanzelm/workspace/ls5/.metadata/.plugins/org.eclipse.core.resources/.projects/zounds
+from
+ls5file02:/san02vol02pool/nfs/export/home02/hanzelm/workspace/ls5/.metadata/.plugins/org.eclipse.core.resources/.projects/zounds
+ Flags:
+rw,vers=3,rsize=1048576,wsize=1048576,hard,intr,proto=tcp,timeo=600,retrans=2,sec=sys,addr=ls5file02
+
+/ldaphome/hanzelm/workspace/ls5/.metadata/.plugins/org.eclipse.core.resources/.projects/zounds-common
+from
+ls5file02:/san02vol02pool/nfs/export/home02/hanzelm/workspace/ls5/.metadata/.plugins/org.eclipse.core.resources/.projects/zounds-common
+ Flags:
+rw,vers=3,rsize=1048576,wsize=1048576,hard,intr,proto=tcp,timeo=600,retrans=2,sec=sys,addr=ls5file02
+
+/ldaphome/hanzelm/workspace/ls5/jabc-core/jabc-editor/target/classes/de
+from
+ls5file02:/san02vol02pool/nfs/export/home02/hanzelm/workspace/ls5/jabc-core/jabc-editor/target/classes/de
+ Flags:
+rw,vers=3,rsize=1048576,wsize=1048576,hard,intr,proto=tcp,timeo=600,retrans=2,sec=sys,addr=ls5file02
+
+
+[...]
