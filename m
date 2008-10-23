@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 6/6] autofs4 - cleanup expire code duplication
-Date: Thu, 23 Oct 2008 10:35:43 +0800
-Message-ID: <20081023023543.4508.49501.stgit@raven.themaw.net>
+Subject: [PATCH 2/6] autofs4 - remove string terminator check
+Date: Thu, 23 Oct 2008 10:35:22 +0800
+Message-ID: <20081023023522.4508.27987.stgit@raven.themaw.net>
 References: <20081023023513.4508.54940.stgit@raven.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -13,126 +13,53 @@ Content-Type: text/plain; charset="us-ascii"
 To: Andrew Morton <akpm@linux-foundation.org>
 Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>
 
-A significant portion of the autofs_dev_ioctl_expire() and
-autofs4_expire_multi() functions is duplicated code. This patch
-cleans that up.
+Remove unnecessary string terminator check.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
 
 ---
 
- fs/autofs4/autofs_i.h  |    2 ++
- fs/autofs4/dev-ioctl.c |   29 +----------------------------
- fs/autofs4/expire.c    |   27 +++++++++++++++++----------
- 3 files changed, 20 insertions(+), 38 deletions(-)
+ fs/autofs4/dev-ioctl.c |   20 --------------------
+ 1 files changed, 0 insertions(+), 20 deletions(-)
 
 
-diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
-index a768031..b7ff33c 100644
---- a/fs/autofs4/autofs_i.h
-+++ b/fs/autofs4/autofs_i.h
-@@ -186,6 +186,8 @@ int autofs4_expire_wait(struct dentry *dentry);
- int autofs4_expire_run(struct super_block *, struct vfsmount *,
- 			struct autofs_sb_info *,
- 			struct autofs_packet_expire __user *);
-+int autofs4_do_expire_multi(struct super_block *sb, struct vfsmount *mnt,
-+			    struct autofs_sb_info *sbi, int when);
- int autofs4_expire_multi(struct super_block *, struct vfsmount *,
- 			struct autofs_sb_info *, int __user *);
- struct dentry *autofs4_expire_direct(struct super_block *sb,
 diff --git a/fs/autofs4/dev-ioctl.c b/fs/autofs4/dev-ioctl.c
-index 9b78be9..a040639 100644
+index 625abf5..304c1ff 100644
 --- a/fs/autofs4/dev-ioctl.c
 +++ b/fs/autofs4/dev-ioctl.c
-@@ -502,40 +502,13 @@ static int autofs_dev_ioctl_expire(struct file *fp,
- 				   struct autofs_sb_info *sbi,
- 				   struct autofs_dev_ioctl *param)
- {
--	struct dentry *dentry;
- 	struct vfsmount *mnt;
--	int err = -EAGAIN;
- 	int how;
+@@ -51,18 +51,6 @@ static int check_name(const char *name)
+ }
  
- 	how = param->expire.how;
- 	mnt = fp->f_path.mnt;
- 
--	if (autofs_type_trigger(sbi->type))
--		dentry = autofs4_expire_direct(sbi->sb, mnt, sbi, how);
--	else
--		dentry = autofs4_expire_indirect(sbi->sb, mnt, sbi, how);
+ /*
+- * Check a string doesn't overrun the chunk of
+- * memory we copied from user land.
+- */
+-static int invalid_str(char *str, void *end)
+-{
+-	while ((void *) str <= end)
+-		if (!*str++)
+-			return 0;
+-	return -EINVAL;
+-}
 -
--	if (dentry) {
--		struct autofs_info *ino = autofs4_dentry_ino(dentry);
+-/*
+  * Check that the user compiled against correct version of autofs
+  * misc device code.
+  *
+@@ -143,14 +131,6 @@ static int validate_dev_ioctl(int cmd, struct autofs_dev_ioctl *param)
+ 				    cmd);
+ 			goto out;
+ 		}
 -
--		/*
--		 * This is synchronous because it makes the daemon a
--		 * little easier
--		*/
--		err = autofs4_wait(sbi, dentry, NFY_EXPIRE);
--
--		spin_lock(&sbi->fs_lock);
--		if (ino->flags & AUTOFS_INF_MOUNTPOINT) {
--			ino->flags &= ~AUTOFS_INF_MOUNTPOINT;
--			sbi->sb->s_root->d_mounted++;
+-		err = invalid_str(param->path,
+-				 (void *) ((size_t) param + param->size));
+-		if (err) {
+-			AUTOFS_WARN("invalid path supplied for cmd(0x%08x)",
+-				    cmd);
+-			goto out;
 -		}
--		ino->flags &= ~AUTOFS_INF_EXPIRING;
--		complete_all(&ino->expire_complete);
--		spin_unlock(&sbi->fs_lock);
--		dput(dentry);
--	}
--
--	return err;
-+	return autofs4_do_expire_multi(sbi->sb, mnt, sbi, how);
- }
+ 	}
  
- /* Check if autofs mount point is in use */
-diff --git a/fs/autofs4/expire.c b/fs/autofs4/expire.c
-index e3bd507..75f7dda 100644
---- a/fs/autofs4/expire.c
-+++ b/fs/autofs4/expire.c
-@@ -478,22 +478,16 @@ int autofs4_expire_run(struct super_block *sb,
- 	return ret;
- }
- 
--/* Call repeatedly until it returns -EAGAIN, meaning there's nothing
--   more to be done */
--int autofs4_expire_multi(struct super_block *sb, struct vfsmount *mnt,
--			struct autofs_sb_info *sbi, int __user *arg)
-+int autofs4_do_expire_multi(struct super_block *sb, struct vfsmount *mnt,
-+			    struct autofs_sb_info *sbi, int when)
- {
- 	struct dentry *dentry;
- 	int ret = -EAGAIN;
--	int do_now = 0;
--
--	if (arg && get_user(do_now, arg))
--		return -EFAULT;
- 
- 	if (autofs_type_trigger(sbi->type))
--		dentry = autofs4_expire_direct(sb, mnt, sbi, do_now);
-+		dentry = autofs4_expire_direct(sb, mnt, sbi, when);
- 	else
--		dentry = autofs4_expire_indirect(sb, mnt, sbi, do_now);
-+		dentry = autofs4_expire_indirect(sb, mnt, sbi, when);
- 
- 	if (dentry) {
- 		struct autofs_info *ino = autofs4_dentry_ino(dentry);
-@@ -516,3 +510,16 @@ int autofs4_expire_multi(struct super_block *sb, struct vfsmount *mnt,
- 	return ret;
- }
- 
-+/* Call repeatedly until it returns -EAGAIN, meaning there's nothing
-+   more to be done */
-+int autofs4_expire_multi(struct super_block *sb, struct vfsmount *mnt,
-+			struct autofs_sb_info *sbi, int __user *arg)
-+{
-+	int do_now = 0;
-+
-+	if (arg && get_user(do_now, arg))
-+		return -EFAULT;
-+
-+	return autofs4_do_expire_multi(sb, mnt, sbi, do_now);
-+}
-+
+ 	err = 0;
 
