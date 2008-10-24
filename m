@@ -1,10 +1,10 @@
 From: Stef Bon <stef@bononline.nl>
 Subject: Modified auto.smb script
-Date: Tue, 21 Oct 2008 14:51:30 +0200
-Message-ID: <200810211451.31096.stef@bononline.nl>
+Date: Fri, 24 Oct 2008 16:46:56 +0200
+Message-ID: <200810241646.56647.stef@bononline.nl>
 Mime-Version: 1.0
 Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_TBd/InaVIBUSMOH"
+  boundary="Boundary-00=_g/dAJfwBWT6ZMhs"
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -19,18 +19,25 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
---Boundary-00=_TBd/InaVIBUSMOH
+--Boundary-00=_g/dAJfwBWT6ZMhs
 Content-Type: multipart/alternative;
-  boundary="Boundary-00=_TBd/Ir00LC+47iZ"
+  boundary="Boundary-00=_g/dAJopkEGdlO/7"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
---Boundary-00=_TBd/Ir00LC+47iZ
+--Boundary-00=_g/dAJopkEGdlO/7
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-Hello all,
+
+Hi,
+
+I've sent this email before. Can you confirm it's arrived?
+
+Stef
+
+Hello,
 
 I've modified the auto.smb script to make use of cifs in stead of smbfs.
 
@@ -40,36 +47,34 @@ option:ip=$ipaddress.
 It uses the tool nmblookup for that.
 
 Futher I'm working on an howto which describes the various ways to mount SMB 
-shares. Look at:
+shares.
 
-http://linux.bononline.nl/linux/automountsmbshares/
-
-
-It's not ready yet, still working on it.
-
-I'll report again when it's ready.
 
 Stef Bon
 the Netherlands
 
---Boundary-00=_TBd/Ir00LC+47iZ
+
+--Boundary-00=_g/dAJopkEGdlO/7
 Content-Type: text/html;
   charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Sans Serif'; font-size:10pt; font-weight:400; font-style:normal;">Hello all,<br>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"><html><head><meta name="qrichtext" content="1" /><style type="text/css">p, li { white-space: pre-wrap; }</style></head><body style=" font-family:'Sans Serif'; font-size:10pt; font-weight:400; font-style:normal;"><p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>Hi,<br>
+<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>I've sent this email before. Can you confirm it's arrived?<br>
+<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>Stef<br>
+<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>Hello,<br>
 <p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>I've modified the auto.smb script to make use of cifs in stead of smbfs.<br>
-<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>In my network mounting a SMB share with cifs fails, unless the ipaddress is an option:ip=$ipaddress. <br>
+<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>In my network mounting a SMB share with cifs fails, unless the ipaddress is an <br>
+option:ip=$ipaddress. <br>
 <p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>It uses the tool nmblookup for that.<br>
-<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>Futher I'm working on an howto which describes the various ways to mount SMB shares. Look at:<br>
-<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>http://linux.bononline.nl/linux/automountsmbshares/<br>
-<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p><p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>It's not ready yet, still working on it.<br>
-<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>I'll report again when it's ready.<br>
-<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>Stef Bon<br>
-the Netherlands</p></body></html>
---Boundary-00=_TBd/Ir00LC+47iZ--
+<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>Futher I'm working on an howto which describes the various ways to mount SMB <br>
+shares.<br>
+<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p><p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p>Stef Bon<br>
+the Netherlands<br>
+<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"><br></p></body></html>
+--Boundary-00=_g/dAJopkEGdlO/7--
 
---Boundary-00=_TBd/InaVIBUSMOH
+--Boundary-00=_g/dAJfwBWT6ZMhs
 Content-Type: application/x-shellscript;
   name="auto.smb"
 Content-Transfer-Encoding: 7bit
@@ -141,7 +146,7 @@ $SMBCLIENT -gNL $key 2>/dev/null| awk -v key="$key" -v opts="$opts" -F'|' -- '
 	'
 
 
---Boundary-00=_TBd/InaVIBUSMOH
+--Boundary-00=_g/dAJfwBWT6ZMhs
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -152,5 +157,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---Boundary-00=_TBd/InaVIBUSMOH--
+--Boundary-00=_g/dAJfwBWT6ZMhs--
 
