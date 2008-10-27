@@ -1,48 +1,72 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH] autofs4 - fix var shadowed by local delaration
-Date: Mon, 27 Oct 2008 13:36:36 +0900
-Message-ID: <20081027043636.15523.95519.stgit@zeus.themaw.net>
+Subject: Re: Modified auto.smb script
+Date: Mon, 27 Oct 2008 23:00:20 +0900
+Message-ID: <1225116020.2990.33.camel@zeus.themaw.net>
+References: <200810241646.56647.stef@bononline.nl>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Sender: linux-fsdevel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <200810241646.56647.stef@bononline.nl>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: Stef Bon <stef@bononline.nl>
+Cc: autofs@linux.kernel.org
 
-A local definition of devid in autofs_dev_ioctl_ismountpoint() shadows
-the fuction wide definition.
+On Fri, 2008-10-24 at 16:46 +0200, Stef Bon wrote:
+> 
+> Hi,
+> 
+> 
+> 
+> I've sent this email before. Can you confirm it's arrived?
 
-Signed-off-by: Ian Kent <raven@themaw.net>
----
+Yeah, I've received your mail.
+What do you want me to do with the script?
 
- fs/autofs4/dev-ioctl.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/fs/autofs4/dev-ioctl.c b/fs/autofs4/dev-ioctl.c
-index a040639..e19d584 100644
---- a/fs/autofs4/dev-ioctl.c
-+++ b/fs/autofs4/dev-ioctl.c
-@@ -597,17 +597,17 @@ static int autofs_dev_ioctl_ismountpoint(struct file *fp,
- 			magic = nd.path.dentry->d_inode->i_sb->s_magic;
- 		}
- 	} else {
--		dev_t devid = new_encode_dev(sbi->sb->s_dev);
-+		dev_t dev = autofs4_get_dev(sbi);
- 
- 		err = path_lookup(path, LOOKUP_PARENT, &nd);
- 		if (err)
- 			goto out;
- 
--		err = autofs_dev_ioctl_find_super(&nd, devid);
-+		err = autofs_dev_ioctl_find_super(&nd, dev);
- 		if (err)
- 			goto out_release;
- 
--		devid = autofs4_get_dev(sbi);
-+		devid = dev;
- 
- 		err = have_submounts(nd.path.dentry);
- 
-
+> 
+> 
+> 
+> Stef
+> 
+> 
+> 
+> Hello,
+> 
+> 
+> 
+> I've modified the auto.smb script to make use of cifs in stead of
+> smbfs.
+> 
+> 
+> 
+> In my network mounting a SMB share with cifs fails, unless the
+> ipaddress is an 
+> option:ip=$ipaddress. 
+> 
+> 
+> 
+> It uses the tool nmblookup for that.
+> 
+> 
+> 
+> Futher I'm working on an howto which describes the various ways to
+> mount SMB 
+> shares.
+> 
+> 
+> 
+> 
+> Stef Bon
+> the Netherlands
+> 
+> 
+> 
