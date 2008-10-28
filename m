@@ -1,86 +1,106 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 2/6] autofs4 - remove string terminator check
-Date: Tue, 28 Oct 2008 09:27:02 +0900
-Message-ID: <1225153622.2938.1.camel@zeus.themaw.net>
+Subject: Re: [PATCH 4/6] autofs4 - make autofs type usage explicit
+Date: Tue, 28 Oct 2008 09:28:14 +0900
+Message-ID: <1225153694.2938.2.camel@zeus.themaw.net>
 References: <20081023023513.4508.54940.stgit@raven.themaw.net>
-	 <20081023023522.4508.27987.stgit@raven.themaw.net>
-	 <20081027133131.f2011d28.akpm@linux-foundation.org>
+	 <20081023023532.4508.56823.stgit@raven.themaw.net>
+	 <20081027134050.c85a28dd.akpm@linux-foundation.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <20081027133131.f2011d28.akpm@linux-foundation.org>
+In-Reply-To: <20081027134050.c85a28dd.akpm@linux-foundation.org>
 Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: Andrew Morton <akpm@linux-foundation.org>
 Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, autofs@linux.kernel.org
 
-On Mon, 2008-10-27 at 13:31 -0700, Andrew Morton wrote:
-> On Thu, 23 Oct 2008 10:35:22 +0800
+On Mon, 2008-10-27 at 13:40 -0700, Andrew Morton wrote:
+> On Thu, 23 Oct 2008 10:35:32 +0800
 > Ian Kent <raven@themaw.net> wrote:
 > 
-> > Remove unnecessary string terminator check.
+> > This patch further improves autofs mount type usage and provides
+> > supplementry explanation of the changes made in the previous patch
+> > "autofs4 - cleanup autofs mount type usage".
+> > 
+> > Changes introduced in "autofs4 - cleanup autofs mount type usage":
+> > 
+> > - the type assigned at mount when no type is given is changed
+> >   from 0 to AUTOFS_TYPE_INDIRECT. This was done because 0 and
+> >   AUTOFS_TYPE_INDIRECT were being treated implicitly as the same
+> >   type.
+> > 
+> > - previously, an offset mount had it's type set to
+> >   AUTOFS_TYPE_DIRECT|AUTOFS_TYPE_OFFSET but the mount control
+> >   re-implementation needs to be able distinguish all three types.
+> >   So this was changed to make the type setting explicit.
+> > 
+> > - a type AUTOFS_TYPE_ANY was added for use by the re-implementation
+> >   when checking if a given path is a mountpoint. It's not really a
+> >   type as we use this to ask if a given path is a mountpoint in the
+> >   autofs_dev_ioctl_ismountpoint() function.
+> > 
+> > Changes introduced in this patch:
+> > 
+> > - macros to set and test the autofs mount types have been added to
+> >   improve readability and make the type usage explicit.
 > 
-> Why is it unnecessary?
+>     ^^^^^^^^^^^^^^^^^^^  <<-- ??
 > 
-> Does this change alter behaviour in any way?
+> > - the mount type is used from user space for the mount control
+> >   re-implementtion so, for consistency, all the definitions have
+> >   been moved to the user space include file include/linux/auto_fs4.h.
+> >
+> > ...
+> > 
+> > -		if (sbi->type == AUTOFS_TYPE_INDIRECT)
+> > +		if (autofs_type_indirect(sbi->type))
 > 
-> Does it fix a bug?
+> spose so.
+> 
+> > -			*type = AUTOFS_TYPE_INDIRECT;
+> > +			set_autofs_type_indirect(*type);
+> 
+> That's pretty nasty.  One doesn't expect a "function" to modify a
+> variable which was passed by value.
+> 
+> This interface _requires_ that set_autofs_type_indirect() be
+> implemented as a macro.
+> 
+> This didn't improve readability.
+> 
+> >
+> > ...
+> >
+> > +#define set_autofs_type_indirect(type)		(type = AUTOFS_TYPE_INDIRECT)
+> 
+> You'll find very few places in the kernel pull tricks like this, for
+> good reasons.  The obnoxious exceptions include local_irq_save() and
+> friends.
+> 
+> > +#define autofs_type_indirect(type)		(type == AUTOFS_TYPE_INDIRECT)
+> 
+> I guess that's OK.
+> 
+> But why was it implemented as a macro?  It didn't _need_ to be
+> implemented in cpp - it could have been implemented in C.
+> 
+> > +
+> > +#define set_autofs_type_direct(type)		(type = AUTOFS_TYPE_DIRECT)
+> > +#define autofs_type_direct(type)		(type == AUTOFS_TYPE_DIRECT)
+> > +
+> > +#define set_autofs_type_offset(type)		(type = AUTOFS_TYPE_OFFSET)
+> > +#define autofs_type_offset(type)		(type == AUTOFS_TYPE_OFFSET)
+> > +
+> > +#define autofs_type_trigger(type) \
+> > +	(type == AUTOFS_TYPE_DIRECT || type == AUTOFS_TYPE_OFFSET)
+> 
+> And this one is dangerous.  If passed an expression-with-side-effects
+> it will evaluate that expression either once or twice.  Bad.  Should be
+> implemented in C.
+> 
 
-Umm .... it was done in response to your comment, quoted below ...
+OK, more work needed then.
+Ian
 
-> +/*
-> + * Check a string doesn't overrun the chunk of
-> + * memory we copied from user land.
-> + */
-> +static int invalid_str(char *str, void *end)
-> +{
-> +     while ((void *) str <= end)
-> +             if (!*str++)
-> +                     return 0;
-> +     return -EINVAL;
-> +}
-
-What is this?  We copy strings in from userspace in 10000 different
-places without needing checks such as this?
-
-> 
-> Better changelogs, please....
-> 
-> > --- a/fs/autofs4/dev-ioctl.c
-> > +++ b/fs/autofs4/dev-ioctl.c
-> > @@ -51,18 +51,6 @@ static int check_name(const char *name)
-> >  }
-> >  
-> >  /*
-> > - * Check a string doesn't overrun the chunk of
-> > - * memory we copied from user land.
-> > - */
-> > -static int invalid_str(char *str, void *end)
-> > -{
-> > -	while ((void *) str <= end)
-> > -		if (!*str++)
-> > -			return 0;
-> > -	return -EINVAL;
-> > -}
-> > -
-> > -/*
-> >   * Check that the user compiled against correct version of autofs
-> >   * misc device code.
-> >   *
-> > @@ -143,14 +131,6 @@ static int validate_dev_ioctl(int cmd, struct autofs_dev_ioctl *param)
-> >  				    cmd);
-> >  			goto out;
-> >  		}
-> > -
-> > -		err = invalid_str(param->path,
-> > -				 (void *) ((size_t) param + param->size));
-> > -		if (err) {
-> > -			AUTOFS_WARN("invalid path supplied for cmd(0x%08x)",
-> > -				    cmd);
-> > -			goto out;
-> > -		}
-> >  	}
-> >  
-> >  	err = 0;
 
