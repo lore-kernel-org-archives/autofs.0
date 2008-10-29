@@ -1,7 +1,7 @@
-From: Ondrej Valousek <webserv@s3group.cz>
-Subject: Read-only map
-Date: Wed, 29 Oct 2008 16:08:35 +0100
-Message-ID: <49087C73.6080502@s3group.cz>
+From: Ryan Go <ryan@rentec.com>
+Subject: autofs-5.0.3 segfaulting when HUP'ed
+Date: Wed, 29 Oct 2008 12:48:40 -0400 (EDT)
+Message-ID: <Pine.LNX.4.64.0810291158340.1841@elr.eragrp.pbz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -16,22 +16,172 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
+To: autofs@linux.kernel.org
 
-Hi List,
+Hello all,
 
-I have a problem:
-My system (client, server) RHEL 5.2, latest updates.
-1. NFS server is exporting read/write share
-2. NIS automount map point to that share, but in read only like "key -ro
-nfsserver:/share/key"
+We've been running into an issue where autofs would segfault when it gets 
+a HUP signal.
 
-Now, the "strange" thing is that on clients that share is mounted read
-only, fine, but when I go to the nfsserver itself, the share is mounted
-read write. I understand this is because mount --bind is used instead of
-nfs for performance reasons, but this way we lose the -ro flag.
-Is there any simple solution to this?
-Thanks,
+Here's the version details:
+
+SuSE 11.0 (both suse kernels 2.6.25.5-1.1 & 2.6.25.16-0.1)
+autofs-5.0.3 (patched up to yesterday's patches except for the kernel 
+patch)
+using only LDAP for maps
+
+I've can reliably reproduce the segfault with a very simplified master 
+map.
+
+From /var/log/messages:
+Oct 29 12:22:13 monster1400 kernel: automount[8203]: segfault at 
+7f98372985b0 ip 7f98372985b0 sp 415050f8 error 14 in 
+libresolv-2.8.so[7f9837a05000+11000]
+
+Here's my map (output from ldapsearch):
+dn: ou=auto_master_linux_ryan,ou=Automount,dc=rentec,dc=com
+automountMapName: auto_master_linux_ryan
+objectClass: automountMap
+objectClass: top
+ou: auto_master_linux_ryan
+
+AutomountInformation: 
+ldap:///ou=auto_home_ryan,ou=Automount,dc=rentec,dc=com -rw,hard,intr,nosuid,nodev,lock --timeout 43200
+automountKey: /home
+cn: /home
+objectClass: automount
+
+$ ldapsearch -LLL -x -b ou=auto_home_ryan,ou=automount,dc=rentec,dc=com
+dn: ou=auto_home_ryan,ou=Automount,dc=rentec,dc=com
+automountMapName: auto_home_ryan
+objectClass: automountMap
+objectClass: top
+ou: auto_home_ryan
+
+dn: cn=ryan,ou=auto_home_ryan,ou=Automount,dc=rentec,dc=com
+automountInformation: nfsserver:/vol/vol3/home/ryan
+automountKey: ryan
+cn: ryan
+objectClass: automount
 
 
-Ondrej
+Here's the syslog output when ran with debug:
+Oct 29 12:22:09 monster1400 syslog-ng[2869]: last message repeated 2 times
+Oct 29 12:22:09 monster1400 automount[8192]: Starting automounter version 
+5.0.3, master map auto_master_linux_ryan
+Oct 29 12:22:09 monster1400 automount[8192]: using kernel protocol version 
+5.00
+Oct 29 12:22:09 monster1400 automount[8192]: lookup_nss_read_master: 
+reading master ldap auto_master_linux_ryan
+Oct 29 12:22:09 monster1400 automount[8192]: parse_server_string: 
+lookup(ldap): Attempting to parse LDAP information from string 
+"auto_master_linux_ryan".
+Oct 29 12:22:09 monster1400 automount[8192]: parse_server_string: 
+lookup(ldap): mapname auto_master_linux_ryan
+Oct 29 12:22:09 monster1400 automount[8192]: parse_ldap_config: 
+lookup(ldap): ldap authentication configured with the following options:
+Oct 29 12:22:09 monster1400 automount[8192]: parse_ldap_config: 
+lookup(ldap): use_tls: 0, tls_required: 0, auth_required: 1, sasl_mech: 
+(null)
+Oct 29 12:22:09 monster1400 automount[8192]: parse_ldap_config: 
+lookup(ldap): user: (null), secret: unspecified, client principal: (null) 
+credential cache: (null)
+Oct 29 12:22:09 monster1400 automount[8192]: do_bind: lookup(ldap): 
+auth_required: 1, sasl_mech (null)
+Oct 29 12:22:09 monster1400 automount[8192]: do_bind: lookup(ldap): ldap 
+anonymous bind returned 0
+Oct 29 12:22:09 monster1400 automount[8192]: get_query_dn: lookup(ldap): 
+found query dn ou=auto_master_linux_ryan,ou=Automount,dc=rentec,dc=com
+Oct 29 12:22:09 monster1400 automount[8192]: parse_init: parse(sun): init 
+gathered global options: (null)
+Oct 29 12:22:09 monster1400 automount[8192]: do_bind: lookup(ldap): 
+auth_required: 1, sasl_mech (null)
+Oct 29 12:22:09 monster1400 automount[8192]: do_bind: lookup(ldap): ldap 
+anonymous bind returned 0
+Oct 29 12:22:09 monster1400 automount[8192]: lookup_read_master: 
+lookup(ldap): searching for "(objectclass=automount)" under 
+"ou=auto_master_linux_ryan,ou=Automount,dc=rentec,dc=com"
+Oct 29 12:22:09 monster1400 automount[8192]: lookup_read_master: 
+lookup(ldap): examining entries
+Oct 29 12:22:09 monster1400 automount[8192]: /
+Oct 29 12:22:09 monster1400 syslog-ng[2869]: last message repeated 2 times
+Oct 29 12:22:09 monster1400 automount[8192]: master_do_mount: mounting 
+/home
+Oct 29 12:22:09 monster1400 automount[8192]: automount_path_to_fifo: fifo 
+name /var/run/autofs.fifo-home
+Oct 29 12:22:09 monster1400 automount[8192]: lookup_nss_read_map: reading 
+map ldap ldap:ou=auto_home_ryan,ou=Automount,dc=rentec,dc=com
+Oct 29 12:22:09 monster1400 automount[8192]: parse_server_string: 
+lookup(ldap): Attempting to parse LDAP information from string 
+"ldap:ou=auto_home_ryan,ou=Automount,dc=rentec,dc=com".
+Oct 29 12:22:09 monster1400 automount[8192]: parse_server_string: 
+lookup(ldap): server "(default)", base dn 
+"ou=auto_home_ryan,ou=Automount,dc=rentec,dc=com"
+Oct 29 12:22:09 monster1400 automount[8192]: parse_ldap_config: 
+lookup(ldap): ldap authentication configured with the following options:
+Oct 29 12:22:09 monster1400 automount[8192]: parse_ldap_config: 
+lookup(ldap): use_tls: 0, tls_required: 0, auth_required: 1, sasl_mech: 
+(null)
+Oct 29 12:22:09 monster1400 automount[8192]: parse_ldap_config: 
+lookup(ldap): user: (null), secret: unspecified, client principal: (null) 
+credential cache: (null)
+Oct 29 12:22:09 monster1400 automount[8192]: do_bind: lookup(ldap): 
+auth_required: 1, sasl_mech (null)
+Oct 29 12:22:09 monster1400 automount[8192]: do_bind: lookup(ldap): ldap 
+anonymous bind returned 0
+Oct 29 12:22:09 monster1400 automount[8192]: get_query_dn: lookup(ldap): 
+found query dn ou=auto_home_ryan,ou=Automount,dc=rentec,dc=com
+Oct 29 12:22:09 monster1400 automount[8192]: parse_init: parse(sun): init 
+gathered global options: rw,hard,intr,nosuid,nodev,lock
+Oct 29 12:22:09 monster1400 automount[8192]: mounted indirect mount for 
+/home with timeout 43200, freq 10800 seconds
+Oct 29 12:22:09 monster1400 automount[8192]: st_ready: st_ready(): state = 
+0 path /home
+Oct 29 12:22:13 monster1400 automount[8192]: re-reading master map 
+auto_master_linux_ryan
+Oct 29 12:22:13 monster1400 automount[8192]: lookup_nss_read_master: 
+reading master ldap auto_master_linux_ryan
+Oct 29 12:22:13 monster1400 automount[8192]: parse_server_string: 
+lookup(ldap): Attempting to parse LDAP information from string 
+"auto_master_linux_ryan".
+Oct 29 12:22:13 monster1400 automount[8192]: parse_server_string: 
+lookup(ldap): mapname auto_master_linux_ryan
+Oct 29 12:22:13 monster1400 automount[8192]: parse_ldap_config: 
+lookup(ldap): ldap authentication configured with the following options:
+Oct 29 12:22:13 monster1400 automount[8192]: parse_ldap_config: 
+lookup(ldap): use_tls: 0, tls_required: 0, auth_required: 1, sasl_mech: 
+(null)
+Oct 29 12:22:13 monster1400 automount[8192]: parse_ldap_config: 
+lookup(ldap): user: (null), secret: unspecified, client principal: (null) 
+credential cache: (null)
+Oct 29 12:22:13 monster1400 automount[8192]: do_bind: lookup(ldap): 
+auth_required: 1, sasl_mech (null)
+Oct 29 12:22:13 monster1400 automount[8192]: do_bind: lookup(ldap): ldap 
+anonymous bind returned 0
+Oct 29 12:22:13 monster1400 automount[8192]: get_query_dn: lookup(ldap): 
+found query dn ou=auto_master_linux_ryan,ou=Automount,dc=rentec,dc=com
+Oct 29 12:22:13 monster1400 automount[8192]: parse_init: parse(sun): init 
+gathered global options: (null)
+Oct 29 12:22:13 monster1400 automount[8192]: do_bind: lookup(ldap): 
+auth_required: 1, sasl_mech (null)
+Oct 29 12:22:13 monster1400 automount[8192]: do_bind: lookup(ldap): ldap 
+anonymous bind returned 0
+Oct 29 12:22:13 monster1400 automount[8192]: lookup_read_master: 
+lookup(ldap): searching for "(objectclass=automount)" under 
+"ou=auto_master_linux_ryan,ou=Automount,dc=rentec,dc=com"
+Oct 29 12:22:13 monster1400 automount[8192]: lookup_read_master: 
+lookup(ldap): examining entries
+Oct 29 12:22:13 monster1400 automount[8192]: /
+
+It segfaults whether there's an active mount or none.
+
+I can install the debugging symbols rpm and provide a backtrace from gdb. 
+Please let me know if this would be helpful or if you would need more 
+information.
+
+I appreciate any help you could provide.
+
+Thank you.
+Ryan
+PS I apologize for the long post, I wanted to make sure I provided all the 
+necessary info.
