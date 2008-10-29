@@ -1,14 +1,11 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: open_lookup:95: cannot open lookup module ldap
-Date: Tue, 28 Oct 2008 09:32:19 -0400
-Message-ID: <x49ljw86e1o.fsf@segfault.boston.devel.redhat.com>
-References: <4906DE4B.1080805@math.uni-muenster.de>
+From: Ondrej Valousek <webserv@s3group.cz>
+Subject: Read-only map
+Date: Wed, 29 Oct 2008 16:08:35 +0100
+Message-ID: <49087C73.6080502@s3group.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4906DE4B.1080805@math.uni-muenster.de> (Nail El-Sourani's
-	message of "Tue, 28 Oct 2008 10:41:31 +0100")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,35 +16,22 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Nail El-Sourani <sourani@math.uni-muenster.de>
-Cc: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
+To: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
 
-Nail El-Sourani <sourani@math.uni-muenster.de> writes:
+Hi List,
 
-> Hi Ian and list,
->
-> i am on opensuse 10.3 and the packaged automounter version was 5.0.2 
-> which was not sufficient for me because of various bugs fixed in 5.0.3. 
-> So i got the Source from the kernel.org archive with all 5.0.3 patches 
-> and patch_order. applied and installed successfully, but receive the 
-> following error messages in the syslog with autofs logging on "debug" 
-> and no working automounts
->
->
-> automount[3347]: open_lookup:95: cannot open lookup module ldap 
-> (/usr/lib/autofs/lookup_ldap.so: undefined symbol: 
-> krb5_get_init_creds_keytab)
->
->
-> i could find SOME information about this being a problem with sasl and 
-> krb packages not linked against ldap, but i have no idea what to do from 
-> here? i think i even saw this a bug fixed in OLDER autofs version so im 
-> a little confused now....
+I have a problem:
+My system (client, server) RHEL 5.2, latest updates.
+1. NFS server is exporting read/write share
+2. NIS automount map point to that share, but in read only like "key -ro
+nfsserver:/share/key"
 
-Do you have the krb5 libraries and development packages installed?  It
-sounds like we need to update the configure script once we figure out
-what went wrong, here.  Sorry for the inconvenience.
+Now, the "strange" thing is that on clients that share is mounted read
+only, fine, but when I go to the nfsserver itself, the share is mounted
+read write. I understand this is because mount --bind is used instead of
+nfs for performance reasons, but this way we lose the -ro flag.
+Is there any simple solution to this?
+Thanks,
 
-Cheers,
 
-Jeff
+Ondrej
