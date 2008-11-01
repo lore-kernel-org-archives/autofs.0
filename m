@@ -1,11 +1,22 @@
 From: "Paul Wankadia" <junyer@gmail.com>
-Subject: a couple of bugs in autofs
-Date: Fri, 31 Oct 2008 16:35:20 +1100
-Message-ID: <510ca9b40810302235v6ab05c8bk117d4991bb70f198@mail.gmail.com>
+Subject: Re: a couple of bugs in autofs
+Date: Sat, 1 Nov 2008 18:08:31 +1100
+Message-ID: <510ca9b40811010008y6c368fc5y5a574c16b8a65412@mail.gmail.com>
+References: <510ca9b40810302235v6ab05c8bk117d4991bb70f198@mail.gmail.com>
+	<510ca9b40810310011o458ff36ftbcce12c850ae172e@mail.gmail.com>
+	<1225438359.2946.82.camel@zeus.themaw.net>
+	<510ca9b40810310052o2c418ec5sd47c9d3b056a894d@mail.gmail.com>
+	<1225440162.2946.93.camel@zeus.themaw.net>
+	<510ca9b40810310110s34cfab9cie464a259d9dd92a0@mail.gmail.com>
+	<1225442150.2946.105.camel@zeus.themaw.net>
+	<510ca9b40810310415l667b803bya357f07f11312ff3@mail.gmail.com>
+	<510ca9b40810312050m4b181de1p2de40e3f2389da7a@mail.gmail.com>
+	<1225516095.3718.29.camel@zeus.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <1225516095.3718.29.camel@zeus.themaw.net>
 Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -17,102 +28,47 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: raven@themaw.net
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-Hi, Ian.
+On Sat, Nov 1, 2008 at 4:08 PM, Ian Kent <raven@themaw.net> wrote:
 
-I've just started to experiment with autofs and I've already
-encountered two strange bugs. (FYI, I'm pulling from the Git
-repository on kernel.org.)
+> Get gdb output with "thr a a bt"
 
-----------------------------------------
+gdb does not give me any useful output even when I make with DEBUG=1,
+so I used valgrind's memcheck instead.
 
+==32474== Process terminating with default action of signal 11
+(SIGSEGV): dumping core
+==32474==  Bad permissions for mapped region at address 0xFE2FFFFC
+==32474==    at 0x4C95507: __errno_location (errno-loc.c:36)
+==32474==    by 0x4CBAC2A: vfprintf (vfprintf.c:222)
+==32474==    by 0x4CD5EB7: vsprintf (iovsprintf.c:46)
+==32474==    by 0x4CC37AA: sprintf (sprintf.c:34)
+==32474==    by 0x157E6: lookup_ghost (lookup.c:616)
+==32474==    by 0xB74C: mount_autofs_indirect (indirect.c:215)
+==32474==    by 0x8718: mount_autofs (automount.c:1068)
+==32474==    by 0x9FA7: handle_mounts (automount.c:1556)
+==32474==    by 0x4BE7CAB: pthread_start_thread (manager.c:310)
+==32474==    by 0x4D39129: clone (clone.S:119)
+
+daemon/lookup.c:
+
+    598                 me = cache_enumerate(mc, NULL);
+    599                 while (me) {
 ...
-make[1]: Entering directory `/home/junyer/autofs/man'
-install -d -m 755 /man/man5
-install -c *.5 -m 644 /man/man5
-install -d -m 755 /man/man8
-install -c *.8 -m 644 /man/man8
-make[1]: Leaving directory `/home/junyer/autofs/man'
+    611                         fullpath = alloca(strlen(me->key) +
+strlen(root) + 3);
+    612                         if (!fullpath) {
+    613                                 warn(ap->logopt, "failed to
+allocate full path");
+    614                                 goto next;
+    615                         }
+    616                         sprintf(fullpath, "%s/%s", root, me->key);
 ...
+    637 next:
+    638                         me = cache_enumerate(mc, me);
+    639                 }
 
-man/Makefile:
-
-    17  install: all
-    18          install -d -m 755 $(INSTALLROOT)$(mandir)/man5
-    19          install -c *.5 -m 644 $(INSTALLROOT)$(mandir)/man5
-    20          install -d -m 755 $(INSTALLROOT)$(mandir)/man8
-    21          install -c *.8 -m 644 $(INSTALLROOT)$(mandir)/man8
-
-INSTALLROOT and mandir are empty?
-
-Makefile.conf:
-
-    83  # Where to install man pages
-    84  mandir = ${datarootdir}/man
-...
-    89  # This is here just to keep config.status quiet
-    90  UNUSED_datarootdir = ${prefix}/share
-
-datarootdir is not set?
-
-----------------------------------------
-
-Starting automounter version 5.0.3, master map /home/junyer/autofs/auto.master
-using kernel protocol version 5.00
-lookup_nss_read_master: reading master file /home/junyer/autofs/auto.master
-parse_init: parse(sun): init gathered global options: (null)
-lookup_read_master: lookup(file): read entry /home
---(end of buffer or a NUL)
---accepting rule at line 139 ("/")
---accepting rule at line 187 ("/")
---accepting rule at line 187 ("h")
---accepting rule at line 187 ("o")
---accepting rule at line 187 ("m")
---accepting rule at line 187 ("e")
---accepting rule at line 165 (" ")
---accepting rule at line 289 ("/")
---accepting rule at line 289 ("e")
---accepting rule at line 289 ("t")
---accepting rule at line 246 ("c")
---accepting rule at line 314 ("c")
---accepting default rule ("/")
-/
---(end of buffer or a NUL)
---accepting rule at line 314 ("auto.home")
-syntax error while parsing map.
-syntax error in map near [ bogus option ]
-no mounts in table
-
-auto.master:
-
-     1  /home   /etc/auto.home
-
-Why would it treat 'c' differently?
-
-lib/master_tok.l:
-
-    98  DNSERVSTR1      ([[:alpha:]][[:alnum:]\-.]*(:[0-9]+)?:)
-    99  DNSERVSTR2      (\/\/[[:alpha:]][[:alnum:]\-.]*(:[0-9]+)?\/)
-   100  DNSERVSTR3      (([[:digit:]]{1,3}\.){3}[[:digit:]]{1,3}(:[0-9]+)?:)
-   101  DNSERVSTR4
-(\/\/([[:digit:]]{1,3}\.){3}[[:digit:]]{1,3}(:[0-9]+)?\/)
-   102  DNSERVERSTR     {DNSERVSTR1}|{DNSERVSTR2}|{DNSERVSTR3}|{DNSERVSTR4}
-   103
-   104  AT_CN           ([cC][[nN])
-   105  AT_NMN          ([nN][iI][sS][Mm][aA][pP][Nn][aA][mM][eE])
-   106  AT_AMN
-([aA][uU][tT][oO][mM][oO][uU][nN][tT][Mm][aA][pP][Nn][aA][mM][eE])
-   107  AT_OU           ([oO][[uU])
-   108  AT_DC           ([dD][[cC])
-   109  AT_O            ([oO])
-   110  AT_C            ([cC])
-   111  DNATTRSTR       {AT_CN}|{AT_NMN}|{AT_AMN}|{AT_OU}|{AT_DC}|{AT_O}|{AT_C}
-...
-   246          {DNSERVERSTR}{DNATTRSTR} {
-   247                  BEGIN(DNSTR);
-   248                  yyless(0);
-   249          }
-
-I have to work around this by escaping 'c' and 'o' with backslashes?
+alloca(3) does not return NULL. After some number of iterations, you
+overflow the stack.
