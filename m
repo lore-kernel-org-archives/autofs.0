@@ -1,15 +1,14 @@
 From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: Proposed update to auto.smb
-Date: Mon, 03 Nov 2008 09:16:33 -0500
-Message-ID: <x49vdv4ki7y.fsf@segfault.boston.devel.redhat.com>
-References: <1225679565.2911.31.camel@zeus.themaw.net>
-	<1225681504.2911.41.camel@zeus.themaw.net>
+Subject: Re: AutoFS5 for 2.6.27.x?
+Date: Mon, 03 Nov 2008 09:17:59 -0500
+Message-ID: <x49r65ski5k.fsf@segfault.boston.devel.redhat.com>
+References: <490EFB81.3060102@aei.mpg.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1225681504.2911.41.camel@zeus.themaw.net> (Ian Kent's message of
-	"Mon, 03 Nov 2008 12:05:04 +0900")
+In-Reply-To: <490EFB81.3060102@aei.mpg.de> (Carsten Aulbert's message of "Mon, 
+	03 Nov 2008 14:24:17 +0100")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,98 +19,28 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
+To: Carsten Aulbert <carsten.aulbert@aei.mpg.de>
 Cc: autofs@linux.kernel.org
 
-Ian Kent <raven@themaw.net> writes:
+Carsten Aulbert <carsten.aulbert@aei.mpg.de> writes:
 
-> On Mon, 2008-11-03 at 11:32 +0900, Ian Kent wrote:
->> Hi all,
->> 
->> Stef Bon has reported some difficulty with the current auto.smb.
->> 
->> I have made a patch which demonstrates the change he is recommending and
->> would like comments from others that use CIFS mounts.
->> 
->> To quote Stef, from his previous mail:
->> 
->> "Well, the script does (in my network) work with cifs shares, where the
->> original auto.smb doesn't. In my case I have to add the ipaddress or it
->> does not work. The manpage of mount.cifs says that this option has to be
->> used rarely. But it's my experience sometimes when mounting a Win2K or
->> WinXP machine, it does not work.
->> (CIFS expects the tcp name and not the netbiosname, smbfs did that)
->> 
->> So I cannot say it's a really "must", but at least it cannot "hurt".
->> You're on the safe side when using the ipaddress."
->> 
->> Can we have some comments on the patch below please (including you Stef,
->> since I've modified you change a bit).
->> 
->> Ian
+> Hi all,
 >
-> Sorry, the patch was not quite right.
+> I'm reading/skimming this list for quite a bit of time, but somehow I
+> lost track. In the mainline kernel 2.6.27.4 there seems to be only
+> autofs4 not autofs5, right?  At least I'm only seeing CONFIG_AUTOFS_FS
+> and CONFIG_AUTOFS4_FS.
 >
-> autofs-5.0.3 - CIFS use ip address
->
-> From: Stef Bon <stef@bononline.nl>
->
-> It has been reported that, for a CIFS mount, in some cases the ip
-> address of the server is needed otherwise the mount can fail.
-> ---
->
->  samples/auto.smb |   26 +++++++++++++++++++++++++-
->  1 files changed, 25 insertions(+), 1 deletions(-)
->
->
-> diff --git a/samples/auto.smb b/samples/auto.smb
-> index fb39053..7bec126 100755
-> --- a/samples/auto.smb
-> +++ b/samples/auto.smb
-> @@ -3,7 +3,31 @@
->  # This file must be executable to work! chmod 755!
->  
->  key="$1"
-> -opts="-fstype=cifs"
-> +
-> +FILESYSTEM="cifs"
-> +
+> On the ftp server of kernel.org I found 5.0.3 patches from January, but
+> that seems quite old to me. The golden question: Is this the correct
+> tarball to use or is there some git repo were I should pull the patches
+> - and how?
 
-So, umm, when is $FILESYSTEM not going to be cifs?
+The kernel module is named autofs4 for reasons I won't get into.  The
+latest userspace package is autofs version 5.  The autofs4 kernel
+modules speaks the autofs version 5 protocol.
 
-> +if [ "$FILESYSTEM" != "cifs" ]; then
-> +	opts="-fstype=$FILESYSTEM,guest"
-> +else
-> +	for P in /bin /sbin /usr/bin /usr/sbin
-> +	do
-> +		if [ -x $P/nmblookup ]; then
-> +			NMBLOOKUP=$P/nmblookup
-> +			break
-> +		fi
-> +	done
-> +
-> +	if [ ! -x "$NMBLOOKUP" ]; then
-> +		exit 1
-> +	fi
-
-Is it possible to not have the nmblookup program?  It seems to me it
-would be safer to at least try the mount w/o the ip address if you can't
-obtain one.
-
-> +
-> +	ipaddress=$($NMBLOOKUP $key --debug-level=0 2>>/dev/null | grep '<00>' | awk '{ print $1 }')
-> +	if [ -z "$ipaddress" ]; then
-> +		exit 1
-> +	fi
-> +
-> +	opts="-fstype=cifs,guest,ip=$ipaddress"
-> +fi
->  
->  for P in /bin /sbin /usr/bin /usr/sbin
->  do
-
-Can we compress these two loops that do the same thing (determine the
-path to the samba/cifs binaries)?
+In short, you want the autofs version 5 userspace packages.
 
 Cheers,
 
