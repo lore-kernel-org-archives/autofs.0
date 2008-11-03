@@ -1,19 +1,12 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: expire_indirect errors in the syslog
-Date: Fri, 07 Nov 2008 17:47:46 +0900
-Message-ID: <1226047666.3093.125.camel@zeus.themaw.net>
-References: <4906C365.8030209@s3group.cz>
-	<1225181075.2938.97.camel@zeus.themaw.net>
-	<4906CB2A.9010705@s3group.cz>
-	<1225192753.2938.103.camel@zeus.themaw.net>
-	<4912E18F.7010701@s3group.cz>
-	<1226020830.3093.22.camel@zeus.themaw.net>
-	<4913F159.5000002@s3group.cz>
+From: "Paul Wankadia" <junyer@gmail.com>
+Subject: another make issue
+Date: Mon, 3 Nov 2008 12:18:39 +1100
+Message-ID: <510ca9b40811021718j43583340p38cec31f35cc87ff@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4913F159.5000002@s3group.cz>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,38 +17,31 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ondrej Valousek <webserv@s3group.cz>
-Cc: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
+To: raven@themaw.net
+Cc: autofs@linux.kernel.org
 
-On Fri, 2008-11-07 at 08:42 +0100, Ondrej Valousek wrote:
-> Ian,
-> 
-> I guess I can not turn debugging on without restarting autofs, right?
-> This is a production login box with many users logged in. My experience
-> says restarting autofs would freeze the machine.
+...
+make[1]: Entering directory `/home/junyer/autofs/samples'
+install -d -m 755 /etc
+install -d -m 755
+install: missing file operand
+Try `install --help' for more information.
+make[1]: *** [dirs] Error 1
+make[1]: Leaving directory `/home/junyer/autofs/samples'
+...
 
-That can be a problem, I wouldn't.
+samples/Makefile:
 
-But occasionally people report enabling debugging on heavily loaded
-systems can cause them to behave badly. So, even though you can enable
-debug logging on the fly (check the man page), I wouldn't do that
-either.
+    19  .PHONY: dirs
+    20  dirs:
+    21          install -d -m 755 $(INSTALLROOT)$(autofsmapdir)
+    22          install -d -m 755 $(INSTALLROOT)$(autofsconfdir)
+    23          install -d -m 755 $(INSTALLROOT)$(autofslibdir)
+    24          install -d -m 755 $(INSTALLROOT)/var/run/autofs
 
-But that also means that, if a problem has already happened, then
-changing the server exports likely won't fix it either. But of course it
-depends on the problem.
+Makefile.conf:
 
-If your not having any specific problems, other than annoying log
-messages, then leave the machine alone.
+    68  # Location for configuration init script
+    69  autofsconfdir =
 
-> Thanks,
-> 
-> Ondrej
-> > This specific example should not result in those messages.
-> > If you want further analysis of this issue then post a full debug log.
-> >
-> > Ian
-> >
-> >
-> >   
-> 
+autofsconfdir should have a sane default?
