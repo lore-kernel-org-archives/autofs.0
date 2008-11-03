@@ -1,24 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: a couple of bugs in autofs
-Date: Sat, 01 Nov 2008 18:13:32 +0900
-Message-ID: <1225530812.3718.36.camel@zeus.themaw.net>
-References: <510ca9b40810302235v6ab05c8bk117d4991bb70f198@mail.gmail.com>
-	<510ca9b40810310011o458ff36ftbcce12c850ae172e@mail.gmail.com>
-	<1225438359.2946.82.camel@zeus.themaw.net>
-	<510ca9b40810310052o2c418ec5sd47c9d3b056a894d@mail.gmail.com>
-	<1225440162.2946.93.camel@zeus.themaw.net>
-	<510ca9b40810310110s34cfab9cie464a259d9dd92a0@mail.gmail.com>
-	<1225442150.2946.105.camel@zeus.themaw.net>
-	<510ca9b40810310415l667b803bya357f07f11312ff3@mail.gmail.com>
-	<510ca9b40810312050m4b181de1p2de40e3f2389da7a@mail.gmail.com>
-	<1225516095.3718.29.camel@zeus.themaw.net>
-	<510ca9b40811010008y6c368fc5y5a574c16b8a65412@mail.gmail.com>
-	<1225529996.3718.31.camel@zeus.themaw.net>
+Subject: Re: another make issue
+Date: Mon, 03 Nov 2008 10:44:06 +0900
+Message-ID: <1225676646.2911.4.camel@zeus.themaw.net>
+References: <510ca9b40811021718j43583340p38cec31f35cc87ff@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1225529996.3718.31.camel@zeus.themaw.net>
+In-Reply-To: <510ca9b40811021718j43583340p38cec31f35cc87ff@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -32,32 +21,39 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: Paul Wankadia <junyer@gmail.com>
 Cc: autofs@linux.kernel.org
 
-On Sat, 2008-11-01 at 18:00 +0900, Ian Kent wrote:
-> > 
-> > daemon/lookup.c:
-> > 
-> >     598                 me = cache_enumerate(mc, NULL);
-> >     599                 while (me) {
-> > ...
-> >     611                         fullpath = alloca(strlen(me->key) +
-> > strlen(root) + 3);
-> >     612                         if (!fullpath) {
-> >     613                                 warn(ap->logopt, "failed to
-> > allocate full path");
-> >     614                                 goto next;
-> >     615                         }
-> >     616                         sprintf(fullpath, "%s/%s", root, me->key);
-> > ...
-> >     637 next:
-> >     638                         me = cache_enumerate(mc, me);
-> >     639                 }
-> > 
-> > alloca(3) does not return NULL. After some number of iterations, you
-> > overflow the stack.
+On Mon, 2008-11-03 at 12:18 +1100, Paul Wankadia wrote:
+> ...
+> make[1]: Entering directory `/home/junyer/autofs/samples'
+> install -d -m 755 /etc
+> install -d -m 755
+> install: missing file operand
+> Try `install --help' for more information.
+> make[1]: *** [dirs] Error 1
+> make[1]: Leaving directory `/home/junyer/autofs/samples'
+> ...
 > 
-> Yeah, that's not good use of alloca, I'll fix it.
+> samples/Makefile:
+> 
+>     19  .PHONY: dirs
+>     20  dirs:
+>     21          install -d -m 755 $(INSTALLROOT)$(autofsmapdir)
+>     22          install -d -m 755 $(INSTALLROOT)$(autofsconfdir)
+>     23          install -d -m 755 $(INSTALLROOT)$(autofslibdir)
+>     24          install -d -m 755 $(INSTALLROOT)/var/run/autofs
+> 
+> Makefile.conf:
+> 
+>     68  # Location for configuration init script
+>     69  autofsconfdir =
+> 
+> autofsconfdir should have a sane default?
 
-I've been a bit slack wrt. this.
-I'll have a look through and change the other suspect cases as well.
+Yeah, but there's an assumption that at least one of the directories
+that is checked will exist on any system, which is obviously wrong. I
+could add /etc to the end of the list but, really what we need is a list
+of appropriate directories for various distributions, so if I do that
+I'll never find out what they are.
+
+What distribution are you using?
 
 Ian
