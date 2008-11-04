@@ -1,16 +1,13 @@
-From: Jeff Moyer <jmoyer@redhat.com>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: AutoFS5 for 2.6.27.x?
-Date: Mon, 03 Nov 2008 10:50:54 -0500
-Message-ID: <x49abcgkdup.fsf@segfault.boston.devel.redhat.com>
+Date: Tue, 04 Nov 2008 09:37:38 +0900
+Message-ID: <1225759058.3003.12.camel@zeus.themaw.net>
 References: <490EFB81.3060102@aei.mpg.de>
-	<x49r65ski5k.fsf@segfault.boston.devel.redhat.com>
-	<490F13B1.7000508@aei.mpg.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <490F13B1.7000508@aei.mpg.de> (Carsten Aulbert's message of "Mon, 
-	03 Nov 2008 16:07:29 +0100")
+In-Reply-To: <490EFB81.3060102@aei.mpg.de>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,33 +21,39 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: Carsten Aulbert <carsten.aulbert@aei.mpg.de>
 Cc: autofs@linux.kernel.org
 
-Carsten Aulbert <carsten.aulbert@aei.mpg.de> writes:
+On Mon, 2008-11-03 at 14:24 +0100, Carsten Aulbert wrote:
+> Hi all,
+> 
+> I'm reading/skimming this list for quite a bit of time, but somehow I
+> lost track. In the mainline kernel 2.6.27.4 there seems to be only
+> autofs4 not autofs5, right?  At least I'm only seeing CONFIG_AUTOFS_FS
+> and CONFIG_AUTOFS4_FS.
 
-> Hi all
->
-> Jeff Moyer wrote:
->> The kernel module is named autofs4 for reasons I won't get into.  The
->> latest userspace package is autofs version 5.  The autofs4 kernel
->> modules speaks the autofs version 5 protocol.
->> 
->> In short, you want the autofs version 5 userspace packages.
->
-> Jumping up and down too early I guess:
->
-> I've userland autofs5 version 5.0.3 installed, the kernel 2.6.27.2 has
-> AUTOFS4 set
-> $ zgrep AUTOFS /proc/config.gz
-> CONFIG_AUTOFS_FS=y
-> CONFIG_AUTOFS4_FS=y
+Like Jeff says, you need autofs4.
 
-Don't build them both into the kernel.  Ian, we should see if there's a
-way to disallow that.
+You should make sure that the autofs4 module is being loaded, not the
+autofs module. If your using a later init script it will explicitly load
+the module, but only if one isn't already present (so rmmod autofs
+before startup should make things work). Another way to prevent being
+caught is to "alias autofs autofs4" in your modules configuration (at
+least I think that's the order, it's been a while since we've had this
+problem reported).
 
-You want:
+> 
+> On the ftp server of kernel.org I found 5.0.3 patches from January, but
+> that seems quite old to me. The golden question: Is this the correct
+> tarball to use or is there some git repo were I should pull the patches
+> - and how?
 
-CONFIG_AUOTFS_FS=n
-CONFIG_AUTOFS4_FS=m
+The version 5 patch series is located at:
+http://www.kernel.org/pub/linux/daemons/autofs/v5.
 
-Cheers,
+See patch_order-5.0.3 also. The patch list is quite large.
 
-Jeff
+The git repo is at:
+git clone git://git.kernel.org/pub/scm/linux/storage/autofs/autofs.git
+
+The kernel patches in the repo are usually not up to date but, as I'm
+wanting to release 5.0.4, they are at the moment.
+
+Ian
