@@ -1,23 +1,13 @@
-From: "Paul Wankadia" <junyer@gmail.com>
-Subject: Re: a couple of bugs in autofs
-Date: Sat, 1 Nov 2008 18:08:31 +1100
-Message-ID: <510ca9b40811010008y6c368fc5y5a574c16b8a65412@mail.gmail.com>
-References: <510ca9b40810302235v6ab05c8bk117d4991bb70f198@mail.gmail.com>
-	<510ca9b40810310011o458ff36ftbcce12c850ae172e@mail.gmail.com>
-	<1225438359.2946.82.camel@zeus.themaw.net>
-	<510ca9b40810310052o2c418ec5sd47c9d3b056a894d@mail.gmail.com>
-	<1225440162.2946.93.camel@zeus.themaw.net>
-	<510ca9b40810310110s34cfab9cie464a259d9dd92a0@mail.gmail.com>
-	<1225442150.2946.105.camel@zeus.themaw.net>
-	<510ca9b40810310415l667b803bya357f07f11312ff3@mail.gmail.com>
-	<510ca9b40810312050m4b181de1p2de40e3f2389da7a@mail.gmail.com>
-	<1225516095.3718.29.camel@zeus.themaw.net>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: Caching negative lookups
+Date: Fri, 14 Nov 2008 11:08:12 +0900
+Message-ID: <1226628492.2906.15.camel@zeus.themaw.net>
+References: <e28c2a430811030703w654ffafcuf47a95b450e6de37@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1225516095.3718.29.camel@zeus.themaw.net>
-Content-Disposition: inline
+In-Reply-To: <e28c2a430811030703w654ffafcuf47a95b450e6de37@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -28,47 +18,54 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
+To: Mike K <mrkfact@gmail.com>
 Cc: autofs@linux.kernel.org
 
-On Sat, Nov 1, 2008 at 4:08 PM, Ian Kent <raven@themaw.net> wrote:
+On Mon, 2008-11-03 at 10:03 -0500, Mike K wrote:
+> Hello,
+> 
+> Based on what I have found, autofs5 supports caching negative lookups,
+> but it doesn't appear to be working for me.  Although my understanding
+> of how it is supposed to work is very limited, so I may just be
+> mistaken.
+> 
+> My client system:  Red Hat 5.2, autofs-5.0.1-0.rc2.88.x86_64,
+> kernel-2.6.18-92.el5.x86_64, with automounter maps in a NIS+ server
+> (client in niscompat mode).
+> NFS Server: A popular NAS appliance
+> 
+> auto_master snippet:
+> /home/dev auto_dev
 
-> Get gdb output with "thr a a bt"
+Is this meant to convey meaningful information?
+Is auto_dev a simple indirect map?
 
-gdb does not give me any useful output even when I make with DEBUG=1,
-so I used valgrind's memcheck instead.
+> 
+> By default (and a recommended setting), the NAS appliance requires
+> that all mounts from uid 0 come from a reserved port (0-1024) on the
+> client.  On our client system, repeated yp lookups for entries which
+> don't exist will consume all ports in 0-1024, causing other legit
+> mount attempts to fail since they are denied by the NAS appliance.
+> This does not happen on Red Hat 4 or 3 systems.
+> 
+> Reproducer: 'while true; do cd /home/dev/example; done'.  "watch -n 1
+> 'netstat -an | grep TIME_WAIT | wc -l'" will show the number of
+> sockets in TIME_WAIT increase rapidly.
+> 
+> In this case, each 'cd /home/dev/example' causes a yp lookup for a
+> directory that doesn't exist in the NIS table, consuming a socket and
+> leaving it in TIME_WAIT for 60 seconds.
+> 
+> Is this situation supposed to be prevented with caching negative
+> lookups?
 
-==32474== Process terminating with default action of signal 11
-(SIGSEGV): dumping core
-==32474==  Bad permissions for mapped region at address 0xFE2FFFFC
-==32474==    at 0x4C95507: __errno_location (errno-loc.c:36)
-==32474==    by 0x4CBAC2A: vfprintf (vfprintf.c:222)
-==32474==    by 0x4CD5EB7: vsprintf (iovsprintf.c:46)
-==32474==    by 0x4CC37AA: sprintf (sprintf.c:34)
-==32474==    by 0x157E6: lookup_ghost (lookup.c:616)
-==32474==    by 0xB74C: mount_autofs_indirect (indirect.c:215)
-==32474==    by 0x8718: mount_autofs (automount.c:1068)
-==32474==    by 0x9FA7: handle_mounts (automount.c:1556)
-==32474==    by 0x4BE7CAB: pthread_start_thread (manager.c:310)
-==32474==    by 0x4D39129: clone (clone.S:119)
+If auto_dev is a simple indirect map there should be one lookup every
+negative timeout seconds.
 
-daemon/lookup.c:
-
-    598                 me = cache_enumerate(mc, NULL);
-    599                 while (me) {
-...
-    611                         fullpath = alloca(strlen(me->key) +
-strlen(root) + 3);
-    612                         if (!fullpath) {
-    613                                 warn(ap->logopt, "failed to
-allocate full path");
-    614                                 goto next;
-    615                         }
-    616                         sprintf(fullpath, "%s/%s", root, me->key);
-...
-    637 next:
-    638                         me = cache_enumerate(mc, me);
-    639                 }
-
-alloca(3) does not return NULL. After some number of iterations, you
-overflow the stack.
+> 
+> Thanks,
+> Mike
+> _______________________________________________
+> autofs mailing list
+> autofs@linux.kernel.org
+> http://linux.kernel.org/mailman/listinfo/autofs
