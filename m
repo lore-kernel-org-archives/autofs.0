@@ -1,13 +1,15 @@
-From: Peter Schmidt <schmidt@pasemi.com>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: Map file search list question
-Date: Mon, 17 Nov 2008 09:16:58 -0800
-Message-ID: <4921A70A.3000701@pasemi.com>
+Date: Tue, 18 Nov 2008 11:27:13 +0900
+Message-ID: <1226975233.3045.21.camel@zeus.themaw.net>
 References: <46171233.15261226615003069.JavaMail.root@postoffice>
 	<1226627640.2906.10.camel@zeus.themaw.net>
+	<4921A70A.3000701@pasemi.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8899010926462334043=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1226627640.2906.10.camel@zeus.themaw.net>
+In-Reply-To: <4921A70A.3000701@pasemi.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,82 +20,62 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs mailing list <autofs@linux.kernel.org>
+To: Peter Schmidt <schmidt@pasemi.com>
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
---===============8899010926462334043==
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+On Mon, 2008-11-17 at 09:16 -0800, Peter Schmidt wrote:
+> Ian Kent wrote: 
+> > On Thu, 2008-11-13 at 14:23 -0800, Peter Schmidt wrote:
+> >   
+> > > (Sorry if this turns up as a double post as I first tried to post from a non list account)
+> > > 
+> > > I think what I want is provided by the replicated server feature but I can't get it to work.
+> > > 
+> > > I want to search multiple map files that refer to the same mount point.
+> > > e.g  in the auto.master file can I do something like:
+> > > 
+> > > /home   yp:auto.home1,ldap:nisMapName=auto.home2,ou=mygroup,o=mycompany
+> > > 
+> > > If it can't find the entry in auto.home1 then query auto.home2
+> > >     
+> > 
+> > Maybe something like (the old method):
+> > /home   multi: yp:auto.home1 -- ldap:nisMapName=auto.home2,ou=mygroup,o=mycompany
+> > 
+> > should do it.
+> > 
+> > But you should also be able to use:
+> > In /etc/nsswitch.conf
+> > automount: files nis ldap
+> > 
+> > and in /etc/auto.master:
+> > /home /etc/auto.home
+> > 
+> > and in /etc/auto.home
+> > +auto.home1
+> > +auto.home2
+> > 
+> > If entries in your maps are all fully qualified you should be able to
+> > set "automount: files" in /etc/nsswitch and in /etc/auto.home do:
+> > +yp:auto.home1
+> > +ldap:nisMapName=auto.home2,ou=mygroup,o=mycompany
+> > 
+> > Ian
+> > 
+> > 
+> >   
+> Ian, neither of these work.   Looks like the first suggestion is
+> supposed to work with autofs 4 & the second is supported in autofs 5?
+> I'm running rhel4 update 7 which has both autofs 4.1.3-234 &
+> 5.0.1-0.rc2.88 installed.
+> 
+> Any other suggestions that I could try?
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
-</head>
-<body bgcolor="#ffffff" text="#000000">
-Ian Kent wrote:
-<blockquote cite="mid:1226627640.2906.10.camel@zeus.themaw.net"
- type="cite">
-  <pre wrap="">On Thu, 2008-11-13 at 14:23 -0800, Peter Schmidt wrote:
-  </pre>
-  <blockquote type="cite">
-    <pre wrap="">(Sorry if this turns up as a double post as I first tried to post from a non list account)
+The first should work with both versions of autofs but I think there was
+an outstanding bug with multiple map lookups in rev 88 for autofs5.
 
-I think what I want is provided by the replicated server feature but I can't get it to work.
-
-I want to search multiple map files that refer to the same mount point.
-e.g  in the auto.master file can I do something like:
-
-/home   yp:auto.home1,<a class="moz-txt-link-freetext" href="ldap:nisMapName=auto.home2,ou=mygroup,o=mycompany">ldap:nisMapName=auto.home2,ou=mygroup,o=mycompany</a>
-
-If it can't find the entry in auto.home1 then query auto.home2
-    </pre>
-  </blockquote>
-  <pre wrap=""><!---->
-Maybe something like (the old method):
-/home   multi: yp:auto.home1 -- <a class="moz-txt-link-freetext" href="ldap:nisMapName=auto.home2,ou=mygroup,o=mycompany">ldap:nisMapName=auto.home2,ou=mygroup,o=mycompany</a>
-
-should do it.
-
-But you should also be able to use:
-In /etc/nsswitch.conf
-automount: files nis ldap
-
-and in /etc/auto.master:
-/home /etc/auto.home
-
-and in /etc/auto.home
-+auto.home1
-+auto.home2
-
-If entries in your maps are all fully qualified you should be able to
-set "automount: files" in /etc/nsswitch and in /etc/auto.home do:
-+yp:auto.home1
-+ldap:nisMapName=auto.home2,ou=mygroup,o=mycompany
+How about providing a debug of this for v4.
+See http://people.redhat.com/jmoyer for tips on providing this and post
+your maps.
 
 Ian
-
-
-  </pre>
-</blockquote>
-Ian, neither of these work.&nbsp;&nbsp; Looks like the first suggestion is
-supposed to work with autofs 4 &amp; the second is supported in autofs
-5?&nbsp;&nbsp;&nbsp; I'm running rhel4 update 7 which has both autofs 4.1.3-234 &amp;&nbsp;
-5.0.1-0.rc2.88 installed.<br>
-<br>
-Any other suggestions that I could try?<br>
-</body>
-</html>
-
-
---===============8899010926462334043==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
-
---===============8899010926462334043==--
