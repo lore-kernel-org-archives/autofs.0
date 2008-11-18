@@ -1,24 +1,15 @@
-From: Joe Pruett <joey@clean.q7.com>
-Subject: Re: latest autofs from centos 4
-Date: Tue, 18 Nov 2008 11:22:15 -0800 (PST)
-Message-ID: <alpine.LRH.2.00.0811181114320.18255@q7.q7.com>
-References: <alpine.LRH.2.00.0809161716010.13560@q7.q7.com>
-	<1221621937.3001.3.camel@raven.themaw.net>
-	<alpine.LRH.2.00.0809170858590.29177@q7.q7.com>
-	<1221668372.3001.28.camel@raven.themaw.net>
-	<alpine.LRH.2.00.0809170920230.12947@q7.q7.com>
-	<1221669383.3001.35.camel@raven.themaw.net>
-	<x49od2m7m88.fsf@segfault.boston.devel.redhat.com>
-	<alpine.LRH.2.00.0809171021540.12947@q7.q7.com>
-	<x49prn2br6i.fsf@segfault.boston.devel.redhat.com>
-	<alpine.LRH.2.00.0809171049520.12947@q7.q7.com>
-	<x49d4j2bqft.fsf@segfault.boston.devel.redhat.com>
-	<alpine.LRH.2.00.0811181056070.18255@q7.q7.com>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: hung server again
+Date: Tue, 18 Nov 2008 14:51:05 -0500
+Message-ID: <x49ljvgn786.fsf@segfault.boston.devel.redhat.com>
+References: <alpine.LRH.2.00.0811180725001.21620@q7.q7.com>
+	<alpine.LRH.2.00.0811181028520.18255@q7.q7.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <alpine.LRH.2.00.0811181056070.18255@q7.q7.com>
+In-Reply-To: <alpine.LRH.2.00.0811181028520.18255@q7.q7.com> (Joe Pruett's
+	message of "Tue, 18 Nov 2008 10:31:34 -0800 (PST)")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -29,21 +20,27 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: autofs@linux.kernel.org, Ian Kent <raven@themaw.net>
+To: Joe Pruett <joey@clean.q7.com>
+Cc: autofs@linux.kernel.org
 
->> Details would be welcome.  The biggest offender we found was that the
->> portmapper interfaces would use reserved ports.  That is simply not
->> necessary, and those issues have been fixed in autofs and mount.nfs.  In
->> fact, we've got regression tests that make sure that this is the case.
+Joe Pruett <joey@clean.q7.com> writes:
+
+>> i did some testing with a single level /home and if i touch all entries in 
+>> /home, i eventually ran into some resource limits.  maybe there is some 
+>> tuning i can do?  i could go back to /home just being full of symlinks, but 
+>> that has so many issues of it's own. i'm looking for feedback of other users 
+>> that might have servers with a thousand or more active mounts and how that 
+>> works for you.  or some other good ideas of how people handle this kind of 
+>> thing.
 >
-> since i had my hang last night i have dug back into this.  the big culprit
-> is getgrouplist (or so it seems) that opens the group.byname map with a yp
-> all call and it does that from a privileged port.  watching my mail
-> server, i see it burn through priv ports at quite a rapid clip (5 per
-> second or so).  i am going to see why it doesn't use the netid map.  it
-> could just be glibc not having that feature.
+> it looks like centos 4 (2.6.9 based) uses one tcp connection per mount, 
+> but centos 5 (2.6.19) uses one tcp connection per server.  without delving 
+> into the kernel source, i haven't come up with any answers from google 
+> yet.  can anyone on this list speak to this issue?
 
-aha!  there is a file /etc/default/nss where you can enable nis to use the 
-netid map.  NETID_AUTHORITATIVE=TRUE is the key.  and that has made a huge 
-difference on my server.
+This is the much debated superblock sharing.  Did you have a more
+specific question, other than to verify your findings?
+
+Cheers,
+
+Jeff
