@@ -1,15 +1,15 @@
-From: Jeff Moyer <jmoyer@redhat.com>
+From: Joe Pruett <joey@clean.q7.com>
 Subject: Re: hung server again
-Date: Tue, 18 Nov 2008 14:51:05 -0500
-Message-ID: <x49ljvgn786.fsf@segfault.boston.devel.redhat.com>
+Date: Tue, 18 Nov 2008 12:08:21 -0800 (PST)
+Message-ID: <alpine.LRH.2.00.0811181205060.18255@q7.q7.com>
 References: <alpine.LRH.2.00.0811180725001.21620@q7.q7.com>
 	<alpine.LRH.2.00.0811181028520.18255@q7.q7.com>
+	<x49ljvgn786.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <alpine.LRH.2.00.0811181028520.18255@q7.q7.com> (Joe Pruett's
-	message of "Tue, 18 Nov 2008 10:31:34 -0800 (PST)")
+In-Reply-To: <x49ljvgn786.fsf@segfault.boston.devel.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,27 +20,29 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Joe Pruett <joey@clean.q7.com>
+To: Jeff Moyer <jmoyer@redhat.com>
 Cc: autofs@linux.kernel.org
 
-Joe Pruett <joey@clean.q7.com> writes:
-
->> i did some testing with a single level /home and if i touch all entries in 
->> /home, i eventually ran into some resource limits.  maybe there is some 
->> tuning i can do?  i could go back to /home just being full of symlinks, but 
->> that has so many issues of it's own. i'm looking for feedback of other users 
->> that might have servers with a thousand or more active mounts and how that 
->> works for you.  or some other good ideas of how people handle this kind of 
->> thing.
+>>> i did some testing with a single level /home and if i touch all entries in
+>>> /home, i eventually ran into some resource limits.  maybe there is some
+>>> tuning i can do?  i could go back to /home just being full of symlinks, but
+>>> that has so many issues of it's own. i'm looking for feedback of other users
+>>> that might have servers with a thousand or more active mounts and how that
+>>> works for you.  or some other good ideas of how people handle this kind of
+>>> thing.
+>>
+>> it looks like centos 4 (2.6.9 based) uses one tcp connection per mount,
+>> but centos 5 (2.6.19) uses one tcp connection per server.  without delving
+>> into the kernel source, i haven't come up with any answers from google
+>> yet.  can anyone on this list speak to this issue?
 >
-> it looks like centos 4 (2.6.9 based) uses one tcp connection per mount, 
-> but centos 5 (2.6.19) uses one tcp connection per server.  without delving 
-> into the kernel source, i haven't come up with any answers from google 
-> yet.  can anyone on this list speak to this issue?
+> This is the much debated superblock sharing.  Did you have a more
+> specific question, other than to verify your findings?
 
-This is the much debated superblock sharing.  Did you have a more
-specific question, other than to verify your findings?
-
-Cheers,
-
-Jeff
+yes, i'm curious if my findings are right.  and i guess since you 
+characterize it as much debated, is it now settled?  i've seen some 
+discussions (about other oses) of making it tunable in some fashion, and i 
+could see it being nice to allow up to N mounts to share a single tcp 
+connection.  but for my setup, just a single one will probably be good 
+enough, although with my recent nss netid discovery, a lot of my resource 
+issues may go away.
