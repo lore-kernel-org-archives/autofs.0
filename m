@@ -1,14 +1,13 @@
 From: Joe Pruett <joey@clean.q7.com>
 Subject: Re: hung server again
-Date: Tue, 18 Nov 2008 08:39:34 -0800 (PST)
-Message-ID: <alpine.LRH.2.00.0811180834450.18255@q7.q7.com>
+Date: Tue, 18 Nov 2008 10:31:34 -0800 (PST)
+Message-ID: <alpine.LRH.2.00.0811181028520.18255@q7.q7.com>
 References: <alpine.LRH.2.00.0811180725001.21620@q7.q7.com>
-	<1227023859.3045.83.camel@zeus.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1227023859.3045.83.camel@zeus.themaw.net>
+In-Reply-To: <alpine.LRH.2.00.0811180725001.21620@q7.q7.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,25 +18,17 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
->> a few months back i had a situation where a child of automount wouldn't
->> exit properly and that would cause the parent to get locked up and all
->> automount would stop working.  if i could get onto the system, i could
->> strace the child automounts and watch them exit and eventually i'd hit the
->> one that was the cause and then everything would start working again.
->> there have been a number of kernel updates since and it looked like things
->> were working normally again.  but i was wrong, our web server locked up
->> last night from the same issue again.  given the length of time between
->> issues and the infeasibility of debugging this on a live server i want to
->> ask about my setup and see if i should change things.
->
-> How about version of autofs and kernel?
+> i did some testing with a single level /home and if i touch all entries in 
+> /home, i eventually ran into some resource limits.  maybe there is some 
+> tuning i can do?  i could go back to /home just being full of symlinks, but 
+> that has so many issues of it's own. i'm looking for feedback of other users 
+> that might have servers with a thousand or more active mounts and how that 
+> works for you.  or some other good ideas of how people handle this kind of 
+> thing.
 
-sorry about that.  it's clear in my mind :-).
-
-this is on centos 4 and 5.  using almost standard autofs5 (5.0.1-0.rc2.88) 
-on both.  on centos 4 i have applied a patch from the list to correct the 
-problem with finding local ip information with lots of interface for bind 
-mounts to function correctly.  standard kernel as well.
+it looks like centos 4 (2.6.9 based) uses one tcp connection per mount, 
+but centos 5 (2.6.19) uses one tcp connection per server.  without delving 
+into the kernel source, i haven't come up with any answers from google 
+yet.  can anyone on this list speak to this issue?
