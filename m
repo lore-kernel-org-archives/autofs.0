@@ -1,17 +1,11 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: hung server again
-Date: Tue, 18 Nov 2008 15:17:01 -0500
-Message-ID: <x49hc64n60y.fsf@segfault.boston.devel.redhat.com>
-References: <alpine.LRH.2.00.0811180725001.21620@q7.q7.com>
-	<alpine.LRH.2.00.0811181028520.18255@q7.q7.com>
-	<x49ljvgn786.fsf@segfault.boston.devel.redhat.com>
-	<alpine.LRH.2.00.0811181205060.18255@q7.q7.com>
+From: Joe Pruett <joey@clean.q7.com>
+Subject: now with simple setup, still getting occasional failures
+Date: Fri, 21 Nov 2008 07:54:48 -0800 (PST)
+Message-ID: <alpine.LRH.2.00.0811210744140.21285@q7.q7.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <alpine.LRH.2.00.0811181205060.18255@q7.q7.com> (Joe Pruett's
-	message of "Tue, 18 Nov 2008 12:08:21 -0800 (PST)")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,42 +16,33 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Joe Pruett <joey@clean.q7.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-Joe Pruett <joey@clean.q7.com> writes:
+i have now changed my setup to be totally straightforward.  /home has 
+normal direct mounts for everything, like:
 
->>>> i did some testing with a single level /home and if i touch all entries in
->>>> /home, i eventually ran into some resource limits.  maybe there is some
->>>> tuning i can do?  i could go back to /home just being full of symlinks, but
->>>> that has so many issues of it's own. i'm looking for feedback of other users
->>>> that might have servers with a thousand or more active mounts and how that
->>>> works for you.  or some other good ideas of how people handle this kind of
->>>> thing.
->>>
->>> it looks like centos 4 (2.6.9 based) uses one tcp connection per mount,
->>> but centos 5 (2.6.19) uses one tcp connection per server.  without delving
->>> into the kernel source, i haven't come up with any answers from google
->>> yet.  can anyone on this list speak to this issue?
->>
->> This is the much debated superblock sharing.  Did you have a more
->> specific question, other than to verify your findings?
->
-> yes, i'm curious if my findings are right.  and i guess since you
-> characterize it as much debated, is it now settled?  i've seen some
+shipper hyperion:/disk/0/home/shipper
 
-Yes.  I mention it as much debated as the initial implementation caused
-some (arguably broken) configurations to change behaviour (break).
+auto.master has:
 
-> discussions (about other oses) of making it tunable in some fashion,
-> and i could see it being nice to allow up to N mounts to share a
-> single tcp connection.  but for my setup, just a single one will
-> probably be good enough, although with my recent nss netid discovery,
-> a lot of my resource issues may go away.
+/home auto.home  --timeout=900
 
-I don't think Linux allows tuning of this (aside from explicitly stating
-that two mounts should not share a cache, which is dangerous).
+on a very lightly loaded system i am seeing the following error 1-2 times 
+per day:
 
-Cheers,
+Nov 20 22:30:01 titan automount[1743]: do_mount_indirect: indirect trigger not valid or already mounted /home/shipper
 
-Jeff
+shipper has 4 cron jobs that fires off every 30 minutes.  when this 
+problem happens, just the first cron job fails, the rest run fine.
+
+i have just turned on automount debugging logging, but from past 
+experience that seems to mask most problems.
+
+this is on centos 5 with stock kernel and autofs rpms:
+autofs-5.0.1-0.rc2.88
+kernel-2.6.18-92.1.18.el5
+
+i have also enabled the nis netid feature so that i'm not using large 
+amounts of privileged ports.
+
+is there anything else i should be looking at?
