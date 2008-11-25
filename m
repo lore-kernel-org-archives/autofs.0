@@ -1,11 +1,16 @@
-From: Brent Callaghan <brentc@apple.com>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: Ubuntu NFS automount problem
-Date: Mon, 24 Nov 2008 17:10:50 -0800
-Message-ID: <C815C92F-F257-4357-915E-DE4B3089BB88@apple.com>
-Mime-Version: 1.0 (Apple Message framework v929.2)
+Date: Tue, 25 Nov 2008 10:21:03 +0900
+Message-ID: <1227576063.3009.8.camel@zeus.themaw.net>
+References: <4928BFA4.2090805@sun.com>
+	<1227499728.2913.0.camel@zeus.themaw.net> <492A56E6.1070603@sun.com>
+	<492ACF74.6000703@sun.com> <1227548632.2913.33.camel@zeus.themaw.net>
+	<492B1016.8070508@sun.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <492B1016.8070508@sun.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,94 +21,35 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
-Cc: bill.shannon@sun.com
+To: Bill Shannon <bill.shannon@sun.com>
+Cc: autofs@linux.kernel.org
 
-Normally we'd expect to see something like this in an auto.master map:
+On Mon, 2008-11-24 at 12:35 -0800, Bill Shannon wrote:
+> Ian Kent wrote:
+> >> I just tried that on Linux with autofs and it doesn't seem to work.
+> >> Is there a Linux equivalent for the "-hosts" pseudo-map on Solaris?
+> > 
+> > Yes, with autofs version 4 use "/net /etc/auto.net" in the master map
+> > which generally should work the way you expect. The internal hosts map
+> > is available in autofs version 5, which I suspect may be called autofs5
+> > in ubuntu.
+> 
+> Ah ha!
+> 
+> For reasons I no longer remember, I replaced the standard Ubuntu
+> /etc/auto.net with my (stupidly wrong) version some time ago.
+> I just rediscovered the original Ubuntu version and it seems to be
+> working fine.
 
-	/net			-hosts		-nobrowse,nosuid
-	/home			auto_home	-nobrowse
+Great.
 
-The -hosts built-in map uses the mount protocol to derive a list of
-exports (as Bill did with showmount) and it'll mount the whole
-hierarchy if you touch all the triggers, i.e. it'll mount "/backup"
-then "/backup/download".  For some reason, it appears that
-the /net map on the client isn't working at all.  Bill, is there
-an autofs mount on /net ?
+> 
+> Thanks for your help, and sorry for the stupid questions...
 
-I wouldn't normally expect hierarchical home directory mounts
-unless the map entry in auto_home is specifically configured
-to provide it, e.g.
+That's fine. Questions are no problem, it's the statements of alleged
+"fact" that tend to push my buttons, I can't help being harsh on those
+occasions.
 
-	shannon  \
-		/		nissan:/export/home/shannon \
-		/stuff	nissan:/export/home/shannon/stuff
+Apologies also.
 
-However, normally you should expect /home to be set up
-with the username rather than the hostname as the key, e.g.
-you should be trying to access "/home/shannon" or somesuch
-rather than "/home/nissan".
-
-	Brent
-
-	
-
-
->
-> On Sat, 2008-11-22 at 18:27 -0800, Bill Shannon wrote:
->> I'm running Ubuntu 8.04 (Hardy Heron) on my desktop at home.
->> I have an OpenSolaris 2008.11 server and a Solaris 10 server.
->> Both servers export NFS filesystems.
->>
->> On my Ubuntu desktop, the autmounter doesn't want to automount  
->> hierarchical
->> filesystems.  I first noticed this with /home, but /net doesn't  
->> work either.
->>
->> My OpenSolaris server is named "nissan".  My Solaris server is  
->> named "nissan2".
->>
->> # showmount -e nissan
->> Export list for nissan:
->> /backup                 (everyone)
->> /backup/download        (everyone)
->> /export/home/admin      (everyone)
->> /backup/pictures        (everyone)
->> /export/home/shannon    (everyone)
->> /export/home            (everyone)
->> /export/home/readerware (everyone)
->> /backup2                (everyone)
->> /export/home/opt        (everyone)
->> # showmount -e nissan2
->> Export list for nissan2:
->> /export/home (everyone)
->> /backup      (everyone)
->> /backup2     (everyone)
->> # cat /etc/auto.net
->> *	-rw,intr	&:/
->
-> How is do you expect this to work, explain?
->
->> # ls /net/nissan
->> ls: cannot access /net/nissan: No such file or directory
->> # ls /net/nissan2
->> ls: cannot access /net/nissan2: No such file or directory
->> # ls /home/nissan
->> admin  opt  readerware	shannon
->> # ls /home/nissan/shannon
->> # ls /home/nissan2/shannon
->> (lots of files)
->>
->> Of course I have all those hierarchical exports on OpenSolaris  
->> because
->> of separate zfs filesystems.
->>
->> Has anyone else seen this with the Ubuntu automounter?  Is this a  
->> known bug?
->> I've spent over an hour searching the web and I can't find an  
->> explanation
->> for this problem.
->>
->> Thanks for any help!
->>
->> _______________________________________________
+Ian
