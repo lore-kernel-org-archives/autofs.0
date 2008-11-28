@@ -1,19 +1,12 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Ubuntu NFS automount problem
-Date: Tue, 25 Nov 2008 21:11:54 +0900
-Message-ID: <1227615114.3009.22.camel@zeus.themaw.net>
-References: <4928BFA4.2090805@sun.com>
-	<1227499728.2913.0.camel@zeus.themaw.net> <492A56E6.1070603@sun.com>
-	<1227531120.2913.9.camel@zeus.themaw.net> <492ACFB9.7060201@redhat.com>
-	<492B0F04.1080104@sun.com> <1227576741.3009.12.camel@zeus.themaw.net>
-	<492BD2FE.7050309@s3group.cz>
-	<1227612453.3009.19.camel@zeus.themaw.net>
-	<492BE522.30703@s3group.cz>
+From: Andreas Frisch <andreas.frisch@multimedia-labs.de>
+Subject: mailing list broken? cdfs automounting
+Date: Fri, 28 Nov 2008 12:51:37 +0100
+Message-ID: <200811281251.37802.andreas.frisch@multimedia-labs.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <492BE522.30703@s3group.cz>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,25 +17,36 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ondrej Valousek <webserv@s3group.cz>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Tue, 2008-11-25 at 12:44 +0100, Ondrej Valousek wrote:
-> > I don't think so, not the hosts map, since the export path doesn't match
-> > the mount location path. There are other difficulties as well such as
-> > having to modify paths in the export list as we go. However, exports
-> > with "nohide" option should be automounted by the kernel client and not
-> > confuse autofs so that part is ok with 5.0.4 or if the patch which deals
-> > with this has been applied to 5.0.3.
-> >
-> > This is something I need to work on.
-> >
-> >   
-> So since the "nohide" option is a must for the Linux-based NFSv4 server,
-> it will work (for most of the people)...
-
-Don't forget that I need to remove the initial part of each export path
-that corresponds to the NFSv4 export root which hasn't been done yet.
-
-> Thanks,
-> Ondrej
+ZGVhciBsaXN0IHVzZXJzLAoKaSd2ZSB0cmllZCB0byBsb29rIGF0IHRoZSBtYWlsaW5nIGxpc3Qg
+YXJjaGl2ZXMgb24gCmh0dHA6Ly9saW51eC5rZXJuZWwub3JnL3BpcGVybWFpbC9hdXRvZnMvCmJ1
+dCBpdCBnaXZlcyBtZSBhIDQwMyBmb3JiaWRkZW4gb24gdGhhdC4KCnNlY29uZGx5LCBpIGhhdmUg
+YW4gaXNzdWUgYWJvdXQgY29tYmluZyBhdXRvZnMgYW5kIGNkZnMuCndoZW4gaW5zZXJ0aW5nIGEg
+dmlkZW8tY2QgKHZjZCkgaW4gdGhlIGNkLWRyaXZlIHdpdGhvdXQgY2RmcyBsb2FkZWQsIGkgZ2V0
+IGFuIAphdXRvZnMgbW91bnRwb2ludCB3aGVyZSBpIGNhbiBicm93c2UgdGhyb3VnaCB0aGUgZGly
+ZWN0b3JpZXMsIG5vIG1hdHRlciBpZiB0aGUgCm1lZGl1bSBpcyBhbiBvcmlnaW5hbGx5IHByZXNz
+ZWQgImNvbXBhY3QgZGlzYyBkaWdpdGFsIHZpZGVvIiBtZWRpdW0gb3IgYSBzZWxmLQpidXJuZWQg
+dmNkIHdoaWNoIGp1c3QgaGFzIHRoZSBzYW1lIGZpbGUgc3RydWN0dXJlIGJ1dCBkaWZmZXJzIHBo
+eXNpY2FsbHkuCndpdGggY2RmcyBrZXJuZWwgbW9kdWxlIGxvYWRlZCwgaSBzZWUgCi9hdXRvZnMv
+c3IwL3Nlc3Npb25zXzEtMS5pc28gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAKL2F1dG9mcy9zcjAvdmlkZW9jZC0xLm1wZWcgIApvbiBhbiBvcmlnaW5hbCB2Y2QgbWVk
+aXVtLiB0aGUgbXBlZyBmaWxlIGNhbiBiZSBhY2Nlc3NlZCBsaWtlIGEgcmVndWxhciBmaWxlIApv
+biBhIGRhdGEgY2QgKHdoaWxlIHRoZSBmaWxlIC9hdXRvZnMvc3IwL21wZWdhdi9hdnNlcTAxLmRh
+dCBvbiBhICJyZWFsIiB2Y2QgCndpdGhvdXQgY2RmcyBsb2FkZWQsIGlzIGluYWNjZXNzaWJsZSkK
+d2hlbiBpIGluc2VydCBhICJmYWtlIiB2Y2QgKHNlbGYtYnVybmVkKSwgdGhlbiB0aGUgYXV0b2Zz
+IG1vdW50IE9OTFkgc2hvd3MgdGhlIApzZXNzaW9uc18xLTEuaXNvLgp0aGUgc2FtZSB0aGluZyBv
+Y2N1cnMgb24gIm1peGVkIG1vZGUiIGF1ZGlvLWNkcy4gdGhlICJkYXRhIHRyYWNrIiBpcyBzaG93
+biBhcyAKc2Vzc2lvbnNfMS0/Py5pc28sIHdoaWxlIHRoZSByYXcgYXVkaW8gdHJhY2tzIGFyZSBi
+ZWluZyBwcmVmaXhlZCBieSBhIHdhdiAKaGVhZGVyIGFuZCByZXNlbWJsZWQgd2l0aCB0aGUgbmFt
+ZXMgdHJhY2stPz8ud2F2IGJ5IGNkZnMuCm15IHF1ZXN0aW9uIG5vdyBpczogY2FuIGF1dG9mcyBh
+dXRvbWF0aWNhbGx5IGxvb3AtbW91bnQgdGhvc2UgImZha2UiIGlzbyAKdHJhY2tzIHNpbXVsYXRl
+ZCBieSBjZGZzIG9uICJzcGVjaWFsIiBjZCBtZWRpYSBpbnRvIGEgbmV3IGF1dG9mcyBkaXJlY3Rv
+cnkgYW5kIApob3cgZG8gaSBoYXZlIHRvIHByb2NlZWQgdG8gZG8gdGhhdD8KCnNpbmNlcmx5LAph
+bmRyZWFzIGFrYQpmcmF4aW5hcyBmcm9tIHRoZSBkcmVhbWJveCBsaW51eCBzZXQtdG9wLWJveCBk
+ZXZlbG9wZXJzCgotLSAKTXVsdGltZWRpYSBMYWJzIEdtYkgKQm9kZWxzY2h3aW5naHN0ci4gMgo1
+MjA3OCBBYWNoZW4KCkdlc2Now6RmdHNmw7xocmVyOiBSb25ueSBTdHJ1dHoKUmVnaXN0ZXJnZXJp
+Y2h0OiBBbXRzZ2VyaWNodCBBYWNoZW4KUmVnaXN0ZXJlaW50cmFnOiBIUkIgMTI3NTYKCl9fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmF1dG9mcyBtYWlsaW5n
+IGxpc3QKYXV0b2ZzQGxpbnV4Lmtlcm5lbC5vcmcKaHR0cDovL2xpbnV4Lmtlcm5lbC5vcmcvbWFp
+bG1hbi9saXN0aW5mby9hdXRvZnMK
