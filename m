@@ -1,12 +1,13 @@
-From: Andreas Frisch <andreas.frisch@multimedia-labs.de>
-Subject: mailing list broken? cdfs automounting
-Date: Fri, 28 Nov 2008 12:51:37 +0100
-Message-ID: <200811281251.37802.andreas.frisch@multimedia-labs.de>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: mailing list broken? cdfs automounting
+Date: Fri, 28 Nov 2008 23:29:44 +0900
+Message-ID: <1227882584.3007.1.camel@zeus.themaw.net>
+References: <200811281251.37802.andreas.frisch@multimedia-labs.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <200811281251.37802.andreas.frisch@multimedia-labs.de>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,36 +18,41 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Andreas Frisch <andreas.frisch@multimedia-labs.de>
+Cc: autofs@linux.kernel.org
 
-ZGVhciBsaXN0IHVzZXJzLAoKaSd2ZSB0cmllZCB0byBsb29rIGF0IHRoZSBtYWlsaW5nIGxpc3Qg
-YXJjaGl2ZXMgb24gCmh0dHA6Ly9saW51eC5rZXJuZWwub3JnL3BpcGVybWFpbC9hdXRvZnMvCmJ1
-dCBpdCBnaXZlcyBtZSBhIDQwMyBmb3JiaWRkZW4gb24gdGhhdC4KCnNlY29uZGx5LCBpIGhhdmUg
-YW4gaXNzdWUgYWJvdXQgY29tYmluZyBhdXRvZnMgYW5kIGNkZnMuCndoZW4gaW5zZXJ0aW5nIGEg
-dmlkZW8tY2QgKHZjZCkgaW4gdGhlIGNkLWRyaXZlIHdpdGhvdXQgY2RmcyBsb2FkZWQsIGkgZ2V0
-IGFuIAphdXRvZnMgbW91bnRwb2ludCB3aGVyZSBpIGNhbiBicm93c2UgdGhyb3VnaCB0aGUgZGly
-ZWN0b3JpZXMsIG5vIG1hdHRlciBpZiB0aGUgCm1lZGl1bSBpcyBhbiBvcmlnaW5hbGx5IHByZXNz
-ZWQgImNvbXBhY3QgZGlzYyBkaWdpdGFsIHZpZGVvIiBtZWRpdW0gb3IgYSBzZWxmLQpidXJuZWQg
-dmNkIHdoaWNoIGp1c3QgaGFzIHRoZSBzYW1lIGZpbGUgc3RydWN0dXJlIGJ1dCBkaWZmZXJzIHBo
-eXNpY2FsbHkuCndpdGggY2RmcyBrZXJuZWwgbW9kdWxlIGxvYWRlZCwgaSBzZWUgCi9hdXRvZnMv
-c3IwL3Nlc3Npb25zXzEtMS5pc28gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAKL2F1dG9mcy9zcjAvdmlkZW9jZC0xLm1wZWcgIApvbiBhbiBvcmlnaW5hbCB2Y2QgbWVk
-aXVtLiB0aGUgbXBlZyBmaWxlIGNhbiBiZSBhY2Nlc3NlZCBsaWtlIGEgcmVndWxhciBmaWxlIApv
-biBhIGRhdGEgY2QgKHdoaWxlIHRoZSBmaWxlIC9hdXRvZnMvc3IwL21wZWdhdi9hdnNlcTAxLmRh
-dCBvbiBhICJyZWFsIiB2Y2QgCndpdGhvdXQgY2RmcyBsb2FkZWQsIGlzIGluYWNjZXNzaWJsZSkK
-d2hlbiBpIGluc2VydCBhICJmYWtlIiB2Y2QgKHNlbGYtYnVybmVkKSwgdGhlbiB0aGUgYXV0b2Zz
-IG1vdW50IE9OTFkgc2hvd3MgdGhlIApzZXNzaW9uc18xLTEuaXNvLgp0aGUgc2FtZSB0aGluZyBv
-Y2N1cnMgb24gIm1peGVkIG1vZGUiIGF1ZGlvLWNkcy4gdGhlICJkYXRhIHRyYWNrIiBpcyBzaG93
-biBhcyAKc2Vzc2lvbnNfMS0/Py5pc28sIHdoaWxlIHRoZSByYXcgYXVkaW8gdHJhY2tzIGFyZSBi
-ZWluZyBwcmVmaXhlZCBieSBhIHdhdiAKaGVhZGVyIGFuZCByZXNlbWJsZWQgd2l0aCB0aGUgbmFt
-ZXMgdHJhY2stPz8ud2F2IGJ5IGNkZnMuCm15IHF1ZXN0aW9uIG5vdyBpczogY2FuIGF1dG9mcyBh
-dXRvbWF0aWNhbGx5IGxvb3AtbW91bnQgdGhvc2UgImZha2UiIGlzbyAKdHJhY2tzIHNpbXVsYXRl
-ZCBieSBjZGZzIG9uICJzcGVjaWFsIiBjZCBtZWRpYSBpbnRvIGEgbmV3IGF1dG9mcyBkaXJlY3Rv
-cnkgYW5kIApob3cgZG8gaSBoYXZlIHRvIHByb2NlZWQgdG8gZG8gdGhhdD8KCnNpbmNlcmx5LAph
-bmRyZWFzIGFrYQpmcmF4aW5hcyBmcm9tIHRoZSBkcmVhbWJveCBsaW51eCBzZXQtdG9wLWJveCBk
-ZXZlbG9wZXJzCgotLSAKTXVsdGltZWRpYSBMYWJzIEdtYkgKQm9kZWxzY2h3aW5naHN0ci4gMgo1
-MjA3OCBBYWNoZW4KCkdlc2Now6RmdHNmw7xocmVyOiBSb25ueSBTdHJ1dHoKUmVnaXN0ZXJnZXJp
-Y2h0OiBBbXRzZ2VyaWNodCBBYWNoZW4KUmVnaXN0ZXJlaW50cmFnOiBIUkIgMTI3NTYKCl9fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmF1dG9mcyBtYWlsaW5n
-IGxpc3QKYXV0b2ZzQGxpbnV4Lmtlcm5lbC5vcmcKaHR0cDovL2xpbnV4Lmtlcm5lbC5vcmcvbWFp
-bG1hbi9saXN0aW5mby9hdXRvZnMK
+On Fri, 2008-11-28 at 12:51 +0100, Andreas Frisch wrote:
+> dear list users,
+> 
+> i've tried to look at the mailing list archives on 
+> http://linux.kernel.org/pipermail/autofs/
+> but it gives me a 403 forbidden on that.
+
+I've email the admin on kernel.org a couple of times about this but
+nothing so far. I'll try again.
+
+> 
+> secondly, i have an issue about combing autofs and cdfs.
+> when inserting a video-cd (vcd) in the cd-drive without cdfs loaded, i get an 
+> autofs mountpoint where i can browse through the directories, no matter if the 
+> medium is an originally pressed "compact disc digital video" medium or a self-
+> burned vcd which just has the same file structure but differs physically.
+> with cdfs kernel module loaded, i see 
+> /autofs/sr0/sessions_1-1.iso                                          
+> /autofs/sr0/videocd-1.mpeg  
+> on an original vcd medium. the mpeg file can be accessed like a regular file 
+> on a data cd (while the file /autofs/sr0/mpegav/avseq01.dat on a "real" vcd 
+> without cdfs loaded, is inaccessible)
+> when i insert a "fake" vcd (self-burned), then the autofs mount ONLY shows the 
+> sessions_1-1.iso.
+> the same thing occurs on "mixed mode" audio-cds. the "data track" is shown as 
+> sessions_1-??.iso, while the raw audio tracks are being prefixed by a wav 
+> header and resembled with the names track-??.wav by cdfs.
+> my question now is: can autofs automatically loop-mount those "fake" iso 
+> tracks simulated by cdfs on "special" cd media into a new autofs directory and 
+> how do i have to proceed to do that?
+
+Are you sure this is the right place for this question?
+What is your current autofs configuration?
+
+Ian
