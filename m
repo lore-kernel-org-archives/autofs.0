@@ -1,13 +1,15 @@
-From: Todd Denniston <Todd.Denniston@ssa.crane.navy.mil>
+From: "Paolo Minazzi" <paolo.minazzi@gmail.com>
 Subject: Re: automount usb key (vfat and ntfs)
-Date: Mon, 01 Dec 2008 10:06:13 -0500
-Message-ID: <4933FD65.5060802@ssa.crane.navy.mil>
+Date: Mon, 1 Dec 2008 16:52:35 +0100
+Message-ID: <4aa525de0812010752k3fb5c3f2x213d35977b56e043@mail.gmail.com>
 References: <4aa525de0812010542k29530958r359ae01f1a514e58@mail.gmail.com>
+	<4933FD65.5060802@ssa.crane.navy.mil>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4aa525de0812010542k29530958r359ae01f1a514e58@mail.gmail.com>
+In-Reply-To: <4933FD65.5060802@ssa.crane.navy.mil>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,51 +20,42 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Paolo Minazzi <paolo.minazzi@gmail.com>
+To: Todd Denniston <Todd.Denniston@ssa.crane.navy.mil>
 Cc: autofs@linux.kernel.org
 
-Paolo Minazzi wrote, On 12/01/2008 08:42 AM:
-> Hi,
-> I'd like to use automount in an arm embedded system to mount
-> automatically usb keys.
-> I have done it for vfat and all is OK.
-> Now I'd like to include also ntfs file system, so my system can
-> automount also ntfs filesystems.
-> 
-> I have searched in this list, but I have not found a post that shows
-> how do it in a CLEAN way.
-> 
-> This is my /etc/auto.misc
-> 
->>>> /etc/auto.misc
-> pen   -fstype=vfat   :/dev/sda1
-> 
-> I run automount in this way :
->>>>  /sbin/automount --timeout=20 /media file /etc/auto.misc
-> 
-> I would like to add ntfs (using ntfs-3g fuse driver).
-> I have tried two ways to do it, but no one is very good.
-> 
-> ** 1 **
-> I have tried this /etc/auto.misc:
-> 
-> pen   -fstype=vfat        :/dev/sda1
-> pen   -fstype=ntfs-3g   :/dev/sda1
-> 
+> So, have you tried something like:
+> pen   -fstype=vfat,ntfs-3g        :/dev/sda1
+>
+> --
+> Todd Denniston
+> Crane Division, Naval Surface Warfare Center (NSWC Crane)
+> Harnessing the Power of Technology for the Warfighter
+>
+
+Thanks for your replay.
+From the documentation I have read that the 2nd parameter to the last
+parameter are specific mount parameter, so it does not solve the
+problem.
+
+For example
+pen   -fstype=vfat,gid=102,umask=002        :/dev/sda1
+
+means do
+
+mount -t vfat -o gid=102,umask=002 /dev/sda1 /media/pen
 
 
-`man mount` has the following to say under "-t vfstype":
-  "Creating a  file /etc/filesystems can be useful to change the probe order 
-(e.g., to try vfat before msdos or ext3 before ext2) or  if  you use  a 
-kernel  module  autoloader." ...
-" More  than  one type may be specified in a comma separated list."
+It would be interesting if it was possible specifiy different fstype,
+each one with her parameters.
 
+For example:
 
+pen   -fstype=vfat,gid=102                :/dev/sda1
+pen   -fstype=ntfs-3g,gid=104           :/dev/sda1
 
-So, have you tried something like:
-pen   -fstype=vfat,ntfs-3g        :/dev/sda1
+In this example the daemon first will try to mount vfat with gid=102.
+Then, if it fails, it retry with ntfs-3g with gid=104.
 
--- 
-Todd Denniston
-Crane Division, Naval Surface Warfare Center (NSWC Crane)
-Harnessing the Power of Technology for the Warfighter
+Thanks for your time
+
+Paolo
