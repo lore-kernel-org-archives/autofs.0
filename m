@@ -1,19 +1,12 @@
-From: Ondrej Valousek <webserv@s3group.cz>
-Subject: Re: Automounter hangs...
-Date: Mon, 01 Dec 2008 14:10:35 +0100
-Message-ID: <4933E24B.5030100@s3group.cz>
-References: <48A03A9B.2070402@s3group.cz>	
-	<x49pro3yemn.fsf@segfault.boston.devel.redhat.com>	
-	<48B251BE.4050105@s3group.cz> <49300EBA.3020505@s3group.cz>	
-	<4996.82.208.2.231.1227902251.squirrel@webmail.s3group.com>	
-	<1227950015.2907.3.camel@zeus.themaw.net>
-	<49317A5D.3010707@s3group.cz>	 <49318072.5060309@s3group.cz>
-	<1228135546.2950.10.camel@zeus.themaw.net>
+From: "Paolo Minazzi" <paolo.minazzi@gmail.com>
+Subject: automount usb key (vfat and ntfs)
+Date: Mon, 1 Dec 2008 14:42:57 +0100
+Message-ID: <4aa525de0812010542k29530958r359ae01f1a514e58@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1228135546.2950.10.camel@zeus.themaw.net>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,15 +17,49 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
+To: autofs@linux.kernel.org
 
-Ian Kent wrote:
->
-> For a start you need to make the entire debug log of the session in
-> which this occurs available.
->   
-Service request of the high priority #1877284 opened with RedHat with
-the attached sosreport and automounter debug log.
-Regards
-Ondrej
+Hi,
+I'd like to use automount in an arm embedded system to mount
+automatically usb keys.
+I have done it for vfat and all is OK.
+Now I'd like to include also ntfs file system, so my system can
+automount also ntfs filesystems.
+
+I have searched in this list, but I have not found a post that shows
+how do it in a CLEAN way.
+
+This is my /etc/auto.misc
+
+>>> /etc/auto.misc
+pen   -fstype=vfat   :/dev/sda1
+
+I run automount in this way :
+>>>  /sbin/automount --timeout=20 /media file /etc/auto.misc
+
+I would like to add ntfs (using ntfs-3g fuse driver).
+I have tried two ways to do it, but no one is very good.
+
+** 1 **
+I have tried this /etc/auto.misc:
+
+pen   -fstype=vfat        :/dev/sda1
+pen   -fstype=ntfs-3g   :/dev/sda1
+
+** 2 **
+I have tried an executable map, but in this way I will need to
+identify the filesystem type (for example using fdisk -l) and I will
+prefer to avoid to do in this way.
+
+
+
+
+In my opinion the best way should be the ** 1**.
+Automount should try first to mount as vfat, and if it fails try ** 2
+**(ntfs-3g)
+But the syntax I used does not work ok.
+
+There is a way to do it ?
+
+Thanks in advance.
+Paolo
