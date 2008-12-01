@@ -1,14 +1,15 @@
-From: Todd Denniston <Todd.Denniston@ssa.crane.navy.mil>
+From: Greg Wooledge <wooledg@eeg.ccf.org>
 Subject: Re: automount usb key (vfat and ntfs)
-Date: Mon, 01 Dec 2008 15:19:47 -0500
-Message-ID: <493446E3.7060708@ssa.crane.navy.mil>
-References: <4aa525de0812010542k29530958r359ae01f1a514e58@mail.gmail.com>	<4933FD65.5060802@ssa.crane.navy.mil>
-	<4aa525de0812010752k3fb5c3f2x213d35977b56e043@mail.gmail.com>
+Date: Mon, 1 Dec 2008 14:34:18 -0500
+Message-ID: <20081201193418.GT13650@eeg.ccf.org>
+References: <4aa525de0812010542k29530958r359ae01f1a514e58@mail.gmail.com>
+	<x49tz9n96ao.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4aa525de0812010752k3fb5c3f2x213d35977b56e043@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <x49tz9n96ao.fsf@segfault.boston.devel.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,44 +20,36 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Paolo Minazzi <paolo.minazzi@gmail.com>
+To: Jeff Moyer <jmoyer@redhat.com>
 Cc: autofs@linux.kernel.org
 
-Paolo Minazzi wrote, On 12/01/2008 10:52 AM:
->> So, have you tried something like:
->> pen   -fstype=vfat,ntfs-3g        :/dev/sda1
->>
-> 
-> Thanks for your replay.
->>From the documentation I have read that the 2nd parameter to the last
-> parameter are specific mount parameter, so it does not solve the
-> problem.
-> 
-> For example
-> pen   -fstype=vfat,gid=102,umask=002        :/dev/sda1
-> 
-> means do
-> 
-> mount -t vfat -o gid=102,umask=002 /dev/sda1 /media/pen
-> 
+On Mon, Dec 01, 2008 at 12:03:27PM -0500, Jeff Moyer wrote:
 
-darn.
-next suggestion, which I only alluded to in the last email:
-if ! grep -e "ntfs-3g" /etc/filesystems
-then
-	echo "perhaps do the following"
-	echo "echo ntfs-3g >> /etc/filesystems"
-	echo " and let autofs use auto for the fs type."
+> If that doesn't work, then I'd suggest a program map.  Something simple
+> should work:
+> 
+> ---[cut here]---
+> #!/bin/bash
+> ntfs-3g.probe /dev/sda1
+> if [ $? -eq 0 ]; then
+>         ntfs-3g /dev/sda1 /media/$1
+>         RET=$?
+> else
+>         mount -t vfat /dev/sda1 /media/$1
+>         RET=$?
+> fi
+> 
+> exit $RET
+> ---[cut here]---
+
+That can be simplified:
+
+#!/bin/sh
+if ntfs-3g.probe /dev/sda1; then
+	ntfs-3g /dev/sda1 /media/"$1"
 else
-	echo "darn, even editing /etc/filesystems"
-	echo "will not help."
+	mount -t vfat /dev/sda1 /media/"$1"
 fi
 
-of course this assumes that the lack of an entry in /etc/filesystems means 
-mount will not try that type, and that you can use the same gid umask set for 
-both FS types.
-
--- 
-Todd Denniston
-Crane Division, Naval Surface Warfare Center (NSWC Crane)
-Harnessing the Power of Technology for the Warfighter
+The exit status of a script is the status from the last command which
+was executed, so there's no need to save $? and then exit with it later.
