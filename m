@@ -1,15 +1,14 @@
-From: "Paolo Minazzi" <paolo.minazzi@gmail.com>
+From: Jeff Moyer <jmoyer@redhat.com>
 Subject: Re: automount usb key (vfat and ntfs)
-Date: Mon, 1 Dec 2008 16:52:35 +0100
-Message-ID: <4aa525de0812010752k3fb5c3f2x213d35977b56e043@mail.gmail.com>
+Date: Mon, 01 Dec 2008 12:03:27 -0500
+Message-ID: <x49tz9n96ao.fsf@segfault.boston.devel.redhat.com>
 References: <4aa525de0812010542k29530958r359ae01f1a514e58@mail.gmail.com>
-	<4933FD65.5060802@ssa.crane.navy.mil>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4933FD65.5060802@ssa.crane.navy.mil>
-Content-Disposition: inline
+In-Reply-To: <4aa525de0812010542k29530958r359ae01f1a514e58@mail.gmail.com>
+	(Paolo Minazzi's message of "Mon, 1 Dec 2008 14:42:57 +0100")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,42 +19,76 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Todd Denniston <Todd.Denniston@ssa.crane.navy.mil>
+To: Paolo Minazzi <paolo.minazzi@gmail.com>
 Cc: autofs@linux.kernel.org
 
-> So, have you tried something like:
-> pen   -fstype=vfat,ntfs-3g        :/dev/sda1
+"Paolo Minazzi" <paolo.minazzi@gmail.com> writes:
+
+> Hi,
+> I'd like to use automount in an arm embedded system to mount
+> automatically usb keys.
+> I have done it for vfat and all is OK.
+> Now I'd like to include also ntfs file system, so my system can
+> automount also ntfs filesystems.
 >
-> --
-> Todd Denniston
-> Crane Division, Naval Surface Warfare Center (NSWC Crane)
-> Harnessing the Power of Technology for the Warfighter
+> I have searched in this list, but I have not found a post that shows
+> how do it in a CLEAN way.
 >
+> This is my /etc/auto.misc
+>
+>>>> /etc/auto.misc
+> pen   -fstype=vfat   :/dev/sda1
+>
+> I run automount in this way :
+>>>>  /sbin/automount --timeout=20 /media file /etc/auto.misc
+>
+> I would like to add ntfs (using ntfs-3g fuse driver).
+> I have tried two ways to do it, but no one is very good.
+>
+> ** 1 **
+> I have tried this /etc/auto.misc:
+>
+> pen   -fstype=vfat        :/dev/sda1
+> pen   -fstype=ntfs-3g   :/dev/sda1
+>
+> ** 2 **
+> I have tried an executable map, but in this way I will need to
+> identify the filesystem type (for example using fdisk -l) and I will
+> prefer to avoid to do in this way.
+>
+>
+>
+>
+> In my opinion the best way should be the ** 1**.
+> Automount should try first to mount as vfat, and if it fails try ** 2
+> **(ntfs-3g)
+> But the syntax I used does not work ok.
+>
+> There is a way to do it ?
 
-Thanks for your replay.
-From the documentation I have read that the 2nd parameter to the last
-parameter are specific mount parameter, so it does not solve the
-problem.
+In my opinion, mount should automatically mount the file system without
+having to be told the fstype.
 
-For example
-pen   -fstype=vfat,gid=102,umask=002        :/dev/sda1
+If that doesn't work, then I'd suggest a program map.  Something simple
+should work:
 
-means do
+---[cut here]---
+#!/bin/bash
+ntfs-3g.probe /dev/sda1
+if [ $? -eq 0 ]; then
+        ntfs-3g /dev/sda1 /media/$1
+        RET=$?
+else
+        mount -t vfat /dev/sda1 /media/$1
+        RET=$?
+fi
 
-mount -t vfat -o gid=102,umask=002 /dev/sda1 /media/pen
+exit $RET
+---[cut here]---
 
+I know this is an embedded system, but don't you still have hal/udev and
+hotplug events?  Personally, I have no experience wiring these things
+up, but I think that's the right place for this sort of thing.
 
-It would be interesting if it was possible specifiy different fstype,
-each one with her parameters.
-
-For example:
-
-pen   -fstype=vfat,gid=102                :/dev/sda1
-pen   -fstype=ntfs-3g,gid=104           :/dev/sda1
-
-In this example the daemon first will try to mount vfat with gid=102.
-Then, if it fails, it retry with ntfs-3g with gid=104.
-
-Thanks for your time
-
-Paolo
+Cheers,
+Jeff
