@@ -1,15 +1,15 @@
-From: Greg Wooledge <wooledg@eeg.ccf.org>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: automount usb key (vfat and ntfs)
-Date: Mon, 1 Dec 2008 14:34:18 -0500
-Message-ID: <20081201193418.GT13650@eeg.ccf.org>
+Date: Tue, 02 Dec 2008 11:40:13 +0900
+Message-ID: <1228185613.2954.17.camel@zeus.themaw.net>
 References: <4aa525de0812010542k29530958r359ae01f1a514e58@mail.gmail.com>
 	<x49tz9n96ao.fsf@segfault.boston.devel.redhat.com>
+	<20081201193418.GT13650@eeg.ccf.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <x49tz9n96ao.fsf@segfault.boston.devel.redhat.com>
+In-Reply-To: <20081201193418.GT13650@eeg.ccf.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,36 +20,48 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>
+To: Greg Wooledge <wooledg@eeg.ccf.org>
 Cc: autofs@linux.kernel.org
 
-On Mon, Dec 01, 2008 at 12:03:27PM -0500, Jeff Moyer wrote:
-
-> If that doesn't work, then I'd suggest a program map.  Something simple
-> should work:
+On Mon, 2008-12-01 at 14:34 -0500, Greg Wooledge wrote:
+> On Mon, Dec 01, 2008 at 12:03:27PM -0500, Jeff Moyer wrote:
 > 
-> ---[cut here]---
-> #!/bin/bash
-> ntfs-3g.probe /dev/sda1
-> if [ $? -eq 0 ]; then
->         ntfs-3g /dev/sda1 /media/$1
->         RET=$?
+> > If that doesn't work, then I'd suggest a program map.  Something simple
+> > should work:
+> > 
+> > ---[cut here]---
+> > #!/bin/bash
+> > ntfs-3g.probe /dev/sda1
+> > if [ $? -eq 0 ]; then
+> >         ntfs-3g /dev/sda1 /media/$1
+> >         RET=$?
+> > else
+> >         mount -t vfat /dev/sda1 /media/$1
+> >         RET=$?
+> > fi
+> > 
+> > exit $RET
+> > ---[cut here]---
+> 
+> That can be simplified:
+> 
+> #!/bin/sh
+> if ntfs-3g.probe /dev/sda1; then
+> 	ntfs-3g /dev/sda1 /media/"$1"
 > else
->         mount -t vfat /dev/sda1 /media/$1
->         RET=$?
+> 	mount -t vfat /dev/sda1 /media/"$1"
 > fi
 > 
-> exit $RET
-> ---[cut here]---
+> The exit status of a script is the status from the last command which
+> was executed, so there's no need to save $? and then exit with it later.
 
-That can be simplified:
+Right, but this probably should be something like:
 
 #!/bin/sh
 if ntfs-3g.probe /dev/sda1; then
-	ntfs-3g /dev/sda1 /media/"$1"
+	echo "-fstype=ntfs-3g,other-opts :/dev/sda1"
 else
-	mount -t vfat /dev/sda1 /media/"$1"
+	echo "-fstype=vfat,other-opts :/dev/sda1"
 fi
 
-The exit status of a script is the status from the last command which
-was executed, so there's no need to save $? and then exit with it later.
+Ian
