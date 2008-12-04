@@ -1,7 +1,7 @@
-From: Ondrej Valousek <webserv@s3group.cz>
-Subject: automounter segfaults when using negative cache?
-Date: Thu, 04 Dec 2008 12:15:08 +0100
-Message-ID: <4937BBBC.9030305@s3group.cz>
+From: Martin Vogt <vogt@itwm.fraunhofer.de>
+Subject: more than 1024 mounts ==>hangs
+Date: Thu, 04 Dec 2008 14:13:56 +0100
+Message-ID: <4937D794.6040908@itwm.fraunhofer.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -16,66 +16,98 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
+To: autofs@linux.kernel.org
 
-Interesting thing:
-I have 2 identical login01 and login02 machines (Rhel4, full updates).
-login01 is running old kernel (2.6.9-42.ELsmp), login02 is running the
-latest one (2.6.9-78.0.8.ELsmp). Both have autofs debug enabled and are
-running the latest autofs (autofs-4.1.3-234).
-Now:
-1) login01:
-[root@login01 ondrejv]# cat /var/log/debug.log* | grep "Dec  4 09:15:09"
-Dec  4 09:15:09 login01 automount[3939]: handle_packet: type = 0
-Dec  4 09:15:09 login01 automount[3939]: handle_packet_missing: token
-3533, name .raw_data
-Dec  4 09:15:09 login01 automount[3939]: attempting to mount entry
-/proj/.raw_data
-Dec  4 09:15:09 login01 automount[1649]: lookup(yp): looking up .raw_data
-Dec  4 09:15:09 login01 automount[3939]: mt->key set to .raw_data
-Dec  4 09:15:09 login01 kernel: automount[1649]: segfault at
-0000000000000000 rip 0000002a95916be0 rsp 0000007fbfffd5c8 error 4
-Dec  4 09:15:09 login01 automount[3939]: handle_child: got pid 1649, sig
-1 (11), stat 0
-Dec  4 09:15:09 login01 automount[3939]: sig_child: found pending iop
-pid 1649: signalled 1 (sig 11), exit status 0
-Dec  4 09:15:09 login01 automount[3939]: send_fail: token=3533
-Dec  4 09:15:09 login01 automount[3939]: handle_packet: type = 0
-Dec  4 09:15:09 login01 automount[3939]: handle_packet_missing: token
-3534, name .raw_data
-Dec  4 09:15:09 login01 automount[3939]: attempting to mount entry
-/proj/.raw_data
-Dec  4 09:15:09 login01 automount[1650]: lookup(yp): looking up .raw_data
-Dec  4 09:15:09 login01 automount[3939]: mt->key set to .raw_data
-Dec  4 09:15:09 login01 kernel: automount[1650]: segfault at
-0000000000000000 rip 0000002a95916be0 rsp 0000007fbfffd5c8 error 4
 
-Note that .raw_data map does not exist in the yp map so it should go
-into the negative cache - which happens correctly on login02:
-ov 28 23:27:43 login01 automount[4201]: attempting to mount entry
-/proj/.raw_data
-Nov 28 23:27:43 login01 automount[13394]: lookup(yp): looking up .raw_data
-Nov 28 23:27:43 login01 automount[4201]: mt->key set to .raw_data
-Nov 28 23:27:43 login01 automount[13394]: lookup(yp): key ".raw_data"
-not found in map.
-Nov 28 23:27:43 login01 automount[13394]: failed to mount /proj/.raw_data
-Nov 28 23:27:43 login01 automount[13394]: umount_multi:
-path=/proj/.raw_data incl=1
-Nov 28 23:27:43 login01 automount[4201]: handle_child: got pid 13394,
-sig 0 (0), stat 3
-Nov 28 23:27:43 login01 automount[4201]: sig_child: found pending iop
-pid 13394: signalled 0 (sig 0), exit status 3
-Nov 28 23:27:43 login01 automount[4201]: update_negative_cache: key:
-.raw_data
-Nov 28 23:27:43 login01 automount[4201]: Adding negative cache entry for
-key .raw_data
-Nov 28 23:27:43 login01 automount[4201]: Key .raw_data added to negative
-cache
-Nov 28 23:27:43 login01 automount[4201]: send_fail: token=15625
 
-I thought all the negative caching is done in user space, but apparently
-kernel has some influence here....
-Any explanation?
-Thanks,
+Hello list,
 
-Ondrej
+I'm currently experimenting with autofs on SuSE 11.1 rc1
+
+-autofs-5.0.3-82.19
+
+Around the 1024th mount, autofs hangs and the machine needs a reboot -f.
+
+I have here >2000 mount points which usually look like this:
+
+/homes/vogt0001 --fstype=bind :/net/fsA/home/user/vogt0001
+/homes/vogt0002 --fstype=bind :/net/fsB/home/user/vogt0002
+[..]
+/homes/vogt2000 --fstype=bind :/net/fsC/home/user/vogt2000
+
+
+Further debugging revealed:
+
+pxe1:/home/demo1 # lsof -p <automount pid>
+[...]
+automount 5111 root 1022r   DIR  0,228        0  13029 /u/itwm/hinojosa
+automount 5111 root 1023r   DIR  0,561        0  13362 /u/itwm/andrejs
+automount 5111 root 1024r  FIFO    0,7      0t0  26910 pipe
+
+The 1024 really looks like some limit, which is hit by the automount
+process.
+
+I checked ulimit -a:
+
+pxe1:/home/demo1 # ulimit -a
+core file size          (blocks, -c) 0
+data seg size           (kbytes, -d) unlimited
+scheduling priority             (-e) 0
+file size               (blocks, -f) unlimited
+pending signals                 (-i) 16117
+max locked memory       (kbytes, -l) 64
+max memory size         (kbytes, -m) 1717680
+open files                      (-n) 4096
+pipe size            (512 bytes, -p) 8
+POSIX message queues     (bytes, -q) 819200
+real-time priority              (-r) 0
+stack size              (kbytes, -s) 8192
+cpu time               (seconds, -t) unlimited
+max user processes              (-u) 16117
+virtual memory          (kbytes, -v) 2455520
+file locks                      (-x) unlimited
+
+
+The I checked ulimit under /proc:
+
+pxe1:/proc/5111 # cat limits
+Limit                     Soft Limit           Hard Limit           Units
+Max cpu time              unlimited            unlimited
+Max file size             unlimited            unlimited
+Max data size             unlimited            unlimited
+Max stack size            8388608              unlimited
+Max core file size        unlimited            unlimited
+Max resident set          1758904320           unlimited
+Max processes             16117                16117
+Max open files            10240                10240
+Max locked memory         65536                262144
+Max address space         2514452480           unlimited
+Max file locks            unlimited            unlimited
+Max pending signals       16117                16117
+Max msgqueue size         819200               819200
+Max nice priority         0                    0
+Max realtime priority     0                    0
+Max realtime timeout      unlimited            unlimited
+
+
+==> At least the Max file desc. looks ok, but somewho it hangs.
+Ah, the behavoir by autofs is:
+
+- It hangs on duing a mount operation:
+
+root      5111  0.0  0.1  97200  2936 pts/0    Sl+  13:30   0:01
+/usr/sbin/automount -d -f -t 600 -p /var/run/automount.pid -O ro
+root      9541  0.0  0.0      0     0 pts/0    Z+   13:31   0:00 [mount]
+<defunct>
+
+stopping automount is not possible it needs a reboot -f
+
+I have search a bit for this problem, but found no solution yet.
+
+
+regards,
+
+Martin
+
+
+PS: I havent found a way to do it without bind mounts
