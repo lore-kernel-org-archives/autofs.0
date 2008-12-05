@@ -1,15 +1,14 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: more than 1024 mounts ==>hangs
-Date: Sat, 06 Dec 2008 01:15:30 +0900
-Message-ID: <1228493730.14030.77.camel@zeus.themaw.net>
-References: <4937D794.6040908@itwm.fraunhofer.de>
-	<1228403765.3038.118.camel@zeus.themaw.net>
-	<x493ah261yt.fsf@segfault.boston.devel.redhat.com>
+Subject: Re: automounter segfaults when using negative cache?
+Date: Sat, 06 Dec 2008 01:23:41 +0900
+Message-ID: <1228494221.14030.82.camel@zeus.themaw.net>
+References: <4937BBBC.9030305@s3group.cz>
+	<x497i6e6291.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <x493ah261yt.fsf@segfault.boston.devel.redhat.com>
+In-Reply-To: <x497i6e6291.fsf@segfault.boston.devel.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,84 +20,79 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: Jeff Moyer <jmoyer@redhat.com>
-Cc: autofs@linux.kernel.org
+Cc: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
 
-On Fri, 2008-12-05 at 11:06 -0500, Jeff Moyer wrote:
-> Ian Kent <raven@themaw.net> writes:
+On Fri, 2008-12-05 at 11:00 -0500, Jeff Moyer wrote:
+> Ondrej Valousek <webserv@s3group.cz> writes:
 > 
-> > On Thu, 2008-12-04 at 14:13 +0100, Martin Vogt wrote:
-> >> 
-> >> Hello list,
-> >> 
-> >> I'm currently experimenting with autofs on SuSE 11.1 rc1
-> >> 
-> >> -autofs-5.0.3-82.19
-> >
-> > I don't know what this means in terms of patches applied, but ok.
-> >
-> >> 
-> >> Around the 1024th mount, autofs hangs and the machine needs a reboot -f.
-> >> 
-> >> I have here >2000 mount points which usually look like this:
-> >> 
-> >> /homes/vogt0001 --fstype=bind :/net/fsA/home/user/vogt0001
-> >> /homes/vogt0002 --fstype=bind :/net/fsB/home/user/vogt0002
-> >> [..]
-> >> /homes/vogt2000 --fstype=bind :/net/fsC/home/user/vogt2000
-> >
-> > So a direct map?
-> > With many active real mounts, is that what you're saying?
-> >
-> >> 
-> >> 
-> >> Further debugging revealed:
-> >> 
-> >> pxe1:/home/demo1 # lsof -p <automount pid>
-> >> [...]
-> >> automount 5111 root 1022r   DIR  0,228        0  13029 /u/itwm/hinojosa
-> >> automount 5111 root 1023r   DIR  0,561        0  13362 /u/itwm/andrejs
-> >> automount 5111 root 1024r  FIFO    0,7      0t0  26910 pipe
-> >> 
-> >> The 1024 really looks like some limit, which is hit by the automount
-> >> process.
-> >
-> > Quite possibly, but I don't think there is anything autofs can do about
-> > it since in autofs we see:
-> > ...
-> > #define MAX_OPEN_FILES          10240
-> > ...
-> > 	rlim.rlim_cur = MAX_OPEN_FILES;
-> >         rlim.rlim_max = MAX_OPEN_FILES;
-> >         res = setrlimit(RLIMIT_NOFILE, &rlim);
-> >         if (res)
-> >                 warn(logging,
-> >                      "can't increase open file limit - continuing");
-> >
-> > Unless I've not got this correct in some way the open file limit should
-> > be much higher. But there are ways the OS configuration can limit this.
+> > Interesting thing:
+> > I have 2 identical login01 and login02 machines (Rhel4, full updates).
+> > login01 is running old kernel (2.6.9-42.ELsmp), login02 is running the
+> > latest one (2.6.9-78.0.8.ELsmp). Both have autofs debug enabled and are
+> > running the latest autofs (autofs-4.1.3-234).
+> > Now:
+> > 1) login01:
+> > [root@login01 ondrejv]# cat /var/log/debug.log* | grep "Dec  4 09:15:09"
+> > Dec  4 09:15:09 login01 automount[3939]: handle_packet: type = 0
+> > Dec  4 09:15:09 login01 automount[3939]: handle_packet_missing: token
+> > 3533, name .raw_data
+> > Dec  4 09:15:09 login01 automount[3939]: attempting to mount entry
+> > /proj/.raw_data
+> > Dec  4 09:15:09 login01 automount[1649]: lookup(yp): looking up .raw_data
+> > Dec  4 09:15:09 login01 automount[3939]: mt->key set to .raw_data
+> > Dec  4 09:15:09 login01 kernel: automount[1649]: segfault at
+> > 0000000000000000 rip 0000002a95916be0 rsp 0000007fbfffd5c8 error 4
+> > Dec  4 09:15:09 login01 automount[3939]: handle_child: got pid 1649, sig
+> > 1 (11), stat 0
+> > Dec  4 09:15:09 login01 automount[3939]: sig_child: found pending iop
+> > pid 1649: signalled 1 (sig 11), exit status 0
+> > Dec  4 09:15:09 login01 automount[3939]: send_fail: token=3533
+> > Dec  4 09:15:09 login01 automount[3939]: handle_packet: type = 0
+> > Dec  4 09:15:09 login01 automount[3939]: handle_packet_missing: token
+> > 3534, name .raw_data
+> > Dec  4 09:15:09 login01 automount[3939]: attempting to mount entry
+> > /proj/.raw_data
+> > Dec  4 09:15:09 login01 automount[1650]: lookup(yp): looking up .raw_data
+> > Dec  4 09:15:09 login01 automount[3939]: mt->key set to .raw_data
+> > Dec  4 09:15:09 login01 kernel: automount[1650]: segfault at
+> > 0000000000000000 rip 0000002a95916be0 rsp 0000007fbfffd5c8 error 4
 > 
-> I'm pretty sure root processes bypass the max open fds check.
+> Can you enable core dumps and get us a stack trace of this?
 > 
-> [snip]
-> 
-> >> Ah, the behavoir by autofs is:
-> >> 
-> >> - It hangs on duing a mount operation:
-> >> 
-> >> root      5111  0.0  0.1  97200  2936 pts/0    Sl+  13:30   0:01
-> >> /usr/sbin/automount -d -f -t 600 -p /var/run/automount.pid -O ro
-> >> root      9541  0.0  0.0      0     0 pts/0    Z+   13:31   0:00 [mount]
-> >> <defunct>
+> > Note that .raw_data map does not exist in the yp map so it should go
+> > into the negative cache - which happens correctly on login02:
+> > ov 28 23:27:43 login01 automount[4201]: attempting to mount entry
+> > /proj/.raw_data
+> > Nov 28 23:27:43 login01 automount[13394]: lookup(yp): looking up .raw_data
+> > Nov 28 23:27:43 login01 automount[4201]: mt->key set to .raw_data
+> > Nov 28 23:27:43 login01 automount[13394]: lookup(yp): key ".raw_data"
+> > not found in map.
+> > Nov 28 23:27:43 login01 automount[13394]: failed to mount /proj/.raw_data
+> > Nov 28 23:27:43 login01 automount[13394]: umount_multi:
+> > path=/proj/.raw_data incl=1
+> > Nov 28 23:27:43 login01 automount[4201]: handle_child: got pid 13394,
+> > sig 0 (0), stat 3
+> > Nov 28 23:27:43 login01 automount[4201]: sig_child: found pending iop
+> > pid 13394: signalled 0 (sig 0), exit status 3
+> > Nov 28 23:27:43 login01 automount[4201]: update_negative_cache: key:
+> > .raw_data
+> > Nov 28 23:27:43 login01 automount[4201]: Adding negative cache entry for
+> > key .raw_data
+> > Nov 28 23:27:43 login01 automount[4201]: Key .raw_data added to negative
+> > cache
+> > Nov 28 23:27:43 login01 automount[4201]: send_fail: token=15625
 > >
-> > So maybe mount(8) and its relatives are the problem, not sure I can do
-> > much about that either.
+> > I thought all the negative caching is done in user space, but apparently
+> > kernel has some influence here....
+> > Any explanation?
 > 
-> Yeah, strange.  Can we figure out what the mount commandline was for
-> this zombie?
+> The negative caching is done in userspace.  I'm not sure I understand
+> your question.
 
-You would need to enable debug logging.
-autofs and syslog setup instructions for this can be seen at
-http://people.redhat.com/jmoyer.
+Me neither but I'm working on the negative caching of non-existent map
+keys. Turns out to be a bit tricky when multiple nsswitch sources can be
+tried for each mount since the map may not exist within a given source
+and so we get NSS_STATUS_UNAVAIL instead of NSS_STATUS_NOTFOUND. Maybe I
+should just cache the unavailable in the same way?
 
-> 
-> -Jeff
+Ian
