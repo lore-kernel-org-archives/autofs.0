@@ -1,17 +1,14 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Low priority question: negative cache in autofs5
-Date: Fri, 05 Dec 2008 22:44:02 +0900
-Message-ID: <1228484642.14030.31.camel@zeus.themaw.net>
-References: <493910C7.9010308@s3group.cz>
-	<1228477716.3033.37.camel@zeus.themaw.net>
-	<49391C76.8030704@s3group.cz>
-	<1228482604.14030.15.camel@zeus.themaw.net>
-	<49392CE0.8010004@s3group.cz>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: automounter segfaults when using negative cache?
+Date: Fri, 05 Dec 2008 11:00:26 -0500
+Message-ID: <x497i6e6291.fsf@segfault.boston.devel.redhat.com>
+References: <4937BBBC.9030305@s3group.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <49392CE0.8010004@s3group.cz>
+In-Reply-To: <4937BBBC.9030305@s3group.cz> (Ondrej Valousek's message of "Thu, 
+	04 Dec 2008 12:15:08 +0100")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -25,23 +22,71 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: Ondrej Valousek <webserv@s3group.cz>
 Cc: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
 
-On Fri, 2008-12-05 at 14:30 +0100, Ondrej Valousek wrote:
-> > The negative cache working properly will return a fail immediately so
-> > you shouldn't see this.
-> >
-> > But then it shouldn't happen for the first case either.
-> > There are quite a few changes scheduled for the next update and I
-> > haven't seen this for a while now so it's a bit hard to get exited about
-> > it.
-> >
-> >   
-> Ok, I understand - in summary:
-> #1 problem should go [hopefully] away with 5.3
-> #2 problem is known bug being worked on....
+Ondrej Valousek <webserv@s3group.cz> writes:
 
-Right, but problem #1 may be tied to problem #2, not quite sure yet.
-A fix for the negative cache issue is way too late for 5.3.
-We would need to get a test package to you for that, once it's done.
+> Interesting thing:
+> I have 2 identical login01 and login02 machines (Rhel4, full updates).
+> login01 is running old kernel (2.6.9-42.ELsmp), login02 is running the
+> latest one (2.6.9-78.0.8.ELsmp). Both have autofs debug enabled and are
+> running the latest autofs (autofs-4.1.3-234).
+> Now:
+> 1) login01:
+> [root@login01 ondrejv]# cat /var/log/debug.log* | grep "Dec  4 09:15:09"
+> Dec  4 09:15:09 login01 automount[3939]: handle_packet: type = 0
+> Dec  4 09:15:09 login01 automount[3939]: handle_packet_missing: token
+> 3533, name .raw_data
+> Dec  4 09:15:09 login01 automount[3939]: attempting to mount entry
+> /proj/.raw_data
+> Dec  4 09:15:09 login01 automount[1649]: lookup(yp): looking up .raw_data
+> Dec  4 09:15:09 login01 automount[3939]: mt->key set to .raw_data
+> Dec  4 09:15:09 login01 kernel: automount[1649]: segfault at
+> 0000000000000000 rip 0000002a95916be0 rsp 0000007fbfffd5c8 error 4
+> Dec  4 09:15:09 login01 automount[3939]: handle_child: got pid 1649, sig
+> 1 (11), stat 0
+> Dec  4 09:15:09 login01 automount[3939]: sig_child: found pending iop
+> pid 1649: signalled 1 (sig 11), exit status 0
+> Dec  4 09:15:09 login01 automount[3939]: send_fail: token=3533
+> Dec  4 09:15:09 login01 automount[3939]: handle_packet: type = 0
+> Dec  4 09:15:09 login01 automount[3939]: handle_packet_missing: token
+> 3534, name .raw_data
+> Dec  4 09:15:09 login01 automount[3939]: attempting to mount entry
+> /proj/.raw_data
+> Dec  4 09:15:09 login01 automount[1650]: lookup(yp): looking up .raw_data
+> Dec  4 09:15:09 login01 automount[3939]: mt->key set to .raw_data
+> Dec  4 09:15:09 login01 kernel: automount[1650]: segfault at
+> 0000000000000000 rip 0000002a95916be0 rsp 0000007fbfffd5c8 error 4
 
-> Thanks!
-> O.
+Can you enable core dumps and get us a stack trace of this?
+
+> Note that .raw_data map does not exist in the yp map so it should go
+> into the negative cache - which happens correctly on login02:
+> ov 28 23:27:43 login01 automount[4201]: attempting to mount entry
+> /proj/.raw_data
+> Nov 28 23:27:43 login01 automount[13394]: lookup(yp): looking up .raw_data
+> Nov 28 23:27:43 login01 automount[4201]: mt->key set to .raw_data
+> Nov 28 23:27:43 login01 automount[13394]: lookup(yp): key ".raw_data"
+> not found in map.
+> Nov 28 23:27:43 login01 automount[13394]: failed to mount /proj/.raw_data
+> Nov 28 23:27:43 login01 automount[13394]: umount_multi:
+> path=/proj/.raw_data incl=1
+> Nov 28 23:27:43 login01 automount[4201]: handle_child: got pid 13394,
+> sig 0 (0), stat 3
+> Nov 28 23:27:43 login01 automount[4201]: sig_child: found pending iop
+> pid 13394: signalled 0 (sig 0), exit status 3
+> Nov 28 23:27:43 login01 automount[4201]: update_negative_cache: key:
+> .raw_data
+> Nov 28 23:27:43 login01 automount[4201]: Adding negative cache entry for
+> key .raw_data
+> Nov 28 23:27:43 login01 automount[4201]: Key .raw_data added to negative
+> cache
+> Nov 28 23:27:43 login01 automount[4201]: send_fail: token=15625
+>
+> I thought all the negative caching is done in user space, but apparently
+> kernel has some influence here....
+> Any explanation?
+
+The negative caching is done in userspace.  I'm not sure I understand
+your question.
+
+Cheers,
+Jeff
