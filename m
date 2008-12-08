@@ -1,13 +1,14 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: ldap syntax issue in 5.0.3 ?
-Date: Sat, 06 Dec 2008 12:18:01 +0900
-Message-ID: <1228533481.3033.21.camel@zeus.themaw.net>
-References: <49396DF1.7060902@inria.fr>
+From: Ondrej Valousek <webserv@s3group.cz>
+Subject: Re: automounter segfaults when using negative cache?
+Date: Mon, 08 Dec 2008 10:08:35 +0100
+Message-ID: <493CE413.5050905@s3group.cz>
+References: <4937BBBC.9030305@s3group.cz>
+	<x497i6e6291.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <49396DF1.7060902@inria.fr>
+In-Reply-To: <x497i6e6291.fsf@segfault.boston.devel.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,28 +19,37 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Guillaume Rousse <Guillaume.Rousse@inria.fr>
+To: Jeff Moyer <jmoyer@redhat.com>
 Cc: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
 
-On Fri, 2008-12-05 at 19:07 +0100, Guillaume Rousse wrote:
-> According to https://qa.mandriva.com/show_bug.cgi?id=45984, the old 
-> ldap:servername:mapname syntax, documented in auto.master man page, 
-> doesn't work correctly in the autofs package shipped in mandriva 2009 
-> (5.0.3 + all official patches until 
-> autofs-5.0.3-fix-couple-of-memory-leaks.patch applied).
 
-The report doesn't look like a problem with the above syntax.
+>> I thought all the negative caching is done in user space, but apparently
+>> kernel has some influence here....
+>> Any explanation?
+>>     
+>
+> The negative caching is done in userspace.  I'm not sure I understand
+> your question.
+>
+> Cheers,
+> Jeff
+>   
 
-The report is unclear as to what is being done.
-What is the difference between the first run and the second run. That's
-not clear at all.
 
-The trailing slash on the key is not good. There is a patch to fix
-master map parsing where a map type is included in the map name prior to
-the patch mentioned above. Detecting a path with a trailing "/" may have
-been an unexpected side effect of that. The trailing slash should not be
-present and I recommend that it not be used in maps.
-
-Does this map function ok without the trailing slash?
-
-Ian
+Hi Jeff,
+Ok I was thinking this way:
+I experience this only on U7 system running U4 kernel - on the same U7
+system running U7 kernel I can not replicate this. If the negative
+caching is done in the user space and there is a bug there which causes
+the autofs to segfault, how is it possible that is won't segfault on the
+U7 kernel?
+I do not know I am still trying to find out if there is any connection
+to the problem with the automounter hanging that I reported earlier as:
+- in U7 system running U7 kernel, the autofs does not crash, but hangs
+(after few days).
+- in U7 system running U4 kernel, the autofs forks crash regularly but
+otherwise it works fine (I mean at least the parent autofs fork continue
+living...)
+You know what I am trying to say?
+Thanks,
+Ondrej
