@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: more than 1024 mounts ==>hangs
-Date: Tue, 09 Dec 2008 15:25:52 +0900
-Message-ID: <1228803952.3044.53.camel@zeus.themaw.net>
+Date: Tue, 09 Dec 2008 16:19:05 +0900
+Message-ID: <1228807145.3044.63.camel@zeus.themaw.net>
 References: <4937D794.6040908@itwm.fraunhofer.de>
 	<1228403765.3038.118.camel@zeus.themaw.net>
 	<x493ah261yt.fsf@segfault.boston.devel.redhat.com>
@@ -61,6 +61,14 @@ On Mon, 2008-12-08 at 11:11 +0100, Martin Vogt wrote:
 > (Please really use a remote host for the mounts when you trigger
 > it, for "localhost" you will find another bug, but currently I'm focused
 > on the remote part, so really use a remote machine here)
+
+What do you mean?
+
+Are you saying that entries like "localhost:/net/pxe1/var/tmp",
+when /net/pxe1/var/tmp is local path are a problem or when the colon
+escaped path, /net/pxe1/var/tmp refers to another map for the host pxe1
+that happens to be the localhost?
+
 > 
 > Then run a find . -maxdepth 2 to really trigger the mounts.
 > These are the bugs:
@@ -68,21 +76,6 @@ On Mon, 2008-12-08 at 11:11 +0100, Martin Vogt wrote:
 > - SuSE 11.1 rc1 hangs on the 1024th mount(autofs-5.0.3+patches)
 > - RHEL52 works (autofs-5.0.1-rc1) on mounting
 > - RHEL52 has a kernel panic on unmounting (see screenshot attachment)
-
-Looks like a known issue.
-
-Fixed in patch series included in 2.6.27 (but there was one additional
-bug fix, not related to this issue, that is included in 2.6.28).
-
-There is no need to log a bug against RHEL-5.2 for this as the 2.6.27
-(and the bug fix mentioned above) update has been ported to the RHEL
-kernel and will be included in 5.3.
-
-The patch series has been posted to this list and the commit history can
-be viewed in git for upstream kernels so other vendors will need to
-decide for themselves any action they may wish to take regarding this.
-In fact there are several issues fixed in the update.
-
 > 
 > (started with: automount -d -f -t 600 )
 > 
