@@ -1,13 +1,12 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: unable to automount windows C$
-Date: Tue, 23 Dec 2008 15:13:11 +0900
-Message-ID: <1230012791.3043.6.camel@zeus.themaw.net>
-References: <9728fb580812101149s300c524dn5f6785c16bac969c@mail.gmail.com>
+Subject: Re: Help on nfs4 interpolarity between Solaris 10 and	Linux
+Date: Tue, 23 Dec 2008 15:18:31 +0900
+Message-ID: <1230013111.3043.13.camel@zeus.themaw.net>
+References: <803A3BBEF4925F429A040C890141E6BB0E5C505E@emss04m23.us.lmco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <9728fb580812101149s300c524dn5f6785c16bac969c@mail.gmail.com>
+In-Reply-To: <803A3BBEF4925F429A040C890141E6BB0E5C505E@emss04m23.us.lmco.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,107 +17,67 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Scott Belnap <sbelnap@gmail.com>
+Content-Type: text/plain; charset="windows-1252"
+To: "Lohin, Daniel" <daniel.lohin@lmco.com>
 Cc: autofs@linux.kernel.org
 
-On Wed, 2008-12-10 at 12:49 -0700, Scott Belnap wrote:
-> I'm trying to automount a windows machine.  I am able to automount any
-> directory that doesn't have a $ in the mount name.  Looks like the
-> parse_mount method is stripping out the $ from the mount name.  Any
-> ideas on how to fix this?
-
-I think you might need to escape the $ that gets clobbered. It is most
-likely getting interpreted as a dollar macro expansion.
-
-> 
-> Dec  9 23:49:03 dc2 automount[19084]: handle_packet_missing_direct:
-> token 122, name /cifs/laptop/C$, request pid 17857
-> Dec  9 23:49:03 dc2 automount[19084]: attempting to mount
-> entry /cifs/laptop/C$
-> Dec  9 23:49:03 dc2 automount[19084]: lookup_mount:
-> lookup(program): /cifs/laptop/C$ ->
-> -fstype=cifs,file_mode=0644,dir_mode=0755,credentials=/etc/auto.smb.laptop ://laptop/C$
-> Dec  9 23:49:03 dc2 automount[19084]: parse_mount: parse(sun):
-> expanded entry:
-> -fstype=cifs,file_mode=0644,dir_mode=0755,credentials=/etc/auto.smb.laptop ://laptop/C
-> Dec  9 23:49:03 dc2 automount[19084]: parse_mount: parse(sun):
-> gathered options:
-> fstype=cifs,file_mode=0644,dir_mode=0755,credentials=/etc/auto.smb.laptop
-> Dec  9 23:49:03 dc2 automount[19084]: parse_mount: parse(sun): core of
-> entry:
-> options=fstype=cifs,file_mode=0644,dir_mode=0755,credentials=/etc/auto.smb.laptop, loc=://laptop/C
-> Dec  9 23:49:03 dc2 automount[19084]: sun_mount: parse(sun): mounting
-> root /cifs, mountpoint /cifs/laptop/C$, what //laptop/C, fstype cifs,
-> options file_mode=0644,dir_mode=0755,credentials=/etc/auto.smb.laptop
-> Dec  9 23:49:03 dc2 automount[19084]:
-> do_mount: //laptop/C /cifs//cifs/laptop/C$ type cifs options
-> file_mode=0644,dir_mode=0755,credentials=/etc/auto.smb.laptop using
-> module generic
-> Dec  9 23:49:03 dc2 automount[19084]: mount_mount: mount(generic):
-> calling mkdir_path /cifs/laptop/C$
-> Dec  9 23:49:03 dc2 automount[19084]: mount_mount: mount(generic):
-> calling mount -t cifs -s -o
-> file_mode=0644,dir_mode=0755,credentials=/etc/auto.smb.laptop //laptop/C /cifs/laptop/C$
-> Dec  9 23:49:03 dc2 kernel:  CIFS VFS: cifs_mount failed w/return code
-> = -6
-> Dec  9 23:49:03 dc2 automount[19084]: >> retrying with upper case
-> share name
-> Dec  9 23:49:03 dc2 kernel:  CIFS VFS: cifs_mount failed w/return code
-> = -6
-> Dec  9 23:49:03 dc2 automount[19084]: >> mount error 6 = No such
-> device or address
-> Dec  9 23:49:03 dc2 automount[19084]: >> Refer to the mount.cifs(8)
-> manual page (e.g.man mount.cifs)
-> Dec  9 23:49:03 dc2 automount[19084]: spawn_mount: mount failed with
-> error code 16, retrying with the -f option
-> Dec  9 23:49:06 dc2 automount[19084]: >> unknown mount option f
-> Dec  9 23:49:06 dc2 automount[19084]: >> Usage:  /sbin/mount.cifs
-> <remotetarget> <dir> -o <options>
-> Dec  9 23:49:06 dc2 automount[19084]: >> Mount the remote target,
-> specified as a UNC name, to a local directory.
-> Dec  9 23:49:06 dc2 automount[19084]: >> Options:
-> Dec  9 23:49:06 dc2 automount[19084]: >> #011user=<arg>
-> Dec  9 23:49:06 dc2 automount[19084]: >> #011pass=<arg>
-> Dec  9 23:49:06 dc2 automount[19084]: >> #011dom=<arg>
-> Dec  9 23:49:06 dc2 automount[19084]: >> Less commonly used options:
-> Dec  9 23:49:06 dc2 automount[19084]: >>
-> #011credentials=<filename>,guest,perm,noperm,setuids,nosetuids,rw,ro,
-> Dec  9 23:49:06 dc2 automount[19084]: >>
-> #011sep=<char>,iocharset=<codepage>,suid,nosuid,exec,noexec,serverino,
-> Dec  9 23:49:06 dc2 automount[19084]: >>
-> #011directio,mapchars,nomapchars,nolock,servernetbiosname=<SRV_RFC1001NAME>
-> Dec  9 23:49:06 dc2 automount[19084]: >> Options not needed for
-> servers supporting CIFS Unix extensions
-> Dec  9 23:49:06 dc2 automount[19084]: >> #011(e.g. unneeded for mounts
-> to most Samba versions):
-> Dec  9 23:49:06 dc2 automount[19084]: >>
-> #011uid=<uid>,gid=<gid>,dir_mode=<mode>,file_mode=<mode>,sfu
-> Dec  9 23:49:06 dc2 automount[19084]: >> Rarely used options:
-> Dec  9 23:49:06 dc2 automount[19084]: >>
-> #011port=<tcpport>,rsize=<size>,wsize=<size>,unc=<unc_name>,ip=<ip_address>,
-> Dec  9 23:49:06 dc2 automount[19084]: >>
-> #011dev,nodev,nouser_xattr,netbiosname=<OUR_RFC1001NAME>,hard,soft,intr,
-> Dec  9 23:49:06 dc2 automount[19084]: >>
-> #011nointr,ignorecase,noposixpaths,noacl
-> Dec  9 23:49:06 dc2 automount[19084]: >> Options are described in more
-> detail in the manual page
-> Dec  9 23:49:06 dc2 automount[19084]: >> #011man 8 mount.cifs
-> Dec  9 23:49:06 dc2 automount[19084]: >> To display the version number
-> of the mount helper:
-> Dec  9 23:49:06 dc2 automount[19084]: >> #011/sbin/mount.cifs -V
-> Dec  9 23:49:06 dc2 automount[19084]: mount(generic): failed to
-> mount //laptop/C (type cifs) on /cifs/laptop/C$
-> Dec  9 23:49:06 dc2 automount[19084]: send_fail: token = 122
-> Dec  9 23:49:06 dc2 automount[19084]: handle_packet: type = 5
-> Dec  9 23:49:06 dc2 automount[19084]: handle_packet_missing_direct:
-> token 123, name /cifs/laptop/C$, request pid 17857
-> Dec  9 23:49:06 dc2 automount[19084]: attempting to mount
-> entry /cifs/laptop/C$
-> Dec  9 23:49:06 dc2 automount[19084]: failed to mount /cifs/laptop/C$
-> Dec  9 23:49:06 dc2 automount[19084]: send_fail: token = 123
-> Dec  9 23:49:06 dc2 automount[19084]: failed to mount /cifs/laptop/C$
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
+T24gV2VkLCAyMDA4LTEyLTE3IGF0IDEwOjQyIC0wNTAwLCBMb2hpbiwgRGFuaWVsIHdyb3RlOgo+
+IFdlIGFyZSB1c2luZyBSZWQgSGF0IDQuNSB3aXRoIGF1dG9mcyA0LjEuMy4gIFdlIGFyZSBpbiBh
+IG1peGVkCj4gU29sYXJpcy9MaW51eCBlbnZpcm9ubWVudC4gIFdlIGhhdmUgYW4gYXV0b21vdW50
+TWFwTmFtZSB0aGF0IG5lZWRzIHRvCj4gc3VwcG9ydCBib3RoIE5GUyAzIGFuZCBORlM0LiAgVG8g
+Y29tcGxpY2F0ZSB0aGluZ3MsIHRoZSBzb2x1dGlvbiBtdXN0Cj4gd29yayBvbiBib3RoIFNvbGFy
+aXMgYW5kIExpbnV4LiAgSGVyZSBpcyB3aGF0IEkgaGF2ZToKCkhhdmUgeW91IHRyaWVkIGxvb2tp
+bmcgYXQgYSBkZWJ1ZyBsb2cgb2Ygd2hhdCdzIGhhcHBlbmluZz8KU2VlIGh0dHA6Ly9wZW9wbGUu
+cmVkaGF0LmNvbS9qbW95ZXIgZm9yIGluZm9ybWF0aW9uIGFib3V0IHNldHRpbmcgZGVidWcKbG9n
+Z2luZy4KCj4gCj4gIAo+IAo+IEFVVE9fTUFTVEVSOgo+IAo+IGRuOiBBdXRvbW91bnRrZXk9Ly0s
+YXV0b21vdW50TWFwTmFtZT1hdXRvX21hc3RlcixkYz1mb28sZGM9YmFyCj4gCj4gYXV0b21vdW50
+SW5mb3JtYXRpb246IGF1dG9fZGlyZWN0Cj4gCj4gYXV0b21vdW50S2V5OiAvLQo+IAo+IG9iamVj
+dENsYXNzOiB0b3AKPiAKPiBvYmplY3RDbGFzczogYXV0b21vdW50Cj4gCj4gIAo+IAo+ICAKPiAK
+PiBkbjogYXV0b21vdW50a2V5PS8uaGlkZGVuLGF1dG9tb3VudE1hcE5hbWU9YXV0b19tYXN0ZXIs
+ZGM9Zm9vLGRjPWJhcgo+IAo+IGF1dG9tb3VudEluZm9ybWF0aW9uOiBhdXRvX2hpZGRlbgo+IAo+
+IGF1dG9tb3VudEtleTogLy5oaWRkZW4KPiAKPiBvYmplY3RDbGFzczogdG9wCj4gCj4gb2JqZWN0
+Q2xhc3M6IGF1dG9tb3VudAo+IAo+ICAKPiAKPiAgCj4gCj4gQXV0b19oaWRkZW46Cj4gCj4gIAo+
+IAo+IGRuOiBhdXRvbW91bnRrZXk9aGlkZGVuTmZzNCxhdXRvbW91bnRNYXBOYW1lPWF1dG9faGlk
+ZGVuLGRjPWZvbyxkYz1iYXIKPiAKPiBhdXRvbW91bnRJbmZvcm1hdGlvbjogIC1mc3R5cGU9bmZz
+NCBzZXJ2ZXI6Lwo+IAo+IGF1dG9tb3VudEtleTogaGlkZGVuTmZzNAo+IAo+IG9iamVjdENsYXNz
+OiB0b3AKPiAKPiBvYmplY3RDbGFzczogYXV0b21vdW50Cj4gCj4gIAo+IAo+IGRuOiBhdXRvbW91
+bnRrZXk9KixhdXRvbW91bnRNYXBOYW1lPWF1dG9faGlkZGVuLGRjPWZvbyxkYz1iYXIKPiAKPiBh
+dXRvbW91bnRJbmZvcm1hdGlvbjogIHNlcnZlcjIsc2VydmVyMyxzZXJ2ZXI0LHNlcnZlcjU6L3Zv
+bC8mCj4gCj4gYXV0b21vdW50S2V5OiBoaWRkZW5NYWluCj4gCj4gb2JqZWN0Q2xhc3M6IHRvcAo+
+IAo+IG9iamVjdENsYXNzOiBhdXRvbW91bnQKPiAKPiAgCj4gCj4gIAo+IAo+ICAKPiAKPiBGcm9t
+IGFib3ZlIGluICogb2YgYXV0b19oaWRkZW4gdGhpcyBtdXN0IGJlIG5mczMgYXMgdGhhdCBpcyBh
+bGwgdGhhdAo+IGlzIHN1cHBvcnRlZCBieSB0aGUgc2VydmVycyBpbiB0aGF0IGF1dG9tb3VudC4g
+IEluIHRoZSBoaWRkZW5OZnM0Cj4gYXV0b21vdW50a2V5IHRoaXMgbXVzdCBiZSBuZnM0IGFzIGl0
+IGhhcyB0byBjcm9zcyBhIGZpcmV3YWxsLiAgCj4gCj4gIAo+IAo+IFRoZSAqIGlzIHdvcmtpbmcg
+cGVyZmVjdGx5LiAgVGhlIHByb2JsZW0gaXMgdGhlIGhpZGRlbk5mczQgYXV0b21vdW50Cj4gbWFw
+Lgo+IAo+ICAKPiAKPiBJIGNhbiBnZXQgaXQgdG8gd29yayB3aXRoIFNvbGFyaXMgd2l0aCB0aGUg
+Zm9sbG93aW5nOgo+IAo+ICAKPiAKPiBkbjogYXV0b21vdW50a2V5PWhpZGRlbk5mczQsYXV0b21v
+dW50TWFwTmFtZT1hdXRvX2hpZGRlbixkYz1mb28sZGM9YmFyCj4gCj4gYXV0b21vdW50SW5mb3Jt
+YXRpb246ICAtdmVycz00IHNlcnZlcjovCj4gCj4gYXV0b21vdW50S2V5OiBoaWRkZW5OZnM0Cj4g
+Cj4gb2JqZWN0Q2xhc3M6IHRvcAo+IAo+IG9iamVjdENsYXNzOiBhdXRvbW91bnQKPiAKPiAgCj4g
+Cj4gTGludXggd2lsbCB3b3JrIHRoaXMgdGhpczoKPiAKPiBkbjogYXV0b21vdW50a2V5PWhpZGRl
+bk5mczQsYXV0b21vdW50TWFwTmFtZT1hdXRvX2hpZGRlbixkYz1mb28sZGM9YmFyCj4gCj4gYXV0
+b21vdW50SW5mb3JtYXRpb246ICAtZnN0eXBlPW5mczQgc2VydmVyOi8KPiAKPiBhdXRvbW91bnRL
+ZXk6IGhpZGRlbk5mczQKPiAKPiBvYmplY3RDbGFzczogdG9wCj4gCj4gb2JqZWN0Q2xhc3M6IGF1
+dG9tb3VudAo+IAo+ICAKPiAKPiBTb2xhcmlzIHdpbGwgd29yayB3aXRoIHRoaXMsIGJ1dCBmYWls
+IGZvciBMaW51eAo+IAo+IGRuOiBhdXRvbW91bnRrZXk9aGlkZGVuTmZzNCxhdXRvbW91bnRNYXBO
+YW1lPWF1dG9faGlkZGVuLGRjPWZvbyxkYz1iYXIKPiAKPiBhdXRvbW91bnRJbmZvcm1hdGlvbjog
+IC1mc3R5cGU9bmZzNCwtdmVycz00IHNlcnZlcjovCj4gCj4gYXV0b21vdW50S2V5OiBoaWRkZW5O
+ZnM0Cj4gCj4gb2JqZWN0Q2xhc3M6IHRvcAo+IAo+IG9iamVjdENsYXNzOiBhdXRvbW91bnQKPiAK
+PiAgCj4gCj4gU29sYXJpcyB3aWxsIGFsc28gd29yayB3aXRoIHRoaXM6Cj4gCj4gZG46IGF1dG9t
+b3VudGtleT1oaWRkZW5OZnM0LGF1dG9tb3VudE1hcE5hbWU9YXV0b19oaWRkZW4sZGM9Zm9vLGRj
+PWJhcgo+IAo+IGF1dG9tb3VudEluZm9ybWF0aW9uOiAgIHNlcnZlcjovCj4gCj4gYXV0b21vdW50
+S2V5OiBoaWRkZW5OZnM0Cj4gCj4gb2JqZWN0Q2xhc3M6IHRvcAo+IAo+IG9iamVjdENsYXNzOiBh
+dXRvbW91bnQKPiAKPiAgCj4gCj4gU29sYXJpcyBsb29rcyBsaWtlIGl0IHRyaWVzIG5mczQgYW5k
+IHRoZW4gaWYgdGhhdCBmYWlscyBpdCB3aWxsCj4gY29udGludWUgdG8gdHJ5IDMsIDIsIGV0Y+KA
+pi4gIAo+IAo+ICAKPiAKPiAgCj4gCj4gV2hhdCBJIG5lZWQgaXMgZWl0aGVyIGFuIGF1dG9tb3Vu
+dG1hcCBlbnRyeSB0aGF0IHdvcmtzIHdpdGggYm90aCBvciBhCj4gd2F5IHRvIGhhdmUgTGludXgg
+bWlycm9yIFNvbGFyaXMgaW4gdHJ5aW5nIE5GUzQgZmlyc3QgYW5kIG5vdAo+IHJlcXVpcmluZyBh
+bnkgb3B0aW9ucy4KCkkgZG9uJ3Qga25vdyB3aGF0J3MgZ29pbmcgb24gZnJvbSB0aGlzIGluZm9y
+bWF0aW9uIGJ1dCwgZGVwZW5kaW5nIG9uCm1vdW50KDgpLCBvbmUgb3IgbW9yZSBvZiB0aGVzZSBz
+aG91bGQgd29yay4KCkxvb2sgYXQgdGhlIGRlYnVnIGxvZyB0byBmaW5kIHRoYXQgb3V0IHdoYXQg
+aXMgZmFpbGluZy4KCkxpbnV4IG1vdW50KDgpIGRlZmF1bHRzIHRvIHYzIC4uLiBzbyB5b3UgY2Fu
+J3QgbWFrZSBMaW51eCB3b3JrIGxpa2UKU29sYXJpcyBpbiB0aGlzIGNhc2UuCgpJYW4KCgpfX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwphdXRvZnMgbWFpbGlu
+ZyBsaXN0CmF1dG9mc0BsaW51eC5rZXJuZWwub3JnCmh0dHA6Ly9saW51eC5rZXJuZWwub3JnL21h
+aWxtYW4vbGlzdGluZm8vYXV0b2ZzCg==
