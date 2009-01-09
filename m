@@ -1,16 +1,17 @@
-From: Jeff Moyer <jmoyer@redhat.com>
+From: Valerie Aurora Henson <vaurora@redhat.com>
 Subject: Re: [PATCH 1/4] Make hash table scale to thousands of
 	entries
-Date: Fri, 09 Jan 2009 14:17:55 -0500
-Message-ID: <x49mye0ffvg.fsf@segfault.boston.devel.redhat.com>
+Date: Fri, 9 Jan 2009 14:51:51 -0500
+Message-ID: <20090109195151.GH32333@shell>
 References: <1231526823-18595-1-git-send-email-vaurora@redhat.com>
 	<1231526823-18595-2-git-send-email-vaurora@redhat.com>
+	<x49mye0ffvg.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1231526823-18595-2-git-send-email-vaurora@redhat.com> (Valerie
-	Aurora Henson's message of "Fri, 9 Jan 2009 13:47:00 -0500")
+Content-Disposition: inline
+In-Reply-To: <x49mye0ffvg.fsf@segfault.boston.devel.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,119 +22,136 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Valerie Aurora Henson <vaurora@redhat.com>
+To: Jeff Moyer <jmoyer@redhat.com>, Paul Wankadia <junyer@google.com>
 Cc: autofs@linux.kernel.org
 
-Valerie Aurora Henson <vaurora@redhat.com> writes:
-> From: Paul Wankadia <junyer@google.com>
-> Signed-off-by: Valerie Aurora Henson <vaurora@redhat.com>
+On Fri, Jan 09, 2009 at 02:17:55PM -0500, Jeff Moyer wrote:
+> Valerie Aurora Henson <vaurora@redhat.com> writes:
+> > From: Paul Wankadia <junyer@google.com>
+> > Signed-off-by: Valerie Aurora Henson <vaurora@redhat.com>
+> 
+> Most patches of this nature come with some description of a performance
+> problem and how the patch solves it.  Which caching algorithm is
+> implemented below?  There are, of course, many hashing algorithms for
+> variable length strings.  Can we get some rationale for the change?  I'm
+> not against it, I'd just like a *little* explanation.
 
-Most patches of this nature come with some description of a performance
-problem and how the patch solves it.  Which caching algorithm is
-implemented below?  There are, of course, many hashing algorithms for
-variable length strings.  Can we get some rationale for the change?  I'm
-not against it, I'd just like a *little* explanation.
+This is where I get to blame my cold for being stupid. :) 
 
-Cheers,
-Jeff
+Yes, the original author (Paul Wankadia, now cc'd) gave me a little
+information on that front, I just forgot to pass it on.  It's the
+"One-at-a-Time" hash function by Bob Jenkins. See:
 
-> ---
->  include/automount.h |    2 +-
->  lib/cache.c         |   29 ++++++++++++++++++-----------
->  2 files changed, 19 insertions(+), 12 deletions(-)
->
-> diff --git a/include/automount.h b/include/automount.h
-> index 1ba0d3c..2a082b5 100644
-> --- a/include/automount.h
-> +++ b/include/automount.h
-> @@ -126,7 +126,7 @@ struct autofs_point;
->  #define CHE_DUPLICATE	0x0020
->  #define CHE_UNAVAIL	0x0040
->  
-> -#define HASHSIZE		77
-> +#define HASHSIZE		4096
->  #define NEGATIVE_TIMEOUT	10
->  #define UMOUNT_RETRIES		8
->  #define EXPIRE_RETRIES		3
-> diff --git a/lib/cache.c b/lib/cache.c
-> index ce47e04..36b8294 100644
-> --- a/lib/cache.c
-> +++ b/lib/cache.c
-> @@ -281,20 +281,27 @@ struct mapent_cache *cache_init_null_cache(struct master *master)
->  	return mc;
->  }
->  
-> -static unsigned int hash(const char *key)
-> +static u_int32_t hash(const char *key)
->  {
-> -	unsigned long hashval;
-> +	u_int32_t hashval;
->  	char *s = (char *) key;
->  
-> -	for (hashval = 0; *s != '\0';)
-> -		hashval += *s++;
-> +	for (hashval = 0; *s != '\0';) {
-> +		hashval += (unsigned char) *s++;
-> +		hashval += (hashval << 10);
-> +		hashval ^= (hashval >> 6);
-> +	}
-> +
-> +	hashval += (hashval << 3);
-> +	hashval ^= (hashval >> 11);
-> +	hashval += (hashval << 15);
->  
->  	return hashval % HASHSIZE;
->  }
->  
-> -static unsigned int ino_hash(dev_t dev, ino_t ino)
-> +static u_int32_t ino_hash(dev_t dev, ino_t ino)
->  {
-> -	unsigned long hashval;
-> +	u_int32_t hashval;
->  
->  	hashval = dev + ino;
->  
-> @@ -303,7 +310,7 @@ static unsigned int ino_hash(dev_t dev, ino_t ino)
->  
->  int cache_set_ino_index(struct mapent_cache *mc, const char *key, dev_t dev, ino_t ino)
->  {
-> -	unsigned int ino_index = ino_hash(dev, ino);
-> +	u_int32_t ino_index = ino_hash(dev, ino);
->  	struct mapent *me;
->  
->  	me = cache_lookup_distinct(mc, key);
-> @@ -325,7 +332,7 @@ struct mapent *cache_lookup_ino(struct mapent_cache *mc, dev_t dev, ino_t ino)
->  {
->  	struct mapent *me = NULL;
->  	struct list_head *head, *p;
-> -	unsigned int ino_index;
-> +	u_int32_t ino_index;
->  
->  	ino_index_lock(mc);
->  	ino_index = ino_hash(dev, ino);
-> @@ -371,7 +378,7 @@ struct mapent *cache_lookup_first(struct mapent_cache *mc)
->  struct mapent *cache_lookup_next(struct mapent_cache *mc, struct mapent *me)
->  {
->  	struct mapent *this;
-> -	unsigned long hashval;
-> +	u_int32_t hashval;
->  	unsigned int i;
->  
->  	if (!me)
-> @@ -532,7 +539,7 @@ int cache_add(struct mapent_cache *mc, struct map_source *ms, const char *key, c
->  {
->  	struct mapent *me, *existing = NULL;
->  	char *pkey, *pent;
-> -	unsigned int hashval = hash(key);
-> +	u_int32_t hashval = hash(key);
->  	int status;
->  
->  	me = (struct mapent *) malloc(sizeof(struct mapent));
-> @@ -752,7 +759,7 @@ int cache_update(struct mapent_cache *mc, struct map_source *ms, const char *key
->  int cache_delete(struct mapent_cache *mc, const char *key)
->  {
->  	struct mapent *me = NULL, *pred;
-> -	unsigned int hashval = hash(key);
-> +	u_int32_t hashval = hash(key);
->  	int status, ret = CHE_OK;
->  	char *this;
+http://burtleburtle.net/bob/hash/doobs.html
+
+What I vaguely recall from our conversation is an order of magnitude
+improvement in elapsed time for large (thousands) numbers of maps, but
+I'll let Paul be more specific.  Do we have a test for thousands of
+entries somewhere in our automated tests?
+
+-VAL
+
+> 
+> Cheers,
+> Jeff
+> 
+> > ---
+> >  include/automount.h |    2 +-
+> >  lib/cache.c         |   29 ++++++++++++++++++-----------
+> >  2 files changed, 19 insertions(+), 12 deletions(-)
+> >
+> > diff --git a/include/automount.h b/include/automount.h
+> > index 1ba0d3c..2a082b5 100644
+> > --- a/include/automount.h
+> > +++ b/include/automount.h
+> > @@ -126,7 +126,7 @@ struct autofs_point;
+> >  #define CHE_DUPLICATE	0x0020
+> >  #define CHE_UNAVAIL	0x0040
+> >  
+> > -#define HASHSIZE		77
+> > +#define HASHSIZE		4096
+> >  #define NEGATIVE_TIMEOUT	10
+> >  #define UMOUNT_RETRIES		8
+> >  #define EXPIRE_RETRIES		3
+> > diff --git a/lib/cache.c b/lib/cache.c
+> > index ce47e04..36b8294 100644
+> > --- a/lib/cache.c
+> > +++ b/lib/cache.c
+> > @@ -281,20 +281,27 @@ struct mapent_cache *cache_init_null_cache(struct master *master)
+> >  	return mc;
+> >  }
+> >  
+> > -static unsigned int hash(const char *key)
+> > +static u_int32_t hash(const char *key)
+> >  {
+> > -	unsigned long hashval;
+> > +	u_int32_t hashval;
+> >  	char *s = (char *) key;
+> >  
+> > -	for (hashval = 0; *s != '\0';)
+> > -		hashval += *s++;
+> > +	for (hashval = 0; *s != '\0';) {
+> > +		hashval += (unsigned char) *s++;
+> > +		hashval += (hashval << 10);
+> > +		hashval ^= (hashval >> 6);
+> > +	}
+> > +
+> > +	hashval += (hashval << 3);
+> > +	hashval ^= (hashval >> 11);
+> > +	hashval += (hashval << 15);
+> >  
+> >  	return hashval % HASHSIZE;
+> >  }
+> >  
+> > -static unsigned int ino_hash(dev_t dev, ino_t ino)
+> > +static u_int32_t ino_hash(dev_t dev, ino_t ino)
+> >  {
+> > -	unsigned long hashval;
+> > +	u_int32_t hashval;
+> >  
+> >  	hashval = dev + ino;
+> >  
+> > @@ -303,7 +310,7 @@ static unsigned int ino_hash(dev_t dev, ino_t ino)
+> >  
+> >  int cache_set_ino_index(struct mapent_cache *mc, const char *key, dev_t dev, ino_t ino)
+> >  {
+> > -	unsigned int ino_index = ino_hash(dev, ino);
+> > +	u_int32_t ino_index = ino_hash(dev, ino);
+> >  	struct mapent *me;
+> >  
+> >  	me = cache_lookup_distinct(mc, key);
+> > @@ -325,7 +332,7 @@ struct mapent *cache_lookup_ino(struct mapent_cache *mc, dev_t dev, ino_t ino)
+> >  {
+> >  	struct mapent *me = NULL;
+> >  	struct list_head *head, *p;
+> > -	unsigned int ino_index;
+> > +	u_int32_t ino_index;
+> >  
+> >  	ino_index_lock(mc);
+> >  	ino_index = ino_hash(dev, ino);
+> > @@ -371,7 +378,7 @@ struct mapent *cache_lookup_first(struct mapent_cache *mc)
+> >  struct mapent *cache_lookup_next(struct mapent_cache *mc, struct mapent *me)
+> >  {
+> >  	struct mapent *this;
+> > -	unsigned long hashval;
+> > +	u_int32_t hashval;
+> >  	unsigned int i;
+> >  
+> >  	if (!me)
+> > @@ -532,7 +539,7 @@ int cache_add(struct mapent_cache *mc, struct map_source *ms, const char *key, c
+> >  {
+> >  	struct mapent *me, *existing = NULL;
+> >  	char *pkey, *pent;
+> > -	unsigned int hashval = hash(key);
+> > +	u_int32_t hashval = hash(key);
+> >  	int status;
+> >  
+> >  	me = (struct mapent *) malloc(sizeof(struct mapent));
+> > @@ -752,7 +759,7 @@ int cache_update(struct mapent_cache *mc, struct map_source *ms, const char *key
+> >  int cache_delete(struct mapent_cache *mc, const char *key)
+> >  {
+> >  	struct mapent *me = NULL, *pred;
+> > -	unsigned int hashval = hash(key);
+> > +	u_int32_t hashval = hash(key);
+> >  	int status, ret = CHE_OK;
+> >  	char *this;
