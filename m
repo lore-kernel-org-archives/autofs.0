@@ -1,8 +1,8 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: [PATCH 1/4] Make hash table scale to thousands of
 	entries
-Date: Mon, 12 Jan 2009 10:13:23 +0900
-Message-ID: <1231722803.3073.1.camel@zeus.themaw.net>
+Date: Mon, 12 Jan 2009 10:19:49 +0900
+Message-ID: <1231723189.3073.7.camel@zeus.themaw.net>
 References: <1231526823-18595-1-git-send-email-vaurora@redhat.com>
 	<1231526823-18595-2-git-send-email-vaurora@redhat.com>
 	<x49mye0ffvg.fsf@segfault.boston.devel.redhat.com>
@@ -43,10 +43,6 @@ On Mon, 2009-01-12 at 10:25 +1100, Paul Wankadia wrote:
 > 27: 3 3 3
 > 77: 7 11
 > $ 
-
-Yeah, yeah, I realized how stupid I was just after I made the post,
-double oops!
-
 > 
 > 
 >         > Actually, we discovered that reloading a large file map took
@@ -69,7 +65,19 @@ double oops!
 >         that what
 >         we use is in fact better.
 > 
+
+Oh .. didn't see this before.
+
 > How could it be worse? :P
+
+Hehe, there's an assumption without evidence in there some where.
+
 > 
 > I'll check our large file map just to satisfy my curiosity.
 > 
+
+Give me a chance and I'll do a couple of patches to add some statistical
+calculations to cache_dump_cache() so we can see the state of the hash
+table after a map is loaded.
+
+Ian
