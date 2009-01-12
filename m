@@ -1,22 +1,17 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 1/4] Make hash table scale to
-	thousands	of	entries
-Date: Mon, 12 Jan 2009 13:58:27 +0900
-Message-ID: <1231736307.3073.68.camel@zeus.themaw.net>
+Subject: Re: [PATCH 4/4] Replace <linux/string.h> with <string.h>
+Date: Mon, 12 Jan 2009 14:59:47 +0900
+Message-ID: <1231739987.3073.78.camel@zeus.themaw.net>
 References: <1231526823-18595-1-git-send-email-vaurora@redhat.com>
 	<1231526823-18595-2-git-send-email-vaurora@redhat.com>
-	<x49mye0ffvg.fsf@segfault.boston.devel.redhat.com>
-	<20090109195151.GH32333@shell>
-	<408431290901091719j58c33f8bj65ce1a47f782bc29@mail.gmail.com>
-	<1231692176.10063.10.camel@zeus.themaw.net>
-	<408431290901111525y578a5ba4n634ee8b071718790@mail.gmail.com>
-	<1231723189.3073.7.camel@zeus.themaw.net>
-	<1231732946.3073.44.camel@zeus.themaw.net>
+	<1231526823-18595-3-git-send-email-vaurora@redhat.com>
+	<1231526823-18595-4-git-send-email-vaurora@redhat.com>
+	<1231526823-18595-5-git-send-email-vaurora@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1231732946.3073.44.camel@zeus.themaw.net>
+In-Reply-To: <1231526823-18595-5-git-send-email-vaurora@redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -27,76 +22,39 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Paul Wankadia <junyer@google.com>
+To: Valerie Aurora Henson <vaurora@redhat.com>
 Cc: autofs@linux.kernel.org
 
-On Mon, 2009-01-12 at 13:02 +0900, Ian Kent wrote:
+On Fri, 2009-01-09 at 13:47 -0500, Valerie Aurora Henson wrote:
+> If installed, <linux/string.h> just includes the user-level
+> string.h.  If it's not installed, the compile fails.
+
+Right.
+
+This include file is also used by the kernel and I'd like to keep them
+the same. Maybe we need some #ifdef __KERNEL__ here as I think include
+<string.h> will fail during a kernel build.
+
+Or maybe we need to move the include to fs/autofs4/dev-ioctl.c as I
+don't use any str* functions in the include file any more.
+
 > 
-> I used an indirect map with 35000 entries as a quick check.
+> From: Paul Wankadia <junyer@google.com>
+> Signed-off-by: Valerie Aurora Henson <vaurora@redhat.com>
+> ---
+>  include/linux/auto_dev-ioctl.h |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
 > 
-> There are a couple of problems with this, first the map keys are a bit
-> random and so are not representative of actual maps and since we use
-> multiple caches in v5 the number of entries in a given cache may be
-> quite different from the total number of entries.
-> 
-> But, if my math is correct, we can get some marginally useful
-> information from the experiment.
-> 
-> The results:
-> 
-> Current algorithm:
-> cache: entries 35000 table size 77 ideal chain length 454.55
-> chain length: empty 0 min 381 max 501 avg 454.55 std 22.78
-> 
-> oaat algorithm:
-> cache: entries 35000 table size 77 ideal chain length 454.55
-> chain length: empty 0 min 402 max 532 avg 454.55 std 22.27
-> 
-
-Here are some more stats.
-
-cache: entries 35000 table size 977 ideal chain length 35.82
-chain length: empty 627 min 0 max 284 avg 35.82 std 72.14
-
-cache: entries 35000 table size 977 ideal chain length 35.82
-chain length: empty 0 min 17 max 59 avg 35.82 std 6.05
-
-
-cache: entries 35000 table size 2039 ideal chain length 17.17
-chain length: empty 1689 min 0 max 284 avg 17.17 std 53.05
-
-cache: entries 35000 table size 2039 ideal chain length 17.17
-chain length: empty 0 min 6 max 32 avg 17.17 std 4.18
-
-
-cache: entries 35000 table size 4093 ideal chain length 8.55
-chain length: empty 3743 min 0 max 284 avg 8.55 std 38.41
-
-cache: entries 35000 table size 4093 ideal chain length 8.55
-chain length: empty 2 min 0 max 21 avg 8.55 std 2.99
-
-
-There's clearly something wrong with my min and probably max calculation
-but the stats still show some interesting information.
-
-It looks like the additive algorithm is biased toward a small range of
-hash indexes which becomes more significant as the table size increases.
-So the distribution is significantly better as table size increases.
-
-I'm not clear on what the graphs (Pauls) are displaying but my
-impression is that they also show this same distribution bias toward
-clustering for the additive hash. Assuming they were done using actual
-map keys that would indicate that the benefit is likely fairly general.
-
-The only question remaining is how large should we make the table.
-A size of around 4k will lead to a lot of wasted space for many common
-configurations (including configurations that have many map entries
-spread over several individual maps) but a size around 1k still gives
-fairly long chains for large maps.
-
-Suggestions?
-
-PS. I'll need to make a couple of other changes as well, eg. the null
-map entry cache is typically very small.
-
-Ian
+> diff --git a/include/linux/auto_dev-ioctl.h b/include/linux/auto_dev-ioctl.h
+> index 91a7739..78f4b47 100644
+> --- a/include/linux/auto_dev-ioctl.h
+> +++ b/include/linux/auto_dev-ioctl.h
+> @@ -10,7 +10,7 @@
+>  #ifndef _LINUX_AUTO_DEV_IOCTL_H
+>  #define _LINUX_AUTO_DEV_IOCTL_H
+>  
+> -#include <linux/string.h>
+> +#include <string.h>
+>  #include <linux/types.h>
+>  
+>  #define AUTOFS_DEVICE_NAME		"autofs"
