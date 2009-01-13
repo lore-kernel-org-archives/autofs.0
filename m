@@ -1,22 +1,15 @@
-From: Paul Wankadia <junyer@google.com>
-Subject: Re: [PATCH 1/4] Make hash table scale to thousands of
-	entries
-Date: Tue, 13 Jan 2009 16:07:27 +1100
-Message-ID: <408431290901122107q7ef82404gd48a602cd268241a@mail.gmail.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [PATCH 1/4] Make hash table scale to thousands
+	of	entries
+Date: Tue, 13 Jan 2009 14:51:26 +0900
+Message-ID: <1231825886.3057.30.camel@zeus.themaw.net>
 References: <1231526823-18595-1-git-send-email-vaurora@redhat.com>
-	<408431290901091719j58c33f8bj65ce1a47f782bc29@mail.gmail.com>
-	<1231692176.10063.10.camel@zeus.themaw.net>
-	<408431290901111525y578a5ba4n634ee8b071718790@mail.gmail.com>
-	<1231723189.3073.7.camel@zeus.themaw.net>
-	<1231732946.3073.44.camel@zeus.themaw.net>
-	<1231736307.3073.68.camel@zeus.themaw.net>
-	<408431290901121752x3e7c1ab6xa3d1cf711db5e2bb@mail.gmail.com>
-	<1231813498.3057.12.camel@zeus.themaw.net>
-	<1231820126.3057.14.camel@zeus.themaw.net>
+	<1231526823-18595-2-git-send-email-vaurora@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0106737511823470336=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1231820126.3057.14.camel@zeus.themaw.net>
+In-Reply-To: <1231526823-18595-2-git-send-email-vaurora@redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -27,107 +20,308 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
+To: Valerie Aurora Henson <vaurora@redhat.com>, Paul Wankadia <junyer@google.com>
 Cc: autofs@linux.kernel.org
 
---===============0106737511823470336==
-Content-Type: multipart/alternative; boundary=0016e652f4e812721404605633ac
+On Fri, 2009-01-09 at 13:47 -0500, Valerie Aurora Henson wrote:
+> From: Paul Wankadia <junyer@google.com>
+> Signed-off-by: Valerie Aurora Henson <vaurora@redhat.com>
 
---0016e652f4e812721404605633ac
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+I think were about done with this.
+Here's a patch with a few changes by me, please comment.
 
-On Tue, Jan 13, 2009 at 1:24 PM, Ian Kent <raven@themaw.net> wrote:
+--
+autofs-5.0.4 - make hash table scale to thousands of entries
 
-> Why do you think that you've miscalculated the minimum?
->
-> Well, maybe I haven't but I thought min should be > 0.
-> But, it's not worth worrying about as I think we've managed to show a
-> clear improvement.
+From: Valerie Aurora Henson <vaurora@redhat.com>
 
+Originally written by Paul Wankadia <junyer@google.com>.
 
-The minimum was zero because there were empty buckets.
+The autofs cache lookup performs poorly for large maps.
 
-> I plotted the number of elements in each bucket.
-> >
-> > As you now see, the additive hash function doesn't scale.
->
-> Sure and now we can say why it doesn't scale in the patch description.
+The additive hashing algorithm used by autofs results in a clustering
+of hash values around the average hash chain size. It is biased toward
+a small range of hash indexes which becomes worse as the hash table size
+increases.
 
+Simple testing shows that the "One-at-a-time" hash function (implemented
+by this patch) gives a much better distribution of hash indexes as table
+size increases.
 
-More importantly, who's the scapegoat? :P
+The only change made to the original patch is to make the hash table size
+configurable with a default somewhat larger than it is currently.
+---
 
-> Perhaps you could make it configurable?
->
-> Perhaps, but I don't think this is the sort of thing that should be
-> configurable so I'd prefer to make it a compile time option rather than
-> a run time configuration setting.
-
-
-On Tue, Jan 13, 2009 at 3:15 PM, Ian Kent <raven@themaw.net> wrote:
-
-I've changed my mind, ;), configurable it is with a default of 977.
-
-
-The hash function is good now, so the size of the hash table can be a power
-of two.
-
---0016e652f4e812721404605633ac
-Content-Type: text/html; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, Jan 13, 2009 at 1:24 PM, Ian Kent <span dir=3D"ltr">&lt;<a href=3D"=
-mailto:raven@themaw.net">raven@themaw.net</a>&gt;</span> wrote:<br><br><div=
- class=3D"gmail_quote"><blockquote class=3D"gmail_quote" style=3D"border-le=
-ft: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: =
-1ex;">
-&gt; Why do you think that you&#39;ve miscalculated the minimum?<br>
-<br>
-Well, maybe I haven&#39;t but I thought min should be &gt; 0.<br>
-But, it&#39;s not worth worrying about as I think we&#39;ve managed to show=
- a<br>
-clear improvement.</blockquote><div><br>The minimum was zero because there =
-were empty buckets.<br><br></div><blockquote class=3D"gmail_quote" style=3D=
-"border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padd=
-ing-left: 1ex;">
-&gt; I plotted the number of elements in each bucket.<br>
-&gt;<br>
-&gt; As you now see, the additive hash function doesn&#39;t scale.<br>
-<br>
-Sure and now we can say why it doesn&#39;t scale in the patch description.<=
-/blockquote><div><br>More importantly, who&#39;s the scapegoat? :P<br>
-<br>
-</div><blockquote class=3D"gmail_quote" style=3D"border-left: 1px solid rgb=
-(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">&gt; Perhap=
-s you could make it configurable?<br>
-<br>
-Perhaps, but I don&#39;t think this is the sort of thing that should be<br>
-configurable so I&#39;d prefer to make it a compile time option rather than=
-<br>
-a run time configuration setting.</blockquote></div><br>On Tue, Jan 13, 200=
-9 at 3:15 PM, Ian Kent <span dir=3D"ltr">&lt;<a href=3D"mailto:raven@themaw=
-.net">raven@themaw.net</a>&gt;</span> wrote:<br><br><div class=3D"gmail_quo=
-te">
-<blockquote class=3D"gmail_quote" style=3D"border-left: 1px solid rgb(204, =
-204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">I&#39;ve changed =
-my mind, ;), configurable it is with a default of 977.</blockquote></div><b=
-r>
-The hash function is good now, so the size of the hash table can be a power=
- of two.<br><br>
-
---0016e652f4e812721404605633ac--
+ CHANGELOG                      |    2 ++
+ include/automount.h            |    2 +-
+ include/defaults.h             |    3 +++
+ lib/cache.c                    |   47 +++++++++++++++++++++++-----------------
+ lib/defaults.c                 |   16 +++++++++++++-
+ redhat/autofs.sysconfig.in     |    6 +++++
+ samples/autofs.conf.default.in |    6 +++++
+ 7 files changed, 60 insertions(+), 22 deletions(-)
 
 
---===============0106737511823470336==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
-
---===============0106737511823470336==--
-
+diff --git a/CHANGELOG b/CHANGELOG
+index 43f3205..c1dc1b1 100644
+--- a/CHANGELOG
++++ b/CHANGELOG
+@@ -4,6 +4,8 @@
+ - fix nested submount expire deadlock.
+ - fix negative caching for non-existent map keys.
+ - use CLOEXEC flag.
++- make hash table scale to thousands of entries (Paul Wankadia,
++  Valerie Aurora Henson).
+ 
+ 4/11/2008 autofs-5.0.4
+ -----------------------
+diff --git a/include/automount.h b/include/automount.h
+index a083b61..938690f 100644
+--- a/include/automount.h
++++ b/include/automount.h
+@@ -128,7 +128,7 @@ struct autofs_point;
+ #define CHE_DUPLICATE	0x0020
+ #define CHE_UNAVAIL	0x0040
+ 
+-#define HASHSIZE		77
++#define NULL_MAP_HASHSIZE	64
+ #define NEGATIVE_TIMEOUT	10
+ #define UMOUNT_RETRIES		8
+ #define EXPIRE_RETRIES		3
+diff --git a/include/defaults.h b/include/defaults.h
+index 12534ec..9a2430f 100644
+--- a/include/defaults.h
++++ b/include/defaults.h
+@@ -40,6 +40,8 @@
+ #define DEFAULT_APPEND_OPTIONS		1
+ #define DEFAULT_AUTH_CONF_FILE		AUTOFS_MAP_DIR "/autofs_ldap_auth.conf"
+ 
++#define DEFAULT_MAP_HASH_TABLE_SIZE	1024
++
+ struct ldap_schema;
+ struct ldap_searchdn;
+ 
+@@ -62,6 +64,7 @@ void defaults_free_searchdns(struct ldap_searchdn *);
+ unsigned int defaults_get_append_options(void);
+ unsigned int defaults_get_umount_wait(void);
+ const char *defaults_get_auth_conf_file(void);
++unsigned int defaults_get_map_hash_table_size(void);
+ 
+ #endif
+ 
+diff --git a/lib/cache.c b/lib/cache.c
+index 4a00367..edb3192 100644
+--- a/lib/cache.c
++++ b/lib/cache.c
+@@ -190,7 +190,7 @@ struct mapent_cache *cache_init(struct autofs_point *ap, struct map_source *map)
+ 	if (!mc)
+ 		return NULL;
+ 
+-	mc->size = HASHSIZE;
++	mc->size = defaults_get_map_hash_table_size();
+ 
+ 	mc->hash = malloc(mc->size * sizeof(struct entry *));
+ 	if (!mc->hash) {
+@@ -241,7 +241,7 @@ struct mapent_cache *cache_init_null_cache(struct master *master)
+ 	if (!mc)
+ 		return NULL;
+ 
+-	mc->size = HASHSIZE;
++	mc->size = NULL_MAP_HASHSIZE;
+ 
+ 	mc->hash = malloc(mc->size * sizeof(struct entry *));
+ 	if (!mc->hash) {
+@@ -279,29 +279,36 @@ struct mapent_cache *cache_init_null_cache(struct master *master)
+ 	return mc;
+ }
+ 
+-static unsigned int hash(const char *key)
++static u_int32_t hash(const char *key, unsigned int size)
+ {
+-	unsigned long hashval;
++	u_int32_t hashval;
+ 	char *s = (char *) key;
+ 
+-	for (hashval = 0; *s != '\0';)
+-		hashval += *s++;
++	for (hashval = 0; *s != '\0';) {
++		hashval += (unsigned char) *s++;
++		hashval += (hashval << 10);
++		hashval ^= (hashval >> 6);
++	}
++
++	hashval += (hashval << 3);
++	hashval ^= (hashval >> 11);
++	hashval += (hashval << 15);
+ 
+-	return hashval % HASHSIZE;
++	return hashval % size;
+ }
+ 
+-static unsigned int ino_hash(dev_t dev, ino_t ino)
++static u_int32_t ino_hash(dev_t dev, ino_t ino, unsigned int size)
+ {
+-	unsigned long hashval;
++	u_int32_t hashval;
+ 
+ 	hashval = dev + ino;
+ 
+-	return hashval % HASHSIZE;
++	return hashval % size;
+ }
+ 
+ int cache_set_ino_index(struct mapent_cache *mc, const char *key, dev_t dev, ino_t ino)
+ {
+-	unsigned int ino_index = ino_hash(dev, ino);
++	u_int32_t ino_index = ino_hash(dev, ino, mc->size);
+ 	struct mapent *me;
+ 
+ 	me = cache_lookup_distinct(mc, key);
+@@ -323,10 +330,10 @@ struct mapent *cache_lookup_ino(struct mapent_cache *mc, dev_t dev, ino_t ino)
+ {
+ 	struct mapent *me = NULL;
+ 	struct list_head *head, *p;
+-	unsigned int ino_index;
++	u_int32_t ino_index;
+ 
+ 	ino_index_lock(mc);
+-	ino_index = ino_hash(dev, ino);
++	ino_index = ino_hash(dev, ino, mc->size);
+ 	head = &mc->ino_index[ino_index];
+ 
+ 	list_for_each(p, head) {
+@@ -369,7 +376,7 @@ struct mapent *cache_lookup_first(struct mapent_cache *mc)
+ struct mapent *cache_lookup_next(struct mapent_cache *mc, struct mapent *me)
+ {
+ 	struct mapent *this;
+-	unsigned long hashval;
++	u_int32_t hashval;
+ 	unsigned int i;
+ 
+ 	if (!me)
+@@ -385,7 +392,7 @@ struct mapent *cache_lookup_next(struct mapent_cache *mc, struct mapent *me)
+ 		return this;
+ 	}
+ 
+-	hashval = hash(me->key) + 1;
++	hashval = hash(me->key, mc->size) + 1;
+ 	if (hashval < mc->size) {
+ 		for (i = (unsigned int) hashval; i < mc->size; i++) {
+ 			this = mc->hash[i];
+@@ -433,7 +440,7 @@ struct mapent *cache_lookup(struct mapent_cache *mc, const char *key)
+ 	if (!key)
+ 		return NULL;
+ 
+-	for (me = mc->hash[hash(key)]; me != NULL; me = me->next) {
++	for (me = mc->hash[hash(key, mc->size)]; me != NULL; me = me->next) {
+ 		if (strcmp(key, me->key) == 0)
+ 			goto done;
+ 	}
+@@ -446,7 +453,7 @@ struct mapent *cache_lookup(struct mapent_cache *mc, const char *key)
+ 			goto done;
+ 		}
+ 
+-		for (me = mc->hash[hash("*")]; me != NULL; me = me->next)
++		for (me = mc->hash[hash("*", mc->size)]; me != NULL; me = me->next)
+ 			if (strcmp("*", me->key) == 0)
+ 				goto done;
+ 	}
+@@ -462,7 +469,7 @@ struct mapent *cache_lookup_distinct(struct mapent_cache *mc, const char *key)
+ 	if (!key)
+ 		return NULL;
+ 
+-	for (me = mc->hash[hash(key)]; me != NULL; me = me->next) {
++	for (me = mc->hash[hash(key, mc->size)]; me != NULL; me = me->next) {
+ 		if (strcmp(key, me->key) == 0)
+ 			return me;
+ 	}
+@@ -530,7 +537,7 @@ int cache_add(struct mapent_cache *mc, struct map_source *ms, const char *key, c
+ {
+ 	struct mapent *me, *existing = NULL;
+ 	char *pkey, *pent;
+-	unsigned int hashval = hash(key);
++	u_int32_t hashval = hash(key, mc->size);
+ 	int status;
+ 
+ 	me = (struct mapent *) malloc(sizeof(struct mapent));
+@@ -750,7 +757,7 @@ int cache_update(struct mapent_cache *mc, struct map_source *ms, const char *key
+ int cache_delete(struct mapent_cache *mc, const char *key)
+ {
+ 	struct mapent *me = NULL, *pred;
+-	unsigned int hashval = hash(key);
++	u_int32_t hashval = hash(key, mc->size);
+ 	int status, ret = CHE_OK;
+ 	char *this;
+ 
+diff --git a/lib/defaults.c b/lib/defaults.c
+index ff653e3..0d39716 100644
+--- a/lib/defaults.c
++++ b/lib/defaults.c
+@@ -49,6 +49,8 @@
+ #define ENV_UMOUNT_WAIT			"UMOUNT_WAIT"
+ #define ENV_AUTH_CONF_FILE		"AUTH_CONF_FILE"
+ 
++#define ENV_MAP_HASH_TABLE_SIZE		"MAP_HASH_TABLE_SIZE"
++
+ static const char *default_master_map_name = DEFAULT_MASTER_MAP_NAME;
+ static const char *default_auth_conf_file  = DEFAULT_AUTH_CONF_FILE;
+ 
+@@ -323,7 +325,8 @@ unsigned int defaults_read_config(unsigned int to_syslog)
+ 		    check_set_config_value(key, ENV_NAME_VALUE_ATTR, value, to_syslog) ||
+ 		    check_set_config_value(key, ENV_APPEND_OPTIONS, value, to_syslog) ||
+ 		    check_set_config_value(key, ENV_UMOUNT_WAIT, value, to_syslog) ||
+-		    check_set_config_value(key, ENV_AUTH_CONF_FILE, value, to_syslog))
++		    check_set_config_value(key, ENV_AUTH_CONF_FILE, value, to_syslog) ||
++		    check_set_config_value(key, ENV_MAP_HASH_TABLE_SIZE, value, to_syslog))
+ 			;
+ 	}
+ 
+@@ -672,3 +675,14 @@ const char *defaults_get_auth_conf_file(void)
+ 	return (const char *) cf;
+ }
+ 
++unsigned int defaults_get_map_hash_table_size(void)
++{
++	long size;
++
++	size = get_env_number(ENV_MAP_HASH_TABLE_SIZE);
++	if (size < 0)
++		size = DEFAULT_MAP_HASH_TABLE_SIZE;
++
++	return (unsigned int) size;
++}
++
+diff --git a/redhat/autofs.sysconfig.in b/redhat/autofs.sysconfig.in
+index 8256888..ff49ff6 100644
+--- a/redhat/autofs.sysconfig.in
++++ b/redhat/autofs.sysconfig.in
+@@ -89,6 +89,12 @@ BROWSE_MODE="no"
+ #
+ #AUTH_CONF_FILE="@@autofsmapdir@@/autofs_ldap_auth.conf"
+ #
++# MAP_HASH_TABLE_SIZE - set the map cache hash table size.
++# 			Should be a power of 2 with a ratio roughly
++# 			between 1:10 and 1:20 for each map.
++#
++#MAP_HASH_TABLE_SIZE=1024
++#
+ # General global options
+ #
+ # If the kernel supports using the autofs miscellanous device
+diff --git a/samples/autofs.conf.default.in b/samples/autofs.conf.default.in
+index 844a6f3..4496738 100644
+--- a/samples/autofs.conf.default.in
++++ b/samples/autofs.conf.default.in
+@@ -89,6 +89,12 @@ BROWSE_MODE="no"
+ #
+ #AUTH_CONF_FILE="@@autofsmapdir@@/autofs_ldap_auth.conf"
+ #
++# MAP_HASH_TABLE_SIZE - set the map cache hash table size.
++# 			Should be a power of 2 with a ratio roughly
++# 			between 1:10 and 1:20 for each map.
++#
++#MAP_HASH_TABLE_SIZE=1024
++#
+ # General global options
+ #
+ # If the kernel supports using the autofs miscellanous device
