@@ -1,11 +1,9 @@
 From: Paul Wankadia <junyer@google.com>
 Subject: Re: [PATCH 1/4] Make hash table scale to thousands of
 	entries
-Date: Wed, 14 Jan 2009 21:52:14 +1100
-Message-ID: <408431290901140252o2c8908d7h985a2682e161957c@mail.gmail.com>
+Date: Thu, 15 Jan 2009 01:20:01 +1100
+Message-ID: <408431290901140620k11a8cf7evb667895a59c7e204@mail.gmail.com>
 References: <1231526823-18595-1-git-send-email-vaurora@redhat.com>
-	<1231732946.3073.44.camel@zeus.themaw.net>
-	<1231736307.3073.68.camel@zeus.themaw.net>
 	<408431290901121752x3e7c1ab6xa3d1cf711db5e2bb@mail.gmail.com>
 	<1231813498.3057.12.camel@zeus.themaw.net>
 	<1231820126.3057.14.camel@zeus.themaw.net>
@@ -13,10 +11,12 @@ References: <1231526823-18595-1-git-send-email-vaurora@redhat.com>
 	<1231823945.3057.20.camel@zeus.themaw.net>
 	<408431290901131943t2c678c8ej10c1829c71b5a557@mail.gmail.com>
 	<1231922825.3168.37.camel@zeus.themaw.net>
+	<408431290901140252o2c8908d7h985a2682e161957c@mail.gmail.com>
+	<1231939076.3168.53.camel@zeus.themaw.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1998718275486672841=="
+Content-Type: multipart/mixed; boundary="===============2947369240071100073=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1231922825.3168.37.camel@zeus.themaw.net>
+In-Reply-To: <1231939076.3168.53.camel@zeus.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -30,69 +30,74 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
---===============1998718275486672841==
-Content-Type: multipart/alternative; boundary=0016e651fa9af7d83504606f2166
+--===============2947369240071100073==
+Content-Type: multipart/alternative; boundary=0016e652034a14f2be04607209f0
 
---0016e651fa9af7d83504606f2166
+--0016e652034a14f2be04607209f0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jan 14, 2009 at 7:47 PM, Ian Kent <raven@themaw.net> wrote:
+On Thu, Jan 15, 2009 at 12:17 AM, Ian Kent <raven@themaw.net> wrote:
 
-> It seems that autofs v5 doesn't read an indirect map into the cache
-> > unless ghosting is enabled, so I'm thinking about adding a map option
-> > to force the read. Has the file map reloading logic changed
-> > significantly since autofs v4?
+> Sorry, I meant the logic that reloads the file map if it's been
+> > modified. I know that autofs v4 checked the mtime, but I can't see
+> > where autofs v5 does that.
 >
-> It's a bit hard to give a good answer to that as there have been so many
-> changes but, having said that, it shouldn't have changed much except for
-> the obvious one that it tries not to read the entire map unless it has
-> to. Adding the "--ghost" or "browse" option will cause it to read the
-> entire map. Also, the internal default, which is "browse" enabled by
-> default, is overridden by the default installed configuration with
-> BROWSE_MODE="no" so v5 behaves the same as v4.
+> Yeah, I didn't think I got rid of that.
+>
+> But the check for a mismatch between the cache and a file key lookup
+> should be sufficient to only cause a read when the map has actually
+> changed. I guess we could get multiple HUP signals, one following just
+> after the other has finished, but that would be a system admin error and
+> you'd probably want to know about that since we can't make a similar
+> check some other map sources. I probably should get around to removing
+> the mtime stuff all-together, perhaps you could let me know if things
+> work as they should (or not) so I can clean (or fix) that up.
 
 
-Sorry, I meant the logic that reloads the file map if it's been modified. I
-know that autofs v4 checked the mtime, but I can't see where autofs v5 does
-that.
+Are you saying that every lookup for an indirect map will hit the file? If
+that's the case, then what's the point of the cache? If that's not the case,
+but you're not checking the mtime either, then how do you know when the file
+has been modified? (Please excuse the silly questions.)
 
---0016e651fa9af7d83504606f2166
+--0016e652034a14f2be04607209f0
 Content-Type: text/html; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jan 14, 2009 at 7:47 PM, Ian Kent <span dir=3D"ltr">&lt;<a href=3D"=
-mailto:raven@themaw.net">raven@themaw.net</a>&gt;</span> wrote:<br><br><div=
- class=3D"gmail_quote"><blockquote class=3D"gmail_quote" style=3D"border-le=
-ft: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: =
-1ex;">
-<div class=3D"Ih2E3d">&gt; It seems that autofs v5 doesn&#39;t read an indi=
-rect map into the cache<br>
-&gt; unless ghosting is enabled, so I&#39;m thinking about adding a map opt=
-ion<br>
-&gt; to force the read. Has the file map reloading logic changed<br>
-&gt; significantly since autofs v4?<br>
+On Thu, Jan 15, 2009 at 12:17 AM, Ian Kent <span dir=3D"ltr">&lt;<a href=3D=
+"mailto:raven@themaw.net">raven@themaw.net</a>&gt;</span> wrote:<br><br><di=
+v class=3D"gmail_quote"><blockquote class=3D"gmail_quote" style=3D"border-l=
+eft: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left:=
+ 1ex;">
+<div><div></div><div class=3D"Wj3C7c">&gt; Sorry, I meant the logic that re=
+loads the file map if it&#39;s been<br>
+&gt; modified. I know that autofs v4 checked the mtime, but I can&#39;t see=
 <br>
-</div>It&#39;s a bit hard to give a good answer to that as there have been =
-so many<br>
-changes but, having said that, it shouldn&#39;t have changed much except fo=
+&gt; where autofs v5 does that.<br>
+<br>
+</div></div>Yeah, I didn&#39;t think I got rid of that.<br>
+<br>
+But the check for a mismatch between the cache and a file key lookup<br>
+should be sufficient to only cause a read when the map has actually<br>
+changed. I guess we could get multiple HUP signals, one following just<br>
+after the other has finished, but that would be a system admin error and<br=
+>
+you&#39;d probably want to know about that since we can&#39;t make a simila=
 r<br>
-the obvious one that it tries not to read the entire map unless it has<br>
-to. Adding the &quot;--ghost&quot; or &quot;browse&quot; option will cause =
-it to read the<br>
-entire map. Also, the internal default, which is &quot;browse&quot; enabled=
- by<br>
-default, is overridden by the default installed configuration with<br>
-BROWSE_MODE=3D&quot;no&quot; so v5 behaves the same as v4.</blockquote><br>=
-Sorry, I meant the logic that reloads the file map if it&#39;s been modifie=
-d. I know that autofs v4 checked the mtime, but I can&#39;t see where autof=
-s v5 does that.<br>
+check some other map sources. I probably should get around to removing<br>
+the mtime stuff all-together, perhaps you could let me know if things<br>
+work as they should (or not) so I can clean (or fix) that up.</blockquote><=
+br>Are you saying that every lookup for an indirect map will hit the file? =
+If that&#39;s the case, then what&#39;s the point of the cache? If that&#39=
+;s not the case, but you&#39;re not checking the mtime either, then how do =
+you know when the file has been modified? (Please excuse the silly question=
+s.)<br>
 </div>
 
---0016e651fa9af7d83504606f2166--
+--0016e652034a14f2be04607209f0--
 
 
---===============1998718275486672841==
+--===============2947369240071100073==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -103,5 +108,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---===============1998718275486672841==--
+--===============2947369240071100073==--
 
