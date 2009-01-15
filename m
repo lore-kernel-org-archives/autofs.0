@@ -1,15 +1,24 @@
-From: Brian Kosick <bkosick@mxlogic.com>
-Subject: Re: autofs options and LDAP <RESOLVED>
-Date: Wed, 14 Jan 2009 12:49:13 -0700
-Message-ID: <1231962553.3316.9.camel@localhost.localdomain>
-References: <1231894833.3319.59.camel@localhost.localdomain>
-	<1231898104.3168.14.camel@zeus.themaw.net>
-	<1231899729.3319.63.camel@localhost.localdomain>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [PATCH 1/4] Make hash table scale to thousands of
+	entries
+Date: Thu, 15 Jan 2009 10:41:50 +0900
+Message-ID: <1231983710.3100.38.camel@zeus.themaw.net>
+References: <1231526823-18595-1-git-send-email-vaurora@redhat.com>
+	<408431290901121752x3e7c1ab6xa3d1cf711db5e2bb@mail.gmail.com>
+	<1231813498.3057.12.camel@zeus.themaw.net>
+	<1231820126.3057.14.camel@zeus.themaw.net>
+	<408431290901122107q7ef82404gd48a602cd268241a@mail.gmail.com>
+	<1231823945.3057.20.camel@zeus.themaw.net>
+	<408431290901131943t2c678c8ej10c1829c71b5a557@mail.gmail.com>
+	<1231922825.3168.37.camel@zeus.themaw.net>
+	<408431290901140252o2c8908d7h985a2682e161957c@mail.gmail.com>
+	<1231939076.3168.53.camel@zeus.themaw.net>
+	<408431290901140620k11a8cf7evb667895a59c7e204@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1231899729.3319.63.camel@localhost.localdomain>
+In-Reply-To: <408431290901140620k11a8cf7evb667895a59c7e204@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,73 +29,88 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
+To: Paul Wankadia <junyer@google.com>
+Cc: autofs@linux.kernel.org
 
-Hi All,
-
-Sorry for the top post but I wanted to put the solution first...
-It turns out that I need to lay off the crack pipe a little bit.   As
-soon as I added --ghost to the correct place everything started working
-fine.   This was a little frustrating as everything that I found on the
-Net seemed to indicate that the --ghost option goes in the wrong place.
-
-Example:  I WAS trying combinations of this, which doesn't work.
-
-dn: cn=internal,ou=auto.software,dc=corp,dc=example,dc=com
-cn: internal
-objectClass: automount
-automountInformation: -soft,intr,nodev,tcp,ro nfs.example.com:/var/qa
---ghost
-
-It works just fine when you add it here:
-
-dn: cn=/software,ou=auto.master,dc=corp,dc=example,dc=com
-objectClass: automount
-cn: /software
-automountInformation:
-ldap:qapxe.qa.mxlogic.com:ou=auto.software,dc=corp,dc=example,dc=com
---ghost
-
-I apologize for wasting everyones time,
-Brian
-
-On Tue, 2009-01-13 at 19:22 -0700, Brian Kosick wrote:
-> On Tue, 2009-01-13 at 18:55 -0700, Ian Kent wrote:
-> > On Tue, 2009-01-13 at 18:00 -0700, Brian Kosick wrote:
-> > > Hi All,
-> > > 
-> > > I'm trying to add the autofs option --ghost to a 2307bis? autofs.ldif
-> > > schema file.  It seems to have come up at least once back in 2006, but
-> > > after a workaround was suggested and accepted by the original reporter,
-> > > I don't think that anything has ever come of it.
-> > > 
-> > > http://www.mail-archive.com/autofs@linux.kernel.org/msg05449.html
-> > > 
-> > > https://www.redhat.com/archives/fedora-directory-users/2009-January/msg00035.html
-> > > 
-> > > In short I've got it working great except that I want one autofs map to
-> > > use --ghost and one to not use ghost, so the adding ghost to
-> > > the /etc/sysconfig/autofs options won't work for me.
-> > > 
-> > > Can anyone provide information as to the state of this?  I would
-> > > appreciate any help greatly.
-> > 
-> > What autofs version?
-> > 
-> > Ian
-> > 
-> Errm Sorry about that...   I'm using autofs 5 on a RHEL5.2 server.
-> autofs-5.0.1-0.rc2.88
-> kernel-2.6.18-92.el5
+On Thu, 2009-01-15 at 01:20 +1100, Paul Wankadia wrote:
+> On Thu, Jan 15, 2009 at 12:17 AM, Ian Kent <raven@themaw.net> wrote:
 > 
-> Though I would like to use this on rhel4, rhel3 and fedora servers using
-> autofs v4.
+>         
+>         > Sorry, I meant the logic that reloads the file map if it's
+>         been
+>         > modified. I know that autofs v4 checked the mtime, but I
+>         can't see
+>         > where autofs v5 does that.
+>         
+>         
+>         Yeah, I didn't think I got rid of that.
+>         
+>         But the check for a mismatch between the cache and a file key
+>         lookup
+>         should be sufficient to only cause a read when the map has
+>         actually
+>         changed. I guess we could get multiple HUP signals, one
+>         following just
+>         after the other has finished, but that would be a system admin
+>         error and
+>         you'd probably want to know about that since we can't make a
+>         similar
+>         check some other map sources. I probably should get around to
+>         removing
+>         the mtime stuff all-together, perhaps you could let me know if
+>         things
+>         work as they should (or not) so I can clean (or fix) that up.
 > 
-> Thanks,
-> Brian
+> Are you saying that every lookup for an indirect map will hit the
+> file? If that's the case, then what's the point of the cache? If
+> that's not the case, but you're not checking the mtime either, then
+> how do you know when the file has been modified? (Please excuse the
+> silly questions.)
 > 
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
+
+Umm .... yeah (runs and hides behind a large bookshelf in office).
+
+This isn't a silly question at all.
+
+It's something that could make the poor performance of the hash function
+look efficient and needs to be fixed (at least it matters for large
+maps).
+
+In the beginning I used the cache, well, like a cache, and required a
+HUP signal to update the maps. That was seen to be "just not good
+enough" as people required the map entry used to be up to date at the
+time of use. This lead to the cache gradually becoming more of a
+reference used to check currency of map entries to trigger map re-reads
+when differences were spotted. This seemed better than just using
+periodic map re-reads and seems to work OK. Remember that in v5 the
+cache starts empty for nobrowse indirect mounts and old entries get
+cleaned out upon receiving a HUP signal. That's OK for maps that have
+direct key lookup but for really large file maps it's almost certainly
+worse than the poor hashing algorithm.
+
+We use the cache a lot, for a bunch of other checks, to maintain context
+for multi-mount map entries and for direct maps. Map entries with
+multiple offsets (the so called multi-mount map entries) the entry is
+expanded, each offset added to the cache and a mount trigger mounted.
+This is part of the mount/umount "as you go" functionality in v5 which
+is really useful for servers with really large export lists, for
+example. Because of the nature of direct mounts the entire map must be
+read at startup and a HUP signal must be sent to the daemon for changes
+to be seen and we never go to the map during lookups, only the cache.
+
+But onto the problem.
+
+It should be fairly straight forward to start using the map mtime again.
+The time stamp on cache entries that have been added will be later than
+the mtime if the file map hasn't changed so we can use that. But we also
+need to prevent re-reading the map from the beginning as we populate the
+cache. I was thinking that I could add each entry read during a lookup
+to the cache so that they would be found on subsequent lookups (as long
+as the mtime is earlier than the time stamp). Additionally, I could keep
+track of the file position so I don't read entries already read. It
+likely won't be quite as simple in the end but we really need to do
+something to for really large maps.
+
+Any other thoughts?
+
+Ian
