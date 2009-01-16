@@ -1,13 +1,21 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: auto.master in ldap + simple bind
-Date: Sat, 17 Jan 2009 01:12:27 +0900
-Message-ID: <1232122347.3166.102.camel@zeus.themaw.net>
-References: <49709FA6.1040203@s3group.cz>
+From: Valerie Aurora Henson <vaurora@redhat.com>
+Subject: Re: [PATCH 1/4] Make hash table scale to thousands of
+	entries
+Date: Fri, 16 Jan 2009 16:39:22 -0500
+Message-ID: <20090116213922.GG6607@shell>
+References: <1231526823-18595-1-git-send-email-vaurora@redhat.com>
+	<1231526823-18595-2-git-send-email-vaurora@redhat.com>
+	<1231825886.3057.30.camel@zeus.themaw.net>
+	<408431290901131958ncc1b2f9j5a736a4b5d03f1b4@mail.gmail.com>
+	<1231922889.3168.39.camel@zeus.themaw.net>
+	<20090115024748.GA25050@shell>
+	<1231988524.3100.46.camel@zeus.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <49709FA6.1040203@s3group.cz>
+Content-Disposition: inline
+In-Reply-To: <1231988524.3100.46.camel@zeus.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,31 +26,16 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ondrej Valousek <webserv@s3group.cz>
-Cc: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org, Paul Wankadia <junyer@google.com>
 
-On Fri, 2009-01-16 at 15:54 +0100, Ondrej Valousek wrote:
-> Hi all,
-> I am trying to configure autofs (RHEL 5.2) to gather all maps from
-> Active Directory using simple bind using proxy user.
-> I have already managed to configure the PADL nss switch to do so using this:
+On Thu, Jan 15, 2009 at 12:02:04PM +0900, Ian Kent wrote:
 > 
-> host 192.168.60.172
-> base dc=ad,dc=s3group,dc=cz
-> binddn cn=ldapproxy,cn=Users,dc=ad,dc=s3group,dc=cz
-> bindpw password
+> Bummer, hope you recover soon.
 > 
-> Now I am wondering how to do the same with the automounter. Does anyone
-> know?
-> I see lots of options on how to configure TLS or SASL, but I just need a
-> simple bind.
+> I'm about to commit it so we'll have to deal with any concerns you have
+> as update patches. It's not much different to the original anyway. We
 
-This might work.
+I just reviewed and no concerns.  Thanks!
 
-authrequired="yes"
-user="cn=ldapproxy,cn=Users,dc=ad,dc=s3group,dc=cz"
-secret="password"
-
-You might also need to play with authtype.
-
-Ian
+-VAL
