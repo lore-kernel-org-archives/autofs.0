@@ -1,14 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: auto.master in ldap + simple bind
-Date: Sat, 17 Jan 2009 14:03:01 +0900
-Message-ID: <1232168581.3072.0.camel@zeus.themaw.net>
-References: <49709FA6.1040203@s3group.cz>
-	<1232122347.3166.102.camel@zeus.themaw.net>
+Subject: Re: [RFC PATCH 0/3] Remove alloca(), fix includes
+Date: Sat, 17 Jan 2009 14:57:37 +0900
+Message-ID: <1232171857.3072.4.camel@zeus.themaw.net>
+References: <1232164730-9397-1-git-send-email-vaurora@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1232122347.3166.102.camel@zeus.themaw.net>
+In-Reply-To: <1232164730-9397-1-git-send-email-vaurora@redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,39 +18,50 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ondrej Valousek <webserv@s3group.cz>
-Cc: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
+To: Valerie Aurora Henson <vaurora@redhat.com>
+Cc: autofs@linux.kernel.org, Paul Wankadia <junyer@google.com>
 
-On Sat, 2009-01-17 at 01:12 +0900, Ian Kent wrote:
-> On Fri, 2009-01-16 at 15:54 +0100, Ondrej Valousek wrote:
-> > Hi all,
-> > I am trying to configure autofs (RHEL 5.2) to gather all maps from
-> > Active Directory using simple bind using proxy user.
-> > I have already managed to configure the PADL nss switch to do so using this:
-> > 
-> > host 192.168.60.172
-> > base dc=ad,dc=s3group,dc=cz
-> > binddn cn=ldapproxy,cn=Users,dc=ad,dc=s3group,dc=cz
-> > bindpw password
-> > 
-> > Now I am wondering how to do the same with the automounter. Does anyone
-> > know?
-> > I see lots of options on how to configure TLS or SASL, but I just need a
-> > simple bind.
+On Fri, 2009-01-16 at 19:58 -0800, Valerie Aurora Henson wrote:
+> Respin of the alloca() and include changes, with obvious problems
+> fixed.  This is just an RFC patchset; I want to get review before I
+> get Jeff Moyer to run this through the RHTS again.
 > 
-> This might work.
-> 
-> authrequired="yes"
-> user="cn=ldapproxy,cn=Users,dc=ad,dc=s3group,dc=cz"
-> secret="password"
-> 
-> You might also need to play with authtype.
+> Is there any chance of getting a minimal test suite in the public
+> source?  It'd certainly make it easier to contribute from outside of
+> Red Hat.
 
-Of course that's contained in /etc/autofs_ldap_auth.conf
+That's come up a few time but we haven't done anything about it yet.
+
+The Connectathon test suite provides a suitable infrastructure to build
+on, perhaps we could build on that. I'm not certain about the license
+though.
+
+I'll clean up the instance I use here and we can have a better look at
+it.
 
 > 
-> Ian
+> Valerie Aurora Henson (3):
+>   Make MAX_ERR_BUF and PARSE_MAX_BUF use easier to audit
+>   Easy alloca() replacements
+>   Don't include kernel header files during userspace compiles
 > 
+>  daemon/automount.c             |   26 ++++----
+>  daemon/direct.c                |   12 +--
+>  daemon/flag.c                  |   12 ++--
+>  daemon/indirect.c              |   12 +--
+>  daemon/module.c                |   42 ++++---------
+>  include/linux/auto_dev-ioctl.h |    3 +
+>  lib/cache.c                    |   30 +++------
+>  lib/cat_path.c                 |    1 -
+>  modules/lookup_file.c          |   43 ++----------
+>  modules/lookup_ldap.c          |  142 ++++++++++++++++++++++-----------------
+>  modules/lookup_nisplus.c       |   32 ++++++---
+>  modules/mount_autofs.c         |    1 -
+>  modules/mount_bind.c           |    7 +--
+>  modules/mount_changer.c        |    5 +-
+>  modules/mount_ext2.c           |    5 +-
+>  modules/mount_generic.c        |    5 +-
+>  16 files changed, 166 insertions(+), 212 deletions(-)
 > 
 > _______________________________________________
 > autofs mailing list
