@@ -1,16 +1,14 @@
-From: Valerie Aurora Henson <vaurora@redhat.com>
-Subject: [RFC PATCH 3/3] Don't include kernel header files during
-	userspace compiles
-Date: Fri, 16 Jan 2009 19:58:50 -0800
-Message-ID: <1232164730-9397-4-git-send-email-vaurora@redhat.com>
-References: <1232164730-9397-1-git-send-email-vaurora@redhat.com>
-	<1232164730-9397-2-git-send-email-vaurora@redhat.com>
-	<1232164730-9397-3-git-send-email-vaurora@redhat.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: auto.master in ldap + simple bind
+Date: Sat, 17 Jan 2009 14:03:01 +0900
+Message-ID: <1232168581.3072.0.camel@zeus.themaw.net>
+References: <49709FA6.1040203@s3group.cz>
+	<1232122347.3166.102.camel@zeus.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1232164730-9397-3-git-send-email-vaurora@redhat.com>
+In-Reply-To: <1232122347.3166.102.camel@zeus.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,35 +19,41 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
-Cc: Paul Wankadia <junyer@google.com>
+To: Ondrej Valousek <webserv@s3group.cz>
+Cc: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
 
-autofs_dev-ioctl.h is included by both the kernel module and the
-userland tools, and it includes two kernel include files.  The compile
-worked if you had kernel headers installed but failed otherwise.
+On Sat, 2009-01-17 at 01:12 +0900, Ian Kent wrote:
+> On Fri, 2009-01-16 at 15:54 +0100, Ondrej Valousek wrote:
+> > Hi all,
+> > I am trying to configure autofs (RHEL 5.2) to gather all maps from
+> > Active Directory using simple bind using proxy user.
+> > I have already managed to configure the PADL nss switch to do so using this:
+> > 
+> > host 192.168.60.172
+> > base dc=ad,dc=s3group,dc=cz
+> > binddn cn=ldapproxy,cn=Users,dc=ad,dc=s3group,dc=cz
+> > bindpw password
+> > 
+> > Now I am wondering how to do the same with the automounter. Does anyone
+> > know?
+> > I see lots of options on how to configure TLS or SASL, but I just need a
+> > simple bind.
+> 
+> This might work.
+> 
+> authrequired="yes"
+> user="cn=ldapproxy,cn=Users,dc=ad,dc=s3group,dc=cz"
+> secret="password"
+> 
+> You might also need to play with authtype.
 
-We could also push these includes into the kernel module entirely, but
-then we'd have to work harder to keep autofs userland and kernel
-versions in sync, so I chose to just #ifdef it out.
----
- include/linux/auto_dev-ioctl.h |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+Of course that's contained in /etc/autofs_ldap_auth.conf
 
-diff --git a/include/linux/auto_dev-ioctl.h b/include/linux/auto_dev-ioctl.h
-index 91a7739..c943c1e 100644
---- a/include/linux/auto_dev-ioctl.h
-+++ b/include/linux/auto_dev-ioctl.h
-@@ -10,8 +10,11 @@
- #ifndef _LINUX_AUTO_DEV_IOCTL_H
- #define _LINUX_AUTO_DEV_IOCTL_H
- 
-+/* This file is shared by both user and kernel space */
-+#ifdef __KERNEL__
- #include <linux/string.h>
- #include <linux/types.h>
-+#endif /* __KERNEL__ */
- 
- #define AUTOFS_DEVICE_NAME		"autofs"
- 
--- 
-1.6.0.3
+> 
+> Ian
+> 
+> 
+> _______________________________________________
+> autofs mailing list
+> autofs@linux.kernel.org
+> http://linux.kernel.org/mailman/listinfo/autofs
