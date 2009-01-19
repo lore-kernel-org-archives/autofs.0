@@ -1,24 +1,16 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 1/4] Make hash table scale to thousands of
-	entries
-Date: Mon, 19 Jan 2009 11:03:25 +0900
-Message-ID: <1232330605.3136.7.camel@zeus.themaw.net>
-References: <1231526823-18595-1-git-send-email-vaurora@redhat.com>
-	<1232066406.3166.28.camel@zeus.themaw.net>
-	<1232070195.3166.36.camel@zeus.themaw.net>
-	<408431290901151959o7c504c79k88681dddb468359f@mail.gmail.com>
-	<1232079714.3166.56.camel@zeus.themaw.net>
-	<408431290901152204i8d2da71vbf8ee5f2e2f84fa@mail.gmail.com>
-	<1232087057.3166.88.camel@zeus.themaw.net>
-	<1232087952.3166.98.camel@zeus.themaw.net>
-	<408431290901170911q1af268b1o5576f46e0bee2129@mail.gmail.com>
-	<1232249174.3106.5.camel@zeus.themaw.net>
-	<408431290901181728u5b01c262u1b2640595deaac95@mail.gmail.com>
+Subject: Re: auto.master in ldap + simple bind
+Date: Mon, 19 Jan 2009 11:42:23 +0900
+Message-ID: <1232332943.3136.28.camel@zeus.themaw.net>
+References: <49709FA6.1040203@s3group.cz>
+	<1232122347.3166.102.camel@zeus.themaw.net>
+	<1232168581.3072.0.camel@zeus.themaw.net>
+	<4608.82.208.2.231.1232305306.squirrel@webmail.s3group.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <408431290901181728u5b01c262u1b2640595deaac95@mail.gmail.com>
+In-Reply-To: <4608.82.208.2.231.1232305306.squirrel@webmail.s3group.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -29,44 +21,65 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Paul Wankadia <junyer@google.com>
-Cc: autofs@linux.kernel.org
+To: webserv@s3group.com
+Cc: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
 
-On Mon, 2009-01-19 at 12:28 +1100, Paul Wankadia wrote:
-> On Sun, Jan 18, 2009 at 2:26 PM, Ian Kent <raven@themaw.net> wrote:
+On Sun, 2009-01-18 at 19:01 +0000, webserv@s3group.com wrote:
+> Hi Ian,
+> I tried that already, also played with several authtypes and still no joy.
+> So I enabled autofs debugging and saw that no matter what I try,
+> automounter tries to bind anonymously - that fails with AD. I need to bind
+> using the proxy user...
+
+Show us the logs.
+
+> Thanks,
+> Ondrej
+> > On Sat, 2009-01-17 at 01:12 +0900, Ian Kent wrote:
+> >> On Fri, 2009-01-16 at 15:54 +0100, Ondrej Valousek wrote:
+> >> > Hi all,
+> >> > I am trying to configure autofs (RHEL 5.2) to gather all maps from
+> >> > Active Directory using simple bind using proxy user.
+> >> > I have already managed to configure the PADL nss switch to do so using
+> >> this:
+> >> >
+> >> > host 192.168.60.172
+> >> > base dc=ad,dc=s3group,dc=cz
+> >> > binddn cn=ldapproxy,cn=Users,dc=ad,dc=s3group,dc=cz
+> >> > bindpw password
+> >> >
+> >> > Now I am wondering how to do the same with the automounter. Does
+> >> anyone
+> >> > know?
+> >> > I see lots of options on how to configure TLS or SASL, but I just need
+> >> a
+> >> > simple bind.
+> >>
+> >> This might work.
+> >>
+> >> authrequired="yes"
+> >> user="cn=ldapproxy,cn=Users,dc=ad,dc=s3group,dc=cz"
+> >> secret="password"
+> >>
+> >> You might also need to play with authtype.
+> >
+> > Of course that's contained in /etc/autofs_ldap_auth.conf
+> >
+> >>
+> >> Ian
+> >>
+> >>
+> >> _______________________________________________
+> >> autofs mailing list
+> >> autofs@linux.kernel.org
+> >> http://linux.kernel.org/mailman/listinfo/autofs
+> >
+> >
 > 
->         
->         > Is there a design document for autofs v5 that you're
->         permitted to
->         > share?
->         
->         
->         There isn't, but even of there were it wouldn't have a level
->         of detail
->         that would be useful in cases like this and if it did it would
->         have
->         become hopelessly out of date as time has passed.
->         
->         However, the attached pdf, written by Jeff and myself, has a
->         high level
->         overview of v5 and what it seeks to achieve.
 > 
-> Cool, thanks.
 > 
-> It's just that your earlier comment regarding a concurrency issue led
-> me to wonder about the use of Pthreads. In particular, I'm not sure
-> what the rationale was, but I'd also like to understand the control
-> flow, so that's why I was interested in a design document of some
-> sort.
-
-Right.
-
-One of the things that v5 does is to move the master map parsing out of
-the init script and into the daemon itself. That means that the daemon
-then has to manage each of the master map mounts as well. Using
-individual sub-processes has a whole set of problems related to the
-supervising process communicating with and knowing the state of those
-sub-processes so v5 changed to a threaded model which of course has it's
-own set of difficulties.
-
-Ian
+> The information contained in this e-mail and in any attachments is confidential and is designated solely for the attention of the intended recipient(s). If you are not an intended recipient, you must not use, disclose, copy, distribute or retain this e-mail or any part thereof. If you have received this e-mail in error, please notify the sender by return e-mail and delete all copies of this e-mail from your computer system(s).
+> Please direct any additional queries to: communications@s3group.com.
+> Thank You.
+> Silicon and Software Systems Limited. Registered in Ireland no. 378073.
+> Registered Office: South County Business Park, Leopardstown, Dublin 18
