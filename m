@@ -1,22 +1,22 @@
 From: Paul Wankadia <junyer@google.com>
 Subject: Re: [PATCH 1/4] Make hash table scale to thousands of
 	entries
-Date: Fri, 16 Jan 2009 17:04:41 +1100
-Message-ID: <408431290901152204i8d2da71vbf8ee5f2e2f84fa@mail.gmail.com>
+Date: Mon, 19 Jan 2009 12:28:00 +1100
+Message-ID: <408431290901181728u5b01c262u1b2640595deaac95@mail.gmail.com>
 References: <1231526823-18595-1-git-send-email-vaurora@redhat.com>
-	<1232032573.3100.53.camel@zeus.themaw.net>
-	<408431290901151233q33699529r6119788c998866ed@mail.gmail.com>
-	<x49d4eouwt6.fsf@segfault.boston.devel.redhat.com>
-	<408431290901151257i70400351yc3ab9360136c8e9c@mail.gmail.com>
-	<1232065653.3166.19.camel@zeus.themaw.net>
 	<1232066406.3166.28.camel@zeus.themaw.net>
 	<1232070195.3166.36.camel@zeus.themaw.net>
 	<408431290901151959o7c504c79k88681dddb468359f@mail.gmail.com>
 	<1232079714.3166.56.camel@zeus.themaw.net>
+	<408431290901152204i8d2da71vbf8ee5f2e2f84fa@mail.gmail.com>
+	<1232087057.3166.88.camel@zeus.themaw.net>
+	<1232087952.3166.98.camel@zeus.themaw.net>
+	<408431290901170911q1af268b1o5576f46e0bee2129@mail.gmail.com>
+	<1232249174.3106.5.camel@zeus.themaw.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============3794520295534817756=="
+Content-Type: multipart/mixed; boundary="===============2472559184413480714=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1232079714.3166.56.camel@zeus.themaw.net>
+In-Reply-To: <1232249174.3106.5.camel@zeus.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -30,68 +30,64 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
---===============3794520295534817756==
-Content-Type: multipart/alternative; boundary=001485f01e5250b70c04609359a9
+--===============2472559184413480714==
+Content-Type: multipart/alternative; boundary=001485f4225e5953b40460cbd526
 
---001485f01e5250b70c04609359a9
+--001485f4225e5953b40460cbd526
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On Fri, Jan 16, 2009 at 3:21 PM, Ian Kent <raven@themaw.net> wrote:
+On Sun, Jan 18, 2009 at 2:26 PM, Ian Kent <raven@themaw.net> wrote:
 
->         +               if (me && ctxt->mtime <= me->age)
-> >
-> > You have to call stat(2) or fstat(2) at some point or else ctxt->mtime
-> > will never change.
+> Is there a design document for autofs v5 that you're permitted to
+> > share?
 >
-> We set the mtime when we read the entire map, see
-> modules/lookup_file.c:lookup_read_map(). This is totally taking
-> advantage of the existing code to read a map that is marked as stale. It
-> doesn't however attempt to simplify the code which works out if we need
-> to mark the map stale but we probably don't want to anyway as we need to
-> ensure we use up to date entries for lookups done while waiting for the
-> map update to be done.
+> There isn't, but even of there were it wouldn't have a level of detail
+> that would be useful in cases like this and if it did it would have
+> become hopelessly out of date as time has passed.
+>
+> However, the attached pdf, written by Jeff and myself, has a high level
+> overview of v5 and what it seeks to achieve.
 
 
-Sorry, I don't understand how that condition will evaluate to false. You
-won't read the map until ctxt->mtime changes, but it won't change until you
-read the map.
+Cool, thanks.
 
---001485f01e5250b70c04609359a9
+It's just that your earlier comment regarding a concurrency issue led me to
+wonder about the use of Pthreads. In particular, I'm not sure what the
+rationale was, but I'd also like to understand the control flow, so that's
+why I was interested in a design document of some sort.
+
+--001485f4225e5953b40460cbd526
 Content-Type: text/html; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 
-<div class=3D"gmail_quote">On Fri, Jan 16, 2009 at 3:21 PM, Ian Kent <span =
+<div class=3D"gmail_quote">On Sun, Jan 18, 2009 at 2:26 PM, Ian Kent <span =
 dir=3D"ltr">&lt;<a href=3D"mailto:raven@themaw.net">raven@themaw.net</a>&gt=
 ;</span> wrote:<br><br><blockquote class=3D"gmail_quote" style=3D"border-le=
 ft: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: =
 1ex;">
-<div><div class=3D"Wj3C7c">&gt; &nbsp; &nbsp; &nbsp; &nbsp; + &nbsp; &nbsp;=
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; if (me &amp;&amp; ctxt-&gt;mtime &lt;=
-=3D me-&gt;age)<br>
-&gt;<br>
-&gt; You have to call stat(2) or fstat(2) at some point or else ctxt-&gt;mt=
-ime<br>
-&gt; will never change.<br>
+<div><div></div><div class=3D"Wj3C7c">&gt; Is there a design document for a=
+utofs v5 that you&#39;re permitted to<br>
+&gt; share?<br>
 <br>
-</div></div>We set the mtime when we read the entire map, see<br>
-modules/lookup_file.c:lookup_read_map(). This is totally taking<br>
-advantage of the existing code to read a map that is marked as stale. It<br=
->
-doesn&#39;t however attempt to simplify the code which works out if we need=
+</div></div>There isn&#39;t, but even of there were it wouldn&#39;t have a =
+level of detail<br>
+that would be useful in cases like this and if it did it would have<br>
+become hopelessly out of date as time has passed.<br>
 <br>
-to mark the map stale but we probably don&#39;t want to anyway as we need t=
-o<br>
-ensure we use up to date entries for lookups done while waiting for the<br>
-map update to be done.</blockquote></div><br>Sorry, I don&#39;t understand =
-how that condition will evaluate to false. You won&#39;t read the map until=
- ctxt-&gt;mtime changes, but it won&#39;t change until you read the map.<br=
->
+However, the attached pdf, written by Jeff and myself, has a high level<br>
+overview of v5 and what it seeks to achieve.</blockquote></div><br>Cool, th=
+anks.<br><br>It&#39;s just that your earlier comment regarding a concurrenc=
+y issue led me to wonder about the use of Pthreads. In particular, I&#39;m =
+not sure what the rationale was, but I&#39;d also like to understand the co=
+ntrol flow, so that&#39;s why I was interested in a design document of some=
+ sort.<br>
+<br>
 
---001485f01e5250b70c04609359a9--
+--001485f4225e5953b40460cbd526--
 
 
---===============3794520295534817756==
+--===============2472559184413480714==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -102,5 +98,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---===============3794520295534817756==--
+--===============2472559184413480714==--
 
