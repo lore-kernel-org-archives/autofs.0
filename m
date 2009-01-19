@@ -1,24 +1,14 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 1/4] Make hash table scale to thousands of
-	entries
-Date: Mon, 19 Jan 2009 15:13:17 +0900
-Message-ID: <1232345597.3136.85.camel@zeus.themaw.net>
-References: <1231526823-18595-1-git-send-email-vaurora@redhat.com>
-	<408431290901151959o7c504c79k88681dddb468359f@mail.gmail.com>
-	<1232079714.3166.56.camel@zeus.themaw.net>
-	<408431290901152204i8d2da71vbf8ee5f2e2f84fa@mail.gmail.com>
-	<1232087057.3166.88.camel@zeus.themaw.net>
-	<1232087952.3166.98.camel@zeus.themaw.net>
-	<408431290901170911q1af268b1o5576f46e0bee2129@mail.gmail.com>
-	<1232249174.3106.5.camel@zeus.themaw.net>
-	<408431290901181728u5b01c262u1b2640595deaac95@mail.gmail.com>
-	<1232330605.3136.7.camel@zeus.themaw.net>
-	<408431290901182123w63b5ef4aw676fdc1bb60a93bd@mail.gmail.com>
+From: Ondrej Valousek <webserv@s3group.cz>
+Subject: Re: auto.master in ldap + simple bind
+Date: Mon, 19 Jan 2009 12:26:25 +0100
+Message-ID: <49746361.5010509@s3group.cz>
+References: <49709FA6.1040203@s3group.cz>	<1232122347.3166.102.camel@zeus.themaw.net>	<1232168581.3072.0.camel@zeus.themaw.net>	<4608.82.208.2.231.1232305306.squirrel@webmail.s3group.com>
+	<1232332943.3136.28.camel@zeus.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <408431290901182123w63b5ef4aw676fdc1bb60a93bd@mail.gmail.com>
+In-Reply-To: <1232332943.3136.28.camel@zeus.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -29,86 +19,155 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Paul Wankadia <junyer@google.com>
-Cc: autofs@linux.kernel.org
+To: Ian Kent <raven@themaw.net>
+Cc: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
 
-On Mon, 2009-01-19 at 16:23 +1100, Paul Wankadia wrote:
-> On Mon, Jan 19, 2009 at 1:03 PM, Ian Kent <raven@themaw.net> wrote:
-> 
->         
->         > It's just that your earlier comment regarding a concurrency
->         issue led
->         > me to wonder about the use of Pthreads. In particular, I'm
->         not sure
->         > what the rationale was, but I'd also like to understand the
->         control
->         > flow, so that's why I was interested in a design document of
->         some
->         > sort.
->         
->         
->         Right.
->         
->         One of the things that v5 does is to move the master map
->         parsing out of
->         the init script and into the daemon itself. That means that
->         the daemon
->         then has to manage each of the master map mounts as well.
->         Using
->         individual sub-processes has a whole set of problems related
->         to the
->         supervising process communicating with and knowing the state
->         of those
->         sub-processes so v5 changed to a threaded model which of
->         course has it's
->         own set of difficulties.
-> 
-> Does the daemon need multiple processes/threads because of the
-> ioctl(2) calls that block?
 
-A whole bunch of things can block, for example stat(2) on a path against
-a down server.
+> Show us the logs.
+>
+>   
+Hi Ian,
 
-There is one thread for each master map mount which creates worker
-threads to do mounts and expires. Ideally any mount blocking will not
-affect other mounts and hopefully an expire blocked for some reason
-won't stop mount requests. That seems to pretty much work now so things
-aren't too bad.
+I did some digging around and found this:
+1. autofs 5 as shipped with RHEL 5.2 does not seem to support simple
+bind (i.e. something like ldapsearch -x .....) to a LDAP server not
+supporting anonymous access - like Active Directory (note for the
+record: Autofs 4 does only support anonymous ldap server)
+2. The only other thing autofs 5 can do is various SASL authentication
+schemes (GSSAPI, PLAIN,.....).
+3. Active Directory can do SASL and the common mechanisms that both can
+do is GSSAPI and DIGEST-MD5.
+4. I tried with DIGEST-MD5:
 
-> 
-> On a related note, is the autofs device a step towards a completely
-> revised kernel interface? I've started to contemplate the use of
-> socket pairs instead of pipes and ioctl(2) calls. (NBD seems to be a
-> simple example of this style.)
+[root@dorado_v1 etc]# cat /etc/sysconfig/autofs
+LDAP_URI="ldap://WIN-UG29HR9IEGY"
+SEARCH_BASE="cn=praguetest,cn=prague,dc=ad,dc=s3group,dc=cz"
+....
+[root@dorado_v1 etc]# cat /etc/autofs_ldap_auth.conf
+<autofs_ldap_sasl_conf
+        usetls="no"
+        tlsrequired="no"
+        authrequired="yes"
+        authtype="DIGEST-MD5"
+        user="ldapproxy"
+        secret="1234proxy$"
+/>
+Verified with ldapsearch its functionality:
+[root@dorado_v1 etc]# ldapsearch -H ldap://WIN-UG29HR9IEGY -Y DIGEST-MD5
+-U ldapproxy -w 1234proxy$ -b
+"cn=praguetest,cn=prague,dc=ad,dc=s3group,dc=cz" objectClass=nisMap
+SASL/DIGEST-MD5 authentication started
+SASL username: ldapproxy
+SASL SSF: 128
+SASL installing layers
+# extended LDIF
+#
+# LDAPv3
+# base <cn=praguetest,cn=prague,dc=ad,dc=s3group,dc=cz> with scope subtree
+# filter: objectClass=nisMap
+# requesting: ALL
+#
 
-Kind of. The change was needed to solve a fairly significant problem. I
-can't see how using sockets can make a difference really because the
-source of blocking isn't the interface but rather the things it needs to
-do.
+# auto.master, praguetest, prague, ad.s3group.cz
+dn: CN=auto.master,CN=praguetest,CN=prague,DC=ad,DC=s3group,DC=cz
+objectClass: top
+objectClass: nisMap
+cn: auto.master
+distinguishedName:
+CN=auto.master,CN=praguetest,CN=prague,DC=ad,DC=s3group,DC=
+ cz
+instanceType: 4
+whenCreated: 20090116124656.0Z
+whenChanged: 20090116124656.0Z
+uSNCreated: 20610
+uSNChanged: 20610
+showInAdvancedViewOnly: TRUE
+name: auto.master
+objectGUID:: 2T1wg8oG70G3VpHKlieoWQ==
+objectCategory: CN=NisMap,CN=Schema,CN=Configuration,DC=ad,DC=s3group,DC=cz
+dSCorePropagationData: 16010101000000.0Z
+nisMapName: auto.master
+....
+eheeej should for with the automounter, ok? But it does not:
 
-But it gets worse as Generic Netlink is a socket based interface, a
-recommended ioctl replacement and trying to use that for the
-re-implementation was nothing short of a nightmare. I failed to get a
-working implementation after several weeks of work. I have the broken
-implementation around somewhere, at least as far as I got, if you want
-to run with that as a project. Mind you, if user space libnl becomes
-thread safe at some point we may want to re-consider this as a viable
-approach. It depends on other things as well, but mostly on how we might
-change the expire infrastructure post 5.0 (it isn't going to change for
-5.0 and we need to retain backward compatibility), namely. whether we
-change to using the in kernel VFS mount expire mechanism and whether
-that will resolve the significant overhead when expiring large maps that
-use the "browse" option or how that issue will be otherwise resolved.
-So, yes, I'm thinking about these things but there is still enough to do
-with 5.0 to not spend a lot of time on it.
+Jan 19 11:55:41 dorado_v1 automount[22886]: Starting automounter version
+5.0.1-0.rc2.88.el5_2.1, master map auto.master
+Jan 19 11:55:41 dorado_v1 automount[22886]: using kernel protocol
+version 5.00
+Jan 19 11:55:41 dorado_v1 automount[22886]: lookup_nss_read_master:
+reading master files auto.master
+Jan 19 11:55:41 dorado_v1 automount[22886]: parse_init: parse(sun): init
+gathered global options: (null)
+Jan 19 11:55:41 dorado_v1 automount[22886]: lookup_read_master:
+lookup(file): read entry /misc
+Jan 19 11:55:41 dorado_v1 automount[22886]: lookup_read_master:
+lookup(file): read entry /net
+Jan 19 11:55:41 dorado_v1 automount[22886]: lookup_read_master:
+lookup(file): read entry +auto.master
+Jan 19 11:55:41 dorado_v1 automount[22886]: lookup_nss_read_master:
+reading master files auto.master
+Jan 19 11:55:41 dorado_v1 automount[22886]: parse_init: parse(sun): init
+gathered global options: (null)
+Jan 19 11:55:41 dorado_v1 automount[22886]: lookup_nss_read_master:
+reading master ldap auto.master
+Jan 19 11:55:41 dorado_v1 automount[22886]: parse_server_string:
+lookup(ldap): Attempting to parse LDAP information from string
+"auto.master".
+Jan 19 11:55:41 dorado_v1 automount[22886]: parse_server_string:
+lookup(ldap): mapname auto.master
+Jan 19 11:55:41 dorado_v1 automount[22886]: parse_ldap_config:
+lookup(ldap): ldap authentication configured with the following options:
+Jan 19 11:55:41 dorado_v1 automount[22886]: parse_ldap_config:
+lookup(ldap): use_tls: 0, tls_required: 0, auth_required: 2, sasl_mech:
+DIGEST-MD5
+Jan 19 11:55:41 dorado_v1 automount[22886]: parse_ldap_config:
+lookup(ldap): user: ldapproxy, secret: specified, client principal:
+(null) credential cache: (null)
+Jan 19 11:55:41 dorado_v1 automount[22886]: find_server: trying server
+ldap://WIN-UG29HR9IEGY
+Jan 19 11:55:41 dorado_v1 automount[22886]: sasl_bind_mech: Attempting
+sasl bind with mechanism DIGEST-MD5
+Jan 19 11:55:41 dorado_v1 automount[22886]: sasl_log_func: DIGEST-MD5
+client step 2
+Jan 19 11:55:41 dorado_v1 automount[22886]: getuser_func: called with
+context (nil), id 16386.
+Jan 19 11:55:41 dorado_v1 automount[22886]: getuser_func: called with
+context (nil), id 16385.
+Jan 19 11:55:41 dorado_v1 automount[22886]: getpass_func: context (nil),
+id 16388
+Jan 19 11:55:41 dorado_v1 automount[22886]: sasl_log_func: DIGEST-MD5
+client step 3
+Jan 19 11:55:41 dorado_v1 automount[22886]: sasl_bind_mech: sasl bind
+with mechanism DIGEST-MD5 succeeded
+Jan 19 11:55:41 dorado_v1 automount[22886]: do_bind: lookup(ldap):
+auth_required: 2, sasl_mech DIGEST-MD5
+Jan 19 11:55:41 dorado_v1 automount[22886]: sasl_bind_mech: Attempting
+sasl bind with mechanism DIGEST-MD5
+Jan 19 11:55:41 dorado_v1 automount[22886]: sasl_log_func: DIGEST-MD5
+client step 1
+Jan 19 11:55:41 dorado_v1 automount[22886]: getuser_func: called with
+context (nil), id 16386.
+Jan 19 11:55:41 dorado_v1 automount[22886]: getuser_func: called with
+context (nil), id 16385.
+Jan 19 11:55:41 dorado_v1 automount[22886]: getpass_func: context (nil),
+id 16388
+Jan 19 11:55:41 dorado_v1 automount[22886]: Error parsing response to
+sasl_bind request: Invalid credentials.
+Jan 19 11:55:41 dorado_v1 automount[22886]: The LDAP server indicated
+that the LDAP SASL bind was incomplete, but did not provide the required
+data to proceed. LDAP SASL bind with mechanism DIGEST-MD5 failed.
+Jan 19 11:55:41 dorado_v1 automount[22886]: sasl bind with mechanism
+DIGEST-MD5 failed
+Jan 19 11:55:41 dorado_v1 automount[22886]: do_bind: lookup(ldap):
+autofs_sasl_bind returned -1
+Jan 19 11:55:41 dorado_v1 automount[22886]: connect_to_server:
+lookup(ldap): cannot bind to server
+Jan 19 11:55:41 dorado_v1 automount[22886]: lookup_init: lookup(ldap):
+failed to find available server
 
-So this interface is the one that will be used until we can come up with
-a better one. The reason for the re-implementation is described in
-detail in Documentation/filesystems/autofs4-mount-control.txt. The most
-important part of this, as it relates to this thread of work, is the
-AUTOFS_DEV_IOCTL_ISMOUNTPOINT ioctl. We observed that is_mounted() was
-by far and away the top CPU user because it is used a lot and scans
-either /proc/mounts or /etc/mtab. My testing showed that using an
-updated kernel had a big effect on CPU usage.
+Now tell me - it looks good at the beginning, but then something goes
+wrong...
+Please advise...
+Thanks,
 
-Ian
+Ondrej
