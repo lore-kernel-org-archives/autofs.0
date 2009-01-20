@@ -1,15 +1,10 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 0/4] Current state of Vals patches and the file
-	map	lookup patches
-Date: Tue, 20 Jan 2009 14:06:39 +0900
-Message-ID: <1232427999.3200.17.camel@zeus.themaw.net>
-References: <20090119121918.31454.61737.stgit@zeus.themaw.net>
-	<20090120032611.GB1525@shell>
+From: Paul Wankadia <junyer@google.com>
+Subject: problems in daemon/lookup.c
+Date: Tue, 20 Jan 2009 16:48:50 +1100
+Message-ID: <408431290901192148idf9499xe12e58fb2b36a975@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============8238147250629707282=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20090120032611.GB1525@shell>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,57 +15,118 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Valerie Aurora Henson <vaurora@redhat.com>
-Cc: autofs mailing list <autofs@linux.kernel.org>, Paul Wankadia <junyer@google.com>
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org
 
-On Mon, 2009-01-19 at 22:26 -0500, Valerie Aurora Henson wrote:
-> On Mon, Jan 19, 2009 at 09:24:33PM +0900, Ian Kent wrote:
-> > I've pulled in the patches that Val posted and made a couple of
-> > minor changes. I also have what I think is just about what we
-> > need to reduce the overhead of file map scanning.
-> 
-> Great, thank you!
-> 
-> > Check'em out please folks.
-> 
-> I have a crumpled post-it note on my desk saying "valgrind automount."
-> How hard would this be to do while running the Connectathon suite?  It
-> would sure make me feel better about these patches.
+--===============8238147250629707282==
+Content-Type: multipart/alternative; boundary=001485f02570f952d00460e3972a
 
-Oh yeah, I need to get onto cleaning that up and send it over so you can
-have a look at it and the license statement. Sorry, I will get to it.
+--001485f02570f952d00460e3972a
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-There may be something to be gained from running valgrind against
-automount and I do so from time to time. Last time I did got a bunch of
-leak records but I've been unable to track them down. You may have more
-success.
+A friend of mine was kind enough to run some analysis for me. A couple of
+problems jumped out immediately.
 
-As far as Connectathon goes that shouldn't be too hard to do but you
-might find it's a bit painful.
 
-The way the autofs Connectathon works is you run a setup script after
-setting the values you want in the configuration. I found that running
-it as root and opening up permissions on the export directory of the two
-NFS servers needed and then closing them after works best. After that
-the test suite assumes autofs is running so you can run "valgrind
-automount -f" (I think that is the only option needed) to run in
-foreground. We might need to change the log output code a bit, I'm not
-sure.
+    991 static char *make_fullpath(const char *root, const char *key)
+...
+   1000                 path = malloc(l);
+   1001                 strcpy(path, key);
+...
+   1006                 path = malloc(l);
+   1007                 sprintf(path, "%s/%s", root, key);
 
-The real problems start when you hit autofs hard then valgrind becomes
-quite challenged. The whole thing gets really slow.
+Those are unchecked malloc(3) calls. How would you prefer to handle
+failures?
 
-> 
-> > I'm a little concerned about the "fix kernel includes" patch because
-> > there should be more to it and I've altered it in line with that. I'm
-> > not sure if we should post a kernel patch first, pull in the updated
-> > kernel header files to the tar and finally make the other couple of
-> > changes then. But then I may have it wrong so check it out.
-> 
-> Yeah, there's a trade-off there.  I think the approach you've taken is
-> the most sensible, given that nothing makes me more insane than out of
-> sync user and kernel code.
 
-So I think I'll defer that patch for a little while then.
+   1012 int lookup_prune_cache(struct autofs_point *ap, time_t age)
+...
+   1075                                 cache_unlock(mc);
+   1076                                 free(key);
+   1077                                 if (next_key)
+   1078                                         free(next_key);
+   1079                                 free(path);
+   1080                                 goto next;
+...
+   1103 next:
+   1104                         cache_readlock(mc);
+   1105                         me = cache_lookup_distinct(mc, next_key);
+   1106                         free(key);
+   1107                         free(path);
+   1108                         free(next_key);
 
-Ian
+Those are double free(3) calls. Oh, and `next_key' is used after being
+freed.
+
+--001485f02570f952d00460e3972a
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+A friend of mine was kind enough to run some analysis for me. A couple of p=
+roblems jumped out immediately.<br><br><br>&nbsp;&nbsp;&nbsp; 991 static ch=
+ar *make_fullpath(const char *root, const char *key)<br>...<br>&nbsp;&nbsp;=
+ 1000&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
+p;&nbsp;&nbsp;&nbsp;&nbsp; path =3D malloc(l);<br>
+&nbsp;&nbsp; 1001&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
+p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; strcpy(path, key);<br>...<br>&nbsp;&=
+nbsp; 1006&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
+;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; path =3D malloc(l);<br>&nbsp;&nbsp; 1007&nb=
+sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
+&nbsp;&nbsp;&nbsp; sprintf(path, &quot;%s/%s&quot;, root, key);<br><br>Thos=
+e are unchecked malloc(3) calls. How would you prefer to handle failures?<b=
+r>
+<br><br>&nbsp;&nbsp; 1012 int lookup_prune_cache(struct autofs_point *ap, t=
+ime_t age)<br>...<br>&nbsp;&nbsp; 1075&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
+nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
+p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
+nbsp; cache_unlock(mc);<br>&nbsp;&nbsp; 1076&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
+nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
+p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
+nbsp;&nbsp; free(key);<br>&nbsp;&nbsp; 1077&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
+bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
+;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
+bsp;&nbsp; if (next_key)<br>
+&nbsp;&nbsp; 1078&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
+p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
+nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
+p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; free(next_key);<br>&nbsp;&nbsp; 1079&nbsp;=
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
+sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; free(path);<br>&nbsp;&nbsp; 1080&nbsp;=
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
+sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; goto next;<br>...<br>&nbsp;&nbsp; 1103=
+ next:<br>&nbsp;&nbsp; 1104&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
+sp;&nbsp;&nbsp;&nbsp; cache_readlock(mc);<br>
+&nbsp;&nbsp; 1105&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
+p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
+nbsp;&nbsp; me =3D cache_lookup_distinct(mc, next_key);<br>&nbsp;&nbsp; 110=
+6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
+bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; free=
+(key);<br>&nbsp;&nbsp; 1107&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
+sp;&nbsp;&nbsp;&nbsp; free(path);<br>&nbsp;&nbsp; 1108&nbsp;&nbsp;&nbsp;&nb=
+sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; free(next_key);<br>
+<br>Those are double free(3) calls. Oh, and `next_key&#39; is used after be=
+ing freed.<br>
+
+--001485f02570f952d00460e3972a--
+
+
+--===============8238147250629707282==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--===============8238147250629707282==--
+
