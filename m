@@ -1,17 +1,15 @@
 From: Valerie Aurora Henson <vaurora@redhat.com>
-Subject: Re: [RFC PATCH 1/3] Make MAX_ERR_BUF and PARSE_MAX_BUF use
-	easier to audit
-Date: Mon, 19 Jan 2009 22:05:35 -0500
-Message-ID: <20090120030535.GA1525@shell>
-References: <1232164730-9397-1-git-send-email-vaurora@redhat.com>
-	<1232164730-9397-2-git-send-email-vaurora@redhat.com>
-	<1232172128.3072.8.camel@zeus.themaw.net>
+Subject: Re: [PATCH 0/4] Current state of Vals patches and the file
+	map lookup patches
+Date: Mon, 19 Jan 2009 22:26:11 -0500
+Message-ID: <20090120032611.GB1525@shell>
+References: <20090119121918.31454.61737.stgit@zeus.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1232172128.3072.8.camel@zeus.themaw.net>
+In-Reply-To: <20090119121918.31454.61737.stgit@zeus.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -23,21 +21,29 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org, Paul Wankadia <junyer@google.com>
+Cc: autofs mailing list <autofs@linux.kernel.org>, Paul Wankadia <junyer@google.com>
 
-On Sat, Jan 17, 2009 at 03:02:08PM +0900, Ian Kent wrote:
-> On Fri, 2009-01-16 at 19:58 -0800, Valerie Aurora Henson wrote:
-> > @@ -1523,18 +1524,12 @@ int lookup_read_master(struct master *master, time_t age, void *context)
-> >  			goto next;
-> >  		}
-> >  
-> > -		blen = strlen(*keyValue) + 1 + strlen(*values) + 2;
-> > -		if (blen > PARSE_MAX_BUF) {
-> > +		if (snprintf(parse_buf, sizeof(parse_buf), "%s %s",
-> > +			     *keyValue, *values) > sizeof(parse_buf)) {
-> 
-> Think that has to be >=, as Jeff mentioned earlier.
+On Mon, Jan 19, 2009 at 09:24:33PM +0900, Ian Kent wrote:
+> I've pulled in the patches that Val posted and made a couple of
+> minor changes. I also have what I think is just about what we
+> need to reduce the overhead of file map scanning.
 
-Yes, thanks for catching that and fixing it in your respin.
+Great, thank you!
+
+> Check'em out please folks.
+
+I have a crumpled post-it note on my desk saying "valgrind automount."
+How hard would this be to do while running the Connectathon suite?  It
+would sure make me feel better about these patches.
+
+> I'm a little concerned about the "fix kernel includes" patch because
+> there should be more to it and I've altered it in line with that. I'm
+> not sure if we should post a kernel patch first, pull in the updated
+> kernel header files to the tar and finally make the other couple of
+> changes then. But then I may have it wrong so check it out.
+
+Yeah, there's a trade-off there.  I think the approach you've taken is
+the most sensible, given that nothing makes me more insane than out of
+sync user and kernel code.
 
 -VAL
