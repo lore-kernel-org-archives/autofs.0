@@ -1,18 +1,14 @@
-From: Ian Kent <raven@themaw.net>
+From: Paul Wankadia <junyer@google.com>
 Subject: Re: problems in daemon/lookup.c
-Date: Thu, 22 Jan 2009 11:06:42 +0900
-Message-ID: <1232590002.3069.14.camel@zeus.themaw.net>
+Date: Wed, 21 Jan 2009 16:15:10 +1100
+Message-ID: <408431290901202115i1709c46s5bf1252f0a72b2c4@mail.gmail.com>
 References: <408431290901192148idf9499xe12e58fb2b36a975@mail.gmail.com>
 	<1232504588.3931.0.camel@zeus.themaw.net>
 	<1232509747.3931.5.camel@zeus.themaw.net>
-	<408431290901202115i1709c46s5bf1252f0a72b2c4@mail.gmail.com>
-	<1232515783.3931.28.camel@zeus.themaw.net>
-	<408431290901211721q162fb146vf071bff40727aa7b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1174159292954980160=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <408431290901211721q162fb146vf071bff40727aa7b@mail.gmail.com>
+In-Reply-To: <1232509747.3931.5.camel@zeus.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -23,45 +19,59 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Paul Wankadia <junyer@google.com>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-On Thu, 2009-01-22 at 12:21 +1100, Paul Wankadia wrote:
-> On Wed, Jan 21, 2009 at 4:29 PM, Ian Kent <raven@themaw.net> wrote:
-> 
->         
->         > In this case, make_fullpath() is called from only one place
->         and its
->         > return value is checked, but I was asking in general, yes.
->         
->         
->         Not sure I understand the question.
->         
->         Functions like make_fullpath() need to return a NULL in such a
->         case
->         because it has to be up to the caller to decide on how to
->         handle the
->         fail.
->         
->         In the case above it is questionable whether we continue the
->         prune but
->         then another thread could free() heap memory so we might still
->         be able
->         to make some useful progress.
-> 
-> A daemon shouldn't run out of memory. Generally speaking, it's an
-> exceptional condition that justifies abnormal termination.
+--===============1174159292954980160==
+Content-Type: multipart/alternative; boundary=0016e652060264e8fd0460f73dec
 
-Don't think it being a daemon makes any difference?
+--0016e652060264e8fd0460f73dec
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-I'm not entirely sure how this works but I thought that modified pages
-are written to swap. If swap fills up I think alocs can fail even though
-heap is available. If that is then fixed by external intervention the
-alocs could then succeed. So, maybe termination isn't the right chioce
-here. In any case it should be evident from the log that the situation
-exists and the admin can decide what action to take. OTOH if heap is
-really exhausted then termination probably is the right choice.
+On Wed, Jan 21, 2009 at 2:49 PM, Ian Kent <raven@themaw.net> wrote:
 
-In any case I prefer to try and continue.
+Fortunately, these cases usually don't happen so we haven't seen a
+> problem with it already.
+>
+> Anyway, i think this is all we need although continuing after an malloc
+> fail is a bit questionable. Suggestions?
 
-Ian
+
+In this case, make_fullpath() is called from only one place and its return
+value is checked, but I was asking in general, yes.
+
+--0016e652060264e8fd0460f73dec
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<div class=3D"gmail_quote">On Wed, Jan 21, 2009 at 2:49 PM, Ian Kent <span =
+dir=3D"ltr">&lt;<a href=3D"mailto:raven@themaw.net">raven@themaw.net</a>&gt=
+;</span> wrote:<br><br><blockquote class=3D"gmail_quote" style=3D"border-le=
+ft: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: =
+1ex;">
+Fortunately, these cases usually don&#39;t happen so we haven&#39;t seen a<=
+br>
+problem with it already.<br>
+<br>
+Anyway, i think this is all we need although continuing after an malloc<br>
+fail is a bit questionable. Suggestions?</blockquote><div><br>In this case,=
+ make_fullpath() is called from only one place and its return value is chec=
+ked, but I was asking in general, yes.</div></div>
+
+--0016e652060264e8fd0460f73dec--
+
+
+--===============1174159292954980160==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--===============1174159292954980160==--
+
