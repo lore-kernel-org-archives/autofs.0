@@ -1,7 +1,7 @@
 From: Paul Wankadia <junyer@google.com>
 Subject: Re: problems in daemon/lookup.c
-Date: Thu, 22 Jan 2009 14:46:53 +1100
-Message-ID: <408431290901211946p1b6b6236n249cffada9534b7a@mail.gmail.com>
+Date: Thu, 22 Jan 2009 15:55:36 +1100
+Message-ID: <408431290901212055v28a781caka0126cfb8db16e7c@mail.gmail.com>
 References: <408431290901192148idf9499xe12e58fb2b36a975@mail.gmail.com>
 	<1232504588.3931.0.camel@zeus.themaw.net>
 	<1232509747.3931.5.camel@zeus.themaw.net>
@@ -9,10 +9,11 @@ References: <408431290901192148idf9499xe12e58fb2b36a975@mail.gmail.com>
 	<1232515783.3931.28.camel@zeus.themaw.net>
 	<408431290901211721q162fb146vf071bff40727aa7b@mail.gmail.com>
 	<1232590002.3069.14.camel@zeus.themaw.net>
+	<408431290901211946p1b6b6236n249cffada9534b7a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============5386985083075202086=="
+Content-Type: multipart/mixed; boundary="===============7418437237036798574=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1232590002.3069.14.camel@zeus.themaw.net>
+In-Reply-To: <408431290901211946p1b6b6236n249cffada9534b7a@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -26,75 +27,179 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
---===============5386985083075202086==
-Content-Type: multipart/alternative; boundary=0016e65385c28dae1704610a1fab
+--===============7418437237036798574==
+Content-Type: multipart/alternative; boundary=0016e64ed5ea4b25d604610b157c
 
---0016e65385c28dae1704610a1fab
+--0016e64ed5ea4b25d604610b157c
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On Thu, Jan 22, 2009 at 1:06 PM, Ian Kent <raven@themaw.net> wrote:
-
-> A daemon shouldn't run out of memory. Generally speaking, it's an
-> > exceptional condition that justifies abnormal termination.
->
-> Don't think it being a daemon makes any difference?
->
-> I'm not entirely sure how this works but I thought that modified pages
-> are written to swap. If swap fills up I think alocs can fail even though
-> heap is available. If that is then fixed by external intervention the
-> alocs could then succeed. So, maybe termination isn't the right chioce
-> here. In any case it should be evident from the log that the situation
-> exists and the admin can decide what action to take. OTOH if heap is
-> really exhausted then termination probably is the right choice.
->
-> In any case I prefer to try and continue.
+BTW, I'm still working through the analysis results. A few more problems
+have turned up.
 
 
-Sorry, I just don't understand why that's the right thing to do. If a daemon
-can't allocate memory in order to perform the operations that it needs to
-perform, then how can it provide the functionality that it's expected to
-provide? Why should it continue indefinitely instead of aborting and being
-restarted automatically?
+modules/lookup_hosts.c:
+    119 int lookup_mount(struct autofs_point *ap, const char *name, int
+name_len, void *context)
+...
+    146                 if (!me->mapent) {
+    147                         cache_delete(me->mc, name);
+    148                         me = NULL;
+    149                 }
+    150
+    151                 cache_unlock(me->mc);
 
---0016e65385c28dae1704610a1fab
+That is a NULL pointer dereference.
+
+
+lib/macros.c:
+    163 int macro_parse_globalvar(const char *define)
+    164 {
+    165         char buf[MAX_MACRO_STRING];
+    166         char *pbuf, *value;
+    167
+    168         if (strlen(define) > MAX_MACRO_STRING)
+    169                 return 0;
+    170
+    171         strcpy(buf, define);
+
+That is a buffer overflow.
+
+
+modules/parse_hesiod.c:
+     84 static int parse_nfs(struct autofs_point *ap,
+...
+    108         for (i = 0; (!isspace(p[i]) && i < (int) sizeof(mount));
+i++) {
+    109                 mount[i] = p[i];
+    110         }
+    111
+    112         mount[i] = 0;
+    113         p += i;
+
+That is a buffer overflow. There are six more loops with similar problems.
+
+
+daemon/indirect.c:
+     86 static int do_mount_autofs_indirect(struct autofs_point *ap, const
+char *root)
+...
+    160         free(options);
+    161
+    162         ret = stat(root, &st);
+    163         if (ret == -1) {
+    164                 crit(ap->logopt,
+    165                      "failed to stat mount for autofs path %s",
+ap->path);
+    166                 goto out_umount;
+    167         }
+...
+    185 out_umount:
+    186         umount(root);
+    187 out_rmdir:
+    188         if (ap->flags & MOUNT_FLAG_DIR_CREATED)
+    189                 rmdir(root);
+    190 out_err:
+    191         if (options)
+    192                 free(options);
+
+That is a double free(3) call.
+
+
+lib/cache.c:
+    180 struct mapent_cache *cache_init(struct autofs_point *ap, struct
+map_source *map)
+...
+    195         mc->hash = malloc(mc->size * sizeof(struct entry *));
+...
+    231 struct mapent_cache *cache_init_null_cache(struct master *master)
+...
+    246         mc->hash = malloc(mc->size * sizeof(struct entry *));
+
+`struct mapent *' might be more correct. ;)
+
+--0016e64ed5ea4b25d604610b157c
 Content-Type: text/html; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 
-<div class=3D"gmail_quote">On Thu, Jan 22, 2009 at 1:06 PM, Ian Kent <span =
-dir=3D"ltr">&lt;<a href=3D"mailto:raven@themaw.net" target=3D"_blank">raven=
-@themaw.net</a>&gt;</span> wrote:<br><br><blockquote class=3D"gmail_quote" =
-style=3D"border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8=
-ex; padding-left: 1ex;">
+BTW, I&#39;m still working through the analysis results. A few more problem=
+s have turned up.<br><br><br>modules/lookup_hosts.c:<br>&nbsp;&nbsp;&nbsp; =
+119 int lookup_mount(struct autofs_point *ap, const char *name, int name_le=
+n, void *context)<br>
+...<br>&nbsp;&nbsp;&nbsp; 146&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
+p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (!me-&gt;mapent) {<br=
+>&nbsp;&nbsp;&nbsp; 147&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
+p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
+nbsp;&nbsp;&nbsp; cache_delete(me-&gt;mc, name);<br>&nbsp;&nbsp;&nbsp; 148&=
+nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
+p;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; me =3D=
+ NULL;<br>&nbsp;&nbsp;&nbsp; 149&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
+nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }<br>&nbsp;&nbsp;&nbs=
+p; 150<br>&nbsp;&nbsp;&nbsp; 151&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
+nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cache_unlock(me-&gt;m=
+c);<br>
+<br>That is a NULL pointer dereference.<br><br><br>lib/macros.c:<br>&nbsp;&=
+nbsp;&nbsp; 163 int macro_parse_globalvar(const char *define)<br>&nbsp;&nbs=
+p;&nbsp; 164 {<br>&nbsp;&nbsp;&nbsp; 165&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
+;&nbsp;&nbsp; char buf[MAX_MACRO_STRING];<br>&nbsp;&nbsp;&nbsp; 166&nbsp;&n=
+bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; char *pbuf, *value;<br>
+&nbsp;&nbsp;&nbsp; 167<br>&nbsp;&nbsp;&nbsp; 168&nbsp;&nbsp;&nbsp;&nbsp;&nb=
+sp;&nbsp;&nbsp;&nbsp; if (strlen(define) &gt; MAX_MACRO_STRING)<br>&nbsp;&n=
+bsp;&nbsp; 169&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
+nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return 0;<br>&nbsp;&nbsp;&nbsp; 170<br>=
+&nbsp;&nbsp;&nbsp; 171&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; strc=
+py(buf, define);<br><br>That is a buffer overflow.<br><br><br>modules/parse=
+_hesiod.c:<br>
+&nbsp;&nbsp;&nbsp;&nbsp; 84 static int parse_nfs(struct autofs_point *ap,<b=
+r>...<br>&nbsp;&nbsp;&nbsp; 108&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
+bsp; for (i =3D 0; (!isspace(p[i]) &amp;&amp; i &lt; (int) sizeof(mount)); =
+i++) {<br>&nbsp;&nbsp;&nbsp; 109&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
+nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; mount[i] =3D p[i];<br=
+>&nbsp;&nbsp;&nbsp; 110&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }<b=
+r>
+&nbsp;&nbsp;&nbsp; 111<br>&nbsp;&nbsp;&nbsp; 112&nbsp;&nbsp;&nbsp;&nbsp;&nb=
+sp;&nbsp;&nbsp;&nbsp; mount[i] =3D 0;<br>&nbsp;&nbsp;&nbsp; 113&nbsp;&nbsp;=
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; p +=3D i;<br><br>That is a buffer over=
+flow. There are six more loops with similar problems.<br><br><br>daemon/ind=
+irect.c:<br>&nbsp;&nbsp;&nbsp;&nbsp; 86 static int do_mount_autofs_indirect=
+(struct autofs_point *ap, const char *root)<br>
+...<br>&nbsp;&nbsp;&nbsp; 160&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
+p; free(options);<br>&nbsp;&nbsp;&nbsp; 161<br>&nbsp;&nbsp;&nbsp; 162&nbsp;=
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ret =3D stat(root, &amp;st);<br>=
+&nbsp;&nbsp;&nbsp; 163&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (=
+ret =3D=3D -1) {<br>&nbsp;&nbsp;&nbsp; 164&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
+sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; crit(ap-&gt=
+;logopt,<br>&nbsp;&nbsp;&nbsp; 165&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
+;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
+bsp;&nbsp; &quot;failed to stat mount for autofs path %s&quot;, ap-&gt;path=
+);<br>
+&nbsp;&nbsp;&nbsp; 166&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
+;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; goto out_umount;<br>&nbsp;&nbsp=
+;&nbsp; 167&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }<br>...<br>&nb=
+sp;&nbsp;&nbsp; 185 out_umount:<br>&nbsp;&nbsp;&nbsp; 186&nbsp;&nbsp;&nbsp;=
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; umount(root);<br>&nbsp;&nbsp;&nbsp; 187 out_=
+rmdir:<br>&nbsp;&nbsp;&nbsp; 188&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
+nbsp; if (ap-&gt;flags &amp; MOUNT_FLAG_DIR_CREATED)<br>&nbsp;&nbsp;&nbsp; =
+189&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
+&nbsp;&nbsp;&nbsp;&nbsp; rmdir(root);<br>
+&nbsp;&nbsp;&nbsp; 190 out_err:<br>&nbsp;&nbsp;&nbsp; 191&nbsp;&nbsp;&nbsp;=
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (options)<br>&nbsp;&nbsp;&nbsp; 192&nbsp;=
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
+sp;&nbsp;&nbsp; free(options);<br><br>That is a double free(3) call.<br><br=
+><br>lib/cache.c:<br>&nbsp;&nbsp;&nbsp; 180 struct mapent_cache *cache_init=
+(struct autofs_point *ap, struct map_source *map)<br>
+...<br>&nbsp;&nbsp;&nbsp; 195&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
+p; mc-&gt;hash =3D malloc(mc-&gt;size * sizeof(struct entry *));<br>...<br>=
+&nbsp;&nbsp;&nbsp; 231 struct mapent_cache *cache_init_null_cache(struct ma=
+ster *master)<br>...<br>&nbsp;&nbsp;&nbsp; 246&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
+;&nbsp;&nbsp;&nbsp; mc-&gt;hash =3D malloc(mc-&gt;size * sizeof(struct entr=
+y *));<br>
+<br>`struct mapent *&#39; might be more correct. ;)<br>
 
-<div><div></div><div>&gt; A daemon shouldn&#39;t run out of memory. General=
-ly speaking, it&#39;s an<br>
-&gt; exceptional condition that justifies abnormal termination.<br>
-<br>
-</div></div>Don&#39;t think it being a daemon makes any difference?<br>
-<br>
-I&#39;m not entirely sure how this works but I thought that modified pages<=
-br>
-are written to swap. If swap fills up I think alocs can fail even though<br=
->
-heap is available. If that is then fixed by external intervention the<br>
-alocs could then succeed. So, maybe termination isn&#39;t the right chioce<=
-br>
-here. In any case it should be evident from the log that the situation<br>
-exists and the admin can decide what action to take. OTOH if heap is<br>
-really exhausted then termination probably is the right choice.<br>
-<br>
-In any case I prefer to try and continue.</blockquote></div><br>Sorry, I ju=
-st don&#39;t understand why that&#39;s the right thing to do. If a daemon c=
-an&#39;t allocate memory in order to perform the operations that it needs t=
-o perform, then how can it provide the functionality that it&#39;s expected=
- to provide? Why should it continue indefinitely instead of aborting and be=
-ing restarted automatically?
-
---0016e65385c28dae1704610a1fab--
+--0016e64ed5ea4b25d604610b157c--
 
 
---===============5386985083075202086==
+--===============7418437237036798574==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -105,5 +210,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---===============5386985083075202086==--
+--===============7418437237036798574==--
 
