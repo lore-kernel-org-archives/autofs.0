@@ -1,23 +1,18 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: auto.master in ldap + simple bind
-Date: Thu, 22 Jan 2009 00:51:51 +0900
-Message-ID: <1232553111.23373.2.camel@zeus.themaw.net>
-References: <49709FA6.1040203@s3group.cz>
-	<1232122347.3166.102.camel@zeus.themaw.net>
-	<1232168581.3072.0.camel@zeus.themaw.net>
-	<4608.82.208.2.231.1232305306.squirrel@webmail.s3group.com>
-	<1232332943.3136.28.camel@zeus.themaw.net>
-	<4976ECB9.6090207@s3group.cz>
-	<1232542998.3931.37.camel@zeus.themaw.net>  <49771F04.102@s3group.cz>
-	<1232544158.3931.40.camel@zeus.themaw.net>
-	<4977231E.9090306@s3group.cz>
-	<1232545792.3931.41.camel@zeus.themaw.net>
-	<497728B9.4000007@s3group.cz>
+Subject: Re: problems in daemon/lookup.c
+Date: Thu, 22 Jan 2009 11:06:42 +0900
+Message-ID: <1232590002.3069.14.camel@zeus.themaw.net>
+References: <408431290901192148idf9499xe12e58fb2b36a975@mail.gmail.com>
+	<1232504588.3931.0.camel@zeus.themaw.net>
+	<1232509747.3931.5.camel@zeus.themaw.net>
+	<408431290901202115i1709c46s5bf1252f0a72b2c4@mail.gmail.com>
+	<1232515783.3931.28.camel@zeus.themaw.net>
+	<408431290901211721q162fb146vf071bff40727aa7b@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <497728B9.4000007@s3group.cz>
+In-Reply-To: <408431290901211721q162fb146vf071bff40727aa7b@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -28,20 +23,45 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ondrej Valousek <webserv@s3group.cz>
-Cc: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
+To: Paul Wankadia <junyer@google.com>
+Cc: autofs@linux.kernel.org
 
-On Wed, 2009-01-21 at 14:52 +0100, Ondrej Valousek wrote:
-> I do not know what you are after. The -b option is no significance for
-> the authentication process. Anyway - it works without it, too (just tried).
-
-OK, I'll setup SASL and see what happens but I don't really know what is
-needed for it to be like an AD connection. But maybe I've broken the
-auth in some way over time.
-
-> Ondrej
-> > I know but what happens to the authentication attempt if you do not
-> > specify the -b option.
-> >
-> >   
+On Thu, 2009-01-22 at 12:21 +1100, Paul Wankadia wrote:
+> On Wed, Jan 21, 2009 at 4:29 PM, Ian Kent <raven@themaw.net> wrote:
 > 
+>         
+>         > In this case, make_fullpath() is called from only one place
+>         and its
+>         > return value is checked, but I was asking in general, yes.
+>         
+>         
+>         Not sure I understand the question.
+>         
+>         Functions like make_fullpath() need to return a NULL in such a
+>         case
+>         because it has to be up to the caller to decide on how to
+>         handle the
+>         fail.
+>         
+>         In the case above it is questionable whether we continue the
+>         prune but
+>         then another thread could free() heap memory so we might still
+>         be able
+>         to make some useful progress.
+> 
+> A daemon shouldn't run out of memory. Generally speaking, it's an
+> exceptional condition that justifies abnormal termination.
+
+Don't think it being a daemon makes any difference?
+
+I'm not entirely sure how this works but I thought that modified pages
+are written to swap. If swap fills up I think alocs can fail even though
+heap is available. If that is then fixed by external intervention the
+alocs could then succeed. So, maybe termination isn't the right chioce
+here. In any case it should be evident from the log that the situation
+exists and the admin can decide what action to take. OTOH if heap is
+really exhausted then termination probably is the right choice.
+
+In any case I prefer to try and continue.
+
+Ian
