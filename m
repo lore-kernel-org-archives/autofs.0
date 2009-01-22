@@ -1,7 +1,7 @@
-From: Ian Kent <raven@themaw.net>
+From: Paul Wankadia <junyer@google.com>
 Subject: Re: problems in daemon/lookup.c
-Date: Thu, 22 Jan 2009 15:04:52 +0900
-Message-ID: <1232604292.3239.17.camel@zeus.themaw.net>
+Date: Thu, 22 Jan 2009 14:46:53 +1100
+Message-ID: <408431290901211946p1b6b6236n249cffada9534b7a@mail.gmail.com>
 References: <408431290901192148idf9499xe12e58fb2b36a975@mail.gmail.com>
 	<1232504588.3931.0.camel@zeus.themaw.net>
 	<1232509747.3931.5.camel@zeus.themaw.net>
@@ -9,13 +9,10 @@ References: <408431290901192148idf9499xe12e58fb2b36a975@mail.gmail.com>
 	<1232515783.3931.28.camel@zeus.themaw.net>
 	<408431290901211721q162fb146vf071bff40727aa7b@mail.gmail.com>
 	<1232590002.3069.14.camel@zeus.themaw.net>
-	<408431290901211946p1b6b6236n249cffada9534b7a@mail.gmail.com>
-	<408431290901212055v28a781caka0126cfb8db16e7c@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============5386985083075202086=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <408431290901212055v28a781caka0126cfb8db16e7c@mail.gmail.com>
+In-Reply-To: <1232590002.3069.14.camel@zeus.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -26,96 +23,87 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Paul Wankadia <junyer@google.com>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-On Thu, 2009-01-22 at 15:55 +1100, Paul Wankadia wrote:
-> BTW, I'm still working through the analysis results. A few more
-> problems have turned up.
+--===============5386985083075202086==
+Content-Type: multipart/alternative; boundary=0016e65385c28dae1704610a1fab
 
-Yeah, I can't see for looking.
-Keep'em coming.
+--0016e65385c28dae1704610a1fab
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-> 
-> 
-> modules/lookup_hosts.c:
->     119 int lookup_mount(struct autofs_point *ap, const char *name,
-> int name_len, void *context)
-> ...
->     146                 if (!me->mapent) {
->     147                         cache_delete(me->mc, name);
->     148                         me = NULL;
->     149                 }
->     150
->     151                 cache_unlock(me->mc);
-> 
-> That is a NULL pointer dereference.
-> 
-> 
-> lib/macros.c:
->     163 int macro_parse_globalvar(const char *define)
->     164 {
->     165         char buf[MAX_MACRO_STRING];
->     166         char *pbuf, *value;
->     167
->     168         if (strlen(define) > MAX_MACRO_STRING)
->     169                 return 0;
->     170
->     171         strcpy(buf, define);
-> 
-> That is a buffer overflow.
-> 
-> 
-> modules/parse_hesiod.c:
->      84 static int parse_nfs(struct autofs_point *ap,
-> ...
->     108         for (i = 0; (!isspace(p[i]) && i < (int)
-> sizeof(mount)); i++) {
->     109                 mount[i] = p[i];
->     110         }
->     111
->     112         mount[i] = 0;
->     113         p += i;
-> 
-> That is a buffer overflow. There are six more loops with similar
-> problems.
-> 
-> 
-> daemon/indirect.c:
->      86 static int do_mount_autofs_indirect(struct autofs_point *ap,
-> const char *root)
-> ...
->     160         free(options);
->     161
->     162         ret = stat(root, &st);
->     163         if (ret == -1) {
->     164                 crit(ap->logopt,
->     165                      "failed to stat mount for autofs path %
-> s", ap->path);
->     166                 goto out_umount;
->     167         }
-> ...
->     185 out_umount:
->     186         umount(root);
->     187 out_rmdir:
->     188         if (ap->flags & MOUNT_FLAG_DIR_CREATED)
->     189                 rmdir(root);
->     190 out_err:
->     191         if (options)
->     192                 free(options);
-> 
-> That is a double free(3) call.
-> 
-> 
-> lib/cache.c:
->     180 struct mapent_cache *cache_init(struct autofs_point *ap,
-> struct map_source *map)
-> ...
->     195         mc->hash = malloc(mc->size * sizeof(struct entry *));
-> ...
->     231 struct mapent_cache *cache_init_null_cache(struct master
-> *master)
-> ...
->     246         mc->hash = malloc(mc->size * sizeof(struct entry *));
-> 
-> `struct mapent *' might be more correct. ;)
+On Thu, Jan 22, 2009 at 1:06 PM, Ian Kent <raven@themaw.net> wrote:
+
+> A daemon shouldn't run out of memory. Generally speaking, it's an
+> > exceptional condition that justifies abnormal termination.
+>
+> Don't think it being a daemon makes any difference?
+>
+> I'm not entirely sure how this works but I thought that modified pages
+> are written to swap. If swap fills up I think alocs can fail even though
+> heap is available. If that is then fixed by external intervention the
+> alocs could then succeed. So, maybe termination isn't the right chioce
+> here. In any case it should be evident from the log that the situation
+> exists and the admin can decide what action to take. OTOH if heap is
+> really exhausted then termination probably is the right choice.
+>
+> In any case I prefer to try and continue.
+
+
+Sorry, I just don't understand why that's the right thing to do. If a daemon
+can't allocate memory in order to perform the operations that it needs to
+perform, then how can it provide the functionality that it's expected to
+provide? Why should it continue indefinitely instead of aborting and being
+restarted automatically?
+
+--0016e65385c28dae1704610a1fab
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<div class=3D"gmail_quote">On Thu, Jan 22, 2009 at 1:06 PM, Ian Kent <span =
+dir=3D"ltr">&lt;<a href=3D"mailto:raven@themaw.net" target=3D"_blank">raven=
+@themaw.net</a>&gt;</span> wrote:<br><br><blockquote class=3D"gmail_quote" =
+style=3D"border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8=
+ex; padding-left: 1ex;">
+
+<div><div></div><div>&gt; A daemon shouldn&#39;t run out of memory. General=
+ly speaking, it&#39;s an<br>
+&gt; exceptional condition that justifies abnormal termination.<br>
+<br>
+</div></div>Don&#39;t think it being a daemon makes any difference?<br>
+<br>
+I&#39;m not entirely sure how this works but I thought that modified pages<=
+br>
+are written to swap. If swap fills up I think alocs can fail even though<br=
+>
+heap is available. If that is then fixed by external intervention the<br>
+alocs could then succeed. So, maybe termination isn&#39;t the right chioce<=
+br>
+here. In any case it should be evident from the log that the situation<br>
+exists and the admin can decide what action to take. OTOH if heap is<br>
+really exhausted then termination probably is the right choice.<br>
+<br>
+In any case I prefer to try and continue.</blockquote></div><br>Sorry, I ju=
+st don&#39;t understand why that&#39;s the right thing to do. If a daemon c=
+an&#39;t allocate memory in order to perform the operations that it needs t=
+o perform, then how can it provide the functionality that it&#39;s expected=
+ to provide? Why should it continue indefinitely instead of aborting and be=
+ing restarted automatically?
+
+--0016e65385c28dae1704610a1fab--
+
+
+--===============5386985083075202086==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--===============5386985083075202086==--
+
