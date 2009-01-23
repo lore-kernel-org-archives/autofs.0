@@ -1,7 +1,7 @@
-From: Paul Wankadia <junyer@google.com>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: problems in daemon/lookup.c
-Date: Thu, 22 Jan 2009 19:28:00 +1100
-Message-ID: <408431290901220028h3fd5cbd1y317b1142ac6b043a@mail.gmail.com>
+Date: Fri, 23 Jan 2009 13:08:44 +0900
+Message-ID: <1232683724.3011.6.camel@zeus.themaw.net>
 References: <408431290901192148idf9499xe12e58fb2b36a975@mail.gmail.com>
 	<1232504588.3931.0.camel@zeus.themaw.net>
 	<1232509747.3931.5.camel@zeus.themaw.net>
@@ -10,11 +10,14 @@ References: <408431290901192148idf9499xe12e58fb2b36a975@mail.gmail.com>
 	<408431290901211721q162fb146vf071bff40727aa7b@mail.gmail.com>
 	<1232590002.3069.14.camel@zeus.themaw.net>
 	<408431290901211946p1b6b6236n249cffada9534b7a@mail.gmail.com>
-	<1232604004.3239.15.camel@zeus.themaw.net>
+	<408431290901212055v28a781caka0126cfb8db16e7c@mail.gmail.com>
+	<1232604292.3239.17.camel@zeus.themaw.net>
+	<408431290901221800y3c008d5dib66b2786e832c086@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6766203643928929828=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1232604004.3239.15.camel@zeus.themaw.net>
+In-Reply-To: <408431290901221800y3c008d5dib66b2786e832c086@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -25,75 +28,110 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
+To: Paul Wankadia <junyer@google.com>
 Cc: autofs@linux.kernel.org
 
---===============6766203643928929828==
-Content-Type: multipart/alternative; boundary=0016e652f714e5539e04610e0c4f
+On Fri, 2009-01-23 at 13:00 +1100, Paul Wankadia wrote:
 
---0016e652f714e5539e04610e0c4f
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Where getting quite a list of goodies for this.
 
-On Thu, Jan 22, 2009 at 5:00 PM, Ian Kent <raven@themaw.net> wrote:
+> daemon/direct.c:
+>    1045 int handle_packet_expire_direct(struct autofs_point *ap,
+> autofs_packet_expire_direct_t *pkt)
+> ...
+>    1087                 crit(ap->logopt, "can't find map entry for (%
+> lu,%lu)",
+>    1088                     (unsigned long) pkt->dev, (unsigned long)
+> pkt->ino);
+>    1089                 master_source_unlock(ap->entry);
+>    1090                 master_mutex_unlock();
+>    1091                 pthread_setcancelstate(state, NULL);
+>    1092                 return 1;
+> ...
+>    1099                 if (ioctlfd == -1) {
+>    1100                         crit(ap->logopt, "can't open ioctlfd
+> for %s",
+>    1101                              me->key);
+>    1102                         pthread_setcancelstate(state, NULL);
+>    1103                         return 1;
+>    1104                 }
+> 
+> `mc->rwlock' and `ap->entry->source_lock' are still held at line 1103.
 
-> Sorry, I just don't understand why that's the right thing to do. If a
-> > daemon can't allocate memory in order to perform the operations that
-> > it needs to perform, then how can it provide the functionality that
-> > it's expected to provide? Why should it continue indefinitely instead
-> > of aborting and being restarted automatically?
->
-> Yeah, your entitled to your option but this has been discussed in the
-> past and some people say just the opposite. I'm going to leave things
-> the way they are for now.
+Mmmm ... thought I fixed this but clearly not.
 
+> 
+> Also, is line 1090 unlocking the right thing?
 
-I wanted to understand your position...
+No it's not, the master map mutex is not aquired here (although it was
+at one time but that may not have made it to a release).
 
-Oh, and I've just noticed that there's a `fatal' macro that calls abort(3).
-It seems to be used widely, but solely for unexpected Pthreads errors?
+snip ...
 
---0016e652f714e5539e04610e0c4f
-Content-Type: text/html; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+> 
+> lib/mounts.c:
+>     206 struct mnt_list *get_mnt_list(const char *table, const char
+> *path, int include)
+> ...
 
-<div class=3D"gmail_quote">On Thu, Jan 22, 2009 at 5:00 PM, Ian Kent <span =
-dir=3D"ltr">&lt;<a href=3D"mailto:raven@themaw.net">raven@themaw.net</a>&gt=
-;</span> wrote:<br><br><blockquote class=3D"gmail_quote" style=3D"border-le=
-ft: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: =
-1ex;">
-<div><div></div><div class=3D"Wj3C7c">&gt; Sorry, I just don&#39;t understa=
-nd why that&#39;s the right thing to do. If a<br>
-&gt; daemon can&#39;t allocate memory in order to perform the operations th=
-at<br>
-&gt; it needs to perform, then how can it provide the functionality that<br=
->
-&gt; it&#39;s expected to provide? Why should it continue indefinitely inst=
-ead<br>
-&gt; of aborting and being restarted automatically?<br>
-<br>
-</div></div>Yeah, your entitled to your option but this has been discussed =
-in the<br>
-past and some people say just the opposite. I&#39;m going to leave things<b=
-r>
-the way they are for now.</blockquote></div><br>I wanted to understand your=
- position...<br><br>Oh, and I&#39;ve just noticed that there&#39;s a `fatal=
-&#39; macro that calls abort(3). It seems to be used widely, but solely for=
- unexpected Pthreads errors?
+at this point either list == ent or ent is linked into list.
 
---0016e652f714e5539e04610e0c4f--
+>     265                 ent->path = malloc(len + 1);
+>     266                 if (!ent->path) {
+>     267                         endmntent(tab);
+>     268                         free_mnt_list(list);
+>     269                         return NULL;
+>     270                 }
+>     271                 strcpy(ent->path, mnt->mnt_dir);
+>     272
+>     273                 ent->fs_name = malloc(strlen(mnt->mnt_fsname)
+> + 1);
+>     274                 if (!ent->fs_name) {
+>     275                         endmntent(tab);
+>     276                         free_mnt_list(list);
+>     277                         return NULL;
+>     278                 }
+>     279                 strcpy(ent->fs_name, mnt->mnt_fsname);
+>     280
+>     281                 ent->fs_type = malloc(strlen(mnt->mnt_type) +
+> 1);
+>     282                 if (!ent->fs_type) {
+>     283                         endmntent(tab);
+>     284                         free_mnt_list(list);
+>     285                         return NULL;
+>     286                 }
+>     287                 strcpy(ent->fs_type, mnt->mnt_type);
+>     288
+>     289                 ent->opts = malloc(strlen(mnt->mnt_opts) + 1);
+>     290                 if (!ent->opts) {
+>     291                         endmntent(tab);
+>     292                         free_mnt_list(list);
+>     293                         return NULL;
+>     294                 }
+>     295                 strcpy(ent->opts, mnt->mnt_opts);
+> ...
 
+So in all these cases it looks to me like free_mnt_list() handles the
+dealloc.
 
---===============6766203643928929828==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+>     659 struct mnt_list *tree_make_mnt_tree(const char *table, const
+> char *path)
+> ...
+>     705                 ent->path = malloc(len + 1);
+>     706                 if (!ent->path) {
+>     707                         endmntent(tab);
+>     708                         tree_free_mnt_tree(tree);
+>     709                         return NULL;
+>     710                 }
+>     711                 strcpy(ent->path, mnt->mnt_dir);
+> 
+> Those are memory leaks. (`ent' isn't cleaned up and/or freed.)
 
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
+But this is a mistake.
 
---===============6766203643928929828==--
+> 
+> Also, strdup(3) is useful. :P
 
+Sure, but not this time around, ;)
+
+Ian
