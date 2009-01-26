@@ -1,10 +1,8 @@
-From: Paul Wankadia <junyer@google.com>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: problems in daemon/lookup.c
-Date: Sun, 25 Jan 2009 22:40:50 +1100
-Message-ID: <408431290901250340l68b48f8btba212c7451d711d4@mail.gmail.com>
+Date: Mon, 26 Jan 2009 16:00:10 +0900
+Message-ID: <1232953210.27316.9.camel@zeus.themaw.net>
 References: <408431290901192148idf9499xe12e58fb2b36a975@mail.gmail.com>
-	<1232604004.3239.15.camel@zeus.themaw.net>
-	<408431290901220028h3fd5cbd1y317b1142ac6b043a@mail.gmail.com>
 	<1232617153.3239.36.camel@zeus.themaw.net>
 	<408431290901222242y5a254e84i91db363d934b2382@mail.gmail.com>
 	<1232701534.3011.35.camel@zeus.themaw.net>
@@ -12,10 +10,14 @@ References: <408431290901192148idf9499xe12e58fb2b36a975@mail.gmail.com>
 	<1232853798.3019.5.camel@zeus.themaw.net>
 	<408431290901242306t1ad6fbacg69d8b785158a1666@mail.gmail.com>
 	<1232872567.3019.20.camel@zeus.themaw.net>
+	<408431290901250340l68b48f8btba212c7451d711d4@mail.gmail.com>
+	<1232934896.3009.3.camel@zeus.themaw.net>
+	<408431290901252006u190ef6aega8d3276172b98b92@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6437406446018080627=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1232872567.3019.20.camel@zeus.themaw.net>
+In-Reply-To: <408431290901252006u190ef6aega8d3276172b98b92@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -26,68 +28,71 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
+To: Paul Wankadia <junyer@google.com>
 Cc: autofs@linux.kernel.org
 
---===============6437406446018080627==
-Content-Type: multipart/alternative; boundary=0016e652f7140f65bb04614d18cd
+On Mon, 2009-01-26 at 15:06 +1100, Paul Wankadia wrote:
+> On Mon, Jan 26, 2009 at 12:54 PM, Ian Kent <raven@themaw.net> wrote:
+> 
+>         > Aren't there any Red Hat packages for dmalloc? I just
+>         installed the
+>         > Ubuntu packages and then rebuilt autofs without any trouble.
+>         
+>         
+>         Nope.
+>         I have a spec file I can use but the tarball from the download
+>         site
+>         still doesn't compile. I'll get back to that some time but not
+>         just now.
+> 
+> I suspect that Red Hat packages could be useful for a lot of users. If
+> you don't have time to maintain them, then perhaps one of your
+> colleagues does?
 
---0016e652f7140f65bb04614d18cd
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Maintaining an rpm isn't so bad but I don't have a good enough
+understanding of the package internals to make it work so I'm not likely
+to be useful at fixing bugs, case in point below. The other issue is
+that the upstream support is pretty much non-existent so the former is
+actually a big issue as far as adding a new package to Fedora goes.
 
-On Sun, Jan 25, 2009 at 7:36 PM, Ian Kent <raven@themaw.net> wrote:
+> 
+> 
+>         What version was installed?
+> 
+> Dapper and Feisty have version 5.4.2.
+> Gutsy, Hardy, Intrepid and Jaunty have version 5.5.1.
 
-> What problem(s) were you having with dmalloc?
->
-> Can't remember now but I think, compilation problems, link problems and
-> then not being able to find the shared libraries mostly. Mostly it I
-> just ended up spending too much time on it. I probably should spend some
-> time on it again.
+I've tried 5.4.2 and 5.5.2.
+I think that 4.8.1 worked at some stage but I haven't gone their again.
 
+I spent a couple of hours on it again after sending my last mail and
+ended up in exactly the same spot I did last time.
 
-Aren't there any Red Hat packages for dmalloc? I just installed the Ubuntu
-packages and then rebuilt autofs without any trouble.
+[root@zeus ~]# /etc/init.d/autofs start
+Starting automount: automount: symbol lookup error: /usr/lib/libdmallocth.so: undefined symbol: __stack_chk_fail_local
 
-BTW, perhaps you could check dmalloc's log file as part of the automated
-testing?
+There's clearly something wrong with the linking but after stuffing
+around with the make file to even get this far I tend to run out of
+steam at this stage.
 
---0016e652f7140f65bb04614d18cd
-Content-Type: text/html; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+> 
+> 
+>         > BTW, perhaps you could check dmalloc's log file as part of
+>         the
+>         > automated testing?
+>         
+>         
+>         If I could easily build an rpm each time I updated Fedora then
+>         I would
+>         script something and run it regularly. Maybe looking at the
+>         patches
+>         applied by the deb would be useful.
+> 
+> FWIW, SourceForge seems to offer i386 and src .rpm downloads for
+> version 5.4.2.
 
-<div class=3D"gmail_quote">On Sun, Jan 25, 2009 at 7:36 PM, Ian Kent <span =
-dir=3D"ltr">&lt;<a href=3D"mailto:raven@themaw.net">raven@themaw.net</a>&gt=
-;</span> wrote:<br><br><blockquote class=3D"gmail_quote" style=3D"border-le=
-ft: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: =
-1ex;">
-<div><div></div><div class=3D"Wj3C7c">&gt; What problem(s) were you having =
-with dmalloc?<br>
-<br>
-</div></div>Can&#39;t remember now but I think, compilation problems, link =
-problems and<br>
-then not being able to find the shared libraries mostly. Mostly it I<br>
-just ended up spending too much time on it. I probably should spend some<br=
->
-time on it again.</blockquote><br>Aren&#39;t there any Red Hat packages for=
- dmalloc? I just installed the Ubuntu packages and then rebuilt autofs with=
-out any trouble.<br><br>BTW, perhaps you could check dmalloc&#39;s log file=
- as part of the automated testing?<br>
-</div>
+I checked a few src rpms.
+I haven't checked any debs yet but I'll do that before giving
+completely, again.
 
---0016e652f7140f65bb04614d18cd--
-
-
---===============6437406446018080627==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
-
---===============6437406446018080627==--
-
+Ian
