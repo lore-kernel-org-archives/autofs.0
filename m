@@ -1,12 +1,11 @@
-From: Michael Loftis <mloftis@wgops.com>
-Subject: AutoFS Race Conditions?  Negative Cache?
-Date: Tue, 27 Jan 2009 13:04:51 -0700
-Message-ID: <F76FAA9B4E7600AAC1FFA15B@ZOP-MACTEL.local>
+From: Steven Hirsch <snhirsch@gmail.com>
+Subject: Need help w/ autofs application
+Date: Tue, 27 Jan 2009 18:50:20 -0500 (EST)
+Message-ID: <alpine.DEB.2.00.0901271826510.7987@duo>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,54 +18,63 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-First, I'm sorry if you guys have answered any of this before but since 
-there's no public archives (the link on the kernel.org mailman interface 
-gets me an apache permission denied error) I'm not able to search them.
+All,
 
-Debian 4.0, 2.6.18-6-686 (2.6.18.dfsg.1-23etch1) kernel, autofs 4.1.4-13
+I have a situation where I need a functional autofs directory in a 
+chroot'ed environment.  Unfortunately, this is turning out to be quite a 
+challenge and I don't fully understand some of what I've observed.
 
-IS there any negative cache in AutoFS?  I ask because I appear to be seeing 
-repetitive calls to mount things that had already failed.  This is using a 
-wildcard map (full deployment, if we can make the automounter work at all 
-won't be using a wildcard map).
+After thrashing around with bind mounts for the better part of a day, I 
+became convinced that it was not possible to have the primary /net 
+directory in the root environment appear also in the chroot session.
 
-I keep seeing multiple mounts for the same place, AutoFS appears to race 
-itself a lot under high loads.
+The only thing that seems to work is having a second instance of automount 
+active.  However, I cannot find any way to start this prior to the chroot 
+session and still have it be active there.  For example, I have an 
+installation of Ubuntu Hardy 32-bit under /var/chroot/hardy.  I use 
+'schroot' to setup and manage the sessions.  When started, it creates a 
+unique directory under /var/lib/schroot (using a hashed session id as the 
+name), bind-mounts /var/chroot/hardy at that location and makes it the new 
+root of the filesystem.  Some of the system directories, such as /dev are 
+also bind-mounted at the same time.  As a last step, it drops privileges 
+and presents me with a shell running under my own user id.
 
-Is it expected behavior that autofs gets called for EVERY miss under the 
-autofs tree?  I would think not, but I can't figure out (excepting maybe 
-the race conditions) how a map could cause multiple mount entries except 
-because of race conditions.
+I have tried starting a second automount daemon targeting, e.g. 
+/var/chroot/hardy/net or /var/lib/schroot/<session_key>/net ahead of time. 
+It is functional to the root environment, but simply does not appear in 
+the chroot session.  The directory is there, of course, but it does not 
+have autofs mounted on it.
 
-for ex (actual domain name changed to protect bystanders):  (in 
-/proc/mounts)
-nfs0:/www/vhosts/l /d1/l/luserdomain.org/logs nfs 
-rw,vers=3,rsize=8192,wsize=8192,hard,intr,proto=udp,timeo=11,retrans=2,sec=sys,addr=nfs0 
-0 0
-/dev/hda3 /d1/l/luserdomain.org/logs/.renv ext3 rw,noatime,data=ordered 0 0
+Finally, I tried starting autofs manually inside the chroot session (using 
+sudo to gain root permissions).  This worked.  Next step was to automate 
+the autofs startup.  That's where the real weirdness begins:  I hacked the 
+equivalent of run-parts into schroot (using other code that was there for 
+pre-chroot setup) to startup autofs as root before presenting the initial 
+shell.  For reasons I cannot understand, this simply will not work for the 
+base case where I want to gain a shell in my home directory (NFS mount). 
+The daemon reports a successful status code for startup, but when schroot 
+tries to change to, e.g. /net/my_home_directory before presenting the 
+shell it fails with "directory does not exist" and dumps me in '/' 
+(relative to the chrooted environment).  Sure enough, the autofs directory 
+is not there and the daemon is not running.
 
+After trying just about everything, I discovered that if had the shell 
+commence in a directory not under the autofs mount point (e.g. /home/junk) 
+the mount point _was_ there and NFS mounts could be properly triggered 
+when I manually typed "cd".  No amount of effort would let me simply go 
+directly there.
 
-== auto.master ==
-/d1/0 /etc/auto.jail -strict -DH=0
-/d1/1 /etc/auto.jail -strict -DH=1
-...
-/d1/z /etc/auto.jail -strict -DH=z
+The question is this:  WHAT is going on with the autofs startup that 
+requires me to first end up in location outside of it before it will work? 
+Thinking it might be a race, I started experimenting with sleep calls to 
+give autofs a chance to initialize before trying to move into it.  No 
+dice.  Whether I wait 2 seconds or a minute, the results were the same.
 
-== auto.jail ==
-*	/	:/www/vhosts/${H}/& /.renv :/opt/jail
+The schroot maintainer is mildly convinced that there must be an easier 
+way to get automount working in the chroot and I tend to agree.  Does 
+anyone have any advice?
 
+Steve
 
-so how does that possibly end up with mounts like I'd shown above?  I was 
-under the impression that autofs4 would only ever call automounter with a 
-single key...for right now the source of the mounts is an nfs tree, there 
-are symlinks to other NFS mounts.  the bind mount mechanism works for now. 
-The reason I'm deploying this way and not with a static map is our 
-management software does not yet have the bits to modify a (LDAP) map, but 
-if it won't work for this proof of concept, I'm not sure it'll work at all.
-
-Any help/guidance/wisdom/etc would be appreciated.
 
 -- 
-"Genius might be described as a supreme capacity for getting its possessors
-into trouble of all kinds."
--- Samuel Butler
