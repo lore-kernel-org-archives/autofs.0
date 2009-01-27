@@ -1,21 +1,12 @@
-From: Paul Wankadia <junyer@google.com>
-Subject: Re: problems in daemon/lookup.c
-Date: Mon, 26 Jan 2009 15:06:14 +1100
-Message-ID: <408431290901252006u190ef6aega8d3276172b98b92@mail.gmail.com>
-References: <408431290901192148idf9499xe12e58fb2b36a975@mail.gmail.com>
-	<1232617153.3239.36.camel@zeus.themaw.net>
-	<408431290901222242y5a254e84i91db363d934b2382@mail.gmail.com>
-	<1232701534.3011.35.camel@zeus.themaw.net>
-	<408431290901240607r3d6555c6u14ae7c1a6c51075e@mail.gmail.com>
-	<1232853798.3019.5.camel@zeus.themaw.net>
-	<408431290901242306t1ad6fbacg69d8b785158a1666@mail.gmail.com>
-	<1232872567.3019.20.camel@zeus.themaw.net>
-	<408431290901250340l68b48f8btba212c7451d711d4@mail.gmail.com>
-	<1232934896.3009.3.camel@zeus.themaw.net>
+From: Michael Loftis <mloftis@wgops.com>
+Subject: AutoFS Race Conditions?  Negative Cache?
+Date: Tue, 27 Jan 2009 13:04:51 -0700
+Message-ID: <F76FAA9B4E7600AAC1FFA15B@ZOP-MACTEL.local>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============3500084875771858066=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1232934896.3009.3.camel@zeus.themaw.net>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -26,95 +17,56 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
---===============3500084875771858066==
-Content-Type: multipart/alternative; boundary=0016e652fe7e1d7dc204615adc03
+First, I'm sorry if you guys have answered any of this before but since 
+there's no public archives (the link on the kernel.org mailman interface 
+gets me an apache permission denied error) I'm not able to search them.
 
---0016e652fe7e1d7dc204615adc03
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Debian 4.0, 2.6.18-6-686 (2.6.18.dfsg.1-23etch1) kernel, autofs 4.1.4-13
 
-On Mon, Jan 26, 2009 at 12:54 PM, Ian Kent <raven@themaw.net> wrote:
+IS there any negative cache in AutoFS?  I ask because I appear to be seeing 
+repetitive calls to mount things that had already failed.  This is using a 
+wildcard map (full deployment, if we can make the automounter work at all 
+won't be using a wildcard map).
 
-> Aren't there any Red Hat packages for dmalloc? I just installed the
-> > Ubuntu packages and then rebuilt autofs without any trouble.
->
-> Nope.
-> I have a spec file I can use but the tarball from the download site
-> still doesn't compile. I'll get back to that some time but not just now.
+I keep seeing multiple mounts for the same place, AutoFS appears to race 
+itself a lot under high loads.
 
+Is it expected behavior that autofs gets called for EVERY miss under the 
+autofs tree?  I would think not, but I can't figure out (excepting maybe 
+the race conditions) how a map could cause multiple mount entries except 
+because of race conditions.
 
-I suspect that Red Hat packages could be useful for a lot of users. If you
-don't have time to maintain them, then perhaps one of your colleagues does?
-
-What version was installed?
-
-
-Dapper and Feisty have version 5.4.2.
-Gutsy, Hardy, Intrepid and Jaunty have version 5.5.1.
-
-> BTW, perhaps you could check dmalloc's log file as part of the
-> > automated testing?
->
-> If I could easily build an rpm each time I updated Fedora then I would
-> script something and run it regularly. Maybe looking at the patches
-> applied by the deb would be useful.
+for ex (actual domain name changed to protect bystanders):  (in 
+/proc/mounts)
+nfs0:/www/vhosts/l /d1/l/luserdomain.org/logs nfs 
+rw,vers=3,rsize=8192,wsize=8192,hard,intr,proto=udp,timeo=11,retrans=2,sec=sys,addr=nfs0 
+0 0
+/dev/hda3 /d1/l/luserdomain.org/logs/.renv ext3 rw,noatime,data=ordered 0 0
 
 
-FWIW, SourceForge seems to offer i386 and src .rpm downloads for version
-5.4.2.
+== auto.master ==
+/d1/0 /etc/auto.jail -strict -DH=0
+/d1/1 /etc/auto.jail -strict -DH=1
+...
+/d1/z /etc/auto.jail -strict -DH=z
 
---0016e652fe7e1d7dc204615adc03
-Content-Type: text/html; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-
-<div class=3D"gmail_quote">On Mon, Jan 26, 2009 at 12:54 PM, Ian Kent <span=
- dir=3D"ltr">&lt;<a href=3D"mailto:raven@themaw.net">raven@themaw.net</a>&g=
-t;</span> wrote:<br><br><blockquote class=3D"gmail_quote" style=3D"border-l=
-eft: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left:=
- 1ex;">
-<div class=3D"Ih2E3d">&gt; Aren&#39;t there any Red Hat packages for dmallo=
-c? I just installed the<br>
-&gt; Ubuntu packages and then rebuilt autofs without any trouble.<br>
-<br>
-</div>Nope.<br>
-I have a spec file I can use but the tarball from the download site<br>
-still doesn&#39;t compile. I&#39;ll get back to that some time but not just=
- now.</blockquote><div><br>I suspect that Red Hat packages could be useful =
-for a lot of users. If you don&#39;t have time to maintain them, then perha=
-ps one of your colleagues does?<br>
-<br></div><blockquote class=3D"gmail_quote" style=3D"border-left: 1px solid=
- rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">What ve=
-rsion was installed?</blockquote><div><br>Dapper and Feisty have version 5.=
-4.2.<br>
-Gutsy, Hardy, Intrepid and Jaunty have version 5.5.1.<br><br></div><blockqu=
-ote class=3D"gmail_quote" style=3D"border-left: 1px solid rgb(204, 204, 204=
-); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">&gt; BTW, perhaps you cou=
-ld check dmalloc&#39;s log file as part of the<br>
-<div class=3D"Ih2E3d">
-&gt; automated testing?<br>
-<br>
-</div>If I could easily build an rpm each time I updated Fedora then I woul=
-d<br>
-script something and run it regularly. Maybe looking at the patches<br>
-applied by the deb would be useful.</blockquote><br>FWIW, SourceForge seems=
- to offer i386 and src .rpm downloads for version 5.4.2.<br></div>
-
---0016e652fe7e1d7dc204615adc03--
+== auto.jail ==
+*	/	:/www/vhosts/${H}/& /.renv :/opt/jail
 
 
---===============3500084875771858066==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+so how does that possibly end up with mounts like I'd shown above?  I was 
+under the impression that autofs4 would only ever call automounter with a 
+single key...for right now the source of the mounts is an nfs tree, there 
+are symlinks to other NFS mounts.  the bind mount mechanism works for now. 
+The reason I'm deploying this way and not with a static map is our 
+management software does not yet have the bits to modify a (LDAP) map, but 
+if it won't work for this proof of concept, I'm not sure it'll work at all.
 
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
+Any help/guidance/wisdom/etc would be appreciated.
 
---===============3500084875771858066==--
-
+-- 
+"Genius might be described as a supreme capacity for getting its possessors
+into trouble of all kinds."
+-- Samuel Butler
