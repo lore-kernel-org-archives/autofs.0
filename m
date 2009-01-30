@@ -1,49 +1,190 @@
-From: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [stable] Linux 2.6.27.13
-Date: Wed, 28 Jan 2009 16:37:12 -0800
-Message-ID: <20090129003712.GC23732@kroah.com>
-References: <20090125004823.GA6711@kroah.com> <4980565E.3000800@krogh.cc> <1233171227.9785.28.camel@heimdal.trondhjem.org>
+From: Ian Grant <Ian.Grant@cl.cam.ac.uk>
+Subject: Problem with LDAP map syntax in 5.0.3.
+Date: Fri, 30 Jan 2009 15:05:23 +0000
+Message-ID: <20090130150523.1416d116@fornix.cl.cam.ac.uk>
 Mime-Version: 1.0
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1233171227.9785.28.camel-rJ7iovZKK19ZJLDQqaL3InhyD016LWXt@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Trond Myklebust <trond.myklebust-41N18TsMXrtuMpJDpNschA@public.gmane.org>
-Cc: Jesper Krogh <jesper-Q2TZfHgGEy4@public.gmane.org>, autofs-CPWUtch7KCBzeIdxy0IIJw@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg KH <gregkh-l3A5Bk7waGM@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Return-path: <autofs-bounces@linux.kernel.org>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: autofs@linux.kernel.org
+Cc: Ian.Grant@cl.cam.ac.uk
 
-On Wed, Jan 28, 2009 at 02:33:47PM -0500, Trond Myklebust wrote:
-> On Wed, 2009-01-28 at 13:58 +0100, Jesper Krogh wrote:
-> > Greg KH wrote:
-> > > We (the -stable team) are announcing the release of the 2.6.27.13
-> > > kernel.
-> > > 
-> > > It contains a wide range of bugfixes, and all users of the 2.6.27 kernel
-> > > series are strongly encouraged to upgrade.
-> > > 
-> > > I'll also be replying to this message with a copy of the patch between
-> > > 2.6.27.12 and 2.6.27.13
-> > 
-> > Still on a 2.6.27.6  I got this on an NFS client while restarting the 
-> > NFS-server at the other end. Seems autofs/nfs releated.
-> > 
-> > 
-> > [6367172.212954] ------------[ cut here ]------------
-> > [6367172.213122] kernel BUG at net/sunrpc/rpcb_clnt.c:498!
-> 
-> Already fixed in 2.6.28 by the following commit.
->   http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git&a=commitdiff&h=9a4bd29fe8f6d3f015fe1c8e5450eb62cfebfcc9
-> 
-> You should probably also apply the following commit (also in 2.6.28),
-> which fixes a memory leak in the same area.
->   http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git&a=commitdiff&h=96165e2b7c4e2c82a0b60c766d4a2036444c21a0
+Dear List
 
-Thanks for letting me know, I'll queue them up.
+Our mount maps, which worked fine with a previous release of the Linux distribution (opensuse 11.0), no longer work with the current release (opensuse 11.1) Both releases use autofs version 5.0.3 but opensuse 11.1 has the RPM autofs-5.0.3-82.28.1 which indicates it might be heavily patched. Unfortunately the source RPM is not available. Presumably this is a temporary state of affairs that will be fixed quickly.
 
-greg k-h
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+In the mean time can anyone suggest why the newer autofs rejects our auto_master from LDAP? Details are as follows:
+
+me@mypc:/> rpm -q autofs
+autofs-5.0.3-82.28.1
+me@mypc:/> egrep -v "^$|^#" /etc/sysconfig/autofs
+AUTOFS_OPTIONS=""
+LOCAL_OPTIONS=""
+APPEND_OPTIONS="yes"
+DEFAULT_MASTER_MAP_NAME="auto.master"
+DEFAULT_TIMEOUT=600
+DEFAULT_BROWSE_MODE="yes"
+DEFAULT_LOGGING="debug"
+DEFAULT_MAP_OBJECT_CLASS="automountMap"
+DEFAULT_ENTRY_OBJECT_CLASS="automount"
+DEFAULT_MAP_ATTRIBUTE="automountMapName"
+DEFAULT_ENTRY_ATTRIBUTE="automountKey"
+DEFAULT_VALUE_ATTRIBUTE="automountInformation"
+DEFAULT_AUTH_CONF_FILE="/etc/autofs_ldap_auth.conf"
+me@mypc:/> egrep -v "^$|^#" /etc/auto.master
+/net  /etc/auto.net
++auto_master
+me@mypc:/> ldapsearch -x -H ldap://nnn.nnn.nnn.nnn/ -b automountMapName=auto_master,dc=example,dc=com '(objectclass=automount)'
+# extended LDIF
+#
+# LDAPv3
+# base <automountMapName=auto_master,dc=example,dc=com> with scope subtree
+# filter: (objectclass=automount)
+# requesting: ALL
+#
+
+# /auto/homes, auto_master, cl.cam.ac.uk
+dn: automountKey=/auto/homes,automountMapName=auto_master,dc=example,dc=com
+objectClass: top
+objectClass: automount
+automountKey: /auto/homes
+automountInformation: ldap:automountMapName=autofs_home,dc=example,dc=com
+
+# /auto/groups, auto_master, cl.cam.ac.uk
+dn: automountKey=/auto/groups,automountMapName=auto_master,dc=example,dc=com
+objectClass: top
+objectClass: automount
+automountKey: /auto/groups
+automountInformation: ldap:automountMapName=autofs_group,dc=example,dc=com
+
+# /auto/userfiles, auto_master, cl.cam.ac.uk
+dn: automountKey=/auto/userfiles,automountMapName=auto_master,dc=example,dc=com
+objectClass: top
+objectClass: automount
+automountKey: /auto/userfiles
+automountInformation: ldap:automountMapName=autofs_userfile,dc=example,dc=com
+
+# /auto/anfs, auto_master, cl.cam.ac.uk
+dn: automountKey=/auto/anfs,automountMapName=auto_master,dc=example,dc=com
+objectClass: top
+objectClass: automount
+automountKey: /auto/anfs
+automountInformation: ldap:automountMapName=autofs_anf,dc=example,dc=com
+
+# /Nfs/Mounts, auto_master, cl.cam.ac.uk
+dn: automountKey=/Nfs/Mounts,automountMapName=auto_master,dc=example,dc=com
+objectClass: top
+objectClass: automount
+automountKey: /Nfs/Mounts
+automountInformation: ldap:automountMapName=autofs_Nfs,dc=example,dc=com
+
+# search result
+search: 2
+result: 0 Success
+
+# numResponses: 6
+# numEntries: 5
+me@mypc:/> ldapsearch -x -H ldap://nnn.nnn.nnn.nnn/ -b automountMapName=autofs_home,dc=example,dc=com \
+ '(objectclass=automount)' | head -22
+# extended LDIF
+#
+# LDAPv3
+# base <automountMapName=autofs_home,dc=example,dc=com> with scope subtree
+# filter: (objectclass=automount)
+# requesting: ALL
+#
+
+# acn, autofs_home, cl.cam.ac.uk
+dn: automountKey=user1,automountMapName=autofs_home,dc=example,dc=com
+objectClass: automount
+automountKey: user1
+automountInformation: -rw,nosuid,noac,bg,vers=3,tcp,timeo=600,rsize=32768,wsiz
+ e=32768,hard,intr,sec=krb5 netappfiler:/vol/userfiles/user1/unix_home
+
+# am, autofs_home, cl.cam.ac.uk
+dn: automountKey=user2,automountMapName=autofs_home,dc=example,dc=com
+objectClass: automount
+automountKey: user2
+automountInformation: -rw,nosuid,noac,bg,vers=3,tcp,timeo=600,rsize=32768,wsiz
+ e=32768,hard,intr,sec=krb5 netappfiler:/vol/userfiles/user2/unix_home
+
+me@mypc:/> egrep -v "^$|^#" /etc/nsswitch.conf
+passwd: files ldap
+group:  files ldap
+hosts:  files mdns4_minimal [NOTFOUND=return] dns
+networks:       files dns
+services:       files
+protocols:      files
+rpc:    files
+ethers: files
+netmasks:       files
+netgroup:       files nis
+publickey:      files
+bootparams:     files
+automount:      files ldap
+aliases:        files
+me@mypc:/> egrep -v "^$|^#" /etc/openldap/ldap.conf
+TLS_REQCERT     allow
+host    128.232.x.x 128.232.y.y 128.232.z.z
+base    dc=example,dc=com
+me@mypc:/> egrep -v "^$|^#" /etc/ldap.conf
+host 128.232.x.x 128.232.y.y 128.232.z.z
+base dc=example,dc=com
+ldap_version 3
+scope one
+debug 0
+idle_timelimit 3600
+bind_timelimit 5
+timelimit 5
+bind_policy soft
+nss_initgroups_ignoreusers root
+nss_base_passwd ou=People,dc=cl,dc=cam,dc=ac,dc=uk?one
+nss_base_group  ou=Groups,dc=cl,dc=cam,dc=ac,dc=uk?one
+pam_groupdn cn=mypc,ou=HostGroups,dc=cl,dc=cam,dc=ac,dc=uk
+
+me@mypc:/> tail /var/log/messages
+
+Jan 30 11:28:08 mypc automount[9445]: Starting automounter version 5.0.3, master map auto.master
+Jan 30 11:28:08 mypc automount[9445]: using kernel protocol version 5.00
+Jan 30 11:28:08 mypc automount[9445]: lookup_nss_read_master: reading master files auto.master
+Jan 30 11:28:08 mypc automount[9445]: parse_init: parse(sun): init gathered global options: (null)
+Jan 30 11:28:08 mypc automount[9445]: lookup_read_master: lookup(file): read entry /net
+Jan 30 11:28:08 mypc automount[9445]: lookup_read_master: lookup(file): read entry +auto_master
+Jan 30 11:28:08 mypc automount[9445]: lookup_nss_read_master: reading master files auto_master
+Jan 30 11:28:08 mypc automount[9445]: lookup(file): file map /etc/auto_master missing or not readable
+Jan 30 11:28:08 mypc automount[9445]: lookup_nss_read_master: reading master ldap auto_master
+Jan 30 11:28:08 mypc automount[9445]: parse_server_string: lookup(ldap): Attempting to parse LDAP information from string "auto_master".
+Jan 30 11:28:08 mypc automount[9445]: parse_server_string: lookup(ldap): mapname auto_master
+Jan 30 11:28:08 mypc automount[9445]: parse_ldap_config: lookup(ldap): ldap authentication configured with the following options:
+Jan 30 11:28:08 mypc automount[9445]: parse_ldap_config: lookup(ldap): use_tls: 0, tls_required: 0, auth_required: 1, sasl_mech: (null)
+Jan 30 11:28:08 mypc automount[9445]: parse_ldap_config: lookup(ldap): user: (null), secret: unspecified, client principal: (null) credential cache: (null)
+Jan 30 11:28:08 mypc automount[9445]: do_bind: lookup(ldap): auth_required: 1, sasl_mech (null)
+Jan 30 11:28:08 mypc automount[9445]: do_bind: lookup(ldap): ldap anonymous bind returned 0
+Jan 30 11:28:09 mypc automount[9445]: get_query_dn: lookup(ldap): found query dn automountMapName=auto_master,dc=example,dc=com
+Jan 30 11:28:09 mypc automount[9445]: parse_init: parse(sun): init gathered global options: (null)
+Jan 30 11:28:09 mypc automount[9445]: do_bind: lookup(ldap): auth_required: 1, sasl_mech (null)
+Jan 30 11:28:09 mypc automount[9445]: do_bind: lookup(ldap): ldap anonymous bind returned 0
+Jan 30 11:28:09 mypc automount[9445]: lookup_read_master: lookup(ldap): searching for "(objectclass=automount)" under "automountMapName=auto_master,dc=example,dc=com"
+Jan 30 11:28:09 mypc automount[9445]: lookup_read_master: lookup(ldap): examining entries
+Jan 30 11:28:09 mypc automount[9445]: syntax error in map near [ /auto/homes ]
+Jan 30 11:28:09 mypc automount[9445]: syntax error while parsing map.
+Jan 30 11:28:09 mypc automount[9445]: syntax error while parsing map.
+Jan 30 11:28:09 mypc automount[9445]: syntax error while parsing map.
+Jan 30 11:28:09 mypc automount[9445]: syntax error while parsing map.
+Jan 30 11:28:09 mypc automount[9445]: master_do_mount: mounting /net
+Jan 30 11:28:09 mypc automount[9445]: automount_path_to_fifo: fifo name /var/run/autofs.fifo-net
+Jan 30 11:28:09 mypc automount[9445]: lookup_nss_read_map: reading map file /etc/auto.net
+Jan 30 11:28:09 mypc automount[9445]: parse_init: parse(sun): init gathered global options: (null)
+Jan 30 11:28:09 mypc automount[9445]: mounted indirect mount for /net with timeout 600, freq 150 seconds
+Jan 30 11:28:09 mypc automount[9445]: st_ready: st_ready(): state = 0 path /net
+Jan 30 11:28:09 mypc automount[9445]: ghosting enabled
