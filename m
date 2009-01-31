@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: Problem with LDAP map syntax in 5.0.3.
-Date: Sat, 31 Jan 2009 08:56:46 +0900
-Message-ID: <1233359806.3065.4.camel@zeus.themaw.net>
+Date: Sat, 31 Jan 2009 09:02:41 +0900
+Message-ID: <1233360161.3065.9.camel@zeus.themaw.net>
 References: <20090130150523.1416d116@fornix.cl.cam.ac.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,39 +22,6 @@ To: Ian Grant <Ian.Grant@cl.cam.ac.uk>
 Cc: autofs@linux.kernel.org
 
 On Fri, 2009-01-30 at 15:05 +0000, Ian Grant wrote:
-> Dear List
-> 
-> Our mount maps, which worked fine with a previous release of the Linux distribution (opensuse 11.0), no longer work with the current release (opensuse 11.1) Both releases use autofs version 5.0.3 but opensuse 11.1 has the RPM autofs-5.0.3-82.28.1 which indicates it might be heavily patched. Unfortunately the source RPM is not available. Presumably this is a temporary state of affairs that will be fixed quickly.
-> 
-> In the mean time can anyone suggest why the newer autofs rejects our auto_master from LDAP? Details are as follows:
-
-Rings a bell.
-
-There were a couple of bug fixes in the master map tokenizer that
-subsequently had corrections. But without the source I really can't tell
-what patches might not have got in and we can't build anything to test
-either.
-
-> 
-> me@mypc:/> rpm -q autofs
-> autofs-5.0.3-82.28.1
-> me@mypc:/> egrep -v "^$|^#" /etc/sysconfig/autofs
-> AUTOFS_OPTIONS=""
-> LOCAL_OPTIONS=""
-> APPEND_OPTIONS="yes"
-> DEFAULT_MASTER_MAP_NAME="auto.master"
-> DEFAULT_TIMEOUT=600
-> DEFAULT_BROWSE_MODE="yes"
-> DEFAULT_LOGGING="debug"
-> DEFAULT_MAP_OBJECT_CLASS="automountMap"
-> DEFAULT_ENTRY_OBJECT_CLASS="automount"
-> DEFAULT_MAP_ATTRIBUTE="automountMapName"
-> DEFAULT_ENTRY_ATTRIBUTE="automountKey"
-> DEFAULT_VALUE_ATTRIBUTE="automountInformation"
-> DEFAULT_AUTH_CONF_FILE="/etc/autofs_ldap_auth.conf"
-> me@mypc:/> egrep -v "^$|^#" /etc/auto.master
-> /net  /etc/auto.net
-> +auto_master
 > me@mypc:/> ldapsearch -x -H ldap://nnn.nnn.nnn.nnn/ -b automountMapName=auto_master,dc=example,dc=com '(objectclass=automount)'
 > # extended LDIF
 > #
@@ -70,6 +37,11 @@ either.
 > objectClass: automount
 > automountKey: /auto/homes
 > automountInformation: ldap:automountMapName=autofs_home,dc=example,dc=com
+
+It's possibly autofs-5.0.3-map-type-in-map-name.patch patch that is
+broken, have a look at autofs-5.0.3-map-type-in-map-name-fix.patch
+patch.
+
 > 
 > # /auto/groups, auto_master, cl.cam.ac.uk
 > dn: automountKey=/auto/groups,automountMapName=auto_master,dc=example,dc=com
@@ -192,9 +164,6 @@ either.
 > Jan 30 11:28:09 mypc automount[9445]: syntax error while parsing map.
 > Jan 30 11:28:09 mypc automount[9445]: syntax error while parsing map.
 > Jan 30 11:28:09 mypc automount[9445]: syntax error while parsing map.
-
-Yep, these are from the yacc parser.
-
 > Jan 30 11:28:09 mypc automount[9445]: master_do_mount: mounting /net
 > Jan 30 11:28:09 mypc automount[9445]: automount_path_to_fifo: fifo name /var/run/autofs.fifo-net
 > Jan 30 11:28:09 mypc automount[9445]: lookup_nss_read_map: reading map file /etc/auto.net
