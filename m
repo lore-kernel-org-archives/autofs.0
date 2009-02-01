@@ -1,11 +1,13 @@
-From: Guillaume Rousse <Guillaume.Rousse@inria.fr>
-Subject: Segfaults in lookup_hosts.c, probably caused by
-Date: Sat, 31 Jan 2009 23:05:38 +0100
-Message-ID: <4984CB32.8080709@inria.fr>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: Segfaults in lookup_hosts.c, probably caused by
+Date: Sun, 01 Feb 2009 12:20:18 +0900
+Message-ID: <1233458418.2967.44.camel@zeus.themaw.net>
+References: <4984CB32.8080709@inria.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <4984CB32.8080709@inria.fr>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,88 +18,81 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Guillaume Rousse <Guillaume.Rousse@inria.fr>
+Cc: autofs@linux.kernel.org
 
-Hello list.
+On Sat, 2009-01-31 at 23:05 +0100, Guillaume Rousse wrote:
+> Hello list.
+> 
+> I just released a 5.0.4 package with all current patches applied, and I 
+> had this report:
+> https://qa.mandriva.com/show_bug.cgi?id=47423
+> 
+> I can reproduce the issue with this simple master map:
+> [root@oberkampf guillaume]# cat /etc/autofs/auto.master
+> /net	-hosts
 
-I just released a 5.0.4 package with all current patches applied, and I 
-had this report:
-https://qa.mandriva.com/show_bug.cgi?id=47423
+Thanks to the backtrace you provided I see this looks exactly like one
+of the issues that was identified by the code analysis that Paul
+Wankadia was kind enough to do for us. Thanks Paul.
 
-I can reproduce the issue with this simple master map:
-[root@oberkampf guillaume]# cat /etc/autofs/auto.master
-/net	-hosts
+I've pulled out that particular hunk of the patch that resulted from
+that effort so if you could have your customer test it I'll commit it
+straight away if it resolves the problem.
 
-Here is the logs excerpt:
-Jan 31 22:50:28 oberkampf automount[7872]: Starting automounter version 
-5.0.4, master map auto.master
-Jan 31 22:50:28 oberkampf automount[7872]: using kernel protocol version 
-5.01
-Jan 31 22:50:28 oberkampf automount[7872]: lookup_nss_read_master: 
-reading master files auto.master
-Jan 31 22:50:28 oberkampf automount[7872]: parse_init: parse(sun): init 
-gathered global options: (null)
-Jan 31 22:50:28 oberkampf automount[7872]: lookup_read_master: 
-lookup(file): read entry /net
-Jan 31 22:50:28 oberkampf automount[7872]: lookup_read_master: 
-lookup(file): read entry +auto.master
-Jan 31 22:50:28 oberkampf automount[7872]: lookup_nss_read_master: 
-reading master files auto.master
-Jan 31 22:50:28 oberkampf automount[7872]: parse_init: parse(sun): init 
-gathered global options: (null)
-Jan 31 22:50:28 oberkampf automount[7872]: lookup(file): failed to read 
-included master map auto.master
-Jan 31 22:50:28 oberkampf automount[7872]: master_do_mount: mounting /net
-Jan 31 22:50:28 oberkampf automount[7872]: automount_path_to_fifo: fifo 
-name /var/run/autofs.fifo-net
-Jan 31 22:50:28 oberkampf automount[7872]: lookup_nss_read_map: reading 
-map hosts (null)
-Jan 31 22:50:28 oberkampf automount[7872]: parse_init: parse(sun): init 
-gathered global options: (null)
-Jan 31 22:50:28 oberkampf automount[7872]: remount_active_mount: trying 
-to re-connect to mount /net
-Jan 31 22:50:28 oberkampf automount[7872]: mounted indirect on /net with 
-timeout 300, freq 75 seconds
-Jan 31 22:50:28 oberkampf automount[7872]: remount_active_mount: 
-re-connected to mount /net
-Jan 31 22:50:28 oberkampf automount[7872]: st_ready: st_ready(): state = 
-0 path /net
-Jan 31 22:50:28 oberkampf automount[7872]: ghosting enabled
-Jan 31 22:50:32 oberkampf automount[7872]: handle_packet: type = 3
-Jan 31 22:50:32 oberkampf automount[7872]: 
-handle_packet_missing_indirect: token 9, name netchaiev.zarb.org, 
-request pid 7885
-Jan 31 22:50:32 oberkampf automount[7872]: attempting to mount entry 
-/net/netchaiev.zarb.org
-Jan 31 22:50:32 oberkampf klogd: automount[7886]: segfault at 60 ip 
-00007ffe0749e2f5 sp 00007ffe06413d90 error 4 in 
-lookup_hosts.so[7ffe07498000+1c000]
+I've called the patch autofs-5.0.4-fix-hosts-map-use-after-free.patch.
+You may need to delete the hunk that modifies CHANGELOG for it to apply
+cleanly (or change it so it does apply, your choice).
 
-And here is the stack trace:
-#0  lookup_mount (ap=0x7ffe086b3a30, name=0x7ffe06414020 
-"netchaiev.zarb.org",
-     name_len=18, context=0x7ffe08698820) at lookup_hosts.c:151
-151			cache_unlock(me->mc);
-Missing debug package(s), you should install: gcc-debug-4.3.2-5mnb2.x86_64
-(gdb) bt
-#0  lookup_mount (ap=0x7ffe086b3a30, name=0x7ffe06414020 
-"netchaiev.zarb.org",
-     name_len=18, context=0x7ffe08698820) at lookup_hosts.c:151
-#1  0x00007ffe08280088 in lookup_nss_mount (ap=0x7ffe086b3a30, source=0x0,
-     name=0x7ffe06414020 "netchaiev.zarb.org", name_len=18) at lookup.c:897
-#2  0x00007ffe08278df1 in do_mount_indirect (arg=0x7ffe086bc700)
-     at indirect.c:760
-#3  0x00007ffe07e39263 in start_thread () from /lib64/libpthread.so.0
-#4  0x00007ffe0779376d in clone ()
-     at ../sysdeps/unix/sysv/linux/x86_64/clone.S:112
+autofs-5.0.4 - fix hosts map use after free
 
-As the line where the segfault occurs was added by 
-autofs-5.0.4-fix-negative-cache-non-existent-key.patch, I strongly 
-suspect it to be the cause of the problem. I tried to rebuild the 
-package with just this patch removed, but it would implies to rediff all 
-others because of CHANGELOG files changes, and I was too lazy to do it :P
+From: Paul Wankadia <junyer@google.com>
 
--- 
-BOFH excuse #202:
+This patch fixed use a map entry after it has been freed in the
+hosts map lookup module.
+---
 
-kernel panic: write-only-memory (/dev/wom0) capacity exceeded.
+ CHANGELOG              |    1 +
+ modules/lookup_hosts.c |    8 +++++---
+ 2 files changed, 6 insertions(+), 3 deletions(-)
+
+
+diff --git a/CHANGELOG b/CHANGELOG
+index af77b55..b950449 100644
+--- a/CHANGELOG
++++ b/CHANGELOG
+@@ -8,6 +8,7 @@
+ - make hash table scale to thousands of entries (Paul Wankadia,
+   Valerie Aurora Henson).
+ - clear the quoted flag after each character from program map input.
++- fix hosts map use after free (Paul Wankadia).
+ 
+ 4/11/2008 autofs-5.0.4
+ -----------------------
+diff --git a/modules/lookup_hosts.c b/modules/lookup_hosts.c
+index 93b975a..d3ae0e2 100644
+--- a/modules/lookup_hosts.c
++++ b/modules/lookup_hosts.c
+@@ -138,17 +138,19 @@ int lookup_mount(struct autofs_point *ap, const char *name, int name_len, void *
+ 	/* Check if we recorded a mount fail for this key anywhere */
+ 	me = lookup_source_mapent(ap, name, LKP_DISTINCT);
+ 	if (me) {
++		struct mapent_cache *fmc = me->mc;
++
+ 		if (me->status >= time(NULL)) {
+-			cache_unlock(me->mc);
++			cache_unlock(fmc);
+ 			return NSS_STATUS_NOTFOUND;
+ 		}
+ 
+ 		if (!me->mapent) {
+-			cache_delete(me->mc, name);
++			cache_delete(fmc, name);
+ 			me = NULL;
+ 		}
+ 
+-		cache_unlock(me->mc);
++		cache_unlock(fmc);
+ 	}
+ 
+ 	cache_readlock(mc);
