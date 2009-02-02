@@ -1,16 +1,15 @@
-From: Steven Hirsch <snhirsch@gmail.com>
-Subject: Re: Need help w/ autofs application
-Date: Mon, 2 Feb 2009 07:47:50 -0500 (EST)
-Message-ID: <alpine.DEB.2.00.0902020738360.27957@duo>
-References: <alpine.DEB.2.00.0901271826510.7987@duo>
-	<1233113623.3005.25.camel@zeus.themaw.net>
-	<alpine.DEB.2.00.0902011047400.27957@duo>
-	<1233546965.3224.45.camel@zeus.themaw.net>
+From: Michael Loftis <mloftis@wgops.com>
+Subject: Re: AutoFS Race Conditions?  Negative Cache?
+Date: Mon, 02 Feb 2009 14:13:56 -0700
+Message-ID: <E53DDD7AD6715F60A879D415@ZOP-MACTEL.local>
+References: <F76FAA9B4E7600AAC1FFA15B@ZOP-MACTEL.local>
+	<1233113406.3005.21.camel@zeus.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1233546965.3224.45.camel@zeus.themaw.net>
+In-Reply-To: <1233113406.3005.21.camel@zeus.themaw.net>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,64 +23,78 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-On Mon, 2 Feb 2009, Ian Kent wrote:
 
->> 1. If I create /net beforehand and attempt to log directly to a home
->>     directory in NFS at start of the chroot'ed session:
->>
->> Feb  1 11:07:21 duo automount[23853]: starting automounter version 4.1.4, path = /net, maptype = file, mapname = /etc/aut
->> Feb  1 11:07:21 duo automount[23853]: parse(sun): init gathered options: intr
->> Feb  1 11:07:21 duo automount[23853]: mount(bind): bind_works = 1
->> Feb  1 11:07:21 duo automount[23853]: using kernel protocol version 4.00
->> Feb  1 11:07:21 duo automount[23853]: using timeout 300 seconds; freq 75 secs
->> Feb  1 11:07:21 duo automount[23853]: sig 12 switching from 1 to 5
+
+--On January 28, 2009 12:30:06 PM +0900 Ian Kent <raven@themaw.net> wrote:
+
+> It was quite a long while before we realized that a change to the VFS
+> between kernel 2.4 and 2.6 stopped the kernel module negative caching
+> from working. Trying to re-implement it in the kernel proved to be far
+> to complicated so it was eventually added to the daemon. I haven't
+> updated version 4 for a long time and don't plan to do so as the effort
+> in targeted at version 5 and has been for some time. I don't have time
+> to do both so version 5 gets the effort. Of course, if distribution
+> package maintainers want to update their packages, patches are around
+> and I can help with that effort.
+
+I'll get ahold of the Debian (kernel and autofs) maintainer email addresses 
+and ask them about that.  It's not that I/we can't maintain our own kernels 
+and autofs packages, it's just that (atleast for the kernel) it's a pretty 
+high work load on an already thin staff.
+
+> There are other problems with the kernel module in 2.6.18 that appear to
+> give similar symptoms as well. You could try patching the kernel with
+> the latest autofs4 kernel module patches, which can be found in the
+> current version 5 tarball. There is still one issue that I'm aware of
+> that affects version 4 specifically, but I can't yet duplicate it and so
+> can't check if a fix would introduce undesirable side effects.
+
+I understand that.  I'm having trouble reproducing this one except under 
+load, which is why I decided it's probably some sort of race condition. 
+And it goes away when i set timeout=0.  I'm betting though that with 
+'current' autofs4 module it may not happen or with 'current' daemon and 
+module. I tried to get autofs5 debian package from sid/lenny (debian 
+unstable/testing) to compile but because it's using some symbols that don't 
+exist in ldap.h from openldap 2.1 it won't compile for Debian 4.0 without a 
+little bit of massaging.
+
+Another problem I ran into was that there's no way to pass the -n flag to 
+mount.  I'm probably going to have to make my own autofs4 daemon packages, 
+but is this a feature of autofs5 daemon?  The reason I ask is the 
+webservers here well, linking /proc/mounts to /etc/mtab is bad for the same 
+reason, ls takes a few seconds (as do many other things) to execute when 
+there's 12k+ mounts in /etc/mtab (that might be less if we can get 
+timeout's to work but as we don't have any profiles on this...).  We'd need 
+this long term for both nfs and bind mounts.  It doesn't appear that it's 
+an option in autofs5 either as the call ends up being ::
+                err = spawn_bind_mount(ap->logopt,
+                             SLOPPYOPT "-o", options, what, fullpath, NULL);
+
 >
-> I have no idea where the SIGUSR2 signal is coming from but it will cause
-> autofs to shutdown if there are no mounts that are busy when it gets it.
-
-That's just the point!  I'm not generating the SIGUSR2, nor is anything in 
-schroot.  The only difference between the failing run above and the 
-working one below is that the latter does not try to cd directly into the 
-automounted home directory before starting the interactive session.
-
-Can you think of any possible reason for the difference in behavior?
-
-Any ideas how to track down what's issuing the signal?
-
-
->> 3. If I create /net beforehand and log to a local filesystem initially at
->>     start of the chroot'ed session:
 >>
->> Feb  1 11:11:14 duo automount[25830]: starting automounter version 4.1.4, path = /net, maptype = file, mapname = /etc/auto.net
->> Feb  1 11:11:14 duo automount[25830]: parse(sun): init gathered options: intr
->> Feb  1 11:11:14 duo automount[25830]: mount(bind): bind_works = 1
->> Feb  1 11:11:14 duo automount[25830]: using kernel protocol version 4.00
->> Feb  1 11:11:14 duo automount[25830]: using timeout 300 seconds; freq 75 secs
->> Feb  1 11:11:14 duo automount[25830]: handle_packet: type = 0
->> Feb  1 11:11:14 duo automount[25830]: handle_packet_missing: token 35, name home
->> Feb  1 11:11:14 duo automount[25830]: attempting to mount entry /net/home
->> Feb  1 11:11:14 duo automount[25835]: lookup(file): home -> -rsize=65536,wsize=65536,tcp pii.fast.net:/ips_home/home
->> Feb  1 11:11:14 duo automount[25835]: parse(sun): expanded entry: -rsize=65536,wsize=65536,tcp pii.fast.net:/ips_home/home
->> Feb  1 11:11:14 duo automount[25835]: parse(sun): dequote("rsize=65536,wsize=65536,tcp") -> rsize=65536,wsize=65536,tcp
->> Feb  1 11:11:14 duo automount[25835]: parse(sun): gathered options: intr,rsize=65536,wsize=65536,tcp
->> Feb  1 11:11:14 duo automount[25835]: parse(sun): dequote("pii.fast.net:/ips_home/home") -> pii.fast.net:/ips_home/home
->> Feb  1 11:11:14 duo automount[25835]: parse(sun): core of entry: options=intr,rsize=65536,wsize=65536,tcp, loc=pii.fast.net:/ips_home/home
->> Feb  1 11:11:14 duo automount[25835]: parse(sun): mounting root /net, mountpoint home, what pii.fast.net:/ips_home/home, fstype nfs, options intr,rsize=65536,wsize=65536,tcp
->> Feb  1 11:11:14 duo automount[25835]: mount(nfs): root=/net name=home what=pii.fast.net:/ips_home/home, fstype=nfs, options=intr,rsize=65536,wsize=65536,tcp
->> Feb  1 11:11:14 duo automount[25835]: mount(nfs): nfs options="intr,rsize=65536,wsize=65536,tcp", nosymlink=0, symlink=0, ro=0
->> Feb  1 11:11:14 duo automount[25835]: mount(nfs): is_local_mount: pii.fast.net:/ips_home/home
->> Feb  1 11:11:14 duo automount[25835]: mount(nfs): from pii.fast.net:/ips_home/home elected pii.fast.net:/ips_home/home
->> Feb  1 11:11:14 duo automount[25835]: mount(nfs): calling mkdir_path /net/home
->> Feb  1 11:11:14 duo automount[25835]: mount(nfs): calling mount -t nfs -s  -o intr,rsize=65536,wsize=65536,tcp pii.fast.net:/ips_home/home /net/home
->> Feb  1 11:11:14 duo automount[25835]: mount(nfs): mounted pii.fast.net:/ips_home/home on /net/home
->> Feb  1 11:11:14 duo automount[25830]: handle_child: got pid 25835, sig 0 (0), stat 0
->> Feb  1 11:11:14 duo automount[25830]: sig_child: found pending iop pid 25835: signalled 0 (sig 0), exit status 0
->> Feb  1 11:11:14 duo automount[25830]: send_ready: token=35
+>> for ex (actual domain name changed to protect bystanders):  (in
+>> /proc/mounts)
+>> nfs0:/www/vhosts/l /d1/l/luserdomain.org/logs nfs
+>> rw,vers=3,rsize=8192,wsize=8192,hard,intr,proto=udp,timeo=11,retrans=2,s
+>> ec=sys,addr=nfs0  0 0
+>> /dev/hda3 /d1/l/luserdomain.org/logs/.renv ext3 rw,noatime,data=ordered
+>> 0 0
 >>
->> !! ====> Now I have an accessible home directory and can cd into it.
+>>
+>> == auto.master ==
+>> /d1/0 /etc/auto.jail -strict -DH=0
+>> /d1/1 /etc/auto.jail -strict -DH=1
+>> ...
+>> /d1/z /etc/auto.jail -strict -DH=z
+>>
+>> == auto.jail ==
+>> *	/	:/www/vhosts/${H}/& /.renv :/opt/jail
 >
-> And no SIGUSR2, so that is expected I guess!
+> I don't know where these mounts are coming from.
+> It doesn't look right but we don't know as we don't have a debug log to
+> refer to.
 
-
-
--- 
+I did try that, but there just isn't fast enough disks to get the condition 
+to happen and get the logs.  I'll poke with it a bit more though and see if 
+I can get any more useful information, my hunch is it's a race condition on 
+the umount call(s) somehow with multi-mounts.
