@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: AutoFS Race Conditions?  Negative Cache?
-Date: Tue, 03 Feb 2009 12:26:08 +0900
-Message-ID: <1233631568.2951.23.camel@zeus.themaw.net>
+Date: Tue, 03 Feb 2009 12:34:36 +0900
+Message-ID: <1233632076.2951.32.camel@zeus.themaw.net>
 References: <F76FAA9B4E7600AAC1FFA15B@ZOP-MACTEL.local>
 	<1233113406.3005.21.camel@zeus.themaw.net>
 	<E53DDD7AD6715F60A879D415@ZOP-MACTEL.local>
@@ -26,57 +26,51 @@ To: Michael Loftis <mloftis@wgops.com>
 Cc: autofs@linux.kernel.org
 
 On Mon, 2009-02-02 at 18:05 -0700, Michael Loftis wrote:
-> 
-> --On February 3, 2009 9:45:55 AM +0900 Ian Kent <raven@themaw.net> wrote:
-> 
-> >> I understand that.  I'm having trouble reproducing this one except under
-> >> load, which is why I decided it's probably some sort of race condition.
-> >> And it goes away when i set timeout=0.  I'm betting though that with
-> >> 'current' autofs4 module it may not happen or with 'current' daemon and
-> >> module. I tried to get autofs5 debian package from sid/lenny (debian
-> >> unstable/testing) to compile but because it's using some symbols that
-> >> don't  exist in ldap.h from openldap 2.1 it won't compile for Debian 4.0
-> >> without a  little bit of massaging.
 > >
-> > What are the symbols?
-> > Send over the compile breakage output or the Debian source package (I
-> > can probably check it out on my Ubuntu test machine).
+> >>
+> >> Another problem I ran into was that there's no way to pass the -n flag
+> >> to  mount.  I'm probably going to have to make my own autofs4 daemon
+> >> packages,  but is this a feature of autofs5 daemon?  The reason I ask is
+> >> the  webservers here well, linking /proc/mounts to /etc/mtab is bad for
+> >> the same  reason, ls takes a few seconds (as do many other things) to
+> >> execute when  there's 12k+ mounts in /etc/mtab (that might be less if we
+> >> can get  timeout's to work but as we don't have any profiles on
+> >> this...).  We'd need  this long term for both nfs and bind mounts.  It
+> >> doesn't appear that it's  an option in autofs5 either as the call ends
+> >> up being :: err = spawn_bind_mount(ap->logopt, SLOPPYOPT "-o", options,
+> >>                              what, fullpath, NULL);
+> >
+> > Right, have a look at 5.0.4, those functions will check if /etc/mtab is
+> > a link to /proc/mounts and add "-n" to the mount options if it is. I try
+> > my best to keep all the individual patches for each version update (at
+> > least through the v5 updates) and often they are straight forward to
+> > backport.
+> >
+> > It's true that there are still bugs in v5, even after more than two
+> > years working at it, but as far as I can tell, people generally feel
+> > that v5 is much better than v4.
 > 
-> Using the autofs5 package from sid and after a few minor massages to get 
-> the debhelper stuff into compliance with the older etch dh tools (5.0.3 
-> base, but same errors are present in 5.0.4, same undef-ed symbol) 
-> LDAP_CONTROL_PAGEDRESULTS seems to have appeared somewhere eitehr in 
-> OpenLDAP 2.2 or in 2.1 after debians libldap2-dev  2.1.30-13.3 packages.
+> Yeah doing a symlink still has the same problem for us.  ls does 
+> 'something' that reads /etc/mtab.  With our current script which walks our 
+> NFS tree and calls mount -n --bind everything is good, so for us we just 
+> need to be able to pass -n because we need a short /etc/mtab.  -- /root is 
+> local btw...  and if you strace you can see it walking through /etc/mtab. 
+> Other utils, like df too.  Granted once we can get timeouts working they'll 
+> be a lot shorter but the delay will still be significant.  Right now it's 
+> carrying ~6k mounts from the old system and the active mounts from the 
+> autofs based stuff (again it's not unmounting right now because turning 
+> that on caused it to become completely unstable)  No symlinks in either, 
+> just a few misc files (excluded from here though).
+> 
 
-My bad since those functions are defined by autofs if they aren't
-present I should be checking for the related symbol define.
+Using "-n" is likely a problem for autofs prior to 5.0.4 but would also
+require the 2.6.28 kernel module patch update for the kernel you are
+using and you need to tell autofs to use the newly introduced ioctl
+interface otherwise it will still scan mtab from time to time, expecting
+it to be up to date.
 
-Does this help?
+But, once the above is in place it should be possible to use a "-n" on
+the mount commands without affecting autofs function. Not sure the best
+way to provide that though.
 
-autofs-5.0.4 - -check LDAP_CONTROL_PAGEDRESULTS defined
-
-From: Ian Kent <raven@themaw.net>
-
-If LDAP_CONTROL_PAGEDRESULTS is not defined in LDAP includes then
-define it.
----
-
- modules/lookup_ldap.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
-
-
-diff --git a/modules/lookup_ldap.c b/modules/lookup_ldap.c
-index 6ba80eb..64b4168 100644
---- a/modules/lookup_ldap.c
-+++ b/modules/lookup_ldap.c
-@@ -39,6 +39,10 @@
- 
- #define MODPREFIX "lookup(ldap): "
- 
-+#ifndef LDAP_CONTROL_PAGEDRESULTS
-+#define LDAP_CONTROL_PAGEDRESULTS "1.2.840.113556.1.4.319" /* RFC 2696 */
-+#endif
-+
- int lookup_version = AUTOFS_LOOKUP_VERSION;	/* Required by protocol */
- 
- static struct ldap_schema common_schema[] = {
+Ian
