@@ -1,14 +1,15 @@
 From: Guillaume Rousse <Guillaume.Rousse@inria.fr>
 Subject: Re: krb5 required when building with sasl support
-Date: Fri, 06 Feb 2009 14:09:29 +0100
-Message-ID: <498C3689.2080403@inria.fr>
-References: <n7xy6wmw3uu.fsf@sor.suse.de>	<4989C939.7090106@s3group.cz>	<498B2F91.1090607@inria.fr>	<n7xr62bx0fg.fsf@sor.suse.de>
-	<498C2BDA.6070101@s3group.cz>
+Date: Fri, 06 Feb 2009 14:18:40 +0100
+Message-ID: <498C38B0.5010409@inria.fr>
+References: <n7xy6wmw3uu.fsf@sor.suse.de>
+	<4989C939.7090106@s3group.cz>	<498B2F91.1090607@inria.fr>
+	<n7xr62bx0fg.fsf@sor.suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <498C2BDA.6070101@s3group.cz>
+In-Reply-To: <n7xr62bx0fg.fsf@sor.suse.de>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,16 +22,27 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Cc: autofs mailing list <autofs@linux.kernel.org>
 
-Ondrej Valousek a =E9crit :
-> sasl could be (theoretically) built without GSSAPI support and in this
-> case it would not require Kerberos. But the facts are:
-> - sasl support in autofs can not be obviously compiled without gssapi
-> - in these days sasl is many times meant as synonym for sasl/gssapi so
-> it probably does not make any sense not to include gssapi once we
-> include sasl.
+Matthias Koenig a =E9crit :
+> Guillaume Rousse <Guillaume.Rousse@inria.fr> writes:
+> =
 
-But you should be able to link against SASL without prior knowledge of =
+>> More seriously, I think the proper solution would rather be fixing =
 
-its own dependencies. That's the point of avoiding distributing =
+>> underliking in SASL (http://wiki.mandriva.com/en/Underlinking).
+> =
 
-underlinked libraries.
+> Hmm, are you really sure, that libsasl depends on kerberos symbols?
+> In this case you would be right.
+> I assumed that they're independent from each other and after
+> a quick grep I couldn't find any krb5_* symbols in libsasl.
+> At least the lookup_ldap.h header from autofs explicitly includes
+> the krb5.h header.
+Indeed. I just checked libsasl is built with -Wl,--no-undefined flag, =
+
+and doesn't have undefined symbols either.
+
+I guess the issue (in my case) is not to detect SASL presence, but to =
+
+add -lkrb5 when building autofs ldap plugin (which can't use =
+
+-Wl,--no-undefined safety option, as it is a plugin).
