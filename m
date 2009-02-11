@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 03/13] autofs-5.0.4 - uris list locking fix
-Date: Thu, 12 Feb 2009 01:00:24 +0900
-Message-ID: <20090211160024.12578.27227.stgit@zeus.themaw.net>
+Subject: [PATCH 13/13] autofs-5.0.4 - ipv6 parse
+Date: Thu, 12 Feb 2009 01:01:19 +0900
+Message-ID: <20090211160119.12578.51600.stgit@zeus.themaw.net>
 References: <20090211154853.12578.50525.stgit@zeus.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -20,222 +20,465 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs mailing list <autofs@linux.kernel.org>
 
-The ldap uris list doesn't need to change we just need to keep
-track of current server uri in the list and try to connect in
-a round robin order. Also it's possible multiple concurrent
-connection attempts may not be able to use the full list of
-servers (if one is present).
+Since ipv6 addresses use a colon separator and we use the colon quite a
+bit as a delimiting character we need to distinguish between when the
+colon is the delimeter we are looking for and when it is part of an ipv6
+address. Since there is widespread use of "[" and "]" to provide the
+ability to separate a port specification from an ipv6 address this
+convention has also been used in autofs.
 ---
 
- CHANGELOG             |    1 +
- include/lookup_ldap.h |    3 +-
- modules/lookup_ldap.c |   68 ++++++++++++++++++++++---------------------------
- 3 files changed, 33 insertions(+), 39 deletions(-)
+ include/parse_subs.h   |    8 ++++
+ lib/master_tok.l       |   10 +++--
+ lib/parse_subs.c       |   99 +++++++++++++++++++++++++++++++++++++++++++++---
+ modules/lookup_file.c  |   40 +++++++------------
+ modules/lookup_ldap.c  |   21 +++++++++-
+ modules/mount_autofs.c |   29 ++++++--------
+ modules/parse_sun.c    |   16 +++++---
+ modules/replicated.c   |   26 ++++++++++++-
+ 8 files changed, 186 insertions(+), 63 deletions(-)
 
-diff --git a/CHANGELOG b/CHANGELOG
-index 3199e4d..b093451 100644
---- a/CHANGELOG
-+++ b/CHANGELOG
-@@ -10,6 +10,7 @@
- - clear the quoted flag after each character from program map input.
- - use CLOEXEC flag for setmntent also.
- - fix hosts map use after free (Paul Wankadia).
-+- fix uri list locking (again).
+diff --git a/include/parse_subs.h b/include/parse_subs.h
+index 643ad68..ecc712d 100644
+--- a/include/parse_subs.h
++++ b/include/parse_subs.h
+@@ -20,6 +20,12 @@
  
- 4/11/2008 autofs-5.0.4
- -----------------------
-diff --git a/include/lookup_ldap.h b/include/lookup_ldap.h
-index f9ed778..b47bf5d 100644
---- a/include/lookup_ldap.h
-+++ b/include/lookup_ldap.h
-@@ -55,7 +55,8 @@ struct lookup_context {
-  	 * given in configuration.
-  	 */
- 	pthread_mutex_t uris_mutex;
--	struct list_head *uri;
-+	struct list_head *uris;
-+	struct ldap_uri *uri;
- 	char *cur_host;
- 	struct ldap_searchdn *sdns;
+ struct mapent;
  
++struct map_type_info {
++	char *type;
++	char *format;
++	char *map;
++};
++
+ const char *skipspace(const char *);
+ int check_colon(const char *);
+ int chunklen(const char *, int);
+@@ -27,5 +33,7 @@ int strmcmp(const char *, const char *, int);
+ char *dequote(const char *, int, unsigned int);
+ int span_space(const char *, unsigned int);
+ char *sanitize_path(const char *, int, unsigned int, unsigned int);
++void free_map_type_info(struct map_type_info *);
++struct map_type_info *parse_map_type_info(const char *);
+ 
+ #endif
+diff --git a/lib/master_tok.l b/lib/master_tok.l
+index 801aa6f..b6cc8be 100644
+--- a/lib/master_tok.l
++++ b/lib/master_tok.l
+@@ -96,10 +96,12 @@ SLASHIFYSTR	(--(no-)?slashify-colons)
+ NUMBER		[0-9]+
+ 
+ DNSERVSTR1	([[:alpha:]][[:alnum:]\-.]*(:[0-9]+)?:)
+-DNSERVSTR2	(\/\/[[:alpha:]][[:alnum:]\-.]*(:[0-9]+)?\/)
+-DNSERVSTR3	(([[:digit:]]{1,3}\.){3}[[:digit:]]{1,3}(:[0-9]+)?:)
+-DNSERVSTR4	(\/\/([[:digit:]]{1,3}\.){3}[[:digit:]]{1,3}(:[0-9]+)?\/)
+-DNSERVERSTR	({DNSERVSTR1}|{DNSERVSTR2}|{DNSERVSTR3}|{DNSERVSTR4})
++DNSERVSTR2	(\[([[:xdigit:]]:.)+\](:[0-9]+)?:)
++DNSERVSTR3	(\/\/[[:alpha:]][[:alnum:]\-.]*(:[0-9]+)?\/)
++DNSERVSTR4	(\/\/\[([[:xdigit:]]:.)+\](:[0-9]+)?\/)
++DNSERVSTR5	(([[:digit:]]{1,3}\.){3}[[:digit:]]{1,3}(:[0-9]+)?:)
++DNSERVSTR6	(\/\/([[:digit:]]{1,3}\.){3}[[:digit:]]{1,3}(:[0-9]+)?\/)
++DNSERVERSTR	({DNSERVSTR1}|{DNSERVSTR2}|{DNSERVSTR3}|{DNSERVSTR4}|{DNSERVSTR5}|{DNSERVSTR6})
+ 
+ AT_CN		([cC][[nN])
+ AT_NMN		([nN][iI][sS][Mm][aA][pP][Nn][aA][mM][eE])
+diff --git a/lib/parse_subs.c b/lib/parse_subs.c
+index 8a032e8..0cba95a 100644
+--- a/lib/parse_subs.c
++++ b/lib/parse_subs.c
+@@ -56,14 +56,13 @@ int check_colon(const char *str)
+ 	char *ptr = (char *) str;
+ 
+ 	/* Colon escape */
+-	if (*ptr == ':')
++	if (!strncmp(ptr, ":/", 2))
+ 		return 1;
+ 
+-	while (*ptr && *ptr != ':' && *ptr != '/') {
++	while (*ptr && strncmp(ptr, ":/", 2))
+ 		ptr++;
+-	}
+ 
+-	if (!*ptr || *ptr == '/')
++	if (!*ptr)
+ 		return 0;
+ 
+ 	return 1;
+@@ -93,12 +92,12 @@ int chunklen(const char *whence, int expect_colon)
+ 				n++;
+ 				if (*str == '"')
+ 					break;
+-				if (*str == ':')
++				if (!strncmp(str, ":/", 2))
+ 					expect_colon = 0;
+ 			}
+ 			break;
+ 		case ':':
+-			if (expect_colon)
++			if (expect_colon && !strncmp(str, ":/", 2))
+ 				expect_colon = 0;
+ 			continue;
+ 		case ' ':
+@@ -300,3 +299,91 @@ char *sanitize_path(const char *path, int origlen, unsigned int type, unsigned i
+ 	return s_path;
+ }
+ 
++void free_map_type_info(struct map_type_info *info)
++{
++	if (info->type)
++		free(info->type);
++	if (info->format)
++		free(info->format);
++	if (info->map)
++		free(info->map);
++	free(info);
++	return;
++}
++
++struct map_type_info *parse_map_type_info(const char *str)
++{
++	struct map_type_info *info;
++	char *buf, *type, *fmt, *map, *tmp;
++
++	buf = strdup(str);
++	if (!buf)
++		return NULL;
++
++	info = malloc(sizeof(struct map_type_info));
++	if (!info) {
++		free(buf);
++		return NULL;
++	}
++	memset(info, 0, sizeof(struct map_type_info));
++
++	type = fmt = NULL;
++
++	/* Look for space terminator - ignore local options */
++	map = buf;
++	for (tmp = buf; *tmp; tmp++) {
++		if (*tmp == ' ') {
++			*tmp = '\0';
++			break;
++		} else if (*tmp == ',') {
++			type = buf;
++			*tmp++ = '\0';
++			fmt = tmp;
++		} else if (*tmp == ':') {
++			if (!fmt)
++				type = buf;
++			*tmp++ = '\0';
++			map = tmp;
++		} else if (*tmp == '[') {
++			/*
++			 * Unescaped '[' is a syntax error here as only
++			 * an ldap map with a type specified should contain
++			 * them. 
++			 */
++			free(buf);
++			return 0;
++		}
++		if (*tmp == '\\')
++			tmp++;
++	}
++
++	if (type) {
++		info->type = strdup(type);
++		if (!info->type) {
++			free(buf);
++			free_map_type_info(info);
++			return NULL;
++		}
++	}
++
++	if (fmt) {
++		info->format = strdup(fmt);
++		if (!info->format) {
++			free(buf);
++			free_map_type_info(info);
++			return NULL;
++		}
++	}
++
++	info->map = strdup(map);
++	if (!info->map) {
++		free(buf);
++		free_map_type_info(info);
++		return NULL;
++	}
++
++	free(buf);
++
++	return info;
++}
++
+diff --git a/modules/lookup_file.c b/modules/lookup_file.c
+index ba80f2a..ec78090 100644
+--- a/modules/lookup_file.c
++++ b/modules/lookup_file.c
+@@ -523,10 +523,10 @@ prepare_plus_include(struct autofs_point *ap, time_t age, char *key, unsigned in
+ {
+ 	struct map_source *current;
+ 	struct map_source *source;
+-	char *type, *map, *fmt;
++	struct map_type_info *info;
+ 	const char *argv[2];
+ 	int argc;
+-	char *buf, *tmp;
++	char *buf;
+ 
+ 	current = ap->entry->current;
+ 	ap->entry->current = NULL;
+@@ -548,33 +548,19 @@ prepare_plus_include(struct autofs_point *ap, time_t age, char *key, unsigned in
+ 		return NULL;
+ 	}
+ 
+-	type = fmt = NULL;
+-
+-	/* Look for space terminator - ignore local options */
+-	map = buf;
+-	for (tmp = buf; *tmp; tmp++) {
+-		if (*tmp == ' ') {
+-			*tmp = '\0';
+-			break;
+-		} else if (*tmp == ',') {
+-			type = buf;
+-			*tmp++ = '\0';
+-			fmt = tmp;
+-		} else if (*tmp == ':') {
+-			if (!fmt)
+-				type = buf;
+-			*tmp++ = '\0';
+-			map = tmp;
+-		}
+-		if (*tmp == '\\')
+-			tmp++;
++	if (!(info = parse_map_type_info(buf))) {
++		error(ap->logopt, MODPREFIX "failed to parse map info");
++		free(buf);
++		return NULL;
+ 	}
+ 
+ 	argc = 1;
+-	argv[0] = map;
++	argv[0] = info->map;
+ 	argv[1] = NULL;
+ 
+-	source = master_find_source_instance(current, type, fmt, argc, argv);
++	source = master_find_source_instance(current,
++					     info->type, info->format,
++					     argc, argv);
+ 	if (source)
+ 		/*
+ 		 * Make sure included map age is in sync with its owner
+@@ -582,8 +568,11 @@ prepare_plus_include(struct autofs_point *ap, time_t age, char *key, unsigned in
+ 		 */
+ 		source->age = age;
+ 	else {
+-		source = master_add_source_instance(current, type, fmt, age, argc, argv);
++		source = master_add_source_instance(current,
++						    info->type, info->format,
++						    age, argc, argv);
+ 		if (!source) {
++			free_map_type_info(info);
+ 			free(buf);
+ 			error(ap->logopt, "failed to add included map instance");
+ 			return NULL;
+@@ -594,6 +583,7 @@ prepare_plus_include(struct autofs_point *ap, time_t age, char *key, unsigned in
+ 	if (inc)
+ 		source->recurse = 1;
+ 
++	free_map_type_info(info);
+ 	free(buf);
+ 
+ 	return source;
 diff --git a/modules/lookup_ldap.c b/modules/lookup_ldap.c
-index 6ba80eb..b6784e1 100644
+index 094cbdc..7845bcf 100644
 --- a/modules/lookup_ldap.c
 +++ b/modules/lookup_ldap.c
-@@ -137,7 +137,7 @@ static void uris_mutex_unlock(struct lookup_context *ctxt)
- 	return;
+@@ -1119,11 +1119,26 @@ static int parse_server_string(unsigned logopt, const char *url, struct lookup_c
+ 			memcpy(ctxt->server, s, l);
+ */
+ 		}
+-	} else if (strchr(ptr, ':') != NULL) {
+-		char *q = NULL;
++	} else if (strchr(ptr, ':') != NULL || *ptr == '[') {
++		const char *q = NULL;
+ 
+ 		/* Isolate the server. Include the port spec */
+-		q = strchr(ptr, ':');
++		if (*ptr != '[')
++			q = strchr(ptr, ':');
++		else {
++			q = ++ptr;
++			while (*q == ':' || isxdigit(*q))
++				q++;
++			if (*q != ']') {
++				crit(logopt, MODPREFIX
++				     "invalid LDAP map syntax %s", ptr);
++				return 0;
++			}
++			q++;
++			if (*q == ':')
++				q++;
++		}
++
+ 		if (isdigit(*q))
+ 			while (isdigit(*q))
+ 				q++;
+diff --git a/modules/mount_autofs.c b/modules/mount_autofs.c
+index fab2906..14d6307 100644
+--- a/modules/mount_autofs.c
++++ b/modules/mount_autofs.c
+@@ -50,7 +50,7 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name,
+ 	int argc, status, ghost = ap->flags & MOUNT_FLAG_GHOST;
+ 	time_t timeout = ap->exp_timeout;
+ 	unsigned logopt = ap->logopt;
+-	char *type, *format, *tmp, *tmp2;
++	struct map_type_info *info;
+ 	struct master *master;
+ 	struct master_mapent *entry;
+ 	struct map_source *source;
+@@ -174,21 +174,12 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name,
+ 
+ 	argc = 1;
+ 
+-	type = NULL;
+-	format = NULL;
+-
+-	tmp = strchr(what, ':');
+-	if (tmp) {
+-		*tmp++ = '\0';
+-		tmp2 = strchr(what, ',');
+-		if (tmp2) {
+-			*tmp2++ = '\0';
+-			format = tmp2;
+-		}
+-		type = (char *) what;
+-		argv[0] = tmp;
+-	} else
+-		argv[0] = (char *) what;
++	if (!(info = parse_map_type_info(what))) {
++		error(ap->logopt, MODPREFIX "failed to parse map info");
++		master_free_mapent(entry);
++		return 1;
++	}
++	argv[0] = info->map;
+ 
+ 	if (options) {
+ 		p = options;
+@@ -202,13 +193,17 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name,
+ 	}
+ 	argv[argc] = NULL;
+ 
+-	source = master_add_map_source(entry, type, format, time(NULL), argc, argv);
++	source = master_add_map_source(entry,
++				       info->type, info->format,
++				       time(NULL), argc, argv);
+ 	if (!source) {
+ 		error(ap->logopt,
+ 		      MODPREFIX "failed to add map source to entry");
+ 		master_free_mapent(entry);
++		free_map_type_info(info);
+ 		return 1;
+ 	}
++	free_map_type_info(info);
+ 
+ 	source->mc = cache_init(entry->ap, source);
+ 	if (!source->mc) {
+diff --git a/modules/parse_sun.c b/modules/parse_sun.c
+index ed73e46..65417e1 100644
+--- a/modules/parse_sun.c
++++ b/modules/parse_sun.c
+@@ -245,7 +245,9 @@ int expandsunent(const char *src, char *dst, const char *key,
+ 				*(dst++) = 
+ 				  (seen_colons && slashify_colons) ? '/' : ':';
+ 			len++;
+-			seen_colons = 1;
++			/* Were looking for the colon preceeding a path */
++			if (*src == '/')
++				seen_colons = 1;
+ 			break;
+ 
+ 		default:
+@@ -814,21 +816,23 @@ static int validate_location(char *loc)
+ 		return 1;
+ 
+ 	/*
+-	 * If a ':' is present now it must be a host name, except
++	 * If a ':/' is present now it must be a host name, except
+ 	 * for those special file systems like sshfs which use "#"
+-	 * and "@" in the host name part.
++	 * and "@" in the host name part and ipv6 addresses that
++	 * have ":", "[" and "]".
+ 	 */
+ 	if (check_colon(ptr)) {
+-		while (*ptr && *ptr != ':') {
++		while (*ptr && strncmp(ptr, ":/", 2)) {
+ 			if (!(isalnum(*ptr) ||
+ 			    *ptr == '-' || *ptr == '.' || *ptr == '_' ||
+ 			    *ptr == ',' || *ptr == '(' || *ptr == ')' ||
+-			    *ptr == '#' || *ptr == '@'))
++			    *ptr == '#' || *ptr == '@' || *ptr == ':' ||
++			    *ptr == '[' || *ptr == ']'))
+ 				return 0;
+ 			ptr++;
+ 		}
+ 
+-		if (*ptr && *ptr == ':')
++		if (*ptr && !strncmp(ptr, ":/", 2))
+ 			ptr++;
+ 	}
+ 
+diff --git a/modules/replicated.c b/modules/replicated.c
+index 9e85c00..79845d0 100644
+--- a/modules/replicated.c
++++ b/modules/replicated.c
+@@ -1168,6 +1168,28 @@ static int add_local_path(struct host **hosts, const char *path)
+ 	return 1;
  }
  
--int bind_ldap_anonymous(unsigned logopt, LDAP *ldap, struct lookup_context *ctxt)
-+int bind_ldap_anonymous(unsigned logopt, LDAP *ldap, const char *uri, struct lookup_context *ctxt)
- {
- 	int rv;
- 
-@@ -147,16 +147,14 @@ int bind_ldap_anonymous(unsigned logopt, LDAP *ldap, struct lookup_context *ctxt
- 		rv = ldap_simple_bind_s(ldap, NULL, NULL);
- 
- 	if (rv != LDAP_SUCCESS) {
--		if (!ctxt->uri) {
-+		if (!ctxt->uris) {
- 			crit(logopt, MODPREFIX
- 			     "Unable to bind to the LDAP server: "
- 			     "%s, error %s", ctxt->server ? "" : "(default)",
- 			     ldap_err2string(rv));
- 		} else {
--			struct ldap_uri *uri;
--			uri = list_entry(ctxt->uri->next, struct ldap_uri, list);
- 			info(logopt, MODPREFIX "Unable to bind to the LDAP server: "
--			     "%s, error %s", uri->uri, ldap_err2string(rv));
-+			     "%s, error %s", uri, ldap_err2string(rv));
- 		}
- 		return -1;
- 	}
-@@ -498,7 +496,7 @@ static int find_query_dn(unsigned logopt, LDAP *ldap, struct lookup_context *ctx
- 	return 0;
- }
- 
--static int do_bind(unsigned logopt, LDAP *ldap, struct lookup_context *ctxt)
-+static int do_bind(unsigned logopt, LDAP *ldap, const char *uri, struct lookup_context *ctxt)
- {
- 	char *host = NULL, *nhost;
- 	int rv, need_base = 1;
-@@ -511,11 +509,11 @@ static int do_bind(unsigned logopt, LDAP *ldap, struct lookup_context *ctxt)
- 		rv = autofs_sasl_bind(logopt, ldap, ctxt);
- 		debug(logopt, MODPREFIX "autofs_sasl_bind returned %d", rv);
- 	} else {
--		rv = bind_ldap_anonymous(logopt, ldap, ctxt);
-+		rv = bind_ldap_anonymous(logopt, ldap, uri, ctxt);
- 		debug(logopt, MODPREFIX "ldap anonymous bind returned %d", rv);
- 	}
- #else
--	rv = bind_ldap_anonymous(logopt, ldap, ctxt);
-+	rv = bind_ldap_anonymous(logopt, ldap, uri, ctxt);
- 	debug(logopt, MODPREFIX "ldap anonymous bind returned %d", rv);
- #endif
- 
-@@ -584,7 +582,7 @@ static LDAP *do_connect(unsigned logopt, const char *uri, struct lookup_context
- 	if (!ldap)
- 		return NULL;
- 
--	if (!do_bind(logopt, ldap, ctxt)) {
-+	if (!do_bind(logopt, ldap, uri, ctxt)) {
- 		unbind_ldap_connection(logopt, ldap, ctxt);
- 		return NULL;
- 	}
-@@ -612,7 +610,7 @@ static LDAP *connect_to_server(unsigned logopt, const char *uri, struct lookup_c
- 			return NULL;
- 		}
- 
--		if (!do_bind(logopt, ldap, ctxt)) {
-+		if (!do_bind(logopt, ldap, uri, ctxt)) {
- 			unbind_ldap_connection(logopt, ldap, ctxt);
- 			autofs_sasl_dispose(ctxt);
- 			error(logopt, MODPREFIX "cannot bind to server");
-@@ -638,36 +636,34 @@ static LDAP *find_server(unsigned logopt, struct lookup_context *ctxt)
- {
- 	LDAP *ldap = NULL;
- 	struct ldap_uri *this;
--	struct list_head *p;
--	LIST_HEAD(tmp);
-+	struct list_head *p, *first;
- 
- 	/* Try each uri in list, add connect fails to tmp list */
- 	uris_mutex_lock(ctxt);
--	p = ctxt->uri->next;
--	while(p != ctxt->uri) {
-+	if (!ctxt->uri)
-+		first = ctxt->uris;
-+	else
-+		first = &ctxt->uri->list;
-+	uris_mutex_unlock(ctxt);
-+	p = first->next;
-+	while(p != first) {
-+		/* Skip list head */
-+		if (p == ctxt->uris) {
-+			p = p->next;
++static char *seek_delim(const char *s)
++{
++	const char *p = s;
++	char *delim;
++
++	delim = strpbrk(p, "(, \t:");
++	if (delim && *delim != ':')
++		return delim;
++
++	while (*p) {
++		if (*p != ':') {
++			p++;
 +			continue;
 +		}
- 		this = list_entry(p, struct ldap_uri, list);
--		uris_mutex_unlock(ctxt);
- 		debug(logopt, "trying server %s", this->uri);
- 		ldap = connect_to_server(logopt, this->uri, ctxt);
- 		if (ldap) {
- 			info(logopt, "connected to uri %s", this->uri);
- 			uris_mutex_lock(ctxt);
-+			ctxt->uri = this;
-+			uris_mutex_unlock(ctxt);
- 			break;
- 		}
--		uris_mutex_lock(ctxt);
- 		p = p->next;
--		list_del_init(&this->list);
--		list_add_tail(&this->list, &tmp);
- 	}
--	/*
--	 * Successfuly connected uri (head of list) and untried uris are
--	 * in ctxt->uri list. Make list of remainder and failed uris with
--	 * failed uris at end and assign back to ctxt-uri.
--	 */
--	list_splice(ctxt->uri, &tmp);
--	INIT_LIST_HEAD(ctxt->uri);
--	list_splice(&tmp, ctxt->uri);
--	uris_mutex_unlock(ctxt);
++		if (!strncmp(p, ":/", 2))
++			return (char *) p;
++		p++;
++	}
++
++	return NULL;
++}
++
+ int parse_location(unsigned logopt, struct host **hosts, const char *list)
+ {
+ 	char *str, *p, *delim;
+@@ -1187,7 +1209,7 @@ int parse_location(unsigned logopt, struct host **hosts, const char *list)
+ 		int weight = 0;
  
- 	return ldap;
- }
-@@ -677,23 +673,19 @@ static LDAP *do_reconnect(unsigned logopt, struct lookup_context *ctxt)
- 	struct ldap_uri *this;
- 	LDAP *ldap;
+ 		p += strspn(p, " \t,");
+-		delim = strpbrk(p, "(, \t:");
++		delim = seek_delim(p);
  
--	if (ctxt->server || !ctxt->uri) {
-+	if (ctxt->server || !ctxt->uris) {
- 		ldap = do_connect(logopt, ctxt->server, ctxt);
- 		return ldap;
- 	}
+ 		if (delim) {
+ 			if (*delim == '(') {
+@@ -1211,7 +1233,7 @@ int parse_location(unsigned logopt, struct host **hosts, const char *list)
  
- 	uris_mutex_lock(ctxt);
--	this = list_entry(ctxt->uri->next, struct ldap_uri, list);
-+	this = ctxt->uri;
- 	uris_mutex_unlock(ctxt);
- 	ldap = do_connect(logopt, this->uri, ctxt);
- 	if (ldap)
- 		return ldap;
+ 				/* Oh boy - might have spaces in the path */
+ 				next = path;
+-				while (*next && *next != ':')
++				while (*next && strncmp(next, ":/", 2))
+ 					next++;
  
--	/* Failed to connect, put at end of list */
--	uris_mutex_lock(ctxt);
--	list_del_init(&this->list);
--	list_add_tail(&this->list, ctxt->uri);
--	uris_mutex_unlock(ctxt);
-+	/* Failed to connect, try to find a new server */
- 
- #ifdef WITH_SASL
- 	autofs_sasl_dispose(ctxt);
-@@ -1259,8 +1251,8 @@ static void free_context(struct lookup_context *ctxt)
- 		free(ctxt->cur_host);
- 	if (ctxt->base)
- 		free(ctxt->base);
--	if (ctxt->uri)
--		defaults_free_uris(ctxt->uri);
-+	if (ctxt->uris)
-+		defaults_free_uris(ctxt->uris);
- 	ret = pthread_mutex_destroy(&ctxt->uris_mutex);
- 	if (ret)
- 		fatal(ret);
-@@ -1344,7 +1336,7 @@ int lookup_init(const char *mapfmt, int argc, const char *const *argv, void **co
- 		if (uris) {
- 			validate_uris(uris);
- 			if (!list_empty(uris))
--				ctxt->uri = uris;
-+				ctxt->uris = uris;
- 			else {
- 				error(LOGOPT_ANY,
- 				      "no valid uris found in config list"
-@@ -1375,7 +1367,7 @@ int lookup_init(const char *mapfmt, int argc, const char *const *argv, void **co
- 	}
- #endif
- 
--	if (ctxt->server || !ctxt->uri) {
-+	if (ctxt->server || !ctxt->uris) {
- 		ldap = connect_to_server(LOGOPT_NONE, ctxt->server, ctxt);
- 		if (!ldap) {
- 			free_context(ctxt);
+ 				/* No spaces in host names at least */
