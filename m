@@ -1,13 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 02/13] autofs-5.0.4 - fix hosts map use after free
-Date: Thu, 12 Feb 2009 00:48:36 +0900
-Message-ID: <20090211154836.12526.79063.stgit@zeus.themaw.net>
-References: <20090211154830.12526.86345.stgit@zeus.themaw.net>
+Subject: [PATCH 07/13] autofs-5.0.4 - always read file maps
+Date: Thu, 12 Feb 2009 01:00:46 +0900
+Message-ID: <20090211160046.12578.80934.stgit@zeus.themaw.net>
+References: <20090211154853.12578.50525.stgit@zeus.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20090211154830.12526.86345.stgit@zeus.themaw.net>
+In-Reply-To: <20090211154853.12578.50525.stgit@zeus.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,52 +20,224 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs mailing list <autofs@linux.kernel.org>
 
-From: Paul Wankadia <junyer@google.com>
-
-This patch fixed use a map entry after it has been freed in the
-hosts map lookup module.
+autofs tries to not load an entire map into the internal cache unless it
+has to. For maps that do get loaded into the cache it relies on checks to
+work out if a map is up to date in order to trigger a map read. This is
+fine for maps that can do direct key lookups but file maps need to do a
+linear search through the file when locating an entry for a key. For large
+maps this can be a huge overhead. This patch make autofs always load file
+based maps at start and makes use of the map file mtime to discover if the
+cache needs to be refreshed.
 ---
 
- CHANGELOG              |    1 +
- modules/lookup_hosts.c |    8 +++++---
- 2 files changed, 6 insertions(+), 3 deletions(-)
+ CHANGELOG             |    1 +
+ daemon/lookup.c       |    9 +++++--
+ modules/lookup_file.c |   65 ++++++++++++++++---------------------------------
+ 3 files changed, 28 insertions(+), 47 deletions(-)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index eb4a189..3199e4d 100644
+index d4dd70b..afd1335 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -9,6 +9,7 @@
-   Valerie Aurora Henson).
- - clear the quoted flag after each character from program map input.
- - use CLOEXEC flag for setmntent also.
-+- fix hosts map use after free (Paul Wankadia).
+@@ -14,6 +14,7 @@
+ - check for stale SASL credentials upon connect fail.
+ - add "forcestart" and "forcerestart" init script options to allow
+   use of 5.0.3 strartup behavior if required.
++- always read entire file map into cache to speed lookups.
  
  4/11/2008 autofs-5.0.4
  -----------------------
-diff --git a/modules/lookup_hosts.c b/modules/lookup_hosts.c
-index 93b975a..d3ae0e2 100644
---- a/modules/lookup_hosts.c
-+++ b/modules/lookup_hosts.c
-@@ -138,17 +138,19 @@ int lookup_mount(struct autofs_point *ap, const char *name, int name_len, void *
- 	/* Check if we recorded a mount fail for this key anywhere */
- 	me = lookup_source_mapent(ap, name, LKP_DISTINCT);
- 	if (me) {
-+		struct mapent_cache *fmc = me->mc;
+diff --git a/daemon/lookup.c b/daemon/lookup.c
+index 741d846..e034348 100644
+--- a/daemon/lookup.c
++++ b/daemon/lookup.c
+@@ -283,10 +283,13 @@ static int do_read_map(struct autofs_point *ap, struct map_source *map, time_t a
+ 	 * for the fail cases to function correctly and to cache the
+ 	 * lookup handle.
+ 	 *
+-	 * We always need to whole map for direct mounts in order to
+-	 * mount the triggers.
++	 * We always need to read the whole map for direct mounts in
++	 * order to mount the triggers. We also want to read the whole
++	 * map if it's a file map to avoid potentially lengthy linear
++	 * file scanning.
+ 	 */
+-	if (!(ap->flags & MOUNT_FLAG_GHOST) && ap->type != LKP_DIRECT)
++	if (strcmp(map->type, "file") &&
++	    !(ap->flags & MOUNT_FLAG_GHOST) && ap->type != LKP_DIRECT)
+ 		return NSS_STATUS_SUCCESS;
+ 
+ 	if (!map->stale)
+diff --git a/modules/lookup_file.c b/modules/lookup_file.c
+index 95b9f6f..aafeb8b 100644
+--- a/modules/lookup_file.c
++++ b/modules/lookup_file.c
+@@ -44,7 +44,6 @@ typedef enum { esc_none, esc_char, esc_val, esc_all } ESCAPES;
+ 
+ struct lookup_context {
+ 	const char *mapname;
+-	time_t mtime;
+ 	struct parse_mod *parse;
+ };
+ 
+@@ -54,7 +53,6 @@ int lookup_init(const char *mapfmt, int argc, const char *const *argv, void **co
+ {
+ 	struct lookup_context *ctxt;
+ 	char buf[MAX_ERR_BUF];
+-	struct stat st;
+ 
+ 	*context = NULL;
+ 
+@@ -87,15 +85,6 @@ int lookup_init(const char *mapfmt, int argc, const char *const *argv, void **co
+ 		return 1;
+ 	}
+ 
+-	if (stat(ctxt->mapname, &st)) {
+-		free(ctxt);
+-		logmsg(MODPREFIX "file map %s, could not stat",
+-		     argv[0]);
+-		return 1;
+-	}
+-		
+-	ctxt->mtime = st.st_mtime;
+-
+ 	if (!mapfmt)
+ 		mapfmt = MAPFMT_DEFAULT;
+ 
+@@ -391,9 +380,7 @@ int lookup_read_master(struct master *master, time_t age, void *context)
+ 	int blen;
+ 	char *path;
+ 	char *ent;
+-	struct stat st;
+ 	FILE *f;
+-	int fd;
+ 	unsigned int path_len, ent_len;
+ 	int entry, cur_state;
+ 
+@@ -428,8 +415,6 @@ int lookup_read_master(struct master *master, time_t age, void *context)
+ 		return NSS_STATUS_UNAVAIL;
+ 	}
+ 
+-	fd = fileno(f);
+-
+ 	while(1) {
+ 		entry = read_one(logopt, f, path, &path_len, ent, &ent_len);
+ 		if (!entry) {
+@@ -504,13 +489,6 @@ int lookup_read_master(struct master *master, time_t age, void *context)
+ 			break;
+ 	}
+ 
+-	if (fstat(fd, &st)) {
+-		crit(logopt, MODPREFIX "file map %s, could not stat",
+-		       ctxt->mapname);
+-		return NSS_STATUS_UNAVAIL;
+-	}
+-	ctxt->mtime = st.st_mtime;
+-
+ 	fclose(f);
+ 
+ 	return NSS_STATUS_SUCCESS;
+@@ -642,9 +620,7 @@ int lookup_read_map(struct autofs_point *ap, time_t age, void *context)
+ 	struct mapent_cache *mc;
+ 	char *key;
+ 	char *mapent;
+-	struct stat st;
+ 	FILE *f;
+-	int fd;
+ 	unsigned int k_len, m_len;
+ 	int entry;
+ 
+@@ -684,8 +660,6 @@ int lookup_read_map(struct autofs_point *ap, time_t age, void *context)
+ 		return NSS_STATUS_UNAVAIL;
+ 	}
+ 
+-	fd = fileno(f);
+-
+ 	while(1) {
+ 		entry = read_one(ap->logopt, f, key, &k_len, mapent, &m_len);
+ 		if (!entry) {
+@@ -748,13 +722,6 @@ int lookup_read_map(struct autofs_point *ap, time_t age, void *context)
+ 			break;
+ 	}
+ 
+-	if (fstat(fd, &st)) {
+-		crit(ap->logopt,
+-		     MODPREFIX "file map %s, could not stat",
+-		     ctxt->mapname);
+-		return NSS_STATUS_UNAVAIL;
+-	}
+-	ctxt->mtime = st.st_mtime;
+ 	source->age = age;
+ 
+ 	fclose(f);
+@@ -951,9 +918,6 @@ static int check_map_indirect(struct autofs_point *ap,
+ 	if (ret == CHE_FAIL)
+ 		return NSS_STATUS_NOTFOUND;
+ 
+-	if (ret & CHE_UPDATED)
+-		source->stale = 1;
+-
+ 	pthread_cleanup_push(cache_lock_cleanup, mc);
+ 	cache_writelock(mc);
+ 	exists = cache_lookup_distinct(mc, key);
+@@ -963,7 +927,6 @@ static int check_map_indirect(struct autofs_point *ap,
+ 			free(exists->mapent);
+ 			exists->mapent = NULL;
+ 			exists->status = 0;
+-			source->stale = 1;
+ 		}
+ 	}
+ 	pthread_cleanup_pop(1);
+@@ -985,14 +948,8 @@ static int check_map_indirect(struct autofs_point *ap,
+ 		we = cache_lookup_distinct(mc, "*");
+ 		if (we) {
+ 			/* Wildcard entry existed and is now gone */
+-			if (we->source == source && (wild & CHE_MISSING)) {
++			if (we->source == source && (wild & CHE_MISSING))
+ 				cache_delete(mc, "*");
+-				source->stale = 1;
+-			}
+-		} else {
+-			/* Wildcard not in map but now is */
+-			if (wild & (CHE_OK | CHE_UPDATED))
+-				source->stale = 1;
+ 		}
+ 		pthread_cleanup_pop(1);
+ 
+@@ -1062,9 +1019,28 @@ int lookup_mount(struct autofs_point *ap, const char *name, int name_len, void *
+ 	 * we never know about it.
+ 	 */
+ 	if (ap->type == LKP_INDIRECT && *key != '/') {
++		struct stat st;
+ 		char *lkp_key;
+ 
++		/*
++		 * We can skip the map lookup and cache update altogether
++		 * if we know the map hasn't been modified since it was
++		 * last read. If it has then we can mark the map stale
++		 * so a re-read is triggered following the lookup.
++		 */
++		if (stat(ctxt->mapname, &st)) {
++			error(ap->logopt, MODPREFIX
++			      "file map %s, could not stat", ctxt->mapname);
++			return NSS_STATUS_UNAVAIL;
++		}
 +
- 		if (me->status >= time(NULL)) {
--			cache_unlock(me->mc);
-+			cache_unlock(fmc);
- 			return NSS_STATUS_NOTFOUND;
- 		}
- 
- 		if (!me->mapent) {
--			cache_delete(me->mc, name);
-+			cache_delete(fmc, name);
- 			me = NULL;
- 		}
- 
--		cache_unlock(me->mc);
-+		cache_unlock(fmc);
+ 		cache_readlock(mc);
++		me = cache_lookup_first(mc);
++		if (me && st.st_mtime <= me->age)
++			goto do_cache_lookup;
++		else
++			source->stale = 1;
++
+ 		me = cache_lookup_distinct(mc, key);
+ 		if (me && me->multi)
+ 			lkp_key = strdup(me->multi->key);
+@@ -1088,6 +1064,7 @@ int lookup_mount(struct autofs_point *ap, const char *name, int name_len, void *
  	}
  
  	cache_readlock(mc);
++do_cache_lookup:
+ 	me = cache_lookup(mc, key);
+ 	/* Stale mapent => check for entry in alternate source or wildcard */
+ 	if (me && !me->mapent) {
