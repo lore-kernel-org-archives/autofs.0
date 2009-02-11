@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 13/13] autofs-5.0.4 - ipv6 parse
-Date: Thu, 12 Feb 2009 01:01:19 +0900
-Message-ID: <20090211160119.12578.51600.stgit@zeus.themaw.net>
+Subject: [PATCH 11/13] autofs-5.0.4 - configure libtirpc
+Date: Thu, 12 Feb 2009 01:01:08 +0900
+Message-ID: <20090211160107.12578.81875.stgit@zeus.themaw.net>
 References: <20090211154853.12578.50525.stgit@zeus.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -20,465 +20,1832 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs mailing list <autofs@linux.kernel.org>
 
-Since ipv6 addresses use a colon separator and we use the colon quite a
-bit as a delimiting character we need to distinguish between when the
-colon is the delimeter we are looking for and when it is part of an ipv6
-address. Since there is widespread use of "[" and "]" to provide the
-ability to separate a port specification from an ipv6 address this
-convention has also been used in autofs.
+With NFS over ipv6 on the way we need to update autofs to use the
+libtirpc library as it provides ipv6 functionality. This change adds
+configure checks to look for libtirpc (if it has been requested with
+--with-libtirpc) and checks whether it has been built with ipv6
+support and uses it if so.
 ---
 
- include/parse_subs.h   |    8 ++++
- lib/master_tok.l       |   10 +++--
- lib/parse_subs.c       |   99 +++++++++++++++++++++++++++++++++++++++++++++---
- modules/lookup_file.c  |   40 +++++++------------
- modules/lookup_ldap.c  |   21 +++++++++-
- modules/mount_autofs.c |   29 ++++++--------
- modules/parse_sun.c    |   16 +++++---
- modules/replicated.c   |   26 ++++++++++++-
- 8 files changed, 186 insertions(+), 63 deletions(-)
+ Makefile.conf.in    |    3 
+ Makefile.rules      |    5 
+ aclocal.m4          |   81 +++
+ autofs.spec         |    2 
+ configure           | 1548 ++++++++++++++++++++++++++++-----------------------
+ configure.in        |    6 
+ daemon/automount.c  |   13 
+ include/config.h.in |    6 
+ 8 files changed, 970 insertions(+), 694 deletions(-)
 
-diff --git a/include/parse_subs.h b/include/parse_subs.h
-index 643ad68..ecc712d 100644
---- a/include/parse_subs.h
-+++ b/include/parse_subs.h
-@@ -20,6 +20,12 @@
+diff --git a/Makefile.conf.in b/Makefile.conf.in
+index ffda2a0..f0287c3 100644
+--- a/Makefile.conf.in
++++ b/Makefile.conf.in
+@@ -49,6 +49,9 @@ YACC = @PATH_YACC@
+ RPCGEN = @PATH_RPCGEN@
+ RANLIB = @PATH_RANLIB@
  
- struct mapent;
- 
-+struct map_type_info {
-+	char *type;
-+	char *format;
-+	char *map;
-+};
++# Use libtirpc if requested and available
++TIRPCLIB = @TIRPCLIB@
 +
- const char *skipspace(const char *);
- int check_colon(const char *);
- int chunklen(const char *, int);
-@@ -27,5 +33,7 @@ int strmcmp(const char *, const char *, int);
- char *dequote(const char *, int, unsigned int);
- int span_space(const char *, unsigned int);
- char *sanitize_path(const char *, int, unsigned int, unsigned int);
-+void free_map_type_info(struct map_type_info *);
-+struct map_type_info *parse_map_type_info(const char *);
+ # Use dmalloc for memory debuging
+ DMALLOCLIB = @DMALLOCLIB@
  
+diff --git a/Makefile.rules b/Makefile.rules
+index 30716dc..f2ba386 100644
+--- a/Makefile.rules
++++ b/Makefile.rules
+@@ -47,6 +47,11 @@ SOLDFLAGS = -shared
+ CFLAGS += -D_REENTRANT -D_FILE_OFFSET_BITS=64
+ LDFLAGS += -lpthread
+ 
++ifdef TIRPCLIB
++CFLAGS += -I/usr/include/tirpc
++LDFLAGS += $(TIRPCLIB)
++endif
++
+ ifdef DMALLOCLIB
+ LDFLAGS += $(DMALLOCLIB)
+ endif
+diff --git a/aclocal.m4 b/aclocal.m4
+index ab11112..5777fcd 100644
+--- a/aclocal.m4
++++ b/aclocal.m4
+@@ -304,3 +304,84 @@ fi
+ LIBS="$af_check_ldap_parse_page_control_save_libs"
+ ])
+ 
++dnl --------------------------------------------------------------------------
++dnl AF_CHECK_LIBTIRPC_IPV6
++dnl
++dnl Use libtirpc for rpc transport
++dnl --------------------------------------------------------------------------
++AC_DEFUN([AF_CHECK_LIBTIRPC_IPV6],
++[AC_MSG_CHECKING(if libtirpc has IPv6 support)
++
++# save current flags
++af_check_libtirpc_ipv6_save_cflags="$CFLAGS"
++af_check_libtirpc_ipv6_save_ldflags="$LDFLAGS"
++CFLAGS="$CFLAGS -I/usr/include/tirpc"
++LDFLAGS="$LDFLAGS -ltirpc"
++
++AC_TRY_LINK(
++    [ #define INET6
++      #include <rpc/rpc.h> ],
++    [ CLIENT *cl;
++      struct sockaddr_in addr;
++      int fd;
++      unsigned long ul; struct timeval t; unsigned int ui;
++      cl = clntudp6_bufcreate(&addr,ul,ul,t,&fd,ui,ui); ],
++    [ af_have_libtirpc_ipv6=yes
++      AC_MSG_RESULT(yes) ],
++    [ AC_MSG_RESULT(no) ])
++
++if test "$af_have_libtirpc_ipv6" = "yes"; then
++    AC_DEFINE(INET6,1, [Use IPv6 with libtirpc])
++fi
++
++# restore flags
++CFLAGS="$af_check_libtirpc_ipv6_save_cflags"
++LDFLAGS="$af_check_libtirpc_ipv6_save_ldflags"
++])
++
++dnl --------------------------------------------------------------------------
++dnl AF_CHECK_LIBTIRPC
++dnl
++dnl Use libtirpc for rpc transport
++dnl --------------------------------------------------------------------------
++AC_DEFUN([AF_CHECK_LIBTIRPC],
++[
++# save current flags
++af_check_libtirpc_save_cflags="$CFLAGS"
++af_check_libtirpc_save_ldflags="$LDFLAGS"
++CFLAGS="$CFLAGS -I/usr/include/tirpc"
++LDFLAGS="$LDFLAGS -ltirpc"
++
++AC_TRY_LINK(
++    [ #include <rpc/rpc.h> ],
++    [ CLIENT *cl;
++      struct sockaddr_in addr;
++      int fd;
++      unsigned long ul; struct timeval t; unsigned int ui;
++      cl = clntudp_bufcreate(&addr,ul,ul,t,&fd,ui,ui); ],
++    [ af_have_libtirpc=yes
++      AC_MSG_RESULT(yes) ],
++    [ AC_MSG_RESULT(no) ])
++
++if test "$af_have_libtirpc" = "yes"; then
++    AC_DEFINE(TIRPC_WORKAROUND,1, [Use libtirpc tsd usage workaround])
++    TIRPCLIB="-ltirpc"
++fi
++
++# restore flags
++CFLAGS="$af_check_libtirpc_save_cflags"
++LDFLAGS="$af_check_libtirpc_save_ldflags"
++])
++
++AC_DEFUN([AM_WITH_LIBTIRPC],
++[AC_MSG_CHECKING([if libtirpc is requested and available])
++AC_ARG_WITH(libtirpc,
++[  --with-libtirpc         use libtirpc if available],
++[if test "$withval" = yes; then
++  AF_CHECK_LIBTIRPC()
++  AF_CHECK_LIBTIRPC_IPV6()
++else
++  AC_MSG_RESULT(no)
++fi], [AC_MSG_RESULT(no)])
++])
++
+diff --git a/autofs.spec b/autofs.spec
+index 9fec583..f4b096e 100644
+--- a/autofs.spec
++++ b/autofs.spec
+@@ -57,7 +57,7 @@ inkludera n
+ echo %{version}-%{release} > .version
+ 
+ %build
+-CFLAGS="$RPM_OPT_FLAGS -Wall" ./configure --libdir=%{_libdir} --disable-mount-locking --enable-ignore-busy
++CFLAGS="$RPM_OPT_FLAGS -Wall" ./configure --libdir=%{_libdir} --disable-mount-locking --enable-ignore-busy --with-libtirpc
+ CFLAGS="$RPM_OPT_FLAGS -Wall" make initdir=/etc/rc.d/init.d DONTSTRIP=1
+ 
+ %install
+diff --git a/configure b/configure
+index afa692c..8a6d944 100755
+--- a/configure
++++ b/configure
+@@ -656,6 +656,14 @@ confdir
+ mapdir
+ fifodir
+ flagdir
++CC
++CFLAGS
++LDFLAGS
++CPPFLAGS
++ac_ct_CC
++EXEEXT
++OBJEXT
++TIRPCLIB
+ DMALLOCLIB
+ MOUNT
+ HAVE_MOUNT
+@@ -676,13 +684,6 @@ PATH_RANLIB
+ RPCGEN
+ PATH_RPCGEN
+ XML_CONFIG
+-CC
+-CFLAGS
+-LDFLAGS
+-CPPFLAGS
+-ac_ct_CC
+-EXEEXT
+-OBJEXT
+ LIBNSL
+ LIBRESOLV
+ HAVE_HESIOD
+@@ -1297,6 +1298,7 @@ Optional Packages:
+   --with-mapdir=PATH	  look in PATH for mount maps used by the automounter
+   --with-fifodir=PATH	   use PATH as the directory for fifos used by the automounter
+   --with-flagdir=PATH	   use PATH as the directory for the flag file used by the automounter
++  --with-libtirpc         use libtirpc if available
+   --with-dmalloc          use dmalloc, as in
+ 			  http://www.dmalloc.com/dmalloc.tar.gz
+   --with-hesiod=DIR	  enable Hesiod support (libs and includes in DIR)
+@@ -1908,681 +1910,7 @@ echo "${ECHO_T}$flagdir" >&6; }
+ 
+ 
+ #
+-# Optional include dmalloc
+-#
+-{ echo "$as_me:$LINENO: checking if malloc debugging is wanted" >&5
+-echo $ECHO_N "checking if malloc debugging is wanted... $ECHO_C" >&6; }
+-
+-# Check whether --with-dmalloc was given.
+-if test "${with_dmalloc+set}" = set; then
+-  withval=$with_dmalloc; if test "$withval" = yes; then
+-  { echo "$as_me:$LINENO: result: yes" >&5
+-echo "${ECHO_T}yes" >&6; }
+-
+-cat >>confdefs.h <<\_ACEOF
+-#define WITH_DMALLOC 1
+-_ACEOF
+-
+-  DMALLOCLIB="-ldmallocth"
+-  LDFLAGS="$LDFLAGS -g"
+-else
+-  { echo "$as_me:$LINENO: result: no" >&5
+-echo "${ECHO_T}no" >&6; }
+-fi
+-else
+-  { echo "$as_me:$LINENO: result: no" >&5
+-echo "${ECHO_T}no" >&6; }
+-fi
+-
+-
+-
+-
+-#
+-# Programs needed for various system functions or modules
+-#
+-for ac_prog in mount
+-do
+-  # Extract the first word of "$ac_prog", so it can be a program name with args.
+-set dummy $ac_prog; ac_word=$2
+-{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
+-if test "${ac_cv_path_MOUNT+set}" = set; then
+-  echo $ECHO_N "(cached) $ECHO_C" >&6
+-else
+-  case $MOUNT in
+-  [\\/]* | ?:[\\/]*)
+-  ac_cv_path_MOUNT="$MOUNT" # Let the user override the test with a path.
+-  ;;
+-  *)
+-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+-for as_dir in $searchpath
+-do
+-  IFS=$as_save_IFS
+-  test -z "$as_dir" && as_dir=.
+-  for ac_exec_ext in '' $ac_executable_extensions; do
+-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+-    ac_cv_path_MOUNT="$as_dir/$ac_word$ac_exec_ext"
+-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+-    break 2
+-  fi
+-done
+-done
+-IFS=$as_save_IFS
+-
+-  ;;
+-esac
+-fi
+-MOUNT=$ac_cv_path_MOUNT
+-if test -n "$MOUNT"; then
+-  { echo "$as_me:$LINENO: result: $MOUNT" >&5
+-echo "${ECHO_T}$MOUNT" >&6; }
+-else
+-  { echo "$as_me:$LINENO: result: no" >&5
+-echo "${ECHO_T}no" >&6; }
+-fi
+-
+-
+-  test -n "$MOUNT" && break
+-done
+-test -n "$MOUNT" || MOUNT="/bin/mount"
+-
+-if test -n "$MOUNT"; then
+-
+-cat >>confdefs.h <<\_ACEOF
+-#define HAVE_MOUNT 1
+-_ACEOF
+-
+-
+-cat >>confdefs.h <<_ACEOF
+-#define PATH_MOUNT "$MOUNT"
+-_ACEOF
+-
+-  HAVE_MOUNT=1
+-else
+-  HAVE_MOUNT=0
+-fi
+-
+-for ac_prog in umount
+-do
+-  # Extract the first word of "$ac_prog", so it can be a program name with args.
+-set dummy $ac_prog; ac_word=$2
+-{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
+-if test "${ac_cv_path_UMOUNT+set}" = set; then
+-  echo $ECHO_N "(cached) $ECHO_C" >&6
+-else
+-  case $UMOUNT in
+-  [\\/]* | ?:[\\/]*)
+-  ac_cv_path_UMOUNT="$UMOUNT" # Let the user override the test with a path.
+-  ;;
+-  *)
+-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+-for as_dir in $searchpath
+-do
+-  IFS=$as_save_IFS
+-  test -z "$as_dir" && as_dir=.
+-  for ac_exec_ext in '' $ac_executable_extensions; do
+-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+-    ac_cv_path_UMOUNT="$as_dir/$ac_word$ac_exec_ext"
+-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+-    break 2
+-  fi
+-done
+-done
+-IFS=$as_save_IFS
+-
+-  ;;
+-esac
+-fi
+-UMOUNT=$ac_cv_path_UMOUNT
+-if test -n "$UMOUNT"; then
+-  { echo "$as_me:$LINENO: result: $UMOUNT" >&5
+-echo "${ECHO_T}$UMOUNT" >&6; }
+-else
+-  { echo "$as_me:$LINENO: result: no" >&5
+-echo "${ECHO_T}no" >&6; }
+-fi
+-
+-
+-  test -n "$UMOUNT" && break
+-done
+-test -n "$UMOUNT" || UMOUNT="/bin/umount"
+-
+-if test -n "$UMOUNT"; then
+-
+-cat >>confdefs.h <<\_ACEOF
+-#define HAVE_UMOUNT 1
+-_ACEOF
+-
+-
+-cat >>confdefs.h <<_ACEOF
+-#define PATH_UMOUNT "$UMOUNT"
+-_ACEOF
+-
+-  HAVE_UMOUNT=1
+-else
+-  HAVE_UMOUNT=0
+-fi
+-
+-for ac_prog in fsck.ext2 e2fsck
+-do
+-  # Extract the first word of "$ac_prog", so it can be a program name with args.
+-set dummy $ac_prog; ac_word=$2
+-{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
+-if test "${ac_cv_path_E2FSCK+set}" = set; then
+-  echo $ECHO_N "(cached) $ECHO_C" >&6
+-else
+-  case $E2FSCK in
+-  [\\/]* | ?:[\\/]*)
+-  ac_cv_path_E2FSCK="$E2FSCK" # Let the user override the test with a path.
+-  ;;
+-  *)
+-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+-for as_dir in $searchpath
+-do
+-  IFS=$as_save_IFS
+-  test -z "$as_dir" && as_dir=.
+-  for ac_exec_ext in '' $ac_executable_extensions; do
+-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+-    ac_cv_path_E2FSCK="$as_dir/$ac_word$ac_exec_ext"
+-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+-    break 2
+-  fi
+-done
+-done
+-IFS=$as_save_IFS
+-
+-  ;;
+-esac
+-fi
+-E2FSCK=$ac_cv_path_E2FSCK
+-if test -n "$E2FSCK"; then
+-  { echo "$as_me:$LINENO: result: $E2FSCK" >&5
+-echo "${ECHO_T}$E2FSCK" >&6; }
+-else
+-  { echo "$as_me:$LINENO: result: no" >&5
+-echo "${ECHO_T}no" >&6; }
+-fi
+-
+-
+-  test -n "$E2FSCK" && break
+-done
+-
+-if test -n "$E2FSCK"; then
+-
+-cat >>confdefs.h <<\_ACEOF
+-#define HAVE_E2FSCK 1
+-_ACEOF
+-
+-
+-cat >>confdefs.h <<_ACEOF
+-#define PATH_E2FSCK "$E2FSCK"
+-_ACEOF
+-
+-  HAVE_E2FSCK=1
+-else
+-  HAVE_E2FSCK=0
+-fi
+-
+-for ac_prog in fsck.ext3 e3fsck
+-do
+-  # Extract the first word of "$ac_prog", so it can be a program name with args.
+-set dummy $ac_prog; ac_word=$2
+-{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
+-if test "${ac_cv_path_E3FSCK+set}" = set; then
+-  echo $ECHO_N "(cached) $ECHO_C" >&6
+-else
+-  case $E3FSCK in
+-  [\\/]* | ?:[\\/]*)
+-  ac_cv_path_E3FSCK="$E3FSCK" # Let the user override the test with a path.
+-  ;;
+-  *)
+-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+-for as_dir in $searchpath
+-do
+-  IFS=$as_save_IFS
+-  test -z "$as_dir" && as_dir=.
+-  for ac_exec_ext in '' $ac_executable_extensions; do
+-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+-    ac_cv_path_E3FSCK="$as_dir/$ac_word$ac_exec_ext"
+-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+-    break 2
+-  fi
+-done
+-done
+-IFS=$as_save_IFS
+-
+-  ;;
+-esac
+-fi
+-E3FSCK=$ac_cv_path_E3FSCK
+-if test -n "$E3FSCK"; then
+-  { echo "$as_me:$LINENO: result: $E3FSCK" >&5
+-echo "${ECHO_T}$E3FSCK" >&6; }
+-else
+-  { echo "$as_me:$LINENO: result: no" >&5
+-echo "${ECHO_T}no" >&6; }
+-fi
+-
+-
+-  test -n "$E3FSCK" && break
+-done
+-
+-if test -n "$E3FSCK"; then
+-
+-cat >>confdefs.h <<\_ACEOF
+-#define HAVE_E3FSCK 1
+-_ACEOF
+-
+-
+-cat >>confdefs.h <<_ACEOF
+-#define PATH_E3FSCK "$E3FSCK"
+-_ACEOF
+-
+-  HAVE_E3FSCK=1
+-else
+-  HAVE_E3FSCK=0
+-fi
+-
+-for ac_prog in modprobe
+-do
+-  # Extract the first word of "$ac_prog", so it can be a program name with args.
+-set dummy $ac_prog; ac_word=$2
+-{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
+-if test "${ac_cv_path_MODPROBE+set}" = set; then
+-  echo $ECHO_N "(cached) $ECHO_C" >&6
+-else
+-  case $MODPROBE in
+-  [\\/]* | ?:[\\/]*)
+-  ac_cv_path_MODPROBE="$MODPROBE" # Let the user override the test with a path.
+-  ;;
+-  *)
+-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+-for as_dir in $searchpath
+-do
+-  IFS=$as_save_IFS
+-  test -z "$as_dir" && as_dir=.
+-  for ac_exec_ext in '' $ac_executable_extensions; do
+-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+-    ac_cv_path_MODPROBE="$as_dir/$ac_word$ac_exec_ext"
+-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+-    break 2
+-  fi
+-done
+-done
+-IFS=$as_save_IFS
+-
+-  ;;
+-esac
+-fi
+-MODPROBE=$ac_cv_path_MODPROBE
+-if test -n "$MODPROBE"; then
+-  { echo "$as_me:$LINENO: result: $MODPROBE" >&5
+-echo "${ECHO_T}$MODPROBE" >&6; }
+-else
+-  { echo "$as_me:$LINENO: result: no" >&5
+-echo "${ECHO_T}no" >&6; }
+-fi
+-
+-
+-  test -n "$MODPROBE" && break
+-done
+-
+-if test -n "$MODPROBE"; then
+-
+-cat >>confdefs.h <<\_ACEOF
+-#define HAVE_MODPROBE 1
+-_ACEOF
+-
+-
+-cat >>confdefs.h <<_ACEOF
+-#define PATH_MODPROBE "$MODPROBE"
+-_ACEOF
+-
+-  HAVE_MODPROBE=1
+-else
+-  HAVE_MODPROBE=0
+-fi
+-
+-
+-for ac_prog in flex lex
+-do
+-  # Extract the first word of "$ac_prog", so it can be a program name with args.
+-set dummy $ac_prog; ac_word=$2
+-{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
+-if test "${ac_cv_path_LEX+set}" = set; then
+-  echo $ECHO_N "(cached) $ECHO_C" >&6
+-else
+-  case $LEX in
+-  [\\/]* | ?:[\\/]*)
+-  ac_cv_path_LEX="$LEX" # Let the user override the test with a path.
+-  ;;
+-  *)
+-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+-for as_dir in $searchpath
+-do
+-  IFS=$as_save_IFS
+-  test -z "$as_dir" && as_dir=.
+-  for ac_exec_ext in '' $ac_executable_extensions; do
+-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+-    ac_cv_path_LEX="$as_dir/$ac_word$ac_exec_ext"
+-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+-    break 2
+-  fi
+-done
+-done
+-IFS=$as_save_IFS
+-
+-  ;;
+-esac
+-fi
+-LEX=$ac_cv_path_LEX
+-if test -n "$LEX"; then
+-  { echo "$as_me:$LINENO: result: $LEX" >&5
+-echo "${ECHO_T}$LEX" >&6; }
+-else
+-  { echo "$as_me:$LINENO: result: no" >&5
+-echo "${ECHO_T}no" >&6; }
+-fi
+-
+-
+-  test -n "$LEX" && break
+-done
+-
+-if test -n "$LEX"; then
+-
+-cat >>confdefs.h <<_ACEOF
+-#define PATH_LEX "$LEX"
+-_ACEOF
+-
+-  PATH_LEX="$LEX"
+-else
+-  { { echo "$as_me:$LINENO: error: required program LEX not found" >&5
+-echo "$as_me: error: required program LEX not found" >&2;}
+-   { (exit 1); exit 1; }; }
+-fi
+-
+-for ac_prog in bison
+-do
+-  # Extract the first word of "$ac_prog", so it can be a program name with args.
+-set dummy $ac_prog; ac_word=$2
+-{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
+-if test "${ac_cv_path_YACC+set}" = set; then
+-  echo $ECHO_N "(cached) $ECHO_C" >&6
+-else
+-  case $YACC in
+-  [\\/]* | ?:[\\/]*)
+-  ac_cv_path_YACC="$YACC" # Let the user override the test with a path.
+-  ;;
+-  *)
+-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+-for as_dir in $searchpath
+-do
+-  IFS=$as_save_IFS
+-  test -z "$as_dir" && as_dir=.
+-  for ac_exec_ext in '' $ac_executable_extensions; do
+-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+-    ac_cv_path_YACC="$as_dir/$ac_word$ac_exec_ext"
+-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+-    break 2
+-  fi
+-done
+-done
+-IFS=$as_save_IFS
+-
+-  ;;
+-esac
+-fi
+-YACC=$ac_cv_path_YACC
+-if test -n "$YACC"; then
+-  { echo "$as_me:$LINENO: result: $YACC" >&5
+-echo "${ECHO_T}$YACC" >&6; }
+-else
+-  { echo "$as_me:$LINENO: result: no" >&5
+-echo "${ECHO_T}no" >&6; }
+-fi
+-
+-
+-  test -n "$YACC" && break
+-done
+-
+-if test -n "$YACC"; then
+-
+-cat >>confdefs.h <<_ACEOF
+-#define PATH_YACC "$YACC"
+-_ACEOF
+-
+-  PATH_YACC="$YACC"
+-else
+-  { { echo "$as_me:$LINENO: error: required program YACC not found" >&5
+-echo "$as_me: error: required program YACC not found" >&2;}
+-   { (exit 1); exit 1; }; }
+-fi
+-
+-for ac_prog in ranlib
+-do
+-  # Extract the first word of "$ac_prog", so it can be a program name with args.
+-set dummy $ac_prog; ac_word=$2
+-{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
+-if test "${ac_cv_path_RANLIB+set}" = set; then
+-  echo $ECHO_N "(cached) $ECHO_C" >&6
+-else
+-  case $RANLIB in
+-  [\\/]* | ?:[\\/]*)
+-  ac_cv_path_RANLIB="$RANLIB" # Let the user override the test with a path.
+-  ;;
+-  *)
+-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+-for as_dir in $searchpath
+-do
+-  IFS=$as_save_IFS
+-  test -z "$as_dir" && as_dir=.
+-  for ac_exec_ext in '' $ac_executable_extensions; do
+-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+-    ac_cv_path_RANLIB="$as_dir/$ac_word$ac_exec_ext"
+-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+-    break 2
+-  fi
+-done
+-done
+-IFS=$as_save_IFS
+-
+-  ;;
+-esac
+-fi
+-RANLIB=$ac_cv_path_RANLIB
+-if test -n "$RANLIB"; then
+-  { echo "$as_me:$LINENO: result: $RANLIB" >&5
+-echo "${ECHO_T}$RANLIB" >&6; }
+-else
+-  { echo "$as_me:$LINENO: result: no" >&5
+-echo "${ECHO_T}no" >&6; }
+-fi
+-
+-
+-  test -n "$RANLIB" && break
+-done
+-
+-if test -n "$RANLIB"; then
+-
+-cat >>confdefs.h <<_ACEOF
+-#define PATH_RANLIB "$RANLIB"
+-_ACEOF
+-
+-  PATH_RANLIB="$RANLIB"
+-else
+-  { { echo "$as_me:$LINENO: error: required program RANLIB not found" >&5
+-echo "$as_me: error: required program RANLIB not found" >&2;}
+-   { (exit 1); exit 1; }; }
+-fi
+-
+-for ac_prog in rpcgen
+-do
+-  # Extract the first word of "$ac_prog", so it can be a program name with args.
+-set dummy $ac_prog; ac_word=$2
+-{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
+-if test "${ac_cv_path_RPCGEN+set}" = set; then
+-  echo $ECHO_N "(cached) $ECHO_C" >&6
+-else
+-  case $RPCGEN in
+-  [\\/]* | ?:[\\/]*)
+-  ac_cv_path_RPCGEN="$RPCGEN" # Let the user override the test with a path.
+-  ;;
+-  *)
+-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+-for as_dir in $searchpath
+-do
+-  IFS=$as_save_IFS
+-  test -z "$as_dir" && as_dir=.
+-  for ac_exec_ext in '' $ac_executable_extensions; do
+-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+-    ac_cv_path_RPCGEN="$as_dir/$ac_word$ac_exec_ext"
+-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+-    break 2
+-  fi
+-done
+-done
+-IFS=$as_save_IFS
+-
+-  ;;
+-esac
+-fi
+-RPCGEN=$ac_cv_path_RPCGEN
+-if test -n "$RPCGEN"; then
+-  { echo "$as_me:$LINENO: result: $RPCGEN" >&5
+-echo "${ECHO_T}$RPCGEN" >&6; }
+-else
+-  { echo "$as_me:$LINENO: result: no" >&5
+-echo "${ECHO_T}no" >&6; }
+-fi
+-
+-
+-  test -n "$RPCGEN" && break
+-done
+-
+-if test -n "$RPCGEN"; then
+-
+-cat >>confdefs.h <<_ACEOF
+-#define PATH_RPCGEN "$RPCGEN"
+-_ACEOF
+-
+-  PATH_RPCGEN="$RPCGEN"
+-else
+-  { { echo "$as_me:$LINENO: error: required program RPCGEN not found" >&5
+-echo "$as_me: error: required program RPCGEN not found" >&2;}
+-   { (exit 1); exit 1; }; }
+-fi
+-
+-
+-#
+-# Newer mounts have the -s (sloppy) option to ignore unknown options,
+-# good for portability
+-#
+-if test -n "$MOUNT" ; then
+-  { echo "$as_me:$LINENO: checking if mount accepts the -s option" >&5
+-echo $ECHO_N "checking if mount accepts the -s option... $ECHO_C" >&6; }
+-  if "$MOUNT" -s > /dev/null 2>&1 ; then
+-
+-cat >>confdefs.h <<\_ACEOF
+-#define HAVE_SLOPPY_MOUNT 1
+-_ACEOF
+-
+-    { echo "$as_me:$LINENO: result: yes" >&5
+-echo "${ECHO_T}yes" >&6; }
+-  else
+-    { echo "$as_me:$LINENO: result: no" >&5
+-echo "${ECHO_T}no" >&6; }
+-  fi
+-fi
+-
+-# LDAP SASL auth need libxml
+-for ac_prog in xml2-config
+-do
+-  # Extract the first word of "$ac_prog", so it can be a program name with args.
+-set dummy $ac_prog; ac_word=$2
+-{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
+-if test "${ac_cv_path_XML_CONFIG+set}" = set; then
+-  echo $ECHO_N "(cached) $ECHO_C" >&6
+-else
+-  case $XML_CONFIG in
+-  [\\/]* | ?:[\\/]*)
+-  ac_cv_path_XML_CONFIG="$XML_CONFIG" # Let the user override the test with a path.
+-  ;;
+-  *)
+-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+-for as_dir in $PATH
+-do
+-  IFS=$as_save_IFS
+-  test -z "$as_dir" && as_dir=.
+-  for ac_exec_ext in '' $ac_executable_extensions; do
+-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+-    ac_cv_path_XML_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+-    break 2
+-  fi
+-done
+-done
+-IFS=$as_save_IFS
+-
+-  ;;
+-esac
+-fi
+-XML_CONFIG=$ac_cv_path_XML_CONFIG
+-if test -n "$XML_CONFIG"; then
+-  { echo "$as_me:$LINENO: result: $XML_CONFIG" >&5
+-echo "${ECHO_T}$XML_CONFIG" >&6; }
+-else
+-  { echo "$as_me:$LINENO: result: no" >&5
+-echo "${ECHO_T}no" >&6; }
+-fi
+-
+-
+-  test -n "$XML_CONFIG" && break
+-done
+-test -n "$XML_CONFIG" || XML_CONFIG="no"
+-
+-{ echo "$as_me:$LINENO: checking for libxml2" >&5
+-echo $ECHO_N "checking for libxml2... $ECHO_C" >&6; }
+-if test "$XML_CONFIG" = "no"
+-then
+-  { echo "$as_me:$LINENO: result: no" >&5
+-echo "${ECHO_T}no" >&6; }
+-  HAVE_LIBXML=0
+-else
+-  { echo "$as_me:$LINENO: result: yes" >&5
+-echo "${ECHO_T}yes" >&6; }
+-  HAVE_LIBXML=1
+-  XML_LIBS=`$XML_CONFIG --libs`
+-  XML_FLAGS=`$XML_CONFIG --cflags`
+-  XML_VER=`$XML_CONFIG --version`
+-  XML_MAJOR=`echo $XML_VER|cut -d\. -f1`
+-  if test $XML_MAJOR -le 99
+-  then
+-    XML_MINOR=`echo $XML_VER|cut -d\. -f2`
+-    if test $XML_MINOR -le 99
+-    then
+-      XML_REV=`echo $XML_VER|cut -d\. -f3`
+-      if test $XML_REV -le 99; then
+-
+-cat >>confdefs.h <<\_ACEOF
+-#define LIBXML2_WORKAROUND 1
+-_ACEOF
+-
+-      fi
+-    fi
+-  fi
+-fi
+-
+-#
+-# glibc/libc 6 new libraries
++# Use libtirpc
+ #
+ ac_ext=c
+ ac_cpp='$CPP $CPPFLAGS'
+@@ -3504,6 +2832,845 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
+ ac_compiler_gnu=$ac_cv_c_compiler_gnu
+ 
+ 
++{ echo "$as_me:$LINENO: checking if libtirpc is requested and available" >&5
++echo $ECHO_N "checking if libtirpc is requested and available... $ECHO_C" >&6; }
++
++# Check whether --with-libtirpc was given.
++if test "${with_libtirpc+set}" = set; then
++  withval=$with_libtirpc; if test "$withval" = yes; then
++
++# save current flags
++af_check_libtirpc_save_cflags="$CFLAGS"
++af_check_libtirpc_save_ldflags="$LDFLAGS"
++CFLAGS="$CFLAGS -I/usr/include/tirpc"
++LDFLAGS="$LDFLAGS -ltirpc"
++
++cat >conftest.$ac_ext <<_ACEOF
++/* confdefs.h.  */
++_ACEOF
++cat confdefs.h >>conftest.$ac_ext
++cat >>conftest.$ac_ext <<_ACEOF
++/* end confdefs.h.  */
++ #include <rpc/rpc.h>
++int
++main ()
++{
++ CLIENT *cl;
++      struct sockaddr_in addr;
++      int fd;
++      unsigned long ul; struct timeval t; unsigned int ui;
++      cl = clntudp_bufcreate(&addr,ul,ul,t,&fd,ui,ui);
++  ;
++  return 0;
++}
++_ACEOF
++rm -f conftest.$ac_objext conftest$ac_exeext
++if { (ac_try="$ac_link"
++case "(($ac_try" in
++  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
++  *) ac_try_echo=$ac_try;;
++esac
++eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
++  (eval "$ac_link") 2>conftest.er1
++  ac_status=$?
++  grep -v '^ *+' conftest.er1 >conftest.err
++  rm -f conftest.er1
++  cat conftest.err >&5
++  echo "$as_me:$LINENO: \$? = $ac_status" >&5
++  (exit $ac_status); } && {
++	 test -z "$ac_c_werror_flag" ||
++	 test ! -s conftest.err
++       } && test -s conftest$ac_exeext &&
++       $as_test_x conftest$ac_exeext; then
++   af_have_libtirpc=yes
++      { echo "$as_me:$LINENO: result: yes" >&5
++echo "${ECHO_T}yes" >&6; }
++else
++  echo "$as_me: failed program was:" >&5
++sed 's/^/| /' conftest.$ac_ext >&5
++
++	 { echo "$as_me:$LINENO: result: no" >&5
++echo "${ECHO_T}no" >&6; }
++fi
++
++rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
++      conftest$ac_exeext conftest.$ac_ext
++
++if test "$af_have_libtirpc" = "yes"; then
++
++cat >>confdefs.h <<\_ACEOF
++#define TIRPC_WORKAROUND 1
++_ACEOF
++
++    TIRPCLIB="-ltirpc"
++fi
++
++# restore flags
++CFLAGS="$af_check_libtirpc_save_cflags"
++LDFLAGS="$af_check_libtirpc_save_ldflags"
++
++  { echo "$as_me:$LINENO: checking if libtirpc has IPv6 support" >&5
++echo $ECHO_N "checking if libtirpc has IPv6 support... $ECHO_C" >&6; }
++
++# save current flags
++af_check_libtirpc_ipv6_save_cflags="$CFLAGS"
++af_check_libtirpc_ipv6_save_ldflags="$LDFLAGS"
++CFLAGS="$CFLAGS -I/usr/include/tirpc"
++LDFLAGS="$LDFLAGS -ltirpc"
++
++cat >conftest.$ac_ext <<_ACEOF
++/* confdefs.h.  */
++_ACEOF
++cat confdefs.h >>conftest.$ac_ext
++cat >>conftest.$ac_ext <<_ACEOF
++/* end confdefs.h.  */
++ #define INET6
++      #include <rpc/rpc.h>
++int
++main ()
++{
++ CLIENT *cl;
++      struct sockaddr_in addr;
++      int fd;
++      unsigned long ul; struct timeval t; unsigned int ui;
++      cl = clntudp6_bufcreate(&addr,ul,ul,t,&fd,ui,ui);
++  ;
++  return 0;
++}
++_ACEOF
++rm -f conftest.$ac_objext conftest$ac_exeext
++if { (ac_try="$ac_link"
++case "(($ac_try" in
++  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
++  *) ac_try_echo=$ac_try;;
++esac
++eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
++  (eval "$ac_link") 2>conftest.er1
++  ac_status=$?
++  grep -v '^ *+' conftest.er1 >conftest.err
++  rm -f conftest.er1
++  cat conftest.err >&5
++  echo "$as_me:$LINENO: \$? = $ac_status" >&5
++  (exit $ac_status); } && {
++	 test -z "$ac_c_werror_flag" ||
++	 test ! -s conftest.err
++       } && test -s conftest$ac_exeext &&
++       $as_test_x conftest$ac_exeext; then
++   af_have_libtirpc_ipv6=yes
++      { echo "$as_me:$LINENO: result: yes" >&5
++echo "${ECHO_T}yes" >&6; }
++else
++  echo "$as_me: failed program was:" >&5
++sed 's/^/| /' conftest.$ac_ext >&5
++
++	 { echo "$as_me:$LINENO: result: no" >&5
++echo "${ECHO_T}no" >&6; }
++fi
++
++rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
++      conftest$ac_exeext conftest.$ac_ext
++
++if test "$af_have_libtirpc_ipv6" = "yes"; then
++
++cat >>confdefs.h <<\_ACEOF
++#define INET6 1
++_ACEOF
++
++fi
++
++# restore flags
++CFLAGS="$af_check_libtirpc_ipv6_save_cflags"
++LDFLAGS="$af_check_libtirpc_ipv6_save_ldflags"
++
++else
++  { echo "$as_me:$LINENO: result: no" >&5
++echo "${ECHO_T}no" >&6; }
++fi
++else
++  { echo "$as_me:$LINENO: result: no" >&5
++echo "${ECHO_T}no" >&6; }
++fi
++
++
++
++
++#
++# Optional include dmalloc
++#
++{ echo "$as_me:$LINENO: checking if malloc debugging is wanted" >&5
++echo $ECHO_N "checking if malloc debugging is wanted... $ECHO_C" >&6; }
++
++# Check whether --with-dmalloc was given.
++if test "${with_dmalloc+set}" = set; then
++  withval=$with_dmalloc; if test "$withval" = yes; then
++  { echo "$as_me:$LINENO: result: yes" >&5
++echo "${ECHO_T}yes" >&6; }
++
++cat >>confdefs.h <<\_ACEOF
++#define WITH_DMALLOC 1
++_ACEOF
++
++  DMALLOCLIB="-ldmallocth"
++  LDFLAGS="$LDFLAGS -g"
++else
++  { echo "$as_me:$LINENO: result: no" >&5
++echo "${ECHO_T}no" >&6; }
++fi
++else
++  { echo "$as_me:$LINENO: result: no" >&5
++echo "${ECHO_T}no" >&6; }
++fi
++
++
++
++
++#
++# Programs needed for various system functions or modules
++#
++for ac_prog in mount
++do
++  # Extract the first word of "$ac_prog", so it can be a program name with args.
++set dummy $ac_prog; ac_word=$2
++{ echo "$as_me:$LINENO: checking for $ac_word" >&5
++echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
++if test "${ac_cv_path_MOUNT+set}" = set; then
++  echo $ECHO_N "(cached) $ECHO_C" >&6
++else
++  case $MOUNT in
++  [\\/]* | ?:[\\/]*)
++  ac_cv_path_MOUNT="$MOUNT" # Let the user override the test with a path.
++  ;;
++  *)
++  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
++for as_dir in $searchpath
++do
++  IFS=$as_save_IFS
++  test -z "$as_dir" && as_dir=.
++  for ac_exec_ext in '' $ac_executable_extensions; do
++  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
++    ac_cv_path_MOUNT="$as_dir/$ac_word$ac_exec_ext"
++    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
++    break 2
++  fi
++done
++done
++IFS=$as_save_IFS
++
++  ;;
++esac
++fi
++MOUNT=$ac_cv_path_MOUNT
++if test -n "$MOUNT"; then
++  { echo "$as_me:$LINENO: result: $MOUNT" >&5
++echo "${ECHO_T}$MOUNT" >&6; }
++else
++  { echo "$as_me:$LINENO: result: no" >&5
++echo "${ECHO_T}no" >&6; }
++fi
++
++
++  test -n "$MOUNT" && break
++done
++test -n "$MOUNT" || MOUNT="/bin/mount"
++
++if test -n "$MOUNT"; then
++
++cat >>confdefs.h <<\_ACEOF
++#define HAVE_MOUNT 1
++_ACEOF
++
++
++cat >>confdefs.h <<_ACEOF
++#define PATH_MOUNT "$MOUNT"
++_ACEOF
++
++  HAVE_MOUNT=1
++else
++  HAVE_MOUNT=0
++fi
++
++for ac_prog in umount
++do
++  # Extract the first word of "$ac_prog", so it can be a program name with args.
++set dummy $ac_prog; ac_word=$2
++{ echo "$as_me:$LINENO: checking for $ac_word" >&5
++echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
++if test "${ac_cv_path_UMOUNT+set}" = set; then
++  echo $ECHO_N "(cached) $ECHO_C" >&6
++else
++  case $UMOUNT in
++  [\\/]* | ?:[\\/]*)
++  ac_cv_path_UMOUNT="$UMOUNT" # Let the user override the test with a path.
++  ;;
++  *)
++  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
++for as_dir in $searchpath
++do
++  IFS=$as_save_IFS
++  test -z "$as_dir" && as_dir=.
++  for ac_exec_ext in '' $ac_executable_extensions; do
++  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
++    ac_cv_path_UMOUNT="$as_dir/$ac_word$ac_exec_ext"
++    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
++    break 2
++  fi
++done
++done
++IFS=$as_save_IFS
++
++  ;;
++esac
++fi
++UMOUNT=$ac_cv_path_UMOUNT
++if test -n "$UMOUNT"; then
++  { echo "$as_me:$LINENO: result: $UMOUNT" >&5
++echo "${ECHO_T}$UMOUNT" >&6; }
++else
++  { echo "$as_me:$LINENO: result: no" >&5
++echo "${ECHO_T}no" >&6; }
++fi
++
++
++  test -n "$UMOUNT" && break
++done
++test -n "$UMOUNT" || UMOUNT="/bin/umount"
++
++if test -n "$UMOUNT"; then
++
++cat >>confdefs.h <<\_ACEOF
++#define HAVE_UMOUNT 1
++_ACEOF
++
++
++cat >>confdefs.h <<_ACEOF
++#define PATH_UMOUNT "$UMOUNT"
++_ACEOF
++
++  HAVE_UMOUNT=1
++else
++  HAVE_UMOUNT=0
++fi
++
++for ac_prog in fsck.ext2 e2fsck
++do
++  # Extract the first word of "$ac_prog", so it can be a program name with args.
++set dummy $ac_prog; ac_word=$2
++{ echo "$as_me:$LINENO: checking for $ac_word" >&5
++echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
++if test "${ac_cv_path_E2FSCK+set}" = set; then
++  echo $ECHO_N "(cached) $ECHO_C" >&6
++else
++  case $E2FSCK in
++  [\\/]* | ?:[\\/]*)
++  ac_cv_path_E2FSCK="$E2FSCK" # Let the user override the test with a path.
++  ;;
++  *)
++  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
++for as_dir in $searchpath
++do
++  IFS=$as_save_IFS
++  test -z "$as_dir" && as_dir=.
++  for ac_exec_ext in '' $ac_executable_extensions; do
++  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
++    ac_cv_path_E2FSCK="$as_dir/$ac_word$ac_exec_ext"
++    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
++    break 2
++  fi
++done
++done
++IFS=$as_save_IFS
++
++  ;;
++esac
++fi
++E2FSCK=$ac_cv_path_E2FSCK
++if test -n "$E2FSCK"; then
++  { echo "$as_me:$LINENO: result: $E2FSCK" >&5
++echo "${ECHO_T}$E2FSCK" >&6; }
++else
++  { echo "$as_me:$LINENO: result: no" >&5
++echo "${ECHO_T}no" >&6; }
++fi
++
++
++  test -n "$E2FSCK" && break
++done
++
++if test -n "$E2FSCK"; then
++
++cat >>confdefs.h <<\_ACEOF
++#define HAVE_E2FSCK 1
++_ACEOF
++
++
++cat >>confdefs.h <<_ACEOF
++#define PATH_E2FSCK "$E2FSCK"
++_ACEOF
++
++  HAVE_E2FSCK=1
++else
++  HAVE_E2FSCK=0
++fi
++
++for ac_prog in fsck.ext3 e3fsck
++do
++  # Extract the first word of "$ac_prog", so it can be a program name with args.
++set dummy $ac_prog; ac_word=$2
++{ echo "$as_me:$LINENO: checking for $ac_word" >&5
++echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
++if test "${ac_cv_path_E3FSCK+set}" = set; then
++  echo $ECHO_N "(cached) $ECHO_C" >&6
++else
++  case $E3FSCK in
++  [\\/]* | ?:[\\/]*)
++  ac_cv_path_E3FSCK="$E3FSCK" # Let the user override the test with a path.
++  ;;
++  *)
++  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
++for as_dir in $searchpath
++do
++  IFS=$as_save_IFS
++  test -z "$as_dir" && as_dir=.
++  for ac_exec_ext in '' $ac_executable_extensions; do
++  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
++    ac_cv_path_E3FSCK="$as_dir/$ac_word$ac_exec_ext"
++    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
++    break 2
++  fi
++done
++done
++IFS=$as_save_IFS
++
++  ;;
++esac
++fi
++E3FSCK=$ac_cv_path_E3FSCK
++if test -n "$E3FSCK"; then
++  { echo "$as_me:$LINENO: result: $E3FSCK" >&5
++echo "${ECHO_T}$E3FSCK" >&6; }
++else
++  { echo "$as_me:$LINENO: result: no" >&5
++echo "${ECHO_T}no" >&6; }
++fi
++
++
++  test -n "$E3FSCK" && break
++done
++
++if test -n "$E3FSCK"; then
++
++cat >>confdefs.h <<\_ACEOF
++#define HAVE_E3FSCK 1
++_ACEOF
++
++
++cat >>confdefs.h <<_ACEOF
++#define PATH_E3FSCK "$E3FSCK"
++_ACEOF
++
++  HAVE_E3FSCK=1
++else
++  HAVE_E3FSCK=0
++fi
++
++for ac_prog in modprobe
++do
++  # Extract the first word of "$ac_prog", so it can be a program name with args.
++set dummy $ac_prog; ac_word=$2
++{ echo "$as_me:$LINENO: checking for $ac_word" >&5
++echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
++if test "${ac_cv_path_MODPROBE+set}" = set; then
++  echo $ECHO_N "(cached) $ECHO_C" >&6
++else
++  case $MODPROBE in
++  [\\/]* | ?:[\\/]*)
++  ac_cv_path_MODPROBE="$MODPROBE" # Let the user override the test with a path.
++  ;;
++  *)
++  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
++for as_dir in $searchpath
++do
++  IFS=$as_save_IFS
++  test -z "$as_dir" && as_dir=.
++  for ac_exec_ext in '' $ac_executable_extensions; do
++  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
++    ac_cv_path_MODPROBE="$as_dir/$ac_word$ac_exec_ext"
++    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
++    break 2
++  fi
++done
++done
++IFS=$as_save_IFS
++
++  ;;
++esac
++fi
++MODPROBE=$ac_cv_path_MODPROBE
++if test -n "$MODPROBE"; then
++  { echo "$as_me:$LINENO: result: $MODPROBE" >&5
++echo "${ECHO_T}$MODPROBE" >&6; }
++else
++  { echo "$as_me:$LINENO: result: no" >&5
++echo "${ECHO_T}no" >&6; }
++fi
++
++
++  test -n "$MODPROBE" && break
++done
++
++if test -n "$MODPROBE"; then
++
++cat >>confdefs.h <<\_ACEOF
++#define HAVE_MODPROBE 1
++_ACEOF
++
++
++cat >>confdefs.h <<_ACEOF
++#define PATH_MODPROBE "$MODPROBE"
++_ACEOF
++
++  HAVE_MODPROBE=1
++else
++  HAVE_MODPROBE=0
++fi
++
++
++for ac_prog in flex lex
++do
++  # Extract the first word of "$ac_prog", so it can be a program name with args.
++set dummy $ac_prog; ac_word=$2
++{ echo "$as_me:$LINENO: checking for $ac_word" >&5
++echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
++if test "${ac_cv_path_LEX+set}" = set; then
++  echo $ECHO_N "(cached) $ECHO_C" >&6
++else
++  case $LEX in
++  [\\/]* | ?:[\\/]*)
++  ac_cv_path_LEX="$LEX" # Let the user override the test with a path.
++  ;;
++  *)
++  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
++for as_dir in $searchpath
++do
++  IFS=$as_save_IFS
++  test -z "$as_dir" && as_dir=.
++  for ac_exec_ext in '' $ac_executable_extensions; do
++  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
++    ac_cv_path_LEX="$as_dir/$ac_word$ac_exec_ext"
++    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
++    break 2
++  fi
++done
++done
++IFS=$as_save_IFS
++
++  ;;
++esac
++fi
++LEX=$ac_cv_path_LEX
++if test -n "$LEX"; then
++  { echo "$as_me:$LINENO: result: $LEX" >&5
++echo "${ECHO_T}$LEX" >&6; }
++else
++  { echo "$as_me:$LINENO: result: no" >&5
++echo "${ECHO_T}no" >&6; }
++fi
++
++
++  test -n "$LEX" && break
++done
++
++if test -n "$LEX"; then
++
++cat >>confdefs.h <<_ACEOF
++#define PATH_LEX "$LEX"
++_ACEOF
++
++  PATH_LEX="$LEX"
++else
++  { { echo "$as_me:$LINENO: error: required program LEX not found" >&5
++echo "$as_me: error: required program LEX not found" >&2;}
++   { (exit 1); exit 1; }; }
++fi
++
++for ac_prog in bison
++do
++  # Extract the first word of "$ac_prog", so it can be a program name with args.
++set dummy $ac_prog; ac_word=$2
++{ echo "$as_me:$LINENO: checking for $ac_word" >&5
++echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
++if test "${ac_cv_path_YACC+set}" = set; then
++  echo $ECHO_N "(cached) $ECHO_C" >&6
++else
++  case $YACC in
++  [\\/]* | ?:[\\/]*)
++  ac_cv_path_YACC="$YACC" # Let the user override the test with a path.
++  ;;
++  *)
++  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
++for as_dir in $searchpath
++do
++  IFS=$as_save_IFS
++  test -z "$as_dir" && as_dir=.
++  for ac_exec_ext in '' $ac_executable_extensions; do
++  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
++    ac_cv_path_YACC="$as_dir/$ac_word$ac_exec_ext"
++    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
++    break 2
++  fi
++done
++done
++IFS=$as_save_IFS
++
++  ;;
++esac
++fi
++YACC=$ac_cv_path_YACC
++if test -n "$YACC"; then
++  { echo "$as_me:$LINENO: result: $YACC" >&5
++echo "${ECHO_T}$YACC" >&6; }
++else
++  { echo "$as_me:$LINENO: result: no" >&5
++echo "${ECHO_T}no" >&6; }
++fi
++
++
++  test -n "$YACC" && break
++done
++
++if test -n "$YACC"; then
++
++cat >>confdefs.h <<_ACEOF
++#define PATH_YACC "$YACC"
++_ACEOF
++
++  PATH_YACC="$YACC"
++else
++  { { echo "$as_me:$LINENO: error: required program YACC not found" >&5
++echo "$as_me: error: required program YACC not found" >&2;}
++   { (exit 1); exit 1; }; }
++fi
++
++for ac_prog in ranlib
++do
++  # Extract the first word of "$ac_prog", so it can be a program name with args.
++set dummy $ac_prog; ac_word=$2
++{ echo "$as_me:$LINENO: checking for $ac_word" >&5
++echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
++if test "${ac_cv_path_RANLIB+set}" = set; then
++  echo $ECHO_N "(cached) $ECHO_C" >&6
++else
++  case $RANLIB in
++  [\\/]* | ?:[\\/]*)
++  ac_cv_path_RANLIB="$RANLIB" # Let the user override the test with a path.
++  ;;
++  *)
++  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
++for as_dir in $searchpath
++do
++  IFS=$as_save_IFS
++  test -z "$as_dir" && as_dir=.
++  for ac_exec_ext in '' $ac_executable_extensions; do
++  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
++    ac_cv_path_RANLIB="$as_dir/$ac_word$ac_exec_ext"
++    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
++    break 2
++  fi
++done
++done
++IFS=$as_save_IFS
++
++  ;;
++esac
++fi
++RANLIB=$ac_cv_path_RANLIB
++if test -n "$RANLIB"; then
++  { echo "$as_me:$LINENO: result: $RANLIB" >&5
++echo "${ECHO_T}$RANLIB" >&6; }
++else
++  { echo "$as_me:$LINENO: result: no" >&5
++echo "${ECHO_T}no" >&6; }
++fi
++
++
++  test -n "$RANLIB" && break
++done
++
++if test -n "$RANLIB"; then
++
++cat >>confdefs.h <<_ACEOF
++#define PATH_RANLIB "$RANLIB"
++_ACEOF
++
++  PATH_RANLIB="$RANLIB"
++else
++  { { echo "$as_me:$LINENO: error: required program RANLIB not found" >&5
++echo "$as_me: error: required program RANLIB not found" >&2;}
++   { (exit 1); exit 1; }; }
++fi
++
++for ac_prog in rpcgen
++do
++  # Extract the first word of "$ac_prog", so it can be a program name with args.
++set dummy $ac_prog; ac_word=$2
++{ echo "$as_me:$LINENO: checking for $ac_word" >&5
++echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
++if test "${ac_cv_path_RPCGEN+set}" = set; then
++  echo $ECHO_N "(cached) $ECHO_C" >&6
++else
++  case $RPCGEN in
++  [\\/]* | ?:[\\/]*)
++  ac_cv_path_RPCGEN="$RPCGEN" # Let the user override the test with a path.
++  ;;
++  *)
++  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
++for as_dir in $searchpath
++do
++  IFS=$as_save_IFS
++  test -z "$as_dir" && as_dir=.
++  for ac_exec_ext in '' $ac_executable_extensions; do
++  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
++    ac_cv_path_RPCGEN="$as_dir/$ac_word$ac_exec_ext"
++    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
++    break 2
++  fi
++done
++done
++IFS=$as_save_IFS
++
++  ;;
++esac
++fi
++RPCGEN=$ac_cv_path_RPCGEN
++if test -n "$RPCGEN"; then
++  { echo "$as_me:$LINENO: result: $RPCGEN" >&5
++echo "${ECHO_T}$RPCGEN" >&6; }
++else
++  { echo "$as_me:$LINENO: result: no" >&5
++echo "${ECHO_T}no" >&6; }
++fi
++
++
++  test -n "$RPCGEN" && break
++done
++
++if test -n "$RPCGEN"; then
++
++cat >>confdefs.h <<_ACEOF
++#define PATH_RPCGEN "$RPCGEN"
++_ACEOF
++
++  PATH_RPCGEN="$RPCGEN"
++else
++  { { echo "$as_me:$LINENO: error: required program RPCGEN not found" >&5
++echo "$as_me: error: required program RPCGEN not found" >&2;}
++   { (exit 1); exit 1; }; }
++fi
++
++
++#
++# Newer mounts have the -s (sloppy) option to ignore unknown options,
++# good for portability
++#
++if test -n "$MOUNT" ; then
++  { echo "$as_me:$LINENO: checking if mount accepts the -s option" >&5
++echo $ECHO_N "checking if mount accepts the -s option... $ECHO_C" >&6; }
++  if "$MOUNT" -s > /dev/null 2>&1 ; then
++
++cat >>confdefs.h <<\_ACEOF
++#define HAVE_SLOPPY_MOUNT 1
++_ACEOF
++
++    { echo "$as_me:$LINENO: result: yes" >&5
++echo "${ECHO_T}yes" >&6; }
++  else
++    { echo "$as_me:$LINENO: result: no" >&5
++echo "${ECHO_T}no" >&6; }
++  fi
++fi
++
++# LDAP SASL auth need libxml
++for ac_prog in xml2-config
++do
++  # Extract the first word of "$ac_prog", so it can be a program name with args.
++set dummy $ac_prog; ac_word=$2
++{ echo "$as_me:$LINENO: checking for $ac_word" >&5
++echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
++if test "${ac_cv_path_XML_CONFIG+set}" = set; then
++  echo $ECHO_N "(cached) $ECHO_C" >&6
++else
++  case $XML_CONFIG in
++  [\\/]* | ?:[\\/]*)
++  ac_cv_path_XML_CONFIG="$XML_CONFIG" # Let the user override the test with a path.
++  ;;
++  *)
++  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
++for as_dir in $PATH
++do
++  IFS=$as_save_IFS
++  test -z "$as_dir" && as_dir=.
++  for ac_exec_ext in '' $ac_executable_extensions; do
++  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
++    ac_cv_path_XML_CONFIG="$as_dir/$ac_word$ac_exec_ext"
++    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
++    break 2
++  fi
++done
++done
++IFS=$as_save_IFS
++
++  ;;
++esac
++fi
++XML_CONFIG=$ac_cv_path_XML_CONFIG
++if test -n "$XML_CONFIG"; then
++  { echo "$as_me:$LINENO: result: $XML_CONFIG" >&5
++echo "${ECHO_T}$XML_CONFIG" >&6; }
++else
++  { echo "$as_me:$LINENO: result: no" >&5
++echo "${ECHO_T}no" >&6; }
++fi
++
++
++  test -n "$XML_CONFIG" && break
++done
++test -n "$XML_CONFIG" || XML_CONFIG="no"
++
++{ echo "$as_me:$LINENO: checking for libxml2" >&5
++echo $ECHO_N "checking for libxml2... $ECHO_C" >&6; }
++if test "$XML_CONFIG" = "no"
++then
++  { echo "$as_me:$LINENO: result: no" >&5
++echo "${ECHO_T}no" >&6; }
++  HAVE_LIBXML=0
++else
++  { echo "$as_me:$LINENO: result: yes" >&5
++echo "${ECHO_T}yes" >&6; }
++  HAVE_LIBXML=1
++  XML_LIBS=`$XML_CONFIG --libs`
++  XML_FLAGS=`$XML_CONFIG --cflags`
++  XML_VER=`$XML_CONFIG --version`
++  XML_MAJOR=`echo $XML_VER|cut -d\. -f1`
++  if test $XML_MAJOR -le 99
++  then
++    XML_MINOR=`echo $XML_VER|cut -d\. -f2`
++    if test $XML_MINOR -le 99
++    then
++      XML_REV=`echo $XML_VER|cut -d\. -f3`
++      if test $XML_REV -le 99; then
++
++cat >>confdefs.h <<\_ACEOF
++#define LIBXML2_WORKAROUND 1
++_ACEOF
++
++      fi
++    fi
++  fi
++fi
++
++#
++# glibc/libc 6 new libraries
++#
+ { echo "$as_me:$LINENO: checking for yp_match in -lnsl" >&5
+ echo $ECHO_N "checking for yp_match in -lnsl... $ECHO_C" >&6; }
+ if test "${ac_cv_lib_nsl_yp_match+set}" = set; then
+@@ -6280,6 +6447,14 @@ confdir!$confdir$ac_delim
+ mapdir!$mapdir$ac_delim
+ fifodir!$fifodir$ac_delim
+ flagdir!$flagdir$ac_delim
++CC!$CC$ac_delim
++CFLAGS!$CFLAGS$ac_delim
++LDFLAGS!$LDFLAGS$ac_delim
++CPPFLAGS!$CPPFLAGS$ac_delim
++ac_ct_CC!$ac_ct_CC$ac_delim
++EXEEXT!$EXEEXT$ac_delim
++OBJEXT!$OBJEXT$ac_delim
++TIRPCLIB!$TIRPCLIB$ac_delim
+ DMALLOCLIB!$DMALLOCLIB$ac_delim
+ MOUNT!$MOUNT$ac_delim
+ HAVE_MOUNT!$HAVE_MOUNT$ac_delim
+@@ -6300,13 +6475,6 @@ PATH_RANLIB!$PATH_RANLIB$ac_delim
+ RPCGEN!$RPCGEN$ac_delim
+ PATH_RPCGEN!$PATH_RPCGEN$ac_delim
+ XML_CONFIG!$XML_CONFIG$ac_delim
+-CC!$CC$ac_delim
+-CFLAGS!$CFLAGS$ac_delim
+-LDFLAGS!$LDFLAGS$ac_delim
+-CPPFLAGS!$CPPFLAGS$ac_delim
+-ac_ct_CC!$ac_ct_CC$ac_delim
+-EXEEXT!$EXEEXT$ac_delim
+-OBJEXT!$OBJEXT$ac_delim
+ LIBNSL!$LIBNSL$ac_delim
+ LIBRESOLV!$LIBRESOLV$ac_delim
+ HAVE_HESIOD!$HAVE_HESIOD$ac_delim
+@@ -6330,7 +6498,7 @@ LIBOBJS!$LIBOBJS$ac_delim
+ LTLIBOBJS!$LTLIBOBJS$ac_delim
+ _ACEOF
+ 
+-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 90; then
++  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 91; then
+     break
+   elif $ac_last_try; then
+     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
+diff --git a/configure.in b/configure.in
+index 423f213..d09a2b6 100644
+--- a/configure.in
++++ b/configure.in
+@@ -113,6 +113,12 @@ AC_MSG_RESULT([$flagdir])
+ AC_SUBST(flagdir)
+ 
+ #
++# Use libtirpc
++#
++AM_WITH_LIBTIRPC()
++AC_SUBST(TIRPCLIB)
++
++#
+ # Optional include dmalloc
+ #
+ AM_WITH_DMALLOC()
+diff --git a/daemon/automount.c b/daemon/automount.c
+index 269fc5b..1ec686b 100644
+--- a/daemon/automount.c
++++ b/daemon/automount.c
+@@ -2057,7 +2057,10 @@ int main(int argc, char *argv[])
+ 	}
+ 
+ #ifdef LIBXML2_WORKAROUND
+-	void *dh = dlopen("libxml2.so", RTLD_NOW);
++	void *dh_xml2 = dlopen("libxml2.so", RTLD_NOW);
++#endif
++#ifdef TIRPC_WORKAROUND
++	void *dh_tirpc = dlopen("libitirpc.so", RTLD_NOW);
  #endif
-diff --git a/lib/master_tok.l b/lib/master_tok.l
-index 801aa6f..b6cc8be 100644
---- a/lib/master_tok.l
-+++ b/lib/master_tok.l
-@@ -96,10 +96,12 @@ SLASHIFYSTR	(--(no-)?slashify-colons)
- NUMBER		[0-9]+
  
- DNSERVSTR1	([[:alpha:]][[:alnum:]\-.]*(:[0-9]+)?:)
--DNSERVSTR2	(\/\/[[:alpha:]][[:alnum:]\-.]*(:[0-9]+)?\/)
--DNSERVSTR3	(([[:digit:]]{1,3}\.){3}[[:digit:]]{1,3}(:[0-9]+)?:)
--DNSERVSTR4	(\/\/([[:digit:]]{1,3}\.){3}[[:digit:]]{1,3}(:[0-9]+)?\/)
--DNSERVERSTR	({DNSERVSTR1}|{DNSERVSTR2}|{DNSERVSTR3}|{DNSERVSTR4})
-+DNSERVSTR2	(\[([[:xdigit:]]:.)+\](:[0-9]+)?:)
-+DNSERVSTR3	(\/\/[[:alpha:]][[:alnum:]\-.]*(:[0-9]+)?\/)
-+DNSERVSTR4	(\/\/\[([[:xdigit:]]:.)+\](:[0-9]+)?\/)
-+DNSERVSTR5	(([[:digit:]]{1,3}\.){3}[[:digit:]]{1,3}(:[0-9]+)?:)
-+DNSERVSTR6	(\/\/([[:digit:]]{1,3}\.){3}[[:digit:]]{1,3}(:[0-9]+)?\/)
-+DNSERVERSTR	({DNSERVSTR1}|{DNSERVSTR2}|{DNSERVSTR3}|{DNSERVSTR4}|{DNSERVSTR5}|{DNSERVSTR6})
+ 	if (!master_read_master(master_list, age, 0)) {
+@@ -2090,9 +2093,13 @@ int main(int argc, char *argv[])
+ 	closelog();
+ 	release_flag_file();
  
- AT_CN		([cC][[nN])
- AT_NMN		([nN][iI][sS][Mm][aA][pP][Nn][aA][mM][eE])
-diff --git a/lib/parse_subs.c b/lib/parse_subs.c
-index 8a032e8..0cba95a 100644
---- a/lib/parse_subs.c
-+++ b/lib/parse_subs.c
-@@ -56,14 +56,13 @@ int check_colon(const char *str)
- 	char *ptr = (char *) str;
++#ifdef TIRPC_WORKAROUND
++	if (dh_tirpc)
++		dlclose(dh_tirpc);
++#endif
+ #ifdef LIBXML2_WORKAROUND
+-	if (dh)
+-		dlclose(dh);
++	if (dh_xml2)
++		dlclose(dh_xml2);
+ #endif
+ 	close_ioctl_ctl();
  
- 	/* Colon escape */
--	if (*ptr == ':')
-+	if (!strncmp(ptr, ":/", 2))
- 		return 1;
+diff --git a/include/config.h.in b/include/config.h.in
+index d8f1747..31b0d75 100644
+--- a/include/config.h.in
++++ b/include/config.h.in
+@@ -66,6 +66,9 @@
+ /* Define to 1 if you have the <unistd.h> header file. */
+ #undef HAVE_UNISTD_H
  
--	while (*ptr && *ptr != ':' && *ptr != '/') {
-+	while (*ptr && strncmp(ptr, ":/", 2))
- 		ptr++;
--	}
- 
--	if (!*ptr || *ptr == '/')
-+	if (!*ptr)
- 		return 0;
- 
- 	return 1;
-@@ -93,12 +92,12 @@ int chunklen(const char *whence, int expect_colon)
- 				n++;
- 				if (*str == '"')
- 					break;
--				if (*str == ':')
-+				if (!strncmp(str, ":/", 2))
- 					expect_colon = 0;
- 			}
- 			break;
- 		case ':':
--			if (expect_colon)
-+			if (expect_colon && !strncmp(str, ":/", 2))
- 				expect_colon = 0;
- 			continue;
- 		case ' ':
-@@ -300,3 +299,91 @@ char *sanitize_path(const char *path, int origlen, unsigned int type, unsigned i
- 	return s_path;
- }
- 
-+void free_map_type_info(struct map_type_info *info)
-+{
-+	if (info->type)
-+		free(info->type);
-+	if (info->format)
-+		free(info->format);
-+	if (info->map)
-+		free(info->map);
-+	free(info);
-+	return;
-+}
++/* Use IPv6 with libtirpc */
++#undef INET6
 +
-+struct map_type_info *parse_map_type_info(const char *str)
-+{
-+	struct map_type_info *info;
-+	char *buf, *type, *fmt, *map, *tmp;
+ /* Use libxml2 tsd usage workaround */
+ #undef LIBXML2_WORKAROUND
+ 
+@@ -114,6 +117,9 @@
+ /* Define to 1 if you have the ANSI C header files. */
+ #undef STDC_HEADERS
+ 
++/* Use libtirpc tsd usage workaround */
++#undef TIRPC_WORKAROUND
 +
-+	buf = strdup(str);
-+	if (!buf)
-+		return NULL;
-+
-+	info = malloc(sizeof(struct map_type_info));
-+	if (!info) {
-+		free(buf);
-+		return NULL;
-+	}
-+	memset(info, 0, sizeof(struct map_type_info));
-+
-+	type = fmt = NULL;
-+
-+	/* Look for space terminator - ignore local options */
-+	map = buf;
-+	for (tmp = buf; *tmp; tmp++) {
-+		if (*tmp == ' ') {
-+			*tmp = '\0';
-+			break;
-+		} else if (*tmp == ',') {
-+			type = buf;
-+			*tmp++ = '\0';
-+			fmt = tmp;
-+		} else if (*tmp == ':') {
-+			if (!fmt)
-+				type = buf;
-+			*tmp++ = '\0';
-+			map = tmp;
-+		} else if (*tmp == '[') {
-+			/*
-+			 * Unescaped '[' is a syntax error here as only
-+			 * an ldap map with a type specified should contain
-+			 * them. 
-+			 */
-+			free(buf);
-+			return 0;
-+		}
-+		if (*tmp == '\\')
-+			tmp++;
-+	}
-+
-+	if (type) {
-+		info->type = strdup(type);
-+		if (!info->type) {
-+			free(buf);
-+			free_map_type_info(info);
-+			return NULL;
-+		}
-+	}
-+
-+	if (fmt) {
-+		info->format = strdup(fmt);
-+		if (!info->format) {
-+			free(buf);
-+			free_map_type_info(info);
-+			return NULL;
-+		}
-+	}
-+
-+	info->map = strdup(map);
-+	if (!info->map) {
-+		free(buf);
-+		free_map_type_info(info);
-+		return NULL;
-+	}
-+
-+	free(buf);
-+
-+	return info;
-+}
-+
-diff --git a/modules/lookup_file.c b/modules/lookup_file.c
-index ba80f2a..ec78090 100644
---- a/modules/lookup_file.c
-+++ b/modules/lookup_file.c
-@@ -523,10 +523,10 @@ prepare_plus_include(struct autofs_point *ap, time_t age, char *key, unsigned in
- {
- 	struct map_source *current;
- 	struct map_source *source;
--	char *type, *map, *fmt;
-+	struct map_type_info *info;
- 	const char *argv[2];
- 	int argc;
--	char *buf, *tmp;
-+	char *buf;
- 
- 	current = ap->entry->current;
- 	ap->entry->current = NULL;
-@@ -548,33 +548,19 @@ prepare_plus_include(struct autofs_point *ap, time_t age, char *key, unsigned in
- 		return NULL;
- 	}
- 
--	type = fmt = NULL;
--
--	/* Look for space terminator - ignore local options */
--	map = buf;
--	for (tmp = buf; *tmp; tmp++) {
--		if (*tmp == ' ') {
--			*tmp = '\0';
--			break;
--		} else if (*tmp == ',') {
--			type = buf;
--			*tmp++ = '\0';
--			fmt = tmp;
--		} else if (*tmp == ':') {
--			if (!fmt)
--				type = buf;
--			*tmp++ = '\0';
--			map = tmp;
--		}
--		if (*tmp == '\\')
--			tmp++;
-+	if (!(info = parse_map_type_info(buf))) {
-+		error(ap->logopt, MODPREFIX "failed to parse map info");
-+		free(buf);
-+		return NULL;
- 	}
- 
- 	argc = 1;
--	argv[0] = map;
-+	argv[0] = info->map;
- 	argv[1] = NULL;
- 
--	source = master_find_source_instance(current, type, fmt, argc, argv);
-+	source = master_find_source_instance(current,
-+					     info->type, info->format,
-+					     argc, argv);
- 	if (source)
- 		/*
- 		 * Make sure included map age is in sync with its owner
-@@ -582,8 +568,11 @@ prepare_plus_include(struct autofs_point *ap, time_t age, char *key, unsigned in
- 		 */
- 		source->age = age;
- 	else {
--		source = master_add_source_instance(current, type, fmt, age, argc, argv);
-+		source = master_add_source_instance(current,
-+						    info->type, info->format,
-+						    age, argc, argv);
- 		if (!source) {
-+			free_map_type_info(info);
- 			free(buf);
- 			error(ap->logopt, "failed to add included map instance");
- 			return NULL;
-@@ -594,6 +583,7 @@ prepare_plus_include(struct autofs_point *ap, time_t age, char *key, unsigned in
- 	if (inc)
- 		source->recurse = 1;
- 
-+	free_map_type_info(info);
- 	free(buf);
- 
- 	return source;
-diff --git a/modules/lookup_ldap.c b/modules/lookup_ldap.c
-index 094cbdc..7845bcf 100644
---- a/modules/lookup_ldap.c
-+++ b/modules/lookup_ldap.c
-@@ -1119,11 +1119,26 @@ static int parse_server_string(unsigned logopt, const char *url, struct lookup_c
- 			memcpy(ctxt->server, s, l);
- */
- 		}
--	} else if (strchr(ptr, ':') != NULL) {
--		char *q = NULL;
-+	} else if (strchr(ptr, ':') != NULL || *ptr == '[') {
-+		const char *q = NULL;
- 
- 		/* Isolate the server. Include the port spec */
--		q = strchr(ptr, ':');
-+		if (*ptr != '[')
-+			q = strchr(ptr, ':');
-+		else {
-+			q = ++ptr;
-+			while (*q == ':' || isxdigit(*q))
-+				q++;
-+			if (*q != ']') {
-+				crit(logopt, MODPREFIX
-+				     "invalid LDAP map syntax %s", ptr);
-+				return 0;
-+			}
-+			q++;
-+			if (*q == ':')
-+				q++;
-+		}
-+
- 		if (isdigit(*q))
- 			while (isdigit(*q))
- 				q++;
-diff --git a/modules/mount_autofs.c b/modules/mount_autofs.c
-index fab2906..14d6307 100644
---- a/modules/mount_autofs.c
-+++ b/modules/mount_autofs.c
-@@ -50,7 +50,7 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name,
- 	int argc, status, ghost = ap->flags & MOUNT_FLAG_GHOST;
- 	time_t timeout = ap->exp_timeout;
- 	unsigned logopt = ap->logopt;
--	char *type, *format, *tmp, *tmp2;
-+	struct map_type_info *info;
- 	struct master *master;
- 	struct master_mapent *entry;
- 	struct map_source *source;
-@@ -174,21 +174,12 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name,
- 
- 	argc = 1;
- 
--	type = NULL;
--	format = NULL;
--
--	tmp = strchr(what, ':');
--	if (tmp) {
--		*tmp++ = '\0';
--		tmp2 = strchr(what, ',');
--		if (tmp2) {
--			*tmp2++ = '\0';
--			format = tmp2;
--		}
--		type = (char *) what;
--		argv[0] = tmp;
--	} else
--		argv[0] = (char *) what;
-+	if (!(info = parse_map_type_info(what))) {
-+		error(ap->logopt, MODPREFIX "failed to parse map info");
-+		master_free_mapent(entry);
-+		return 1;
-+	}
-+	argv[0] = info->map;
- 
- 	if (options) {
- 		p = options;
-@@ -202,13 +193,17 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name,
- 	}
- 	argv[argc] = NULL;
- 
--	source = master_add_map_source(entry, type, format, time(NULL), argc, argv);
-+	source = master_add_map_source(entry,
-+				       info->type, info->format,
-+				       time(NULL), argc, argv);
- 	if (!source) {
- 		error(ap->logopt,
- 		      MODPREFIX "failed to add map source to entry");
- 		master_free_mapent(entry);
-+		free_map_type_info(info);
- 		return 1;
- 	}
-+	free_map_type_info(info);
- 
- 	source->mc = cache_init(entry->ap, source);
- 	if (!source->mc) {
-diff --git a/modules/parse_sun.c b/modules/parse_sun.c
-index ed73e46..65417e1 100644
---- a/modules/parse_sun.c
-+++ b/modules/parse_sun.c
-@@ -245,7 +245,9 @@ int expandsunent(const char *src, char *dst, const char *key,
- 				*(dst++) = 
- 				  (seen_colons && slashify_colons) ? '/' : ':';
- 			len++;
--			seen_colons = 1;
-+			/* Were looking for the colon preceeding a path */
-+			if (*src == '/')
-+				seen_colons = 1;
- 			break;
- 
- 		default:
-@@ -814,21 +816,23 @@ static int validate_location(char *loc)
- 		return 1;
- 
- 	/*
--	 * If a ':' is present now it must be a host name, except
-+	 * If a ':/' is present now it must be a host name, except
- 	 * for those special file systems like sshfs which use "#"
--	 * and "@" in the host name part.
-+	 * and "@" in the host name part and ipv6 addresses that
-+	 * have ":", "[" and "]".
- 	 */
- 	if (check_colon(ptr)) {
--		while (*ptr && *ptr != ':') {
-+		while (*ptr && strncmp(ptr, ":/", 2)) {
- 			if (!(isalnum(*ptr) ||
- 			    *ptr == '-' || *ptr == '.' || *ptr == '_' ||
- 			    *ptr == ',' || *ptr == '(' || *ptr == ')' ||
--			    *ptr == '#' || *ptr == '@'))
-+			    *ptr == '#' || *ptr == '@' || *ptr == ':' ||
-+			    *ptr == '[' || *ptr == ']'))
- 				return 0;
- 			ptr++;
- 		}
- 
--		if (*ptr && *ptr == ':')
-+		if (*ptr && !strncmp(ptr, ":/", 2))
- 			ptr++;
- 	}
- 
-diff --git a/modules/replicated.c b/modules/replicated.c
-index 9e85c00..79845d0 100644
---- a/modules/replicated.c
-+++ b/modules/replicated.c
-@@ -1168,6 +1168,28 @@ static int add_local_path(struct host **hosts, const char *path)
- 	return 1;
- }
- 
-+static char *seek_delim(const char *s)
-+{
-+	const char *p = s;
-+	char *delim;
-+
-+	delim = strpbrk(p, "(, \t:");
-+	if (delim && *delim != ':')
-+		return delim;
-+
-+	while (*p) {
-+		if (*p != ':') {
-+			p++;
-+			continue;
-+		}
-+		if (!strncmp(p, ":/", 2))
-+			return (char *) p;
-+		p++;
-+	}
-+
-+	return NULL;
-+}
-+
- int parse_location(unsigned logopt, struct host **hosts, const char *list)
- {
- 	char *str, *p, *delim;
-@@ -1187,7 +1209,7 @@ int parse_location(unsigned logopt, struct host **hosts, const char *list)
- 		int weight = 0;
- 
- 		p += strspn(p, " \t,");
--		delim = strpbrk(p, "(, \t:");
-+		delim = seek_delim(p);
- 
- 		if (delim) {
- 			if (*delim == '(') {
-@@ -1211,7 +1233,7 @@ int parse_location(unsigned logopt, struct host **hosts, const char *list)
- 
- 				/* Oh boy - might have spaces in the path */
- 				next = path;
--				while (*next && *next != ':')
-+				while (*next && strncmp(next, ":/", 2))
- 					next++;
- 
- 				/* No spaces in host names at least */
+ /* Define if using the dmalloc debugging malloc package */
+ #undef WITH_DMALLOC
