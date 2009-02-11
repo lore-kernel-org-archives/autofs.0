@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 01/13] autofs-5.0.4 - use CLOEXEC flag for setmntent
-Date: Thu, 12 Feb 2009 01:00:14 +0900
-Message-ID: <20090211160014.12578.22829.stgit@zeus.themaw.net>
+Subject: [PATCH 05/13] autofs-5.0.4 - library reload fix update
+Date: Thu, 12 Feb 2009 01:00:35 +0900
+Message-ID: <20090211160035.12578.73275.stgit@zeus.themaw.net>
 References: <20090211154853.12578.50525.stgit@zeus.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -20,94 +20,350 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs mailing list <autofs@linux.kernel.org>
 
-Update use of CLOEXEC functionality to cover setmntent(3)
-calls as well.
+We still have a problem with libxml2 being unloaded before its thread
+specific data destructor is called. This is due to the main thread
+exiting (closing the handle we hold open to prevent this) before all
+the mount handling threads have actually completed. This patch makes
+the mount handling threads joinable (and joins with them as they exit)
+to ensure that the mount handling threads have completed before allowing
+the main thread to complete.
 ---
 
- CHANGELOG           |    1 +
- include/automount.h |   20 ++++++++++++++++++++
- lib/mounts.c        |    8 ++++----
- 3 files changed, 25 insertions(+), 4 deletions(-)
+ daemon/automount.c     |   35 +++++++++++++++++++++++------------
+ daemon/direct.c        |    7 ++++---
+ daemon/indirect.c      |    7 ++++---
+ daemon/state.c         |    7 ++++---
+ include/master.h       |    3 +++
+ lib/master.c           |   38 ++++++++++++++++++++++++++++++++++----
+ modules/mount_autofs.c |    4 ++--
+ 7 files changed, 74 insertions(+), 27 deletions(-)
 
-diff --git a/CHANGELOG b/CHANGELOG
-index af77b55..eb4a189 100644
---- a/CHANGELOG
-+++ b/CHANGELOG
-@@ -8,6 +8,7 @@
- - make hash table scale to thousands of entries (Paul Wankadia,
-   Valerie Aurora Henson).
- - clear the quoted flag after each character from program map input.
-+- use CLOEXEC flag for setmntent also.
+diff --git a/daemon/automount.c b/daemon/automount.c
+index e120f50..f04273f 100644
+--- a/daemon/automount.c
++++ b/daemon/automount.c
+@@ -69,8 +69,9 @@ static size_t kpkt_len;
+ /* Does kernel know about SOCK_CLOEXEC and friends */
+ static int cloexec_works = 0;
  
- 4/11/2008 autofs-5.0.4
- -----------------------
-diff --git a/include/automount.h b/include/automount.h
-index 005d209..46cb6c6 100644
---- a/include/automount.h
-+++ b/include/automount.h
-@@ -581,5 +581,25 @@ static inline FILE *open_fopen_r(const char *path)
- 	return f;
+-/* Attribute to create detached thread */
+-pthread_attr_t thread_attr;
++/* Attributes for creating detached and joinable threads */
++pthread_attr_t th_attr;
++pthread_attr_t th_attr_detached;
+ 
+ struct master_readmap_cond mrc = {
+ 	PTHREAD_MUTEX_INITIALIZER, PTHREAD_COND_INITIALIZER, 0, NULL, 0, 0, 0, 0};
+@@ -1192,7 +1193,7 @@ static pthread_t do_signals(struct master *master, int sig)
+ 	if (status)
+ 		fatal(status);
+ 
+-	status = pthread_create(&thid, &thread_attr, do_notify_state, &r_sig);
++	status = pthread_create(&thid, &th_attr_detached, do_notify_state, &r_sig);
+ 	if (status) {
+ 		error(master->logopt,
+ 		      "mount state notify thread create failed");
+@@ -1281,7 +1282,7 @@ static int do_hup_signal(struct master *master, time_t age)
+ 
+ 	master->reading = 1;
+ 
+-	status = pthread_create(&thid, &thread_attr, do_read_master, NULL);
++	status = pthread_create(&thid, &th_attr_detached, do_read_master, NULL);
+ 	if (status) {
+ 		error(logopt,
+ 		      "master read map thread create failed");
+@@ -1327,7 +1328,7 @@ static void *statemachine(void *arg)
+ 		case SIGTERM:
+ 		case SIGINT:
+ 		case SIGUSR2:
+-			if (master_list_empty(master_list))
++			if (master_done(master_list))
+ 				return NULL;
+ 		case SIGUSR1:
+ 			do_signals(master_list, sig);
+@@ -1448,8 +1449,6 @@ static void handle_mounts_cleanup(void *arg)
+ 	master_mutex_unlock();
+ 
+ 	destroy_logpri_fifo(ap);
+-	master_free_mapent_sources(ap->entry, 1);
+-	master_free_mapent(ap->entry);
+ 
+ 	if (clean) {
+ 		if (rmdir(path) == -1) {
+@@ -1461,8 +1460,12 @@ static void handle_mounts_cleanup(void *arg)
+ 
+ 	info(logopt, "shut down path %s", path);
+ 
+-	/* If we are the last tell the state machine to shutdown */
+-	if (!submount && master_list_empty(master_list))
++	/*
++	 * If we are not a submount send a signal to the signal handler
++	 * so it can join with any completed handle_mounts() threads and
++	 * perform final cleanup.
++	 */
++	if (!submount)
+ 		pthread_kill(state_mach_thid, SIGTERM);
+ 	
+ 	return;
+@@ -1980,7 +1983,15 @@ int main(int argc, char *argv[])
+ 		exit(1);
+ 	}
+ 
+-	if (pthread_attr_init(&thread_attr)) {
++	if (pthread_attr_init(&th_attr)) {
++		logerr("%s: failed to init thread attribute struct!",
++		     program);
++		close(start_pipefd[1]);
++		release_flag_file();
++		exit(1);
++	}
++
++	if (pthread_attr_init(&th_attr_detached)) {
+ 		logerr("%s: failed to init thread attribute struct!",
+ 		     program);
+ 		close(start_pipefd[1]);
+@@ -1989,7 +2000,7 @@ int main(int argc, char *argv[])
+ 	}
+ 
+ 	if (pthread_attr_setdetachstate(
+-			&thread_attr, PTHREAD_CREATE_DETACHED)) {
++			&th_attr_detached, PTHREAD_CREATE_DETACHED)) {
+ 		logerr("%s: failed to set detached thread attribute!",
+ 		     program);
+ 		close(start_pipefd[1]);
+@@ -1999,7 +2010,7 @@ int main(int argc, char *argv[])
+ 
+ #ifdef _POSIX_THREAD_ATTR_STACKSIZE
+ 	if (pthread_attr_setstacksize(
+-			&thread_attr, PTHREAD_STACK_MIN*64)) {
++			&th_attr_detached, PTHREAD_STACK_MIN*64)) {
+ 		logerr("%s: failed to set stack size thread attribute!",
+ 		       program);
+ 		close(start_pipefd[1]);
+diff --git a/daemon/direct.c b/daemon/direct.c
+index c0243c4..d9dda3d 100644
+--- a/daemon/direct.c
++++ b/daemon/direct.c
+@@ -37,7 +37,8 @@
+ 
+ #include "automount.h"
+ 
+-extern pthread_attr_t thread_attr;
++/* Attribute to create detached thread */
++extern pthread_attr_t th_attr_detached;
+ 
+ struct mnt_params {
+ 	char *options;
+@@ -1142,7 +1143,7 @@ int handle_packet_expire_direct(struct autofs_point *ap, autofs_packet_expire_di
+ 	debug(ap->logopt, "token %ld, name %s",
+ 		  (unsigned long) pkt->wait_queue_token, mt->name);
+ 
+-	status = pthread_create(&thid, &thread_attr, do_expire_direct, mt);
++	status = pthread_create(&thid, &th_attr_detached, do_expire_direct, mt);
+ 	if (status) {
+ 		error(ap->logopt, "expire thread create failed");
+ 		ops->send_fail(ap->logopt,
+@@ -1451,7 +1452,7 @@ int handle_packet_missing_direct(struct autofs_point *ap, autofs_packet_missing_
+ 	mt->gid = pkt->gid;
+ 	mt->wait_queue_token = pkt->wait_queue_token;
+ 
+-	status = pthread_create(&thid, &thread_attr, do_mount_direct, mt);
++	status = pthread_create(&thid, &th_attr_detached, do_mount_direct, mt);
+ 	if (status) {
+ 		error(ap->logopt, "missing mount thread create failed");
+ 		ops->send_fail(ap->logopt,
+diff --git a/daemon/indirect.c b/daemon/indirect.c
+index 9d3745c..0721707 100644
+--- a/daemon/indirect.c
++++ b/daemon/indirect.c
+@@ -36,7 +36,8 @@
+ 
+ #include "automount.h"
+ 
+-extern pthread_attr_t thread_attr;
++/* Attribute to create detached thread */
++extern pthread_attr_t th_attr_detached;
+ 
+ static pthread_mutex_t ea_mutex = PTHREAD_MUTEX_INITIALIZER;
+ 
+@@ -647,7 +648,7 @@ int handle_packet_expire_indirect(struct autofs_point *ap, autofs_packet_expire_
+ 	mt->len = pkt->len;
+ 	mt->wait_queue_token = pkt->wait_queue_token;
+ 
+-	status = pthread_create(&thid, &thread_attr, do_expire_indirect, mt);
++	status = pthread_create(&thid, &th_attr_detached, do_expire_indirect, mt);
+ 	if (status) {
+ 		error(ap->logopt, "expire thread create failed");
+ 		ops->send_fail(ap->logopt,
+@@ -835,7 +836,7 @@ int handle_packet_missing_indirect(struct autofs_point *ap, autofs_packet_missin
+ 	mt->gid = pkt->gid;
+ 	mt->wait_queue_token = pkt->wait_queue_token;
+ 
+-	status = pthread_create(&thid, &thread_attr, do_mount_indirect, mt);
++	status = pthread_create(&thid, &th_attr_detached, do_mount_indirect, mt);
+ 	if (status) {
+ 		error(ap->logopt, "expire thread create failed");
+ 		ops->send_fail(ap->logopt,
+diff --git a/daemon/state.c b/daemon/state.c
+index 87c16a6..cd63be1 100644
+--- a/daemon/state.c
++++ b/daemon/state.c
+@@ -16,7 +16,8 @@
+ 
+ #include "automount.h"
+ 
+-extern pthread_attr_t thread_attr;
++/* Attribute to create detached thread */
++extern pthread_attr_t th_attr_detached;
+ 
+ struct state_queue {
+ 	pthread_t thid;
+@@ -292,7 +293,7 @@ static enum expire expire_proc(struct autofs_point *ap, int now)
+ 	else
+ 		expire = expire_proc_direct;
+ 
+-	status = pthread_create(&thid, &thread_attr, expire, ea);
++	status = pthread_create(&thid, &th_attr_detached, expire, ea);
+ 	if (status) {
+ 		error(ap->logopt,
+ 		      "expire thread create for %s failed", ap->path);
+@@ -519,7 +520,7 @@ static unsigned int st_readmap(struct autofs_point *ap)
+ 	ra->ap = ap;
+ 	ra->now = now;
+ 
+-	status = pthread_create(&thid, &thread_attr, do_readmap, ra);
++	status = pthread_create(&thid, &th_attr_detached, do_readmap, ra);
+ 	if (status) {
+ 		error(ap->logopt, "read map thread create failed");
+ 		st_readmap_cleanup(ra);
+diff --git a/include/master.h b/include/master.h
+index 6d801a9..c519e97 100644
+--- a/include/master.h
++++ b/include/master.h
+@@ -48,6 +48,7 @@ struct master_mapent {
+ 	struct map_source *maps;
+ 	struct autofs_point *ap;
+ 	struct list_head list;
++	struct list_head join;
+ };
+ 
+ struct master {
+@@ -61,6 +62,7 @@ struct master {
+ 	unsigned int logopt;
+ 	struct mapent_cache *nc;
+ 	struct list_head mounts;
++	struct list_head completed;
+ };
+ 
+ /* From the yacc master map parser */
+@@ -109,6 +111,7 @@ void master_notify_state_change(struct master *, int);
+ int master_mount_mounts(struct master *, time_t, int);
+ extern inline unsigned int master_get_logopt(void);
+ int master_list_empty(struct master *);
++int master_done(struct master *);
+ int master_kill(struct master *);
+ 
+ #endif
+diff --git a/lib/master.c b/lib/master.c
+index e1cc062..762094f 100644
+--- a/lib/master.c
++++ b/lib/master.c
+@@ -32,8 +32,8 @@ struct master *master_list = NULL;
+ 
+ extern long global_negative_timeout;
+ 
+-/* Attribute to create detached thread */
+-extern pthread_attr_t thread_attr;
++/* Attribute to create a joinable thread */
++extern pthread_attr_t th_attr;
+ 
+ extern struct startup_cond suc;
+ 
+@@ -704,11 +704,16 @@ void master_add_mapent(struct master *master, struct master_mapent *entry)
+ 
+ void master_remove_mapent(struct master_mapent *entry)
+ {
++	struct master *master = entry->master;
++
+ 	if (entry->ap->submount)
+ 		return;
+ 
+-	if (!list_empty(&entry->list))
++	if (!list_empty(&entry->list)) {
+ 		list_del_init(&entry->list);
++		list_add(&entry->join, &master->completed);
++	}
++
+ 	return;
  }
  
-+static inline FILE *open_setmntent_r(const char *table)
+@@ -786,6 +791,7 @@ struct master *master_new(const char *name, unsigned int timeout, unsigned int g
+ 	master->logopt = master->default_logging;
+ 
+ 	INIT_LIST_HEAD(&master->mounts);
++	INIT_LIST_HEAD(&master->completed);
+ 
+ 	return master;
+ }
+@@ -993,7 +999,7 @@ static int master_do_mount(struct master_mapent *entry)
+ 
+ 	debug(ap->logopt, "mounting %s", entry->path);
+ 
+-	status = pthread_create(&thid, &thread_attr, handle_mounts, &suc);
++	status = pthread_create(&thid, &th_attr, handle_mounts, &suc);
+ 	if (status) {
+ 		crit(ap->logopt,
+ 		     "failed to create mount handler thread for %s",
+@@ -1170,6 +1176,30 @@ int master_list_empty(struct master *master)
+ 	return res;
+ }
+ 
++int master_done(struct master *master)
 +{
-+	FILE *tab;
++	struct list_head *head, *p;
++	struct master_mapent *entry;
++	int res = 0;
 +
-+#if defined(O_CLOEXEC) && defined(SOCK_CLOEXEC)
-+	if (cloexec_works != -1) {
-+		tab = setmntent(table, "re");
-+		if (tab != NULL) {
-+			check_cloexec(fileno(tab));
-+			return tab;
-+		}
++	master_mutex_lock();
++	head = &master->completed;
++	p = head->next;
++	while (p != head) {
++		entry = list_entry(p, struct master_mapent, join);
++		p = p->next;
++		list_del(&entry->join);
++		pthread_join(entry->thid, NULL);
++		master_free_mapent_sources(entry, 1);
++		master_free_mapent(entry);
 +	}
-+#endif
-+	tab = fopen(table, "r");
-+	if (tab == NULL)
-+		return NULL;
-+	check_cloexec(fileno(tab));
-+	return tab;
++	if (list_empty(&master->mounts))
++		res = 1;
++	master_mutex_unlock();
++
++	return res;
 +}
 +
- #endif
+ inline unsigned int master_get_logopt(void)
+ {
+ 	return master_list ? master_list->logopt : LOGOPT_NONE;
+diff --git a/modules/mount_autofs.c b/modules/mount_autofs.c
+index 82a5ef3..44fc043 100644
+--- a/modules/mount_autofs.c
++++ b/modules/mount_autofs.c
+@@ -30,7 +30,7 @@
+ #define MODPREFIX "mount(autofs): "
  
-diff --git a/lib/mounts.c b/lib/mounts.c
-index ce4691b..b98e1a4 100644
---- a/lib/mounts.c
-+++ b/lib/mounts.c
-@@ -218,7 +218,7 @@ struct mnt_list *get_mnt_list(const char *table, const char *path, int include)
- 	if (!path || !pathlen || pathlen > PATH_MAX)
- 		return NULL;
+ /* Attribute to create detached thread */
+-extern pthread_attr_t thread_attr;
++extern pthread_attr_t th_attr_detached;
+ extern struct startup_cond suc;
  
--	tab = setmntent(table, "r");
-+	tab = open_setmntent_r(table);
- 	if (!tab) {
- 		char *estr = strerror_r(errno, buf, PATH_MAX - 1);
- 		logerr("setmntent: %s", estr);
-@@ -415,7 +415,7 @@ static int table_is_mounted(const char *table, const char *path, unsigned int ty
- 	if (!path || !pathlen || pathlen >= PATH_MAX)
- 		return 0;
+ int mount_version = AUTOFS_MOUNT_VERSION;	/* Required by protocol */
+@@ -235,7 +235,7 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name,
+ 	suc.done = 0;
+ 	suc.status = 0;
  
--	tab = setmntent(table, "r");
-+	tab = open_setmntent_r(table);
- 	if (!tab) {
- 		char *estr = strerror_r(errno, buf, PATH_MAX - 1);
- 		logerr("setmntent: %s", estr);
-@@ -489,7 +489,7 @@ int has_fstab_option(const char *opt)
- 	if (!opt)
- 		return 0;
- 
--	tab = setmntent(_PATH_MNTTAB, "r");
-+	tab = open_setmntent_r(_PATH_MNTTAB);
- 	if (!tab) {
- 		char *estr = strerror_r(errno, buf, PATH_MAX - 1);
- 		logerr("setmntent: %s", estr);
-@@ -668,7 +668,7 @@ struct mnt_list *tree_make_mnt_tree(const char *table, const char *path)
- 	size_t plen;
- 	int eq;
- 
--	tab = setmntent(table, "r");
-+	tab = open_setmntent_r(table);
- 	if (!tab) {
- 		char *estr = strerror_r(errno, buf, PATH_MAX - 1);
- 		logerr("setmntent: %s", estr);
+-	if (pthread_create(&thid, &thread_attr, handle_mounts, &suc)) {
++	if (pthread_create(&thid, &th_attr_detached, handle_mounts, &suc)) {
+ 		crit(ap->logopt,
+ 		     MODPREFIX
+ 		     "failed to create mount handler thread for %s",
