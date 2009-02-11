@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 01/13] autofs-5.0.4 - use CLOEXEC flag for setmntent
-Date: Thu, 12 Feb 2009 00:48:31 +0900
-Message-ID: <20090211154830.12526.86345.stgit@zeus.themaw.net>
+Subject: [PATCH 00/13] Current status of patches awaiting commit
+Date: Thu, 12 Feb 2009 01:00:08 +0900
+Message-ID: <20090211154853.12578.50525.stgit@zeus.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,94 +18,102 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs mailing list <autofs@linux.kernel.org>
 
-Update use of CLOEXEC functionality to cover setmntent(3)
-calls as well.
+Hi all,
+
+Here are the pacthes I'm wanting to commit to the git repo.
+I think they are OK but any time that anyone has to review any of
+them would be much appreciated.
+
+Clearly the configure script changes are the result of autoconf
+configuration changes so that bit doesn't really count. Try to
+find the actual changes amongst the patch.
+
+The libtirpc configure patch adds an dlopen() (and a dlclose())
+for libtirpc but it has become clear this method doesn't resolve
+the tsd SEGV we see that I still believe is due to libraries
+not handling these keys correctly. So there will be more to come
+on that front.
+
+The ipv6 changes probably need more work as, and when, nfs over
+ipv6 becomes a reality and people start using it. I have done my
+best to verify these changes work against various current map
+configurations.
+
+Ian
+
 ---
 
- CHANGELOG           |    1 +
- include/automount.h |   20 ++++++++++++++++++++
- lib/mounts.c        |    8 ++++----
- 3 files changed, 25 insertions(+), 4 deletions(-)
+Ian Kent (10):
+      autofs-5.0.4 - ipv6 parse
+      autofs-5.0.4 - ipv6 name and address support
+      autofs-5.0.4 - configure libtirpc
+      autofs-5.0.4 - code analysis corrections
+      autofs-5.0.4 - always read file maps
+      autofs-5.0.4 - force unlink umount at startup
+      autofs-5.0.4 - library reload fix update
+      autofs-5.0.4 - renew sasl creds upon reconnect fail
+      autofs-5.0.4 - uris list locking fix
+      autofs-5.0.4 - use CLOEXEC flag for setmntent
 
-diff --git a/CHANGELOG b/CHANGELOG
-index af77b55..eb4a189 100644
---- a/CHANGELOG
-+++ b/CHANGELOG
-@@ -8,6 +8,7 @@
- - make hash table scale to thousands of entries (Paul Wankadia,
-   Valerie Aurora Henson).
- - clear the quoted flag after each character from program map input.
-+- use CLOEXEC flag for setmntent also.
- 
- 4/11/2008 autofs-5.0.4
- -----------------------
-diff --git a/include/automount.h b/include/automount.h
-index 005d209..46cb6c6 100644
---- a/include/automount.h
-+++ b/include/automount.h
-@@ -581,5 +581,25 @@ static inline FILE *open_fopen_r(const char *path)
- 	return f;
- }
- 
-+static inline FILE *open_setmntent_r(const char *table)
-+{
-+	FILE *tab;
-+
-+#if defined(O_CLOEXEC) && defined(SOCK_CLOEXEC)
-+	if (cloexec_works != -1) {
-+		tab = setmntent(table, "re");
-+		if (tab != NULL) {
-+			check_cloexec(fileno(tab));
-+			return tab;
-+		}
-+	}
-+#endif
-+	tab = fopen(table, "r");
-+	if (tab == NULL)
-+		return NULL;
-+	check_cloexec(fileno(tab));
-+	return tab;
-+}
-+
- #endif
- 
-diff --git a/lib/mounts.c b/lib/mounts.c
-index ce4691b..b98e1a4 100644
---- a/lib/mounts.c
-+++ b/lib/mounts.c
-@@ -218,7 +218,7 @@ struct mnt_list *get_mnt_list(const char *table, const char *path, int include)
- 	if (!path || !pathlen || pathlen > PATH_MAX)
- 		return NULL;
- 
--	tab = setmntent(table, "r");
-+	tab = open_setmntent_r(table);
- 	if (!tab) {
- 		char *estr = strerror_r(errno, buf, PATH_MAX - 1);
- 		logerr("setmntent: %s", estr);
-@@ -415,7 +415,7 @@ static int table_is_mounted(const char *table, const char *path, unsigned int ty
- 	if (!path || !pathlen || pathlen >= PATH_MAX)
- 		return 0;
- 
--	tab = setmntent(table, "r");
-+	tab = open_setmntent_r(table);
- 	if (!tab) {
- 		char *estr = strerror_r(errno, buf, PATH_MAX - 1);
- 		logerr("setmntent: %s", estr);
-@@ -489,7 +489,7 @@ int has_fstab_option(const char *opt)
- 	if (!opt)
- 		return 0;
- 
--	tab = setmntent(_PATH_MNTTAB, "r");
-+	tab = open_setmntent_r(_PATH_MNTTAB);
- 	if (!tab) {
- 		char *estr = strerror_r(errno, buf, PATH_MAX - 1);
- 		logerr("setmntent: %s", estr);
-@@ -668,7 +668,7 @@ struct mnt_list *tree_make_mnt_tree(const char *table, const char *path)
- 	size_t plen;
- 	int eq;
- 
--	tab = setmntent(table, "r");
-+	tab = open_setmntent_r(table);
- 	if (!tab) {
- 		char *estr = strerror_r(errno, buf, PATH_MAX - 1);
- 		logerr("setmntent: %s", estr);
+Paul Wankadia (1):
+      autofs-5.0.4 - fix hosts map use after free
+
+Valerie Aurora Henson (2):
+      autofs-5.0.4 - easy alloca replacements
+      autofs-5.0.4 - make MAX_ERR_BUF and PARSE_MAX_BUF use easier to audit
+
+
+ CHANGELOG                |    8 
+ Makefile.conf.in         |    3 
+ Makefile.rules           |    5 
+ aclocal.m4               |   81 ++
+ autofs.spec              |    2 
+ configure                | 1548 +++++++++++++++++++++++++---------------------
+ configure.in             |    6 
+ daemon/automount.c       |   91 ++-
+ daemon/direct.c          |   27 -
+ daemon/flag.c            |   13 
+ daemon/indirect.c        |   24 -
+ daemon/lookup.c          |   29 -
+ daemon/module.c          |   45 -
+ daemon/state.c           |   13 
+ include/automount.h      |   23 +
+ include/config.h.in      |    6 
+ include/lookup_ldap.h    |    3 
+ include/master.h         |    3 
+ include/parse_subs.h     |    8 
+ include/replicated.h     |    2 
+ include/rpc_subs.h       |    4 
+ lib/alarm.c              |    6 
+ lib/cache.c              |   35 -
+ lib/cat_path.c           |    1 
+ lib/defaults.c           |    1 
+ lib/macros.c             |    2 
+ lib/master.c             |   38 +
+ lib/master_tok.l         |   10 
+ lib/mounts.c             |   13 
+ lib/parse_subs.c         |   99 +++
+ lib/rpc_subs.c           |  484 +++++++++-----
+ man/automount.8          |   13 
+ modules/cyrus-sasl.c     |   17 -
+ modules/lookup_file.c    |  187 ++----
+ modules/lookup_hosts.c   |    8 
+ modules/lookup_ldap.c    |  250 ++++---
+ modules/lookup_multi.c   |   15 
+ modules/lookup_nisplus.c |   71 +-
+ modules/lookup_program.c |    4 
+ modules/mount_autofs.c   |   34 -
+ modules/mount_bind.c     |    7 
+ modules/mount_changer.c  |    7 
+ modules/mount_ext2.c     |    5 
+ modules/mount_generic.c  |    5 
+ modules/mount_nfs.c      |    5 
+ modules/parse_hesiod.c   |   79 ++
+ modules/parse_sun.c      |   34 +
+ modules/replicated.c     |  263 ++++++--
+ redhat/autofs.init.in    |   10 
+ samples/rc.autofs.in     |   10 
+ 50 files changed, 2221 insertions(+), 1436 deletions(-)
+
+-- 
+Signature
