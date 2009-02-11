@@ -1,15 +1,11 @@
-From: Guillaume Rousse <Guillaume.Rousse@inria.fr>
-Subject: Re: krb5 required when building with sasl support
-Date: Fri, 06 Feb 2009 14:18:40 +0100
-Message-ID: <498C38B0.5010409@inria.fr>
-References: <n7xy6wmw3uu.fsf@sor.suse.de>
-	<4989C939.7090106@s3group.cz>	<498B2F91.1090607@inria.fr>
-	<n7xr62bx0fg.fsf@sor.suse.de>
+From: Ian Kent <raven@themaw.net>
+Subject: [PATCH 01/13] autofs-5.0.4 - use CLOEXEC flag for setmntent
+Date: Thu, 12 Feb 2009 00:48:31 +0900
+Message-ID: <20090211154830.12526.86345.stgit@zeus.themaw.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <n7xr62bx0fg.fsf@sor.suse.de>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,29 +16,96 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Cc: autofs mailing list <autofs@linux.kernel.org>
+To: autofs mailing list <autofs@linux.kernel.org>
 
-Matthias Koenig a =E9crit :
-> Guillaume Rousse <Guillaume.Rousse@inria.fr> writes:
-> =
+Update use of CLOEXEC functionality to cover setmntent(3)
+calls as well.
+---
 
->> More seriously, I think the proper solution would rather be fixing =
+ CHANGELOG           |    1 +
+ include/automount.h |   20 ++++++++++++++++++++
+ lib/mounts.c        |    8 ++++----
+ 3 files changed, 25 insertions(+), 4 deletions(-)
 
->> underliking in SASL (http://wiki.mandriva.com/en/Underlinking).
-> =
-
-> Hmm, are you really sure, that libsasl depends on kerberos symbols?
-> In this case you would be right.
-> I assumed that they're independent from each other and after
-> a quick grep I couldn't find any krb5_* symbols in libsasl.
-> At least the lookup_ldap.h header from autofs explicitly includes
-> the krb5.h header.
-Indeed. I just checked libsasl is built with -Wl,--no-undefined flag, =
-
-and doesn't have undefined symbols either.
-
-I guess the issue (in my case) is not to detect SASL presence, but to =
-
-add -lkrb5 when building autofs ldap plugin (which can't use =
-
--Wl,--no-undefined safety option, as it is a plugin).
+diff --git a/CHANGELOG b/CHANGELOG
+index af77b55..eb4a189 100644
+--- a/CHANGELOG
++++ b/CHANGELOG
+@@ -8,6 +8,7 @@
+ - make hash table scale to thousands of entries (Paul Wankadia,
+   Valerie Aurora Henson).
+ - clear the quoted flag after each character from program map input.
++- use CLOEXEC flag for setmntent also.
+ 
+ 4/11/2008 autofs-5.0.4
+ -----------------------
+diff --git a/include/automount.h b/include/automount.h
+index 005d209..46cb6c6 100644
+--- a/include/automount.h
++++ b/include/automount.h
+@@ -581,5 +581,25 @@ static inline FILE *open_fopen_r(const char *path)
+ 	return f;
+ }
+ 
++static inline FILE *open_setmntent_r(const char *table)
++{
++	FILE *tab;
++
++#if defined(O_CLOEXEC) && defined(SOCK_CLOEXEC)
++	if (cloexec_works != -1) {
++		tab = setmntent(table, "re");
++		if (tab != NULL) {
++			check_cloexec(fileno(tab));
++			return tab;
++		}
++	}
++#endif
++	tab = fopen(table, "r");
++	if (tab == NULL)
++		return NULL;
++	check_cloexec(fileno(tab));
++	return tab;
++}
++
+ #endif
+ 
+diff --git a/lib/mounts.c b/lib/mounts.c
+index ce4691b..b98e1a4 100644
+--- a/lib/mounts.c
++++ b/lib/mounts.c
+@@ -218,7 +218,7 @@ struct mnt_list *get_mnt_list(const char *table, const char *path, int include)
+ 	if (!path || !pathlen || pathlen > PATH_MAX)
+ 		return NULL;
+ 
+-	tab = setmntent(table, "r");
++	tab = open_setmntent_r(table);
+ 	if (!tab) {
+ 		char *estr = strerror_r(errno, buf, PATH_MAX - 1);
+ 		logerr("setmntent: %s", estr);
+@@ -415,7 +415,7 @@ static int table_is_mounted(const char *table, const char *path, unsigned int ty
+ 	if (!path || !pathlen || pathlen >= PATH_MAX)
+ 		return 0;
+ 
+-	tab = setmntent(table, "r");
++	tab = open_setmntent_r(table);
+ 	if (!tab) {
+ 		char *estr = strerror_r(errno, buf, PATH_MAX - 1);
+ 		logerr("setmntent: %s", estr);
+@@ -489,7 +489,7 @@ int has_fstab_option(const char *opt)
+ 	if (!opt)
+ 		return 0;
+ 
+-	tab = setmntent(_PATH_MNTTAB, "r");
++	tab = open_setmntent_r(_PATH_MNTTAB);
+ 	if (!tab) {
+ 		char *estr = strerror_r(errno, buf, PATH_MAX - 1);
+ 		logerr("setmntent: %s", estr);
+@@ -668,7 +668,7 @@ struct mnt_list *tree_make_mnt_tree(const char *table, const char *path)
+ 	size_t plen;
+ 	int eq;
+ 
+-	tab = setmntent(table, "r");
++	tab = open_setmntent_r(table);
+ 	if (!tab) {
+ 		char *estr = strerror_r(errno, buf, PATH_MAX - 1);
+ 		logerr("setmntent: %s", estr);
