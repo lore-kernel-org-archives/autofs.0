@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 08/13] autofs-5.0.4 - code analysis corrections
-Date: Thu, 12 Feb 2009 01:00:51 +0900
-Message-ID: <20090211160051.12578.30501.stgit@zeus.themaw.net>
+Subject: [PATCH 12/13] autofs-5.0.4 - ipv6 name and address support
+Date: Thu, 12 Feb 2009 01:01:13 +0900
+Message-ID: <20090211160113.12578.36351.stgit@zeus.themaw.net>
 References: <20090211154853.12578.50525.stgit@zeus.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -20,550 +20,1014 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs mailing list <autofs@linux.kernel.org>
 
-Several mistakes have been reported:
-- a malloc(3) allocation return was not being checked in make_fullpath().
-- a double free and a use after free was identified in lookup_prune_cache().
-- off-by-one buffer overflow in lib/macros.c:macro_parse_globalvar().
-- several potential buffer overflows in modules/parse_hesiod.c.
-- double free in daemon/indirect.c:do_mount_autofs_indirect().
-- bogus struct name used for sizeof in lib/cache.c:cache_init() and
-  lib/cache.c:cache_init_null_cache().
-- in daemon/direct.c:handle_packet_expire_direct master_unlock_mutex() not
-  needed and mutexes not unlocked for file descriptor fail case.
-- in modules/lookup_multi.c:lookup_init() struct module_info array not
-  checked before free for allocation failure case.
-- in modules/lookup_program.c:lookup_mount() mapent not freed on cache update failure.
-- in modules/mount_nfs.c allocation of mount location not checked.
-- in modules/parse_sun.c:parse_mapent() mount location not freed on syntax error.
-- in modules/parse_sun.c:parse_mount() mount location not freed on syntax error.
-- in modules/parse_sun.c:parse_init() a malloc is not checked and the
-  handling of the fail case is poor.
-- in lib/mounts.c:tree_make_mnt_tree() variable ent is not freed on ent->path
-  alloc fail.
-- in modules/replicated.c:add_host() NULL pointer dereference.
-- add missing pthread_attr_destroy() in lib/alarm.c:alarm_start_handler().
-- add missing pthread_attr_destroy() in daemon/state.c:st_start_handler().
-- add missing fclose() in lib/defaults.c:*defaults_get_searchdns().
-- add missing close()es in modules/mount_changer.c:swapCD().
+For ipv6 we need to convert all ipv4 specific function calls to ipv6
+compatible function calls and update the rpc code to deal with ipv6
+addresses. The host proximity calculation also needes to be updated.
+
+I'm sure this isn't completely correct yet and it will need more work
+as I become more familiar with how ipv6 and subneting with it is used.
+The changes so far function correctly for the current autofs
+connectathon test suite maps so I hope there aren't any regressions
+with current map configurations.
 ---
 
- daemon/direct.c          |    6 ++-
- daemon/indirect.c        |    3 +-
- daemon/lookup.c          |   20 +++++-------
- daemon/state.c           |    6 ++-
- lib/alarm.c              |    6 ++-
- lib/cache.c              |    4 +-
- lib/defaults.c           |    1 +
- lib/macros.c             |    2 +
- lib/mounts.c             |    5 ++-
- modules/lookup_multi.c   |   15 +++++----
- modules/lookup_program.c |    4 ++
- modules/mount_changer.c  |    2 +
- modules/mount_nfs.c      |    5 +++
- modules/parse_hesiod.c   |   79 ++++++++++++++++++++++++++++++++++++++++------
- modules/parse_sun.c      |   18 ++++++----
- modules/replicated.c     |    2 +
- 16 files changed, 123 insertions(+), 55 deletions(-)
+ include/replicated.h |    2 
+ include/rpc_subs.h   |    4 
+ lib/rpc_subs.c       |  484 ++++++++++++++++++++++++++++++++------------------
+ modules/cyrus-sasl.c |   17 +-
+ modules/replicated.c |  235 +++++++++++++++++-------
+ 5 files changed, 499 insertions(+), 243 deletions(-)
 
-diff --git a/daemon/direct.c b/daemon/direct.c
-index 2d979f1..fc3c969 100644
---- a/daemon/direct.c
-+++ b/daemon/direct.c
-@@ -1088,7 +1088,6 @@ int handle_packet_expire_direct(struct autofs_point *ap, autofs_packet_expire_di
- 		crit(ap->logopt, "can't find map entry for (%lu,%lu)",
- 		    (unsigned long) pkt->dev, (unsigned long) pkt->ino);
- 		master_source_unlock(ap->entry);
--		master_mutex_unlock();
- 		pthread_setcancelstate(state, NULL);
- 		return 1;
- 	}
-@@ -1098,8 +1097,9 @@ int handle_packet_expire_direct(struct autofs_point *ap, autofs_packet_expire_di
- 		int ioctlfd;
- 		ops->open(ap->logopt, &ioctlfd, me->dev, me->key);
- 		if (ioctlfd == -1) {
--			crit(ap->logopt, "can't open ioctlfd for %s",
--			     me->key);
-+			crit(ap->logopt, "can't open ioctlfd for %s", me->key);
-+			cache_unlock(mc);
-+			master_source_unlock(ap->entry);
- 			pthread_setcancelstate(state, NULL);
- 			return 1;
- 		}
-diff --git a/daemon/indirect.c b/daemon/indirect.c
-index 2ccbc53..f40c393 100644
---- a/daemon/indirect.c
-+++ b/daemon/indirect.c
-@@ -159,6 +159,7 @@ static int do_mount_autofs_indirect(struct autofs_point *ap, const char *root)
- 	}
+diff --git a/include/replicated.h b/include/replicated.h
+index 88cd08a..e0133ff 100644
+--- a/include/replicated.h
++++ b/include/replicated.h
+@@ -51,7 +51,7 @@
  
- 	free(options);
-+	options = NULL;
+ struct host {
+ 	char *name;
+-	char *addr;
++	struct sockaddr *addr;
+ 	size_t addr_len;
+ 	char *path;
+ 	unsigned int version;
+diff --git a/include/rpc_subs.h b/include/rpc_subs.h
+index e20a89d..87fd568 100644
+--- a/include/rpc_subs.h
++++ b/include/rpc_subs.h
+@@ -46,7 +46,7 @@
  
- 	ret = stat(root, &st);
- 	if (ret == -1) {
-@@ -167,8 +168,6 @@ static int do_mount_autofs_indirect(struct autofs_point *ap, const char *root)
- 		goto out_umount;
- 	}
+ struct conn_info {
+ 	const char *host;
+-	const char *addr;
++	struct sockaddr *addr;
+ 	size_t addr_len;
+ 	unsigned short port;
+ 	unsigned long program;
+@@ -63,7 +63,7 @@ int rpc_udp_getclient(struct conn_info *, unsigned int, unsigned int);
+ void rpc_destroy_udp_client(struct conn_info *);
+ int rpc_tcp_getclient(struct conn_info *, unsigned int, unsigned int);
+ void rpc_destroy_tcp_client(struct conn_info *);
+-int rpc_portmap_getclient(struct conn_info *, const char *, const char *, size_t, const char *, unsigned int);
++int rpc_portmap_getclient(struct conn_info *, const char *, struct sockaddr *, size_t, const char *, unsigned int);
+ unsigned short rpc_portmap_getport(struct conn_info *, struct pmap *);
+ int rpc_ping_proto(struct conn_info *);
+ int rpc_ping(const char *, long, long, unsigned int);
+diff --git a/lib/rpc_subs.c b/lib/rpc_subs.c
+index 7b347a7..a822f1f 100644
+--- a/lib/rpc_subs.c
++++ b/lib/rpc_subs.c
+@@ -17,10 +17,11 @@
+ #define _GNU_SOURCE
+ #endif
  
--	options = NULL;
++#include "config.h"
++
+ #include <rpc/types.h>
+ #include <rpc/rpc.h>
+ #include <rpc/pmap_prot.h>
 -
- 	if (ops->open(ap->logopt, &ap->ioctlfd, st.st_dev, root)) {
- 		crit(ap->logopt,
- 		     "failed to create ioctl fd for autofs path %s", ap->path);
-diff --git a/daemon/lookup.c b/daemon/lookup.c
-index e034348..fd2ce55 100644
---- a/daemon/lookup.c
-+++ b/daemon/lookup.c
-@@ -1001,12 +1001,16 @@ static char *make_fullpath(const char *root, const char *key)
- 		if (l > KEY_MAX_LEN)
- 			return NULL;
- 		path = malloc(l);
-+		if (!path)
-+			return NULL;
- 		strcpy(path, key);
- 	} else {
- 		l = strlen(key) + 1 + strlen(root) + 1;
- 		if (l > KEY_MAX_LEN)
- 			return NULL;
- 		path = malloc(l);
-+		if (!path)
-+			return NULL;
- 		sprintf(path, "%s/%s", root, key);
- 	}
- 	return path;
-@@ -1076,10 +1080,6 @@ int lookup_prune_cache(struct autofs_point *ap, time_t age)
- 			this = cache_lookup_distinct(mc, key);
- 			if (!this) {
- 				cache_unlock(mc);
--				free(key);
--				if (next_key)
--					free(next_key);
--				free(path);
- 				goto next;
- 			}
+ #include <sys/socket.h>
+ #include <netdb.h>
+ #include <net/if.h>
+@@ -54,145 +55,76 @@
  
-@@ -1097,18 +1097,14 @@ int lookup_prune_cache(struct autofs_point *ap, time_t age)
- 			}
- 			cache_unlock(mc);
+ inline void dump_core(void);
  
--			if (!next_key) {
--				free(key);
--				free(path);
--				cache_readlock(mc);
--				continue;
--			}
- next:
- 			cache_readlock(mc);
--			me = cache_lookup_distinct(mc, next_key);
-+			if (next_key) {
-+				me = cache_lookup_distinct(mc, next_key);
-+				free(next_key);
-+			}
- 			free(key);
- 			free(path);
--			free(next_key);
- 		}
- 		pthread_cleanup_pop(1);
- 		map->stale = 0;
-diff --git a/daemon/state.c b/daemon/state.c
-index cd63be1..606743b 100644
---- a/daemon/state.c
-+++ b/daemon/state.c
-@@ -1140,9 +1140,9 @@ int st_start_handler(void)
- 	}
- 
- 	status = pthread_create(&thid, pattrs, st_queue_handler, NULL);
--	if (status)
--		return 0;
- 
--	return 1;
-+	pthread_attr_destroy(pattrs);
-+
-+	return !status;
- }
- 
-diff --git a/lib/alarm.c b/lib/alarm.c
-index 1e32291..46df38a 100755
---- a/lib/alarm.c
-+++ b/lib/alarm.c
-@@ -238,9 +238,9 @@ int alarm_start_handler(void)
- 	}
- 
- 	status = pthread_create(&thid, pattrs, alarm_handler, NULL);
--	if (status)
--	 	return 0;
- 
--	return 1;
-+	pthread_attr_destroy(pattrs);
-+
-+	return !status;
- }
- 
-diff --git a/lib/cache.c b/lib/cache.c
-index edb3192..4cb4582 100644
---- a/lib/cache.c
-+++ b/lib/cache.c
-@@ -192,7 +192,7 @@ struct mapent_cache *cache_init(struct autofs_point *ap, struct map_source *map)
- 
- 	mc->size = defaults_get_map_hash_table_size();
- 
--	mc->hash = malloc(mc->size * sizeof(struct entry *));
-+	mc->hash = malloc(mc->size * sizeof(struct mapent *));
- 	if (!mc->hash) {
- 		free(mc);
- 		return NULL;
-@@ -243,7 +243,7 @@ struct mapent_cache *cache_init_null_cache(struct master *master)
- 
- 	mc->size = NULL_MAP_HASHSIZE;
- 
--	mc->hash = malloc(mc->size * sizeof(struct entry *));
-+	mc->hash = malloc(mc->size * sizeof(struct mapent *));
- 	if (!mc->hash) {
- 		free(mc);
- 		return NULL;
-diff --git a/lib/defaults.c b/lib/defaults.c
-index 0d39716..e507a59 100644
---- a/lib/defaults.c
-+++ b/lib/defaults.c
-@@ -565,6 +565,7 @@ struct ldap_searchdn *defaults_get_searchdns(void)
- 
- 			if (!new) {
- 				defaults_free_searchdns(sdn);
-+				fclose(f);
- 				return NULL;
- 			}
- 
-diff --git a/lib/macros.c b/lib/macros.c
-index 85f9cd3..32b70bf 100644
---- a/lib/macros.c
-+++ b/lib/macros.c
-@@ -165,7 +165,7 @@ int macro_parse_globalvar(const char *define)
- 	char buf[MAX_MACRO_STRING];
- 	char *pbuf, *value;
- 
--	if (strlen(define) > MAX_MACRO_STRING)
-+	if (strlen(define) >= MAX_MACRO_STRING)
- 		return 0;
- 
- 	strcpy(buf, define);
-diff --git a/lib/mounts.c b/lib/mounts.c
-index b98e1a4..08ca4e3 100644
---- a/lib/mounts.c
-+++ b/lib/mounts.c
-@@ -257,10 +257,10 @@ struct mnt_list *get_mnt_list(const char *table, const char *path, int include)
- 
- 		if (mptr == list)
- 			list = ent;
-+		else
-+			last->next = ent;
- 
- 		ent->next = mptr;
--		if (last)
--			last->next = ent;
- 
- 		ent->path = malloc(len + 1);
- 		if (!ent->path) {
-@@ -705,6 +705,7 @@ struct mnt_list *tree_make_mnt_tree(const char *table, const char *path)
- 		ent->path = malloc(len + 1);
- 		if (!ent->path) {
- 			endmntent(tab);
-+			free(ent);
- 			tree_free_mnt_tree(tree);
- 			return NULL;
- 		}
-diff --git a/modules/lookup_multi.c b/modules/lookup_multi.c
-index 1bf2e0a..6ec8434 100644
---- a/modules/lookup_multi.c
-+++ b/modules/lookup_multi.c
-@@ -212,14 +212,15 @@ nomem:
- 	logerr(MODPREFIX "error: %s", estr);
- error_out:
- 	if (ctxt) {
--		for (i = 0; i < ctxt->n; i++) {
--			if (ctxt->m[i].mod)
--				close_lookup(ctxt->m[i].mod);
--			if (ctxt->m[i].argv)
--				free_argv(ctxt->m[i].argc, ctxt->m[i].argv);
+-/*
+- * Create a UDP RPC client
+- */
+-static CLIENT *create_udp_client(struct conn_info *info)
++static CLIENT *rpc_clntudp_create(struct sockaddr *addr, struct conn_info *info, int *fd)
+ {
+-	int fd, ret, ghn_errno;
+-	CLIENT *client;
+-	struct sockaddr_in laddr, raddr;
+-	struct hostent hp;
+-	struct hostent *php = &hp;
+-	struct hostent *result;
+-	char buf[HOST_ENT_BUF_SIZE];
+-	size_t len;
+-
+-	if (info->proto->p_proto != IPPROTO_UDP)
+-		return NULL;
+-
+-	if (info->client) {
+-		if (!clnt_control(info->client, CLGET_FD, (char *) &fd)) {
+-			fd = -1;
+-			clnt_destroy(info->client);
+-			info->client = NULL;
+-		} else {
+-			clnt_control(info->client, CLSET_FD_NCLOSE, NULL);
+-			clnt_destroy(info->client);
 -		}
--		if (ctxt->m)
-+		if (ctxt->m) {
-+			for (i = 0; i < ctxt->n; i++) {
-+				if (ctxt->m[i].mod)
-+					close_lookup(ctxt->m[i].mod);
-+				if (ctxt->m[i].argv)
-+					free_argv(ctxt->m[i].argc, ctxt->m[i].argv);
-+			}
- 			free(ctxt->m);
-+		}
- 		if (ctxt->argl)
- 			free(ctxt->argl);
- 		free(ctxt);
-diff --git a/modules/lookup_program.c b/modules/lookup_program.c
-index 9878936..5b295a5 100644
---- a/modules/lookup_program.c
-+++ b/modules/lookup_program.c
-@@ -396,8 +396,10 @@ next:
- 	cache_writelock(mc);
- 	ret = cache_update(mc, source, name, mapent, time(NULL));
- 	cache_unlock(mc);
--	if (ret == CHE_FAIL)
-+	if (ret == CHE_FAIL) {
-+		free(mapent);
- 		return NSS_STATUS_UNAVAIL;
-+	}
+-	}
+-
+-	memset(&laddr, 0, sizeof(laddr));
+-	memset(&raddr, 0, sizeof(raddr));
+-
+-	raddr.sin_family = AF_INET;
+-	if (info->addr) {
+-		memcpy(&raddr.sin_addr.s_addr, info->addr, info->addr_len);
+-		goto got_addr;
+-	}
+-
+-	if (inet_aton(info->host, &raddr.sin_addr))
+-		goto got_addr;
+-
+-	memset(&hp, 0, sizeof(struct hostent));
+-
+-	ret = gethostbyname_r(info->host, php,
+-			buf, HOST_ENT_BUF_SIZE, &result, &ghn_errno);
+-	if (ret || !result) {
+-		int err = ghn_errno == -1 ? errno : ghn_errno;
+-		char *estr = strerror_r(err, buf, HOST_ENT_BUF_SIZE);
+-		logerr("hostname lookup failed: %s", estr);
+-		goto out_close;
+-	}
+-	memcpy(&raddr.sin_addr.s_addr, php->h_addr, php->h_length);
+-
+-got_addr:
+-	raddr.sin_port = htons(info->port);
+-
+-	if (!info->client) {
+-		/*
+-		 * bind to any unused port.  If we left this up to the rpc
+-		 * layer, it would bind to a reserved port, which has been shown
+-		 * to exhaust the reserved port range in some situations.
+-		 */
+-		fd = open_sock(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+-		if (fd < 0)
+-			return NULL;
+-
+-		laddr.sin_family = AF_INET;
+-		laddr.sin_port = 0;
+-		laddr.sin_addr.s_addr = htonl(INADDR_ANY);
+-
+-		len = sizeof(struct sockaddr_in);
+-		if (bind(fd, (struct sockaddr *)&laddr, len) < 0) {
+-			close(fd);
+-			fd = RPC_ANYSOCK;
+-			/* FALLTHROUGH */
+-		}
+-	}
+-
+-	client = clntudp_bufcreate(&raddr,
+-				   info->program, info->version,
+-				   info->timeout, &fd,
+-				   info->send_sz, info->recv_sz);
++	struct sockaddr_in *in4_raddr;
++	struct sockaddr_in6 *in6_raddr;
++	CLIENT *client = NULL;
++
++	switch (addr->sa_family) {
++	case AF_INET:
++		in4_raddr = (struct sockaddr_in *) addr;
++		in4_raddr->sin_port = htons(info->port);
++		client = clntudp_bufcreate(in4_raddr,
++					   info->program, info->version,
++					   info->timeout, fd,
++					   info->send_sz, info->recv_sz);
++		break;
  
- 	debug(ap->logopt, MODPREFIX "%s -> %s", name, mapent);
+-	if (!client) {
+-		info->client = NULL;
+-		goto out_close;
+-	}
++	case AF_INET6:
++#ifndef INET6
++		/* Quiet compile warning */
++		in6_raddr = NULL;
++#else
++		in6_raddr = (struct sockaddr_in6 *) addr;
++		in6_raddr->sin6_port = htons(info->port);
++		client = clntudp6_bufcreate(in6_raddr,
++					    info->program, info->version,
++					    info->timeout, fd,
++					    info->send_sz, info->recv_sz);
++#endif
++		break;
  
-diff --git a/modules/mount_changer.c b/modules/mount_changer.c
-index 92bb72b..c30190d 100644
---- a/modules/mount_changer.c
-+++ b/modules/mount_changer.c
-@@ -162,6 +162,7 @@ int swapCD(const char *device, const char *slotName)
- 		logerr(MODPREFIX
- 		      "Device %s is not an ATAPI compliant CD changer.",
- 		      device);
-+		close(fd);
- 		return 1;
+-	/* Close socket fd on destroy, as is default for rpcowned fds */
+-	if  (!clnt_control(client, CLSET_FD_CLOSE, NULL)) {
+-		clnt_destroy(client);
+-		info->client = NULL;
+-		goto out_close;
++	default:
++		break;
  	}
  
-@@ -169,6 +170,7 @@ int swapCD(const char *device, const char *slotName)
- 	slot = ioctl(fd, CDROM_SELECT_DISC, slot);
- 	if (slot < 0) {
- 		logerr(MODPREFIX "CDROM_SELECT_DISC failed");
-+		close(fd);
- 		return 1;
+ 	return client;
+-
+-out_close:
+-	if (fd != -1)
+-		close(fd);
+-	return NULL;
+ }
+ 
+-int rpc_udp_getclient(struct conn_info *info,
+-		      unsigned int program, unsigned int version)
++static CLIENT *rpc_clnttcp_create(struct sockaddr *addr, struct conn_info *info, int *fd)
+ {
+-	struct protoent *pe_proto;
+-	CLIENT *client;
++	struct sockaddr_in *in4_raddr;
++	struct sockaddr_in6 *in6_raddr;
++	CLIENT *client = NULL;
++
++	switch (addr->sa_family) {
++	case AF_INET:
++		in4_raddr = (struct sockaddr_in *) addr;
++		in4_raddr->sin_port = htons(info->port);
++		client = clnttcp_create(in4_raddr,
++					info->program, info->version, fd,
++					info->send_sz, info->recv_sz);
++		break;
+ 
+-	if (!info->client) {
+-		pe_proto = getprotobyname("udp");
+-		if (!pe_proto)
+-			return 0;
++	case AF_INET6:
++#ifndef INET6
++		/* Quiet compile warning */
++		in6_raddr = NULL;
++#else
++		in6_raddr = (struct sockaddr_in6 *) addr;
++		in6_raddr->sin6_port = htons(info->port);
++		client = clnttcp6_create(in6_raddr,
++					 info->program, info->version, fd,
++					 info->send_sz, info->recv_sz);
++#endif
++		break;
+ 
+-		info->proto = pe_proto;
+-		info->send_sz = UDPMSGSIZE;
+-		info->recv_sz = UDPMSGSIZE;
++	default:
++		break;
  	}
  
-diff --git a/modules/mount_nfs.c b/modules/mount_nfs.c
-index 20732f8..6f54f47 100644
---- a/modules/mount_nfs.c
-+++ b/modules/mount_nfs.c
-@@ -221,6 +221,11 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name, int
- 		/* Not a local host - do an NFS mount */
+-	info->program = program;
+-	info->version = version;
+-
+-	client = create_udp_client(info);
+-
+-	if (!client)
+-		return 0;
+-
+-	info->client = client;
+-
+-	return 1;
+-}
+-
+-void rpc_destroy_udp_client(struct conn_info *info)
+-{
+-	if (!info->client)
+-		return;
+-
+-	clnt_destroy(info->client);
+-	info->client = NULL;
+-	return;
++	return client;
+ }
  
- 		loc = malloc(strlen(this->name) + 1 + strlen(this->path) + 1);
-+		if (!loc) {
-+			char *estr = strerror_r(errno, buf, MAX_ERR_BUF);
-+			error(ap->logopt, "malloc: %s", estr);
-+			return 1;
-+		}
- 		strcpy(loc, this->name);
- 		strcat(loc, ":");
- 		strcat(loc, this->path);
-diff --git a/modules/parse_hesiod.c b/modules/parse_hesiod.c
-index d5bb0f4..7a6a57d 100644
---- a/modules/parse_hesiod.c
-+++ b/modules/parse_hesiod.c
-@@ -46,6 +46,12 @@ static int parse_afs(struct autofs_point *ap,
+ /*
+@@ -201,12 +133,11 @@ void rpc_destroy_udp_client(struct conn_info *info)
+  *  The input struct timeval always has tv_nsec set to zero,
+  *  we only ever use tv_sec for timeouts.
+  */
+-static int connect_nb(int fd, struct sockaddr_in *addr, struct timeval *tout)
++static int connect_nb(int fd, struct sockaddr *addr, socklen_t len, struct timeval *tout)
+ {
+ 	struct pollfd pfd[1];
+ 	int timeout = tout->tv_sec;
+ 	int flags, ret;
+-	socklen_t len;
  
- 	/* Isolate the source for this AFS fs. */
- 	for (i = 0; (!isspace(p[i]) && i < source_len); i++) {
-+		if (!p[i]) {
-+			error(ap->logopt, MODPREFIX
-+			      "unexpeced end of input looking for AFS "
-+			      "source: %s", p);
-+			return 1;
-+		}
- 		source[i] = p[i];
- 	}
+ 	flags = fcntl(fd, F_GETFL, 0);
+ 	if (flags < 0)
+@@ -221,8 +152,7 @@ static int connect_nb(int fd, struct sockaddr_in *addr, struct timeval *tout)
+ 	 * we set ret = -errno to capture it in case we decide to
+ 	 * use it later.
+ 	 */
+-	len = sizeof(struct sockaddr);
+-	ret = connect(fd, (struct sockaddr *)addr, len);
++	ret = connect(fd, addr, len);
+ 	if (ret < 0 && errno != EINPROGRESS) {
+ 		ret = -errno;
+ 		goto done;
+@@ -277,26 +207,241 @@ done:
+ 	return ret;
+ }
  
-@@ -56,8 +62,14 @@ static int parse_afs(struct autofs_point *ap,
- 	while ((*p) && (isspace(*p)))
- 		p++;
- 
--	/* Isolate the source for this AFS fs. */
-+	/* Isolate the options for this AFS fs. */
- 	for (i = 0; (!isspace(p[i]) && i < options_len); i++) {
-+		if (!p[i]) {
-+			error(ap->logopt, MODPREFIX
-+			      "unexpeced end of input looking for AFS "
-+			      "options: %s", p);
-+			return 1;
-+		}
- 		options[i] = p[i];
- 	}
- 	options[i] = 0;
-@@ -106,6 +118,12 @@ static int parse_nfs(struct autofs_point *ap,
- 
- 	/* Isolate the remote mountpoint for this NFS fs. */
- 	for (i = 0; (!isspace(p[i]) && i < (int) sizeof(mount)); i++) {
-+		if (!p[i]) {
-+			error(ap->logopt, MODPREFIX
-+			      "unexpeced end of input looking for NFS "
-+			      "mountpoint: %s", p);
-+			return 1;
-+		}
- 		mount[i] = p[i];
- 	}
- 
-@@ -118,15 +136,26 @@ static int parse_nfs(struct autofs_point *ap,
- 
- 	/* Isolate the remote host. */
- 	for (i = 0; (!isspace(p[i]) && i < source_len); i++) {
-+		if (!p[i]) {
-+			error(ap->logopt, MODPREFIX
-+			      "unexpeced end of input looking for NFS "
-+			      "host: %s", p);
-+			return 1;
-+		}
- 		source[i] = p[i];
- 	}
- 
- 	source[i] = 0;
- 	p += i;
- 
-+	if (strlen(source) + strlen(mount) + 2 > source_len) {
-+		error(ap->logopt, MODPREFIX "entry too log for mount source");
-+		return 1;
++static CLIENT *rpc_do_create_client(struct sockaddr *addr, struct conn_info *info, int *fd)
++{
++	CLIENT *client = NULL;
++	struct sockaddr *laddr;
++	struct sockaddr_in in4_laddr;
++	struct sockaddr_in6 in6_laddr;
++	int type, proto;
++	socklen_t slen;
++
++	proto = info->proto->p_proto;
++	if (proto == IPPROTO_UDP)
++		type = SOCK_DGRAM;
++	else
++		type = SOCK_STREAM;
++
++	/*
++	 * bind to any unused port.  If we left this up to the rpc
++	 * layer, it would bind to a reserved port, which has been shown
++	 * to exhaust the reserved port range in some situations.
++	 */
++	switch (addr->sa_family) {
++	case AF_INET:
++		in4_laddr.sin_family = AF_INET;
++		in4_laddr.sin_port = htons(0);
++		in4_laddr.sin_addr.s_addr = htonl(INADDR_ANY);
++		slen = sizeof(struct sockaddr_in);
++		laddr = (struct sockaddr *) &in4_laddr;
++		break;
++
++	case AF_INET6:
++#ifndef INET6
++		/* Quiet compiler */
++		in6_laddr.sin6_family = AF_INET6;
++		return NULL;
++#else
++		in6_laddr.sin6_family = AF_INET6;
++		in6_laddr.sin6_port = htons(0);
++		in6_laddr.sin6_addr = in6addr_any;
++		slen = sizeof(struct sockaddr_in6);
++		laddr = (struct sockaddr *) &in6_laddr;
++		break;
++#endif
++	default:
++		return NULL;
 +	}
 +
- 	/* Append ":mountpoint" to the source to get "host:mountpoint". */
--	strncat(source, ":", source_len);
--	strncat(source, mount, source_len);
-+	strcat(source, ":");
-+	strcat(source, mount);
- 
- 	/* Skip whitespace. */
- 	while ((*p) && (isspace(*p)))
-@@ -134,6 +163,12 @@ static int parse_nfs(struct autofs_point *ap,
- 
- 	/* Isolate the mount options. */
- 	for (i = 0; (!isspace(p[i]) && i < options_len); i++) {
-+		if (!p[i]) {
-+			error(ap->logopt, MODPREFIX
-+			      "unexpeced end of input looking for NFS "
-+			      "mount options: %s", p);
-+			return 1;
++	if (!info->client) {
++		*fd = open_sock(addr->sa_family, type, proto);
++		if (*fd < 0)
++			return NULL;
++
++		if (bind(*fd, laddr, slen) < 0) {
++			close(*fd);
++			return NULL;
 +		}
- 		options[i] = p[i];
- 	}
- 	options[i] = 0;
-@@ -178,6 +213,12 @@ static int parse_generic(struct autofs_point *ap,
- 
- 	/* Isolate the source for this fs. */
- 	for (i = 0; (!isspace(p[i]) && i < source_len); i++) {
-+		if (!p[i]) {
-+			error(ap->logopt, MODPREFIX
-+			      "unexpeced end of input looking for generic "
-+			      "mount source: %s", p);
-+			return 1;
++	}
++
++	switch (info->proto->p_proto) {
++	case IPPROTO_UDP:
++		if (!info->client) {
++			*fd = open_sock(addr->sa_family, type, proto);
++			if (*fd < 0)
++				return NULL;
++
++			if (bind(*fd, laddr, slen) < 0) {
++				close(*fd);
++				return NULL;
++			}
 +		}
- 		source[i] = p[i];
- 	}
- 
-@@ -190,6 +231,12 @@ static int parse_generic(struct autofs_point *ap,
- 
- 	/* Isolate the mount options. */
- 	for (i = 0; (!isspace(p[i]) && i < options_len); i++) {
-+		if (!p[i]) {
-+			error(ap->logopt, MODPREFIX
-+			      "unexpeced end of input looking for generic "
-+			      "mount options: %s", p);
-+			return 1;
++		client = rpc_clntudp_create(addr, info, fd);
++		break;
++
++	case IPPROTO_TCP:
++		if (!info->client) {
++			*fd = open_sock(addr->sa_family, type, proto);
++			if (*fd < 0)
++				return NULL;
++
++			if (connect_nb(*fd, laddr, slen, &info->timeout) < 0) {
++				close(*fd);
++				return NULL;
++			}
 +		}
- 		options[i] = p[i];
- 	}
- 	options[i] = 0;
-@@ -227,6 +274,7 @@ int parse_mount(struct autofs_point *ap, const char *name,
- 	char options[HESIOD_LEN + 1];
- 	char *q;
- 	const char *p;
-+	int ret;
- 
- 	ap->entry->current = NULL;
- 	master_source_current_signal(ap->entry);
-@@ -250,19 +298,28 @@ int parse_mount(struct autofs_point *ap, const char *name,
- 		return 1;
- 	/* If it's an AFS fs... */
- 	} else if (!strcasecmp(fstype, "afs"))
--		parse_afs(ap, mapent, name, name_len,
--			  source, sizeof(source), options, sizeof(options));
-+		ret = parse_afs(ap, mapent, name, name_len,
-+				source, sizeof(source), options,
-+				sizeof(options));
- 	/* If it's NFS... */
- 	else if (!strcasecmp(fstype, "nfs"))
--		parse_nfs(ap, mapent, name, name_len,
--			  source, sizeof(source), options, sizeof(options));
-+		ret = parse_nfs(ap, mapent, name, name_len,
-+				source, sizeof(source), options,
-+				sizeof(options));
- 	/* Punt. */
- 	else
--		parse_generic(ap, mapent, name, name_len, source, sizeof(source),
--			      options, sizeof(options));
-+		ret = parse_generic(ap, mapent, name, name_len,
-+				    source, sizeof(source), options,
-+				    sizeof(options));
- 
--	debug(ap->logopt,
--	      MODPREFIX "mount %s is type %s from %s", name, fstype, source);
++		client = rpc_clnttcp_create(addr, info, fd);
++		break;
++
++	default:
++		break;
++	}
++
++	return client;
++}
++
++/*
++ * Create a UDP RPC client
++ */
++static CLIENT *create_udp_client(struct conn_info *info)
++{
++	CLIENT *client = NULL;
++	struct addrinfo *ai, *haddr;
++	struct addrinfo hints;
++	int fd, ret;
++
++	if (info->proto->p_proto != IPPROTO_UDP)
++		return NULL;
++
++	fd = RPC_ANYSOCK;
++
++	if (info->client) {
++		if (!clnt_control(info->client, CLGET_FD, (char *) &fd)) {
++			fd = RPC_ANYSOCK;
++			clnt_destroy(info->client);
++			info->client = NULL;
++		} else {
++			clnt_control(info->client, CLSET_FD_NCLOSE, NULL);
++			clnt_destroy(info->client);
++		}
++	}
++
++	if (info->addr) {
++		client = rpc_do_create_client(info->addr, info, &fd);
++		if (client)
++			goto done;
++
++		if (!info->client) {
++			close(fd);
++			fd = RPC_ANYSOCK;
++		}
++	}
++
++	memset(&hints, 0, sizeof(hints));
++	hints.ai_flags = AI_ADDRCONFIG;
++	hints.ai_family = AF_UNSPEC;
++	hints.ai_socktype = SOCK_DGRAM;
++
++	ret = getaddrinfo(info->host, NULL, &hints, &ai);
 +	if (ret) {
-+		error(ap->logopt, MODPREFIX "failed to parse entry");
-+		return 1;
-+	} else {
-+		debug(ap->logopt,
-+		      MODPREFIX "mount %s is type %s from %s",
-+		      name, fstype, source);
++		error(LOGOPT_ANY,
++		      "hostname lookup failed: %s", gai_strerror(ret));
++		goto out_close;
++	}
++
++	haddr = ai;
++	while (haddr) {
++		client = rpc_do_create_client(haddr->ai_addr, info, &fd);
++		if (client)
++			break;
++
++		if (!info->client) {
++			close(fd);
++			fd = RPC_ANYSOCK;
++		}
++
++		haddr = haddr->ai_next;
++	}
++
++	freeaddrinfo(ai);
++
++	if (!client) {
++		info->client = NULL;
++		goto out_close;
++	}
++done:
++	/* Close socket fd on destroy, as is default for rpcowned fds */
++	if  (!clnt_control(client, CLSET_FD_CLOSE, NULL)) {
++		clnt_destroy(client);
++		info->client = NULL;
++		goto out_close;
++	}
++
++	return client;
++
++out_close:
++	if (fd != -1)
++		close(fd);
++	return NULL;
++}
++
++int rpc_udp_getclient(struct conn_info *info,
++		      unsigned int program, unsigned int version)
++{
++	struct protoent *pe_proto;
++	CLIENT *client;
++
++	if (!info->client) {
++		pe_proto = getprotobyname("udp");
++		if (!pe_proto)
++			return 0;
++
++		info->proto = pe_proto;
++		info->send_sz = UDPMSGSIZE;
++		info->recv_sz = UDPMSGSIZE;
++	}
++
++	info->program = program;
++	info->version = version;
++
++	client = create_udp_client(info);
++
++	if (!client)
++		return 0;
++
++	info->client = client;
++
++	return 1;
++}
++
++void rpc_destroy_udp_client(struct conn_info *info)
++{
++	if (!info->client)
++		return;
++
++	clnt_destroy(info->client);
++	info->client = NULL;
++	return;
++}
++
+ /*
+  * Create a TCP RPC client using non-blocking connect
+  */
+ static CLIENT *create_tcp_client(struct conn_info *info)
+ {
+-	int fd, ghn_errno;
+-	CLIENT *client;
+-	struct sockaddr_in addr;
+-	struct hostent hp;
+-	struct hostent *php = &hp;
+-	struct hostent *result;
+-	char buf[HOST_ENT_BUF_SIZE];
+-	int ret;
++	CLIENT *client = NULL;
++	struct addrinfo *ai, *haddr;
++	struct addrinfo hints;
++	int fd, ret;
+ 
+ 	if (info->proto->p_proto != IPPROTO_TCP)
+ 		return NULL;
+ 
++	fd = RPC_ANYSOCK;
++
+ 	if (info->client) {
+ 		if (!clnt_control(info->client, CLGET_FD, (char *) &fd)) {
+-			fd = -1;
++			fd = RPC_ANYSOCK;
+ 			clnt_destroy(info->client);
+ 			info->client = NULL;
+ 		} else {
+@@ -305,51 +450,50 @@ static CLIENT *create_tcp_client(struct conn_info *info)
+ 		}
+ 	}
+ 
+-	memset(&addr, 0, sizeof(addr));
+-
+-	addr.sin_family = AF_INET;
+ 	if (info->addr) {
+-		memcpy(&addr.sin_addr.s_addr, info->addr, info->addr_len);
+-		goto got_addr;
+-	}
++		client = rpc_do_create_client(info->addr, info, &fd);
++		if (client)
++			goto done;
+ 
+-	if (inet_aton(info->host, &addr.sin_addr))
+-		goto got_addr;
++		if (!info->client) {
++			close(fd);
++			fd = RPC_ANYSOCK;
++		}
 +	}
  
- 	return do_mount(ap, ap->path, name, name_len, source, fstype, options);
- }
-diff --git a/modules/parse_sun.c b/modules/parse_sun.c
-index 72e51e2..ed73e46 100644
---- a/modules/parse_sun.c
-+++ b/modules/parse_sun.c
-@@ -379,15 +379,17 @@ int parse_init(int argc, const char *const *argv, void **context)
- 			if (ctxt->optstr) {
- 				noptstr =
- 				    (char *) realloc(ctxt->optstr, optlen + len + 2);
--				if (!noptstr)
--					break;
--				noptstr[optlen] = ',';
--				strcpy(noptstr + optlen + 1, argv[i] + offset);
--				optlen += len + 1;
-+				if (noptstr) {
-+					noptstr[optlen] = ',';
-+					strcpy(noptstr + optlen + 1, argv[i] + offset);
-+					optlen += len + 1;
-+				}
- 			} else {
- 				noptstr = (char *) malloc(len + 1);
--				strcpy(noptstr, argv[i] + offset);
--				optlen = len;
-+				if (noptstr) {
-+					strcpy(noptstr, argv[i] + offset);
-+					optlen = len;
-+				}
- 			}
- 			if (!noptstr) {
- 				char *estr = strerror_r(errno, buf, MAX_ERR_BUF);
-@@ -895,6 +897,7 @@ static int parse_mapent(const char *ent, char *g_options, char **options, char *
- 	if (*p == '/') {
- 		warn(logopt, MODPREFIX "error location begins with \"/\"");
- 		free(myoptions);
-+		free(loc);
- 		return 0;
+-	memset(&hp, 0, sizeof(struct hostent));
++	memset(&hints, 0, sizeof(hints));
++	hints.ai_flags = AI_ADDRCONFIG;
++	hints.ai_family = AF_UNSPEC;
++	hints.ai_socktype = SOCK_STREAM;
+ 
+-	ret = gethostbyname_r(info->host, php,
+-			buf, HOST_ENT_BUF_SIZE, &result, &ghn_errno);
+-	if (ret || !result) {
+-		int err = ghn_errno == -1 ? errno : ghn_errno;
+-		char *estr =  strerror_r(err, buf, HOST_ENT_BUF_SIZE);
+-		logerr("hostname lookup failed: %s", estr);
++	ret = getaddrinfo(info->host, NULL, &hints, &ai);
++	if (ret) {
++		error(LOGOPT_ANY,
++		      "hostname lookup failed: %s", gai_strerror(ret));
+ 		goto out_close;
+ 	}
+-	memcpy(&addr.sin_addr.s_addr, php->h_addr, php->h_length);
+ 
+-got_addr:
+-	addr.sin_port = htons(info->port);
++	haddr = ai;
++	while (haddr) {
++		client = rpc_do_create_client(haddr->ai_addr, info, &fd);
++		if (client)
++			break;
+ 
+-	if (!info->client) {
+-		fd = open_sock(PF_INET, SOCK_STREAM, info->proto->p_proto);
+-		if (fd < 0)
+-			return NULL;
++		if (!info->client) {
++			close(fd);
++			fd = RPC_ANYSOCK;
++		}
+ 
+-		ret = connect_nb(fd, &addr, &info->timeout);
+-		if (ret < 0)
+-			goto out_close;
++		haddr = haddr->ai_next;
  	}
  
-@@ -1636,6 +1639,7 @@ int parse_mount(struct autofs_point *ap, const char *name,
- 		/* Location can't begin with a '/' */
- 		if (*p == '/') {
- 			free(options);
-+			free(loc);
- 			warn(ap->logopt,
- 			      MODPREFIX "error location begins with \"/\"");
- 			return 1;
+-	client = clnttcp_create(&addr,
+-				info->program, info->version, &fd,
+-				info->send_sz, info->recv_sz);
++	freeaddrinfo(ai);
+ 
+ 	if (!client) {
+ 		info->client = NULL;
+ 		goto out_close;
+ 	}
+-
++done:
+ 	/* Close socket fd on destroy, as is default for rpcowned fds */
+ 	if  (!clnt_control(client, CLSET_FD_CLOSE, NULL)) {
+ 		clnt_destroy(client);
+@@ -420,7 +564,7 @@ void rpc_destroy_tcp_client(struct conn_info *info)
+ }
+ 
+ int rpc_portmap_getclient(struct conn_info *info,
+-			  const char *host, const char *addr, size_t addr_len,
++			  const char *host, struct sockaddr *addr, size_t addr_len,
+ 			  const char *proto, unsigned int option)
+ {
+ 	struct protoent *pe_proto;
+diff --git a/modules/cyrus-sasl.c b/modules/cyrus-sasl.c
+index 286af15..ec2ab0c 100644
+--- a/modules/cyrus-sasl.c
++++ b/modules/cyrus-sasl.c
+@@ -732,16 +732,25 @@ sasl_bind_mech(unsigned logopt, LDAP *ldap, struct lookup_context *ctxt, const c
+ 	debug(logopt, "Attempting sasl bind with mechanism %s", mech);
+ 
+ 	result = ldap_get_option(ldap, LDAP_OPT_HOST_NAME, &host);
+-	if (result != LDAP_SUCCESS || !host) {
++	if (result != LDAP_OPT_SUCCESS || !host) {
+ 		debug(logopt, "failed to get hostname for connection");
+ 		return NULL;
+ 	}
+ 
+-	if ((tmp = strchr(host, ':')))
+-		*tmp = '\0';
++	if ((tmp = strrchr(host, ':'))) {
++		if (*(tmp - 1) != ']') {
++			*tmp = '\0';
++			tmp = host;
++		} else {
++			*(tmp - 1) = '\0';
++			tmp = host;
++			if (*tmp == '[')
++				tmp++;
++		}
++	}
+ 
+ 	/* Create a new authentication context for the service. */
+-	result = sasl_client_new("ldap", host, NULL, NULL, NULL, 0, &conn);
++	result = sasl_client_new("ldap", tmp, NULL, NULL, NULL, 0, &conn);
+ 	if (result != SASL_OK) {
+ 		error(logopt, "sasl_client_new failed with error %d",
+ 		      result);
 diff --git a/modules/replicated.c b/modules/replicated.c
-index 63829a2..835af97 100644
+index 835af97..9e85c00 100644
 --- a/modules/replicated.c
 +++ b/modules/replicated.c
-@@ -304,7 +304,7 @@ static int add_host(struct host **list, struct host *host)
- {
- 	struct host *this, *last;
+@@ -45,7 +45,7 @@
+ #include <stdlib.h>
+ #include <sys/errno.h>
+ #include <sys/types.h>
+-#include <netinet/in.h>
++#include <stdint.h>
+ #include <sys/ioctl.h>
+ #include <sys/socket.h>
+ #include <arpa/inet.h>
+@@ -75,6 +75,20 @@ static int volatile ifc_last_len = 0;
+ #define max(x, y)	(x >= y ? x : y)
+ #define mmax(x, y, z)	(max(x, y) == x ? max(x, z) : max(y, z))
  
--	if (!list) {
-+	if (!*list) {
- 		*list = host;
- 		return 1;
++unsigned int ipv6_mask_cmp(uint32_t *host, uint32_t *iface, uint32_t *mask)
++{
++	unsigned int ret = 1;
++	unsigned int i;
++
++	for (i = 0; i < 4; i++) {
++		if ((host[i] & mask[i]) != (iface[i] & mask[i])) {
++			ret = 0;
++			break;
++		}
++	}
++	return ret;
++}
++
+ void seed_random(void)
+ {
+ 	int fd;
+@@ -136,20 +150,49 @@ static int alloc_ifreq(struct ifconf *ifc, int sock)
+ 	return 1;
+ }
+ 
+-static unsigned int get_proximity(const char *host_addr, int addr_len)
++static unsigned int get_proximity(struct sockaddr *host_addr)
+ {
+-	struct sockaddr_in *msk_addr, *if_addr;
++	struct sockaddr_in *addr, *msk_addr, *if_addr;
++	struct sockaddr_in6 *addr6, *msk6_addr, *if6_addr;
+ 	struct in_addr *hst_addr;
+-	char tmp[20], buf[MAX_ERR_BUF], *ptr;
++	struct in6_addr *hst6_addr;
++	int addr_len;
++	char buf[MAX_ERR_BUF], *ptr;
+ 	struct ifconf ifc;
+ 	struct ifreq *ifr, nmptr;
+ 	int sock, ret, i;
+-	uint32_t mask, ha, ia;
++	uint32_t mask, ha, ia, *mask6, *ha6, *ia6;
++
++	addr = NULL;
++	addr6 = NULL;
++	hst_addr = NULL;
++	hst6_addr = NULL;
++	mask6 = NULL;
++	ha6 = NULL;
++	ia6 = NULL;
++
++	switch (host_addr->sa_family) {
++	case AF_INET:
++		addr = (struct sockaddr_in *) host_addr;
++		hst_addr = (struct in_addr *) &addr->sin_addr;
++		ha = ntohl((uint32_t) hst_addr->s_addr);
++		addr_len = sizeof(hst_addr);
++		break;
+ 
+-	memcpy(tmp, host_addr, addr_len);
+-	hst_addr = (struct in_addr *) tmp;
++	case AF_INET6:
++#ifndef INET6
++		return PROXIMITY_ERROR;
++#else
++		addr6 = (struct sockaddr_in6 *) host_addr;
++		hst6_addr = (struct in6_addr *) &addr6->sin6_addr;
++		ha6 = &hst6_addr->s6_addr32[0];
++		addr_len = sizeof(hst6_addr);
++		break;
++#endif
+ 
+-	ha = ntohl((uint32_t) hst_addr->s_addr);
++	default:
++		return PROXIMITY_ERROR;
++	}
+ 
+ 	sock = open_sock(AF_INET, SOCK_DGRAM, 0);
+ 	if (sock < 0) {
+@@ -174,6 +217,10 @@ static unsigned int get_proximity(const char *host_addr, int addr_len)
+ 
+ 		switch (ifr->ifr_addr.sa_family) {
+ 		case AF_INET:
++#ifndef INET6
++			if (host_addr->sa_family == AF_INET6)
++				break;
++#endif
+ 			if_addr = (struct sockaddr_in *) &ifr->ifr_addr;
+ 			ret = memcmp(&if_addr->sin_addr, hst_addr, addr_len);
+ 			if (!ret) {
+@@ -183,6 +230,20 @@ static unsigned int get_proximity(const char *host_addr, int addr_len)
+ 			}
+ 			break;
+ 
++		case AF_INET6:
++#ifndef INET6
++			if (host_addr->sa_family == AF_INET)
++				break;
++
++			if6_addr = (struct sockaddr_in6 *) &ifr->ifr_addr;
++			ret = memcmp(&if6_addr->sin6_addr, hst6_addr, addr_len);
++			if (!ret) {
++				close(sock);
++				free(ifc.ifc_req);
++				return PROXIMITY_LOCAL;
++			}
++#endif
++
+ 		default:
+ 			break;
+ 		}
+@@ -197,23 +258,27 @@ static unsigned int get_proximity(const char *host_addr, int addr_len)
+ 	while (ptr < (char *) ifc.ifc_req + ifc.ifc_len) {
+ 		ifr = (struct ifreq *) ptr;
+ 
++		nmptr = *ifr;
++		ret = ioctl(sock, SIOCGIFNETMASK, &nmptr);
++		if (ret == -1) {
++			char *estr = strerror_r(errno, buf, MAX_ERR_BUF);
++			logerr("ioctl: %s", estr);
++			close(sock);
++			free(ifc.ifc_req);
++			return PROXIMITY_ERROR;
++		}
++
+ 		switch (ifr->ifr_addr.sa_family) {
+ 		case AF_INET:
++#ifndef INET6
++			if (host_addr->sa_family == AF_INET6)
++				break;
++#endif
+ 			if_addr = (struct sockaddr_in *) &ifr->ifr_addr;
+ 			ia =  ntohl((uint32_t) if_addr->sin_addr.s_addr);
+ 
+ 			/* Is the address within a localiy attached subnet */
+ 
+-			nmptr = *ifr;
+-			ret = ioctl(sock, SIOCGIFNETMASK, &nmptr);
+-			if (ret == -1) {
+-				char *estr = strerror_r(errno, buf, MAX_ERR_BUF);
+-				logerr("ioctl: %s", estr);
+-				close(sock);
+-				free(ifc.ifc_req);
+-				return PROXIMITY_ERROR;
+-			}
+-
+ 			msk_addr = (struct sockaddr_in *) &nmptr.ifr_netmask;
+ 			mask = ntohl((uint32_t) msk_addr->sin_addr.s_addr);
+ 
+@@ -247,6 +312,29 @@ static unsigned int get_proximity(const char *host_addr, int addr_len)
+ 			}
+ 			break;
+ 
++		case AF_INET6:
++#ifndef INET6
++			if (host_addr->sa_family == AF_INET)
++				break;
++
++			if6_addr = (struct sockaddr_in6 *) &ifr->ifr_addr;
++			ia6 = &if6_addr->sin6_addr.s6_addr32[0];
++
++			/* Is the address within the network of the interface */
++
++			msk6_addr = (struct sockaddr_in6 *) &nmptr.ifr_netmask;
++			mask6 = &msk6_addr->sin6_addr.s6_addr32[0];
++
++			if (ipv6_mask_cmp(ha6, ia6, mask6)) {
++				close(sock);
++				free(ifc.ifc_req);
++				return PROXIMITY_SUBNET;
++			}
++
++			/* How do we define "local network" in ipv6? */
++#endif
++			break;
++
+ 		default:
+ 			break;
+ 		}
+@@ -262,11 +350,12 @@ static unsigned int get_proximity(const char *host_addr, int addr_len)
+ }
+ 
+ static struct host *new_host(const char *name,
+-			     const char *addr, size_t addr_len,
++			     struct sockaddr *addr, size_t addr_len,
+ 			     unsigned int proximity, unsigned int weight)
+ {
+ 	struct host *new;
+-	char *tmp1, *tmp2;
++	struct sockaddr *tmp2;
++	char *tmp1;
+ 
+ 	if (!name || !addr)
+ 		return NULL;
+@@ -950,65 +1039,78 @@ int prune_host_list(unsigned logopt, struct host **list,
+ 	return 1;
+ }
+ 
+-static int add_host_addrs(struct host **list, const char *host, unsigned int weight)
++static int add_new_host(struct host **list,
++			const char *host, unsigned int weight,
++			struct addrinfo *host_addr)
+ {
+-	struct hostent he;
+-	struct hostent *phe = &he;
+-	struct hostent *result;
+-	struct sockaddr_in saddr;
+-	char buf[MAX_IFC_BUF], **haddr;
+-	int ghn_errno, ret;
+ 	struct host *new;
+ 	unsigned int prx;
++	int addr_len;
+ 
+-	saddr.sin_family = AF_INET;
+-	if (inet_aton(host, &saddr.sin_addr)) {
+-		const char *thost = (const char *) &saddr.sin_addr;
+-
+-		prx = get_proximity(thost, sizeof(saddr.sin_addr));
+-		if (prx == PROXIMITY_ERROR)
+-			return 0;
+-
+-		if (!(new = new_host(host, thost, sizeof(saddr.sin_addr), prx, weight)))
+-			return 0;
+-
+-		if (!add_host(list, new))
+-			free_host(new);
+-
+-		return 1;
+-	}
++	prx = get_proximity(host_addr->ai_addr);
++	if (prx == PROXIMITY_ERROR)
++		return 0;
+ 
+-	memset(buf, 0, MAX_IFC_BUF);
+-	memset(&he, 0, sizeof(struct hostent));
++	addr_len = sizeof(struct sockaddr);
++	new = new_host(host, host_addr->ai_addr, addr_len, prx, weight);
++	if (!new)
++		return 0;
+ 
+-	ret = gethostbyname_r(host, phe,
+-			buf, MAX_IFC_BUF, &result, &ghn_errno);
+-	if (ret || !result) {
+-		if (ghn_errno == -1)
+-			logmsg("host %s: lookup failure %d", host, errno);
+-		else
+-			logmsg("host %s: lookup failure %d", host, ghn_errno);
++	if (!add_host(list, new)) {
++		free_host(new);
+ 		return 0;
  	}
+ 
+-	for (haddr = phe->h_addr_list; *haddr; haddr++) {
+-		struct in_addr tt;
++	return 1;
++}
+ 
+-		prx = get_proximity(*haddr, phe->h_length);
+-		if (prx == PROXIMITY_ERROR)
+-			return 0;
++static int add_host_addrs(struct host **list, const char *host, unsigned int weight)
++{
++	struct addrinfo hints, *ni, *this;
++	int ret;
+ 
+-		memcpy(&tt, *haddr, sizeof(struct in_addr));
+-		if (!(new = new_host(host, *haddr, phe->h_length, prx, weight)))
+-			return 0;
++	memset(&hints, 0, sizeof(hints));
++	hints.ai_flags = AI_NUMERICHOST;
++	hints.ai_family = AF_UNSPEC;
++	hints.ai_socktype = SOCK_DGRAM;
+ 
+-		if (!add_host(list, new)) {
+-			free_host(new);
+-			continue;
+-		}
++	ret = getaddrinfo(host, NULL, &hints, &ni);
++	if (ret)
++		goto try_name;
++
++	this = ni;
++	while (this) {
++		ret = add_new_host(list, host, weight, this);
++		if (!ret)
++			break;
++		this = this->ai_next;
++	}
++	freeaddrinfo(ni);
++	goto done;
++
++try_name:
++	memset(&hints, 0, sizeof(hints));
++	hints.ai_flags = AI_ADDRCONFIG;
++	hints.ai_family = AF_UNSPEC;
++	hints.ai_socktype = SOCK_DGRAM;
++
++	ret = getaddrinfo(host, NULL, &hints, &ni);
++	if (ret) {
++		error(LOGOPT_ANY, "hostname lookup failed: %s",
++		      gai_strerror(ret));
++		return 0;
+ 	}
+ 
+-	return 1;
++	this = ni;
++	while (this) {
++		ret = add_new_host(list, host, weight, this);
++		if (!ret)
++			break;
++		this = this->ai_next;
++	}
++	freeaddrinfo(ni);
++done:
++	return ret;
+ }
+ 
+ static int add_path(struct host *hosts, const char *path, int len)
+@@ -1057,7 +1159,8 @@ static int add_local_path(struct host **hosts, const char *path)
+ 	new->path = tmp;
+ 	new->proximity = PROXIMITY_LOCAL;
+ 	new->version = NFS_VERS_MASK;
+-	new->name = new->addr = NULL;
++	new->name = NULL;
++	new->addr = NULL;
+ 	new->weight = new->cost = 0;
+ 
+ 	add_host(hosts, new);
