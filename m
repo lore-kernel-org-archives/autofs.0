@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 07/13] autofs-5.0.4 - always read file maps
-Date: Thu, 12 Feb 2009 01:00:46 +0900
-Message-ID: <20090211160046.12578.80934.stgit@zeus.themaw.net>
+Subject: [PATCH 06/13] autofs-5.0.4 - force unlink umount at startup
+Date: Thu, 12 Feb 2009 01:00:40 +0900
+Message-ID: <20090211160040.12578.43237.stgit@zeus.themaw.net>
 References: <20090211154853.12578.50525.stgit@zeus.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -20,224 +20,233 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs mailing list <autofs@linux.kernel.org>
 
-autofs tries to not load an entire map into the internal cache unless it
-has to. For maps that do get loaded into the cache it relies on checks to
-work out if a map is up to date in order to trigger a map read. This is
-fine for maps that can do direct key lookups but file maps need to do a
-linear search through the file when locating an entry for a key. For large
-maps this can be a huge overhead. This patch make autofs always load file
-based maps at start and makes use of the map file mtime to discover if the
-cache needs to be refreshed.
+Version 5.0.3 autofs would unlink existing mounts at startup. This
+functioned OK most of the time but caused processes whose working
+directory was within unlinked automounted directories to not get a
+correct pwd reported by the system.
+
+There can be situations where the unlink umounting is desirable, such
+as when the daemon is forceably killed and we want to get rid of any
+existing mounts at startup. This change provides a way to force this
+old behavior by passing the "--force" option to the daemon. This can
+also be done by using the "forcestart" and "forcerestart" actions to
+the init script.
+
+Note that the old behavior will always be used if the kernel does not
+include the iotcl re-implementation which provides the ability to
+re-connect to existing mounts.
 ---
 
- CHANGELOG             |    1 +
- daemon/lookup.c       |    9 +++++--
- modules/lookup_file.c |   65 ++++++++++++++++---------------------------------
- 3 files changed, 28 insertions(+), 47 deletions(-)
+ CHANGELOG             |    2 ++
+ daemon/automount.c    |   14 +++++++++++++-
+ daemon/direct.c       |    2 +-
+ daemon/indirect.c     |    2 +-
+ include/automount.h   |    3 +++
+ man/automount.8       |   13 +++++++++++++
+ redhat/autofs.init.in |   10 +++++++++-
+ samples/rc.autofs.in  |   10 +++++++++-
+ 8 files changed, 51 insertions(+), 5 deletions(-)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index d4dd70b..afd1335 100644
+index 7dee674..d4dd70b 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -14,6 +14,7 @@
+@@ -12,6 +12,8 @@
+ - fix hosts map use after free (Paul Wankadia).
+ - fix uri list locking (again).
  - check for stale SASL credentials upon connect fail.
- - add "forcestart" and "forcerestart" init script options to allow
-   use of 5.0.3 strartup behavior if required.
-+- always read entire file map into cache to speed lookups.
++- add "forcestart" and "forcerestart" init script options to allow
++  use of 5.0.3 strartup behavior if required.
  
  4/11/2008 autofs-5.0.4
  -----------------------
-diff --git a/daemon/lookup.c b/daemon/lookup.c
-index 741d846..e034348 100644
---- a/daemon/lookup.c
-+++ b/daemon/lookup.c
-@@ -283,10 +283,13 @@ static int do_read_map(struct autofs_point *ap, struct map_source *map, time_t a
- 	 * for the fail cases to function correctly and to cache the
- 	 * lookup handle.
- 	 *
--	 * We always need to whole map for direct mounts in order to
--	 * mount the triggers.
-+	 * We always need to read the whole map for direct mounts in
-+	 * order to mount the triggers. We also want to read the whole
-+	 * map if it's a file map to avoid potentially lengthy linear
-+	 * file scanning.
- 	 */
--	if (!(ap->flags & MOUNT_FLAG_GHOST) && ap->type != LKP_DIRECT)
-+	if (strcmp(map->type, "file") &&
-+	    !(ap->flags & MOUNT_FLAG_GHOST) && ap->type != LKP_DIRECT)
- 		return NSS_STATUS_SUCCESS;
+diff --git a/daemon/automount.c b/daemon/automount.c
+index f04273f..e20e7c9 100644
+--- a/daemon/automount.c
++++ b/daemon/automount.c
+@@ -57,6 +57,7 @@ static char *pid_file = NULL;		/* File in which to keep pid */
+ unsigned int global_random_selection;	/* use random policy when selecting
+ 					 * which multi-mount host to mount */
+ long global_negative_timeout = -1;
++int do_force_unlink = 0;		/* Forceably unlink mount tree at startup */
  
- 	if (!map->stale)
-diff --git a/modules/lookup_file.c b/modules/lookup_file.c
-index 95b9f6f..aafeb8b 100644
---- a/modules/lookup_file.c
-+++ b/modules/lookup_file.c
-@@ -44,7 +44,6 @@ typedef enum { esc_none, esc_char, esc_val, esc_all } ESCAPES;
+ static int start_pipefd[2];
+ static int st_stat = 0;
+@@ -1798,6 +1799,7 @@ int main(int argc, char *argv[])
+ 		{"version", 0, 0, 'V'},
+ 		{"set-log-priority", 1, 0, 'l'},
+ 		{"dont-check-daemon", 0, 0, 'C'},
++		{"force", 0, 0, 'F'},
+ 		{0, 0, 0, 0}
+ 	};
  
- struct lookup_context {
- 	const char *mapname;
--	time_t mtime;
- 	struct parse_mod *parse;
+@@ -1819,7 +1821,7 @@ int main(int argc, char *argv[])
+ 	daemon_check = 1;
+ 
+ 	opterr = 0;
+-	while ((opt = getopt_long(argc, argv, "+hp:t:vdD:fVrO:l:n:C", long_options, NULL)) != EOF) {
++	while ((opt = getopt_long(argc, argv, "+hp:t:vdD:fVrO:l:n:CF", long_options, NULL)) != EOF) {
+ 		switch (opt) {
+ 		case 'h':
+ 			usage();
+@@ -1892,6 +1894,10 @@ int main(int argc, char *argv[])
+ 			daemon_check = 0;
+ 			break;
+ 
++		case 'F':
++			do_force_unlink = 1;
++			break;
++
+ 		case '?':
+ 		case ':':
+ 			printf("%s: Ambiguous or unknown options\n", program);
+@@ -2066,6 +2072,12 @@ int main(int argc, char *argv[])
+ 		exit(3);
+ 	}
+ 
++	/*
++	 * Mmm ... reset force unlink umount so we don't also do this
++	 * in future when we receive a HUP signal.
++	 */
++	do_force_unlink = 0;
++
+ 	res = write(start_pipefd[1], pst_stat, sizeof(*pst_stat));
+ 	close(start_pipefd[1]);
+ 
+diff --git a/daemon/direct.c b/daemon/direct.c
+index d9dda3d..2d979f1 100644
+--- a/daemon/direct.c
++++ b/daemon/direct.c
+@@ -335,7 +335,7 @@ int do_mount_autofs_direct(struct autofs_point *ap, struct mnt_list *mnts, struc
+ 	/* Calculate the timeouts */
+ 	ap->exp_runfreq = (timeout + CHECK_RATIO - 1) / CHECK_RATIO;
+ 
+-	if (ops->version) {
++	if (ops->version && !do_force_unlink) {
+ 		ap->flags |= MOUNT_FLAG_REMOUNT;
+ 		ret = try_remount(ap, me, t_direct);
+ 		ap->flags &= ~MOUNT_FLAG_REMOUNT;
+diff --git a/daemon/indirect.c b/daemon/indirect.c
+index 0721707..2ccbc53 100644
+--- a/daemon/indirect.c
++++ b/daemon/indirect.c
+@@ -97,7 +97,7 @@ static int do_mount_autofs_indirect(struct autofs_point *ap, const char *root)
+ 
+ 	ap->exp_runfreq = (timeout + CHECK_RATIO - 1) / CHECK_RATIO;
+ 
+-	if (ops->version) {
++	if (ops->version && !do_force_unlink) {
+ 		ap->flags |= MOUNT_FLAG_REMOUNT;
+ 		ret = try_remount(ap, NULL, t_indirect);
+ 		ap->flags &= ~MOUNT_FLAG_REMOUNT;
+diff --git a/include/automount.h b/include/automount.h
+index 46cb6c6..1f14d5b 100644
+--- a/include/automount.h
++++ b/include/automount.h
+@@ -428,6 +428,9 @@ struct autofs_point {
+ 	struct list_head submounts;	/* List of child submounts */
  };
  
-@@ -54,7 +53,6 @@ int lookup_init(const char *mapfmt, int argc, const char *const *argv, void **co
- {
- 	struct lookup_context *ctxt;
- 	char buf[MAX_ERR_BUF];
--	struct stat st;
- 
- 	*context = NULL;
- 
-@@ -87,15 +85,6 @@ int lookup_init(const char *mapfmt, int argc, const char *const *argv, void **co
- 		return 1;
- 	}
- 
--	if (stat(ctxt->mapname, &st)) {
--		free(ctxt);
--		logmsg(MODPREFIX "file map %s, could not stat",
--		     argv[0]);
--		return 1;
--	}
--		
--	ctxt->mtime = st.st_mtime;
--
- 	if (!mapfmt)
- 		mapfmt = MAPFMT_DEFAULT;
- 
-@@ -391,9 +380,7 @@ int lookup_read_master(struct master *master, time_t age, void *context)
- 	int blen;
- 	char *path;
- 	char *ent;
--	struct stat st;
- 	FILE *f;
--	int fd;
- 	unsigned int path_len, ent_len;
- 	int entry, cur_state;
- 
-@@ -428,8 +415,6 @@ int lookup_read_master(struct master *master, time_t age, void *context)
- 		return NSS_STATUS_UNAVAIL;
- 	}
- 
--	fd = fileno(f);
--
- 	while(1) {
- 		entry = read_one(logopt, f, path, &path_len, ent, &ent_len);
- 		if (!entry) {
-@@ -504,13 +489,6 @@ int lookup_read_master(struct master *master, time_t age, void *context)
- 			break;
- 	}
- 
--	if (fstat(fd, &st)) {
--		crit(logopt, MODPREFIX "file map %s, could not stat",
--		       ctxt->mapname);
--		return NSS_STATUS_UNAVAIL;
--	}
--	ctxt->mtime = st.st_mtime;
--
- 	fclose(f);
- 
- 	return NSS_STATUS_SUCCESS;
-@@ -642,9 +620,7 @@ int lookup_read_map(struct autofs_point *ap, time_t age, void *context)
- 	struct mapent_cache *mc;
- 	char *key;
- 	char *mapent;
--	struct stat st;
- 	FILE *f;
--	int fd;
- 	unsigned int k_len, m_len;
- 	int entry;
- 
-@@ -684,8 +660,6 @@ int lookup_read_map(struct autofs_point *ap, time_t age, void *context)
- 		return NSS_STATUS_UNAVAIL;
- 	}
- 
--	fd = fileno(f);
--
- 	while(1) {
- 		entry = read_one(ap->logopt, f, key, &k_len, mapent, &m_len);
- 		if (!entry) {
-@@ -748,13 +722,6 @@ int lookup_read_map(struct autofs_point *ap, time_t age, void *context)
- 			break;
- 	}
- 
--	if (fstat(fd, &st)) {
--		crit(ap->logopt,
--		     MODPREFIX "file map %s, could not stat",
--		     ctxt->mapname);
--		return NSS_STATUS_UNAVAIL;
--	}
--	ctxt->mtime = st.st_mtime;
- 	source->age = age;
- 
- 	fclose(f);
-@@ -951,9 +918,6 @@ static int check_map_indirect(struct autofs_point *ap,
- 	if (ret == CHE_FAIL)
- 		return NSS_STATUS_NOTFOUND;
- 
--	if (ret & CHE_UPDATED)
--		source->stale = 1;
--
- 	pthread_cleanup_push(cache_lock_cleanup, mc);
- 	cache_writelock(mc);
- 	exists = cache_lookup_distinct(mc, key);
-@@ -963,7 +927,6 @@ static int check_map_indirect(struct autofs_point *ap,
- 			free(exists->mapent);
- 			exists->mapent = NULL;
- 			exists->status = 0;
--			source->stale = 1;
- 		}
- 	}
- 	pthread_cleanup_pop(1);
-@@ -985,14 +948,8 @@ static int check_map_indirect(struct autofs_point *ap,
- 		we = cache_lookup_distinct(mc, "*");
- 		if (we) {
- 			/* Wildcard entry existed and is now gone */
--			if (we->source == source && (wild & CHE_MISSING)) {
-+			if (we->source == source && (wild & CHE_MISSING))
- 				cache_delete(mc, "*");
--				source->stale = 1;
--			}
--		} else {
--			/* Wildcard not in map but now is */
--			if (wild & (CHE_OK | CHE_UPDATED))
--				source->stale = 1;
- 		}
- 		pthread_cleanup_pop(1);
- 
-@@ -1062,9 +1019,28 @@ int lookup_mount(struct autofs_point *ap, const char *name, int name_len, void *
- 	 * we never know about it.
- 	 */
- 	if (ap->type == LKP_INDIRECT && *key != '/') {
-+		struct stat st;
- 		char *lkp_key;
- 
-+		/*
-+		 * We can skip the map lookup and cache update altogether
-+		 * if we know the map hasn't been modified since it was
-+		 * last read. If it has then we can mark the map stale
-+		 * so a re-read is triggered following the lookup.
-+		 */
-+		if (stat(ctxt->mapname, &st)) {
-+			error(ap->logopt, MODPREFIX
-+			      "file map %s, could not stat", ctxt->mapname);
-+			return NSS_STATUS_UNAVAIL;
-+		}
++/* Foreably unlink existing mounts at startup. */
++extern int do_force_unlink;
 +
- 		cache_readlock(mc);
-+		me = cache_lookup_first(mc);
-+		if (me && st.st_mtime <= me->age)
-+			goto do_cache_lookup;
-+		else
-+			source->stale = 1;
-+
- 		me = cache_lookup_distinct(mc, key);
- 		if (me && me->multi)
- 			lkp_key = strdup(me->multi->key);
-@@ -1088,6 +1064,7 @@ int lookup_mount(struct autofs_point *ap, const char *name, int name_len, void *
- 	}
+ /* Standard functions used by daemon or modules */
  
- 	cache_readlock(mc);
-+do_cache_lookup:
- 	me = cache_lookup(mc, key);
- 	/* Stale mapent => check for entry in alternate source or wildcard */
- 	if (me && !me->mapent) {
+ #define	MOUNT_OFFSET_OK		0
+diff --git a/man/automount.8 b/man/automount.8
+index d9285bf..9fcaaf4 100644
+--- a/man/automount.8
++++ b/man/automount.8
+@@ -84,6 +84,11 @@ path name as specified in the master map.
+ .TP
+ .I "\-C, \-\-dont-check-daemon"
+ Don't check if the daemon is currently running (see NOTES).
++.TP
++.I "\-F, \-\-force"
++Force an unlink umount of existing mounts under autofs managed mount points
++during startup. This can cause problems for processes with working directories
++within these mounts (see NOTES).
+ .SH ARGUMENTS
+ \fBautomount\fP takes one optional argument, the name of the master map to
+ use.
+@@ -132,6 +137,14 @@ for certain types of automount maps. The mounts of the seperate daemons
+ might interfere with one another. The implications of running multiple
+ daemon instances needs to be checked and tested before we can say this
+ is supported.
++.P
++If the option to force an unlink of mounts at startup is used then processes
++whose working directory is within unlinked automounted directories will not
++get the correct pwd from the system. This is because, after the mount is
++unlinked from the mount tree, anything that needs to walk back up the mount
++tree to construct a path, such as getcwd(2) and the proc filesystem
++/proc/<pid>/cwd, cannot work because the point from which the path is
++constructed has been detached from the mount tree.
+ .SH "SEE ALSO"
+ .BR autofs (5),
+ .BR autofs (8),
+diff --git a/redhat/autofs.init.in b/redhat/autofs.init.in
+index 65c786e..471667e 100644
+--- a/redhat/autofs.init.in
++++ b/redhat/autofs.init.in
+@@ -137,6 +137,10 @@ case "$1" in
+ 	start)
+ 		start
+ 		;;
++	forcestart)
++		OPTIONS="$OPTIONS --force"
++		start
++		;;
+ 	stop)
+ 		stop
+ 		;;
+@@ -146,6 +150,10 @@ case "$1" in
+ 	restart)
+ 		restart
+ 		;;
++	forcerestart)
++		OPTIONS="$OPTIONS --force"
++		restart
++		;;
+ 	reload)
+ 		reload
+ 		;;
+@@ -155,7 +163,7 @@ case "$1" in
+ 		fi
+ 		;;
+ 	*)
+-		echo $"Usage: $0 {start|stop|status|restart|reload|condrestart}"
++		echo $"Usage: $0 {start|forcestart|stop|status|restart|orcerestart|reload|condrestart}"
+ 		exit 1;
+ 		;;
+ esac
+diff --git a/samples/rc.autofs.in b/samples/rc.autofs.in
+index 51f5b02..2877fe2 100644
+--- a/samples/rc.autofs.in
++++ b/samples/rc.autofs.in
+@@ -117,17 +117,25 @@ case "$1" in
+ 	start)
+ 		start
+ 		;;
++	forcestart)
++		OPTIONS="$OPTIONS --force"
++		start
++		;;
+ 	stop)
+ 		stop
+ 		;;
+ 	restart)
+ 		restart
+ 		;;
++	forcerestart)
++		OPTIONS="$OPTIONS --force"
++		restart
++		;;
+ 	reload)
+ 		reload
+ 		;;
+ 	*)
+-		echo $"Usage: $0 {start|stop|restart|reload}"
++		echo $"Usage: $0 {start|forcestart|stop|restart|forcerestart|reload}"
+ 		exit 1;
+ 		;;
+ esac
