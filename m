@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 10/13] autofs-5.0.4 - easy alloca replacements
-Date: Thu, 12 Feb 2009 01:01:02 +0900
-Message-ID: <20090211160102.12578.68334.stgit@zeus.themaw.net>
+Subject: [PATCH 08/13] autofs-5.0.4 - code analysis corrections
+Date: Thu, 12 Feb 2009 01:00:51 +0900
+Message-ID: <20090211160051.12578.30501.stgit@zeus.themaw.net>
 References: <20090211154853.12578.50525.stgit@zeus.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -20,1156 +20,550 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs mailing list <autofs@linux.kernel.org>
 
-From: Valerie Aurora Henson <vaurora@redhat.com>
-
-alloca() is compiler-dependent, non-standard, and has undefined
-behavior when it fails (IOW, the program crashes).  Replace with
-normal C stack variables where possible and malloc() where not.
+Several mistakes have been reported:
+- a malloc(3) allocation return was not being checked in make_fullpath().
+- a double free and a use after free was identified in lookup_prune_cache().
+- off-by-one buffer overflow in lib/macros.c:macro_parse_globalvar().
+- several potential buffer overflows in modules/parse_hesiod.c.
+- double free in daemon/indirect.c:do_mount_autofs_indirect().
+- bogus struct name used for sizeof in lib/cache.c:cache_init() and
+  lib/cache.c:cache_init_null_cache().
+- in daemon/direct.c:handle_packet_expire_direct master_unlock_mutex() not
+  needed and mutexes not unlocked for file descriptor fail case.
+- in modules/lookup_multi.c:lookup_init() struct module_info array not
+  checked before free for allocation failure case.
+- in modules/lookup_program.c:lookup_mount() mapent not freed on cache update failure.
+- in modules/mount_nfs.c allocation of mount location not checked.
+- in modules/parse_sun.c:parse_mapent() mount location not freed on syntax error.
+- in modules/parse_sun.c:parse_mount() mount location not freed on syntax error.
+- in modules/parse_sun.c:parse_init() a malloc is not checked and the
+  handling of the fail case is poor.
+- in lib/mounts.c:tree_make_mnt_tree() variable ent is not freed on ent->path
+  alloc fail.
+- in modules/replicated.c:add_host() NULL pointer dereference.
+- add missing pthread_attr_destroy() in lib/alarm.c:alarm_start_handler().
+- add missing pthread_attr_destroy() in daemon/state.c:st_start_handler().
+- add missing fclose() in lib/defaults.c:*defaults_get_searchdns().
+- add missing close()es in modules/mount_changer.c:swapCD().
 ---
 
- daemon/automount.c       |   29 ++++++--------
- daemon/direct.c          |   12 ++----
- daemon/flag.c            |   13 +++---
- daemon/indirect.c        |   12 ++----
- daemon/module.c          |   45 +++++++---------------
- lib/cache.c              |   31 +++++----------
- lib/cat_path.c           |    1 
- modules/lookup_file.c    |   82 +++++++++++++----------------------------
- modules/lookup_ldap.c    |   93 +++++++++++++++++++++++++++++-----------------
- modules/lookup_nisplus.c |   71 ++++++++++++++++++++---------------
- modules/mount_autofs.c   |    1 
- modules/mount_bind.c     |    7 +--
- modules/mount_changer.c  |    5 --
- modules/mount_ext2.c     |    5 --
- modules/mount_generic.c  |    5 --
- 15 files changed, 184 insertions(+), 228 deletions(-)
+ daemon/direct.c          |    6 ++-
+ daemon/indirect.c        |    3 +-
+ daemon/lookup.c          |   20 +++++-------
+ daemon/state.c           |    6 ++-
+ lib/alarm.c              |    6 ++-
+ lib/cache.c              |    4 +-
+ lib/defaults.c           |    1 +
+ lib/macros.c             |    2 +
+ lib/mounts.c             |    5 ++-
+ modules/lookup_multi.c   |   15 +++++----
+ modules/lookup_program.c |    4 ++
+ modules/mount_changer.c  |    2 +
+ modules/mount_nfs.c      |    5 +++
+ modules/parse_hesiod.c   |   79 ++++++++++++++++++++++++++++++++++++++++------
+ modules/parse_sun.c      |   18 ++++++----
+ modules/replicated.c     |    2 +
+ 16 files changed, 123 insertions(+), 55 deletions(-)
 
-diff --git a/daemon/automount.c b/daemon/automount.c
-index e20e7c9..269fc5b 100644
---- a/daemon/automount.c
-+++ b/daemon/automount.c
-@@ -127,8 +127,8 @@ static int do_mkdir(const char *parent, const char *path, mode_t mode)
- 
- int mkdir_path(const char *path, mode_t mode)
- {
--	char *buf = alloca(strlen(path) + 1);
--	char *parent = alloca(strlen(path) + 1);
-+	char buf[PATH_MAX];
-+	char parent[PATH_MAX];
- 	const char *cp = path, *lcp = path;
- 	char *bp = buf, *pp = parent;
- 
-@@ -163,7 +163,7 @@ int mkdir_path(const char *path, mode_t mode)
- int rmdir_path(struct autofs_point *ap, const char *path, dev_t dev)
- {
- 	int len = strlen(path);
--	char *buf = alloca(len + 1);
-+	char buf[PATH_MAX];
- 	char *cp;
- 	int first = 1;
- 	struct stat st;
-@@ -468,20 +468,17 @@ static int umount_subtree_mounts(struct autofs_point *ap, const char *path, unsi
- 	pthread_cleanup_push(cache_lock_cleanup, mc);
- 
- 	if (me->multi) {
--		char *root, *base;
--		size_t ap_len;
-+		char root[PATH_MAX];
-+		char *base;
- 		int cur_state;
- 
--		ap_len = strlen(ap->path);
--
--		if (!strchr(me->multi->key, '/')) {
-+		if (!strchr(me->multi->key, '/'))
- 			/* Indirect multi-mount root */
--			root = alloca(ap_len + strlen(me->multi->key) + 2);
--			strcpy(root, ap->path);
--			strcat(root, "/");
--			strcat(root, me->multi->key);
--		} else
--			root = me->multi->key;
-+			/* sprintf okay - if it's mounted, it's
-+			 * PATH_MAX or less bytes */
-+			sprintf(root, "%s/%s", ap->path, me->multi->key);
-+		else
-+			strcpy(root, me->multi->key);
- 
- 		if (is_mm_root)
- 			base = NULL;
-@@ -929,14 +926,14 @@ static int get_pkt(struct autofs_point *ap, union autofs_v5_packet_union *pkt)
- 
- int do_expire(struct autofs_point *ap, const char *name, int namelen)
- {
--	char buf[PATH_MAX + 1];
-+	char buf[PATH_MAX];
- 	int len, ret;
- 
- 	if (*name != '/') {
- 		len = ncat_path(buf, sizeof(buf), ap->path, name, namelen);
- 	} else {
- 		len = snprintf(buf, PATH_MAX, "%s", name);
--		if (len > PATH_MAX)
-+		if (len >= PATH_MAX)
- 			len = 0;
- 	}
- 
 diff --git a/daemon/direct.c b/daemon/direct.c
-index fc3c969..4f4ff20 100644
+index 2d979f1..fc3c969 100644
 --- a/daemon/direct.c
 +++ b/daemon/direct.c
-@@ -637,7 +637,9 @@ int mount_autofs_offset(struct autofs_point *ap, struct mapent *me, const char *
- 	time_t timeout = ap->exp_timeout;
- 	struct stat st;
- 	int ioctlfd, status, ret;
--	const char *type, *map_name = NULL;
-+	const char *hosts_map_name = "-hosts";
-+	const char *map_name = hosts_map_name;
-+	const char *type;
- 	char mountpoint[PATH_MAX];
- 
- 	if (ops->version && ap->flags & MOUNT_FLAG_REMOUNT) {
-@@ -740,13 +742,7 @@ int mount_autofs_offset(struct autofs_point *ap, struct mapent *me, const char *
- 	      mp->options, mountpoint);
- 
- 	type = ap->entry->maps->type;
--	if (type && !strcmp(ap->entry->maps->type, "hosts")) {
--		char *tmp = alloca(7);
--		if (tmp) {
--			strcpy(tmp, "-hosts");
--			map_name = (const char *) tmp;
--		}
--	} else
-+	if (!type || strcmp(ap->entry->maps->type, "hosts"))
- 		map_name = me->mc->map->argv[0];
- 
- 	ret = mount(map_name, mountpoint, "autofs", MS_MGC_VAL, mp->options);
-diff --git a/daemon/flag.c b/daemon/flag.c
-index e43cece..f8fe163 100644
---- a/daemon/flag.c
-+++ b/daemon/flag.c
-@@ -23,10 +23,10 @@
- #include <sys/stat.h>
- #include <time.h>
- #include <string.h>
--#include <alloca.h>
- #include <stdio.h>
- #include <signal.h>
- #include <errno.h>
-+#include <limits.h>
- 
- #include "automount.h"
- 
-@@ -113,12 +113,13 @@ void release_flag_file(void)
- /* * Try to create flag file */
- int aquire_flag_file(void)
- {
--	char *linkf;
--	int len;
-+	char linkf[PATH_MAX];
-+	size_t len;
- 
--	len = strlen(FLAG_FILE) + MAX_PIDSIZE;
--	linkf = alloca(len + 1);
--	snprintf(linkf, len, "%s.%d", FLAG_FILE, getpid());
-+	len = snprintf(linkf, sizeof(linkf), "%s.%d", FLAG_FILE, getpid());
-+	if (len >= sizeof(linkf))
-+		/* Didn't acquire it */
-+		return 0;
- 
- 	/*
- 	 * Repeat until it was us who made the link or we find the
+@@ -1088,7 +1088,6 @@ int handle_packet_expire_direct(struct autofs_point *ap, autofs_packet_expire_di
+ 		crit(ap->logopt, "can't find map entry for (%lu,%lu)",
+ 		    (unsigned long) pkt->dev, (unsigned long) pkt->ino);
+ 		master_source_unlock(ap->entry);
+-		master_mutex_unlock();
+ 		pthread_setcancelstate(state, NULL);
+ 		return 1;
+ 	}
+@@ -1098,8 +1097,9 @@ int handle_packet_expire_direct(struct autofs_point *ap, autofs_packet_expire_di
+ 		int ioctlfd;
+ 		ops->open(ap->logopt, &ioctlfd, me->dev, me->key);
+ 		if (ioctlfd == -1) {
+-			crit(ap->logopt, "can't open ioctlfd for %s",
+-			     me->key);
++			crit(ap->logopt, "can't open ioctlfd for %s", me->key);
++			cache_unlock(mc);
++			master_source_unlock(ap->entry);
+ 			pthread_setcancelstate(state, NULL);
+ 			return 1;
+ 		}
 diff --git a/daemon/indirect.c b/daemon/indirect.c
-index f40c393..2539282 100644
+index 2ccbc53..f40c393 100644
 --- a/daemon/indirect.c
 +++ b/daemon/indirect.c
-@@ -90,7 +90,9 @@ static int do_mount_autofs_indirect(struct autofs_point *ap, const char *root)
- 	struct ioctl_ops *ops = get_ioctl_ops();
- 	time_t timeout = ap->exp_timeout;
- 	char *options = NULL;
--	const char *type, *map_name = NULL;
-+	const char *hosts_map_name = "-hosts";
-+	const char *map_name = hosts_map_name;
-+	const char *type;
- 	struct stat st;
- 	struct mnt_list *mnts;
- 	int ret;
-@@ -142,13 +144,7 @@ static int do_mount_autofs_indirect(struct autofs_point *ap, const char *root)
+@@ -159,6 +159,7 @@ static int do_mount_autofs_indirect(struct autofs_point *ap, const char *root)
  	}
  
- 	type = ap->entry->maps->type;
--	if (type && !strcmp(ap->entry->maps->type, "hosts")) {
--		char *tmp = alloca(7);
--		if (tmp) {
--			strcpy(tmp, "-hosts");
--			map_name = (const char *) tmp;
--		}
--	} else
-+	if (!type || strcmp(ap->entry->maps->type, "hosts"))
- 		map_name = ap->entry->maps->argv[0];
+ 	free(options);
++	options = NULL;
  
- 	ret = mount(map_name, root, "autofs", MS_MGC_VAL, options);
-diff --git a/daemon/module.c b/daemon/module.c
-index e593d75..466d8d7 100644
---- a/daemon/module.c
-+++ b/daemon/module.c
-@@ -58,15 +58,11 @@ struct lookup_mod *open_lookup(const char *name, const char *err_prefix,
- {
- 	struct lookup_mod *mod;
- 	char buf[MAX_ERR_BUF];
--	char *fnbuf;
--	size_t size_name;
--	size_t size_fnbuf;
-+	char fnbuf[PATH_MAX];
-+	size_t size;
- 	void *dh;
- 	int *ver;
- 
--	size_name = _strlen(name, PATH_MAX + 1);
--	if (!size_name)
--		return NULL;
- 
- 	mod = malloc(sizeof(struct lookup_mod));
- 	if (!mod) {
-@@ -77,9 +73,9 @@ struct lookup_mod *open_lookup(const char *name, const char *err_prefix,
- 		return NULL;
+ 	ret = stat(root, &st);
+ 	if (ret == -1) {
+@@ -167,8 +168,6 @@ static int do_mount_autofs_indirect(struct autofs_point *ap, const char *root)
+ 		goto out_umount;
  	}
  
--	size_fnbuf = size_name + strlen(AUTOFS_LIB_DIR) + 13;
--	fnbuf = alloca(size_fnbuf);
--	if (!fnbuf) {
-+	size = snprintf(fnbuf, sizeof(fnbuf),
-+			"%s/lookup_%s.so", AUTOFS_LIB_DIR, name);
-+	if (size >= sizeof(fnbuf)) {
- 		free(mod);
- 		if (err_prefix) {
- 			char *estr = strerror_r(errno, buf, MAX_ERR_BUF);
-@@ -87,7 +83,6 @@ struct lookup_mod *open_lookup(const char *name, const char *err_prefix,
+-	options = NULL;
+-
+ 	if (ops->open(ap->logopt, &ap->ioctlfd, st.st_dev, root)) {
+ 		crit(ap->logopt,
+ 		     "failed to create ioctl fd for autofs path %s", ap->path);
+diff --git a/daemon/lookup.c b/daemon/lookup.c
+index e034348..fd2ce55 100644
+--- a/daemon/lookup.c
++++ b/daemon/lookup.c
+@@ -1001,12 +1001,16 @@ static char *make_fullpath(const char *root, const char *key)
+ 		if (l > KEY_MAX_LEN)
+ 			return NULL;
+ 		path = malloc(l);
++		if (!path)
++			return NULL;
+ 		strcpy(path, key);
+ 	} else {
+ 		l = strlen(key) + 1 + strlen(root) + 1;
+ 		if (l > KEY_MAX_LEN)
+ 			return NULL;
+ 		path = malloc(l);
++		if (!path)
++			return NULL;
+ 		sprintf(path, "%s/%s", root, key);
+ 	}
+ 	return path;
+@@ -1076,10 +1080,6 @@ int lookup_prune_cache(struct autofs_point *ap, time_t age)
+ 			this = cache_lookup_distinct(mc, key);
+ 			if (!this) {
+ 				cache_unlock(mc);
+-				free(key);
+-				if (next_key)
+-					free(next_key);
+-				free(path);
+ 				goto next;
+ 			}
+ 
+@@ -1097,18 +1097,14 @@ int lookup_prune_cache(struct autofs_point *ap, time_t age)
+ 			}
+ 			cache_unlock(mc);
+ 
+-			if (!next_key) {
+-				free(key);
+-				free(path);
+-				cache_readlock(mc);
+-				continue;
+-			}
+ next:
+ 			cache_readlock(mc);
+-			me = cache_lookup_distinct(mc, next_key);
++			if (next_key) {
++				me = cache_lookup_distinct(mc, next_key);
++				free(next_key);
++			}
+ 			free(key);
+ 			free(path);
+-			free(next_key);
  		}
- 		return NULL;
- 	}
--	snprintf(fnbuf, size_fnbuf, "%s/lookup_%s.so", AUTOFS_LIB_DIR, name);
- 
- 	if (!(dh = dlopen(fnbuf, RTLD_NOW))) {
- 		if (err_prefix)
-@@ -141,15 +136,11 @@ struct parse_mod *open_parse(const char *name, const char *err_prefix,
- {
- 	struct parse_mod *mod;
- 	char buf[MAX_ERR_BUF];
--	char *fnbuf;
--	size_t size_name;
--	size_t size_fnbuf;
-+	char fnbuf[PATH_MAX];
-+	size_t size;
- 	void *dh;
- 	int *ver;
- 
--	size_name = _strlen(name, PATH_MAX + 1);
--	if (!size_name)
--		return NULL;
- 
- 	mod = malloc(sizeof(struct parse_mod));
- 	if (!mod) {
-@@ -160,9 +151,9 @@ struct parse_mod *open_parse(const char *name, const char *err_prefix,
- 		return NULL;
+ 		pthread_cleanup_pop(1);
+ 		map->stale = 0;
+diff --git a/daemon/state.c b/daemon/state.c
+index cd63be1..606743b 100644
+--- a/daemon/state.c
++++ b/daemon/state.c
+@@ -1140,9 +1140,9 @@ int st_start_handler(void)
  	}
  
--	size_fnbuf = size_name + strlen(AUTOFS_LIB_DIR) + 13;
--	fnbuf = alloca(size_fnbuf);
--	if (!fnbuf) {
-+	size = snprintf(fnbuf, sizeof(fnbuf),
-+			"%s/parse_%s.so", AUTOFS_LIB_DIR, name);
-+	if (size >= sizeof(fnbuf)) {
- 		free(mod);
- 		if (err_prefix) {
- 			char *estr = strerror_r(errno, buf, MAX_ERR_BUF);
-@@ -170,7 +161,6 @@ struct parse_mod *open_parse(const char *name, const char *err_prefix,
- 		}
- 		return NULL;
- 	}
--	snprintf(fnbuf, size_fnbuf, "%s/parse_%s.so", AUTOFS_LIB_DIR, name);
+ 	status = pthread_create(&thid, pattrs, st_queue_handler, NULL);
+-	if (status)
+-		return 0;
  
- 	if (!(dh = dlopen(fnbuf, RTLD_NOW))) {
- 		if (err_prefix)
-@@ -222,15 +212,11 @@ struct mount_mod *open_mount(const char *name, const char *err_prefix)
- {
- 	struct mount_mod *mod;
- 	char buf[MAX_ERR_BUF];
--	char *fnbuf;
--	size_t size_name;
--	size_t size_fnbuf;
-+	char fnbuf[PATH_MAX];
-+	size_t size;
- 	void *dh;
- 	int *ver;
+-	return 1;
++	pthread_attr_destroy(pattrs);
++
++	return !status;
+ }
  
--	size_name = _strlen(name, PATH_MAX + 1);
--	if (!size_name)
--		return NULL;
- 
- 	mod = malloc(sizeof(struct mount_mod));
- 	if (!mod) {
-@@ -241,9 +227,9 @@ struct mount_mod *open_mount(const char *name, const char *err_prefix)
- 		return NULL;
+diff --git a/lib/alarm.c b/lib/alarm.c
+index 1e32291..46df38a 100755
+--- a/lib/alarm.c
++++ b/lib/alarm.c
+@@ -238,9 +238,9 @@ int alarm_start_handler(void)
  	}
  
--	size_fnbuf = size_name + strlen(AUTOFS_LIB_DIR) + 13;
--	fnbuf = alloca(size_fnbuf);
--	if (!fnbuf) {
-+	size = snprintf(fnbuf, sizeof(fnbuf),
-+			"%s/mount_%s.so", AUTOFS_LIB_DIR, name);
-+	if (size >= sizeof(fnbuf)) {
- 		free(mod);
- 		if (err_prefix) {
- 			char *estr = strerror_r(errno, buf, MAX_ERR_BUF);
-@@ -251,7 +237,6 @@ struct mount_mod *open_mount(const char *name, const char *err_prefix)
- 		}
- 		return NULL;
- 	}
--	snprintf(fnbuf, size_fnbuf, "%s/mount_%s.so", AUTOFS_LIB_DIR, name);
+ 	status = pthread_create(&thid, pattrs, alarm_handler, NULL);
+-	if (status)
+-	 	return 0;
  
- 	if (!(dh = dlopen(fnbuf, RTLD_NOW))) {
- 		if (err_prefix)
+-	return 1;
++	pthread_attr_destroy(pattrs);
++
++	return !status;
+ }
+ 
 diff --git a/lib/cache.c b/lib/cache.c
-index 4cb4582..cd62ac2 100644
+index edb3192..4cb4582 100644
 --- a/lib/cache.c
 +++ b/lib/cache.c
-@@ -482,27 +482,23 @@ struct mapent *cache_lookup_offset(const char *prefix, const char *offset, int s
- {
- 	struct list_head *p;
- 	struct mapent *this;
--	int plen = strlen(prefix);
--	char *o_key;
-+	/* Keys for direct maps may be as long as a path name */
-+	char o_key[PATH_MAX];
-+	/* Avoid "//" at the beginning of paths */
-+	const char *path_prefix = strlen(prefix) > 1 ? prefix : "";
-+	size_t size;
+@@ -192,7 +192,7 @@ struct mapent_cache *cache_init(struct autofs_point *ap, struct map_source *map)
  
- 	/* root offset duplicates "/" */
--	if (plen > 1) {
--		o_key = alloca(plen + strlen(offset) + 1);
--		strcpy(o_key, prefix);
--		strcat(o_key, offset);
--	} else {
--		o_key = alloca(strlen(offset) + 1);
--		strcpy(o_key, offset);
--	}
-+	size = snprintf(o_key, sizeof(o_key), "%s%s", path_prefix, offset);
-+	if (size >= sizeof(o_key))
-+		return NULL;
+ 	mc->size = defaults_get_map_hash_table_size();
  
- 	list_for_each(p, head) {
- 		this = list_entry(p, struct mapent, multi_list);
- 		if (!strcmp(&this->key[start], o_key))
--			goto done;
-+			return this;
- 	}
--	this = NULL;
--done:
--	return this;
-+	return NULL;
- }
+-	mc->hash = malloc(mc->size * sizeof(struct entry *));
++	mc->hash = malloc(mc->size * sizeof(struct mapent *));
+ 	if (!mc->hash) {
+ 		free(mc);
+ 		return NULL;
+@@ -243,7 +243,7 @@ struct mapent_cache *cache_init_null_cache(struct master *master)
  
- /* cache must be read locked by caller */
-@@ -759,13 +755,8 @@ int cache_delete(struct mapent_cache *mc, const char *key)
- 	struct mapent *me = NULL, *pred;
- 	u_int32_t hashval = hash(key, mc->size);
- 	int status, ret = CHE_OK;
--	char *this;
-+	char this[PATH_MAX];
+ 	mc->size = NULL_MAP_HASHSIZE;
  
--	this = alloca(strlen(key) + 1);
--	if (!this) {
--		ret = CHE_FAIL;
--		goto done;
--	}
- 	strcpy(this, key);
+-	mc->hash = malloc(mc->size * sizeof(struct entry *));
++	mc->hash = malloc(mc->size * sizeof(struct mapent *));
+ 	if (!mc->hash) {
+ 		free(mc);
+ 		return NULL;
+diff --git a/lib/defaults.c b/lib/defaults.c
+index 0d39716..e507a59 100644
+--- a/lib/defaults.c
++++ b/lib/defaults.c
+@@ -565,6 +565,7 @@ struct ldap_searchdn *defaults_get_searchdns(void)
  
- 	me = mc->hash[hashval];
-diff --git a/lib/cat_path.c b/lib/cat_path.c
-index 576b424..60669db 100644
---- a/lib/cat_path.c
-+++ b/lib/cat_path.c
-@@ -12,7 +12,6 @@
-  *
-  * ----------------------------------------------------------------------- */
+ 			if (!new) {
+ 				defaults_free_searchdns(sdn);
++				fclose(f);
+ 				return NULL;
+ 			}
  
--#include <alloca.h>
- #include <string.h>
- #include <limits.h>
- #include <ctype.h>
-diff --git a/modules/lookup_file.c b/modules/lookup_file.c
-index aafeb8b..ba80f2a 100644
---- a/modules/lookup_file.c
-+++ b/modules/lookup_file.c
-@@ -378,8 +378,8 @@ int lookup_read_master(struct master *master, time_t age, void *context)
- 	unsigned int logopt = master->logopt;
- 	char *buffer;
- 	int blen;
--	char *path;
--	char *ent;
-+	char path[KEY_MAX_LEN + 1];
-+	char ent[MAPENT_MAX_LEN + 1];
- 	FILE *f;
- 	unsigned int path_len, ent_len;
- 	int entry, cur_state;
-@@ -393,20 +393,6 @@ int lookup_read_master(struct master *master, time_t age, void *context)
- 		return NSS_STATUS_UNAVAIL;
- 	}
+diff --git a/lib/macros.c b/lib/macros.c
+index 85f9cd3..32b70bf 100644
+--- a/lib/macros.c
++++ b/lib/macros.c
+@@ -165,7 +165,7 @@ int macro_parse_globalvar(const char *define)
+ 	char buf[MAX_MACRO_STRING];
+ 	char *pbuf, *value;
  
--	path = alloca(KEY_MAX_LEN + 1);
--	if (!path) {
--		error(logopt,
--		      MODPREFIX "could not malloc storage for path");
--		return NSS_STATUS_UNAVAIL;
--	}
--
--	ent = alloca(MAPENT_MAX_LEN + 1);
--	if (!ent) {
--		error(logopt,
--		      MODPREFIX "could not malloc storage for mapent");
--		return NSS_STATUS_UNAVAIL;
--	}
--
- 	f = open_fopen_r(ctxt->mapname);
- 	if (!f) {
- 		error(logopt,
-@@ -618,8 +604,8 @@ int lookup_read_map(struct autofs_point *ap, time_t age, void *context)
- 	struct lookup_context *ctxt = (struct lookup_context *) context;
- 	struct map_source *source;
- 	struct mapent_cache *mc;
--	char *key;
--	char *mapent;
-+	char key[KEY_MAX_LEN + 1];
-+	char mapent[MAPENT_MAX_LEN + 1];
- 	FILE *f;
- 	unsigned int k_len, m_len;
- 	int entry;
-@@ -639,20 +625,6 @@ int lookup_read_map(struct autofs_point *ap, time_t age, void *context)
- 		return NSS_STATUS_UNAVAIL;
- 	}
+-	if (strlen(define) > MAX_MACRO_STRING)
++	if (strlen(define) >= MAX_MACRO_STRING)
+ 		return 0;
  
--	key = alloca(KEY_MAX_LEN + 1);
--	if (!key) {
--		error(ap->logopt,
--		      MODPREFIX "could not malloc storage for key");
--		return NSS_STATUS_UNAVAIL;
--	}
--
--	mapent = alloca(MAPENT_MAX_LEN + 1);
--	if (!mapent) {
--		error(ap->logopt,
--		      MODPREFIX "could not malloc storage for mapent");
--		return NSS_STATUS_UNAVAIL;
--	}
--
- 	f = open_fopen_r(ctxt->mapname);
- 	if (!f) {
- 		error(ap->logopt,
-@@ -972,7 +944,7 @@ int lookup_mount(struct autofs_point *ap, const char *name, int name_len, void *
- 	char key[KEY_MAX_LEN + 1];
- 	int key_len;
- 	char *mapent = NULL;
--	int mapent_len;
-+	char mapent_buf[MAPENT_MAX_LEN + 1];
- 	int status = 0;
- 	int ret = 1;
+ 	strcpy(buf, define);
+diff --git a/lib/mounts.c b/lib/mounts.c
+index b98e1a4..08ca4e3 100644
+--- a/lib/mounts.c
++++ b/lib/mounts.c
+@@ -257,10 +257,10 @@ struct mnt_list *get_mnt_list(const char *table, const char *path, int include)
  
-@@ -1076,38 +1048,36 @@ do_cache_lookup:
- 	}
- 	if (me && (me->source == source || *me->key == '/')) {
- 		pthread_cleanup_push(cache_lock_cleanup, mc);
--		mapent_len = strlen(me->mapent);
--		mapent = alloca(mapent_len + 1);
--		strcpy(mapent, me->mapent);
-+		strcpy(mapent_buf, me->mapent);
-+		mapent = mapent_buf;
- 		pthread_cleanup_pop(0);
- 	}
+ 		if (mptr == list)
+ 			list = ent;
++		else
++			last->next = ent;
+ 
+ 		ent->next = mptr;
+-		if (last)
+-			last->next = ent;
+ 
+ 		ent->path = malloc(len + 1);
+ 		if (!ent->path) {
+@@ -705,6 +705,7 @@ struct mnt_list *tree_make_mnt_tree(const char *table, const char *path)
+ 		ent->path = malloc(len + 1);
+ 		if (!ent->path) {
+ 			endmntent(tab);
++			free(ent);
+ 			tree_free_mnt_tree(tree);
+ 			return NULL;
+ 		}
+diff --git a/modules/lookup_multi.c b/modules/lookup_multi.c
+index 1bf2e0a..6ec8434 100644
+--- a/modules/lookup_multi.c
++++ b/modules/lookup_multi.c
+@@ -212,14 +212,15 @@ nomem:
+ 	logerr(MODPREFIX "error: %s", estr);
+ error_out:
+ 	if (ctxt) {
+-		for (i = 0; i < ctxt->n; i++) {
+-			if (ctxt->m[i].mod)
+-				close_lookup(ctxt->m[i].mod);
+-			if (ctxt->m[i].argv)
+-				free_argv(ctxt->m[i].argc, ctxt->m[i].argv);
+-		}
+-		if (ctxt->m)
++		if (ctxt->m) {
++			for (i = 0; i < ctxt->n; i++) {
++				if (ctxt->m[i].mod)
++					close_lookup(ctxt->m[i].mod);
++				if (ctxt->m[i].argv)
++					free_argv(ctxt->m[i].argc, ctxt->m[i].argv);
++			}
+ 			free(ctxt->m);
++		}
+ 		if (ctxt->argl)
+ 			free(ctxt->argl);
+ 		free(ctxt);
+diff --git a/modules/lookup_program.c b/modules/lookup_program.c
+index 9878936..5b295a5 100644
+--- a/modules/lookup_program.c
++++ b/modules/lookup_program.c
+@@ -396,8 +396,10 @@ next:
+ 	cache_writelock(mc);
+ 	ret = cache_update(mc, source, name, mapent, time(NULL));
  	cache_unlock(mc);
- 
--	if (mapent) {
--		master_source_current_wait(ap->entry);
--		ap->entry->current = source;
-+	if (!mapent)
-+		return NSS_STATUS_TRYAGAIN;
- 
--		debug(ap->logopt, MODPREFIX "%s -> %s", key, mapent);
--		ret = ctxt->parse->parse_mount(ap, key, key_len,
--					mapent, ctxt->parse->context);
--		if (ret) {
--			time_t now = time(NULL);
--			int rv = CHE_OK;
-+	master_source_current_wait(ap->entry);
-+	ap->entry->current = source;
- 
--			cache_writelock(mc);
-+	debug(ap->logopt, MODPREFIX "%s -> %s", key, mapent);
-+	ret = ctxt->parse->parse_mount(ap, key, key_len,
-+				       mapent, ctxt->parse->context);
-+	if (ret) {
-+		time_t now = time(NULL);
-+		int rv = CHE_OK;
-+
-+		cache_writelock(mc);
-+		me = cache_lookup_distinct(mc, key);
-+		if (!me)
-+			rv = cache_update(mc, source, key, NULL, now);
-+		if (rv != CHE_FAIL) {
- 			me = cache_lookup_distinct(mc, key);
--			if (!me)
--				rv = cache_update(mc, source, key, NULL, now);
--			if (rv != CHE_FAIL) {
--				me = cache_lookup_distinct(mc, key);
--				me->status = now + ap->negative_timeout;
--			}
--			cache_unlock(mc);
-+			me->status = now + ap->negative_timeout;
- 		}
--	}
--
--	if (ret)
-+		cache_unlock(mc);
- 		return NSS_STATUS_TRYAGAIN;
-+	}
- 
- 	return NSS_STATUS_SUCCESS;
- }
-diff --git a/modules/lookup_ldap.c b/modules/lookup_ldap.c
-index d8a60d3..094cbdc 100644
---- a/modules/lookup_ldap.c
-+++ b/modules/lookup_ldap.c
-@@ -294,10 +294,10 @@ static int get_query_dn(unsigned logopt, LDAP *ldap, struct lookup_context *ctxt
- 	if (ctxt->mapname)
- 		l += strlen(key) + strlen(ctxt->mapname) + strlen("(&(=))");
- 
--	query = alloca(l);
-+	query = malloc(l);
- 	if (query == NULL) {
- 		char *estr = strerror_r(errno, buf, sizeof(buf));
--		crit(logopt, MODPREFIX "alloca: %s", estr);
-+		crit(logopt, MODPREFIX "malloc: %s", estr);
- 		return NSS_STATUS_UNAVAIL;
- 	}
- 
-@@ -310,6 +310,7 @@ static int get_query_dn(unsigned logopt, LDAP *ldap, struct lookup_context *ctxt
- 		     key, (int) strlen(ctxt->mapname), ctxt->mapname) >= l) {
- 			debug(logopt,
- 			      MODPREFIX "error forming query string");
-+			free(query);
- 			return 0;
- 		}
- 		scope = LDAP_SCOPE_SUBTREE;
-@@ -317,6 +318,7 @@ static int get_query_dn(unsigned logopt, LDAP *ldap, struct lookup_context *ctxt
- 		if (sprintf(query, "(objectclass=%s)", class) >= l) {
- 			debug(logopt,
- 			      MODPREFIX "error forming query string");
-+			free(query);
- 			return 0;
- 		}
- 		scope = LDAP_SCOPE_SUBTREE;
-@@ -340,6 +342,7 @@ static int get_query_dn(unsigned logopt, LDAP *ldap, struct lookup_context *ctxt
- 			error(logopt,
- 			      MODPREFIX "query failed for %s: %s",
- 			      query, ldap_err2string(rv));
-+			free(query);
- 			return 0;
- 		}
- 
-@@ -353,6 +356,7 @@ static int get_query_dn(unsigned logopt, LDAP *ldap, struct lookup_context *ctxt
- 			      MODPREFIX "query succeeded, no matches for %s",
- 			      query);
- 			ldap_msgfree(result);
-+			free(query);
- 			return 0;
- 		}
- 	} else {
-@@ -395,10 +399,12 @@ static int get_query_dn(unsigned logopt, LDAP *ldap, struct lookup_context *ctxt
- 			ldap_msgfree(result);
- 			error(logopt,
- 			      MODPREFIX "failed to find query dn under search base dns");
-+			free(query);
- 			return 0;
- 		}
- 	}
- 
-+	free(query);
- 	qdn = strdup(dn);
- 	ldap_memfree(dn);
- 	ldap_msgfree(result);
-@@ -1181,7 +1187,7 @@ static int parse_server_string(unsigned logopt, const char *url, struct lookup_c
- 			else {
- 				char *estr;
- 				estr = strerror_r(errno, buf, sizeof(buf));
--				logerr(MODPREFIX "malloc: %s", estr);
-+				logerr(MODPREFIX "strdup: %s", estr);
- 				if (ctxt->server)
- 					free(ctxt->server);
- 				return 0;
-@@ -1441,23 +1447,26 @@ int lookup_read_master(struct master *master, time_t age, void *context)
- 
- 	l = strlen("(objectclass=)") + strlen(class) + 1;
- 
--	query = alloca(l);
-+	query = malloc(l);
- 	if (query == NULL) {
- 		char *estr = strerror_r(errno, buf, sizeof(buf));
--		logerr(MODPREFIX "alloca: %s", estr);
-+		logerr(MODPREFIX "malloc: %s", estr);
- 		return NSS_STATUS_UNAVAIL;
- 	}
- 
- 	if (sprintf(query, "(objectclass=%s)", class) >= l) {
- 		error(logopt, MODPREFIX "error forming query string");
-+		free(query);
- 		return NSS_STATUS_UNAVAIL;
- 	}
- 	query[l] = '\0';
- 
- 	/* Initialize the LDAP context. */
- 	ldap = do_reconnect(logopt, ctxt);
--	if (!ldap)
-+	if (!ldap) {
-+		free(query);
- 		return NSS_STATUS_UNAVAIL;
-+	}
- 
- 	/* Look around. */
- 	debug(logopt,
-@@ -1469,6 +1478,7 @@ int lookup_read_master(struct master *master, time_t age, void *context)
- 		error(logopt, MODPREFIX "query failed for %s: %s",
- 		      query, ldap_err2string(rv));
- 		unbind_ldap_connection(logging, ldap, ctxt);
-+		free(query);
- 		return NSS_STATUS_NOTFOUND;
- 	}
- 
-@@ -1479,6 +1489,7 @@ int lookup_read_master(struct master *master, time_t age, void *context)
- 		      query);
- 		ldap_msgfree(result);
- 		unbind_ldap_connection(logging, ldap, ctxt);
-+		free(query);
- 		return NSS_STATUS_NOTFOUND;
- 	} else
- 		debug(logopt, MODPREFIX "examining entries");
-@@ -1548,6 +1559,7 @@ next:
- 	/* Clean up. */
- 	ldap_msgfree(result);
- 	unbind_ldap_connection(logopt, ldap, ctxt);
-+	free(query);
- 
- 	return NSS_STATUS_SUCCESS;
- }
-@@ -2174,7 +2186,7 @@ static int read_one_map(struct autofs_point *ap,
- 	/* Build a query string. */
- 	l = strlen("(objectclass=)") + strlen(class) + 1;
- 
--	sp.query = alloca(l);
-+	sp.query = malloc(l);
- 	if (sp.query == NULL) {
- 		char *estr = strerror_r(errno, buf, sizeof(buf));
- 		logerr(MODPREFIX "malloc: %s", estr);
-@@ -2183,14 +2195,17 @@ static int read_one_map(struct autofs_point *ap,
- 
- 	if (sprintf(sp.query, "(objectclass=%s)", class) >= l) {
- 		error(ap->logopt, MODPREFIX "error forming query string");
-+		free(sp.query);
- 		return NSS_STATUS_UNAVAIL;
- 	}
- 	sp.query[l] = '\0';
- 
- 	/* Initialize the LDAP context. */
- 	sp.ldap = do_reconnect(ap->logopt, ctxt);
--	if (!sp.ldap)
-+	if (!sp.ldap) {
-+		free(sp.query);
- 		return NSS_STATUS_UNAVAIL;
-+	}
- 
- 	/* Look around. */
- 	debug(ap->logopt,
-@@ -2215,6 +2230,7 @@ static int read_one_map(struct autofs_point *ap,
- 		if (rv != LDAP_SUCCESS || !sp.result) {
- 			unbind_ldap_connection(ap->logopt, sp.ldap, ctxt);
- 			*result_ldap = rv;
-+			free(sp.query);
- 			return NSS_STATUS_UNAVAIL;
- 		}
- 
-@@ -2223,6 +2239,7 @@ static int read_one_map(struct autofs_point *ap,
- 			ldap_msgfree(sp.result);
- 			unbind_ldap_connection(ap->logopt, sp.ldap, ctxt);
- 			*result_ldap = rv;
-+			free(sp.query);
- 			return NSS_STATUS_NOTFOUND;
- 		}
- 		ldap_msgfree(sp.result);
-@@ -2233,6 +2250,7 @@ static int read_one_map(struct autofs_point *ap,
- 	unbind_ldap_connection(ap->logopt, sp.ldap, ctxt);
- 
- 	source->age = age;
-+	free(sp.query);
- 
- 	return NSS_STATUS_SUCCESS;
- }
-@@ -2328,7 +2346,7 @@ static int lookup_one(struct autofs_point *ap,
- 	if (enc_len1)
- 		l += 2*strlen(entry) + enc_len1 + enc_len2 + 6;
- 
--	query = alloca(l);
-+	query = malloc(l);
- 	if (query == NULL) {
- 		char *estr = strerror_r(errno, buf, sizeof(buf));
- 		crit(ap->logopt, MODPREFIX "malloc: %s", estr);
-@@ -2336,6 +2354,7 @@ static int lookup_one(struct autofs_point *ap,
- 			free(enc_key1);
- 			free(enc_key2);
- 		}
-+		free(query);
- 		return CHE_FAIL;
- 	}
- 
-@@ -2367,14 +2386,17 @@ static int lookup_one(struct autofs_point *ap,
- 	if (ql >= l) {
- 		error(ap->logopt,
- 		      MODPREFIX "error forming query string");
-+		free(query);
- 		return CHE_FAIL;
- 	}
- 	query[ql] = '\0';
- 
- 	/* Initialize the LDAP context. */
- 	ldap = do_reconnect(ap->logopt, ctxt);
--	if (!ldap)
-+	if (!ldap) {
-+		free(query);
- 		return CHE_UNAVAIL;
-+	}
- 
- 	debug(ap->logopt,
- 	      MODPREFIX "searching for \"%s\" under \"%s\"", query, ctxt->qdn);
-@@ -2384,6 +2406,7 @@ static int lookup_one(struct autofs_point *ap,
- 	if ((rv != LDAP_SUCCESS) || !result) {
- 		crit(ap->logopt, MODPREFIX "query failed for %s", query);
- 		unbind_ldap_connection(ap->logopt, ldap, ctxt);
-+		free(query);
- 		return CHE_FAIL;
- 	}
- 
-@@ -2396,6 +2419,7 @@ static int lookup_one(struct autofs_point *ap,
- 		     MODPREFIX "got answer, but no entry for %s", query);
- 		ldap_msgfree(result);
- 		unbind_ldap_connection(ap->logopt, ldap, ctxt);
-+		free(query);
- 		return CHE_MISSING;
- 	}
- 
-@@ -2610,6 +2634,7 @@ next:
- 		}
- 	}
- 	pthread_cleanup_pop(1);
-+	free(query);
- 
- 	return ret;
- }
-@@ -2696,7 +2721,7 @@ int lookup_mount(struct autofs_point *ap, const char *name, int name_len, void *
- 	char key[KEY_MAX_LEN + 1];
- 	int key_len;
- 	char *mapent = NULL;
--	int mapent_len;
-+	char mapent_buf[MAPENT_MAX_LEN + 1];
- 	int status = 0;
- 	int ret = 1;
- 
-@@ -2766,38 +2791,36 @@ int lookup_mount(struct autofs_point *ap, const char *name, int name_len, void *
- 			me = cache_lookup_distinct(mc, "*");
- 	}
- 	if (me && (me->source == source || *me->key == '/')) {
--		mapent_len = strlen(me->mapent);
--		mapent = alloca(mapent_len + 1);
--		strcpy(mapent, me->mapent);
-+		strcpy(mapent_buf, me->mapent);
-+		mapent = mapent_buf;
- 	}
- 	cache_unlock(mc);
- 
--	if (mapent) {
--		master_source_current_wait(ap->entry);
--		ap->entry->current = source;
-+	if (!mapent)
-+		return NSS_STATUS_TRYAGAIN;
- 
--		debug(ap->logopt, MODPREFIX "%s -> %s", key, mapent);
--		ret = ctxt->parse->parse_mount(ap, key, key_len,
--					 mapent, ctxt->parse->context);
--		if (ret) {
--			time_t now = time(NULL);
--			int rv = CHE_OK;
-+	master_source_current_wait(ap->entry);
-+	ap->entry->current = source;
- 
--			/* Record the the mount fail in the cache */
--			cache_writelock(mc);
-+	debug(ap->logopt, MODPREFIX "%s -> %s", key, mapent);
-+	ret = ctxt->parse->parse_mount(ap, key, key_len,
-+				       mapent, ctxt->parse->context);
-+	if (ret) {
-+		time_t now = time(NULL);
-+		int rv = CHE_OK;
-+
-+		/* Record the the mount fail in the cache */
-+		cache_writelock(mc);
-+		me = cache_lookup_distinct(mc, key);
-+		if (!me)
-+			rv = cache_update(mc, source, key, NULL, now);
-+		if (rv != CHE_FAIL) {
- 			me = cache_lookup_distinct(mc, key);
--			if (!me)
--				rv = cache_update(mc, source, key, NULL, now);
--			if (rv != CHE_FAIL) {
--				me = cache_lookup_distinct(mc, key);
--				me->status = now + ap->negative_timeout;
--			}
--			cache_unlock(mc);
-+			me->status = now + ap->negative_timeout;
- 		}
--	}
--
--	if (ret)
-+		cache_unlock(mc);
- 		return NSS_STATUS_TRYAGAIN;
-+	}
- 
- 	return NSS_STATUS_SUCCESS;
- }
-diff --git a/modules/lookup_nisplus.c b/modules/lookup_nisplus.c
-index 4c3ce60..0c75905 100644
---- a/modules/lookup_nisplus.c
-+++ b/modules/lookup_nisplus.c
-@@ -92,10 +92,10 @@ int lookup_read_master(struct master *master, time_t age, void *context)
- 	int cur_state, len;
- 
- 	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &cur_state);
--	tablename = alloca(strlen(ctxt->mapname) + strlen(ctxt->domainname) + 20);
-+	tablename = malloc(strlen(ctxt->mapname) + strlen(ctxt->domainname) + 20);
- 	if (!tablename) {
- 		char *estr = strerror_r(errno, buf, MAX_ERR_BUF);
--		logerr(MODPREFIX "alloca: %s", estr);
-+		logerr(MODPREFIX "malloc: %s", estr);
- 		pthread_setcancelstate(cur_state, NULL);
- 		return NSS_STATUS_UNAVAIL;
- 	}
-@@ -107,6 +107,7 @@ int lookup_read_master(struct master *master, time_t age, void *context)
- 		nis_freeresult(result);
- 		crit(logopt,
- 		     MODPREFIX "couldn't locate nis+ table %s", ctxt->mapname);
-+		free(tablename);
- 		pthread_setcancelstate(cur_state, NULL);
- 		return NSS_STATUS_NOTFOUND;
- 	}
-@@ -118,6 +119,7 @@ int lookup_read_master(struct master *master, time_t age, void *context)
- 		nis_freeresult(result);
- 		crit(logopt,
- 		     MODPREFIX "couldn't enumrate nis+ map %s", ctxt->mapname);
-+		free(tablename);
- 		pthread_setcancelstate(cur_state, NULL);
- 		return NSS_STATUS_UNAVAIL;
- 	}
-@@ -155,6 +157,7 @@ int lookup_read_master(struct master *master, time_t age, void *context)
- 	}
- 
- 	nis_freeresult(result);
-+	free(tablename);
- 	pthread_setcancelstate(cur_state, NULL);
- 
- 	return NSS_STATUS_SUCCESS;
-@@ -180,10 +183,10 @@ int lookup_read_map(struct autofs_point *ap, time_t age, void *context)
- 	mc = source->mc;
- 
- 	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &cur_state);
--	tablename = alloca(strlen(ctxt->mapname) + strlen(ctxt->domainname) + 20);
-+	tablename = malloc(strlen(ctxt->mapname) + strlen(ctxt->domainname) + 20);
- 	if (!tablename) {
- 		char *estr = strerror_r(errno, buf, MAX_ERR_BUF);
--		logerr(MODPREFIX "alloca: %s", estr);
-+		logerr(MODPREFIX "malloc: %s", estr);
- 		pthread_setcancelstate(cur_state, NULL);
- 		return NSS_STATUS_UNAVAIL;
- 	}
-@@ -195,6 +198,7 @@ int lookup_read_map(struct autofs_point *ap, time_t age, void *context)
- 		nis_freeresult(result);
- 		crit(ap->logopt,
- 		     MODPREFIX "couldn't locate nis+ table %s", ctxt->mapname);
-+		free(tablename);
- 		pthread_setcancelstate(cur_state, NULL);
- 		return NSS_STATUS_NOTFOUND;
- 	}
-@@ -206,6 +210,7 @@ int lookup_read_map(struct autofs_point *ap, time_t age, void *context)
- 		nis_freeresult(result);
- 		crit(ap->logopt,
- 		     MODPREFIX "couldn't enumrate nis+ map %s", ctxt->mapname);
-+		free(tablename);
- 		pthread_setcancelstate(cur_state, NULL);
- 		return NSS_STATUS_UNAVAIL;
- 	}
-@@ -245,6 +250,7 @@ int lookup_read_map(struct autofs_point *ap, time_t age, void *context)
- 
- 	source->age = age;
- 
-+	free(tablename);
- 	pthread_setcancelstate(cur_state, NULL);
- 
- 	return NSS_STATUS_SUCCESS;
-@@ -271,11 +277,11 @@ static int lookup_one(struct autofs_point *ap,
- 	mc = source->mc;
- 
- 	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &cur_state);
--	tablename = alloca(strlen(key) +
--			strlen(ctxt->mapname) + strlen(ctxt->domainname) + 20);
-+	tablename = malloc(strlen(key) + strlen(ctxt->mapname) +
-+			   strlen(ctxt->domainname) + 20);
- 	if (!tablename) {
- 		char *estr = strerror_r(errno, buf, MAX_ERR_BUF);
--		logerr(MODPREFIX "alloca: %s", estr);
-+		logerr(MODPREFIX "malloc: %s", estr);
- 		pthread_setcancelstate(cur_state, NULL);
- 		return -1;
- 	}
-@@ -286,6 +292,7 @@ static int lookup_one(struct autofs_point *ap,
- 	if (result->status != NIS_SUCCESS && result->status != NIS_S_SUCCESS) {
- 		nis_error rs = result->status;
- 		nis_freeresult(result);
-+		free(tablename);
- 		pthread_setcancelstate(cur_state, NULL);
- 		if (rs == NIS_NOTFOUND ||
- 		    rs == NIS_S_NOTFOUND ||
-@@ -303,6 +310,7 @@ static int lookup_one(struct autofs_point *ap,
- 	cache_unlock(mc);
- 
- 	nis_freeresult(result);
-+	free(tablename);
- 	pthread_setcancelstate(cur_state, NULL);
- 
- 	return ret;
-@@ -327,10 +335,10 @@ static int lookup_wild(struct autofs_point *ap, struct lookup_context *ctxt)
- 	mc = source->mc;
- 
- 	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &cur_state);
--	tablename = alloca(strlen(ctxt->mapname) + strlen(ctxt->domainname) + 20);
-+	tablename = malloc(strlen(ctxt->mapname) + strlen(ctxt->domainname) + 20);
- 	if (!tablename) {
- 		char *estr = strerror_r(errno, buf, MAX_ERR_BUF);
--		logerr(MODPREFIX "alloca: %s", estr);
-+		logerr(MODPREFIX "malloc: %s", estr);
- 		pthread_setcancelstate(cur_state, NULL);
- 		return -1;
- 	}
-@@ -341,6 +349,7 @@ static int lookup_wild(struct autofs_point *ap, struct lookup_context *ctxt)
- 	if (result->status != NIS_SUCCESS && result->status != NIS_S_SUCCESS) {
- 		nis_error rs = result->status;
- 		nis_freeresult(result);
-+		free(tablename);
- 		pthread_setcancelstate(cur_state, NULL);
- 		if (rs == NIS_NOTFOUND ||
- 		    rs == NIS_S_NOTFOUND ||
-@@ -357,6 +366,7 @@ static int lookup_wild(struct autofs_point *ap, struct lookup_context *ctxt)
- 	cache_unlock(mc);
- 
- 	nis_freeresult(result);
-+	free(tablename);
- 	pthread_setcancelstate(cur_state, NULL);
- 
- 	return ret;
-@@ -546,36 +556,37 @@ int lookup_mount(struct autofs_point *ap, const char *name, int name_len, void *
- 	}
- 	if (me && (me->source == source || *me->key == '/')) {
- 		mapent_len = strlen(me->mapent);
--		mapent = alloca(mapent_len + 1);
-+		mapent = malloc(mapent_len + 1);
- 		strcpy(mapent, me->mapent);
- 	}
- 	cache_unlock(mc);
- 
--	if (mapent) {
--		master_source_current_wait(ap->entry);
--		ap->entry->current = source;
-+	if (!mapent)
-+		return NSS_STATUS_TRYAGAIN;
- 
--		debug(ap->logopt, MODPREFIX "%s -> %s", key, mapent);
--		ret = ctxt->parse->parse_mount(ap, key, key_len,
--					       mapent, ctxt->parse->context);
--		if (ret) {
--			time_t now = time(NULL);
--			int rv = CHE_OK;
-+	master_source_current_wait(ap->entry);
-+	ap->entry->current = source;
-+
-+	debug(ap->logopt, MODPREFIX "%s -> %s", key, mapent);
-+	ret = ctxt->parse->parse_mount(ap, key, key_len,
-+				       mapent, ctxt->parse->context);
-+	if (ret) {
-+		time_t now = time(NULL);
-+		int rv = CHE_OK;
- 
--			cache_writelock(mc);
-+		cache_writelock(mc);
-+		me = cache_lookup_distinct(mc, key);
-+		if (!me)
-+			rv = cache_update(mc, source, key, NULL, now);
-+		if (rv != CHE_FAIL) {
- 			me = cache_lookup_distinct(mc, key);
--			if (!me)
--				rv = cache_update(mc, source, key, NULL, now);
--			if (rv != CHE_FAIL) {
--				me = cache_lookup_distinct(mc, key);
--				me->status = time(NULL) + ap->negative_timeout;
--			}
--			cache_unlock(mc);
-+			me->status = time(NULL) + ap->negative_timeout;
- 		}
--	}
--
--	if (ret)
-+		cache_unlock(mc);
+-	if (ret == CHE_FAIL)
++	if (ret == CHE_FAIL) {
 +		free(mapent);
- 		return NSS_STATUS_TRYAGAIN;
+ 		return NSS_STATUS_UNAVAIL;
 +	}
-+	free(mapent);
  
- 	return NSS_STATUS_SUCCESS;
- }
-diff --git a/modules/mount_autofs.c b/modules/mount_autofs.c
-index 44fc043..fab2906 100644
---- a/modules/mount_autofs.c
-+++ b/modules/mount_autofs.c
-@@ -18,7 +18,6 @@
- #include <malloc.h>
- #include <string.h>
- #include <signal.h>
--#include <alloca.h>
- #include <sys/param.h>
- #include <sys/types.h>
- #include <sys/stat.h>
-diff --git a/modules/mount_bind.c b/modules/mount_bind.c
-index 361f0c2..b8ef581 100644
---- a/modules/mount_bind.c
-+++ b/modules/mount_bind.c
-@@ -69,7 +69,7 @@ out:
- int mount_mount(struct autofs_point *ap, const char *root, const char *name, int name_len,
- 		const char *what, const char *fstype, const char *options, void *context)
- {
--	char *fullpath;
-+	char fullpath[PATH_MAX];
- 	char buf[MAX_ERR_BUF];
- 	int err;
- 	int i, len;
-@@ -80,14 +80,11 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name, int
- 	/* Root offset of multi-mount */
- 	len = strlen(root);
- 	if (root[len - 1] == '/') {
--		fullpath = alloca(len);
- 		len = snprintf(fullpath, len, "%s", root);
- 	/* Direct mount name is absolute path so don't use root */
- 	} else if (*name == '/') {
--		fullpath = alloca(len + 1);
- 		len = sprintf(fullpath, "%s", root);
- 	} else {
--		fullpath = alloca(len + name_len + 2);
- 		len = sprintf(fullpath, "%s/%s", root, name);
- 	}
- 	fullpath[len] = '\0';
-@@ -141,7 +138,7 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name, int
- 		}
- 	} else {
- 		char *cp;
--		char *basepath = alloca(strlen(fullpath) + 1);
-+		char basepath[PATH_MAX];
- 		int status;
- 		struct stat st;
+ 	debug(ap->logopt, MODPREFIX "%s -> %s", name, mapent);
  
 diff --git a/modules/mount_changer.c b/modules/mount_changer.c
-index c30190d..856cf6a 100644
+index 92bb72b..c30190d 100644
 --- a/modules/mount_changer.c
 +++ b/modules/mount_changer.c
-@@ -44,7 +44,7 @@ int mount_init(void **context)
- int mount_mount(struct autofs_point *ap, const char *root, const char *name, int name_len,
- 		const char *what, const char *fstype, const char *options, void *context)
- {
--	char *fullpath;
-+	char fullpath[PATH_MAX];
- 	char buf[MAX_ERR_BUF];
- 	int err;
- 	int len, status, existed = 1;
-@@ -57,14 +57,11 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name, int
- 	/* Root offset of multi-mount */
- 	len = strlen(root);
- 	if (root[len - 1] == '/') {
--		fullpath = alloca(len);
- 		len = snprintf(fullpath, len, "%s", root);
- 	/* Direct mount name is absolute path so don't use root */
- 	} else if (*name == '/') {
--		fullpath = alloca(len + 1);
- 		len = sprintf(fullpath, "%s", root);
- 	} else {
--		fullpath = alloca(len + name_len + 2);
- 		len = sprintf(fullpath, "%s/%s", root, name);
+@@ -162,6 +162,7 @@ int swapCD(const char *device, const char *slotName)
+ 		logerr(MODPREFIX
+ 		      "Device %s is not an ATAPI compliant CD changer.",
+ 		      device);
++		close(fd);
+ 		return 1;
  	}
- 	fullpath[len] = '\0';
-diff --git a/modules/mount_ext2.c b/modules/mount_ext2.c
-index 192ec04..85329ab 100644
---- a/modules/mount_ext2.c
-+++ b/modules/mount_ext2.c
-@@ -36,7 +36,7 @@ int mount_init(void **context)
- int mount_mount(struct autofs_point *ap, const char *root, const char *name, int name_len,
- 		const char *what, const char *fstype, const char *options, void *context)
- {
--	char *fullpath;
-+	char fullpath[PATH_MAX];
- 	char buf[MAX_ERR_BUF];
- 	const char *p, *p1;
- 	int err, ro = 0;
-@@ -49,14 +49,11 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name, int
- 	/* Root offset of multi-mount */
- 	len = strlen(root);
- 	if (root[len - 1] == '/') {
--		fullpath = alloca(len);
- 		len = snprintf(fullpath, len, "%s", root);
- 	/* Direct mount name is absolute path so don't use root */
- 	} else if (*name == '/') {
--		fullpath = alloca(len + 1);
- 		len = sprintf(fullpath, "%s", root);
- 	} else {
--		fullpath = alloca(len + name_len + 2);
- 		len = sprintf(fullpath, "%s/%s", root, name);
+ 
+@@ -169,6 +170,7 @@ int swapCD(const char *device, const char *slotName)
+ 	slot = ioctl(fd, CDROM_SELECT_DISC, slot);
+ 	if (slot < 0) {
+ 		logerr(MODPREFIX "CDROM_SELECT_DISC failed");
++		close(fd);
+ 		return 1;
  	}
- 	fullpath[len] = '\0';
-diff --git a/modules/mount_generic.c b/modules/mount_generic.c
-index 6d7b4b3..1dc1bfd 100644
---- a/modules/mount_generic.c
-+++ b/modules/mount_generic.c
-@@ -37,7 +37,7 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name, int
- 		const char *what, const char *fstype, const char *options,
- 		void *context)
- {
--	char *fullpath;
-+	char fullpath[PATH_MAX];
- 	char buf[MAX_ERR_BUF];
- 	int err;
- 	int len, status, existed = 1;
-@@ -48,14 +48,11 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name, int
- 	/* Root offset of multi-mount */
- 	len = strlen(root);
- 	if (root[len - 1] == '/') {
--		fullpath = alloca(len);
- 		len = snprintf(fullpath, len, "%s", root);
- 	/* Direct mount name is absolute path so don't use root */
- 	} else if (*name == '/') {
--		fullpath = alloca(len + 1);
- 		len = sprintf(fullpath, "%s", root);
- 	} else {
--		fullpath = alloca(len + name_len + 2);
- 		len = sprintf(fullpath, "%s/%s", root, name);
+ 
+diff --git a/modules/mount_nfs.c b/modules/mount_nfs.c
+index 20732f8..6f54f47 100644
+--- a/modules/mount_nfs.c
++++ b/modules/mount_nfs.c
+@@ -221,6 +221,11 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name, int
+ 		/* Not a local host - do an NFS mount */
+ 
+ 		loc = malloc(strlen(this->name) + 1 + strlen(this->path) + 1);
++		if (!loc) {
++			char *estr = strerror_r(errno, buf, MAX_ERR_BUF);
++			error(ap->logopt, "malloc: %s", estr);
++			return 1;
++		}
+ 		strcpy(loc, this->name);
+ 		strcat(loc, ":");
+ 		strcat(loc, this->path);
+diff --git a/modules/parse_hesiod.c b/modules/parse_hesiod.c
+index d5bb0f4..7a6a57d 100644
+--- a/modules/parse_hesiod.c
++++ b/modules/parse_hesiod.c
+@@ -46,6 +46,12 @@ static int parse_afs(struct autofs_point *ap,
+ 
+ 	/* Isolate the source for this AFS fs. */
+ 	for (i = 0; (!isspace(p[i]) && i < source_len); i++) {
++		if (!p[i]) {
++			error(ap->logopt, MODPREFIX
++			      "unexpeced end of input looking for AFS "
++			      "source: %s", p);
++			return 1;
++		}
+ 		source[i] = p[i];
  	}
- 	fullpath[len] = '\0';
+ 
+@@ -56,8 +62,14 @@ static int parse_afs(struct autofs_point *ap,
+ 	while ((*p) && (isspace(*p)))
+ 		p++;
+ 
+-	/* Isolate the source for this AFS fs. */
++	/* Isolate the options for this AFS fs. */
+ 	for (i = 0; (!isspace(p[i]) && i < options_len); i++) {
++		if (!p[i]) {
++			error(ap->logopt, MODPREFIX
++			      "unexpeced end of input looking for AFS "
++			      "options: %s", p);
++			return 1;
++		}
+ 		options[i] = p[i];
+ 	}
+ 	options[i] = 0;
+@@ -106,6 +118,12 @@ static int parse_nfs(struct autofs_point *ap,
+ 
+ 	/* Isolate the remote mountpoint for this NFS fs. */
+ 	for (i = 0; (!isspace(p[i]) && i < (int) sizeof(mount)); i++) {
++		if (!p[i]) {
++			error(ap->logopt, MODPREFIX
++			      "unexpeced end of input looking for NFS "
++			      "mountpoint: %s", p);
++			return 1;
++		}
+ 		mount[i] = p[i];
+ 	}
+ 
+@@ -118,15 +136,26 @@ static int parse_nfs(struct autofs_point *ap,
+ 
+ 	/* Isolate the remote host. */
+ 	for (i = 0; (!isspace(p[i]) && i < source_len); i++) {
++		if (!p[i]) {
++			error(ap->logopt, MODPREFIX
++			      "unexpeced end of input looking for NFS "
++			      "host: %s", p);
++			return 1;
++		}
+ 		source[i] = p[i];
+ 	}
+ 
+ 	source[i] = 0;
+ 	p += i;
+ 
++	if (strlen(source) + strlen(mount) + 2 > source_len) {
++		error(ap->logopt, MODPREFIX "entry too log for mount source");
++		return 1;
++	}
++
+ 	/* Append ":mountpoint" to the source to get "host:mountpoint". */
+-	strncat(source, ":", source_len);
+-	strncat(source, mount, source_len);
++	strcat(source, ":");
++	strcat(source, mount);
+ 
+ 	/* Skip whitespace. */
+ 	while ((*p) && (isspace(*p)))
+@@ -134,6 +163,12 @@ static int parse_nfs(struct autofs_point *ap,
+ 
+ 	/* Isolate the mount options. */
+ 	for (i = 0; (!isspace(p[i]) && i < options_len); i++) {
++		if (!p[i]) {
++			error(ap->logopt, MODPREFIX
++			      "unexpeced end of input looking for NFS "
++			      "mount options: %s", p);
++			return 1;
++		}
+ 		options[i] = p[i];
+ 	}
+ 	options[i] = 0;
+@@ -178,6 +213,12 @@ static int parse_generic(struct autofs_point *ap,
+ 
+ 	/* Isolate the source for this fs. */
+ 	for (i = 0; (!isspace(p[i]) && i < source_len); i++) {
++		if (!p[i]) {
++			error(ap->logopt, MODPREFIX
++			      "unexpeced end of input looking for generic "
++			      "mount source: %s", p);
++			return 1;
++		}
+ 		source[i] = p[i];
+ 	}
+ 
+@@ -190,6 +231,12 @@ static int parse_generic(struct autofs_point *ap,
+ 
+ 	/* Isolate the mount options. */
+ 	for (i = 0; (!isspace(p[i]) && i < options_len); i++) {
++		if (!p[i]) {
++			error(ap->logopt, MODPREFIX
++			      "unexpeced end of input looking for generic "
++			      "mount options: %s", p);
++			return 1;
++		}
+ 		options[i] = p[i];
+ 	}
+ 	options[i] = 0;
+@@ -227,6 +274,7 @@ int parse_mount(struct autofs_point *ap, const char *name,
+ 	char options[HESIOD_LEN + 1];
+ 	char *q;
+ 	const char *p;
++	int ret;
+ 
+ 	ap->entry->current = NULL;
+ 	master_source_current_signal(ap->entry);
+@@ -250,19 +298,28 @@ int parse_mount(struct autofs_point *ap, const char *name,
+ 		return 1;
+ 	/* If it's an AFS fs... */
+ 	} else if (!strcasecmp(fstype, "afs"))
+-		parse_afs(ap, mapent, name, name_len,
+-			  source, sizeof(source), options, sizeof(options));
++		ret = parse_afs(ap, mapent, name, name_len,
++				source, sizeof(source), options,
++				sizeof(options));
+ 	/* If it's NFS... */
+ 	else if (!strcasecmp(fstype, "nfs"))
+-		parse_nfs(ap, mapent, name, name_len,
+-			  source, sizeof(source), options, sizeof(options));
++		ret = parse_nfs(ap, mapent, name, name_len,
++				source, sizeof(source), options,
++				sizeof(options));
+ 	/* Punt. */
+ 	else
+-		parse_generic(ap, mapent, name, name_len, source, sizeof(source),
+-			      options, sizeof(options));
++		ret = parse_generic(ap, mapent, name, name_len,
++				    source, sizeof(source), options,
++				    sizeof(options));
+ 
+-	debug(ap->logopt,
+-	      MODPREFIX "mount %s is type %s from %s", name, fstype, source);
++	if (ret) {
++		error(ap->logopt, MODPREFIX "failed to parse entry");
++		return 1;
++	} else {
++		debug(ap->logopt,
++		      MODPREFIX "mount %s is type %s from %s",
++		      name, fstype, source);
++	}
+ 
+ 	return do_mount(ap, ap->path, name, name_len, source, fstype, options);
+ }
+diff --git a/modules/parse_sun.c b/modules/parse_sun.c
+index 72e51e2..ed73e46 100644
+--- a/modules/parse_sun.c
++++ b/modules/parse_sun.c
+@@ -379,15 +379,17 @@ int parse_init(int argc, const char *const *argv, void **context)
+ 			if (ctxt->optstr) {
+ 				noptstr =
+ 				    (char *) realloc(ctxt->optstr, optlen + len + 2);
+-				if (!noptstr)
+-					break;
+-				noptstr[optlen] = ',';
+-				strcpy(noptstr + optlen + 1, argv[i] + offset);
+-				optlen += len + 1;
++				if (noptstr) {
++					noptstr[optlen] = ',';
++					strcpy(noptstr + optlen + 1, argv[i] + offset);
++					optlen += len + 1;
++				}
+ 			} else {
+ 				noptstr = (char *) malloc(len + 1);
+-				strcpy(noptstr, argv[i] + offset);
+-				optlen = len;
++				if (noptstr) {
++					strcpy(noptstr, argv[i] + offset);
++					optlen = len;
++				}
+ 			}
+ 			if (!noptstr) {
+ 				char *estr = strerror_r(errno, buf, MAX_ERR_BUF);
+@@ -895,6 +897,7 @@ static int parse_mapent(const char *ent, char *g_options, char **options, char *
+ 	if (*p == '/') {
+ 		warn(logopt, MODPREFIX "error location begins with \"/\"");
+ 		free(myoptions);
++		free(loc);
+ 		return 0;
+ 	}
+ 
+@@ -1636,6 +1639,7 @@ int parse_mount(struct autofs_point *ap, const char *name,
+ 		/* Location can't begin with a '/' */
+ 		if (*p == '/') {
+ 			free(options);
++			free(loc);
+ 			warn(ap->logopt,
+ 			      MODPREFIX "error location begins with \"/\"");
+ 			return 1;
+diff --git a/modules/replicated.c b/modules/replicated.c
+index 63829a2..835af97 100644
+--- a/modules/replicated.c
++++ b/modules/replicated.c
+@@ -304,7 +304,7 @@ static int add_host(struct host **list, struct host *host)
+ {
+ 	struct host *this, *last;
+ 
+-	if (!list) {
++	if (!*list) {
+ 		*list = host;
+ 		return 1;
+ 	}
