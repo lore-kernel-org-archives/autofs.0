@@ -1,13 +1,10 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: different behavior in static/executable autofs map
-Date: Mon, 16 Feb 2009 10:32:38 +0900
-Message-ID: <1234747958.2928.1.camel@zeus.themaw.net>
-References: <EB31672367A401439CD5A4A10889D57B01297357@exchange.dtnet.de>
+From: Paul Wankadia <junyer@google.com>
+Subject: Re: [PATCH 00/13] Current status of patches awaiting commit
+Date: Fri, 13 Feb 2009 00:00:35 +1100
+Message-ID: <408431290902120500r4ac53f30i5c7674a3bdfbd9df@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============2658940165738893419=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <EB31672367A401439CD5A4A10889D57B01297357@exchange.dtnet.de>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,116 +15,70 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Daniel Schwager <Daniel.Schwager@dtnet.de>
+To: raven@themaw.net
 Cc: autofs@linux.kernel.org
 
-On Sat, 2009-02-14 at 23:17 +0100, Daniel Schwager wrote:
-> Hi,
-> 
-> the behavior of an executable and static map with the same
-> stdout differs - please refer to this sample
-> 
-> ** content of "/etc/auto.master"
-> /home/t1      /root/a1
-> /home/t1a     /etc/auto.test1
-> 
-> ** content of "/etc/auto.test1"
-> test1 \
->          / :/tmp
-> 	
-> ** content of "/root/a1" (mode 755, executable)
-> #!/bin/sh
-> cat /etc/auto.test1
+--===============2658940165738893419==
+Content-Type: multipart/alternative; boundary=0016e651fa9a6a23b90462b84e12
 
-Except that this will not return what is expected from a program map.
+--0016e651fa9a6a23b90462b84e12
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Program maps receive a key as their argument and return the mount
-location corresponding to that key.
+On Wed, 11 Feb 2009 08:01:08 -0800, Ian Kent wrote:
 
-> 
-> 
-> ** Result
-> 
-> Accessing  /home/t1a/test1  works
-> 	ls /home/t1a/test1  
-> 
-> Accessing  /home/t1/test1  does not work
-> 	Feb 14 23:06:47 fs1 automount[17488]: failed to mount
-> /home/t1/test1
-> 
-> with debug output enabled:
-> 
-> Feb 14 23:12:53 fs1 automount[18460]: handle_packet: type = 0
-> Feb 14 23:12:53 fs1 automount[18460]: handle_packet_missing: token 1655,
-> name test1
-> Feb 14 23:12:53 fs1 automount[18460]: attempting to mount entry
-> /home/t1/test1
-> Feb 14 23:12:53 fs1 automount[18626]: lookup(program): looking up test1
-> Feb 14 23:12:53 fs1 automount[18626]: lookup(program): test1 -> test1
-> -fstype=bind  ^I/ :/tmp
-> Feb 14 23:12:53 fs1 automount[18626]: parse(sun): expanded entry: test1
-> -fstype=bind  ^I/ :/tmp
-> Feb 14 23:12:53 fs1 automount[18626]: parse(sun): gathered options:
-> Feb 14 23:12:53 fs1 automount[18626]: parse(sun): dequote("/") -> /
-> Feb 14 23:12:53 fs1 automount[18626]: parse(sun): dequote("test1") ->
-> test1
-> Feb 14 23:12:53 fs1 automount[18626]: parse(sun):
-> dequote("-fstype=bind") -> -fstype=bind
-> Feb 14 23:12:53 fs1 automount[18626]: parse(sun): dequote("/") -> /
-> Feb 14 23:12:53 fs1 automount[18626]: parse(sun): dequote("/tmp") ->
-> /tmp
-> Feb 14 23:12:53 fs1 automount[18626]: failed to mount /home/t1/test1
-> Feb 14 23:12:53 fs1 automount[18626]: umount_multi: path=/home/t1/test1
-> incl=1
-> Feb 14 23:12:53 fs1 automount[18626]: umount_multi: no mounts found
-> under /home/t1/test1
-> Feb 14 23:12:53 fs1 automount[18460]: handle_child: got pid 18626, sig 0
-> (0), stat 1
-> Feb 14 23:12:53 fs1 automount[18460]: sig_child: found pending iop pid
-> 18626: signalled 0 (sig 0), exit status 1
-> Feb 14 23:12:53 fs1 automount[18460]: send_fail: token=1655
-> Feb 14 23:12:53 fs1 automount[18460]: handle_packet: type = 0
-> Feb 14 23:12:53 fs1 automount[18460]: handle_packet_missing: token 1656,
-> name test1
-> Feb 14 23:12:53 fs1 automount[18460]: attempting to mount entry
-> /home/t1/test1
-> Feb 14 23:12:53 fs1 automount[18629]: lookup(program): looking up test1
-> Feb 14 23:12:53 fs1 automount[18629]: lookup(program): test1 -> test1
-> -fstype=bind  ^I/ :/tmp
-> Feb 14 23:12:53 fs1 automount[18629]: parse(sun): expanded entry: test1
-> -fstype=bind  ^I/ :/tmp
-> Feb 14 23:12:53 fs1 automount[18629]: parse(sun): gathered options:
-> Feb 14 23:12:53 fs1 automount[18629]: parse(sun): dequote("/") -> /
-> Feb 14 23:12:53 fs1 automount[18629]: parse(sun): dequote("test1") ->
-> test1
-> Feb 14 23:12:53 fs1 automount[18629]: parse(sun):
-> dequote("-fstype=bind") -> -fstype=bind
-> Feb 14 23:12:53 fs1 automount[18629]: parse(sun): dequote("/") -> /
-> Feb 14 23:12:53 fs1 automount[18629]: parse(sun): dequote("/tmp") ->
-> /tmp
-> Feb 14 23:12:53 fs1 automount[18629]: failed to mount /home/t1/test1
-> Feb 14 23:12:53 fs1 automount[18629]: umount_multi: path=/home/t1/test1
-> incl=1
-> Feb 14 23:12:53 fs1 automount[18629]: umount_multi: no mounts found
-> under /home/t1/test1
-> Feb 14 23:12:53 fs1 automount[18460]: handle_child: got pid 18629, sig 0
-> (0), stat 1
-> Feb 14 23:12:53 fs1 automount[18460]: sig_child: found pending iop pid
-> 18629: signalled 0 (sig 0), exit status 1
-> Feb 14 23:12:53 fs1 automount[18460]: send_fail: token=1656
-> 
-> I'm using debian etch with 
-> 	autofs                          4.1.4-13
-> 
-> I would like to use a executable "map" - but I can't because of this
-> behavior.
-> Is there a change to fix this ?
-> 
-> regards
-> Danny
-> 
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
+Ian Kent (10):
+
+...
+
+>       autofs-5.0.4 - code analysis corrections
+
+
+I don't mean to quibble, but could you please credit me =E2=80=93 as a Goog=
+le
+employee =E2=80=93 somewhere in the commit message?
+
+Paul Wankadia (1):
+>       autofs-5.0.4 - fix hosts map use after free
+
+
+I didn't contribute this patch, so please don't credit me.
+
+Thanks!
+
+--0016e651fa9a6a23b90462b84e12
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+On Wed, 11 Feb 2009 08:01:08 -0800, Ian Kent wrote:<br><br><blockquote styl=
+e=3D"border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; =
+padding-left: 1ex;" class=3D"gmail_quote">Ian Kent (10):</blockquote><div>.=
+..<br>
+</div><blockquote style=3D"border-left: 1px solid rgb(204, 204, 204); margi=
+n: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;" class=3D"gmail_quote">&nbsp;&nbsp=
+;&nbsp;&nbsp;&nbsp; autofs-5.0.4 - code analysis corrections</blockquote><d=
+iv><br>I don&#39;t mean to quibble, but could you please credit me =E2=80=
+=93 as a Google employee =E2=80=93 somewhere in the commit message?<br>
+<br></div><blockquote style=3D"border-left: 1px solid rgb(204, 204, 204); m=
+argin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;" class=3D"gmail_quote">Paul Wa=
+nkadia (1):<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; autofs-5.0.4 - fix hosts map =
+use after free</blockquote>
+<br>I didn&#39;t contribute this patch, so please don&#39;t credit me.<br><=
+br>Thanks!<br>
+
+--0016e651fa9a6a23b90462b84e12--
+
+
+--===============2658940165738893419==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--===============2658940165738893419==--
+
