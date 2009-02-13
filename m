@@ -1,10 +1,13 @@
 From: Paul Wankadia <junyer@google.com>
 Subject: Re: [PATCH 00/13] Current status of patches awaiting commit
-Date: Fri, 13 Feb 2009 00:00:35 +1100
-Message-ID: <408431290902120500r4ac53f30i5c7674a3bdfbd9df@mail.gmail.com>
+Date: Fri, 13 Feb 2009 12:39:37 +1100
+Message-ID: <408431290902121739l59a7e719l1094697091803151@mail.gmail.com>
+References: <408431290902120500r4ac53f30i5c7674a3bdfbd9df@mail.gmail.com>
+	<1234451592.4067.5.camel@zeus.themaw.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============2658940165738893419=="
+Content-Type: multipart/mixed; boundary="===============2480390193262942067=="
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <1234451592.4067.5.camel@zeus.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -15,61 +18,77 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: raven@themaw.net
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
---===============2658940165738893419==
-Content-Type: multipart/alternative; boundary=0016e651fa9a6a23b90462b84e12
+--===============2480390193262942067==
+Content-Type: multipart/alternative; boundary=00163646d50cec0a210462c2e851
 
---0016e651fa9a6a23b90462b84e12
+--00163646d50cec0a210462c2e851
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 11 Feb 2009 08:01:08 -0800, Ian Kent wrote:
+On Fri, Feb 13, 2009 at 2:13 AM, Ian Kent <raven@themaw.net> wrote:
 
-Ian Kent (10):
-
-...
-
->       autofs-5.0.4 - code analysis corrections
-
-
-I don't mean to quibble, but could you please credit me =E2=80=93 as a Goog=
-le
-employee =E2=80=93 somewhere in the commit message?
-
-Paul Wankadia (1):
->       autofs-5.0.4 - fix hosts map use after free
+> I don't mean to quibble, but could you please credit me =E2=80=93 as a Go=
+ogle
+> > employee =E2=80=93 somewhere in the commit message?
+>
+> Oh .. I see there's no "From:" in that patch .. that's odd.
+>
+> How about a hint as to the wording that would be appropriate.
 
 
-I didn't contribute this patch, so please don't credit me.
+You've written "Several mistakes have been reported:" already, so simply
+inserting "by Paul Wankadia <junyer@google.com>" would be quite sufficient.
+Thanks.
 
-Thanks!
+> I didn't contribute this patch, so please don't credit me.
+>
+> This was pulled directly out of the resulting code analysis corrections,
+> the information for which you provided, but I can take the blame if you
+> wish.
 
---0016e651fa9a6a23b90462b84e12
+
+I reported the bugs, yes, but the patches are your handiwork.
+
+--00163646d50cec0a210462c2e851
 Content-Type: text/html; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 11 Feb 2009 08:01:08 -0800, Ian Kent wrote:<br><br><blockquote styl=
-e=3D"border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; =
-padding-left: 1ex;" class=3D"gmail_quote">Ian Kent (10):</blockquote><div>.=
-..<br>
-</div><blockquote style=3D"border-left: 1px solid rgb(204, 204, 204); margi=
-n: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;" class=3D"gmail_quote">&nbsp;&nbsp=
-;&nbsp;&nbsp;&nbsp; autofs-5.0.4 - code analysis corrections</blockquote><d=
-iv><br>I don&#39;t mean to quibble, but could you please credit me =E2=80=
-=93 as a Google employee =E2=80=93 somewhere in the commit message?<br>
-<br></div><blockquote style=3D"border-left: 1px solid rgb(204, 204, 204); m=
-argin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;" class=3D"gmail_quote">Paul Wa=
-nkadia (1):<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; autofs-5.0.4 - fix hosts map =
-use after free</blockquote>
-<br>I didn&#39;t contribute this patch, so please don&#39;t credit me.<br><=
-br>Thanks!<br>
+<div class=3D"gmail_quote">On Fri, Feb 13, 2009 at 2:13 AM, Ian Kent <span =
+dir=3D"ltr">&lt;<a href=3D"mailto:raven@themaw.net">raven@themaw.net</a>&gt=
+;</span> wrote:<br><br><blockquote class=3D"gmail_quote" style=3D"border-le=
+ft: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: =
+1ex;">
+<div class=3D"Ih2E3d">&gt; I don&#39;t mean to quibble, but could you pleas=
+e credit me =E2=80=93 as a Google<br>
+&gt; employee =E2=80=93 somewhere in the commit message?<br>
+<br>
+</div>Oh .. I see there&#39;s no &quot;From:&quot; in that patch .. that&#3=
+9;s odd.<br>
+<br>
+How about a hint as to the wording that would be appropriate.</blockquote><=
+div><br>You&#39;ve written &quot;Several mistakes have been reported:&quot;=
+ already, so simply inserting &quot;by Paul Wankadia &lt;<a href=3D"mailto:=
+junyer@google.com">junyer@google.com</a>&gt;&quot; would be quite sufficien=
+t. Thanks.<br>
+<br></div><blockquote class=3D"gmail_quote" style=3D"border-left: 1px solid=
+ rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;"><div cl=
+ass=3D"Ih2E3d">&gt; I didn&#39;t contribute this patch, so please don&#39;t=
+ credit me.<br>
 
---0016e651fa9a6a23b90462b84e12--
+<br>
+</div>This was pulled directly out of the resulting code analysis correctio=
+ns,<br>
+the information for which you provided, but I can take the blame if you<br>
+wish.</blockquote></div><br>I reported the bugs, yes, but the patches are y=
+our handiwork.=20
+
+--00163646d50cec0a210462c2e851--
 
 
---===============2658940165738893419==
+--===============2480390193262942067==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -80,5 +99,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---===============2658940165738893419==--
+--===============2480390193262942067==--
 
