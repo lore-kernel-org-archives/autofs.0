@@ -1,15 +1,12 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 00/13] Current status of patches awaiting	commit
-Date: Fri, 13 Feb 2009 11:26:42 +0900
-Message-ID: <1234492002.2958.0.camel@zeus.themaw.net>
-References: <408431290902120500r4ac53f30i5c7674a3bdfbd9df@mail.gmail.com>
-	<1234451592.4067.5.camel@zeus.themaw.net>
-	<408431290902121739l59a7e719l1094697091803151@mail.gmail.com>
+From: "Daniel Schwager" <Daniel.Schwager@dtnet.de>
+Subject: different behavior in static/executable autofs map
+Date: Sat, 14 Feb 2009 23:17:49 +0100
+Message-ID: <EB31672367A401439CD5A4A10889D57B01297357@exchange.dtnet.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <408431290902121739l59a7e719l1094697091803151@mail.gmail.com>
+Content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,27 +17,103 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Paul Wankadia <junyer@google.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
+Cc: Daniel Schwager <Daniel.Schwager@dtnet.de>
 
-T24gRnJpLCAyMDA5LTAyLTEzIGF0IDEyOjM5ICsxMTAwLCBQYXVsIFdhbmthZGlhIHdyb3RlOgo+
-IE9uIEZyaSwgRmViIDEzLCAyMDA5IGF0IDI6MTMgQU0sIElhbiBLZW50IDxyYXZlbkB0aGVtYXcu
-bmV0PiB3cm90ZToKPiAKPiAgICAgICAgID4gSSBkb24ndCBtZWFuIHRvIHF1aWJibGUsIGJ1dCBj
-b3VsZCB5b3UgcGxlYXNlIGNyZWRpdCBtZSDigJMgYXMKPiAgICAgICAgIGEgR29vZ2xlCj4gICAg
-ICAgICA+IGVtcGxveWVlIOKAkyBzb21ld2hlcmUgaW4gdGhlIGNvbW1pdCBtZXNzYWdlPwo+ICAg
-ICAgICAgCj4gICAgICAgICAKPiAgICAgICAgIE9oIC4uIEkgc2VlIHRoZXJlJ3Mgbm8gIkZyb206
-IiBpbiB0aGF0IHBhdGNoIC4uIHRoYXQncyBvZGQuCj4gICAgICAgICAKPiAgICAgICAgIEhvdyBh
-Ym91dCBhIGhpbnQgYXMgdG8gdGhlIHdvcmRpbmcgdGhhdCB3b3VsZCBiZSBhcHByb3ByaWF0ZS4K
-PiAKPiBZb3UndmUgd3JpdHRlbiAiU2V2ZXJhbCBtaXN0YWtlcyBoYXZlIGJlZW4gcmVwb3J0ZWQ6
-IiBhbHJlYWR5LCBzbwo+IHNpbXBseSBpbnNlcnRpbmcgImJ5IFBhdWwgV2Fua2FkaWEgPGp1bnll
-ckBnb29nbGUuY29tPiIgd291bGQgYmUgcXVpdGUKPiBzdWZmaWNpZW50LiBUaGFua3MuCgpXaWxs
-IGRvLCB0aGFua3MuCgo+IAo+IAo+ICAgICAgICAgPiBJIGRpZG4ndCBjb250cmlidXRlIHRoaXMg
-cGF0Y2gsIHNvIHBsZWFzZSBkb24ndCBjcmVkaXQgbWUuCj4gICAgICAgICAKPiAgICAgICAgIAo+
-ICAgICAgICAgVGhpcyB3YXMgcHVsbGVkIGRpcmVjdGx5IG91dCBvZiB0aGUgcmVzdWx0aW5nIGNv
-ZGUgYW5hbHlzaXMKPiAgICAgICAgIGNvcnJlY3Rpb25zLAo+ICAgICAgICAgdGhlIGluZm9ybWF0
-aW9uIGZvciB3aGljaCB5b3UgcHJvdmlkZWQsIGJ1dCBJIGNhbiB0YWtlIHRoZQo+ICAgICAgICAg
-YmxhbWUgaWYgeW91Cj4gICAgICAgICB3aXNoLgo+IAo+IEkgcmVwb3J0ZWQgdGhlIGJ1Z3MsIHll
-cywgYnV0IHRoZSBwYXRjaGVzIGFyZSB5b3VyIGhhbmRpd29yay4gCgpZZXAsIGd1aWx0eSBhcyBj
-aGFyZ2VkIQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
-YXV0b2ZzIG1haWxpbmcgbGlzdAphdXRvZnNAbGludXgua2VybmVsLm9yZwpodHRwOi8vbGludXgu
-a2VybmVsLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2F1dG9mcwo=
+Hi,
+
+the behavior of an executable and static map with the same
+stdout differs - please refer to this sample
+
+** content of "/etc/auto.master"
+/home/t1      /root/a1
+/home/t1a     /etc/auto.test1
+
+** content of "/etc/auto.test1"
+test1 \
+         / :/tmp
+	
+** content of "/root/a1" (mode 755, executable)
+#!/bin/sh
+cat /etc/auto.test1
+
+
+** Result
+
+Accessing  /home/t1a/test1  works
+	ls /home/t1a/test1  
+
+Accessing  /home/t1/test1  does not work
+	Feb 14 23:06:47 fs1 automount[17488]: failed to mount
+/home/t1/test1
+
+with debug output enabled:
+
+Feb 14 23:12:53 fs1 automount[18460]: handle_packet: type = 0
+Feb 14 23:12:53 fs1 automount[18460]: handle_packet_missing: token 1655,
+name test1
+Feb 14 23:12:53 fs1 automount[18460]: attempting to mount entry
+/home/t1/test1
+Feb 14 23:12:53 fs1 automount[18626]: lookup(program): looking up test1
+Feb 14 23:12:53 fs1 automount[18626]: lookup(program): test1 -> test1
+-fstype=bind  ^I/ :/tmp
+Feb 14 23:12:53 fs1 automount[18626]: parse(sun): expanded entry: test1
+-fstype=bind  ^I/ :/tmp
+Feb 14 23:12:53 fs1 automount[18626]: parse(sun): gathered options:
+Feb 14 23:12:53 fs1 automount[18626]: parse(sun): dequote("/") -> /
+Feb 14 23:12:53 fs1 automount[18626]: parse(sun): dequote("test1") ->
+test1
+Feb 14 23:12:53 fs1 automount[18626]: parse(sun):
+dequote("-fstype=bind") -> -fstype=bind
+Feb 14 23:12:53 fs1 automount[18626]: parse(sun): dequote("/") -> /
+Feb 14 23:12:53 fs1 automount[18626]: parse(sun): dequote("/tmp") ->
+/tmp
+Feb 14 23:12:53 fs1 automount[18626]: failed to mount /home/t1/test1
+Feb 14 23:12:53 fs1 automount[18626]: umount_multi: path=/home/t1/test1
+incl=1
+Feb 14 23:12:53 fs1 automount[18626]: umount_multi: no mounts found
+under /home/t1/test1
+Feb 14 23:12:53 fs1 automount[18460]: handle_child: got pid 18626, sig 0
+(0), stat 1
+Feb 14 23:12:53 fs1 automount[18460]: sig_child: found pending iop pid
+18626: signalled 0 (sig 0), exit status 1
+Feb 14 23:12:53 fs1 automount[18460]: send_fail: token=1655
+Feb 14 23:12:53 fs1 automount[18460]: handle_packet: type = 0
+Feb 14 23:12:53 fs1 automount[18460]: handle_packet_missing: token 1656,
+name test1
+Feb 14 23:12:53 fs1 automount[18460]: attempting to mount entry
+/home/t1/test1
+Feb 14 23:12:53 fs1 automount[18629]: lookup(program): looking up test1
+Feb 14 23:12:53 fs1 automount[18629]: lookup(program): test1 -> test1
+-fstype=bind  ^I/ :/tmp
+Feb 14 23:12:53 fs1 automount[18629]: parse(sun): expanded entry: test1
+-fstype=bind  ^I/ :/tmp
+Feb 14 23:12:53 fs1 automount[18629]: parse(sun): gathered options:
+Feb 14 23:12:53 fs1 automount[18629]: parse(sun): dequote("/") -> /
+Feb 14 23:12:53 fs1 automount[18629]: parse(sun): dequote("test1") ->
+test1
+Feb 14 23:12:53 fs1 automount[18629]: parse(sun):
+dequote("-fstype=bind") -> -fstype=bind
+Feb 14 23:12:53 fs1 automount[18629]: parse(sun): dequote("/") -> /
+Feb 14 23:12:53 fs1 automount[18629]: parse(sun): dequote("/tmp") ->
+/tmp
+Feb 14 23:12:53 fs1 automount[18629]: failed to mount /home/t1/test1
+Feb 14 23:12:53 fs1 automount[18629]: umount_multi: path=/home/t1/test1
+incl=1
+Feb 14 23:12:53 fs1 automount[18629]: umount_multi: no mounts found
+under /home/t1/test1
+Feb 14 23:12:53 fs1 automount[18460]: handle_child: got pid 18629, sig 0
+(0), stat 1
+Feb 14 23:12:53 fs1 automount[18460]: sig_child: found pending iop pid
+18629: signalled 0 (sig 0), exit status 1
+Feb 14 23:12:53 fs1 automount[18460]: send_fail: token=1656
+
+I'm using debian etch with 
+	autofs                          4.1.4-13
+
+I would like to use a executable "map" - but I can't because of this
+behavior.
+Is there a change to fix this ?
+
+regards
+Danny
