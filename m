@@ -1,13 +1,14 @@
-From: Paul Wankadia <junyer@google.com>
-Subject: Re: [PATCH 00/13] Current status of patches awaiting commit
-Date: Fri, 13 Feb 2009 12:39:37 +1100
-Message-ID: <408431290902121739l59a7e719l1094697091803151@mail.gmail.com>
-References: <408431290902120500r4ac53f30i5c7674a3bdfbd9df@mail.gmail.com>
-	<1234451592.4067.5.camel@zeus.themaw.net>
+From: "Daniel Schwager" <Daniel.Schwager@dtnet.de>
+Subject: Re: different behavior in static/executable autofs map
+Date: Mon, 16 Feb 2009 20:41:36 +0100
+Message-ID: <EB31672367A401439CD5A4A10889D57B01297392@exchange.dtnet.de>
+References: <EB31672367A401439CD5A4A10889D57B01297357@exchange.dtnet.de>
+	<1234747958.2928.1.camel@zeus.themaw.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============2480390193262942067=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1234451592.4067.5.camel@zeus.themaw.net>
+Content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,83 +22,48 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
---===============2480390193262942067==
-Content-Type: multipart/alternative; boundary=00163646d50cec0a210462c2e851
+Hi Ian,
 
---00163646d50cec0a210462c2e851
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+thx for clarify. I tried now about 2 days to convert
+the following file-map to a program-map - but I failed.
 
-On Fri, Feb 13, 2009 at 2:13 AM, Ian Kent <raven@themaw.net> wrote:
+Could you give me a hint ?
 
-> I don't mean to quibble, but could you please credit me =E2=80=93 as a Go=
-ogle
-> > employee =E2=80=93 somewhere in the commit message?
->
-> Oh .. I see there's no "From:" in that patch .. that's odd.
->
-> How about a hint as to the wording that would be appropriate.
+*** /etc/auto.master
+/home/f         /etc/auto.test1
 
+*** /etc/auto.test1
+test1   -rw     / :/tmp  \
+                /test :/var
 
-You've written "Several mistakes have been reported:" already, so simply
-inserting "by Paul Wankadia <junyer@google.com>" would be quite sufficient.
-Thanks.
-
-> I didn't contribute this patch, so please don't credit me.
->
-> This was pulled directly out of the resulting code analysis corrections,
-> the information for which you provided, but I can take the blame if you
-> wish.
+This works like a Charme
+  [root@fs1 /home]$ /etc/init.d/autofs  restart
+  Stopping automounter: done.
+  Starting automounter: done.
+  [root@fs1 /home]$ ls /home/f/test1
+  DataDir_-usr-local-staf-data-STAF.tmp  STAF.tmp  STAFIPC_STAF
+STAFIPC_STAFJSTAF_STAFJVM1  autofs-dynamic.local  autofs-dynamic.remote
+hsperfdata_root  test     
+  [root@fs1 /home]$ ls /home/f/test1/test
+  autofs  backups  cache  lib  local  lock  log  mail  opt  run  spool
+tmp  www
 
 
-I reported the bugs, yes, but the patches are your handiwork.
+I tried a lot of variants with a program map - but I did't get
+managed to mount a root (like "test1   -rw     / :/tmp") via
+program-map.
+Mounting ONLY a subdir (like "test1   -rw     /xx :/tmp") works fine.
 
---00163646d50cec0a210462c2e851
-Content-Type: text/html; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Could you please give me a sample converting the file-map sample above
+(auto.test1)
+to a program-map ?
 
-<div class=3D"gmail_quote">On Fri, Feb 13, 2009 at 2:13 AM, Ian Kent <span =
-dir=3D"ltr">&lt;<a href=3D"mailto:raven@themaw.net">raven@themaw.net</a>&gt=
-;</span> wrote:<br><br><blockquote class=3D"gmail_quote" style=3D"border-le=
-ft: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: =
-1ex;">
-<div class=3D"Ih2E3d">&gt; I don&#39;t mean to quibble, but could you pleas=
-e credit me =E2=80=93 as a Google<br>
-&gt; employee =E2=80=93 somewhere in the commit message?<br>
-<br>
-</div>Oh .. I see there&#39;s no &quot;From:&quot; in that patch .. that&#3=
-9;s odd.<br>
-<br>
-How about a hint as to the wording that would be appropriate.</blockquote><=
-div><br>You&#39;ve written &quot;Several mistakes have been reported:&quot;=
- already, so simply inserting &quot;by Paul Wankadia &lt;<a href=3D"mailto:=
-junyer@google.com">junyer@google.com</a>&gt;&quot; would be quite sufficien=
-t. Thanks.<br>
-<br></div><blockquote class=3D"gmail_quote" style=3D"border-left: 1px solid=
- rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;"><div cl=
-ass=3D"Ih2E3d">&gt; I didn&#39;t contribute this patch, so please don&#39;t=
- credit me.<br>
+Thx for helping in advance ..
 
-<br>
-</div>This was pulled directly out of the resulting code analysis correctio=
-ns,<br>
-the information for which you provided, but I can take the blame if you<br>
-wish.</blockquote></div><br>I reported the bugs, yes, but the patches are y=
-our handiwork.=20
+regards
+Danny
 
---00163646d50cec0a210462c2e851--
-
-
---===============2480390193262942067==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
-
---===============2480390193262942067==--
-
+P.S.: Usecase - I want to include different bind-mounts to the users
+home dynamically, so
+I want to use autofs for "creating/bind-mounting" the users home on the
+fly.
