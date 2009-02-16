@@ -1,13 +1,13 @@
-From: "Daniel Schwager" <Daniel.Schwager@dtnet.de>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: different behavior in static/executable autofs map
-Date: Sat, 14 Feb 2009 23:34:37 +0100
-Message-ID: <EB31672367A401439CD5A4A10889D57B01297358@exchange.dtnet.de>
+Date: Mon, 16 Feb 2009 10:32:38 +0900
+Message-ID: <1234747958.2928.1.camel@zeus.themaw.net>
 References: <EB31672367A401439CD5A4A10889D57B01297357@exchange.dtnet.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-class: urn:content-classes:message
+In-Reply-To: <EB31672367A401439CD5A4A10889D57B01297357@exchange.dtnet.de>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,41 +18,116 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Daniel Schwager <Daniel.Schwager@dtnet.de>, autofs@linux.kernel.org
+To: Daniel Schwager <Daniel.Schwager@dtnet.de>
+Cc: autofs@linux.kernel.org
 
-Hi,
+On Sat, 2009-02-14 at 23:17 +0100, Daniel Schwager wrote:
+> Hi,
+> 
+> the behavior of an executable and static map with the same
+> stdout differs - please refer to this sample
+> 
+> ** content of "/etc/auto.master"
+> /home/t1      /root/a1
+> /home/t1a     /etc/auto.test1
+> 
+> ** content of "/etc/auto.test1"
+> test1 \
+>          / :/tmp
+> 	
+> ** content of "/root/a1" (mode 755, executable)
+> #!/bin/sh
+> cat /etc/auto.test1
 
-i tried this also on FC9 
-(autofs-5.0.3-33.x86_64, 2.6.27.12-78.2.8.fc9.x86_64)
+Except that this will not return what is expected from a program map.
 
-Also, the file-map works, the program-map failed. autofs 
-found a "syntax-error" or "duplicate offset"
+Program maps receive a key as their argument and return the mount
+location corresponding to that key.
 
-Feb 14 23:28:50 app4 automount[2599]: parse_mapent: parse(sun):
-dequote(":/tmp") -> :/tmp
-Feb 14 23:28:50 app4 automount[2599]: parse(sun): syntax error or
-duplicate offset / -> :/tmp
-Feb 14 23:28:50 app4 automount[2599]: parse(sun): error adding
-multi-mount
-Feb 14 23:28:50 app4 automount[2599]: cache_delete_offset_list: deleting
-offset key /home/p/test1/
-
-
-With the file-map, it works and I get the debugging output like
-Feb 14 23:28:46 app4 automount[2599]: parse_mapent: parse(sun):
-dequote(":/tmp") -> :/tmp
-Feb 14 23:28:46 app4 automount[2599]: add_offset_entry: parse(sun):
-added multi-mount offset / -> :/tmp
-Feb 14 23:28:46 app4 automount[2599]: parse_mapent: parse(sun): gathered
-options:
-Feb 14 23:28:46 app4 automount[2599]: parse_mapent: parse(sun):
-dequote(":/tmp") -> :/tmp
-Feb 14 23:28:46 app4 automount[2599]: sun_mount: parse(sun): mounting
-root /tmp/auto9XOrqS/, mountpoint test1, what :/tmp, fstype nfs, options
-(null)
-Feb 14 23:28:46 app4 automount[2599]: mount_mount: mount(nfs):
-root=/tmp/auto9XOrqS/ name=test1 what=:/tmp, fstype=nfs, options=(null)
-
-Maybe a bug ?
-
-Danny
+> 
+> 
+> ** Result
+> 
+> Accessing  /home/t1a/test1  works
+> 	ls /home/t1a/test1  
+> 
+> Accessing  /home/t1/test1  does not work
+> 	Feb 14 23:06:47 fs1 automount[17488]: failed to mount
+> /home/t1/test1
+> 
+> with debug output enabled:
+> 
+> Feb 14 23:12:53 fs1 automount[18460]: handle_packet: type = 0
+> Feb 14 23:12:53 fs1 automount[18460]: handle_packet_missing: token 1655,
+> name test1
+> Feb 14 23:12:53 fs1 automount[18460]: attempting to mount entry
+> /home/t1/test1
+> Feb 14 23:12:53 fs1 automount[18626]: lookup(program): looking up test1
+> Feb 14 23:12:53 fs1 automount[18626]: lookup(program): test1 -> test1
+> -fstype=bind  ^I/ :/tmp
+> Feb 14 23:12:53 fs1 automount[18626]: parse(sun): expanded entry: test1
+> -fstype=bind  ^I/ :/tmp
+> Feb 14 23:12:53 fs1 automount[18626]: parse(sun): gathered options:
+> Feb 14 23:12:53 fs1 automount[18626]: parse(sun): dequote("/") -> /
+> Feb 14 23:12:53 fs1 automount[18626]: parse(sun): dequote("test1") ->
+> test1
+> Feb 14 23:12:53 fs1 automount[18626]: parse(sun):
+> dequote("-fstype=bind") -> -fstype=bind
+> Feb 14 23:12:53 fs1 automount[18626]: parse(sun): dequote("/") -> /
+> Feb 14 23:12:53 fs1 automount[18626]: parse(sun): dequote("/tmp") ->
+> /tmp
+> Feb 14 23:12:53 fs1 automount[18626]: failed to mount /home/t1/test1
+> Feb 14 23:12:53 fs1 automount[18626]: umount_multi: path=/home/t1/test1
+> incl=1
+> Feb 14 23:12:53 fs1 automount[18626]: umount_multi: no mounts found
+> under /home/t1/test1
+> Feb 14 23:12:53 fs1 automount[18460]: handle_child: got pid 18626, sig 0
+> (0), stat 1
+> Feb 14 23:12:53 fs1 automount[18460]: sig_child: found pending iop pid
+> 18626: signalled 0 (sig 0), exit status 1
+> Feb 14 23:12:53 fs1 automount[18460]: send_fail: token=1655
+> Feb 14 23:12:53 fs1 automount[18460]: handle_packet: type = 0
+> Feb 14 23:12:53 fs1 automount[18460]: handle_packet_missing: token 1656,
+> name test1
+> Feb 14 23:12:53 fs1 automount[18460]: attempting to mount entry
+> /home/t1/test1
+> Feb 14 23:12:53 fs1 automount[18629]: lookup(program): looking up test1
+> Feb 14 23:12:53 fs1 automount[18629]: lookup(program): test1 -> test1
+> -fstype=bind  ^I/ :/tmp
+> Feb 14 23:12:53 fs1 automount[18629]: parse(sun): expanded entry: test1
+> -fstype=bind  ^I/ :/tmp
+> Feb 14 23:12:53 fs1 automount[18629]: parse(sun): gathered options:
+> Feb 14 23:12:53 fs1 automount[18629]: parse(sun): dequote("/") -> /
+> Feb 14 23:12:53 fs1 automount[18629]: parse(sun): dequote("test1") ->
+> test1
+> Feb 14 23:12:53 fs1 automount[18629]: parse(sun):
+> dequote("-fstype=bind") -> -fstype=bind
+> Feb 14 23:12:53 fs1 automount[18629]: parse(sun): dequote("/") -> /
+> Feb 14 23:12:53 fs1 automount[18629]: parse(sun): dequote("/tmp") ->
+> /tmp
+> Feb 14 23:12:53 fs1 automount[18629]: failed to mount /home/t1/test1
+> Feb 14 23:12:53 fs1 automount[18629]: umount_multi: path=/home/t1/test1
+> incl=1
+> Feb 14 23:12:53 fs1 automount[18629]: umount_multi: no mounts found
+> under /home/t1/test1
+> Feb 14 23:12:53 fs1 automount[18460]: handle_child: got pid 18629, sig 0
+> (0), stat 1
+> Feb 14 23:12:53 fs1 automount[18460]: sig_child: found pending iop pid
+> 18629: signalled 0 (sig 0), exit status 1
+> Feb 14 23:12:53 fs1 automount[18460]: send_fail: token=1656
+> 
+> I'm using debian etch with 
+> 	autofs                          4.1.4-13
+> 
+> I would like to use a executable "map" - but I can't because of this
+> behavior.
+> Is there a change to fix this ?
+> 
+> regards
+> Danny
+> 
+> 
+> _______________________________________________
+> autofs mailing list
+> autofs@linux.kernel.org
+> http://linux.kernel.org/mailman/listinfo/autofs
