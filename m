@@ -1,14 +1,17 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: Two problems w/ autofs
-Date: Thu, 19 Feb 2009 08:56:14 +0900
-Message-ID: <1235001374.3052.8.camel@zeus.themaw.net>
-References: <5144.1234914721@dancy>
-	<1234924209.3090.9.camel@zeus.themaw.net>  <4091.1234973215@dancy>
+Subject: Re: wait_for_lock() in mount
+Date: Sun, 22 Feb 2009 12:49:06 +0900
+Message-ID: <1235274546.19001.1.camel@zeus.themaw.net>
+References: <3307cdf90804180939t42fed2d7k8fc96304f8d01455@mail.gmail.com>
+	<1208576146.3090.5.camel@raven.themaw.net>
+	<3307cdf90804191052v194cc2bctb25b6aab612e903d@mail.gmail.com>
+	<1208703048.3632.8.camel@raven.themaw.net>
+	<3307cdf90902201603y2434a0dbvfcd987770d31c41a@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4091.1234973215@dancy>
+In-Reply-To: <3307cdf90902201603y2434a0dbvfcd987770d31c41a@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,32 +22,91 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ahmon Dancy <dancy@franz.com>
+To: Rajouri Jammu <rajouri.jammu@gmail.com>
 Cc: autofs@linux.kernel.org
 
-On Wed, 2009-02-18 at 08:06 -0800, Ahmon Dancy wrote:
-> >> On Tue, 2009-02-17 at 15:52 -0800, Ahmon Dancy wrote:
-> >> > Hello Ian, et al.
-> >> > 
-> >> > Using autofs-5.0.3-36 (built from Fedora 10 updates source RPM) on
-> >> > 2.6.26.6-49.fc8 kernel.  We run w/ LOGGING=debug.
-> >> 
-> >> You will need update your 2.6.26 based kernel with the latest kernel
-> >> module patch before we go further with this. It can be found in the
-> >> patches directory of the 5.0.4 tarball on kernel.org.
+On Fri, 2009-02-20 at 16:03 -0800, Rajouri Jammu wrote:
+> Hi,
 > 
-> Is there any released fedora-supplied kernel (perhaps for Fedora 9
-> or 10) that has the necessary goods?  If the system in question needs
-> to be restarted for a kernel update, it may be a good time to update
-> the Fedora installation as well.
+> I'm again running into problem with cascaded automounts.
 
-F-10 has everything but one fix that relates to the expiration of a
-specific type of mount. You might see that problem with the hosts map.
+What sort of problem?
 
-When the F-10 kernel goes to 2.6.28 it will have everything that is
-needed but that could be a while.
+> 
+> This time I'm using the autofs as part of CentOS 5.0 
+> rpm -qa | grep autofs
+> autofs-5.0.1-0.rc2.43.0.2
 
-But I wouldn't like to update the OS during scheduled downtime without
-some testing before hand and a fallback plan.
+That's a really old version considering the amount of development that
+has happened in v5.
 
-Ian
+> 
+> >Using the patch requires a configure option to be specified.
+> >I'm not sure if this patch has been added to the RHEL-4 package,
+> you'll
+> >need to check. In RHEL-5 the configure option is used when the
+> package
+> >is built so CentOS 5 will have this already
+> 
+> Does autofs-5.0.. version have "--disable-mount-locking" configured by
+> default?
+
+Yes.
+
+> 
+> Any suggestions would be of great help.
+> 
+> Thanks!
+> 
+> Ranjit
+> 
+> 
+> On Sun, Apr 20, 2008 at 6:50 AM, Ian Kent <raven@themaw.net> wrote:
+>         
+>         On Sat, 2008-04-19 at 10:52 -0700, Rajouri Jammu wrote:
+>         > Thank you for the prompt response.
+>         >
+>         >
+>         > Yes, I'm using autofs4 which came with CentOS release 4.6
+>         
+>         
+>         RHEL-4 U6 should be OK.
+>         But I don't think any of the versions of mount are 100%.
+>         
+>         >
+>         >
+>         > mount -V
+>         > mount: mount-2.12a
+>         >
+>         >
+>         >
+>         > Is that version of mount OK or do I need a newer version to
+>         work with
+>         > the locking path?
+>         > If I need a newer version can you please let me know
+>         approximately
+>         > which one?
+>         >
+>         >
+>         > Lastly, does autofs5 not have this issue?
+>         
+>         
+>         This is a problem with mount and any version of autofs that
+>         uses /etc/mtab will have this problem.
+>         
+>         The later revisions of autofs v4 and autofs v5 use /etc/mtab
+>         somewhat
+>         less and so are less vulnerable.
+>         
+>         Using the patch requires a configure option to be specified.
+>         I'm not sure if this patch has been added to the RHEL-4
+>         package, you'll
+>         need to check. In RHEL-5 the configure option is used when the
+>         package
+>         is built so CentOS 5 will have this already.
+>         
+>         Ian
+>         
+>         
+>         
+> 
