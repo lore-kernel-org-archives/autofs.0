@@ -1,15 +1,12 @@
 From: Nathan Huesken <autofs@lonely-star.org>
-Subject: Re: ghost parameter not working
-Date: Mon, 9 Mar 2009 23:41:32 +0100
-Message-ID: <20090309224131.GB8570@SamZwo>
-References: <20090309182006.GA3046@SamZwo>
-	<x49wsaybe28.fsf@segfault.boston.devel.redhat.com>
+Subject: autofs updating ghost direcotry for removable devices
+Date: Mon, 9 Mar 2009 23:53:52 +0100
+Message-ID: <20090309225352.GA22229@SamZwo>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <x49wsaybe28.fsf@segfault.boston.devel.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,37 +21,24 @@ To: autofs@linux.kernel.org
 
 Hi,
 
-I just fixed the problem by upgrading to 5.0 version.
-But now I know what to do when I need to debug.
+I am using autofs with the ghost parameter.
+What I would like is autofs to update the "ghost directories" according
+to removable devices plugged in or removed.
+I found this:
+http://code.google.com/p/hal-autofs/
+
+This python program rewrites the autofs config file when a device is
+plugged in or removed. Very good.
+Now I need to figure out how to make autofs aware of these changes.
+I could just restart autofs (I first need to refresh my python to do
+that).
+
+I wonder:
+
+Could I get into trouble when restarting autofs while a autofs
+managed device is mounted?
+
+Does anybody have a better Idea of how to do what I want to do?
+
 Thanks!
-
-Regards,
 Nathan
-
-On Mon, Mar 09, 2009 at 05:07:27PM -0400, Jeff Moyer wrote:
-> Nathan Huesken <autofs@lonely-star.org> writes:
-> 
-> > Hi,
-> >
-> > I am on arch-linux.
-> > I have installed autofs 4.1.4
-> > My auto,master:
-> > /media/auto          /etc/autofs/auto.misc --timeout=1 --ghost
-> >
-> > /etc/autofs/auto.misc:
-> > cdrom -fstype=iso9660,ro,nodev,nosuid :/dev/cdrom
-> > usbstick -fstype=auto,async,nodev,nosuid,umask=000 :/dev/sdb1
-> >
-> > It all works! I can change into /media/auto/usbstick and see the
-> > usbstick.
-> > But the ghost option does not work! If I do ls /media/auto it shows not
-> > directories at all.
-> > What could be wrong?
-> 
-> Please post a debug log, and let us know your kernel version.  Directions
-> for obtaining a debug log can be found on my people page:
->   http://people.redhat.com/jmoyer
-> 
-> Cheers,
-> Jeff
-> 
