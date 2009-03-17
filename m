@@ -1,15 +1,10 @@
-From: Leonardo Chiquitto <leonardo.lists@gmail.com>
-Subject: Re: autofs5 early daemonization side effects
-Date: Wed, 18 Mar 2009 17:39:12 -0300
-Message-ID: <c2d0b6ec0903181339o1bf5ea2cv3c16125fc702a572@mail.gmail.com>
-References: <c2d0b6ec0903180710s63e5aaa7r567c66d1139dd718@mail.gmail.com>
-	<x49sklahpfx.fsf@segfault.boston.devel.redhat.com>
-	<49C11A67.5000603@themaw.net>
+From: Krish Pillai <kpillai@lhup.edu>
+Subject: autofs mounting certain home directories for no reason
+Date: Mon, 16 Mar 2009 20:05:30 -0400
+Message-ID: <49BEE94A.1000608@lhup.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="------------070207040806050501020203"
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <49C11A67.5000603@themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,35 +17,51 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-> Jeff Moyer wrote:
->>
->> Leonardo Chiquitto <leonardo.lists@gmail.com> writes:
->>
->>> Hello,
->>>
->>> I've been doing some tests with AutoFS5 and I'd like to confirm that
->>> the behavior I'm seeing during the daemon initialization is expected
->>> or not.
->>>
->>> The problem: when the autofs initscript returns, autofs is not really
->>> ready.
->>
->> Strange. =A0I originally wrote the code to return a status via a pipe, so
->> that the init script would not return status until the daemon was ready
->> to service requests. =A0It also took care of the problem of the init
->> script returning success when the daemon actually failed.
+This is a multi-part message in MIME format.
+--------------070207040806050501020203
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-The Autofs code is completely right. The problem I'm seeing is being
-caused by startproc, a wrapper to start daemons that some distros
-(like openSUSE) use.
+I just upgraded from Fedora 8 to Fedora 10 
+(2.6.27.19-170.2.35.fc10.x86_64) on some of my machines and autofs seems 
+to be acting up. My server is running fc7.
+I have ypbind and automount running on all clients and the clients seem 
+to be repeatedly sending mount/umount  requests to the server on behalf 
+of users who are not even trying to log in. As a result I see home 
+directories getting mounted on the clients and getting unmounted all the 
+time. Is this a known problem? If so, is there a fix?
+Krish
 
-Applying the following pseudo-patch in the initscript makes everything
-work as it should:
+--------------070207040806050501020203
+Content-Type: text/x-vcard; charset=utf-8;
+ name="kpillai.vcf"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="kpillai.vcf"
 
--    /sbin/startproc $DAEMON $AUTOFS_OPTIONS
-+    $DAEMON $AUTOFS_OPTIONS
+begin:vcard
+fn:Dr. Krish Pillai
+n:Pillai;Krish
+org:Lock Haven University of Pennsylvania;Computer Science
+adr:401 N. Fairview Street;;Rm 224 Akeley Hall;Lock Haven;PA;17745;United States of America
+email;internet:kpillai@lhup.edu
+title:Assistant Professor
+tel;work:570 484 2346
+x-mozilla-html:TRUE
+version:2.1
+end:vcard
 
-Ian and Jeff, thanks for the help and sorry for the noise. Michael,
-with luck this will be a valid workaround for you too!
 
-Leonardo
+--------------070207040806050501020203
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--------------070207040806050501020203--
+
