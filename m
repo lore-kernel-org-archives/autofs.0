@@ -1,108 +1,43 @@
-From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 1/2] autofs4 - fix lookup deadlock
-Date: Mon, 16 Mar 2009 12:17:12 +0900
-Message-ID: <20090316031712.26901.52109.stgit@zeus.themaw.net>
+From: Leonardo Chiquitto <leonardo.lists@gmail.com>
+Subject: autofs5 early daemonization side effects
+Date: Wed, 18 Mar 2009 11:10:21 -0300
+Message-ID: <c2d0b6ec0903180710s63e5aaa7r567c66d1139dd718@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Sender: linux-fsdevel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: autofs mailing list <autofs@linux.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <autofs-bounces@linux.kernel.org>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: autofs@linux.kernel.org
 
-A deadlock can occur when user space uses a signal (autofs version 4
-uses SIGCHLD for this) to effect expire completion.
+Hello,
 
-The order of events is:
+I've been doing some tests with AutoFS5 and I'd like to confirm that
+the behavior I'm seeing during the daemon initialization is expected
+or not.
 
-Expire process completes, but before being able to send SIGCHLD to it's
-parent ...
+The problem: when the autofs initscript returns, autofs is not really
+ready.
 
-Another process walks onto a different mount point and drops the directory
-inode semaphore prior to sending the request to the daemon as it must ...
+Reading the code, I see that the automount daemon detaches itself from
+the controlling terminal (becoming a daemon) early in its initialization.
+After that, it starts other threads to handle different tasks and just then
+reads the available maps. Normally, reading the maps is quick, but it
+could take a bit more if using NIS or LDAP, what explains the delay
+between the initscript returning (immediately after daemonization) and
+autofs being really ready to proceed.
 
-A third process does an lstat on on the expired mount point causing it to
-wait on expire completion (unfortunately) holding the directory semaphore.
+I was thinking about some options to work around this problem (like deferring
+daemonization), but after a while, I couldn't find a clean and non-intrusive
+solution. Can you help me here?
 
-The mount request then arrives at the daemon which does an lstat and,
-deadlock.
-
-For some time I was concerned about releasing the directory semaphore
-around the expire wait in autofs4_lookup as well as for the mount call
-back. I finally realized that the last round of changes in this function
-made the expiring dentry and the lookup dentry separate and distinct so
-the check and possible wait can be done anywhere prior to the mount call
-back. This patch moves the check to just before the mount call back and
-inside the directory inode mutex release.
-
-Signed-off-by: Ian Kent <raven@themaw.net>
----
-
- fs/autofs4/root.c |   41 +++++++++++++++++++++--------------------
- 1 files changed, 21 insertions(+), 20 deletions(-)
-
-diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
-index 2a41c2a..e8c55d2 100644
---- a/fs/autofs4/root.c
-+++ b/fs/autofs4/root.c
-@@ -485,22 +485,6 @@ static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, s
- 	DPRINTK("pid = %u, pgrp = %u, catatonic = %d, oz_mode = %d",
- 		 current->pid, task_pgrp_nr(current), sbi->catatonic, oz_mode);
- 
--	expiring = autofs4_lookup_expiring(sbi, dentry->d_parent, &dentry->d_name);
--	if (expiring) {
--		/*
--		 * If we are racing with expire the request might not
--		 * be quite complete but the directory has been removed
--		 * so it must have been successful, so just wait for it.
--		 */
--		ino = autofs4_dentry_ino(expiring);
--		autofs4_expire_wait(expiring);
--		spin_lock(&sbi->lookup_lock);
--		if (!list_empty(&ino->expiring))
--			list_del_init(&ino->expiring);
--		spin_unlock(&sbi->lookup_lock);
--		dput(expiring);
--	}
--
- 	unhashed = autofs4_lookup_active(sbi, dentry->d_parent, &dentry->d_name);
- 	if (unhashed)
- 		dentry = unhashed;
-@@ -538,14 +522,31 @@ static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, s
- 	}
- 
- 	if (!oz_mode) {
-+		mutex_unlock(&dir->i_mutex);
-+		expiring = autofs4_lookup_expiring(sbi,
-+						   dentry->d_parent,
-+						   &dentry->d_name);
-+		if (expiring) {
-+			/*
-+			 * If we are racing with expire the request might not
-+			 * be quite complete but the directory has been removed
-+			 * so it must have been successful, so just wait for it.
-+			 */
-+			ino = autofs4_dentry_ino(expiring);
-+			autofs4_expire_wait(expiring);
-+			spin_lock(&sbi->lookup_lock);
-+			if (!list_empty(&ino->expiring))
-+				list_del_init(&ino->expiring);
-+			spin_unlock(&sbi->lookup_lock);
-+			dput(expiring);
-+		}
-+
- 		spin_lock(&dentry->d_lock);
- 		dentry->d_flags |= DCACHE_AUTOFS_PENDING;
- 		spin_unlock(&dentry->d_lock);
--		if (dentry->d_op && dentry->d_op->d_revalidate) {
--			mutex_unlock(&dir->i_mutex);
-+		if (dentry->d_op && dentry->d_op->d_revalidate)
- 			(dentry->d_op->d_revalidate)(dentry, nd);
--			mutex_lock(&dir->i_mutex);
--		}
-+		mutex_lock(&dir->i_mutex);
- 	}
- 
- 	/*
-
+Thanks,
+Leonardo
