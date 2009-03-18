@@ -1,14 +1,14 @@
-From: Jeff Moyer <jmoyer@redhat.com>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: autofs5 early daemonization side effects
-Date: Wed, 18 Mar 2009 10:32:18 -0400
-Message-ID: <x49sklahpfx.fsf@segfault.boston.devel.redhat.com>
+Date: Thu, 19 Mar 2009 00:59:35 +0900
+Message-ID: <49C11A67.5000603@themaw.net>
 References: <c2d0b6ec0903180710s63e5aaa7r567c66d1139dd718@mail.gmail.com>
+	<x49sklahpfx.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <c2d0b6ec0903180710s63e5aaa7r567c66d1139dd718@mail.gmail.com>
-	(Leonardo Chiquitto's message of "Wed, 18 Mar 2009 11:10:21 -0300")
+In-Reply-To: <x49sklahpfx.fsf@segfault.boston.devel.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,25 +19,36 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Leonardo Chiquitto <leonardo.lists@gmail.com>
+To: Jeff Moyer <jmoyer@redhat.com>
 Cc: autofs@linux.kernel.org
 
-Leonardo Chiquitto <leonardo.lists@gmail.com> writes:
+Jeff Moyer wrote:
+> Leonardo Chiquitto <leonardo.lists@gmail.com> writes:
+> 
+>> Hello,
+>>
+>> I've been doing some tests with AutoFS5 and I'd like to confirm that
+>> the behavior I'm seeing during the daemon initialization is expected
+>> or not.
+>>
+>> The problem: when the autofs initscript returns, autofs is not really
+>> ready.
+> 
+> Strange.  I originally wrote the code to return a status via a pipe, so
+> that the init script would not return status until the daemon was ready
+> to service requests.  It also took care of the problem of the init
+> script returning success when the daemon actually failed.
+> 
+> Ian, has this changed?
 
-> Hello,
->
-> I've been doing some tests with AutoFS5 and I'd like to confirm that
-> the behavior I'm seeing during the daemon initialization is expected
-> or not.
->
-> The problem: when the autofs initscript returns, autofs is not really
-> ready.
+No, but there was a problem with the read size on x86_64, which has also 
+been fixed. I'm not sure if that was a transcription error on my part or 
+not.
 
-Strange.  I originally wrote the code to return a status via a pipe, so
-that the init script would not return status until the daemon was ready
-to service requests.  It also took care of the problem of the init
-script returning success when the daemon actually failed.
+The other possibility is that the handle_mounts() thread creation could 
+be returning before it has completed its initialisation. But looking at 
+the code I can't see that happening either, certainly not before the 
+mount is done and the map read, if in fact it needs to be read (which, 
+as you know, it isn't for the most common configuration).
 
-Ian, has this changed?
-
--Jeff
+Ian
