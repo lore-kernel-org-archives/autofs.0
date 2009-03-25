@@ -1,14 +1,16 @@
-From: Stef Bon <stef@bononline.nl>
+From: Jeff Moyer <jmoyer@redhat.com>
 Subject: Re: make an executable map rerun.
-Date: Wed, 25 Mar 2009 17:43:47 +0100
-Message-ID: <49CA5F43.6070408@bononline.nl>
+Date: Wed, 25 Mar 2009 13:25:13 -0400
+Message-ID: <x493ad1jz0m.fsf@segfault.boston.devel.redhat.com>
 References: <49C9F7A0.80603@bononline.nl>
 	<x498wmtkayg.fsf@segfault.boston.devel.redhat.com>
+	<49CA5F43.6070408@bononline.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <x498wmtkayg.fsf@segfault.boston.devel.redhat.com>
+In-Reply-To: <49CA5F43.6070408@bononline.nl> (Stef Bon's message of "Wed, 25
+	Mar 2009 17:43:47 +0100")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,58 +21,67 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>
+To: Stef Bon <stef@bononline.nl>
 Cc: autofs@linux.kernel.org
 
-Jeff Moyer wrote:
-> Stef Bon <stef@bononline.nl> writes:
->
->   
->> Hello,
+Stef Bon <stef@bononline.nl> writes:
+
+> Jeff Moyer wrote:
+>> Stef Bon <stef@bononline.nl> writes:
 >>
->> I've been working on a solution to make networkresources available via 
->> autofs on a dynamic way. After login with help
->> from ConsoleKit a mountpoint is added to the master file of the 
->> automounter. This mountpoint is in the homedirectory of the user logging in.
+>>   
+>>> Hello,
+>>>
+>>> I've been working on a solution to make networkresources available
+>>> via autofs on a dynamic way. After login with help
+>>> from ConsoleKit a mountpoint is added to the master file of the
+>>> automounter. This mountpoint is in the homedirectory of the user
+>>> logging in.
+>>>
+>>> This way I've a browseable network map in my home directory for
+>>> Windows Networks (via cifs), FTP (via curlftpfs/FUSE) and SSH (with
+>>> sshfs/FUSE). Others, like Novell should be possible.
+>>>     
 >>
->> This way I've a browseable network map in my home directory for Windows 
->> Networks (via cifs), FTP (via curlftpfs/FUSE) and SSH (with sshfs/FUSE). 
->> Others, like Novell should be possible.
->>     
+>> This sounds like interesting work.  Do you have it posted somewhere?
+>>   
 >
-> This sounds like interesting work.  Do you have it posted somewhere?
->   
-
-Yes, look at:
-
-http://linux.bononline.nl/linux/automountsmbshares/index.php
->   
->> It works with executable maps. Now for some reasons I would like some 
->> control over rerrunning the executable map, to make the automounter 
->> refresh the autofs data. Now I do not see how to do that. I reload 
->> signal does not do that.
+> Yes, look at:
+>
+> http://linux.bononline.nl/linux/automountsmbshares/index.php
+>>   
+>>> It works with executable maps. Now for some reasons I would like
+>>> some control over rerrunning the executable map, to make the
+>>> automounter refresh the autofs data. Now I do not see how to do
+>>> that. I reload signal does not do that.
+>>>
+>>> Is there a way to do this?
+>>>     
 >>
->> Is there a way to do this?
->>     
+>> No caching is done for program maps.  They are consulted for every
+>> single lookup, so you shouldn't have to do anything special.  Is this
+>> not the behaviour you are observing?
+>>   
+> No,
 >
-> No caching is done for program maps.  They are consulted for every
-> single lookup, so you shouldn't have to do anything special.  Is this
-> not the behaviour you are observing?
->   
-No,
-
-after activating the executable map once, the data provided by the 
-executable map is kept. I've tested this by
-letting the executable map write to an logfile, and it's running seldom.
-
-I can look at the contents of /proc/mounts and here I see the autofs 
-tree, which is kept. So I do not understand your remark
-saying it is consulted every single lookup. Does the option -browse 
-mather here? I'm using that and because this forces the automounter to 
-remember the data right?
-
-Stef
-> Cheers,
-> Jeff
+> after activating the executable map once, the data provided by the
+> executable map is kept. I've tested this by
+> letting the executable map write to an logfile, and it's running seldom.
 >
->   
+> I can look at the contents of /proc/mounts and here I see the autofs
+> tree, which is kept. So I do not understand your remark
+> saying it is consulted every single lookup. Does the option -browse
+> mather here? I'm using that and because this forces the automounter to
+> remember the data right?
+
+OK, I was wrong.  Sorry about that (I was confused with the fact that
+program maps don't support the -browse option, since they can't support
+map enumeration).  I admit I am not up to speed on v5.  However, it
+looks to me like a HUP signal will not cause the service thread for your
+mount point to restart unless the actual program map changed.  This
+means the cache will still be in tact, as you observed.  I suspect we
+should probably clear the cache for any maptype that does not support
+enumeration upon receiving a HUP signal.  Ian, what do you think?
+
+Cheers,
+Jeff
