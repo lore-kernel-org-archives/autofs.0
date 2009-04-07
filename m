@@ -1,12 +1,11 @@
-From: Tom Urlings <tom.urlings@gmail.com>
-Subject: using --ghost with 'program' type maps
-Date: Mon, 6 Apr 2009 11:17:10 +0200
-Message-ID: <200904061117.10949.tom.urlings@gmail.com>
+From: Dan Carpenter <error27@gmail.com>
+Subject: [patch] unlock_kernel() in autofs
+Date: Tue, 7 Apr 2009 10:53:00 +0300 (EAT)
+Message-ID: <alpine.DEB.2.00.0904070829180.522@bicker>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,48 +16,37 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: hpa@zytor.com
+Cc: autofs@linux.kernel.org
 
-hi all,
-i have been using autofs for a long time now, using it to dynamically gather 
-multimedia mounts using aufs locally and across local network..
-however, ghosting is not supported for 'program' maps.. which makes sharing a 
-autofs mount a bit odd..
+There are a couple missing unlock_kernel() calls on error paths in autofs 
+version 2.6.29.
 
-example:
-server:/srv/multimedia -> automounted locally on server
-: uses aufs locally to mount all multimedia type directories on local storage
+Found by smatch (http://repo.or.cz/w/smatch.git).  Compile tested.
 
-client:/opt/multimedia -> automounted locally on client
-: uses aufs locally to mount all multimedia type directories on local storage 
-and on automounted samba shares (also on server)
+regards,
+dan carpenter
 
-when server automount is mounted on client, server:/srv/multimedia is mounted, 
-but (as spec'ed) ghosting is not performed, giving an empty directory..
+Signed-off-by: Dan Carpenter <error27@gmail.com>
 
-looks like the lookup_ghost on client does nothing as there are no cached 
-entries from the mapfile (program) available.. same goes on 
-server:/srv/multimedia..
-
-could this be easily integrated into the automount source?
-
-i have been looking into it today, but it looks a bit quirky to just 
-copy/paste the lookup_file.c:lookup_read_map into 
-lookup_program.c:lookup_read_map (with all ancilliaries)..
-
-idea is to have the program maps return a complete 'file' map when given no 
-key on the commandline, and to 're-use' the lookup_file.c:lookup_read_map 
-functionality in the lookup_program.c:lookup_read_map
-
-do any of you have a direction into where i should start looking?
-
-thanks in advance..
-
-best regards,
-tom urlings
-
--- 
-Met vriendelijke groeten,
-Best regards,
-
-Tom Urlings
+--- orig/fs/autofs/root.c	2009-04-07 08:24:53.000000000 +0300
++++ devel/fs/autofs/root.c	2009-04-07 08:27:35.000000000 +0300
+@@ -334,8 +334,10 @@
+ 	autofs_hash_insert(dh,ent);
+ 
+ 	inode = autofs_iget(dir->i_sb, ent->ino);
+-	if (IS_ERR(inode))
++	if (IS_ERR(inode)) {
++		unlock_kernel();
+ 		return PTR_ERR(inode);
++	}
+ 
+ 	d_instantiate(dentry, inode);
+ 	unlock_kernel();
+@@ -480,6 +482,7 @@
+ 	inode = autofs_iget(dir->i_sb, ino);
+ 	if (IS_ERR(inode)) {
+ 		drop_nlink(dir);
++		unlock_kernel();
+ 		return PTR_ERR(inode);
+ 	}
