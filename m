@@ -1,13 +1,14 @@
-From: Ian Kent <raven@themaw.net>
+From: Dan Carpenter <error27@gmail.com>
 Subject: Re: [patch] unlock_kernel() in autofs
-Date: Wed, 08 Apr 2009 14:40:31 +0800
-Message-ID: <49DC46DF.4080908@themaw.net>
+Date: Wed, 8 Apr 2009 16:00:04 +0300
+Message-ID: <a63d67fe0904080600x2f4186b8s161679a612e864e5@mail.gmail.com>
 References: <alpine.DEB.2.00.0904070829180.522@bicker>
+	<49DC46DF.4080908@themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.0904070829180.522@bicker>
+In-Reply-To: <49DC46DF.4080908@themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,66 +19,39 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Dan Carpenter <error27@gmail.com>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org, hpa@zytor.com
 
-Dan Carpenter wrote:
-> There are a couple missing unlock_kernel() calls on error paths in autofs 
-> version 2.6.29.
+On 4/8/09, Ian Kent <raven@themaw.net> wrote:
+> Dan Carpenter wrote:
+>> There are a couple missing unlock_kernel() calls on error paths in autofs
+>> version 2.6.29.
+>
+> Hi Dan,
+>
+> Thanks for your patch.
+>
+> You may not be aware but the autofs4 kernel module may satisfy your
+> needs and it is actively maintained whereas I haven't been paying much
+> attention to the autofs module for some time now.
 
-Hi Dan,
+No problem.  I'm just randomly sending patches for my allyesconfig.
 
-Thanks for your patch.
+>>
+>> Found by smatch (http://repo.or.cz/w/smatch.git).  Compile tested.
+>
+> Source code analysis?
+> Is there a home page or download?
+>
 
-You may not be aware but the autofs4 kernel module may satisfy your
-needs and it is actively maintained whereas I haven't been paying much
-attention to the autofs module for some time now.
+You can download it from http://repo.or.cz/w/smatch.git.  There are
+tar balls available as well on the right hand side of the page.  It's
+still pretty rough and has too many false positives, but it's easy
+enough to test...
 
-I plan on submitting patches to retire the autofs module sometime fairly
-soon but haven't yet constructed a list of relevant maintainers to start
-the awareness and discussion process.
+make
+cd /usr/src/kernel
+make C=1 CHECK=/path/to/smatch fs/autofs/root.c | egrep '(warn|error):'
 
-Can you tell me in what environment you use the autofs kernel module?
-Do you actually need to use autofs version 2 kernel communication protocol?
-Have you checked to see if the autofs4 kernel module will satisfy your
-needs?
-
-> 
-> Found by smatch (http://repo.or.cz/w/smatch.git).  Compile tested.
-
-Source code analysis?
-Is there a home page or download?
-
-> 
-> regards,
-> dan carpenter
-> 
-> Signed-off-by: Dan Carpenter <error27@gmail.com>
-> 
-> --- orig/fs/autofs/root.c	2009-04-07 08:24:53.000000000 +0300
-> +++ devel/fs/autofs/root.c	2009-04-07 08:27:35.000000000 +0300
-> @@ -334,8 +334,10 @@
->  	autofs_hash_insert(dh,ent);
->  
->  	inode = autofs_iget(dir->i_sb, ent->ino);
-> -	if (IS_ERR(inode))
-> +	if (IS_ERR(inode)) {
-> +		unlock_kernel();
->  		return PTR_ERR(inode);
-> +	}
->  
->  	d_instantiate(dentry, inode);
->  	unlock_kernel();
-> @@ -480,6 +482,7 @@
->  	inode = autofs_iget(dir->i_sb, ino);
->  	if (IS_ERR(inode)) {
->  		drop_nlink(dir);
-> +		unlock_kernel();
->  		return PTR_ERR(inode);
->  	}
->  
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
+regards,
+dan carpenter
