@@ -1,9 +1,9 @@
 From: Stef Bon <stef@bononline.nl>
 Subject: Automounter stops after reload signal.
-Date: Wed, 08 Apr 2009 18:14:43 +0200
-Message-ID: <49DCCD73.5050307@bononline.nl>
+Date: Thu, 09 Apr 2009 10:28:44 +0200
+Message-ID: <49DDB1BC.6090609@bononline.nl>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------030003080207070302060503"
+Content-Type: multipart/mixed; boundary="------------080005080706090700010003"
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -16,15 +16,19 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
+Cc: Ian Kent <raven@themaw.net>
 
 This is a multi-part message in MIME format.
---------------030003080207070302060503
+--------------080005080706090700010003
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
+(I've sent this earlier to the autofs maillist but it doesnot appear 
+there, I do not get a copy also myself)
+
 Hello,
 
-I've been working on a construction which adds an autofs managed 
+I've been working on a construction which adds an autofs managed
 mountpoint to the homedirectory, when:
 a. an usb device or more than one is detected when logging in
 b. an usb device is plugged in during a session
@@ -33,28 +37,28 @@ This looks like:
 
 /home/sbon/Connections
 
-is the base directory for all kinds of connections (network, all kind of 
+is the base directory for all kinds of connections (network, all kind of
 hardware)
-Earlier I've been working on a construction to create a browseable 
+Earlier I've been working on a construction to create a browseable
 network map here, also with autofs.
-Network resources like SMB shares, FTP servers and SSH access is 
-possible. (SMB via cifs, FTP via curlftpfs/FUSE, SSH via sshfs/FUSE). 
+Network resources like SMB shares, FTP servers and SSH access is
+possible. (SMB via cifs, FTP via curlftpfs/FUSE, SSH via sshfs/FUSE).
 Access to Novell networks should also be possible.
 
-Now about devices. When I add a device during my session, the (virtual) 
+Now about devices. When I add a device during my session, the (virtual)
 directory Devices is added, and therein my USB stick:
 
 /home/sbon/Connections/Devices/USB_DISK_Pro
 
 Other devices should also appear in this directory.
-I do not have published this yet anywhere, but it is simular to the one 
+I do not have published this yet anywhere, but it is simular to the one
 you can find here:
 
 http://www.gentoo-wiki.info/Autofs#UDEV_with_autofs
 
-The big difference with my construction is that the mountpoint is *in* 
-the users homedirectory, not in /media: direct accessible for users from 
-their homedirectory, where going to a "foreign" place like /media is not 
+The big difference with my construction is that the mountpoint is *in*
+the users homedirectory, not in /media: direct accessible for users from
+their homedirectory, where going to a "foreign" place like /media is not
 that userfriendly.
 
 Now I've got the following situation:
@@ -68,9 +72,9 @@ my mastermap looks like:
 
 and /var/run/autofs/auto.master:
 
-/home/sbon/Connections/Network     
+/home/sbon/Connections/Network
 /var/run/autofs/session/auto.network.map.sbon --ghost
-/home/sbon/Connections/Devices /var/run/autofs/session/auto.usb.map.sbon 
+/home/sbon/Connections/Devices /var/run/autofs/session/auto.usb.map.sbon
 --ghost
 
 the automaps are dynamically created maps:
@@ -81,34 +85,34 @@ USB_DISK_Pro -fstype=auto :/dev/disk/by-uuid/6891-3786
 and /var/run/autofs/session/auto.network.map.sbon:
 
 "FTP" -fstype=ftpfs \
-      /192.168.0.1 ://192.168.0.1 \
-      /ftp-stud.fht-esslingen.de ://ftp-stud.fht-esslingen.de
-"Windows Network" 
+       /192.168.0.1 ://192.168.0.1 \
+       /ftp-stud.fht-esslingen.de ://ftp-stud.fht-esslingen.de
+"Windows Network"
 -fstype=cifs,credentials="/var/run/safe/sbon/latest/mount.smb.cred" \
-      "/BONONLINE/ROUTER/sbon" -rw,ip=192.168.0.1 "://ROUTER/sbon" \
-      "/BONONLINE/ROUTER/bononline" -rw,ip=192.168.0.1 
+       "/BONONLINE/ROUTER/sbon" -rw,ip=192.168.0.1 "://ROUTER/sbon" \
+       "/BONONLINE/ROUTER/bononline" -rw,ip=192.168.0.1
 "://ROUTER/bononline" \
-      "/BONONLINE/ROUTER/mvanklink" -rw,ip=192.168.0.1 
+       "/BONONLINE/ROUTER/mvanklink" -rw,ip=192.168.0.1
 "://ROUTER/mvanklink" \
-      "/BONONLINE/ROUTER/ftp" -rw,ip=192.168.0.1 "://ROUTER/ftp" \
-      "/BONONLINE/ROUTER/public" -rw,ip=192.168.0.1 "://ROUTER/public" \
-      "/BONONLINE/ROUTER/cwdocumenten" -rw,ip=192.168.0.1 
+       "/BONONLINE/ROUTER/ftp" -rw,ip=192.168.0.1 "://ROUTER/ftp" \
+       "/BONONLINE/ROUTER/public" -rw,ip=192.168.0.1 "://ROUTER/public" \
+       "/BONONLINE/ROUTER/cwdocumenten" -rw,ip=192.168.0.1
 "://ROUTER/cwdocumenten" \
-      "/BONONLINE/LFS20060812/sbon" -rw,ip=192.168.0.2 
+       "/BONONLINE/LFS20060812/sbon" -rw,ip=192.168.0.2
 "://LFS20060812/sbon" \
-      "/BONONLINE/LFS20060812/bononline" -rw,ip=192.168.0.2 
+       "/BONONLINE/LFS20060812/bononline" -rw,ip=192.168.0.2
 "://LFS20060812/bononline" \
-      "/BONONLINE/LFS20060812/video" -rw,ip=192.168.0.2 
+       "/BONONLINE/LFS20060812/video" -rw,ip=192.168.0.2
 "://LFS20060812/video" \
-      "/BONONLINE/LFS20060812/test" -rw,ip=192.168.0.2 
+       "/BONONLINE/LFS20060812/test" -rw,ip=192.168.0.2
 "://LFS20060812/test" \
-      "/BONONLINE/LFS20060812/public" -rw,ip=192.168.0.2 
+       "/BONONLINE/LFS20060812/public" -rw,ip=192.168.0.2
 "://LFS20060812/public"
 "SSH access" -fstype=sshfs \
-      "/192.168.0.1" "://sbon@192.168.0.1:/" \
-      "/192.168.0.2" "://sbon@192.168.0.2:/"
+       "/192.168.0.1" "://sbon@192.168.0.1:/" \
+       "/192.168.0.2" "://sbon@192.168.0.2:/"
 
-These maps are created dynamically, by udev (when plugging in a device) 
+These maps are created dynamically, by udev (when plugging in a device)
 and at login (coldpluggin and the networkmap)
 There is a script which is run by udev when a device is removed.
 
@@ -116,21 +120,21 @@ After removal of the usbstick, my maps look like:
 
 /var/run/autofs/auto.master
 
-/home/sbon/Connections/Network     
+/home/sbon/Connections/Network
 /var/run/autofs/session/auto.network.map.sbon --ghost
 
 The networkmap is unchanged.
 
-After a reload the automounter has stopped. Attached is the relevant 
+After a reload the automounter has stopped. Attached is the relevant
 output of the logfile.
 
-This behaviour I get also in siumlar situations. For example, logging in 
-as sbon, adding a device, then logging in as root in a terminal(konsole 
-and then su), everything is still ok (the maps above are changed: 
-mountpoints and maps are added. But when logging out as root, and the 
+This behaviour I get also in siumlar situations. For example, logging in
+as sbon, adding a device, then logging in as root in a terminal(konsole
+and then su), everything is still ok (the maps above are changed:
+mountpoints and maps are added. But when logging out as root, and the
 maps are changed again, the automounter stops also.
 
-It looks like the automounter cannot handle the removal of mountpoints 
+It looks like the automounter cannot handle the removal of mountpoints
 correctly. It will stop.
 
 
@@ -141,7 +145,8 @@ Stef Bon
 
 
 
---------------030003080207070302060503
+
+--------------080005080706090700010003
 Content-Type: text/plain;
  name="automount.stop.log"
 Content-Transfer-Encoding: 7bit
@@ -262,7 +267,8 @@ Content-Disposition: inline;
 2009-04-08T13:08:41.379690+02:00 lfs20080510 automount[5948]: shut down path /home/sbon/Connections/Network
 2009-04-08T13:08:41.379791+02:00 lfs20080510 automount[5948]: autofs stopped
 
---------------030003080207070302060503
+
+--------------080005080706090700010003
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -273,5 +279,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---------------030003080207070302060503--
+--------------080005080706090700010003--
 
