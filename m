@@ -1,13 +1,14 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: using --ghost with 'program' type maps
-Date: Sun, 12 Apr 2009 22:20:07 +0800
-Message-ID: <1239546007.23791.7.camel@zeus.themaw.net>
-References: <200904061117.10949.tom.urlings@gmail.com>
+From: Stef Bon <stef@bononline.nl>
+Subject: Re: Automounter stops after reload signal.
+Date: Sun, 12 Apr 2009 19:59:57 +0200
+Message-ID: <49E22C1D.8030504@bononline.nl>
+References: <49DCCD73.5050307@bononline.nl>
+	<1239545315.23791.0.camel@zeus.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <200904061117.10949.tom.urlings@gmail.com>
+In-Reply-To: <1239545315.23791.0.camel@zeus.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,51 +19,48 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Tom Urlings <tom.urlings@gmail.com>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-On Mon, 2009-04-06 at 11:17 +0200, Tom Urlings wrote:
-> hi all,
-> i have been using autofs for a long time now, using it to dynamically gather 
-> multimedia mounts using aufs locally and across local network..
-> however, ghosting is not supported for 'program' maps.. which makes sharing a 
-> autofs mount a bit odd..
-> 
-> example:
-> server:/srv/multimedia -> automounted locally on server
-> : uses aufs locally to mount all multimedia type directories on local storage
-> 
-> client:/opt/multimedia -> automounted locally on client
-> : uses aufs locally to mount all multimedia type directories on local storage 
-> and on automounted samba shares (also on server)
-> 
-> when server automount is mounted on client, server:/srv/multimedia is mounted, 
-> but (as spec'ed) ghosting is not performed, giving an empty directory..
-> 
-> looks like the lookup_ghost on client does nothing as there are no cached 
-> entries from the mapfile (program) available.. same goes on 
-> server:/srv/multimedia..
-> 
-> could this be easily integrated into the automount source?
+Ian Kent wrote:
+> On Wed, 2009-04-08 at 18:14 +0200, Stef Bon wrote:
+>   
+>> Hello,
+>>
+>> I've been working on a construction which adds an autofs managed 
+>> mountpoint to the homedirectory, when:
+>> a. an usb device or more than one is detected when logging in
+>> b. an usb device is plugged in during a session
+>>     
+>
+> What version of autofs did you say you are using?
+>   
 
-Not really.
-There would need to be a quite a lot done to re-structure program map
-lookup module and re-factor the tokenizer from the file file map lookup
-module. I really don't have time to devote to this atm.
+Well, 5.0.4.
 
-> 
-> i have been looking into it today, but it looks a bit quirky to just 
-> copy/paste the lookup_file.c:lookup_read_map into 
-> lookup_program.c:lookup_read_map (with all ancilliaries)..
+I can imagine that my story is complicated, so I've found a simple way 
+to get the same behaviour.
 
-There's a lot more to it than that.
+Add the following line to the auto.master file in /etc/autofs:
 
-> 
-> idea is to have the program maps return a complete 'file' map when given no 
-> key on the commandline, and to 're-use' the lookup_file.c:lookup_read_map 
-> functionality in the lookup_program.c:lookup_read_map
+/mnt/smb   /etc/autofs/auto.smb
 
-That's been mentioned before and it should work but, by and large,
-program maps don't usually know their list of keys.
+Start the daemon, or, if already running, do a reload.
 
-Ian
+Play with the new mountpoint, so do something like :
+
+ls /mnt/smb/<valid name of smb host>
+
+look at the result, a tree should be the result.
+
+Now remove the line again, (thus: "/mnt/smb /etc/a...."), and give the 
+daemon a reload again,
+
+and the daemon stops.
+
+I've got a 2.6.27.9 kernel, patched with
+
+autofs4-2.6.27-dev-ioctl-20081029.patch and
+autofs4-2.6.27-v5-update-20081027.patch
+
+Stef Bon
