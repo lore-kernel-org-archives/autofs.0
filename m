@@ -1,11 +1,14 @@
-From: Sergei Zhirikov <sfzhi@yahoo.com>
-Subject: Strange behavior of autofs with reiserfs on expire
-Date: Tue, 14 Apr 2009 20:26:57 +0200
-Message-ID: <gs2khi$f5$1@ger.gmane.org>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: Strange behavior of autofs with reiserfs on expire
+Date: Wed, 15 Apr 2009 16:15:25 +0800
+Message-ID: <20090415081524.GA7194@zeus.themaw.net>
+References: <gs2khi$f5$1@ger.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <gs2khi$f5$1@ger.gmane.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,72 +19,69 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Sergei Zhirikov <sfzhi@yahoo.com>
+Cc: autofs@linux.kernel.org
 
-Hi,
+On Tue, Apr 14, 2009 at 08:26:57PM +0200, Sergei Zhirikov wrote:
+> 
+> Can anyone, please, try to reproduce the problem?
 
-I'm observing the following strange behavior. If I try to auto-mount a 
-reiserfs partition via autofs it does not get unmounted when the mount 
-expires. I have tried a few other filesystems (ext3, tmpfs, fuse) and 
-the problem appears only with reiserfs and only when automount is using 
-/dev/autofs. There are no error messages in the log. The reiserfs mount 
-remains mounted as if it was busy, but I'm pretty sure it is not busy, 
-because lsof reports no open handles and I can unmount it at any moment 
-with 'umount'. If I configure automount to run without /dev/autofs then 
-everything is unmounted as expected.
+Yep, did that.
 
-Here is a sequence of commands to reproduce the problem. It should be 
-run as root and bash shell is assumed. The automount daemon must be 
-using /dev/autofs.
+How stupid of me to assume all file systems would set the super block
+magic number to a non-zero value. Or maybe it isn't me who has done
+something stupid this time, ;)
 
-cd /tmp/
+The patch below seems to fix this.
+The CHANGELOG hunk won't apply of course but the other hunks should
+be OK.
 
-mkdir autofs-test
+Ian
 
-cd autofs-test/
+autofs-5.0.4 - zero s_magic is valid
 
-dd if=/dev/zero of=e3.img bs=1024 count=131072
+From: Ian Kent <raven@themaw.net>
 
-cp e3.img r3.img
+When checking the super magic using the mount control ioctl
+re-implementation an incorrect assumption is made that s_magic
+field in the super block will not be zero.
+---
 
-modprobe loop # if necessary
+ CHANGELOG           |    1 +
+ lib/dev-ioctl-lib.c |   10 ++++------
+ 2 files changed, 5 insertions(+), 6 deletions(-)
 
-losetup /dev/loop0 /tmp/autofs-test/e3.img
 
-losetup /dev/loop1 /tmp/autofs-test/r3.img
-
-mkfs -t ext3 /dev/loop0
-
-mkfs -t reiserfs /dev/loop1
-
-echo \
-$'e3 -fstype=ext3,ro :/dev/loop0\nr3 -fstype=reiserfs,ro :/dev/loop1' \
-	> auto.test
-
-mkdir test
-
-echo '/tmp/autofs-test/test /tmp/autofs-test/auto.test --ghost' \
-  	>> ${wherever_the_master_map_is}/auto.master
-
-/etc/init.d/autofs reload
-
-ls test/{e3,r3}
-
-These commands create two filesystem images attached to loop devices. 
-One is formatted with ext3 an the other one with reiserfs. The last 
-command triggers automounting of both of them. After that one should 
-wait a bit longer than the expiry timeout and then run 'mount' or 'cat 
-/proc/mounts' to see that ext3 has been unmounted, while reiserfs hasn't.
-
-Can anyone, please, try to reproduce the problem?
-
-I'm using vanilla kernel 2.6.28.9 and autofs 5.0.4 (with all 36 patches 
-available at the moment). I did not install any kernel patches, since I 
-understood from this message: http://lkml.org/lkml/2008/11/3/383 that 
-none are necessary (is that correct?).
-
-I appreciate any help to figure out if it is a bug or something is wrong 
-with my system.
-
---
-Sergei.
+diff --git a/CHANGELOG b/CHANGELOG
+index 50bfca8..8254eb5 100644
+--- a/CHANGELOG
++++ b/CHANGELOG
+@@ -38,6 +38,7 @@
+ - fix memory leak reading master map.
+ - fix st_remove_tasks() locking.
+ - reset flex scanner when setting buffer.
++- zero s_magic is valid.
+ 
+ 4/11/2008 autofs-5.0.4
+ -----------------------
+diff --git a/lib/dev-ioctl-lib.c b/lib/dev-ioctl-lib.c
+index 7c8c433..a034a3d 100644
+--- a/lib/dev-ioctl-lib.c
++++ b/lib/dev-ioctl-lib.c
+@@ -764,12 +764,10 @@ static int dev_ioctl_ismountpoint(unsigned int logopt,
+ 	if (err) {
+ 		*mountpoint = DEV_IOCTL_IS_MOUNTED;
+ 
+-		if (param->ismountpoint.out.magic) {
+-			if (param->ismountpoint.out.magic == AUTOFS_SUPER_MAGIC)
+-				*mountpoint |= DEV_IOCTL_IS_AUTOFS;
+-			else
+-				*mountpoint |= DEV_IOCTL_IS_OTHER;
+-		}
++		if (param->ismountpoint.out.magic == AUTOFS_SUPER_MAGIC)
++			*mountpoint |= DEV_IOCTL_IS_AUTOFS;
++		else
++			*mountpoint |= DEV_IOCTL_IS_OTHER;
+ 	}
+ 
+ 	free_dev_ioctl_path(param);
