@@ -1,15 +1,12 @@
-From: Leonardo Chiquitto <leonardo.lists@gmail.com>
-Subject: Re: Negative caching of failed mount attempts
-Date: Fri, 17 Apr 2009 11:42:48 -0300
-Message-ID: <c2d0b6ec0904170742n5a1b8af9h9ee9bf6cfccae71d@mail.gmail.com>
-References: <c2d0b6ec0904161339j3573f25em3b6a1ac1168fa032@mail.gmail.com>
-	<49E7E544.8070609@themaw.net>
-	<x49bpqvmlio.fsf@segfault.boston.devel.redhat.com>
+From: "H. Peter Anvin" <hpa@zytor.com>
+Subject: Very strange autofs failure on 2.6.30-rc2 with
+	autofs-5.0.3-41 (fc10)
+Date: Fri, 17 Apr 2009 16:01:13 -0700
+Message-ID: <49E90A39.3040102@zytor.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <x49bpqvmlio.fsf@segfault.boston.devel.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,23 +17,29 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
->> I have a bunch of patches for v4 from Jeff Moyer that I've not got
->> around to looking closely at and applying. We didn't get as far as the
->> negative lookup caching patch though. In fact I don't think it had been
->> written then.
->
-> Tough call on what to do here. =A0I don't like that we have all of these
-> patches in RHEL only. =A0At the same time, new distribution versions
-> should be using autofs5. =A0So, I'm having a hard time justifying the work
-> of merging all of the work we've done in the RHEL package.
+I have been using for a very long time a setup where /home is an autofs 
+from a plain indirect NIS map, but my personal home directory 
+(/home/hpa) is simply a bind mount from /export/home/hpa.  A 
+straightforward use of autofs.
 
-I was impressed by the amount of patches too. You are doing a
-great job maintaining it.
+I just rebooted my system yesterday, however, and found that all the 
+directory entries in my home directory had gotten replaced with ghost 
+directories -- and even more confusingly, the date wasn't the current 
+date, but was back in 2008.
 
-> Are people still looking for new features in autofs 4? =A0If so, why?
+The ghost directories were "sterile" in the sense that entering them 
+wouldn't show the proper contents of those directories.  As a result, 
+massive failure.
 
-In this specific case it's not really a new feature, because -- even if
-with bugs -- it was there before.
+After suspecting filesystem corruption, and this, that and the other 
+thing, I found that this was only when viewing though autofs 
+(/home/hpa), and that the real filesystem (/export/home/hpa) was fully 
+intact.  Somehow autofs had ended up ghosting pretty much my entire 
+directory, and doing so in some incorrect fashion.
+
+Replacing /home with a plain bind mount (no autofs) to /export/home 
+resolved the issue.
+
+	-hpa
