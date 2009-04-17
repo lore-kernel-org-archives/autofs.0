@@ -1,13 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Negative caching of failed mount attempts
-Date: Fri, 17 Apr 2009 10:11:16 +0800
-Message-ID: <49E7E544.8070609@themaw.net>
-References: <c2d0b6ec0904161339j3573f25em3b6a1ac1168fa032@mail.gmail.com>
+From: Stef Bon <stef@bononline.nl>
+Subject: hal and autofs
+Date: Fri, 17 Apr 2009 11:33:37 +0200
+Message-ID: <49E84CF1.6090004@bononline.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <c2d0b6ec0904161339j3573f25em3b6a1ac1168fa032@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,33 +16,29 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Leonardo Chiquitto <leonardo.lists@gmail.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-Leonardo Chiquitto wrote:
-> Hello,
-> 
-> Three years ago, commit 2d753e62b8 removed kernel-side caching
-> of mount attempts that returns -ENOENT. Apparently it wasn't
-> working as it should.
+Hello,
 
-It stopped working when 2.6 was released due to changes in the VFS.
-These changes made it extremely hard to do in the kernel module. Efforts
-to do it in the kernel module have been abandoned at this stage.
+I've created a construction which mounts local devices like USB sticks 
+and remote (network) services in a connectionsmap in the users 
+homedirectory.
 
-> I see that this feature is now implemented in the user land AutoFS 5
-> daemon, but it wasn't back ported to AutoFS 4. I understand that
-> version 4 is not maintained anymore, but I'd like to ask if someone
-> has a patch around that implements this feature.
+Integration with my desktop  (KDE 4.2) is not that good. When in 
+Dolphin, it tries to mount the devices at /media, not in this autofs 
+managed directory (in my case /home/sbon/Connections/Devices). 
+Responsible for this behaviour in KDE is HAL.
 
-I guess that's what it amounts to, since all the effort is going into v5.
+Integration of autofs and hal is imho a good idea. It should be an 
+configurationoption to let the automounter handle the mounting, or do it 
+the way things are done at this moment (by HAL).
 
-I have a bunch of patches for v4 from Jeff Moyer that I've not got
-around to looking closely at and applying. We didn't get as far as the
-negative lookup caching patch though. In fact I don't think it had been
-written then.
+Required is that autofs has dbus support. I do not have a lot of 
+experience with dbus, but other systems should be able to add a 
+mountpoint (with all options and the path to the local device), and 
+autofs should export information about all mountpoints it manages, and 
+which devices are mounted or not.
 
-What version of autofs?
-Do you have any other patches applied to it?
+What's your opinion, is this possible?
 
-Ian
+Stef Bon
