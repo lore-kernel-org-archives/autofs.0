@@ -1,14 +1,18 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Very strange autofs failure on 2.6.30-rc2
- with	autofs-5.0.3-41 (fc10)
-Date: Sat, 18 Apr 2009 10:58:06 +0800
-Message-ID: <49E941BE.3080706@themaw.net>
-References: <49E90A39.3040102@zytor.com>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: Negative caching of failed mount attempts
+Date: Sat, 18 Apr 2009 19:58:59 -0400
+Message-ID: <x49y6txcy4c.fsf@segfault.boston.devel.redhat.com>
+References: <c2d0b6ec0904161339j3573f25em3b6a1ac1168fa032@mail.gmail.com>
+	<49E7E544.8070609@themaw.net>
+	<c2d0b6ec0904170328k54fd9068h883434b6be217dd9@mail.gmail.com>
+	<49E86ABC.70706@themaw.net>
+	<c2d0b6ec0904170529r40be50a5wab4eb6e0a88e3d2c@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <49E90A39.3040102@zytor.com>
+In-Reply-To: <c2d0b6ec0904170529r40be50a5wab4eb6e0a88e3d2c@mail.gmail.com>
+	(Leonardo Chiquitto's message of "Fri, 17 Apr 2009 09:29:46 -0300")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,36 +23,35 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: autofs@linux.kernel.org
+To: Leonardo Chiquitto <leonardo.lists@gmail.com>
+Cc: autofs@linux.kernel.org, Ian Kent <raven@themaw.net>
 
-H. Peter Anvin wrote:
-> I have been using for a very long time a setup where /home is an autofs 
-> from a plain indirect NIS map, but my personal home directory 
-> (/home/hpa) is simply a bind mount from /export/home/hpa.  A 
-> straightforward use of autofs.
-> 
-> I just rebooted my system yesterday, however, and found that all the 
-> directory entries in my home directory had gotten replaced with ghost 
-> directories -- and even more confusingly, the date wasn't the current 
-> date, but was back in 2008.
-> 
-> The ghost directories were "sterile" in the sense that entering them 
-> wouldn't show the proper contents of those directories.  As a result, 
-> massive failure.
-> 
-> After suspecting filesystem corruption, and this, that and the other 
-> thing, I found that this was only when viewing though autofs 
-> (/home/hpa), and that the real filesystem (/export/home/hpa) was fully 
-> intact.  Somehow autofs had ended up ghosting pretty much my entire 
-> directory, and doing so in some incorrect fashion.
-> 
-> Replacing /home with a plain bind mount (no autofs) to /export/home 
-> resolved the issue.
+Leonardo Chiquitto <leonardo.lists@gmail.com> writes:
 
-This failure sounds rather more spectacular than should result from a
-known problem we have with a recent init scripts change. I'll investigate.
+>> So what do you have, 4.1.4 will all the patches from kernel.org or the
+>> SLES 10 package, or an SLES 10 update of some sort?
+>
+> Sorry for not being specific here.
+>
+> I'm using the latest SLES10 update, which basically is 4.1.4 + some
+> patches from kernel.org + distribution specific configuration and build
+> changes + a couple of other bug fixes that are not upstream.
+>
+> To make things easier to everyone, I grabbed the latest tarball and
+> patches from kernel.org and applied autofs-4.1.4-negative-timeout.patch
+> from RHEL 4 (credits to Jeff Moyer). Just one chunk was rejected (the
+> one from lookup_hesiod.c). Please find the refreshed patch attached,
+> minimally tested so far.
+>
+> I'd appreciate if it could be merged upstream (after proper testing, of
+> course).
 
-Have a look at https://bugzilla.redhat.com/show_bug.cgi?id=475002.
+I think you need at least two more patches:
 
-Ian
+autofs-4.1.3-negative-timeout-doc-update.patch
+autofs-4.1.3-teach-cache-about-negative-mapents.patch
+
+There may be more, though.
+
+Cheers,
+Jeff
