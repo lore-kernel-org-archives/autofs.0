@@ -1,71 +1,38 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: weighting factor?
-Date: Thu, 23 Apr 2009 14:34:12 +0800
-Message-ID: <49F00BE4.8020205@themaw.net>
-References: <OFA7BAAD33.0A4CD567-ON8825759F.00604D01-8825759F.006168EB@mck.us.ray.com>
+Subject: [PATCH] autofs4 - fix incorect return in autofs4_mount_busy()
+Date: Thu, 23 Apr 2009 15:34:52 +0800
+Message-ID: <20090423073452.24530.8621.stgit@zeus.themaw.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <OFA7BAAD33.0A4CD567-ON8825759F.00604D01-8825759F.006168EB@mck.us.ray.com>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-To: Darlene D Choontanom <dchoontanom@raytheon.com>
-Cc: autofs@linux.kernel.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Sender: linux-fsdevel-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: autofs mailing list <autofs@linux.kernel.org>, rhkernel-list@redhat.com, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-Darlene D Choontanom wrote:
-> Hi, all--
-> 
-> Apologies in advance if this has been asked before, but I'm running into 
-> issues with a shared NIS auto.home file we're trying to stand up between 
-> two remote sites.  My clients are a mixture of Solaris and RHEL 3 & 4 
-> machines.  A sample entry in question reads:
+This patch addresses bug 496766.
 
-This won't work how you want in RHEL-3 but should work in reasonably
-recent versions of autofs on RHEL-4.
+Fix an obvious incorect return status in autofs4_mount_busy().
+---
 
-> 
-> foo     thisserver:/export/home4/& \
->         thatserver:/export/home10/&
-> 
-> The Sun clients work fine, automounting the server closest to them 
-> geographically.  The Linux boxes, however, all seem to want to mount 
-> "thatserver", regardless of how far the distance is between them.  I tried 
-> weighting them:
-> 
-> foo     thisserver(1):/export/home4/& \
->         thatserver(9):/export/home10/&
-> 
-> But while that seems to work okay for some of my RHEL boxes, it doesn't 
-> seem to get recognized on others.  I'd like to try to restart the 
-> automounter on the non-working clients, but since they're all in 
-> production, it'll be a little tricky if I don't want to impact my users.
-> 
-> Is this a known problem, or is there a fix?  The weighting factor really 
-> will only fix the clients closest to "thisserver" ; I'd rather not force 
-> the clients close to "thatserver" to have to go to a remote box if there's 
-> a closer one they should be mounting, instead.
-> 
-> Thanks--
-> Darlene
-> 
-> ---
-> dchoontanom@raytheon.com                                        Raytheon 
-> Company
-> 310.334.5478
-> 
-> 
-> ------------------------------------------------------------------------
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
+ fs/autofs4/expire.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/fs/autofs4/expire.c b/fs/autofs4/expire.c
+index 75f7dda..3077d8f 100644
+--- a/fs/autofs4/expire.c
++++ b/fs/autofs4/expire.c
+@@ -70,8 +70,10 @@ static int autofs4_mount_busy(struct vfsmount *mnt, struct dentry *dentry)
+ 		 * Otherwise it's an offset mount and we need to check
+ 		 * if we can umount its mount, if there is one.
+ 		 */
+-		if (!d_mountpoint(dentry))
++		if (!d_mountpoint(dentry)) {
++			status = 0;
+ 			goto done;
++		}
+ 	}
+ 
+ 	/* Update the expiry counter if fs is busy */
+
