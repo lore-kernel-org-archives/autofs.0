@@ -1,14 +1,12 @@
-From: Thomas Connell <tconnell@modwest.com>
-Subject: Re: Mountpoint string corruption in autofs5.0.3-3?
-Date: Sun, 26 Apr 2009 10:36:28 -0600
-Message-ID: <49F48D8C.3060803@modwest.com>
-References: <49F0F494.4030008@modwest.com>
-	<20090426034752.GA3084@zeus.themaw.net>
+From: Marc Weber <marco-oweber@gmx.de>
+Subject: Which version to uses, nsswitch.conf parse errors
+Date: Tue, 28 Apr 2009 22:12:19 +0200
+Message-ID: <20090428201219.GC6042@gmx.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20090426034752.GA3084@zeus.themaw.net>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,80 +17,53 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-Ian Kent wrote:
-> Is this string corruption really present in the log?
+Hi at all,
 
-It is.
+I'd like to add some automount support to the nixos linux distribution.
+however I don't know exactly which version to I should use?
 
-> If this really is in the log so you will need to narrow down where this
-> corruption is happening.
+automount v5 (autfs4 kernel module (?)) or automount v4?
 
-I gave it a shot; I am largely a complete C novice, but:
+For now I've tried v5. However when starting automount I get some parse
+errors:
 
-Following the debugging from the nfs module, the log shows:
-Apr 26 09:49:30 web6 automount[3920]: mount_mount: mount(bind): root=/domains/f/federalhousingtaxcredit.com name=/ 
-what=/www/vhosts/f/federalhousingtaxcredit.com, fstype=bind, options=
+[...]
+--accepting rule at line 92 ("
+")
+--accepting rule at line 92 ("
+")
+--accepting rule at line 87 ("automount:")
+--accepting rule at line 95 (" ")
+--accepting rule at line 97 ("files")
+syntax error in nsswitch config near [ syntax error ]
 
-Which all looks right to me.
-
-Since I could see in the logs that fullpath was garbled, I was wondering if maybe alloca wasn't getting the right length.  I did 
-a bit of trial and error, and it seems consistent that fullpaths of 33 or over become garbled.
-
-So, in mount_bind.c, I added:
-
-debug(ap->logopt, MODPREFIX "name_len=%d", name_len);
-
-right after
-
-int i, rlen;
-
-and
-
-debug(ap->logopt, MODPREFIX "name_len=%d rlen=%d", name_len, rlen);
-
-right after
-
-rlen = strlen(root);
+My nsswitch.conf is attached below.
 
 
-The logs show:
+It looks to me like the lexer ignoring everything until it reaches
+a ^automount line?
 
-Apr 26 10:05:46 web6 automount[7353]: mount_mount: mount(bind): name_len=0
-Apr 26 10:05:46 web6 automount[7353]: mount_mount: mount(bind): name_len=0 rlen=0
+Should I stick to the older automount version?
+Maybe you can help me understand the problem so that I can try improving
+the error message?
 
-which looks wrong to me! (even though it happens the same for the domains that worked before, and those that did not.)
+I've built the 9a77464b git version.
 
-I would expect name_len == 1 so that the program enters this block:
-    /* Root offset of multi-mount */
-    if (*name == '/' && name_len == 1) {
-       rlen = strlen(root);
-       name_len = 0;
+Thanks
+Marc Weber
 
-instead of, right after it:
+My nsswitch.conf:
 
-    } else if (*name == '/')
-       rlen = 0;
+psswd:         ldap files
+group:          ldap files
+shadow:         ldap files
 
+hosts:          files dns
+networks:       files dns
 
-If I set alloca to an arbitrarily high number, the previously garbled mounts mount correctly, without corruption.  It seems like 
-for this style of mount, name_len should be 1, not 0.
+services:       files
+protocols:      files
 
-
-By the way, the automount map looks like:
-# federalhousingtaxcredit.com, domains, jails, Mounts, modwest.com
-dn: cn=federalhousingtaxcredit.com,ou=domains,ou=jails,ou=Mounts,dc=modwest,dc=com
-objectClass: automount
-cn: federalhousingtaxcredit.com
-automountInformation: / :/www/vhosts/f/federalhousingtaxcredit.com /.renv :/mnt/jail
-
-
-For now, I guess I can just waste some memory by setting alloca() arbitrarily high, but that doesn't seem the correct solution.
-
-I hope this reconnaissance was helpful.
-
-Thanks,
-
-Thomas Connell
+automount: files nis
