@@ -1,14 +1,16 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: Mountpoint string corruption in autofs5.0.3-3?
-Date: Sun, 26 Apr 2009 11:47:54 +0800
-Message-ID: <20090426034752.GA3084@zeus.themaw.net>
+Date: Tue, 28 Apr 2009 12:52:40 +0800
+Message-ID: <20090428045239.GA15243@zeus.themaw.net>
 References: <49F0F494.4030008@modwest.com>
+	<20090426034752.GA3084@zeus.themaw.net>
+	<49F48D8C.3060803@modwest.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <49F0F494.4030008@modwest.com>
+In-Reply-To: <49F48D8C.3060803@modwest.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,100 +24,113 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: Thomas Connell <tconnell@modwest.com>
 Cc: autofs@linux.kernel.org
 
-T24gVGh1LCBBcHIgMjMsIDIwMDkgYXQgMDU6MDc6MDBQTSAtMDYwMCwgVGhvbWFzIENvbm5lbGwg
-d3JvdGU6Cj4gSGk7Cj4gCj4gSSdtIGhhdmluZyBhIHByb2JsZW0gdGhhdCBJJ3ZlIGF0dGVtcHRl
-ZCB0byBkZWJ1ZyBhbmQgZ29vZ2xlIG9uIG15IG93biwgYnV0IGhhdmUgcmVhY2hlZCBteSBsaW1p
-dHMgb2YgdW5kZXJzdGFuZGluZy4gIEknbSBob3BpbmcgCj4gdGhlIGxpc3QgbWF5IGJlIGFibGUg
-dG8gcHJvdmlkZSBzb21lIGluc2lnaHQuCj4gCj4gU29tZSBiYWNrIHN0b3J5Ogo+IAo+IEkgaW5o
-ZXJpdGVkIHRoaXMgc2V0dXAsIHdoaWNoIHdhcyBkaXNjdXNzZWQgaW4gdGhpcyBsaXN0LCBhIGxp
-dHRsZSB3aGlsZSBhZ286IAo+IGh0dHA6Ly9saW51eC5rZXJuZWwub3JnL3BpcGVybWFpbC9hdXRv
-ZnMvMjAwOS1GZWJydWFyeS8wMDU1NzUuaHRtbAo+IAo+IEFzIHRoYXQgbGluayBwcm92aWRlZCwg
-SSB3YXMgYWJsZSB0byBiYWNrcG9ydCBkZWJpYW4gNS4wIGF1dG9mczUgdG8gZGViaWFuIDQuMCB3
-aXRoIHRoZSBsaXR0bGUgcGF0Y2guICBNeSB0ZXN0aW5nIHNlZW1lZCB0byAKPiBpbmRpY2F0ZSBp
-dCB3YXMgd29ya2luZyBmaW5lLgo+IAo+IFdoZW4gSSBzdGFydGVkIHRvIHJvbGwgaXQgb3V0LCB0
-aGUgYXV0b21vdW50ZXIgcHJvY2VzcyBzdGFydGVkIHdvcmtpbmcgdGhlIENQVSByZWFsbHkgaGFy
-ZCwgYW5kIHNvbWUgYXV0b21vdW50cyB0aGF0IHdlcmUgCj4gbW91bnRpbmcgYmVmb3JlIHdlcmUg
-bm90Lgo+IAo+IAo+IEhlcmUgYXJlIHRoZSB2ZXJib3NlIGxvZ3MgZnJvbSB3aGVuIHRoZSBmaXJz
-dCBhY2Nlc3MgYXR0ZW1wdHMgdG8gaGl0IHRoZSBtb3VudHBvaW50LiAgSSBhcG9sb2dpemUgZm9y
-IG5vdCBvYnNjdXJpbmcgdGhlIGRvbWFpbiAKPiBuYW1lIHRoYXQgaXMgYWxzbyB0aGUgbW91bnQg
-cG9pbnQsIGJ1dCBzaW5jZSB0aGF0IGlzIHdoYXQgaXMgY29ycnVwdGVkLCBJIGRvbid0IHNlZSBh
-IHdheSBub3QgdG8gcG9zdCBpdDoKPiAKPiAKPiBBcHIgMjMgMTQ6Mjc6MjEgd2ViNiBhdXRvbW91
-bnRbMzE3NzldOiBoYW5kbGVfcGFja2V0OiB0eXBlID0gMwo+IEFwciAyMyAxNDoyNzoyMSB3ZWI2
-IGF1dG9tb3VudFszMTc3OV06IGhhbmRsZV9wYWNrZXRfbWlzc2luZ19pbmRpcmVjdDogdG9rZW4g
-NTEwNiwgbmFtZSBmZWRlcmFsaG91c2luZ3RheGNyZWRpdC5jb20sIHJlcXVlc3QgcGlkIAo+IDE0
-NDE5Cj4gQXByIDIzIDE0OjI3OjIxIHdlYjYgYXV0b21vdW50WzMxNzc5XTogYXR0ZW1wdGluZyB0
-byBtb3VudCBlbnRyeSAvZG9tYWlucy9mL2ZlZGVyYWxob3VzaW5ndGF4Y3JlZGl0LmNvbQo+IEFw
-ciAyMyAxNDoyNzoyMSB3ZWI2IGF1dG9tb3VudFszMTc3OV06IGxvb2t1cF9tb3VudDogbG9va3Vw
-KGxkYXApOiBsb29raW5nIHVwIGZlZGVyYWxob3VzaW5ndGF4Y3JlZGl0LmNvbQo+IEFwciAyMyAx
-NDoyNzoyMSB3ZWI2IGF1dG9tb3VudFszMTc3OV06IGRvX2JpbmQ6IGxvb2t1cChsZGFwKTogbGRh
-cCBhbm9ueW1vdXMgYmluZCByZXR1cm5lZCAwCj4gQXByIDIzIDE0OjI3OjIxIHdlYjYgYXV0b21v
-dW50WzMxNzc5XTogbG9va3VwX29uZTogbG9va3VwKGxkYXApOiBzZWFyY2hpbmcgZm9yIAo+ICIo
-JihvYmplY3RjbGFzcz1hdXRvbW91bnQpKHwoY249ZmVkZXJhbGhvdXNpbmd0YXhjcmVkaXQuY29t
-KShjbj0vKShjbj1cMkEpKSkiIHVuZGVyIAo+ICJvdT1kb21haW5zLG91PWphaWxzLG91PU1vdW50
-cyxkYz1tb2R3ZXN0LGRjPWNvbSIKPiBBcHIgMjMgMTQ6Mjc6MjIgd2ViNiBhdXRvbW91bnRbMzE3
-NzldOiBsb29rdXBfb25lOiBsb29rdXAobGRhcCk6IGdldHRpbmcgZmlyc3QgZW50cnkgZm9yIGNu
-PSJmZWRlcmFsaG91c2luZ3RheGNyZWRpdC5jb20iCj4gQXByIDIzIDE0OjI3OjIyIHdlYjYgYXV0
-b21vdW50WzMxNzc5XTogbG9va3VwX29uZTogbG9va3VwKGxkYXApOiBleGFtaW5pbmcgZmlyc3Qg
-ZW50cnkKPiBBcHIgMjMgMTQ6Mjc6MjIgd2ViNiBhdXRvbW91bnRbMzE3NzldOiBsb29rdXBfb25l
-OiBsb29rdXAobGRhcCk6IGV4YW1pbmluZyBmaXJzdCBlbnRyeQo+IEFwciAyMyAxNDoyNzoyMiB3
-ZWI2IGF1dG9tb3VudFszMTc3OV06IGxvb2t1cF9tb3VudDogbG9va3VwKGxkYXApOiBmZWRlcmFs
-aG91c2luZ3RheGNyZWRpdC5jb20gLT4gLyAKPiA6L3d3dy92aG9zdHMvZi9mZWRlcmFsaG91c2lu
-Z3RheGNyZWRpdC5jb20gLy5yZW52IDovbW50L2phaWwKPiBBcHIgMjMgMTQ6Mjc6MjIgd2ViNiBh
-dXRvbW91bnRbMzE3NzldOiBwYXJzZV9tb3VudDogcGFyc2Uoc3VuKTogZXhwYW5kZWQgZW50cnk6
-IC8gOi93d3cvdmhvc3RzL2YvZmVkZXJhbGhvdXNpbmd0YXhjcmVkaXQuY29tIAo+IC8ucmVudiA6
-L21udC9qYWlsCj4gQXByIDIzIDE0OjI3OjIyIHdlYjYgYXV0b21vdW50WzMxNzc5XTogcGFyc2Vf
-bW91bnQ6IHBhcnNlKHN1bik6IGdhdGhlcmVkIG9wdGlvbnM6IHZkLHN0cmljdAo+IEFwciAyMyAx
-NDoyNzoyMiB3ZWI2IGF1dG9tb3VudFszMTc3OV06IHBhcnNlX21vdW50OiBwYXJzZShzdW4pOiBk
-ZXF1b3RlKCIvIikgLT4gLwo+IEFwciAyMyAxNDoyNzoyMiB3ZWI2IGF1dG9tb3VudFszMTc3OV06
-IHBhcnNlX21hcGVudDogcGFyc2Uoc3VuKTogZ2F0aGVyZWQgb3B0aW9uczogdmQsc3RyaWN0Cj4g
-QXByIDIzIDE0OjI3OjIyIHdlYjYgYXV0b21vdW50WzMxNzc5XTogcGFyc2VfbWFwZW50OiBwYXJz
-ZShzdW4pOiBkZXF1b3RlKCI6L3d3dy92aG9zdHMvZi9mZWRlcmFsaG91c2luZ3RheGNyZWRpdC5j
-b20iKSAtPiAKPiA6L3d3dy92aG9zdHMvZi9mZWRlcmFsaG91c2luZ3RheGNyZWRpdC5jb20KPiBB
-cHIgMjMgMTQ6Mjc6MjIgd2ViNiBhdXRvbW91bnRbMzE3NzldOiBhZGRfb2Zmc2V0X2VudHJ5OiBw
-YXJzZShzdW4pOiBhZGRlZCBtdWx0aS1tb3VudCBvZmZzZXQgLyAtPiAtdmQsc3RyaWN0IAo+IDov
-d3d3L3Zob3N0cy9mL2ZlZGVyYWxob3VzaW5ndGF4Y3JlZGl0LmNvbQo+IEFwciAyMyAxNDoyNzoy
-MiB3ZWI2IGF1dG9tb3VudFszMTc3OV06IHBhcnNlX21vdW50OiBwYXJzZShzdW4pOiBkZXF1b3Rl
-KCIvLnJlbnYiKSAtPiAvLnJlbnYKPiBBcHIgMjMgMTQ6Mjc6MjIgd2ViNiBhdXRvbW91bnRbMzE3
-NzldOiBwYXJzZV9tYXBlbnQ6IHBhcnNlKHN1bik6IGdhdGhlcmVkIG9wdGlvbnM6IHZkLHN0cmlj
-dAo+IEFwciAyMyAxNDoyNzoyMiB3ZWI2IGF1dG9tb3VudFszMTc3OV06IHBhcnNlX21hcGVudDog
-cGFyc2Uoc3VuKTogZGVxdW90ZSgiOi9tbnQvamFpbCIpIC0+IDovbW50L2phaWwKPiBBcHIgMjMg
-MTQ6Mjc6MjIgd2ViNiBhdXRvbW91bnRbMzE3NzldOiBhZGRfb2Zmc2V0X2VudHJ5OiBwYXJzZShz
-dW4pOiBhZGRlZCBtdWx0aS1tb3VudCBvZmZzZXQgLy5yZW52IC0+IC12ZCxzdHJpY3QgOi9tbnQv
-amFpbAo+IEFwciAyMyAxNDoyNzoyMiB3ZWI2IGF1dG9tb3VudFszMTc3OV06IHBhcnNlX21hcGVu
-dDogcGFyc2Uoc3VuKTogZ2F0aGVyZWQgb3B0aW9uczogdmQsc3RyaWN0Cj4gQXByIDIzIDE0OjI3
-OjIyIHdlYjYgYXV0b21vdW50WzMxNzc5XTogcGFyc2VfbWFwZW50OiBwYXJzZShzdW4pOiBkZXF1
-b3RlKCI6L3d3dy92aG9zdHMvZi9mZWRlcmFsaG91c2luZ3RheGNyZWRpdC5jb20iKSAtPiAKPiA6
-L3d3dy92aG9zdHMvZi9mZWRlcmFsaG91c2luZ3RheGNyZWRpdC5jb20KPiBBcHIgMjMgMTQ6Mjc6
-MjIgd2ViNiBhdXRvbW91bnRbMzE3NzldOiBzdW5fbW91bnQ6IHBhcnNlKHN1bik6IG1vdW50aW5n
-IHJvb3QgL2RvbWFpbnMvZi9mZWRlcmFsaG91c2luZ3RheGNyZWRpdC5jb20sIG1vdW50cG9pbnQg
-Cj4gLywgd2hhdCA6L3d3dy92aG9zdHMvZi9mZWRlcmFsaG91c2luZ3RheGNyZWRpdC5jb20sIGZz
-dHlwZSBuZnMsIG9wdGlvbnMgdmQKPiBBcHIgMjMgMTQ6Mjc6MjIgd2ViNiBhdXRvbW91bnRbMzE3
-NzldOiBtb3VudF9tb3VudDogbW91bnQobmZzKTogcm9vdD0vZG9tYWlucy9mL2ZlZGVyYWxob3Vz
-aW5ndGF4Y3JlZGl0LmNvbSBuYW1lPS8gCj4gd2hhdD06L3d3dy92aG9zdHMvZi9mZWRlcmFsaG91
-c2luZ3RheGNyZWRpdC5jb20sIGZzdHlwZT1uZnMsIG9wdGlvbnM9dmQKPiBBcHIgMjMgMTQ6Mjc6
-MjIgd2ViNiBhdXRvbW91bnRbMzE3NzldOiBtb3VudF9tb3VudDogbW91bnQobmZzKTogbmZzIG9w
-dGlvbnM9InZkIiwgbm9zeW1saW5rPTAsIHJvPTAKPiBBcHIgMjMgMTQ6Mjc6MjIgd2ViNiBhdXRv
-bW91bnRbMzE3NzldOiBtb3VudF9tb3VudDogbW91bnQobmZzKTogY2FsbGluZyBta2Rpcl9wYXRo
-IC9kb21haW5zL2YvZmVkZXJhbGhvdXNpbmd0YXhjcmVkaXQuY29tCj4gQXByIDIzIDE0OjI3OjIy
-IHdlYjYgYXV0b21vdW50WzMxNzc5XTogbW91bnRfbW91bnQ6IG1vdW50KG5mcyk6IC8gaXMgbG9j
-YWwsIGF0dGVtcHQgYmluZCBtb3VudAo+IEFwciAyMyAxNDoyNzoyMiB3ZWI2IGF1dG9tb3VudFsz
-MTc3OV06IG1vdW50X21vdW50OiBtb3VudChiaW5kKTogY2FsbGluZyBta2Rpcl9wYXRoIC9kb21h
-aW5zL2YvZmVkZXJhbGhvdXNpbmd0YXhjcmVk77+977+977+9b20KPiBBcHIgMjMgMTQ6Mjc6MjIg
-d2ViNiBhdXRvbW91bnRbMzE3NzldOiBtb3VudF9tb3VudDogbW91bnQoYmluZCk6IGNhbGxpbmcg
-bW91bnQgLS1iaW5kIC1zICAtbyBkZWZhdWx0cyAKPiAvd3d3L3Zob3N0cy9mL2ZlZGVyYWxob3Vz
-aW5ndGF4Y3JlZGl0LmNvbSAvZG9tYWlucy9mL2ZlZGVyYWxob3VzaW5ndGF4Y3JlZO+/ve+/ve+/
-vQo+IEFwciAyMyAxNDoyNzoyMiB3ZWI2IGF1dG9tb3VudFszMTc3OV06ID4+IG1vdW50OiBtb3Vu
-dCBwb2ludCAvZG9tYWlucy9mL2ZlZGVyYWxob3VzaW5ndGF4Y3JlZO+/ve+/ve+/vSBkb2VzIG5v
-dCBleGlzdAoKSXMgdGhpcyBzdHJpbmcgY29ycnVwdGlvbiByZWFsbHkgcHJlc2VudCBpbiB0aGUg
-bG9nPwpJIGNhbid0IHNlZSBob3cgdGhhdCBjb3JydXB0aW9uIGNhbiBvY2N1ciBsb29raW5nIGF0
-IHRoZSBjb2RlLgoKSWYgdGhpcyByZWFsbHkgaXMgaW4gdGhlIGxvZyBzbyB5b3Ugd2lsbCBuZWVk
-IHRvIG5hcnJvdyBkb3duIHdoZXJlIHRoaXMKY29ycnVwdGlvbiBpcyBoYXBwZW5pbmcuCgpBZGRp
-bmcgYSBkZWJ1ZyBsb2dnaW5nIHBhdGNoIHRvIHRoZSBEZWJpYW4gYnVpbGQgdG8gbG9nIHdoYXQg
-aXMgcmVjZWl2ZWQKYnkgbW9kdWxlcy9tb3VudF9iaW5kLmM6bW91bnRfbW91bnQoKSB3b3VsZCBi
-ZSB0aGUgZmlyc3QgdGhpbmcgdG8gZG8uIEEKZGVidWcgbG9nIHN0YXRlbWVudCBzaW1pbGFyIHRv
-IHRoZSBvbmUgYXQgdGhlIHRvcCBvZgptb2R1bGVzL21vdW50X25mcy5jOm1vdW50X21vdW50KCkg
-d291bGQgYmUgZW5vdWdoIHRvIHRlbGwgaWYgdGhpcyBoYXBwZW5zCmJlZm9yZSB0aGUgY2FsbCB0
-byBwZXJmb3JtIGJpbmQgbW91bnQsIG9yIGFmdGVyLgogCklhbgoKX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KYXV0b2ZzIG1haWxpbmcgbGlzdAphdXRvZnNA
-bGludXgua2VybmVsLm9yZwpodHRwOi8vbGludXgua2VybmVsLm9yZy9tYWlsbWFuL2xpc3RpbmZv
-L2F1dG9mcwo=
+On Sun, Apr 26, 2009 at 10:36:28AM -0600, Thomas Connell wrote:
+>
+> I gave it a shot; I am largely a complete C novice, but:
+
+Right, and I find working with the Debian packaging system a bit of a
+nightmare. That's why I was hoping you would do this for me.
+
+>
+> Following the debugging from the nfs module, the log shows:
+> Apr 26 09:49:30 web6 automount[3920]: mount_mount: mount(bind): 
+> root=/domains/f/federalhousingtaxcredit.com name=/  
+> what=/www/vhosts/f/federalhousingtaxcredit.com, fstype=bind, options=
+>
+> Which all looks right to me.
+
+Me too, but it isn't, as we now see from your effort.
+
+>
+> Since I could see in the logs that fullpath was garbled, I was wondering 
+> if maybe alloca wasn't getting the right length.  I did a bit of trial 
+> and error, and it seems consistent that fullpaths of 33 or over become 
+> garbled.
+>
+> So, in mount_bind.c, I added:
+>
+> debug(ap->logopt, MODPREFIX "name_len=%d", name_len);
+>
+> right after
+>
+> int i, rlen;
+>
+> and
+>
+> debug(ap->logopt, MODPREFIX "name_len=%d rlen=%d", name_len, rlen);
+>
+> right after
+>
+> rlen = strlen(root);
+>
+>
+> The logs show:
+>
+> Apr 26 10:05:46 web6 automount[7353]: mount_mount: mount(bind): name_len=0
+> Apr 26 10:05:46 web6 automount[7353]: mount_mount: mount(bind): name_len=0 rlen=0
+
+That is wrong.
+
+It's due to improper use of name_len in modules/mount_nfs.c:mount_mount()
+as, in 5.0.3, name_len is set to 0 prior to the call to perform the bind
+mount.
+
+The problem now is that this has been fixed in 5.0.4 as part of a much
+larger patch.
+
+The hunk in that patch, which should stand alone anyway, is:
+
+diff --git a/modules/mount_nfs.c b/modules/mount_nfs.c
+index d7f42a7..0b253d8 100644
+--- a/modules/mount_nfs.c
++++ b/modules/mount_nfs.c
+@@ -64,7 +64,7 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name, int
+ 	struct host *this, *hosts = NULL;
+ 	unsigned int vers;
+ 	char *nfsoptions = NULL;
+-	int len, rlen, status, err, existed = 1;
++	int len, status, err, existed = 1;
+ 	int nosymlink = 0;
+ 	int ro = 0;            /* Set if mount bind should be read-only */
+ 
+@@ -146,30 +146,18 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name, int
+ 	/* Construct and perhaps create mount point directory */
+ 
+ 	/* Root offset of multi-mount */
+-	if (*name == '/' && name_len == 1) {
+-		rlen = strlen(root);
+-		name_len = 0;
++	len = strlen(root);
++	if (root[len - 1] == '/') {
++		fullpath = alloca(len);
++		len = snprintf(fullpath, len, "%s", root);
+ 	/* Direct mount name is absolute path so don't use root */
+-	} else if (*name == '/')
+-		rlen = 0;
+-	else
+-		rlen = strlen(root);
+-
+-	fullpath = alloca(rlen + name_len + 2);
+-	if (!fullpath) {
+-		char *estr = strerror_r(errno, buf, MAX_ERR_BUF);
+-		logerr(MODPREFIX "alloca: %s", estr);
+-		free_host_list(&hosts);
+-		return 1;
+-	}
+-
+-	if (name_len) {
+-		if (rlen)
+-			len = sprintf(fullpath, "%s/%s", root, name);
+-		else
+-			len = sprintf(fullpath, "%s", name);
+-	} else
++	} else if (*name == '/') {
++		fullpath = alloca(len + 1);
+ 		len = sprintf(fullpath, "%s", root);
++	} else {
++		fullpath = alloca(len + name_len + 2);
++		len = sprintf(fullpath, "%s/%s", root, name);
++	}
+ 	fullpath[len] = '\0';
+ 
+ 	debug(ap->logopt, MODPREFIX "calling mkdir_path %s", fullpath);
