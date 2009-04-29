@@ -1,12 +1,13 @@
-From: Marc Weber <marco-oweber@gmx.de>
-Subject: Which version to uses, nsswitch.conf parse errors
-Date: Tue, 28 Apr 2009 22:12:19 +0200
-Message-ID: <20090428201219.GC6042@gmx.de>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: Which version to uses, nsswitch.conf parse errors
+Date: Wed, 29 Apr 2009 09:59:51 +0800
+Message-ID: <49F7B497.80006@themaw.net>
+References: <20090428201219.GC6042@gmx.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <20090428201219.GC6042@gmx.de>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,53 +18,96 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Marc Weber <marco-oweber@gmx.de>
+Cc: autofs@linux.kernel.org
 
-Hi at all,
+Marc Weber wrote:
+> Hi at all,
+> 
+> I'd like to add some automount support to the nixos linux distribution.
+> however I don't know exactly which version to I should use?
+> 
+> automount v5 (autfs4 kernel module (?)) or automount v4?
 
-I'd like to add some automount support to the nixos linux distribution.
-however I don't know exactly which version to I should use?
+Version 5 has nsswitch support.
 
-automount v5 (autfs4 kernel module (?)) or automount v4?
+The kernel module used should be autofs4.
 
-For now I've tried v5. However when starting automount I get some parse
-errors:
+The reason for the name is historic but autofs4 supports autofs kernel
+protocols v3, v4 and v5 whereas the autofs module supports autofs kernel
+protocol v3.
 
-[...]
---accepting rule at line 92 ("
-")
---accepting rule at line 92 ("
-")
---accepting rule at line 87 ("automount:")
---accepting rule at line 95 (" ")
---accepting rule at line 97 ("files")
-syntax error in nsswitch config near [ syntax error ]
+> 
+> For now I've tried v5. However when starting automount I get some parse
+> errors:
+> 
+> [...]
+> --accepting rule at line 92 ("
+> ")
+> --accepting rule at line 92 ("
+> ")
+> --accepting rule at line 87 ("automount:")
+> --accepting rule at line 95 (" ")
+> --accepting rule at line 97 ("files")
+> syntax error in nsswitch config near [ syntax error ]
+> 
+> My nsswitch.conf is attached below.
+> 
+> 
+> It looks to me like the lexer ignoring everything until it reaches
+> a ^automount line?
 
-My nsswitch.conf is attached below.
+Well, yes it's looking for automount map sources, what else would you
+expect?
 
+> 
+> Should I stick to the older automount version?
 
-It looks to me like the lexer ignoring everything until it reaches
-a ^automount line?
+Don't think so. There's no nsswitch support in v4 and v4 is getting
+limited attention these days.
 
-Should I stick to the older automount version?
-Maybe you can help me understand the problem so that I can try improving
-the error message?
+> Maybe you can help me understand the problem so that I can try improving
+> the error message?
 
-I've built the 9a77464b git version.
+Most of the time the message reflects the part of the line the message
+occurred at but, if the parser gets an error at a point that doesn't
+have text for the token it just prints the above.
 
-Thanks
-Marc Weber
+The error handling in the lex/yacc (Flex/Bison actually) parser is
+painful to the max. While that may well be my poor implementation the
+fact that I ended up with a poor implementation after so much effort is
+a problem in itself.
 
-My nsswitch.conf:
+The question of whether to expand the use of a parser generator to the
+rest of the parsing in autofs or to re-write the whole lot with a
+manually crafted lexer and parser is still undecided.
 
-psswd:         ldap files
-group:          ldap files
-shadow:         ldap files
+> 
+> I've built the 9a77464b git version.
 
-hosts:          files dns
-networks:       files dns
+Right, that's fairly recent.
+The nsswitch.conf below looks OK to me and the parse works fine for me
+here on an entry formatted the same way.
 
-services:       files
-protocols:      files
-
-automount: files nis
+> 
+> Thanks
+> Marc Weber
+> 
+> My nsswitch.conf:
+> 
+> psswd:         ldap files
+> group:          ldap files
+> shadow:         ldap files
+> 
+> hosts:          files dns
+> networks:       files dns
+> 
+> services:       files
+> protocols:      files
+> 
+> automount: files nis
+> 
+> _______________________________________________
+> autofs mailing list
+> autofs@linux.kernel.org
+> http://linux.kernel.org/mailman/listinfo/autofs
