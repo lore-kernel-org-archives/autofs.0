@@ -1,13 +1,14 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Which version to uses, nsswitch.conf parse errors
-Date: Wed, 29 Apr 2009 11:19:56 +0800
-Message-ID: <49F7C75C.3070303@themaw.net>
+From: Marc Weber <marco-oweber@gmx.de>
+Subject: Which version to uses, nsswitch.conf parse errors
+Date: Thu, 30 Apr 2009 00:50:27 +0200
+Message-ID: <20090429225027.GC17870@gmx.de>
 References: <20090428201219.GC6042@gmx.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20090428201219.GC6042@gmx.de>
+Content-Disposition: inline
+In-Reply-To: <49F7C75C.3070303@themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,33 +19,15 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Marc Weber <marco-oweber@gmx.de>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-Marc Weber wrote:
-> Hi at all,
-> 
-> I'd like to add some automount support to the nixos linux distribution.
-> however I don't know exactly which version to I should use?
-> 
-> automount v5 (autfs4 kernel module (?)) or automount v4?
-> 
-> For now I've tried v5. However when starting automount I get some parse
-> errors:
-> 
-> [...]
-> --accepting rule at line 92 ("
-> ")
-> --accepting rule at line 92 ("
-> ")
-> --accepting rule at line 87 ("automount:")
-> --accepting rule at line 95 (" ")
-> --accepting rule at line 97 ("files")
-> syntax error in nsswitch config near [ syntax error ]
+Hi Ian,
 
-This probably results from not having a <NL> at the end of the line.
-It's not a simple matter to deal with this invalid input as we read the
-nsswitch input from a stream and <EOF> needs to be handled by the parser
-not the rules.
+Indeed you'r right. There wasn't a \n at the end.
+I was sure I tried that. I did. I must have messed something up while
+playing with the parser. the syntax clearly states source NL;
+I'll do some further investigation.
+Using automount compiled by the system there is no error anymore. Strange.
+Anyway thanks to your great support!
 
-Ian
+Marc Weber
