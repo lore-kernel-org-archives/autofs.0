@@ -1,14 +1,20 @@
-From: Marc Weber <marco-oweber@gmx.de>
-Subject: Which version to uses, nsswitch.conf parse errors
-Date: Thu, 30 Apr 2009 00:50:27 +0200
-Message-ID: <20090429225027.GC17870@gmx.de>
-References: <20090428201219.GC6042@gmx.de>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: Automounter stops after reload signal.
+Date: Fri, 1 May 2009 10:40:53 +0800
+Message-ID: <20090501024052.GA3519@zeus.themaw.net>
+References: <49DCCD73.5050307@bononline.nl>
+	<1239545315.23791.0.camel@zeus.themaw.net>
+	<49E22C1D.8030504@bononline.nl> <49E2D284.1040801@themaw.net>
+	<49E2F90A.9010901@bononline.nl> <49E2FF76.2080108@themaw.net>
+	<20090424043142.GA3172@zeus.themaw.net>
+	<20090424045400.GA5578@zeus.themaw.net>
+	<49F17607.1010606@bononline.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <49F7C75C.3070303@themaw.net>
+In-Reply-To: <49F17607.1010606@bononline.nl>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,15 +25,96 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Stef Bon <stef@bononline.nl>
+Cc: autofs@linux.kernel.org
 
-Hi Ian,
+On Fri, Apr 24, 2009 at 10:19:19AM +0200, Stef Bon wrote:
+> Ian Kent wrote:
+>> Oops, that's not quite right.
+>> Try this instead, of course the CHANGELOG hunk might not apply.
 
-Indeed you'r right. There wasn't a \n at the end.
-I was sure I tried that. I did. I must have messed something up while
-playing with the parser. the syntax clearly states source NL;
-I'll do some further investigation.
-Using automount compiled by the system there is no error anymore. Strange.
-Anyway thanks to your great support!
+And there was another mistake in this patch.
+This one hopefully will be the final form of the fix.
 
-Marc Weber
+autofs-5.0.4 - library reload fix update fix
+
+From: Ian Kent <raven@themaw.net>
+
+The library reload fixes introduced a bug which causes autofs to
+incorrectly shutdown. Previously the signal handling thread only
+recieved signals either when they were explicity sent or it was
+time to shutdown so continuing on to call the signal handling
+routine was the correct thing to do. Now we need to join with
+the mount handling thread at exit but, in this case, we don't
+want to continue on to the signal handling routine as that will
+incorrectly cause the signal to be passed on to other mount
+handling threads.
+---
+
+ CHANGELOG          |    1 +
+ daemon/automount.c |   18 ++++++++++++++++--
+ lib/master.c       |    2 --
+ 3 files changed, 17 insertions(+), 4 deletions(-)
+
+
+diff --git a/CHANGELOG b/CHANGELOG
+index 7ca45fd..5e01812 100644
+--- a/CHANGELOG
++++ b/CHANGELOG
+@@ -44,6 +44,7 @@
+ - use intr option as hosts mount default.
+ - fix kernel includes.
+ - dont umount existing direct mount on master re-read.
++- fix incorrect shutdown introduced by library relaod fixes.
+ 
+ 4/11/2008 autofs-5.0.4
+ -----------------------
+diff --git a/daemon/automount.c b/daemon/automount.c
+index 80691fa..3a0fe0b 100644
+--- a/daemon/automount.c
++++ b/daemon/automount.c
+@@ -1332,8 +1332,22 @@ static void *statemachine(void *arg)
+ 		case SIGTERM:
+ 		case SIGINT:
+ 		case SIGUSR2:
+-			if (master_done(master_list))
+-				return NULL;
++			master_mutex_lock();
++			if (list_empty(&master_list->completed)) {
++				if (list_empty(&master_list->mounts)) {
++					master_mutex_unlock();
++					return NULL;
++				}
++			} else {
++				if (master_done(master_list)) {
++					master_mutex_unlock();
++					return NULL;
++				}
++				master_mutex_unlock();
++				break;
++			}
++			master_mutex_unlock();
++
+ 		case SIGUSR1:
+ 			do_signals(master_list, sig);
+ 			break;
+diff --git a/lib/master.c b/lib/master.c
+index 762094f..e43f835 100644
+--- a/lib/master.c
++++ b/lib/master.c
+@@ -1182,7 +1182,6 @@ int master_done(struct master *master)
+ 	struct master_mapent *entry;
+ 	int res = 0;
+ 
+-	master_mutex_lock();
+ 	head = &master->completed;
+ 	p = head->next;
+ 	while (p != head) {
+@@ -1195,7 +1194,6 @@ int master_done(struct master *master)
+ 	}
+ 	if (list_empty(&master->mounts))
+ 		res = 1;
+-	master_mutex_unlock();
+ 
+ 	return res;
+ }
