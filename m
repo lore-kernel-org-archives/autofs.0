@@ -1,12 +1,20 @@
-From: raespi <raespi@estudiantes.uci.cu>
-Subject: how to use keys ...
-Date: Fri, 01 May 2009 23:27:31 -0400
-Message-ID: <1241234851.12172.5.camel@bellerophon>
-Reply-To: raespi@estudiantes.uci.cu
+From: Stef Bon <stef@bononline.nl>
+Subject: Re: Automounter stops after reload signal.
+Date: Sun, 03 May 2009 01:52:34 +0200
+Message-ID: <49FCDCC2.4090201@bononline.nl>
+References: <49DCCD73.5050307@bononline.nl>
+	<1239545315.23791.0.camel@zeus.themaw.net>
+	<49E22C1D.8030504@bononline.nl> <49E2D284.1040801@themaw.net>
+	<49E2F90A.9010901@bononline.nl> <49E2FF76.2080108@themaw.net>
+	<20090424043142.GA3172@zeus.themaw.net>
+	<20090424045400.GA5578@zeus.themaw.net>
+	<49F17607.1010606@bononline.nl>
+	<20090501024052.GA3519@zeus.themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <20090501024052.GA3519@zeus.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,43 +25,28 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org
 
-Hi, i've been trying out the autofs mounter to gain more availability in
-my network environment ... I have a number of users created already
-under :
+Ian Kent wrote:
+> On Fri, Apr 24, 2009 at 10:19:19AM +0200, Stef Bon wrote:
+>   
+>> Ian Kent wrote:
+>>     
+>>> Oops, that's not quite right.
+>>> Try this instead, of course the CHANGELOG hunk might not apply.
+>>>       
+>
+> And there was another mistake in this patch.
+> This one hopefully will be the final form of the fix.
+>
+> autofs-5.0.4 - library reload fix update fix
+>   
 
-/home/.....
+Ok,
 
-/home/teratux  :: For example
+I have not been able to apply and test this patch. The last one is doing 
+very well.
+I'll recompile autofs with this new patch and report this.
 
-I want to be able to automount a resource from NFS in this exact
-location.  This is my auto.master:
-
-/home   /etc/auto.home --timeout=10
-
-This is my auto.home:
-
-x          -ro,soft,intr,rsize=32768,wsize=32768,noatime
-10.7.22.178:/home
-
-My problem lies where the "x" is.  How do I use an indirect key name in
-a way that any request under /home automatically fires up the
-automounter?? I already tried:
-
-auto.master:
-/   /etc/auto.home --timeout=10
-
-auto.home:
-home          -ro,soft,intr,rsize=32768,wsize=32768,noatime
-10.7.22.178:/home
-
-With no success.  The /etc/init.d/autofs status script doesn't show
-anything going on ... I'm using Debian as you can already imagine, a
-2.6.26 standard kernel, and autofs 4.1.4
-
-Can anyone help me??
-
-Thanks ...
--- 
-#468171
+Stef Bon
