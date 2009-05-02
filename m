@@ -1,20 +1,12 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Automounter stops after reload signal.
-Date: Fri, 1 May 2009 10:40:53 +0800
-Message-ID: <20090501024052.GA3519@zeus.themaw.net>
-References: <49DCCD73.5050307@bononline.nl>
-	<1239545315.23791.0.camel@zeus.themaw.net>
-	<49E22C1D.8030504@bononline.nl> <49E2D284.1040801@themaw.net>
-	<49E2F90A.9010901@bononline.nl> <49E2FF76.2080108@themaw.net>
-	<20090424043142.GA3172@zeus.themaw.net>
-	<20090424045400.GA5578@zeus.themaw.net>
-	<49F17607.1010606@bononline.nl>
+From: raespi <raespi@estudiantes.uci.cu>
+Subject: how to use keys ...
+Date: Fri, 01 May 2009 23:27:31 -0400
+Message-ID: <1241234851.12172.5.camel@bellerophon>
+Reply-To: raespi@estudiantes.uci.cu
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <49F17607.1010606@bononline.nl>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -25,96 +17,43 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Stef Bon <stef@bononline.nl>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Fri, Apr 24, 2009 at 10:19:19AM +0200, Stef Bon wrote:
-> Ian Kent wrote:
->> Oops, that's not quite right.
->> Try this instead, of course the CHANGELOG hunk might not apply.
+Hi, i've been trying out the autofs mounter to gain more availability in
+my network environment ... I have a number of users created already
+under :
 
-And there was another mistake in this patch.
-This one hopefully will be the final form of the fix.
+/home/.....
 
-autofs-5.0.4 - library reload fix update fix
+/home/teratux  :: For example
 
-From: Ian Kent <raven@themaw.net>
+I want to be able to automount a resource from NFS in this exact
+location.  This is my auto.master:
 
-The library reload fixes introduced a bug which causes autofs to
-incorrectly shutdown. Previously the signal handling thread only
-recieved signals either when they were explicity sent or it was
-time to shutdown so continuing on to call the signal handling
-routine was the correct thing to do. Now we need to join with
-the mount handling thread at exit but, in this case, we don't
-want to continue on to the signal handling routine as that will
-incorrectly cause the signal to be passed on to other mount
-handling threads.
----
+/home   /etc/auto.home --timeout=10
 
- CHANGELOG          |    1 +
- daemon/automount.c |   18 ++++++++++++++++--
- lib/master.c       |    2 --
- 3 files changed, 17 insertions(+), 4 deletions(-)
+This is my auto.home:
 
+x          -ro,soft,intr,rsize=32768,wsize=32768,noatime
+10.7.22.178:/home
 
-diff --git a/CHANGELOG b/CHANGELOG
-index 7ca45fd..5e01812 100644
---- a/CHANGELOG
-+++ b/CHANGELOG
-@@ -44,6 +44,7 @@
- - use intr option as hosts mount default.
- - fix kernel includes.
- - dont umount existing direct mount on master re-read.
-+- fix incorrect shutdown introduced by library relaod fixes.
- 
- 4/11/2008 autofs-5.0.4
- -----------------------
-diff --git a/daemon/automount.c b/daemon/automount.c
-index 80691fa..3a0fe0b 100644
---- a/daemon/automount.c
-+++ b/daemon/automount.c
-@@ -1332,8 +1332,22 @@ static void *statemachine(void *arg)
- 		case SIGTERM:
- 		case SIGINT:
- 		case SIGUSR2:
--			if (master_done(master_list))
--				return NULL;
-+			master_mutex_lock();
-+			if (list_empty(&master_list->completed)) {
-+				if (list_empty(&master_list->mounts)) {
-+					master_mutex_unlock();
-+					return NULL;
-+				}
-+			} else {
-+				if (master_done(master_list)) {
-+					master_mutex_unlock();
-+					return NULL;
-+				}
-+				master_mutex_unlock();
-+				break;
-+			}
-+			master_mutex_unlock();
-+
- 		case SIGUSR1:
- 			do_signals(master_list, sig);
- 			break;
-diff --git a/lib/master.c b/lib/master.c
-index 762094f..e43f835 100644
---- a/lib/master.c
-+++ b/lib/master.c
-@@ -1182,7 +1182,6 @@ int master_done(struct master *master)
- 	struct master_mapent *entry;
- 	int res = 0;
- 
--	master_mutex_lock();
- 	head = &master->completed;
- 	p = head->next;
- 	while (p != head) {
-@@ -1195,7 +1194,6 @@ int master_done(struct master *master)
- 	}
- 	if (list_empty(&master->mounts))
- 		res = 1;
--	master_mutex_unlock();
- 
- 	return res;
- }
+My problem lies where the "x" is.  How do I use an indirect key name in
+a way that any request under /home automatically fires up the
+automounter?? I already tried:
+
+auto.master:
+/   /etc/auto.home --timeout=10
+
+auto.home:
+home          -ro,soft,intr,rsize=32768,wsize=32768,noatime
+10.7.22.178:/home
+
+With no success.  The /etc/init.d/autofs status script doesn't show
+anything going on ... I'm using Debian as you can already imagine, a
+2.6.26 standard kernel, and autofs 4.1.4
+
+Can anyone help me??
+
+Thanks ...
+-- 
+#468171
