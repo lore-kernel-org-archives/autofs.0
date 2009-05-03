@@ -1,13 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Map a single file??
-Date: Sun, 03 May 2009 11:25:15 +0800
-Message-ID: <49FD0E9B.7070505@themaw.net>
-References: <49FCDEA9.2040804@bononline.nl>
+From: Peter <Sheldon@hera.kernel.org>
+Subject: fstab
+Date: Sun, 3 May 2009 18:14:37 +0200
+Message-ID: <20090503181437.91f3a3c2.Sheldon@peters.home>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <49FCDEA9.2040804@bononline.nl>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,31 +16,13 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Stef Bon <stef@bononline.nl>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-Stef Bon wrote:
-> Hello,
-> 
-> I would like to know is it possible for the automounter to map a single 
-> file?
-> In KDE, the filemanagers Dolphin and Konqueror look for the file 
-> .directory in every
-> directory. In some cases I want to present a special .directory file. 
-> The automounter is presenting a
-> tree which consist of networks, workgroups, servers and shares. For the 
-> network for example, the windows network folder icon would be something 
-> like an windows icon. This can be set in the .directory file. Futher I 
-> want these directories presented as icons, not in list.
-> 
-> So, can the automounter map single files, besides directories mapped to 
-> networkmountpoints?
 
-That's not functionality that belongs in the autofs.
+I can't find any reference to a network share (nfs) can or can not be present in fstab. My problem is SLOCATE doesn't like Autofs and ignores my nfs share when I run updatedb. Using nfs in a "normal" fashion from fstab slocate works. Looks like Autofs ignore has been hardcoded because removing autofs from updatedb.conf makes no difference. I keep my file storage server down and bring it up when needed. Autofs works like a charm, nfs via fstab doesn't. If I put in a line in fstab noauto with the nfs share will KDE or AUTOFS have problems? I am on Gentoo.
+thanks
+regards
+peter
 
-This amounts to being able to "mount a single file" and AFAIK Linux
-doesn't have this functionality at all and OSs that do have this only
-for files that have specific support for particular files, such as
-/etc/mnttab in Solaris.
-
-Ian
+-- 
+Peter <Sheldon>
