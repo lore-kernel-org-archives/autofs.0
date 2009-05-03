@@ -1,20 +1,11 @@
 From: Stef Bon <stef@bononline.nl>
-Subject: Re: Automounter stops after reload signal.
-Date: Sun, 03 May 2009 01:52:34 +0200
-Message-ID: <49FCDCC2.4090201@bononline.nl>
-References: <49DCCD73.5050307@bononline.nl>
-	<1239545315.23791.0.camel@zeus.themaw.net>
-	<49E22C1D.8030504@bononline.nl> <49E2D284.1040801@themaw.net>
-	<49E2F90A.9010901@bononline.nl> <49E2FF76.2080108@themaw.net>
-	<20090424043142.GA3172@zeus.themaw.net>
-	<20090424045400.GA5578@zeus.themaw.net>
-	<49F17607.1010606@bononline.nl>
-	<20090501024052.GA3519@zeus.themaw.net>
+Subject: Map a single file??
+Date: Sun, 03 May 2009 02:00:41 +0200
+Message-ID: <49FCDEA9.2040804@bononline.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20090501024052.GA3519@zeus.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -25,28 +16,22 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-Ian Kent wrote:
-> On Fri, Apr 24, 2009 at 10:19:19AM +0200, Stef Bon wrote:
->   
->> Ian Kent wrote:
->>     
->>> Oops, that's not quite right.
->>> Try this instead, of course the CHANGELOG hunk might not apply.
->>>       
->
-> And there was another mistake in this patch.
-> This one hopefully will be the final form of the fix.
->
-> autofs-5.0.4 - library reload fix update fix
->   
+Hello,
 
-Ok,
+I would like to know is it possible for the automounter to map a single 
+file?
+In KDE, the filemanagers Dolphin and Konqueror look for the file 
+.directory in every
+directory. In some cases I want to present a special .directory file. 
+The automounter is presenting a
+tree which consist of networks, workgroups, servers and shares. For the 
+network for example, the windows network folder icon would be something 
+like an windows icon. This can be set in the .directory file. Futher I 
+want these directories presented as icons, not in list.
 
-I have not been able to apply and test this patch. The last one is doing 
-very well.
-I'll recompile autofs with this new patch and report this.
+So, can the automounter map single files, besides directories mapped to 
+networkmountpoints?
 
 Stef Bon
