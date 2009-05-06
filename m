@@ -1,13 +1,12 @@
-From: Martin Tessun <martin.tessun@gmx.de>
-Subject: Re: how to use keys ...
-Date: Tue, 05 May 2009 21:29:18 +0200
-Message-ID: <4A00938E.6050804@gmx.de>
-References: <1241234851.12172.5.camel@bellerophon>
+From: raespi <raespi@estudiantes.uci.cu>
+Subject: using autofs ...
+Date: Wed, 06 May 2009 15:00:10 -0400
+Message-ID: <1241636410.4468.22.camel@bellerophon>
+Reply-To: raespi@estudiantes.uci.cu
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1241234851.12172.5.camel@bellerophon>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,35 +17,49 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: raespi@estudiantes.uci.cu
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-raespi schrieb:
-> Hi, i've been trying out the autofs mounter to gain more availability in
-> my network environment ... I have a number of users created already
-> under :
-> 
-> /home/.....
-> 
-> /home/teratux  :: For example
-> 
-> I want to be able to automount a resource from NFS in this exact
-> location.  This is my auto.master:
-> 
-> /home   /etc/auto.home --timeout=10
-> 
-> This is my auto.home:
-> 
-> x          -ro,soft,intr,rsize=32768,wsize=32768,noatime
-> 10.7.22.178:/home
+Hi, I posted about a week ago to this list but got no answer ... I'll
+try again ...
 
-So the auto.master i scorrect. If you want to use wildcards, you can do
-so by using the following auto.home:
+I'm trying to use configure my autofs configuration in a way that I can
+mount all the users directories configured using NFS ...
 
-*	-ro,soft,intr,rsize=32768,wsize=32768,noatime 10.7.22.178:/home/&
+Here's my original line in my fstab:
 
-So if you do a cd /home/abc it tries to mount 10.7.22.178:/home/abc at
-this location.
+x.x.x.x:/home       /home   nfs
+defaults,rsize=32768,wsize=32768,intr,noatime,soft      0       0
 
-Regards,
-Martin
+I would like to configure autofs to do this job for me in case my
+network fails ( which happens a lot ), here's what I have:
+
+auto.master:
+/  /etc/auto.home --timeout=60
+
+auto.home:
+home          -defaults,rsize=32768,wsize=32768,intr,noatime,soft
+x.x.x.x:/home
+
+This configuration tries to mount the resource in /home
+
+When I reload my service I try to see the status of the autofs
+application but it doesn't show any information.  When I use a different
+key in the auto.master and auto.home to mount the resource in for
+example: /home/users like so:
+
+auto.master:
+/home  /etc/auto.home --timeout=60
+
+auto.home:
+users          -defaults,rsize=32768,wsize=32768,intr,noatime,soft
+x.x.x.x:/home
+
+It works ... My question is, why can't I use the "/" directory as a key
+name?? And how could I configure the two files so I can mount everything
+in "/home" ??
+
+Thanks in advance ..
+
+Greetings ...
+-- 
+#468171
