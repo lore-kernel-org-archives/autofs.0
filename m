@@ -1,14 +1,14 @@
-From: Matthias =?iso-8859-1?Q?K=F6nig?= <mk@phasorlab.de>
-Subject: Re: using autofs ...
-Date: Wed, 6 May 2009 21:50:36 +0200
-Message-ID: <20090506195036.GA4877@zebra.localsite>
-References: <1241636410.4468.22.camel@bellerophon>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: Map a single file??
+Date: Thu, 07 May 2009 16:16:24 -0400
+Message-ID: <x49iqkcvfc7.fsf@segfault.boston.devel.redhat.com>
+References: <49FCDEA9.2040804@bononline.nl> <49FD0E9B.7070505@themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1241636410.4468.22.camel@bellerophon>
+In-Reply-To: <49FD0E9B.7070505@themaw.net> (Ian Kent's message of "Sun, 03 May
+	2009 11:25:15 +0800")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,25 +19,38 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: raespi <raespi@estudiantes.uci.cu>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-raespi <raespi@estudiantes.uci.cu> wrote:
+Ian Kent <raven@themaw.net> writes:
 
-> It works ... My question is, why can't I use the "/" directory as a key
-> name?? And how could I configure the two files so I can mount everything
-> in "/home" ??
+> Stef Bon wrote:
+>> Hello,
+>> 
+>> I would like to know is it possible for the automounter to map a single 
+>> file?
+>> In KDE, the filemanagers Dolphin and Konqueror look for the file 
+>> .directory in every
+>> directory. In some cases I want to present a special .directory file. 
+>> The automounter is presenting a
+>> tree which consist of networks, workgroups, servers and shares. For the 
+>> network for example, the windows network folder icon would be something 
+>> like an windows icon. This can be set in the .directory file. Futher I 
+>> want these directories presented as icons, not in list.
+>> 
+>> So, can the automounter map single files, besides directories mapped to 
+>> networkmountpoints?
+>
+> That's not functionality that belongs in the autofs.
+>
+> This amounts to being able to "mount a single file" and AFAIK Linux
+> doesn't have this functionality at all and OSs that do have this only
+> for files that have specific support for particular files, such as
+> /etc/mnttab in Solaris.
 
-Because with normal indirect mounts / would be overmounted with an
-autofs filesystem.
-The alternative is using direct mounts (assuming autofs5) by using
-/- for the mount point in the master map and give the full path of
-the mount point as key in the map, something like this should work:
+Actually, you *can* bind mount a single file.  However, the automount
+daemon does not support this construct as we mkdir the path and mount on
+top of that.
 
-auto.master:
-/-	/etc/auto.home
-
-auto.home:
-/home	x.x.x.x:/home
-
-Matthias
+Cheers,
+Jeff
