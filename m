@@ -1,14 +1,15 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: HOST expansion with autofs+LDAP
-Date: Wed, 13 May 2009 13:17:20 +0800
-Message-ID: <4A0A57E0.3010601@themaw.net>
-References: <20090512154529.9FC3313ED0@wsnyder.org>
-	<4A0A4BCC.4030702@themaw.net>
+Subject: Re: unable to automount windows C$
+Date: Wed, 13 May 2009 13:30:50 +0800
+Message-ID: <4A0A5B0A.1060701@themaw.net>
+References: <9728fb580812101149s300c524dn5f6785c16bac969c@mail.gmail.com>	<1230012791.3043.6.camel@zeus.themaw.net>	<4A07749D.4000406@edcint.co.nz>
+	<4A08FEE6.7000604@themaw.net>	<4A0A533A.3060203@edcint.co.nz>
+	<4A0A5527.2060207@themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4A0A4BCC.4030702@themaw.net>
+In-Reply-To: <4A0A5527.2060207@themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,40 +20,22 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Wilson Snyder <wsnyder@wsnyder.org>
-Cc: autofs@linux.kernel.org
+To: Matthew Jurgens <autofs@edcint.co.nz>
+Cc: autofs@linux.kernel.org, Jeff Layton <jlayton@redhat.com>
 
 Ian Kent wrote:
-> Wilson Snyder wrote:
->> I have a suse10.3 system which includes autofs-5.0.2-30.2
->>
->> I'd like an LDAP entry that makes an autofs mountpoint that
->> includes the local host's name.  If this wasn't under LDAP I
->> believe "/net/$HOST" would work - creating a
->> "/net/{name-of-hostname}" mountpoint.
->>
->> However, if I add a mountpoint with cn=$HOST
->>
->> cn=$HOST,nismapname=auto.net,dc=company,dc=com
->>
->> The automounter nicely makes a "/net/$HOST" mount -
->> *literally* /net/$HOST, that is it doesn't expand $HOST to
->> the hostname.
->>
->> Same thing if I use cn=${host}
->>
->> Any hints?  Thanks! 
-> 
-> Oddly enough I think that $HOST should be expanded but I have no idea
-> how you think this is supposed to work because you haven't provided any
-> information about the LDAP entry, other than the dn, or provided any
-> debug log information.
+>> May 13 14:43:28 gw automount[15573]: mount_mount: mount(generic):
+>> calling mount -t cifs -s -o username=USERNAME,password=PASSWORD
+>> //xp0/C\$ /tmp/auto6t8L4W
 
-Sorry, that isn't correct.
-Macro expansion is not done on keys and never has been.
+Ohh, I get it, the "\" is a path separator for mount.cifs and I think
+the handling of it may have changed recently ish.
 
-Which begs the question, is it sensible to do macro expansion on keys
-from a map before trying to match them against the key string received
-from the kernel for the lookup?
+So catch 22, autofs must escaped the "$" to prevent it being interpreted
+as a macro and the generic mount module has no special knowledge of cifs
+so it can't do anything about it. Worse, since "\" is a valid path
+separator for UNC paths we can't just check the fs type and translate
+them all. For example, what if we get :\\\\<server>\\service as the
+location?
 
 Ian
