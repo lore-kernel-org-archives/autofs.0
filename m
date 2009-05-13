@@ -1,15 +1,17 @@
-From: Ian Kent <raven@themaw.net>
+From: Jeff Layton <jlayton@redhat.com>
 Subject: Re: unable to automount windows C$
-Date: Wed, 13 May 2009 16:16:28 +0800
-Message-ID: <4A0A81DC.1080703@themaw.net>
-References: <9728fb580812101149s300c524dn5f6785c16bac969c@mail.gmail.com>	<1230012791.3043.6.camel@zeus.themaw.net>	<4A07749D.4000406@edcint.co.nz>	<4A08FEE6.7000604@themaw.net>	<4A0A533A.3060203@edcint.co.nz>	<4A0A5527.2060207@themaw.net>	<4A0A59F5.1090308@edcint.co.nz>	<4A0A5B80.4040303@themaw.net>
-	<4A0A5EE7.3020806@edcint.co.nz>	<4A0A6178.7090003@edcint.co.nz>
-	<4A0A8034.40304@themaw.net>
+Date: Wed, 13 May 2009 07:54:09 -0400
+Message-ID: <20090513075409.7a962fe5@tleilax.poochiereds.net>
+References: <9728fb580812101149s300c524dn5f6785c16bac969c@mail.gmail.com>
+	<1230012791.3043.6.camel@zeus.themaw.net>
+	<4A07749D.4000406@edcint.co.nz> <4A08FEE6.7000604@themaw.net>
+	<4A0A533A.3060203@edcint.co.nz> <4A0A5527.2060207@themaw.net>
+	<4A0A5B0A.1060701@themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4A0A8034.40304@themaw.net>
+In-Reply-To: <4A0A5B0A.1060701@themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,46 +22,47 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Matthew Jurgens <autofs@edcint.co.nz>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-Ian Kent wrote:
-> Matthew Jurgens wrote:
->> Yes, when you mount it manually you don't escape the "$"
->>
->>> If I manually mount it using:
->>> mount -t cifs -o username=mjurgens,password=parallel12 //xp0/C$ /mnt/C$
->>> it works. If I also escape the $ then it also works
->>> mount -t cifs -o username=mjurgens,password=parallel12 //xp0/C\$ /mnt/C\$
->>>
->>> Was that what you were talking about?
->>>
->>> _______________________________________________
->>> autofs mailing list
->>> autofs@linux.kernel.org
->>> http://linux.kernel.org/mailman/listinfo/autofs
->>>   
->> When I was on Fedora 8 and autofs-5.0.2-16
->> <http://koji.fedoraproject.org/koji/buildinfo?buildID=46891>
->> <http://koji.fedoraproject.org/koji/buildinfo?buildID=46891> it worked
->> Then when I upgraded only autofs to 5.0.3 it was broken
->> Doesn't that suggest that it is something in the autofs code that can
->> therefore be potentially fixed?
->>
+On Wed, 13 May 2009 13:30:50 +0800
+Ian Kent <raven@themaw.net> wrote:
+
+> Ian Kent wrote:
+> >> May 13 14:43:28 gw automount[15573]: mount_mount: mount(generic):
+> >> calling mount -t cifs -s -o username=USERNAME,password=PASSWORD
+> >> //xp0/C\$ /tmp/auto6t8L4W
 > 
-> Maybe.
+> Ohh, I get it, the "\" is a path separator for mount.cifs and I think
+> the handling of it may have changed recently ish.
+
+Around a year ago, yes.
+
 > 
-> There is always the possibility of working around things like this.
-> But it may not be a simple matter to change this as lot of change has
-> taken place.
+> So catch 22, autofs must escaped the "$" to prevent it being interpreted
+> as a macro and the generic mount module has no special knowledge of cifs
+> so it can't do anything about it. Worse, since "\" is a valid path
+> separator for UNC paths we can't just check the fs type and translate
+> them all. For example, what if we get :\\\\<server>\\service as the
+> location?
+> 
 
-Maybe we should try a couple of things and see what we get. I don't have
-a Windows environment I can use here so you will have to help.
+Right -- and it's even worse than that. '\' is a valid character in
+posix path components. It's perfectly legitimate (though insane) to
+have a file named:
 
-I'm wondering why I need to double escape the $ after looking at your
-debug log.
+/home/jlayton/crazy\file
 
-How about commenting out the line "gsub(/\$$/, "\\$", loc);" in
-/etc/auto.smb and see what happens.
+'crazy\file' is a valid file/dir name.
 
-Ian
+I did a small writeup on this for the mount.cifs(8) manpage -- see the
+section called 'SERVICE FORMATTING AND DELIMITERS'.
+
+I think the only real way to solve this is to make sure that autofs
+doesn't try to escape these characters before it calls mount. I don't
+think mount does any variable interpolation, and I know mount.cifs
+doesn't so there shouldn't be any need for escape chars before '$'
+signs, assuming you're not handing these off to a shell of some sort.
+
+-- 
+Jeff Layton <jlayton@redhat.com>
