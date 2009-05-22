@@ -1,16 +1,12 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: HOST expansion with autofs+LDAP
-Date: Fri, 22 May 2009 09:50:58 -0400
-Message-ID: <x49d4a1kzzx.fsf@segfault.boston.devel.redhat.com>
-References: <20090512154529.9FC3313ED0@wsnyder.org>
-	<4A0A4BCC.4030702@themaw.net> <4A0A57E0.3010601@themaw.net>
-	<20090521140333.A048214477@wsnyder.org>
+From: Phil Dumont <phil@solidstatescientific.com>
+Subject: Should stat(2)ing an automount mount point trigger the
+	automount?
+Date: Fri, 22 May 2009 13:42:49 -0400 (EDT)
+Message-ID: <67349.32791243014169920.JavaMail.root@zimbra.solidstatescientific.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20090521140333.A048214477@wsnyder.org> (Wilson Snyder's message
-	of "Thu, 21 May 2009 10:03:33 -0400 (EDT)")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,90 +17,41 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Wilson Snyder <wsnyder@wsnyder.org>
-Cc: autofs@linux.kernel.org, raven@themaw.net
+To: autofs@linux.kernel.org
 
-wsnyder@wsnyder.org (Wilson Snyder) writes:
+On a CentOS 5.4 installation, I ran this command:
 
->>Ian Kent wrote:
->>> Wilson Snyder wrote:
->>>> I have a suse10.3 system which includes autofs-5.0.2-30.2
->>>>
->>>> I'd like an LDAP entry that makes an autofs mountpoint that
->>>> includes the local host's name.  If this wasn't under LDAP I
->>>> believe "/net/$HOST" would work - creating a
->>>> "/net/{name-of-hostname}" mountpoint.
->>>>
->>>> However, if I add a mountpoint with cn=$HOST
->>>>
->>>> cn=$HOST,nismapname=auto.net,dc=company,dc=com
->>>>
->>>> The automounter nicely makes a "/net/$HOST" mount -
->>>> *literally* /net/$HOST, that is it doesn't expand $HOST to
->>>> the hostname.
->>>>
->>>> Same thing if I use cn=${host}
->>>>
->>>> Any hints?  Thanks! 
->>> 
->>> Oddly enough I think that $HOST should be expanded but I have no idea
->>> how you think this is supposed to work because you haven't provided any
->>> information about the LDAP entry, other than the dn, or provided any
->>> debug log information.
->>
->>Sorry, that isn't correct.
->>Macro expansion is not done on keys and never has been.
->>
->>Which begs the question, is it sensible to do macro expansion on keys
->>from a map before trying to match them against the key string received
->>from the kernel for the lookup?
->
-> I'm not sure if I'm decoding the question properly, but I
-> suspect it's fast enough to expand on the fly, as that's
-> more flexible, but either way works for my application since
-> HOST is (well is generally) constant.
->
-> Can you point me to the right place in t the 5.0.2 sources
-> to patch this in? I see the expansion code in parse_mount
-> but am not sure what the best place to call it from is.
+find /net/fs/export/vtrak3b/keeper/
 
-Here's a general overview of how things work:
+...and it yielded this message to stderr:
 
-1) A process walks into an automount managed mountpoint and does a lookup
-   of a directory, in your case, fully.qualified.domain.name.
-2) The kernel passes this on to the automount daemon as a lookup of
-   "fully.qualified.domain.name"
-3) the automount daemon checks its maps for an entry with a key of
-   "fully.qualified.domain.name"
+find: WARNING: Hard link count is wrong for /net/fs/export/vtrak3b/keeper/: this may be a bug in your filesystem driver. Automatically turning on find's -noleaf option. Earlier results may have failed to include directories that should have been searched. 
 
-So, the trick is figuring out how the automount daemon is supposed to
-know that "fully.qualified.domain.name" belongs to your entry with
-cn="$HOST".
+Apparently, as soon as you access /net/host, if host is exporting
+any paths other than /, the automount daemon will create a mount
+point /net/host/path/to/export for every path exported by host,
+but doesn't actually mount anything until you read the
+exported/automounted directory.  (The host 'fs' is exporting
+/export/vtrak3b/keeper, along with some other non-root
+directories.)
 
-You *could* enumerate the entire map on startup, and expand the $HOST in
-the automounter's cache.  However, not all map sources support
-enumeration (hesiod and program maps come to mind).  So, what do you do
-in those cases?
+And it would seem that stat(2)ing the mount point does not
+trigger the automount, so the stat(2) reports on the mount
+point, not the directory that's going to be mounted there.
 
-Further, Ian mentioned that this is a catch 22.  You want to parse an
-entry in the lookup phase.  The automounter is laid out in a bit of a
-layered format:
+It would seem that find stat(2)s a directory before it opendir(3)s
+it.  So the stat(2) of keeper saw a hard link count of 2 (which is
+correct for the empty mount point), but when find started reading the
+directory, that triggered the automount, and it was now accessing the
+mounted directory instead of the mount point, and apparently noticed
+the discrepancy.
 
-daemon proper  |
--------------  |
-lookup modules |  (looks up keys)
--------------  |
-parse modules  |  (expands *entries*)
--------------  |
-mount modules  V  (mounts expanded entry on dir named by key)
+I've already entered a bug report against find, requesting that
+it open the directory before stat-ing it:
 
-The flow is as the arrow indicates.  What you're asking for is parsing
-in the lookup module.  (It's doable, of course, barring the problem that
-it won't work for all map types.)
+    http://savannah.gnu.org/bugs/?26641
 
-Now, backing up, here, why do you want to create a directory with the
-local host's fqdn?  What are you really trying to do?  This goes back to
-Ian's initial question, I guess.
+But the bug might arguably be with automount.  Should a stat
+of the mount point trigger the automount?
 
-Cheers,
-Jeff
+phil dumont
