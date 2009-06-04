@@ -1,14 +1,12 @@
-From: Stef Bon <stef@bononline.nl>
-Subject: Re: writing to fstab or mtab
-Date: Tue, 02 Jun 2009 14:38:26 +0200
-Message-ID: <4A251D42.3060808@bononline.nl>
-References: <4A1FD279.7030009@bononline.nl>
-	<x498wkghurm.fsf@segfault.boston.devel.redhat.com>
+From: Jim Dennis <jdennis@cadence.com>
+Subject: /tmp/autoXXXXXX artifacts in /etc/mtab
+Date: Wed, 3 Jun 2009 18:18:21 -0700
+Message-ID: <3BE3DD53E8C764428441BEFE7FE94F163DF67D2B@MAILSJ4.global.cadence.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <x498wkghurm.fsf@segfault.boston.devel.redhat.com>
+Content-Language: en-US
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,37 +17,35 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: autofs@linux.kernel.org
+To: "'autofs@linux.kernel.org'" <autofs@linux.kernel.org>
 
-Jeff Moyer wrote:
-> Stef Bon <stef@bononline.nl> writes:
->
->   
->> Hello,
->> Now to prevent HAL to try to mount the device at /media, the scripts in 
->> my contruction write a line to /etc/fstab, like:
->>
->> /dev/sdb1 /home/sbon/Connections/Devices/USB\040stick auto noauto,user 0 0
->>
->> This works very good, but this setting in fstab confuses the 
->> automounter. I'm not trying to solve my problem here with hal, but how 
->> come the setting in fstab to confuse autofs?
->>     
->
-> Stef, you're going to have to be a bit more specific!  What do you mean
-> it confuses the automounter?  What behaviour is expected/observed?  Do
-> you have a debug log?
->
-> Cheers,
-> Jeff
->
->   
-Thanks for your reply,
 
-I've solved the problem already by adding the --timeout=0 option  to the 
-map for usb devices.
-Then by activating the mount directly, the mount is written to mtab. KDE 
-finds this mount then, and bypasses HAL, what is the goal.
 
-Stef
+ All,
+
+ Running autofs version 5 (versions from RHEL4u7, RHEL5 and the upstream 5.0.4 with almost
+ all of the patches applied) we're seeing quite a few issues with stray /tmp/auto* entries being
+ left in the /etc/mtab file.
+
+ The symptom is lots of error messages from df commands.
+
+ Looking through the sources I see that autofs version 5 seems to implement its own internal
+ mount handling (it's not just spawning process to run the /sbin/mount external command
+ for any of the types of mounts for which it has a .so module).  I noticed that there are  three
+ different places in the code which use tempfile template strings matching /tmp/autoXXXXXX.
+
+ I haven't get been able to track the issue down further ... but I suspect there's a bug in the
+ code that's updating /etc/mtab and which is supposed to be cleaning out these entries.
+ We have a horrendously busy and complex automount infrastucture and we've uncovered
+ locking issues on /etc/mtab in the past (from the /sbin/mount code as well as during the
+ period of time when autofs4 was trying to wrap its own locking around its calls to the external
+ mount command.
+
+ I'll try to get a more detailed formal bug report together in the next week or so.  However, I
+ figured I should put out an early message in case others are seeing this or already working on it.
+
+
+--
+Jim Dennis,
+Senior Staff Linux Engineer, IT
+Cadence Design Systems, Inc.
