@@ -1,13 +1,23 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: /tmp/autoXXXXXX artifacts in /etc/mtab
-Date: Thu, 04 Jun 2009 12:21:08 +0800
-Message-ID: <4A274BB4.2080500@themaw.net>
-References: <3BE3DD53E8C764428441BEFE7FE94F163DF67D2B@MAILSJ4.global.cadence.com>
+Subject: Re: unable to automount windows C$
+Date: Thu, 04 Jun 2009 12:24:09 +0800
+Message-ID: <4A274C69.4090202@themaw.net>
+References: <9728fb580812101149s300c524dn5f6785c16bac969c@mail.gmail.com>
+	<1230012791.3043.6.camel@zeus.themaw.net>
+	<4A07749D.4000406@edcint.co.nz> <4A08FEE6.7000604@themaw.net>
+	<4A0A533A.3060203@edcint.co.nz> <4A0A5527.2060207@themaw.net>
+	<4A0A59F5.1090308@edcint.co.nz> <4A0A5B80.4040303@themaw.net>
+	<4A0A5EE7.3020806@edcint.co.nz> <4A0A7ECB.2060604@themaw.net>
+	<4A0B5DED.1090900@edcint.co.nz> <4A0B808C.2030705@themaw.net>
+	<4A0CC262.7020105@edcint.co.nz> <4A0D1630.3040407@themaw.net>
+	<4A0FC156.10108@edcint.co.nz> <4A10BC5B.7010402@themaw.net>
+	<4A24BC60.1020404@edcint.co.nz> <4A250A66.4070206@themaw.net>
+	<4A271218.3030300@edcint.co.nz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <3BE3DD53E8C764428441BEFE7FE94F163DF67D2B@MAILSJ4.global.cadence.com>
+In-Reply-To: <4A271218.3030300@edcint.co.nz>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,70 +28,35 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jim Dennis <jdennis@cadence.com>
-Cc: "'autofs@linux.kernel.org'" <autofs@linux.kernel.org>
+To: Matthew Jurgens <autofs@edcint.co.nz>
+Cc: autofs@linux.kernel.org
 
-Jim Dennis wrote:
+Matthew Jurgens wrote:
 > 
->  All,
+>>> Sorry I must be missing something.
+>>> You say autofs is now treating the script as a file since it is not
+>>> executable but it is executable.
+>>> I don't quite understand the "if (st.st_mode & __S_IEXEC)" part of the
+>>> code above.
+>>>     
+>>
+>> All I'm saying is that, for whatever reason, autofs is treating your
+>> program map as a file map. Why I don't know.
+>>
+>> The check (st.st_mode & __S_IEXEC) checks if the mode returned by the
+>> stat(2) of the path in ap->argv[0] is executable by the owner of the
+>> file.
+>>
+>> Ian
+>>
+>>   
+> Can you please then just explain what
 > 
->  Running autofs version 5 (versions from RHEL4u7, RHEL5 and the upstream 5.0.4 with almost
->  all of the patches applied) we're seeing quite a few issues with stray /tmp/auto* entries being
->  left in the /etc/mtab file.
+> "if (st.st_mode & __S_IEXEC)" is testing for?
 
-But what OS are you using for this and what autofs v5 revisions are you
-using?
+Ha, but I did!
 
-We know RHEL-4 has a broken move mount and a util-linux dependency has
-been added in later revisions. RHEL-4 U7 will be a problem with
-autofs-5.0.4 without an updated util-linux.
+It is checking if the map (path in ap->argv[0]) has the execute bit set
+for the owner.
 
-Anyway, you can check.
-
-From the bug for this:
-
-Steps to Reproduce:
-1. mkdir /tmp/mnt /tmp/tmp
-2. mount <server>:/<path> /tmp/tmp
-3. mount --move /tmp/tmp /tmp/mnt
-
-Actual results:
-After the steps above /etc/matb has:
-<server>:/<path> /tmp/tmp nfs ....
-/tmp/tmp /tmp/mnt none ...
-
-but /proc/mounts has:
-<server>:/<path> /tmp/mnt nfs ....
-
-Expected results:
-/etc/matb should have a single entry
-<server>:/<path> /tmp/mnt nfs ....
-
-> 
->  The symptom is lots of error messages from df commands.
-> 
->  Looking through the sources I see that autofs version 5 seems to implement its own internal
->  mount handling (it's not just spawning process to run the /sbin/mount external command
->  for any of the types of mounts for which it has a .so module).  I noticed that there are  three
->  different places in the code which use tempfile template strings matching /tmp/autoXXXXXX.
-> 
->  I haven't get been able to track the issue down further ... but I suspect there's a bug in the
->  code that's updating /etc/mtab and which is supposed to be cleaning out these entries.
->  We have a horrendously busy and complex automount infrastucture and we've uncovered
->  locking issues on /etc/mtab in the past (from the /sbin/mount code as well as during the
->  period of time when autofs4 was trying to wrap its own locking around its calls to the external
->  mount command.
-> 
->  I'll try to get a more detailed formal bug report together in the next week or so.  However, I
->  figured I should put out an early message in case others are seeing this or already working on it.
-> 
-> 
-> --
-> Jim Dennis,
-> Senior Staff Linux Engineer, IT
-> Cadence Design Systems, Inc.
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
+Ian
