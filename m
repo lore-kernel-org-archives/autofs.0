@@ -1,14 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: 5.0.4 with all patches -> compile error on 64bit
-Date: Fri, 05 Jun 2009 10:04:47 +0800
-Message-ID: <4A287D3F.70808@themaw.net>
-References: <4A278C3B.6050207@math.uni-muenster.de>
-	<4A2879A2.9010101@themaw.net>
+From: Stef Bon <stef@bononline.nl>
+Subject: ldap and reloading
+Date: Sun, 07 Jun 2009 10:38:19 +0200
+Message-ID: <4A2B7C7B.7060909@bononline.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4A2879A2.9010101@themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,44 +16,20 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Nail El-Sourani <sourani@math.uni-muenster.de>
-Cc: "'autofs@linux.kernel.org'" <autofs@linux.kernel.org>
+To: autofs@linux.kernel.org
 
-Ian Kent wrote:
->> ...
->> gcc -O2 -Wall -D_REENTRANT -D_FILE_OFFSET_BITS=3D64 -rdynamic -fPIE
->> -D_GNU_SOURCE -I../include -DAUTOFS_LIB_DIR=3D\"/usr/lib/autofs\" =
+Hello,
 
->> -DAUTOFS_MAP_DIR=3D\"/etc\" -DAUTOFS_CONF_DIR=3D\"/etc/sysconfig\"
->> -DAUTOFS_FIFO_DIR=3D\"/var/run\" -DAUTOFS_FLAG_DIR=3D\"/var/run\"
->> -DVERSION_STRING=3D\"5.0.4\" -c flag.c
->> gcc -s -lpthread -rdynamic -pie -o automount automount.o indirect.o
->> direct.o spawn.o module.o mount.o lookup.o state.o flag.o
->> ../lib/autofs.a -ldl
->> ../lib/autofs.a(master_tok.o): In function `master_set_scan_buffer':
->> master_tok.c:(.text+0x257): undefined reference to `master_lex_destroy'
->> collect2: ld gab 1 als Ende-Status zur=FCck
->> make[1]: *** [automount] Fehler 1
->> make[1]: Leaving directory `/root/Desktop/autofs-5.0.4/daemon'
->> make: *** [daemon] Fehler 2
->>
->>
->> (these are the last few lines)
->>
->> i am suspecting a problem with 64bit but then again, what do i know...
->> this is a centos5.3 64bit machine
-> =
+when using static file maps, or even executable maps, when the map 
+changes, you'll have to reload the daemon to make these changes effective.
 
-> OK I'll fix that.
-> I think it's the Lexx version what is too old.
+How does this work when all the data is in ldap? Does the automounter 
+still creates a sort of snapshot of the map in memory, and to reread the 
+data provided by ldap, a reload is neccesary? ldap is well know for that 
+this is not needed. For example with postfix, it can use static maps, 
+and when something changes, it has te be restarted. But when the lookup 
+data (for local users for example) is in ldap, this is not neccesary.
 
-But then again maybe not, the flex version is just to old, I'm not sure
-that the bleeding edge upstream source should make compromises for older
-flex versions. The function master_lex_destroy() (actually yy... since
-this is a multiple parser lexer) does more than just clear the user
-parse buffer, and the 5.0.4 patch does a couple of other things as well.
+If this is the case, I go directly over to ldap.
 
-A configure change and some #ifdef ugliness might do the trick I guess.
-Not looking forward to doing that!
-
-Ian
+Stef
