@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: unable to automount windows C$
-Date: Tue, 09 Jun 2009 11:05:36 +0800
-Message-ID: <4A2DD180.4010303@themaw.net>
+Date: Tue, 09 Jun 2009 11:21:25 +0800
+Message-ID: <4A2DD535.3060709@themaw.net>
 References: <9728fb580812101149s300c524dn5f6785c16bac969c@mail.gmail.com>
 	<1230012791.3043.6.camel@zeus.themaw.net>
 	<4A07749D.4000406@edcint.co.nz> <4A08FEE6.7000604@themaw.net>
@@ -49,16 +49,8 @@ Matthew Jurgens wrote:
 > Which seems to meet all the criteria - owned by root, executable by root
 > etc etc
 
-Yes, it looks OK but I don't know of any problems with this, so I'm at a
-loss as to what could be happening.
-
-Does running this script using "/opt/maj/auto.samba <some server>" work?
-
-> 
-> This is only a side issue as to why we can not automount samba paths
-> ending in $
-> 
-
-Sure, but we can't check changes to the script if we can't execute it.
+What does the master map entry for this look like?
+If you have "file:" in front of the map path that will force autofs to
+treat it as a file map.
 
 Ian
