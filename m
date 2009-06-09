@@ -1,24 +1,14 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: unable to automount windows C$
-Date: Tue, 09 Jun 2009 11:21:25 +0800
-Message-ID: <4A2DD535.3060709@themaw.net>
-References: <9728fb580812101149s300c524dn5f6785c16bac969c@mail.gmail.com>
-	<1230012791.3043.6.camel@zeus.themaw.net>
-	<4A07749D.4000406@edcint.co.nz> <4A08FEE6.7000604@themaw.net>
-	<4A0A533A.3060203@edcint.co.nz> <4A0A5527.2060207@themaw.net>
-	<4A0A59F5.1090308@edcint.co.nz> <4A0A5B80.4040303@themaw.net>
-	<4A0A5EE7.3020806@edcint.co.nz> <4A0A7ECB.2060604@themaw.net>
-	<4A0B5DED.1090900@edcint.co.nz> <4A0B808C.2030705@themaw.net>
-	<4A0CC262.7020105@edcint.co.nz> <4A0D1630.3040407@themaw.net>
-	<4A0FC156.10108@edcint.co.nz> <4A10BC5B.7010402@themaw.net>
-	<4A24BC60.1020404@edcint.co.nz> <4A250A66.4070206@themaw.net>
-	<4A271218.3030300@edcint.co.nz> <4A274C69.4090202@themaw.net>
-	<4A2DADEA.3010406@edcint.co.nz>
+Subject: Re: ldap and reloading
+Date: Tue, 09 Jun 2009 11:19:03 +0800
+Message-ID: <4A2DD4A7.2090604@themaw.net>
+References: <4A2B7C7B.7060909@bononline.nl>	<4A2C70C2.6060505@themaw.net>	<4A2CD536.8070907@bononline.nl>	<4A2CDADB.6080902@themaw.net>	<4A2CE517.3060207@s3group.cz>
+	<4A2D0FB2.6000609@themaw.net> <4A2D2852.6090501@bononline.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4A2DADEA.3010406@edcint.co.nz>
+In-Reply-To: <4A2D2852.6090501@bononline.nl>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -29,28 +19,56 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Matthew Jurgens <autofs@edcint.co.nz>
+To: Stef Bon <stef@bononline.nl>
 Cc: autofs@linux.kernel.org
 
-Matthew Jurgens wrote:
-> 
->>>> All I'm saying is that, for whatever reason, autofs is treating your
->>>> program map as a file map. Why I don't know.
->>>>
->>>>       
->> It is checking if the map (path in ap->argv[0]) has the execute bit set
->> for the owner.
+Stef Bon wrote:
+> Ian Kent wrote:
+>> Ondrej Valousek wrote:
+>>  
+>>> Talking about ldap maps reloading - maybe it is worth mentioning that
+>>> if you configure automounter using the recently added DNS SRV
+>>> support, automounter reloads itself as per zone TTL in DNS (that
+>>> includes the master map, too) - right Ian?
+>>> Ondrej
+>>>
+>>>     
+>> Not quite.
 >>
->> Ian
->>
+>> On re-load, if the last time we got the list of servers is greater than
+>> the ttl it will lookup there server list again before attempting to read
+>> from them. Map entry lookups them selves don't check this ttl so a
+>> re-load is only done if we think the map has changed.
 >>   
-> So my file looks like
-> -rwxr-xr-x 1 root root   1193 2009-05-16 09:53 /opt/maj/auto.samba
-> Which seems to meet all the criteria - owned by root, executable by root
-> etc etc
+> 
+> Well, this is all getting very complicated. Too complicated for me.
+> 
+> The only thing I'm using autofs for is creating a autofs managed
+> directory in the homedirectory, for mounting local (USB) and remote (SMB
+> shares) resources. To make this work, the autofs daemon has to reread
+> the configuration of maps multiple times.
+> 
+> It would be so much easier if there is a sort of autofsctl utility for
+> adding/removing mountpoints, and changing maps.
+> 
+> for example:
+> 
+> a. add a mounpoint and map.
+> b. delete a mountpoint
+> 
+> c. change a map.
 
-What does the master map entry for this look like?
-If you have "file:" in front of the map path that will force autofs to
-treat it as a file map.
+Yes, that's a good idea and we've thought about doing a control program
+several times in the past but, it's quite a bit of work and is well
+outside the scope for the 5.0 series.
+
+> 
+> Now when something changes, the global remounter gets a reload signal,
+> which is still buggy. I'm still having problems here, but since I've
+> upgraded the kernel to linux-2.6.29.4 I've got less problems.
+
+And we need to fix the reloading problem anyway.
+I've had a brief look around regarding your report and hope to get back
+to it and spend more time on it soon, sorry.
 
 Ian
