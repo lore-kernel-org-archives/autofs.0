@@ -1,13 +1,19 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: automounting issues: cannot open parse module dc=de
-Date: Sun, 14 Jun 2009 13:44:31 +0800
-Message-ID: <4A348E3F.4070608@themaw.net>
-References: <4A325A8B.3050503@cs.tu-berlin.de>
+From: Matthew Jurgens <autofs@edcint.co.nz>
+Subject: Re: unable to automount windows C$
+Date: Thu, 11 Jun 2009 22:13:37 +1000
+Message-ID: <4A30F4F1.9000909@edcint.co.nz>
+References: <9728fb580812101149s300c524dn5f6785c16bac969c@mail.gmail.com>
+	<1230012791.3043.6.camel@zeus.themaw.net>
+	<4A07749D.4000406@edcint.co.nz> <4A08FEE6.7000604@themaw.net>
+	<4A0A533A.3060203@edcint.co.nz> <4A0A5527.2060207@themaw.net>
+	<4A0A59F5.1090308@edcint.co.nz> <4A0A5B80.4040303@themaw.net>
+	<4A0A5EE7.3020806@edcint.co.nz> <4A0A7ECB.2060604@themaw.net>
+	<4A0B5DED.1090900@edcint.co.nz> <4A0B808C.2030705@themaw.net>
+	<4A2E2CD7.20905@edcint.co.nz> <4A30A2FB.5050005@themaw.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============2411721542915564360=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4A325A8B.3050503@cs.tu-berlin.de>
+In-Reply-To: <4A30A2FB.5050005@themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,56 +24,109 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: aaron <aaron@cs.tu-berlin.de>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-aaron wrote:
-> Hi everyone at autofs discussion list,
-> 
-> I'm having some serious problems with the automounter daemon on my
-> system. I'm using gentoo and everything was fine (besides some regular
-> autofs crashes) using autofs-5.0.4-r2 (that's autofs-5.0.4 and all
-> patches up to autofs-5.0.4-fix-quoted-mess.patch). After upgrading to
-> autofs-5.0.4-r3 (that's autofs-5.0.4 and all patches up to
-> autofs-5.0.4-dont-umount-existing-direct-mount-on-reread.patch)
-> automounting suddenly failed to work for me. The situation hasn't
-> changed with autofs-5.0.4-r4 (that's autofs-5.0.4 and all patches up to
-> autofs-5.0.4-use-srv-query-for-domain-dn.patch)
-> 
-> Here are the errors from /var/log/messages (same happens when I try to
-> automount /company/home):
-> 
-> Jun 11 21:29:08 erding automount[16977]: open_parse:168: lookup(ldap):
-> cannot open parse module dc=de (/usr/lib64/autofs/parse_dc=de.so: cannot
-> open shared object file: No such file or directory)
-> Jun 11 21:29:08 erding automount[16977]: lookup_init:1493: lookup(ldap):
-> failed to open parse context
-> Jun 11 21:29:08 erding automount[16977]: mount_autofs_indirect: failed
-> to read map for /company/projekte
-> Jun 11 21:29:08 erding automount[16977]: handle_mounts: mount of
-> /company/projekte failed!
-> Jun 11 21:29:08 erding automount[16977]: mount_mount: mount(autofs):
-> failed to create submount for /company/projekte
-> 
-> 
-> I were able to track the issue down to
-> autofs-5.0.4-easy-alloca-replacements.patch as being the culprit. (I can
-> automount just fine with all patches up th
-> autofs-5.0.4-make-MAX_ERR_BUF-and-PARSE_MAX_BUF-use-easier-to-audit.patch,
-> things start to break from the moment on I apply
-> autofs-5.0.4-easy-alloca-replacements.patch.)
-> 
-> 
-> I'm willing to provide any further informations that might be required
-> to fix this issue.
+This is a multi-part message in MIME format.
+--===============2411721542915564360==
+Content-Type: multipart/alternative;
+ boundary="------------000105050303060503000809"
 
-Looks like a known problem.
+This is a multi-part message in MIME format.
+--------------000105050303060503000809
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-The patch autofs-5.0.4-fix-map-type-info-parse-error.patch on kernel.org
-will get you by until I get around to fixing it properly. That will be
-an additional patch to this one so shouldn't cause further problems
-using this one. The CHANGELOG hunk obviously won't apply unless you also
-apply the other 7 patches after
-autofs-5.0.4-use-srv-query-for-domain-dn.patch.
 
-Ian
+>> # optional authentication information
+>> # either set it here or pass it in via the environment
+>> # SMB_USER=
+>> # SMB_PASSWORD
+>>     
+>
+> I don't think that embedding password information in a distributed
+> example program map is the right thing to do. People need to work out
+> how they will access authentication information for themselves and
+> modify the example program map to suite.
+>
+> Also, I don't understand how this can be set in the environment. If it
+> is set in the daemon environment, typically root, and used for every
+> mount then I don't think that is a good example of usage to distribute
+> either.
+>   
+This is just how I do it and thought it might help others who are 
+perhaps wondering how to do it
+I did miss out one line - which is what you are puzzling over.
+I include another script which contains SMB_USER and SMB_PASSWORD into 
+the environment
+I have the line
+. /etc/my_user_info
+in my version of the script
+-- 
+Smartmon System Monitoring <http://www.smartmon.com.au>
+www.smartmon.com.au
+
+--------------000105050303060503000809
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+</head>
+<body bgcolor="#ffffff" text="#000000">
+<br>
+<blockquote cite="mid:4A30A2FB.5050005@themaw.net" type="cite">
+  <blockquote type="cite">
+    <pre wrap="">
+# optional authentication information
+# either set it here or pass it in via the environment
+# SMB_USER=
+# SMB_PASSWORD
+    </pre>
+  </blockquote>
+  <pre wrap=""><!---->
+I don't think that embedding password information in a distributed
+example program map is the right thing to do. People need to work out
+how they will access authentication information for themselves and
+modify the example program map to suite.
+
+Also, I don't understand how this can be set in the environment. If it
+is set in the daemon environment, typically root, and used for every
+mount then I don't think that is a good example of usage to distribute
+either.
+  </pre>
+</blockquote>
+This is just how I do it and thought it might help others who are
+perhaps wondering how to do it<br>
+I did miss out one line - which is what you are puzzling over.<br>
+I include another script which contains SMB_USER and SMB_PASSWORD into
+the environment<br>
+I have the line<br>
+. /etc/my_user_info<br>
+in my version of the script<br>
+<div class="moz-signature">-- <br>
+<font size="2"><font face="Verdana">
+<a href="http://www.smartmon.com.au">Smartmon System Monitoring</a><br>
+<a class="moz-txt-link-abbreviated" href="http://www.smartmon.com.au">www.smartmon.com.au</a>
+</font></font></div>
+</body>
+</html>
+
+--------------000105050303060503000809--
+
+
+--===============2411721542915564360==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--===============2411721542915564360==--
+
