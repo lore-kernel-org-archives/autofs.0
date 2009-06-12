@@ -1,7 +1,7 @@
-From: Jason Spashett <jason@spashett.com>
-Subject: Patch: Correctly escape $ in auto.smb
-Date: Thu, 11 Jun 2009 15:54:33 +0100
-Message-ID: <4A311AA9.90701@spashett.com>
+From: aaron <aaron@cs.tu-berlin.de>
+Subject: automounting issues: cannot open parse module dc=de
+Date: Fri, 12 Jun 2009 15:39:23 +0200
+Message-ID: <4A325A8B.3050503@cs.tu-berlin.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,21 +18,45 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-https://bugs.launchpad.net/ubuntu/+source/autofs/+bug/385244
+Hi everyone at autofs discussion list,
 
-auto.smb does not escape the $ common in windows administrative shares. 
-auto.smb has been changed to do this.
+I'm having some serious problems with the automounter daemon on my
+system. I'm using gentoo and everything was fine (besides some regular
+autofs crashes) using autofs-5.0.4-r2 (that's autofs-5.0.4 and all
+patches up to autofs-5.0.4-fix-quoted-mess.patch). After upgrading to
+autofs-5.0.4-r3 (that's autofs-5.0.4 and all patches up to
+autofs-5.0.4-dont-umount-existing-direct-mount-on-reread.patch)
+automounting suddenly failed to work for me. The situation hasn't
+changed with autofs-5.0.4-r4 (that's autofs-5.0.4 and all patches up to
+autofs-5.0.4-use-srv-query-for-domain-dn.patch)
 
---- auto.smb.orig    2009-06-11 14:18:39.000000000 +0100
-+++ auto.smb    2009-06-11 15:21:47.000000000 +0100
-@@ -29,7 +29,7 @@
- 
- $SMBCLIENT $smbopts -gL $key 2>/dev/null| awk -v key="$key" -v 
-opts="$mountopts" -F'|' -- '
-     BEGIN    { ORS=""; first=1 }
--    /Disk/    { if (first) { print opts; first=0 }; sub(/ /, "\\ ", 
-$2); print " \\\n\t /", $2, "://" key "/" $2 }
-+    /Disk/    { if (first) { print opts; first=0 }; gsub(/[ $]/, 
-"\\\&", $2); print " \\\n\t /" $2, "://" key "/" $2 }
-     END     { if (!first) print "\n"; else exit 1 }
-     '
+Here are the errors from /var/log/messages (same happens when I try to
+automount /company/home):
+
+Jun 11 21:29:08 erding automount[16977]: open_parse:168: lookup(ldap):
+cannot open parse module dc=de (/usr/lib64/autofs/parse_dc=de.so: cannot
+open shared object file: No such file or directory)
+Jun 11 21:29:08 erding automount[16977]: lookup_init:1493: lookup(ldap):
+failed to open parse context
+Jun 11 21:29:08 erding automount[16977]: mount_autofs_indirect: failed
+to read map for /company/projekte
+Jun 11 21:29:08 erding automount[16977]: handle_mounts: mount of
+/company/projekte failed!
+Jun 11 21:29:08 erding automount[16977]: mount_mount: mount(autofs):
+failed to create submount for /company/projekte
+
+
+I were able to track the issue down to
+autofs-5.0.4-easy-alloca-replacements.patch as being the culprit. (I can
+automount just fine with all patches up th
+autofs-5.0.4-make-MAX_ERR_BUF-and-PARSE_MAX_BUF-use-easier-to-audit.patch,
+things start to break from the moment on I apply
+autofs-5.0.4-easy-alloca-replacements.patch.)
+
+
+I'm willing to provide any further informations that might be required
+to fix this issue.
+
+
+Regards
+  Olaf Freyer
