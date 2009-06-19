@@ -1,10 +1,10 @@
-From: Thanh Tran <ttran7700@yahoo.com>
-Subject: Re: Autofs Error Messages
-Date: Thu, 18 Jun 2009 10:15:30 -0700 (PDT)
-Message-ID: <465630.44269.qm@web54304.mail.re2.yahoo.com>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: [patch] allow the automount daemon to dump core
+Date: Fri, 19 Jun 2009 15:06:22 -0400
+Message-ID: <x49prd0f3gx.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
@@ -16,66 +16,46 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: raven@themaw.net
+Cc: autofs@linux.kernel.org, Charlie Wyse <cwyse@redhat.com>
 
+Hi,
 
-The execute bit was set on the file.  I chmod -x and it works now.  Thanks.
+Right now, the automount daemon blocks all signals.  We should at least
+unblock those that will cause us to dump core.  Otherwise, I think the
+behaviour could be, umm, interesting.
 
---- On Thu, 6/18/09, Ian Kent <raven@themaw.net> wrote:
+I tested this by sending SIGBUS and SIGSEGV to the automount daemon.
 
-> From: Ian Kent <raven@themaw.net>
-> Subject: Re: [autofs] Autofs Error Messages
-> To: "Thanh Tran" <ttran7700@yahoo.com>
-> Cc: autofs@linux.kernel.org
-> Date: Thursday, June 18, 2009, 12:53 PM
-> Thanh Tran wrote:
-> > I've been having problems w/ automount.=A0 It does
-> not detect my usb
-> > drive.=A0 Looking at the system logs, my kernel
-> seems to see the usb
-> > stick insertion just fine.=A0 The automount log
-> indicates it's running.
-> > I get the following message.
-> > =
+Cheers,
+Jeff
 
-> > automount[900]: attempting to mount entry
-> /mnt/usbdrive/usbdrive =
+Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
 
-> > automount[900]: lookup(program): lookup for usbdrive
-> failed =
-
-> > automount[900]: failed to mount
-> /mnt/usbdrive/usbdrive
-> > =
-
-> > The auto.master:
-> > =
-
-> > /mnt/usbdrive /etc/auto.usbdrive
-> > =
-
-> > The auto.usbdrive: usbdrive=A0=A0=A0
-> -fstype=3Dvfat,uid=3D500,gid=3D500,umask=3D002
-> > :/dev/sdb1
-> > =
-
-> > I've done a quick internet search on the issue and the
-> advice I got
-> > was to check the auto.usbdrive file.=A0 It seems OK
-> to me.=A0 Any other
-> > suggestions?=A0 Thanks in advance.
-> =
-
-> Looks like /etc/auto.usbdrive is executable and autofs is
-> trying to
-> execute it instead of reading it.
-> =
-
-> Ian
-> =
-
-> =
-
-
-
-      =
+diff --git a/daemon/automount.c b/daemon/automount.c
+index 80691fa..04fa304 100644
+--- a/daemon/automount.c
++++ b/daemon/automount.c
+@@ -1324,6 +1324,10 @@ static void *statemachine(void *arg)
+ 	sigfillset(&signalset);
+ 	sigdelset(&signalset, SIGCHLD);
+ 	sigdelset(&signalset, SIGCONT);
++	sigdelset(&signalset, SIGBUS);
++	sigdelset(&signalset, SIGSEGV);
++	sigdelset(&signalset, SIGILL);
++	sigdelset(&signalset, SIGFPE);
+ 
+ 	while (1) {
+ 		sigwait(&signalset, &sig);
+@@ -1817,6 +1821,11 @@ int main(int argc, char *argv[])
+ 	};
+ 
+ 	sigfillset(&allsigs);
++	/* allow for the dropping of core files */
++	sigdelset(&allsigs, SIGBUS);
++	sigdelset(&allsigs, SIGSEGV);
++	sigdelset(&allsigs, SIGILL);
++	sigdelset(&allsigs, SIGFPE);
+ 	sigprocmask(SIG_BLOCK, &allsigs, NULL);
+ 
+ 	program = argv[0];
