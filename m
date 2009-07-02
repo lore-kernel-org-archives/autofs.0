@@ -1,7 +1,7 @@
-From: Thomas Chan <tchan@ilm.com>
-Subject: autofs stops working after a while with USE_MISC_DEVICE
-Date: Thu, 2 Jul 2009 11:55:58 -0700 (PDT)
-Message-ID: <alpine.LRH.2.00.0907021136230.2710@talon.lucasfilm.com>
+From: Filipe Brandenburger <lists.filbranden@idilia.com>
+Subject: mount: mount point /home/user does not exist
+Date: Thu, 02 Jul 2009 18:26:16 -0400
+Message-ID: <4A4D3408.40103@idilia.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
@@ -18,43 +18,59 @@ Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"; format="flowed"
 To: autofs@linux.kernel.org
 
+Hello,
 
-I am using autofs 5.0.4 with the latest patches up to 12-Jun-2009 with 
-the 2.6.29.1 kernel.
+I am using autofs-4.1.3-234 on a RHEL 4 machine, using kernel
+2.6.9-78.0.1.ELsmp, getting automount maps from LDAP.
 
-I noticed that after a while (overnight) new automounts would no longer 
-work.
+Recently I had failures in some hosts when mounting home directories, in
+some cases more than one host at a time.
 
-An strace shows:
-rt_sigtimedwait(~[CHLD CONT RTMIN RT_1],
+I found this on the NFS client's log:
 
-[pid 26289] 11:22:57 gettimeofday({1246558977, 61322}, NULL) = 0
-[pid 26289] 11:22:57 futex(0x7f6f5db43160, FUTEX_WAKE_PRIVATE, 1) = 0
-[pid 26289] 11:22:57 clock_gettime(CLOCK_REALTIME, {1246558977, 61421426}) = 0
-[pid 26289] 11:22:57 futex(0x7f6f5db43124, FUTEX_WAIT_PRIVATE, 150501, {0, 999900574}) = -1 ETIMEDOUT (Connection timed out)
-[pid 26289] 11:22:58 gettimeofday({1246558978, 61986}, NULL) = 0
-[pid 26289] 11:22:58 futex(0x7f6f5db43160, FUTEX_WAKE_PRIVATE, 1) = 0
-[pid 26289] 11:22:58 clock_gettime(CLOCK_REALTIME, {1246558978, 62086850}) = 0
-[pid 26289] 11:22:58 futex(0x7f6f5db43124, FUTEX_WAIT_PRIVATE, 150503, {0, 999899150}) = -1 ETIMEDOUT (Connection timed out)
+> Jun 30 16:51:21 clnt automount[9458]: >> mount: mount point /home/user does not exist
+> Jun 30 16:51:21 clnt automount[9458]: mount(nfs): nfs: mount failure srvr:/export/home/user on /home/user
+> Jun 30 16:51:21 clnt automount[9458]: failed to mount /home/user
 
-lsof shows that automount has 10288 files open, of which most of these 
-are like:
+But on the NFS server, this is all I see:
 
-automount 15539      root *217u     sock                0,4 
-595374 can't identify protocol
-automount 15539      root *218u     sock                0,4 
-595376 can't identify protocol
-automount 15539      root *219u     sock                0,4 
-595378 can't identify protocol
-automount 15539      root *220u     sock                0,4 
-595380 can't identify protocol
+> Jun 30 16:51:21 srvr rpc.mountd: authenticated mount request from clnt.example.com:731 for /export/home/user (/export/home) 
 
-Upon restarting autofs, these open files are cleared out and automount 
-works, but the open files gradually build up again.
+This is the same log I have when the mount succeeds.
 
-After setting USE_MISC_DEVICE=no, I no longer get the open file issue, but 
-we are trying to remedy the autofs lazy unmount / cwd issue.
+I believe the NFS server might have been overloaded at that time, and
+for that reason the mount request might have taken longer than expected.
 
-Any ideas would be appreciated.
+ From what I've seen, I believe the ">> mount" message is the message
+returned by the /bin/mount command spawned from automount, and it means
+when it tried to mount the directory, the local /home/user directory was
+no longer there.
 
-Thomas
+I also believe this might have happened because it was previously
+mounted but not used for the timeout period (I am using 5 minutes as
+timeout), so the last mount was expired (and the directory removed) just
+before this /bin/mount process was able to run.
+
+I tried to google for it, but all I found was this message:
+http://lkml.indiana.edu/hypermail/linux/kernel/9910.3/1105.html
+
+It looks like the problem I am having, however it is very old, from
+about 10 years ago...
+
+Is this still a known issue in autofs? Is there a patch for it?
+
+I also know that autofs 5 is in many ways different than autofs 4 (I run
+it in my RHEL 5 machines). Now (since RHEL 4.7) I believe autofs 5 is
+available for RHEL 4. Is it possible that upgrading to autofs 5 might
+fix this issue?
+
+Any help trying to figure out what is going on would be very
+appreciated. Also, if you need more logs or for me to execute some
+commands or tests I can do it for sure. I was thinking of a way to
+trying to reproduce this problem (maybe replace /bin/mount with a script
+that does "sleep N" before calling the actual mount) but could not come
+up with something good enough to validate my hypothesis, so I decided to
+ask the list first.
+
+Thanks!
+Filipe
