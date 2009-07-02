@@ -1,18 +1,10 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs stops working after a while with USE_MISC_DEVICE
-Date: Wed, 08 Jul 2009 09:04:51 +0800
-Message-ID: <4A53F0B3.4020603@themaw.net>
-References: <alpine.LRH.2.00.0907021136230.2710@talon.lucasfilm.com>
-	<4A4D8BC0.2010708@themaw.net>
-	<alpine.LRH.2.00.0907022222180.2710@talon.lucasfilm.com>
-	<alpine.LFD.2.00.0907041147080.28894@zeus.themaw.net>
-	<alpine.LRH.2.00.0907032126150.2710@talon.lucasfilm.com>
-	<alpine.LRH.2.00.0907071055370.8827@talon.lucasfilm.com>
+From: Filipe Brandenburger <filipe.brandenburger@idilia.com>
+Subject: mount: mount point /home/user does not exist
+Date: Thu, 02 Jul 2009 17:36:44 -0400
+Message-ID: <4A4D286C.3080401@idilia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <alpine.LRH.2.00.0907071055370.8827@talon.lucasfilm.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -23,62 +15,62 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Thomas Chan <tchan@ilm.com>
-Cc: autofs mailing list <autofs@linux.kernel.org>, Wolfram Wagner <ww@mpi-inf.mpg.de>
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: autofs@linux.kernel.org
 
-Thomas Chan wrote:
-> 
->>> I may have spotted this problem.
->>> Could you try this patch please.
->>>
->>> Ian
->>>
->>> autofs-5.0.4 - fix rpc fd leak
->>>
->>> From: Ian Kent <raven@themaw.net>
->>>
->>> Recent changes which introduced the ability to handle to cope with
->>> IPv6 addresses causes a file descriptor leak in the RPC library.
->>> ---
->>>
->>> lib/rpc_subs.c |   11 -----------
->>> 1 files changed, 0 insertions(+), 11 deletions(-)
->>>
->>>
->>> diff --git a/lib/rpc_subs.c b/lib/rpc_subs.c
->>> index d034b29..cafc775 100644
->>> --- a/lib/rpc_subs.c
->>> +++ b/lib/rpc_subs.c
->>> @@ -253,17 +253,6 @@ static CLIENT *rpc_do_create_client(struct
->>> sockaddr *addr, struct conn_info *inf
->>>         return NULL;
->>>     }
->>>
->>> -    if (!info->client) {
->>> -        *fd = open_sock(addr->sa_family, type, proto);
->>> -        if (*fd < 0)
->>> -            return NULL;
->>> -
->>> -        if (bind(*fd, laddr, slen) < 0) {
->>> -            close(*fd);
->>> -            return NULL;
->>> -        }
->>> -    }
->>> -
->>>     switch (info->proto->p_proto) {
->>>     case IPPROTO_UDP:
->>>         if (!info->client) {
->>>
->>
->> This looks good so far.  After restarting autofs, I don't see the
->> increasing open files any more.
->>
->> Thomas
->>
-> 
-> After a few days of running with this patch, everything looks to still
-> be functioning as expected.  Thanks for the speedy fix!
+Hello,
 
-Thanks, I get onto committing the fix.
+I am using autofs-4.1.3-234 on a RHEL 4 machine, using kernel 
+2.6.9-78.0.1.ELsmp, getting automount maps from LDAP.
 
-Ian
+Recently I had failures in some hosts when mounting home directories, in 
+some cases more than one host at a time.
+
+I found this on the NFS client's log:
+
+> Jun 30 16:51:21 clnt automount[9458]: >> mount: mount point /home/user does not exist
+> Jun 30 16:51:21 clnt automount[9458]: mount(nfs): nfs: mount failure srvr:/export/home/user on /home/user
+> Jun 30 16:51:21 clnt automount[9458]: failed to mount /home/user
+
+But on the NFS server, this is all I see:
+
+> Jun 30 16:51:21 srvr rpc.mountd: authenticated mount request from clnt.example.com:731 for /export/home/user (/export/home) 
+
+This is the same log I have when the mount succeeds.
+
+I believe the NFS server might have been overloaded at that time, and 
+for that reason the mount request might have taken longer than expected.
+
+ From what I've seen, I believe the ">> mount" message is the message 
+returned by the /bin/mount command spawned from automount, and it means 
+when it tried to mount the directory, the local /home/user directory was 
+no longer there.
+
+I also believe this might have happened because it was previously 
+mounted but not used for the timeout period (I am using 5 minutes as 
+timeout), so the last mount was expired (and the directory removed) just 
+before this /bin/mount process was able to run.
+
+I tried to google for it, but all I found was this message:
+http://lkml.indiana.edu/hypermail/linux/kernel/9910.3/1105.html
+
+It looks like the problem I am having, however it is very old, from 
+about 10 years ago...
+
+Is this still a known issue in autofs? Is there a patch for it?
+
+I also know that autofs 5 is in many ways different than autofs 4 (I run 
+it in my RHEL 5 machines). Now (since RHEL 4.7) I believe autofs 5 is 
+available for RHEL 4. Is it possible that upgrading to autofs 5 might 
+fix this issue?
+
+Any help trying to figure out what is going on would be very 
+appreciated. Also, if you need more logs or for me to execute some 
+commands or tests I can do it for sure. I was thinking of a way to 
+trying to reproduce this problem (maybe replace /bin/mount with a script 
+that does "sleep N" before calling the actual mount) but could not come 
+up with something good enough to validate my hypothesis, so I decided to 
+ask the list first.
+
+Thanks!
+Filipe
