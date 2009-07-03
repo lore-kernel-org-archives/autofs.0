@@ -1,13 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs stops working after a while with USE_MISC_DEVICE
-Date: Fri, 03 Jul 2009 12:40:32 +0800
-Message-ID: <4A4D8BC0.2010708@themaw.net>
-References: <alpine.LRH.2.00.0907021136230.2710@talon.lucasfilm.com>
+Subject: Re: mount: mount point /home/user does not exist
+Date: Fri, 03 Jul 2009 12:38:24 +0800
+Message-ID: <4A4D8B40.9020402@themaw.net>
+References: <4A4D3408.40103@idilia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <alpine.LRH.2.00.0907021136230.2710@talon.lucasfilm.com>
+In-Reply-To: <4A4D3408.40103@idilia.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,52 +18,33 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Thomas Chan <tchan@ilm.com>
+To: Filipe Brandenburger <lists.filbranden@idilia.com>
 Cc: autofs@linux.kernel.org
 
-Thomas Chan wrote:
+Filipe Brandenburger wrote:
+> Hello,
 > 
-> I am using autofs 5.0.4 with the latest patches up to 12-Jun-2009 with
-> the 2.6.29.1 kernel.
+> I am using autofs-4.1.3-234 on a RHEL 4 machine, using kernel
+> 2.6.9-78.0.1.ELsmp, getting automount maps from LDAP.
 > 
-> I noticed that after a while (overnight) new automounts would no longer
-> work.
+> Recently I had failures in some hosts when mounting home directories, in
+> some cases more than one host at a time.
 > 
-> An strace shows:
-> rt_sigtimedwait(~[CHLD CONT RTMIN RT_1],
+> I found this on the NFS client's log:
 > 
-> [pid 26289] 11:22:57 gettimeofday({1246558977, 61322}, NULL) = 0
-> [pid 26289] 11:22:57 futex(0x7f6f5db43160, FUTEX_WAKE_PRIVATE, 1) = 0
-> [pid 26289] 11:22:57 clock_gettime(CLOCK_REALTIME, {1246558977,
-> 61421426}) = 0
-> [pid 26289] 11:22:57 futex(0x7f6f5db43124, FUTEX_WAIT_PRIVATE, 150501,
-> {0, 999900574}) = -1 ETIMEDOUT (Connection timed out)
-> [pid 26289] 11:22:58 gettimeofday({1246558978, 61986}, NULL) = 0
-> [pid 26289] 11:22:58 futex(0x7f6f5db43160, FUTEX_WAKE_PRIVATE, 1) = 0
-> [pid 26289] 11:22:58 clock_gettime(CLOCK_REALTIME, {1246558978,
-> 62086850}) = 0
-> [pid 26289] 11:22:58 futex(0x7f6f5db43124, FUTEX_WAIT_PRIVATE, 150503,
-> {0, 999899150}) = -1 ETIMEDOUT (Connection timed out)
+>> Jun 30 16:51:21 clnt automount[9458]: >> mount: mount point /home/user
+>> does not exist
+>> Jun 30 16:51:21 clnt automount[9458]: mount(nfs): nfs: mount failure
+>> srvr:/export/home/user on /home/user
+>> Jun 30 16:51:21 clnt automount[9458]: failed to mount /home/user
 > 
-> lsof shows that automount has 10288 files open, of which most of these
-> are like:
+> But on the NFS server, this is all I see:
 > 
-> automount 15539      root *217u     sock                0,4 595374 can't
-> identify protocol
-> automount 15539      root *218u     sock                0,4 595376 can't
-> identify protocol
-> automount 15539      root *219u     sock                0,4 595378 can't
-> identify protocol
-> automount 15539      root *220u     sock                0,4 595380 can't
-> identify protocol
-> 
-> Upon restarting autofs, these open files are cleared out and automount
-> works, but the open files gradually build up again.
-> 
-> After setting USE_MISC_DEVICE=no, I no longer get the open file issue,
-> but we are trying to remedy the autofs lazy unmount / cwd issue.
+>> Jun 30 16:51:21 srvr rpc.mountd: authenticated mount request from
+>> clnt.example.com:731 for /export/home/user (/export/home) 
 
-Mmm .. that's not good.
-I'll have a look and see what I can see.
+This does sound a bit like a known problem.
+A bunch of patches have gone into RHEL-4 U8 which resolved almost all
+reported problems. You will need to log a bug or update to U8 to check.
 
 Ian
