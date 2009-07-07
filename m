@@ -1,14 +1,16 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: mount: mount point /home/user does not exist
-Date: Tue, 07 Jul 2009 09:46:09 +0800
-Message-ID: <4A52A8E1.7030307@themaw.net>
-References: <4A4D3408.40103@idilia.com> <4A4D8B40.9020402@themaw.net>
-	<4A52038C.9090008@idilia.com>
+From: Thomas Chan <tchan@ilm.com>
+Subject: Re: autofs stops working after a while with USE_MISC_DEVICE
+Date: Tue, 7 Jul 2009 11:20:14 -0700 (PDT)
+Message-ID: <alpine.LRH.2.00.0907071055370.8827@talon.lucasfilm.com>
+References: <alpine.LRH.2.00.0907021136230.2710@talon.lucasfilm.com>
+	<4A4D8BC0.2010708@themaw.net>
+	<alpine.LRH.2.00.0907022222180.2710@talon.lucasfilm.com>
+	<alpine.LFD.2.00.0907041147080.28894@zeus.themaw.net>
+	<alpine.LRH.2.00.0907032126150.2710@talon.lucasfilm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4A52038C.9090008@idilia.com>
+In-Reply-To: <alpine.LRH.2.00.0907032126150.2710@talon.lucasfilm.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,40 +21,60 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Filipe Brandenburger <lists.filbranden@idilia.com>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: Ian Kent <raven@themaw.net>
+Cc: autofs mailing list <autofs@linux.kernel.org>, Wolfram Wagner <ww@mpi-inf.mpg.de>
 
-Filipe Brandenburger wrote:
-> Hi Ian,
-> 
-> Ian Kent wrote:
->> Filipe Brandenburger wrote:
->>> Recently I had failures in some hosts when mounting home directories, in
->>> some cases more than one host at a time.
->>
->> This does sound a bit like a known problem.
->> A bunch of patches have gone into RHEL-4 U8 which resolved almost all
->> reported problems. You will need to log a bug or update to U8 to check.
-> 
-> Thanks for your answer.
-> 
-> Would upgrading autofs from 4.1.3-234 to 4.1.3-238 be enough, or do I
-> need to upgrade to the latest kernel as well?
 
-Above I was actually referring to the kernel, although I didn't make
-that clear. The RHEL-4.8 kernel update fixed almost all reported kernel
-related problems (there were a couple).
+>> I may have spotted this problem.
+>> Could you try this patch please.
+>> 
+>> Ian
+>> 
+>> autofs-5.0.4 - fix rpc fd leak
+>> 
+>> From: Ian Kent <raven@themaw.net>
+>> 
+>> Recent changes which introduced the ability to handle to cope with
+>> IPv6 addresses causes a file descriptor leak in the RPC library.
+>> ---
+>> 
+>> lib/rpc_subs.c |   11 -----------
+>> 1 files changed, 0 insertions(+), 11 deletions(-)
+>> 
+>> 
+>> diff --git a/lib/rpc_subs.c b/lib/rpc_subs.c
+>> index d034b29..cafc775 100644
+>> --- a/lib/rpc_subs.c
+>> +++ b/lib/rpc_subs.c
+>> @@ -253,17 +253,6 @@ static CLIENT *rpc_do_create_client(struct sockaddr 
+>> *addr, struct conn_info *inf
+>> 		return NULL;
+>> 	}
+>> 
+>> -	if (!info->client) {
+>> -		*fd = open_sock(addr->sa_family, type, proto);
+>> -		if (*fd < 0)
+>> -			return NULL;
+>> -
+>> -		if (bind(*fd, laddr, slen) < 0) {
+>> -			close(*fd);
+>> -			return NULL;
+>> -		}
+>> -	}
+>> -
+>> 	switch (info->proto->p_proto) {
+>> 	case IPPROTO_UDP:
+>> 		if (!info->client) {
+>> 
+>
+> This looks good so far.  After restarting autofs, I don't see the increasing 
+> open files any more.
+>
+> Thomas
+>
 
-> 
-> Would using the "autofs5" package in RHEL4 be better in this sense? Do
-> you know if that package is as stable as autofs 4 is in RHEL4?
+After a few days of running with this patch, everything looks to still be 
+functioning as expected.  Thanks for the speedy fix!
 
-That a trick question, right?
-As the maintainer I will always recommend version 5.
-
-The RHEL-4 autofs5 package is essentially the same as the RHEL-5 autofs
-package except that it's a release behind, as updates are back ported.
-The back porting of RHEL-5 updates will be somewhat more selective from
-RHEL-4.9 onward.
-
-Ian
+Thomas
