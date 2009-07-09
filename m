@@ -1,14 +1,22 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [patch,
-	rfc] autofs4: add trace points to the mount and unmount paths
-Date: Thu, 09 Jul 2009 16:40:53 -0400
-Message-ID: <x49ws6hd1yi.fsf@segfault.boston.devel.redhat.com>
-References: <x49fxdh3b0a.fsf@segfault.boston.devel.redhat.com>
-	<4A4A5A56.1040308@RedHat.com> <4A4B005D.9000901@themaw.net>
+From: Steve Linn <steve.linn@gmail.com>
+Subject: Re: mount: mount point /home/user does not exist
+Date: Thu, 9 Jul 2009 15:03:16 -0700
+Message-ID: <3ddb09290907091503k6ad1a31av1eba12f6e2721763@mail.gmail.com>
+References: <4A4D3408.40103@idilia.com> <4A4D8B40.9020402@themaw.net>
+	<4A52038C.9090008@idilia.com> <4A52A8E1.7030307@themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
+	h=domainkey-signature:mime-version:received:in-reply-to:references
+	:date:message-id:subject:from:to:cc:content-type
+	:content-transfer-encoding;
+	bh=Zb1dLY0/LFyzEDGMVKR/j8qDQBJIesiVPMSfsfiaOJk=;
+	b=mD24ZptHEFckLWLbyx+8TV6zAF08G4FOp6KVfHZvhJ/yCWHIfx3b6RbGGzDsfml5IL
+	ZIPspNObnfysdDbPa6q1luJmaY0KYSTp27ly/Vp3YOVRc7JGUa/GJomshO5GdJUzaeW3
+	oqQEEak4u5EruJo5yddIt5x0RU94c1LtLUxvA=
+In-Reply-To: <4A52A8E1.7030307@themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,238 +28,193 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: Ian Kent <raven@themaw.net>
-Cc: autofs mailing list <autofs@linux.kernel.org>
+Cc: autofs@linux.kernel.org
 
-Ian Kent <raven@themaw.net> writes:
+We have the same problem with our file servers when they become
+overloaded or get rebooted.  There seems to be at least two issues that
+need to be  dealt with. The first issue seems to be the mount/mount.nfs
+does not seem to work as advertised. Here is an example of a mount
+failing within 3 seconds:
 
-> Steve Dickson wrote:
+# time mount lidx:/export /mnt
+mount.nfs: mount to NFS server 'lidx:/export' failed: System Error: No
+route to host
+0.000u 0.004s 0:03.00 0.0%      0+0k 0+0io 0pf+0w
 
->> The main point with these two question is I have found it 
->> very handy to write system tap scripts that only fire 
->> when there is a non-zero status.... Which means instead 
->> of getting pages and pages of info scrolling off the 
->> screen, I get one (or few) lines of error conditions that
->> generally have a bit more meaning... 
+man nfs says:
 
-Given Ian's point about logging entire paths, this updated patch will
-still log before determining the final status of a request.  If you
-want, you could cache that in systemtap until the status is received and
-try to correlate the two events (which would address your request of
-logging only on failures).  For the lookup routine, you need to check if
-dentry is -ENOENT.  for follow_link etc, there's a status code.  The
-associated systemtap patch can be found here:
-  http://people.redhat.com/jmoyer/systemtap
+ retry=n
+ The  number  of  minutes  that  the mount(8) command retries an NFS
+ mount operation in the foreground or background before  giving  up.
+ If  this  option is not specified, the default value for foreground
+ mounts is 2 minutes, and the default value for background mounts is
+ 10000 minutes (80 minutes shy of one week)...
 
-Ian, let me know what you think.
+3 seconds instead of 2 minutes if the host is on the same network.
 
-Cheers,
-Jeff
 
-Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
+The second issue is that -hosts mount does not seem to want to wait
+very long either:
 
-diff --git a/fs/autofs4/expire.c b/fs/autofs4/expire.c
-index aa39ae8..6c86df9 100644
---- a/fs/autofs4/expire.c
-+++ b/fs/autofs4/expire.c
-@@ -13,6 +13,7 @@
-  * ------------------------------------------------------------------------- */
- 
- #include "autofs_i.h"
-+#include <trace/events/autofs4.h>
- 
- static unsigned long now;
- 
-@@ -496,6 +497,7 @@ int autofs4_do_expire_multi(struct super_block *sb, struct vfsmount *mnt,
- 		/* This is synchronous because it makes the daemon a
-                    little easier */
- 		ret = autofs4_wait(sbi, dentry, NFY_EXPIRE);
-+		trace_autofs4_do_expire_multi(mnt, dentry, ret);
- 
- 		spin_lock(&sbi->fs_lock);
- 		if (ino->flags & AUTOFS_INF_MOUNTPOINT) {
-diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
-index b96a3c5..7cefdad 100644
---- a/fs/autofs4/root.c
-+++ b/fs/autofs4/root.c
-@@ -19,6 +19,9 @@
- #include <linux/time.h>
- #include "autofs_i.h"
- 
-+#define CREATE_TRACE_POINTS
-+#include <trace/events/autofs4.h>
-+
- static int autofs4_dir_symlink(struct inode *,struct dentry *,const char *);
- static int autofs4_dir_unlink(struct inode *,struct dentry *);
- static int autofs4_dir_rmdir(struct inode *,struct dentry *);
-@@ -216,6 +219,7 @@ static void *autofs4_follow_link(struct dentry *dentry, struct nameidata *nd)
- 	    (!d_mountpoint(dentry) && __simple_empty(dentry))) {
- 		spin_unlock(&dcache_lock);
- 
-+		trace_autofs4_follow_link(nd, dentry);
- 		status = try_to_fill_dentry(dentry, 0);
- 		if (status)
- 			goto out_error;
-@@ -237,9 +241,11 @@ follow:
- 	}
- 
- done:
-+	trace_autofs4_follow_link_status(dentry, 0);
- 	return NULL;
- 
- out_error:
-+	trace_autofs4_follow_link_status(dentry, status);
- 	path_put(&nd->path);
- 	return ERR_PTR(status);
- }
-@@ -540,6 +546,8 @@ static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, s
- 			dput(expiring);
- 		}
- 
-+		trace_autofs4_lookup(nd, dentry);
-+
- 		spin_lock(&dentry->d_lock);
- 		dentry->d_flags |= DCACHE_AUTOFS_PENDING;
- 		spin_unlock(&dentry->d_lock);
-@@ -595,12 +603,16 @@ static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, s
- 		if (unhashed)
- 			dput(unhashed);
- 
-+		trace_autofs4_lookup_status(dentry);
- 		return dentry;
- 	}
- 
--	if (unhashed)
-+	if (unhashed) {
-+		trace_autofs4_lookup_status(unhashed);
- 		return unhashed;
-+	}
- 
-+	trace_autofs4_lookup_status(NULL);
- 	return NULL;
- }
- 
-diff --git a/include/trace/events/autofs4.h b/include/trace/events/autofs4.h
-index 39f04c9..6feae79 100644
---- a/include/trace/events/autofs4.h
-+++ b/include/trace/events/autofs4.h
-@@ -1,26 +1,115 @@
- #if !defined(_TRACE_AUTOFS4_H) || defined(TRACE_HEADER_MULTI_READ)
- #define _TRACE_AUTOFS4_H
- 
-+#include <linux/dcache.h>
-+#include <linux/mount.h>
-+#include <linux/limits.h>
- #include <linux/tracepoint.h>
- 
- #undef TRACE_SYSTEM
- #define TRACE_SYSTEM autofs4
- 
- TRACE_EVENT(autofs4_do_expire_multi,
--	    TP_PROTO(struct vfsmount *mnt, struct dentry *dentry),
--	    TP_ARGS(mnt, dentry),
-+	    TP_PROTO(struct vfsmount *mnt, struct dentry *dentry, int status),
-+	    TP_ARGS(mnt, dentry, status),
- 	    TP_STRUCT__entry(
- 		    __array(char, comm, TASK_COMM_LEN)
- 		    __field(pid_t, pid)
-+		    __array(char, path, MAX_FILTER_STR_VAL)
-+		    __field(int, status)
- 	    ),
- 	    TP_fast_assign(
- 		    __entry->pid = current->pid;
- 		    memcpy(__entry->comm, current->comm, TASK_COMM_LEN);
-+		    snprintf(__entry->path,
-+			     dentry->d_name.len < MAX_FILTER_STR_VAL ?
-+			     dentry->d_name.len : MAX_FILTER_STR_VAL,
-+			     "%s", dentry->d_name.name);
-+		    __entry->status = status;
- 	    ),
--	    TP_printk("%s[%d]: expiring %.*s", __entry->comm, __entry->pid,
--		      dentry->d_name.len, dentry->d_name.name);
-+	    TP_printk("%s[%d]: expiry of %s %s",
-+		      __entry->comm, __entry->pid, __entry->path,
-+		      __entry->status == 0 ? "succeeded" : "failed")
- );
- 
- TRACE_EVENT(autofs4_lookup,
--	    TP_PROTO(
-+	    TP_PROTO(struct nameidata *nd, struct dentry *dentry),
-+	    TP_ARGS(nd, dentry),
-+	    TP_STRUCT__entry(
-+		    __array(char, comm, TASK_COMM_LEN)
-+		    __array(char, path, MAX_FILTER_STR_VAL)
-+		    __field(char *, pathptr)
-+		    __field(pid_t, pid)
-+	    ),
-+	    TP_fast_assign(
-+		    __entry->pid = current->pid;
-+		    memcpy(__entry->comm, current->comm, TASK_COMM_LEN);
-+		    __entry->pathptr = d_path(&nd->path,
-+					     __entry->path, MAX_FILTER_STR_VAL);
-+	    ),
-+	    TP_printk("%s[%d]: looking up %s",
-+		      __entry->comm, __entry->pid, __entry->pathptr)
-+);
-+
-+TRACE_EVENT(autofs4_lookup_status,
-+	    TP_PROTO(struct dentry *dentry),
-+	    TP_ARGS(dentry),
-+	    TP_STRUCT__entry(
-+		    __array(char, comm, TASK_COMM_LEN)
-+		    __field(void *, dentry)
-+		    __field(pid_t, pid)
-+	    ),
-+	    TP_fast_assign(
-+		    __entry->dentry = dentry;
-+		    memcpy(__entry->comm, current->comm, TASK_COMM_LEN);
-+		    __entry->pid = current->pid;
-+	    ),
-+	    TP_printk("%s[%d]: lookup %s",
-+		      __entry->comm, __entry->pid,
-+		      __entry->dentry ? "succeeded" : "failed")
-+);
-+
-+TRACE_EVENT(autofs4_follow_link,
-+	    TP_PROTO(struct nameidata *nd, struct dentry *dentry),
-+	    TP_ARGS(nd, dentry),
-+	    TP_STRUCT__entry(
-+		    __array(char, comm, TASK_COMM_LEN)
-+		    __array(char, path, MAX_FILTER_STR_VAL)
-+		    __field(char *, pathptr)
-+		    __field(pid_t, pid)
-+	    ),
-+	    TP_fast_assign(
-+		    __entry->pid = current->pid;
-+		    memcpy(__entry->comm, current->comm, TASK_COMM_LEN);
-+		    __entry->pathptr = d_path(&nd->path,
-+					     __entry->path, MAX_FILTER_STR_VAL);
-+	    ),
-+	    TP_printk("%s[%d]: looking up trigger %s",
-+		      __entry->comm, __entry->pid, __entry->pathptr)
-+);
-+
-+TRACE_EVENT(autofs4_follow_link_status,
-+	    TP_PROTO(struct dentry *dentry, int status),
-+	    TP_ARGS(dentry, status),
-+	    TP_STRUCT__entry(
-+		    __array(char, comm, TASK_COMM_LEN)
-+		    __array(char, linkname, MAX_FILTER_STR_VAL)
-+		    __field(int, status)
-+		    __field(pid_t, pid)
-+	    ),
-+	    TP_fast_assign(
-+		    __entry->status = status;
-+		    snprintf(__entry->linkname, dentry->d_name.len, "%s",
-+			     dentry->d_name.name);
-+		    memcpy(__entry->comm, current->comm, TASK_COMM_LEN);
-+		    __entry->pid = current->pid;
-+	    ),
-+	    TP_printk("%s[%d]: lookup for trigger %s %s",
-+		      __entry->comm, __entry->pid, __entry->linkname,
-+		      __entry->status == 0 ? "succeeded" : "failed")
-+);
-+
- #endif /* _TRACE_AUTOFS4_H */
-+
-+/* This part must be outside protection */
-+#include <trace/define_trace.h>
+Here is an example of /net mount.  The -hosts option
+seems to wait only 3 seconds then caches the negative
+entry.
+
+# grep ^/net /etc/auto.master
+/net -hosts
+
+Here it is taking 3 seconds:
+# time ls /net/google.com
+ls: /net/google.com: No such file or directory
+0.000u 0.000s 0:03.03 0.0%      0+0k 24+0io 0pf+0w
+
+
+# time ls /net/google.com
+ls: /net/google.com: No such file or directory
+0.000u 0.004s 0:00.00 0.0%      0+0k 0+0io 0pf+0w
+
+# time showmount -e google.com
+portmap getport: RPC: Timed out
+0.000u 0.000s 3:12.01 0.0%      0+0k 40+0io 0pf+0w
+
+I found this to be fixable by the following patch which changes the
+UDP timeout from 3 seconds to 30 and TCP timeout from 5 seconds to
+50. I am not sure what a good value would be but our file servers can
+take a couple minutes to reboot.
+
+
+diff --git a/include/rpc_subs.h b/include/rpc_subs.h
+index 87fd568..d3c1d9f 100644
+--- a/include/rpc_subs.h
++++ b/include/rpc_subs.h
+@@ -39,8 +39,8 @@
+ #define RPC_CLOSE_ACTIVE       RPC_CLOSE_DEFAULT
+ #define RPC_CLOSE_NOLINGER     0x0001
+
+-#define PMAP_TOUT_UDP  3
+-#define PMAP_TOUT_TCP  5
++#define PMAP_TOUT_UDP  30
++#define PMAP_TOUT_TCP  50
+
+
+Program mounts seem to wait long enough. You can write something like
+to auto.net script which could be modified to wait for the showmount
+to get something back or retry on failures so that if a file server is
+down that it might give automount something to mount.  I have also
+found that /usr/sbin/showmount which can be used by /etc/auto.net has
+changed its behavior at some point.
+
+It use to be 3 minutes+ for it to timeout:
+
+% time showmount -e 10.1.1.1
+portmap getport: RPC: Timed out
+0.000u 0.004s 3:12.00 0.0%      0+0k 40+0io 0pf+0w
+% rpm -qf /usr/sbin/showmount
+nfs-client-1.1.0-11
+
+
+Now a newer version seems to give up in 13 seconds for some
+reason...
+
+% time showmount -e 10.1.1.1
+showmount: RPC: Timed out
+0.000u 0.004s 0:13.00 0.0%      0+0k 0+0io 0pf+0w
+% rpm -qf /usr/sbin/showmount
+nfs-client-1.1.3-14.1
+
+So to summarize, mount failures due to timeouts seem do have at least
+5 different values in my environment.  The range seems to be between 3
+seconds to greater 3 minutes depending on the type of map and the
+binaries used.
+
+The following is automount entry has a time out which is determined by
+/usr/sbin/automount and seems to be 3 seconds if the host is
+unreachable:
+
+/nethosts -hosts
+
+The following entry /etc/auto.net will fail if showmount or kshowmount
+times out.  This seems to vary between 3+ minutes to 13 seconds
+depending on the version of showmount:
+
+/netauto                        /etc/auto.net
+
+A plain file timeout seems to be controlled by the version of
+mount/mount.nfs.  My version of mount.nfs seems to wait 31 seconds
+before giving up if the host is unreachable on a remote network, but
+if the machine is on the same network mount.nfs times out after 3
+seconds with a "No route to host" message.
+
+# mount.nfs 10.1.1.1:/export /mnt
+mount.nfs: mount to NFS server '10.1.1.1:/export' failed: timed out, giving up
+0.00user 0.00system 0:31.02elapsed 0%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+8outputs (0major+197minor)pagefaults 0swaps
+
+# mount.nfs 192.168.1.222:/export /mnt
+mount.nfs: mount to NFS server '192.168.1.222:/export' failed: System
+Error: No route to host
+0.00user 0.00system 0:03.00elapsed 0%CPU (0avgtext+0avgdata 0maxresid
+
+Here is some output from showing 4 of the results:
+
+ % time ls /nethosts/10.1.1.1
+ls: cannot access /nethosts/10.1.1.1: No such file or directory
+0.000u 0.000s 0:03.00 0.0%      0+0k 0+0io 0pf+0w
+ % time ls /netauto/10.1.1.1
+ls: cannot access /netauto/10.1.1.1: No such file or directory
+0.000u 0.000s 0:13.01 0.0%      0+0k 0+0io 0pf+0w
+ % time ls /netfile/10.1.1.1
+ls: cannot open directory /netfile/10.1.1.1: No such file or directory
+0.000u 0.004s 0:31.03 0.0%      0+0k 0+0io 0pf+0w
+
+And the most patient version is a machine with an earlier version of
+showmount.
+
+% time ls /netauto/10.1.1.1
+ls: /netauto/10.1.1.1: No such file or directory
+0.004u 0.000s 3:12.04 0.0%      0+0k 0+0io 0pf+0w
+
+
+steve
+
+On Mon, Jul 6, 2009 at 6:46 PM, Ian Kent<raven@themaw.net> wrote:
+> Filipe Brandenburger wrote:
+>> Hi Ian,
+>>
+>> Ian Kent wrote:
+>>> Filipe Brandenburger wrote:
+>>>> Recently I had failures in some hosts when mounting home directories, in
+>>>> some cases more than one host at a time.
+>>>
+>>> This does sound a bit like a known problem.
+>>> A bunch of patches have gone into RHEL-4 U8 which resolved almost all
+>>> reported problems. You will need to log a bug or update to U8 to check.
+>>
+>> Thanks for your answer.
+>>
+>> Would upgrading autofs from 4.1.3-234 to 4.1.3-238 be enough, or do I
+>> need to upgrade to the latest kernel as well?
+>
+> Above I was actually referring to the kernel, although I didn't make
+> that clear. The RHEL-4.8 kernel update fixed almost all reported kernel
+> related problems (there were a couple).
+>
+>>
+>> Would using the "autofs5" package in RHEL4 be better in this sense? Do
+>> you know if that package is as stable as autofs 4 is in RHEL4?
+>
+> That a trick question, right?
+> As the maintainer I will always recommend version 5.
+>
+> The RHEL-4 autofs5 package is essentially the same as the RHEL-5 autofs
+> package except that it's a release behind, as updates are back ported.
+> The back porting of RHEL-5 updates will be somewhat more selective from
+> RHEL-4.9 onward.
+>
+> Ian
+>
+> _______________________________________________
+> autofs mailing list
+> autofs@linux.kernel.org
+> http://linux.kernel.org/mailman/listinfo/autofs
+>
