@@ -1,102 +1,50 @@
-From: Lukas Haase <lukashaase@gmx.at>
-Subject: Bind mount on indirect mount OR script for direct mount
-Date: Fri, 31 Jul 2009 00:40:36 +0200
-Message-ID: <h4t7h5$l8h$1@ger.gmane.org>
+From: Howard Wilkinson <howard@cohtech.com>
+Subject: Problem with mount.nfs4 on latest Fedora 10 updates
+Date: Thu, 13 Aug 2009 17:50:08 +0100
+Message-ID: <4A844440.3030504@cohtech.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
+Return-path: <nfsv4-bounces@linux-nfs.org>
 List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
+List-Unsubscribe: <http://linux-nfs.org/cgi-bin/mailman/options/nfsv4>,
+	<mailto:nfsv4-request@linux-nfs.org?subject=unsubscribe>
+List-Archive: <http://linux-nfs.org/pipermail/nfsv4>
+List-Post: <mailto:nfsv4@linux-nfs.org>
+List-Help: <mailto:nfsv4-request@linux-nfs.org?subject=help>
+List-Subscribe: <http://linux-nfs.org/cgi-bin/mailman/listinfo/nfsv4>,
+	<mailto:nfsv4-request@linux-nfs.org?subject=subscribe>
+Sender: nfsv4-bounces@linux-nfs.org
+Errors-To: nfsv4-bounces@linux-nfs.org
 Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: autofs@linux.kernel.org
+To: autofs@linux.kernel.org, For users of Fedora Core releases <fedora-list@redhat.com>, nfsv4@linux-nfs.org
 
-Hi,
+I have just upgraded a couple of servers from FC9 to FC10 and I am 
+seeing a major problem with mount.nfs4. This occurs when autofs calls 
+the mount program. It then runs at 100% CPU and never terminates.
 
-I have the following problem: I have an external media USB drive which I 
-want to automatically power on and mount it into a virtual environment 
-(OpenVZ). Something similar like to mounting into chroot.
+I have VMs that are running similar configuration successfully, so this 
+is something driven by being on bare metal.
 
-On the host, the drive should be mounted to 
-/var/lib/vz/root/500/media/media which correspondents /media/media 
-inside the virtual OpenVZ container.
+Kernel is 2.6.27.29-170.2.78.fc10.i686.PAE
+nfs-utils is nfs-utils-1.1.4-8.fc10.i386
+autofs is autofs-5.0.3-41.i386
 
-The USB drive is connected to a powerhub which can be switched from a 
-script. The drive should only be switched on when it is needed and 
-switched off again afterwards. As a solution I would have the following 
-ideas (both are not yet working :-( ):
+Command running is
 
-1.) Defining a direct mount:
-# cat /etc/auto.master
-/-	auto.misc	--timeout=5
-# cat /etc/auto.misc
-/var/lib/vz/root/500/media/media   -fstype=vfat,defaults   :/dev/media
+/sbin/mount.nfs4 battleaxe:/ /hosts/battleaxe -s -o 
+rw,nosuid,nodev,tcp,rsize=32768,wsize=32768,hard,intr
 
-But I see no way here to execute a script in order to power on the 
-drive. Is there a way?
+The autofs mount has worked and the directories under /hosts/battleaxe 
+have been successfully accessed prior to the problem occuring - I 
+suspect this is a remount after and expire has occurred.
 
-2.) By using indirect mounts I can use a script. But unfortunately I do 
-*not* want to have an indirect mount inside the VE. So my idea would be 
-to first mount the drive indirectly to /media/auto/*:
+Anybody seen this before?
+Anybody know what I can do to get round this? [I am on the way to FC11 
+but will have to live with FC10 for a while (a week or so)]
+Any extra information I can acquire to diagnose this?
 
-# cat /etc/auto.master
-/media/auto     /usr/local/sbin/autofs-mount.sh --timeout=5 --ghost
+There is nothing in the log files to indicate anything going wrong, I 
+could turn debug on if I knew what to set and which messages to strip 
+once I do.
 
-The script powers on the drive, waits until the device node exists and 
-returns the options. This works quite good. But now I want the content 
-to appear in /var/lib/vz/root/500/media/media. Normally I would just 
-take a symlink and everything would be fine. But due to the nature of 
-the OpenVZ container ("chroot") I rather need a bind mount. So I tried:
-
-# cat /etc/auto.master
-/-	auto.misc	--timeout=5
-# cat /etc/auto.misch
-/var/lib/vz/root/500/media/media -fstype=none,bind   :/media/auto/media
-
-But unfortunately this does not seem to work:
-
-# ls -la /media/auto/media/
-(directory content - works)
-# ls -la /var/lib/vz/root/500/media/media/
-ls: cannot open directory /var/lib/vz/root/500/media/media/: No such 
-file or directory
-
-And this is the debug output:
-
-[...]
-lookup_mount: lookup(file): looking up /var/lib/vz/root/500/media/media
-lookup_mount: lookup(file): /var/lib/vz/root/500/media/media -> 
--fstype=none,bind       :/media/auto/media
-parse_mount: parse(sun): expanded entry: -fstype=none,bind 
-:/media/auto/media
-parse_mount: parse(sun): gathered options: fstype=none,bind
-parse_mount: parse(sun): dequote(":/media/auto/media") -> :/media/auto/media
-parse_mount: parse(sun): core of entry: options=fstype=none,bind, 
-loc=:/media/auto/media
-sun_mount: parse(sun): mounting root /-, mountpoint 
-/var/lib/vz/root/500/media/media, what /media/auto/media, fstype none, 
-options bind
-do_mount: /media/auto/media /var/lib/vz/root/500/media/media type none 
-options bind using module generic
-mount_mount: mount(generic): calling mkdir_path 
-/var/lib/vz/root/500/media/media
-mount_mount: mount(generic): warning: /var/lib/vz/root/500/media/media 
-is already mounted
-send_ready: token = 174
-mounted /var/lib/vz/root/500/media/media
-[...]
-
-Is there any way to solve my problem? I have Debian lenny with the 
-autofs5 package.
-
-Thank you very much.
-
-Best regards,
-Luke
+Any help appreciated. Howard.
