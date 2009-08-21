@@ -1,8 +1,10 @@
-From: Ondrej Valousek <webserv@s3group.cz>
-Subject: Spam: Autofs & Active Directory integration
-Date: Fri, 14 Aug 2009 14:36:44 +0200
-Message-ID: <4A855A5C.8000608@s3group.cz>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: [patch,
+	trivial] fix a typo in the redhat/autofs.init.in usage text
+Date: Fri, 21 Aug 2009 11:24:14 -0400
+Message-ID: <x498whdur4x.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
@@ -15,9 +17,21 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
+To: Ian Kent <raven@themaw.net>
+Cc: autofs mailing list <autofs@linux.kernel.org>
 
-http://ondarnfs.blogspot.com/
+Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
 
-Hopefully I have written it the way so it is understandable to everyone :-)
+diff --git a/redhat/autofs.init.in b/redhat/autofs.init.in
+index fded1d8..806302b 100644
+--- a/redhat/autofs.init.in
++++ b/redhat/autofs.init.in
+@@ -172,7 +172,7 @@ case "$1" in
+ 		fi
+ 		;;
+ 	*)
+-		echo $"Usage: $0 {start|forcestart|stop|status|restart|orcerestart|reload|condrestart}"
++		echo $"Usage: $0 {start|forcestart|stop|status|restart|forcerestart|reload|condrestart}"
+ 		exit 1;
+ 		;;
+ esac
