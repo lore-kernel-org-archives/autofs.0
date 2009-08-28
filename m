@@ -1,13 +1,19 @@
-From: Lukas Haase <lukashaase@gmx.at>
-Subject: Re: Using autofs with on non-mounted directory
-Date: Fri, 28 Aug 2009 18:01:19 +0200
-Message-ID: <h78v0g$rhg$1@ger.gmane.org>
-References: <h6h1jt$bbh$1@ger.gmane.org>
-	<x49tyzs3sed.fsf@segfault.boston.devel.redhat.com>
+From: Aaron Straus <aaron@merfinllc.com>
+Subject: Re: autofs does not umount
+Date: Fri, 28 Aug 2009 09:43:58 -0700
+Message-ID: <20090828164358.GA6935@merfinllc.com>
+References: <20090827222825.GA23043@merfinllc.com>
+	<20090827232753.GA26300@merfinllc.com>
+	<4A971D47.3050503@themaw.net>
+	<20090828001545.GA28811@merfinllc.com>
+	<alpine.LFD.2.00.0908281018420.21701@zeus.themaw.net>
+	<4A976E14.7000301@themaw.net>
 Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <x49tyzs3sed.fsf@segfault.boston.devel.redhat.com>
+Content-Disposition: inline
+In-Reply-To: <4A976E14.7000301@themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,47 +24,26 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: autofs@linux.kernel.org
-
-Jeff Moyer schrieb:
-> Lukas Haase <lukashaase@gmx.at> writes:
->> Hi,
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org, viro@zeniv.linux.org.uk
 
 Hi,
 
->> I have the problem that I have an indirect mount in
->> "/var/lib/vz/root/500/media/media". Unfortunately this directory does
->> not always exists (particulary not on system startup).
+On Aug 28 01:41 PM, Ian Kent wrote:
+> > -	if (!may_umount_tree(mnt)) {
+> > +	if (!may_umount_tree(&path.mnt)) {
 > 
-> So it doesn't get mounted automatically?  If it *is* mounted as part of
-> startup, then it sounds like you just need to move that sooner in your
-> boot order.
+> My bad, sorry.
+> I think that really should be path.mnt not &path.mnt.
 
-No, that would be easy, of course. The actual problem is, that I want to 
-have the indirect mount into an OpenVZ container. OpenVZ "bind mounts" 
-its data root into the directory above before starting a container: 
-/var/lib/vz/private/500/media/media --> /var/lib/vz/root/500/media/media.
+Yep.  I confirm the fixed-up patch fixes the problems I'm seeing.
 
-And of course, the container is not always started. But I can call a 
-script when starting/stopping a container.
+Thanks for the help!!
 
->> The directory exists as soon as another filesystem
->> "/var/lib/vz/root/500" is mounted. I have the possibility to execute a
->> script when that filesystem is mounted and umounted.
-> 
->> Do I have the possibility to add/remove this indirect mount somehow
->> "on the fly"?
-> 
-> You would have to script this yourself.  There is no real api to tell
-> the automounter to add map entries.
+=a=
 
-Yes, but how?
 
-Would it be possible to change the config files and send e.g. a HUP ?
-
-That way, I could dynamically add the apropriate line on container 
-startup and issue HUP, and remove the line when the container shuts down.
-
-Regards,
-Luke
+-- 
+===================
+Aaron Straus
+aaron@merfinllc.com
