@@ -1,16 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: More CIFS $ Share Woes
-Date: Tue, 01 Sep 2009 10:46:25 +0800
-Message-ID: <4A9C8B01.9060708@themaw.net>
-References: <85c7eb2d0908280709u35cd5cfci7f50413da61539e7@mail.gmail.com>	
-	<4A9B5274.4040800@themaw.net>	
-	<85c7eb2d0908310522u18907b17pd1399a1cf79ad1e5@mail.gmail.com>
-	<85c7eb2d0908311255j5b457221ld88131f111611f04@mail.gmail.com>
+From: Jack Challen <jack_challen@ocsl.co.uk>
+Subject: Autofs 5.0.1-0rc2.102 failing to query LDAP (Windows 2008
+	AD)
+Date: Wed, 02 Sep 2009 18:05:12 +0100
+Message-ID: <4A9EA5C8.8010301@ocsl.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <85c7eb2d0908311255j5b457221ld88131f111611f04@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,46 +16,109 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: "Jason T. Masker" <jason.fmic@masker.net>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: autofs@linux.kernel.org
 
-Jason T. Masker wrote:
-> I also tried changing the print line to the following:
-> 
-> print " \\\n\t \"/" dir "\"", "://" key "/" lo
-> 
-> 
-> 
-> so that the output looks like this:
-> 
-> $ sudo /etc/auto.cifs VMW1013
-> -fstype=cifs,file_mode=0644,dir_mode=0755,uid=jmasker,gid=users,credentials=/etc/auto.smb.jmasker
-> \
->          "/My Documents" ://VMW1013/My Documents \
->          "/ADMIN$" ://VMW1013/ADMIN\$ \
->          "/C$" ://VMW1013/C\$ \
->          "/Shared" ://VMW1013/Shared
-> 
-> 
-> However, this results in automount dropping the $ as well.  The debug
-> looks identical to what I just posted.
+Hello,
 
-Yes, the location does need to double escape the dollar in the mount.
-The double quotes are meant to preserve any spaces present in the
-location but the "$" is also used as a macro introducer so it needs to
-be escaped a second time so it doesn't get substituted with NULL when
-the entry is expanded. What makes this difficult is the "\" is also a
-separator and gets translated to "/" by mount.cifs. When you run the
-mount from the command line the shell translates the "\$" to "$" before
-it gets to mount.cifs.
+My problem appears to be very similar to:
+http://www.opensubscriber.com/message/autofs@linux.kernel.org/11281928.html
 
-I think the problem occurs because, when the entry is initially broken
-up into mount triggers for each share and each is mounted, expanding the
-map entry needs to preserve the "\$", but when the individual triggers
-are walked on expanding the entry needs to substitute the "\$" for "$"
-so the mount works. The problem being that the expand subroutine doesn't
-know the difference between these two invocations.
+I'm trying to make autofs get its information from LDAP (stored on a Windows 2008 AD). I believe autofs is failing to 
+authenticate properly. It appears that the sasl_log_func function is doing the authentication steps in the wrong order 
+(based on reading of the log files).
 
-I'll have a look and see.
+(FWIW, I've made this work storing info in OpenLDAP, and doing anonymous binds, but I plan to use AD's LDAP functionality).
 
-Ian
+Here's what works (in that it gets some information):
+
+ldapsearch -h addns -Y DIGEST-MD5 -U ldap.query -w secret -b "cn=auto.master,dc=cm,dc=domain,dc=com"
+
+When I configure /etc/autofs_ldap_auth.conf to contain the following:
+====
+<autofs_ldap_sasl_conf
+         authtype="DIGEST-MD5"
+         authrequired="yes"
+         user="ldap.query"
+         secret="Secret"
+         usetls="no"
+         tlsrequired="no"
+/>
+====
+
+I get the following logs
+====
+Sep  2 17:42:10 rhelbase automount[14835]: autofs stopped
+Sep  2 17:42:10 rhelbase automount[14866]: Starting automounter version 5.0.1-0.rc2.102, master map ldap://addns/
+Sep  2 17:42:10 rhelbase automount[14866]: using kernel protocol version 5.00
+Sep  2 17:42:10 rhelbase automount[14866]: lookup_nss_read_master: reading master ldap //addns/
+Sep  2 17:42:10 rhelbase automount[14866]: parse_server_string: lookup(ldap): Attempting to parse LDAP information from 
+string "ldap://addns/".
+Sep  2 17:42:10 rhelbase automount[14866]: parse_server_string: lookup(ldap): mapname
+Sep  2 17:42:10 rhelbase automount[14866]: parse_ldap_config: lookup(ldap): ldap authentication configured with the 
+following options:
+Sep  2 17:42:10 rhelbase automount[14866]: parse_ldap_config: lookup(ldap): use_tls: 1, tls_required: 0, auth_required: 
+2, sasl_mech: DIGEST-MD5
+Sep  2 17:42:10 rhelbase automount[14866]: parse_ldap_config: lookup(ldap): user: ldap.query, secret: specified, client 
+principal: (null) credential cache: (null)
+Sep  2 17:42:10 rhelbase automount[14866]: sasl_bind_mech: Attempting sasl bind with mechanism DIGEST-MD5
+Sep  2 17:42:10 rhelbase automount[14866]: sasl_log_func: DIGEST-MD5 client step 2
+Sep  2 17:42:10 rhelbase automount[14866]: getuser_func: called with context (nil), id 16386.
+Sep  2 17:42:10 rhelbase automount[14866]: getuser_func: called with context (nil), id 16385.
+Sep  2 17:42:10 rhelbase automount[14866]: getpass_func: context (nil), id 16388
+Sep  2 17:42:10 rhelbase automount[14866]: sasl_log_func: DIGEST-MD5 client step 3
+Sep  2 17:42:10 rhelbase automount[14866]: sasl_bind_mech: sasl bind with mechanism DIGEST-MD5 succeeded
+Sep  2 17:42:10 rhelbase automount[14866]: do_bind: lookup(ldap): auth_required: 2, sasl_mech DIGEST-MD5
+Sep  2 17:42:10 rhelbase automount[14866]: sasl_bind_mech: Attempting sasl bind with mechanism DIGEST-MD5
+Sep  2 17:42:10 rhelbase automount[14866]: sasl_log_func: DIGEST-MD5 client step 1
+Sep  2 17:42:10 rhelbase automount[14866]: getuser_func: called with context (nil), id 16386.
+Sep  2 17:42:10 rhelbase automount[14866]: getuser_func: called with context (nil), id 16385.
+====
+
+The bit that makes me wonder is the DIGEST-MD5 client steps go in the order 2,3,2,1. It also says the bind succeeded at 
+one point, but appears to carry on.
+
+If I use a deliberately wrong user, I get this:
+
+====
+Sep  2 17:41:10 rhelbase automount[14771]: autofs stopped
+Sep  2 17:41:10 rhelbase automount[14803]: Starting automounter version 5.0.1-0.rc2.102, master map ldap://addns/
+Sep  2 17:41:10 rhelbase automount[14803]: using kernel protocol version 5.00
+Sep  2 17:41:10 rhelbase automount[14803]: lookup_nss_read_master: reading master ldap //addns/
+Sep  2 17:41:10 rhelbase automount[14803]: parse_server_string: lookup(ldap): Attempting to parse LDAP information from 
+string "ldap://addns/".
+Sep  2 17:41:10 rhelbase automount[14803]: parse_server_string: lookup(ldap): mapname
+Sep  2 17:41:10 rhelbase automount[14803]: parse_ldap_config: lookup(ldap): ldap authentication configured with the 
+following options:
+Sep  2 17:41:10 rhelbase automount[14803]: parse_ldap_config: lookup(ldap): use_tls: 1, tls_required: 0, auth_required: 
+2, sasl_mech: DIGEST-MD5
+Sep  2 17:41:10 rhelbase automount[14803]: parse_ldap_config: lookup(ldap): user: 1ldap.query, secret: specified, client 
+principal: (null) credential cache: (null)
+Sep  2 17:41:10 rhelbase automount[14803]: sasl_bind_mech: Attempting sasl bind with mechanism DIGEST-MD5
+Sep  2 17:41:10 rhelbase automount[14803]: sasl_log_func: DIGEST-MD5 client step 6
+Sep  2 17:41:10 rhelbase automount[14803]: getuser_func: called with context (nil), id 16386.
+Sep  2 17:41:10 rhelbase automount[14803]: getuser_func: called with context (nil), id 16385.
+Sep  2 17:41:10 rhelbase automount[14803]: getpass_func: context (nil), id 16388
+Sep  2 17:41:10 rhelbase automount[14803]: Error parsing response to sasl_bind request: Invalid credentials.
+Sep  2 17:41:10 rhelbase automount[14803]: The LDAP server indicated that the LDAP SASL bind was incomplete, but did not 
+provide the required data to proceed. LDAP SASL bind with mechanism DIGEST-MD5 failed.
+Sep  2 17:41:10 rhelbase automount[14803]: sasl bind with mechanism DIGEST-MD5 failed
+Sep  2 17:41:10 rhelbase automount[14803]: connect_to_server: lookup(ldap): cannot initialize authentication setup
+Sep  2 17:41:10 rhelbase automount[14803]: no mounts in table
+====
+
+This is on a RHEL 5.3 system, and I get the same on an just-updated CentOS 5.3 machine.
+
+Should I be looking at a later autofs package (I couldn't see any indication of that in web searches)?
+
+Has anyone got any clues as to why the ldapsearch works, but the autofs version doesn't?
+Is there anything else I should be trying?
+
+
+cheers
+jack
+
+-- 
+Jack Challen
+Technical Consultant, OCSL.
+http://www.ocsl.co.uk/
