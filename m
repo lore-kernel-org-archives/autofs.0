@@ -1,7 +1,8 @@
 From: Jeff Moyer <jmoyer@redhat.com>
-Subject: [patch] check the return code from ldap_parse_result
-Date: Fri, 04 Sep 2009 14:09:05 -0400
-Message-ID: <x49bplqvaym.fsf@segfault.boston.devel.redhat.com>
+Subject: [patch] Get rid of a bogus assignment in
+	defaults_free_searchdns
+Date: Fri, 04 Sep 2009 14:15:14 -0400
+Message-ID: <x497hwevaod.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -19,40 +20,22 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: raven@themaw.net
 Cc: autofs@linux.kernel.org
 
-Hi, Ian,
-
-Here's another trivialish patch.  If ldap_parse_result returns anything
-other than LDAP_SUCCESS, the values of the result pointers are
-undefined.
+tssia.
 
 Cheers,
 Jeff
 
 Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
 
-diff --git a/modules/lookup_ldap.c b/modules/lookup_ldap.c
-index d0cbdca..33ca23e 100644
---- a/modules/lookup_ldap.c
-+++ b/modules/lookup_ldap.c
-@@ -2017,6 +2017,12 @@ do_paged:
- 		sp->cookie = NULL;
- 	}
+diff --git a/lib/defaults.c b/lib/defaults.c
+index 17164bd..0aafa8b 100644
+--- a/lib/defaults.c
++++ b/lib/defaults.c
+@@ -532,7 +532,6 @@ void defaults_free_searchdns(struct ldap_searchdn *sdn)
+ 	struct ldap_searchdn *this = sdn;
+ 	struct ldap_searchdn *next;
  
-+	if (rv != LDAP_SUCCESS) {
-+		debug(ap->logopt,
-+		      MODPREFIX "ldap_parse_result failed with %d", rv);
-+		goto out_free;
-+	}
-+
- 	/*
- 	 * Parse the page control returned to get the cookie and
- 	 * determine whether there are more pages.
-@@ -2033,8 +2039,8 @@ do_paged:
- 	if (returnedControls)
- 		ldap_controls_free(returnedControls);
- 
-+out_free:
- 	ldap_control_free(pageControl);
--
- 	return rv;
- }
+-	next = this;
+ 	while (this) {
+ 		next = this->next;
+ 		free(this->basedn);
