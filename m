@@ -1,7 +1,7 @@
 From: Jeff Moyer <jmoyer@redhat.com>
-Subject: [patch] daemon/direct.c: check the return code from stat(2)
-Date: Fri, 04 Sep 2009 14:29:06 -0400
-Message-ID: <x49y6outvgt.fsf@segfault.boston.devel.redhat.com>
+Subject: [patch] lib/master.c: get rid of unused name variable
+Date: Fri, 04 Sep 2009 14:47:27 -0400
+Message-ID: <x49pra6tum8.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -19,23 +19,36 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: raven@themaw.net
 Cc: autofs@linux.kernel.org
 
-Another trivial patch.
+Hi, Ian,
+
+Yet another trivial patch.
 
 Cheers,
 Jeff
 
 Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
 
-diff --git a/daemon/direct.c b/daemon/direct.c
-index 0c78627..9b4e57b 100644
---- a/daemon/direct.c
-+++ b/daemon/direct.c
-@@ -1245,7 +1245,7 @@ static void *do_mount_direct(void *arg)
- 	}
+diff --git a/lib/master.c b/lib/master.c
+index e43f835..8455f40 100644
+--- a/lib/master.c
++++ b/lib/master.c
+@@ -152,7 +152,7 @@ master_add_map_source(struct master_mapent *entry,
+ {
+ 	struct map_source *source;
+ 	char *ntype, *nformat;
+-	const char **tmpargv, *name = NULL;
++	const char **tmpargv;
  
- 	status = stat(mt.name, &st);
--	if (!S_ISDIR(st.st_mode) || st.st_dev != mt.dev) {
-+	if (status != 0 || !S_ISDIR(st.st_mode) || st.st_dev != mt.dev) {
- 		error(ap->logopt,
- 		     "direct trigger not valid or already mounted %s",
- 		     mt.name);
+ 	source = malloc(sizeof(struct map_source));
+ 	if (!source)
+@@ -188,10 +188,6 @@ master_add_map_source(struct master_mapent *entry,
+ 	source->argc = argc;
+ 	source->argv = tmpargv;
+ 
+-	/* Can be NULL for "hosts" map */
+-	if (argv)
+-		name = argv[0];
+-
+ 	master_source_writelock(entry);
+ 
+ 	if (!entry->maps)
