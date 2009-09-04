@@ -1,8 +1,7 @@
 From: Jeff Moyer <jmoyer@redhat.com>
-Subject: [patch] lookup_ldap.c: no need to free a result that is
-	NULL
-Date: Fri, 04 Sep 2009 12:41:49 -0400
-Message-ID: <x49k50evf02.fsf@segfault.boston.devel.redhat.com>
+Subject: [patch] check the return code from ldap_parse_result
+Date: Fri, 04 Sep 2009 14:09:05 -0400
+Message-ID: <x49bplqvaym.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -22,36 +21,38 @@ Cc: autofs@linux.kernel.org
 
 Hi, Ian,
 
-Here's another trivial patch.  If we already know the result pointer is
-null, there's no need to call ldap_msgfree on it!
+Here's another trivialish patch.  If ldap_parse_result returns anything
+other than LDAP_SUCCESS, the values of the result pointers are
+undefined.
 
 Cheers,
 Jeff
 
 Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
 
-diff --git a/Makefile.rules b/Makefile.rules
-index f2ba386..26da6d8 100644
---- a/Makefile.rules
-+++ b/Makefile.rules
-@@ -38,7 +38,7 @@ STRIP     = strip --strip-debug
- endif
- endif
- 
--CC        = gcc
-+# CC        = gcc
- CXX       = g++
- CXXFLAGS  = $(CFLAGS)
- LD        = ld
 diff --git a/modules/lookup_ldap.c b/modules/lookup_ldap.c
-index 3a31a8e..d0cbdca 100644
+index d0cbdca..33ca23e 100644
 --- a/modules/lookup_ldap.c
 +++ b/modules/lookup_ldap.c
-@@ -400,7 +400,6 @@ static int get_query_dn(unsigned logopt, LDAP *ldap, struct lookup_context *ctxt
- 		}
+@@ -2017,6 +2017,12 @@ do_paged:
+ 		sp->cookie = NULL;
+ 	}
  
- 		if (!result) {
--			ldap_msgfree(result);
- 			error(logopt,
- 			      MODPREFIX "failed to find query dn under search base dns");
- 			free(query);
++	if (rv != LDAP_SUCCESS) {
++		debug(ap->logopt,
++		      MODPREFIX "ldap_parse_result failed with %d", rv);
++		goto out_free;
++	}
++
+ 	/*
+ 	 * Parse the page control returned to get the cookie and
+ 	 * determine whether there are more pages.
+@@ -2033,8 +2039,8 @@ do_paged:
+ 	if (returnedControls)
+ 		ldap_controls_free(returnedControls);
+ 
++out_free:
+ 	ldap_control_free(pageControl);
+-
+ 	return rv;
+ }
