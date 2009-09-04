@@ -1,7 +1,8 @@
 From: Jeff Moyer <jmoyer@redhat.com>
-Subject: [patch] don't pass a null pointer to pthread_attr_destroy
-Date: Fri, 04 Sep 2009 12:25:22 -0400
-Message-ID: <x49ws4evfrh.fsf@segfault.boston.devel.redhat.com>
+Subject: [patch] alarm.c: don't pass a null pointer to
+	pthread_attr_destroy
+Date: Fri, 04 Sep 2009 12:30:00 -0400
+Message-ID: <x49skf2vfjr.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -21,21 +22,20 @@ Cc: autofs@linux.kernel.org
 
 Hi, Ian,
 
-pthread_attr_destroy will dereference the pointer that is passed in.
-Since we can get here with a NULL pattrs, we better check for that.
+Here's another variant of the null pointer passed to attr_destroy.
 
 Cheers,
 Jeff
 
 Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
 
-diff --git a/daemon/state.c b/daemon/state.c
-index 71af46a..2eeb4bf 100644
---- a/daemon/state.c
-+++ b/daemon/state.c
-@@ -1198,7 +1198,8 @@ int st_start_handler(void)
+diff --git a/lib/alarm.c b/lib/alarm.c
+index 46df38a..f403d8f 100755
+--- a/lib/alarm.c
++++ b/lib/alarm.c
+@@ -239,7 +239,8 @@ int alarm_start_handler(void)
  
- 	status = pthread_create(&thid, pattrs, st_queue_handler, NULL);
+ 	status = pthread_create(&thid, pattrs, alarm_handler, NULL);
  
 -	pthread_attr_destroy(pattrs);
 +	if (pattrs)
