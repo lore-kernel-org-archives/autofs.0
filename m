@@ -1,7 +1,7 @@
 From: Jeff Moyer <jmoyer@redhat.com>
-Subject: [patch] parse_sun.c: get rid of unused optlen variable
-Date: Fri, 04 Sep 2009 14:22:47 -0400
-Message-ID: <x493a72vabs.fsf@segfault.boston.devel.redhat.com>
+Subject: [patch] daemon/direct.c: check the return code from stat(2)
+Date: Fri, 04 Sep 2009 14:29:06 -0400
+Message-ID: <x49y6outvgt.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -19,32 +19,23 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: raven@themaw.net
 Cc: autofs@linux.kernel.org
 
-I couldn't find a reason to keep this around.  We don't walk this
-options string, so it isn't used to make sure we don't walk off the
-end.  So, get rid of it.
+Another trivial patch.
 
 Cheers,
 Jeff
 
 Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
 
-diff --git a/modules/parse_sun.c b/modules/parse_sun.c
-index db36ae2..921daf4 100644
---- a/modules/parse_sun.c
-+++ b/modules/parse_sun.c
-@@ -1334,7 +1334,7 @@ int parse_mount(struct autofs_point *ap, const char *name,
- 	char *pmapent, *options;
- 	const char *p;
- 	int mapent_len, rv = 0;
--	int optlen, cur_state;
-+	int cur_state;
- 	int slashify = ctxt->slashify_colons;
- 	unsigned int append_options;
- 
-@@ -1389,7 +1389,6 @@ int parse_mount(struct autofs_point *ap, const char *name,
- 		logerr(MODPREFIX "strdup: %s", estr);
- 		return 1;
+diff --git a/daemon/direct.c b/daemon/direct.c
+index 0c78627..9b4e57b 100644
+--- a/daemon/direct.c
++++ b/daemon/direct.c
+@@ -1245,7 +1245,7 @@ static void *do_mount_direct(void *arg)
  	}
--	optlen = strlen(options);
  
- 	p = skipspace(pmapent);
+ 	status = stat(mt.name, &st);
+-	if (!S_ISDIR(st.st_mode) || st.st_dev != mt.dev) {
++	if (status != 0 || !S_ISDIR(st.st_mode) || st.st_dev != mt.dev) {
+ 		error(ap->logopt,
+ 		     "direct trigger not valid or already mounted %s",
+ 		     mt.name);
