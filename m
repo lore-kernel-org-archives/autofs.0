@@ -1,8 +1,7 @@
 From: Jeff Moyer <jmoyer@redhat.com>
-Subject: [patch] sasl_choose_mech could return an uninitialized
-	conn pointer
-Date: Fri, 04 Sep 2009 15:18:41 -0400
-Message-ID: <x4963bytt66.fsf@segfault.boston.devel.redhat.com>
+Subject: a note on all the patches I just sent
+Date: Fri, 04 Sep 2009 15:27:24 -0400
+Message-ID: <x491vmmtsrn.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -20,25 +19,26 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: raven@themaw.net
 Cc: autofs@linux.kernel.org
 
-Hi, Ian,
+These were a result of running clang against the autofs source tree.
+See:
+  http://clang-analyzer.llvm.org/
 
-If a server returns a set of mechanisms that all require authentication,
-then the conn pointer is returned to the caller uninitialized.  Fix
-that.
+If you want to run this against autofs, you'll have to make the attached
+change to Makefile.rules.
 
 Cheers,
 Jeff
 
-diff --git a/modules/cyrus-sasl.c b/modules/cyrus-sasl.c
-index 4c6a671..806bf9f 100644
---- a/modules/cyrus-sasl.c
-+++ b/modules/cyrus-sasl.c
-@@ -798,7 +798,7 @@ sasl_bind_mech(unsigned logopt, LDAP *ldap, struct lookup_context *ctxt, const c
- sasl_conn_t *
- sasl_choose_mech(unsigned logopt, LDAP *ldap, struct lookup_context *ctxt)
- {
--	sasl_conn_t *conn;
-+	sasl_conn_t *conn = NULL;
- 	int authenticated;
- 	int i;
- 	char **mechanisms;
+diff --git a/Makefile.rules b/Makefile.rules
+index f2ba386..26da6d8 100644
+--- a/Makefile.rules
++++ b/Makefile.rules
+@@ -38,7 +38,7 @@ STRIP     = strip --strip-debug
+ endif
+ endif
+ 
+-CC        = gcc
++# CC        = gcc
+ CXX       = g++
+ CXXFLAGS  = $(CFLAGS)
+ LD        = ld
