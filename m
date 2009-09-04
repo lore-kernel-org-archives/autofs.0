@@ -1,7 +1,8 @@
 From: Jeff Moyer <jmoyer@redhat.com>
-Subject: [patch] autofs_sasl_dispose: ctxt is always valid
-Date: Fri, 04 Sep 2009 15:07:52 -0400
-Message-ID: <x49d466tto7.fsf@segfault.boston.devel.redhat.com>
+Subject: [patch] sasl_choose_mech could return an uninitialized
+	conn pointer
+Date: Fri, 04 Sep 2009 15:18:41 -0400
+Message-ID: <x4963bytt66.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -19,23 +20,25 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: raven@themaw.net
 Cc: autofs@linux.kernel.org
 
-If ctxt wasn't valid, other things would explode wildly.
+Hi, Ian,
+
+If a server returns a set of mechanisms that all require authentication,
+then the conn pointer is returned to the caller uninitialized.  Fix
+that.
 
 Cheers,
 Jeff
 
-Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
-
 diff --git a/modules/cyrus-sasl.c b/modules/cyrus-sasl.c
-index 04001d0..4c6a671 100644
+index 4c6a671..806bf9f 100644
 --- a/modules/cyrus-sasl.c
 +++ b/modules/cyrus-sasl.c
-@@ -922,7 +922,7 @@ void autofs_sasl_dispose(struct lookup_context *ctxt)
+@@ -798,7 +798,7 @@ sasl_bind_mech(unsigned logopt, LDAP *ldap, struct lookup_context *ctxt, const c
+ sasl_conn_t *
+ sasl_choose_mech(unsigned logopt, LDAP *ldap, struct lookup_context *ctxt)
  {
- 	int status, ret;
- 
--	if (ctxt && ctxt->sasl_conn) {
-+	if (ctxt->sasl_conn) {
- 		sasl_dispose(&ctxt->sasl_conn);
- 		ctxt->sasl_conn = NULL;
- 	}
+-	sasl_conn_t *conn;
++	sasl_conn_t *conn = NULL;
+ 	int authenticated;
+ 	int i;
+ 	char **mechanisms;
