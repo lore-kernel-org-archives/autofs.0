@@ -1,7 +1,7 @@
 From: Jeff Moyer <jmoyer@redhat.com>
-Subject: [patch] mount_autofs.c:mount_mount no need to increment val
-Date: Fri, 04 Sep 2009 15:02:49 -0400
-Message-ID: <x49hbvittwm.fsf@segfault.boston.devel.redhat.com>
+Subject: [patch] autofs_sasl_dispose: ctxt is always valid
+Date: Fri, 04 Sep 2009 15:07:52 -0400
+Message-ID: <x49d466tto7.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -19,23 +19,23 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: raven@themaw.net
 Cc: autofs@linux.kernel.org
 
-No sense incrementing val since we never look at it again.
+If ctxt wasn't valid, other things would explode wildly.
 
 Cheers,
 Jeff
 
 Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
 
-diff --git a/modules/mount_autofs.c b/modules/mount_autofs.c
-index afb1859..2a5d860 100644
---- a/modules/mount_autofs.c
-+++ b/modules/mount_autofs.c
-@@ -119,7 +119,7 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name,
- 			else if (strncmp(cp, "timeout=", 8) == 0) {
- 				char *val = strchr(cp, '=');
- 				unsigned tout;
--				if (val++) {
-+				if (val) {
- 					int ret = sscanf(cp, "timeout=%u", &tout);
- 					if (ret)
- 						timeout = tout;
+diff --git a/modules/cyrus-sasl.c b/modules/cyrus-sasl.c
+index 04001d0..4c6a671 100644
+--- a/modules/cyrus-sasl.c
++++ b/modules/cyrus-sasl.c
+@@ -922,7 +922,7 @@ void autofs_sasl_dispose(struct lookup_context *ctxt)
+ {
+ 	int status, ret;
+ 
+-	if (ctxt && ctxt->sasl_conn) {
++	if (ctxt->sasl_conn) {
+ 		sasl_dispose(&ctxt->sasl_conn);
+ 		ctxt->sasl_conn = NULL;
+ 	}
