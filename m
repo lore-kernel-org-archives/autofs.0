@@ -1,14 +1,20 @@
-From: Ondrej Valousek <webserv@s3group.cz>
-Subject: Re: Autofs 5.0.1-0rc2.102 failing to query LDAP (Windows
- 2008	AD)
-Date: Mon, 07 Sep 2009 11:14:00 +0200
-Message-ID: <4AA4CED8.9020001@s3group.cz>
-References: <4A9EA5C8.8010301@ocsl.co.uk> <4A9F5CE8.7050509@s3group.cz>
-	<4AA12149.6020609@ocsl.co.uk>
+From: Al Viro <viro@ZenIV.linux.org.uk>
+Subject: Re: autofs does not umount
+Date: Sat, 12 Sep 2009 16:40:35 +0100
+Message-ID: <20090912154035.GH5858@ZenIV.linux.org.uk>
+References: <20090827222825.GA23043@merfinllc.com>
+	<20090827232753.GA26300@merfinllc.com>
+	<4A971D47.3050503@themaw.net>
+	<20090828001545.GA28811@merfinllc.com>
+	<alpine.LFD.2.00.0908281018420.21701@zeus.themaw.net>
+	<4A976E14.7000301@themaw.net> <20090828164358.GA6935@merfinllc.com>
+	<4A9B456C.2070607@themaw.net>
 Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4AA12149.6020609@ocsl.co.uk>
+Content-Disposition: inline
+In-Reply-To: <4A9B456C.2070607@themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,29 +25,25 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Jack Challen <jack_challen@ocsl.co.uk>
-Cc: autofs@linux.kernel.org
+To: Ian Kent <raven@themaw.net>
+Cc: autofs mailing list <autofs@linux.kernel.org>, Aaron Straus <aaron@merfinllc.com>
 
-Hi Jack,
+On Mon, Aug 31, 2009 at 11:37:16AM +0800, Ian Kent wrote:
+> Aaron Straus wrote:
+> > Hi,
+> > 
+> > On Aug 28 01:41 PM, Ian Kent wrote:
+> >>> -	if (!may_umount_tree(mnt)) {
+> >>> +	if (!may_umount_tree(&path.mnt)) {
+> >> My bad, sorry.
+> >> I think that really should be path.mnt not &path.mnt.
+> > 
+> > Yep.  I confirm the fixed-up patch fixes the problems I'm seeing.
+> 
+> Al,
+> 
+> Would you like me to post my corrected patch to LKML (to akpm or ??) or
+> would you like to take care of it?
 
-> I've been trying to avoid GSSAPI, because I believe it requires the 
-> machine to be a fully paid-up member of the AD. In my environment 
-> that's very tricky to impossible[1].
-Ok, you might also want to try simple authentication or even anonymous 
-access to AD - that should work, too (and would also be easier to deploy 
-in your diskless environment) - I just did not cover it in my blog as it 
-is insecure. The only thing I know that authentication using 
-SASL/DIGEST-MD5 does not work because of the bug I mentioned.
-> 1. Some of the longer lines in the quoted files appear truncated. They 
-> cut-n-paste fine though.
-> 2. I've found that removing /var/cache/samba/winbind* seems to work 
-> for cache clearing.
-> 3. You probably mean "getent passwd" (instead of "password"), and for 
-> some reason in my case it still doesn't return the AD users (though 
-> wbinfo -u does). The users can still authenticate though.
-Thanks for the hints - I have updated the blog (I know it truncates long 
-lines, unfortunately there is nothing I can do with it).
-Cheers,
-
-Ondrej
+My apologies, both for the original breakage and late reply ;-/
+Along with belated ACK on the fix.
