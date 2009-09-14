@@ -1,20 +1,10 @@
-From: Al Viro <viro@ZenIV.linux.org.uk>
-Subject: Re: autofs does not umount
-Date: Sat, 12 Sep 2009 16:40:35 +0100
-Message-ID: <20090912154035.GH5858@ZenIV.linux.org.uk>
-References: <20090827222825.GA23043@merfinllc.com>
-	<20090827232753.GA26300@merfinllc.com>
-	<4A971D47.3050503@themaw.net>
-	<20090828001545.GA28811@merfinllc.com>
-	<alpine.LFD.2.00.0908281018420.21701@zeus.themaw.net>
-	<4A976E14.7000301@themaw.net> <20090828164358.GA6935@merfinllc.com>
-	<4A9B456C.2070607@themaw.net>
+From: Ondrej Valousek <webserv@s3group.cz>
+Subject: Autofs Negative cache
+Date: Mon, 14 Sep 2009 09:19:35 +0200
+Message-ID: <4AADEE87.3040609@s3group.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4A9B456C.2070607@themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -25,25 +15,46 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs mailing list <autofs@linux.kernel.org>, Aaron Straus <aaron@merfinllc.com>
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
 
-On Mon, Aug 31, 2009 at 11:37:16AM +0800, Ian Kent wrote:
-> Aaron Straus wrote:
-> > Hi,
-> > 
-> > On Aug 28 01:41 PM, Ian Kent wrote:
-> >>> -	if (!may_umount_tree(mnt)) {
-> >>> +	if (!may_umount_tree(&path.mnt)) {
-> >> My bad, sorry.
-> >> I think that really should be path.mnt not &path.mnt.
-> > 
-> > Yep.  I confirm the fixed-up patch fixes the problems I'm seeing.
-> 
-> Al,
-> 
-> Would you like me to post my corrected patch to LKML (to akpm or ??) or
-> would you like to take care of it?
+Hi Ian,
 
-My apologies, both for the original breakage and late reply ;-/
-Along with belated ACK on the fix.
+Can we expect someday autofs in RHEL-5 to have a working negative cache?
+Seems like it still does not work in the last update (5.4):
+
+Sep 14 09:14:57 dorado_v1 automount[16281]: 
+handle_packet_missing_indirect: token 132, name test, request pid 16183
+Sep 14 09:14:57 dorado_v1 automount[16281]: attempting to mount entry 
+/proj/test
+Sep 14 09:14:57 dorado_v1 automount[16281]: file map not found
+Sep 14 09:14:57 dorado_v1 automount[16281]: lookup_mount: lookup(yp): 
+looking up test
+Sep 14 09:14:57 dorado_v1 automount[16281]: ioctl_send_fail: token = 132
+Sep 14 09:14:57 dorado_v1 automount[16281]: failed to mount /proj/test
+Sep 14 09:14:58 dorado_v1 automount[16281]: handle_packet: type = 3
+Sep 14 09:14:58 dorado_v1 automount[16281]: 
+handle_packet_missing_indirect: token 133, name test, request pid 16183
+Sep 14 09:14:58 dorado_v1 automount[16281]: attempting to mount entry 
+/proj/test
+Sep 14 09:14:58 dorado_v1 automount[16281]: file map not found
+Sep 14 09:14:58 dorado_v1 automount[16281]: lookup_mount: lookup(yp): 
+looking up test
+Sep 14 09:14:58 dorado_v1 automount[16281]: ioctl_send_fail: token = 133
+Sep 14 09:14:58 dorado_v1 automount[16281]: handle_packet: type = 3
+Sep 14 09:14:58 dorado_v1 automount[16281]: 
+handle_packet_missing_indirect: token 134, name test, request pid 16183
+Sep 14 09:14:58 dorado_v1 automount[16281]: failed to mount /proj/test
+Sep 14 09:14:58 dorado_v1 automount[16281]: attempting to mount entry 
+/proj/test
+Sep 14 09:14:58 dorado_v1 automount[16281]: file map not found
+Sep 14 09:14:58 dorado_v1 automount[16281]: lookup_mount: lookup(yp): 
+looking up test
+Sep 14 09:14:58 dorado_v1 automount[16281]: ioctl_send_fail: token = 134
+Sep 14 09:14:58 dorado_v1 automount[16281]: failed to mount /proj/test
+Sep 14 09:14:58 dorado_v1 automount[16281]: handle_packet: type = 3
+Sep 14 09:14:58 dorado_v1 automount[16281]: 
+handle_packet_missing_indirect: token 135, name test, request pid 16183
+
+Thanks,
+Ondrej
