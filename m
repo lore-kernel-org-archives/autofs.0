@@ -1,12 +1,10 @@
-From: Ondrej Valousek <webserv@s3group.cz>
-Subject: Re: Autofs Negative cache
-Date: Mon, 14 Sep 2009 11:45:46 +0200
-Message-ID: <4AAE10CA.7050701@s3group.cz>
-References: <4AADEE87.3040609@s3group.cz> <4AAE06D7.3090703@themaw.net>
+From: Stef Bon <stef@bononline.nl>
+Subject: shell environment when mounting
+Date: Mon, 14 Sep 2009 15:40:27 +0200
+Message-ID: <4AAE47CB.5050603@bononline.nl>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4AAE06D7.3090703@themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,16 +16,32 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Ian Kent <raven@themaw.net>
-Cc: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
+To: autofs@linux.kernel.org
+
+Hello,
 
 
-> You'll need to be a bit more specific about what is wrong.
->   
-Ok, my fault - I thought autofs would say something like "negative cache 
-hit" if the key is found in the negative cache,
-After more detailed log inspection I could see that the actual mount 
-requests are suppressed by the negative caching.
-Sorry for the noise....
+I'm using a construction where the automounter is started when a 
+sessions starts, using ConsoleKit.
+Look at:
+http://linux.bononline.nl/linux/fuse-workspace/index.php
 
-Ondrej
+
+I'm using the feature of ConsoleKit to run a script/program when a 
+session is added, and when it's removed, in
+/etc/ConsoleKit/run.d.
+
+Now here some environmentvariables are set by ConsoleKit, indicating the 
+user, the seat and the session, and more.
+
+Part of my construction is a wrapper shell script around mount.cifs, 
+which calls mount.cifs with the right parameters.
+It's a sh script. Now I've found out that the environmentvariables set 
+by ConsoleKit are still set when this script is run.
+It looks like the mount.md5key (this is the name of the wrapper) shell 
+script is using the same environment as when the
+automounter is started.
+
+Is this right??
+
+Stef Bon
