@@ -1,54 +1,128 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: shell environment when mounting
-Date: Wed, 16 Sep 2009 11:33:53 +0800
-Message-ID: <4AB05CA1.1020907@themaw.net>
-References: <4AAE47CB.5050603@bononline.nl>
+Subject: [PATCH 01/10] autofs4 - use macros for active list handling
+Date: Thu, 01 Oct 2009 09:00:55 +0800
+Message-ID: <20091001010054.7675.77673.stgit@zeus.themaw.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4AAE47CB.5050603@bononline.nl>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-To: Stef Bon <stef@bononline.nl>
-Cc: autofs@linux.kernel.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Sender: linux-fsdevel-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Sage Weil <sage@newdream.net>, Al Viro <viro@ZenIV.linux.org.uk>, Andreas Dilger <adilger@sun.com>, Christoph Hellwig <hch@infradead.org>, Yehuda Saheh <yehuda@newdream.net>
 
-Stef Bon wrote:
-> Hello,
-> 
-> 
-> I'm using a construction where the automounter is started when a
-> sessions starts, using ConsoleKit.
-> Look at:
-> http://linux.bononline.nl/linux/fuse-workspace/index.php
-> 
-> 
-> I'm using the feature of ConsoleKit to run a script/program when a
-> session is added, and when it's removed, in
-> /etc/ConsoleKit/run.d.
-> 
-> Now here some environmentvariables are set by ConsoleKit, indicating the
-> user, the seat and the session, and more.
-> 
-> Part of my construction is a wrapper shell script around mount.cifs,
-> which calls mount.cifs with the right parameters.
-> It's a sh script. Now I've found out that the environmentvariables set
-> by ConsoleKit are still set when this script is run.
-> It looks like the mount.md5key (this is the name of the wrapper) shell
-> script is using the same environment as when the
-> automounter is started.
-> 
-> Is this right??
+Define some simple macro functions for adding and deleting entries
+on the active (and unhashed) dentry list.
 
-Programs do generally inherit the environment within which they are
-started. So yes, of course.
+Signed-off-by: Ian Kent <raven@themaw.net>
+---
 
-Ian
+ fs/autofs4/autofs_i.h |    2 ++
+ fs/autofs4/inode.c    |    1 +
+ fs/autofs4/root.c     |   46 +++++++++++++++++++++++++++++++++++-----------
+ 3 files changed, 38 insertions(+), 11 deletions(-)
+
+diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
+index 8f7cdde..f3cf151 100644
+--- a/fs/autofs4/autofs_i.h
++++ b/fs/autofs4/autofs_i.h
+@@ -75,6 +75,8 @@ struct autofs_info {
+ 	struct completion expire_complete;
+ 
+ 	struct list_head active;
++	int active_count;
++
+ 	struct list_head expiring;
+ 
+ 	struct autofs_sb_info *sbi;
+diff --git a/fs/autofs4/inode.c b/fs/autofs4/inode.c
+index 69c8142..4670a78 100644
+--- a/fs/autofs4/inode.c
++++ b/fs/autofs4/inode.c
+@@ -49,6 +49,7 @@ struct autofs_info *autofs4_init_ino(struct autofs_info *ino,
+ 		ino->dentry = NULL;
+ 		ino->size = 0;
+ 		INIT_LIST_HEAD(&ino->active);
++		ino->active_count = 0;
+ 		INIT_LIST_HEAD(&ino->expiring);
+ 		atomic_set(&ino->count, 0);
+ 	}
+diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
+index b96a3c5..67d8d96 100644
+--- a/fs/autofs4/root.c
++++ b/fs/autofs4/root.c
+@@ -72,6 +72,38 @@ const struct inode_operations autofs4_dir_inode_operations = {
+ 	.rmdir		= autofs4_dir_rmdir,
+ };
+ 
++static void autofs4_add_active(struct dentry *dentry)
++{
++	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
++	struct autofs_info *ino = autofs4_dentry_ino(dentry);
++	if (ino) {
++		spin_lock(&sbi->lookup_lock);
++		if (!ino->active_count) {
++			if (list_empty(&ino->active))
++				list_add(&ino->active, &sbi->active_list);
++		}
++		ino->active_count++;
++		spin_unlock(&sbi->lookup_lock);
++	}
++	return;
++}
++
++static void autofs4_del_active(struct dentry *dentry)
++{
++	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
++	struct autofs_info *ino = autofs4_dentry_ino(dentry);
++	if (ino) {
++		spin_lock(&sbi->lookup_lock);
++		ino->active_count--;
++		if (!ino->active_count) {
++			if (!list_empty(&ino->active))
++				list_del_init(&ino->active);
++		}
++		spin_unlock(&sbi->lookup_lock);
++	}
++	return;
++}
++
+ static int autofs4_dir_open(struct inode *inode, struct file *file)
+ {
+ 	struct dentry *dentry = file->f_path.dentry;
+@@ -513,9 +545,7 @@ static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, s
+ 		dentry->d_fsdata = ino;
+ 		ino->dentry = dentry;
+ 
+-		spin_lock(&sbi->lookup_lock);
+-		list_add(&ino->active, &sbi->active_list);
+-		spin_unlock(&sbi->lookup_lock);
++		autofs4_add_active(dentry);
+ 
+ 		d_instantiate(dentry, NULL);
+ 	}
+@@ -624,10 +654,7 @@ static int autofs4_dir_symlink(struct inode *dir,
+ 	if (!ino)
+ 		return -ENOMEM;
+ 
+-	spin_lock(&sbi->lookup_lock);
+-	if (!list_empty(&ino->active))
+-		list_del_init(&ino->active);
+-	spin_unlock(&sbi->lookup_lock);
++	autofs4_del_active(dentry);
+ 
+ 	ino->size = strlen(symname);
+ 	cp = kmalloc(ino->size + 1, GFP_KERNEL);
+@@ -775,10 +802,7 @@ static int autofs4_dir_mkdir(struct inode *dir, struct dentry *dentry, int mode)
+ 	if (!ino)
+ 		return -ENOMEM;
+ 
+-	spin_lock(&sbi->lookup_lock);
+-	if (!list_empty(&ino->active))
+-		list_del_init(&ino->active);
+-	spin_unlock(&sbi->lookup_lock);
++	autofs4_del_active(dentry);
+ 
+ 	inode = autofs4_get_inode(dir->i_sb, ino);
+ 	if (!inode) {
+
