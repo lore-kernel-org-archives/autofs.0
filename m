@@ -1,11 +1,11 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 06/10] autofs4 - cleanup active and expire lookup
-Date: Thu, 01 Oct 2009 09:01:35 +0800
-Message-ID: <20091001010135.7675.98606.stgit@zeus.themaw.net>
+Subject: [PATCH 07/10] autofs4 - eliminate d_unhashed in path walk checks
+Date: Thu, 01 Oct 2009 09:01:41 +0800
+Message-ID: <20091001010141.7675.87552.stgit@zeus.themaw.net>
 References: <20091001010054.7675.77673.stgit@zeus.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755416AbZJABBn@vger.kernel.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755427AbZJABBp@vger.kernel.org>
 In-Reply-To: <20091001010054.7675.77673.stgit@zeus.themaw.net>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
@@ -13,64 +13,49 @@ Content-Type: text/plain; charset="us-ascii"
 To: Andrew Morton <akpm@linux-foundation.org>
 Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, autofs mailing list <autofs@linux.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Sage Weil <sage@newdream.net>, Al Viro <viro@ZenIV.linux.org.uk>, Andreas Dilger <adilger@sun.com>, Christoph Hellwig <hch@infradead.org>, Yehuda Saheh <yehuda@newdream.net>
 
-The lookup functions for active and expiring dentrys use parameters
-that can be easily obtained on entry so we change the call to to
-take just the dentry. This makes the subsequent change, to send all
-lookups to ->lookup(), a bit cleaner.
+We unhash the dentry (in a subsequent patch) in ->d_revalidate() in
+order to send mount requests to ->lookup(). But then we can not rely
+on d_unhased() to give reliable results because it may be called at
+any time by any code path. The d_unhashed() function is used by
+__simple_empty() in the path walking callbacks but autofs mount
+point dentrys should have no directories at all so a list_empty()
+on d_subdirs should be (and is) sufficient.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 ---
 
- fs/autofs4/root.c |   16 ++++++++++------
- 1 files changed, 10 insertions(+), 6 deletions(-)
+ fs/autofs4/root.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
 diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
-index 961ff37..81700f4 100644
+index 81700f4..b6530f3 100644
 --- a/fs/autofs4/root.c
 +++ b/fs/autofs4/root.c
-@@ -405,8 +405,11 @@ static const struct dentry_operations autofs4_dentry_operations = {
- 	.d_release	= autofs4_dentry_release,
- };
+@@ -133,7 +133,7 @@ static int autofs4_dir_open(struct inode *inode, struct file *file)
+ 	 * it.
+ 	 */
+ 	spin_lock(&dcache_lock);
+-	if (!d_mountpoint(dentry) && __simple_empty(dentry)) {
++	if (!d_mountpoint(dentry) && list_empty(&dentry->d_subdirs)) {
+ 		spin_unlock(&dcache_lock);
+ 		return -ENOENT;
+ 	}
+@@ -257,7 +257,7 @@ static void *autofs4_follow_link(struct dentry *dentry, struct nameidata *nd)
+ 	 * mount it again.
+ 	 */
+ 	if (ino->flags & AUTOFS_INF_PENDING ||
+-	    (!d_mountpoint(dentry) && __simple_empty(dentry))) {
++	    (!d_mountpoint(dentry) && list_empty(&dentry->d_subdirs))) {
+ 		spin_unlock(&dcache_lock);
+ 		spin_unlock(&sbi->fs_lock);
  
--static struct dentry *autofs4_lookup_active(struct autofs_sb_info *sbi, struct dentry *parent, struct qstr *name)
-+static struct dentry *autofs4_lookup_active(struct dentry *dentry)
- {
-+	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
-+	struct dentry *parent = dentry->d_parent;
-+	struct qstr *name = &dentry->d_name;
- 	unsigned int len = name->len;
- 	unsigned int hash = name->hash;
- 	const unsigned char *str = name->name;
-@@ -457,8 +460,11 @@ next:
- 	return NULL;
- }
- 
--static struct dentry *autofs4_lookup_expiring(struct autofs_sb_info *sbi, struct dentry *parent, struct qstr *name)
-+static struct dentry *autofs4_lookup_expiring(struct dentry *dentry)
- {
-+	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
-+	struct dentry *parent = dentry->d_parent;
-+	struct qstr *name = &dentry->d_name;
- 	unsigned int len = name->len;
- 	unsigned int hash = name->hash;
- 	const unsigned char *str = name->name;
-@@ -530,7 +536,7 @@ static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, s
- 	DPRINTK("pid = %u, pgrp = %u, catatonic = %d, oz_mode = %d",
- 		 current->pid, task_pgrp_nr(current), sbi->catatonic, oz_mode);
- 
--	active = autofs4_lookup_active(sbi, dentry->d_parent, &dentry->d_name);
-+	active = autofs4_lookup_active(dentry);
- 	if (active) {
- 		dentry = active;
- 		ino = autofs4_dentry_ino(dentry);
-@@ -567,9 +573,7 @@ static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, s
- 
- 	if (!oz_mode) {
- 		mutex_unlock(&dir->i_mutex);
--		expiring = autofs4_lookup_expiring(sbi,
--						   dentry->d_parent,
--						   &dentry->d_name);
-+		expiring = autofs4_lookup_expiring(dentry);
- 		if (expiring) {
- 			/*
- 			 * If we are racing with expire the request might not
+@@ -340,8 +340,7 @@ static int autofs4_revalidate(struct dentry *dentry, struct nameidata *nd)
+ 	/* Check for a non-mountpoint directory with no contents */
+ 	spin_lock(&dcache_lock);
+ 	if (S_ISDIR(dentry->d_inode->i_mode) &&
+-	    !d_mountpoint(dentry) && 
+-	    __simple_empty(dentry)) {
++	    !d_mountpoint(dentry) && list_empty(&dentry->d_subdirs)) {
+ 		DPRINTK("dentry=%p %.*s, emptydir",
+ 			 dentry, dentry->d_name.len, dentry->d_name.name);
+ 		spin_unlock(&dcache_lock);
