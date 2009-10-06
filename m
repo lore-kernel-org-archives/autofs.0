@@ -1,9 +1,8 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Heads up - recent patch series post to autofs list
-Date: Thu, 01 Oct 2009 15:53:15 +0800
-Message-ID: <4AC45FEB.6010601@themaw.net>
+From: Chris Staub <chris@beaker67.com>
+Subject: LDAP symlink with no LDAP support?
+Date: Tue, 06 Oct 2009 02:28:20 -0400
+Message-ID: <4ACAE384.6070307@beaker67.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
@@ -16,23 +15,19 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs mailing list <autofs@linux.kernel.org>
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: autofs@linux.kernel.org
 
-Hi all,
+I've just installed autofs 5.0.5, with all current patches. I do not 
+have LDAP on my system, but autofs still creates a 
+/lib/autofs/lookup_ldaps.so symlink, pointing to a nonexistent 
+"lookup_ldap.so". When I look at modules/Makefile, I see an if statement 
+saying to build lookup_ldap.so if LDAP support is requested. However, 
+the command to create the lookup_ldaps.so symlink is included in the 
+"install" target with all the other symlinks created by default...
 
-Just a note about the recent autofs4 patch series posted to the list.
+ln -fs lookup_ldap.so $(INSTALLROOT)$(autofslibdir)/lookup_ldaps.so
 
-They have been done in response to another request to change the VFS
-locking that is done during path walks.
-
-Be aware that these patches will break autofs4 on any kernel that does
-not have the patches which change the locking. I cannot say when these
-and the locking change patches will make it into the mainline kernel,
-but I will post again when we do know.
-
-Also, the autofs module will deadlock on kernels with the VFS locking
-change. I'm not sure yet what I will do about that in the short term but
-I expect the autofs module to be removed and the autofs4 module to be
-renamed to autofs in the relatively near future.
-
-Ian
+Am I just missing something, or should this also be enclosed in the same 
+conditional used earlier in the Makefile to determine if the LDAP module 
+should be built at all?
