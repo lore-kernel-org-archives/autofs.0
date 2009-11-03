@@ -1,60 +1,58 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 10/27] BKL: Remove BKL from autofs4
-Date: Mon, 02 Nov 2009 19:13:53 +0800
-Message-ID: <4AEEBEF1.8050807@themaw.net>
-References: <1257156307-24175-1-git-send-email-jblunck@suse.de> <1257156307-24175-11-git-send-email-jblunck@suse.de>
+From: "Breitman, Jason" <Jason.Breitman@blackrock.com>
+Subject: automount restart required
+Date: Tue, 3 Nov 2009 11:53:45 -0500
+Message-ID: <5FAC3462B446C244A45ED5303B614911119209EC@NYCPEXV005.na.blkint.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <1257156307-24175-11-git-send-email-jblunck@suse.de>
-Sender: linux-fsdevel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Jan Blunck <jblunck@suse.de>
-Cc: linux-fsdevel@vger.kernel.org, Matthew Wilcox <matthew@wil.cx>, linux-kernel@vger.kernel.org, James Morris <jmorris@namei.org>, Al Viro <viro@zeniv.linux.org.uk>, Jeff Moyer <jmoyer@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, autofs@linux.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <autofs-bounces@linux.kernel.org>
+Content-class: urn:content-classes:message
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs/>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: autofs@linux.kernel.org
 
-Jan Blunck wrote:
-> BKL is only used in fill_super. It is safe to remove it.
+Operating System: RHEL 5.3 (32 bit)
 
-Yes, I think so too.
-Of course this will make co-coordinating the rename of autofs4 to autofs
-a bit more painful, ;)
+kernel package: kernel-2.6.18-128.el5
 
-> 
-> Signed-off-by: Jan Blunck <jblunck@suse.de>
-Acked-by: Ian Kent <raven@themaw.net>
+autofs package: autofs-5.0.1-0.rc2.131.el5_4.1
 
-> ---
->  fs/autofs4/inode.c |    4 ----
->  1 files changed, 0 insertions(+), 4 deletions(-)
-> 
-> diff --git a/fs/autofs4/inode.c b/fs/autofs4/inode.c
-> index 3adaba9..69c8142 100644
-> --- a/fs/autofs4/inode.c
-> +++ b/fs/autofs4/inode.c
-> @@ -323,8 +323,6 @@ int autofs4_fill_super(struct super_block *s, void *data, int silent)
->  	struct autofs_sb_info *sbi;
->  	struct autofs_info *ino;
->  
-> -	lock_kernel();
-> -
->  	sbi = kzalloc(sizeof(*sbi), GFP_KERNEL);
->  	if (!sbi)
->  		goto fail_unlock;
-> @@ -420,7 +418,6 @@ int autofs4_fill_super(struct super_block *s, void *data, int silent)
->  	 * Success! Install the root dentry now to indicate completion.
->  	 */
->  	s->s_root = root;
-> -	unlock_kernel();
->  	return 0;
->  	
->  	/*
-> @@ -442,7 +439,6 @@ fail_free:
->  	kfree(sbi);
->  	s->s_fs_info = NULL;
->  fail_unlock:
-> -	unlock_kernel();
->  	return -EINVAL;
->  }
->  
+nfs-utils package: nfs-utils-1.0.9-40.el5
 
+Map Type: Direct Map stored in NIS
+
+Issue:
+Users and applications will not be able to get into one of the
+directories in the direct map.
+The system reports no such file or directory.
+I can get to the mount point, but not any further.
+
+* I can not reproduce the issue on demand.
+** The issue does happen on multiple hosts with the same build.
+
+Resolution:
+/etc/init.d/autofs restart
+
+Question:
+I noticed much later versions of autofs on Fedora.  (autofs-5.0.4-XXX)
+I also read the changelog and there are many fixes that might be
+considered a solution to my problem.
+Bottom line is what is the most stable package of autofs that I should
+be using on my RHEL 5.3 Systems.
+I understand that RHEL support may be affected, but would be willing to
+deal with those issues.
+
+Thanks.
+
+Jason Breitman
+jason.breitman@blackrock.com
+
+THE INFORMATION CONTAINED IN THIS MESSAGE AND ANY ATTACHMENT MAY BE PRIVILEGED, CONFIDENTIAL, PROPRIETARY OR OTHERWISE PROTECTED FROM DISCLOSURE. If the reader of this message is not the intended recipient, you are hereby notified that any dissemination, distribution, copying or use of this message and any attachment is strictly prohibited. If you have received this message in error, please notify us immediately by replying to the message and permanently delete it from your computer and destroy any printout thereof.
