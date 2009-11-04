@@ -1,13 +1,15 @@
-From: Ian Kent <raven@themaw.net>
+From: "Breitman, Jason" <Jason.Breitman@blackrock.com>
 Subject: Re: automount restart required
-Date: Wed, 04 Nov 2009 09:55:38 +0800
-Message-ID: <4AF0DF1A.5020006@themaw.net>
+Date: Wed, 4 Nov 2009 16:43:46 -0500
+Message-ID: <5FAC3462B446C244A45ED5303B61491111920A20@NYCPEXV005.na.blkint.com>
 References: <5FAC3462B446C244A45ED5303B614911119209EC@NYCPEXV005.na.blkint.com>
+	<4AF0DF1A.5020006@themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <5FAC3462B446C244A45ED5303B614911119209EC@NYCPEXV005.na.blkint.com>
+Content-class: urn:content-classes:message
+In-Reply-To: <4AF0DF1A.5020006@themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,8 +20,31 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: "Breitman, Jason" <Jason.Breitman@blackrock.com>
+To: autofs@linux.kernel.org
+
+Am I reading the version number wrong or is there a different numbering
+scheme inside of RHEL then in Fedora?
+	
+http://mirrors.kernel.org/fedora/releases/11/Everything/i386/os/Packages
+/autofs-5.0.4-24.i586.rpm  
+
+I will work on submitting a bug.
+
+All I meant by issues is that I would rather deal with losing my
+official Redhat Support by using a Redhat unapproved, yet more stable,
+version of autofs then continue to use the Redhat approved autofs
+package and have automount issues.  Hopefully that makes sense.
+
+
+Jason Breitman
+jason.breitman@blackrock.com
+
+-----Original Message-----
+From: Ian Kent [mailto:raven@themaw.net] 
+Sent: Tuesday, November 03, 2009 8:56 PM
+To: Breitman, Jason
 Cc: autofs@linux.kernel.org
+Subject: Re: [autofs] automount restart required
 
 Breitman, Jason wrote:
 > Operating System: RHEL 5.3 (32 bit)
@@ -60,7 +85,8 @@ I'm not aware of the problem you describe so log a bug and include your
 maps, a debug log showing the problem and any other information like how
 often it happens.
 
-> I understand that RHEL support may be affected, but would be willing to
+> I understand that RHEL support may be affected, but would be willing
+to
 > deal with those issues.
 
 So now there is more than one issue, what are the other issues?
@@ -71,9 +97,19 @@ So now there is more than one issue, what are the other issues?
 > Jason Breitman
 > jason.breitman@blackrock.com
 > 
-> THE INFORMATION CONTAINED IN THIS MESSAGE AND ANY ATTACHMENT MAY BE PRIVILEGED, CONFIDENTIAL, PROPRIETARY OR OTHERWISE PROTECTED FROM DISCLOSURE. If the reader of this message is not the intended recipient, you are hereby notified that any dissemination, distribution, copying or use of this message and any attachment is strictly prohibited. If you have received this message in error, please notify us immediately by replying to the message and permanently delete it from your computer and destroy any printout thereof.
+> THE INFORMATION CONTAINED IN THIS MESSAGE AND ANY ATTACHMENT MAY BE
+PRIVILEGED, CONFIDENTIAL, PROPRIETARY OR OTHERWISE PROTECTED FROM
+DISCLOSURE. If the reader of this message is not the intended recipient,
+you are hereby notified that any dissemination, distribution, copying or
+use of this message and any attachment is strictly prohibited. If you
+have received this message in error, please notify us immediately by
+replying to the message and permanently delete it from your computer and
+destroy any printout thereof.
 > 
 > _______________________________________________
 > autofs mailing list
 > autofs@linux.kernel.org
 > http://linux.kernel.org/mailman/listinfo/autofs
+
+
+THE INFORMATION CONTAINED IN THIS MESSAGE AND ANY ATTACHMENT MAY BE PRIVILEGED, CONFIDENTIAL, PROPRIETARY OR OTHERWISE PROTECTED FROM DISCLOSURE. If the reader of this message is not the intended recipient, you are hereby notified that any dissemination, distribution, copying or use of this message and any attachment is strictly prohibited. If you have received this message in error, please notify us immediately by replying to the message and permanently delete it from your computer and destroy any printout thereof.
