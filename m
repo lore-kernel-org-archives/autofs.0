@@ -1,17 +1,17 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: disable direct mounts
-Date: Wed, 18 Nov 2009 09:30:06 +0800
-Message-ID: <4B034E1E.1000605@themaw.net>
-References: <Pine.LNX.4.61.0911161206540.6189@bos.adc.idt.com>
-	<4B01FA71.5070300@themaw.net>
-	<Pine.LNX.4.61.0911170004530.26324@bos.adc.idt.com>
-	<4B0247A3.1060702@themaw.net>
-	<Pine.LNX.4.61.0911171031300.6283@bos.adc.idt.com>
+From: Rezk Mekhael <rezk.mekhael@gmail.com>
+Subject: ls command fails to properly list contents of directories
+Date: Thu, 5 Nov 2009 22:19:25 -0800
+Message-ID: <2590cb1a0911052219i260a3c07ib57edd321f21b4be@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0045731600505916954=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.61.0911171031300.6283@bos.adc.idt.com>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
+	h=domainkey-signature:mime-version:received:date:message-id:subject
+	:from:to:content-type;
+	bh=UNxD3d7NaG4MqAZDXRbM/2EHAo8CdxUF09/oIU6oXaQ=;
+	b=aB1wuO0QgNjaQ4HGwIacGYyz9MjHFH+9Ue4wbLg4UyE3XHUx7Zc1syPv70xbIHVSCv
+	9b1UWbvBzIudvjuzBtlDAYsanK6e18NR7/EM3QqUXgGyiSs341y0t7DlzUVI32BBykk+
+	TtbQSo+TUzUZFHZtuh+L0aIxRDClRs3u+AOk0=
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,92 +22,46 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: devnull@adc.idt.com
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-devnull@adc.idt.com wrote:
->>>>> We would like to continue to disable direct mounts. The other
->>>>> option is
->>>>> to use a different "auto.master" w/o the auto.direct, but we would
->>>>> like
->>>>> to avoid that.
->>>>
->>>> Why do you want to disable direct mounts?
->>> To solve our /usr/local issue.
->>>
->>> Our NIS master is a Solaris box. We have an entry in auto.direct for
->>> /usr/local that currently points to our Sun Solaris binaries.
->>> The auto.direct is included in our auto.master
->>>
->>> We are considering a move to autofs 5.x as part of our OS upgrade. We
->>> could create a separate auto.master.lnx that does not have auto.direct
->>> in it, but we prefer not to do that.
->>>
->>> "Solving the /usr/local/ puzzle" as the NIS and NFS book suggests is
->>> something we can do, I am just not sure if we can do that right away.
->>>
->>> So someway to disable auto.direct would be useful for us.
->>
->> One thing you could do with v5 is to include a map that has a null map
->> entry for /usr/local.
->>
->> For example, if you are using file maps on each machine you could do
->> something like this in auto.master:
->>
->> /some/mount    /etc/some.map
->> .....
->> +/etc/auto.master.null
->> /-    /etc/auto.map.with.usr.local
->> ....
->>
->> And /etc/auto.master.null would have"
->> /usr/local    -null
-> 
-> Our maps are served via NIS. The master map include the direct map and a
-> few other non-direct maps. Since we used to be a Solaris shop, the
-> auto.direct /usr/local point to the location for Solaris binaries.
-> 
-> This was not an issue with earlier automount version 4.1.3-187 and the
-> way it handled (or didn't handle direct maps)
+--===============0045731600505916954==
+Content-Type: multipart/alternative; boundary=00504502c06f57a4750477add358
 
-Right, but v5 direct maps behave like direct maps now.
+--00504502c06f57a4750477add358
+Content-Type: text/plain; charset=ISO-8859-1
 
-> 
->> Or just add the null entry to the master map itself but then you need
->> multiple master map instances for each arch.
-> I am trying to avoid having multiple master map instances for each arch.
-> I could just remove the auto.direct for a newly created auto.master.lnx
-> and that would solve my problem of having solaris /usr/local on my linux
-> machines.
+Hi all,
+I have a question about automout over linux:
+Why Standard UNIX LS command  fails to properly list contents of directories
+on *untriggered* automounts using nfs?
 
-Or add the null entry to the master map on the machines that need it on
-install.
 
-> 
-> One issue with using /usr/local -null is that you cannot make /usr/local
-> reference any other shared location served via NIS maps (e.g: With v4 of
-> autofs and auto.direct is disabled, we made a softlink from /usr/local
-> to /home/linuxlocal, where /home/linuxlocal was our repository). This
-> solved the /usr/local puzzle for us.
+-- 
+Rezk Mekhael
 
-I guess that could be a problem.
-I don't know how this is handled in other products but if there is a
-null map entry v5 will leave it alone. No mount will be done so a
-symlink should still be possible.
+--00504502c06f57a4750477add358
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-> 
-> Hence the request to disable direct maps.
-> 
-> Thanks for your time.
-> 
-> 
->> Note that plus map inclusion is allowed only in file maps and is
->> typically used to add local client map customisations when using a
->> centralized source of map information.
->> This obviously introduces possible problems with different versions of
->> autofs, and possibly with different distributions. For example there was
->> a recent bug in v5 where reading of the master map would stop if the
->> plus included map didn't exist. I'm not sure how version 4 will behave
->> with this either. However, I would expect other vendor autofs
->> implementations to work OK.
-> 
+<div>Hi all,</div>
+<div>I have a question about automout over linux:</div>
+<div>Why Standard UNIX LS command =A0fails to properly list contents of dir=
+ectories<br>on <strong>untriggered</strong> automounts using nfs?</div>
+<div><br clear=3D"all"><br>-- <br>Rezk Mekhael<br><br></div>
+
+--00504502c06f57a4750477add358--
+
+
+--===============0045731600505916954==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--===============0045731600505916954==--
+
