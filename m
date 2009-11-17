@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: disable direct mounts
-Date: Tue, 17 Nov 2009 14:30:01 +0800
-Message-ID: <4B0242E9.4050808@themaw.net>
+Date: Tue, 17 Nov 2009 14:50:11 +0800
+Message-ID: <4B0247A3.1060702@themaw.net>
 References: <Pine.LNX.4.61.0911161206540.6189@bos.adc.idt.com>
 	<4B01FA71.5070300@themaw.net>
 	<Pine.LNX.4.61.0911170004530.26324@bos.adc.idt.com>
@@ -41,15 +41,36 @@ devnull@adc.idt.com wrote:
 > 
 > "Solving the /usr/local/ puzzle" as the NIS and NFS book suggests is
 > something we can do, I am just not sure if we can do that right away.
-
-That is probably the best solution.
-You can use built in macros in the mount location of your maps to
-achieve that. See autofs(5).
-
 > 
 > So someway to disable auto.direct would be useful for us.
 
-You don't say if your maps are always from local files or some other source.
+One thing you could do with v5 is to include a map that has a null map
+entry for /usr/local.
 
-> 
-> Thanks.
+For example, if you are using file maps on each machine you could do
+something like this in auto.master:
+
+/some/mount	/etc/some.map
+....
++/etc/auto.master.null
+/-	/etc/auto.map.with.usr.local
+...
+
+And /etc/auto.master.null would have"
+/usr/local	-null
+
+Or just add the null entry to the master map itself but then you need
+multiple master map instances for each arch.
+
+Note that plus map inclusion is allowed only in file maps and is
+typically used to add local client map customisations when using a
+centralized source of map information.
+
+This obviously introduces possible problems with different versions of
+autofs, and possibly with different distributions. For example there was
+a recent bug in v5 where reading of the master map would stop if the
+plus included map didn't exist. I'm not sure how version 4 will behave
+with this either. However, I would expect other vendor autofs
+implementations to work OK.
+
+Ian
