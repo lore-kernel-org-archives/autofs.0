@@ -1,13 +1,14 @@
-From: Ian Kent <raven@themaw.net>
+From: devnull@adc.idt.com
 Subject: Re: disable direct mounts
-Date: Tue, 17 Nov 2009 09:20:49 +0800
-Message-ID: <4B01FA71.5070300@themaw.net>
+Date: Tue, 17 Nov 2009 00:12:55 -0500 (EST)
+Message-ID: <Pine.LNX.4.61.0911170004530.26324@bos.adc.idt.com>
 References: <Pine.LNX.4.61.0911161206540.6189@bos.adc.idt.com>
+	<4B01FA71.5070300@themaw.net>
+Reply-To: devnull@adc.idt.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <Pine.LNX.4.61.0911161206540.6189@bos.adc.idt.com>
+In-Reply-To: <4B01FA71.5070300@themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,20 +19,28 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: devnull@adc.idt.com
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-devnull@adc.idt.com wrote:
-> Is it still possible to disable direct mounts via DISABLE_DIRECT=1
-> Automount version 5.0.1-0.rc2.102
+>> We would like to continue to disable direct mounts. The other option is
+>> to use a different "auto.master" w/o the auto.direct, but we would like
+>> to avoid that.
+>
+> Why do you want to disable direct mounts?
+To solve our /usr/local issue.
 
-No it isn't.
+Our NIS master is a Solaris box. We have an entry in auto.direct for 
+/usr/local that currently points to our Sun Solaris binaries.
+The auto.direct is included in our auto.master
 
-> 
-> We would like to continue to disable direct mounts. The other option is
-> to use a different "auto.master" w/o the auto.direct, but we would like
-> to avoid that.
+We are considering a move to autofs 5.x as part of our OS upgrade. We 
+could create a separate auto.master.lnx that does not have auto.direct 
+in it, but we prefer not to do that.
 
-Why do you want to disable direct mounts?
+"Solving the /usr/local/ puzzle" as the NIS and NFS book suggests is 
+something we can do, I am just not sure if we can do that right away.
 
-Ian
+So someway to disable auto.direct would be useful for us.
+
+Thanks.
