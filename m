@@ -1,10 +1,17 @@
-From: "Eric B." <ebenze@hotmail.com>
-Subject: How to make Autofs check if ldap server is back online
-Date: Fri, 27 Nov 2009 14:04:02 -0500
-Message-ID: <BLU122-W39FFDD18BD2645CE96B6ADC9A0@phx.gbl>
+From: Cove Schneider <cove_s@yahoo.com>
+Subject: Re: Resolved autofs + AD DIGEST-MD5 integration issue
+Date: Fri, 27 Nov 2009 12:26:15 -0800 (PST)
+Message-ID: <806389.37406.qm@web110611.mail.gq1.yahoo.com>
+References: <660637.19535.qm@web110601.mail.gq1.yahoo.com>
+	<4B0A5EAF.5090609@s3group.cz>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============3472417997489214511=="
+Content-Type: multipart/mixed; boundary="===============1441398776831059318=="
 Return-path: <autofs-bounces@linux.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s1024;
+	t=1259353575; bh=JowrP1xXEL//DYpWOxmx4Zhg9jw+RBOfuaPALf8FDu4=;
+	h=Message-ID:X-YMail-OSG:Received:X-Mailer:References:Date:From:Subject:To:Cc:In-Reply-To:MIME-Version:Content-Type;
+	b=p0Qrp+C76zbezfF/j/Aqhahywnm1yjcsu/5/9uTAU6TMjJwDf+/4Q4dMsdWtwCYKNKM2FunVzhJ6PRa6olA8DCptqneBCTntT+xg7VY3dqG+oEcdLL+IjX36HAJFB3+T9vg57M8HEV54yrRthgwYCKF3foAmP1AeYj4AwhUc+jo=
+In-Reply-To: <4B0A5EAF.5090609@s3group.cz>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -15,156 +22,124 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Ondrej Valousek <webserv@s3group.cz>
+Cc: autofs@linux.kernel.org
 
---===============3472417997489214511==
-Content-Type: multipart/alternative;
-	boundary="_d49b3604-b3fd-4c1c-98c6-4e38aa905577_"
+--===============1441398776831059318==
+Content-Type: multipart/alternative; boundary="0-1631527407-1259353575=:37406"
 
---_d49b3604-b3fd-4c1c-98c6-4e38aa905577_
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+--0-1631527407-1259353575=:37406
+Content-Type: text/plain; charset=us-ascii
 
+The patch will be rolled into the mainline at the next hotfix cycle, which I'm told is Dec 2009.
 
-Hi=2C
+Yeah, GSSAPI is good, we just happen to have some situations where DIGEST-MD5 turned out to be a better fit.
 
-I'm using Autofs and LDAP for mounting my home directories via nfs. =20
-In
-general=2C everything seems to work fine.  However=2C I have one small=20
-problem.
-If I reboot my server using autofs while my LDAP server is down=2C I=20
-get the
-following error message in my logs:
-
- automount[3358]:=20
-bind_ldap_anonymous: lookup(ldap): Unable to bind to the
-LDAP server:=20
-(default)=2C error Can't contact LDAP server
-
-which is understandable=2C since=20
-my ldap server is temporarily down.
-
-My problem=2C however=2C is that once my=20
-ldap server is back up=2C autofs never
-seems to retry to connect to it=2C so all=20
-my /home mounts fail.  Basically=2C it
-means I have to make sure that my LDAP=20
-server is never down while another
-server is rebooting.
-
-I figure there=20
-must be something in the configuration file that would allow
-me to tweak this=20
-to indicate to autofs to recheck the ldap server
-periodically to see if it=20
-has come back up=2C but can't seem to find anything.
-
-My=20
-/etc/sysconfic/autofs file is pretty plain:
-# TIMEOUT - set the default mount=20
-timeout (default 600).
-#
-TIMEOUT=3D300
-
-# LOGGING - set default log=20
-level "none"=2C "verbose" or "debug"
-#
-LOGGING=3D"verbose"
-
-# Other=20
-common LDAP=20
-nameing
-#
-MAP_OBJECT_CLASS=3D"automountMap"
-ENTRY_OBJECT_CLASS=3D"automount"
-MAP_ATTRIBUTE=3D"ou"
-ENTRY_ATTRIBUTE=3D"cn"
-VALUE_ATTRIBUTE=3D"automountInformation"
+Cove
 
 
-Is=20
-there anything I can do to force autofs to check to see if my LDAP server
-is=20
-back online?
+________________________________
+From: Ondrej Valousek <webserv@s3group.cz>
+To: Cove Schneider <cove_s@yahoo.com>
+Cc: autofs@linux.kernel.org
+Sent: Mon, November 23, 2009 2:06:39 AM
+Subject: Re: [autofs] Resolved autofs + AD DIGEST-MD5 integration issue
 
-Thanks=2C
+Note:
+Maybe it works in Win2008 R2 but it is definitely not working in
+Win2008 - the patch below is needed.
+Anyway autofs binding to AD using GSSAPI works fine with all Win
+servers I know about (and it is better than DIGEST-MD5, I believe).
+Ondrej
 
-Eric
+Cove Schneider wrote: 
+> 
+>Autofs not being able to bind to AD using DIGEST-MD5
+>will be resolved in Windows 2008 onward. This was due to AD
+>accidentally indicating it supported subsequent authentication when it
+>didn't.
+>
+>>Hot fix:
+>http://support.microsoft.com/kb/975697
+>
+>Original issue:
+>http://linux.kernel.org/pipermail/autofs/2009-January/005527.html
+>
+>>Cove
+>
+>
+>
+________________________________
+
+>_______________________________________________
+>autofs mailing list
+>autofs@linux.kernel.org http://linux.kernel.org/mailman/listinfo/autofs 
 
 
 
- 		 	   		 =20
-_________________________________________________________________
-Windows Live: Friends get your Flickr=2C Yelp=2C and Digg updates when they=
- e-mail you.
-http://go.microsoft.com/?linkid=3D9691817=
+      
+--0-1631527407-1259353575=:37406
+Content-Type: text/html; charset=us-ascii
 
---_d49b3604-b3fd-4c1c-98c6-4e38aa905577_
-Content-Type: text/html; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-<html>
-<head>
-<style><!--
-.hmmessage P
-{
-margin:0px=3B
-padding:0px
-}
-body.hmmessage
-{
-font-size: 10pt=3B
-font-family:Verdana
-}
---></style>
-</head>
-<body class=3D'hmmessage'>
-Hi=2C<br><br>I'm using Autofs and LDAP for mounting my home directories via=
- nfs.&nbsp=3B=20
-In<br>general=2C everything seems to work fine.&nbsp=3B However=2C I have o=
-ne small=20
-problem.<br>If I reboot my server using autofs while my LDAP server is down=
-=2C I=20
-get the<br>following error message in my logs:<br><br>&nbsp=3Bautomount[335=
-8]:=20
-bind_ldap_anonymous: lookup(ldap): Unable to bind to the<br>LDAP server:=20
-(default)=2C error Can't contact LDAP server<br><br>which is understandable=
-=2C since=20
-my ldap server is temporarily down.<br><br>My problem=2C however=2C is that=
- once my=20
-ldap server is back up=2C autofs never<br>seems to retry to connect to it=
-=2C so all=20
-my /home mounts fail.&nbsp=3B Basically=2C it<br>means I have to make sure =
-that my LDAP=20
-server is never down while another<br>server is rebooting.<br><br>I figure =
-there=20
-must be something in the configuration file that would allow<br>me to tweak=
- this=20
-to indicate to autofs to recheck the ldap server<br>periodically to see if =
-it=20
-has come back up=2C but can't seem to find anything.<br><br>My=20
-/etc/sysconfic/autofs file is pretty plain:<br># TIMEOUT - set the default =
-mount=20
-timeout (default 600).<br>#<br>TIMEOUT=3D300<br><br># LOGGING - set default=
- log=20
-level "none"=2C "verbose" or "debug"<br>#<br>LOGGING=3D"verbose"<br><br># O=
-ther=20
-common LDAP=20
-nameing<br>#<br>MAP_OBJECT_CLASS=3D"automountMap"<br>ENTRY_OBJECT_CLASS=3D"=
-automount"<br>MAP_ATTRIBUTE=3D"ou"<br>ENTRY_ATTRIBUTE=3D"cn"<br>VALUE_ATTRI=
-BUTE=3D"automountInformation"<br><br><br>Is=20
-there anything I can do to force autofs to check to see if my LDAP server<b=
-r>is=20
-back online?<br><br>Thanks=2C<br><br>Eric<br><br><br><br> 		 	   		  <br />=
-<hr />Get a great deal on Windows 7 and see how it works the way you want. =
-<a href=3D'http://go.microsoft.com/?linkid=3D9691812' target=3D'_new'>Check=
- out the offers on Windows 7now.</a></body>
-</html>=
-
---_d49b3604-b3fd-4c1c-98c6-4e38aa905577_--
+<html><head><style type="text/css"><!-- DIV {margin:0px;} --></style></head><body><div style="font-family:'times new roman', 'new york', times, serif;font-size:12pt"><div>The patch will be rolled into the mainline at the next hotfix cycle, which I'm told is Dec 2009.</div><div><br></div><div>Yeah, GSSAPI is good, we just happen to have some situations where DIGEST-MD5&nbsp;turned out to be a better fit.</div><div><br></div><div>Cove</div><div><br></div><div style="font-family:times new roman, new york, times, serif;font-size:12pt"><div style="font-family:times new roman, new york, times, serif;font-size:12pt"><font size="2" face="Tahoma"><hr size="1"><b><span style="font-weight: bold;">From:</span></b> Ondrej Valousek &lt;webserv@s3group.cz&gt;<br><b><span style="font-weight: bold;">To:</s
+ pan></b> Cove Schneider &lt;cove_s@yahoo.com&gt;<br><b><span style="font-weight: bold;">Cc:</span></b> autofs@linux.kernel.org<br><b><span style="font-weight:
+ bold;">Sent:</span></b> Mon, November 23, 2009 2:06:39 AM<br><b><span style="font-weight: bold;">Subject:</span></b> Re: [autofs] Resolved autofs + AD DIGEST-MD5 integration issue<br></font><br>
 
 
---===============3472417997489214511==
+
+  
+
+
+Note:<br>
+Maybe it works in Win2008 R2 but it is definitely not working in
+Win2008 - the patch below is needed.<br>
+Anyway autofs binding to AD using GSSAPI works fine with all Win
+servers I know about (and it is better than DIGEST-MD5, I believe).<br>
+Ondrej<br>
+<br>
+Cove Schneider wrote:
+<blockquote type="cite">
+  
+  <div style="font-family:times new roman, new york, times, serif;font-size:12pt;">
+  <div>
+  <div style="">Autofs not being able to bind to AD using DIGEST-MD5
+will be resolved in Windows 2008 onward. This was due to AD
+accidentally indicating it supported subsequent authentication when it
+didn't.<br>
+  <span style="background-color:white;" lang="en-US"><font color="black" face="Tahoma" size="1"><span style="font-size:13px;" dir="ltr"><br>
+Hot fix:<br>
+  <span><span><a target="_blank" href="http://support.microsoft.com/kb/975697">http://support.microsoft.com/kb/975697</a></span></span><br>
+  <br>
+  </span></font></span>Original issue:<br>
+  <span><span><a target="_blank" href="http://linux.kernel.org/pipermail/autofs/2009-January/005527.html">http://linux.kernel.org/pipermail/autofs/2009-January/005527.html</a></span></span><br>
+  <br>
+Cove<br>
+  </div>
+  </div>
+
+  </div>
+  <br>
+  <pre><hr size="4" width="90%">
+_______________________________________________
+autofs mailing list
+<a rel="nofollow" class="moz-txt-link-abbreviated" ymailto="mailto:autofs@linux.kernel.org" target="_blank" href="mailto:autofs@linux.kernel.org">autofs@linux.kernel.org</a><span>
+<a target="_blank" href="http://linux.kernel.org/mailman/listinfo/autofs">http://linux.kernel.org/mailman/listinfo/autofs</a>
+  </span></pre>
+</blockquote>
+<br>
+
+
+</div></div><div style="position:fixed"></div>
+
+
+<!-- cg6.c4.mail.gq1.yahoo.com compressed/chunked Thu Nov 26 22:56:59 PST 2009 -->
+</div><br>
+
+      </body></html>
+--0-1631527407-1259353575=:37406--
+
+
+--===============1441398776831059318==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -175,5 +150,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---===============3472417997489214511==--
+--===============1441398776831059318==--
 
