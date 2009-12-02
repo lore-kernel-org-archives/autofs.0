@@ -1,7 +1,9 @@
-From: "Eric B." <ebenze@hotmail.com>
-Subject: How to make Autofs check if LDAP server is back online?
-Date: Wed, 2 Dec 2009 11:22:35 -0500
-Message-ID: <BLU122-W8B55EA9052D9B5CB3439EDC950@phx.gbl>
+From: Paul Smith <paul@mad-scientist.net>
+Subject: Dynamically reloading autofs maps (was: RE: How to make
+ Autofs check if LDAP server is back online?)
+Date: Wed, 2 Dec 2009 11:53:21 -0500
+Message-ID: <1259772801.4945.58.camel@psmith-ubeta.netezza.com>
+Reply-To: paul@mad-scientist.net
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,51 +20,44 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
+Eric B. writes:
+> My problem, however, is that once my ldap server is back up, autofs
+> never seems to retry to connect to it, so all my /home mounts fail.
+> Basically, it means I have to make sure that my LDAP server is never
+> down while another server is rebooting.
 
+[[Sorry for the missing threading headers--I'm switching accounts right
+now]]
 
-Hi,
- 
-I'm using Autofs and LDAP for mounting my home directories via nfs.  In
-general, everything seems to work fine.  However, I have one small problem.
+This is related to a larger issue, I think: is there any effort anywhere
+to make autofs dbus/NetworkManager aware?  I've ranted elsewhere about
+the poor design of NM, which basically requires every other network
+service, even those that have existed for tens of years before Linux
+itself, to be modified to conform to NM's idea of how dynamic network
+configuration should work.  However no one seems to care and at this
+point it seems like autofs is about the only commonly-used facility that
+doesn't integrate with NM.  Even ypbind (NIS) has been modified to
+support NM.
 
-If I reboot my server using autofs while my LDAP server is down, I get the
-following error message in my logs:
-automount[3358]: bind_ldap_anonymous: lookup(ldap): Unable to bind to the
-LDAP server: (default), error Can't contact LDAP server
- 
-which is understandable, since my ldap server is temporarily down.
- 
-My problem, however, is that once my ldap server is back up, autofs never
-seems to retry to connect to it, so all my /home mounts fail.  Basically, it means I have to make sure that my LDAP server is never down while another server is rebooting.
- 
-I figure there must be something in the configuration file that would allow
-me to tweak this to indicate to autofs to recheck the ldap server
-periodically to see if it has come back up, but can't seem to find anything.
- 
- 
-My /etc/sysconfic/autofs file is pretty plain:
+Today on my Ubuntu systems the only thing that doesn't work properly is
+autofs: when my system comes up and services are started, they all wait
+for the network interface to come up and to be notified by NM that the
+interface is available, before going further.
 
-# TIMEOUT - set the default mount timeout (default 600).
-#
-TIMEOUT=300
-# LOGGING - set default log level "none", "verbose" or "debug"
-#
-LOGGING="verbose"
-# Other common LDAP nameing
-#
-MAP_OBJECT_CLASS="automountMap"
-ENTRY_OBJECT_CLASS="automount"
-MAP_ATTRIBUTE="ou"
-ENTRY_ATTRIBUTE="cn"
-VALUE_ATTRIBUTE="automountInformation"
+All, that is, except autofs: the OP above only has this problem if his
+LDAP server happens to be down when he reboots, but on Ubuntu systems
+(at least) where automount maps are distributed by NIS, I have this
+problem every single time I boot my system.  Because NIS is not
+available/ready when autofs comes up, the retrieval of the automount
+maps from NIS fails, so when autofs comes up it has no distributed maps.
 
-Is there anything I can do to force autofs to check to see if my LDAP server is back online?
- 
-Thanks,
- 
-Eric
- 
-  		 	   		  
-_________________________________________________________________
-Eligible CDN College & University students can upgrade to Windows 7 before Jan 3 for only $39.99. Upgrade now!
-http://go.microsoft.com/?linkid=9691819
+I have to, by hand, restart autofs so it can see the maps.
+
+What would be nice is if autofs could be listening for some kind of
+"network directory services (re)started" dbus message or something, that
+could be sent by LDAP, NIS, and whatever else, and which would cause
+autofs to reread its configuration.  Today the autofs configuration from
+LDAP/NIS is done via the init script so that's a complication...
+
+What can be done about this?  Anyone have any ideas on how to make this
+work better?
