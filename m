@@ -1,12 +1,21 @@
-From: Guillaume Rousse <Guillaume.Rousse@inria.fr>
-Subject: Re: How to make Autofs check if ldap server is back online
-Date: Mon, 07 Dec 2009 23:10:58 +0100
-Message-ID: <4B1D7D72.2050205@inria.fr>
-References: <BLU122-W39FFDD18BD2645CE96B6ADC9A0@phx.gbl>
+From: Leonardo Chiquitto <leonardo.lists@gmail.com>
+Subject: Re: autofs changes process's current working directory
+Date: Mon, 14 Dec 2009 15:28:15 -0200
+Message-ID: <c2d0b6ec0912140928v74a2c03bv6b9fd9ea5990d9cc@mail.gmail.com>
+References: <bd985a450909070436x2ddf0fa8l3b20e908f2f2e3c5@mail.gmail.com>
+	<4ACED0F1.9050909@themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <BLU122-W39FFDD18BD2645CE96B6ADC9A0@phx.gbl>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
+	h=domainkey-signature:mime-version:received:in-reply-to:references
+	:date:message-id:subject:from:to:content-type;
+	bh=+aKHW2Kwg9xY4rLAKWfPjR0+FdDu6eZNBHuVIGBfTBY=;
+	b=RulhGSWsFqZbT22NKFzenJY810nxJ/srkPw91LMsHD+o0QeqX6LwKXWUXI8mXe3kho
+	MB0nR/X12cuvW+C5FtTC0/n+W2Xoo0HImRxE5a3TwwWpapV29XSS6wLKNHTGa4OKPxth
+	L1x+r+zAutoop6w9xrthrv0w4IdKmjMoymyCw=
+In-Reply-To: <4ACED0F1.9050909@themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,25 +26,28 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="iso-8859-1"; format="flowed"
-To: "Eric B." <ebenze@hotmail.com>, autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-Eric B. a =E9crit :
-> Is there anything I can do to force autofs to check to see if my LDAP ser=
-ver
-> is back online?
-If you have some kind of automated configuration management software, =
+>> I'm experiencing a problem with autofs. It seems that when a process
+>> is inside an automounted nfs filesystem, if I restart the automount
+>> daemon the current working directory of the process is changed and a
+>> few leading directory are removed leading to a non-existent cwd.
+>
+> That's right.
+>
+> It's because, with older user space and kernel, the mount is detached
+> from the mount tree by a "umount -l" at restart when trying to cleanup
+> stale mounts.
+>
+> Note that this is a non-trivial problem and took a long time to fix.
+>
+> What autofs and kernel are you using?
 
-such as cfengine or puppet, you can monitor status of ldap-based mount =
+Ian,
 
-maps periodically.
+I'm also getting this problem on 2.6.31 with autofs-5.0.4. Please, do you
+remember when the fix was committed? Is this related to some (new)
+configuration option?
 
-However, if you use those tools, you may as well distribute plain old =
-
-file-based mount maps, than never fail.
-
--- =
-
-BOFH excuse #311:
-
-transient bus protocol violation
+Thanks!
+Leonardo
