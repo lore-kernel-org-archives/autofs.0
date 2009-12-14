@@ -1,22 +1,12 @@
-From: Leonardo Chiquitto <leonardo.lists@gmail.com>
+From: "michael@kmaclub.com" <michael@kmaclub.com>
 Subject: Re: autofs changes process's current working directory
-Date: Mon, 14 Dec 2009 17:22:40 -0200
-Message-ID: <c2d0b6ec0912141122k4050a913x142710056a5c3bda@mail.gmail.com>
-References: <bd985a450909070436x2ddf0fa8l3b20e908f2f2e3c5@mail.gmail.com>
-	<4ACED0F1.9050909@themaw.net>
-	<c2d0b6ec0912140928v74a2c03bv6b9fd9ea5990d9cc@mail.gmail.com>
+Date: Mon, 14 Dec 2009 15:07:54 -0700
+Message-ID: <4B26B73A.3030402@kmaclub.com>
+References: <bd985a450909070436x2ddf0fa8l3b20e908f2f2e3c5@mail.gmail.com>	<4ACED0F1.9050909@themaw.net>	<c2d0b6ec0912140928v74a2c03bv6b9fd9ea5990d9cc@mail.gmail.com>
 	<4B268068.1030704@themaw.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
-	h=domainkey-signature:mime-version:received:in-reply-to:references
-	:date:message-id:subject:from:to:content-type;
-	bh=miCoqOnsbAIb+POXr/p5+6l4tSYoWi36Hp9jYtCfc3c=;
-	b=X4HD8yYP7vLsK/9JjZlVpZGOEog+Hf2XxpuWgZeTePa+8AjUXQzxTVmHJwoi+CxICy
-	nP66hpdArHGA/nCASd+X7tRhbRNEbTJpN7B6VfR2jhyLwpCh2JNjxEiEadRh+tmc2+wW
-	zwZRUwCFMu1H5pFc+6zxlrz+u7LFQfcEECGmc=
 In-Reply-To: <4B268068.1030704@themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
@@ -28,8 +18,27 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
 To: autofs@linux.kernel.org
 
+On 12/14/2009 11:14 AM, Ian Kent wrote:
+> Leonardo Chiquitto wrote:
+>>>> I'm experiencing a problem with autofs. It seems that when a process
+>>>> is inside an automounted nfs filesystem, if I restart the automount
+>>>> daemon the current working directory of the process is changed and a
+>>>> few leading directory are removed leading to a non-existent cwd.
+>>> That's right.
+>>>
+>>> It's because, with older user space and kernel, the mount is detached
+>>> from the mount tree by a "umount -l" at restart when trying to cleanup
+>>> stale mounts.
+>>>
+>>> Note that this is a non-trivial problem and took a long time to fix.
+>>>
+>>> What autofs and kernel are you using?
+>>
+>> Ian,
+>>
 >> I'm also getting this problem on 2.6.31 with autofs-5.0.4. Please, do you
 >> remember when the fix was committed? Is this related to some (new)
 >> configuration option?
@@ -40,9 +49,10 @@ To: autofs@linux.kernel.org
 > module is loaded) and that's about it. But the init script may be
 > removing it because it thinks you don't want to use it.
 
-Thanks, Ian. You're absolutely right. The feature/fix is there since 2.6.28
-and AutoFS 5.0.4 but my distribution initscript incorrectly assumes that
-the kernel doesn't support the misc device and removes /dev/autofs.
 
-Thanks again,
-Leonardo
+Hi Ian,
+
+Are you aware of any work to back port these changes into ~2.6.16?  I am 
+using an enterprise distribution and this issue is causing us problems.
+
+Michael
