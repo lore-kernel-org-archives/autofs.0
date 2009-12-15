@@ -1,14 +1,14 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs changes process's current working directory
-Date: Tue, 15 Dec 2009 09:18:15 +0800
-Message-ID: <4B26E3D7.9070807@themaw.net>
-References: <bd985a450909070436x2ddf0fa8l3b20e908f2f2e3c5@mail.gmail.com>	<4ACED0F1.9050909@themaw.net>	<c2d0b6ec0912140928v74a2c03bv6b9fd9ea5990d9cc@mail.gmail.com>	<4B268068.1030704@themaw.net>
-	<4B26B73A.3030402@kmaclub.com>
+Subject: Re: How to make Autofs check if ldap server is back online
+Date: Tue, 15 Dec 2009 09:23:11 +0800
+Message-ID: <4B26E4FF.80908@themaw.net>
+References: <BLU122-W39FFDD18BD2645CE96B6ADC9A0@phx.gbl>
+	<BLU135-W27268A9EEAD4CF84BBA96DC8D0@phx.gbl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4B26B73A.3030402@kmaclub.com>
+In-Reply-To: <BLU135-W27268A9EEAD4CF84BBA96DC8D0@phx.gbl>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,48 +19,54 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: "michael@kmaclub.com" <michael@kmaclub.com>
+To: "Eric B." <ebenze@hotmail.com>
 Cc: autofs@linux.kernel.org
 
-michael@kmaclub.com wrote:
-> On 12/14/2009 11:14 AM, Ian Kent wrote:
->> Leonardo Chiquitto wrote:
->>>>> I'm experiencing a problem with autofs. It seems that when a process
->>>>> is inside an automounted nfs filesystem, if I restart the automount
->>>>> daemon the current working directory of the process is changed and a
->>>>> few leading directory are removed leading to a non-existent cwd.
->>>> That's right.
->>>>
->>>> It's because, with older user space and kernel, the mount is detached
->>>> from the mount tree by a "umount -l" at restart when trying to cleanup
->>>> stale mounts.
->>>>
->>>> Note that this is a non-trivial problem and took a long time to fix.
->>>>
->>>> What autofs and kernel are you using?
+Eric B. wrote:
+> 
+> "Ian Kent" <raven@themaw.net> wrote in message 
+> news:4B18C1D7.7020703@themaw.net...
+>> Eric B. wrote:
+>>> Hi,
 >>>
->>> Ian,
+>>> I'm using Autofs and LDAP for mounting my home directories via nfs.
+>>> In general, everything seems to work fine.  However, I have one small
+>>> problem.
 >>>
->>> I'm also getting this problem on 2.6.31 with autofs-5.0.4. Please, do
->>> you
->>> remember when the fix was committed? Is this related to some (new)
->>> configuration option?
+>>> If I reboot my server using autofs while my LDAP server is down, I
+>>> get the following error message in my logs: automount[3358]:
+>>> bind_ldap_anonymous: lookup(ldap): Unable to bind to the LDAP server:
+>>> (default), error Can't contact LDAP server
+>>>
+>>> which is understandable, since my ldap server is temporarily down.
+>>>
+>>> My problem, however, is that once my ldap server is back up, autofs
+>>> never seems to retry to connect to it, so all my /home mounts fail.
+>>> Basically, it means I have to make sure that my LDAP server is never
+>>> down while another server is rebooting.
+>>>
+>>> I figure there must be something in the configuration file that would
+>>> allow me to tweak this to indicate to autofs to recheck the ldap
+>>> server periodically to see if it has come back up, but can't seem to
+>>> find anything.
+>> Yeah, there are problems in that area.
 >>
->> Have a look at your init script and the installed autofs configuration.
->>
->> Basically you need /dev/autofs to exist (created when the autofs4 kernel
->> module is loaded) and that's about it. But the init script may be
->> removing it because it thinks you don't want to use it.
+>> What does your nsswitch.conf have for the "automount:" entry?
+>> Is your master map also located on the LDAP server?
+>> Does sending a HUP signal to automount make things work again when the
+>> server is back?
 > 
 > 
-> Hi Ian,
+> nsswitch.conf:
+> automount:  files ldap
 > 
-> Are you aware of any work to back port these changes into ~2.6.16?  I am
-> using an enterprise distribution and this issue is causing us problems.
+> Restarting autofs will make things work again.  Similarly, issuing a HUP 
+> signal will make things work again once the server is back online.
+> 
+> Thanks for any suggestions.
 
-Not sure but the patches are in the 5.0.4 tar.
-There are a couple of bug fixes but nothing major.
-
-It's present in RHEL-5.4.
+Right, I've started working on this.
+But if your master map is also in LDAP then your stuck until I work out
+how to deal with the problem.
 
 Ian
