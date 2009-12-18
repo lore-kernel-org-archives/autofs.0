@@ -1,7 +1,7 @@
 From: Marc Weber <marco-oweber@gmx.de>
-Subject: automount and upstart
-Date: Fri, 18 Dec 2009 04:33:03 +0100
-Message-ID: <1261107009-sup-879@nixos>
+Subject: sshfs and autofs
+Date: Fri, 18 Dec 2009 05:08:29 +0100
+Message-ID: <1261107485-sup-320@nixos>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -16,27 +16,37 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: autofs <autofs@linux.kernel.org>
 
-Consider this case:
+If you google for sshfs and autofs you'll find many howtos telling you
+to create a private key without passwords because this works.
+Most of of those Howtos tell you as well that you should not be doing
+this for security reasons..
 
-a) start automount
+I've found another solution:
+It tries connecting to each running ssh-agent. The first being able to
+connect to the ssh location will be used. This way you can keep using
+passwords and still use autofs.
 
-b) cd /auto # automount can't unmount it
+  #!/bin/sh -e
+  # PATH must contains openssh, sed, sshfs lsof and pgrep
+  pids=`pgrep ssh-agent`
+  if [ -z "$pids" ]; then
+    # no ssh-agent found. Maybe there is a key without password ? You should not be using this!
+    sshfs -o ssh_command="ssh -o NumberOfPasswordPrompts=0" "$@"
+  else
+  for p in $pids; do
+    export SSH_AGENT_PID=$p
+    export SSH_AUTH_SOCK=$(lsof -p $p -a -U  -Fn | sed -n 's/^n//p')
+    echo "trying to connect using ssh-agent $p $SSH_AUTH_SOCK" 1>&2
+      sshfs -o ssh_command="ssh -o NumberOfPasswordPrompts=0" "$@" && exit 0 || true
+  done
+  exit 1
+  fi
 
-c) stop automount
+Of course it is just a dirty script. However it does a much better job
+than using no password.
 
-  upstart will send SIGTERM to automount.
-  automount replies by writing the debugging info
-  "Got your signal, but won't quit because I can't umount /auto"
-
-  upstart will then send SIGKILL after some time ..
-  (Or I will)..
-
-  However when this happens nobody umounts /auto and the submounts.
-
-Fix: umount -l /auto could be run when SIGTERM is received.
-This will ask the kernel to umount those remaining filesystems as soon
-as possible. Does this make sense?
+Do you host such examples somewhere as well?
 
 Marc Weber
