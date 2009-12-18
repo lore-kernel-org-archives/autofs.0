@@ -1,7 +1,7 @@
-From: Bill Janssen <janssen@parc.com>
-Subject: autofs on OS X mailing list?
-Date: Mon, 14 Dec 2009 11:46:34 PST
-Message-ID: <14381.1260819994@parc.com>
+From: Marc Weber <marco-oweber@gmx.de>
+Subject: automount and upstart
+Date: Fri, 18 Dec 2009 04:33:03 +0100
+Message-ID: <1261107009-sup-879@nixos>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -17,15 +17,26 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
-Cc: janssen@parc.com
 
-Hi, all.  I hope you'll pardon this partially off-topic question: I'm
-wondering where a good place to ask autofs questions about Apple's
-Leopard/Snow Leopard autofs incorporation would be?  I've got an issue
-(the automounter rescanning our automount maps incessantly) I need to
-ask about.
+Consider this case:
 
-Bill
-------------------------------------------
- Bill Janssen  <janssen@parc.com>     (650) 812-4763    FAX: (650) 812-4258
- Palo Alto Research Center, Inc., 3333 Coyote Hill Rd, Palo Alto, CA  94304
+a) start automount
+
+b) cd /auto # automount can't unmount it
+
+c) stop automount
+
+  upstart will send SIGTERM to automount.
+  automount replies by writing the debugging info
+  "Got your signal, but won't quit because I can't umount /auto"
+
+  upstart will then send SIGKILL after some time ..
+  (Or I will)..
+
+  However when this happens nobody umounts /auto and the submounts.
+
+Fix: umount -l /auto could be run when SIGTERM is received.
+This will ask the kernel to umount those remaining filesystems as soon
+as possible. Does this make sense?
+
+Marc Weber
