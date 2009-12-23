@@ -1,14 +1,19 @@
-From: Marc Weber <marco-oweber@gmx.de>
-Subject: Re: sshfs and target directory
-Date: Wed, 23 Dec 2009 18:21:48 +0100
-Message-ID: <1261588799-sup-220@nixos>
-References: <1261522601-sup-5290@nixos> <4B322A9A.5010706@themaw.net>
-	<1261585222-sup-7226@nixos> <4B324E86.8040708@themaw.net>
+From: Leonardo Chiquitto <leonardo.lists@gmail.com>
+Subject: [PATCH] fix strdup() return value check
+Date: Wed, 23 Dec 2009 18:00:59 -0200
+Message-ID: <20091223200059.GB26944@libre.l.ngdn.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-reply-to: <4B324E86.8040708@themaw.net>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
+	h=domainkey-signature:received:received:date:from:to:subject
+	:message-id:mime-version:content-type:content-disposition:user-agent;
+	bh=pf9FuIy+ZiQqX1Gd+45oOyHVYoBBfGVizwl9rfdBmdc=;
+	b=H48UuSryTj/CxanTWAPzcw7m8nyOA1fHVC13hQbZbxnwSapLTb9uTPMO7Vr0k0lJ0P
+	q58vy72c3KugWbzgwLhGfzGQToXFCExILPhXScL1D0mAyKRVfU1AEDAWgFhICzm733P+
+	SJ58qPnPWz7MSfxmZH6SB6rhNjsAI5PXF49tQ=
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,42 +24,33 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs <autofs@linux.kernel.org>
+To: autofs@linux.kernel.org
 
-Sry, I missed posting this mail to the list in the first place. Doing so
-now. Additional note:
-alvin@mail.Linux-Consulting.com bounced as well so I don't know how to
-contact the maintainer of the official howto.
+Ian,
 
-> You asked about where we can put example scripts before.
-> I add a contrib directory to the distribution but there isn't a web
-> site. I have the domain name autofs.net but I don't have the time or
-> inclination to put together and maintain a web site. Last I I posted to
-> the list hinting at wanting someone interested in doing this I didn't
-> get any responses.
+  Please consider the following patch.
 
-I must have missed that.
-I think it's bad that many people start blogging about autofs because
-tehre is no uniq place to look for information.
-So if you can setup any wiki (which shoud be done in 5 min) I'll try to
-put up at least pointers to
+Thanks,
+Leonardo
 
-a) the mailinglist archives
-  http://linux.kernel.org/pipermail/autofs
 
-b) the howto
-  http://www.linux-consulting.com/Amd_AutoFS/autofs.html
-  (I sent in email to Alvin. But I had to search for the newer mail
-  address on this list..)
+    autofs-5.0.5 - fix strdup() return value check
 
-c) my script ;-)
+    Fix copy and paste error when checking strdup() return value, originally
+    reported by David Binderman in:
 
-d) Whatever you think is missing.
+    http://bugzilla.novell.com/show_bug.cgi?id=523348
 
-But in this case adding that line to the man page would have been enough :)
-
-If you think it's worth starting a small wiki just for keeping things in
-one place let me know about your server features and I'll try to find a
-wiki which can be run on it.
-
-Marc Weber
+Index: autofs/lib/defaults.c
+===================================================================
+--- autofs.orig/lib/defaults.c
++++ autofs/lib/defaults.c
+@@ -65,7 +65,7 @@ static char *get_env_string(const char *
+ 		return NULL;
+ 
+ 	res = strdup(val);
+-	if (!val)
++	if (!res)
+ 		return NULL;
+ 
+ 	return res;
