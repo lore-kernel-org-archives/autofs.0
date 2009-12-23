@@ -1,13 +1,14 @@
-From: Ian Kent <raven@themaw.net>
+From: Marc Weber <marco-oweber@gmx.de>
 Subject: Re: sshfs and target directory
-Date: Wed, 23 Dec 2009 22:35:06 +0800
-Message-ID: <4B322A9A.5010706@themaw.net>
-References: <1261522601-sup-5290@nixos>
+Date: Wed, 23 Dec 2009 18:21:48 +0100
+Message-ID: <1261588799-sup-220@nixos>
+References: <1261522601-sup-5290@nixos> <4B322A9A.5010706@themaw.net>
+	<1261585222-sup-7226@nixos> <4B324E86.8040708@themaw.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1261522601-sup-5290@nixos>
+In-reply-to: <4B324E86.8040708@themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,57 +19,42 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Marc Weber <marco-oweber@gmx.de>
-Cc: autofs <autofs@linux.kernel.org>
+To: autofs <autofs@linux.kernel.org>
 
-Marc Weber wrote:
-> summary:
-> 
-> sshfs mounting user@host: works but user@host:/ does not.
-> 
-> I had to apply this patch:
-> 
-> diff --git a/modules/parse_sun.c b/modules/parse_sun.c
-> index 65417e1..35d9edc 100644
-> --- a/modules/parse_sun.c
-> +++ b/modules/parse_sun.c
-> @@ -827,7 +827,7 @@ static int validate_location(char *loc)
->  			    *ptr == '-' || *ptr == '.' || *ptr == '_' ||
->  			    *ptr == ',' || *ptr == '(' || *ptr == ')' ||
->  			    *ptr == '#' || *ptr == '@' || *ptr == ':' ||
-> -			    *ptr == '[' || *ptr == ']'))
-> +			    *ptr == '[' || *ptr == ']' || *ptr == '/' ))
->  				return 0;
->  			ptr++;
->  		}
-> 
-> 
-> 
-> in order to make  this work which doesn't mount /root but /
-> 
-> rootlap   -fstype=fuse,rw,nodev,nonempty,noatime,max_read=65536,uid=1008,gid=100 \/nix\/store\/yfmbrb7d7hh9n6dyidypw7k1xcixxmmz-sshfs-wrapped\/bin/\sshfs-wrapped\#root@host\:\/
-> 
-> I'm not sure whether this is the perfect patch.
-> 
-> Probably the problem is that the trailing :/ triggers check_colon to
-> return 1 in validate_location which is then failing in the loop I
-> patched above because "/" was not a valid character.
+Sry, I missed posting this mail to the list in the first place. Doing so
+now. Additional note:
+alvin@mail.Linux-Consulting.com bounced as well so I don't know how to
+contact the maintainer of the official howto.
 
-Yes, this has come up recently and it's a bit painful.
+> You asked about where we can put example scripts before.
+> I add a contrib directory to the distribution but there isn't a web
+> site. I have the domain name autofs.net but I don't have the time or
+> inclination to put together and maintain a web site. Last I I posted to
+> the list hinting at wanting someone interested in doing this I didn't
+> get any responses.
 
-If *ptr is a "/" then that is not valid in this case so we can do that.
+I must have missed that.
+I think it's bad that many people start blogging about autofs because
+tehre is no uniq place to look for information.
+So if you can setup any wiki (which shoud be done in 5 min) I'll try to
+put up at least pointers to
 
-But if you add a ":" escape to the beginning of the mount location this
-check will not be made. I can't remember the sshfs syntax but something
-like :sshfs#<user>@<host: should work OK.
+a) the mailinglist archives
+  http://linux.kernel.org/pipermail/autofs
 
-Ian
+b) the howto
+  http://www.linux-consulting.com/Amd_AutoFS/autofs.html
+  (I sent in email to Alvin. But I had to search for the newer mail
+  address on this list..)
 
+c) my script ;-)
 
-> 
-> Marc Weber
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
+d) Whatever you think is missing.
+
+But in this case adding that line to the man page would have been enough :)
+
+If you think it's worth starting a small wiki just for keeping things in
+one place let me know about your server features and I'll try to find a
+wiki which can be run on it.
+
+Marc Weber
