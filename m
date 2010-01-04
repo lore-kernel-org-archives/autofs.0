@@ -1,134 +1,193 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 1/7] autofs4: Save autofs trigger's vfsmount in super
- block info
-Date: Sat, 2 Jan 2010 08:44:25 +0800
-Message-ID: <20100102004423.GA2131@zeus.themaw.net>
-References: <1261611423-4396-1-git-send-email-vaurora@redhat.com>
- <1261611423-4396-2-git-send-email-vaurora@redhat.com>
+From: Leonardo Chiquitto <leonardo.lists@gmail.com>
+Subject: [PATCH] add try-restart init script action
+Date: Mon, 4 Jan 2010 14:44:36 -0200
+Message-ID: <20100104164436.GA27875@libre.l.ngdn.org>
 Mime-Version: 1.0
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com; h=date:from:to:cc:subject:message-id:references:mime-version:content-type:in-reply-to; s=smtpout; bh=APxCr3o4fkY6lS+Ezap2WAZ5brY=; b=km6k+QRXYf/FA+UjdILRDt/pOF+hTolFg/cpRMfcO/qqzCPuP49uSJ9a1aIZIX+45FQvq7nhRJO7RV60pAPTyCT7VxjUVkw0DKBcBCWVvnb7zZFTaCBqvp7GsKOyM0yzvYlZ/PIvWp+w98uMT9Wmmrs0+gb2PziPrsoKbRZmczw=
-Content-Disposition: inline
-In-Reply-To: <1261611423-4396-2-git-send-email-vaurora@redhat.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Valerie Aurora <vaurora@redhat.com>
-Cc: linux-fsdevel@vger.kernel.org, Jan Blunck <jblunck@suse.de>, Alexander Viro <viro@zeniv.linux.org.uk>, autofs@linux.kernel.org
+Return-path: <autofs-bounces@linux.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
+	h=domainkey-signature:received:received:date:from:to:subject
+	:message-id:mime-version:content-type:content-disposition:user-agent;
+	bh=/Tnfr98gKE3yh9jnxAD9JZ6Goalf55RJT//gnXzWiZs=;
+	b=tHZEeMAvK9glxMmP1rjHBmXJszACgzqqJL/gnmMo8+M93zDG6G8Hu+9p96OXcZmIf/
+	V5Raxm7iTthHESfs3Y2Q5HXntsj/hIehEZt4FVnuf2d3tAO5lYesrZA7zPUPyUD4+xQN
+	0F4QxqrP2KxFsnK/M7q3XcaZLRR1Skm52RBkc=
+Content-Disposition: inline
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs/>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Wed, Dec 23, 2009 at 03:36:57PM -0800, Valerie Aurora wrote:
-> From: Jan Blunck <jblunck@suse.de>
-> 
-> This is a bugfix/replacement for commit
-> 051d381259eb57d6074d02a6ba6e90e744f1a29f:
-> 
->     During a path walk if an autofs trigger is mounted on a dentry,
->     when the follow_link method is called, the nameidata struct
->     contains the vfsmount and mountpoint dentry of the parent mount
->     while the dentry that is passed in is the root of the autofs
->     trigger mount.  I believe it is impossible to get the vfsmount of
->     the trigger mount, within the follow_link method, when only the
->     parent vfsmount and the root dentry of the trigger mount are
->     known.
-> 
-> The solution in this commit was to replace the path embedded in the
-> parent's nameidata with the path of the link itself in
-> __do_follow_link().  This is a relatively harmless misuse of the
-> field, but union mounts ran into a bug during follow_link() caused by
-> the nameidata containing the wrong path (we count on it being what it
-> is all other places - the path of the parent).
-> 
-> A cleaner and easier to understand solution is to save the necessary
-> vfsmount in the autofs superblock info when it is mounted.  Then we
-> can easily update the vfsmount in autofs4_follow_link().
-> 
-> Signed-off-by: Jan Blunck <jblunck@suse.de>
-> Signed-off-by: Valerie Aurora <vaurora@redhat.com>
-Acked-by: <raven@themaw.net>
 
-Don't know how I missed such an obvious solution when I did this.
-Thanks, Ian
+    autofs-5.0.5 - add try-restart init script action
 
-> Cc: Ian Kent <raven@themaw.net>
-> Cc: autofs@linux.kernel.org
-> Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-> ---
->  fs/autofs4/autofs_i.h |    1 +
->  fs/autofs4/init.c     |   11 ++++++++++-
->  fs/autofs4/root.c     |    6 ++++++
->  fs/namei.c            |    7 ++-----
->  4 files changed, 19 insertions(+), 6 deletions(-)
-> 
-> diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
-> index 8f7cdde..db2bfce 100644
-> --- a/fs/autofs4/autofs_i.h
-> +++ b/fs/autofs4/autofs_i.h
-> @@ -130,6 +130,7 @@ struct autofs_sb_info {
->  	int reghost_enabled;
->  	int needs_reghost;
->  	struct super_block *sb;
-> +	struct vfsmount *mnt;
->  	struct mutex wq_mutex;
->  	spinlock_t fs_lock;
->  	struct autofs_wait_queue *queues; /* Wait queue pointer */
-> diff --git a/fs/autofs4/init.c b/fs/autofs4/init.c
-> index 9722e4b..5e0dcd7 100644
-> --- a/fs/autofs4/init.c
-> +++ b/fs/autofs4/init.c
-> @@ -17,7 +17,16 @@
->  static int autofs_get_sb(struct file_system_type *fs_type,
->  	int flags, const char *dev_name, void *data, struct vfsmount *mnt)
->  {
-> -	return get_sb_nodev(fs_type, flags, data, autofs4_fill_super, mnt);
-> +	struct autofs_sb_info *sbi;
-> +	int ret;
-> +
-> +	ret = get_sb_nodev(fs_type, flags, data, autofs4_fill_super, mnt);
-> +	if (ret)
-> +		return ret;
-> +
-> +	sbi = autofs4_sbi(mnt->mnt_sb);
-> +	sbi->mnt = mnt;
-> +	return 0;
->  }
->  
->  static struct file_system_type autofs_fs_type = {
-> diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
-> index b96a3c5..cb991b8 100644
-> --- a/fs/autofs4/root.c
-> +++ b/fs/autofs4/root.c
-> @@ -179,6 +179,12 @@ static void *autofs4_follow_link(struct dentry *dentry, struct nameidata *nd)
->  	DPRINTK("dentry=%p %.*s oz_mode=%d nd->flags=%d",
->  		dentry, dentry->d_name.len, dentry->d_name.name, oz_mode,
->  		nd->flags);
-> +
-> +	dput(nd->path.dentry);
-> +	mntput(nd->path.mnt);
-> +	nd->path.mnt = mntget(sbi->mnt);
-> +	nd->path.dentry = dget(dentry);
-> +
->  	/*
->  	 * For an expire of a covered direct or offset mount we need
->  	 * to break out of follow_down() at the autofs mount trigger
-> diff --git a/fs/namei.c b/fs/namei.c
-> index d11f404..c768444 100644
-> --- a/fs/namei.c
-> +++ b/fs/namei.c
-> @@ -629,11 +629,8 @@ static __always_inline int __do_follow_link(struct path *path, struct nameidata
->  	touch_atime(path->mnt, dentry);
->  	nd_set_link(nd, NULL);
->  
-> -	if (path->mnt != nd->path.mnt) {
-> -		path_to_nameidata(path, nd);
-> -		dget(dentry);
-> -	}
-> -	mntget(path->mnt);
-> +	if (path->mnt == nd->path.mnt)
-> +		mntget(nd->path.mnt);
->  	cookie = dentry->d_inode->i_op->follow_link(dentry, nd);
->  	error = PTR_ERR(cookie);
->  	if (!IS_ERR(cookie)) {
-> -- 
-> 1.5.6.5
-> 
+    Implement try-restart init script action to restart the service
+    only if the service is already running. This action is part of
+    LSB since version 1.9.
+
+    While there, fix some typos and adjust coding style for consistency.
+
+    Signed-off-by: Leonardo Chiquitto <lchiquitto@suse.de>
+
+Index: autofs/redhat/autofs.init.in
+===================================================================
+--- autofs.orig/redhat/autofs.init.in
++++ autofs/redhat/autofs.init.in
+@@ -26,7 +26,7 @@ DEVICE="autofs"
+ initdir=@@initdir@@
+ confdir=@@autofsconfdir@@
+ 
+-test -e $DAEMON || exit 0
++test -x $DAEMON || exit 1
+ 
+ if [ -r $initdir/functions ]; then
+ 	. $initdir/functions
+@@ -36,7 +36,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
+ export PATH
+ 
+ #
+-# load customized configuation settings
++# load customized configuration settings
+ #
+ if [ -r $confdir/autofs ]; then
+ 	. $confdir/autofs
+@@ -44,14 +44,12 @@ fi
+ 
+ function start() {
+ 	# Make sure autofs4 module is loaded
+-	if ! grep -q autofs /proc/filesystems
+-	then
++	if ! grep -q autofs /proc/filesystems; then
+ 		echo -n "Loading $MODULE: "
+-		# Try load the autofs4 module fail if we can't
+-		modprobe $MODULE >/dev/null 2>&1
++		# Try to load the autofs4 module and fail if we can't
++		modprobe -q $MODULE >/dev/null 2>&1
+ 		RETVAL=$?
+-		if [ $RETVAL -eq 1 ]
+-		then
++		if [ $RETVAL -eq 1 ]; then
+ 			failure "Load $MODULE"
+ 			echo
+ 			return $RETVAL
+@@ -59,8 +57,7 @@ function start() {
+ 			success "Load $MODULE"
+ 			echo
+ 		fi
+-	elif ([ -f /proc/modules ] && lsmod) | grep -q autofs[^4]
+-	then
++	elif ([ -f /proc/modules ] && lsmod) | grep -q autofs[^4]; then
+ 		RETVAL=1
+ 		failure "Load $MODULE"
+ 		echo
+@@ -129,7 +126,7 @@ function reload() {
+ 		return $RETVAL
+ 	fi
+ 	pid=`pidof $prog`
+-	if [ -z $pid ]; then
++	if [ -z "$pid" ]; then
+ 		echo $"$prog not running"
+ 		RETVAL=1
+ 	else
+@@ -167,12 +164,13 @@ case "$1" in
+ 		reload
+ 		;;
+ 	condrestart)
++	try-restart)
+ 		if [ -f /var/lock/subsys/autofs ]; then
+ 			restart
+ 		fi
+ 		;;
+ 	*)
+-		echo $"Usage: $0 {start|forcestart|stop|status|restart|forcerestart|reload|condrestart}"
++		echo $"Usage: $0 {start|forcestart|stop|status|restart|forcerestart|reload|condrestart|try-restart}"
+ 		exit 1;
+ 		;;
+ esac
+Index: autofs/samples/rc.autofs.in
+===================================================================
+--- autofs.orig/samples/rc.autofs.in
++++ autofs/samples/rc.autofs.in
+@@ -24,13 +24,13 @@ MODULE="autofs4"
+ DEVICE="autofs"
+ confdir=@@autofsconfdir@@
+ 
+-test -e $DAEMON || exit 0
++test -x $DAEMON || exit 1
+ 
+ PATH=/sbin:/usr/sbin:/bin:/usr/bin
+ export PATH
+ 
+ #
+-# load customized configuation settings
++# load customized configuration settings
+ #
+ if [ -r $confdir/autofs ]; then
+ 	. $confdir/autofs
+@@ -40,20 +40,17 @@ function start() {
+ 	echo -n "Starting $prog: "
+ 
+ 	# Make sure autofs4 module is loaded
+-	if ! grep -q autofs /proc/filesystems
+-	then
+-		# Try load the autofs4 module fail if we can't
+-		modprobe $MODULE >/dev/null 2>&1
+-		if [ $? -eq 1 ]
+-		then
+-			echo "Error: failed to load autofs4 module."
++	if ! grep -q autofs /proc/filesystems; then
++		# Try to load the autofs4 module and fail if we can't
++		modprobe -q $MODULE >/dev/null 2>&1
++		if [ $? -eq 1 ]; then
++			echo "Error: failed to load $MODULE module."
+ 			return 1
+ 		fi
+-	elif ([ -f /proc/modules ] && lsmod) | grep -q autofs[^4]
+-	then
+-		# wrong autofs filesystem module loaded
++	elif ([ -f /proc/modules ] && lsmod) | grep -q autofs[^4]; then
++		# Wrong (old) autofs filesystem module loaded
+ 		echo
+-		echo "Error: autofs kernel module is loaded, autofs4 required"
++		echo "Error: autofs kernel module is loaded, $MODULE required."
+ 		return 1
+ 	fi
+ 
+@@ -109,7 +106,7 @@ function restart() {
+ 
+ function reload() {
+ 	pid=`pidof $prog`
+-	if [ -z $pid ]; then
++	if [ -z "$pid" ]; then
+ 		echo $"$prog not running"
+ 		RETVAL=1
+ 	else
+@@ -136,6 +133,11 @@ case "$1" in
+ 	restart)
+ 		restart
+ 		;;
++	try-restart)
++		if [ -n "`pidof $prog`" ]; then
++			restart
++		fi
++		;;
+ 	forcerestart)
+ 		OPTIONS="$OPTIONS --force"
+ 		restart
+@@ -144,7 +146,7 @@ case "$1" in
+ 		reload
+ 		;;
+ 	*)
+-		echo $"Usage: $0 {start|forcestart|stop|restart|forcerestart|reload}"
++		echo $"Usage: $0 {start|forcestart|stop|restart|try-restart|forcerestart|reload}"
+ 		exit 1;
+ 		;;
+ esac
