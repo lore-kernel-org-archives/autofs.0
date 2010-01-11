@@ -1,13 +1,19 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Tokenizer in autofs broken
-Date: Wed, 06 Jan 2010 10:59:47 +0800
-Message-ID: <4B43FCA3.4070306@themaw.net>
-References: <E1NS4eP-0005rM-IM@pomaz-ex.szeredi.hu>
+From: Leonardo Chiquitto <leonardo.lists@gmail.com>
+Subject: Missing spin_lock(&dcache_lock)
+Date: Mon, 11 Jan 2010 09:52:57 -0200
+Message-ID: <20100111115257.GA3211@libre.l.ngdn.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <E1NS4eP-0005rM-IM@pomaz-ex.szeredi.hu>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
+	h=domainkey-signature:received:received:date:from:to:subject
+	:message-id:mime-version:content-type:content-disposition:user-agent;
+	bh=ziQSSL2b//1/UZVX/56x8oq0rG6GvpNQmk44I1EbEj8=;
+	b=MMU/yTrocr20jtVpSjyea7riYHuD8FswIQ0eBB4wWWixlPUhJaQY0IIT4oCMP93rWu
+	t3fkcLKiTz+qMaARBKSIHZLGShXIi8Y8+p8v57J9PS57XW9Ws4X9XAQVvqJAH5AHKxv+
+	t5QPsGs+qgz2qQ4ZRg+VipIkNIKYRKohccaMY=
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,85 +24,54 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: autofs@linux.kernel.org, Peter Benie <pjb1008@cam.ac.uk>
+To: autofs@linux.kernel.org
 
-On 01/05/2010 04:20 PM, Miklos Szeredi wrote:
-> Forwarding this bug report:
-> 
->   https://bugzilla.novell.com/show_bug.cgi?id=529416
-> 
-> Seems to affect the latest version with all patches applied.  The
-> results are different though (notice the trailing spaces):
+Hello,
 
-Yes, I've duplicated it.
+If I compare the 2.6.18 and 2.6.20 kernel trees after applying,
+respectively, autofs4-2.6.18-v5-update-20090903.patch and
+autofs4-2.6.20-v5-update-20090903.patch, I can understand most of the
+differences, but this specific chunk seems strange to me:
 
-> 
-> stat("/etc/auto.profile      ", 0x7f9aebb9eb60) = -1 ENOENT (No such file or directory)
+diff -Nurp linux-2.6.18.8/fs/autofs4/root.c linux-2.6.20.21/fs/autofs4/root.c
+--- linux-2.6.18.8/fs/autofs4/root.c	2010-01-08 13:34:35.000000000 -0200
++++ linux-2.6.20.21/fs/autofs4/root.c	2010-01-11 09:00:28.000000000 -0200
+@@ -91,6 +91,7 @@ static int autofs4_dir_open(struct inode
+ 	 * autofs file system so just let the libfs routines handle
+ 	 * it.
+ 	 */
++	spin_lock(&dcache_lock);
+ 	if (!d_mountpoint(dentry) && __simple_empty(dentry)) {
+ 		spin_unlock(&dcache_lock);
+ 		return -ENOENT;
 
-Yes, that is a result of the greedy match for the "multi" keyword or a
-map type keyword.
+Was this line left out by mistake? If yes, can you please consider the patch
+below?
 
-> 
-> The patch included in the report doesn't seem to help this.
+Thanks,
+Leonardo
 
-No that's right, it doesn't deal with the trailing white space from the
-greedy match.
-
-I'll have a look at this.
-
-> 
-> Thanks,
-> Miklos
-> ----
-> 
-> The tokenizer (master_tok.l) uses a mixture of string and memory options in an
-> unsafe way. As a result, entries can be corrupt when read if a string token
-> follows a non-string token.
-> 
-> 
-> Reproducible: Always
-> 
-> Steps to Reproduce:
-> Create a map containing a string token:
-> /auto           /etc/auto.auto          ro,hard,intr,nosuid,nodev
-> /home           /etc/auto.home          rw,hard,intr,nosuid,nodev
-> /profile        /etc/auto.profile       rw,hard,intr,nosuid,nodev
-> 
-> Actual Results:  
-> /etc/auto.auto and /etc/auto.home load as expected.
-> /etc/auto.profile is read as /etc/auto.proefil
-> 
-> If you miss out the auto.home map, /etc/auto.profile is read as
-> /etc/auto.proofile.
-> 
-> There is the potential for a buffer overrun causing the automounter to crash.
-> 
-> 
-> Expected Results:  
-> Expected results are the the line is read as /etc/auto.profile.
-> 
-> 
-> In the definition of <MAPSTR> in master_tok.l, there is the following code:
->     {MULTI} {
->         tlen = master_leng - 1;
->         if (bptr != buff && isblank(master_text[tlen])) {
->             strncat(buff, master_text, tlen);
->             bptr += tlen;
->             yyless(tlen);
->         } else {
->             strcpy(master_lval.strtype, master_text);
->             return(MULTITYPE);
->         }
->     }
-> and later in the same block:
->     .    { *bptr++ = *master_text; }
-> 
-> When parsing /etc/auto.profile, the parser reads a sequence of characters into
->  the end of buff: /,e,t,c,/,a,u,t,o,.,p,r,o.
-> 
-> Then it reads 'file', as a single string token, concatenating it to the end of
-> buff. buff is not NUL terminated. buff still contains data from the line above,
-> so the string is copied to the end of that string. The number of characters
-> written, bptr-buff, is maintained correctly, so the resulting string is
-> truncated to the right number of characters.
+Index: autofs/patches/autofs4-2.6.18-v5-update-20090903.patch
+===================================================================
+--- autofs.orig/patches/autofs4-2.6.18-v5-update-20090903.patch
++++ autofs/patches/autofs4-2.6.18-v5-update-20090903.patch
+@@ -103,6 +103,7 @@
+ +	 * autofs file system so just let the libfs routines handle
+ +	 * it.
+ +	 */
+++	spin_lock(&dcache_lock);
+ +	if (!d_mountpoint(dentry) && __simple_empty(dentry)) {
+  		spin_unlock(&dcache_lock);
+ -
+Index: autofs/patches/autofs4-2.6.19-v5-update-20090903.patch
+===================================================================
+--- autofs.orig/patches/autofs4-2.6.19-v5-update-20090903.patch
++++ autofs/patches/autofs4-2.6.19-v5-update-20090903.patch
+@@ -1041,6 +1041,7 @@
+ +	 * autofs file system so just let the libfs routines handle
+ +	 * it.
+ +	 */
+++	spin_lock(&dcache_lock);
+ +	if (!d_mountpoint(dentry) && __simple_empty(dentry)) {
+  		spin_unlock(&dcache_lock);
+ -
