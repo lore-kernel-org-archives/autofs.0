@@ -1,19 +1,15 @@
-From: Leonardo Chiquitto <leonardo.lists@gmail.com>
-Subject: Missing spin_lock(&dcache_lock)
-Date: Mon, 11 Jan 2010 09:52:57 -0200
-Message-ID: <20100111115257.GA3211@libre.l.ngdn.org>
+From: Ondrej Valousek <webserv@s3group.cz>
+Subject: Re: Automounter to dump maps
+Date: Tue, 12 Jan 2010 10:18:26 +0100
+Message-ID: <4B4C3E62.2020107@s3group.cz>
+References: <4AFC0BEB.3040808@s3group.cz> <4AFC212C.4010409@themaw.net>
+	<4AFC40F5.80909@s3group.cz> <4B0256E5.7060702@themaw.net>
+	<4B03FD12.8050100@s3group.cz> <4B0400D2.4080402@themaw.net>
+	<4B04054F.3060208@s3group.cz> <4B0407A3.5050202@themaw.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
-	h=domainkey-signature:received:received:date:from:to:subject
-	:message-id:mime-version:content-type:content-disposition:user-agent;
-	bh=ziQSSL2b//1/UZVX/56x8oq0rG6GvpNQmk44I1EbEj8=;
-	b=MMU/yTrocr20jtVpSjyea7riYHuD8FswIQ0eBB4wWWixlPUhJaQY0IIT4oCMP93rWu
-	t3fkcLKiTz+qMaARBKSIHZLGShXIi8Y8+p8v57J9PS57XW9Ws4X9XAQVvqJAH5AHKxv+
-	t5QPsGs+qgz2qQ4ZRg+VipIkNIKYRKohccaMY=
-Content-Disposition: inline
+In-Reply-To: <4B0407A3.5050202@themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,54 +20,43 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: Ian Kent <raven@themaw.net>
+Cc: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
 
-Hello,
+Hi Ian,
 
-If I compare the 2.6.18 and 2.6.20 kernel trees after applying,
-respectively, autofs4-2.6.18-v5-update-20090903.patch and
-autofs4-2.6.20-v5-update-20090903.patch, I can understand most of the
-differences, but this specific chunk seems strange to me:
-
-diff -Nurp linux-2.6.18.8/fs/autofs4/root.c linux-2.6.20.21/fs/autofs4/root.c
---- linux-2.6.18.8/fs/autofs4/root.c	2010-01-08 13:34:35.000000000 -0200
-+++ linux-2.6.20.21/fs/autofs4/root.c	2010-01-11 09:00:28.000000000 -0200
-@@ -91,6 +91,7 @@ static int autofs4_dir_open(struct inode
- 	 * autofs file system so just let the libfs routines handle
- 	 * it.
- 	 */
-+	spin_lock(&dcache_lock);
- 	if (!d_mountpoint(dentry) && __simple_empty(dentry)) {
- 		spin_unlock(&dcache_lock);
- 		return -ENOENT;
-
-Was this line left out by mistake? If yes, can you please consider the patch
-below?
+I have some free time now so I was thinking about trying to write 
+something on my own here.
+Have you already started or can I just pick the latest source rpm for RHEL?
 
 Thanks,
-Leonardo
+Ondrej
 
-Index: autofs/patches/autofs4-2.6.18-v5-update-20090903.patch
-===================================================================
---- autofs.orig/patches/autofs4-2.6.18-v5-update-20090903.patch
-+++ autofs/patches/autofs4-2.6.18-v5-update-20090903.patch
-@@ -103,6 +103,7 @@
- +	 * autofs file system so just let the libfs routines handle
- +	 * it.
- +	 */
-++	spin_lock(&dcache_lock);
- +	if (!d_mountpoint(dentry) && __simple_empty(dentry)) {
-  		spin_unlock(&dcache_lock);
- -
-Index: autofs/patches/autofs4-2.6.19-v5-update-20090903.patch
-===================================================================
---- autofs.orig/patches/autofs4-2.6.19-v5-update-20090903.patch
-+++ autofs/patches/autofs4-2.6.19-v5-update-20090903.patch
-@@ -1041,6 +1041,7 @@
- +	 * autofs file system so just let the libfs routines handle
- +	 * it.
- +	 */
-++	spin_lock(&dcache_lock);
- +	if (!d_mountpoint(dentry) && __simple_empty(dentry)) {
-  		spin_unlock(&dcache_lock);
- -
+P.S.
+Just a matter of interest - why are you using double linked list for 
+master map? Isn't a dynamic array better? Love dynamic arrays :-)
+
+Ian Kent wrote:
+> Ondrej Valousek wrote:
+>   
+>>> No, that's the right thing to do.
+>>> I'm still thinking about how to do it, while working on other things.
+>>> It's a bit hard actually.
+>>>
+>>>   
+>>>       
+>> I think I understand - automounter is demand driven right? So that means
+>> that only those indirect maps being used are looked for and loaded.
+>> Direct maps is an exception to this - these are always loaded.
+>> Anyway - hope you'll eventually find some elegant solution - I
+>> appreciate this.....
+>>     
+>
+> It's a bit more than that, it's the code structure as well.
+> Something that Jeff has complained about before.
+> Anyway, hopefully I'll come up with something.
+>
+> Ian
+>
+>   
