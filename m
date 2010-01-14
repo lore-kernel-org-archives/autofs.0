@@ -1,86 +1,61 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Missing spin_lock(&dcache_lock)
-Date: Tue, 12 Jan 2010 22:17:09 +0800
-Message-ID: <4B4C8465.6050100@themaw.net>
-References: <20100111115257.GA3211@libre.l.ngdn.org>
+From: Al Viro <viro@ZenIV.linux.org.uk>
+Subject: Re: [PATCH 1/7] autofs4: Save autofs trigger's vfsmount in super
+ block info
+Date: Thu, 14 Jan 2010 05:43:22 +0000
+Message-ID: <20100114054322.GA16106@ZenIV.linux.org.uk>
+References: <1261611423-4396-1-git-send-email-vaurora@redhat.com>
+ <1261611423-4396-2-git-send-email-vaurora@redhat.com>
+ <20100102004423.GA2131@zeus.themaw.net>
 Mime-Version: 1.0
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20100102004423.GA2131@zeus.themaw.net>
+Sender: linux-fsdevel-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <20100111115257.GA3211@libre.l.ngdn.org>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs/>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-To: Leonardo Chiquitto <leonardo.lists@gmail.com>
-Cc: autofs@linux.kernel.org
+To: Ian Kent <raven@themaw.net>
+Cc: Valerie Aurora <vaurora@redhat.com>, linux-fsdevel@vger.kernel.org, Jan Blunck <jblunck@suse.de>, autofs@linux.kernel.org
 
-On 01/11/2010 07:52 PM, Leonardo Chiquitto wrote:
-> Hello,
+On Sat, Jan 02, 2010 at 08:44:25AM +0800, Ian Kent wrote:
+> On Wed, Dec 23, 2009 at 03:36:57PM -0800, Valerie Aurora wrote:
+> > From: Jan Blunck <jblunck@suse.de>
+> > 
+> > This is a bugfix/replacement for commit
+> > 051d381259eb57d6074d02a6ba6e90e744f1a29f:
+> > 
+> >     During a path walk if an autofs trigger is mounted on a dentry,
+> >     when the follow_link method is called, the nameidata struct
+> >     contains the vfsmount and mountpoint dentry of the parent mount
+> >     while the dentry that is passed in is the root of the autofs
+> >     trigger mount.  I believe it is impossible to get the vfsmount of
+> >     the trigger mount, within the follow_link method, when only the
+> >     parent vfsmount and the root dentry of the trigger mount are
+> >     known.
+> > 
+> > The solution in this commit was to replace the path embedded in the
+> > parent's nameidata with the path of the link itself in
+> > __do_follow_link().  This is a relatively harmless misuse of the
+> > field, but union mounts ran into a bug during follow_link() caused by
+> > the nameidata containing the wrong path (we count on it being what it
+> > is all other places - the path of the parent).
+> > 
+> > A cleaner and easier to understand solution is to save the necessary
+> > vfsmount in the autofs superblock info when it is mounted.  Then we
+> > can easily update the vfsmount in autofs4_follow_link().
+> > 
+> > Signed-off-by: Jan Blunck <jblunck@suse.de>
+> > Signed-off-by: Valerie Aurora <vaurora@redhat.com>
+> Acked-by: <raven@themaw.net>
 > 
-> If I compare the 2.6.18 and 2.6.20 kernel trees after applying,
-> respectively, autofs4-2.6.18-v5-update-20090903.patch and
-> autofs4-2.6.20-v5-update-20090903.patch, I can understand most of the
-> differences, but this specific chunk seems strange to me:
+> Don't know how I missed such an obvious solution when I did this.
+> Thanks, Ian
 
-Oops.
+TBH, I don't like either variant (both the in-tree one and that).
+The reason why vfsmount does *NOT* belong in superblock, TYVM: you've
+messed the lifetime rules.  You can't pin it down, or the damn thing will
+be impossible to kill.  OTOH, you have no promise whatsoever that superblock
+won't outlive the initial vfsmount.  You might get another vfsmount over
+the same thing and once the original one is gone...
 
-I'll have a look but, from memory, that lock should be present.
-
-The back porting of changes to older kernels gets harder and more error
-prone as time passes.
-
-> 
-> diff -Nurp linux-2.6.18.8/fs/autofs4/root.c linux-2.6.20.21/fs/autofs4/root.c
-> --- linux-2.6.18.8/fs/autofs4/root.c	2010-01-08 13:34:35.000000000 -0200
-> +++ linux-2.6.20.21/fs/autofs4/root.c	2010-01-11 09:00:28.000000000 -0200
-> @@ -91,6 +91,7 @@ static int autofs4_dir_open(struct inode
->  	 * autofs file system so just let the libfs routines handle
->  	 * it.
->  	 */
-> +	spin_lock(&dcache_lock);
->  	if (!d_mountpoint(dentry) && __simple_empty(dentry)) {
->  		spin_unlock(&dcache_lock);
->  		return -ENOENT;
-> 
-> Was this line left out by mistake? If yes, can you please consider the patch
-> below?
-> 
-> Thanks,
-> Leonardo
-> 
-> Index: autofs/patches/autofs4-2.6.18-v5-update-20090903.patch
-> ===================================================================
-> --- autofs.orig/patches/autofs4-2.6.18-v5-update-20090903.patch
-> +++ autofs/patches/autofs4-2.6.18-v5-update-20090903.patch
-> @@ -103,6 +103,7 @@
->  +	 * autofs file system so just let the libfs routines handle
->  +	 * it.
->  +	 */
-> ++	spin_lock(&dcache_lock);
->  +	if (!d_mountpoint(dentry) && __simple_empty(dentry)) {
->   		spin_unlock(&dcache_lock);
->  -
-> Index: autofs/patches/autofs4-2.6.19-v5-update-20090903.patch
-> ===================================================================
-> --- autofs.orig/patches/autofs4-2.6.19-v5-update-20090903.patch
-> +++ autofs/patches/autofs4-2.6.19-v5-update-20090903.patch
-> @@ -1041,6 +1041,7 @@
->  +	 * autofs file system so just let the libfs routines handle
->  +	 * it.
->  +	 */
-> ++	spin_lock(&dcache_lock);
->  +	if (!d_mountpoint(dentry) && __simple_empty(dentry)) {
->   		spin_unlock(&dcache_lock);
->  -
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
+So this is simply broken.
