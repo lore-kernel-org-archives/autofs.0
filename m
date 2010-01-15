@@ -1,22 +1,25 @@
-From: Al Viro <viro@ZenIV.linux.org.uk>
+From: Steve French <smfrench@gmail.com>
 Subject: Re: [PATCH 1/7] autofs4: Save autofs trigger's vfsmount in
-	super	block info
-Date: Mon, 18 Jan 2010 10:27:32 +0000
-Message-ID: <20100118102732.GU19799@ZenIV.linux.org.uk>
-References: <20100114191847.GD24005@shell> <4B5005A4.7080508@themaw.net>
-	<4806.1263567323@redhat.com> <9927.1263575308@redhat.com>
-	<20100115172633.GM19799@ZenIV.linux.org.uk>
-	<20100116101714.GN19799@ZenIV.linux.org.uk>
-	<20100117175723.GP19799@ZenIV.linux.org.uk>
-	<4B53E1B5.2080202@themaw.net>
-	<20100118055929.GS19799@ZenIV.linux.org.uk>
-	<4B542692.2070307@themaw.net>
+	super block info
+Date: Fri, 15 Jan 2010 11:36:15 -0600
+Message-ID: <524f69651001150936q2405a8ccp7433e986e647f7a1@mail.gmail.com>
+References: <1261611423-4396-1-git-send-email-vaurora@redhat.com>
+	<1261611423-4396-2-git-send-email-vaurora@redhat.com>
+	<20100102004423.GA2131@zeus.themaw.net>
+	<20100114054322.GA16106@ZenIV.linux.org.uk>
+	<20100114191847.GD24005@shell> <4B5005A4.7080508@themaw.net>
+	<20100115080323.GK19799@ZenIV.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============5873867065334347719=="
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4B542692.2070307@themaw.net>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
+	h=domainkey-signature:mime-version:received:in-reply-to:references
+	:date:message-id:subject:from:to:cc:content-type;
+	bh=hYa1zRNeBJYn9FeRcdyef8sjK2exUZOf2ZIEeSw/PtI=;
+	b=QVjhUidjBrwBHrwWHFG6+VR7oJm4xDSMmVA0aaWYVtOzMAwK+WRGOx9Ra/M89Rl4GS
+	dqw1egrVSQr15bOCUyJLwKbBKLLZo+gFcPg6qgnDiMuw0G5X9Mre3kYHrupI5um9WjsW
+	ccv7avtYEjgYV2D+ybJkrN2aEvtUf4uf2cJS0=
+In-Reply-To: <20100115080323.GK19799@ZenIV.linux.org.uk>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -27,42 +30,65 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org, David Howells <dhowells@redhat.com>, Trond.Myklebust@netapp.com, sfrench@samba.org, Valerie Aurora <vaurora@redhat.com>, linux-fsdevel@vger.kernel.org, Jan Blunck <jblunck@suse.de>
+To: Al Viro <viro@zeniv.linux.org.uk>
+Cc: autofs@linux.kernel.org, dhowells@redhat.com, Trond.Myklebust@netapp.com, sfrench@samba.org, Valerie Aurora <vaurora@redhat.com>, linux-fsdevel@vger.kernel.org, Jan Blunck <jblunck@suse.de>, Ian Kent <raven@themaw.net>
 
-On Mon, Jan 18, 2010 at 05:14:58PM +0800, Ian Kent wrote:
+--===============5873867065334347719==
+Content-Type: multipart/alternative; boundary=001636b2ad06c44d6d047d3770ca
 
-> The possibility of more than one vfsmount being present is, as you say
-> possible, but it is not legal for autofs (and last time I checked I
-> concluded it wasn't possible for me to veto bind mount requests). Other
-> than bind mounts I'm struggling to think of a case where I would have
-> more than one autofs fs mount with the same s_dev.
+--001636b2ad06c44d6d047d3770ca
+Content-Type: text/plain; charset=ISO-8859-1
 
-That's interesting...  Other place where we go through the stack of mounts
-is where we look for one with given bits in type; do we have a possibility
-of multiple candidates there and which one do we really want?  Same function,
-case when we have ioctlfd == -1, !autofs_type_any(type).  Current code
-(as well as original) goes for one closest to root; it would certainly be
-simpler to go for one on top of stack...
+On Fri, Jan 15, 2010 at 2:03 AM, Al Viro <viro@zeniv.linux.org.uk> wrote:
 
-> Yes, the dentry should always be positive here but let me think about it
-> a little more in case I'm missing something. And yes, using the vfsmount
-> super block pointer would be better. I'll fix these too.
+> [AFS, CIFS and NFS maintainers added to Cc]
+>        * WTF is CIFS doing setting MNT_SHRINKABLE on *parent* vfsmount?
+> Blindly, not even bothering to cooperate with mnt_make_readonly() and
+> its ilk.  Most of all, _why_?  It's child that should be marked so, not
+> the parent...
+>
 
-FWIW, I'd rather have that stuff in vfs tree; that's not the only patch
-eliminating mnt_mountpoint use.  AFAICT, none of the uses outside of
-core VFS code are legitimate (and BTW, NFSv4 one is contrary to RFC - it
-should do follow_down() in loop before reporting mount_fileid instead of
-just picking the immediate ancestor for one thing and I'm not at all sure
-that check around that thing is correct; it ignores export path.dentry
-and looks at path.mnt.root instead, which seems to be wrong).  Other places
-would be just as happy with mnt/mnt->mnt_root instead of mnt->mnt_parent/
-mnt->mnt_mountpoint or, worse, mnt/mnt->mnt_mountpoint.  Pohmelfs is even
-nastier, with its d_path() abuses, but that's a separate story.
+Yes. Looks like a bug. Thanks for spotting this.  Doublechecking with Igor
+(who wrote this section).
 
-IMO we ought to get rid of mnt_mountpoint/mnt_parent uses outside of core
-VFS and I'd rather do that in one patch queue.
+-- 
+Thanks,
 
-Back to another question: which syscalls should and which syscalls should not 
-trigger automount on the last component?  Note that it's something we'd better
-be consistent about between autofs4 and cifs/afs/nfs...
+Steve
+
+--001636b2ad06c44d6d047d3770ca
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+<br><br><div class=3D"gmail_quote">On Fri, Jan 15, 2010 at 2:03 AM, Al Viro=
+ <span dir=3D"ltr">&lt;<a href=3D"mailto:viro@zeniv.linux.org.uk">viro@zeni=
+v.linux.org.uk</a>&gt;</span> wrote:<br><blockquote class=3D"gmail_quote" s=
+tyle=3D"border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8e=
+x; padding-left: 1ex;">
+[AFS, CIFS and NFS maintainers added to Cc]<br>
+=A0 =A0 =A0=A0 * WTF is CIFS doing setting MNT_SHRINKABLE on *parent* vfsmo=
+unt?<br>
+Blindly, not even bothering to cooperate with mnt_make_readonly() and<br>
+its ilk. =A0Most of all, _why_? =A0It&#39;s child that should be marked so,=
+ not<br>
+the parent...<br>
+ </blockquote></div><br>Yes. Looks like a bug. Thanks for spotting this.=A0=
+ Doublechecking with Igor (who wrote this section).<br clear=3D"all"><br>--=
+ <br>Thanks,<br><br>Steve<br>
+
+--001636b2ad06c44d6d047d3770ca--
+
+
+--===============5873867065334347719==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--===============5873867065334347719==--
+
