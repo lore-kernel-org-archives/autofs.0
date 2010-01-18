@@ -1,42 +1,63 @@
-From: Ian Kent <raven@themaw.net>
+From: Al Viro <viro@ZenIV.linux.org.uk>
 Subject: Re: [PATCH 1/7] autofs4: Save autofs trigger's vfsmount in super
- block info
-Date: Mon, 18 Jan 2010 13:08:12 +0800
-Message-ID: <4B53ECBC.8030309@themaw.net>
-References: <1261611423-4396-1-git-send-email-vaurora@redhat.com> <1261611423-4396-2-git-send-email-vaurora@redhat.com> <20100102004423.GA2131@zeus.themaw.net> <20100114054322.GA16106@ZenIV.linux.org.uk> <20100114191847.GD24005@shell> <4B5005A4.7080508@themaw.net> <20100115080323.GK19799@ZenIV.linux.org.uk>
+	block info
+Date: Mon, 18 Jan 2010 05:59:29 +0000
+Message-ID: <20100118055929.GS19799@ZenIV.linux.org.uk>
+References: <20100102004423.GA2131@zeus.themaw.net> <20100114054322.GA16106@ZenIV.linux.org.uk> <20100114191847.GD24005@shell> <4B5005A4.7080508@themaw.net> <4806.1263567323@redhat.com> <9927.1263575308@redhat.com> <20100115172633.GM19799@ZenIV.linux.org.uk> <20100116101714.GN19799@ZenIV.linux.org.uk> <20100117175723.GP19799@ZenIV.linux.org.uk> <4B53E1B5.2080202@themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <20100115080323.GK19799@ZenIV.linux.org.uk>
+Content-Disposition: inline
+In-Reply-To: <4B53E1B5.2080202@themaw.net>
 Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Valerie Aurora <vaurora@redhat.com>, linux-fsdevel@vger.kernel.org, Jan Blunck <jblunck@suse.de>, autofs@linux.kernel.org, sfrench@samba.org, dhowells@redhat.com, Trond.Myklebust@netapp.com
+Content-Transfer-Encoding: 7bit
+To: Ian Kent <raven@themaw.net>
+Cc: Valerie Aurora <vaurora@redhat.com>, linux-fsdevel@vger.kernel.org, Jan Blunck <jblunck@suse.de>, autofs@linux.kernel.org, sfrench@samba.org, Trond.Myklebust@netapp.com, David Howells <dhowells@redhat.com>
 
-On 01/15/2010 04:03 PM, Al Viro wrote:
-> 	* what's going on with use of intent flags in case of autofs4?
+On Mon, Jan 18, 2010 at 12:21:09PM +0800, Ian Kent wrote:
 
-It's the same old story.
-autofs needs to take care not to trigger mounts for certain system calls
-when we have reached the last path component. AFAIK the only way to do
-that is to check the flags.
-
+> In that case we may find an autofs mount that has something mounted on
+> top of it and user space wants to know the super of the covering mount.
 > 
-> Other than that, it'd seem that we would be better off if we treated these
-> guys as "if we try to follow mountpoint and that sucker turns out to be
-> the end of the road, do something fs-specific and either try to go further
-> or see if we could attach the mountpoint given to us here".  Which might
-> be better done in VFS, with fs method returning vfsmount, NULL or ERR_PTR.
+> If there is something mounted on top of it user space needs to know if
+> it is another autofs file system or some other type of file system. So
+> if the nameidata path, located by autofs_dev_ioctl_find_super(), is not
+> the top (or bottom, depending on the terminology you prefer) then we
+> need to follow the mount and return the magic of the thing mounted on
+> top of it.
 
-Forgive my thickness but am I understanding this correctly?
+IDGI.  What you are doing there is
+                if (path.mnt->mnt_mountpoint != path.mnt->mnt_root) {
+                        if (follow_down(&path))
+                                magic = path.mnt->mnt_sb->s_magic;
+                }
+and I don't think it means what you think it means.  Just what is that
+mnt_mountpoint check about?  Before that point we'd found the autofs
+vfsmount M that
+	1) M is mounted on <name>
+	2) M->mnt_sb has the right s_dev
+	3) M is the closest one to root in mount tree out of vfsmounts
+satisfying (1) and (2)
+Now we check that
+	4) the mountpoint M is attached to has dentry different from
+M->mnt_root.  That's an interesting thing to check, seeing that the
+only way to get it false is to have mount --bind name name, with name
+not being the mountpoint before that.  And M being the result of
+that mount --bind.
+	5) something is mounted on top of root of M.
 
-Are you just saying it would be better to add a file system method to
-cater for the case where we might need to do further resolution on the
-mount root we have just arrived at before continuing into it (mmm ...
-now it feels like I've stated the obvious, but anyway ...)?
+Then we proceed to return the s_magic of that something.  For one thing,
+if there *are* several vfsmounts satisfying (1,2), which one do we really
+want?  For another, what's the intent of (4)?  It looks very odd; what's
+really being checked there?
 
-Would that be before following the link or after (not that it would
-matter for my needs)?
-
-Ian
+In another branch we have
+                if (path.dentry->d_inode &&
+                    path.mnt->mnt_root == path.dentry) {
+                        err = 1;
+                        magic = path.dentry->d_inode->i_sb->s_magic;
+                }
+and AFAICT, path.dentry->d_inode == NULL is impossible there.  Besides,
+path.mnt->mnt_sb->s_magic would be simpler anyway (and evaluate to
+the same thing).
