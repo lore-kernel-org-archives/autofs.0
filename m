@@ -1,42 +1,42 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: [PATCH 1/7] autofs4: Save autofs trigger's vfsmount in super
  block info
-Date: Mon, 18 Jan 2010 12:21:09 +0800
-Message-ID: <4B53E1B5.2080202@themaw.net>
-References: <1261611423-4396-1-git-send-email-vaurora@redhat.com> <1261611423-4396-2-git-send-email-vaurora@redhat.com> <20100102004423.GA2131@zeus.themaw.net> <20100114054322.GA16106@ZenIV.linux.org.uk> <20100114191847.GD24005@shell> <4B5005A4.7080508@themaw.net> <4806.1263567323@redhat.com> <9927.1263575308@redhat.com> <20100115172633.GM19799@ZenIV.linux.org.uk> <20100116101714.GN19799@ZenIV.linux.org.uk> <20100117175723.GP19799@ZenIV.linux.org.uk>
+Date: Mon, 18 Jan 2010 13:08:12 +0800
+Message-ID: <4B53ECBC.8030309@themaw.net>
+References: <1261611423-4396-1-git-send-email-vaurora@redhat.com> <1261611423-4396-2-git-send-email-vaurora@redhat.com> <20100102004423.GA2131@zeus.themaw.net> <20100114054322.GA16106@ZenIV.linux.org.uk> <20100114191847.GD24005@shell> <4B5005A4.7080508@themaw.net> <20100115080323.GK19799@ZenIV.linux.org.uk>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <20100117175723.GP19799@ZenIV.linux.org.uk>
+In-Reply-To: <20100115080323.GK19799@ZenIV.linux.org.uk>
 Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Valerie Aurora <vaurora@redhat.com>, linux-fsdevel@vger.kernel.org, Jan Blunck <jblunck@suse.de>, autofs@linux.kernel.org, sfrench@samba.org, Trond.Myklebust@netapp.com, David Howells <dhowells@redhat.com>
+Cc: Valerie Aurora <vaurora@redhat.com>, linux-fsdevel@vger.kernel.org, Jan Blunck <jblunck@suse.de>, autofs@linux.kernel.org, sfrench@samba.org, dhowells@redhat.com, Trond.Myklebust@netapp.com
 
-On 01/18/2010 01:57 AM, Al Viro wrote:
-> On Sat, Jan 16, 2010 at 10:17:14AM +0000, Al Viro wrote:
->> 	* [unsolved, to be dealt along with per-superblock write counts]
->> do_remount() plays fast and loose with MNT_READONLY for !MS_BIND case.
->> 	* [*really* unsolved] it remains to be seen whether we want to
->> propagate modifications of mount flags via shared subtree stuff.  For most
->> of those it's trivial (and arguably the right thing to do), but ro/rw is
->> really nasty.  Nick's mnt_want_write() implementation will need very careful
->> analysis.
+On 01/15/2010 04:03 PM, Al Viro wrote:
+> 	* what's going on with use of intent flags in case of autofs4?
+
+It's the same old story.
+autofs needs to take care not to trigger mounts for certain system calls
+when we have reached the last path component. AFAIK the only way to do
+that is to check the flags.
+
 > 
-> 	Speaking of autofs4, what the hell is going on in
-> autofs_dev_ioctl_ismountpoint()?  Checks in there make no sense,
-> both the "could that dentry be negative?" and whatever the hell
-> it is trying to do with mnt_mountpoint.  Ian?
+> Other than that, it'd seem that we would be better off if we treated these
+> guys as "if we try to follow mountpoint and that sucker turns out to be
+> the end of the road, do something fs-specific and either try to go further
+> or see if we could attach the mountpoint given to us here".  Which might
+> be better done in VFS, with fs method returning vfsmount, NULL or ERR_PTR.
 
-In that case we may find an autofs mount that has something mounted on
-top of it and user space wants to know the super of the covering mount.
+Forgive my thickness but am I understanding this correctly?
 
-If there is something mounted on top of it user space needs to know if
-it is another autofs file system or some other type of file system. So
-if the nameidata path, located by autofs_dev_ioctl_find_super(), is not
-the top (or bottom, depending on the terminology you prefer) then we
-need to follow the mount and return the magic of the thing mounted on
-top of it.
+Are you just saying it would be better to add a file system method to
+cater for the case where we might need to do further resolution on the
+mount root we have just arrived at before continuing into it (mmm ...
+now it feels like I've stated the obvious, but anyway ...)?
+
+Would that be before following the link or after (not that it would
+matter for my needs)?
 
 Ian
