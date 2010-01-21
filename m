@@ -1,134 +1,90 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 1/7] autofs4: Save autofs trigger's vfsmount in super
- block info
-Date: Tue, 19 Jan 2010 15:05:29 +0800
-Message-ID: <4B5559B9.2050500@themaw.net>
-References: <20100114191847.GD24005@shell> <4B5005A4.7080508@themaw.net> <4806.1263567323@redhat.com> <9927.1263575308@redhat.com> <20100115172633.GM19799@ZenIV.linux.org.uk> <20100116101714.GN19799@ZenIV.linux.org.uk> <20100117175723.GP19799@ZenIV.linux.org.uk> <4B53E1B5.2080202@themaw.net> <20100118055929.GS19799@ZenIV.linux.org.uk> <4B542692.2070307@themaw.net> <20100118102732.GU19799@ZenIV.linux.org.uk>
+From: "Philip Ong Jr." <pongjr@gmail.com>
+Subject: debugging the automounter
+Date: Thu, 21 Jan 2010 03:39:57 -0800
+Message-ID: <4B583D0D.1050700@gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <20100118102732.GU19799@ZenIV.linux.org.uk>
-Sender: linux-fsdevel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Valerie Aurora <vaurora@redhat.com>, linux-fsdevel@vger.kernel.org, Jan Blunck <jblunck@suse.de>, autofs@linux.kernel.org, sfrench@samba.org, Trond.Myklebust@netapp.com, David Howells <dhowells@redhat.com>
+Content-Transfer-Encoding: quoted-printable
+Return-path: <autofs-bounces@linux.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
+	h=domainkey-signature:received:received:message-id:date:from
+	:user-agent:mime-version:to:subject:content-type
+	:content-transfer-encoding;
+	bh=zgT4F0+Oiq7IxXJlXSXoCPMjm2atCwjh5SgxHk2wbOU=;
+	b=OraA0Wk6MTY2CiOyP1jAaSZJDLuY9CrIWIFnb6yXGPjJXA+YsPuODBzfLDKWOPEd17
+	ASrwywofOLUnElJpH5mkK1/yDLxsQb3tm4mjCSF7sWRY3zTTfO77vtJZR2mCYRzbwVGj
+	NlfkjMIwXO77MqnINlt/z5jvF6R27Yvj2HOm4=
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs/>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: text/plain; charset="windows-1252"; format="flowed"
+To: autofs@linux.kernel.org, "Philip Ong Jr." <pongjr@gmail.com>
 
-On 01/18/2010 06:27 PM, Al Viro wrote:
-> On Mon, Jan 18, 2010 at 05:14:58PM +0800, Ian Kent wrote:
-> 
->> The possibility of more than one vfsmount being present is, as you say
->> possible, but it is not legal for autofs (and last time I checked I
->> concluded it wasn't possible for me to veto bind mount requests). Other
->> than bind mounts I'm struggling to think of a case where I would have
->> more than one autofs fs mount with the same s_dev.
-> 
-> That's interesting...  Other place where we go through the stack of mounts
-> is where we look for one with given bits in type; do we have a possibility
-> of multiple candidates there and which one do we really want?  Same function,
-> case when we have ioctlfd == -1, !autofs_type_any(type).  Current code
-> (as well as original) goes for one closest to root; it would certainly be
-> simpler to go for one on top of stack...
+Are there any good links on how to go about setting up debugging the =
 
-We shouldn't have multiple candidates for the same reason autofs can't
-support bind mounts. The mounts in an autofs tree of mounts are tied to
-a map of mounts in user space which means they are tied to a specific
-path. And, we won't (or at least shouldn't unless user space uses the
-facility incorrectly) have multiple mounts of the same autofs type on
-the stack due to the way autofs must use these mounts.
+automounter using the gdb?
 
-As far as going from the top of the stack goes I don't think it makes
-any real difference since the stack is small (2 or possibly 3). The
-find_autofs_mount() function does go from the (terminology?) bottom of
-the mount stack using follow_up() whereas the original code went from
-the top using the path_lookup() to get the parent and then
-follow_down(). So there is additional following with the current code
-since kern_path() will go down to the bottom of the stack and then we
-proceed to go back up in find_autofs_mount().
+I=92m running rhel3 and trying to figure out an automounter problem. I=92ve =
 
-> 
->> Yes, the dentry should always be positive here but let me think about it
->> a little more in case I'm missing something. And yes, using the vfsmount
->> super block pointer would be better. I'll fix these too.
-> 
-> FWIW, I'd rather have that stuff in vfs tree; that's not the only patch
-> eliminating mnt_mountpoint use.  AFAICT, none of the uses outside of
-> core VFS code are legitimate (and BTW, NFSv4 one is contrary to RFC - it
-> should do follow_down() in loop before reporting mount_fileid instead of
-> just picking the immediate ancestor for one thing and I'm not at all sure
-> that check around that thing is correct; it ignores export path.dentry
-> and looks at path.mnt.root instead, which seems to be wrong).  Other places
-> would be just as happy with mnt/mnt->mnt_root instead of mnt->mnt_parent/
-> mnt->mnt_mountpoint or, worse, mnt/mnt->mnt_mountpoint.  Pohmelfs is even
-> nastier, with its d_path() abuses, but that's a separate story.
-> 
-> IMO we ought to get rid of mnt_mountpoint/mnt_parent uses outside of core
-> VFS and I'd rather do that in one patch queue.
-> 
-> Back to another question: which syscalls should and which syscalls should not 
-> trigger automount on the last component?  Note that it's something we'd better
-> be consistent about between autofs4 and cifs/afs/nfs...
+installed the debuginfo package so the binary won=92t be stripped.
 
-That's actually a difficult question.
+Does the debuginfo package install another binary to debug the =
 
-stat(2) is the most problematic call for much the same reasons as
-described by Trond.
+automounter using gdb because the binary looks stripped to me=85?
 
-A (hopefully fairly simple) description of a couple of specific cases
-will be useful to clarify the situation.
+# file /usr/sbin/automount
+/usr/sbin/automount: ELF 32-bit LSB shared object, Intel 80386, version =
 
-First, terminology, an "indirect autofs mount" is an autofs fs mount
-that implements single path components as mount points within the autofs
-fs directory. There are two cases, indirect mounts that are "nobrose"
-and ones that "browse"able. The later is just an autofs indirect mount
-with pre-created mount point directories so they can be seen by listing
-the directory whereas a nobrowse mount corresponds to an autofs mount we
-have seen historically where a directory listing of an autofs mount with
-no current active automounted mounts returns nothing.
+1 (SYSV), stripped
 
-There is no problem with stat(2) for nobrowse autofs indirect mounts
-because directories that can potentially trigger mounts simply don't
-exist and the user space tools tend to behave as people expect.
+This is NOT stripped=85but I=92m not sure what this is used for or how to =
 
-But, for browse autofs indirect mounts we get into trouble. For example
-a long or colour ls will stat(2) each directory to get needed
-information causing all the potential mounts to be mounted. Which is an
-pbvious problem for autofs maps that have more than a few entries and a
-disaster for anything with more than a hundred or so entries.
+use it=85
+# file /usr/lib/debug/usr/sbin/automount.debug
+/usr/lib/debug/usr/sbin/automount.debug: ELF 32-bit LSB shared object, =
 
-Currently stat(2) is honoured for the nobrowse case (the case were we
-are creating a dentry) and not for the browse case, unless of course the
-mount has already been triggered. This gives rise to the stat() ->
-chdir() (or other mount triggering call) -> stat() inconsistency we see
-in user space utilities. In Solaris browse is the default for indirect
-mounts and we see the same lies in directory listings as mounts aren't
-triggered in that case either.
+Intel 80386, version 1 (SYSV), not stripped
 
-statfs(2) is an interesting case for autofs direct mounts.
+Basically, I=92d like to get to the point where I can have an non-stripped =
 
-More terminology, a "direct autofs mount" is an autofs mount that
-implements a mount trigger for a given path. An autofs direct map
-consists of entries with a full and a target mount and so each map entry
-is a distinct mount within the host file system (mmm ... sounds a bit
-like the description in the Solaris man page). When a direct mount is
-crossed the corresponding mount is triggered and is mounted on top of
-the autofs direct mount point.
+automounter and how to verify it is not stripped or how to build and =
 
-We probably should honour statfs(2) calls but without also necessarily
-honouring stat(2) calls. Currently the statfs(2) calls get caught by the
-exclusion above for stat(2) calls but we don't see many complaints
-because we don't list autofs mounts in /etc/mtab, where the user space
-utilities usually look for their information. Once again, this approach
-is similar to what we see in Solaris. In Solaris /etc/mnttab is similar
-to our /proc/mounts but there is a pseudo option ("hide" or something
-similar, I can't remember now) used to prevent user space utilities from
-considering entries that shouldn't be reported.
+debug it.
 
-So the stat(2) call is the big problem while other related system calls
-(in that they use very similar lookup flags), like statfs(2) have the
-opposite problem.
+#gdb /usr/sbin/automount
+GNU gdb Red Hat Linux (6.3.0.0-0.30.1rh)
+Copyright 2004 Free Software Foundation, Inc.
+GDB is free software, covered by the GNU General Public License, and you are
+welcome to change it and/or distribute copies of it under certain =
 
-This probably isn't really what you wanted to hear but I've tried to
-give a decent warts and all description of the difficulty.
+conditions.
+Type "show copying" to see the conditions.
+There is absolutely no warranty for GDB. Type "show warranty" for details.
+This GDB was configured as "i386-redhat-linux-gnu"...(no debugging =
 
-Ian
+symbols found)
+Using host libthread_db library "/lib/tls/libthread_db.so.1".
+(gdb) quit
+
+#uname -a
+Linux l-sim-33-075 2.4.21-53.ELsmp #1 SMP Thu Feb 21 19:01:38 EST 2008 =
+
+i686 athlon i386 GNU/Linux
+
+# automount -V
+Linux automount version 4.1.3-216
+
+# rpm -qa | grep autofs
+autofs-4.1.3-216
+autofs-debuginfo-4.1.3-216
+
+I=92d appreciate any help.
+
+Thanks
+Phil
