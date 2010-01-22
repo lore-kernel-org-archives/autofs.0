@@ -1,18 +1,21 @@
-From: "Philip Ong Jr." <pongjr@gmail.com>
-Subject: problem installing 5.0.5
-Date: Thu, 21 Jan 2010 23:50:00 -0800
-Message-ID: <4B5958A8.2050308@gmail.com>
+From: Fabio Olive Leite <fabio.olive@gmail.com>
+Subject: Re: debugging the automounter
+Date: Fri, 22 Jan 2010 14:54:14 -0200
+Message-ID: <20100122145414.4733f23e@gmail.com>
+References: <4B583D0D.1050700@gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <autofs-bounces@linux.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
-	h=domainkey-signature:received:received:message-id:date:from
-	:user-agent:mime-version:to:subject:content-type
-	:content-transfer-encoding;
-	bh=5XQuTf/FTF995sK5/NMWqfkkeA3vahmyAztVB38G9vE=;
-	b=VY8bBdcV6nanzsbW395n58/UqkG0PBw1nNLvi+nLbNT0lqv8kHsgP+klqkWc7CDgYQ
-	EQ3j92tanZAAuM43sRDLmDdBI4sju24hP8oupKuUZUkhYFuMBzuwTALqrS8B+1zk2jCb
-	96I5UFHLWtNB/dTX9McdZj36w+j4H5t5gvVSc=
+	h=domainkey-signature:received:received:date:from:to:subject
+	:message-id:in-reply-to:references:x-mailer:mime-version
+	:content-type:content-transfer-encoding;
+	bh=0QyVSAezopvtIVgujn+hpBxS/3VxeLDRSAuCKufnNyY=;
+	b=X/45Dip7+nDpBKKqM0CsmQ+AzPzE1pGQWqE+H5QqeDLWSi3070cQLKqVC2ki0fq9xa
+	zGQpKqvcKUKvXmcR1u9X3Nz2Clgx3Lh0og17qb4Ix0RA4A+43lFal5ieleaL+56NSlGi
+	WUaQZ1VdDkSmjFjoFriXjaGiz7F2IEeAZ9/t4=
+In-Reply-To: <4B583D0D.1050700@gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -23,33 +26,21 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
 To: autofs@linux.kernel.org
 
-When installing 5.0.5 on a Centos 4u5 system with kernel.org 2.6.29.4, i 
-receive a daemon error.
-
-Here are the last couple of lines...
-
-# DEBUG=1 make
-gcc -g -Wall -DDEBUG -D_REENTRANT -D_FILE_OFFSET_BITS=64 -rdynamic -fPIE 
--D_GNU_SOURCE -I../include -DAUTOFS_LIB_DIR=\"/usr/lib/autofs\"  
--DAUTOFS_MAP_DIR=\"/etc\" -DAUTOFS_CONF_DIR=\"/etc/sysconfig\" 
--DAUTOFS_FIFO_DIR=\"/var/run\" -DAUTOFS_FLAG_DIR=\"/var/run\" 
--DVERSION_STRING=\"5.0.5\" -I/usr/include/libxml2 -c state.c
-gcc -g -Wall -DDEBUG -D_REENTRANT -D_FILE_OFFSET_BITS=64 -rdynamic -fPIE 
--D_GNU_SOURCE -I../include -DAUTOFS_LIB_DIR=\"/usr/lib/autofs\"  
--DAUTOFS_MAP_DIR=\"/etc\" -DAUTOFS_CONF_DIR=\"/etc/sysconfig\" 
--DAUTOFS_FIFO_DIR=\"/var/run\" -DAUTOFS_FLAG_DIR=\"/var/run\" 
--DVERSION_STRING=\"5.0.5\" -I/usr/include/libxml2 -c flag.c
-gcc -g -lpthread -rdynamic -pie -o automount automount.o indirect.o 
-direct.o spawn.o module.o mount.o lookup.o state.o flag.o 
-../lib/autofs.a -ldl -lxml2 -lz -lpthread -lm
-../lib/autofs.a(master_tok.o)(.text+0x1b45): In function 
-`master_set_scan_buffer':
-/usr/src/autofs-5.0.5/lib/master_tok.l:417: undefined reference to 
-`master_lex_destroy'
-collect2: ld returned 1 exit status
-make[1]: *** [automount] Error 1
-make[1]: Leaving directory `/usr/src/autofs-5.0.5/daemon'
-make: *** [daemon] Error 2
+T2zDoSEKCk9uIDIwMTAtMDEtMjEgUGhpbGlwIE9uZyBKci4gd3JvdGU6Cj4gCj4gRG9lcyB0aGUg
+ZGVidWdpbmZvIHBhY2thZ2UgaW5zdGFsbCBhbm90aGVyIGJpbmFyeSB0byBkZWJ1ZyB0aGUgCj4g
+YXV0b21vdW50ZXIgdXNpbmcgZ2RiIGJlY2F1c2UgdGhlIGJpbmFyeSBsb29rcyBzdHJpcHBlZCB0
+byBtZeKApj8KClRoZSBkZWJ1Z2luZm8gcGFja2FnZSBpbnN0YWxscyBhbiBFTEYgZmlsZSBjb250
+YWluaW5nIHRoZSBkZWJ1ZwpzZWN0aW9ucyB0aGF0IHdlcmUgc3RyaXBwZWQgb2ZmIHRoZSBiaW5h
+cnksIGJ1dCBub3QgYSBuZXcgZnVsbCBiaW5hcnkuCgpTbyB0aGUgc3RyaXBwZWQgYmluYXJ5IGdv
+ZXMgaW4gdGhlIG5vcm1hbCBwYWNrYWdlLCBhbmQgeW91IGFkZCB0aGUKZGVidWcgc3ltYm9scyB0
+byB5b3VyIHN5c3RlbSB3aXRoIHRoZSBkZWJ1Z2luZm8gcGFja2FnZSB3aGVuIHlvdSBuZWVkCnRo
+ZW0uIFRoZW4geW91IHRlbGwgZ2RiIHRvIGxvb2sgYXQgdGhvc2UgZmlsZXMgZm9yIHN5bWJvbCBp
+bmZvcm1hdGlvbgpmb3IgdGhlIGJpbmFyeSB5b3Ugd2FudCB0byBkZWJ1Zy4KCkNoZWVycywKRsOh
+YmlvIE9saXbDqQotLSAKZXggc2VkIGxleCBhd2sgeWFjYywgZSBwbHVyaWJ1cyB1bml4LCBhbWVt
+Cm5hIG1hdGVtw6F0aWNhIGRhcyBpZMOpaWFzLCBwZXJtdXRhIMOpIGlndWFsIGEgYWRpw6fDo28K
+ZSB1bSBkZWJhdGUgaW50ZWxpZ2VudGUgaW1wbGVtZW50YSBhIG11bHRpcGxpY2HDp8OjbwoKX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KYXV0b2ZzIG1haWxp
+bmcgbGlzdAphdXRvZnNAbGludXgua2VybmVsLm9yZwpodHRwOi8vbGludXgua2VybmVsLm9yZy9t
+YWlsbWFuL2xpc3RpbmZvL2F1dG9mcwo=
