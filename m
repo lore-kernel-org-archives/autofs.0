@@ -1,14 +1,21 @@
-From: Ian Kent <raven@themaw.net>
+From: "Philip Ong Jr." <pongjr@gmail.com>
 Subject: Re: problem installing 5.0.5
-Date: Tue, 26 Jan 2010 22:25:17 +0800
-Message-ID: <4B5EFB4D.9080808@themaw.net>
+Date: Tue, 26 Jan 2010 11:55:35 -0800
+Message-ID: <4B5F48B7.2010002@gmail.com>
 References: <4B5958A8.2050308@gmail.com> <4B5D0FF1.1010701@themaw.net>
-	<4B5E2BE9.8020701@gmail.com>
+	<4B5E2BE9.8020701@gmail.com> <4B5EFB4D.9080808@themaw.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4B5E2BE9.8020701@gmail.com>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
+	h=domainkey-signature:received:received:message-id:date:from
+	:user-agent:mime-version:to:cc:subject:references:in-reply-to
+	:content-type:content-transfer-encoding;
+	bh=pEG5HbP+NEfENstwkxSuvq69SbwE2Q7+h4BSo5gyOZ0=;
+	b=TdnGaK+Fj+SKblqCgeB6ujoYG8P1hap3hMcgN+YVop30oryHSi76En3qhMGnKUiQC7
+	KhVUosEIotm6DnC+hZAYfF1F4/89gRGjXlVXq5Z5fi0rBA1fn4c1D9UhW5db9MuST93z
+	RJHmWdePkk9kDQDXs876W1adHGHCYwXAIKWFQ=
+In-Reply-To: <4B5EFB4D.9080808@themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,78 +26,88 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: "Philip Ong Jr." <pongjr@gmail.com>
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-On 01/26/2010 07:40 AM, Philip Ong Jr. wrote:
-> I applied the patches starting from top to down...and now receiving
-> error messages pertaining to conditional statements.
-> 
-> patch -p1 <
-> /usr/src/autofs-5.0.5/patches/autofs-5.0.5-fix-included-map-read-fail-handling.patch
-> 
-> patch -p1 <
-> /usr/src/autofs-5.0.5/patches/autofs-5.0.5-refactor-ldap-sasl-bind.patch
-> patch -p1 <
-> /usr/src/autofs-5.0.5/patches/autofs-5.0.4-add-mount-wait-parameter.patch
-> patch -p1 <
-> /usr/src/autofs-5.0.5/patches/autofs-5.0.5-special-case-cifs-escapes.patch
-> patch -p1 <
-> /usr/src/autofs-5.0.5/patches/autofs-5.0.5-fix-libxml2-workaround-configure.patch
-> 
-> patch -p1 <
-> /usr/src/autofs-5.0.5/patches/autofs-5.0.5-more-code-analysis-corrections.patch
-> 
-> patch -p1 <
-> /usr/src/autofs-5.0.5/patches/autofs-5.0.5-fix-backwards-ifndef-INET6.patch
-> patch -p1 <
-> /usr/src/autofs-5.0.5/patches/autofs-5.0.5-fix-stale-init-for-file-map-instance.patch
-> 
-> patch -p1 <
-> /usr/src/autofs-5.0.5/patches/autofs-5.0.5-fix-ext4-fsck-at-mount.patch
-> patch -p1 <
-> /usr/src/autofs-5.0.5/patches/autofs-5.0.5-dont-use-master_lex_destroy-to-clear-parse-buffer.patch
-> 
-> patch -p1 <
-> /usr/src/autofs-5.0.5/patches/autofs-5.0.5-make-documentation-for-set-log-priority-clearer.patch
-> 
-> patch -p1 <
-> /usr/src/autofs-5.0.5/patches/autofs-5.0.5-fix-timeout-in-connect_nb.patch
-> patch -p1 <
-> /usr/src/autofs-5.0.5/patches/autofs-5.0.5-fix-pidof-init-script-usage.patch
-> 
-> patch -p1 <
-> /usr/src/autofs-5.0.5/patches/autofs-5.0.5-check-for-path-mount-location-in-generic-module.patch
-> 
-> patch -p1 <
-> /usr/src/autofs-5.0.5/patches/autofs-5.0.5-dont-fail-mount-on-access-fail.patch
-> 
-> patch -p1 <
-> /usr/src/autofs-5.0.5/patches/autofs-5.0.5-fix-rpc-large-export-list.patch
-> patch -p1 <
-> /usr/src/autofs-5.0.5/patches/autofs-5.0.5-fix-memory-leak-on-reload.patch
-> 
-> # ./configure --disable-mount-locking --enable-ignore-busy
-> 
-> # DEBUG=1 make
-> 
-> gcc -g -lpthread -rdynamic -pie -o automount automount.o indirect.o
-> direct.o spawn.o module.o mount.o lookup.o state.o flag.o
-> ../lib/autofs.a -ldl -lxml2 -lz -lpthread -lm
-> : automount
-> make[1]: Leaving directory `/usr/src/autofs-5.0.5/daemon'
-> make[1]: Entering directory `/usr/src/autofs-5.0.5/modules'
-> Makefile:75: Extraneous text after `else' directive
-> Makefile:80: Extraneous text after `else' directive
-> Makefile:80: *** only one `else' per conditional.  Stop.
-> make[1]: Leaving directory `/usr/src/autofs-5.0.5/modules'
-> make: *** [daemon] Error 2
-> 
-> Thoughts?
+I have not, how do I go about doing that?
 
-Oh ... bummer, wonder how I've broken the patch series?
+Phil
 
-I'll check it out and get back to you.
-In the meantime, have you tried checking out the git repo and building that?
-
-Ian
+Ian Kent wrote:
+> On 01/26/2010 07:40 AM, Philip Ong Jr. wrote:
+>   
+>> I applied the patches starting from top to down...and now receiving
+>> error messages pertaining to conditional statements.
+>>
+>> patch -p1 <
+>> /usr/src/autofs-5.0.5/patches/autofs-5.0.5-fix-included-map-read-fail-handling.patch
+>>
+>> patch -p1 <
+>> /usr/src/autofs-5.0.5/patches/autofs-5.0.5-refactor-ldap-sasl-bind.patch
+>> patch -p1 <
+>> /usr/src/autofs-5.0.5/patches/autofs-5.0.4-add-mount-wait-parameter.patch
+>> patch -p1 <
+>> /usr/src/autofs-5.0.5/patches/autofs-5.0.5-special-case-cifs-escapes.patch
+>> patch -p1 <
+>> /usr/src/autofs-5.0.5/patches/autofs-5.0.5-fix-libxml2-workaround-configure.patch
+>>
+>> patch -p1 <
+>> /usr/src/autofs-5.0.5/patches/autofs-5.0.5-more-code-analysis-corrections.patch
+>>
+>> patch -p1 <
+>> /usr/src/autofs-5.0.5/patches/autofs-5.0.5-fix-backwards-ifndef-INET6.patch
+>> patch -p1 <
+>> /usr/src/autofs-5.0.5/patches/autofs-5.0.5-fix-stale-init-for-file-map-instance.patch
+>>
+>> patch -p1 <
+>> /usr/src/autofs-5.0.5/patches/autofs-5.0.5-fix-ext4-fsck-at-mount.patch
+>> patch -p1 <
+>> /usr/src/autofs-5.0.5/patches/autofs-5.0.5-dont-use-master_lex_destroy-to-clear-parse-buffer.patch
+>>
+>> patch -p1 <
+>> /usr/src/autofs-5.0.5/patches/autofs-5.0.5-make-documentation-for-set-log-priority-clearer.patch
+>>
+>> patch -p1 <
+>> /usr/src/autofs-5.0.5/patches/autofs-5.0.5-fix-timeout-in-connect_nb.patch
+>> patch -p1 <
+>> /usr/src/autofs-5.0.5/patches/autofs-5.0.5-fix-pidof-init-script-usage.patch
+>>
+>> patch -p1 <
+>> /usr/src/autofs-5.0.5/patches/autofs-5.0.5-check-for-path-mount-location-in-generic-module.patch
+>>
+>> patch -p1 <
+>> /usr/src/autofs-5.0.5/patches/autofs-5.0.5-dont-fail-mount-on-access-fail.patch
+>>
+>> patch -p1 <
+>> /usr/src/autofs-5.0.5/patches/autofs-5.0.5-fix-rpc-large-export-list.patch
+>> patch -p1 <
+>> /usr/src/autofs-5.0.5/patches/autofs-5.0.5-fix-memory-leak-on-reload.patch
+>>
+>> # ./configure --disable-mount-locking --enable-ignore-busy
+>>
+>> # DEBUG=1 make
+>>
+>> gcc -g -lpthread -rdynamic -pie -o automount automount.o indirect.o
+>> direct.o spawn.o module.o mount.o lookup.o state.o flag.o
+>> ../lib/autofs.a -ldl -lxml2 -lz -lpthread -lm
+>> : automount
+>> make[1]: Leaving directory `/usr/src/autofs-5.0.5/daemon'
+>> make[1]: Entering directory `/usr/src/autofs-5.0.5/modules'
+>> Makefile:75: Extraneous text after `else' directive
+>> Makefile:80: Extraneous text after `else' directive
+>> Makefile:80: *** only one `else' per conditional.  Stop.
+>> make[1]: Leaving directory `/usr/src/autofs-5.0.5/modules'
+>> make: *** [daemon] Error 2
+>>
+>> Thoughts?
+>>     
+>
+> Oh ... bummer, wonder how I've broken the patch series?
+>
+> I'll check it out and get back to you.
+> In the meantime, have you tried checking out the git repo and building that?
+>
+> Ian
+>
+>   
