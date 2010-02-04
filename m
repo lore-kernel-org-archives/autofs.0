@@ -1,13 +1,10 @@
 From: Jon Forrest <jlforrest@berkeley.edu>
-Subject: Re: Transient Automount Problems in CentOS 5.3
-Date: Thu, 04 Feb 2010 10:09:37 -0800
-Message-ID: <4B6B0D61.1050605@berkeley.edu>
-References: <4B6AFAD1.1070601@berkeley.edu>
-	<201002041757.18201.carsten.aulbert@aei.mpg.de>
+Subject: Transient Automount Problems in CentOS 5.3
+Date: Wed, 03 Feb 2010 16:16:01 -0800
+Message-ID: <4B6A11C1.3080005@berkeley.edu>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <201002041757.18201.carsten.aulbert@aei.mpg.de>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,53 +16,64 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Carsten Aulbert <carsten.aulbert@aei.mpg.de>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On 2/4/2010 8:57 AM, Carsten Aulbert wrote:
+I have a new cluster running CentOS 5.3.
+The cluster uses a Sun 7310 storage server
+that provides NFS service over a private
+1Gb/s ethernet with 9K jumbo frames to the
+cluster.
 
-> Have you ramped up the number of NFS daemons, backlog stuff etc on the solaris
-> box (/etc/default/nfs) and is the Solaris NIC running with jumbo frames as
-> well (and the switch is *really* capable of doing it (please test with ping).
+We've noticed that a number of the compute
+nodes sometimes generate the
 
-First of all, the Sun 7310 is one of those servers
-that you "can't" login to. You manage it only
-via a Web interface.
+automount[15023]: umount_autofs_indirect: ask umount returned busy /home
 
-I've set the server to use 500 NFS server threads.
-Is it necessary to go above that?
+message. When this happens the program running on the
+node dies. This has happened between 10 and 20 times.
+We're not sure what's going on on a node when this
+happens. Most of the time everything is fine and
+the home directories are automounted without problem.
 
-Both the Sun server, the switch, and all the compute nodes
-in the cluster claim to support jumbo frames.
-Turning them off is something that I could
-do, but I'd have to do it globally because this is
-a per interface settings. There's no
-way I can think of that would allow me to
-keep jumbo frames on on only certain nodes
-so that I could run a controlled experiment.
+I've googled for this problem and I see that other people
+have seen it too, but I've never seen a resolution,
+especially not for RHEL5.
 
-Running ping shows no problems.
+The auto.master line for this mount is
 
-I've thought it might be useful to turn off
-automounting on a few of the cluster nodes to
-see what happens.
+/home  /etc/auto.home  --timeout=1200 
+noatime,nodiratime,rw,noacl,rsize=32768,wsize=32768
 
-One additional thing I've discovered is that the
-compute nodes all are showing a bunch of this
-error message via dmesg:
+The network interface configuration is
 
-eth0: too many iterations (6) in nv_nic_irq.
+eth0      Link encap:Ethernet  HWaddr 00:30:48:B9:F6:52
+           inet addr:10.1.255.233  Bcast:10.1.255.255  Mask:255.255.0.0
+           inet6 addr: fe80::230:48ff:feb9:f652/64 Scope:Link
+           UP BROADCAST RUNNING MULTICAST  MTU:9000  Metric:1
+           RX packets:32999308 errors:0 dropped:0 overruns:0 frame:0
+           TX packets:27468315 errors:0 dropped:0 overruns:0 carrier:0
+           collisions:0 txqueuelen:1000
+           RX bytes:24225053296 (22.5 GiB)  TX bytes:73313582546 (68.2 GiB)
+           Interrupt:74 Base address:0x2000
 
-I've looked this up and it might have something
-to do with the problem. The trouble is that I can't
-see when these error messages are generated so
-I can't try to correlate them with the autofs
-problem.
+The automount is
 
-I'm grasping at straws here.
+Linux automount version 5.0.1-0.rc2.102
 
-I appreciate any addition suggestions.
+Directories:
+         config dir:     /etc/sysconfig
+         maps dir:       /etc
+         modules dir:    /usr/lib64/autofs
 
+Compile options:
+   DISABLE_MOUNT_LOCKING ENABLE_IGNORE_BUSY_MOUNTS WITH_HESIOD WITH_LDAP
+   WITH_SASL
+
+The kernel is 2.6.18-128.1.14.el5.
+
+Any advice on what to do?
+
+Cordially,
 -- 
 Jon Forrest
 Research Computing Support
@@ -75,4 +83,3 @@ University of California Berkeley
 Berkeley, CA
 94720-1460
 510-643-1032
-jlforrest@berkeley.edu
