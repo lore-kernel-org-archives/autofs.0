@@ -1,15 +1,15 @@
-From: Carsten Aulbert <carsten.aulbert@aei.mpg.de>
+From: Jon Forrest <jlforrest@berkeley.edu>
 Subject: Re: Transient Automount Problems in CentOS 5.3
-Date: Fri, 5 Feb 2010 18:30:47 +0100
-Message-ID: <201002051830.47709.carsten.aulbert@aei.mpg.de>
+Date: Fri, 05 Feb 2010 09:10:54 -0800
+Message-ID: <4B6C511E.9060207@berkeley.edu>
 References: <4B6AFAD1.1070601@berkeley.edu>
+	<201002041757.18201.carsten.aulbert@aei.mpg.de>
+	<4B6B0D61.1050605@berkeley.edu>
 	<201002050859.05400.carsten.aulbert@aei.mpg.de>
-	<4B6C511E.9060207@berkeley.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4B6C511E.9060207@berkeley.edu>
+In-Reply-To: <201002050859.05400.carsten.aulbert@aei.mpg.de>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,60 +20,57 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jon Forrest <jlforrest@berkeley.edu>
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: Carsten Aulbert <carsten.aulbert@aei.mpg.de>
 Cc: autofs@linux.kernel.org
 
-Hi Jon
+On 2/4/2010 11:59 PM, Carsten Aulbert wrote:
 
-On Friday 05 February 2010 18:10:54 Jon Forrest wrote:
-> 
-> This results in
-> 
->   icmp_seq=2 Frag needed and DF set (mtu = 1500)
-> 
-> which is not what I expected. I wonder where the
-> "mtu = 1500" is coming from. ifconfig on the interface
-> of the source machine is definitely 9000 (I just
-> reconfirmed). I also confirmed that jumbo frames
-> are enabled both on the switch and on the storage
-> server. They are.
-> 
-> For yuks, I tried lowering the packet
-> size lower, and I found that I continued to see this
-> error until the packet size was 1472. So, either
-> ping is doing something I don't expect, or somebody
-> is lying about jumbo frames being enabled.
-> 
+> (1) ping -s 8972 -Mdo<remote host>
+> (try different payload sizes and remember that there might be some overhead in
+> the switches needed)
 
-That sounds that one component is not allowing jumbo frames through.
+This results in
 
-> This is a 48 node cluster, so doing something like
-> that is something I'd like to hold off on doing
-> until I've exhausted everything else.
+  icmp_seq=2 Frag needed and DF set (mtu = 1500)
 
-48 are easy, it starts to get interesting in the not too low 3 digit regime, 4 
-digits are more fun ;)
+which is not what I expected. I wonder where the
+"mtu = 1500" is coming from. ifconfig on the interface
+of the source machine is definitely 9000 (I just
+reconfirmed). I also confirmed that jumbo frames
+are enabled both on the switch and on the storage
+server. They are.
 
-What I would do next are the following routes (try both):
+For yuks, I tried lowering the packet
+size lower, and I found that I continued to see this
+error until the packet size was 1472. So, either
+ping is doing something I don't expect, or somebody
+is lying about jumbo frames being enabled.
 
-Route A:
+> (2) Use netperf between different nodes and see if the performance is not
+> drastically reduced with large jumbo frames.
 
-Set MTU1500 everywhere and stress the system and look if the problems go away.
+The funny thing is that performance seems to be fine,
+although that's purely subjective. I'll try the netperf
+test to see what the numbers really are.
 
-Route B:
+> Would it be possible for you to recompile the kernel with the same settings
+> and enable timings in printk lines (under kernel hacking)? That might help,
+> but might be some work to get working.
 
-(a) Directly link two nodes and try the ping again, if that does not work, 
-there seems to be a problem with the nodes NICs.
+This is a 48 node cluster, so doing something like
+that is something I'd like to hold off on doing
+until I've exhausted everything else.
 
-(b) Directly link a node a the 7340, try the ping again, if it does not work 
-but (a) did, the 7340 is acting up.
+I appreciate your suggestions.
 
-(c) Try the ping between two nodes with a single switch in-between and see if 
-that works.
-
-Basically, start at the simplest set-up and work your way up the complexity 
-ladder, it's tedious but eventually you'll find the problem.
-
-Cheers
-
-Carsten
+-- 
+Jon Forrest
+Research Computing Support
+College of Chemistry
+173 Tan Hall
+University of California Berkeley
+Berkeley, CA
+94720-1460
+510-643-1032
+jlforrest@berkeley.edu
