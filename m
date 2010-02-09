@@ -1,15 +1,17 @@
-From: Jon Forrest <jlforrest@berkeley.edu>
-Subject: Re: Transient Automount Problems in CentOS 5.3
-Date: Fri, 05 Feb 2010 09:10:54 -0800
-Message-ID: <4B6C511E.9060207@berkeley.edu>
-References: <4B6AFAD1.1070601@berkeley.edu>
-	<201002041757.18201.carsten.aulbert@aei.mpg.de>
-	<4B6B0D61.1050605@berkeley.edu>
-	<201002050859.05400.carsten.aulbert@aei.mpg.de>
+From: Nathan Salwen <salwen.1@gmail.com>
+Subject: Autofs check ping before mounting?
+Date: Tue, 9 Feb 2010 06:01:26 -0500
+Message-ID: <23a3b61002090301q5f7c01a2jb837463d83b71712@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============3885765718746637929=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <201002050859.05400.carsten.aulbert@aei.mpg.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
+	h=domainkey-signature:mime-version:received:date:message-id:subject
+	:from:to:content-type;
+	bh=FtwrfWMTb0t+uVFx56msTBslQgWsl9TIE6/XwOWje+0=;
+	b=c5jZbvLcLvr67GSJYdlyTHqNC2YTRmSZXz6Fcz/vJiy1JMFnXHOFoln4Uvq+3wQHAG
+	8TWOU+dA4ndZGrMQ7b7erBQExzaWwnS+zBszQgFKnPDR3MUVizl46Jgx+pS975Yoy1Xi
+	AbixzTzZQQHgVl7lM+Js0SwZgDy0pJbIDOIjY=
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,57 +22,46 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Carsten Aulbert <carsten.aulbert@aei.mpg.de>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On 2/4/2010 11:59 PM, Carsten Aulbert wrote:
+--===============3885765718746637929==
+Content-Type: multipart/alternative; boundary=0016e65c8844d5621c047f28d65a
 
-> (1) ping -s 8972 -Mdo<remote host>
-> (try different payload sizes and remember that there might be some overhead in
-> the switches needed)
+--0016e65c8844d5621c047f28d65a
+Content-Type: text/plain; charset=ISO-8859-1
 
-This results in
+Is there any way to make autofs check ping before trying to mount a volume.
+The 60 second timeout freezes openoffice (for example).
 
-  icmp_seq=2 Frag needed and DF set (mtu = 1500)
+Alternatively, is there a way to make NFS timeout more quickly than 60
+seconds when it is trying to mount a volume.
 
-which is not what I expected. I wonder where the
-"mtu = 1500" is coming from. ifconfig on the interface
-of the source machine is definitely 9000 (I just
-reconfirmed). I also confirmed that jumbo frames
-are enabled both on the switch and on the storage
-server. They are.
+Thanks,
+Nathan
 
-For yuks, I tried lowering the packet
-size lower, and I found that I continued to see this
-error until the packet size was 1472. So, either
-ping is doing something I don't expect, or somebody
-is lying about jumbo frames being enabled.
+--0016e65c8844d5621c047f28d65a
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-> (2) Use netperf between different nodes and see if the performance is not
-> drastically reduced with large jumbo frames.
+Is there any way to make autofs check ping before trying to mount a volume.=
+=A0 The 60 second timeout freezes openoffice (for example).<br><br>Alternat=
+ively, is there a way to make NFS timeout more quickly than 60 seconds when=
+ it is trying to mount a volume.<br>
+<br>Thanks,<br>Nathan<br>
 
-The funny thing is that performance seems to be fine,
-although that's purely subjective. I'll try the netperf
-test to see what the numbers really are.
+--0016e65c8844d5621c047f28d65a--
 
-> Would it be possible for you to recompile the kernel with the same settings
-> and enable timings in printk lines (under kernel hacking)? That might help,
-> but might be some work to get working.
 
-This is a 48 node cluster, so doing something like
-that is something I'd like to hold off on doing
-until I've exhausted everything else.
+--===============3885765718746637929==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-I appreciate your suggestions.
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
 
--- 
-Jon Forrest
-Research Computing Support
-College of Chemistry
-173 Tan Hall
-University of California Berkeley
-Berkeley, CA
-94720-1460
-510-643-1032
-jlforrest@berkeley.edu
+--===============3885765718746637929==--
+
