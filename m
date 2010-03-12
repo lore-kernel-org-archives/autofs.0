@@ -1,22 +1,19 @@
-From: Techie <techchavez@gmail.com>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: Autofs LDAP mount question
-Date: Thu, 11 Mar 2010 18:32:17 -0700
-Message-ID: <dc3ecf561003111732l683d852cg60e5c6db379273fa@mail.gmail.com>
+Date: Fri, 12 Mar 2010 10:48:30 +0800
+Message-ID: <1268362110.2495.7.camel@localhost>
 References: <dc3ecf561003102100h572cb015l5654ca179028795e@mail.gmail.com>
 	<1268288881.2247.17.camel@localhost>
+	<dc3ecf561003111732l683d852cg60e5c6db379273fa@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
-	h=domainkey-signature:mime-version:received:in-reply-to:references
-	:date:message-id:subject:from:to:content-type
-	:content-transfer-encoding;
-	bh=6DAYUxvEI7KXWXkfikHpDVPFMy+CiiRxHbfVbORnoRc=;
-	b=fbTrjCuuTVT02m2rx5+Wbh4ImG4QBnJ8o4FKRxyYWEbqBETw4XQi4i5jQVAk1RmkS8
-	1gq4bAFoDxXs+VASE1XacKz6ahMoS+4B98UpI5vzdKCu2noYRjpY9AwIyu67a5WneCMC
-	ovaeVo9TMmJ40PD2FO+FuAifrOWCF2gYhadDw=
-In-Reply-To: <1268288881.2247.17.camel@localhost>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com;
+	h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding;
+	s=smtpout; bh=bwPrbkbl1gl0I1WAF8AaIXSP0h8=;
+	b=mavMmmwSLo1DI5FCyB8WKVLgt+Bs+OjQ6QcHupaJ2wS2yLqhUMKESMLl++jRP2Xyz0XAb7Gb3FHwj8+LiTrOBgVGuebah8SVR7Fk9EffkAu/D3ZrV5TggcbtnTOvVzOh/3doPScGeg0IVVvxAgWX45RNRCJOjtvM+q7TFpcU6FY=
+In-Reply-To: <dc3ecf561003111732l683d852cg60e5c6db379273fa@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -27,55 +24,90 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>, autofs@linux.kernel.org
+To: Techie <techchavez@gmail.com>
+Cc: autofs@linux.kernel.org
 
-T24gV2VkLCBNYXIgMTAsIDIwMTAgYXQgMTE6MjggUE0sIElhbiBLZW50IDxyYXZlbkB0aGVtYXcu
-bmV0PiB3cm90ZToKPiBPbiBXZWQsIDIwMTAtMDMtMTAgYXQgMjI6MDAgLTA3MDAsIFRlY2hpZSB3
-cm90ZToKPj4gSGVsbG8sCj4+Cj4+IEkgaGF2ZSBhIHNpbXBsZSBxdWVzdGlvbiByZWdhcmRpbmcg
-TERBUCBkaXJlY3QgbWFwIG1vdW50cy4KPj4KPj4gSWYgSSB1c2UgYSBsb2NhbCBkaXJlY3QgbWFw
-ICIvZXRjL2RpcmVjdF9tYXAiIMKgd2l0aCB0aGUgYmVsb3cgY29udGVudHMKPj4gdG8gbWFwIE5G
-UyBkaXJlY3RvcmllcyBvbiB0d28gZGlmZmVyZW50IGZpbGUgc3lzdGVtcy4KPj4KPj4gL2RhdGEg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqByZWQ6
-L3Vzci9sb2NhbC9hcHAgwqAgXAo+PiDCoCDCoCDCoCDCoCDCoC9saWJzL2FwcHMgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqByZWQ6L3Zhci9saWJzL2FwcHMKPj4KPj4gQm90aCBtb3VudCBw
-b2ludHMgdG8gbWFwIHByb3Blcmx5LiBUaGUgL2RhdGEgZGlyZWN0b3J5IHNob3dzIHRoZQo+PiBj
-b3JyZWN0IGNvbnRlbnRzIG9mIHJlZDovdXNyL2xvY2FsL2FwcC4gQW5kIHRoZSAvZGF0YS9saWIv
-YXBwcwo+PiBkaXJlY3RvcnkgYWxzbyBzaG93cyB0aGUgY29ycmVjdCBjb250ZW50cyBvZiDCoHJl
-ZDovdmFyL2xpYnMvYXBwcy4gVGhpcwo+PiBpcyB3aGF0IEkgYmVsaWV2ZSBhcmUgbmVzdGVkIG1v
-dW50IHBvaW50cy4gSG93ZXZlciB3aGVuIEkgdHJ5IHRoZSBzYW1lCj4+IHRoaW5nIHdpdGggYW4g
-TERBUCBkaXJlY3QgbWFwIGl0IGZhaWxzLiBoZSBjb250ZW50cyBvZiB0aGUgc2FtZSBtYXAgaW4K
-Pj4gTERBUCBpcyBiZWxvdy4KPj4KPj4gZG46IGF1dG9tb3VudEtleT0vZGF0YSxhdXRvbW91bnRN
-YXBOYW1lPWRpcmVjdF9tYXAsb3U9QXV0b2ZzLGRjPWV4YW1wbGUsZGM9Y29tCj4+IGF1dG9tb3Vu
-dEluZm9ybWF0aW9uOiAtZnN0eXBlPW5mcyxydyByZWQ6L3Vzci9sb2NhbC9hcHAKPj4gYXV0b21v
-dW50S2V5OiAvZGF0YQo+PiBvYmplY3RDbGFzczogYXV0b21vdW50Cj4+IG9iamVjdENsYXNzOiB0
-b3AKPj4KPj4gZG46IGF1dG9tb3VudEtleT0vZGF0YS9saWJzL2FwcHMsYXV0b21vdW50TWFwTmFt
-ZT1kaXJlY3RfbWFwLG91PUF1dG9mcyxkYz1leGFtcGxlLGRjPWNvbQo+PiBhdXRvbW91bnRLZXk6
-IC9kYXRhL2xpYnMvYXBwcwo+PiBvYmplY3RDbGFzczogYXV0b21vdW50Cj4+IG9iamVjdENsYXNz
-OiB0b3AKPj4gYXV0b21vdW50SW5mb3JtYXRpb246IC1mc3R5cGU9bmZzLHJ3IHJlZDovL3Zhci9s
-aWJzL2FwcHMKPj4KPj4KPj4gV2hlbiBJIGRvIHRoaXMgaW4gbXkgTERBUCBtYXAgYXMgc2hvd24g
-YWJvdmUsIHRoZSBtb3VudCBwb2ludHMgZG8gbm90Cj4+IHNob3cgdXAgY29ycmVjdGx5LiBUaGUg
-L2RhdGEgZGlyZWN0b3J5IGNvdmVycyB1cCBvbmUgb2YgdGhlIDIgbW91bnQKPj4gcG9pbnRzLiBT
-byBpdCBsb29rcyBsaWtlIG5lc3RlZCBtb3VudCBwb2ludHMgZG9uJ3Qgd29yayBpbiBMREFQIG9y
-IEkKPj4gYW0gbm90IHVzaW5nIGNvcnJlY3Qgc3ludGF4LiBBbGwgbXkgb3RoZXIgTERBUCBtb3Vu
-dHMgd29yayBidXQgdHdvCj4+IG1vdW50IHBvaW50cyBpbiB0aGUgc2FtZSBkaXIgZG9lcyBub3Qg
-d29yayBsaWtlIGl0IGRvZXMgd2l0aCBsb2NhbAo+PiBkaXJlY3QgbWFwcy4KPj4KPj4gQ2FuIHlv
-dSBwbGVhc2UgY29uZmlybSBvciBkZW55IGlmIEkgY2FuIGFjaGlldmUgbmVzdGVkIG1vdW50IHBv
-aW50cwo+PiB1c2luZyBMREFQIGRpcmVjdCBtYXBzIGxpa2UgSSBjYW4gd2l0aCBsb2NhbCBkaXJl
-Y3QgbWFwcyBhcyBzaG93bgo+PiBhYm92ZT8KPgo+IExEQVAgbWFwIGlzbid0IHF1aXRlIHJpZ2h0
-Lgo+Cj4gVGhlIExEQVAgbWFwIGVudHJ5IG11c3QgYmUgdGhlIHNhbWUgYXMgeW91ciBmaWxlIG1h
-cC4KPgo+IEluIHlvdXIgZmlsZSBtYXAgdGhlIGRpcmVjdCBtb3VudCBpcwo+IGtleSA9ICIvZGF0
-YSIKPiBsb2NhdGlvbiA9ICIvIHJlZDovdXNyL2xvY2FsL2FwcCAvbGlicy9hcHBzIHJlZDovdmFy
-L2xpYnMvYXBwcyIKPgo+IEluIHlvdXIgb3JpZ2luYWwgZmlsZSBtYXAgdGhlICIvIiBvZmZzZXQg
-aGFzIGJlZW4gaW1wbGllZCBiZWNhdXNlIHRoZQo+IHN5bnRheCBhbGxvd3MgaXQgdG8gYmUgb3B0
-aW9uYWwuCj4KPiBhbmQgaW4gTERBUAo+IGtleSA9ICIvZGF0YSIKPiBsb2NhdGlvbiA9ICJyZWQ6
-L3Vzci9sb2NhbC9hcHAiCj4KPiBrZXkgPSAiL2RhdGEvbGlicy9hcHBzIgo+IEludmFsaWQsIHlv
-dSBjYW4ndCBuZXN0IGRpc3RpbmN0IGRpcmVjdCBtb3VudHMuCj4KPiBZb3UgbmVlZCB0byB1c2Ug
-dGhlIHNhbWUgdmFsdWUgZm9yIGxvY2F0aW9uIGFzIHlvdSBkaWQgZm9yIHRoZSBmaWxlIG1hcAo+
-IGluIExEQVAuCj4KPj4KPj4KPj4gVGhhbmsgeW91Cj4+Cj4+IF9fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fCklhbiwKVGhhbmtzIGEgYnVuY2ggZm9yIHBvaW50
-aW5nIG91dCB0aGF0IHRoZSAiLyIgb2Zmc2V0IGlzIHN5bnRhY3RpY2FsbHkKb3B0aW9uYWwgZm9y
-IGZpbGUgYmFzZWQgbWFwcyBidXQgaXMgbmVjZXNzYXJ5IGluIExEQVAuIFRoYXQgcmVhbGx5Cmhl
-bHBlZCBteSB1bmRlcnN0YW5kaW5nIG9mIGJvdGggZm9ybWF0cy4uCgoKUmVnYXJkcwpKCgpfX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwphdXRvZnMgbWFpbGlu
-ZyBsaXN0CmF1dG9mc0BsaW51eC5rZXJuZWwub3JnCmh0dHA6Ly9saW51eC5rZXJuZWwub3JnL21h
-aWxtYW4vbGlzdGluZm8vYXV0b2ZzCg==
+On Thu, 2010-03-11 at 18:32 -0700, Techie wrote:
+> On Wed, Mar 10, 2010 at 11:28 PM, Ian Kent <raven@themaw.net> wrote:
+> > On Wed, 2010-03-10 at 22:00 -0700, Techie wrote:
+> >> Hello,
+> >>
+> >> I have a simple question regarding LDAP direct map mounts.
+> >>
+> >> If I use a local direct map "/etc/direct_map"  with the below contents
+> >> to map NFS directories on two different file systems.
+> >>
+> >> /data                                    red:/usr/local/app   \
+> >>          /libs/apps                    red:/var/libs/apps
+> >>
+> >> Both mount points to map properly. The /data directory shows the
+> >> correct contents of red:/usr/local/app. And the /data/lib/apps
+> >> directory also shows the correct contents of  red:/var/libs/apps. This
+> >> is what I believe are nested mount points. However when I try the same
+> >> thing with an LDAP direct map it fails. he contents of the same map in
+> >> LDAP is below.
+> >>
+> >> dn: automountKey=/data,automountMapName=direct_map,ou=Autofs,dc=example,dc=com
+> >> automountInformation: -fstype=nfs,rw red:/usr/local/app
+> >> automountKey: /data
+> >> objectClass: automount
+> >> objectClass: top
+> >>
+> >> dn: automountKey=/data/libs/apps,automountMapName=direct_map,ou=Autofs,dc=example,dc=com
+> >> automountKey: /data/libs/apps
+> >> objectClass: automount
+> >> objectClass: top
+> >> automountInformation: -fstype=nfs,rw red://var/libs/apps
+> >>
+> >>
+> >> When I do this in my LDAP map as shown above, the mount points do not
+> >> show up correctly. The /data directory covers up one of the 2 mount
+> >> points. So it looks like nested mount points don't work in LDAP or I
+> >> am not using correct syntax. All my other LDAP mounts work but two
+> >> mount points in the same dir does not work like it does with local
+> >> direct maps.
+> >>
+> >> Can you please confirm or deny if I can achieve nested mount points
+> >> using LDAP direct maps like I can with local direct maps as shown
+> >> above?
+> >
+> > LDAP map isn't quite right.
+> >
+> > The LDAP map entry must be the same as your file map.
+> >
+> > In your file map the direct mount is
+> > key = "/data"
+> > location = "/ red:/usr/local/app /libs/apps red:/var/libs/apps"
+> >
+> > In your original file map the "/" offset has been implied because the
+> > syntax allows it to be optional.
+> >
+> > and in LDAP
+> > key = "/data"
+> > location = "red:/usr/local/app"
+> >
+> > key = "/data/libs/apps"
+> > Invalid, you can't nest distinct direct mounts.
+> >
+> > You need to use the same value for location as you did for the file map
+> > in LDAP.
+> >
+> >>
+> >>
+> >> Thank you
+> >>
+> >> _______________________________________________
+> Ian,
+> Thanks a bunch for pointing out that the "/" offset is syntactically
+> optional for file based maps but is necessary in LDAP. That really
+> helped my understanding of both formats..
+
+No, actually it's always optional but can cause confusion when omitted.
+
+The issue was that you can't break up the mount location into two
+separate entries (either in a file map or LDAP, LDAP convention just
+happens to make you want to do it that way). You just need to feed the
+same string to the daemon whether the map is in a file or stored in
+LDAP.
+
+Ian
