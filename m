@@ -1,24 +1,21 @@
-From: Techie <techchavez@gmail.com>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: Autofs LDAP mount question
-Date: Thu, 11 Mar 2010 21:40:34 -0700
-Message-ID: <dc3ecf561003112040p53d5beb7xd5360ee04bf46a56@mail.gmail.com>
+Date: Fri, 12 Mar 2010 13:02:21 +0800
+Message-ID: <1268370141.2495.19.camel@localhost>
 References: <dc3ecf561003102100h572cb015l5654ca179028795e@mail.gmail.com>
 	<1268288881.2247.17.camel@localhost>
 	<dc3ecf561003111732l683d852cg60e5c6db379273fa@mail.gmail.com>
 	<1268362110.2495.7.camel@localhost>
+	<dc3ecf561003112040p53d5beb7xd5360ee04bf46a56@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
-	h=domainkey-signature:mime-version:received:in-reply-to:references
-	:date:message-id:subject:from:to:cc:content-type
-	:content-transfer-encoding;
-	bh=bY/NnknqpAEbvz8Eig04I73Cu83MajBseq83LHmvJ9s=;
-	b=ae2/5JWGf3P6p/HarnC+qSUUJLzhbaDQss47/LFFoJEeZTy6G2hyG+8j0eAGhUhjQg
-	S5YdgmpEf8DLhlOPcDz8tEAMcBlV7C85CB3ssvKxmrL9sk0QdXDAomeLR35hHz3af/g0
-	ieUHPPqv+x+5HHsJeIdJR2p1uIvxqKolCTRdU=
-In-Reply-To: <1268362110.2495.7.camel@localhost>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com;
+	h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding;
+	s=smtpout; bh=5sdra1v3xjl5tMsX4qKh/q75lgM=;
+	b=tppKySQFdB/Xn5p4blkkvHdo23Fen6wjdEysbqVz60lt2a3ZwGuPhaMuDCcWdKduUPUY1MVF6LEs3b+bxAEnzqD1tOIloKenRxO2jHUrKOJ800xnvG3QCG7v0ekox6JIwvEGuCOJxBZ6p+51NerV1exRLn0oiuMOW1h370rgeDY=
+In-Reply-To: <dc3ecf561003112040p53d5beb7xd5360ee04bf46a56@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -29,83 +26,121 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
+To: Techie <techchavez@gmail.com>
 Cc: autofs@linux.kernel.org
 
-T24gVGh1LCBNYXIgMTEsIDIwMTAgYXQgNzo0OCBQTSwgSWFuIEtlbnQgPHJhdmVuQHRoZW1hdy5u
-ZXQ+IHdyb3RlOgo+IE9uIFRodSwgMjAxMC0wMy0xMSBhdCAxODozMiAtMDcwMCwgVGVjaGllIHdy
-b3RlOgo+PiBPbiBXZWQsIE1hciAxMCwgMjAxMCBhdCAxMToyOCBQTSwgSWFuIEtlbnQgPHJhdmVu
-QHRoZW1hdy5uZXQ+IHdyb3RlOgo+PiA+IE9uIFdlZCwgMjAxMC0wMy0xMCBhdCAyMjowMCAtMDcw
-MCwgVGVjaGllIHdyb3RlOgo+PiA+PiBIZWxsbywKPj4gPj4KPj4gPj4gSSBoYXZlIGEgc2ltcGxl
-IHF1ZXN0aW9uIHJlZ2FyZGluZyBMREFQIGRpcmVjdCBtYXAgbW91bnRzLgo+PiA+Pgo+PiA+PiBJ
-ZiBJIHVzZSBhIGxvY2FsIGRpcmVjdCBtYXAgIi9ldGMvZGlyZWN0X21hcCIgwqB3aXRoIHRoZSBi
-ZWxvdyBjb250ZW50cwo+PiA+PiB0byBtYXAgTkZTIGRpcmVjdG9yaWVzIG9uIHR3byBkaWZmZXJl
-bnQgZmlsZSBzeXN0ZW1zLgo+PiA+Pgo+PiA+PiAvZGF0YSDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoHJlZDovdXNyL2xvY2FsL2FwcCDCoCBcCj4+
-ID4+IMKgIMKgIMKgIMKgIMKgL2xpYnMvYXBwcyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oHJlZDovdmFyL2xpYnMvYXBwcwo+PiA+Pgo+PiA+PiBCb3RoIG1vdW50IHBvaW50cyB0byBtYXAg
-cHJvcGVybHkuIFRoZSAvZGF0YSBkaXJlY3Rvcnkgc2hvd3MgdGhlCj4+ID4+IGNvcnJlY3QgY29u
-dGVudHMgb2YgcmVkOi91c3IvbG9jYWwvYXBwLiBBbmQgdGhlIC9kYXRhL2xpYi9hcHBzCj4+ID4+
-IGRpcmVjdG9yeSBhbHNvIHNob3dzIHRoZSBjb3JyZWN0IGNvbnRlbnRzIG9mIMKgcmVkOi92YXIv
-bGlicy9hcHBzLiBUaGlzCj4+ID4+IGlzIHdoYXQgSSBiZWxpZXZlIGFyZSBuZXN0ZWQgbW91bnQg
-cG9pbnRzLiBIb3dldmVyIHdoZW4gSSB0cnkgdGhlIHNhbWUKPj4gPj4gdGhpbmcgd2l0aCBhbiBM
-REFQIGRpcmVjdCBtYXAgaXQgZmFpbHMuIGhlIGNvbnRlbnRzIG9mIHRoZSBzYW1lIG1hcCBpbgo+
-PiA+PiBMREFQIGlzIGJlbG93Lgo+PiA+Pgo+PiA+PiBkbjogYXV0b21vdW50S2V5PS9kYXRhLGF1
-dG9tb3VudE1hcE5hbWU9ZGlyZWN0X21hcCxvdT1BdXRvZnMsZGM9ZXhhbXBsZSxkYz1jb20KPj4g
-Pj4gYXV0b21vdW50SW5mb3JtYXRpb246IC1mc3R5cGU9bmZzLHJ3IHJlZDovdXNyL2xvY2FsL2Fw
-cAo+PiA+PiBhdXRvbW91bnRLZXk6IC9kYXRhCj4+ID4+IG9iamVjdENsYXNzOiBhdXRvbW91bnQK
-Pj4gPj4gb2JqZWN0Q2xhc3M6IHRvcAo+PiA+Pgo+PiA+PiBkbjogYXV0b21vdW50S2V5PS9kYXRh
-L2xpYnMvYXBwcyxhdXRvbW91bnRNYXBOYW1lPWRpcmVjdF9tYXAsb3U9QXV0b2ZzLGRjPWV4YW1w
-bGUsZGM9Y29tCj4+ID4+IGF1dG9tb3VudEtleTogL2RhdGEvbGlicy9hcHBzCj4+ID4+IG9iamVj
-dENsYXNzOiBhdXRvbW91bnQKPj4gPj4gb2JqZWN0Q2xhc3M6IHRvcAo+PiA+PiBhdXRvbW91bnRJ
-bmZvcm1hdGlvbjogLWZzdHlwZT1uZnMscncgcmVkOi8vdmFyL2xpYnMvYXBwcwo+PiA+Pgo+PiA+
-Pgo+PiA+PiBXaGVuIEkgZG8gdGhpcyBpbiBteSBMREFQIG1hcCBhcyBzaG93biBhYm92ZSwgdGhl
-IG1vdW50IHBvaW50cyBkbyBub3QKPj4gPj4gc2hvdyB1cCBjb3JyZWN0bHkuIFRoZSAvZGF0YSBk
-aXJlY3RvcnkgY292ZXJzIHVwIG9uZSBvZiB0aGUgMiBtb3VudAo+PiA+PiBwb2ludHMuIFNvIGl0
-IGxvb2tzIGxpa2UgbmVzdGVkIG1vdW50IHBvaW50cyBkb24ndCB3b3JrIGluIExEQVAgb3IgSQo+
-PiA+PiBhbSBub3QgdXNpbmcgY29ycmVjdCBzeW50YXguIEFsbCBteSBvdGhlciBMREFQIG1vdW50
-cyB3b3JrIGJ1dCB0d28KPj4gPj4gbW91bnQgcG9pbnRzIGluIHRoZSBzYW1lIGRpciBkb2VzIG5v
-dCB3b3JrIGxpa2UgaXQgZG9lcyB3aXRoIGxvY2FsCj4+ID4+IGRpcmVjdCBtYXBzLgo+PiA+Pgo+
-PiA+PiBDYW4geW91IHBsZWFzZSBjb25maXJtIG9yIGRlbnkgaWYgSSBjYW4gYWNoaWV2ZSBuZXN0
-ZWQgbW91bnQgcG9pbnRzCj4+ID4+IHVzaW5nIExEQVAgZGlyZWN0IG1hcHMgbGlrZSBJIGNhbiB3
-aXRoIGxvY2FsIGRpcmVjdCBtYXBzIGFzIHNob3duCj4+ID4+IGFib3ZlPwo+PiA+Cj4+ID4gTERB
-UCBtYXAgaXNuJ3QgcXVpdGUgcmlnaHQuCj4+ID4KPj4gPiBUaGUgTERBUCBtYXAgZW50cnkgbXVz
-dCBiZSB0aGUgc2FtZSBhcyB5b3VyIGZpbGUgbWFwLgo+PiA+Cj4+ID4gSW4geW91ciBmaWxlIG1h
-cCB0aGUgZGlyZWN0IG1vdW50IGlzCj4+ID4ga2V5ID0gIi9kYXRhIgo+PiA+IGxvY2F0aW9uID0g
-Ii8gcmVkOi91c3IvbG9jYWwvYXBwIC9saWJzL2FwcHMgcmVkOi92YXIvbGlicy9hcHBzIgo+PiA+
-Cj4+ID4gSW4geW91ciBvcmlnaW5hbCBmaWxlIG1hcCB0aGUgIi8iIG9mZnNldCBoYXMgYmVlbiBp
-bXBsaWVkIGJlY2F1c2UgdGhlCj4+ID4gc3ludGF4IGFsbG93cyBpdCB0byBiZSBvcHRpb25hbC4K
-Pj4gPgo+PiA+IGFuZCBpbiBMREFQCj4+ID4ga2V5ID0gIi9kYXRhIgo+PiA+IGxvY2F0aW9uID0g
-InJlZDovdXNyL2xvY2FsL2FwcCIKPj4gPgo+PiA+IGtleSA9ICIvZGF0YS9saWJzL2FwcHMiCj4+
-ID4gSW52YWxpZCwgeW91IGNhbid0IG5lc3QgZGlzdGluY3QgZGlyZWN0IG1vdW50cy4KPj4gPgo+
-PiA+IFlvdSBuZWVkIHRvIHVzZSB0aGUgc2FtZSB2YWx1ZSBmb3IgbG9jYXRpb24gYXMgeW91IGRp
-ZCBmb3IgdGhlIGZpbGUgbWFwCj4+ID4gaW4gTERBUC4KPj4gPgo+PiA+Pgo+PiA+Pgo+PiA+PiBU
-aGFuayB5b3UKPj4gPj4KPj4gPj4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KPj4gSWFuLAo+PiBUaGFua3MgYSBidW5jaCBmb3IgcG9pbnRpbmcgb3V0IHRo
-YXQgdGhlICIvIiBvZmZzZXQgaXMgc3ludGFjdGljYWxseQo+PiBvcHRpb25hbCBmb3IgZmlsZSBi
-YXNlZCBtYXBzIGJ1dCBpcyBuZWNlc3NhcnkgaW4gTERBUC4gVGhhdCByZWFsbHkKPj4gaGVscGVk
-IG15IHVuZGVyc3RhbmRpbmcgb2YgYm90aCBmb3JtYXRzLi4KPgo+IE5vLCBhY3R1YWxseSBpdCdz
-IGFsd2F5cyBvcHRpb25hbCBidXQgY2FuIGNhdXNlIGNvbmZ1c2lvbiB3aGVuIG9taXR0ZWQuCj4K
-PiBUaGUgaXNzdWUgd2FzIHRoYXQgeW91IGNhbid0IGJyZWFrIHVwIHRoZSBtb3VudCBsb2NhdGlv
-biBpbnRvIHR3bwo+IHNlcGFyYXRlIGVudHJpZXMgKGVpdGhlciBpbiBhIGZpbGUgbWFwIG9yIExE
-QVAsIExEQVAgY29udmVudGlvbiBqdXN0Cj4gaGFwcGVucyB0byBtYWtlIHlvdSB3YW50IHRvIGRv
-IGl0IHRoYXQgd2F5KS4gWW91IGp1c3QgbmVlZCB0byBmZWVkIHRoZQo+IHNhbWUgc3RyaW5nIHRv
-IHRoZSBkYWVtb24gd2hldGhlciB0aGUgbWFwIGlzIGluIGEgZmlsZSBvciBzdG9yZWQgaW4KPiBM
-REFQLgo+Cj4gSWFuCj4KCkkgc2VlIHRoYXQgbWFrZXMgc2Vuc2UsIHRoYW5rIHlvdS4KSSB3YXMg
-YWxzbyB0cnlpbmcgdG8gc3BlY2lmeSBtdWx0aXBsZSBkaXJlY3QgbWFwcyBpbiBMREFQLiBJIHRy
-aWVkCmNyZWF0aW5nIGFub3RoZXIgZGlyZWN0IG1hcCB3aXRoIGEgIi8tIiBrZXkgYnV0IGxkYXAg
-Y29tcGxhaW5lZCBzYXlpbmcKdGhhdCB0aGUgIi8tIiBrZXkgYWxyZWFkeSBleGlzdHMuIFdoaWNo
-IG1ha2VzIHNlbnNlIGFzIHRoZSB0d28gRE5zCndvdWxkIGJlIHRoZSBzYW1lLgoKSW4gYSAvZXRj
-L2F1dG8ubWFzdGVyIGxvY2FsIGZpbGUgSSBjYW4gaGF2ZSBtdWx0aXBsZSBkaXJlY3QgbWFwIGVu
-dHJpZXMgd2l0aCAuLi4KLy0gICAvZXRjL21hcDEKLy0gICAvZXRjL21hcDIKCkkgd2FzIGFibGUg
-dG8gYWNjb21wbGlzaCB0aGlzIGluIGxkYXAgYnkgYXBwZW5kaW5nIG11bHRpcGxlIG1hcCBuYW1l
-cwp0byB0aGUgYXV0b21vdW50aW5mb3JtYXRpb24gYXR0cmlidXRlIG9mIHRoZSBkbjogYXV0b21v
-dW50S2V5PS8tCmVudHJ5LiBJIGFtIG5vdCBzdXJlIGlmIHRoaXMgaXMgdGhlIHByb3BlciB3YXkg
-dG8gZG8gaG93ZXZlciBpdCBzZWVtcwp0byB3b3JrIHdlbGwgc28gSSBpbWFnaW5lIGl0IG1heSBi
-ZS4gSSBhbSBhYmxlIHRvIHVzZSB0aGUgZGlmZmVyZW50Cm1hcHMgYnkgc3BlY2lmeWluZyB0aGVt
-IGJ5IG5hbWUgaW4gdGhlIGNsaWVudCBhdXRvLm1hc3RlciBmaWxlcy4KQXV0b0ZTNSBzZWVtcyB0
-byBiZSBhYmxlIHRvIGRvIGV2ZXJ5dGhpbmcgSSBuZWVkIGl0IHRvLCBpdCdzIGdyZWF0bHkKaW1w
-cm92ZWQgb3ZlciBBdXRvZnM0IGZyb20gd2hhdCBJIGNhbiB0ZWxsLgoKVGhhbmtzIGFnYWluCkoK
-Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmF1dG9mcyBt
-YWlsaW5nIGxpc3QKYXV0b2ZzQGxpbnV4Lmtlcm5lbC5vcmcKaHR0cDovL2xpbnV4Lmtlcm5lbC5v
-cmcvbWFpbG1hbi9saXN0aW5mby9hdXRvZnMK
+On Thu, 2010-03-11 at 21:40 -0700, Techie wrote:
+> On Thu, Mar 11, 2010 at 7:48 PM, Ian Kent <raven@themaw.net> wrote:
+> > On Thu, 2010-03-11 at 18:32 -0700, Techie wrote:
+> >> On Wed, Mar 10, 2010 at 11:28 PM, Ian Kent <raven@themaw.net> wrote:
+> >> > On Wed, 2010-03-10 at 22:00 -0700, Techie wrote:
+> >> >> Hello,
+> >> >>
+> >> >> I have a simple question regarding LDAP direct map mounts.
+> >> >>
+> >> >> If I use a local direct map "/etc/direct_map"  with the below contents
+> >> >> to map NFS directories on two different file systems.
+> >> >>
+> >> >> /data                                    red:/usr/local/app   \
+> >> >>          /libs/apps                    red:/var/libs/apps
+> >> >>
+> >> >> Both mount points to map properly. The /data directory shows the
+> >> >> correct contents of red:/usr/local/app. And the /data/lib/apps
+> >> >> directory also shows the correct contents of  red:/var/libs/apps. This
+> >> >> is what I believe are nested mount points. However when I try the same
+> >> >> thing with an LDAP direct map it fails. he contents of the same map in
+> >> >> LDAP is below.
+> >> >>
+> >> >> dn: automountKey=/data,automountMapName=direct_map,ou=Autofs,dc=example,dc=com
+> >> >> automountInformation: -fstype=nfs,rw red:/usr/local/app
+> >> >> automountKey: /data
+> >> >> objectClass: automount
+> >> >> objectClass: top
+> >> >>
+> >> >> dn: automountKey=/data/libs/apps,automountMapName=direct_map,ou=Autofs,dc=example,dc=com
+> >> >> automountKey: /data/libs/apps
+> >> >> objectClass: automount
+> >> >> objectClass: top
+> >> >> automountInformation: -fstype=nfs,rw red://var/libs/apps
+> >> >>
+> >> >>
+> >> >> When I do this in my LDAP map as shown above, the mount points do not
+> >> >> show up correctly. The /data directory covers up one of the 2 mount
+> >> >> points. So it looks like nested mount points don't work in LDAP or I
+> >> >> am not using correct syntax. All my other LDAP mounts work but two
+> >> >> mount points in the same dir does not work like it does with local
+> >> >> direct maps.
+> >> >>
+> >> >> Can you please confirm or deny if I can achieve nested mount points
+> >> >> using LDAP direct maps like I can with local direct maps as shown
+> >> >> above?
+> >> >
+> >> > LDAP map isn't quite right.
+> >> >
+> >> > The LDAP map entry must be the same as your file map.
+> >> >
+> >> > In your file map the direct mount is
+> >> > key = "/data"
+> >> > location = "/ red:/usr/local/app /libs/apps red:/var/libs/apps"
+> >> >
+> >> > In your original file map the "/" offset has been implied because the
+> >> > syntax allows it to be optional.
+> >> >
+> >> > and in LDAP
+> >> > key = "/data"
+> >> > location = "red:/usr/local/app"
+> >> >
+> >> > key = "/data/libs/apps"
+> >> > Invalid, you can't nest distinct direct mounts.
+> >> >
+> >> > You need to use the same value for location as you did for the file map
+> >> > in LDAP.
+> >> >
+> >> >>
+> >> >>
+> >> >> Thank you
+> >> >>
+> >> >> _______________________________________________
+> >> Ian,
+> >> Thanks a bunch for pointing out that the "/" offset is syntactically
+> >> optional for file based maps but is necessary in LDAP. That really
+> >> helped my understanding of both formats..
+> >
+> > No, actually it's always optional but can cause confusion when omitted.
+> >
+> > The issue was that you can't break up the mount location into two
+> > separate entries (either in a file map or LDAP, LDAP convention just
+> > happens to make you want to do it that way). You just need to feed the
+> > same string to the daemon whether the map is in a file or stored in
+> > LDAP.
+> >
+> > Ian
+> >
+> 
+> I see that makes sense, thank you.
+> I was also trying to specify multiple direct maps in LDAP. I tried
+> creating another direct map with a "/-" key but ldap complained saying
+> that the "/-" key already exists. Which makes sense as the two DNs
+> would be the same.
+> 
+> In a /etc/auto.master local file I can have multiple direct map entries with ...
+> /-   /etc/map1
+> /-   /etc/map2
+> 
+> I was able to accomplish this in ldap by appending multiple map names
+> to the automountinformation attribute of the dn: automountKey=/-
+> entry. I am not sure if this is the proper way to do however it seems
+> to work well so I imagine it may be. I am able to use the different
+> maps by specifying them by name in the client auto.master files.
+> AutoFS5 seems to be able to do everything I need it to, it's greatly
+> improved over Autofs4 from what I can tell.
+
+Yes, that is a limitation of ldap, bummer.
+
+It is interesting to hear placing multiple map names in the
+automountinformation attribute works for you, I didn't expect that would
+work. I thought we would need to use a file or NIS based master map to
+specify multiple direct map entries or use a schema that doesn't enforce
+uniqueness and somehow name the dn a little differently.
+
+Ian
