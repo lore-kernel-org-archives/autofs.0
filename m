@@ -1,11 +1,13 @@
-From: Stef Bon <stef@bononline.nl>
-Subject: About listing to /dev/autofs
-Date: Tue, 23 Mar 2010 12:23:17 +0100
-Message-ID: <201003231223.17161.stef@bononline.nl>
+From: "Breitman, Jason" <Jason.Breitman@blackrock.com>
+Subject: RHEL5 automount against LDAP Maps using basic
+	authentication
+Date: Fri, 2 Apr 2010 22:21:58 -0400
+Message-ID: <4A961A51CBE84C429C56E5734477BD1F2B7D1AB63F@EXCHAMRS03.na.blkint.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+Content-Language: en-US
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,76 +18,15 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: "'autofs@linux.kernel.org'" <autofs@linux.kernel.org>
 
-Hello,
+Has anyone successfully configured automount to use maps in LDAP when the LDAP Server requires basic authentication?
 
-I've written a small app, which listens to the device /dev/autofs, to read 
-what kind of messages come from it.
+I am struggling and would appreciate some help. 
 
-Starting the automounter, with USE_MISC_DEVICE set to yes.
-
-A small app, (copied from the fuse source..):
-
-#include <sys/select.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
+Thanks. 
 
 
-int main(void)
-{
-        int fds;
-        int nfds;
-
-        fds = open("/dev/autofs", O_RDONLY);
-        nfds = 2;
-
-        while (1) {
-                static char buf[4096];
-                fd_set rfds;
-                int rc;
-
-                FD_ZERO(&rfds);
-
-                FD_SET(fds, &rfds);
-
-                rc = select(nfds, &rfds, NULL, NULL, NULL);
-
-                if (rc < 0) {
-                        perror("select");
-                        return 1;
-                }
-
-                if (!FD_ISSET(fds, &rfds)) {
-                                printf("_:   ");
-                } else {
-
-                    rc = read(fds, buf, sizeof(buf));
-
-                    if (rc < 0) {
-                        perror("read");
-                        return 1;
-                    }
-
-                    printf("%02d ", rc);
-                    
-                }
-                printf("\n");
-        }
-}
-
-
-After compiling and starting it as normal user (and setting the properties of 
-/dev/autofs to 666), I do not get any output. I expect some messages, like 
-mounted directory...
-
-Can somebody explain this??
-
-Stef Bon
+Jason Breitman jason.breitman@blackrock.com
+THIS MESSAGE AND ANY ATTACHMENTS ARE CONFIDENTIAL, PROPRIETARY, AND MAY BE PRIVILEGED.  If this message was misdirected, BlackRock, Inc. and its subsidiaries, ("BlackRock") does not waive any confidentiality or privilege.  If you are not the intended recipient, please notify us immediately and destroy the message without disclosing its contents to anyone.  Any distribution, use or copying of this e-mail or the information it contains by other than an intended recipient is unauthorized.  The views and opinions expressed in this e-mail message are the author's own and may not reflect the views and opinions of BlackRock, unless the author is authorized by BlackRock to express such views or opinions on its behalf.  All email sent to or from this address is subject to electronic storage and rev
+ iew by BlackRock.  Although BlackRock operates anti-virus programs, it does not accept responsibility for any damage whatsoever caused by viruses being passed.
