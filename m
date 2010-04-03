@@ -1,13 +1,18 @@
-From: "Breitman, Jason" <Jason.Breitman@blackrock.com>
-Subject: RHEL5 automount against LDAP Maps using basic
-	authentication
-Date: Fri, 2 Apr 2010 22:21:58 -0400
-Message-ID: <4A961A51CBE84C429C56E5734477BD1F2B7D1AB63F@EXCHAMRS03.na.blkint.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: RHEL5 automount against LDAP Maps using basic
+ authentication
+Date: Sat, 03 Apr 2010 15:16:18 +0800
+Message-ID: <1270278978.4021.14.camel@localhost>
+References: <4A961A51CBE84C429C56E5734477BD1F2B7D1AB63F@EXCHAMRS03.na.blkint.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Language: en-US
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com;
+	h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding;
+	s=smtpout; bh=gqdKx/XsLMTX7GA0/o/usiV50EI=;
+	b=fX0mwzJ63lOaYbZ2mA8PDxhTx2rAvky0KaR0CiCc6ONbCRwh3VJdy6K+r9IuW+I3Oi6hifkMRfG5KJVIB5g+kcA4wY2bo3Md7nGoj7ak7bgA2Ca8EX3bV3WsXrxMSunxoKODrqmnlllz0X757HLD+OPQutij1TPItEsJjHPsWIY=
+In-Reply-To: <4A961A51CBE84C429C56E5734477BD1F2B7D1AB63F@EXCHAMRS03.na.blkint.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,15 +23,23 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: "'autofs@linux.kernel.org'" <autofs@linux.kernel.org>
+To: "Breitman, Jason" <Jason.Breitman@blackrock.com>
+Cc: "'autofs@linux.kernel.org'" <autofs@linux.kernel.org>
 
-Has anyone successfully configured automount to use maps in LDAP when the LDAP Server requires basic authentication?
+On Fri, 2010-04-02 at 22:21 -0400, Breitman, Jason wrote:
+> Has anyone successfully configured automount to use maps in LDAP when
+> the LDAP Server requires basic authentication?
+> 
 
-I am struggling and would appreciate some help. 
+Do you mean simple authenticated bind?
 
-Thanks. 
+We have recently had a patch contributed for that but it is entirely
+untested and so stuck waiting in the queue.
 
+Why haven't you logged a bug with RedHat?
 
-Jason Breitman jason.breitman@blackrock.com
-THIS MESSAGE AND ANY ATTACHMENTS ARE CONFIDENTIAL, PROPRIETARY, AND MAY BE PRIVILEGED.  If this message was misdirected, BlackRock, Inc. and its subsidiaries, ("BlackRock") does not waive any confidentiality or privilege.  If you are not the intended recipient, please notify us immediately and destroy the message without disclosing its contents to anyone.  Any distribution, use or copying of this e-mail or the information it contains by other than an intended recipient is unauthorized.  The views and opinions expressed in this e-mail message are the author's own and may not reflect the views and opinions of BlackRock, unless the author is authorized by BlackRock to express such views or opinions on its behalf.  All email sent to or from this address is subject to electronic storage and rev
- iew by BlackRock.  Although BlackRock operates anti-virus programs, it does not accept responsibility for any damage whatsoever caused by viruses being passed.
+It won't get into RHEL if you don't and if you do you have every chance
+of getting a test package with this patch ported to the version of
+autofs you are using.
+
+Ian
