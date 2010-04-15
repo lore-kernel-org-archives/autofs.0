@@ -1,21 +1,30 @@
 From: Valerie Aurora <vaurora@redhat.com>
-Subject: [PATCH 03/35] autofs4: Save autofs trigger's vfsmount in super block info
-Date: Thu, 15 Apr 2010 16:45:33 -0700
-Message-ID: <1271375133-23641-1-git-send-email-vaurora@redhat.com>
-References: <1271372682-21225-3-git-send-email-vaurora@redhat.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1271372682-21225-3-git-send-email-vaurora@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
-MIME-Version: 1.0
+Subject: [PATCH 03/35] XXX autofs4: Save autofs trigger's vfsmount
+	in super block info
+Date: Thu, 15 Apr 2010 16:04:10 -0700
+Message-ID: <1271372682-21225-4-git-send-email-vaurora@redhat.com>
+References: <1271372682-21225-1-git-send-email-vaurora@redhat.com>
+	<1271372682-21225-2-git-send-email-vaurora@redhat.com>
+	<1271372682-21225-3-git-send-email-vaurora@redhat.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <1271372682-21225-3-git-send-email-vaurora@redhat.com>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs/>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
 To: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, Jan Blunck <jblunck@suse.de>, Valerie Aurora <vaurora@redhat.com>, autofs@linux.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: autofs@linux.kernel.org, linux-kernel@vger.kernel.org, Valerie Aurora <vaurora@redhat.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Blunck <jblunck@suse.de>
 
 From: Jan Blunck <jblunck@suse.de>
-
-(Resend due to kernel.org complaining about XXX in original subject)
 
 XXX - This is broken and included just to make union mounts work.  See
 discussion at:
