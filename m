@@ -1,85 +1,130 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Two different security flavours in nfs mount
- auto.master
-Date: Mon, 26 Apr 2010 18:30:16 +0800
-Message-ID: <1272277816.16431.64.camel@localhost>
-References: <4BD5475B.4040106@tudelft.nl>
-Mime-Version: 1.0
+From: Valerie Aurora <vaurora@redhat.com>
+Subject: [PATCH 04/39] autofs4: Save autofs trigger's vfsmount in super block info
+Date: Mon,  3 May 2010 16:12:03 -0700
+Message-ID: <1272928358-20854-5-git-send-email-vaurora@redhat.com>
+References: <1272928358-20854-1-git-send-email-vaurora@redhat.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1272928358-20854-1-git-send-email-vaurora@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com;
-	h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding;
-	s=smtpout; bh=o706+5tnDjcULs02EeYDF/e2pdM=;
-	b=XnuXGMb/WOULLTnILT13dZnmfzYQMQzN8LRYARo8bw/rGEhnkQdrmutcsvhL6TMNScsDF0xXjqH5p1jgJVbusB5cTIeyyGSE2JF0q2/6ZL8h9TxUBfHvICLL5kQgb7IvdgTZiIW8FQfL6HCqgKyepT3gcM/z70I1pQHjo0lqlJ4=
-In-Reply-To: <4BD5475B.4040106@tudelft.nl>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs/>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-To: Richard Smits <R.Smits@tudelft.nl>
+To: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Jan Blunck <jblunck@suse.de>, Valerie Aurora <vaurora@redhat.com>, autofs@linux.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>
+
+From: Jan Blunck <jblunck@suse.de>
+
+XXX - This is broken and included just to make union mounts work.  See
+discussion at:
+
+http://kerneltrap.org/mailarchive/linux-fsdevel/2010/1/15/6708053/thread
+
+Original commit message:
+
+This is a bugfix/replacement for commit
+051d381259eb57d6074d02a6ba6e90e744f1a29f:
+
+    During a path walk if an autofs trigger is mounted on a dentry,
+    when the follow_link method is called, the nameidata struct
+    contains the vfsmount and mountpoint dentry of the parent mount
+    while the dentry that is passed in is the root of the autofs
+    trigger mount.  I believe it is impossible to get the vfsmount of
+    the trigger mount, within the follow_link method, when only the
+    parent vfsmount and the root dentry of the trigger mount are
+    known.
+
+The solution in this commit was to replace the path embedded in the
+parent's nameidata with the path of the link itself in
+__do_follow_link().  This is a relatively harmless misuse of the
+field, but union mounts ran into a bug during follow_link() caused by
+the nameidata containing the wrong path (we count on it being what it
+is all other places - the path of the parent).
+
+A cleaner and easier to understand solution is to save the necessary
+vfsmount in the autofs superblock info when it is mounted.  Then we
+can easily update the vfsmount in autofs4_follow_link().
+
+Signed-off-by: Jan Blunck <jblunck@suse.de>
+Signed-off-by: Valerie Aurora <vaurora@redhat.com>
+Acked-by: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+---
+ fs/autofs4/autofs_i.h |    1 +
+ fs/autofs4/init.c     |   11 ++++++++++-
+ fs/autofs4/root.c     |    6 ++++++
+ fs/namei.c            |    7 ++-----
+ 4 files changed, 19 insertions(+), 6 deletions(-)
 
-On Mon, 2010-04-26 at 09:57 +0200, Richard Smits wrote:
-> Hello,
-> 
-> I was wondering if the next example would be possible with the 
-> automounter. I have a feeling this is not possible, but maybe there are 
-> some options I do not know about.
-> 
-> I have two nfs servers.
-> 
-> One with /export with standard nfs export.
-> 
-> One with /export with krb5 security.
-> 
-> Now I want to moutn one of the two if a condition is met. The condition 
-> I check with the excecutable automounter script.
-> 
-> That is not my problem.
-> 
-> The problem is the auto.master file. For a directory, I can have one 
-> security flavour. This is my problem. I need two. See below :
-> 
-> # NFS homedirs
-> /home/nfs	/etc/auto.nfs -rw,-fstype=nfs --timeout 60
-> 
-> /home/nfs is the homedir for the user, I cannot change this because this 
-> is in the configuration os samba. (We use winbind for authentication).
-> 
-> But my auto.nfs script checks if the user has a homedir on the sandard 
-> nfs3 server, or has a home on our nfs4/krb5 server.
-> 
-> But my auto.master isn't ready for this if you know what I mean.
-> 
-> I need :
-> 
-> # NFS homedirs
-> /home/nfs	/etc/auto.nfs -rw,-fstype=nfs --timeout 60
-> /home/nfs	/etc/auto.nfs -rw,-fstype=nfs4,sec=krb5 --timeout 60
-
-Why don't you just return the required options from the program mount
-script along with the mount location?
-
-You can see an example of this in /etc/auto.net and in /etc/auto.smb. In
-its simplest form it's just "-<comma separated opts> <mount location>"
-and get rid of the -fstype option from the master map.
-
-> 
-> This does not work :-( I have tried this.
-> 
-> Any idea if this is possible with the automounter. I am currently 
-> looking at pam_mount, but the automounter has my preference.
-> 
-> Greetings .. Richard
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
+diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
+index 3d283ab..de3af64 100644
+--- a/fs/autofs4/autofs_i.h
++++ b/fs/autofs4/autofs_i.h
+@@ -133,6 +133,7 @@ struct autofs_sb_info {
+ 	int reghost_enabled;
+ 	int needs_reghost;
+ 	struct super_block *sb;
++	struct vfsmount *mnt;
+ 	struct mutex wq_mutex;
+ 	spinlock_t fs_lock;
+ 	struct autofs_wait_queue *queues; /* Wait queue pointer */
+diff --git a/fs/autofs4/init.c b/fs/autofs4/init.c
+index 9722e4b..5e0dcd7 100644
+--- a/fs/autofs4/init.c
++++ b/fs/autofs4/init.c
+@@ -17,7 +17,16 @@
+ static int autofs_get_sb(struct file_system_type *fs_type,
+ 	int flags, const char *dev_name, void *data, struct vfsmount *mnt)
+ {
+-	return get_sb_nodev(fs_type, flags, data, autofs4_fill_super, mnt);
++	struct autofs_sb_info *sbi;
++	int ret;
++
++	ret = get_sb_nodev(fs_type, flags, data, autofs4_fill_super, mnt);
++	if (ret)
++		return ret;
++
++	sbi = autofs4_sbi(mnt->mnt_sb);
++	sbi->mnt = mnt;
++	return 0;
+ }
+ 
+ static struct file_system_type autofs_fs_type = {
+diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
+index 109a6c6..54d2857 100644
+--- a/fs/autofs4/root.c
++++ b/fs/autofs4/root.c
+@@ -220,6 +220,12 @@ static void *autofs4_follow_link(struct dentry *dentry, struct nameidata *nd)
+ 	DPRINTK("dentry=%p %.*s oz_mode=%d nd->flags=%d",
+ 		dentry, dentry->d_name.len, dentry->d_name.name, oz_mode,
+ 		nd->flags);
++
++	dput(nd->path.dentry);
++	mntput(nd->path.mnt);
++	nd->path.mnt = mntget(sbi->mnt);
++	nd->path.dentry = dget(dentry);
++
+ 	/*
+ 	 * For an expire of a covered direct or offset mount we need
+ 	 * to break out of follow_down() at the autofs mount trigger
+diff --git a/fs/namei.c b/fs/namei.c
+index 219da2b..304aa05 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -538,11 +538,8 @@ __do_follow_link(struct path *path, struct nameidata *nd, void **p)
+ 	touch_atime(path->mnt, dentry);
+ 	nd_set_link(nd, NULL);
+ 
+-	if (path->mnt != nd->path.mnt) {
+-		path_to_nameidata(path, nd);
+-		dget(dentry);
+-	}
+-	mntget(path->mnt);
++	if (path->mnt == nd->path.mnt)
++		mntget(nd->path.mnt);
+ 	nd->last_type = LAST_BIND;
+ 	*p = dentry->d_inode->i_op->follow_link(dentry, nd);
+ 	error = PTR_ERR(*p);
+-- 
+1.6.3.3
