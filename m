@@ -1,53 +1,63 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs5 variable substitution
-Date: Sun, 09 May 2010 11:56:32 +0800
-Message-ID: <1273377392.3851.70.camel@localhost>
-References: <4BE4E1C3.8050708@cs.umn.edu>
+Subject: [PATCH] autofs4-2.6.34-rc1 - fix link_count usage
+Date: Mon, 10 May 2010 16:46:08 +0800
+Message-ID: <20100510084603.26099.56481.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com;
-	h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding;
-	s=smtpout; bh=Ck4dfS1Gj9VGEmvQo/y20KWdHTY=;
-	b=VBjvRavZIStGHy8WFA82XWKbQbqrfLhFYm8EHv2N75zY9fKmOKaO3gomppi2ELmOxdKdAsYHuhhFu4Ib/CRFUN1pWaiHkx0iAnAZkjB4RODkbSKN6r1YCjMDdmDb7E6lQ1oocp6bZk55phf7hl0i5Jy+ke70Rf+TvtwtC3nbQ+o=
-In-Reply-To: <4BE4E1C3.8050708@cs.umn.edu>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs/>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-To: Peter Bajurny <bajurny@cs.umn.edu>
-Cc: autofs@linux.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Al Viro <viro@ZenIV.linux.org.uk>, autofs mailing list <autofs@linux.kernel.org>
 
-On Fri, 2010-05-07 at 23:00 -0500, Peter Bajurny wrote:
-> I apologize if this is the wrong place for this, but my Googling has 
-> come up empty and I find myself at a loss.
-> 
-> In our enviroment we do automounts based on the OSNAME and OSREL 
-> variables.  With autofs4 and the sun automounter we manually specify the 
-> values of OSNAME and OSREL in the init scripts.  In the autofs4 init.d 
-> script there is a line for 'localoptions' where I can set '-DOSNAME=name 
-> -DOSREL=rel'.  But I can't for the life of me figure out how to set this 
-> with an autofs5 init script.  The init script specifies a confdir and 
-> the autofs file there.  I tried adding 'OPTIONS="-DOSNAME=name 
-> -DOSREL=rel"' to that line, and the automountd process started with 
-> those correct flags, but then it wasn't able to mount anything from my 
-> automount maps.  I also tried using LOCALOPTIONS instead of OPTIONS and 
-> that didn't do anything.
+Following the commit below in 2.6.34-rc1 autofs direct mounts stop
+working. This is caused by current->link_count being 0 when
+->follow_link() is called from do_filp_open().
 
-Yes, the OPTIONS configuration entry probably needs a bit of explanation
-in the comments.
+I can't work out why this hasn't been seen before Als patch series.
 
-See automount(8) or automount5(8), as the case may be, for the -O
-option.
+This patch removes the autofs dependence on current->link_count.
 
-Use OPTIONS="-O -DOSNAME=name -DOSREL=rel".
+1f36f774b22a0ceb7dd33eca626746c81a97b6a5 is the first bad commit
+commit 1f36f774b22a0ceb7dd33eca626746c81a97b6a5
+Author: Al Viro <viro@zeniv.linux.org.uk>
+Date:   Sat Dec 26 10:56:19 2009 -0500
 
-Not sure about if you will need separate quotes around the options
-themselves but give it a try.
+    Switch !O_CREAT case to use of do_last()
+
+    ... and now we have all intents crap well localized
+
+    Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+
+:040000 040000 53c1effc5b22746bb83cdbc6a419bf898067882d 9606f7275fde188a056fd174aa1d622ac0630893 M	fs
+
+Signed-off-by: Ian Kent <raven@themaw.net>
+---
+
+ fs/autofs4/root.c |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
+index 109a6c6..e8e5e63 100644
+--- a/fs/autofs4/root.c
++++ b/fs/autofs4/root.c
+@@ -177,8 +177,7 @@ static int try_to_fill_dentry(struct dentry *dentry, int flags)
+ 		}
+ 	/* Trigger mount for path component or follow link */
+ 	} else if (ino->flags & AUTOFS_INF_PENDING ||
+-			autofs4_need_mount(flags) ||
+-			current->link_count) {
++			autofs4_need_mount(flags)) {
+ 		DPRINTK("waiting for mount name=%.*s",
+ 			dentry->d_name.len, dentry->d_name.name);
+ 
+@@ -262,7 +261,7 @@ static void *autofs4_follow_link(struct dentry *dentry, struct nameidata *nd)
+ 		spin_unlock(&dcache_lock);
+ 		spin_unlock(&sbi->fs_lock);
+ 
+-		status = try_to_fill_dentry(dentry, 0);
++		status = try_to_fill_dentry(dentry, nd->flags);
+ 		if (status)
+ 			goto out_error;
+ 
