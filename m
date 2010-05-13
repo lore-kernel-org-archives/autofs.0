@@ -1,16 +1,11 @@
-From: Ian Kent <raven@themaw.net>
+From: Stef Bon <stef@bononline.nl>
 Subject: Re: Browse mode in autofs 5
-Date: Thu, 13 May 2010 17:29:29 +0800
-Message-ID: <1273742969.2305.11.camel@localhost>
+Date: Thu, 13 May 2010 07:11:28 +0200
+Message-ID: <4BEB8A00.6010406@bononline.nl>
 References: <620E93B2E5CC3B46BD811165E3335B87088195CC@0461-its-exmb02.us.saic.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com;
-	h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding;
-	s=smtpout; bh=aix7NDXoUdiosXca3iMapoNJnTY=;
-	b=PFWKl35GRWvkXQZAFO9YPDwLrOERPetwoX5hZjgDehtPH4PWtRyT0Ox1/RWK0i1pF61gPSoJb0EPvQQbLdq6+iWuX/lJGVMp8ZDJRz/alQZ8twkD+0iJp4ojwLmrPMm2tS14nNO9O/xdg4moZMxTrPiODGIR9Gko9khrBvgP5ao=
 In-Reply-To: <620E93B2E5CC3B46BD811165E3335B87088195CC@0461-its-exmb02.us.saic.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
@@ -22,10 +17,10 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: "Murata, Dennis" <DENNIS.MURATA@saic.com>
-Cc: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: autofs@linux.kernel.org
 
-On Wed, 2010-05-12 at 17:15 -0700, Murata, Dennis wrote:
+  On 05/13/2010 02:15 AM, Murata, Dennis wrote:
 > Is there any way to turn off browse mode on specific nfs mounts using
 > autofs 5?  We are running a modified RHEL5U5, autofs-5.0.1-rc2.143.el5,
 > kernel-2.6.18-194.el5.  The users want the data mounts to be browseable
@@ -34,15 +29,21 @@ On Wed, 2010-05-12 at 17:15 -0700, Murata, Dennis wrote:
 > directories to mount if the user looks at /home.  That would cause over
 > 2000 mount requests.  In RHEL4 autofs4, we could specify which
 > directories to browse, I don't see this option in autofs5.
+>
+> Thanks
+> Wayne
+>
+> _______________________________________________
+> autofs mailing list
+> autofs@linux.kernel.org
+> http://linux.kernel.org/mailman/listinfo/autofs
+>
+No, I only know a generic method (setting BROWSE_MODE="no" in the 
+conffile, or exporting it before automount starts), but that's not what 
+you're looking for?
 
-You can specify the option in the master map entry.
-I seem to remember that was also the case with v4 if you wanted
-selective browseable maps.
+Stef Bon
 
-The default installed configuration makes autofs managed mounts not
-browsable when no option is given in the master map, as it is the case
-in v4. The options browse and nobrowse are used in other industry autofs
-products and they are the recommended options to use, although the
---ghost option can be used in instead of the browse option.
+the Netherlands.
 
-Ian
+Sent from my LinuxFromScratch machine, Thunderbird 3.1beta1
