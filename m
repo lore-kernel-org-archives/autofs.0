@@ -1,40 +1,52 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 2/8] autofs: Pushdown the bkl from ioctl
-Date: Thu, 20 May 2010 19:35:45 +0800
-Message-ID: <1274355346.2264.17.camel@localhost>
-References: <1274289855-10001-1-git-send-regression-fweisbec@gmail.com>
-	 <1274289855-10001-3-git-send-regression-fweisbec@gmail.com>
-	 <4BF4279C.2000805@zytor.com> <20100519180832.GA9752@nowhere>
-	 <4BF42A5E.6060503@zytor.com> <20100519190307.GC9752@nowhere>
-	 <4BF4445F.9040104@zytor.com>
+From: Andrew Klaassen <clawsoon@yahoo.com>
+Subject: Indirect multi-mount map sometimes needs client reboot
+	after update
+Date: Fri, 21 May 2010 13:12:34 -0700 (PDT)
+Message-ID: <510030.76217.qm@web65411.mail.ac4.yahoo.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com; h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding; s=smtpout; bh=l+V3LDf68FtSSWfKNEcZV099rjE=; b=hsP5BN7XH9NWJkTkUiXUzTl+otDRDqG9I7sgPLmewgxlMAcxuANaIGdHB54cIcSxd1qVNLadF1Aoz5s2EsZYu72qg5g9+0qlYUE7XwXm+Nec3AXUp83nv1TTsOIB0AtIUCLr+7vAmMg1x3cE2aGO2Zvc44YO0lz1pM0R2mZImxA=
-In-Reply-To: <4BF4445F.9040104@zytor.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, Autofs <autofs@linux.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, John Kacur <jkacur@redhat.com>, Arnd Bergmann <arnd@arndb.de>
+Content-Transfer-Encoding: 7bit
+Return-path: <autofs-bounces@linux.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s1024;
+	t=1274472754; bh=p31Liv9vHVK+oqhs78sJcpLxnznBJ5FkDWteEXRa+oU=;
+	h=Message-ID:X-YMail-OSG:Received:X-Mailer:Date:From:Subject:To:MIME-Version:Content-Type;
+	b=HlkWvQV1wejkMpDCk+gSSmOFeSs1WBLkjiqk6admZMXHJl8SoxgT9ULuWj7NQtpFyiq4pADI5dE1X7OW9pR2Y9sGQNBAau4vypS2yZCtxOspxk+aQH+te9sAnfNOjCDe4nP+YXDGlXMdHbCO4V2DWJvA/cRx2y72DlguCtk43eE=
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs/>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Wed, 2010-05-19 at 13:04 -0700, H. Peter Anvin wrote:
-> On 05/19/2010 12:03 PM, Frederic Weisbecker wrote:
-> >>
-> >> But it's not ... it is locked at that point.  It's not lock*ing*, but it
-> >> is not *unlocked*, either.  Furthermore, it is directly contradicting
-> >> the naming scheme of the ops structure.
-> >>
-> > 
-> > Would you prefer me to resend a patch?
-> > 
-> 
-> Yes, that would be my preference.
-> 
-> We really need to set a date to kill off autofs3 completely -- I don't
-> care if we rename anything or not -- and add it to feature-removal.txt.
+I've got indirect multi-mount and single-mount maps set up in NIS like so:
 
-Yes, my bad.
-I have to get onto that, sorry.
+auto.master:
 
-Ian
+/test auto.test --ghost
+
+auto.test:
+
+foo /    -tcp,intr server1:/foo \
+    /bar -tcp,intr server2:/bar
+abc      -tcp,intr server1:/abc
+
+Changes to single-mount maps are picked up immediately by clients.
+
+Changes to multi-mount maps are picked up:
+
+1. Immediately if nothing under the key is currently mounted.
+
+2. Only after an autofs restart - or sometimes even a reboot - after anything has been mounted under the key.
+
+Is it possible to make #2 go away?  Having to reboot every single one of hundreds of client machines after a single change is a downer.
+
+I'm running Centos 5.2 to 5.4 with autofs-5.0.1-0.rc2.88 to autofs-5.0.1-0.rc2.143.
+
+Thanks.
+
+Andrew
