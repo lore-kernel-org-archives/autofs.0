@@ -1,52 +1,82 @@
-From: Andrew Klaassen <clawsoon@yahoo.com>
-Subject: Indirect multi-mount map sometimes needs client reboot
-	after update
-Date: Fri, 21 May 2010 13:12:34 -0700 (PDT)
-Message-ID: <510030.76217.qm@web65411.mail.ac4.yahoo.com>
+From: Julia Lawall <julia@diku.dk>
+Subject: [PATCH 13/27] fs/autofs4: Use memdup_user
+Date: Sat, 22 May 2010 10:22:17 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.1005221022010.13021@ask.diku.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s1024;
-	t=1274472754; bh=p31Liv9vHVK+oqhs78sJcpLxnznBJ5FkDWteEXRa+oU=;
-	h=Message-ID:X-YMail-OSG:Received:X-Mailer:Date:From:Subject:To:MIME-Version:Content-Type;
-	b=HlkWvQV1wejkMpDCk+gSSmOFeSs1WBLkjiqk6admZMXHJl8SoxgT9ULuWj7NQtpFyiq4pADI5dE1X7OW9pR2Y9sGQNBAau4vypS2yZCtxOspxk+aQH+te9sAnfNOjCDe4nP+YXDGlXMdHbCO4V2DWJvA/cRx2y72DlguCtk43eE=
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs/>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Ian Kent <raven@themaw.net>, autofs@linux.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 
-I've got indirect multi-mount and single-mount maps set up in NIS like so:
+From: Julia Lawall <julia@diku.dk>
 
-auto.master:
+Use memdup_user when user data is immediately copied into the allocated
+region.  Elimination of the variable ads, which is no longer useful.
 
-/test auto.test --ghost
+The semantic patch that makes this change is as follows:
+(http://coccinelle.lip6.fr/)
 
-auto.test:
+// <smpl>
+@@
+expression from,to,size,flag;
+position p;
+identifier l1,l2;
+@@
 
-foo /    -tcp,intr server1:/foo \
-    /bar -tcp,intr server2:/bar
-abc      -tcp,intr server1:/abc
+-  to = \(kmalloc@p\|kzalloc@p\)(size,flag);
++  to = memdup_user(from,size);
+   if (
+-      to==NULL
++      IS_ERR(to)
+                 || ...) {
+   <+... when != goto l1;
+-  -ENOMEM
++  PTR_ERR(to)
+   ...+>
+   }
+-  if (copy_from_user(to, from, size) != 0) {
+-    <+... when != goto l2;
+-    -EFAULT
+-    ...+>
+-  }
+// </smpl>
 
-Changes to single-mount maps are picked up immediately by clients.
+Signed-off-by: Julia Lawall <julia@diku.dk>
 
-Changes to multi-mount maps are picked up:
+---
+ fs/autofs4/dev-ioctl.c |   13 ++-----------
+ 1 file changed, 2 insertions(+), 11 deletions(-)
 
-1. Immediately if nothing under the key is currently mounted.
-
-2. Only after an autofs restart - or sometimes even a reboot - after anything has been mounted under the key.
-
-Is it possible to make #2 go away?  Having to reboot every single one of hundreds of client machines after a single change is a downer.
-
-I'm running Centos 5.2 to 5.4 with autofs-5.0.1-0.rc2.88 to autofs-5.0.1-0.rc2.143.
-
-Thanks.
-
-Andrew
+diff --git a/fs/autofs4/dev-ioctl.c b/fs/autofs4/dev-ioctl.c
+index d29b7f6..33d8fc6 100644
+--- a/fs/autofs4/dev-ioctl.c
++++ b/fs/autofs4/dev-ioctl.c
+@@ -95,7 +95,7 @@ static int check_dev_ioctl_version(int cmd, struct autofs_dev_ioctl *param)
+  */
+ static struct autofs_dev_ioctl *copy_dev_ioctl(struct autofs_dev_ioctl __user *in)
+ {
+-	struct autofs_dev_ioctl tmp, *ads;
++	struct autofs_dev_ioctl tmp;
+ 
+ 	if (copy_from_user(&tmp, in, sizeof(tmp)))
+ 		return ERR_PTR(-EFAULT);
+@@ -103,16 +103,7 @@ static struct autofs_dev_ioctl *copy_dev_ioctl(struct autofs_dev_ioctl __user *i
+ 	if (tmp.size < sizeof(tmp))
+ 		return ERR_PTR(-EINVAL);
+ 
+-	ads = kmalloc(tmp.size, GFP_KERNEL);
+-	if (!ads)
+-		return ERR_PTR(-ENOMEM);
+-
+-	if (copy_from_user(ads, in, tmp.size)) {
+-		kfree(ads);
+-		return ERR_PTR(-EFAULT);
+-	}
+-
+-	return ads;
++	return memdup_user(in, tmp.size);
+ }
+ 
+ static inline void free_dev_ioctl(struct autofs_dev_ioctl *param)
