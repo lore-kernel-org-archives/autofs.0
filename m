@@ -1,82 +1,64 @@
-From: Julia Lawall <julia@diku.dk>
-Subject: [PATCH 13/27] fs/autofs4: Use memdup_user
-Date: Sat, 22 May 2010 10:22:17 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.1005221022010.13021@ask.diku.dk>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: Indirect multi-mount map sometimes needs client reboot
+ after update
+Date: Mon, 24 May 2010 09:36:58 +0800
+Message-ID: <1274665018.2410.6.camel@localhost>
+References: <510030.76217.qm@web65411.mail.ac4.yahoo.com>
 Mime-Version: 1.0
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ian Kent <raven@themaw.net>, autofs@linux.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Return-path: <autofs-bounces@linux.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com;
+	h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding;
+	s=smtpout; bh=y75eXTFVaJrfSwHx3VFBmD1p26c=;
+	b=EOAMAVBA+cJS7Za5/JnWRRhzuNAvrIP7zHm4lVaJdtHjN0FyrcxaSW86ZFHmlsYIOiHIwv/tnPInAXFvBmiuE5mmq5QCOMpADBGi5IzT7BPwbkzO7Fk2rMmXzMJ/i6GfEAuzVSUv21Xjbq9m7+5ftpE/w38Y2n7Qk5vN9tDKNrE=
+In-Reply-To: <510030.76217.qm@web65411.mail.ac4.yahoo.com>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs/>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: Andrew Klaassen <clawsoon@yahoo.com>
+Cc: autofs@linux.kernel.org
 
-From: Julia Lawall <julia@diku.dk>
+On Fri, 2010-05-21 at 13:12 -0700, Andrew Klaassen wrote:
+> I've got indirect multi-mount and single-mount maps set up in NIS like
+> so:
+> 
+> auto.master:
+> 
+> /test auto.test --ghost
+> 
+> auto.test:
+> 
+> foo /    -tcp,intr server1:/foo \
+>     /bar -tcp,intr server2:/bar
+> abc      -tcp,intr server1:/abc
+> 
+> Changes to single-mount maps are picked up immediately by clients.
+> 
+> Changes to multi-mount maps are picked up:
+> 
+> 1. Immediately if nothing under the key is currently mounted.
+> 
+> 2. Only after an autofs restart - or sometimes even a reboot - after
+> anything has been mounted under the key.
+> 
+> Is it possible to make #2 go away?  Having to reboot every single one
+> of hundreds of client machines after a single change is a downer.
 
-Use memdup_user when user data is immediately copied into the allocated
-region.  Elimination of the variable ads, which is no longer useful.
+These multi-mount map entry keys should be updated, if they have
+changed, after all the dependent mounts in the tree have been umounted.
+They can't be updated while subordinate mounts are active because the
+information about the mount tree (and dependencies within the tree) is
+used during operation.
 
-The semantic patch that makes this change is as follows:
-(http://coccinelle.lip6.fr/)
+Are you sure the mount tree goes away and isn't updated at the next
+mount?
 
-// <smpl>
-@@
-expression from,to,size,flag;
-position p;
-identifier l1,l2;
-@@
-
--  to = \(kmalloc@p\|kzalloc@p\)(size,flag);
-+  to = memdup_user(from,size);
-   if (
--      to==NULL
-+      IS_ERR(to)
-                 || ...) {
-   <+... when != goto l1;
--  -ENOMEM
-+  PTR_ERR(to)
-   ...+>
-   }
--  if (copy_from_user(to, from, size) != 0) {
--    <+... when != goto l2;
--    -EFAULT
--    ...+>
--  }
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-
----
- fs/autofs4/dev-ioctl.c |   13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
-
-diff --git a/fs/autofs4/dev-ioctl.c b/fs/autofs4/dev-ioctl.c
-index d29b7f6..33d8fc6 100644
---- a/fs/autofs4/dev-ioctl.c
-+++ b/fs/autofs4/dev-ioctl.c
-@@ -95,7 +95,7 @@ static int check_dev_ioctl_version(int cmd, struct autofs_dev_ioctl *param)
-  */
- static struct autofs_dev_ioctl *copy_dev_ioctl(struct autofs_dev_ioctl __user *in)
- {
--	struct autofs_dev_ioctl tmp, *ads;
-+	struct autofs_dev_ioctl tmp;
- 
- 	if (copy_from_user(&tmp, in, sizeof(tmp)))
- 		return ERR_PTR(-EFAULT);
-@@ -103,16 +103,7 @@ static struct autofs_dev_ioctl *copy_dev_ioctl(struct autofs_dev_ioctl __user *i
- 	if (tmp.size < sizeof(tmp))
- 		return ERR_PTR(-EINVAL);
- 
--	ads = kmalloc(tmp.size, GFP_KERNEL);
--	if (!ads)
--		return ERR_PTR(-ENOMEM);
--
--	if (copy_from_user(ads, in, tmp.size)) {
--		kfree(ads);
--		return ERR_PTR(-EFAULT);
--	}
--
--	return ads;
-+	return memdup_user(in, tmp.size);
- }
- 
- static inline void free_dev_ioctl(struct autofs_dev_ioctl *param)
+Ian
