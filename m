@@ -1,142 +1,50 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [autofs] [PATCH 04/38] autofs4: Save autofs trigger's vfsmount
- in super block info
-Date: Wed, 16 Jun 2010 12:04:03 +0800
-Message-ID: <1276661043.2339.35.camel@localhost>
-References: <1276627208-17242-1-git-send-email-vaurora@redhat.com>
-	 <1276627208-17242-5-git-send-email-vaurora@redhat.com>
+From: Dan Carpenter <error27@gmail.com>
+Subject: [patch] autofs4: remove unneeded null check in
+	try_to_fill_dentry()
+Date: Tue, 1 Jun 2010 09:15:50 +0200
+Message-ID: <20100601071550.GI5483@bicker>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com; h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding; s=smtpout; bh=RRY/zAqfuJ0eMN4fLKWm2WjZ7sU=; b=RaEeYicBySIJXdfwj21x9YDRRVO7Zlb3S4Tcjh1jkwbYckfsX8j3thC0Ug8qI8O2Qpswsw0t3Wdmk+uipLXO/26uX40eId7PM7WalCJli0Drjs457iWjV3ljwOTi6Ewgv/FPfkH0YvVkC1t6lracBTSvP2i+mIjhV0+K2elDvu0=
-In-Reply-To: <1276627208-17242-5-git-send-email-vaurora@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Valerie Aurora <vaurora@redhat.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>, autofs@linux.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, linux-fsdevel@vger.kernel.org, Jan Blunck <jblunck@suse.de>
+Content-Transfer-Encoding: 7bit
+Return-path: <autofs-bounces@linux.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
+	h=domainkey-signature:received:received:date:from:to:cc:subject
+	:message-id:mime-version:content-type:content-disposition:user-agent;
+	bh=kaUVsUOAGKZ74MEHTFdeZyKx6SYYqWN4eRtvjUxDrJM=;
+	b=qPc+ARZuV3rPITiI2ully22+Uggg8ix9wfO5uHNqDC+0/86JM/lwJ50t0gUZ1g4iPR
+	F/7WISXJWZMPYEf3dm3Pro/HS5Yq5/zyd4X48sQ9BI4Be8KK+eKhUfZvqmvA4aF2y5I+
+	OM8pt1SLLWR9bFkKYA8hPiFmIPGCaKmo7f/HQ=
+Content-Disposition: inline
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs/>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org, Frederic Weisbecker <fweisbec@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, kernel-janitors@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>
 
-On Tue, 2010-06-15 at 11:39 -0700, Valerie Aurora wrote:
-> From: Jan Blunck <jblunck@suse.de>
-> 
-> XXX - This is broken and included just to make union mounts work.  See
-> discussion at:
-> 
-> http://kerneltrap.org/mailarchive/linux-fsdevel/2010/1/15/6708053/thread
+After 97e7449a7ad: "autofs4: fix indirect mount pending expire race" we
+know longer assumed that "ino" can be null.  The other null checks got
+removed but this was one as missed.
 
-Instead of saving the vfsmount we could save a pointer to the dentry of
-the mount point in the autofs super block info struct. I think that's
-the bit I don't have so it would be sufficient for a lookup_mnt() for
-the needed vfsmount in ->follow_mount().
+Signed-off-by: Dan Carpenter <error27@gmail.com>
 
-Objections?
-Suggestions?
-
-> 
-> Original commit message:
-> 
-> This is a bugfix/replacement for commit
-> 051d381259eb57d6074d02a6ba6e90e744f1a29f:
-> 
->     During a path walk if an autofs trigger is mounted on a dentry,
->     when the follow_link method is called, the nameidata struct
->     contains the vfsmount and mountpoint dentry of the parent mount
->     while the dentry that is passed in is the root of the autofs
->     trigger mount.  I believe it is impossible to get the vfsmount of
->     the trigger mount, within the follow_link method, when only the
->     parent vfsmount and the root dentry of the trigger mount are
->     known.
-> 
-> The solution in this commit was to replace the path embedded in the
-> parent's nameidata with the path of the link itself in
-> __do_follow_link().  This is a relatively harmless misuse of the
-> field, but union mounts ran into a bug during follow_link() caused by
-> the nameidata containing the wrong path (we count on it being what it
-> is all other places - the path of the parent).
-> 
-> A cleaner and easier to understand solution is to save the necessary
-> vfsmount in the autofs superblock info when it is mounted.  Then we
-> can easily update the vfsmount in autofs4_follow_link().
-> 
-> Signed-off-by: Jan Blunck <jblunck@suse.de>
-> Signed-off-by: Valerie Aurora <vaurora@redhat.com>
-> Acked-by: Ian Kent <raven@themaw.net>
-> Cc: autofs@linux.kernel.org
-> Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-> ---
->  fs/autofs4/autofs_i.h |    1 +
->  fs/autofs4/init.c     |   11 ++++++++++-
->  fs/autofs4/root.c     |    6 ++++++
->  fs/namei.c            |    7 ++-----
->  4 files changed, 19 insertions(+), 6 deletions(-)
-> 
-> diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
-> index 3d283ab..de3af64 100644
-> --- a/fs/autofs4/autofs_i.h
-> +++ b/fs/autofs4/autofs_i.h
-> @@ -133,6 +133,7 @@ struct autofs_sb_info {
->  	int reghost_enabled;
->  	int needs_reghost;
->  	struct super_block *sb;
-> +	struct vfsmount *mnt;
->  	struct mutex wq_mutex;
->  	spinlock_t fs_lock;
->  	struct autofs_wait_queue *queues; /* Wait queue pointer */
-> diff --git a/fs/autofs4/init.c b/fs/autofs4/init.c
-> index 9722e4b..5e0dcd7 100644
-> --- a/fs/autofs4/init.c
-> +++ b/fs/autofs4/init.c
-> @@ -17,7 +17,16 @@
->  static int autofs_get_sb(struct file_system_type *fs_type,
->  	int flags, const char *dev_name, void *data, struct vfsmount *mnt)
->  {
-> -	return get_sb_nodev(fs_type, flags, data, autofs4_fill_super, mnt);
-> +	struct autofs_sb_info *sbi;
-> +	int ret;
-> +
-> +	ret = get_sb_nodev(fs_type, flags, data, autofs4_fill_super, mnt);
-> +	if (ret)
-> +		return ret;
-> +
-> +	sbi = autofs4_sbi(mnt->mnt_sb);
-> +	sbi->mnt = mnt;
-> +	return 0;
->  }
->  
->  static struct file_system_type autofs_fs_type = {
-> diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
-> index e8e5e63..c41e01d 100644
-> --- a/fs/autofs4/root.c
-> +++ b/fs/autofs4/root.c
-> @@ -219,6 +219,12 @@ static void *autofs4_follow_link(struct dentry *dentry, struct nameidata *nd)
->  	DPRINTK("dentry=%p %.*s oz_mode=%d nd->flags=%d",
->  		dentry, dentry->d_name.len, dentry->d_name.name, oz_mode,
->  		nd->flags);
-> +
-> +	dput(nd->path.dentry);
-> +	mntput(nd->path.mnt);
-> +	nd->path.mnt = mntget(sbi->mnt);
-> +	nd->path.dentry = dget(dentry);
-> +
->  	/*
->  	 * For an expire of a covered direct or offset mount we need
->  	 * to break out of follow_down() at the autofs mount trigger
-> diff --git a/fs/namei.c b/fs/namei.c
-> index 3b43c48..f731108 100644
-> --- a/fs/namei.c
-> +++ b/fs/namei.c
-> @@ -538,11 +538,8 @@ __do_follow_link(struct path *path, struct nameidata *nd, void **p)
->  	touch_atime(path->mnt, dentry);
->  	nd_set_link(nd, NULL);
->  
-> -	if (path->mnt != nd->path.mnt) {
-> -		path_to_nameidata(path, nd);
-> -		dget(dentry);
-> -	}
-> -	mntget(path->mnt);
-> +	if (path->mnt == nd->path.mnt)
-> +		mntget(nd->path.mnt);
->  	nd->last_type = LAST_BIND;
->  	*p = dentry->d_inode->i_op->follow_link(dentry, nd);
->  	error = PTR_ERR(*p);
-
+diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
+index db4117e..5c0b93f 100644
+--- a/fs/autofs4/root.c
++++ b/fs/autofs4/root.c
+@@ -198,8 +198,7 @@ static int try_to_fill_dentry(struct dentry *dentry, int flags)
+ 	}
+ 
+ 	/* Initialize expiry counter after successful mount */
+-	if (ino)
+-		ino->last_used = jiffies;
++	ino->last_used = jiffies;
+ 
+ 	spin_lock(&sbi->fs_lock);
+ 	ino->flags &= ~AUTOFS_INF_PENDING;
