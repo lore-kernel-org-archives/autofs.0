@@ -1,12 +1,18 @@
-From: Dustin Polke <gentoobugsie.20.dsurawicz@spamgourmet.com>
-Subject: autofs-5.0.5 fails to compile with '--with-openldap
-	--without-sasl'
-Date: Sun, 30 May 2010 13:17:04 +0000 (UTC)
-Message-ID: <loom.20100530T150912-799@post.gmane.org>
+From: Techie <techchavez@gmail.com>
+Subject: Executable maps
+Date: Mon, 7 Jun 2010 16:33:39 -0700
+Message-ID: <AANLkTin8PTdQLShcrAk_cT21pFfwcuatXvMNMQSgYmO3@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
+	h=domainkey-signature:mime-version:received:received:date:message-id
+	:subject:from:to:content-type;
+	bh=GeIl8kiqD9u5YRdpNSSUaZjGcTTb/uI4/3SwNSWZthA=;
+	b=ABHRySVooJVpPONviTkbh3eDFs2ZCc8A6P4plY3vFqf+6uut6U2qHflIqr9wyvrdxD
+	0h/8C0iZ+Og3d34WF7RoW0i45WFyVmtaKnSUNP1IZLR2ZDjvdMuHmsXXeLvglLhEIJaE
+	SxDH4nCgWOWh+7d6Bbk5zCruovU1qTRubKzJc=
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,45 +25,19 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-Q29tcGlsYXRpb24gZmFpbHMgd2hlbiBjb25maWd1cmVkIHdpdGgKIyAuL2NvbmZpZ3VyZSAtLXdp
-dGgtb3BlbmxkYXAgLS13aXRob3V0LXNhc2wKIyBtYWtlClsuLi5dCmdjYyAtc2hhcmVkIC1PMiAt
-V2FsbCAtRF9SRUVOVFJBTlQgLURfRklMRV9PRkZTRVRfQklUUz02NCAtSS4uL2luY2x1ZGUgLUku
-Li9saWIKLWZQSUMgLURfR05VX1NPVVJDRSAtREFVVE9GU19MSUJfRElSPVwiL3Vzci9saWIvYXV0
-b2ZzXCIKLURBVVRPRlNfTUFQX0RJUj1cIi9ldGMvYXV0b2ZzXCIgLURMREFQX0RFUFJFQ0FURUQ9
-MSAtbyBsb29rdXBfbGRhcC5zbyBcCiAgICAgICAgICAgICAgICBsb29rdXBfbGRhcC5jIGRjbGlz
-dC5vICBcCiAgICAgICAgICAgICAgICAuLi9saWIvYXV0b2ZzLmEgLWxsZGFwIC1sbGJlciAtbHJl
-c29sdiAKbG9va3VwX2xkYXAuYzogSW4gZnVuY3Rpb24g4oCYYmluZF9sZGFwX3NpbXBsZeKAmToK
-bG9va3VwX2xkYXAuYzoxNDQ6IGVycm9yOiDigJhMREFQX0FVVEhfVVNFU0lNUExF4oCZIHVuZGVj
-bGFyZWQgKGZpcnN0IHVzZSBpbiB0aGlzCmZ1bmN0aW9uKQpsb29rdXBfbGRhcC5jOjE0NDogZXJy
-b3I6IChFYWNoIHVuZGVjbGFyZWQgaWRlbnRpZmllciBpcyByZXBvcnRlZCBvbmx5IG9uY2UKbG9v
-a3VwX2xkYXAuYzoxNDQ6IGVycm9yOiBmb3IgZWFjaCBmdW5jdGlvbiBpdCBhcHBlYXJzIGluLikK
-bG9va3VwX2xkYXAuYzogSW4gZnVuY3Rpb24g4oCYZG9fcmVjb25uZWN04oCZOgpsb29rdXBfbGRh
-cC5jOjcyOTogd2FybmluZzogdW51c2VkIHZhcmlhYmxlIOKAmHVyaeKAmQptYWtlWzFdOiAqKiog
-W2xvb2t1cF9sZGFwLnNvXSBFcnJvciAxCm1ha2VbMV06IExlYXZpbmcgZGlyZWN0b3J5IGAvdmFy
-L3RtcC9hdXRvZnMvbW9kdWxlcycKbWFrZTogKioqIFtkYWVtb25dIEVycm9yIDIKCkZvbGxvd2lu
-ZyBwYXRjaCBhZ2FpbnN0IGdpdCBzb3VyY2VzIGZpeGVzIHRoaXMgcHJvYmxlbS4gTERBUF9BVVRI
-X1VTRVNJTVBMRSBpcwpvbmx5IGRlY2xhcmVkIHdoZW4gSEFWRV9TQVNMIGlzIHRydWUsIHNvIGNo
-ZWNrIG9ubHkgZm9yIGl0IGluIHRoaXMgY2FzZS4KCkZyb20gM2I1ZWVmNTM3OWU1YWI4NzgxNWYx
-ZTRjYWY4YzVhNTU2NDg1ZmFjMyBNb24gU2VwIDE3IDAwOjAwOjAwIDIwMDEKRnJvbTogRHVzdGlu
-IFBvbGtlIDxkdXN0aW4ucG9sa2VAdW5pLXNpZWdlbi5kZT4KRGF0ZTogU3VuLCAzMCBNYXkgMjAx
-MCAxNDo1NDowNiArMDIwMApTdWJqZWN0OiBbUEFUQ0hdIEZpeCBjb21waWxhdGlvbiBvZiBtb2R1
-bGVzL2xvb2t1cF9sZGFwLmMgZm9yICctLXdpdGgtb3BlbmxkYXAKLS13aXRob3V0LXNhc2wnLgoK
-TERBUF9BVVRIX1VTRVNJTVBMRSBpcyBvbmx5IGRlZmluZWQgd2hlbiBjb25maWd1cmVkIHdpdGgg
-Jy0td2l0aC1zYXNsJy4KVGhlcmVmb3JlIG9ubHkgY2hlY2sgZm9yIGl0IGlmIEhBVkVfU0FTTCBp
-cyB0cnVlLgotLS0KIG1vZHVsZXMvbG9va3VwX2xkYXAuYyB8ICAgIDUgKysrKy0KIDEgZmlsZXMg
-Y2hhbmdlZCwgNCBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL21v
-ZHVsZXMvbG9va3VwX2xkYXAuYyBiL21vZHVsZXMvbG9va3VwX2xkYXAuYwppbmRleCBlOWQxZmEy
-Li5jMWM4YWI0IDEwMDY0NAotLS0gYS9tb2R1bGVzL2xvb2t1cF9sZGFwLmMKKysrIGIvbW9kdWxl
-cy9sb29rdXBfbGRhcC5jCkBAIC0xNDAsMTAgKzE0MCwxMyBAQCBzdGF0aWMgdm9pZCB1cmlzX211
-dGV4X3VubG9jayhzdHJ1Y3QgbG9va3VwX2NvbnRleHQgKmN0eHQpCiBpbnQgYmluZF9sZGFwX3Np
-bXBsZSh1bnNpZ25lZCBsb2dvcHQsIExEQVAgKmxkYXAsIGNvbnN0IGNoYXIgKnVyaSwgc3RydWN0
-Cmxvb2t1cF9jb250ZXh0ICpjdHh0KQogewogICAgICAgIGludCBydjsKLQorI2lmZGVmIFdJVEhf
-U0FTTAogICAgICAgIGlmIChjdHh0LT5hdXRoX3JlcXVpcmVkID09IExEQVBfQVVUSF9VU0VTSU1Q
-TEUpCiAgICAgICAgICAgICAgICBydiA9IGxkYXBfc2ltcGxlX2JpbmRfcyhsZGFwLCBjdHh0LT51
-c2VyLCBjdHh0LT5zZWNyZXQpOwogICAgICAgIGVsc2UgaWYgKGN0eHQtPnZlcnNpb24gPT0gMikK
-KyNlbHNlCisgICAgICAgaWYgKGN0eHQtPnZlcnNpb24gPT0gMikKKyNlbmRpZgogICAgICAgICAg
-ICAgICAgcnYgPSBsZGFwX3NpbXBsZV9iaW5kX3MobGRhcCwgY3R4dC0+YmFzZSwgTlVMTCk7CiAg
-ICAgICAgZWxzZQogICAgICAgICAgICAgICAgcnYgPSBsZGFwX3NpbXBsZV9iaW5kX3MobGRhcCwg
-TlVMTCwgTlVMTCk7Ci0tIAoxLjYuNC40CgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX18KYXV0b2ZzIG1haWxpbmcgbGlzdAphdXRvZnNAbGludXgua2VybmVs
-Lm9yZwpodHRwOi8vbGludXgua2VybmVsLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2F1dG9mcwo=
+Hi Ian, List,
+
+2 questions..
+
+1) Has a fix been released for the Admin or "$" shares in regards to
+cifs yet? The automounter fails to mount them even though the path
+looks ok. It mounts the non admin shares fine. I can mount them fine
+from the CLI.
+
+2) I have modified the auto.smb script to create a direct map since
+the indirect fails to mount admin shares. Can a direct map be used as
+an executable map? My feeling from my reading of the manpage is no but
+maybe there is a way.
+
+Thanks
+TC
