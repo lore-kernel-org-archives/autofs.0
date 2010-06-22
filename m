@@ -1,61 +1,86 @@
-From: "J. R. Okajima" <hooanon05@yahoo.co.jp>
-Subject: Re: [autofs] [PATCH 04/38] autofs4: Save autofs trigger's vfsmount in super block info
-Date: Tue, 22 Jun 2010 14:49:16 +0900
-Message-ID: <26799.1277185756@jrobl>
-References: <1276627208-17242-1-git-send-email-vaurora@redhat.com> <1276627208-17242-5-git-send-email-vaurora@redhat.com> <1276661043.2339.35.camel@localhost> <1277091579.3827.9.camel@localhost> <E1OQghj-0001Bt-RU@pomaz-ex.szeredi.hu> <1277181999.2829.2.camel@localhost>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1277181999.2829.2.camel@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
-MIME-Version: 1.0
+From: "Oliver Weinmann" <oliver.weinmann@vega.de>
+Subject: Re: Patching Autofs on
+	SLES9(autofs-4.1.3-included-maps.patch)
+Date: Tue, 22 Jun 2010 10:26:35 +0200
+Message-ID: <577798A82D8C2746B9461A64C5F4562802383A8C@GEDACV2>
+References: <AcsMaytc7B8+ciJHQp6E6oe4Nl+Pjg==><577798A82D8C2746B9461A64C5F4562802383A50@GEDACV2><AANLkTimHtsxBHJIPgJh1SNbCIL8mpMyyuGgfOSacHfSp@mail.gmail.com>
+	<577798A82D8C2746B9461A64C5F4562802383A8B@GEDACV2>
+Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ian Kent <raven@themaw.net>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, viro@zeniv.linux.org.uk, vaurora@redhat.com, autofs@linux.kernel.org, linux-kernel@vger.kernel.org, hch@infradead.org, linux-fsdevel@vger.kernel.org, jblunck@suse.de
+Return-path: <autofs-bounces@linux.kernel.org>
+Content-class: urn:content-classes:message
+In-Reply-To: <577798A82D8C2746B9461A64C5F4562802383A8B@GEDACV2>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs/>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: Leonardo Chiquitto <leonardo.lists@gmail.com>
+Cc: autofs@linux.kernel.org
 
+The problem is also not fixed on SLES10 SP3. I tried to find the
+autofs-4.1.3-included-maps.patch on google but no success.
 
-Ian Kent:
-> +static vfsmount *autofs4_find_vfsmount(struct path *parent, struct dentry *root)
-> +{
-> +	struct vfsmount *mnt = NULL;
-> +	struct dentry *child;
-> +
-> +	spin_lock(&dcache_lock);
-> +	list_for_each_entry(child, &dentry->d_subdirs, d_u.d_child) {
+Regards,
+Oliver
 
-dentry->d_subdirs?
-parent->dentry->...?
+-----Original Message-----
+From: autofs-bounces@linux.kernel.org
+[mailto:autofs-bounces@linux.kernel.org] On Behalf Of Oliver Weinmann
+Sent: Montag, 21. Juni 2010 14:09
+To: Leonardo Chiquitto
+Cc: autofs@linux.kernel.org
+Subject: Re: [autofs] Patching Autofs on
+SLES9(autofs-4.1.3-included-maps.patch)
 
-Or how about iterate_mounts() instead of loop over dentries?
-For example (just a example),
+Hi Leonardo,
 
-struct args {
-	/* input */
-	struct dentry *root;
+I was able to build autofs4 from sles10 sp3 32bit on SLES9 SP4, but
+unfortunately it doesn't work. I'm not 100% sure if the problem was
+fixed in the SLES10 SP3 release or if it is just not working on SLES9
+for another reason. I will now install a SLES10 SP3 32Bit to check
+wether the problem is fixed or not. If the problem is fixed the problem
+under SLES9 must be different.
 
-	/* output */
-	struct vfsmount *mnt;
-};
+-----Original Message-----
+From: Leonardo Chiquitto [mailto:leonardo.lists@gmail.com]
+Sent: Freitag, 18. Juni 2010 18:20
+To: Oliver Weinmann
+Cc: autofs@linux.kernel.org
+Subject: Re: [autofs] Patching Autofs on SLES9
+(autofs-4.1.3-included-maps.patch)
 
-static int compare_mnt(struct vfsmount *mnt, void *arg)
-{
-	struct args *a = arg;
+Hello Oliver,
 
-	if (mnt->mnt_root != a->root)
-		return 0;
-	a->mnt = mntget(mnt);
-	return 1;
-}
+AutoFS 5 won't work on SLES 9 because it requires Kernel changes that
+were not back ported to 2.6.5. The first version of SLES to support
+AutoFS 5 is SLES 10-SP2.
 
-struct vfsmount *autofs4_find_vfsmount(struct dentry *root)
-{
-	int err;
-	struct args args = {
-		.root = root
-	};
+If you really can't upgrade to SLES 10-SP3 or SLES 11-SP1, your best bet
+is to get autofs-4.1.4 source RPM from SLES 10-SP3 and rebuild it on
+SLES 9. The problem you reported is most likely already fixed on that
+version.
 
-	err = iterate_mounts(compare_mnt, &args, current->nsproxy->mnt_ns);
-}
+Hope it helps,
+Leonardo
 
+______________________________________________________________________
+This email has been scanned by the MessageLabs Email Security System.
+For more information please visit http://www.messagelabs.com/email
+______________________________________________________________________
 
-J. R. Okajima
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+______________________________________________________________________
+This email has been scanned by the MessageLabs Email Security System.
+For more information please visit http://www.messagelabs.com/email
+______________________________________________________________________
