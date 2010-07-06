@@ -1,58 +1,61 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 3/6] autofs/autofs4: move compat_ioctl handling into fs
-Date: Tue, 06 Jul 2010 09:11:30 +0800
-Message-ID: <1278378690.3070.6.camel@localhost>
-References: <1278195310-25590-1-git-send-email-arnd@arndb.de>
-	 <4C3235C3.7050303@zytor.com> <20100705194759.GE5240@nowhere>
-	 <201007052152.55954.arnd@arndb.de>  <20100705195837.GF5240@nowhere>
+Subject: Re: Executable maps
+Date: Tue, 06 Jul 2010 09:19:17 +0800
+Message-ID: <1278379157.3070.12.camel@localhost>
+References: <AANLkTin8PTdQLShcrAk_cT21pFfwcuatXvMNMQSgYmO3@mail.gmail.com>
+	<1276490691.9943.68.camel@localhost>  <4C2E6209.5030506@zytor.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com; h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding; s=smtpout; bh=5ZVMTLUkDHRYNqtmsEAoa4J7XLQ=; b=Cye/eMOWuvtiyo3BYbK7aheRP5J4Wutig+2gpTpCXFx0OBwg2LIx11Xe0Xmtob470CP5qyQeQ+s2ToAozhCSCdgGx2u9ffiDV7gQU0ZAYEgMtogT9B5Yy9oN5TZiXvvQbUaCixGGoThfgx4T+XdpUhbtykFCOWkN5H4gd9FCfNc=
-In-Reply-To: <20100705195837.GF5240@nowhere>
-Sender: linux-kernel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, "H. Peter Anvin" <hpa@zytor.com>, linux-kernel@vger.kernel.org, John Kacur <jkacur@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, autofs@linux.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <autofs-bounces@linux.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com;
+	h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding;
+	s=smtpout; bh=+dltU7l3e6/rjU2mKdyIwZ2ByPQ=;
+	b=BuY3WPEeHUrtWHSPyJmXdZJxojDrmAsem5ijE+2SchJbMQ9+lQpuWXzpAuf0UHqbIQNagrL3/F+cazHpFYCXyljpGuef1f2CsKxacfcw/12GjaPW70YRjHSCrDTbwVPKzKkpfIef2SivbjI0+NRvMZPGj3ObnxuRgNj7kSr9euo=
+In-Reply-To: <4C2E6209.5030506@zytor.com>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs/>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: autofs@linux.kernel.org
 
-On Mon, 2010-07-05 at 21:58 +0200, Frederic Weisbecker wrote:
-> On Mon, Jul 05, 2010 at 09:52:55PM +0200, Arnd Bergmann wrote:
-> > On Monday 05 July 2010 21:48:01 Frederic Weisbecker wrote:
-> > > On Mon, Jul 05, 2010 at 12:42:59PM -0700, H. Peter Anvin wrote:
-> > > > On 07/05/2010 12:24 PM, Frederic Weisbecker wrote:
-> > > > > 
-> > > > > Peter, if you're fine with this version. May I apply it?
-> > > > > Unless you have a tree for autofs.
-> > > > > 
-> > > > Ian Kent is the maintainer of autofs4 and patches for autofs4 should go
-> > > > through him (or acked by him.)
-> > > > 
-> > > > autofs 3 is officially unmaintained; I'm more than happy to have you
-> > > > push the autofs 3 bits of this patch.
-> > > 
-> > > Sure, I can split up the patch and integrate the autofs 3 part, I'll send
-> > > the standalone autofs4 version to Ian.
+On Fri, 2010-07-02 at 15:02 -0700, H. Peter Anvin wrote:
+> On 06/13/2010 09:44 PM, Ian Kent wrote:
 > > 
-> > I think in this case it's really more appropriate to change both autofs3
-> > and autofs4 together, to avoid interdependencies. Whichever way Ian
-> > prefers (ack the patch or take it) would work though.
+> > Don't think that could work.
+> > There's no way for a program map to enumerate the entire map at initial
+> > startup and I don't want to add something that allows that because
+> > program maps are dynamic and that introduces all sorts of difficulties
+> > for the handling of direct mounts. And there is no way to use a program
+> > map for a direct mount that has not been mounted (at startup).
 > > 
-> > 	Arnd
 > 
+> Sorry for a *way late* reply.
 > 
-> Yeah indeed. Ian?
+> There isn't a reason why a protocol for a program map to enumerate
+> itself couldn't be constructed, probably invoking the program map
+> without an argument, and receiving an enumeration on stdout; either
+> null- or LF-separated.
+> 
+> Obviously not all program maps will be capable of being enumerated, but
+> that's true for any map set.
 
-As Peter says the autofs module isn't supported anymore and autofs4 will
-replace autofs when I eventually get around to re-doing and re-testing
-my patch for that.
+I think I more or less nacked that idea a while back but it is the
+obvious and sensible way to do it.
 
-So it makes no difference whether the patches are combined, if it breaks
-autofs then it probably won't be fixed but it may cause the replacement
-to happen sooner.
+Of course there is the bonus that any program map that doesn't check the
+passed in key, assuming it's non-null, will likely SEGV, which would
+make it all worth while.
 
-As far as the patch goes that should be fine and we should be able to
-remove the BKL from autofs4 soon after but I'm not brave enough to try
-just yet.
+Hehe, but seriously automount should be able to cope with crashing
+program maps. I'm fairly sure I've tested that on occasion.
 
+So, sounds good, I'll give it a go and we'll see what happens.
 Ian
