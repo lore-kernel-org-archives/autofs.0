@@ -1,18 +1,23 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: help: rm_unwanted and disappearing symbolink links
- from nfs servers
-Date: Thu, 22 Jul 2010 15:54:53 +0800
-Message-ID: <1279785293.2986.35.camel@localhost>
-References: <AANLkTilfvoSFLvRZCm4kf4NYi6YdrkYhluz4_8WPCAij@mail.gmail.com>
+From: Leonardo Chiquitto <leonardo.lists@gmail.com>
+Subject: Re: Making "verbose" mode a little less verbose
+Date: Thu, 22 Jul 2010 16:55:44 -0300
+Message-ID: <20100722195544.GA13097@libre.l.ngdn.org>
+References: <20100706181115.GA23693@libre.l.ngdn.org>
+	<1279686981.2936.20.camel@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com;
-	h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding;
-	s=smtpout; bh=EzTrfD9/QJiR3Ot+0eiH+I0V3G4=;
-	b=n3Zb7Pz1ithFwZ5gUIvnxZltZrTKVypkQ3aC8tIKG5vtWYKaoLxq5tf/L5iak33+At/NL+DpL3xModf0cjL+KwC1PcQ5aujNT8Jode9NwpJNoa3CZbX82kP6+A5XPUQnekxO74rNNtQyuK3vv4IrDIMtskTWo6GRFgc8DOjx45k=
-In-Reply-To: <AANLkTilfvoSFLvRZCm4kf4NYi6YdrkYhluz4_8WPCAij@mail.gmail.com>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
+	h=domainkey-signature:received:received:date:from:to:cc:subject
+	:message-id:references:mime-version:content-type:content-disposition
+	:in-reply-to:user-agent;
+	bh=GRWfwhvSZ2VDRYQOh0wRdAkEbAK4MzZJoiqD2/BXPcM=;
+	b=g5UUXUiJqE4hiRu5VtwTrCAiRPiG9fbrdUBcOVacYd2Sp6N2u2UX2k5JPDOpVQw090
+	aUYMOzMRWzY5zJBuBN2pqYSzMuxNT6zace8PpmRPa/1M49wn8hf4Nu9jnV5nqZ+/9UsR
+	Msj/vTDauRjvgbMxshdwOho74RsX998kiaeMs=
+Content-Disposition: inline
+In-Reply-To: <1279686981.2936.20.camel@localhost>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -23,69 +28,156 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: marina cacciagrano <mcacciagrano@gmail.com>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-On Tue, 2010-07-20 at 17:24 +0100, marina cacciagrano wrote:
-> Hello,
-> I am experiencing some annoying (if not scary) issue with automount
-> (autofs-4.1.3-187).
-> I am runnung Linux kernel 2.6.9-34 (RedHat RHEL4 update3).
+On Wed, Jul 21, 2010 at 12:36:21PM +0800, Ian Kent wrote:
+> On Tue, 2010-07-06 at 15:11 -0300, Leonardo Chiquitto wrote:
+> > Hello AutoFS developers,
+> > 
+> > I'm trying to improve the usefulness of "verbose" logs for a customer.
+> > The problem they currently face can be summarized as: they need some
+> > messages that are only logged with DEFAULT_LOGGING="verbose" (or debug),
+> > but enabling the verbose mode on busy servers (hundreds of users and
+> > AutoFS mount points) causes a significant traffic increase on their
+> > syslog infrastructure.
+> > 
+> > My first idea was to introduce a new log level ("normal") and move the
+> > most important messages from "verbose" to "normal", but I realized later
+> > that this would require some redesign to allow some info() messages to
+> > be printed only on "verbose" mode. Since this would be more intrusive,
+> > I decided to go with a simpler proposal: move some "verbose" messages
+> > to "debug" level. Here are some examples of messages that would be
+> > demoted to debug (prefixed with -):
 > 
-> Files (mainly symbolic links) disappear from nfs mounted volumes.
-> This happens randomly.
-> I support several machines running the above mentioned kernel version
-> and autofs version.
-> The kernel on these cannot be updated, as any change in the kernel
-> name will prevent the main application from running.
-> I noticed that the file disappearance time concide with messages on
-> some of the nfs client machines similar to the following:
+> Leonardo and Michael, as you've probably guessed, I've been avoiding
+> replying to this for a while now.
 > 
-> Jul 19 00:20:05 flame-b automount[14400]: rm_unwanted: attempting to
-> remove files from a mounted directory
+> The problem is that there are two different views on this, one saying
+> there isn't enough logging and others saying there is too much, *sigh*.
 > 
-> 'googling' for the error message, I found a cuple of interesting
-> messages. Two from IBM:
+> > 
+> > Successful mount:
+> > 
+> >   14:49:13 n1 automount[1013]: attempting to mount entry /v/temp
+> >  -14:49:13 n1 automount[1013]: mount(nfs): mounted libre:/temp on /v/temp
+> >   14:49:13 n1 automount[1013]: mounted /v/temp
 > 
-> http://www-01.ibm.com/support/docview.wss?rs=984&uid=swg21260655
-> http://www-01.ibm.com/support/docview.wss?ratlid=cctocbody&rs=984&uid=swg21279055
+> This is a good opportunity to eliminate some extra logging, good.
+> 
+> > 
+> > Invalid map:
+> > 
+> >   14:51:15 n1 automount[1013]: attempting to mount entry /v/no
+> >  -14:51:15 n1 automount[1013]: key "no" not found in map source(s).
+> >   14:51:15 n1 automount[1013]: failed to mount /v/no
+> 
+> This is the problem for me.
+> 
+> This annoying constant key not found logging was the result of a
+> customer complaining that they couldn't work out if a problem was due to
+> a non-existent key or some other issue, so I'd rather not remove it. It
+> should only be logged once on the first lookup of a non-existent key and
+> once again after the negative cache entry times out. There was however a
+> bug with the negative caching of non-existent keys, so we would need to
+> check that the source in use is up to date wrt. this issue, and that it
+> is working the way it is supposed to and then see how the logging goes.
 
-So your using MVFS?
-That investigation was very much related to MVFS as far as I can recall.
+Ian,
 
-> 
-> which describe the problem so closely to what I am experiencing, that
-> I thought I would send them in this mail, even if they seem to
-> describe an issue specific to an IBM system.
-> 
-> A better match to my problem was found in some autofs forum answers.
-> In example the following:
-> 
-> http://www.mail-archive.com/autofs@linux.kernel.org/msg05120.html
+I believe the customer's complain makes sense. I missed this use case.
+Here's an updated patch without the "key not found" chunk.
 
-And I think that was something that came out of the above investigation,
-can't really remember now. In any case the current RHEL-4 autofs v4 will
-have any changes that came out of that work.
+Thanks,
+Leonardo
 
-If you are seeing some other problem related to the kernel walking into
-directories when it shouldn't you probably have no choice but to update
-autofs and kernel and see if that helps.
 
-> 
-> There are other with very similar messages, they all suggest a patch
-> which forces autofs to do a check of some sort.
-> I do not know how to implement the mentioned patch. I would like to
-> know whether there is a version of autofs which implements the patch
-> and that can be installed on the 2.6.9-34 kernel. I really need to
-> know, as I have seen instances of whole directories desappearing as
-> well as symbolic links.
-> 
-> In the forum I have seen the recurring names of Jeff Moyer, Ian Kent
-> and Chris Feist. Is there any chance I can get in touch with any of
-> them, and get some help?
+Move some informational logs to debug level to avoid redundancy.
 
-Have you thought of logging a RedHat bug?
-Either Jeff or myself is likely to be the one to pick it up.
-I haven't heard from Chris for some time now, not sure what he is doing.
+---
+ daemon/lookup.c         |    2 +-
+ daemon/automount.c      |    2 +-
+ modules/mount_changer.c |    2 +-
+ modules/mount_ext2.c    |    2 +-
+ modules/mount_generic.c |    2 +-
+ modules/mount_nfs.c     |    2 +-
+ 6 files changed, 6 insertions(+), 6 deletions(-)
 
-Ian
+Index: autofs/daemon/lookup.c
+===================================================================
+--- autofs.orig/daemon/lookup.c
++++ autofs/daemon/lookup.c
+@@ -688,7 +688,7 @@ static int lookup_name_file_source_insta
+ 	char *type, *format;
+ 
+ 	if (stat(map->argv[0], &st) == -1) {
+-		warn(ap->logopt, "file map not found");
++		debug(ap->logopt, "file map not found");
+ 		return NSS_STATUS_NOTFOUND;
+ 	}
+ 
+Index: autofs/daemon/automount.c
+===================================================================
+--- autofs.orig/daemon/automount.c
++++ autofs/daemon/automount.c
+@@ -512,7 +512,7 @@ static int umount_subtree_mounts(struct
+ 	 * it already to ensure it's ok to remove any offset triggers.
+ 	 */
+ 	if (!is_mm_root && is_mounted(_PATH_MOUNTED, path, MNTS_REAL)) {
+-		info(ap->logopt, "unmounting dir = %s", path);
++		debug(ap->logopt, "unmounting dir = %s", path);
+ 		if (umount_ent(ap, path)) {
+ 			warn(ap->logopt, "could not umount dir %s", path);
+ 			left++;
+Index: autofs/modules/mount_changer.c
+===================================================================
+--- autofs.orig/modules/mount_changer.c
++++ autofs/modules/mount_changer.c
+@@ -129,7 +129,7 @@ int mount_mount(struct autofs_point *ap,
+ 
+ 		return 1;
+ 	} else {
+-		info(ap->logopt, MODPREFIX "mounted %s type %s on %s",
++		debug(ap->logopt, MODPREFIX "mounted %s type %s on %s",
+ 		    what, fstype, fullpath);
+ 		return 0;
+ 	}
+Index: autofs/modules/mount_ext2.c
+===================================================================
+--- autofs.orig/modules/mount_ext2.c
++++ autofs/modules/mount_ext2.c
+@@ -140,7 +140,7 @@ int mount_mount(struct autofs_point *ap,
+ 
+ 		return 1;
+ 	} else {
+-		info(ap->logopt,
++		debug(ap->logopt,
+ 		      MODPREFIX "mounted %s type %s on %s",
+ 		      what, fstype, fullpath);
+ 		return 0;
+Index: autofs/modules/mount_generic.c
+===================================================================
+--- autofs.orig/modules/mount_generic.c
++++ autofs/modules/mount_generic.c
+@@ -122,7 +122,7 @@ int mount_mount(struct autofs_point *ap,
+ 
+ 		return 1;
+ 	} else {
+-		info(ap->logopt, MODPREFIX "mounted %s type %s on %s",
++		debug(ap->logopt, MODPREFIX "mounted %s type %s on %s",
+ 		     loc, fstype, fullpath);
+ 		free(loc);
+ 		return 0;
+Index: autofs/modules/mount_nfs.c
+===================================================================
+--- autofs.orig/modules/mount_nfs.c
++++ autofs/modules/mount_nfs.c
+@@ -251,7 +251,7 @@ int mount_mount(struct autofs_point *ap,
+ 		}
+ 
+ 		if (!err) {
+-			info(ap->logopt, MODPREFIX "mounted %s on %s", loc, fullpath);
++			debug(ap->logopt, MODPREFIX "mounted %s on %s", loc, fullpath);
+ 			free(loc);
+ 			free_host_list(&hosts);
+ 			return 0;
