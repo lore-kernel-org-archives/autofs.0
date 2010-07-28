@@ -1,9 +1,9 @@
-From: kiran@serc.iisc.ernet.in
-Subject: multi-mount not working on autofs-3.1.7-900.1
-Date: Thu, 19 Aug 2010 22:28:19 +0530 (IST)
-Message-ID: <17432.10.16.10.158.1282237099.squirrel@mail.serc.iisc.ernet.in>
+From: Richard Gillman <R.Gillman@nerc.ac.uk>
+Subject: -Dvariable=value not working?
+Date: Wed, 28 Jul 2010 13:19:52 +0100
+Message-ID: <4C502068.1070104@nerc.ac.uk>
+Reply-To: R.Gillman@nerc.ac.uk
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
@@ -16,40 +16,105 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
 To: autofs@linux.kernel.org
 
-Hi,
+I've got a Suse SLES 11 system running automount 5.0.3 which stubbornly 
+refuses to variable substitution.
 
-on SLES 9 having autofs-3.1.7-900.1
+friesian:/etc/sysconfig # automount -V
 
-content of /etc/auto.master is :
+Linux automount version 5.0.3
 
-/home1         /etc/auto/map.home1
+Directories:
 
-content of /etc/auto/map.home1 is:
+config dir: /etc/sysconfig
 
-tt        /  -rw,soft,intr    10.XX.XX.XX:/local/scratch /point
--rw,soft,intr  10.XX.XX.XX:/local/scratch1
+maps dir: /etc
+
+modules dir: /usr/lib64/autofs
+
+Compile options:
+
+DISABLE_MOUNT_LOCKING ENABLE_FORCED_SHUTDOWN ENABLE_IGNORE_BUSY_MOUNTS
+
+WITH_LDAP WITH_SASL LIBXML2_WORKAROUND
 
 
-Both /local/scratch and /local/scratch1 are coming from same nfs server.
+I've got LOCAL_OPTIONS="-DNERCARCH=linux" in /etc/sysconfig/autofs (I've 
+also tried "-D  NERCARCH=linux", "-D NERCARCH='linux'").
 
-when i access /home1/tt, /local/scratch gets mounted, but when i access
-/home1/tt/point it will not mount /local/scratch1.
+I've stopped nscd.
 
-But same setup works on RHEL4 version autofs-4.1.3-169
-and  RHEL5 version autofs-5.0.1-0.rc2.88
+I've restarted automount /etc/init.d/autofs restart
 
-multimount is it supported in autofs-3.1.7-900.1 ? if it not supported
-what is work around?
+friesian:/etc/sysconfig # ps -ef|grep automount
 
-Thanking you,
-regards,
-kiran
+root 14378 1 0 11:12 ? 00:00:00 /usr/sbin/automount -p 
+/var/run/automount.pid -O -DNERCARCH=linux
 
+If I now do a ls /nerc/bin (one of my automounted directories),
+friesian:/etc/sysconfig # ls /nerc/bin
+ls: cannot open directory /nerc/bin: No such file or directory
+friesian:/etc/sysconfig #
+
+and I get the following in syslog.
+
+Jul 28 10:30:03 friesian automount[13976]: lookup_mount: lookup(ldap): 
+bin -> -ro mercury:/local/master/$NERCARCH/bin
+Jul 28 10:30:03 friesian automount[13976]: parse_mount: parse(sun): 
+expanded entry: -ro mercury:/local/master//bin
+
+No substitution of the NERCARCH variable.
+
+On another system, this time CentOS 5.5
+
+Linux automount version 5.0.1-0.rc2.143.el5
+
+
+Directories:
+
+config dir: /etc/sysconfig
+
+maps dir: /etc
+
+modules dir: /usr/lib64/autofs
+
+
+Compile options:
+
+DISABLE_MOUNT_LOCKING ENABLE_IGNORE_BUSY_MOUNTS WITH_HESIOD WITH_LDAP
+
+WITH_SASL
+
+[root@who1 sysconfig]# ps -ef|grep auto
+
+root 10263 1 0 10:59 ? 00:00:00 automount -DNERCARCH=linux
+
+root 10320 10162 0 10:59 pts/4 00:00:00 grep auto
+
+
+[root@who1 sysconfig]# ls /nerc/bin
+env_clean  lookup  rc.d  setup_type
+[root@who1 sysconfig]#
+
+I get in syslog,
+
+Jul 28 10:52:26 who1 automount[10210]: lookup_mount: lookup(ldap): bin 
+-> orwell:/itsspool/master.itss/$NERCARCH/bin
+
+Jul 28 10:52:26 who1 automount[10210]: parse_mount: parse(sun): expanded 
+entry: orwell:/itsspool/master.itss/linux/bin
+
+Which is what I would expect to see.
+
+Any suggestions as to what I might be doing wrong on the Suse box?
+
+tia, Dick
 
 
 -- 
-This message has been scanned for viruses and
-dangerous content by MailScanner, and is
-believed to be clean.
+Richard Gillman
+IST UNIX Systems Group, Maclean Building, Wallingford OX10 8BB
+Tel: 01491 - 692 339
+Fax: 01491 - 692 424
