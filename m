@@ -1,15 +1,18 @@
-From: M N KIRAN <kiranmn@yahoo.com>
-Subject: multi-mount not working on autofs-3.1.7-900.1
-Date: Sat, 7 Aug 2010 03:32:35 -0700 (PDT)
-Message-ID: <517808.86831.qm@web35601.mail.mud.yahoo.com>
+From: Ricardo =?ISO-8859-1?Q?P=E9rez_L=F3pez?= <ricpelo@gmail.com>
+Subject: Mount /home/* directories only with the right user
+Date: Mon, 02 Aug 2010 13:15:53 +0200
+Message-ID: <1280747753.4433.8.camel@kadath>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s1024;
-	t=1281177155; bh=r1sSMUwg8YeQMtlFsvfVqjOBCyC9Ti/gBY/91Xo0JSI=;
-	h=Message-ID:X-YMail-OSG:Received:X-Mailer:Date:From:Subject:To:MIME-Version:Content-Type;
-	b=ltisfXc6F0vOzNYnaZd/AarS5d64RGxdARUb4WZvNnPaJ/5uVsTQHhrYzqsC0bpbA2qiQbsjKAJI9FnchqWgDbCy3uuuSn4l1o6AHMItaP8/ex+z6jLGUVsJmH2Blu/vJcEwC1BqNnctlUJioy1VvlqIcvKpfvo21EOHK5dF7Kg=
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
+	h=domainkey-signature:received:received:subject:from:to:content-type
+	:date:message-id:mime-version:x-mailer:content-transfer-encoding;
+	bh=Do8Pc/OX5rYiXU0AGDooDnhfUD1M1RnWaJ2k33epx6U=;
+	b=D9ey4jEHJ89w/3AfLYXGepjjmdLLBRB8zl4zuHzmIOQ0nx9o+bVLLpmVVYmXIF8/go
+	2UqelzBFIfhGJSA7JYbaQZjElxQ+68Sj9K0xaXr95NItysxIdJ0OIfGWXHXG6V9zzabi
+	0lj96uQKOgEKQDusPmOJHb7tFdHGFnsBQszVI=
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,29 +25,25 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-Hi,
+Hi. I'm an autofs newbie and I would like to ask you one question
+related with the automounting of /home/* directories.
 
-on SLES 9 having autofs-3.1.7-900.1
+I've an NFS server exporting /home, and I've configured autofs5 in the
+client computer in order to automount /home/* directories every time a
+user is logged in (user accounts are exported via LDAP, but that's
+another story).
 
-content of /etc/auto.master is :
+When user (say) alice logs into the client computer, autofs exports
+her /home/alice, so it's right. However, if alice now do:
+"cd /home/bob", then autofs exports /home/bob too. I don't want that. I
+wonder if there's a way to automount a /home/* directory ONLY if you're
+the right user, i.e. alice should only get /home/alice and bob should
+only get /home/bob.
 
-/home1         /etc/auto/map.home1
+(For another unrelated question, all the /home/* directories must have
+777 permissions, so I'm trying to securize the access to the /home/*
+directories using automount.)
 
-content of /etc/auto/map.home1 is:
+Thanks in advance,
 
-tt        /  -rw,soft,intr    10.XX.XX.XX:/local/scratch /point -rw,soft,intr  10.XX.XX.XX:/local/scratch1
-
-
-Both /local/scratch and /local/scratch1 are coming from same nfs server.
-
-when i access /home1/tt, /local/scratch gets mounted, but when i access
-/home1/tt/point it will not mount /local/scratch1.
-
-But same setup works on RHEL4 version autofs-4.1.3-169
-and  RHEL5 version autofs-5.0.1-0.rc2.88
-
-multimount is it supported in autofs-3.1.7-900.1 ? if it not supported what is work around?
-
-Thanking you,
-regards,
-kiran
+Ricardo.
