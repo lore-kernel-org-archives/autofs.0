@@ -1,19 +1,14 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Making "verbose" mode a little less verbose
-Date: Fri, 23 Jul 2010 13:36:33 +0800
-Message-ID: <1279863393.2969.11.camel@localhost>
-References: <20100706181115.GA23693@libre.l.ngdn.org>
-	<1279686981.2936.20.camel@localhost>
-	<20100722195544.GA13097@libre.l.ngdn.org>
+From: Valerie Aurora <vaurora@redhat.com>
+Subject: [PATCH 04/38] autofs4: Save autofs trigger's vfsmount in
+	super block info
+Date: Fri,  6 Aug 2010 15:34:50 -0700
+Message-ID: <1281134124-17041-5-git-send-email-vaurora@redhat.com>
+References: <1281134124-17041-1-git-send-email-vaurora@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com;
-	h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding;
-	s=smtpout; bh=rNv061iZv6fb8Ld6ULwZymsm/Cg=;
-	b=H4CGl6aeV5S9DOwBKo95IKMszehRsX0CnkDfNWTDA5fwY/Co/NYd7t+BqD8ExgUMXCC7JnkIRq7WFRLya5VD53X6SYSPeqwcNnGLH3xR8VnnyQsfC6LSrfdNB4TbBvS3CQ/N5cT5mvIFyDXZjWtDJvkpatsgWiCNcZaOyQJv+pQ=
-In-Reply-To: <20100722195544.GA13097@libre.l.ngdn.org>
+In-Reply-To: <1281134124-17041-1-git-send-email-vaurora@redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,161 +19,121 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Leonardo Chiquitto <leonardo.lists@gmail.com>
+To: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: autofs@linux.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Valerie Aurora <vaurora@redhat.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Blunck <jblunck@suse.de>
+
+From: Jan Blunck <jblunck@suse.de>
+
+XXX - This is broken and included just to make union mounts work.  Ian
+Kent and David Howells are working on a long-term solution that will
+replace abuse of ->follow_link() to trigger an automount with a new
+op.
+
+Original commit message:
+
+This is a bugfix/replacement for commit
+051d381259eb57d6074d02a6ba6e90e744f1a29f:
+
+    During a path walk if an autofs trigger is mounted on a dentry,
+    when the follow_link method is called, the nameidata struct
+    contains the vfsmount and mountpoint dentry of the parent mount
+    while the dentry that is passed in is the root of the autofs
+    trigger mount.  I believe it is impossible to get the vfsmount of
+    the trigger mount, within the follow_link method, when only the
+    parent vfsmount and the root dentry of the trigger mount are
+    known.
+
+The pre solution in this commit was to replace the path embedded in the
+parent's nameidata with the path of the link itself in
+__do_follow_link().  This is a relatively harmless misuse of the
+field, but union mounts ran into a bug during follow_link() caused by
+the nameidata containing the wrong path (we count on it being what it
+is all other places - the path of the parent).
+
+A cleaner and easier to understand solution is to save the necessary
+vfsmount in the autofs superblock info when it is mounted.  Then we
+can easily update the vfsmount in autofs4_follow_link().
+
+Signed-off-by: Jan Blunck <jblunck@suse.de>
+Signed-off-by: Valerie Aurora <vaurora@redhat.com>
+Acked-by: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+---
+ fs/autofs4/autofs_i.h |    1 +
+ fs/autofs4/init.c     |   11 ++++++++++-
+ fs/autofs4/root.c     |    6 ++++++
+ fs/namei.c            |    7 ++-----
+ 4 files changed, 19 insertions(+), 6 deletions(-)
 
-On Thu, 2010-07-22 at 16:55 -0300, Leonardo Chiquitto wrote:
-> On Wed, Jul 21, 2010 at 12:36:21PM +0800, Ian Kent wrote:
-> > On Tue, 2010-07-06 at 15:11 -0300, Leonardo Chiquitto wrote:
-> > > Hello AutoFS developers,
-> > > 
-> > > I'm trying to improve the usefulness of "verbose" logs for a customer.
-> > > The problem they currently face can be summarized as: they need some
-> > > messages that are only logged with DEFAULT_LOGGING="verbose" (or debug),
-> > > but enabling the verbose mode on busy servers (hundreds of users and
-> > > AutoFS mount points) causes a significant traffic increase on their
-> > > syslog infrastructure.
-> > > 
-> > > My first idea was to introduce a new log level ("normal") and move the
-> > > most important messages from "verbose" to "normal", but I realized later
-> > > that this would require some redesign to allow some info() messages to
-> > > be printed only on "verbose" mode. Since this would be more intrusive,
-> > > I decided to go with a simpler proposal: move some "verbose" messages
-> > > to "debug" level. Here are some examples of messages that would be
-> > > demoted to debug (prefixed with -):
-> > 
-> > Leonardo and Michael, as you've probably guessed, I've been avoiding
-> > replying to this for a while now.
-> > 
-> > The problem is that there are two different views on this, one saying
-> > there isn't enough logging and others saying there is too much, *sigh*.
-> > 
-> > > 
-> > > Successful mount:
-> > > 
-> > >   14:49:13 n1 automount[1013]: attempting to mount entry /v/temp
-> > >  -14:49:13 n1 automount[1013]: mount(nfs): mounted libre:/temp on /v/temp
-> > >   14:49:13 n1 automount[1013]: mounted /v/temp
-> > 
-> > This is a good opportunity to eliminate some extra logging, good.
-> > 
-> > > 
-> > > Invalid map:
-> > > 
-> > >   14:51:15 n1 automount[1013]: attempting to mount entry /v/no
-> > >  -14:51:15 n1 automount[1013]: key "no" not found in map source(s).
-> > >   14:51:15 n1 automount[1013]: failed to mount /v/no
-> > 
-> > This is the problem for me.
-> > 
-> > This annoying constant key not found logging was the result of a
-> > customer complaining that they couldn't work out if a problem was due to
-> > a non-existent key or some other issue, so I'd rather not remove it. It
-> > should only be logged once on the first lookup of a non-existent key and
-> > once again after the negative cache entry times out. There was however a
-> > bug with the negative caching of non-existent keys, so we would need to
-> > check that the source in use is up to date wrt. this issue, and that it
-> > is working the way it is supposed to and then see how the logging goes.
-> 
-> Ian,
-> 
-> I believe the customer's complain makes sense. I missed this use case.
-> Here's an updated patch without the "key not found" chunk.
-
-Sure, I've had a quick look and it looks fine.
-I'll get to it as soon as I can.
-
-> 
-> Thanks,
-> Leonardo
-> 
-> 
-> Move some informational logs to debug level to avoid redundancy.
-> 
-> ---
->  daemon/lookup.c         |    2 +-
->  daemon/automount.c      |    2 +-
->  modules/mount_changer.c |    2 +-
->  modules/mount_ext2.c    |    2 +-
->  modules/mount_generic.c |    2 +-
->  modules/mount_nfs.c     |    2 +-
->  6 files changed, 6 insertions(+), 6 deletions(-)
-> 
-> Index: autofs/daemon/lookup.c
-> ===================================================================
-> --- autofs.orig/daemon/lookup.c
-> +++ autofs/daemon/lookup.c
-> @@ -688,7 +688,7 @@ static int lookup_name_file_source_insta
->  	char *type, *format;
->  
->  	if (stat(map->argv[0], &st) == -1) {
-> -		warn(ap->logopt, "file map not found");
-> +		debug(ap->logopt, "file map not found");
->  		return NSS_STATUS_NOTFOUND;
->  	}
->  
-> Index: autofs/daemon/automount.c
-> ===================================================================
-> --- autofs.orig/daemon/automount.c
-> +++ autofs/daemon/automount.c
-> @@ -512,7 +512,7 @@ static int umount_subtree_mounts(struct
->  	 * it already to ensure it's ok to remove any offset triggers.
->  	 */
->  	if (!is_mm_root && is_mounted(_PATH_MOUNTED, path, MNTS_REAL)) {
-> -		info(ap->logopt, "unmounting dir = %s", path);
-> +		debug(ap->logopt, "unmounting dir = %s", path);
->  		if (umount_ent(ap, path)) {
->  			warn(ap->logopt, "could not umount dir %s", path);
->  			left++;
-> Index: autofs/modules/mount_changer.c
-> ===================================================================
-> --- autofs.orig/modules/mount_changer.c
-> +++ autofs/modules/mount_changer.c
-> @@ -129,7 +129,7 @@ int mount_mount(struct autofs_point *ap,
->  
->  		return 1;
->  	} else {
-> -		info(ap->logopt, MODPREFIX "mounted %s type %s on %s",
-> +		debug(ap->logopt, MODPREFIX "mounted %s type %s on %s",
->  		    what, fstype, fullpath);
->  		return 0;
->  	}
-> Index: autofs/modules/mount_ext2.c
-> ===================================================================
-> --- autofs.orig/modules/mount_ext2.c
-> +++ autofs/modules/mount_ext2.c
-> @@ -140,7 +140,7 @@ int mount_mount(struct autofs_point *ap,
->  
->  		return 1;
->  	} else {
-> -		info(ap->logopt,
-> +		debug(ap->logopt,
->  		      MODPREFIX "mounted %s type %s on %s",
->  		      what, fstype, fullpath);
->  		return 0;
-> Index: autofs/modules/mount_generic.c
-> ===================================================================
-> --- autofs.orig/modules/mount_generic.c
-> +++ autofs/modules/mount_generic.c
-> @@ -122,7 +122,7 @@ int mount_mount(struct autofs_point *ap,
->  
->  		return 1;
->  	} else {
-> -		info(ap->logopt, MODPREFIX "mounted %s type %s on %s",
-> +		debug(ap->logopt, MODPREFIX "mounted %s type %s on %s",
->  		     loc, fstype, fullpath);
->  		free(loc);
->  		return 0;
-> Index: autofs/modules/mount_nfs.c
-> ===================================================================
-> --- autofs.orig/modules/mount_nfs.c
-> +++ autofs/modules/mount_nfs.c
-> @@ -251,7 +251,7 @@ int mount_mount(struct autofs_point *ap,
->  		}
->  
->  		if (!err) {
-> -			info(ap->logopt, MODPREFIX "mounted %s on %s", loc, fullpath);
-> +			debug(ap->logopt, MODPREFIX "mounted %s on %s", loc, fullpath);
->  			free(loc);
->  			free_host_list(&hosts);
->  			return 0;
+diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
+index 3d283ab..de3af64 100644
+--- a/fs/autofs4/autofs_i.h
++++ b/fs/autofs4/autofs_i.h
+@@ -133,6 +133,7 @@ struct autofs_sb_info {
+ 	int reghost_enabled;
+ 	int needs_reghost;
+ 	struct super_block *sb;
++	struct vfsmount *mnt;
+ 	struct mutex wq_mutex;
+ 	spinlock_t fs_lock;
+ 	struct autofs_wait_queue *queues; /* Wait queue pointer */
+diff --git a/fs/autofs4/init.c b/fs/autofs4/init.c
+index 9722e4b..5e0dcd7 100644
+--- a/fs/autofs4/init.c
++++ b/fs/autofs4/init.c
+@@ -17,7 +17,16 @@
+ static int autofs_get_sb(struct file_system_type *fs_type,
+ 	int flags, const char *dev_name, void *data, struct vfsmount *mnt)
+ {
+-	return get_sb_nodev(fs_type, flags, data, autofs4_fill_super, mnt);
++	struct autofs_sb_info *sbi;
++	int ret;
++
++	ret = get_sb_nodev(fs_type, flags, data, autofs4_fill_super, mnt);
++	if (ret)
++		return ret;
++
++	sbi = autofs4_sbi(mnt->mnt_sb);
++	sbi->mnt = mnt;
++	return 0;
+ }
+ 
+ static struct file_system_type autofs_fs_type = {
+diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
+index db4117e..e4c507d 100644
+--- a/fs/autofs4/root.c
++++ b/fs/autofs4/root.c
+@@ -220,6 +220,12 @@ static void *autofs4_follow_link(struct dentry *dentry, struct nameidata *nd)
+ 	DPRINTK("dentry=%p %.*s oz_mode=%d nd->flags=%d",
+ 		dentry, dentry->d_name.len, dentry->d_name.name, oz_mode,
+ 		nd->flags);
++
++	dput(nd->path.dentry);
++	mntput(nd->path.mnt);
++	nd->path.mnt = mntget(sbi->mnt);
++	nd->path.dentry = dget(dentry);
++
+ 	/*
+ 	 * For an expire of a covered direct or offset mount we need
+ 	 * to break out of follow_down() at the autofs mount trigger
+diff --git a/fs/namei.c b/fs/namei.c
+index 735f54b..7552e61 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -539,11 +539,8 @@ __do_follow_link(struct path *path, struct nameidata *nd, void **p)
+ 	touch_atime(path->mnt, dentry);
+ 	nd_set_link(nd, NULL);
+ 
+-	if (path->mnt != nd->path.mnt) {
+-		path_to_nameidata(path, nd);
+-		dget(dentry);
+-	}
+-	mntget(path->mnt);
++	if (path->mnt == nd->path.mnt)
++		mntget(nd->path.mnt);
+ 	nd->last_type = LAST_BIND;
+ 	*p = dentry->d_inode->i_op->follow_link(dentry, nd);
+ 	error = PTR_ERR(*p);
+-- 
+1.6.3.3
