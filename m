@@ -1,14 +1,14 @@
 From: Valerie Aurora <vaurora@redhat.com>
-Subject: [PATCH 04/38] autofs4: Save autofs trigger's vfsmount in
+Subject: [PATCH 04/39] autofs4: Save autofs trigger's vfsmount in
 	super block info
-Date: Fri,  6 Aug 2010 15:34:50 -0700
-Message-ID: <1281134124-17041-5-git-send-email-vaurora@redhat.com>
-References: <1281134124-17041-1-git-send-email-vaurora@redhat.com>
+Date: Sun,  8 Aug 2010 11:52:21 -0400
+Message-ID: <1281282776-5447-5-git-send-email-vaurora@redhat.com>
+References: <1281282776-5447-1-git-send-email-vaurora@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1281134124-17041-1-git-send-email-vaurora@redhat.com>
+In-Reply-To: <1281282776-5447-1-git-send-email-vaurora@redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
