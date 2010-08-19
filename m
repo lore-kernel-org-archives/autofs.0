@@ -1,7 +1,7 @@
-From: Hallvard B Furuseth <h.b.furuseth@usit.uio.no>
-Subject: multi-level auto.master in ldap
-Date: Tue, 17 Aug 2010 22:56:20 +0200
-Message-ID: <hbf.20100817t0bg@bombur.uio.no>
+From: kiran@serc.iisc.ernet.in
+Subject: multi-mount not working on autofs-3.1.7-900.1
+Date: Thu, 19 Aug 2010 22:28:19 +0530 (IST)
+Message-ID: <17432.10.16.10.158.1282237099.squirrel@mail.serc.iisc.ernet.in>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,25 +18,38 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-How do I translate this (in particular auto.master) to autofs-ldap?
+Hi,
 
-auto.master mount pt	Description in indirect map
-  /X/A                	* -options...  A.example.com:/x/a/&
-  /X/B			* -options...  B.example.com:/x/b/&
-  /Y/B			* -options...  B.example.com:/y/b/&
+on SLES 9 having autofs-3.1.7-900.1
 
-The HOWTOs I've seen do not put /X and /Y in the DN, thus
-they give the same DN to /X/B and /Y/B:
+content of /etc/auto.master is :
 
-  DN of 'automount' object	automountInformation attribute
-  cn=/X,ou=auto.master,$suffix	ldap:ou=auto.X,$suffix
-  cn=B ,ou=auto.X,$suffix	-fstype=autofs ldap:ou=auto.B,$suffix
-  cn=/ ,ou=auto.B,$suffix	B.example.com:/x/b/&
+/home1         /etc/auto/map.home1
 
-So, what should I call the final object - "cn=/,ou=auto.B.X,$suffix"?
-Is there some significance to the auto.* ou names, except auto.master?
-For that matter, I'm in any case wondering why people seem to be using
-a single auto.* namespace for both directory components and hosts.
+content of /etc/auto/map.home1 is:
+
+tt        /  -rw,soft,intr    10.XX.XX.XX:/local/scratch /point
+-rw,soft,intr  10.XX.XX.XX:/local/scratch1
+
+
+Both /local/scratch and /local/scratch1 are coming from same nfs server.
+
+when i access /home1/tt, /local/scratch gets mounted, but when i access
+/home1/tt/point it will not mount /local/scratch1.
+
+But same setup works on RHEL4 version autofs-4.1.3-169
+and  RHEL5 version autofs-5.0.1-0.rc2.88
+
+multimount is it supported in autofs-3.1.7-900.1 ? if it not supported
+what is work around?
+
+Thanking you,
+regards,
+kiran
+
+
 
 -- 
-Hallvard
+This message has been scanned for viruses and
+dangerous content by MailScanner, and is
+believed to be clean.
