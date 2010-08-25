@@ -1,14 +1,12 @@
-From: Valerie Aurora <vaurora@redhat.com>
-Subject: [PATCH 04/39] autofs4: Save autofs trigger's vfsmount in
-	super block info
-Date: Sun,  8 Aug 2010 11:52:21 -0400
-Message-ID: <1281282776-5447-5-git-send-email-vaurora@redhat.com>
-References: <1281282776-5447-1-git-send-email-vaurora@redhat.com>
+From: Greg Wooledge <wooledg@eeg.ccf.org>
+Subject: How to reload /net "maps"
+Date: Wed, 25 Aug 2010 14:27:38 -0400
+Message-ID: <20100825182738.GC23737@eeg.ccf.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1281282776-5447-1-git-send-email-vaurora@redhat.com>
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,121 +17,29 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: autofs@linux.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Valerie Aurora <vaurora@redhat.com>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Jan Blunck <jblunck@suse.de>
+To: autofs@linux.kernel.org
 
-From: Jan Blunck <jblunck@suse.de>
+Debian 5.0, autofs 4.1.4, kernel 2.6.26-2-686
 
-XXX - This is broken and included just to make union mounts work.  Ian
-Kent and David Howells are working on a long-term solution that will
-replace abuse of ->follow_link() to trigger an automount with a new
-op.
+I may be overlooking some documentation, but I couldn't find out how to
+do this.  Occasionally one of our NFS servers adds a new entry to its
+/etc/exports file, and we'd like the clients to be able to use it.
 
-Original commit message:
+The clients look like:
 
-This is a bugfix/replacement for commit
-051d381259eb57d6074d02a6ba6e90e744f1a29f:
+# grep -v '^#' /etc/auto.master
+/net    /etc/auto.net
 
-    During a path walk if an autofs trigger is mounted on a dentry,
-    when the follow_link method is called, the nameidata struct
-    contains the vfsmount and mountpoint dentry of the parent mount
-    while the dentry that is passed in is the root of the autofs
-    trigger mount.  I believe it is impossible to get the vfsmount of
-    the trigger mount, within the follow_link method, when only the
-    parent vfsmount and the root dentry of the trigger mount are
-    known.
+At some point in the past, autofs will have contacted this host and
+somehow "cached" the fact that it was sharing /home, /data, etc.
+Now I've added /opt to the exports file.  But when I do "ls /net/servername"
+I still only see home and data, not opt.
 
-The pre solution in this commit was to replace the path embedded in the
-parent's nameidata with the path of the link itself in
-__do_follow_link().  This is a relatively harmless misuse of the
-field, but union mounts ran into a bug during follow_link() caused by
-the nameidata containing the wrong path (we count on it being what it
-is all other places - the path of the parent).
+Rebooting the client works -- after a reboot, I can see home, data and opt.
 
-A cleaner and easier to understand solution is to save the necessary
-vfsmount in the autofs superblock info when it is mounted.  Then we
-can easily update the vfsmount in autofs4_follow_link().
-
-Signed-off-by: Jan Blunck <jblunck@suse.de>
-Signed-off-by: Valerie Aurora <vaurora@redhat.com>
-Acked-by: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
----
- fs/autofs4/autofs_i.h |    1 +
- fs/autofs4/init.c     |   11 ++++++++++-
- fs/autofs4/root.c     |    6 ++++++
- fs/namei.c            |    7 ++-----
- 4 files changed, 19 insertions(+), 6 deletions(-)
-
-diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
-index 3d283ab..de3af64 100644
---- a/fs/autofs4/autofs_i.h
-+++ b/fs/autofs4/autofs_i.h
-@@ -133,6 +133,7 @@ struct autofs_sb_info {
- 	int reghost_enabled;
- 	int needs_reghost;
- 	struct super_block *sb;
-+	struct vfsmount *mnt;
- 	struct mutex wq_mutex;
- 	spinlock_t fs_lock;
- 	struct autofs_wait_queue *queues; /* Wait queue pointer */
-diff --git a/fs/autofs4/init.c b/fs/autofs4/init.c
-index 9722e4b..5e0dcd7 100644
---- a/fs/autofs4/init.c
-+++ b/fs/autofs4/init.c
-@@ -17,7 +17,16 @@
- static int autofs_get_sb(struct file_system_type *fs_type,
- 	int flags, const char *dev_name, void *data, struct vfsmount *mnt)
- {
--	return get_sb_nodev(fs_type, flags, data, autofs4_fill_super, mnt);
-+	struct autofs_sb_info *sbi;
-+	int ret;
-+
-+	ret = get_sb_nodev(fs_type, flags, data, autofs4_fill_super, mnt);
-+	if (ret)
-+		return ret;
-+
-+	sbi = autofs4_sbi(mnt->mnt_sb);
-+	sbi->mnt = mnt;
-+	return 0;
- }
- 
- static struct file_system_type autofs_fs_type = {
-diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
-index db4117e..e4c507d 100644
---- a/fs/autofs4/root.c
-+++ b/fs/autofs4/root.c
-@@ -220,6 +220,12 @@ static void *autofs4_follow_link(struct dentry *dentry, struct nameidata *nd)
- 	DPRINTK("dentry=%p %.*s oz_mode=%d nd->flags=%d",
- 		dentry, dentry->d_name.len, dentry->d_name.name, oz_mode,
- 		nd->flags);
-+
-+	dput(nd->path.dentry);
-+	mntput(nd->path.mnt);
-+	nd->path.mnt = mntget(sbi->mnt);
-+	nd->path.dentry = dget(dentry);
-+
- 	/*
- 	 * For an expire of a covered direct or offset mount we need
- 	 * to break out of follow_down() at the autofs mount trigger
-diff --git a/fs/namei.c b/fs/namei.c
-index 735f54b..7552e61 100644
---- a/fs/namei.c
-+++ b/fs/namei.c
-@@ -539,11 +539,8 @@ __do_follow_link(struct path *path, struct nameidata *nd, void **p)
- 	touch_atime(path->mnt, dentry);
- 	nd_set_link(nd, NULL);
- 
--	if (path->mnt != nd->path.mnt) {
--		path_to_nameidata(path, nd);
--		dget(dentry);
--	}
--	mntget(path->mnt);
-+	if (path->mnt == nd->path.mnt)
-+		mntget(nd->path.mnt);
- 	nd->last_type = LAST_BIND;
- 	*p = dentry->d_inode->i_op->follow_link(dentry, nd);
- 	error = PTR_ERR(*p);
--- 
-1.6.3.3
+I'm trying to find a way to get autofs to reload the server's list of
+shared file systems without totally rebooting the client.  If I issue
+a "/etc/init.d/autofs reload" command, I get a few normal-looking messages,
+but no change in the list of results.  If I try "/etc/init.d/autofs restart"
+it tell me it cannot stop the /net daemon, and cannot start a new one.
+Manually attempting "kill PID" or "kill -HUP PID" has no visible effect.
