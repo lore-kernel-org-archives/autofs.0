@@ -1,29 +1,27 @@
-From: Anders Larsen <al@alarsen.net>
+From: Samuel Ortiz <samuel@sortiz.org>
 Subject: Re: Remaining BKL users, what to do
-Date: Thu, 16 Sep 2010 18:09:10 +0200
-Message-ID: <1284653350l.20726l.1l@i-dmzi_al.realan.de>
+Date: Thu, 16 Sep 2010 18:57:56 +0200
+Message-ID: <1284656277.2962.0.camel@sortiz-mobl>
 References: <201009161632.59210.arnd@arndb.de>
+Reply-To: Samuel Ortiz <samuel@sortiz.org>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201009161632.59210.arnd@arndb.de> (from arnd@arndb.de on Thu
-	Sep 16 16:32:59 2010)
-Content-Disposition: inline
+In-Reply-To: <201009161632.59210.arnd@arndb.de>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: Arnd Bergmann <arnd@arndb.de>
-Cc: codalist@coda.cs.cmu.edu, autofs@linux.kernel.org, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>, Trond Myklebust <Trond.Myklebust@netapp.com>, Petr Vandrovec <vandrove@vc.cvut.cz>, Jan Kara <jack@suse.cz>, Evgeniy Dushistov <dushistov@mail.ru>, Ingo Molnar <mingo@elte.hu>, netdev@vger.kernel.org, Samuel Ortiz <samuel@sortiz.org>, Arnaldo Carvalho de Melo <acme@ghostprotocols.net>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, Andrew Hendry <andrew.hendry@gmail.com>
+Cc: codalist@coda.cs.cmu.edu, autofs@linux.kernel.org, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>, Trond Myklebust <Trond.Myklebust@netapp.com>, Petr Vandrovec <vandrove@vc.cvut.cz>, Anders Larsen <al@alarsen.net>, Jan Kara <jack@suse.cz>, Evgeniy Dushistov <dushistov@mail.ru>, Ingo Molnar <mingo@elte.hu>, netdev@vger.kernel.org, Arnaldo Carvalho de Melo <acme@ghostprotocols.net>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, Andrew Hendry <andrew.hendry@gmail.com>
 
-On 2010-09-16 16:32:59, Arnd Bergmann wrote:
-> The big kernel lock is gone from almost all code in linux-next, this is
-> the status of what I think will happen to the remaining users:
+On Thu, 2010-09-16 at 16:32 +0200, Arnd Bergmann wrote:
+> net/appletalk:
+> net/ipx/af_ipx.c:
+> net/irda/af_irda.c:
+> 	Can probably be saved from retirement in drivers/staging if the
+> 	maintainers still care.
+I'll take care of the IrDA part.
 
-> fs/qnx4:
-> 	Should be easy to fix, there are only a few places in the code that
-> 	use the BKL. Anders?
+Cheers,
+Samuel.
 
-Will do.
-
-Cheers
-Anders
