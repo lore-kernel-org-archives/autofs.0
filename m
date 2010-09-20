@@ -1,17 +1,17 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: -Dvariable=value not working?
-Date: Mon, 20 Sep 2010 09:46:18 +0800
-Message-ID: <1284947178.3095.8.camel@localhost>
-References: <4C502068.1070104@nerc.ac.uk>
+Subject: Re: multi-mount not working on autofs-3.1.7-900.1
+Date: Mon, 20 Sep 2010 09:51:45 +0800
+Message-ID: <1284947505.3095.10.camel@localhost>
+References: <517808.86831.qm@web35601.mail.mud.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com;
 	h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding;
-	s=smtpout; bh=Gp82hZoYcopKYsI/KRMOz3BxS68=;
-	b=afPwFwKnH307bklpNPDeDByZNcmH0lxbJN5SqGDhAEAxf37hA6B+xtU+LWCSdb5UdPBX95+iYFVW/s/x7qZB0gLgGZeI0nzppqL/pxX49J9NOMYSYYVLrbz50BuTtdtVvFghBuRFCO7ADYvGe+tCfxlU8CjCICVr8zWMPrvlyqA=
-In-Reply-To: <4C502068.1070104@nerc.ac.uk>
+	s=smtpout; bh=DxvI1Km4PNxJw0ZMFEg20/Mfgnk=;
+	b=ad3jbNpH73wue0GZwZ77+vxIznPz+ZYSrpGxrRDkwfF3MdMRgTWZE+iisIfe9o6XzGqGLS32t9wsPza1eHgvc6BnGTAv8laZGSKHEDLTyqsr12DjkA95I/nQt8+ydsd+qzNdE1XUKtLDSc5PrW9iaQGg+uQ3lDsXBLrRaNptmEY=
+In-Reply-To: <517808.86831.qm@web35601.mail.mud.yahoo.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,38 +22,48 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: R.Gillman@nerc.ac.uk
+To: M N KIRAN <kiranmn@yahoo.com>
 Cc: autofs@linux.kernel.org
 
-On Wed, 2010-07-28 at 13:19 +0100, Richard Gillman wrote:
-> I've got a Suse SLES 11 system running automount 5.0.3 which stubbornly 
-> refuses to variable substitution.
+On Sat, 2010-08-07 at 03:32 -0700, M N KIRAN wrote:
+> Hi,
 > 
-> friesian:/etc/sysconfig # automount -V
+> on SLES 9 having autofs-3.1.7-900.1
 > 
-> Linux automount version 5.0.3
+> content of /etc/auto.master is :
 > 
-> Directories:
+> /home1         /etc/auto/map.home1
 > 
-> config dir: /etc/sysconfig
+> content of /etc/auto/map.home1 is:
 > 
-> maps dir: /etc
-> 
-> modules dir: /usr/lib64/autofs
-> 
-> Compile options:
-> 
-> DISABLE_MOUNT_LOCKING ENABLE_FORCED_SHUTDOWN ENABLE_IGNORE_BUSY_MOUNTS
-> 
-> WITH_LDAP WITH_SASL LIBXML2_WORKAROUND
+> tt        /  -rw,soft,intr    10.XX.XX.XX:/local/scratch /point -rw,soft,intr  10.XX.XX.XX:/local/scratch1
 > 
 > 
-> I've got LOCAL_OPTIONS="-DNERCARCH=linux" in /etc/sysconfig/autofs (I've 
-> also tried "-D  NERCARCH=linux", "-D NERCARCH='linux'").
+> Both /local/scratch and /local/scratch1 are coming from same nfs server.
+> 
+> when i access /home1/tt, /local/scratch gets mounted, but when i access
+> /home1/tt/point it will not mount /local/scratch1.
+> 
+> But same setup works on RHEL4 version autofs-4.1.3-169
+> and  RHEL5 version autofs-5.0.1-0.rc2.88
+> 
+> multimount is it supported in autofs-3.1.7-900.1 ? if it not supported what is work around?
 
-Does the init script in SLES 11 actually use LOCAL_OPTIONS?
-That changed in version 5, you should have a look at the autofs
-configuration file (wherever that is in SLES 11) and the init script.
-You might need to use OPTIONS in configuration.
-
-Ian
+Don't know but I don't think so.
+I don't see how there could be a workaround either.
+If the automount daemon doesn't understand mount hierarchies then it
+can't work.
+ 
+> 
+> Thanking you,
+> regards,
+> kiran
+> 
+> 
+> 
+>       
+> 
+> _______________________________________________
+> autofs mailing list
+> autofs@linux.kernel.org
+> http://linux.kernel.org/mailman/listinfo/autofs
