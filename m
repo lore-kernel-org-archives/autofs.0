@@ -1,109 +1,35 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: Remaining BKL users, what to do
-Date: Fri, 17 Sep 2010 20:46:10 +0200
-Message-ID: <201009172046.11378.arnd@arndb.de>
-References: <201009161632.59210.arnd@arndb.de> <1284648549.23787.26.camel@gandalf.stny.rr.com> <4C9262C4.9050006@fusionio.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [autofs] Remaining BKL users, what to do
+Date: Mon, 20 Sep 2010 09:25:02 +0800
+Message-ID: <1284945902.3095.4.camel@localhost>
+References: <201009161632.59210.arnd@arndb.de>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4C9262C4.9050006@fusionio.com>
-Sender: netdev-owner@vger.kernel.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com; h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding; s=smtpout; bh=M05GkC692pZStA3yuZ0tcokjVno=; b=SYiIoqkw1XgnzYrBMn8797DmdNmehJlAQ31jnbMMzVav5QmyMYeZCtV+JXR4dNK/USkQCN7ly+ssp1YpLfZhjPU7+3eMTXa6BBYOm7mBZRkwwDSwsm4M4o8uRL1JE9941xBo8SSDtW7m4h51ylHDH/2vTMBMELQ2iw4oO0QZqkM=
+In-Reply-To: <201009161632.59210.arnd@arndb.de>
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: Text/Plain; charset="us-ascii"
-To: Jens Axboe <jaxboe@fusionio.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>, "codalist@coda.cs.cmu.edu" <codalist@coda.cs.cmu.edu>, "autofs@linux.kernel.org" <autofs@linux.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, Christoph Hellwig <hch@infradead.org>, Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>, Trond Myklebust <Trond.Myklebust@netapp.com>, Petr Vandrovec <vandrove@vc.cvut.cz>, Anders Larsen <al@alarsen.net>, Jan Kara <jack@suse.cz>, Evgeniy Dushistov <dushistov@mail.ru>, Ingo Molnar <mingo@elte.hu>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Samuel Ortiz <samuel@sortiz.org>, Arnaldo Carvalho de Melo <acme@ghostprotocols.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, Andrew Hendry <andrew.hendry@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: codalist@TELEMANN.coda.cs.cmu.edu, autofs@linux.kernel.org, Samuel Ortiz <samuel@sortiz.org>, Jan Kara <jack@suse.cz>, Arnaldo Carvalho de Melo <acme@ghostprotocols.net>, netdev@vger.kernel.org, Anders Larsen <al@alarsen.net>, Trond Myklebust <Trond.Myklebust@netapp.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Petr Vandrovec <vandrove@vc.cvut.cz>, Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>, linux-fsdevel@vger.kernel.org, Evgeniy Dushistov <dushistov@mail.ru>, Ingo Molnar <mingo@elte.hu>, Andrew Hendry <andrew.hendry@gmail.com>, linux-media@vger.kernel.org
 
-On Thursday 16 September 2010 20:32:36 Jens Axboe wrote:
-> On 2010-09-16 16:49, Steven Rostedt wrote:
-> > Git blame shows this to be your code (copied from block/blktrace.c from
-> > years past).
-> > 
-> > Is the lock_kernel() needed here? (although Arnd did add it in 62c2a7d9)
+On Thu, 2010-09-16 at 16:32 +0200, Arnd Bergmann wrote:
+> The big kernel lock is gone from almost all code in linux-next, this is
+> the status of what I think will happen to the remaining users:
 > 
-> It isn't, it can be removed.
 
-Ok, I queued up this patch now. Thanks!
+...
 
-	Arnd
----
-Subject: [PATCH] blktrace: remove the big kernel lock
+> fs/autofs:
+> 	Pretty much dead, replaced by autofs4. I'd suggest moving this
+> 	to drivers/staging in 2.6.37 and letting it die there.
 
-According to Jens, this code does not need the BKL at all,
-it is sufficiently serialized by bd_mutex.
+Not sure that's what we need.
+What actually needs to happen is that autofs4 needs to be renamed to
+autofs.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Jens Axboe <jaxboe@fusionio.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Ian
 
-diff --git a/kernel/trace/blktrace.c b/kernel/trace/blktrace.c
-index 959f8d6..5328e87 100644
---- a/kernel/trace/blktrace.c
-+++ b/kernel/trace/blktrace.c
-@@ -23,7 +23,6 @@
- #include <linux/mutex.h>
- #include <linux/slab.h>
- #include <linux/debugfs.h>
--#include <linux/smp_lock.h>
- #include <linux/time.h>
- #include <linux/uaccess.h>
- 
-@@ -639,7 +638,6 @@ int blk_trace_ioctl(struct block_device *bdev, unsigned cmd, char __user *arg)
- 	if (!q)
- 		return -ENXIO;
- 
--	lock_kernel();
- 	mutex_lock(&bdev->bd_mutex);
- 
- 	switch (cmd) {
-@@ -667,7 +665,6 @@ int blk_trace_ioctl(struct block_device *bdev, unsigned cmd, char __user *arg)
- 	}
- 
- 	mutex_unlock(&bdev->bd_mutex);
--	unlock_kernel();
- 	return ret;
- }
- 
-@@ -1652,10 +1649,9 @@ static ssize_t sysfs_blk_trace_attr_show(struct device *dev,
- 	struct block_device *bdev;
- 	ssize_t ret = -ENXIO;
- 
--	lock_kernel();
- 	bdev = bdget(part_devt(p));
- 	if (bdev == NULL)
--		goto out_unlock_kernel;
-+		goto out;
- 
- 	q = blk_trace_get_queue(bdev);
- 	if (q == NULL)
-@@ -1683,8 +1679,7 @@ out_unlock_bdev:
- 	mutex_unlock(&bdev->bd_mutex);
- out_bdput:
- 	bdput(bdev);
--out_unlock_kernel:
--	unlock_kernel();
-+out:
- 	return ret;
- }
- 
-@@ -1714,11 +1709,10 @@ static ssize_t sysfs_blk_trace_attr_store(struct device *dev,
- 
- 	ret = -ENXIO;
- 
--	lock_kernel();
- 	p = dev_to_part(dev);
- 	bdev = bdget(part_devt(p));
- 	if (bdev == NULL)
--		goto out_unlock_kernel;
-+		goto out;
- 
- 	q = blk_trace_get_queue(bdev);
- 	if (q == NULL)
-@@ -1753,8 +1747,6 @@ out_unlock_bdev:
- 	mutex_unlock(&bdev->bd_mutex);
- out_bdput:
- 	bdput(bdev);
--out_unlock_kernel:
--	unlock_kernel();
- out:
- 	return ret ? ret : count;
- }
+
+
