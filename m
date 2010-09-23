@@ -1,14 +1,10 @@
-From: Joseph V Moss <jmoss@ecsmtp.pdx.intel.com>
-Subject: Re: -Dvariable=value not working?
-Date: Tue, 21 Sep 2010 15:35:07 -0700
-Message-ID: <28702.1285108507@ichips.intel.com>
-References: <4C502068.1070104@nerc.ac.uk>
+From: Ondrej Valousek <ondrejv@s3group.cz>
+Subject: dump map option support
+Date: Thu, 23 Sep 2010 14:53:45 +0200
+Message-ID: <4C9B4DD9.2040101@s3group.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============5579007475222620903=="
 Return-path: <autofs-bounces@linux.kernel.org>
-In-reply-to: Your message of "Wed, 28 Jul 2010 05:19:52 PDT."
-	<4C502068.1070104@nerc.ac.uk> 
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,32 +15,62 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: "R.Gillman@nerc.ac.uk" <R.Gillman@nerc.ac.uk>
-Cc: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
+To: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
 
-> I've got a Suse SLES 11 system running automount 5.0.3 which stubbornly 
-> refuses to variable substitution.
-> 
-[...]
-> I've got LOCAL_OPTIONS="-DNERCARCH=linux" in /etc/sysconfig/autofs (I've 
-> also tried "-D  NERCARCH=linux", "-D NERCARCH='linux'").
-[...]
-> friesian:/etc/sysconfig # ps -ef|grep automount
-> 
-> root 14378 1 0 11:12 ? 00:00:00 /usr/sbin/automount -p 
-> /var/run/automount.pid -O -DNERCARCH=linux
-                         ^^^^
+This is a multi-part message in MIME format.
+--===============5579007475222620903==
+Content-Type: multipart/alternative;
+ boundary="------------080509070502040808060405"
 
-The -O option is consuming the next arg and using '-DNERCARCH=linux'
-as a mount option.
+This is a multi-part message in MIME format.
+--------------080509070502040808060405
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-The SLES11 autofs init script uses $LOCAL_OPTIONS like this:
+  Hi Ian,
 
-	AUTOFS_OPTIONS="-O $LOCAL_OPTIONS $AUTOFS_OPTIONS"
+Any news about our new "dump map" option? I just found out that F-13 still does not have it :-(
+I am also wondering if you have any plans about supporting sssd (just a quick question).
 
-So you need the beginning of your LOCAL_OPTIONS to be mount options.
-After those, you can then do your variable assignments.
+Many thanks,
+Ondrej
 
-For example:
+--------------080509070502040808060405
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-LOCAL_OPTIONS="tcp,hard,intr -DNERCARCH=linux"
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  </head>
+  <body text="#000066" bgcolor="#ffffff">
+    Hi Ian,<br>
+    <br>
+    Any news about our new "dump map" option? I just found out that F-13
+    still does not have it :-(<br>
+    I am also wondering if you have any plans about supporting sssd
+    (just a quick question).<br>
+    <br>
+    Many thanks,<br>
+    Ondrej<br>
+  </body>
+</html>
+
+--------------080509070502040808060405--
+
+
+--===============5579007475222620903==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--===============5579007475222620903==--
+
