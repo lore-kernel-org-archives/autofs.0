@@ -1,10 +1,17 @@
-From: Ondrej Valousek <ondrejv@s3group.cz>
-Subject: dump map option support
-Date: Thu, 23 Sep 2010 14:53:45 +0200
-Message-ID: <4C9B4DD9.2040101@s3group.cz>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============5579007475222620903=="
+From: Ian Kent <raven@themaw.net>
+Subject: Re: dump map option support
+Date: Sat, 25 Sep 2010 10:12:54 +0800
+Message-ID: <33F608E9-BD17-4FC0-B668-5287239E0DA8@themaw.net>
+References: <4C9B612B.9050909@s3group.cz>
+Mime-Version: 1.0 (iPad Mail 7B367)
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com;
+	h=references:message-id:from:to:in-reply-to:content-type:content-transfer-encoding:mime-version:subject:date:cc;
+	s=smtpout; bh=clAEryvSDe7umL/x7loq3X4lxDs=;
+	b=gWFlFn8LFxjyn1bgpnyEFviK0kvFoD4nEYW/B7YWQuA+EZBRtfGdUOMQPRwJsAGO75iZ/QTkYleQJwZ+PTQWeuAo2PeZ9zs6giQ//Aol4LLLou5G1+FzBkqWBsjfkHyL96Pc89gGijiButhrQUjw7LxiSigtyunbYopAcI0GdUY=
+In-Reply-To: <4C9B612B.9050909@s3group.cz>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -15,62 +22,20 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
-
-This is a multi-part message in MIME format.
---===============5579007475222620903==
-Content-Type: multipart/alternative;
- boundary="------------080509070502040808060405"
-
-This is a multi-part message in MIME format.
---------------080509070502040808060405
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-
-  Hi Ian,
-
-Any news about our new "dump map" option? I just found out that F-13 still does not have it :-(
-I am also wondering if you have any plans about supporting sssd (just a quick question).
-
-Many thanks,
-Ondrej
-
---------------080509070502040808060405
-Content-Type: text/html; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-  <head>
-
-    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-  </head>
-  <body text="#000066" bgcolor="#ffffff">
-    Hi Ian,<br>
-    <br>
-    Any news about our new "dump map" option? I just found out that F-13
-    still does not have it :-(<br>
-    I am also wondering if you have any plans about supporting sssd
-    (just a quick question).<br>
-    <br>
-    Many thanks,<br>
-    Ondrej<br>
-  </body>
-</html>
-
---------------080509070502040808060405--
+To: Ondrej Valousek <webserv@s3group.cz>
+Cc: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
 
 
---===============5579007475222620903==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
+On 23/09/2010, at 10:16 PM, Ondrej Valousek <webserv@s3group.cz> wrote:
 
---===============5579007475222620903==--
+> Hi Ian,
+> 
+> Any news about our new "dump map" option? I just found out that F-13 still does not have it :-(
+> I am also wondering if you have any plans about supporting sssd (just a quick question).
 
+My bad, I'll get onto it.
+I'll probably need to wait until after F14 is released to add it to that.
+Rawhide will get it when I get the next release out, which is long overdue.
+
+Ian
