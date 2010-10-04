@@ -1,42 +1,24 @@
-From: Stef Bon <stef@bononline.nl>
-Subject: possible to differ the timeout per key?
-Date: Fri, 01 Oct 2010 20:43:15 +0200
-Message-ID: <4CA62BC3.7060301@bononline.nl>
-Mime-Version: 1.0
+From: David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [autofs] [PATCH 00/17] Introduce automounter dentry ops
+Date: Mon, 04 Oct 2010 10:23:57 +0100
+Message-ID: <14191.1286184237@redhat.com>
+References: <AANLkTinoJCY=Fy_0UPWdasJg3GE5WQP0pQA8cLnir1BL@mail.gmail.com> <20100930181455.30939.53914.stgit@warthog.procyon.org.uk> <4CA59482.1040508@bononline.nl> <8948.1285921904@redhat.com>
+Return-path: <linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <AANLkTinoJCY=Fy_0UPWdasJg3GE5WQP0pQA8cLnir1BL-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-ID: <autofs.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs/>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: autofs@linux.kernel.org
+To: Stef Bon <stefbon-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Stef Bon <stef-/E4qUF3RmbfcqV2Q6a4srg@public.gmane.org>, autofs-CPWUtch7KCBzeIdxy0IIJw@public.gmane.org, linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-  Hello,
+Stef Bon <stefbon-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
 
-I'm building a construction to provide easy and effective access to 
-different
-resources like harddrives, usb sticks, cdroms and remote like smb shares.
+> As I understand it, it gives a framework to allow the fs (cifs, nfs
+> afs) do sub-auto-mounting right?
 
-It uses a very simple map:
+I suppose.  Is there a difference between automounting and sub-automounting?
+:-)
 
-*                -fstype=md5key :/&
-
-and the key is a md5sum of a record.
-
-The filesystem md5key does not exist of course but is a wrapper which 
-calls the right mount command,
-depending on the md5sum of the record. It will lookup the record, check 
-what kind of resource it is and will call the right mount.command.
-
-Now the timeout is set for all the mounts (smb shares, usb devices, 
-harddrives, cdroms) the same (5 seconds) , but can I make this timeout 
-differ per key/mountpoint??
-
-Stef
+David
