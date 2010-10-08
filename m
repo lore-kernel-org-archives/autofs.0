@@ -1,41 +1,88 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [PATCH, RFC] autofs3: move to drivers/staging
-Date: Mon, 04 Oct 2010 14:05:56 -0700
-Message-ID: <4CAA41B4.5030902@zytor.com>
-References: <201010042228.10642.arnd@arndb.de> <4CAA3A69.9040709@zytor.com> <20101004204057.GA28669@suse.de>
+From: Valerie Aurora <vaurora-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 05/17] Remove the automount through follow_link() kludge code from pathwalk
+Date: Fri, 8 Oct 2010 19:41:30 -0400
+Message-ID: <20101008234130.GE30846@shell>
+References: <20100930181455.30939.53914.stgit@warthog.procyon.org.uk> <20100930181521.30939.31415.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20101004204057.GA28669@suse.de>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20100930181521.30939.31415.stgit-S6HVgzuS8uM4Awkfq6JHfwNdhmdF6hFW@public.gmane.org>
+Sender: linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Greg KH <gregkh@suse.de>
-Cc: Arnd Bergmann <arnd@arndb.de>, autofs@linux.kernel.org, Ian Kent <raven@themaw.net>, linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+To: David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: viro-rfM+Q5joDG/XmaaqVzeoHQ@public.gmane.org, jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-fs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, autofs-CPWUtch7KCBzeIdxy0IIJw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-afs-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ian Kent <raven-PKsaG3nR2I+sTnJN9+BGXg@public.gmane.org>
 
-On 10/04/2010 01:40 PM, Greg KH wrote:
-> On Mon, Oct 04, 2010 at 01:34:49PM -0700, H. Peter Anvin wrote:
->> On 10/04/2010 01:28 PM, Arnd Bergmann wrote:
->>> Nobody appears to be interested in fixing autofs3 bugs
->>> any more and it uses the BKL, which is going away.
->>>
->>> Move this to staging for retirement. Unless someone
->>> complains until 2.6.38, we can remove it for good.
->>>
->>> The include/linux/auto_fs.h header file is still used
->>> by autofs4, so it remains in place.
->>
->> I say we should just delete it.
+On Thu, Sep 30, 2010 at 07:15:21PM +0100, David Howells wrote:
+> Remove the automount through follow_link() kludge code from pathwalk in favour
+> of using d_automount().
 > 
-> Give it the 6 months period to phase out of the kernel, I'll handle this
-> and if someone comes back and wants to maintain it, it can easily be
-> added back.
+> Signed-off-by: David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Acked-by: Ian Kent <raven-PKsaG3nR2I+sTnJN9+BGXg@public.gmane.org>
+> ---
 > 
+>  fs/namei.c |   17 +++--------------
+>  1 files changed, 3 insertions(+), 14 deletions(-)
+> 
+> diff --git a/fs/namei.c b/fs/namei.c
+> index c50b9d7..86421f9 100644
+> --- a/fs/namei.c
+> +++ b/fs/namei.c
+> @@ -861,17 +861,6 @@ fail:
+>  }
+>  
+>  /*
+> - * This is a temporary kludge to deal with "automount" symlinks; proper
+> - * solution is to trigger them on follow_mount(), so that do_lookup()
+> - * would DTRT.  To be killed before 2.6.34-final.
+> - */
+> -static inline int follow_on_final(struct inode *inode, unsigned lookup_flags)
+> -{
+> -	return inode && unlikely(inode->i_op->follow_link) &&
+> -		((lookup_flags & LOOKUP_FOLLOW) || S_ISDIR(inode->i_mode));
+> -}
+> -
+> -/*
+>   * Name resolution.
+>   * This is the basic name resolution function, turning a pathname into
+>   * the final dentry. We expect 'base' to be positive and a directory.
+> @@ -991,7 +980,8 @@ last_component:
+>  		if (err)
+>  			break;
+>  		inode = next.dentry->d_inode;
+> -		if (follow_on_final(inode, lookup_flags)) {
+> +		if (inode && unlikely(inode->i_op->follow_link) &&
+> +		    (lookup_flags & LOOKUP_FOLLOW)) {
+>  			err = do_follow_link(&next, nd);
+>  			if (err)
+>  				goto return_err;
+> @@ -1882,8 +1872,7 @@ reval:
+>  		struct inode *inode = path.dentry->d_inode;
+>  		void *cookie;
+>  		error = -ELOOP;
+> -		/* S_ISDIR part is a temporary automount kludge */
+> -		if (!(nd.flags & LOOKUP_FOLLOW) && !S_ISDIR(inode->i_mode))
+> +		if (!(nd.flags & LOOKUP_FOLLOW))
+>  			goto exit_dput;
+>  		if (count++ == 32)
+>  			goto exit_dput;
 
-OK, feel free to add my
+While you're removing kludges, I bet you can also remove this from
+__follow_link():
 
-Acked-by: H. Peter Anvin <hpa@zytor.com>
+       if (path->mnt != nd->mnt) {
+               path_to_nameidata(path, nd);
+               dget(dentry);
+       }
+       mntget(path->mnt);
 
-... for both the move to staging and its eventual deletion.
+And replace with:
 
-	-hpa
+       if (path->mnt == nd->mnt)
+               mntget(path->mnt);
+
+This reverts the non-helper-function parts of
+051d381259eb57d6074d02a6ba6e90e744f1a29f, which breaks union mounts.
+
+-VAL
