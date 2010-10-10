@@ -1,25 +1,106 @@
-From: Valerie Aurora <vaurora-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 08/17] Make follow_down() handle d_manage()
-Date: Fri, 8 Oct 2010 20:28:31 -0400
-Message-ID: <20101009002831.GG30846@shell>
-References: <20100930181455.30939.53914.stgit@warthog.procyon.org.uk> <20100930181536.30939.6776.stgit@warthog.procyon.org.uk>
+From: Ian Kent <raven-PKsaG3nR2I+sTnJN9+BGXg@public.gmane.org>
+Subject: Re: [PATCH 05/17] Remove the automount through follow_link()
+ kludge code from pathwalk
+Date: Sun, 10 Oct 2010 09:16:12 +0800
+Message-ID: <1286673372.3691.14.camel@localhost>
+References: <20100930181455.30939.53914.stgit@warthog.procyon.org.uk>
+	 <20100930181521.30939.31415.stgit@warthog.procyon.org.uk>
+	 <20101008234130.GE30846@shell>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20100930181536.30939.6776.stgit-S6HVgzuS8uM4Awkfq6JHfwNdhmdF6hFW@public.gmane.org>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com; h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding; s=smtpout; bh=lqmPje2b1mN2Zij6jIhH/9optiw=; b=G2Xilols7dT+jBp8Nmn3g2dAVyDjavZANO6snusbJoPNNWZyIEVHRoOY15sLo60/HLy7/HMXdCAuW9blOnvtEFc8OQ4IL7PihON8lQmJNKcEAq7yo2tctxmPGZLXQe0IzQXlbCWXDM69MatFKlCdILFH7fQ4iliG17M4sRuXHWI=
+In-Reply-To: <20101008234130.GE30846@shell>
 Sender: linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: viro-rfM+Q5joDG/XmaaqVzeoHQ@public.gmane.org, jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-fs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, autofs-CPWUtch7KCBzeIdxy0IIJw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-afs-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ian Kent <raven-PKsaG3nR2I+sTnJN9+BGXg@public.gmane.org>
+To: Valerie Aurora <vaurora-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, viro-rfM+Q5joDG/XmaaqVzeoHQ@public.gmane.org, jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-fs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, autofs-CPWUtch7KCBzeIdxy0IIJw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-afs-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-On Thu, Sep 30, 2010 at 07:15:36PM +0100, David Howells wrote:
->  }
->  
->  /*
-> + * Follow down to the topmost point on a stack of mountpoints.  At each point,
+On Fri, 2010-10-08 at 19:41 -0400, Valerie Aurora wrote:
+> On Thu, Sep 30, 2010 at 07:15:21PM +0100, David Howells wrote:
+> > Remove the automount through follow_link() kludge code from pathwalk in favour
+> > of using d_automount().
+> > 
+> > Signed-off-by: David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> > Acked-by: Ian Kent <raven-PKsaG3nR2I+sTnJN9+BGXg@public.gmane.org>
+> > ---
+> > 
+> >  fs/namei.c |   17 +++--------------
+> >  1 files changed, 3 insertions(+), 14 deletions(-)
+> > 
+> > diff --git a/fs/namei.c b/fs/namei.c
+> > index c50b9d7..86421f9 100644
+> > --- a/fs/namei.c
+> > +++ b/fs/namei.c
+> > @@ -861,17 +861,6 @@ fail:
+> >  }
+> >  
+> >  /*
+> > - * This is a temporary kludge to deal with "automount" symlinks; proper
+> > - * solution is to trigger them on follow_mount(), so that do_lookup()
+> > - * would DTRT.  To be killed before 2.6.34-final.
+> > - */
+> > -static inline int follow_on_final(struct inode *inode, unsigned lookup_flags)
+> > -{
+> > -	return inode && unlikely(inode->i_op->follow_link) &&
+> > -		((lookup_flags & LOOKUP_FOLLOW) || S_ISDIR(inode->i_mode));
+> > -}
+> > -
+> > -/*
+> >   * Name resolution.
+> >   * This is the basic name resolution function, turning a pathname into
+> >   * the final dentry. We expect 'base' to be positive and a directory.
+> > @@ -991,7 +980,8 @@ last_component:
+> >  		if (err)
+> >  			break;
+> >  		inode = next.dentry->d_inode;
+> > -		if (follow_on_final(inode, lookup_flags)) {
+> > +		if (inode && unlikely(inode->i_op->follow_link) &&
+> > +		    (lookup_flags & LOOKUP_FOLLOW)) {
+> >  			err = do_follow_link(&next, nd);
+> >  			if (err)
+> >  				goto return_err;
+> > @@ -1882,8 +1872,7 @@ reval:
+> >  		struct inode *inode = path.dentry->d_inode;
+> >  		void *cookie;
+> >  		error = -ELOOP;
+> > -		/* S_ISDIR part is a temporary automount kludge */
+> > -		if (!(nd.flags & LOOKUP_FOLLOW) && !S_ISDIR(inode->i_mode))
+> > +		if (!(nd.flags & LOOKUP_FOLLOW))
+> >  			goto exit_dput;
+> >  		if (count++ == 32)
+> >  			goto exit_dput;
+> 
+> While you're removing kludges, I bet you can also remove this from
+> __follow_link():
+> 
+>        if (path->mnt != nd->mnt) {
+>                path_to_nameidata(path, nd);
+>                dget(dentry);
+>        }
+>        mntget(path->mnt);
+> 
+> And replace with:
+> 
+>        if (path->mnt == nd->mnt)
+>                mntget(path->mnt);
+> 
+> This reverts the non-helper-function parts of
+> 051d381259eb57d6074d02a6ba6e90e744f1a29f, which breaks union mounts.
 
-"Follow down to the topmost" -> "Follow down to covering mount" ?
+Yeah, I was thinking of including it as a separate patch but thought it
+best to leave it until after we got feedback on the patch series.
 
--VAL
+Folding it into this patch just didn't occur to me, but then that change
+was done long before the kluge this reverts so maybe including it would
+have caused some mild confusion and distracted focus away from the main
+task of the series.
+
+Clearly this change can now also be reverted without affecting autofs4,
+as an independent patch or as a patch included in the union mounts
+series.
+
+David, thoughts?
+Ian
+
