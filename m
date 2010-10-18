@@ -1,106 +1,149 @@
-From: Ian Kent <raven-PKsaG3nR2I+sTnJN9+BGXg@public.gmane.org>
-Subject: Re: [PATCH 05/17] Remove the automount through follow_link()
- kludge code from pathwalk
-Date: Sun, 10 Oct 2010 09:16:12 +0800
-Message-ID: <1286673372.3691.14.camel@localhost>
-References: <20100930181455.30939.53914.stgit@warthog.procyon.org.uk>
-	 <20100930181521.30939.31415.stgit@warthog.procyon.org.uk>
-	 <20101008234130.GE30846@shell>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [v2] Remaining BKL users, what to do
+Date: Mon, 18 Oct 2010 17:42:06 +0200
+Message-ID: <201010181742.06678.arnd@arndb.de>
+References: <201009161632.59210.arnd@arndb.de>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com; h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding; s=smtpout; bh=lqmPje2b1mN2Zij6jIhH/9optiw=; b=G2Xilols7dT+jBp8Nmn3g2dAVyDjavZANO6snusbJoPNNWZyIEVHRoOY15sLo60/HLy7/HMXdCAuW9blOnvtEFc8OQ4IL7PihON8lQmJNKcEAq7yo2tctxmPGZLXQe0IzQXlbCWXDM69MatFKlCdILFH7fQ4iliG17M4sRuXHWI=
-In-Reply-To: <20101008234130.GE30846@shell>
-Sender: linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <201009161632.59210.arnd@arndb.de>
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: Valerie Aurora <vaurora-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, viro-rfM+Q5joDG/XmaaqVzeoHQ@public.gmane.org, jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-fs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, autofs-CPWUtch7KCBzeIdxy0IIJw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-afs-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: Text/Plain; charset="us-ascii"
+To: codalist@coda.cs.cmu.edu, ksummit-2010-discuss@lists.linux-foundation.org
+Cc: autofs@linux.kernel.org, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>, Trond Myklebust <Trond.Myklebust@netapp.com>, Petr Vandrovec <vandrove@vc.cvut.cz>, Anders Larsen <al@alarsen.net>, Jan Kara <jack@suse.cz>, Evgeniy Dushistov <dushistov@mail.ru>, Ingo Molnar <mingo@elte.hu>, netdev@vger.kernel.org, Samuel Ortiz <samuel@sortiz.org>, Arnaldo Carvalho de Melo <acme@ghostprotocols.net>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, Andrew Hendry <andrew.hendry@gmail.com>, David Miller <davem@davemloft.net>, Jan Harkes <jaharkes@cs.cmu.edu>, Bryan Schumaker <bjschuma@netapp.com>
 
-On Fri, 2010-10-08 at 19:41 -0400, Valerie Aurora wrote:
-> On Thu, Sep 30, 2010 at 07:15:21PM +0100, David Howells wrote:
-> > Remove the automount through follow_link() kludge code from pathwalk in favour
-> > of using d_automount().
-> > 
-> > Signed-off-by: David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> > Acked-by: Ian Kent <raven-PKsaG3nR2I+sTnJN9+BGXg@public.gmane.org>
-> > ---
-> > 
-> >  fs/namei.c |   17 +++--------------
-> >  1 files changed, 3 insertions(+), 14 deletions(-)
-> > 
-> > diff --git a/fs/namei.c b/fs/namei.c
-> > index c50b9d7..86421f9 100644
-> > --- a/fs/namei.c
-> > +++ b/fs/namei.c
-> > @@ -861,17 +861,6 @@ fail:
-> >  }
-> >  
-> >  /*
-> > - * This is a temporary kludge to deal with "automount" symlinks; proper
-> > - * solution is to trigger them on follow_mount(), so that do_lookup()
-> > - * would DTRT.  To be killed before 2.6.34-final.
-> > - */
-> > -static inline int follow_on_final(struct inode *inode, unsigned lookup_flags)
-> > -{
-> > -	return inode && unlikely(inode->i_op->follow_link) &&
-> > -		((lookup_flags & LOOKUP_FOLLOW) || S_ISDIR(inode->i_mode));
-> > -}
-> > -
-> > -/*
-> >   * Name resolution.
-> >   * This is the basic name resolution function, turning a pathname into
-> >   * the final dentry. We expect 'base' to be positive and a directory.
-> > @@ -991,7 +980,8 @@ last_component:
-> >  		if (err)
-> >  			break;
-> >  		inode = next.dentry->d_inode;
-> > -		if (follow_on_final(inode, lookup_flags)) {
-> > +		if (inode && unlikely(inode->i_op->follow_link) &&
-> > +		    (lookup_flags & LOOKUP_FOLLOW)) {
-> >  			err = do_follow_link(&next, nd);
-> >  			if (err)
-> >  				goto return_err;
-> > @@ -1882,8 +1872,7 @@ reval:
-> >  		struct inode *inode = path.dentry->d_inode;
-> >  		void *cookie;
-> >  		error = -ELOOP;
-> > -		/* S_ISDIR part is a temporary automount kludge */
-> > -		if (!(nd.flags & LOOKUP_FOLLOW) && !S_ISDIR(inode->i_mode))
-> > +		if (!(nd.flags & LOOKUP_FOLLOW))
-> >  			goto exit_dput;
-> >  		if (count++ == 32)
-> >  			goto exit_dput;
+This is a update on the current progress for the BKL removal, reflecting
+what is currently in linux-next.
+
+Maybe we can briefly discuss this at the kernel summit to decide if we
+want a quick death of the BKL, i.e. fixing/disabling/staging-out the
+remaining users in 2.6.38 or rather leave them there indefinitely.
+
+On Thursday 16 September 2010, Arnd Bergmann wrote:
+> The big kernel lock is gone from almost all code in linux-next, this is
+> the status of what I think will happen to the remaining users:
 > 
-> While you're removing kludges, I bet you can also remove this from
-> __follow_link():
-> 
->        if (path->mnt != nd->mnt) {
->                path_to_nameidata(path, nd);
->                dget(dentry);
->        }
->        mntget(path->mnt);
-> 
-> And replace with:
-> 
->        if (path->mnt == nd->mnt)
->                mntget(path->mnt);
-> 
-> This reverts the non-helper-function parts of
-> 051d381259eb57d6074d02a6ba6e90e744f1a29f, which breaks union mounts.
+> drivers/gpu/drm/i810/{i810,i830}_dma.c:
+> 	Fixable, but needs someone with the hardware to test. Can probably be
+> 	marked CONFIG_BROKEN_ON_SMP if nobody cares.
 
-Yeah, I was thinking of including it as a separate patch but thought it
-best to leave it until after we got feedback on the patch series.
+Still open, no good solution for this.
 
-Folding it into this patch just didn't occur to me, but then that change
-was done long before the kluge this reverts so maybe including it would
-have caused some mild confusion and distracted focus away from the main
-task of the series.
+> drivers/media/video (V4L):
+> 	Mauro is working on it, some drivers get moved to staging while the
+> 	others get fixed. An easy workaround would be possible by adding
+> 	per-driver mutexes, but Mauro wants to it properly by locking all
+> 	the right places.
 
-Clearly this change can now also be reverted without affecting autofs4,
-as an independent patch or as a patch included in the union mounts
-series.
+Progressing well, patches are being worked on.
 
-David, thoughts?
-Ian
+> fs/adfs:
+> 	Probably not hard to fix, but needs someone to test it.
+> 	adfs has only seen janitorial fixes for the last 5 years.
+> 	Do we know of any users?
 
+Nobody replied.
+
+> fs/autofs:
+> 	Pretty much dead, replaced by autofs4. I'd suggest moving this
+> 	to drivers/staging in 2.6.37 and letting it die there.
+
+Now in staging.
+
+> fs/coda:
+> 	Coda seems to have an active community, but not all of their
+> 	code is actually part of linux (pioctl!), while the last official
+> 	release is missing many of the cleanups that were don in Linux.
+> 	Not sure what to do, if someone is interested, the best way might
+> 	be a fresh start with a merger of the mainline linux and the
+> 	coda.cs.cmu.edu	codebase in drivers/staging.
+> 	Just removing the BKL without the Coda community seems like a heap
+> 	of pointless work.
+
+Jan Harkes showed interest, looks like this will get fixed eventually,
+but probably not in time for 2.6.37.
+
+> fs/freevxfs:
+> 	Uses the BKL in readdir and lookup, should be easy to fix. Christoph?
+
+Still waiting for confirmation from Christoph Hellwig that the BKL
+is not needed here. I can do the patch to remove it then.
+
+> fs/hpfs:
+> 	Looks fixable, if anyone cares. Maybe it's time for retirement in
+> 	drivers/staging though. The web page only has a Link to the
+> 	linux-2.2 version.
+
+No replies.
+
+> fs/lockd:
+> 	Trond writes that he has someone working on BKL removal here.
+
+Bryan Schumaker took care of this, looks like the locking is independent
+of the fs/locks.c locking now, although it still uses the BKL internally.
+
+I assume that this will get fixed as well, doesn't seem hard. As long
+as lockd uses the BKL, both nfs and nfsd depend on the BKL implicitly.
+
+> fs/locks.c:
+> 	Patch is under discussion, blocked by work on fs/lockd currently.
+
+No longer blocked now, both lockd and ceph can deal with this converted
+to spinlocks. I will follow up with the final patch once they hit mainline.
+
+> fs/ncpfs:
+> 	Should be fixable if Petr still cares about it. Otherwise suggest
+> 	moving to drivers/staging if there are no users left.
+
+Fixed by Petr Vandrovec.
+
+> fs/qnx4:
+> 	Should be easy to fix, there are only a few places in the code that
+> 	use the BKL. Anders?
+
+Anders Larsen volunteered.
+
+> fs/smbfs:
+> 	Last I heard this was considered obsolete. Should be move it to
+> 	drivers/staging now?
+
+Now in staging.
+
+> fs/udf:
+> 	Not completely trivial, but probably necessary to fix. Project web
+> 	site is dead, I hope that Jan Kara can be motivated to fix it though.
+
+Jan Kara volunteered to do it.
+
+> fs/ufs:
+> 	Evgeniy Dushistov is maintaining this, I hope he can take care of
+> 	getting rid of the BKL in UFS.
+
+No replies.
+
+> kernel/trace/blktrace.c:
+> 	Should be easy. Ingo? Steven?
+
+Done.
+
+> net/appletalk:
+> net/ipx/af_ipx.c:
+> net/irda/af_irda.c:
+> 	Can probably be saved from retirement in drivers/staging if the
+> 	maintainers still care.
+
+Samuel Ortiz fixed irda.
+
+David Miller volunteered to do appletalk and ipx.
+
+> net/x25:
+> 	Andrew Hendry has started working on it.
+
+Patches have shown up in -next now, I suppose Andrew will finish it soon.
+
+Out of the remaining modules, I guess i810/i830, adfs, hpfs and ufs might end
+up not getting fixed at all, we can either mark them non-SMP or move them
+to drivers/staging once all the others are done.
+
+	Arnd
