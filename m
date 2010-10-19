@@ -1,51 +1,60 @@
-From: Paul Mundt <lethal@linux-sh.org>
+From: Valdis.Kletnieks@vt.edu
 Subject: Re: [Ksummit-2010-discuss] [v2] Remaining BKL users, what to do
-Date: Tue, 19 Oct 2010 22:54:46 +0900
-Message-ID: <20101019135445.GA19367@linux-sh.org>
-References: <201009161632.59210.arnd@arndb.de> <alpine.LNX.2.00.1010182342120.31740@banach.math.auburn.edu> <AANLkTi=oAeuz8ZxcOMpf=3MVY=WMt0BwHiGCUxO7OAEV@mail.gmail.com> <201010190926.54635.arnd@arndb.de> <1287491998.16971.360.camel@gandalf.stny.rr.com>
+Date: Tue, 19 Oct 2010 14:24:53 -0400
+Message-ID: <21406.1287512693@localhost>
+References: <201009161632.59210.arnd@arndb.de> <201010181742.06678.arnd@arndb.de> <20101018184346.GD27089@kroah.com> <AANLkTin2KPNNXvwcWphhM-5qexB14FS7M7ezkCCYCZ2H@mail.gmail.com>
+            <20101019004004.GB28380@kroah.com>
 Mime-Version: 1.0
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1287491998.16971.360.camel@gandalf.stny.rr.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: multipart/signed; boundary="==_Exmh_1287512693_4982P";
+	 micalg=pgp-sha1; protocol="application/pgp-signature"
 Content-Transfer-Encoding: 7bit
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, Dave Airlie <airlied@gmail.com>, Theodore Kilgore <kilgota@banach.math.auburn.edu>, Greg KH <greg@kroah.com>, codalist@telemann.coda.cs.cmu.edu, autofs@linux.kernel.org, Samuel Ortiz <samuel@sortiz.org>, Jan Kara <jack@suse.cz>, Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>, Jan Harkes <jaharkes@cs.cmu.edu>, netdev@vger.kernel.org, Anders Larsen <al@alarsen.net>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Bryan Schumaker <bjschuma@netapp.com>, Christoph Hellwig <hch@infradead.org>, ksummit-2010-discuss@lists.linux-foundation.org, Petr Vandrovec <vandrove@vc.cvut.cz>, Arnaldo Carvalho de Melo <acme@ghostprotocols.net>, linux-fsdevel@vger.kernel.org, Evgeniy Dushistov <dushistov@mail.ru>, Ingo Molnar <mingo@elte.hu>, Andrew Hendry <andrew.hendry@gmail.com>, linux-media@vger.kernel.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: Your message of "Mon, 18 Oct 2010 17:40:04 PDT."
+             <20101019004004.GB28380@kroah.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
+To: Greg KH <greg@kroah.com>
+Cc: Dave Airlie <airlied@gmail.com>, Arnd Bergmann <arnd@arndb.de>, codalist@telemann.coda.cs.cmu.edu, ksummit-2010-discuss@lists.linux-foundation.org, autofs@linux.kernel.org, Jan Harkes <jaharkes@cs.cmu.edu>, Samuel Ortiz <samuel@sortiz.org>, Jan Kara <jack@suse.cz>, Arnaldo Carvalho de Melo <acme@ghostprotocols.net>, netdev@vger.kernel.org, Anders Larsen <al@alarsen.net>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Bryan Schumaker <bjschuma@netapp.com>, Christoph Hellwig <hch@infradead.org>, Petr Vandrovec <vandrove@vc.cvut.cz>, Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>, linux-fsdevel@vger.kernel.org, Evgeniy Dushistov <dushistov@mail.ru>, Ingo Molnar <mingo@elte.hu>, Andrew Hendry <andrew.hendry@gmail.com>, linux-media@vger.kernel.org
 
-On Tue, Oct 19, 2010 at 08:39:58AM -0400, Steven Rostedt wrote:
-> On Tue, 2010-10-19 at 09:26 +0200, Arnd Bergmann wrote:
-> > On Tuesday 19 October 2010 06:52:32 Dave Airlie wrote:
-> > > > I might be able to find some hardware still lying around here that uses an
-> > > > i810. Not sure unless I go hunting it. But I get the impression that if
-> > > > the kernel is a single-CPU kernel there is not any problem anyway? Don't
-> > > > distros offer a non-smp kernel as an installation option in case the user
-> > > > needs it? So in reality how big a problem is this?
-> > > 
-> > > Not anymore, which is my old point of making a fuss. Nowadays in the
-> > > modern distro world, we supply a single kernel that can at runtime
-> > > decide if its running on SMP or UP and rewrite the text section
-> > > appropriately with locks etc. Its like magic, and something like
-> > > marking drivers as BROKEN_ON_SMP at compile time is really wrong when
-> > > what you want now is a runtime warning if someone tries to hotplug a
-> > > CPU with a known iffy driver loaded or if someone tries to load the
-> > > driver when we are already in SMP mode.
-> > 
-> > We could make the driver run-time non-SMP by adding
-> > 
-> > 	if (num_present_cpus() > 1) {
-> > 		pr_err("i810 no longer supports SMP\n");
-> > 		return -EINVAL;
-> > 	}
-> > 
-> > to the init function. That would cover the vast majority of the
-> > users of i810 hardware, I guess.
-> 
-> I think we also need to cover the PREEMPT case too. But that could be a
-> compile time check, since you can't boot a preempt kernel and make it
-> non preempt.
-> 
-There are enough nameless embedded vendors that have turned a preempt
-kernel in to a non-preempt one at run-time by leaking the preempt count,
-whether by design or not, so it's certainly possile :-)
+--==_Exmh_1287512693_4982P
+Content-Type: text/plain; charset=us-ascii
+
+On Mon, 18 Oct 2010 17:40:04 PDT, Greg KH said:
+
+> I do have access to this hardware, but its on an old single processor
+> laptop, so any work that it would take to help do this development,
+> really wouldn't be able to be tested to be valid at all.
+
+The i810 is a graphics chipset embedded on the memory controller, which
+was designed for the Intel Pentium II, Pentium III, and Celeron CPUs.  Page 8
+of the datasheet specifically says:
+
+Processor/Host Bus Support
+- Optimized for the Intel Pentium II processor, Intel Pentium III processor, and Intel
+CeleronTM processor
+- Supports processor 370-Pin Socket and SC242
+connectors
+- Supports 32-Bit System Bus Addressing
+- 4 deep in-order queue; 4 or 1 deep request queue
+- Supports Uni-processor systems only
+
+So no need to clean it up for multiprocessor support.
+
+http://download.intel.com/design/chipsets/datashts/29067602.pdf
+http://www.intel.com/design/chipsets/specupdt/29069403.pdf
+
+
+
+--==_Exmh_1287512693_4982P
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+Comment: Exmh version 2.5 07/13/2001
+
+iD8DBQFMveJ1cC3lWbTT17ARAt2tAKCceoSv2e1z2O+xGP5HZSPh9BLV0ACcDMdD
+EqvUIRmf43WgTqzLN7IfCyo=
+=wMsJ
+-----END PGP SIGNATURE-----
+
+--==_Exmh_1287512693_4982P--
