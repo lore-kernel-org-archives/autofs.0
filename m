@@ -1,22 +1,19 @@
-From: Steven Rostedt <rostedt@goodmis.org>
+From: Arnd Bergmann <arnd@arndb.de>
 Subject: Re: [Ksummit-2010-discuss] [v2] Remaining BKL users, what to do
-Date: Tue, 19 Oct 2010 08:39:58 -0400
-Message-ID: <1287491998.16971.360.camel@gandalf.stny.rr.com>
-References: <201009161632.59210.arnd@arndb.de>
-	 <alpine.LNX.2.00.1010182342120.31740@banach.math.auburn.edu>
-	 <AANLkTi=oAeuz8ZxcOMpf=3MVY=WMt0BwHiGCUxO7OAEV@mail.gmail.com>
-	 <201010190926.54635.arnd@arndb.de>
+Date: Tue, 19 Oct 2010 15:26:01 +0200
+Message-ID: <201010191526.01887.arnd@arndb.de>
+References: <201009161632.59210.arnd@arndb.de> <AANLkTi=oAeuz8ZxcOMpf=3MVY=WMt0BwHiGCUxO7OAEV@mail.gmail.com> <201010190926.54635.arnd@arndb.de>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <201010190926.54635.arnd@arndb.de>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Dave Airlie <airlied@gmail.com>, Theodore Kilgore <kilgota@banach.math.auburn.edu>, Greg KH <greg@kroah.com>, codalist@telemann.coda.cs.cmu.edu, autofs@linux.kernel.org, Samuel Ortiz <samuel@sortiz.org>, Jan Kara <jack@suse.cz>, Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>, Jan Harkes <jaharkes@cs.cmu.edu>, netdev@vger.kernel.org, Anders Larsen <al@alarsen.net>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Bryan Schumaker <bjschuma@netapp.com>, Christoph Hellwig <hch@infradead.org>, ksummit-2010-discuss@lists.linux-foundation.org, Petr Vandrovec <vandrove@vc.cvut.cz>, Arnaldo Carvalho de Melo <acme@ghostprotocols.net>, linux-fsdevel@vger.kernel.org, Evgeniy Dushistov <dushistov@mail.ru>, Ingo Molnar <mingo@elte.hu>, Andrew Hendry <andrew.hendry@gmail.com>, linux-media@vger.kernel.org
+Content-Type: Text/Plain; charset="us-ascii"
+To: Dave Airlie <airlied@gmail.com>
+Cc: Theodore Kilgore <kilgota@banach.math.auburn.edu>, Steven Rostedt <rostedt@goodmis.org>, Greg KH <greg@kroah.com>, codalist@telemann.coda.cs.cmu.edu, autofs@linux.kernel.org, Samuel Ortiz <samuel@sortiz.org>, Jan Kara <jack@suse.cz>, Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>, Jan Harkes <jaharkes@cs.cmu.edu>, netdev@vger.kernel.org, Anders Larsen <al@alarsen.net>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Bryan Schumaker <bjschuma@netapp.com>, Christoph Hellwig <hch@infradead.org>, ksummit-2010-discuss@lists.linux-foundation.org, Petr Vandrovec <vandrove@vc.cvut.cz>, Arnaldo Carvalho de Melo <acme@ghostprotocols.net>, linux-fsdevel@vger.kernel.org, Evgeniy Dushistov <dushistov@mail.ru>, Ingo Molnar <mingo@elte.hu>, Andrew Hendry <andrew.hendry@gmail.com>, linux-media@vger.kernel.org
 
-On Tue, 2010-10-19 at 09:26 +0200, Arnd Bergmann wrote:
+On Tuesday 19 October 2010, Arnd Bergmann wrote:
 > On Tuesday 19 October 2010 06:52:32 Dave Airlie wrote:
 > > > I might be able to find some hardware still lying around here that uses an
 > > > i810. Not sure unless I go hunting it. But I get the impression that if
@@ -43,9 +40,18 @@ On Tue, 2010-10-19 at 09:26 +0200, Arnd Bergmann wrote:
 > to the init function. That would cover the vast majority of the
 > users of i810 hardware, I guess.
 
-I think we also need to cover the PREEMPT case too. But that could be a
-compile time check, since you can't boot a preempt kernel and make it
-non preempt.
+Some research showed that Intel never support i810/i815 SMP setups,
+but there was indeed one company (http://www.acorpusa.com at the time,
+now owned by a domain squatter) that made i815E based dual Pentium-III
+boards like this one: http://cgi.ebay.com/280319795096
 
--- Steve
+The first person that can send me an authentic log file showing the
+use of X.org with DRM on a 2.6.35 kernel with two processors on that
+mainboard dated today or earlier gets a free upgrade to an AGP graphics
+card of comparable or better 3D performance from me. Please include
+the story how why you are running this machine with a new kernel.
 
+i830 is harder, apparently some i865G boards support Pentium 4 with HT
+and even later dual-core processors.
+
+	Arnd
