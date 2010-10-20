@@ -1,98 +1,88 @@
-From: Dave Airlie <airlied@gmail.com>
+From: Dave Young <hidave.darkstar@gmail.com>
 Subject: Re: [Ksummit-2010-discuss] [v2] Remaining BKL users, what to do
-Date: Wed, 20 Oct 2010 06:50:58 +1000
-Message-ID: <AANLkTinw=Wzh2Ucj6zKSoqC8J3Yq9xDr3mKMUB7K6Yyo@mail.gmail.com>
+Date: Wed, 20 Oct 2010 12:43:21 +0800
+Message-ID: <AANLkTimRFxKT5p1K=Rd1MxXZymonx_t6rHKBhn=8CsW=@mail.gmail.com>
 References: <201009161632.59210.arnd@arndb.de>
-	<AANLkTi=oAeuz8ZxcOMpf=3MVY=WMt0BwHiGCUxO7OAEV@mail.gmail.com>
-	<201010190926.54635.arnd@arndb.de>
-	<201010191526.01887.arnd@arndb.de>
+	<201010192140.47433.oliver@neukum.org>
+	<20101019202912.GA30133@kroah.com>
+	<201010192244.41913.arnd@arndb.de>
 Mime-Version: 1.0
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=gamma;
         h=domainkey-signature:mime-version:received:received:in-reply-to
          :references:date:message-id:subject:from:to:cc:content-type
          :content-transfer-encoding;
-        bh=r2fX57734Y/qegD7eqAicrSsoKCltVIkKH5Pl/j37mw=;
-        b=Nmi3as/5GnoxqBYZmBjOll7517O96nw4KDM/LM72bbLt762NJt4qoZEtCzwFrD3xgD
-         s/p1e5IMCsTAk8YWRGQjUUIiFJ9ycNFEvW93s9pu7raNMZEh6o6gpRs2/op4u6+qMu7T
-         Nbx3YfkXCaKwBjnZEeL77R0dw0g8u9Ewve7fM=
-In-Reply-To: <201010191526.01887.arnd@arndb.de>
-Sender: linux-fsdevel-owner@vger.kernel.org
+        bh=WA0L/A1G+wGChvQKpG+YdN3NWt6V/GjZozDe5GmCJJw=;
+        b=DXj80Dc5SAAYRSeXpi5iZz0UYNkHic2Ntx43jN2azjPPDyuSnqbb52Sku2lJPchaEm
+         UodPoCZjUEvFelh1HpVwr1f2LEI2n29ZWdcvnNpkQK7qbSQDpbGdz43gDGatieurC24B
+         hVu7lS3eHx/VxBoQQe18VbLqHpCGfibMwkf9w=
+In-Reply-To: <201010192244.41913.arnd@arndb.de>
+Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset="utf-8"
 To: Arnd Bergmann <arnd@arndb.de>
-Cc: Theodore Kilgore <kilgota@banach.math.auburn.edu>, Steven Rostedt <rostedt@goodmis.org>, Greg KH <greg@kroah.com>, codalist@telemann.coda.cs.cmu.edu, autofs@linux.kernel.org, Samuel Ortiz <samuel@sortiz.org>, Jan Kara <jack@suse.cz>, Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>, Jan Harkes <jaharkes@cs.cmu.edu>, netdev@vger.kernel.org, Anders Larsen <al@alarsen.net>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Bryan Schumaker <bjschuma@netapp.com>, Christoph Hellwig <hch@infradead.org>, ksummit-2010-discuss@lists.linux-foundation.org, Petr Vandrovec <vandrove@vc.cvut.cz>, Arnaldo Carvalho de Melo <acme@ghostprotocols.net>, linux-fsdevel@vger.kernel.org, Evgeniy Dushistov <dushistov@mail.ru>, Ingo Molnar <mingo@elte.hu>, Andrew Hendry <andrew.hendry@gmail.com>, linux-media@vger.kernel.org
+Cc: Greg KH <greg@kroah.com>, Oliver Neukum <oliver@neukum.org>, Valdis.Kletnieks@vt.edu, Dave Airlie <airlied@gmail.com>, codalist@telemann.coda.cs.cmu.edu, ksummit-2010-discuss@lists.linux-foundation.org, autofs@linux.kernel.org, Jan Harkes <jaharkes@cs.cmu.edu>, Samuel Ortiz <samuel@sortiz.org>, Jan Kara <jack@suse.cz>, Arnaldo Carvalho de Melo <acme@ghostprotocols.net>, netdev@vger.kernel.org, Anders Larsen <al@alarsen.net>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Bryan Schumaker <bjschuma@netapp.com>, Christoph Hellwig <hch@infradead.org>, Petr Vandrovec <vandrove@vc.cvut.cz>, Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>, linux-fsdevel@vger.kernel.org, Evgeniy Dushistov <dushistov@mail.ru>, Ingo Molnar <mingo@elte.hu>, Andrew Hendry <andrew.hendry@gmail.com>, linux-media@vger.kernel.org
 
-On Tue, Oct 19, 2010 at 11:26 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Tuesday 19 October 2010, Arnd Bergmann wrote:
->> On Tuesday 19 October 2010 06:52:32 Dave Airlie wrote:
->> > > I might be able to find some hardware still lying around here th=
-at uses an
->> > > i810. Not sure unless I go hunting it. But I get the impression =
-that if
->> > > the kernel is a single-CPU kernel there is not any problem anywa=
-y? Don't
->> > > distros offer a non-smp kernel as an installation option in case=
- the user
->> > > needs it? So in reality how big a problem is this?
+On Wed, Oct 20, 2010 at 4:44 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Tuesday 19 October 2010 22:29:12 Greg KH wrote:
+>> On Tue, Oct 19, 2010 at 09:40:47PM +0200, Oliver Neukum wrote:
+>> > Am Dienstag, 19. Oktober 2010, 21:37:35 schrieb Greg KH:
+>> > > > So no need to clean it up for multiprocessor support.
+>> > > >
+>> > > > http://download.intel.com/design/chipsets/datashts/29067602.pd=
+f
+>> > > > http://www.intel.com/design/chipsets/specupdt/29069403.pdf
+>> > >
+>> > > Great, we can just drop all calls to lock_kernel() and the like =
+in the
+>> > > driver and be done with it, right?
 >> >
->> > Not anymore, which is my old point of making a fuss. Nowadays in t=
-he
->> > modern distro world, we supply a single kernel that can at runtime
->> > decide if its running on SMP or UP and rewrite the text section
->> > appropriately with locks etc. Its like magic, and something like
->> > marking drivers as BROKEN_ON_SMP at compile time is really wrong w=
-hen
->> > what you want now is a runtime warning if someone tries to hotplug=
- a
->> > CPU with a known iffy driver loaded or if someone tries to load th=
-e
->> > driver when we are already in SMP mode.
+>> > No,
+>> >
+>> > you still need to switch off preemption.
 >>
->> We could make the driver run-time non-SMP by adding
->>
->> =A0 =A0 =A0 if (num_present_cpus() > 1) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("i810 no longer supports SMP\n");
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
->> =A0 =A0 =A0 }
->>
->> to the init function. That would cover the vast majority of the
->> users of i810 hardware, I guess.
+>> Hm, how would you do that from within a driver?
 >
-> Some research showed that Intel never support i810/i815 SMP setups,
-> but there was indeed one company (http://www.acorpusa.com at the time=
-,
-> now owned by a domain squatter) that made i815E based dual Pentium-II=
-I
-> boards like this one: http://cgi.ebay.com/280319795096
-
-Also that board has no on-board GPU enabled i815EP (P means no on-board=
- GPU).
-
-So I think i810 is fine.
+> I think this would do:
+> ---
+> drm/i810: remove SMP support and BKL
 >
-> The first person that can send me an authentic log file showing the
-> use of X.org with DRM on a 2.6.35 kernel with two processors on that
-> mainboard dated today or earlier gets a free upgrade to an AGP graphi=
-cs
-> card of comparable or better 3D performance from me. Please include
-> the story how why you are running this machine with a new kernel.
+> The i810 and i815 chipsets supported by the i810 drm driver were not
+> officially designed for SMP operation, so the big kernel lock is
+> only required for kernel preemption. This disables the driver if
+> preemption is enabled and removes all calls to lock_kernel in it.
 >
-> i830 is harder, apparently some i865G boards support Pentium 4 with H=
-T
-> and even later dual-core processors.
+> If you own an Acorp 6A815EPD mainboard with a i815 chipset and
+> two Pentium-III sockets, and want to run recent kernels on it,
+> tell me about it.
+>
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>
+> diff --git a/drivers/gpu/drm/Kconfig b/drivers/gpu/drm/Kconfig
+> index b755301..e071bc8 100644
+> --- a/drivers/gpu/drm/Kconfig
+> +++ b/drivers/gpu/drm/Kconfig
+> @@ -73,8 +73,8 @@ source "drivers/gpu/drm/radeon/Kconfig"
+>
+> =C2=A0config DRM_I810
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0tristate "Intel I810"
+> - =C2=A0 =C2=A0 =C2=A0 # BKL usage in order to avoid AB-BA deadlocks,=
+ may become BROKEN_ON_SMP
+> - =C2=A0 =C2=A0 =C2=A0 depends on DRM && AGP && AGP_INTEL && BKL
+> + =C2=A0 =C2=A0 =C2=A0 # PREEMPT requires BKL support here, which was=
+ removed
+> + =C2=A0 =C2=A0 =C2=A0 depends on DRM && AGP && AGP_INTEL && !PREEMPT
 
-Also hyper-threaded 845G boards, however I'm happy to start a proper
-deprecation procedure on the i830 ABI,
-Its been a few years since a distro shipped with it, I think even
-RHEL5 has the i915 driver enabled, so we are
-probably talking RHEL4 era.
+be curious, why can't just fix the lock_kernel logic of i810? Fixing
+is too hard?
 
-Dave.
---
-To unsubscribe from this list: send the line "unsubscribe linux-fsdevel=
-" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+=46ind a i810 hardware should be possible, even if the hardware does no=
+t
+support SMP, can't we test the fix with preemption?
+
+--=20
+Regards
+dave
