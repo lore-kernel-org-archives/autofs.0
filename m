@@ -1,46 +1,45 @@
-From: Pekka Enberg <penberg@kernel.org>
-Subject: Re: [Ksummit-2010-discuss] [v2] Remaining BKL users, what to do
-Date: Wed, 3 Nov 2010 08:58:56 +0200
-Message-ID: <AANLkTim=suDPVCW+dPCxtasbUj=X8EMgGRHAiGO37cGo@mail.gmail.com>
-References: <201009161632.59210.arnd@arndb.de>
-	<201010192140.47433.oliver@neukum.org>
-	<20101019202912.GA30133@kroah.com>
-	<201010192244.41913.arnd@arndb.de>
-	<20101102012135.GB2648@ucw.cz>
+From: Atul Sowani <sowani@gmail.com>
+Subject: Subject: [PATCH 2.6.36 1/1] autofs4: fix for root.c compiler warnings.
+Date: Mon, 08 Nov 2010 21:29:58 +0530
+Message-ID: <4CD81E7E.20308@gmail.com>
+Reply-To: sowani@gmail.com
 Mime-Version: 1.0
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=gamma;
-        h=domainkey-signature:mime-version:received:sender:received
-         :in-reply-to:references:date:x-google-sender-auth:message-id:subject
-         :from:to:cc:content-type:content-transfer-encoding;
-        bh=1jrGTIZoSqwU8O8/kQyhyzdAyYTvzwLjvucjL3edkKg=;
-        b=rW3O0UNtjYojM6YFTNNwp+ruJR5Ih9QHQU4Js7PxyTQJwZcmxGPXc7AaGjhau+LnTJ
-         f17RDTkIHBPOdrYPg0kqcELJmwLTl8x/bUzC/ICmf98emh9L0aTQWITpcNAkHAI3LmzJ
-         6i3PiQpswvgzevwq4HQv8U+P0GNn47tiCIpAk=
-In-Reply-To: <20101102012135.GB2648@ucw.cz>
-Sender: linux-kernel-owner@vger.kernel.org
+        h=domainkey-signature:received:received:message-id:date:from:reply-to
+         :organization:user-agent:mime-version:to:cc:subject
+         :x-enigmail-version:content-type:content-transfer-encoding;
+        bh=jyQQLmehRrNrEw9qPqcMS5MxeuivKkAfn8OD5LTvIAo=;
+        b=oUjprDRLjy2oeoc0EZo3w3qm3Kz3W/7WbgWfk0xJPPNt2rLFNeyoDfTNUMLJVaiFzE
+         J7DDG8J8KKA7g1a7U42nmzj1KWyZ9Y9XuR+oJdRrlJ6OWEsgP0x2M7iqv+ZVXeC0C3Oe
+         jSgb2s4z9OUyRnpCPP1Yx1iGFdcP7Um/ZOGLs=
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="iso-8859-1"
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Arnd Bergmann <arnd@arndb.de>, Greg KH <greg@kroah.com>, Oliver Neukum <oliver@neukum.org>, Valdis.Kletnieks@vt.edu, Dave Airlie <airlied@gmail.com>, codalist@telemann.coda.cs.cmu.edu, ksummit-2010-discuss@lists.linux-foundation.org, autofs@linux.kernel.org, Jan Harkes <jaharkes@cs.cmu.edu>, Samuel Ortiz <samuel@sortiz.org>, Jan Kara <jack@suse.cz>, Arnaldo Carvalho de Melo <acme@ghostprotocols.net>, netdev@vger.kernel.org, Anders Larsen <al@alarsen.net>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Bryan Schumaker <bjschuma@netapp.com>, Christoph Hellwig <hch@infradead.org>, Petr Vandrovec <vandrove@vc.cvut.cz>, Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>, linux-fsdevel@vger.kernel.org, Evgeniy Dushistov <dushistov@mail.ru>, Ingo Molnar <mingo@elte.hu>, Andrew Hendry <andrew.hendry@gmail.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: viro@zeniv.linux.org.uk
+Cc: raven@themaw.net, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, autofs@linux.kernel.org, linux-afs@lists.infradead.org
 
-On Tue, Nov 2, 2010 at 3:21 AM, Pavel Machek <pavel@ucw.cz> wrote:
-> Hi!
->
->> @@ -79,6 +79,10 @@ static struct drm_driver driver =3D {
->>
->> =A0static int __init i810_init(void)
->> =A0{
->> + =A0 =A0 if (num_present_cpus() > 1) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 pr_err("drm/i810 does not support SMP\n");
->> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
->> + =A0 =A0 }
->> =A0 =A0 =A0 driver.num_ioctls =3D i810_max_ioctl;
->> =A0 =A0 =A0 return drm_init(&driver);
->
-> Umm, and now someone onlines second cpu?
+Added conditional compilation with CONFIG_COMPAT to avoid compiler warning:
+fs/autofs4/root.c:31: warning: autofs4_root_compat_ioctl declared static but never defined
 
-Well, I see it's being fixed in a different way but yeah,
-num_possible_cpus() would be more appropriate here.
+Signed-off-by: Atul Sowani <sowani@gmail.com>
+---
+diff -uprN a/fs/autofs4/root.c b/fs/autofs4/root.c
+--- a/fs/autofs4/root.c	2010-10-21 02:00:22.000000000 +0530
++++ b/fs/autofs4/root.c	2010-11-08 09:37:47.675766134 +0530
+@@ -28,7 +28,9 @@ static int autofs4_dir_unlink(struct ino
+ static int autofs4_dir_rmdir(struct inode *,struct dentry *);
+ static int autofs4_dir_mkdir(struct inode *,struct dentry *,int);
+ static long autofs4_root_ioctl(struct file *,unsigned int,unsigned long);
++#ifdef CONFIG_COMPAT
+ static long autofs4_root_compat_ioctl(struct file *,unsigned int,unsigned long);
++#endif
+ static int autofs4_dir_open(struct inode *inode, struct file *file);
+ static struct dentry *autofs4_lookup(struct inode *,struct dentry *, struct nameidata *);
+ static void *autofs4_follow_link(struct dentry *, struct nameidata *);
+-- 
+Atul Sowani (sowani@gmail.com)
+http://savannah.gnu.org/users/atul
+------------------------------------------------------------------------
