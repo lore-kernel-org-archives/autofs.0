@@ -1,88 +1,35 @@
-From: Stef Bon <stef@bononline.nl>
-Subject: Mount wrapper used at umount.
-Date: Wed, 10 Nov 2010 09:30:31 +0100
-Message-ID: <4CDA5827.7050801@bononline.nl>
+From: Avi Kivity <avi@redhat.com>
+Subject: autofs4 hang in 2.6.37-rc1
+Date: Sun, 14 Nov 2010 14:55:07 +0200
+Message-ID: <4CDFDC2B.6040205@redhat.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs/>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: autofs@linux.kernel.org
+To: Ian Kent <raven@themaw.net>, autofs@linux.kernel.org
+Cc: linux-kernel <linux-kernel@vger.kernel.org>
 
-  Hello,
+A 2.6.37-rc1 (f6614b7bb405a) setup hangs in autofs4:
 
-I'm using a construction which offers easy, userfriendly and effective 
-and powerfull access to various kinds of resources, like USB disks, 
-CDroms woth media and SMB shares.
+INFO: task automount:10399 blocked for more than 120 seconds.
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+automount     D 0000000000000000     0 10399      1 0x00000000
+  ffff88012a059da8 0000000000000082 0000000000000000 0000000000000000
+  ffff88012a058010 ffff88012a059fd8 0000000000011800 ffff8801290f2c40
+  ffff8801290f2fb0 ffff8801290f2fa8 0000000000011800 0000000000011800
+Call Trace:
+  [<ffffffff813a3c3c>] __mutex_lock_common+0x126/0x18b
+  [<ffffffff813a3cb5>] __mutex_lock_slowpath+0x14/0x16
+  [<ffffffff813a3dbc>] mutex_lock+0x31/0x4b
+  [<ffffffff811b17f7>] autofs4_root_ioctl+0x28/0x53
+  [<ffffffff810f5e5c>] do_vfs_ioctl+0x557/0x5bb
+  [<ffffffff810eca65>] ? sys_newlstat+0x2d/0x38
+  [<ffffffff810f5f02>] sys_ioctl+0x42/0x65
+  [<ffffffff81002b42>] system_call_fastpath+0x16/0x1b
 
-Look:
+This is a simple /home automount.  More info on request.
 
-http://linux.bononline.nl/wiki/index.php/Changes_and_issues
-
-and
-
-http://linux.bononline.nl/projects/mount.md5key.new/
-
-
-
-It uses a FUSE module (fuse-workspace-ll), autofs, udev, at, ConsoleKit 
-and some other things like the usb.ids file.
-
-Now the automounter is setup very easy like:
-
-cat /etc/autofs/auto.md5key
-*           -fstype=md5key :/&
-
-
-This will launch mount.md5key, which is a wrapper. It calls the right 
-mount command, like mount.ext2, mount.ntfs-3g and mount.cifs, depending 
-on the kind of resource. I do not know you know about this feature 
-(because md5key is not a real filesystem..) but it's great!!
-
-This auto.md5key file is mapped to /mnt/mount.md5key/sbon/mount:
-
-sbon [ /var/run/autofs ]$ cat mount.m5key.master
-/mnt/mount.md5key/sbon/mount  /etc/autofs/auto.md5key MD5KEY_USER=sbon
-
-
-The key is a unique md5 value, which identifies a resource. This md5sum 
-is the index value of records in
-/var/cache/mount.md5key/<md5sum>/config where config  looks like:
-
-
-sbon [ /var/cache/mount.md5key/123c359b21d27c834a8c82d1f3ccbda3 ]$ cat 
-config
-RECORD_type=smb
-RECORD_security=public
-RECORD_creator=20.discover-smb-shares.sh
-RECORD_resource_uri="smb://HPCLIENT/video/"
-RECORD_dnsdomain=intern.bononline.tk
-LOCAL_user=
-SMB_workgroup=TESTGROUP
-SMB_name=HPCLIENT
-SMB_share=video
-SMB_ip=192.168.0.11
-SMB_auth_method=guest
-SMB_credential_file=
-
-
-The md5sum value is actually the md5sum of this config file.
-THis looks complicated,and that's true, But no pain, no gain.
-
-This construction is simular to GnomeVFS.
-
-Now I would like that's it's possible that the umount.md5key wrapper is 
-used at unmounting, simular like the mount.md5key is used at mounting. 
-But now when unmounting the automounter looks at the
-umount.<filesystem>, where filesystem is the filesystem is used.
-
-Stef
+-- 
+error compiling committee.c: too many arguments to function
