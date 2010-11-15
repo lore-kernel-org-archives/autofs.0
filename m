@@ -1,41 +1,30 @@
-From: Arnd Bergmann <arnd@arndb.de>
+From: Avi Kivity <avi@redhat.com>
 Subject: Re: autofs4 hang in 2.6.37-rc1
-Date: Mon, 15 Nov 2010 09:54:34 +0100
-Message-ID: <201011150954.34289.arnd@arndb.de>
-References: <4CDFDC2B.6040205@redhat.com> <4CE00194.3070601@redhat.com> <1289785533.3248.18.camel@localhost>
+Date: Mon, 15 Nov 2010 11:02:11 +0200
+Message-ID: <4CE0F713.8090503@redhat.com>
+References: <4CDFDC2B.6040205@redhat.com> <4CDFE948.4020709@redhat.com>	 <201011141615.32166.arnd@arndb.de> <1289784674.3248.11.camel@localhost>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1289785533.3248.18.camel@localhost>
+In-Reply-To: <1289784674.3248.11.camel@localhost>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: Text/Plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
 To: Ian Kent <raven@themaw.net>
-Cc: Avi Kivity <avi@redhat.com>, autofs@linux.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, autofs@linux.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
 
-On Monday 15 November 2010 02:45:33 Ian Kent wrote:
+On 11/15/2010 03:31 AM, Ian Kent wrote:
+> >
+> >  If the ioctl can sleep for multiple seconds, the mutex should
+> >  indeed be dropped, and that would be safe because we used to
+> >  do the same with the BKL.
+> >
+> >  The question is why this would sleep for more than 120 seconds.
+>
+> umount against a server that isn't responding can easily take more than
+> 2 minutes.
 
-> You can't hold an exclusive mutex during an autofs expire because the
-> daemon will start by calling the ioctl to check for a dentry to expire
-> then call back to the daemon to perform the umount and wait for a status
-> return (also an ioctl).
+Well, in my setup, the server should be responding.
 
-Ok, I see. So it's my fault for not realizing that there are long blocking
-ioctls. I was under the assumption that all of these ioctl commands were
-simple non-blocking commands.
-
-> >From memory the expire is the only ioctl that is sensitive to this
-> deadlock.
-> 
-> So, either the mutex must be released while waiting for the status
-> return or get rid of the autofs4_ioctl_mutex altogether.
-
-Right. As I said with the original patch, I don't think the mutex
-is really needed, but using it seemed to be the safer alternative.
-It was in the sense that it guaranteed the breakage to be obvious
-rather than silent...
-
-Ian, if you can prove that the lock is not needed, I think we shold
-just remove it.
-
-	Arnd
+-- 
+error compiling committee.c: too many arguments to function
