@@ -1,56 +1,59 @@
-From: Ian Kent <raven@themaw.net>
+From: Thomas Fjellstrom <thomas@fjellstrom.ca>
 Subject: Re: autofs4 hang in 2.6.37-rc1
-Date: Thu, 18 Nov 2010 11:54:27 +0800
-Message-ID: <1290052468.2465.7.camel@perseus.themaw.net>
-References: <4CDFDC2B.6040205@redhat.com> <4CE00194.3070601@redhat.com>
-	 <1289785533.3248.18.camel@localhost>  <201011150954.34289.arnd@arndb.de>
+Date: Mon, 22 Nov 2010 01:42:07 -0700
+Message-ID: <201011220142.08110.thomas@fjellstrom.ca>
+References: <4CDFDC2B.6040205@redhat.com> <1289784674.3248.11.camel@localhost> <4CE0F713.8090503@redhat.com>
+Reply-To: thomas@fjellstrom.ca
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201011150954.34289.arnd@arndb.de>
+In-Reply-To: <4CE0F713.8090503@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Avi Kivity <avi@redhat.com>, autofs@linux.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
+Content-Type: Text/Plain; charset="us-ascii"
+To: Avi Kivity <avi@redhat.com>
+Cc: Ian Kent <raven@themaw.net>, Arnd Bergmann <arnd@arndb.de>, autofs@linux.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
 
-On Mon, 2010-11-15 at 09:54 +0100, Arnd Bergmann wrote:
-> On Monday 15 November 2010 02:45:33 Ian Kent wrote:
-> 
-> > You can't hold an exclusive mutex during an autofs expire because the
-> > daemon will start by calling the ioctl to check for a dentry to expire
-> > then call back to the daemon to perform the umount and wait for a status
-> > return (also an ioctl).
-> 
-> Ok, I see. So it's my fault for not realizing that there are long blocking
-> ioctls. I was under the assumption that all of these ioctl commands were
-> simple non-blocking commands.
-> 
-> > >From memory the expire is the only ioctl that is sensitive to this
-> > deadlock.
+On November 15, 2010, Avi Kivity wrote:
+> On 11/15/2010 03:31 AM, Ian Kent wrote:
+> > >  If the ioctl can sleep for multiple seconds, the mutex should
+> > >  indeed be dropped, and that would be safe because we used to
+> > >  do the same with the BKL.
+> > >  
+> > >  The question is why this would sleep for more than 120 seconds.
 > > 
-> > So, either the mutex must be released while waiting for the status
-> > return or get rid of the autofs4_ioctl_mutex altogether.
+> > umount against a server that isn't responding can easily take more than
+> > 2 minutes.
 > 
-> Right. As I said with the original patch, I don't think the mutex
-> is really needed, but using it seemed to be the safer alternative.
-> It was in the sense that it guaranteed the breakage to be obvious
-> rather than silent...
-> 
-> Ian, if you can prove that the lock is not needed, I think we shold
-> just remove it.
+> Well, in my setup, the server should be responding.
 
-I've looked through the old ioctl interface code and that looks fine.
+Same as in mine. Server's up, but automount is locking up solid. trying to 
+access the share, or links pointing to anything on it also lock up and can't 
+be killed.
 
-But the important thing to notice is that the new ioctl interface (in
-fs/autofs4/dev-ioctl.c) used the unlocked_ioctl method since it was
-merged in 2.6.28 and that calls back into the core ioctl code for its
-major functionality. So the core function of the ioctl interface has
-been used without the BKL for quite a while now and has been heavily
-exercised in subsequent testing since the new ioctl interface has been
-in place.
+[ 5520.863130] INFO: task automount:1491 blocked for more than 120 seconds.
+[ 5520.863139] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables 
+this message.
+[ 5520.863145] automount     D 0000000000000001     0  1491      1 0x00000000
+[ 5520.863157]  ffff880137f5fdc8 0000000000000086 ffff880137f5fd48 
+0000000000000086
+[ 5520.863172]  ffff8800379efd78 ffff880137f5e000 ffff880137f5e000 ffff88013f1c06a0
+[ 5520.863184]  ffff880137f5e010 ffff88013f1c0960 ffff880137f5ffd8 ffff880137f5ffd8
+[ 5520.863197] Call Trace:
+[ 5520.863214]  [<ffffffff81038541>] ? get_parent_ip+0x11/0x50
+[ 5520.863232]  [<ffffffff813914ea>] __mutex_lock_slowpath+0x11a/0x1e0
+[ 5520.863242]  [<ffffffff813962fd>] ? sub_preempt_count+0x9d/0xd0
+[ 5520.863251]  [<ffffffff8139106e>] mutex_lock+0x1e/0x40
+[ 5520.863264]  [<ffffffffa03390a8>] autofs4_root_ioctl+0x38/0x70 [autofs4]
+[ 5520.863274]  [<ffffffff8112d4e7>] do_vfs_ioctl+0x97/0x530
+[ 5520.863283]  [<ffffffff8104af2c>] ? sys_wait4+0xac/0xf0
+[ 5520.863291]  [<ffffffff8112d9ca>] sys_ioctl+0x4a/0x80
+[ 5520.863302]  [<ffffffff81002feb>] system_call_fastpath+0x16/0x1b
 
-I can't see any reason for keeping the autofs4_ioctl_mutex.
+Got about 8+ of those in my dmesg right now. Another machine running .36 right 
+now, is playing music off the same share, and this machine doesn't lock up at 
+all when running .36 as well. Tried 2.6.37-rc1 and now -rc3.
 
-Ian
-
+-- 
+Thomas Fjellstrom
+thomas@fjellstrom.ca
