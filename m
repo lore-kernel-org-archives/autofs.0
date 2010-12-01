@@ -1,30 +1,43 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: autofs4 hang in 2.6.37-rc1
-Date: Thu, 25 Nov 2010 14:17:51 +0100
-Message-ID: <201011251417.52010.arnd@arndb.de>
-References: <4CDFDC2B.6040205@redhat.com> <201011150954.34289.arnd@arndb.de> <1290052468.2465.7.camel@perseus.themaw.net>
+From: Holger Schier <hschier@mathematik.uni-mainz.de>
+Subject: Problems creating RPM out of tar (5.0.5)
+Date: Wed, 01 Dec 2010 10:22:52 +0100
+Message-ID: <4CF613EC.9040702@mathematik.uni-mainz.de>
 Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1290052468.2465.7.camel@perseus.themaw.net>
-Sender: linux-kernel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
-Content-Type: Text/Plain; charset="us-ascii"
-To: Ian Kent <raven@themaw.net>
-Cc: Avi Kivity <avi@redhat.com>, autofs@linux.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
+Return-path: <autofs-bounces@linux.kernel.org>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs/>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Thursday 18 November 2010, Ian Kent wrote:
-> But the important thing to notice is that the new ioctl interface (in
-> fs/autofs4/dev-ioctl.c) used the unlocked_ioctl method since it was
-> merged in 2.6.28 and that calls back into the core ioctl code for its
-> major functionality. So the core function of the ioctl interface has
-> been used without the BKL for quite a while now and has been heavily
-> exercised in subsequent testing since the new ioctl interface has been
-> in place.
-> 
-> I can't see any reason for keeping the autofs4_ioctl_mutex.
+Hey folks,
 
-Ok. Are you submitting a patch to remove it? Your reasoning absolutely
-makes sense and we need to fix this regression.
+I am working with openSuSE 11.1 and 11.2 here and because of a new
+server I need an automounter with simple bind options. So I downloaded
+the 5.0.5 tar and do all the patching. Then I created a new tar and tried:
 
-	Arnd
+rpmbuild -tb autofs-5.0.5.-patched.tar.gz
+
+But I get the following errors:
+failed build dependencies
+hesiod-devel is needed by autofs-5.0.5-1.src
+openldap-devel is needed by autofs-5.0.5-1.src
+
+Same error with the orginial tar.
+
+openldap2-devel is installed (with YaST). I don't know what hesiod is
+and didn't find any rpms. And the autofs-5.0.4 rpm installation before
+was working.
+
+So, where does these dependencies come from?
+
+Thanks.
+Holger
