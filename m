@@ -1,13 +1,12 @@
-From: Ondrej Valousek <webserv@s3group.cz>
-Subject: Re: Automouter crashed, I have the core
-Date: Tue, 07 Dec 2010 17:30:31 +0100
-Message-ID: <4CFE6127.6040107@s3group.cz>
-References: <4CFE0736.8050606@s3group.cz> <1291724466.16875.6.camel@perseus>	
-	<4CFE4D4C.9020008@s3group.cz> <1291739050.16875.14.camel@perseus>
+From: "Carter, Joel" <JoelC@trailerwizards.com>
+Subject: Autofs cifs mounts via Kerberos
+Date: Mon, 6 Dec 2010 12:41:20 -0800
+Message-ID: <7A014DE1422A694A89BA2CE1F5692DF503831CFD@niihau.lionsgate.ca>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============3037039729438123081=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1291739050.16875.14.camel@perseus>
+Content-class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,68 +17,120 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <ikent@redhat.com>
-Cc: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
+To: autofs@linux.kernel.org
 
-This is a multi-part message in MIME format.
---===============3037039729438123081==
-Content-Type: multipart/alternative;
- boundary="------------020802000308040303060600"
+Hi there.
 
-This is a multi-part message in MIME format.
---------------020802000308040303060600
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+I am putting the finishing touches on our AD/LDAP using autofs to mount
+home directories on a Red Hat 5 box. I have login authentication working
+great, using both traditional SSH authentication (Linux does
+authentication) and GSSAPI (passes Kerberos tickets directly) for
+single-sign-on. The problem is mounting the home directories. If this is
+the wrong list for this integration stuff let me know if you know of a
+better candidate.
 
-  On 07.12.2010 17:24, Ian Kent wrote:
-> There's no question this process is difficult for us both and will
-> require a fair amount of effort but that's the way it goes.
->
-Hmm, I see. As it is virtually impossible for me to replicate this (has happened once in 2 years), I am going to leave this.
-Should it happen more frequently, I will contact you again.
+Here's my configuration:
 
-Thanks,
-Ondrej
+auto.master:
+/home_cifs /etc/auto.cifs --timeout=5
 
---------------020802000308040303060600
-Content-Type: text/html; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+auto.cifs:
+*
+-fstype=cifs,sec=krb5,user=&,uid=&,gid=lgtr,file_mode=0644,dir_mode=0755
+://smb.domain.local/userdata/&
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-  <head>
-    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
-  </head>
-  <body text="#000066" bgcolor="#ffffff">
-    On 07.12.2010 17:24, Ian Kent wrote:
-    <blockquote cite="mid:1291739050.16875.14.camel@perseus" type="cite">
-      <pre wrap="">There's no question this process is difficult for us both and will
-require a fair amount of effort but that's the way it goes.
+/etc/request-key.conf:
+...
+create  cifs.spnego * * /usr/sbin/cifs.upcall %k
+create  dns_resolver * * /usr/sbin/cifs.upcall %k
 
-</pre>
-    </blockquote>
-    Hmm, I see. As it is virtually impossible for me to replicate this
-    (has happened once in 2 years), I am going to leave this.<br>
-    Should it happen more frequently, I will contact you again.<br>
-    <br>
-    Thanks,<br>
-    Ondrej<br>
-  </body>
-</html>
+/etc/pam.d/system-auth-ac:
+#%PAM-1.0
+# This file is auto-generated.
+# User changes will be destroyed the next time authconfig is run.
+auth        required      pam_env.so
+auth        sufficient    pam_unix.so nullok try_first_pass
+auth        sufficient    pam_krb5.so
+auth        requisite     pam_succeed_if.so uid >= 500 quiet
+auth        required      pam_deny.so
 
---------------020802000308040303060600--
+account     required      pam_unix.so
+account     sufficient    pam_succeed_if.so uid < 500 quiet
+account     sufficient    pam_krb5.so
+account     required      pam_permit.so
 
+password    requisite     pam_cracklib.so try_first_pass retry=3
+password    sufficient    pam_unix.so md5 shadow nullok try_first_pass
+use_authtok
+password    required      pam_deny.so
 
---===============3037039729438123081==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+session     optional      pam_keyinit.so revoke
+session     required      pam_limits.so
+session     [success=1 default=ignore] pam_succeed_if.so service in
+crond quiet use_uid
+session     required      pam_unix.so
 
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
+/etc/pam.d/sshd
+#%PAM-1.0
+auth       include      system-auth
+account    required     pam_nologin.so
+account    include      system-auth
+password   include      system-auth
+session    optional     pam_keyinit.so force revoke
+session    include      system-auth
+session    required     pam_loginuid.so
 
---===============3037039729438123081==--
+Every user has their unixHomeDirectory set to /home_cifs/<username>
 
+The mount doesn't seem to work on login but autofs is working. It works
+fine once logged in (most of the time but does fail sometimes as well)
+and I change the directory to the home:
+
+Dec  6 11:57:37 bilbo-rh5 cifs.upcall: key description:
+cifs.spnego;0;0;3f000000;ver=0x2;host=smb.domain.local;ip4=192.168.1.58;
+sec=mskrb5;uid=0x4e20;user=lguser
+Dec  6 11:57:37 bilbo-rh5 cifs.upcall: find_krb5_cc: considering
+/tmp/krb5cc_20000_BfIUPW5852
+Dec  6 11:57:37 bilbo-rh5 cifs.upcall: find_krb5_cc:
+FILE:/tmp/krb5cc_20000_BfIUPW5852 is valid ccache
+Dec  6 11:57:37 bilbo-rh5 cifs.upcall: handle_krb5_mech: getting service
+ticket for cifs/smb.domain.local
+Dec  6 11:57:37 bilbo-rh5 cifs.upcall: handle_krb5_mech: obtained
+service ticket
+Dec  6 11:57:37 bilbo-rh5 automount[5642]: mount(generic): mounted
+//smb.domain.local/userdata/lguser type cifs on /home_cifs/lguser
+Dec  6 11:57:37 bilbo-rh5 automount[5642]: mounted /home_cifs/lguser
+
+Klist shows this:
+12/06/10 12:06:55  12/06/10 21:17:32  cifs/smb.domain.local@DOMAIN.CA
+        renew until 12/06/10 22:06:55
+
+Then I can login without problem until automount expires the mount. When
+it doesn't work this is what is shown:
+
+Dec  6 11:59:09 bilbo-rh5 cifs.upcall: key description:
+cifs.spnego;0;0;3f000000;ver=0x2;host=smb.domain.local;ip4=192.168.1.58;
+sec=mskrb5;uid=0x4e20;user=lguser
+Dec  6 11:59:09 bilbo-rh5 cifs.upcall: handle_krb5_mech: getting service
+ticket for cifs/smb.domain.local
+Dec  6 11:59:09 bilbo-rh5 cifs.upcall: handle_krb5_mech: failed to
+obtain service ticket (-1765328189)
+Dec  6 11:59:09 bilbo-rh5 cifs.upcall: handle_krb5_mech: getting service
+ticket for host/smb.domain.local
+Dec  6 11:59:09 bilbo-rh5 cifs.upcall: handle_krb5_mech: failed to
+obtain service ticket (-1765328189)
+Dec  6 11:59:09 bilbo-rh5 kernel:  CIFS VFS: cifs_mount failed w/return
+code = -126
+Dec  6 11:59:09 bilbo-rh5 automount[5642]: >> Refer to the mount.cifs(8)
+manual page (e.g. man mount.cifs)
+Dec  6 11:59:09 bilbo-rh5 automount[5642]: mount(generic): failed to
+mount //smb.domain.local/userdata/lguser (type cifs) on
+/home_cifs/lguser
+Dec  6 11:59:09 bilbo-rh5 automount[5642]: failed to mount
+/home_cifs/lguser
+
+I have wireshark traces as well for success and non-success.
+
+Any help is much appreciated, I'm almost there!
+
+Joel.
