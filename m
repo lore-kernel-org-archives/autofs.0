@@ -1,13 +1,15 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Autofs cifs mounts via Kerberos
-Date: Thu, 09 Dec 2010 10:17:28 +0800
-Message-ID: <1291861048.2899.18.camel@perseus>
-References: <7A014DE1422A694A89BA2CE1F5692DF503831CFD@niihau.lionsgate.ca>
+From: Steve Dickson <SteveD@redhat.com>
+Subject: Re: NFSv4 to be a default on RHEL-6
+Date: Thu, 09 Dec 2010 07:51:16 -0500
+Message-ID: <4D00D0C4.8050704@RedHat.com>
+References: <4CFF4CE8.6080708@s3group.cz>
+	<1291811765.17231.6.camel@perseus>		<4CFF7F35.9070506@s3group.cz>
+	<1291815950.17231.26.camel@perseus> <4CFF9C98.1060706@s3group.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <7A014DE1422A694A89BA2CE1F5692DF503831CFD@niihau.lionsgate.ca>
+In-Reply-To: <4CFF9C98.1060706@s3group.cz>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,139 +20,68 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: "Carter, Joel" <JoelC@trailerwizards.com>
-Cc: autofs@linux.kernel.org
+To: Ondrej Valousek <webserv@s3group.cz>
+Cc: Ian Kent <ikent@redhat.com>, "autofs@linux.kernel.org" <autofs@linux.kernel.org>
 
-On Mon, 2010-12-06 at 12:41 -0800, Carter, Joel wrote:
-> Hi there.
-> 
-> I am putting the finishing touches on our AD/LDAP using autofs to mount
-> home directories on a Red Hat 5 box. I have login authentication working
-> great, using both traditional SSH authentication (Linux does
-> authentication) and GSSAPI (passes Kerberos tickets directly) for
-> single-sign-on. The problem is mounting the home directories. If this is
-> the wrong list for this integration stuff let me know if you know of a
-> better candidate.
 
-Yeah, this is probably the wrong place for this since it may be more to
-do with cifs than autofs.
 
-I would say log a Bugzilla bug against RHEL CIFS but, strictly speaking,
-you should go via GSS support, as GSS are the group that sanity check,
-gather initial information, and monitor escalations for fixes that
-customers need.
+On 12/08/2010 09:56 AM, Ondrej Valousek wrote:
+> On 08.12.2010 14:45, Ian Kent wrote:
+>> On Wed, 2010-12-08 at 13:51 +0100, Ondrej Valousek wrote:
+>>> On 08.12.2010 13:36, Ian Kent wrote: 
+>>>> The default should be determined by mount.nfs(8) since that's what
+>>>> autofs uses to perform mounts.
+>>> I see, but it works only if the nfs4 root export is the same as /. It
+>>> does not work otherwise. Example:
+>>> Server 'dorado' exporting directory /exports which is also fsid=0 for
+>>> nfs4.
+>>> There is (also shared) subdirectory 'ext1' in this one. When I do:
+>>>
+>>> cd /net/dorado/exports/ext1
+>>>
+>>> ... the export is mounted using NFSv3. Theoretically if I did:
+>>>
+>>> cd /net/dorado/ext1
+>>>
+>>> ... I should have the same mounted via NFSv4, right? Unfortunately it
+>>> does not work. But it should because:
+>>>
+>>> mount dorado:/ext1 /mnt
+>>>
+>>> works (giving nfs4 mount)....
+>> The only information the hosts map has to go on is the export list
+>> received from the server.
+>>
+>> There is no way for autofs to know that /exports is the global root from
+>> the mountd exports information. It only knows that /exports is an export
+>> and neither does it know what NFS version the server may offer for this
+>> mount. That information just isn't available.
+>>
+>> As I said, I thought in recent Fedora releases (not sure now when this
+>> should have happened), that
+>>
+>> mount <server>:/exports /<some mount point>
+>>
+>> and 
+>>
+>> mount <server>:/ /<some mount point>
+>>
+>> should both work and mount as NFSv4. Correct me if I'm wrong but your
+>> point is that it is mounting as NFSv3 so perhaps we should log a bug and
+>> see what the experts have to say on this.
+>>
+>> Ian
+>>
+>>
+> Hi Ian,
+> 
+> I understand that autofs can not know that /exports is a global root. I just thought that mine:
+> 
+> cd /net/dorado/ext1
+> 
+> ... (i.e. omitting the "exports" word) should work as this way should autofs pass something like this : "mount.nfs dorado:/ext1 /net/dorado/ext1" which would succeed then, resulting in a nfs4 mount. What happens now is (obviously) that autofs can not find 'ext1' in the exports information from 'dorado' and so it fails even without trying....
+It depends on your server... If your server does not support v4, the
+mount will roll back to v3. An rpcinfo -p <server> will show if 
+the server support v4.
 
-But logging a Bugzilla bug may get some information reasonably quickly
-if you can get some attention.
-
-> 
-> Here's my configuration:
-> 
-> auto.master:
-> /home_cifs /etc/auto.cifs --timeout=5
-> 
-> auto.cifs:
-> *
-> -fstype=cifs,sec=krb5,user=&,uid=&,gid=lgtr,file_mode=0644,dir_mode=0755
-> ://smb.domain.local/userdata/&
-> 
-> /etc/request-key.conf:
-> ...
-> create  cifs.spnego * * /usr/sbin/cifs.upcall %k
-> create  dns_resolver * * /usr/sbin/cifs.upcall %k
-> 
-> /etc/pam.d/system-auth-ac:
-> #%PAM-1.0
-> # This file is auto-generated.
-> # User changes will be destroyed the next time authconfig is run.
-> auth        required      pam_env.so
-> auth        sufficient    pam_unix.so nullok try_first_pass
-> auth        sufficient    pam_krb5.so
-> auth        requisite     pam_succeed_if.so uid >= 500 quiet
-> auth        required      pam_deny.so
-> 
-> account     required      pam_unix.so
-> account     sufficient    pam_succeed_if.so uid < 500 quiet
-> account     sufficient    pam_krb5.so
-> account     required      pam_permit.so
-> 
-> password    requisite     pam_cracklib.so try_first_pass retry=3
-> password    sufficient    pam_unix.so md5 shadow nullok try_first_pass
-> use_authtok
-> password    required      pam_deny.so
-> 
-> session     optional      pam_keyinit.so revoke
-> session     required      pam_limits.so
-> session     [success=1 default=ignore] pam_succeed_if.so service in
-> crond quiet use_uid
-> session     required      pam_unix.so
-> 
-> /etc/pam.d/sshd
-> #%PAM-1.0
-> auth       include      system-auth
-> account    required     pam_nologin.so
-> account    include      system-auth
-> password   include      system-auth
-> session    optional     pam_keyinit.so force revoke
-> session    include      system-auth
-> session    required     pam_loginuid.so
-> 
-> Every user has their unixHomeDirectory set to /home_cifs/<username>
-> 
-> The mount doesn't seem to work on login but autofs is working. It works
-> fine once logged in (most of the time but does fail sometimes as well)
-> and I change the directory to the home:
-> 
-> Dec  6 11:57:37 bilbo-rh5 cifs.upcall: key description:
-> cifs.spnego;0;0;3f000000;ver=0x2;host=smb.domain.local;ip4=192.168.1.58;
-> sec=mskrb5;uid=0x4e20;user=lguser
-> Dec  6 11:57:37 bilbo-rh5 cifs.upcall: find_krb5_cc: considering
-> /tmp/krb5cc_20000_BfIUPW5852
-> Dec  6 11:57:37 bilbo-rh5 cifs.upcall: find_krb5_cc:
-> FILE:/tmp/krb5cc_20000_BfIUPW5852 is valid ccache
-> Dec  6 11:57:37 bilbo-rh5 cifs.upcall: handle_krb5_mech: getting service
-> ticket for cifs/smb.domain.local
-> Dec  6 11:57:37 bilbo-rh5 cifs.upcall: handle_krb5_mech: obtained
-> service ticket
-> Dec  6 11:57:37 bilbo-rh5 automount[5642]: mount(generic): mounted
-> //smb.domain.local/userdata/lguser type cifs on /home_cifs/lguser
-> Dec  6 11:57:37 bilbo-rh5 automount[5642]: mounted /home_cifs/lguser
-> 
-> Klist shows this:
-> 12/06/10 12:06:55  12/06/10 21:17:32  cifs/smb.domain.local@DOMAIN.CA
->         renew until 12/06/10 22:06:55
-> 
-> Then I can login without problem until automount expires the mount. When
-> it doesn't work this is what is shown:
-> 
-> Dec  6 11:59:09 bilbo-rh5 cifs.upcall: key description:
-> cifs.spnego;0;0;3f000000;ver=0x2;host=smb.domain.local;ip4=192.168.1.58;
-> sec=mskrb5;uid=0x4e20;user=lguser
-> Dec  6 11:59:09 bilbo-rh5 cifs.upcall: handle_krb5_mech: getting service
-> ticket for cifs/smb.domain.local
-> Dec  6 11:59:09 bilbo-rh5 cifs.upcall: handle_krb5_mech: failed to
-> obtain service ticket (-1765328189)
-> Dec  6 11:59:09 bilbo-rh5 cifs.upcall: handle_krb5_mech: getting service
-> ticket for host/smb.domain.local
-> Dec  6 11:59:09 bilbo-rh5 cifs.upcall: handle_krb5_mech: failed to
-> obtain service ticket (-1765328189)
-> Dec  6 11:59:09 bilbo-rh5 kernel:  CIFS VFS: cifs_mount failed w/return
-> code = -126
-> Dec  6 11:59:09 bilbo-rh5 automount[5642]: >> Refer to the mount.cifs(8)
-> manual page (e.g. man mount.cifs)
-> Dec  6 11:59:09 bilbo-rh5 automount[5642]: mount(generic): failed to
-> mount //smb.domain.local/userdata/lguser (type cifs) on
-> /home_cifs/lguser
-> Dec  6 11:59:09 bilbo-rh5 automount[5642]: failed to mount
-> /home_cifs/lguser
-> 
-> I have wireshark traces as well for success and non-success.
-> 
-> Any help is much appreciated, I'm almost there!
-> 
-> Joel.
-> 
-> _______________________________________________
-> autofs mailing list
-> autofs@linux.kernel.org
-> http://linux.kernel.org/mailman/listinfo/autofs
+steved.
