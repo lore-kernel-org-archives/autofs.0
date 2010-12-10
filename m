@@ -1,15 +1,20 @@
-From: Ian Kent <ikent@redhat.com>
-Subject: Re: NFSv4 to be a default on RHEL-6
-Date: Thu, 09 Dec 2010 22:51:25 +0800
-Message-ID: <1291906285.2899.27.camel@perseus>
-References: <4CFF4CE8.6080708@s3group.cz> <1291811765.17231.6.camel@perseus>
-	<4CFF7F35.9070506@s3group.cz> <1291815950.17231.26.camel@perseus>
-	<4CFF9C98.1060706@s3group.cz>  <4D00D0C4.8050704@RedHat.com>
+From: Leonardo Chiquitto <leonardo.lists@gmail.com>
+Subject: AutoFS creates unmountable directories when ghosting is
+	enabled
+Date: Fri, 10 Dec 2010 17:10:42 -0200
+Message-ID: <20101210191042.GA4396@libre.l.ngdn.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4D00D0C4.8050704@RedHat.com>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
+	h=domainkey-signature:received:received:date:from:to:subject
+	:message-id:mime-version:content-type:content-disposition:user-agent;
+	bh=S8fh6vOis4S2jNnJc9KI45cxVEI40mzry3HUo7eFD8Q=;
+	b=qlCuxLpc0W0YhF7inQQWddPngmJDGHx8KcDI3IbUl1KmYZMW1Nz8dMFUgpvw3sfH/0
+	x6PQxW+Ulg0hU6/Gd1ziu4ffyCAS7s4BH1/qQiHjn/YQ6qyX/VT5d5loExwiQFWs2tYu
+	fP5RWFHJxxXScPnwt4Cp4kgxUce5hwN1lL9eE=
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,83 +25,77 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Steve Dickson <SteveD@redhat.com>
-Cc: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
+To: autofs@linux.kernel.org
 
-On Thu, 2010-12-09 at 07:51 -0500, Steve Dickson wrote:
-> 
-> On 12/08/2010 09:56 AM, Ondrej Valousek wrote:
-> > On 08.12.2010 14:45, Ian Kent wrote:
-> >> On Wed, 2010-12-08 at 13:51 +0100, Ondrej Valousek wrote:
-> >>> On 08.12.2010 13:36, Ian Kent wrote: 
-> >>>> The default should be determined by mount.nfs(8) since that's what
-> >>>> autofs uses to perform mounts.
-> >>> I see, but it works only if the nfs4 root export is the same as /. It
-> >>> does not work otherwise. Example:
-> >>> Server 'dorado' exporting directory /exports which is also fsid=0 for
-> >>> nfs4.
-> >>> There is (also shared) subdirectory 'ext1' in this one. When I do:
-> >>>
-> >>> cd /net/dorado/exports/ext1
-> >>>
-> >>> ... the export is mounted using NFSv3. Theoretically if I did:
-> >>>
-> >>> cd /net/dorado/ext1
-> >>>
-> >>> ... I should have the same mounted via NFSv4, right? Unfortunately it
-> >>> does not work. But it should because:
-> >>>
-> >>> mount dorado:/ext1 /mnt
-> >>>
-> >>> works (giving nfs4 mount)....
-> >> The only information the hosts map has to go on is the export list
-> >> received from the server.
-> >>
-> >> There is no way for autofs to know that /exports is the global root from
-> >> the mountd exports information. It only knows that /exports is an export
-> >> and neither does it know what NFS version the server may offer for this
-> >> mount. That information just isn't available.
-> >>
-> >> As I said, I thought in recent Fedora releases (not sure now when this
-> >> should have happened), that
-> >>
-> >> mount <server>:/exports /<some mount point>
-> >>
-> >> and 
-> >>
-> >> mount <server>:/ /<some mount point>
-> >>
-> >> should both work and mount as NFSv4. Correct me if I'm wrong but your
-> >> point is that it is mounting as NFSv3 so perhaps we should log a bug and
-> >> see what the experts have to say on this.
-> >>
-> >> Ian
-> >>
-> >>
-> > Hi Ian,
-> > 
-> > I understand that autofs can not know that /exports is a global root. I just thought that mine:
-> > 
-> > cd /net/dorado/ext1
-> > 
-> > ... (i.e. omitting the "exports" word) should work as this way should autofs pass something like this : "mount.nfs dorado:/ext1 /net/dorado/ext1" which would succeed then, resulting in a nfs4 mount. What happens now is (obviously) that autofs can not find 'ext1' in the exports information from 'dorado' and so it fails even without trying....
-> It depends on your server... If your server does not support v4, the
-> mount will roll back to v3. An rpcinfo -p <server> will show if 
-> the server support v4.
+Hello Ian and list,
 
-Knowing that the server supports NFSv4 doesn't tell me which export is a
-global root though (does it?).
+I'd like to forward a bug report we received on openSUSE's Bugzilla [1].
+Please consider the following setup to reproduce the problem:
 
-I guess I could code the rpcinfo calls and rewrite the mount code to
-retry if v4 is supported. Not sure I like that idea though.
+host:~ # grep automount /etc/nsswitch.conf
+automount:	files
 
-My problem is knowing for sure what the global root is and then I also
-don't know what mount.nfs(8) will do with it. If I did have some way of
-knowing what the global root was then trying to accommodate it will
-cause mounts that fall back to v3 to fail.
+host:~ # cat /etc/auto.master
+/vol	/etc/auto.vol
 
-I thought that the recent NFS server changes were meant to allow both
-the mount paths above to function, like I think they do on other OSes
-(I'll check on that if you really want me to)?
+host:~ # cat /etc/auto.vol
+data1	-fstype=nfs,ro,rsize=8192,wsize=8192,intr,nolock,nosuid	srv:/data1
+data2	-fstype=nfs,ro,rsize=8192,wsize=8192,intr,nolock,nosuid srv:/data2
+data3	-fstype=nfs,ro,rsize=8192,wsize=8192,intr,nolock,nosuid srv:/data3
 
-Ian
+host:~ # cat /etc/sysconfig/autofs
+AUTOFS_OPTIONS=""
+LOCAL_OPTIONS=""
+APPEND_OPTIONS="yes"
+DEFAULT_MASTER_MAP_NAME="auto.master"
+DEFAULT_TIMEOUT=600
+DEFAULT_BROWSE_MODE="yes"
+DEFAULT_LOGGING="debug"
+USE_MISC_DEVICE="yes"
+
+host:~ # ls -F /vol
+data1/  data2/  data3/
+
+The problem depends on ghosting being enabled (ie, BROWSE_MODE=yes).
+When we try to access a non-existent key/entry, AutoFS will fail to mount
+it but will still create the mount point:
+
+host:~ # ls -d /vol/invalid; sleep 10; ls -d /vol/invalid
+ls: cannot access /vol/invalid: No such file or directory
+/vol/invalid
+
+host:~ # ls -F /vol
+data1/  data2/  data3/  invalid/
+
+The problem happens because lookup_ghost() iterates over all cached
+mapents and creates directories for each entry in the cache. Since
+the cache also stores entries for failed mounts (negative entries), it
+ends up creating directories for mount points that don't exist in the
+map.
+
+I tested the patch below and it resolves the problem for me, but I'm not
+sure if this is the best (or even the correct) way to fix the bug. I'd
+appreciate if you could review and comment.
+
+Thanks,
+Leonardo
+
+[1] https://bugzilla.novell.com/show_bug.cgi?id=658734
+
+When ghosting is enabled, don't create mount points for cached entries
+that don't have a valid mapent.
+
+Index: autofs-5.0.5/daemon/lookup.c
+===================================================================
+--- autofs-5.0.5.orig/daemon/lookup.c
++++ autofs-5.0.5/daemon/lookup.c
+@@ -604,6 +604,9 @@ int lookup_ghost(struct autofs_point *ap
+ 			if (!strcmp(me->key, "*"))
+ 				goto next;
+ 
++			if (!me->mapent)
++				goto next;
++
+ 			if (*me->key == '/') {
+ 				/* It's a busy multi-mount - leave till next time */
+ 				if (list_empty(&me->multi_list))
