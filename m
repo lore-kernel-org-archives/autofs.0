@@ -1,8 +1,8 @@
 From: Bill Ryder <bill.ryder.nz@gmail.com>
-Subject: [bryder_autofs_4.1.4_PATCH 1/8] Added the dumpmap option
-	and updated manpage
-Date: Tue, 14 Dec 2010 13:44:52 +1300
-Message-ID: <a73be8799c7b7a33d6376b4ead68d112f61c2e93.1295972820.git.bill.ryder.nz@gmail.com>
+Subject: [bryder_autofs_4.1.4_PATCH 3/8] Added function names to
+	some debug/crit messages, changed some crits to debug
+Date: Mon, 20 Dec 2010 14:10:12 +1300
+Message-ID: <bd89570b033488aef952fcaf4c46fea290da49c6.1295972820.git.bill.ryder.nz@gmail.com>
 References: <cover.1295972820.git.bill.ryder.nz@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,158 +22,272 @@ Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
 ---
- CHANGELOG           |    8 ++++++++
- daemon/automount.c  |   21 +++++++++++++++++++--
- include/automount.h |    3 +++
- lib/cache.c         |   10 ++++++++++
- man/automount.8     |    3 +++
- 5 files changed, 43 insertions(+), 2 deletions(-)
+ CHANGELOG             |   10 +++++++-
+ modules/lookup_ldap.c |   64 +++++++++++++++++++++++++-----------------------
+ 2 files changed, 42 insertions(+), 32 deletions(-)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index e9dbb63..467e90a 100644
+index 9dd8185..c40a670 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -1,3 +1,11 @@
-+16/6/2010 autofs-4.1.4 - bryder p37
-+-------------------------
-+Moved the autofs-4.1.3 version of the dump map patch to 4.1.4 (without the lookup_files hack)
-+It adds the --dumpmap or -D argument to dump maps read by the daemon - then the daemon exits. 
-+Also help to the automount.c command for this option and updated the man page.
-+Only tested with LDAP.
+@@ -1,5 +1,13 @@
++
++18/6/2010 autofs-4.1.4 - bryder p39
++-----------------------------------
++Added the function name to the lookup_ldap debug and critical messages. 
++Also made a couple of the 'crit' messages 'debug' messages because they are not actually critical. 
++They just show a failed search.
 +
 +
- 11/4/2005 autofs-4.1.4
- ----------------------
- - add /proc/modules check to Debian init script.
-diff --git a/daemon/automount.c b/daemon/automount.c
-index bbcab6a..93e3ff7 100644
---- a/daemon/automount.c
-+++ b/daemon/automount.c
-@@ -55,6 +55,7 @@ static char *pid_file = NULL;	/* File in which to keep pid */
+ 17/6/2010 autofs-4.1.4 - bryder p38
+----------------------------
++--------------------------
+ Added LDAP patch to stop the autofs-ldap-auto-master and lookup_ldap.so from crashing on modern ldap libraries. 
+ It sets the LDAP_DEPRECATED macro to 1. Obviously the ldap stuff needs some updating.
  
- int kproto_version;		/* Kernel protocol version used */
- int kproto_sub_version = 0;	/* Kernel protocol version used */
-+int dumpmap = 0;		/* cmdline arg to dump map contents */
- 
- static int submount = 0;
- 
-@@ -1380,6 +1381,8 @@ static unsigned long getnumopt(char *str, char option)
- static void usage(void)
- {
- 	fprintf(stderr, "Usage: %s [options] path map_type [args...]\n", program);
-+	fprintf(stderr, "   -D|--dumpmap dumps out the maps read and exits\n");
-+
- }
- 
- static void setup_signals(__sighandler_t event_handler, __sighandler_t cld_handler)
-@@ -1671,6 +1674,7 @@ int main(int argc, char *argv[])
- 		{"version", 0, 0, 'V'},
- 		{"ghost", 0, 0, 'g'},
- 		{"submount", 0, &submount, 1},
-+		{"dumpmap", 0, 0, 'D'},
- 		{0, 0, 0, 0}
- 	};
- 
-@@ -1683,7 +1687,7 @@ int main(int argc, char *argv[])
- 	ap.dir_created = 0; /* We haven't created the main directory yet */
- 
- 	opterr = 0;
--	while ((opt = getopt_long(argc, argv, "+hp:t:vdVg", long_options, NULL)) != EOF) {
-+	while ((opt = getopt_long(argc, argv, "+hp:t:vdVgD", long_options, NULL)) != EOF) {
- 		switch (opt) {
- 		case 'h':
- 			usage();
-@@ -1713,6 +1717,9 @@ int main(int argc, char *argv[])
- 			ap.ghost = LKP_GHOST;
- 			break;
- 
-+		case 'D':
-+			dumpmap = 1;
-+			break;
- 		case '?':
- 		case ':':
- 			printf("%s: Ambiguous or unknown options\n", program);
-@@ -1734,7 +1741,8 @@ int main(int argc, char *argv[])
- 		exit(1);
+diff --git a/modules/lookup_ldap.c b/modules/lookup_ldap.c
+index b269f75..f8ed7fc 100644
+--- a/modules/lookup_ldap.c
++++ b/modules/lookup_ldap.c
+@@ -80,7 +80,7 @@ static LDAP *do_connect(struct lookup_context *ctxt, int *result_ldap)
+ 	rv = ldap_set_option(ldap, LDAP_OPT_NETWORK_TIMEOUT, &timeout);
+ 	if (rv != LDAP_SUCCESS) {
+ 		warn(MODPREFIX
+-		     "failed to set connection timeout to %d", timeout);
++		     "%s: failed to set connection timeout to %d", __func__, timeout);
  	}
  
--	become_daemon();
-+	if (!dumpmap)
-+		become_daemon();
+ 	/* Connect to the server as an anonymous user. */
+@@ -172,7 +172,7 @@ int lookup_init(const char *mapfmt, int argc, const char *const *argv, void **co
+ 	memset(ctxt->base, 0, l + 1);
+ 	memcpy(ctxt->base, ptr, l);
  
- 	path = argv[0];
- 	map = argv[1];
-@@ -1762,6 +1770,15 @@ int main(int argc, char *argv[])
- 	if (!(ap.lookup = open_lookup(map, "", mapfmt, mapargc, mapargv)))
- 		cleanup_exit(path, 1);
+-	debug(MODPREFIX "server = \"%s\", port = %d, base dn = \"%s\"",
++	debug(MODPREFIX "%s: server = \"%s\", port = %d, base dn = \"%s\"", __func__,
+ 		  ctxt->server ? ctxt->server : "(default)",
+ 		  ctxt->port, ctxt->base);
  
-+	if (dumpmap) {
-+		int ret;
-+		ret = ap.lookup->lookup_ghost(ap.path, ap.ghost,
-+					      0, ap.lookup->context);
-+		if (ret & LKP_FAIL)
-+			exit(ret);
-+		exit(0);
-+	}
-+
- 	if (!strncmp(path, "/-", 2)) {
- 		supervisor(path);
+@@ -203,7 +203,7 @@ static int read_one_map(const char *root,
+ 	LDAP *ldap;
+ 
+ 	if (ctxt == NULL) {
+-		crit(MODPREFIX "context was NULL");
++		crit(MODPREFIX "%s: context was NULL", __func__);
+ 		return 0;
+ 	}
+ 
+@@ -223,11 +223,11 @@ static int read_one_map(const char *root,
+ 	if (keyvallen > 0) {
+ 		if (sprintf(query, "(&(objectclass=%s)(%s=%.*s))", class,
+ 			    key, keyvallen, keyval) >= l) {
+-			debug(MODPREFIX "error forming query string");
++			debug(MODPREFIX "%s: error forming query string", __func__);
+ 		}
  	} else {
-diff --git a/include/automount.h b/include/automount.h
-index d2f5d70..64ff83d 100644
---- a/include/automount.h
-+++ b/include/automount.h
-@@ -286,6 +286,9 @@ int allow_owner_mount(const char *);
- extern int do_verbose;
- extern int do_debug;
+ 		if (sprintf(query, "(objectclass=%s)", class) >= l) {
+-			debug(MODPREFIX "error forming query string");
++			debug(MODPREFIX "%s: error forming query string", __func__);
+ 		}
+ 	}
+ 	query[l - 1] = '\0';
+@@ -238,13 +238,13 @@ static int read_one_map(const char *root,
+ 		return 0;
  
-+/* command line option to print out included map contents */
-+extern int dumpmap;
-+
- #define info(msg, args...) 		\
- if (do_verbose || do_debug) 		\
- 	syslog(LOG_INFO, msg, ##args);
-diff --git a/lib/cache.c b/lib/cache.c
-index 781c980..5a01079 100644
---- a/lib/cache.c
-+++ b/lib/cache.c
-@@ -169,6 +169,11 @@ int cache_add(const char *root, const char *key, const char *mapent, time_t age)
- 	char *pkey, *pent;
- 	unsigned int hashval = hash(key);
+ 	/* Look around. */
+-	debug(MODPREFIX "searching for \"%s\" under \"%s\"", query, ctxt->base);
++	debug(MODPREFIX "%s: searching for \"%s\" under \"%s\"", __func__, query, ctxt->base);
  
-+	if (dumpmap) {
-+		fprintf(stdout, "%s %s\n", key, mapent);
-+		return CHE_OK;
-+	}
-+
- 	me = (struct mapent_cache *) malloc(sizeof(struct mapent_cache));
- 	if (!me)
- 		return CHE_FAIL;
-@@ -221,6 +226,11 @@ int cache_update(const char *root, const char *key, const char *mapent, time_t a
- 	char *pent;
+ 	rv = ldap_search_s(ldap, ctxt->base, LDAP_SCOPE_SUBTREE,
+ 			   query, attrs, 0, &result);
+ 
+ 	if ((rv != LDAP_SUCCESS) || !result) {
+-		crit(MODPREFIX "query failed for %s: %s", query, ldap_err2string(rv));
++	        crit(MODPREFIX "%s: query failed for %s: %s", __func__, query, ldap_err2string(rv));
+ 		ldap_unbind(ldap);
+ 		*result_ldap = rv;
+ 		return 0;
+@@ -252,12 +252,12 @@ static int read_one_map(const char *root,
+ 
+ 	e = ldap_first_entry(ldap, result);
+ 	if (!e) {
+-		debug(MODPREFIX "query succeeded, no matches for %s", query);
++		debug(MODPREFIX "%s: query succeeded, no matches for %s", __func__, query);
+ 		ldap_msgfree(result);
+ 		ldap_unbind(ldap);
+ 		return 0;
+ 	} else
+-		debug(MODPREFIX "examining entries");
++		debug(MODPREFIX "%s: examining entries", __func__ );
+ 
+ 	while (e) {
+ 		keyValue = ldap_get_values(ldap, e, key);
+@@ -269,7 +269,7 @@ static int read_one_map(const char *root,
+ 
+ 		values = ldap_get_values(ldap, e, type);
+ 		if (!values) {
+-			info(MODPREFIX "no %s defined for %s", type, query);
++			info(MODPREFIX "%s: no %s defined for %s", __func__, type, query);
+ 			ldap_value_free(keyValue);
+ 			e = ldap_next_entry(ldap, e);
+ 			continue;
+@@ -291,7 +291,7 @@ static int read_one_map(const char *root,
+ 		e = ldap_next_entry(ldap, e);
+ 	}
+ 
+-	debug(MODPREFIX "done updating map");
++	debug(MODPREFIX "%s: done updating map", __func__ );
+ 
+ 	/* Clean up. */
+ 	ldap_msgfree(result);
+@@ -393,7 +393,7 @@ static int lookup_one(const char *root, const char *qKey,
  	int ret = CHE_OK;
  
-+	if (dumpmap) {
-+		fprintf(stdout, "%s %s\n", key, mapent);
-+		return CHE_OK;
-+	}
+ 	if (ctxt == NULL) {
+-		crit(MODPREFIX "context was NULL");
++		crit(MODPREFIX "%s: context was NULL", __func__ );
+ 		return 0;
+ 	}
+ 
+@@ -404,7 +404,7 @@ static int lookup_one(const char *root, const char *qKey,
+ 
+ 	query = alloca(l);
+ 	if (query == NULL) {
+-		crit(MODPREFIX "malloc: %m");
++		crit(MODPREFIX "%s: alloca returned NULL", __func__ );
+ 		return 0;
+ 	}
+ 
+@@ -412,12 +412,12 @@ static int lookup_one(const char *root, const char *qKey,
+ 	memset(query, '\0', l);
+ 	ql = sprintf(query, "(&(objectclass=%s)(%s=%s))", class, key, qKey);
+ 	if (ql >= l) {
+-		debug(MODPREFIX "error forming query string");
++		debug(MODPREFIX "%s: error forming query string", __func__);
+ 		return 0;
+ 	}
+ 	query[l - 1] = '\0';
+ 
+-	debug(MODPREFIX "searching for \"%s\" under \"%s\"", query, ctxt->base);
++	debug(MODPREFIX "%s: searching for \"%s\" under \"%s\"", __func__, query, ctxt->base);
+ 
+ 	/* Initialize the LDAP context. */
+ 	ldap = do_connect(ctxt, &rv);
+@@ -428,26 +428,27 @@ static int lookup_one(const char *root, const char *qKey,
+ 			   query, attrs, 0, &result);
+ 
+ 	if ((rv != LDAP_SUCCESS) || !result) {
+-		crit(MODPREFIX "query failed for %s", query);
++		crit(MODPREFIX "%s: query failed for %s", __func__, query);
+ 		ldap_unbind(ldap);
+ 		return 0;
+ 	}
+ 
+-	debug(MODPREFIX "getting first entry for %s=\"%s\"", key, qKey);
+ 
++	debug(MODPREFIX "%s: getting first entry for %s=\"%s\"", __func__, key, qKey);
+ 	e = ldap_first_entry(ldap, result);
+ 	if (!e) {
+-		crit(MODPREFIX "got answer, but no first entry for %s", query);
++		debug(MODPREFIX "%s: got answer, but no first entry for %s", __func__, query);
+ 		ldap_msgfree(result);
+ 		ldap_unbind(ldap);
+ 		return CHE_MISSING;
+ 	}
+ 
+-	debug(MODPREFIX "examining first entry");
 +
- 	for (s = mapent_hash[hash(key)]; s != NULL; s = s->next)
- 		if (strcmp(key, s->key) == 0)
- 			me = s;
-diff --git a/man/automount.8 b/man/automount.8
-index 2b63959..e640656 100644
---- a/man/automount.8
-+++ b/man/automount.8
-@@ -43,6 +43,9 @@ until accesssed. The wildcard map is not ghosted.
- .TP
- .I "\-V, \-\-version"
- Display the version number, then exit.
-+.TP
-+.I "\-D, \-\-dumpmap"
-+Dumps the maps read and exits.
- .SH ARGUMENTS
- \fBautomount\fP takes at least three arguments.  Mandatory arguments 
- include \fImount-point\fP, \fImap-type\fP, and \fImap\fP.  Both mandatory
++	debug(MODPREFIX "%s: examining first entry", __func__);
+ 
+ 	values = ldap_get_values(ldap, e, type);
+ 	if (!values) {
+-		debug(MODPREFIX "no %s defined for %s", type, query);
++		debug(MODPREFIX "%s: no %s defined for %s", __func__, type, query);
+ 		ldap_msgfree(result);
+ 		ldap_unbind(ldap);
+ 		return CHE_MISSING;
+@@ -499,7 +500,7 @@ static int lookup_wild(const char *root,
+ 	int qKey_len;
+ 
+ 	if (ctxt == NULL) {
+-		crit(MODPREFIX "context was NULL");
++		crit(MODPREFIX "%s: context was NULL", __func__);
+ 		return 0;
+ 	}
+ 
+@@ -512,7 +513,7 @@ static int lookup_wild(const char *root,
+ 
+ 	query = alloca(l);
+ 	if (query == NULL) {
+-		crit(MODPREFIX "malloc: %m");
++		crit(MODPREFIX "%s: malloc failed",__func__);
+ 		return 0;
+ 	}
+ 
+@@ -520,12 +521,12 @@ static int lookup_wild(const char *root,
+ 	memset(query, '\0', l);
+ 	ql = sprintf(query, "(&(objectclass=%s)(%s=%s))", class, key, qKey);
+ 	if (ql >= l) {
+-		debug(MODPREFIX "error forming query string");
++		debug(MODPREFIX "%s: error forming query string", __func__);
+ 		return 0;
+ 	}
+ 	query[l - 1] = '\0';
+ 
+-	debug(MODPREFIX "searching for \"%s\" under \"%s\"", query, ctxt->base);
++	debug(MODPREFIX "%s: searching for \"%s\" under \"%s\"", __func__, query, ctxt->base);
+ 
+ 	/* Initialize the LDAP context. */
+ 	ldap = do_connect(ctxt, &rv);
+@@ -536,26 +537,27 @@ static int lookup_wild(const char *root,
+ 			   query, attrs, 0, &result);
+ 
+ 	if ((rv != LDAP_SUCCESS) || !result) {
+-		crit(MODPREFIX "query failed for %s", query);
++		crit(MODPREFIX "%s: query failed for %s", __func__, query);
+ 		ldap_unbind(ldap);
+ 		return 0;
+ 	}
+ 
+-	debug(MODPREFIX "getting first entry for %s=\"%s\"", key, qKey);
++
++	debug(MODPREFIX "%s: getting first entry for %s=\"%s\"", __func__, key, qKey);
+ 
+ 	e = ldap_first_entry(ldap, result);
+ 	if (!e) {
+-		crit(MODPREFIX "got answer, but no first entry for %s", query);
++		debug(MODPREFIX "%s: got answer, but no first entry for %s", __func__, query);
+ 		ldap_msgfree(result);
+ 		ldap_unbind(ldap);
+ 		return CHE_MISSING;
+ 	}
+ 
+-	debug(MODPREFIX "examining first entry");
++	debug(MODPREFIX "%s: examining first entry", __func__);
+ 
+ 	values = ldap_get_values(ldap, e, type);
+ 	if (!values) {
+-		debug(MODPREFIX "no %s defined for %s", type, query);
++		debug(MODPREFIX "%s: no %s defined for %s", __func__, type, query);
+ 		ldap_msgfree(result);
+ 		ldap_unbind(ldap);
+ 		return CHE_MISSING;
+@@ -654,7 +656,7 @@ int lookup_mount(const char *root, const char *name, int name_len, void *context
+ 		while (me) {
+ 			sprintf(mapent, me->mapent);
+ 
+-			debug(MODPREFIX "%s -> %s", key, mapent);
++			debug(MODPREFIX "%s: %s -> %s", __func__, key, mapent);
+ 			ret = ctxt->parse->parse_mount(root, name, name_len,
+ 						  mapent, ctxt->parse->context);
+ 			me = cache_lookup_next(me);
+@@ -674,7 +676,7 @@ int lookup_mount(const char *root, const char *name, int name_len, void *context
+ 			}
+ 			sprintf(mapent, "-fstype=autofs ldap:%s", mapname);
+ 
+-			debug(MODPREFIX "%s -> %s", key, mapent);
++			debug(MODPREFIX "%s: %s -> %s", __func__, key, mapent);
+ 			ret = ctxt->parse->parse_mount(root, name, name_len,
+ 						  mapent, ctxt->parse->context);
+ 		}
 -- 
 1.7.3.4
