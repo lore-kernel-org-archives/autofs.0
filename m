@@ -1,14 +1,21 @@
-From: "Carter, Joel" <JoelC@trailerwizards.com>
+From: Issa <frechdesign@gmail.com>
 Subject: Re: Autofs SMBFS no write in files
-Date: Wed, 5 Jan 2011 08:38:06 -0800
-Message-ID: <7A014DE1422A694A89BA2CE1F5692DF503831E91@niihau.lionsgate.ca>
+Date: Wed, 5 Jan 2011 19:53:23 +0100
+Message-ID: <AANLkTimPnSqVgjONUOvmXChATYRgR=N-RwHjcbtLw1fQ@mail.gmail.com>
 References: <alpine.LNX.2.00.1012182238560.17400@swampdragon.chaosbits.net>
 	<4D207520.60200@gmail.Com>
+	<7A014DE1422A694A89BA2CE1F5692DF503831E91@niihau.lionsgate.ca>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1360573303720904576=="
+Content-Type: multipart/mixed; boundary="===============2391677513835561161=="
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-class: urn:content-classes:message
-In-Reply-To: <4D207520.60200@gmail.Com>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
+	h=domainkey-signature:mime-version:received:received:in-reply-to
+	:references:date:message-id:subject:from:to:cc:content-type;
+	bh=uuQtoyn8RKOiZmfUEcdRi5pXib2Lc6HLqUhREQMccSk=;
+	b=pWg9IO7JIU2Jwiv+GQnFDqBIxRGvvVRA8tqF3AOa08kl2GqM4a0Oo4k3WOw0Nmwil1
+	kQhy+PvjmSEy5gh9yopoeR+1oxJDN4mgeEeaaiQMV2PWVsi97ypJL2F5oEtEB0vTniEy
+	z24SIx4K85rxPn+gDlSVtbvI4FwChl3yZDxKE=
+In-Reply-To: <7A014DE1422A694A89BA2CE1F5692DF503831E91@niihau.lionsgate.ca>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -19,253 +26,164 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Issa <frechdesign@gmail.com>, Jesper Juhl <jj@chaosbits.net>
-Cc: autofs@linux.kernel.org, linux-kernel@vger.kernel.org, Ian Kent <raven@themaw.net>
+To: "Carter, Joel" <JoelC@trailerwizards.com>
+Cc: autofs@linux.kernel.org, Jesper Juhl <jj@chaosbits.net>, linux-kernel@vger.kernel.org, Ian Kent <raven@themaw.net>
 
-This is a multi-part message in MIME format.
+--===============2391677513835561161==
+Content-Type: multipart/alternative; boundary=0015174c3d4a483df504991de64d
 
---===============1360573303720904576==
-Content-class: urn:content-classes:message
-Content-Type: multipart/alternative;
-	boundary="----_=_NextPart_001_01CBACF6.FD32C417"
-
-This is a multi-part message in MIME format.
-
-------_=_NextPart_001_01CBACF6.FD32C417
-Content-Type: text/plain;
-	charset="iso-8859-1"
+--0015174c3d4a483df504991de64d
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-Hey there.
-
-=20
-
-Who is the owner and what are the permissions of your /mnt/smb/win1 =
-mount point after autofs kicks in? Can you write to it using root (or =
-using sudo, same thing)?
-
-=20
-
-Joel.
-
-=20
-
-From: autofs-bounces@linux.kernel.org =
-[mailto:autofs-bounces@linux.kernel.org] On Behalf Of Issa
-Sent: January-02-11 4:53 AM
-To: Jesper Juhl
-Cc: autofs@linux.kernel.org; linux-kernel@vger.kernel.org; Ian Kent
-Subject: [autofs] Autofs SMBFS no write in files
-
-=20
-
-Hello,
+Hello thanks for u answer,
 
 
-Autofs acc=E9s smbfs no way to write in smbfs share ?
+yes i need to make sudo for write in .
 
 
-Autofs smbfs no writing ?
 
-Im usint autofs with ubuntu 10.10
-Im using autofs like this
 
-sudo nano /etc/auto.master
 
-+auto.master
-/mnt/smb       /etc/auto.auto   --timeout=3D60 --ghost
+2011/1/5 Carter, Joel <JoelC@trailerwizards.com>
 
-et le fichier sudo nano /etc/auto.auto
-
-#directory name         option for mount                                 =
+> Hey there.
+>
+>
+>
+> Who is the owner and what are the permissions of your /mnt/smb/win1 mount
+> point after autofs kicks in? Can you write to it using root (or using sud=
+o,
+> same thing)?
+>
+>
+>
+> Joel.
+>
+>
+>
+> *From:* autofs-bounces@linux.kernel.org [mailto:
+> autofs-bounces@linux.kernel.org] *On Behalf Of *Issa
+> *Sent:* January-02-11 4:53 AM
+> *To:* Jesper Juhl
+> *Cc:* autofs@linux.kernel.org; linux-kernel@vger.kernel.org; Ian Kent
+> *Subject:* [autofs] Autofs SMBFS no write in files
+>
+>
+>
+> Hello,
+> Autofs acc=E9s smbfs no way to write in smbfs share ?
+>
+> Autofs smbfs no writing ?
+>
+> Im usint autofs with ubuntu 10.10
+> Im using autofs like this
+>
+> sudo nano /etc/auto.master
+>
+> +auto.master
+>
+> /mnt/smb       /etc/auto.auto   --timeout=3D60 --ghost
+>
+> et le fichier sudo nano /etc/auto.auto
+>
+> #directory name         option for mount                                 =
                  device to mount
-win1            -fstype=3Dsmbfs,rw,credentials=3D/etc/smb.auth         =
-://win1/docs/
+>
+> win1            -fstype=3Dsmbfs,rw,credentials=3D/etc/smb.auth         :/=
+/win1/docs/
+>
+> Authentication files :
+> sudo nano /etc/smb.auth
+>
+> username=3Dusers1
+>
+> password=3DmotDePasse
+>
+> domain=3DwindowsDomaine
+>
+>
+>
+> now with this i can access only in read
+>
+> /mnt/smb/win1
+>
+> My question how add acess to write ?
+>
+> because i can write for the moment.
+>
+> thanks
+>
 
-Authentication files :
-sudo nano /etc/smb.auth
-
-username=3Dusers1
-password=3DmotDePasse
-domain=3DwindowsDomaine
-=20
-now with this i can access only in read
-/mnt/smb/win1
-
-My question how add acess to write ?
-
-because i can write for the moment.
-
-thanks
 
 
-------_=_NextPart_001_01CBACF6.FD32C417
-Content-Type: text/html;
-	charset="iso-8859-1"
+--=20
+Cordialement
+Yassin Chouchane
+
+--0015174c3d4a483df504991de64d
+Content-Type: text/html; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
-charset=3Diso-8859-1">
-<html xmlns:v=3D"urn:schemas-microsoft-com:vml" =
-xmlns:o=3D"urn:schemas-microsoft-com:office:office" =
-xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
-xmlns:m=3D"http://schemas.microsoft.com/office/2004/12/omml" =
-xmlns=3D"http://www.w3.org/TR/REC-html40"><head><meta name=3DGenerator =
-content=3D"Microsoft Word 12 (filtered medium)"><style><!--
-/* Font Definitions */
-@font-face
-	{font-family:"Cambria Math";
-	panose-1:2 4 5 3 5 4 6 3 2 4;}
-@font-face
-	{font-family:Calibri;
-	panose-1:2 15 5 2 2 2 4 3 2 4;}
-@font-face
-	{font-family:Tahoma;
-	panose-1:2 11 6 4 3 5 4 4 2 4;}
-@font-face
-	{font-family:Consolas;
-	panose-1:2 11 6 9 2 2 4 3 2 4;}
-/* Style Definitions */
-p.MsoNormal, li.MsoNormal, div.MsoNormal
-	{margin:0cm;
-	margin-bottom:.0001pt;
-	font-size:12.0pt;
-	font-family:"Times New Roman","serif";
-	color:black;}
-h3
-	{mso-style-priority:9;
-	mso-style-link:"Heading 3 Char";
-	mso-margin-top-alt:auto;
-	margin-right:0cm;
-	mso-margin-bottom-alt:auto;
-	margin-left:0cm;
-	font-size:13.5pt;
-	font-family:"Times New Roman","serif";
-	color:black;
-	font-weight:bold;}
-a:link, span.MsoHyperlink
-	{mso-style-priority:99;
-	color:blue;
-	text-decoration:underline;}
-a:visited, span.MsoHyperlinkFollowed
-	{mso-style-priority:99;
-	color:purple;
-	text-decoration:underline;}
-p
-	{mso-style-priority:99;
-	mso-margin-top-alt:auto;
-	margin-right:0cm;
-	mso-margin-bottom-alt:auto;
-	margin-left:0cm;
-	font-size:12.0pt;
-	font-family:"Times New Roman","serif";
-	color:black;}
-code
-	{mso-style-priority:99;
-	font-family:"Courier New";}
-pre
-	{mso-style-priority:99;
-	mso-style-link:"HTML Preformatted Char";
-	margin:0cm;
-	margin-bottom:.0001pt;
-	font-size:10.0pt;
-	font-family:"Courier New";
-	color:black;}
-span.Heading3Char
-	{mso-style-name:"Heading 3 Char";
-	mso-style-priority:9;
-	mso-style-link:"Heading 3";
-	font-family:"Cambria","serif";
-	color:#4F81BD;
-	font-weight:bold;}
-span.HTMLPreformattedChar
-	{mso-style-name:"HTML Preformatted Char";
-	mso-style-priority:99;
-	mso-style-link:"HTML Preformatted";
-	font-family:"Consolas","serif";
-	color:black;}
-span.EmailStyle22
-	{mso-style-type:personal-reply;
-	font-family:"Arial","sans-serif";
-	color:windowtext;
-	font-weight:normal;
-	font-style:normal;
-	text-decoration:none none;}
-span.re2
-	{mso-style-name:re2;}
-span.nu0
-	{mso-style-name:nu0;}
-.MsoChpDefault
-	{mso-style-type:export-only;
-	font-size:10.0pt;}
-@page WordSection1
-	{size:612.0pt 792.0pt;
-	margin:72.0pt 72.0pt 72.0pt 72.0pt;}
-div.WordSection1
-	{page:WordSection1;}
---></style><!--[if gte mso 9]><xml>
-<o:shapedefaults v:ext=3D"edit" spidmax=3D"1026" />
-</xml><![endif]--><!--[if gte mso 9]><xml>
-<o:shapelayout v:ext=3D"edit">
-<o:idmap v:ext=3D"edit" data=3D"1" />
-</o:shapelayout></xml><![endif]--></head><body bgcolor=3Dwhite =
-lang=3DEN-CA link=3Dblue vlink=3Dpurple><div class=3DWordSection1><p =
-class=3DMsoNormal><span =
-style=3D'font-size:10.0pt;font-family:"Arial","sans-serif";color:windowte=
-xt'>Hey there.<o:p></o:p></span></p><p class=3DMsoNormal><span =
-style=3D'font-size:10.0pt;font-family:"Arial","sans-serif";color:windowte=
-xt'><o:p>&nbsp;</o:p></span></p><p class=3DMsoNormal><span =
-style=3D'font-size:10.0pt;font-family:"Arial","sans-serif";color:windowte=
-xt'>Who is the owner and what are the permissions of your /mnt/smb/win1 =
-mount point after autofs kicks in? Can you write to it using root (or =
-using sudo, same thing)?<o:p></o:p></span></p><p class=3DMsoNormal><span =
-style=3D'font-size:10.0pt;font-family:"Arial","sans-serif";color:windowte=
-xt'><o:p>&nbsp;</o:p></span></p><p class=3DMsoNormal><span =
-style=3D'font-size:10.0pt;font-family:"Arial","sans-serif";color:windowte=
-xt'>Joel.<o:p></o:p></span></p><p class=3DMsoNormal><span =
-style=3D'font-size:10.0pt;font-family:"Arial","sans-serif";color:windowte=
-xt'><o:p>&nbsp;</o:p></span></p><div><div =
-style=3D'border:none;border-top:solid #B5C4DF 1.0pt;padding:3.0pt 0cm =
-0cm 0cm'><p class=3DMsoNormal><b><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Tahoma","sans-serif";color:windowt=
-ext'>From:</span></b><span lang=3DEN-US =
-style=3D'font-size:10.0pt;font-family:"Tahoma","sans-serif";color:windowt=
-ext'> autofs-bounces@linux.kernel.org =
-[mailto:autofs-bounces@linux.kernel.org] <b>On Behalf Of =
-</b>Issa<br><b>Sent:</b> January-02-11 4:53 AM<br><b>To:</b> Jesper =
-Juhl<br><b>Cc:</b> autofs@linux.kernel.org; =
-linux-kernel@vger.kernel.org; Ian Kent<br><b>Subject:</b> [autofs] =
-Autofs SMBFS no write in files<o:p></o:p></span></p></div></div><p =
-class=3DMsoNormal><o:p>&nbsp;</o:p></p><div><p class=3DMsoNormal =
-style=3D'margin-bottom:12.0pt'>Hello,<o:p></o:p></p><h3>Autofs acc=E9s =
-smbfs no way to write in smbfs share ?<o:p></o:p></h3><p =
-class=3DMsoNormal>Autofs smbfs no writing ?<br><br>Im usint autofs with =
-ubuntu 10.10<br>Im using autofs like this<o:p></o:p></p><p>sudo nano =
-/etc/auto.master<o:p></o:p></p><div><pre><code>+auto.master<o:p></o:p></c=
-ode></pre><pre><code>/mnt/smb=A0=A0=A0=A0=A0=A0 /etc/auto.auto=A0=A0 =
---timeout=3D60 --ghost</code><o:p></o:p></pre></div><p>et le fichier =
-sudo nano /etc/auto.auto<o:p></o:p></p><div><pre><code>#directory =
-name=A0=A0=A0=A0=A0=A0=A0=A0 option for =
-mount=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+Hello thanks for u answer, <br><br><br>yes i need to make sudo for write in=
+ .<br><br><br><br><br><br><div class=3D"gmail_quote">2011/1/5 Carter, Joel =
+<span dir=3D"ltr">&lt;<a href=3D"mailto:JoelC@trailerwizards.com">JoelC@tra=
+ilerwizards.com</a>&gt;</span><br>
+<blockquote class=3D"gmail_quote" style=3D"margin: 0pt 0pt 0pt 0.8ex; borde=
+r-left: 1px solid rgb(204, 204, 204); padding-left: 1ex;">
+<div bgcolor=3D"white" link=3D"blue" vlink=3D"purple" lang=3D"EN-CA"><div><=
+p class=3D"MsoNormal"><span style=3D"font-size: 10pt; color: windowtext;">H=
+ey there.</span></p><p class=3D"MsoNormal"><span style=3D"font-size: 10pt; =
+color: windowtext;">=A0</span></p>
+<p class=3D"MsoNormal"><span style=3D"font-size: 10pt; color: windowtext;">=
+Who is the owner and what are the permissions of your /mnt/smb/win1 mount p=
+oint after autofs kicks in? Can you write to it using root (or using sudo, =
+same thing)?</span></p>
+<p class=3D"MsoNormal"><span style=3D"font-size: 10pt; color: windowtext;">=
+=A0</span></p><p class=3D"MsoNormal"><span style=3D"font-size: 10pt; color:=
+ windowtext;">Joel.</span></p><p class=3D"MsoNormal"><span style=3D"font-si=
+ze: 10pt; color: windowtext;">=A0</span></p>
+<div><div style=3D"border-width: 1pt medium medium; border-style: solid non=
+e none; border-color: rgb(181, 196, 223) -moz-use-text-color -moz-use-text-=
+color; padding: 3pt 0cm 0cm;"><p class=3D"MsoNormal"><b><span style=3D"font=
+-size: 10pt; color: windowtext;" lang=3D"EN-US">From:</span></b><span style=
+=3D"font-size: 10pt; color: windowtext;" lang=3D"EN-US"> <a href=3D"mailto:=
+autofs-bounces@linux.kernel.org" target=3D"_blank">autofs-bounces@linux.ker=
+nel.org</a> [mailto:<a href=3D"mailto:autofs-bounces@linux.kernel.org" targ=
+et=3D"_blank">autofs-bounces@linux.kernel.org</a>] <b>On Behalf Of </b>Issa=
+<br>
+<b>Sent:</b> January-02-11 4:53 AM<br><b>To:</b> Jesper Juhl<br><b>Cc:</b> =
+<a href=3D"mailto:autofs@linux.kernel.org" target=3D"_blank">autofs@linux.k=
+ernel.org</a>; <a href=3D"mailto:linux-kernel@vger.kernel.org" target=3D"_b=
+lank">linux-kernel@vger.kernel.org</a>; Ian Kent<br>
+<b>Subject:</b> [autofs] Autofs SMBFS no write in files</span></p></div></d=
+iv><div><div></div><div class=3D"h5"><p class=3D"MsoNormal">=A0</p><div><p =
+class=3D"MsoNormal" style=3D"margin-bottom: 12pt;">Hello,</p><h3>Autofs acc=
+=E9s smbfs no way to write in smbfs share ?</h3>
+<p class=3D"MsoNormal">Autofs smbfs no writing ?<br><br>Im usint autofs wit=
+h ubuntu 10.10<br>Im using autofs like this</p><p>sudo nano /etc/auto.maste=
+r</p><div><pre><code>+auto.master</code></pre><pre><code>/mnt/smb=A0=A0=A0=
+=A0=A0=A0 /etc/auto.auto=A0=A0 --timeout=3D60 --ghost</code></pre>
+</div><p>et le fichier sudo nano /etc/auto.auto</p><div><pre><code>#directo=
+ry name=A0=A0=A0=A0=A0=A0=A0=A0 option for mount=A0=A0=A0=A0=A0=A0=A0=A0=A0=
 =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0 device to =
-mount<o:p></o:p></code></pre><pre><code>win1=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0 =
--fstype=3Dsmbfs,rw,credentials=3D/etc/smb.auth=A0=A0=A0=A0=A0=A0=A0=A0 =
-://win1/docs/</code><o:p></o:p></pre></div><p>Authentication files =
-:<br>sudo nano =
-/etc/smb.auth<o:p></o:p></p><div><pre><code>username=3Dusers1<o:p></o:p><=
-/code></pre><pre><code>password=3DmotDePasse<o:p></o:p></code></pre><pre>=
-<code>domain=3DwindowsDomaine</code><o:p></o:p></pre></div><pre><code><o:=
-p>&nbsp;</o:p></code></pre><pre><code>now with this i can access only in =
-read<o:p></o:p></code></pre><pre><code>/mnt/smb/win1</code><o:p></o:p></p=
-re><p>My question how add acess to write ?<o:p></o:p></p><p>because i =
-can write for the =
-moment.<o:p></o:p></p><p>thanks<o:p></o:p></p></div></div></body></html>
-------_=_NextPart_001_01CBACF6.FD32C417--
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 device to mount</code></pre><=
+pre><code>win1=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 -fstype=3Dsmbfs,rw,credenti=
+als=3D/etc/smb.auth=A0=A0=A0=A0=A0=A0=A0=A0 ://win1/docs/</code></pre>
+</div><p>Authentication files :<br>sudo nano /etc/smb.auth</p><div><pre><co=
+de>username=3Dusers1</code></pre><pre><code>password=3DmotDePasse</code></p=
+re><pre><code>domain=3DwindowsDomaine</code></pre></div><pre><code>=A0</cod=
+e></pre>
+<pre><code>now with this i can access only in read</code></pre><pre><code>/=
+mnt/smb/win1</code></pre><p>My question how add acess to write ?</p><p>beca=
+use i can write for the moment.</p><p>thanks</p></div></div></div></div>
+</div></blockquote></div><br><br clear=3D"all"><br>-- <br>Cordialement<br>Y=
+assin Chouchane<br>
+
+--0015174c3d4a483df504991de64d--
 
 
---===============1360573303720904576==
+--===============2391677513835561161==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -276,5 +194,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---===============1360573303720904576==--
+--===============2391677513835561161==--
 
