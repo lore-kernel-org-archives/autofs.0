@@ -1,17 +1,12 @@
-From: Ian Kent <ikent@redhat.com>
-Subject: Re: autofs misbehaves when DNS RRs returns more ldap
- servers
-Date: Tue, 11 Jan 2011 14:32:19 +0800
-Message-ID: <1294727539.2975.9.camel@perseus>
-References: <4D18885D.6010601@s3group.cz> <1293503090.5923.2.camel@perseus>
-	<4D21A19D.3050303@s3group.cz> <1294297764.3010.8.camel@perseus>
-	<4D2581F0.8020607@s3group.cz> <1294322864.2852.3.camel@perseus>
-	<4D27115A.9010805@s3group.cz>
+From: Michael Orlov <orlovm@cs.bgu.ac.il>
+Subject: autofs 5.0.4 and 5.0.5 do not remove ghost entries upon
+	SIGHUP
+Date: Tue, 11 Jan 2011 18:34:24 +0200
+Message-ID: <20110111183424.7f0f7ad4@cs.bgu.ac.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4D27115A.9010805@s3group.cz>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,39 +17,34 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ondrej Valousek <webserv@s3group.cz>
-Cc: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
+To: autofs@linux.kernel.org
 
-On Fri, 2011-01-07 at 14:12 +0100, Ondrej Valousek wrote:
-> On 06.01.2011 15:07, Ian Kent wrote: 
-> > Thanks for the suggestions.
-> > I'm still on leave so things are still going slowly for now, but I'll
-> > get to it.
-> Hi Ian,
-> 
-> Please find the attached patch which fixes the problem for me.
-> I also changed the "dclist" structure definition from:
-> 
-> struct dclist {
->         time_t expire;
->         const char *uri;
-> };
-> 
-> into:
-> 
-> struct dclist {
->         time_t expire;
->         char **uri;
->         int cnt;
-> };
-> 
-> Hope you'll find it useful :-) .
+Hi,
 
-Sorry I didn't get onto this earlier.
-I could have saved you quite a bit of time.
+(I have sent this message on Oct 27, but nothing appears in the
+archives for that month - hopefully it's not a duplicate message.)
 
-Now that I've had a look I see I've already worked on this problem.
-See:
-http://www.kernel.org/pub/linux/daemons/autofs/v5/autofs-5.0.5-check-each-dc-server.patch
+I think this is a bug - if it is not, I will be glad if someone
+corrects me. I am using autofs on Gentoo.
 
-Ian
+In auto.master, put
+  /mnt/test  /etc/auto.test  --ghost
+
+In auto.test, put
+  floppy -fstype=auto :/dev/fd0
+(or anything similar)
+
+1. start autofs
+2. see that /mnt/test/floppy exists
+3. remove or comment out the "floppy" line in auto.test
+4. send SIGHUP to autofs
+
+After these actions, in autofs 5.0.4 / 5.0.5 (but not
+5.0.3), /mnt/test/floppy still exists - it is not removed after SIGHUP.
+
+This is problematic, for example, when auto.test is maintained via
+udev. Full restart of a service from a udev-invoked script is very
+error-prone.
+
+Thanks,
+Michael
