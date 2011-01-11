@@ -1,8 +1,8 @@
 From: David Howells <dhowells@redhat.com>
-Subject: [PATCH 04/18] CIFS: Use d_automount() rather than abusing
- follow_link()
-Date: Tue, 11 Jan 2011 17:48:31 +0000
-Message-ID: <20110111174831.2291.88704.stgit@warthog.procyon.org.uk>
+Subject: [PATCH 05/18] Remove the automount through follow_link() kludge code
+ from pathwalk
+Date: Tue, 11 Jan 2011 17:48:36 +0000
+Message-ID: <20110111174836.2291.83341.stgit@warthog.procyon.org.uk>
 References: <20110111174809.2291.52242.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -14,287 +14,56 @@ Content-Type: text/plain; charset="us-ascii"
 To: npiggin@kernel.dk, viro@zeniv.linux.org.uk, raven@themaw.net
 Cc: dhowells@redhat.com, autofs@linux.kernel.org, linux-fsdevel@vger.kernel.org
 
-Make CIFS use the new d_automount() dentry operation rather than abusing
-follow_link() on directories.
-
-[NOTE: THIS IS UNTESTED!]
+Remove the automount through follow_link() kludge code from pathwalk in favour
+of using d_automount().
 
 Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Steve French <sfrench@samba.org>
+Acked-by: Ian Kent <raven@themaw.net>
 ---
 
- fs/cifs/cifs_dfs_ref.c |  134 ++++++++++++++++++++++++------------------------
- fs/cifs/cifsfs.h       |    6 ++
- fs/cifs/dir.c          |    2 +
- fs/cifs/inode.c        |    8 ++-
- 4 files changed, 80 insertions(+), 70 deletions(-)
+ fs/namei.c |   17 +++--------------
+ 1 files changed, 3 insertions(+), 14 deletions(-)
 
-diff --git a/fs/cifs/cifs_dfs_ref.c b/fs/cifs/cifs_dfs_ref.c
-index c68a056..ddd0b3e 100644
---- a/fs/cifs/cifs_dfs_ref.c
-+++ b/fs/cifs/cifs_dfs_ref.c
-@@ -255,35 +255,6 @@ static struct vfsmount *cifs_dfs_do_refmount(struct cifs_sb_info *cifs_sb,
- 
+diff --git a/fs/namei.c b/fs/namei.c
+index 159da29..dfafb97 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -1193,17 +1193,6 @@ fail:
  }
  
--static int add_mount_helper(struct vfsmount *newmnt, struct nameidata *nd,
--				struct list_head *mntlist)
+ /*
+- * This is a temporary kludge to deal with "automount" symlinks; proper
+- * solution is to trigger them on follow_mount(), so that do_lookup()
+- * would DTRT.  To be killed before 2.6.34-final.
+- */
+-static inline int follow_on_final(struct inode *inode, unsigned lookup_flags)
 -{
--	/* stolen from afs code */
--	int err;
--
--	mntget(newmnt);
--	err = do_add_mount(newmnt, &nd->path, nd->path.mnt->mnt_flags | MNT_SHRINKABLE, mntlist);
--	switch (err) {
--	case 0:
--		path_put(&nd->path);
--		nd->path.mnt = newmnt;
--		nd->path.dentry = dget(newmnt->mnt_root);
--		schedule_delayed_work(&cifs_dfs_automount_task,
--				      cifs_dfs_mountpoint_expiry_timeout);
--		break;
--	case -EBUSY:
--		/* someone else made a mount here whilst we were busy */
--		while (d_mountpoint(nd->path.dentry) &&
--		       follow_down(&nd->path))
--			;
--		err = 0;
--	default:
--		mntput(newmnt);
--		break;
--	}
--	return err;
+-	return inode && unlikely(inode->i_op->follow_link) &&
+-		((lookup_flags & LOOKUP_FOLLOW) || S_ISDIR(inode->i_mode));
 -}
 -
- static void dump_referral(const struct dfs_info3_param *ref)
- {
- 	cFYI(1, "DFS: ref path: %s", ref->path_name);
-@@ -293,45 +264,43 @@ static void dump_referral(const struct dfs_info3_param *ref)
- 				ref->path_consumed);
- }
- 
--
--static void*
--cifs_dfs_follow_mountpoint(struct dentry *dentry, struct nameidata *nd)
-+/*
-+ * Create a vfsmount that we can automount
-+ */
-+static struct vfsmount *cifs_dfs_do_automount(struct dentry *mntpt)
- {
- 	struct dfs_info3_param *referrals = NULL;
- 	unsigned int num_referrals = 0;
- 	struct cifs_sb_info *cifs_sb;
- 	struct cifsSesInfo *ses;
--	char *full_path = NULL;
-+	char *full_path;
- 	int xid, i;
--	int rc = 0;
--	struct vfsmount *mnt = ERR_PTR(-ENOENT);
-+	int rc;
-+	struct vfsmount *mnt;
- 	struct tcon_link *tlink;
- 
- 	cFYI(1, "in %s", __func__);
--	BUG_ON(IS_ROOT(dentry));
-+	BUG_ON(IS_ROOT(mntpt));
- 
- 	xid = GetXid();
- 
--	dput(nd->path.dentry);
--	nd->path.dentry = dget(dentry);
--
- 	/*
- 	 * The MSDFS spec states that paths in DFS referral requests and
- 	 * responses must be prefixed by a single '\' character instead of
- 	 * the double backslashes usually used in the UNC. This function
- 	 * gives us the latter, so we must adjust the result.
- 	 */
--	full_path = build_path_from_dentry(dentry);
--	if (full_path == NULL) {
--		rc = -ENOMEM;
--		goto out_err;
--	}
-+	mnt = ERR_PTR(-ENOMEM);
-+	full_path = build_path_from_dentry(mntpt);
-+	if (full_path == NULL)
-+		goto free_xid;
- 
--	cifs_sb = CIFS_SB(dentry->d_inode->i_sb);
-+	cifs_sb = CIFS_SB(mntpt->d_inode->i_sb);
- 	tlink = cifs_sb_tlink(cifs_sb);
-+	mnt = ERR_PTR(-EINVAL);
- 	if (IS_ERR(tlink)) {
--		rc = PTR_ERR(tlink);
--		goto out_err;
-+		mnt = ERR_CAST(tlink);
-+		goto free_full_path;
- 	}
- 	ses = tlink_tcon(tlink)->ses;
- 
-@@ -341,46 +310,77 @@ cifs_dfs_follow_mountpoint(struct dentry *dentry, struct nameidata *nd)
- 
- 	cifs_put_tlink(tlink);
- 
-+	mnt = ERR_PTR(-ENOENT);
- 	for (i = 0; i < num_referrals; i++) {
- 		int len;
--		dump_referral(referrals+i);
-+		dump_referral(referrals + i);
- 		/* connect to a node */
- 		len = strlen(referrals[i].node_name);
- 		if (len < 2) {
- 			cERROR(1, "%s: Net Address path too short: %s",
- 					__func__, referrals[i].node_name);
--			rc = -EINVAL;
--			goto out_err;
-+			mnt = ERR_PTR(-EINVAL);
-+			break;
- 		}
- 		mnt = cifs_dfs_do_refmount(cifs_sb,
- 				full_path, referrals + i);
- 		cFYI(1, "%s: cifs_dfs_do_refmount:%s , mnt:%p", __func__,
- 					referrals[i].node_name, mnt);
--
--		/* complete mount procedure if we accured submount */
- 		if (!IS_ERR(mnt))
--			break;
-+			goto success;
- 	}
- 
--	/* we need it cause for() above could exit without valid submount */
--	rc = PTR_ERR(mnt);
--	if (IS_ERR(mnt))
--		goto out_err;
--
--	rc = add_mount_helper(mnt, nd, &cifs_dfs_automount_list);
-+	/* no valid submounts were found; return error from get_dfs_path() by
-+	 * preference */
-+	if (rc != 0)
-+		mnt = ERR_PTR(rc);
- 
--out:
--	FreeXid(xid);
-+success:
- 	free_dfs_info_array(referrals, num_referrals);
-+free_full_path:
- 	kfree(full_path);
-+free_xid:
-+	FreeXid(xid);
- 	cFYI(1, "leaving %s" , __func__);
--	return ERR_PTR(rc);
--out_err:
--	path_put(&nd->path);
--	goto out;
-+	return mnt;
-+}
-+
-+/*
-+ * Attempt to automount the referral
-+ */
-+struct vfsmount *cifs_dfs_d_automount(struct path *path)
-+{
-+	struct vfsmount *newmnt;
-+	int err;
-+
-+	cFYI(1, "in %s", __func__);
-+
-+	newmnt = cifs_dfs_do_automount(path->dentry);
-+	if (IS_ERR(newmnt)) {
-+		cFYI(1, "leaving %s [automount failed]" , __func__);
-+		return newmnt;
-+	}
-+
-+	mntget(newmnt);
-+	err = do_add_mount(newmnt, path, MNT_SHRINKABLE,
-+			   &cifs_dfs_automount_list);
-+	switch (err) {
-+	case 0:
-+		schedule_delayed_work(&cifs_dfs_automount_task,
-+				      cifs_dfs_mountpoint_expiry_timeout);
-+		cFYI(1, "leaving %s [ok]" , __func__);
-+		return newmnt;
-+	case -EBUSY:
-+		/* someone else made a mount here whilst we were busy */
-+		mntput(newmnt);
-+		cFYI(1, "leaving %s [EBUSY]" , __func__);
-+		return NULL;
-+	default:
-+		mntput(newmnt);
-+		cFYI(1, "leaving %s [error %d]" , __func__, err);
-+		return ERR_PTR(err);
-+	}
- }
- 
- const struct inode_operations cifs_dfs_referral_inode_operations = {
--	.follow_link = cifs_dfs_follow_mountpoint,
- };
--
-diff --git a/fs/cifs/cifsfs.h b/fs/cifs/cifsfs.h
-index 897b2b2..851030f 100644
---- a/fs/cifs/cifsfs.h
-+++ b/fs/cifs/cifsfs.h
-@@ -93,6 +93,12 @@ extern int cifs_readdir(struct file *file, void *direntry, filldir_t filldir);
- extern const struct dentry_operations cifs_dentry_ops;
- extern const struct dentry_operations cifs_ci_dentry_ops;
- 
-+#ifdef CONFIG_CIFS_DFS_UPCALL
-+extern struct vfsmount *cifs_dfs_d_automount(struct path *path);
-+#else
-+#define cifs_dfs_d_automount NULL
-+#endif
-+
- /* Functions related to symlinks */
- extern void *cifs_follow_link(struct dentry *direntry, struct nameidata *nd);
- extern void cifs_put_link(struct dentry *direntry,
-diff --git a/fs/cifs/dir.c b/fs/cifs/dir.c
-index 2e77382..e50ee06 100644
---- a/fs/cifs/dir.c
-+++ b/fs/cifs/dir.c
-@@ -698,6 +698,7 @@ cifs_d_revalidate(struct dentry *direntry, struct nameidata *nd)
- 
- const struct dentry_operations cifs_dentry_ops = {
- 	.d_revalidate = cifs_d_revalidate,
-+	.d_automount = cifs_dfs_d_automount,
- /* d_delete:       cifs_d_delete,      */ /* not needed except for debugging */
- };
- 
-@@ -734,4 +735,5 @@ const struct dentry_operations cifs_ci_dentry_ops = {
- 	.d_revalidate = cifs_d_revalidate,
- 	.d_hash = cifs_ci_hash,
- 	.d_compare = cifs_ci_compare,
-+	.d_automount = cifs_dfs_d_automount,
- };
-diff --git a/fs/cifs/inode.c b/fs/cifs/inode.c
-index 0c7e369..e0b1686 100644
---- a/fs/cifs/inode.c
-+++ b/fs/cifs/inode.c
-@@ -32,7 +32,7 @@
- #include "fscache.h"
- 
- 
--static void cifs_set_ops(struct inode *inode, const bool is_dfs_referral)
-+static void cifs_set_ops(struct inode *inode)
- {
- 	struct cifs_sb_info *cifs_sb = CIFS_SB(inode->i_sb);
- 
-@@ -60,7 +60,7 @@ static void cifs_set_ops(struct inode *inode, const bool is_dfs_referral)
- 		break;
- 	case S_IFDIR:
- #ifdef CONFIG_CIFS_DFS_UPCALL
--		if (is_dfs_referral) {
-+		if (IS_AUTOMOUNT(inode)) {
- 			inode->i_op = &cifs_dfs_referral_inode_operations;
- 		} else {
- #else /* NO DFS support, treat as a directory */
-@@ -167,7 +167,9 @@ cifs_fattr_to_inode(struct inode *inode, struct cifs_fattr *fattr)
- 	}
- 	spin_unlock(&inode->i_lock);
- 
--	cifs_set_ops(inode, fattr->cf_flags & CIFS_FATTR_DFS_REFERRAL);
-+	if (fattr->cf_flags & CIFS_FATTR_DFS_REFERRAL)
-+		inode->i_flags |= S_AUTOMOUNT;
-+	cifs_set_ops(inode);
- }
- 
- void
+-/*
+  * Name resolution.
+  * This is the basic name resolution function, turning a pathname into
+  * the final dentry. We expect 'base' to be positive and a directory.
+@@ -1341,7 +1330,8 @@ last_component:
+ 		err = do_lookup(nd, &this, &next, &inode);
+ 		if (err)
+ 			break;
+-		if (follow_on_final(inode, lookup_flags)) {
++		if (inode && unlikely(inode->i_op->follow_link) &&
++		    (lookup_flags & LOOKUP_FOLLOW)) {
+ 			if (nameidata_dentry_drop_rcu_maybe(nd, next.dentry))
+ 				return -ECHILD;
+ 			BUG_ON(inode != next.dentry->d_inode);
+@@ -2390,8 +2380,7 @@ reval:
+ 		struct path holder;
+ 		void *cookie;
+ 		error = -ELOOP;
+-		/* S_ISDIR part is a temporary automount kludge */
+-		if (!(nd.flags & LOOKUP_FOLLOW) && !S_ISDIR(nd.inode->i_mode))
++		if (!(nd.flags & LOOKUP_FOLLOW))
+ 			goto exit_dput;
+ 		if (count++ == 32)
+ 			goto exit_dput;
 
