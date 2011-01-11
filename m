@@ -1,7 +1,7 @@
 From: David Howells <dhowells@redhat.com>
-Subject: [PATCH 15/18] autofs4: Fix wait validation
-Date: Tue, 11 Jan 2011 17:49:29 +0000
-Message-ID: <20110111174929.2291.56345.stgit@warthog.procyon.org.uk>
+Subject: [PATCH 16/18] autofs4: Add v4 pseudo direct mount support
+Date: Tue, 11 Jan 2011 17:49:35 +0000
+Message-ID: <20110111174934.2291.95833.stgit@warthog.procyon.org.uk>
 References: <20110111174809.2291.52242.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -15,51 +15,102 @@ Cc: dhowells@redhat.com, autofs@linux.kernel.org, linux-fsdevel@vger.kernel.org
 
 From: Ian Kent <raven@themaw.net>
 
-It is possible for the check in wait.c:validate_request() to return
-an incorrect result if the dentry that was mounted upon has changed
-during the callback.
+Version 4 of autofs provides a pseudo direct mount implementation
+that relies on directories at the leaves of a directory tree under
+an indirect mount to trigger mounts.
+
+This patch adds support for that functionality.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 Signed-off-by: David Howells <dhowells@redhat.com>
 ---
 
- fs/autofs4/waitq.c |   17 ++++++++++++++++-
- 1 files changed, 16 insertions(+), 1 deletions(-)
+ fs/autofs4/root.c |   60 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 60 insertions(+), 0 deletions(-)
 
-diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
-index c5f8459..5601005 100644
---- a/fs/autofs4/waitq.c
-+++ b/fs/autofs4/waitq.c
-@@ -309,6 +309,9 @@ static int validate_request(struct autofs_wait_queue **wait,
- 	 * completed while we waited on the mutex ...
- 	 */
- 	if (notify == NFY_MOUNT) {
-+		struct dentry *new = NULL;
-+		int valid = 1;
-+
- 		/*
- 		 * If the dentry was successfully mounted while we slept
- 		 * on the wait queue mutex we can return success. If it
-@@ -316,8 +319,20 @@ static int validate_request(struct autofs_wait_queue **wait,
- 		 * a multi-mount with no mount at it's base) we can
- 		 * continue on and create a new request.
- 		 */
-+		if (!IS_ROOT(dentry)) {
-+			if (dentry->d_inode && d_unhashed(dentry)) {
-+				struct dentry *parent = dentry->d_parent;
-+				new = d_lookup(parent, &dentry->d_name);
-+				if (new)
-+					dentry = new;
-+			}
-+		}
- 		if (have_submounts(dentry))
--			return 0;
-+			valid = 0;
-+
-+		if (new)
-+			dput(new);
-+		return valid;
- 	}
+diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
+index 51a4c2a..752693f 100644
+--- a/fs/autofs4/root.c
++++ b/fs/autofs4/root.c
+@@ -635,6 +635,60 @@ static int autofs4_dir_unlink(struct inode *dir, struct dentry *dentry)
+ 	return 0;
+ }
  
- 	return 1;
++/*
++ * Version 4 of autofs provides a pseudo direct mount implementation
++ * that relies on directories at the leaves of a directory tree under
++ * an indirect mount to trigger mounts. To allow for this we need to
++ * set the DMANAGED_AUTOMOUNT and DMANAGED_TRANSIT flags on the leaves
++ * of the directory tree. There is no need to clear the automount flag
++ * following a mount or restore it after an expire because these mounts
++ * are always covered. However, it is neccessary to ensure that these
++ * flags are clear on non-empty directories to avoid unnecessary calls
++ * during path walks.
++ */
++static void autofs_set_leaf_automount_flags(struct dentry *dentry)
++{
++	struct dentry *parent;
++
++	/* root and dentrys in the root are already handled */
++	if (IS_ROOT(dentry->d_parent))
++		return;
++
++	managed_dentry_set_managed(dentry);
++
++	parent = dentry->d_parent;
++	/* only consider parents below dentrys in the root */
++	if (IS_ROOT(parent->d_parent))
++		return;
++	managed_dentry_clear_managed(parent);
++	return;
++}
++
++static void autofs_clear_leaf_automount_flags(struct dentry *dentry)
++{
++	struct list_head *d_child;
++	struct dentry *parent;
++
++	/* flags for dentrys in the root are handled elsewhere */
++	if (IS_ROOT(dentry->d_parent))
++		return;
++
++	managed_dentry_clear_managed(dentry);
++
++	parent = dentry->d_parent;
++	/* only consider parents below dentrys in the root */
++	if (IS_ROOT(parent->d_parent))
++		return;
++	d_child = &dentry->d_u.d_child;
++	//spin_lock(&dcache_lock);  ////////////// JUST DELETE THIS LOCK?
++	/* Set parent managed if it's becoming empty */
++	if (d_child->next == &parent->d_subdirs &&
++	    d_child->prev == &parent->d_subdirs)
++		managed_dentry_set_managed(parent);
++	//spin_unlock(&dcache_lock);
++	return;
++}
++
+ static int autofs4_dir_rmdir(struct inode *dir, struct dentry *dentry)
+ {
+ 	struct autofs_sb_info *sbi = autofs4_sbi(dir->i_sb);
+@@ -662,6 +716,9 @@ static int autofs4_dir_rmdir(struct inode *dir, struct dentry *dentry)
+ 	spin_unlock(&dentry->d_lock);
+ 	spin_unlock(&autofs4_lock);
+ 
++	if (sbi->version < 5)
++		autofs_clear_leaf_automount_flags(dentry);
++
+ 	if (atomic_dec_and_test(&ino->count)) {
+ 		p_ino = autofs4_dentry_ino(dentry->d_parent);
+ 		if (p_ino && dentry->d_parent != dentry)
+@@ -704,6 +761,9 @@ static int autofs4_dir_mkdir(struct inode *dir, struct dentry *dentry, int mode)
+ 	}
+ 	d_add(dentry, inode);
+ 
++	if (sbi->version < 5)
++		autofs_set_leaf_automount_flags(dentry);
++
+ 	dentry->d_fsdata = ino;
+ 	ino->dentry = dget(dentry);
+ 	atomic_inc(&ino->count);
 
