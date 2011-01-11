@@ -1,203 +1,248 @@
 From: David Howells <dhowells@redhat.com>
-Subject: [PATCH 00/18] Introduce automount support in the VFS
-Date: Tue, 11 Jan 2011 17:48:10 +0000
-Message-ID: <20110111174809.2291.52242.stgit@warthog.procyon.org.uk>
+Subject: [PATCH 03/18] NFS: Use d_automount() rather than abusing follow_link()
+Date: Tue, 11 Jan 2011 17:48:26 +0000
+Message-ID: <20110111174825.2291.15277.stgit@warthog.procyon.org.uk>
+References: <20110111174809.2291.52242.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <20110111174809.2291.52242.stgit@warthog.procyon.org.uk>
 Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: npiggin@kernel.dk, viro@zeniv.linux.org.uk, raven@themaw.net
 Cc: dhowells@redhat.com, autofs@linux.kernel.org, linux-fsdevel@vger.kernel.org
 
+Make NFS use the new d_automount() dentry operation rather than abusing
+follow_link() on directories.
 
-Hi Nick,
-
-Could you look over these patches, please?  They were surviving Ian's autofs
-tests quite nicely, but I had to rework them a bit to take account of your
-RCU-mode pathwalk changes.  I'm not sure the locking is fully correct.  In some
-of the autofs patches you'll find locks with marks on them (search for '//')
-where dcache_lock was being used and I'm not sure of the correct transformation
-now that it no longer exists.
-
-Hi Al,
-
-Could you look over these patches and make sure you're happy with the way we've
-done things?
-
-Hi Ian,
-
-Could you have a poke at the autofs4 changes, make sure things still work?
-
----
-The attached patches implement VFS support for automounting - which several
-filesystems, including autofs, can use to resolve problems with their current
-implementations.  This means that these filesystems no longer have to abuse
-lookup(), follow_link() and d_revalidate() to achieve the desired effects.
-
-Probably the most significant advantage for autofs is a long standing potential
-deadlock can be removed which otherwise cannot be resolved.
-
-
-These patches introduce a couple of new dentry operations for use by
-automounters and make AFS, NFS, CIFS and autofs4 use them.
-
-There are two dentry operations provided:
-
- (1) struct vfsmount *(*d_automount)(struct path *path);
-
-     This is used by follow_automount() in fs/namei.c to ask the filesystem
-     that owns the dentry at the current path point to mount something on
-     @path.
-
-     It is called if either the inode belonging to the given dentry is flagged
-     S_AUTOMOUNT or the dentry is flagged DCACHE_NEED_AUTOMOUNT, and if the
-     dentry has nothing mounted on it in the current namespace when someone
-     attempts to use that dentry.
-
-     No locks will be held when this is called.
-
-     d_op->d_automount() may return one of:
-
-     (a) The vfsmount mounted upon that dentry, in which case pathwalk will
-     	 move to the root dentry of that vfsmount.
-
-     (b) NULL if something was already mounted there, in which case pathwalk
-     	 will loop around and recheck the mountings.
-
-     (c) -EISDIR, in which case pathwalk will stop at this point and attempt to
-     	 use that dentry as the object of interest.  If the current dentry is
-     	 not terminal within the path, -EREMOTE will be returned.
-
-     (d) An error value, to be returned immediately.
-
-     Automount transits are counted as symlinks to prevent circular references
-     from being a problem.  If one is detected, -ELOOP will be returned.
-
-     If stat() is given AT_NO_AUTOMOUNT then d_op->d_automount() will not be
-     invoked on a terminal dentry; instead that dentry will be returned by
-     pathwalk.
-
-     follow_automount() also does not invoke d_op->d_automount() if the caller
-     gave AT_SYMLINK_NOFOLLOW to stat(), but rather returns the base dentry.
-
-
- (2) int (*d_manage)(struct path *path, bool mounting_here);
-
-     This is called by managed_dentry() or follow_down() in fs/namei.c to
-     indicate to a filesystem that pathwalk is about to step off of the current
-     path point and walk to another point in the path.
-
-     This is called if DCACHE_MANAGE_TRANSIT is set on a dentry.
-
-     This can then be used by autofs to stop non-daemon processes from walking
-     until it has finished constructing or expiring the tree behind the dentry.
-     It could also be used to prevent undesirables from mounting on this
-     dentry.
-
-     @mounting_here is true if called from follow_down() from mount, in which
-     case namespace_sem is held exclusively by the caller of follow_down().
-     Otherwise, no locks are held.
-
-     d_op->d_manage() may return one of:
-
-     (a) 0 to continue the pathwalk as normal.
-
-     (b) -EISDIR to prevent managed_dentry() from crossing to a mounted
-     	 filesystem or calling d_op->d_automount(), in which case the dentry
-     	 will be treated as an ordinary directory.
-
-     (c) An error to abort the pathwalk completely.
-
-
-To make this work for autofs a couple of additional dentry d_flags have been
-defined: DCACHE_MANAGE_TRANSIT and DCACHE_NEED_AUTOMOUNT.  This allows
-managed_dentry() to test all three conditions with minimumal overhead if none
-of them are true.
-
-For other filesystems, setting S_AUTOMOUNT is sufficient.  This is noted by
-d_set_d_op() which will set DCACHE_NEED_AUTOMOUNT automatically if it is seen.
-Checking S_AUTOMOUNT doesn't work for autofs, however, since the dentry might
-not have an inode, hence why a dentry flag also.
-
-S_AUTOMOUNT and d_automount() are introduced in patch 1; d_manage(),
-DCACHE_MANAGE_TRANSIT and DCACHE_NEED_AUTOMOUNT are introduced in patch 7.
-
-
-=======
-UPDATES
-=======
-
- [ver #3]
-   - Update to take account of Nick Piggin's RCU-based pathwalk changes.
-
- [ver #2]
-   - Fixed a EXDEV in patch 6 to be EISDIR.  We were previously using EXDEV to
-     indicate we wanted to handle a directory as a directory and not to process
-     it as a mountpoint.
-   - Move some autofs v4 pseudo mount bits into the v4 pseudo direct mount
-     patch [patch 16].
-   - Move a comment fix to the autofs d_automount() patch [patch 10 -> 9].
-   - Adjust the patch titles of the last three autofs patches.
-
-David
+Signed-off-by: David Howells <dhowells@redhat.com>
+Acked-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+Acked-by: Ian Kent <raven@themaw.net>
 ---
 
-David Howells (9):
-      Remove a further kludge from __do_follow_link()
-      Make follow_down() handle d_manage()
-      Add more dentry flags for special function directories
-      Add an AT_NO_AUTOMOUNT flag to suppress terminal automount
-      Remove the automount through follow_link() kludge code from pathwalk
-      CIFS: Use d_automount() rather than abusing follow_link()
-      NFS: Use d_automount() rather than abusing follow_link()
-      AFS: Use d_automount() rather than abusing follow_link()
-      Add a dentry op to handle automounting rather than abusing follow_link()
+ fs/nfs/dir.c           |    4 ++
+ fs/nfs/inode.c         |    4 +-
+ fs/nfs/internal.h      |    1 +
+ fs/nfs/namespace.c     |   87 ++++++++++++++++++++++--------------------------
+ include/linux/nfs_fs.h |    1 -
+ 5 files changed, 46 insertions(+), 51 deletions(-)
 
-Ian Kent (9):
-      autofs4: Bump version
-      autofs4: Add v4 pseudo direct mount support
-      autofs4: Fix wait validation
-      autofs4: Clean up autofs4_free_ino()
-      autofs4: Clean up dentry operations
-      autofs4: Clean up inode operations
-      autofs4: Remove unused code
-      autofs4: Add d_manage() dentry operation
-      autofs4: Add d_automount() dentry operation
-
-
- Documentation/filesystems/Locking |    2 
- Documentation/filesystems/vfs.txt |   22 +
- drivers/staging/autofs/dirhash.c  |    5 
- fs/afs/dir.c                      |    1 
- fs/afs/inode.c                    |    3 
- fs/afs/internal.h                 |    1 
- fs/afs/mntpt.c                    |   47 +--
- fs/autofs4/autofs_i.h             |  100 ++++-
- fs/autofs4/dev-ioctl.c            |    2 
- fs/autofs4/expire.c               |   51 ++-
- fs/autofs4/inode.c                |   28 --
- fs/autofs4/root.c                 |  681 ++++++++++++++++---------------------
- fs/autofs4/waitq.c                |   17 +
- fs/cifs/cifs_dfs_ref.c            |  134 ++++---
- fs/cifs/cifsfs.h                  |    6 
- fs/cifs/dir.c                     |    2 
- fs/cifs/inode.c                   |    8 
- fs/dcache.c                       |    2 
- fs/namei.c                        |  303 +++++++++++++---
- fs/namespace.c                    |   14 -
- fs/nfs/dir.c                      |    4 
- fs/nfs/inode.c                    |    4 
- fs/nfs/internal.h                 |    1 
- fs/nfs/namespace.c                |   87 ++---
- fs/nfsd/vfs.c                     |    5 
- fs/stat.c                         |    4 
- include/linux/auto_fs4.h          |    2 
- include/linux/dcache.h            |   16 +
- include/linux/fcntl.h             |    1 
- include/linux/fs.h                |    2 
- include/linux/namei.h             |    5 
- include/linux/nfs_fs.h            |    1 
- 32 files changed, 867 insertions(+), 694 deletions(-)
+diff --git a/fs/nfs/dir.c b/fs/nfs/dir.c
+index d33da53..959927c 100644
+--- a/fs/nfs/dir.c
++++ b/fs/nfs/dir.c
+@@ -970,7 +970,7 @@ int nfs_lookup_verify_inode(struct inode *inode, struct nameidata *nd)
+ {
+ 	struct nfs_server *server = NFS_SERVER(inode);
+ 
+-	if (test_bit(NFS_INO_MOUNTPOINT, &NFS_I(inode)->flags))
++	if (IS_AUTOMOUNT(inode))
+ 		return 0;
+ 	if (nd != NULL) {
+ 		/* VFS wants an on-the-wire revalidation */
+@@ -1173,6 +1173,7 @@ const struct dentry_operations nfs_dentry_operations = {
+ 	.d_revalidate	= nfs_lookup_revalidate,
+ 	.d_delete	= nfs_dentry_delete,
+ 	.d_iput		= nfs_dentry_iput,
++	.d_automount	= nfs_d_automount,
+ };
+ 
+ static struct dentry *nfs_lookup(struct inode *dir, struct dentry * dentry, struct nameidata *nd)
+@@ -1248,6 +1249,7 @@ const struct dentry_operations nfs4_dentry_operations = {
+ 	.d_revalidate	= nfs_open_revalidate,
+ 	.d_delete	= nfs_dentry_delete,
+ 	.d_iput		= nfs_dentry_iput,
++	.d_automount	= nfs_d_automount,
+ };
+ 
+ /*
+diff --git a/fs/nfs/inode.c b/fs/nfs/inode.c
+index 017daa3..6ace134 100644
+--- a/fs/nfs/inode.c
++++ b/fs/nfs/inode.c
+@@ -300,7 +300,7 @@ nfs_fhget(struct super_block *sb, struct nfs_fh *fh, struct nfs_fattr *fattr)
+ 				else
+ 					inode->i_op = &nfs_mountpoint_inode_operations;
+ 				inode->i_fop = NULL;
+-				set_bit(NFS_INO_MOUNTPOINT, &nfsi->flags);
++				inode->i_flags |= S_AUTOMOUNT;
+ 			}
+ 		} else if (S_ISLNK(inode->i_mode))
+ 			inode->i_op = &nfs_symlink_inode_operations;
+@@ -1208,7 +1208,7 @@ static int nfs_update_inode(struct inode *inode, struct nfs_fattr *fattr)
+ 	/* Update the fsid? */
+ 	if (S_ISDIR(inode->i_mode) && (fattr->valid & NFS_ATTR_FATTR_FSID) &&
+ 			!nfs_fsid_equal(&server->fsid, &fattr->fsid) &&
+-			!test_bit(NFS_INO_MOUNTPOINT, &nfsi->flags))
++			!IS_AUTOMOUNT(inode))
+ 		server->fsid = fattr->fsid;
+ 
+ 	/*
+diff --git a/fs/nfs/internal.h b/fs/nfs/internal.h
+index e6356b7..66c3dc4 100644
+--- a/fs/nfs/internal.h
++++ b/fs/nfs/internal.h
+@@ -245,6 +245,7 @@ extern char *nfs_path(const char *base,
+ 		      const struct dentry *droot,
+ 		      const struct dentry *dentry,
+ 		      char *buffer, ssize_t buflen);
++extern struct vfsmount *nfs_d_automount(struct path *path);
+ 
+ /* getroot.c */
+ extern struct dentry *nfs_get_root(struct super_block *, struct nfs_fh *);
+diff --git a/fs/nfs/namespace.c b/fs/nfs/namespace.c
+index 74aaf39..f3fbb1b 100644
+--- a/fs/nfs/namespace.c
++++ b/fs/nfs/namespace.c
+@@ -97,9 +97,8 @@ Elong:
+ }
+ 
+ /*
+- * nfs_follow_mountpoint - handle crossing a mountpoint on the server
+- * @dentry - dentry of mountpoint
+- * @nd - nameidata info
++ * nfs_d_automount - Handle crossing a mountpoint on the server
++ * @path - The mountpoint
+  *
+  * When we encounter a mountpoint on the server, we want to set up
+  * a mountpoint on the client too, to prevent inode numbers from
+@@ -109,87 +108,81 @@ Elong:
+  * situation, and that different filesystems may want to use
+  * different security flavours.
+  */
+-static void * nfs_follow_mountpoint(struct dentry *dentry, struct nameidata *nd)
++struct vfsmount *nfs_d_automount(struct path *path)
+ {
+ 	struct vfsmount *mnt;
+-	struct nfs_server *server = NFS_SERVER(dentry->d_inode);
++	struct nfs_server *server = NFS_SERVER(path->dentry->d_inode);
+ 	struct dentry *parent;
+ 	struct nfs_fh *fh = NULL;
+ 	struct nfs_fattr *fattr = NULL;
+ 	int err;
+ 
+-	dprintk("--> nfs_follow_mountpoint()\n");
++	dprintk("--> nfs_d_automount()\n");
+ 
+-	err = -ESTALE;
+-	if (IS_ROOT(dentry))
+-		goto out_err;
++	mnt = ERR_PTR(-ESTALE);
++	if (IS_ROOT(path->dentry))
++		goto out_nofree;
+ 
+-	err = -ENOMEM;
++	mnt = ERR_PTR(-ENOMEM);
+ 	fh = nfs_alloc_fhandle();
+ 	fattr = nfs_alloc_fattr();
+ 	if (fh == NULL || fattr == NULL)
+-		goto out_err;
++		goto out;
+ 
+ 	dprintk("%s: enter\n", __func__);
+-	dput(nd->path.dentry);
+-	nd->path.dentry = dget(dentry);
+ 
+-	/* Look it up again */
+-	parent = dget_parent(nd->path.dentry);
++	/* Look it up again to get its attributes */
++	parent = dget_parent(path->dentry);
+ 	err = server->nfs_client->rpc_ops->lookup(parent->d_inode,
+-						  &nd->path.dentry->d_name,
++						  &path->dentry->d_name,
+ 						  fh, fattr);
+ 	dput(parent);
+-	if (err != 0)
+-		goto out_err;
++	if (err != 0) {
++		mnt = ERR_PTR(err);
++		goto out;
++	}
+ 
+ 	if (fattr->valid & NFS_ATTR_FATTR_V4_REFERRAL)
+-		mnt = nfs_do_refmount(nd->path.mnt, nd->path.dentry);
++		mnt = nfs_do_refmount(path->mnt, path->dentry);
+ 	else
+-		mnt = nfs_do_submount(nd->path.mnt, nd->path.dentry, fh,
+-				      fattr);
+-	err = PTR_ERR(mnt);
++		mnt = nfs_do_submount(path->mnt, path->dentry, fh, fattr);
+ 	if (IS_ERR(mnt))
+-		goto out_err;
++		goto out;
+ 
+ 	mntget(mnt);
+-	err = do_add_mount(mnt, &nd->path, nd->path.mnt->mnt_flags|MNT_SHRINKABLE,
++	err = do_add_mount(mnt, path, path->mnt->mnt_flags | MNT_SHRINKABLE,
+ 			   &nfs_automount_list);
+-	if (err < 0) {
++	switch (err) {
++	case 0:
++		dprintk("%s: done, success\n", __func__);
++		schedule_delayed_work(&nfs_automount_task, nfs_mountpoint_expiry_timeout);
++		break;
++	case -EBUSY:
++		/* someone else made a mount here whilst we were busy */
+ 		mntput(mnt);
+-		if (err == -EBUSY)
+-			goto out_follow;
+-		goto out_err;
++		dprintk("%s: done, collision\n", __func__);
++		mnt = NULL;
++		break;
++	default:
++		mntput(mnt);
++		dprintk("%s: done, error %d\n", __func__, err);
++		mnt = ERR_PTR(err);
++		break;
+ 	}
+-	path_put(&nd->path);
+-	nd->path.mnt = mnt;
+-	nd->path.dentry = dget(mnt->mnt_root);
+-	schedule_delayed_work(&nfs_automount_task, nfs_mountpoint_expiry_timeout);
++
+ out:
+ 	nfs_free_fattr(fattr);
+ 	nfs_free_fhandle(fh);
+-	dprintk("%s: done, returned %d\n", __func__, err);
+-
+-	dprintk("<-- nfs_follow_mountpoint() = %d\n", err);
+-	return ERR_PTR(err);
+-out_err:
+-	path_put(&nd->path);
+-	goto out;
+-out_follow:
+-	while (d_mountpoint(nd->path.dentry) &&
+-	       follow_down(&nd->path))
+-		;
+-	err = 0;
+-	goto out;
++out_nofree:
++	dprintk("<-- nfs_follow_mountpoint() = %p\n", mnt);
++	return mnt;
+ }
+ 
+ const struct inode_operations nfs_mountpoint_inode_operations = {
+-	.follow_link	= nfs_follow_mountpoint,
+ 	.getattr	= nfs_getattr,
+ };
+ 
+ const struct inode_operations nfs_referral_inode_operations = {
+-	.follow_link	= nfs_follow_mountpoint,
+ };
+ 
+ static void nfs_expire_automounts(struct work_struct *work)
+diff --git a/include/linux/nfs_fs.h b/include/linux/nfs_fs.h
+index 0779bb8..6023efa 100644
+--- a/include/linux/nfs_fs.h
++++ b/include/linux/nfs_fs.h
+@@ -215,7 +215,6 @@ struct nfs_inode {
+ #define NFS_INO_ADVISE_RDPLUS	(0)		/* advise readdirplus */
+ #define NFS_INO_STALE		(1)		/* possible stale inode */
+ #define NFS_INO_ACL_LRU_SET	(2)		/* Inode is on the LRU list */
+-#define NFS_INO_MOUNTPOINT	(3)		/* inode is remote mountpoint */
+ #define NFS_INO_FLUSHING	(4)		/* inode is flushing out data */
+ #define NFS_INO_FSCACHE		(5)		/* inode can be cached by FS-Cache */
+ #define NFS_INO_FSCACHE_LOCK	(6)		/* FS-Cache cookie management lock */
 
