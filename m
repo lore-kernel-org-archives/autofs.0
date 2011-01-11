@@ -1,53 +1,41 @@
-From: Paul Raines <raines@nmr.mgh.harvard.edu>
-Subject: Handling mount attempts to down NFS servers
-Date: Tue, 11 Jan 2011 12:51:08 -0500 (EST)
-Message-ID: <Pine.LNX.4.62.1101111244350.5250@gate.nmr.mgh.harvard.edu>
+From: David Howells <dhowells@redhat.com>
+Subject: [PATCH 17/18] autofs4: Bump version
+Date: Tue, 11 Jan 2011 17:49:40 +0000
+Message-ID: <20110111174940.2291.87406.stgit@warthog.procyon.org.uk>
+References: <20110111174809.2291.52242.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs/>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: autofs@linux.kernel.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <20110111174809.2291.52242.stgit@warthog.procyon.org.uk>
+Sender: linux-fsdevel-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: npiggin@kernel.dk, viro@zeniv.linux.org.uk, raven@themaw.net
+Cc: dhowells@redhat.com, autofs@linux.kernel.org, linux-fsdevel@vger.kernel.org
 
+From: Ian Kent <raven@themaw.net>
 
-I found many users asking this on google search, but no solutions.
+Increase the autofs module sub-version so we can tell what kernel
+implementation is being used from user space debug logging.
 
-Is there a way to make the '/bin/mount -t nfs' calls autofs makes
-timeout faster when the server being accessed is down?
+Signed-off-by: Ian Kent <raven@themaw.net>
+Signed-off-by: David Howells <dhowells@redhat.com>
+---
 
-Barring that, is there a way to make it such that when there is
-'/bin/mount -t nfs' attempt going on that is hung, other mount attempts
-to perfectly working servers during that time do not also hang?
-This is what is really a killer.
+ include/linux/auto_fs4.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-One thought I had is to add 'bg' to the mount options in the map files
-but I am scared that might cause 100s of hung mount attempts to pile up.
+diff --git a/include/linux/auto_fs4.h b/include/linux/auto_fs4.h
+index 8b49ac4..e02982f 100644
+--- a/include/linux/auto_fs4.h
++++ b/include/linux/auto_fs4.h
+@@ -24,7 +24,7 @@
+ #define AUTOFS_MIN_PROTO_VERSION	3
+ #define AUTOFS_MAX_PROTO_VERSION	5
+ 
+-#define AUTOFS_PROTO_SUBVERSION		1
++#define AUTOFS_PROTO_SUBVERSION		2
+ 
+ /* Mask for expire behaviour */
+ #define AUTOFS_EXP_IMMEDIATE		1
 
-I am using a mix of CentOS4.8 (autofs-4.1.4-2) and CentOS5.5
-(autofs-5.0.1-0.rc2.143.el5_5.6) boxes.
-
-
--- 
----------------------------------------------------------------
-Paul Raines                email: raines at nmr.mgh.harvard.edu
-MGH/MIT/HMS Athinoula A. Martinos Center for Biomedical Imaging
-149 (2301) 13th Street     Charlestown, MA 02129	    USA
-
-
-
-
-The information in this e-mail is intended only for the person to whom it is
-addressed. If you believe this e-mail was sent to you in error and the e-mail
-contains patient information, please contact the Partners Compliance HelpLine at
-http://www.partners.org/complianceline . If the e-mail was sent to you in error
-but does not contain patient information, please contact the sender and properly
-dispose of the e-mail.
