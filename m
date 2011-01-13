@@ -1,119 +1,64 @@
-From: Nick Piggin <npiggin@gmail.com>
-Subject: Re: [PATCH 01/18] Add a dentry op to handle automounting rather than
- abusing follow_link()
-Date: Thu, 13 Jan 2011 16:10:17 +1100
-Message-ID: <AANLkTi=YygMc2ExFxvWqiFbSr-bWRVcn17toanJBdR08@mail.gmail.com>
-References: <20110111174809.2291.52242.stgit@warthog.procyon.org.uk>
-	<20110111174815.2291.41967.stgit@warthog.procyon.org.uk>
-	<AANLkTi=F6PSgQs78MpmG_V3q_ksmYMUwU8=xBoNOypto@mail.gmail.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: Handling mount attempts to down NFS servers
+Date: Thu, 13 Jan 2011 15:45:00 +0800
+Message-ID: <1294904700.2757.40.camel@perseus>
+References: <Pine.LNX.4.62.1101111244350.5250@gate.nmr.mgh.harvard.edu>
 Mime-Version: 1.0
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=gamma;
-        h=domainkey-signature:mime-version:in-reply-to:references:date
-         :message-id:subject:from:to:cc:content-type
-         :content-transfer-encoding;
-        bh=pPCTlejErcGDqQD1YZJxEnsTzne4zvf3cmiYH0OaLaQ=;
-        b=xnlIDrGL+lghp8aD9yywzm72tTBLncf14wfdPGLRUw4Hh9mEO5llIJh5zwqU53O42s
-         iND1XmqjXXNQpiCr1DLDqiDKGLAocxOwSIUWrYjQ2WMab6YptVo0tonVhyb3B/J7X7kh
-         nZdUmycVKqCINB1SCXjX4ymRJIJyo3N7dCvkQ=
-In-Reply-To: <AANLkTi=F6PSgQs78MpmG_V3q_ksmYMUwU8=xBoNOypto@mail.gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="iso-8859-1"
-To: David Howells <dhowells@redhat.com>
-Cc: npiggin@kernel.dk, viro@zeniv.linux.org.uk, raven@themaw.net, autofs@linux.kernel.org, linux-fsdevel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <autofs-bounces@linux.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com;
+	h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding;
+	s=smtpout; bh=QmFsemTre0yhHiFNt3iiaa0H1ss=;
+	b=Jpuzi4hFhQOWkkelL2zaakgeryrTroEifFcb0FD8UD0UdkDiQXkmt+jqAe8NX/FovADQg/dVWiRuBzn6h1Zc/EknAtfcAlnr0Cz2lXfxFwjHgrvg6lFdhE4fJFVTEVi9aaQKNcXzckN84DWZqNi6zoKiinDFvgT+kuHuuYCBs/k=
+In-Reply-To: <Pine.LNX.4.62.1101111244350.5250@gate.nmr.mgh.harvard.edu>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs/>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: Paul Raines <raines@nmr.mgh.harvard.edu>
+Cc: autofs@linux.kernel.org
 
-On Thu, Jan 13, 2011 at 2:53 PM, Nick Piggin <npiggin@gmail.com> wrote:
-> On Wed, Jan 12, 2011 at 4:48 AM, David Howells <dhowells@redhat.com> =
-wrote:
->> Add a dentry op (d_automount) to handle automounting directories rat=
-her than
->> abusing the follow_link() inode operation. =A0The operation is keyed=
- off a new
->> inode flag (S_AUTOMOUNT).
->>
->> This makes it easier to add an AT_ flag to suppress terminal segment=
- automount
->> during pathwalk. =A0It should also remove the need for the kludge co=
-de in the
->> pathwalk algorithm to handle directories with follow_link() semantic=
-s.
->>
->> A new pathwalk subroutine, follow_automount() is added to handle mou=
-ntpoints.
->> It will return -EREMOTE if the S_AUTOMOUNT was set, but no d_automou=
-nt() op was
->> supplied, -ELOOP if we've encountered too many symlinks or mountpoin=
-ts, -EISDIR
->> if the walk point should be used without mounting and 0 if successfu=
-l. =A0path
->> will be updated if an automount took place to point to the mounted f=
-ilesystem.
->>
->> I've only changed __follow_mount() to handle call follow_automount()=
-, but it
->> might be necessary to change follow_mount() too. =A0The latter is on=
-ly called
->> from follow_dotdot(), but any automounts on ".." should be pinned wh=
-ilst we're
->> using a child of it.
->>
->> I've also extracted the mount/don't-mount logic from autofs4 and inc=
-luded it
->> here. =A0It makes the mount go ahead anyway if someone calls open() =
-or creat(),
->> tries to traverse the directory, tries to chdir/chroot/etc. into the=
- directory,
->> or sticks a '/' on the end of the pathname. =A0If they do a stat(), =
-however,
->> they'll only trigger the automount if they didn't also say O_NOFOLLO=
-W.
->>
->> Signed-off-by: David Howells <dhowells@redhat.com>
->> Acked-by: Ian Kent <raven@themaw.net>
->
-> I would still prefer to see a .follow_mount API, and not tie in this =
-automount
-> specific inode detail to what could be a more flexible dentry-only AP=
-I.
->
-> The default NULL implementation would do nothing, and follow_automoun=
-t
-> stuff can be in fs/libfs.c to be used by filesystem, rather than fs/n=
-amei.c.
+On Tue, 2011-01-11 at 12:51 -0500, Paul Raines wrote:
+> I found many users asking this on google search, but no solutions.
+> 
+> Is there a way to make the '/bin/mount -t nfs' calls autofs makes
+> timeout faster when the server being accessed is down?
+> 
+> Barring that, is there a way to make it such that when there is
+> '/bin/mount -t nfs' attempt going on that is hung, other mount attempts
+> to perfectly working servers during that time do not also hang?
+> This is what is really a killer.
+> 
+> One thought I had is to add 'bg' to the mount options in the map files
+> but I am scared that might cause 100s of hung mount attempts to pile up.
+> 
+> I am using a mix of CentOS4.8 (autofs-4.1.4-2) and CentOS5.5
+> (autofs-5.0.1-0.rc2.143.el5_5.6) boxes.
 
-Looking further in the patchset at the d_managed "thing", that's almost=
- what
-I'm getting at.
+Did you look in /etc/sysconfig/autofs for the CentOS5 boxes.
 
-But I don't see why any of this stuff has to happen in fs/namei.c. Just=
- call the
-function from path walk, and provide helpers in libfs or something if t=
-here is
-a lot of common code between autofs4 and others (and leave it autofs sp=
-ecifc
-when that is the case).
+# MOUNT_WAIT - time to wait for a response from umount(8).
+#              Setting this timeout can cause problems when
+#              mount would otherwise wait for a server that
+#              is temporarily unavailable, such as when it's
+#              restarting. The defailt of waiting for mount(8)
+#              usually results in a wait of around 3 minutes.
+#
+#MOUNT_WAIT=-1
 
-Of course, that would be the obvious and naive first approach. So reall=
-y my
-question is why did that not work? And can we make it work?
+Admittedly there is a typo, umount(8) should be mount(8). This has been
+present since revision 133. It isn't the best as it is difficult to
+locate the actual mount process so it is left to timeout, but it does
+allow autofs to continue.
 
-Second observation when adding rcu-walk/ref-walk operations. What we've
-done now (which is what Linus preferred and I agree with now) is to mak=
-e
-functions always able to accept rcu-walk mode, and have filesystems bai=
-l
-out as needed.
+I don't think your chances are very good of getting anything into
+CentOS4.
 
-Unless there are really fundamental reasons why rcu-walk won't work (eg=
-=2E
-->lookup, if it is required to do allocations and IO), or if it really
-doesn't matter
-(eg. a function to be called once to set up a mount, and never again).
---
-To unsubscribe from this list: send the line "unsubscribe linux-fsdevel=
-" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ian
