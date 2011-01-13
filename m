@@ -1,7 +1,7 @@
 From: David Howells <dhowells@redhat.com>
-Subject: [PATCH 17/18] Remove a further kludge from __do_follow_link() [ver #4]
-Date: Thu, 13 Jan 2011 21:55:31 +0000
-Message-ID: <20110113215530.19406.21296.stgit@warthog.procyon.org.uk>
+Subject: [PATCH 16/18] autofs4: Bump version [ver #4]
+Date: Thu, 13 Jan 2011 21:55:25 +0000
+Message-ID: <20110113215525.19406.56928.stgit@warthog.procyon.org.uk>
 References: <20110113215359.19406.37232.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -13,37 +13,29 @@ Content-Type: text/plain; charset="us-ascii"
 To: viro@zeniv.linux.org.uk, raven@themaw.net, npiggin@kernel.dk
 Cc: dhowells@redhat.com, autofs@linux.kernel.org, linux-fsdevel@vger.kernel.org
 
-Remove a further kludge from __do_follow_link() as it's no longer retired with
-the automount code.
+From: Ian Kent <raven@themaw.net>
 
-This reverts the non-helper-function parts of
-051d381259eb57d6074d02a6ba6e90e744f1a29f, which breaks union mounts.
+Increase the autofs module sub-version so we can tell what kernel
+implementation is being used from user space debug logging.
 
-Reported-by: vaurora@redhat.com
+Signed-off-by: Ian Kent <raven@themaw.net>
 Signed-off-by: David Howells <dhowells@redhat.com>
 ---
 
- fs/namei.c |    9 ++-------
- 1 files changed, 2 insertions(+), 7 deletions(-)
+ include/linux/auto_fs4.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/fs/namei.c b/fs/namei.c
-index f6a5e74..c983c92 100644
---- a/fs/namei.c
-+++ b/fs/namei.c
-@@ -781,13 +781,8 @@ __do_follow_link(struct path *path, struct nameidata *nd, void **p)
- 	touch_atime(path->mnt, dentry);
- 	nd_set_link(nd, NULL);
+diff --git a/include/linux/auto_fs4.h b/include/linux/auto_fs4.h
+index 8b49ac4..e02982f 100644
+--- a/include/linux/auto_fs4.h
++++ b/include/linux/auto_fs4.h
+@@ -24,7 +24,7 @@
+ #define AUTOFS_MIN_PROTO_VERSION	3
+ #define AUTOFS_MAX_PROTO_VERSION	5
  
--	if (path->mnt != nd->path.mnt) {
--		path_to_nameidata(path, nd);
--		nd->inode = nd->path.dentry->d_inode;
--		dget(dentry);
--	}
--	mntget(path->mnt);
--
-+	if (path->mnt == nd->path.mnt)
-+		mntget(path->mnt);
- 	nd->last_type = LAST_BIND;
- 	*p = dentry->d_inode->i_op->follow_link(dentry, nd);
- 	error = PTR_ERR(*p);
+-#define AUTOFS_PROTO_SUBVERSION		1
++#define AUTOFS_PROTO_SUBVERSION		2
+ 
+ /* Mask for expire behaviour */
+ #define AUTOFS_EXP_IMMEDIATE		1
 
