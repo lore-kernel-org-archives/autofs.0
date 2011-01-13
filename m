@@ -1,7 +1,8 @@
 From: David Howells <dhowells@redhat.com>
-Subject: [PATCH 03/18] From: David Howells <dhowells@redhat.com> [ver #4]
-Date: Thu, 13 Jan 2011 21:54:16 +0000
-Message-ID: <20110113215415.19406.7507.stgit@warthog.procyon.org.uk>
+Subject: [PATCH 04/18] AFS: Use d_automount() rather than abusing
+ follow_link() [ver #4]
+Date: Thu, 13 Jan 2011 21:54:21 +0000
+Message-ID: <20110113215421.19406.24085.stgit@warthog.procyon.org.uk>
 References: <20110113215359.19406.37232.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -13,89 +14,152 @@ Content-Type: text/plain; charset="us-ascii"
 To: viro@zeniv.linux.org.uk, raven@themaw.net, npiggin@kernel.dk
 Cc: dhowells@redhat.com, autofs@linux.kernel.org, linux-fsdevel@vger.kernel.org
 
-Add an AT_NO_AUTOMOUNT flag to suppress terminal automount
-
-Add an AT_NO_AUTOMOUNT flag to suppress terminal automounting of automount
-point directories.  This can be used by fstatat() users to permit the
-gathering of attributes on an automount point and also prevent
-mass-automounting of a directory of automount points by ls.
+Make AFS use the new d_automount() dentry operation rather than abusing
+follow_link() on directories.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
-Acked-by: Ian Kent <raven@themaw.net>
 ---
 
- fs/namei.c            |    6 ++++++
- fs/stat.c             |    4 +++-
- include/linux/fcntl.h |    1 +
- include/linux/namei.h |    2 ++
- 4 files changed, 12 insertions(+), 1 deletions(-)
+ fs/afs/dir.c      |    1 +
+ fs/afs/inode.c    |    3 ++-
+ fs/afs/internal.h |    1 +
+ fs/afs/mntpt.c    |   44 +++++++++++++++-----------------------------
+ 4 files changed, 19 insertions(+), 30 deletions(-)
 
-diff --git a/fs/namei.c b/fs/namei.c
-index e46a56b..249d0f2 100644
---- a/fs/namei.c
-+++ b/fs/namei.c
-@@ -889,6 +889,12 @@ static int follow_automount(struct path *path, unsigned flags,
- 	if (!path->dentry->d_op || !path->dentry->d_op->d_automount)
- 		return -EREMOTE;
+diff --git a/fs/afs/dir.c b/fs/afs/dir.c
+index 34a3263..70f07e3 100644
+--- a/fs/afs/dir.c
++++ b/fs/afs/dir.c
+@@ -66,6 +66,7 @@ static const struct dentry_operations afs_fs_dentry_operations = {
+ 	.d_revalidate	= afs_d_revalidate,
+ 	.d_delete	= afs_d_delete,
+ 	.d_release	= afs_d_release,
++	.d_automount	= afs_d_automount,
+ };
  
-+	/* We don't want to mount if someone supplied AT_NO_AUTOMOUNT
-+	 * and this is the terminal part of the path.
-+	 */
-+	if ((flags & LOOKUP_NO_AUTOMOUNT) && !(flags & LOOKUP_CONTINUE))
-+		return -EISDIR; /* we actually want to stop here */
-+
- 	/* We want to mount if someone is trying to open/create a file of any
- 	 * type under the mountpoint, wants to traverse through the mountpoint
- 	 * or wants to open the mounted directory.
-diff --git a/fs/stat.c b/fs/stat.c
-index 12e90e2..d5c61cf 100644
---- a/fs/stat.c
-+++ b/fs/stat.c
-@@ -75,11 +75,13 @@ int vfs_fstatat(int dfd, const char __user *filename, struct kstat *stat,
- 	int error = -EINVAL;
- 	int lookup_flags = 0;
+ #define AFS_DIR_HASHTBL_SIZE	128
+diff --git a/fs/afs/inode.c b/fs/afs/inode.c
+index 0747339..db66c52 100644
+--- a/fs/afs/inode.c
++++ b/fs/afs/inode.c
+@@ -184,7 +184,8 @@ struct inode *afs_iget_autocell(struct inode *dir, const char *dev_name,
+ 	inode->i_generation	= 0;
  
--	if ((flag & ~AT_SYMLINK_NOFOLLOW) != 0)
-+	if ((flag & ~(AT_SYMLINK_NOFOLLOW | AT_NO_AUTOMOUNT)) != 0)
- 		goto out;
+ 	set_bit(AFS_VNODE_PSEUDODIR, &vnode->flags);
+-	inode->i_flags |= S_NOATIME;
++	set_bit(AFS_VNODE_MOUNTPOINT, &vnode->flags);
++	inode->i_flags |= S_AUTOMOUNT | S_NOATIME;
+ 	unlock_new_inode(inode);
+ 	_leave(" = %p", inode);
+ 	return inode;
+diff --git a/fs/afs/internal.h b/fs/afs/internal.h
+index 6d4bc1c..c59bb7c 100644
+--- a/fs/afs/internal.h
++++ b/fs/afs/internal.h
+@@ -590,6 +590,7 @@ extern const struct inode_operations afs_mntpt_inode_operations;
+ extern const struct inode_operations afs_autocell_inode_operations;
+ extern const struct file_operations afs_mntpt_file_operations;
  
- 	if (!(flag & AT_SYMLINK_NOFOLLOW))
- 		lookup_flags |= LOOKUP_FOLLOW;
-+	if (flag & AT_NO_AUTOMOUNT)
-+		lookup_flags |= LOOKUP_NO_AUTOMOUNT;
++extern struct vfsmount *afs_d_automount(struct path *);
+ extern int afs_mntpt_check_symlink(struct afs_vnode *, struct key *);
+ extern void afs_mntpt_kill_timer(void);
  
- 	error = user_path_at(dfd, filename, lookup_flags, &path);
- 	if (error)
-diff --git a/include/linux/fcntl.h b/include/linux/fcntl.h
-index afc00af..a562fa5 100644
---- a/include/linux/fcntl.h
-+++ b/include/linux/fcntl.h
-@@ -45,6 +45,7 @@
- #define AT_REMOVEDIR		0x200   /* Remove directory instead of
-                                            unlinking file.  */
- #define AT_SYMLINK_FOLLOW	0x400   /* Follow symbolic links.  */
-+#define AT_NO_AUTOMOUNT		0x800	/* Suppress terminal automount traversal */
+diff --git a/fs/afs/mntpt.c b/fs/afs/mntpt.c
+index b8e7fb8..0f7dd7a 100644
+--- a/fs/afs/mntpt.c
++++ b/fs/afs/mntpt.c
+@@ -24,7 +24,6 @@ static struct dentry *afs_mntpt_lookup(struct inode *dir,
+ 				       struct dentry *dentry,
+ 				       struct nameidata *nd);
+ static int afs_mntpt_open(struct inode *inode, struct file *file);
+-static void *afs_mntpt_follow_link(struct dentry *dentry, struct nameidata *nd);
+ static void afs_mntpt_expiry_timed_out(struct work_struct *work);
  
- #ifdef __KERNEL__
+ const struct file_operations afs_mntpt_file_operations = {
+@@ -34,13 +33,11 @@ const struct file_operations afs_mntpt_file_operations = {
  
-diff --git a/include/linux/namei.h b/include/linux/namei.h
-index 8ef2c78..f276d4f 100644
---- a/include/linux/namei.h
-+++ b/include/linux/namei.h
-@@ -45,6 +45,7 @@ enum {LAST_NORM, LAST_ROOT, LAST_DOT, LAST_DOTDOT, LAST_BIND};
-  *  - ending slashes ok even for nonexistent files
-  *  - internal "there are more path components" flag
-  *  - dentry cache is untrusted; force a real lookup
-+ *  - suppress terminal automount
-  */
- #define LOOKUP_FOLLOW		0x0001
- #define LOOKUP_DIRECTORY	0x0002
-@@ -53,6 +54,7 @@ enum {LAST_NORM, LAST_ROOT, LAST_DOT, LAST_DOTDOT, LAST_BIND};
- #define LOOKUP_PARENT		0x0010
- #define LOOKUP_REVAL		0x0020
- #define LOOKUP_RCU		0x0040
-+#define LOOKUP_NO_AUTOMOUNT	0x0080
+ const struct inode_operations afs_mntpt_inode_operations = {
+ 	.lookup		= afs_mntpt_lookup,
+-	.follow_link	= afs_mntpt_follow_link,
+ 	.readlink	= page_readlink,
+ 	.getattr	= afs_getattr,
+ };
+ 
+ const struct inode_operations afs_autocell_inode_operations = {
+-	.follow_link	= afs_mntpt_follow_link,
+ 	.getattr	= afs_getattr,
+ };
+ 
+@@ -88,6 +85,7 @@ int afs_mntpt_check_symlink(struct afs_vnode *vnode, struct key *key)
+ 		_debug("symlink is a mountpoint");
+ 		spin_lock(&vnode->lock);
+ 		set_bit(AFS_VNODE_MOUNTPOINT, &vnode->flags);
++		vnode->vfs_inode.i_flags |= S_AUTOMOUNT;
+ 		spin_unlock(&vnode->lock);
+ 	}
+ 
+@@ -238,49 +236,37 @@ error_no_devname:
+ }
+ 
  /*
-  * Intent data
+- * follow a link from a mountpoint directory, thus causing it to be mounted
++ * handle an automount point
   */
+-static void *afs_mntpt_follow_link(struct dentry *dentry, struct nameidata *nd)
++struct vfsmount *afs_d_automount(struct path *path)
+ {
+ 	struct vfsmount *newmnt;
+ 	int err;
+ 
+-	_enter("%p{%s},{%s:%p{%s},}",
+-	       dentry,
+-	       dentry->d_name.name,
+-	       nd->path.mnt->mnt_devname,
+-	       dentry,
+-	       nd->path.dentry->d_name.name);
+-
+-	dput(nd->path.dentry);
+-	nd->path.dentry = dget(dentry);
++	_enter("{%s,%s}", path->mnt->mnt_devname, path->dentry->d_name.name);
+ 
+-	newmnt = afs_mntpt_do_automount(nd->path.dentry);
+-	if (IS_ERR(newmnt)) {
+-		path_put(&nd->path);
+-		return (void *)newmnt;
+-	}
++	newmnt = afs_mntpt_do_automount(path->dentry);
++	if (IS_ERR(newmnt))
++		return newmnt;
+ 
+ 	mntget(newmnt);
+-	err = do_add_mount(newmnt, &nd->path, MNT_SHRINKABLE, &afs_vfsmounts);
++	err = do_add_mount(newmnt, path, MNT_SHRINKABLE, &afs_vfsmounts);
+ 	switch (err) {
+ 	case 0:
+-		path_put(&nd->path);
+-		nd->path.mnt = newmnt;
+-		nd->path.dentry = dget(newmnt->mnt_root);
+ 		schedule_delayed_work(&afs_mntpt_expiry_timer,
+ 				      afs_mntpt_expiry_timeout * HZ);
+-		break;
++		_leave(" = %p {%s}", newmnt, newmnt->mnt_devname);
++		return newmnt;
+ 	case -EBUSY:
+ 		/* someone else made a mount here whilst we were busy */
+-		err = follow_down(&nd->path, false);
++		mntput(newmnt);
++		_leave(" = NULL [EBUSY]");
++		return NULL;
+ 	default:
+ 		mntput(newmnt);
+-		break;
++		_leave(" = %d", err);
++		return ERR_PTR(err);
+ 	}
+-
+-	_leave(" = %d", err);
+-	return ERR_PTR(err);
+ }
+ 
+ /*
 
