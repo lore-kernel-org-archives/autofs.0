@@ -1,25 +1,41 @@
-From: Al Viro <viro@ZenIV.linux.org.uk>
-Subject: Re: [PATCH 00/18] Introduce automount support in the VFS [ver #4]
-Date: Fri, 14 Jan 2011 07:05:02 +0000
-Message-ID: <20110114070502.GC19804@ZenIV.linux.org.uk>
-References: <20110113215359.19406.37232.stgit@warthog.procyon.org.uk>
- <20110114070224.GB19804@ZenIV.linux.org.uk>
+From: Michael Orlov <orlovm@cs.bgu.ac.il>
+Subject: Re: autofs 5.0.4 and 5.0.5 do not remove ghost entries
+ upon SIGHUP
+Date: Fri, 14 Jan 2011 09:23:16 +0200
+Message-ID: <20110114092316.1b0458c8@cs.bgu.ac.il>
+References: <20110111183424.7f0f7ad4@cs.bgu.ac.il>
+	<1294905042.2757.42.camel@perseus>
+	<1294910202.2757.46.camel@perseus>
+	<20110113163643.12dcadff@cs.bgu.ac.il>
+	<1294973765.2794.2.camel@perseus>
 Mime-Version: 1.0
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20110114070224.GB19804@ZenIV.linux.org.uk>
-Sender: linux-fsdevel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Howells <dhowells@redhat.com>
-Cc: raven@themaw.net, npiggin@kernel.dk, autofs@linux.kernel.org, linux-fsdevel@vger.kernel.org
+Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <1294973765.2794.2.camel@perseus>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs/>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org
 
-On Fri, Jan 14, 2011 at 07:02:24AM +0000, Al Viro wrote:
+> > Thanks! Will you be adding the patch to
+> > http://kernel.org/pub/linux/daemons/autofs/v5/ ?
+> 
+> Not until I get feedback as to whether it fixes the issue and a little
+> think time on my part.
 
-> As the result, we stop abusing do_add_mount() in there.  Moreover, with
-> pending mnt_devname nfs rework we will be able to get rid of passing
-> vfsmount to ->d_automount(), AFAICT, which would be nice...
+I just tested on Gentoo's net-fs/autofs-5.0.5 +
+fix-prune-cache-valid-check - works very well, both with the simple test
+that I described previously, and with a full-blown udev-based
+solution.
 
-BTW, what do you need vfsmount for in case of the only ->d_manage() instance
-you've got?
+Best regards,
+Michael
