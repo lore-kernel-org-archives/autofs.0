@@ -1,53 +1,70 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs 5.0.4 and 5.0.5 do not remove ghost entries
- upon SIGHUP
-Date: Fri, 14 Jan 2011 10:56:05 +0800
-Message-ID: <1294973765.2794.2.camel@perseus>
-References: <20110111183424.7f0f7ad4@cs.bgu.ac.il>
-	<1294905042.2757.42.camel@perseus> <1294910202.2757.46.camel@perseus>
-	<20110113163643.12dcadff@cs.bgu.ac.il>
+From: Al Viro <viro@ZenIV.linux.org.uk>
+Subject: Re: [PATCH 00/18] Introduce automount support in the VFS [ver #4]
+Date: Fri, 14 Jan 2011 07:02:24 +0000
+Message-ID: <20110114070224.GB19804@ZenIV.linux.org.uk>
+References: <20110113215359.19406.37232.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20110113215359.19406.37232.stgit@warthog.procyon.org.uk>
+Sender: linux-fsdevel-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com;
-	h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding;
-	s=smtpout; bh=Q6cw/65IWH6MCqXvombcMGm3fm0=;
-	b=mzgJ2XRR9aeZgdfPXvY+/tEk7otJpre78L6+rerw1zr34qfgmB58RuBzCXiZIFzT4q6cT8vBXQUZ6g7Tv8t3xSK4j0PHP0y7r3vvSfnfQevL7rJpTKj9nHrYeXe+AZIQPW6fVmXQZiPy0ZMkZpuo0yCCqMVAUXU4ft3ttyR4oDI=
-In-Reply-To: <20110113163643.12dcadff@cs.bgu.ac.il>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs/>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-To: Michael Orlov <orlovm@cs.bgu.ac.il>
-Cc: autofs@linux.kernel.org
+To: David Howells <dhowells@redhat.com>
+Cc: raven@themaw.net, npiggin@kernel.dk, autofs@linux.kernel.org, linux-fsdevel@vger.kernel.org
 
-On Thu, 2011-01-13 at 16:36 +0200, Michael Orlov wrote:
-> > So I've done that and this patch seems to resolve the problem but I
-> > doubt it will apply to the source you are using without some other
-> > dependent patches from kernel.org.
+On Thu, Jan 13, 2011 at 09:53:59PM +0000, David Howells wrote:
+
+>  (1) struct vfsmount *(*d_automount)(struct path *path);
 > 
-> Gentoo applies the patches listed in
-> http://kernel.org/pub/linux/daemons/autofs/v5/patch_order-5.0.5 - is
-> that what you mean?
-
-Yes, but there are a few others I have here.
-The patches against this part of the code should all be available on
-kernel.org so you should be OK.
-
+>      This is used by follow_automount() in fs/namei.c to ask the filesystem
+>      that owns the dentry at the current path point to mount something on
+>      @path.
 > 
-> > autofs-5.0.5 - fix prune cache valid check
+>      It is called if DCACHE_NEED_AUTOMOUNT (which is propagated from the
+>      S_AUTOMOUNT inode flag) is flagged on a dentry and if that dentry has
+>      nothing mounted on it in the current namespace when someone attempts to
+>      use that dentry.
 > 
-> Thanks! Will you be adding the patch to
-> http://kernel.org/pub/linux/daemons/autofs/v5/ ?
+>      No locks will be held when this is called.
+> 
+>      d_op->d_automount() may return one of:
+> 
+>      (a) The vfsmount mounted upon that dentry, in which case pathwalk will
+>      	 move to the root dentry of that vfsmount.  ->d_automount() must have
+>      	 in some manner mounted this before returning.
+> 
+>      (b) NULL if something was already mounted there, in which case pathwalk
+>      	 will loop around and recheck the mountings.
 
-Not until I get feedback as to whether it fixes the issue and a little
-think time on my part.
+That makes very little sense as-is.  Look:
+	* autofs4 never does (a)
+	* everybody else could replace (a) with (b) just fine - we do (a)
+only when we'd just mounted new vfsmount on top of path.  So (b) would lead
+to follow_managed() looping over, finding DCACHE_MOUNTED and cheerfully
+transiting into the root of that vfsmount.
 
-Ian
+Note that it's not subtle at all - *all* cases doing (a) lack ->d_manage(),
+so behaviour of follow_automount() is as simple as it gets.
+
+Now, I'd like to have (a) and (b) distinct, but not in that fashion.  Namely,
+let's take do_add_mount() et.al. into follow_automount().  Leave autofs4
+as in your series; it'll be completely unaffected.  But switch all (b) in
+nfs/cifs/afs over to modified (a).  That is,
+	* have vfsmount created as it's done in your series
+	* grab extra reference and put it on chosen list.  That'd be done
+by helper in fs/namespace.c under namespace_sem.  Extra ref would make sure
+that nobody walking the list would decide that it's expirable.
+	* schedule whatever expiry activity we currently do.
+	* return vfsmount
+In follow_automount() we'd see that we have non-NULL and non-ERR_PTR.  Then
+we'd attempt do_add_mount(), without bothering to pass it expiry list.  And
+do the same checks for return value, etc. we currently do in the method
+instances; just remember that we have an extra vfsmount reference that will
+need to be dropped and that we'll need to take the sucker off the expiry list
+in case we decide we don't need it (again, namespace.c helper).
+
+As the result, we stop abusing do_add_mount() in there.  Moreover, with
+pending mnt_devname nfs rework we will be able to get rid of passing
+vfsmount to ->d_automount(), AFAICT, which would be nice...
