@@ -1,64 +1,54 @@
-From: Nick Piggin <npiggin@gmail.com>
-Subject: Re: [PATCH 09/18] autofs4: Add d_manage() dentry operation [ver #4]
-Date: Sat, 15 Jan 2011 01:37:43 +1100
-Message-ID: <AANLkTin7GaJq6RuQdWkzY7XnH12-=8Gebr24Pyy+fWG+@mail.gmail.com>
-References: <20110113215359.19406.37232.stgit@warthog.procyon.org.uk>
-	<20110113215448.19406.58770.stgit@warthog.procyon.org.uk>
-	<1295013099.2794.6.camel@perseus>
+From: Masatake YAMATO <yamato@redhat.com>
+Subject: [PATCH 3/3] Man update for dir map-type
+Date: Fri, 14 Jan 2011 23:39:45 +0900 (JST)
+Message-ID: <20110114.233945.907587178645889112.yamato@redhat.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=gamma;
-        h=domainkey-signature:mime-version:in-reply-to:references:date
-         :message-id:subject:from:to:cc:content-type
-         :content-transfer-encoding;
-        bh=OXRk6SSysPdwOg2heIIp4KEWmhxC4TC3FtNONgyLZr4=;
-        b=Cosi2WwW9AAM1WPyiu7xcuhdJCESTscqc1uS2m2BcsQR2X6z0bR/gyEcK0uCDa6vrT
-         YNPdt2xamjcuY9w77IFUXg7zwMz/GYXc9RPKJa4byYzCr4YA//FDtOcbxwNGALTY9m3o
-         wYSrh+1ci9R1XxxGEtQOcFUds9Lx9lODAD/is=
-In-Reply-To: <1295013099.2794.6.camel@perseus>
-Sender: linux-fsdevel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="iso-8859-1"
-To: Ian Kent <raven@themaw.net>
-Cc: David Howells <dhowells@redhat.com>, viro@zeniv.linux.org.uk, npiggin@kernel.dk, autofs@linux.kernel.org, linux-fsdevel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <autofs-bounces@linux.kernel.org>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs/>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Sat, Jan 15, 2011 at 12:51 AM, Ian Kent <raven@themaw.net> wrote:
-> On Thu, 2011-01-13 at 21:54 +0000, David Howells wrote:
->> From: Ian Kent <raven@themaw.net>
->> + =A0 =A0 //spin_lock(&dcache_lock); =A0/////////////// JUST DELETE =
-THIS LOCK?
->> + =A0 =A0 if (!d_mountpoint(dentry) && list_empty(&dentry->d_subdirs=
-)) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 spin_lock(&dentry->d_lock);
->> + =A0 =A0 =A0 =A0 =A0 =A0 if (!(dentry->d_flags & DCACHE_MANAGE_TRAN=
-SIT) &&
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(dentry->d_flags & DCACHE_NEED_=
-AUTOMOUNT))
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __managed_dentry_set_trans=
-it(path->dentry);
->> + =A0 =A0 =A0 =A0 =A0 =A0 spin_unlock(&dentry->d_lock);
->> + =A0 =A0 }
->> + =A0 =A0 //spin_unlock(&dcache_lock);
->
-> In this case I think the dcache_lock needs to be deleted and the d_lo=
-ck
-> moved out of the if to protect the d_subdirs access.
+Signed-off-by: Masatake YAMATO <yamato@redhat.com>
+---
+ man/auto.master.5.in |    9 ++++++++-
+ 1 files changed, 8 insertions(+), 1 deletions(-)
 
-Right. If you follow the vfs-scale-working git branch series of
-patches leading up to dcache_lock removal, it gives a pretty
-good template of how to convert old dcache_lock using code
-to new locking.
-
-Although you can also just look at locking in fs/dcache.c and
-convert code from that.
-
-Any time you are dealing with just a *single* dentry, then
-->d_lock would be enough to replace dcache_lock (it
-actually protects more than dcache_lock alone did).
---
-To unsubscribe from this list: send the line "unsubscribe linux-fsdevel=
-" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/man/auto.master.5.in b/man/auto.master.5.in
+index 453ff98..e8d7bea 100644
+--- a/man/auto.master.5.in
++++ b/man/auto.master.5.in
+@@ -107,6 +107,13 @@ appropriate certificate must be configured in the LDAP client.
+ .B multi
+ This map type allows the specification of multiple maps separated
+ by "--". These maps are searched in order to resolve key lookups.
++.TP
++.B dir
++This map type can be used at 
++.BR + 
++master map including notation. The contents of files under given directory are included
++to the master map. The name of file to be included must be started with "auto.". A file
++will be ignored if its name is not started with the prefix.
+ .RE
+ .TP
+ \fBformat\fP
+@@ -118,7 +125,7 @@ left unspecified, it defaults to \fBsun\fP for all map types except
+ .TP
+ \fBmap\fP
+ Name of the map to use.  This is an absolute UNIX pathname
+-for maps of types \fBfile\fP or \fBprogram\fP, and the name of a database
++for maps of types \fBfile\fP, \fBdir\fP, or \fBprogram\fP, and the name of a database
+ in the case for maps of type \fByp\fP, \fBnisplus\fP, or \fBhesiod\fP or
+ the \fBdn\fP of an LDAP entry for maps of type \fBldap\fP.
+ .TP
+-- 
+1.7.3.4
