@@ -1,74 +1,101 @@
-From: Nick Piggin <npiggin@gmail.com>
-Subject: Re: [PATCH 01/18] Add a dentry op to handle automounting rather than
- abusing follow_link()
-Date: Sat, 15 Jan 2011 09:14:01 +1100
-Message-ID: <AANLkTinwkPWRGqzj9UgS2MLLBQVNCoAye003_LqLUo=8@mail.gmail.com>
-References: <20110111174809.2291.52242.stgit@warthog.procyon.org.uk>
-	<20110111174815.2291.41967.stgit@warthog.procyon.org.uk>
-	<AANLkTi=F6PSgQs78MpmG_V3q_ksmYMUwU8=xBoNOypto@mail.gmail.com>
-	<AANLkTi=YygMc2ExFxvWqiFbSr-bWRVcn17toanJBdR08@mail.gmail.com>
-	<16508.1294931527@redhat.com>
-	<AANLkTi=ZiOZ08WEkTt8nVWkaeSG9mnM0JQ-ov=kO2mpc@mail.gmail.com>
-	<20110114162403.GF19804@ZenIV.linux.org.uk>
+From: David Howells <dhowells@redhat.com>
+Subject: [PATCH] autofs4: Merge the remaining dentry ops tables
+Date: Sat, 15 Jan 2011 10:51:57 +0000
+Message-ID: <20110115105156.26397.56719.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=gamma;
-        h=domainkey-signature:mime-version:in-reply-to:references:date
-         :message-id:subject:from:to:cc:content-type
-         :content-transfer-encoding;
-        bh=12gXjnILIWG2cQgzgBfER4+b8HXtoxY21vaVZ1l4S2M=;
-        b=ds2Fgi61z0rnNh4KNR07z3rx3gcXWOTmHb5E/4mcCrD5IMp1BDCU20DR07ZI4q9MlP
-         k54V/KOgYs+xaq5+5tZObykRr0b34C735ojqzDYNWc0mErjwE1FzGmjmMIz4E+EDoOHx
-         RQroqRLcptsdQcNbEP4BSkIzlrK9WrYmK5vbY=
-In-Reply-To: <20110114162403.GF19804@ZenIV.linux.org.uk>
-Sender: linux-fsdevel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="iso-8859-1"
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: David Howells <dhowells@redhat.com>, npiggin@kernel.dk, raven@themaw.net, autofs@linux.kernel.org, linux-fsdevel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <autofs-bounces@linux.kernel.org>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs/>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: raven@themaw.net, viro@zeniv.linux.org.uk
+Cc: dhowells@redhat.com, autofs@linux.kernel.org
 
-On Sat, Jan 15, 2011 at 3:24 AM, Al Viro <viro@zeniv.linux.org.uk> wrot=
-e:
-> On Fri, Jan 14, 2011 at 12:19:43PM +1100, Nick Piggin wrote:
->
->> Also, I don't like how you return a vfsmount * and use that in path =
-walking. If
->> you just returned success and allowed the path walk to continue look=
-ing up
->> mounted directories, it would be cleaner code, IMO.
->
-> No. =A0Filesystem has no business touching mount tree; leave that to =
-core VFS.
-> Analysis of what's going on is messy enough as it is, let's *NOT* com=
-plicate
-> it even further.
->
-> I think we should take do_add_mount() calls into follow_automount(), =
-making
-> the API
-> =A0 =A0 =A0 =A0NULL =3D> nothing to do here, just follow mount
-> =A0 =A0 =A0 =A0ERR_PTR() =3D> sod off
-> =A0 =A0 =A0 =A0mnt =3D> here's the thing I want mounted, do it and go=
- there. =A0If
-> something's allready got mounted here, just disregard this one and fo=
-llow
-> mount as usual (=3D=3D we'd lost the race)
+Merge the remaining autofs4 dentry ops tables.  It doesn't matter if
+d_automount and d_manage are present on something that's not mountable or
+holdable as these ops are only used if the appropriate flags are set in
+dentry->d_flags.
 
-That would be fine. I just want the path walk to follow the mount in th=
-e
-usual way, rather than following something that the filesystem hands ba=
-ck
-directly.
+Signed-off-by: David Howells <dhowells@redhat.com>
+---
 
-David explains that was a micro optimisation to avoid the lookup, and t=
-hat
-the vfsmount should always be mounted at that point, which basically so=
-lved
-my conceptual problem with it.
---
-To unsubscribe from this list: send the line "unsubscribe linux-fsdevel=
-" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ fs/autofs4/autofs_i.h |    1 -
+ fs/autofs4/inode.c    |    4 +---
+ fs/autofs4/root.c     |   13 ++-----------
+ 3 files changed, 3 insertions(+), 15 deletions(-)
+
+diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
+index c28085c..1f016bf 100644
+--- a/fs/autofs4/autofs_i.h
++++ b/fs/autofs4/autofs_i.h
+@@ -207,7 +207,6 @@ extern const struct inode_operations autofs4_dir_inode_operations;
+ extern const struct file_operations autofs4_dir_operations;
+ extern const struct file_operations autofs4_root_operations;
+ extern const struct dentry_operations autofs4_dentry_operations;
+-extern const struct dentry_operations autofs4_mount_dentry_operations;
+ 
+ /* VFS automount flags management functions */
+ 
+diff --git a/fs/autofs4/inode.c b/fs/autofs4/inode.c
+index 3ecd2e2..2e80cf0 100644
+--- a/fs/autofs4/inode.c
++++ b/fs/autofs4/inode.c
+@@ -304,10 +304,8 @@ int autofs4_fill_super(struct super_block *s, void *data, int silent)
+ 		goto fail_dput;
+ 	}
+ 
+-	if (autofs_type_trigger(sbi->type)) {
+-		d_set_d_op(root, &autofs4_mount_dentry_operations);
++	if (autofs_type_trigger(sbi->type))
+ 		__managed_dentry_set_managed(root);
+-	}
+ 
+ 	root_inode->i_fop = &autofs4_root_operations;
+ 	root_inode->i_op = &autofs4_dir_inode_operations;
+diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
+index dbd9551..0db9d53 100644
+--- a/fs/autofs4/root.c
++++ b/fs/autofs4/root.c
+@@ -66,13 +66,7 @@ const struct inode_operations autofs4_dir_inode_operations = {
+ 	.rmdir		= autofs4_dir_rmdir,
+ };
+ 
+-/* For dentries that don't initiate mounting */
+ const struct dentry_operations autofs4_dentry_operations = {
+-	.d_release	= autofs4_dentry_release,
+-};
+-
+-/* For dentries that do initiate mounting */
+-const struct dentry_operations autofs4_mount_dentry_operations = {
+ 	.d_automount	= autofs4_d_automount,
+ 	.d_manage	= autofs4_d_manage,
+ 	.d_release	= autofs4_dentry_release,
+@@ -512,10 +506,8 @@ static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, s
+ 			return ERR_PTR(-ENOENT);
+ 
+ 		/* Mark entries in the root as mount triggers */
+-		if (autofs_type_indirect(sbi->type) && IS_ROOT(dentry->d_parent)) {
+-			d_set_d_op(dentry, &autofs4_mount_dentry_operations);
++		if (autofs_type_indirect(sbi->type) && IS_ROOT(dentry->d_parent))
+ 			__managed_dentry_set_managed(dentry);
+-		}
+ 
+ 		ino = autofs4_init_ino(NULL, sbi, 0555);
+ 		if (!ino)
+@@ -848,8 +840,7 @@ static inline int autofs4_ask_umount(struct vfsmount *mnt, int __user *p)
+ int is_autofs4_dentry(struct dentry *dentry)
+ {
+ 	return dentry && dentry->d_inode &&
+-		(dentry->d_op == &autofs4_mount_dentry_operations ||
+-		 dentry->d_op == &autofs4_dentry_operations) &&
++		dentry->d_op == &autofs4_dentry_operations &&
+ 		dentry->d_fsdata != NULL;
+ }
