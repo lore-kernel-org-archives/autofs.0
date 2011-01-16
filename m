@@ -1,71 +1,65 @@
-From: Nick Piggin <npiggin@gmail.com>
-Subject: Re: [PATCH 19/18] Unexport do_add_mount() and add in
- follow_automount(), not ->d_automount()
-Date: Sun, 16 Jan 2011 12:21:47 +1100
-Message-ID: <AANLkTinMOzWQ60EiF1LJLUs-Vy4TscK-zLOY9qn=3bPU@mail.gmail.com>
-References: <20110114070224.GB19804@ZenIV.linux.org.uk>
-	<20110113215359.19406.37232.stgit@warthog.procyon.org.uk>
-	<2443.1295005428@redhat.com>
-	<6672.1295025969@redhat.com>
-	<20110114174340.GG19804@ZenIV.linux.org.uk>
-	<20110114175648.GH19804@ZenIV.linux.org.uk>
-	<20110114180625.GI19804@ZenIV.linux.org.uk>
-	<AANLkTimMVF7HSOqJGWphY2fbaXDbegppe+Vug8e5V1HN@mail.gmail.com>
-	<20110115133029.GN19804@ZenIV.linux.org.uk>
-	<AANLkTinG5yUjKns5nAzgtW526kKOBHT-eG1YyKR83wh5@mail.gmail.com>
-	<20110116002459.GP19804@ZenIV.linux.org.uk>
+From: Jiri Slaby <jirislaby@gmail.com>
+Subject: Re: [autofs] WARNING: at fs/dcache.c:1359 d_set_d_op [was: mmotm
+ 2011-01-06-15-41 uploaded]
+Date: Sun, 16 Jan 2011 12:32:03 +0100
+Message-ID: <4D32D733.8090909@gmail.com>
+References: <201101070014.p070Egpo023959@imap1.linux-foundation.org>	 <4D2ECB56.4070802@gmail.com> <12521.1294932824@localhost>	 <4D2F1CD7.5090100@gmail.com> <1294993243.2794.4.camel@perseus>
 Mime-Version: 1.0
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=gamma;
-        h=domainkey-signature:mime-version:in-reply-to:references:date
-         :message-id:subject:from:to:cc:content-type
+        h=domainkey-signature:message-id:date:from:user-agent:mime-version:to
+         :cc:subject:references:in-reply-to:x-enigmail-version:content-type
          :content-transfer-encoding;
-        bh=KvxVOj9Op6CyAWLbH08JJ6iOBpK8TEknON0vAtSZV4c=;
-        b=eCI+d1SB9xGK7aRE8BsjTTMienU1ganWNsuapzq9ZGLj1hJOK7tzRGF1IWys5opOVd
-         /6Z/oDskzqUrpF3p8pGLucAcBEHzovlHcWNh3umLvCJqFA+3WI+hKrhbF7uuwozFIUGX
-         vlKXzUXoH5bQ4R4GO3u4M+zEAe2N6OXacYd08=
-In-Reply-To: <20110116002459.GP19804@ZenIV.linux.org.uk>
+        bh=srALDBHEc8vvAuo82ighEBb8MNYaeNkAGvv/HYRGp8E=;
+        b=bD8GGA9/6KQqbJYLjWeEowGtF/7fqZlN6LEOg8aqx3z4/oZptN+201AvzD/vIE6Ojg
+         Vn5DRCberLGGW9o72qjtH0vbUkE7MtKD3cDgLy+/0T3pNHPk8YgO87UudBNkmfKmlcuY
+         HEEPhcuv7E4qI53i3hBmLsfW2V7Ko0jgjTJxQ=
+In-Reply-To: <1294993243.2794.4.camel@perseus>
 Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="iso-8859-1"
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: David Howells <dhowells@redhat.com>, raven@themaw.net, npiggin@kernel.dk, autofs@linux.kernel.org, linux-fsdevel@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>
+Content-Type: text/plain; charset="us-ascii"
+To: Ian Kent <raven@themaw.net>
+Cc: Valdis.Kletnieks@vt.edu, autofs@linux.kernel.org, mm-commits@vger.kernel.org, npiggin@kernel.dk, linux-kernel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org
 
-On Sun, Jan 16, 2011 at 11:24 AM, Al Viro <viro@zeniv.linux.org.uk> wro=
-te:
-> On Sun, Jan 16, 2011 at 05:33:24AM +1100, Nick Piggin wrote:
->
->> Definitely agree.
+On 01/14/2011 09:20 AM, Ian Kent wrote:
+> On Thu, 2011-01-13 at 16:40 +0100, Jiri Slaby wrote:
+>> On 01/13/2011 04:33 PM, Valdis.Kletnieks@vt.edu wrote:
+>>> On Thu, 13 Jan 2011 10:52:22 +0100, Jiri Slaby said:
+>>>> On 01/07/2011 12:41 AM, akpm@linux-foundation.org wrote:
+>>>>> The mm-of-the-moment snapshot 2011-01-06-15-41 has been uploaded to
+>>>>
+>>>> Hi, after some uptime and several suspend/resume cycles, I got:
+>>>> WARNING: at fs/dcache.c:1359 d_set_d_op+0x82/0xb0()
+>>>> Hardware name: To Be Filled By O.E.M.
+>>>> Modules linked in: dvb_usb_af9015 tda18271 af9013 dvb_usb dvb_core
+>>>> Pid: 3474, comm: automount Tainted: G        W   2.6.37-mm1_64+ #1344
+>>>> Call Trace:
+>>>>  [<ffffffff8106bd2a>] ? warn_slowpath_common+0x7a/0xb0
+>>>>  [<ffffffff8106bd75>] ? warn_slowpath_null+0x15/0x20
+>>>>  [<ffffffff81125a32>] ? d_set_d_op+0x82/0xb0
+>>>>  [<ffffffff8120d829>] ? autofs4_dir_mkdir+0x169/0x180
+>>>
+>>> Wow. So it wasn't just configfs that trips over this one.  I'm now hoping that
+>>> Al audited all the pseudo file systems for this...
 >>
->> I'm on the road at the moment so would much appreciate if you can
->> cut the patch, but I could suggest something along the lines of:
->
-> Easier than that, actually. =A0All it takes is (in #for-next, yet to
-> be reordered in front of queue)
-> =A0 =A0 =A0 =A0if (IS_ERR(dentry))
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto fail;
-> + =A0 =A0 =A0 if (nd->flags & LOOKUP_RCU)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto done2;
-> =A0 =A0 =A0 =A0goto done;
-> in the end of need_revalidate and
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (dentry->d_flags & DCACHE_OP_REVALI=
-DATE)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto need_revalidate;
-> +done2:
-> in LOOKUP_RCU side of if ()...
->
-> need_lookup does *not* suffer the same problem; you can't get there w=
-ithout
-> dropping LOOKUP_RCU - the first thing it does is grabbing a mutex, fo=
-r fsck
-> sake... =A0And yes, you do drop RCU on all paths leading there.
+>> Well, CCing Al.
+>>
+>> I don't see any recent change in fs/autofs4 in:
+>> http://git.kernel.org/?p=linux/kernel/git/viro/vfs-2.6.git;a=history;f=fs/autofs4;hb=refs/heads/for-next
+>>
+>> So maybe not all?
+> 
+> Did you see:
+> https://lkml.org/lkml/2011/1/12/394
 
-Oh right it's do_revalidate, not d_revalidate, so it won't return NULL
-still in rcu-walk :P
---
-To unsubscribe from this list: send the line "unsubscribe linux-fsdevel=
-" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I haven't.
+
+> Haven't had any feedback on this yet, odd or maybe no news is good news?
+
+Works for me.
+
+thanks,
+-- 
+js
