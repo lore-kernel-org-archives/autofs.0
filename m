@@ -1,17 +1,16 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs4_d_automount() can change path->dentry param
-Date: Mon, 17 Jan 2011 08:07:11 +0800
-Message-ID: <1295222831.2795.5.camel@perseus>
-References: <18985.1295089862@redhat.com>
+From: Frank Hall <frank.f.hall@gmail.com>
+Subject: mount dependencies in autofs
+Date: Mon, 17 Jan 2011 17:43:37 +0000
+Message-ID: <AANLkTimCzAZ0dg3Xv2hvAJGf5-5VU64eTgKqQbP7egcA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============5760626673663376961=="
 Return-path: <autofs-bounces@linux.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com;
-	h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding;
-	s=smtpout; bh=KAqF040rMnR3A8b8ESyAjeLjlSo=;
-	b=R0Wp07AH1kC4qUYcnypWqppKT1TRciUlPmMD7DxhX9w6/lhUFEQuZEeYg/l5wrmfT/ujGH4BrMVXCyCn9B02WhtOIM/UnF/hvZS/kB9y3RxKk8pPafNgwhirWjHAFvWmwUTPrBL2EqY6Xjk+OU8Vle0gaxhxSxXoWLARCHbpIas=
-In-Reply-To: <18985.1295089862@redhat.com>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
+	h=domainkey-signature:mime-version:date:message-id:subject:from:to
+	:content-type; bh=Sw4qYirCKaPx4t9TkH8YaafDHpceZT2kKZW2GlYezFA=;
+	b=UZsrRPwFk+gG5mw1neZZk/VC4PX1Y51q1JUaglYLErzdh93aqBTR7onbitU6fwM/kX
+	q5jI7hKbfSEqxk7nSsmJhLmTFLaLHUP98709+Tr3rdgAcwc2qjWDg6D4XvLXF+wl+nsi
+	+Uot1BstQ0OfRpeZsY7SPHSKBYhQGAzjvH0lc=
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,28 +21,89 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: David Howells <dhowells@redhat.com>
-Cc: autofs@linux.kernel.org, viro@zeniv.linux.org.uk
+To: autofs@linux.kernel.org
 
-On Sat, 2011-01-15 at 11:11 +0000, David Howells wrote:
-> Hi Ian,
-> 
-> I've just noticed that autofs4_d_automount() can change the dentry pointer in
-> the path parameter (via autofs4_mountpoint_changed()).  Is this just doing a
-> straight substitution of one dentry for its equivalent?  I don't think it'll
-> be a problem for follow_automount() and follow_managed(), provided the dentry
-> stays in the same namespace - but if we eliminate the vfsmount pointer and
-> just pass the dentry pointer in to d_automount(), you won't be able to do this
-> anymore.  Would it work to simply return NULL here and hope the recheck picks
-> up the substitution?
+--===============5760626673663376961==
+Content-Type: multipart/alternative; boundary=20cf3054a87de2db70049a0e527a
 
-I don't think so.
+--20cf3054a87de2db70049a0e527a
+Content-Type: text/plain; charset=ISO-8859-1
 
-It happens if the mount point dentry is removed and recreated during a
-callback to the daemon so a d_lookup() then returns the replacement
-dentry. If the vfsmount isn't available we would need to be able to
-return the new dentry in much the same as ->lookup() will use a
-replacement dentry if it is returned. I guess that's still a problem if
-we need to return a vfsmount or ERR_PTR or NULL.
+Hello,
 
-Ian
+Is there a way to use autofs to manage two filesystems, where the second
+filesystem is dependent on the first?
+
+An example is where the first filesystem holds an ISO image, and the second
+filesystem is a loop mounting of that image.  Another example is where the
+second filesystem is a bind mount from within the first filesystem.
+
+I have tried with a direct map like this:
+
+    /svfs/stuff -fstype=bind :/srv/topmnts/fs0/stuff
+    /srv/topmnts/fs0 -fstype=auto :-Lfs0
+
+If I try and access /srv/topmnts/fs0 first, and then try to access
+/svfs/stuff, this works just fine.  However, if I try to access /svfs/stuff
+first, I get "No such file or directory", and the log gets ">> mount:
+special device /srv/topmnts/fs0/stuff does not exist".
+
+So it looks like autofs's filesystem access is not itself subject to autofs
+intervention?
+
+The strange thing is, I'm sure I have had a similar configuration working in
+the past.  But unfortunately I no longer have access to those systems and
+configuration data.
+
+I'm using autofs 5.0.4 as packaged by Debian squeeze.
+
+Finally, what would you call such a feature?  Recursive automounts?  Chained
+automounts?  Dependent automounts?
+
+  Regards, Frank.
+
+--20cf3054a87de2db70049a0e527a
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+Hello,<div><br></div><div>Is there a way to use autofs to manage two filesy=
+stems, where the second filesystem is dependent on the first?</div><div><br=
+></div><div>An example is where the first filesystem holds an ISO image, an=
+d the second filesystem is a loop mounting of that image. =A0Another exampl=
+e is where the second filesystem is a bind mount from within the first file=
+system.</div>
+<div><br></div><div>I have tried with a direct map like this:</div><div><br=
+></div><div>=A0=A0 =A0/svfs/stuff -fstype=3Dbind :/srv/topmnts/fs0/stuff</d=
+iv><div>=A0=A0 =A0/srv/topmnts/fs0 -fstype=3Dauto :-Lfs0</div><div><br></di=
+v><div>If I try and access /srv/topmnts/fs0 first, and then try to access /=
+svfs/stuff, this works just fine. =A0However, if I try to access=A0/svfs/st=
+uff first, I get &quot;No such file or directory&quot;, and the log gets &q=
+uot;&gt;&gt; mount: special device /srv/topmnts/fs0/stuff does not exist&qu=
+ot;.</div>
+<div><br></div><div>So it looks like autofs&#39;s filesystem access is not =
+itself subject to autofs intervention?</div><div><br></div><div>The strange=
+ thing is, I&#39;m sure I have had a similar configuration working in the p=
+ast. =A0But unfortunately I no longer have access to those systems and conf=
+iguration data.</div>
+<div><br></div><div>I&#39;m using autofs 5.0.4 as packaged by Debian squeez=
+e.</div><div><br></div><div>Finally, what would you call such a feature? =
+=A0Recursive automounts? =A0Chained automounts? =A0Dependent automounts?</d=
+iv><div>
+<br></div><div>=A0=A0Regards, Frank.</div>
+
+--20cf3054a87de2db70049a0e527a--
+
+
+--===============5760626673663376961==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--===============5760626673663376961==--
+
