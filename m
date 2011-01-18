@@ -1,109 +1,65 @@
-From: Frank Hall <frank.f.hall@gmail.com>
-Subject: mount dependencies in autofs
-Date: Mon, 17 Jan 2011 17:43:37 +0000
-Message-ID: <AANLkTimCzAZ0dg3Xv2hvAJGf5-5VU64eTgKqQbP7egcA@mail.gmail.com>
+From: David Howells <dhowells@redhat.com>
+Subject: [PATCH] autofs4: Use no_printk() for no-op DPRINTK() and use
+ __VA_ARGS__ too
+Date: Tue, 18 Jan 2011 22:29:59 +0000
+Message-ID: <20110118222959.2318.84777.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============5760626673663376961=="
-Return-path: <autofs-bounces@linux.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
-	h=domainkey-signature:mime-version:date:message-id:subject:from:to
-	:content-type; bh=Sw4qYirCKaPx4t9TkH8YaafDHpceZT2kKZW2GlYezFA=;
-	b=UZsrRPwFk+gG5mw1neZZk/VC4PX1Y51q1JUaglYLErzdh93aqBTR7onbitU6fwM/kX
-	q5jI7hKbfSEqxk7nSsmJhLmTFLaLHUP98709+Tr3rdgAcwc2qjWDg6D4XvLXF+wl+nsi
-	+Uot1BstQ0OfRpeZsY7SPHSKBYhQGAzjvH0lc=
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs/>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
-
---===============5760626673663376961==
-Content-Type: multipart/alternative; boundary=20cf3054a87de2db70049a0e527a
-
---20cf3054a87de2db70049a0e527a
-Content-Type: text/plain; charset=ISO-8859-1
-
-Hello,
-
-Is there a way to use autofs to manage two filesystems, where the second
-filesystem is dependent on the first?
-
-An example is where the first filesystem holds an ISO image, and the second
-filesystem is a loop mounting of that image.  Another example is where the
-second filesystem is a bind mount from within the first filesystem.
-
-I have tried with a direct map like this:
-
-    /svfs/stuff -fstype=bind :/srv/topmnts/fs0/stuff
-    /srv/topmnts/fs0 -fstype=auto :-Lfs0
-
-If I try and access /srv/topmnts/fs0 first, and then try to access
-/svfs/stuff, this works just fine.  However, if I try to access /svfs/stuff
-first, I get "No such file or directory", and the log gets ">> mount:
-special device /srv/topmnts/fs0/stuff does not exist".
-
-So it looks like autofs's filesystem access is not itself subject to autofs
-intervention?
-
-The strange thing is, I'm sure I have had a similar configuration working in
-the past.  But unfortunately I no longer have access to those systems and
-configuration data.
-
-I'm using autofs 5.0.4 as packaged by Debian squeeze.
-
-Finally, what would you call such a feature?  Recursive automounts?  Chained
-automounts?  Dependent automounts?
-
-  Regards, Frank.
-
---20cf3054a87de2db70049a0e527a
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-Hello,<div><br></div><div>Is there a way to use autofs to manage two filesy=
-stems, where the second filesystem is dependent on the first?</div><div><br=
-></div><div>An example is where the first filesystem holds an ISO image, an=
-d the second filesystem is a loop mounting of that image. =A0Another exampl=
-e is where the second filesystem is a bind mount from within the first file=
-system.</div>
-<div><br></div><div>I have tried with a direct map like this:</div><div><br=
-></div><div>=A0=A0 =A0/svfs/stuff -fstype=3Dbind :/srv/topmnts/fs0/stuff</d=
-iv><div>=A0=A0 =A0/srv/topmnts/fs0 -fstype=3Dauto :-Lfs0</div><div><br></di=
-v><div>If I try and access /srv/topmnts/fs0 first, and then try to access /=
-svfs/stuff, this works just fine. =A0However, if I try to access=A0/svfs/st=
-uff first, I get &quot;No such file or directory&quot;, and the log gets &q=
-uot;&gt;&gt; mount: special device /srv/topmnts/fs0/stuff does not exist&qu=
-ot;.</div>
-<div><br></div><div>So it looks like autofs&#39;s filesystem access is not =
-itself subject to autofs intervention?</div><div><br></div><div>The strange=
- thing is, I&#39;m sure I have had a similar configuration working in the p=
-ast. =A0But unfortunately I no longer have access to those systems and conf=
-iguration data.</div>
-<div><br></div><div>I&#39;m using autofs 5.0.4 as packaged by Debian squeez=
-e.</div><div><br></div><div>Finally, what would you call such a feature? =
-=A0Recursive automounts? =A0Chained automounts? =A0Dependent automounts?</d=
-iv><div>
-<br></div><div>=A0=A0Regards, Frank.</div>
-
---20cf3054a87de2db70049a0e527a--
-
-
---===============5760626673663376961==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Sender: linux-fsdevel-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: raven@themaw.net
+Cc: viro@zeniv.linux.org.uk, dhowells@redhat.com, linux-fsdevel@vger.kernel.org, autofs@linux.kernel.org
 
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
+Use no_printk() for autofs's no-op DPRINTK() to prevent unused statements from
+becoming accidentally obsolete, and use __VA_ARGS__ too as that's the standard
+way.
 
---===============5760626673663376961==--
+Signed-off-by: David Howells <dhowells@redhat.com>
+---
+
+ fs/autofs4/autofs_i.h |   10 +++++++---
+ fs/autofs4/waitq.c    |    3 ++-
+ 2 files changed, 9 insertions(+), 4 deletions(-)
+
+diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
+index 54f9237..ef89828 100644
+--- a/fs/autofs4/autofs_i.h
++++ b/fs/autofs4/autofs_i.h
+@@ -40,13 +40,17 @@
+ /* #define DEBUG */
+ 
+ #ifdef DEBUG
+-#define DPRINTK(fmt, args...)				\
++#define DPRINTK(fmt, ...)				\
+ do {							\
+ 	printk(KERN_DEBUG "pid %d: %s: " fmt "\n",	\
+-		current->pid, __func__, ##args);	\
++		current->pid, __func__, ##__VA_ARGS__);	\
+ } while (0)
+ #else
+-#define DPRINTK(fmt, args...) do {} while (0)
++#define DPRINTK(fmt, ...)					\
++do {								\
++	no_printk(KERN_DEBUG "pid %d: %s: " fmt "\n",		\
++		  current->pid, __func__, ##__VA_ARGS__);	\
++} while (0)
+ #endif
+ 
+ #define AUTOFS_WARN(fmt, args...)			\
+diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
+index 5601005..4d169cf 100644
+--- a/fs/autofs4/waitq.c
++++ b/fs/autofs4/waitq.c
+@@ -104,7 +104,8 @@ static void autofs4_notify_daemon(struct autofs_sb_info *sbi,
+ 	size_t pktsz;
+ 
+ 	DPRINTK("wait id = 0x%08lx, name = %.*s, type=%d",
+-		wq->wait_queue_token, wq->name.len, wq->name.name, type);
++		(unsigned long)wq->wait_queue_token,
++		wq->name.len, wq->name.name, type);
+ 
+ 	memset(&pkt,0,sizeof pkt); /* For security reasons */
+ 
 
