@@ -1,65 +1,65 @@
-From: David Howells <dhowells@redhat.com>
-Subject: [PATCH] autofs4: Use no_printk() for no-op DPRINTK() and use
- __VA_ARGS__ too
-Date: Tue, 18 Jan 2011 22:29:59 +0000
-Message-ID: <20110118222959.2318.84777.stgit@warthog.procyon.org.uk>
+From: Jesper Juhl <jj@chaosbits.net>
+Subject: Re: [PATCH] autofs4: Do not potentially dereference NULL pointer
+ returned by fget() in autofs_dev_ioctl_setpipefd()
+Date: Mon, 24 Jan 2011 20:51:30 +0100 (CET)
+Message-ID: <alpine.LNX.2.00.1101242048590.10252@swampdragon.chaosbits.net>
+References: <alpine.LNX.2.00.1012182238560.17400@swampdragon.chaosbits.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.LNX.2.00.1012182238560.17400@swampdragon.chaosbits.net>
+Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: raven@themaw.net
-Cc: viro@zeniv.linux.org.uk, dhowells@redhat.com, linux-fsdevel@vger.kernel.org, autofs@linux.kernel.org
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Ian Kent <raven@themaw.net>
+Cc: linux-kernel@vger.kernel.org, autofs@linux.kernel.org
 
-Use no_printk() for autofs's no-op DPRINTK() to prevent unused statements from
-becoming accidentally obsolete, and use __VA_ARGS__ too as that's the standard
-way.
+Hi Ian,
 
-Signed-off-by: David Howells <dhowells@redhat.com>
----
+On Sat, 18 Dec 2010, Jesper Juhl wrote:
 
- fs/autofs4/autofs_i.h |   10 +++++++---
- fs/autofs4/waitq.c    |    3 ++-
- 2 files changed, 9 insertions(+), 4 deletions(-)
+> Hi,
+> 
+> In fs/autofs4/dev-ioctl.c::autofs_dev_ioctl_setpipefd() we call fget(), 
+> which may return NULL, but we do not explicitly test for that NULL return 
+> so we may end up dereferencing a NULL pointer - bad.
+> 
+> When I originally submitted this patch I had chosen EBUSY as the return 
+> value to use if this happens. Ian Kent was kind enough to explain why that 
+> would most likely be wrong and why EBADF should most likely be used 
+> instead. This version of the patch uses EBADF.
+> 
+> 
+> Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+> ---
+>  dev-ioctl.c |    4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/fs/autofs4/dev-ioctl.c b/fs/autofs4/dev-ioctl.c
+> index eff9a41..a650d7e 100644
+> --- a/fs/autofs4/dev-ioctl.c
+> +++ b/fs/autofs4/dev-ioctl.c
+> @@ -372,6 +372,10 @@ static int autofs_dev_ioctl_setpipefd(struct file *fp,
+>  		return -EBUSY;
+>  	} else {
+>  		struct file *pipe = fget(pipefd);
+> +		if (!pipe) {
+> +			err = -EBADF;
+> +			goto out;
+> +		}
+>  		if (!pipe->f_op || !pipe->f_op->write) {
+>  			err = -EPIPE;
+>  			fput(pipe);
+> 
 
-diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
-index 54f9237..ef89828 100644
---- a/fs/autofs4/autofs_i.h
-+++ b/fs/autofs4/autofs_i.h
-@@ -40,13 +40,17 @@
- /* #define DEBUG */
- 
- #ifdef DEBUG
--#define DPRINTK(fmt, args...)				\
-+#define DPRINTK(fmt, ...)				\
- do {							\
- 	printk(KERN_DEBUG "pid %d: %s: " fmt "\n",	\
--		current->pid, __func__, ##args);	\
-+		current->pid, __func__, ##__VA_ARGS__);	\
- } while (0)
- #else
--#define DPRINTK(fmt, args...) do {} while (0)
-+#define DPRINTK(fmt, ...)					\
-+do {								\
-+	no_printk(KERN_DEBUG "pid %d: %s: " fmt "\n",		\
-+		  current->pid, __func__, ##__VA_ARGS__);	\
-+} while (0)
- #endif
- 
- #define AUTOFS_WARN(fmt, args...)			\
-diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
-index 5601005..4d169cf 100644
---- a/fs/autofs4/waitq.c
-+++ b/fs/autofs4/waitq.c
-@@ -104,7 +104,8 @@ static void autofs4_notify_daemon(struct autofs_sb_info *sbi,
- 	size_t pktsz;
- 
- 	DPRINTK("wait id = 0x%08lx, name = %.*s, type=%d",
--		wq->wait_queue_token, wq->name.len, wq->name.name, type);
-+		(unsigned long)wq->wait_queue_token,
-+		wq->name.len, wq->name.name, type);
- 
- 	memset(&pkt,0,sizeof pkt); /* For security reasons */
- 
+It's been more than a month now since I submitted this updated patch 
+adressing your feedback, but I've not seen any feedback on it.
+Is it OK? Will you merge it? 
 
+/Jesper
+
+
+-- 
+Jesper Juhl <jj@chaosbits.net>            http://www.chaosbits.net/
+Don't top-post http://www.catb.org/~esr/jargon/html/T/top-post.html
+Plain text mails only, please.
