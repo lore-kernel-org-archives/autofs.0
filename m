@@ -1,7 +1,7 @@
 From: Arnd Bergmann <arnd@arndb.de>
 Subject: [RFC 00/20] Proposal for remaining BKL users
-Date: Tue, 25 Jan 2011 23:22:54 +0100
-Message-ID: <1295994174-5043-1-git-send-email-arnd@arndb.de>
+Date: Tue, 25 Jan 2011 23:17:14 +0100
+Message-ID: <1295993854-4971-1-git-send-email-arnd@arndb.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -17,7 +17,7 @@ List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
 Sender: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
 Errors-To: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
 To: linux-kernel@vger.kernel.org
-Cc: autofs@linux.kernel.org, linux-cifs@vger.kernel.org, linux-x25@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, netdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-fsdevel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>, Frederic Weisbecker <fweisbec@gmail.com>, dri-devel@lists.freedesktop.org, Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>, "H. Peter Anvin" <hpa@zytor.com>, Ian Kent <raven@themaw.net>, linux-cifs@vger.kernel.org, Nick Bowler <nbowler@elliptictech.com>, Jeff Layton <jlayton@redhat.com>, Takahiro Hirofuchi <hirofuchi@users.sourceforge.net>, Ross Cohen <rcohen@snurgle.org>, Arnaldo Carvalho de Melo <acme@ghostprotocols.net>, Evgeniy Dushistov <dushistov@mail.ru>, Arnd Bergmann <arnd@arndb.de>, Stuart Swales <stuart.swales.croftnuisk@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Arjan van de Ven <arjan@linux.intel.com>, autofs@linux.kernel.org, linux-x25@vger.kernel.org, netdev@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>, Palash Bandyopadhyay <palash.bandyopadhyay@conexant.com>, linux-fsdevel@vger.kernel.org, A
 
 I've gone through all the code in the kernel that
 uses the big kernel lock and come up with a solution
@@ -304,12 +304,32 @@ Arnd Bergmann (20):
  delete mode 100644 include/trace/events/bkl.h
  delete mode 100644 lib/kernel_lock.c
 
-[re-sent to mailing lists, due to overly long
- Cc list getting rejected by vger]
-
+Cc: Andrew Hendry <andrew.hendry@gmail.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Arnaldo Carvalho de Melo <acme@ghostprotocols.net>
 Cc: autofs@linux.kernel.org
+Cc: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Dave Airlie <airlied@linux.ie>
+Cc: David Airlie <airlied@linux.ie>
 Cc: dri-devel@lists.freedesktop.org
+Cc: Evgeniy Dushistov <dushistov@mail.ru>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ian Kent <raven@themaw.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jeff Layton <jlayton@redhat.com>
 Cc: linux-cifs@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org
 Cc: linux-x25@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
 Cc: netdev@vger.kernel.org
+Cc: Nick Bowler <nbowler@elliptictech.com>
+Cc: Palash Bandyopadhyay <palash.bandyopadhyay@conexant.com>
+Cc: Ross Cohen <rcohen@snurgle.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Stuart Swales <stuart.swales.croftnuisk@gmail.com>
+Cc: Takahiro Hirofuchi <hirofuchi@users.sourceforge.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>
