@@ -1,43 +1,251 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 06/20] staging: Remove autofs3
-Date: Tue, 25 Jan 2011 23:17:20 +0100
-Message-ID: <1295993854-4971-7-git-send-email-arnd@arndb.de>
-References: <1295993854-4971-1-git-send-email-arnd@arndb.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1295993854-4971-1-git-send-email-arnd@arndb.de>
-Sender: linux-kernel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
-MIME-Version: 1.0
+Subject: [RFC 00/20] Proposal for remaining BKL users
+Date: Tue, 25 Jan 2011 23:22:54 +0100
+Message-ID: <1295994174-5043-1-git-send-email-arnd@arndb.de>
+Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Return-path: <dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Sender: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
+Errors-To: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
 To: linux-kernel@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Ian Kent <raven@themaw.net>, autofs@linux.kernel.org
+Cc: autofs@linux.kernel.org, linux-cifs@vger.kernel.org, linux-x25@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, netdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-fsdevel@vger.kernel.org
 
-autofs3 was moved to staging in 2.6.37, so we can
-remove it in the 2.6.39 merge window. If we have
-a reason to bring it back after that, this patch
-can get reverted.
+I've gone through all the code in the kernel that
+uses the big kernel lock and come up with a solution
+that seems at least half-reasonable for each of them.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
----
- MAINTAINERS                       |    6 -
- drivers/staging/Kconfig           |    2 -
- drivers/staging/Makefile          |    1 -
- drivers/staging/autofs/Kconfig    |   22 --
- drivers/staging/autofs/Makefile   |    7 -
- drivers/staging/autofs/TODO       |    8 -
- drivers/staging/autofs/autofs_i.h |  165 ----------
- drivers/staging/autofs/dirhash.c  |  260 ---------------
- drivers/staging/autofs/init.c     |   52 ---
- drivers/staging/autofs/inode.c    |  288 ----------------
- drivers/staging/autofs/root.c     |  648 -------------------------------------
- drivers/staging/autofs/symlink.c  |   26 --
- drivers/staging/autofs/waitq.c    |  205 ------------
- 13 files changed, 0 insertions(+), 1690 deletions(-)
+The decisions are somewhat arbitrary, but here is
+what I'd suggest we do:
+
+* Remove in 2.6.39:
+   i830, autofs3, smbfs
+
+* Move to staging now, kill in 2.6.41 (or later):
+   appletalk, hpfs
+
+* Work around in an ugly way, but keep alive:
+   * ufs, ipx, i810, cx25721
+
+* Fix properly:
+   * usbip, go7007, adfs, x25
+
+Some of the patches are rather tricky and I haven't
+really done much proper testing, so I'd much prefer
+the maintainers to pick up the patches and do the
+necessary testing where possible, or even come up
+with a better solution.
+
+Arnd Bergmann (20):
+  drm/i810: remove the BKL
+  drm: remove i830 driver
+  staging/usbip: convert to kthread
+  staging/cx25721: serialize access to devlist
+  staging/go7007: remove the BKL
+  staging: Remove autofs3
+  staging: remove smbfs
+  adfs: remove the big kernel lock
+  hpfs: rename big kernel lock to hpfs_lock
+  hpfs: replace BKL with a global mutex
+  hpfs: move to drivers/staging
+  x25: remove the BKL
+  appletalk: move to staging
+  staging/appletalk: remove the BKL
+  ufs: remove the BKL
+  ipx: remove the BKL
+  tracing: don't trace the BKL
+  rtmutex-tester: remove BKL tests
+  drivers: remove extraneous includes of smp_lock.h
+  BKL: That's all, folks
+
+ MAINTAINERS                                        |   11 +-
+ drivers/gpu/drm/Kconfig                            |   47 +-
+ drivers/gpu/drm/Makefile                           |    1 -
+ drivers/gpu/drm/i810/i810_dma.c                    |   18 +-
+ drivers/gpu/drm/i810/i810_drv.c                    |    6 +-
+ drivers/gpu/drm/i830/Makefile                      |    8 -
+ drivers/gpu/drm/i830/i830_dma.c                    | 1560 ---------
+ drivers/gpu/drm/i830/i830_drv.c                    |  107 -
+ drivers/gpu/drm/i830/i830_drv.h                    |  295 --
+ drivers/gpu/drm/i830/i830_irq.c                    |  186 --
+ drivers/net/Makefile                               |    1 -
+ drivers/net/appletalk/Makefile                     |    7 -
+ drivers/scsi/megaraid/megaraid_sas_fp.c            |    1 -
+ drivers/scsi/megaraid/megaraid_sas_fusion.c        |    1 -
+ drivers/staging/Kconfig                            |    8 +-
+ drivers/staging/Makefile                           |    4 +-
+ drivers/{net => staging}/appletalk/Kconfig         |    1 -
+ {net => drivers/staging}/appletalk/Makefile        |    7 +-
+ {net => drivers/staging}/appletalk/aarp.c          |    2 +-
+ .../linux => drivers/staging/appletalk}/atalk.h    |    0
+ {net => drivers/staging}/appletalk/atalk_proc.c    |    2 +-
+ drivers/{net => staging}/appletalk/cops.c          |    2 +-
+ drivers/{net => staging}/appletalk/cops.h          |    0
+ drivers/{net => staging}/appletalk/cops_ffdrv.h    |    0
+ drivers/{net => staging}/appletalk/cops_ltdrv.h    |    0
+ {net => drivers/staging}/appletalk/ddp.c           |   44 +-
+ {net => drivers/staging}/appletalk/dev.c           |    0
+ drivers/{net => staging}/appletalk/ipddp.c         |    2 +-
+ drivers/{net => staging}/appletalk/ipddp.h         |    0
+ drivers/{net => staging}/appletalk/ltpc.c          |    2 +-
+ drivers/{net => staging}/appletalk/ltpc.h          |    0
+ .../staging}/appletalk/sysctl_net_atalk.c          |    2 +-
+ drivers/staging/autofs/Kconfig                     |   22 -
+ drivers/staging/autofs/Makefile                    |    7 -
+ drivers/staging/autofs/TODO                        |    8 -
+ drivers/staging/autofs/autofs_i.h                  |  165 -
+ drivers/staging/autofs/dirhash.c                   |  260 --
+ drivers/staging/autofs/init.c                      |   52 -
+ drivers/staging/autofs/inode.c                     |  288 --
+ drivers/staging/autofs/root.c                      |  648 ----
+ drivers/staging/autofs/symlink.c                   |   26 -
+ drivers/staging/autofs/waitq.c                     |  205 --
+ drivers/staging/cx25821/Kconfig                    |    1 -
+ drivers/staging/cx25821/cx25821-alsa.c             |    2 +
+ drivers/staging/cx25821/cx25821-core.c             |   16 +-
+ drivers/staging/cx25821/cx25821-video.c            |    9 +-
+ drivers/staging/cx25821/cx25821.h                  |    3 +-
+ drivers/staging/easycap/easycap.h                  |    1 -
+ drivers/staging/easycap/easycap_ioctl.c            |    1 -
+ drivers/staging/go7007/Kconfig                     |    1 -
+ drivers/staging/go7007/s2250-loader.c              |    3 -
+ {fs => drivers/staging}/hpfs/Kconfig               |    5 +-
+ {fs => drivers/staging}/hpfs/Makefile              |    0
+ drivers/staging/hpfs/TODO                          |    5 +
+ {fs => drivers/staging}/hpfs/alloc.c               |    0
+ {fs => drivers/staging}/hpfs/anode.c               |    0
+ {fs => drivers/staging}/hpfs/buffer.c              |    0
+ {fs => drivers/staging}/hpfs/dentry.c              |    0
+ {fs => drivers/staging}/hpfs/dir.c                 |   23 +-
+ {fs => drivers/staging}/hpfs/dnode.c               |    0
+ {fs => drivers/staging}/hpfs/ea.c                  |    0
+ {fs => drivers/staging}/hpfs/file.c                |    9 +-
+ {fs => drivers/staging}/hpfs/hpfs.h                |    0
+ {fs => drivers/staging}/hpfs/hpfs_fn.h             |   36 +
+ {fs => drivers/staging}/hpfs/inode.c               |    9 +-
+ {fs => drivers/staging}/hpfs/map.c                 |    0
+ {fs => drivers/staging}/hpfs/name.c                |    0
+ {fs => drivers/staging}/hpfs/namei.c               |   49 +-
+ {fs => drivers/staging}/hpfs/super.c               |   21 +-
+ drivers/staging/smbfs/Kconfig                      |   56 -
+ drivers/staging/smbfs/Makefile                     |   18 -
+ drivers/staging/smbfs/TODO                         |    8 -
+ drivers/staging/smbfs/cache.c                      |  208 --
+ drivers/staging/smbfs/dir.c                        |  699 ----
+ drivers/staging/smbfs/file.c                       |  456 ---
+ drivers/staging/smbfs/getopt.c                     |   64 -
+ drivers/staging/smbfs/getopt.h                     |   14 -
+ drivers/staging/smbfs/inode.c                      |  854 -----
+ drivers/staging/smbfs/ioctl.c                      |   68 -
+ drivers/staging/smbfs/proc.c                       | 3502 --------------------
+ drivers/staging/smbfs/proto.h                      |   89 -
+ drivers/staging/smbfs/request.c                    |  817 -----
+ drivers/staging/smbfs/request.h                    |   70 -
+ drivers/staging/smbfs/smb.h                        |  118 -
+ drivers/staging/smbfs/smb_debug.h                  |   34 -
+ drivers/staging/smbfs/smb_fs.h                     |  153 -
+ drivers/staging/smbfs/smb_fs_i.h                   |   37 -
+ drivers/staging/smbfs/smb_fs_sb.h                  |  100 -
+ drivers/staging/smbfs/smb_mount.h                  |   65 -
+ drivers/staging/smbfs/smbfs.txt                    |    8 -
+ drivers/staging/smbfs/smbiod.c                     |  343 --
+ drivers/staging/smbfs/smbno.h                      |  363 --
+ drivers/staging/smbfs/sock.c                       |  385 ---
+ drivers/staging/smbfs/symlink.c                    |   67 -
+ drivers/staging/usbip/Kconfig                      |    2 +-
+ drivers/staging/usbip/stub.h                       |    4 +-
+ drivers/staging/usbip/stub_dev.c                   |   13 +-
+ drivers/staging/usbip/stub_rx.c                    |   13 +-
+ drivers/staging/usbip/stub_tx.c                    |   14 +-
+ drivers/staging/usbip/usbip_common.c               |  105 -
+ drivers/staging/usbip/usbip_common.h               |   20 +-
+ drivers/staging/usbip/usbip_event.c                |   31 +-
+ drivers/staging/usbip/vhci.h                       |    4 +-
+ drivers/staging/usbip/vhci_hcd.c                   |   10 +-
+ drivers/staging/usbip/vhci_rx.c                    |   16 +-
+ drivers/staging/usbip/vhci_sysfs.c                 |    9 +-
+ drivers/staging/usbip/vhci_tx.c                    |   14 +-
+ drivers/target/target_core_device.c                |    1 -
+ drivers/target/target_core_fabric_lib.c            |    1 -
+ drivers/target/target_core_file.c                  |    1 -
+ drivers/target/target_core_hba.c                   |    1 -
+ drivers/target/target_core_iblock.c                |    1 -
+ drivers/target/target_core_pscsi.c                 |    1 -
+ drivers/target/target_core_rd.c                    |    1 -
+ drivers/target/target_core_tpg.c                   |    1 -
+ drivers/target/target_core_transport.c             |    1 -
+ drivers/tty/n_hdlc.c                               |    1 -
+ drivers/tty/n_r3964.c                              |    1 -
+ drivers/tty/pty.c                                  |    1 -
+ drivers/tty/tty_io.c                               |    1 -
+ drivers/tty/tty_ldisc.c                            |    2 -
+ drivers/tty/vt/selection.c                         |    1 -
+ drivers/tty/vt/vc_screen.c                         |    1 -
+ drivers/tty/vt/vt.c                                |    1 -
+ drivers/tty/vt/vt_ioctl.c                          |    1 -
+ fs/Kconfig                                         |    1 -
+ fs/Makefile                                        |    1 -
+ fs/adfs/Kconfig                                    |    1 -
+ fs/adfs/dir.c                                      |    6 -
+ fs/adfs/inode.c                                    |    6 -
+ fs/adfs/super.c                                    |   13 +-
+ fs/compat_ioctl.c                                  |    1 -
+ fs/ufs/Kconfig                                     |    1 -
+ fs/ufs/inode.c                                     |   78 +-
+ fs/ufs/namei.c                                     |   35 +-
+ fs/ufs/super.c                                     |   55 +-
+ fs/ufs/truncate.c                                  |    5 +-
+ fs/ufs/ufs.h                                       |    6 +-
+ include/drm/Kbuild                                 |    1 -
+ include/drm/i830_drm.h                             |  342 --
+ include/linux/Kbuild                               |    1 -
+ include/linux/hardirq.h                            |    9 +-
+ include/linux/smp_lock.h                           |   65 -
+ include/trace/events/bkl.h                         |   61 -
+ init/Kconfig                                       |    5 -
+ kernel/rtmutex-tester.c                            |   39 +-
+ kernel/sched.c                                     |    7 -
+ lib/Makefile                                       |    1 -
+ lib/kernel_lock.c                                  |  143 -
+ net/Kconfig                                        |    1 -
+ net/Makefile                                       |    1 -
+ net/ipx/Kconfig                                    |    1 -
+ net/ipx/af_ipx.c                                   |   52 +-
+ net/socket.c                                       |    1 -
+ net/x25/Kconfig                                    |    1 -
+ net/x25/af_x25.c                                   |   61 +-
+ net/x25/x25_out.c                                  |    7 +-
+ 157 files changed, 356 insertions(+), 13722 deletions(-)
+ delete mode 100644 drivers/gpu/drm/i830/Makefile
+ delete mode 100644 drivers/gpu/drm/i830/i830_dma.c
+ delete mode 100644 drivers/gpu/drm/i830/i830_drv.c
+ delete mode 100644 drivers/gpu/drm/i830/i830_drv.h
+ delete mode 100644 drivers/gpu/drm/i830/i830_irq.c
+ delete mode 100644 drivers/net/appletalk/Makefile
+ rename drivers/{net => staging}/appletalk/Kconfig (98%)
+ rename {net => drivers/staging}/appletalk/Makefile (56%)
+ rename {net => drivers/staging}/appletalk/aarp.c (99%)
+ rename {include/linux => drivers/staging/appletalk}/atalk.h (100%)
+ rename {net => drivers/staging}/appletalk/atalk_proc.c (99%)
+ rename drivers/{net => staging}/appletalk/cops.c (99%)
+ rename drivers/{net => staging}/appletalk/cops.h (100%)
+ rename drivers/{net => staging}/appletalk/cops_ffdrv.h (100%)
+ rename drivers/{net => staging}/appletalk/cops_ltdrv.h (100%)
+ rename {net => drivers/staging}/appletalk/ddp.c (98%)
+ rename {net => drivers/staging}/appletalk/dev.c (100%)
+ rename drivers/{net => staging}/appletalk/ipddp.c (99%)
+ rename drivers/{net => staging}/appletalk/ipddp.h (100%)
+ rename drivers/{net => staging}/appletalk/ltpc.c (99%)
+ rename drivers/{net => staging}/appletalk/ltpc.h (100%)
+ rename {net => drivers/staging}/appletalk/sysctl_net_atalk.c (98%)
  delete mode 100644 drivers/staging/autofs/Kconfig
  delete mode 100644 drivers/staging/autofs/Makefile
  delete mode 100644 drivers/staging/autofs/TODO
@@ -48,1789 +256,60 @@ Cc: autofs@linux.kernel.org
  delete mode 100644 drivers/staging/autofs/root.c
  delete mode 100644 drivers/staging/autofs/symlink.c
  delete mode 100644 drivers/staging/autofs/waitq.c
+ rename {fs => drivers/staging}/hpfs/Kconfig (80%)
+ rename {fs => drivers/staging}/hpfs/Makefile (100%)
+ create mode 100644 drivers/staging/hpfs/TODO
+ rename {fs => drivers/staging}/hpfs/alloc.c (100%)
+ rename {fs => drivers/staging}/hpfs/anode.c (100%)
+ rename {fs => drivers/staging}/hpfs/buffer.c (100%)
+ rename {fs => drivers/staging}/hpfs/dentry.c (100%)
+ rename {fs => drivers/staging}/hpfs/dir.c (97%)
+ rename {fs => drivers/staging}/hpfs/dnode.c (100%)
+ rename {fs => drivers/staging}/hpfs/ea.c (100%)
+ rename {fs => drivers/staging}/hpfs/file.c (97%)
+ rename {fs => drivers/staging}/hpfs/hpfs.h (100%)
+ rename {fs => drivers/staging}/hpfs/hpfs_fn.h (91%)
+ rename {fs => drivers/staging}/hpfs/inode.c (98%)
+ rename {fs => drivers/staging}/hpfs/map.c (100%)
+ rename {fs => drivers/staging}/hpfs/name.c (100%)
+ rename {fs => drivers/staging}/hpfs/namei.c (96%)
+ rename {fs => drivers/staging}/hpfs/super.c (98%)
+ delete mode 100644 drivers/staging/smbfs/Kconfig
+ delete mode 100644 drivers/staging/smbfs/Makefile
+ delete mode 100644 drivers/staging/smbfs/TODO
+ delete mode 100644 drivers/staging/smbfs/cache.c
+ delete mode 100644 drivers/staging/smbfs/dir.c
+ delete mode 100644 drivers/staging/smbfs/file.c
+ delete mode 100644 drivers/staging/smbfs/getopt.c
+ delete mode 100644 drivers/staging/smbfs/getopt.h
+ delete mode 100644 drivers/staging/smbfs/inode.c
+ delete mode 100644 drivers/staging/smbfs/ioctl.c
+ delete mode 100644 drivers/staging/smbfs/proc.c
+ delete mode 100644 drivers/staging/smbfs/proto.h
+ delete mode 100644 drivers/staging/smbfs/request.c
+ delete mode 100644 drivers/staging/smbfs/request.h
+ delete mode 100644 drivers/staging/smbfs/smb.h
+ delete mode 100644 drivers/staging/smbfs/smb_debug.h
+ delete mode 100644 drivers/staging/smbfs/smb_fs.h
+ delete mode 100644 drivers/staging/smbfs/smb_fs_i.h
+ delete mode 100644 drivers/staging/smbfs/smb_fs_sb.h
+ delete mode 100644 drivers/staging/smbfs/smb_mount.h
+ delete mode 100644 drivers/staging/smbfs/smbfs.txt
+ delete mode 100644 drivers/staging/smbfs/smbiod.c
+ delete mode 100644 drivers/staging/smbfs/smbno.h
+ delete mode 100644 drivers/staging/smbfs/sock.c
+ delete mode 100644 drivers/staging/smbfs/symlink.c
+ delete mode 100644 include/drm/i830_drm.h
+ delete mode 100644 include/linux/smp_lock.h
+ delete mode 100644 include/trace/events/bkl.h
+ delete mode 100644 lib/kernel_lock.c
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 55592f8..246ee22 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -3563,12 +3563,6 @@ W:	http://lse.sourceforge.net/kdump/
- S:	Maintained
- F:	Documentation/kdump/
- 
--KERNEL AUTOMOUNTER (AUTOFS)
--M:	"H. Peter Anvin" <hpa@zytor.com>
--L:	autofs@linux.kernel.org
--S:	Obsolete
--F:	drivers/staging/autofs/
--
- KERNEL AUTOMOUNTER v4 (AUTOFS4)
- M:	Ian Kent <raven@themaw.net>
- L:	autofs@linux.kernel.org
-diff --git a/drivers/staging/Kconfig b/drivers/staging/Kconfig
-index 5c8fcfc..3957b2f 100644
---- a/drivers/staging/Kconfig
-+++ b/drivers/staging/Kconfig
-@@ -91,8 +91,6 @@ source "drivers/staging/frontier/Kconfig"
- 
- source "drivers/staging/pohmelfs/Kconfig"
- 
--source "drivers/staging/autofs/Kconfig"
--
- source "drivers/staging/phison/Kconfig"
- 
- source "drivers/staging/line6/Kconfig"
-diff --git a/drivers/staging/Makefile b/drivers/staging/Makefile
-index d538863..cbe013e 100644
---- a/drivers/staging/Makefile
-+++ b/drivers/staging/Makefile
-@@ -30,7 +30,6 @@ obj-$(CONFIG_R8712U)		+= rtl8712/
- obj-$(CONFIG_SPECTRA)		+= spectra/
- obj-$(CONFIG_TRANZPORT)		+= frontier/
- obj-$(CONFIG_POHMELFS)		+= pohmelfs/
--obj-$(CONFIG_AUTOFS_FS)		+= autofs/
- obj-$(CONFIG_IDE_PHISON)	+= phison/
- obj-$(CONFIG_LINE6_USB)		+= line6/
- obj-$(CONFIG_USB_SERIAL_QUATECH2)	+= serqt_usb2/
-diff --git a/drivers/staging/autofs/Kconfig b/drivers/staging/autofs/Kconfig
-deleted file mode 100644
-index 480e210..0000000
---- a/drivers/staging/autofs/Kconfig
-+++ /dev/null
-@@ -1,22 +0,0 @@
--config AUTOFS_FS
--	tristate "Kernel automounter support"
--	depends on BKL # unfixable, just use autofs4
--	help
--	  The automounter is a tool to automatically mount remote file systems
--	  on demand. This implementation is partially kernel-based to reduce
--	  overhead in the already-mounted case; this is unlike the BSD
--	  automounter (amd), which is a pure user space daemon.
--
--	  To use the automounter you need the user-space tools from the autofs
--	  package; you can find the location in <file:Documentation/Changes>.
--	  You also want to answer Y to "NFS file system support", below.
--
--	  If you want to use the newer version of the automounter with more
--	  features, say N here and say Y to "Kernel automounter v4 support",
--	  below.
--
--	  To compile this support as a module, choose M here: the module will be
--	  called autofs.
--
--	  If you are not a part of a fairly large, distributed network, you
--	  probably do not need an automounter, and can say N here.
-diff --git a/drivers/staging/autofs/Makefile b/drivers/staging/autofs/Makefile
-deleted file mode 100644
-index f48781c..0000000
---- a/drivers/staging/autofs/Makefile
-+++ /dev/null
-@@ -1,7 +0,0 @@
--#
--# Makefile for the linux autofs-filesystem routines.
--#
--
--obj-$(CONFIG_AUTOFS_FS) += autofs.o
--
--autofs-y := dirhash.o init.o inode.o root.o symlink.o waitq.o
-diff --git a/drivers/staging/autofs/TODO b/drivers/staging/autofs/TODO
-deleted file mode 100644
-index 543803d..0000000
---- a/drivers/staging/autofs/TODO
-+++ /dev/null
-@@ -1,8 +0,0 @@
--autofs version 3 is on its way out of the kernel,
--It has been replaced by autofs4 several years ago.
--
--The autofs3 code uses the big kernel lock which
--is getting deprecated.
--
--Users that find autofs3 to work but not autofs4
--should talk to Ian Kent <raven@themaw.net>.
-diff --git a/drivers/staging/autofs/autofs_i.h b/drivers/staging/autofs/autofs_i.h
-deleted file mode 100644
-index 647a143..0000000
---- a/drivers/staging/autofs/autofs_i.h
-+++ /dev/null
-@@ -1,165 +0,0 @@
--/* -*- linux-c -*- ------------------------------------------------------- *
-- *   
-- * drivers/staging/autofs/autofs_i.h
-- *
-- *   Copyright 1997-1998 Transmeta Corporation - All Rights Reserved
-- *
-- * This file is part of the Linux kernel and is made available under
-- * the terms of the GNU General Public License, version 2, or at your
-- * option, any later version, incorporated herein by reference.
-- *
-- * ----------------------------------------------------------------------- */
--
--/* Internal header file for autofs */
--
--#include <linux/auto_fs.h>
--
--/* This is the range of ioctl() numbers we claim as ours */
--#define AUTOFS_IOC_FIRST     AUTOFS_IOC_READY
--#define AUTOFS_IOC_COUNT     32
--
--#include <linux/kernel.h>
--#include <linux/slab.h>
--#include <linux/time.h>
--#include <linux/string.h>
--#include <linux/wait.h>
--#include <linux/dcache.h>
--#include <linux/namei.h>
--#include <linux/mount.h>
--#include <linux/sched.h>
--
--#include <asm/current.h>
--#include <asm/uaccess.h>
--
--#ifdef DEBUG
--#define DPRINTK(D) (printk D)
--#else
--#define DPRINTK(D) ((void)0)
--#endif
--
--/*
-- * If the daemon returns a negative response (AUTOFS_IOC_FAIL) then the
-- * kernel will keep the negative response cached for up to the time given
-- * here, although the time can be shorter if the kernel throws the dcache
-- * entry away.  This probably should be settable from user space.
-- */
--#define AUTOFS_NEGATIVE_TIMEOUT (60*HZ)	/* 1 minute */
--
--/* Structures associated with the root directory hash table */
--
--#define AUTOFS_HASH_SIZE 67
--
--struct autofs_dir_ent {
--	int hash;
--	char *name;
--	int len;
--	ino_t ino;
--	struct dentry *dentry;
--	/* Linked list of entries */
--	struct autofs_dir_ent *next;
--	struct autofs_dir_ent **back;
--	/* The following entries are for the expiry system */
--	unsigned long last_usage;
--	struct list_head exp;
--};
--
--struct autofs_dirhash {
--	struct autofs_dir_ent *h[AUTOFS_HASH_SIZE];
--	struct list_head expiry_head;
--};
--
--struct autofs_wait_queue {
--	wait_queue_head_t queue;
--	struct autofs_wait_queue *next;
--	autofs_wqt_t wait_queue_token;
--	/* We use the following to see what we are waiting for */
--	int hash;
--	int len;
--	char *name;
--	/* This is for status reporting upon return */
--	int status;
--	int wait_ctr;
--};
--
--struct autofs_symlink {
--	char *data;
--	int len;
--	time_t mtime;
--};
--
--#define AUTOFS_MAX_SYMLINKS 256
--
--#define AUTOFS_ROOT_INO      1
--#define AUTOFS_FIRST_SYMLINK 2
--#define AUTOFS_FIRST_DIR_INO (AUTOFS_FIRST_SYMLINK+AUTOFS_MAX_SYMLINKS)
--
--#define AUTOFS_SYMLINK_BITMAP_LEN \
--	((AUTOFS_MAX_SYMLINKS+((sizeof(long)*1)-1))/(sizeof(long)*8))
--
--#define AUTOFS_SBI_MAGIC 0x6d4a556d
--
--struct autofs_sb_info {
--	u32 magic;
--	struct file *pipe;
--	struct pid *oz_pgrp;
--	int catatonic;
--	struct super_block *sb;
--	unsigned long exp_timeout;
--	ino_t next_dir_ino;
--	struct autofs_wait_queue *queues; /* Wait queue pointer */
--	struct autofs_dirhash dirhash; /* Root directory hash */
--	struct autofs_symlink symlink[AUTOFS_MAX_SYMLINKS];
--	unsigned long symlink_bitmap[AUTOFS_SYMLINK_BITMAP_LEN];
--};
--
--static inline struct autofs_sb_info *autofs_sbi(struct super_block *sb)
--{
--	return (struct autofs_sb_info *)(sb->s_fs_info);
--}
--
--/* autofs_oz_mode(): do we see the man behind the curtain?  (The
--   processes which do manipulations for us in user space sees the raw
--   filesystem without "magic".) */
--
--static inline int autofs_oz_mode(struct autofs_sb_info *sbi) {
--	return sbi->catatonic || task_pgrp(current) == sbi->oz_pgrp;
--}
--
--/* Hash operations */
--
--void autofs_initialize_hash(struct autofs_dirhash *);
--struct autofs_dir_ent *autofs_hash_lookup(const struct autofs_dirhash *,struct qstr *);
--void autofs_hash_insert(struct autofs_dirhash *,struct autofs_dir_ent *);
--void autofs_hash_delete(struct autofs_dir_ent *);
--struct autofs_dir_ent *autofs_hash_enum(const struct autofs_dirhash *,off_t *,struct autofs_dir_ent *);
--void autofs_hash_dputall(struct autofs_dirhash *);
--void autofs_hash_nuke(struct autofs_sb_info *);
--
--/* Expiration-handling functions */
--
--void autofs_update_usage(struct autofs_dirhash *,struct autofs_dir_ent *);
--struct autofs_dir_ent *autofs_expire(struct super_block *,struct autofs_sb_info *, struct vfsmount *mnt);
--
--/* Operations structures */
--
--extern const struct inode_operations autofs_root_inode_operations;
--extern const struct inode_operations autofs_symlink_inode_operations;
--extern const struct file_operations autofs_root_operations;
--
--/* Initializing function */
--
--int autofs_fill_super(struct super_block *, void *, int);
--void autofs_kill_sb(struct super_block *sb);
--struct inode *autofs_iget(struct super_block *, unsigned long);
--
--/* Queue management functions */
--
--int autofs_wait(struct autofs_sb_info *,struct qstr *);
--int autofs_wait_release(struct autofs_sb_info *,autofs_wqt_t,int);
--void autofs_catatonic_mode(struct autofs_sb_info *);
--
--#ifdef DEBUG
--void autofs_say(const char *name, int len);
--#else
--#define autofs_say(n,l) ((void)0)
--#endif
-diff --git a/drivers/staging/autofs/dirhash.c b/drivers/staging/autofs/dirhash.c
-deleted file mode 100644
-index a08bd73..0000000
---- a/drivers/staging/autofs/dirhash.c
-+++ /dev/null
-@@ -1,260 +0,0 @@
--/* -*- linux-c -*- --------------------------------------------------------- *
-- *
-- * drivers/staging/autofs/dirhash.c
-- *
-- *  Copyright 1997-1998 Transmeta Corporation -- All Rights Reserved
-- *
-- * This file is part of the Linux kernel and is made available under
-- * the terms of the GNU General Public License, version 2, or at your
-- * option, any later version, incorporated herein by reference.
-- *
-- * ------------------------------------------------------------------------- */
--
--#include "autofs_i.h"
--
--/* Functions for maintenance of expiry queue */
--
--static void autofs_init_usage(struct autofs_dirhash *dh,
--			      struct autofs_dir_ent *ent)
--{
--	list_add_tail(&ent->exp, &dh->expiry_head);
--	ent->last_usage = jiffies;
--}
--
--static void autofs_delete_usage(struct autofs_dir_ent *ent)
--{
--	list_del(&ent->exp);
--}
--
--void autofs_update_usage(struct autofs_dirhash *dh,
--			 struct autofs_dir_ent *ent)
--{
--	autofs_delete_usage(ent);   /* Unlink from current position */
--	autofs_init_usage(dh, ent);  /* Relink at queue tail */
--}
--
--struct autofs_dir_ent *autofs_expire(struct super_block *sb,
--				     struct autofs_sb_info *sbi,
--				     struct vfsmount *mnt)
--{
--	struct autofs_dirhash *dh = &sbi->dirhash;
--	struct autofs_dir_ent *ent;
--	unsigned long timeout = sbi->exp_timeout;
--
--	while (1) {
--		struct path path;
--		int umount_ok;
--
--		if (list_empty(&dh->expiry_head) || sbi->catatonic)
--			return NULL;	/* No entries */
--		/* We keep the list sorted by last_usage and want old stuff */
--		ent = list_entry(dh->expiry_head.next,
--						struct autofs_dir_ent, exp);
--		if (jiffies - ent->last_usage < timeout)
--			break;
--		/* Move to end of list in case expiry isn't desirable */
--		autofs_update_usage(dh, ent);
--
--		/* Check to see that entry is expirable */
--		if (ent->ino < AUTOFS_FIRST_DIR_INO)
--			return ent; /* Symlinks are always expirable */
--
--		/* Get the dentry for the autofs subdirectory */
--		path.dentry = ent->dentry;
--
--		if (!path.dentry) {
--			/* Should only happen in catatonic mode */
--			printk(KERN_DEBUG "autofs: dentry == NULL but inode \
--				range is directory, entry %s\n", ent->name);
--			autofs_delete_usage(ent);
--			continue;
--		}
--
--		if (!path.dentry->d_inode) {
--			dput(path.dentry);
--			printk(KERN_DEBUG "autofs: negative dentry on expiry queue: %s\n",
--			       ent->name);
--			autofs_delete_usage(ent);
--			continue;
--		}
--
--		/* Make sure entry is mounted and unused; note that dentry will
--		   point to the mounted-on-top root. */
--		if (!S_ISDIR(path.dentry->d_inode->i_mode) ||
--		    !d_mountpoint(path.dentry)) {
--			DPRINTK(("autofs: not expirable \
--				(not a mounted directory): %s\n", ent->name));
--			continue;
--		}
--		path.mnt = mnt;
--		path_get(&path);
--		if (!follow_down_one(&path)) {
--			path_put(&path);
--			DPRINTK(("autofs: not expirable\
--			(not a mounted directory): %s\n", ent->name));
--			continue;
--		}
--		follow_down(&path, false);  // TODO: need to check error
--		umount_ok = may_umount(path.mnt);
--		path_put(&path);
--
--		if (umount_ok) {
--			DPRINTK(("autofs: signaling expire on %s\n",
--								ent->name));
--			return ent; /* Expirable! */
--		}
--
--		DPRINTK(("autofs: didn't expire due to may_umount: %s\n",
--								ent->name));
--	}
--	return NULL;		/* No expirable entries */
--}
--
--void autofs_initialize_hash(struct autofs_dirhash *dh)
--{
--	memset(&dh->h, 0, AUTOFS_HASH_SIZE*sizeof(struct autofs_dir_ent *));
--	INIT_LIST_HEAD(&dh->expiry_head);
--}
--
--struct autofs_dir_ent *autofs_hash_lookup(const struct autofs_dirhash *dh,
--						struct qstr *name)
--{
--	struct autofs_dir_ent *dhn;
--
--	DPRINTK(("autofs_hash_lookup: hash = 0x%08x, name = ", name->hash));
--	autofs_say(name->name, name->len);
--
--	for (dhn = dh->h[(unsigned) name->hash % AUTOFS_HASH_SIZE];
--		dhn;
--		dhn = dhn->next) {
--		if (name->hash == dhn->hash &&
--		     name->len == dhn->len &&
--		     !memcmp(name->name, dhn->name, name->len))
--			break;
--	}
--
--	return dhn;
--}
--
--void autofs_hash_insert(struct autofs_dirhash *dh, struct autofs_dir_ent *ent)
--{
--	struct autofs_dir_ent **dhnp;
--
--	DPRINTK(("autofs_hash_insert: hash = 0x%08x, name = ", ent->hash));
--	autofs_say(ent->name, ent->len);
--
--	autofs_init_usage(dh, ent);
--	if (ent->dentry)
--		dget(ent->dentry);
--
--	dhnp = &dh->h[(unsigned) ent->hash % AUTOFS_HASH_SIZE];
--	ent->next = *dhnp;
--	ent->back = dhnp;
--	*dhnp = ent;
--	if (ent->next)
--		ent->next->back = &(ent->next);
--}
--
--void autofs_hash_delete(struct autofs_dir_ent *ent)
--{
--	*(ent->back) = ent->next;
--	if (ent->next)
--		ent->next->back = ent->back;
--
--	autofs_delete_usage(ent);
--
--	if (ent->dentry)
--		dput(ent->dentry);
--	kfree(ent->name);
--	kfree(ent);
--}
--
--/*
-- * Used by readdir().  We must validate "ptr", so we can't simply make it
-- * a pointer.  Values below 0xffff are reserved; calling with any value
-- * <= 0x10000 will return the first entry found.
-- *
-- * "last" can be NULL or the value returned by the last search *if* we
-- * want the next sequential entry.
-- */
--struct autofs_dir_ent *autofs_hash_enum(const struct autofs_dirhash *dh,
--					off_t *ptr, struct autofs_dir_ent *last)
--{
--	int bucket, ecount, i;
--	struct autofs_dir_ent *ent;
--
--	bucket = (*ptr >> 16) - 1;
--	ecount = *ptr & 0xffff;
--
--	if (bucket < 0)
--		bucket = ecount = 0;
--
--	DPRINTK(("autofs_hash_enum: bucket %d, entry %d\n", bucket, ecount));
--
--	ent = last ? last->next : NULL;
--
--	if (ent) {
--		ecount++;
--	} else {
--		while  (bucket < AUTOFS_HASH_SIZE) {
--			ent = dh->h[bucket];
--			for (i = ecount ; ent && i ; i--)
--				ent = ent->next;
--
--			if (ent) {
--				ecount++; /* Point to *next* entry */
--				break;
--			}
--
--			bucket++; ecount = 0;
--		}
--	}
--
--#ifdef DEBUG
--	if (!ent)
--		printk(KERN_DEBUG "autofs_hash_enum: nothing found\n");
--	else {
--		printk(KERN_DEBUG "autofs_hash_enum: found hash %08x, name",
--								ent->hash);
--		autofs_say(ent->name, ent->len);
--	}
--#endif
--
--	*ptr = ((bucket+1) << 16) + ecount;
--	return ent;
--}
--
--/* Iterate over all the ents, and remove all dentry pointers.  Used on
--   entering catatonic mode, in order to make the filesystem unmountable. */
--void autofs_hash_dputall(struct autofs_dirhash *dh)
--{
--	int i;
--	struct autofs_dir_ent *ent;
--
--	for (i = 0 ; i < AUTOFS_HASH_SIZE ; i++) {
--		for (ent = dh->h[i] ; ent ; ent = ent->next) {
--			if (ent->dentry) {
--				dput(ent->dentry);
--				ent->dentry = NULL;
--			}
--		}
--	}
--}
--
--/* Delete everything.  This is used on filesystem destruction, so we
--   make no attempt to keep the pointers valid */
--void autofs_hash_nuke(struct autofs_sb_info *sbi)
--{
--	int i;
--	struct autofs_dir_ent *ent, *nent;
--
--	for (i = 0 ; i < AUTOFS_HASH_SIZE ; i++) {
--		for (ent = sbi->dirhash.h[i] ; ent ; ent = nent) {
--			nent = ent->next;
--			if (ent->dentry)
--				dput(ent->dentry);
--			kfree(ent->name);
--			kfree(ent);
--		}
--	}
--}
-diff --git a/drivers/staging/autofs/init.c b/drivers/staging/autofs/init.c
-deleted file mode 100644
-index 5e4b372..0000000
---- a/drivers/staging/autofs/init.c
-+++ /dev/null
-@@ -1,52 +0,0 @@
--/* -*- linux-c -*- --------------------------------------------------------- *
-- *
-- * drivers/staging/autofs/init.c
-- *
-- *  Copyright 1997-1998 Transmeta Corporation -- All Rights Reserved
-- *
-- * This file is part of the Linux kernel and is made available under
-- * the terms of the GNU General Public License, version 2, or at your
-- * option, any later version, incorporated herein by reference.
-- *
-- * ------------------------------------------------------------------------- */
--
--#include <linux/module.h>
--#include <linux/init.h>
--#include "autofs_i.h"
--
--static struct dentry *autofs_mount(struct file_system_type *fs_type,
--	int flags, const char *dev_name, void *data)
--{
--	return mount_nodev(fs_type, flags, data, autofs_fill_super);
--}
--
--static struct file_system_type autofs_fs_type = {
--	.owner		= THIS_MODULE,
--	.name		= "autofs",
--	.mount		= autofs_mount,
--	.kill_sb	= autofs_kill_sb,
--};
--
--static int __init init_autofs_fs(void)
--{
--	return register_filesystem(&autofs_fs_type);
--}
--
--static void __exit exit_autofs_fs(void)
--{
--	unregister_filesystem(&autofs_fs_type);
--}
--
--module_init(init_autofs_fs);
--module_exit(exit_autofs_fs);
--
--#ifdef DEBUG
--void autofs_say(const char *name, int len)
--{
--	printk("(%d: ", len);
--	while ( len-- )
--		printk("%c", *name++);
--	printk(")\n");
--}
--#endif
--MODULE_LICENSE("GPL");
-diff --git a/drivers/staging/autofs/inode.c b/drivers/staging/autofs/inode.c
-deleted file mode 100644
-index 74db190..0000000
---- a/drivers/staging/autofs/inode.c
-+++ /dev/null
-@@ -1,288 +0,0 @@
--/* -*- linux-c -*- --------------------------------------------------------- *
-- *
-- * drivers/staging/autofs/inode.c
-- *
-- *  Copyright 1997-1998 Transmeta Corporation -- All Rights Reserved
-- *
-- * This file is part of the Linux kernel and is made available under
-- * the terms of the GNU General Public License, version 2, or at your
-- * option, any later version, incorporated herein by reference.
-- *
-- * ------------------------------------------------------------------------- */
--
--#include <linux/kernel.h>
--#include <linux/mm.h>
--#include <linux/slab.h>
--#include <linux/file.h>
--#include <linux/parser.h>
--#include <linux/bitops.h>
--#include <linux/magic.h>
--#include "autofs_i.h"
--#include <linux/module.h>
--
--void autofs_kill_sb(struct super_block *sb)
--{
--	struct autofs_sb_info *sbi = autofs_sbi(sb);
--	unsigned int n;
--
--	/*
--	 * In the event of a failure in get_sb_nodev the superblock
--	 * info is not present so nothing else has been setup, so
--	 * just call kill_anon_super when we are called from
--	 * deactivate_super.
--	 */
--	if (!sbi)
--		goto out_kill_sb;
--
--	if (!sbi->catatonic)
--		autofs_catatonic_mode(sbi); /* Free wait queues, close pipe */
--
--	put_pid(sbi->oz_pgrp);
--
--	autofs_hash_nuke(sbi);
--	for (n = 0; n < AUTOFS_MAX_SYMLINKS; n++) {
--		if (test_bit(n, sbi->symlink_bitmap))
--			kfree(sbi->symlink[n].data);
--	}
--
--	kfree(sb->s_fs_info);
--
--out_kill_sb:
--	DPRINTK(("autofs: shutting down\n"));
--	kill_anon_super(sb);
--}
--
--static const struct super_operations autofs_sops = {
--	.statfs		= simple_statfs,
--	.show_options	= generic_show_options,
--};
--
--enum {Opt_err, Opt_fd, Opt_uid, Opt_gid, Opt_pgrp, Opt_minproto, Opt_maxproto};
--
--static const match_table_t autofs_tokens = {
--	{Opt_fd, "fd=%u"},
--	{Opt_uid, "uid=%u"},
--	{Opt_gid, "gid=%u"},
--	{Opt_pgrp, "pgrp=%u"},
--	{Opt_minproto, "minproto=%u"},
--	{Opt_maxproto, "maxproto=%u"},
--	{Opt_err, NULL}
--};
--
--static int parse_options(char *options, int *pipefd, uid_t *uid, gid_t *gid,
--		pid_t *pgrp, int *minproto, int *maxproto)
--{
--	char *p;
--	substring_t args[MAX_OPT_ARGS];
--	int option;
--
--	*uid = current_uid();
--	*gid = current_gid();
--	*pgrp = task_pgrp_nr(current);
--
--	*minproto = *maxproto = AUTOFS_PROTO_VERSION;
--
--	*pipefd = -1;
--
--	if (!options)
--		return 1;
--
--	while ((p = strsep(&options, ",")) != NULL) {
--		int token;
--		if (!*p)
--			continue;
--
--		token = match_token(p, autofs_tokens, args);
--		switch (token) {
--		case Opt_fd:
--			if (match_int(&args[0], &option))
--				return 1;
--			*pipefd = option;
--			break;
--		case Opt_uid:
--			if (match_int(&args[0], &option))
--				return 1;
--			*uid = option;
--			break;
--		case Opt_gid:
--			if (match_int(&args[0], &option))
--				return 1;
--			*gid = option;
--			break;
--		case Opt_pgrp:
--			if (match_int(&args[0], &option))
--				return 1;
--			*pgrp = option;
--			break;
--		case Opt_minproto:
--			if (match_int(&args[0], &option))
--				return 1;
--			*minproto = option;
--			break;
--		case Opt_maxproto:
--			if (match_int(&args[0], &option))
--				return 1;
--			*maxproto = option;
--			break;
--		default:
--			return 1;
--		}
--	}
--	return (*pipefd < 0);
--}
--
--int autofs_fill_super(struct super_block *s, void *data, int silent)
--{
--	struct inode * root_inode;
--	struct dentry * root;
--	struct file * pipe;
--	int pipefd;
--	struct autofs_sb_info *sbi;
--	int minproto, maxproto;
--	pid_t pgid;
--
--	save_mount_options(s, data);
--
--	sbi = kzalloc(sizeof(*sbi), GFP_KERNEL);
--	if (!sbi)
--		goto fail_unlock;
--	DPRINTK(("autofs: starting up, sbi = %p\n",sbi));
--
--	s->s_fs_info = sbi;
--	sbi->magic = AUTOFS_SBI_MAGIC;
--	sbi->pipe = NULL;
--	sbi->catatonic = 1;
--	sbi->exp_timeout = 0;
--	autofs_initialize_hash(&sbi->dirhash);
--	sbi->queues = NULL;
--	memset(sbi->symlink_bitmap, 0, sizeof(long)*AUTOFS_SYMLINK_BITMAP_LEN);
--	sbi->next_dir_ino = AUTOFS_FIRST_DIR_INO;
--	s->s_blocksize = 1024;
--	s->s_blocksize_bits = 10;
--	s->s_magic = AUTOFS_SUPER_MAGIC;
--	s->s_op = &autofs_sops;
--	s->s_time_gran = 1;
--	sbi->sb = s;
--
--	root_inode = autofs_iget(s, AUTOFS_ROOT_INO);
--	if (IS_ERR(root_inode))
--		goto fail_free;
--	root = d_alloc_root(root_inode);
--	pipe = NULL;
--
--	if (!root)
--		goto fail_iput;
--
--	/* Can this call block?  - WTF cares? s is locked. */
--	if (parse_options(data, &pipefd, &root_inode->i_uid,
--				&root_inode->i_gid, &pgid, &minproto,
--				&maxproto)) {
--		printk("autofs: called with bogus options\n");
--		goto fail_dput;
--	}
--
--	/* Couldn't this be tested earlier? */
--	if (minproto > AUTOFS_PROTO_VERSION ||
--	     maxproto < AUTOFS_PROTO_VERSION) {
--		printk("autofs: kernel does not match daemon version\n");
--		goto fail_dput;
--	}
--
--	DPRINTK(("autofs: pipe fd = %d, pgrp = %u\n", pipefd, pgid));
--	sbi->oz_pgrp = find_get_pid(pgid);
--
--	if (!sbi->oz_pgrp) {
--		printk("autofs: could not find process group %d\n", pgid);
--		goto fail_dput;
--	}
--
--	pipe = fget(pipefd);
--	
--	if (!pipe) {
--		printk("autofs: could not open pipe file descriptor\n");
--		goto fail_put_pid;
--	}
--
--	if (!pipe->f_op || !pipe->f_op->write)
--		goto fail_fput;
--	sbi->pipe = pipe;
--	sbi->catatonic = 0;
--
--	/*
--	 * Success! Install the root dentry now to indicate completion.
--	 */
--	s->s_root = root;
--	return 0;
--
--fail_fput:
--	printk("autofs: pipe file descriptor does not contain proper ops\n");
--	fput(pipe);
--fail_put_pid:
--	put_pid(sbi->oz_pgrp);
--fail_dput:
--	dput(root);
--	goto fail_free;
--fail_iput:
--	printk("autofs: get root dentry failed\n");
--	iput(root_inode);
--fail_free:
--	kfree(sbi);
--	s->s_fs_info = NULL;
--fail_unlock:
--	return -EINVAL;
--}
--
--struct inode *autofs_iget(struct super_block *sb, unsigned long ino)
--{
--	unsigned int n;
--	struct autofs_sb_info *sbi = autofs_sbi(sb);
--	struct inode *inode;
--
--	inode = iget_locked(sb, ino);
--	if (!inode)
--		return ERR_PTR(-ENOMEM);
--	if (!(inode->i_state & I_NEW))
--		return inode;
--
--	/* Initialize to the default case (stub directory) */
--
--	inode->i_op = &simple_dir_inode_operations;
--	inode->i_fop = &simple_dir_operations;
--	inode->i_mode = S_IFDIR | S_IRUGO | S_IXUGO;
--	inode->i_nlink = 2;
--	inode->i_mtime = inode->i_atime = inode->i_ctime = CURRENT_TIME;
--
--	if (ino == AUTOFS_ROOT_INO) {
--		inode->i_mode = S_IFDIR | S_IRUGO | S_IXUGO | S_IWUSR;
--		inode->i_op = &autofs_root_inode_operations;
--		inode->i_fop = &autofs_root_operations;
--		goto done;
--	} 
--	
--	inode->i_uid = inode->i_sb->s_root->d_inode->i_uid;
--	inode->i_gid = inode->i_sb->s_root->d_inode->i_gid;
--	
--	if (ino >= AUTOFS_FIRST_SYMLINK && ino < AUTOFS_FIRST_DIR_INO) {
--		/* Symlink inode - should be in symlink list */
--		struct autofs_symlink *sl;
--
--		n = ino - AUTOFS_FIRST_SYMLINK;
--		if (n >= AUTOFS_MAX_SYMLINKS || !test_bit(n,sbi->symlink_bitmap)) {
--			printk("autofs: Looking for bad symlink inode %u\n", (unsigned int) ino);
--			goto done;
--		}
--		
--		inode->i_op = &autofs_symlink_inode_operations;
--		sl = &sbi->symlink[n];
--		inode->i_private = sl;
--		inode->i_mode = S_IFLNK | S_IRWXUGO;
--		inode->i_mtime.tv_sec = inode->i_ctime.tv_sec = sl->mtime;
--		inode->i_mtime.tv_nsec = inode->i_ctime.tv_nsec = 0;
--		inode->i_size = sl->len;
--		inode->i_nlink = 1;
--	}
--
--done:
--	unlock_new_inode(inode);
--	return inode;
--}
-diff --git a/drivers/staging/autofs/root.c b/drivers/staging/autofs/root.c
-deleted file mode 100644
-index bf0e975..0000000
---- a/drivers/staging/autofs/root.c
-+++ /dev/null
-@@ -1,648 +0,0 @@
--/* -*- linux-c -*- --------------------------------------------------------- *
-- *
-- * drivers/staging/autofs/root.c
-- *
-- *  Copyright 1997-1998 Transmeta Corporation -- All Rights Reserved
-- *
-- * This file is part of the Linux kernel and is made available under
-- * the terms of the GNU General Public License, version 2, or at your
-- * option, any later version, incorporated herein by reference.
-- *
-- * ------------------------------------------------------------------------- */
--
--#include <linux/capability.h>
--#include <linux/errno.h>
--#include <linux/stat.h>
--#include <linux/slab.h>
--#include <linux/param.h>
--#include <linux/time.h>
--#include <linux/compat.h>
--#include <linux/smp_lock.h>
--#include "autofs_i.h"
--
--static int autofs_root_readdir(struct file *,void *,filldir_t);
--static struct dentry *autofs_root_lookup(struct inode *,struct dentry *, struct nameidata *);
--static int autofs_root_symlink(struct inode *,struct dentry *,const char *);
--static int autofs_root_unlink(struct inode *,struct dentry *);
--static int autofs_root_rmdir(struct inode *,struct dentry *);
--static int autofs_root_mkdir(struct inode *,struct dentry *,int);
--static long autofs_root_ioctl(struct file *,unsigned int,unsigned long);
--#ifdef CONFIG_COMPAT
--static long autofs_root_compat_ioctl(struct file *,unsigned int,unsigned long);
--#endif
--
--const struct file_operations autofs_root_operations = {
--	.llseek		= generic_file_llseek,
--	.read		= generic_read_dir,
--	.readdir	= autofs_root_readdir,
--	.unlocked_ioctl	= autofs_root_ioctl,
--#ifdef CONFIG_COMPAT
--	.compat_ioctl	= autofs_root_compat_ioctl,
--#endif
--};
--
--const struct inode_operations autofs_root_inode_operations = {
--        .lookup		= autofs_root_lookup,
--        .unlink		= autofs_root_unlink,
--        .symlink	= autofs_root_symlink,
--        .mkdir		= autofs_root_mkdir,
--        .rmdir		= autofs_root_rmdir,
--};
--
--static int autofs_root_readdir(struct file *filp, void *dirent, filldir_t filldir)
--{
--	struct autofs_dir_ent *ent = NULL;
--	struct autofs_dirhash *dirhash;
--	struct autofs_sb_info *sbi;
--	struct inode * inode = filp->f_path.dentry->d_inode;
--	off_t onr, nr;
--
--	lock_kernel();
--
--	sbi = autofs_sbi(inode->i_sb);
--	dirhash = &sbi->dirhash;
--	nr = filp->f_pos;
--
--	switch(nr)
--	{
--	case 0:
--		if (filldir(dirent, ".", 1, nr, inode->i_ino, DT_DIR) < 0)
--			goto out;
--		filp->f_pos = ++nr;
--		/* fall through */
--	case 1:
--		if (filldir(dirent, "..", 2, nr, inode->i_ino, DT_DIR) < 0)
--			goto out;
--		filp->f_pos = ++nr;
--		/* fall through */
--	default:
--		while (onr = nr, ent = autofs_hash_enum(dirhash,&nr,ent)) {
--			if (!ent->dentry || d_mountpoint(ent->dentry)) {
--				if (filldir(dirent,ent->name,ent->len,onr,ent->ino,DT_UNKNOWN) < 0)
--					goto out;
--				filp->f_pos = nr;
--			}
--		}
--		break;
--	}
--
--out:
--	unlock_kernel();
--	return 0;
--}
--
--static int try_to_fill_dentry(struct dentry *dentry, struct super_block *sb, struct autofs_sb_info *sbi)
--{
--	struct inode * inode;
--	struct autofs_dir_ent *ent;
--	int status = 0;
--
--	if (!(ent = autofs_hash_lookup(&sbi->dirhash, &dentry->d_name))) {
--		do {
--			if (status && dentry->d_inode) {
--				if (status != -ENOENT)
--					printk("autofs warning: lookup failure on positive dentry, status = %d, name = %s\n", status, dentry->d_name.name);
--				return 0; /* Try to get the kernel to invalidate this dentry */
--			}
--
--			/* Turn this into a real negative dentry? */
--			if (status == -ENOENT) {
--				dentry->d_time = jiffies + AUTOFS_NEGATIVE_TIMEOUT;
--				dentry->d_flags &= ~DCACHE_AUTOFS_PENDING;
--				return 1;
--			} else if (status) {
--				/* Return a negative dentry, but leave it "pending" */
--				return 1;
--			}
--			status = autofs_wait(sbi, &dentry->d_name);
--		} while (!(ent = autofs_hash_lookup(&sbi->dirhash, &dentry->d_name)));
--	}
--
--	/* Abuse this field as a pointer to the directory entry, used to
--	   find the expire list pointers */
--	dentry->d_time = (unsigned long) ent;
--	
--	if (!dentry->d_inode) {
--		inode = autofs_iget(sb, ent->ino);
--		if (IS_ERR(inode)) {
--			/* Failed, but leave pending for next time */
--			return 1;
--		}
--		dentry->d_inode = inode;
--	}
--
--	/* If this is a directory that isn't a mount point, bitch at the
--	   daemon and fix it in user space */
--	if (S_ISDIR(dentry->d_inode->i_mode) && !d_mountpoint(dentry)) {
--		return !autofs_wait(sbi, &dentry->d_name);
--	}
--
--	/* We don't update the usages for the autofs daemon itself, this
--	   is necessary for recursive autofs mounts */
--	if (!autofs_oz_mode(sbi)) {
--		autofs_update_usage(&sbi->dirhash,ent);
--	}
--
--	dentry->d_flags &= ~DCACHE_AUTOFS_PENDING;
--	return 1;
--}
--
--
--/*
-- * Revalidate is called on every cache lookup.  Some of those
-- * cache lookups may actually happen while the dentry is not
-- * yet completely filled in, and revalidate has to delay such
-- * lookups..
-- */
--static int autofs_revalidate(struct dentry *dentry, struct nameidata *nd)
--{
--	struct inode * dir;
--	struct autofs_sb_info *sbi;
--	struct autofs_dir_ent *ent;
--	int res;
--
--	if (nd->flags & LOOKUP_RCU)
--		return -ECHILD;
--
--	lock_kernel();
--	dir = dentry->d_parent->d_inode;
--	sbi = autofs_sbi(dir->i_sb);
--
--	/* Pending dentry */
--	if (dentry->d_flags & DCACHE_AUTOFS_PENDING) {
--		if (autofs_oz_mode(sbi))
--			res = 1;
--		else
--			res = try_to_fill_dentry(dentry, dir->i_sb, sbi);
--		unlock_kernel();
--		return res;
--	}
--
--	/* Negative dentry.. invalidate if "old" */
--	if (!dentry->d_inode) {
--		unlock_kernel();
--		return (dentry->d_time - jiffies <= AUTOFS_NEGATIVE_TIMEOUT);
--	}
--		
--	/* Check for a non-mountpoint directory */
--	if (S_ISDIR(dentry->d_inode->i_mode) && !d_mountpoint(dentry)) {
--		if (autofs_oz_mode(sbi))
--			res = 1;
--		else
--			res = try_to_fill_dentry(dentry, dir->i_sb, sbi);
--		unlock_kernel();
--		return res;
--	}
--
--	/* Update the usage list */
--	if (!autofs_oz_mode(sbi)) {
--		ent = (struct autofs_dir_ent *) dentry->d_time;
--		if (ent)
--			autofs_update_usage(&sbi->dirhash,ent);
--	}
--	unlock_kernel();
--	return 1;
--}
--
--static const struct dentry_operations autofs_dentry_operations = {
--	.d_revalidate	= autofs_revalidate,
--};
--
--static struct dentry *autofs_root_lookup(struct inode *dir, struct dentry *dentry, struct nameidata *nd)
--{
--	struct autofs_sb_info *sbi;
--	int oz_mode;
--
--	DPRINTK(("autofs_root_lookup: name = "));
--	lock_kernel();
--	autofs_say(dentry->d_name.name,dentry->d_name.len);
--
--	if (dentry->d_name.len > NAME_MAX) {
--		unlock_kernel();
--		return ERR_PTR(-ENAMETOOLONG);/* File name too long to exist */
--	}
--
--	sbi = autofs_sbi(dir->i_sb);
--
--	oz_mode = autofs_oz_mode(sbi);
--	DPRINTK(("autofs_lookup: pid = %u, pgrp = %u, catatonic = %d, "
--				"oz_mode = %d\n", task_pid_nr(current),
--				task_pgrp_nr(current), sbi->catatonic,
--				oz_mode));
--
--	/*
--	 * Mark the dentry incomplete, but add it. This is needed so
--	 * that the VFS layer knows about the dentry, and we can count
--	 * on catching any lookups through the revalidate.
--	 *
--	 * Let all the hard work be done by the revalidate function that
--	 * needs to be able to do this anyway..
--	 *
--	 * We need to do this before we release the directory semaphore.
--	 */
--	d_set_d_op(dentry, &autofs_dentry_operations);
--	dentry->d_flags |= DCACHE_AUTOFS_PENDING;
--	d_add(dentry, NULL);
--
--	mutex_unlock(&dir->i_mutex);
--	autofs_revalidate(dentry, nd);
--	mutex_lock(&dir->i_mutex);
--
--	/*
--	 * If we are still pending, check if we had to handle
--	 * a signal. If so we can force a restart..
--	 */
--	if (dentry->d_flags & DCACHE_AUTOFS_PENDING) {
--		/* See if we were interrupted */
--		if (signal_pending(current)) {
--			sigset_t *sigset = &current->pending.signal;
--			if (sigismember (sigset, SIGKILL) ||
--			    sigismember (sigset, SIGQUIT) ||
--			    sigismember (sigset, SIGINT)) {
--				unlock_kernel();
--				return ERR_PTR(-ERESTARTNOINTR);
--			}
--		}
--	}
--	unlock_kernel();
--
--	/*
--	 * If this dentry is unhashed, then we shouldn't honour this
--	 * lookup even if the dentry is positive.  Returning ENOENT here
--	 * doesn't do the right thing for all system calls, but it should
--	 * be OK for the operations we permit from an autofs.
--	 */
--	if (dentry->d_inode && d_unhashed(dentry))
--		return ERR_PTR(-ENOENT);
--
--	return NULL;
--}
--
--static int autofs_root_symlink(struct inode *dir, struct dentry *dentry, const char *symname)
--{
--	struct autofs_sb_info *sbi = autofs_sbi(dir->i_sb);
--	struct autofs_dirhash *dh = &sbi->dirhash;
--	struct autofs_dir_ent *ent;
--	unsigned int n;
--	int slsize;
--	struct autofs_symlink *sl;
--	struct inode *inode;
--
--	DPRINTK(("autofs_root_symlink: %s <- ", symname));
--	autofs_say(dentry->d_name.name,dentry->d_name.len);
--
--	lock_kernel();
--	if (!autofs_oz_mode(sbi)) {
--		unlock_kernel();
--		return -EACCES;
--	}
--
--	if (autofs_hash_lookup(dh, &dentry->d_name)) {
--		unlock_kernel();
--		return -EEXIST;
--	}
--
--	n = find_first_zero_bit(sbi->symlink_bitmap,AUTOFS_MAX_SYMLINKS);
--	if (n >= AUTOFS_MAX_SYMLINKS) {
--		unlock_kernel();
--		return -ENOSPC;
--	}
--
--	set_bit(n,sbi->symlink_bitmap);
--	sl = &sbi->symlink[n];
--	sl->len = strlen(symname);
--	sl->data = kmalloc(slsize = sl->len+1, GFP_KERNEL);
--	if (!sl->data) {
--		clear_bit(n,sbi->symlink_bitmap);
--		unlock_kernel();
--		return -ENOSPC;
--	}
--
--	ent = kmalloc(sizeof(struct autofs_dir_ent), GFP_KERNEL);
--	if (!ent) {
--		kfree(sl->data);
--		clear_bit(n,sbi->symlink_bitmap);
--		unlock_kernel();
--		return -ENOSPC;
--	}
--
--	ent->name = kmalloc(dentry->d_name.len+1, GFP_KERNEL);
--	if (!ent->name) {
--		kfree(sl->data);
--		kfree(ent);
--		clear_bit(n,sbi->symlink_bitmap);
--		unlock_kernel();
--		return -ENOSPC;
--	}
--
--	memcpy(sl->data,symname,slsize);
--	sl->mtime = get_seconds();
--
--	ent->ino = AUTOFS_FIRST_SYMLINK + n;
--	ent->hash = dentry->d_name.hash;
--	memcpy(ent->name, dentry->d_name.name, 1+(ent->len = dentry->d_name.len));
--	ent->dentry = NULL;	/* We don't keep the dentry for symlinks */
--
--	autofs_hash_insert(dh,ent);
--
--	inode = autofs_iget(dir->i_sb, ent->ino);
--	if (IS_ERR(inode))
--		return PTR_ERR(inode);
--
--	d_instantiate(dentry, inode);
--	unlock_kernel();
--	return 0;
--}
--
--/*
-- * NOTE!
-- *
-- * Normal filesystems would do a "d_delete()" to tell the VFS dcache
-- * that the file no longer exists. However, doing that means that the
-- * VFS layer can turn the dentry into a negative dentry, which we
-- * obviously do not want (we're dropping the entry not because it
-- * doesn't exist, but because it has timed out).
-- *
-- * Also see autofs_root_rmdir()..
-- */
--static int autofs_root_unlink(struct inode *dir, struct dentry *dentry)
--{
--	struct autofs_sb_info *sbi = autofs_sbi(dir->i_sb);
--	struct autofs_dirhash *dh = &sbi->dirhash;
--	struct autofs_dir_ent *ent;
--	unsigned int n;
--
--	/* This allows root to remove symlinks */
--	lock_kernel();
--	if (!autofs_oz_mode(sbi) && !capable(CAP_SYS_ADMIN)) {
--		unlock_kernel();
--		return -EACCES;
--	}
--
--	ent = autofs_hash_lookup(dh, &dentry->d_name);
--	if (!ent) {
--		unlock_kernel();
--		return -ENOENT;
--	}
--
--	n = ent->ino - AUTOFS_FIRST_SYMLINK;
--	if (n >= AUTOFS_MAX_SYMLINKS) {
--		unlock_kernel();
--		return -EISDIR;	/* It's a directory, dummy */
--	}
--	if (!test_bit(n,sbi->symlink_bitmap)) {
--		unlock_kernel();
--		return -EINVAL;	/* Nonexistent symlink?  Shouldn't happen */
--	}
--	
--	dentry->d_time = (unsigned long)(struct autofs_dirhash *)NULL;
--	autofs_hash_delete(ent);
--	clear_bit(n,sbi->symlink_bitmap);
--	kfree(sbi->symlink[n].data);
--	d_drop(dentry);
--	
--	unlock_kernel();
--	return 0;
--}
--
--static int autofs_root_rmdir(struct inode *dir, struct dentry *dentry)
--{
--	struct autofs_sb_info *sbi = autofs_sbi(dir->i_sb);
--	struct autofs_dirhash *dh = &sbi->dirhash;
--	struct autofs_dir_ent *ent;
--
--	lock_kernel();
--	if (!autofs_oz_mode(sbi)) {
--		unlock_kernel();
--		return -EACCES;
--	}
--
--	ent = autofs_hash_lookup(dh, &dentry->d_name);
--	if (!ent) {
--		unlock_kernel();
--		return -ENOENT;
--	}
--
--	if ((unsigned int)ent->ino < AUTOFS_FIRST_DIR_INO) {
--		unlock_kernel();
--		return -ENOTDIR; /* Not a directory */
--	}
--
--	if (ent->dentry != dentry) {
--		printk("autofs_rmdir: odentry != dentry for entry %s\n", dentry->d_name.name);
--	}
--
--	dentry->d_time = (unsigned long)(struct autofs_dir_ent *)NULL;
--	autofs_hash_delete(ent);
--	drop_nlink(dir);
--	d_drop(dentry);
--	unlock_kernel();
--
--	return 0;
--}
--
--static int autofs_root_mkdir(struct inode *dir, struct dentry *dentry, int mode)
--{
--	struct autofs_sb_info *sbi = autofs_sbi(dir->i_sb);
--	struct autofs_dirhash *dh = &sbi->dirhash;
--	struct autofs_dir_ent *ent;
--	struct inode *inode;
--	ino_t ino;
--
--	lock_kernel();
--	if (!autofs_oz_mode(sbi)) {
--		unlock_kernel();
--		return -EACCES;
--	}
--
--	ent = autofs_hash_lookup(dh, &dentry->d_name);
--	if (ent) {
--		unlock_kernel();
--		return -EEXIST;
--	}
--
--	if (sbi->next_dir_ino < AUTOFS_FIRST_DIR_INO) {
--		printk("autofs: Out of inode numbers -- what the heck did you do??\n");
--		unlock_kernel();
--		return -ENOSPC;
--	}
--	ino = sbi->next_dir_ino++;
--
--	ent = kmalloc(sizeof(struct autofs_dir_ent), GFP_KERNEL);
--	if (!ent) {
--		unlock_kernel();
--		return -ENOSPC;
--	}
--
--	ent->name = kmalloc(dentry->d_name.len+1, GFP_KERNEL);
--	if (!ent->name) {
--		kfree(ent);
--		unlock_kernel();
--		return -ENOSPC;
--	}
--
--	ent->hash = dentry->d_name.hash;
--	memcpy(ent->name, dentry->d_name.name, 1+(ent->len = dentry->d_name.len));
--	ent->ino = ino;
--	ent->dentry = dentry;
--	autofs_hash_insert(dh,ent);
--
--	inc_nlink(dir);
--
--	inode = autofs_iget(dir->i_sb, ino);
--	if (IS_ERR(inode)) {
--		drop_nlink(dir);
--		return PTR_ERR(inode);
--	}
--
--	d_instantiate(dentry, inode);
--	unlock_kernel();
--
--	return 0;
--}
--
--/* Get/set timeout ioctl() operation */
--#ifdef CONFIG_COMPAT
--static inline int autofs_compat_get_set_timeout(struct autofs_sb_info *sbi,
--					 unsigned int __user *p)
--{
--	unsigned long ntimeout;
--
--	if (get_user(ntimeout, p) ||
--	    put_user(sbi->exp_timeout / HZ, p))
--		return -EFAULT;
--
--	if (ntimeout > UINT_MAX/HZ)
--		sbi->exp_timeout = 0;
--	else
--		sbi->exp_timeout = ntimeout * HZ;
--
--	return 0;
--}
--#endif
--
--static inline int autofs_get_set_timeout(struct autofs_sb_info *sbi,
--					 unsigned long __user *p)
--{
--	unsigned long ntimeout;
--
--	if (get_user(ntimeout, p) ||
--	    put_user(sbi->exp_timeout / HZ, p))
--		return -EFAULT;
--
--	if (ntimeout > ULONG_MAX/HZ)
--		sbi->exp_timeout = 0;
--	else
--		sbi->exp_timeout = ntimeout * HZ;
--
--	return 0;
--}
--
--/* Return protocol version */
--static inline int autofs_get_protover(int __user *p)
--{
--	return put_user(AUTOFS_PROTO_VERSION, p);
--}
--
--/* Perform an expiry operation */
--static inline int autofs_expire_run(struct super_block *sb,
--				    struct autofs_sb_info *sbi,
--				    struct vfsmount *mnt,
--				    struct autofs_packet_expire __user *pkt_p)
--{
--	struct autofs_dir_ent *ent;
--	struct autofs_packet_expire pkt;
--
--	memset(&pkt,0,sizeof pkt);
--
--	pkt.hdr.proto_version = AUTOFS_PROTO_VERSION;
--	pkt.hdr.type = autofs_ptype_expire;
--
--	if (!sbi->exp_timeout || !(ent = autofs_expire(sb,sbi,mnt)))
--		return -EAGAIN;
--
--	pkt.len = ent->len;
--	memcpy(pkt.name, ent->name, pkt.len);
--	pkt.name[pkt.len] = '\0';
--
--	if (copy_to_user(pkt_p, &pkt, sizeof(struct autofs_packet_expire)))
--		return -EFAULT;
--
--	return 0;
--}
--
--/*
-- * ioctl()'s on the root directory is the chief method for the daemon to
-- * generate kernel reactions
-- */
--static int autofs_do_root_ioctl(struct inode *inode, struct file *filp,
--			     unsigned int cmd, unsigned long arg)
--{
--	struct autofs_sb_info *sbi = autofs_sbi(inode->i_sb);
--	void __user *argp = (void __user *)arg;
--
--	DPRINTK(("autofs_ioctl: cmd = 0x%08x, arg = 0x%08lx, sbi = %p, pgrp = %u\n",cmd,arg,sbi,task_pgrp_nr(current)));
--
--	if (_IOC_TYPE(cmd) != _IOC_TYPE(AUTOFS_IOC_FIRST) ||
--	     _IOC_NR(cmd) - _IOC_NR(AUTOFS_IOC_FIRST) >= AUTOFS_IOC_COUNT)
--		return -ENOTTY;
--	
--	if (!autofs_oz_mode(sbi) && !capable(CAP_SYS_ADMIN))
--		return -EPERM;
--	
--	switch(cmd) {
--	case AUTOFS_IOC_READY:	/* Wait queue: go ahead and retry */
--		return autofs_wait_release(sbi,(autofs_wqt_t)arg,0);
--	case AUTOFS_IOC_FAIL:	/* Wait queue: fail with ENOENT */
--		return autofs_wait_release(sbi,(autofs_wqt_t)arg,-ENOENT);
--	case AUTOFS_IOC_CATATONIC: /* Enter catatonic mode (daemon shutdown) */
--		autofs_catatonic_mode(sbi);
--		return 0;
--	case AUTOFS_IOC_PROTOVER: /* Get protocol version */
--		return autofs_get_protover(argp);
--#ifdef CONFIG_COMPAT
--	case AUTOFS_IOC_SETTIMEOUT32:
--		return autofs_compat_get_set_timeout(sbi, argp);
--#endif
--	case AUTOFS_IOC_SETTIMEOUT:
--		return autofs_get_set_timeout(sbi, argp);
--	case AUTOFS_IOC_EXPIRE:
--		return autofs_expire_run(inode->i_sb, sbi, filp->f_path.mnt,
--					 argp);
--	default:
--		return -ENOSYS;
--	}
--
--}
--
--static long autofs_root_ioctl(struct file *filp,
--			     unsigned int cmd, unsigned long arg)
--{
--	int ret;
--
--	lock_kernel();
--	ret = autofs_do_root_ioctl(filp->f_path.dentry->d_inode,
--				   filp, cmd, arg);
--	unlock_kernel();
--
--	return ret;
--}
--
--#ifdef CONFIG_COMPAT
--static long autofs_root_compat_ioctl(struct file *filp,
--			     unsigned int cmd, unsigned long arg)
--{
--	struct inode *inode = filp->f_path.dentry->d_inode;
--	int ret;
--
--	lock_kernel();
--	if (cmd == AUTOFS_IOC_READY || cmd == AUTOFS_IOC_FAIL)
--		ret = autofs_do_root_ioctl(inode, filp, cmd, arg);
--	else
--		ret = autofs_do_root_ioctl(inode, filp, cmd,
--			(unsigned long)compat_ptr(arg));
--	unlock_kernel();
--
--	return ret;
--}
--#endif
-diff --git a/drivers/staging/autofs/symlink.c b/drivers/staging/autofs/symlink.c
-deleted file mode 100644
-index ff2c65c..0000000
---- a/drivers/staging/autofs/symlink.c
-+++ /dev/null
-@@ -1,26 +0,0 @@
--/* -*- linux-c -*- --------------------------------------------------------- *
-- *
-- * drivers/staging/autofs/symlink.c
-- *
-- *  Copyright 1997-1998 Transmeta Corporation -- All Rights Reserved
-- *
-- * This file is part of the Linux kernel and is made available under
-- * the terms of the GNU General Public License, version 2, or at your
-- * option, any later version, incorporated herein by reference.
-- *
-- * ------------------------------------------------------------------------- */
--
--#include "autofs_i.h"
--
--/* Nothing to release.. */
--static void *autofs_follow_link(struct dentry *dentry, struct nameidata *nd)
--{
--	char *s=((struct autofs_symlink *)dentry->d_inode->i_private)->data;
--	nd_set_link(nd, s);
--	return NULL;
--}
--
--const struct inode_operations autofs_symlink_inode_operations = {
--	.readlink	= generic_readlink,
--	.follow_link	= autofs_follow_link
--};
-diff --git a/drivers/staging/autofs/waitq.c b/drivers/staging/autofs/waitq.c
-deleted file mode 100644
-index d3c8cc9..0000000
---- a/drivers/staging/autofs/waitq.c
-+++ /dev/null
-@@ -1,205 +0,0 @@
--/* -*- linux-c -*- --------------------------------------------------------- *
-- *
-- * drivers/staging/autofs/waitq.c
-- *
-- *  Copyright 1997-1998 Transmeta Corporation -- All Rights Reserved
-- *
-- * This file is part of the Linux kernel and is made available under
-- * the terms of the GNU General Public License, version 2, or at your
-- * option, any later version, incorporated herein by reference.
-- *
-- * ------------------------------------------------------------------------- */
--
--#include <linux/slab.h>
--#include <linux/time.h>
--#include <linux/signal.h>
--#include <linux/file.h>
--#include "autofs_i.h"
--
--/* We make this a static variable rather than a part of the superblock; it
--   is better if we don't reassign numbers easily even across filesystems */
--static autofs_wqt_t autofs_next_wait_queue = 1;
--
--/* These are the signals we allow interrupting a pending mount */
--#define SHUTDOWN_SIGS	(sigmask(SIGKILL) | sigmask(SIGINT) | sigmask(SIGQUIT))
--
--void autofs_catatonic_mode(struct autofs_sb_info *sbi)
--{
--	struct autofs_wait_queue *wq, *nwq;
--
--	DPRINTK(("autofs: entering catatonic mode\n"));
--
--	sbi->catatonic = 1;
--	wq = sbi->queues;
--	sbi->queues = NULL;	/* Erase all wait queues */
--	while ( wq ) {
--		nwq = wq->next;
--		wq->status = -ENOENT; /* Magic is gone - report failure */
--		kfree(wq->name);
--		wq->name = NULL;
--		wake_up(&wq->queue);
--		wq = nwq;
--	}
--	fput(sbi->pipe);	/* Close the pipe */
--	sbi->pipe = NULL;
--	autofs_hash_dputall(&sbi->dirhash); /* Remove all dentry pointers */
--}
--
--static int autofs_write(struct file *file, const void *addr, int bytes)
--{
--	unsigned long sigpipe, flags;
--	mm_segment_t fs;
--	const char *data = (const char *)addr;
--	ssize_t wr = 0;
--
--	/** WARNING: this is not safe for writing more than PIPE_BUF bytes! **/
--
--	sigpipe = sigismember(&current->pending.signal, SIGPIPE);
--
--	/* Save pointer to user space and point back to kernel space */
--	fs = get_fs();
--	set_fs(KERNEL_DS);
--
--	while (bytes &&
--	       (wr = file->f_op->write(file,data,bytes,&file->f_pos)) > 0) {
--		data += wr;
--		bytes -= wr;
--	}
--
--	set_fs(fs);
--
--	/* Keep the currently executing process from receiving a
--	   SIGPIPE unless it was already supposed to get one */
--	if (wr == -EPIPE && !sigpipe) {
--		spin_lock_irqsave(&current->sighand->siglock, flags);
--		sigdelset(&current->pending.signal, SIGPIPE);
--		recalc_sigpending();
--		spin_unlock_irqrestore(&current->sighand->siglock, flags);
--	}
--
--	return (bytes > 0);
--}
--	
--static void autofs_notify_daemon(struct autofs_sb_info *sbi, struct autofs_wait_queue *wq)
--{
--	struct autofs_packet_missing pkt;
--
--	DPRINTK(("autofs_wait: wait id = 0x%08lx, name = ", wq->wait_queue_token));
--	autofs_say(wq->name,wq->len);
--
--	memset(&pkt,0,sizeof pkt); /* For security reasons */
--
--	pkt.hdr.proto_version = AUTOFS_PROTO_VERSION;
--	pkt.hdr.type = autofs_ptype_missing;
--	pkt.wait_queue_token = wq->wait_queue_token;
--	pkt.len = wq->len;
--        memcpy(pkt.name, wq->name, pkt.len);
--	pkt.name[pkt.len] = '\0';
--
--	if ( autofs_write(sbi->pipe,&pkt,sizeof(struct autofs_packet_missing)) )
--		autofs_catatonic_mode(sbi);
--}
--
--int autofs_wait(struct autofs_sb_info *sbi, struct qstr *name)
--{
--	struct autofs_wait_queue *wq;
--	int status;
--
--	/* In catatonic mode, we don't wait for nobody */
--	if ( sbi->catatonic )
--		return -ENOENT;
--	
--	/* We shouldn't be able to get here, but just in case */
--	if ( name->len > NAME_MAX )
--		return -ENOENT;
--
--	for ( wq = sbi->queues ; wq ; wq = wq->next ) {
--		if ( wq->hash == name->hash &&
--		     wq->len == name->len &&
--		     wq->name && !memcmp(wq->name,name->name,name->len) )
--			break;
--	}
--	
--	if ( !wq ) {
--		/* Create a new wait queue */
--		wq = kmalloc(sizeof(struct autofs_wait_queue),GFP_KERNEL);
--		if ( !wq )
--			return -ENOMEM;
--
--		wq->name = kmalloc(name->len,GFP_KERNEL);
--		if ( !wq->name ) {
--			kfree(wq);
--			return -ENOMEM;
--		}
--		wq->wait_queue_token = autofs_next_wait_queue++;
--		init_waitqueue_head(&wq->queue);
--		wq->hash = name->hash;
--		wq->len = name->len;
--		wq->status = -EINTR; /* Status return if interrupted */
--		memcpy(wq->name, name->name, name->len);
--		wq->next = sbi->queues;
--		sbi->queues = wq;
--
--		/* autofs_notify_daemon() may block */
--		wq->wait_ctr = 2;
--		autofs_notify_daemon(sbi,wq);
--	} else
--		wq->wait_ctr++;
--
--	/* wq->name is NULL if and only if the lock is already released */
--
--	if ( sbi->catatonic ) {
--		/* We might have slept, so check again for catatonic mode */
--		wq->status = -ENOENT;
--		kfree(wq->name);
--		wq->name = NULL;
--	}
--
--	if ( wq->name ) {
--		/* Block all but "shutdown" signals while waiting */
--		sigset_t sigmask;
--
--		siginitsetinv(&sigmask, SHUTDOWN_SIGS);
--		sigprocmask(SIG_BLOCK, &sigmask, &sigmask);
--
--		interruptible_sleep_on(&wq->queue);
--
--		sigprocmask(SIG_SETMASK, &sigmask, NULL);
--	} else {
--		DPRINTK(("autofs_wait: skipped sleeping\n"));
--	}
--
--	status = wq->status;
--
--	if ( ! --wq->wait_ctr )	/* Are we the last process to need status? */
--		kfree(wq);
--
--	return status;
--}
--
--
--int autofs_wait_release(struct autofs_sb_info *sbi, autofs_wqt_t wait_queue_token, int status)
--{
--	struct autofs_wait_queue *wq, **wql;
--
--	for (wql = &sbi->queues; (wq = *wql) != NULL; wql = &wq->next) {
--		if ( wq->wait_queue_token == wait_queue_token )
--			break;
--	}
--	if ( !wq )
--		return -EINVAL;
--
--	*wql = wq->next;	/* Unlink from chain */
--	kfree(wq->name);
--	wq->name = NULL;	/* Do not wait on this queue */
--
--	wq->status = status;
--
--	if ( ! --wq->wait_ctr )	/* Is anyone still waiting for this guy? */
--		kfree(wq);
--	else
--		wake_up(&wq->queue);
--
--	return 0;
--}
--
--- 
-1.7.1
+[re-sent to mailing lists, due to overly long
+ Cc list getting rejected by vger]
+
+Cc: autofs@linux.kernel.org
+Cc: dri-devel@lists.freedesktop.org
+Cc: linux-cifs@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org
+Cc: linux-x25@vger.kernel.org
+Cc: netdev@vger.kernel.org
