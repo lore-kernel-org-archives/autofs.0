@@ -1,17 +1,19 @@
-From: "Philip Ong Jr." <pongjr@gmail.com>
-Subject: make errors for autofs 5.0.4/5.0.5
-Date: Mon, 31 Jan 2011 16:39:49 -0800
-Message-ID: <4D475655.3070002@gmail.com>
+From: Bill Ryder <bill.ryder.nz@gmail.com>
+Subject: Re: [bryder_autofs_4.1.4_PATCH 0/8] *** SUBJECT HERE ***
+Date: Wed, 26 Jan 2011 13:17:35 +1300
+Message-ID: <AANLkTinm2_8RUtPVQsX_kgZveEPdONXk2yqGYCfRNJrj@mail.gmail.com>
+References: <cover.1295972820.git.bill.ryder.nz@gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============4311489673624190144=="
 Return-path: <autofs-bounces@linux.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
-	h=domainkey-signature:message-id:date:from:user-agent:mime-version:to
-	:subject:content-type:content-transfer-encoding;
-	bh=NmkPlQKo5zeW/oL5HXV8yHTahFq4bthKS4m70yotYsE=;
-	b=jekVC5R8Mq40YLASqiJInU4zkfmn4q2YDeqwyUTg/NNbAnp3PsBFNx7X2UcMo6hzNv
-	4JYBXIjrSi5sOwxBOKEBk5GQoPvwBR8M5v5U6841eye5b7R87RwaN0FXUzFHFOhNc15R
-	wrGGPeY2qMdQY00jZjUf4jwytVKT7e0+noAy4=
+	h=domainkey-signature:mime-version:in-reply-to:references:from:date
+	:message-id:subject:to:content-type;
+	bh=I2UWg7OZL31ZyId0FZMdoKP4ntGi0kZo525seyQ9K5Q=;
+	b=A1Cpqw3MKvCzvg10iM4fdRnzqlyVLYXuTpoOgKkgZdYhuTXWYzaDPrEWAqxFBGh3CR
+	N/fcyuCwD6gZy1aPfwdjDM4cPrzEUA8i3eGSed8OGfD5KOJe6DT/j6t93BTDW3OpLhcD
+	qH3Sl2R1jkAkrMtu3K0TfUf81K9bwtj5t5Eb8=
+In-Reply-To: <cover.1295972820.git.bill.ryder.nz@gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,43 +24,40 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
 To: autofs@linux.kernel.org
 
-I've applied all the patches for both trees, but i'm getting these errors.
+--===============4311489673624190144==
+Content-Type: multipart/alternative; boundary=0016e64c2a1ac89c62049ab4c37b
 
-I'm running a kernel.org kernel 2.6.29.4 64bit RHEL4u5. Are there any 
-specific software requirements for compiling?
+--0016e64c2a1ac89c62049ab4c37b
+Content-Type: text/plain; charset=ISO-8859-1
 
-make[1]: Leaving directory `/usr/src/autofs-5.0.4/lib'
-make[1]: Entering directory `/usr/src/autofs-5.0.4/daemon'
-gcc -O2 -Wall -D_REENTRANT -D_FILE_OFFSET_BITS=64 -rdynamic -fPIE 
--D_GNU_SOURCE -I../include -DAUTOFS_LIB_DIR=\"/usr/lib/autofs\"  
--DAUTOFS_MAP_DIR=\"/etc\" -DAUTOFS_CONF_DIR=\"/etc/sysconfig\" 
--DAUTOFS_FIFO_DIR=\"/var/run\" -DAUTOFS_FLAG_DIR=\"/var/run\" 
--DVERSION_STRING=\"5.0.4\" -c automount.c
-automount.c:43:27: libxml/parser.h: No such file or directory
-automount.c: In function `main':
-automount.c:2118: warning: implicit declaration of function `xmlInitParser'
-automount.c:2163: warning: implicit declaration of function 
-`xmlCleanupParser'
-make[1]: *** [automount.o] Error 1
-make[1]: Leaving directory `/usr/src/autofs-5.0.4/daemon'
-make: *** [daemon] Error 2
+Wow that's embarrassing. I missed out the subject line.
 
-gcc -O2 -Wall -D_REENTRANT -D_FILE_OFFSET_BITS=64 -rdynamic -fPIE 
--D_GNU_SOURCE -I../include -DAUTOFS_LIB_DIR=\"/usr/lib/autofs\"  
--DAUTOFS_MAP_DIR=\"/etc\" -DAUTOFS_CONF_DIR=\"/etc/sysconfig\" 
--DAUTOFS_FIFO_DIR=\"/var/run\" -DAUTOFS_FLAG_DIR=\"/var/run\" 
--DVERSION_STRING=\"5.0.5\" -c flag.c
-gcc -s -lpthread -rdynamic -pie -o automount automount.o indirect.o 
-direct.o spawn.o module.o mount.o lookup.o state.o flag.o 
-../lib/autofs.a -ldl
-strip --strip-debug automount
-make[1]: Leaving directory `/usr/src/autofs-5.0.5/daemon'
-make[1]: Entering directory `/usr/src/autofs-5.0.5/modules'
-Makefile:75: Extraneous text after `else' directive
-Makefile:80: Extraneous text after `else' directive
-Makefile:80: *** only one `else' per conditional.  Stop.
-make[1]: Leaving directory `/usr/src/autofs-5.0.5/modules'
-make: *** [daemon] Error 2
+Doh.
+Bill
+
+--0016e64c2a1ac89c62049ab4c37b
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+Wow that&#39;s embarrassing. I missed out the subject line.<div><div class=
+=3D"gmail_quote"><div><br></div><div>Doh.</div><div>Bill</div><div>=A0</div=
+></div></div>
+
+--0016e64c2a1ac89c62049ab4c37b--
+
+
+--===============4311489673624190144==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--===============4311489673624190144==--
+
