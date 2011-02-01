@@ -1,19 +1,11 @@
-From: Bill Ryder <bill.ryder.nz@gmail.com>
-Subject: Re: [bryder_autofs_4.1.4_PATCH 0/8] *** SUBJECT HERE ***
-Date: Wed, 26 Jan 2011 13:17:35 +1300
-Message-ID: <AANLkTinm2_8RUtPVQsX_kgZveEPdONXk2yqGYCfRNJrj@mail.gmail.com>
-References: <cover.1295972820.git.bill.ryder.nz@gmail.com>
+From: kiran@serc.iisc.ernet.in
+Subject: autofs5.0.5 patches for old kernels.
+Date: Tue, 1 Feb 2011 21:21:41 +0530 (IST)
+Message-ID: <3138.10.16.10.158.1296575501.squirrel@mail.serc.iisc.ernet.in>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4311489673624190144=="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
-	h=domainkey-signature:mime-version:in-reply-to:references:from:date
-	:message-id:subject:to:content-type;
-	bh=I2UWg7OZL31ZyId0FZMdoKP4ntGi0kZo525seyQ9K5Q=;
-	b=A1Cpqw3MKvCzvg10iM4fdRnzqlyVLYXuTpoOgKkgZdYhuTXWYzaDPrEWAqxFBGh3CR
-	N/fcyuCwD6gZy1aPfwdjDM4cPrzEUA8i3eGSed8OGfD5KOJe6DT/j6t93BTDW3OpLhcD
-	qH3Sl2R1jkAkrMtu3K0TfUf81K9bwtj5t5Eb8=
-In-Reply-To: <cover.1295972820.git.bill.ryder.nz@gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -26,38 +18,38 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
---===============4311489673624190144==
-Content-Type: multipart/alternative; boundary=0016e64c2a1ac89c62049ab4c37b
+Hi,
 
---0016e64c2a1ac89c62049ab4c37b
-Content-Type: text/plain; charset=ISO-8859-1
-
-Wow that's embarrassing. I missed out the subject line.
-
-Doh.
-Bill
-
---0016e64c2a1ac89c62049ab4c37b
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-Wow that&#39;s embarrassing. I missed out the subject line.<div><div class=
-=3D"gmail_quote"><div><br></div><div>Doh.</div><div>Bill</div><div>=A0</div=
-></div></div>
-
---0016e64c2a1ac89c62049ab4c37b--
+ In autofs-5.0.5 distribution there are no kernel V5 patches for old
+kernel(s2.6.9 to 2.6.17), but document INSTALL says
 
 
---===============4311489673624190144==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+====================
+Applying The Kernel Patch
+=========================
 
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
+Patches that can be applied to the kernel are located in the
+`patches' directory. If you have installed autofs from an rpm
+then they can be found in the packages' doc directory after
+install. They consist of a kernel patch for each kernel from
+2.6.9 thru 2.6.16 (the patches are in the 2.6.17-rc series so
+patching a 2.6.17 or above kernel shouldn't be needed).
+=================================================
 
---===============4311489673624190144==--
+Where can we find patchs for old kernels?
+v5.0.5 is it not support on old kernels ?
 
+Thanking you,
+regards,
+kiran
+
+
+
+
+
+
+
+-- 
+This message has been scanned for viruses and
+dangerous content by MailScanner, and is
+believed to be clean.
