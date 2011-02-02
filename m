@@ -1,17 +1,12 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs5.0.5 patches for old kernels.
-Date: Wed, 02 Feb 2011 21:23:59 +0800
-Message-ID: <1296653039.2788.10.camel@perseus>
-References: <3138.10.16.10.158.1296575501.squirrel@mail.serc.iisc.ernet.in>
+From: Ryan Go <ryan@rentec.com>
+Subject: Re: make errors for autofs 5.0.4/5.0.5
+Date: Wed, 2 Feb 2011 16:11:23 -0500 (EST)
+Message-ID: <alpine.LNX.2.00.1102021609130.3973@elr.eragrp.pbz>
+References: <4D475655.3070002@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com;
-	h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding;
-	s=smtpout; bh=DqgyX9FEUeyfi73T79j7zG9MCOY=;
-	b=lukZb3Qx8H1IuGkvMH14TqkN+E4u3qZUVPRsmS7eFUTguW1NYZrVGOswZomIwi9Zj2RoMH0+7Gjx7HowCfAIkRrMKjVATxf19PfmDcf1XobaXGv01ephTyfPHEFM7gHMe1OmadE6qKoHzPeWR87LBT6BRblDqLH+iKs6l1ZbjIA=
-In-Reply-To: <3138.10.16.10.158.1296575501.squirrel@mail.serc.iisc.ernet.in>
+In-Reply-To: <4D475655.3070002@gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,58 +17,30 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: kiran@serc.iisc.ernet.in
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: "Philip Ong Jr." <pongjr@gmail.com>
 Cc: autofs@linux.kernel.org
 
-On Tue, 2011-02-01 at 21:21 +0530, kiran@serc.iisc.ernet.in wrote:
-> Hi,
-> 
->  In autofs-5.0.5 distribution there are no kernel V5 patches for old
-> kernel(s2.6.9 to 2.6.17), but document INSTALL says
-> 
-> 
-> ====================
-> Applying The Kernel Patch
-> =========================
-> 
-> Patches that can be applied to the kernel are located in the
-> `patches' directory. If you have installed autofs from an rpm
-> then they can be found in the packages' doc directory after
-> install. They consist of a kernel patch for each kernel from
-> 2.6.9 thru 2.6.16 (the patches are in the 2.6.17-rc series so
-> patching a 2.6.17 or above kernel shouldn't be needed).
-> =================================================
-> 
-> Where can we find patchs for old kernels?
+On Mon, 31 Jan 2011, Philip Ong Jr. wrote:
 
-There aren't any.
+> I've applied all the patches for both trees, but i'm getting these errors.
+>
+> I'm running a kernel.org kernel 2.6.29.4 64bit RHEL4u5. Are there any 
+> specific software requirements for compiling?
+>
+> make[1]: Leaving directory `/usr/src/autofs-5.0.4/lib'
+> make[1]: Entering directory `/usr/src/autofs-5.0.4/daemon'
+> gcc -O2 -Wall -D_REENTRANT -D_FILE_OFFSET_BITS=64 -rdynamic -fPIE 
+> -D_GNU_SOURCE -I../include -DAUTOFS_LIB_DIR=\"/usr/lib/autofs\" 
+> -DAUTOFS_MAP_DIR=\"/etc\" -DAUTOFS_CONF_DIR=\"/etc/sysconfig\" 
+> -DAUTOFS_FIFO_DIR=\"/var/run\" -DAUTOFS_FLAG_DIR=\"/var/run\" 
+> -DVERSION_STRING=\"5.0.4\" -c automount.c
+> automount.c:43:27: libxml/parser.h: No such file or directory
+                      ^^^^^^^^^^^^^^^
 
-As changes have accumulated back porting the patches has become more and
-more difficult due to changes in other parts of the kernel. So I had to
-stop back porting them, especially since I can't properly test them.
-  
-> v5.0.5 is it not support on old kernels ?
+You would need to have the libxml development libraries installed to 
+compile. I am not sure what RedHat calls it (for reference, it's 
+libxml2-devel for OpenSuSE 11.2).
 
-2.6.18 is an old kernel.
-
-You can use the patches from older v5 source tarballs and report any
-problems but if you use autofs heavily you probably should be using a
-more recent kernel. There are back ports of the patch series in those
-tars. You won't get the new device ioctl interface changes (that was
-about the time I had to stop) but autofs will know the kernel doesn't
-have this and use the old ioctl interface.
-
-I could spend a little time having a look at what I have but not for a
-while yet. What problem are you trying to resolve exactly.
-
-> 
-> Thanking you,
-> regards,
-> kiran
-> 
-> 
-> 
-> 
-> 
-> 
-> 
+HTH,
+Ryan
