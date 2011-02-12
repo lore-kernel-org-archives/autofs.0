@@ -1,10 +1,12 @@
-From: Steve Thompson <smt@vgersoft.com>
-Subject: Wrong network
-Date: Sat, 12 Feb 2011 09:29:27 -0500 (EST)
-Message-ID: <alpine.LRH.0.9999.1102120924290.6851@helios.vgersoft.com>
+From: Frank Thommen <fthommen@embl.de>
+Subject: Re: Wrong network
+Date: Sat, 12 Feb 2011 16:38:34 +0100
+Message-ID: <4D56A97A.10308@embl.de>
+References: <alpine.LRH.0.9999.1102120924290.6851@helios.vgersoft.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <alpine.LRH.0.9999.1102120924290.6851@helios.vgersoft.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,17 +20,21 @@ Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"; format="flowed"
 To: autofs@linux.kernel.org
 
-CentOS 5.5 (32- and 64-bit), autofs-5.0.1-0.rc2.143.el5_5.6.
+On 12.02.2011 15:29, Steve Thompson wrote:
+> CentOS 5.5 (32- and 64-bit), autofs-5.0.1-0.rc2.143.el5_5.6.
+>
+> Two subnets, A (192.168.0/22) and B (192.168.4/22). NFS server has an
+> interface on both A and B. NFS client has an interface on B only. Maps
+> come via LDAP. On the client:
+>
+> # mount
+> <server>:/mnt/point on /fs/<blah> type nfs (rw,addr=192.168.0.69)
+>
+> The addr= looks wrong to me; should be 192.168.4.x. On other clients,
+> the subnet pointed to by addr= is sometimes right, sometimes wrong.
+> What's wrong here?
 
-Two subnets, A (192.168.0/22) and B (192.168.4/22). NFS server has an 
-interface on both A and B. NFS client has an interface on B only. Maps 
-come via LDAP. On the client:
 
- 	# mount
- 	<server>:/mnt/point on /fs/<blah> type nfs (rw,addr=192.168.0.69)
+Wrong network/gateway configuration on the NFS server (or on the clients)?
 
-The addr= looks wrong to me; should be 192.168.4.x. On other clients, the 
-subnet pointed to by addr= is sometimes right, sometimes wrong. What's 
-wrong here?
-
--Steve
+frank
