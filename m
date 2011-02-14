@@ -1,17 +1,14 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: 5.0.5 non-expiring mounts
-Date: Thu, 17 Feb 2011 15:57:13 +0800
-Message-ID: <1297929433.15852.6.camel@perseus>
-References: <alpine.LSU.2.00.1102161700370.29435@tux.qualcomm.com>
+From: Masatake YAMATO <yamato@redhat.com>
+Subject: Re: [PATCH 1/3] Add dir map-type.
+Date: Mon, 14 Feb 2011 22:23:57 +0900 (JST)
+Message-ID: <20110214.222357.864020142310384093.yamato@redhat.com>
+References: <20110211.052743.503074989287605879.yamato@redhat.com>
+	<1297393464.2757.3.camel@perseus> <1297394832.3844.6.camel@perseus>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com;
-	h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding;
-	s=smtpout; bh=vW3iS54tYxJc/pOTaDwzG/EcCXI=;
-	b=Tv2hyNM2WG2kRleScUAeNkcRIYhZ+vRKIkq8aIM5tZd7kE47QV5Q7SsrT9q52C3zTV5Oa8LHiLZLrLg4Xwd10A3Nipt2ATJAvcFEjqsPDNfxQfjWaGCzIPnbrMxVRQeLmDZ8PckMviX3Yh8y6rJYNa0dVsZN8orsp+jOWUmEVlA=
-In-Reply-To: <alpine.LSU.2.00.1102161700370.29435@tux.qualcomm.com>
+In-Reply-To: <1297394832.3844.6.camel@perseus>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,41 +19,66 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Deke Clinger <dclinger@qualcomm.com>
+To: raven@themaw.net
 Cc: autofs@linux.kernel.org
 
-On Wed, 2011-02-16 at 17:08 -0800, Deke Clinger wrote:
-> On Wed Feb 16 12:18:15 UTC 2011 Ian Kent wrote:
+Thank you for commenting.
+
+> On Fri, 2011-02-11 at 11:04 +0800, Ian Kent wrote:
+>> On Fri, 2011-02-11 at 05:27 +0900, Masatake YAMATO wrote:
+>> > No comment?
+>> > 
+>> > I've got one comment privately: use a suffix instead of prefix "auto." 
+>> > to filter included files. I'm reflected the comment in my local source
+>> > tree. Before posting it to this list, I'd like to get more feedbacks.
+>> 
+>> I seem to have missed this, but looking at it, it doesn't appear to
+>> adhere to the semantics of + included maps. How does this detect when a
+>> map of the same name is included so that the files source can be skipped
+>> and the next nss source used instead?
+>>  
+>> > 
+>> > Masatake YAMATO
+>> > 
+>> > > `dir' map-type is for including files under a directory into master
+>> > > map.
+>> > > `file' map-type can be used for including a file with + notation like:
+>> > > 
+>> > >        +/etc/auto.mine
 > 
-> > A backtrace generally doesn't do us any good when were trying to find an
-> > expire problem, the debug log is where we have to start on these.
+> Within a file map (only) any map type can be + included by giving just
+> the map name and setting nsswitch to the sources you want to look in. If
+> a file map of the same name as the included map exists, at the moment
+> that means within /etc, then it will be used, if not then the next
+> nsswitch source will be consulted. If a map of the same name as the +
+> included map is included then the nsswitch files source will be ignored
+> and subsequent sources consulted.
 > 
-> I've got a debug log from a sled10sp3 machine running the Novell autofs
-> 5.0.5 update. Ian - could I mail you this personally? I'd rather not have
-> this log with usernames, paths, hostnames, etc. on a public archive.
 
-Yes please.
+I've not understood the relationship between my patch and your comment well yet.
+Could you give me a concrete example?
 
-> 
-> FWIW, I did do a test with autofs5.0.5 built from source with all the
-> patches in the patch order list from kernel.org and it demonstrated the
-> same behavior: a USR1 signal unmounted the direct map entries but not the
-> indirect. I changed the maps to files, pruned them to a few hundred entries
-> and converted the indirect entries to direct and re-ran the
-> test. Configured like this all entries unmounted upon a USR1 signal so I do
-> believe this has something to do with direct vs indirect mounts. 
+I'm not convinced that I understood your comment. But I guess you suggest
+inconsistent evaluation of following autom.master:
 
-There are a couple of possibilities. I'm always working with the current
-source and basic testing includes expiring both direct and indirect
-mounts as a matter of course and I'm not seeing this. So there has to be
-more to it or I have one or other patches already in the queue that
-resolve the problem.
+    $ cd /etc; cat auto.master
+    +file:/etc/autofs.d/auto.foo
+    +dir:/etc/autofs.d
 
-Does this happen straight away or start after some time of running?
-Do all indirect mounts stop expiring or only some?
-What is the for of the indirect map entries, are they multi-mount
-entries?
+In this case auto.foo will be read as a file type master source twice:
+once via +file line of auto.master and once via +dir line of auto.master.
 
-Obviously the debug log will probably answer most of these questions.
+Is my guessing correct?
+(In my patch `dir' type is not added to `nss_source' of autofs/lib/nss_parse.y.)
 
-Ian
+In addition I have a question about autofs (without my patch).
+Consider following auto.master with no nsswitch setting:
+
+    $ cd /etc; cat auto.master
+    +file:/etc/auto.bar
+    +auto.bar
+
+In this case my understanding is that /etc/auto.bar will be read twice as a 
+file type source. Is my understanding right?
+
+Masatake YAMATO
