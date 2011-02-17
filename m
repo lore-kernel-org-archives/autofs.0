@@ -1,26 +1,28 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Wrong network
-Date: Thu, 17 Feb 2011 09:58:08 +0800
-Message-ID: <1297907888.2893.21.camel@perseus>
-References: <alpine.LRH.0.9999.1102120924290.6851@helios.vgersoft.com>
-	<alpine.LRH.0.9999.1102121518420.12882@helios.vgersoft.com>
-	<1297649183.2822.6.camel@perseus>
-	<alpine.LRH.0.9999.1102141420430.25310@firefly.vgersoft.com>
-	<1297739162.13007.7.camel@perseus>
-	<alpine.LRH.0.9999.1102150702520.15610@helios.vgersoft.com>
-	<1297772151.13007.21.camel@perseus>
-	<alpine.LRH.0.9999.1102150729250.16053@helios.vgersoft.com>
-	<1297774988.13007.43.camel@perseus>
-	<alpine.LRH.0.9999.1102161657250.24619@helios.vgersoft.com>
+From: Deke Clinger <dclinger@qualcomm.com>
+Subject: Re: 5.0.5 non-expiring mounts
+Date: Wed, 16 Feb 2011 17:08:37 -0800 (PST)
+Message-ID: <alpine.LSU.2.00.1102161700370.29435@tux.qualcomm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com;
-	h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding;
-	s=smtpout; bh=sbtz0cxjzJizVh2pDQwtBuedBV4=;
-	b=HFpmhc5iyb+XVZ4jusK/4A/T66/v7uEzeFU2WSifGW/zJ/qTQB6I5guSLeR1VMWUcUa2yim6Jz4MDAWqrDLRjvIWOS+1kPvDWtPkwl/M0PiWRqdwQ84Hh47ZanOVHKmmEtr0QZV3Qo9SkAWBfrVNndZSX2IQ9uvRxvjequGY9vA=
-In-Reply-To: <alpine.LRH.0.9999.1102161657250.24619@helios.vgersoft.com>
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
+	d=qualcomm.com; i=dclinger@qualcomm.com; q=dns/txt;
+	s=qcdkim; t=1297910237; x=1329446237;
+	h=x-authentication-warning:date:from:to:subject:message-id:
+	user-agent:mime-version:content-type;
+	z=X-Authentication-Warning:=20tux.qualcomm.com:=20dclinger
+	=20owned=20process=20doing=20-bs|Date:=20Wed,=2016=20Feb
+	=202011=2017:08:37=20-0800=20(PST)|From:=20Deke=20Clinger
+	=20<dclinger@qualcomm.com>|To:=20autofs@linux.kernel.org
+	|Subject:=20RE:=20[autofs]=205.0.5=20non-expiring=20mount
+	s|Message-ID:=20<alpine.LSU.2.00.1102161700370.29435@tux.
+	qualcomm.com>|User-Agent:=20Alpine=202.00=20(LSU=201167
+	=202008-08-23)|MIME-Version:=201.0|Content-Type:=20TEXT/P
+	LAIN=3B=20charset=3DUS-ASCII;
+	bh=AR4xRI4lElgcPdnL/fe0V3VtDDZTv/bohlwkKncvHpY=;
+	b=bUHdOqEqV8tf1Gi7knR4tUMTp7MBU3u0Ux+A2TjX0mBx78ftQlPmm3+5
+	tDNaRZ4Y7Uc+VD/CeNx5y/ov7dAbXzcZAZC1ZqB1RtCfy 
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -31,30 +33,25 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Steve Thompson <smt@vgersoft.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Wed, 2011-02-16 at 17:00 -0500, Steve Thompson wrote:
-> On Tue, 15 Feb 2011, Ian Kent wrote:
-> 
-> > As far as the hang you have seen, I don't know why that's happening, the
-> > patches were added between el5_5.4 and el5_5.6 have been around for
-> > quite a while, upstream and in Fedora and tested by more than one
-> > customer, so I didn't expect to hear of a problem.
-> 
-> While thinking about this I noticed that the automount hangs all occurred 
-> on systems that had SElinux set to enforcing mode; there were no hangs on 
-> systems with SElinux either disabled or in permissive mode. So for now I 
-> have disabled SElinux on most of the systems on which a hang was observed. 
-> So far, so good: no more hangs. But it's only been a couple of days, so I 
-> will keep an eye on it.
+On Wed Feb 16 12:18:15 UTC 2011 Ian Kent wrote:
 
-Right, but to help me a gdb backtrace (the "thr a a bt") of a hung
-automount process would be useful.
+> A backtrace generally doesn't do us any good when were trying to find an
+> expire problem, the debug log is where we have to start on these.
 
-Also, an avc log from a system with selinux in permissive mode is needed
-to find out what is happening. I don't think the changes to the package
-caused this breakage and QA testing is always done with selinux in
-enforcing mode. So maybe there has been an selinux policy change too.
+I've got a debug log from a sled10sp3 machine running the Novell autofs
+5.0.5 update. Ian - could I mail you this personally? I'd rather not have
+this log with usernames, paths, hostnames, etc. on a public archive.
 
-Ian
+FWIW, I did do a test with autofs5.0.5 built from source with all the
+patches in the patch order list from kernel.org and it demonstrated the
+same behavior: a USR1 signal unmounted the direct map entries but not the
+indirect. I changed the maps to files, pruned them to a few hundred entries
+and converted the indirect entries to direct and re-ran the
+test. Configured like this all entries unmounted upon a USR1 signal so I do
+believe this has something to do with direct vs indirect mounts. 
+
+Regards,
+
+-Deke
