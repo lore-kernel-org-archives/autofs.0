@@ -1,28 +1,11 @@
-From: Deke Clinger <dclinger@qualcomm.com>
-Subject: Re: 5.0.5 non-expiring mounts
-Date: Thu, 17 Feb 2011 11:21:19 -0800 (PST)
-Message-ID: <alpine.LSU.2.00.1102171118360.26104@tux.qualcomm.com>
+From: Nico De Ranter <nico.deranter@sonycom.com>
+Subject: automounting replicated servers using NFSv4 fails
+Date: Fri, 18 Feb 2011 14:09:49 +0100
+Message-ID: <1298034589.18517.52.camel@puppy.sonytel.be>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
-	d=qualcomm.com; i=dclinger@qualcomm.com; q=dns/txt;
-	s=qcdkim; t=1297970481; x=1329506481;
-	h=x-authentication-warning:date:from:to:subject:message-id:
-	user-agent:mime-version:content-type;
-	z=X-Authentication-Warning:=20tux.qualcomm.com:=20dclinger
-	=20owned=20process=20doing=20-bs|Date:=20Thu,=2017=20Feb
-	=202011=2011:21:19=20-0800=20(PST)|From:=20Deke=20Clinger
-	=20<dclinger@qualcomm.com>|To:=20autofs@linux.kernel.org
-	|Subject:=20Re:=20[autofs]=205.0.5=20non-expiring=20mount
-	s|Message-ID:=20<alpine.LSU.2.00.1102171118360.26104@tux.
-	qualcomm.com>|User-Agent:=20Alpine=202.00=20(LSU=201167
-	=202008-08-23)|MIME-Version:=201.0|Content-Type:=20TEXT/P
-	LAIN=3B=20charset=3DUS-ASCII;
-	bh=2waNrAXk7+m8rO1JlDWfRd/y77N3UkEhvXGoYJ7NnRw=;
-	b=p0bt4KiSq1PU7e8iVjrBYNlSylLJNC5C8IT9Zo/eYadoZwgvwnzGeofp
-	IBR0Lp0qf9tbiUYyHYnZpI2MATMZ6Z/yks49tFFperwfs 
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -35,90 +18,90 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-(my reply to Ian, without the logfile attached)
 
---
+Hi,
 
-On Thu, 17 Feb 2011, Ian Kent wrote:
+I have a number of Linux clients (Ubuntu 10.04) that mount a (read-only)
+directory from 3 replicated servers using NFSv3.  I am now in the
+process of moving to NFSv4.  I can mount the directories using NFSv4
+manually. I can mount the directories using autofs over NFSv4 when I
+specify only 1 server (any of the 3 will work), but when I add all 3
+servers to the automount configuration file the mount fails.
 
-> On Wed, 2011-02-16 at 17:08 -0800, Deke Clinger wrote:
-> > On Wed Feb 16 12:18:15 UTC 2011 Ian Kent wrote:
-> > 
-> > > A backtrace generally doesn't do us any good when were trying to find an
-> > > expire problem, the debug log is where we have to start on these.
-> > 
-> > I've got a debug log from a sled10sp3 machine running the Novell autofs
-> > 5.0.5 update. Ian - could I mail you this personally? I'd rather not have
-> > this log with usernames, paths, hostnames, etc. on a public archive.
-> 
-> Yes please.
+The configuration files look as follows:
 
-Attached. This is all automount entries from bootup in case you're
-interested. I login and start doing stuff around "Feb 16 16:38:00". There
-are entries like:
+# /etc/automaster
+/-	/etc/auto.local
 
-Feb 16 16:57:40 src@private automount[3833]: expired /usr2/user1
-Feb 16 16:57:40 src@private automount[3833]: expiring path /usr2/user2
+# /etc/auto.local
+/usr/local
+-fstype=nfs4,ro,nodev,nosuid,nonstrict,nodev,sync,_netdev,proto=tcp,retry=10,rsize=8192,wsize=8
+192,soft  server1:/local/ubuntu64 server2:/local/ubuntu64
+server3:/local/ubuntu64
 
-but these paths never actually go away.
+(Note: the content of /etc/auto.local is on 1 line but my e-mail
+application is splitting the content over multiple lines)
 
-BTW, this host is running 'autofs5-5.0.5-0.7.1.2597.0.TEST.667967' from
-Novell, which includes your 'fix-out-of-order-locking-in-readmap' patch.
+As I said above a similar setup using nfs in stead of nfs4 works fine,
+specifying only 1 server works fine too.
 
-> > FWIW, I did do a test with autofs5.0.5 built from source with all the
-> > patches in the patch order list from kernel.org and it demonstrated the
-> > same behavior: a USR1 signal unmounted the direct map entries but not the
-> > indirect. I changed the maps to files, pruned them to a few hundred entries
-> > and converted the indirect entries to direct and re-ran the
-> > test. Configured like this all entries unmounted upon a USR1 signal so I do
-> > believe this has something to do with direct vs indirect mounts. 
-> 
-> There are a couple of possibilities. I'm always working with the current
-> source and basic testing includes expiring both direct and indirect
-> mounts as a matter of course and I'm not seeing this. So there has to be
-> more to it or I have one or other patches already in the queue that
-> resolve the problem.
-> 
-> Does this happen straight away or start after some time of running?
+If I run automount manually with verbose and debugging enabled I see the
+following output when trying to access /usr/local:
 
-Immediately. 
+#################################################
+handle_packet: type = 5
+handle_packet_missing_direct: token 296, name /usr/local, request pid
+2887
+attempting to mount entry /usr/local
+lookup_mount: lookup(file): looking up /usr/local
+lookup_mount: lookup(file): /usr/local ->
+-fstype=nfs4,ro,nodev,nosuid,nonstrict,nodev,sync,_netdev,proto=tcp,retry=10,rsize=8192,wsize=8192,soft  server1:/local/ubuntu64 server2:/local/ubuntu64
+parse_mount: parse(sun): expanded entry:
+-fstype=nfs4,ro,nodev,nosuid,nonstrict,nodev,sync,_netdev,proto=tcp,retry=10,rsize=8192,wsize=8192,soft  server1:/local/ubuntu64 server2:/local/ubuntu64
+parse_mount: parse(sun): gathered options:
+fstype=nfs4,ro,nodev,nosuid,nonstrict,nodev,sync,_netdev,proto=tcp,retry=10,rsize=8192,wsize=8192,soft
+parse_mount: parse(sun): dequote("server1:/local/ubuntu64") ->
+server1:/local/ubuntu64
+parse_mount: parse(sun): dequote("server2:/local/ubuntu64") ->
+server2:/local/ubuntu64
+parse_mount: parse(sun): core of entry:
+options=fstype=nfs4,ro,nodev,nosuid,nonstrict,nodev,sync,_netdev,proto=tcp,retry=10,rsize=8192,wsize=8192,soft, loc=server1:/local/ubuntu64 server2:/local/ubuntu64
+sun_mount: parse(sun): mounting root /usr/local, mountpoint /usr/local,
+what server1:/local/ubuntu64 server2:/local/ubuntu64, fstype nfs4,
+options
+ro,nodev,nosuid,nodev,sync,_netdev,proto=tcp,retry=10,rsize=8192,wsize=8192,soft
+mount_mount: mount(nfs): root=/usr/local name=/usr/local
+what=server1:/local/ubuntu64 server2:/local/ubuntu64, fstype=nfs4,
+options=ro,nodev,nosuid,nodev,sync,_netdev,proto=tcp,retry=10,rsize=8192,wsize=8192,soft
+mount_mount: mount(nfs): nfs
+options="ro,nodev,nosuid,nodev,sync,_netdev,proto=tcp,retry=10,rsize=8192,wsize=8192,soft", nosymlink=0, ro=1
+get_nfs_info: called for host server2 proto tcp version 0x40
+get_nfs_info: called for host server1 proto tcp version 0x40
+mount(nfs): no hosts available
+dev_ioctl_send_fail: token = 296
+failed to mount /usr/local
+####################################################
 
-> Do all indirect mounts stop expiring or only some?
+Any idea what might be going wrong?
 
-We use /net with a map like this:
+Thanks in advance,
 
-# /net, auto_master, automountMaps, sandiego, corp, qualcomm.com
-dn: automountKey=/net,automountMapName=auto_master,ou=automountMaps,ou=sandiego,ou=corp,dc=qualcomm,dc=com
-qcautomountkey: /net
-objectClass: automount
-objectClass: top
-objectClass: qcNisObject
-automountkey: /net
-automountinformation: -hosts -nosuid
+Nico
 
-Those paths do unmount on signal. 
+-- 
+With kind regards
 
-> What is the for of the indirect map entries, are they multi-mount
-> entries?
+Nico De Ranter
+Senior System Administrator
+Techsoft Centre
 
-No multimount, the maps are in LDAP like the one above. Here's my home
-directory, for example:
+Technology and Software Centre Europe
+The Corporate Village - Da Vincilaan 7-D1 - B-1935 Zaventem - Belgium
 
-# dclinger, auto.home, automountMaps, sandiego, corp, qualcomm.com
-dn: qcAutomountKey=dclinger,automountMapName=auto.home,ou=automountMaps,ou=san 
- diego,ou=corp,dc=qualcomm,dc=com
-automountinformation: -rw,noquota filer:/vol/vol2/usr2/dclinger
-qcautomountkey: dclinger
-automountkey: dclinger
-objectClass: top
-objectClass: automount
-objectClass: qcNisObject
+Phone:    +32 (0)2 700 8641
+Fax:          +32 (0)2 700 8622
+E-mail:    nico.deranter@eu.sony.com
 
-The others are similiar, with different keys obviously and various file
-servers and volume names.
-
-> Obviously the debug log will probably answer most of these questions.
-
-Please let me know if any other questions. Thanks for looking at this.
-
--Deke
+A division of Sony Europe (Belgium) N.V.
+VAT BE 0413.825.160 - RPR Brussels
+Fortis - BIC GEBABEBB - IBAN BE41293037680010
