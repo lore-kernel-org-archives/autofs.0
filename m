@@ -1,19 +1,15 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: automounting replicated servers using NFSv4 fails
-Date: Mon, 21 Feb 2011 20:38:11 +0800
-Message-ID: <1298291891.13008.2.camel@perseus>
-References: <1298034589.18517.52.camel@puppy.sonytel.be>
-	<1298087286.2851.29.camel@perseus>
-	<1298280412.2072.0.camel@puppy.sonytel.be>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: Before I start carving wheels....
+Date: Wed, 23 Feb 2011 09:19:47 -0500
+Message-ID: <x497hcqj0jg.fsf@segfault.boston.devel.redhat.com>
+References: <mj849qulir49bmajiif61sp3.1298416168018@email.android.com>
+	<alpine.LFD.1.10.1102222203150.7886@gardencity.blueskystudios.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com;
-	h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding;
-	s=smtpout; bh=l5QafYR3JJBBjZrBb48tSEyeZlo=;
-	b=EjX965DsVE+fVQYQaimebTiZwR8NyyOf4YYIcWnS3Qoaj38N7oCZnEAXoC/HNi7yV6bbYztsDQn27zU+21Qu8onTu97317Lj+OJMsUejLFlCh512ZqrUlCEZvNLxMNQwelQxvJ9DFPEZeyE5W+REWosVyB9ywqLvahuyA3Q6XUE=
-In-Reply-To: <1298280412.2072.0.camel@puppy.sonytel.be>
+In-Reply-To: <alpine.LFD.1.10.1102222203150.7886@gardencity.blueskystudios.com>
+	(Vincent Liggio's message of "Tue, 22 Feb 2011 22:05:49 -0500 (EST)")
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,37 +20,32 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Nico De Ranter <nico.deranter@sonycom.com>
-Cc: autofs@linux.kernel.org
+To: Vincent Liggio <vince@blueskystudios.com>
+Cc: autofs@linux.kernel.org, Lee Damon <nomad@ee.washington.edu>, am-utils@fsl.cs.sunysb.edu
 
-On Mon, 2011-02-21 at 10:26 +0100, Nico De Ranter wrote:
-> On Sat, 2011-02-19 at 11:48 +0800, Ian Kent wrote:
-> > On Fri, 2011-02-18 at 14:09 +0100, Nico De Ranter wrote:
-> > > Hi,
-> > > 
-> > > I have a number of Linux clients (Ubuntu 10.04) that mount a (read-only)
-> > > directory from 3 replicated servers using NFSv3.  I am now in the
-> > > process of moving to NFSv4.  I can mount the directories using NFSv4
-> > > manually. I can mount the directories using autofs over NFSv4 when I
-> > > specify only 1 server (any of the 3 will work), but when I add all 3
-> > > servers to the automount configuration file the mount fails.
-> > 
-> > Works OK for me, on Fedora 12.
+Vincent Liggio <vince@blueskystudios.com> writes:
 
-Like I said, that's F14.
+> On Tue, 22 Feb 2011, Lee Damon wrote:
+>
+>> Has anyone done the work to get am-utils to compile on RHEL 6?  It seems the most recent autoconf tools don't like the contents of the 6.1.5 tarball.
+>>
 
-> 
-> Which version of autofs are you using?
+> I'm guessing it won't work even if you get it to compile. We've been
+> trying to get it to work with the F14 latest kernel, and it just won't
+> function (we were able to get it to work on F12, but autofs3 refuses
+> to work on the F14 kernel).
 
-Fedora 14 has 5.0.5 with, essentially all upstream patches except:
+The autofs maintainer (Ian Kent) tries to keep the v4 kernel module
+compatible with v3.  However, if you don't report problems, they won't
+get fixed (most testing these days is with autofs version 5).
 
-autofs-5.0.4-always-read-file-maps-mount-lookup-map-read-fix.patch
-autofs-5.0.5-fix-direct-map-not-updating-on-reread.patch
-autofs-5.0.5-add-external-bind-method.patch
-autofs-5.0.5-fix-add-simple-bind-auth.patch
-autofs-5.0.5-add-dump-maps-option.patch
-autofs-5.0.5-fix-submount-shutdown-wait.patch
+> It performs horribly with nfs mode. Think it's time to move onto
+> supported technology unfortunately (autofs5 is no great shakes, we're
+> going to try autofs4).
 
-And kernel current kernel revision is 2.6.35.10-74.fc14.
+autofs4 isn't exactly supported technology either.  You'd be moving from
+one dead-end to another.  I've CC'd the autofs list.  If you have
+suggestions and/or specific bugs, please let us know.
 
-Ian
+Cheers,
+Jeff
