@@ -1,29 +1,13 @@
-From: Leonardo Chiquitto <leonardo.lists@gmail.com>
-Subject: Re: 5.0.5 non-expiring mounts
-Date: Wed, 23 Feb 2011 17:22:27 -0300
-Message-ID: <AANLkTi=eVoOnxbGrqtWpnvjKjYqzLads=Je+RWVsvb+n@mail.gmail.com>
-References: <4D510D53.7010507@gmail.com>
-	<20110215011037.GT27735@sunapee.qualcomm.com>
-	<1297739464.13007.8.camel@perseus>
-	<1297741021.13007.12.camel@perseus>
-	<20110215052857.GV27735@sunapee.qualcomm.com>
-	<1297772933.13007.28.camel@perseus>
-	<AANLkTi=fSs58yKLnWFLLDk-ep+wDbqNLpj0r9AZUjZ+Y@mail.gmail.com>
-	<1297840085.2825.8.camel@perseus>
-	<1297858695.2825.17.camel@perseus>
+From: Vincent Liggio <vince@blueskystudios.com>
+Subject: Re: Before I start carving wheels....
+Date: Wed, 23 Feb 2011 10:03:12 -0500
+Message-ID: <4D6521B0.2050608@blueskystudios.com>
+References: <mj849qulir49bmajiif61sp3.1298416168018@email.android.com>	<alpine.LFD.1.10.1102222203150.7886@gardencity.blueskystudios.com>
+	<x497hcqj0jg.fsf@segfault.boston.devel.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
-	h=domainkey-signature:mime-version:in-reply-to:references:date
-	:message-id:subject:from:to:cc:content-type
-	:content-transfer-encoding;
-	bh=rY+C2CMyp20vv4eFX/T7hc86BUr3rlFeLTS9YI7ytNc=;
-	b=Boti/ZPoVQ6CcLpgE/f2O4RJuOB+dB1jShpssIU0vSjjNYOoED511O5yY3qY+jt383
-	00NWthY5dtkCDXx6wEoojNJWRZLTVeC2cQ/zhY9RgjHGTvLDH+ZFpXkI9V9WkXemP59p
-	KIb4U0W8UeZNNL/QUBesC07fdrjwRC8bDGPrQ=
-In-Reply-To: <1297858695.2825.17.camel@perseus>
+In-Reply-To: <x497hcqj0jg.fsf@segfault.boston.devel.redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -34,40 +18,50 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: "autofs@linux.kernel.org" <autofs@linux.kernel.org>, Mike Marion <mmarion@qualcomm.com>
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: autofs@linux.kernel.org, Lee Damon <nomad@ee.washington.edu>, am-utils@fsl.cs.sunysb.edu
 
-On Wed, Feb 16, 2011 at 10:18 AM, Ian Kent <raven@themaw.net> wrote:
-> On Wed, 2011-02-16 at 15:08 +0800, Ian Kent wrote:
->> On Tue, 2011-02-15 at 16:11 -0200, Leonardo Chiquitto wrote:
->> > On Tue, Feb 15, 2011 at 10:28 AM, Ian Kent <raven@themaw.net> wrote:
->> > > On Mon, 2011-02-14 at 21:28 -0800, Mike Marion wrote:
->> > >> On Mon, Feb 14, 2011 at 07:37:01PM -0800, Ian Kent wrote:
->> > >>
->> > >> > That is kernel revision and autofs revision?
->> > >>
->> > >> 2.6.16.60-0.59.1 (Sles10 sp3 with an updated, but not bleeding edge=
-, patch).
->> > >> autofs 5.0.5 with most of the patches up to a couple months ago. =
-=A0It's hard to
->> > >> get exacts because it's a PTF from Novell (we really pushed them to=
- upgrade to
->> > >> 5.0.5) but it should be pretty much equal to the patch they just re=
-leased for
->> > >> sle 11 sp1 that they're recommending as they default going forward.
+On 02/23/2011 09:19 AM, Jeff Moyer wrote:
+> Vincent Liggio<vince@blueskystudios.com>  writes:
 >
-> Now I'm confused?
+>> I'm guessing it won't work even if you get it to compile. We've been
+>> trying to get it to work with the F14 latest kernel, and it just won't
+>> function (we were able to get it to work on F12, but autofs3 refuses
+>> to work on the F14 kernel).
 >
-> I thought that Mike had mention he had seen hangs, similar to Steve, and
-> this backtrace was an example of that.
+> The autofs maintainer (Ian Kent) tries to keep the v4 kernel module
+> compatible with v3.  However, if you don't report problems, they won't
+> get fixed (most testing these days is with autofs version 5).
 
-This is right. The backtrace I posted was sent to me as an example of a han=
-g.
+I reported on both kernel.org and on am-utils.org that autofs and amd do 
+not work with F12's kernel in March/April of 2010 (kernel.org bug 15878 
+and am-utils bug 639). No one has acknowledged or worked on the bug, as 
+far as I can tell on the respective bugzillas.
 
-> But the mail thread doesn't read
-> like that and oddly enough I seem to have identified a locking problem
-> from looking at the code based on the backtrace.
+We have discovered in the last couple of days that the amd compillation 
+is bad on F14, as is the kernel support for autofs. Copying the amd from 
+F12 (and the libgdbm library) and installing our custom compiled kernel 
+from F12 (with autofs enabled) works. amd from 12 with the kernel from 
+14 (2.6.35.10-74) does not work, nor does amd from 14 with the kernel 
+from 12 (2.6.32.26-175). amd fails if autofs3 is not on, it does not 
+recognize autofs4 as being usable.
 
-I'm sorry that we ended up hijacking the "non-expiring mounts" thread.
+NB: this is ONLY with amd in autofs mode. amd in nfs mode works, albeit 
+sluggishly. We cannot use nfs mode because some of our tools don't like 
+the whole /tmp_mnt structure.
 
-Leonardo
+>> It performs horribly with nfs mode. Think it's time to move onto
+>> supported technology unfortunately (autofs5 is no great shakes, we're
+>> going to try autofs4).
+>
+> autofs4 isn't exactly supported technology either.  You'd be moving from
+> one dead-end to another.  I've CC'd the autofs list.  If you have
+> suggestions and/or specific bugs, please let us know.
+
+A very large installations (40,000+ servers) of linux that I know of 
+refuses to use autofs5 because of issues with the mutli-threading. I 
+know no more than that, but I trust their opinion and experience, and 
+have heard rumblings of other groups having issues with autofs5.
+
+Vince
