@@ -1,11 +1,19 @@
-From: Michael Coffman <michael.coffman@avagotech.com>
-Subject: adding new file systems to host map
-Date: Thu, 24 Feb 2011 07:27:07 -0700
-Message-ID: <AANLkTikM2UyUa7xANa5LKnWe3S7LGCb+CU_nbNs5R-E1@mail.gmail.com>
-Reply-To: michael.coffman@avagotech.com
+From: Vincent Liggio <vince@blueskystudios.com>
+Subject: Re: Before I start carving wheels....
+Date: Thu, 24 Feb 2011 15:11:07 -0500
+Message-ID: <4D66BB5B.4040808@blueskystudios.com>
+References: <mj849qulir49bmajiif61sp3.1298416168018@email.android.com>	
+	<alpine.LFD.1.10.1102222203150.7886@gardencity.blueskystudios.com>	
+	<x497hcqj0jg.fsf@segfault.boston.devel.redhat.com>	
+	<4D6521B0.2050608@blueskystudios.com>
+	<1298517415.2916.27.camel@perseus>	
+	<alpine.LFD.1.10.1102232319330.12273@gardencity.blueskystudios.com>	
+	<1298529776.2916.96.camel@perseus>
+	<1298544135.3058.63.camel@perseus>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6371782834631960451=="
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <1298544135.3058.63.camel@perseus>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,59 +24,40 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org, Lee Damon <nomad@ee.washington.edu>, am-utils@fsl.cs.sunysb.edu
 
---===============6371782834631960451==
-Content-Type: multipart/alternative; boundary=20cf3054a5cf2008f8049d08021a
+On 02/24/2011 05:42 AM, Ian Kent wrote:
+>
+> It looks like amd should work with autofs protocol version v4.
+> You should also try "modprobe autofs4" before starting amd and see what
+> happens.
 
---20cf3054a5cf2008f8049d08021a
-Content-Type: text/plain; charset=ISO-8859-1
+We tried that before, and this is what happens:
 
-Hi,
+Feb 24 14:40:39 canton_64 amd[1504]: initializing amd.conf map amd.net 
+of type nis
+Feb 24 14:40:39 canton_64 amd[1504]: amd.net mounted fstype toplvl on /net
+Feb 24 14:40:39 canton_64 amd[1504]: autofs: using protocol version 5
+Feb 24 14:40:39 canton_64 amd[1504]: /net set to never timeout
 
-If I am using host mapping on an autofs client and have a file system from a
-server mounted, how do I get new file systems that are added to the file
-server to be seen by the client?    Since I have one of the file systems
-already busy on the client, the filer is never fully unmounted.  It seems
-there should be a way to get it to refresh its map of what the server has
-available.   I have tried stopping and restarting autofs, but this doesn't
-help.    If there is a simple answer to this out there, I can't seem to find
-it.
+Then we change to a directory and we get:
 
-Anything?
+Feb 24 14:40:57 canton_64 amd[1504]: Unknown autofs packet type 3
 
-Thanks.
--- 
--MichaelC
-
---20cf3054a5cf2008f8049d08021a
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-Hi,<br><br>If I am using host mapping on an autofs client and have a file s=
-ystem from a server mounted, how do I get new file systems that are added t=
-o the file server to be seen by the client?=A0=A0=A0 Since I have one of th=
-e file systems already busy on the client, the filer is never fully unmount=
-ed.=A0 It seems there should be a way to get it to refresh its map of what =
-the server has available.=A0=A0 I have tried stopping and restarting autofs=
-, but this doesn&#39;t help.=A0=A0=A0 If there is a simple answer to this o=
-ut there, I can&#39;t seem to find it.=A0=A0=A0 <br>
-
-<br>Anything?<br><br>Thanks.<br>-- <br>-MichaelC<br>
-
---20cf3054a5cf2008f8049d08021a--
-
-
---===============6371782834631960451==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
-
---===============6371782834631960451==--
-
+lsmod
+Module                  Size  Used by
+autofs4                22687  13
+ipv6                  278339  24
+ppdev                   7925  0
+parport_pc             21081  0
+parport                31509  2 ppdev,parport_pc
+e1000                  92062  0
+i2c_piix4              11998  0
+shpchp                 29568  0
+i2c_core               26926  1 i2c_piix4
+mptspi                 14609  3
+mptscsih               28444  1 mptspi
+mptbase                74728  2 mptspi,mptscsih
+scsi_transport_spi     22211  1 mptspi
