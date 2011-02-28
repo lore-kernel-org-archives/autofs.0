@@ -1,12 +1,14 @@
-From: <hpc.admin@uea.ac.uk>
-Subject: autofs problem
-Date: Tue, 8 Mar 2011 11:24:20 -0000
-Message-ID: <4930.3142507144$1299656706@news.gmane.org>
+From: Michael Coffman <michael.coffman@avagotech.com>
+Subject: Re: adding new file systems to host map
+Date: Mon, 28 Feb 2011 08:52:27 -0700
+Message-ID: <AANLkTim6-p_ePfk=nOOxox2v6bq1y9Wa==CXF0Pekn+D@mail.gmail.com>
+References: <AANLkTikM2UyUa7xANa5LKnWe3S7LGCb+CU_nbNs5R-E1@mail.gmail.com>
+	<20110228132123.GY16849@eeg.ccf.org>
+Reply-To: michael.coffman@avagotech.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1145893289201950137=="
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Language: en-gb
+In-Reply-To: <20110228132123.GY16849@eeg.ccf.org>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,73 +19,73 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
-Cc: hpc.admin@uea.ac.uk
+To: Greg Wooledge <wooledg@eeg.ccf.org>
+Cc: autofs@linux.kernel.org
 
-Hello,
+--===============1145893289201950137==
+Content-Type: multipart/alternative; boundary=0015174734b6a2a5c3049d59aa88
 
-I am experiencing autofs problems with my Centos 5.5 system. Upon boot, the
-mount fails with the following error messages (created by passing the -d
-option in the automount):
+--0015174734b6a2a5c3049d59aa88
+Content-Type: text/plain; charset=ISO-8859-1
 
-Mar  8 10:38:19 cn024 automount[6395]: do_notify_state: signal 15
-Mar  8 10:38:19 cn024 automount[6395]: master_notify_state_change: sig 15
-switching /home from 1 to 5
-Mar  8 10:38:19 cn024 automount[6395]: st_prepare_shutdown: state 1 path
-/home
-Mar  8 10:38:19 cn024 automount[6395]: expire_proc: exp_proc = 1090562368
-path /home
-Mar  8 10:38:19 cn024 automount[6395]: expire_cleanup: got thid 1090562368
-path /home stat 0
-Mar  8 10:38:19 cn024 automount[6395]: expire_cleanup: sigchld: exp
-1090562368 finished, switching from 5 to 7
-Mar  8 10:38:19 cn024 automount[6395]: st_shutdown: state 5 path /home
-Mar  8 10:38:19 cn024 smartd[7258]: smartd has fork()ed into background
-mode. New PID=7258.
-Mar  8 10:38:19 cn024 automount[6395]: umount_multi: path /home incl 0
-Mar  8 10:38:19 cn024 automount[6395]: umounted indirect mount /home
-Mar  8 10:38:19 cn024 automount[6395]: automount_path_to_fifo: fifo name
-/var/run/autofs.fifo-home
-Mar  8 10:38:19 cn024 automount[6395]: shut down path /home
-Mar  8 10:38:19 cn024 automount[6395]: autofs stopped
-Mar  8 10:38:28 cn024 automount[7334]: Starting automounter version
-5.0.1-0.rc2.143.el5, master map auto.master
-Mar  8 10:38:28 cn024 automount[7334]: using kernel protocol version 5.01
-Mar  8 10:38:28 cn024 automount[7334]: lookup_nss_read_master: reading
-master files auto.master
-Mar  8 10:38:28 cn024 automount[7334]: parse_init: parse(sun): init gathered
-global options: (null)
-Mar  8 10:38:28 cn024 automount[7334]: lookup_read_master: lookup(file):
-read entry /home
-Mar  8 10:38:28 cn024 automount[7334]: master_do_mount: mounting /home
-Mar  8 10:38:28 cn024 automount[7334]: automount_path_to_fifo: fifo name
-/var/run/autofs.fifo-home
-Mar  8 10:38:28 cn024 automount[7334]: lookup_nss_read_map: reading map file
-/etc/auto.home
-Mar  8 10:38:28 cn024 automount[7334]: parse_init: parse(sun): init gathered
-global options: rw,intr
-Mar  8 10:38:28 cn024 automount[7334]: do_mount_autofs_indirect: failed to
-create ioctl fd for autofs path /home
-Mar  8 10:38:28 cn024 automount[7334]: handle_mounts: mount of /home failed!
-Mar  8 10:38:28 cn024 automount[7334]: master_do_mount: failed to startup
-mount
-Mar  8 10:38:28 cn024 automount[7334]: no mounts in table
+Greg,
 
-The error messages to note are the last four lines. When I restart the
-daemon, the automount works, but fails after a day or two. The version of
-autofs I am using is:
+Thanks for the response.
 
-Name        : autofs                       Relocations: (not relocatable)
-Version     : 5.0.1                        Vendor: CentOS
-Release     : 0.rc2.143.el5_5.6             
+On Mon, Feb 28, 2011 at 6:21 AM, Greg Wooledge <wooledg@eeg.ccf.org> wrote:
 
-Any help will be greatly appreciated. Thanks in advance.
+> On Thu, Feb 24, 2011 at 07:27:07AM -0700, Michael Coffman wrote:
+> > If I am using host mapping on an autofs client and have a file system
+> from a
+> > server mounted, how do I get new file systems that are added to the file
+> > server to be seen by the client?
+>
+> When I asked a similar question a few months ago, the answer was
+> essentially "you can't".  The only foolproof solution as far as I know
+> is to reboot the client machines.
+>
 
-----------
-Wadud Miah
-High Performance Computing Systems Developer
-Research Computing Services, University of East Anglia
-Telephone: 01603 593856
 
-Information Services
-----------
+
+-- 
+-MichaelC
+
+--0015174734b6a2a5c3049d59aa88
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+Greg,<br><br>Thanks for the response. <br><br><div class=3D"gmail_quote">On=
+ Mon, Feb 28, 2011 at 6:21 AM, Greg Wooledge <span dir=3D"ltr">&lt;<a href=
+=3D"mailto:wooledg@eeg.ccf.org">wooledg@eeg.ccf.org</a>&gt;</span> wrote:<b=
+r><blockquote class=3D"gmail_quote" style=3D"margin: 0pt 0pt 0pt 0.8ex; bor=
+der-left: 1px solid rgb(204, 204, 204); padding-left: 1ex;">
+<div class=3D"im">On Thu, Feb 24, 2011 at 07:27:07AM -0700, Michael Coffman=
+ wrote:<br>
+&gt; If I am using host mapping on an autofs client and have a file system =
+from a<br>
+&gt; server mounted, how do I get new file systems that are added to the fi=
+le<br>
+&gt; server to be seen by the client?<br>
+<br>
+</div>When I asked a similar question a few months ago, the answer was<br>
+essentially &quot;you can&#39;t&quot;. =A0The only foolproof solution as fa=
+r as I know<br>
+is to reboot the client machines.<br>
+</blockquote></div><br><br clear=3D"all"><br>-- <br>-MichaelC<br>
+
+--0015174734b6a2a5c3049d59aa88--
+
+
+--===============1145893289201950137==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
+
+--===============1145893289201950137==--
+
