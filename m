@@ -1,657 +1,308 @@
-From: David Howells <dhowells@redhat.com>
-Subject: [PATCH 2/3] Make VFS handle mount autoexpiry
-Date: Thu, 03 Mar 2011 16:57:48 +0000
-Message-ID: <20110303165748.9550.25913.stgit@warthog.procyon.org.uk>
-References: <20110303165738.9550.2251.stgit@warthog.procyon.org.uk>
+From: Leonardo Chiquitto <leonardo.lists@gmail.com>
+Subject: Re: 5.0.5 non-expiring mounts
+Date: Fri, 4 Mar 2011 17:10:09 -0300
+Message-ID: <AANLkTikyAnXpeGfgVtNrUVfqkfGEkjx4dk6jDvhD2oqY@mail.gmail.com>
+References: <4D510D53.7010507@gmail.com>
+	<20110215011037.GT27735@sunapee.qualcomm.com>
+	<1297739464.13007.8.camel@perseus>
+	<1297741021.13007.12.camel@perseus>
+	<20110215052857.GV27735@sunapee.qualcomm.com>
+	<1297772933.13007.28.camel@perseus>
+	<AANLkTi=fSs58yKLnWFLLDk-ep+wDbqNLpj0r9AZUjZ+Y@mail.gmail.com>
+	<1297840085.2825.8.camel@perseus>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20110303165738.9550.2251.stgit@warthog.procyon.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: viro@ZenIV.linux.org.uk, hch@infradead.org, raven@themaw.net
-Cc: linux-devel@vger.kernel.org, autofs@linux.kernel.org, linux-kernel@vger.kernel.org, David Howells <dhowells@redhat.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <autofs-bounces@linux.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
+	h=domainkey-signature:mime-version:in-reply-to:references:date
+	:message-id:subject:from:to:cc:content-type
+	:content-transfer-encoding;
+	bh=HFTfr8U11rnqSc4DxAci44nZ6zf5131+EvY08mDzoak=;
+	b=S1Qjg09FOkaUlVveYbFgy63LHEsxDArm6HdAEtLT2LojiUMKWeCGnDl0GVn4nTq/Zd
+	ttDWEHKGNkVsZtfjRCifRL6JHH2Vu/K6jg2Vr/UJwI8OGnvndFG6EsMnP8xCLtQV03vI
+	/goMu9/mZ1dh22wPvTJ4muFhvPdAtf6XDJYUI=
+In-Reply-To: <1297840085.2825.8.camel@perseus>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs/>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: Ian Kent <raven@themaw.net>
+Cc: "autofs@linux.kernel.org" <autofs@linux.kernel.org>, Mike Marion <mmarion@qualcomm.com>
 
-Make the VFS handle mount autoexpiry, rather than doing it in the filesystems
-(such as AFS, CIFS and NFS).  This simplifies the reference counting, since
-do_add_mount() once again adds mounts to the expiration list, and simplifies
-the filesystems since they no longer have to do anything barring set
-MNT_EXPIRABLE on an expirable mount before returning it.
+On Wed, Feb 16, 2011 at 5:08 AM, Ian Kent <raven@themaw.net> wrote:
+> On Tue, 2011-02-15 at 16:11 -0200, Leonardo Chiquitto wrote:
+>> On Tue, Feb 15, 2011 at 10:28 AM, Ian Kent <raven@themaw.net> wrote:
+>> > On Mon, 2011-02-14 at 21:28 -0800, Mike Marion wrote:
+>> >> On Mon, Feb 14, 2011 at 07:37:01PM -0800, Ian Kent wrote:
+>> >>
+>> >> > That is kernel revision and autofs revision?
+>> >>
+>> >> 2.6.16.60-0.59.1 (Sles10 sp3 with an updated, but not bleeding edge, =
+patch).
+>> >> autofs 5.0.5 with most of the patches up to a couple months ago. =A0I=
+t's hard to
+>> >> get exacts because it's a PTF from Novell (we really pushed them to u=
+pgrade to
+>> >> 5.0.5) but it should be pretty much equal to the patch they just rele=
+ased for
+>> >> sle 11 sp1 that they're recommending as they default going forward.
+>> >
+>> > That make it hard, as you know.
+>> >
+>> > But I wouldn't mind spending a bit of time on it, if you can also.
+>> >
+>> > Let's assume that it's a user space problem for now.
+>>
+>> Here are the call traces for all automount processes on the kernel side:
+>
+> I think it's a user space problem.
+>
+> snip ...
+>
+>> And here are the call traces from the user land daemon:
+>>
+>> Thread 9 (Thread 4017):
+>> #0 =A00x00002b56e465d6a8 in __lll_mutex_lock_wait () from /lib64/libpthr=
+ead.so.0
+>> #1 =A00x00002b56e46599fb in _L_mutex_lock_92 () from /lib64/libpthread.s=
+o.0
+>> #2 =A00x00002b56e4659455 in pthread_mutex_lock () from /lib64/libpthread=
+.so.0
+>> #3 =A00x00005555555746cd in master_mutex_lock () at master.c:49
+>> #4 =A00x000055555555d260 in do_hup_signal (master=3D0x55555568d010, age=
+=3D1296063258)
+>> =A0 =A0 at automount.c:1276
+>> #5 =A00x0000555555560bd3 in statemachine (arg=3D<value optimized out>)
+>> =A0 =A0 at automount.c:1354
+>> #6 =A0main (arg=3D<value optimized out>) at automount.c:2142
+>>
+>> Thread 8 (Thread 20702):
+>> #0 =A00x00002b56e4dd62a7 in brk () from /lib64/libc.so.6
+>> #1 =A00x0000555555577dfe in expire (logopt=3D2, cmd=3D<value optimized o=
+ut>, fd=3D21,
+>> =A0 =A0 ioctlfd=3D21, path=3D0x55555569ca20 "/usr2", arg=3D0x41c27ef4)
+>> =A0 =A0 at dev-ioctl-lib.c:657
+>> #2 =A00x0000555555577ebe in ioctl_expire (logopt=3D21, ioctlfd=3D-1,
+>> =A0 =A0 path=3D0x55555569ca20 "/usr2", when=3D0) at dev-ioctl-lib.c:701
+>> #3 =A00x0000555555561e4e in expire_proc_indirect (arg=3D<value optimized=
+ out>)
+>> =A0 =A0 at indirect.c:545
+>> #4 =A00x00002b56e4657193 in start_thread () from /lib64/libpthread.so.0
+>> #5 =A00x00002b56e4ddcdfd in sysctl () from /lib64/libc.so.6
+>> #6 =A00x0000000000000000 in ?? ()
+>>
+>> Thread 7 (Thread 7060):
+>> #0 =A00x00002b56e465ac77 in pthread_rwlock_wrlock () from /lib64/libpthr=
+ead.so.0
+>> #1 =A00x00005555555752ea in master_source_writelock (entry=3D<value opti=
+mized out>)
+>> =A0 =A0 at master.c:527
+>> #2 =A00x0000555555575f8f in master_add_map_source (entry=3D0x5555556a10b=
+0,
+>> =A0 =A0 type=3D0x0, format=3D0x0, age=3D1296059657, argc=3D1, argv=3D<va=
+lue optimized out>)
+>> =A0 =A0 at master.c:191
+>> #3 =A00x0000555555579ee3 in master_parse_entry (buffer=3D<value optimize=
+d out>,
+>> =A0 =A0 default_timeout=3D86400, logging=3D<value optimized out>, age=3D=
+1296059657)
+>> =A0 =A0 at master_parse.y:823
+>> #4 =A00x00002aaaaaab83fe in lookup_read_master (master=3D<value optimize=
+d out>,
+>> =A0 =A0 age=3D1296059657, context=3D<value optimized out>) at lookup_lda=
+p.c:1625
+>> #5 =A00x0000555555569052 in do_read_master (master=3D0x55555568d010,
+>> =A0 =A0 type=3D<value optimized out>, age=3D1296059657) at lookup.c:96
+>> #6 =A00x000055555556aa3c in lookup_nss_read_master (master=3D0x55555568d=
+010,
+>> =A0 =A0 age=3D1296059657) at lookup.c:229
+>> #7 =A00x0000555555575c28 in master_read_master (master=3D0x55555568d010,
+>> =A0 =A0 age=3D1296059657, readall=3D1) at master.c:831
+>> #8 =A00x000055555555d844 in do_read_master (arg=3D<value optimized out>)
+>> =A0 =A0 at automount.c:1259
+>> #9 =A00x00002b56e4657193 in start_thread () from /lib64/libpthread.so.0
+>> #10 0x00002b56e4ddcdfd in sysctl () from /lib64/libc.so.6
+>> #11 0x0000000000000000 in ?? ()
+>>
+>> Thread 6 (Thread 6851):
+>> #0 =A00x00002b56e465aa3d in pthread_rwlock_rdlock () from /lib64/libpthr=
+ead.so.0
+>> #1 =A00x000055555556deb6 in cache_readlock (mc=3D0x55555568e5b8) at cach=
+e.c:60
+>> #2 =A00x000055555556baff in do_readmap (arg=3D<value optimized out>) at =
+state.c:479
+>> #3 =A00x00002b56e4657193 in start_thread () from /lib64/libpthread.so.0
+>> #4 =A00x00002b56e4ddcdfd in sysctl () from /lib64/libc.so.6
+>> #5 =A00x0000000000000000 in ?? ()
+>>
+>> Thread 5 (Thread 4026):
+>> #0 =A00x00002b56e465d6a8 in __lll_mutex_lock_wait () from /lib64/libpthr=
+ead.so.0
+>> #1 =A00x00002b56e46599fb in _L_mutex_lock_92 () from /lib64/libpthread.s=
+o.0
+>> #2 =A00x00002b56e4659455 in pthread_mutex_lock () from /lib64/libpthread=
+.so.0
+>> #3 =A00x00005555555746cd in master_mutex_lock () at master.c:49
+>> #4 =A00x0000555555560ff9 in handle_packet_missing_indirect (ap=3D0x55555=
+569c940,
+>> =A0 =A0 pkt=3D0x41823ec0) at indirect.c:808
+>> #5 =A00x000055555555fa32 in handle_packet (ap=3D<value optimized out>)
+>> =A0 =A0 at automount.c:1026
+>> #6 =A0handle_mounts (ap=3D<value optimized out>) at automount.c:1551
+>> #7 =A00x00002b56e4657193 in start_thread () from /lib64/libpthread.so.0
+>> #8 =A00x00002b56e4ddcdfd in sysctl () from /lib64/libc.so.6
+>> #9 =A00x0000000000000000 in ?? ()
+>>
+>> Thread 4 (Thread 4025):
+>> #0 =A00x00002b56e4dd4b26 in fts_read () from /lib64/libc.so.6
+>> #1 =A00x00007fff37314e80 in ?? ()
+>> #2 =A00x0000000000000000 in ?? ()
+>>
+>> Thread 3 (Thread 4022):
+>> #0 =A00x00002b56e465ac77 in pthread_rwlock_wrlock () from /lib64/libpthr=
+ead.so.0
+>> #1 =A00x00005555555752ea in master_source_writelock (entry=3D<value opti=
+mized out>)
+>> =A0 =A0 at master.c:527
+>> #2 =A00x00005555555631af in handle_packet_missing_direct (ap=3D0x5555556=
+a11c0,
+>> =A0 =A0 pkt=3D0x40821ec0) at direct.c:1296
+>> #3 =A00x000055555555fa1d in handle_packet (ap=3D<value optimized out>)
+>> =A0 =A0 at automount.c:1029
+>> #4 =A0handle_mounts (ap=3D<value optimized out>) at automount.c:1551
+>> #5 =A00x00002b56e4657193 in start_thread () from /lib64/libpthread.so.0
+>> #6 =A00x00002b56e4ddcdfd in sysctl () from /lib64/libc.so.6
+>> #7 =A00x0000000000000000 in ?? ()
+>>
+>> Thread 2 (Thread 4019):
+>> #0 =A00x00002b56e465b326 in pthread_cond_wait@@GLIBC_2.3.2 ()
+>> =A0 =A0from /lib64/libpthread.so.0
+>> #1 =A00x000055555556c8b3 in st_queue_handler (arg=3D<value optimized out=
+>)
+>> =A0 =A0 at state.c:1104
+>> #2 =A00x00002b56e4657193 in start_thread () from /lib64/libpthread.so.0
+>> #3 =A00x00002b56e4ddcdfd in sysctl () from /lib64/libc.so.6
+>> #4 =A00x0000000000000000 in ?? ()
+>>
+>> Thread 1 (Thread 4018):
+>> #0 =A00x00002b56e465b517 in pthread_cond_timedwait@@GLIBC_2.3.2 ()
+>> =A0 =A0from /lib64/libpthread.so.0
+>> #1 =A00x0000555555573762 in alarm_handler (arg=3D<value optimized out>)
+>> =A0 =A0 at alarm.c:206
+>> #2 =A00x00002b56e4657193 in start_thread () from /lib64/libpthread.so.0
+>> #3 =A00x00002b56e4ddcdfd in sysctl () from /lib64/libc.so.6
+>> #4 =A00x0000000000000000 in ?? ()
+>>
+>
+> It looks like a lock ordering bug to me and I think it's the same hang
+> that Steve Thompson reported.
+>
+> This will be hard to test I think, hopefully Mike or Steve will be able
+> to use a couple of machines for testing, even so it may take a while
+> before we know.
+>
+> Could you prepare a test package for Mike using this patch please.
+> It should apply OK but of course you'll need to discard or fix the
+> CHANGELOG hunk.
+>
+> I'll prepare a test package for Steve soon as I get time.
+>
+> autofs-5.0.5 - fix out of order locking in readmap
+>
+> From: Ian Kent <raven@themaw.net>
+>
+> When re-reading the master map and a mount lookup for a particular map
+> entry arrives at the same time a map source is being added to the map
+> entry and a map entry re-read is also initiated at the same time an
+> out of order mutex locking bug which results in a hang.
+> ---
+>
+> =A0CHANGELOG =A0 =A0| =A0 =A01 +
+> =A0lib/master.c | =A0 =A08 ++------
+> =A02 files changed, 3 insertions(+), 6 deletions(-)
+>
+>
+> diff --git a/CHANGELOG b/CHANGELOG
+> index 11054da..631094f 100644
+> --- a/CHANGELOG
+> +++ b/CHANGELOG
+> @@ -55,6 +55,7 @@
+> =A0- add external bind method.
+> =A0- fix add simple bind auth.
+> =A0- add option to dump configured automount maps.
+> +- fix out of order locking in readmap.
+>
+> =A003/09/2009 autofs-5.0.5
+> =A0-----------------------
+> diff --git a/lib/master.c b/lib/master.c
+> index 95bd3fb..daedf66 100644
+> --- a/lib/master.c
+> +++ b/lib/master.c
+> @@ -611,8 +611,6 @@ struct master_mapent *master_find_mapent(struct maste=
+r *master, const char *path
+> =A0{
+> =A0 =A0 =A0 =A0struct list_head *head, *p;
+>
+> - =A0 =A0 =A0 master_mutex_lock();
+> -
+> =A0 =A0 =A0 =A0head =3D &master->mounts;
+> =A0 =A0 =A0 =A0list_for_each(p, head) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0struct master_mapent *entry;
+> @@ -625,8 +623,6 @@ struct master_mapent *master_find_mapent(struct maste=
+r *master, const char *path
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
+> =A0 =A0 =A0 =A0}
+>
+> - =A0 =A0 =A0 master_mutex_unlock();
+> -
+> =A0 =A0 =A0 =A0return NULL;
+> =A0}
+>
+> @@ -703,9 +699,7 @@ struct master_mapent *master_new_mapent(struct master=
+ *master, const char *path,
+>
+> =A0void master_add_mapent(struct master *master, struct master_mapent *en=
+try)
+> =A0{
+> - =A0 =A0 =A0 master_mutex_lock();
+> =A0 =A0 =A0 =A0list_add_tail(&entry->list, &master->mounts);
+> - =A0 =A0 =A0 master_mutex_unlock();
+> =A0 =A0 =A0 =A0return;
+> =A0}
+>
+> @@ -813,6 +807,7 @@ int master_read_master(struct master *master, time_t =
+age, int readall)
+> =A0 =A0 =A0 =A0 * We need to clear and re-populate the null map entry cac=
+he
+> =A0 =A0 =A0 =A0 * before alowing anyone else to use it.
+> =A0 =A0 =A0 =A0 */
+> + =A0 =A0 =A0 master_mutex_lock();
+> =A0 =A0 =A0 =A0if (master->nc) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0cache_writelock(master->nc);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0nc =3D master->nc;
+> @@ -831,6 +826,7 @@ int master_read_master(struct master *master, time_t =
+age, int readall)
+> =A0 =A0 =A0 =A0master_init_scan();
+> =A0 =A0 =A0 =A0lookup_nss_read_master(master, age);
+> =A0 =A0 =A0 =A0cache_unlock(nc);
+> + =A0 =A0 =A0 master_mutex_unlock();
+>
+> =A0 =A0 =A0 =A0if (!master->read_fail)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0master_mount_mounts(master, age, readall);
 
-Additionally, provide a tuning knob to set the periodicity of the reaper in
-seconds:
+Hello Ian,
 
-	/proc/sys/fs/mount-expiry-period
+I just got a reply confirming that the hangs are no longer
+reproducible with this
+patch applied. Please, do you think you can consider it for upstream inclus=
+ion?
 
-The default is 10 minutes.
-
-The NFS sysctl (nfs_mountpoint_timeout) is removed in its favour.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
----
-
- Documentation/filesystems/vfs.txt |    7 +-
- fs/afs/internal.h                 |    1 
- fs/afs/mntpt.c                    |   60 ++-------------------
- fs/afs/super.c                    |    1 
- fs/cifs/cifs_dfs_ref.c            |   53 ++-----------------
- fs/cifs/cifsfs.c                  |    3 -
- fs/cifs/cifsproto.h               |    1 
- fs/namei.c                        |    8 +--
- fs/namespace.c                    |  106 ++++++++++++++++---------------------
- fs/nfs/client.c                   |    1 
- fs/nfs/namespace.c                |   26 ---------
- fs/nfs/sysctl.c                   |    7 --
- include/linux/mount.h             |    5 +-
- kernel/sysctl.c                   |   11 ++++
- 14 files changed, 76 insertions(+), 214 deletions(-)
-
-diff --git a/Documentation/filesystems/vfs.txt b/Documentation/filesystems/vfs.txt
-index c6878a0..3a40c31 100644
---- a/Documentation/filesystems/vfs.txt
-+++ b/Documentation/filesystems/vfs.txt
-@@ -943,10 +943,9 @@ struct dentry_operations {
- 	ordinary directory and returned to pathwalk to continue walking.
- 
- 	If a vfsmount is returned, the caller will attempt to mount it on the
--	mountpoint and will remove the vfsmount from its expiration list in
--	the case of failure.  The vfsmount should be returned with 2 refs on
--	it to prevent automatic expiration - the caller will clean up the
--	additional ref.
-+	mountpoint and will clean it up on failure.  If mnt_expiry_mark is set
-+	on the vfsmount, the caller will add it to the global expiration list
-+	if successfully mounted and clear the mark.
- 
- 	This function is only used if DCACHE_NEED_AUTOMOUNT is set on the
- 	dentry.  This is set by __d_instantiate() if S_AUTOMOUNT is set on the
-diff --git a/fs/afs/internal.h b/fs/afs/internal.h
-index 5a9b684..cb7d2c7 100644
---- a/fs/afs/internal.h
-+++ b/fs/afs/internal.h
-@@ -594,7 +594,6 @@ extern const struct file_operations afs_mntpt_file_operations;
- 
- extern struct vfsmount *afs_d_automount(struct path *);
- extern int afs_mntpt_check_symlink(struct afs_vnode *, struct key *);
--extern void afs_mntpt_kill_timer(void);
- 
- /*
-  * proc.c
-diff --git a/fs/afs/mntpt.c b/fs/afs/mntpt.c
-index aa59184..74b43b9 100644
---- a/fs/afs/mntpt.c
-+++ b/fs/afs/mntpt.c
-@@ -24,7 +24,6 @@ static struct dentry *afs_mntpt_lookup(struct inode *dir,
- 				       struct dentry *dentry,
- 				       struct nameidata *nd);
- static int afs_mntpt_open(struct inode *inode, struct file *file);
--static void afs_mntpt_expiry_timed_out(struct work_struct *work);
- 
- const struct file_operations afs_mntpt_file_operations = {
- 	.open		= afs_mntpt_open,
-@@ -41,11 +40,6 @@ const struct inode_operations afs_autocell_inode_operations = {
- 	.getattr	= afs_getattr,
- };
- 
--static LIST_HEAD(afs_vfsmounts);
--static DECLARE_DELAYED_WORK(afs_mntpt_expiry_timer, afs_mntpt_expiry_timed_out);
--
--static unsigned long afs_mntpt_expiry_timeout = 10 * 60;
--
- /*
-  * check a symbolic link to see whether it actually encodes a mountpoint
-  * - sets the AFS_VNODE_MOUNTPOINT flag on the vnode appropriately
-@@ -136,11 +130,12 @@ static int afs_mntpt_open(struct inode *inode, struct file *file)
- /*
-  * create a vfsmount to be automounted
-  */
--static struct vfsmount *afs_mntpt_do_automount(struct dentry *mntpt)
-+struct vfsmount *afs_d_automount(struct path *mountpoint)
- {
- 	struct afs_super_info *super;
- 	struct vfsmount *mnt;
- 	struct afs_vnode *vnode;
-+	struct dentry *mntpt = mountpoint->dentry;
- 	struct page *page;
- 	char *devname, *options;
- 	bool rwpath = false;
-@@ -219,6 +214,9 @@ static struct vfsmount *afs_mntpt_do_automount(struct dentry *mntpt)
- 	mnt = vfs_kern_mount(&afs_fs_type, 0, devname, options);
- 	_debug("--- mount result %p ---", mnt);
- 
-+	if (!IS_ERR(mnt))
-+		mnt->mnt_expiry_mark = 1;
-+
- 	free_page((unsigned long) devname);
- 	free_page((unsigned long) options);
- 	_leave(" = %p", mnt);
-@@ -234,51 +232,3 @@ error_no_devname:
- 	_leave(" = %d", ret);
- 	return ERR_PTR(ret);
- }
--
--/*
-- * handle an automount point
-- */
--struct vfsmount *afs_d_automount(struct path *path)
--{
--	struct vfsmount *newmnt;
--
--	_enter("{%s,%s}", path->mnt->mnt_devname, path->dentry->d_name.name);
--
--	newmnt = afs_mntpt_do_automount(path->dentry);
--	if (IS_ERR(newmnt))
--		return newmnt;
--
--	mntget(newmnt); /* prevent immediate expiration */
--	mnt_set_expiry(newmnt, &afs_vfsmounts);
--	queue_delayed_work(afs_wq, &afs_mntpt_expiry_timer,
--			   afs_mntpt_expiry_timeout * HZ);
--	_leave(" = %p {%s}", newmnt, newmnt->mnt_devname);
--	return newmnt;
--}
--
--/*
-- * handle mountpoint expiry timer going off
-- */
--static void afs_mntpt_expiry_timed_out(struct work_struct *work)
--{
--	_enter("");
--
--	if (!list_empty(&afs_vfsmounts)) {
--		mark_mounts_for_expiry(&afs_vfsmounts);
--		queue_delayed_work(afs_wq, &afs_mntpt_expiry_timer,
--				   afs_mntpt_expiry_timeout * HZ);
--	}
--
--	_leave("");
--}
--
--/*
-- * kill the AFS mountpoint timer if it's still running
-- */
--void afs_mntpt_kill_timer(void)
--{
--	_enter("");
--
--	ASSERT(list_empty(&afs_vfsmounts));
--	cancel_delayed_work_sync(&afs_mntpt_expiry_timer);
--}
-diff --git a/fs/afs/super.c b/fs/afs/super.c
-index fb240e8..3217a42 100644
---- a/fs/afs/super.c
-+++ b/fs/afs/super.c
-@@ -115,7 +115,6 @@ void __exit afs_fs_exit(void)
- {
- 	_enter("");
- 
--	afs_mntpt_kill_timer();
- 	unregister_filesystem(&afs_fs_type);
- 
- 	if (atomic_read(&afs_count_active_inodes) != 0) {
-diff --git a/fs/cifs/cifs_dfs_ref.c b/fs/cifs/cifs_dfs_ref.c
-index 0a265ad..923a92b 100644
---- a/fs/cifs/cifs_dfs_ref.c
-+++ b/fs/cifs/cifs_dfs_ref.c
-@@ -24,29 +24,6 @@
- #include "dns_resolve.h"
- #include "cifs_debug.h"
- 
--static LIST_HEAD(cifs_dfs_automount_list);
--
--static void cifs_dfs_expire_automounts(struct work_struct *work);
--static DECLARE_DELAYED_WORK(cifs_dfs_automount_task,
--			    cifs_dfs_expire_automounts);
--static int cifs_dfs_mountpoint_expiry_timeout = 500 * HZ;
--
--static void cifs_dfs_expire_automounts(struct work_struct *work)
--{
--	struct list_head *list = &cifs_dfs_automount_list;
--
--	mark_mounts_for_expiry(list);
--	if (!list_empty(list))
--		schedule_delayed_work(&cifs_dfs_automount_task,
--				      cifs_dfs_mountpoint_expiry_timeout);
--}
--
--void cifs_dfs_release_automount_timer(void)
--{
--	BUG_ON(!list_empty(&cifs_dfs_automount_list));
--	cancel_delayed_work_sync(&cifs_dfs_automount_task);
--}
--
- /**
-  * cifs_get_share_name	-	extracts share name from UNC
-  * @node_name:	pointer to UNC string
-@@ -267,8 +244,9 @@ static void dump_referral(const struct dfs_info3_param *ref)
- /*
-  * Create a vfsmount that we can automount
-  */
--static struct vfsmount *cifs_dfs_do_automount(struct dentry *mntpt)
-+struct vfsmount *cifs_dfs_d_automount(struct path *mountpoint)
- {
-+	struct dentry *mntpt = mountpoint->dentry;
- 	struct dfs_info3_param *referrals = NULL;
- 	unsigned int num_referrals = 0;
- 	struct cifs_sb_info *cifs_sb;
-@@ -325,8 +303,10 @@ static struct vfsmount *cifs_dfs_do_automount(struct dentry *mntpt)
- 				full_path, referrals + i);
- 		cFYI(1, "%s: cifs_dfs_do_refmount:%s , mnt:%p", __func__,
- 					referrals[i].node_name, mnt);
--		if (!IS_ERR(mnt))
-+		if (!IS_ERR(mnt)) {
-+			mnt->mnt_expiry_mark = 1;
- 			goto success;
-+		}
- 	}
- 
- 	/* no valid submounts were found; return error from get_dfs_path() by
-@@ -343,28 +323,5 @@ cdda_exit:
- 	return mnt;
- }
- 
--/*
-- * Attempt to automount the referral
-- */
--struct vfsmount *cifs_dfs_d_automount(struct path *path)
--{
--	struct vfsmount *newmnt;
--
--	cFYI(1, "in %s", __func__);
--
--	newmnt = cifs_dfs_do_automount(path->dentry);
--	if (IS_ERR(newmnt)) {
--		cFYI(1, "leaving %s [automount failed]" , __func__);
--		return newmnt;
--	}
--
--	mntget(newmnt); /* prevent immediate expiration */
--	mnt_set_expiry(newmnt, &cifs_dfs_automount_list);
--	schedule_delayed_work(&cifs_dfs_automount_task,
--			      cifs_dfs_mountpoint_expiry_timeout);
--	cFYI(1, "leaving %s [ok]" , __func__);
--	return newmnt;
--}
--
- const struct inode_operations cifs_dfs_referral_inode_operations = {
- };
-diff --git a/fs/cifs/cifsfs.c b/fs/cifs/cifsfs.c
-index f297013..c91ae83 100644
---- a/fs/cifs/cifsfs.c
-+++ b/fs/cifs/cifsfs.c
-@@ -1067,9 +1067,6 @@ exit_cifs(void)
- 	cFYI(DBG2, "exit_cifs");
- 	cifs_proc_clean();
- 	cifs_fscache_unregister();
--#ifdef CONFIG_CIFS_DFS_UPCALL
--	cifs_dfs_release_automount_timer();
--#endif
- #ifdef CONFIG_CIFS_UPCALL
- 	unregister_key_type(&cifs_spnego_key_type);
- #endif
-diff --git a/fs/cifs/cifsproto.h b/fs/cifs/cifsproto.h
-index 8096f27..f3f8099 100644
---- a/fs/cifs/cifsproto.h
-+++ b/fs/cifs/cifsproto.h
-@@ -147,7 +147,6 @@ extern struct cifs_ntsd *get_cifs_acl(struct cifs_sb_info *, struct inode *,
- extern int cifs_mount(struct super_block *, struct cifs_sb_info *, char *,
- 			const char *);
- extern int cifs_umount(struct super_block *, struct cifs_sb_info *);
--extern void cifs_dfs_release_automount_timer(void);
- void cifs_proc_init(void);
- void cifs_proc_clean(void);
- 
-diff --git a/fs/namei.c b/fs/namei.c
-index 97c92a2..aac0375 100644
---- a/fs/namei.c
-+++ b/fs/namei.c
-@@ -923,11 +923,13 @@ static int follow_automount(struct path *path, unsigned flags,
- 		return 0;
- 
- 	err = finish_automount(mnt, path);
--
- 	switch (err) {
- 	case -EBUSY:
- 		/* Someone else made a mount here whilst we were busy */
--		return 0;
-+		err = 0;
-+	default:
-+		mntput(mnt);
-+		return err;
- 	case 0:
- 		dput(path->dentry);
- 		if (*need_mntput)
-@@ -936,8 +938,6 @@ static int follow_automount(struct path *path, unsigned flags,
- 		path->dentry = dget(mnt->mnt_root);
- 		*need_mntput = true;
- 		return 0;
--	default:
--		return err;
- 	}
- 
- }
-diff --git a/fs/namespace.c b/fs/namespace.c
-index d1edf26..b9cb274 100644
---- a/fs/namespace.c
-+++ b/fs/namespace.c
-@@ -50,6 +50,11 @@ static struct list_head *mount_hashtable __read_mostly;
- static struct kmem_cache *mnt_cache __read_mostly;
- static struct rw_semaphore namespace_sem;
- 
-+unsigned long mnt_expiry_period = 15;
-+static LIST_HEAD(mnt_expirable_mounts);
-+static void do_periodic_mount_expiry(struct work_struct *);
-+static DECLARE_DELAYED_WORK(periodic_mount_expiry, do_periodic_mount_expiry);
-+
- /* /sys/fs */
- struct kobject *fs_kobj;
- EXPORT_SYMBOL_GPL(fs_kobj);
-@@ -1882,7 +1887,6 @@ static int do_new_mount(struct path *path, char *type, int flags,
- 			int mnt_flags, char *name, void *data)
- {
- 	struct vfsmount *mnt;
--	int err;
- 
- 	if (!type)
- 		return -EINVAL;
-@@ -1895,45 +1899,26 @@ static int do_new_mount(struct path *path, char *type, int flags,
- 	if (IS_ERR(mnt))
- 		return PTR_ERR(mnt);
- 
--	err = do_add_mount(mnt, path, mnt_flags);
--	if (err)
--		mntput(mnt);
--	return err;
-+	return do_add_mount(mnt, path, mnt_flags);
- }
- 
-+/*
-+ * Mount the given mount on the specified mountpoint.
-+ * - does not drop the caller's ref from the mount.
-+ */
- int finish_automount(struct vfsmount *m, struct path *path)
- {
--	int err;
--	/* The new mount record should have at least 2 refs to prevent it being
--	 * expired before we get a chance to add it
--	 */
--	BUG_ON(mnt_get_count(m) < 2);
--
- 	if (m->mnt_sb == path->mnt->mnt_sb &&
--	    m->mnt_root == path->dentry) {
--		err = -ELOOP;
--		goto fail;
--	}
-+	    m->mnt_root == path->dentry)
-+		return -ELOOP;
- 
--	err = do_add_mount(m, path, path->mnt->mnt_flags | MNT_SHRINKABLE);
--	if (!err)
--		return 0;
--fail:
--	/* remove m from any expiration list it may be on */
--	if (!list_empty(&m->mnt_expire)) {
--		down_write(&namespace_sem);
--		br_write_lock(vfsmount_lock);
--		list_del_init(&m->mnt_expire);
--		br_write_unlock(vfsmount_lock);
--		up_write(&namespace_sem);
--	}
--	mntput(m);
--	mntput(m);
--	return err;
-+	mntget(m);
-+	return do_add_mount(m, path, path->mnt->mnt_flags | MNT_SHRINKABLE);
- }
- 
- /*
-- * add a mount into a namespace's mount tree
-+ * Add a mount into a namespace's mount tree.
-+ * - the caller's ref on the new mount is consumed unconditionally.
-  */
- static int do_add_mount(struct vfsmount *newmnt, struct path *path, int mnt_flags)
- {
-@@ -1942,62 +1927,59 @@ static int do_add_mount(struct vfsmount *newmnt, struct path *path, int mnt_flag
- 	mnt_flags &= ~(MNT_SHARED | MNT_WRITE_HOLD | MNT_INTERNAL);
- 
- 	down_write(&namespace_sem);
--	/* Something was mounted here while we slept */
-+	/* Something may have been mounted here while we slept */
- 	err = follow_down(path, true);
- 	if (err < 0)
--		goto unlock;
-+		goto error;
- 
- 	err = -EINVAL;
- 	if (!(mnt_flags & MNT_SHRINKABLE) && !check_mnt(path->mnt))
--		goto unlock;
-+		goto error;
- 
- 	/* Refuse the same filesystem on the same mount point */
- 	err = -EBUSY;
- 	if (path->mnt->mnt_sb == newmnt->mnt_sb &&
- 	    path->mnt->mnt_root == path->dentry)
--		goto unlock;
-+		goto error;
- 
- 	err = -EINVAL;
- 	if (S_ISLNK(newmnt->mnt_root->d_inode->i_mode))
--		goto unlock;
-+		goto error;
- 
- 	newmnt->mnt_flags = mnt_flags;
- 	err = graft_tree(newmnt, path);
-+	if (err < 0)
-+		goto error;
- 
--unlock:
-+	if (newmnt->mnt_expiry_mark) {
-+		newmnt->mnt_expiry_mark = 0;
-+		br_write_lock(vfsmount_lock);
-+		list_add_tail(&newmnt->mnt_expire, &mnt_expirable_mounts);
-+		br_write_unlock(vfsmount_lock);
-+		schedule_delayed_work(&periodic_mount_expiry,
-+				      mnt_expiry_period * HZ);
-+	}
- 	up_write(&namespace_sem);
--	return err;
--}
--
--/**
-- * mnt_set_expiry - Put a mount on an expiration list
-- * @mnt: The mount to list.
-- * @expiry_list: The list to add the mount to.
-- */
--void mnt_set_expiry(struct vfsmount *mnt, struct list_head *expiry_list)
--{
--	down_write(&namespace_sem);
--	br_write_lock(vfsmount_lock);
--
--	list_add_tail(&mnt->mnt_expire, expiry_list);
-+	return 0;
- 
--	br_write_unlock(vfsmount_lock);
-+error:
- 	up_write(&namespace_sem);
-+	mntput(newmnt);
-+	return err;
- }
--EXPORT_SYMBOL(mnt_set_expiry);
- 
- /*
-- * process a list of expirable mountpoints with the intent of discarding any
-- * mountpoints that aren't in use and haven't been touched since last we came
-- * here
-+ * Periodically process the list of expirable mountpoints with the intent of
-+ * discarding any mountpoints that aren't in use and haven't been touched since
-+ * last we came here.
-  */
--void mark_mounts_for_expiry(struct list_head *mounts)
-+static void do_periodic_mount_expiry(struct work_struct *work)
- {
- 	struct vfsmount *mnt, *next;
- 	LIST_HEAD(graveyard);
- 	LIST_HEAD(umounts);
- 
--	if (list_empty(mounts))
-+	if (list_empty(&mnt_expirable_mounts))
- 		return;
- 
- 	down_write(&namespace_sem);
-@@ -2009,7 +1991,7 @@ void mark_mounts_for_expiry(struct list_head *mounts)
- 	 * - still marked for expiry (marked on the last call here; marks are
- 	 *   cleared by mntput())
- 	 */
--	list_for_each_entry_safe(mnt, next, mounts, mnt_expire) {
-+	list_for_each_entry_safe(mnt, next, &mnt_expirable_mounts, mnt_expire) {
- 		if (!xchg(&mnt->mnt_expiry_mark, 1) ||
- 			propagate_mount_busy(mnt, 1))
- 			continue;
-@@ -2024,9 +2006,11 @@ void mark_mounts_for_expiry(struct list_head *mounts)
- 	up_write(&namespace_sem);
- 
- 	release_mounts(&umounts);
--}
- 
--EXPORT_SYMBOL_GPL(mark_mounts_for_expiry);
-+	if (!list_empty(&mnt_expirable_mounts))
-+		schedule_delayed_work(&periodic_mount_expiry,
-+				      mnt_expiry_period * HZ);
-+}
- 
- /*
-  * Ripoff of 'select_parent()'
-diff --git a/fs/nfs/client.c b/fs/nfs/client.c
-index bd3ca32..5552ff2 100644
---- a/fs/nfs/client.c
-+++ b/fs/nfs/client.c
-@@ -1083,7 +1083,6 @@ void nfs_free_server(struct nfs_server *server)
- 	nfs_free_iostats(server->io_stats);
- 	bdi_destroy(&server->backing_dev_info);
- 	kfree(server);
--	nfs_release_automount_timer();
- 	dprintk("<-- nfs_free_server()\n");
- }
- 
-diff --git a/fs/nfs/namespace.c b/fs/nfs/namespace.c
-index f32b860..3a4a2fa 100644
---- a/fs/nfs/namespace.c
-+++ b/fs/nfs/namespace.c
-@@ -19,12 +19,6 @@
- 
- #define NFSDBG_FACILITY		NFSDBG_VFS
- 
--static void nfs_expire_automounts(struct work_struct *work);
--
--static LIST_HEAD(nfs_automount_list);
--static DECLARE_DELAYED_WORK(nfs_automount_task, nfs_expire_automounts);
--int nfs_mountpoint_expiry_timeout = 500 * HZ;
--
- static struct vfsmount *nfs_do_submount(const struct vfsmount *mnt_parent,
- 					const struct dentry *dentry,
- 					struct nfs_fh *fh,
-@@ -149,11 +143,8 @@ struct vfsmount *nfs_d_automount(struct path *path)
- 	if (IS_ERR(mnt))
- 		goto out;
- 
-+	mnt->mnt_expiry_mark = 1;
- 	dprintk("%s: done, success\n", __func__);
--	mntget(mnt); /* prevent immediate expiration */
--	mnt_set_expiry(mnt, &nfs_automount_list);
--	schedule_delayed_work(&nfs_automount_task, nfs_mountpoint_expiry_timeout);
--
- out:
- 	nfs_free_fattr(fattr);
- 	nfs_free_fhandle(fh);
-@@ -169,21 +160,6 @@ const struct inode_operations nfs_mountpoint_inode_operations = {
- const struct inode_operations nfs_referral_inode_operations = {
- };
- 
--static void nfs_expire_automounts(struct work_struct *work)
--{
--	struct list_head *list = &nfs_automount_list;
--
--	mark_mounts_for_expiry(list);
--	if (!list_empty(list))
--		schedule_delayed_work(&nfs_automount_task, nfs_mountpoint_expiry_timeout);
--}
--
--void nfs_release_automount_timer(void)
--{
--	if (list_empty(&nfs_automount_list))
--		cancel_delayed_work(&nfs_automount_task);
--}
--
- /*
-  * Clone a mountpoint of the appropriate type
-  */
-diff --git a/fs/nfs/sysctl.c b/fs/nfs/sysctl.c
-index 978aaeb..aa35724 100644
---- a/fs/nfs/sysctl.c
-+++ b/fs/nfs/sysctl.c
-@@ -43,13 +43,6 @@ static ctl_table nfs_cb_sysctls[] = {
- #endif /* CONFIG_NFS_USE_NEW_IDMAPPER */
- #endif
- 	{
--		.procname	= "nfs_mountpoint_timeout",
--		.data		= &nfs_mountpoint_expiry_timeout,
--		.maxlen		= sizeof(nfs_mountpoint_expiry_timeout),
--		.mode		= 0644,
--		.proc_handler	= proc_dointvec_jiffies,
--	},
--	{
- 		.procname	= "nfs_congestion_kb",
- 		.data		= &nfs_congestion_kb,
- 		.maxlen		= sizeof(nfs_congestion_kb),
-diff --git a/include/linux/mount.h b/include/linux/mount.h
-index 604f122..0e46c54 100644
---- a/include/linux/mount.h
-+++ b/include/linux/mount.h
-@@ -108,9 +108,8 @@ extern struct vfsmount *vfs_kern_mount(struct file_system_type *type,
- 				      int flags, const char *name,
- 				      void *data);
- 
--extern void mnt_set_expiry(struct vfsmount *mnt, struct list_head *expiry_list);
--extern void mark_mounts_for_expiry(struct list_head *mounts);
--
- extern dev_t name_to_dev_t(char *name);
- 
-+extern unsigned long mnt_expiry_period;
-+
- #endif /* _LINUX_MOUNT_H */
-diff --git a/kernel/sysctl.c b/kernel/sysctl.c
-index 0f1bd83..f132dbd 100644
---- a/kernel/sysctl.c
-+++ b/kernel/sysctl.c
-@@ -56,6 +56,7 @@
- #include <linux/kprobes.h>
- #include <linux/pipe_fs_i.h>
- #include <linux/oom.h>
-+#include <linux/mount.h>
- 
- #include <asm/uaccess.h>
- #include <asm/processor.h>
-@@ -122,6 +123,7 @@ static int one_hundred = 100;
- #ifdef CONFIG_PRINTK
- static int ten_thousand = 10000;
- #endif
-+static unsigned long max_timeout_ul = ULONG_MAX / HZ;
- 
- /* this is needed for the proc_doulongvec_minmax of vm_dirty_bytes */
- static unsigned long dirty_bytes_min = 2 * PAGE_SIZE;
-@@ -1484,6 +1486,15 @@ static struct ctl_table fs_table[] = {
- 		.proc_handler	= &pipe_proc_fn,
- 		.extra1		= &pipe_min_size,
- 	},
-+	{
-+		.procname	= "mount-expiry-period",
-+		.data		= &mnt_expiry_period,
-+		.maxlen		= sizeof(mnt_expiry_period),
-+		.mode		= 0644,
-+		.proc_handler	= proc_doulongvec_minmax,
-+		.extra1		= &one_ul,
-+		.extra2		= &max_timeout_ul,
-+	},
- 	{ }
- };
- 
+Thanks,
+Leonardo
