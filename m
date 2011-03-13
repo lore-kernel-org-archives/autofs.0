@@ -1,13 +1,17 @@
-From: Nye Liu <nyet@mrv.com>
-Subject: "Use bind instead of nfs if host is localhost" feature is
- broken? removed?
-Date: Thu, 10 Mar 2011 15:59:45 -0800
-Message-ID: <20110310235943.GA19588@mrv.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: autofs problem
+Date: Sun, 13 Mar 2011 09:29:20 +0800
+Message-ID: <1299979760.2906.3.camel@perseus>
+References: <000501cbdd83$5e9a35d0$1bcea170$@admin@uea.ac.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com;
+	h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding;
+	s=smtpout; bh=v75sVbB3D2ZmzfDX3+QEkCaNdGc=;
+	b=iMSDVsjgFLa88uddsnieJjh9mYFUc0zC4b44aNut3sl9n/StQuobCwgpQYNzAGXOGY6E3T8lGaZclo2YLaFjHseMoapOpGSUNxvOhgF2JtJjwPkjmKpiPKEFTq080pvj9/WEmVQJRg78En793u0o2dkK03DxUqEH5MsnwFbAico=
+In-Reply-To: <000501cbdd83$5e9a35d0$1bcea170$@admin@uea.ac.uk>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,31 +22,86 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: hpc.admin@uea.ac.uk
+Cc: autofs@linux.kernel.org
 
-I have been relying on the behavior that
+On Tue, 2011-03-08 at 11:24 +0000, hpc.admin@uea.ac.uk wrote:
+> Hello,
+> 
+> I am experiencing autofs problems with my Centos 5.5 system. Upon boot, the
+> mount fails with the following error messages (created by passing the -d
+> option in the automount):
+> 
+> Mar  8 10:38:19 cn024 automount[6395]: do_notify_state: signal 15
+> Mar  8 10:38:19 cn024 automount[6395]: master_notify_state_change: sig 15
+> switching /home from 1 to 5
+> Mar  8 10:38:19 cn024 automount[6395]: st_prepare_shutdown: state 1 path
+> /home
+> Mar  8 10:38:19 cn024 automount[6395]: expire_proc: exp_proc = 1090562368
+> path /home
+> Mar  8 10:38:19 cn024 automount[6395]: expire_cleanup: got thid 1090562368
+> path /home stat 0
+> Mar  8 10:38:19 cn024 automount[6395]: expire_cleanup: sigchld: exp
+> 1090562368 finished, switching from 5 to 7
+> Mar  8 10:38:19 cn024 automount[6395]: st_shutdown: state 5 path /home
+> Mar  8 10:38:19 cn024 smartd[7258]: smartd has fork()ed into background
+> mode. New PID=7258.
+> Mar  8 10:38:19 cn024 automount[6395]: umount_multi: path /home incl 0
+> Mar  8 10:38:19 cn024 automount[6395]: umounted indirect mount /home
+> Mar  8 10:38:19 cn024 automount[6395]: automount_path_to_fifo: fifo name
+> /var/run/autofs.fifo-home
+> Mar  8 10:38:19 cn024 automount[6395]: shut down path /home
+> Mar  8 10:38:19 cn024 automount[6395]: autofs stopped
+> Mar  8 10:38:28 cn024 automount[7334]: Starting automounter version
+> 5.0.1-0.rc2.143.el5, master map auto.master
+> Mar  8 10:38:28 cn024 automount[7334]: using kernel protocol version 5.01
+> Mar  8 10:38:28 cn024 automount[7334]: lookup_nss_read_master: reading
+> master files auto.master
+> Mar  8 10:38:28 cn024 automount[7334]: parse_init: parse(sun): init gathered
+> global options: (null)
+> Mar  8 10:38:28 cn024 automount[7334]: lookup_read_master: lookup(file):
+> read entry /home
+> Mar  8 10:38:28 cn024 automount[7334]: master_do_mount: mounting /home
+> Mar  8 10:38:28 cn024 automount[7334]: automount_path_to_fifo: fifo name
+> /var/run/autofs.fifo-home
+> Mar  8 10:38:28 cn024 automount[7334]: lookup_nss_read_map: reading map file
+> /etc/auto.home
+> Mar  8 10:38:28 cn024 automount[7334]: parse_init: parse(sun): init gathered
+> global options: rw,intr
+> Mar  8 10:38:28 cn024 automount[7334]: do_mount_autofs_indirect: failed to
+> create ioctl fd for autofs path /home
+> Mar  8 10:38:28 cn024 automount[7334]: handle_mounts: mount of /home failed!
+> Mar  8 10:38:28 cn024 automount[7334]: master_do_mount: failed to startup
+> mount
+> Mar  8 10:38:28 cn024 automount[7334]: no mounts in table
+> 
+> The error messages to note are the last four lines. When I restart the
+> daemon, the automount works, but fails after a day or two. The version of
+> autofs I am using is:
 
-foo	host:/export/foo
+What makes you think these are the same problem?
+Did you check to see if /home was already mounted when it failed?
+What is in your /etc/sysconfig/autofs?
 
-uses 'bind' if host is localhost, and 'nfs' otherwise...
-
-i.e. if i am on the machine "host", /export/foo is mounted on /mnt/foo using
-bind, but if i am not on "host", host:/export/foo is mounted on /mnt/foo
-using nfs.
-
-But the latest version of autofs no longer does that.
-
-Do i have to use this everywhere now?
-
-foo	(1),host(2):/export/foo
-
-The behavior is more like what I expect, but it seems wasteful.
-
--- 
-Nye Liu
-nliu@mrv.com
-(818) 772-6235x248
-(818) 772-0576 fax
-
-"Who would be stupid enough to quote a fictitious character?"
-	-- Don Quixote
+> 
+> Name        : autofs                       Relocations: (not relocatable)
+> Version     : 5.0.1                        Vendor: CentOS
+> Release     : 0.rc2.143.el5_5.6             
+> 
+> Any help will be greatly appreciated. Thanks in advance.
+> 
+> ----------
+> Wadud Miah
+> High Performance Computing Systems Developer
+> Research Computing Services, University of East Anglia
+> Telephone: 01603 593856
+> 
+> Information Services
+> ----------
+> 
+> 
+> 
+> _______________________________________________
+> autofs mailing list
+> autofs@linux.kernel.org
+> http://linux.kernel.org/mailman/listinfo/autofs
