@@ -1,18 +1,12 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: "Use bind instead of nfs if host is localhost" feature
- is broken? removed?
-Date: Sun, 13 Mar 2011 09:32:15 +0800
-Message-ID: <1299979935.2906.5.camel@perseus>
-References: <20110310235943.GA19588@mrv.com>
+From: "Breitman, Jason" <Jason.Breitman@blackrock.com>
+Subject: Recovering from the loss of a NFS Server
+Date: Sat, 12 Mar 2011 23:27:02 -0500
+Message-ID: <4A961A51CBE84C429C56E5734477BD1F2DBB789448@EXCHAMRS03.na.blkint.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com;
-	h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding;
-	s=smtpout; bh=uo+8+4m/O779GN34vtChKSELphU=;
-	b=p3v6F0RDHWEOwcvhD28ANTvnkfMf9F18YwRlNGRsiJVw5nIUNUo0GLcnlyGIdxlE6Zv320zkrn+wMBbJE74+pfNfUa66x6KjsLpHzktMh0xV6RqI+ADGfUOXQfMVatEUKJmYUH/6Tz7QaPnDqmYsBqmYWrd3TtPB6+zjK72V1+4=
-In-Reply-To: <20110310235943.GA19588@mrv.com>
+Content-Language: en-US
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -23,28 +17,54 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Nye Liu <nyet@mrv.com>
-Cc: autofs@linux.kernel.org
+To: "'autofs@linux.kernel.org'" <autofs@linux.kernel.org>
 
-On Thu, 2011-03-10 at 15:59 -0800, Nye Liu wrote:
-> I have been relying on the behavior that
-> 
-> foo	host:/export/foo
-> 
-> uses 'bind' if host is localhost, and 'nfs' otherwise...
-> 
-> i.e. if i am on the machine "host", /export/foo is mounted on /mnt/foo using
-> bind, but if i am not on "host", host:/export/foo is mounted on /mnt/foo
-> using nfs.
-> 
-> But the latest version of autofs no longer does that.
+OS
+	Linux hostname 2.6.18-238.el5 #1 SMP Sun Dec 19 14:22:44 EST 2010 x86_64 x86_64 x86_64 GNU/Linux
 
-What latest version?
+autofs package
+	autofs-5.0.1-0.rc2.148.bz579312.1.el5
 
-> 
-> Do i have to use this everywhere now?
-> 
-> foo	(1),host(2):/export/foo
-> 
-> The behavior is more like what I expect, but it seems wasteful.
-> 
+Mount options
+	$ cat /etc/auto.master
+	# Master map for automounter
+	#
+	/home             auto_home               -hard,intr,retry=10
+
+	$ cat /etc/sysconfig/autofs
+	TIMEOUT=86400 - we have a long TIMEOUT to avoid mount storms.
+
+What am I trying to do?
+	Prior to a disaster recovery test, my home directory will be mounted from my-nfs-server.domainname:/home/jbreitma.
+	At this point my-nfs-server.domainname points to 1.1.1.1.
+	There are active reads and writes to my home directory.
+	Lets say I have a subdirectory called htdocs and am running apache.
+
+	Now we are cutoff from 1.1.1.1 because the Data Center where 1.1.1.1 lives is no longer accessible.
+	We simulate this with an ACL.
+	We now repoint my-nfs-server.domainname to 2.2.2.2.
+
+	The NFS Clients where /home/jbreitma is mounted are now confused.
+
+	What is my best coarse of action?
+		umount -l /home/jbreitma
+		/etc/init.d/autofs restart
+		fuser -k /home/jbreitma
+		kill -USR1 `pgrep automount`
+		etc ...
+
+	How do I recover from this situation?	
+	I am open to a new approach if that is required.
+
+
+I have had some success with umount -l /home/jbreitma followed by a /etc/init.d/autofs restart, but this does not always work.
+I specifically fail when active writes and or reads are occurring to /home/jbreitma.
+		
+
+Jason Breitman
+A&T-Tech-GTI
+Jason.Breitman@blackrock.com
+BlackRock
+
+THIS MESSAGE AND ANY ATTACHMENTS ARE CONFIDENTIAL, PROPRIETARY, AND MAY BE PRIVILEGED.  If this message was misdirected, BlackRock, Inc. and its subsidiaries, ("BlackRock") does not waive any confidentiality or privilege.  If you are not the intended recipient, please notify us immediately and destroy the message without disclosing its contents to anyone.  Any distribution, use or copying of this e-mail or the information it contains by other than an intended recipient is unauthorized.  The views and opinions expressed in this e-mail message are the author's own and may not reflect the views and opinions of BlackRock, unless the author is authorized by BlackRock to express such views or opinions on its behalf.  All email sent to or from this address is subject to electronic storage and rev
+ iew by BlackRock.  Although BlackRock operates anti-virus programs, it does not accept responsibility for any damage whatsoever caused by viruses being passed.
