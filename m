@@ -1,13 +1,15 @@
 From: Nye Liu <nyet@mrv.com>
 Subject: Re: "Use bind instead of nfs if host is localhost" feature
  is broken? removed?
-Date: Tue, 15 Mar 2011 21:33:10 -0700
-Message-ID: <4D803D86.6000805@mrv.com>
+Date: Wed, 16 Mar 2011 15:42:41 -0700
+Message-ID: <20110316224241.GA30815@mrv.com>
 References: <20110310235943.GA19588@mrv.com> <1299979935.2906.5.camel@perseus>
 	<4D7FF5D2.3080107@zytor.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+Content-Disposition: inline
 In-Reply-To: <4D7FF5D2.3080107@zytor.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
@@ -19,9 +21,7 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: "autofs@linux.kernel.org" <autofs@linux.kernel.org>, Ian Kent <raven@themaw.net>
+To: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
 
 On 3/15/2011 4:27 PM, H. Peter Anvin wrote:
 > On 03/12/2011 05:32 PM, Ian Kent wrote:
