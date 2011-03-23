@@ -1,57 +1,140 @@
-From: Nye Liu <nyet@mrv.com>
-Subject: Re: "Use bind instead of nfs if host is localhost" feature
- is broken? removed?
-Date: Wed, 16 Mar 2011 15:42:41 -0700
-Message-ID: <20110316224241.GA30815@mrv.com>
-References: <20110310235943.GA19588@mrv.com> <1299979935.2906.5.camel@perseus>
-	<4D7FF5D2.3080107@zytor.com>
-Mime-Version: 1.0
+From: Valerie Aurora <valerie.aurora@gmail.com>
+Subject: [PATCH 03/74] autofs4: Save autofs trigger's vfsmount in super block info
+Date: Tue, 22 Mar 2011 18:58:39 -0700
+Message-ID: <1300845590-14184-4-git-send-email-valerie.aurora@gmail.com>
+References: <1300845590-14184-1-git-send-email-valerie.aurora@gmail.com>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=gamma;
+        h=domainkey-signature:from:to:cc:subject:date:message-id:x-mailer
+         :in-reply-to:references;
+        bh=jhZnWFSRUjvUXvTDEcongqIWceiqXQa8HBQ56PVW4Zs=;
+        b=Z4M/a+tVA8Vi8iPR8pzyCQ/UJ5qkfsyuq6CKzk24pJI48ilJqctGfMDgl1KCkKPCU9
+         dtdpH9w3mp53gKDIlpy11cE6C9X9rqlcQ2AFh3gvqtVBomj7qkSo6pRYZZSTXVD9np5u
+         JZe+TS4HQXan+zFYEx7h96Fa9xun2ii6qmUp8=
+In-Reply-To: <1300845590-14184-1-git-send-email-valerie.aurora@gmail.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4D7FF5D2.3080107@zytor.com>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs/>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-To: "autofs@linux.kernel.org" <autofs@linux.kernel.org>
+To: linux-fsdevel@vger.kernel.org, linux@vger.kernel.org
+Cc: viro@zeniv.linux.org.uk, Jan Blunck <jblunck@suse.de>, Valerie Aurora <vaurora@redhat.com>, autofs@linux.kernel.org, Valerie Aurora <valerie.aurora@gmail.com>
 
-On 3/15/2011 4:27 PM, H. Peter Anvin wrote:
-> On 03/12/2011 05:32 PM, Ian Kent wrote:
->> On Thu, 2011-03-10 at 15:59 -0800, Nye Liu wrote:
->>> I have been relying on the behavior that
->>>
->>> foo	host:/export/foo
->>>
->>> uses 'bind' if host is localhost, and 'nfs' otherwise...
->>>
->>> i.e. if i am on the machine "host", /export/foo is mounted on /mnt/foo using
->>> bind, but if i am not on "host", host:/export/foo is mounted on /mnt/foo
->>> using nfs.
->>>
->>> But the latest version of autofs no longer does that.
->>
->> What latest version?
->>
->
-> I believe this is related to a change in the network layer in Linux,
-> which breaks the localhost test not just for autofs but for almost any
-> application which uses the same, portable technique for determining the
-> localness of a host address.
+From: Jan Blunck <jblunck@suse.de>
 
+XXX - This is broken and included just to make union mounts work.  Ian
+Kent and David Howells are working on a long-term solution that will
+replace abuse of ->follow_link() to trigger an automount with a new
+op.
 
-Indeed. /etc/hosts had "127.0.0.1 host", and not the "real" ip matching dns.
+Original commit message:
 
-I changed /etc/hosts from 127.0.0.1 to its real ip, and autofs now 
-properly detects that "host" is local and uses bind now, as it should. I 
-verified this has nothing to do with autofs version and more to do with 
-kernel revision.
+This is a bugfix/replacement for commit
+051d381259eb57d6074d02a6ba6e90e744f1a29f:
 
-2.6.32 "works", 2.6.37 is "broken".
+    During a path walk if an autofs trigger is mounted on a dentry,
+    when the follow_link method is called, the nameidata struct
+    contains the vfsmount and mountpoint dentry of the parent mount
+    while the dentry that is passed in is the root of the autofs
+    trigger mount.  I believe it is impossible to get the vfsmount of
+    the trigger mount, within the follow_link method, when only the
+    parent vfsmount and the root dentry of the trigger mount are
+    known.
+
+The pre solution in this commit was to replace the path embedded in the
+parent's nameidata with the path of the link itself in
+__do_follow_link().  This is a relatively harmless misuse of the
+field, but union mounts ran into a bug during follow_link() caused by
+the nameidata containing the wrong path (we count on it being what it
+is all other places - the path of the parent).
+
+A cleaner and easier to understand solution is to save the necessary
+vfsmount in the autofs superblock info when it is mounted.  Then we
+can easily update the vfsmount in autofs4_follow_link().
+
+Signed-off-by: Jan Blunck <jblunck@suse.de>
+Signed-off-by: Valerie Aurora <vaurora@redhat.com>
+Acked-by: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Valerie Aurora <valerie.aurora@gmail.com>
+---
+ fs/autofs4/autofs_i.h |    1 +
+ fs/autofs4/init.c     |   11 ++++++++++-
+ fs/autofs4/root.c     |    6 ++++++
+ fs/namei.c            |    7 ++-----
+ 4 files changed, 19 insertions(+), 6 deletions(-)
+
+diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
+index 3d283ab..de3af64 100644
+--- a/fs/autofs4/autofs_i.h
++++ b/fs/autofs4/autofs_i.h
+@@ -133,6 +133,7 @@ struct autofs_sb_info {
+ 	int reghost_enabled;
+ 	int needs_reghost;
+ 	struct super_block *sb;
++	struct vfsmount *mnt;
+ 	struct mutex wq_mutex;
+ 	spinlock_t fs_lock;
+ 	struct autofs_wait_queue *queues; /* Wait queue pointer */
+diff --git a/fs/autofs4/init.c b/fs/autofs4/init.c
+index 9722e4b..5e0dcd7 100644
+--- a/fs/autofs4/init.c
++++ b/fs/autofs4/init.c
+@@ -17,7 +17,16 @@
+ static int autofs_get_sb(struct file_system_type *fs_type,
+ 	int flags, const char *dev_name, void *data, struct vfsmount *mnt)
+ {
+-	return get_sb_nodev(fs_type, flags, data, autofs4_fill_super, mnt);
++	struct autofs_sb_info *sbi;
++	int ret;
++
++	ret = get_sb_nodev(fs_type, flags, data, autofs4_fill_super, mnt);
++	if (ret)
++		return ret;
++
++	sbi = autofs4_sbi(mnt->mnt_sb);
++	sbi->mnt = mnt;
++	return 0;
+ }
+ 
+ static struct file_system_type autofs_fs_type = {
+diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
+index cb1bd38..fb21c56 100644
+--- a/fs/autofs4/root.c
++++ b/fs/autofs4/root.c
+@@ -225,6 +225,12 @@ static void *autofs4_follow_link(struct dentry *dentry, struct nameidata *nd)
+ 	DPRINTK("dentry=%p %.*s oz_mode=%d nd->flags=%d",
+ 		dentry, dentry->d_name.len, dentry->d_name.name, oz_mode,
+ 		nd->flags);
++
++	dput(nd->path.dentry);
++	mntput(nd->path.mnt);
++	nd->path.mnt = mntget(sbi->mnt);
++	nd->path.dentry = dget(dentry);
++
+ 	/*
+ 	 * For an expire of a covered direct or offset mount we need
+ 	 * to break out of follow_down() at the autofs mount trigger
+diff --git a/fs/namei.c b/fs/namei.c
+index 99fc88b..47ee4b9 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -533,11 +533,8 @@ __do_follow_link(struct path *path, struct nameidata *nd, void **p)
+ 	touch_atime(path->mnt, dentry);
+ 	nd_set_link(nd, NULL);
+ 
+-	if (path->mnt != nd->path.mnt) {
+-		path_to_nameidata(path, nd);
+-		dget(dentry);
+-	}
+-	mntget(path->mnt);
++	if (path->mnt == nd->path.mnt)
++		mntget(nd->path.mnt);
+ 	nd->last_type = LAST_BIND;
+ 	*p = dentry->d_inode->i_op->follow_link(dentry, nd);
+ 	error = PTR_ERR(*p);
+-- 
+1.7.0.4
+
