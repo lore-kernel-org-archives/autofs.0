@@ -1,140 +1,199 @@
-From: Valerie Aurora <valerie.aurora@gmail.com>
-Subject: [PATCH 03/74] autofs4: Save autofs trigger's vfsmount in super block info
-Date: Tue, 22 Mar 2011 18:58:39 -0700
-Message-ID: <1300845590-14184-4-git-send-email-valerie.aurora@gmail.com>
-References: <1300845590-14184-1-git-send-email-valerie.aurora@gmail.com>
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=gamma;
-        h=domainkey-signature:from:to:cc:subject:date:message-id:x-mailer
-         :in-reply-to:references;
-        bh=jhZnWFSRUjvUXvTDEcongqIWceiqXQa8HBQ56PVW4Zs=;
-        b=Z4M/a+tVA8Vi8iPR8pzyCQ/UJ5qkfsyuq6CKzk24pJI48ilJqctGfMDgl1KCkKPCU9
-         dtdpH9w3mp53gKDIlpy11cE6C9X9rqlcQ2AFh3gvqtVBomj7qkSo6pRYZZSTXVD9np5u
-         JZe+TS4HQXan+zFYEx7h96Fa9xun2ii6qmUp8=
-In-Reply-To: <1300845590-14184-1-git-send-email-valerie.aurora@gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
-MIME-Version: 1.0
+From: Leonardo Chiquitto <leonardo.lists@gmail.com>
+Subject: Re: 5.0.5 non-expiring mounts
+Date: Thu, 24 Mar 2011 19:03:50 -0300
+Message-ID: <AANLkTim6qQCGZiDkoRrG7AXHpexrYy74dG9z1cFbmHew@mail.gmail.com>
+References: <4D510D53.7010507@gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary=0016e6de16ac042069049f41a744
+Return-path: <autofs-bounces@linux.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
+	h=domainkey-signature:mime-version:in-reply-to:references:date
+	:message-id:subject:from:to:cc:content-type;
+	bh=WszKOnx7ilHcZY4ZNDjwvjAMtrj2nW3nKhzP3wDsx/I=;
+	b=qoPFGyY2SJZ1KXHiMZ8k74E+vuXXt5+KeeRV/wVn0Un8WR9YwWNC2Ux6+NSJY7F4Kx
+	5n7YVn0masMQtf+qjOQz0GzuDKOp/KOwEF+uXF2+Ks3a5MwrzeSd1ezAUt952aVNkzWG
+	acQIQ0y3O+1YTcuQjYkYTRAo3rlvSVrdscPwI=
+In-Reply-To: <4D510D53.7010507@gmail.com>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
+List-Archive: <http://linux.kernel.org/pipermail/autofs/>
+List-Post: <mailto:autofs@linux.kernel.org>
+List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
+List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
+	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
+Sender: autofs-bounces@linux.kernel.org
+Errors-To: autofs-bounces@linux.kernel.org
+To: autofs@linux.kernel.org
+Cc: "Philip Ong Jr." <pongjr@gmail.com>
+
+--0016e6de16ac042069049f41a744
+Content-Type: text/plain; charset=ISO-8859-1
+
+On Tue, Feb 8, 2011 at 7:30 AM, Philip Ong Jr. <pongjr@gmail.com> wrote:
+> I've pulled down the 5.0.5 tree and all patches.
+>
+> I've set the logging level to debug and can see messages of expiring mounts
+> in /var/log/messages...but when I check /etc/mtab or /proc/mounts or df, i
+> can still see them there. Any ideas if this is a known issue or if I can
+> give more info than below?
+
+Hello,
+
+I finally had time to return to this issue. To avoid the confusion caused by old
+kernels, I reproduced the problem on openSUSE Factory (kernel 2.6.38 and
+autofs 5.0.5 with all kernel.org patches applied). Here's the
+configuration used:
+
+# cat /etc/auto.master
+/data	/etc/auto.data
+
+# cat /etc/auto.data
+isos	-fstype=nfs,ro,rsize=8192,wsize=8192,intr,nolock,nosuid libre:/isos
+
+# cat /etc/sysconfig/autofs | grep -v '^#'
+AUTOFS_OPTIONS=""
+LOCAL_OPTIONS=""
+APPEND_OPTIONS="yes"
+USE_MISC_DEVICE="yes"
+DEFAULT_MASTER_MAP_NAME="auto.master"
+DEFAULT_TIMEOUT=600
+DEFAULT_BROWSE_MODE="yes"
+DEFAULT_LOGGING="debug"
+DEFAULT_MAP_OBJECT_CLASS="nisMap"
+DEFAULT_ENTRY_OBJECT_CLASS="nisObject"
+DEFAULT_MAP_ATTRIBUTE="nisMapName"
+DEFAULT_ENTRY_ATTRIBUTE="cn"
+DEFAULT_VALUE_ATTRIBUTE="nisMapEntry"
+DEFAULT_AUTH_CONF_FILE="etc/autofs_ldap_auth.conf"
+MAP_HASH_TABLE_SIZE=1024
+
+I'm attaching the automount debug logs showing the following sequence:
+
+- automount startup
+- mount of an NFS volume (/data/isos)
+- failed attempt to trigger the expiration of the mounted volume (sending
+  SIGUSR1)
+- successful attempt to trigger the expiration of the mounted volume
+  (sending SIGUSR1 again)
+
+I also confirmed that the problem no longer happens if I revert the
+following commit:
+
+commit 08aafab4c1d0ab6227c80f8cd1086ae78556a370
+Author: Ian Kent <raven@themaw.net>
+Date:   Thu Sep 9 11:10:47 2010 +0800
+
+    autofs-5.0.5 - fix direct map not updating on reread
+
+Philip, do you think you could try to revert it in your setup/package just
+to confirm this "works"?
+
+Thanks,
+Leonardo
+
+--0016e6de16ac042069049f41a744
+Content-Type: text/plain; charset=US-ASCII; name="messages-n47.txt"
+Content-Disposition: attachment; filename="messages-n47.txt"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_glo802cc0
+
+PT0gU1RBUlRVUAoKTWFyIDI0IDE4OjQxOjMzIG40NyBhdXRvbW91bnRbNDY4MV06IFN0YXJ0aW5n
+IGF1dG9tb3VudGVyIHZlcnNpb24gNS4wLjUsIG1hc3RlciBtYXAgYXV0by5tYXN0ZXIKTWFyIDI0
+IDE4OjQxOjMzIG40NyBhdXRvbW91bnRbNDY4MV06IHVzaW5nIGtlcm5lbCBwcm90b2NvbCB2ZXJz
+aW9uIDUuMDIKTWFyIDI0IDE4OjQxOjMzIG40NyBhdXRvbW91bnRbNDY4MV06IGxvb2t1cF9uc3Nf
+cmVhZF9tYXN0ZXI6IHJlYWRpbmcgbWFzdGVyIGZpbGVzIGF1dG8ubWFzdGVyCk1hciAyNCAxODo0
+MTozMyBuNDcgYXV0b21vdW50WzQ2ODFdOiBwYXJzZV9pbml0OiBwYXJzZShzdW4pOiBpbml0IGdh
+dGhlcmVkIGdsb2JhbCBvcHRpb25zOiAobnVsbCkKTWFyIDI0IDE4OjQxOjMzIG40NyBhdXRvbW91
+bnRbNDY4MV06IGxvb2t1cF9yZWFkX21hc3RlcjogbG9va3VwKGZpbGUpOiByZWFkIGVudHJ5IC9k
+YXRhCk1hciAyNCAxODo0MTozMyBuNDcgYXV0b21vdW50WzQ2ODFdOiBtYXN0ZXJfZG9fbW91bnQ6
+IG1vdW50aW5nIC9kYXRhCk1hciAyNCAxODo0MTozMyBuNDcgYXV0b21vdW50WzQ2ODFdOiBhdXRv
+bW91bnRfcGF0aF90b19maWZvOiBmaWZvIG5hbWUgL3Zhci9ydW4vYXV0b2ZzLmZpZm8tZGF0YQpN
+YXIgMjQgMTg6NDE6MzMgbjQ3IGF1dG9tb3VudFs0NjgxXTogbG9va3VwX25zc19yZWFkX21hcDog
+cmVhZGluZyBtYXAgZmlsZSAvZXRjL2F1dG8uZGF0YQpNYXIgMjQgMTg6NDE6MzMgbjQ3IGF1dG9t
+b3VudFs0NjgxXTogcGFyc2VfaW5pdDogcGFyc2Uoc3VuKTogaW5pdCBnYXRoZXJlZCBnbG9iYWwg
+b3B0aW9uczogKG51bGwpCk1hciAyNCAxODo0MTozMyBuNDcgYXV0b21vdW50WzQ2ODFdOiBtb3Vu
+dGVkIGluZGlyZWN0IG9uIC9kYXRhIHdpdGggdGltZW91dCA2MDAsIGZyZXEgMTUwIHNlY29uZHMK
+TWFyIDI0IDE4OjQxOjMzIG40NyBhdXRvbW91bnRbNDY4MV06IHN0X3JlYWR5OiBzdF9yZWFkeSgp
+OiBzdGF0ZSA9IDAgcGF0aCAvZGF0YQpNYXIgMjQgMTg6NDE6MzMgbjQ3IGF1dG9tb3VudFs0Njgx
+XTogZ2hvc3RpbmcgZW5hYmxlZAoKPT0gQ09NTUFORDogbHMgL2RhdGEvaXNvcwoKTWFyIDI0IDE4
+OjQxOjU0IG40NyBhdXRvbW91bnRbNDY4MV06IGhhbmRsZV9wYWNrZXQ6IHR5cGUgPSAzCk1hciAy
+NCAxODo0MTo1NCBuNDcgYXV0b21vdW50WzQ2ODFdOiBoYW5kbGVfcGFja2V0X21pc3NpbmdfaW5k
+aXJlY3Q6IHRva2VuIDMsIG5hbWUgaXNvcywgcmVxdWVzdCBwaWQgNDY5MQpNYXIgMjQgMTg6NDE6
+NTQgbjQ3IGF1dG9tb3VudFs0NjgxXTogYXR0ZW1wdGluZyB0byBtb3VudCBlbnRyeSAvZGF0YS9p
+c29zCk1hciAyNCAxODo0MTo1NCBuNDcgYXV0b21vdW50WzQ2ODFdOiBsb29rdXBfbW91bnQ6IGxv
+b2t1cChmaWxlKTogbG9va2luZyB1cCBpc29zCk1hciAyNCAxODo0MTo1NCBuNDcgYXV0b21vdW50
+WzQ2ODFdOiBsb29rdXBfbW91bnQ6IGxvb2t1cChmaWxlKTogaXNvcyAtPiAtZnN0eXBlPW5mcyxy
+byxyc2l6ZT04MTkyLHdzaXplPTgxOTIsaW50cixub2xvY2ssbm9zdWlkIGxpYnJlOi9pc29zCk1h
+ciAyNCAxODo0MTo1NCBuNDcgYXV0b21vdW50WzQ2ODFdOiBwYXJzZV9tb3VudDogcGFyc2Uoc3Vu
+KTogZXhwYW5kZWQgZW50cnk6IC1mc3R5cGU9bmZzLHJvLHJzaXplPTgxOTIsd3NpemU9ODE5Mixp
+bnRyLG5vbG9jayxub3N1aWQgbGlicmU6L2lzb3MKTWFyIDI0IDE4OjQxOjU0IG40NyBhdXRvbW91
+bnRbNDY4MV06IHBhcnNlX21vdW50OiBwYXJzZShzdW4pOiBnYXRoZXJlZCBvcHRpb25zOiBmc3R5
+cGU9bmZzLHJvLHJzaXplPTgxOTIsd3NpemU9ODE5MixpbnRyLG5vbG9jayxub3N1aWQKTWFyIDI0
+IDE4OjQxOjU0IG40NyBhdXRvbW91bnRbNDY4MV06IHBhcnNlX21vdW50OiBwYXJzZShzdW4pOiBk
+ZXF1b3RlKCJsaWJyZTovaXNvcyIpIC0+IGxpYnJlOi9pc29zCk1hciAyNCAxODo0MTo1NCBuNDcg
+YXV0b21vdW50WzQ2ODFdOiBwYXJzZV9tb3VudDogcGFyc2Uoc3VuKTogY29yZSBvZiBlbnRyeTog
+b3B0aW9ucz1mc3R5cGU9bmZzLHJvLHJzaXplPTgxOTIsd3NpemU9ODE5MixpbnRyLG5vbG9jayxu
+b3N1aWQsIGxvYz1saWJyZTovaXNvcwpNYXIgMjQgMTg6NDE6NTQgbjQ3IGF1dG9tb3VudFs0Njgx
+XTogc3VuX21vdW50OiBwYXJzZShzdW4pOiBtb3VudGluZyByb290IC9kYXRhLCBtb3VudHBvaW50
+IGlzb3MsIHdoYXQgbGlicmU6L2lzb3MsIGZzdHlwZSBuZnMsIG9wdGlvbnMgcm8scnNpemU9ODE5
+Mix3c2l6ZT04MTkyLGludHIsbm9sb2NrLG5vc3VpZApNYXIgMjQgMTg6NDE6NTQgbjQ3IGF1dG9t
+b3VudFs0NjgxXTogbW91bnRfbW91bnQ6IG1vdW50KG5mcyk6IHJvb3Q9L2RhdGEgbmFtZT1pc29z
+IHdoYXQ9bGlicmU6L2lzb3MsIGZzdHlwZT1uZnMsIG9wdGlvbnM9cm8scnNpemU9ODE5Mix3c2l6
+ZT04MTkyLGludHIsbm9sb2NrLG5vc3VpZApNYXIgMjQgMTg6NDE6NTQgbjQ3IGF1dG9tb3VudFs0
+NjgxXTogbW91bnRfbW91bnQ6IG1vdW50KG5mcyk6IG5mcyBvcHRpb25zPSJybyxyc2l6ZT04MTky
+LHdzaXplPTgxOTIsaW50cixub2xvY2ssbm9zdWlkIiwgbm9zeW1saW5rPTAsIHJvPTEKTWFyIDI0
+IDE4OjQxOjU0IG40NyBhdXRvbW91bnRbNDY4MV06IG1vdW50X21vdW50OiBtb3VudChuZnMpOiBj
+YWxsaW5nIG1rZGlyX3BhdGggL2RhdGEvaXNvcwpNYXIgMjQgMTg6NDE6NTQgbjQ3IGF1dG9tb3Vu
+dFs0NjgxXTogbW91bnRfbW91bnQ6IG1vdW50KG5mcyk6IGNhbGxpbmcgbW91bnQgLXQgbmZzIC1z
+IC1vIHJvLHJzaXplPTgxOTIsd3NpemU9ODE5MixpbnRyLG5vbG9jayxub3N1aWQgbGlicmU6L2lz
+b3MgL2RhdGEvaXNvcwpNYXIgMjQgMTg6NDE6NTQgbjQ3IGF1dG9tb3VudFs0NjgxXTogbW91bnRf
+bW91bnQ6IG1vdW50KG5mcyk6IG1vdW50ZWQgbGlicmU6L2lzb3Mgb24gL2RhdGEvaXNvcwpNYXIg
+MjQgMTg6NDE6NTQgbjQ3IGF1dG9tb3VudFs0NjgxXTogZGV2X2lvY3RsX3NlbmRfcmVhZHk6IHRv
+a2VuID0gMwpNYXIgMjQgMTg6NDE6NTQgbjQ3IGF1dG9tb3VudFs0NjgxXTogbW91bnRlZCAvZGF0
+YS9pc29zCk1hciAyNCAxODo0MTo1NCBuNDcgYXV0b21vdW50WzQ2ODFdOiBzdF9yZWFkbWFwOiBz
+dGF0ZSAxIHBhdGggL2RhdGEKTWFyIDI0IDE4OjQxOjU0IG40NyBhdXRvbW91bnRbNDY4MV06IHJl
+LXJlYWRpbmcgbWFwIGZvciAvZGF0YQpNYXIgMjQgMTg6NDE6NTQgbjQ3IGF1dG9tb3VudFs0Njgx
+XTogbG9va3VwX25zc19yZWFkX21hcDogcmVhZGluZyBtYXAgZmlsZSAvZXRjL2F1dG8uZGF0YQpN
+YXIgMjQgMTg6NDE6NTQgbjQ3IGF1dG9tb3VudFs0NjgxXTogcGFyc2VfaW5pdDogcGFyc2Uoc3Vu
+KTogaW5pdCBnYXRoZXJlZCBnbG9iYWwgb3B0aW9uczogKG51bGwpCk1hciAyNCAxODo0MTo1NCBu
+NDcgYXV0b21vdW50WzQ2ODFdOiBzdF9yZWFkeTogc3RfcmVhZHkoKTogc3RhdGUgPSA0IHBhdGgg
+L2RhdGEKCj09IENPTU1BTkQ6IGtpbGwgLVVTUjEgJChwaWRvZiBhdXRvbW91bnQpCgpNYXIgMjQg
+MTg6NDI6MDcgbjQ3IGF1dG9tb3VudFs0NjgxXTogZG9fbm90aWZ5X3N0YXRlOiBzaWduYWwgMTAK
+TWFyIDI0IDE4OjQyOjA3IG40NyBhdXRvbW91bnRbNDY4MV06IG1hc3Rlcl9ub3RpZnlfc3RhdGVf
+Y2hhbmdlOiBzaWcgMTAgc3dpdGNoaW5nIC9kYXRhIGZyb20gMSB0byAzCgo9PSBDT01NQU5EOiBr
+aWxsIC1VU1IxICQocGlkb2YgYXV0b21vdW50KQoKTWFyIDI0IDE4OjQyOjQ1IG40NyBhdXRvbW91
+bnRbNDY4MV06IGRvX25vdGlmeV9zdGF0ZTogc2lnbmFsIDEwCk1hciAyNCAxODo0Mjo0NSBuNDcg
+YXV0b21vdW50WzQ2ODFdOiBtYXN0ZXJfbm90aWZ5X3N0YXRlX2NoYW5nZTogc2lnIDEwIHN3aXRj
+aGluZyAvZGF0YSBmcm9tIDEgdG8gMwpNYXIgMjQgMTg6NDI6NDUgbjQ3IGF1dG9tb3VudFs0Njgx
+XTogc3RfcHJ1bmU6IHN0YXRlIDEgcGF0aCAvZGF0YQpNYXIgMjQgMTg6NDI6NDUgbjQ3IGF1dG9t
+b3VudFs0NjgxXTogZXhwaXJlX3Byb2M6IGV4cF9wcm9jID0gMTQwMjI0NDEyMzE3NDQwIHBhdGgg
+L2RhdGEKTWFyIDI0IDE4OjQyOjQ1IG40NyBhdXRvbW91bnRbNDY4MV06IGV4cGlyZV9wcm9jX2lu
+ZGlyZWN0OiBleHBpcmUgL2RhdGEvaXNvcwpNYXIgMjQgMTg6NDI6NDUgbjQ3IGF1dG9tb3VudFs0
+NjgxXTogaGFuZGxlX3BhY2tldDogdHlwZSA9IDQKTWFyIDI0IDE4OjQyOjQ1IG40NyBhdXRvbW91
+bnRbNDY4MV06IGhhbmRsZV9wYWNrZXRfZXhwaXJlX2luZGlyZWN0OiB0b2tlbiA0LCBuYW1lIGlz
+b3MKTWFyIDI0IDE4OjQyOjQ1IG40NyBhdXRvbW91bnRbNDY4MV06IGV4cGlyaW5nIHBhdGggL2Rh
+dGEvaXNvcwpNYXIgMjQgMTg6NDI6NDUgbjQ3IGF1dG9tb3VudFs0NjgxXTogdW1vdW50X211bHRp
+OiBwYXRoIC9kYXRhL2lzb3MgaW5jbCAxCk1hciAyNCAxODo0Mjo0NSBuNDcgYXV0b21vdW50WzQ2
+ODFdOiB1bW91bnRfc3VidHJlZV9tb3VudHM6IHVubW91bnRpbmcgZGlyID0gL2RhdGEvaXNvcwpN
+YXIgMjQgMTg6NDI6NDUgbjQ3IGF1dG9tb3VudFs0NjgxXTogZXhwaXJlZCAvZGF0YS9pc29zCk1h
+ciAyNCAxODo0Mjo0NSBuNDcgYXV0b21vdW50WzQ2ODFdOiBkZXZfaW9jdGxfc2VuZF9yZWFkeTog
+dG9rZW4gPSA0Ck1hciAyNCAxODo0Mjo0NSBuNDcgYXV0b21vdW50WzQ2ODFdOiBleHBpcmVfY2xl
+YW51cDogZ290IHRoaWQgMTQwMjI0NDEyMzE3NDQwIHBhdGggL2RhdGEgc3RhdCAwCk1hciAyNCAx
+ODo0Mjo0NSBuNDcgYXV0b21vdW50WzQ2ODFdOiBleHBpcmVfY2xlYW51cDogc2lnY2hsZDogZXhw
+IDE0MDIyNDQxMjMxNzQ0MCBmaW5pc2hlZCwgc3dpdGNoaW5nIGZyb20gMyB0byAxCk1hciAyNCAx
+ODo0Mjo0NSBuNDcgYXV0b21vdW50WzQ2ODFdOiBzdF9yZWFkeTogc3RfcmVhZHkoKTogc3RhdGUg
+PSAzIHBhdGggL2RhdGEK
+--0016e6de16ac042069049f41a744
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: linux-fsdevel@vger.kernel.org, linux@vger.kernel.org
-Cc: viro@zeniv.linux.org.uk, Jan Blunck <jblunck@suse.de>, Valerie Aurora <vaurora@redhat.com>, autofs@linux.kernel.org, Valerie Aurora <valerie.aurora@gmail.com>
+Content-Disposition: inline
 
-From: Jan Blunck <jblunck@suse.de>
+_______________________________________________
+autofs mailing list
+autofs@linux.kernel.org
+http://linux.kernel.org/mailman/listinfo/autofs
 
-XXX - This is broken and included just to make union mounts work.  Ian
-Kent and David Howells are working on a long-term solution that will
-replace abuse of ->follow_link() to trigger an automount with a new
-op.
-
-Original commit message:
-
-This is a bugfix/replacement for commit
-051d381259eb57d6074d02a6ba6e90e744f1a29f:
-
-    During a path walk if an autofs trigger is mounted on a dentry,
-    when the follow_link method is called, the nameidata struct
-    contains the vfsmount and mountpoint dentry of the parent mount
-    while the dentry that is passed in is the root of the autofs
-    trigger mount.  I believe it is impossible to get the vfsmount of
-    the trigger mount, within the follow_link method, when only the
-    parent vfsmount and the root dentry of the trigger mount are
-    known.
-
-The pre solution in this commit was to replace the path embedded in the
-parent's nameidata with the path of the link itself in
-__do_follow_link().  This is a relatively harmless misuse of the
-field, but union mounts ran into a bug during follow_link() caused by
-the nameidata containing the wrong path (we count on it being what it
-is all other places - the path of the parent).
-
-A cleaner and easier to understand solution is to save the necessary
-vfsmount in the autofs superblock info when it is mounted.  Then we
-can easily update the vfsmount in autofs4_follow_link().
-
-Signed-off-by: Jan Blunck <jblunck@suse.de>
-Signed-off-by: Valerie Aurora <vaurora@redhat.com>
-Acked-by: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Signed-off-by: Valerie Aurora <valerie.aurora@gmail.com>
----
- fs/autofs4/autofs_i.h |    1 +
- fs/autofs4/init.c     |   11 ++++++++++-
- fs/autofs4/root.c     |    6 ++++++
- fs/namei.c            |    7 ++-----
- 4 files changed, 19 insertions(+), 6 deletions(-)
-
-diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
-index 3d283ab..de3af64 100644
---- a/fs/autofs4/autofs_i.h
-+++ b/fs/autofs4/autofs_i.h
-@@ -133,6 +133,7 @@ struct autofs_sb_info {
- 	int reghost_enabled;
- 	int needs_reghost;
- 	struct super_block *sb;
-+	struct vfsmount *mnt;
- 	struct mutex wq_mutex;
- 	spinlock_t fs_lock;
- 	struct autofs_wait_queue *queues; /* Wait queue pointer */
-diff --git a/fs/autofs4/init.c b/fs/autofs4/init.c
-index 9722e4b..5e0dcd7 100644
---- a/fs/autofs4/init.c
-+++ b/fs/autofs4/init.c
-@@ -17,7 +17,16 @@
- static int autofs_get_sb(struct file_system_type *fs_type,
- 	int flags, const char *dev_name, void *data, struct vfsmount *mnt)
- {
--	return get_sb_nodev(fs_type, flags, data, autofs4_fill_super, mnt);
-+	struct autofs_sb_info *sbi;
-+	int ret;
-+
-+	ret = get_sb_nodev(fs_type, flags, data, autofs4_fill_super, mnt);
-+	if (ret)
-+		return ret;
-+
-+	sbi = autofs4_sbi(mnt->mnt_sb);
-+	sbi->mnt = mnt;
-+	return 0;
- }
- 
- static struct file_system_type autofs_fs_type = {
-diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
-index cb1bd38..fb21c56 100644
---- a/fs/autofs4/root.c
-+++ b/fs/autofs4/root.c
-@@ -225,6 +225,12 @@ static void *autofs4_follow_link(struct dentry *dentry, struct nameidata *nd)
- 	DPRINTK("dentry=%p %.*s oz_mode=%d nd->flags=%d",
- 		dentry, dentry->d_name.len, dentry->d_name.name, oz_mode,
- 		nd->flags);
-+
-+	dput(nd->path.dentry);
-+	mntput(nd->path.mnt);
-+	nd->path.mnt = mntget(sbi->mnt);
-+	nd->path.dentry = dget(dentry);
-+
- 	/*
- 	 * For an expire of a covered direct or offset mount we need
- 	 * to break out of follow_down() at the autofs mount trigger
-diff --git a/fs/namei.c b/fs/namei.c
-index 99fc88b..47ee4b9 100644
---- a/fs/namei.c
-+++ b/fs/namei.c
-@@ -533,11 +533,8 @@ __do_follow_link(struct path *path, struct nameidata *nd, void **p)
- 	touch_atime(path->mnt, dentry);
- 	nd_set_link(nd, NULL);
- 
--	if (path->mnt != nd->path.mnt) {
--		path_to_nameidata(path, nd);
--		dget(dentry);
--	}
--	mntget(path->mnt);
-+	if (path->mnt == nd->path.mnt)
-+		mntget(nd->path.mnt);
- 	nd->last_type = LAST_BIND;
- 	*p = dentry->d_inode->i_op->follow_link(dentry, nd);
- 	error = PTR_ERR(*p);
--- 
-1.7.0.4
+--0016e6de16ac042069049f41a744--
 
