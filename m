@@ -1,18 +1,11 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: 5.0.5 non-expiring mounts
-Date: Mon, 28 Mar 2011 11:17:35 +0800
-Message-ID: <1301282255.2934.9.camel@perseus>
-References: <4D510D53.7010507@gmail.com>
-	<AANLkTim6qQCGZiDkoRrG7AXHpexrYy74dG9z1cFbmHew@mail.gmail.com>
+From: Masatake YAMATO <yamato@redhat.com>
+Subject: [PATCH] dir map-type patch v2
+Date: Mon, 28 Mar 2011 14:35:45 +0900 (JST)
+Message-ID: <20110328.143545.13444931059539498.yamato@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com;
-	h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding;
-	s=smtpout; bh=tTy0UVed6ZP2yC7WJcj0IFYsqac=;
-	b=gEkxNBiuygp2MxaTRCgr7aZ6BdoR5B5JiULOVXABEMrLwbGqhWCWH/WeJNC/bFMHT5kLOSl26GMLwFoOOLsvoTMklR2cTxVGV+sWIb3SK2cFStW4YPcqFE1kPlvcFdh5KB8pJamL3tE3W5EYnwZfaAK9AU63p1jQrN3EhZtf6kw=
-In-Reply-To: <AANLkTim6qQCGZiDkoRrG7AXHpexrYy74dG9z1cFbmHew@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -23,73 +16,386 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Leonardo Chiquitto <leonardo.lists@gmail.com>
-Cc: autofs@linux.kernel.org, "Philip Ong Jr." <pongjr@gmail.com>
+To: autofs@linux.kernel.org
 
-On Thu, 2011-03-24 at 19:03 -0300, Leonardo Chiquitto wrote:
-> 
-> I finally had time to return to this issue. To avoid the confusion caused by old
-> kernels, I reproduced the problem on openSUSE Factory (kernel 2.6.38 and
-> autofs 5.0.5 with all kernel.org patches applied). Here's the
-> configuration used:
-> 
-> # cat /etc/auto.master
-> /data	/etc/auto.data
-> 
-> # cat /etc/auto.data
-> isos	-fstype=nfs,ro,rsize=8192,wsize=8192,intr,nolock,nosuid libre:/isos
-> 
-> # cat /etc/sysconfig/autofs | grep -v '^#'
-> AUTOFS_OPTIONS=""
-> LOCAL_OPTIONS=""
-> APPEND_OPTIONS="yes"
-> USE_MISC_DEVICE="yes"
-> DEFAULT_MASTER_MAP_NAME="auto.master"
-> DEFAULT_TIMEOUT=600
-> DEFAULT_BROWSE_MODE="yes"
-> DEFAULT_LOGGING="debug"
-> DEFAULT_MAP_OBJECT_CLASS="nisMap"
-> DEFAULT_ENTRY_OBJECT_CLASS="nisObject"
-> DEFAULT_MAP_ATTRIBUTE="nisMapName"
-> DEFAULT_ENTRY_ATTRIBUTE="cn"
-> DEFAULT_VALUE_ATTRIBUTE="nisMapEntry"
-> DEFAULT_AUTH_CONF_FILE="etc/autofs_ldap_auth.conf"
-> MAP_HASH_TABLE_SIZE=1024
-> 
-> I'm attaching the automount debug logs showing the following sequence:
-> 
-> - automount startup
-> - mount of an NFS volume (/data/isos)
-> - failed attempt to trigger the expiration of the mounted volume (sending
->   SIGUSR1)
-> - successful attempt to trigger the expiration of the mounted volume
->   (sending SIGUSR1 again)
-> 
-> I also confirmed that the problem no longer happens if I revert the
-> following commit:
-> 
-> commit 08aafab4c1d0ab6227c80f8cd1086ae78556a370
-> Author: Ian Kent <raven@themaw.net>
-> Date:   Thu Sep 9 11:10:47 2010 +0800
-> 
->     autofs-5.0.5 - fix direct map not updating on reread
-> 
-> Philip, do you think you could try to revert it in your setup/package just
-> to confirm this "works"?
+This is the second post of "dir map-type" patch.
 
-The problem was actually introduced by
-autofs-5.0.5-remove-state-machine-timed-wait.patch.
+Changes since last post:
 
-There had been a long standing bug in the state queue handling which I
-thought was a pthreads problem. When I added the above patch everything
-appeared to work OK.
+	- Don't use auto. as prefix for included map.
+          Use .autofs suffix instead. Suggested by Steve Linn.
 
-But the change you mentioned above exposed the bug and the log you
-provided allowed me to work out what was broken and fix it.
+	- Use scandir instead of using opendir/readdir/closedir.
 
-But the stale map processing has also been broken somewhere along the
-way and I'm also working on fixing that.
 
-Once that's done there's not much more needed for 5.0.6, at last.
+What is dir map-type?
 
-Ian
+ 
+`dir' map-type is for including files under a directory into master
+map.
+`file' map-type can be used for including a file with + notation like:
+
+       +/etc/auto.mine
+
+in auto.master. However, for specifying a new file to be included you
+have to edit auto.master file. Editing is also needed when you want to
+remove the included file. When you have to do this with your shell
+script you may have to use sed or awk.
+
+`dir' map-type permits you adding new master map entries with cp
+command and removing the entries with rm command. `dir' map-type is
+inspired from /etc/httpd/conf.d and /etc/modprobe.d.
+
+`dir' map-type can be used for included files under a directory
+(e.g. /etc/auto.master.d) with + notation like:
+
+      +dir:/etc/auto.master.d
+
+in auto.master. With this notation /etc/auto.master.d/*.autofs files
+are included except a file which name is started with ".".  With the
+name of the file you can control whether a file under the directory is
+included or not: the file which name ends with ".autofs" is included.
+
+
+Signed-off-by: Masatake YAMATO <yamato@redhat.com>
+---
+ autofs.spec          |    5 +
+ daemon/lookup.c      |    3 +-
+ man/auto.master.5.in |   10 ++-
+ modules/Makefile     |    6 +-
+ modules/lookup_dir.c |  219 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ samples/auto.master  |    4 +
+ 6 files changed, 242 insertions(+), 5 deletions(-)
+ create mode 100644 modules/lookup_dir.c
+
+diff --git a/autofs.spec b/autofs.spec
+index a72a0c8..e54871f 100644
+--- a/autofs.spec
++++ b/autofs.spec
+@@ -67,6 +67,7 @@ mkdir -p -m755 $RPM_BUILD_ROOT%{_sbindir}
+ mkdir -p -m755 $RPM_BUILD_ROOT%{_libdir}/autofs
+ mkdir -p -m755 $RPM_BUILD_ROOT%{_mandir}/{man5,man8}
+ mkdir -p -m755 $RPM_BUILD_ROOT/etc/sysconfig
++mkdir -p -m755 $RPM_BUILD_ROOT/etc/auto.master.d
+ 
+ make install mandir=%{_mandir} initdir=/etc/rc.d/init.d INSTALLROOT=$RPM_BUILD_ROOT
+ make -C redhat
+@@ -104,8 +105,12 @@ fi
+ %dir %{_libdir}/autofs
+ %{_libdir}/autofs/*
+ %{_mandir}/*/*
++%dir /etc/auto.master.d
+ 
+ %changelog
++* Fri Jan 14 2011 Masatake YAMATO <yamato@redhat.com>
++- Added /etc/auto.master.d
++
+ * Thu Sep 3 2009 Ian Kent <raven@themaw.net>
+ - Update package to version 5.0.5.
+ 
+diff --git a/daemon/lookup.c b/daemon/lookup.c
+index 36e60c9..a118bfa 100644
+--- a/daemon/lookup.c
++++ b/daemon/lookup.c
+@@ -176,7 +176,8 @@ int lookup_nss_read_master(struct master *master, time_t age)
+ 			    !strncmp(name, "nis:", 4) ||
+ 			    !strncmp(name, "nisplus:", 8) ||
+ 			    !strncmp(name, "ldap:", 5) ||
+-			    !strncmp(name, "ldaps:", 6)) {
++			    !strncmp(name, "ldaps:", 6) ||
++			    !strncmp(name, "dir:", 4)) {
+ 				strncpy(source, name, tmp - name);
+ 
+ 				/*
+diff --git a/man/auto.master.5.in b/man/auto.master.5.in
+index 380b706..80747c5 100644
+--- a/man/auto.master.5.in
++++ b/man/auto.master.5.in
+@@ -107,6 +107,14 @@ appropriate certificate must be configured in the LDAP client.
+ .B multi
+ This map type allows the specification of multiple maps separated
+ by "--". These maps are searched in order to resolve key lookups.
++.TP
++.B dir
++This map type can be used at 
++.BR + 
++master map including notation. The contents of files under given directory are included
++to the master map. The name of file to be included must be ended with ".autofs". A file
++will be ignored if its name is not ended with the suffix. In addition a dot file, a file
++which name is started with "." is also ignored.
+ .RE
+ .TP
+ \fBformat\fP
+@@ -118,7 +126,7 @@ left unspecified, it defaults to \fBsun\fP for all map types except
+ .TP
+ \fBmap\fP
+ Name of the map to use.  This is an absolute UNIX pathname
+-for maps of types \fBfile\fP or \fBprogram\fP, and the name of a database
++for maps of types \fBfile\fP, \fBdir\fP, or \fBprogram\fP, and the name of a database
+ in the case for maps of type \fByp\fP, \fBnisplus\fP, or \fBhesiod\fP or
+ the \fBdn\fP of an LDAP entry for maps of type \fBldap\fP.
+ .TP
+diff --git a/modules/Makefile b/modules/Makefile
+index 9ad3915..96768b1 100644
+--- a/modules/Makefile
++++ b/modules/Makefile
+@@ -5,14 +5,14 @@
+ -include ../Makefile.conf
+ include ../Makefile.rules
+ 
+-SRCS :=	lookup_yp.c  lookup_file.c  lookup_program.c  lookup_userhome.c \
+-	lookup_multi.c lookup_hosts.c \
++SRCS :=	lookup_yp.c  lookup_file.c lookup_program.c  lookup_userhome.c \
++	lookup_multi.c lookup_hosts.c lookup_dir.c \
+ 	parse_sun.c    \
+ 	mount_generic.c  mount_nfs.c  mount_afs.c  mount_autofs.c \
+ 	mount_changer.c  mount_bind.c
+ 
+ MODS :=	lookup_yp.so lookup_file.so lookup_program.so lookup_userhome.so \
+-	lookup_multi.so lookup_hosts.so \
++	lookup_multi.so lookup_hosts.so lookup_dir.so \
+ 	parse_sun.so \
+ 	mount_generic.so mount_nfs.so mount_afs.so mount_autofs.so \
+ 	mount_changer.so mount_bind.so
+diff --git a/modules/lookup_dir.c b/modules/lookup_dir.c
+new file mode 100644
+index 0000000..d779ef2
+--- /dev/null
++++ b/modules/lookup_dir.c
+@@ -0,0 +1,219 @@
++/* ----------------------------------------------------------------------- *
++ *   
++ *  lookup_dir.c - module for including master files in a directory. 
++ *
++ * Copyright 2011 Red Hat, Inc. All rights reserved.
++ * Copyright 2011 Masatake YAMATO <yamato@redhat.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation, Inc., 675 Mass Ave, Cambridge MA 02139,
++ * USA; either version 2 of the License, or (at your option) any later
++ * version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * ----------------------------------------------------------------------- */
++
++#include <stdio.h>
++#include <malloc.h>
++#include <pwd.h>
++#include <string.h>
++#include <sys/param.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <dirent.h>
++
++
++#define MODULE_LOOKUP
++#include "automount.h"
++#include "nsswitch.h"
++
++#define MODPREFIX "lookup(dir): "
++
++#define MAX_INCLUDE_DEPTH	16
++
++#define AUTOFS_DIR_EXT ".autofs"
++#define AUTOFS_DIR_EXTSIZ (sizeof(AUTOFS_DIR_EXT) - 1)
++
++struct lookup_context {
++  const char *mapname;
++}; 
++
++int lookup_version = AUTOFS_LOOKUP_VERSION;	/* Required by protocol */
++
++
++int lookup_init(const char *mapfmt, int argc, const char *const *argv, void **context)
++{
++	struct lookup_context *ctxt;
++	char buf[MAX_ERR_BUF];
++	struct stat st;
++
++	*context = NULL;
++	ctxt = malloc(sizeof(struct lookup_context));
++	if (!ctxt) {
++		char *estr = strerror_r(errno, buf, MAX_ERR_BUF);
++		logerr(MODPREFIX "malloc: %s", estr);
++		return 1;
++	}
++
++	if (argc < 1) {
++		free(ctxt);
++		logerr(MODPREFIX "No map name");
++		return 1;
++	}
++
++	ctxt->mapname = argv[0];
++
++	if (ctxt->mapname[0] != '/') {
++		free(ctxt);
++		logmsg(MODPREFIX
++		     "dir map %s is not an absolute pathname", argv[0]);
++		return 1;
++	}
++
++	if (access(ctxt->mapname, R_OK)) {
++		free(ctxt);
++		warn(LOGOPT_NONE, MODPREFIX
++		     "dir map %s missing or not readable", argv[0]);
++		return 1;
++	}
++
++	if (stat(ctxt->mapname, &st)) {
++		free(ctxt);
++		warn(LOGOPT_NONE, MODPREFIX
++		     "dir map %s, could not stat", argv[0]);
++		return 1;
++	}
++
++	if ( (!S_ISDIR(st.st_mode)) && (!S_ISLNK(st.st_mode)) ) {
++		free(ctxt);
++		warn(LOGOPT_NONE, MODPREFIX
++		     "dir map %s, is not a directory", argv[0]);
++	}
++
++	*context = ctxt;	
++	return 0;
++}
++
++static int acceptable_dirent_p(const struct dirent *e)
++{
++  size_t namesz;
++
++
++  if (!(e->d_type == DT_REG || e->d_type == DT_LNK))
++	  return 0;
++
++  namesz = strlen(e->d_name);
++  if (!namesz)
++	  return 0;
++
++  if (e->d_name[0] == '.')
++	  return 0;	  
++
++  if (namesz < AUTOFS_DIR_EXTSIZ + 1 ||
++      strcmp(e->d_name + (namesz - AUTOFS_DIR_EXTSIZ),
++	     AUTOFS_DIR_EXT))
++	  return 0;
++
++  return 1;
++}
++
++
++static int include_file(struct master *master, time_t age, struct lookup_context* ctxt, struct dirent *e)
++{
++	unsigned int logopt = master->logopt;
++	char included_path[PATH_MAX + 1];
++	int included_path_len;
++	char *save_name;
++	int status;
++
++	included_path_len = snprintf(included_path, 
++				     PATH_MAX + 1, 
++				     "%s/%s",
++				     ctxt->mapname,
++				     e->d_name);
++	if (included_path_len > PATH_MAX)
++		return NSS_STATUS_NOTFOUND;
++	
++	save_name = master->name;
++	master->name = included_path;
++	
++	master->depth++;
++	debug(logopt, MODPREFIX "include: %s", master->name);
++	status = lookup_nss_read_master(master, age);
++	if (!status) {
++		warn(logopt,
++		     MODPREFIX
++		     "failed to read included master map %s",
++		     master->name);
++	}
++	master->depth--;
++	
++	master->name = save_name;
++	return NSS_STATUS_SUCCESS;
++}
++
++
++int lookup_read_master(struct master *master, time_t age, void *context)
++{
++        int n, i;
++	struct dirent **namelist = NULL;	
++	struct lookup_context *ctxt = (struct lookup_context *) context;
++	unsigned int logopt = master->logopt;
++	char buf[MAX_ERR_BUF];
++
++
++	if (master->depth > MAX_INCLUDE_DEPTH) {
++		error(logopt, MODPREFIX
++		      "maximum include depth exceeded %s", master->name);
++		return NSS_STATUS_UNAVAIL;
++	}
++
++	debug(logopt, MODPREFIX "scandir: %s", ctxt->mapname);
++	n = scandir(ctxt->mapname, &namelist, acceptable_dirent_p, versionsort);
++	if (n < 0) {
++	       char *estr = strerror_r(errno, buf, MAX_ERR_BUF);
++
++		error(logopt,
++		      MODPREFIX "could not scan master map dir %s: %s",
++		      ctxt->mapname,
++		      estr);
++		return NSS_STATUS_UNAVAIL;
++	}
++
++	for (i = 0; i < n; i++) {
++		struct dirent *e = namelist[i];
++
++		include_file(master, age, ctxt, e);
++		free(e);
++	}
++	free(namelist);
++
++	return NSS_STATUS_SUCCESS;
++}
++
++int lookup_read_map(struct autofs_point *ap, time_t age, void *context)
++{
++	ap->entry->current = NULL;
++	master_source_current_signal(ap->entry);
++	return NSS_STATUS_UNKNOWN;
++}
++
++int lookup_mount(struct autofs_point *ap, const char *name, int name_len, void *context)
++{
++	ap->entry->current = NULL;
++	master_source_current_signal(ap->entry);
++	return NSS_STATUS_UNKNOWN;
++}
++
++int lookup_done(void *context)
++{
++	struct lookup_context *ctxt = (struct lookup_context *) context;
++	
++	free(ctxt);
++	return 0;
++}
+diff --git a/samples/auto.master b/samples/auto.master
+index 9fe5609..72f086c 100644
+--- a/samples/auto.master
++++ b/samples/auto.master
+@@ -12,6 +12,10 @@
+ #
+ /net	-hosts
+ #
++# Include /etc/auto.master.d/*.autofs
++#
+++dir:/etc/auto.master.d
++#
+ # Include central master map if it can be found using
+ # nsswitch sources.
+ #
+-- 
+1.7.4
