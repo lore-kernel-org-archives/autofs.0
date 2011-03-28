@@ -1,17 +1,17 @@
 From: Leonardo Chiquitto <leonardo.lists@gmail.com>
 Subject: stat -L triggering mount (behavior change starting with
 	2.6.38-rc1)
-Date: Wed, 30 Mar 2011 13:19:12 -0300
-Message-ID: <AANLkTinOuJxFy+B8eumuS2xdFtTQvtv7te63=pLjjc5w@mail.gmail.com>
+Date: Mon, 28 Mar 2011 19:53:06 -0300
+Message-ID: <AANLkTi=FfdPyVB5oiSFPbgms9Nej8LW8yfGMiYmufSCu@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=20cf301fc0c387d946049fb58928
+Content-Type: multipart/mixed; boundary=20cf302acf3898c175049f92ce70
 Return-path: <autofs-bounces@linux.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
 	h=domainkey-signature:mime-version:date:message-id:subject:from:to
-	:content-type; bh=aSjHQeC/9s1Onph3CrIN6E/YdRxyJEij0tUBUhCQk0A=;
-	b=rTdkauJVw0SVcAfj19CTUh7OCS3WQUeRcHTXRXecNM6EjGnmmFytZfLwF8BzU9Tf2x
-	qa4gww0uuDjsimjJdgJMJzglR5bbAvxrCCETuaVFPeLtjmldKeN0V1ZBl+EJ/bbIeSh1
-	mZ3qNXbaxe3FRq8am8t9LJaj7lwKKpxkttVEQ=
+	:content-type; bh=OE3gNHwSXEY2zCCogi9fCT6fVkLPWr9RFxmmR14E3KU=;
+	b=E0W/x8+RMcPA/sbrfOETaVBUUFvcRQjrdAHQvohS6zo058eNV+0E6gn48kUzvaXpnO
+	pk0WfiwoLpWByJcc8MUzAt3vWYLnWyg8qS5R2YntonQ6tfmiSkluqz9CKgfpeYNs9to4
+	OJHHSNwi7EKUxASlu/n2upYj9C6kckEH/R0FE=
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -24,11 +24,8 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
---20cf301fc0c387d946049fb58928
+--20cf302acf3898c175049f92ce70
 Content-Type: text/plain; charset=ISO-8859-1
-
-(note: I'm resending this because it apparently didn't reach the mailing list,
-sorry if someone is getting it twice)
 
 Hello,
 
@@ -39,28 +36,29 @@ mount point will trigger the mount of all available maps.
 This can be reproduced with a simple indirect mount setup:
 
 # cat /etc/auto.master
-/data   /etc/auto.data
+/data	/etc/auto.data
 
 # cat /etc/auto.data
-isos    -fstype=nfs4,ro,rsize=8192,wsize=8192,intr,nolock,nosuid libre:/isos
+isos	-fstype=nfs4,ro,rsize=8192,wsize=8192,intr,nolock,nosuid libre:/isos
 
 # egrep '(autofs|nfs4)' /proc/mounts
 /etc/auto.data /data autofs rw,relatime,fd=7,pgrp=4300,timeout=600,minproto=5,\
- maxproto=5,indirect 0 0
+  maxproto=5,indirect 0 0
 
 # stat -L /data/isos > /dev/null
 
 # egrep '(autofs|nfs4)' /proc/mounts
 /etc/auto.data /data autofs rw,relatime,fd=7,pgrp=4300,timeout=600,minproto=5,\
- maxproto=5,indirect 0 0
-libre:/isos /data/isos nfs4 ro,nosuid,relatime,vers=4,(.. more mount\
+  maxproto=5,indirect 0 0
+libre:/isos /data/isos nfs4 ro,nosuid,relatime,vers=4,(.. more mount
 options ..) 0 0
 
 Bisecting the changes between 2.6.37 and 2.6.38, I found that 2.6.38-rc1
 exhibits the new behavior already. I went as near 2.6.37 as I could and verified
 that commit b650c858c2 (autofs4: Merge the remaining dentry ops tables) also
 shows the new behavior. I tried to bisect the remaining ~18 commits
-but everything I tested/built ended up unbootable.
+but everything
+I tested/built ended up unbootable.
 
 I also tested mainline and verified that the problem is still there.
 
@@ -70,11 +68,11 @@ the automounter, just in case it's useful to someone.
 Thanks,
 Leonardo
 
---20cf301fc0c387d946049fb58928
+--20cf302acf3898c175049f92ce70
 Content-Type: text/plain; charset=US-ASCII; name="messages-n63.txt"
 Content-Disposition: attachment; filename="messages-n63.txt"
 Content-Transfer-Encoding: base64
-X-Attachment-Id: f_glwgq37g0
+X-Attachment-Id: f_gltzy53d1
 
 PT09IFNUQVJUVVAKCk1hciAyOCAxOTozMDo0MyBuNjMgYXV0b21vdW50WzQzODldOiBTdGFydGlu
 ZyBhdXRvbW91bnRlciB2ZXJzaW9uIDUuMC41LCBtYXN0ZXIgbWFwIGF1dG8ubWFzdGVyCk1hciAy
@@ -141,7 +139,7 @@ dW4pOiBpbml0IGdhdGhlcmVkIGdsb2JhbCBvcHRpb25zOiAobnVsbCkKTWFyIDI4IDE5OjMxOjE4
 IG42MyBhdXRvbW91bnRbNDM4OV06IHN0X3JlYWR5OiBzdF9yZWFkeSgpOiBzdGF0ZSA9IDQgcGF0
 aCAvZGF0YQpNYXIgMjggMTk6MzE6MjEgbjYzIGRoY2xpZW50OiBYTVQ6IFNvbGljaXQgb24gZXRo
 MCwgaW50ZXJ2YWwgMTEzMjQwbXMuCgo=
---20cf301fc0c387d946049fb58928
+--20cf302acf3898c175049f92ce70
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -152,5 +150,5 @@ autofs mailing list
 autofs@linux.kernel.org
 http://linux.kernel.org/mailman/listinfo/autofs
 
---20cf301fc0c387d946049fb58928--
+--20cf302acf3898c175049f92ce70--
 
