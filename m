@@ -1,22 +1,16 @@
-From: Leonardo Chiquitto <leonardo.lists@gmail.com>
+From: David Howells <dhowells@redhat.com>
 Subject: Re: stat -L triggering mount (behavior change starting
 	with 2.6.38-rc1)
-Date: Fri, 1 Apr 2011 09:13:18 -0300
-Message-ID: <AANLkTiknzUmU-UNfK9j7yFheg=BQJBp8QZECwUR2SB4O@mail.gmail.com>
-References: <AANLkTi=FfdPyVB5oiSFPbgms9Nej8LW8yfGMiYmufSCu@mail.gmail.com>
-	<1301632733.2880.14.camel@perseus>
+Date: Fri, 01 Apr 2011 15:27:25 +0100
+Message-ID: <6929.1301668045@redhat.com>
+References: <AANLkTin0X+F15LxXu8f4SVZEV=twHO9kf7=K+w2xj1eO@mail.gmail.com>
+	<AANLkTi=FfdPyVB5oiSFPbgms9Nej8LW8yfGMiYmufSCu@mail.gmail.com>
+	<1301632038.2880.11.camel@perseus> <2355.1301649598@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
-	h=domainkey-signature:mime-version:in-reply-to:references:date
-	:message-id:subject:from:to:cc:content-type;
-	bh=OCvMaOIzGLnI8OLFmOHtxS19+64FA32NfZCag0W+EwE=;
-	b=pmrq/c8kOp222kst7VGgj4+RXNfWhMYC6D9jWqn7AhJZBpXHCB6rD+3wLUbU+CuMVI
-	Td9l8VplbvFdKFuihzBoSvnWFPC78ichwZD98OnoVDxL2KftQBLr/e/sIG8bZX/ZluFG
-	pA0/yd8MT9o+ozWqPpfJx+inPqbhjPC/Ud77o=
-In-Reply-To: <1301632733.2880.14.camel@perseus>
+In-Reply-To: <AANLkTin0X+F15LxXu8f4SVZEV=twHO9kf7=K+w2xj1eO@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -27,23 +21,24 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org, David Howells <dhowells@redhat.com>
+To: Leonardo Chiquitto <leonardo.lists@gmail.com>
+Cc: dhowells@redhat.com, autofs@linux.kernel.org, Ian Kent <raven@themaw.net>
 
-On Fri, Apr 1, 2011 at 1:38 AM, Ian Kent <raven@themaw.net> wrote:
-> On Mon, 2011-03-28 at 19:53 -0300, Leonardo Chiquitto wrote:
->>
->> Bisecting the changes between 2.6.37 and 2.6.38, I found that 2.6.38-rc1
->> exhibits the new behavior already. I went as near 2.6.37 as I could and verified
->> that commit b650c858c2 (autofs4: Merge the remaining dentry ops tables) also
->> shows the new behavior. I tried to bisect the remaining ~18 commits
->> but everything
->> I tested/built ended up unbootable.
->>
->> I also tested mainline and verified that the problem is still there.
->
-> I suspect it will but does it also happen with 2.6.39-rc1?
+Leonardo Chiquitto <leonardo.lists@gmail.com> wrote:
 
-Yes, still reproducible with 2.6.39-rc1-vanilla+ (commit ecb78ab6f3).
+> open("/data", O_RDONLY|O_NONBLOCK|O_DIRECTORY|O_CLOEXEC) = 3
+> fcntl(3, F_GETFD)                       = 0x1 (flags FD_CLOEXEC)
+> getdents64(3, /* 3 entries */, 32768)   = 72
+> lstat("/data/isos", {st_mode=S_IFDIR|0555, st_size=0, ...}) = 0
+> lgetxattr("/data/isos", "security.selinux", 0x62ad60, 255) = -1 EOPNOTSUPP (Operation not supported)
+> getxattr("/data/isos", "system.posix_acl_access", 0x0, 0) = -1 EOPNOTSUPP (Operation not supported)
+> getdents64(3, /* 0 entries */, 32768)   = 0
 
-Leonardo
+Yeah, I suspect the getxattr() is the problem.  ls calls libacl to get the
+Posix ACL of the target file, but that uses the getxattr() which asserts
+LOOKUP_FOLLOW during the pathwalk, causing the automount unconditionally:-/
+
+I'm discussing this with the coreutils and acl package maintainers to see if
+we can fix it in userspace.
+
+David
