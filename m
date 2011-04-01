@@ -1,17 +1,17 @@
-From: Leonardo Chiquitto <leonardo.lists@gmail.com>
-Subject: stat -L triggering mount (behavior change starting with
-	2.6.38-rc1)
-Date: Mon, 28 Mar 2011 19:53:06 -0300
-Message-ID: <AANLkTi=FfdPyVB5oiSFPbgms9Nej8LW8yfGMiYmufSCu@mail.gmail.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: different behaviour of autofs
+Date: Fri, 01 Apr 2011 12:14:01 +0800
+Message-ID: <1301631241.2880.1.camel@perseus>
+References: <4D903E64.6050901@mx9.artware.nl>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=20cf302acf3898c175049f92ce70
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
-	h=domainkey-signature:mime-version:date:message-id:subject:from:to
-	:content-type; bh=OE3gNHwSXEY2zCCogi9fCT6fVkLPWr9RFxmmR14E3KU=;
-	b=E0W/x8+RMcPA/sbrfOETaVBUUFvcRQjrdAHQvohS6zo058eNV+0E6gn48kUzvaXpnO
-	pk0WfiwoLpWByJcc8MUzAt3vWYLnWyg8qS5R2YntonQ6tfmiSkluqz9CKgfpeYNs9to4
-	OJHHSNwi7EKUxASlu/n2upYj9C6kckEH/R0FE=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com;
+	h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding;
+	s=smtpout; bh=W9qlz0as6bGkUA7xlrYzOucwml4=;
+	b=bxIqN5CNpyUPgOW+nIWW34OpYj2owb+kGTRPcflorz+Rkun5MUs0CZA39RVnOo6F5lFQAHyrVI3mtoKyjURTKRLrC4YAbUwF4q62Lckr2OOY24K6VLZSUS9tfE2/VoOeUZQu2TDQir4ycL6ppLTJQiPEwvWQHnw6OzVvp8u0J9c=
+In-Reply-To: <4D903E64.6050901@mx9.artware.nl>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,133 +22,22 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: hugo tempo <hugo@mx9.artware.nl>
+Cc: autofs@linux.kernel.org
 
---20cf302acf3898c175049f92ce70
-Content-Type: text/plain; charset=ISO-8859-1
+On Mon, 2011-03-28 at 09:53 +0200, hugo tempo wrote:
+> Hi,
+> We (@vu.nl) use the automounter with ldap, a.o. to automount 
+> home-directories.
+> Now under squeeze if we do a wildcard access (ls /home/* or even ls 
+> /home) we get a listing of (seemingly) all the userdirectories from the 
+> mountmap (in ldap), which are certainly not all mounted under /home on 
+> that specific machine. Same story with /net where we automount packages.
+> With lenny we never saw this behaviour, which we honestly do not appreciate.
+> Anybody knowing the specifics about this?
 
-Hello,
+Specifics about what.
+Perhaps you expect me to just guess the version history and the changes
+you have made to your autofs configuration.
 
-After the update to 2.6.38, I noticed that AutoFS started to mount volumes
-at times it normally wouldn't. More specifically, "ls -la" inside an AutoFS
-mount point will trigger the mount of all available maps.
-
-This can be reproduced with a simple indirect mount setup:
-
-# cat /etc/auto.master
-/data	/etc/auto.data
-
-# cat /etc/auto.data
-isos	-fstype=nfs4,ro,rsize=8192,wsize=8192,intr,nolock,nosuid libre:/isos
-
-# egrep '(autofs|nfs4)' /proc/mounts
-/etc/auto.data /data autofs rw,relatime,fd=7,pgrp=4300,timeout=600,minproto=5,\
-  maxproto=5,indirect 0 0
-
-# stat -L /data/isos > /dev/null
-
-# egrep '(autofs|nfs4)' /proc/mounts
-/etc/auto.data /data autofs rw,relatime,fd=7,pgrp=4300,timeout=600,minproto=5,\
-  maxproto=5,indirect 0 0
-libre:/isos /data/isos nfs4 ro,nosuid,relatime,vers=4,(.. more mount
-options ..) 0 0
-
-Bisecting the changes between 2.6.37 and 2.6.38, I found that 2.6.38-rc1
-exhibits the new behavior already. I went as near 2.6.37 as I could and verified
-that commit b650c858c2 (autofs4: Merge the remaining dentry ops tables) also
-shows the new behavior. I tried to bisect the remaining ~18 commits
-but everything
-I tested/built ended up unbootable.
-
-I also tested mainline and verified that the problem is still there.
-
-Although everything points to a kernel change, I'm attaching debug logs from
-the automounter, just in case it's useful to someone.
-
-Thanks,
-Leonardo
-
---20cf302acf3898c175049f92ce70
-Content-Type: text/plain; charset=US-ASCII; name="messages-n63.txt"
-Content-Disposition: attachment; filename="messages-n63.txt"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gltzy53d1
-
-PT09IFNUQVJUVVAKCk1hciAyOCAxOTozMDo0MyBuNjMgYXV0b21vdW50WzQzODldOiBTdGFydGlu
-ZyBhdXRvbW91bnRlciB2ZXJzaW9uIDUuMC41LCBtYXN0ZXIgbWFwIGF1dG8ubWFzdGVyCk1hciAy
-OCAxOTozMDo0MyBuNjMgYXV0b21vdW50WzQzODldOiB1c2luZyBrZXJuZWwgcHJvdG9jb2wgdmVy
-c2lvbiA1LjAyCk1hciAyOCAxOTozMDo0MyBuNjMgYXV0b21vdW50WzQzODldOiBsb29rdXBfbnNz
-X3JlYWRfbWFzdGVyOiByZWFkaW5nIG1hc3RlciBmaWxlcyBhdXRvLm1hc3RlcgpNYXIgMjggMTk6
-MzA6NDMgbjYzIGF1dG9tb3VudFs0Mzg5XTogcGFyc2VfaW5pdDogcGFyc2Uoc3VuKTogaW5pdCBn
-YXRoZXJlZCBnbG9iYWwgb3B0aW9uczogKG51bGwpCk1hciAyOCAxOTozMDo0MyBuNjMgYXV0b21v
-dW50WzQzODldOiBsb29rdXBfcmVhZF9tYXN0ZXI6IGxvb2t1cChmaWxlKTogcmVhZCBlbnRyeSAv
-ZGF0YQpNYXIgMjggMTk6MzA6NDMgbjYzIGF1dG9tb3VudFs0Mzg5XTogbWFzdGVyX2RvX21vdW50
-OiBtb3VudGluZyAvZGF0YQpNYXIgMjggMTk6MzA6NDMgbjYzIGF1dG9tb3VudFs0Mzg5XTogYXV0
-b21vdW50X3BhdGhfdG9fZmlmbzogZmlmbyBuYW1lIC92YXIvcnVuL2F1dG9mcy5maWZvLWRhdGEK
-TWFyIDI4IDE5OjMwOjQzIG42MyBhdXRvbW91bnRbNDM4OV06IGxvb2t1cF9uc3NfcmVhZF9tYXA6
-IHJlYWRpbmcgbWFwIGZpbGUgL2V0Yy9hdXRvLmRhdGEKTWFyIDI4IDE5OjMwOjQzIG42MyBhdXRv
-bW91bnRbNDM4OV06IHBhcnNlX2luaXQ6IHBhcnNlKHN1bik6IGluaXQgZ2F0aGVyZWQgZ2xvYmFs
-IG9wdGlvbnM6IChudWxsKQpNYXIgMjggMTk6MzA6NDMgbjYzIGF1dG9tb3VudFs0Mzg5XTogbW91
-bnRlZCBpbmRpcmVjdCBvbiAvZGF0YSB3aXRoIHRpbWVvdXQgNjAwLCBmcmVxIDE1MCBzZWNvbmRz
-Ck1hciAyOCAxOTozMDo0MyBuNjMgYXV0b21vdW50WzQzODldOiBzdF9yZWFkeTogc3RfcmVhZHko
-KTogc3RhdGUgPSAwIHBhdGggL2RhdGEKTWFyIDI4IDE5OjMwOjQzIG42MyBhdXRvbW91bnRbNDM4
-OV06IGdob3N0aW5nIGVuYWJsZWQKCj09PSBDT01NQU5EOiBzdGF0IC1MIC9kYXRhL2lzb3MKCk1h
-ciAyOCAxOTozMToxOCBuNjMgYXV0b21vdW50WzQzODldOiBoYW5kbGVfcGFja2V0OiB0eXBlID0g
-MwpNYXIgMjggMTk6MzE6MTggbjYzIGF1dG9tb3VudFs0Mzg5XTogaGFuZGxlX3BhY2tldF9taXNz
-aW5nX2luZGlyZWN0OiB0b2tlbiAxLCBuYW1lIGlzb3MsIHJlcXVlc3QgcGlkIDQzOTgKTWFyIDI4
-IDE5OjMxOjE4IG42MyBhdXRvbW91bnRbNDM4OV06IGF0dGVtcHRpbmcgdG8gbW91bnQgZW50cnkg
-L2RhdGEvaXNvcwpNYXIgMjggMTk6MzE6MTggbjYzIGF1dG9tb3VudFs0Mzg5XTogbG9va3VwX21v
-dW50OiBsb29rdXAoZmlsZSk6IGxvb2tpbmcgdXAgaXNvcwpNYXIgMjggMTk6MzE6MTggbjYzIGF1
-dG9tb3VudFs0Mzg5XTogbG9va3VwX21vdW50OiBsb29rdXAoZmlsZSk6IGlzb3MgLT4gLWZzdHlw
-ZT1uZnM0LHJvLHJzaXplPTgxOTIsd3NpemU9ODE5MixpbnRyLG5vbG9jayxub3N1aWQgbGlicmU6
-L2lzb3MKTWFyIDI4IDE5OjMxOjE4IG42MyBhdXRvbW91bnRbNDM4OV06IHBhcnNlX21vdW50OiBw
-YXJzZShzdW4pOiBleHBhbmRlZCBlbnRyeTogLWZzdHlwZT1uZnM0LHJvLHJzaXplPTgxOTIsd3Np
-emU9ODE5MixpbnRyLG5vbG9jayxub3N1aWQgbGlicmU6L2lzb3MKTWFyIDI4IDE5OjMxOjE4IG42
-MyBhdXRvbW91bnRbNDM4OV06IHBhcnNlX21vdW50OiBwYXJzZShzdW4pOiBnYXRoZXJlZCBvcHRp
-b25zOiBmc3R5cGU9bmZzNCxybyxyc2l6ZT04MTkyLHdzaXplPTgxOTIsaW50cixub2xvY2ssbm9z
-dWlkCk1hciAyOCAxOTozMToxOCBuNjMgYXV0b21vdW50WzQzODldOiBwYXJzZV9tb3VudDogcGFy
-c2Uoc3VuKTogZGVxdW90ZSgibGlicmU6L2lzb3MiKSAtPiBsaWJyZTovaXNvcwpNYXIgMjggMTk6
-MzE6MTggbjYzIGF1dG9tb3VudFs0Mzg5XTogcGFyc2VfbW91bnQ6IHBhcnNlKHN1bik6IGNvcmUg
-b2YgZW50cnk6IG9wdGlvbnM9ZnN0eXBlPW5mczQscm8scnNpemU9ODE5Mix3c2l6ZT04MTkyLGlu
-dHIsbm9sb2NrLG5vc3VpZCwgbG9jPWxpYnJlOi9pc29zCk1hciAyOCAxOTozMToxOCBuNjMgYXV0
-b21vdW50WzQzODldOiBzdW5fbW91bnQ6IHBhcnNlKHN1bik6IG1vdW50aW5nIHJvb3QgL2RhdGEs
-IG1vdW50cG9pbnQgaXNvcywgd2hhdCBsaWJyZTovaXNvcywgZnN0eXBlIG5mczQsIG9wdGlvbnMg
-cm8scnNpemU9ODE5Mix3c2l6ZT04MTkyLGludHIsbm9sb2NrLG5vc3VpZApNYXIgMjggMTk6MzE6
-MTggbjYzIGF1dG9tb3VudFs0Mzg5XTogbW91bnRfbW91bnQ6IG1vdW50KG5mcyk6IHJvb3Q9L2Rh
-dGEgbmFtZT1pc29zIHdoYXQ9bGlicmU6L2lzb3MsIGZzdHlwZT1uZnM0LCBvcHRpb25zPXJvLHJz
-aXplPTgxOTIsd3NpemU9ODE5MixpbnRyLG5vbG9jayxub3N1aWQKTWFyIDI4IDE5OjMxOjE4IG42
-MyBhdXRvbW91bnRbNDM4OV06IG1vdW50X21vdW50OiBtb3VudChuZnMpOiBuZnMgb3B0aW9ucz0i
-cm8scnNpemU9ODE5Mix3c2l6ZT04MTkyLGludHIsbm9sb2NrLG5vc3VpZCIsIG5vc3ltbGluaz0w
-LCBybz0xCk1hciAyOCAxOTozMToxOCBuNjMgYXV0b21vdW50WzQzODldOiBtb3VudF9tb3VudDog
-bW91bnQobmZzKTogY2FsbGluZyBta2Rpcl9wYXRoIC9kYXRhL2lzb3MKTWFyIDI4IDE5OjMxOjE4
-IG42MyBhdXRvbW91bnRbNDM4OV06IG1vdW50X21vdW50OiBtb3VudChuZnMpOiBjYWxsaW5nIG1v
-dW50IC10IG5mczQgLXMgLW8gcm8scnNpemU9ODE5Mix3c2l6ZT04MTkyLGludHIsbm9sb2NrLG5v
-c3VpZCBsaWJyZTovaXNvcyAvZGF0YS9pc29zCk1hciAyOCAxOTozMToxOCBuNjMgcmVxdWVzdC1r
-ZXk6IENhbm5vdCBmaW5kIGNvbW1hbmQgdG8gY29uc3RydWN0IGtleSAzMzQ2MzA0OQpNYXIgMjgg
-MTk6MzE6MTggbjYzIHJlcXVlc3Qta2V5OiBDYW5ub3QgZmluZCBjb21tYW5kIHRvIGNvbnN0cnVj
-dCBrZXkgNDgxOTU1MzAwCk1hciAyOCAxOTozMToxOCBuNjMgYXV0b21vdW50WzQzODldOiBtb3Vu
-dF9tb3VudDogbW91bnQobmZzKTogbW91bnRlZCBsaWJyZTovaXNvcyBvbiAvZGF0YS9pc29zCk1h
-ciAyOCAxOTozMToxOCBuNjMgYXV0b21vdW50WzQzODldOiBkZXZfaW9jdGxfc2VuZF9yZWFkeTog
-dG9rZW4gPSAxCk1hciAyOCAxOTozMToxOCBuNjMgYXV0b21vdW50WzQzODldOiBtb3VudGVkIC9k
-YXRhL2lzb3MKTWFyIDI4IDE5OjMxOjE4IG42MyBhdXRvbW91bnRbNDM4OV06IHN0X3JlYWRtYXA6
-IHN0YXRlIDEgcGF0aCAvZGF0YQpNYXIgMjggMTk6MzE6MTggbjYzIGF1dG9tb3VudFs0Mzg5XTog
-cmUtcmVhZGluZyBtYXAgZm9yIC9kYXRhCk1hciAyOCAxOTozMToxOCBuNjMgYXV0b21vdW50WzQz
-ODldOiBsb29rdXBfbnNzX3JlYWRfbWFwOiByZWFkaW5nIG1hcCBmaWxlIC9ldGMvYXV0by5kYXRh
-Ck1hciAyOCAxOTozMToxOCBuNjMgYXV0b21vdW50WzQzODldOiBwYXJzZV9pbml0OiBwYXJzZShz
-dW4pOiBpbml0IGdhdGhlcmVkIGdsb2JhbCBvcHRpb25zOiAobnVsbCkKTWFyIDI4IDE5OjMxOjE4
-IG42MyBhdXRvbW91bnRbNDM4OV06IHN0X3JlYWR5OiBzdF9yZWFkeSgpOiBzdGF0ZSA9IDQgcGF0
-aCAvZGF0YQpNYXIgMjggMTk6MzE6MjEgbjYzIGRoY2xpZW50OiBYTVQ6IFNvbGljaXQgb24gZXRo
-MCwgaW50ZXJ2YWwgMTEzMjQwbXMuCgo=
---20cf302acf3898c175049f92ce70
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
-
---20cf302acf3898c175049f92ce70--
-
+Ian
