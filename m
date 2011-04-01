@@ -1,12 +1,15 @@
-From: Frank Thommen <frank.thommen@embl.de>
-Subject: Re: different behaviour of autofs
-Date: Fri, 01 Apr 2011 09:57:28 +0200
-Message-ID: <4D958568.2030904@embl.de>
-References: <4D903E64.6050901@mx9.artware.nl>
+From: David Howells <dhowells@redhat.com>
+Subject: Re: stat -L triggering mount (behavior change starting
+	with 2.6.38-rc1)
+Date: Fri, 01 Apr 2011 10:19:58 +0100
+Message-ID: <2355.1301649598@redhat.com>
+References: <1301632038.2880.11.camel@perseus>
+	<AANLkTi=FfdPyVB5oiSFPbgms9Nej8LW8yfGMiYmufSCu@mail.gmail.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4D903E64.6050901@mx9.artware.nl>
+In-Reply-To: <1301632038.2880.11.camel@perseus>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,26 +20,15 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: hugo tempo <hugo@mx9.artware.nl>
-Cc: autofs@linux.kernel.org
-
-hugo tempo wrote:
-> Hi,
-> We (@vu.nl) use the automounter with ldap, a.o. to automount 
-> home-directories.
-> Now under squeeze if we do a wildcard access (ls /home/* or even ls 
-> /home) we get a listing of (seemingly) all the userdirectories from the 
-> mountmap (in ldap), which are certainly not all mounted under /home on 
-> that specific machine. Same story with /net where we automount packages.
-> With lenny we never saw this behaviour, which we honestly do not 
-> appreciate.
-> Anybody knowing the specifics about this?
-> Thanks in advance,
-> Hugo Bokman
+To: Leonardo Chiquitto <leonardo.lists@gmail.com>
+Cc: dhowells@redhat.com, autofs@linux.kernel.org, Ian Kent <raven@themaw.net>
 
 
-Maybe the default of the browse mode has changed from "no" to "yes" from 
-the previous to the current Linux release ytou are using?
+Hi Leonardo,
 
-frank
+Could you send us a strace of "ls -l" on your autofs directory?
+
+I think the problem is not lstat() calls, but rather getxattr() calls.
+
+Thanks,
+David
