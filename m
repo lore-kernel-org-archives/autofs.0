@@ -1,16 +1,18 @@
-From: David Howells <dhowells@redhat.com>
-Subject: Re: stat -L triggering mount (behavior change starting
-	with 2.6.38-rc1)
-Date: Fri, 01 Apr 2011 15:27:25 +0100
-Message-ID: <6929.1301668045@redhat.com>
-References: <AANLkTin0X+F15LxXu8f4SVZEV=twHO9kf7=K+w2xj1eO@mail.gmail.com>
-	<AANLkTi=FfdPyVB5oiSFPbgms9Nej8LW8yfGMiYmufSCu@mail.gmail.com>
-	<1301632038.2880.11.camel@perseus> <2355.1301649598@redhat.com>
+From: Siddhesh Poyarekar <siddhesh.poyarekar@gmail.com>
+Subject: [PATCH] Sanity checks for brackets (escaped or otherwise)
+	in server name
+Date: Fri,  1 Apr 2011 14:43:03 +0530
+Message-ID: <1301649183-8467-1-git-send-email-siddhesh.poyarekar@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <AANLkTin0X+F15LxXu8f4SVZEV=twHO9kf7=K+w2xj1eO@mail.gmail.com>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
+	h=domainkey-signature:from:to:cc:subject:date:message-id:x-mailer;
+	bh=RRBON+A7WXMLKXSdfvknDWzhn4WmXOBTuGBqAiu3+t4=;
+	b=p4qP0eTwCAmyfMrgYpIaADM7lAPIG2FSCP6vGFOzocWZX7Er91ktoVJZyyUK+prhsl
+	wXayRd4mnIfrU9LuhSOAoLzW4YBUpcz/n/Pjk03kPAwUc52VeWe0b+5HMCf4cyzYLGcT
+	fXptNfphIp7t3ElmvBrduL66BIHjqiczPxz0I=
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -21,24 +23,56 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Leonardo Chiquitto <leonardo.lists@gmail.com>
-Cc: dhowells@redhat.com, autofs@linux.kernel.org, Ian Kent <raven@themaw.net>
+To: autofs@linux.kernel.org
+Cc: Siddhesh Poyarekar <siddhesh.poyarekar@gmail.com>
 
-Leonardo Chiquitto <leonardo.lists@gmail.com> wrote:
+When autofs is configured as follows:
 
-> open("/data", O_RDONLY|O_NONBLOCK|O_DIRECTORY|O_CLOEXEC) = 3
-> fcntl(3, F_GETFD)                       = 0x1 (flags FD_CLOEXEC)
-> getdents64(3, /* 3 entries */, 32768)   = 72
-> lstat("/data/isos", {st_mode=S_IFDIR|0555, st_size=0, ...}) = 0
-> lgetxattr("/data/isos", "security.selinux", 0x62ad60, 255) = -1 EOPNOTSUPP (Operation not supported)
-> getxattr("/data/isos", "system.posix_acl_access", 0x0, 0) = -1 EOPNOTSUPP (Operation not supported)
-> getdents64(3, /* 0 entries */, 32768)   = 0
+* -nodev,nosuid,intr,soft,retry=10,proto=tcp &:/tmp1
 
-Yeah, I suspect the getxattr() is the problem.  ls calls libacl to get the
-Posix ACL of the target file, but that uses the getxattr() which asserts
-LOOKUP_FOLLOW during the pathwalk, causing the automount unconditionally:-/
+One could make a mount request as follows:
 
-I'm discussing this with the coreutils and acl package maintainers to see if
-we can fix it in userspace.
+df /autom/tmp1/som\(efile
 
-David
+and crash automount, since automount tries to parse the brackets to
+get the weight for the server. Automount should not parse these
+brackets if they're escaped.
+
+Also throw a syntax error in case of mismatched brackets instead of
+crashing. Sample configuration for this:
+
+* -nodev,nosuid,intr,soft,retry=10,proto=tcp foo(2:/tmp1
+
+Signed-off-by: Siddhesh Poyarekar <siddhesh.poyarekar@gmail.com>
+---
+ modules/replicated.c |    8 +++++++-
+ 1 files changed, 7 insertions(+), 1 deletions(-)
+
+diff --git a/modules/replicated.c b/modules/replicated.c
+index 975c254..248da54 100644
+--- a/modules/replicated.c
++++ b/modules/replicated.c
+@@ -1206,7 +1206,7 @@ static char *seek_delim(const char *s)
+ 	char *delim;
+ 
+ 	delim = strpbrk(p, "(, \t:");
+-	if (delim && *delim != ':')
++	if (delim && *delim != ':' && (delim == s || *(delim - 1) != '\\'))
+ 		return delim;
+ 
+ 	while (*p) {
+@@ -1255,6 +1255,12 @@ int parse_location(unsigned logopt, struct host **hosts,
+ 					*delim = '\0';
+ 					weight = atoi(w);
+ 				}
++				else {
++					/* syntax error - Mismatched brackets */
++					free_host_list(hosts);
++					free(str);
++					return 0;
++				}
+ 				delim++;
+ 			}
+ 
+-- 
+1.7.4
