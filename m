@@ -1,76 +1,62 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Question/request about host mapping
-Date: Thu, 07 Apr 2011 22:56:16 +0800
-Message-ID: <1302188176.2883.39.camel@perseus>
-References: <BANLkTimoD2yb7DBvNsrP014yxRaGywQVug@mail.gmail.com>
+From: Nick Bowler <nbowler@elliptictech.com>
+Subject: Lockdep splat in autofs with 2.6.39-rc2
+Date: Thu, 7 Apr 2011 15:44:03 -0400
+Message-ID: <20110407194403.GA29404@elliptictech.com>
 Mime-Version: 1.0
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com;
-	h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding;
-	s=smtpout; bh=sKXeccKdPJWz9iJQf09ZxsyAxHI=;
-	b=olJd6bvg3eDBXnop8v5ZJGcKjWDJ6KKyRtrMMyVWrFgZtNUMmDqSeutJ2RkwFzvrHvco8AE/Fyotq8TJcs65Bexg93+1typtw4MKxMkQjF+MLEeiLrMXiuaI7fncqIeGitCiGAcBma9DVKXazW9cHKvK6BAO0yrjEVzS6NS/8+0=
-In-Reply-To: <BANLkTimoD2yb7DBvNsrP014yxRaGywQVug@mail.gmail.com>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs/>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-To: michael.coffman@avagotech.com
-Cc: autofs@linux.kernel.org
+To: linux-kernel@vger.kernel.org, autofs@linux.kernel.org
+Cc: Ian Kent <raven@themaw.net>
 
-On Wed, 2011-04-06 at 12:52 -0600, Michael Coffman wrote:
-> Hello,
-> 
-> I am trying to use the -host map for global access to servers in my
-> environment.   
-> 
-> I have noted on this list that after the first mount of a server via
-> host mapping, the server is never again probed for mount points.  This
-> seems like a major flaw in the host map functionality.   This is a
-> problem when adding new file systems to our NFS servers.   It means
-> systems have to be completely idled in order to get them to unmount
-> and re-mount the servers to see the new mount points (not possible
-> very often in my environment).    
-> 
-> Is the assumption that if you use host mapping, your server will
-> either never change, or you have the ability to 'reboot' your
-> environment when a new file system is added to a server?
+Just saw this on 2.6.39-rc2 after half a day or so of uptime.  I've
+never seen it before today so it may be a regression from 2.6.38.
+Nothing seems have failed as a result.  Please let me know if you
+need any more info.
 
-Neither.
+  =============================================
+  [ INFO: possible recursive locking detected ]
+  2.6.39-rc2 #177
+  ---------------------------------------------
+  automount/23324 is trying to acquire lock:
+   (&(&dentry->d_lock)->rlock/1){+.+...}, at: [<ffffffffa034ea28>] autofs4_expire_indirect+0x307/0x484 [autofs4]
+  
+  but task is already holding lock:
+   (&(&dentry->d_lock)->rlock/1){+.+...}, at: [<ffffffffa034ea28>] autofs4_expire_indirect+0x307/0x484 [autofs4]
+  
+  other info that might help us debug this:
+  2 locks held by automount/23324:
+   #0:  (&(&sbi->lookup_lock)->rlock){+.+...}, at: [<ffffffffa034e9aa>] autofs4_expire_indirect+0x289/0x484 [autofs4]
+   #1:  (&(&dentry->d_lock)->rlock/1){+.+...}, at: [<ffffffffa034ea28>] autofs4_expire_indirect+0x307/0x484 [autofs4]
+  
+  stack backtrace:
+  Pid: 23324, comm: automount Not tainted 2.6.39-rc2 #177
+  Call Trace:
+   [<ffffffff81061dc7>] __lock_acquire+0xc83/0xcfa
+   [<ffffffff8105f200>] ? static_obj+0x3d/0x4d
+   [<ffffffff81062073>] ? lock_release_non_nested+0x1c8/0x227
+   [<ffffffffa034ea28>] ? autofs4_expire_indirect+0x307/0x484 [autofs4]
+   [<ffffffffa034ea28>] ? autofs4_expire_indirect+0x307/0x484 [autofs4]
+   [<ffffffff81061e95>] lock_acquire+0x57/0x6d
+   [<ffffffffa034ea28>] ? autofs4_expire_indirect+0x307/0x484 [autofs4]
+   [<ffffffff8131f4e3>] _raw_spin_lock_nested+0x39/0x48
+   [<ffffffffa034ea28>] ? autofs4_expire_indirect+0x307/0x484 [autofs4]
+   [<ffffffff8131fb10>] ? _raw_spin_unlock+0x3e/0x4b
+   [<ffffffffa034ea28>] autofs4_expire_indirect+0x307/0x484 [autofs4]
+   [<ffffffffa034f184>] ? autofs_dev_ioctl_askumount+0x2d/0x2d [autofs4]
+   [<ffffffffa034edbd>] autofs4_do_expire_multi+0x30/0xe9 [autofs4]
+   [<ffffffffa034f184>] ? autofs_dev_ioctl_askumount+0x2d/0x2d [autofs4]
+   [<ffffffffa034f184>] ? autofs_dev_ioctl_askumount+0x2d/0x2d [autofs4]
+   [<ffffffffa034f19e>] autofs_dev_ioctl_expire+0x1a/0x1c [autofs4]
+   [<ffffffffa034f738>] _autofs_dev_ioctl+0x2a3/0x348 [autofs4]
+   [<ffffffffa034f7eb>] autofs_dev_ioctl+0xe/0x12 [autofs4]
+   [<ffffffff810c750d>] do_vfs_ioctl+0x45f/0x4ae
+   [<ffffffff810bab4e>] ? rcu_read_unlock+0x21/0x23
+   [<ffffffff810c759e>] sys_ioctl+0x42/0x65
+   [<ffffffff8132463b>] system_call_fastpath+0x16/0x1b
 
-The problem is that exports can be nested and frequently are (think of
-the nohide export option).
-
-For example, with exports like:
-
-/export/vol1/data1
-/export/vol1/data2
-
-and then add:
-
-/export/vol1
-
-and update the map when either or both /export/vol1/data1
-and /export/vol1/data2 are mounted, /export/vol1 is accessed it will
-cover these mounts. Now that might not seem like a problem but when you
-end up with multiple layers of mounts mounted multiple times everything
-starts to get confused really fast.
-
-> 
-> Is there any way that functionality could be added that would allow
-> for sending a signal ( say USR2 ) that would cause the automounter to
-> re-run /etc/auto.net to re-query -host managed servers for new file
-> systems?
-
-Well, if you have sensible, realistic, workable ideas on how to handle
-the nesting problem then share. And I don't mean "just do this ...."
-type through away comments that have no workable basis in fact.
-
-Ian
+-- 
+Nick Bowler, Elliptic Technologies (http://www.elliptictech.com/)
