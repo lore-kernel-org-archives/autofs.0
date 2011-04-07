@@ -1,62 +1,38 @@
-From: Nick Bowler <nbowler@elliptictech.com>
-Subject: Lockdep splat in autofs with 2.6.39-rc2
-Date: Thu, 7 Apr 2011 15:44:03 -0400
-Message-ID: <20110407194403.GA29404@elliptictech.com>
-Mime-Version: 1.0
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [ANNOUNCE] fedfs-utils for Linux
+Date: Thu, 7 Apr 2011 16:24:29 -0400
+Message-ID: <AB0460DE-A056-47AA-B387-156D35334E04@oracle.com>
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Transfer-Encoding: 8BIT
+Return-path: <util-linux-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: util-linux-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, autofs@linux.kernel.org
-Cc: Ian Kent <raven@themaw.net>
+To: Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, autofs-CPWUtch7KCBzeIdxy0IIJw@public.gmane.org, util-linux-ng-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-Just saw this on 2.6.39-rc2 after half a day or so of uptime.  I've
-never seen it before today so it may be a regression from 2.6.38.
-Nothing seems have failed as a result.  Please let me know if you
-need any more info.
+Announcing public availability of fedfs-utils for Linux
 
-  =============================================
-  [ INFO: possible recursive locking detected ]
-  2.6.39-rc2 #177
-  ---------------------------------------------
-  automount/23324 is trying to acquire lock:
-   (&(&dentry->d_lock)->rlock/1){+.+...}, at: [<ffffffffa034ea28>] autofs4_expire_indirect+0x307/0x484 [autofs4]
-  
-  but task is already holding lock:
-   (&(&dentry->d_lock)->rlock/1){+.+...}, at: [<ffffffffa034ea28>] autofs4_expire_indirect+0x307/0x484 [autofs4]
-  
-  other info that might help us debug this:
-  2 locks held by automount/23324:
-   #0:  (&(&sbi->lookup_lock)->rlock){+.+...}, at: [<ffffffffa034e9aa>] autofs4_expire_indirect+0x289/0x484 [autofs4]
-   #1:  (&(&dentry->d_lock)->rlock/1){+.+...}, at: [<ffffffffa034ea28>] autofs4_expire_indirect+0x307/0x484 [autofs4]
-  
-  stack backtrace:
-  Pid: 23324, comm: automount Not tainted 2.6.39-rc2 #177
-  Call Trace:
-   [<ffffffff81061dc7>] __lock_acquire+0xc83/0xcfa
-   [<ffffffff8105f200>] ? static_obj+0x3d/0x4d
-   [<ffffffff81062073>] ? lock_release_non_nested+0x1c8/0x227
-   [<ffffffffa034ea28>] ? autofs4_expire_indirect+0x307/0x484 [autofs4]
-   [<ffffffffa034ea28>] ? autofs4_expire_indirect+0x307/0x484 [autofs4]
-   [<ffffffff81061e95>] lock_acquire+0x57/0x6d
-   [<ffffffffa034ea28>] ? autofs4_expire_indirect+0x307/0x484 [autofs4]
-   [<ffffffff8131f4e3>] _raw_spin_lock_nested+0x39/0x48
-   [<ffffffffa034ea28>] ? autofs4_expire_indirect+0x307/0x484 [autofs4]
-   [<ffffffff8131fb10>] ? _raw_spin_unlock+0x3e/0x4b
-   [<ffffffffa034ea28>] autofs4_expire_indirect+0x307/0x484 [autofs4]
-   [<ffffffffa034f184>] ? autofs_dev_ioctl_askumount+0x2d/0x2d [autofs4]
-   [<ffffffffa034edbd>] autofs4_do_expire_multi+0x30/0xe9 [autofs4]
-   [<ffffffffa034f184>] ? autofs_dev_ioctl_askumount+0x2d/0x2d [autofs4]
-   [<ffffffffa034f184>] ? autofs_dev_ioctl_askumount+0x2d/0x2d [autofs4]
-   [<ffffffffa034f19e>] autofs_dev_ioctl_expire+0x1a/0x1c [autofs4]
-   [<ffffffffa034f738>] _autofs_dev_ioctl+0x2a3/0x348 [autofs4]
-   [<ffffffffa034f7eb>] autofs_dev_ioctl+0xe/0x12 [autofs4]
-   [<ffffffff810c750d>] do_vfs_ioctl+0x45f/0x4ae
-   [<ffffffff810bab4e>] ? rcu_read_unlock+0x21/0x23
-   [<ffffffff810c759e>] sys_ioctl+0x42/0x65
-   [<ffffffff8132463b>] system_call_fastpath+0x16/0x1b
+RFC 5716 introduces the Federated File System (FedFS, for short). FedFS is an extensible standardized mechanism by which system administrators construct a coherent namespace across multiple file servers using file system referrals.
+
+The "fedfs-utils" package is an implementation of the user space components that provide FedFS features on Linux. The package is released under GPL version 2.
+
+The current release is 0.6.1.  This is a very early alpha release for technology preview.  Administrative, programming, and command line interfaces will change as this package evolves, and must not be relied on.
+
+See http://oss.oracle.com/projects/fedfs-utils for more information and source code downloads.  Two mailman mailing lists are also available:
+
+  fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
+  fedfs-utils-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
+
+Future release announcements will occur only on fedfs-utils-announce.
 
 -- 
-Nick Bowler, Elliptic Technologies (http://www.elliptictech.com/)
+Chuck Lever
+chuck[dot]lever[at]oracle[dot]com
+
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe util-linux" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
