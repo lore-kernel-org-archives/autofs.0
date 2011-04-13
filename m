@@ -1,156 +1,84 @@
-From: Michael Coffman <coffman@ftc.avagotech.com>
-Subject: Re: Question/request about host mapping
-Date: Wed, 13 Apr 2011 09:05:27 -0600 (MDT)
-Message-ID: <Pine.LNX.4.64.1104130904430.5200@sixgun.ftc.avagotech.net>
-References: <BANLkTimoD2yb7DBvNsrP014yxRaGywQVug@mail.gmail.com>
-	<1302188176.2883.39.camel@perseus>
-	<BANLkTi=45=vB3TX7mMd9zdzjcS2YLEM4GA@mail.gmail.com>
-	<1302528708.2806.16.camel@perseus>
-Reply-To: michael.coffman@avagotech.com
+From: Maciej Rutecki <maciej.rutecki@gmail.com>
+Subject: Re: Lockdep splat in autofs with 2.6.39-rc2
+Date: Wed, 13 Apr 2011 21:26:41 +0200
+Message-ID: <201104132126.42050.maciej.rutecki@gmail.com>
+References: <20110407194403.GA29404@elliptictech.com>
+Reply-To: maciej.rutecki@gmail.com
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1302528708.2806.16.camel@perseus>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs/>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=gamma;
+        h=domainkey-signature:from:reply-to:to:subject:date:user-agent:cc
+         :references:in-reply-to:mime-version:content-type
+         :content-transfer-encoding:message-id;
+        bh=qRN/+sn2LD5exY/VtDTkzhcT9CCBdWzIASX0AgfZX8I=;
+        b=VyoyK5PDwJ5PW3FBiEzYrZgTwmVkKDic++NCXJBPBaXz4SkUWRwWsCUygiRotudzPw
+         IWnfsMwd4MY/CHj1Uh/peoC2gCMN5IYV2kIe0J4Ki7Z1HLa7VP7lEambmPZ/8W+vJsXD
+         S10MREJe45cftmX+nX6mzN1KNw3Edwziad3v4=
+In-Reply-To: <20110407194403.GA29404@elliptictech.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
+Content-Type: Text/Plain; charset="us-ascii"
+To: Nick Bowler <nbowler@elliptictech.com>
+Cc: linux-kernel@vger.kernel.org, autofs@linux.kernel.org, Ian Kent <raven@themaw.net>
 
-On Mon, 11 Apr 2011, Ian Kent wrote:
+I created a Bugzilla entry at 
+https://bugzilla.kernel.org/show_bug.cgi?id=33242
+for your bug report, please add your address to the CC list in there, thanks!
 
-> On Thu, 2011-04-07 at 15:29 -0600, Michael Coffman wrote:
->> On Thu, Apr 7, 2011 at 8:56 AM, Ian Kent <raven@themaw.net> wrote:
->>         On Wed, 2011-04-06 at 12:52 -0600, Michael Coffman wrote:
->>        > Hello,
->>        >
->>        > I am trying to use the -host map for global access to
->>         servers in my
->>        > environment.
->>        >
->>        > I have noted on this list that after the first mount of a
->>         server via
->>        > host mapping, the server is never again probed for mount
->>         points.  This
->>        > seems like a major flaw in the host map functionality.
->>         This is a
->>        > problem when adding new file systems to our NFS servers.
->>         It means
->>        > systems have to be completely idled in order to get them to
->>         unmount
->>        > and re-mount the servers to see the new mount points (not
->>         possible
->>        > very often in my environment).
->>        >
->>        > Is the assumption that if you use host mapping, your server
->>         will
->>        > either never change, or you have the ability to 'reboot'
->>         your
->>        > environment when a new file system is added to a server?
->>
->>
->>         Neither.
->>
->>         The problem is that exports can be nested and frequently are
->>         (think of
->>         the nohide export option).
->>
->>         For example, with exports like:
->>
->>         /export/vol1/data1
->>         /export/vol1/data2
->>
->>         and then add:
->>
->>         /export/vol1
->>
->>         and update the map when either or both /export/vol1/data1
->>         and /export/vol1/data2 are mounted, /export/vol1 is accessed
->>         it will
->>         cover these mounts. Now that might not seem like a problem but
->>         when you
->>         end up with multiple layers of mounts mounted multiple times
->>         everything
->>         starts to get confused really fast.
->>
->>
->>
->> First off, thanks for the reply and the details on the reasoning for
->> not automatically re-scanning servers that have been mounted via host
->> mapping.
->>
->> I guess in my simple world I would never export a higher level
->> directory if sub-directories were already exported.   Do lots or
->> people really nest exports to the same sets of client systems?  I will
->> have to think about some scenarios and some possibilities of
->> algorithms on how to deal with them and get back with you...
->>
->> In any case, it seems having a way to ping autofs and have it re-read
->> would imply that the admin would have some knowledge of what was being
->> requested.
->>
->>
->>
->>        >
->>        > Is there any way that functionality could be added that
->>         would allow
->>        > for sending a signal ( say USR2 ) that would cause the
->>         automounter to
->>        > re-run /etc/auto.net to re-query -host managed servers for
->>         new file
->>        > systems?
->>
->>
->>         Well, if you have sensible, realistic, workable ideas on how
->>         to handle
->>         the nesting problem then share. And I don't mean "just do
->>         this ...."
->>         type through away comments that have no workable basis in
->>         fact.
->>
->>
->> Hopefully this will not come across as me saying 'just do it' :)    We
->> have used AMD for years and I would really like to switch to autofs
->> and was planning on doing so until this issue came up.   I believe
->> that some kind of knob that could be used to refresh the maps on my
->> clients so they see new exports when added to the servers would be
->> very useful.   Not an automatic re-querying of the servers, but a
->> signal that I can bump automount with when I know what changes have
->> been made on the other end and want to refresh.
->
-> I'll think more about it.
-> Perhaps, if I can work out some way to check for active mount within
-> nested set of exports, I could ignore the nested ones on update. The
-> problem then will be people complaining that "suddenly it stopped seeing
-> new mounts when I added them".
 
-Thanks for being willing to at least think about it...
-
->
->>
->> Thanks again for taking the time to reply to my message.
->>
->>
->>
->>         Ian
->>
->>
->>
->>
->>
->> --
->> -MichaelC
->
->
->
+On czwartek, 7 kwietnia 2011 o 21:44:03 Nick Bowler wrote:
+> Just saw this on 2.6.39-rc2 after half a day or so of uptime.  I've
+> never seen it before today so it may be a regression from 2.6.38.
+> Nothing seems have failed as a result.  Please let me know if you
+> need any more info.
+> 
+>   =============================================
+>   [ INFO: possible recursive locking detected ]
+>   2.6.39-rc2 #177
+>   ---------------------------------------------
+>   automount/23324 is trying to acquire lock:
+>    (&(&dentry->d_lock)->rlock/1){+.+...}, at: [<ffffffffa034ea28>]
+> autofs4_expire_indirect+0x307/0x484 [autofs4]
+> 
+>   but task is already holding lock:
+>    (&(&dentry->d_lock)->rlock/1){+.+...}, at: [<ffffffffa034ea28>]
+> autofs4_expire_indirect+0x307/0x484 [autofs4]
+> 
+>   other info that might help us debug this:
+>   2 locks held by automount/23324:
+>    #0:  (&(&sbi->lookup_lock)->rlock){+.+...}, at: [<ffffffffa034e9aa>]
+> autofs4_expire_indirect+0x289/0x484 [autofs4] #1: 
+> (&(&dentry->d_lock)->rlock/1){+.+...}, at: [<ffffffffa034ea28>]
+> autofs4_expire_indirect+0x307/0x484 [autofs4]
+> 
+>   stack backtrace:
+>   Pid: 23324, comm: automount Not tainted 2.6.39-rc2 #177
+>   Call Trace:
+>    [<ffffffff81061dc7>] __lock_acquire+0xc83/0xcfa
+>    [<ffffffff8105f200>] ? static_obj+0x3d/0x4d
+>    [<ffffffff81062073>] ? lock_release_non_nested+0x1c8/0x227
+>    [<ffffffffa034ea28>] ? autofs4_expire_indirect+0x307/0x484 [autofs4]
+>    [<ffffffffa034ea28>] ? autofs4_expire_indirect+0x307/0x484 [autofs4]
+>    [<ffffffff81061e95>] lock_acquire+0x57/0x6d
+>    [<ffffffffa034ea28>] ? autofs4_expire_indirect+0x307/0x484 [autofs4]
+>    [<ffffffff8131f4e3>] _raw_spin_lock_nested+0x39/0x48
+>    [<ffffffffa034ea28>] ? autofs4_expire_indirect+0x307/0x484 [autofs4]
+>    [<ffffffff8131fb10>] ? _raw_spin_unlock+0x3e/0x4b
+>    [<ffffffffa034ea28>] autofs4_expire_indirect+0x307/0x484 [autofs4]
+>    [<ffffffffa034f184>] ? autofs_dev_ioctl_askumount+0x2d/0x2d [autofs4]
+>    [<ffffffffa034edbd>] autofs4_do_expire_multi+0x30/0xe9 [autofs4]
+>    [<ffffffffa034f184>] ? autofs_dev_ioctl_askumount+0x2d/0x2d [autofs4]
+>    [<ffffffffa034f184>] ? autofs_dev_ioctl_askumount+0x2d/0x2d [autofs4]
+>    [<ffffffffa034f19e>] autofs_dev_ioctl_expire+0x1a/0x1c [autofs4]
+>    [<ffffffffa034f738>] _autofs_dev_ioctl+0x2a3/0x348 [autofs4]
+>    [<ffffffffa034f7eb>] autofs_dev_ioctl+0xe/0x12 [autofs4]
+>    [<ffffffff810c750d>] do_vfs_ioctl+0x45f/0x4ae
+>    [<ffffffff810bab4e>] ? rcu_read_unlock+0x21/0x23
+>    [<ffffffff810c759e>] sys_ioctl+0x42/0x65
+>    [<ffffffff8132463b>] system_call_fastpath+0x16/0x1b
 
 -- 
--MichaelC
+Maciej Rutecki
+http://www.maciek.unixy.pl
