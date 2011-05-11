@@ -1,68 +1,41 @@
-From: "Philip Ong Jr." <pongjr@gmail.com>
-Subject: Re: [PATCH 0/2] Series for the non-expiring mounts problem
-Date: Thu, 28 Apr 2011 19:52:03 -0700
-Message-ID: <4DBA27D3.5030503@gmail.com>
-References: <20110330054620.22333.45008.stgit@localhost6.localdomain6>
-	<AANLkTimKbS8A6OW-B-BGiAccAh_71YO8CF92zP0K9TE2@mail.gmail.com>
+From: Nick Bowler <nbowler@elliptictech.com>
+Subject: Re: Lockdep splat in autofs with 2.6.39-rc2
+Date: Wed, 11 May 2011 15:13:01 -0400
+Message-ID: <20110511191301.GA18504@elliptictech.com>
+References: <20110407194403.GA29404@elliptictech.com>
+ <20110421212537.GC24898@home.goodmis.org>
+ <20110427132219.GA2843@elliptictech.com>
 Mime-Version: 1.0
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20110427132219.GA2843@elliptictech.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
-	h=domainkey-signature:message-id:date:from:user-agent:mime-version:to
-	:cc:subject:references:in-reply-to:content-type
-	:content-transfer-encoding;
-	bh=4iLWkaQkstjBTV1oIifoT8rpXPE0z5Y0BMhe3YnB83Q=;
-	b=XkATAzP7dP0hhYfkhiLqS9V4Ey9oXPt/ocNv6lcbGX5Rpq7QxOixT4t9PY/M7StSh2
-	izoVl934Q9xlqQ+1rGHTuAUCgF2fz5ktNr69QbvwyoH9n+IsX1bOEBGamUZYgMf7/Pbu
-	oL/Zhq5CTusBv+F6NHdwbM/VKIH3UdZanBZOc=
-In-Reply-To: <AANLkTimKbS8A6OW-B-BGiAccAh_71YO8CF92zP0K9TE2@mail.gmail.com>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs/>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Leonardo Chiquitto <leonardo.lists@gmail.com>
-Cc: autofs@linux.kernel.org, Ian Kent <raven@themaw.net>
+To: Steven Rostedt <rostedt@goodmis.org>
+Cc: linux-kernel@vger.kernel.org, autofs@linux.kernel.org, Ian Kent <raven@themaw.net>, Peter Zijlstra <peterz@infradead.org>
 
-Have the patches been released yet?
+On 2011-04-27 09:22 -0400, Nick Bowler wrote:
+> On 2011-04-21 17:25 -0400, Steven Rostedt wrote:
+> > On Thu, Apr 07, 2011 at 03:44:03PM -0400, Nick Bowler wrote:
+> > > Just saw this on 2.6.39-rc2 after half a day or so of uptime.  I've
+> > > never seen it before today so it may be a regression from 2.6.38.
+> > > Nothing seems have failed as a result.  Please let me know if you
+> > > need any more info.
+> > 
+> > Could you try this patch. I know it may be hard to reproduce, but the
+> > issue is that we are recursing down the locks in a tree/list and we changed a
+> > lock from being nested to being a parent. This patch tells lockdep about
+> > what we did.
+> 
+> OK, I've built 2.6.39-rc5 with this patch applied.  However, it took ~5
+> days before I saw any splat with -rc4, thus it's unlikely that I'll be
+> able to say for sure that it works.
 
-On 3/30/2011 9:13 AM, Leonardo Chiquitto wrote:
-> On Wed, Mar 30, 2011 at 2:49 AM, Ian Kent<raven@themaw.net>  wrote:
->> These two patches should fix the problem you reported where a USR1
->> signal fails to trigger an expire. They should also fix the unnecessary
->> map reload problem.
->>
->> Please test these for me.
-> Ian, thanks for the patches. I just tested them here and confirm that the
-> problem is resolved. I tested direct and indirect mounts letting them expire
-> after the default timeout and forcing the expiration with SIGUSR1.
->
-> I also confirmed that the "unmountable directories" problem reported in
-> http://linux.kernel.org/pipermail/autofs/2011-March/006509.html is fixed
-> as well (the patch I suggested back then is *not* needed).
->
-> Thanks,
-> Leonardo
->
->> ---
->>
->> Ian Kent (2):
->>       autofs-5.0.5 - fix stale map read
->>       autofs-5.0.5 - fix next task list update
->>
->>
->>   CHANGELOG        |    2 ++
->>   daemon/lookup.c  |    1 +
->>   daemon/state.c   |    9 +++++----
->>   include/master.h |    1 +
->>   lib/master.c     |   37 +++++++++++++++++++++++++------------
->>   5 files changed, 34 insertions(+), 16 deletions(-)
->>
->> --
->> Ian
+FWIW, haven't had any problems with this kernel (+ patch) during the
+last two weeks.
+
+Cheers,
+-- 
+Nick Bowler, Elliptic Technologies (http://www.elliptictech.com/)
