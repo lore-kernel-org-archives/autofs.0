@@ -1,15 +1,17 @@
-From: giggzounet <giggzounet@gmail.com>
-Subject: Re: Automount /home for all the users when a user try to
-	use /home
-Date: Tue, 24 May 2011 08:32:04 +0200
-Message-ID: <irfjd4$vc4$1@dough.gmane.org>
-References: <ir2fpp$6q3$1@dough.gmane.org>
-	<1306207386.3398.6.camel@perseus.themaw.net>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [PATCH] FedFS file system client support
+Date: Mon, 30 May 2011 12:15:20 +0800
+Message-ID: <1306728920.3292.3.camel@perseus.themaw.net>
+References: <20110526163545.3676.52586.stgit@dali.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1306207386.3398.6.camel@perseus.themaw.net>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com;
+	h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding;
+	s=smtpout; bh=YP60XiGEvYLeRgx8P+yK41udJQo=;
+	b=eQri0A0BTQXHzHAc9txu/FkwfrK7rpjnXeq6SS+cguWMBLy71dZMcc44FMCElfCMh02Db+FPLAhbhi+PpzR0vVvu9CATQSOdFqGSYSgsbwliC1w+nlq73asTRJyR5GxQtys/AYYx6e1Vv3y3hmKm7XjV/ItWLiXiBQfctNOu5FA=
+In-Reply-To: <20110526163545.3676.52586.stgit@dali.1015granger.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,63 +22,25 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: Chuck Lever <chuck.lever@oracle.com>
+Cc: autofs@linux.kernel.org, fedfs-utils-devel@oss.oracle.com
 
-Le 24/05/2011 05:23, Ian Kent a =E9crit :
-> On Thu, 2011-05-19 at 09:10 +0200, giggzounet wrote:
->> Hi,
->>
->> I'm using autofs for years and on different configurations. It works
->> great! so thx for your great work.
->>
->> But I have a little question/problem:
->> We have a cluster (with CentOS 5.5). It's a little cluster, so the /home
->> "is" on the master. And this /home is exported to the nodes. I have
->> installed autofs in order to automount this /home when a user wants to
->> use his /home.
->>
->> So at the moment the configuration is simple:
->> cat auto.master
->> /home   /etc/auto.home
->>
->> cat auto.home
->> *      nfs_oscar:/home/&
->>
->>
->> So when a user comes autofs mounts only the /home for the user.
->>
->> So at the moment it works. but I find it not optimal, because when 2
->> users try to connect from a node I get 2 mounts.
->>
->> I would like to get this behaviour:
->> when a user try to connect to his /home, autofs mount all the export
->> /home. It is possible ?
-> =
+On Thu, 2011-05-26 at 12:39 -0400, Chuck Lever wrote:
+> Hi-
+> 
+> The next release of fedfs-utils will provide all necessary components
+> for a Linux NFS client to participate in a FedFS domain as a file
+> system client.  This new utility is intended to be a part of the
+> upcoming release.
+> 
+> I'm interested in comments on this approach.  Ian had suggested a new
+> lookup module, but a program map looked simpler to prototype and has
+> the great advantage of no dependencies between fedfs-utils and autofs.
+> If program maps have some nasty problem that require the use of a
+> lookup module, we can take that next step.
 
-> It might be possible to come up with a method to mount all the keys in a
-> indirect map on first access but that sounds like it would be more
-> difficult than it's worth.
-> =
+The only difficulty with using a program map is that to use it you need
+to know the name of the of the <key> (aka. /nfs4/<key>) since, at the
+moment, autofs can't enumerate program map keys.
 
-> Do you really need to mount these separately?
-> =
-
-> Could you use a direct mount map instead?
-> You could do this by using the following:
-> =
-
-> in the master map (possibly /etc/auto.master):
-> /-	/etc/auto.direct.homes
-> =
-
-> and /etc/auto.direct.homes could contain:
-> /home	oscar:/home
-> =
-
-> This way there is only one mount not many and it will always make all
-> home directories available on first access.
-> =
-
-> Ian
-
-thx a lot! i will try this!
+Ian
