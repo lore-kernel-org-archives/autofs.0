@@ -1,10 +1,12 @@
 From: Stef Bon <stef@bononline.nl>
-Subject: Returning issues.
-Date: Sun, 05 Jun 2011 19:01:04 +0200
-Message-ID: <4DEBB650.8030207@bononline.nl>
+Subject: Re: bug doing simple stat call to mountpoint
+Date: Sun, 05 Jun 2011 19:26:15 +0200
+Message-ID: <4DEBBC37.8020205@bononline.nl>
+References: <4DEBB25B.3020509@bononline.nl>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+In-Reply-To: <4DEBB25B.3020509@bononline.nl>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -18,40 +20,45 @@ Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"; format="flowed"
 To: autofs@linux.kernel.org
 
-  hi,
+  On 06/05/2011 06:44 PM, Stef Bon wrote:
+>  Hi,
+>
+> I'm using autofs 5.0.5, kernel 2.6.38.6.
+>
+> In the construction I'm working on I got the following error:
+>
+> stat /mnt/mount.md5key/sbon/0/0a8805e89f4cc6653185a4ec4335cca1
+> stat: cannot stat 
+> `/mnt/mount.md5key/sbon/0/0a8805e89f4cc6653185a4ec4335cca1': No such 
+> file or directory
+> sbon [ 
+> /tmp/mount.md5key/users/sbon/cache/0a8805e89f4cc6653185a4ec4335cca1 ]$ 
+> ls /mnt/mount.md5key/sbon/0/0a8805e89f4cc6653185a4ec4335cca1
+> <gives contents as expected>
+>
+> The automounter does not call the mount command in the first case, and 
+> like it should in the second.
+>
+> mount | grep 55ed
+> //SCLFS20091030/sbon on 
+> /mnt/mount.md5key/sbon/0/55ed21dee4bb9604117a013e57dc5690 type cifs (rw)
+>
 
-I see that issues that automounter doing unnecessary mounting like:
+I'm sorry I'm mixing two mountpoints here:
 
-http://linux.kernel.org/pipermail/autofs/2011-May/006568.html
+mount | grep 0a88
+//SCLFS20091030/ftp on 
+/mnt/mount.md5key/sbon/0/0a8805e89f4cc6653185a4ec4335cca1 type cifs (rw)
 
-and here
+and
 
-http://linux.kernel.org/pipermail/autofs/2011-April/006542.html
-
-some more documentation here would prevent users asking the
-same questions.
-
-This behaviour is mostly caused by:
-
-A.
-
-ls is a alias (in de shell) to ls --color=auto
-
-which will follow targets, and this makes the automounter mount.
-
-B.
-
-
-extended attributes called by the environment, or an app.
-
-I see here a sollution is proposed to fix this in coreutils and the acl 
-package. Hmm, is this right?
-
-If an app wants to get the xattr of an autofs managed directory, what is 
-the sollution proposed here then?
-Can't an autofs managed directory have Xattr?? That does not sound right.
-
-In my construction I'm blocking the xattr calls to autofs managed dirs, 
-unless it's already mounted, and I consider this as an ugly hack.
+stat /mnt/mount.md5key/sbon/0/0a8805e89f4cc6653185a4ec4335cca1
+   File: `/mnt/mount.md5key/sbon/0/0a8805e89f4cc6653185a4ec4335cca1'
+   Size: 0               Blocks: 0          IO Block: 16384  directory
+Device: 18h/24d Inode: 2           Links: 692
+Access: (0755/drwxr-xr-x)  Uid: ( 4024/    gast)   Gid: ( 3000/netgroup)
+Access: 2011-06-05 18:36:16.283327100 +0200
+Modify: 2011-05-08 23:30:59.245301800 +0200
+Change: 2011-05-08 23:30:59.245301800 +0200
 
 Stef
