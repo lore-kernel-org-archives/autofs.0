@@ -1,17 +1,15 @@
-From: Mag Gam <magawake@gmail.com>
-Subject: failed to mount offset
-Date: Wed, 8 Jun 2011 05:06:21 -0500
-Message-ID: <BANLkTinFxOHK1NMJfBy5bjHMpozM8oY9kg@mail.gmail.com>
+From: Stef Bon <stef@bononline.nl>
+Subject: Re: Returning issues.
+Date: Wed, 08 Jun 2011 09:13:45 +0200
+Message-ID: <4DEF2129.8080607@bononline.nl>
+References: <4DEBB650.8030207@bononline.nl>	
+	<1307424204.3285.52.camel@perseus.themaw.net>	
+	<4DEDEC32.4070602@bononline.nl>
+	<1307508903.3275.52.camel@perseus.themaw.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
-	h=domainkey-signature:mime-version:date:message-id:subject:from:to
-	:content-type; bh=xvns2xOB/phUyICjcmSJqPz2/27ziMLfdmw1QJFXnqQ=;
-	b=t85xG65yxW0Fg4i07jVLyOUDlBm7W12WQDTisPU1sw8T48VklUapkLG/Fm2snDcwLX
-	h/T7Irz/v3YuWlk4t388io2ssr6rkx4dyNKsGpBvn/LW1e5Ihcj62ilUBi4PCUPJZLAf
-	bGeH7gZ5Qn47wINzIei52pkOp609Iisrp7UeE=
+In-Reply-To: <1307508903.3275.52.camel@perseus.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,30 +20,28 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@linux.kernel.org, David Howells <dhowells@redhat.com>
 
-Hello
-Trying to mount a newly created volume on a fileserver (appliance) and
-nis. Able to see the volume using showmount and able to mount so, I
-don't believe its a permission problem.
+  On 06/08/2011 06:55 AM, Ian Kent wrote:
+> There's a lot of information her, which probably isn't specific to the 
+> issue being discussed so snip ... 
 
-The error I get is,
+Ah very nice to know the project I'm working on for a long time now is 
+being appreciated....
+I do not appreciate it when one is just "snipping" the text I've written 
+about my project, to inform others about what the project is about.
 
--zsh: cd: /net/appliance/newvol No such file or directory
+> Don't know, can't see anything relevant in the kernel source.
+>
+>
+Maybe you should look harder:
 
-kernel version:
-2.6.18-238.el5
+http://www.h-online.com/open/features/Kernel-Log-Coming-in-2-6-39-Part-2-Storage-and-file-systems-1232317.html?page=2
 
+and
 
-autofs version
-autofs-5.0.1-0.rc2.143.el5_5.6.x86_64
-Running RHEL 5.6 (Enterprise edition)
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=1abf0c718f15a56a0a435588d1b104c7a37dc9bd
 
-
-Autofs is in debugging mode but does not show up anything.
-
-
-After I restart autofs many times I only see this message in syslog
-(debugging enabled):
-mount_multi_triggers: mount offset /net/appliancev/newvol at /net/appliance
-failed to mount offset
+Stef
