@@ -1,15 +1,17 @@
-From: Stef Bon <stef@bononline.nl>
-Subject: Re: Returning issues.
-Date: Wed, 08 Jun 2011 09:13:45 +0200
-Message-ID: <4DEF2129.8080607@bononline.nl>
-References: <4DEBB650.8030207@bononline.nl>	
-	<1307424204.3285.52.camel@perseus.themaw.net>	
-	<4DEDEC32.4070602@bononline.nl>
-	<1307508903.3275.52.camel@perseus.themaw.net>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: failed to mount offset
+Date: Wed, 08 Jun 2011 21:17:35 +0800
+Message-ID: <1307539055.3275.64.camel@perseus.themaw.net>
+References: <BANLkTinFxOHK1NMJfBy5bjHMpozM8oY9kg@mail.gmail.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1307508903.3275.52.camel@perseus.themaw.net>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com;
+	h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding;
+	s=smtpout; bh=NTXEV3DEzydXmsFkPoHCCv8zXAE=;
+	b=sr97pY1MASCGYuSO2chyNAx6lg2UvalhZwoPmsvcFC7Wxnpvcc/fqP/NbjgHgmqB+A1XoM3LibUBVh4P9QlUptXtOfmkZb0osa0fpzOH00MeR+y4ZUnE9W53ccEN9ZmlfbFUEJmJn5GGabvWRvgN32falqp3+DCJjrWiUSYytFg=
+In-Reply-To: <BANLkTinFxOHK1NMJfBy5bjHMpozM8oY9kg@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -20,28 +22,49 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org, David Howells <dhowells@redhat.com>
+To: Mag Gam <magawake@gmail.com>
+Cc: autofs@linux.kernel.org
 
-  On 06/08/2011 06:55 AM, Ian Kent wrote:
-> There's a lot of information her, which probably isn't specific to the 
-> issue being discussed so snip ... 
+On Wed, 2011-06-08 at 05:06 -0500, Mag Gam wrote:
+> Hello
+> Trying to mount a newly created volume on a fileserver (appliance) and
+> nis. Able to see the volume using showmount and able to mount so, I
+> don't believe its a permission problem.
+> 
+> The error I get is,
+> 
+> -zsh: cd: /net/appliance/newvol No such file or directory
 
-Ah very nice to know the project I'm working on for a long time now is 
-being appreciated....
-I do not appreciate it when one is just "snipping" the text I've written 
-about my project, to inform others about what the project is about.
+I'm guessing you are using the hosts map?
 
-> Don't know, can't see anything relevant in the kernel source.
->
->
-Maybe you should look harder:
+You will get that until the mount tree under /net/appliance expires away
+so the exported entries can be updated. The exported entries can't be
+sanely updated while the mount tree under the server directory is being
+used since export list can be hierarchical and so can have order of
+mount/umount dependencies.
 
-http://www.h-online.com/open/features/Kernel-Log-Coming-in-2-6-39-Part-2-Storage-and-file-systems-1232317.html?page=2
+> 
+> kernel version:
+> 2.6.18-238.el5
+> 
+> 
+> autofs version
+> autofs-5.0.1-0.rc2.143.el5_5.6.x86_64
+> Running RHEL 5.6 (Enterprise edition)
+> 
+> 
+> Autofs is in debugging mode but does not show up anything.
+> 
+> 
+> After I restart autofs many times I only see this message in syslog
+> (debugging enabled):
+> mount_multi_triggers: mount offset /net/appliancev/newvol at /net/appliance
+> failed to mount offset
 
-and
+At this point autofs is probably completely confused as it tries to
+reconstruct the tree of mounts under /net/appliance. That message is
+usually a unpleasant sign that things are messed up. About the only
+thing that is worth doing is a postmortem analysis to see if there is
+anything that can be changed to make automount more tolerant.
 
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=1abf0c718f15a56a0a435588d1b104c7a37dc9bd
-
-Stef
+Ian
