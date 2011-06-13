@@ -1,24 +1,19 @@
-From: Mag Gam <magawake@gmail.com>
-Subject: Re: failed to mount offset
-Date: Fri, 10 Jun 2011 08:13:21 -0400
-Message-ID: <BANLkTimb-Sv=tj9Rd8b8O-7S_W8UPkU-jg@mail.gmail.com>
-References: <BANLkTinFxOHK1NMJfBy5bjHMpozM8oY9kg@mail.gmail.com>
-	<1307539055.3275.64.camel@perseus.themaw.net>
-	<20110608134326.GB16849@eeg.ccf.org>
-	<1307674733.3393.12.camel@perseus.themaw.net>
+From: Leonardo Chiquitto <leonardo.lists@gmail.com>
+Subject: [PATCH] Remove master_mutex_unlock() leftover
+Date: Mon, 13 Jun 2011 18:39:40 -0300
+Message-ID: <20110613213940.GA4908@libre.l.ngdn.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
-	h=domainkey-signature:mime-version:in-reply-to:references:date
-	:message-id:subject:from:to:cc:content-type
-	:content-transfer-encoding;
-	bh=DMwXKK4td+BvOscT4sSCEKe8LLggY06Eu0cfiZvPPr8=;
-	b=FR/Ge7rrE4mp6Q4CrF1imsCKyc7hczHvkia5G2QhvIERSNzad8ieljMH88Yzw3mZy7
-	22BbRJo3d154NUCnOd/0Q0X/n4wFD9RlGGFz4nYjcRgc0GlVdHZ7CLHSZtjsxBaK0Lv0
-	CWseIfPVCY3XxJzGYhg0LYWQqzzUsMoximKFc=
-In-Reply-To: <1307674733.3393.12.camel@perseus.themaw.net>
+	h=domainkey-signature:date:from:to:subject:message-id:mime-version
+	:content-type:content-disposition:user-agent;
+	bh=/7w5CKRht/V7zM+4SYBUkLyAtlMBZHWGllKfZ4SfrL4=;
+	b=KHdL5W4XUtQz9L8Nz+3i4zZI8nnGhVKjppuSZRH+EkESXJJw2pqOhQIi5hehQOb3pa
+	9KsJFDdE4AHGJOOzoQiX9DBy9Oq7BbOQjZB0NPRMoqDBj97zLFIcfe/cfus3Z2tLUYxu
+	iNLf2nwKDSgDsnyFGatpbXtWz0nQo+4EetYKo=
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -29,45 +24,42 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org, Greg Wooledge <wooledg@eeg.ccf.org>
+To: autofs@linux.kernel.org
 
-VGhhbmtzIHRvIGJvdGggb2YgeW91IGZvciB5b3VyIHJlc3BvbnNlcy4KCgpPbiBUaHUsIEp1biA5
-LCAyMDExIGF0IDEwOjU4IFBNLCBJYW4gS2VudCA8cmF2ZW5AdGhlbWF3Lm5ldD4gd3JvdGU6Cj4g
-T24gV2VkLCAyMDExLTA2LTA4IGF0IDA5OjQzIC0wNDAwLCBHcmVnIFdvb2xlZGdlIHdyb3RlOgo+
-PiBPbiBXZWQsIEp1biAwOCwgMjAxMSBhdCAwOToxNzozNVBNICswODAwLCBJYW4gS2VudCB3cm90
-ZToKPj4gPiBPbiBXZWQsIDIwMTEtMDYtMDggYXQgMDU6MDYgLTA1MDAsIE1hZyBHYW0gd3JvdGU6
-Cj4+ID4gPiBUcnlpbmcgdG8gbW91bnQgYSBuZXdseSBjcmVhdGVkIHZvbHVtZSBvbiBhIGZpbGVz
-ZXJ2ZXIgKGFwcGxpYW5jZSkgYW5kCj4+ID4gPiBuaXMuIEFibGUgdG8gc2VlIHRoZSB2b2x1bWUg
-dXNpbmcgc2hvd21vdW50IGFuZCBhYmxlIHRvIG1vdW50IHNvLCBJCj4+ID4gPiBkb24ndCBiZWxp
-ZXZlIGl0cyBhIHBlcm1pc3Npb24gcHJvYmxlbS4KPj4KPj4gPiBJJ20gZ3Vlc3NpbmcgeW91IGFy
-ZSB1c2luZyB0aGUgaG9zdHMgbWFwPwo+PiA+Cj4+ID4gWW91IHdpbGwgZ2V0IHRoYXQgdW50aWwg
-dGhlIG1vdW50IHRyZWUgdW5kZXIgL25ldC9hcHBsaWFuY2UgZXhwaXJlcyBhd2F5Cj4+ID4gc28g
-dGhlIGV4cG9ydGVkIGVudHJpZXMgY2FuIGJlIHVwZGF0ZWQuIFRoZSBleHBvcnRlZCBlbnRyaWVz
-IGNhbid0IGJlCj4+ID4gc2FuZWx5IHVwZGF0ZWQgd2hpbGUgdGhlIG1vdW50IHRyZWUgdW5kZXIg
-dGhlIHNlcnZlciBkaXJlY3RvcnkgaXMgYmVpbmcKPj4gPiB1c2VkIHNpbmNlIGV4cG9ydCBsaXN0
-IGNhbiBiZSBoaWVyYXJjaGljYWwgYW5kIHNvIGNhbiBoYXZlIG9yZGVyIG9mCj4+ID4gbW91bnQv
-dW1vdW50IGRlcGVuZGVuY2llcy4KPj4KPj4gV2hlbiB5b3UgYWRkIGEgbmV3IGZpbGUgc3lzdGVt
-IChvciBhIG5ldyBleHBvcnQgYXQgbGVhc3QpIHRvIGFuIE5GUwo+PiBzZXJ2ZXIgdGhhdCBpcyBi
-ZWluZyBhY2Nlc3NlZCB0aHJvdWdoIHRoZSBob3N0cyBtYXAsIHRoZXJlIGlzIG5vIHdheQo+PiB0
-byB0ZWxsIGF1dG9mcyBvbiB0aGUgY2xpZW50cyB0byByZS1yZWFkIHRoZSBsaXN0IG9mIGV4cG9y
-dHMuIMKgQXMgSWFuCj4+IHNheXMsIGl0IGNhbid0IGJlIHVwZGF0ZWQgd2hpbGUgYXV0b2ZzIGlz
-IHN0aWxsIHJ1bm5pbmcuCj4+Cj4+IFRoZSBvbmx5IHdvcmthcm91bmQgaXMgdG8gcmVib290IHRo
-ZSBjbGllbnQgc3lzdGVtcy4gwqBTb3JyeS4gwqBJdCBhZmZlY3RzCj4+IHVzIHRvby4KPgo+IE9y
-IGdldCB0aGUgbW91bnQgdG8gZXhwaXJlIGF3YXksIHdoaWNoLCBhcyB5b3Ugb2JzZXJ2ZSBpcyBo
-YXJkIHRvIGRvIG9uCj4gYSBidXN5IHN5c3RlbS4KPgo+IEkndmUgYmVlbiB0aGlua2luZyBhYm91
-dCB0aGlzIGZvciBhIHdoaWxlIG5vdyBhcyBJIGRvIG5lZWQgdG8gaW1wcm92ZQo+IHRoZSBzaXR1
-YXRpb24uCj4KPiBJIHNob3VsZCBiZSBhYmxlIHRvIGNoZWNrIGZvciBkZXBlbmRlbnQgbW91bnQg
-c3ViLXRyZWVzIGFuZCBhdm9pZAo+IHVwZGF0aW5nIG9ubHkgdGhvc2UgdW50aWwgdGhleSBhcmVu
-J3QgaW4gdXNlLCBzaW5jZSB0aGV5IHNob3VsZCBiZQo+IGhhbmRsZWQgYXMgc3ViLXRyZWVzIChm
-b3IgYm90aCBtb3VudGluZyBhbmQgZXhwaXJpbmcpIGF0IHBvaW50cyBpbiB0aGUKPiB0cmVlIHRo
-YXQgaW50cm9kdWNlIGRlcGVuZGVuY2llcy4gQnV0IEkgc3VzcGVjdCB0aGUgc3ViLXRyZWUgaGFu
-ZGxpbmcKPiBjb2RlIGRvZXNuJ3QgYWN0dWFsbHkgd29yayBob3cgSSBvcmlnaW5hbGx5IHdhbnRl
-ZCBpdCB0bywgc28gdGhhdCB3aWxsCj4gYWxzbyBtYWtlIGl0IGhhcmRlci4KPgo+IENvbnNlcXVl
-bnRseSwgaXQncyBnb2luZyB0byBiZSBmYWlybHkgZGlmZmljdWx0IHRvIGltcGxlbWVudCBzbyBJ
-IHdvbid0Cj4gc3RhcnQgd29ya2luZyBvbiBpdCB1bnRpbCBJIGhhdmUgYSBjbGVhcmVyIHBpY3R1
-cmUgb2YgaG93IEknbGwgZG8gaXQuCj4gQW5kIHRoZXNlIHRoZSAiZmFpbGVkIHRvIG1vdW50IG9m
-ZnNldCIgbWVzc2FnZXMgc291bmQgbGlrZSB0aGV5IG5lZWQKPiB3b3JrIGFzIHdlbGwuCj4KPiBJ
-YW4KPgo+Cj4KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-CmF1dG9mcyBtYWlsaW5nIGxpc3QKYXV0b2ZzQGxpbnV4Lmtlcm5lbC5vcmcKaHR0cDovL2xpbnV4
-Lmtlcm5lbC5vcmcvbWFpbG1hbi9saXN0aW5mby9hdXRvZnMK
+Hello Ian, list
+
+While trying to make some progress on the AB/BA locking issue, I
+think I've found a bug introduced by commit dc0c3734.
+
+Thanks,
+Leonardo
+
+
+Remove master_mutex_unlock() leftover
+
+Commit dc0c3734 ("fix out of order locking in readmap") removes
+the calls to master_mutex_lock() and master_mutex_unlock() from
+master_find_mapent(), but leaves an unlock behind.
+
+Signed-off-by: Leonardo Chiquitto <lchiquitto@novell.com>
+
+---
+ lib/master.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+Index: autofs/lib/master.c
+===================================================================
+--- autofs.orig/lib/master.c
++++ autofs/lib/master.c
+@@ -643,10 +643,8 @@ struct master_mapent *master_find_mapent
+ 
+ 		entry = list_entry(p, struct master_mapent, list);
+ 
+-		if (!strcmp(entry->path, path)) {
+-			master_mutex_unlock();
++		if (!strcmp(entry->path, path))
+ 			return entry;
+-		}
+ 	}
+ 
+ 	return NULL;
