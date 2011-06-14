@@ -1,65 +1,46 @@
-From: Leonardo Chiquitto <leonardo.lists@gmail.com>
-Subject: [PATCH] Remove master_mutex_unlock() leftover
-Date: Mon, 13 Jun 2011 18:39:40 -0300
-Message-ID: <20110613213940.GA4908@libre.l.ngdn.org>
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: Re: Lockdep splat in autofs with 2.6.39-rc2
+Date: Mon, 13 Jun 2011 20:43:13 -0400
+Message-ID: <1308012193.9218.105.camel@gandalf.stny.rr.com>
+References: <20110407194403.GA29404@elliptictech.com>
+	 <20110421212537.GC24898@home.goodmis.org>
+	 <20110427132219.GA2843@elliptictech.com>
+	 <20110511191301.GA18504@elliptictech.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-bounces@linux.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
-	h=domainkey-signature:date:from:to:subject:message-id:mime-version
-	:content-type:content-disposition:user-agent;
-	bh=/7w5CKRht/V7zM+4SYBUkLyAtlMBZHWGllKfZ4SfrL4=;
-	b=KHdL5W4XUtQz9L8Nz+3i4zZI8nnGhVKjppuSZRH+EkESXJJw2pqOhQIi5hehQOb3pa
-	9KsJFDdE4AHGJOOzoQiX9DBy9Oq7BbOQjZB0NPRMoqDBj97zLFIcfe/cfus3Z2tLUYxu
-	iNLf2nwKDSgDsnyFGatpbXtWz0nQo+4EetYKo=
-Content-Disposition: inline
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
-List-Archive: <http://linux.kernel.org/pipermail/autofs/>
-List-Post: <mailto:autofs@linux.kernel.org>
-List-Help: <mailto:autofs-request@linux.kernel.org?subject=help>
-List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
-	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
-Sender: autofs-bounces@linux.kernel.org
-Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20110511191301.GA18504@elliptictech.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: Nick Bowler <nbowler@elliptictech.com>
+Cc: linux-kernel@vger.kernel.org, autofs@linux.kernel.org, Ian Kent <raven@themaw.net>, Peter Zijlstra <peterz@infradead.org>
 
-Hello Ian, list
+On Wed, 2011-05-11 at 15:13 -0400, Nick Bowler wrote:
+> On 2011-04-27 09:22 -0400, Nick Bowler wrote:
+> > On 2011-04-21 17:25 -0400, Steven Rostedt wrote:
+> > > On Thu, Apr 07, 2011 at 03:44:03PM -0400, Nick Bowler wrote:
+> > > > Just saw this on 2.6.39-rc2 after half a day or so of uptime.  I've
+> > > > never seen it before today so it may be a regression from 2.6.38.
+> > > > Nothing seems have failed as a result.  Please let me know if you
+> > > > need any more info.
+> > > 
+> > > Could you try this patch. I know it may be hard to reproduce, but the
+> > > issue is that we are recursing down the locks in a tree/list and we changed a
+> > > lock from being nested to being a parent. This patch tells lockdep about
+> > > what we did.
+> > 
+> > OK, I've built 2.6.39-rc5 with this patch applied.  However, it took ~5
+> > days before I saw any splat with -rc4, thus it's unlikely that I'll be
+> > able to say for sure that it works.
+> 
+> FWIW, haven't had any problems with this kernel (+ patch) during the
+> last two weeks.
 
-While trying to make some progress on the AB/BA locking issue, I
-think I've found a bug introduced by commit dc0c3734.
+I'm going to wrap this up and send it out as a proper patch. Can I add
+your "Reported-by" and "Tested-by" tags?
 
 Thanks,
-Leonardo
 
+-- Steve
 
-Remove master_mutex_unlock() leftover
-
-Commit dc0c3734 ("fix out of order locking in readmap") removes
-the calls to master_mutex_lock() and master_mutex_unlock() from
-master_find_mapent(), but leaves an unlock behind.
-
-Signed-off-by: Leonardo Chiquitto <lchiquitto@novell.com>
-
----
- lib/master.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
-
-Index: autofs/lib/master.c
-===================================================================
---- autofs.orig/lib/master.c
-+++ autofs/lib/master.c
-@@ -643,10 +643,8 @@ struct master_mapent *master_find_mapent
- 
- 		entry = list_entry(p, struct master_mapent, list);
- 
--		if (!strcmp(entry->path, path)) {
--			master_mutex_unlock();
-+		if (!strcmp(entry->path, path))
- 			return entry;
--		}
- 	}
- 
- 	return NULL;
