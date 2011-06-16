@@ -1,17 +1,12 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Deadlock in automount caused by AB/BA lock ordering
-Date: Tue, 14 Jun 2011 10:34:21 +0800
-Message-ID: <1308018861.3268.5.camel@perseus.themaw.net>
-References: <20110519232152.GA3226@libre.l.ngdn.org>
+From: "Colin Simpson" <Colin.Simpson@iongeo.com>
+Subject: Thoughts on dynamic networking with AutoFS/NFS
+Date: Thu, 16 Jun 2011 20:20:21 +0100
+Message-ID: <6E56BACC0FDACB4E88FD63C76CE749460D39CA@edi1exch01.iouk.ioroot.tld>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com;
-	h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding;
-	s=smtpout; bh=6Fx4dJ8HeBvw8lfolpao6QdLdm4=;
-	b=IEdO15t+uQKzdQz6n27ATGGI9KsYdQUS4TfVJBCorrN9dWkiHQsZc5qLSwcutGeMpU6bkM9RQSH1ZcSCcs7IyHaHrtbsutqW/sAA3YCCPlMuAIHwnm/pazLYCASKFWEOslmKUioi3X3tr+6HeOhh0uSJ7vNJivl2GRYI8A/8ysY=
-In-Reply-To: <20110519232152.GA3226@libre.l.ngdn.org>
+Content-Class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,109 +17,31 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Leonardo Chiquitto <leonardo.lists@gmail.com>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-On Thu, 2011-05-19 at 20:21 -0300, Leonardo Chiquitto wrote:
-> Hello,
-> 
-> We received a support request from a customer reporting a hang in the
-> automount daemon. Analyzing the core dump, it looks like automount
-> can deadlock if two threads execute in the following order:
-> 
-> (All the line numbers are adjusted to match the latest version from Git)
-> 
-> Thread 7 (Thread 25043):			Thread 6 (Thread 24007):
-> 
-> #9 start_thread() libpthread.so.0		#3  start_thread() libpthread.so.0
-> #8 do_read_master() at automount.c:1259		#2  do_readmap() at state.c:479
-> #7 master_read_master() at master.c:853		    --> master_mutex_lock() [state.c:462]
-> 						    --> master_mutex_unlock() [state.c:466]
->    --> master_mutex_lock() [master.c:836]
->    --> cache_writelock() [master.c:838 or :849]
-> 						    --> master_source_readlock() [state.c:477]
-> #6 lookup_nss_read_master() at lookup.c:229
-> #5 do_read_master() at lookup.c:96
-> #4 lookup_read_master() at lookup_ldap.c:1676
-> #3 master_parse_entry() at master_parse.y:829
-> #2 master_add_map_source() at master.c:192
-> #1 master_source_writelock() at master.c:543	#1  cache_readlock() at cache.c:60
-> #0 pthread_rwlock_wrlock() libpthread.so.0	#0  pthread_rwlock_rdlock() libpthread.so.0
-> 
-> At this point:
-> 
->   Thread 7: locked(master_mutex_lock)
-> 	    locked(cache_writelock)		A
-> 	    waits(master_source_writelock)	B
->   Thread 6: locked(master_source_readlock)	B
-> 	    waits(cache_readlock)		A
-> 
-> The AutoFS version is 5.0.5 plus all upstream patches up to
-> autofs-5.0.5-fix-submount-shutdown-wait.patch plus
-> autofs-5.0.5-fix-out-of-order-locking-in-readmap.patch
-> autofs-5.0.5-fix-next-task-list-update.patch
-> autofs-5.0.5-fix-stale-map-read.patch
-> 
-> At the first sight, moving pthread_cleanup_pop(1) (and consequently
-> master_mutex_unlock()) to the end of do_readmap() could avoid the
-> problem, but I didn't test this yet (please see untested patch below).
-> 
-> Any insight would be much appreciated!
-> 
-> Thanks,
-> Leonardo
-> 
-> Index: autofs/daemon/state.c
-> ===================================================================
-> --- autofs.orig/daemon/state.c
-> +++ autofs/daemon/state.c
-> @@ -463,7 +463,6 @@ static void *do_readmap(void *arg)
->  	status = lookup_nss_read_map(ap, NULL, now);
->  	if (!status)
->  		pthread_exit(NULL);
-> -	pthread_cleanup_pop(1);
->  
->  	if (ap->type == LKP_INDIRECT) {
->  		lookup_prune_cache(ap, now);
-> @@ -504,6 +503,7 @@ static void *do_readmap(void *arg)
->  	}
->  
->  	pthread_cleanup_pop(1);
-> +	pthread_cleanup_pop(1);
->  
->  	return NULL;
->  }
+Hi
+
+I was just wondering what the thoughts (maybe plans) are for making autofs/nfs more dynamic in the new world of dynamic networking with the likes of Network Manager now being the default.
+
+We now have quite a few users with linux laptops and they want to see the standard automounts on these. But being laptops they frequently switch subnet, jump on WiFi and VPN etc. 
+
+Most subsystems seem to play pretty well with this dynamic network environment and are hooked into NM (with SSSD doing a good job with off net credentials and directory services caching)
+
+Now I know that autofs/nfs is a much harder nut to crack given its heavy in kernel component, but I'd have thought the present non-dynamic behaviour is a bit of an anomaly. 
+
+Our present workaround is to hook a script into NM that detects when on or off lan. If going on lan to off, it will stop the autofs. If still mounts present when stopped, it will forcibly umount them. Pretty ugly, but better for the system than lots of dead mounts, which breaks lots of things (and doesn't recover if connecting to a new lan IP). Going off to on lan and starting autofs seems to recover and  see the automounts fine (despite the previous brutality to the mount points we performed).
+
+We of course override the automounted home dir for the laptop owner. But they can still get to their network one via the automount when on lan. And other users can ssh into the back of these laptops (should that be necessary) and get their automounted homedir as any other machine would.
+
+Any thoughts on this (maybe the talk of integrating automounts into sssd will change things)? Or can autofs (by option maybe) be forced to clear its mounts forcibly on being stopped.
+
+I guess what I'm talking about isn't a common case but providing a consistent to office based systems for laptop users is very attractive for us. 
+
+Any thoughts?
+
+Thanks 
 
 
-This might be all we need since once the master map is read the null
-cache is set up and and can't change while we hold the read lock ....
+Colin
 
-autofs-5.0.5 - fix null cache deadlock
-
-From: Ian Kent <ikent@redhat.com>
-
-
----
-
- daemon/state.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-
-diff --git a/daemon/state.c b/daemon/state.c
-index 3645440..51809a1 100644
---- a/daemon/state.c
-+++ b/daemon/state.c
-@@ -473,11 +473,11 @@ static void *do_readmap(void *arg)
- 
- 		mnts = tree_make_mnt_tree(_PROC_MOUNTS, "/");
- 		pthread_cleanup_push(tree_mnts_cleanup, mnts);
--		pthread_cleanup_push(master_source_lock_cleanup, ap->entry);
--		master_source_readlock(ap->entry);
- 		nc = ap->entry->master->nc;
- 		cache_readlock(nc);
- 		pthread_cleanup_push(cache_lock_cleanup, nc);
-+		master_source_readlock(ap->entry);
-+		pthread_cleanup_push(master_source_lock_cleanup, ap->entry);
- 		map = ap->entry->maps;
- 		while (map) {
- 			/* Is map source up to date or no longer valid */
+This email and any files transmitted with it are confidential and are intended solely for the use of the individual or entity to whom they are addressed.  If you are not the original recipient or the person responsible for delivering the email to the intended recipient, be advised that you have received this email in error, and that any use, dissemination, forwarding, printing, or copying of this email is strictly prohibited. If you received this email in error, please immediately notify the sender and delete the original.
