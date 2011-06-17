@@ -1,12 +1,12 @@
-From: "Colin Simpson" <Colin.Simpson@iongeo.com>
-Subject: Thoughts on dynamic networking with AutoFS/NFS
-Date: Thu, 16 Jun 2011 20:20:21 +0100
-Message-ID: <6E56BACC0FDACB4E88FD63C76CE749460D39CA@edi1exch01.iouk.ioroot.tld>
+From: David Howells <dhowells@redhat.com>
+Subject: [PATCH] autofs4: Use no_printk() for no-op DPRINTK() and
+ use __VA_ARGS__ too
+Date: Fri, 17 Jun 2011 11:38:41 +0100
+Message-ID: <20110617103838.25471.35778.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-Class: urn:content-classes:message
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,31 +17,55 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
+To: raven@themaw.net
+Cc: autofs@linux.kernel.org, David Howells <dhowells@redhat.com>
 
-Hi
+Use no_printk() for autofs's no-op DPRINTK() to prevent unused statements from
+becoming accidentally obsolete, and use __VA_ARGS__ too as that's the standard
+way.
 
-I was just wondering what the thoughts (maybe plans) are for making autofs/nfs more dynamic in the new world of dynamic networking with the likes of Network Manager now being the default.
+Signed-off-by: David Howells <dhowells@redhat.com>
+---
 
-We now have quite a few users with linux laptops and they want to see the standard automounts on these. But being laptops they frequently switch subnet, jump on WiFi and VPN etc. 
+ fs/autofs4/autofs_i.h |   10 +++++++---
+ fs/autofs4/waitq.c    |    3 ++-
+ 2 files changed, 9 insertions(+), 4 deletions(-)
 
-Most subsystems seem to play pretty well with this dynamic network environment and are hooked into NM (with SSSD doing a good job with off net credentials and directory services caching)
-
-Now I know that autofs/nfs is a much harder nut to crack given its heavy in kernel component, but I'd have thought the present non-dynamic behaviour is a bit of an anomaly. 
-
-Our present workaround is to hook a script into NM that detects when on or off lan. If going on lan to off, it will stop the autofs. If still mounts present when stopped, it will forcibly umount them. Pretty ugly, but better for the system than lots of dead mounts, which breaks lots of things (and doesn't recover if connecting to a new lan IP). Going off to on lan and starting autofs seems to recover and  see the automounts fine (despite the previous brutality to the mount points we performed).
-
-We of course override the automounted home dir for the laptop owner. But they can still get to their network one via the automount when on lan. And other users can ssh into the back of these laptops (should that be necessary) and get their automounted homedir as any other machine would.
-
-Any thoughts on this (maybe the talk of integrating automounts into sssd will change things)? Or can autofs (by option maybe) be forced to clear its mounts forcibly on being stopped.
-
-I guess what I'm talking about isn't a common case but providing a consistent to office based systems for laptop users is very attractive for us. 
-
-Any thoughts?
-
-Thanks 
-
-
-Colin
-
-This email and any files transmitted with it are confidential and are intended solely for the use of the individual or entity to whom they are addressed.  If you are not the original recipient or the person responsible for delivering the email to the intended recipient, be advised that you have received this email in error, and that any use, dissemination, forwarding, printing, or copying of this email is strictly prohibited. If you received this email in error, please immediately notify the sender and delete the original.
+diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
+index 475f9c5..c3a419f 100644
+--- a/fs/autofs4/autofs_i.h
++++ b/fs/autofs4/autofs_i.h
+@@ -40,13 +40,17 @@
+ /* #define DEBUG */
+ 
+ #ifdef DEBUG
+-#define DPRINTK(fmt, args...)				\
++#define DPRINTK(fmt, ...)				\
+ do {							\
+ 	printk(KERN_DEBUG "pid %d: %s: " fmt "\n",	\
+-		current->pid, __func__, ##args);	\
++		current->pid, __func__, ##__VA_ARGS__);	\
+ } while (0)
+ #else
+-#define DPRINTK(fmt, args...) do {} while (0)
++#define DPRINTK(fmt, ...)					\
++do {								\
++	no_printk(KERN_DEBUG "pid %d: %s: " fmt "\n",		\
++		  current->pid, __func__, ##__VA_ARGS__);	\
++} while (0)
+ #endif
+ 
+ #define AUTOFS_WARN(fmt, args...)			\
+diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
+index 2543598..6313a0d 100644
+--- a/fs/autofs4/waitq.c
++++ b/fs/autofs4/waitq.c
+@@ -104,7 +104,8 @@ static void autofs4_notify_daemon(struct autofs_sb_info *sbi,
+ 	size_t pktsz;
+ 
+ 	DPRINTK("wait id = 0x%08lx, name = %.*s, type=%d",
+-		wq->wait_queue_token, wq->name.len, wq->name.name, type);
++		(unsigned long)wq->wait_queue_token,
++		wq->name.len, wq->name.name, type);
+ 
+ 	memset(&pkt,0,sizeof pkt); /* For security reasons */
