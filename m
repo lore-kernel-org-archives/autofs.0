@@ -1,10 +1,9 @@
-From: David Howells <dhowells@redhat.com>
-Subject: [PATCH] autofs4: Use no_printk() for no-op DPRINTK() and
- use __VA_ARGS__ too
-Date: Fri, 17 Jun 2011 11:38:41 +0100
-Message-ID: <20110617103838.25471.35778.stgit@warthog.procyon.org.uk>
+From: James Pearson <james-p@moving-picture.com>
+Subject: Odd NIS map failure with mount point creation time in the
+	future?
+Date: Fri, 17 Jun 2011 15:12:17 +0100
+Message-ID: <4DFB60C1.4080801@moving-picture.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 List-Id: <autofs.vger.kernel.org>
@@ -17,55 +16,45 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: raven@themaw.net
-Cc: autofs@linux.kernel.org, David Howells <dhowells@redhat.com>
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: autofs@linux.kernel.org
 
-Use no_printk() for autofs's no-op DPRINTK() to prevent unused statements from
-becoming accidentally obsolete, and use __VA_ARGS__ too as that's the standard
-way.
+I using CentOS 5 on a large number of boxes with a NIS indirect 
+automount map.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
----
+I've been using the following syntax in /etc/auto.master:
 
- fs/autofs4/autofs_i.h |   10 +++++++---
- fs/autofs4/waitq.c    |    3 ++-
- 2 files changed, 9 insertions(+), 4 deletions(-)
+/mntpoint    yp:custom.map
 
-diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
-index 475f9c5..c3a419f 100644
---- a/fs/autofs4/autofs_i.h
-+++ b/fs/autofs4/autofs_i.h
-@@ -40,13 +40,17 @@
- /* #define DEBUG */
- 
- #ifdef DEBUG
--#define DPRINTK(fmt, args...)				\
-+#define DPRINTK(fmt, ...)				\
- do {							\
- 	printk(KERN_DEBUG "pid %d: %s: " fmt "\n",	\
--		current->pid, __func__, ##args);	\
-+		current->pid, __func__, ##__VA_ARGS__);	\
- } while (0)
- #else
--#define DPRINTK(fmt, args...) do {} while (0)
-+#define DPRINTK(fmt, ...)					\
-+do {								\
-+	no_printk(KERN_DEBUG "pid %d: %s: " fmt "\n",		\
-+		  current->pid, __func__, ##__VA_ARGS__);	\
-+} while (0)
- #endif
- 
- #define AUTOFS_WARN(fmt, args...)			\
-diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
-index 2543598..6313a0d 100644
---- a/fs/autofs4/waitq.c
-+++ b/fs/autofs4/waitq.c
-@@ -104,7 +104,8 @@ static void autofs4_notify_daemon(struct autofs_sb_info *sbi,
- 	size_t pktsz;
- 
- 	DPRINTK("wait id = 0x%08lx, name = %.*s, type=%d",
--		wq->wait_queue_token, wq->name.len, wq->name.name, type);
-+		(unsigned long)wq->wait_queue_token,
-+		wq->name.len, wq->name.name, type);
- 
- 	memset(&pkt,0,sizeof pkt); /* For security reasons */
+And this has worked fine for ages
+
+Recently, I wanted to provide some custom local overrides to mount 
+points in the NIS map, so I've changed /etc/auto.master to be:
+
+/mntpoint    custom.map
+
+and created a file called /etc/custom.map which contains something like:
+
+host1    host:/disk1
++custom.map
+
+i.e. include the NIS map after any local mount point settings
+
+On most machines, this works fine - but on a number of machines, after a 
+reboot, the mounts from the NIS map fail to mount - although the other 
+mounts from /etc/custom.map mount fine.
+
+One thing I noticed in common on all the machines with this problem is 
+that datestamp on the automount mount point (/mntpoint) was in the 
+future - by an hour or two. I guess the hardware clock is an hour or two 
+ahead of the real time.
+
+ntp runs on all these boxes - but starts after autofs - however if I 
+change ntp to startup before autofs, then autofs works fine after a 
+reboot ...
+
+Any idea why autofs fails to read entries from the included NIS map when 
+the creation date of the map mount point is in the future? - but works 
+fine when the same NIS map is referenced directly from /etc/auto.master?
+
+James Pearson
