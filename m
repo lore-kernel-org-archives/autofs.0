@@ -1,8 +1,7 @@
-From: James Pearson <james-p@moving-picture.com>
-Subject: Odd NIS map failure with mount point creation time in the
-	future?
-Date: Fri, 17 Jun 2011 15:12:17 +0100
-Message-ID: <4DFB60C1.4080801@moving-picture.com>
+From: Jimmy Dorff <jdorff@phy.duke.edu>
+Subject: nesting automount maps in ldap
+Date: Fri, 17 Jun 2011 10:40:05 -0400
+Message-ID: <4DFB6745.3040805@phy.duke.edu>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
@@ -19,42 +18,49 @@ Errors-To: autofs-bounces@linux.kernel.org
 Content-Type: text/plain; charset="us-ascii"; format="flowed"
 To: autofs@linux.kernel.org
 
-I using CentOS 5 on a large number of boxes with a NIS indirect 
-automount map.
+Hello,
 
-I've been using the following syntax in /etc/auto.master:
+I'm attempting to migrate an existing (and working) nis automount system 
+to ldap. We have several layers of nested maps and I'm attempting to 
+recreate that in LDAP.
 
-/mntpoint    yp:custom.map
+# Automount master for "/foo"
+dn: cn=/foo, ou=auto.master,dc=phy,dc=duke,dc=edu
+objectClass: automount
+cn: /foo
+automountInformation: ldap ldapserver:ou=auto.phy,dc=phy,dc=duke,dc=edu
 
-And this has worked fine for ages
+dn: ou=auto.phy, dc=phy,dc=duke,dc=edu
+objectClass: top
+objectClass: automountMap
+ou: auto.phy
 
-Recently, I wanted to provide some custom local overrides to mount 
-points in the NIS map, so I've changed /etc/auto.master to be:
+# mounting "/foo/web" works great!
+dn: cn=web, ou=auto.phy, dc=phy,dc=duke,dc=edu
+objectClass: automount
+cn: web
+automountInformation: -fstype=nfs nfsserver01:/srv/httpd
 
-/mntpoint    custom.map
+# here is my attempt at nesting another level
+dn: cn=project, ou=auto.phy,dc=phy,dc=duke,dc=edu
+objectClass: automount
+cn: project
+automountInformation: ldap ldapserver:ou=auto.project,dc=phy,dc=duke,dc=edu
 
-and created a file called /etc/custom.map which contains something like:
+# This fails. I get "automount: failed to mount /foo/project
+dn: ou=auto.project, dc=phy,dc=duke,dc=edu
+objectClass: top
+objectClass: automountMap
+ou: auto.project
 
-host1    host:/disk1
-+custom.map
+# this never shows up (ghosting enabled)
+dn: cn=linux, ou=auto.project, dc=phy,dc=duke,dc=edu
+objectClass: automount
+cn: linux
+automountInformation: -fstype=nfs nfsserver02:/srv/linux
 
-i.e. include the NIS map after any local mount point settings
+I can't see to find an example of nest ldap maps. I'm using 
+autofs-5.0.5-31.el6 if that makes any difference.
 
-On most machines, this works fine - but on a number of machines, after a 
-reboot, the mounts from the NIS map fail to mount - although the other 
-mounts from /etc/custom.map mount fine.
-
-One thing I noticed in common on all the machines with this problem is 
-that datestamp on the automount mount point (/mntpoint) was in the 
-future - by an hour or two. I guess the hardware clock is an hour or two 
-ahead of the real time.
-
-ntp runs on all these boxes - but starts after autofs - however if I 
-change ntp to startup before autofs, then autofs works fine after a 
-reboot ...
-
-Any idea why autofs fails to read entries from the included NIS map when 
-the creation date of the map mount point is in the future? - but works 
-fine when the same NIS map is referenced directly from /etc/auto.master?
-
-James Pearson
+Thanks!
+Jimmy Dorff
