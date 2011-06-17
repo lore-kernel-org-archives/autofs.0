@@ -1,12 +1,11 @@
-From: Jimmy Dorff <jdorff@phy.duke.edu>
-Subject: Re: nesting automount maps in ldap
-Date: Fri, 17 Jun 2011 16:40:49 -0400
-Message-ID: <4DFBBBD1.3020504@phy.duke.edu>
-References: <4DFB6745.3040805@phy.duke.edu>
+From: David Howells <dhowells@redhat.com>
+Subject: Bug in autofs4_d_automount()?
+Date: Sat, 18 Jun 2011 00:29:48 +0100
+Message-ID: <32229.1308353388@redhat.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <4DFB6745.3040805@phy.duke.edu>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,26 +16,23 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: autofs@linux.kernel.org
+To: raven@themaw.net
+Cc: dhowells@redhat.com, autofs@linux.kernel.org, viro@ZenIV.linux.org.uk
 
-On 06/17/2011 10:40 AM, Jimmy Dorff wrote:
-> # here is my attempt at nesting another level
-> dn: cn=project, ou=auto.phy,dc=phy,dc=duke,dc=edu
-> objectClass: automount
-> cn: project
-> automountInformation: ldap ldapserver:ou=auto.project,dc=phy,dc=duke,dc=edu
 
-My problem was the lack of "-fstype=autofs".
+Hi Ian,
 
-This works:
-dn: cn=project,ou=auto.phy,dc=phy,dc=duke,dc=edu
-objectClass: automount
-cn: project
-automountInformation: -fstype=autofs ou=auto.project,dc=phy,dc=duke,dc=edu
+At the top of autofs4_d_automount() you have:
 
-I also think this is called "layering" rather than "nesting".. but I'm 
-not sure.
+	/* The daemon never triggers a mount. */
+	if (autofs4_oz_mode(sbi))
+		return NULL;
 
-Cheers,
-Jimmy
+I think this should be returning -EISDIR.  If by some chance we do get here in
+Oz mode, this will cause the kernel to just loop forever.  A return of NULL is
+meant to indicate that you got a collision and that it should recheck the
+mountpoint - but it does not advance path in follow_managed().
+
+-EISDIR is the return to indicate this is to be treated as a normal directory.
+
+David
