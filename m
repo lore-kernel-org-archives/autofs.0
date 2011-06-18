@@ -1,17 +1,14 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: nesting automount maps in ldap
-Date: Sat, 18 Jun 2011 18:30:32 +0800
-Message-ID: <1308393032.12881.24.camel@perseus.themaw.net>
-References: <4DFB6745.3040805@phy.duke.edu>  <4DFBBBD1.3020504@phy.duke.edu>
+From: James Pearson <james-p@moving-picture.com>
+Subject: Re: Odd NIS map failure with mount point creation time in
+ the future?
+Date: Sat, 18 Jun 2011 16:59:06 +0100
+Message-ID: <4DFCCB4A.4030900@moving-picture.com>
+References: <4DFB60C1.4080801@moving-picture.com>
+	<1308392316.12881.14.camel@perseus.themaw.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com;
-	h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding;
-	s=smtpout; bh=tZ36sqgdsJcnzG3cOqb9FCGXm6A=;
-	b=cJmToD7hccMWMoki99oipukogfDMrZnIa0wt42zlw9G+BU8nDTawHvD2f1R2GeHzLkMXCNPBIsGLjCZXFjaMy08TaUkCO8EVLAM4/wdFB3XOxd6KOOZFMrL0EvNGjAYQic6jWDOwY0k/0GwhN0TiKRWv7OpFnRaZIL0F6mpwXwU=
-In-Reply-To: <4DFBBBD1.3020504@phy.duke.edu>
+In-Reply-To: <1308392316.12881.14.camel@perseus.themaw.net>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,34 +19,41 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Jimmy Dorff <jdorff@phy.duke.edu>
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@linux.kernel.org
 
-On Fri, 2011-06-17 at 16:40 -0400, Jimmy Dorff wrote:
-> On 06/17/2011 10:40 AM, Jimmy Dorff wrote:
-> > # here is my attempt at nesting another level
-> > dn: cn=project, ou=auto.phy,dc=phy,dc=duke,dc=edu
-> > objectClass: automount
-> > cn: project
-> > automountInformation: ldap ldapserver:ou=auto.project,dc=phy,dc=duke,dc=edu
+Ian Kent wrote:
+>>
+>>Any idea why autofs fails to read entries from the included NIS map when 
+>>the creation date of the map mount point is in the future? - but works 
+>>fine when the same NIS map is referenced directly from /etc/auto.master?
 > 
-> My problem was the lack of "-fstype=autofs".
-
-Oh .. yeah, that may well be it, but that should have been needed in the
-original map. Maybe a look at a debug log would be useful and that
-should show pretty quickly if it is just the missing fstype option.
-
 > 
-> This works:
-> dn: cn=project,ou=auto.phy,dc=phy,dc=duke,dc=edu
-> objectClass: automount
-> cn: project
-> automountInformation: -fstype=autofs ou=auto.project,dc=phy,dc=duke,dc=edu
+> Don't know about the timestamp but there were some included map fixes in
+> RHEL-5.7, at least one was a fix for a regression.
 > 
-> I also think this is called "layering" rather than "nesting".. but I'm 
-> not sure.
+> Versions?
 
-Maybe, but the terminology I've always used for these is "submount", as
-in a sub autofs mount.
+Sorry, I should have said - this is CentOS 5.5 with autofs 
+5.0.1-0.rc2.143.el5_5.6 - and I've also tried it with 
+5.0.1-0.rc2.143.el5_6.2 - with the same result.
 
-Ian
+It is easy to reproduce - with an included NIS map - if I do:
+
+/etc/init.d/autofs stop; date -s "1 minute"; /etc/init.d/autofs start; 
+date -s "-1 minute"
+
+This creates the automount mount point 1 minute into the future.
+
+Then if I try to access a server defined in the NIS map, the mount fails.
+
+However, if I wait a minute (i.e until the system clock passes the date 
+stamp of the mount point), the automount of file systems in the NIS map 
+works fine.
+
+Is it possible to get a copy of the autofs RPM for RHEL-5.7 to test?
+
+Thanks
+
+James Pearson
