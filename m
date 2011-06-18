@@ -1,12 +1,17 @@
-From: David Howells <dhowells@redhat.com>
-Subject: [PATCH] AUTOFS4: Fix the return from autofs4_d_automount()
- and simplify autofs4_d_manage()
-Date: Sat, 18 Jun 2011 01:11:05 +0100
-Message-ID: <20110618001104.29347.67602.stgit@warthog.procyon.org.uk>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: Bug in autofs4_d_automount()?
+Date: Sat, 18 Jun 2011 17:49:57 +0800
+Message-ID: <1308390597.12881.5.camel@perseus.themaw.net>
+References: <32229.1308353388@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com;
+	h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding;
+	s=smtpout; bh=Fyu27iExJwOXghg81bv99OdpNsU=;
+	b=jyKRX7Mkv3erlqQHGDZKz03Mk+2gVyi+QSU+3x7xTMulGTPLRhoq3p4uf1VbFLIHTxheb9A3E8s0U8w/CLE1iqXQPWwLemxtqgCxQRiLW0x2wfowe7s1+KkyxXrqAwazYekzf0HnheIeMiQsyobKJU3StfraKiJyNQ+DNlrbY94=
+In-Reply-To: <32229.1308353388@redhat.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -17,58 +22,35 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: viro@ZenIV.linux.org.uk, raven@themaw.net
-Cc: autofs@linux.kernel.org, David Howells <dhowells@redhat.com>
+To: David Howells <dhowells@redhat.com>
+Cc: autofs@linux.kernel.org, viro@ZenIV.linux.org.uk
 
-autofs4_d_automount() returns 0 if it detects that the calling process is in Oz
-mode (ie. it's the autofs userspace daemon).  This return, however, is meant to
-indicate to follow_automount() that the caller should retry the check on the
-the current path point.  In the Oz mode case, this is a bad idea because
-nothing has changed on the path, and follow_managed() will just repeat until
-follow_automount() hits the total_link_count limit and returns -ELOOP.
+On Sat, 2011-06-18 at 00:29 +0100, David Howells wrote:
+> Hi Ian,
+> 
+> At the top of autofs4_d_automount() you have:
+> 
+> 	/* The daemon never triggers a mount. */
+> 	if (autofs4_oz_mode(sbi))
+> 		return NULL;
+> 
+> I think this should be returning -EISDIR.  If by some chance we do get here in
+> Oz mode, this will cause the kernel to just loop forever.  A return of NULL is
+> meant to indicate that you got a collision and that it should recheck the
+> mountpoint - but it does not advance path in follow_managed().
 
-What it should do is return -EISDIR to indicate to the callers that actually it
-wants the daemon to see this directory as an ordinary directory.
+I think your mistaken this time.
 
+That was done to work around the fact that -EISDIR can't be returned in
+the case where the dentry doesn't and (and won't have) a explicit mount
+on it without entering an ELOOP situation. IIRC I needed to return NULL
+here and handle it in ->d_manage() to make this work.
 
-Now, given that change outlined above, it is then unnecessary for
-autofs4_d_manage() to return -EISDIR if the current path point is not a
-mountpoint.  If it returns 0 instead, and the path point isn't a mountpoint,
-then follow_managed() will skip the attempt to transit to the mounted
-filesystem and proceed to call autofs4_d_automount(), which will return
--EISDIR.
+> 
+> -EISDIR is the return to indicate this is to be treated as a normal directory.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
----
+That would be the better way to do it but the logic doesn't allow it
+ATM.
 
- fs/autofs4/root.c |    9 ++-------
- 1 files changed, 2 insertions(+), 7 deletions(-)
-
-diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
-index f55ae23..a6dc11c 100644
---- a/fs/autofs4/root.c
-+++ b/fs/autofs4/root.c
-@@ -334,7 +334,7 @@ static struct vfsmount *autofs4_d_automount(struct path *path)
- 
- 	/* The daemon never triggers a mount. */
- 	if (autofs4_oz_mode(sbi))
--		return NULL;
-+		return ERR_PTR(-EISDIR);
- 
- 	/*
- 	 * If an expire request is pending everyone must wait.
-@@ -435,13 +435,8 @@ int autofs4_d_manage(struct dentry *dentry, bool rcu_walk)
- 		dentry, dentry->d_name.len, dentry->d_name.name);
- 
- 	/* The daemon never waits. */
--	if (autofs4_oz_mode(sbi)) {
--		if (rcu_walk)
--			return 0;
--		if (!d_mountpoint(dentry))
--			return -EISDIR;
-+	if (autofs4_oz_mode(sbi))
- 		return 0;
--	}
- 
- 	/* We need to sleep, so we need pathwalk to be in ref-mode */
- 	if (rcu_walk)
+> 
+> David
