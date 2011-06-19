@@ -1,21 +1,17 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: Odd NIS map failure with mount point creation time in
- the future?
-Date: Sun, 19 Jun 2011 11:18:08 +0800
-Message-ID: <1308453488.3300.3.camel@perseus.themaw.net>
-References: <4DFB60C1.4080801@moving-picture.com>
-	<1308392316.12881.14.camel@perseus.themaw.net>
-	<4DFCCB4A.4030900@moving-picture.com>
-	<4DFD05CE.4060905@moving-picture.com>
+Subject: Re: Thoughts on dynamic networking with AutoFS/NFS
+Date: Sun, 19 Jun 2011 11:59:45 +0800
+Message-ID: <1308455985.3300.42.camel@perseus.themaw.net>
+References: <6E56BACC0FDACB4E88FD63C76CE749460D39CA@edi1exch01.iouk.ioroot.tld>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com;
 	h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding;
-	s=smtpout; bh=MKWJ4XHUDFilMvWcf1kj6Nq7u/4=;
-	b=dw/I5aWnV2uOUFEK7o7c2RACYjZjK0DGHuNHdOU9wK5KWE6yfL/GdanA0zWYXWHWwPP5lnLQm8+J6Uam+vfBRFcsvkJ7l1C2eqr9J/2CBGDvhlql2sygBVPH71YEYpso8Lc/qXEr72qehBsDFPSt7wg1n8v5QIEcdQxScj/OrWg=
-In-Reply-To: <4DFD05CE.4060905@moving-picture.com>
+	s=smtpout; bh=/UjSEkrO193sKqva4hzOuo8V2Fo=;
+	b=W5CubYrp8hreX12snxf4GYfhReX+M+iIzkI0XllOkiDrCRzqAmjFGr9YMIXRR9rNRqhAL9dcsYMSHIZL6V8Y13KKcKM2GyVCq7LXiqmpBfaxqgOfPlEV7sW05pDjHdTahrMhBNiiNHOVsFOBR5KMkvQVF39l5om/zc8ADwmMUv8=
+In-Reply-To: <6E56BACC0FDACB4E88FD63C76CE749460D39CA@edi1exch01.iouk.ioroot.tld>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -26,64 +22,108 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: James Pearson <james-p@moving-picture.com>
+To: Colin Simpson <Colin.Simpson@iongeo.com>
 Cc: autofs@linux.kernel.org
 
-On Sat, 2011-06-18 at 21:08 +0100, James Pearson wrote:
-> James Pearson wrote:
-> > 
-> > Sorry, I should have said - this is CentOS 5.5 with autofs 
-> > 5.0.1-0.rc2.143.el5_5.6 - and I've also tried it with 
-> > 5.0.1-0.rc2.143.el5_6.2 - with the same result.
-> > 
-> > It is easy to reproduce - with an included NIS map - if I do:
-> > 
-> > /etc/init.d/autofs stop; date -s "1 minute"; /etc/init.d/autofs start; 
-> > date -s "-1 minute"
-> > 
-> > This creates the automount mount point 1 minute into the future.
-> > 
-> > Then if I try to access a server defined in the NIS map, the mount fails.
-> > 
-> > However, if I wait a minute (i.e until the system clock passes the date 
-> > stamp of the mount point), the automount of file systems in the NIS map 
-> > works fine.
-> > 
-> > Is it possible to get a copy of the autofs RPM for RHEL-5.7 to test?
+On Thu, 2011-06-16 at 20:20 +0100, Colin Simpson wrote:
+> Hi
 > 
-> I had a look at the RHEL5 5.0.1-0.rc2.143.el5_6.2 source - and the 
-> following patch appears to 'fix' my problem - it's a bit of a hack - as 
-> in the included NIS map case, it just resets the age of the map to 
-> 'now', if it is in the future.
+> I was just wondering what the thoughts (maybe plans) are for making
+> autofs/nfs more dynamic in the new world of dynamic networking with
+> the likes of Network Manager now being the default.
+
+I've read this a couple of times now and I'm still not sure what to say
+because the mail is so open ended. But here are a few comments anyway.
+
+That might mean dbus integration which I've tried to avoid because, to
+me, that looks really painful and AFAICT the documentation is lousy so
+working out what the hell to do is difficult and frustrating.
+
+But that's not really the largest part of the work either, which I won't
+try and go into now, because of the main difficulty described below.
+
 > 
-> James Pearson
+> We now have quite a few users with linux laptops and they want to see
+> the standard automounts on these. But being laptops they frequently
+> switch subnet, jump on WiFi and VPN etc. 
 > 
-> plain text document attachment (autofs-5.0.1-future.patch)
-> --- ./daemon/lookup.c.mpc	2011-06-18 20:04:51.076507000 +0100
-> +++ ./daemon/lookup.c	2011-06-18 20:52:18.436154033 +0100
-> @@ -848,6 +848,12 @@ int lookup_nss_mount(struct autofs_point
->  	struct map_source *map;
->  	enum nsswitch_status status;
->  	int result = 0;
-> +	time_t now = time(NULL);
-> +
-> +	if (entry->age > now) {
-> +		debug(ap->logopt, "map %s age in the future - changing it to now", entry->path);
-> +		entry->age = now;
-> +	}
->  
->  	/*
->  	 * For each map source (ie. each entry for the mount
+> Most subsystems seem to play pretty well with this dynamic network
+> environment and are hooked into NM (with SSSD doing a good job with
+> off net credentials and directory services caching)
+> 
+> Now I know that autofs/nfs is a much harder nut to crack given its
+> heavy in kernel component, but I'd have thought the present
+> non-dynamic behaviour is a bit of an anomaly. 
 
-That sounds a bit like bug
-https://bugzilla.redhat.com/show_bug.cgi?id=632471
+The issue is NFS.
 
-It was fixed in development revision 152, which I happen to have on
-people.redhat.com. You could give that a try.
+Dynamic fail-over for mounts has been on the NFS list of things to do
+for over five years and is not done yet. I'm not even sure anything is
+being done or has been done toward it. And that's just for the simpler
+case of read-only mounts.
 
-http://people.redhat.com/~ikent/autofs-5.0.1-0.rc2.152.el5/
+I'm not sure that is what your after either but the difficulty would be
+considerably more for read-write mounts. For example, although nfs
+mounts are stateless (nfs4 is another matter entirely), they rely on a
+file handle that is constructed based on server dependent information so
+moving from one network to another and expecting mounts to just continue
+to work is not going to be simple, if it is even possible.
 
-Keep in mind that there were a few other fixes that went into the final
-release version so your mileage may vary.
+> 
+> Our present workaround is to hook a script into NM that detects when
+> on or off lan. If going on lan to off, it will stop the autofs. If
+> still mounts present when stopped, it will forcibly umount them.
+> Pretty ugly, but better for the system than lots of dead mounts, which
+> breaks lots of things (and doesn't recover if connecting to a new lan
+> IP). Going off to on lan and starting autofs seems to recover and  see
+> the automounts fine (despite the previous brutality to the mount
+> points we performed).
+
+How do you force the umount?
+
+That would be OK for simple maps and simple maps are quite common but
+for anything with hierarchical dependencies it will be a challenge to
+get the umount order correct. Clearly the applications must be able to
+handle this as well.
+
+OTOH, if the mounts table is clean when the machine wakes then any
+access should just magically bring back the mounts. But there are cases
+where that won't work when using lazy umount to get rid of the mounts in
+the first place.
+
+> 
+> We of course override the automounted home dir for the laptop owner.
+> But they can still get to their network one via the automount when on
+> lan. And other users can ssh into the back of these laptops (should
+> that be necessary) and get their automounted homedir as any other
+> machine would.
+> 
+> Any thoughts on this (maybe the talk of integrating automounts into
+> sssd will change things)? Or can autofs (by option maybe) be forced to
+> clear its mounts forcibly on being stopped.
+
+What talk?
+
+As far as I know there is no exported API for sssd now.
+They want to take over and write a module for an autofs exported API and
+expect me to provide the API.
+
+I'm not keen on that because:
+1) the autofs module interface is internal and is heavily dependent on
+other autofs internals and the various internal modules have
+dependencies upon on each other. These internal dependencies should be
+removed at some point but, since it is functional now, and there's a lot
+of code involved, it's not really on the radar.
+2) sssd is the data provider so it should be able to provide the data,
+which it can't.
+
+Having said that it may not be a bad idea to develop a module plug-in
+interface but that would require quite a lot of work and I'm not sure it
+would be worth it given the level within autofs which it would be called
+and so the ease with which things could be subtly broken. So that's a
+support issue.
+
+In any case the sssd side of things does nothing to overcome the
+problems of tearing down and re-constructing mounts.
 
 Ian
