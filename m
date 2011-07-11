@@ -1,44 +1,24 @@
-From: Christoph Hellwig <hch@infradead.org>
+From: David Howells <dhowells@redhat.com>
 Subject: Re: [PATCH] VFS: Fix automount for negative autofs dentries
-Date: Mon, 11 Jul 2011 09:41:47 -0400
-Message-ID: <20110711134147.GA6853@infradead.org>
-References: <20110711132057.14641.36229.stgit@warthog.procyon.org.uk>
-Mime-Version: 1.0
+Date: Mon, 11 Jul 2011 15:13:41 +0100
+Message-ID: <16882.1310393621@redhat.com>
+References: <20110711134147.GA6853@infradead.org> <20110711132057.14641.36229.stgit@warthog.procyon.org.uk>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20110711132057.14641.36229.stgit@warthog.procyon.org.uk>
+In-Reply-To: <20110711134147.GA6853@infradead.org>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Howells <dhowells@redhat.com>
-Cc: viro@ZenIV.linux.org.uk, autofs@linux.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Ian Kent <raven@themaw.net>
+To: Christoph Hellwig <hch@infradead.org>
+Cc: dhowells@redhat.com, viro@ZenIV.linux.org.uk, autofs@linux.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Ian Kent <raven@themaw.net>
 
-> +	if (!(flags & LOOKUP_FOLLOW)) {
-> +		/* We do, however, want to mount if someone wants to open or
-> +		 * create a file of any type under the mountpoint, wants to
-> +		 * traverse through the mountpoint or wants to open the mounted
-> +		 * directory.
-> +		 */
-> +		if (flags & (LOOKUP_CONTINUE | LOOKUP_DIRECTORY |
-> +			     LOOKUP_OPEN | LOOKUP_CREATE))
-> +			goto need_automount;
-> +
-> +		/* Also, autofs may mark negative dentries as being automount
-> +		 * points.  These will need the attentions of the daemon to
-> +		 * instantiate them before they can be used.
-> +		 */
-> +		if (!path->dentry->d_inode)
-> +			goto need_automount;
->  		return -EISDIR;
-> +	}
-> +need_automount:
+Christoph Hellwig <hch@infradead.org> wrote:
 
-That's some really odd code structure.
+> would do the same.
 
-	if (!(flags & (LOOKUP_FOLLOW | LOOKUP_CONTINUE | LOOKUP_DIRECTORY |
-		        LOOKUP_OPEN | LOOKUP_CREATE)) &&
-	    path->dentry->d_inode)
-		return -EISDIR;
+But is much less obvious.  The LOOKUP_FOLLOW flag is the primary reason for
+this statement.  The rest are subordinate and would be wholly irrelevant if
+LOOKUP_FOLLOW was to be removed from the list.
 
-would do the same.
+David
