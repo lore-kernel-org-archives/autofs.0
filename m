@@ -1,11 +1,18 @@
-From: "Brickles, Stephen" <sbrickle@intersil.com>
-Subject: RPC: Can't bind to reserved port (98) in autofs 4.1.3-240
-Date: Tue, 12 Jul 2011 08:33:26 -0700
-Message-ID: <FCE556EDF6801749BB1208C7F6F79FC1BCE14F@MILMX02.intersil.corp>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: RPC: Can't bind to reserved port (98) in autofs
+ 4.1.3-240
+Date: Tue, 19 Jul 2011 19:06:36 +0800
+Message-ID: <1311073596.4496.25.camel@perseus.themaw.net>
+References: <FCE556EDF6801749BB1208C7F6F79FC1BCE14F@MILMX02.intersil.corp>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8912673641413376148=="
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <autofs-bounces@linux.kernel.org>
-Content-class: urn:content-classes:message
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=messagingengine.com;
+	h=subject:from:to:cc:in-reply-to:references:content-type:date:message-id:mime-version:content-transfer-encoding;
+	s=smtpout; bh=9wjYWqemCNBfPmpE/I/zbGefDCE=;
+	b=FWwwi2lQEvsKkfEnJcocNxBJA6/xre/1Jlv354S4UC6F3PwNFVFfmm4JSZDUgpTv49v3uyBUXQrTtsq+NKFOPy1ReGYc07TL0RIgLkCMxuNCNM92DFuBMsiOokanbVwofy8EpzncfRCTnDupxA+s1YLxPrihvhB0YCRolmX9gG0=
+In-Reply-To: <FCE556EDF6801749BB1208C7F6F79FC1BCE14F@MILMX02.intersil.corp>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -16,1101 +23,221 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: autofs@linux.kernel.org
-
-This is a multi-part message in MIME format.
-
---===============8912673641413376148==
-Content-class: urn:content-classes:message
-Content-Type: multipart/alternative;
-	boundary="----_=_NextPart_001_01CC40A9.0C57E7E2"
-
-This is a multi-part message in MIME format.
-
-------_=_NextPart_001_01CC40A9.0C57E7E2
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-
-This bug seems to crop up from time to time.  I've never had much luck
-in being able
-to fix this by running Redhat updates.  It seems to be pretty random.
-Finally I found a
-machine on which this bug recurred over and over and so I was able to
-set up debugging on it.
-
-The mount point listed in these maps below is a fully functioning
-mount-point most of the time.
-There are other mount points in 'auto.mntpnt' which have the same random
-error - I just pruned
-these out to make the explanation simpler.
-
-I set up the debugging according to Jeff's instructions at
-http://people.redhat.com/jmoyer
-and the output is below.
-
-It would appear from Google that "found negative cache entry for key" is
-an issue which seems
-to have come up before.  Also from the debug log, it's difficult to tell
-if this is a problem
-with 'autofs' or 'mount'.
-
-Also this machine is part of a simulation server farm.  It would appear
-that sending a sequence
-of simulation jobs in rapid succession to a host (ie. multiple rsh by a
-user in a short period of time)
-causing a whole bunch of mount requests at once, seems more likely
-trigger this problem.
-
-Thanks,
-Stephen
-
-
-> uname -a
-Linux server3 2.6.9-100.ELsmp #1 SMP Tue Feb 1 12:04:42 EST 2011 x86_64
-x86_64 x86_64 GNU/Linux
-
-> cat /etc/redhat-release
-Red Hat Enterprise Linux WS release 4 (Nahant Update 9)
-
-> rpm -qa | grep autofs
-autofs-4.1.3-240
-
-> rpm -qa | grep nfs-utils
-nfs-utils-lib-devel-1.0.6-10.el4_8.1
-nfs-utils-1.0.6-94.EL4
-nfs-utils-lib-1.0.6-10.el4_8.1
-
-auto.master:
-/mntpnt auto.mntpnt      -rw,intr,soft,vers=3D3
-
-auto.mntpnt:
-mail -rw,actimeo=3D0,vers=3D3       nis_server:/var/mail
-
-/var/log/messages:
-Jul 11 23:54:01 server3 automount[6778]: attempting to mount entry
-/mntpnt/mail
-Jul 11 23:54:01 server3 kernel: RPC: Can't bind to reserved port (98).
-Jul 11 23:54:01 server3 kernel: RPC: can't bind to reserved port.
-Jul 11 23:54:01 server3 kernel: RPC: error 5 connecting to server
-nis_server
-Jul 11 23:54:01 server3 kernel: RPC: Can't bind to reserved port (98).
-Jul 11 23:54:01 server3 kernel: RPC: can't bind to reserved port.
-Jul 11 23:54:01 server3 automount[3564]: >> mount: nis_server:/var/mail:
-can't read superblock
-Jul 11 23:54:01 server3 kernel: RPC: error 5 connecting to server
-nis_server
-Jul 11 23:54:01 server3 automount[3564]: mount(nfs): nfs: mount failure
-nis_server:/var/mail on /mntpnt/mail
-Jul 11 23:54:01 server3 automount[3564]: failed to mount /mntpnt/mail
-
-/var/log/debug:
-Jul 11 23:54:01 server3 automount[6778]: send_fail: token=3D247707
-Jul 11 23:54:01 server3 automount[6778]: handle_packet: type =3D 0
-Jul 11 23:54:01 server3 automount[6778]: handle_packet_missing: token
-247708, name mail
-Jul 11 23:54:01 server3 automount[6778]: handle_packet_missing: expired
-negative cache entry for key.
-Jul 11 23:54:01 server3 automount[6778]: attempting to mount entry
-/mntpnt/mail
-Jul 11 23:54:01 server3 automount[3564]: lookup(yp): looking up mail
-Jul 11 23:54:01 server3 automount[6778]: mt->key set to mail
-Jul 11 23:54:01 server3 automount[3564]: lookup(yp): mail ->
--rw,actimeo=3D0,vers=3D3 nis_server:/var/mail
-Jul 11 23:54:01 server3 automount[3564]: parse(sun): expanded entry:
--rw,actimeo=3D0,vers=3D3 nis_server:/var/mail
-Jul 11 23:54:01 server3 automount[3564]: parse(sun):
-dequote("rw,actimeo=3D0,vers=3D3") -> rw,actimeo=3D0,vers=3D3=20
-Jul 11 23:54:01 server3 automount[3564]: parse(sun): gathered options:
-7,rw,intr,soft,vers=3D3,rw,actimeo=3D0,vers=3D3
-Jul 11 23:54:01 server3 automount[3564]: parse(sun):
-dequote("nis_server:/var/mail") -> nis_server:/var/mail
-Jul 11 23:54:01 server3 automount[3564]: parse(sun): core of entry:
-options=3D7,rw,intr,soft,vers=3D3,rw,actimeo=3D0,vers=3D3,
-loc=3Dnis_server:/var/mail
-Jul 11 23:54:01 server3 automount[3564]: parse(sun): mounting root
-/mntpnt, mountpoint mail, what nis_server:/var/mail, fstype nfs, options
-7,rw,intr,soft,vers=3D3,rw,actimeo=3D0,vers=3D3
-Jul 11 23:54:01 server3 automount[3564]: mount(nfs):  root=3D/mntpnt
-name=3Dmail what=3Dnis_server:/var/mail, fstype=3Dnfs,
-options=3D7,rw,intr,soft,vers=3D3,rw,actimeo=3D0,vers=3D3
-Jul 11 23:54:01 server3 automount[3564]: mount(nfs): nfs
-options=3D"7,rw,intr,soft,vers=3D3,rw,actimeo=3D0,vers=3D3", =
-nosymlink=3D0 Jul 11
-23:54:01 server3 automount[3564]: mount(nfs): calling mkdir_path
-/mntpnt/mail
-Jul 11 23:54:01 server3 automount[3564]: mount(nfs): calling mount -t
-nfs -s -o 7,rw,intr,soft,vers=3D3,rw,actimeo=3D0,vers=3D3 =
-nis_server:/var/mail
-/mntpnt/mail
-Jul 11 23:54:01 server3 automount[3564]: >> mount: nis_server:/var/mail:
-can't read superblock
-Jul 11 23:54:01 server3 automount[3564]: mount(nfs): nfs: mount failure
-nis_server:/var/mail on /mntpnt/mail
-Jul 11 23:54:01 server3 automount[3564]: failed to mount /mntpnt/mail
-Jul 11 23:54:01 server3 automount[3564]: umount_multi: =
-path=3D/mntpnt/mail
-incl=3D1
-Jul 11 23:54:01 server3 automount[6778]: handle_child: got pid 3564, sig
-0 (0), stat 2
-Jul 11 23:54:01 server3 automount[6778]: sig_child: found pending iop
-pid 3564: signalled 0 (sig 0), exit status 2
-Jul 11 23:54:01 server3 automount[6778]: update_negative_cache: key:
-mail
-Jul 11 23:54:01 server3 automount[6778]: Adding negative cache entry for
-key mail
-Jul 11 23:54:01 server3 automount[6778]: Key mail added to negative
-cache
-Jul 11 23:54:01 server3 automount[6778]: send_fail: token=3D247708
-Jul 11 23:54:01 server3 automount[6778]: handle_packet: type =3D 0
-Jul 11 23:54:01 server3 automount[6778]: handle_packet_missing: token
-247709, name mail
-Jul 11 23:54:01 server3 automount[6778]: handle_packet_missing: found
-negative cache entry for key.
-Jul 11 23:54:01 server3 automount[6778]: send_fail: token=3D247709
-Jul 11 23:54:01 server3 automount[6778]: handle_packet: type =3D 0
-Jul 11 23:54:01 server3 automount[6778]: handle_packet_missing: token
-247710, name mail
-Jul 11 23:54:01 server3 automount[6778]: handle_packet_missing: found
-negative cache entry for key.
-Jul 11 23:54:01 server3 automount[6778]: send_fail: token=3D247710
-Jul 11 23:54:01 server3 automount[6778]: handle_packet: type =3D 0
-Jul 11 23:54:01 server3 automount[6778]: handle_packet_missing: token
-247711, name mail
-Jul 11 23:54:01 server3 automount[6778]: handle_packet_missing: found
-negative cache entry for key.
-Jul 11 23:54:01 server3 automount[6778]: send_fail: token=3D247711
-
-/etc/sysconfig/autofs:
-# Define custom options in /etc/sysconfig/autofs
-# Use LOCALOPTIONS for defining variables, e.g. OSREL
-# Use DAEMONOPTIONS to define the unmount timeout
-# Define UNDERSCORETODOT as 1 to convert=20
-#     auto_home to auto.home and auto_mnt to auto.mnt
-# Mount options, e.g. rsize=3D8192, should go in auto.master or
-#     the auto_* map entry for a specific mount point
-#
-LOCALOPTIONS=3D""
-DAEMONOPTIONS=3D"--timeout=3D60 --debug --set-log-priority 7"
-LDAPAUTOMASTER=3D""
-#  UNDERSCORETODOT changes auto_home to auto.home and auto_mnt to
-auto.mnt
-UNDERSCORETODOT=3D1
-DISABLE_DIRECT=3D1
-# Only source one master map if set to 1.  This would mimic Sun
-behaviour.
-# The default is 0 to maintain backwards compatibility.
-ONE_AUTO_MASTER=3D0
-# List of directories to be ghosted, separated by white space.
-GHOSTDIRS=3D""
-# Base DN to use when searching for the master map BASEDN=3D
-# The ldap module was updated to only try the first schema that works
-# (instead of trying all 3 autofs schemas for each lookup).  It is
-# possible, though unlikely, that this could cause problems.  If you
-update
-# the automounter and find that your ldap schemas doesn't work as it did
-# previously, try setting this option to 1.  Please also report the
-problem,
-# as it is likely that your schema is incompatible with autofs v5.
-OLD_LDAP_LOOKUP=3D0
-
-/etc/nsswitch.conf:
-#
-# /etc/nsswitch.conf
-#
-# An example Name Service Switch config file. This file should be #
-sorted with the most-used services at the beginning.
-#
-# The entry '[NOTFOUND=3Dreturn]' means that the search for an # entry
-should stop if the search in the previous entry turned # up nothing.
-Note that if the search failed due to some other reason # (like no NIS
-server responding) then the search continues with the # next entry.
-#
-# Legal entries are:
-#
-#	nis or yp		Use NIS (NIS version 2), also called YP
-#	dns			Use DNS (Domain Name Service)
-#	files			Use the local files
-#	db			Use the local database (.db) files
-#	compat			Use NIS on compat mode
-#	hesiod			Use Hesiod for user lookups
-#	ldap			Use LDAP (only if nss_ldap is installed)
-#	nisplus or nis+		Use NIS+ (NIS version 3), unsupported
-#	[NOTFOUND=3Dreturn]	Stop searching if not found so far
-#
-
-# To use db, put the "db" in front of "files" for entries you want to be
-# looked up first in the databases # # Example:
-#passwd:    db files ldap nis
-#shadow:    db files ldap nis
-#group:     db files ldap nis
-
-passwd:     files nis
-shadow:     files nis
-group:      files nis
-
-#hosts:     db files ldap nis dns
-hosts:      files nis dns
-
-# Example - obey only what ldap tells us...
-#services:  ldap [NOTFOUND=3Dreturn] files
-#networks:  ldap [NOTFOUND=3Dreturn] files
-#protocols: ldap [NOTFOUND=3Dreturn] files
-#rpc:       ldap [NOTFOUND=3Dreturn] files
-#ethers:    ldap [NOTFOUND=3Dreturn] files
-
-bootparams: files
-ethers:     files
-netmasks:   files
-networks:   files
-protocols:  files nis
-rpc:        files
-services:   files nis
-netgroup:   files nis
-publickey:  files
-automount:  files nis
-aliases:    files
-
-
-
-------_=_NextPart_001_01CC40A9.0C57E7E2
-Content-Type: text/html;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
-<HTML>
-<HEAD>
-<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
-charset=3Dus-ascii">
-<META NAME=3D"Generator" CONTENT=3D"MS Exchange Server version =
-6.5.7654.12">
-<TITLE>RPC: Can't bind to reserved port (98) in autofs 4.1.3-240</TITLE>
-</HEAD>
-<BODY>
-<!-- Converted from text/rtf format -->
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">This bug seems =
-to crop up</FONT></SPAN><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas"> =
-from time to time.&nbsp; I</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">&#8217;</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">ve never had much luck in being able</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">to fix this by =
-running Redhat updates.&nbsp;</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">It seems to be pretty random.</FONT></SPAN><SPAN =
-LANG=3D"en-us"><FONT FACE=3D"Consolas">&nbsp;</FONT></SPAN><SPAN =
-LANG=3D"en-us"> <FONT FACE=3D"Consolas">Finally I found =
-a</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">machine on =
-which this bug</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"></FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">recurred over and over and so I was able to set up =
-debugging on it.</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">The mount =
-point</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"></FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">listed in these maps below is a fully functioning =
-mount-point most of the time.</FONT></SPAN><SPAN =
-LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">There are =
-other mount points in</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">&#8216;</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">auto.</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">mntpnt</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">&#8217;</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> which have the same random error</FONT></SPAN><SPAN =
-LANG=3D"en-us"> <FONT FACE=3D"Consolas">&#8211;</FONT></SPAN><SPAN =
-LANG=3D"en-us"><FONT FACE=3D"Consolas"> I just pruned</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">these out to =
-make the explanation simpler.</FONT></SPAN><SPAN =
-LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">I set up the =
-debu</FONT></SPAN><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">gging =
-according to Jeff</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">&#8217;</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">s instructions at</FONT></SPAN><SPAN LANG=3D"en-us"> =
-</SPAN><A HREF=3D"http://people.redhat.com/jmoyer"><SPAN =
-LANG=3D"en-us"><U><FONT COLOR=3D"#0000FF" =
-FACE=3D"Consolas">http://people.redhat.com/jmoyer</FONT></U></SPAN><SPAN =
-LANG=3D"en-us"></SPAN></A><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">and the output =
-is below</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">.</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">It would =
-appear from Google that</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">&#8220;</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">found negative cache entry for key</FONT></SPAN><SPAN =
-LANG=3D"en-us"><FONT FACE=3D"Consolas">&#8221;</FONT></SPAN><SPAN =
-LANG=3D"en-us"><FONT FACE=3D"Consolas"> is an issue which =
-seems</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">to have come =
-up before.</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">&nbsp; Also from the debug log, it</FONT></SPAN><SPAN =
-LANG=3D"en-us"><FONT FACE=3D"Consolas">&#8217;</FONT></SPAN><SPAN =
-LANG=3D"en-us"><FONT FACE=3D"Consolas">s difficult to tell if this is a =
-problem</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">with</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">&#8216;</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">autofs</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">&#8217;</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> or</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">&#8216;</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">mount</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">&#8217;</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">.</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Also this =
-machine is part of a</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">simulation</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"></FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server farm</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">.&nbsp; It would appear that sending a =
-sequence</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">of</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">simulation</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">jobs in rapid succession</FONT></SPAN><SPAN =
-LANG=3D"en-us"><FONT FACE=3D"Consolas"> to a host (ie. multiple rsh by a =
-user in a short period of time)</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">causing a =
-whole bunch of mount</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> requests at once,</FONT></SPAN><SPAN LANG=3D"en-us"> =
-<FONT FACE=3D"Consolas">seems</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">more likely</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> trigger this problem</FONT></SPAN><SPAN =
-LANG=3D"en-us"><FONT FACE=3D"Consolas">.</FONT></SPAN><SPAN =
-LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">Thanks,</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">Stephen</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">&gt; uname =
--a</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">Linux</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> 2.6.9-100.ELsmp #1 SMP Tue Feb 1 12:04:42 EST 2011 =
-x86_64 x86_64 x86_64 GNU/Linux</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">&gt; cat =
-/etc/redhat-release</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Red Hat =
-Enterprise Linux WS release 4 (Nahant Update 9)</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">&gt; rpm -qa | =
-grep autofs</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">autofs-4.1.3-240</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">&gt; rpm -qa | =
-grep nfs-utils</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">nfs-utils-lib-devel-1.0.6-10.el4_8.1</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">nfs-utils-1.0.6-94.EL4</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">nfs-utils-lib-1.0.6-10.el4_8.1</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">auto.master:</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">/</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">mntpnt</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> auto.</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">mntpnt</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
--rw,intr,soft,vers=3D3</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">auto.</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">mntpnt</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">:</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">mail =
--rw,actimeo=3D0,vers=3D3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-nis_server:/var/mail</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">/var/log/messages:</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[6778]: attempting to mount entry =
-/</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">mntpnt</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">/mail</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> kernel: RPC: Can't bind to reserved port =
-(98).</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> kernel: RPC: can't bind to reserved =
-port.</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> kernel: RPC: error 5 connecting to server =
-nis_server</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> kernel: RPC: Can't bind to reserved port =
-(98).</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> kernel: RPC: can't bind to reserved =
-port.</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[3564]: &gt;&gt; mount: =
-nis_server:/var/mail: can't read superblock</FONT></SPAN><SPAN =
-LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> kernel: RPC: error 5 connecting to server =
-nis_server</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[3564]: mount(nfs): nfs: mount failure =
-nis_server:/var/mail on /</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">mntpnt</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">/mail</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[3564]: failed to mount /</FONT></SPAN><SPAN =
-LANG=3D"en-us"><FONT FACE=3D"Consolas">mntpnt</FONT></SPAN><SPAN =
-LANG=3D"en-us"><FONT FACE=3D"Consolas">/mail</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">/var/log/debug:</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[6778]: send_fail: =
-token=3D247707</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[6778]: handle_packet: type =3D =
-0</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[6778]: handle_packet_missing: token 247708, =
-name mail</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[6778]: handle_packet_missing: expired =
-negative cache entry for key.</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[6778]: attempting to mount entry =
-/</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">mntpnt</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">/mail</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[3564]: lookup(yp): looking up =
-mail</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[6778]: mt-&gt;key set to =
-mail</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[3564]: lookup(yp): mail -&gt; =
--rw,actimeo=3D0,vers=3D3 nis_server:/var/mail</FONT></SPAN><SPAN =
-LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[3564]: parse(sun): expanded entry: =
--rw,actimeo=3D0,vers=3D3 nis_server:/var/mail</FONT></SPAN><SPAN =
-LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[3564]: parse(sun): =
-dequote(&quot;rw,actimeo=3D0,vers=3D3&quot;) -&gt; =
-rw,actimeo=3D0,vers=3D3</FONT></SPAN><SPAN LANG=3D"en-us"> </SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[3564]: parse(sun): gathered options: =
-7,rw,intr,soft,vers=3D3,rw,actimeo=3D0,vers=3D3</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[3564]: parse(sun): =
-dequote(&quot;nis_server:/var/mail&quot;) -&gt; =
-nis_server:/var/mail</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[3564]: parse(sun): core of entry: =
-options=3D7,rw,intr,soft,vers=3D3,rw,actimeo=3D0,vers=3D3, =
-loc=3Dnis_server:/var/mail</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[3564]: parse(sun): mounting root =
-/</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">mntpnt</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">, mountpoint mail, what nis_server:/var/mail, fstype =
-nfs, options =
-7,rw,intr,soft,vers=3D3,rw,actimeo=3D0,vers=3D3</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[3564]: mount(nfs):&nbsp; =
-root=3D/</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">mntpnt</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> name=3Dmail what=3Dnis_server:/var/mail, =
-fstype=3Dnfs, =
-options=3D7,rw,intr,soft,vers=3D3,rw,actimeo=3D0,vers=3D3</FONT></SPAN></=
-P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[3564]: mount(nfs): nfs =
-options=3D&quot;7,rw,intr,soft,vers=3D3,rw,actimeo=3D0,vers=3D3&quot;, =
-nosymlink=3D0 Jul 11 23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[3564]: mount(nfs): calling mkdir_path =
-/</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">mntpnt</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">/mail</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[3564]: mount(nfs): calling mount -t nfs -s =
--o 7,rw,intr,soft,vers=3D3,rw,actimeo=3D0,vers=3D3 nis_server:/var/mail =
-/</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">mntpnt</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">/mail</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[3564]: &gt;&gt; mount: =
-nis_server:/var/mail: can't read superblock</FONT></SPAN><SPAN =
-LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[3564]: mount(nfs): nfs: mount failure =
-nis_server:/var/mail on /</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">mntpnt</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">/mail</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[3564]: failed to mount /</FONT></SPAN><SPAN =
-LANG=3D"en-us"><FONT FACE=3D"Consolas">mntpnt</FONT></SPAN><SPAN =
-LANG=3D"en-us"><FONT FACE=3D"Consolas">/mail</FONT></SPAN><SPAN =
-LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[3564]: umount_multi: =
-path=3D/</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">mntpnt</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">/mail incl=3D1</FONT></SPAN><SPAN =
-LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[6778]: handle_child: got pid 3564, sig 0 =
-(0), stat 2</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[6778]: sig_child: found pending iop pid =
-3564: signalled 0 (sig 0), exit status 2</FONT></SPAN><SPAN =
-LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[6778]: update_negative_cache: key: =
-mail</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[6778]: Adding negative cache entry for key =
-mail</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[6778]: Key mail added to negative =
-cache</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[6778]: send_fail: =
-token=3D247708</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[6778]: handle_packet: type =3D =
-0</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[6778]: handle_packet_missing: token 247709, =
-name mail</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[6778]: handle_packet_missing: found =
-negative cache entry for key.</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[6778]: send_fail: =
-token=3D247709</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[6778]: handle_packet: type =3D =
-0</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[6778]: handle_packet_missing: token 247710, =
-name mail</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[6778]: handle_packet_missing: found =
-negative cache entry for key.</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[6778]: send_fail: =
-token=3D247710</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[6778]: handle_packet: type =3D =
-0</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[6778]: handle_packet_missing: token 247711, =
-name mail</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[6778]: handle_packet_missing: found =
-negative cache entry for key.</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">Jul 11 =
-23:54:01</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
-FACE=3D"Consolas">server3</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas"> automount[6778]: send_fail: =
-token=3D247711</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">/etc/sysconfig/autofs:</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas"># Define =
-custom options in /etc/sysconfig/autofs</FONT></SPAN><SPAN =
-LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas"># Use =
-LOCALOPTIONS for defining variables, e.g. OSREL</FONT></SPAN><SPAN =
-LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas"># Use =
-DAEMONOPTIONS to define the unmount timeout</FONT></SPAN><SPAN =
-LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas"># Define =
-UNDERSCORETODOT as 1 to convert </FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">#&nbsp;&nbsp;&nbsp;&nbsp; auto_home to auto.home and =
-auto_mnt to auto.mnt</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas"># Mount =
-options, e.g. rsize=3D8192, should go in auto.master =
-or</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">#&nbsp;&nbsp;&nbsp;&nbsp; the auto_* map entry for a =
-specific mount point</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">#</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">LOCALOPTIONS=3D&quot;&quot;</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">DAEMONOPTIONS=3D&quot;--timeout=3D60 --debug =
---set-log-priority 7&quot;</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">LDAPAUTOMASTER=3D&quot;&quot;</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">#&nbsp; =
-UNDERSCORETODOT changes auto_home to auto.home and auto_mnt to =
-auto.mnt</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">UNDERSCORETODOT=3D1</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">DISABLE_DIRECT=3D1</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas"># Only source =
-one master map if set to 1.&nbsp; This would mimic Sun =
-behaviour.</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas"># The default =
-is 0 to maintain backwards compatibility.</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">ONE_AUTO_MASTER=3D0</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas"># List of =
-directories to be ghosted, separated by white space.</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">GHOSTDIRS=3D&quot;&quot;</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas"># Base DN to =
-use when searching for the master map BASEDN=3D</FONT></SPAN><SPAN =
-LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas"># The ldap =
-module was updated to only try the first schema that =
-works</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas"># (instead of =
-trying all 3 autofs schemas for each lookup).&nbsp; It =
-is</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas"># possible, =
-though unlikely, that this could cause problems.&nbsp; If you =
-update</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas"># the =
-automounter and find that your ldap schemas doesn't work as it =
-did</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas"># previously, =
-try setting this option to 1.&nbsp; Please also report the =
-problem,</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas"># as it is =
-likely that your schema is incompatible with autofs =
-v5.</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">OLD_LDAP_LOOKUP=3D0</FONT></SPAN><SPAN =
-LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">/etc/nsswitch.conf:</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">#</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas"># =
-/etc/nsswitch.conf</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">#</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas"># An example =
-Name Service Switch config file. This file should be # sorted with the =
-most-used services at the beginning.</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">#</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas"># The entry =
-'[NOTFOUND=3Dreturn]' means that the search for an # entry should stop =
-if the search in the previous entry turned # up nothing. Note that if =
-the search failed due to some other reason # (like no NIS server =
-responding) then the search continues with the # next =
-entry.</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">#</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas"># Legal =
-entries are:</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">#</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; nis or =
-yp&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Use NIS (NIS version 2), also =
-called YP</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-dns&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Use DNS (Domain Name =
-Service)</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-files&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Use the local =
-files</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-db&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Use the local database (.db) =
-files</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; compat&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Use NIS on compat =
-mode</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; hesiod&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Use Hesiod for user =
-lookups</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-ldap&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Use LDAP (only if nss_ldap is =
-installed)</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; nisplus or nis+ =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Use NIS+ (NIS version 3), =
-unsupported</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-[NOTFOUND=3Dreturn]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Stop searching =
-if not found so far</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">#</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas"># To use db, =
-put the &quot;db&quot; in front of &quot;files&quot; for entries you =
-want to be # looked up first in the databases # # =
-Example:</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">#passwd:&nbsp;&nbsp;&nbsp; db files ldap =
-nis</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">#shadow:&nbsp;&nbsp;&nbsp; db files ldap =
-nis</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">#group:&nbsp;&nbsp;&nbsp;&nbsp; db files ldap =
-nis</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">passwd:&nbsp;&nbsp;&nbsp;&nbsp; files =
-nis</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">shadow:&nbsp;&nbsp;&nbsp;&nbsp; files =
-nis</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">group:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; files =
-nis</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">#hosts:&nbsp;&nbsp;&nbsp;&nbsp; db files ldap nis =
-dns</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">hosts:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; files nis =
-dns</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas"># Example - =
-obey only what ldap tells us...</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">#services:&nbsp; ldap [NOTFOUND=3Dreturn] =
-files</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">#networks:&nbsp; ldap [NOTFOUND=3Dreturn] =
-files</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">#protocols: =
-ldap [NOTFOUND=3Dreturn] files</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">#rpc:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ldap =
-[NOTFOUND=3Dreturn] files</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">#ethers:&nbsp;&nbsp;&nbsp; ldap [NOTFOUND=3Dreturn] =
-files</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Consolas">bootparams: =
-files</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">ethers:&nbsp;&nbsp;&nbsp;&nbsp; =
-files</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">netmasks:&nbsp;&nbsp; files</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">networks:&nbsp;&nbsp; files</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">protocols:&nbsp; files nis</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">rpc:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-files</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">services:&nbsp;&nbsp; files nis</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">netgroup:&nbsp;&nbsp; files nis</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">publickey:&nbsp; files</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">automount:&nbsp; files nis</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
-FACE=3D"Consolas">aliases:&nbsp;&nbsp;&nbsp; files</FONT></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"></SPAN></P>
-
-<P DIR=3DLTR><SPAN LANG=3D"en-us"></SPAN><SPAN =
-LANG=3D"en-us"></SPAN></P>
-
-</BODY>
-</HTML>
-------_=_NextPart_001_01CC40A9.0C57E7E2--
-
-
---===============8912673641413376148==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-autofs mailing list
-autofs@linux.kernel.org
-http://linux.kernel.org/mailman/listinfo/autofs
-
---===============8912673641413376148==--
-
+To: "Brickles, Stephen" <sbrickle@intersil.com>
+Cc: autofs@linux.kernel.org
+
+T24gVHVlLCAyMDExLTA3LTEyIGF0IDA4OjMzIC0wNzAwLCBCcmlja2xlcywgU3RlcGhlbiB3cm90
+ZToKPiBUaGlzIGJ1ZyBzZWVtcyB0byBjcm9wIHVwIGZyb20gdGltZSB0byB0aW1lLiAgSeKAmXZl
+IG5ldmVyIGhhZCBtdWNoIGx1Y2sKPiBpbiBiZWluZyBhYmxlCj4gCj4gdG8gZml4IHRoaXMgYnkg
+cnVubmluZyBSZWRoYXQgdXBkYXRlcy4gIEl0IHNlZW1zIHRvIGJlIHByZXR0eSByYW5kb20uCj4g
+RmluYWxseSBJIGZvdW5kIGEKPiAKPiBtYWNoaW5lIG9uIHdoaWNoIHRoaXMgYnVnIHJlY3VycmVk
+IG92ZXIgYW5kIG92ZXIgYW5kIHNvIEkgd2FzIGFibGUgdG8KPiBzZXQgdXAgZGVidWdnaW5nIG9u
+IGl0Lgo+IAo+IFRoZSBtb3VudCBwb2ludCBsaXN0ZWQgaW4gdGhlc2UgbWFwcyBiZWxvdyBpcyBh
+IGZ1bGx5IGZ1bmN0aW9uaW5nCj4gbW91bnQtcG9pbnQgbW9zdCBvZiB0aGUgdGltZS4KPiAKPiBU
+aGVyZSBhcmUgb3RoZXIgbW91bnQgcG9pbnRzIGluIOKAmGF1dG8ubW50cG504oCZIHdoaWNoIGhh
+dmUgdGhlIHNhbWUKPiByYW5kb20gZXJyb3Ig4oCTIEkganVzdCBwcnVuZWQKPiAKPiB0aGVzZSBv
+dXQgdG8gbWFrZSB0aGUgZXhwbGFuYXRpb24gc2ltcGxlci4KPiAKPiBJIHNldCB1cCB0aGUgZGVi
+dWdnaW5nIGFjY29yZGluZyB0byBKZWZm4oCZcyBpbnN0cnVjdGlvbnMgYXQKPiBodHRwOi8vcGVv
+cGxlLnJlZGhhdC5jb20vam1veWVyCj4gCj4gYW5kIHRoZSBvdXRwdXQgaXMgYmVsb3cuCj4gCj4g
+SXQgd291bGQgYXBwZWFyIGZyb20gR29vZ2xlIHRoYXQg4oCcZm91bmQgbmVnYXRpdmUgY2FjaGUg
+ZW50cnkgZm9yIGtleeKAnQo+IGlzIGFuIGlzc3VlIHdoaWNoIHNlZW1zCj4gCj4gdG8gaGF2ZSBj
+b21lIHVwIGJlZm9yZS4gIEFsc28gZnJvbSB0aGUgZGVidWcgbG9nLCBpdOKAmXMgZGlmZmljdWx0
+IHRvCj4gdGVsbCBpZiB0aGlzIGlzIGEgcHJvYmxlbQoKVGhhdCdzIHByb2JhYmx5IGEgY29uc2Vx
+dWVuY2Ugb2YgdGhlIG1vdW50IGZhaWx1cmVzIGJ1dCBJJ20gbm90IHZlcnkKZmFtaWxpYXIgd2l0
+aCB0aGUgY2FjaGluZyBzeXN0ZW0gY2hhbmdlcyB0aGF0IEplZmYgZGlkIGZvciBhdXRvZnMKdmVy
+c2lvbiA0IGluIFJIRUwtNC4KCj4gCj4gd2l0aCDigJhhdXRvZnPigJkgb3Ig4oCYbW91bnTigJku
+CgpUaGUgUlBDIGVycm9yIGlzIGNvbWluZyBmcm9tIG1vdW50LgoKPiAKPiBBbHNvIHRoaXMgbWFj
+aGluZSBpcyBwYXJ0IG9mIGEgc2ltdWxhdGlvbiBzZXJ2ZXIgZmFybS4gIEl0IHdvdWxkCj4gYXBw
+ZWFyIHRoYXQgc2VuZGluZyBhIHNlcXVlbmNlCj4gCj4gb2Ygc2ltdWxhdGlvbiBqb2JzIGluIHJh
+cGlkIHN1Y2Nlc3Npb24gdG8gYSBob3N0IChpZS4gbXVsdGlwbGUgcnNoIGJ5Cj4gYSB1c2VyIGlu
+IGEgc2hvcnQgcGVyaW9kIG9mIHRpbWUpCj4gCj4gY2F1c2luZyBhIHdob2xlIGJ1bmNoIG9mIG1v
+dW50IHJlcXVlc3RzIGF0IG9uY2UsIHNlZW1zIG1vcmUgbGlrZWx5Cj4gdHJpZ2dlciB0aGlzIHBy
+b2JsZW0uCgpXaGljaCBpcyB1c3VhbGx5IHdoYXQgY2F1c2VzIHJlc2VydmVkIHBvcnQgZXhoYXVz
+dGlvbi4gSnVzdCBob3cgbWFueQpyZXNlcnZlZCBwb3J0cyBhcmUgYWN0dWFsbHkgYXZhaWxhYmxl
+IGhhcyBjaGFuZ2VkIHNvbWV3aGF0IG92ZXIgdGltZSBhbmQKaXMgY29uZmlndXJhYmxlIHRvIGEg
+bGltaXQgKG9idmlvdXNseSksIG5vdCBzdXJlIGFib3V0IFJIRUwtNC4KCk9uZSB0aGluZyB0aGF0
+IGNvbXBvdW5kcyB0aGUgcHJvYmxlbSBpcyB0aGF0IG1vdW50Lm5mcyBwcm9iZXMgbW91bnRkIGZv
+cgp2ZXJzaW9uIGluZm9ybWF0aW9uIGFuZCBORlMgZm9yIHZlcnNpb24gaW5mb3JtYXRpb24gbGVh
+dmluZyBiZWhpbmQgYQpidW5jaCBvZiByZXNlcnZlZCBwb3J0cyBpbiBhIHdhaXQgc3RhdGUuIFRo
+ZW4gdGhlIGtlcm5lbCB1c2VzIGFub3RoZXIKcG9ydCBmb3IgdGhlIG1vdW50IGl0c2VsZi4gQWdh
+aW4gSSBoYXZlbid0IGxvb2tlZCBhdCBSSEVMLTQgZm9yIHNvbWUKdGltZSBzbyBJIGNhbid0IHNh
+eSB3aGV0aGVyIE5GUyBpbiBSSEVMLTQgY2FuIHNoYXJlIHRoZSBwb3J0IHVzZWQgZm9yCmFsbCBt
+b3VudHMgdG8gYSBnaXZlbiBzZXJ2ZXIsIGl0IGNlcnRhaW5seSBkb2VzIGluIFJIRUwtNSBhbmQg
+bGF0ZXIuIElmCk5GUyBkb2Vzbid0IGRvIHRoYXQgdGhlbiBlYWNoIG1vdW50IHdpbGwgdGFrZSBh
+bm90aGVyIHBvcnQgdW50aWwgaXQgaXMKdW1vdW50ZWQuIFRoZSB3YWl0IHN0YXRlIChJIHRoaW5r
+IDYwIHNlY29uZHMpIEkgbWVudGlvbmVkIGlzIHJlcXVpcmVkIGJ5CnRoZSBUQ1AgcHJvdG9jb2wg
+YW5kIHNvIGlzIHVuYXZvaWRhYmxlIGFuZCB0aG9zZSBwb3J0cyBjYW5ub3QgYmUgcmV1c2VkCnVu
+dGlsIHRoZSB0aW1lb3V0IGhhcyBleHBpcmVkLiBCYXNpY2FsbHksIGl0J3MgZmFpcmx5IGVhc3kg
+dG8gdXNlIGEgbG90Cm9mIHJlc2VydmVkIHBvcnRzIHJlYWxseSBxdWlja2x5IHdoZW4gcmFwaWRs
+eSBtb3VudGluZyBtb3VudHMgYW5kIGVuZCB1cAp3aXRoIG5vdCBhIGdyZWF0IG1hbnkgbW91bnRz
+IGFjdHVhbGx5IGRvbmUuCgpUaGVyZSdzIG5vdCBhIGxvdCB5b3UgY2FuIGRvIGFib3V0IHRoZSBw
+b3J0IGV4aGF1c3Rpb24gb3RoZXIgdGhhbiBlbnN1cmUKdGhhdCB0aGUgTkZTIHNlcnZlciBhbGxv
+d3MgY29ubmVjdGlvbnMgZnJvbSBoaWdoZXIgbnVtYmVyZWQgcG9ydHMgKGllLgpub3QgaW4gcmVz
+ZXJ2ZWQgcG9ydCByYW5nZSkgYW5kIGVuc3VyZSB0aGF0IHlvdXIgdmVyc2lvbiBvZiBtb3VudC5u
+ZnMKYWxzbyBzdXBwb3J0cyBpdC4gSSB0aGluayB0aGUgUkhFTC00IHlvdSBhcmUgdXNpbmcgc2hv
+dWxkIGJlIGZpbmUgd2l0aAp0aGF0IGZvciBtb3VudC5uZnMgYnV0IEkgdGhpbmsgaXQgc3RpbGwg
+dXNlcyBhIGxpdHRsZSBtb3JlIHBvcnRzIHRoYW4gaXQKcmVhbGx5IGNvdWxkIGdldCBhd2F5IHdp
+dGguCgo+IAo+IFRoYW5rcywKPiAKPiBTdGVwaGVuCj4gCj4gPiB1bmFtZSAtYQo+IAo+IExpbnV4
+IHNlcnZlcjMgMi42LjktMTAwLkVMc21wICMxIFNNUCBUdWUgRmViIDEgMTI6MDQ6NDIgRVNUIDIw
+MTEKPiB4ODZfNjQgeDg2XzY0IHg4Nl82NCBHTlUvTGludXgKPiAKPiA+IGNhdCAvZXRjL3JlZGhh
+dC1yZWxlYXNlCj4gCj4gUmVkIEhhdCBFbnRlcnByaXNlIExpbnV4IFdTIHJlbGVhc2UgNCAoTmFo
+YW50IFVwZGF0ZSA5KQo+IAo+ID4gcnBtIC1xYSB8IGdyZXAgYXV0b2ZzCj4gCj4gYXV0b2ZzLTQu
+MS4zLTI0MAo+IAo+ID4gcnBtIC1xYSB8IGdyZXAgbmZzLXV0aWxzCj4gCj4gbmZzLXV0aWxzLWxp
+Yi1kZXZlbC0xLjAuNi0xMC5lbDRfOC4xCj4gCj4gbmZzLXV0aWxzLTEuMC42LTk0LkVMNAo+IAo+
+IG5mcy11dGlscy1saWItMS4wLjYtMTAuZWw0XzguMQo+IAo+IGF1dG8ubWFzdGVyOgo+IAo+IC9t
+bnRwbnQgYXV0by5tbnRwbnQgICAgICAtcncsaW50cixzb2Z0LHZlcnM9Mwo+IAo+IGF1dG8ubW50
+cG50Ogo+IAo+IG1haWwgLXJ3LGFjdGltZW89MCx2ZXJzPTMgICAgICAgbmlzX3NlcnZlcjovdmFy
+L21haWwKPiAKPiAvdmFyL2xvZy9tZXNzYWdlczoKPiAKPiBKdWwgMTEgMjM6NTQ6MDEgc2VydmVy
+MyBhdXRvbW91bnRbNjc3OF06IGF0dGVtcHRpbmcgdG8gbW91bnQKPiBlbnRyeSAvbW50cG50L21h
+aWwKPiAKPiBKdWwgMTEgMjM6NTQ6MDEgc2VydmVyMyBrZXJuZWw6IFJQQzogQ2FuJ3QgYmluZCB0
+byByZXNlcnZlZCBwb3J0ICg5OCkuCj4gCj4gSnVsIDExIDIzOjU0OjAxIHNlcnZlcjMga2VybmVs
+OiBSUEM6IGNhbid0IGJpbmQgdG8gcmVzZXJ2ZWQgcG9ydC4KPiAKPiBKdWwgMTEgMjM6NTQ6MDEg
+c2VydmVyMyBrZXJuZWw6IFJQQzogZXJyb3IgNSBjb25uZWN0aW5nIHRvIHNlcnZlcgo+IG5pc19z
+ZXJ2ZXIKPiAKPiBKdWwgMTEgMjM6NTQ6MDEgc2VydmVyMyBrZXJuZWw6IFJQQzogQ2FuJ3QgYmlu
+ZCB0byByZXNlcnZlZCBwb3J0ICg5OCkuCj4gCj4gSnVsIDExIDIzOjU0OjAxIHNlcnZlcjMga2Vy
+bmVsOiBSUEM6IGNhbid0IGJpbmQgdG8gcmVzZXJ2ZWQgcG9ydC4KPiAKPiBKdWwgMTEgMjM6NTQ6
+MDEgc2VydmVyMyBhdXRvbW91bnRbMzU2NF06ID4+IG1vdW50Ogo+IG5pc19zZXJ2ZXI6L3Zhci9t
+YWlsOiBjYW4ndCByZWFkIHN1cGVyYmxvY2sKPiAKPiBKdWwgMTEgMjM6NTQ6MDEgc2VydmVyMyBr
+ZXJuZWw6IFJQQzogZXJyb3IgNSBjb25uZWN0aW5nIHRvIHNlcnZlcgo+IG5pc19zZXJ2ZXIKPiAK
+PiBKdWwgMTEgMjM6NTQ6MDEgc2VydmVyMyBhdXRvbW91bnRbMzU2NF06IG1vdW50KG5mcyk6IG5m
+czogbW91bnQKPiBmYWlsdXJlIG5pc19zZXJ2ZXI6L3Zhci9tYWlsIG9uIC9tbnRwbnQvbWFpbAo+
+IAo+IEp1bCAxMSAyMzo1NDowMSBzZXJ2ZXIzIGF1dG9tb3VudFszNTY0XTogZmFpbGVkIHRvIG1v
+dW50IC9tbnRwbnQvbWFpbAo+IAo+IC92YXIvbG9nL2RlYnVnOgo+IAo+IEp1bCAxMSAyMzo1NDow
+MSBzZXJ2ZXIzIGF1dG9tb3VudFs2Nzc4XTogc2VuZF9mYWlsOiB0b2tlbj0yNDc3MDcKPiAKPiBK
+dWwgMTEgMjM6NTQ6MDEgc2VydmVyMyBhdXRvbW91bnRbNjc3OF06IGhhbmRsZV9wYWNrZXQ6IHR5
+cGUgPSAwCj4gCj4gSnVsIDExIDIzOjU0OjAxIHNlcnZlcjMgYXV0b21vdW50WzY3NzhdOiBoYW5k
+bGVfcGFja2V0X21pc3Npbmc6IHRva2VuCj4gMjQ3NzA4LCBuYW1lIG1haWwKPiAKPiBKdWwgMTEg
+MjM6NTQ6MDEgc2VydmVyMyBhdXRvbW91bnRbNjc3OF06IGhhbmRsZV9wYWNrZXRfbWlzc2luZzoK
+PiBleHBpcmVkIG5lZ2F0aXZlIGNhY2hlIGVudHJ5IGZvciBrZXkuCj4gCj4gSnVsIDExIDIzOjU0
+OjAxIHNlcnZlcjMgYXV0b21vdW50WzY3NzhdOiBhdHRlbXB0aW5nIHRvIG1vdW50Cj4gZW50cnkg
+L21udHBudC9tYWlsCj4gCj4gSnVsIDExIDIzOjU0OjAxIHNlcnZlcjMgYXV0b21vdW50WzM1NjRd
+OiBsb29rdXAoeXApOiBsb29raW5nIHVwIG1haWwKPiAKPiBKdWwgMTEgMjM6NTQ6MDEgc2VydmVy
+MyBhdXRvbW91bnRbNjc3OF06IG10LT5rZXkgc2V0IHRvIG1haWwKPiAKPiBKdWwgMTEgMjM6NTQ6
+MDEgc2VydmVyMyBhdXRvbW91bnRbMzU2NF06IGxvb2t1cCh5cCk6IG1haWwgLT4KPiAtcncsYWN0
+aW1lbz0wLHZlcnM9MyBuaXNfc2VydmVyOi92YXIvbWFpbAo+IAo+IEp1bCAxMSAyMzo1NDowMSBz
+ZXJ2ZXIzIGF1dG9tb3VudFszNTY0XTogcGFyc2Uoc3VuKTogZXhwYW5kZWQgZW50cnk6Cj4gLXJ3
+LGFjdGltZW89MCx2ZXJzPTMgbmlzX3NlcnZlcjovdmFyL21haWwKPiAKPiBKdWwgMTEgMjM6NTQ6
+MDEgc2VydmVyMyBhdXRvbW91bnRbMzU2NF06IHBhcnNlKHN1bik6Cj4gZGVxdW90ZSgicncsYWN0
+aW1lbz0wLHZlcnM9MyIpIC0+IHJ3LGFjdGltZW89MCx2ZXJzPTMgCj4gCj4gSnVsIDExIDIzOjU0
+OjAxIHNlcnZlcjMgYXV0b21vdW50WzM1NjRdOiBwYXJzZShzdW4pOiBnYXRoZXJlZCBvcHRpb25z
+Ogo+IDcscncsaW50cixzb2Z0LHZlcnM9MyxydyxhY3RpbWVvPTAsdmVycz0zCj4gCj4gSnVsIDEx
+IDIzOjU0OjAxIHNlcnZlcjMgYXV0b21vdW50WzM1NjRdOiBwYXJzZShzdW4pOgo+IGRlcXVvdGUo
+Im5pc19zZXJ2ZXI6L3Zhci9tYWlsIikgLT4gbmlzX3NlcnZlcjovdmFyL21haWwKPiAKPiBKdWwg
+MTEgMjM6NTQ6MDEgc2VydmVyMyBhdXRvbW91bnRbMzU2NF06IHBhcnNlKHN1bik6IGNvcmUgb2Yg
+ZW50cnk6Cj4gb3B0aW9ucz03LHJ3LGludHIsc29mdCx2ZXJzPTMscncsYWN0aW1lbz0wLHZlcnM9
+MywKPiBsb2M9bmlzX3NlcnZlcjovdmFyL21haWwKPiAKPiBKdWwgMTEgMjM6NTQ6MDEgc2VydmVy
+MyBhdXRvbW91bnRbMzU2NF06IHBhcnNlKHN1bik6IG1vdW50aW5nCj4gcm9vdCAvbW50cG50LCBt
+b3VudHBvaW50IG1haWwsIHdoYXQgbmlzX3NlcnZlcjovdmFyL21haWwsIGZzdHlwZSBuZnMsCj4g
+b3B0aW9ucyA3LHJ3LGludHIsc29mdCx2ZXJzPTMscncsYWN0aW1lbz0wLHZlcnM9Mwo+IAo+IEp1
+bCAxMSAyMzo1NDowMSBzZXJ2ZXIzIGF1dG9tb3VudFszNTY0XTogbW91bnQobmZzKTogIHJvb3Q9
+L21udHBudAo+IG5hbWU9bWFpbCB3aGF0PW5pc19zZXJ2ZXI6L3Zhci9tYWlsLCBmc3R5cGU9bmZz
+LAo+IG9wdGlvbnM9NyxydyxpbnRyLHNvZnQsdmVycz0zLHJ3LGFjdGltZW89MCx2ZXJzPTMKPiAK
+PiBKdWwgMTEgMjM6NTQ6MDEgc2VydmVyMyBhdXRvbW91bnRbMzU2NF06IG1vdW50KG5mcyk6IG5m
+cwo+IG9wdGlvbnM9IjcscncsaW50cixzb2Z0LHZlcnM9MyxydyxhY3RpbWVvPTAsdmVycz0zIiwg
+bm9zeW1saW5rPTAgSnVsCj4gMTEgMjM6NTQ6MDEgc2VydmVyMyBhdXRvbW91bnRbMzU2NF06IG1v
+dW50KG5mcyk6IGNhbGxpbmcKPiBta2Rpcl9wYXRoIC9tbnRwbnQvbWFpbAo+IAo+IEp1bCAxMSAy
+Mzo1NDowMSBzZXJ2ZXIzIGF1dG9tb3VudFszNTY0XTogbW91bnQobmZzKTogY2FsbGluZyBtb3Vu
+dCAtdAo+IG5mcyAtcyAtbyA3LHJ3LGludHIsc29mdCx2ZXJzPTMscncsYWN0aW1lbz0wLHZlcnM9
+Mwo+IG5pc19zZXJ2ZXI6L3Zhci9tYWlsIC9tbnRwbnQvbWFpbAo+IAo+IEp1bCAxMSAyMzo1NDow
+MSBzZXJ2ZXIzIGF1dG9tb3VudFszNTY0XTogPj4gbW91bnQ6Cj4gbmlzX3NlcnZlcjovdmFyL21h
+aWw6IGNhbid0IHJlYWQgc3VwZXJibG9jawo+IAo+IEp1bCAxMSAyMzo1NDowMSBzZXJ2ZXIzIGF1
+dG9tb3VudFszNTY0XTogbW91bnQobmZzKTogbmZzOiBtb3VudAo+IGZhaWx1cmUgbmlzX3NlcnZl
+cjovdmFyL21haWwgb24gL21udHBudC9tYWlsCj4gCj4gSnVsIDExIDIzOjU0OjAxIHNlcnZlcjMg
+YXV0b21vdW50WzM1NjRdOiBmYWlsZWQgdG8gbW91bnQgL21udHBudC9tYWlsCj4gCj4gSnVsIDEx
+IDIzOjU0OjAxIHNlcnZlcjMgYXV0b21vdW50WzM1NjRdOiB1bW91bnRfbXVsdGk6Cj4gcGF0aD0v
+bW50cG50L21haWwgaW5jbD0xCj4gCj4gSnVsIDExIDIzOjU0OjAxIHNlcnZlcjMgYXV0b21vdW50
+WzY3NzhdOiBoYW5kbGVfY2hpbGQ6IGdvdCBwaWQgMzU2NCwKPiBzaWcgMCAoMCksIHN0YXQgMgo+
+IAo+IEp1bCAxMSAyMzo1NDowMSBzZXJ2ZXIzIGF1dG9tb3VudFs2Nzc4XTogc2lnX2NoaWxkOiBm
+b3VuZCBwZW5kaW5nIGlvcAo+IHBpZCAzNTY0OiBzaWduYWxsZWQgMCAoc2lnIDApLCBleGl0IHN0
+YXR1cyAyCj4gCj4gSnVsIDExIDIzOjU0OjAxIHNlcnZlcjMgYXV0b21vdW50WzY3NzhdOiB1cGRh
+dGVfbmVnYXRpdmVfY2FjaGU6IGtleToKPiBtYWlsCj4gCj4gSnVsIDExIDIzOjU0OjAxIHNlcnZl
+cjMgYXV0b21vdW50WzY3NzhdOiBBZGRpbmcgbmVnYXRpdmUgY2FjaGUgZW50cnkKPiBmb3Iga2V5
+IG1haWwKPiAKPiBKdWwgMTEgMjM6NTQ6MDEgc2VydmVyMyBhdXRvbW91bnRbNjc3OF06IEtleSBt
+YWlsIGFkZGVkIHRvIG5lZ2F0aXZlCj4gY2FjaGUKPiAKPiBKdWwgMTEgMjM6NTQ6MDEgc2VydmVy
+MyBhdXRvbW91bnRbNjc3OF06IHNlbmRfZmFpbDogdG9rZW49MjQ3NzA4Cj4gCj4gSnVsIDExIDIz
+OjU0OjAxIHNlcnZlcjMgYXV0b21vdW50WzY3NzhdOiBoYW5kbGVfcGFja2V0OiB0eXBlID0gMAo+
+IAo+IEp1bCAxMSAyMzo1NDowMSBzZXJ2ZXIzIGF1dG9tb3VudFs2Nzc4XTogaGFuZGxlX3BhY2tl
+dF9taXNzaW5nOiB0b2tlbgo+IDI0NzcwOSwgbmFtZSBtYWlsCj4gCj4gSnVsIDExIDIzOjU0OjAx
+IHNlcnZlcjMgYXV0b21vdW50WzY3NzhdOiBoYW5kbGVfcGFja2V0X21pc3Npbmc6IGZvdW5kCj4g
+bmVnYXRpdmUgY2FjaGUgZW50cnkgZm9yIGtleS4KPiAKPiBKdWwgMTEgMjM6NTQ6MDEgc2VydmVy
+MyBhdXRvbW91bnRbNjc3OF06IHNlbmRfZmFpbDogdG9rZW49MjQ3NzA5Cj4gCj4gSnVsIDExIDIz
+OjU0OjAxIHNlcnZlcjMgYXV0b21vdW50WzY3NzhdOiBoYW5kbGVfcGFja2V0OiB0eXBlID0gMAo+
+IAo+IEp1bCAxMSAyMzo1NDowMSBzZXJ2ZXIzIGF1dG9tb3VudFs2Nzc4XTogaGFuZGxlX3BhY2tl
+dF9taXNzaW5nOiB0b2tlbgo+IDI0NzcxMCwgbmFtZSBtYWlsCj4gCj4gSnVsIDExIDIzOjU0OjAx
+IHNlcnZlcjMgYXV0b21vdW50WzY3NzhdOiBoYW5kbGVfcGFja2V0X21pc3Npbmc6IGZvdW5kCj4g
+bmVnYXRpdmUgY2FjaGUgZW50cnkgZm9yIGtleS4KPiAKPiBKdWwgMTEgMjM6NTQ6MDEgc2VydmVy
+MyBhdXRvbW91bnRbNjc3OF06IHNlbmRfZmFpbDogdG9rZW49MjQ3NzEwCj4gCj4gSnVsIDExIDIz
+OjU0OjAxIHNlcnZlcjMgYXV0b21vdW50WzY3NzhdOiBoYW5kbGVfcGFja2V0OiB0eXBlID0gMAo+
+IAo+IEp1bCAxMSAyMzo1NDowMSBzZXJ2ZXIzIGF1dG9tb3VudFs2Nzc4XTogaGFuZGxlX3BhY2tl
+dF9taXNzaW5nOiB0b2tlbgo+IDI0NzcxMSwgbmFtZSBtYWlsCj4gCj4gSnVsIDExIDIzOjU0OjAx
+IHNlcnZlcjMgYXV0b21vdW50WzY3NzhdOiBoYW5kbGVfcGFja2V0X21pc3Npbmc6IGZvdW5kCj4g
+bmVnYXRpdmUgY2FjaGUgZW50cnkgZm9yIGtleS4KPiAKPiBKdWwgMTEgMjM6NTQ6MDEgc2VydmVy
+MyBhdXRvbW91bnRbNjc3OF06IHNlbmRfZmFpbDogdG9rZW49MjQ3NzExCj4gCj4gL2V0Yy9zeXNj
+b25maWcvYXV0b2ZzOgo+IAo+ICMgRGVmaW5lIGN1c3RvbSBvcHRpb25zIGluIC9ldGMvc3lzY29u
+ZmlnL2F1dG9mcwo+IAo+ICMgVXNlIExPQ0FMT1BUSU9OUyBmb3IgZGVmaW5pbmcgdmFyaWFibGVz
+LCBlLmcuIE9TUkVMCj4gCj4gIyBVc2UgREFFTU9OT1BUSU9OUyB0byBkZWZpbmUgdGhlIHVubW91
+bnQgdGltZW91dAo+IAo+ICMgRGVmaW5lIFVOREVSU0NPUkVUT0RPVCBhcyAxIHRvIGNvbnZlcnQg
+Cj4gCj4gIyAgICAgYXV0b19ob21lIHRvIGF1dG8uaG9tZSBhbmQgYXV0b19tbnQgdG8gYXV0by5t
+bnQKPiAKPiAjIE1vdW50IG9wdGlvbnMsIGUuZy4gcnNpemU9ODE5Miwgc2hvdWxkIGdvIGluIGF1
+dG8ubWFzdGVyIG9yCj4gCj4gIyAgICAgdGhlIGF1dG9fKiBtYXAgZW50cnkgZm9yIGEgc3BlY2lm
+aWMgbW91bnQgcG9pbnQKPiAKPiAjCj4gCj4gTE9DQUxPUFRJT05TPSIiCj4gCj4gREFFTU9OT1BU
+SU9OUz0iLS10aW1lb3V0PTYwIC0tZGVidWcgLS1zZXQtbG9nLXByaW9yaXR5IDciCj4gCj4gTERB
+UEFVVE9NQVNURVI9IiIKPiAKPiAjICBVTkRFUlNDT1JFVE9ET1QgY2hhbmdlcyBhdXRvX2hvbWUg
+dG8gYXV0by5ob21lIGFuZCBhdXRvX21udCB0bwo+IGF1dG8ubW50Cj4gCj4gVU5ERVJTQ09SRVRP
+RE9UPTEKPiAKPiBESVNBQkxFX0RJUkVDVD0xCj4gCj4gIyBPbmx5IHNvdXJjZSBvbmUgbWFzdGVy
+IG1hcCBpZiBzZXQgdG8gMS4gIFRoaXMgd291bGQgbWltaWMgU3VuCj4gYmVoYXZpb3VyLgo+IAo+
+ICMgVGhlIGRlZmF1bHQgaXMgMCB0byBtYWludGFpbiBiYWNrd2FyZHMgY29tcGF0aWJpbGl0eS4K
+PiAKPiBPTkVfQVVUT19NQVNURVI9MAo+IAo+ICMgTGlzdCBvZiBkaXJlY3RvcmllcyB0byBiZSBn
+aG9zdGVkLCBzZXBhcmF0ZWQgYnkgd2hpdGUgc3BhY2UuCj4gCj4gR0hPU1RESVJTPSIiCj4gCj4g
+IyBCYXNlIEROIHRvIHVzZSB3aGVuIHNlYXJjaGluZyBmb3IgdGhlIG1hc3RlciBtYXAgQkFTRURO
+PQo+IAo+ICMgVGhlIGxkYXAgbW9kdWxlIHdhcyB1cGRhdGVkIHRvIG9ubHkgdHJ5IHRoZSBmaXJz
+dCBzY2hlbWEgdGhhdCB3b3Jrcwo+IAo+ICMgKGluc3RlYWQgb2YgdHJ5aW5nIGFsbCAzIGF1dG9m
+cyBzY2hlbWFzIGZvciBlYWNoIGxvb2t1cCkuICBJdCBpcwo+IAo+ICMgcG9zc2libGUsIHRob3Vn
+aCB1bmxpa2VseSwgdGhhdCB0aGlzIGNvdWxkIGNhdXNlIHByb2JsZW1zLiAgSWYgeW91Cj4gdXBk
+YXRlCj4gCj4gIyB0aGUgYXV0b21vdW50ZXIgYW5kIGZpbmQgdGhhdCB5b3VyIGxkYXAgc2NoZW1h
+cyBkb2Vzbid0IHdvcmsgYXMgaXQKPiBkaWQKPiAKPiAjIHByZXZpb3VzbHksIHRyeSBzZXR0aW5n
+IHRoaXMgb3B0aW9uIHRvIDEuICBQbGVhc2UgYWxzbyByZXBvcnQgdGhlCj4gcHJvYmxlbSwKPiAK
+PiAjIGFzIGl0IGlzIGxpa2VseSB0aGF0IHlvdXIgc2NoZW1hIGlzIGluY29tcGF0aWJsZSB3aXRo
+IGF1dG9mcyB2NS4KPiAKPiBPTERfTERBUF9MT09LVVA9MAo+IAo+IC9ldGMvbnNzd2l0Y2guY29u
+ZjoKPiAKPiAjCj4gCj4gIyAvZXRjL25zc3dpdGNoLmNvbmYKPiAKPiAjCj4gCj4gIyBBbiBleGFt
+cGxlIE5hbWUgU2VydmljZSBTd2l0Y2ggY29uZmlnIGZpbGUuIFRoaXMgZmlsZSBzaG91bGQgYmUg
+Iwo+IHNvcnRlZCB3aXRoIHRoZSBtb3N0LXVzZWQgc2VydmljZXMgYXQgdGhlIGJlZ2lubmluZy4K
+PiAKPiAjCj4gCj4gIyBUaGUgZW50cnkgJ1tOT1RGT1VORD1yZXR1cm5dJyBtZWFucyB0aGF0IHRo
+ZSBzZWFyY2ggZm9yIGFuICMgZW50cnkKPiBzaG91bGQgc3RvcCBpZiB0aGUgc2VhcmNoIGluIHRo
+ZSBwcmV2aW91cyBlbnRyeSB0dXJuZWQgIyB1cCBub3RoaW5nLgo+IE5vdGUgdGhhdCBpZiB0aGUg
+c2VhcmNoIGZhaWxlZCBkdWUgdG8gc29tZSBvdGhlciByZWFzb24gIyAobGlrZSBubyBOSVMKPiBz
+ZXJ2ZXIgcmVzcG9uZGluZykgdGhlbiB0aGUgc2VhcmNoIGNvbnRpbnVlcyB3aXRoIHRoZSAjIG5l
+eHQgZW50cnkuCj4gCj4gIwo+IAo+ICMgTGVnYWwgZW50cmllcyBhcmU6Cj4gCj4gIwo+IAo+ICMg
+ICAgICAgbmlzIG9yIHlwICAgICAgICAgICAgICAgVXNlIE5JUyAoTklTIHZlcnNpb24gMiksIGFs
+c28gY2FsbGVkCj4gWVAKPiAKPiAjICAgICAgIGRucyAgICAgICAgICAgICAgICAgICAgIFVzZSBE
+TlMgKERvbWFpbiBOYW1lIFNlcnZpY2UpCj4gCj4gIyAgICAgICBmaWxlcyAgICAgICAgICAgICAg
+ICAgICBVc2UgdGhlIGxvY2FsIGZpbGVzCj4gCj4gIyAgICAgICBkYiAgICAgICAgICAgICAgICAg
+ICAgICBVc2UgdGhlIGxvY2FsIGRhdGFiYXNlICguZGIpIGZpbGVzCj4gCj4gIyAgICAgICBjb21w
+YXQgICAgICAgICAgICAgICAgICBVc2UgTklTIG9uIGNvbXBhdCBtb2RlCj4gCj4gIyAgICAgICBo
+ZXNpb2QgICAgICAgICAgICAgICAgICBVc2UgSGVzaW9kIGZvciB1c2VyIGxvb2t1cHMKPiAKPiAj
+ICAgICAgIGxkYXAgICAgICAgICAgICAgICAgICAgIFVzZSBMREFQIChvbmx5IGlmIG5zc19sZGFw
+IGlzCj4gaW5zdGFsbGVkKQo+IAo+ICMgICAgICAgbmlzcGx1cyBvciBuaXMrICAgICAgICAgVXNl
+IE5JUysgKE5JUyB2ZXJzaW9uIDMpLCB1bnN1cHBvcnRlZAo+IAo+ICMgICAgICAgW05PVEZPVU5E
+PXJldHVybl0gICAgICAgU3RvcCBzZWFyY2hpbmcgaWYgbm90IGZvdW5kIHNvIGZhcgo+IAo+ICMK
+PiAKPiAjIFRvIHVzZSBkYiwgcHV0IHRoZSAiZGIiIGluIGZyb250IG9mICJmaWxlcyIgZm9yIGVu
+dHJpZXMgeW91IHdhbnQgdG8KPiBiZSAjIGxvb2tlZCB1cCBmaXJzdCBpbiB0aGUgZGF0YWJhc2Vz
+ICMgIyBFeGFtcGxlOgo+IAo+ICNwYXNzd2Q6ICAgIGRiIGZpbGVzIGxkYXAgbmlzCj4gCj4gI3No
+YWRvdzogICAgZGIgZmlsZXMgbGRhcCBuaXMKPiAKPiAjZ3JvdXA6ICAgICBkYiBmaWxlcyBsZGFw
+IG5pcwo+IAo+IHBhc3N3ZDogICAgIGZpbGVzIG5pcwo+IAo+IHNoYWRvdzogICAgIGZpbGVzIG5p
+cwo+IAo+IGdyb3VwOiAgICAgIGZpbGVzIG5pcwo+IAo+ICNob3N0czogICAgIGRiIGZpbGVzIGxk
+YXAgbmlzIGRucwo+IAo+IGhvc3RzOiAgICAgIGZpbGVzIG5pcyBkbnMKPiAKPiAjIEV4YW1wbGUg
+LSBvYmV5IG9ubHkgd2hhdCBsZGFwIHRlbGxzIHVzLi4uCj4gCj4gI3NlcnZpY2VzOiAgbGRhcCBb
+Tk9URk9VTkQ9cmV0dXJuXSBmaWxlcwo+IAo+ICNuZXR3b3JrczogIGxkYXAgW05PVEZPVU5EPXJl
+dHVybl0gZmlsZXMKPiAKPiAjcHJvdG9jb2xzOiBsZGFwIFtOT1RGT1VORD1yZXR1cm5dIGZpbGVz
+Cj4gCj4gI3JwYzogICAgICAgbGRhcCBbTk9URk9VTkQ9cmV0dXJuXSBmaWxlcwo+IAo+ICNldGhl
+cnM6ICAgIGxkYXAgW05PVEZPVU5EPXJldHVybl0gZmlsZXMKPiAKPiBib290cGFyYW1zOiBmaWxl
+cwo+IAo+IGV0aGVyczogICAgIGZpbGVzCj4gCj4gbmV0bWFza3M6ICAgZmlsZXMKPiAKPiBuZXR3
+b3JrczogICBmaWxlcwo+IAo+IHByb3RvY29sczogIGZpbGVzIG5pcwo+IAo+IHJwYzogICAgICAg
+IGZpbGVzCj4gCj4gc2VydmljZXM6ICAgZmlsZXMgbmlzCj4gCj4gbmV0Z3JvdXA6ICAgZmlsZXMg
+bmlzCj4gCj4gcHVibGlja2V5OiAgZmlsZXMKPiAKPiBhdXRvbW91bnQ6ICBmaWxlcyBuaXMKPiAK
+PiBhbGlhc2VzOiAgICBmaWxlcwo+IAo+IF9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fCj4gYXV0b2ZzIG1haWxpbmcgbGlzdAo+IGF1dG9mc0BsaW51eC5rZXJu
+ZWwub3JnCj4gaHR0cDovL2xpbnV4Lmtlcm5lbC5vcmcvbWFpbG1hbi9saXN0aW5mby9hdXRvZnMK
+CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwphdXRvZnMg
+bWFpbGluZyBsaXN0CmF1dG9mc0BsaW51eC5rZXJuZWwub3JnCmh0dHA6Ly9saW51eC5rZXJuZWwu
+b3JnL21haWxtYW4vbGlzdGluZm8vYXV0b2ZzCg==
