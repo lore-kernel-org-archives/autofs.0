@@ -1,54 +1,85 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: [autofs] Lockdep splat in autofs with 2.6.39-rc2
-Date: Mon, 25 Jul 2011 08:33:55 -0400
-Message-ID: <1311597236.3526.3.camel@gandalf.stny.rr.com>
-References: <20110407194403.GA29404@elliptictech.com>
-	 <20110421212537.GC24898@home.goodmis.org>
-	 <1311562011.3401.13.camel@perseus.themaw.net>
+From: Steve Dickson <SteveD-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [Libtirpc-devel] [PATCH] Autofs configure fails to detect IPv6
+ when libtirpc is enabled
+Date: Tue, 26 Jul 2011 17:13:10 -0400
+Message-ID: <4E2F2DE6.5030500@RedHat.com>
+References: <1311683346-16881-1-git-send-email-steved@redhat.com> <8A84CF7D-9579-4645-AE5D-FE8358F466C0@gmail.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1311562011.3401.13.camel@perseus.themaw.net>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <8A84CF7D-9579-4645-AE5D-FE8358F466C0-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org, Peter Zijlstra <peterz@infradead.org>, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@elte.hu>
+To: Chuck Lever <chucklever-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Libtirpc Devel List <libtirpc-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, autofs mailing list <autofs-CPWUtch7KCBzeIdxy0IIJw@public.gmane.org>
 
-On Mon, 2011-07-25 at 10:46 +0800, Ian Kent wrote:
-> On Thu, 2011-04-21 at 17:25 -0400, Steven Rostedt wrote:
-> > On Thu, Apr 07, 2011 at 03:44:03PM -0400, Nick Bowler wrote:
-> > > Just saw this on 2.6.39-rc2 after half a day or so of uptime.  I've
-> > > never seen it before today so it may be a regression from 2.6.38.
-> > > Nothing seems have failed as a result.  Please let me know if you
-> > > need any more info.
-> > >
-> > 
-> > Could you try this patch. I know it may be hard to reproduce, but the
-> > issue is that we are recursing down the locks in a tree/list and we changed a
-> > lock from being nested to being a parent. This patch tells lockdep about
-> > what we did.
-> > 
-> > Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+
+
+On 07/26/2011 10:50 AM, Chuck Lever wrote:
 > 
-> Hi Steven,
+> On Jul 26, 2011, at 2:29 PM, Steve Dickson wrote:
 > 
-> It appears this is not included in current mainline yet so I'm guessing
-> it is still a problem.
+>> From: Ian Kent <raven-PKsaG3nR2I+sTnJN9+BGXg@public.gmane.org>
+>>
+>> The IPv6 client functions clntudp6_bufcreate(), clntudp6_create and
+>> clnttcp6_create and the server functions svcudp6_bufcreate(),
+>> svctcp6_create() and svcudp6_create() are not included in the library
+>> whe libtirpc is built.
 > 
-> Is this the correct way to handle the problem?
+> Are these part of the libtirpc standard API?  I'm not sure why we would need them if, say, Solaris does not support these.
+It appears they are not since they are not mentioned the man pages.....
+But, at least in the autofs code, they are expected
+   https://bugzilla.redhat.com/show_bug.cgi?id=711956#c0
 
-Yes this is the correct way to handle the issue. There is no deadlock
-because the locks are taken and released as it walks the list that
-should always be ordered. This is the way to tell lockdep what it is
-doing.
+Ian, where else are these routines defined? 
 
-> Do you want me to forward the patch to Al Viro for inclusion in his tree
-> and subsequent inclusion in mainline or would you like to do that?
+steved
 
-Sure, go ahead.
-
-Thanks,
-
--- Steve
-
+> 
+>> Signed-off-by: Steve Dickson <steved-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>> ---
+>> src/rpc_soc.c |    4 ++--
+>> 1 files changed, 2 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/src/rpc_soc.c b/src/rpc_soc.c
+>> index c678429..584ac71 100644
+>> --- a/src/rpc_soc.c
+>> +++ b/src/rpc_soc.c
+>> @@ -236,7 +236,7 @@ clnttcp_create(raddr, prog, vers, sockp, sendsz, recvsz)
+>>
+>> /* IPv6 version of clnt*_*create */
+>>
+>> -#ifdef INET6_NOT_USED
+>> +#ifdef INET6
+>>
+>> CLIENT *
+>> clntudp6_bufcreate(raddr, prog, vers, wait, sockp, sendsz, recvsz)
+>> @@ -392,7 +392,7 @@ svcraw_create()
+>>
+>>
+>> /* IPV6 version */
+>> -#ifdef INET6_NOT_USED
+>> +#ifdef INET6
+>> SVCXPRT *
+>> svcudp6_bufcreate(fd, sendsz, recvsz)
+>> 	int fd;
+>> -- 
+>> 1.7.6
+>>
+>>
+>> ------------------------------------------------------------------------------
+>> Magic Quadrant for Content-Aware Data Loss Prevention
+>> Research study explores the data loss prevention market. Includes in-depth
+>> analysis on the changes within the DLP market, and the criteria used to
+>> evaluate the strengths and weaknesses of these DLP solutions.
+>> http://www.accelacomm.com/jaw/sfnl/114/51385063/
+>> _______________________________________________
+>> Libtirpc-devel mailing list
+>> Libtirpc-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>> https://lists.sourceforge.net/lists/listinfo/libtirpc-devel
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
