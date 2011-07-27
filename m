@@ -1,46 +1,52 @@
-From: Ian Kent <ikent-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [Libtirpc-devel] [PATCH] Autofs configure fails to detect IPv6
- when libtirpc is enabled
-Date: Wed, 27 Jul 2011 10:02:48 +0800
-Message-ID: <1311732168.3473.16.camel@perseus.themaw.net>
-References: <1311683346-16881-1-git-send-email-steved@redhat.com>
-	 <8A84CF7D-9579-4645-AE5D-FE8358F466C0@gmail.com>
-	 <4E2F2DE6.5030500@RedHat.com>  <1311728231.3473.7.camel@perseus.themaw.net>
-	 <1311729784.3473.14.camel@perseus.themaw.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+From: Chuck Lever <chucklever-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [Libtirpc-devel] [PATCH] Autofs configure fails to detect IPv6 when libtirpc is enabled
+Date: Tue, 26 Jul 2011 22:09:50 -0400
+Message-ID: <A8F3853A-9C75-4F65-8EEB-88DD13C3FF9B@gmail.com>
+References: <1311683346-16881-1-git-send-email-steved@redhat.com> <8A84CF7D-9579-4645-AE5D-FE8358F466C0@gmail.com> <4E2F2DE6.5030500@RedHat.com>  <1311728231.3473.7.camel@perseus.themaw.net> <1311729784.3473.14.camel@perseus.themaw.net>
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=gamma;
+        h=subject:mime-version:content-type:from:in-reply-to:date:cc
+         :content-transfer-encoding:message-id:references:to:x-mailer;
+        bh=cNf93s1HO1CuSKHcUAT28hP1bLfc2qNA/0xWlJbF9MY=;
+        b=TrigUENYSGgcOCqm40+1TBoxO2Tt7Nrg+/lY63sWZ2kG3WakwI4NDBMI9gXyMM7iEL
+         QM/lo/mYInSLsPvhYeOkIYbG+/hTMffm8tIcReQ/Cful3rtrFN4LP0cV1SxgfaxGFbFF
+         jVtTkffNY+xFyVC5qZj/GiMp5dYGv9xRjsjWs=
 In-Reply-To: <1311729784.3473.14.camel-jgopVnDzZD88qxobedHYj6xOck334EZe@public.gmane.org>
 Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Steve Dickson <SteveD-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Chuck Lever <chucklever-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, autofs mailing list <autofs-CPWUtch7KCBzeIdxy0IIJw@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Libtirpc Devel List <libtirpc-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Ian Kent <ikent-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Steve Dickson <SteveD-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, autofs mailing list <autofs-CPWUtch7KCBzeIdxy0IIJw@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Libtirpc Devel List <libtirpc-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 
-On Wed, 2011-07-27 at 09:23 +0800, Ian Kent wrote:
+
+On Jul 26, 2011, at 9:23 PM, Ian Kent wrote:
+
 > On Wed, 2011-07-27 at 08:57 +0800, Ian Kent wrote:
-> > On Tue, 2011-07-26 at 17:13 -0400, Steve Dickson wrote:
-> > > 
-> > > On 07/26/2011 10:50 AM, Chuck Lever wrote:
-> > > > 
-> > > > On Jul 26, 2011, at 2:29 PM, Steve Dickson wrote:
-> > > > 
-> > > >> From: Ian Kent <raven-PKsaG3nR2I+sTnJN9+BGXg@public.gmane.org>
-> > > >>
-> > > >> The IPv6 client functions clntudp6_bufcreate(), clntudp6_create and
-> > > >> clnttcp6_create and the server functions svcudp6_bufcreate(),
-> > > >> svctcp6_create() and svcudp6_create() are not included in the library
-> > > >> whe libtirpc is built.
-> > > > 
-> > > > Are these part of the libtirpc standard API?  I'm not sure why we would need them if, say, Solaris does not support these.
-> > > It appears they are not since they are not mentioned the man pages.....
-> > > But, at least in the autofs code, they are expected
-> > >    https://bugzilla.redhat.com/show_bug.cgi?id=711956#c0
-> > > 
-> > > Ian, where else are these routines defined? 
-> > 
-> > Now that I look I can't find the original source tar that was used for
-> > libtirpc, thought I had it.
+>> On Tue, 2011-07-26 at 17:13 -0400, Steve Dickson wrote:
+>>> 
+>>> On 07/26/2011 10:50 AM, Chuck Lever wrote:
+>>>> 
+>>>> On Jul 26, 2011, at 2:29 PM, Steve Dickson wrote:
+>>>> 
+>>>>> From: Ian Kent <raven-PKsaG3nR2I+sTnJN9+BGXg@public.gmane.org>
+>>>>> 
+>>>>> The IPv6 client functions clntudp6_bufcreate(), clntudp6_create and
+>>>>> clnttcp6_create and the server functions svcudp6_bufcreate(),
+>>>>> svctcp6_create() and svcudp6_create() are not included in the library
+>>>>> whe libtirpc is built.
+>>>> 
+>>>> Are these part of the libtirpc standard API?  I'm not sure why we would need them if, say, Solaris does not support these.
+>>> It appears they are not since they are not mentioned the man pages.....
+>>> But, at least in the autofs code, they are expected
+>>>   https://bugzilla.redhat.com/show_bug.cgi?id=711956#c0
+>>> 
+>>> Ian, where else are these routines defined? 
+>> 
+>> Now that I look I can't find the original source tar that was used for
+>> libtirpc, thought I had it.
 > 
 > Found what I had.
 > 
@@ -50,16 +56,16 @@ On Wed, 2011-07-27 at 09:23 +0800, Ian Kent wrote:
 > Worse, these functions were excluded with the "#ifdef INET6_NOT_USED"
 > macro as far back as libtirpc version 0.1.5 so, my bad, sorry.
 > 
-> > 
-> > The story is that long ago when I changed autofs to use libtirpc (to
-> > make it ready for IPv6) I found these functions in the source and they
-> > were (obviously) the IPv6 counterparts for the corresponding IPv4
-> > functions which I was already using, so I used them. It took me quite a
-> > while to realize my code wasn't working and then I found that somewhere
-> > along the line they have been excluded, oops!
-> > 
-> > If there are to be no IPv6 counterparts for the corresponding IPv4
-> > functions which functions should I use then?
+>> 
+>> The story is that long ago when I changed autofs to use libtirpc (to
+>> make it ready for IPv6) I found these functions in the source and they
+>> were (obviously) the IPv6 counterparts for the corresponding IPv4
+>> functions which I was already using, so I used them. It took me quite a
+>> while to realize my code wasn't working and then I found that somewhere
+>> along the line they have been excluded, oops!
+>> 
+>> If there are to be no IPv6 counterparts for the corresponding IPv4
+>> functions which functions should I use then?
 > 
 > So what can I use?
 > 
@@ -67,70 +73,77 @@ On Wed, 2011-07-27 at 09:23 +0800, Ian Kent wrote:
 > code that uses the corresponding IPv4 functions so could we define them
 > please. At some point someone must have had that same idea ....
 
-Found one more thing that looks relevant, these functions were defined
-in glibc in 2000-01-23 so they may be used by others as well.
+It looks to me like these functions were part of an original attempt at IPv6 support that was abandoned long ago.  They are not part of TI-RPC, but as you observed, they are merely IPv6 versions of the legacy RPC API. I don't see these implemented in glibc, for example.
+
+For IPv6 support, use functions that are part of the modern libtirpc API.  This is described in Sun doc 816-1435.  You probably will be most successful with the "simplified interface" which is described in Chapter 4. You might need somewhat more extensive surgery since I'm guessing you have separate code paths to invoke the IPv4 and IPv6 legacy RPC functions; generally speaking that should not be needed when using the libtirpc API.
+
+
 
 > 
-> > 
-> > > 
-> > > steved
-> > > 
-> > > > 
-> > > >> Signed-off-by: Steve Dickson <steved-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> > > >> ---
-> > > >> src/rpc_soc.c |    4 ++--
-> > > >> 1 files changed, 2 insertions(+), 2 deletions(-)
-> > > >>
-> > > >> diff --git a/src/rpc_soc.c b/src/rpc_soc.c
-> > > >> index c678429..584ac71 100644
-> > > >> --- a/src/rpc_soc.c
-> > > >> +++ b/src/rpc_soc.c
-> > > >> @@ -236,7 +236,7 @@ clnttcp_create(raddr, prog, vers, sockp, sendsz, recvsz)
-> > > >>
-> > > >> /* IPv6 version of clnt*_*create */
-> > > >>
-> > > >> -#ifdef INET6_NOT_USED
-> > > >> +#ifdef INET6
-> > > >>
-> > > >> CLIENT *
-> > > >> clntudp6_bufcreate(raddr, prog, vers, wait, sockp, sendsz, recvsz)
-> > > >> @@ -392,7 +392,7 @@ svcraw_create()
-> > > >>
-> > > >>
-> > > >> /* IPV6 version */
-> > > >> -#ifdef INET6_NOT_USED
-> > > >> +#ifdef INET6
-> > > >> SVCXPRT *
-> > > >> svcudp6_bufcreate(fd, sendsz, recvsz)
-> > > >> 	int fd;
-> > > >> -- 
-> > > >> 1.7.6
-> > > >>
-> > > >>
-> > > >> ------------------------------------------------------------------------------
-> > > >> Magic Quadrant for Content-Aware Data Loss Prevention
-> > > >> Research study explores the data loss prevention market. Includes in-depth
-> > > >> analysis on the changes within the DLP market, and the criteria used to
-> > > >> evaluate the strengths and weaknesses of these DLP solutions.
-> > > >> http://www.accelacomm.com/jaw/sfnl/114/51385063/
-> > > >> _______________________________________________
-> > > >> Libtirpc-devel mailing list
-> > > >> Libtirpc-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> > > >> https://lists.sourceforge.net/lists/listinfo/libtirpc-devel
-> > > > 
-> > > 
-> > > ------------------------------------------------------------------------------
-> > > Got Input?   Slashdot Needs You.
-> > > Take our quick survey online.  Come on, we don't ask for help often.
-> > > Plus, you'll get a chance to win $100 to spend on ThinkGeek.
-> > > http://p.sf.net/sfu/slashdot-survey
-> > > _______________________________________________
-> > > Libtirpc-devel mailing list
-> > > Libtirpc-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-> > > https://lists.sourceforge.net/lists/listinfo/libtirpc-devel
-> > 
+>> 
+>>> 
+>>> steved
+>>> 
+>>>> 
+>>>>> Signed-off-by: Steve Dickson <steved-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>>>>> ---
+>>>>> src/rpc_soc.c |    4 ++--
+>>>>> 1 files changed, 2 insertions(+), 2 deletions(-)
+>>>>> 
+>>>>> diff --git a/src/rpc_soc.c b/src/rpc_soc.c
+>>>>> index c678429..584ac71 100644
+>>>>> --- a/src/rpc_soc.c
+>>>>> +++ b/src/rpc_soc.c
+>>>>> @@ -236,7 +236,7 @@ clnttcp_create(raddr, prog, vers, sockp, sendsz, recvsz)
+>>>>> 
+>>>>> /* IPv6 version of clnt*_*create */
+>>>>> 
+>>>>> -#ifdef INET6_NOT_USED
+>>>>> +#ifdef INET6
+>>>>> 
+>>>>> CLIENT *
+>>>>> clntudp6_bufcreate(raddr, prog, vers, wait, sockp, sendsz, recvsz)
+>>>>> @@ -392,7 +392,7 @@ svcraw_create()
+>>>>> 
+>>>>> 
+>>>>> /* IPV6 version */
+>>>>> -#ifdef INET6_NOT_USED
+>>>>> +#ifdef INET6
+>>>>> SVCXPRT *
+>>>>> svcudp6_bufcreate(fd, sendsz, recvsz)
+>>>>> 	int fd;
+>>>>> -- 
+>>>>> 1.7.6
+>>>>> 
+>>>>> 
+>>>>> ------------------------------------------------------------------------------
+>>>>> Magic Quadrant for Content-Aware Data Loss Prevention
+>>>>> Research study explores the data loss prevention market. Includes in-depth
+>>>>> analysis on the changes within the DLP market, and the criteria used to
+>>>>> evaluate the strengths and weaknesses of these DLP solutions.
+>>>>> http://www.accelacomm.com/jaw/sfnl/114/51385063/
+>>>>> _______________________________________________
+>>>>> Libtirpc-devel mailing list
+>>>>> Libtirpc-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>>>>> https://lists.sourceforge.net/lists/listinfo/libtirpc-devel
+>>>> 
+>>> 
+>>> ------------------------------------------------------------------------------
+>>> Got Input?   Slashdot Needs You.
+>>> Take our quick survey online.  Come on, we don't ask for help often.
+>>> Plus, you'll get a chance to win $100 to spend on ThinkGeek.
+>>> http://p.sf.net/sfu/slashdot-survey
+>>> _______________________________________________
+>>> Libtirpc-devel mailing list
+>>> Libtirpc-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+>>> https://lists.sourceforge.net/lists/listinfo/libtirpc-devel
+>> 
 > 
-
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
