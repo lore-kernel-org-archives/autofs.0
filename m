@@ -1,15 +1,14 @@
-From: Thanh Tran <ttran7700@yahoo.com>
-Subject: Problem Mounting CD Drive
-Date: Tue, 16 Aug 2011 04:39:18 -0700 (PDT)
-Message-ID: <1313494758.52256.YahooMailClassic@web161428.mail.bf1.yahoo.com>
+From: "Denniston, Todd A CIV NAVSURFWARCENDIV Crane" <todd.denniston@navy.mil>
+Subject: Re: autofs, closing file error.
+Date: Tue, 16 Aug 2011 08:33:49 -0400
+Message-ID: <DA1C49D1052ABF41939A2D8516F0C7E70658D479@naeacranez03v.nadsusea.nads.navy.mil>
+References: <CABc702S9AtDk1nszh+=izXzZr8iV6FYN0TuA3AN7fYGCUnLgUA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s1024;
-	t=1313494758; bh=WnH7ETkHSzJIINVRApp0eqzh0JwRjEHnnQD1ouBl9sw=;
-	h=X-YMail-OSG:Received:X-Mailer:Message-ID:Date:From:Subject:To:MIME-Version:Content-Type;
-	b=oWUdNzb9ssIbReVJKhop/wrdnw4Wb4WHabpDs6bntjUCoDhYqVwPhoyZODnIgy9fO6jyKv68rbcvpbpiE3B1HMJ9zK+fWAFKt9JdICt9WpfDKz15qDD8hxLxWe8vcb5JRSgAIAyOobO4azHsCkQmdtoEoViYCoxGQpuAOakXP90=
+Content-class: urn:content-classes:message
+In-Reply-To: <CABc702S9AtDk1nszh+=izXzZr8iV6FYN0TuA3AN7fYGCUnLgUA@mail.gmail.com>
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
 	<mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,20 +21,45 @@ Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
 To: autofs@linux.kernel.org
 
-I've been having some problems with mounting my CD drive since I updated to Fedora 12.
+> -----Original Message-----
+> From: autofs-bounces@linux.kernel.org [mailto:autofs-
+> bounces@linux.kernel.org] On Behalf Of wusheng zhang
+> Sent: Saturday, August 13, 2011 9:04
+> To: autofs@linux.kernel.org
+> Subject: [autofs] autofs, closing file error.
+> 
+> Dear list:
+> I am not sure, it is suitable posing the message  to this list. But
+> this obsessed me for a long time.
+> 
+> 
+> ####Problem description:
+> I am running a fortran program, that doing some computation works and
+> saves data to the
+> working directory.
+> I started the program at an automounted directory, here, in my
+> situation, the directory is
+> /work/zws_work/origin1.
+> 
+> when the program run, I got CLOSE error randomly.
+> I also run the same copy of binary on a local disk, It never fail.
+> 
+> so I doubt is it the autofs problem?
+> 
+> But I have no idea how recognize and solve it,
+> Switching to a newer version  of automount daemon may solve this
+> problem?
+<SNIP>
+> #####[root@ln0 ~]# cat /etc/auto.work
+> * -rw,soft,intr,proto=udp ibworkserver:/home/&
+> 
+<SNIP>
 
-I get this from the log.
+My experience says try changing the soft to hard.
+i.e. 
+* -rw,hard,intr,proto=udp ibworkserver:/home/&
 
-Aug 16 06:57:11 nextgen-mm automount[769]: mount(generic): mounted /dev/scd0 type auto on /mnt/cdrom/cdrom
-Aug 16 06:57:11 nextgen-mm automount[769]: mounted /mnt/cdrom/cdrom
-Aug 16 07:11:45 nextgen-mm automount[769]: attempting to mount entry /mnt/cdrom/cdrom
-Aug 16 07:11:52 nextgen-mm kernel: sr 2:0:0:0: [sr0] Unhandled sense code
-Aug 16 07:11:52 nextgen-mm kernel: sr 2:0:0:0: [sr0] Result: hostbyte=DID_OK driverbyte=DRIVER_SENSE
-Aug 16 07:11:52 nextgen-mm kernel: sr 2:0:0:0: [sr0] Sense Key : Medium Error [current] 
-Aug 16 07:11:52 nextgen-mm kernel: Info fld=0x0
-Aug 16 07:11:52 nextgen-mm kernel: sr 2:0:0:0: [sr0] Add. Sense: Unrecovered read error
-Aug 16 07:11:52 nextgen-mm kernel: end_request: I/O error, dev sr0, sector 1208
-Aug 16 07:11:52 nextgen-mm kernel: Buffer I/O error on device sr0, logical block 302
-
-
-The Autofs keeps trying to mount it.  Is there a way to limit the number of re-tries. Can I do this by setting the timeout to a lower number in the configuration file?  I switched out a different USB CD drive and it works fine.  At first, I thought something was wrong with the disk.  However, I used the same disk in a different drive.  The strange part is after a few minutes it will resolve whatever issue it had with my drive?!?  Thanks in advance for any help!
+hard,intr gives, in my opinion, a reasonable balance between the 'lock
+the program up' of hard and 'give random unexplainable (an often silent)
+errors when nfs drops a couple of packets' of soft.
+I suggest also reading the soft entry in `man nfs`.
