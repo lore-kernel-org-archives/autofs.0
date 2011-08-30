@@ -1,17 +1,19 @@
-From: Michael Tokarev <mjt@tls.msk.ru>
-Subject: Re: autofs4 past 2.6.38: how to make it work?
-Date: Wed, 17 Aug 2011 12:42:07 +0400
-Message-ID: <4E4B7EDF.5020205@msgid.tls.msk.ru>
-References: <4E4975AB.4050201@msgid.tls.msk.ru>	
- <4E497B43.4010600@msgid.tls.msk.ru>	
- <1313550460.4418.5.camel@perseus.themaw.net>	
- <4E4B5F4A.5060705@msgid.tls.msk.ru>
- <1313569707.4418.32.camel@perseus.themaw.net>
+From: Leonardo Chiquitto <leonardo.lists@gmail.com>
+Subject: Segmentation fault in read_one_map() -> ldap_msgfree()
+Date: Tue, 30 Aug 2011 14:27:35 -0400
+Message-ID: <20110830182735.GA31035@libre.l.ngdn.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-bounces@linux.kernel.org>
-In-Reply-To: <1313569707.4418.32.camel@perseus.themaw.net>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
+ h=date:from:to:subject:message-id:mime-version:content-type
+ :content-disposition:user-agent;
+ bh=wjvWWjyiDA7Z3nNW7mUVUqdxk2G04MKyqNP/N5j4bAk=;
+ b=Z/qp3fM7IcMBRhgen5rHYwNGRWsNk7xYSJ4cLV14Fmx/BXxoVuQgg7PX4mNFXF5BOn
+ 42q0+gbfRfr9Ly0cMXMrvWmoGiEzeSm3kRLrHEEt9eMMuKNEDiHaf7cQQRtiTuKm4qyq
+ ogS8lLvr0x39nwv2sNKJq3w41NCXpu0Z+rBgo=
+Content-Disposition: inline
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <http://linux.kernel.org/mailman/options/autofs>,
  <mailto:autofs-request@linux.kernel.org?subject=unsubscribe>
@@ -22,26 +24,194 @@ List-Subscribe: <http://linux.kernel.org/mailman/listinfo/autofs>,
  <mailto:autofs-request@linux.kernel.org?subject=subscribe>
 Sender: autofs-bounces@linux.kernel.org
 Errors-To: autofs-bounces@linux.kernel.org
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org
+To: autofs@linux.kernel.org
 
-MTcuMDguMjAxMSAxMjoyOCwgSWFuIEtlbnQg0L/QuNGI0LXRgjoKPiBPbiBXZWQsIDIwMTEtMDgt
-MTcgYXQgMTA6MjcgKzA0MDAsIE1pY2hhZWwgVG9rYXJldiB3cm90ZToKPj4gSW4gMy4wLCBvbmx5
-IHR3byByZWxldmFudCBjb21taXRzIGFyZSBtaXNzaW5nIGFzIGZhcgo+PiBhcyBJIGNhbiBzZWU6
-IHRoaXMgbmVnYXRpdmUgYXV0b2ZzIGRlbnRyaWVzIGZpeCwgYW5kCj4+IExPT0tVUF9DT05USU5V
-RSBjaGFuZ2UuICBUaGUgcmVzdCAtIGFnYWluLCBpZmFpY3MgLQo+PiBhcmUgbWVyZWx5IGNvc21l
-dGljcy4gIEknbSBub3Qgc3VyZSBhYm91dCB0aGlzCj4+IExPT0tVUF9DT05USU5VRSBjaGFuZ2Us
-IGhvdyByZWxldmFudCBpdCBpcywgYnV0Cj4+IHRoZSB0d28gY29tYmluZWQgZG9lcyBub3QgbG9v
-ayBiYWQgZm9yIC1zdGFibGUuCj4+IEkgdGhpbmsuLi4gOikKPiAKPiBOb3Qgc3VyZSB3aGF0IHRo
-ZSBMT09LVVBfQ09OVElOVUUgY2hhbmdlIGlzLCB3aGF0IGRvZXMgaXQgbG9vayBsaWtlIG9yCj4g
-ZG8geW91IGhhdmUgYSBnaXQgY29tbWl0IG51bWJlcj8KCmNvbW1pdCA0OTA4NGMzYmIyMDU1YzQw
-MWYzNDkzYzEzZWRhZTE0ZDQ5MTI4Y2EwCkF1dGhvcjogIEFsIFZpcm8gPHZpcm9AemVuaXYubGlu
-dXgub3JnLnVrPgpEYXRlOiAgICBTYXQgSnVuIDI1IDIxOjU5OjUyIDIwMTEgLTA0MDAKU3ViamVj
-dDoga2lsbCBMT09LVVBfQ09OVElOVUUKCj4gVGhlcmUgaXMgYWN0dWFsbHkgb25lIG1vcmUgY2hh
-bmdlIHRoYXQgbmVlZHMgdG8gZ28gaW4sIGFsdGhvdWdoIHlvdQo+IG1pZ2h0IG5vdCBzZWUgdGhl
-IHByb2JsZW0uIEl0IGlzIGEgZml4IGZvciBhIGxvY2tkZXAgcHJvYmxlbS4KCkFoIHllYWgsIEkn
-dmUgc2VlbiBpdCB0b28gYnV0IGhhdmVuJ3QgbG9va2VkIGNsb3NlbHkgLS0gbG9ja2RlcAppcyBz
-b21lICJzaWRlIiBmZWF0dXJlLCBldmVuIGlmIEkgaGF2ZSBpdCBlbmFibGVkLgoKVGhhbmtzLAoK
-L21qdAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KYXV0
-b2ZzIG1haWxpbmcgbGlzdAphdXRvZnNAbGludXgua2VybmVsLm9yZwpodHRwOi8vbGludXgua2Vy
-bmVsLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2F1dG9mcwo=
+Hello,
+
+A customer reported a segmentation fault in automount (one occurrence
+so far, but we have a core dump). More information about the exact
+autofs version and included patches below.
+
+Call trace:
+
+Thread 7 (Thread 4254):
+#0  do_sigwait (set=0x7fff9eb877c0, sig=0x7fff9eb878dc)
+    at ../sysdeps/unix/sysv/linux/sigwait.c:65
+#1  __sigwait (set=0x7fff9eb877c0, sig=0x7fff9eb878dc)
+    at ../sysdeps/unix/sysv/linux/sigwait.c:100
+#2  statemachine (argc=<value optimized out>, 
+    argv=<value optimized out>) at automount.c:1327
+#3  main (argc=<value optimized out>, argv=<value optimized out>)
+    at automount.c:2142
+
+Thread 6 (Thread 4255):
+#0  pthread_cond_timedwait@@GLIBC_2.3.2 () from /lib64/libpthread.so.0
+#1  alarm_handler (arg=<value optimized out>) at alarm.c:206
+#2  start_thread (arg=<value optimized out>) at pthread_create.c:306
+#3  clone () from /lib64/libc.so.6
+
+Thread 5 (Thread 4256):
+#0  pthread_cond_wait@@GLIBC_2.3.2 () from /lib64/libpthread.so.0
+#1  st_queue_handler (arg=<value optimized out>) at state.c:1103
+#2  start_thread (arg=<value optimized out>) at pthread_create.c:306
+#3  clone () from /lib64/libc.so.6
+
+Thread 4 (Thread 4259):
+#0  __poll (fds=0x40822150, nfds=3, timeout=-1)
+    at ../sysdeps/unix/sysv/linux/poll.c:87
+#1  get_pkt (arg=<value optimized out>) at automount.c:882
+#2  handle_packet (arg=<value optimized out>) at automount.c:1019
+#3  handle_mounts (arg=<value optimized out>) at automount.c:1551
+#4  start_thread (arg=<value optimized out>) at pthread_create.c:306
+#5  clone () from /lib64/libc.so.6
+
+Thread 3 (Thread 4262):
+#0  __poll (fds=0x41023150, nfds=3, timeout=-1)
+    at ../sysdeps/unix/sysv/linux/poll.c:87
+#1  get_pkt (arg=<value optimized out>) at automount.c:882
+#2  handle_packet (arg=<value optimized out>) at automount.c:1019
+#3  handle_mounts (arg=<value optimized out>) at automount.c:1551
+#4  start_thread (arg=<value optimized out>) at pthread_create.c:306
+#5  clone () from /lib64/libc.so.6
+
+Thread 2 (Thread 4263):
+#0  __poll (fds=0x41824150, nfds=3, timeout=-1)
+    at ../sysdeps/unix/sysv/linux/poll.c:87
+#1  get_pkt (arg=<value optimized out>) at automount.c:882
+#2  handle_packet (arg=<value optimized out>) at automount.c:1019
+#3  handle_mounts (arg=<value optimized out>) at automount.c:1551
+#4  start_thread (arg=<value optimized out>) at pthread_create.c:306
+#5  clone () from /lib64/libc.so.6
+
+Thread 1 (Thread 18996):
+#0  __libc_free (mem=0x5555556a0498) at malloc.c:3461
+#1  ber_free_buf (ber=0x5555556a0460) at io.c:177
+#2  ber_free (ber=0x5555556a0460, freebuf=0) at io.c:196
+#3  ldap_msgfree (lm=0x555555e4ddc0) at result.c:1151
+#4  read_one_map (ap=0x55555569c120, age=1311189199, 
+    context=0x5555556a0040) at lookup_ldap.c:2341
+#5  lookup_read_map (ap=0x55555569c120, age=1311189199, context=0x5555556a0040)
+    at lookup_ldap.c:2361
+#6  do_read_map (ap=0x55555569c120, map=0x55555568d1c0, 
+    age=1311189199) at lookup.c:296
+#7  read_source_instance (this=<value optimized out>, 
+    ap=0x55555569c120, map=0x55555569c220, age=1311189199) at lookup.c:374
+#8  read_map_source (this=<value optimized out>, ap=0x55555569c120, 
+    map=0x55555569c220, age=1311189199) at lookup.c:393
+#9  lookup_nss_read_map (ap=0x55555569c120, 
+    source=<value optimized out>, age=1311189199) at lookup.c:534
+#10 do_readmap (arg=<value optimized out>) at state.c:463
+#11 start_thread (arg=<value optimized out>) at pthread_create.c:306
+#12 clone () from /lib64/libc.so.6
+
+The crash happens because we're passing an invalid (already freed?)
+LDAPMessage structure to ldap_msgfree() in read_one_map():
+
+static int read_one_map(struct autofs_point *ap,
+                        struct lookup_context *ctxt,
+                        time_t age, int *result_ldap)
+{
+(...)
+              rv = do_get_entries(&sp, source, ctxt);
+              if (rv != LDAP_SUCCESS) {
+                      ldap_msgfree(sp.result);
+                      unbind_ldap_connection(ap->logopt, sp.ldap, ctxt);
+                      *result_ldap = rv;
+                      free(sp.query);
+                      return NSS_STATUS_NOTFOUND;
+              }
+              ldap_msgfree(sp.result);        <=== 
+      } while (sp.morePages == TRUE);
+
+(gdb) frame 4
+#4  0x00002aaaaaab8c74 in read_one_map (ap=0x55555569c120, age=1311189199, context=0x5555556a0040) at lookup_ldap.c:2341
+2341                     ldap_msgfree(sp.result);
+(gdb) print sp
+$1 = {ap = 0x55555569c120, ldap = 0x555555769c10, query = 0x55555569ef00 "(objectclass=automount)", attrs = 0x41a25c80, cookie = 0x0, pageSize = 2000, 
+  morePages = 0, totalCount = 0, result = 0x5555556a8e40, age = 1311189199}
+
+I'm staring at the code for some time now, and still can't figure out how
+that could happen. Is it somehow possible that do_get_entries() return
+LDAP_SUCCESS but keep an invalid/outdated query result in sp.result?
+
+I'd also like to suggest the patch below. I believe it can potentially
+avoid the crash.
+
+Thanks,
+Leonardo
+
+AutoFS version is 5.0.5 plus all upstream patches up and including
+autofs-5.0.5-fix-submount-shutdown-wait.patch plus these assorted
+bug fixes:
+
+autofs-5.0.5-auto-adjust-ldap-page-size.patch
+autofs-5.0.5-replace-gplv3-code.patch
+autofs-5.0.5-fix-paged-ldap-map-read.patch
+autofs-5.0.5-fix-next-task-list-update.patch
+autofs-5.0.5-fix-stale-map-read.patch
+autofs-5.0.5-fix-out-of-order-locking-in-readmap.patch
+autofs-5.0.5-remove-master_mutex_unlock-leftover.patch
+autofs-5.0.5-fix-null-cache-deadlock.patch
+
+Index: autofs/modules/lookup_ldap.c
+===================================================================
+--- autofs.orig/modules/lookup_ldap.c
++++ autofs/modules/lookup_ldap.c
+@@ -361,6 +361,7 @@ static int get_query_dn(unsigned logopt,
+ 			      MODPREFIX "query succeeded, no matches for %s",
+ 			      query);
+ 			ldap_msgfree(result);
++			result = NULL;
+ 			free(query);
+ 			return 0;
+ 		}
+@@ -1583,6 +1584,7 @@ int lookup_read_master(struct master *ma
+ 		      MODPREFIX "query succeeded, no matches for %s",
+ 		      query);
+ 		ldap_msgfree(result);
++		result = NULL;
+ 		unbind_ldap_connection(logging, ldap, ctxt);
+ 		free(query);
+ 		return NSS_STATUS_NOTFOUND;
+@@ -2380,8 +2382,8 @@ static int read_one_map(struct autofs_po
+ 
+ 		if (rv == LDAP_ADMINLIMIT_EXCEEDED ||
+ 		    rv == LDAP_SIZELIMIT_EXCEEDED) {
+-			if (sp.result)
+-				ldap_msgfree(sp.result);
++			ldap_msgfree(sp.result);
++			sp.result = NULL;
+ 			sp.pageSize = sp.pageSize / 2;
+ 			if (sp.pageSize < 5) {
+ 				debug(ap->logopt, MODPREFIX
+@@ -2404,12 +2406,14 @@ static int read_one_map(struct autofs_po
+ 		rv = do_get_entries(&sp, source, ctxt);
+ 		if (rv != LDAP_SUCCESS) {
+ 			ldap_msgfree(sp.result);
++			sp.result = NULL;
+ 			unbind_ldap_connection(ap->logopt, sp.ldap, ctxt);
+ 			*result_ldap = rv;
+ 			free(sp.query);
+ 			return NSS_STATUS_NOTFOUND;
+ 		}
+ 		ldap_msgfree(sp.result);
++		sp.result = NULL;
+ 	} while (sp.morePages == TRUE);
+ 
+ 	debug(ap->logopt, MODPREFIX "done updating map");
+@@ -2582,6 +2586,7 @@ static int lookup_one(struct autofs_poin
+ 		debug(ap->logopt,
+ 		     MODPREFIX "got answer, but no entry for %s", query);
+ 		ldap_msgfree(result);
++		result = NULL;
+ 		unbind_ldap_connection(ap->logopt, ldap, ctxt);
+ 		free(query);
+ 		return CHE_MISSING;
+@@ -2768,6 +2773,7 @@ next:
+ 	}
+ 
+ 	ldap_msgfree(result);
++	result = NULL;
+ 	unbind_ldap_connection(ap->logopt, ldap, ctxt);
+ 
+ 	/* Failed to find wild entry, update cache if needed */
