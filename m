@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: [PATCH] vfs: automount should ignore LOOKUP_FOLLOW
-Date: Fri, 09 Sep 2011 11:18:48 +0800
-Message-ID: <1315538328.3952.27.camel@perseus.themaw.net>
+Date: Fri, 09 Sep 2011 11:33:27 +0800
+Message-ID: <1315539207.3952.41.camel@perseus.themaw.net>
 References: <87liu37z3x.fsf@tucsk.pomaz.szeredi.hu>
 	 <17416.1315240659@redhat.com> <87hb4q9b3r.fsf@tucsk.pomaz.szeredi.hu>
 	 <1315281208.3210.26.camel@perseus.themaw.net>
@@ -10,135 +10,73 @@ References: <87liu37z3x.fsf@tucsk.pomaz.szeredi.hu>
 	 <87ipp5y912.fsf@tucsk.pomaz.szeredi.hu>
 	 <1315485406.3476.9.camel@perseus.themaw.net>
 	 <87bouv17dc.fsf@tucsk.pomaz.szeredi.hu>
+	 <CA+55aFy3VN2Y-oadFUMdCaBVQtPT9Ae3fDQCw5vHfA6UvH8GiA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=subject:from:to:cc:in-reply-to:references
 	:content-type:date:message-id:mime-version
-	:content-transfer-encoding; s=smtpout; bh=DaGe6oq1RICnuWN4i52SPc
-	2YMZ8=; b=aYHTU+K1CjRhpPcMiO1DES4VE9zLMYbBRR4UKZvPXQDU1otMTqXXW7
-	/zUjPZ2r/GOC+97IGZZGJcoR7I/UkWr13/R/QiuTQ2FRvVhc+9ixlG9CqZ0/PjRR
-	ybio+KP9FxeXXnjRDAKtXHMtiETKF45//X5umBnWPjaAlmDh5i9LM=
-In-Reply-To: <87bouv17dc.fsf@tucsk.pomaz.szeredi.hu>
+	:content-transfer-encoding; s=smtpout; bh=TftTAM9I4ljv5KHTo4Nz1m
+	USj4U=; b=ctNJ+ld84Cid1DGehfUBPLshzC1JQ/lt9kU0huuiQGOevGmRQ10iCJ
+	TsdF+JI2piB2AaGIwVwRhppTXbkkvwSJOl1xWITl01EufVu3ofSwt2ANJDpLmhEI
+	zaF7HYjYu9JdRk5kinUxTLwLSo8iuLoED95Ugd+AZnEXf7ZlEQmXk=
+In-Reply-To: <CA+55aFy3VN2Y-oadFUMdCaBVQtPT9Ae3fDQCw5vHfA6UvH8GiA@mail.gmail.com>
 Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: David Howells <dhowells@redhat.com>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Leonardo Chiquitto <leonardo.lists@gmail.com>, Al Viro <viro@zeniv.linux.org.uk>, Linus Torvalds <torvalds@linux-foundation.org>, autofs@linux.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, David Howells <dhowells@redhat.com>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Leonardo Chiquitto <leonardo.lists@gmail.com>, Al Viro <viro@zeniv.linux.org.uk>, autofs@linux.kernel.org
 
-On Thu, 2011-09-08 at 15:38 +0200, Miklos Szeredi wrote:
-> Ian Kent <raven@themaw.net> writes:
-> 
-> > On Tue, 2011-09-06 at 17:39 +0200, Miklos Szeredi wrote:
-> >> Ian Kent <raven@themaw.net> writes:
-> >> 
-> >> > On Tue, 2011-09-06 at 10:09 +0200, Miklos Szeredi wrote:
-> >> >> Ian Kent <raven@themaw.net> writes:
-> >> >> 
-> >> >> > On Mon, 2011-09-05 at 19:02 +0200, Miklos Szeredi wrote:
-> >> >> >> 
-> >> >> >> If automounting on lstat(2) is the correct behavior (is it?  why?)  then at
-> >> >> >> least it should be enabled by a global switch or mount option, IMO.
-> >> >> >
-> >> >> > Ideally we wouldn't need to take special precautions for these
-> >> >> > operations at all but we can't, especially for GUI environments that
-> >> >> > constantly scan file systems on mount/umount activity.
-> >> >> >
-> >> >> > Historically for autofs, neither stat(2) or lstat(2) would trigger a
-> >> >> > mount. With the current implementation stat(2) now does but lstat(2)
-> >> >> > doesn't which is a step in the right direction IMHO. So, I recommend we
-> >> >> > continue to encourage user space to make the needed changes so we
-> >> >> > continue to move in the right direction, and yes, I acknowledge it is a
-> >> >> > pain but it'll never get done otherwise.
-> >> >> 
-> >> >> I'm not quite convinced.  What's the advantage of triggering automount
-> >> >> on stat(2)?
-> >> >
-> >> > You get the information of the directory of the mounted fs and for many
-> >> > peoples purposes automounting should be transparent so that would be
-> >> > best.
-> >> 
-> >> The same is true for lstat(2).
-> >> 
-> >> >  
-> >> >> 
-> >> >> Has anybody complained that stat(2) on the mountpoint doesn't cause an
-> >> >> automount?
-> >> >
-> >> > Yes, based on the reasoning above.
-> >> 
-> >> Would any of those complaints go away if stat(2) did cause an
-> >> automount and lstat(2) didn't?
+On Thu, 2011-09-08 at 10:42 -0700, Linus Torvalds wrote:
+> On Thu, Sep 8, 2011 at 6:38 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
 > >
-> > Ummm .... please forgive me, I'm confused over which of these cause an
-> > automount to occur, again.
+> > Yes, 2.6.38 and later kernels do trigger on stat(2) but not on lstat(2).
 > >
-> > Much of what I've said previously is wrong because stat(2) does cause
-> > the automount and lstat(2) doesn't, which is, I think, the way it should
-> > be, semantically (see bug
-> > https://bugzilla.redhat.com/show_bug.cgi?id=692823 for example).
+> > My question is this:  does this behavior improve anything compared to
+> > kernels before 2.6.38?  Because I don't see that it does, in fact it's
+> > just causing regressions.
 > >
-> > I'll go back and check the code "again", just to be doubly sure, which I
-> > need to do given my constant confusion on this, oops!
+> > You say it's a step in the right direction but I don't see why.  Either
+> > we want stat *and* lstat to both be correct and trigger the automount or
+> > we are satisfied with the incorrect but well established practice of not
+> > triggering on (l)stat.
+> >
+> > The middle ground makes no sense IMO, there's nothing gained by the
+> > differentiated behavior based on LOOKUP_FOLLOW.
+> >
+> > Can you explain why it's better if stat() tiggers automounts and gives a
+> > correct result but lstat() doesn't?
 > 
-> Sloppy wording on my part is probably responsible for some of the
-> confusion.
+> I have to say that this is a very cogent question.
 > 
-> Yes, 2.6.38 and later kernels do trigger on stat(2) but not on lstat(2).
-> 
-> My question is this:  does this behavior improve anything compared to
-> kernels before 2.6.38?  Because I don't see that it does, in fact it's
-> just causing regressions.
+> The one thing I've not seen in the thread yet is a description of the
+> failure. What does the regression look like? Just "very slow 'ls' with
+> some versions of 'ls'" or what?
 
-OK, I think I'm back on track wrt. the discussion now.
+The problem that is seen is everything in a directory being mounted upon
+listing the directory. This isn't really a problem for small automount
+maps but maps with more than a few dozen entries start becoming
+problematic and a few hundred entries or more (quite common in many
+environments) is an obvious nightmare.
 
-I know I've come out against the change so far but the reality is that
-this has always been an issue and, from what your saying there are some
-user space applications that are unhappy with it to a significant degree
-(I'm actually not yet aware of these reports).
+Clearly this is a problem that I have introduced by the idea of the
+"browse" option of autofs, whereby the potential automount points of an
+indirect automount are visible within the automount managed directory
+but it also applies to NFS crossing mount points (since those mount
+point directories must also pre-exist).
 
-So I support your recommended change. Certainly for the autofs case it
-will do nothing more than restore the original behavior, but since
-autofs isn't the only user of this functionality now I have recommend we
-ask the other subsystem maintainers what impact it would have for them.
-I think that's AFS, CIFS and NFS (I'm not adding to the cc since I'm not
-sure who to add for CIFS, can someone else reply with the proper ccs
-please).
-
-> 
-> You say it's a step in the right direction but I don't see why.  Either
-> we want stat *and* lstat to both be correct and trigger the automount or
-> we are satisfied with the incorrect but well established practice of not
-> triggering on (l)stat.
-
-I say it's a step in the right direction only because of what I think
-should be "correct" behavior and my interpretation simply doesn't quite
-match yours, sorry, ;)
-
-My interpretation is still that (forgive the repetition), in an ideal
-world, follow type walks should trigger automounts to occur and no
-follow walks should not purely due to the behavioral similarity between
-automounts and sym-links.
+Note that this isn't as problem if the "browse" option isn't used since
+we just se an empty directory and specific access to a path causes only
+those mounts to occur. But Solaris has been able to do this for years
+now so it is expected by the user community.
 
 > 
-> The middle ground makes no sense IMO, there's nothing gained by the
-> differentiated behavior based on LOOKUP_FOLLOW.
+> I'm inclined to apply the patch as a regression fix, but I'll let this
+> thread try to convince me for another day..
 
-Right, but I don't see it as middle ground, I see it as "correct"
-behavior.
-
-I also find the "both follow and no follow walks should trigger mounts"
-sensible. Unfortunately that can't work at all without sufficient
-context to be able to know when to and when not to trigger a mount and
-that just isn't possible AFAICS.
-
-> 
-> Can you explain why it's better if stat() tiggers automounts and gives a
-> correct result but lstat() doesn't?
-
-Again, my interpretation of what I think is "correct" which is not
-necessarily the right one.
+I have to agree, although it would be good to get some input from other
+subsystem maintainers.
 
 Ian
 
