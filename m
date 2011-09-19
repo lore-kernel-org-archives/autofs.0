@@ -1,51 +1,59 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH] autofs4/root.c: quiet sparse noise
-Date: Sat, 10 Sep 2011 14:12:18 +0800
-Message-ID: <1315635138.3171.1.camel@perseus.themaw.net>
-References: <201109091717.02975.hartleys@visionengravers.com>
+From: Michael Kerrisk <mtk.manpages@gmail.com>
+Subject: fstatat() AT_NO_AUTOMOUNT man page documentation
+Date: Mon, 19 Sep 2011 07:56:12 +0200
+Message-ID: <CAKgNAkgOvrNtz+JjXTqzOsH6wQBpQ2AAAG2kBGcCVzObYK=btg@mail.gmail.com>
+Reply-To: mtk.manpages@gmail.com
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=subject:from:to:cc:in-reply-to:references
-	:content-type:date:message-id:mime-version
-	:content-transfer-encoding; s=smtpout; bh=Vbo1MuFROt0FpZuX4/t8Uc
-	mI9Ss=; b=HOesqnJPgWCa24AaWODDmWUJeypsFQ8iYGbvxPFJx8Qank4iRvTxT9
-	ZIpHeeu1pvk+MxLjtmft4aXiKRG2f7tlpYw38pv43LuZMh6ZnGLefBpdvWyVI8qi
-	kqKJ20F88JBCVpP3k2Syo4zExEXER/XW+qRC2JM4cTa0isHcHh0Rk=
-In-Reply-To: <201109091717.02975.hartleys@visionengravers.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=gamma;
+        h=mime-version:reply-to:from:date:message-id:subject:to:cc
+         :content-type;
+        bh=AJUySavuHOi1JW8NOx6LMyqNNHPbozNWJ2DQtiml3Rc=;
+        b=pzPJanEB+f5Mo/ck7zH9rssh2juD2v5OBrGeyCJRziDC+VKEun+i2lMP7OM9L5fXlE
+         Tc5K84aqmrw3E4Y4rvMB0ZSC2PJnMNMKKtTIzvMKKgVbZZiBFWX72XsQVplBMMVaUKrI
+         8BRY0xJxBudypq7VGRQ/TaOePP6Xe3mc0U4ac=
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: H Hartley Sweeten <hartleys@visionengravers.com>
-Cc: Linux Kernel <linux-kernel@vger.kernel.org>, autofs@linux.kernel.org
+Content-Transfer-Encoding: 7bit
+To: David Howells <dhowells@redhat.com>
+Cc: Ian Kent <raven@themaw.net>, npiggin@kernel.dk, linux-man <linux-man@vger.kernel.org>, autofs@linux.kernel.org, linux-fsdevel@vger.kernel.org
 
-On Fri, 2011-09-09 at 17:17 -0700, H Hartley Sweeten wrote:
-> The function autofs4_d_manage is prototyped as a static function.
-> Add static to the function to quiet the sparse noise:
-> 
-> warning: symbol 'autofs4_d_manage' was not declared. Should it be static?
-> 
-> Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
-> Cc: Ian Kent <raven@themaw.net>
+Hi David,
 
-Thought I had done that in the original series ....
-Acked-by: Ian Kent <raven@themaw.net>
+I've written the following patch for AT__NO_AUTOMOUNT, which you added
+to the kernel a while back. Could you please review and ACK/NAK?
 
-> 
-> ---
-> 
-> diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
-> index f55ae23..366a9f2 100644
-> --- a/fs/autofs4/root.c
-> +++ b/fs/autofs4/root.c
-> @@ -427,7 +427,7 @@ done:
->  	return NULL;
->  }
->  
-> -int autofs4_d_manage(struct dentry *dentry, bool rcu_walk)
-> +static int autofs4_d_manage(struct dentry *dentry, bool rcu_walk)
->  {
->  	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
->  
+Thanks,
 
+Michael
+
+
+diff --git a/man2/fstatat.2 b/man2/fstatat.2
+index 2868bfb..c0d97dd 100644
+--- a/man2/fstatat.2
++++ b/man2/fstatat.2
+@@ -91,7 +89,16 @@ is absolute, then
+ is ignored.
+
+ .I flags
+-can either be 0, or include the following flag:
++can either be 0, or include one or more of the following flags ORed:
++.TP
++.BR AT_NO_AUTOMOUNT " (since Linux 2.6.38)"
++Don't automount the terminal ("basename") component of
++.I pathname
++if it is a directory that is an automount point.
++This allows the caller to gather attributes of an automount point
++(rather than the location it would mount).
++This flag can be used in tools that scan directories
++to prevent mass-automounting of a directory of automount points.
+ .TP
+ .B AT_SYMLINK_NOFOLLOW
+ If
+
+-- 
+Michael Kerrisk
+Linux man-pages maintainer; http://www.kernel.org/doc/man-pages/
+Author of "The Linux Programming Interface"; http://man7.org/tlpi/
