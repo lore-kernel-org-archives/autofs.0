@@ -1,28 +1,66 @@
-From: David Howells <dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: fstatat() AT_NO_AUTOMOUNT man page documentation
-Date: Tue, 20 Sep 2011 09:52:09 +0100
-Message-ID: <27771.1316508729@redhat.com>
-References: <CAKgNAkgeZZ-qf5rm7y+qNrjThgzhUDUMFf1nbSc3yEpEHNu=+Q@mail.gmail.com> <CAKgNAkgOvrNtz+JjXTqzOsH6wQBpQ2AAAG2kBGcCVzObYK=btg@mail.gmail.com> <19937.1316470788@redhat.com>
-Return-path: <linux-man-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAKgNAkgeZZ-qf5rm7y+qNrjThgzhUDUMFf1nbSc3yEpEHNu=+Q@mail.gmail.com>
-Sender: linux-man-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-ID: <autofs.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+From: Jeff Layton <jlayton@redhat.com>
+Subject: Re: [PATCH] vfs: automount should ignore LOOKUP_FOLLOW
+Date: Thu, 22 Sep 2011 08:29:05 -0400
+Message-ID: <20110922082905.0d43a8f4@tlielax.poochiereds.net>
+References: <87liu37z3x.fsf@tucsk.pomaz.szeredi.hu>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: mtk.manpages-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Cc: dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Ian Kent <raven-PKsaG3nR2I+sTnJN9+BGXg@public.gmane.org>, npiggin-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org, linux-man <linux-man-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, autofs-CPWUtch7KCBzeIdxy0IIJw@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <87liu37z3x.fsf@tucsk.pomaz.szeredi.hu>
+Sender: linux-fsdevel-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Leonardo Chiquitto <leonardo.lists@gmail.com>, David Howells <dhowells@redhat.com>, Ian Kent <raven@themaw.net>, Al Viro <viro@zeniv.linux.org.uk>, Linus Torvalds <torvalds@linux-foundation.org>, autofs@linux.kernel.org, linux-nfs@vger.kernel.org
 
-Michael Kerrisk <mtk.manpages-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+On Mon, 05 Sep 2011 18:06:26 +0200
+Miklos Szeredi <miklos@szeredi.hu> wrote:
 
-> Thanks. I added a sentence to say that.
+> From: Miklos Szeredi <mszeredi@suse.cz>
 > 
-> Otherwise the text looks okay?
+> Prior to 2.6.38 automount would not trigger on either stat(2) or
+> lstat(2) on the automount point.
+> 
+> After 2.6.38, with the introduction of the ->d_automount()
+> infrastructure, stat(2) and others would start triggering automount
+> while lstat(2), etc. still would not.  This is a regression and a
+> userspace ABI change.
+> 
+> Problem originally reported here:
+> 
+>   http://thread.gmane.org/gmane.linux.kernel.autofs/6098
+> 
+> It appears that there was an attempt at fixing various userspace tools
+> to not trigger the automount.  But since the stat system call is
+> rather common it is impossible to "fix" all userspace.
+> 
+> This patch reverts the original behavior, which is to not trigger on
+> stat(2) and other symlink following syscalls.
+> 
+> Reported-by: Leonardo Chiquitto <leonardo.lists@gmail.com>
+> Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+> CC: David Howells <dhowells@redhat.com>
+> CC: Ian Kent <raven@themaw.net>
+> CC: stable@kernel.org
+> ---
+>  fs/namei.c |   33 +++++++++++++++------------------
+>  1 file changed, 15 insertions(+), 18 deletions(-)
+> 
 
-Yep.  Feel free to add my Ack to it, or whatever you do.
+This patch is causing a regression with NFSv4.
 
-David
---
-To unsubscribe from this list: send the line "unsubscribe linux-man" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+When I mount up a filesystem, and do any activity on it, a new
+automount gets triggered on top of the original mountpoint.
+
+The first mount ends up getting the fsid of the pseudo root (fsid=0),
+rather than the correct one for the fs. Once it traverses into the
+actual filesystem the fsid's look different and d_automount gets
+triggered.
+
+I think the problem is that nfs_follow_remote_path() uses
+LOOKUP_FOLLOW, and with the above patch this is now ignored.
+
+Let me know if you need details on how to reproduce this.
+
+-- 
+Jeff Layton <jlayton@redhat.com>
