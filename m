@@ -1,31 +1,27 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [patch -next] autofs4: double lock typo in autofs4_write()
-Date: Fri, 13 Jan 2012 17:41:13 +0300
-Message-ID: <20120113144113.GA25667@elgon.mountain>
+From: Anca Emanuel <anca.emanuel@gmail.com>
+Subject: Re: [patch -next] autofs4: double lock typo in autofs4_write()
+Date: Fri, 13 Jan 2012 17:25:50 +0200
+Message-ID: <CAJL_dMvBycLdpbvOowcLjcjM3CZp=j+i6_mvLzZiTTGONuD_pA@mail.gmail.com>
+References: <20120113144113.GA25667@elgon.mountain>
 Mime-Version: 1.0
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=gamma;
+        h=mime-version:in-reply-to:references:date:message-id:subject:from:to
+         :cc:content-type;
+        bh=2NYusUpnWBiM6CzsTJ3G2mFPjzWEZjPi6tD7gR/+MFw=;
+        b=Z2wnzmBCiymlVRmyP+6/S+ML/4BHWRiTa45AlDRIxuySkXayLFfdRZxqWgndfhKKAR
+         c8Jfmw37Aho5gK7HwGwO+YgPj6/fdKOrKuZ6lBCVjudQs+B81glk1qvH1q3cwlWJykUl
+         aqMnZpk0+CX892m5d+zZ9gIMoY1IyD4sqrsCE=
+In-Reply-To: <20120113144113.GA25667@elgon.mountain>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Ian Kent <raven@themaw.net>, autofs@linux.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, Ian Kent <raven@themaw.net>, autofs@linux.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 
-The second mutex_lock() should be an unlock.
+Hi, this is already reported:
+https://lkml.org/lkml/2012/1/13/104
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-
-diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
-index 9ef5b29..da8876d 100644
---- a/fs/autofs4/waitq.c
-+++ b/fs/autofs4/waitq.c
-@@ -76,7 +76,7 @@ static int autofs4_write(struct autofs_sb_info *sbi,
- 		data += wr;
- 		bytes -= wr;
- 	}
--	mutex_lock(&sbi->pipe_mutex);
-+	mutex_unlock(&sbi->pipe_mutex);
- 
- 	set_fs(fs);
- 
+and tested by Dave.
