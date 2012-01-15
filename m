@@ -1,27 +1,83 @@
-From: Anca Emanuel <anca.emanuel@gmail.com>
-Subject: Re: [patch -next] autofs4: double lock typo in autofs4_write()
-Date: Fri, 13 Jan 2012 17:25:50 +0200
-Message-ID: <CAJL_dMvBycLdpbvOowcLjcjM3CZp=j+i6_mvLzZiTTGONuD_pA@mail.gmail.com>
-References: <20120113144113.GA25667@elgon.mountain>
+From: Martin Nyhus <martin.nyhus@gmx.com>
+Subject: [next] possible recursive locking in autofs4_write
+Date: Sun, 15 Jan 2012 22:48:37 +0100
+Message-ID: <201201152248.37439.martin.nyhus@gmx.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=gamma;
-        h=mime-version:in-reply-to:references:date:message-id:subject:from:to
-         :cc:content-type;
-        bh=2NYusUpnWBiM6CzsTJ3G2mFPjzWEZjPi6tD7gR/+MFw=;
-        b=Z2wnzmBCiymlVRmyP+6/S+ML/4BHWRiTa45AlDRIxuySkXayLFfdRZxqWgndfhKKAR
-         c8Jfmw37Aho5gK7HwGwO+YgPj6/fdKOrKuZ6lBCVjudQs+B81glk1qvH1q3cwlWJykUl
-         aqMnZpk0+CX892m5d+zZ9gIMoY1IyD4sqrsCE=
-In-Reply-To: <20120113144113.GA25667@elgon.mountain>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, Ian Kent <raven@themaw.net>, autofs@linux.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Content-Type: Text/Plain; charset="us-ascii"
+To: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Ian Kent <raven@themaw.net>, autofs@linux.kernel.org, linux-kernel@vger.kernel.org
 
-Hi, this is already reported:
-https://lkml.org/lkml/2012/1/13/104
+Looks like mutex_lock should have been mutex_unlock in commit d668dc56
+(autofs4: deal with autofs4_write/autofs4_write races) at
+fs/autofs4/waitq.c:79, but I don't really know the code so if someone
+could have a look that would be great.
 
-and tested by Dave.
+	Martin
+
+Lockdep info:
+Jan 15 01:54:08 callisto kernel: [21030.663616] =============================================
+Jan 15 01:54:08 callisto kernel: [21030.663618] [ INFO: possible recursive locking detected ]
+Jan 15 01:54:08 callisto kernel: [21030.663621] 3.2.0-next-20120113 #56 Not tainted
+Jan 15 01:54:08 callisto kernel: [21030.663623] ---------------------------------------------
+Jan 15 01:54:08 callisto kernel: [21030.663626] smoltSendProfil/7213 is trying to acquire lock:
+Jan 15 01:54:08 callisto kernel: [21030.663628]  (&sbi->pipe_mutex){+.+.+.}, at: [<ffffffff812978fd>] autofs4_write+0xad/0x160 [fs/autofs4/waitq.c:81]
+Jan 15 01:54:08 callisto kernel: [21030.663640] 
+Jan 15 01:54:08 callisto kernel: [21030.663641] but task is already holding lock:
+Jan 15 01:54:08 callisto kernel: [21030.663643]  (&sbi->pipe_mutex){+.+.+.}, at: [<ffffffff812978b5>] autofs4_write+0x65/0x160 [fs/autofs4/waitq.c:74]
+Jan 15 01:54:08 callisto kernel: [21030.663650] 
+Jan 15 01:54:08 callisto kernel: [21030.663650] other info that might help us debug this:
+Jan 15 01:54:08 callisto kernel: [21030.663652]  Possible unsafe locking scenario:
+Jan 15 01:54:08 callisto kernel: [21030.663653] 
+Jan 15 01:54:08 callisto kernel: [21030.663655]        CPU0
+Jan 15 01:54:08 callisto kernel: [21030.663657]        ----
+Jan 15 01:54:08 callisto kernel: [21030.663658]   lock(&sbi->pipe_mutex);
+Jan 15 01:54:08 callisto kernel: [21030.663661]   lock(&sbi->pipe_mutex);
+Jan 15 01:54:08 callisto kernel: [21030.663665] 
+Jan 15 01:54:08 callisto kernel: [21030.663665]  *** DEADLOCK ***
+Jan 15 01:54:08 callisto kernel: [21030.663666] 
+Jan 15 01:54:08 callisto kernel: [21030.663668]  May be due to missing lock nesting notation
+Jan 15 01:54:08 callisto kernel: [21030.663669] 
+Jan 15 01:54:08 callisto kernel: [21030.663671] 1 lock held by smoltSendProfil/7213:
+Jan 15 01:54:08 callisto kernel: [21030.663673]  #0:  (&sbi->pipe_mutex){+.+.+.}, at: [<ffffffff812978b5>] autofs4_write+0x65/0x160
+Jan 15 01:54:08 callisto kernel: [21030.663681] 
+Jan 15 01:54:08 callisto kernel: [21030.663681] stack backtrace:
+Jan 15 01:54:08 callisto kernel: [21030.663685] Pid: 7213, comm: smoltSendProfil Not tainted 3.2.0-next-20120113 #56
+Jan 15 01:54:08 callisto kernel: [21030.663687] Call Trace:
+Jan 15 01:54:08 callisto kernel: [21030.663693]  [<ffffffff81089c61>] print_deadlock_bug+0xf1/0x100
+Jan 15 01:54:08 callisto kernel: [21030.663697]  [<ffffffff8108b5e6>] validate_chain+0x646/0x780
+Jan 15 01:54:08 callisto kernel: [21030.663702]  [<ffffffff8108d442>] __lock_acquire+0x392/0xa40
+Jan 15 01:54:08 callisto kernel: [21030.663706]  [<ffffffff8108e1ce>] lock_acquire+0x9e/0x1f0
+Jan 15 01:54:08 callisto kernel: [21030.663709]  [<ffffffff812978fd>] ? autofs4_write+0xad/0x160
+Jan 15 01:54:08 callisto kernel: [21030.663716]  [<ffffffff817b576b>] mutex_lock_nested+0x6b/0x350
+Jan 15 01:54:08 callisto kernel: [21030.663720]  [<ffffffff812978fd>] ? autofs4_write+0xad/0x160
+Jan 15 01:54:08 callisto kernel: [21030.663723]  [<ffffffff812978fd>] autofs4_write+0xad/0x160
+Jan 15 01:54:08 callisto kernel: [21030.663727]  [<ffffffff81297dfc>] autofs4_notify_daemon+0xfc/0x1d0
+Jan 15 01:54:08 callisto kernel: [21030.663731]  [<ffffffff812983bf>] autofs4_wait+0x4ef/0x610
+Jan 15 01:54:08 callisto kernel: [21030.663735]  [<ffffffff81296812>] ? autofs4_d_automount+0x182/0x2b0
+Jan 15 01:54:08 callisto kernel: [21030.663739]  [<ffffffff8108df2b>] ? __lock_release+0x6b/0xe0
+Jan 15 01:54:08 callisto kernel: [21030.663742]  [<ffffffff81296812>] ? autofs4_d_automount+0x182/0x2b0
+Jan 15 01:54:08 callisto kernel: [21030.663746]  [<ffffffff81296416>] autofs4_mount_wait+0x36/0x50
+Jan 15 01:54:08 callisto kernel: [21030.663750]  [<ffffffff8129681a>] autofs4_d_automount+0x18a/0x2b0
+Jan 15 01:54:08 callisto kernel: [21030.663756]  [<ffffffff817a54ef>] follow_automount+0x85/0x103
+Jan 15 01:54:08 callisto kernel: [21030.663761]  [<ffffffff81148952>] follow_managed+0xd2/0x130
+Jan 15 01:54:08 callisto kernel: [21030.663765]  [<ffffffff8114adc1>] do_lookup+0x131/0x310
+Jan 15 01:54:08 callisto kernel: [21030.663769]  [<ffffffff8114c714>] path_lookupat+0x114/0x770
+Jan 15 01:54:08 callisto kernel: [21030.663774]  [<ffffffff81112ae0>] ? might_fault+0xa0/0xb0
+Jan 15 01:54:08 callisto kernel: [21030.663777]  [<ffffffff81112a97>] ? might_fault+0x57/0xb0
+Jan 15 01:54:08 callisto kernel: [21030.663782]  [<ffffffff8114cd9c>] do_path_lookup+0x2c/0xc0
+Jan 15 01:54:08 callisto kernel: [21030.663785]  [<ffffffff8114d874>] user_path_at_empty+0x54/0xa0
+Jan 15 01:54:08 callisto kernel: [21030.663789]  [<ffffffff81112ae0>] ? might_fault+0xa0/0xb0
+Jan 15 01:54:08 callisto kernel: [21030.663792]  [<ffffffff81112a97>] ? might_fault+0x57/0xb0
+Jan 15 01:54:08 callisto kernel: [21030.663796]  [<ffffffff81141d23>] ? cp_new_stat+0xf3/0x110
+Jan 15 01:54:08 callisto kernel: [21030.663800]  [<ffffffff8114d8cc>] user_path_at+0xc/0x10
+Jan 15 01:54:08 callisto kernel: [21030.663805]  [<ffffffff8116f942>] user_statfs+0x22/0x50
+Jan 15 01:54:08 callisto kernel: [21030.663809]  [<ffffffff817c1747>] ? sysret_check+0x1b/0x56
+Jan 15 01:54:08 callisto kernel: [21030.663812]  [<ffffffff8116f9db>] sys_statfs+0x1b/0x40
+Jan 15 01:54:08 callisto kernel: [21030.663816]  [<ffffffff8108c087>] ? trace_hardirqs_on_caller+0x77/0x110
+Jan 15 01:54:08 callisto kernel: [21030.663821]  [<ffffffff810b97ae>] ? audit_syscall_entry+0x30e/0x330
+Jan 15 01:54:08 callisto kernel: [21030.663826]  [<ffffffff8139736e>] ? trace_hardirqs_on_thunk+0x3a/0x3f
+Jan 15 01:54:08 callisto kernel: [21030.663830]  [<ffffffff817c1722>] system_call_fastpath+0x16/0x1b
