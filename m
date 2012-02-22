@@ -1,151 +1,220 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: compat: autofs v5 packet size ambiguity - update
-Date: Tue, 21 Feb 2012 20:56:36 -0800
-Message-ID: <CA+55aFyh1NmBt0LwR3+iD6B-Xa8wAs-nGJ0MBouPhTzWUi8W5g@mail.gmail.com>
+Date: Wed, 22 Feb 2012 13:43:48 +0800
+Message-ID: <1329889428.2193.45.camel@perseus.themaw.net>
 References: <CA+55aFzhS69QSoN1j+Z2md116u+3OfniAoE0QMo6xyBjDyjbEw@mail.gmail.com>
- <20120221.221609.218135609185671883.davem@davemloft.net> <CA+55aFwvmZGDzO_8wwYfH8HsLE=qCmLkJfeMyCe4PVvOYbDMHQ@mail.gmail.com>
- <CA+55aFzv3X3yW8WZGMZO+aKa=qWi2w8=zn2DP-Q3jRry8Ermyw@mail.gmail.com>
+	 <20120221.221609.218135609185671883.davem@davemloft.net>
+	 <CA+55aFwvmZGDzO_8wwYfH8HsLE=qCmLkJfeMyCe4PVvOYbDMHQ@mail.gmail.com>
+	 <CA+55aFzv3X3yW8WZGMZO+aKa=qWi2w8=zn2DP-Q3jRry8Ermyw@mail.gmail.com>
+	 <CA+55aFyh1NmBt0LwR3+iD6B-Xa8wAs-nGJ0MBouPhTzWUi8W5g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=0016e6d625845a195204b9865baa
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=gamma;
-        h=mime-version:sender:in-reply-to:references:from:date
-         :x-google-sender-auth:message-id:subject:to:cc:content-type;
-        bh=VolFUYGn5Gq2fwfx8UkX9EissXO4m/nu4jGcMM5zGCo=;
-        b=M4kufyMCCbpM22lnAcixz14BItqrtZjBvHnC4V2V2DPN+gUrAhD4psI87PGhVYwXII
-         vKqCfIGejbNawA1/Pxmrc22mYIp8w6pN3ql3MLO30V0nUx1rYgXQ31qYoAuKz++7VsMV
-         2DEcTAq73RNIBGls9dhy6FAhg0M3II6aoHSeA=
-In-Reply-To: <CA+55aFzv3X3yW8WZGMZO+aKa=qWi2w8=zn2DP-Q3jRry8Ermyw@mail.gmail.com>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
+	message-id:subject:from:to:cc:date:in-reply-to:references
+	:content-type:content-transfer-encoding:mime-version; s=mesmtp;
+	 bh=N2IoF7vUs5swG13o6EIHRjBmkZM=; b=kY8Ozsf11KxjQ7IXtYuxkA4m4TAi
+	vzbox9chDLwGtYeSNO8N4XBFkGacaULbgdS6tFOkO1CdeKL4jhBj2ZaPy4stRKjZ
+	Tsum/qCfg2/ECjeEfpEqMzI9sUuBzyZno2WjljjW6s6Aj954xIKKg2oV0tGuJMqZ
+	IbsjSrsHBrEG7oo=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=message-id:subject:from:to:cc:date
+	:in-reply-to:references:content-type:content-transfer-encoding
+	:mime-version; s=smtpout; bh=N2IoF7vUs5swG13o6EIHRjBmkZM=; b=mGe
+	02ZOL7x4CFLFKhAfNWBiTvwLYnG/k6+SMdSN2uLpBn4Y068Gr962iq7kbtJYFt1L
+	uMwY/etW9k1u9IW1HqH6s5gD3VkAUJ2A1YKjK1wYR/ywbuTKlVtq+iyK863gLF0w
+	mwyhOae7CydFSZOzuWe7xr0jZDzyvnUnRKQwVZD0=
+In-Reply-To: <CA+55aFyh1NmBt0LwR3+iD6B-Xa8wAs-nGJ0MBouPhTzWUi8W5g@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-To: David Miller <davem@davemloft.net>, Ian Kent <raven@themaw.net>
-Cc: linux-kernel@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, autofs@vger.kernel.org, Thomas Meyer <thomas@m3y3r.de>, Al Viro <viro@zeniv.linux.org.uk>
+Content-Type: text/plain; charset="us-ascii"
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: David Miller <davem@davemloft.net>, linux-kernel@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, autofs@vger.kernel.org, Thomas Meyer <thomas@m3y3r.de>, Al Viro <viro@zeniv.linux.org.uk>
 
---0016e6d625845a195204b9865baa
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Tue, 2012-02-21 at 20:56 -0800, Linus Torvalds wrote:
+> On Tue, Feb 21, 2012 at 7:47 PM, Linus Torvalds
+> <torvalds@linux-foundation.org> wrote:
+> >
+> > And then it does a AUTOFS_IOC_PROTOVER ioctl to see what the protocol
+> > version is.
+> >
+> > So we could just decide that
+> >
+> >  (a) we add a mount option for the packet size (or just "v6" - which
+> > would be "v5 with a fixed packet size")
+> >
+> >  (b) in the absence of an explicit mount option, we look at
+> > is_compat_task() for the first AUTOFS_IOC_PROTOVER ioctl we get.
+> 
+> Ok, so here's a patch that does that. Well, it doesn't do that (a)
+> part, but it does the auto-detection of whether the daemon is a compat
+> process or not.
+> 
+> THIS IS UNTESTED. Thomas - could you test this in your environment? I
+> added your "Tested-by:", but that's really for the previous patch that
+> tested is_compat_task() in the wrong context.
+> 
+>                         Linus
 
-On Tue, Feb 21, 2012 at 7:47 PM, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
->
-> And then it does a AUTOFS_IOC_PROTOVER ioctl to see what the protocol
-> version is.
->
-> So we could just decide that
->
-> =A0(a) we add a mount option for the packet size (or just "v6" - which
-> would be "v5 with a fixed packet size")
->
-> =A0(b) in the absence of an explicit mount option, we look at
-> is_compat_task() for the first AUTOFS_IOC_PROTOVER ioctl we get.
+How about .... ummm .. I haven't updated the patch description in case
+this is wrong, just put together what I think should work ... TOTALLY
+UNTESTED also.
 
-Ok, so here's a patch that does that. Well, it doesn't do that (a)
-part, but it does the auto-detection of whether the daemon is a compat
-process or not.
+autofs: work around unhappy compat problem on x86-64
 
-THIS IS UNTESTED. Thomas - could you test this in your environment? I
-added your "Tested-by:", but that's really for the previous patch that
-tested is_compat_task() in the wrong context.
+From: Ian Kent <raven@themaw.net>
 
-                        Linus
+When the autofs protocol version 5 packet type was added in commit
+5c0a32fc2cd0 ("autofs4: add new packet type for v5 communications"), it
+obvously tried quite hard to be word-size agnostic, and uses explicitly
+sized fields that are all correctly aligned.
 
---0016e6d625845a195204b9865baa
-Content-Type: text/x-patch; charset=US-ASCII; 
-	name="0001-autofs-work-around-unhappy-compat-problem-on-x86-64.patch"
-Content-Disposition: attachment; 
-	filename="0001-autofs-work-around-unhappy-compat-problem-on-x86-64.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gyxw4bkr0
+However, with the final "char name[NAME_MAX+1]" array at the end, the
+actual size of the structure ends up being not very well defined:
+because the struct isn't marked 'packed', doing a "sizeof()" on it will
+align the size of the struct up to the biggest alignment of the members
+it has.
 
-RnJvbSA0Njk1OWY2MjM3ZjRkMjEzMWVjNThjNDg2ODAyMmUzNGYyMDcxNWI4IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBMaW51cyBUb3J2YWxkcyA8dG9ydmFsZHNAbGludXgtZm91bmRh
-dGlvbi5vcmc+CkRhdGU6IFR1ZSwgMjEgRmViIDIwMTIgMTc6MzY6MDYgLTA4MDAKU3ViamVjdDog
-W1BBVENIXSBhdXRvZnM6IHdvcmsgYXJvdW5kIHVuaGFwcHkgY29tcGF0IHByb2JsZW0gb24geDg2
-LTY0CgpXaGVuIHRoZSBhdXRvZnMgcHJvdG9jb2wgdmVyc2lvbiA1IHBhY2tldCB0eXBlIHdhcyBh
-ZGRlZCBpbiBjb21taXQKNWMwYTMyZmMyY2QwICgiYXV0b2ZzNDogYWRkIG5ldyBwYWNrZXQgdHlw
-ZSBmb3IgdjUgY29tbXVuaWNhdGlvbnMiKSwgaXQKb2J2b3VzbHkgdHJpZWQgcXVpdGUgaGFyZCB0
-byBiZSB3b3JkLXNpemUgYWdub3N0aWMsIGFuZCB1c2VzIGV4cGxpY2l0bHkKc2l6ZWQgZmllbGRz
-IHRoYXQgYXJlIGFsbCBjb3JyZWN0bHkgYWxpZ25lZC4KCkhvd2V2ZXIsIHdpdGggdGhlIGZpbmFs
-ICJjaGFyIG5hbWVbTkFNRV9NQVgrMV0iIGFycmF5IGF0IHRoZSBlbmQsIHRoZQphY3R1YWwgc2l6
-ZSBvZiB0aGUgc3RydWN0dXJlIGVuZHMgdXAgYmVpbmcgbm90IHZlcnkgd2VsbCBkZWZpbmVkOgpi
-ZWNhdXNlIHRoZSBzdHJ1Y3QgaXNuJ3QgbWFya2VkICdwYWNrZWQnLCBkb2luZyBhICJzaXplb2Yo
-KSIgb24gaXQgd2lsbAphbGlnbiB0aGUgc2l6ZSBvZiB0aGUgc3RydWN0IHVwIHRvIHRoZSBiaWdn
-ZXN0IGFsaWdubWVudCBvZiB0aGUgbWVtYmVycwppdCBoYXMuCgpBbmQgZGVzcGl0ZSBhbGwgdGhl
-IG1lbWJlcnMgYmVpbmcgdGhlIHNhbWUsIHRoZSBhbGlnbm1lbnQgb2YgdGhlbSBpcwpkaWZmZXJl
-bnQ6IGEgIl9fdTY0IiBoYXMgNC1ieXRlIGFsaWdubWVudCBvbiB4ODYtMzIsIGJ1dCBuYXRpdmUg
-OC1ieXRlCmFsaWdubWVudCBvbiB4ODYtNjQuICBBbmQgd2hpbGUgJ05BTUVfTUFYKzEnIGVuZHMg
-dXAgYmVpbmcgYSBuaWNlIHJvdW5kCm51bWJlciAoMjU2KSwgdGhlIG5hbWVbXSBhcnJheSBzdGFy
-dHMgb3V0IGEgNC1ieXRlIGFsaWduZWQuCgpFbmQgcmVzdWx0OiB0aGUgInBhY2tlZCIgc2l6ZSBv
-ZiB0aGUgc3RydWN0dXJlIGlzIDMwMCBieXRlczogNC1ieXRlLCBidXQKbm90IDgtYnl0ZSBhbGln
-bmVkLgoKQXMgYSByZXN1bHQsIGRlc3BpdGUgYWxsIHRoZSBmaWVsZHMgYmVpbmcgaW4gdGhlIHNh
-bWUgcGxhY2Ugb24gYWxsCmFyY2hpdGVjdHVyZXMsIHNpemVvZigpIHdpbGwgcm91bmQgdXAgdGhh
-dCBzaXplIHRvIDMwNCBieXRlcyBvbgphcmNoaXRlY3R1cmVzIHRoYXQgaGF2ZSA4LWJ5dGUgYWxp
-Z25tZW50IGZvciB1NjQuCgpOb3RlIHRoYXQgdGhpcyBpcyAqbm90KiBhIHByb2JsZW0gZm9yIDMy
-LWJpdCBjb21wYXQgbW9kZSBvbiBQT1dFUiwgc2luY2UKdGhlcmUgX191NjQgaXMgOC1ieXRlIGFs
-aWduZWQgZXZlbiBpbiAzMi1iaXQgbW9kZS4gIEJ1dCBvbiB4ODYsIDMyLWJpdAphbmQgNjQtYml0
-IGFsaWdubWVudCBpcyBkaWZmZXJlbnQgZm9yIDY0LWJpdCBlbnRpdGllcywgYW5kIGFzIGEgcmVz
-dWx0CnRoZSBzdHJ1Y3R1cmUgdGhhdCBoYXMgZXhhY3RseSB0aGUgc2FtZSBsYXlvdXQgaGFzIGRp
-ZmZlcmVudCBzaXplcy4KClNvIG9uIHg4Ni02NCwgYnV0IG5vIG90aGVyIGFyY2hpdGVjdHVyZSwg
-d2Ugd2lsbCBqdXN0IHN1YnRyYWN0IDQgZnJvbQp0aGUgc2l6ZSBvZiB0aGUgc3RydWN0dXJlIHdo
-ZW4gcnVubmluZyBpbiBhIGNvbXBhdCB0YXNrLiAgVGhhdCB3YXkgd2UKd2lsbCB3cml0ZSB0aGUg
-cHJvcGVybHkgc2l6ZWQgcGFja2V0IHRoYXQgdXNlciBtb2RlIGV4cGVjdHMuCgpOb3QgcHJldHR5
-LiAgU2FkbHksIHRoaXMgdmVyeSBzdWJ0bGUsIGFuZCB1bm5lY2Vzc2FyeSwgc2l6ZSBkaWZmZXJl
-bmNlCmhhcyBiZWVuIGVuY29kZWQgaW4gdXNlciBzcGFjZSB0aGF0IHdhbnRzIHRvIHJlYWQgcGFj
-a2V0cyBvZiAqZXhhY3RseSoKdGhlIHJpZ2h0IHNpemUsIGFuZCB3aWxsIHJlZnVzZSB0byB0b3Vj
-aCBhbnl0aGluZyBlbHNlLgoKUmVwb3J0ZWQtYW5kLXRlc3RlZC1ieTogVGhvbWFzIE1leWVyIDx0
-aG9tYXNAbTN5M3IuZGU+CkNjOiBJYW4gS2VudCA8cmF2ZW5AdGhlbWF3Lm5ldD4KU2lnbmVkLW9m
-Zi1ieTogTGludXMgVG9ydmFsZHMgPHRvcnZhbGRzQGxpbnV4LWZvdW5kYXRpb24ub3JnPgotLS0K
-IGZzL2F1dG9mczQvYXV0b2ZzX2kuaCB8ICAgIDEgKwogZnMvYXV0b2ZzNC9pbm9kZS5jICAgIHwg
-ICAgMSArCiBmcy9hdXRvZnM0L3Jvb3QuYyAgICAgfCAgICAyICsrCiBmcy9hdXRvZnM0L3dhaXRx
-LmMgICAgfCAgIDIxICsrKysrKysrKysrKysrKysrKystLQogNCBmaWxlcyBjaGFuZ2VkLCAyMyBp
-bnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2ZzL2F1dG9mczQvYXV0
-b2ZzX2kuaCBiL2ZzL2F1dG9mczQvYXV0b2ZzX2kuaAppbmRleCBkOGQ4ZTdiYTZhMWUuLmViMWNj
-OTJjZDY3ZCAxMDA2NDQKLS0tIGEvZnMvYXV0b2ZzNC9hdXRvZnNfaS5oCisrKyBiL2ZzL2F1dG9m
-czQvYXV0b2ZzX2kuaApAQCAtMTEwLDYgKzExMCw3IEBAIHN0cnVjdCBhdXRvZnNfc2JfaW5mbyB7
-CiAJaW50IHN1Yl92ZXJzaW9uOwogCWludCBtaW5fcHJvdG87CiAJaW50IG1heF9wcm90bzsKKwlp
-bnQgY29tcGF0X2RhZW1vbjsKIAl1bnNpZ25lZCBsb25nIGV4cF90aW1lb3V0OwogCXVuc2lnbmVk
-IGludCB0eXBlOwogCWludCByZWdob3N0X2VuYWJsZWQ7CmRpZmYgLS1naXQgYS9mcy9hdXRvZnM0
-L2lub2RlLmMgYi9mcy9hdXRvZnM0L2lub2RlLmMKaW5kZXggZTE2OTgwYjAwYjhkLi4yOTIwYmJk
-ZWJkZjMgMTAwNjQ0Ci0tLSBhL2ZzL2F1dG9mczQvaW5vZGUuYworKysgYi9mcy9hdXRvZnM0L2lu
-b2RlLmMKQEAgLTIyNCw2ICsyMjQsNyBAQCBpbnQgYXV0b2ZzNF9maWxsX3N1cGVyKHN0cnVjdCBz
-dXBlcl9ibG9jayAqcywgdm9pZCAqZGF0YSwgaW50IHNpbGVudCkKIAlzZXRfYXV0b2ZzX3R5cGVf
-aW5kaXJlY3QoJnNiaS0+dHlwZSk7CiAJc2JpLT5taW5fcHJvdG8gPSAwOwogCXNiaS0+bWF4X3By
-b3RvID0gMDsKKwlzYmktPmNvbXBhdF9kYWVtb24gPSAtMTsJLyogdW5rbm93biAqLwogCW11dGV4
-X2luaXQoJnNiaS0+d3FfbXV0ZXgpOwogCW11dGV4X2luaXQoJnNiaS0+cGlwZV9tdXRleCk7CiAJ
-c3Bpbl9sb2NrX2luaXQoJnNiaS0+ZnNfbG9jayk7CmRpZmYgLS1naXQgYS9mcy9hdXRvZnM0L3Jv
-b3QuYyBiL2ZzL2F1dG9mczQvcm9vdC5jCmluZGV4IDc1ZTVmMWM4ZTAyOC4uNjk4MzI5ZTZlYTQ2
-IDEwMDY0NAotLS0gYS9mcy9hdXRvZnM0L3Jvb3QuYworKysgYi9mcy9hdXRvZnM0L3Jvb3QuYwpA
-QCAtNzc5LDYgKzc3OSw4IEBAIHN0YXRpYyBpbmxpbmUgaW50IGF1dG9mczRfZ2V0X3NldF90aW1l
-b3V0KHN0cnVjdCBhdXRvZnNfc2JfaW5mbyAqc2JpLAogLyogUmV0dXJuIHByb3RvY29sIHZlcnNp
-b24gKi8KIHN0YXRpYyBpbmxpbmUgaW50IGF1dG9mczRfZ2V0X3Byb3RvdmVyKHN0cnVjdCBhdXRv
-ZnNfc2JfaW5mbyAqc2JpLCBpbnQgX191c2VyICpwKQogeworCWlmIChzYmktPmNvbXBhdF9kYWVt
-b24gPCAwKQorCQlzYmktPmNvbXBhdF9kYWVtb24gPSBpc19jb21wYXRfdGFzaygpOwogCXJldHVy
-biBwdXRfdXNlcihzYmktPnZlcnNpb24sIHApOwogfQogCmRpZmYgLS1naXQgYS9mcy9hdXRvZnM0
-L3dhaXRxLmMgYi9mcy9hdXRvZnM0L3dhaXRxLmMKaW5kZXggZGE4ODc2ZDM4YTdiLi5mOTMyZWIx
-YWFiMDUgMTAwNjQ0Ci0tLSBhL2ZzL2F1dG9mczQvd2FpdHEuYworKysgYi9mcy9hdXRvZnM0L3dh
-aXRxLmMKQEAgLTE1LDYgKzE1LDcgQEAKICNpbmNsdWRlIDxsaW51eC90aW1lLmg+CiAjaW5jbHVk
-ZSA8bGludXgvc2lnbmFsLmg+CiAjaW5jbHVkZSA8bGludXgvZmlsZS5oPgorI2luY2x1ZGUgPGxp
-bnV4L2NvbXBhdC5oPgogI2luY2x1ZGUgImF1dG9mc19pLmgiCiAKIC8qIFdlIG1ha2UgdGhpcyBh
-IHN0YXRpYyB2YXJpYWJsZSByYXRoZXIgdGhhbiBhIHBhcnQgb2YgdGhlIHN1cGVyYmxvY2s7IGl0
-CkBAIC05MSw2ICs5MiwyMyBAQCBzdGF0aWMgaW50IGF1dG9mczRfd3JpdGUoc3RydWN0IGF1dG9m
-c19zYl9pbmZvICpzYmksCiAKIAlyZXR1cm4gKGJ5dGVzID4gMCk7CiB9CisKKy8qCisgKiBUaGUg
-YXV0b2ZzX3Y1IHBhY2tldCB3YXMgbWlzZGVzaWduZWQuCisgKgorICogVGhlIHBhY2tldHMgYXJl
-IGlkZW50aWNhbCBvbiB4ODYtMzIgYW5kIHg4Ni02NCwgYnV0IGhhdmUgZGlmZmVyZW50CisgKiBh
-bGlnbm1lbnQuIFdoaWNoIG1lYW5zIHRoYXQgJ3NpemVvZigpJyB3aWxsIGdpdmUgZGlmZmVyZW50
-IHJlc3VsdHMuCisgKiBGaXggaXQgdXAgZm9yIHRoZSBjYXNlIG9mIHJ1bm5pbmcgMzItYml0IHVz
-ZXIgbW9kZSBvbiBhIDY0LWJpdCBrZXJuZWwuCisgKi8KK3N0YXRpYyBub2lubGluZSBzaXplX3Qg
-YXV0b2ZzX3Y1X3BhY2tldF9zaXplKHN0cnVjdCBhdXRvZnNfc2JfaW5mbyAqc2JpKQoreworCXNp
-emVfdCBwa3RzeiA9IHNpemVvZihzdHJ1Y3QgYXV0b2ZzX3Y1X3BhY2tldCk7CisjaWYgZGVmaW5l
-ZChDT05GSUdfWDg2XzY0KSAmJiBkZWZpbmVkKENPTkZJR19DT01QQVQpCisJaWYgKHNiaS0+Y29t
-cGF0X2RhZW1vbiA+IDApCisJCXBrdHN6IC09IDQ7CisjZW5kaWYKKwlyZXR1cm4gcGt0c3o7Cit9
-CiAJCiBzdGF0aWMgdm9pZCBhdXRvZnM0X25vdGlmeV9kYWVtb24oc3RydWN0IGF1dG9mc19zYl9p
-bmZvICpzYmksCiAJCQkJIHN0cnVjdCBhdXRvZnNfd2FpdF9xdWV1ZSAqd3EsCkBAIC0xNTUsOCAr
-MTczLDcgQEAgc3RhdGljIHZvaWQgYXV0b2ZzNF9ub3RpZnlfZGFlbW9uKHN0cnVjdCBhdXRvZnNf
-c2JfaW5mbyAqc2JpLAogCXsKIAkJc3RydWN0IGF1dG9mc192NV9wYWNrZXQgKnBhY2tldCA9ICZw
-a3QudjVfcGt0LnY1X3BhY2tldDsKIAotCQlwa3RzeiA9IHNpemVvZigqcGFja2V0KTsKLQorCQlw
-a3RzeiA9IGF1dG9mc192NV9wYWNrZXRfc2l6ZShzYmkpOwogCQlwYWNrZXQtPndhaXRfcXVldWVf
-dG9rZW4gPSB3cS0+d2FpdF9xdWV1ZV90b2tlbjsKIAkJcGFja2V0LT5sZW4gPSB3cS0+bmFtZS5s
-ZW47CiAJCW1lbWNweShwYWNrZXQtPm5hbWUsIHdxLT5uYW1lLm5hbWUsIHdxLT5uYW1lLmxlbik7
-Ci0tIAoxLjcuOS4xODguZzEyNzY2LmRpcnR5Cgo=
---0016e6d625845a195204b9865baa--
+And despite all the members being the same, the alignment of them is
+different: a "__u64" has 4-byte alignment on x86-32, but native 8-byte
+alignment on x86-64.  And while 'NAME_MAX+1' ends up being a nice round
+number (256), the name[] array starts out a 4-byte aligned.
+
+End result: the "packed" size of the structure is 300 bytes: 4-byte, but
+not 8-byte aligned.
+
+As a result, despite all the fields being in the same place on all
+architectures, sizeof() will round up that size to 304 bytes on
+architectures that have 8-byte alignment for u64.
+
+Note that this is *not* a problem for 32-bit compat mode on POWER, since
+there __u64 is 8-byte aligned even in 32-bit mode.  But on x86, 32-bit
+and 64-bit alignment is different for 64-bit entities, and as a result
+the structure that has exactly the same layout has different sizes.
+
+So on x86-64, but no other architecture, we will just subtract 4 from
+the size of the structure when running in a compat task.  That way we
+will write the properly sized packet that user mode expects.
+
+Not pretty.  Sadly, this very subtle, and unnecessary, size difference
+has been encoded in user space that wants to read packets of *exactly*
+the right size, and will refuse to touch anything else.
+
+Reported-and-tested-by: Thomas Meyer <thomas@m3y3r.de>
+Cc: Ian Kent <raven@themaw.net>
+---
+
+ fs/autofs4/autofs_i.h  |    1 +
+ fs/autofs4/dev-ioctl.c |    3 +++
+ fs/autofs4/inode.c     |    1 +
+ fs/autofs4/root.c      |    8 ++++++++
+ fs/autofs4/waitq.c     |   23 ++++++++++++++++++++---
+ 5 files changed, 33 insertions(+), 3 deletions(-)
+
+
+diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
+index d8d8e7b..eb1cc92 100644
+--- a/fs/autofs4/autofs_i.h
++++ b/fs/autofs4/autofs_i.h
+@@ -110,6 +110,7 @@ struct autofs_sb_info {
+ 	int sub_version;
+ 	int min_proto;
+ 	int max_proto;
++	int compat_daemon;
+ 	unsigned long exp_timeout;
+ 	unsigned int type;
+ 	int reghost_enabled;
+diff --git a/fs/autofs4/dev-ioctl.c b/fs/autofs4/dev-ioctl.c
+index 76741d8..868fd57 100644
+--- a/fs/autofs4/dev-ioctl.c
++++ b/fs/autofs4/dev-ioctl.c
+@@ -265,6 +265,9 @@ static int autofs_dev_ioctl_open_mountpoint(const char *name, dev_t devid)
+ 		}
+ 
+ 		autofs_dev_ioctl_fd_install(fd, filp);
++
++		if (sbi->compat_daemon < 0)
++			sbi->compat_daemon = is_compat_task();
+ 	}
+ 
+ 	return fd;
+diff --git a/fs/autofs4/inode.c b/fs/autofs4/inode.c
+index e16980b..2920bbd 100644
+--- a/fs/autofs4/inode.c
++++ b/fs/autofs4/inode.c
+@@ -224,6 +224,7 @@ int autofs4_fill_super(struct super_block *s, void *data, int silent)
+ 	set_autofs_type_indirect(&sbi->type);
+ 	sbi->min_proto = 0;
+ 	sbi->max_proto = 0;
++	sbi->compat_daemon = -1;	/* unknown */
+ 	mutex_init(&sbi->wq_mutex);
+ 	mutex_init(&sbi->pipe_mutex);
+ 	spin_lock_init(&sbi->fs_lock);
+diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
+index 75e5f1c..9c620bf 100644
+--- a/fs/autofs4/root.c
++++ b/fs/autofs4/root.c
+@@ -71,6 +71,14 @@ const struct dentry_operations autofs4_dentry_operations = {
+ 	.d_release	= autofs4_dentry_release,
+ };
+ 
++static int autofs4_root_dir_open(struct inode *inode, struct file *file)
++{
++	struct autofs_sb_info *sbi= autofs4_sbi(file->f_path.dentry->d_sb);
++	if (sbi->compat_daemon < 0)
++		sbi->compat_daemon = is_compat_task();
++	return dcache_dir_open(inode, file);
++}
++
+ static void autofs4_add_active(struct dentry *dentry)
+ {
+ 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
+diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
+index da8876d..8ec8507 100644
+--- a/fs/autofs4/waitq.c
++++ b/fs/autofs4/waitq.c
+@@ -15,6 +15,7 @@
+ #include <linux/time.h>
+ #include <linux/signal.h>
+ #include <linux/file.h>
++#include <linux/compat.h>
+ #include "autofs_i.h"
+ 
+ /* We make this a static variable rather than a part of the superblock; it
+@@ -91,7 +92,24 @@ static int autofs4_write(struct autofs_sb_info *sbi,
+ 
+ 	return (bytes > 0);
+ }
+-	
++
++/*
++ * The autofs_v5 packet was misdesigned.
++ *
++ * The packets are identical on x86-32 and x86-64, but have different
++ * alignment. Which means that 'sizeof()' will give different results.
++ * Fix it up for the case of running 32-bit user mode on a 64-bit kernel.
++ */
++static noinline size_t autofs_v5_packet_size(struct autofs_sb_info *sbi)
++{
++	size_t pktsz = sizeof(struct autofs_v5_packet);
++#if defined(CONFIG_X86_64) && defined(CONFIG_COMPAT)
++	if (sbi->compat_daemon > 0)
++		pktsz -= 4;
++#endif
++	return pktsz;
++}
++
+ static void autofs4_notify_daemon(struct autofs_sb_info *sbi,
+ 				 struct autofs_wait_queue *wq,
+ 				 int type)
+@@ -155,8 +173,7 @@ static void autofs4_notify_daemon(struct autofs_sb_info *sbi,
+ 	{
+ 		struct autofs_v5_packet *packet = &pkt.v5_pkt.v5_packet;
+ 
+-		pktsz = sizeof(*packet);
+-
++		pktsz = autofs_v5_packet_size(sbi);
+ 		packet->wait_queue_token = wq->wait_queue_token;
+ 		packet->len = wq->name.len;
+ 		memcpy(packet->name, wq->name.name, wq->name.len);
+
