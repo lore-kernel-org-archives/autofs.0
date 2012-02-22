@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: compat: autofs v5 packet size ambiguity - update
-Date: Wed, 22 Feb 2012 17:32:19 +0800
-Message-ID: <1329903139.2193.66.camel@perseus.themaw.net>
+Date: Wed, 22 Feb 2012 20:15:27 +0800
+Message-ID: <1329912927.2193.68.camel@perseus.themaw.net>
 References: <CA+55aFzhS69QSoN1j+Z2md116u+3OfniAoE0QMo6xyBjDyjbEw@mail.gmail.com>
 	 <20120221.221609.218135609185671883.davem@davemloft.net>
 	 <CA+55aFwvmZGDzO_8wwYfH8HsLE=qCmLkJfeMyCe4PVvOYbDMHQ@mail.gmail.com>
@@ -10,57 +10,180 @@ References: <CA+55aFzhS69QSoN1j+Z2md116u+3OfniAoE0QMo6xyBjDyjbEw@mail.gmail.com>
 	 <1329889428.2193.45.camel@perseus.themaw.net>
 	 <1329890027.2193.48.camel@perseus.themaw.net>
 	 <1329890251.2193.50.camel@perseus.themaw.net>
+	 <1329903139.2193.66.camel@perseus.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
 	message-id:subject:from:to:cc:date:in-reply-to:references
 	:content-type:content-transfer-encoding:mime-version; s=mesmtp;
-	 bh=5wiHHCcunzV1XjXEBOP9Fo0MHtY=; b=r7l1Wr+pj7ZgoXrP7FrUhZhpi+QE
-	FnybLGwBZRiqwwi7F/NZaM1qE/9j0NmjcUQHvZWCmAXDEo3P9kiOBo916VEWcCKW
-	/EGRsLlpWfs5OASKg3k8JxV+gI1+Ms6wHaaid/OLYbR7o9MTSV7PM9r9WRW7zFVc
-	pACEw4sP3Xuua0w=
+	 bh=h1zgG/MM+Ga8mKiy4wIozEbs+Zo=; b=PxB7BFISpXH87j+SGi9NOJfh2Y60
+	ZGGSqnQmPbT4PjWznUbr5vD+6z99TdfmdtgH9Zqr5nderfGswyGaBfM19TnrM8pT
+	mm81DCTwr2teagL2bpKawlaa9ZHK1bimrSu1c5yLb/OQA8w579SgAbcNDUTm5eep
+	Kh52ysexgF5Grpc=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=message-id:subject:from:to:cc:date
 	:in-reply-to:references:content-type:content-transfer-encoding
-	:mime-version; s=smtpout; bh=5wiHHCcunzV1XjXEBOP9Fo0MHtY=; b=Saw
-	f/dZMu9EvlCKnLUAjlpRMKz1f6xVaESGNlDAsVQuJ16f2uqq1pQbVoi6y2ZALFZa
-	LTg/T8MoeG1McoL7joLRlKCdTap2p7meiRasdm5102qIlSKFIP+vop/ZfDsrnjHO
-	EYjrcFEkVCOsHZwSqa2WIe/s4fVXzkz0AZZRmQPw=
-In-Reply-To: <1329890251.2193.50.camel@perseus.themaw.net>
+	:mime-version; s=smtpout; bh=h1zgG/MM+Ga8mKiy4wIozEbs+Zo=; b=tsO
+	tzcrl3k/sxALHAuSnf16RNr+RrUC8uiL1W0Jfp+FOPDdbr8CDrHisRuBn81XRghb
+	6DAWjvSU10AXMQdiz8Fj1vuuYjKwd4nvCNbwyYRTYBKMcWwnmw+A8XoamIfOdxyr
+	R5kjQsQu2eOhU+eeW9ZC1Y+6/2MgVChfwu/U9MMA=
+In-Reply-To: <1329903139.2193.66.camel@perseus.themaw.net>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: David Miller <davem@davemloft.net>, linux-kernel@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, autofs@vger.kernel.org, Thomas Meyer <thomas@m3y3r.de>, Al Viro <viro@zeniv.linux.org.uk>
 
-On Wed, 2012-02-22 at 13:57 +0800, Ian Kent wrote:
-> On Wed, 2012-02-22 at 13:53 +0800, Ian Kent wrote:
-> > On Wed, 2012-02-22 at 13:43 +0800, Ian Kent wrote:
-> > > On Tue, 2012-02-21 at 20:56 -0800, Linus Torvalds wrote:
+On Wed, 2012-02-22 at 17:32 +0800, Ian Kent wrote:
+> On Wed, 2012-02-22 at 13:57 +0800, Ian Kent wrote:
+> > On Wed, 2012-02-22 at 13:53 +0800, Ian Kent wrote:
+> > > On Wed, 2012-02-22 at 13:43 +0800, Ian Kent wrote:
+> > > > On Tue, 2012-02-21 at 20:56 -0800, Linus Torvalds wrote:
+> > > 
+> > > Ahh ... forgot to set the file_operations structure member .. oops
+> > > 
+> > > >  
+> > > > +static int autofs4_root_dir_open(struct inode *inode, struct file *file)
+> > > > +{
+> > > > +	struct autofs_sb_info *sbi= autofs4_sbi(file->f_path.dentry->d_sb);
+> > > > +	if (sbi->compat_daemon < 0)
+> > > > +		sbi->compat_daemon = is_compat_task();
+> > > > +	return dcache_dir_open(inode, file);
+> > > > +}
+> > > > +
+> > > 
 > > 
-> > Ahh ... forgot to set the file_operations structure member .. oops
-> > 
-> > >  
-> > > +static int autofs4_root_dir_open(struct inode *inode, struct file *file)
-> > > +{
-> > > +	struct autofs_sb_info *sbi= autofs4_sbi(file->f_path.dentry->d_sb);
-> > > +	if (sbi->compat_daemon < 0)
-> > > +		sbi->compat_daemon = is_compat_task();
-> > > +	return dcache_dir_open(inode, file);
-> > > +}
-> > > +
-> > 
+> > Lets try that again.
 > 
-> Lets try that again.
+> Oh, DOH ... 
+> 
+> The process mounting the autofs mount is passing the pipe it will use
+> for communication via a mount option so we can do this right in
+> fill_super.
+> 
+> I'm out for a while, I'll update the patch when I'm back.
 
-Oh, DOH ... 
+autofs: work around unhappy compat problem on x86-64
 
-The process mounting the autofs mount is passing the pipe it will use
-for communication via a mount option so we can do this right in
-fill_super.
+From: Ian Kent <raven@themaw.net>
 
-I'm out for a while, I'll update the patch when I'm back.
+When the autofs protocol version 5 packet type was added in commit
+5c0a32fc2cd0 ("autofs4: add new packet type for v5 communications"), it
+obvously tried quite hard to be word-size agnostic, and uses explicitly
+sized fields that are all correctly aligned.
 
-Ian
+However, with the final "char name[NAME_MAX+1]" array at the end, the
+actual size of the structure ends up being not very well defined:
+because the struct isn't marked 'packed', doing a "sizeof()" on it will
+align the size of the struct up to the biggest alignment of the members
+it has.
+
+And despite all the members being the same, the alignment of them is
+different: a "__u64" has 4-byte alignment on x86-32, but native 8-byte
+alignment on x86-64.  And while 'NAME_MAX+1' ends up being a nice round
+number (256), the name[] array starts out a 4-byte aligned.
+
+End result: the "packed" size of the structure is 300 bytes: 4-byte, but
+not 8-byte aligned.
+
+As a result, despite all the fields being in the same place on all
+architectures, sizeof() will round up that size to 304 bytes on
+architectures that have 8-byte alignment for u64.
+
+Note that this is *not* a problem for 32-bit compat mode on POWER, since
+there __u64 is 8-byte aligned even in 32-bit mode.  But on x86, 32-bit
+and 64-bit alignment is different for 64-bit entities, and as a result
+the structure that has exactly the same layout has different sizes.
+
+So on x86-64, but no other architecture, we will just subtract 4 from
+the size of the structure when running in a compat task.  That way we
+will write the properly sized packet that user mode expects.
+
+Not pretty.  Sadly, this very subtle, and unnecessary, size difference
+has been encoded in user space that wants to read packets of *exactly*
+the right size, and will refuse to touch anything else.
+
+Reported-and-tested-by: Thomas Meyer <thomas@m3y3r.de>
+Cc: Ian Kent <raven@themaw.net>
+---
+
+ fs/autofs4/autofs_i.h |    1 +
+ fs/autofs4/inode.c    |    2 ++
+ fs/autofs4/waitq.c    |   22 +++++++++++++++++++---
+ 3 files changed, 22 insertions(+), 3 deletions(-)
+
+
+diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
+index d8d8e7b..eb1cc92 100644
+--- a/fs/autofs4/autofs_i.h
++++ b/fs/autofs4/autofs_i.h
+@@ -110,6 +110,7 @@ struct autofs_sb_info {
+ 	int sub_version;
+ 	int min_proto;
+ 	int max_proto;
++	int compat_daemon;
+ 	unsigned long exp_timeout;
+ 	unsigned int type;
+ 	int reghost_enabled;
+diff --git a/fs/autofs4/inode.c b/fs/autofs4/inode.c
+index e16980b..06858d9 100644
+--- a/fs/autofs4/inode.c
++++ b/fs/autofs4/inode.c
+@@ -19,6 +19,7 @@
+ #include <linux/parser.h>
+ #include <linux/bitops.h>
+ #include <linux/magic.h>
++#include <linux/compat.h>
+ #include "autofs_i.h"
+ #include <linux/module.h>
+ 
+@@ -224,6 +225,7 @@ int autofs4_fill_super(struct super_block *s, void *data, int silent)
+ 	set_autofs_type_indirect(&sbi->type);
+ 	sbi->min_proto = 0;
+ 	sbi->max_proto = 0;
++	sbi->compat_daemon = is_compat_task();
+ 	mutex_init(&sbi->wq_mutex);
+ 	mutex_init(&sbi->pipe_mutex);
+ 	spin_lock_init(&sbi->fs_lock);
+diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
+index da8876d..9c098db 100644
+--- a/fs/autofs4/waitq.c
++++ b/fs/autofs4/waitq.c
+@@ -91,7 +91,24 @@ static int autofs4_write(struct autofs_sb_info *sbi,
+ 
+ 	return (bytes > 0);
+ }
+-	
++
++/*
++ * The autofs_v5 packet was misdesigned.
++ *
++ * The packets are identical on x86-32 and x86-64, but have different
++ * alignment. Which means that 'sizeof()' will give different results.
++ * Fix it up for the case of running 32-bit user mode on a 64-bit kernel.
++ */
++static noinline size_t autofs_v5_packet_size(struct autofs_sb_info *sbi)
++{
++	size_t pktsz = sizeof(struct autofs_v5_packet);
++#if defined(CONFIG_X86_64) && defined(CONFIG_COMPAT)
++	if (sbi->compat_daemon > 0)
++		pktsz -= 4;
++#endif
++	return pktsz;
++}
++
+ static void autofs4_notify_daemon(struct autofs_sb_info *sbi,
+ 				 struct autofs_wait_queue *wq,
+ 				 int type)
+@@ -155,8 +172,7 @@ static void autofs4_notify_daemon(struct autofs_sb_info *sbi,
+ 	{
+ 		struct autofs_v5_packet *packet = &pkt.v5_pkt.v5_packet;
+ 
+-		pktsz = sizeof(*packet);
+-
++		pktsz = autofs_v5_packet_size(sbi);
+ 		packet->wait_queue_token = wq->wait_queue_token;
+ 		packet->len = wq->name.len;
+ 		memcpy(packet->name, wq->name.name, wq->name.len);
 
