@@ -1,72 +1,151 @@
-From: Ian Kent <raven@themaw.net>
+From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: compat: autofs v5 packet size ambiguity - update
-Date: Wed, 22 Feb 2012 12:20:10 +0800
-Message-ID: <1329884410.2193.29.camel@perseus.themaw.net>
+Date: Tue, 21 Feb 2012 20:56:36 -0800
+Message-ID: <CA+55aFyh1NmBt0LwR3+iD6B-Xa8wAs-nGJ0MBouPhTzWUi8W5g@mail.gmail.com>
 References: <CA+55aFzhS69QSoN1j+Z2md116u+3OfniAoE0QMo6xyBjDyjbEw@mail.gmail.com>
-	 <20120221.221609.218135609185671883.davem@davemloft.net>
-	 <CA+55aFwvmZGDzO_8wwYfH8HsLE=qCmLkJfeMyCe4PVvOYbDMHQ@mail.gmail.com>
-	 <CA+55aFzv3X3yW8WZGMZO+aKa=qWi2w8=zn2DP-Q3jRry8Ermyw@mail.gmail.com>
+ <20120221.221609.218135609185671883.davem@davemloft.net> <CA+55aFwvmZGDzO_8wwYfH8HsLE=qCmLkJfeMyCe4PVvOYbDMHQ@mail.gmail.com>
+ <CA+55aFzv3X3yW8WZGMZO+aKa=qWi2w8=zn2DP-Q3jRry8Ermyw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary=0016e6d625845a195204b9865baa
 Return-path: <linux-kernel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	message-id:subject:from:to:cc:date:in-reply-to:references
-	:content-type:content-transfer-encoding:mime-version; s=mesmtp;
-	 bh=wilAoddkqn4mXpBIg4UV5eRrlss=; b=oh6yD72jGjb5ZGooGX+rhY/bFbn6
-	EC1EyvflQ/miqtD+mKOYloHpbeEyzKhoczQLgqewRn1B4MJNv8pJiOb+qJy1srBb
-	opA9H8oAkVlDXfJVLz/UjZ70ApisdgV3lBaZL8sluElMpkkKVSOH5Pb2aLNFA5ra
-	zSIyO9twpCdXQK4=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=message-id:subject:from:to:cc:date
-	:in-reply-to:references:content-type:content-transfer-encoding
-	:mime-version; s=smtpout; bh=wilAoddkqn4mXpBIg4UV5eRrlss=; b=Wek
-	AfA7xS344VvlHpKkpQLROKqca3sBVQHYW2y6w5KJjA8KWELfrv6OfJEZ2iLgkBDB
-	8qSAoyq+4+3HI5hnii/6CFN6pZXO//7OJG/X6Or8XqMgQWfYN47AhiQwTrl+p4u7
-	cbomSJPqmJvFm51+vzGyQGZLuzEiVjb9KgvQiNbs=
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=gamma;
+        h=mime-version:sender:in-reply-to:references:from:date
+         :x-google-sender-auth:message-id:subject:to:cc:content-type;
+        bh=VolFUYGn5Gq2fwfx8UkX9EissXO4m/nu4jGcMM5zGCo=;
+        b=M4kufyMCCbpM22lnAcixz14BItqrtZjBvHnC4V2V2DPN+gUrAhD4psI87PGhVYwXII
+         vKqCfIGejbNawA1/Pxmrc22mYIp8w6pN3ql3MLO30V0nUx1rYgXQ31qYoAuKz++7VsMV
+         2DEcTAq73RNIBGls9dhy6FAhg0M3II6aoHSeA=
 In-Reply-To: <CA+55aFzv3X3yW8WZGMZO+aKa=qWi2w8=zn2DP-Q3jRry8Ermyw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: David Miller <davem@davemloft.net>, linux-kernel@vger.kernel.org, hpa@zytor.com, autofs@linux.kernel.org, thomas@m3y3r.de, viro@zeniv.linux.org.uk
+To: David Miller <davem@davemloft.net>, Ian Kent <raven@themaw.net>
+Cc: linux-kernel@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, autofs@vger.kernel.org, Thomas Meyer <thomas@m3y3r.de>, Al Viro <viro@zeniv.linux.org.uk>
 
-On Tue, 2012-02-21 at 19:47 -0800, Linus Torvalds wrote:
-> On Tue, Feb 21, 2012 at 7:33 PM, Linus Torvalds
-> <torvalds@linux-foundation.org> wrote:
-> >
-> > But I'm sure that the autofs daemon does something simple that we can
-> > depend on in practice.
-> 
-> I didn't find the most recent source code, but the first thing that
-> automount.c does after calling "mount" (which is a for+exec, so we
-> cannot take the mounting is_compat_task() into account is to open the
-> new root for the ioctlfd, and then it does a stat.
-> 
+--0016e6d625845a195204b9865baa
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+On Tue, Feb 21, 2012 at 7:47 PM, Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
+>
 > And then it does a AUTOFS_IOC_PROTOVER ioctl to see what the protocol
 > version is.
-> 
+>
 > So we could just decide that
-> 
->  (a) we add a mount option for the packet size (or just "v6" - which
+>
+> =A0(a) we add a mount option for the packet size (or just "v6" - which
 > would be "v5 with a fixed packet size")
-> 
->  (b) in the absence of an explicit mount option, we look at
+>
+> =A0(b) in the absence of an explicit mount option, we look at
 > is_compat_task() for the first AUTOFS_IOC_PROTOVER ioctl we get.
-> 
-> That looks fairly straightforward and safe. Hmm?
-> 
-> Where are the automount sources supposed to be, anyway? kernel.org has
-> a v5 directory, but it's empty.
 
-I'm repopulating the autofs directory with content right now.
-I had some difficulty with getting appropriate signatures for my PGP
-key, consequently my account wasn't activated for quite. The upshot of
-that is I wasn't aware of announcements about kup either. Anyway, I've
-sorted that out and I'm trying to upload the content right now. 
+Ok, so here's a patch that does that. Well, it doesn't do that (a)
+part, but it does the auto-detection of whether the daemon is a compat
+process or not.
 
-The git repo has been available for a while now though @
-/pub/scm/linux/kernel/git/raven/autofs
+THIS IS UNTESTED. Thomas - could you test this in your environment? I
+added your "Tested-by:", but that's really for the previous patch that
+tested is_compat_task() in the wrong context.
 
-at least that is the place I thought it should go?
-Ian
+                        Linus
 
+--0016e6d625845a195204b9865baa
+Content-Type: text/x-patch; charset=US-ASCII; 
+	name="0001-autofs-work-around-unhappy-compat-problem-on-x86-64.patch"
+Content-Disposition: attachment; 
+	filename="0001-autofs-work-around-unhappy-compat-problem-on-x86-64.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gyxw4bkr0
+
+RnJvbSA0Njk1OWY2MjM3ZjRkMjEzMWVjNThjNDg2ODAyMmUzNGYyMDcxNWI4IE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBMaW51cyBUb3J2YWxkcyA8dG9ydmFsZHNAbGludXgtZm91bmRh
+dGlvbi5vcmc+CkRhdGU6IFR1ZSwgMjEgRmViIDIwMTIgMTc6MzY6MDYgLTA4MDAKU3ViamVjdDog
+W1BBVENIXSBhdXRvZnM6IHdvcmsgYXJvdW5kIHVuaGFwcHkgY29tcGF0IHByb2JsZW0gb24geDg2
+LTY0CgpXaGVuIHRoZSBhdXRvZnMgcHJvdG9jb2wgdmVyc2lvbiA1IHBhY2tldCB0eXBlIHdhcyBh
+ZGRlZCBpbiBjb21taXQKNWMwYTMyZmMyY2QwICgiYXV0b2ZzNDogYWRkIG5ldyBwYWNrZXQgdHlw
+ZSBmb3IgdjUgY29tbXVuaWNhdGlvbnMiKSwgaXQKb2J2b3VzbHkgdHJpZWQgcXVpdGUgaGFyZCB0
+byBiZSB3b3JkLXNpemUgYWdub3N0aWMsIGFuZCB1c2VzIGV4cGxpY2l0bHkKc2l6ZWQgZmllbGRz
+IHRoYXQgYXJlIGFsbCBjb3JyZWN0bHkgYWxpZ25lZC4KCkhvd2V2ZXIsIHdpdGggdGhlIGZpbmFs
+ICJjaGFyIG5hbWVbTkFNRV9NQVgrMV0iIGFycmF5IGF0IHRoZSBlbmQsIHRoZQphY3R1YWwgc2l6
+ZSBvZiB0aGUgc3RydWN0dXJlIGVuZHMgdXAgYmVpbmcgbm90IHZlcnkgd2VsbCBkZWZpbmVkOgpi
+ZWNhdXNlIHRoZSBzdHJ1Y3QgaXNuJ3QgbWFya2VkICdwYWNrZWQnLCBkb2luZyBhICJzaXplb2Yo
+KSIgb24gaXQgd2lsbAphbGlnbiB0aGUgc2l6ZSBvZiB0aGUgc3RydWN0IHVwIHRvIHRoZSBiaWdn
+ZXN0IGFsaWdubWVudCBvZiB0aGUgbWVtYmVycwppdCBoYXMuCgpBbmQgZGVzcGl0ZSBhbGwgdGhl
+IG1lbWJlcnMgYmVpbmcgdGhlIHNhbWUsIHRoZSBhbGlnbm1lbnQgb2YgdGhlbSBpcwpkaWZmZXJl
+bnQ6IGEgIl9fdTY0IiBoYXMgNC1ieXRlIGFsaWdubWVudCBvbiB4ODYtMzIsIGJ1dCBuYXRpdmUg
+OC1ieXRlCmFsaWdubWVudCBvbiB4ODYtNjQuICBBbmQgd2hpbGUgJ05BTUVfTUFYKzEnIGVuZHMg
+dXAgYmVpbmcgYSBuaWNlIHJvdW5kCm51bWJlciAoMjU2KSwgdGhlIG5hbWVbXSBhcnJheSBzdGFy
+dHMgb3V0IGEgNC1ieXRlIGFsaWduZWQuCgpFbmQgcmVzdWx0OiB0aGUgInBhY2tlZCIgc2l6ZSBv
+ZiB0aGUgc3RydWN0dXJlIGlzIDMwMCBieXRlczogNC1ieXRlLCBidXQKbm90IDgtYnl0ZSBhbGln
+bmVkLgoKQXMgYSByZXN1bHQsIGRlc3BpdGUgYWxsIHRoZSBmaWVsZHMgYmVpbmcgaW4gdGhlIHNh
+bWUgcGxhY2Ugb24gYWxsCmFyY2hpdGVjdHVyZXMsIHNpemVvZigpIHdpbGwgcm91bmQgdXAgdGhh
+dCBzaXplIHRvIDMwNCBieXRlcyBvbgphcmNoaXRlY3R1cmVzIHRoYXQgaGF2ZSA4LWJ5dGUgYWxp
+Z25tZW50IGZvciB1NjQuCgpOb3RlIHRoYXQgdGhpcyBpcyAqbm90KiBhIHByb2JsZW0gZm9yIDMy
+LWJpdCBjb21wYXQgbW9kZSBvbiBQT1dFUiwgc2luY2UKdGhlcmUgX191NjQgaXMgOC1ieXRlIGFs
+aWduZWQgZXZlbiBpbiAzMi1iaXQgbW9kZS4gIEJ1dCBvbiB4ODYsIDMyLWJpdAphbmQgNjQtYml0
+IGFsaWdubWVudCBpcyBkaWZmZXJlbnQgZm9yIDY0LWJpdCBlbnRpdGllcywgYW5kIGFzIGEgcmVz
+dWx0CnRoZSBzdHJ1Y3R1cmUgdGhhdCBoYXMgZXhhY3RseSB0aGUgc2FtZSBsYXlvdXQgaGFzIGRp
+ZmZlcmVudCBzaXplcy4KClNvIG9uIHg4Ni02NCwgYnV0IG5vIG90aGVyIGFyY2hpdGVjdHVyZSwg
+d2Ugd2lsbCBqdXN0IHN1YnRyYWN0IDQgZnJvbQp0aGUgc2l6ZSBvZiB0aGUgc3RydWN0dXJlIHdo
+ZW4gcnVubmluZyBpbiBhIGNvbXBhdCB0YXNrLiAgVGhhdCB3YXkgd2UKd2lsbCB3cml0ZSB0aGUg
+cHJvcGVybHkgc2l6ZWQgcGFja2V0IHRoYXQgdXNlciBtb2RlIGV4cGVjdHMuCgpOb3QgcHJldHR5
+LiAgU2FkbHksIHRoaXMgdmVyeSBzdWJ0bGUsIGFuZCB1bm5lY2Vzc2FyeSwgc2l6ZSBkaWZmZXJl
+bmNlCmhhcyBiZWVuIGVuY29kZWQgaW4gdXNlciBzcGFjZSB0aGF0IHdhbnRzIHRvIHJlYWQgcGFj
+a2V0cyBvZiAqZXhhY3RseSoKdGhlIHJpZ2h0IHNpemUsIGFuZCB3aWxsIHJlZnVzZSB0byB0b3Vj
+aCBhbnl0aGluZyBlbHNlLgoKUmVwb3J0ZWQtYW5kLXRlc3RlZC1ieTogVGhvbWFzIE1leWVyIDx0
+aG9tYXNAbTN5M3IuZGU+CkNjOiBJYW4gS2VudCA8cmF2ZW5AdGhlbWF3Lm5ldD4KU2lnbmVkLW9m
+Zi1ieTogTGludXMgVG9ydmFsZHMgPHRvcnZhbGRzQGxpbnV4LWZvdW5kYXRpb24ub3JnPgotLS0K
+IGZzL2F1dG9mczQvYXV0b2ZzX2kuaCB8ICAgIDEgKwogZnMvYXV0b2ZzNC9pbm9kZS5jICAgIHwg
+ICAgMSArCiBmcy9hdXRvZnM0L3Jvb3QuYyAgICAgfCAgICAyICsrCiBmcy9hdXRvZnM0L3dhaXRx
+LmMgICAgfCAgIDIxICsrKysrKysrKysrKysrKysrKystLQogNCBmaWxlcyBjaGFuZ2VkLCAyMyBp
+bnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2ZzL2F1dG9mczQvYXV0
+b2ZzX2kuaCBiL2ZzL2F1dG9mczQvYXV0b2ZzX2kuaAppbmRleCBkOGQ4ZTdiYTZhMWUuLmViMWNj
+OTJjZDY3ZCAxMDA2NDQKLS0tIGEvZnMvYXV0b2ZzNC9hdXRvZnNfaS5oCisrKyBiL2ZzL2F1dG9m
+czQvYXV0b2ZzX2kuaApAQCAtMTEwLDYgKzExMCw3IEBAIHN0cnVjdCBhdXRvZnNfc2JfaW5mbyB7
+CiAJaW50IHN1Yl92ZXJzaW9uOwogCWludCBtaW5fcHJvdG87CiAJaW50IG1heF9wcm90bzsKKwlp
+bnQgY29tcGF0X2RhZW1vbjsKIAl1bnNpZ25lZCBsb25nIGV4cF90aW1lb3V0OwogCXVuc2lnbmVk
+IGludCB0eXBlOwogCWludCByZWdob3N0X2VuYWJsZWQ7CmRpZmYgLS1naXQgYS9mcy9hdXRvZnM0
+L2lub2RlLmMgYi9mcy9hdXRvZnM0L2lub2RlLmMKaW5kZXggZTE2OTgwYjAwYjhkLi4yOTIwYmJk
+ZWJkZjMgMTAwNjQ0Ci0tLSBhL2ZzL2F1dG9mczQvaW5vZGUuYworKysgYi9mcy9hdXRvZnM0L2lu
+b2RlLmMKQEAgLTIyNCw2ICsyMjQsNyBAQCBpbnQgYXV0b2ZzNF9maWxsX3N1cGVyKHN0cnVjdCBz
+dXBlcl9ibG9jayAqcywgdm9pZCAqZGF0YSwgaW50IHNpbGVudCkKIAlzZXRfYXV0b2ZzX3R5cGVf
+aW5kaXJlY3QoJnNiaS0+dHlwZSk7CiAJc2JpLT5taW5fcHJvdG8gPSAwOwogCXNiaS0+bWF4X3By
+b3RvID0gMDsKKwlzYmktPmNvbXBhdF9kYWVtb24gPSAtMTsJLyogdW5rbm93biAqLwogCW11dGV4
+X2luaXQoJnNiaS0+d3FfbXV0ZXgpOwogCW11dGV4X2luaXQoJnNiaS0+cGlwZV9tdXRleCk7CiAJ
+c3Bpbl9sb2NrX2luaXQoJnNiaS0+ZnNfbG9jayk7CmRpZmYgLS1naXQgYS9mcy9hdXRvZnM0L3Jv
+b3QuYyBiL2ZzL2F1dG9mczQvcm9vdC5jCmluZGV4IDc1ZTVmMWM4ZTAyOC4uNjk4MzI5ZTZlYTQ2
+IDEwMDY0NAotLS0gYS9mcy9hdXRvZnM0L3Jvb3QuYworKysgYi9mcy9hdXRvZnM0L3Jvb3QuYwpA
+QCAtNzc5LDYgKzc3OSw4IEBAIHN0YXRpYyBpbmxpbmUgaW50IGF1dG9mczRfZ2V0X3NldF90aW1l
+b3V0KHN0cnVjdCBhdXRvZnNfc2JfaW5mbyAqc2JpLAogLyogUmV0dXJuIHByb3RvY29sIHZlcnNp
+b24gKi8KIHN0YXRpYyBpbmxpbmUgaW50IGF1dG9mczRfZ2V0X3Byb3RvdmVyKHN0cnVjdCBhdXRv
+ZnNfc2JfaW5mbyAqc2JpLCBpbnQgX191c2VyICpwKQogeworCWlmIChzYmktPmNvbXBhdF9kYWVt
+b24gPCAwKQorCQlzYmktPmNvbXBhdF9kYWVtb24gPSBpc19jb21wYXRfdGFzaygpOwogCXJldHVy
+biBwdXRfdXNlcihzYmktPnZlcnNpb24sIHApOwogfQogCmRpZmYgLS1naXQgYS9mcy9hdXRvZnM0
+L3dhaXRxLmMgYi9mcy9hdXRvZnM0L3dhaXRxLmMKaW5kZXggZGE4ODc2ZDM4YTdiLi5mOTMyZWIx
+YWFiMDUgMTAwNjQ0Ci0tLSBhL2ZzL2F1dG9mczQvd2FpdHEuYworKysgYi9mcy9hdXRvZnM0L3dh
+aXRxLmMKQEAgLTE1LDYgKzE1LDcgQEAKICNpbmNsdWRlIDxsaW51eC90aW1lLmg+CiAjaW5jbHVk
+ZSA8bGludXgvc2lnbmFsLmg+CiAjaW5jbHVkZSA8bGludXgvZmlsZS5oPgorI2luY2x1ZGUgPGxp
+bnV4L2NvbXBhdC5oPgogI2luY2x1ZGUgImF1dG9mc19pLmgiCiAKIC8qIFdlIG1ha2UgdGhpcyBh
+IHN0YXRpYyB2YXJpYWJsZSByYXRoZXIgdGhhbiBhIHBhcnQgb2YgdGhlIHN1cGVyYmxvY2s7IGl0
+CkBAIC05MSw2ICs5MiwyMyBAQCBzdGF0aWMgaW50IGF1dG9mczRfd3JpdGUoc3RydWN0IGF1dG9m
+c19zYl9pbmZvICpzYmksCiAKIAlyZXR1cm4gKGJ5dGVzID4gMCk7CiB9CisKKy8qCisgKiBUaGUg
+YXV0b2ZzX3Y1IHBhY2tldCB3YXMgbWlzZGVzaWduZWQuCisgKgorICogVGhlIHBhY2tldHMgYXJl
+IGlkZW50aWNhbCBvbiB4ODYtMzIgYW5kIHg4Ni02NCwgYnV0IGhhdmUgZGlmZmVyZW50CisgKiBh
+bGlnbm1lbnQuIFdoaWNoIG1lYW5zIHRoYXQgJ3NpemVvZigpJyB3aWxsIGdpdmUgZGlmZmVyZW50
+IHJlc3VsdHMuCisgKiBGaXggaXQgdXAgZm9yIHRoZSBjYXNlIG9mIHJ1bm5pbmcgMzItYml0IHVz
+ZXIgbW9kZSBvbiBhIDY0LWJpdCBrZXJuZWwuCisgKi8KK3N0YXRpYyBub2lubGluZSBzaXplX3Qg
+YXV0b2ZzX3Y1X3BhY2tldF9zaXplKHN0cnVjdCBhdXRvZnNfc2JfaW5mbyAqc2JpKQoreworCXNp
+emVfdCBwa3RzeiA9IHNpemVvZihzdHJ1Y3QgYXV0b2ZzX3Y1X3BhY2tldCk7CisjaWYgZGVmaW5l
+ZChDT05GSUdfWDg2XzY0KSAmJiBkZWZpbmVkKENPTkZJR19DT01QQVQpCisJaWYgKHNiaS0+Y29t
+cGF0X2RhZW1vbiA+IDApCisJCXBrdHN6IC09IDQ7CisjZW5kaWYKKwlyZXR1cm4gcGt0c3o7Cit9
+CiAJCiBzdGF0aWMgdm9pZCBhdXRvZnM0X25vdGlmeV9kYWVtb24oc3RydWN0IGF1dG9mc19zYl9p
+bmZvICpzYmksCiAJCQkJIHN0cnVjdCBhdXRvZnNfd2FpdF9xdWV1ZSAqd3EsCkBAIC0xNTUsOCAr
+MTczLDcgQEAgc3RhdGljIHZvaWQgYXV0b2ZzNF9ub3RpZnlfZGFlbW9uKHN0cnVjdCBhdXRvZnNf
+c2JfaW5mbyAqc2JpLAogCXsKIAkJc3RydWN0IGF1dG9mc192NV9wYWNrZXQgKnBhY2tldCA9ICZw
+a3QudjVfcGt0LnY1X3BhY2tldDsKIAotCQlwa3RzeiA9IHNpemVvZigqcGFja2V0KTsKLQorCQlw
+a3RzeiA9IGF1dG9mc192NV9wYWNrZXRfc2l6ZShzYmkpOwogCQlwYWNrZXQtPndhaXRfcXVldWVf
+dG9rZW4gPSB3cS0+d2FpdF9xdWV1ZV90b2tlbjsKIAkJcGFja2V0LT5sZW4gPSB3cS0+bmFtZS5s
+ZW47CiAJCW1lbWNweShwYWNrZXQtPm5hbWUsIHdxLT5uYW1lLm5hbWUsIHdxLT5uYW1lLmxlbik7
+Ci0tIAoxLjcuOS4xODguZzEyNzY2LmRpcnR5Cgo=
+--0016e6d625845a195204b9865baa--
