@@ -1,73 +1,56 @@
-From: Ian Kent <raven@themaw.net>
+From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: compat: autofs v5 packet size ambiguity - update
-Date: Thu, 23 Feb 2012 10:21:23 +0800
-Message-ID: <1329963683.2244.19.camel@perseus.themaw.net>
+Date: Wed, 22 Feb 2012 18:25:09 -0800
+Message-ID: <CA+55aFyRFGrT6uSSCQoX0pZPZ7j2p4oqX-dcfsFUZt4q81qMrg@mail.gmail.com>
 References: <CA+55aFzhS69QSoN1j+Z2md116u+3OfniAoE0QMo6xyBjDyjbEw@mail.gmail.com>
-	 <20120221.221609.218135609185671883.davem@davemloft.net>
-	 <CA+55aFwvmZGDzO_8wwYfH8HsLE=qCmLkJfeMyCe4PVvOYbDMHQ@mail.gmail.com>
-	 <CA+55aFzv3X3yW8WZGMZO+aKa=qWi2w8=zn2DP-Q3jRry8Ermyw@mail.gmail.com>
-	 <CA+55aFyh1NmBt0LwR3+iD6B-Xa8wAs-nGJ0MBouPhTzWUi8W5g@mail.gmail.com>
-	 <1329889428.2193.45.camel@perseus.themaw.net>
-	 <1329890027.2193.48.camel@perseus.themaw.net>
-	 <1329890251.2193.50.camel@perseus.themaw.net>
-	 <1329903139.2193.66.camel@perseus.themaw.net>
-	 <CA+55aFwkYkSC1O=fWtj1CBAeKDP-ogEL4Mai8U-dd2uCMArppw@mail.gmail.com>
-	 <1329961703.2244.8.camel@perseus.themaw.net>
-	 <1329962085.2244.10.camel@perseus.themaw.net>
+ <20120221.221609.218135609185671883.davem@davemloft.net> <CA+55aFwvmZGDzO_8wwYfH8HsLE=qCmLkJfeMyCe4PVvOYbDMHQ@mail.gmail.com>
+ <CA+55aFzv3X3yW8WZGMZO+aKa=qWi2w8=zn2DP-Q3jRry8Ermyw@mail.gmail.com>
+ <CA+55aFyh1NmBt0LwR3+iD6B-Xa8wAs-nGJ0MBouPhTzWUi8W5g@mail.gmail.com>
+ <1329889428.2193.45.camel@perseus.themaw.net> <1329890027.2193.48.camel@perseus.themaw.net>
+ <1329890251.2193.50.camel@perseus.themaw.net> <1329903139.2193.66.camel@perseus.themaw.net>
+ <CA+55aFwkYkSC1O=fWtj1CBAeKDP-ogEL4Mai8U-dd2uCMArppw@mail.gmail.com>
+ <1329961703.2244.8.camel@perseus.themaw.net> <CA+55aFzRQJ8YeZGnbq=OO0YgzkfrcS4r+G1cJbjtDCZe=t6DNQ@mail.gmail.com>
+ <1329962955.2244.16.camel@perseus.themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	message-id:subject:from:to:cc:date:in-reply-to:references
-	:content-type:content-transfer-encoding:mime-version; s=mesmtp;
-	 bh=BJfL4/AAHdyReH0rFdpM7jsSOX4=; b=IjENg9RB7gIzhuAgiIPwmCJEJUgf
-	d2yb/t+3giSH8kBQJLk5VDAXmk2BPjsTBjLkpQ9dNK6DRlHsvxn5aIjNZyvuECwN
-	aH3nm5yFzaUv2ff1uoGT/s9Q5ipixWR7tkT6Hba3KCWpQyYU03bMKgSET4QRpOsh
-	FAW2w0vEBJAOBZs=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=message-id:subject:from:to:cc:date
-	:in-reply-to:references:content-type:content-transfer-encoding
-	:mime-version; s=smtpout; bh=BJfL4/AAHdyReH0rFdpM7jsSOX4=; b=ge9
-	bXoHK8Y2Vs4+yoJUu9GCVkxRmIygamUJeuZXxbnsOVZVNX6jC7EuU9xRDAJ0Qq+2
-	zG8iyqn9BfSysAYXSGdG8XqH/HcNOzPSRpVUvKu2OLQsxZhHWPWwjW6iT/S2D3Pm
-	bsi9015Rzy9oy7L7n8TOF4Y6Lxh4WpB6nO7amT4w=
-In-Reply-To: <1329962085.2244.10.camel@perseus.themaw.net>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=gamma;
+        h=mime-version:sender:in-reply-to:references:from:date
+         :x-google-sender-auth:message-id:subject:to:cc:content-type;
+        bh=+9v46S24FTxFUKnJc87RuaYQaONNXQKPzdizYlPKJXg=;
+        b=fTiOkbIN+j9NTfHNxj8elWUG7c08xAnUO7I1T3FsFgEsYU7U2KpiU14LqTOHPKJgY5
+         QZ3h2DDW2R+bHe0cI5ObBcowxyCy0YdG9Pej4Wqo9K8nsDCy+kSBaFOa54kHmIRYLK49
+         Q5VWmJltX+pAdRwuz4mYZedROvdahnXIYi/Ew=
+In-Reply-To: <1329962955.2244.16.camel@perseus.themaw.net>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Thomas Meyer <thomas@m3y3r.de>
-Cc: David Miller <davem@davemloft.net>, linux-kernel@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, autofs@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Al Viro <viro@zeniv.linux.org.uk>
+Content-Transfer-Encoding: 7bit
+To: Ian Kent <raven@themaw.net>
+Cc: David Miller <davem@davemloft.net>, linux-kernel@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, autofs@vger.kernel.org, Thomas Meyer <thomas@m3y3r.de>, Al Viro <viro@zeniv.linux.org.uk>
 
-On Thu, 2012-02-23 at 09:54 +0800, Ian Kent wrote:
-> On Thu, 2012-02-23 at 09:48 +0800, Ian Kent wrote:
-> > On Wed, 2012-02-22 at 08:12 -0800, Linus Torvalds wrote:
-> > > On Wed, Feb 22, 2012 at 1:32 AM, Ian Kent <raven@themaw.net> wrote:
-> > > >
-> > > > Oh, DOH ...
-> > > >
-> > > > The process mounting the autofs mount is passing the pipe it will use
-> > > > for communication via a mount option so we can do this right in
-> > > > fill_super.
-> > > 
-> > > No, we really cannot.
-> > 
-> > Sorry, I think your wrong this time.
-> 
-> On second thought, I suppose other user space users don't "have" to use
-> mount(2) ....
+On Wed, Feb 22, 2012 at 6:09 PM, Ian Kent <raven@themaw.net> wrote:
+>
+> Sure, that's true, and you'll see it uses the mount option maxproto with
+> the value of AUTOFS_MAX_PROTO_VERSION. But autofs uses it's own copy of
+> the headers so AUTOFS_MAX_PROTO_VERSION is 4 not 5 so it won't be
+> affected by this change.
 
-Thomas, what does systemd use to mount the autofs mounts that it uses?
+Ok.
 
-> 
-> > 
-> > > 
-> > > The autofs "mount" is done by fork + execve("mount").
-> > 
-> > It's done like this when mounting things inside an already mounted
-> > indirect autofs mount or when mounting things on autofs direct mount
-> > triggers but, in version 5, mount(2) has always used to mount autofs
-> > file systems.
-> > 
-> > Ian
-> 
+I fetched your git tree, and it seems this changed to use mount()
+directly in commit a74f68c99d9f ("integrated master map parsing into
+daemon") back in 2006.
 
+Which seems to be part of autofs_5_0_0_beta1, so I guess we're safe. I
+hope no distro ever used any early pre-beta versions of autofs that
+had the new packet support but still used the external 'mount'
+command.
+
+So looks good. I can't imagine that systemd mounts things directly,
+because then you need to play with the whole pipe thing to get it to
+work with the daemon. And that would just be odd.
+
+Of course, "odd" is often par-for-the-course in user land ;)
+
+                Linus
