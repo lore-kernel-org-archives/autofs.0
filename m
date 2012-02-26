@@ -1,76 +1,43 @@
-From: Stanislaw Gruszka <sgruszka@redhat.com>
-Subject: [PATCH] autofs: fix 3.3-rc5 compilation breakage on x86-32
-Date: Sun, 26 Feb 2012 16:10:17 +0100
-Message-ID: <20120226151015.GA14324@redhat.com>
+From: Josh Boyer <jwboyer@gmail.com>
+Subject: Re: [PATCH] autofs: fix 3.3-rc5 compilation breakage on x86-32
+Date: Sun, 26 Feb 2012 11:02:28 -0500
+Message-ID: <CA+5PVA4-yj26KVyoTBkP3v3=0ZJ6HLh0aWLaHaXgqn_FMqeaLQ@mail.gmail.com>
+References: <20120226151015.GA14324@redhat.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=gamma;
+        h=mime-version:in-reply-to:references:date:message-id:subject:from:to
+         :cc:content-type:content-transfer-encoding;
+        bh=nSyTty+WfuwrJ/tcuhSWobWnXhG+A1wWTTgoyVBLQ8k=;
+        b=i4M18nFjCxRJBUQv5E1RK7PiVB6oe3gtfxubbw05jd6jEg5AvTqPaR2CqDJ95QsNwb
+         AVwvLPwBv5xsfOZBEUbIiUSY7WuuVoQ0y4SxmiWwV3URaw7ZRqM6piJWaQToN3qujLbv
+         NQRaF7+ZcPrBhhu3CojHBIMEwFuDruPRYotMA=
+In-Reply-To: <20120226151015.GA14324@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="utf-8"
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@linux.kernel.org, linux-kernel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>
+Content-Type: text/plain; charset="windows-1252"
+To: Stanislaw Gruszka <sgruszka@redhat.com>
+Cc: Ian Kent <raven@themaw.net>, autofs@linux.kernel.org, linux-kernel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>
 
-Recent commit a32744d4abae24572eff7269bc17895c41bd0085 broke autofs
-compilation on x86-32:
+On Sun, Feb 26, 2012 at 10:10 AM, Stanislaw Gruszka <sgruszka@redhat.co=
+m> wrote:
+> Recent commit a32744d4abae24572eff7269bc17895c41bd0085 broke autofs
+> compilation on x86-32:
+>
+> fs/autofs4/inode.c: In function =91autofs4_fill_super=92:
+> fs/autofs4/inode.c:228: error: implicit declaration of function =91is=
+_compat_task=92
+>
+> This patch fix that by adding #if checks.
+>
+> Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
 
-fs/autofs4/inode.c: In function =E2=80=98autofs4_fill_super=E2=80=99:
-fs/autofs4/inode.c:228: error: implicit declaration of function =E2=80=98=
-is_compat_task=E2=80=99
+Andreas Schwab submitted an identical patch.  Linus came up with someth=
+ing
+else:
 
-This patch fix that by adding #if checks.
+https://lkml.org/lkml/2012/2/25/84
 
-Signed-off-by: Stanislaw Gruszka <sgruszka@redhat.com>
----
- fs/autofs4/autofs_i.h  |    2 ++
- fs/autofs4/dev-ioctl.c |    2 ++
- fs/autofs4/inode.c     |    2 ++
- 3 files changed, 6 insertions(+), 0 deletions(-)
-
-diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
-index eb1cc92..60439c2 100644
---- a/fs/autofs4/autofs_i.h
-+++ b/fs/autofs4/autofs_i.h
-@@ -110,7 +110,9 @@ struct autofs_sb_info {
- 	int sub_version;
- 	int min_proto;
- 	int max_proto;
-+#if defined(CONFIG_X86_64) && defined(CONFIG_COMPAT)
- 	int compat_daemon;
-+#endif
- 	unsigned long exp_timeout;
- 	unsigned int type;
- 	int reghost_enabled;
-diff --git a/fs/autofs4/dev-ioctl.c b/fs/autofs4/dev-ioctl.c
-index 85f1fcd..3ffff72 100644
---- a/fs/autofs4/dev-ioctl.c
-+++ b/fs/autofs4/dev-ioctl.c
-@@ -385,7 +385,9 @@ static int autofs_dev_ioctl_setpipefd(struct file *=
-fp,
- 		sbi->pipefd =3D pipefd;
- 		sbi->pipe =3D pipe;
- 		sbi->catatonic =3D 0;
-+#if defined(CONFIG_X86_64) && defined(CONFIG_COMPAT)
- 		sbi->compat_daemon =3D is_compat_task();
-+#endif
- 	}
- out:
- 	mutex_unlock(&sbi->wq_mutex);
-diff --git a/fs/autofs4/inode.c b/fs/autofs4/inode.c
-index 06858d9..5f3fb68 100644
---- a/fs/autofs4/inode.c
-+++ b/fs/autofs4/inode.c
-@@ -225,7 +225,9 @@ int autofs4_fill_super(struct super_block *s, void =
-*data, int silent)
- 	set_autofs_type_indirect(&sbi->type);
- 	sbi->min_proto =3D 0;
- 	sbi->max_proto =3D 0;
-+#if defined(CONFIG_X86_64) && defined(CONFIG_COMPAT)
- 	sbi->compat_daemon =3D is_compat_task();
-+#endif
- 	mutex_init(&sbi->wq_mutex);
- 	mutex_init(&sbi->pipe_mutex);
- 	spin_lock_init(&sbi->fs_lock);
---=20
-1.7.1
+josh
