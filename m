@@ -1,63 +1,52 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Kernel 3.3.0 autofs v5 packet size change
-Date: Mon, 27 Feb 2012 10:40:18 +0800
-Message-ID: <1330310418.2490.34.camel@perseus.themaw.net>
-References: <1330307187.2490.13.camel@perseus.themaw.net>
+From: Christian Borntraeger <borntraeger@de.ibm.com>
+Subject: Re: [PATCH] autofs4: fix compilation without CONFIG_COMPAT
+Date: Mon, 27 Feb 2012 08:29:25 +0100
+Message-ID: <4F4B30D5.6050305@de.ibm.com>
+References: <CA+55aFzhS69QSoN1j+Z2md116u+3OfniAoE0QMo6xyBjDyjbEw@mail.gmail.com> <20120221.221609.218135609185671883.davem@davemloft.net> <CA+55aFwvmZGDzO_8wwYfH8HsLE=qCmLkJfeMyCe4PVvOYbDMHQ@mail.gmail.com> <CA+55aFzv3X3yW8WZGMZO+aKa=qWi2w8=zn2DP-Q3jRry8Ermyw@mail.gmail.com> <CA+55aFyh1NmBt0LwR3+iD6B-Xa8wAs-nGJ0MBouPhTzWUi8W5g@mail.gmail.com> <1329889428.2193.45.camel@perseus.themaw.net> <1329890027.2193.48.camel@perseus.themaw.net> <1329890251.2193.50.camel@perseus.themaw.net> <m2vcmuh8dg.fsf_-_@igel.home> <CA+55aFxH4_gucG7vpdV5NJPNHoXy5bSGtr0yHqmobvYO6PmjNw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	message-id:subject:from:to:cc:date:in-reply-to:references
-	:content-type:content-transfer-encoding:mime-version; s=mesmtp;
-	 bh=CNmMTkJwURqjyVS5caf8DlmLBwQ=; b=huD9JeuRMNbuz4L+TZrlr3Bvaf+q
-	OrG9R+EphvwQRfjAF6BsOdiYEECxcuheEb36r/EwRdCckfi5tY0yb5BvTkCE6inS
-	bikpMJrfoC6O8SvnxYOjjo1pE/hFtCQiBh4sRo3N31GmiUfwErfrC/45eQ2EFSR0
-	TWkykk5FrRijxEU=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=message-id:subject:from:to:cc:date
-	:in-reply-to:references:content-type:content-transfer-encoding
-	:mime-version; s=smtpout; bh=CNmMTkJwURqjyVS5caf8DlmLBwQ=; b=lpv
-	xP4af1Z/9jixNNzafz7bFaxBR8XYrlmDmdsIEOqwfhbmaRKwBsD/CxeQuOs2P2PC
-	aFEe2R7SlBk1hNuf2+LdE2mwEJSLKSgF8cxHWD5RBWmW/I2Hz9F2y4fRaXXsp7xC
-	n7CTQZFxctHbh2J3M/5YmjdEW0wVSZK1d0b4ZOhU=
-In-Reply-To: <1330307187.2490.13.camel@perseus.themaw.net>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CA+55aFxH4_gucG7vpdV5NJPNHoXy5bSGtr0yHqmobvYO6PmjNw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: autofs@vger.kernel.org
-Cc: intraperson-autodir@lists.sourceforge.net, linux-fsdevel@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andreas Schwab <schwab@linux-m68k.org>, Ian Kent <raven@themaw.net>, David Miller <davem@davemloft.net>, linux-kernel@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, autofs@vger.kernel.org, Thomas Meyer <thomas@m3y3r.de>, Al Viro <viro@zeniv.linux.org.uk>, Heiko Carstens <heiko.carstens@de.ibm.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>
 
-On Mon, 2012-02-27 at 09:46 +0800, Ian Kent wrote:
-> Hi all,
-> 
-> Just a heads up for everyone regarding a recent kernel change.
-> 
-> The description from the autofs user space patch describes the issue:
-> 
-> "Kernel 3.3.0 has a patch to allow for the original missdesign of
-> the autofs v5 kernel packet.
-> 
-> The problem is that while all the structure fields are alligned
-> correctly structure allignment on x86-64 causes the packet size
-> to be 4 bytes larger than on x86. So when running an x86 binary
-> on an x86-64 install the packet size did not match causing user
-> space pipe reads to hang."
-> 
-> If you are an upstream package maintainer and your distro is likley to
-> migrate to kernel 3.3.0 or later or you are planning using kernel 3.3.0
-> or later then you will need these patches:
-> http://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.7/autofs-5.0.6-add-kernel-verion-check-function.patch
-> http://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.7/autofs-5.0.6-allow-for-kernel-packet-size-change.patch
+On 26/02/12 02:31, Linus Torvalds wrote:
+>  
+> +#else
+> +
+> +#define is_compat_task() (0)
+> +
 
-and, of course, a fix for mistakes I made:
-http://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.7/autofs-5.0.6-fix-allow-for-kernel-packet-size-change.patch
+Linus,
 
-> 
-> If you use rc kernels and you plan on using 3.3.0-rc5 you will also need
-> commit 3c761ea05a8900a907f32b628611873f6bef24b2 from the linus kernel
-> tree to fix a compile mistake.
-> 
-> Sorry for the inconvenience.
-> Ian
+this breaks 32bit builds of s390 (and maybe others), since several platforms already
+define a is_compat_task. This macro then destroys the definition of the function
+making
+
+static inline int is_compat_task(void)
+{
+        return 0;
+}
 
 
+into
+
+static inline int 0
+{
+        return 0;
+}
+
+e.g.
+
+In file included from arch/s390/mm/fault.c:39:0:
+/home/autobuild/BUILD/linux-3.3.0-rc5.00060.g203738e.49.x.20120227/arch/s390/include/asm/compat.h:177:38: error: macro "is_compat_task" passed 1 arguments, but takes just 0
+/home/autobuild/BUILD/linux-3.3.0-rc5.00060.g203738e.49.x.20120227/arch/s390/include/asm/compat.h:178:1: error: expected '=', ',', ';', 'asm' or '__attribute__' before '{' token
+  CC      arch/s390/kernel/time.o
+
+
+
+
+Christian
