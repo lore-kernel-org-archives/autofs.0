@@ -1,42 +1,75 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [PATCH] autofs4: fix compilation without CONFIG_COMPAT
-Date: Mon, 27 Feb 2012 08:25:02 -0800
-Message-ID: <CA+55aFz+JW3w06hCOL7uoiZg1ZBGoNLWfHPu_g7OJ8L1LW3iaA@mail.gmail.com>
-References: <20120221.221609.218135609185671883.davem@davemloft.net>
- <CA+55aFwvmZGDzO_8wwYfH8HsLE=qCmLkJfeMyCe4PVvOYbDMHQ@mail.gmail.com>
- <CA+55aFzv3X3yW8WZGMZO+aKa=qWi2w8=zn2DP-Q3jRry8Ermyw@mail.gmail.com>
- <CA+55aFyh1NmBt0LwR3+iD6B-Xa8wAs-nGJ0MBouPhTzWUi8W5g@mail.gmail.com>
- <1329889428.2193.45.camel@perseus.themaw.net> <1329890027.2193.48.camel@perseus.themaw.net>
- <1329890251.2193.50.camel@perseus.themaw.net> <m2vcmuh8dg.fsf_-_@igel.home>
- <CA+55aFxH4_gucG7vpdV5NJPNHoXy5bSGtr0yHqmobvYO6PmjNw@mail.gmail.com>
- <4F4B30D5.6050305@de.ibm.com> <20120227090951.GA2681@osiris.boeblingen.de.ibm.com>
- <4F4BADD2.5020908@zytor.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: Kernel 3.3.0 autofs v5 packet size change
+Date: Tue, 28 Feb 2012 09:18:20 +0800
+Message-ID: <1330391900.2465.1.camel@perseus.themaw.net>
+References: <1330307187.2490.13.camel@perseus.themaw.net>
+	 <1330310418.2490.34.camel@perseus.themaw.net>
 Mime-Version: 1.0
-Return-path: <linux-kernel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=gamma;
-        h=mime-version:sender:in-reply-to:references:from:date
-         :x-google-sender-auth:message-id:subject:to:cc:content-type;
-        bh=kaAJtibOHskehJVG3CjCty37k2Dpzfm9+00MyeMJaPo=;
-        b=i7hutJF+HEKfnUD/Yzrbfkq0HcReV3orXJ5+1saZHt4TrWLSxxHMju8Lt0vTGaPlY2
-         oYc65Y+3vhq//A0hUVzkRvRhvkG2WWk3JRL1MufcSbaMVEdzM00NGJC9Ux17i3CczmE+
-         vx7WvVBTIXgPeTkZy58ME6rKqhvofEJAXwVTE=
-In-Reply-To: <4F4BADD2.5020908@zytor.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
+	message-id:subject:from:to:cc:date:in-reply-to:references
+	:content-type:content-transfer-encoding:mime-version; s=mesmtp;
+	 bh=1AqkGm38abBRKkfmS87jKnuPQtk=; b=g5A/FqLnf4oqpy1OklkMcKHHmbC+
+	DKAVmMTkLO9Nhdh72pCuS5wJhHooNSmTM6QJHnneGeddTc2okB4TSLjSJQ4tMz9F
+	UIKIMvQfRXD7/n15yEo/K313LSoTMfB8/AW2a3KP5x4XFPmDleo2/20C7o18wUac
+	ymv4NApElITwwmY=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=message-id:subject:from:to:cc:date
+	:in-reply-to:references:content-type:content-transfer-encoding
+	:mime-version; s=smtpout; bh=1AqkGm38abBRKkfmS87jKnuPQtk=; b=Pfn
+	DsWKqAbWEW8IA7islTSd4+msZZPd6keLxDVlyXKDxKNdxPznLItSiOPuOuARUnVq
+	9sca49cNk4KhmOvLSaQbju9Kpdp3ASkyAHgtlhLOD1o931XWHfxNAMi2rjfbQnch
+	BV5MVMZlIpj174tggqdhfVdReY5t6cyACChq+ZVw=
+In-Reply-To: <1330310418.2490.34.camel@perseus.themaw.net>
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Andreas Schwab <schwab@linux-m68k.org>, Ian Kent <raven@themaw.net>, David Miller <davem@davemloft.net>, linux-kernel@vger.kernel.org, autofs@vger.kernel.org, Thomas Meyer <thomas@m3y3r.de>, Al Viro <viro@zeniv.linux.org.uk>, Martin Schwidefsky <schwidefsky@de.ibm.com>
+To: autofs@vger.kernel.org
+Cc: intraperson-autodir@lists.sourceforge.net, linux-fsdevel@vger.kernel.org
 
-On Mon, Feb 27, 2012 at 8:22 AM, H. Peter Anvin <hpa@zytor.com> wrote:
->
-> This patch would seem to be The Right Thing; the combination of this really
-> takes what s390 has done in arch space and globalizes it.
+On Mon, 2012-02-27 at 10:40 +0800, Ian Kent wrote:
+> On Mon, 2012-02-27 at 09:46 +0800, Ian Kent wrote:
+> > Hi all,
+> > 
+> > Just a heads up for everyone regarding a recent kernel change.
+> > 
+> > The description from the autofs user space patch describes the issue:
+> > 
+> > "Kernel 3.3.0 has a patch to allow for the original missdesign of
+> > the autofs v5 kernel packet.
+> > 
+> > The problem is that while all the structure fields are alligned
+> > correctly structure allignment on x86-64 causes the packet size
+> > to be 4 bytes larger than on x86. So when running an x86 binary
+> > on an x86-64 install the packet size did not match causing user
+> > space pipe reads to hang."
+> > 
+> > If you are an upstream package maintainer and your distro is likley to
+> > migrate to kernel 3.3.0 or later or you are planning using kernel 3.3.0
+> > or later then you will need these patches:
+> > http://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.7/autofs-5.0.6-add-kernel-verion-check-function.patch
+> > http://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.7/autofs-5.0.6-allow-for-kernel-packet-size-change.patch
+> 
+> and, of course, a fix for mistakes I made:
+> http://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.7/autofs-5.0.6-fix-allow-for-kernel-packet-size-change.patch
+> 
+> > 
+> > If you use rc kernels and you plan on using 3.3.0-rc5 you will also need
+> > commit 3c761ea05a8900a907f32b628611873f6bef24b2 from the linus kernel
+> > tree to fix a compile mistake.
 
-Yeah, I already applied that s390 fixup and pushed it out. And yes,
-the fact that s390 already did the whole "is_compat_task()" dance on
-its own just shows that we should have done this in <linux/compat.h>
-from the very beginning.
+And now also, if you are using rc kernels for s390, you'll need commit
+048cd4e51d24ebf7f3552226d03c769d6ad91658 as well.
 
-                  Linus
+> > 
+> > Sorry for the inconvenience.
+> > Ian
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe autofs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
