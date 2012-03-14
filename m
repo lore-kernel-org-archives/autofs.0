@@ -1,75 +1,91 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Kernel 3.3.0 autofs v5 packet size change
-Date: Tue, 28 Feb 2012 09:18:20 +0800
-Message-ID: <1330391900.2465.1.camel@perseus.themaw.net>
-References: <1330307187.2490.13.camel@perseus.themaw.net>
-	 <1330310418.2490.34.camel@perseus.themaw.net>
+From: Thomas Richter <richter@rus.uni-stuttgart.de>
+Subject: autofsv4: "ghost" entries prevent timeout of mounts
+Date: Wed, 14 Mar 2012 21:58:08 +0100
+Message-ID: <4F610660.7020902@rus.uni-stuttgart.de>
+Reply-To: richter@rus.uni-stuttgart.de
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	message-id:subject:from:to:cc:date:in-reply-to:references
-	:content-type:content-transfer-encoding:mime-version; s=mesmtp;
-	 bh=1AqkGm38abBRKkfmS87jKnuPQtk=; b=g5A/FqLnf4oqpy1OklkMcKHHmbC+
-	DKAVmMTkLO9Nhdh72pCuS5wJhHooNSmTM6QJHnneGeddTc2okB4TSLjSJQ4tMz9F
-	UIKIMvQfRXD7/n15yEo/K313LSoTMfB8/AW2a3KP5x4XFPmDleo2/20C7o18wUac
-	ymv4NApElITwwmY=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=message-id:subject:from:to:cc:date
-	:in-reply-to:references:content-type:content-transfer-encoding
-	:mime-version; s=smtpout; bh=1AqkGm38abBRKkfmS87jKnuPQtk=; b=Pfn
-	DsWKqAbWEW8IA7islTSd4+msZZPd6keLxDVlyXKDxKNdxPznLItSiOPuOuARUnVq
-	9sca49cNk4KhmOvLSaQbju9Kpdp3ASkyAHgtlhLOD1o931XWHfxNAMi2rjfbQnch
-	BV5MVMZlIpj174tggqdhfVdReY5t6cyACChq+ZVw=
-In-Reply-To: <1330310418.2490.34.camel@perseus.themaw.net>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=
+	rus.uni-stuttgart.de; h=content-transfer-encoding:content-type
+	:content-type:subject:subject:user-agent:reply-to:from:from:date
+	:date:message-id:received:received:received; s=dkim20100209; t=
+	1331758709; x=1333573110; bh=iVzHZghlYYvgq/vIGkLkV7AIK1OJ4qzUpLX
+	H1howJ2A=; b=tQEfb+TMliyT5gdwIiSMfuGPwkj9tn6PEERsjVfrGjir/aUXibS
+	uEaOky2jw9/bmb3shL0NzK392rcdlBrhVlz/CzW16vLrjjkHBwb97R/I2k0+pEFT
+	tIsv3zxqUxW4m/ARwhcH0OQ3mYxj762LvlUhpXeNZPMfOEZMVaHlD7zY=
+Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: autofs@vger.kernel.org
-Cc: intraperson-autodir@lists.sourceforge.net, linux-fsdevel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: linux-kernel@vger.kernel.org, raven@themaw.net, autofs@linux.kernel.org
 
-On Mon, 2012-02-27 at 10:40 +0800, Ian Kent wrote:
-> On Mon, 2012-02-27 at 09:46 +0800, Ian Kent wrote:
-> > Hi all,
-> > 
-> > Just a heads up for everyone regarding a recent kernel change.
-> > 
-> > The description from the autofs user space patch describes the issue:
-> > 
-> > "Kernel 3.3.0 has a patch to allow for the original missdesign of
-> > the autofs v5 kernel packet.
-> > 
-> > The problem is that while all the structure fields are alligned
-> > correctly structure allignment on x86-64 causes the packet size
-> > to be 4 bytes larger than on x86. So when running an x86 binary
-> > on an x86-64 install the packet size did not match causing user
-> > space pipe reads to hang."
-> > 
-> > If you are an upstream package maintainer and your distro is likley to
-> > migrate to kernel 3.3.0 or later or you are planning using kernel 3.3.0
-> > or later then you will need these patches:
-> > http://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.7/autofs-5.0.6-add-kernel-verion-check-function.patch
-> > http://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.7/autofs-5.0.6-allow-for-kernel-packet-size-change.patch
-> 
-> and, of course, a fix for mistakes I made:
-> http://www.kernel.org/pub/linux/daemons/autofs/v5/patches-5.0.7/autofs-5.0.6-fix-allow-for-kernel-packet-size-change.patch
-> 
-> > 
-> > If you use rc kernels and you plan on using 3.3.0-rc5 you will also need
-> > commit 3c761ea05a8900a907f32b628611873f6bef24b2 from the linus kernel
-> > tree to fix a compile mistake.
+Dear kernel developers,
 
-And now also, if you are using rc kernels for s390, you'll need commit
-048cd4e51d24ebf7f3552226d03c769d6ad91658 as well.
+starting with at least kernel version 3.2.9, but probably earlier, 
+mounting autofs with the --ghost option to create dummy directory 
+entries in its mount point prevents the autofs mounts from timing out. 
+Instead, the mounts persist and are never unmounted.
 
-> > 
-> > Sorry for the inconvenience.
-> > Ian
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe autofs" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This problem did not exist in kernel 2.6.35.13, at least, so autofs must 
+have been broken somewhere between 2.3.35.13 and 3.2.9.
+
+/etc/auto.master reads as follows:
+
+# $Id: auto.master,v 1.2 1997/10/06 21:52:03 hpa Exp $
+# Sample auto.master file
+# Format of this file:
+# mountpoint map options
+# For details of the format look at autofs(8).
+#
+# Note: Due to a bug in the init.d/autofs script, there
+# *MUST* be a blank space behind the options (here: -t=10 <--).
+# Unlike the debian reference, options must be given in the
+# form "-option=<value>".
+#
+# -g is broken and stops automatic unmounting from working.
+#
+
+/var/autofs/misc        /etc/auto.misc  -g -t=2
+
+/etc/auto.misc is as follows:
+
+# $Id: auto.misc,v 1.2 1997/10/06 21:52:04 hpa Exp $
+# This is an automounter map and it has the following format
+# key [ -mount-options-separated-by-comma ] location
+# Details may be found in the autofs(5) manpage
+
+cdrom0          -fstype=auto,noatime,rw,user,nodev,nosuid       :/dev/cdrom0
+cdrom1          -fstype=auto,noatime,rw,user,nodev,nosuid       :/dev/cdrom1
+zip             -fstype=auto,nodev,nosuid                       :/dev/zip
+usbstick 
+-fstype=auto,noatime,rw,user,nodev,nosuid,gid=floppy,umask=0200 
+:/dev/usbstick
+usbdisk         -fstype=auto,noatime,rw,user,nodev,nosuid 
+:/dev/usbdisk
+camera 
+-fstype=auto,noatime,rw,user,nodev,nosuid,gid=floppy,umask=0200 :/dev/camera
+floppy          -fstype=auto,rw,async,nodev,nosuid,umask=000    :/dev/fd0
+
+/etc/default/autofs contains the following non-default entries:
+
+MASTER_MAP_NAME="/etc/auto.master"
+TIMEOUT=2		# <- also makes no difference
+NEGATIVE_TIMEOUT=1	# <- neither this
+BROWSE_MODE="no"
+USE_MISC_DEVICE="no" # <- makes no difference, actually
+
+Userspace tools are from Debian Squeeze (is there a relation? Might they 
+break autofs?)
+
+How to reproduce:
+
+Instead a medium in one of the auto-mounted devices, e.g. cdrom0,
+mount it by going into /var/autofs/misc/cdrom0, then leave the 
+directory. Wait for the timeout (or longer). Testing with "mount" shows 
+that the corresponding device file remains mounted, regardless how long 
+you wait.
 
 
+Best regards,
+
+	Thomas
