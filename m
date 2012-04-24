@@ -1,234 +1,239 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: Breaking userspace? Re: 3.0.24 broke aufofs on mixed 32/64bit
  environment
-Date: Tue, 24 Apr 2012 09:25:57 +0800
-Message-ID: <1335230757.2260.15.camel@perseus.themaw.net>
+Date: Tue, 24 Apr 2012 11:40:31 +0800
+Message-ID: <1335238831.2260.17.camel@perseus.themaw.net>
 References: <4F94222C.6080608@msgid.tls.msk.ru>
 	 <1335172741.2226.10.camel@perseus.themaw.net>
 	 <4F958352.7050106@msgid.tls.msk.ru> <4F95897B.2040103@msgid.tls.msk.ru>
 	 <4F959A5A.8070907@msgid.tls.msk.ru>
+	 <1335230757.2260.15.camel@perseus.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
 	message-id:subject:from:to:cc:date:in-reply-to:references
 	:content-type:content-transfer-encoding:mime-version; s=mesmtp;
-	 bh=G7Xq1Ee79KT1PDZxEA1rUDkbYnA=; b=wNN2Msa7KUPzvGf7D2mL33Ja0JY7
-	l4S3nId8F7YVeoc9FkpQEaD3rauWvmBYPeKdppY7gNq+Fm97/n6aX20C4VFVtLSo
-	pCHjsGxni7+knqqgoK0tmBNUr9uOJVD0VhHGFMqiosQb3+77etR+dO1vJ93VREJ7
-	w+ohMc5HAFc6izw=
+	 bh=BTE+Rrxu2XNv1LcjCuH7I70Vcb0=; b=MpyzLb3A6MMXbJqIvTT25qFLTcxI
+	QoD4RwjtKTK/zy8KDNW9/eGZ+MGzbH94oo4hBXJ2VNJa5lT3cDYrA83iPodzn55b
+	EL0WvkvOtQSmlgwanq5EpVZSUkgMgW8VCWtMZVsCK4RTeM5urSn6P5hRfbM2pw7c
+	DfvOAAhmxgsOeP8=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=message-id:subject:from:to:cc:date
 	:in-reply-to:references:content-type:content-transfer-encoding
-	:mime-version; s=smtpout; bh=G7Xq1Ee79KT1PDZxEA1rUDkbYnA=; b=mPN
-	ThiC0vqthaQGJFM3FYhAoF1xNslh2CsEYNENROlx7O15tEyrRQ2SbELf68D9nVMs
-	Aa3HfLMu7qC5Ofq996xq685/Dy3EnQtJo8uih9g/3b9tuS4dfNFp62hkL2ZhK9im
-	ZMdkdvstNIUuksbhXMV5DvbpTKqVscnI/SSqWgkQ=
-In-Reply-To: <4F959A5A.8070907@msgid.tls.msk.ru>
+	:mime-version; s=smtpout; bh=BTE+Rrxu2XNv1LcjCuH7I70Vcb0=; b=Qfl
+	IDAmF1nyof98JLUxM/wc6FpmmvkU39pr5SNmcBKhJhZBai6vFBX1BULGLVkPAzXQ
+	MgJSP8PLbWzfiWMw+g1MFPpYsg8dtZb89CRW6MlIW30s64Tw5mBbHg7WQ+JSmSdA
+	ii8C1N7lpbuYK2WUYw0Qv2MQ/kYRDc8ZErnysVJ8=
+In-Reply-To: <1335230757.2260.15.camel@perseus.themaw.net>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: Michael Tokarev <mjt@tls.msk.ru>
 Cc: "stable@kernel.org" <stable@kernel.org>, autofs@vger.kernel.org, Linux-kernel <linux-kernel@vger.kernel.org>
 
-On Mon, 2012-04-23 at 22:07 +0400, Michael Tokarev wrote:
-> On 23.04.2012 20:55, Michael Tokarev wrote:
-> > On 23.04.2012 20:29, Michael Tokarev wrote:
-> >> On 23.04.2012 13:19, Ian Kent wrote:
-> >>> On Sun, 2012-04-22 at 19:22 +0400, Michael Tokarev wrote:
-> >>>> This is JFYI for now, I only diagnozed the issue but had
-> >>>> no time to see what's going on.
-> >>>>
-> >>>> The short story is that with 3.0.24 and later kernels,
-> >>>> 32bit autofs stopped working on 64bit kernels, while
-> >>>> it worked before just fine.
-> >>>>
-> >>>> The userspace is of version 5.0.4.  Platform is x86.
-> >>>>
-> >>>> The sympthoms of the issue is that automount daemon,
-> >>>> on every access to a (not yet mounted) autofs mount
-> >>>> point, stalls forever, with the process trying to
-> >>>> access it stalling forever too -- this is why the
-> >>>> system didn't reboot, -- it stayed on an attempt to
-> >>>> access one of automount subdirs, somewhere in the
-> >>>> middle.
-> >>
-> >> This is what happens with 3.0.24+:
-> >>
-> >> [pid 15207] read(4, "\5\0\0\0\3\0\0\0\2\0\0\0\35\0\0\0@\17\246\3\0\0\0\0\350\3\0\0\350\3\0\0"..., 304) = 300
-> >> [pid 15207] read(4,  <unfinished ...> -- forever.
-> >>
-> >> It wants to read 304 bytes, but kernel only supplies 300
-> >> bytes.
-> >>
-> >> $ file /usr/sbin/automount
-> >> /usr/sbin/automount: ELF 32-bit LSB shared object, Intel 80386, version 1 (SYSV), dynamically linked (uses shared libs), for GNU/Linux 2.6.18, stripped
-> >> $ uname -a
-> >> Linux gandalf 3.0.0-amd64 #3.0.27 SMP Tue Apr 3 16:23:45 MSK 2012 x86_64 GNU/Linux
-> >>
-> >> This is a32744d4abae24572eff7269bc17895c41bd0085
-> >> "autofs: work around unhappy compat problem on x86-64",
-> >> included in 3.0.24:
-> >>
-> >> +static noinline size_t autofs_v5_packet_size(struct autofs_sb_info *sbi)
-> >> +{
-> >> +       size_t pktsz = sizeof(struct autofs_v5_packet);
-> >> +#if defined(CONFIG_X86_64) && defined(CONFIG_COMPAT)
-> >> +       if (sbi->compat_daemon > 0)
-> >> +               pktsz -= 4;
-> >> +#endif
-> >> +       return pktsz;
-> >> +}
-> >> +
-> >>
-> >> "End result: the "packed" size of the structure is 300 bytes: 4-byte, but
-> >> not 8-byte aligned.
-> >>
-> >> As a result, despite all the fields being in the same place on all
-> >> architectures, sizeof() will round up that size to 304 bytes on
-> >> architectures that have 8-byte alignment for u64."
-> >>
-> >> So I'm not sure how it worked before this change (from the
-> >> description of the patch it looks like it should not work).
-> >> But it definitely worked for me, and this patch broke it
-> >> for me.
+On Tue, 2012-04-24 at 09:25 +0800, Ian Kent wrote:
+> On Mon, 2012-04-23 at 22:07 +0400, Michael Tokarev wrote:
+> > On 23.04.2012 20:55, Michael Tokarev wrote:
+> > > On 23.04.2012 20:29, Michael Tokarev wrote:
+> > >> On 23.04.2012 13:19, Ian Kent wrote:
+> > >>> On Sun, 2012-04-22 at 19:22 +0400, Michael Tokarev wrote:
+> > >>>> This is JFYI for now, I only diagnozed the issue but had
+> > >>>> no time to see what's going on.
+> > >>>>
+> > >>>> The short story is that with 3.0.24 and later kernels,
+> > >>>> 32bit autofs stopped working on 64bit kernels, while
+> > >>>> it worked before just fine.
+> > >>>>
+> > >>>> The userspace is of version 5.0.4.  Platform is x86.
+> > >>>>
+> > >>>> The sympthoms of the issue is that automount daemon,
+> > >>>> on every access to a (not yet mounted) autofs mount
+> > >>>> point, stalls forever, with the process trying to
+> > >>>> access it stalling forever too -- this is why the
+> > >>>> system didn't reboot, -- it stayed on an attempt to
+> > >>>> access one of automount subdirs, somewhere in the
+> > >>>> middle.
+> > >>
+> > >> This is what happens with 3.0.24+:
+> > >>
+> > >> [pid 15207] read(4, "\5\0\0\0\3\0\0\0\2\0\0\0\35\0\0\0@\17\246\3\0\0\0\0\350\3\0\0\350\3\0\0"..., 304) = 300
+> > >> [pid 15207] read(4,  <unfinished ...> -- forever.
+> > >>
+> > >> It wants to read 304 bytes, but kernel only supplies 300
+> > >> bytes.
+> > >>
+> > >> $ file /usr/sbin/automount
+> > >> /usr/sbin/automount: ELF 32-bit LSB shared object, Intel 80386, version 1 (SYSV), dynamically linked (uses shared libs), for GNU/Linux 2.6.18, stripped
+> > >> $ uname -a
+> > >> Linux gandalf 3.0.0-amd64 #3.0.27 SMP Tue Apr 3 16:23:45 MSK 2012 x86_64 GNU/Linux
+> > >>
+> > >> This is a32744d4abae24572eff7269bc17895c41bd0085
+> > >> "autofs: work around unhappy compat problem on x86-64",
+> > >> included in 3.0.24:
+> > >>
+> > >> +static noinline size_t autofs_v5_packet_size(struct autofs_sb_info *sbi)
+> > >> +{
+> > >> +       size_t pktsz = sizeof(struct autofs_v5_packet);
+> > >> +#if defined(CONFIG_X86_64) && defined(CONFIG_COMPAT)
+> > >> +       if (sbi->compat_daemon > 0)
+> > >> +               pktsz -= 4;
+> > >> +#endif
+> > >> +       return pktsz;
+> > >> +}
+> > >> +
+> > >>
+> > >> "End result: the "packed" size of the structure is 300 bytes: 4-byte, but
+> > >> not 8-byte aligned.
+> > >>
+> > >> As a result, despite all the fields being in the same place on all
+> > >> architectures, sizeof() will round up that size to 304 bytes on
+> > >> architectures that have 8-byte alignment for u64."
+> > >>
+> > >> So I'm not sure how it worked before this change (from the
+> > >> description of the patch it looks like it should not work).
+> > >> But it definitely worked for me, and this patch broke it
+> > >> for me.
+> > > 
+> > > It worked because the userspace apparently does the "rigtht"
+> > > think already compensating for the kernel bitness mismatch.
+> > > This is a bit funky too, but it should work:
+> > > 
+> > > static size_t get_kpkt_len(void)
+> > > {
+> > >         size_t pkt_len = sizeof(struct autofs_v5_packet);
+> > >         struct utsname un;
+> > > 
+> > >         uname(&un);
+> > > 
+> > >         if (pkt_len % 8) {
+> > >                 if (strcmp(un.machine, "alpha") == 0 ||
+> > >                     strcmp(un.machine, "ia64") == 0 ||
+> > >                     strcmp(un.machine, "x86_64") == 0 ||
+> > >                     strcmp(un.machine, "ppc64") == 0)
+> > >                         pkt_len += 4;
+> > > 
+> > >         }
+> > > 
+> > >         return pkt_len;
+> > > }
+> > > 
+> > > So it looks like the kernel/user interface had an error,
+> > > userspace adopted to the kernel by doing something, so
+> > > it started working.  And next kernel adopted to the un-
+> > > patched userspace, thus breaking patched userspace.
+> > > 
+> > > That's quite messy... :(  And I'm not sure what to do
+> > > about this, -- the only solution - in my opinion anyway -
+> > > is to revert this kernel patch and maybe switch to a
+> > > new protocol version.
 > > 
-> > It worked because the userspace apparently does the "rigtht"
-> > think already compensating for the kernel bitness mismatch.
-> > This is a bit funky too, but it should work:
+> > Okay, even if messy, there are quite easy pure userspace
+> > solutions to all this.
 > > 
-> > static size_t get_kpkt_len(void)
-> > {
-> >         size_t pkt_len = sizeof(struct autofs_v5_packet);
-> >         struct utsname un;
-> > 
-> >         uname(&un);
-> > 
-> >         if (pkt_len % 8) {
-> >                 if (strcmp(un.machine, "alpha") == 0 ||
-> >                     strcmp(un.machine, "ia64") == 0 ||
-> >                     strcmp(un.machine, "x86_64") == 0 ||
-> >                     strcmp(un.machine, "ppc64") == 0)
-> >                         pkt_len += 4;
-> > 
-> >         }
-> > 
-> >         return pkt_len;
-> > }
-> > 
-> > So it looks like the kernel/user interface had an error,
-> > userspace adopted to the kernel by doing something, so
-> > it started working.  And next kernel adopted to the un-
-> > patched userspace, thus breaking patched userspace.
-> > 
-> > That's quite messy... :(  And I'm not sure what to do
-> > about this, -- the only solution - in my opinion anyway -
-> > is to revert this kernel patch and maybe switch to a
-> > new protocol version.
+> > But first of all, I want to question this change in the
+> > first place, hence CC'ing to LKML too.
 > 
-> Okay, even if messy, there are quite easy pure userspace
-> solutions to all this.
+> Back porting the 3.3 change to current stable kernels was not a good
+> idea IMO and I probably should have NAKed the one that I actually saw,
+> which was devoid of version btw.
 > 
-> But first of all, I want to question this change in the
-> first place, hence CC'ing to LKML too.
+> The change came about because there was a complaint about me not wanting
+> to fix this in the kernel, but wanting to continue using the user space
+> workaround. But it was insisted that it be fixed in the kernel, and so
+> it was done.
+> 
+> Consequently people will encounter this gotcha sooner or later and will
+> need to apply a patch to resolve it. The back port to stable kernels
+> just means it's sooner rather than later.
+> 
+> I have already told you that I will need to provide a (updated, since
+> there is already a commit in git that covers 3.3) patch for autofs. I
+> haven't done that yet because I've been a little ill.
 
-Back porting the 3.3 change to current stable kernels was not a good
-idea IMO and I probably should have NAKed the one that I actually saw,
-which was devoid of version btw.
+AFAICT this patch is what's needed.
+Can you check please.
 
-The change came about because there was a complaint about me not wanting
-to fix this in the kernel, but wanting to continue using the user space
-workaround. But it was insisted that it be fixed in the kernel, and so
-it was done.
+autofs-5.0.4 - allow for kernel packet size change
 
-Consequently people will encounter this gotcha sooner or later and will
-need to apply a patch to resolve it. The back port to stable kernels
-just means it's sooner rather than later.
+From: Ian Kent <raven@themaw.net>
 
-I have already told you that I will need to provide a (updated, since
-there is already a commit in git that covers 3.3) patch for autofs. I
-haven't done that yet because I've been a little ill.
+Kernel 3.3.0 has a patch to allow for the original missdesign of
+the autofs v5 kernel packet. That change is being back ported to
+earlier stable kernel releases which is causing autofs to hang in
+mixed 32-bit user space/64-bit kernel
 
-A quick web search finds the post that I made to the autofs list
-explaining this.
-http://comments.gmane.org/gmane.linux.file-systems/61832
+The problem is that while all the structure fields are alligned
+correctly structure allignment on x86-64 causes the packet size
+to be 4 bytes larger than on x86. So when running an x86 binary
+on an x86-64 install the packet size did not match causing user
+space pipe reads to hang.
+---
 
-> 
-> Kernel has been shipping with this brokeness for quite
-> some time, namely, since introduction of autofs4, dated
-> Mon Mar 27 01:14:55 2006 -0800 (commit 5c0a32fc2cd0).
-> 
-> This is 6 whole years by now.
-> 
-> Main userspace user of this interface adopted long ago
-> too, and has been in wide use for years as well.
-> 
-> This kernel change, even if right in theory, actually
-> breaks all existing userspace which was working fine
-> for years.
-> 
-> It looks like this is very much against main linux
-> principle of not breaking stuff even if the change is
-> "obviously right".
-> 
-> So it pretty much looks like this very fix has to be
-> reverted in mainline and in all stable kernels.  At least
-> that's what I'd do if you ask me.
-> 
-> 
-> Now, back to "pure userspace" solution.
-> 
-> The kernel sends data to userspace, and the unit of
-> exchange is pretty small - this structure of either
-> 300 or 304 bytes.  Can the read from userspace EVER
-> be partial, so that a fullread() function is necessary?
-> I'm not sure, but to me it looks like this fullread()
-> loop isn't needed in the first place, and just single
-> read() (maybe repeating it in case of EINTR) should
-> do the job already.  This way, we either handle the
-> data we've read, if we think the amount we read
-> is sufficient, and the packet looks sane, or just
-> error out.  The filename is at the end of the struct,
-> so actually there's no need to send whole struct from
-> kernel, it is sufficient for the kernel to write up
-> to the trailing zero, and userspace _may_ be able to
-> understand (and no, this is not what userspace expects
-> currently, so changing kernel to do so will break things --
-> I'm just saying what can be done in _userspace_).
-> 
-> Now, we know that this sizeof(v5_packet) is designed
-> wrongly.  But it is actually trivial for the userspace
-> to expect EITHER 300 bytes OR 304 bytes from the kernel --
-> again, all in one go.  For it to work, extend the struct
-> with a padding at the end so it will be real 304 bytes,
-> and request reading of these 304 bytes, but handle the
-> read of 300 bytes too as successful.
-> 
-> This way, it will work for BOTH "bad" and "good" kernel.
-> 
-> Ofcourse it all breaks again if, in case of several
-> requests going from the kernel, kernel will batch them
-> into single larger read, so we'll lose packet boundary.
-> If that's the case, my "solution" does not work obviously.
-> 
-> Still, the userspace may adapt again, by doing a probe,
-> forcing the kernel to send us a request before making
-> the mountpoint visible in the final location, checking
-> the size of the data kernel sends, and setting that
-> pkt_len variable to this value.  Ugly, but it will let
-> the application to work in either case.
-> 
-> But again, to me the current situation with outright
-> BREAKING of existing userspace is much uglier since
-> it affects many users instead of a single userspace
-> component...
-> 
-> Thanks,
-> 
-> /mjt
-> 
-> >> Should 3.3 work?  As far as I can see, it includes the
-> >> same change (which has been backported!), so it may have
-> >> the same _issue_...
-> 
+ daemon/automount.c |    8 ++++++++
+ include/mounts.h   |   17 +++++++++++++++++
+ 2 files changed, 25 insertions(+), 0 deletions(-)
+
+
+diff --git a/daemon/automount.c b/daemon/automount.c
+index 863aac5..92236b1 100644
+--- a/daemon/automount.c
++++ b/daemon/automount.c
+@@ -38,6 +38,7 @@
+ #include <dirent.h>
+ #include <sys/vfs.h>
+ #include <sys/utsname.h>
++#include "mounts.h"
+ 
+ #include "automount.h"
+ #ifdef LIBXML2_WORKAROUND
+@@ -599,6 +600,13 @@ static size_t get_kpkt_len(void)
+ {
+ 	size_t pkt_len = sizeof(struct autofs_v5_packet);
+ 	struct utsname un;
++	int kern_vers;
++
++	kern_vers = linux_version_code();
++	if (kern_vers > KERNEL_VERSION(3, 2, 9) ||
++	   (kern_vers > KERNEL_VERSION(3, 0, 23) &&
++            kern_vers < KERNEL_VERSION(3, 1, 0)))
++		return pkt_len;
+ 
+ 	uname(&un);
+ 
+diff --git a/include/mounts.h b/include/mounts.h
+index 4d932ca..3947d83 100644
+--- a/include/mounts.h
++++ b/include/mounts.h
+@@ -16,6 +16,9 @@
+ #ifndef MOUNTS_H
+ #define MOUNTS_H
+ 
++#include <linux/version.h>
++#include <sys/utsname.h>
++
+ #ifndef AUTOFS_TYPE_ANY
+ #define AUTOFS_TYPE_ANY		0x0000
+ #endif
+@@ -72,6 +75,20 @@ struct mnt_list {
+ 	struct list_head ordered;
+ };
+ 
++static inline unsigned int linux_version_code(void)
++{
++        struct utsname my_utsname;
++        unsigned int p, q, r;
++
++        if (uname(&my_utsname))
++                return 0;
++
++        p = (unsigned int)atoi(strtok(my_utsname.release, "."));
++        q = (unsigned int)atoi(strtok(NULL, "."));
++        r = (unsigned int)atoi(strtok(NULL, "."));
++        return KERNEL_VERSION(p, q, r);
++}
++
+ unsigned int query_kproto_ver(void);
+ unsigned int get_kver_major(void);
+ unsigned int get_kver_minor(void);
 
