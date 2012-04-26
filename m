@@ -1,47 +1,95 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: Breaking userspace? Re: 3.0.24 broke aufofs on mixed 32/64bit environment
-Date: Tue, 24 Apr 2012 21:08:54 -0700
-Message-ID: <CA+55aFyhTj2TjQ46ewruKXGF=x0ng2HAOfMDSC96WH3UTt=B5Q@mail.gmail.com>
-References: <4F94222C.6080608@msgid.tls.msk.ru> <1335172741.2226.10.camel@perseus.themaw.net>
- <4F958352.7050106@msgid.tls.msk.ru> <4F95897B.2040103@msgid.tls.msk.ru>
- <4F959A5A.8070907@msgid.tls.msk.ru> <CA+55aFyQ4y9jyRXyejKwtf3yXJX52hQkLuwJ5=jfQM+yLkBNMw@mail.gmail.com>
- <4F96D0E7.9060000@msgid.tls.msk.ru> <CA+55aFw=cfYZO7PWDRRuZw1nYxvUk-63qfVVwfdJWevtmZoOig@mail.gmail.com>
- <1335300159.1393.13.camel@localhost.localdomain> <CA+55aFx9hATsnANWYSoagycc2HnXO=5Oa3gtqBjMr9eoe1obpA@mail.gmail.com>
- <4F9777FB.8050109@msgid.tls.msk.ru>
-Mime-Version: 1.0
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Michael Tokarev <mjt@tls.msk.ru>
+Subject: [PATCH] unbreak automount daemon after fixing autofs5 ABI
+Date: Thu, 26 Apr 2012 10:26:34 +0400
+Message-ID: <1335421594-10499-1-git-send-email-mjt@msgid.tls.msk.ru>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20120113;
-        h=mime-version:sender:in-reply-to:references:from:date
-         :x-google-sender-auth:message-id:subject:to:cc:content-type
-         :content-transfer-encoding;
-        bh=rKRnfhWU/1BtrGHSsLsLMSpk2lz3wVShY2R2Crt9QT0=;
-        b=txJfijYt2NR2zDMzbH4zVmmfFCOL47t56ZGBo2s99TuUHY1gDm/NR3sL64FNAwu1aB
-         FKJUFFgC0tpzChzan45tosP2xlyEzB2QwNBgwTPz63uAaop4TMFRG06pvSDh9Pk+qVsJ
-         PJtFmNwPwM49qqpXW/LUoNvjGmcDVFhmDTlzFtnoQgYZXZ8kgcIo0smG8BqCUpsb6EYo
-         oPwcCGTkuW74hAovAskpf06tfQwyjqkdRYOF+Z1hyq32VeIHmyLHJqPygEjA/PLswk6B
-         yRKa4gE1G/j8zFWQCPircud2x7CTQP7QnuMUr2CkAqkiNEjS6NE0XjX46kqeSTXErpbj
-         jqXw==
-In-Reply-To: <4F9777FB.8050109@msgid.tls.msk.ru>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="iso-8859-1"
-To: Michael Tokarev <mjt@tls.msk.ru>
-Cc: Thomas Meyer <thomas@m3y3r.de>, Ian Kent <raven@themaw.net>, "stable@kernel.org" <stable@kernel.org>, autofs@vger.kernel.org, Linux-kernel <linux-kernel@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Linux-kernel <linux-kernel@vger.kernel.org>
+Cc: Michael Tokarev <mjt@tls.msk.ru>, Linus Torvalds <torvalds@linux-foundation.org>, Ian Kent <raven@themaw.net>, Thomas Meyer <thomas@m3y3r.de>, stable@kernel.org, autofs@vger.kernel.org
 
-On Tue, Apr 24, 2012 at 9:05 PM, Michael Tokarev <mjt@tls.msk.ru> wrote=
-:
->
-> How about something like
->
-> =A0 =A0 sbi->compat_daemon =3D is_compat_task() && strcmp(task->comm,=
- "automount") !=3D 0
->
-> instead? =A0(This task->comm is a pseudocode, just to show the idea, =
-I don't
-> know where this info can be found in kernel)
+Patch 499f286dc02cde6b668e2d757dfe100cb0c43445, comitted
+in Feb-2012, fixed a kernel<=>user interface which was
+broken for mixed 32/64 user/kernel environment since its
+introduction in 2006 by commit 5c0a32fc2cd0.  The problem
+with this fix is that it broke userspace which were adopted
+to the initial bug a year after its introduction, in
+autofs-5.0.1.  So patch 499f286dc02cde6b broke a working
+userspace.  This has been done because another user of
+this interface emerged, systemd, which had the same prob
+as old automount (<5.0.1) had.  So the end result was a
+breakage of an old, widely used -- by all current and
+previous distribution -- software (autofs5) in order to
+unbreak a new not yet widely adopted software (systemd).
 
-Thomas, does that work for you?
+The real fix for this issue, in my opinion, is to adopt
+the same fix in systemd as has been done in autofs5, and/or
+to have a new interface without a bug wich both userspace
+implementations will use.
 
-                Linus
+Alternative is to find a way on the kernel side to see
+which variant of userspace we're dealing with, by seeing
+how many bytes for the structure in question the userspace
+requests in read operation.  But since autofs uses regular
+pipe code to read the data from kernel, and the said pipe
+is opened in userspace before connecting it with the autofs
+module, reads are not seen by autofs module directly, they're
+seen by the pipe code.
+
+So for now, below is a minimal quick fix which should sort
+current mess.
+
+Change 499f286dc02cde6b tries to fix the original interface
+bug for 32bit userspace running on 64bit kernel.  But the
+issue is that autofs5 already has a workaround for it, so
+the end result is that the two (kernel & user) disagree
+again.  "Fix" this by applying the in-kernel fix only if
+the process is not named "automount" -- which is how autofs5
+daemon is named.
+
+This change should be applied to all 3.x stable series too,
+since it breaks existing userspace for these kernels.
+
+Signed-off-by: Michael Tokarev <mjt@tls.msk.ru>
+Cc: Ian Kent <raven@themaw.net>
+Cc: Thomas Meyer <thomas@m3y3r.de>
+Cc: stable@kernel.org
+Cc: autofs@vger.kernel.org
+---
+ fs/autofs4/dev-ioctl.c |    3 ++-
+ fs/autofs4/inode.c     |    3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/fs/autofs4/dev-ioctl.c b/fs/autofs4/dev-ioctl.c
+index 9dacb85..d5a4cb6 100644
+--- a/fs/autofs4/dev-ioctl.c
++++ b/fs/autofs4/dev-ioctl.c
+@@ -385,7 +385,8 @@ static int autofs_dev_ioctl_setpipefd(struct file *fp,
+ 		sbi->pipefd = pipefd;
+ 		sbi->pipe = pipe;
+ 		sbi->catatonic = 0;
+-		sbi->compat_daemon = is_compat_task();
++		sbi->compat_daemon =
++			is_compat_task() && strcmp(current->comm, "automount");
+ 	}
+ out:
+ 	mutex_unlock(&sbi->wq_mutex);
+diff --git a/fs/autofs4/inode.c b/fs/autofs4/inode.c
+index d8dc002..b59f6a0 100644
+--- a/fs/autofs4/inode.c
++++ b/fs/autofs4/inode.c
+@@ -225,7 +225,8 @@ int autofs4_fill_super(struct super_block *s, void *data, int silent)
+ 	set_autofs_type_indirect(&sbi->type);
+ 	sbi->min_proto = 0;
+ 	sbi->max_proto = 0;
+-	sbi->compat_daemon = is_compat_task();
++	sbi->compat_daemon =
++		is_compat_task() && strcmp(current->comm, "automount");
+ 	mutex_init(&sbi->wq_mutex);
+ 	mutex_init(&sbi->pipe_mutex);
+ 	spin_lock_init(&sbi->fs_lock);
+-- 
+1.7.10
