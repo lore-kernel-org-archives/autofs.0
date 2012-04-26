@@ -1,91 +1,111 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH] unbreak automount daemon after fixing autofs5 ABI
-Date: Thu, 26 Apr 2012 20:03:46 +0800
-Message-ID: <1335441826.6702.49.camel@perseus.themaw.net>
-References: <1335421594-10499-1-git-send-email-mjt@msgid.tls.msk.ru>
-	 <1335428498.6702.33.camel@perseus.themaw.net>
-	 <4F99082F.1040902@msgid.tls.msk.ru>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+From: Michael Tokarev <mjt@tls.msk.ru>
+Subject: [PATCH v2] Introduce a version6 of autofs interface, to fix design error.
+Date: Thu, 26 Apr 2012 17:34:49 +0400
+Message-ID: <1335447289-9909-1-git-send-email-mjt@msgid.tls.msk.ru>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	message-id:subject:from:to:cc:date:in-reply-to:references
-	:content-type:content-transfer-encoding:mime-version; s=mesmtp;
-	 bh=nOa7NZQP16zQ4cSPUjRH90Qro8s=; b=HrG4jKB5HionUs6u2Z9J5ZzLulSE
-	9O8okcXNJ9cKgzif5hMMdebOYPonO9SCPh0F5qCsi8mcZWY3FNJ56koe9Cz+21wd
-	8g6ortQICFQJVJUxAzi3fgiQdC0fXMJvEJeVqfDnUHaZUiJY/KQRsZvK2PNZqhTg
-	3KUML4bVPmvzEWk=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=message-id:subject:from:to:cc:date
-	:in-reply-to:references:content-type:content-transfer-encoding
-	:mime-version; s=smtpout; bh=nOa7NZQP16zQ4cSPUjRH90Qro8s=; b=mZS
-	IPKMOVPPmhDbpUXQ+REzxr99xSulJpywwEoB/jK4dMX1RiEK6N57sXzn2W8onCWf
-	PcINqs8kdt675JC+2mSgjBlRvcWk86TzuuIXWxK/wdlT9onVNj0g0u4203kDN0sg
-	Vkvo6yh74Tst/fpGGMDM7v1bpaGy8B97zYJdeil0=
-In-Reply-To: <4F99082F.1040902@msgid.tls.msk.ru>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-To: Michael Tokarev <mjt@tls.msk.ru>
-Cc: Linux-kernel <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Meyer <thomas@m3y3r.de>, stable@kernel.org, autofs@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+To: Linux-kernel <linux-kernel@vger.kernel.org>
+Cc: Michael Tokarev <mjt@tls.msk.ru>, Linus Torvalds <torvalds@linux-foundation.org>, autofs@vger.kernel.org, Ian Kent <raven@themaw.net>, Thomas Meyer <thomas@m3y3r.de>, stable@kernel.org
 
-On Thu, 2012-04-26 at 12:32 +0400, Michael Tokarev wrote:
-> On 26.04.2012 12:21, Ian Kent wrote:
-> > On Thu, 2012-04-26 at 10:26 +0400, Michael Tokarev wrote:
-> []
-> >> Change 499f286dc02cde6b tries to fix the original interface
-> >> bug for 32bit userspace running on 64bit kernel.  But the
-> >> issue is that autofs5 already has a workaround for it, so
-> >> the end result is that the two (kernel & user) disagree
-> >> again.  "Fix" this by applying the in-kernel fix only if
-> >> the process is not named "automount" -- which is how autofs5
-> >> daemon is named.
-> > 
-> > No, you cannot be sure the autofs binary is named automount.
-> 
-> Well, I checked several distributions, all have the binary named
-> this way.  Yes a user can rename it and it will break again, but
-> it is at least better than now when it does not work at all.  And
-> yes it is messy, just like current situation already is.
-> 
-> > Not only that, this approach makes an unpleasant change even more
-> > unpleasant.
-> > 
-> > I still think that my original proposed patches were the better approach
-> > to handling this problem.
-> > 
-> > My recommendation was that the major autofs kernel protocol version be
-> > bumped and a packed structure used from that version on. That allows
-> > user space to request that protocol version for communication at mount
-> > time. If systemd doesn't want to support earlier protocol versions then
-> > it can complain, instructing the user to update to a later kernel.
-> 
-> This is exactly what I was proposing when I started my thread about
-> 3.0.24 autofs breakage -- to _revert_ the in-kernel fix and introduce
-> a new interface (or variation thereof, in means of a new mount option
-> or something).  This way, breakage and mess are both minimal.
-> 
-> Note that a major protocol changes aren't really needed, just a single
-> mount option, which uses a right size of the structure.  Unless at the
-> same time you want to change something else.
+This patch introduces a new autofs interface version, v6, which
+is exactly the same as v5 but uses better defined packet structure
+which does not change between architectures or platform bitness.
+Old interface is supported still.
 
-There's no new interface needed, as such. Basically the structure used
-for communication just needs to be declared packed and used instead of
-the current one. Since it's not a backward compatible change the major
-version needs to be increased to indicate that.
+Signed-off-by: Michael Tokarev <mjt@tls.msk.ru>
+Cc: Ian Kent <raven@themaw.net>
+Cc: Thomas Meyer <thomas@m3y3r.de>
+Cc: stable@kernel.org
+---
+ fs/autofs4/waitq.c       |    6 ++++--
+ include/linux/auto_fs4.h |   31 +++++++++++++++++++++++++++----
+ 2 files changed, 31 insertions(+), 6 deletions(-)
 
-The autofs kernel protocol version (major version number) is specified
-when mounting autofs mounts. The minor version is meant to be used to
-identify the bug fix level. So increasing the major version number is
-the normal way that change may be introduced without breaking existing
-applications or requiring any changes to them. New applications simply
-set the major version at mount time and can decide if they want to use a
-lower version if the mount fails, assuming the lower version has the
-functionality that's needed. And, yes, it isn't quite that simple at run
-time but that is the way it's meant to work.
-
-So using the word "major" probably gives the wrong impression even
-though the term is correct usage.
-
-Ian
-
+diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
+index da8876d..97866e8 100644
+--- a/fs/autofs4/waitq.c
++++ b/fs/autofs4/waitq.c
+@@ -145,7 +145,7 @@ static void autofs4_notify_daemon(struct autofs_sb_info *sbi,
+ 		break;
+ 	}
+ 	/*
+-	 * Kernel protocol v5 packet for handling indirect and direct
++	 * Kernel protocol v5/v6 packet for handling indirect and direct
+ 	 * mount missing and expire requests
+ 	 */
+ 	case autofs_ptype_missing_indirect:
+@@ -155,7 +155,9 @@ static void autofs4_notify_daemon(struct autofs_sb_info *sbi,
+ 	{
+ 		struct autofs_v5_packet *packet = &pkt.v5_pkt.v5_packet;
+ 
+-		pktsz = sizeof(*packet);
++		pktsz = (sbi->version == 5) ?
++			sizeof(struct autofs_v5_bad_packet) :
++			sizeof(struct autofs_v5_packet);
+ 
+ 		packet->wait_queue_token = wq->wait_queue_token;
+ 		packet->len = wq->name.len;
+diff --git a/include/linux/auto_fs4.h b/include/linux/auto_fs4.h
+index e02982f..fdef141 100644
+--- a/include/linux/auto_fs4.h
++++ b/include/linux/auto_fs4.h
+@@ -20,11 +20,11 @@
+ #undef AUTOFS_MIN_PROTO_VERSION
+ #undef AUTOFS_MAX_PROTO_VERSION
+ 
+-#define AUTOFS_PROTO_VERSION		5
++#define AUTOFS_PROTO_VERSION		6
+ #define AUTOFS_MIN_PROTO_VERSION	3
+-#define AUTOFS_MAX_PROTO_VERSION	5
++#define AUTOFS_MAX_PROTO_VERSION	6
+ 
+-#define AUTOFS_PROTO_SUBVERSION		2
++#define AUTOFS_PROTO_SUBVERSION		0
+ 
+ /* Mask for expire behaviour */
+ #define AUTOFS_EXP_IMMEDIATE		1
+@@ -126,7 +126,7 @@ union autofs_packet_union {
+ 	struct autofs_packet_expire_multi expire_multi;
+ };
+ 
+-/* autofs v5 common packet struct */
++/* autofs v5/v6 common packet struct */
+ struct autofs_v5_packet {
+ 	struct autofs_packet_hdr hdr;
+ 	autofs_wqt_t wait_queue_token;
+@@ -138,6 +138,29 @@ struct autofs_v5_packet {
+ 	__u32 tgid;
+ 	__u32 len;
+ 	char name[NAME_MAX+1];
++
++	/* padding to make
++	 *   sizeof(autofs_v5_packet) % sizeof(__u64) == 0
++	 * on all arches */
++	char _pad[4];
++};
++
++/* earlier kernel interface used this structure for v5 packet,
++ * which is exactly the same as autofs_v5_packet above
++ * but does not have padding at the end.  The result was that
++ * sizeof it was 300 bytes on x86-32 and 304 bytes on x86-64.
++ * We keep it for compatibility with older userspace. */
++struct autofs_v5_bad_packet {
++	struct autofs_packet_hdr hdr;
++	autofs_wqt_t wait_queue_token;
++	__u32 dev;
++	__u64 ino;
++	__u32 uid;
++	__u32 gid;
++	__u32 pid;
++	__u32 tgid;
++	__u32 len;
++	char name[NAME_MAX+1];
+ };
+ 
+ typedef struct autofs_v5_packet autofs_packet_missing_indirect_t;
+-- 
+1.7.10
