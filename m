@@ -1,62 +1,97 @@
 From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: [PATCH v2] Introduce a version6 of autofs interface, to fix
  design error.
-Date: Fri, 27 Apr 2012 11:42:58 -0700
-Message-ID: <CA+55aFwvFaxBT8Mdp5s4-6Gxy7nM4WVzbWna4RF_OUK3hnx+jQ@mail.gmail.com>
+Date: Fri, 27 Apr 2012 11:55:12 -0700
+Message-ID: <CA+55aFyLk-uPMVaic19YOWdvdj2pv4R+E3s7UQ6voAy6UkO_Sg@mail.gmail.com>
 References: <CA+55aFxEP7-+N7vTPZ-4hD-UirZ=+YMJh2x3EjZvUmjjyOchtg@mail.gmail.com>
  <4F9A6ABA.6050503@msgid.tls.msk.ru> <CA+55aFwud1nXRr+HpzH8rSkEWcZ_rJmoE7UtQt76D=A3qcb6GQ@mail.gmail.com>
- <20120427.143402.1028957981042061092.davem@davemloft.net>
+ <20120427.143402.1028957981042061092.davem@davemloft.net> <CA+55aFwvFaxBT8Mdp5s4-6Gxy7nM4WVzbWna4RF_OUK3hnx+jQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20120113;
         h=mime-version:sender:in-reply-to:references:from:date
-         :x-google-sender-auth:message-id:subject:to:cc:content-type
-         :content-transfer-encoding;
-        bh=cECOehfmvcKZKmgtZT+xkkodJVgQRX+GVfL2BQFHoOI=;
-        b=kKQo+SHKdN+NdY5JIi9V9SmvVDlPCZiiLLf5oaSLJf0f2odWzQg/tnNxSk+yiK8y8Q
-         9bjJWREQHj5Vyju19P0kEav5GGSyP5r3omA0vRzjMSttpZdEm8eTl00fv/0QE2B/wEfz
-         FaZW1Imw+AHPXZFjr8aDQMzABzWRuAN0Qvlr/rOSIoIMYCN7kHrAGyboQIzm7PHgFmK1
-         5zPR3KnqDYM7IRHDiEJ9NU8SNxrVBdy7+KyPEq8541CukXqHupzdNMG1Z0eE66lh5zVD
-         OU6xaMjvx1vpdqf3kM3DE3GyMR+nQutw4VHUkhiKskRlYA/TD8ceLDm0qI4/iPFHDJ7a
-         5NCg==
-In-Reply-To: <20120427.143402.1028957981042061092.davem@davemloft.net>
+         :x-google-sender-auth:message-id:subject:to:cc:content-type;
+        bh=tVa4YPo3PsHSTHR/tBxwR4+f2/qAB9cgxv5UM/ebGmk=;
+        b=TPCj0gyt8Zz1kn3EJZv86gag5f2eMVa/fHsZhHRJHyhWI7o99OVofAcE6wo26CR0cr
+         NHh5E3PWEdQWrcAmgb/LjyvDK8boF/Amf2PakX3O7Y90TAtTHj3bo4t2cuNrrQWqPk3d
+         g2AU09ZEMoQTpl5nKA6u7BtD2h9YyaQrruSVTRDhDLQ4/Zh5P8W2x9w/GVAYEnRmRoz6
+         +tWSNMoSTIbqig0LxlPooZHmIjqnoexT+Yf0gGaGb11BxpYpnZZF9mEkMywYI/6o32BA
+         RpVN/45RzCgI7YFg8BBMgNlnBOrHeT2+WydbsVui3eRs1rzrWyZejphDxRWPC6v0nJs9
+         qURw==
+In-Reply-To: <CA+55aFwvFaxBT8Mdp5s4-6Gxy7nM4WVzbWna4RF_OUK3hnx+jQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: David Miller <davem@davemloft.net>
 Cc: mjt@tls.msk.ru, linux-kernel@vger.kernel.org, autofs@vger.kernel.org, raven@themaw.net, thomas@m3y3r.de, stable@kernel.org
 
-On Fri, Apr 27, 2012 at 11:34 AM, David Miller <davem@davemloft.net> wr=
-ote:
+On Fri, Apr 27, 2012 at 11:42 AM, Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
 >
-> If systemd wants to use version 5 of this thing, it has to have the
-> same workaround code automountd has. =A0It is systemd (and now the
-> kernel) which is broken.
+> There's no question that systemd is broken.
 
-There's no question that systemd is broken.
+Actually, I'll take that back.
 
-But those broken binaries are out in the wild. End of story.
+Yes, systemd has breakage. But it's actually automount that is the
+truly broken piece of sh*t.
 
-> We should have never touched version 5 of the data-structure. =A0Havi=
-ng
-> 5 years of workaround precedence in userspace proves this.
+I think that 'automount' is even more broken. The fact that the
+automount maintainers knew about this, and added TOTALLY BROKEN code
+to their automount source tree, over five years ago, because the
+authors clearly did not understand what the f*ck they were doing,
+that's the real problem.
 
-Umm. The thing is, those broken binaries *work* on 32-bit.  They were
-*tested* on 32-bit. They were *shipped* on 32-bit.
+Look at the automount source code:
 
-And we really do want to make it just work for people to build 64-bit
-kernels. It is simply not acceptably to say "hey, you have 32-bit user
-land, so use a 32-bit kernel". It's not a different ABI, never has
-been.
+        if (pkt_len % 8) {
+                if (strcmp(un.machine, "alpha") == 0 ||
+                    strcmp(un.machine, "ia64") == 0 ||
+                    strcmp(un.machine, "x86_64") == 0 ||
+                    strcmp(un.machine, "ppc64") == 0)
+                        pkt_len += 4;
 
-It's entirely pointless to talk about some next version. THAT FIXES
-NOTHING. What's so hard to understand? This is an existing problem,
-and making a v6 DOES NOT FIX ANYTHING AT ALL.
+        }
 
-And people who bring it up as a "fix" are entirely missing the point.
+and realize that the above is *wrong*. It's complete and utter shit.
+It's actively insane. The above source code makes zero sense.
 
-Seriously.
+The whole issue does not *exist* on alpha, ia64, or ppc64 (or sparc64,
+which isn't even listed), because those architectures don't have the
+issue that their 32-bit version has different default alignment for a
+64-bit entity.
 
-                      Linus
+So autofs-tools was and remains actively *wrong*.
+
+In contrast, the systemd source code actually makes sense. We should
+point to it as the *correct* user, and autofs as the legacy bug.
+
+Which is why I actually think that it makes more sense to special-case
+the real bug - in automount. It's why I think that it's ok to do the
+strcmp(), and why the strcmp should check for "automount", not
+"systemd".
+
+I just think it needs a big honking comment that explains it. Something like
+
+   int autofs_compat_interface()
+   {
+      if (!is_compat_task())
+            return 0;
+      /* "autofs" has crazy shit going on working around an old compat
+bug, and actually
+          expects the non-compat size with a 64-bit kernel */
+      if (!strcmp(current->comm, "automount"))
+            return 0;
+      return 1;
+   }
+
+because it really is an autofs bug.
+
+If the autofs people had understood what they were doing, none of this
+would ever have happened.
+
+Still, checking for strings is ugly. I do think it would be even
+better if we could trigger on another difference, but whatever..
+
+                    Linus
