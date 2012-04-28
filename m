@@ -1,134 +1,39 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [PATCH v2] Introduce a version6 of autofs interface, to fix
- design error.
-Date: Sat, 28 Apr 2012 09:10:17 -0700
-Message-ID: <CA+55aFzdEcfXVXXqCumVJo=9+fK+1HvH6L4qY03HfTTvCs1Fwg@mail.gmail.com>
-References: <20120427.151433.1007849975903946491.davem@davemloft.net>
- <20120427.151651.2274764174217164454.davem@davemloft.net> <CA+55aFzPbAprx-iT0TYh24uS7+JnL92mbTg_js6Cd_O0q+Dvmw@mail.gmail.com>
- <20120427.152404.2292425516870981391.davem@davemloft.net> <CA+55aFzGO+PHmjjVgxnYawbB-wFAqHtkh19vTv1AwQNpc9MsWg@mail.gmail.com>
- <20120427234215.079a1565@pyramind.ukuu.org.uk> <CA+55aFxq4TunFa8mqJk5MHfvvFSg7Dr54acW7Cnqc5amOPdqrg@mail.gmail.com>
+From: Mark Lord <kernel@teksavvy.com>
+Subject: Re: [PATCH v2] Introduce a version6 of autofs interface, to fix design
+ error.
+Date: Sat, 28 Apr 2012 18:20:58 -0400
+Message-ID: <4F9C6D4A.5080608@teksavvy.com>
+References: <1335447289-9909-1-git-send-email-mjt@msgid.tls.msk.ru> <CA+55aFxEP7-+N7vTPZ-4hD-UirZ=+YMJh2x3EjZvUmjjyOchtg@mail.gmail.com> <4F9A6ABA.6050503@msgid.tls.msk.ru> <4F9ABF90.5060404@teksavvy.com> <4F9B0378.70906@zytor.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=0016e6d99d1b4f8ee304bebf76f8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20120113;
-        h=mime-version:sender:in-reply-to:references:from:date
-         :x-google-sender-auth:message-id:subject:to:cc:content-type;
-        bh=+9QaqDxDP37niSUOMS/uU7DmN7A5kLEUeFsw7ouQpSg=;
-        b=rM6hdk5+XEAsHWSEFHz6lozwspHmnkIkgBpZonU3yU/OM4/Qzua8Cm5oAENiLYh2uV
-         RX3euCstQSHyXWjfl3p6F5ARlUJietFRd3IfgqdWwNINnB7GNbE2JcAjoIbpl5WXLSps
-         6pvq5vrFgMK2oAYPre6XQLEnuzdoY1IKiFIi7/RuyCLZHGR8zczyIRAqDiI1HKOweujg
-         BOE/S3g3+z5RNj3jQPIvNzJWgiXImMDh2iKu8hfxMqRb9BFiOHDW60E84/edbgX6qMke
-         EFXWNbE8HLseGfK7yhJpFjjqR8fzS1PVxaskITen8HJdewbwLmp8sqcD6GN460aJswf9
-         78cw==
-In-Reply-To: <CA+55aFxq4TunFa8mqJk5MHfvvFSg7Dr54acW7Cnqc5amOPdqrg@mail.gmail.com>
+In-Reply-To: <4F9B0378.70906@zytor.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>, Thomas Meyer <thomas@m3y3r.de>
-Cc: David Miller <davem@davemloft.net>, mjt@tls.msk.ru, linux-kernel@vger.kernel.org, autofs@vger.kernel.org, raven@themaw.net, stable@kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Michael Tokarev <mjt@tls.msk.ru>, Linus Torvalds <torvalds@linux-foundation.org>, Linux-kernel <linux-kernel@vger.kernel.org>, autofs@vger.kernel.org, Ian Kent <raven@themaw.net>, Thomas Meyer <thomas@m3y3r.de>, stable@kernel.org
 
---0016e6d99d1b4f8ee304bebf76f8
-Content-Type: text/plain; charset=ISO-8859-1
+On 12-04-27 04:37 PM, H. Peter Anvin wrote:
+> On 04/27/2012 08:47 AM, Mark Lord wrote:
+>> On 12-04-27 05:45 AM, Michael Tokarev wrote:
+>> ..
+>>> Please note: the talk is about 32bit userspace on 64bit kernel,
+>>> which should be quite rare these days, or something of less
+>>> priority.
+>>
+>>
+>> I suspect 32bit-PAE is more common than 32/64,
+>> but both are valid and not uncommon in the wild.
+> 
+> 32-on-64 is a very important use case, because it lets us get people off
+> 32-bit kernels.
 
-On Fri, Apr 27, 2012 at 4:27 PM, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
->
-> The attached patch implements that, and makes autofs automatically set
-> the O_DIRECT flag.
+Agreed.  But -PAE is even more important for the millions of people
+with NVIDIA graphics controllers in their machines, or at least if
+they want decent video playback.  :)
 
-Ok, since the packetized pipe approach makes the "compat" games in
-autofs unnecessary (autofs can just always do the bigger write), I
-have now reverted the commit that started this issue in my tree (and
-marked it for stable). So automount should work again.
+The otherwise-excellent NVIDIA drivers don't work in 32/64 mode,
+but they do handle -PAE just fine.
 
-However, I would still like to know if systemd works with the attached
-patch (it's pretty much the same patch as before, but the revert made
-for some changes in the autofs code).
-
-Thomas?
-
-                    Linus
-
---0016e6d99d1b4f8ee304bebf76f8
-Content-Type: application/octet-stream; name="patch.diff"
-Content-Disposition: attachment; filename="patch.diff"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_h1kv9gml1
-
-IGZzL2F1dG9mczQvYXV0b2ZzX2kuaCAgfCAgIDExICsrKysrKysrKysrCiBmcy9hdXRvZnM0L2Rl
-di1pb2N0bC5jIHwgICAgMiArLQogZnMvYXV0b2ZzNC9pbm9kZS5jICAgICB8ICAgIDIgKy0KIGZz
-L2F1dG9mczQvd2FpdHEuYyAgICAgfCAgICAyICstCiBmcy9waXBlLmMgICAgICAgICAgICAgIHwg
-ICAxNyArKysrKysrKysrKy0tLS0tLQogNSBmaWxlcyBjaGFuZ2VkLCAyNSBpbnNlcnRpb25zKCsp
-LCA5IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2ZzL2F1dG9mczQvYXV0b2ZzX2kuaCBiL2Zz
-L2F1dG9mczQvYXV0b2ZzX2kuaAppbmRleCBkOGQ4ZTdiYTZhMWUuLjU4MTczNDNiYWQzMiAxMDA2
-NDQKLS0tIGEvZnMvYXV0b2ZzNC9hdXRvZnNfaS5oCisrKyBiL2ZzL2F1dG9mczQvYXV0b2ZzX2ku
-aApAQCAtMjY5LDYgKzI2OSwxNyBAQCBpbnQgYXV0b2ZzNF9maWxsX3N1cGVyKHN0cnVjdCBzdXBl
-cl9ibG9jayAqLCB2b2lkICosIGludCk7CiBzdHJ1Y3QgYXV0b2ZzX2luZm8gKmF1dG9mczRfbmV3
-X2lubyhzdHJ1Y3QgYXV0b2ZzX3NiX2luZm8gKik7CiB2b2lkIGF1dG9mczRfY2xlYW5faW5vKHN0
-cnVjdCBhdXRvZnNfaW5mbyAqKTsKIAorc3RhdGljIGlubGluZSBpbnQgYXV0b2ZzX3ByZXBhcmVf
-cGlwZShzdHJ1Y3QgZmlsZSAqcGlwZSkKK3sKKwlpZiAoIXBpcGUtPmZfb3AgfHwgIXBpcGUtPmZf
-b3AtPndyaXRlKQorCQlyZXR1cm4gLUVJTlZBTDsKKwlpZiAoIXBpcGUtPmZfZGVudHJ5LT5kX2lu
-b2RlLT5pX3BpcGUpCisJCXJldHVybiAtRUlOVkFMOworCS8qIFdlIHdhbnQgYSBwYWNrZXQgcGlw
-ZSAqLworCXBpcGUtPmZfZmxhZ3MgfD0gT19ESVJFQ1Q7CisJcmV0dXJuIDA7Cit9CisKIC8qIFF1
-ZXVlIG1hbmFnZW1lbnQgZnVuY3Rpb25zICovCiAKIGludCBhdXRvZnM0X3dhaXQoc3RydWN0IGF1
-dG9mc19zYl9pbmZvICosc3RydWN0IGRlbnRyeSAqLCBlbnVtIGF1dG9mc19ub3RpZnkpOwpkaWZm
-IC0tZ2l0IGEvZnMvYXV0b2ZzNC9kZXYtaW9jdGwuYyBiL2ZzL2F1dG9mczQvZGV2LWlvY3RsLmMK
-aW5kZXggM2RmZDYxNWFmYjZiLi5hYTkxMDNmOGYwMWIgMTAwNjQ0Ci0tLSBhL2ZzL2F1dG9mczQv
-ZGV2LWlvY3RsLmMKKysrIGIvZnMvYXV0b2ZzNC9kZXYtaW9jdGwuYwpAQCAtMzc2LDcgKzM3Niw3
-IEBAIHN0YXRpYyBpbnQgYXV0b2ZzX2Rldl9pb2N0bF9zZXRwaXBlZmQoc3RydWN0IGZpbGUgKmZw
-LAogCQkJZXJyID0gLUVCQURGOwogCQkJZ290byBvdXQ7CiAJCX0KLQkJaWYgKCFwaXBlLT5mX29w
-IHx8ICFwaXBlLT5mX29wLT53cml0ZSkgeworCQlpZiAoYXV0b2ZzX3ByZXBhcmVfcGlwZShwaXBl
-KSA8IDApIHsKIAkJCWVyciA9IC1FUElQRTsKIAkJCWZwdXQocGlwZSk7CiAJCQlnb3RvIG91dDsK
-ZGlmZiAtLWdpdCBhL2ZzL2F1dG9mczQvaW5vZGUuYyBiL2ZzL2F1dG9mczQvaW5vZGUuYwppbmRl
-eCAxNGM3YmMwMjM0OWUuLjZlNDg4ZWJlNzc4NCAxMDA2NDQKLS0tIGEvZnMvYXV0b2ZzNC9pbm9k
-ZS5jCisrKyBiL2ZzL2F1dG9mczQvaW5vZGUuYwpAQCAtMjkwLDcgKzI5MCw3IEBAIGludCBhdXRv
-ZnM0X2ZpbGxfc3VwZXIoc3RydWN0IHN1cGVyX2Jsb2NrICpzLCB2b2lkICpkYXRhLCBpbnQgc2ls
-ZW50KQogCQlwcmludGsoImF1dG9mczogY291bGQgbm90IG9wZW4gcGlwZSBmaWxlIGRlc2NyaXB0
-b3JcbiIpOwogCQlnb3RvIGZhaWxfZHB1dDsKIAl9Ci0JaWYgKCFwaXBlLT5mX29wIHx8ICFwaXBl
-LT5mX29wLT53cml0ZSkKKwlpZiAoYXV0b2ZzX3ByZXBhcmVfcGlwZShwaXBlKSA8IDApCiAJCWdv
-dG8gZmFpbF9mcHV0OwogCXNiaS0+cGlwZSA9IHBpcGU7CiAJc2JpLT5waXBlZmQgPSBwaXBlZmQ7
-CmRpZmYgLS1naXQgYS9mcy9hdXRvZnM0L3dhaXRxLmMgYi9mcy9hdXRvZnM0L3dhaXRxLmMKaW5k
-ZXggZGE4ODc2ZDM4YTdiLi5mNjI0Y2QwZmY4NGQgMTAwNjQ0Ci0tLSBhL2ZzL2F1dG9mczQvd2Fp
-dHEuYworKysgYi9mcy9hdXRvZnM0L3dhaXRxLmMKQEAgLTkxLDcgKzkxLDcgQEAgc3RhdGljIGlu
-dCBhdXRvZnM0X3dyaXRlKHN0cnVjdCBhdXRvZnNfc2JfaW5mbyAqc2JpLAogCiAJcmV0dXJuIChi
-eXRlcyA+IDApOwogfQotCQorCiBzdGF0aWMgdm9pZCBhdXRvZnM0X25vdGlmeV9kYWVtb24oc3Ry
-dWN0IGF1dG9mc19zYl9pbmZvICpzYmksCiAJCQkJIHN0cnVjdCBhdXRvZnNfd2FpdF9xdWV1ZSAq
-d3EsCiAJCQkJIGludCB0eXBlKQpkaWZmIC0tZ2l0IGEvZnMvcGlwZS5jIGIvZnMvcGlwZS5jCmlu
-ZGV4IDI1ZmVhYTNmYWFjMC4uYzY1MDUxZWI2ODkzIDEwMDY0NAotLS0gYS9mcy9waXBlLmMKKysr
-IGIvZnMvcGlwZS5jCkBAIC0zNDYsNiArMzQ2LDExIEBAIHN0YXRpYyBjb25zdCBzdHJ1Y3QgcGlw
-ZV9idWZfb3BlcmF0aW9ucyBhbm9uX3BpcGVfYnVmX29wcyA9IHsKIAkuZ2V0ID0gZ2VuZXJpY19w
-aXBlX2J1Zl9nZXQsCiB9OwogCitzdGF0aWMgaW5saW5lIGludCBpc19wYWNrZXRpemVkKHN0cnVj
-dCBmaWxlICpmaWxlKQoreworCXJldHVybiAoZmlsZS0+Zl9mbGFncyAmIE9fRElSRUNUKSAhPSAw
-OworfQorCiBzdGF0aWMgc3NpemVfdAogcGlwZV9yZWFkKHN0cnVjdCBraW9jYiAqaW9jYiwgY29u
-c3Qgc3RydWN0IGlvdmVjICpfaW92LAogCSAgIHVuc2lnbmVkIGxvbmcgbnJfc2VncywgbG9mZl90
-IHBvcykKQEAgLTQwNyw3ICs0MTIsNyBAQCByZWRvOgogCQkJcmV0ICs9IGNoYXJzOwogCQkJYnVm
-LT5vZmZzZXQgKz0gY2hhcnM7CiAJCQlidWYtPmxlbiAtPSBjaGFyczsKLQkJCWlmICghYnVmLT5s
-ZW4pIHsKKwkJCWlmICghYnVmLT5sZW4gfHwgaXNfcGFja2V0aXplZChmaWxwKSkgewogCQkJCWJ1
-Zi0+b3BzID0gTlVMTDsKIAkJCQlvcHMtPnJlbGVhc2UocGlwZSwgYnVmKTsKIAkJCQljdXJidWYg
-PSAoY3VyYnVmICsgMSkgJiAocGlwZS0+YnVmZmVycyAtIDEpOwpAQCAtNDE2LDcgKzQyMSw3IEBA
-IHJlZG86CiAJCQkJZG9fd2FrZXVwID0gMTsKIAkJCX0KIAkJCXRvdGFsX2xlbiAtPSBjaGFyczsK
-LQkJCWlmICghdG90YWxfbGVuKQorCQkJaWYgKCF0b3RhbF9sZW4gfHwgaXNfcGFja2V0aXplZChm
-aWxwKSkKIAkJCQlicmVhazsJLyogY29tbW9uIHBhdGg6IHJlYWQgc3VjY2VlZGVkICovCiAJCX0K
-IAkJaWYgKGJ1ZnMpCS8qIE1vcmUgdG8gZG8/ICovCkBAIC00OTAsNyArNDk1LDcgQEAgcGlwZV93
-cml0ZShzdHJ1Y3Qga2lvY2IgKmlvY2IsIGNvbnN0IHN0cnVjdCBpb3ZlYyAqX2lvdiwKIAogCS8q
-IFdlIHRyeSB0byBtZXJnZSBzbWFsbCB3cml0ZXMgKi8KIAljaGFycyA9IHRvdGFsX2xlbiAmIChQ
-QUdFX1NJWkUtMSk7IC8qIHNpemUgb2YgdGhlIGxhc3QgYnVmZmVyICovCi0JaWYgKHBpcGUtPm5y
-YnVmcyAmJiBjaGFycyAhPSAwKSB7CisJaWYgKCFpc19wYWNrZXRpemVkKGZpbHApICYmIHBpcGUt
-Pm5yYnVmcyAmJiBjaGFycyAhPSAwKSB7CiAJCWludCBsYXN0YnVmID0gKHBpcGUtPmN1cmJ1ZiAr
-IHBpcGUtPm5yYnVmcyAtIDEpICYKIAkJCQkJCQkocGlwZS0+YnVmZmVycyAtIDEpOwogCQlzdHJ1
-Y3QgcGlwZV9idWZmZXIgKmJ1ZiA9IHBpcGUtPmJ1ZnMgKyBsYXN0YnVmOwpAQCAtMTAxMyw3ICsx
-MDE4LDcgQEAgc3RydWN0IGZpbGUgKmNyZWF0ZV93cml0ZV9waXBlKGludCBmbGFncykKIAkJZ290
-byBlcnJfZGVudHJ5OwogCWYtPmZfbWFwcGluZyA9IGlub2RlLT5pX21hcHBpbmc7CiAKLQlmLT5m
-X2ZsYWdzID0gT19XUk9OTFkgfCAoZmxhZ3MgJiBPX05PTkJMT0NLKTsKKwlmLT5mX2ZsYWdzID0g
-T19XUk9OTFkgfCAoZmxhZ3MgJiAoT19OT05CTE9DSyB8IE9fRElSRUNUKSk7CiAJZi0+Zl92ZXJz
-aW9uID0gMDsKIAogCXJldHVybiBmOwpAQCAtMTA0Niw3ICsxMDUxLDcgQEAgc3RydWN0IGZpbGUg
-KmNyZWF0ZV9yZWFkX3BpcGUoc3RydWN0IGZpbGUgKndyZiwgaW50IGZsYWdzKQogCQlyZXR1cm4g
-RVJSX1BUUigtRU5GSUxFKTsKIAogCXBhdGhfZ2V0KCZ3cmYtPmZfcGF0aCk7Ci0JZi0+Zl9mbGFn
-cyA9IE9fUkRPTkxZIHwgKGZsYWdzICYgT19OT05CTE9DSyk7CisJZi0+Zl9mbGFncyA9IE9fUkRP
-TkxZIHwgKGZsYWdzICYgKE9fTk9OQkxPQ0sgfCBPX0RJUkVDVCkpOwogCiAJcmV0dXJuIGY7CiB9
-CkBAIC0xMDU3LDcgKzEwNjIsNyBAQCBpbnQgZG9fcGlwZV9mbGFncyhpbnQgKmZkLCBpbnQgZmxh
-Z3MpCiAJaW50IGVycm9yOwogCWludCBmZHcsIGZkcjsKIAotCWlmIChmbGFncyAmIH4oT19DTE9F
-WEVDIHwgT19OT05CTE9DSykpCisJaWYgKGZsYWdzICYgfihPX0NMT0VYRUMgfCBPX05PTkJMT0NL
-IHwgT19ESVJFQ1QpKQogCQlyZXR1cm4gLUVJTlZBTDsKIAogCWZ3ID0gY3JlYXRlX3dyaXRlX3Bp
-cGUoZmxhZ3MpOwo=
---0016e6d99d1b4f8ee304bebf76f8--
+Cheers
