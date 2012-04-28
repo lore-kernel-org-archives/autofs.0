@@ -1,47 +1,83 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: [PATCH v2] Introduce a version6 of autofs interface, to fix
  design error.
-Date: Fri, 27 Apr 2012 17:17:34 -0700
-Message-ID: <CA+55aFxnksj5fL68XzkGPQ+aQc0pif+5jjxD=LjGcxKUt039xw@mail.gmail.com>
-References: <20120427.151433.1007849975903946491.davem@davemloft.net>
- <20120427.151651.2274764174217164454.davem@davemloft.net> <CA+55aFzPbAprx-iT0TYh24uS7+JnL92mbTg_js6Cd_O0q+Dvmw@mail.gmail.com>
- <20120427.152404.2292425516870981391.davem@davemloft.net> <CA+55aFzGO+PHmjjVgxnYawbB-wFAqHtkh19vTv1AwQNpc9MsWg@mail.gmail.com>
- <4F9B050C.3000309@zytor.com> <CA+55aFz-1n=REkh9SzA1aEz5J_uGc=B_nKj+cP8J=PR6YSZD1w@mail.gmail.com>
- <4F9B2420.5030806@zytor.com> <CA+55aFyCpiU5_nG-3Nra5q9x0-71amAQVetZTxxP6waR1ueYNQ@mail.gmail.com>
- <4F9B33BF.908@zytor.com>
+Date: Sat, 28 Apr 2012 09:56:24 +0800
+Message-ID: <1335578184.4141.9.camel@perseus.themaw.net>
+References: <20120427.143402.1028957981042061092.davem@davemloft.net>
+	 <CA+55aFwvFaxBT8Mdp5s4-6Gxy7nM4WVzbWna4RF_OUK3hnx+jQ@mail.gmail.com>
+	 <CA+55aFyLk-uPMVaic19YOWdvdj2pv4R+E3s7UQ6voAy6UkO_Sg@mail.gmail.com>
+	 <20120427.151433.1007849975903946491.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20120113;
-        h=mime-version:sender:in-reply-to:references:from:date
-         :x-google-sender-auth:message-id:subject:to:cc:content-type
-         :content-transfer-encoding;
-        bh=bjCp+vskLvV4sgPtYisjaKn11Vl6PfcXq0GdZA0fOvk=;
-        b=rEynAVecyhJsA4Hys4zYbiamYySE3hGsGonZVHxeoiGyv9IlByEl245PEnkOi+MCqR
-         08o3ErfNyB28atjy7la2SwnQq4jEvix9qLrjK47InEHFSeKd8md+NJWXJ0LjQPDPeWGK
-         d8N7SZDpzyDMazYJLTcFNdSVGcTcNOGRbi5EBMY5V1a/fkZzs8CkDtPXAJw8XDBUWgX1
-         IKAC8o/wo+IuWbPh5V4IludCf4AMNaOw9zxMtugWQtQWhUrxfopvfwGIsjALkj2c+V9H
-         pvre57/qrq2EJbRkSNrULxv+n028Md/m97dFkR23yhfthTxEqbpWIPWD2hWCtUCHqlXg
-         CqKQ==
-In-Reply-To: <4F9B33BF.908@zytor.com>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
+	message-id:subject:from:to:cc:date:in-reply-to:references
+	:content-type:content-transfer-encoding:mime-version; s=mesmtp;
+	 bh=7vjm039AlxYZfGCIMfvaSqDJHGk=; b=OYBMHdOvjmd1iWxwERnv6s2p8gg6
+	GunuRNY9gwW8Up4vFsN0c7JEVaybg98Hll6s7XEkPo3RqjAZ4dnUWDEnpfGFrT2R
+	WQuQ5WVHJ+Bxt4ccEZaIqLIQd7QWhEfn4hRxaV3D15VaHpUICljlZryfW9BSZZAZ
+	JKTbvrgepAKgZzw=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=message-id:subject:from:to:cc:date
+	:in-reply-to:references:content-type:content-transfer-encoding
+	:mime-version; s=smtpout; bh=7vjm039AlxYZfGCIMfvaSqDJHGk=; b=TEI
+	hEdVcBOxHQoTbsOG4l2QF/tfckeDrXWYhc1e1vvMM3Af6EPnYlV9LjGmMXttsWPP
+	yg68C96AZFu6udAR8P113EU9TBGVZ9DFzaDrxfOX0FswQK9nezAq7DB9sWfKpKBt
+	i0F15v5qQ6ZfwdMUDDqvq+FiXg6RQhrfdLQbFmXA=
+In-Reply-To: <20120427.151433.1007849975903946491.davem@davemloft.net>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="iso-8859-1"
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: David Miller <davem@davemloft.net>, mjt@tls.msk.ru, linux-kernel@vger.kernel.org, autofs@vger.kernel.org, raven@themaw.net, thomas@m3y3r.de, stable@kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: David Miller <davem@davemloft.net>
+Cc: torvalds@linux-foundation.org, mjt@tls.msk.ru, linux-kernel@vger.kernel.org, autofs@vger.kernel.org, thomas@m3y3r.de, stable@kernel.org
 
-On Fri, Apr 27, 2012 at 5:03 PM, H. Peter Anvin <hpa@zytor.com> wrote:
->
-> Still, I have to admit... we have a grand total of three users of thi=
-s
-> interface as far as we know (autofs, systemd, and am-utils if they ev=
-er
-> revved that one to v5.) =A0Would it really not be better to do the
-> zero-eating user space fix?
+On Fri, 2012-04-27 at 15:14 -0400, David Miller wrote:
+> From: Linus Torvalds <torvalds@linux-foundation.org>
+> Date: Fri, 27 Apr 2012 11:55:12 -0700
+> 
+> > On Fri, Apr 27, 2012 at 11:42 AM, Linus Torvalds
+> > <torvalds@linux-foundation.org> wrote:
+> >>
+> >> There's no question that systemd is broken.
+> > 
+> > Actually, I'll take that back.
+> > 
+> > Yes, systemd has breakage. But it's actually automount that is the
+> > truly broken piece of sh*t.
+> > 
+> > I think that 'automount' is even more broken. The fact that the
+> > automount maintainers knew about this, and added TOTALLY BROKEN code
+> > to their automount source tree, over five years ago, because the
+> > authors clearly did not understand what the f*ck they were doing,
+> > that's the real problem.
+> 
+> I respectfully disagree.
+> 
+> It's ugly as shit, but it is the only one place where one can be
+> absolutely sure that we are dealing with a pipe passing those v5
+> things around.
+> 
+> All these hacks we have been talking about, assuming the mount means
+> the pipe is for passing structure so-and-so around, and now trying
+> to find some other check such as one on current->comm...
+> 
+> That's better?
+> 
+> Only the application really knows.  And I bet the person who wrote
+> that automountd code you find so distasteful analyzed this and came
+> to realize how difficult the kernel side would be to get right.
 
-Considering the sh*t that is in user space now, and how distributions
-tend to take years (if ever) to actually update some programs, I don't
-see how that would actually work in practice.
+There's nothing I can say in my defense, Linus has made that very clear,
+over and again.
 
-                   Linus
+When I realized the alignment mistake there were already shipping
+binaries so I decided it was too late to change that.
+
+And I see I got the analysis of the architectures alignment wrong, mmmm,
+that's bad as well.
+
+I guess I'll just be quiet now since anything I say is probably going to
+be wrong.
+
+Ian
+
