@@ -1,39 +1,49 @@
-From: Mark Lord <kernel@teksavvy.com>
+From: Michael Tokarev <mjt@tls.msk.ru>
 Subject: Re: [PATCH v2] Introduce a version6 of autofs interface, to fix design
  error.
-Date: Sat, 28 Apr 2012 18:20:58 -0400
-Message-ID: <4F9C6D4A.5080608@teksavvy.com>
-References: <1335447289-9909-1-git-send-email-mjt@msgid.tls.msk.ru> <CA+55aFxEP7-+N7vTPZ-4hD-UirZ=+YMJh2x3EjZvUmjjyOchtg@mail.gmail.com> <4F9A6ABA.6050503@msgid.tls.msk.ru> <4F9ABF90.5060404@teksavvy.com> <4F9B0378.70906@zytor.com>
+Date: Sun, 29 Apr 2012 10:37:00 +0400
+Message-ID: <4F9CE18C.2060806@msgid.tls.msk.ru>
+References: <20120427.151433.1007849975903946491.davem@davemloft.net> <20120427.151651.2274764174217164454.davem@davemloft.net> <CA+55aFzPbAprx-iT0TYh24uS7+JnL92mbTg_js6Cd_O0q+Dvmw@mail.gmail.com> <20120427.152404.2292425516870981391.davem@davemloft.net> <CA+55aFzGO+PHmjjVgxnYawbB-wFAqHtkh19vTv1AwQNpc9MsWg@mail.gmail.com> <20120427234215.079a1565@pyramind.ukuu.org.uk> <CA+55aFxq4TunFa8mqJk5MHfvvFSg7Dr54acW7Cnqc5amOPdqrg@mail.gmail.com> <CA+55aFzdEcfXVXXqCumVJo=9+fK+1HvH6L4qY03HfTTvCs1Fwg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4F9B0378.70906@zytor.com>
+In-Reply-To: <CA+55aFzdEcfXVXXqCumVJo=9+fK+1HvH6L4qY03HfTTvCs1Fwg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Michael Tokarev <mjt@tls.msk.ru>, Linus Torvalds <torvalds@linux-foundation.org>, Linux-kernel <linux-kernel@vger.kernel.org>, autofs@vger.kernel.org, Ian Kent <raven@themaw.net>, Thomas Meyer <thomas@m3y3r.de>, stable@kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Thomas Meyer <thomas@m3y3r.de>, David Miller <davem@davemloft.net>, linux-kernel@vger.kernel.org, autofs@vger.kernel.org, raven@themaw.net, stable@kernel.org
 
-On 12-04-27 04:37 PM, H. Peter Anvin wrote:
-> On 04/27/2012 08:47 AM, Mark Lord wrote:
->> On 12-04-27 05:45 AM, Michael Tokarev wrote:
->> ..
->>> Please note: the talk is about 32bit userspace on 64bit kernel,
->>> which should be quite rare these days, or something of less
->>> priority.
+On 28.04.2012 20:10, Linus Torvalds wrote:
+> On Fri, Apr 27, 2012 at 4:27 PM, Linus Torvalds
+> <torvalds@linux-foundation.org> wrote:
 >>
->>
->> I suspect 32bit-PAE is more common than 32/64,
->> but both are valid and not uncommon in the wild.
+>> The attached patch implements that, and makes autofs automatically set
+>> the O_DIRECT flag.
 > 
-> 32-on-64 is a very important use case, because it lets us get people off
-> 32-bit kernels.
+> Ok, since the packetized pipe approach makes the "compat" games in
+> autofs unnecessary (autofs can just always do the bigger write), I
+> have now reverted the commit that started this issue in my tree (and
+> marked it for stable). So automount should work again.
+> 
+> However, I would still like to know if systemd works with the attached
+> patch (it's pretty much the same patch as before, but the revert made
+> for some changes in the autofs code).
+> 
+> Thomas?
 
-Agreed.  But -PAE is even more important for the millions of people
-with NVIDIA graphics controllers in their machines, or at least if
-they want decent video playback.  :)
+I installed 32bit userspace together with systemd in a vrtual machine
+today, and tried it with this patch (and with the previous autofs
+'fix' reverted).
 
-The otherwise-excellent NVIDIA drivers don't work in 32/64 mode,
-but they do handle -PAE just fine.
+And no, it does not quite work.  Strace shows that systemd correctly
+reads first 300 bytes, but next read returns 4 bytes, so it reads
+these and waits for next 300-4 = 296 bytes of data.
 
-Cheers
+/proc/1/fdinfo/16  -- the autofs pipe fd# -- shows flags=02004000
+which is O_CLOEXEC|O_NONBLOCK, but this is the other end of the
+pipe..  shouldn't the READ side of the pipe have O_DIRECT flag now?
+
+Thanks,
+
+/mjt
