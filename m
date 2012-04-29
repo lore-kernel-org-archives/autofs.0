@@ -1,72 +1,150 @@
 From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: [PATCH v2] Introduce a version6 of autofs interface, to fix
  design error.
-Date: Sun, 29 Apr 2012 11:29:16 -0700
-Message-ID: <CA+55aFzJjk8vvY7au-aUOJqJaRaFT3zqP0_H9JXS2Y93wkXwEg@mail.gmail.com>
+Date: Sun, 29 Apr 2012 12:09:16 -0700
+Message-ID: <CA+55aFwTUDsefBd9c-wp8jrnp4tOh6jyJkjc_UZut-J6FHSF+w@mail.gmail.com>
 References: <20120427.151433.1007849975903946491.davem@davemloft.net>
  <20120427.151651.2274764174217164454.davem@davemloft.net> <CA+55aFzPbAprx-iT0TYh24uS7+JnL92mbTg_js6Cd_O0q+Dvmw@mail.gmail.com>
  <20120427.152404.2292425516870981391.davem@davemloft.net> <CA+55aFzGO+PHmjjVgxnYawbB-wFAqHtkh19vTv1AwQNpc9MsWg@mail.gmail.com>
  <20120427234215.079a1565@pyramind.ukuu.org.uk> <CA+55aFxq4TunFa8mqJk5MHfvvFSg7Dr54acW7Cnqc5amOPdqrg@mail.gmail.com>
  <CA+55aFzdEcfXVXXqCumVJo=9+fK+1HvH6L4qY03HfTTvCs1Fwg@mail.gmail.com>
  <4F9CE18C.2060806@msgid.tls.msk.ru> <CA+55aFyS9VYT50JAXeGrLrtFVWSGr+DMTA1hhrcPYzmjrSV5+A@mail.gmail.com>
- <4F9CF191.5020607@msgid.tls.msk.ru>
+ <4F9CF191.5020607@msgid.tls.msk.ru> <CA+55aFzJjk8vvY7au-aUOJqJaRaFT3zqP0_H9JXS2Y93wkXwEg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/mixed; boundary=f46d0438ede71d027c04bed614bc
 Return-path: <linux-kernel-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20120113;
         h=mime-version:sender:in-reply-to:references:from:date
-         :x-google-sender-auth:message-id:subject:to:cc:content-type
-         :content-transfer-encoding;
-        bh=/DAxfLXjpm7iTTiMHykmbGLWYtulaa1VdZmgn8l7wXM=;
-        b=rExWkWfprY1AyuzbHZi0s0UX2SIT8BtFjZkiJ2ME9x8Vh3J3B65ZijwRNiIp/iGiZ8
-         WuCVdTjfZruoSxJsXZmUbre8wRuov6bI24f6rHVD6aavYWFlJ3p32XrY5JO1aQHScGcQ
-         ZVMmJM/TlOFl2Im0u9FYygBjI7gPGQ1m9OVGkzD+2E0QHDeWL/fHxQUnIcyG18CoG4Vl
-         p1EKFq+DR+gY3r6xRaDWeNc9ysttaIX3Az1z/0e41dXeE4z9SuiPRDsg74r/a7awmSPx
-         WdyWPMbsysKaGPxD1QYd2lMkMMbC/T8wwuamIYDitKvkhYfsU3HW9dnJg0H10hhkD8rv
-         2R4A==
-In-Reply-To: <4F9CF191.5020607@msgid.tls.msk.ru>
+         :x-google-sender-auth:message-id:subject:to:cc:content-type;
+        bh=RVrLiQfW+fKSK9q1ll+yAPeJINvkT52z+fFhKZTU1PI=;
+        b=uTJjFQc7KSqDtd79BZ4oNjNQEi6KIQVYIrKH5MyCPGbyt9uylgfBJwYxRLmSUzTVAI
+         EpKvMhWbQgB6EywtUdbnos+psDW/GmG+7Ksxsh8iXNyl0fKdb73rktWt+nC+NxoecZUy
+         kL3ZTrVtsKAa7LxYnNDbODzTEytLy3PldkcJk0ek9SWYxWP9cd5l6tymwRpS08gW66e6
+         okJ8JKcQq7iIWeSahcl2VOKlTDcn6Nrw6ttzh5exjc7eAuxRP9M5gEah3Y9y0HZABPPw
+         dx8WZYxJGtNZ/L6aWnrcP7+yKVl3aqYSCtlFUboKk/Mj4NnujhiWYS21IMYzJgIVLGSm
+         4oQg==
+In-Reply-To: <CA+55aFzJjk8vvY7au-aUOJqJaRaFT3zqP0_H9JXS2Y93wkXwEg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="iso-8859-1"
 To: Michael Tokarev <mjt@tls.msk.ru>
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Thomas Meyer <thomas@m3y3r.de>, David Miller <davem@davemloft.net>, linux-kernel@vger.kernel.org, autofs@vger.kernel.org, raven@themaw.net, stable@kernel.org
 
-On Sun, Apr 29, 2012 at 12:45 AM, Michael Tokarev <mjt@tls.msk.ru> wrot=
-e:
-> On 29.04.2012 11:19, Linus Torvalds wrote:
->>
->> Gaah, it should, but it won't.
->>
->> I bet my original patch worked fine, because the pipe has only one
->> inode and pipe structure. But it has *two* 'struct file's associated
->> with it, and autofs only ever sees the writing side, and never gets =
-to
->> mark the reading side O_DIRECT. So yeah, the reading side won't do t=
-he
->> proper packetized read.
+--f46d0438ede71d027c04bed614bc
+Content-Type: text/plain; charset=ISO-8859-1
+
+On Sun, Apr 29, 2012 at 11:29 AM, Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
 >
-> Can't we go - in kernel - from one struct file to pipe structure to
-> another file structure and set O_DIRECT there? =A0Autofs kernel code
-> checks if the file descriptor is a pipe, so it should be possible...
+> But I think I have another approach. We can make the *writer* be the
+> only one that cares about the packetized nature, and if it's a packet
+> write, it will set a PIPE_BUF_PACKET flag in the pipe buffer. The
+> reader can react to that. I think that actually has the potential to
+> make the code a bit prettier too..
 
-Nope. We don't have any back-pointers to the other "struct file". They
-have the inode - and the "struct pipe_inode_info" in common, but
-there's no way to find the other "struct file" from that.
+Patch attached.
 
-And sure, a pipe in Linux could work with a single read-write "struct
-file" that is used both for the reading and writing, but that's not
-how the "pipe()" system call is defined - it gets two separate file
-descriptors, one read-only, one write-only. So that's what autofs and
-systemd hands the kernel - the write side of the pipe. And we can't
-find the read-side one.
+This keeps Alan's idea of using O_DIRECT, but only makes it matter for
+the writer - because now the "packet" thing is a per-pipe-buffer state
+(we already had per-pipe-buffer flags, so this is not anything new).
+So when you *write* using a O_DIRECT pipe, it will create packetized
+buffers, and the reader just sees that directly.
 
-But I think I have another approach. We can make the *writer* be the
-only one that cares about the packetized nature, and if it's a packet
-write, it will set a PIPE_BUF_PACKET flag in the pipe buffer. The
-reader can react to that. I think that actually has the potential to
-make the code a bit prettier too..
+So this should "just work", and doesn't need any extra flags in the
+pipe_inode_info. And the user space interface remains the same: you
+can create these packet pipes with "pipe2(fd, O_DIRECT)" if you want
+to, and my test-program gives exactly the same output.
 
-I'll cook it up.
+                      Linus
 
-                     Linus
+--f46d0438ede71d027c04bed614bc
+Content-Type: application/octet-stream; name="patch.diff"
+Content-Disposition: attachment; filename="patch.diff"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_h1mh3lz40
+
+IGZzL2F1dG9mczQvYXV0b2ZzX2kuaCAgICAgfCAgIDExICsrKysrKysrKysrCiBmcy9hdXRvZnM0
+L2Rldi1pb2N0bC5jICAgIHwgICAgMiArLQogZnMvYXV0b2ZzNC9pbm9kZS5jICAgICAgICB8ICAg
+IDIgKy0KIGZzL2F1dG9mczQvd2FpdHEuYyAgICAgICAgfCAgICAyICstCiBmcy9waXBlLmMgICAg
+ICAgICAgICAgICAgIHwgICAzMSArKysrKysrKysrKysrKysrKysrKysrKysrKysrKy0tCiBpbmNs
+dWRlL2xpbnV4L3BpcGVfZnNfaS5oIHwgICAgMSArCiA2IGZpbGVzIGNoYW5nZWQsIDQ0IGluc2Vy
+dGlvbnMoKyksIDUgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZnMvYXV0b2ZzNC9hdXRvZnNf
+aS5oIGIvZnMvYXV0b2ZzNC9hdXRvZnNfaS5oCmluZGV4IGQ4ZDhlN2JhNmExZS4uOTA4ZTE4NDU1
+NDEzIDEwMDY0NAotLS0gYS9mcy9hdXRvZnM0L2F1dG9mc19pLmgKKysrIGIvZnMvYXV0b2ZzNC9h
+dXRvZnNfaS5oCkBAIC0yNjksNiArMjY5LDE3IEBAIGludCBhdXRvZnM0X2ZpbGxfc3VwZXIoc3Ry
+dWN0IHN1cGVyX2Jsb2NrICosIHZvaWQgKiwgaW50KTsKIHN0cnVjdCBhdXRvZnNfaW5mbyAqYXV0
+b2ZzNF9uZXdfaW5vKHN0cnVjdCBhdXRvZnNfc2JfaW5mbyAqKTsKIHZvaWQgYXV0b2ZzNF9jbGVh
+bl9pbm8oc3RydWN0IGF1dG9mc19pbmZvICopOwogCitzdGF0aWMgaW5saW5lIGludCBhdXRvZnNf
+cHJlcGFyZV9waXBlKHN0cnVjdCBmaWxlICpwaXBlKQoreworCWlmICghcGlwZS0+Zl9vcCB8fCAh
+cGlwZS0+Zl9vcC0+d3JpdGUpCisJCXJldHVybiAtRUlOVkFMOworCWlmICghU19JU0ZJRk8ocGlw
+ZS0+Zl9kZW50cnktPmRfaW5vZGUtPmlfbW9kZSkpCisJCXJldHVybiAtRUlOVkFMOworCS8qIFdl
+IHdhbnQgYSBwYWNrZXQgcGlwZSAqLworCXBpcGUtPmZfZmxhZ3MgfD0gT19ESVJFQ1Q7CisJcmV0
+dXJuIDA7Cit9CisKIC8qIFF1ZXVlIG1hbmFnZW1lbnQgZnVuY3Rpb25zICovCiAKIGludCBhdXRv
+ZnM0X3dhaXQoc3RydWN0IGF1dG9mc19zYl9pbmZvICosc3RydWN0IGRlbnRyeSAqLCBlbnVtIGF1
+dG9mc19ub3RpZnkpOwpkaWZmIC0tZ2l0IGEvZnMvYXV0b2ZzNC9kZXYtaW9jdGwuYyBiL2ZzL2F1
+dG9mczQvZGV2LWlvY3RsLmMKaW5kZXggM2RmZDYxNWFmYjZiLi5hYTkxMDNmOGYwMWIgMTAwNjQ0
+Ci0tLSBhL2ZzL2F1dG9mczQvZGV2LWlvY3RsLmMKKysrIGIvZnMvYXV0b2ZzNC9kZXYtaW9jdGwu
+YwpAQCAtMzc2LDcgKzM3Niw3IEBAIHN0YXRpYyBpbnQgYXV0b2ZzX2Rldl9pb2N0bF9zZXRwaXBl
+ZmQoc3RydWN0IGZpbGUgKmZwLAogCQkJZXJyID0gLUVCQURGOwogCQkJZ290byBvdXQ7CiAJCX0K
+LQkJaWYgKCFwaXBlLT5mX29wIHx8ICFwaXBlLT5mX29wLT53cml0ZSkgeworCQlpZiAoYXV0b2Zz
+X3ByZXBhcmVfcGlwZShwaXBlKSA8IDApIHsKIAkJCWVyciA9IC1FUElQRTsKIAkJCWZwdXQocGlw
+ZSk7CiAJCQlnb3RvIG91dDsKZGlmZiAtLWdpdCBhL2ZzL2F1dG9mczQvaW5vZGUuYyBiL2ZzL2F1
+dG9mczQvaW5vZGUuYwppbmRleCAxNGM3YmMwMjM0OWUuLjZlNDg4ZWJlNzc4NCAxMDA2NDQKLS0t
+IGEvZnMvYXV0b2ZzNC9pbm9kZS5jCisrKyBiL2ZzL2F1dG9mczQvaW5vZGUuYwpAQCAtMjkwLDcg
+KzI5MCw3IEBAIGludCBhdXRvZnM0X2ZpbGxfc3VwZXIoc3RydWN0IHN1cGVyX2Jsb2NrICpzLCB2
+b2lkICpkYXRhLCBpbnQgc2lsZW50KQogCQlwcmludGsoImF1dG9mczogY291bGQgbm90IG9wZW4g
+cGlwZSBmaWxlIGRlc2NyaXB0b3JcbiIpOwogCQlnb3RvIGZhaWxfZHB1dDsKIAl9Ci0JaWYgKCFw
+aXBlLT5mX29wIHx8ICFwaXBlLT5mX29wLT53cml0ZSkKKwlpZiAoYXV0b2ZzX3ByZXBhcmVfcGlw
+ZShwaXBlKSA8IDApCiAJCWdvdG8gZmFpbF9mcHV0OwogCXNiaS0+cGlwZSA9IHBpcGU7CiAJc2Jp
+LT5waXBlZmQgPSBwaXBlZmQ7CmRpZmYgLS1naXQgYS9mcy9hdXRvZnM0L3dhaXRxLmMgYi9mcy9h
+dXRvZnM0L3dhaXRxLmMKaW5kZXggZGE4ODc2ZDM4YTdiLi5mNjI0Y2QwZmY4NGQgMTAwNjQ0Ci0t
+LSBhL2ZzL2F1dG9mczQvd2FpdHEuYworKysgYi9mcy9hdXRvZnM0L3dhaXRxLmMKQEAgLTkxLDcg
+KzkxLDcgQEAgc3RhdGljIGludCBhdXRvZnM0X3dyaXRlKHN0cnVjdCBhdXRvZnNfc2JfaW5mbyAq
+c2JpLAogCiAJcmV0dXJuIChieXRlcyA+IDApOwogfQotCQorCiBzdGF0aWMgdm9pZCBhdXRvZnM0
+X25vdGlmeV9kYWVtb24oc3RydWN0IGF1dG9mc19zYl9pbmZvICpzYmksCiAJCQkJIHN0cnVjdCBh
+dXRvZnNfd2FpdF9xdWV1ZSAqd3EsCiAJCQkJIGludCB0eXBlKQpkaWZmIC0tZ2l0IGEvZnMvcGlw
+ZS5jIGIvZnMvcGlwZS5jCmluZGV4IDI1ZmVhYTNmYWFjMC4uZmVjNWU0YWQwNzFhIDEwMDY0NAot
+LS0gYS9mcy9waXBlLmMKKysrIGIvZnMvcGlwZS5jCkBAIC0zNDYsNiArMzQ2LDE2IEBAIHN0YXRp
+YyBjb25zdCBzdHJ1Y3QgcGlwZV9idWZfb3BlcmF0aW9ucyBhbm9uX3BpcGVfYnVmX29wcyA9IHsK
+IAkuZ2V0ID0gZ2VuZXJpY19waXBlX2J1Zl9nZXQsCiB9OwogCitzdGF0aWMgY29uc3Qgc3RydWN0
+IHBpcGVfYnVmX29wZXJhdGlvbnMgcGFja2V0X3BpcGVfYnVmX29wcyA9IHsKKwkuY2FuX21lcmdl
+ID0gMCwKKwkubWFwID0gZ2VuZXJpY19waXBlX2J1Zl9tYXAsCisJLnVubWFwID0gZ2VuZXJpY19w
+aXBlX2J1Zl91bm1hcCwKKwkuY29uZmlybSA9IGdlbmVyaWNfcGlwZV9idWZfY29uZmlybSwKKwku
+cmVsZWFzZSA9IGFub25fcGlwZV9idWZfcmVsZWFzZSwKKwkuc3RlYWwgPSBnZW5lcmljX3BpcGVf
+YnVmX3N0ZWFsLAorCS5nZXQgPSBnZW5lcmljX3BpcGVfYnVmX2dldCwKK307CisKIHN0YXRpYyBz
+c2l6ZV90CiBwaXBlX3JlYWQoc3RydWN0IGtpb2NiICppb2NiLCBjb25zdCBzdHJ1Y3QgaW92ZWMg
+Kl9pb3YsCiAJICAgdW5zaWduZWQgbG9uZyBucl9zZWdzLCBsb2ZmX3QgcG9zKQpAQCAtNDA3LDYg
+KzQxNywxMyBAQCByZWRvOgogCQkJcmV0ICs9IGNoYXJzOwogCQkJYnVmLT5vZmZzZXQgKz0gY2hh
+cnM7CiAJCQlidWYtPmxlbiAtPSBjaGFyczsKKworCQkJLyogV2FzIGl0IGEgcGFja2V0IGJ1ZmZl
+cj8gQ2xlYW4gdXAgYW5kIGV4aXQgKi8KKwkJCWlmIChidWYtPmZsYWdzICYgUElQRV9CVUZfRkxB
+R19QQUNLRVQpIHsKKwkJCQl0b3RhbF9sZW4gPSBjaGFyczsKKwkJCQlidWYtPmxlbiA9IDA7CisJ
+CQl9CisKIAkJCWlmICghYnVmLT5sZW4pIHsKIAkJCQlidWYtPm9wcyA9IE5VTEw7CiAJCQkJb3Bz
+LT5yZWxlYXNlKHBpcGUsIGJ1Zik7CkBAIC00NTksNiArNDc2LDExIEBAIHJlZG86CiAJcmV0dXJu
+IHJldDsKIH0KIAorc3RhdGljIGlubGluZSBpbnQgaXNfcGFja2V0aXplZChzdHJ1Y3QgZmlsZSAq
+ZmlsZSkKK3sKKwlyZXR1cm4gKGZpbGUtPmZfZmxhZ3MgJiBPX0RJUkVDVCkgIT0gMDsKK30KKwog
+c3RhdGljIHNzaXplX3QKIHBpcGVfd3JpdGUoc3RydWN0IGtpb2NiICppb2NiLCBjb25zdCBzdHJ1
+Y3QgaW92ZWMgKl9pb3YsCiAJICAgIHVuc2lnbmVkIGxvbmcgbnJfc2VncywgbG9mZl90IHBwb3Mp
+CkBAIC01OTMsNiArNjE1LDExIEBAIHJlZG8yOgogCQkJYnVmLT5vcHMgPSAmYW5vbl9waXBlX2J1
+Zl9vcHM7CiAJCQlidWYtPm9mZnNldCA9IDA7CiAJCQlidWYtPmxlbiA9IGNoYXJzOworCQkJYnVm
+LT5mbGFncyA9IDA7CisJCQlpZiAoaXNfcGFja2V0aXplZChmaWxwKSkgeworCQkJCWJ1Zi0+b3Bz
+ID0gJnBhY2tldF9waXBlX2J1Zl9vcHM7CisJCQkJYnVmLT5mbGFncyA9IFBJUEVfQlVGX0ZMQUdf
+UEFDS0VUOworCQkJfQogCQkJcGlwZS0+bnJidWZzID0gKytidWZzOwogCQkJcGlwZS0+dG1wX3Bh
+Z2UgPSBOVUxMOwogCkBAIC0xMDEzLDcgKzEwNDAsNyBAQCBzdHJ1Y3QgZmlsZSAqY3JlYXRlX3dy
+aXRlX3BpcGUoaW50IGZsYWdzKQogCQlnb3RvIGVycl9kZW50cnk7CiAJZi0+Zl9tYXBwaW5nID0g
+aW5vZGUtPmlfbWFwcGluZzsKIAotCWYtPmZfZmxhZ3MgPSBPX1dST05MWSB8IChmbGFncyAmIE9f
+Tk9OQkxPQ0spOworCWYtPmZfZmxhZ3MgPSBPX1dST05MWSB8IChmbGFncyAmIChPX05PTkJMT0NL
+IHwgT19ESVJFQ1QpKTsKIAlmLT5mX3ZlcnNpb24gPSAwOwogCiAJcmV0dXJuIGY7CkBAIC0xMDU3
+LDcgKzEwODQsNyBAQCBpbnQgZG9fcGlwZV9mbGFncyhpbnQgKmZkLCBpbnQgZmxhZ3MpCiAJaW50
+IGVycm9yOwogCWludCBmZHcsIGZkcjsKIAotCWlmIChmbGFncyAmIH4oT19DTE9FWEVDIHwgT19O
+T05CTE9DSykpCisJaWYgKGZsYWdzICYgfihPX0NMT0VYRUMgfCBPX05PTkJMT0NLIHwgT19ESVJF
+Q1QpKQogCQlyZXR1cm4gLUVJTlZBTDsKIAogCWZ3ID0gY3JlYXRlX3dyaXRlX3BpcGUoZmxhZ3Mp
+OwpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9waXBlX2ZzX2kuaCBiL2luY2x1ZGUvbGludXgv
+cGlwZV9mc19pLmgKaW5kZXggNmQ2MjZmZjBjZmQwLi5lMWFjMWNlMTZmYjAgMTAwNjQ0Ci0tLSBh
+L2luY2x1ZGUvbGludXgvcGlwZV9mc19pLmgKKysrIGIvaW5jbHVkZS9saW51eC9waXBlX2ZzX2ku
+aApAQCAtNiw2ICs2LDcgQEAKICNkZWZpbmUgUElQRV9CVUZfRkxBR19MUlUJMHgwMQkvKiBwYWdl
+IGlzIG9uIHRoZSBMUlUgKi8KICNkZWZpbmUgUElQRV9CVUZfRkxBR19BVE9NSUMJMHgwMgkvKiB3
+YXMgYXRvbWljYWxseSBtYXBwZWQgKi8KICNkZWZpbmUgUElQRV9CVUZfRkxBR19HSUZUCTB4MDQJ
+LyogcGFnZSBpcyBhIGdpZnQgKi8KKyNkZWZpbmUgUElQRV9CVUZfRkxBR19QQUNLRVQJMHgwOAkv
+KiByZWFkKCkgYXMgYSBwYWNrZXQgKi8KIAogLyoqCiAgKglzdHJ1Y3QgcGlwZV9idWZmZXIgLSBh
+IGxpbnV4IGtlcm5lbCBwaXBlIGJ1ZmZlcgo=
+--f46d0438ede71d027c04bed614bc--
