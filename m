@@ -1,82 +1,60 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs: make the autofsv5 packet file descriptor use a
- packetized pipe
-Date: Mon, 30 Apr 2012 14:55:06 +0800
-Message-ID: <1335768906.2281.16.camel@perseus.themaw.net>
-References: <20120429205429.63CCD7C0064@ra.kernel.org>
-	 <4F9DD994.70202@zytor.com> <4F9E30BF.4030704@msgid.tls.msk.ru>
-	 <4F9E3474.2050405@msgid.tls.msk.ru>
+From: Thomas Meyer <thomas@m3y3r.de>
+Subject: Re: [PATCH v2] Introduce a version6 of autofs interface, to fix
+ design error.
+Date: Mon, 30 Apr 2012 10:41:11 +0200
+Message-ID: <1335775271.1363.4.camel@localhost.localdomain>
+References: <20120427.151433.1007849975903946491.davem@davemloft.net>
+	 <20120427.151651.2274764174217164454.davem@davemloft.net>
+	 <CA+55aFzPbAprx-iT0TYh24uS7+JnL92mbTg_js6Cd_O0q+Dvmw@mail.gmail.com>
+	 <20120427.152404.2292425516870981391.davem@davemloft.net>
+	 <CA+55aFzGO+PHmjjVgxnYawbB-wFAqHtkh19vTv1AwQNpc9MsWg@mail.gmail.com>
+	 <20120427234215.079a1565@pyramind.ukuu.org.uk>
+	 <CA+55aFxq4TunFa8mqJk5MHfvvFSg7Dr54acW7Cnqc5amOPdqrg@mail.gmail.com>
+	 <CA+55aFzdEcfXVXXqCumVJo=9+fK+1HvH6L4qY03HfTTvCs1Fwg@mail.gmail.com>
+	 <4F9CE18C.2060806@msgid.tls.msk.ru>
+	 <CA+55aFyS9VYT50JAXeGrLrtFVWSGr+DMTA1hhrcPYzmjrSV5+A@mail.gmail.com>
+	 <4F9CF191.5020607@msgid.tls.msk.ru>
+	 <CA+55aFzJjk8vvY7au-aUOJqJaRaFT3zqP0_H9JXS2Y93wkXwEg@mail.gmail.com>
+	 <CA+55aFwTUDsefBd9c-wp8jrnp4tOh6jyJkjc_UZut-J6FHSF+w@mail.gmail.com>
+	 <4F9D9C4C.7000904@msgid.tls.msk.ru>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	message-id:subject:from:to:cc:date:in-reply-to:references
-	:content-type:content-transfer-encoding:mime-version; s=mesmtp;
-	 bh=R8i6sikiTEgjQ27aJ35uzfn5n/g=; b=GBFn5xwPbDQIQhD8U/yICPMDCgsm
-	8YFkJojbhNitZENDC2F4ukT8qomuj4Ia0FgoM4Pw24Qlm4b2KapE7o8Ok3f+1Ysb
-	Xrh13nA1GDjq6rHdJmbU/XDC6C6CZgk7tW2StOr5c3DDmj5EK/XmM1xgJHVysuJN
-	d+pVvndg4L5+LnE=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=message-id:subject:from:to:cc:date
-	:in-reply-to:references:content-type:content-transfer-encoding
-	:mime-version; s=smtpout; bh=R8i6sikiTEgjQ27aJ35uzfn5n/g=; b=SJC
-	ibtExqw6ZHAi6nhfrbPUsBHrX7L3ftKwP2Z2wQR/CxRNjyX57k3V6AvzP+ggZ97X
-	UgSPeeMp14BjQIyueDFiaHnLMWSr7Qwo/610GXwZtd0JFWCmD99eyYuvxN9AcxE3
-	Z0gUZdj8tiQ0rNIqDu8xxNK0Y7Zhp3o8x0Y2USno=
-In-Reply-To: <4F9E3474.2050405@msgid.tls.msk.ru>
+In-Reply-To: <4F9D9C4C.7000904@msgid.tls.msk.ru>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: Michael Tokarev <mjt@tls.msk.ru>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, "H. Peter Anvin" <hpa@zytor.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Thomas Meyer <thomas@m3y3r.de>, autofs@vger.kernel.org
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, David Miller <davem@davemloft.net>, linux-kernel@vger.kernel.org, autofs@vger.kernel.org, raven@themaw.net, stable@kernel.org
 
-On Mon, 2012-04-30 at 10:43 +0400, Michael Tokarev wrote:
-> On 30.04.2012 10:27, Michael Tokarev wrote:
-> >> On 04/29/2012 01:54 PM, Linux Kernel Mailing List wrote:
-> >>>     However, a prettier solution exists now thanks to the packetized pipe
-> >>>     mode.  By marking the communication pipe as being packetized (by simply
-> >>>     setting the O_DIRECT flag), we can always just write the bigger packet
-> >>>     size, and if user-space does a smaller read, it will just get that
-> >>>     partial end result and the extra alignment padding will simply be thrown
-> >>>     away.
+Am Sonntag, den 29.04.2012, 23:53 +0400 schrieb Michael Tokarev:
+> On 29.04.2012 23:09, Linus Torvalds wrote:
 > > 
-> >> +static inline int autofs_prepare_pipe(struct file *pipe)
-> >> +{
-> >> +	if (!pipe->f_op || !pipe->f_op->write)
-> >> +		return -EINVAL;
-> >> +	if (!S_ISFIFO(pipe->f_dentry->d_inode->i_mode))
-> >> +		return -EINVAL;
-> >> +	/* We want a packet pipe */
-> >> +	pipe->f_flags |= O_DIRECT;
-> >> +	return 0;
-> >> +}
-> >> +
+> > This keeps Alan's idea of using O_DIRECT, but only makes it matter for
+> > the writer - because now the "packet" thing is a per-pipe-buffer state
+> > (we already had per-pipe-buffer flags, so this is not anything new).
+> > So when you *write* using a O_DIRECT pipe, it will create packetized
+> > buffers, and the reader just sees that directly.
 > > 
-> > @@ -376,7 +376,7 @@ static int autofs_dev_ioctl_setpipefd(st
-> >  			err = -EBADF;
-> >  			goto out;
-> >  		}
-> > -		if (!pipe->f_op || !pipe->f_op->write) {
-> > +		if (autofs_prepare_pipe(pipe) < 0) {
-> >  			err = -EPIPE;
-> >  			fput(pipe);
-> >  			goto out;
-> > 
-> > I've one more concern.  I'm not sure but I think there's some
-> > risk still.  This packetizing gets applied to all VERSIONS of
-> > the autofs PROTOCOL.  Which means it will be applied to the
-> > lowest supported version (3) TOO, but did that version read
-> > whole packets too?
+> > So this should "just work", and doesn't need any extra flags in the
+> > pipe_inode_info. And the user space interface remains the same: you
+> > can create these packet pipes with "pipe2(fd, O_DIRECT)" if you want
+> > to, and my test-program gives exactly the same output.
 > 
-> I think this is a false alarm.  I checked autofs v3 and v4
-> userspace code (found on  http://www.kernel.org/pub/linux/daemons/autofs )
-> and they both read whole packet at once, not piece-wise.
-> 
-> I didn't test if any of these actually work with any current
-> kernel, however ;)
+> Ok.  I verified this on 3.3 kernel (with the original fix reverted),
+> and now both autofs5 and systemd works.
 
-Yep, all the autofs releases use a sizeof() the relevant structure when
-reading the kernel pipe, so that should be ok.
+hi,
 
-Ian
+I can also confirm that "autofs: make the autofsv5 packet file
+descriptor use a packetized pipe" and "pipes: add a "packetized pipe"
+mode for writing" on top of 3.3.4 works correctly at least with the
+autofs feature of systemd.
 
+And sorry for the delayed answer, but I've been away from the internet
+for a few days.
+
+and a big sorry for all the trouble...
+
+with kind regards
+thomas
