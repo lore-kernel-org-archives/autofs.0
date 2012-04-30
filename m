@@ -1,29 +1,65 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: autofs: make the autofsv5 packet file descriptor use a packetized
- pipe
-Date: Mon, 30 Apr 2012 13:03:01 -0700
-Message-ID: <4F9EEFF5.4000703@zytor.com>
-References: <20120429205429.63CCD7C0064@ra.kernel.org> <4F9DD994.70202@zytor.com> <CA+55aFy72rPMq3M2_PU0ue45Fb38_Effrfhu2uOpdVXt9H1XOg@mail.gmail.com> <4F9DDD3E.6010801@zytor.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: autofs: make the autofsv5 packet file descriptor use a packetized pipe
+Date: Mon, 30 Apr 2012 13:11:46 -0700
+Message-ID: <CA+55aFxXMXmdeHAu3xOBSJEsJ97P_-6qn595FM6s7WXeK0DkjQ@mail.gmail.com>
+References: <20120429205429.63CCD7C0064@ra.kernel.org> <4F9DD994.70202@zytor.com>
+ <CA+55aFy72rPMq3M2_PU0ue45Fb38_Effrfhu2uOpdVXt9H1XOg@mail.gmail.com>
+ <4F9DDD3E.6010801@zytor.com> <4F9EEFF5.4000703@zytor.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4F9DDD3E.6010801@zytor.com>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20120113;
+        h=mime-version:sender:in-reply-to:references:from:date
+         :x-google-sender-auth:message-id:subject:to:cc:content-type
+         :content-transfer-encoding;
+        bh=Nx2iG6J9RR0sRKlYOWjk66ajA0q8ZWjLLRK2k0Zfztw=;
+        b=KMH3oWmBBGszLGqOR9mH/CHSpKn9hV/MMNknL5887FZJmNUQAGJRtHxaugc0jzaMnX
+         MDpgaqgkHZTtdutI2JvXQMyvsrvhGZxfPjDT0mrVex5g1dMCyWQCX63yzEvBMW3x3Bpc
+         CILPHT1xFCBS/zXaPUxPP9uxVhZ2z7a55mczwyFVz2lnbJDvRjdDKK70eOzBmq1wD+hw
+         RmmgL5my5O/MyFzamoB4ACcMED/teQbXpzYdX4PoYSrHWG902Xq5t0vezoP5LvMWdItG
+         CcSJdiL9dCDnxsdKsSRZwigv/kUd2PlJsTwTOa2boYBQkkqOAtT5ekYnEdxMsibG88+F
+         kRmA==
+In-Reply-To: <4F9EEFF5.4000703@zytor.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: Linus Torvalds <torvalds@linux-foundation.org>
+Content-Type: text/plain; charset="iso-8859-1"
+To: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Michael Tokarev <mjt@tls.msk.ru>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Ian Kent <raven@themaw.net>, Thomas Meyer <thomas@m3y3r.de>, autofs@vger.kernel.org
 
-On 04/29/2012 05:30 PM, H. Peter Anvin wrote:
-> Incidentally, I think there is a good reason to add a v6 packet type
-> regardless, for efficiency: with packetized pipes there really is no
-> point in sending a packet which is mostly padding for no good reason.
+On Mon, Apr 30, 2012 at 1:03 PM, H. Peter Anvin <hpa@zytor.com> wrote:
+>
+> Thinking about it some more: for v6, I wouldn't use a packetized pipe=
+ at
+> all (due to the unnecessary extra buffer consumption.) =A0Instead jus=
+t put
+> the message size in the header and read a large chunk, which may end =
+up
+> being more than one packet and may end up with a partial packet at th=
+e
+> end. =A0*This is okay*, because there is only one reader, and any
+> additional data needed will be gotten the next time around the loop.
 
-Thinking about it some more: for v6, I wouldn't use a packetized pipe at
-all (due to the unnecessary extra buffer consumption.)  Instead just put
-the message size in the header and read a large chunk, which may end up
-being more than one packet and may end up with a partial packet at the
-end.  *This is okay*, because there is only one reader, and any
-additional data needed will be gotten the next time around the loop.
+Yes, doing multiple streaming packets is good, but then you really do
+need to design the protocol for streaming, which very much includes
+having that size early in the header. And then you'd better make the
+packets really have different sizes, so that you cannot possibly get
+it wrong in an app that "knows" that there's one size.
 
-	-hpa
+However, in the case of autofs, I don't actually see multiple packets
+being that common. Sure, they can happen, but it really looks like the
+normal case will always be the trivial ping-pong scenario ("read one
+packet, react to it, rinse and repeat").
+
+But using a big buffer and trying to read lots at one time is valid eve=
+n then.
+
+The thing I *really* hate about the current autofs situation is how it
+really does everything you can possibly do wrong. Not at all the
+"let's just read as much as we can, and look at the return value to
+determine number of bytes/packets", but literally "I know a-priori how
+big the packet is, and I will read exactly that many bytes". That
+coupled with the psueod-fixed-size packets just made it a very very
+fragile thing.
+
+                  Linus
