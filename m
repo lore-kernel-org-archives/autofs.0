@@ -1,51 +1,39 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: autofs: make the autofsv5 packet file descriptor use a packetized
- pipe
-Date: Sun, 29 Apr 2012 17:15:16 -0700
-Message-ID: <4F9DD994.70202@zytor.com>
-References: <20120429205429.63CCD7C0064@ra.kernel.org>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: autofs: make the autofsv5 packet file descriptor use a packetized pipe
+Date: Sun, 29 Apr 2012 17:25:35 -0700
+Message-ID: <CA+55aFy72rPMq3M2_PU0ue45Fb38_Effrfhu2uOpdVXt9H1XOg@mail.gmail.com>
+References: <20120429205429.63CCD7C0064@ra.kernel.org> <4F9DD994.70202@zytor.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120429205429.63CCD7C0064@ra.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20120113;
+        h=mime-version:sender:in-reply-to:references:from:date
+         :x-google-sender-auth:message-id:subject:to:cc:content-type;
+        bh=3mj5xJ/F+mh6w0PTMsw9e+xyqEE5vLgxKvSOU9l972w=;
+        b=HiEitKHrjPrjkmueHCWuQSJ4kkKUXLgjlrAxSd6xv7QSx/XItxrPjQlz0rxvXOP3Lt
+         UuRPQIWrpFhUi7mZkXkO8mKuK7doyJt2nj2M/M+E+hq23qXBeCrM6Q+zu2FfurbodXej
+         heThqyGIb/F4bZvubqf6vYFhZaoc7ZAYPEJblFN14ctfXph/2/3/DHXvRyER/ACcQmpS
+         mZBqbQPfmoB/+UdD6o1WXKgI0yo6oPUmdetqbIo0I+wqsVzzQVvMj035hXWDaQPN4uwL
+         UEiAdJDm9QUugRKlj/Jt3C0/7mAL3fPaOhNA9AMVBxJNrQ2seyBoz9hDmIlM95ulPb5P
+         lKcQ==
+In-Reply-To: <4F9DD994.70202@zytor.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Michael Tokarev <mjt@tls.msk.ru>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Ian Kent <raven@themaw.net>, Thomas Meyer <thomas@m3y3r.de>, autofs@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+To: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Michael Tokarev <mjt@tls.msk.ru>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Ian Kent <raven@themaw.net>, Thomas Meyer <thomas@m3y3r.de>, autofs@vger.kernel.org
 
-On 04/29/2012 01:54 PM, Linux Kernel Mailing List wrote:
->     
->     With both automount and systemd doing a single read() system call, and
->     verifying that they get *exactly* the size they expect but using
->     different sizes, it seemed that fixing one of them inevitably seemed to
->     break the other.  At one point, a patch I seriously considered applying
->     from Michael Tokarev did a "strcmp()" to see if it was automount that
->     was doing the operation.  Ugly, ugly.
->     
->     However, a prettier solution exists now thanks to the packetized pipe
->     mode.  By marking the communication pipe as being packetized (by simply
->     setting the O_DIRECT flag), we can always just write the bigger packet
->     size, and if user-space does a smaller read, it will just get that
->     partial end result and the extra alignment padding will simply be thrown
->     away.
->     
->     This makes both automount and systemd happy, since they now get the size
->     they asked for, and the kernel side of autofs simply no longer needs to
->     care - it could pad out the packet arbitrarily.
->     
->     Of course, if there is some *other* user of autofs (please, please,
->     please tell me it ain't so - and we haven't heard of any) that tries to
->     read the packets with multiple writes, that other user will now be
->     broken - the whole point of the packetized mode is that one system call
->     gets exactly one packet, and you cannot read a packet in pieces.
->     
+On Sun, Apr 29, 2012 at 5:15 PM, H. Peter Anvin <hpa@zytor.com> wrote:
+>
+> I just looked at am-utils; am-utils *does* use autofs v5, and *will*
+> loop back and read more data on a short read.
 
-I just looked at am-utils; am-utils *does* use autofs v5, and *will*
-loop back and read more data on a short read.
+Can you point to the sources?
 
-	-hpa
+If it's "short read" as in "I didn't get as much as I expected", that's fine.
 
--- 
-H. Peter Anvin, Intel Open Source Technology Center
-I work for Intel.  I don't speak on their behalf.
+If it is "short read" as in "I don't even try to read 300 bytes, I
+read it in 8-byte chunks", we're screwed.
+
+                     Linus
