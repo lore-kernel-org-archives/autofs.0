@@ -1,29 +1,49 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [ANNOUNCE] autofs 5.0.7 release
-Date: Wed, 25 Jul 2012 14:19:28 +0800
-Message-ID: <1343197168.2386.29.camel@perseus.themaw.net>
+Subject: [Fwd: [ANNOUNCE] autofs 5.0.7 release]
+Date: Wed, 25 Jul 2012 14:25:28 +0800
+Message-ID: <1343197528.2386.32.camel@perseus.themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-K1odDQO8LzBIFLpmhAc+"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	message-id:subject:from:to:cc:date:content-type
-	:content-transfer-encoding:mime-version; s=mesmtp; bh=wHJAMDvd+R
-	jC1JbyBRDRhzbp42g=; b=EoqY95mcor3AcF7nQCLYohoF7j2oBnM7k5pXa7dX+b
-	p98FKoxo0dFh/AtRLBk2mKRu1ZKcrpruS4mIB22tOXa2dhNOIVgbsQM1odBT33Iw
-	9i6DA0Gu0fYTqi5XjA4TVtF4Yda7V6WZmzwgJ7slmeYmrovs9m/AH2+ns1GxlUyq
-	Q=
+	message-id:subject:from:to:cc:date:content-type:mime-version; s=
+	mesmtp; bh=5kPnpgbeWLP4BknLDWA+TJflw8Q=; b=Ok550XSCEzInAWb9xWy7V
+	kaOocqFD9dNkW77HXLMtCVPCJj4ubfN13Ky6m5rTIh2wZIIqeZAvOVZIn1vvsFOr
+	3QNlfG3RRaut4j21x4jnJq6KobyTFu2U9UwVPimexDZNW1j4OEfehtrqDljHc5Su
+	seBTag1//6UOCJlPl6UR4c=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=message-id:subject:from:to:cc:date
-	:content-type:content-transfer-encoding:mime-version; s=smtpout;
-	 bh=wHJAMDvd+RjC1JbyBRDRhzbp42g=; b=Fpyk9Gc9z55dYJZWTTkfjvZAAgjw
-	C1rsqhf3T9RWusM6u9NNOx6mkUcaNCHef8+jio1Ft+sJeJc28u/LygXGq/dG/UWm
-	zF9yfVSSlk9kdIXs3I1GwWk3IwCVTQGEKYINAvk9eNaT3Ne2ULIVojiG9YD1koyM
-	cih6Y6ZXkbDJLtk=
+	:content-type:mime-version; s=smtpout; bh=5kPnpgbeWLP4BknLDWA+TJ
+	flw8Q=; b=jY0iYchvYYGCjxD+S9wqNxMWfMFnA6cEKgjKR5CW6EKNZdwAQ9Ey8I
+	d7fcoB2togYYvewJCVEh7NovLA2ilMRRhzsPEBOa9dk2RYmsw0KLgwhxAdpeVOSY
+	wvLwJpQ+DmZOlpTNqQkDX7E8lchLoZmOijwz17mW0kHRpiwc6K8p4=
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
+To: autofs@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+
+
+--=-K1odDQO8LzBIFLpmhAc+
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+Hi all,
+
+Oops, I sent this without updating the autofs mailing list address in my
+release announcement template and I didn't sign the message which I
+wanted to do.
+
+Sorry for the noise.
+
+Ian
+
+-------- Forwarded Message --------
+From: Ian Kent <raven@themaw.net>
 To: autofs@linux.kernel.org
 Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [ANNOUNCE] autofs 5.0.7 release
+Date: Wed, 25 Jul 2012 14:19:28 +0800
 
 Hi all,
 
@@ -35,7 +55,8 @@ are needs in this area we will need to discuss how to deal with
 them on the mailing list.
 
 Known issues (haven't changed since 5.0.6)
-==========================================
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
 
 - Quoted strings in the master map are still not yet handled.
 - When the active restart is being used it will happily re-connect a
@@ -44,7 +65,7 @@ Known issues (haven't changed since 5.0.6)
   up.
 
 autofs
-======
+=3D=3D=3D=3D=3D=3D
 
 The package can be found at:
 
@@ -66,7 +87,7 @@ kernel requirements.
 Here are the entries from the CHANGELOG which outline the updates:
 
 25/07/2012 autofs-5.0.7
-=======================
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
 - fix ipv6 name for lookup fix.
 - improve mount location error reporting.
 - fix paged query more results check.
@@ -135,7 +156,33 @@ Here are the entries from the CHANGELOG which outline the updates:
 - check negative cache much earlier.
 - dont use pthread_rwlock_tryrdlock().
 - mount_nfs.so to honor explicit NFSv4 requests.
-- mount_nfs.so fix port=0 option behavior v3.
+- mount_nfs.so fix port=3D0 option behavior v3.
 - documentation fix some typos and misleading comments.
 
 Ian
+
+
+--=-K1odDQO8LzBIFLpmhAc+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAABAgAGBQJQD5FYAAoJEOdnc4D1T9ipWYcP/3k3DlUFTTxGGMfIAzvC1pPY
+jPqbXpo3T/BwbfM3mHlRRafePLocGFOkLCOZAU5iYN/tOZNFTvXINE1ebVMBA8Z3
+goMBQI8OvoxVVCtGFIqntJapplU90Me7bJO7WXLmQgdMg7dhbkrcPWtli3DQSo6H
+Ku5tSAzONe5RhDhk0ihEg3Xw4NBsBq8L7/kcauphv91ACHI0S2QoNPW2qswxHWR8
+FM7MqAu+3c04cZ2HEjI/1zPfkgzNZ+rVIHyHGiprQE8X3cFoihABnj1f30GuNyFN
+7MRdO9kkUhkrWMeIrfPRWZZXSJvVG60rvdfqQXi2jSwiUe95qBWX25iPFmsWb2qJ
+DwUQ6gr/TLGxN1T7x30BIL3ZfXGxsZ/yPXQkm/x0rHKsC1DIOaM4gKtNi2ohT4hq
+/HNE4ee1mdtNpVXzWjzYevcWitQ3+VA+jArDCdvKmFlcCBcKDnz8YTgiLBlFo8cV
+f1v84+/hOwBQdR0OIa6w0O3Cxv50CK+9vCYYZIkwhk8bpymW3UST5Hzy/3OBSeYB
+EIW6HaHQhtWx7L4KIfQIDKNQADFE0iDq6A0D+sieMI61E+BTsavyJD5dzUv41N9F
+SZGMXGM2bAn71hsSOex/tmHPRsbrtPd3iM0xaAG5RVKAepJucOa/EdQ3hmdfKI+P
++gL3QSB/kKeptI3aULCJ
+=bhCu
+-----END PGP SIGNATURE-----
+
+--=-K1odDQO8LzBIFLpmhAc+--
