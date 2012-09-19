@@ -1,16 +1,16 @@
 From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: [PATCH 1/2] Replace pid_t in autofs4 with struct pid reference.
-Date: Wed, 19 Sep 2012 17:29:35 +0200
-Message-ID: <1348068576-21363-2-git-send-email-miklos@szeredi.hu>
+Subject: [PATCH 2/2] autofs4: store struct pids in autofs_waitqs
+Date: Wed, 19 Sep 2012 17:29:36 +0200
+Message-ID: <1348068576-21363-3-git-send-email-miklos@szeredi.hu>
 References: <1348068576-21363-1-git-send-email-miklos@szeredi.hu>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=szeredi.hu; s=google;
         h=from:to:cc:subject:date:message-id:x-mailer:in-reply-to:references;
-        bh=2Su8xaPNB4TRl9QLvCDpPfcd9H892JbvmMbKRt+nSX8=;
-        b=hb6T+QQMxSQ0PLxbiaCSKG9KSu0B0sbVhJuimpJFE7eliXmE/7uVtkOy9J5/514WCI
-         u+vZGnU0DkuxXm2pEdBD8jVuRvfXaiYeOmrGYnzxf9Fj7FAWn2ewQJykN8djZ7ajSCOm
-         30eD3Pc1w3AaANYBZBEblHUTxjsumjzzQv7wA=
+        bh=1ABq1Q3JbhU9c+mUHnej1bGfpUZW2yG705EStXlDpVg=;
+        b=SzkKFhTBDkTvVAHPtMnakflHXMc7lfrXgMOKtSr499rUcU4OPJFgGSppUFYlkeQ6Hh
+         q+jwZRXlTXFFUOjWzUaVbe2dWTB61sV4aCepAAlmD2G9MUaeJlnic0BA6nMg2ownv/S6
+         yHPLptjrgWvfltiX/9VISVHhjgXCc92i/MLmY=
 In-Reply-To: <1348068576-21363-1-git-send-email-miklos@szeredi.hu>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
@@ -18,141 +18,93 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: raven@themaw.net
-Cc: autofs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, sukadev@linux.vnet.ibm.com, serge.hallyn@canonical.com, ebiederm@xmission.com, mszeredi@suse.cz, Serge Hallyn <serue@us.ibm.com>
+Cc: autofs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, sukadev@linux.vnet.ibm.com, serge.hallyn@canonical.com, ebiederm@xmission.com, mszeredi@suse.cz
 
-From: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+From: Serge Hallyn <serue@us.ibm.com>
 
-Make autofs4 container-friendly by caching struct pid reference rather
-than pid.
+Store struct pids in autofs_waitqs in place of pidnrs to prevent
+pid overflow problems.
 
-Signed-off-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
+Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Eric Biederman <ebiederm@xmission.com>
 ---
- fs/autofs4/autofs_i.h  |    4 ++--
- fs/autofs4/dev-ioctl.c |    3 ++-
- fs/autofs4/inode.c     |   22 +++++++++++++++-------
- 3 files changed, 19 insertions(+), 10 deletions(-)
+ fs/autofs4/autofs_i.h |    4 ++--
+ fs/autofs4/waitq.c    |   19 +++++++++++++------
+ 2 files changed, 15 insertions(+), 8 deletions(-)
 
 diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
-index 908e184..8457a1f 100644
+index 8457a1f..c3b3302 100644
 --- a/fs/autofs4/autofs_i.h
 +++ b/fs/autofs4/autofs_i.h
-@@ -104,7 +104,7 @@ struct autofs_sb_info {
- 	u32 magic;
- 	int pipefd;
- 	struct file *pipe;
--	pid_t oz_pgrp;
-+	struct pid *oz_pgrp;
- 	int catatonic;
- 	int version;
- 	int sub_version;
-@@ -139,7 +139,7 @@ static inline struct autofs_info *autofs4_dentry_ino(struct dentry *dentry)
-    filesystem without "magic".) */
- 
- static inline int autofs4_oz_mode(struct autofs_sb_info *sbi) {
--	return sbi->catatonic || task_pgrp_nr(current) == sbi->oz_pgrp;
-+	return sbi->catatonic || task_pgrp(current) == sbi->oz_pgrp;
+@@ -91,8 +91,8 @@ struct autofs_wait_queue {
+ 	u64 ino;
+ 	uid_t uid;
+ 	gid_t gid;
+-	pid_t pid;
+-	pid_t tgid;
++	struct pid *pid;
++	struct pid *tgid;
+ 	/* This is for status reporting upon return */
+ 	int status;
+ 	unsigned int wait_ctr;
+diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
+index da8876d..27b18ae 100644
+--- a/fs/autofs4/waitq.c
++++ b/fs/autofs4/waitq.c
+@@ -165,8 +165,8 @@ static void autofs4_notify_daemon(struct autofs_sb_info *sbi,
+ 		packet->ino = wq->ino;
+ 		packet->uid = wq->uid;
+ 		packet->gid = wq->gid;
+-		packet->pid = wq->pid;
+-		packet->tgid = wq->tgid;
++		packet->pid = pid_nr(wq->pid);
++		packet->tgid = pid_nr(wq->tgid);
+ 		break;
+ 	}
+ 	default:
+@@ -348,6 +348,13 @@ static int validate_request(struct autofs_wait_queue **wait,
+ 	return 1;
  }
  
- /* Does a dentry have some pending activity? */
-diff --git a/fs/autofs4/dev-ioctl.c b/fs/autofs4/dev-ioctl.c
-index abf645c..423346d 100644
---- a/fs/autofs4/dev-ioctl.c
-+++ b/fs/autofs4/dev-ioctl.c
-@@ -381,7 +381,8 @@ static int autofs_dev_ioctl_setpipefd(struct file *fp,
- 			fput(pipe);
- 			goto out;
- 		}
--		sbi->oz_pgrp = task_pgrp_nr(current);
-+		put_pid(sbi->oz_pgrp);
-+		sbi->oz_pgrp = get_pid(task_pgrp(current));
- 		sbi->pipefd = pipefd;
- 		sbi->pipe = pipe;
- 		sbi->catatonic = 0;
-diff --git a/fs/autofs4/inode.c b/fs/autofs4/inode.c
-index 8a4fed8..a2b4f4d 100644
---- a/fs/autofs4/inode.c
-+++ b/fs/autofs4/inode.c
-@@ -62,6 +62,8 @@ void autofs4_kill_sb(struct super_block *sb)
- 	/* Free wait queues, close pipe */
- 	autofs4_catatonic_mode(sbi);
- 
-+	put_pid(sbi->oz_pgrp);
++static void autofs_free_wait_queue(struct autofs_wait_queue *wq)
++{
++	put_pid(wq->pid);
++	put_pid(wq->tgid);
++	kfree(wq);
++}
 +
- 	sb->s_fs_info = NULL;
- 	kfree(sbi);
- 
-@@ -83,7 +85,7 @@ static int autofs4_show_options(struct seq_file *m, struct dentry *root)
- 		seq_printf(m, ",uid=%u", root_inode->i_uid);
- 	if (root_inode->i_gid != 0)
- 		seq_printf(m, ",gid=%u", root_inode->i_gid);
--	seq_printf(m, ",pgrp=%d", sbi->oz_pgrp);
-+	seq_printf(m, ",pgrp=%d", pid_nr(sbi->oz_pgrp));
- 	seq_printf(m, ",timeout=%lu", sbi->exp_timeout/HZ);
- 	seq_printf(m, ",minproto=%d", sbi->min_proto);
- 	seq_printf(m, ",maxproto=%d", sbi->max_proto);
-@@ -127,7 +129,8 @@ static const match_table_t tokens = {
- };
- 
- static int parse_options(char *options, int *pipefd, uid_t *uid, gid_t *gid,
--		pid_t *pgrp, unsigned int *type, int *minproto, int *maxproto)
-+			 struct pid **pgrp, unsigned int *type, int *minproto,
-+			 int *maxproto)
+ int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
+ 		enum autofs_notify notify)
  {
- 	char *p;
- 	substring_t args[MAX_OPT_ARGS];
-@@ -135,7 +138,6 @@ static int parse_options(char *options, int *pipefd, uid_t *uid, gid_t *gid,
+@@ -425,8 +432,8 @@ int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
+ 		wq->ino = autofs4_get_ino(sbi);
+ 		wq->uid = current_uid();
+ 		wq->gid = current_gid();
+-		wq->pid = current->pid;
+-		wq->tgid = current->tgid;
++		wq->pid = get_pid(task_pid(current));
++		wq->tgid = get_pid(task_tgid(current));
+ 		wq->status = -EINTR; /* Status return if interrupted */
+ 		wq->wait_ctr = 2;
+ 		mutex_unlock(&sbi->wq_mutex);
+@@ -526,7 +533,7 @@ int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
+ 	/* Are we the last process to need status? */
+ 	mutex_lock(&sbi->wq_mutex);
+ 	if (!--wq->wait_ctr)
+-		kfree(wq);
++		autofs_free_wait_queue(wq);
+ 	mutex_unlock(&sbi->wq_mutex);
  
- 	*uid = current_uid();
- 	*gid = current_gid();
--	*pgrp = task_pgrp_nr(current);
+ 	return status;
+@@ -554,7 +561,7 @@ int autofs4_wait_release(struct autofs_sb_info *sbi, autofs_wqt_t wait_queue_tok
+ 	wq->status = status;
+ 	wake_up_interruptible(&wq->queue);
+ 	if (!--wq->wait_ctr)
+-		kfree(wq);
++		autofs_free_wait_queue(wq);
+ 	mutex_unlock(&sbi->wq_mutex);
  
- 	*minproto = AUTOFS_MIN_PROTO_VERSION;
- 	*maxproto = AUTOFS_MAX_PROTO_VERSION;
-@@ -169,7 +171,12 @@ static int parse_options(char *options, int *pipefd, uid_t *uid, gid_t *gid,
- 		case Opt_pgrp:
- 			if (match_int(args, &option))
- 				return 1;
--			*pgrp = option;
-+			put_pid(*pgrp);
-+			*pgrp = find_get_pid(option);
-+			if (!*pgrp) {
-+				pr_warn("autofs: could not find process group %d\n", option);
-+				return 1;
-+			}
- 			break;
- 		case Opt_minproto:
- 			if (match_int(args, &option))
-@@ -217,7 +224,7 @@ int autofs4_fill_super(struct super_block *s, void *data, int silent)
- 	sbi->pipe = NULL;
- 	sbi->catatonic = 1;
- 	sbi->exp_timeout = 0;
--	sbi->oz_pgrp = task_pgrp_nr(current);
-+	sbi->oz_pgrp = get_pid(task_pgrp(current));
- 	sbi->sb = s;
- 	sbi->version = 0;
- 	sbi->sub_version = 0;
-@@ -283,9 +290,9 @@ int autofs4_fill_super(struct super_block *s, void *data, int silent)
- 		sbi->version = sbi->max_proto;
- 	sbi->sub_version = AUTOFS_PROTO_SUBVERSION;
- 
--	DPRINTK("pipe fd = %d, pgrp = %u", pipefd, sbi->oz_pgrp);
-+	DPRINTK("pipe fd = %d, pgrp = %u", pipefd, pid_nr(sbi->oz_pgrp));
- 	pipe = fget(pipefd);
--	
-+
- 	if (!pipe) {
- 		printk("autofs: could not open pipe file descriptor\n");
- 		goto fail_dput;
-@@ -315,6 +322,7 @@ fail_dput:
- fail_ino:
- 	kfree(ino);
- fail_free:
-+	put_pid(sbi->oz_pgrp);
- 	kfree(sbi);
- 	s->s_fs_info = NULL;
- fail_unlock:
+ 	return 0;
 -- 
 1.7.7
