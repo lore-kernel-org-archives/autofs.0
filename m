@@ -1,55 +1,55 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH 0/2] struct pid-ify autofs4
-Date: Fri, 21 Sep 2012 17:44:48 +0200
-Message-ID: <87haqrwfbj.fsf@tucsk.pomaz.szeredi.hu>
-References: <1348068576-21363-1-git-send-email-miklos@szeredi.hu>
-Mime-Version: 1.0
-Return-path: <linux-kernel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=from:to:cc:subject:references:date:in-reply-to:message-id
-         :user-agent:mime-version:content-type;
-        bh=xh5WRYcWd9NcnsgC8Kasvm+A9xNE/zMZp9Zrt5nc8TE=;
-        b=iBfCxcM0SxUTnDA/XFUmhTR57WJLsY9AVXVPwFNHPa1q+C/ek+0ylKovmoyhk4wnG6
-         l90zRsNxUMn2v6VDzWp8eVy/sRqUaxM90bM3Y2TikbmEG5wMxwpYJi0fkkb92XpdB5N9
-         0aP/c9L9IKra7fSoF5e7UCl+65QLpbsLK+MWw=
-In-Reply-To: <1348068576-21363-1-git-send-email-miklos@szeredi.hu> (Miklos
-	Szeredi's message of "Wed, 19 Sep 2012 17:29:34 +0200")
-Sender: linux-kernel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
+From: Michael Tokarev <mjt@tls.msk.ru>
+Subject: Bug#682266: [PATCH] Allow nsswitch.conf to not contain automount
+	lines
+Date: Sat, 22 Sep 2012 12:39:51 +0400
+Message-ID: <1348303191-7980-1-git-send-email-mjt@msgid.tls.msk.ru>
+Reply-To: Michael Tokarev <mjt@tls.msk.ru>, 682266@bugs.debian.org
+Return-path: <bounce-debian-bugs-dist=glddb-debian-bugs-dist=m.gmane.org@lists.debian.org>
+Resent-To: debian-bugs-dist@lists.debian.org
+Resent-Message-ID: <handler.682266.B682266.134830320310796@bugs.debian.org>
+List-Id: <autofs.vger.kernel.org>
+List-URL: <http://lists.debian.org/debian-bugs-dist/>
+List-Post: <mailto:debian-bugs-dist@lists.debian.org>
+List-Help: <mailto:debian-bugs-dist-request@lists.debian.org?subject=help>
+List-Subscribe: <mailto:debian-bugs-dist-request@lists.debian.org?subject=subscribe>
+List-Unsubscribe: <mailto:debian-bugs-dist-request@lists.debian.org?subject=unsubscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: raven@themaw.net
-Cc: autofs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, sukadev@linux.vnet.ibm.com, serge.hallyn@canonical.com, ebiederm@xmission.com
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@vger.kernel.org, Michael Tokarev <mjt@tls.msk.ru>, 682266@bugs.debian.org
 
-Miklos Szeredi <miklos@szeredi.hu> writes:
+Current code does not allow a case when nsswitch.conf
+does not mention automount map at all, like all new
+installations.  It logs a rather unpleasant error
+message instead:
 
-> These two patches change autofs4 to store struct pid pointers instead of pid_t
-> values.
->
-> Fixed various issues with the previous post.  Not tested, handle with
-> care!
+ syntax error in nsswitch config near [ syntax error ]
 
-Customer gave positive test results.
+this patch has a minimal fix, to allo "file" to be empty.
 
-Thanks,
-Miklos
+Whole parser in C is about 25 lines of code, the "grammar"
+is trivial, and it is better to ditch all this yacc/lex
+stuff, but that will be much more intrusive change.
 
->
-> Thanks,
-> Miklos
-> ---
->
->
-> Serge Hallyn (1):
->       autofs4: store struct pids in autofs_waitqs
->
-> Sukadev Bhattiprolu (1):
->       Replace pid_t in autofs4 with struct pid reference.
->
-> ---
->  fs/autofs4/autofs_i.h  |    8 ++++----
->  fs/autofs4/dev-ioctl.c |    3 ++-
->  fs/autofs4/inode.c     |   22 +++++++++++++++-------
->  fs/autofs4/waitq.c     |   19 +++++++++++++------
->  4 files changed, 34 insertions(+), 18 deletions(-)
+Signed-off-by: Michael Tokarev <mjt@tls.msk.ru>
+Cc: 682266@bugs.debian.org
+---
+ lib/nss_parse.y |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/lib/nss_parse.y b/lib/nss_parse.y
+index a39fda4..055e9d7 100644
+--- a/lib/nss_parse.y
++++ b/lib/nss_parse.y
+@@ -72,6 +72,7 @@ file: {
+ 		nss_debug = YYDEBUG;
+ #endif
+ 	} sources NL
++	| /* empty */
+ 	;
+ 
+ sources: nss_source
+-- 
+1.7.10.4
+
