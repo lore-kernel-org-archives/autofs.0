@@ -1,67 +1,51 @@
-From: Ian Kent <raven@themaw.net>
+From: Miklos Szeredi <miklos@szeredi.hu>
 Subject: Re: [PATCH 0/2] struct pid-ify autofs4
-Date: Mon, 24 Sep 2012 08:38:50 +0800
-Message-ID: <1348447130.2318.1.camel@perseus.themaw.net>
+Date: Mon, 24 Sep 2012 15:34:32 +0200
+Message-ID: <87d31bczo7.fsf@tucsk.pomaz.szeredi.hu>
 References: <1348068576-21363-1-git-send-email-miklos@szeredi.hu>
-	 <87haqrwfbj.fsf@tucsk.pomaz.szeredi.hu>
+	<87haqrwfbj.fsf@tucsk.pomaz.szeredi.hu>
+	<1348447130.2318.1.camel@perseus.themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	message-id:subject:from:to:cc:date:in-reply-to:references
-	:content-type:content-transfer-encoding:mime-version; s=mesmtp;
-	 bh=KVAr7SoVOZrB8ih7QztxsCyijII=; b=DwoHZK5bMp3yiRBNhJY+JG3q/hui
-	3sni+qi6XEzB7bcmRo2BkEQG/GSI+lwbLpfJmqw8cNzYNfCa9DIIFFRYYAUCRTMQ
-	txg13MWZVGnPHvms5itk9Z0iUJd8cFQxnTIOWvpbN/NY7CWPsgFtG+O8NFTSiA71
-	7WDqUzcXhU2vzUs=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=message-id:subject:from:to:cc:date
-	:in-reply-to:references:content-type:content-transfer-encoding
-	:mime-version; s=smtpout; bh=KVAr7SoVOZrB8ih7QztxsCyijII=; b=Nbp
-	sEybOEQzfJloLcH6NW/+MhaX7sntXyxTB6YaFGtJH2MK6J0+ovkKmRjFpvKAR6CS
-	wMzZNGYRgPf6J71HqRLRFJ+whs/eBmgQ5NhbITqAQMpBprpNdunW4TCBoZ1u5np7
-	wZ6QLaJw9zhMmGcKuO4J5BKZxnmLCVcn/C00Q2c0=
-In-Reply-To: <87haqrwfbj.fsf@tucsk.pomaz.szeredi.hu>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google;
+        h=from:to:cc:subject:references:date:in-reply-to:message-id
+         :user-agent:mime-version:content-type;
+        bh=546DYB7zPKa5twtP1zgSIAiNJ12TQX7JMxNAn6CuuYA=;
+        b=lsrVnpIJXx/zxiQoqnqj1jNxtvr0ZZfh7YcalQ29hO0+J1yEVJK0fry9WZUWaR4JwD
+         foCpHWVYbvAzLO8QizTu7DKwpNmR0FTyF5KMxCEF0ggppiJvO2Wc09ZF4tCXCABPJhBg
+         wettOeUBR7pOkwwSWBEH64raJBCqHXTZ0yIJI=
+In-Reply-To: <1348447130.2318.1.camel@perseus.themaw.net> (Ian Kent's message
+	of "Mon, 24 Sep 2012 08:38:50 +0800")
+Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Miklos Szeredi <miklos@szeredi.hu>
+Content-Transfer-Encoding: 7bit
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, sukadev@linux.vnet.ibm.com, serge.hallyn@canonical.com, ebiederm@xmission.com
 
-On Fri, 2012-09-21 at 17:44 +0200, Miklos Szeredi wrote:
-> Miklos Szeredi <miklos@szeredi.hu> writes:
-> 
-> > These two patches change autofs4 to store struct pid pointers instead of pid_t
-> > values.
-> >
-> > Fixed various issues with the previous post.  Not tested, handle with
-> > care!
-> 
-> Customer gave positive test results.
+Ian Kent <raven@themaw.net> writes:
 
-For what exactly, there's no problem description in these patches?
+> On Fri, 2012-09-21 at 17:44 +0200, Miklos Szeredi wrote:
+>> Miklos Szeredi <miklos@szeredi.hu> writes:
+>> 
+>> > These two patches change autofs4 to store struct pid pointers instead of pid_t
+>> > values.
+>> >
+>> > Fixed various issues with the previous post.  Not tested, handle with
+>> > care!
+>> 
+>> Customer gave positive test results.
+>
+> For what exactly, there's no problem description in these patches?
 
-> 
-> Thanks,
-> Miklos
-> 
-> >
-> > Thanks,
-> > Miklos
-> > ---
-> >
-> >
-> > Serge Hallyn (1):
-> >       autofs4: store struct pids in autofs_waitqs
-> >
-> > Sukadev Bhattiprolu (1):
-> >       Replace pid_t in autofs4 with struct pid reference.
-> >
-> > ---
-> >  fs/autofs4/autofs_i.h  |    8 ++++----
-> >  fs/autofs4/dev-ioctl.c |    3 ++-
-> >  fs/autofs4/inode.c     |   22 +++++++++++++++-------
-> >  fs/autofs4/waitq.c     |   19 +++++++++++++------
-> >  4 files changed, 34 insertions(+), 18 deletions(-)
+From what I understand (and I'm not an expert by any means) is that
+autofs doesn't work if containers are used.  The first patch fixes this.
 
+Both the patches replace pid_t with a refcounted struct pid object,
+which has better lifetime properties: you don't know whether a pid_t is
+valid, because pid numbers are reused, while pid objects remain valid
+until there are no more references to them.
 
+Thanks,
+Miklos
