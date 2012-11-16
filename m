@@ -1,85 +1,117 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: [PATCH 2/2] autofs4: translate pids to the right namespace for the daemon
-Date: Tue, 13 Nov 2012 12:49:04 +0100
-Message-ID: <87obj1radr.fsf@tucsk.pomaz.szeredi.hu>
-References: <87sj8drafh.fsf@tucsk.pomaz.szeredi.hu>
+From: Ian Kent <ikent@redhat.com>
+Subject: [PATCH] autofs4 - use simple_empty() for empty directory check
+Date: Fri, 16 Nov 2012 12:15:23 +0800
+Message-ID: <20121116041523.18624.46918.stgit@perseus.themaw.net>
 Mime-Version: 1.0
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=from:to:cc:subject:references:date:in-reply-to:message-id
-         :user-agent:mime-version:content-type;
-        bh=vXNDydTQ+B8lT4HWC5UVnXo9A564gLNkrCpDNZdpRAc=;
-        b=Prvey4fJi0W4jEL+0GvCrRmMAe9CFy76fnVBk8xOBJatktHjzIksO5vY09M/b0MNc8
-         CwY/T0oF1ZE+pjDSzBV7Uh03aOVBUbSZ+6WlDUlRpuFDaLKIDiGhSj7x4OKWqvcvvTVZ
-         npSJ7E+Dc8XF3I4WJrCnqOALav3vlJMl3ZbGE=
-In-Reply-To: <87sj8drafh.fsf@tucsk.pomaz.szeredi.hu> (Miklos Szeredi's message
-	of "Tue, 13 Nov 2012 12:48:02 +0100")
-Sender: linux-fsdevel-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: raven@themaw.net
-Cc: autofs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, sukadev@linux.vnet.ibm.com, serge.hallyn@canonical.com, ebiederm@xmission.com
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, autofs mailing list <autofs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-From: Miklos Szeredi <mszeredi@suse.cz>
+From: Ian Kent <raven@themaw.net>
 
-The PID and the TGID of the process tringgering the mount are sent to the
-daemon.  Currently the global pid values are sent (ones valid in the initial pid
-namespace) but this is wrong if the autofs daemon itself is not running in the
-initial pid namespace.
+For direct (and offset) mounts, if an automounted mount is manually
+umounted the trigger mount dentry can appear non-empty causing it to
+not trigger mounts. This can also happen if there is a file handle
+leak in a user space automounting application.
 
-So send the pid values that are valid in the namespace of the autofs daemon.
+It happens because, when the ioctl control file handle is opened
+on the mount, a cursor dentry is created which causes list_empty()
+to see the dentry as non-empty. Since there is a case where listing
+the directory of these dentrys is needed, the use of dcache_dir_*()
+functions for .open() and .release() is needed.
 
-The namespace to use is taken from the oz_pgrp pid pointer, which was set at
-mount time to the mounting process' pid namespace.
+Consequently simple_empty() must be used instead of list_empty()
+when checking for an empty directory.
 
-If the pid translation fails (the triggering process is in an unrelated pid
-namespace) then the automount fails with ENOENT.
-
-Cc: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Signed-off-by: Ian Kent <raven@themaw.net>
 ---
- fs/autofs4/waitq.c |   16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
-03944aae0b9cb4a36d091f275d2f2217447b27ec
-Index: linux-2.6/fs/autofs4/waitq.c
-===================================================================
---- linux-2.6.orig/fs/autofs4/waitq.c	2012-11-12 19:07:06.000000000 +0100
-+++ linux-2.6/fs/autofs4/waitq.c	2012-11-12 19:57:10.000000000 +0100
-@@ -354,11 +354,23 @@ int autofs4_wait(struct autofs_sb_info *
- 	struct qstr qstr;
- 	char *name;
- 	int status, ret, type;
-+	pid_t pid;
-+	pid_t tgid;
+
+ fs/autofs4/autofs_i.h |   18 ++++++++++++++++++
+ fs/autofs4/root.c     |   16 ++++------------
+ 2 files changed, 22 insertions(+), 12 deletions(-)
+
+diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
+index 908e184..4c3f589 100644
+--- a/fs/autofs4/autofs_i.h
++++ b/fs/autofs4/autofs_i.h
+@@ -301,6 +301,24 @@ static inline int simple_positive(struct dentry *dentry)
+ 	return dentry->d_inode && !d_unhashed(dentry);
+ }
  
- 	/* In catatonic mode, we don't wait for nobody */
- 	if (sbi->catatonic)
- 		return -ENOENT;
- 
-+	/*
-+	 * Try translating pids to the namespace of the daemon.
-+	 *
-+	 * Zero means failure: we are in an unrelated pid namespace.
-+	 */
-+	pid = task_pid_nr_ns(current, ns_of_pid(sbi->oz_pgrp));
-+	tgid = task_tgid_nr_ns(current, ns_of_pid(sbi->oz_pgrp));
-+	if (pid == 0 || tgid == 0)
-+		return -ENOENT;
++static inline int __simple_empty(struct dentry *dentry)
++{
++	struct dentry *child;
++	int ret = 0;
 +
- 	if (!dentry->d_inode) {
- 		/*
- 		 * A wait for a negative dentry is invalid for certain
-@@ -424,8 +436,8 @@ int autofs4_wait(struct autofs_sb_info *
- 		wq->ino = autofs4_get_ino(sbi);
- 		wq->uid = current_uid();
- 		wq->gid = current_gid();
--		wq->pid = current->pid;
--		wq->tgid = current->tgid;
-+		wq->pid = pid;
-+		wq->tgid = tgid;
- 		wq->status = -EINTR; /* Status return if interrupted */
- 		wq->wait_ctr = 2;
- 		mutex_unlock(&sbi->wq_mutex);
++	list_for_each_entry(child, &dentry->d_subdirs, d_u.d_child) {
++		spin_lock_nested(&child->d_lock, DENTRY_D_LOCK_NESTED);
++		if (simple_positive(child)) {
++			spin_unlock(&child->d_lock);
++			goto out;
++		}
++		spin_unlock(&child->d_lock);
++	}
++	ret = 1;
++out:
++	return ret;
++}
++
+ static inline void __autofs4_add_expiring(struct dentry *dentry)
+ {
+ 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
+diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
+index 91b1165..f39bf4b 100644
+--- a/fs/autofs4/root.c
++++ b/fs/autofs4/root.c
+@@ -124,13 +124,10 @@ static int autofs4_dir_open(struct inode *inode, struct file *file)
+ 	 * it.
+ 	 */
+ 	spin_lock(&sbi->lookup_lock);
+-	spin_lock(&dentry->d_lock);
+-	if (!d_mountpoint(dentry) && list_empty(&dentry->d_subdirs)) {
+-		spin_unlock(&dentry->d_lock);
++	if (!d_mountpoint(dentry) && simple_empty(dentry)) {
+ 		spin_unlock(&sbi->lookup_lock);
+ 		return -ENOENT;
+ 	}
+-	spin_unlock(&dentry->d_lock);
+ 	spin_unlock(&sbi->lookup_lock);
+ 
+ out:
+@@ -382,12 +379,8 @@ static struct vfsmount *autofs4_d_automount(struct path *path)
+ 			if (have_submounts(dentry))
+ 				goto done;
+ 		} else {
+-			spin_lock(&dentry->d_lock);
+-			if (!list_empty(&dentry->d_subdirs)) {
+-				spin_unlock(&dentry->d_lock);
++			if (!simple_empty(dentry))
+ 				goto done;
+-			}
+-			spin_unlock(&dentry->d_lock);
+ 		}
+ 		ino->flags |= AUTOFS_INF_PENDING;
+ 		spin_unlock(&sbi->fs_lock);
+@@ -413,8 +406,7 @@ done:
+ 		 * the follow.
+ 		 */
+ 		spin_lock(&dentry->d_lock);
+-		if ((!d_mountpoint(dentry) &&
+-		    !list_empty(&dentry->d_subdirs)) ||
++		if ((!d_mountpoint(dentry) && !__simple_empty(dentry)) ||
+ 		    (dentry->d_inode && S_ISLNK(dentry->d_inode->i_mode)))
+ 			__managed_dentry_clear_automount(dentry);
+ 		spin_unlock(&dentry->d_lock);
+@@ -673,7 +665,7 @@ static int autofs4_dir_rmdir(struct inode *dir, struct dentry *dentry)
+ 
+ 	spin_lock(&sbi->lookup_lock);
+ 	spin_lock(&dentry->d_lock);
+-	if (!list_empty(&dentry->d_subdirs)) {
++	if (!__simple_empty(dentry)) {
+ 		spin_unlock(&dentry->d_lock);
+ 		spin_unlock(&sbi->lookup_lock);
+ 		return -ENOTEMPTY;
