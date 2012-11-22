@@ -1,52 +1,85 @@
-From: Ian Kent <ikent@redhat.com>
-Subject: Re: [PATCH] autofs4 - use simple_empty() for empty directory check
-Date: Sat, 17 Nov 2012 10:29:01 +0800
-Message-ID: <1353119341.2338.1.camel@perseus.themaw.net>
-References: <20121116041523.18624.46918.stgit@perseus.themaw.net>
-	 <CA+55aFx-9A0xknhX7z9KmLAoGMf5GXhuFgroZUixHtevGAFsOQ@mail.gmail.com>
-	 <1353083773.2332.40.camel@perseus.themaw.net>
-	 <CA+55aFz+JUthf-HAdYLzQH=r0niB4+X1ymn5egLpdhiptYXr7w@mail.gmail.com>
-	 <20121116173415.GA16916@ZenIV.linux.org.uk>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: [PATCH 2/2] autofs4: translate pids to the right namespace for the daemon
+Date: Thu, 22 Nov 2012 17:26:47 +0100
+Message-ID: <87k3tdeh88.fsf@tucsk.pomaz.szeredi.hu>
+References: <87obipehbt.fsf@tucsk.pomaz.szeredi.hu>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20121116173415.GA16916@ZenIV.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google;
+        h=from:to:cc:subject:references:date:in-reply-to:message-id
+         :user-agent:mime-version:content-type;
+        bh=vXNDydTQ+B8lT4HWC5UVnXo9A564gLNkrCpDNZdpRAc=;
+        b=UTFHIF2XxHGk2SBs+rsnfcWNpPjKlFYAVTn6H7TTwextnNlSy69s93VTAjzHGsioGp
+         iprd39dnXBMkEAIx1o4MAZ2tE9p3gNIY6koEUfR1j35WrMEDlnpx2OcVVwcshs9Xk2tc
+         pb7+UHju26JoaxOLyTfybff/OBMITHCjLS6FU=
+In-Reply-To: <87obipehbt.fsf@tucsk.pomaz.szeredi.hu> (Miklos Szeredi's message
+	of "Thu, 22 Nov 2012 17:24:38 +0100")
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, autofs mailing list <autofs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+To: raven@themaw.net
+Cc: autofs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, sukadev@linux.vnet.ibm.com, serge.hallyn@canonical.com, ebiederm@xmission.com, mszeredi@suse.cz
 
-On Fri, 2012-11-16 at 17:34 +0000, Al Viro wrote:
-> On Fri, Nov 16, 2012 at 08:43:28AM -0800, Linus Torvalds wrote:
-> > On Fri, Nov 16, 2012 at 8:36 AM, Ian Kent <ikent@redhat.com> wrote:
-> > >
-> > > Sure, are you recommending I alter the fs/libfs.c functions to add a
-> > > function that doesn't have the outer lock, and have simple_empty() call
-> > > that, then use it in autofs?
-> > 
-> > Yup. That's the standard pattern, although usually we *strive* to make
-> > the unlocked versions be static to the internal code, and then use
-> > them there for the various helpers. In your case that seems
-> > impossible, since you do depend on holding the d_lock in the caller
-> > after the tests. But at least we don't have to duplicate the code and
-> > have it in two unrelated places.
-> > 
-> > Al? Comments?
-> 
-> The thing is, I'm not convinced we really need ->d_lock held downstream.
-> E.g.  __autofs4_add_expiring() ought to be OK with just sbi->lookup_lock.
-> Not sure about the situation in autofs4_d_automount() - the thing is messy
-> as hell ;-/
-> 
-> Ian, do we really need that __simple_empty() variant in either caller?  What
-> is getting protected by ->d_lock after it and do we really need ->d_lock
-> continuously held for that?
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-Yeah, I've thought about that a few times now but haven't gone so far as
-to change it.
+The PID and the TGID of the process tringgering the mount are sent to the
+daemon.  Currently the global pid values are sent (ones valid in the initial pid
+namespace) but this is wrong if the autofs daemon itself is not running in the
+initial pid namespace.
 
-I'll have another look.
+So send the pid values that are valid in the namespace of the autofs daemon.
 
-Ian
+The namespace to use is taken from the oz_pgrp pid pointer, which was set at
+mount time to the mounting process' pid namespace.
 
+If the pid translation fails (the triggering process is in an unrelated pid
+namespace) then the automount fails with ENOENT.
+
+Cc: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+---
+ fs/autofs4/waitq.c |   16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
+03944aae0b9cb4a36d091f275d2f2217447b27ec
+Index: linux-2.6/fs/autofs4/waitq.c
+===================================================================
+--- linux-2.6.orig/fs/autofs4/waitq.c	2012-11-12 19:07:06.000000000 +0100
++++ linux-2.6/fs/autofs4/waitq.c	2012-11-12 19:57:10.000000000 +0100
+@@ -354,11 +354,23 @@ int autofs4_wait(struct autofs_sb_info *
+ 	struct qstr qstr;
+ 	char *name;
+ 	int status, ret, type;
++	pid_t pid;
++	pid_t tgid;
+ 
+ 	/* In catatonic mode, we don't wait for nobody */
+ 	if (sbi->catatonic)
+ 		return -ENOENT;
+ 
++	/*
++	 * Try translating pids to the namespace of the daemon.
++	 *
++	 * Zero means failure: we are in an unrelated pid namespace.
++	 */
++	pid = task_pid_nr_ns(current, ns_of_pid(sbi->oz_pgrp));
++	tgid = task_tgid_nr_ns(current, ns_of_pid(sbi->oz_pgrp));
++	if (pid == 0 || tgid == 0)
++		return -ENOENT;
++
+ 	if (!dentry->d_inode) {
+ 		/*
+ 		 * A wait for a negative dentry is invalid for certain
+@@ -424,8 +436,8 @@ int autofs4_wait(struct autofs_sb_info *
+ 		wq->ino = autofs4_get_ino(sbi);
+ 		wq->uid = current_uid();
+ 		wq->gid = current_gid();
+-		wq->pid = current->pid;
+-		wq->tgid = current->tgid;
++		wq->pid = pid;
++		wq->tgid = tgid;
+ 		wq->status = -EINTR; /* Status return if interrupted */
+ 		wq->wait_ctr = 2;
+ 		mutex_unlock(&sbi->wq_mutex);
