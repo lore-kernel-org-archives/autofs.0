@@ -1,72 +1,61 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
+From: Miklos Szeredi <miklos@szeredi.hu>
 Subject: Re: [PATCH 1/2] autofs4: allow autofs to work outside the initial PID namespace
-Date: Sat, 24 Nov 2012 04:07:15 -0800
-Message-ID: <878v9rmcgc.fsf@xmission.com>
+Date: Sat, 24 Nov 2012 22:12:58 +0100
+Message-ID: <CAJfpegvQGhzDvQt=OBf=GVQF2gDynTp6F+zO-dn5skFLtukFCQ@mail.gmail.com>
 References: <87obipehbt.fsf@tucsk.pomaz.szeredi.hu>
 	<1353642304.2309.25.camel@perseus.themaw.net>
 	<1353672540.6699.18.camel@perseus.themaw.net>
 	<874nkgwfw0.fsf@tucsk.pomaz.szeredi.hu>
 	<1353723813.2348.48.camel@perseus.themaw.net>
 	<1353724641.2348.56.camel@perseus.themaw.net>
+	<878v9rmcgc.fsf@xmission.com>
 Mime-Version: 1.0
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <1353724641.2348.56.camel@perseus.themaw.net> (Ian Kent's message
-	of "Sat, 24 Nov 2012 10:37:21 +0800")
-Sender: linux-fsdevel-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google;
+        h=mime-version:x-originating-ip:in-reply-to:references:date
+         :message-id:subject:from:to:cc:content-type;
+        bh=Gu6toKpxXvBX1jxWK66vfzcx7j9IWISVwkdPxyzOCw8=;
+        b=n7PK35LJvJu53lLI/R3m4FTzAD2K4FBEZy8PwPRKibBtsPbPYAONgQ1lSfI3frEqIV
+         U0JQjqLMwW+NYw2Cv87oSRlhJ4nVbV2JAWO+NKtjRvquweBaQiddkEzRHnAnLLasPF++
+         W51V09ZBTqNERrQuL1iKJI7L1ABPgmbEyA0/g=
+In-Reply-To: <878v9rmcgc.fsf@xmission.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ian Kent <raven@themaw.net>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, autofs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, sukadev@linux.vnet.ibm.com, serge.hallyn@canonical.com
+To: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Ian Kent <raven@themaw.net>, autofs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, sukadev@linux.vnet.ibm.com, serge.hallyn@canonical.com
 
-Ian Kent <raven@themaw.net> writes:
-
-> On Sat, 2012-11-24 at 10:23 +0800, Ian Kent wrote:
->> On Fri, 2012-11-23 at 15:30 +0100, Miklos Szeredi wrote:
->> > Ian Kent <raven@themaw.net> writes:
->> > 
->> > > On Fri, 2012-11-23 at 11:45 +0800, Ian Kent wrote:
->> > >> On Thu, 2012-11-22 at 17:24 +0100, Miklos Szeredi wrote:
->> > >> > Patches were tested by the customer.
->> > >> > 
->> > >> > Ian, Eric, do these patches look OK?
-
-My apologies for the delay.  I have been swamped with the holidays and
-the impending 3.8 merge window.   I will take a good hard look at your
-patches shortly.
-
->> AFAICS autofs mounts mounted with MS_PRIVATE in the initial namespace do
->> propagate to the clone when it's created so I'm assuming subsequent
->> mounts would also. If these mounts are busy in some way they can't be
->> umounted in the clone unless "/" is marked private before attempting the
->> umount.
+On Sat, Nov 24, 2012 at 1:07 PM, Eric W. Biederman
+<ebiederm@xmission.com> wrote:
+> Ian Kent <raven@themaw.net> writes:
 >
-> This may sound stupid but if there something like, say, MS_NOPROPAGATE
-> then the problem I see would pretty much just go away. No more need to
-> umount existing mounts and container instances would be isolated. But, I
-> guess, I'm not considering the possibility of cloned of processes as
-> well .... if that makes sense, ;)
+>> On Sat, 2012-11-24 at 10:23 +0800, Ian Kent wrote:
+>>> On Fri, 2012-11-23 at 15:30 +0100, Miklos Szeredi wrote:
 
-Something is very weird is going on.  MS_PRIVATE should be the
-MS_NOPROPOGATE you are looking for.  There is also MS_UNBINDABLE.
-which is a stronger form of MS_PRIVATE and probably worth play with.
+>>> AFAICS autofs mounts mounted with MS_PRIVATE in the initial namespace do
+>>> propagate to the clone when it's created so I'm assuming subsequent
+>>> mounts would also. If these mounts are busy in some way they can't be
+>>> umounted in the clone unless "/" is marked private before attempting the
+>>> umount.
+>>
+>> This may sound stupid but if there something like, say, MS_NOPROPAGATE
+>> then the problem I see would pretty much just go away. No more need to
+>> umount existing mounts and container instances would be isolated. But, I
+>> guess, I'm not considering the possibility of cloned of processes as
+>> well .... if that makes sense, ;)
+>
+> Something is very weird is going on.  MS_PRIVATE should be the
+> MS_NOPROPOGATE you are looking for.  There is also MS_UNBINDABLE.
+> which is a stronger form of MS_PRIVATE and probably worth play with.
+>
 
-I would love to advertise my user namespace changes (queued for 3.8)
-that reduce shared subtrees to slave subtress as the solution to this,
-and that does address part of the issue but that does not really seem
-like the fix.
+MS_UNBINDABLE says:  skip this mount when copying a mount tree, such
+as when the mount namespace is cloned.
 
-I expect what we need to avoid unwanted mount propagation is an idiom
-something like:
+If you set MS_UNBINDABLE on autofs mounts then they will simply not
+appear in a cloned namespace.  Which sounds like a good idea,  no?
 
-unshare -n
-mount --private /mnt
-pivot_root /mnt /
-umount /mnt
-
-Something like that is present in the startup of most containers
-already.  So figuring out where to sprinkle MS_PRIVATE or MS_UNBINDABLE
-so that mounts don't propogate that we want to propogate look like a
-good deal.
-
-Eric
+Thanks,
+Miklos
