@@ -1,7 +1,7 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
+From: Miklos Szeredi <miklos@szeredi.hu>
 Subject: Re: [PATCH 1/2] autofs4: allow autofs to work outside the initial PID namespace
-Date: Mon, 26 Nov 2012 08:38:58 -0600
-Message-ID: <87boekzawt.fsf@xmission.com>
+Date: Mon, 26 Nov 2012 17:11:23 +0100
+Message-ID: <CAJfpegvfeSoZz_uFE_HyGcqGq4_ZLGsicu_PHsi3jt5DYp-_gw@mail.gmail.com>
 References: <87obipehbt.fsf@tucsk.pomaz.szeredi.hu>
 	<1353642304.2309.25.camel@perseus.themaw.net>
 	<1353672540.6699.18.camel@perseus.themaw.net>
@@ -14,50 +14,48 @@ References: <87obipehbt.fsf@tucsk.pomaz.szeredi.hu>
 	<1353885956.2323.4.camel@perseus.themaw.net>
 	<1353896968.2323.7.camel@perseus.themaw.net>
 	<CAJfpegsqwd57NdHVhwfdNjauj8HKJb=x+2GAZtJQ8vLdt+A=sw@mail.gmail.com>
+	<87boekzawt.fsf@xmission.com>
 Mime-Version: 1.0
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <CAJfpegsqwd57NdHVhwfdNjauj8HKJb=x+2GAZtJQ8vLdt+A=sw@mail.gmail.com>
-	(Miklos Szeredi's message of "Mon, 26 Nov 2012 09:05:46 +0100")
-Sender: linux-fsdevel-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google;
+        h=mime-version:x-originating-ip:in-reply-to:references:date
+         :message-id:subject:from:to:cc:content-type;
+        bh=H+d1YtqfefFepYnB1g7Ku3qDeehWg0Y9Y/tt2bh+3mk=;
+        b=e9T6J+JJKVWCyMrx2Cz6VuKmHaJIG1urFuba/ZQ2Z94BZM14TC7c5KMZ+sgT5OgMdQ
+         LVZ/d4NRH4li0W9D7Qf5TD7brgF9/V2ipS3UfSeT0F8FL5gmnKu2Xc8DyBdR+ta90awQ
+         Lnps+BYrJKS6LVQ3B0gVCa7nYX84MXx2AbusU=
+In-Reply-To: <87boekzawt.fsf@xmission.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Miklos Szeredi <miklos@szeredi.hu>
+To: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Ian Kent <raven@themaw.net>, autofs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, sukadev@linux.vnet.ibm.com, serge.hallyn@canonical.com, Al Viro <viro@zeniv.linux.org.uk>
 
-Miklos Szeredi <miklos@szeredi.hu> writes:
-
-> On Mon, Nov 26, 2012 at 3:29 AM, Ian Kent <raven@themaw.net> wrote:
->>> > > MS_UNBINDABLE says:  skip this mount when copying a mount tree, such
->>> > > as when the mount namespace is cloned.
->>> > >
->>> > > If you set MS_UNBINDABLE on autofs mounts then they will simply not
->>> > > appear in a cloned namespace.  Which sounds like a good idea,  no?
->>> >
->>> > Good point.  If the desire is for a mount to be managed by autofs
->>> > setting MS_UNBINDABLE seems required.
->>>
->>> Arrgh, I know that's something I should have looked into long ago.
->>> The fact is that autofs mounts are directly related to a specific path
->>> defined by automount maps that are associated with the daemon so bind
->>> mounting them elsewhere makes no sense.
->>
->> Except, AFAICS, they do appear in the clone.
+On Mon, Nov 26, 2012 at 3:38 PM, Eric W. Biederman
+<ebiederm@xmission.com> wrote:
 >
-> Hmm, yes, apparently the semantics of MS_UNBINDABLE only apply to
-> actual bind mounts not to namespace cloning. Even though the two
-> operations are closely related.  Not sure why this is so, but it is
-> probably not a good idea to change the semantics at this point.
+> So I don't know how much MS_UNBINDABLE helps over MS_PRIVATE.  Both
+> prevent propogation of changes to other namespaces.  I don't know how
+> much using MS_UNBINDABLE to also prevent bind mounts helps.
 
-And for whatever reason this appears deliberate.
 
-CL_COPY_ALL in copy_tree allows the copy.
+MS_PRIVATE says ops on children (mount, unmount) won't be propageted,
+MS_UNBINDABLE says the mount itself won't be copied.
 
-The selected semantics of namespace sharing tend to mystify me.
+I think it may make sense to introduce a new flag similar to
+MS_UNBINDABLE that applies to namespace cloning as well as bind
+mounting.  It says: this mount is managed by some userspace entity
+(autofs) and copying it to the new namespace or to some other part of
+the tree makes no sense since a new instance of the  userspace entity
+responsible for managing those mounts will need to be started in the
+new namespace as well.  I can't think of any other sane solution to
+this issue.
 
-So I don't know how much MS_UNBINDABLE helps over MS_PRIVATE.  Both
-prevent propogation of changes to other namespaces.  I don't know how
-much using MS_UNBINDABLE to also prevent bind mounts helps.
+Thanks,
+Miklos
 
-Eric
-
+>
+> Eric
+>
