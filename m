@@ -1,61 +1,174 @@
-From: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH 1/2] autofs4: allow autofs to work outside the initial PID namespace
-Date: Mon, 26 Nov 2012 17:11:23 +0100
-Message-ID: <CAJfpegvfeSoZz_uFE_HyGcqGq4_ZLGsicu_PHsi3jt5DYp-_gw@mail.gmail.com>
-References: <87obipehbt.fsf@tucsk.pomaz.szeredi.hu>
-	<1353642304.2309.25.camel@perseus.themaw.net>
-	<1353672540.6699.18.camel@perseus.themaw.net>
-	<874nkgwfw0.fsf@tucsk.pomaz.szeredi.hu>
-	<1353723813.2348.48.camel@perseus.themaw.net>
-	<1353724641.2348.56.camel@perseus.themaw.net>
-	<878v9rmcgc.fsf@xmission.com>
-	<CAJfpegvQGhzDvQt=OBf=GVQF2gDynTp6F+zO-dn5skFLtukFCQ@mail.gmail.com>
-	<87lidqfx3u.fsf@xmission.com>
-	<1353885956.2323.4.camel@perseus.themaw.net>
-	<1353896968.2323.7.camel@perseus.themaw.net>
-	<CAJfpegsqwd57NdHVhwfdNjauj8HKJb=x+2GAZtJQ8vLdt+A=sw@mail.gmail.com>
-	<87boekzawt.fsf@xmission.com>
+From: Ian Kent <raven@themaw.net>
+Subject: [PATCH 1/2] autofs4 - dont clear DCACHE_NEED_AUTOMOUNT on rootless
+ mount
+Date: Fri, 14 Dec 2012 10:23:23 +0800
+Message-ID: <20121214022323.2969.31644.stgit@perseus.themaw.net>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=mime-version:x-originating-ip:in-reply-to:references:date
-         :message-id:subject:from:to:cc:content-type;
-        bh=H+d1YtqfefFepYnB1g7Ku3qDeehWg0Y9Y/tt2bh+3mk=;
-        b=e9T6J+JJKVWCyMrx2Cz6VuKmHaJIG1urFuba/ZQ2Z94BZM14TC7c5KMZ+sgT5OgMdQ
-         LVZ/d4NRH4li0W9D7Qf5TD7brgF9/V2ipS3UfSeT0F8FL5gmnKu2Xc8DyBdR+ta90awQ
-         Lnps+BYrJKS6LVQ3B0gVCa7nYX84MXx2AbusU=
-In-Reply-To: <87boekzawt.fsf@xmission.com>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=from
+	:subject:to:cc:date:message-id:mime-version:content-type
+	:content-transfer-encoding; s=mesmtp; bh=EHitmuW1gjVy8Nnrjk2YOlD
+	kJWI=; b=l0G3ccFHzNiCJl8XOPQar77ZyToFoVFURSyl1S2RNpRLIbsANZpnBDt
+	6/5WEHCW2U68RrVQpnSJRybIv1H5yvX+4SklUcG/YxcHLrrAuMxnMyJGPfcd8EzN
+	SW7oLXhfqj3KrbsNFaC+zSceUohzXLMK/yf+/Nf4uqSKw8/OwW8A=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=from:subject:to:cc:date:message-id
+	:mime-version:content-type:content-transfer-encoding; s=smtpout;
+	 bh=EHitmuW1gjVy8Nnrjk2YOlDkJWI=; b=S7kOv6tt/MIleeVafDYCSjVADDsm
+	m6ElNxOLBEzxtyxl59aryt1hlHEqbjwQa/yNHkivRoYl5KO7g4FI7swLS0WOlykZ
+	5lcbrr9AenYk9Qzgii3npqO20UNUPpiat5XMYfJjJOXHevygTgKOsCzWCPobOc9h
+	65Xdp0onJ1lojzs=
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Ian Kent <raven@themaw.net>, autofs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, sukadev@linux.vnet.ibm.com, serge.hallyn@canonical.com, Al Viro <viro@zeniv.linux.org.uk>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Al Viro <viro@ZenIV.linux.org.uk>
 
-On Mon, Nov 26, 2012 at 3:38 PM, Eric W. Biederman
-<ebiederm@xmission.com> wrote:
->
-> So I don't know how much MS_UNBINDABLE helps over MS_PRIVATE.  Both
-> prevent propogation of changes to other namespaces.  I don't know how
-> much using MS_UNBINDABLE to also prevent bind mounts helps.
+The DCACHE_NEED_AUTOMOUNT flag is cleared on mount and set on expire
+for autofs rootless multi-mount dentrys to prevent unnecessary calls
+to ->d_automount().
 
+Since DCACHE_MANAGE_TRANSIT is always set on autofs dentrys ->d_managed()
+is always called so the check can be done in ->d_manage() without the
+need to change the flag. This still avoids unnecessary calls to
+->d_automount(), adds negligible overhead and eliminates a seriously
+ugly check in the expire code.
 
-MS_PRIVATE says ops on children (mount, unmount) won't be propageted,
-MS_UNBINDABLE says the mount itself won't be copied.
+Signed-off-by: Ian Kent <raven@themaw.net>
+---
 
-I think it may make sense to introduce a new flag similar to
-MS_UNBINDABLE that applies to namespace cloning as well as bind
-mounting.  It says: this mount is managed by some userspace entity
-(autofs) and copying it to the new namespace or to some other part of
-the tree makes no sense since a new instance of the  userspace entity
-responsible for managing those mounts will need to be started in the
-new namespace as well.  I can't think of any other sane solution to
-this issue.
+ fs/autofs4/expire.c |    9 --------
+ fs/autofs4/root.c   |   61 ++++++++++++++++++++++++++++++---------------------
+ 2 files changed, 36 insertions(+), 34 deletions(-)
 
-Thanks,
-Miklos
-
->
-> Eric
->
+diff --git a/fs/autofs4/expire.c b/fs/autofs4/expire.c
+index 842d000..01443ce 100644
+--- a/fs/autofs4/expire.c
++++ b/fs/autofs4/expire.c
+@@ -548,15 +548,6 @@ int autofs4_do_expire_multi(struct super_block *sb, struct vfsmount *mnt,
+ 
+ 		spin_lock(&sbi->fs_lock);
+ 		ino->flags &= ~AUTOFS_INF_EXPIRING;
+-		spin_lock(&dentry->d_lock);
+-		if (!ret) {
+-			if ((IS_ROOT(dentry) ||
+-			    (autofs_type_indirect(sbi->type) &&
+-			     IS_ROOT(dentry->d_parent))) &&
+-			    !(dentry->d_flags & DCACHE_NEED_AUTOMOUNT))
+-				__managed_dentry_set_automount(dentry);
+-		}
+-		spin_unlock(&dentry->d_lock);
+ 		complete_all(&ino->expire_complete);
+ 		spin_unlock(&sbi->fs_lock);
+ 		dput(dentry);
+diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
+index 91b1165..30a6ab66 100644
+--- a/fs/autofs4/root.c
++++ b/fs/autofs4/root.c
+@@ -355,7 +355,6 @@ static struct vfsmount *autofs4_d_automount(struct path *path)
+ 		status = autofs4_mount_wait(dentry);
+ 		if (status)
+ 			return ERR_PTR(status);
+-		spin_lock(&sbi->fs_lock);
+ 		goto done;
+ 	}
+ 
+@@ -364,8 +363,11 @@ static struct vfsmount *autofs4_d_automount(struct path *path)
+ 	 * having d_mountpoint() true, so there's no need to call back
+ 	 * to the daemon.
+ 	 */
+-	if (dentry->d_inode && S_ISLNK(dentry->d_inode->i_mode))
++	if (dentry->d_inode && S_ISLNK(dentry->d_inode->i_mode)) {
++		spin_unlock(&sbi->fs_lock);
+ 		goto done;
++	}
++
+ 	if (!d_mountpoint(dentry)) {
+ 		/*
+ 		 * It's possible that user space hasn't removed directories
+@@ -379,8 +381,10 @@ static struct vfsmount *autofs4_d_automount(struct path *path)
+ 		 * require user space behave.
+ 		 */
+ 		if (sbi->version > 4) {
+-			if (have_submounts(dentry))
++			if (have_submounts(dentry)) {
++				spin_unlock(&sbi->fs_lock);
+ 				goto done;
++			}
+ 		} else {
+ 			spin_lock(&dentry->d_lock);
+ 			if (!list_empty(&dentry->d_subdirs)) {
+@@ -399,28 +403,8 @@ static struct vfsmount *autofs4_d_automount(struct path *path)
+ 			return ERR_PTR(status);
+ 		}
+ 	}
+-done:
+-	if (!(ino->flags & AUTOFS_INF_EXPIRING)) {
+-		/*
+-		 * Any needed mounting has been completed and the path
+-		 * updated so clear DCACHE_NEED_AUTOMOUNT so we don't
+-		 * call ->d_automount() on rootless multi-mounts since
+-		 * it can lead to an incorrect ELOOP error return.
+-		 *
+-		 * Only clear DMANAGED_AUTOMOUNT for rootless multi-mounts and
+-		 * symlinks as in all other cases the dentry will be covered by
+-		 * an actual mount so ->d_automount() won't be called during
+-		 * the follow.
+-		 */
+-		spin_lock(&dentry->d_lock);
+-		if ((!d_mountpoint(dentry) &&
+-		    !list_empty(&dentry->d_subdirs)) ||
+-		    (dentry->d_inode && S_ISLNK(dentry->d_inode->i_mode)))
+-			__managed_dentry_clear_automount(dentry);
+-		spin_unlock(&dentry->d_lock);
+-	}
+ 	spin_unlock(&sbi->fs_lock);
+-
++done:
+ 	/* Mount succeeded, check if we ended up with a new dentry */
+ 	dentry = autofs4_mountpoint_changed(path);
+ 	if (!dentry)
+@@ -432,6 +416,8 @@ done:
+ int autofs4_d_manage(struct dentry *dentry, bool rcu_walk)
+ {
+ 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
++	struct autofs_info *ino = autofs4_dentry_ino(dentry);
++	int status;
+ 
+ 	DPRINTK("dentry=%p %.*s",
+ 		dentry, dentry->d_name.len, dentry->d_name.name);
+@@ -456,7 +442,32 @@ int autofs4_d_manage(struct dentry *dentry, bool rcu_walk)
+ 	 * This dentry may be under construction so wait on mount
+ 	 * completion.
+ 	 */
+-	return autofs4_mount_wait(dentry);
++	status = autofs4_mount_wait(dentry);
++	if (status)
++		return status;
++
++	spin_lock(&sbi->fs_lock);
++	/*
++	 * If the dentry has been selected for expire while we slept
++	 * on the lock then it might go away. We'll deal with that in
++	 * ->d_automount() and wait on a new mount if the expire
++	 * succeeds or return here if it doesn't (since there's no
++	 * mount to follow with a rootless multi-mount).
++	 */
++	if (!(ino->flags & AUTOFS_INF_EXPIRING)) {
++		/*
++		 * Any needed mounting has been completed and the path
++		 * updated so check if this is a rootless multi-mount so
++		 * we can avoid needless calls ->d_automount() and avoid
++		 * an incorrect ELOOP error return.
++		 */
++		if ((!d_mountpoint(dentry) && !simple_empty(dentry)) ||
++		    (dentry->d_inode && S_ISLNK(dentry->d_inode->i_mode)))
++			status = -EISDIR;
++	}
++	spin_unlock(&sbi->fs_lock);
++
++	return status;
+ }
+ 
+ /* Lookups in the root directory */
