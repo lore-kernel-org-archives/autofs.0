@@ -1,8 +1,8 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: [PATCH] fs/autofs: Fix sparse warning: context imbalance in
  'autofs4_d_automount' - different lock contexts for basic block
-Date: Fri, 04 Jan 2013 07:54:01 +0800
-Message-ID: <1357257241.2207.2.camel@perseus.themaw.net>
+Date: Wed, 09 Jan 2013 15:16:56 +0800
+Message-ID: <1357715816.11178.23.camel@perseus.themaw.net>
 References: <1357224733-31251-1-git-send-email-peterhuewe@gmx.de>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -10,23 +10,28 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
 	message-id:subject:from:to:cc:date:in-reply-to:references
 	:content-type:content-transfer-encoding:mime-version; s=mesmtp;
-	 bh=iYSwJ6r4nseTXKwcHWC5/RiGoMg=; b=DODbaXd0/6VVxSyQPaSfnRcRFchY
-	ciLozIAcI2G7qQ4lk5joW99jcdSZqoYgxlQutJ0003kn+mSR5atcW3nDHZpdxvHw
-	vMNFP/aLYMIhDOpTzccKQaC5uK9RPmKIff78vqfzesnv5wSNQmB81UBP2CWIjsLg
-	e1YnfzuBPPm89OM=
+	 bh=EK6ZR8S2j8BL8Ra9DoNEfZXXVQI=; b=OT0D5Mr7pBKhGPrX4MeOKAuxyPkS
+	TLKgCPwbvr1P7UrSo+Fp6F/10cu7YHF+NuP13XjHaqiw3YqW78OR0N7GZim1czyg
+	hABptyF+LNhoA7MGdkbNDfHyaDrxn4I68PQs0AV0iY8b+N2jL0VjIWFJKNDC4Mrx
+	Vsx8vkNpZ7IBcwY=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=message-id:subject:from:to:cc:date
 	:in-reply-to:references:content-type:content-transfer-encoding
-	:mime-version; s=smtpout; bh=iYSwJ6r4nseTXKwcHWC5/RiGoMg=; b=aWU
-	q8LsDYqUk0cf5dsPu/KIYxO00oI96TgyOdoN/q4MQt+unwT963jxoaSgT1t23Rvw
-	GxXCQEv1IQD+MmG1XYnXGyoOJVYsBaSj2HCN9xS1j0YaQ2rExomvIuH/yO6RGr3n
-	Z1V7xxocibTxnsxwzqTIiILBqK3t0OPWFNeJts+M=
+	:mime-version; s=smtpout; bh=EK6ZR8S2j8BL8Ra9DoNEfZXXVQI=; b=uMX
+	moillyVik3HEVUbk3OLpumd199s+7GgI3X3W7M9an7Iofp7k9N1Tgz2pvyqhjf/F
+	AySUgAyk/krUCTF7dfGFevQoWV4BhUdkW/6eU816tCThVgXUJU0eEsgTlkverW3W
+	jhjmXsqpv29j2P5mucYYx7ZP/4qCb/1IvFV2dZ1Y=
 In-Reply-To: <1357224733-31251-1-git-send-email-peterhuewe@gmx.de>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: Peter Huewe <peterhuewe@gmx.de>
 Cc: autofs@vger.kernel.org, linux-kernel@vger.kernel.org, Fengguang Wu <fengguang.wu@intel.com>
+
+Hi all,
+
+I see this hasn't been merged yet.
+Do I need to re-post this (perhaps to Linus)?
 
 On Thu, 2013-01-03 at 15:52 +0100, Peter Huewe wrote:
 > Sparse complains:
@@ -45,10 +50,6 @@ On Thu, 2013-01-03 at 15:52 +0100, Peter Huewe wrote:
 > 
 > Reported-by: Fengguang Wu <fengguang.wu@intel.com>
 > Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
-
-Yes, good catch, it looks right to me.
-Acked-by: Ian Kent <raven@themaw.net>
-
 > ---
 >  fs/autofs4/root.c |    4 +++-
 >  1 files changed, 3 insertions(+), 1 deletions(-)
