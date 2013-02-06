@@ -1,28 +1,97 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [PATCH] unbreak automounter support on 64-bit kernel with 32-bit
- userspace (v2)
-Date: Mon, 04 Feb 2013 13:35:38 -0800
-Message-ID: <511029AA.1060007@zytor.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [PATCH] unbreak automounter support on 64-bit kernel with
+ 32-bit userspace (v2)
+Date: Wed, 06 Feb 2013 13:58:06 +0800
+Message-ID: <1360130286.4186.0.camel@perseus.themaw.net>
 References: <20130204193952.GA5785@p100.box>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-parisc-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
+	message-id:subject:from:to:cc:date:in-reply-to:references
+	:content-type:content-transfer-encoding:mime-version; s=mesmtp;
+	 bh=HWwyJbqbReJZKAtoVoo6biTKHXI=; b=PqWbVTy7V8laNDrWXpGt5yvGvZpj
+	3xz1IBQJKZiSxWThQ6gpawR4GFx7PK5fDeW7ZCuQxEsgCKw0Ju6RA7Rkc3RimBoR
+	KuRE75U5ltnEp5/W/yjXPmyPWwSsA5ZKNca7ShUBDHjFAV74C+yKvv88ZGlkPBBm
+	DhLraZHHGflb9+c=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=message-id:subject:from:to:cc:date
+	:in-reply-to:references:content-type:content-transfer-encoding
+	:mime-version; s=smtpout; bh=HWwyJbqbReJZKAtoVoo6biTKHXI=; b=cGJ
+	fZatRVcshvmh/5lCHXvVKA78gMuRdB3G9fshxMJTz6WNB89kc6t9JoLbKNkuQHbo
+	JND9gY95ArFQGNjZhMz96qksERB7r/nQMtvVb2HAJShjqzlj8VjG0upAhzpLVObM
+	r1Tr7JGG8UBsAuL3zKhjkxZrOyiU7A4Szw5eOiT8=
 In-Reply-To: <20130204193952.GA5785@p100.box>
 Sender: linux-parisc-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: Helge Deller <deller@gmx.de>
-Cc: linux-parisc@vger.kernel.org, linux-kernel@vger.kernel.org, James Bottomley <James.Bottomley@HansenPartnership.com>, John David Anglin <dave.anglin@bell.net>, Catalin Marinas <catalin.marinas@arm.com>, Rolf Eike Beer <eike-kernel@sf-tec.de>, Ian Kent <raven@themaw.net>, autofs@vger.kernel.org
+Cc: "H. Peter Anvin" <hpa@zytor.com>, linux-parisc@vger.kernel.org, linux-kernel@vger.kernel.org, James Bottomley <James.Bottomley@HansenPartnership.com>, John David Anglin <dave.anglin@bell.net>, Catalin Marinas <catalin.marinas@arm.com>, Rolf Eike Beer <eike-kernel@sf-tec.de>, autofs@vger.kernel.org
 
-On 02/04/2013 11:39 AM, Helge Deller wrote:
+On Mon, 2013-02-04 at 20:39 +0100, Helge Deller wrote:
+> automount-support is broken on the parisc architecture, because the existing
+> #if list does not include a check for defined(__hppa__). The HPPA (parisc)
+> architecture is similiar to other 64bit Linux targets where we have to define
+> autofs_wqt_t (which is passed back and forth to user space) as int type which
+> has a size of 32bit across 32 and 64bit kernels.
+> 
+> During the discussion on the mailing list, H. Peter Anvin suggested to invert
+> the #if list since only specific platforms (specifically those who do not have
+> a 32bit userspace, like IA64 and Alpha) should have autofs_wqt_t as unsigned
+> long type.
 > 
 > This suggestion is probably the best way to go, since Arm64 (and maybe others?)
 > seems to have a non-working automounter. So in the long run even for other new
 > upcoming architectures this inverted check seem to be the best solution, since
 > it will not require them to change this #if again (unless they are 64bit only).
 > 
+> Signed-off-by: Helge Deller <deller@gmx.de>
+> CC: James Bottomley <James.Bottomley@HansenPartnership.com>
+> CC: Catalin Marinas <catalin.marinas@arm.com>
+> CC: Rolf Eike Beer <eike-kernel@sf-tec.de>
+> CC: H. Peter Anvin <hpa@zytor.com>
+> CC: Ian Kent <raven@themaw.net>
+> 
+> 
+> diff --git a/include/uapi/linux/auto_fs.h b/include/uapi/linux/auto_fs.h
+> index 77cdba9..bb991df 100644
+> --- a/include/uapi/linux/auto_fs.h
+> +++ b/include/uapi/linux/auto_fs.h
+> @@ -28,25 +28,16 @@
+>  #define AUTOFS_MIN_PROTO_VERSION	AUTOFS_PROTO_VERSION
+>  
+>  /*
+> - * Architectures where both 32- and 64-bit binaries can be executed
+> - * on 64-bit kernels need this.  This keeps the structure format
+> - * uniform, and makes sure the wait_queue_token isn't too big to be
+> - * passed back down to the kernel.
+> - *
+> - * This assumes that on these architectures:
+> - * mode     32 bit    64 bit
+> - * -------------------------
+> - * int      32 bit    32 bit
+> - * long     32 bit    64 bit
+> - *
+> - * If so, 32-bit user-space code should be backwards compatible.
+> + * The wait_queue_token (autofs_wqt_t) is part of a structure which is passed
+> + * back to the kernel via ioctl from userspace. On architectures where 32- and
+> + * 64-bit userspace binaries can be executed it's important that the size of
+> + * autofs_wqt_t stays constant between 32- and 64-bit Linux kernels so that we
+> + * do not break the binary ABI interface by changing the structure size.
+>   */
+> -
+> -#if defined(__sparc__) || defined(__mips__) || defined(__x86_64__) \
+> - || defined(__powerpc__) || defined(__s390__)
+> -typedef unsigned int autofs_wqt_t;
+> -#else
+> +#if defined(__ia64__) || defined(__alpha__) /* pure 64bit architectures */
+>  typedef unsigned long autofs_wqt_t;
+> +#else
+> +typedef unsigned int autofs_wqt_t;
+>  #endif
+>  
+>  /* Packet types */
 
-... and even then they will generally work just fine.
+Acked-by: Ian Kent <raven@themaw.net>
 
-	-hpa
 
