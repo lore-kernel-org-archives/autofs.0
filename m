@@ -1,17 +1,25 @@
 From: Waiman Long <Waiman.Long@hp.com>
 Subject: [PATCH 3/4] dcache: change rename_lock to a sequence read/write lock
 Date: Tue, 19 Feb 2013 13:50:58 -0500
-Message-ID: <1361299859-27056-4-git-send-email-Waiman.Long@hp.com>
+Message-ID: <1361299859-27056-4-git-send-email-Waiman.Long__5256.12045680663$1361443702$gmane$org@hp.com>
 References: <1361299859-27056-1-git-send-email-Waiman.Long@hp.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <samba-technical-bounces@lists.samba.org>
 In-Reply-To: <1361299859-27056-1-git-send-email-Waiman.Long@hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <https://lists.samba.org/mailman/options/samba-technical>,
+	<mailto:samba-technical-request@lists.samba.org?subject=unsubscribe>
+List-Archive: <http://lists.samba.org/pipermail/samba-technical>
+List-Post: <mailto:samba-technical@lists.samba.org>
+List-Help: <mailto:samba-technical-request@lists.samba.org?subject=help>
+List-Subscribe: <https://lists.samba.org/mailman/listinfo/samba-technical>,
+	<mailto:samba-technical-request@lists.samba.org?subject=subscribe>
+Sender: samba-technical-bounces@lists.samba.org
+Errors-To: samba-technical-bounces@lists.samba.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-fsdevel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, Ian Kent <raven@themaw.net>, Sage Weil <sage@inktank.com>, Steve French <sfrench@samba.org>, Trond Myklebust <Trond.Myklebust@netapp.com>, Eric Paris <eparis@redhat.com>, Jeff Layton <jlayton@redhat.com>, Miklos Szeredi <mszeredi@suse.cz>
-Cc: Waiman Long <Waiman.Long@hp.com>, linux-kernel@vger.kernel.org, autofs@vger.kernel.org, ceph-devel@vger.kernel.org, linux-cifs@vger.kernel.org, samba-technical@lists.samba.org, linux-nfs@vger.kernel.org
+Cc: Waiman Long <Waiman.Long@hp.com>, linux-cifs@vger.kernel.org, linux-nfs@vger.kernel.org, autofs@vger.kernel.org, samba-technical@lists.samba.org, linux-kernel@vger.kernel.org, ceph-devel@vger.kernel.org
 
 The d_path() and related kernel functions currently take a writer
 lock on rename_lock because they need to follow pointers. By changing
@@ -526,3 +534,4 @@ index a371f85..d4a7bf2 100644
  			/* just a race with rename */
 -- 
 1.7.1
+
