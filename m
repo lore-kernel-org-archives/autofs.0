@@ -1,67 +1,61 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 1/2] autofs - Fix sparse warning: context imbalance in
- autofs4_d_automount() different lock contexts for basic block
-Date: Fri, 01 Mar 2013 19:46:40 +0800
-Message-ID: <20130301114639.28560.27407.stgit@perseus.fritz.box>
+Subject: [PATCH 2/2] autofs4 - autofs4_catatonic_mode(): remove redundant
+ null check on kfree()
+Date: Fri, 01 Mar 2013 19:46:48 +0800
+Message-ID: <20130301114647.28560.84229.stgit@perseus.fritz.box>
+References: <20130301114639.28560.27407.stgit@perseus.fritz.box>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	subject:to:from:cc:date:message-id:mime-version:content-type
-	:content-transfer-encoding; s=mesmtp; bh=qLdca00Op46vlAu3cHCjV64
-	DOd8=; b=ZqbMK7wPB53mUdbKMfMUwmHQCGMsgZJShTIH+MVXiwB2IwB7elGvmIR
-	+Xy6hqrpEm2q5f4VRgySXNpDNUkHTSiWmJRtXtAHjeoz0Q+lrWVGacwWlX7o8Xyk
-	zzJBIHgrsrPV65mxriwcVwPJ9dWVQ+KizxBhxEmDUJVW7eJ02z2o=
+	subject:to:from:cc:date:message-id:in-reply-to:references
+	:mime-version:content-type:content-transfer-encoding; s=mesmtp;
+	 bh=id39djIusliTjL93AH2mmfwTkLs=; b=unKe5uX9+vX5RsXCvkUp9iziB8Er
+	5kDbVsYIHo5octQz6TL6wj+/Nz5k39e6uuDEuJQRGblcmydFpsXDrCmtzf3e1eHx
+	1UZWdFG7dii2sZ1//mUczGDIrdIYyCgWTtgMTGGQmDHUVgIRyA5HnghzFmW63n45
+	aSU8reaRIcs7OG8=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=subject:to:from:cc:date:message-id
-	:mime-version:content-type:content-transfer-encoding; s=smtpout;
-	 bh=qLdca00Op46vlAu3cHCjV64DOd8=; b=M5g1hMZUAJvk8/HoVI6kn53Oujyo
-	7vmOKGcvXorvafgYYdoohufX+6KwLizWuBQHKs1SpqnolfaFpksBOVJQDd8LcQoC
-	3E3tVMdmAGD6mr22Z2B6V1+ZIiKGjLrvTHX+fJBgPJVA1f5mG0GB6rYkXdqej+1u
-	gL7lGsQ6Cc6UN3o=
-Sender: linux-fsdevel-owner@vger.kernel.org
+	:in-reply-to:references:mime-version:content-type
+	:content-transfer-encoding; s=smtpout; bh=id39djIusliTjL93AH2mmf
+	wTkLs=; b=DxLpBygY3Nnpdto//xzt1l6WWeFaXfUuVzoi8OnSsi3/USA91GUeDt
+	x8ViLnKl1Rf3ifcyD9Ckf4X/gpEEfnIuxVtS+EUVEPmyuTdpRGgTGc8ISnZ0eCQw
+	WKdq63d/vZrYKfz0szKvMm7oedkqod5XdKhmxJbUUV9cSZ/U0aw6w=
+In-Reply-To: <20130301114639.28560.27407.stgit@perseus.fritz.box>
+Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-From: Peter Huewe <peterhuewe@gmx.de>
+From: Tim Gardner <tim.gardner@canonical.com>
 
-Sparse complains:
-+ fs/autofs4/root.c:409:9: sparse: context imbalance in
-'autofs4_d_automount' - different lock contexts for basic block
+smatch analysis:
 
-This was introduced by commit
-f55fb0c243 autofs4 - dont clear DCACHE_NEED_AUTOMOUNT on rootless mount
+fs/autofs4/waitq.c:46 autofs4_catatonic_mode() info: redundant null
+ check on wq->name.name calling kfree()
 
-The function autofs4_d_automount can be left with the (&sbi->fs_lock)
-held if sbi->version <= 4 and simple_empty(dentry) == false so the warning seems valid.
-
---> Add an spin_unlock in this case before we jump to done
-
-Unfortunately compile tested only.
-
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
-Acked-by: Ian Kent <raven@themaw.net>
+Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
+Signed-off-by: Ian Kent <raven@themaw.net>
+Cc: autofs@vger.kernel.org
 ---
- fs/autofs4/root.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/autofs4/waitq.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
-index 230bd2a..9bd1625 100644
---- a/fs/autofs4/root.c
-+++ b/fs/autofs4/root.c
-@@ -383,8 +383,10 @@ static struct vfsmount *autofs4_d_automount(struct path *path)
- 				goto done;
- 			}
- 		} else {
--			if (!simple_empty(dentry))
-+			if (!simple_empty(dentry)) {
-+				spin_unlock(&sbi->fs_lock);
- 				goto done;
-+			}
- 		}
- 		ino->flags |= AUTOFS_INF_PENDING;
- 		spin_unlock(&sbi->fs_lock);
-
+diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
+index 03bc1d3..3db70da 100644
+--- a/fs/autofs4/waitq.c
++++ b/fs/autofs4/waitq.c
+@@ -42,10 +42,8 @@ void autofs4_catatonic_mode(struct autofs_sb_info *sbi)
+ 	while (wq) {
+ 		nwq = wq->next;
+ 		wq->status = -ENOENT; /* Magic is gone - report failure */
+-		if (wq->name.name) {
+-			kfree(wq->name.name);
+-			wq->name.name = NULL;
+-		}
++		kfree(wq->name.name);
++		wq->name.name = NULL;
+ 		wq->wait_ctr--;
+ 		wake_up_interruptible(&wq->queue);
+ 		wq = nwq;
