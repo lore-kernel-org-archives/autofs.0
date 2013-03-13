@@ -1,48 +1,77 @@
-From: Claudiu Ghioc <claudiughioc@gmail.com>
-Subject: [PATCH] fs: sparse warning fix for autofs4/root.c
-Date: Mon, 11 Mar 2013 10:29:04 +0200
-Message-ID: <1362990544-4365-1-git-send-email-claudiu.ghioc@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20120113;
-        h=x-received:from:to:cc:subject:date:message-id:x-mailer;
-        bh=VTS6Vm2jJUZho9NewwB1S6I3+LRCB3ruELJNOPawbzs=;
-        b=H3xBYu5Cto/y+926SzdFFAw2kWuZpW6LGxmYJRivDkC6F8MV30QnZ4VYHQHdfDUc0P
-         bwoOY02eZYjHs+PdNCz/Dt7qOJQ7zYL3oY596JXtH8kNM4tFcsJ2XfaPtN8/shuDBLyp
-         uy+c15lBL1WkiYUUVqde8FJNxze9KQcYoL8AlCjJym4+O659mNM3C2eRv6RrCKoqikKt
-         /us2z2oCPl7FuEUqd/u3ZBuCC5iq89HBLIpeuNSmi9X0+xGuvJ022LWG7oEgeI6Hm6Fr
-         dps8XCIiXt4W/36HmSQ0A+mLLv9d6cJMmOoBTV6/Sge08xdOBsMghdAF924TgbDRScXo
-         prGw==
-Sender: linux-kernel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
+From: autofs-request@vger.kernel.org
+Subject: Your mail to autofs-request@vger.kernel.org
+Date: Wed, 13 Mar 2013 17:32:30 -0400
+Message-ID: <S933309Ab3CMVca/20130313213230Z+89@vger.kernel.org>
+References: <87mwu7kokf.fsf@topper.koldfront.dk>
+Reply-To: autofs-approval@vger.kernel.org
+Return-path: <autofs-approval@vger.kernel.org>
+In-Reply-To: <87mwu7kokf.fsf@topper.koldfront.dk>, from glka-autofs-3@m.gmane.org (Gmane Admin)
+List-Id: <autofs.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: raven@themaw.net
-Cc: autofs@vger.kernel.org, linux-kernel@vger.kernel.org, Claudiu Ghioc <claudiu.ghioc@gmail.com>
+To: glka-autofs-3@m.gmane.org
 
-Fixed the sparse warning:
-*   "fs/autofs4/root.c:411:5: warning:
-    symbol 'autofs4_d_manage' was not declared.
-    Should it be static?"
+This pre-recorded message is being sent in response to your recent
+email to autofs-request@vger.kernel.org.
 
-Signed-off-by: Claudiu Ghioc <claudiu.ghioc@gmail.com>
----
- fs/autofs4/root.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+All routine administrative requests (including subscriptions and
+unsubscriptions) concerning this mailing list are handled by an
+automated server.  Please read this message carefully to find the
+information relevant to you.
 
-diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
-index 9bd1625..085da86 100644
---- a/fs/autofs4/root.c
-+++ b/fs/autofs4/root.c
-@@ -408,7 +408,7 @@ done:
- 	return NULL;
- }
- 
--int autofs4_d_manage(struct dentry *dentry, bool rcu_walk)
-+static int autofs4_d_manage(struct dentry *dentry, bool rcu_walk)
- {
- 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
- 	struct autofs_info *ino = autofs4_dentry_ino(dentry);
--- 
-1.7.10.4
+SUBSCRIBING
+===========
+
+To subscribe to autofs, send the following in the body (not
+the subject line) of an email message to "Majordomo@vger.kernel.org":
+
+	subscribe autofs
+
+This will subscribe the account from which you send the message to
+the autofs list.
+
+If you wish to subscribe another address instead (such as a local
+redistribution list), you can use a command of the form:
+
+	subscribe autofs other-address@your_site.your_net
+
+UNSUBSCRIBING
+=============
+
+To unsubscribe from autofs, send the following in the body (not
+the subject line) of an email message to "Majordomo@vger.kernel.org":
+
+	unsubscribe autofs
+
+This will unsubscribe the account from which you send the message.
+If you are subscribed with some other address, you'll have to send
+a command of the following form instead:
+
+	unsubscribe autofs other-address@your_site.your_net
+
+If you don't know what address you are subscribed with, you can send
+the following command to see who else is on the list (assuming that
+information isn't designated "private" by the owner of the list):
+
+	who autofs
+
+If you want to search non-private lists at this server, you can do that
+by sending a command like:
+
+	which string
+
+This will return a list of all entries on all lists that contain "string".
+
+HELP
+====
+
+To find out more about the automated server and the commands it
+understands, send the following command to "Majordomo@vger.kernel.org":
+
+	help
+
+If you feel you need to reach a human, send email to:
+
+	autofs-approval@vger.kernel.org
+
