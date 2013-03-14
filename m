@@ -1,10 +1,10 @@
 From: Andreas Oberritter <obi@saftware.de>
-Subject: [PATCH 3/3] autofs-5.0.7 - create a shared library
-Date: Thu, 14 Mar 2013 16:21:00 +0100
-Message-ID: <1363274460-27237-3-git-send-email-obi@saftware.de>
-References: <1363274460-27237-1-git-send-email-obi@saftware.de>
+Subject: [PATCH v2] autofs-5.0.7 - create a shared library
+Date: Thu, 14 Mar 2013 23:30:13 +0100
+Message-ID: <1363300213-12657-1-git-send-email-obi@saftware.de>
+References: <1363274460-27237-3-git-send-email-obi@saftware.de>
 Return-path: <autofs-owner@vger.kernel.org>
-In-Reply-To: <1363274460-27237-1-git-send-email-obi@saftware.de>
+In-Reply-To: <1363274460-27237-3-git-send-email-obi@saftware.de>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 MIME-Version: 1.0
@@ -17,6 +17,8 @@ on my system.
 
 Signed-off-by: Andreas Oberritter <obi@saftware.de>
 ---
+v2: Fix LDFLAGS: add soname and use += operator
+
  Makefile.conf.in |    3 +++
  Makefile.rules   |    2 +-
  daemon/Makefile  |    2 +-
@@ -64,7 +66,7 @@ index 9e9d635..a5a4d8e 100644
  	$(STRIP) automount
  
 diff --git a/lib/Makefile b/lib/Makefile
-index 5418009..cf92784 100644
+index 5418009..4129f94 100644
 --- a/lib/Makefile
 +++ b/lib/Makefile
 @@ -18,20 +18,24 @@ OBJS = cache.o mount_clnt.o mount_xdr.o cat_path.o rpc_subs.o \
@@ -79,7 +81,7 @@ index 5418009..cf92784 100644
  CFLAGS += -I../include -fPIC -D_GNU_SOURCE
  CFLAGS += -DAUTOFS_MAP_DIR=\"$(autofsmapdir)\"
  CFLAGS += -DAUTOFS_CONF_DIR=\"$(autofsconfdir)\"
-+LDFLAGS = -shared
++LDFLAGS += -shared -Wl,-soname,$(LIB).$(MAJOR)
  
  .PHONY: all install clean
  
