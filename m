@@ -1,53 +1,83 @@
 From: Andreas Oberritter <obi@saftware.de>
-Subject: Re: [PATCH v2] autofs-5.0.7 - create a shared library
-Date: Fri, 15 Mar 2013 15:28:51 +0100
-Message-ID: <51433023.4060008@saftware.de>
-References: <1363274460-27237-3-git-send-email-obi@saftware.de> <1363300213-12657-1-git-send-email-obi@saftware.de> <5142F7BE.400@msgid.tls.msk.ru> <51432119.2010200@saftware.de> <5143249F.1030808@msgid.tls.msk.ru>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH] autofs-5.0.7 - link autofs.a into executable only
+Date: Fri, 15 Mar 2013 16:46:27 +0100
+Message-ID: <1363362387-9086-1-git-send-email-obi@saftware.de>
+References: <51433023.4060008@saftware.de>
 Return-path: <autofs-owner@vger.kernel.org>
-In-Reply-To: <5143249F.1030808@msgid.tls.msk.ru>
+In-Reply-To: <51433023.4060008@saftware.de>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-To: Michael Tokarev <mjt@tls.msk.ru>
-Cc: autofs@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+To: autofs@vger.kernel.org
 
-On 15.03.2013 14:39, Michael Tokarev wrote:
-> 15.03.2013 17:24, Andreas Oberritter wrote:
->> On 15.03.2013 11:28, Michael Tokarev wrote:
->>> 15.03.2013 02:30, Andreas Oberritter wrote:
->>>> This reduces the (stripped) binary size from 1.6M to 572K
->>>> on my system.
->>>
->>> But it creates an additional file, the shared library, which
->>> also occupes space.
->>>
->>> What's the reason for that?  Instead of just one executable
->>> we now have executable plus a library, which together is
->>> larger than single executable.
->>
->> The numbers I mentioned are the total size of all created binaries (i.e.
->> excluding configuration und documentation, but including all modules and
->> the automount executable, and of course including the shared library).
->>
->> So why does this save space? Because the static library was linked into
->> every module and into the automount executable.
-> 
-> Aha. So that's the library linked into every module.  That explains
-> things.
-> 
-> But now I've another question. Maybe it is better to link whole that
-> lib into the main executable, instead of linking it to every module?
+This reduces the (stripped) binary size from 1.6M to 540K
+on my system.
 
-I hope you don't mind me forwarding your response to the list.
+The linker option -Wl,--whole-archive is used in order to
+avoid discarding symbols used by modules but not by automount.
 
-This may work (using -Wl,--whole-archive), but I think this would
-require some more testing.
+Signed-off-by: Andreas Oberritter <obi@saftware.de>
+---
+Runtime test was successful.
 
-A first compile-test shows that this would save further 36K on my
-system, compared to the shared library.
+ Makefile.rules   |    2 +-
+ daemon/Makefile  |    2 +-
+ modules/Makefile |    6 +++---
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-Regards,
-Andreas
+diff --git a/Makefile.rules b/Makefile.rules
+index 58b4bb2..ae0a43d 100644
+--- a/Makefile.rules
++++ b/Makefile.rules
+@@ -67,5 +67,5 @@ endif
+ 	$(CC) $(CFLAGS) -S $<
+ 
+ .c.so:
+-	$(CC) $(SOLDFLAGS) $(CFLAGS) -o $*.so $< $(AUTOFS_LIB) $(DMALLOCLIB) $(LIBNSL)
++	$(CC) $(SOLDFLAGS) $(CFLAGS) -o $*.so $< $(DMALLOCLIB) $(LIBNSL)
+ 	$(STRIP) $*.so
+diff --git a/daemon/Makefile b/daemon/Makefile
+index 9e9d635..e9f6178 100644
+--- a/daemon/Makefile
++++ b/daemon/Makefile
+@@ -30,7 +30,7 @@ endif
+ all: automount
+ 
+ automount: $(OBJS) $(AUTOFS_LIB)
+-	$(CC) $(LDFLAGS) $(DAEMON_LDFLAGS) -o automount $(OBJS) $(AUTOFS_LIB) $(LIBS)
++	$(CC) $(LDFLAGS) $(DAEMON_LDFLAGS) -o automount $(OBJS) -Wl,--whole-archive $(AUTOFS_LIB) -Wl,--no-whole-archive $(LIBS)
+ 	$(STRIP) automount
+ 
+ clean:
+diff --git a/modules/Makefile b/modules/Makefile
+index c5deb24..cb9142c 100644
+--- a/modules/Makefile
++++ b/modules/Makefile
+@@ -97,7 +97,7 @@ endif
+ #
+ lookup_hesiod.so: lookup_hesiod.c
+ 	$(CC) $(SOLDFLAGS) $(CFLAGS) $(HESIOD_FLAGS) -o lookup_hesiod.so \
+-		lookup_hesiod.c $(AUTOFS_LIB) $(LIBHESIOD) $(LIBRESOLV)
++		lookup_hesiod.c $(LIBHESIOD) $(LIBRESOLV)
+ 	$(STRIP) lookup_hesiod.so
+ 
+ cyrus-sasl.o: cyrus-sasl.c
+@@ -109,11 +109,11 @@ cyrus-sasl-extern.o: cyrus-sasl-extern.c
+ lookup_ldap.so: lookup_ldap.c dclist.o base64.o $(SASL_OBJ)
+ 	$(CC) $(SOLDFLAGS) $(CFLAGS) $(LDAP_FLAGS) -o lookup_ldap.so \
+ 		lookup_ldap.c dclist.o base64.o $(SASL_OBJ) \
+-		$(AUTOFS_LIB) $(LIBLDAP) $(LIBRESOLV)
++		$(LIBLDAP) $(LIBRESOLV)
+ 	$(STRIP) lookup_ldap.so
+ 
+ mount_nfs.so: mount_nfs.c replicated.o
+ 	$(CC) $(SOLDFLAGS) $(CFLAGS) -o mount_nfs.so \
+-		mount_nfs.c replicated.o $(AUTOFS_LIB) $(LIBNSL)
++		mount_nfs.c replicated.o $(LIBNSL)
+ 	$(STRIP) mount_nfs.so
+ 
+-- 
+1.7.10.4
 
