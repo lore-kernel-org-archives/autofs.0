@@ -1,83 +1,44 @@
-From: Andreas Oberritter <obi@saftware.de>
-Subject: [PATCH] autofs-5.0.7 - link autofs.a into executable only
-Date: Fri, 15 Mar 2013 16:46:27 +0100
-Message-ID: <1363362387-9086-1-git-send-email-obi@saftware.de>
-References: <51433023.4060008@saftware.de>
+From: toto <guillaume@apostoly.com>
+Subject: Re: stat -L triggering mount (behavior change starting =?utf-8?b?d2l0aAkyLjYuMzgtcmMxKQ==?=
+Date: Tue, 26 Mar 2013 12:56:55 +0000 (UTC)
+Message-ID: <loom.20130326T135119-763@post.gmane.org>
+References: <AANLkTi=FfdPyVB5oiSFPbgms9Nej8LW8yfGMiYmufSCu@mail.gmail.com>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-In-Reply-To: <51433023.4060008@saftware.de>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: autofs@vger.kernel.org
 
-This reduces the (stripped) binary size from 1.6M to 540K
-on my system.
+Leonardo Chiquitto <leonardo.lists <at> gmail.com> writes:
 
-The linker option -Wl,--whole-archive is used in order to
-avoid discarding symbols used by modules but not by automount.
+> 
+> Hello,
+> 
+> After the update to 2.6.38, I noticed that AutoFS started to mount volumes
+> at times it normally wouldn't. More specifically, "ls -la" inside an AutoFS
+> mount point will trigger the mount of all available maps.
+__________
+> autofs mailing list
+> autofs <at> linux.kernel.org
+> http://linux.kernel.org/mailman/listinfo/autofs
+> 
 
-Signed-off-by: Andreas Oberritter <obi@saftware.de>
----
-Runtime test was successful.
+Hi,
 
- Makefile.rules   |    2 +-
- daemon/Makefile  |    2 +-
- modules/Makefile |    6 +++---
- 3 files changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/Makefile.rules b/Makefile.rules
-index 58b4bb2..ae0a43d 100644
---- a/Makefile.rules
-+++ b/Makefile.rules
-@@ -67,5 +67,5 @@ endif
- 	$(CC) $(CFLAGS) -S $<
- 
- .c.so:
--	$(CC) $(SOLDFLAGS) $(CFLAGS) -o $*.so $< $(AUTOFS_LIB) $(DMALLOCLIB) $(LIBNSL)
-+	$(CC) $(SOLDFLAGS) $(CFLAGS) -o $*.so $< $(DMALLOCLIB) $(LIBNSL)
- 	$(STRIP) $*.so
-diff --git a/daemon/Makefile b/daemon/Makefile
-index 9e9d635..e9f6178 100644
---- a/daemon/Makefile
-+++ b/daemon/Makefile
-@@ -30,7 +30,7 @@ endif
- all: automount
- 
- automount: $(OBJS) $(AUTOFS_LIB)
--	$(CC) $(LDFLAGS) $(DAEMON_LDFLAGS) -o automount $(OBJS) $(AUTOFS_LIB) $(LIBS)
-+	$(CC) $(LDFLAGS) $(DAEMON_LDFLAGS) -o automount $(OBJS) -Wl,--whole-archive $(AUTOFS_LIB) -Wl,--no-whole-archive $(LIBS)
- 	$(STRIP) automount
- 
- clean:
-diff --git a/modules/Makefile b/modules/Makefile
-index c5deb24..cb9142c 100644
---- a/modules/Makefile
-+++ b/modules/Makefile
-@@ -97,7 +97,7 @@ endif
- #
- lookup_hesiod.so: lookup_hesiod.c
- 	$(CC) $(SOLDFLAGS) $(CFLAGS) $(HESIOD_FLAGS) -o lookup_hesiod.so \
--		lookup_hesiod.c $(AUTOFS_LIB) $(LIBHESIOD) $(LIBRESOLV)
-+		lookup_hesiod.c $(LIBHESIOD) $(LIBRESOLV)
- 	$(STRIP) lookup_hesiod.so
- 
- cyrus-sasl.o: cyrus-sasl.c
-@@ -109,11 +109,11 @@ cyrus-sasl-extern.o: cyrus-sasl-extern.c
- lookup_ldap.so: lookup_ldap.c dclist.o base64.o $(SASL_OBJ)
- 	$(CC) $(SOLDFLAGS) $(CFLAGS) $(LDAP_FLAGS) -o lookup_ldap.so \
- 		lookup_ldap.c dclist.o base64.o $(SASL_OBJ) \
--		$(AUTOFS_LIB) $(LIBLDAP) $(LIBRESOLV)
-+		$(LIBLDAP) $(LIBRESOLV)
- 	$(STRIP) lookup_ldap.so
- 
- mount_nfs.so: mount_nfs.c replicated.o
- 	$(CC) $(SOLDFLAGS) $(CFLAGS) -o mount_nfs.so \
--		mount_nfs.c replicated.o $(AUTOFS_LIB) $(LIBNSL)
-+		mount_nfs.c replicated.o $(LIBNSL)
- 	$(STRIP) mount_nfs.so
- 
--- 
-1.7.10.4
+When you are saying that "ls -la" should not trigger
+ the automounting of the volumes inside the directory,
+what would be then the good command line to 
+trigger the mounting of volumes declared in auto.master ?
+I am using Mac OS X 10.8.3 and by default, 
+the elements defined in automaster are mounted when 
+accessed by an application (like the Finder,
+ which is if you don't know the file manager of OS X), but how 
+then to trigger the silent mounting at startup 
+with a shell script ? Are there parameters to pass to "mount" 
+command to say "mount this folder 
+NOW as defined in auto master" ?
+Thanking you in advance for your help. 
+Best regards,
 
