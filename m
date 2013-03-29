@@ -1,119 +1,120 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: stat -L triggering mount (behavior change starting with
- 2.6.38-rc1)
-Date: Wed, 27 Mar 2013 12:06:02 +0800
-Message-ID: <1364357162.2011.32.camel@perseus.fritz.box>
-References: <AANLkTi=FfdPyVB5oiSFPbgms9Nej8LW8yfGMiYmufSCu@mail.gmail.com>
-	 <loom.20130326T135119-763@post.gmane.org>
-	 <CAEySpB7frBeNDFAZM8+magDZqSNwf4XEQqzUK652hrak9H5tXA@mail.gmail.com>
+From: Leonardo Chiquitto <leonardo.lists@gmail.com>
+Subject: Mounts not expiring in setups with nested submounts
+Date: Fri, 29 Mar 2013 17:33:54 -0300
+Message-ID: <CAEySpB6ZRVmtbFmPuL-k1fVxeHdtnKm8ncmXGt5R0ZTL2dXr1w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	message-id:subject:from:to:cc:date:in-reply-to:references
-	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
-	 bh=SdnHc0UDE5g1RgbzrIUjSU3i6iU=; b=hp5SlSYZ7lFGzmtPlurpQZG1aiXY
-	NHthwE9/hsnydTa+4/U0G0/F36YWIprU/ew1AujL4gL7CRNuUBeihV9maNbztBfv
-	QHVrEyLIB3iZ07mzsqf1djpimcEN/VlpsBDVAvYCwB1WeyKUEatfAMTwV4mwYb4+
-	F7UwpKqX99vGcA8=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=message-id:subject:from:to:cc:date
-	:in-reply-to:references:content-type:mime-version
-	:content-transfer-encoding; s=smtpout; bh=SdnHc0UDE5g1RgbzrIUjSU
-	3i6iU=; b=aJZn5hBdkrMYdXtb/CWaQrV1jCbPpi4wmqcpsy3qtLkRIYsAWxIxFv
-	Jh/dFr3kJqeTUZh1rfnShlIP8LZL3TE60xJm/Weco7lqzghhAg3Lj3W0Jnes6kME
-	6pKUMEQGwbUXnKhccHGN+xFHuAFGG6SbC9g++dv78qvf0ZDYQS2Hs=
-In-Reply-To: <CAEySpB7frBeNDFAZM8+magDZqSNwf4XEQqzUK652hrak9H5tXA@mail.gmail.com>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20120113;
+        h=mime-version:x-received:date:message-id:subject:from:to
+         :content-type;
+        bh=byfzcp6pXQmCjMc3MumDHQ0nMQ1ow5DpMZ/O/6Hk2U4=;
+        b=zHJZWxdUTPPoItdlbfd2BLkV95NK4E5CdNadpP4H/cvRuZpp2JThdUyd43Yi6j80X+
+         PQxlyhNJtbU7sX4hiGDA07ZcggRVNPcKFVN2SNZBRhyRbnzF50SJsy6dxXQxaz7HHEPA
+         MKu+iT/lOQBTeU3ZMFUbUugNQj+R5TR4ayAOuqCZqniHiRVfZOZ3j1gRMRX7Vm/z/P+S
+         jYmGCpjdLlg7jdnOWY+PkhWOHgmfjDCmA+kgaf44a6KLnugLd0bEBxwhNR7GZq4wddra
+         Bh2gL+N+iltJBHmJfY3m3AKMvKMBcQgVYQOkKOZXLjP+MDiE/jDeZDF1684SysGzfXAU
+         AWqA==
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Leonardo Chiquitto <leonardo.lists@gmail.com>
-Cc: toto <guillaume@apostoly.com>, autofs@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+To: autofs <autofs@vger.kernel.org>
 
-On Tue, 2013-03-26 at 17:41 -0300, Leonardo Chiquitto wrote:
-> On Tue, Mar 26, 2013 at 9:56 AM, toto <guillaume@apostoly.com> wrote:
-> > Leonardo Chiquitto <leonardo.lists <at> gmail.com> writes:
-> >
-> >>
-> >> Hello,
-> >>
-> >> After the update to 2.6.38, I noticed that AutoFS started to mount volumes
-> >> at times it normally wouldn't. More specifically, "ls -la" inside an AutoFS
-> >> mount point will trigger the mount of all available maps.
-> > __________
-> >> autofs mailing list
-> >> autofs <at> linux.kernel.org
-> >> http://linux.kernel.org/mailman/listinfo/autofs
-> >>
-> >
-> > Hi,
-> 
-> Hi,
-> 
-> > When you are saying that "ls -la" should not trigger
-> >  the automounting of the volumes inside the directory,
-> > what would be then the good command line to
-> > trigger the mounting of volumes declared in auto.master ?
-> 
-> The problem that was discussed in this thread was about
-> accesses to a parent directory triggering mounts of volumes
-> in sub-directories. An example:
-> 
-> /nfs/volume1
-> /nfs/volume2
-> 
-> Here volume1 and volume2 are two automounted directories.
-> What was happening is that "ls -la /nfs" was triggering the
-> mounts of volume1 and volume2.
+Hi,
 
-That's right, hence the problem could only occur with indirect mount
-maps that used the "browse" option. When the browse option isn't used
-the mount point directories don't get pre-created so the mount occurs
-with access by create type usage (create being a vfs lookup, not
-necessarily a create type system call).
+In some configurations that use nested submounts, a busy volume
+can prevent AutoFS from expiring other mounts. This was reported
+by a customer and I'm able to reproduce it with a "minimal" config:
 
-> 
-> > I am using Mac OS X 10.8.3 and by default,
-> > the elements defined in automaster are mounted when
-> > accessed by an application (like the Finder,
-> >  which is if you don't know the file manager of OS X), but how
-> > then to trigger the silent mounting at startup
-> > with a shell script ?
-> 
-> You just need to access the volume. Using the example above,
-> any of these should work:
-> 
-> $ stat /nfs/volume1/    #  the slash at the end is important
-> $ cd /nfs/volume1
-> $ ls /nfs/volume1
+In your NFS server, export the following structure of directories:
+/nfs/vol/a/mount1
+/nfs/vol/a/mount100
+/nfs/vol/b/mount1
+/nfs/vol/b/mount100
+/nfs/vol/b/mount200
 
-Yes, the trailing "/" causes the vfs to treat the lookup as a directory
-lookup which will cause the automounter to be sent a mount request for
-the directory. It should only be needed when the browse option is used
-with an indirect mount map.
+AutoFS configuration:
+BROWSE_MODE="yes"
+TIMEOUT=60
 
-There were some transitional kernel revisions from 2.6.38, resulting
-from the vfs-automount infrastructure introduction (a large change),
-where the behavior would cause excessive mounting, AFAICR it was mostly
-due to inconsistent system call usage by user space utilities.
+auto.master:
+/vol /etc/auto.vol
+--
+auto.vol:
+a -fstype=autofs file:/etc/auto.vol.a
+b -fstype=autofs file:/etc/auto.vol.b
+--
+auto.vol.a:
+disk1 -fstype=autofs file:/etc/auto.vol.a.disk1
+mount1 server:/nfs/vol/a/mount1
+--
+auto.vol.b:
+disk1 -fstype=autofs file:/etc/auto.vol.b.disk1
+disk2 -fstype=autofs file:/etc/auto.vol.b.disk2
+mount1 server:/nfs/vol/b/mount1
+--
+auto.vol.a.disk1:
+mount100 server:/nfs/vol/a/mount100
+--
+auto.vol.b.disk1:
+mount100 server:/nfs/vol/b/mount100
+--
+auto.vol.b.disk2:
+mount200 server:/nfs/vol/b/mount200
+--
 
-> 
-> > Are there parameters to pass to "mount"
-> > command to say "mount this folder
-> > NOW as defined in auto master" ?
+Steps to reproduce the problem:
 
-Not sure what that means, it sounds like it amounts to the same as
-adding entries to the fstab ....
+1. Trigger mount of /vol/b/disk2/mount200 first and keep it busy
+2. Mount all the other exported volumes
 
-Mount(8) doesn't (and shouldn't) know anything about the automount
-master map or automount itself since it isn't involved in the automount
-function (other than to be called upon to perform a mount) and it would
-add unacceptable dependencies, possibly circular, to mount itself.
+mount(8) output must be something like this (I think the order matters):
+server:/nfs/vol/b/mount200 on /vol/b/disk2/mount200 type nfs
+(rw,addr=10.121.8.27)
+server:/nfs/vol/b/mount1 on /vol/b/mount1 type nfs (rw,addr=10.121.8.27)
+server:/nfs/vol/b/mount100 on /vol/b/disk1/mount100 type nfs
+(rw,addr=10.121.8.27)
+server:/nfs/vol/a/mount1 on /vol/a/mount1 type nfs (rw,addr=10.121.8.27)
+server:/nfs/vol/a/mount100 on /vol/a/disk1/mount100 type nfs
+(rw,addr=10.121.8.27)
 
-Umm ... you may be able to get different behavior by using a direct
-mount map instead of an indirect mount map. But if you have very large
-maps that could introduce, possibly too much, additional overhead.
+After the timeout, /vol/b/disk1/mount100 will be correctly unmounted,
+but the other mounts will never expire (not even with SIGUSR1).
+In this example only 4 mounts are blocked, but in some occasions
+we've seen dozens of non-expiring mounts because of this bug.
 
-Ian
+I debugged the problem and discovered that it happens because
+the recursion implemented in master_notify_submount() stops
+on purpose after the first level of nested submounts. This was
+implemented in autofs-5.0.4-expire-specific-submount-only.patch.
 
+The patch below fixes the problem, but re-introduces recursion to
+deeper levels. Tests didn't reveal any regression so far.
 
+Ian: do you think the "occasional deadlocks" mentioned in the
+expire-specific-submount-only patch might have been addressed
+by other changes (so we can use the patch below)? Or do you
+see another way to fix the problem?
+
+diff --git a/lib/master.c b/lib/master.c
+index a0e62f2..99b1092 100644
+--- a/lib/master.c
++++ b/lib/master.c
+@@ -906,8 +906,10 @@ int master_notify_submount(struct autofs_point
+*ap, const char *path, enum state
+ 		p = p->prev;
+
+ 		if (!master_submount_list_empty(this)) {
+-			mounts_mutex_unlock(ap);
+-			return master_notify_submount(this, path, state);
++			if (!master_notify_submount(this, path, state)) {
++				ret = 0;
++				break;
++			}
+ 		}
+
+ 		/* path not the same */
+
+Thanks,
+Leonardo
