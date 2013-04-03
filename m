@@ -1,120 +1,58 @@
-From: Leonardo Chiquitto <leonardo.lists@gmail.com>
-Subject: Mounts not expiring in setups with nested submounts
-Date: Fri, 29 Mar 2013 17:33:54 -0300
-Message-ID: <CAEySpB6ZRVmtbFmPuL-k1fVxeHdtnKm8ncmXGt5R0ZTL2dXr1w@mail.gmail.com>
+From: Ian Kent <raven@themaw.net>
+Subject: [PATCH] autofs - fix sparse warning for autofs4_d_manage()
+Date: Wed, 03 Apr 2013 11:09:56 +0800
+Message-ID: <20130403030955.26780.24034.stgit@perseus.fritz.box>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20120113;
-        h=mime-version:x-received:date:message-id:subject:from:to
-         :content-type;
-        bh=byfzcp6pXQmCjMc3MumDHQ0nMQ1ow5DpMZ/O/6Hk2U4=;
-        b=zHJZWxdUTPPoItdlbfd2BLkV95NK4E5CdNadpP4H/cvRuZpp2JThdUyd43Yi6j80X+
-         PQxlyhNJtbU7sX4hiGDA07ZcggRVNPcKFVN2SNZBRhyRbnzF50SJsy6dxXQxaz7HHEPA
-         MKu+iT/lOQBTeU3ZMFUbUugNQj+R5TR4ayAOuqCZqniHiRVfZOZ3j1gRMRX7Vm/z/P+S
-         jYmGCpjdLlg7jdnOWY+PkhWOHgmfjDCmA+kgaf44a6KLnugLd0bEBxwhNR7GZq4wddra
-         Bh2gL+N+iltJBHmJfY3m3AKMvKMBcQgVYQOkKOZXLjP+MDiE/jDeZDF1684SysGzfXAU
-         AWqA==
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
+	subject:to:from:cc:date:message-id:mime-version:content-type
+	:content-transfer-encoding; s=mesmtp; bh=Q9bvUuWf6y2sjiFu+tCew0B
+	gMxM=; b=yiV1LrSMJmrz9lkDrQiTHuAWE/R9prK28bCGTT9N7qy1XpmvjSK4jom
+	A+wPhalNMMimLV78bcZqBf/+wvQ0Teu6wMt4LoLngLCM8OLgl9u9KX5wtDKpnJwf
+	9bg6WszR/pQM4ynJ50E3eImKVA2VkhhIjK/1iIaHoR+l7YiQo/mo=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=subject:to:from:cc:date:message-id
+	:mime-version:content-type:content-transfer-encoding; s=smtpout;
+	 bh=Q9bvUuWf6y2sjiFu+tCew0BgMxM=; b=lsUTR1VYUmtlRWPCbzTk3BjZ/B7g
+	6smcrx4XRzfRXdYFK+Mon6w1+S9Y2osXuGMjhFM+Y/RQLCf9Uzxsa0p6dMBcktkk
+	EV4JnS1yT3RPZatw947rgFCS63KakMNk1k9EUWksons57teldvPKaOfPuBgULJ5R
+	5Zb4cWSWQNIxOic=
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: autofs <autofs@vger.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, Claudiu Ghioc <claudiughioc@gmail.com>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Hi,
+From: Claudiu Ghioc <claudiughioc@gmail.com>
 
-In some configurations that use nested submounts, a busy volume
-can prevent AutoFS from expiring other mounts. This was reported
-by a customer and I'm able to reproduce it with a "minimal" config:
+Fixed the sparse warning:
+*   "fs/autofs4/root.c:411:5: warning:
+    symbol 'autofs4_d_manage' was not declared.
+    Should it be static?"
 
-In your NFS server, export the following structure of directories:
-/nfs/vol/a/mount1
-/nfs/vol/a/mount100
-/nfs/vol/b/mount1
-/nfs/vol/b/mount100
-/nfs/vol/b/mount200
+edit: imk
+Clearly it should be static as the function is declared static at
+the top of root.c.
+end edit: imk
 
-AutoFS configuration:
-BROWSE_MODE="yes"
-TIMEOUT=60
+Signed-off-by: Claudiu Ghioc <claudiu.ghioc@gmail.com>
+Signed-off-by: Ian Kent <raven@themaw.net>
+---
+ fs/autofs4/root.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-auto.master:
-/vol /etc/auto.vol
---
-auto.vol:
-a -fstype=autofs file:/etc/auto.vol.a
-b -fstype=autofs file:/etc/auto.vol.b
---
-auto.vol.a:
-disk1 -fstype=autofs file:/etc/auto.vol.a.disk1
-mount1 server:/nfs/vol/a/mount1
---
-auto.vol.b:
-disk1 -fstype=autofs file:/etc/auto.vol.b.disk1
-disk2 -fstype=autofs file:/etc/auto.vol.b.disk2
-mount1 server:/nfs/vol/b/mount1
---
-auto.vol.a.disk1:
-mount100 server:/nfs/vol/a/mount100
---
-auto.vol.b.disk1:
-mount100 server:/nfs/vol/b/mount100
---
-auto.vol.b.disk2:
-mount200 server:/nfs/vol/b/mount200
---
+diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
+index 9bd1625..085da86 100644
+--- a/fs/autofs4/root.c
++++ b/fs/autofs4/root.c
+@@ -408,7 +408,7 @@ done:
+ 	return NULL;
+ }
+ 
+-int autofs4_d_manage(struct dentry *dentry, bool rcu_walk)
++static int autofs4_d_manage(struct dentry *dentry, bool rcu_walk)
+ {
+ 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
+ 	struct autofs_info *ino = autofs4_dentry_ino(dentry);
 
-Steps to reproduce the problem:
-
-1. Trigger mount of /vol/b/disk2/mount200 first and keep it busy
-2. Mount all the other exported volumes
-
-mount(8) output must be something like this (I think the order matters):
-server:/nfs/vol/b/mount200 on /vol/b/disk2/mount200 type nfs
-(rw,addr=10.121.8.27)
-server:/nfs/vol/b/mount1 on /vol/b/mount1 type nfs (rw,addr=10.121.8.27)
-server:/nfs/vol/b/mount100 on /vol/b/disk1/mount100 type nfs
-(rw,addr=10.121.8.27)
-server:/nfs/vol/a/mount1 on /vol/a/mount1 type nfs (rw,addr=10.121.8.27)
-server:/nfs/vol/a/mount100 on /vol/a/disk1/mount100 type nfs
-(rw,addr=10.121.8.27)
-
-After the timeout, /vol/b/disk1/mount100 will be correctly unmounted,
-but the other mounts will never expire (not even with SIGUSR1).
-In this example only 4 mounts are blocked, but in some occasions
-we've seen dozens of non-expiring mounts because of this bug.
-
-I debugged the problem and discovered that it happens because
-the recursion implemented in master_notify_submount() stops
-on purpose after the first level of nested submounts. This was
-implemented in autofs-5.0.4-expire-specific-submount-only.patch.
-
-The patch below fixes the problem, but re-introduces recursion to
-deeper levels. Tests didn't reveal any regression so far.
-
-Ian: do you think the "occasional deadlocks" mentioned in the
-expire-specific-submount-only patch might have been addressed
-by other changes (so we can use the patch below)? Or do you
-see another way to fix the problem?
-
-diff --git a/lib/master.c b/lib/master.c
-index a0e62f2..99b1092 100644
---- a/lib/master.c
-+++ b/lib/master.c
-@@ -906,8 +906,10 @@ int master_notify_submount(struct autofs_point
-*ap, const char *path, enum state
- 		p = p->prev;
-
- 		if (!master_submount_list_empty(this)) {
--			mounts_mutex_unlock(ap);
--			return master_notify_submount(this, path, state);
-+			if (!master_notify_submount(this, path, state)) {
-+				ret = 0;
-+				break;
-+			}
- 		}
-
- 		/* path not the same */
-
-Thanks,
-Leonardo
