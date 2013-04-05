@@ -1,113 +1,419 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Mounts not expiring in setups with nested submounts
-Date: Wed, 03 Apr 2013 14:41:29 +0800
-Message-ID: <1364971289.2399.7.camel@perseus.fritz.box>
-References: <CAEySpB6ZRVmtbFmPuL-k1fVxeHdtnKm8ncmXGt5R0ZTL2dXr1w@mail.gmail.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	message-id:subject:from:to:cc:date:in-reply-to:references
-	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
-	 bh=4fRgAMuOri+JVIR6dnSmImUvRbI=; b=xoCeZPIqOD35YFsNECwB9zZ1GyOe
-	+pDtzCUq0rZ5EkwmYGvMlQyC0wprzX1yiz9qLwA7vehGS+rE0ni2l665xEal8Nim
-	Nr8dxfNQDDYbn0R+aZ5U6lqJNCoQS3Ja+lNI+snH3eJD8CS509wdrHYLXrKdxFrQ
-	6kRsbiywQH6m81A=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=message-id:subject:from:to:cc:date
-	:in-reply-to:references:content-type:mime-version
-	:content-transfer-encoding; s=smtpout; bh=4fRgAMuOri+JVIR6dnSmIm
-	UvRbI=; b=bMRRn4XGhCxNTToi5s7ZXGXIQkLAoXA7T9eodRo2/1x1HsuN7nMxDz
-	zKazva+5ewSAg9dFbTzfb/XZyFSZ5MzjI4J59BETb6PjvMYj8tkkWD3Of7YRNXNZ
-	h/NAI7d9rFRkDp8z0Ehwemjz2Cemm/QZlPE42iM1A2iJRlx4KAx84=
-In-Reply-To: <CAEySpB6ZRVmtbFmPuL-k1fVxeHdtnKm8ncmXGt5R0ZTL2dXr1w@mail.gmail.com>
-Sender: autofs-owner@vger.kernel.org
+From: Waiman Long <Waiman.Long@hp.com>
+Subject: [PATCH v2 1/4] dcache: Don't take unnecessary lock in d_count update
+Date: Fri,  5 Apr 2013 12:57:38 -0400
+Message-ID: <1365181061-30787-2-git-send-email-Waiman.Long@hp.com>
+References: <1365181061-30787-1-git-send-email-Waiman.Long@hp.com>
+Return-path: <ceph-devel-owner@vger.kernel.org>
+In-Reply-To: <1365181061-30787-1-git-send-email-Waiman.Long@hp.com>
+Sender: ceph-devel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-To: Leonardo Chiquitto <leonardo.lists@gmail.com>
-Cc: autofs <autofs@vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+To: Alexander Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@redhat.com>, Miklos Szeredi <mszeredi@suse.cz>, Ian Kent <raven@themaw.net>, Sage Weil <sage@inktank.com>, Steve French <sfrench@samba.org>, Trond Myklebust <Trond.Myklebust@netapp.com>, Eric Paris <eparis@redhat.com>
+Cc: Waiman Long <Waiman.Long@hp.com>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, autofs@vger.kernel.org, ceph-devel@vger.kernel.org, linux-cifs@vger.kernel.org, samba-technical@lists.samba.org, linux-nfs@vger.kernel.org, "Chandramouleeswaran, Aswin" <aswin@hp.com>, "Norton, Scott J" <scott.norton@hp.com>, Andi Kleen <andi@firstfloor.org>, Dave Chinner <david@fromorbit.com>
 
-On Fri, 2013-03-29 at 17:33 -0300, Leonardo Chiquitto wrote:
-> Hi,
-> 
-> In some configurations that use nested submounts, a busy volume
-> can prevent AutoFS from expiring other mounts. This was reported
-> by a customer and I'm able to reproduce it with a "minimal" config:
-> 
-> In your NFS server, export the following structure of directories:
-> /nfs/vol/a/mount1
-> /nfs/vol/a/mount100
-> /nfs/vol/b/mount1
-> /nfs/vol/b/mount100
-> /nfs/vol/b/mount200
-> 
-> AutoFS configuration:
-> BROWSE_MODE="yes"
-> TIMEOUT=60
-> 
-> auto.master:
-> /vol /etc/auto.vol
-> --
-> auto.vol:
-> a -fstype=autofs file:/etc/auto.vol.a
-> b -fstype=autofs file:/etc/auto.vol.b
-> --
-> auto.vol.a:
-> disk1 -fstype=autofs file:/etc/auto.vol.a.disk1
-> mount1 server:/nfs/vol/a/mount1
-> --
-> auto.vol.b:
-> disk1 -fstype=autofs file:/etc/auto.vol.b.disk1
-> disk2 -fstype=autofs file:/etc/auto.vol.b.disk2
-> mount1 server:/nfs/vol/b/mount1
-> --
-> auto.vol.a.disk1:
-> mount100 server:/nfs/vol/a/mount100
-> --
-> auto.vol.b.disk1:
-> mount100 server:/nfs/vol/b/mount100
-> --
-> auto.vol.b.disk2:
-> mount200 server:/nfs/vol/b/mount200
-> --
-> 
-> Steps to reproduce the problem:
-> 
-> 1. Trigger mount of /vol/b/disk2/mount200 first and keep it busy
-> 2. Mount all the other exported volumes
-> 
-> mount(8) output must be something like this (I think the order matters):
-> server:/nfs/vol/b/mount200 on /vol/b/disk2/mount200 type nfs
-> (rw,addr=10.121.8.27)
-> server:/nfs/vol/b/mount1 on /vol/b/mount1 type nfs (rw,addr=10.121.8.27)
-> server:/nfs/vol/b/mount100 on /vol/b/disk1/mount100 type nfs
-> (rw,addr=10.121.8.27)
-> server:/nfs/vol/a/mount1 on /vol/a/mount1 type nfs (rw,addr=10.121.8.27)
-> server:/nfs/vol/a/mount100 on /vol/a/disk1/mount100 type nfs
-> (rw,addr=10.121.8.27)
-> 
-> After the timeout, /vol/b/disk1/mount100 will be correctly unmounted,
-> but the other mounts will never expire (not even with SIGUSR1).
-> In this example only 4 mounts are blocked, but in some occasions
-> we've seen dozens of non-expiring mounts because of this bug.
-> 
-> I debugged the problem and discovered that it happens because
-> the recursion implemented in master_notify_submount() stops
-> on purpose after the first level of nested submounts. This was
-> implemented in autofs-5.0.4-expire-specific-submount-only.patch.
-> 
-> The patch below fixes the problem, but re-introduces recursion to
-> deeper levels. Tests didn't reveal any regression so far.
-> 
-> Ian: do you think the "occasional deadlocks" mentioned in the
-> expire-specific-submount-only patch might have been addressed
-> by other changes (so we can use the patch below)? Or do you
-> see another way to fix the problem?
+The current code takes the dentry's d_lock lock whenever the d_count
+reference count is being updated. In reality, nothing big really
+happens until d_count goes to 0 in dput(). So it is not necessary to
+take the lock if the reference count won't go to 0.
 
-Not sure, probably not, but master_notify_submount() should be called
-for each submount from expire_proc_(indirect|direct)(). The recursive
-step shouldn't actually be done in master_notify_submounts().
+Without using a lock, multiple threads may update d_count
+simultaneously.  Therefore, atomic instructions must be used to
+ensure consistency except in shrink_dcache_for_umount*() where the
+whole superblock is being dismounted and locking is not needed.
 
-I don't see why that isn't being done.
-I'll need to spend some time on it when I get a chance.
+The worst case scenarios are:
+
+1. d_lock taken in dput with d_count = 2 in one thread and another
+   thread comes in to atomically decrement d_count without taking
+   the lock. This may result in a d_count of 0 with no deleting
+   action taken.
+
+2. d_lock taken in dput with d_count = 1 in one thread and another
+   thread comes in to atomically increment d_count without taking
+   the lock. This may result in the dentry in the deleted state while
+   having a d_count of 1.
+
+Without taking a lock, we need to make sure the decrementing or
+incrementing action should not be taken while other threads are
+updating d_count simultaneously. This can be done by using the
+atomic cmpxchg instruction which will fail if the underlying value
+is changed.  If the lock is taken, it should be safe to use a simpler
+atomic increment or decrement instruction.
+
+To make sure that the above worst case scenarios will not happen,
+the dget() function must take the lock if d_count <= 1. Similarly,
+the dput() function must take the lock if d_count <= 2. The cmpxchg()
+call to update d_count will be tried twice before falling back to
+using the lock as there is a fairly good chance that the cmpxchg()
+may fail in a busy situation.
+
+Finally, the CPU must have an instructional level cmpxchg instruction
+or the emulated cmpxchg() function may be too expensive to
+use. Therefore, the above mentioned changes will only be applied if
+the __HAVE_ARCH_CMPXCHG flag is set. Most of the major architectures
+supported by Linux have this flag set with the notation exception
+of ARM.
+
+As for the performance of the updated reference counting code, it
+all depends on whether the cmpxchg instruction is used or not. The
+original code has 2 atomic instructions to lock and unlock the
+spinlock. The new code path has either 1 atomic cmpxchg instruction
+or 3 atomic instructions if the lock has to be taken. Depending on
+how frequent the cmpxchg instruction is used (d_count > 1 or 2),
+the new code can be faster or slower than the original one.
+
+This patch has a particular big impact on the short workload of
+the AIM7 benchmark with ramdisk filesystem. The table below show the
+performance improvement due to this patch on an 8-socket 80-core x86-64
+system with a 3.8.5 kernel in a 1/2/4/8 node configuration by using
+numactl to restrict the execution of the workload on certain nodes.
+
++-----------------+------------------+------------------+----------+
+|  Configuration  | Mean Transaction | Mean Transaction | % Change |
+|                 |  Rate w/o patch  | Rate with patch  |          |
++-----------------+------------------------------------------------+
+|                 |              User Range 10 - 100               |
++-----------------+------------------------------------------------+
+| 8 nodes, HT off |     1929234      |     2966230      |  +53.8%  |
+| 4 nodes, HT off |     1700737      |     3177040      |  +86.8%  |
+| 2 nodes, HT off |     1964055      |     3088446      |  +57.3%  |
+| 1 node , HT off |     2187851      |     2127176      |   -2.8%  |
++-----------------+------------------------------------------------+
+|                 |              User Range 200 - 1000             |
++-----------------+------------------------------------------------+
+| 8 nodes, HT off |     1096000      |     2474223      | +125.8%  |
+| 4 nodes, HT off |     1369181      |     2731234      |  +99.5%  |
+| 2 nodes, HT off |      967425      |     2867641      | +196.4%  |
+| 1 node , HT off |     2052671      |     2042276      |   -0.5%  |
++-----------------+------------------------------------------------+
+|                 |              User Range 1100 - 2000            |
++-----------------+------------------------------------------------+
+| 8 nodes, HT off |     1088118      |     2235631      | +105.5%  |
+| 4 nodes, HT off |     1380696      |     2518980      |  +82.4%  |
+| 2 nodes, HT off |      839542      |     2743082      | +226.7%  |
+| 1 node , HT off |     1970821      |     1980873      |   +0.5%  |
++-----------------+------------------+------------------+----------+
+
+It can be seen that with 20 CPUs (2 nodes) or more, this patch can
+significantly improve the short workload performance. With only 1
+node, the performance is similar with or without the patch.
+
+A perf call-graph report of the short workload at 800 users without
+the patch on 8 nodes indicates that about 88% of the workload's total
+time were spent in the _raw_spin_lock() function. Almost all of which
+can be attributed to the following 2 kernel functions:
+ 1. dget_parent (50.14%)
+ 2. dput (49.48%)
+
+With this patch on, the time spent on _raw_spin_lock() is only 1.31%
+which is a huge improvement.
+
+This impact of this patch on other AIM7 workloads were much more
+modest.  The table below show the mean %change due to this patch on
+the same 8-socket system with a 3.7.10 kernel.
+
++--------------+---------------+----------------+-----------------+
+|   Workload   | mean % change | mean % change  | mean % change   |
+|              | 10-100 users  | 200-1000 users | 1100-2000 users |
++--------------+---------------+----------------+-----------------+
+| alltests     |     +0.6%     |     +9.7%      |     +2.9%       |
+| five_sec     |     +0.4%     |      0.0%      |     +0.3%       |
+| fserver      |     +0.7%     |     +2.4%      |     +2.0%       |
+| high_systime |     -1.5%     |    -15.2%      |    -38.0%       |
+| new_fserver  |     -2.2%     |     +6.5%      |     +0.4%       |
+| shared       |     +3.9%     |     +1.1%      |     +6.1%       |
++--------------+---------------+----------------+-----------------+
+
+The regression in the high_systime workload was probably caused
+by the decrease in spinlock contention led to a larger increase in
+mutex contention. In fact, after applying a mutex patch to reduce
+mutex contention, the performance difference due to the addition of
+this dcache patch changed to:
+
++--------------+---------------+----------------+-----------------+
+|   Workload   | mean % change | mean % change  | mean % change   |
+|              | 10-100 users  | 200-1000 users | 1100-2000 users |
++--------------+---------------+----------------+-----------------+
+| high_systime |     -0.1%     |     -0.2%      |     +1.2%       |
++--------------+---------------+----------------+-----------------+
+
+Signed-off-by: Waiman Long <Waiman.Long@hp.com>
+---
+ fs/dcache.c            |   39 ++++++++----------
+ fs/namei.c             |    2 +-
+ include/linux/dcache.h |  101 ++++++++++++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 117 insertions(+), 25 deletions(-)
+
+diff --git a/fs/dcache.c b/fs/dcache.c
+index fbfae00..48c0680 100644
+--- a/fs/dcache.c
++++ b/fs/dcache.c
+@@ -484,7 +484,7 @@ relock:
+ 	}
+ 
+ 	if (ref)
+-		dentry->d_count--;
++		dcount_dec(dentry);
+ 	/*
+ 	 * if dentry was on the d_lru list delete it from there.
+ 	 * inform the fs via d_prune that this dentry is about to be
+@@ -530,10 +530,13 @@ void dput(struct dentry *dentry)
+ repeat:
+ 	if (dentry->d_count == 1)
+ 		might_sleep();
++	if (dcount_dec_cmpxchg(dentry))
++		return;
++
+ 	spin_lock(&dentry->d_lock);
+ 	BUG_ON(!dentry->d_count);
+ 	if (dentry->d_count > 1) {
+-		dentry->d_count--;
++		dcount_dec(dentry);
+ 		spin_unlock(&dentry->d_lock);
+ 		return;
+ 	}
+@@ -550,7 +553,7 @@ repeat:
+ 	dentry->d_flags |= DCACHE_REFERENCED;
+ 	dentry_lru_add(dentry);
+ 
+-	dentry->d_count--;
++	dcount_dec(dentry);
+ 	spin_unlock(&dentry->d_lock);
+ 	return;
+ 
+@@ -621,11 +624,13 @@ EXPORT_SYMBOL(d_invalidate);
+ /* This must be called with d_lock held */
+ static inline void __dget_dlock(struct dentry *dentry)
+ {
+-	dentry->d_count++;
++	dcount_inc(dentry);
+ }
+ 
+ static inline void __dget(struct dentry *dentry)
+ {
++	if (dcount_inc_cmpxchg(dentry))
++		return;
+ 	spin_lock(&dentry->d_lock);
+ 	__dget_dlock(dentry);
+ 	spin_unlock(&dentry->d_lock);
+@@ -635,22 +640,14 @@ struct dentry *dget_parent(struct dentry *dentry)
+ {
+ 	struct dentry *ret;
+ 
+-repeat:
+-	/*
+-	 * Don't need rcu_dereference because we re-check it was correct under
+-	 * the lock.
+-	 */
+ 	rcu_read_lock();
+-	ret = dentry->d_parent;
+-	spin_lock(&ret->d_lock);
+-	if (unlikely(ret != dentry->d_parent)) {
+-		spin_unlock(&ret->d_lock);
+-		rcu_read_unlock();
+-		goto repeat;
+-	}
++	ret = rcu_dereference(dentry->d_parent);
+ 	rcu_read_unlock();
++	if (dcount_inc_cmpxchg(ret))
++		return ret;
++	spin_lock(&ret->d_lock);
+ 	BUG_ON(!ret->d_count);
+-	ret->d_count++;
++	dcount_inc(ret);
+ 	spin_unlock(&ret->d_lock);
+ 	return ret;
+ }
+@@ -780,7 +777,7 @@ static void try_prune_one_dentry(struct dentry *dentry)
+ 	while (dentry) {
+ 		spin_lock(&dentry->d_lock);
+ 		if (dentry->d_count > 1) {
+-			dentry->d_count--;
++			dcount_dec(dentry);
+ 			spin_unlock(&dentry->d_lock);
+ 			return;
+ 		}
+@@ -1981,7 +1978,7 @@ struct dentry *__d_lookup(const struct dentry *parent, const struct qstr *name)
+ 				goto next;
+ 		}
+ 
+-		dentry->d_count++;
++		dcount_inc(dentry);
+ 		found = dentry;
+ 		spin_unlock(&dentry->d_lock);
+ 		break;
+@@ -2943,7 +2940,7 @@ resume:
+ 		}
+ 		if (!(dentry->d_flags & DCACHE_GENOCIDE)) {
+ 			dentry->d_flags |= DCACHE_GENOCIDE;
+-			dentry->d_count--;
++			dcount_dec(dentry);
+ 		}
+ 		spin_unlock(&dentry->d_lock);
+ 	}
+@@ -2951,7 +2948,7 @@ resume:
+ 		struct dentry *child = this_parent;
+ 		if (!(this_parent->d_flags & DCACHE_GENOCIDE)) {
+ 			this_parent->d_flags |= DCACHE_GENOCIDE;
+-			this_parent->d_count--;
++			dcount_dec(this_parent);
+ 		}
+ 		this_parent = try_to_ascend(this_parent, locked, seq);
+ 		if (!this_parent)
+diff --git a/fs/namei.c b/fs/namei.c
+index 57ae9c8..6bbd475 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -537,7 +537,7 @@ static int unlazy_walk(struct nameidata *nd, struct dentry *dentry)
+ 		 */
+ 		BUG_ON(!IS_ROOT(dentry) && dentry->d_parent != parent);
+ 		BUG_ON(!parent->d_count);
+-		parent->d_count++;
++		dcount_inc(parent);
+ 		spin_unlock(&dentry->d_lock);
+ 	}
+ 	spin_unlock(&parent->d_lock);
+diff --git a/include/linux/dcache.h b/include/linux/dcache.h
+index 1a6bb81..99da5e2 100644
+--- a/include/linux/dcache.h
++++ b/include/linux/dcache.h
+@@ -258,6 +258,99 @@ extern int have_submounts(struct dentry *);
+ extern void d_rehash(struct dentry *);
+ 
+ /**
++ * 	dcount_inc, dcount_dec - increment or decrement the dentry reference
++ * 				 count
++ * 	@dentry: dentry to get a reference to
++ */
++static inline void dcount_inc(struct dentry *dentry)
++{
++#ifdef  __HAVE_ARCH_CMPXCHG
++	atomic_inc((atomic_t *)&dentry->d_count);
++#else
++	dentry->d_count++;
++#endif
++}
++
++static inline void dcount_dec(struct dentry *dentry)
++{
++#ifdef  __HAVE_ARCH_CMPXCHG
++	atomic_dec((atomic_t *)&dentry->d_count);
++#else
++	dentry->d_count--;
++#endif
++}
++
++/**
++ * 	dcount_inc_cmpxchg - increment dentry reference count using cmpxchg
++ * 	@dentry: dentry to get a reference to
++ * 	Return : 0 on failure, else 1
++ *
++ * 	N.B. For architectures that do not have a cmpxchg instruction, the
++ * 	     substitute code may not perform better than taking the lock.
++ * 	     So this cmpxchg code path is disabled for those cases.
++ */
++static inline int dcount_inc_cmpxchg(struct dentry *dentry)
++{
++#ifdef	__HAVE_ARCH_CMPXCHG
++	int oldc, newc;
++
++	if ((oldc = dentry->d_count) > 1) {
++		/*
++		 * If reference count > 1, we can safely increment its
++		 * value using atomic cmpxchg without locking. If the
++		 * operation fails, fall back to using the lock.
++		 */
++		newc = oldc + 1;
++		if (cmpxchg(&dentry->d_count, oldc, newc) == oldc)
++			return 1;
++		cpu_relax();
++		/* Retry one more time */
++		if (likely((oldc = ACCESS_ONCE(dentry->d_count)) > 1)) {
++			newc = oldc + 1;
++			if (cmpxchg(&dentry->d_count, oldc, newc) == oldc)
++				return 1;
++			cpu_relax();
++		}
++	}
++#endif
++	return 0;
++}
++
++/**
++ * 	dcount_dec_cmpxchg - decrement dentry reference count using cmpxchg
++ * 	@dentry: dentry to get a reference to
++ * 	Return : 0 on failure, else 1
++ */
++static inline int dcount_dec_cmpxchg(struct dentry *dentry)
++{
++#ifdef	__HAVE_ARCH_CMPXCHG
++	int	oldc, newc;
++
++	/*
++	 * If d_count is bigger than 2, we can safely decrement the
++	 * reference count using atomic cmpxchg instruction without locking.
++	 * Even if d_lock is taken by a thread running dput() with a parallel
++	 * atomic_dec(), the reference count won't go to 0 without anyone
++	 * noticing.
++	 */
++	if ((oldc = dentry->d_count) > 2) {
++		newc = oldc - 1;
++		if (cmpxchg(&dentry->d_count, oldc, newc) == oldc)
++			return 1;
++		cpu_relax();
++		/* Retry one more time */
++		if (likely((oldc = ACCESS_ONCE(dentry->d_count)) > 2)) {
++			newc = oldc - 1;
++			if (cmpxchg(&dentry->d_count, oldc, newc) == oldc)
++				return 1;
++			cpu_relax();
++		}
++	}
++#endif
++	return 0;
++}
++
++/**
+  * d_add - add dentry to hash queues
+  * @entry: dentry to add
+  * @inode: The inode to attach to this dentry
+@@ -319,7 +412,7 @@ static inline int __d_rcu_to_refcount(struct dentry *dentry, unsigned seq)
+ 	assert_spin_locked(&dentry->d_lock);
+ 	if (!read_seqcount_retry(&dentry->d_seq, seq)) {
+ 		ret = 1;
+-		dentry->d_count++;
++		dcount_inc(dentry);
+ 	}
+ 
+ 	return ret;
+@@ -340,7 +433,6 @@ extern char *dentry_path_raw(struct dentry *, char *, int);
+ extern char *dentry_path(struct dentry *, char *, int);
+ 
+ /* Allocation counts.. */
+-
+ /**
+  *	dget, dget_dlock -	get a reference to a dentry
+  *	@dentry: dentry to get a reference to
+@@ -352,13 +444,16 @@ extern char *dentry_path(struct dentry *, char *, int);
+ static inline struct dentry *dget_dlock(struct dentry *dentry)
+ {
+ 	if (dentry)
+-		dentry->d_count++;
++		dcount_inc(dentry);
+ 	return dentry;
+ }
+ 
+ static inline struct dentry *dget(struct dentry *dentry)
+ {
+ 	if (dentry) {
++		if (dcount_inc_cmpxchg(dentry))
++			return dentry;
++
+ 		spin_lock(&dentry->d_lock);
+ 		dget_dlock(dentry);
+ 		spin_unlock(&dentry->d_lock);
+-- 
+1.7.1
 
