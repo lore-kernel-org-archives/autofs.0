@@ -1,197 +1,126 @@
-From: Waiman Long <Waiman.Long-VXdhtT5mjnY@public.gmane.org>
-Subject: [PATCH RFC v2 2/4] dcache: introduce a new sequence read/write lock type
-Date: Fri,  5 Apr 2013 12:57:39 -0400
-Message-ID: <1365181061-30787-3-git-send-email-Waiman.Long@hp.com>
-References: <1365181061-30787-1-git-send-email-Waiman.Long@hp.com>
-Return-path: <linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1365181061-30787-1-git-send-email-Waiman.Long-VXdhtT5mjnY@public.gmane.org>
-Sender: linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-ID: <autofs.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+From: Ian Kent <raven@themaw.net>
+Subject: Re: Mounts not expiring in setups with nested submounts
+Date: Mon, 08 Apr 2013 15:48:40 +0800
+Message-ID: <1365407320.2409.6.camel@perseus.fritz.box>
+References: <CAEySpB6ZRVmtbFmPuL-k1fVxeHdtnKm8ncmXGt5R0ZTL2dXr1w@mail.gmail.com>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: Alexander Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Jeff Layton <jlayton-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Miklos Szeredi <mszeredi-AlSwsSmVLrQ@public.gmane.org>, Ian Kent <raven-PKsaG3nR2I+sTnJN9+BGXg@public.gmane.org>, Sage Weil <sage-4GqslpFJ+cxBDgjK7y7TUQ@public.gmane.org>, Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, Trond Myklebust <Trond.Myklebust-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, Eric Paris <eparis-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Waiman Long <Waiman.Long-VXdhtT5mjnY@public.gmane.org>, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, autofs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Chandramouleeswaran, Aswin" <aswin-VXdhtT5mjnY@public.gmane.org>, "Norton, Scott J" <scott.norton-VXdhtT5mjnY@public.gmane.org>, Andi Kleen <andi-Vw/NltI1exuRpAAqCnN02g@public.gmane.org>, Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>
+Return-path: <autofs-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
+	message-id:subject:from:to:cc:date:in-reply-to:references
+	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
+	 bh=YdcStNe9GxUrqWat6H+7iT5z+do=; b=CkCINaw+7yOXj85tMDjQ57nidiS+
+	xv478iaHGFSV1myIGvB2mRGb/tX30vkswAU5QSTDsyu8STM/kCDkgRW0JmbHXNLt
+	xNrK+PuhmcNKE9wdqr58QVlvoOz8LhvwEHg27L8KizKRmsQFDnbTZcvi1iuWtGCc
+	vqgzpik4OUZDfz8=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=message-id:subject:from:to:cc:date
+	:in-reply-to:references:content-type:mime-version
+	:content-transfer-encoding; s=smtpout; bh=YdcStNe9GxUrqWat6H+7iT
+	5z+do=; b=W2GIvZ4nMT7M01hYemIM9gH0as6n3zJxqSKd40Alfart2bs8HT3Yrf
+	Lsh81GZhvzxzlkqJj5n70AEpsDUw9Ts57Da6+WIM+cGWlHQMZ7/4v1/+ZDqNQmhr
+	cXji2/9koShk84kDHffBCxiuVDyPi6mpEbqaoLedWibcUNRbfBYMk=
+In-Reply-To: <CAEySpB6ZRVmtbFmPuL-k1fVxeHdtnKm8ncmXGt5R0ZTL2dXr1w@mail.gmail.com>
+Sender: autofs-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: Leonardo Chiquitto <leonardo.lists@gmail.com>
+Cc: autofs <autofs@vger.kernel.org>
 
-The current sequence lock supports 2 types of lock users:
+On Fri, 2013-03-29 at 17:33 -0300, Leonardo Chiquitto wrote:
+> 
+> Ian: do you think the "occasional deadlocks" mentioned in the
+> expire-specific-submount-only patch might have been addressed
+> by other changes (so we can use the patch below)? Or do you
+> see another way to fix the problem?
 
-1. A reader who wants a consistent set of information and is willing
-   to retry if the information changes. The information that the
-   reader needs cannot contain pointers, because any writer could
-   invalidate a pointer that a reader was following. This reader
-   will never block but they may have to retry if a writer is in
-   progress.
-2. A writer who may need to modify content of a data structure. Writer
-   blocks only if another writer is in progress.
+Think so.
 
-This type of lock is suitable for cases where there are a large number
-of readers and much less writers. However, it has a limitation that
-reader who may want to follow pointer or cannot tolerate unexpected
-changes in the protected data structure must take the writer lock
-even if it doesn't need to make any changes.
+> 
+> diff --git a/lib/master.c b/lib/master.c
+> index a0e62f2..99b1092 100644
+> --- a/lib/master.c
+> +++ b/lib/master.c
+> @@ -906,8 +906,10 @@ int master_notify_submount(struct autofs_point
+> *ap, const char *path, enum state
+>  		p = p->prev;
+> 
+>  		if (!master_submount_list_empty(this)) {
+> -			mounts_mutex_unlock(ap);
+> -			return master_notify_submount(this, path, state);
+> +			if (!master_notify_submount(this, path, state)) {
+> +				ret = 0;
+> +				break;
+> +			}
+>  		}
+> 
+>  		/* path not the same */
 
-To more efficiently support this type of readers, a new lock type is
-introduced by this patch: sequence read/write lock. Two types of readers
-are supported by this new lock:
+I think the mounts mutex needs to be re-taken and then check if the
+submount has gone away.
 
-1. Reader who has the same behavior as a sequence lock reader.
-2. Reader who may need to follow pointers. This reader will block if
-   a writer is in progress. In turn, it blocks a writer if it is in
-   progress. Multiple readers of this type can proceed concurrently.
-   Taking this reader lock won't update the sequence number.
+The list curor for the next one to check (set to p->prev) should always
+be ok because there's only one expire process for a given mount but the
+one we are checking (this) could go away, in which case we're done.
 
-This new lock type is a combination of the sequence lock and read/write
-lock. Hence it will have the same limitation of a read/write lock that
-writers may be starved if there is a lot of contention.
+This patch seems to work.
 
-Signed-off-by: Waiman Long <Waiman.Long-VXdhtT5mjnY@public.gmane.org>
+autofs-5.0.7 - fix submount tree not all expiring
+
+From: Ian Kent <ikent@redhat.com>
+
+Due to the change in the expire-specific-submount-only patch, sub-mounts
+within an indirect mount that follow a submount (in the check order) won't
+be expired if that submount is busy.
 ---
- include/linux/seqrwlock.h |  137 +++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 137 insertions(+), 0 deletions(-)
- create mode 100644 include/linux/seqrwlock.h
+ lib/master.c |   24 +++++++++++++++---------
+ 1 file changed, 15 insertions(+), 9 deletions(-)
 
-diff --git a/include/linux/seqrwlock.h b/include/linux/seqrwlock.h
-new file mode 100644
-index 0000000..c6145ff
---- /dev/null
-+++ b/include/linux/seqrwlock.h
-@@ -0,0 +1,137 @@
-+#ifndef __LINUX_SEQRWLOCK_H
-+#define __LINUX_SEQRWLOCK_H
-+/*
-+ * Sequence Read/Write Lock
-+ * ------------------------
-+ * This new lock type is a combination of the sequence lock and read/write
-+ * lock. Three types of lock users are supported:
-+ * 1. Reader who wants a consistent set of information and is willing to
-+ *    retry if the information changes. The information that the reader
-+ *    need cannot contain pointers, because any writer could invalidate
-+ *    a pointer that a reader was following. This reader never block but
-+ *    they may have to retry if a writer is in progress.
-+ * 2. Reader who may need to follow pointers. This reader will block if
-+ *    a writer is in progress.
-+ * 3. Writer who may need to modify content of a data structure. Writer
-+ *    blocks if another writer or the 2nd type of reader is in progress.
-+ *
-+ * The current implementation layered on top of the regular read/write
-+ * lock. There is a chance that the writers may be starved by the readers.
-+ * So be careful when you decided to use this lock.
-+ *
-+ * Expected 1st type reader usage:
-+ * 	do {
-+ *	    seq = read_seqrwbegin(&foo);
-+ * 	...
-+ *      } while (read_seqrwretry(&foo, seq));
-+ *
-+ * Expected 2nd type reader usage:
-+ * 	read_seqrwlock(&foo)
-+ * 	...
-+ * 	read_seqrwunlock(&foo)
-+ *
-+ * Expected writer usage:
-+ * 	write_seqrwlock(&foo)
-+ * 	...
-+ * 	write_seqrwunlock(&foo)
-+ *
-+ * Based on the seqlock.h file
-+ * by Waiman Long
-+ */
+diff --git a/lib/master.c b/lib/master.c
+index a0e62f2..64dbcb1 100644
+--- a/lib/master.c
++++ b/lib/master.c
+@@ -905,15 +905,24 @@ int master_notify_submount(struct autofs_point *ap, const char *path, enum state
+ 		this = list_entry(p, struct autofs_point, mounts);
+ 		p = p->prev;
+ 
+-		if (!master_submount_list_empty(this)) {
+-			mounts_mutex_unlock(ap);
+-			return master_notify_submount(this, path, state);
+-		}
+-
+ 		/* path not the same */
+ 		if (strcmp(this->path, path))
+ 			continue;
+ 
++		if (!master_submount_list_empty(this)) {
++			char *this_path = strdup(this->path);
++			if (this_path) {
++				mounts_mutex_unlock(ap);
++				master_notify_submount(this, path, state);
++				mounts_mutex_lock(ap);
++				if (!__master_find_submount(ap, this_path)) {
++					free(this_path);
++					continue;
++				}
++				free(this_path);
++			}
++		}
 +
-+#include <linux/rwlock.h>
-+#include <linux/preempt.h>
-+#include <asm/processor.h>
-+
-+typedef struct {
-+	unsigned sequence;
-+	rwlock_t lock;
-+} seqrwlock_t;
-+
-+#define __SEQRWLOCK_UNLOCKED(lockname) \
-+		 { 0, __RW_LOCK_UNLOCKED(lockname) }
-+
-+#define seqrwlock_init(x)				\
-+	do {						\
-+		(x)->sequence = 0;			\
-+		rwlock_init(&(x)->lock);		\
-+	} while (0)
-+
-+#define DEFINE_SEQRWLOCK(x) \
-+		seqrwlock_t x = __SEQRWLOCK_UNLOCKED(x)
-+
-+/* For writer:
-+ * Lock out other writers and 2nd type of readers and update the sequence
-+ * number. Don't need preempt_disable() because that is in the read_lock and
-+ * write_lock already.
-+ */
-+static inline void write_seqrwlock(seqrwlock_t *sl)
-+{
-+	write_lock(&sl->lock);
-+	++sl->sequence;
-+	smp_wmb();
-+}
-+
-+static inline void write_seqrwunlock(seqrwlock_t *sl)
-+{
-+	smp_wmb();
-+	sl->sequence++;
-+	write_unlock(&sl->lock);
-+}
-+
-+static inline int write_tryseqrwlock(seqrwlock_t *sl)
-+{
-+	int ret = write_trylock(&sl->lock);
-+
-+	if (ret) {
-+		++sl->sequence;
-+		smp_wmb();
-+	}
-+	return ret;
-+}
-+
-+/* For 2nd type of reader:
-+ * Lock out other writers, but don't update the sequence number
-+ */
-+static inline void read_seqrwlock(seqrwlock_t *sl)
-+{
-+	read_lock(&sl->lock);
-+}
-+
-+static inline void read_seqrwunlock(seqrwlock_t *sl)
-+{
-+	read_unlock(&sl->lock);
-+}
-+
-+static inline int read_tryseqrwlock(seqrwlock_t *sl)
-+{
-+	return read_trylock(&sl->lock);
-+}
-+
-+/* Start of read calculation -- fetch last complete writer token */
-+static __always_inline unsigned read_seqrwbegin(const seqrwlock_t *sl)
-+{
-+	unsigned ret;
-+
-+repeat:
-+	ret = ACCESS_ONCE(sl->sequence);
-+	if (unlikely(ret & 1)) {
-+		cpu_relax();
-+		goto repeat;
-+	}
-+	smp_rmb();
-+	return ret;
-+}
-+
-+/*
-+ * Test if reader processed invalid data.
-+ *
-+ * If sequence value changed then writer changed data while in section.
-+ */
-+static __always_inline int read_seqrwretry(const seqrwlock_t *sl, unsigned start)
-+{
-+	smp_rmb();
-+	return unlikely(sl->sequence != start);
-+}
-+
-+#endif /* __LINUX_SEQLOCK_H */
--- 
-1.7.1
+ 		/* Now we have found the submount we want to expire */
+ 
+ 		st_mutex_lock();
+@@ -959,10 +968,7 @@ int master_notify_submount(struct autofs_point *ap, const char *path, enum state
+ 			st_mutex_lock();
+ 		}
+ 		st_mutex_unlock();
+-		mounts_mutex_unlock(ap);
+-
+-		return ret;
+-
++		break;
+ 	}
+ 
+ 	mounts_mutex_unlock(ap);
+
+
