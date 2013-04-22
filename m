@@ -1,58 +1,47 @@
-From: Martin von Gagern <Martin.vGagern@gmx.net>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: [PATCH] avoid calling mount during configure
-Date: Sun, 21 Apr 2013 20:29:09 +0200
-Message-ID: <51742FF5.1070301@gmx.net>
+Date: Mon, 22 Apr 2013 09:10:08 +0800
+Message-ID: <1366593008.2160.1.camel@perseus.fritz.box>
 References: <5173AD94.9080301@gmx.net> <5173B722.1030807@msgid.tls.msk.ru>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="----enig2DTVMQHOLNFQSUALJXJKM"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
+	message-id:subject:from:to:cc:date:in-reply-to:references
+	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
+	 bh=Btp6Z3stuKrVXg/uX/eawlvqcgo=; b=xQFXM4oId+8/4YzXJtJ3ioKB9+Ri
+	N8uPkN2SGzbn+bMMXes3t4nfCOUYVTp2o7oOAmhIxchNBN2sPVIk3atwbvBqtKWM
+	lIWQBPPIpnYGgxP6pY40nGouf6I2bchNJMm3hPkA/P3/gSXDDmQophWe6K7C1a8Y
+	Od3CJSxAJenhmx0=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=message-id:subject:from:to:cc:date
+	:in-reply-to:references:content-type:mime-version
+	:content-transfer-encoding; s=smtpout; bh=Btp6Z3stuKrVXg/uX/eawl
+	vqcgo=; b=ACMZRCenr024Wk+ODd2AWX/B0P/PAgwQFcgQuvI4m1wtneZ3k3Dltp
+	uWfterh5Ymx9rr5YBLIl0BYpnCEk2oIIwQQc8lqxAcv+5HS4EoWgJgP0E/ZQR2kF
+	/cqmrSsdyvDAfyIIBIAr06eTBkK6zSzRzpkZwQjTaka8NZAOh6mSk=
 In-Reply-To: <5173B722.1030807@msgid.tls.msk.ru>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-To: autofs@vger.kernel.org
-Cc: Michael Tokarev <mjt@tls.msk.ru>
+Content-Type: text/plain; charset="us-ascii"
+To: Michael Tokarev <mjt@tls.msk.ru>
+Cc: Martin von Gagern <Martin.vGagern@gmx.net>, autofs@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
-------enig2DTVMQHOLNFQSUALJXJKM
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-
-On 21.04.2013 11:53, Michael Tokarev wrote:
+On Sun, 2013-04-21 at 13:53 +0400, Michael Tokarev wrote:
 > 21.04.2013 13:12, Martin von Gagern wrote:
->> The configure script unconditionally calls "mount -s" in an attempt to=
+> > Hi!
+> > 
+> > The configure script unconditionally calls "mount -s" in an attempt to
+> > figure out whether the command supports that option or not. This can
+> 
+> The support for old mount command, together with pre-2.2-something kernel,
+> should be just dropped from automount, together with all these configure
+> checks, instead of inventing even more workarounds.  In my opinion anyway.
 
->> figure out whether the command supports that option or not. This can
->=20
-> The support for old mount command, together with pre-2.2-something kern=
-el,
-> should be just dropped from automount, together with all these configur=
-e
-> checks, instead of inventing even more workarounds.  In my opinion anyw=
-ay.
+That may be old but every time the sloppy option hasn't worked properly
+in mount(8) I get hit with problems.
 
-I hadn't been aware that the -s option has been around for as long as it
-apparently has. Dropping old legacy is fine by me, as long as there is a
-way to avoid running mount. Do you need a patch for that approach as
-well, or can I leave that to the maintainers?
+So I'm not going to drop it.
 
-Greetings,
- Martin
+Ian
 
-
-------enig2DTVMQHOLNFQSUALJXJKM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iEYEARECAAYFAlF0L/oACgkQRhp6o4m9dFuSdQCfaU/L1XKphA5dF1LBjBmZVxOq
-DsAAnjhXmTW7ODeRM2j6cotdg/Q4zsEF
-=rP6w
------END PGP SIGNATURE-----
-
-------enig2DTVMQHOLNFQSUALJXJKM--
