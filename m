@@ -1,132 +1,207 @@
-From: Dave Chinner <david@fromorbit.com>
-Subject: Re: [PATCH 0/3 v3] dcache: make it more scalable on large system
-Date: Mon, 27 May 2013 12:09:04 +1000
-Message-ID: <20130527020903.GR29466@dastard>
+From: Waiman Long <Waiman.Long@hp.com>
+Subject: [PATCH 2/3 v3] dcache: introduce a new sequence read/write lock type
+Date: Wed, 22 May 2013 21:37:27 -0400
+Message-ID: <1369273048-60256-3-git-send-email-Waiman.Long__27698.9196114757$1369776402$gmane$org@hp.com>
 References: <1369273048-60256-1-git-send-email-Waiman.Long@hp.com>
- <20130523094201.GA24543@dastard>
- <519E8B5F.3080905@hp.com>
-Mime-Version: 1.0
-Return-path: <autofs-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <519E8B5F.3080905@hp.com>
-Sender: autofs-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
+Return-path: <samba-technical-bounces@lists.samba.org>
+In-Reply-To: <1369273048-60256-1-git-send-email-Waiman.Long@hp.com>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <https://lists.samba.org/mailman/options/samba-technical>,
+	<mailto:samba-technical-request@lists.samba.org?subject=unsubscribe>
+List-Archive: <http://lists.samba.org/pipermail/samba-technical>
+List-Post: <mailto:samba-technical@lists.samba.org>
+List-Help: <mailto:samba-technical-request@lists.samba.org?subject=help>
+List-Subscribe: <https://lists.samba.org/mailman/listinfo/samba-technical>,
+	<mailto:samba-technical-request@lists.samba.org?subject=subscribe>
+Sender: samba-technical-bounces@lists.samba.org
+Errors-To: samba-technical-bounces@lists.samba.org
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Waiman Long <waiman.long@hp.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@redhat.com>, Miklos Szeredi <mszeredi@suse.cz>, Ian Kent <raven@themaw.net>, Sage Weil <sage@inktank.com>, Steve French <sfrench@samba.org>, Trond Myklebust <Trond.Myklebust@netapp.com>, Eric Paris <eparis@redhat.com>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, autofs@vger.kernel.org, ceph-devel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-nfs@vger.kernel.org, "Chandramouleeswaran, Aswin" <aswin@hp.com>, "Norton, Scott J" <scott.norton@hp.com>, Andi Kleen <andi@firstfloor.org>
+To: Alexander Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@redhat.com>, Miklos Szeredi <mszeredi@suse.cz>, Ian Kent <raven@themaw.net>, Sage Weil <sage@inktank.com>, Steve French <sfrench@samba.org>, Trond Myklebust <Trond.Myklebust@netapp.com>, Eric Paris <eparis@redhat.com>
+Cc: Waiman Long <Waiman.Long@hp.com>, linux-cifs@vger.kernel.org, linux-nfs@vger.kernel.org, "Norton,
+	Scott J" <scott.norton@hp.com>, autofs@vger.kernel.org, samba-technical@lists.samba.org, linux-kernel@vger.kernel.org, "Chandramouleeswaran, Aswin" <aswin@hp.com>, Andi Kleen <andi@firstfloor.org>, Dave Chinner <david@fromorbit.com>, linux-fsdevel@vger.kernel.org, ceph-devel@vger.kernel.org
 
-On Thu, May 23, 2013 at 05:34:23PM -0400, Waiman Long wrote:
-> On 05/23/2013 05:42 AM, Dave Chinner wrote:
-> >On Wed, May 22, 2013 at 09:37:25PM -0400, Waiman Long wrote:
-> >>Change log:
-> >>
-> >>v2->v3
-> >>  - Fix the RCU lock problem found by Al Viro.
-> >>  - Rebase the code to the latest v3.10-rc1 linux mainline.
-> >>  - Remove patch 4 which may be problematic if the dentry is deleted.
-> >>  - Rerun performance measurement using 3.10-rc1 kernel.
-> >>
-> >>v1->v2
-> >>  - Include performance improvement in the AIM7 benchmark results because
-> >>    of this patch.
-> >>  - Modify dget_parent() to avoid taking the lock, if possible, to further
-> >>    improve AIM7 benchmark results.
-> >>
-> >>During some perf-record sessions of the kernel running the high_systime
-> >>workload of the AIM7 benchmark, it was found that quite a large portion
-> >>of the spinlock contention was due to the perf_event_mmap_event()
-> >>function itself. This perf kernel function calls d_path() which,
-> >>in turn, call path_get() and dput() indirectly. These 3 functions
-> >>were the hottest functions shown in the perf-report output of
-> >>the _raw_spin_lock() function in an 8-socket system with 80 cores
-> >>(hyperthreading off) with a 3.10-rc1 kernel:
-> >What was it I said about this patchset when you posted it to speed
-> >up an Oracle benchmark back in february? I'll repeat:
-> >
-> >"Nobody should be doing reverse dentry-to-name lookups in a quantity
-> >sufficient for it to become a performance limiting factor."
-> 
-> Thank for the comment, but my point is that it is the d_lock
-> contention is skewing the data about how much spin lock contention
-> had actually happened in the workload and it makes it harder to
-> pinpoint problem areas to look at. This is not about performance, it
-> is about accurate representation of performance data. Ideally, we
-> want the overhead of turning on perf instrumentation to be as low as
-> possible.
+The current sequence lock supports 2 types of lock users:
 
-Right. But d_path will never be "low overhead", and as such it
-shouldn't be used by perf.
+1. A reader who wants a consistent set of information and is willing
+   to retry if the information changes. The information that the
+   reader needs cannot contain pointers, because any writer could
+   invalidate a pointer that a reader was following. This reader
+   will never block but they may have to retry if a writer is in
+   progress.
+2. A writer who may need to modify content of a data structure. Writer
+   blocks only if another writer is in progress.
 
-> >And that makes whatever that tracepoint is doing utterly stupid.
-> >Dumping out full paths in a tracepoint is hardly "low overhead", and
-> >that tracepoint should be stomped on from a great height. Sure,
-> >print the filename straight out of the dentry into a tracepoint,
-> >but repeated calculating the full path (probably for the same set of
-> >dentries) is just a dumb thing to do.
-> >
-> >Anyway, your numbers show that a single AIM7 microbenchmark goes
-> >better under tracing the specific mmap event that uses d_path(), but
-> >the others are on average a little bit slower. That doesn't convince
-> >me that this is worth doing. Indeed, what happens to performance
-> >when you aren't tracing?
-> >
-> >Indeed, have you analysed what makes that
-> >microbenchmark contend so much on the dentry lock while reverse
-> >lookups are occuring? Dentry lock contention does not necessarily
-> >indicate a problem with the dentry locks, and without knowing why
-> >there is contention occuring (esp. compared to the other benchmarks)
-> >we can't really determine if this is a good solution or not...
-> 
-> What made it contend so much was the large number of CPUs available
-> in my test system which is a 8-socket Westmere EX machines with 80
-> cores. As perf was collecting data from every core, the threads will
-> unavoidably bump into each other to translate dentries back to the
-> full paths. The current code only allows one CPU in the d_path()
-> critical path. My patch will allow all of them to be in the critical
-> path concurrently.
+This type of lock is suitable for cases where there are a large number
+of readers and much less writers. However, it has a limitation that
+reader who may want to follow pointer or cannot tolerate unexpected
+changes in the protected data structure must take the writer lock
+even if it doesn't need to make any changes.
 
-Yes, I know *how* contention occurs and what your patch does. I'm
-asking you to explain *why* we need to fix this specific workload,
-and why the tracepoint that calls d_path() actually needs to do
-that.
+To more efficiently support this type of readers, a new lock type is
+introduced by this patch: sequence read/write lock. Two types of readers
+are supported by this new lock:
 
-Your numbers indicate that your patchset decreases peformance in the
-common, non-d_path intensive workloads, so why should we add all
-this complexity to optimise a slow path at the expense of
-significant complexity and lower performance in the fast
-path?
+1. Reader who has the same behavior as a sequence lock reader.
+2. Reader who may need to follow pointers. This reader will block if
+   a writer is in progress. In turn, it blocks a writer if it is in
+   progress. Multiple readers of this type can proceed concurrently.
+   Taking this reader lock won't update the sequence number.
 
-> The upcoming Ivy-Bridge EX can have up to 15 cores per socket. So
-> even a 4-socket machine will have up to 60 cores or 120 virtual CPUs
-> if hyperthreading is turned on.
+This new lock type is a combination of the sequence lock and read/write
+lock. Hence it will have the same limitation of a read/write lock that
+writers may be starved if there is a lot of contention.
 
-I don't see why that matters. I've been dealing with systems much
-larger than that since early 2002, adn the process for delaing with
-lock contention hasn't changed much in the last 10 years. First we
-need to determine what you are doing is something that is sane,
-determining whether there's a simpler fix than changing locking, and
-whether it's actually any faster in the common case we care
-about....
+Signed-off-by: Waiman Long <Waiman.Long@hp.com>
+---
+ include/linux/seqrwlock.h |  137 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 137 insertions(+), 0 deletions(-)
+ create mode 100644 include/linux/seqrwlock.h
 
-> >IOWs, you need more than one microbenchmark that interacts with
-> >some naive monitoring code to justify the complexity these locking
-> >changes introduce....
-> The first patch can also independently improve the performance of a
-> number of AIM7 workloads including almost 7X improvement in the
-> short workload. More detailed information of these types of
-> performance benefit was discussed in the patch description of the
-> first patch. I will try to collect more performance improvement data
-> on other workloads too.
-> 
-> Thank for the review.
-
-I haven't reviewed anything. All I've made comments about you
-needing to justifying the complexity of the change.
-
-Cheers,
-
-Dave.
+diff --git a/include/linux/seqrwlock.h b/include/linux/seqrwlock.h
+new file mode 100644
+index 0000000..c6145ff
+--- /dev/null
++++ b/include/linux/seqrwlock.h
+@@ -0,0 +1,137 @@
++#ifndef __LINUX_SEQRWLOCK_H
++#define __LINUX_SEQRWLOCK_H
++/*
++ * Sequence Read/Write Lock
++ * ------------------------
++ * This new lock type is a combination of the sequence lock and read/write
++ * lock. Three types of lock users are supported:
++ * 1. Reader who wants a consistent set of information and is willing to
++ *    retry if the information changes. The information that the reader
++ *    need cannot contain pointers, because any writer could invalidate
++ *    a pointer that a reader was following. This reader never block but
++ *    they may have to retry if a writer is in progress.
++ * 2. Reader who may need to follow pointers. This reader will block if
++ *    a writer is in progress.
++ * 3. Writer who may need to modify content of a data structure. Writer
++ *    blocks if another writer or the 2nd type of reader is in progress.
++ *
++ * The current implementation layered on top of the regular read/write
++ * lock. There is a chance that the writers may be starved by the readers.
++ * So be careful when you decided to use this lock.
++ *
++ * Expected 1st type reader usage:
++ * 	do {
++ *	    seq = read_seqrwbegin(&foo);
++ * 	...
++ *      } while (read_seqrwretry(&foo, seq));
++ *
++ * Expected 2nd type reader usage:
++ * 	read_seqrwlock(&foo)
++ * 	...
++ * 	read_seqrwunlock(&foo)
++ *
++ * Expected writer usage:
++ * 	write_seqrwlock(&foo)
++ * 	...
++ * 	write_seqrwunlock(&foo)
++ *
++ * Based on the seqlock.h file
++ * by Waiman Long
++ */
++
++#include <linux/rwlock.h>
++#include <linux/preempt.h>
++#include <asm/processor.h>
++
++typedef struct {
++	unsigned sequence;
++	rwlock_t lock;
++} seqrwlock_t;
++
++#define __SEQRWLOCK_UNLOCKED(lockname) \
++		 { 0, __RW_LOCK_UNLOCKED(lockname) }
++
++#define seqrwlock_init(x)				\
++	do {						\
++		(x)->sequence = 0;			\
++		rwlock_init(&(x)->lock);		\
++	} while (0)
++
++#define DEFINE_SEQRWLOCK(x) \
++		seqrwlock_t x = __SEQRWLOCK_UNLOCKED(x)
++
++/* For writer:
++ * Lock out other writers and 2nd type of readers and update the sequence
++ * number. Don't need preempt_disable() because that is in the read_lock and
++ * write_lock already.
++ */
++static inline void write_seqrwlock(seqrwlock_t *sl)
++{
++	write_lock(&sl->lock);
++	++sl->sequence;
++	smp_wmb();
++}
++
++static inline void write_seqrwunlock(seqrwlock_t *sl)
++{
++	smp_wmb();
++	sl->sequence++;
++	write_unlock(&sl->lock);
++}
++
++static inline int write_tryseqrwlock(seqrwlock_t *sl)
++{
++	int ret = write_trylock(&sl->lock);
++
++	if (ret) {
++		++sl->sequence;
++		smp_wmb();
++	}
++	return ret;
++}
++
++/* For 2nd type of reader:
++ * Lock out other writers, but don't update the sequence number
++ */
++static inline void read_seqrwlock(seqrwlock_t *sl)
++{
++	read_lock(&sl->lock);
++}
++
++static inline void read_seqrwunlock(seqrwlock_t *sl)
++{
++	read_unlock(&sl->lock);
++}
++
++static inline int read_tryseqrwlock(seqrwlock_t *sl)
++{
++	return read_trylock(&sl->lock);
++}
++
++/* Start of read calculation -- fetch last complete writer token */
++static __always_inline unsigned read_seqrwbegin(const seqrwlock_t *sl)
++{
++	unsigned ret;
++
++repeat:
++	ret = ACCESS_ONCE(sl->sequence);
++	if (unlikely(ret & 1)) {
++		cpu_relax();
++		goto repeat;
++	}
++	smp_rmb();
++	return ret;
++}
++
++/*
++ * Test if reader processed invalid data.
++ *
++ * If sequence value changed then writer changed data while in section.
++ */
++static __always_inline int read_seqrwretry(const seqrwlock_t *sl, unsigned start)
++{
++	smp_rmb();
++	return unlikely(sl->sequence != start);
++}
++
++#endif /* __LINUX_SEQLOCK_H */
 -- 
-Dave Chinner
-david@fromorbit.com
+1.7.1
+
