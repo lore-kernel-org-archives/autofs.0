@@ -1,78 +1,36 @@
-From: Dave Chinner <david@fromorbit.com>
-Subject: Re: [PATCH 0/3 v3] dcache: make it more scalable on large system
-Date: Thu, 23 May 2013 19:42:01 +1000
-Message-ID: <20130523094201.GA24543@dastard>
-References: <1369273048-60256-1-git-send-email-Waiman.Long@hp.com>
+From: Waiman Long <waiman.long@hp.com>
+Subject: Re: =?gb18030?Q?=BB=D8=B8=B4=A3=BA=5BPATCH_1/3_v3=5D_dcach?=
+ =?gb18030?Q?e=3A_Don=27t_take_unnecessary_lock_in_d=5Fcount_?=
+ =?gb18030?Q?update?=
+Date: Thu, 23 May 2013 16:51:47 -0400
+Message-ID: <519E8163.8070402@hp.com>
+References: <tencent_6519A7723A666F8378EE1517@qq.com>
 Mime-Version: 1.0
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1369273048-60256-1-git-send-email-Waiman.Long@hp.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Waiman Long <Waiman.Long@hp.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@redhat.com>, Miklos Szeredi <mszeredi@suse.cz>, Ian Kent <raven@themaw.net>, Sage Weil <sage@inktank.com>, Steve French <sfrench@samba.org>, Trond Myklebust <Trond.Myklebust@netapp.com>, Eric Paris <eparis@redhat.com>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, autofs@vger.kernel.org, ceph-devel@vger.kernel.org, linux-cifs@vger.kernel.org, samba-technical@lists.samba.org, linux-nfs@vger.kernel.org, "Chandramouleeswaran, Aswin" <aswin@hp.com>, "Norton, Scott J" <scott.norton@hp.com>, Andi Kleen <andi@firstfloor.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <tencent_6519A7723A666F8378EE1517@qq.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: remaper <yp.fangdong@gmail.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@redhat.com>, Miklos Szeredi <mszeredi@suse.cz>, Ian Kent <raven@themaw.net>, Sage Weil <sage@inktank.com>, Steve French <sfrench@samba.org>, Trond Myklebust <Trond.Myklebust@netapp.com>, Eric Paris <eparis@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, autofs <autofs@vger.kernel.org>, ceph-devel <ceph-devel@vger.kernel.org>, linux-cifs <linux-cifs@vger.kernel.org>, samba-technical <samba-technical@lists.samba.org>, linux-nfs <linux-nfs@vger.kernel.org>, "Chandramouleeswaran, Aswin" <aswin@hp.com>, "Norton, Scott J" <scott.norton@hp.com>, Andi Kleen <andi@firstfloor.org>, Dave Chinner <david@fromorbit.com>
 
-On Wed, May 22, 2013 at 09:37:25PM -0400, Waiman Long wrote:
-> Change log:
-> 
-> v2->v3
->  - Fix the RCU lock problem found by Al Viro.
->  - Rebase the code to the latest v3.10-rc1 linux mainline.
->  - Remove patch 4 which may be problematic if the dentry is deleted.
->  - Rerun performance measurement using 3.10-rc1 kernel.
-> 
-> v1->v2
->  - Include performance improvement in the AIM7 benchmark results because
->    of this patch.
->  - Modify dget_parent() to avoid taking the lock, if possible, to further
->    improve AIM7 benchmark results.
-> 
-> During some perf-record sessions of the kernel running the high_systime
-> workload of the AIM7 benchmark, it was found that quite a large portion
-> of the spinlock contention was due to the perf_event_mmap_event()
-> function itself. This perf kernel function calls d_path() which,
-> in turn, call path_get() and dput() indirectly. These 3 functions
-> were the hottest functions shown in the perf-report output of
-> the _raw_spin_lock() function in an 8-socket system with 80 cores
-> (hyperthreading off) with a 3.10-rc1 kernel:
+On 05/23/2013 05:09 AM, remaper wrote:
+> maybe you can use the atomic_dec_and_lock(&dentry->d_count,&dentry->d_lock) here, right ?
+>
+> ------------------ Origin ------------------
+>> The current code takes the dentry's d_lock lock whenever the d_count
+>> reference count is being updated. In reality, nothing big really
+>> happens until d_count goes to 0 in dput(). So it is not necessary to
+>> take the lock if the reference count won't go to 0.
+Thank for the suggestion.
 
-<sigh>
+First of all, the d_count field is not an atomic type. Changing it to 
+atomic will require touching quite a large number of source files even 
+though that change won't change the size of the dentry. Secondly, the 
+function internally uses cmpxchg to do its work. There isn't any 
+performance  advantage of using it. I also need the count to go in both 
+direction, not just going down.
 
-What was it I said about this patchset when you posted it to speed
-up an Oracle benchmark back in february? I'll repeat:
-
-"Nobody should be doing reverse dentry-to-name lookups in a quantity
-sufficient for it to become a performance limiting factor."
-
-And that makes whatever that tracepoint is doing utterly stupid.
-Dumping out full paths in a tracepoint is hardly "low overhead", and
-that tracepoint should be stomped on from a great height. Sure,
-print the filename straight out of the dentry into a tracepoint,
-but repeated calculating the full path (probably for the same set of
-dentries) is just a dumb thing to do.
-
-Anyway, your numbers show that a single AIM7 microbenchmark goes
-better under tracing the specific mmap event that uses d_path(), but
-the others are on average a little bit slower. That doesn't convince
-me that this is worth doing. Indeed, what happens to performance
-when you aren't tracing?
-
-Indeed, have you analysed what makes that
-microbenchmark contend so much on the dentry lock while reverse
-lookups are occuring? Dentry lock contention does not necessarily
-indicate a problem with the dentry locks, and without knowing why
-there is contention occuring (esp. compared to the other benchmarks)
-we can't really determine if this is a good solution or not...
-
-IOWs, you need more than one microbenchmark that interacts with
-some naive monitoring code to justify the complexity these locking
-changes introduce....
-
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+Regards,
+Longman
