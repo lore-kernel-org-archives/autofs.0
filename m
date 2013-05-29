@@ -1,71 +1,52 @@
-From: Simo Sorce <simo@redhat.com>
+From: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
 Subject: Re: [PATCH 0/3 v3] dcache: make it more scalable on large system
-Date: Wed, 29 May 2013 13:03:12 -0400
-Message-ID: <1369846992.2769.149.camel@willson.li.ssimo.org>
+Date: Wed, 29 May 2013 14:46:40 -0400
+Message-ID: <20130529184640.GA3243@fieldses.org>
 References: <1369273048-60256-1-git-send-email-Waiman.Long@hp.com>
-	 <20130523094201.GA24543@dastard> <519E8B5F.3080905@hp.com>
-	 <20130527020903.GR29466@dastard> <51A624E2.3000301@hp.com>
-	 <1369844289.2769.146.camel@willson.li.ssimo.org>
-	 <20130529165603.GL6123@two.firstfloor.org>
+ <20130523094201.GA24543@dastard>
+ <519E8B5F.3080905@hp.com>
+ <20130527020903.GR29466@dastard>
+ <51A624E2.3000301@hp.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <ceph-devel-owner@vger.kernel.org>
-In-Reply-To: <20130529165603.GL6123@two.firstfloor.org>
-Sender: ceph-devel-owner@vger.kernel.org
+Return-path: <linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <51A624E2.3000301-VXdhtT5mjnY@public.gmane.org>
+Sender: linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Andi Kleen <andi@firstfloor.org>
-Cc: Waiman Long <waiman.long@hp.com>, Dave Chinner <david@fromorbit.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@redhat.com>, Miklos Szeredi <mszeredi@suse.cz>, Ian Kent <raven@themaw.net>, Sage Weil <sage@inktank.com>, Steve French <sfrench@samba.org>, Trond Myklebust <Trond.Myklebust@netapp.com>, Eric Paris <eparis@redhat.com>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, autofs@vger.kernel.org, ceph-devel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-nfs@vger.kernel.org, "Chandramouleeswaran, Aswin" <aswin@hp.com>, "Norton, Scott J" <scott.norton@hp.com>
+Content-Transfer-Encoding: 7bit
+To: Waiman Long <waiman.long-VXdhtT5mjnY@public.gmane.org>
+Cc: Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>, Alexander Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Jeff Layton <jlayton-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Miklos Szeredi <mszeredi-AlSwsSmVLrQ@public.gmane.org>, Ian Kent <raven-PKsaG3nR2I+sTnJN9+BGXg@public.gmane.org>, Sage Weil <sage-4GqslpFJ+cxBDgjK7y7TUQ@public.gmane.org>, Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, Trond Myklebust <Trond.Myklebust-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org>, Eric Paris <eparis-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, autofs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Chandramouleeswaran, Aswin" <aswin-VXdhtT5mjnY@public.gmane.org>, "Norton, Scott J" <scott.norton-VXdhtT5mjnY@public.gmane.org>, Andi Kleen <andi-Vw/NltI1exuRpAAqCnN02g@public.gmane.org>
 
-On Wed, 2013-05-29 at 18:56 +0200, Andi Kleen wrote:
-> On Wed, May 29, 2013 at 12:18:09PM -0400, Simo Sorce wrote:
-> > On Wed, 2013-05-29 at 11:55 -0400, Waiman Long wrote:
-> > 
-> > > My patch set consists of 2 different changes. The first one is to avoid 
-> > > taking the d_lock lock when updating the reference count in the 
-> > > dentries. This particular change also benefit some other workloads that 
-> > > are filesystem intensive. One particular example is the short workload 
-> > > in the AIM7 benchmark. One of the job type in the short workload is 
-> > > "misc_rtns_1" which calls security functions like getpwnam(), 
-> > > getpwuid(), getgrgid() a couple of times. These functions open the 
-> > > /etc/passwd or /etc/group files, read their content and close the files. 
-> > > It is the intensive open/read/close sequence from multiple threads that 
-> > > is causing 80%+ contention in the d_lock on a system with large number 
-> > > of cores.
-> > 
-> > To be honest a workload base on /etc/passwd or /etc/group is completely
-> > artificial, in actual usage, if you really have  such access you use
-> > nscd or sssd with their shared memory caches to completely remove most
-> > of the file access.
+On Wed, May 29, 2013 at 11:55:14AM -0400, Waiman Long wrote:
+> On 05/26/2013 10:09 PM, Dave Chinner wrote:
+> >On Thu, May 23, 2013 at 05:34:23PM -0400, Waiman Long wrote:
+> >>On 05/23/2013 05:42 AM, Dave Chinner wrote:
+> >>>
+> >>>What was it I said about this patchset when you posted it to speed
+> >>>up an Oracle benchmark back in february? I'll repeat:
+> >>>
+> >>>"Nobody should be doing reverse dentry-to-name lookups in a quantity
+> >>>sufficient for it to become a performance limiting factor."
+> >>Thank for the comment, but my point is that it is the d_lock
+> >>contention is skewing the data about how much spin lock contention
+> >>had actually happened in the workload and it makes it harder to
+> >>pinpoint problem areas to look at. This is not about performance, it
+> >>is about accurate representation of performance data. Ideally, we
+> >>want the overhead of turning on perf instrumentation to be as low as
+> >>possible.
+> >Right. But d_path will never be "low overhead", and as such it
+> >shouldn't be used by perf.
 > 
-> I don't fully agree at this point. A lot of things can be tuned away,
-> but in practice we want things to perform well out of the box without
-> needing all kinds of magic tuning that only 
+> The d_path() is called by perf_event_mmap_event() which translates
+> VMA to its file path for memory segments backed by files. As perf is
+> not just for sampling data within the kernel, it can also be used
+> for checking access pattern in the user space. As a result, it needs
+> to map VMAs back to the backing files to access their symbols
+> information. If d_path() is not the right function to call for this
+> purpose, what other alternatives do we have?
 
-Phrase seem cut mid-sentence ?
+As Dave said before, is the last path component sufficient?  Or how
+about an inode number?
 
-> Also this is just normal file access, nothing special about it.
-> It simply has to scale. For all kinds of workloads.
-> 
-> And it does, just d_path messes it up.
-
-Well there are reasonable workloads and artificial ones, I am just
-warning not to use 'that' specific test as a good indicator, if you have
-other reasonable workloads that show a similar flow feel free to bring
-it up.
-
-> > I have no beef on the rest but repeated access to Nsswitch information
-> > is not something you need to optimize at the file system layer and
-> > should not be brought up as a point in favor.
-> 
-> This is about repeated access to arbitrary files.
-
-Ok. I do not want to start a discussion on this, I just pointed out the
-specific point was not really a good example hopefully there are others
-that justify the patchset.
-
-Simo.
-
--- 
-Simo Sorce * Red Hat, Inc * New York
-
+--b.
