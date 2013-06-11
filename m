@@ -1,39 +1,62 @@
-From: Dave Chinner <david@fromorbit.com>
-Subject: Re: [PATCH 0/3 v3] dcache: make it more scalable on large system
-Date: Thu, 6 Jun 2013 13:48:32 +1000
-Message-ID: <20130606034832.GV29338@dastard>
-References: <1369273048-60256-1-git-send-email-Waiman.Long@hp.com>
- <20130523094201.GA24543@dastard>
- <519E8B5F.3080905@hp.com>
- <20130527020903.GR29466@dastard>
- <51A624E2.3000301@hp.com>
- <20130529184640.GA3243@fieldses.org>
- <20130529203700.GM6123@two.firstfloor.org>
-Mime-Version: 1.0
-Return-path: <autofs-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130529203700.GM6123@two.firstfloor.org>
-Sender: autofs-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Andi Kleen <andi@firstfloor.org>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>, Waiman Long <waiman.long@hp.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@redhat.com>, Miklos Szeredi <mszeredi@suse.cz>, Ian Kent <raven@themaw.net>, Sage Weil <sage@inktank.com>, Steve French <sfrench@samba.org>, Trond Myklebust <Trond.Myklebust@netapp.com>, Eric Paris <eparis@redhat.com>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, autofs@vger.kernel.org, ceph-devel@vger.kernel.org, linux-cifs@vger.kernel.org, linux-nfs@vger.kernel.org, "Chandramouleeswaran, Aswin" <aswin@hp.com>, "Norton, Scott J" <scott.norton@hp.com>
+From: fedfs-utils Release Announcements <fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
+Subject: Announcing the release of fedfs-utils 0.9.1
+Date: Tue, 11 Jun 2013 12:27:47 -0400
+Message-ID: <B76EF9B8-D776-43BE-AD94-94EAAA2B2EB2@oracle.com>
+Reply-To: fedfs-utils Release Announcements
+	<fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
+Mime-Version: 1.0 (Mac OS X Mail 6.5 \(1508\))
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <fedfs-utils-announce-bounces-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <https://oss.oracle.com/mailman/listinfo/fedfs-utils-announce>, 
+	<mailto:fedfs-utils-announce-request-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://oss.oracle.com/pipermail/fedfs-utils-announce>
+List-Post: <mailto:fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
+List-Help: <mailto:fedfs-utils-announce-request-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org?subject=help>
+List-Subscribe: <https://oss.oracle.com/mailman/listinfo/fedfs-utils-announce>, 
+	<mailto:fedfs-utils-announce-request-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org?subject=subscribe>
+Sender: fedfs-utils-announce-bounces-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
+Errors-To: fedfs-utils-announce-bounces-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
+To: fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
+Cc: Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "autofs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <autofs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org" <samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org>
 
-On Wed, May 29, 2013 at 10:37:00PM +0200, Andi Kleen wrote:
-> > As Dave said before, is the last path component sufficient?  Or how
-> > about an inode number?
-> 
-> Neither works, the profiler needs to find the file and read it.
-> 
-> inode searching would be incredible expensive, unless the file system
-> provided a "open-by-inode" primitive
+This package contains an implementation of the Federated Filesystem (FedFS)=
+ Proposed Standard for Linux.  For an introduction to FedFS, see RFC 5716.
 
-That's effectively what fs/fhandle.c gives you.
+This is an ALPHA quality release.  The code in this release is not guarante=
+ed to work.  Programming, administrative, and user interfaces may change si=
+gnificantly before the next release.  This release is for technology previe=
+w only.
 
-Cheers,
+Changes since 0.9.0:
+	=95 Address build issues with recent automake and libtools
+	=95 Replace nl_langinfo(CODESET) check in command line tools
 
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+New with fedfs-utils 0.9.0:
+	=95 NSDB schema complies with latest draft standard
+	=95 DNS SRV support complies with RFC 6641
+	=95 NSDB clients support the FEDFS_SEC_TLS security type
+	=95 NSDB clients can follow LDAP referrals returned by NSDB nodes
+	=95 New tools for configuration of NSDBs
+	=95 New "display-junction" debugging command
+
+Project web site
+http://wiki.linux-nfs.org/wiki/index.php/FedFsUtilsProject
+
+Installation guide:
+http://wiki.linux-nfs.org/wiki/index.php/FedFsInstallationGuide0.9
+
+Tarball releases available at
+http://git.linux-nfs.org/?p=3Dcel/fedfs-releases.git;a=3Dsummary
+
+Git repository available at
+http://git.linux-nfs.org/?p=3Dcel/fedfs-utils.git;a=3Dshortlog;h=3Drefs/hea=
+ds/0.9-stable
+
+Patchwork available at
+http://patchwork.ozlabs.org/project/fedfs-utils/list/
+
+--
+Chuck Lever
+chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
