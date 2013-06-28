@@ -1,62 +1,38 @@
-From: fedfs-utils Release Announcements <fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
-Subject: Announcing the release of fedfs-utils 0.9.1
-Date: Tue, 11 Jun 2013 12:27:47 -0400
-Message-ID: <B76EF9B8-D776-43BE-AD94-94EAAA2B2EB2@oracle.com>
-Reply-To: fedfs-utils Release Announcements
-	<fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
-Mime-Version: 1.0 (Mac OS X Mail 6.5 \(1508\))
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <fedfs-utils-announce-bounces-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <https://oss.oracle.com/mailman/listinfo/fedfs-utils-announce>, 
-	<mailto:fedfs-utils-announce-request-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://oss.oracle.com/pipermail/fedfs-utils-announce>
-List-Post: <mailto:fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
-List-Help: <mailto:fedfs-utils-announce-request-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org?subject=help>
-List-Subscribe: <https://oss.oracle.com/mailman/listinfo/fedfs-utils-announce>, 
-	<mailto:fedfs-utils-announce-request-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org?subject=subscribe>
-Sender: fedfs-utils-announce-bounces-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
-Errors-To: fedfs-utils-announce-bounces-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
-To: fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
-Cc: Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "autofs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <autofs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org" <samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org>
+From: Leonardo Chiquitto <leonardo.lists@gmail.com>
+Subject: Linking against libldap_r instead of libldap?
+Date: Thu, 27 Jun 2013 22:42:49 -0300
+Message-ID: <CAEySpB4wm76DEJE-752Qd=_vtEMMi_vzr=eGu7RfUaJmbVT2GQ@mail.gmail.com>
+Mime-Version: 1.0
+Return-path: <autofs-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20120113;
+        h=mime-version:date:message-id:subject:from:to:content-type;
+        bh=pMRibQYispnFI/VW6wiAkjqgWr5jaDmA23J05RTvOow=;
+        b=e+VTXp+5YjWjRHiKBVGcOcYy1FLcKQBaG81aeSSBjVMfsw0B93NgrL37f8J9NKaniq
+         qVlJ9awwB+U9AaDDIZWk8WhY5EfJBqYqg7jVRFsu3vCWmj8VNz2h9iCuDb2R2fbl5MlO
+         RWHSTXWlySvBzs0GosrTClEeOTfXusOKXn61sEgAEym2LKR5nMEgmidrFHizqXMyCtt0
+         E5SM/2w3ZpnQ7NIIpQ8yvFgnYnASkGRwwj76KLm4wjku7gyClfFDPS67Ke2gKKC43ZBG
+         2oV7p77AxpAdn0jVl8ier6rbQH7szYjQIaIAOLCX8/gSdwRymKF3BIUOF1elPT0W40ns
+         qypQ==
+Sender: autofs-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: autofs <autofs@vger.kernel.org>
 
-This package contains an implementation of the Federated Filesystem (FedFS)=
- Proposed Standard for Linux.  For an introduction to FedFS, see RFC 5716.
+Hi,
 
-This is an ALPHA quality release.  The code in this release is not guarante=
-ed to work.  Programming, administrative, and user interfaces may change si=
-gnificantly before the next release.  This release is for technology previe=
-w only.
+I'm investigating one segmentation fault report (multiple occurrences)
+in automount where the OpenSSL context (using LDAP with TLS) is
+clearly corrupted. Reading OpenSSL documentation I found that the
+the library needs to be correctly initialized in order to run in a multi-
+threaded environment. I also found that *only* the reentrant build of
+the OpenLDAP libraries (libldap_r) initialize openssl for multi-threading.
 
-Changes since 0.9.0:
-	=95 Address build issues with recent automake and libtools
-	=95 Replace nl_langinfo(CODESET) check in command line tools
+By default (since commit 04dfd15590a) automount is linked against
+libldap (non-reentrant), but I failed to find the reason behind the change.
+Could you help me understand why it shouldn't be linked against
+libldap_r?
 
-New with fedfs-utils 0.9.0:
-	=95 NSDB schema complies with latest draft standard
-	=95 DNS SRV support complies with RFC 6641
-	=95 NSDB clients support the FEDFS_SEC_TLS security type
-	=95 NSDB clients can follow LDAP referrals returned by NSDB nodes
-	=95 New tools for configuration of NSDBs
-	=95 New "display-junction" debugging command
-
-Project web site
-http://wiki.linux-nfs.org/wiki/index.php/FedFsUtilsProject
-
-Installation guide:
-http://wiki.linux-nfs.org/wiki/index.php/FedFsInstallationGuide0.9
-
-Tarball releases available at
-http://git.linux-nfs.org/?p=3Dcel/fedfs-releases.git;a=3Dsummary
-
-Git repository available at
-http://git.linux-nfs.org/?p=3Dcel/fedfs-utils.git;a=3Dshortlog;h=3Drefs/hea=
-ds/0.9-stable
-
-Patchwork available at
-http://patchwork.ozlabs.org/project/fedfs-utils/list/
-
---
-Chuck Lever
-chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+Thanks,
+Leonardo
