@@ -1,56 +1,205 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs-5.0.7-add-null-check-in-read_one.patch
-Date: Sat, 29 Jun 2013 10:03:22 +0800
-Message-ID: <1372471402.2362.7.camel@perseus.fritz.box>
-References: <CAEySpB7LaQ4S=LD=CAAQK6ap3acULM05D=23=XOOAOLNr_uw4Q@mail.gmail.com>
-	 <1372470789.2362.2.camel@perseus.fritz.box>
+Subject: [RFC PATCH 0/7] autofs4 - rename autofs4 to autofs
+Date: Mon, 01 Jul 2013 11:14:00 +0800
+Message-ID: <20130701031335.4423.6154.stgit@perseus.fritz.box>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	message-id:subject:from:to:cc:date:in-reply-to:references
-	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
-	 bh=8FrnHQAD4p56scPhTosCI5kLGDc=; b=wOUKzizTD/bRXLPzvIanOUd14M1l
-	AibgEEuASbDw7khEIoLnAjXabsxlhOdJcjqHhTvBSUMHCtyNiL8m54hocNX1rsur
-	Y+QTKFu9N3gKRJo0I9qnECzIktklAOf2CRvca/4GQTSemwwsI0Y+D4lyjL/6cpeH
-	7+zg339HQGwLxiM=
+	subject:to:from:cc:date:message-id:mime-version:content-type
+	:content-transfer-encoding; s=mesmtp; bh=P2VM/umTXCh/YWXjTQOrIRT
+	tLUQ=; b=Yujve3pSHZ+FVE9F7fLMhPuqDq5R1/KWXxMYrh4g3dwSoJW+GVb96Vp
+	e8h9/DhxW5VYW5IvdIUZ3bm+teCrsZI9ZeMMwTCenta8XzeHmDmVmWj8Uukdj6/0
+	j/783P+friSpYl6sumsvBWnsKM5sCoRrl8xOiIAsRwJQx66gmqqA=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=message-id:subject:from:to:cc:date
-	:in-reply-to:references:content-type:mime-version
-	:content-transfer-encoding; s=smtpout; bh=8FrnHQAD4p56scPhTosCI5
-	kLGDc=; b=R/6sLEch7x7wdhPSrucFgDcGFiBPC+EOTTSjxjDcpeoyK7Kd1NtYnQ
-	WYVyD2ZF3MXKHPZf2oUEIhXZUzakHHzs5JDKUfxo3er3/CV8LMkfv8X4b3Sin6nh
-	TtmbY5PFG6KyN0H1juS3ndxATgeWekl896BqfDWbx8d27i7EnyllQ=
-In-Reply-To: <1372470789.2362.2.camel@perseus.fritz.box>
+	messagingengine.com; h=subject:to:from:cc:date:message-id
+	:mime-version:content-type:content-transfer-encoding; s=smtpout;
+	 bh=P2VM/umTXCh/YWXjTQOrIRTtLUQ=; b=iC4FI8NScVjEVy1+zwv3WG2pG1C9
+	uLiPrOAfGQd0DKmKo0O3b6lEidkPzlLRCR7t+yaNWN6Pj4XcSHOhtVB9jem2qcmj
+	jW5xUDZbnbUyN1gjKYX3WhXzUBOzMbTOZALu5LFh9x0e1wfsedlUQpmxcJw+buxB
+	HPH89kuKhX1xd1g=
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Leonardo Chiquitto <leonardo.lists@gmail.com>
-Cc: autofs <autofs@vger.kernel.org>
+To: linux-next@vger.kernel.org
+Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Sat, 2013-06-29 at 09:53 +0800, Ian Kent wrote:
-> On Fri, 2013-06-28 at 08:47 -0300, Leonardo Chiquitto wrote:
-> > Hi Ian,
-> > 
-> > Patch "autofs-5.0.7-add-null-check-in-read_one.patch" is listed
-> > in v5/patches-5.0.8/patch_order-5.0.7 but the file is not available
-> > in v5/patches-5.0.8.
-> 
-> Sorry, I'll fix that.
-> There's also a bug fix patch for
-> autofs-5.0.7-fix-add-null-check-in-parse_server_string.patch I need to
-> upload, probably this weekend.
+The autofs4 kernel module provides function for autofs version 3, 4 and
+5 and autofs module has long since been removed. Now we're left with a
+misnamed module. Appart from the name another problem this presents is
+that module autoload doesn't work because of the mismatch of the directory
+name and the name of the file system provided by the module.
 
-Umm .. that's autofs-5.0.7-add-null-check-in-parse_server_string.patch
-and the fix patch has "fix" in the name.
+So autofs4 should be renamed to autofs but I've held back doing it because
+of the potential disruption that could occur with a change like this.
 
-> 
-> Ian
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe autofs" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The issues are somewhat reduced now because systemd needs the autofs
+module at startup and because of the autoload issue it is easier to just
+compile the module into the kernel which is what is done in some cases.
+
+The big question for me is whether to leave a build stub in the autofs4
+directory along with a warning in Kconfig that the stub will be removed
+after two kernel versions or just straight out rename it and be done
+with it.
+
+The series here leaves a stub but I'd like comments thoughts on whether
+to use the stub or just rename the module?
+
+---
+
+Ian Kent (7):
+      autofs4 - coding style fixes
+      autofs4 - fix string.h include in auto_dev-ioctl.h
+      autofs4 - move linux/auto_dev-ioctl.h to uapi/linux
+      autofs - merge auto_fs.h and auto_fs4.h
+      autofs - use autofs instead of autofs4 everywhere
+      autofs - rename module autofs4 to autofs
+      autofs - change CONFIG_AUTOFS4_FS to CONFIG_AUTOFS_FS
 
 
+ MAINTAINERS                                  |    4 
+ arch/arm/configs/at91rm9200_defconfig        |    2 
+ arch/arm/configs/bcm_defconfig               |    2 
+ arch/arm/configs/cns3420vb_defconfig         |    2 
+ arch/arm/configs/colibri_pxa270_defconfig    |    2 
+ arch/arm/configs/da8xx_omapl_defconfig       |    2 
+ arch/arm/configs/davinci_all_defconfig       |    2 
+ arch/arm/configs/ebsa110_defconfig           |    2 
+ arch/arm/configs/ezx_defconfig               |    2 
+ arch/arm/configs/footbridge_defconfig        |    2 
+ arch/arm/configs/imote2_defconfig            |    2 
+ arch/arm/configs/imx_v6_v7_defconfig         |    2 
+ arch/arm/configs/lpc32xx_defconfig           |    2 
+ arch/arm/configs/mini2440_defconfig          |    2 
+ arch/arm/configs/omap1_defconfig             |    2 
+ arch/arm/configs/rpc_defconfig               |    2 
+ arch/arm/configs/s3c2410_defconfig           |    2 
+ arch/arm/configs/spear13xx_defconfig         |    2 
+ arch/arm/configs/spear3xx_defconfig          |    2 
+ arch/arm/configs/spear6xx_defconfig          |    2 
+ arch/arm/configs/trizeps4_defconfig          |    2 
+ arch/ia64/configs/bigsur_defconfig           |    2 
+ arch/ia64/configs/generic_defconfig          |    2 
+ arch/ia64/configs/gensparse_defconfig        |    2 
+ arch/ia64/configs/tiger_defconfig            |    2 
+ arch/ia64/configs/xen_domu_defconfig         |    2 
+ arch/m68k/configs/amiga_defconfig            |    2 
+ arch/m68k/configs/apollo_defconfig           |    2 
+ arch/m68k/configs/atari_defconfig            |    2 
+ arch/m68k/configs/bvme6000_defconfig         |    2 
+ arch/m68k/configs/hp300_defconfig            |    2 
+ arch/m68k/configs/mac_defconfig              |    2 
+ arch/m68k/configs/multi_defconfig            |    2 
+ arch/m68k/configs/mvme147_defconfig          |    2 
+ arch/m68k/configs/mvme16x_defconfig          |    2 
+ arch/m68k/configs/q40_defconfig              |    2 
+ arch/m68k/configs/sun3_defconfig             |    2 
+ arch/m68k/configs/sun3x_defconfig            |    2 
+ arch/mips/configs/bcm47xx_defconfig          |    2 
+ arch/mips/configs/bigsur_defconfig           |    2 
+ arch/mips/configs/capcella_defconfig         |    2 
+ arch/mips/configs/e55_defconfig              |    2 
+ arch/mips/configs/fuloong2e_defconfig        |    2 
+ arch/mips/configs/ip22_defconfig             |    2 
+ arch/mips/configs/ip32_defconfig             |    2 
+ arch/mips/configs/jazz_defconfig             |    2 
+ arch/mips/configs/lemote2f_defconfig         |    2 
+ arch/mips/configs/markeins_defconfig         |    2 
+ arch/mips/configs/mpc30x_defconfig           |    2 
+ arch/mips/configs/mtx1_defconfig             |    2 
+ arch/mips/configs/nlm_xlp_defconfig          |    2 
+ arch/mips/configs/nlm_xlr_defconfig          |    2 
+ arch/mips/configs/rm200_defconfig            |    2 
+ arch/mips/configs/tb0219_defconfig           |    2 
+ arch/mips/configs/tb0226_defconfig           |    2 
+ arch/mips/configs/tb0287_defconfig           |    2 
+ arch/mips/configs/workpad_defconfig          |    2 
+ arch/parisc/configs/712_defconfig            |    2 
+ arch/parisc/configs/a500_defconfig           |    2 
+ arch/parisc/configs/b180_defconfig           |    2 
+ arch/parisc/configs/c3000_defconfig          |    2 
+ arch/powerpc/configs/40x/virtex_defconfig    |    2 
+ arch/powerpc/configs/44x/sam440ep_defconfig  |    2 
+ arch/powerpc/configs/44x/virtex5_defconfig   |    2 
+ arch/powerpc/configs/85xx/stx_gp3_defconfig  |    2 
+ arch/powerpc/configs/86xx/sbc8641d_defconfig |    2 
+ arch/powerpc/configs/c2k_defconfig           |    2 
+ arch/powerpc/configs/cell_defconfig          |    2 
+ arch/powerpc/configs/ep8248e_defconfig       |    2 
+ arch/powerpc/configs/mgcoge_defconfig        |    2 
+ arch/powerpc/configs/mpc8272_ads_defconfig   |    2 
+ arch/powerpc/configs/pasemi_defconfig        |    2 
+ arch/powerpc/configs/pmac32_defconfig        |    2 
+ arch/powerpc/configs/ppc64_defconfig         |    2 
+ arch/powerpc/configs/ppc64e_defconfig        |    2 
+ arch/powerpc/configs/ppc6xx_defconfig        |    2 
+ arch/powerpc/configs/pq2fads_defconfig       |    2 
+ arch/powerpc/configs/ps3_defconfig           |    2 
+ arch/powerpc/configs/pseries_defconfig       |    2 
+ arch/score/configs/spct6600_defconfig        |    2 
+ arch/sh/configs/espt_defconfig               |    2 
+ arch/sh/configs/sdk7780_defconfig            |    2 
+ arch/sh/configs/sdk7786_defconfig            |    2 
+ arch/sh/configs/sh03_defconfig               |    2 
+ arch/sh/configs/sh7763rdp_defconfig          |    2 
+ arch/sparc/configs/sparc32_defconfig         |    2 
+ arch/tile/configs/tilegx_defconfig           |    2 
+ arch/tile/configs/tilepro_defconfig          |    2 
+ arch/um/defconfig                            |    2 
+ arch/x86/configs/i386_defconfig              |    2 
+ arch/x86/configs/x86_64_defconfig            |    2 
+ arch/xtensa/configs/common_defconfig         |    1 
+ arch/xtensa/configs/iss_defconfig            |    1 
+ arch/xtensa/configs/s6105_defconfig          |    1 
+ fs/Kconfig                                   |    1 
+ fs/Makefile                                  |    1 
+ fs/autofs/Kconfig                            |   19 +
+ fs/autofs/Makefile                           |    7 
+ fs/autofs/autofs_i.h                         |  341 ++++++++++
+ fs/autofs/dev-ioctl.c                        |  759 ++++++++++++++++++++++
+ fs/autofs/expire.c                           |  561 ++++++++++++++++
+ fs/autofs/init.c                             |   49 +
+ fs/autofs/inode.c                            |  368 +++++++++++
+ fs/autofs/root.c                             |  898 ++++++++++++++++++++++++++
+ fs/autofs/symlink.c                          |   21 +
+ fs/autofs/waitq.c                            |  570 +++++++++++++++++
+ fs/autofs4/Kconfig                           |   31 +
+ fs/autofs4/Makefile                          |   10 
+ fs/autofs4/autofs_i.h                        |  341 ----------
+ fs/autofs4/dev-ioctl.c                       |  760 ----------------------
+ fs/autofs4/expire.c                          |  562 ----------------
+ fs/autofs4/init.c                            |   52 --
+ fs/autofs4/inode.c                           |  371 -----------
+ fs/autofs4/root.c                            |  898 --------------------------
+ fs/autofs4/symlink.c                         |   24 -
+ fs/autofs4/waitq.c                           |  572 -----------------
+ fs/compat_ioctl.c                            |    1 
+ include/linux/auto_dev-ioctl.h               |  229 -------
+ include/linux/auto_fs.h                      |    5 
+ include/uapi/linux/auto_dev-ioctl.h          |  224 ++++++
+ include/uapi/linux/auto_fs.h                 |  156 ++++-
+ include/uapi/linux/auto_fs4.h                |  158 -----
+ 122 files changed, 4090 insertions(+), 4086 deletions(-)
+ create mode 100644 fs/autofs/Kconfig
+ create mode 100644 fs/autofs/Makefile
+ create mode 100644 fs/autofs/autofs_i.h
+ create mode 100644 fs/autofs/dev-ioctl.c
+ create mode 100644 fs/autofs/expire.c
+ create mode 100644 fs/autofs/init.c
+ create mode 100644 fs/autofs/inode.c
+ create mode 100644 fs/autofs/root.c
+ create mode 100644 fs/autofs/symlink.c
+ create mode 100644 fs/autofs/waitq.c
+ delete mode 100644 fs/autofs4/autofs_i.h
+ delete mode 100644 fs/autofs4/dev-ioctl.c
+ delete mode 100644 fs/autofs4/expire.c
+ delete mode 100644 fs/autofs4/init.c
+ delete mode 100644 fs/autofs4/inode.c
+ delete mode 100644 fs/autofs4/root.c
+ delete mode 100644 fs/autofs4/symlink.c
+ delete mode 100644 fs/autofs4/waitq.c
+ delete mode 100644 include/linux/auto_dev-ioctl.h
+ create mode 100644 include/uapi/linux/auto_dev-ioctl.h
+
+-- 
+Signature
