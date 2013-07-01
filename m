@@ -1,1744 +1,1334 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [RFC PATCH 5/7] autofs - use autofs instead of autofs4 everywhere
-Date: Mon, 01 Jul 2013 11:14:36 +0800
-Message-ID: <20130701031435.4423.65182.stgit@perseus.fritz.box>
+Subject: [RFC PATCH 7/7] autofs - change CONFIG_AUTOFS4_FS to
+ CONFIG_AUTOFS_FS
+Date: Mon, 01 Jul 2013 11:14:51 +0800
+Message-ID: <20130701031449.4423.58614.stgit@perseus.fritz.box>
 References: <20130701031335.4423.6154.stgit@perseus.fritz.box>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
 	subject:to:from:cc:date:message-id:in-reply-to:references
 	:mime-version:content-type:content-transfer-encoding; s=mesmtp;
-	 bh=eL9ZQyu2qTIe9319JRKtUKYhQVo=; b=yFb3KvXRF/vzmVo1abVbDWBlQJU5
-	xRwWwhKgRdjvSYWfiZMxYY53W6/WKBk+EDtGXZHrzqz01H0oj0UE6v4Q74YlenzD
-	0fEnjBBOc4UTzTKt6u575kG3CQEKPJqAI9x0sywsK/4LipK4cxxyGIV1Er65UHIu
-	VyQC0dUDLoP/qm4=
+	 bh=1BalkFviVufe7Uu0BGpk5ijvqvs=; b=ZinREUORDiz5F8PppbDWKWfzzVD2
+	mv2xtEGQS9hJIJo5zafI8n2GnNdjhnGINPtvWP1JYkDa8rsp3GZT0N/J9OoLzqwP
+	F7D8vckvKUneq5R1Cuy/kLTX4Hb8cnVdx8M+kggDb+SadRX7CF0g1tc1rm6WHNp2
+	w9pIwFmtkGh7SsY=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=subject:to:from:cc:date:message-id
 	:in-reply-to:references:mime-version:content-type
-	:content-transfer-encoding; s=smtpout; bh=eL9ZQyu2qTIe9319JRKtUK
-	YhQVo=; b=IpxnfHPhw/ghAZhvDPWyNIDX3FBmIIpYmhAIuFAa8RVSJ6GrmL9Ii5
-	o1hdKMzaE4Uip13QjbFaptLqYq6Wqdn4BmXTjPBhxLnPEj/6bt4HiKJ/0Rh37sJZ
-	CR68Aw7AOCc4B2PYZZCZEDd37g9IgtWDUMINfX3BjHQ2W15pdM6T8=
+	:content-transfer-encoding; s=smtpout; bh=1BalkFviVufe7Uu0BGpk5i
+	jvqvs=; b=oju/2ZHITFAxs14HObRPepU+zkMry3ms0qct2moFzrRRw/WtNA4rk/
+	2ozT4EKvhY+DaTQIbukOAjCx4FQyrc8IZOboWcIFp14a8z8ufMfREdeQYKeAwMul
+	OfI+P9prJaSh6wYUm5hzZznqQ/TuOrjOPBitHS5Vh9p+0DvS83GCU=
 In-Reply-To: <20130701031335.4423.6154.stgit@perseus.fritz.box>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: linux-next@vger.kernel.org
 Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Update naming within autofs source to be consistent by changing occurrences
-of autofs4 to autofs.
-
 Signed-off-by: Ian Kent <raven@themaw.net>
 ---
- fs/autofs4/autofs_i.h  |   92 +++++++++--------
- fs/autofs4/dev-ioctl.c |   18 ++-
- fs/autofs4/expire.c    |  128 ++++++++++++------------
- fs/autofs4/init.c      |   12 +-
- fs/autofs4/inode.c     |   46 ++++-----
- fs/autofs4/root.c      |  256 ++++++++++++++++++++++++------------------------
- fs/autofs4/symlink.c   |    6 +
- fs/autofs4/waitq.c     |   55 +++++-----
- 8 files changed, 307 insertions(+), 306 deletions(-)
+ arch/arm/configs/at91rm9200_defconfig        |    2 +-
+ arch/arm/configs/bcm_defconfig               |    2 +-
+ arch/arm/configs/cns3420vb_defconfig         |    2 +-
+ arch/arm/configs/colibri_pxa270_defconfig    |    2 +-
+ arch/arm/configs/da8xx_omapl_defconfig       |    2 +-
+ arch/arm/configs/davinci_all_defconfig       |    2 +-
+ arch/arm/configs/ebsa110_defconfig           |    2 +-
+ arch/arm/configs/ezx_defconfig               |    2 +-
+ arch/arm/configs/footbridge_defconfig        |    2 +-
+ arch/arm/configs/imote2_defconfig            |    2 +-
+ arch/arm/configs/imx_v6_v7_defconfig         |    2 +-
+ arch/arm/configs/lpc32xx_defconfig           |    2 +-
+ arch/arm/configs/mini2440_defconfig          |    2 +-
+ arch/arm/configs/omap1_defconfig             |    2 +-
+ arch/arm/configs/rpc_defconfig               |    2 +-
+ arch/arm/configs/s3c2410_defconfig           |    2 +-
+ arch/arm/configs/spear13xx_defconfig         |    2 +-
+ arch/arm/configs/spear3xx_defconfig          |    2 +-
+ arch/arm/configs/spear6xx_defconfig          |    2 +-
+ arch/arm/configs/trizeps4_defconfig          |    2 +-
+ arch/ia64/configs/bigsur_defconfig           |    2 +-
+ arch/ia64/configs/generic_defconfig          |    2 +-
+ arch/ia64/configs/gensparse_defconfig        |    2 +-
+ arch/ia64/configs/tiger_defconfig            |    2 +-
+ arch/ia64/configs/xen_domu_defconfig         |    2 +-
+ arch/m68k/configs/amiga_defconfig            |    2 +-
+ arch/m68k/configs/apollo_defconfig           |    2 +-
+ arch/m68k/configs/atari_defconfig            |    2 +-
+ arch/m68k/configs/bvme6000_defconfig         |    2 +-
+ arch/m68k/configs/hp300_defconfig            |    2 +-
+ arch/m68k/configs/mac_defconfig              |    2 +-
+ arch/m68k/configs/multi_defconfig            |    2 +-
+ arch/m68k/configs/mvme147_defconfig          |    2 +-
+ arch/m68k/configs/mvme16x_defconfig          |    2 +-
+ arch/m68k/configs/q40_defconfig              |    2 +-
+ arch/m68k/configs/sun3_defconfig             |    2 +-
+ arch/m68k/configs/sun3x_defconfig            |    2 +-
+ arch/mips/configs/bcm47xx_defconfig          |    2 +-
+ arch/mips/configs/bigsur_defconfig           |    2 +-
+ arch/mips/configs/capcella_defconfig         |    2 +-
+ arch/mips/configs/e55_defconfig              |    2 +-
+ arch/mips/configs/fuloong2e_defconfig        |    2 +-
+ arch/mips/configs/ip22_defconfig             |    2 +-
+ arch/mips/configs/ip32_defconfig             |    2 +-
+ arch/mips/configs/jazz_defconfig             |    2 +-
+ arch/mips/configs/lemote2f_defconfig         |    2 +-
+ arch/mips/configs/markeins_defconfig         |    2 +-
+ arch/mips/configs/mpc30x_defconfig           |    2 +-
+ arch/mips/configs/mtx1_defconfig             |    2 +-
+ arch/mips/configs/nlm_xlp_defconfig          |    2 +-
+ arch/mips/configs/nlm_xlr_defconfig          |    2 +-
+ arch/mips/configs/rm200_defconfig            |    2 +-
+ arch/mips/configs/tb0219_defconfig           |    2 +-
+ arch/mips/configs/tb0226_defconfig           |    2 +-
+ arch/mips/configs/tb0287_defconfig           |    2 +-
+ arch/mips/configs/workpad_defconfig          |    2 +-
+ arch/parisc/configs/712_defconfig            |    2 +-
+ arch/parisc/configs/a500_defconfig           |    2 +-
+ arch/parisc/configs/b180_defconfig           |    2 +-
+ arch/parisc/configs/c3000_defconfig          |    2 +-
+ arch/powerpc/configs/40x/virtex_defconfig    |    2 +-
+ arch/powerpc/configs/44x/sam440ep_defconfig  |    2 +-
+ arch/powerpc/configs/44x/virtex5_defconfig   |    2 +-
+ arch/powerpc/configs/85xx/stx_gp3_defconfig  |    2 +-
+ arch/powerpc/configs/86xx/sbc8641d_defconfig |    2 +-
+ arch/powerpc/configs/c2k_defconfig           |    2 +-
+ arch/powerpc/configs/cell_defconfig          |    2 +-
+ arch/powerpc/configs/ep8248e_defconfig       |    2 +-
+ arch/powerpc/configs/mgcoge_defconfig        |    2 +-
+ arch/powerpc/configs/mpc8272_ads_defconfig   |    2 +-
+ arch/powerpc/configs/pasemi_defconfig        |    2 +-
+ arch/powerpc/configs/pmac32_defconfig        |    2 +-
+ arch/powerpc/configs/ppc64_defconfig         |    2 +-
+ arch/powerpc/configs/ppc64e_defconfig        |    2 +-
+ arch/powerpc/configs/ppc6xx_defconfig        |    2 +-
+ arch/powerpc/configs/pq2fads_defconfig       |    2 +-
+ arch/powerpc/configs/ps3_defconfig           |    2 +-
+ arch/powerpc/configs/pseries_defconfig       |    2 +-
+ arch/score/configs/spct6600_defconfig        |    2 +-
+ arch/sh/configs/espt_defconfig               |    2 +-
+ arch/sh/configs/sdk7780_defconfig            |    2 +-
+ arch/sh/configs/sdk7786_defconfig            |    2 +-
+ arch/sh/configs/sh03_defconfig               |    2 +-
+ arch/sh/configs/sh7763rdp_defconfig          |    2 +-
+ arch/sparc/configs/sparc32_defconfig         |    2 +-
+ arch/tile/configs/tilegx_defconfig           |    2 +-
+ arch/tile/configs/tilepro_defconfig          |    2 +-
+ arch/um/defconfig                            |    2 +-
+ arch/x86/configs/i386_defconfig              |    2 +-
+ arch/x86/configs/x86_64_defconfig            |    2 +-
+ arch/xtensa/configs/common_defconfig         |    1 -
+ arch/xtensa/configs/iss_defconfig            |    1 -
+ arch/xtensa/configs/s6105_defconfig          |    1 -
+ 93 files changed, 90 insertions(+), 93 deletions(-)
 
-diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
-index 1a79bc7..dcdd1d7 100644
---- a/fs/autofs4/autofs_i.h
-+++ b/fs/autofs4/autofs_i.h
-@@ -123,29 +123,29 @@ struct autofs_sb_info {
- 	struct list_head expiring_list;
- };
- 
--static inline struct autofs_sb_info *autofs4_sbi(struct super_block *sb)
-+static inline struct autofs_sb_info *autofs_sbi(struct super_block *sb)
- {
- 	return (struct autofs_sb_info *)(sb->s_fs_info);
- }
- 
--static inline struct autofs_info *autofs4_dentry_ino(struct dentry *dentry)
-+static inline struct autofs_info *autofs_dentry_ino(struct dentry *dentry)
- {
- 	return (struct autofs_info *)(dentry->d_fsdata);
- }
- 
--/* autofs4_oz_mode(): do we see the man behind the curtain?  (The
-+/* autofs_oz_mode(): do we see the man behind the curtain?  (The
-    processes which do manipulations for us in user space sees the raw
-    filesystem without "magic".) */
- 
--static inline int autofs4_oz_mode(struct autofs_sb_info *sbi)
-+static inline int autofs_oz_mode(struct autofs_sb_info *sbi)
- {
- 	return sbi->catatonic || task_pgrp(current) == sbi->oz_pgrp;
- }
- 
- /* Does a dentry have some pending activity? */
--static inline int autofs4_ispending(struct dentry *dentry)
-+static inline int autofs_ispending(struct dentry *dentry)
- {
--	struct autofs_info *inf = autofs4_dentry_ino(dentry);
-+	struct autofs_info *inf = autofs_dentry_ino(dentry);
- 
- 	if (inf->flags & AUTOFS_INF_PENDING)
- 		return 1;
-@@ -156,25 +156,25 @@ static inline int autofs4_ispending(struct dentry *dentry)
- 	return 0;
- }
- 
--struct inode *autofs4_get_inode(struct super_block *, umode_t);
--void autofs4_free_ino(struct autofs_info *);
-+struct inode *autofs_get_inode(struct super_block *, umode_t);
-+void autofs_free_ino(struct autofs_info *);
- 
- /* Expiration */
--int is_autofs4_dentry(struct dentry *);
--int autofs4_expire_wait(struct dentry *dentry);
--int autofs4_expire_run(struct super_block *, struct vfsmount *,
--		       struct autofs_sb_info *,
--		       struct autofs_packet_expire __user *);
--int autofs4_do_expire_multi(struct super_block *sb, struct vfsmount *mnt,
--			    struct autofs_sb_info *sbi, int when);
--int autofs4_expire_multi(struct super_block *, struct vfsmount *,
--			 struct autofs_sb_info *, int __user *);
--struct dentry *autofs4_expire_direct(struct super_block *sb,
--				     struct vfsmount *mnt,
--				     struct autofs_sb_info *sbi, int how);
--struct dentry *autofs4_expire_indirect(struct super_block *sb,
--				       struct vfsmount *mnt,
--				       struct autofs_sb_info *sbi, int how);
-+int is_autofs_dentry(struct dentry *);
-+int autofs_expire_wait(struct dentry *dentry);
-+int autofs_expire_run(struct super_block *, struct vfsmount *,
-+		      struct autofs_sb_info *,
-+		      struct autofs_packet_expire __user *);
-+int autofs_do_expire_multi(struct super_block *sb, struct vfsmount *mnt,
-+			   struct autofs_sb_info *sbi, int when);
-+int autofs_expire_multi(struct super_block *, struct vfsmount *,
-+			struct autofs_sb_info *, int __user *);
-+struct dentry *autofs_expire_direct(struct super_block *sb,
-+				    struct vfsmount *mnt,
-+				    struct autofs_sb_info *sbi, int how);
-+struct dentry *autofs_expire_indirect(struct super_block *sb,
-+				      struct vfsmount *mnt,
-+				      struct autofs_sb_info *sbi, int how);
- 
- /* Device node initialization */
- 
-@@ -183,11 +183,11 @@ void autofs_dev_ioctl_exit(void);
- 
- /* Operations structures */
- 
--extern const struct inode_operations autofs4_symlink_inode_operations;
--extern const struct inode_operations autofs4_dir_inode_operations;
--extern const struct file_operations autofs4_dir_operations;
--extern const struct file_operations autofs4_root_operations;
--extern const struct dentry_operations autofs4_dentry_operations;
-+extern const struct inode_operations autofs_symlink_inode_operations;
-+extern const struct inode_operations autofs_dir_inode_operations;
-+extern const struct file_operations autofs_dir_operations;
-+extern const struct file_operations autofs_root_operations;
-+extern const struct dentry_operations autofs_dentry_operations;
- 
- /* VFS automount flags management functions */
- 
-@@ -265,9 +265,9 @@ static inline void managed_dentry_clear_managed(struct dentry *dentry)
- 
- /* Initializing function */
- 
--int autofs4_fill_super(struct super_block *, void *, int);
--struct autofs_info *autofs4_new_ino(struct autofs_sb_info *);
--void autofs4_clean_ino(struct autofs_info *);
-+int autofs_fill_super(struct super_block *, void *, int);
-+struct autofs_info *autofs_new_ino(struct autofs_sb_info *);
-+void autofs_clean_ino(struct autofs_info *);
- 
- static inline int autofs_prepare_pipe(struct file *pipe)
- {
-@@ -282,16 +282,16 @@ static inline int autofs_prepare_pipe(struct file *pipe)
- 
- /* Queue management functions */
- 
--int autofs4_wait(struct autofs_sb_info *,struct dentry *, enum autofs_notify);
--int autofs4_wait_release(struct autofs_sb_info *,autofs_wqt_t,int);
--void autofs4_catatonic_mode(struct autofs_sb_info *);
-+int autofs_wait(struct autofs_sb_info *,struct dentry *, enum autofs_notify);
-+int autofs_wait_release(struct autofs_sb_info *,autofs_wqt_t,int);
-+void autofs_catatonic_mode(struct autofs_sb_info *);
- 
--static inline u32 autofs4_get_dev(struct autofs_sb_info *sbi)
-+static inline u32 autofs_get_dev(struct autofs_sb_info *sbi)
- {
- 	return new_encode_dev(sbi->sb->s_dev);
- }
- 
--static inline u64 autofs4_get_ino(struct autofs_sb_info *sbi)
-+static inline u64 autofs_get_ino(struct autofs_sb_info *sbi)
- {
- 	return sbi->sb->s_root->d_inode->i_ino;
- }
-@@ -301,10 +301,10 @@ static inline int simple_positive(struct dentry *dentry)
- 	return dentry->d_inode && !d_unhashed(dentry);
- }
- 
--static inline void __autofs4_add_expiring(struct dentry *dentry)
-+static inline void __autofs_add_expiring(struct dentry *dentry)
- {
--	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
--	struct autofs_info *ino = autofs4_dentry_ino(dentry);
-+	struct autofs_sb_info *sbi = autofs_sbi(dentry->d_sb);
-+	struct autofs_info *ino = autofs_dentry_ino(dentry);
- 	if (ino) {
- 		if (list_empty(&ino->expiring))
- 			list_add(&ino->expiring, &sbi->expiring_list);
-@@ -312,10 +312,10 @@ static inline void __autofs4_add_expiring(struct dentry *dentry)
- 	return;
- }
- 
--static inline void autofs4_add_expiring(struct dentry *dentry)
-+static inline void autofs_add_expiring(struct dentry *dentry)
- {
--	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
--	struct autofs_info *ino = autofs4_dentry_ino(dentry);
-+	struct autofs_sb_info *sbi = autofs_sbi(dentry->d_sb);
-+	struct autofs_info *ino = autofs_dentry_ino(dentry);
- 	if (ino) {
- 		spin_lock(&sbi->lookup_lock);
- 		if (list_empty(&ino->expiring))
-@@ -325,10 +325,10 @@ static inline void autofs4_add_expiring(struct dentry *dentry)
- 	return;
- }
- 
--static inline void autofs4_del_expiring(struct dentry *dentry)
-+static inline void autofs_del_expiring(struct dentry *dentry)
- {
--	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
--	struct autofs_info *ino = autofs4_dentry_ino(dentry);
-+	struct autofs_sb_info *sbi = autofs_sbi(dentry->d_sb);
-+	struct autofs_info *ino = autofs_dentry_ino(dentry);
- 	if (ino) {
- 		spin_lock(&sbi->lookup_lock);
- 		if (!list_empty(&ino->expiring))
-@@ -338,4 +338,4 @@ static inline void autofs4_del_expiring(struct dentry *dentry)
- 	return;
- }
- 
--extern void autofs4_kill_sb(struct super_block *);
-+extern void autofs_kill_sb(struct super_block *);
-diff --git a/fs/autofs4/dev-ioctl.c b/fs/autofs4/dev-ioctl.c
-index 9183821..024389a 100644
---- a/fs/autofs4/dev-ioctl.c
-+++ b/fs/autofs4/dev-ioctl.c
-@@ -160,7 +160,7 @@ static struct autofs_sb_info *autofs_dev_ioctl_sbi(struct file *f)
- 
- 	if (f) {
- 		inode = file_inode(f);
--		sbi = autofs4_sbi(inode->i_sb);
-+		sbi = autofs_sbi(inode->i_sb);
- 	}
- 	return sbi;
- }
-@@ -217,7 +217,7 @@ static int test_by_dev(struct path *path, void *p)
- 
- static int test_by_type(struct path *path, void *p)
- {
--	struct autofs_info *ino = autofs4_dentry_ino(path->dentry);
-+	struct autofs_info *ino = autofs_dentry_ino(path->dentry);
- 	return ino && ino->sbi->type & *(unsigned *)p;
- }
- 
-@@ -309,7 +309,7 @@ static int autofs_dev_ioctl_ready(struct file *fp,
- 	autofs_wqt_t token;
- 
- 	token = (autofs_wqt_t) param->ready.token;
--	return autofs4_wait_release(sbi, token, 0);
-+	return autofs_wait_release(sbi, token, 0);
- }
- 
- /*
-@@ -325,7 +325,7 @@ static int autofs_dev_ioctl_fail(struct file *fp,
- 
- 	token = (autofs_wqt_t) param->fail.token;
- 	status = param->fail.status ? param->fail.status : -ENOENT;
--	return autofs4_wait_release(sbi, token, status);
-+	return autofs_wait_release(sbi, token, status);
- }
- 
- /*
-@@ -397,7 +397,7 @@ static int autofs_dev_ioctl_catatonic(struct file *fp,
- 				      struct autofs_sb_info *sbi,
- 				      struct autofs_dev_ioctl *param)
- {
--	autofs4_catatonic_mode(sbi);
-+	autofs_catatonic_mode(sbi);
- 	return 0;
- }
- 
-@@ -444,10 +444,10 @@ static int autofs_dev_ioctl_requester(struct file *fp,
- 	if (err)
- 		goto out;
- 
--	ino = autofs4_dentry_ino(path.dentry);
-+	ino = autofs_dentry_ino(path.dentry);
- 	if (ino) {
- 		err = 0;
--		autofs4_expire_wait(path.dentry);
-+		autofs_expire_wait(path.dentry);
- 		spin_lock(&sbi->fs_lock);
- 		param->requester.uid = from_kuid_munged(current_user_ns(), ino->uid);
- 		param->requester.gid = from_kgid_munged(current_user_ns(), ino->gid);
-@@ -472,7 +472,7 @@ static int autofs_dev_ioctl_expire(struct file *fp,
- 	how = param->expire.how;
- 	mnt = fp->f_path.mnt;
- 
--	return autofs4_do_expire_multi(sbi->sb, mnt, sbi, how);
-+	return autofs_do_expire_multi(sbi->sb, mnt, sbi, how);
- }
- 
- /* Check if autofs mount point is in use */
-@@ -686,7 +686,7 @@ static int _autofs_dev_ioctl(unsigned int command, struct autofs_dev_ioctl __use
- 		 * Admin needs to be able to set the mount catatonic in
- 		 * order to be able to perform the re-open.
- 		 */
--		if (!autofs4_oz_mode(sbi) &&
-+		if (!autofs_oz_mode(sbi) &&
- 		    cmd != AUTOFS_DEV_IOCTL_CATATONIC_CMD) {
- 			err = -EACCES;
- 			fput(fp);
-diff --git a/fs/autofs4/expire.c b/fs/autofs4/expire.c
-index ddee37a..58fba1b 100644
---- a/fs/autofs4/expire.c
-+++ b/fs/autofs4/expire.c
-@@ -14,10 +14,10 @@
- static unsigned long now;
- 
- /* Check if a dentry can be expired */
--static inline int autofs4_can_expire(struct dentry *dentry,
--				     unsigned long timeout, int do_now)
-+static inline int autofs_can_expire(struct dentry *dentry,
-+				    unsigned long timeout, int do_now)
- {
--	struct autofs_info *ino = autofs4_dentry_ino(dentry);
-+	struct autofs_info *ino = autofs_dentry_ino(dentry);
- 
- 	/* dentry in the process of being deleted */
- 	if (ino == NULL)
-@@ -38,7 +38,7 @@ static inline int autofs4_can_expire(struct dentry *dentry,
- }
- 
- /* Check a mount point for busyness */
--static int autofs4_mount_busy(struct vfsmount *mnt, struct dentry *dentry)
-+static int autofs_mount_busy(struct vfsmount *mnt, struct dentry *dentry)
- {
- 	struct dentry *top = dentry;
- 	struct path path = {.mnt = mnt, .dentry = dentry};
-@@ -52,8 +52,8 @@ static int autofs4_mount_busy(struct vfsmount *mnt, struct dentry *dentry)
- 	if (!follow_down_one(&path))
- 		goto done;
- 
--	if (is_autofs4_dentry(path.dentry)) {
--		struct autofs_sb_info *sbi = autofs4_sbi(path.dentry->d_sb);
-+	if (is_autofs_dentry(path.dentry)) {
-+		struct autofs_sb_info *sbi = autofs_sbi(path.dentry->d_sb);
- 
- 		/* This is an autofs submount, we can't expire it */
- 		if (autofs_type_indirect(sbi->type))
-@@ -62,7 +62,7 @@ static int autofs4_mount_busy(struct vfsmount *mnt, struct dentry *dentry)
- 
- 	/* Update the expiry counter if fs is busy */
- 	if (!may_umount_tree(path.mnt)) {
--		struct autofs_info *ino = autofs4_dentry_ino(top);
-+		struct autofs_info *ino = autofs_dentry_ino(top);
- 		ino->last_used = jiffies;
- 		goto done;
- 	}
-@@ -80,7 +80,7 @@ done:
- static struct dentry *get_next_positive_subdir(struct dentry *prev,
- 					       struct dentry *root)
- {
--	struct autofs_sb_info *sbi = autofs4_sbi(root->d_sb);
-+	struct autofs_sb_info *sbi = autofs_sbi(root->d_sb);
- 	struct list_head *next;
- 	struct dentry *q;
- 
-@@ -127,7 +127,7 @@ cont:
- static struct dentry *get_next_positive_dentry(struct dentry *prev,
- 					       struct dentry *root)
- {
--	struct autofs_sb_info *sbi = autofs4_sbi(root->d_sb);
-+	struct autofs_sb_info *sbi = autofs_sbi(root->d_sb);
- 	struct list_head *next;
- 	struct dentry *p, *ret;
- 
-@@ -190,24 +190,24 @@ again:
-  * The tree is not busy iff no mountpoints are busy and there are no
-  * autofs submounts.
-  */
--static int autofs4_direct_busy(struct vfsmount *mnt,
--			       struct dentry *top,
--			       unsigned long timeout,
--			       int do_now)
-+static int autofs_direct_busy(struct vfsmount *mnt,
-+			      struct dentry *top,
-+			      unsigned long timeout,
-+			      int do_now)
- {
- 	DPRINTK("top %p %.*s",
- 		top, (int) top->d_name.len, top->d_name.name);
- 
- 	/* If it's busy update the expiry counters */
- 	if (!may_umount_tree(mnt)) {
--		struct autofs_info *ino = autofs4_dentry_ino(top);
-+		struct autofs_info *ino = autofs_dentry_ino(top);
- 		if (ino)
- 			ino->last_used = jiffies;
- 		return 1;
- 	}
- 
- 	/* Timeout of a direct mount is determined by its top dentry */
--	if (!autofs4_can_expire(top, timeout, do_now))
-+	if (!autofs_can_expire(top, timeout, do_now))
- 		return 1;
- 
- 	return 0;
-@@ -217,12 +217,12 @@ static int autofs4_direct_busy(struct vfsmount *mnt,
-  * Check a directory tree of mount points for busyness
-  * The tree is not busy iff no mountpoints are busy
-  */
--static int autofs4_tree_busy(struct vfsmount *mnt,
--	       		     struct dentry *top,
--			     unsigned long timeout,
--			     int do_now)
-+static int autofs_tree_busy(struct vfsmount *mnt,
-+			    struct dentry *top,
-+			    unsigned long timeout,
-+			    int do_now)
- {
--	struct autofs_info *top_ino = autofs4_dentry_ino(top);
-+	struct autofs_info *top_ino = autofs_dentry_ino(top);
- 	struct dentry *p;
- 
- 	DPRINTK("top %p %.*s",
-@@ -244,13 +244,13 @@ static int autofs4_tree_busy(struct vfsmount *mnt,
- 		 * If the fs is busy update the expiry counter.
- 		 */
- 		if (d_mountpoint(p)) {
--			if (autofs4_mount_busy(mnt, p)) {
-+			if (autofs_mount_busy(mnt, p)) {
- 				top_ino->last_used = jiffies;
- 				dput(p);
- 				return 1;
- 			}
- 		} else {
--			struct autofs_info *ino = autofs4_dentry_ino(p);
-+			struct autofs_info *ino = autofs_dentry_ino(p);
- 			unsigned int ino_count = atomic_read(&ino->count);
- 
- 			/*
-@@ -274,16 +274,16 @@ static int autofs4_tree_busy(struct vfsmount *mnt,
- 	}
- 
- 	/* Timeout of a tree mount is ultimately determined by its top dentry */
--	if (!autofs4_can_expire(top, timeout, do_now))
-+	if (!autofs_can_expire(top, timeout, do_now))
- 		return 1;
- 
- 	return 0;
- }
- 
--static struct dentry *autofs4_check_leaves(struct vfsmount *mnt,
--					   struct dentry *parent,
--					   unsigned long timeout,
--					   int do_now)
-+static struct dentry *autofs_check_leaves(struct vfsmount *mnt,
-+					  struct dentry *parent,
-+					  unsigned long timeout,
-+					  int do_now)
- {
- 	struct dentry *p;
- 
-@@ -297,11 +297,11 @@ static struct dentry *autofs4_check_leaves(struct vfsmount *mnt,
- 
- 		if (d_mountpoint(p)) {
- 			/* Can we umount this guy */
--			if (autofs4_mount_busy(mnt, p))
-+			if (autofs_mount_busy(mnt, p))
- 				continue;
- 
- 			/* Can we expire this guy */
--			if (autofs4_can_expire(p, timeout, do_now))
-+			if (autofs_can_expire(p, timeout, do_now))
- 				return p;
- 		}
- 	}
-@@ -309,10 +309,10 @@ static struct dentry *autofs4_check_leaves(struct vfsmount *mnt,
- }
- 
- /* Check if we can expire a direct mount (possibly a tree) */
--struct dentry *autofs4_expire_direct(struct super_block *sb,
--				     struct vfsmount *mnt,
--				     struct autofs_sb_info *sbi,
--				     int how)
-+struct dentry *autofs_expire_direct(struct super_block *sb,
-+				    struct vfsmount *mnt,
-+				    struct autofs_sb_info *sbi,
-+				    int how)
- {
- 	unsigned long timeout;
- 	struct dentry *root = dget(sb->s_root);
-@@ -326,12 +326,12 @@ struct dentry *autofs4_expire_direct(struct super_block *sb,
- 	timeout = sbi->exp_timeout;
- 
- 	spin_lock(&sbi->fs_lock);
--	ino = autofs4_dentry_ino(root);
-+	ino = autofs_dentry_ino(root);
- 	/* No point expiring a pending mount */
- 	if (ino->flags & AUTOFS_INF_PENDING)
- 		goto out;
--	if (!autofs4_direct_busy(mnt, root, timeout, do_now)) {
--		struct autofs_info *ino = autofs4_dentry_ino(root);
-+	if (!autofs_direct_busy(mnt, root, timeout, do_now)) {
-+		struct autofs_info *ino = autofs_dentry_ino(root);
- 		ino->flags |= AUTOFS_INF_EXPIRING;
- 		init_completion(&ino->expire_complete);
- 		spin_unlock(&sbi->fs_lock);
-@@ -350,10 +350,10 @@ out:
-  *  - it is unused by any user process
-  *  - it has been unused for exp_timeout time
-  */
--struct dentry *autofs4_expire_indirect(struct super_block *sb,
--				       struct vfsmount *mnt,
--				       struct autofs_sb_info *sbi,
--				       int how)
-+struct dentry *autofs_expire_indirect(struct super_block *sb,
-+				      struct vfsmount *mnt,
-+				      struct autofs_sb_info *sbi,
-+				      int how)
- {
- 	unsigned long timeout;
- 	struct dentry *root = sb->s_root;
-@@ -373,7 +373,7 @@ struct dentry *autofs4_expire_indirect(struct super_block *sb,
- 	dentry = NULL;
- 	while ((dentry = get_next_positive_subdir(dentry, root))) {
- 		spin_lock(&sbi->fs_lock);
--		ino = autofs4_dentry_ino(dentry);
-+		ino = autofs_dentry_ino(dentry);
- 		/* No point expiring a pending mount */
- 		if (ino->flags & AUTOFS_INF_PENDING)
- 			goto next;
-@@ -389,11 +389,11 @@ struct dentry *autofs4_expire_indirect(struct super_block *sb,
- 				(int)dentry->d_name.len, dentry->d_name.name);
- 
- 			/* Can we umount this guy */
--			if (autofs4_mount_busy(mnt, dentry))
-+			if (autofs_mount_busy(mnt, dentry))
- 				goto next;
- 
- 			/* Can we expire this guy */
--			if (autofs4_can_expire(dentry, timeout, do_now)) {
-+			if (autofs_can_expire(dentry, timeout, do_now)) {
- 				expired = dentry;
- 				goto found;
- 			}
-@@ -410,7 +410,7 @@ struct dentry *autofs4_expire_indirect(struct super_block *sb,
- 			if (dentry->d_count > ino_count)
- 				goto next;
- 
--			if (!autofs4_tree_busy(mnt, dentry, timeout, do_now)) {
-+			if (!autofs_tree_busy(mnt, dentry, timeout, do_now)) {
- 				expired = dentry;
- 				goto found;
- 			}
-@@ -424,7 +424,7 @@ struct dentry *autofs4_expire_indirect(struct super_block *sb,
- 			if (dentry->d_count > ino_count)
- 				goto next;
- 
--			expired = autofs4_check_leaves(mnt, dentry, timeout, do_now);
-+			expired = autofs_check_leaves(mnt, dentry, timeout, do_now);
- 			if (expired) {
- 				dput(dentry);
- 				goto found;
-@@ -438,7 +438,7 @@ next:
- found:
- 	DPRINTK("returning %p %.*s",
- 		expired, (int)expired->d_name.len, expired->d_name.name);
--	ino = autofs4_dentry_ino(expired);
-+	ino = autofs_dentry_ino(expired);
- 	ino->flags |= AUTOFS_INF_EXPIRING;
- 	init_completion(&ino->expire_complete);
- 	spin_unlock(&sbi->fs_lock);
-@@ -452,10 +452,10 @@ found:
- 	return expired;
- }
- 
--int autofs4_expire_wait(struct dentry *dentry)
-+int autofs_expire_wait(struct dentry *dentry)
- {
--	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
--	struct autofs_info *ino = autofs4_dentry_ino(dentry);
-+	struct autofs_sb_info *sbi = autofs_sbi(dentry->d_sb);
-+	struct autofs_info *ino = autofs_dentry_ino(dentry);
- 	int status;
- 
- 	/* Block on any pending expire */
-@@ -466,7 +466,7 @@ int autofs4_expire_wait(struct dentry *dentry)
- 		DPRINTK("waiting for expire %p name=%.*s",
- 			 dentry, dentry->d_name.len, dentry->d_name.name);
- 
--		status = autofs4_wait(sbi, dentry, NFY_NONE);
-+		status = autofs_wait(sbi, dentry, NFY_NONE);
- 		wait_for_completion(&ino->expire_complete);
- 
- 		DPRINTK("expire done status=%d", status);
-@@ -482,10 +482,10 @@ int autofs4_expire_wait(struct dentry *dentry)
- }
- 
- /* Perform an expiry operation */
--int autofs4_expire_run(struct super_block *sb,
--		       struct vfsmount *mnt,
--		       struct autofs_sb_info *sbi,
--		       struct autofs_packet_expire __user *pkt_p)
-+int autofs_expire_run(struct super_block *sb,
-+		      struct vfsmount *mnt,
-+		      struct autofs_sb_info *sbi,
-+		      struct autofs_packet_expire __user *pkt_p)
- {
- 	struct autofs_packet_expire pkt;
- 	struct autofs_info *ino;
-@@ -497,7 +497,7 @@ int autofs4_expire_run(struct super_block *sb,
- 	pkt.hdr.proto_version = sbi->version;
- 	pkt.hdr.type = autofs_ptype_expire;
- 
--	if ((dentry = autofs4_expire_indirect(sb, mnt, sbi, 0)) == NULL)
-+	if ((dentry = autofs_expire_indirect(sb, mnt, sbi, 0)) == NULL)
- 		return -EAGAIN;
- 
- 	pkt.len = dentry->d_name.len;
-@@ -509,7 +509,7 @@ int autofs4_expire_run(struct super_block *sb,
- 		ret = -EFAULT;
- 
- 	spin_lock(&sbi->fs_lock);
--	ino = autofs4_dentry_ino(dentry);
-+	ino = autofs_dentry_ino(dentry);
- 	ino->flags &= ~AUTOFS_INF_EXPIRING;
- 	complete_all(&ino->expire_complete);
- 	spin_unlock(&sbi->fs_lock);
-@@ -517,23 +517,23 @@ int autofs4_expire_run(struct super_block *sb,
- 	return ret;
- }
- 
--int autofs4_do_expire_multi(struct super_block *sb, struct vfsmount *mnt,
--			    struct autofs_sb_info *sbi, int when)
-+int autofs_do_expire_multi(struct super_block *sb, struct vfsmount *mnt,
-+			   struct autofs_sb_info *sbi, int when)
- {
- 	struct dentry *dentry;
- 	int ret = -EAGAIN;
- 
- 	if (autofs_type_trigger(sbi->type))
--		dentry = autofs4_expire_direct(sb, mnt, sbi, when);
-+		dentry = autofs_expire_direct(sb, mnt, sbi, when);
- 	else
--		dentry = autofs4_expire_indirect(sb, mnt, sbi, when);
-+		dentry = autofs_expire_indirect(sb, mnt, sbi, when);
- 
- 	if (dentry) {
--		struct autofs_info *ino = autofs4_dentry_ino(dentry);
-+		struct autofs_info *ino = autofs_dentry_ino(dentry);
- 
- 		/* This is synchronous because it makes the daemon a
-                    little easier */
--		ret = autofs4_wait(sbi, dentry, NFY_EXPIRE);
-+		ret = autofs_wait(sbi, dentry, NFY_EXPIRE);
- 
- 		spin_lock(&sbi->fs_lock);
- 		ino->flags &= ~AUTOFS_INF_EXPIRING;
-@@ -549,7 +549,7 @@ int autofs4_do_expire_multi(struct super_block *sb, struct vfsmount *mnt,
-  * Call repeatedly until it returns -EAGAIN, meaning there's nothing
-  * more to be done.
-  */
--int autofs4_expire_multi(struct super_block *sb, struct vfsmount *mnt,
-+int autofs_expire_multi(struct super_block *sb, struct vfsmount *mnt,
- 			struct autofs_sb_info *sbi, int __user *arg)
- {
- 	int do_now = 0;
-@@ -557,6 +557,6 @@ int autofs4_expire_multi(struct super_block *sb, struct vfsmount *mnt,
- 	if (arg && get_user(do_now, arg))
- 		return -EFAULT;
- 
--	return autofs4_do_expire_multi(sb, mnt, sbi, do_now);
-+	return autofs_do_expire_multi(sb, mnt, sbi, do_now);
- }
- 
-diff --git a/fs/autofs4/init.c b/fs/autofs4/init.c
-index 5a66322..51232a9 100644
---- a/fs/autofs4/init.c
-+++ b/fs/autofs4/init.c
-@@ -14,18 +14,18 @@
- static struct dentry *autofs_mount(struct file_system_type *fs_type,
- 	int flags, const char *dev_name, void *data)
- {
--	return mount_nodev(fs_type, flags, data, autofs4_fill_super);
-+	return mount_nodev(fs_type, flags, data, autofs_fill_super);
- }
- 
- static struct file_system_type autofs_fs_type = {
- 	.owner		= THIS_MODULE,
- 	.name		= "autofs",
- 	.mount		= autofs_mount,
--	.kill_sb	= autofs4_kill_sb,
-+	.kill_sb	= autofs_kill_sb,
- };
- MODULE_ALIAS_FS("autofs");
- 
--static int __init init_autofs4_fs(void)
-+static int __init init_autofs_fs(void)
- {
- 	int err;
- 
-@@ -38,12 +38,12 @@ static int __init init_autofs4_fs(void)
- 	return err;
- }
- 
--static void __exit exit_autofs4_fs(void)
-+static void __exit exit_autofs_fs(void)
- {
- 	autofs_dev_ioctl_exit();
- 	unregister_filesystem(&autofs_fs_type);
- }
- 
--module_init(init_autofs4_fs) 
--module_exit(exit_autofs4_fs)
-+module_init(init_autofs_fs)
-+module_exit(exit_autofs_fs)
- MODULE_LICENSE("GPL");
-diff --git a/fs/autofs4/inode.c b/fs/autofs4/inode.c
-index eafdf6e..543389c 100644
---- a/fs/autofs4/inode.c
-+++ b/fs/autofs4/inode.c
-@@ -19,7 +19,7 @@
- #include "autofs_i.h"
- #include <linux/module.h>
- 
--struct autofs_info *autofs4_new_ino(struct autofs_sb_info *sbi)
-+struct autofs_info *autofs_new_ino(struct autofs_sb_info *sbi)
- {
- 	struct autofs_info *ino = kzalloc(sizeof(*ino), GFP_KERNEL);
- 	if (ino) {
-@@ -31,21 +31,21 @@ struct autofs_info *autofs4_new_ino(struct autofs_sb_info *sbi)
- 	return ino;
- }
- 
--void autofs4_clean_ino(struct autofs_info *ino)
-+void autofs_clean_ino(struct autofs_info *ino)
- {
- 	ino->uid = GLOBAL_ROOT_UID;
- 	ino->gid = GLOBAL_ROOT_GID;
- 	ino->last_used = jiffies;
- }
- 
--void autofs4_free_ino(struct autofs_info *ino)
-+void autofs_free_ino(struct autofs_info *ino)
- {
- 	kfree(ino);
- }
- 
--void autofs4_kill_sb(struct super_block *sb)
-+void autofs_kill_sb(struct super_block *sb)
- {
--	struct autofs_sb_info *sbi = autofs4_sbi(sb);
-+	struct autofs_sb_info *sbi = autofs_sbi(sb);
- 
- 	/*
- 	 * In the event of a failure in get_sb_nodev the superblock
-@@ -57,7 +57,7 @@ void autofs4_kill_sb(struct super_block *sb)
- 		goto out_kill_sb;
- 
- 	/* Free wait queues, close pipe */
--	autofs4_catatonic_mode(sbi);
-+	autofs_catatonic_mode(sbi);
- 
- 	put_pid(sbi->oz_pgrp);
- 
-@@ -69,9 +69,9 @@ out_kill_sb:
- 	kill_litter_super(sb);
- }
- 
--static int autofs4_show_options(struct seq_file *m, struct dentry *root)
-+static int autofs_show_options(struct seq_file *m, struct dentry *root)
- {
--	struct autofs_sb_info *sbi = autofs4_sbi(root->d_sb);
-+	struct autofs_sb_info *sbi = autofs_sbi(root->d_sb);
- 	struct inode *root_inode = root->d_sb->s_root->d_inode;
- 
- 	if (!sbi)
-@@ -99,16 +99,16 @@ static int autofs4_show_options(struct seq_file *m, struct dentry *root)
- 	return 0;
- }
- 
--static void autofs4_evict_inode(struct inode *inode)
-+static void autofs_evict_inode(struct inode *inode)
- {
- 	clear_inode(inode);
- 	kfree(inode->i_private);
- }
- 
--static const struct super_operations autofs4_sops = {
-+static const struct super_operations autofs_sops = {
- 	.statfs		= simple_statfs,
--	.show_options	= autofs4_show_options,
--	.evict_inode	= autofs4_evict_inode,
-+	.show_options	= autofs_show_options,
-+	.evict_inode	= autofs_evict_inode,
- };
- 
- enum {Opt_err, Opt_fd, Opt_uid, Opt_gid, Opt_pgrp, Opt_minproto, Opt_maxproto,
-@@ -203,7 +203,7 @@ static int parse_options(char *options, int *pipefd, kuid_t *uid, kgid_t *gid,
- 	return (*pipefd < 0);
- }
- 
--int autofs4_fill_super(struct super_block *s, void *data, int silent)
-+int autofs_fill_super(struct super_block *s, void *data, int silent)
- {
- 	struct inode * root_inode;
- 	struct dentry * root;
-@@ -242,17 +242,17 @@ int autofs4_fill_super(struct super_block *s, void *data, int silent)
- 	s->s_blocksize = 1024;
- 	s->s_blocksize_bits = 10;
- 	s->s_magic = AUTOFS_SUPER_MAGIC;
--	s->s_op = &autofs4_sops;
--	s->s_d_op = &autofs4_dentry_operations;
-+	s->s_op = &autofs_sops;
-+	s->s_d_op = &autofs_dentry_operations;
- 	s->s_time_gran = 1;
- 
- 	/*
- 	 * Get the root inode and dentry, but defer checking for errors.
- 	 */
--	ino = autofs4_new_ino(sbi);
-+	ino = autofs_new_ino(sbi);
- 	if (!ino)
- 		goto fail_free;
--	root_inode = autofs4_get_inode(s, S_IFDIR | 0755);
-+	root_inode = autofs_get_inode(s, S_IFDIR | 0755);
- 	root = d_make_root(root_inode);
- 	if (!root)
- 		goto fail_ino;
-@@ -282,8 +282,8 @@ int autofs4_fill_super(struct super_block *s, void *data, int silent)
- 	if (autofs_type_trigger(sbi->type))
- 		__managed_dentry_set_managed(root);
- 
--	root_inode->i_fop = &autofs4_root_operations;
--	root_inode->i_op = &autofs4_dir_inode_operations;
-+	root_inode->i_fop = &autofs_root_operations;
-+	root_inode->i_op = &autofs_dir_inode_operations;
- 
- 	/* Couldn't this be tested earlier? */
- 	if (sbi->max_proto < AUTOFS_MIN_PROTO_VERSION ||
-@@ -341,7 +341,7 @@ fail_unlock:
- 	return -EINVAL;
- }
- 
--struct inode *autofs4_get_inode(struct super_block *sb, umode_t mode)
-+struct inode *autofs_get_inode(struct super_block *sb, umode_t mode)
- {
- 	struct inode *inode = new_inode(sb);
- 
-@@ -358,10 +358,10 @@ struct inode *autofs4_get_inode(struct super_block *sb, umode_t mode)
- 
- 	if (S_ISDIR(mode)) {
- 		set_nlink(inode, 2);
--		inode->i_op = &autofs4_dir_inode_operations;
--		inode->i_fop = &autofs4_dir_operations;
-+		inode->i_op = &autofs_dir_inode_operations;
-+		inode->i_fop = &autofs_dir_operations;
- 	} else if (S_ISLNK(mode)) {
--		inode->i_op = &autofs4_symlink_inode_operations;
-+		inode->i_op = &autofs_symlink_inode_operations;
- 	}
- 
- 	return inode;
-diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
-index a5b3825..4b64d07 100644
---- a/fs/autofs4/root.c
-+++ b/fs/autofs4/root.c
-@@ -20,58 +20,58 @@
- 
- #include "autofs_i.h"
- 
--static int autofs4_dir_symlink(struct inode *,struct dentry *,const char *);
--static int autofs4_dir_unlink(struct inode *,struct dentry *);
--static int autofs4_dir_rmdir(struct inode *,struct dentry *);
--static int autofs4_dir_mkdir(struct inode *,struct dentry *,umode_t);
--static long autofs4_root_ioctl(struct file *,unsigned int,unsigned long);
-+static int autofs_dir_symlink(struct inode *,struct dentry *,const char *);
-+static int autofs_dir_unlink(struct inode *,struct dentry *);
-+static int autofs_dir_rmdir(struct inode *,struct dentry *);
-+static int autofs_dir_mkdir(struct inode *,struct dentry *,umode_t);
-+static long autofs_root_ioctl(struct file *,unsigned int,unsigned long);
- #ifdef CONFIG_COMPAT
--static long autofs4_root_compat_ioctl(struct file *,unsigned int,unsigned long);
-+static long autofs_root_compat_ioctl(struct file *,unsigned int,unsigned long);
- #endif
--static int autofs4_dir_open(struct inode *inode, struct file *file);
--static struct dentry *autofs4_lookup(struct inode *,struct dentry *, unsigned int);
--static struct vfsmount *autofs4_d_automount(struct path *);
--static int autofs4_d_manage(struct dentry *, bool);
--static void autofs4_dentry_release(struct dentry *);
-+static int autofs_dir_open(struct inode *inode, struct file *file);
-+static struct dentry *autofs_lookup(struct inode *,struct dentry *, unsigned int);
-+static struct vfsmount *autofs_d_automount(struct path *);
-+static int autofs_d_manage(struct dentry *, bool);
-+static void autofs_dentry_release(struct dentry *);
- 
--const struct file_operations autofs4_root_operations = {
-+const struct file_operations autofs_root_operations = {
- 	.open		= dcache_dir_open,
- 	.release	= dcache_dir_close,
- 	.read		= generic_read_dir,
- 	.iterate	= dcache_readdir,
- 	.llseek		= dcache_dir_lseek,
--	.unlocked_ioctl	= autofs4_root_ioctl,
-+	.unlocked_ioctl	= autofs_root_ioctl,
- #ifdef CONFIG_COMPAT
--	.compat_ioctl	= autofs4_root_compat_ioctl,
-+	.compat_ioctl	= autofs_root_compat_ioctl,
- #endif
- };
- 
--const struct file_operations autofs4_dir_operations = {
--	.open		= autofs4_dir_open,
-+const struct file_operations autofs_dir_operations = {
-+	.open		= autofs_dir_open,
- 	.release	= dcache_dir_close,
- 	.read		= generic_read_dir,
- 	.iterate	= dcache_readdir,
- 	.llseek		= dcache_dir_lseek,
- };
- 
--const struct inode_operations autofs4_dir_inode_operations = {
--	.lookup		= autofs4_lookup,
--	.unlink		= autofs4_dir_unlink,
--	.symlink	= autofs4_dir_symlink,
--	.mkdir		= autofs4_dir_mkdir,
--	.rmdir		= autofs4_dir_rmdir,
-+const struct inode_operations autofs_dir_inode_operations = {
-+	.lookup		= autofs_lookup,
-+	.unlink		= autofs_dir_unlink,
-+	.symlink	= autofs_dir_symlink,
-+	.mkdir		= autofs_dir_mkdir,
-+	.rmdir		= autofs_dir_rmdir,
- };
- 
--const struct dentry_operations autofs4_dentry_operations = {
--	.d_automount	= autofs4_d_automount,
--	.d_manage	= autofs4_d_manage,
--	.d_release	= autofs4_dentry_release,
-+const struct dentry_operations autofs_dentry_operations = {
-+	.d_automount	= autofs_d_automount,
-+	.d_manage	= autofs_d_manage,
-+	.d_release	= autofs_dentry_release,
- };
- 
--static void autofs4_add_active(struct dentry *dentry)
-+static void autofs_add_active(struct dentry *dentry)
- {
--	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
--	struct autofs_info *ino = autofs4_dentry_ino(dentry);
-+	struct autofs_sb_info *sbi = autofs_sbi(dentry->d_sb);
-+	struct autofs_info *ino = autofs_dentry_ino(dentry);
- 	if (ino) {
- 		spin_lock(&sbi->lookup_lock);
- 		if (!ino->active_count) {
-@@ -84,10 +84,10 @@ static void autofs4_add_active(struct dentry *dentry)
- 	return;
- }
- 
--static void autofs4_del_active(struct dentry *dentry)
-+static void autofs_del_active(struct dentry *dentry)
- {
--	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
--	struct autofs_info *ino = autofs4_dentry_ino(dentry);
-+	struct autofs_sb_info *sbi = autofs_sbi(dentry->d_sb);
-+	struct autofs_info *ino = autofs_dentry_ino(dentry);
- 	if (ino) {
- 		spin_lock(&sbi->lookup_lock);
- 		ino->active_count--;
-@@ -100,15 +100,15 @@ static void autofs4_del_active(struct dentry *dentry)
- 	return;
- }
- 
--static int autofs4_dir_open(struct inode *inode, struct file *file)
-+static int autofs_dir_open(struct inode *inode, struct file *file)
- {
- 	struct dentry *dentry = file->f_path.dentry;
--	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
-+	struct autofs_sb_info *sbi = autofs_sbi(dentry->d_sb);
- 
- 	DPRINTK("file=%p dentry=%p %.*s",
- 		file, dentry, dentry->d_name.len, dentry->d_name.name);
- 
--	if (autofs4_oz_mode(sbi))
-+	if (autofs_oz_mode(sbi))
- 		goto out;
- 
- 	/*
-@@ -131,10 +131,10 @@ out:
- 	return dcache_dir_open(inode, file);
- }
- 
--static void autofs4_dentry_release(struct dentry *de)
-+static void autofs_dentry_release(struct dentry *de)
- {
--	struct autofs_info *ino = autofs4_dentry_ino(de);
--	struct autofs_sb_info *sbi = autofs4_sbi(de->d_sb);
-+	struct autofs_info *ino = autofs_dentry_ino(de);
-+	struct autofs_sb_info *sbi = autofs_sbi(de->d_sb);
- 
- 	DPRINTK("releasing %p", de);
- 
-@@ -150,12 +150,12 @@ static void autofs4_dentry_release(struct dentry *de)
- 		spin_unlock(&sbi->lookup_lock);
- 	}
- 
--	autofs4_free_ino(ino);
-+	autofs_free_ino(ino);
- }
- 
--static struct dentry *autofs4_lookup_active(struct dentry *dentry)
-+static struct dentry *autofs_lookup_active(struct dentry *dentry)
- {
--	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
-+	struct autofs_sb_info *sbi = autofs_sbi(dentry->d_sb);
- 	struct dentry *parent = dentry->d_parent;
- 	struct qstr *name = &dentry->d_name;
- 	unsigned int len = name->len;
-@@ -205,9 +205,9 @@ next:
- 	return NULL;
- }
- 
--static struct dentry *autofs4_lookup_expiring(struct dentry *dentry)
-+static struct dentry *autofs_lookup_expiring(struct dentry *dentry)
- {
--	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
-+	struct autofs_sb_info *sbi = autofs_sbi(dentry->d_sb);
- 	struct dentry *parent = dentry->d_parent;
- 	struct qstr *name = &dentry->d_name;
- 	unsigned int len = name->len;
-@@ -257,16 +257,16 @@ next:
- 	return NULL;
- }
- 
--static int autofs4_mount_wait(struct dentry *dentry)
-+static int autofs_mount_wait(struct dentry *dentry)
- {
--	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
--	struct autofs_info *ino = autofs4_dentry_ino(dentry);
-+	struct autofs_sb_info *sbi = autofs_sbi(dentry->d_sb);
-+	struct autofs_info *ino = autofs_dentry_ino(dentry);
- 	int status = 0;
- 
- 	if (ino->flags & AUTOFS_INF_PENDING) {
- 		DPRINTK("waiting for mount name=%.*s",
- 			dentry->d_name.len, dentry->d_name.name);
--		status = autofs4_wait(sbi, dentry, NFY_MOUNT);
-+		status = autofs_wait(sbi, dentry, NFY_MOUNT);
- 		DPRINTK("mount wait done status=%d", status);
- 	}
- 	ino->last_used = jiffies;
-@@ -277,26 +277,26 @@ static int do_expire_wait(struct dentry *dentry)
- {
- 	struct dentry *expiring;
- 
--	expiring = autofs4_lookup_expiring(dentry);
-+	expiring = autofs_lookup_expiring(dentry);
- 	if (!expiring)
--		return autofs4_expire_wait(dentry);
-+		return autofs_expire_wait(dentry);
- 	else {
- 		/*
- 		 * If we are racing with expire the request might not
- 		 * be quite complete, but the directory has been removed
- 		 * so it must have been successful, just wait for it.
- 		 */
--		autofs4_expire_wait(expiring);
--		autofs4_del_expiring(expiring);
-+		autofs_expire_wait(expiring);
-+		autofs_del_expiring(expiring);
- 		dput(expiring);
- 	}
- 	return 0;
- }
- 
--static struct dentry *autofs4_mountpoint_changed(struct path *path)
-+static struct dentry *autofs_mountpoint_changed(struct path *path)
- {
- 	struct dentry *dentry = path->dentry;
--	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
-+	struct autofs_sb_info *sbi = autofs_sbi(dentry->d_sb);
- 
- 	/*
- 	 * If this is an indirect mount the dentry could have gone away
-@@ -308,7 +308,7 @@ static struct dentry *autofs4_mountpoint_changed(struct path *path)
- 		struct dentry *new = d_lookup(parent, &dentry->d_name);
- 		if (!new)
- 			return NULL;
--		ino = autofs4_dentry_ino(new);
-+		ino = autofs_dentry_ino(new);
- 		ino->last_used = jiffies;
- 		dput(path->dentry);
- 		path->dentry = new;
-@@ -316,18 +316,18 @@ static struct dentry *autofs4_mountpoint_changed(struct path *path)
- 	return path->dentry;
- }
- 
--static struct vfsmount *autofs4_d_automount(struct path *path)
-+static struct vfsmount *autofs_d_automount(struct path *path)
- {
- 	struct dentry *dentry = path->dentry;
--	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
--	struct autofs_info *ino = autofs4_dentry_ino(dentry);
-+	struct autofs_sb_info *sbi = autofs_sbi(dentry->d_sb);
-+	struct autofs_info *ino = autofs_dentry_ino(dentry);
- 	int status;
- 
- 	DPRINTK("dentry=%p %.*s",
- 		dentry, dentry->d_name.len, dentry->d_name.name);
- 
- 	/* The daemon never triggers a mount. */
--	if (autofs4_oz_mode(sbi))
-+	if (autofs_oz_mode(sbi))
- 		return NULL;
- 
- 	/*
-@@ -346,7 +346,7 @@ static struct vfsmount *autofs4_d_automount(struct path *path)
- 	spin_lock(&sbi->fs_lock);
- 	if (ino->flags & AUTOFS_INF_PENDING) {
- 		spin_unlock(&sbi->fs_lock);
--		status = autofs4_mount_wait(dentry);
-+		status = autofs_mount_wait(dentry);
- 		if (status)
- 			return ERR_PTR(status);
- 		goto done;
-@@ -387,7 +387,7 @@ static struct vfsmount *autofs4_d_automount(struct path *path)
- 		}
- 		ino->flags |= AUTOFS_INF_PENDING;
- 		spin_unlock(&sbi->fs_lock);
--		status = autofs4_mount_wait(dentry);
-+		status = autofs_mount_wait(dentry);
- 		spin_lock(&sbi->fs_lock);
- 		ino->flags &= ~AUTOFS_INF_PENDING;
- 		if (status) {
-@@ -398,24 +398,24 @@ static struct vfsmount *autofs4_d_automount(struct path *path)
- 	spin_unlock(&sbi->fs_lock);
- done:
- 	/* Mount succeeded, check if we ended up with a new dentry */
--	dentry = autofs4_mountpoint_changed(path);
-+	dentry = autofs_mountpoint_changed(path);
- 	if (!dentry)
- 		return ERR_PTR(-ENOENT);
- 
- 	return NULL;
- }
- 
--static int autofs4_d_manage(struct dentry *dentry, bool rcu_walk)
-+static int autofs_d_manage(struct dentry *dentry, bool rcu_walk)
- {
--	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
--	struct autofs_info *ino = autofs4_dentry_ino(dentry);
-+	struct autofs_sb_info *sbi = autofs_sbi(dentry->d_sb);
-+	struct autofs_info *ino = autofs_dentry_ino(dentry);
- 	int status;
- 
- 	DPRINTK("dentry=%p %.*s",
- 		dentry, dentry->d_name.len, dentry->d_name.name);
- 
- 	/* The daemon never waits. */
--	if (autofs4_oz_mode(sbi)) {
-+	if (autofs_oz_mode(sbi)) {
- 		if (rcu_walk)
- 			return 0;
- 		if (!d_mountpoint(dentry))
-@@ -434,7 +434,7 @@ static int autofs4_d_manage(struct dentry *dentry, bool rcu_walk)
- 	 * This dentry may be under construction so wait on mount
- 	 * completion.
- 	 */
--	status = autofs4_mount_wait(dentry);
-+	status = autofs_mount_wait(dentry);
- 	if (status)
- 		return status;
- 
-@@ -463,7 +463,7 @@ static int autofs4_d_manage(struct dentry *dentry, bool rcu_walk)
- }
- 
- /* Lookups in the root directory */
--static struct dentry *autofs4_lookup(struct inode *dir,
-+static struct dentry *autofs_lookup(struct inode *dir,
- 				     struct dentry *dentry, unsigned int flags)
- {
- 	struct autofs_sb_info *sbi;
-@@ -476,13 +476,13 @@ static struct dentry *autofs4_lookup(struct inode *dir,
- 	if (dentry->d_name.len > NAME_MAX)
- 		return ERR_PTR(-ENAMETOOLONG);
- 
--	sbi = autofs4_sbi(dir->i_sb);
-+	sbi = autofs_sbi(dir->i_sb);
- 
- 	DPRINTK("pid = %u, pgrp = %u, catatonic = %d, oz_mode = %d",
- 		current->pid, task_pgrp_nr(current), sbi->catatonic,
--		autofs4_oz_mode(sbi));
-+		autofs_oz_mode(sbi));
- 
--	active = autofs4_lookup_active(dentry);
-+	active = autofs_lookup_active(dentry);
- 	if (active) {
- 		return active;
- 	} else {
-@@ -492,33 +492,33 @@ static struct dentry *autofs4_lookup(struct inode *dir,
- 		 * can return fail immediately.  The daemon however does need
- 		 * to create directories within the file system.
- 		 */
--		if (!autofs4_oz_mode(sbi) && !IS_ROOT(dentry->d_parent))
-+		if (!autofs_oz_mode(sbi) && !IS_ROOT(dentry->d_parent))
- 			return ERR_PTR(-ENOENT);
- 
- 		/* Mark entries in the root as mount triggers */
- 		if (autofs_type_indirect(sbi->type) && IS_ROOT(dentry->d_parent))
- 			__managed_dentry_set_managed(dentry);
- 
--		ino = autofs4_new_ino(sbi);
-+		ino = autofs_new_ino(sbi);
- 		if (!ino)
- 			return ERR_PTR(-ENOMEM);
- 
- 		dentry->d_fsdata = ino;
- 		ino->dentry = dentry;
- 
--		autofs4_add_active(dentry);
-+		autofs_add_active(dentry);
- 
- 		d_instantiate(dentry, NULL);
- 	}
- 	return NULL;
- }
- 
--static int autofs4_dir_symlink(struct inode *dir, 
-+static int autofs_dir_symlink(struct inode *dir,
- 			       struct dentry *dentry,
- 			       const char *symname)
- {
--	struct autofs_sb_info *sbi = autofs4_sbi(dir->i_sb);
--	struct autofs_info *ino = autofs4_dentry_ino(dentry);
-+	struct autofs_sb_info *sbi = autofs_sbi(dir->i_sb);
-+	struct autofs_info *ino = autofs_dentry_ino(dentry);
- 	struct autofs_info *p_ino;
- 	struct inode *inode;
- 	size_t size = strlen(symname);
-@@ -527,14 +527,14 @@ static int autofs4_dir_symlink(struct inode *dir,
- 	DPRINTK("%s <- %.*s", symname,
- 		dentry->d_name.len, dentry->d_name.name);
- 
--	if (!autofs4_oz_mode(sbi))
-+	if (!autofs_oz_mode(sbi))
- 		return -EACCES;
- 
- 	BUG_ON(!ino);
- 
--	autofs4_clean_ino(ino);
-+	autofs_clean_ino(ino);
- 
--	autofs4_del_active(dentry);
-+	autofs_del_active(dentry);
- 
- 	cp = kmalloc(size + 1, GFP_KERNEL);
- 	if (!cp)
-@@ -542,7 +542,7 @@ static int autofs4_dir_symlink(struct inode *dir,
- 
- 	strcpy(cp, symname);
- 
--	inode = autofs4_get_inode(dir->i_sb, S_IFLNK | 0555);
-+	inode = autofs_get_inode(dir->i_sb, S_IFLNK | 0555);
- 	if (!inode) {
- 		kfree(cp);
- 		if (!dentry->d_fsdata)
-@@ -555,7 +555,7 @@ static int autofs4_dir_symlink(struct inode *dir,
- 
- 	dget(dentry);
- 	atomic_inc(&ino->count);
--	p_ino = autofs4_dentry_ino(dentry->d_parent);
-+	p_ino = autofs_dentry_ino(dentry->d_parent);
- 	if (p_ino && dentry->d_parent != dentry)
- 		atomic_inc(&p_ino->count);
- 
-@@ -577,20 +577,20 @@ static int autofs4_dir_symlink(struct inode *dir,
-  * If a process is blocked on the dentry waiting for the expire to finish,
-  * it will invalidate the dentry and try to mount with a new one.
-  *
-- * Also see autofs4_dir_rmdir()..
-+ * Also see autofs_dir_rmdir()..
-  */
--static int autofs4_dir_unlink(struct inode *dir, struct dentry *dentry)
-+static int autofs_dir_unlink(struct inode *dir, struct dentry *dentry)
- {
--	struct autofs_sb_info *sbi = autofs4_sbi(dir->i_sb);
--	struct autofs_info *ino = autofs4_dentry_ino(dentry);
-+	struct autofs_sb_info *sbi = autofs_sbi(dir->i_sb);
-+	struct autofs_info *ino = autofs_dentry_ino(dentry);
- 	struct autofs_info *p_ino;
- 	
- 	/* This allows root to remove symlinks */
--	if (!autofs4_oz_mode(sbi) && !capable(CAP_SYS_ADMIN))
-+	if (!autofs_oz_mode(sbi) && !capable(CAP_SYS_ADMIN))
- 		return -EPERM;
- 
- 	if (atomic_dec_and_test(&ino->count)) {
--		p_ino = autofs4_dentry_ino(dentry->d_parent);
-+		p_ino = autofs_dentry_ino(dentry->d_parent);
- 		if (p_ino && dentry->d_parent != dentry)
- 			atomic_dec(&p_ino->count);
- 	}
-@@ -602,7 +602,7 @@ static int autofs4_dir_unlink(struct inode *dir, struct dentry *dentry)
- 	dir->i_mtime = CURRENT_TIME;
- 
- 	spin_lock(&sbi->lookup_lock);
--	__autofs4_add_expiring(dentry);
-+	__autofs_add_expiring(dentry);
- 	d_drop(dentry);
- 	spin_unlock(&sbi->lookup_lock);
- 
-@@ -661,16 +661,16 @@ static void autofs_clear_leaf_automount_flags(struct dentry *dentry)
- 	return;
- }
- 
--static int autofs4_dir_rmdir(struct inode *dir, struct dentry *dentry)
-+static int autofs_dir_rmdir(struct inode *dir, struct dentry *dentry)
- {
--	struct autofs_sb_info *sbi = autofs4_sbi(dir->i_sb);
--	struct autofs_info *ino = autofs4_dentry_ino(dentry);
-+	struct autofs_sb_info *sbi = autofs_sbi(dir->i_sb);
-+	struct autofs_info *ino = autofs_dentry_ino(dentry);
- 	struct autofs_info *p_ino;
- 	
- 	DPRINTK("dentry %p, removing %.*s",
- 		dentry, dentry->d_name.len, dentry->d_name.name);
- 
--	if (!autofs4_oz_mode(sbi))
-+	if (!autofs_oz_mode(sbi))
- 		return -EACCES;
- 
- 	spin_lock(&sbi->lookup_lock);
-@@ -678,7 +678,7 @@ static int autofs4_dir_rmdir(struct inode *dir, struct dentry *dentry)
- 		spin_unlock(&sbi->lookup_lock);
- 		return -ENOTEMPTY;
- 	}
--	__autofs4_add_expiring(dentry);
-+	__autofs_add_expiring(dentry);
- 	d_drop(dentry);
- 	spin_unlock(&sbi->lookup_lock);
- 
-@@ -686,7 +686,7 @@ static int autofs4_dir_rmdir(struct inode *dir, struct dentry *dentry)
- 		autofs_clear_leaf_automount_flags(dentry);
- 
- 	if (atomic_dec_and_test(&ino->count)) {
--		p_ino = autofs4_dentry_ino(dentry->d_parent);
-+		p_ino = autofs_dentry_ino(dentry->d_parent);
- 		if (p_ino && dentry->d_parent != dentry)
- 			atomic_dec(&p_ino->count);
- 	}
-@@ -700,14 +700,14 @@ static int autofs4_dir_rmdir(struct inode *dir, struct dentry *dentry)
- 	return 0;
- }
- 
--static int autofs4_dir_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
-+static int autofs_dir_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
- {
--	struct autofs_sb_info *sbi = autofs4_sbi(dir->i_sb);
--	struct autofs_info *ino = autofs4_dentry_ino(dentry);
-+	struct autofs_sb_info *sbi = autofs_sbi(dir->i_sb);
-+	struct autofs_info *ino = autofs_dentry_ino(dentry);
- 	struct autofs_info *p_ino;
- 	struct inode *inode;
- 
--	if (!autofs4_oz_mode(sbi))
-+	if (!autofs_oz_mode(sbi))
- 		return -EACCES;
- 
- 	DPRINTK("dentry %p, creating %.*s",
-@@ -715,11 +715,11 @@ static int autofs4_dir_mkdir(struct inode *dir, struct dentry *dentry, umode_t m
- 
- 	BUG_ON(!ino);
- 
--	autofs4_clean_ino(ino);
-+	autofs_clean_ino(ino);
- 
--	autofs4_del_active(dentry);
-+	autofs_del_active(dentry);
- 
--	inode = autofs4_get_inode(dir->i_sb, S_IFDIR | 0555);
-+	inode = autofs_get_inode(dir->i_sb, S_IFDIR | 0555);
- 	if (!inode)
- 		return -ENOMEM;
- 	d_add(dentry, inode);
-@@ -729,7 +729,7 @@ static int autofs4_dir_mkdir(struct inode *dir, struct dentry *dentry, umode_t m
- 
- 	dget(dentry);
- 	atomic_inc(&ino->count);
--	p_ino = autofs4_dentry_ino(dentry->d_parent);
-+	p_ino = autofs_dentry_ino(dentry->d_parent);
- 	if (p_ino && dentry->d_parent != dentry)
- 		atomic_inc(&p_ino->count);
- 	inc_nlink(dir);
-@@ -740,7 +740,7 @@ static int autofs4_dir_mkdir(struct inode *dir, struct dentry *dentry, umode_t m
- 
- /* Get/set timeout ioctl() operation */
- #ifdef CONFIG_COMPAT
--static inline int autofs4_compat_get_set_timeout(struct autofs_sb_info *sbi,
-+static inline int autofs_compat_get_set_timeout(struct autofs_sb_info *sbi,
- 						 compat_ulong_t __user *p)
- {
- 	int rv;
-@@ -759,7 +759,7 @@ static inline int autofs4_compat_get_set_timeout(struct autofs_sb_info *sbi,
- }
- #endif
- 
--static inline int autofs4_get_set_timeout(struct autofs_sb_info *sbi,
-+static inline int autofs_get_set_timeout(struct autofs_sb_info *sbi,
- 					  unsigned long __user *p)
- {
- 	int rv;
-@@ -778,14 +778,14 @@ static inline int autofs4_get_set_timeout(struct autofs_sb_info *sbi,
- }
- 
- /* Return protocol version */
--static inline int autofs4_get_protover(struct autofs_sb_info *sbi,
-+static inline int autofs_get_protover(struct autofs_sb_info *sbi,
- 				       int __user *p)
- {
- 	return put_user(sbi->version, p);
- }
- 
- /* Return protocol sub version */
--static inline int autofs4_get_protosubver(struct autofs_sb_info *sbi,
-+static inline int autofs_get_protosubver(struct autofs_sb_info *sbi,
- 					  int __user *p)
- {
- 	return put_user(sbi->sub_version, p);
-@@ -794,7 +794,7 @@ static inline int autofs4_get_protosubver(struct autofs_sb_info *sbi,
- /*
- * Tells the daemon whether it can umount the autofs mount.
- */
--static inline int autofs4_ask_umount(struct vfsmount *mnt, int __user *p)
-+static inline int autofs_ask_umount(struct vfsmount *mnt, int __user *p)
- {
- 	int status = 0;
- 
-@@ -808,14 +808,14 @@ static inline int autofs4_ask_umount(struct vfsmount *mnt, int __user *p)
- 	return status;
- }
- 
--/* Identify autofs4_dentries - this is so we can tell if there's
-+/* Identify autofs_dentries - this is so we can tell if there's
-    an extra dentry refcount or not.  We only hold a refcount on the
-    dentry if its non-negative (ie, d_inode != NULL)
- */
--int is_autofs4_dentry(struct dentry *dentry)
-+int is_autofs_dentry(struct dentry *dentry)
- {
- 	return dentry && dentry->d_inode &&
--		dentry->d_op == &autofs4_dentry_operations &&
-+		dentry->d_op == &autofs_dentry_operations &&
- 		dentry->d_fsdata != NULL;
- }
- 
-@@ -823,10 +823,10 @@ int is_autofs4_dentry(struct dentry *dentry)
-  * ioctl()'s on the root directory is the chief method for the daemon to
-  * generate kernel reactions
-  */
--static int autofs4_root_ioctl_unlocked(struct inode *inode, struct file *filp,
-+static int autofs_root_ioctl_unlocked(struct inode *inode, struct file *filp,
- 				       unsigned int cmd, unsigned long arg)
- {
--	struct autofs_sb_info *sbi = autofs4_sbi(inode->i_sb);
-+	struct autofs_sb_info *sbi = autofs_sbi(inode->i_sb);
- 	void __user *p = (void __user *)arg;
- 
- 	DPRINTK("cmd = 0x%08x, arg = 0x%08lx, sbi = %p, pgrp = %u",
-@@ -836,61 +836,61 @@ static int autofs4_root_ioctl_unlocked(struct inode *inode, struct file *filp,
- 	     _IOC_NR(cmd) - _IOC_NR(AUTOFS_IOC_FIRST) >= AUTOFS_IOC_COUNT)
- 		return -ENOTTY;
- 	
--	if (!autofs4_oz_mode(sbi) && !capable(CAP_SYS_ADMIN))
-+	if (!autofs_oz_mode(sbi) && !capable(CAP_SYS_ADMIN))
- 		return -EPERM;
- 	
- 	switch(cmd) {
- 	case AUTOFS_IOC_READY:	/* Wait queue: go ahead and retry */
--		return autofs4_wait_release(sbi,(autofs_wqt_t)arg,0);
-+		return autofs_wait_release(sbi,(autofs_wqt_t)arg,0);
- 	case AUTOFS_IOC_FAIL:	/* Wait queue: fail with ENOENT */
--		return autofs4_wait_release(sbi,(autofs_wqt_t)arg,-ENOENT);
-+		return autofs_wait_release(sbi,(autofs_wqt_t)arg,-ENOENT);
- 	case AUTOFS_IOC_CATATONIC: /* Enter catatonic mode (daemon shutdown) */
--		autofs4_catatonic_mode(sbi);
-+		autofs_catatonic_mode(sbi);
- 		return 0;
- 	case AUTOFS_IOC_PROTOVER: /* Get protocol version */
--		return autofs4_get_protover(sbi, p);
-+		return autofs_get_protover(sbi, p);
- 	case AUTOFS_IOC_PROTOSUBVER: /* Get protocol sub version */
--		return autofs4_get_protosubver(sbi, p);
-+		return autofs_get_protosubver(sbi, p);
- 	case AUTOFS_IOC_SETTIMEOUT:
--		return autofs4_get_set_timeout(sbi, p);
-+		return autofs_get_set_timeout(sbi, p);
- #ifdef CONFIG_COMPAT
- 	case AUTOFS_IOC_SETTIMEOUT32:
--		return autofs4_compat_get_set_timeout(sbi, p);
-+		return autofs_compat_get_set_timeout(sbi, p);
- #endif
- 
- 	case AUTOFS_IOC_ASKUMOUNT:
--		return autofs4_ask_umount(filp->f_path.mnt, p);
-+		return autofs_ask_umount(filp->f_path.mnt, p);
- 
- 	/* return a single thing to expire */
- 	case AUTOFS_IOC_EXPIRE:
--		return autofs4_expire_run(inode->i_sb,filp->f_path.mnt,sbi, p);
-+		return autofs_expire_run(inode->i_sb,filp->f_path.mnt,sbi, p);
- 	/* same as above, but can send multiple expires through pipe */
- 	case AUTOFS_IOC_EXPIRE_MULTI:
--		return autofs4_expire_multi(inode->i_sb,filp->f_path.mnt,sbi, p);
-+		return autofs_expire_multi(inode->i_sb,filp->f_path.mnt,sbi, p);
- 
- 	default:
- 		return -ENOSYS;
- 	}
- }
- 
--static long autofs4_root_ioctl(struct file *filp,
-+static long autofs_root_ioctl(struct file *filp,
- 			       unsigned int cmd, unsigned long arg)
- {
- 	struct inode *inode = file_inode(filp);
--	return autofs4_root_ioctl_unlocked(inode, filp, cmd, arg);
-+	return autofs_root_ioctl_unlocked(inode, filp, cmd, arg);
- }
- 
- #ifdef CONFIG_COMPAT
--static long autofs4_root_compat_ioctl(struct file *filp,
-+static long autofs_root_compat_ioctl(struct file *filp,
- 				      unsigned int cmd, unsigned long arg)
- {
- 	struct inode *inode = file_inode(filp);
- 	int ret;
- 
- 	if (cmd == AUTOFS_IOC_READY || cmd == AUTOFS_IOC_FAIL)
--		ret = autofs4_root_ioctl_unlocked(inode, filp, cmd, arg);
-+		ret = autofs_root_ioctl_unlocked(inode, filp, cmd, arg);
- 	else
--		ret = autofs4_root_ioctl_unlocked(inode, filp, cmd,
-+		ret = autofs_root_ioctl_unlocked(inode, filp, cmd,
- 					      (unsigned long) compat_ptr(arg));
- 
- 	return ret;
-diff --git a/fs/autofs4/symlink.c b/fs/autofs4/symlink.c
-index 063b240..9d728bf 100644
---- a/fs/autofs4/symlink.c
-+++ b/fs/autofs4/symlink.c
-@@ -9,13 +9,13 @@
- 
- #include "autofs_i.h"
- 
--static void *autofs4_follow_link(struct dentry *dentry, struct nameidata *nd)
-+static void *autofs_follow_link(struct dentry *dentry, struct nameidata *nd)
- {
- 	nd_set_link(nd, dentry->d_inode->i_private);
- 	return NULL;
- }
- 
--const struct inode_operations autofs4_symlink_inode_operations = {
-+const struct inode_operations autofs_symlink_inode_operations = {
- 	.readlink	= generic_readlink,
--	.follow_link	= autofs4_follow_link
-+	.follow_link	= autofs_follow_link
- };
-diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
-index f1fb9d7..1725e3f 100644
---- a/fs/autofs4/waitq.c
-+++ b/fs/autofs4/waitq.c
-@@ -16,12 +16,12 @@
- 
- /* We make this a static variable rather than a part of the superblock; it
-    is better if we don't reassign numbers easily even across filesystems */
--static autofs_wqt_t autofs4_next_wait_queue = 1;
-+static autofs_wqt_t autofs_next_wait_queue = 1;
- 
- /* These are the signals we allow interrupting a pending mount */
- #define SHUTDOWN_SIGS	(sigmask(SIGKILL) | sigmask(SIGINT) | sigmask(SIGQUIT))
- 
--void autofs4_catatonic_mode(struct autofs_sb_info *sbi)
-+void autofs_catatonic_mode(struct autofs_sb_info *sbi)
- {
- 	struct autofs_wait_queue *wq, *nwq;
- 
-@@ -51,8 +51,8 @@ void autofs4_catatonic_mode(struct autofs_sb_info *sbi)
- 	mutex_unlock(&sbi->wq_mutex);
- }
- 
--static int autofs4_write(struct autofs_sb_info *sbi,
--			 struct file *file, const void *addr, int bytes)
-+static int autofs_write(struct autofs_sb_info *sbi,
-+			struct file *file, const void *addr, int bytes)
- {
- 	unsigned long sigpipe, flags;
- 	mm_segment_t fs;
-@@ -87,7 +87,7 @@ static int autofs4_write(struct autofs_sb_info *sbi,
- 	return (bytes > 0);
- }
- 	
--static void autofs4_notify_daemon(struct autofs_sb_info *sbi,
-+static void autofs_notify_daemon(struct autofs_sb_info *sbi,
- 				 struct autofs_wait_queue *wq,
- 				 int type)
- {
-@@ -167,7 +167,7 @@ static void autofs4_notify_daemon(struct autofs_sb_info *sbi,
- 		break;
- 	}
- 	default:
--		printk("autofs4_notify_daemon: bad type %d!\n", type);
-+		printk("autofs_notify_daemon: bad type %d!\n", type);
- 		mutex_unlock(&sbi->wq_mutex);
- 		return;
- 	}
-@@ -176,13 +176,13 @@ static void autofs4_notify_daemon(struct autofs_sb_info *sbi,
- 
- 	mutex_unlock(&sbi->wq_mutex);
- 
--	if (autofs4_write(sbi, pipe, &pkt, pktsz))
--		autofs4_catatonic_mode(sbi);
-+	if (autofs_write(sbi, pipe, &pkt, pktsz))
-+		autofs_catatonic_mode(sbi);
- 	fput(pipe);
- }
- 
--static int autofs4_getpath(struct autofs_sb_info *sbi,
--			   struct dentry *dentry, char **name)
-+static int autofs_getpath(struct autofs_sb_info *sbi,
-+			  struct dentry *dentry, char **name)
- {
- 	struct dentry *root = sbi->sb->s_root;
- 	struct dentry *tmp;
-@@ -227,7 +227,7 @@ rename_retry:
- }
- 
- static struct autofs_wait_queue *
--autofs4_find_wait(struct autofs_sb_info *sbi, struct qstr *qstr)
-+autofs_find_wait(struct autofs_sb_info *sbi, struct qstr *qstr)
- {
- 	struct autofs_wait_queue *wq;
- 
-@@ -261,7 +261,7 @@ static int validate_request(struct autofs_wait_queue **wait,
- 		return -ENOENT;
- 
- 	/* Wait in progress, continue; */
--	wq = autofs4_find_wait(sbi, qstr);
-+	wq = autofs_find_wait(sbi, qstr);
- 	if (wq) {
- 		*wait = wq;
- 		return 1;
-@@ -270,7 +270,7 @@ static int validate_request(struct autofs_wait_queue **wait,
- 	*wait = NULL;
- 
- 	/* If we don't yet have any info this is a new request */
--	ino = autofs4_dentry_ino(dentry);
-+	ino = autofs_dentry_ino(dentry);
- 	if (!ino)
- 		return 1;
- 
-@@ -295,7 +295,7 @@ static int validate_request(struct autofs_wait_queue **wait,
- 			if (sbi->catatonic)
- 				return -ENOENT;
- 
--			wq = autofs4_find_wait(sbi, qstr);
-+			wq = autofs_find_wait(sbi, qstr);
- 			if (wq) {
- 				*wait = wq;
- 				return 1;
-@@ -344,8 +344,8 @@ static int validate_request(struct autofs_wait_queue **wait,
- 	return 1;
- }
- 
--int autofs4_wait(struct autofs_sb_info *sbi,
--		 struct dentry *dentry, enum autofs_notify notify)
-+int autofs_wait(struct autofs_sb_info *sbi,
-+		struct dentry *dentry, enum autofs_notify notify)
- {
- 	struct autofs_wait_queue *wq;
- 	struct qstr qstr;
-@@ -391,7 +391,7 @@ int autofs4_wait(struct autofs_sb_info *sbi,
- 	if (IS_ROOT(dentry) && autofs_type_trigger(sbi->type))
- 		qstr.len = sprintf(name, "%p", dentry);
- 	else {
--		qstr.len = autofs4_getpath(sbi, dentry, &name);
-+		qstr.len = autofs_getpath(sbi, dentry, &name);
- 		if (!qstr.len) {
- 			kfree(name);
- 			return -ENOENT;
-@@ -422,15 +422,15 @@ int autofs4_wait(struct autofs_sb_info *sbi,
- 			return -ENOMEM;
- 		}
- 
--		wq->wait_queue_token = autofs4_next_wait_queue;
--		if (++autofs4_next_wait_queue == 0)
--			autofs4_next_wait_queue = 1;
-+		wq->wait_queue_token = autofs_next_wait_queue;
-+		if (++autofs_next_wait_queue == 0)
-+			autofs_next_wait_queue = 1;
- 		wq->next = sbi->queues;
- 		sbi->queues = wq;
- 		init_waitqueue_head(&wq->queue);
- 		memcpy(&wq->name, &qstr, sizeof(struct qstr));
--		wq->dev = autofs4_get_dev(sbi);
--		wq->ino = autofs4_get_ino(sbi);
-+		wq->dev = autofs_get_dev(sbi);
-+		wq->ino = autofs_get_ino(sbi);
- 		wq->uid = current_uid();
- 		wq->gid = current_gid();
- 		wq->pid = pid;
-@@ -459,8 +459,8 @@ int autofs4_wait(struct autofs_sb_info *sbi,
- 			(unsigned long) wq->wait_queue_token, wq->name.len,
- 			wq->name.name, notify);
- 
--		/* autofs4_notify_daemon() may block */
--		autofs4_notify_daemon(sbi, wq, type);
-+		/* autofs_notify_daemon() may block */
-+		autofs_notify_daemon(sbi, wq, type);
- 	} else {
- 		wq->wait_ctr++;
- 		mutex_unlock(&sbi->wq_mutex);
-@@ -511,12 +511,12 @@ int autofs4_wait(struct autofs_sb_info *sbi,
- 		struct dentry *de = NULL;
- 
- 		/* direct mount or browsable map */
--		ino = autofs4_dentry_ino(dentry);
-+		ino = autofs_dentry_ino(dentry);
- 		if (!ino) {
- 			/* If not lookup actual dentry used */
- 			de = d_lookup(dentry->d_parent, &dentry->d_name);
- 			if (de)
--				ino = autofs4_dentry_ino(de);
-+				ino = autofs_dentry_ino(de);
- 		}
- 
- 		/* Set mount requester */
-@@ -541,7 +541,8 @@ int autofs4_wait(struct autofs_sb_info *sbi,
- }
- 
- 
--int autofs4_wait_release(struct autofs_sb_info *sbi, autofs_wqt_t wait_queue_token, int status)
-+int autofs_wait_release(struct autofs_sb_info *sbi,
-+			autofs_wqt_t wait_queue_token, int status)
- {
- 	struct autofs_wait_queue *wq, **wql;
- 
+diff --git a/arch/arm/configs/at91rm9200_defconfig b/arch/arm/configs/at91rm9200_defconfig
+index 75502c4..db89c6e 100644
+--- a/arch/arm/configs/at91rm9200_defconfig
++++ b/arch/arm/configs/at91rm9200_defconfig
+@@ -139,7 +139,7 @@ CONFIG_LEDS_TRIGGER_GPIO=y
+ CONFIG_RTC_CLASS=y
+ CONFIG_RTC_DRV_AT91RM9200=y
+ CONFIG_EXT4_FS=y
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_VFAT_FS=y
+ CONFIG_TMPFS=y
+ CONFIG_UBIFS_FS=y
+diff --git a/arch/arm/configs/bcm_defconfig b/arch/arm/configs/bcm_defconfig
+index e3bf2d6..b9ace84 100644
+--- a/arch/arm/configs/bcm_defconfig
++++ b/arch/arm/configs/bcm_defconfig
+@@ -87,7 +87,7 @@ CONFIG_LEDS_TRIGGER_DEFAULT_ON=y
+ CONFIG_EXT4_FS=y
+ CONFIG_EXT4_FS_POSIX_ACL=y
+ CONFIG_EXT4_FS_SECURITY=y
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_FUSE_FS=y
+ CONFIG_MSDOS_FS=y
+ CONFIG_VFAT_FS=y
+diff --git a/arch/arm/configs/cns3420vb_defconfig b/arch/arm/configs/cns3420vb_defconfig
+index b1ff5cd..b3c203e 100644
+--- a/arch/arm/configs/cns3420vb_defconfig
++++ b/arch/arm/configs/cns3420vb_defconfig
+@@ -64,7 +64,7 @@ CONFIG_MMC_SDHCI_PLTFM=y
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT2_FS_XATTR=y
+ CONFIG_INOTIFY=y
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_FSCACHE=y
+ CONFIG_TMPFS=y
+ # CONFIG_ENABLE_WARN_DEPRECATED is not set
+diff --git a/arch/arm/configs/colibri_pxa270_defconfig b/arch/arm/configs/colibri_pxa270_defconfig
+index 2ef2c5e..5303c56 100644
+--- a/arch/arm/configs/colibri_pxa270_defconfig
++++ b/arch/arm/configs/colibri_pxa270_defconfig
+@@ -135,7 +135,7 @@ CONFIG_RTC_CLASS=y
+ # CONFIG_RTC_HCTOSYS is not set
+ CONFIG_RTC_DRV_PCF8583=m
+ CONFIG_INOTIFY=y
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_MSDOS_FS=m
+ CONFIG_VFAT_FS=m
+ CONFIG_FAT_DEFAULT_IOCHARSET="iso8859-15"
+diff --git a/arch/arm/configs/da8xx_omapl_defconfig b/arch/arm/configs/da8xx_omapl_defconfig
+index 7c86813..d6cf64b 100644
+--- a/arch/arm/configs/da8xx_omapl_defconfig
++++ b/arch/arm/configs/da8xx_omapl_defconfig
+@@ -106,7 +106,7 @@ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+ CONFIG_XFS_FS=m
+ CONFIG_INOTIFY=y
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ CONFIG_MSDOS_FS=y
+ CONFIG_VFAT_FS=y
+ CONFIG_TMPFS=y
+diff --git a/arch/arm/configs/davinci_all_defconfig b/arch/arm/configs/davinci_all_defconfig
+index c86fd75..a683475 100644
+--- a/arch/arm/configs/davinci_all_defconfig
++++ b/arch/arm/configs/davinci_all_defconfig
+@@ -166,7 +166,7 @@ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+ CONFIG_XFS_FS=m
+ CONFIG_INOTIFY=y
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ CONFIG_MSDOS_FS=y
+ CONFIG_VFAT_FS=y
+ CONFIG_TMPFS=y
+diff --git a/arch/arm/configs/ebsa110_defconfig b/arch/arm/configs/ebsa110_defconfig
+index 14559db..ed8327f 100644
+--- a/arch/arm/configs/ebsa110_defconfig
++++ b/arch/arm/configs/ebsa110_defconfig
+@@ -66,7 +66,7 @@ CONFIG_SERIAL_8250_CS=m
+ CONFIG_PRINTER=m
+ CONFIG_WATCHDOG=y
+ CONFIG_SOFT_WATCHDOG=y
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_MINIX_FS=y
+ CONFIG_NFS_FS=y
+ CONFIG_NFS_V3=y
+diff --git a/arch/arm/configs/ezx_defconfig b/arch/arm/configs/ezx_defconfig
+index d95763d..50f3b4d 100644
+--- a/arch/arm/configs/ezx_defconfig
++++ b/arch/arm/configs/ezx_defconfig
+@@ -315,7 +315,7 @@ CONFIG_REISERFS_FS_SECURITY=y
+ CONFIG_XFS_FS=m
+ CONFIG_INOTIFY=y
+ CONFIG_AUTOFS_FS=y
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_FUSE_FS=m
+ CONFIG_CUSE=m
+ CONFIG_ISO9660_FS=m
+diff --git a/arch/arm/configs/footbridge_defconfig b/arch/arm/configs/footbridge_defconfig
+index 038518a..5f2a428 100644
+--- a/arch/arm/configs/footbridge_defconfig
++++ b/arch/arm/configs/footbridge_defconfig
+@@ -105,7 +105,7 @@ CONFIG_USB_DEVICEFS=y
+ CONFIG_USB_MON=m
+ CONFIG_USB_PRINTER=m
+ CONFIG_EXT2_FS=y
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_ISO9660_FS=m
+ CONFIG_JOLIET=y
+ CONFIG_MSDOS_FS=m
+diff --git a/arch/arm/configs/imote2_defconfig b/arch/arm/configs/imote2_defconfig
+index fd996bb..c613896 100644
+--- a/arch/arm/configs/imote2_defconfig
++++ b/arch/arm/configs/imote2_defconfig
+@@ -286,7 +286,7 @@ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=m
+ CONFIG_INOTIFY=y
+ CONFIG_AUTOFS_FS=y
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_FUSE_FS=m
+ CONFIG_CUSE=m
+ CONFIG_MSDOS_FS=m
+diff --git a/arch/arm/configs/imx_v6_v7_defconfig b/arch/arm/configs/imx_v6_v7_defconfig
+index 2353bde..68c2ffe 100644
+--- a/arch/arm/configs/imx_v6_v7_defconfig
++++ b/arch/arm/configs/imx_v6_v7_defconfig
+@@ -238,7 +238,7 @@ CONFIG_EXT4_FS_SECURITY=y
+ CONFIG_QUOTA=y
+ CONFIG_QUOTA_NETLINK_INTERFACE=y
+ # CONFIG_PRINT_QUOTA_WARNING is not set
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_FUSE_FS=y
+ CONFIG_ISO9660_FS=m
+ CONFIG_JOLIET=y
+diff --git a/arch/arm/configs/lpc32xx_defconfig b/arch/arm/configs/lpc32xx_defconfig
+index 398a367..8f9d3eb 100644
+--- a/arch/arm/configs/lpc32xx_defconfig
++++ b/arch/arm/configs/lpc32xx_defconfig
+@@ -183,7 +183,7 @@ CONFIG_MAX517=y
+ CONFIG_PWM=y
+ CONFIG_PWM_LPC32XX=y
+ CONFIG_EXT2_FS=y
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_MSDOS_FS=y
+ CONFIG_VFAT_FS=y
+ CONFIG_TMPFS=y
+diff --git a/arch/arm/configs/mini2440_defconfig b/arch/arm/configs/mini2440_defconfig
+index a07948a..ce6c835 100644
+--- a/arch/arm/configs/mini2440_defconfig
++++ b/arch/arm/configs/mini2440_defconfig
+@@ -268,7 +268,7 @@ CONFIG_EXT3_FS_POSIX_ACL=y
+ CONFIG_EXT3_FS_SECURITY=y
+ CONFIG_INOTIFY=y
+ CONFIG_AUTOFS_FS=y
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_MSDOS_FS=y
+ CONFIG_VFAT_FS=y
+ CONFIG_TMPFS=y
+diff --git a/arch/arm/configs/omap1_defconfig b/arch/arm/configs/omap1_defconfig
+index d74edba..8fae376 100644
+--- a/arch/arm/configs/omap1_defconfig
++++ b/arch/arm/configs/omap1_defconfig
+@@ -231,7 +231,7 @@ CONFIG_RTC_DRV_OMAP=y
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+ # CONFIG_DNOTIFY is not set
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_ISO9660_FS=y
+ CONFIG_JOLIET=y
+ CONFIG_MSDOS_FS=y
+diff --git a/arch/arm/configs/rpc_defconfig b/arch/arm/configs/rpc_defconfig
+index 00515ef..f2ebb47 100644
+--- a/arch/arm/configs/rpc_defconfig
++++ b/arch/arm/configs/rpc_defconfig
+@@ -88,7 +88,7 @@ CONFIG_RTC_DRV_PCF8583=y
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+ CONFIG_INOTIFY=y
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ CONFIG_ISO9660_FS=y
+ CONFIG_JOLIET=y
+ CONFIG_MSDOS_FS=m
+diff --git a/arch/arm/configs/s3c2410_defconfig b/arch/arm/configs/s3c2410_defconfig
+index 193448f..b3f829f 100644
+--- a/arch/arm/configs/s3c2410_defconfig
++++ b/arch/arm/configs/s3c2410_defconfig
+@@ -396,7 +396,7 @@ CONFIG_EXT3_FS=y
+ CONFIG_EXT3_FS_POSIX_ACL=y
+ CONFIG_EXT4_FS=m
+ CONFIG_EXT4_FS_POSIX_ACL=y
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ CONFIG_FUSE_FS=m
+ CONFIG_ISO9660_FS=y
+ CONFIG_JOLIET=y
+diff --git a/arch/arm/configs/spear13xx_defconfig b/arch/arm/configs/spear13xx_defconfig
+index 1fdb826..5a803b3 100644
+--- a/arch/arm/configs/spear13xx_defconfig
++++ b/arch/arm/configs/spear13xx_defconfig
+@@ -79,7 +79,7 @@ CONFIG_EXT2_FS_XATTR=y
+ CONFIG_EXT2_FS_SECURITY=y
+ CONFIG_EXT3_FS=y
+ CONFIG_EXT3_FS_SECURITY=y
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ CONFIG_MSDOS_FS=m
+ CONFIG_VFAT_FS=m
+ CONFIG_FAT_DEFAULT_IOCHARSET="ascii"
+diff --git a/arch/arm/configs/spear3xx_defconfig b/arch/arm/configs/spear3xx_defconfig
+index 7ff23a0..70e4d8d 100644
+--- a/arch/arm/configs/spear3xx_defconfig
++++ b/arch/arm/configs/spear3xx_defconfig
+@@ -73,7 +73,7 @@ CONFIG_EXT2_FS_XATTR=y
+ CONFIG_EXT2_FS_SECURITY=y
+ CONFIG_EXT3_FS=y
+ CONFIG_EXT3_FS_SECURITY=y
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ CONFIG_MSDOS_FS=m
+ CONFIG_VFAT_FS=m
+ CONFIG_FAT_DEFAULT_IOCHARSET="ascii"
+diff --git a/arch/arm/configs/spear6xx_defconfig b/arch/arm/configs/spear6xx_defconfig
+index 7822980..c1fadf0 100644
+--- a/arch/arm/configs/spear6xx_defconfig
++++ b/arch/arm/configs/spear6xx_defconfig
+@@ -62,7 +62,7 @@ CONFIG_EXT2_FS_XATTR=y
+ CONFIG_EXT2_FS_SECURITY=y
+ CONFIG_EXT3_FS=y
+ CONFIG_EXT3_FS_SECURITY=y
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ CONFIG_MSDOS_FS=m
+ CONFIG_VFAT_FS=m
+ CONFIG_FAT_DEFAULT_IOCHARSET="ascii"
+diff --git a/arch/arm/configs/trizeps4_defconfig b/arch/arm/configs/trizeps4_defconfig
+index 3162173..677f482 100644
+--- a/arch/arm/configs/trizeps4_defconfig
++++ b/arch/arm/configs/trizeps4_defconfig
+@@ -187,7 +187,7 @@ CONFIG_EXT3_FS=y
+ CONFIG_EXT3_FS_POSIX_ACL=y
+ CONFIG_EXT3_FS_SECURITY=y
+ CONFIG_INOTIFY=y
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_MSDOS_FS=m
+ CONFIG_VFAT_FS=m
+ CONFIG_FAT_DEFAULT_IOCHARSET="iso8859-15"
+diff --git a/arch/ia64/configs/bigsur_defconfig b/arch/ia64/configs/bigsur_defconfig
+index cf5993f..dab25bc 100644
+--- a/arch/ia64/configs/bigsur_defconfig
++++ b/arch/ia64/configs/bigsur_defconfig
+@@ -87,7 +87,7 @@ CONFIG_XFS_FS=y
+ CONFIG_XFS_QUOTA=y
+ CONFIG_XFS_POSIX_ACL=y
+ CONFIG_AUTOFS_FS=m
+-CONFIG_AUTOFS4_FS=m
++# CONFIG_AUTOFS4_FS is not set
+ CONFIG_ISO9660_FS=m
+ CONFIG_JOLIET=y
+ CONFIG_UDF_FS=m
+diff --git a/arch/ia64/configs/generic_defconfig b/arch/ia64/configs/generic_defconfig
+index 7913695..792a32e 100644
+--- a/arch/ia64/configs/generic_defconfig
++++ b/arch/ia64/configs/generic_defconfig
+@@ -167,7 +167,7 @@ CONFIG_REISERFS_FS_POSIX_ACL=y
+ CONFIG_REISERFS_FS_SECURITY=y
+ CONFIG_XFS_FS=y
+ CONFIG_AUTOFS_FS=m
+-CONFIG_AUTOFS4_FS=m
++# CONFIG_AUTOFS4_FS is not set
+ CONFIG_ISO9660_FS=m
+ CONFIG_JOLIET=y
+ CONFIG_UDF_FS=m
+diff --git a/arch/ia64/configs/gensparse_defconfig b/arch/ia64/configs/gensparse_defconfig
+index f8e9133..15447e3 100644
+--- a/arch/ia64/configs/gensparse_defconfig
++++ b/arch/ia64/configs/gensparse_defconfig
+@@ -148,7 +148,7 @@ CONFIG_REISERFS_FS_POSIX_ACL=y
+ CONFIG_REISERFS_FS_SECURITY=y
+ CONFIG_XFS_FS=y
+ CONFIG_AUTOFS_FS=y
+-CONFIG_AUTOFS4_FS=y
++# CONFIG_AUTOFS4_FS is not set
+ CONFIG_ISO9660_FS=m
+ CONFIG_JOLIET=y
+ CONFIG_UDF_FS=m
+diff --git a/arch/ia64/configs/tiger_defconfig b/arch/ia64/configs/tiger_defconfig
+index a5a9e02..af2e3d2 100644
+--- a/arch/ia64/configs/tiger_defconfig
++++ b/arch/ia64/configs/tiger_defconfig
+@@ -121,7 +121,7 @@ CONFIG_REISERFS_FS_POSIX_ACL=y
+ CONFIG_REISERFS_FS_SECURITY=y
+ CONFIG_XFS_FS=y
+ CONFIG_AUTOFS_FS=y
+-CONFIG_AUTOFS4_FS=y
++# CONFIG_AUTOFS4_FS is not set
+ CONFIG_ISO9660_FS=m
+ CONFIG_JOLIET=y
+ CONFIG_UDF_FS=m
+diff --git a/arch/ia64/configs/xen_domu_defconfig b/arch/ia64/configs/xen_domu_defconfig
+index 37b9b42..cdcaac1 100644
+--- a/arch/ia64/configs/xen_domu_defconfig
++++ b/arch/ia64/configs/xen_domu_defconfig
+@@ -131,7 +131,7 @@ CONFIG_REISERFS_FS_POSIX_ACL=y
+ CONFIG_REISERFS_FS_SECURITY=y
+ CONFIG_XFS_FS=y
+ CONFIG_AUTOFS_FS=y
+-CONFIG_AUTOFS4_FS=y
++# CONFIG_AUTOFS4_FS is not set
+ CONFIG_ISO9660_FS=m
+ CONFIG_JOLIET=y
+ CONFIG_UDF_FS=m
+diff --git a/arch/m68k/configs/amiga_defconfig b/arch/m68k/configs/amiga_defconfig
+index 19325e1..449fe05 100644
+--- a/arch/m68k/configs/amiga_defconfig
++++ b/arch/m68k/configs/amiga_defconfig
+@@ -358,7 +358,7 @@ CONFIG_OCFS2_FS=m
+ CONFIG_FANOTIFY=y
+ CONFIG_QUOTA_NETLINK_INTERFACE=y
+ # CONFIG_PRINT_QUOTA_WARNING is not set
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ CONFIG_FUSE_FS=m
+ CONFIG_CUSE=m
+ CONFIG_ISO9660_FS=y
+diff --git a/arch/m68k/configs/apollo_defconfig b/arch/m68k/configs/apollo_defconfig
+index 14dc6cc..de90302 100644
+--- a/arch/m68k/configs/apollo_defconfig
++++ b/arch/m68k/configs/apollo_defconfig
+@@ -315,7 +315,7 @@ CONFIG_OCFS2_FS=m
+ CONFIG_FANOTIFY=y
+ CONFIG_QUOTA_NETLINK_INTERFACE=y
+ # CONFIG_PRINT_QUOTA_WARNING is not set
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ CONFIG_FUSE_FS=m
+ CONFIG_CUSE=m
+ CONFIG_ISO9660_FS=y
+diff --git a/arch/m68k/configs/atari_defconfig b/arch/m68k/configs/atari_defconfig
+index 6d5370c..8f4c568 100644
+--- a/arch/m68k/configs/atari_defconfig
++++ b/arch/m68k/configs/atari_defconfig
+@@ -333,7 +333,7 @@ CONFIG_OCFS2_FS=m
+ CONFIG_FANOTIFY=y
+ CONFIG_QUOTA_NETLINK_INTERFACE=y
+ # CONFIG_PRINT_QUOTA_WARNING is not set
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ CONFIG_FUSE_FS=m
+ CONFIG_CUSE=m
+ CONFIG_ISO9660_FS=y
+diff --git a/arch/m68k/configs/bvme6000_defconfig b/arch/m68k/configs/bvme6000_defconfig
+index c015ddb..09b9802 100644
+--- a/arch/m68k/configs/bvme6000_defconfig
++++ b/arch/m68k/configs/bvme6000_defconfig
+@@ -307,7 +307,7 @@ CONFIG_OCFS2_FS=m
+ CONFIG_FANOTIFY=y
+ CONFIG_QUOTA_NETLINK_INTERFACE=y
+ # CONFIG_PRINT_QUOTA_WARNING is not set
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ CONFIG_FUSE_FS=m
+ CONFIG_CUSE=m
+ CONFIG_ISO9660_FS=y
+diff --git a/arch/m68k/configs/hp300_defconfig b/arch/m68k/configs/hp300_defconfig
+index ec7382d..46a500a 100644
+--- a/arch/m68k/configs/hp300_defconfig
++++ b/arch/m68k/configs/hp300_defconfig
+@@ -317,7 +317,7 @@ CONFIG_OCFS2_FS=m
+ CONFIG_FANOTIFY=y
+ CONFIG_QUOTA_NETLINK_INTERFACE=y
+ # CONFIG_PRINT_QUOTA_WARNING is not set
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ CONFIG_FUSE_FS=m
+ CONFIG_CUSE=m
+ CONFIG_ISO9660_FS=y
+diff --git a/arch/m68k/configs/mac_defconfig b/arch/m68k/configs/mac_defconfig
+index 7d46fbe..b1d3abe 100644
+--- a/arch/m68k/configs/mac_defconfig
++++ b/arch/m68k/configs/mac_defconfig
+@@ -340,7 +340,7 @@ CONFIG_OCFS2_FS=m
+ CONFIG_FANOTIFY=y
+ CONFIG_QUOTA_NETLINK_INTERFACE=y
+ # CONFIG_PRINT_QUOTA_WARNING is not set
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ CONFIG_FUSE_FS=m
+ CONFIG_CUSE=m
+ CONFIG_ISO9660_FS=y
+diff --git a/arch/m68k/configs/multi_defconfig b/arch/m68k/configs/multi_defconfig
+index b17a883..7c27aa2 100644
+--- a/arch/m68k/configs/multi_defconfig
++++ b/arch/m68k/configs/multi_defconfig
+@@ -418,7 +418,7 @@ CONFIG_OCFS2_FS=m
+ CONFIG_FANOTIFY=y
+ CONFIG_QUOTA_NETLINK_INTERFACE=y
+ # CONFIG_PRINT_QUOTA_WARNING is not set
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ CONFIG_FUSE_FS=m
+ CONFIG_CUSE=m
+ CONFIG_ISO9660_FS=y
+diff --git a/arch/m68k/configs/mvme147_defconfig b/arch/m68k/configs/mvme147_defconfig
+index 5586c65..281cdd8 100644
+--- a/arch/m68k/configs/mvme147_defconfig
++++ b/arch/m68k/configs/mvme147_defconfig
+@@ -307,7 +307,7 @@ CONFIG_OCFS2_FS=m
+ CONFIG_FANOTIFY=y
+ CONFIG_QUOTA_NETLINK_INTERFACE=y
+ # CONFIG_PRINT_QUOTA_WARNING is not set
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ CONFIG_FUSE_FS=m
+ CONFIG_CUSE=m
+ CONFIG_ISO9660_FS=y
+diff --git a/arch/m68k/configs/mvme16x_defconfig b/arch/m68k/configs/mvme16x_defconfig
+index e5e8262..8af7a4d 100644
+--- a/arch/m68k/configs/mvme16x_defconfig
++++ b/arch/m68k/configs/mvme16x_defconfig
+@@ -307,7 +307,7 @@ CONFIG_OCFS2_FS=m
+ CONFIG_FANOTIFY=y
+ CONFIG_QUOTA_NETLINK_INTERFACE=y
+ # CONFIG_PRINT_QUOTA_WARNING is not set
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ CONFIG_FUSE_FS=m
+ CONFIG_CUSE=m
+ CONFIG_ISO9660_FS=y
+diff --git a/arch/m68k/configs/q40_defconfig b/arch/m68k/configs/q40_defconfig
+index be1496e..e9ada99 100644
+--- a/arch/m68k/configs/q40_defconfig
++++ b/arch/m68k/configs/q40_defconfig
+@@ -331,7 +331,7 @@ CONFIG_OCFS2_FS=m
+ CONFIG_FANOTIFY=y
+ CONFIG_QUOTA_NETLINK_INTERFACE=y
+ # CONFIG_PRINT_QUOTA_WARNING is not set
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ CONFIG_FUSE_FS=m
+ CONFIG_CUSE=m
+ CONFIG_ISO9660_FS=y
+diff --git a/arch/m68k/configs/sun3_defconfig b/arch/m68k/configs/sun3_defconfig
+index 54674d6..cc1eeee 100644
+--- a/arch/m68k/configs/sun3_defconfig
++++ b/arch/m68k/configs/sun3_defconfig
+@@ -309,7 +309,7 @@ CONFIG_OCFS2_FS=m
+ CONFIG_FANOTIFY=y
+ CONFIG_QUOTA_NETLINK_INTERFACE=y
+ # CONFIG_PRINT_QUOTA_WARNING is not set
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ CONFIG_FUSE_FS=m
+ CONFIG_CUSE=m
+ CONFIG_ISO9660_FS=y
+diff --git a/arch/m68k/configs/sun3x_defconfig b/arch/m68k/configs/sun3x_defconfig
+index 832d953..7436323 100644
+--- a/arch/m68k/configs/sun3x_defconfig
++++ b/arch/m68k/configs/sun3x_defconfig
+@@ -309,7 +309,7 @@ CONFIG_OCFS2_FS=m
+ CONFIG_FANOTIFY=y
+ CONFIG_QUOTA_NETLINK_INTERFACE=y
+ # CONFIG_PRINT_QUOTA_WARNING is not set
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ CONFIG_FUSE_FS=m
+ CONFIG_CUSE=m
+ CONFIG_ISO9660_FS=y
+diff --git a/arch/mips/configs/bcm47xx_defconfig b/arch/mips/configs/bcm47xx_defconfig
+index 4ca8e5c..a2ae007 100644
+--- a/arch/mips/configs/bcm47xx_defconfig
++++ b/arch/mips/configs/bcm47xx_defconfig
+@@ -506,7 +506,7 @@ CONFIG_QUOTA_NETLINK_INTERFACE=y
+ CONFIG_QFMT_V1=m
+ CONFIG_QFMT_V2=m
+ CONFIG_AUTOFS_FS=m
+-CONFIG_AUTOFS4_FS=m
++# CONFIG_AUTOFS4_FS is not set
+ CONFIG_FUSE_FS=m
+ CONFIG_ISO9660_FS=m
+ CONFIG_JOLIET=y
+diff --git a/arch/mips/configs/bigsur_defconfig b/arch/mips/configs/bigsur_defconfig
+index 1cdff6b..d33c492 100644
+--- a/arch/mips/configs/bigsur_defconfig
++++ b/arch/mips/configs/bigsur_defconfig
+@@ -184,7 +184,7 @@ CONFIG_QUOTA_NETLINK_INTERFACE=y
+ # CONFIG_PRINT_QUOTA_WARNING is not set
+ CONFIG_QFMT_V2=m
+ CONFIG_AUTOFS_FS=m
+-CONFIG_AUTOFS4_FS=m
++# CONFIG_AUTOFS4_FS is not set
+ CONFIG_FUSE_FS=m
+ CONFIG_ISO9660_FS=m
+ CONFIG_JOLIET=y
+diff --git a/arch/mips/configs/capcella_defconfig b/arch/mips/configs/capcella_defconfig
+index 5135dc0..aa01aa0 100644
+--- a/arch/mips/configs/capcella_defconfig
++++ b/arch/mips/configs/capcella_defconfig
+@@ -65,7 +65,7 @@ CONFIG_RTC_CLASS=y
+ CONFIG_RTC_DRV_VR41XX=y
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_PROC_KCORE=y
+ CONFIG_TMPFS=y
+ CONFIG_TMPFS_POSIX_ACL=y
+diff --git a/arch/mips/configs/e55_defconfig b/arch/mips/configs/e55_defconfig
+index 0126e66..eda3e7d 100644
+--- a/arch/mips/configs/e55_defconfig
++++ b/arch/mips/configs/e55_defconfig
+@@ -34,7 +34,7 @@ CONFIG_RTC_CLASS=y
+ CONFIG_RTC_DRV_VR41XX=y
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_PROC_KCORE=y
+ CONFIG_TMPFS=y
+ CONFIG_TMPFS_POSIX_ACL=y
+diff --git a/arch/mips/configs/fuloong2e_defconfig b/arch/mips/configs/fuloong2e_defconfig
+index e5b73de..765f029 100644
+--- a/arch/mips/configs/fuloong2e_defconfig
++++ b/arch/mips/configs/fuloong2e_defconfig
+@@ -221,7 +221,7 @@ CONFIG_EXT4_FS_POSIX_ACL=y
+ CONFIG_EXT4_FS_SECURITY=y
+ CONFIG_REISERFS_FS=m
+ CONFIG_AUTOFS_FS=y
+-CONFIG_AUTOFS4_FS=y
++# CONFIG_AUTOFS4_FS is not set
+ CONFIG_FUSE_FS=y
+ CONFIG_ISO9660_FS=m
+ CONFIG_JOLIET=y
+diff --git a/arch/mips/configs/ip22_defconfig b/arch/mips/configs/ip22_defconfig
+index 936ec5a..b06185e7 100644
+--- a/arch/mips/configs/ip22_defconfig
++++ b/arch/mips/configs/ip22_defconfig
+@@ -289,7 +289,7 @@ CONFIG_QUOTA_NETLINK_INTERFACE=y
+ # CONFIG_PRINT_QUOTA_WARNING is not set
+ CONFIG_QFMT_V2=m
+ CONFIG_AUTOFS_FS=m
+-CONFIG_AUTOFS4_FS=m
++# CONFIG_AUTOFS4_FS is not set
+ CONFIG_FUSE_FS=m
+ CONFIG_ISO9660_FS=m
+ CONFIG_JOLIET=y
+diff --git a/arch/mips/configs/ip32_defconfig b/arch/mips/configs/ip32_defconfig
+index 7bbd521..9657282 100644
+--- a/arch/mips/configs/ip32_defconfig
++++ b/arch/mips/configs/ip32_defconfig
+@@ -118,7 +118,7 @@ CONFIG_QUOTA=y
+ CONFIG_QFMT_V1=m
+ CONFIG_QFMT_V2=m
+ CONFIG_AUTOFS_FS=m
+-CONFIG_AUTOFS4_FS=m
++# CONFIG_AUTOFS4_FS is not set
+ CONFIG_FUSE_FS=m
+ CONFIG_ISO9660_FS=m
+ CONFIG_JOLIET=y
+diff --git a/arch/mips/configs/jazz_defconfig b/arch/mips/configs/jazz_defconfig
+index 0315ee3..20fb38ec 100644
+--- a/arch/mips/configs/jazz_defconfig
++++ b/arch/mips/configs/jazz_defconfig
+@@ -278,7 +278,7 @@ CONFIG_REISERFS_FS_SECURITY=y
+ CONFIG_XFS_FS=m
+ CONFIG_XFS_QUOTA=y
+ CONFIG_AUTOFS_FS=m
+-CONFIG_AUTOFS4_FS=m
++# CONFIG_AUTOFS4_FS is not set
+ CONFIG_FUSE_FS=m
+ CONFIG_ISO9660_FS=m
+ CONFIG_JOLIET=y
+diff --git a/arch/mips/configs/lemote2f_defconfig b/arch/mips/configs/lemote2f_defconfig
+index 343bebc..474d515 100644
+--- a/arch/mips/configs/lemote2f_defconfig
++++ b/arch/mips/configs/lemote2f_defconfig
+@@ -350,7 +350,7 @@ CONFIG_BTRFS_FS=m
+ CONFIG_QUOTA=y
+ CONFIG_QFMT_V2=m
+ CONFIG_AUTOFS_FS=m
+-CONFIG_AUTOFS4_FS=m
++# CONFIG_AUTOFS4_FS is not set
+ CONFIG_FSCACHE=m
+ CONFIG_CACHEFILES=m
+ CONFIG_ISO9660_FS=m
+diff --git a/arch/mips/configs/markeins_defconfig b/arch/mips/configs/markeins_defconfig
+index 636f82b..54104cf 100644
+--- a/arch/mips/configs/markeins_defconfig
++++ b/arch/mips/configs/markeins_defconfig
+@@ -177,7 +177,7 @@ CONFIG_EXT2_FS_SECURITY=y
+ CONFIG_EXT3_FS=m
+ CONFIG_XFS_FS=m
+ # CONFIG_DNOTIFY is not set
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ CONFIG_MSDOS_FS=y
+ CONFIG_VFAT_FS=y
+ CONFIG_NTFS_FS=m
+diff --git a/arch/mips/configs/mpc30x_defconfig b/arch/mips/configs/mpc30x_defconfig
+index c16de98..64d05cd 100644
+--- a/arch/mips/configs/mpc30x_defconfig
++++ b/arch/mips/configs/mpc30x_defconfig
+@@ -53,7 +53,7 @@ CONFIG_RTC_CLASS=y
+ CONFIG_RTC_DRV_VR41XX=y
+ CONFIG_EXT2_FS=y
+ CONFIG_AUTOFS_FS=y
+-CONFIG_AUTOFS4_FS=y
++# CONFIG_AUTOFS4_FS is not set
+ CONFIG_PROC_KCORE=y
+ CONFIG_CONFIGFS_FS=m
+ CONFIG_NFS_FS=y
+diff --git a/arch/mips/configs/mtx1_defconfig b/arch/mips/configs/mtx1_defconfig
+index 9fa8f16..fa9a790 100644
+--- a/arch/mips/configs/mtx1_defconfig
++++ b/arch/mips/configs/mtx1_defconfig
+@@ -698,7 +698,7 @@ CONFIG_EXT3_FS=m
+ CONFIG_EXT3_FS_POSIX_ACL=y
+ CONFIG_EXT3_FS_SECURITY=y
+ CONFIG_QUOTA=y
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_FUSE_FS=m
+ CONFIG_ISO9660_FS=m
+ CONFIG_JOLIET=y
+diff --git a/arch/mips/configs/nlm_xlp_defconfig b/arch/mips/configs/nlm_xlp_defconfig
+index 5468b1c..a2fb24c 100644
+--- a/arch/mips/configs/nlm_xlp_defconfig
++++ b/arch/mips/configs/nlm_xlp_defconfig
+@@ -457,7 +457,7 @@ CONFIG_BTRFS_FS=m
+ CONFIG_BTRFS_FS_POSIX_ACL=y
+ CONFIG_NILFS2_FS=m
+ CONFIG_QUOTA_NETLINK_INTERFACE=y
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ CONFIG_FUSE_FS=y
+ CONFIG_CUSE=m
+ CONFIG_FSCACHE=m
+diff --git a/arch/mips/configs/nlm_xlr_defconfig b/arch/mips/configs/nlm_xlr_defconfig
+index 44b4734..20f1243 100644
+--- a/arch/mips/configs/nlm_xlr_defconfig
++++ b/arch/mips/configs/nlm_xlr_defconfig
+@@ -397,7 +397,7 @@ CONFIG_QUOTA_NETLINK_INTERFACE=y
+ # CONFIG_PRINT_QUOTA_WARNING is not set
+ CONFIG_QFMT_V1=m
+ CONFIG_QFMT_V2=m
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ CONFIG_FUSE_FS=y
+ CONFIG_CUSE=m
+ CONFIG_FSCACHE=m
+diff --git a/arch/mips/configs/rm200_defconfig b/arch/mips/configs/rm200_defconfig
+index 59d9d2f..0bd541e 100644
+--- a/arch/mips/configs/rm200_defconfig
++++ b/arch/mips/configs/rm200_defconfig
+@@ -369,7 +369,7 @@ CONFIG_REISERFS_FS_SECURITY=y
+ CONFIG_XFS_FS=m
+ CONFIG_XFS_QUOTA=y
+ CONFIG_AUTOFS_FS=m
+-CONFIG_AUTOFS4_FS=m
++# CONFIG_AUTOFS4_FS is not set
+ CONFIG_FUSE_FS=m
+ CONFIG_ISO9660_FS=m
+ CONFIG_JOLIET=y
+diff --git a/arch/mips/configs/tb0219_defconfig b/arch/mips/configs/tb0219_defconfig
+index 30036b4..8bb94e0 100644
+--- a/arch/mips/configs/tb0219_defconfig
++++ b/arch/mips/configs/tb0219_defconfig
+@@ -81,7 +81,7 @@ CONFIG_RTC_CLASS=y
+ CONFIG_RTC_DRV_VR41XX=y
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_PROC_KCORE=y
+ CONFIG_TMPFS=y
+ CONFIG_TMPFS_POSIX_ACL=y
+diff --git a/arch/mips/configs/tb0226_defconfig b/arch/mips/configs/tb0226_defconfig
+index 81bfa1d..9743b31 100644
+--- a/arch/mips/configs/tb0226_defconfig
++++ b/arch/mips/configs/tb0226_defconfig
+@@ -78,7 +78,7 @@ CONFIG_USB_STORAGE=y
+ CONFIG_RTC_CLASS=y
+ CONFIG_RTC_DRV_VR41XX=y
+ CONFIG_EXT2_FS=y
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_PROC_KCORE=y
+ CONFIG_TMPFS=y
+ CONFIG_TMPFS_POSIX_ACL=y
+diff --git a/arch/mips/configs/tb0287_defconfig b/arch/mips/configs/tb0287_defconfig
+index c415c4f..e15ea36 100644
+--- a/arch/mips/configs/tb0287_defconfig
++++ b/arch/mips/configs/tb0287_defconfig
+@@ -96,7 +96,7 @@ CONFIG_EXT3_FS=y
+ CONFIG_XFS_FS=y
+ CONFIG_XFS_QUOTA=y
+ CONFIG_XFS_POSIX_ACL=y
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_PROC_KCORE=y
+ CONFIG_TMPFS=y
+ CONFIG_TMPFS_POSIX_ACL=y
+diff --git a/arch/mips/configs/workpad_defconfig b/arch/mips/configs/workpad_defconfig
+index ee4b2be..33a6683 100644
+--- a/arch/mips/configs/workpad_defconfig
++++ b/arch/mips/configs/workpad_defconfig
+@@ -61,7 +61,7 @@ CONFIG_RTC_DRV_VR41XX=y
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT2_FS_XATTR=y
+ CONFIG_EXT3_FS=y
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_PROC_KCORE=y
+ CONFIG_TMPFS=y
+ CONFIG_TMPFS_POSIX_ACL=y
+diff --git a/arch/parisc/configs/712_defconfig b/arch/parisc/configs/712_defconfig
+index 0f90569..a3879f8 100644
+--- a/arch/parisc/configs/712_defconfig
++++ b/arch/parisc/configs/712_defconfig
+@@ -118,7 +118,7 @@ CONFIG_EXT3_FS=y
+ # CONFIG_EXT3_FS_XATTR is not set
+ CONFIG_JFS_FS=m
+ CONFIG_XFS_FS=m
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_ISO9660_FS=y
+ CONFIG_JOLIET=y
+ CONFIG_UDF_FS=m
+diff --git a/arch/parisc/configs/a500_defconfig b/arch/parisc/configs/a500_defconfig
+index b647b18..cf85bc1 100644
+--- a/arch/parisc/configs/a500_defconfig
++++ b/arch/parisc/configs/a500_defconfig
+@@ -160,7 +160,7 @@ CONFIG_EXT3_FS=y
+ # CONFIG_EXT3_FS_XATTR is not set
+ CONFIG_JFS_FS=m
+ CONFIG_XFS_FS=m
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_ISO9660_FS=y
+ CONFIG_JOLIET=y
+ CONFIG_UDF_FS=m
+diff --git a/arch/parisc/configs/b180_defconfig b/arch/parisc/configs/b180_defconfig
+index e289f5b..3e92363 100644
+--- a/arch/parisc/configs/b180_defconfig
++++ b/arch/parisc/configs/b180_defconfig
+@@ -82,7 +82,7 @@ CONFIG_SND_HARMONY=y
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+ # CONFIG_EXT3_FS_XATTR is not set
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_ISO9660_FS=y
+ CONFIG_JOLIET=y
+ CONFIG_PROC_KCORE=y
+diff --git a/arch/parisc/configs/c3000_defconfig b/arch/parisc/configs/c3000_defconfig
+index 311ca36..047ef19 100644
+--- a/arch/parisc/configs/c3000_defconfig
++++ b/arch/parisc/configs/c3000_defconfig
+@@ -140,7 +140,7 @@ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+ # CONFIG_EXT3_FS_XATTR is not set
+ CONFIG_XFS_FS=m
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_ISO9660_FS=y
+ CONFIG_JOLIET=y
+ CONFIG_MSDOS_FS=m
+diff --git a/arch/powerpc/configs/40x/virtex_defconfig b/arch/powerpc/configs/40x/virtex_defconfig
+index 0a81e1f..2aa127b 100644
+--- a/arch/powerpc/configs/40x/virtex_defconfig
++++ b/arch/powerpc/configs/40x/virtex_defconfig
+@@ -69,7 +69,7 @@ CONFIG_LOGO=y
+ CONFIG_EXT2_FS=y
+ CONFIG_INOTIFY=y
+ CONFIG_AUTOFS_FS=y
+-CONFIG_AUTOFS4_FS=y
++# CONFIG_AUTOFS4_FS is not set
+ CONFIG_MSDOS_FS=y
+ CONFIG_VFAT_FS=y
+ CONFIG_TMPFS=y
+diff --git a/arch/powerpc/configs/44x/sam440ep_defconfig b/arch/powerpc/configs/44x/sam440ep_defconfig
+index ca088cd..ed98042 100644
+--- a/arch/powerpc/configs/44x/sam440ep_defconfig
++++ b/arch/powerpc/configs/44x/sam440ep_defconfig
+@@ -101,7 +101,7 @@ CONFIG_EXT3_FS=y
+ CONFIG_EXT3_FS_POSIX_ACL=y
+ CONFIG_REISERFS_FS=y
+ CONFIG_INOTIFY=y
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_ISO9660_FS=y
+ CONFIG_JOLIET=y
+ CONFIG_ZISOFS=y
+diff --git a/arch/powerpc/configs/44x/virtex5_defconfig b/arch/powerpc/configs/44x/virtex5_defconfig
+index 1eb3caf..11a6c1e 100644
+--- a/arch/powerpc/configs/44x/virtex5_defconfig
++++ b/arch/powerpc/configs/44x/virtex5_defconfig
+@@ -68,7 +68,7 @@ CONFIG_LOGO=y
+ CONFIG_EXT2_FS=y
+ CONFIG_INOTIFY=y
+ CONFIG_AUTOFS_FS=y
+-CONFIG_AUTOFS4_FS=y
++# CONFIG_AUTOFS4_FS is not set
+ CONFIG_MSDOS_FS=y
+ CONFIG_VFAT_FS=y
+ CONFIG_TMPFS=y
+diff --git a/arch/powerpc/configs/85xx/stx_gp3_defconfig b/arch/powerpc/configs/85xx/stx_gp3_defconfig
+index 5d4db15..01f7a77 100644
+--- a/arch/powerpc/configs/85xx/stx_gp3_defconfig
++++ b/arch/powerpc/configs/85xx/stx_gp3_defconfig
+@@ -65,7 +65,7 @@ CONFIG_EXT3_FS=y
+ # CONFIG_EXT3_DEFAULTS_TO_ORDERED is not set
+ CONFIG_INOTIFY=y
+ CONFIG_AUTOFS_FS=m
+-CONFIG_AUTOFS4_FS=y
++# CONFIG_AUTOFS4_FS is not set
+ CONFIG_ISO9660_FS=m
+ CONFIG_UDF_FS=m
+ CONFIG_MSDOS_FS=m
+diff --git a/arch/powerpc/configs/86xx/sbc8641d_defconfig b/arch/powerpc/configs/86xx/sbc8641d_defconfig
+index 1a62baf..bf44180 100644
+--- a/arch/powerpc/configs/86xx/sbc8641d_defconfig
++++ b/arch/powerpc/configs/86xx/sbc8641d_defconfig
+@@ -195,7 +195,7 @@ CONFIG_REISERFS_FS_POSIX_ACL=y
+ CONFIG_OCFS2_FS=m
+ CONFIG_INOTIFY=y
+ CONFIG_AUTOFS_FS=m
+-CONFIG_AUTOFS4_FS=m
++# CONFIG_AUTOFS4_FS is not set
+ CONFIG_PROC_KCORE=y
+ CONFIG_TMPFS=y
+ CONFIG_MINIX_FS=m
+diff --git a/arch/powerpc/configs/c2k_defconfig b/arch/powerpc/configs/c2k_defconfig
+index 671a8f9..edebe72 100644
+--- a/arch/powerpc/configs/c2k_defconfig
++++ b/arch/powerpc/configs/c2k_defconfig
+@@ -339,7 +339,7 @@ CONFIG_EXT3_FS_POSIX_ACL=y
+ CONFIG_EXT3_FS_SECURITY=y
+ CONFIG_QUOTA=y
+ CONFIG_QFMT_V2=y
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ CONFIG_UDF_FS=m
+ CONFIG_MSDOS_FS=m
+ CONFIG_VFAT_FS=m
+diff --git a/arch/powerpc/configs/cell_defconfig b/arch/powerpc/configs/cell_defconfig
+index 22a403d..d98375c 100644
+--- a/arch/powerpc/configs/cell_defconfig
++++ b/arch/powerpc/configs/cell_defconfig
+@@ -199,7 +199,7 @@ CONFIG_UIO=m
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+ CONFIG_INOTIFY=y
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ CONFIG_ISO9660_FS=m
+ CONFIG_JOLIET=y
+ CONFIG_UDF_FS=m
+diff --git a/arch/powerpc/configs/ep8248e_defconfig b/arch/powerpc/configs/ep8248e_defconfig
+index fceffb3..55a394c 100644
+--- a/arch/powerpc/configs/ep8248e_defconfig
++++ b/arch/powerpc/configs/ep8248e_defconfig
+@@ -58,7 +58,7 @@ CONFIG_EXT3_FS=y
+ # CONFIG_EXT3_DEFAULTS_TO_ORDERED is not set
+ # CONFIG_EXT3_FS_XATTR is not set
+ CONFIG_INOTIFY=y
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_PROC_KCORE=y
+ CONFIG_TMPFS=y
+ CONFIG_CRAMFS=y
+diff --git a/arch/powerpc/configs/mgcoge_defconfig b/arch/powerpc/configs/mgcoge_defconfig
+index 8fa84f1..a7ad80c 100644
+--- a/arch/powerpc/configs/mgcoge_defconfig
++++ b/arch/powerpc/configs/mgcoge_defconfig
+@@ -70,7 +70,7 @@ CONFIG_USB_G_SERIAL=y
+ CONFIG_UIO=y
+ CONFIG_UIO_PDRV=y
+ CONFIG_EXT2_FS=y
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_PROC_KCORE=y
+ CONFIG_TMPFS=y
+ CONFIG_JFFS2_FS=y
+diff --git a/arch/powerpc/configs/mpc8272_ads_defconfig b/arch/powerpc/configs/mpc8272_ads_defconfig
+index 6a22400..893d8b9 100644
+--- a/arch/powerpc/configs/mpc8272_ads_defconfig
++++ b/arch/powerpc/configs/mpc8272_ads_defconfig
+@@ -65,7 +65,7 @@ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+ # CONFIG_EXT3_DEFAULTS_TO_ORDERED is not set
+ CONFIG_INOTIFY=y
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_PROC_KCORE=y
+ CONFIG_TMPFS=y
+ CONFIG_CRAMFS=y
+diff --git a/arch/powerpc/configs/pasemi_defconfig b/arch/powerpc/configs/pasemi_defconfig
+index bd8a6f7..0905445 100644
+--- a/arch/powerpc/configs/pasemi_defconfig
++++ b/arch/powerpc/configs/pasemi_defconfig
+@@ -156,7 +156,7 @@ CONFIG_EXT2_FS_XATTR=y
+ CONFIG_EXT2_FS_POSIX_ACL=y
+ CONFIG_EXT3_FS=y
+ # CONFIG_EXT3_DEFAULTS_TO_ORDERED is not set
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_ISO9660_FS=y
+ CONFIG_UDF_FS=y
+ CONFIG_MSDOS_FS=y
+diff --git a/arch/powerpc/configs/pmac32_defconfig b/arch/powerpc/configs/pmac32_defconfig
+index a73626b..74912c0 100644
+--- a/arch/powerpc/configs/pmac32_defconfig
++++ b/arch/powerpc/configs/pmac32_defconfig
+@@ -315,7 +315,7 @@ CONFIG_EXT3_FS=y
+ CONFIG_EXT3_FS_POSIX_ACL=y
+ CONFIG_EXT4_FS=y
+ CONFIG_INOTIFY=y
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ CONFIG_FUSE_FS=m
+ CONFIG_ISO9660_FS=y
+ CONFIG_JOLIET=y
+diff --git a/arch/powerpc/configs/ppc64_defconfig b/arch/powerpc/configs/ppc64_defconfig
+index c86fcb9..67a96ac 100644
+--- a/arch/powerpc/configs/ppc64_defconfig
++++ b/arch/powerpc/configs/ppc64_defconfig
+@@ -351,7 +351,7 @@ CONFIG_XFS_POSIX_ACL=y
+ CONFIG_BTRFS_FS=m
+ CONFIG_BTRFS_FS_POSIX_ACL=y
+ CONFIG_NILFS2_FS=m
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ CONFIG_FUSE_FS=m
+ CONFIG_ISO9660_FS=y
+ CONFIG_UDF_FS=m
+diff --git a/arch/powerpc/configs/ppc64e_defconfig b/arch/powerpc/configs/ppc64e_defconfig
+index 4b20f76..c216d80 100644
+--- a/arch/powerpc/configs/ppc64e_defconfig
++++ b/arch/powerpc/configs/ppc64e_defconfig
+@@ -273,7 +273,7 @@ CONFIG_JFS_POSIX_ACL=y
+ CONFIG_JFS_SECURITY=y
+ CONFIG_XFS_FS=m
+ CONFIG_XFS_POSIX_ACL=y
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ CONFIG_ISO9660_FS=y
+ CONFIG_UDF_FS=m
+ CONFIG_MSDOS_FS=y
+diff --git a/arch/powerpc/configs/ppc6xx_defconfig b/arch/powerpc/configs/ppc6xx_defconfig
+index 20ebfaf..c25f597 100644
+--- a/arch/powerpc/configs/ppc6xx_defconfig
++++ b/arch/powerpc/configs/ppc6xx_defconfig
+@@ -1122,7 +1122,7 @@ CONFIG_QUOTA_NETLINK_INTERFACE=y
+ # CONFIG_PRINT_QUOTA_WARNING is not set
+ CONFIG_QFMT_V2=y
+ CONFIG_AUTOFS_FS=m
+-CONFIG_AUTOFS4_FS=m
++# CONFIG_AUTOFS4_FS is not set
+ CONFIG_FUSE_FS=m
+ CONFIG_ISO9660_FS=y
+ CONFIG_JOLIET=y
+diff --git a/arch/powerpc/configs/pq2fads_defconfig b/arch/powerpc/configs/pq2fads_defconfig
+index baad8db..9102a31 100644
+--- a/arch/powerpc/configs/pq2fads_defconfig
++++ b/arch/powerpc/configs/pq2fads_defconfig
+@@ -69,7 +69,7 @@ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+ # CONFIG_EXT3_DEFAULTS_TO_ORDERED is not set
+ CONFIG_INOTIFY=y
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_PROC_KCORE=y
+ CONFIG_TMPFS=y
+ CONFIG_CRAMFS=y
+diff --git a/arch/powerpc/configs/ps3_defconfig b/arch/powerpc/configs/ps3_defconfig
+index 139a830..b34fef3 100644
+--- a/arch/powerpc/configs/ps3_defconfig
++++ b/arch/powerpc/configs/ps3_defconfig
+@@ -150,7 +150,7 @@ CONFIG_EXT3_FS=m
+ CONFIG_EXT4_FS=y
+ CONFIG_QUOTA=y
+ CONFIG_QFMT_V2=y
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ CONFIG_ISO9660_FS=m
+ CONFIG_JOLIET=y
+ CONFIG_UDF_FS=m
+diff --git a/arch/powerpc/configs/pseries_defconfig b/arch/powerpc/configs/pseries_defconfig
+index bea8587..b6b835a 100644
+--- a/arch/powerpc/configs/pseries_defconfig
++++ b/arch/powerpc/configs/pseries_defconfig
+@@ -281,7 +281,7 @@ CONFIG_XFS_POSIX_ACL=y
+ CONFIG_BTRFS_FS=m
+ CONFIG_BTRFS_FS_POSIX_ACL=y
+ CONFIG_NILFS2_FS=m
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ CONFIG_FUSE_FS=m
+ CONFIG_ISO9660_FS=y
+ CONFIG_UDF_FS=m
+diff --git a/arch/score/configs/spct6600_defconfig b/arch/score/configs/spct6600_defconfig
+index df1edbf..dadf48f 100644
+--- a/arch/score/configs/spct6600_defconfig
++++ b/arch/score/configs/spct6600_defconfig
+@@ -57,7 +57,7 @@ CONFIG_EXT3_FS=y
+ # CONFIG_EXT3_DEFAULTS_TO_ORDERED is not set
+ CONFIG_EXT3_FS_POSIX_ACL=y
+ CONFIG_AUTOFS_FS=y
+-CONFIG_AUTOFS4_FS=y
++# CONFIG_AUTOFS4_FS is not set
+ CONFIG_PROC_KCORE=y
+ # CONFIG_PROC_PAGE_MONITOR is not set
+ CONFIG_TMPFS=y
+diff --git a/arch/sh/configs/espt_defconfig b/arch/sh/configs/espt_defconfig
+index 67cb109..491b842 100644
+--- a/arch/sh/configs/espt_defconfig
++++ b/arch/sh/configs/espt_defconfig
+@@ -74,7 +74,7 @@ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+ # CONFIG_EXT3_DEFAULTS_TO_ORDERED is not set
+ CONFIG_AUTOFS_FS=y
+-CONFIG_AUTOFS4_FS=y
++# CONFIG_AUTOFS4_FS is not set
+ CONFIG_PROC_KCORE=y
+ CONFIG_TMPFS=y
+ CONFIG_TMPFS_POSIX_ACL=y
+diff --git a/arch/sh/configs/sdk7780_defconfig b/arch/sh/configs/sdk7780_defconfig
+index ae11158..ef7736b 100644
+--- a/arch/sh/configs/sdk7780_defconfig
++++ b/arch/sh/configs/sdk7780_defconfig
+@@ -116,7 +116,7 @@ CONFIG_EXT2_FS_POSIX_ACL=y
+ CONFIG_EXT3_FS=y
+ # CONFIG_EXT3_DEFAULTS_TO_ORDERED is not set
+ CONFIG_EXT3_FS_POSIX_ACL=y
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_ISO9660_FS=y
+ CONFIG_MSDOS_FS=y
+ CONFIG_VFAT_FS=y
+diff --git a/arch/sh/configs/sdk7786_defconfig b/arch/sh/configs/sdk7786_defconfig
+index 76a76a2..3006c56 100644
+--- a/arch/sh/configs/sdk7786_defconfig
++++ b/arch/sh/configs/sdk7786_defconfig
+@@ -183,7 +183,7 @@ CONFIG_EXT3_FS=y
+ CONFIG_EXT4_FS=y
+ CONFIG_XFS_FS=y
+ CONFIG_BTRFS_FS=y
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ CONFIG_FUSE_FS=y
+ CONFIG_CUSE=m
+ CONFIG_FSCACHE=m
+diff --git a/arch/sh/configs/sh03_defconfig b/arch/sh/configs/sh03_defconfig
+index 2051821..93b661f 100644
+--- a/arch/sh/configs/sh03_defconfig
++++ b/arch/sh/configs/sh03_defconfig
+@@ -71,7 +71,7 @@ CONFIG_EXT3_FS=y
+ # CONFIG_EXT3_DEFAULTS_TO_ORDERED is not set
+ CONFIG_EXT3_FS_POSIX_ACL=y
+ CONFIG_AUTOFS_FS=y
+-CONFIG_AUTOFS4_FS=y
++# CONFIG_AUTOFS4_FS is not set
+ CONFIG_ISO9660_FS=m
+ CONFIG_JOLIET=y
+ CONFIG_ZISOFS=y
+diff --git a/arch/sh/configs/sh7763rdp_defconfig b/arch/sh/configs/sh7763rdp_defconfig
+index 4795364..e324b42 100644
+--- a/arch/sh/configs/sh7763rdp_defconfig
++++ b/arch/sh/configs/sh7763rdp_defconfig
+@@ -75,7 +75,7 @@ CONFIG_EXT2_FS=y
+ CONFIG_EXT3_FS=y
+ # CONFIG_EXT3_DEFAULTS_TO_ORDERED is not set
+ CONFIG_AUTOFS_FS=y
+-CONFIG_AUTOFS4_FS=y
++# CONFIG_AUTOFS4_FS is not set
+ CONFIG_MSDOS_FS=y
+ CONFIG_VFAT_FS=y
+ CONFIG_PROC_KCORE=y
+diff --git a/arch/sparc/configs/sparc32_defconfig b/arch/sparc/configs/sparc32_defconfig
+index fb23fd6..1745260 100644
+--- a/arch/sparc/configs/sparc32_defconfig
++++ b/arch/sparc/configs/sparc32_defconfig
+@@ -71,7 +71,7 @@ CONFIG_EXT2_FS_XATTR=y
+ CONFIG_EXT2_FS_POSIX_ACL=y
+ CONFIG_EXT2_FS_SECURITY=y
+ CONFIG_AUTOFS_FS=m
+-CONFIG_AUTOFS4_FS=m
++# CONFIG_AUTOFS4_FS is not set
+ CONFIG_ISO9660_FS=m
+ CONFIG_PROC_KCORE=y
+ CONFIG_ROMFS_FS=m
+diff --git a/arch/tile/configs/tilegx_defconfig b/arch/tile/configs/tilegx_defconfig
+index 4768481..a8196cf 100644
+--- a/arch/tile/configs/tilegx_defconfig
++++ b/arch/tile/configs/tilegx_defconfig
+@@ -443,7 +443,7 @@ CONFIG_QUOTA=y
+ CONFIG_QUOTA_NETLINK_INTERFACE=y
+ # CONFIG_PRINT_QUOTA_WARNING is not set
+ CONFIG_QFMT_V2=y
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ CONFIG_FUSE_FS=y
+ CONFIG_CUSE=m
+ CONFIG_FSCACHE=m
+diff --git a/arch/tile/configs/tilepro_defconfig b/arch/tile/configs/tilepro_defconfig
+index dd2b8f0..2fa5f6e 100644
+--- a/arch/tile/configs/tilepro_defconfig
++++ b/arch/tile/configs/tilepro_defconfig
+@@ -431,7 +431,7 @@ CONFIG_QUOTA=y
+ CONFIG_QUOTA_NETLINK_INTERFACE=y
+ # CONFIG_PRINT_QUOTA_WARNING is not set
+ CONFIG_QFMT_V2=y
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ CONFIG_FUSE_FS=y
+ CONFIG_CUSE=m
+ CONFIG_FSCACHE=m
+diff --git a/arch/um/defconfig b/arch/um/defconfig
+index 08107a7..9c13ef8 100644
+--- a/arch/um/defconfig
++++ b/arch/um/defconfig
+@@ -607,7 +607,7 @@ CONFIG_PRINT_QUOTA_WARNING=y
+ # CONFIG_QFMT_V1 is not set
+ # CONFIG_QFMT_V2 is not set
+ CONFIG_QUOTACTL=y
+-CONFIG_AUTOFS4_FS=m
++CONFIG_AUTOFS_FS=m
+ # CONFIG_FUSE_FS is not set
+ 
+ #
+diff --git a/arch/x86/configs/i386_defconfig b/arch/x86/configs/i386_defconfig
+index 9444708..d28fc1f 100644
+--- a/arch/x86/configs/i386_defconfig
++++ b/arch/x86/configs/i386_defconfig
+@@ -266,7 +266,7 @@ CONFIG_QUOTA=y
+ CONFIG_QUOTA_NETLINK_INTERFACE=y
+ # CONFIG_PRINT_QUOTA_WARNING is not set
+ CONFIG_QFMT_V2=y
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_ISO9660_FS=y
+ CONFIG_JOLIET=y
+ CONFIG_ZISOFS=y
+diff --git a/arch/x86/configs/x86_64_defconfig b/arch/x86/configs/x86_64_defconfig
+index 671524d..d702451 100644
+--- a/arch/x86/configs/x86_64_defconfig
++++ b/arch/x86/configs/x86_64_defconfig
+@@ -265,7 +265,7 @@ CONFIG_QUOTA=y
+ CONFIG_QUOTA_NETLINK_INTERFACE=y
+ # CONFIG_PRINT_QUOTA_WARNING is not set
+ CONFIG_QFMT_V2=y
+-CONFIG_AUTOFS4_FS=y
++CONFIG_AUTOFS_FS=y
+ CONFIG_ISO9660_FS=y
+ CONFIG_JOLIET=y
+ CONFIG_ZISOFS=y
+diff --git a/arch/xtensa/configs/common_defconfig b/arch/xtensa/configs/common_defconfig
+index a182a4e..2fe8b64 100644
+--- a/arch/xtensa/configs/common_defconfig
++++ b/arch/xtensa/configs/common_defconfig
+@@ -543,7 +543,6 @@ CONFIG_USB_ARCH_HAS_OHCI=y
+ # CONFIG_QUOTA is not set
+ CONFIG_DNOTIFY=y
+ # CONFIG_AUTOFS_FS is not set
+-# CONFIG_AUTOFS4_FS is not set
+ 
+ #
+ # CD-ROM/DVD Filesystems
+diff --git a/arch/xtensa/configs/iss_defconfig b/arch/xtensa/configs/iss_defconfig
+index 77c52f8..5ae3369 100644
+--- a/arch/xtensa/configs/iss_defconfig
++++ b/arch/xtensa/configs/iss_defconfig
+@@ -523,7 +523,6 @@ CONFIG_FSNOTIFY=y
+ CONFIG_INOTIFY_USER=y
+ # CONFIG_QUOTA is not set
+ # CONFIG_AUTOFS_FS is not set
+-# CONFIG_AUTOFS4_FS is not set
+ # CONFIG_FUSE_FS is not set
+ 
+ #
+diff --git a/arch/xtensa/configs/s6105_defconfig b/arch/xtensa/configs/s6105_defconfig
+index 4799c6a..cf5fd90 100644
+--- a/arch/xtensa/configs/s6105_defconfig
++++ b/arch/xtensa/configs/s6105_defconfig
+@@ -503,7 +503,6 @@ CONFIG_FILE_LOCKING=y
+ # CONFIG_INOTIFY is not set
+ # CONFIG_QUOTA is not set
+ # CONFIG_AUTOFS_FS is not set
+-# CONFIG_AUTOFS4_FS is not set
+ # CONFIG_FUSE_FS is not set
+ 
+ #
 
