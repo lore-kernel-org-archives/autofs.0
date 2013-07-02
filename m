@@ -1,61 +1,66 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: [RFC PATCH 7/7] autofs - change CONFIG_AUTOFS4_FS to
- CONFIG_AUTOFS_FS
-Date: Mon, 1 Jul 2013 14:39:24 +1000
-Message-ID: <20130701143924.79f57e7206577a2e7777c0a2@canb.auug.org.au>
-References: <20130701031335.4423.6154.stgit@perseus.fritz.box>
-	<20130701031449.4423.58614.stgit@perseus.fritz.box>
-Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA256";
- boundary="Signature=_Mon__1_Jul_2013_14_39_24_+1000_bMcIZ276g6lW1pxA"
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <20130701031449.4423.58614.stgit@perseus.fritz.box>
-Sender: linux-next-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
-To: Ian Kent <raven@themaw.net>
-Cc: linux-next@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
-
---Signature=_Mon__1_Jul_2013_14_39_24_+1000_bMcIZ276g6lW1pxA
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
+From: fedfs-utils Release Announcements <fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
+Subject: Announcing the release of fedfs-utils 0.9.2
+Date: Tue, 2 Jul 2013 15:13:20 -0400
+Message-ID: <17AC10A6-EDB2-4FD0-A0DB-A14FFC2B2BFE@oracle.com>
+Reply-To: fedfs-utils Release Announcements
+	<fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
+Mime-Version: 1.0 (Mac OS X Mail 6.5 \(1508\))
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: quoted-printable
+Return-path: <fedfs-utils-announce-bounces-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <https://oss.oracle.com/mailman/listinfo/fedfs-utils-announce>, 
+	<mailto:fedfs-utils-announce-request-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://oss.oracle.com/pipermail/fedfs-utils-announce>
+List-Post: <mailto:fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
+List-Help: <mailto:fedfs-utils-announce-request-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org?subject=help>
+List-Subscribe: <https://oss.oracle.com/mailman/listinfo/fedfs-utils-announce>, 
+	<mailto:fedfs-utils-announce-request-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org?subject=subscribe>
+Sender: fedfs-utils-announce-bounces-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
+Errors-To: fedfs-utils-announce-bounces-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
+To: "fedfs-utils;release announcements" <fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
+Cc: Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "autofs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <autofs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org" <samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org>
 
-Hi Ian,
+This package contains an implementation of the Federated Filesystem (FedFS)=
+ Proposed Standard for Linux.  For an introduction to FedFS, see RFC 5716.
 
-On Mon, 01 Jul 2013 11:14:51 +0800 Ian Kent <raven@themaw.net> wrote:
->
-> Signed-off-by: Ian Kent <raven@themaw.net>
+This is an ALPHA quality release.  The code in this release is not guarante=
+ed to work.  Programming, administrative, and user interfaces may change si=
+gnificantly before the next release.  This release is for technology previe=
+w only.
 
-Please don't do this.  Find a simple way to make sure that if
-CONFIG_AUTOFS4_FS is set, then "make oldconfig"  (or equivalent) will
-cause CONFIG_AUTOFS_FS to be set the same.
+Changes since 0.9.1:
+	=95 Packaging-related improvements
 
-The maintainers will update the defconfigs over time.
+Changes since 0.9.0:
+	=95 Address build issues with recent automake and libtools
+	=95 Replace nl_langinfo(CODESET) check in command line tools
 
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
+New with fedfs-utils 0.9.0:
+	=95 NSDB schema complies with latest draft standard
+	=95 DNS SRV support complies with RFC 6641
+	=95 NSDB clients support the FEDFS_SEC_TLS security type
+	=95 NSDB clients can follow LDAP referrals returned by NSDB nodes
+	=95 New tools for configuration of NSDBs
+	=95 New "display-junction" debugging command
 
---Signature=_Mon__1_Jul_2013_14_39_24_+1000_bMcIZ276g6lW1pxA
-Content-Type: application/pgp-signature
+Project web site
+http://wiki.linux-nfs.org/wiki/index.php/FedFsUtilsProject
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.20 (GNU/Linux)
+Installation guide:
+http://wiki.linux-nfs.org/wiki/index.php/FedFsInstallationGuide0.9
 
-iQIcBAEBCAAGBQJR0Qf8AAoJEECxmPOUX5FEQvoP/3u/A4/fXkfMCXm8dI/gTwYK
-NyF+lERmn6glCxmRKoU+UnSaXsUpy0lLYAtAgmHU3fY6rMfmIsV32gBpCbmO4PFo
-FwN3SaKi6dG7bhnt54mWxNmDT+4b7RsSdjcI2Olb+AVmxdVv3e1oPzUmLo5t7bu7
-1suLM4nXwvk2hjUWbhHAsWs8k46MXdTHVQCvsy+FP2cuA75s3JVoVhGoQ+Sq1GHt
-2IbvbBq6JcI510GHi445kgc2fzNDY7n8V5VYMaq424M3fgfcMQEVDmtrW4zYP7j3
-2KfOKGObo3zlsqeC6+zz0QUF5ZXcBCxjhul8LknnwI1YYu1M7mUFfnXEr4D8ALx+
-KCuIXpcoofuMX5wL0YI1qKx5ZzJwldqJSADQCPv5UvyX8BFa3i19RmJvpSTAFgKa
-07yqpwNSmfsTFTvW8zO8HLCTtLuW/shY/hF/XqVs2r1GV2XWegLVsIU/REzd1t6N
-xC+1xB3XZKCp75o42K510ncqEkvx+/xBRDJGgwujlEHkWFkzu3QhxEgMHf3eA44q
-wrnHMyOCBZwnbyNHB9SYg2ZA3un2gJ1bgU/evHGjV7mLq0H2bvECN/7xHOsK7HGK
-w4HqE1Ufo5udbb2w9VsTYXJf6YL8LqoGAutpC8dL/RM5NW2wX1VnYDZlDzX6tF+h
-YKUGqIDskDC4fceTALPg
-=z/m9
------END PGP SIGNATURE-----
+Tarball releases:
+http://git.linux-nfs.org/?p=3Dcel/fedfs-releases.git;a=3Dsummary
 
---Signature=_Mon__1_Jul_2013_14_39_24_+1000_bMcIZ276g6lW1pxA--
+Git repository:
+http://git.linux-nfs.org/?p=3Dcel/fedfs-utils.git;a=3Dshortlog;h=3Drefs/hea=
+ds/0.9-stable
+
+Patchwork:
+http://patchwork.ozlabs.org/project/fedfs-utils/list/
+
+-- =
+
+Chuck Lever
+chuck[dot]lever[at]oracle[dot]com
