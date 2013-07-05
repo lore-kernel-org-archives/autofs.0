@@ -1,57 +1,66 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH v4 04/12] auto-fs: rename d_count field of dentry to
- d_refcount
-Date: Thu, 4 Jul 2013 23:50:33 +0200 (CEST)
-Message-ID: <alpine.DEB.2.02.1307042349230.11637@ionos.tec.linutronix.de>
-References: <1372908808-33304-1-git-send-email-Waiman.Long@hp.com> <CA+55aFzKfPG=CH+vZBUQMNd32qsuxPF1D3c3DB2Dm8w1QCb1+w@mail.gmail.com> <51D58B0E.8090206@hp.com> <CA+55aFwNS+QSngRg4SQ_1o3GsGKqVXENaTsD0jB_8HwBP+kSUg@mail.gmail.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [RFC PATCH 7/7] autofs - change CONFIG_AUTOFS4_FS to
+ CONFIG_AUTOFS_FS
+Date: Fri, 05 Jul 2013 17:51:24 +0800
+Message-ID: <1373017884.2497.10.camel@perseus.fritz.box>
+References: <20130701031335.4423.6154.stgit@perseus.fritz.box>
+	 <20130701031449.4423.58614.stgit@perseus.fritz.box>
+	 <20130701143924.79f57e7206577a2e7777c0a2@canb.auug.org.au>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-In-Reply-To: <CA+55aFwNS+QSngRg4SQ_1o3GsGKqVXENaTsD0jB_8HwBP+kSUg@mail.gmail.com>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
+	message-id:subject:from:to:cc:date:in-reply-to:references
+	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
+	 bh=YwhnqAy09r6HRk1KhXrHLEBYgb0=; b=rlK4alnC0gpEuXZvHMFQMvVoJK8i
+	91KvhgWW2K+iK0FIRcmdK31tkNlWMZ4OMFuSexvrb9k6VkClitI/MfuWJMOyZSj9
+	ImGFou8YkSjPdPD+KMo4Ir7UP8eYxPoDrfGFlsOlYmWGxWBl9nCI9GOTldb/Ho/I
+	q1pSqHQTwMREYfo=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=message-id:subject:from:to:cc:date
+	:in-reply-to:references:content-type:mime-version
+	:content-transfer-encoding; s=smtpout; bh=YwhnqAy09r6HRk1KhXrHLE
+	BYgb0=; b=G+Gd/JoB7tYPP/vdmpL1DrksYutz/3TX+NKjqiuFl6ZF6jrtHEVRvw
+	IaSJxecDl6I5a95H0X7jT+WL4B/l3Y8iy2Gh087SRfYidQUZZ83T0Oh2z22npDaI
+	QKP+THf7HdMTPkeKIvXR4nKgoategPEVfSLjhf2i3Qv1eJ9F9AgYI=
+In-Reply-To: <20130701143924.79f57e7206577a2e7777c0a2@canb.auug.org.au>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: TEXT/PLAIN; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Waiman Long <waiman.long@hp.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@redhat.com>, Miklos Szeredi <mszeredi@suse.cz>, Ingo Molnar <mingo@redhat.com>, Ian Kent <raven@themaw.net>, autofs mailing list <autofs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Steven Rostedt <rostedt@goodmis.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Andi Kleen <andi@firstfloor.org>, "Chandramouleeswaran, Aswin" <aswin@hp.com>, "Norton, Scott J" <scott.norton@hp.com>
+Content-Type: text/plain; charset="us-ascii"
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: linux-next@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Thu, 4 Jul 2013, Linus Torvalds wrote:
-
-> On Thu, Jul 4, 2013 at 7:47 AM, Waiman Long <waiman.long@hp.com> wrote:
+On Mon, 2013-07-01 at 14:39 +1000, Stephen Rothwell wrote:
+> Hi Ian,
+> 
+> On Mon, 01 Jul 2013 11:14:51 +0800 Ian Kent <raven@themaw.net> wrote:
 > >
-> > I could change patch 3 so that I keep the d_count name, but #define
-> > d_refcount to d_count. In that way, I can do piece-meal changes without
-> > breaking the build. Alternatively, I could collapse patches 3-11 into a
-> > single big patch which will be harder to review.
+> > Signed-off-by: Ian Kent <raven@themaw.net>
 > 
-> Since there are many fewer d_count users than there are d_lock users,
-> I think collapsing things is the right thing to do.
-> 
-> That said, I think Al is right that for all those filesystem uses, we
-> might actually be much better off with a helper function looking at
-> d_count, with no macros etc, since they are purely about reading the
-> count.
-> 
-> So maybe the right thing to do is to add a
-> 
->    static inline int d_count(struct dentry *dentry) { return dentry->d_count; }
-> 
-> helper function *first*, and just say "filesystems should never access
-> d_count directly", and make the few filesystem users use this helper
-> function first. That way we can do that as independent commits to
-> prepare for the switch-over.
-> 
-> Then when the switch-over happens, we just change "d_count" in that
-> helper function, and it has no filesystem impact at all.
-> 
-> But fs/dcache.c and fs/namei.c that actually really know about and
-> modify d_count would not use that helper function. It would purely be
-> about isolating filesystems from these kinds of internal
-> implementation issues: fs/cache.c and fs/namei.c are all *about* those
-> internal issues, so they shouldn't be isolated..
+> Please don't do this.  Find a simple way to make sure that if
+> CONFIG_AUTOFS4_FS is set, then "make oldconfig"  (or equivalent) will
+> cause CONFIG_AUTOFS_FS to be set the same.
 
-And all of this can sanely be done with coccinelle. Julia will
-certainly help to get the scripts right.
+I get what your recommending but still can't think of a way to do it,
+any thoughts?
 
-Thanks,
+Am I correct that's a +1 for an outright rename of autofs4 to autofs
+rather than keeping the autofs4 directory and a compile stub?
 
-	tglx
+I think what I was intending to do (even though I don't really like that
+either) isn't apparent since patch 6 didn't make it to the list. I've
+re-organized the series since, so perhaps another post of the series to
+the list will provoke some suggestions.
+
+> 
+> The maintainers will update the defconfigs over time.
+> 
+
+Perhaps the maintainers expected the rename to occur a long time ago
+(and it probably should have) since after around three years the configs
+are still out of date. Still, as you say, it isn't really my place to
+fix that.
+
+Ian
+
+
