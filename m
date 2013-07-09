@@ -1,66 +1,82 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [RFC PATCH 7/7] autofs - change CONFIG_AUTOFS4_FS to
- CONFIG_AUTOFS_FS
-Date: Mon, 08 Jul 2013 17:11:00 +0800
-Message-ID: <1373274660.2278.26.camel@perseus.fritz.box>
-References: <20130701031335.4423.6154.stgit@perseus.fritz.box>
-	 <20130701031449.4423.58614.stgit@perseus.fritz.box>
-	 <20130701143924.79f57e7206577a2e7777c0a2@canb.auug.org.au>
-	 <1373017884.2497.10.camel@perseus.fritz.box>
-	 <20130708151023.f29446059a3161fc2e8c9b2d@canb.auug.org.au>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+From: Waiman Long <Waiman.Long@hp.com>
+Subject: [PATCH v6 04/14] auto-fs: replace direct access of d_count with the d_count() helper
+Date: Mon,  8 Jul 2013 21:09:54 -0400
+Message-ID: <1373332204-10379-5-git-send-email-Waiman.Long@hp.com>
+References: <1373332204-10379-1-git-send-email-Waiman.Long@hp.com>
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	message-id:subject:from:to:cc:date:in-reply-to:references
-	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
-	 bh=/b/JiwNyIZo7CkrI8RQpE7RRYsg=; b=MvuWh4OmqMZb40YDB7CGknWsVHqM
-	g7UZz6vTddVoPO9gpmRGuR8d3H5D7dXYXRfS1l4xONPaiMMbEioEV9XAfUkUrbxV
-	GgTyiujgKtC0UjHBJoqZpxjeLvtmz4bvx9xEgM0GTcWvOW3bjgYf6k4ctVS/ezM3
-	iLLqUmqd6pKIqnE=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=message-id:subject:from:to:cc:date
-	:in-reply-to:references:content-type:mime-version
-	:content-transfer-encoding; s=smtpout; bh=/b/JiwNyIZo7CkrI8RQpE7
-	RRYsg=; b=EBLLpjo7/4Dd1GWo4i3FIXsackgeVeWkocmYv/Xcs4G7p0UQYOZcdq
-	m9avUOgnYwxXghLPe1Sk9BcxTzqZ+SuD+SzRMkQssqi+gYHNO2/SL4Yy3lj6NI8S
-	G95Aphti/9kQZgVBPjmwia2jIRs9msthdwBI/Ncnd29CwHTgL/UNU=
-In-Reply-To: <20130708151023.f29446059a3161fc2e8c9b2d@canb.auug.org.au>
+In-Reply-To: <1373332204-10379-1-git-send-email-Waiman.Long@hp.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: linux-next@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+To: Alexander Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@redhat.com>, Miklos Szeredi <mszeredi@suse.cz>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>
+Cc: Waiman Long <Waiman.Long@hp.com>, linux-fsdevel@vger.kernel.org, Ian Kent <raven@themaw.net>, autofs@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Steven Rostedt <rostedt@goodmis.org>, Linus Torvalds <torvalds@linux-foundation.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Andi Kleen <andi@firstfloor.org>, "Chandramouleeswaran, Aswin" <aswin@hp.com>, "Norton, Scott J" <scott.norton@hp.com>
 
-On Mon, 2013-07-08 at 15:10 +1000, Stephen Rothwell wrote:
-> Hi Ian,
-> 
-> On Fri, 05 Jul 2013 17:51:24 +0800 Ian Kent <raven@themaw.net> wrote:
-> >
-> > On Mon, 2013-07-01 at 14:39 +1000, Stephen Rothwell wrote:
-> > > 
-> > > On Mon, 01 Jul 2013 11:14:51 +0800 Ian Kent <raven@themaw.net> wrote:
-> > > >
-> > > > Signed-off-by: Ian Kent <raven@themaw.net>
-> > > 
-> > > Please don't do this.  Find a simple way to make sure that if
-> > > CONFIG_AUTOFS4_FS is set, then "make oldconfig"  (or equivalent) will
-> > > cause CONFIG_AUTOFS_FS to be set the same.
-> > 
-> > I get what your recommending but still can't think of a way to do it,
-> > any thoughts?
-> 
-> Isn't just having
-> 
-> config AUTOFS4_FS
-> 	tristate
-> 	select AUTOFS_FS
+All readonly references to d_count outside of the core dcache code
+should be changed to use the new d_count() helper as they shouldn't
+access its value directly.  There is no change in logic and everything
+should just work.
 
-I though that would set AUTOFS_FS=y unconditionally which I think is not
-necessarily the setting that is needed. Also, I believe there's no way
-to set it based on AUTOFS4_FS after it's value has been set from the
-menu.
+Signed-off-by: Waiman Long <Waiman.Long@hp.com>
+---
+ fs/autofs4/expire.c |    8 ++++----
+ fs/autofs4/root.c   |    2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/fs/autofs4/expire.c b/fs/autofs4/expire.c
+index 13ddec9..aac0006 100644
+--- a/fs/autofs4/expire.c
++++ b/fs/autofs4/expire.c
+@@ -109,7 +109,7 @@ cont:
  
-Ian
-
+ 	spin_lock_nested(&q->d_lock, DENTRY_D_LOCK_NESTED);
+ 	/* Already gone or negative dentry (under construction) - try next */
+-	if (q->d_count == 0 || !simple_positive(q)) {
++	if (d_count(q) == 0 || !simple_positive(q)) {
+ 		spin_unlock(&q->d_lock);
+ 		next = q->d_u.d_child.next;
+ 		goto cont;
+@@ -267,7 +267,7 @@ static int autofs4_tree_busy(struct vfsmount *mnt,
+ 			else
+ 				ino_count++;
+ 
+-			if (p->d_count > ino_count) {
++			if (d_count(p) > ino_count) {
+ 				top_ino->last_used = jiffies;
+ 				dput(p);
+ 				return 1;
+@@ -409,7 +409,7 @@ struct dentry *autofs4_expire_indirect(struct super_block *sb,
+ 		if (!exp_leaves) {
+ 			/* Path walk currently on this dentry? */
+ 			ino_count = atomic_read(&ino->count) + 1;
+-			if (dentry->d_count > ino_count)
++			if (d_count(dentry) > ino_count)
+ 				goto next;
+ 
+ 			if (!autofs4_tree_busy(mnt, dentry, timeout, do_now)) {
+@@ -423,7 +423,7 @@ struct dentry *autofs4_expire_indirect(struct super_block *sb,
+ 		} else {
+ 			/* Path walk currently on this dentry? */
+ 			ino_count = atomic_read(&ino->count) + 1;
+-			if (dentry->d_count > ino_count)
++			if (d_count(dentry) > ino_count)
+ 				goto next;
+ 
+ 			expired = autofs4_check_leaves(mnt, dentry, timeout, do_now);
+diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
+index ca8e555..78f9b0a 100644
+--- a/fs/autofs4/root.c
++++ b/fs/autofs4/root.c
+@@ -179,7 +179,7 @@ static struct dentry *autofs4_lookup_active(struct dentry *dentry)
+ 		spin_lock(&active->d_lock);
+ 
+ 		/* Already gone? */
+-		if (active->d_count == 0)
++		if (d_count(active) == 0)
+ 			goto next;
+ 
+ 		qstr = &active->d_name;
+-- 
+1.7.1
 
