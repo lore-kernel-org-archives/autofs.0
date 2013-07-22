@@ -1,82 +1,37 @@
-From: Waiman Long <Waiman.Long@hp.com>
-Subject: [PATCH v6 04/14] auto-fs: replace direct access of d_count with the d_count() helper
-Date: Mon,  8 Jul 2013 21:09:54 -0400
-Message-ID: <1373332204-10379-5-git-send-email-Waiman.Long@hp.com>
-References: <1373332204-10379-1-git-send-email-Waiman.Long@hp.com>
+From: "Lan Yixun (dlan)" <dennis.yxun@gmail.com>
+Subject: Seeking for upstreaming patches which floating in Gentoo
+Date: Mon, 22 Jul 2013 22:59:48 +0800
+Message-ID: <1374505194-22668-1-git-send-email-dennis.yxun@gmail.com>
+References: <dennis.yxun@gmail.com>
 Return-path: <autofs-owner@vger.kernel.org>
-In-Reply-To: <1373332204-10379-1-git-send-email-Waiman.Long@hp.com>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20120113;
+        h=from:to:subject:date:message-id:x-mailer:in-reply-to:references;
+        bh=r0teuzPyj54hVL2s4trll4xdWcwoG4Fjzxon1O0eJ2s=;
+        b=DxzG1UIWanADsabx9VWbGic4/ia/yDgk7XaXfIiTyzYPOrCvHsby9YwwvM/bBhAwBG
+         EW4jO7keFcJu5S/qd76c96+ugntRXs9M3nIa46kl++oP5cwf1stYZjTDeQANeTpEt/jC
+         fkMZUry0N2t0QOUPhjpTWSAr5OiYPwSB+cJVdWEfsbLBxj7O3+34LHFaqBTlFOYE4qRp
+         caEbUErXUecy8xhJ//+nQcvDDh3rR6w23e4MlfG8we9Y+xlayjIirlUjkGtP2RT7gUmr
+         iezkbkwKgDZuGNJ3PhsTKwKIhmq9xaBPBjAvxvnVzGKP70Iq6y+Wgzj89wn+MPIy01zE
+         U+sg==
+In-Reply-To: <dennis.yxun@gmail.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Alexander Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@redhat.com>, Miklos Szeredi <mszeredi@suse.cz>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>
-Cc: Waiman Long <Waiman.Long@hp.com>, linux-fsdevel@vger.kernel.org, Ian Kent <raven@themaw.net>, autofs@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Steven Rostedt <rostedt@goodmis.org>, Linus Torvalds <torvalds@linux-foundation.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Andi Kleen <andi@firstfloor.org>, "Chandramouleeswaran, Aswin" <aswin@hp.com>, "Norton, Scott J" <scott.norton@hp.com>
+To: autofs@vger.kernel.org
 
-All readonly references to d_count outside of the core dcache code
-should be changed to use the new d_count() helper as they shouldn't
-access its value directly.  There is no change in logic and everything
-should just work.
+Hi Ian:
+  I'm trying to push a few patches which floating in gentoo linux to
+upstream.
+  My initial motivation is trying to work closely with upstream, and
+aim to keep downstream package much more clean at next release.
+  I'm seeing tree possible results/feedbacks, a) accept patches, which
+is perfect! b) need improvement, I can work on and polish. c) impossible
+to accept, in this case, I'd like to hear your idea to decide
+whether to drop or still carry on.
+  thanks
 
-Signed-off-by: Waiman Long <Waiman.Long@hp.com>
----
- fs/autofs4/expire.c |    8 ++++----
- fs/autofs4/root.c   |    2 +-
- 2 files changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/fs/autofs4/expire.c b/fs/autofs4/expire.c
-index 13ddec9..aac0006 100644
---- a/fs/autofs4/expire.c
-+++ b/fs/autofs4/expire.c
-@@ -109,7 +109,7 @@ cont:
- 
- 	spin_lock_nested(&q->d_lock, DENTRY_D_LOCK_NESTED);
- 	/* Already gone or negative dentry (under construction) - try next */
--	if (q->d_count == 0 || !simple_positive(q)) {
-+	if (d_count(q) == 0 || !simple_positive(q)) {
- 		spin_unlock(&q->d_lock);
- 		next = q->d_u.d_child.next;
- 		goto cont;
-@@ -267,7 +267,7 @@ static int autofs4_tree_busy(struct vfsmount *mnt,
- 			else
- 				ino_count++;
- 
--			if (p->d_count > ino_count) {
-+			if (d_count(p) > ino_count) {
- 				top_ino->last_used = jiffies;
- 				dput(p);
- 				return 1;
-@@ -409,7 +409,7 @@ struct dentry *autofs4_expire_indirect(struct super_block *sb,
- 		if (!exp_leaves) {
- 			/* Path walk currently on this dentry? */
- 			ino_count = atomic_read(&ino->count) + 1;
--			if (dentry->d_count > ino_count)
-+			if (d_count(dentry) > ino_count)
- 				goto next;
- 
- 			if (!autofs4_tree_busy(mnt, dentry, timeout, do_now)) {
-@@ -423,7 +423,7 @@ struct dentry *autofs4_expire_indirect(struct super_block *sb,
- 		} else {
- 			/* Path walk currently on this dentry? */
- 			ino_count = atomic_read(&ino->count) + 1;
--			if (dentry->d_count > ino_count)
-+			if (d_count(dentry) > ino_count)
- 				goto next;
- 
- 			expired = autofs4_check_leaves(mnt, dentry, timeout, do_now);
-diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
-index ca8e555..78f9b0a 100644
---- a/fs/autofs4/root.c
-+++ b/fs/autofs4/root.c
-@@ -179,7 +179,7 @@ static struct dentry *autofs4_lookup_active(struct dentry *dentry)
- 		spin_lock(&active->d_lock);
- 
- 		/* Already gone? */
--		if (active->d_count == 0)
-+		if (d_count(active) == 0)
- 			goto next;
- 
- 		qstr = &active->d_name;
--- 
-1.7.1
+Dennis lan (dlan) 
 
