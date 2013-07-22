@@ -1,20 +1,20 @@
 From: "Lan Yixun (dlan)" <dennis.yxun@gmail.com>
-Subject: [PATCH 2/6] fix dead LDAP symbol link with LDAP support disabled
-Date: Mon, 22 Jul 2013 22:59:50 +0800
-Message-ID: <1374505194-22668-3-git-send-email-dennis.yxun@gmail.com>
+Subject: [PATCH 3/6] fix compile error with LDAP enabled but SASL disabled
+Date: Mon, 22 Jul 2013 22:59:51 +0800
+Message-ID: <1374505194-22668-4-git-send-email-dennis.yxun@gmail.com>
 References: <dennis.yxun@gmail.com>
  <1374505194-22668-1-git-send-email-dennis.yxun@gmail.com>
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20120113;
         h=from:to:cc:subject:date:message-id:x-mailer:in-reply-to:references;
-        bh=oHUVkHf5QFMPmoTI+0Af7HfRdUqgZDf3Gu9TjJvauoE=;
-        b=XvKXF47uFMcu+iTmCbHpMut20PRezX9jg3RxcqlP4wKh6FVG+e/oLl6ZA98qXeBsrM
-         2fG1Cw5A4UwlCMoSdjQSd1kLhJ4TuARk6hojlItvE/ynf1vjKM+uDjCNlcNvHjng1CPt
-         tymSAfCyrsA0ygEEAMJbwoUNRmKVTSb1OcQXUX78/vVT/nHOznIMKNb37hSM2td1sAOD
-         LZzFCMMAplp1PmAO1pytoIcCwaTN2ZTp+RXs3pkJiZyUVHNlJ+sw6VwndgWVRheEgXmN
-         D6T8r8499RzQ9jgS0mXoQSeMRw3r3qa3YQhfNvMaN4jlIaN2QxjJnJhh/9gIyQYDWeqw
-         CUiw==
+        bh=LlXi5OnI3+gheAct5BcJN98ELfR1E8LDlgNUy4QmZ6Q=;
+        b=ude7PSFTZHY4k+9gbEBqnEFEdg7Z3AY2Pr55d68uB3Fjvyb9sE1VCJPlBHeFJ1yWRj
+         zJKDyfpnDbm7Vlya4U82LXMMqiyC+tdjp6nkD6Jl7Y0QhV+ZbIo4FahNvwGVSOwxKYcs
+         62qSXRRKZnRrs2tA07PIWCS79kHzND/ENrR0uUdAEiCrPzrKPjpNxyqQ8ToNRhVDNCFQ
+         IMKR64Qy74R1C3AwQVab0p4U535cazcy+4PRuxLzkgQMoLlXOO4dD7h3uJ8W6l+P7wTO
+         Vemw/J3vrN7xjnnL0vDFpCnyV2MzpagU7D7YPU8X5CnAn6ORs8bzyZeXi4uza+WB+jXZ
+         SLog==
 In-Reply-To: <1374505194-22668-1-git-send-email-dennis.yxun@gmail.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
@@ -26,33 +26,38 @@ Cc: "Lan Yixun (dlan)" <dennis.yxun@gmail.com>
 
 From: "Lan Yixun (dlan)" <dennis.yxun@gmail.com>
 
-autofs will create symbol link mandatory no matter ldap support
-is enabled or not. so, without this patch, lookup_ldaps.so will become
-a dead link.
+automount[10812]: open_lookup:90: cannot open lookup module ldap
+(/usr/lib64/autofs/lookup_ldap.so: undefined symbol: parse_ldap_config)
 
 ---
-Upstream Discussion:
-  http://thread.gmane.org/gmane.linux.kernel.autofs/5371
+Gentoo Bugs:
+  https://bugs.gentoo.org/show_bug.cgi?id=381315
 
 Signed-off-by: Lan Yixun (dlan) <dennis.yxun@gmail.com>
 ---
- modules/Makefile | 2 ++
- 1 file changed, 2 insertions(+)
+ modules/lookup_ldap.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/modules/Makefile b/modules/Makefile
-index c5deb24..4bb1096 100644
---- a/modules/Makefile
-+++ b/modules/Makefile
-@@ -74,7 +74,9 @@ install: all
- 	-rm -f $(INSTALLROOT)$(autofslibdir)/mount_smbfs.so
- 	ln -fs lookup_file.so $(INSTALLROOT)$(autofslibdir)/lookup_files.so
- 	ln -fs lookup_yp.so $(INSTALLROOT)$(autofslibdir)/lookup_nis.so
-+ifeq ($(SASL), 1)
- 	ln -fs lookup_ldap.so $(INSTALLROOT)$(autofslibdir)/lookup_ldaps.so
-+endif
- 	ln -fs mount_nfs.so $(INSTALLROOT)$(autofslibdir)/mount_nfs4.so
- ifeq ($(EXT2FS), 1)
-  ifeq ($(EXT3FS), 1)
+diff --git a/modules/lookup_ldap.c b/modules/lookup_ldap.c
+index a2bfafd..b8970a6 100644
+--- a/modules/lookup_ldap.c
++++ b/modules/lookup_ldap.c
+@@ -1484,6 +1484,7 @@ int lookup_init(const char *mapfmt, int argc, const char *const *argv, void **co
+ 		}
+ 	}
+ 
++#ifdef WITH_SASL
+ 	/*
+ 	 *  First, check to see if a preferred authentication method was
+ 	 *  specified by the user.  parse_ldap_config will return error
+@@ -1496,7 +1497,6 @@ int lookup_init(const char *mapfmt, int argc, const char *const *argv, void **co
+ 		return 1;
+ 	}
+ 
+-#ifdef WITH_SASL
+ 	/* Init the sasl callbacks */
+ 	if (!autofs_sasl_client_init(LOGOPT_NONE)) {
+ 		error(LOGOPT_ANY, "failed to init sasl client");
 -- 
 1.8.2.1
 
