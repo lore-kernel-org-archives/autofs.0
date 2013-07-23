@@ -1,124 +1,160 @@
-From: "Dennis Lan (dlan)" <dennis.yxun@gmail.com>
-Subject: Re: [PATCH 4/6] fix no "libxml/tree.h" error in modules lookup_ldap.c
-Date: Tue, 23 Jul 2013 18:49:49 +0800
-Message-ID: <CAF1ZMEcAL53CznpLPoBGfmsUeLTXWU2XuG+Xm_spZ3G3zro4eg@mail.gmail.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [PATCH 1/6] fix compile error with heimdal support enabled
+Date: Tue, 23 Jul 2013 18:50:09 +0800
+Message-ID: <1374576609.3418.21.camel@perseus.fritz.box>
 References: <dennis.yxun@gmail.com>
-	<1374505194-22668-1-git-send-email-dennis.yxun@gmail.com>
-	<1374505194-22668-5-git-send-email-dennis.yxun@gmail.com>
-	<1374574658.3418.7.camel@perseus.fritz.box>
-	<CAF1ZMEf1MjadEB-5aA6CUZ=tCREUqB4RLUsE3bHueOw_qKbQGQ@mail.gmail.com>
-	<1374576170.3418.16.camel@perseus.fritz.box>
+	 <1374505194-22668-1-git-send-email-dennis.yxun@gmail.com>
+	 <1374505194-22668-2-git-send-email-dennis.yxun@gmail.com>
+	 <1374572675.3418.2.camel@perseus.fritz.box>
+	 <CAF1ZMEcgiABZ+gbxfRj3GLM9X2U2b_awq8+M6m_nwxPW+3uzCg@mail.gmail.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20120113;
-        h=mime-version:in-reply-to:references:date:message-id:subject:from:to
-         :cc:content-type;
-        bh=OW9HJLky0g4oNy+Zog+AvSp9KPOFo7m918Fxlg1vIRo=;
-        b=jYuthSnfcWkiayc4VHXgEYfCJaaV93HWZVvol2E5yXyZci+ND/v7MQl5+gzBa6TQcE
-         SIS6/BH6tKdhQiv/1OX8et1a1Ol9+HpQ7ePI6GSHr2pDBNRRBSw6kmGu8kzlVsHCYqlK
-         YP4oGMBWIW0Q9mLU2hTZ0QlJjE+6tlpTxaDHNOTjdDyAdKaGFUTyKAcSIiAgbGHwUNwH
-         sfddjAfkV2/l6f2Et5M3Whwb6+XHtx6hIPvBeB29l/c7vPt3DF3x6WJ4RlQeH1xi502h
-         2w8Z1EA1kaO4iO2qkle3h9poMmbAXlBN10yKcgKN/TE3xgNOPYyS3jp3gpPuIndt+UJI
-         aYpQ==
-In-Reply-To: <1374576170.3418.16.camel@perseus.fritz.box>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
+	message-id:subject:from:to:cc:date:in-reply-to:references
+	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
+	 bh=57JkszieD9TJFI4UvWcPVulUlIA=; b=B4xv0WL2YWGf7WSHrwcZAr3ZIEQq
+	H2/4BxMvQooW1iAWH6j5zWFmiGyeMYJux/8PTHPPxeuE/+hqbCA5JAV54LJ79DoE
+	rnuX06GT5RrvQ1L+KgwoyyaOxeY7/hmTFANmyisS+ual4/Ihv80zBlaqgUAtHdAD
+	MDaF9jwooHDp+hk=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=message-id:subject:from:to:cc:date
+	:in-reply-to:references:content-type:mime-version
+	:content-transfer-encoding; s=smtpout; bh=57JkszieD9TJFI4UvWcPVu
+	lUlIA=; b=RCeCDOSDogLfxjM46Q33+Zb8NXfVbm+yMlwP7/50ndfz3NUyocjX4r
+	onMRY65DeqxzhKxcvPaoopvozd5FeRC+GxJeyDfYDwT4Vs0z3UpOhdYd+qulJ6Bw
+	h86PHgjHp0JqB3wh9B6gG6cxvcfLiPPC+GUqfcbhYHUM1CESMju4w=
+In-Reply-To: <CAF1ZMEcgiABZ+gbxfRj3GLM9X2U2b_awq8+M6m_nwxPW+3uzCg@mail.gmail.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Ian Kent <raven@themaw.net>
+To: "Dennis Lan (dlan)" <dennis.yxun@gmail.com>
 Cc: autofs@vger.kernel.org
 
-On Tue, Jul 23, 2013 at 6:42 PM, Ian Kent <raven@themaw.net> wrote:
-> On Tue, 2013-07-23 at 18:37 +0800, Dennis Lan (dlan) wrote:
->> On Tue, Jul 23, 2013 at 6:17 PM, Ian Kent <raven@themaw.net> wrote:
->> > On Mon, 2013-07-22 at 22:59 +0800, Lan Yixun (dlan) wrote:
->> >> From: "Lan Yixun (dlan)" <dennis.yxun@gmail.com>
->> >>
->> >> make "libxml/tree.h" controlled by WITH_SASL, also move it beind line of
->> >> #include "automount.h", since WITH_SASL is defined in config.h which is
->> >> included by automout.h
->> >
->> > Same again, WITH_LDAP defined and WITH_SASL not.
->> > I agree there appears to be a problem but not sure what to do about it.
->> >
->> >>
->> >> ---
->> >> Gentoo Bugs:
->> >>  https://bugs.gentoo.org/show_bug.cgi?id=468606
->> >>
->> >> gcc -shared -O2 -pipe -march=core2  -D_REENTRANT -D_FILE_OFFSET_BITS=64 -D_REENTRANT
->> >> -D_FILE_OFFSET_BITS=
->> >> 64 -I../include -I../lib -fPIC -D_GNU_SOURCE -DAUTOFS_LIB_DIR=\"/usr/lib64/autofs\"
->> >> -DAUTOFS_MAP_DIR=\"/e
->> >> tc/autofs\" -DLDAP_DEPRECATED=1 -o lookup_ldap.so \
->> >>         lookup_ldap.c dclist.o base64.o  \
->> >>         ../lib/autofs.a -lldap -llber -lresolv
->> >> : lookup_yp.so
->> >> lookup_ldap.c:31:25: fatal error: libxml/tree.h: No such file or directory
->> >>  #include <libxml/tree.h>
->> >>                          ^
->> >> compilation terminated.
->> >>
->> >> Signed-off-by: Lan Yixun (dlan) <dennis.yxun@gmail.com>
->> >> ---
->> >>  modules/lookup_ldap.c | 5 ++++-
->> >>  1 file changed, 4 insertions(+), 1 deletion(-)
->> >>
->> >> diff --git a/modules/lookup_ldap.c b/modules/lookup_ldap.c
->> >> index b8970a6..fad558d 100644
->> >> --- a/modules/lookup_ldap.c
->> >> +++ b/modules/lookup_ldap.c
->> >> @@ -28,7 +28,6 @@
->> >>  #include <arpa/nameser.h>
->> >>  #include <resolv.h>
->> >>  #include <lber.h>
->> >> -#include <libxml/tree.h>
->> >>
->> >>  #define MODULE_LOOKUP
->> >>  #include "automount.h"
->> >> @@ -36,6 +35,10 @@
->> >>  #include "lookup_ldap.h"
->> >>  #include "base64.h"
->> >>
->> >> +#ifdef WITH_SASL
->> >> +#include <libxml/tree.h>
->> >> +#endif
->> >> +
->> >>  #define MAPFMT_DEFAULT "sun"
->> >>
->> >>  #define MODPREFIX "lookup(ldap): "
->> >
->> >
->> HI Ian:
->>    I haven't dig too much into the code.
->>    As far as I know (could be wrong).. LDAP SASL auth needs libxml?
->>
->> quote from configure.in (line 170)
->>
->>  # LDAP SASL auth needs libxml and Kerberos
->>  AF_CHECK_LIBXML()
->>  AF_CHECK_KRB5()
->>
->> so libxml could be controlled by SASL, but not LDAP, right?
->> (Btw, SASL require LDAP enabled)
->
-> That's what occurred to me but, after a quick look, I'm thinking the xml
-> config still needs to be read. That's why I agree there's a problem that
-> needs fixing.
->
-> I'll have to look at it along with that old Gentoo ldap patch I want to
-> commit.
->
->>
-Hi Ian:
-   Good, if you have any progress, let me know ;_)
-   Thanks
+On Tue, 2013-07-23 at 18:19 +0800, Dennis Lan (dlan) wrote:
+> On Tue, Jul 23, 2013 at 5:44 PM, Ian Kent <raven@themaw.net> wrote:
+> > On Mon, 2013-07-22 at 22:59 +0800, Lan Yixun (dlan) wrote:
+> >> From: "Lan Yixun (dlan)" <dennis.yxun@gmail.com>
+> >>
+> >> this patch instroduce a compatible layer between Heimdal and MTT Krb5.
+> >> And I slightly rework the original patch to make it more readable.
+> >>
+> >> ---
+> >> Upstream Discussion:
+> >>   http://thread.gmane.org/gmane.linux.kernel.autofs/4203
+> >>
+> >> Gentoo Bugs:
+> >>   https://bugs.gentoo.org/show_bug.cgi?id=210762
+> >>
+> >> Signed-off-by: Lan Yixun (dlan) <dennis.yxun@gmail.com>
+> >> ---
+> >>  aclocal.m4           |  7 +++++++
+> >>  modules/cyrus-sasl.c | 35 ++++++++++++++++++++++++++++++-----
+> >>  2 files changed, 37 insertions(+), 5 deletions(-)
+> >>
+> >> diff --git a/aclocal.m4 b/aclocal.m4
+> >> index c5de159..7a8b03c 100644
+> >> --- a/aclocal.m4
+> >> +++ b/aclocal.m4
+> >> @@ -299,6 +299,13 @@ else
+> >>    HAVE_KRB5=1
+> >>    KRB5_LIBS=`$KRB5_CONFIG --libs`
+> >>    KRB5_FLAGS=`$KRB5_CONFIG --cflags`
+> >> +
+> >> +  SAVE_CFLAGS=$CFLAGS
+> >> +  SAVE_LIBS=$LIBS
+> >> +  CFLAGS="$CFLAGS $KRB5_FLAGS"
+> >> +  LIBS="$LIBS $KRB5_LIBS"
+> >> +
+> >> +  AC_CHECK_FUNCS([krb5_principal_get_realm])
+> >>  fi])
+> >>
+> >>  dnl --------------------------------------------------------------------------
+> >> diff --git a/modules/cyrus-sasl.c b/modules/cyrus-sasl.c
+> >> index 68f9242..6115f90 100644
+> >> --- a/modules/cyrus-sasl.c
+> >> +++ b/modules/cyrus-sasl.c
+> >> @@ -64,6 +64,31 @@
+> >>  #endif
+> >>  #endif
+> >>
+> >> +#ifdef HAVE_KRB5_PRINCIPAL_GET_REALM
+> >> +void _krb5_princ_realm(krb5_context context, krb5_const_principal princ,
+> >> +                          const char **realm, int *len)
+> >> +{
+> >> +    *realm = krb5_principal_get_realm(context, princ);
+> >> +    *len = strlen(*realm);
+> >
+> > So krb5_principal_get_realm() never fails, or does it return NULL, what
+> > about strlen(NULL) .... SEGV.
+> >
+> >> +}
+> >> +#else
+> >> +void _krb5_princ_realm(krb5_context context, krb5_const_principal princ,
+> >> +                          const char **realm, int *len)
+> >> +{
+> >> +    const krb5_data *data;
+> >> +
+> >> +    data = krb5_princ_realm(context, princ);
+> >> +    if (data) {
+> >> +        *realm = data->data;
+> >> +        *len = data->length;
+> >> +    } else {
+> >> +        *realm = NULL;
+> >> +        *len = 0;
+> >> +    }
+> >> +}
+> >> +#endif
+> >> +
+> >> +
+> >>  /*
+> >>   *  Once a krb5 credentials cache is setup, we need to set the KRB5CCNAME
+> >>   *  environment variable so that the library knows where to find it.
+> >> @@ -379,7 +404,8 @@ sasl_do_kinit(unsigned logopt, struct lookup_context *ctxt)
+> >>       krb5_principal tgs_princ, krb5_client_princ;
+> >>       krb5_creds my_creds;
+> >>       char *tgs_name;
+> >> -     int status;
+> >> +     const char *realm_name;
+> >> +     int status, realm_length;
+> >>
+> >>       if (ctxt->kinit_done)
+> >>               return 0;
+> >> @@ -450,12 +476,11 @@ sasl_do_kinit(unsigned logopt, struct lookup_context *ctxt)
+> >>       }
+> >>
+> >>       /* setup a principal for the ticket granting service */
+> >> +     _krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ, &realm_name, &realm_length);
+> >>       ret = krb5_build_principal_ext(ctxt->krb5ctxt, &tgs_princ,
+> >> -             krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ)->length,
+> >> -             krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ)->data,
+> >> +             realm_length, realm_name,
+> >>               strlen(KRB5_TGS_NAME), KRB5_TGS_NAME,
+> >> -             krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ)->length,
+> >> -             krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ)->data,
+> >> +             realm_length, realm_name,
+> >>               0);
+> >>       if (ret) {
+> >>               error(logopt,
+> >
+> >
+> HI Ian:
+>   As I looking into the code (krb5_principal_get_realm) which provided
+> by heimdal, there is no grantee that *realm will always be valid
+> (does't do internal check, and does't return "" empty string if fail).
+> But, as my knowledge here, I guess we should already grantee that
+> *realm is valid before calling this function,
+>   It won't hurt if we add add a check here, so how about this?
+> 
+>  *len = (*realm == NULL) ? 0 : strlen(*realm);
 
->> Dennis
->> --
->> To unsubscribe from this list: send the line "unsubscribe autofs" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
+Yeah, so we should be able to be sure it will always never return "".
+
+That's probably a fair assumption ... although maybe *realm should be
+initialized to NULL on entry to avoid odd arch specific initialization
+issues.
+
+> 
+> Dennis
+
+
