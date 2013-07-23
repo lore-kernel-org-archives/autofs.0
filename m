@@ -1,160 +1,100 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 1/6] fix compile error with heimdal support enabled
-Date: Tue, 23 Jul 2013 18:50:09 +0800
-Message-ID: <1374576609.3418.21.camel@perseus.fritz.box>
-References: <dennis.yxun@gmail.com>
-	 <1374505194-22668-1-git-send-email-dennis.yxun@gmail.com>
-	 <1374505194-22668-2-git-send-email-dennis.yxun@gmail.com>
-	 <1374572675.3418.2.camel@perseus.fritz.box>
-	 <CAF1ZMEcgiABZ+gbxfRj3GLM9X2U2b_awq8+M6m_nwxPW+3uzCg@mail.gmail.com>
+From: "Lan Yixun (dlan)" <dennis.yxun@gmail.com>
+Subject: [PATCH] fix hesiod check error, use correct $(LIBS)
+Date: Tue, 23 Jul 2013 23:59:37 +0800
+Message-ID: <1374595177-24485-1-git-send-email-dennis.yxun@gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	message-id:subject:from:to:cc:date:in-reply-to:references
-	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
-	 bh=57JkszieD9TJFI4UvWcPVulUlIA=; b=B4xv0WL2YWGf7WSHrwcZAr3ZIEQq
-	H2/4BxMvQooW1iAWH6j5zWFmiGyeMYJux/8PTHPPxeuE/+hqbCA5JAV54LJ79DoE
-	rnuX06GT5RrvQ1L+KgwoyyaOxeY7/hmTFANmyisS+ual4/Ihv80zBlaqgUAtHdAD
-	MDaF9jwooHDp+hk=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=message-id:subject:from:to:cc:date
-	:in-reply-to:references:content-type:mime-version
-	:content-transfer-encoding; s=smtpout; bh=57JkszieD9TJFI4UvWcPVu
-	lUlIA=; b=RCeCDOSDogLfxjM46Q33+Zb8NXfVbm+yMlwP7/50ndfz3NUyocjX4r
-	onMRY65DeqxzhKxcvPaoopvozd5FeRC+GxJeyDfYDwT4Vs0z3UpOhdYd+qulJ6Bw
-	h86PHgjHp0JqB3wh9B6gG6cxvcfLiPPC+GUqfcbhYHUM1CESMju4w=
-In-Reply-To: <CAF1ZMEcgiABZ+gbxfRj3GLM9X2U2b_awq8+M6m_nwxPW+3uzCg@mail.gmail.com>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20120113;
+        h=from:to:cc:subject:date:message-id:x-mailer:mime-version
+         :content-type:content-transfer-encoding;
+        bh=vf4uHUBtlWVo2McovPaZZcEp1M+WtBi/vl5GjWjLdl8=;
+        b=R24bhzn26AXR2F4ZOCMTSA3hYe77VEQ+Kz+z11vA9LByPjXv+uYKeokgBwklEusRqJ
+         Vopr4/m6XN0n9vk8UwvOv2MtrMbzV0r8NoCd9btdm7imY/Gct7/jOGA56VIAjDRTArB5
+         9uheytIgsTpAE3swWx9e2uTMtxgZJsicYdJJHt/g/oegC9U5FdZ7wnNtDklhWGIoOXpT
+         WB2FrGBUNIfai30oCX/aYEExjK0A6QymJ96Kh9+2/VqELTgJbsxzbwLCYU7ABJU8fDlx
+         BeZ1D8gJrghImdJcWulZKPE79ztw4uvs6drKzf1rORocm7fOF589892sNBkQOHssN8qI
+         +KCA==
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: "Dennis Lan (dlan)" <dennis.yxun@gmail.com>
-Cc: autofs@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+To: autofs@vger.kernel.org
+Cc: "Lan Yixun (dlan)" <dennis.yxun@gmail.com>
 
-On Tue, 2013-07-23 at 18:19 +0800, Dennis Lan (dlan) wrote:
-> On Tue, Jul 23, 2013 at 5:44 PM, Ian Kent <raven@themaw.net> wrote:
-> > On Mon, 2013-07-22 at 22:59 +0800, Lan Yixun (dlan) wrote:
-> >> From: "Lan Yixun (dlan)" <dennis.yxun@gmail.com>
-> >>
-> >> this patch instroduce a compatible layer between Heimdal and MTT Krb5.
-> >> And I slightly rework the original patch to make it more readable.
-> >>
-> >> ---
-> >> Upstream Discussion:
-> >>   http://thread.gmane.org/gmane.linux.kernel.autofs/4203
-> >>
-> >> Gentoo Bugs:
-> >>   https://bugs.gentoo.org/show_bug.cgi?id=210762
-> >>
-> >> Signed-off-by: Lan Yixun (dlan) <dennis.yxun@gmail.com>
-> >> ---
-> >>  aclocal.m4           |  7 +++++++
-> >>  modules/cyrus-sasl.c | 35 ++++++++++++++++++++++++++++++-----
-> >>  2 files changed, 37 insertions(+), 5 deletions(-)
-> >>
-> >> diff --git a/aclocal.m4 b/aclocal.m4
-> >> index c5de159..7a8b03c 100644
-> >> --- a/aclocal.m4
-> >> +++ b/aclocal.m4
-> >> @@ -299,6 +299,13 @@ else
-> >>    HAVE_KRB5=1
-> >>    KRB5_LIBS=`$KRB5_CONFIG --libs`
-> >>    KRB5_FLAGS=`$KRB5_CONFIG --cflags`
-> >> +
-> >> +  SAVE_CFLAGS=$CFLAGS
-> >> +  SAVE_LIBS=$LIBS
-> >> +  CFLAGS="$CFLAGS $KRB5_FLAGS"
-> >> +  LIBS="$LIBS $KRB5_LIBS"
-> >> +
-> >> +  AC_CHECK_FUNCS([krb5_principal_get_realm])
-> >>  fi])
-> >>
-> >>  dnl --------------------------------------------------------------------------
-> >> diff --git a/modules/cyrus-sasl.c b/modules/cyrus-sasl.c
-> >> index 68f9242..6115f90 100644
-> >> --- a/modules/cyrus-sasl.c
-> >> +++ b/modules/cyrus-sasl.c
-> >> @@ -64,6 +64,31 @@
-> >>  #endif
-> >>  #endif
-> >>
-> >> +#ifdef HAVE_KRB5_PRINCIPAL_GET_REALM
-> >> +void _krb5_princ_realm(krb5_context context, krb5_const_principal princ,
-> >> +                          const char **realm, int *len)
-> >> +{
-> >> +    *realm = krb5_principal_get_realm(context, princ);
-> >> +    *len = strlen(*realm);
-> >
-> > So krb5_principal_get_realm() never fails, or does it return NULL, what
-> > about strlen(NULL) .... SEGV.
-> >
-> >> +}
-> >> +#else
-> >> +void _krb5_princ_realm(krb5_context context, krb5_const_principal princ,
-> >> +                          const char **realm, int *len)
-> >> +{
-> >> +    const krb5_data *data;
-> >> +
-> >> +    data = krb5_princ_realm(context, princ);
-> >> +    if (data) {
-> >> +        *realm = data->data;
-> >> +        *len = data->length;
-> >> +    } else {
-> >> +        *realm = NULL;
-> >> +        *len = 0;
-> >> +    }
-> >> +}
-> >> +#endif
-> >> +
-> >> +
-> >>  /*
-> >>   *  Once a krb5 credentials cache is setup, we need to set the KRB5CCNAME
-> >>   *  environment variable so that the library knows where to find it.
-> >> @@ -379,7 +404,8 @@ sasl_do_kinit(unsigned logopt, struct lookup_context *ctxt)
-> >>       krb5_principal tgs_princ, krb5_client_princ;
-> >>       krb5_creds my_creds;
-> >>       char *tgs_name;
-> >> -     int status;
-> >> +     const char *realm_name;
-> >> +     int status, realm_length;
-> >>
-> >>       if (ctxt->kinit_done)
-> >>               return 0;
-> >> @@ -450,12 +476,11 @@ sasl_do_kinit(unsigned logopt, struct lookup_context *ctxt)
-> >>       }
-> >>
-> >>       /* setup a principal for the ticket granting service */
-> >> +     _krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ, &realm_name, &realm_length);
-> >>       ret = krb5_build_principal_ext(ctxt->krb5ctxt, &tgs_princ,
-> >> -             krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ)->length,
-> >> -             krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ)->data,
-> >> +             realm_length, realm_name,
-> >>               strlen(KRB5_TGS_NAME), KRB5_TGS_NAME,
-> >> -             krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ)->length,
-> >> -             krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ)->data,
-> >> +             realm_length, realm_name,
-> >>               0);
-> >>       if (ret) {
-> >>               error(logopt,
-> >
-> >
-> HI Ian:
->   As I looking into the code (krb5_principal_get_realm) which provided
-> by heimdal, there is no grantee that *realm will always be valid
-> (does't do internal check, and does't return "" empty string if fail).
-> But, as my knowledge here, I guess we should already grantee that
-> *realm is valid before calling this function,
->   It won't hurt if we add add a check here, so how about this?
-> 
->  *len = (*realm == NULL) ? 0 : strlen(*realm);
+=46rom: "Lan Yixun (dlan)" <dennis.yxun@gmail.com>
 
-Yeah, so we should be able to be sure it will always never return "".
+the problem here is that hesiod checking always fail due to wrong $(LDF=
+LAGS),
+no matter hesiod library is installed or not. moving "-lhesiod" into
+$(LIBS) solve this problem.
 
-That's probably a fair assumption ... although maybe *realm should be
-initialized to NULL on entry to avoid odd arch specific initialization
-issues.
+1) convert "char *" -> "void *" to fix the compile warning
+2) put "-lhesiod -lresolv" into $(LIBS), not into $(LDFLAGS), otherwise=
+ we got link error
 
-> 
-> Dennis
+---
+tst_hesiod.c: In function =E2=80=98main=E2=80=99:
+tst_hesiod.c:38:3: warning: passing argument 1 of =E2=80=98hesiod_init=E2=
+=80=99 from incompatible pointer type
+[enabled by default]
+   char *c; hesiod_init(&c);
+   ^
+In file included from tst_hesiod.c:34:0:
+/usr/include/hesiod.h:36:5: note: expected =E2=80=98void **=E2=80=99 bu=
+t argument is of type =E2=80=98char **=E2=80=99
+ int hesiod_init(void **context);
 
+
+
+$ x86_64-pc-linux-gnu-gcc -o conftest -O2 -pipe -march=3Dcore2  -I/usr/=
+include
+ -Wl,-O1 -Wl,--as-needed -g -lhesiod -lresolv tst_hesiod.c -L/usr/lib64
+ -lkrb5 -lhx509 -lcom_err -lhcrypto -lasn1 -lwind -lheimbase -lroken
+-lcrypt -ldl -lresolv
+
+/tmp/ccN6GW0r.o: In function `main':
+/root/tst_hesiod.c:38: undefined reference to `hesiod_init'
+collect2: error: ld returned 1 exit status
+
+Signed-off-by: Lan Yixun (dlan) <dennis.yxun@gmail.com>
+---
+ aclocal.m4 | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/aclocal.m4 b/aclocal.m4
+index 7a8b03c..637a775 100644
+--- a/aclocal.m4
++++ b/aclocal.m4
+@@ -316,20 +316,20 @@ dnl ---------------------------------------------=
+-----------------------------
+ AC_DEFUN([AF_CHECK_LIBHESIOD],
+ [AC_MSG_CHECKING(for libhesiod)
+=20
+-# save current ldflags
+-af_check_hesiod_save_ldflags=3D"$LDFLAGS"
+-LDFLAGS=3D"$LDFLAGS -lhesiod -lresolv"
++# save current libs
++af_check_hesiod_save_libs=3D"$LIBS"
++LIBS=3D"$LIBS -lhesiod -lresolv"
+=20
+ AC_TRY_LINK(
+   [ #include <hesiod.h> ],
+-  [ char *c; hesiod_init(&c); ],
++  [ void *c; hesiod_init(&c); ],
+   [ HAVE_HESIOD=3D1
+     LIBHESIOD=3D"$LIBHESIOD -lhesiod -lresolv"
+     AC_MSG_RESULT(yes) ],
+   [ AC_MSG_RESULT(no) ])
+=20
+-# restore ldflags
+-LDFLAGS=3D"$af_check_hesiod_save_ldflags"
++# restore libs
++LIBS=3D"$af_check_hesiod_save_libs"
+ ])
+=20
+ dnl ------------------------------------------------------------------=
+--------
+--=20
+1.8.2.1
 
