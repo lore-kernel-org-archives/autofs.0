@@ -1,235 +1,96 @@
-From: "Dennis Lan (dlan)" <dennis.yxun@gmail.com>
-Subject: Re: [PATCH 9/9] autofs-5.0.7 - fix compilation of lookup_ldap.c
- without sasl
-Date: Wed, 24 Jul 2013 17:53:18 +0800
-Message-ID: <CAF1ZMEc6UkK7+EZu_zccfHGZvk29e3txGxc+gUJ+Owmhq+pHEQ@mail.gmail.com>
-References: <20130724084903.3884.13354.stgit@perseus.fritz.box>
-	<20130724085402.3884.65664.stgit@perseus.fritz.box>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [PATCH 0/9] Series short description
+Date: Wed, 24 Jul 2013 18:14:25 +0800
+Message-ID: <1374660865.2358.32.camel@perseus.fritz.box>
+References: <20130724081610.722.84685.stgit@perseus.fritz.box>
+	 <CAF1ZMEdmTPuUCP2dR-nxBEP+swm0Mqoxw0ve3rJx-9wn12FRXA@mail.gmail.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20120113;
-        h=mime-version:in-reply-to:references:date:message-id:subject:from:to
-         :cc:content-type;
-        bh=MK+r1QUJ4jUTDz/h4L4PgS29QNhStLFqQ3qrXXur/3w=;
-        b=T1PIr9+9BKpfKD8IO0W0ywTOhf/BDMMrecNDg90rXwhFVEhugP6QcfjIUk/ZEtlXMm
-         45N3h+scaG3aEg8CGSYv1nB6m4NYVzi3Hn+XQlvmmwGUybPPAOEiRf9u9aBn+1ExOxY+
-         ivA3BHECHOoU4R8tRZzgCZouRgnjMwsRqikIclo2dlrsppEUIh/7tkR3iQmSMf0H0Roy
-         HikleCJYpjclTb7LcPrs08Rj3npDJRRXNX3hATPzd3/pp2elegds9X5O3n+XGmhS57J7
-         UTz++zA2hz0Ed6lmPjpBUhz+v3hoyd669itTmGdohVn9FXKPWCMr5+SxocPOBhXf3agU
-         IkZA==
-In-Reply-To: <20130724085402.3884.65664.stgit@perseus.fritz.box>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
+	message-id:subject:from:to:cc:date:in-reply-to:references
+	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
+	 bh=xR1njOXXz5Jc/nmHBbK66a65lDo=; b=v4Mn5ExuxyLvZEY4MXMQbxittawz
+	23ljQXiqkesnhNl7PUtNdw/g9YGCI/AoQf3CzTn0Im9dHrK5UemmArk3FlxOdn69
+	mvSplf90bfxXwlcOM/5NjvATgvS6+F9deQzeCf7kvvYBbbsQ0QG1VfPITfx8x8t7
+	PaqJNwP1UunPXO4=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=message-id:subject:from:to:cc:date
+	:in-reply-to:references:content-type:mime-version
+	:content-transfer-encoding; s=smtpout; bh=xR1njOXXz5Jc/nmHBbK66a
+	65lDo=; b=Og0E9YrpKS4AkEIbiGF3b52KjLBB0U/P5jfua7A+rTy0oM6GII44Td
+	5LHyo9EcJa/2N7BeJJQlXWgubVQll0wUTXcdXNbFFdvkdGQ292+e/AeHUgTLEJ+6
+	otqx1D4EfG0+Cp0jUxl39iTWOopxR4Vs2lsSh/iEfFHGdE3KT5zok=
+In-Reply-To: <CAF1ZMEdmTPuUCP2dR-nxBEP+swm0Mqoxw0ve3rJx-9wn12FRXA@mail.gmail.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Ian Kent <raven@themaw.net>
+To: "Dennis Lan (dlan)" <dennis.yxun@gmail.com>
 Cc: autofs mailing list <autofs@vger.kernel.org>
 
-On Wed, Jul 24, 2013 at 4:54 PM, Ian Kent <raven@themaw.net> wrote:
-> From: Dustin Polke <DuPol@gmx.de>
->
-> See https://bugs.gentoo.org/show_bug.cgi?id=361899 for more info.
->
-> Edited by: Ian Kent <raven@themaw.net>
-> - fix parse_ldap_config() is needed by ldap but previously excluded.
-> - exclude other references to ctxt->extern_cert and ctxt->extern_key.
-> - prevent memory leak if present in config but not used.
-> - remove now unused set_env().
-> ---
->  CHANGELOG             |    1 +
->  include/lookup_ldap.h |    4 ++--
->  lib/Makefile          |    4 ++++
->  modules/Makefile      |    6 ++++--
->  modules/lookup_ldap.c |   14 ++++++++++++--
->  5 files changed, 23 insertions(+), 6 deletions(-)
->
-> diff --git a/CHANGELOG b/CHANGELOG
-> index 42ea627..63d5aac 100644
-> --- a/CHANGELOG
-> +++ b/CHANGELOG
-> @@ -65,6 +65,7 @@
->  - remove hard-coded STRIP variable.
->  - use LIBS for link libraries.
->  - unbundle NOTSTRIP from DEBUG so they dont depend on each other.
-> +- fix compilation of lookup_ldap.c without sasl.
->
->  25/07/2012 autofs-5.0.7
->  =======================
-> diff --git a/include/lookup_ldap.h b/include/lookup_ldap.h
-> index 9a4ce73..f34c029 100644
-> --- a/include/lookup_ldap.h
-> +++ b/include/lookup_ldap.h
-> @@ -11,6 +11,8 @@
->  #include <krb5.h>
->  #endif
->
-> +#include <libxml/tree.h>
-> +
->  #include "list.h"
->  #include "dclist.h"
->
-> @@ -92,7 +94,6 @@ struct lookup_context {
->  };
->
->
-> -#ifdef WITH_SASL
->  #define LDAP_AUTH_CONF_FILE "test"
->
->  #define LDAP_TLS_DONT_USE      0
-> @@ -104,7 +105,6 @@ struct lookup_context {
->  #define LDAP_AUTH_REQUIRED     0x0002
->  #define LDAP_AUTH_AUTODETECT   0x0004
->  #define LDAP_NEED_AUTH         (LDAP_AUTH_REQUIRED|LDAP_AUTH_AUTODETECT)
-> -#endif
->
->  #define LDAP_AUTH_USESIMPLE    0x0008
->
-> diff --git a/lib/Makefile b/lib/Makefile
-> index 5418009..4a5b712 100644
-> --- a/lib/Makefile
-> +++ b/lib/Makefile
-> @@ -24,6 +24,10 @@ CFLAGS += -I../include -fPIC -D_GNU_SOURCE
->  CFLAGS += -DAUTOFS_MAP_DIR=\"$(autofsmapdir)\"
->  CFLAGS += -DAUTOFS_CONF_DIR=\"$(autofsconfdir)\"
->
-> +ifeq ($(LDAP), 1)
-> +  CFLAGS += $(XML_FLAGS) $(XML_LIBS)
-> +endif
-> +
->  .PHONY: all install clean
->
->  all: autofs.a
-> diff --git a/modules/Makefile b/modules/Makefile
-> index de01ebd..8610783 100644
-> --- a/modules/Makefile
-> +++ b/modules/Makefile
-> @@ -45,10 +45,12 @@ endif
->  ifeq ($(LDAP), 1)
->    SRCS += lookup_ldap.c
->    MODS += lookup_ldap.so
-> +  LDAP_FLAGS += $(XML_FLAGS) -DLDAP_THREAD_SAFE
-> +  LIBLDAP += $(XML_LIBS)
->    ifeq ($(SASL), 1)
->      SASL_OBJ = cyrus-sasl.o cyrus-sasl-extern.o
-> -    LDAP_FLAGS += $(SASL_FLAGS) $(XML_FLAGS) $(KRB5_FLAGS) -DLDAP_THREAD_SAFE
-> -    LIBLDAP += $(LIBSASL) $(XML_LIBS) $(KRB5_LIBS)
-> +    LDAP_FLAGS += $(SASL_FLAGS) $(KRB5_FLAGS)
-> +    LIBLDAP += $(LIBSASL) $(KRB5_LIBS)
->    endif
->  endif
->
-> diff --git a/modules/lookup_ldap.c b/modules/lookup_ldap.c
-> index a2bfafd..904cc21 100644
-> --- a/modules/lookup_ldap.c
-> +++ b/modules/lookup_ldap.c
-> @@ -66,6 +66,7 @@ struct ldap_search_params {
->
->  static int decode_percent_hack(const char *, char **);
->
-> +#ifdef HAVE_SASL
-As I checked file of include/config.h (generated by ./configure)
-there is only "WITH_SASL", but no "HAVE_SASL"
+On Wed, 2013-07-24 at 16:34 +0800, Dennis Lan (dlan) wrote:
+> On Wed, Jul 24, 2013 at 4:17 PM, Ian Kent <raven@themaw.net> wrote:
+> > The following series implements...
+> >
+> > ---
+> >
+> > Dustin Polke (1):
+> >       autofs-5.0.7 - fix compilation of lookup_ldap.c without sasl
+> >
+> > Ian Kent (1):
+> >       autofs-5.0.7 - use LIBS for link libraries
+> >
+> > Lan Yixun (dlan) (7):
+> >       autofs-5.0.7 - fix typo forced-shutdown should be force-shutdown
+> >       autofs-5.0.7 - fix hesiod check error and use correct $(LIBS) setting
+> >       autofs-5.0.7 - fix dead LDAP symbolic link when LDAP support is disabled
+> >       autofs-5.0.7 add missing libtirpc lib to mount_nfs.so when TIRPC enabled
+> >       autofs-5.0.7 - use compiler determined by configure instead of hard-coded ones
+> >       autofs-5.0.7 - remove hard-coded STRIP variable
+> >       autofs-5.0.7 - unbundle NOTSTRIP from DEBUG so they wont depend on each other
+> >
+> >
+> >  CHANGELOG             |    4 ++++
+> >  Makefile.conf.in      |    3 +++
+> >  Makefile.rules        |   30 +++++++++++++++---------------
+> >  aclocal.m4            |   12 ++++++------
+> >  configure             |   20 ++++++++++----------
+> >  configure.in          |    2 +-
+> >  daemon/Makefile       |    2 +-
+> >  include/lookup_ldap.h |    4 ++--
+> >  lib/Makefile          |    4 ++++
+> >  modules/Makefile      |   20 ++++++++++++--------
+> >  modules/lookup_ldap.c |   14 ++++++++++++--
+> >  11 files changed, 70 insertions(+), 45 deletions(-)
+> >
+> > --
+> > Signature
+> 
+> Hi Ian:
+>   Thanks.
+>   But I haven't seen the commits published, am I use the wrong repo url? [1]
+
+This was a false start, as I replied to it later.
+
+The posts to follow are what I have in the queue for the next time I
+commit changes.
+
+There are three types of patches in the queue of patches I have.
+
+First are ones I will commit next time I do a commit, second are patches
+that may on may not be applied depending on their state and which may or
+may not be committed next commit, and third patches which I'm carrying
+that I don't intend to commit, at least for the moment.
+
+So I'd like to confirm I have what your hoping for before committing
+anything and then there's the as yet unfinished patch ....
+
+Ian
+
+> 
+> Dennis Lan (dlan)
+> 
+> 
+> [1] git://git.kernel.org/pub/scm/linux/storage/autofs/autofs.git
 
 
->  static int set_env(unsigned logopt, const char *name, const char *val)
->  {
->         int ret = setenv(name, val, 1);
-> @@ -75,6 +76,7 @@ static int set_env(unsigned logopt, const char *name, const char *val)
->         }
->         return 1;
->  }
-> +#endif
->
->  #ifndef HAVE_LDAP_CREATE_PAGE_CONTROL
->  int ldap_create_page_control(LDAP *ldap, ber_int_t pagesize,
-> @@ -585,10 +587,12 @@ static LDAP *do_connect(unsigned logopt, const char *uri, struct lookup_context
->  {
->         LDAP *ldap;
->
-> +#ifdef HAVE_SASL
-same here
-
->         if (ctxt->extern_cert && ctxt->extern_key) {
->                 set_env(logopt, ENV_LDAPTLS_CERT, ctxt->extern_cert);
->                 set_env(logopt, ENV_LDAPTLS_KEY, ctxt->extern_key);
->         }
-> +#endif
->
->         ldap = init_ldap_connection(logopt, uri, ctxt);
->         if (ldap) {
-> @@ -791,7 +795,6 @@ find_server:
->         return ldap;
->  }
->
-> -#ifdef WITH_SASL
->  int get_property(unsigned logopt, xmlNodePtr node, const char *prop, char **value)
->  {
->         xmlChar *ret;
-> @@ -812,6 +815,7 @@ int get_property(unsigned logopt, xmlNodePtr node, const char *prop, char **valu
->         return 0;
->  }
->
-> +#ifdef WITH_SASL
->  /*
->   *  For plain text, login and digest-md5 authentication types, we need
->   *  user and password credentials.
-> @@ -824,6 +828,7 @@ int authtype_requires_creds(const char *authtype)
->                 return 1;
->         return 0;
->  }
-> +#endif
->
->  /*
->   *  Returns:
-> @@ -1056,6 +1061,7 @@ auth_fail:
->                 }
->         } else if (auth_required == LDAP_AUTH_REQUIRED &&
->                   (authtype && !strncmp(authtype, "EXTERNAL", 8))) {
-> +#ifdef WITH_SASL
->                 ret = get_property(logopt, root, "external_cert",  &extern_cert);
->                 ret |= get_property(logopt, root, "external_key",  &extern_key);
->                 /*
-> @@ -1074,6 +1080,7 @@ auth_fail:
->                         if (extern_key)
->                                 free(extern_key);
->                 }
-> +#endif
->         }
->
->         /*
-> @@ -1094,8 +1101,10 @@ auth_fail:
->         ctxt->secret = secret;
->         ctxt->client_princ = client_princ;
->         ctxt->client_cc = client_cc;
-> +#ifdef WITH_SASL
->         ctxt->extern_cert = extern_cert;
->         ctxt->extern_key = extern_key;
-> +#endif
->
->         debug(logopt, MODPREFIX
->               "ldap authentication configured with the following options:");
-> @@ -1127,7 +1136,6 @@ out:
->
->         return ret;
->  }
-> -#endif
->
->  /*
->   *  Take an input string as specified in the master map, and break it
-> @@ -1390,10 +1398,12 @@ static void free_context(struct lookup_context *ctxt)
->                 defaults_free_searchdns(ctxt->sdns);
->         if (ctxt->dclist)
->                 free_dclist(ctxt->dclist);
-> +#ifdef HAVE_SASL
-same here
-
->         if (ctxt->extern_cert)
->                 free(ctxt->extern_cert);
->         if (ctxt->extern_key)
->                 free(ctxt->extern_key);
-> +#endif
->         free(ctxt);
->
->         return;
->
