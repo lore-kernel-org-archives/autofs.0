@@ -1,96 +1,117 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 0/9] Series short description
-Date: Wed, 24 Jul 2013 18:14:25 +0800
-Message-ID: <1374660865.2358.32.camel@perseus.fritz.box>
-References: <20130724081610.722.84685.stgit@perseus.fritz.box>
-	 <CAF1ZMEdmTPuUCP2dR-nxBEP+swm0Mqoxw0ve3rJx-9wn12FRXA@mail.gmail.com>
+Subject: Re: [PATCH 5/9] autofs-5.0.7 - use compiler determined by configure
+ instead of hard-coded ones
+Date: Wed, 24 Jul 2013 18:16:58 +0800
+Message-ID: <1374661018.2358.34.camel@perseus.fritz.box>
+References: <20130724084903.3884.13354.stgit@perseus.fritz.box>
+	 <20130724085333.3884.30723.stgit@perseus.fritz.box>
+	 <CAF1ZMEdzNbVwtxiq0ViOk4pkU7AcgLxA+yfFYp_AzhvxbRFAww@mail.gmail.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
 	message-id:subject:from:to:cc:date:in-reply-to:references
 	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
-	 bh=xR1njOXXz5Jc/nmHBbK66a65lDo=; b=v4Mn5ExuxyLvZEY4MXMQbxittawz
-	23ljQXiqkesnhNl7PUtNdw/g9YGCI/AoQf3CzTn0Im9dHrK5UemmArk3FlxOdn69
-	mvSplf90bfxXwlcOM/5NjvATgvS6+F9deQzeCf7kvvYBbbsQ0QG1VfPITfx8x8t7
-	PaqJNwP1UunPXO4=
+	 bh=UaoCw9WMlGjHSXr8+jTwNSNczcE=; b=roG5b1jpxy6CDxtnsZb00pGAwttS
+	BM5PQI0N35QBLVzg3TORaMH7xtPKWp0LbDl6ueb5T0Jz+hsUxjxsUuF//hPqaSAb
+	VLVLC5gh/ITG9+Rp3MKZlOV4C+Xh1J9Cm8fX43tiK/kcONMydCislwgD3KOiO6ie
+	DolDEsrpxxhYrA4=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=message-id:subject:from:to:cc:date
 	:in-reply-to:references:content-type:mime-version
-	:content-transfer-encoding; s=smtpout; bh=xR1njOXXz5Jc/nmHBbK66a
-	65lDo=; b=Og0E9YrpKS4AkEIbiGF3b52KjLBB0U/P5jfua7A+rTy0oM6GII44Td
-	5LHyo9EcJa/2N7BeJJQlXWgubVQll0wUTXcdXNbFFdvkdGQ292+e/AeHUgTLEJ+6
-	otqx1D4EfG0+Cp0jUxl39iTWOopxR4Vs2lsSh/iEfFHGdE3KT5zok=
-In-Reply-To: <CAF1ZMEdmTPuUCP2dR-nxBEP+swm0Mqoxw0ve3rJx-9wn12FRXA@mail.gmail.com>
+	:content-transfer-encoding; s=smtpout; bh=UaoCw9WMlGjHSXr8+jTwNS
+	NczcE=; b=PbZFJ0D5NLg6PZrpTn2Gu7x6PB2afo5YRqLywkCxR2NR2hIZe0X7a4
+	kX76RgFtfAR4ac9VYGN89SGoF5TZLLyHKtzS1rWyiTkik0IC6TzAD53uTKmMu+4k
+	/Tk9gbAg3CFiFNbzc4RCTe9sspx6kEOxyYqOhz9gpTaLZTbSQbPE0=
+In-Reply-To: <CAF1ZMEdzNbVwtxiq0ViOk4pkU7AcgLxA+yfFYp_AzhvxbRFAww@mail.gmail.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: "Dennis Lan (dlan)" <dennis.yxun@gmail.com>
 Cc: autofs mailing list <autofs@vger.kernel.org>
 
-On Wed, 2013-07-24 at 16:34 +0800, Dennis Lan (dlan) wrote:
-> On Wed, Jul 24, 2013 at 4:17 PM, Ian Kent <raven@themaw.net> wrote:
-> > The following series implements...
+On Wed, 2013-07-24 at 17:45 +0800, Dennis Lan (dlan) wrote:
+> On Wed, Jul 24, 2013 at 4:53 PM, Ian Kent <raven@themaw.net> wrote:
+> > From: Lan Yixun (dlan) <dennis.yxun@gmail.com>
 > >
+> > the logic here is:
+> >  if user pass compiler variable, then use it, otherwise fallback to default value
+> >
+> > this will provide most flexibility, so user can set this variable
+> > it would be even useful for cross-compile environment.
+> >
+> > Signed-off-by: Lan Yixun (dlan) <dennis.yxun@gmail.com>
 > > ---
+> >  CHANGELOG        |    1 +
+> >  Makefile.conf.in |    3 +++
+> >  Makefile.rules   |    8 ++++----
+> >  3 files changed, 8 insertions(+), 4 deletions(-)
 > >
-> > Dustin Polke (1):
-> >       autofs-5.0.7 - fix compilation of lookup_ldap.c without sasl
+> > diff --git a/CHANGELOG b/CHANGELOG
+> > index 72d9135..ebabf21 100644
+> > --- a/CHANGELOG
+> > +++ b/CHANGELOG
+> > @@ -61,6 +61,7 @@
+> >  - fix hesiod check error and use correct $(LIBS) setting.
+> >  - fix dead LDAP symbolic link when LDAP support is disabled.
+> >  - add missing libtirpc lib to mount_nfs.so when TIRPC enabled.
+> > +- use compiler determined by configure instead of hard-coded ones.
 > >
-> > Ian Kent (1):
-> >       autofs-5.0.7 - use LIBS for link libraries
+> >  25/07/2012 autofs-5.0.7
+> >  =======================
+> > diff --git a/Makefile.conf.in b/Makefile.conf.in
+> > index 3766d45..cb53e66 100644
+> > --- a/Makefile.conf.in
+> > +++ b/Makefile.conf.in
+> > @@ -109,3 +109,6 @@ initdir = @initdir@
 > >
-> > Lan Yixun (dlan) (7):
-> >       autofs-5.0.7 - fix typo forced-shutdown should be force-shutdown
-> >       autofs-5.0.7 - fix hesiod check error and use correct $(LIBS) setting
-> >       autofs-5.0.7 - fix dead LDAP symbolic link when LDAP support is disabled
-> >       autofs-5.0.7 add missing libtirpc lib to mount_nfs.so when TIRPC enabled
-> >       autofs-5.0.7 - use compiler determined by configure instead of hard-coded ones
-> >       autofs-5.0.7 - remove hard-coded STRIP variable
-> >       autofs-5.0.7 - unbundle NOTSTRIP from DEBUG so they wont depend on each other
+> >  # Location of systemd unit files
+> >  systemddir = @systemddir@
+> > +
+> > +# Use the compiler determined by configure instead of hard-coded ones
+> > +CC := @CC@
+> > diff --git a/Makefile.rules b/Makefile.rules
+> > index 6b5b2bd..9aebd19 100644
+> > --- a/Makefile.rules
+> > +++ b/Makefile.rules
+> > @@ -38,10 +38,10 @@ STRIP     = strip --strip-debug
+> >  endif
+> >  endif
 > >
+> > -CC        = gcc
+> > -CXX       = g++
+> > -CXXFLAGS  = $(CFLAGS)
+> > -LD        = ld
+> > +CC        ?= gcc
+> > +CXX       ?= g++
+> > +CXXFLAGS  ?= $(CFLAGS)
+> > +LD        ?= ld
+> >  SOLDFLAGS = -shared
 > >
-> >  CHANGELOG             |    4 ++++
-> >  Makefile.conf.in      |    3 +++
-> >  Makefile.rules        |   30 +++++++++++++++---------------
-> >  aclocal.m4            |   12 ++++++------
-> >  configure             |   20 ++++++++++----------
-> >  configure.in          |    2 +-
-> >  daemon/Makefile       |    2 +-
-> >  include/lookup_ldap.h |    4 ++--
-> >  lib/Makefile          |    4 ++++
-> >  modules/Makefile      |   20 ++++++++++++--------
-> >  modules/lookup_ldap.c |   14 ++++++++++++--
-> >  11 files changed, 70 insertions(+), 45 deletions(-)
+> >  CFLAGS += -D_REENTRANT -D_FILE_OFFSET_BITS=64
 > >
-> > --
-> > Signature
 > 
-> Hi Ian:
->   Thanks.
->   But I haven't seen the commits published, am I use the wrong repo url? [1]
+> HI Ian:
+>   Missed the changes for "LDFLAGS"?also need to change from " =" to " ?= "
+> 
+> but it's strange that you seems correct in
+> [PATCH 6/9] autofs-5.0.7 - remove hard-coded STRIP variable
 
-This was a false start, as I replied to it later.
-
-The posts to follow are what I have in the queue for the next time I
-commit changes.
-
-There are three types of patches in the queue of patches I have.
-
-First are ones I will commit next time I do a commit, second are patches
-that may on may not be applied depending on their state and which may or
-may not be committed next commit, and third patches which I'm carrying
-that I don't intend to commit, at least for the moment.
-
-So I'd like to confirm I have what your hoping for before committing
-anything and then there's the as yet unfinished patch ....
-
-Ian
+I have another patch in the queue which already changes this.
+Thought I mentioned that in an edit note in the relevant patch ....
 
 > 
-> Dennis Lan (dlan)
-> 
-> 
-> [1] git://git.kernel.org/pub/scm/linux/storage/autofs/autofs.git
+>  LDFLAGS   ?= -g      --> correct
+> -STRIP     = :
+> +STRIP     ?= :
+>  else
+>  ifdef DONTSTRIP
+>  CFLAGS    ?= -O2 -g
+>  LDFLAGS   ?= -g        --> correct
+> -STRIP     = :
+> +STRIP     ?= :
+>  else
+>  CFLAGS    ?= -O2 -Wall
+>  LDFLAGS   ?= -s       --> correct
 
 
