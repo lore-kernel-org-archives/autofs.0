@@ -1,8 +1,8 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 8/9] autofs-5.0.7 - unbundle NOTSTRIP from DEBUG so they
- dont depend on each other
-Date: Wed, 24 Jul 2013 16:53:56 +0800
-Message-ID: <20130724085355.3884.20045.stgit@perseus.fritz.box>
+Subject: [PATCH 9/9] autofs-5.0.7 - fix compilation of lookup_ldap.c without
+ sasl
+Date: Wed, 24 Jul 2013 16:54:04 +0800
+Message-ID: <20130724085402.3884.65664.stgit@perseus.fritz.box>
 References: <20130724084903.3884.13354.stgit@perseus.fritz.box>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -10,17 +10,17 @@ Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
 	subject:to:from:cc:date:message-id:in-reply-to:references
 	:mime-version:content-type:content-transfer-encoding; s=mesmtp;
-	 bh=jKXKZteWcHd+xI43RONx7qytQS8=; b=FEnB4XAKu7E1NkflyWB/XMdW3TdT
-	jG774OqyoCChDye5YmXAXEOeRGhAk9zA4BBHe9dcyZdu2TSyMZ2OAJc+ypWBqTre
-	bZlOeTGVI3o5PbWl4jAK66ELlA+PSeZgFj8H7AoZ9c+c6ux4PQ4Ae4CxI4Y1jpRW
-	fw8cOTgcjh9pi9o=
+	 bh=RkqM54Sktw0MIYYMBcACRYgh1eU=; b=tpIyh86p7pjUmM5prV3ENOV2E32y
+	uJ+RzIPpUj+m57tNe/DmOsKUWcJBM/lZ8dl7ei24442F56tHthR7IRVleAgu3RCJ
+	QLz5IXR08ninWL8qX8dyrigC4sxrKRwodTgj8/R+ylu/+rmRXUmkG25JVA3SMkVi
+	UeNRpQZDeMLFKyE=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=subject:to:from:cc:date:message-id
 	:in-reply-to:references:mime-version:content-type
-	:content-transfer-encoding; s=smtpout; bh=jKXKZteWcHd+xI43RONx7q
-	ytQS8=; b=HF6oXQW4S1pTmUNxEcJLftIljvf+9MVIX7c01E2BifjkF7u9vkJ3bi
-	uIqtTsNxqDp4NxpRzF/UOEiwdJtZ3IXfFBPYLXQanCl/vcD955yVSD94YHMwlWTz
-	0Cw5hTF8pR8H2BlP3FLDfFUIHI1TkqImngdHuW+p9JrfnlthXf2eg=
+	:content-transfer-encoding; s=smtpout; bh=RkqM54Sktw0MIYYMBcACRY
+	gh1eU=; b=IHpwEJ7usLabHrsd/nX5hi/CHc1v+z04fqCgAyVuSo57Vf2Dbywc6E
+	DnbqS8ub9IxKNvgCzUAqE4RruAdB7ilbMdm60/hrtdlNA1y/9nlhMVMBEDJyOQA4
+	n5RSOOW6jy2xbZAndrK0VNxypqY+U0Mqi7GccedsfATu8OChy29gw=
 In-Reply-To: <20130724084903.3884.13354.stgit@perseus.fritz.box>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
@@ -28,54 +28,201 @@ Content-Type: text/plain; charset="us-ascii"
 To: "Lan Yixun (dlan)" <dennis.yxun@gmail.com>
 Cc: autofs mailing list <autofs@vger.kernel.org>
 
-From: Lan Yixun (dlan) <dennis.yxun@gmail.com>
+From: Dustin Polke <DuPol@gmx.de>
 
-Gentoo build system expects unstripped elf image from the build system,
-seperate this, will allow us to better control the strip operation.
+See https://bugs.gentoo.org/show_bug.cgi?id=361899 for more info.
 
-Signed-off-by: Lan Yixun (dlan) <dennis.yxun@gmail.com>
+Edited by: Ian Kent <raven@themaw.net>
+- fix parse_ldap_config() is needed by ldap but previously excluded.
+- exclude other references to ctxt->extern_cert and ctxt->extern_key.
+- prevent memory leak if present in config but not used.
+- remove now unused set_env().
 ---
- CHANGELOG      |    1 +
- Makefile.rules |   10 ++++------
- 2 files changed, 5 insertions(+), 6 deletions(-)
+ CHANGELOG             |    1 +
+ include/lookup_ldap.h |    4 ++--
+ lib/Makefile          |    4 ++++
+ modules/Makefile      |    6 ++++--
+ modules/lookup_ldap.c |   14 ++++++++++++--
+ 5 files changed, 23 insertions(+), 6 deletions(-)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index 897a2b4..42ea627 100644
+index 42ea627..63d5aac 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -64,6 +64,7 @@
- - use compiler determined by configure instead of hard-coded ones.
+@@ -65,6 +65,7 @@
  - remove hard-coded STRIP variable.
  - use LIBS for link libraries.
-+- unbundle NOTSTRIP from DEBUG so they dont depend on each other.
+ - unbundle NOTSTRIP from DEBUG so they dont depend on each other.
++- fix compilation of lookup_ldap.c without sasl.
  
  25/07/2012 autofs-5.0.7
  =======================
-diff --git a/Makefile.rules b/Makefile.rules
-index fa53459..0754a00 100644
---- a/Makefile.rules
-+++ b/Makefile.rules
-@@ -25,18 +25,16 @@ endif
- ifdef DEBUG
- CFLAGS    ?= -g -Wall -DDEBUG
- LDFLAGS   ?= -g
--STRIP     ?= :
- else
-+CFLAGS    ?= -O2 -Wall
-+LDFLAGS   ?= -s
+diff --git a/include/lookup_ldap.h b/include/lookup_ldap.h
+index 9a4ce73..f34c029 100644
+--- a/include/lookup_ldap.h
++++ b/include/lookup_ldap.h
+@@ -11,6 +11,8 @@
+ #include <krb5.h>
+ #endif
+ 
++#include <libxml/tree.h>
++
+ #include "list.h"
+ #include "dclist.h"
+ 
+@@ -92,7 +94,6 @@ struct lookup_context {
+ };
+ 
+ 
+-#ifdef WITH_SASL
+ #define LDAP_AUTH_CONF_FILE "test"
+ 
+ #define LDAP_TLS_DONT_USE	0
+@@ -104,7 +105,6 @@ struct lookup_context {
+ #define LDAP_AUTH_REQUIRED	0x0002
+ #define LDAP_AUTH_AUTODETECT	0x0004
+ #define LDAP_NEED_AUTH		(LDAP_AUTH_REQUIRED|LDAP_AUTH_AUTODETECT)
+-#endif
+ 
+ #define LDAP_AUTH_USESIMPLE	0x0008
+ 
+diff --git a/lib/Makefile b/lib/Makefile
+index 5418009..4a5b712 100644
+--- a/lib/Makefile
++++ b/lib/Makefile
+@@ -24,6 +24,10 @@ CFLAGS += -I../include -fPIC -D_GNU_SOURCE
+ CFLAGS += -DAUTOFS_MAP_DIR=\"$(autofsmapdir)\"
+ CFLAGS += -DAUTOFS_CONF_DIR=\"$(autofsconfdir)\"
+ 
++ifeq ($(LDAP), 1)
++  CFLAGS += $(XML_FLAGS) $(XML_LIBS)
 +endif
 +
- ifdef DONTSTRIP
--CFLAGS    ?= -O2 -g
--LDFLAGS   ?= -g
- STRIP     ?= :
- else
--CFLAGS    ?= -O2 -Wall
--LDFLAGS   ?= -s
- STRIP     ?= strip --strip-debug
- endif
--endif
+ .PHONY: all install clean
  
- CC        ?= gcc
- CXX       ?= g++
+ all: autofs.a
+diff --git a/modules/Makefile b/modules/Makefile
+index de01ebd..8610783 100644
+--- a/modules/Makefile
++++ b/modules/Makefile
+@@ -45,10 +45,12 @@ endif
+ ifeq ($(LDAP), 1)
+   SRCS += lookup_ldap.c
+   MODS += lookup_ldap.so
++  LDAP_FLAGS += $(XML_FLAGS) -DLDAP_THREAD_SAFE
++  LIBLDAP += $(XML_LIBS)
+   ifeq ($(SASL), 1)
+     SASL_OBJ = cyrus-sasl.o cyrus-sasl-extern.o
+-    LDAP_FLAGS += $(SASL_FLAGS) $(XML_FLAGS) $(KRB5_FLAGS) -DLDAP_THREAD_SAFE
+-    LIBLDAP += $(LIBSASL) $(XML_LIBS) $(KRB5_LIBS)
++    LDAP_FLAGS += $(SASL_FLAGS) $(KRB5_FLAGS)
++    LIBLDAP += $(LIBSASL) $(KRB5_LIBS)
+   endif
+ endif
+ 
+diff --git a/modules/lookup_ldap.c b/modules/lookup_ldap.c
+index a2bfafd..904cc21 100644
+--- a/modules/lookup_ldap.c
++++ b/modules/lookup_ldap.c
+@@ -66,6 +66,7 @@ struct ldap_search_params {
+ 
+ static int decode_percent_hack(const char *, char **);
+ 
++#ifdef HAVE_SASL
+ static int set_env(unsigned logopt, const char *name, const char *val)
+ {
+ 	int ret = setenv(name, val, 1);
+@@ -75,6 +76,7 @@ static int set_env(unsigned logopt, const char *name, const char *val)
+ 	}
+ 	return 1;
+ }
++#endif
+ 
+ #ifndef HAVE_LDAP_CREATE_PAGE_CONTROL
+ int ldap_create_page_control(LDAP *ldap, ber_int_t pagesize,
+@@ -585,10 +587,12 @@ static LDAP *do_connect(unsigned logopt, const char *uri, struct lookup_context
+ {
+ 	LDAP *ldap;
+ 
++#ifdef HAVE_SASL
+ 	if (ctxt->extern_cert && ctxt->extern_key) {
+ 		set_env(logopt, ENV_LDAPTLS_CERT, ctxt->extern_cert);
+ 		set_env(logopt, ENV_LDAPTLS_KEY, ctxt->extern_key);
+ 	}
++#endif
+ 
+ 	ldap = init_ldap_connection(logopt, uri, ctxt);
+ 	if (ldap) {
+@@ -791,7 +795,6 @@ find_server:
+ 	return ldap;
+ }
+ 
+-#ifdef WITH_SASL
+ int get_property(unsigned logopt, xmlNodePtr node, const char *prop, char **value)
+ {
+ 	xmlChar *ret;
+@@ -812,6 +815,7 @@ int get_property(unsigned logopt, xmlNodePtr node, const char *prop, char **valu
+ 	return 0;
+ }
+ 
++#ifdef WITH_SASL
+ /*
+  *  For plain text, login and digest-md5 authentication types, we need
+  *  user and password credentials.
+@@ -824,6 +828,7 @@ int authtype_requires_creds(const char *authtype)
+ 		return 1;
+ 	return 0;
+ }
++#endif
+ 
+ /*
+  *  Returns:
+@@ -1056,6 +1061,7 @@ auth_fail:
+ 		}
+ 	} else if (auth_required == LDAP_AUTH_REQUIRED &&
+ 		  (authtype && !strncmp(authtype, "EXTERNAL", 8))) {
++#ifdef WITH_SASL
+ 		ret = get_property(logopt, root, "external_cert",  &extern_cert);
+ 		ret |= get_property(logopt, root, "external_key",  &extern_key);
+ 		/*
+@@ -1074,6 +1080,7 @@ auth_fail:
+ 			if (extern_key)
+ 				free(extern_key);
+ 		}
++#endif
+ 	}
+ 
+ 	/*
+@@ -1094,8 +1101,10 @@ auth_fail:
+ 	ctxt->secret = secret;
+ 	ctxt->client_princ = client_princ;
+ 	ctxt->client_cc = client_cc;
++#ifdef WITH_SASL
+ 	ctxt->extern_cert = extern_cert;
+ 	ctxt->extern_key = extern_key;
++#endif
+ 
+ 	debug(logopt, MODPREFIX
+ 	      "ldap authentication configured with the following options:");
+@@ -1127,7 +1136,6 @@ out:
+ 
+ 	return ret;
+ }
+-#endif
+ 
+ /*
+  *  Take an input string as specified in the master map, and break it
+@@ -1390,10 +1398,12 @@ static void free_context(struct lookup_context *ctxt)
+ 		defaults_free_searchdns(ctxt->sdns);
+ 	if (ctxt->dclist)
+ 		free_dclist(ctxt->dclist);
++#ifdef HAVE_SASL
+ 	if (ctxt->extern_cert)
+ 		free(ctxt->extern_cert);
+ 	if (ctxt->extern_key)
+ 		free(ctxt->extern_key);
++#endif
+ 	free(ctxt);
+ 
+ 	return;
 
