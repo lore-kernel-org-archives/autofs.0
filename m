@@ -1,18 +1,18 @@
 From: "Lan Yixun (dlan)" <dennis.yxun@gmail.com>
-Subject: [PATCH] add missing libtirpc lib to mount_nfs.so when TIRPC enabled
-Date: Wed, 24 Jul 2013 10:37:00 +0800
-Message-ID: <1374633420-28235-1-git-send-email-dennis.yxun@gmail.com>
+Subject: [PATCH 1/7] use compiler determined by configure instead of hard-coded ones
+Date: Wed, 24 Jul 2013 10:38:12 +0800
+Message-ID: <1374633498-28385-1-git-send-email-dennis.yxun@gmail.com>
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20120113;
         h=from:to:cc:subject:date:message-id:x-mailer;
-        bh=HBRDdclCSKU/9onqfKvj78HGgty5GFQ74ZHSV77OBok=;
-        b=GYyFhJe8Oyou+ibaWFrjoZzSImrcmE77aMrU7jqsbUBRqGYY8DKa+spFNiRYtLF/qK
-         i5/unl33fz0xk5F3lOhJGvUSoGLGq2yA1joBJ/16ND3VqUDCjqM8ikdjxu8qjBiNdp8k
-         jJ/U3KlJyb5Nb1Xf7UvAGghOvBqFrW+aA4ardJ37xsfn/iVb7wvFwjTmn3pS8HaHFpVC
-         MZgsHi+4Y0U0hWUVwB5IvHbAvqkFHUr2JH1cylBX5i+/Ai67zppUIS9KixuFEiLA4KP/
-         rcXEWkdbaPiu+wtPTwHXnzsEGfC2TNXE1mYB7ULf1J8Ace8NUbIVsNY7Lb50Jr8bcNVe
-         k4Zw==
+        bh=/i+FmRS9KH2iMqygWc+u3Ia6scHZIyYYdwfyIgPOfak=;
+        b=gXrzsdb1ENrE6nKokKmAOTVPgB/eWE9M7mHD2Lv7bHmltCymgyAbas9T+UXDfWF/cM
+         K8vKGQ1qXUVyDlT1YDjRqrzYzWCnIizO33cxxRIrvNaTvrjDHJ3F3ZZgj6B1nxSY+cWB
+         QsrbBLO1kclv59r2bPG+2UCMwFdya/GNDuN5T/2L4JWb3gOaOl3CNyXwaaQGMrkBTzpo
+         PcHFa7OWijeC6GDkrTDu8df5iWGVjZhAU5Stue/mrpp5dm4lfEketDGSccMlUykchIvV
+         Pcp/cs/PpoOjZD2ZVydvRl25Ovz0cncjp7dD0CXJLv1zXO99ZqHGR+x2qSqIAWWeQp6c
+         2o9g==
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 MIME-Version: 1.0
@@ -23,40 +23,48 @@ Cc: "Lan Yixun (dlan)" <dennis.yxun@gmail.com>
 
 From: "Lan Yixun (dlan)" <dennis.yxun@gmail.com>
 
-this is need when libtirpc is enabled, otherwise autofs fail to start
-due to it can't find symbol clnt_dg_create (which is provided by libtirpc)
+the logic here is:
+ if user pass compiler variable, then use it, otherwise fallback to default value
 
----
-autofs error log from /var/log/message:
-
-Jul 23 12:11:58 ofire automount[25699]: open_mount:244: parse(sun): cannot open mount module
-nfs (/usr/lib64/autofs/mount_nfs.so: undefined symbol: clnt_dg_create)
-Jul 23 12:11:58 ofire automount[25699]: lookup(file): failed to open parse context
-
-without this patch, mount_nfs.so fail link to libtirpc.so
- # ldd /usr/lib64/autofs/mount_nfs.so |grep tirpc
-
-with this patch applied:
- # ldd /usr/lib64/autofs/mount_nfs.so |grep tirpc
-        libtirpc.so.1 => /lib64/libtirpc.so.1 (0x00007f7d94920000)
+this will provide most flexibility, so user can set this variable
+it would be even useful for cross-compile environment.
 
 Signed-off-by: Lan Yixun (dlan) <dennis.yxun@gmail.com>
 ---
- modules/Makefile | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Makefile.conf.in | 3 +++
+ Makefile.rules   | 8 ++++----
+ 2 files changed, 7 insertions(+), 4 deletions(-)
 
-diff --git a/modules/Makefile b/modules/Makefile
-index 4bb1096..0fe8ae8 100644
---- a/modules/Makefile
-+++ b/modules/Makefile
-@@ -116,6 +116,6 @@ lookup_ldap.so: lookup_ldap.c dclist.o base64.o $(SASL_OBJ)
+diff --git a/Makefile.conf.in b/Makefile.conf.in
+index 3766d45..cb53e66 100644
+--- a/Makefile.conf.in
++++ b/Makefile.conf.in
+@@ -109,3 +109,6 @@ initdir = @initdir@
  
- mount_nfs.so: mount_nfs.c replicated.o
- 	$(CC) $(SOLDFLAGS) $(CFLAGS) -o mount_nfs.so \
--		mount_nfs.c replicated.o $(AUTOFS_LIB) $(LIBNSL)
-+		mount_nfs.c replicated.o $(AUTOFS_LIB) $(LIBNSL) $(TIRPCLIB)
- 	$(STRIP) mount_nfs.so
+ # Location of systemd unit files
+ systemddir = @systemddir@
++
++# Use the compiler determined by configure instead of hard-coded ones
++CC := @CC@
+diff --git a/Makefile.rules b/Makefile.rules
+index f2ba386..a05a6df 100644
+--- a/Makefile.rules
++++ b/Makefile.rules
+@@ -38,10 +38,10 @@ STRIP     = strip --strip-debug
+ endif
+ endif
  
+-CC        = gcc
+-CXX       = g++
+-CXXFLAGS  = $(CFLAGS)
+-LD        = ld
++CC        ?= gcc
++CXX       ?= g++
++CXXFLAGS  ?= $(CFLAGS)
++LD        ?= ld
+ SOLDFLAGS = -shared
+ 
+ CFLAGS += -D_REENTRANT -D_FILE_OFFSET_BITS=64
 -- 
 1.8.3.2
 
