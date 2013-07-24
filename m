@@ -1,65 +1,77 @@
-From: "Lan Yixun (dlan)" <dennis.yxun@gmail.com>
-Subject: [PATCH 7/7] unbundle NOTSTRIP from DEBUG, so they won't depend on each other
-Date: Wed, 24 Jul 2013 10:38:18 +0800
-Message-ID: <1374633498-28385-7-git-send-email-dennis.yxun@gmail.com>
-References: <1374633498-28385-1-git-send-email-dennis.yxun@gmail.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [PATCH] add missing libtirpc lib to mount_nfs.so when TIRPC
+ enabled
+Date: Wed, 24 Jul 2013 11:31:43 +0800
+Message-ID: <1374636703.2358.25.camel@perseus.fritz.box>
+References: <1374633420-28235-1-git-send-email-dennis.yxun@gmail.com>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20120113;
-        h=from:to:cc:subject:date:message-id:x-mailer:in-reply-to:references;
-        bh=h1uuJydWjWeyVHX163DaWpMbN5zTHmYVFFZ30lqItrw=;
-        b=Uha7c75FREAzJa6Lcxx3E2xzF1bJgK5+Ur3iq/jTBlnUA0QxIHlshR3V5gZ72IGRAz
-         VrWdLOd+08J7Q7mPTAL8RPGmVgNNKBQCbeRJeZ7UaBpgtoRElZfKU133n4uUH7Br6+jN
-         DuyHSWp2Qf+xSycZ1be3otT8aL93iQxtN+m7qmfWC5mY//6qJq+0x6Ftt8DjAL9vQEtA
-         YyH3iWl/C8XcASzEgm5Nr4bs40/kBbrw06oAmmPglLf+dxLTbCmWVGPRx7S/MezRwz40
-         I2LnQWlJNr2TmEuuUljnTUsHBzXqVKlI24kKdkYdymirEbrsFlMM16xMm1AUh1QHubvy
-         ruuw==
-In-Reply-To: <1374633498-28385-1-git-send-email-dennis.yxun@gmail.com>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
+	message-id:subject:from:to:cc:date:in-reply-to:references
+	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
+	 bh=4U61bd4ZSiDIrz5Y+qZAErkbnzY=; b=QQp+AVgSNDn/PBLRTDw48R6kpJkV
+	Uds2/sD0UCTm79McXxpTtNzgTDD5zCkz6BWQnp+dsVdtYt/DguWFOqoTO0WQSLaJ
+	KUQrolreAOSoVpYed/AjncZ7Jdx0IqCMZH9POeqFVplk0/1oK/mAD0TkwpM/g5sx
+	CC+XbZ++lCepQQ4=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=message-id:subject:from:to:cc:date
+	:in-reply-to:references:content-type:mime-version
+	:content-transfer-encoding; s=smtpout; bh=4U61bd4ZSiDIrz5Y+qZAEr
+	kbnzY=; b=ATBIZ9gB7sB4PUjxgMZvGP/sl1CYpbIUYqFR9RaL48tAD8tsoQcJxK
+	9jh9g37kpO/Ja7Gpj9dWLMt4li4W4o120oGJDpgVwUi5U9ezcx2x4cZzhoHPvLT0
+	NBjrT7EDgzdMeztM3GbHERENtr2oK6o2CjVL0i5QNFDsEHKLCY5mw=
+In-Reply-To: <1374633420-28235-1-git-send-email-dennis.yxun@gmail.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: autofs@vger.kernel.org
-Cc: "Lan Yixun (dlan)" <dennis.yxun@gmail.com>
+To: "Lan Yixun (dlan)" <dennis.yxun@gmail.com>
+Cc: autofs@vger.kernel.org
 
-From: "Lan Yixun (dlan)" <dennis.yxun@gmail.com>
+On Wed, 2013-07-24 at 10:37 +0800, Lan Yixun (dlan) wrote:
+> From: "Lan Yixun (dlan)" <dennis.yxun@gmail.com>
+> 
+> this is need when libtirpc is enabled, otherwise autofs fail to start
+> due to it can't find symbol clnt_dg_create (which is provided by libtirpc)
 
-gentoo build system expects unstripped elf image from the build system,
-seperate this, will allow us to better control the strip operation.
+Yeah, I use libtirpc all the time but that's something I haven't
+noticed, probably because TIRPC_WORKAROUND will cause the library to be
+dlopen()ed at start.
 
-Signed-off-by: Lan Yixun (dlan) <dennis.yxun@gmail.com>
----
- Makefile.rules | 10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+So while the change is needed and I'll apply it, I'm not sure why you're
+seeing it since the library should be open and loaded already.
 
-diff --git a/Makefile.rules b/Makefile.rules
-index fa53459..0754a00 100644
---- a/Makefile.rules
-+++ b/Makefile.rules
-@@ -25,18 +25,16 @@ endif
- ifdef DEBUG
- CFLAGS    ?= -g -Wall -DDEBUG
- LDFLAGS   ?= -g
--STRIP     ?= :
- else
-+CFLAGS    ?= -O2 -Wall
-+LDFLAGS   ?= -s
-+endif
-+
- ifdef DONTSTRIP
--CFLAGS    ?= -O2 -g
--LDFLAGS   ?= -g
- STRIP     ?= :
- else
--CFLAGS    ?= -O2 -Wall
--LDFLAGS   ?= -s
- STRIP     ?= strip --strip-debug
- endif
--endif
- 
- CC        ?= gcc
- CXX       ?= g++
--- 
-1.8.3.2
+> 
+> ---
+> autofs error log from /var/log/message:
+> 
+> Jul 23 12:11:58 ofire automount[25699]: open_mount:244: parse(sun): cannot open mount module
+> nfs (/usr/lib64/autofs/mount_nfs.so: undefined symbol: clnt_dg_create)
+> Jul 23 12:11:58 ofire automount[25699]: lookup(file): failed to open parse context
+> 
+> without this patch, mount_nfs.so fail link to libtirpc.so
+>  # ldd /usr/lib64/autofs/mount_nfs.so |grep tirpc
+> 
+> with this patch applied:
+>  # ldd /usr/lib64/autofs/mount_nfs.so |grep tirpc
+>         libtirpc.so.1 => /lib64/libtirpc.so.1 (0x00007f7d94920000)
+> 
+> Signed-off-by: Lan Yixun (dlan) <dennis.yxun@gmail.com>
+> ---
+>  modules/Makefile | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/modules/Makefile b/modules/Makefile
+> index 4bb1096..0fe8ae8 100644
+> --- a/modules/Makefile
+> +++ b/modules/Makefile
+> @@ -116,6 +116,6 @@ lookup_ldap.so: lookup_ldap.c dclist.o base64.o $(SASL_OBJ)
+>  
+>  mount_nfs.so: mount_nfs.c replicated.o
+>  	$(CC) $(SOLDFLAGS) $(CFLAGS) -o mount_nfs.so \
+> -		mount_nfs.c replicated.o $(AUTOFS_LIB) $(LIBNSL)
+> +		mount_nfs.c replicated.o $(AUTOFS_LIB) $(LIBNSL) $(TIRPCLIB)
+>  	$(STRIP) mount_nfs.so
+>  
+
 
