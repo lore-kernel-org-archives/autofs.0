@@ -1,247 +1,166 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 9/9] autofs-5.0.7 - fix compilation of lookup_ldap.c
- without sasl
-Date: Wed, 24 Jul 2013 18:20:18 +0800
-Message-ID: <1374661218.2358.37.camel@perseus.fritz.box>
-References: <20130724084903.3884.13354.stgit@perseus.fritz.box>
-	 <20130724085402.3884.65664.stgit@perseus.fritz.box>
-	 <CAF1ZMEc6UkK7+EZu_zccfHGZvk29e3txGxc+gUJ+Owmhq+pHEQ@mail.gmail.com>
+From: "Dennis Lan (dlan)" <dennis.yxun@gmail.com>
+Subject: Re: [PATCH 1/6] fix compile error with heimdal support enabled
+Date: Wed, 24 Jul 2013 18:25:52 +0800
+Message-ID: <CAF1ZMEcrUuair2Gw3WucoUv=5eVy=4cxv8tSqcaCYqNqNvRm7g@mail.gmail.com>
+References: <dennis.yxun@gmail.com>
+	<1374505194-22668-1-git-send-email-dennis.yxun@gmail.com>
+	<1374505194-22668-2-git-send-email-dennis.yxun@gmail.com>
+	<1374572675.3418.2.camel@perseus.fritz.box>
+	<CAF1ZMEcgiABZ+gbxfRj3GLM9X2U2b_awq8+M6m_nwxPW+3uzCg@mail.gmail.com>
+	<1374576609.3418.21.camel@perseus.fritz.box>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	message-id:subject:from:to:cc:date:in-reply-to:references
-	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
-	 bh=vv0YshUe2QpEx6BcQ09ipRlJTuo=; b=mhKot1JkJ9/3IZi6rFJ3YPTrIc/t
-	S8qt59kw/dvhgkhcQpSk5nD1PP8iv99+2xeKwBVq0Wwhey8nKX4xRg8S4Frs9V3b
-	0lEn3Aaf5iSdrVohINU5fhi0h2yhnppnvLVXAiH9bZYHQCF9pt3UXsiOoHkukl8t
-	/or2S2ZosS+CloY=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=message-id:subject:from:to:cc:date
-	:in-reply-to:references:content-type:mime-version
-	:content-transfer-encoding; s=smtpout; bh=vv0YshUe2QpEx6BcQ09ipR
-	lJTuo=; b=MF9AGTZgQCD0kasjAigwsMRcnG/91e6FVktxQ46NKDfBZIMV3V8Q5G
-	Z5mdqplSxXzt5u8LAfERCZoK22ZQbWvx/6RGAL2DXmhe6DhTYF/DX4SSQaI2Jk0s
-	QFmo1ps4K5INIFsDx0H9fL2dly3xqvyz7hvo4FBmz1hKFG0GmiTaU=
-In-Reply-To: <CAF1ZMEc6UkK7+EZu_zccfHGZvk29e3txGxc+gUJ+Owmhq+pHEQ@mail.gmail.com>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20120113;
+        h=mime-version:in-reply-to:references:date:message-id:subject:from:to
+         :cc:content-type;
+        bh=pgyvC1/3z+pgbFSL98Pgl1QH0gsAEqI98tEYSAy/kqk=;
+        b=nieqVAnyOdVqx9Gy7m/eRMFkZRlgKTBqrKwgA3gRDaL+I8F0TIkW2n54j2TYhfu9zO
+         VVxLlXQbW7jeWK8eM5vGyf5nnBoWkBgidR6UzkcnjiVp8XKqQamNUu+//oGPVGcFn4h6
+         3hn40C8XgxLd/r10d7djuIu+S5aHFevolPjYrxWWufqeSZE84jFXmyPR9ghXcak5hxAe
+         KMxNE3bttJz4dIiLlpEF2GzNs64CRpGMIFWPhsxbenCrOmh/Qm3mdINw0aVTrfOC1eEE
+         KsEqFi9vrV8D4l9ct2L/Mm+8DwCManqYV+VJ/1ju3JgY9KgfS663nXgR9qwicCJbOeB0
+         tJvA==
+In-Reply-To: <1374576609.3418.21.camel@perseus.fritz.box>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: "Dennis Lan (dlan)" <dennis.yxun@gmail.com>
+Content-Transfer-Encoding: 7bit
+To: Ian Kent <raven@themaw.net>
 Cc: autofs mailing list <autofs@vger.kernel.org>
 
-On Wed, 2013-07-24 at 17:53 +0800, Dennis Lan (dlan) wrote:
-> On Wed, Jul 24, 2013 at 4:54 PM, Ian Kent <raven@themaw.net> wrote:
-> > From: Dustin Polke <DuPol@gmx.de>
-> >
-> > See https://bugs.gentoo.org/show_bug.cgi?id=361899 for more info.
-> >
-> > Edited by: Ian Kent <raven@themaw.net>
-> > - fix parse_ldap_config() is needed by ldap but previously excluded.
-> > - exclude other references to ctxt->extern_cert and ctxt->extern_key.
-> > - prevent memory leak if present in config but not used.
-> > - remove now unused set_env().
-> > ---
-> >  CHANGELOG             |    1 +
-> >  include/lookup_ldap.h |    4 ++--
-> >  lib/Makefile          |    4 ++++
-> >  modules/Makefile      |    6 ++++--
-> >  modules/lookup_ldap.c |   14 ++++++++++++--
-> >  5 files changed, 23 insertions(+), 6 deletions(-)
-> >
-> > diff --git a/CHANGELOG b/CHANGELOG
-> > index 42ea627..63d5aac 100644
-> > --- a/CHANGELOG
-> > +++ b/CHANGELOG
-> > @@ -65,6 +65,7 @@
-> >  - remove hard-coded STRIP variable.
-> >  - use LIBS for link libraries.
-> >  - unbundle NOTSTRIP from DEBUG so they dont depend on each other.
-> > +- fix compilation of lookup_ldap.c without sasl.
-> >
-> >  25/07/2012 autofs-5.0.7
-> >  =======================
-> > diff --git a/include/lookup_ldap.h b/include/lookup_ldap.h
-> > index 9a4ce73..f34c029 100644
-> > --- a/include/lookup_ldap.h
-> > +++ b/include/lookup_ldap.h
-> > @@ -11,6 +11,8 @@
-> >  #include <krb5.h>
-> >  #endif
-> >
-> > +#include <libxml/tree.h>
-> > +
-> >  #include "list.h"
-> >  #include "dclist.h"
-> >
-> > @@ -92,7 +94,6 @@ struct lookup_context {
-> >  };
-> >
-> >
-> > -#ifdef WITH_SASL
-> >  #define LDAP_AUTH_CONF_FILE "test"
-> >
-> >  #define LDAP_TLS_DONT_USE      0
-> > @@ -104,7 +105,6 @@ struct lookup_context {
-> >  #define LDAP_AUTH_REQUIRED     0x0002
-> >  #define LDAP_AUTH_AUTODETECT   0x0004
-> >  #define LDAP_NEED_AUTH         (LDAP_AUTH_REQUIRED|LDAP_AUTH_AUTODETECT)
-> > -#endif
-> >
-> >  #define LDAP_AUTH_USESIMPLE    0x0008
-> >
-> > diff --git a/lib/Makefile b/lib/Makefile
-> > index 5418009..4a5b712 100644
-> > --- a/lib/Makefile
-> > +++ b/lib/Makefile
-> > @@ -24,6 +24,10 @@ CFLAGS += -I../include -fPIC -D_GNU_SOURCE
-> >  CFLAGS += -DAUTOFS_MAP_DIR=\"$(autofsmapdir)\"
-> >  CFLAGS += -DAUTOFS_CONF_DIR=\"$(autofsconfdir)\"
-> >
-> > +ifeq ($(LDAP), 1)
-> > +  CFLAGS += $(XML_FLAGS) $(XML_LIBS)
-> > +endif
-> > +
-> >  .PHONY: all install clean
-> >
-> >  all: autofs.a
-> > diff --git a/modules/Makefile b/modules/Makefile
-> > index de01ebd..8610783 100644
-> > --- a/modules/Makefile
-> > +++ b/modules/Makefile
-> > @@ -45,10 +45,12 @@ endif
-> >  ifeq ($(LDAP), 1)
-> >    SRCS += lookup_ldap.c
-> >    MODS += lookup_ldap.so
-> > +  LDAP_FLAGS += $(XML_FLAGS) -DLDAP_THREAD_SAFE
-> > +  LIBLDAP += $(XML_LIBS)
-> >    ifeq ($(SASL), 1)
-> >      SASL_OBJ = cyrus-sasl.o cyrus-sasl-extern.o
-> > -    LDAP_FLAGS += $(SASL_FLAGS) $(XML_FLAGS) $(KRB5_FLAGS) -DLDAP_THREAD_SAFE
-> > -    LIBLDAP += $(LIBSASL) $(XML_LIBS) $(KRB5_LIBS)
-> > +    LDAP_FLAGS += $(SASL_FLAGS) $(KRB5_FLAGS)
-> > +    LIBLDAP += $(LIBSASL) $(KRB5_LIBS)
-> >    endif
-> >  endif
-> >
-> > diff --git a/modules/lookup_ldap.c b/modules/lookup_ldap.c
-> > index a2bfafd..904cc21 100644
-> > --- a/modules/lookup_ldap.c
-> > +++ b/modules/lookup_ldap.c
-> > @@ -66,6 +66,7 @@ struct ldap_search_params {
-> >
-> >  static int decode_percent_hack(const char *, char **);
-> >
-> > +#ifdef HAVE_SASL
-> As I checked file of include/config.h (generated by ./configure)
-> there is only "WITH_SASL", but no "HAVE_SASL"
+On Tue, Jul 23, 2013 at 6:50 PM, Ian Kent <raven@themaw.net> wrote:
+> On Tue, 2013-07-23 at 18:19 +0800, Dennis Lan (dlan) wrote:
+>> On Tue, Jul 23, 2013 at 5:44 PM, Ian Kent <raven@themaw.net> wrote:
+>> > On Mon, 2013-07-22 at 22:59 +0800, Lan Yixun (dlan) wrote:
+>> >> From: "Lan Yixun (dlan)" <dennis.yxun@gmail.com>
+>> >>
+>> >> this patch instroduce a compatible layer between Heimdal and MTT Krb5.
+>> >> And I slightly rework the original patch to make it more readable.
+>> >>
+>> >> ---
+>> >> Upstream Discussion:
+>> >>   http://thread.gmane.org/gmane.linux.kernel.autofs/4203
+>> >>
+>> >> Gentoo Bugs:
+>> >>   https://bugs.gentoo.org/show_bug.cgi?id=210762
+>> >>
+>> >> Signed-off-by: Lan Yixun (dlan) <dennis.yxun@gmail.com>
+>> >> ---
+>> >>  aclocal.m4           |  7 +++++++
+>> >>  modules/cyrus-sasl.c | 35 ++++++++++++++++++++++++++++++-----
+>> >>  2 files changed, 37 insertions(+), 5 deletions(-)
+>> >>
+>> >> diff --git a/aclocal.m4 b/aclocal.m4
+>> >> index c5de159..7a8b03c 100644
+>> >> --- a/aclocal.m4
+>> >> +++ b/aclocal.m4
+>> >> @@ -299,6 +299,13 @@ else
+>> >>    HAVE_KRB5=1
+>> >>    KRB5_LIBS=`$KRB5_CONFIG --libs`
+>> >>    KRB5_FLAGS=`$KRB5_CONFIG --cflags`
+>> >> +
+>> >> +  SAVE_CFLAGS=$CFLAGS
+>> >> +  SAVE_LIBS=$LIBS
+>> >> +  CFLAGS="$CFLAGS $KRB5_FLAGS"
+>> >> +  LIBS="$LIBS $KRB5_LIBS"
+>> >> +
+>> >> +  AC_CHECK_FUNCS([krb5_principal_get_realm])
+>> >>  fi])
+>> >>
+>> >>  dnl --------------------------------------------------------------------------
+>> >> diff --git a/modules/cyrus-sasl.c b/modules/cyrus-sasl.c
+>> >> index 68f9242..6115f90 100644
+>> >> --- a/modules/cyrus-sasl.c
+>> >> +++ b/modules/cyrus-sasl.c
+>> >> @@ -64,6 +64,31 @@
+>> >>  #endif
+>> >>  #endif
+>> >>
+>> >> +#ifdef HAVE_KRB5_PRINCIPAL_GET_REALM
+>> >> +void _krb5_princ_realm(krb5_context context, krb5_const_principal princ,
+>> >> +                          const char **realm, int *len)
+>> >> +{
+>> >> +    *realm = krb5_principal_get_realm(context, princ);
+>> >> +    *len = strlen(*realm);
+>> >
+>> > So krb5_principal_get_realm() never fails, or does it return NULL, what
+>> > about strlen(NULL) .... SEGV.
+>> >
+>> >> +}
+>> >> +#else
+>> >> +void _krb5_princ_realm(krb5_context context, krb5_const_principal princ,
+>> >> +                          const char **realm, int *len)
+>> >> +{
+>> >> +    const krb5_data *data;
+>> >> +
+>> >> +    data = krb5_princ_realm(context, princ);
+>> >> +    if (data) {
+>> >> +        *realm = data->data;
+>> >> +        *len = data->length;
+>> >> +    } else {
+>> >> +        *realm = NULL;
+>> >> +        *len = 0;
+>> >> +    }
+>> >> +}
+>> >> +#endif
+>> >> +
+>> >> +
+>> >>  /*
+>> >>   *  Once a krb5 credentials cache is setup, we need to set the KRB5CCNAME
+>> >>   *  environment variable so that the library knows where to find it.
+>> >> @@ -379,7 +404,8 @@ sasl_do_kinit(unsigned logopt, struct lookup_context *ctxt)
+>> >>       krb5_principal tgs_princ, krb5_client_princ;
+>> >>       krb5_creds my_creds;
+>> >>       char *tgs_name;
+>> >> -     int status;
+>> >> +     const char *realm_name;
+>> >> +     int status, realm_length;
+>> >>
+>> >>       if (ctxt->kinit_done)
+>> >>               return 0;
+>> >> @@ -450,12 +476,11 @@ sasl_do_kinit(unsigned logopt, struct lookup_context *ctxt)
+>> >>       }
+>> >>
+>> >>       /* setup a principal for the ticket granting service */
+>> >> +     _krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ, &realm_name, &realm_length);
+>> >>       ret = krb5_build_principal_ext(ctxt->krb5ctxt, &tgs_princ,
+>> >> -             krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ)->length,
+>> >> -             krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ)->data,
+>> >> +             realm_length, realm_name,
+>> >>               strlen(KRB5_TGS_NAME), KRB5_TGS_NAME,
+>> >> -             krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ)->length,
+>> >> -             krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ)->data,
+>> >> +             realm_length, realm_name,
+>> >>               0);
+>> >>       if (ret) {
+>> >>               error(logopt,
+>> >
+>> >
+>> HI Ian:
+>>   As I looking into the code (krb5_principal_get_realm) which provided
+>> by heimdal, there is no grantee that *realm will always be valid
+>> (does't do internal check, and does't return "" empty string if fail).
+>> But, as my knowledge here, I guess we should already grantee that
+>> *realm is valid before calling this function,
+>>   It won't hurt if we add add a check here, so how about this?
+>>
+>>  *len = (*realm == NULL) ? 0 : strlen(*realm);
+>
+> Yeah, so we should be able to be sure it will always never return "".
+>
+> That's probably a fair assumption ... although maybe *realm should be
+> initialized to NULL on entry to avoid odd arch specific initialization
+> issues.
+>
+>>
+>> Dennis
+>
+>
 
-Right, thanks for mentioning it, I'll check that when I work though this
-patch. I haven't actually looked closely at it since I moved to to "will
-commit" status, and it definitely needs to be reviewed.
+HI Ian:
+  How about this one? for the three types of patches ;-)
+which should this one belong to?
+  Thanks
 
-> 
-> 
-> >  static int set_env(unsigned logopt, const char *name, const char *val)
-> >  {
-> >         int ret = setenv(name, val, 1);
-> > @@ -75,6 +76,7 @@ static int set_env(unsigned logopt, const char *name, const char *val)
-> >         }
-> >         return 1;
-> >  }
-> > +#endif
-> >
-> >  #ifndef HAVE_LDAP_CREATE_PAGE_CONTROL
-> >  int ldap_create_page_control(LDAP *ldap, ber_int_t pagesize,
-> > @@ -585,10 +587,12 @@ static LDAP *do_connect(unsigned logopt, const char *uri, struct lookup_context
-> >  {
-> >         LDAP *ldap;
-> >
-> > +#ifdef HAVE_SASL
-> same here
-> 
-> >         if (ctxt->extern_cert && ctxt->extern_key) {
-> >                 set_env(logopt, ENV_LDAPTLS_CERT, ctxt->extern_cert);
-> >                 set_env(logopt, ENV_LDAPTLS_KEY, ctxt->extern_key);
-> >         }
-> > +#endif
-> >
-> >         ldap = init_ldap_connection(logopt, uri, ctxt);
-> >         if (ldap) {
-> > @@ -791,7 +795,6 @@ find_server:
-> >         return ldap;
-> >  }
-> >
-> > -#ifdef WITH_SASL
-> >  int get_property(unsigned logopt, xmlNodePtr node, const char *prop, char **value)
-> >  {
-> >         xmlChar *ret;
-> > @@ -812,6 +815,7 @@ int get_property(unsigned logopt, xmlNodePtr node, const char *prop, char **valu
-> >         return 0;
-> >  }
-> >
-> > +#ifdef WITH_SASL
-> >  /*
-> >   *  For plain text, login and digest-md5 authentication types, we need
-> >   *  user and password credentials.
-> > @@ -824,6 +828,7 @@ int authtype_requires_creds(const char *authtype)
-> >                 return 1;
-> >         return 0;
-> >  }
-> > +#endif
-> >
-> >  /*
-> >   *  Returns:
-> > @@ -1056,6 +1061,7 @@ auth_fail:
-> >                 }
-> >         } else if (auth_required == LDAP_AUTH_REQUIRED &&
-> >                   (authtype && !strncmp(authtype, "EXTERNAL", 8))) {
-> > +#ifdef WITH_SASL
-> >                 ret = get_property(logopt, root, "external_cert",  &extern_cert);
-> >                 ret |= get_property(logopt, root, "external_key",  &extern_key);
-> >                 /*
-> > @@ -1074,6 +1080,7 @@ auth_fail:
-> >                         if (extern_key)
-> >                                 free(extern_key);
-> >                 }
-> > +#endif
-> >         }
-> >
-> >         /*
-> > @@ -1094,8 +1101,10 @@ auth_fail:
-> >         ctxt->secret = secret;
-> >         ctxt->client_princ = client_princ;
-> >         ctxt->client_cc = client_cc;
-> > +#ifdef WITH_SASL
-> >         ctxt->extern_cert = extern_cert;
-> >         ctxt->extern_key = extern_key;
-> > +#endif
-> >
-> >         debug(logopt, MODPREFIX
-> >               "ldap authentication configured with the following options:");
-> > @@ -1127,7 +1136,6 @@ out:
-> >
-> >         return ret;
-> >  }
-> > -#endif
-> >
-> >  /*
-> >   *  Take an input string as specified in the master map, and break it
-> > @@ -1390,10 +1398,12 @@ static void free_context(struct lookup_context *ctxt)
-> >                 defaults_free_searchdns(ctxt->sdns);
-> >         if (ctxt->dclist)
-> >                 free_dclist(ctxt->dclist);
-> > +#ifdef HAVE_SASL
-> same here
-> 
-> >         if (ctxt->extern_cert)
-> >                 free(ctxt->extern_cert);
-> >         if (ctxt->extern_key)
-> >                 free(ctxt->extern_key);
-> > +#endif
-> >         free(ctxt);
-> >
-> >         return;
-> >
-
-
+Dennis Lan (dlan)
