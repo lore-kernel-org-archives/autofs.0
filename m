@@ -1,7 +1,8 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 18/25] autofs-5.0.7 - try and cleanup after dumpmaps
-Date: Mon, 19 Aug 2013 09:13:55 +0800
-Message-ID: <20130819011354.6472.33734.stgit@perseus.fritz.box>
+Subject: [PATCH 19/25] autofs-5.0.7 - teach dumpmaps to output simple key
+ value pairs
+Date: Mon, 19 Aug 2013 09:14:02 +0800
+Message-ID: <20130819011401.6472.10623.stgit@perseus.fritz.box>
 References: <20130819010909.6472.32512.stgit@perseus.fritz.box>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -9,17 +10,17 @@ Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
 	subject:to:from:cc:date:message-id:in-reply-to:references
 	:mime-version:content-type:content-transfer-encoding; s=mesmtp;
-	 bh=IKTEVdzch3OY3e8hD/uz6KH8T30=; b=Ji7r3p5dtyVtTO0vVXAbm3mOrVHm
-	p7qY0uLdJLUg5jbrGf+9uNbRb5/87v+gVAWBmaFSsOA38eOdvirwZiSiJNO08d0j
-	Gkc2JCuTUOE+R5vwd2D3Fd2XN3KWi5/YxzCd6NGu9ewNpe14wS4eo4Ex1YyWAAwZ
-	b++bhyhBamrtHhk=
+	 bh=S3eTTg8oRyqTDt/QPNQpBVngzY4=; b=W1Vs+cQ/kGmxJ5BhfYBfIAQgSMnV
+	jNYx/NYZbfBHql9t4sfpJmTvLN00CgzieZED+knq6Y2XRjb51x9vzACh4hwFjx03
+	QfF3Od/lxerDQ4VP4ZbR+V/Ilm5mquCfFv+uy6TUnHKslYSWE+cKmdvzyfCrEaxS
+	UYaFRvumFYR/ymc=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=subject:to:from:cc:date:message-id
 	:in-reply-to:references:mime-version:content-type
-	:content-transfer-encoding; s=smtpout; bh=IKTEVdzch3OY3e8hD/uz6K
-	H8T30=; b=cmovJslMcuCpA/MxUXZn39TA65Uc4f2jBuy6HmbcYkF5y0pBPNP87l
-	0dLvYDLM2JqHIlDN2JmLSdinnESlOIVycMOKfpaxgzbmxjw/FABxSI6oIU8KpHy6
-	6EdE5gU1oAOt6CccPTGqGEibRTkpdlxYaO+hj48rTjMgOEu/SBZnU=
+	:content-transfer-encoding; s=smtpout; bh=S3eTTg8oRyqTDt/QPNQpBV
+	ngzY4=; b=BDVSMc/3KgU3gzLKZaBryhxVAWRn4ovRDeseinIiHLC016PoJk4lE4
+	yrDyrjFHdBO/XIlRjzUr4Ss13QESXzAE8mc69PvZbOaRB62XiAi5zUCrvTtsDw7I
+	jPuCne0nnSNYAAjikP6gdUDZHZkgd+0IxWLRheuLixBZNToEAaZm4=
 In-Reply-To: <20130819010909.6472.32512.stgit@perseus.fritz.box>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
@@ -27,69 +28,369 @@ Content-Type: text/plain; charset="us-ascii"
 To: autofs mailing list <autofs@vger.kernel.org>
 Cc: Gordon Lack <gordon.m.lack@gsk.com>, "Lan Yixun (dlan)" <dennis.yxun@gmail.com>, Leonardo Chiquitto <leonardo.lists@gmail.com>, Dustin Polke <DuPol@gmx.de>
 
-Try and cleanup a little after dumping maps.
-It's not really necessary but but can help by reducing the noise
-from valgrind when checking code.
+The dumpmaps option doesn't allow maps to be output in <key, value>
+pairs suitable for use as a file map.
+
+This could be useful to save current maps as a backup for emergency
+use.
+
+If the dumpmaps option is given and is followed by two parameters,
+"<map type> <map name>" then simple <key, value> pairs that would
+be read in by a map read are printed to stdout if the given map type
+and map name are found in the map configuration.
+
+If the map is an LDAP map and there is more than one map of same name
+in different base dns only the first map encountered by autofs will
+be listed.
+
+If the map type is an old style multi-map and any one of the map
+names in the multi-map entry matches the given map name the entries
+that would be used by autofs for the whole multi-map will be listed.
 ---
- CHANGELOG          |    1 +
- daemon/automount.c |   13 +++++++++++++
- lib/master.c       |    2 ++
- 3 files changed, 16 insertions(+)
+ CHANGELOG          |    1 
+ daemon/automount.c |   51 +++++++++++---
+ include/master.h   |    1 
+ lib/master.c       |  187 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ man/automount.8    |   18 ++++-
+ 5 files changed, 243 insertions(+), 15 deletions(-)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index 5e58aca..1583c76 100644
+index 1583c76..07f9d6d 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -69,6 +69,7 @@
- - unbundle NOTSTRIP from DEBUG so they dont depend on each other.
+@@ -70,6 +70,7 @@
  - fix compilation of lookup_ldap.c without sasl.
  - fix dumpmaps multi output.
-+- try and cleanup after dumpmaps.
+ - try and cleanup after dumpmaps.
++- teach dumpmaps to output simple key value pairs.
  
  25/07/2012 autofs-5.0.7
  =======================
 diff --git a/daemon/automount.c b/daemon/automount.c
-index 1d0b64e..6849272 100644
+index 6849272..2ce49bf 100644
 --- a/daemon/automount.c
 +++ b/daemon/automount.c
-@@ -2136,6 +2136,8 @@ int main(int argc, char *argv[])
- 	}
+@@ -1725,7 +1725,8 @@ static void usage(void)
+ 		"	-f --foreground do not fork into background\n"
+ 		"	-r --random-multimount-selection\n"
+ 		"			use ramdom replicated server selection\n"
+-		"	-m --dumpmaps	dump automounter maps and exit\n"
++		"	-m --dumpmaps [<map type> <map name]"
++		"			dump automounter maps and exit\n"
+ 		"	-n --negative-timeout n\n"
+ 		"			set the timeout for failed key lookups.\n"
+ 		"	-O --global-options\n"
+@@ -2125,22 +2126,33 @@ int main(int argc, char *argv[])
+ 			program);
+ #endif
  
+-	if (argc == 0)
+-		master_list = master_new(NULL, timeout, ghost);
+-	else
+-		master_list = master_new(argv[0], timeout, ghost);
+-
+-	if (!master_list) {
+-		printf("%s: can't create master map %s", program, argv[0]);
+-		exit(1);
+-	}
+-
  	if (dumpmaps) {
-+		struct master_mapent *entry;
-+		struct list_head *head, *p;
+ 		struct master_mapent *entry;
+ 		struct list_head *head, *p;
  		struct mapent_cache *nc;
++		const char *type = NULL;
++		const char *name = NULL;
++		const char *master = NULL;
++
++		if (argc > 0) {
++			if (argc >= 2) {
++				type = argv[0];
++				name = argv[1];
++			}
++			if (argc == 3)
++				master = argv[2];
++		}
++
++		if (master)
++			master_list = master_new(NULL, timeout, ghost);
++		else
++			master_list = master_new(master, timeout, ghost);
++		if (!master_list) {
++			printf("%s: can't create master map", program);
++			exit(1);
++		}
  
- 		open_log();
-@@ -2152,6 +2154,17 @@ int main(int argc, char *argv[])
+-		open_log();
++		log_to_stderr();
+ 
+ 		master_init_scan();
+ 
+@@ -2153,7 +2165,10 @@ int main(int argc, char *argv[])
+ 		master_list->nc = nc;
  
  		lookup_nss_read_master(master_list, 0);
- 		master_show_mounts(master_list);
-+
-+		head = &master_list->mounts;
-+		p = head->next;
-+		while (p != head) {
-+			entry = list_entry(p, struct master_mapent, list);
-+			p = p->next;
-+			master_free_mapent_sources(entry, 1);
-+			master_free_mapent(entry);
-+		}
-+		master_kill(master_list);
-+
+-		master_show_mounts(master_list);
++		if (type)
++			dump_map(master_list, type, name);
++		else
++			master_show_mounts(master_list);
+ 
+ 		head = &master_list->mounts;
+ 		p = head->next;
+@@ -2168,6 +2183,16 @@ int main(int argc, char *argv[])
  		exit(0);
  	}
  
++	if (argc == 0)
++		master_list = master_new(NULL, timeout, ghost);
++	else
++		master_list = master_new(argv[0], timeout, ghost);
++
++	if (!master_list) {
++		printf("%s: can't create master map %s", program, argv[0]);
++		exit(1);
++	}
++
+ 	become_daemon(foreground, daemon_check);
+ 
+ 	if (pthread_attr_init(&th_attr)) {
+diff --git a/include/master.h b/include/master.h
+index 824707c..e77d5ba 100644
+--- a/include/master.h
++++ b/include/master.h
+@@ -112,6 +112,7 @@ int master_submount_list_empty(struct autofs_point *ap);
+ int master_notify_submount(struct autofs_point *, const char *path, enum states);
+ void master_notify_state_change(struct master *, int);
+ int master_mount_mounts(struct master *, time_t, int);
++int dump_map(struct master *, const char *, const char *);
+ int master_show_mounts(struct master *);
+ extern inline unsigned int master_get_logopt(void);
+ int master_list_empty(struct master *);
 diff --git a/lib/master.c b/lib/master.c
-index df6c141..734485e 100644
+index 734485e..964b547 100644
 --- a/lib/master.c
 +++ b/lib/master.c
-@@ -1426,6 +1426,8 @@ int master_show_mounts(struct master *master)
- 			source = source->next;
- 		}
+@@ -1329,6 +1329,193 @@ static void print_map_info(struct map_source *source)
+ 	return;
+ }
  
-+		lookup_close_lookup(ap);
++static int match_type(const char *source, const char *type)
++{
++	if (!strcmp(source, type))
++		return 1;
++	/* Sources file and files are synonymous */
++	if (!strncmp(source, type, 4) && (strlen(source) <= 5))
++		return 1;
++	return 0;
++}
 +
- 		printf("\n");
- 	}
- 
++static char *get_map_name(char *string)
++{
++	char *name, *tmp;
++	char *start, *end, *base;
++
++	tmp = strdup(string);
++	if (!tmp) {
++		printf("error: allocation failure: %s\n", strerror(errno));
++		return NULL;
++	}
++
++	base = basename(tmp);
++	end = strchr(base, ',');
++	if (end)
++		*end = '\0';
++	start = strchr(tmp, '=');
++	if (start)
++		start++;
++	else {
++		char *colon = strrchr(base, ':');
++		if (colon)
++			start = ++colon;
++		else
++			start = base;
++	}
++
++	name = strdup(start);
++	if (!name)
++		printf("error: allocation failure: %s\n", strerror(errno));
++	free(tmp);
++
++	return name;
++}
++
++static int match_name(struct map_source *source, const char *name)
++{
++	int argc = source->argc;
++	int ret = 0;
++	int i;
++
++	/*
++	 * This can't work for old style "multi" type sources since
++	 * there's no way to know from which map the cache entry came
++	 * from and duplicate entries are ignored at map read time.
++	 * All we can really do is list all the entries for the given
++	 * multi map if one of its map names matches.
++	 */
++	for (i = 0; i < argc; i++) {
++		if (i == 0 || !strcmp(source->argv[i], "--")) {
++			if (i != 0) {
++				i++;
++				if (i >= argc)
++					break;
++			}
++
++			if (source->argv[i] && *source->argv[i] != '-') {
++				char *map = get_map_name(source->argv[i]);
++				if (!map)
++					break;
++				if (!strcmp(map, name)) {
++					ret = 1;
++					free(map);
++					break;
++				}
++				free(map);
++			}
++		}
++	}
++
++	return ret;
++}
++
++int dump_map(struct master *master, const char *type, const char *name)
++{
++	struct list_head *p, *head;
++
++	if (list_empty(&master->mounts)) {
++		printf("no master map entries found\n");
++		return 1;
++	}
++
++	head = &master->mounts;
++	p = head->next;
++	while (p != head) {
++		struct map_source *source;
++		struct master_mapent *this;
++		struct autofs_point *ap;
++		time_t now = time(NULL);
++
++		this = list_entry(p, struct master_mapent, list);
++		p = p->next;
++
++		ap = this->ap;
++
++		/*
++		 * Ensure we actually read indirect map entries so we can
++		 * list them. The map reads won't read any indirect map
++		 * entries (other than those in a file map) unless the
++		 * browse option is set.
++		 */
++		if (ap->type == LKP_INDIRECT)
++			ap->flags |= MOUNT_FLAG_GHOST;
++
++		/* Read the map content into the cache */
++		if (lookup_nss_read_map(ap, NULL, now))
++			lookup_prune_cache(ap, now);
++		else {
++			printf("failed to read map\n");
++			lookup_close_lookup(ap);
++			continue;
++		}
++
++		if (!this->maps) {
++			printf("no map sources found for %s\n", ap->path);
++			lookup_close_lookup(ap);
++			continue;
++		}
++
++		source = this->maps;
++		while (source) {
++			struct map_source *instance;
++			struct mapent *me;
++
++			instance = NULL;
++			if (source->type) {
++				if (!match_type(source->type, type)) {
++					source = source->next;
++					continue;
++				}
++				if (!match_name(source, name)) {
++					source = source->next;
++					continue;
++				}
++				instance = source;
++			} else {
++				struct map_source *map;
++
++				map = source->instance;
++				while (map) {
++					if (!match_type(map->type, type)) {
++						map = map->next;
++						continue;
++					}
++					if (!match_name(map, name)) {
++						map = map->next;
++						continue;
++					}
++					instance = map;
++					break;
++				}
++			}
++
++			if (!instance) {
++				source = source->next;
++				lookup_close_lookup(ap);
++				continue;
++			}
++
++			me = cache_lookup_first(source->mc);
++			if (!me)
++				printf("no keys found in map\n");
++			else {
++				do {
++					if (me->source == instance)
++						printf("%s\t%s\n", me->key, me->mapent);
++				} while ((me = cache_lookup_next(source->mc, me)));
++			}
++
++			lookup_close_lookup(ap);
++			return 1;
++		}
++		lookup_close_lookup(ap);
++	}
++
++	return 0;
++}
++
+ int master_show_mounts(struct master *master)
+ {
+ 	struct list_head *p, *head;
+diff --git a/man/automount.8 b/man/automount.8
+index 844b876..48f5c5a 100644
+--- a/man/automount.8
++++ b/man/automount.8
+@@ -57,8 +57,22 @@ Run the daemon in the foreground and log to stderr instead of syslog."
+ Enables the use of ramdom selection when choosing a host from a
+ list of replicated servers.
+ .TP
+-.I "\-m, \-\-dumpmaps"
+-Dump configured automounter maps, then exit.
++.I "\-m, \-\-dumpmaps [<map type> <map name]"
++With no parameters, list information about the configured automounter
++maps, then exit.
++
++If the dumpmaps option is given and is followed by two parameters,
++"<map type> <map name>" then simple "<key, value>" pairs that would
++be read in by a map read are printed to stdout if the given map type
++and map name are found in the map configuration.
++
++If the map is an LDAP map and there is more than one map of same name
++in different base dns only the first map encountered by autofs will
++be listed.
++
++If the map type is an old style multi-map and any one of the map
++names in the multi-map entry matches the given map name the entries
++that would be used by autofs for the whole multi-map will be listed.
+ .TP
+ .I "\-O, \-\-global-options"
+ Allows the specification of global mount options used for all master
 
