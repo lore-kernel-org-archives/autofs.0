@@ -1,8 +1,8 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 05/25] autofs-5.0.7 - fix crash due to thread unsafe use of
- libldap
-Date: Mon, 19 Aug 2013 09:12:27 +0800
-Message-ID: <20130819011226.6472.70626.stgit@perseus.fritz.box>
+Subject: [PATCH 06/25] autofs-5.0.7 - fix compile error with heimdal support
+ enabled
+Date: Mon, 19 Aug 2013 09:12:33 +0800
+Message-ID: <20130819011233.6472.31453.stgit@perseus.fritz.box>
 References: <20130819010909.6472.32512.stgit@perseus.fritz.box>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -10,17 +10,17 @@ Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
 	subject:to:from:cc:date:message-id:in-reply-to:references
 	:mime-version:content-type:content-transfer-encoding; s=mesmtp;
-	 bh=ZC5keYz10mpNOOQPetu3hCP78m8=; b=IdUvfmMnlKpK6t9zdzl/Frkl63V5
-	lmqX7maIjls0ndBZp5okUolt2rn2AVoZ4/h8b68FGt4I+wZYZtLuMhixdBOcrxjY
-	I7shmMNLmoJ71jOIfXLx2nA9qQvNNszP2P2/nGu7lHwkOvFrb4OjsMZkScfGtqED
-	hcUlF5/KZOETTEk=
+	 bh=RK5TeaA1SAqx1Fv9K0bqnA5Oe14=; b=FZ/X/z8EMsvNq+Ur3RxVETvkITb+
+	iOJvQpNxYVL34vb5knENMK+y9LokttCmTdm87KWLAnv+Rx58SFyeGsSS/G0h2f7g
+	dpiHFZ1ZBpqncjbQoZpkahiizrMBzyb1PsSXgPcLiGKra4kJLrOjd+OfxOzjmtm1
+	hXSYhZlTlTnLbKQ=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=subject:to:from:cc:date:message-id
 	:in-reply-to:references:mime-version:content-type
-	:content-transfer-encoding; s=smtpout; bh=ZC5keYz10mpNOOQPetu3hC
-	P78m8=; b=Fz9Ixj8Uocb0UYWSuGuTGZdKZyPVPnnOSsl9VofOdb6tgCiz1jv2va
-	n2/KQFU0KQBWXeysP9pHtQCF++PqaXr8grb5omRDDMnixRX0Cma4ORMZgwZ7Xq63
-	pKzlr7Uw4v+hdMp9f6ArF9KOkgIqld6srEcJt0cDI2TSYupSTi4Rk=
+	:content-transfer-encoding; s=smtpout; bh=RK5TeaA1SAqx1Fv9K0bqnA
+	5Oe14=; b=kjS3xD59lo7Ac742VnrG71TggT2reAv5pk/e+0RHAXXu1+l+jwsal/
+	Oo4s7RLbJVUq7wjCCZIJew1pO1WOAT3p0tu4AinrML2BJby9YMdUIlt08O1EKnCh
+	bPY2GuoDx4azKzyq5TPc5LIkPczsscVAE8fXGkoTRUJhQMRVkeIic=
 In-Reply-To: <20130819010909.6472.32512.stgit@perseus.fritz.box>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
@@ -28,123 +28,240 @@ Content-Type: text/plain; charset="us-ascii"
 To: autofs mailing list <autofs@vger.kernel.org>
 Cc: Gordon Lack <gordon.m.lack@gsk.com>, "Lan Yixun (dlan)" <dennis.yxun@gmail.com>, Leonardo Chiquitto <leonardo.lists@gmail.com>, Dustin Polke <DuPol@gmx.de>
 
-From: Leonardo Chiquitto <leonardo.lists@gmail.com>
+From: Lan Yixun (dlan) <dennis.yxun@gmail.com>
 
-Add locking around LDAP initialization calls
+this patch instroduce a compatible layer between Heimdal and MTT Krb5.
+And I slightly rework the original patch to make it more readable.
 
-To prevent corruption inside SSL and LDAP libraries, it's necessary to
-serialize all calls to functions that initialize LDAP contexts.
+Upstream Discussion:
+  http://thread.gmane.org/gmane.linux.kernel.autofs/4203
 
-How to reproduce the problem:
+Gentoo Bugs:
+  https://bugs.gentoo.org/show_bug.cgi?id=210762
 
-- Setup an LDAP server with SSL/TLS support enabled
-- Configure AutoFS to fetch the maps from LDAP
-- Make sure the OpenLDAP client library is configured to use SSL
-  connections and "usetls" is set to yes in autofs_ldap_auth.conf.
+Edited by: Ian Kent <raven@themaw.net>
+- fix code indentation.
+- update configure to include change.
 
-In one directory handled by AutoFS (an indirect mount point), trigger in
-parallel some dozens of invalid mounts (ie, try to access keys that do not
-exist in the AutoFS map). Repeat until it crashes.
-
-Here it always crashes in less than 20 minutes, normally inside OpenSSL.
-Core dump inspection shows that internal SSL structures are corrupted,
-with function pointers pointing to random addresses.
-
-Trying to find similar reports on the web, I found this email from an
-OpenLDAP developer (partial quote, emphasis mine) [1]:
-
-"As far as I know, libldap is thread safe in the sense that multiple
-threads can use separate LDAP* handles without running into concurrency
-issues; *except for library initialization*, all accesses to common data
-(i.e. global variables) is read-only."
-
-[1]http://www.openldap.org/cgi-bin/wilma_hiliter/openldap-software/200606/msg00252.html
-
-AutoFS implements no locking around LDAP initialization libraries and
-it's quite common to see multiple threads executing ldap_initialize()
-or ldap_start_tls_s() at the same time.
+Signed-off-by: Lan Yixun (dlan) <dennis.yxun@gmail.com>
 ---
- CHANGELOG             |    1 +
- modules/lookup_ldap.c |   35 ++++++++++++++++++++++++++++++++++-
- 2 files changed, 35 insertions(+), 1 deletion(-)
+ CHANGELOG            |    1 +
+ aclocal.m4           |    7 ++++
+ configure            |   84 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ include/config.h.in  |    3 ++
+ modules/cyrus-sasl.c |   39 ++++++++++++++++++++---
+ 5 files changed, 129 insertions(+), 5 deletions(-)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index 3228d6b..fe232f4 100644
+index fe232f4..c77be18 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -57,6 +57,7 @@
- - fix a couple of compiler warnings.
+@@ -58,6 +58,7 @@
  - add after sssd dependency to unit file.
  - dont start readmap unless ready.
-+- fix crash due to thread unsafe use of libldap.
+ - fix crash due to thread unsafe use of libldap.
++- fix compile error with heimdal support enabled.
  
  25/07/2012 autofs-5.0.7
  =======================
-diff --git a/modules/lookup_ldap.c b/modules/lookup_ldap.c
-index a2bfafd..655e9fa 100644
---- a/modules/lookup_ldap.c
-+++ b/modules/lookup_ldap.c
-@@ -52,6 +52,12 @@ static struct ldap_schema common_schema[] = {
- };
- static unsigned int common_schema_count = sizeof(common_schema)/sizeof(struct ldap_schema);
- 
-+/*
-+ * Initialization of LDAP and OpenSSL must be always serialized to
-+ * avoid corruption of context structures inside these libraries.
-+ */
-+pthread_mutex_t ldapinit_mutex = PTHREAD_MUTEX_INITIALIZER;
+diff --git a/aclocal.m4 b/aclocal.m4
+index c5de159..7a8b03c 100644
+--- a/aclocal.m4
++++ b/aclocal.m4
+@@ -299,6 +299,13 @@ else
+   HAVE_KRB5=1
+   KRB5_LIBS=`$KRB5_CONFIG --libs`
+   KRB5_FLAGS=`$KRB5_CONFIG --cflags`
 +
- struct ldap_search_params {
- 	struct autofs_point *ap;
- 	LDAP *ldap;
-@@ -136,6 +142,22 @@ int ldap_parse_page_control(LDAP *ldap, LDAPControl **controls,
- }
- #endif /* HAVE_LDAP_PARSE_PAGE_CONTROL */
++  SAVE_CFLAGS=$CFLAGS
++  SAVE_LIBS=$LIBS
++  CFLAGS="$CFLAGS $KRB5_FLAGS"
++  LIBS="$LIBS $KRB5_LIBS"
++
++  AC_CHECK_FUNCS([krb5_principal_get_realm])
+ fi])
  
-+static void ldapinit_mutex_lock(void)
+ dnl --------------------------------------------------------------------------
+diff --git a/configure b/configure
+index 08b7ccc..1086eba 100755
+--- a/configure
++++ b/configure
+@@ -1559,6 +1559,73 @@ fi
+ 
+ } # ac_fn_c_try_link
+ 
++# ac_fn_c_check_func LINENO FUNC VAR
++# ----------------------------------
++# Tests whether FUNC exists, setting the cache variable VAR accordingly
++ac_fn_c_check_func ()
 +{
-+	int status = pthread_mutex_lock(&ldapinit_mutex);
-+	if (status)
-+		fatal(status);
++  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
++  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $2" >&5
++$as_echo_n "checking for $2... " >&6; }
++if eval \${$3+:} false; then :
++  $as_echo_n "(cached) " >&6
++else
++  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
++/* end confdefs.h.  */
++/* Define $2 to an innocuous variant, in case <limits.h> declares $2.
++   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
++#define $2 innocuous_$2
++
++/* System header to define __stub macros and hopefully few prototypes,
++    which can conflict with char $2 (); below.
++    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
++    <limits.h> exists even on freestanding compilers.  */
++
++#ifdef __STDC__
++# include <limits.h>
++#else
++# include <assert.h>
++#endif
++
++#undef $2
++
++/* Override any GCC internal prototype to avoid an error.
++   Use char because int might match the return type of a GCC
++   builtin and then its argument prototype would still apply.  */
++#ifdef __cplusplus
++extern "C"
++#endif
++char $2 ();
++/* The GNU C library defines this for functions which it implements
++    to always fail with ENOSYS.  Some functions are actually named
++    something starting with __ and the normal name is an alias.  */
++#if defined __stub_$2 || defined __stub___$2
++choke me
++#endif
++
++int
++main ()
++{
++return $2 ();
++  ;
++  return 0;
++}
++_ACEOF
++if ac_fn_c_try_link "$LINENO"; then :
++  eval "$3=yes"
++else
++  eval "$3=no"
++fi
++rm -f core conftest.err conftest.$ac_objext \
++    conftest$ac_exeext conftest.$ac_ext
++fi
++eval ac_res=\$$3
++	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
++$as_echo "$ac_res" >&6; }
++  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
++
++} # ac_fn_c_check_func
++
+ # ac_fn_c_try_cpp LINENO
+ # ----------------------
+ # Try to preprocess conftest.$ac_ext, and return whether this succeeded.
+@@ -4039,6 +4106,23 @@ $as_echo "yes" >&6; }
+   HAVE_KRB5=1
+   KRB5_LIBS=`$KRB5_CONFIG --libs`
+   KRB5_FLAGS=`$KRB5_CONFIG --cflags`
++
++  SAVE_CFLAGS=$CFLAGS
++  SAVE_LIBS=$LIBS
++  CFLAGS="$CFLAGS $KRB5_FLAGS"
++  LIBS="$LIBS $KRB5_LIBS"
++
++  for ac_func in krb5_principal_get_realm
++do :
++  ac_fn_c_check_func "$LINENO" "krb5_principal_get_realm" "ac_cv_func_krb5_principal_get_realm"
++if test "x$ac_cv_func_krb5_principal_get_realm" = xyes; then :
++  cat >>confdefs.h <<_ACEOF
++#define HAVE_KRB5_PRINCIPAL_GET_REALM 1
++_ACEOF
++
++fi
++done
++
+ fi
+ 
+ { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing versionsort" >&5
+diff --git a/include/config.h.in b/include/config.h.in
+index a2a05a8..8a52080 100644
+--- a/include/config.h.in
++++ b/include/config.h.in
+@@ -24,6 +24,9 @@
+ /* Define to 1 if you have the <inttypes.h> header file. */
+ #undef HAVE_INTTYPES_H
+ 
++/* Define to 1 if you have the `krb5_principal_get_realm' function. */
++#undef HAVE_KRB5_PRINCIPAL_GET_REALM
++
+ /* Define to 1 if you have the `ldap_create_page_control' function. */
+ #undef HAVE_LDAP_CREATE_PAGE_CONTROL
+ 
+diff --git a/modules/cyrus-sasl.c b/modules/cyrus-sasl.c
+index 68f9242..b9c16f3 100644
+--- a/modules/cyrus-sasl.c
++++ b/modules/cyrus-sasl.c
+@@ -64,6 +64,35 @@
+ #endif
+ #endif
+ 
++#ifdef HAVE_KRB5_PRINCIPAL_GET_REALM
++void _krb5_princ_realm(krb5_context context, krb5_const_principal princ,
++                          const char **realm, int *len)
++{
++	*realm = krb5_principal_get_realm(context, princ);
++	if (*realm)
++		*len = strlen(*realm);
++	else
++		*len = 0;
++	return;
++#else
++void _krb5_princ_realm(krb5_context context, krb5_const_principal princ,
++                          const char **realm, int *len)
++{
++	const krb5_data *data;
++
++	data = krb5_princ_realm(context, princ);
++	if (data) {
++		*realm = data->data;
++		*len = data->length;
++	} else {
++		*realm = NULL;
++		*len = 0;
++	}
 +	return;
 +}
++#endif
 +
-+static void ldapinit_mutex_unlock(void)
-+{
-+	int status = pthread_mutex_unlock(&ldapinit_mutex);
-+	if (status)
-+		fatal(status);
-+	return;
-+}
 +
- static void uris_mutex_lock(struct lookup_context *ctxt)
- {
- 	int status = pthread_mutex_lock(&ctxt->uris_mutex);
-@@ -196,7 +218,7 @@ int unbind_ldap_connection(unsigned logopt, LDAP *ldap, struct lookup_context *c
- 	return rv;
- }
+ /*
+  *  Once a krb5 credentials cache is setup, we need to set the KRB5CCNAME
+  *  environment variable so that the library knows where to find it.
+@@ -379,7 +408,8 @@ sasl_do_kinit(unsigned logopt, struct lookup_context *ctxt)
+ 	krb5_principal tgs_princ, krb5_client_princ;
+ 	krb5_creds my_creds;
+ 	char *tgs_name;
+-	int status;
++	const char *realm_name;
++	int status, realm_length;
  
--LDAP *init_ldap_connection(unsigned logopt, const char *uri, struct lookup_context *ctxt)
-+LDAP *__init_ldap_connection(unsigned logopt, const char *uri, struct lookup_context *ctxt)
- {
- 	LDAP *ldap = NULL;
- 	struct timeval timeout     = { ctxt->timeout, 0 };
-@@ -277,6 +299,17 @@ LDAP *init_ldap_connection(unsigned logopt, const char *uri, struct lookup_conte
- 	return ldap;
- }
+ 	if (ctxt->kinit_done)
+ 		return 0;
+@@ -450,12 +480,11 @@ sasl_do_kinit(unsigned logopt, struct lookup_context *ctxt)
+ 	}
  
-+LDAP *init_ldap_connection(unsigned logopt, const char *uri, struct lookup_context *ctxt)
-+{
-+	LDAP *ldap;
-+
-+	ldapinit_mutex_lock();
-+	ldap = __init_ldap_connection(logopt, uri, ctxt);
-+	ldapinit_mutex_unlock();
-+
-+	return ldap;
-+}
-+
- static int get_query_dn(unsigned logopt, LDAP *ldap, struct lookup_context *ctxt, const char *class, const char *key)
- {
- 	char buf[MAX_ERR_BUF];
+ 	/* setup a principal for the ticket granting service */
++	_krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ, &realm_name, &realm_length);
+ 	ret = krb5_build_principal_ext(ctxt->krb5ctxt, &tgs_princ,
+-		krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ)->length,
+-		krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ)->data,
++		realm_length, realm_name,
+ 		strlen(KRB5_TGS_NAME), KRB5_TGS_NAME,
+-		krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ)->length,
+-		krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ)->data,
++		realm_length, realm_name,
+ 		0);
+ 	if (ret) {
+ 		error(logopt,
 
