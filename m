@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 17/25] autofs-5.0.7 - fix dumpmaps multi output
-Date: Mon, 19 Aug 2013 09:13:48 +0800
-Message-ID: <20130819011348.6472.81004.stgit@perseus.fritz.box>
+Subject: [PATCH 18/25] autofs-5.0.7 - try and cleanup after dumpmaps
+Date: Mon, 19 Aug 2013 09:13:55 +0800
+Message-ID: <20130819011354.6472.33734.stgit@perseus.fritz.box>
 References: <20130819010909.6472.32512.stgit@perseus.fritz.box>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -9,17 +9,17 @@ Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
 	subject:to:from:cc:date:message-id:in-reply-to:references
 	:mime-version:content-type:content-transfer-encoding; s=mesmtp;
-	 bh=fIj9KB4nlukMUtRrPhFnsF8YZP8=; b=xNhn6BvJY+R/BsBzuhzaBwrEWEaz
-	CFGHK9hSy7WTS2F8C/BglPL0cRxeF8IFSVdpblpXNg4MLP6Sz9kMUWFzxDCH8OJ/
-	GTmV8Ymp5YhecjR/QYFUTZ1uzI5NHPLCeYrpyA+qiQuIAZ0I/B1tD+o20/BlThgC
-	mTqyHNfPxT1jYec=
+	 bh=IKTEVdzch3OY3e8hD/uz6KH8T30=; b=Ji7r3p5dtyVtTO0vVXAbm3mOrVHm
+	p7qY0uLdJLUg5jbrGf+9uNbRb5/87v+gVAWBmaFSsOA38eOdvirwZiSiJNO08d0j
+	Gkc2JCuTUOE+R5vwd2D3Fd2XN3KWi5/YxzCd6NGu9ewNpe14wS4eo4Ex1YyWAAwZ
+	b++bhyhBamrtHhk=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=subject:to:from:cc:date:message-id
 	:in-reply-to:references:mime-version:content-type
-	:content-transfer-encoding; s=smtpout; bh=fIj9KB4nlukMUtRrPhFnsF
-	8YZP8=; b=GAQ61G5cJ4V2M4/oTJkxH0LnAd/asNocgTOcdXS/eRHAHjIpDIyqoe
-	JNrjH1dkKlSBIVT+eYzGLPPZsgHW6h56mzeQPacNsK/IoM+Km+zkmHBimigPj6+y
-	slxFh3VXKjsejR1JVw+hqJA6nXCwumR1eOP152fiJQ625cnQAqClM=
+	:content-transfer-encoding; s=smtpout; bh=IKTEVdzch3OY3e8hD/uz6K
+	H8T30=; b=cmovJslMcuCpA/MxUXZn39TA65Uc4f2jBuy6HmbcYkF5y0pBPNP87l
+	0dLvYDLM2JqHIlDN2JmLSdinnESlOIVycMOKfpaxgzbmxjw/FABxSI6oIU8KpHy6
+	6EdE5gU1oAOt6CccPTGqGEibRTkpdlxYaO+hj48rTjMgOEu/SBZnU=
 In-Reply-To: <20130819010909.6472.32512.stgit@perseus.fritz.box>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
@@ -27,112 +27,69 @@ Content-Type: text/plain; charset="us-ascii"
 To: autofs mailing list <autofs@vger.kernel.org>
 Cc: Gordon Lack <gordon.m.lack@gsk.com>, "Lan Yixun (dlan)" <dennis.yxun@gmail.com>, Leonardo Chiquitto <leonardo.lists@gmail.com>, Dustin Polke <DuPol@gmx.de>
 
-If the maps contain the old style "multi" type the dumped map information
-isn't right.
+Try and cleanup a little after dumping maps.
+It's not really necessary but but can help by reducing the noise
+from valgrind when checking code.
 ---
- CHANGELOG    |    1 +
- lib/master.c |   61 +++++++++++++++++++++++++++++++++++++++++++++++-----------
- 2 files changed, 50 insertions(+), 12 deletions(-)
+ CHANGELOG          |    1 +
+ daemon/automount.c |   13 +++++++++++++
+ lib/master.c       |    2 ++
+ 3 files changed, 16 insertions(+)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index 5764cb0..5e58aca 100644
+index 5e58aca..1583c76 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -68,6 +68,7 @@
- - use LIBS for link libraries.
+@@ -69,6 +69,7 @@
  - unbundle NOTSTRIP from DEBUG so they dont depend on each other.
  - fix compilation of lookup_ldap.c without sasl.
-+- fix dumpmaps multi output.
+ - fix dumpmaps multi output.
++- try and cleanup after dumpmaps.
  
  25/07/2012 autofs-5.0.7
  =======================
+diff --git a/daemon/automount.c b/daemon/automount.c
+index 1d0b64e..6849272 100644
+--- a/daemon/automount.c
++++ b/daemon/automount.c
+@@ -2136,6 +2136,8 @@ int main(int argc, char *argv[])
+ 	}
+ 
+ 	if (dumpmaps) {
++		struct master_mapent *entry;
++		struct list_head *head, *p;
+ 		struct mapent_cache *nc;
+ 
+ 		open_log();
+@@ -2152,6 +2154,17 @@ int main(int argc, char *argv[])
+ 
+ 		lookup_nss_read_master(master_list, 0);
+ 		master_show_mounts(master_list);
++
++		head = &master_list->mounts;
++		p = head->next;
++		while (p != head) {
++			entry = list_entry(p, struct master_mapent, list);
++			p = p->next;
++			master_free_mapent_sources(entry, 1);
++			master_free_mapent(entry);
++		}
++		master_kill(master_list);
++
+ 		exit(0);
+ 	}
+ 
 diff --git a/lib/master.c b/lib/master.c
-index eca3523..df6c141 100644
+index df6c141..734485e 100644
 --- a/lib/master.c
 +++ b/lib/master.c
-@@ -1281,6 +1281,54 @@ static void list_source_instances(struct map_source *source, struct map_source *
- 	return;
- }
+@@ -1426,6 +1426,8 @@ int master_show_mounts(struct master *master)
+ 			source = source->next;
+ 		}
  
-+static void print_map_info(struct map_source *source)
-+{
-+	int argc = source->argc;
-+	int i, multi, map_num;
++		lookup_close_lookup(ap);
 +
-+	multi = (source->type && !strcmp(source->type, "multi"));
-+	map_num = 1;
-+	for (i = 0; i < argc; i++) {
-+		if (source->argv[i] && *source->argv[i] != '-') {
-+			if (!multi)
-+				printf("  map: %s\n", source->argv[i]);
-+			else
-+				printf("  map[%i]: %s\n", map_num, source->argv[i]);
-+			i++;
-+		}
-+
-+		if (i >= argc)
-+			return;
-+
-+		if (!strcmp(source->argv[i], "--"))
-+			continue;
-+
-+		if (source->argv[i]) {
-+			int need_newline = 0;
-+			int j;
-+
-+			if (!multi)
-+				printf("  arguments:");
-+			else
-+				printf("  arguments[%i]:", map_num);
-+
-+			for (j = i; j < source->argc; j++) {
-+				if (!strcmp(source->argv[j], "--"))
-+					break;
-+				printf(" %s", source->argv[j]);
-+				i++;
-+				need_newline = 1;
-+			}
-+			if (need_newline)
-+				printf("\n");
-+		}
-+		if (multi)
-+			map_num++;
-+	}
-+
-+	return;
-+}
-+
- int master_show_mounts(struct master *master)
- {
- 	struct list_head *p, *head;
-@@ -1311,7 +1359,6 @@ int master_show_mounts(struct master *master)
- 		struct autofs_point *ap;
- 		time_t now = time(NULL);
- 		unsigned int count = 0;
--		int i;
+ 		printf("\n");
+ 	}
  
- 		this = list_entry(p, struct master_mapent, list);
- 		p = p->next;
-@@ -1357,20 +1404,10 @@ int master_show_mounts(struct master *master)
- 			}
- 
- 			if (source->argc >= 1) {
--				i = 0;
--				if (source->argv[0] && *source->argv[0] != '-') {
--					printf("  map: %s\n", source->argv[0]);
--					i = 1;
--				}
-+				print_map_info(source);
- 				if (count && ap->type == LKP_INDIRECT)
- 					printf("  duplicate indirect map entry"
- 					       " will be ignored at run time\n");
--				if (source->argc > 1) {
--					printf("  arguments: ");
--					for (; i < source->argc; i++)
--						printf("%s ", source->argv[i]);
--					printf("\n");
--				}
- 			}
- 
- 			printf("\n");
 
