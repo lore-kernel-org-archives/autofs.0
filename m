@@ -1,8 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 16/25] autofs-5.0.7 - fix compilation of lookup_ldap.c
- without sasl
-Date: Mon, 19 Aug 2013 09:13:42 +0800
-Message-ID: <20130819011341.6472.69065.stgit@perseus.fritz.box>
+Subject: [PATCH 17/25] autofs-5.0.7 - fix dumpmaps multi output
+Date: Mon, 19 Aug 2013 09:13:48 +0800
+Message-ID: <20130819011348.6472.81004.stgit@perseus.fritz.box>
 References: <20130819010909.6472.32512.stgit@perseus.fritz.box>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -10,17 +9,17 @@ Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
 	subject:to:from:cc:date:message-id:in-reply-to:references
 	:mime-version:content-type:content-transfer-encoding; s=mesmtp;
-	 bh=gbxSZlgKmMIzCSOnwWMJAVvIoQo=; b=fTbFzox4GtKVJ8tvD3BdgksKjVys
-	LPWmswhv6GrjKH5sCjU6vLG8hGNfMiqp9Uw5c7aJqap9TbLNnZnYPua9a6o1D9kA
-	N0F1QtzH/3msAgnVFykzltWzNLW6oKQPrXY2SXkce7Kgdpohc7MjBZCy9OGxVyq7
-	mXJi+vj2H/pajDk=
+	 bh=fIj9KB4nlukMUtRrPhFnsF8YZP8=; b=xNhn6BvJY+R/BsBzuhzaBwrEWEaz
+	CFGHK9hSy7WTS2F8C/BglPL0cRxeF8IFSVdpblpXNg4MLP6Sz9kMUWFzxDCH8OJ/
+	GTmV8Ymp5YhecjR/QYFUTZ1uzI5NHPLCeYrpyA+qiQuIAZ0I/B1tD+o20/BlThgC
+	mTqyHNfPxT1jYec=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=subject:to:from:cc:date:message-id
 	:in-reply-to:references:mime-version:content-type
-	:content-transfer-encoding; s=smtpout; bh=gbxSZlgKmMIzCSOnwWMJAV
-	vIoQo=; b=oAFl50UvM1dyhan1Usk1VpOdzvph7ZeuWiwXUw5LuxmF1wkGTMNkxl
-	aIzJr/lMfhCJx5go0orgbbXzzXqbwbbrHtQjGmbrST+T2xmNpz8lWXVX/lWSPr0f
-	CCNKbulo8MVgqkc9h/wBX5Js0Kkk8lPey6NjV28m9iKHSDULLso5k=
+	:content-transfer-encoding; s=smtpout; bh=fIj9KB4nlukMUtRrPhFnsF
+	8YZP8=; b=GAQ61G5cJ4V2M4/oTJkxH0LnAd/asNocgTOcdXS/eRHAHjIpDIyqoe
+	JNrjH1dkKlSBIVT+eYzGLPPZsgHW6h56mzeQPacNsK/IoM+Km+zkmHBimigPj6+y
+	slxFh3VXKjsejR1JVw+hqJA6nXCwumR1eOP152fiJQ625cnQAqClM=
 In-Reply-To: <20130819010909.6472.32512.stgit@perseus.fritz.box>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
@@ -28,228 +27,112 @@ Content-Type: text/plain; charset="us-ascii"
 To: autofs mailing list <autofs@vger.kernel.org>
 Cc: Gordon Lack <gordon.m.lack@gsk.com>, "Lan Yixun (dlan)" <dennis.yxun@gmail.com>, Leonardo Chiquitto <leonardo.lists@gmail.com>, Dustin Polke <DuPol@gmx.de>
 
-From: Dustin Polke <DuPol@gmx.de>
-
-See https://bugs.gentoo.org/show_bug.cgi?id=361899 for more info.
-
-Edited by: Ian Kent <raven@themaw.net>
-- fix parse_ldap_config() is needed by ldap but previously excluded.
-- exclude other references to ctxt->extern_cert and ctxt->extern_key.
-- prevent memory leak if present in config but not used.
-- remove now unused set_env().
+If the maps contain the old style "multi" type the dumped map information
+isn't right.
 ---
- CHANGELOG             |    1 +
- include/lookup_ldap.h |    4 ++--
- lib/Makefile          |    4 ++++
- modules/Makefile      |    6 ++++--
- modules/lookup_ldap.c |   18 +++++++++++++-----
- 5 files changed, 24 insertions(+), 9 deletions(-)
+ CHANGELOG    |    1 +
+ lib/master.c |   61 +++++++++++++++++++++++++++++++++++++++++++++++-----------
+ 2 files changed, 50 insertions(+), 12 deletions(-)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index dd6fc1a..5764cb0 100644
+index 5764cb0..5e58aca 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -67,6 +67,7 @@
- - remove hard-coded STRIP variable.
+@@ -68,6 +68,7 @@
  - use LIBS for link libraries.
  - unbundle NOTSTRIP from DEBUG so they dont depend on each other.
-+- fix compilation of lookup_ldap.c without sasl.
+ - fix compilation of lookup_ldap.c without sasl.
++- fix dumpmaps multi output.
  
  25/07/2012 autofs-5.0.7
  =======================
-diff --git a/include/lookup_ldap.h b/include/lookup_ldap.h
-index 9a4ce73..f34c029 100644
---- a/include/lookup_ldap.h
-+++ b/include/lookup_ldap.h
-@@ -11,6 +11,8 @@
- #include <krb5.h>
- #endif
- 
-+#include <libxml/tree.h>
-+
- #include "list.h"
- #include "dclist.h"
- 
-@@ -92,7 +94,6 @@ struct lookup_context {
- };
- 
- 
--#ifdef WITH_SASL
- #define LDAP_AUTH_CONF_FILE "test"
- 
- #define LDAP_TLS_DONT_USE	0
-@@ -104,7 +105,6 @@ struct lookup_context {
- #define LDAP_AUTH_REQUIRED	0x0002
- #define LDAP_AUTH_AUTODETECT	0x0004
- #define LDAP_NEED_AUTH		(LDAP_AUTH_REQUIRED|LDAP_AUTH_AUTODETECT)
--#endif
- 
- #define LDAP_AUTH_USESIMPLE	0x0008
- 
-diff --git a/lib/Makefile b/lib/Makefile
-index 314779b..518b483 100644
---- a/lib/Makefile
-+++ b/lib/Makefile
-@@ -24,6 +24,10 @@ CFLAGS += -I../include -fPIC -D_GNU_SOURCE
- CFLAGS += -DAUTOFS_MAP_DIR=\"$(autofsmapdir)\"
- CFLAGS += -DAUTOFS_CONF_DIR=\"$(autofsconfdir)\"
- 
-+ifeq ($(LDAP), 1)
-+  CFLAGS += $(XML_FLAGS) $(XML_LIBS)
-+endif
-+
- .PHONY: all install clean
- 
- all: autofs.a
-diff --git a/modules/Makefile b/modules/Makefile
-index de01ebd..8610783 100644
---- a/modules/Makefile
-+++ b/modules/Makefile
-@@ -45,10 +45,12 @@ endif
- ifeq ($(LDAP), 1)
-   SRCS += lookup_ldap.c
-   MODS += lookup_ldap.so
-+  LDAP_FLAGS += $(XML_FLAGS) -DLDAP_THREAD_SAFE
-+  LIBLDAP += $(XML_LIBS)
-   ifeq ($(SASL), 1)
-     SASL_OBJ = cyrus-sasl.o cyrus-sasl-extern.o
--    LDAP_FLAGS += $(SASL_FLAGS) $(XML_FLAGS) $(KRB5_FLAGS) -DLDAP_THREAD_SAFE
--    LIBLDAP += $(LIBSASL) $(XML_LIBS) $(KRB5_LIBS)
-+    LDAP_FLAGS += $(SASL_FLAGS) $(KRB5_FLAGS)
-+    LIBLDAP += $(LIBSASL) $(KRB5_LIBS)
-   endif
- endif
- 
-diff --git a/modules/lookup_ldap.c b/modules/lookup_ldap.c
-index 655e9fa..d05098f 100644
---- a/modules/lookup_ldap.c
-+++ b/modules/lookup_ldap.c
-@@ -72,6 +72,7 @@ struct ldap_search_params {
- 
- static int decode_percent_hack(const char *, char **);
- 
-+#ifdef WITH_SASL
- static int set_env(unsigned logopt, const char *name, const char *val)
- {
- 	int ret = setenv(name, val, 1);
-@@ -81,6 +82,7 @@ static int set_env(unsigned logopt, const char *name, const char *val)
- 	}
- 	return 1;
- }
-+#endif
- 
- #ifndef HAVE_LDAP_CREATE_PAGE_CONTROL
- int ldap_create_page_control(LDAP *ldap, ber_int_t pagesize,
-@@ -205,9 +207,9 @@ int unbind_ldap_connection(unsigned logopt, LDAP *ldap, struct lookup_context *c
- {
- 	int rv;
- 
--#ifdef WITH_SASL
- 	if (ctxt->use_tls == LDAP_TLS_RELEASE)
- 		ctxt->use_tls = LDAP_TLS_INIT;
-+#ifdef WITH_SASL
- 	autofs_sasl_unbind(ctxt);
- #endif
- 
-@@ -265,7 +267,6 @@ LDAP *__init_ldap_connection(unsigned logopt, const char *uri, struct lookup_con
- 		info(logopt, MODPREFIX "failed to set connection timeout to %d",
- 		     net_timeout.tv_sec);
- 
--#ifdef WITH_SASL
- 	if (ctxt->use_tls) {
- 		if (ctxt->version == 2) {
- 			if (ctxt->tls_required) {
-@@ -294,7 +295,6 @@ LDAP *__init_ldap_connection(unsigned logopt, const char *uri, struct lookup_con
- 		}
- 		ctxt->use_tls = LDAP_TLS_RELEASE;
- 	}
--#endif
- 
- 	return ldap;
- }
-@@ -618,10 +618,12 @@ static LDAP *do_connect(unsigned logopt, const char *uri, struct lookup_context
- {
- 	LDAP *ldap;
- 
-+#ifdef WITH_SASL
- 	if (ctxt->extern_cert && ctxt->extern_key) {
- 		set_env(logopt, ENV_LDAPTLS_CERT, ctxt->extern_cert);
- 		set_env(logopt, ENV_LDAPTLS_KEY, ctxt->extern_key);
- 	}
-+#endif
- 
- 	ldap = init_ldap_connection(logopt, uri, ctxt);
- 	if (ldap) {
-@@ -824,7 +826,6 @@ find_server:
- 	return ldap;
- }
- 
--#ifdef WITH_SASL
- int get_property(unsigned logopt, xmlNodePtr node, const char *prop, char **value)
- {
- 	xmlChar *ret;
-@@ -845,6 +846,7 @@ int get_property(unsigned logopt, xmlNodePtr node, const char *prop, char **valu
- 	return 0;
- }
- 
-+#ifdef WITH_SASL
- /*
-  *  For plain text, login and digest-md5 authentication types, we need
-  *  user and password credentials.
-@@ -857,6 +859,7 @@ int authtype_requires_creds(const char *authtype)
- 		return 1;
- 	return 0;
- }
-+#endif
- 
- /*
-  *  Returns:
-@@ -1089,6 +1092,7 @@ auth_fail:
- 		}
- 	} else if (auth_required == LDAP_AUTH_REQUIRED &&
- 		  (authtype && !strncmp(authtype, "EXTERNAL", 8))) {
-+#ifdef WITH_SASL
- 		ret = get_property(logopt, root, "external_cert",  &extern_cert);
- 		ret |= get_property(logopt, root, "external_key",  &extern_key);
- 		/*
-@@ -1107,6 +1111,7 @@ auth_fail:
- 			if (extern_key)
- 				free(extern_key);
- 		}
-+#endif
- 	}
- 
- 	/*
-@@ -1127,8 +1132,10 @@ auth_fail:
- 	ctxt->secret = secret;
- 	ctxt->client_princ = client_princ;
- 	ctxt->client_cc = client_cc;
-+#ifdef WITH_SASL
- 	ctxt->extern_cert = extern_cert;
- 	ctxt->extern_key = extern_key;
-+#endif
- 
- 	debug(logopt, MODPREFIX
- 	      "ldap authentication configured with the following options:");
-@@ -1160,7 +1167,6 @@ out:
- 
- 	return ret;
- }
--#endif
- 
- /*
-  *  Take an input string as specified in the master map, and break it
-@@ -1423,10 +1429,12 @@ static void free_context(struct lookup_context *ctxt)
- 		defaults_free_searchdns(ctxt->sdns);
- 	if (ctxt->dclist)
- 		free_dclist(ctxt->dclist);
-+#ifdef WITH_SASL
- 	if (ctxt->extern_cert)
- 		free(ctxt->extern_cert);
- 	if (ctxt->extern_key)
- 		free(ctxt->extern_key);
-+#endif
- 	free(ctxt);
- 
+diff --git a/lib/master.c b/lib/master.c
+index eca3523..df6c141 100644
+--- a/lib/master.c
++++ b/lib/master.c
+@@ -1281,6 +1281,54 @@ static void list_source_instances(struct map_source *source, struct map_source *
  	return;
+ }
+ 
++static void print_map_info(struct map_source *source)
++{
++	int argc = source->argc;
++	int i, multi, map_num;
++
++	multi = (source->type && !strcmp(source->type, "multi"));
++	map_num = 1;
++	for (i = 0; i < argc; i++) {
++		if (source->argv[i] && *source->argv[i] != '-') {
++			if (!multi)
++				printf("  map: %s\n", source->argv[i]);
++			else
++				printf("  map[%i]: %s\n", map_num, source->argv[i]);
++			i++;
++		}
++
++		if (i >= argc)
++			return;
++
++		if (!strcmp(source->argv[i], "--"))
++			continue;
++
++		if (source->argv[i]) {
++			int need_newline = 0;
++			int j;
++
++			if (!multi)
++				printf("  arguments:");
++			else
++				printf("  arguments[%i]:", map_num);
++
++			for (j = i; j < source->argc; j++) {
++				if (!strcmp(source->argv[j], "--"))
++					break;
++				printf(" %s", source->argv[j]);
++				i++;
++				need_newline = 1;
++			}
++			if (need_newline)
++				printf("\n");
++		}
++		if (multi)
++			map_num++;
++	}
++
++	return;
++}
++
+ int master_show_mounts(struct master *master)
+ {
+ 	struct list_head *p, *head;
+@@ -1311,7 +1359,6 @@ int master_show_mounts(struct master *master)
+ 		struct autofs_point *ap;
+ 		time_t now = time(NULL);
+ 		unsigned int count = 0;
+-		int i;
+ 
+ 		this = list_entry(p, struct master_mapent, list);
+ 		p = p->next;
+@@ -1357,20 +1404,10 @@ int master_show_mounts(struct master *master)
+ 			}
+ 
+ 			if (source->argc >= 1) {
+-				i = 0;
+-				if (source->argv[0] && *source->argv[0] != '-') {
+-					printf("  map: %s\n", source->argv[0]);
+-					i = 1;
+-				}
++				print_map_info(source);
+ 				if (count && ap->type == LKP_INDIRECT)
+ 					printf("  duplicate indirect map entry"
+ 					       " will be ignored at run time\n");
+-				if (source->argc > 1) {
+-					printf("  arguments: ");
+-					for (; i < source->argc; i++)
+-						printf("%s ", source->argv[i]);
+-					printf("\n");
+-				}
+ 			}
+ 
+ 			printf("\n");
 
