@@ -1,59 +1,269 @@
 From: "Dennis Lan (dlan)" <dennis.yxun@gmail.com>
-Subject: Re: Seperate option for install systemd unit file
-Date: Tue, 20 Aug 2013 11:33:54 +0800
-Message-ID: <CAF1ZMEehKNZ3bLR-RKS86AnEL2xe_yVyYYy5PepdSZerd45TkQ@mail.gmail.com>
-References: <1376893398-11765-1-git-send-email-dennis.yxun@gmail.com>
-	<1376969008.2426.3.camel@perseus.fritz.box>
+Subject: Re: [PATCH 06/25] autofs-5.0.7 - fix compile error with heimdal
+ support enabled
+Date: Tue, 20 Aug 2013 11:36:08 +0800
+Message-ID: <CAF1ZMEcU=yb6FEO7RV_E4xRHKg_ZUkaN+JbcFxwfNq0vQDFs5A@mail.gmail.com>
+References: <20130819010909.6472.32512.stgit@perseus.fritz.box>
+	<20130819011233.6472.31453.stgit@perseus.fritz.box>
 Mime-Version: 1.0
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20120113;
         h=mime-version:in-reply-to:references:date:message-id:subject:from:to
          :cc:content-type;
-        bh=KJuq+oit/3YuExVbqhy7Ero2ATeNL+jhX7R6EpnWiTw=;
-        b=sjZMSsSZYY1tkpAUhy78mrWTqX9EQ8M4FC8wIxl1VhmxXxGhQT8j2FAP6JHuk3ccn4
-         cIbdA3Yobi7hcTgFjPnyFAWvuoo3K+Sp1p095KzdsFsNoWcxa+IGfIawQ1fNExsvGixu
-         EnMUPAzZ6ohYuHve5w/TOLHCKhm/IjfHfunxex325VH92J+bpPtaEpuLmMUN5z8JrqPb
-         AK4vy6XXCAC3OLIBDPbyMPZH1NtUJCA5jJcoeJ79r4/i1Ky5c0wW/sbIaumBgBY2QHVu
-         RRA5txXwfgUeMmCklUg+0C5zPqD1Cyanwo4GqZz56SPew3glRrQ1dWE7Hm+SAUxCwBhW
-         Lo+A==
-In-Reply-To: <1376969008.2426.3.camel@perseus.fritz.box>
+        bh=GJiLKUET4BEm/1dhLhk+t1vS+P04WJ89tChMt8KPKfc=;
+        b=VxCeIX5LbXV84r1Rq+8wVLlTgENS2ffuJ3cOkXEfH4q5P0Q5Y+RiS3eenrdTBZMamT
+         c5V/fBN4t/MlThUcbuJiqYXtCCljzICPHUlPASQiu+rRlxp5K3+PuhfAyDGKj5vf+Dkv
+         6sSx7pZMPuRq3nhPDaYjrOCnkay5hxyRgTPieQAwCw82a44f6Dk6F/rwd3uLSvypObMq
+         hTQX5afDn/DYt4W7WG6QfbWIwaBiv/Ghec4Twr6S3BbY3QSEN2CVe54LG77hhE0isz6W
+         LYdEaXsgRytEV98nmHgr2I+AJn0kK4DRpAGZRHpR8pZfozvZQ9t3Winu/M3sPF4quQ0R
+         uHwA==
+In-Reply-To: <20130819011233.6472.31453.stgit@perseus.fritz.box>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Ian Kent <raven@themaw.net>
-Cc: autofs mailing list <autofs@vger.kernel.org>
+Cc: autofs mailing list <autofs@vger.kernel.org>, Gordon Lack <gordon.m.lack@gsk.com>, Leonardo Chiquitto <leonardo.lists@gmail.com>, Dustin Polke <DuPol@gmx.de>
 
-On Tue, Aug 20, 2013 at 11:23 AM, Ian Kent <raven@themaw.net> wrote:
-> On Mon, 2013-08-19 at 14:23 +0800, Lan Yixun (dlan) wrote:
->> those patches are very trivial changes which only instroduce a new --with-systemdsystemunitdir option
->> to better control where we should install system unit file to
->>
->> 1) seperate --with-systemd opiton, but been kept now for future use (but it's useless now)
->> 2) add new option --with-systemdsystemunitdir to manage the path where unit file will be installed
->> 3) --with-systemd and --with-systemdsystemunitdir are two seperate option, so unit can be installed even systemd support is not enabled.
->>
->> downstream discussion: https://bugs.gentoo.org/show_bug.cgi?id=479492
->>
->> let me know whether this looks good to you..
+On Mon, Aug 19, 2013 at 9:12 AM, Ian Kent <raven@themaw.net> wrote:
+> From: Lan Yixun (dlan) <dennis.yxun@gmail.com>
 >
-> Looks OK but I'll need to spend some time on it in case it conflicts
-> with downstream usage I already have.
+> this patch instroduce a compatible layer between Heimdal and MTT Krb5.
+> And I slightly rework the original patch to make it more readable.
 >
->>
->> [PATCH 1/2] seperate option of --with-systemd from install systemd
->> [PATCH 2/2] introduce new '--with-systemdsystemunitdir'
->> --
->> To unsubscribe from this list: send the line "unsubscribe autofs" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Upstream Discussion:
+>   http://thread.gmane.org/gmane.linux.kernel.autofs/4203
 >
+> Gentoo Bugs:
+>   https://bugs.gentoo.org/show_bug.cgi?id=210762
 >
+> Edited by: Ian Kent <raven@themaw.net>
+> - fix code indentation.
+> - update configure to include change.
+>
+> Signed-off-by: Lan Yixun (dlan) <dennis.yxun@gmail.com>
+> ---
+>  CHANGELOG            |    1 +
+>  aclocal.m4           |    7 ++++
+>  configure            |   84 ++++++++++++++++++++++++++++++++++++++++++++++++++
+>  include/config.h.in  |    3 ++
+>  modules/cyrus-sasl.c |   39 ++++++++++++++++++++---
+>  5 files changed, 129 insertions(+), 5 deletions(-)
+>
+> diff --git a/CHANGELOG b/CHANGELOG
+> index fe232f4..c77be18 100644
+> --- a/CHANGELOG
+> +++ b/CHANGELOG
+> @@ -58,6 +58,7 @@
+>  - add after sssd dependency to unit file.
+>  - dont start readmap unless ready.
+>  - fix crash due to thread unsafe use of libldap.
+> +- fix compile error with heimdal support enabled.
+>
+>  25/07/2012 autofs-5.0.7
+>  =======================
+> diff --git a/aclocal.m4 b/aclocal.m4
+> index c5de159..7a8b03c 100644
+> --- a/aclocal.m4
+> +++ b/aclocal.m4
+> @@ -299,6 +299,13 @@ else
+>    HAVE_KRB5=1
+>    KRB5_LIBS=`$KRB5_CONFIG --libs`
+>    KRB5_FLAGS=`$KRB5_CONFIG --cflags`
+> +
+> +  SAVE_CFLAGS=$CFLAGS
+> +  SAVE_LIBS=$LIBS
+> +  CFLAGS="$CFLAGS $KRB5_FLAGS"
+> +  LIBS="$LIBS $KRB5_LIBS"
+> +
+> +  AC_CHECK_FUNCS([krb5_principal_get_realm])
+>  fi])
+>
+>  dnl --------------------------------------------------------------------------
+> diff --git a/configure b/configure
+> index 08b7ccc..1086eba 100755
+> --- a/configure
+> +++ b/configure
+> @@ -1559,6 +1559,73 @@ fi
+>
+>  } # ac_fn_c_try_link
+>
+> +# ac_fn_c_check_func LINENO FUNC VAR
+> +# ----------------------------------
+> +# Tests whether FUNC exists, setting the cache variable VAR accordingly
+> +ac_fn_c_check_func ()
+> +{
+> +  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+> +  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $2" >&5
+> +$as_echo_n "checking for $2... " >&6; }
+> +if eval \${$3+:} false; then :
+> +  $as_echo_n "(cached) " >&6
+> +else
+> +  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+> +/* end confdefs.h.  */
+> +/* Define $2 to an innocuous variant, in case <limits.h> declares $2.
+> +   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+> +#define $2 innocuous_$2
+> +
+> +/* System header to define __stub macros and hopefully few prototypes,
+> +    which can conflict with char $2 (); below.
+> +    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+> +    <limits.h> exists even on freestanding compilers.  */
+> +
+> +#ifdef __STDC__
+> +# include <limits.h>
+> +#else
+> +# include <assert.h>
+> +#endif
+> +
+> +#undef $2
+> +
+> +/* Override any GCC internal prototype to avoid an error.
+> +   Use char because int might match the return type of a GCC
+> +   builtin and then its argument prototype would still apply.  */
+> +#ifdef __cplusplus
+> +extern "C"
+> +#endif
+> +char $2 ();
+> +/* The GNU C library defines this for functions which it implements
+> +    to always fail with ENOSYS.  Some functions are actually named
+> +    something starting with __ and the normal name is an alias.  */
+> +#if defined __stub_$2 || defined __stub___$2
+> +choke me
+> +#endif
+> +
+> +int
+> +main ()
+> +{
+> +return $2 ();
+> +  ;
+> +  return 0;
+> +}
+> +_ACEOF
+> +if ac_fn_c_try_link "$LINENO"; then :
+> +  eval "$3=yes"
+> +else
+> +  eval "$3=no"
+> +fi
+> +rm -f core conftest.err conftest.$ac_objext \
+> +    conftest$ac_exeext conftest.$ac_ext
+> +fi
+> +eval ac_res=\$$3
+> +              { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+> +$as_echo "$ac_res" >&6; }
+> +  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
+> +
+> +} # ac_fn_c_check_func
+> +
+>  # ac_fn_c_try_cpp LINENO
+>  # ----------------------
+>  # Try to preprocess conftest.$ac_ext, and return whether this succeeded.
+> @@ -4039,6 +4106,23 @@ $as_echo "yes" >&6; }
+>    HAVE_KRB5=1
+>    KRB5_LIBS=`$KRB5_CONFIG --libs`
+>    KRB5_FLAGS=`$KRB5_CONFIG --cflags`
+> +
+> +  SAVE_CFLAGS=$CFLAGS
+> +  SAVE_LIBS=$LIBS
+> +  CFLAGS="$CFLAGS $KRB5_FLAGS"
+> +  LIBS="$LIBS $KRB5_LIBS"
+> +
+> +  for ac_func in krb5_principal_get_realm
+> +do :
+> +  ac_fn_c_check_func "$LINENO" "krb5_principal_get_realm" "ac_cv_func_krb5_principal_get_realm"
+> +if test "x$ac_cv_func_krb5_principal_get_realm" = xyes; then :
+> +  cat >>confdefs.h <<_ACEOF
+> +#define HAVE_KRB5_PRINCIPAL_GET_REALM 1
+> +_ACEOF
+> +
+> +fi
+> +done
+> +
+>  fi
+>
+>  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing versionsort" >&5
+> diff --git a/include/config.h.in b/include/config.h.in
+> index a2a05a8..8a52080 100644
+> --- a/include/config.h.in
+> +++ b/include/config.h.in
+> @@ -24,6 +24,9 @@
+>  /* Define to 1 if you have the <inttypes.h> header file. */
+>  #undef HAVE_INTTYPES_H
+>
+> +/* Define to 1 if you have the `krb5_principal_get_realm' function. */
+> +#undef HAVE_KRB5_PRINCIPAL_GET_REALM
+> +
+>  /* Define to 1 if you have the `ldap_create_page_control' function. */
+>  #undef HAVE_LDAP_CREATE_PAGE_CONTROL
+>
+> diff --git a/modules/cyrus-sasl.c b/modules/cyrus-sasl.c
+> index 68f9242..b9c16f3 100644
+> --- a/modules/cyrus-sasl.c
+> +++ b/modules/cyrus-sasl.c
+> @@ -64,6 +64,35 @@
+>  #endif
+>  #endif
+>
+> +#ifdef HAVE_KRB5_PRINCIPAL_GET_REALM
+> +void _krb5_princ_realm(krb5_context context, krb5_const_principal princ,
+> +                          const char **realm, int *len)
+> +{
+> +       *realm = krb5_principal_get_realm(context, princ);
+> +       if (*realm)
+> +               *len = strlen(*realm);
+> +       else
+> +               *len = 0;
+> +       return;
 
-Hi Ian:
-  No problem, I tried to keep the changes minimal.
-thanks for taking care of this
-(I was afraid this would introduce noise instead improvement ;-)
+missed  '}' here
 
-Dennis Lan (dlan)
+> +#else
+> +void _krb5_princ_realm(krb5_context context, krb5_const_principal princ,
+> +                          const char **realm, int *len)
+> +{
+> +       const krb5_data *data;
+> +
+> +       data = krb5_princ_realm(context, princ);
+> +       if (data) {
+> +               *realm = data->data;
+> +               *len = data->length;
+> +       } else {
+> +               *realm = NULL;
+> +               *len = 0;
+> +       }
+> +       return;
+> +}
+> +#endif
+> +
+> +
+>  /*
+>   *  Once a krb5 credentials cache is setup, we need to set the KRB5CCNAME
+>   *  environment variable so that the library knows where to find it.
+> @@ -379,7 +408,8 @@ sasl_do_kinit(unsigned logopt, struct lookup_context *ctxt)
+>         krb5_principal tgs_princ, krb5_client_princ;
+>         krb5_creds my_creds;
+>         char *tgs_name;
+> -       int status;
+> +       const char *realm_name;
+> +       int status, realm_length;
+>
+>         if (ctxt->kinit_done)
+>                 return 0;
+> @@ -450,12 +480,11 @@ sasl_do_kinit(unsigned logopt, struct lookup_context *ctxt)
+>         }
+>
+>         /* setup a principal for the ticket granting service */
+> +       _krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ, &realm_name, &realm_length);
+>         ret = krb5_build_principal_ext(ctxt->krb5ctxt, &tgs_princ,
+> -               krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ)->length,
+> -               krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ)->data,
+> +               realm_length, realm_name,
+>                 strlen(KRB5_TGS_NAME), KRB5_TGS_NAME,
+> -               krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ)->length,
+> -               krb5_princ_realm(ctxt->krb5ctxt, krb5_client_princ)->data,
+> +               realm_length, realm_name,
+>                 0);
+>         if (ret) {
+>                 error(logopt,
+>
