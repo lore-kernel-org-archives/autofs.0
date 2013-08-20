@@ -1,137 +1,103 @@
-From: "Dennis Lan (dlan)" <dennis.yxun@gmail.com>
-Subject: Re: [PATCH 00/25] Current autofs patch queue
-Date: Tue, 20 Aug 2013 12:52:39 +0800
-Message-ID: <CAF1ZMEcW8=PdrA1s4n5fkDVhKOyCDXKDp6OVcwvRkb0gO7V2=A@mail.gmail.com>
-References: <20130819010909.6472.32512.stgit@perseus.fritz.box>
-	<CAF1ZMEeFd=v+zWpqTOqdp59PAx_e4Ugqsr-tYAsSurrFiWi4hQ@mail.gmail.com>
-	<1376967355.2426.1.camel@perseus.fritz.box>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: Seperate option for install systemd unit file
+Date: Tue, 20 Aug 2013 15:18:35 +0800
+Message-ID: <1376983115.2426.33.camel@perseus.fritz.box>
+References: <1376893398-11765-1-git-send-email-dennis.yxun@gmail.com>
+	 <1376969008.2426.3.camel@perseus.fritz.box>
+	 <1376970260.2426.11.camel@perseus.fritz.box>
+	 <CAF1ZMEdE-_W39NNnxA88qztpmGRSudmLQDqSMfbiJP1wEjBF7w@mail.gmail.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20120113;
-        h=mime-version:in-reply-to:references:date:message-id:subject:from:to
-         :cc:content-type;
-        bh=pOu868VajSsLdry9d6MD3bKXg7BOTMvs43e57j1J8l0=;
-        b=VywxOuYpDf1W55xtELWQMUiEVra+LJmmJGGq+TitrlmM7p2heJL9CdnepuaIk13U9q
-         ORciSpguCQLHDXbzAC+T5oGoCpFWqam46zWbbD8ZpdP8vVBikaG2JuaueS4OqN3HepLg
-         Cel8Nxnt/qxKD6zqe3jf4TeZuJCL6ISncj6ViAWZ3aCyKymcbfa/aoRtrh3lMvjanwSq
-         fWBQ4r04i/yxxW5fE3YUuvEeMpsjWumx0/TdKN7WbCBK913XCGMK7k1ZCtVanbuCwfst
-         eKgdawXJpkp0aBz6LgIwWE/KXBHHgMJKHGekUyUgRwCIJAhCehRA+ZsZBLP4mVh0Eda3
-         mALg==
-In-Reply-To: <1376967355.2426.1.camel@perseus.fritz.box>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
+	message-id:subject:from:to:cc:date:in-reply-to:references
+	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
+	 bh=FhjbAfeSS+49DN7ebRTnBGAyYIE=; b=NA8U/ooAO29BokejVDRisL8Oa/8A
+	f6LeAlZy4L4hJX8WcXoYd0Pso76NYZFMa3KCPLhXQi9FSjjSzqulX+dn67cAUG89
+	R2nQ5HXCMW0wlrq9uckSluJjlkayG2p57aNcJ8RO/JnvIbBBVTpxyCSBpUfxDvQO
+	QyPcq31+xCIVPQU=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=message-id:subject:from:to:cc:date
+	:in-reply-to:references:content-type:mime-version
+	:content-transfer-encoding; s=smtpout; bh=FhjbAfeSS+49DN7ebRTnBG
+	AyYIE=; b=QN3N8yyfbi81AFVWNzt8/bF8PfSemUqI5BVPAm+rgFIWyoG2nJCq2X
+	C8HNFP7LavA79gNQA4YHUymibBp/uB4YO93os1ha2ZEwmSv+xra4RprZb5XYHzfE
+	eu2JY/GXCe8nBf9Hjvmj/xwf//24KwVqD6RdCYX2EfRapOxVwyD5A=
+In-Reply-To: <CAF1ZMEdE-_W39NNnxA88qztpmGRSudmLQDqSMfbiJP1wEjBF7w@mail.gmail.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Ian Kent <raven@themaw.net>
+To: "Dennis Lan (dlan)" <dennis.yxun@gmail.com>
 Cc: autofs mailing list <autofs@vger.kernel.org>
 
-On Tue, Aug 20, 2013 at 10:55 AM, Ian Kent <raven@themaw.net> wrote:
-> On Mon, 2013-08-19 at 13:30 +0800, Dennis Lan (dlan) wrote:
->> On Mon, Aug 19, 2013 at 9:11 AM, Ian Kent <raven@themaw.net> wrote:
->> > There are patches from several contributors I plan on committing
->> > so I thought posting them to the list for final review would be
->> > sensible.
->> >
->> > I'm not sure when I'll commit the changes but I hope in the next
->> > couple of days.
->> >
->> > ---
->> >
->> > Dustin Polke (1):
->> >       autofs-5.0.7 - fix compilation of lookup_ldap.c without sasl
->> >
->> > Ian Kent (13):
->> >       autofs-5.0.7 - don't override LDFLAGS in make rules
->> >       autofs-5.0.7 - fix a couple of compiler warnings
->> >       autofs-5.0.7 - add after sssd dependency to unit file
->> >       autofs-5.0.7 - dont start readmap unless ready
->> >       autofs-5.0.7 - fix dumpmaps multi output
->> >       autofs-5.0.7 - try and cleanup after dumpmaps
->> >       autofs-5.0.7 - teach dumpmaps to output simple key value pairs
->> >       autofs-5.0.7 - fix syncronize handle_mounts() shutdown
->> >       autofs-5.0.7 - fix fix wildcard multi map regression
->> >       autofs-5.0.7 - improve timeout option description
->> >       autofs-5.0.7 - only probe specific nfs version when requested
->> >       autofs-5.0.7 - fix bad mkdir permission on create
->> >       autofs-5.0.7 - setup program map env from macro table
->> >
->> > Lan Yixun (dlan) (10):
->> >       autofs-5.0.7 - fix compile error with heimdal support enabled
->> >       autofs-5.0.7 - fix typo forced-shutdown should be force-shutdown
->> >       autofs-5.0.7 - fix hesiod check error and use correct $(LIBS) setting
->> >       autofs-5.0.7 - fix dead LDAP symbolic link when LDAP support is disabled
->> >       autofs-5.0.7 - add missing libtirpc lib to mount_nfs.so when TIRPC enabled
->> >       autofs-5.0.7 - use compiler determined by configure instead of hard-coded ones
->> >       autofs-5.0.7 - remove hard-coded STRIP variable
->> >       autofs-5.0.7 - use LIBS for link libraries
->> >       autofs-5.0.7 - unbundle NOTSTRIP from DEBUG so they dont depend on each other
->> >       autofs-5.0.7 - fix occasional build error when enable parallel compiling
->> >
->> > Leonardo Chiquitto (1):
->> >       autofs-5.0.7 - fix crash due to thread unsafe use of libldap
->> >
->> >
->> >  CHANGELOG                      |   23 ++++
->> >  Makefile.conf.in               |    3
->> >  Makefile.rules                 |   34 +++--
->> >  aclocal.m4                     |   19 ++-
->> >  autofs.spec                    |    3
->> >  configure                      |  104 +++++++++++++++--
->> >  configure.in                   |    2
->> >  daemon/Makefile                |    2
->> >  daemon/automount.c             |   71 +++++++++--
->> >  daemon/state.c                 |   15 +-
->> >  include/config.h.in            |    3
->> >  include/lookup_ldap.h          |    4 -
->> >  include/macros.h               |    1
->> >  include/master.h               |    1
->> >  lib/Makefile                   |    6 +
->> >  lib/macros.c                   |   28 ++++
->> >  lib/master.c                   |  250 ++++++++++++++++++++++++++++++++++++++--
->> >  man/auto.master.5.in           |    5 +
->> >  man/automount.8                |   23 +++-
->> >  modules/Makefile               |   20 ++-
->> >  modules/cyrus-sasl.c           |   39 +++++-
->> >  modules/lookup_file.c          |   25 +++-
->> >  modules/lookup_ldap.c          |   76 +++++++++++-
->> >  modules/lookup_nisplus.c       |   26 +++-
->> >  modules/lookup_program.c       |   20 +++
->> >  modules/lookup_sss.c           |   22 +++-
->> >  modules/lookup_yp.c            |   23 +++-
->> >  modules/mount_bind.c           |    2
->> >  modules/mount_nfs.c            |   14 ++
->> >  redhat/autofs.sysconfig.in     |    5 +
->> >  samples/autofs.conf.default.in |    5 +
->> >  samples/autofs.service.in      |    2
->> >  32 files changed, 753 insertions(+), 123 deletions(-)
->> >
->> > --
->> > Ian
->>
->>
->> HI Ian:
->>  May I suggest you pushing this patch serials to one test branch
->> (for-next?) in the public repository?
->> I find this much more convenient for me to test (instead of fetch all
->> the patches and apply myself).
->> Since this branch is experimental, you can delete it later or rebase
->> to master branch.
->
-> Not sure I've done this correctly but try updating and checkout branch
-> pending-temp-v0.
->
-> Ian
->
->
-HI Ian:
-  what you 've done is correct!
-  I tested this branch, so far so good..
+On Tue, 2013-08-20 at 12:34 +0800, Dennis Lan (dlan) wrote:
+> On Tue, Aug 20, 2013 at 11:44 AM, Ian Kent <raven@themaw.net> wrote:
+> > On Tue, 2013-08-20 at 11:23 +0800, Ian Kent wrote:
+> >> On Mon, 2013-08-19 at 14:23 +0800, Lan Yixun (dlan) wrote:
+> >> > those patches are very trivial changes which only instroduce a new --with-systemdsystemunitdir option
+> >> > to better control where we should install system unit file to
+> >> >
+> >> > 1) seperate --with-systemd opiton, but been kept now for future use (but it's useless now)
+> >> > 2) add new option --with-systemdsystemunitdir to manage the path where unit file will be installed
+> >> > 3) --with-systemd and --with-systemdsystemunitdir are two seperate option, so unit can be installed even systemd support is not enabled.
+> >> >
+> >> > downstream discussion: https://bugs.gentoo.org/show_bug.cgi?id=479492
+> >> >
+> >> > let me know whether this looks good to you..
+> >>
+> >> Looks OK but I'll need to spend some time on it in case it conflicts
+> >> with downstream usage I already have.
+> >
+> > After a very quick initial look ....
+> >
+> > It appears that the change does two things.
+> >
+> > Defines WITH_SYSTEMD for subsequent use, although applications usually
+> > don't need to know if they are being managed by systemd. Do you know of
+> > any cases where that is important?
+> >
+> No, no cases I know of,
+> So, I leave you to decide whether to keep it or not
 
- you can use "git push origin :refs/heads/pending-temp-v0" to delete
-this branch in the remote repository
-or "git push --force origin HEAD:refs/heads/pending-temp-v0" to
-override the remote branch with new commit (just in case you need to
-do this)
+Yeah, but it may be needed to control whether the unit file is actuall
+installed. Seems a bit round of a round about way to do this.
 
-Dennis Lan (dlan)
+> 
+> > And changes the original --with-systemd configure option to
+> > --with-systemdsystemunitdir adding the ability to specify a unit
+> > directory explicitly.
+> >
+> > Why is it worthwhile changing the configure option as part of this
+> > change?
+> >
+> > Ian
+> >
+> >
+> As talked with gentoo @systemd team, it's conventional to use
+> "--with-systemdsystemunitdir"[1]
+> and I think it's would be slight better/explicitly to pass the unit
+> directory via  --with-systemdsystemunitdir=/my/unit/dir/?current logic
+> is "--with-systemd systemddir=/my/unit/dir/"
+
+It amounts to changing the configure option name and adding the ability
+to specify a directory.
+
+The discussion implies there's precedent for using this name, do your
+the systemd guys know of other packages that use this naming, what are
+they?
+
+I get the request to be able to specify a directory, that's cool.
+
+The other thing I think I saw in the discussion was unconditional
+installation of the unit file. The unit file has substitution done on it
+unconditionally but the macro paths are only set if the configure option
+is given. So there's no way to say, look for the systemd directories or
+use the given path but don't actually install the unit file. The actual
+unconditional install is probably best done in the ebuild, simple
+enough.
+
+Ian
+
+
+
+
