@@ -1,160 +1,127 @@
-From: "Lan Yixun (dlan)" <dennis.yxun@gmail.com>
-Subject: [PATCH 2/2] introduce new '--with-systemdsystemunitdir'
-Date: Mon, 19 Aug 2013 14:23:18 +0800
-Message-ID: <1376893398-11765-3-git-send-email-dennis.yxun@gmail.com>
-References: <1376893398-11765-1-git-send-email-dennis.yxun@gmail.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [PATCH 00/25] Current autofs patch queue
+Date: Tue, 20 Aug 2013 10:55:55 +0800
+Message-ID: <1376967355.2426.1.camel@perseus.fritz.box>
+References: <20130819010909.6472.32512.stgit@perseus.fritz.box>
+	 <CAF1ZMEeFd=v+zWpqTOqdp59PAx_e4Ugqsr-tYAsSurrFiWi4hQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20120113;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=+JycDq3msIIkj+P/wi88Jy+1iRQkf3/y9xyer2X+Wwo=;
-        b=l+g9lqtbEVm6uBUoluydFF/Idcx4iLDKqtHpqvZjl/crvl8NCVgIFz9uCz/PLhzc2W
-         8lFLTiC9ItaPDKLOw2naik7mwT6vfBhuNXKx603Uul4USwCreNGv71nYsxv7n4IhfcMg
-         3g6YN3EDxtKYYEgVyeYcuy2rIJdFlng81tntaJeMq/6vzqFjvbdTMx7akEjs+w6xBof5
-         6s55bDM4RAPNHE9EUksjjv1Ts8vJmI+NFJQ0TxsN8yYHsKCXemumJb1nA/fDMSrj6VWI
-         mxP3JTBbOGIRrRKvz0/ikg8IPUVLo8sw0buhm94wSiRiYDrA2wDFKyIx2uD2AS3TGJd7
-         keTw==
-In-Reply-To: <1376893398-11765-1-git-send-email-dennis.yxun@gmail.com>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
+	message-id:subject:from:to:cc:date:in-reply-to:references
+	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
+	 bh=p8VkZbM1BOKojmJxwhoAqwHnTVU=; b=Snsk5Ol8hPeHxYjkTRhJhyzpiJ8D
+	QYAbUp8lnvQ8AwjRWqD66b2H28TROga2AG9Quk3JoviT811sojeNTZwgQGdUs90R
+	JG7p6jMBM3aihI8oFId3Edvp9wG4+srmPXZNrLDq+4Rg6Dgm0qTcAp4wI5EQiNZJ
+	wbyw+3t1C1zsrRI=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=message-id:subject:from:to:cc:date
+	:in-reply-to:references:content-type:mime-version
+	:content-transfer-encoding; s=smtpout; bh=p8VkZbM1BOKojmJxwhoAqw
+	HnTVU=; b=YmdvvESliyHCQAcqYufSSpUvi207zPpV+7WlQIzybwcn3jwtRDVlUw
+	MDlNDcLRvkabI8nvguZdcUszG3xBbKV/6LFp7qitzub7/em7pI24fiHA8lpzOWEO
+	04pKhVieratQ9t0kNE6/HgFH+DLbOuSl1hMcYJyDL0ughH3J0/d3E=
+In-Reply-To: <CAF1ZMEeFd=v+zWpqTOqdp59PAx_e4Ugqsr-tYAsSurrFiWi4hQ@mail.gmail.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: autofs@vger.kernel.org
-Cc: "Lan Yixun (dlan)" <dennis.yxun@gmail.com>
+To: "Dennis Lan (dlan)" <dennis.yxun@gmail.com>
+Cc: autofs mailing list <autofs@vger.kernel.org>, Gordon Lack <gordon.m.lack@gsk.com>, Leonardo Chiquitto <leonardo.lists@gmail.com>, Dustin Polke <DuPol@gmx.de>
 
-From: "Lan Yixun (dlan)" <dennis.yxun@gmail.com>
+On Mon, 2013-08-19 at 13:30 +0800, Dennis Lan (dlan) wrote:
+> On Mon, Aug 19, 2013 at 9:11 AM, Ian Kent <raven@themaw.net> wrote:
+> > There are patches from several contributors I plan on committing
+> > so I thought posting them to the list for final review would be
+> > sensible.
+> >
+> > I'm not sure when I'll commit the changes but I hope in the next
+> > couple of days.
+> >
+> > ---
+> >
+> > Dustin Polke (1):
+> >       autofs-5.0.7 - fix compilation of lookup_ldap.c without sasl
+> >
+> > Ian Kent (13):
+> >       autofs-5.0.7 - don't override LDFLAGS in make rules
+> >       autofs-5.0.7 - fix a couple of compiler warnings
+> >       autofs-5.0.7 - add after sssd dependency to unit file
+> >       autofs-5.0.7 - dont start readmap unless ready
+> >       autofs-5.0.7 - fix dumpmaps multi output
+> >       autofs-5.0.7 - try and cleanup after dumpmaps
+> >       autofs-5.0.7 - teach dumpmaps to output simple key value pairs
+> >       autofs-5.0.7 - fix syncronize handle_mounts() shutdown
+> >       autofs-5.0.7 - fix fix wildcard multi map regression
+> >       autofs-5.0.7 - improve timeout option description
+> >       autofs-5.0.7 - only probe specific nfs version when requested
+> >       autofs-5.0.7 - fix bad mkdir permission on create
+> >       autofs-5.0.7 - setup program map env from macro table
+> >
+> > Lan Yixun (dlan) (10):
+> >       autofs-5.0.7 - fix compile error with heimdal support enabled
+> >       autofs-5.0.7 - fix typo forced-shutdown should be force-shutdown
+> >       autofs-5.0.7 - fix hesiod check error and use correct $(LIBS) setting
+> >       autofs-5.0.7 - fix dead LDAP symbolic link when LDAP support is disabled
+> >       autofs-5.0.7 - add missing libtirpc lib to mount_nfs.so when TIRPC enabled
+> >       autofs-5.0.7 - use compiler determined by configure instead of hard-coded ones
+> >       autofs-5.0.7 - remove hard-coded STRIP variable
+> >       autofs-5.0.7 - use LIBS for link libraries
+> >       autofs-5.0.7 - unbundle NOTSTRIP from DEBUG so they dont depend on each other
+> >       autofs-5.0.7 - fix occasional build error when enable parallel compiling
+> >
+> > Leonardo Chiquitto (1):
+> >       autofs-5.0.7 - fix crash due to thread unsafe use of libldap
+> >
+> >
+> >  CHANGELOG                      |   23 ++++
+> >  Makefile.conf.in               |    3
+> >  Makefile.rules                 |   34 +++--
+> >  aclocal.m4                     |   19 ++-
+> >  autofs.spec                    |    3
+> >  configure                      |  104 +++++++++++++++--
+> >  configure.in                   |    2
+> >  daemon/Makefile                |    2
+> >  daemon/automount.c             |   71 +++++++++--
+> >  daemon/state.c                 |   15 +-
+> >  include/config.h.in            |    3
+> >  include/lookup_ldap.h          |    4 -
+> >  include/macros.h               |    1
+> >  include/master.h               |    1
+> >  lib/Makefile                   |    6 +
+> >  lib/macros.c                   |   28 ++++
+> >  lib/master.c                   |  250 ++++++++++++++++++++++++++++++++++++++--
+> >  man/auto.master.5.in           |    5 +
+> >  man/automount.8                |   23 +++-
+> >  modules/Makefile               |   20 ++-
+> >  modules/cyrus-sasl.c           |   39 +++++-
+> >  modules/lookup_file.c          |   25 +++-
+> >  modules/lookup_ldap.c          |   76 +++++++++++-
+> >  modules/lookup_nisplus.c       |   26 +++-
+> >  modules/lookup_program.c       |   20 +++
+> >  modules/lookup_sss.c           |   22 +++-
+> >  modules/lookup_yp.c            |   23 +++-
+> >  modules/mount_bind.c           |    2
+> >  modules/mount_nfs.c            |   14 ++
+> >  redhat/autofs.sysconfig.in     |    5 +
+> >  samples/autofs.conf.default.in |    5 +
+> >  samples/autofs.service.in      |    2
+> >  32 files changed, 753 insertions(+), 123 deletions(-)
+> >
+> > --
+> > Ian
+> 
+> 
+> HI Ian:
+>  May I suggest you pushing this patch serials to one test branch
+> (for-next?) in the public repository?
+> I find this much more convenient for me to test (instead of fetch all
+> the patches and apply myself).
+> Since this branch is experimental, you can delete it later or rebase
+> to master branch.
 
-this option only control the path where the systemd unit file wll be installed
-and it's seperated from --with-systemd option, so it can be always installed alone.
+Not sure I've done this correctly but try updating and checkout branch
+pending-temp-v0.
 
-use cases:
-1) if this option is not specificed, default option is
-'--with-systemdsystemunitdir=yes'
-will auto probe the directory of unit file
-2) --with-systemdsystemunitdir=no, or --without-systemdsystemunitdir
-no unit file will be installed
-3) --with-systemdsystemunitdir=/my/unit/file/directory/
-will install unit file into /my/unit/file/directory/
-(gentoo linux goes the 3nd way)
+Ian
 
-this patch doesn't alter previous behavior, so should be compatible with previous
-version.
-
-Signed-off-by: Lan Yixun (dlan) <dennis.yxun@gmail.com>
----
- Makefile.conf.in |  4 ++--
- aclocal.m4       | 43 +++++++++++++++++++++++++++++++++++++++++++
- configure.in     |  9 +++++++--
- samples/Makefile |  6 +++---
- 4 files changed, 55 insertions(+), 7 deletions(-)
-
-diff --git a/Makefile.conf.in b/Makefile.conf.in
-index 3766d45..75f6dec 100644
---- a/Makefile.conf.in
-+++ b/Makefile.conf.in
-@@ -107,5 +107,5 @@ mandir = @mandir@
- # Location for init.d files
- initdir = @initdir@
- 
--# Location of systemd unit files
--systemddir = @systemddir@
-+# Location of systemd unit dir
-+systemdsystemunitdir = @systemdsystemunitdir@
-diff --git a/aclocal.m4 b/aclocal.m4
-index 5cdc7e4..cee7125 100644
---- a/aclocal.m4
-+++ b/aclocal.m4
-@@ -246,6 +246,49 @@ fi],
- ])
- 
- dnl --------------------------------------------------------------------------
-+dnl AF_WITH_SYSTEMD_UNITS_DIR
-+dnl
-+dnl Check the location of the systemd unit files directory
-+dnl --------------------------------------------------------------------------
-+AC_DEFUN([SYSTEMD_SYSTEM_UNITS],
-+[AC_ARG_WITH(systemdsystemunitdir,
-+[  --with-systemdsystemunitdir         install systemd unit file if systemd unit directory
-+			  is found on system],
-+[
-+AC_MSG_CHECKING([location of the systemd unit files directory])
-+if test "$withval" = yes -o x"$withval" = x""; then
-+    for systemd_d in /usr/lib/systemd/system /usr/lib64/systemd/system /lib/systemd/system /lib64/systemd/system; do
-+      if test -z "$systemdsystemunitdir"; then
-+        if test -d "$systemd_d"; then
-+          systemdsystemunitdir="$systemd_d"
-+          AC_MSG_RESULT($systemdsystemunitdir)
-+        fi
-+      fi
-+    done
-+else
-+  if test "$withval" = no; then
-+    AC_MSG_RESULT(not found)
-+  else
-+    systemdsystemunitdir=$withval
-+    AC_MSG_RESULT($systemdsystemunitdir)
-+  fi
-+fi
-+],
-+[
-+AC_MSG_CHECKING([location of the systemd unit files directory, default yes])
-+    for systemd_d in /usr/lib/systemd/system /usr/lib64/systemd/system /lib/systemd/system /lib64/systemd/system; do
-+      if test -z "$systemdsystemunitdir"; then
-+        if test -d "$systemd_d"; then
-+          systemdsystemunitdir="$systemd_d"
-+          AC_MSG_RESULT($systemdsystemunitdir)
-+        fi
-+      fi
-+    done
-+]
-+)
-+])
-+
-+dnl --------------------------------------------------------------------------
- dnl AF_CHECK_LIBXML
- dnl
- dnl Check for lib xml
-diff --git a/configure.in b/configure.in
-index 559045a..3cc43ab 100644
---- a/configure.in
-+++ b/configure.in
-@@ -47,11 +47,16 @@ AF_PID_D()
- AC_SUBST(piddir)
- 
- #
-+# Check for systemd support is requested
-+#
-+AF_WITH_SYSTEMD()
-+
-+#
- # Check for systemd unit files direectory exists if unit file installation
- # is requested
- #
--AF_WITH_SYSTEMD()
--AC_SUBST(systemddir)
-+SYSTEMD_SYSTEM_UNITS
-+AC_SUBST(systemdsystemunitdir)
- 
- #
- # Location of system config script directory?
-diff --git a/samples/Makefile b/samples/Makefile
-index 91c1d6b..4cf8bf3 100644
---- a/samples/Makefile
-+++ b/samples/Makefile
-@@ -32,9 +32,9 @@ dirs:
- .PHONY: autofs.init
- autofs.init:
- 	@echo
--ifneq ($(systemddir),)
--	install -d -m 755 $(INSTALLROOT)$(systemddir)
--	install autofs.service -m 644 $(INSTALLROOT)$(systemddir)/autofs.service
-+ifneq ($(systemdsystemunitdir),)
-+	install -d -m 755 $(INSTALLROOT)$(systemdsystemunitdir)
-+	install autofs.service -m 644 $(INSTALLROOT)$(systemdsystemunitdir)/autofs.service
- else
-    ifneq ($(initdir),)
- 	install -d -m 755 $(INSTALLROOT)$(initdir)
--- 
-1.8.3.2
 
