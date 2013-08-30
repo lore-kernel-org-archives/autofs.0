@@ -1,9 +1,11 @@
 From: Rui Xiang <rui.xiang@huawei.com>
-Subject: [PATCH 1/2] autofs: fix the return value of autofs4_fill_super
-Date: Fri, 30 Aug 2013 15:22:17 +0800
-Message-ID: <1377847338-51032-1-git-send-email-rui.xiang@huawei.com>
+Subject: [PATCH 2/2] autofs: use IS_ROOT to replace parent == dentry->d_parent
+Date: Fri, 30 Aug 2013 15:22:18 +0800
+Message-ID: <1377847338-51032-2-git-send-email-rui.xiang@huawei.com>
+References: <1377847338-51032-1-git-send-email-rui.xiang@huawei.com>
 Mime-Version: 1.0
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1377847338-51032-1-git-send-email-rui.xiang@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
@@ -11,64 +13,45 @@ Content-Transfer-Encoding: 7bit
 To: Ian Kent <raven@themaw.net>
 Cc: autofs@vger.kernel.org, linux-kernel@vger.kernel.org, Rui Xiang <rui.xiang@huawei.com>
 
-While kzallocing sbi/ino fails, it should return -ENOMEM.
-
-And it should return the err value from autofs_prepare_pipe.
+Use the helper macro !IS_ROOT to replace parent != dentry->d_parent.
+Just clean up.
 
 Signed-off-by: Rui Xiang <rui.xiang@huawei.com>
 ---
- fs/autofs4/inode.c | 13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ fs/autofs4/root.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/fs/autofs4/inode.c b/fs/autofs4/inode.c
-index b104726..fe390ed 100644
---- a/fs/autofs4/inode.c
-+++ b/fs/autofs4/inode.c
-@@ -211,10 +211,11 @@ int autofs4_fill_super(struct super_block *s, void *data, int silent)
- 	int pipefd;
- 	struct autofs_sb_info *sbi;
- 	struct autofs_info *ino;
-+	int ret = -EINVAL;
+diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
+index 92ef341..2caf36a 100644
+--- a/fs/autofs4/root.c
++++ b/fs/autofs4/root.c
+@@ -558,7 +558,7 @@ static int autofs4_dir_symlink(struct inode *dir,
+ 	dget(dentry);
+ 	atomic_inc(&ino->count);
+ 	p_ino = autofs4_dentry_ino(dentry->d_parent);
+-	if (p_ino && dentry->d_parent != dentry)
++	if (p_ino && !IS_ROOT(dentry))
+ 		atomic_inc(&p_ino->count);
  
- 	sbi = kzalloc(sizeof(*sbi), GFP_KERNEL);
- 	if (!sbi)
--		goto fail_unlock;
-+		return -ENOMEM;
- 	DPRINTK("starting up, sbi = %p",sbi);
+ 	dir->i_mtime = CURRENT_TIME;
+@@ -593,7 +593,7 @@ static int autofs4_dir_unlink(struct inode *dir, struct dentry *dentry)
  
- 	s->s_fs_info = sbi;
-@@ -248,8 +249,10 @@ int autofs4_fill_super(struct super_block *s, void *data, int silent)
- 	 * Get the root inode and dentry, but defer checking for errors.
- 	 */
- 	ino = autofs4_new_ino(sbi);
--	if (!ino)
-+	if (!ino) {
-+		ret = -ENOMEM;
- 		goto fail_free;
-+	}
- 	root_inode = autofs4_get_inode(s, S_IFDIR | 0755);
- 	root = d_make_root(root_inode);
- 	if (!root)
-@@ -296,7 +299,8 @@ int autofs4_fill_super(struct super_block *s, void *data, int silent)
- 		printk("autofs: could not open pipe file descriptor\n");
- 		goto fail_dput;
+ 	if (atomic_dec_and_test(&ino->count)) {
+ 		p_ino = autofs4_dentry_ino(dentry->d_parent);
+-		if (p_ino && dentry->d_parent != dentry)
++		if (p_ino && !IS_ROOT(dentry))
+ 			atomic_dec(&p_ino->count);
  	}
--	if (autofs_prepare_pipe(pipe) < 0)
-+	ret = autofs_prepare_pipe(pipe);
-+	if (ret < 0)
- 		goto fail_fput;
- 	sbi->pipe = pipe;
- 	sbi->pipefd = pipefd;
-@@ -323,8 +327,7 @@ fail_ino:
- fail_free:
- 	kfree(sbi);
- 	s->s_fs_info = NULL;
--fail_unlock:
--	return -EINVAL;
-+	return ret;
- }
- 
- struct inode *autofs4_get_inode(struct super_block *sb, umode_t mode)
+ 	dput(ino->dentry);
+@@ -732,7 +732,7 @@ static int autofs4_dir_mkdir(struct inode *dir, struct dentry *dentry, umode_t m
+ 	dget(dentry);
+ 	atomic_inc(&ino->count);
+ 	p_ino = autofs4_dentry_ino(dentry->d_parent);
+-	if (p_ino && dentry->d_parent != dentry)
++	if (p_ino && !IS_ROOT(dentry))
+ 		atomic_inc(&p_ino->count);
+ 	inc_nlink(dir);
+ 	dir->i_mtime = CURRENT_TIME;
 -- 
 1.8.2.2
 
