@@ -1,27 +1,27 @@
 From: Ian Kent <raven@themaw.net>
 Subject: [PATCH 00/10] autofs4 - rename autofs4 to autofs
-Date: Sat, 31 Aug 2013 19:41:14 +0800
-Message-ID: <20130831114013.11672.78330.stgit@perseus.themaw.net>
+Date: Sat, 31 Aug 2013 19:42:20 +0800
+Message-ID: <20130831114133.11807.35953.stgit@perseus.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	subject:from:cc:date:message-id:mime-version:content-type
+	subject:to:from:cc:date:message-id:mime-version:content-type
 	:content-transfer-encoding; s=mesmtp; bh=RMr08LlxOKpfNc92F0lWERn
-	Fd8Q=; b=oerCuowCOlzZYPgUnRfjSNIMwmPEWfD+oWfbeBvl2SdefP3BPKcX1t8
-	vq/am3amnmOCENtVul4vWAosG3Aym1TAxPH04OwJD8Q8C0/6yYspoLnyLx2gcilJ
-	sFZRlLuqyTEsQ6Cu8VJLAuvMAWEv6HbPuWFeuV2BJgE0BfA3qQqM=
+	Fd8Q=; b=XlRJavIhr9w5EmmKLhCUJB5TmJ6vFOAzH/Q4VEf4EGIuGQVHLmthpl1
+	0l/72X6crYQpF20A5nuPjvvodDFFXNH4ZK9LSKERip1bHJtSCR2vuOOL0uSQRyLr
+	acMOmHnYlW8ANxe5jMnMkOizdWgSQAsSX4hxHtSY3hhX0WdmHcwo=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=subject:from:cc:date:message-id
+	messagingengine.com; h=subject:to:from:cc:date:message-id
 	:mime-version:content-type:content-transfer-encoding; s=smtpout;
-	 bh=RMr08LlxOKpfNc92F0lWERnFd8Q=; b=iLCD/k79Jy+HDv5i1IflRJSeTgxl
-	UVtqA4TlvldLTuJKKEGxC7ZBOJpXQJi77sx9rSpPg1IbmvvLOTlZTsR789cUU9uq
-	627zi/u0g4+A5ykARJFChAydTBJVXbSpUubeXBhbyU20TVBW2ezy3FSg+NuLuMmo
-	45hNbhruWscU7ro=
+	 bh=RMr08LlxOKpfNc92F0lWERnFd8Q=; b=jaDdzDDzxfSmmJvQGeWYb+R4//L3
+	OM6sy8jIUaIXuko8exhygallcSDAc9zqSOdOrv6zPjeVJy2Ucq+QRF8m8y+D9EqH
+	y+hdF6eLx9BflbraVsKnmIYGvJzekVM7pMr9PWLOfiZmJcZ3EcCe7bWr1hydQczE
+	qplioRcOPNwHKf0=
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: 
+To: linux-next@vger.kernel.org
 Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
 The autofs4 kernel module provides function for autofs version 3, 4 and
