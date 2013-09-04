@@ -1,88 +1,153 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 00/10] autofs4 - rename autofs4 to autofs
-Date: Tue, 03 Sep 2013 20:47:13 +0800
-Message-ID: <1378212433.2310.3.camel@perseus.fritz.box>
-References: <20130831114133.11807.35953.stgit@perseus.themaw.net>
-	 <5225C7F0.10103@msgid.tls.msk.ru>
+Subject: [PATCH 1/3] autofs4 - fix device ioctl mount lookup
+Date: Wed, 04 Sep 2013 08:54:57 +0800
+Message-ID: <20130904005456.5025.94309.stgit@perseus.fritz.box>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-next-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	message-id:subject:from:to:cc:date:in-reply-to:references
-	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
-	 bh=THaISTiNmcrvi8blulsQP/t5nKM=; b=KGivFOTI7IFw7c954tNCMyQqPNyB
-	qaYBAtcm3wUbv31qkqgbjIssk5uVBUzzPqs3+1fPyBhzxg+bUMm0EzelQ5tF/qXN
-	vv2vr6qcAeZX91cWErLt0oZ3MRGnZgFW2rhHxpWF2rm10plwkELCMLHGyRrXgvnc
-	QlO1JEgjGTI/NRs=
+	subject:to:from:cc:date:message-id:mime-version:content-type
+	:content-transfer-encoding; s=mesmtp; bh=m1TM3IUgmYHMrqUg5/s/zCc
+	Zp+s=; b=GBbBxKm3+TlFESxq26hrMu1Weivf8ARgXgYaWeajRSS/0sKHk/MJTYR
+	b3vOOUiUquVt32j/CJLznX1+ayxba8puNz1sAwgroQZSrVh9IFRrz8Sk5NSvAXtd
+	4AWZszo3Lo3xAcgJ+jytSrAkFpbe1A+bpcI3KJuaF5mnAcFyijYg=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=message-id:subject:from:to:cc:date
-	:in-reply-to:references:content-type:mime-version
-	:content-transfer-encoding; s=smtpout; bh=THaISTiNmcrvi8blulsQP/
-	t5nKM=; b=aJIIQcKi63Yok5Qa7mrldaWpdfprJJNdfGwzPq/Rr9uQxeNHT52enN
-	uf4Px7wmRV335LQ9KwVc8V/MWCGCOra61WIIzg5nDxzczlDdAtE9vGbBR/JHEbtZ
-	sxMibvgbHAwJKMzL7vYD/yQ3Sx30u8RZ72twzYpvZo9ZqhDeGDrcU=
-In-Reply-To: <5225C7F0.10103@msgid.tls.msk.ru>
-Sender: linux-next-owner@vger.kernel.org
+	messagingengine.com; h=subject:to:from:cc:date:message-id
+	:mime-version:content-type:content-transfer-encoding; s=smtpout;
+	 bh=m1TM3IUgmYHMrqUg5/s/zCcZp+s=; b=GW3e6wyVUZpoqnLnsiPVvdWCwew4
+	OdEQiZOanQb9GqceDJiuX5MeX7n9zr8S5e0ShbVlWq1VcoDi0ZN/TTyJrcdLgSMa
+	yIsPnxFXr8Gb5Sg/iEtAezx4tODEssYXNUgFBGEaGYVvXB+rc8RbFRkWwQDKlNxg
+	aeczWbB8xg7nsDI=
+Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Michael Tokarev <mjt@tls.msk.ru>
-Cc: linux-next@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, rui.xiang@huawei.com, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Al Viro <viro@ZenIV.linux.org.uk>
 
-On Tue, 2013-09-03 at 15:28 +0400, Michael Tokarev wrote:
-> 31.08.2013 15:42, Ian Kent wrote:
-> [...]
-> > By leaving a Kconfig and Makefile in fs/autofs4 (to build autofs4.ko)
-> > with a deprication message sub-system maintainers and other users will
-> > make any needed changes before these are removed after two kernel versions.
-> > IMHO the presence of the warning is reason enough to leave a build stub
-> > rather than do a straight out rename.
-> 
-> Why do you want to continue building autofs4.ko? (or allowing to)
-> What's actually wrong with a stright rename?
-> If the new module can be auto-loaded by both name (by providing an
-> alias), there's no need to keep ability to build autofs4.ko, I think.
+When reconnecting to automounts at startup an autofs ioctl is used
+to find the device and inode of existing mounts so they can be used
+to open a file descriptor of possibly covered mounts.
 
-The hope is that within two subsequent kernel versions, when it is
-removed, people that need to change will have noticed this and made the
-needed changes. That's scripts that may have looked for autofs4.ko to
-work around the auto-load problem, aliases that won't work now, kernel
-configurations, etc...
+At this time the the caller might not yet "own" the mount so it can
+trigger calling ->d_automount(). This causes automount to hang when
+trying to reconnect to direct or offset mount types.
 
-The configuration message for autofs4 now says these things and says the
-module is going to be removed.
+Consequently kern_path() can't be used.
 
-> 
-> Well, maybe except of the case when autofs is needed in initramfs (like
-> for systemd).  For this, indeed, you can keep autofs4.ko which is a
-> dummy depending on autofs.ko...
-> 
-> > Ian Kent (10):
-> >       autofs4 - coding style fixes
-> >       autofs4 - fix string.h include in auto_dev-ioctl.h
-> >       autofs4 - move linux/auto_dev-ioctl.h to uapi/linux
-> >       autofs - merge auto_fs.h and auto_fs4.h
-> >       autofs - use autofs instead of autofs4 everywhere
-> >       autofs - copy autofs4 to autofs
-> >       autofs - create autofs Kconfig and Makefile
-> >       autofs - update fs/autofs4/Kconfig
-> >       autofs - update fs/autofs4/Makefile
-> >       autofs - delete fs/autofs4
-> 
-> By doing it this way, you're losing all git history.
-> If you perform stright rename and git detects it, you
-> can use, eg, git log --follow to see whole hostory
-> across rename.  This way you create new files without
-> history.
-> 
-> So I strongly shuggest actually renaming the subdirectory
-> (together with appropriate kconfig/makefile changes so
-> things are bisectable), and creating the stubs after this.
-> 
-> Thanks,
-> 
-> /mjt
-> --
-> To unsubscribe from this list: send the line "unsubscribe autofs" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Ian Kent <raven@themaw.net>
+---
+ fs/autofs4/dev-ioctl.c |   72 +++++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 62 insertions(+), 10 deletions(-)
 
+diff --git a/fs/autofs4/dev-ioctl.c b/fs/autofs4/dev-ioctl.c
+index 743c7c2..1d24e42 100644
+--- a/fs/autofs4/dev-ioctl.c
++++ b/fs/autofs4/dev-ioctl.c
+@@ -183,13 +183,67 @@ static int autofs_dev_ioctl_protosubver(struct file *fp,
+ 	return 0;
+ }
+ 
++/*
++ * Lookup the the topmost path of a (possible) mount stack.
++ *
++ * kern_path() can't be used here because the caller might not
++ * "own" the automount dentry yet and we would end up calling
++ * back to ourself.
++ */
++static int kern_path_top(const char *pathname,
++			 unsigned int flags, struct path *path)
++{
++	struct dentry *dentry;
++	struct qstr name;
++	const char *tmp;
++	unsigned int len;
++	int err;
++
++	len = strlen(pathname);
++	if (len <= 1)
++		return -EINVAL;
++
++	tmp = pathname + len - 1;
++	len = 0;
++	if (*tmp == '/')
++		tmp--;
++	do {
++		if (*tmp == '/')
++			break;
++		len++;
++	} while (--tmp >= pathname);
++	tmp++;
++
++	err = kern_path(pathname, flags | LOOKUP_PARENT, path);
++	if (err)
++		return err;
++
++	name.name = tmp;
++	name.len = len;
++	name.hash = full_name_hash(tmp, len);
++
++	dentry = d_lookup(path->dentry, &name);
++	if (!dentry) {
++		path_put(path);
++		return -ENOENT;
++	}
++	dput(path->dentry);
++	path->dentry = dentry;
++
++	while (follow_down_one(path))
++		;
++
++	return 0;
++}
++
++/* Find the topmost mount satisfying test() */
+ static int find_autofs_mount(const char *pathname,
+ 			     struct path *res,
+ 			     int test(struct path *path, void *data),
+ 			     void *data)
+ {
+ 	struct path path;
+-	int err = kern_path(pathname, 0, &path);
++	int err = kern_path_top(pathname, 0, &path);
+ 	if (err)
+ 		return err;
+ 	err = -ENOENT;
+@@ -197,10 +251,9 @@ static int find_autofs_mount(const char *pathname,
+ 		if (path.dentry->d_sb->s_magic == AUTOFS_SUPER_MAGIC) {
+ 			if (test(&path, data)) {
+ 				path_get(&path);
+-				if (!err) /* already found some */
+-					path_put(res);
+ 				*res = path;
+ 				err = 0;
++				break;
+ 			}
+ 		}
+ 		if (!follow_up(&path))
+@@ -486,12 +539,11 @@ static int autofs_dev_ioctl_askumount(struct file *fp,
+  * mount if there is one or 0 if it isn't a mountpoint.
+  *
+  * If we aren't supplied with a file descriptor then we
+- * lookup the nameidata of the path and check if it is the
+- * root of a mount. If a type is given we are looking for
+- * a particular autofs mount and if we don't find a match
+- * we return fail. If the located nameidata path is the
+- * root of a mount we return 1 along with the super magic
+- * of the mount or 0 otherwise.
++ * lookup the path and check if it is the root of a mount.
++ * If a type is given we are looking for a particular autofs
++ * mount and if we don't find a match we return fail. If the
++ * located path is the root of a mount we return 1 along with
++ * the super magic of the mount or 0 otherwise.
+  *
+  * In both cases the the device number (as returned by
+  * new_encode_dev()) is also returned.
+@@ -519,7 +571,7 @@ static int autofs_dev_ioctl_ismountpoint(struct file *fp,
+ 
+ 	if (!fp || param->ioctlfd == -1) {
+ 		if (autofs_type_any(type))
+-			err = kern_path(name, LOOKUP_FOLLOW, &path);
++			err = kern_path_top(name, LOOKUP_FOLLOW, &path);
+ 		else
+ 			err = find_autofs_mount(name, &path, test_by_type, &type);
+ 		if (err)
