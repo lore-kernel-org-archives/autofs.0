@@ -1,27 +1,27 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 2/3] autofs: fix the return value of autofs4_fill_super
-Date: Wed, 04 Sep 2013 08:55:04 +0800
-Message-ID: <20130904005503.5025.2712.stgit@perseus.fritz.box>
+Subject: [PATCH 3/3] autofs: use IS_ROOT to replace root dentry checks
+Date: Wed, 04 Sep 2013 08:55:11 +0800
+Message-ID: <20130904005510.5025.56622.stgit@perseus.fritz.box>
 References: <20130904005456.5025.94309.stgit@perseus.fritz.box>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
 	subject:to:from:cc:date:message-id:in-reply-to:references
 	:mime-version:content-type:content-transfer-encoding; s=mesmtp;
-	 bh=aV1+u/KeMsL/BGpEfYM3edI5mJU=; b=RgjMFgsMNkSnYYVZVXfH3kqNJEBs
-	SWPSHi+Z9WbkRaUBiR6UPv+r5NGmYmVDAlz6ELVNmdNPpbYzlUTZcqkGJubT0wfQ
-	bY0gfHCz6y3XOMcPQQV4Kvmj27bE83CkEc93JQNrr+SY0+Z/X+jCSOsNMrTLZl4W
-	Ns+YDzJYWXZ0BGM=
+	 bh=gEDdliQT4sW/jW5PTpYPaHCRv2g=; b=u+kCjRaC4Rz8ZRyVvW5XBkAeGHpQ
+	N+3dG8/cAhJQDTHWJQOjla8MgLEGNeoJiClDXeImm9795rhPx5bdIwluKiDt+fTS
+	zBzCuTPjq2xeCXROKe3Vhs+vklju1hJam6rCP0Etsga8NZYySucFxFYdHGJB+G1Z
+	gwkbACUZolx30LY=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=subject:to:from:cc:date:message-id
 	:in-reply-to:references:mime-version:content-type
-	:content-transfer-encoding; s=smtpout; bh=aV1+u/KeMsL/BGpEfYM3ed
-	I5mJU=; b=XO5maOApQOn1Hv4jzCa2FuV8s1jaUy3SqQ+xBu1TUSECWVX3j0CJw0
-	uyYxQBNB+oofDfqFZedidAhndh7Z5tHljGamRB4eJ6d9i7PorW2Qc2gcc839Av0+
-	WXlUQErdiqxStBHVKVLxiCwIYmCCLtuoKan+nhjFcq3IkuXWgzTMc=
+	:content-transfer-encoding; s=smtpout; bh=gEDdliQT4sW/jW5PTpYPaH
+	CRv2g=; b=Yxq6nHGlVe8VfiPmUw70juuAjH3v5rRSOnK33RDWMqHKg3hqz1i2Ix
+	DHwzrvdV04+PM/gt8fVw5mYhxUjTYs6DDkgkvd2wZZkRpRG4/ywSp4+jsWfRm1mQ
+	1gTIxTaIr1IBWbmOhBllg+/gcryuacoAwe1KtRPCk/RYIGU9ZfQTs=
 In-Reply-To: <20130904005456.5025.94309.stgit@perseus.fritz.box>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: Linus Torvalds <torvalds@linux-foundation.org>
@@ -29,62 +29,44 @@ Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, rui.xiang@huawei.com, autofs 
 
 From: Rui Xiang <rui.xiang@huawei.com>
 
-While kzallocing sbi/ino fails, it should return -ENOMEM.
-
-And it should return the err value from autofs_prepare_pipe.
+Use the helper macro !IS_ROOT to replace parent != dentry->d_parent.
+Just clean up.
 
 Signed-off-by: Rui Xiang <rui.xiang@huawei.com>
 Acked-by: Ian Kent <raven@themaw.net>
 ---
- fs/autofs4/inode.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ fs/autofs4/root.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/fs/autofs4/inode.c b/fs/autofs4/inode.c
-index b104726..fe390ed 100644
---- a/fs/autofs4/inode.c
-+++ b/fs/autofs4/inode.c
-@@ -211,10 +211,11 @@ int autofs4_fill_super(struct super_block *s, void *data, int silent)
- 	int pipefd;
- 	struct autofs_sb_info *sbi;
- 	struct autofs_info *ino;
-+	int ret = -EINVAL;
+diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
+index 92ef341..2caf36a 100644
+--- a/fs/autofs4/root.c
++++ b/fs/autofs4/root.c
+@@ -558,7 +558,7 @@ static int autofs4_dir_symlink(struct inode *dir,
+ 	dget(dentry);
+ 	atomic_inc(&ino->count);
+ 	p_ino = autofs4_dentry_ino(dentry->d_parent);
+-	if (p_ino && dentry->d_parent != dentry)
++	if (p_ino && !IS_ROOT(dentry))
+ 		atomic_inc(&p_ino->count);
  
- 	sbi = kzalloc(sizeof(*sbi), GFP_KERNEL);
- 	if (!sbi)
--		goto fail_unlock;
-+		return -ENOMEM;
- 	DPRINTK("starting up, sbi = %p",sbi);
+ 	dir->i_mtime = CURRENT_TIME;
+@@ -593,7 +593,7 @@ static int autofs4_dir_unlink(struct inode *dir, struct dentry *dentry)
  
- 	s->s_fs_info = sbi;
-@@ -248,8 +249,10 @@ int autofs4_fill_super(struct super_block *s, void *data, int silent)
- 	 * Get the root inode and dentry, but defer checking for errors.
- 	 */
- 	ino = autofs4_new_ino(sbi);
--	if (!ino)
-+	if (!ino) {
-+		ret = -ENOMEM;
- 		goto fail_free;
-+	}
- 	root_inode = autofs4_get_inode(s, S_IFDIR | 0755);
- 	root = d_make_root(root_inode);
- 	if (!root)
-@@ -296,7 +299,8 @@ int autofs4_fill_super(struct super_block *s, void *data, int silent)
- 		printk("autofs: could not open pipe file descriptor\n");
- 		goto fail_dput;
+ 	if (atomic_dec_and_test(&ino->count)) {
+ 		p_ino = autofs4_dentry_ino(dentry->d_parent);
+-		if (p_ino && dentry->d_parent != dentry)
++		if (p_ino && !IS_ROOT(dentry))
+ 			atomic_dec(&p_ino->count);
  	}
--	if (autofs_prepare_pipe(pipe) < 0)
-+	ret = autofs_prepare_pipe(pipe);
-+	if (ret < 0)
- 		goto fail_fput;
- 	sbi->pipe = pipe;
- 	sbi->pipefd = pipefd;
-@@ -323,8 +327,7 @@ fail_ino:
- fail_free:
- 	kfree(sbi);
- 	s->s_fs_info = NULL;
--fail_unlock:
--	return -EINVAL;
-+	return ret;
- }
- 
- struct inode *autofs4_get_inode(struct super_block *sb, umode_t mode)
+ 	dput(ino->dentry);
+@@ -732,7 +732,7 @@ static int autofs4_dir_mkdir(struct inode *dir, struct dentry *dentry, umode_t m
+ 	dget(dentry);
+ 	atomic_inc(&ino->count);
+ 	p_ino = autofs4_dentry_ino(dentry->d_parent);
+-	if (p_ino && dentry->d_parent != dentry)
++	if (p_ino && !IS_ROOT(dentry))
+ 		atomic_inc(&p_ino->count);
+ 	inc_nlink(dir);
+ 	dir->i_mtime = CURRENT_TIME;
+
