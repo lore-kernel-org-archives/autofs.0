@@ -1,29 +1,64 @@
-From: Al Viro <viro@ZenIV.linux.org.uk>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: [PATCH 1/3] autofs4 - fix device ioctl mount lookup
-Date: Wed, 4 Sep 2013 03:42:30 +0100
-Message-ID: <20130904024230.GH13318@ZenIV.linux.org.uk>
+Date: Wed, 04 Sep 2013 10:46:22 +0800
+Message-ID: <1378262782.2364.6.camel@perseus.fritz.box>
 References: <20130904005456.5025.94309.stgit@perseus.fritz.box>
- <20130904010301.GE13318@ZenIV.linux.org.uk>
- <20130904020013.GF13318@ZenIV.linux.org.uk>
- <CA+55aFwF+dqSMyGE+3LamM+qSDymieyReYB+RPb8fHTTmntgqw@mail.gmail.com>
- <20130904022617.GG13318@ZenIV.linux.org.uk>
+	 <20130904010301.GE13318@ZenIV.linux.org.uk>
+	 <20130904020013.GF13318@ZenIV.linux.org.uk>
+	 <CA+55aFwF+dqSMyGE+3LamM+qSDymieyReYB+RPb8fHTTmntgqw@mail.gmail.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20130904022617.GG13318@ZenIV.linux.org.uk>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
+	message-id:subject:from:to:cc:date:in-reply-to:references
+	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
+	 bh=TUBz2R+qDMnRwURN+68IQzMQnDs=; b=JrAd1hBtdDy+DCeO0n2GH7McOFKu
+	sHRdrg2+gsR+0X92+2qU22JZwo/Tlmu6iAWWEt1pjojJsniKn6E03A5OmCZNaX76
+	aYkOxj+Zof6l49eDRlI+JCBSuJV66RVvblVveMYIXcDiSnWN4CwUt5AfC/KbGUlj
+	v/2ZKoIOCm7uM28=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=message-id:subject:from:to:cc:date
+	:in-reply-to:references:content-type:mime-version
+	:content-transfer-encoding; s=smtpout; bh=TUBz2R+qDMnRwURN+68IQz
+	MQnDs=; b=nZnoAhrKtE4BHjhW7SmjOJDdXMYBhDALxh5tuDCHwVY8nJACnIjtv0
+	xVeOIjpTcKB1lqdYTVml4VgfQvSYIdzH0JHNy4dpWNp75ZTYFJaKO/i4zPtWkn5h
+	8cVXORAI83dTqfsltrNatJfwv2DAhSTy7VupfokUt3xqDwG7BqTcU=
+In-Reply-To: <CA+55aFwF+dqSMyGE+3LamM+qSDymieyReYB+RPb8fHTTmntgqw@mail.gmail.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Ian Kent <raven@themaw.net>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, rui.xiang@huawei.com, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, rui.xiang@huawei.com, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Wed, Sep 04, 2013 at 03:26:17AM +0100, Al Viro wrote:
-> I've applied slightly modified variant of Jeff's "vfs: allow umount to handle
-> mountpoints without revalidating them" (modified by just leaving the
-> struct path filled with mountpoint and leaving the equivalent of follow_mount()
-> to caller) to the local queue and I'm pretty sure that it's what we want
-> here as well.
+On Tue, 2013-09-03 at 19:18 -0700, Linus Torvalds wrote:
+> On Tue, Sep 3, 2013 at 7:00 PM, Al Viro <viro@zeniv.linux.org.uk> wrote:
+> >
+> > That aside, I'm really not happy with this kind of games; this stuff clearly
+> > belongs in fs/namei.c where we can simply see the last component.  Doing that
+> > on the level of "let's scan the pathname for slashes, etc." is just plain
+> > wrong.  Let's step back for a minute here; what are you trying to do?
+> > You have a pathname that should resolve to a mountpoint, without triggering
+> > automount (or crossing into the mountpoint, for that matter) and you want
+> > struct path for the bottom of that mount stack?  Or is it something
+> > completely different?
+> 
+> Can we add a LOOKUP_NOAUTOMNT bit or something (not exposed to user
+> space, only used for this particular kern_path() call). Then, if/when
+> automount gets called recursively (through autofs4_lookup? Or is it
+> just the autofs4_d_automount() interface?) it can just decide to not
+> follow that last path.
+> 
+> Hmm? I don't think we pass in the lookup-flags to d_automount, but
+> that could be changed. Yes?
 
-... and killed the modifications since the result ends up uglier for
-caller(s) anyway.  Reapplied as-is.
+We don't need to.
+
+Al is completely right, Jeff's umount path lookup patch will cover all
+the needed cases, AFAICS.
+
+That's a relief.
+
+> 
+>              Linus
+
+
