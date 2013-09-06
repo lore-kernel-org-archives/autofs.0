@@ -1,67 +1,75 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 1/3] autofs4 - fix device ioctl mount lookup
-Date: Fri, 06 Sep 2013 16:54:19 +0800
-Message-ID: <1378457659.2311.23.camel@perseus.fritz.box>
-References: <20130904005456.5025.94309.stgit@perseus.fritz.box>
-	 <20130904010301.GE13318@ZenIV.linux.org.uk>
-	 <20130904020013.GF13318@ZenIV.linux.org.uk>
-	 <CA+55aFwF+dqSMyGE+3LamM+qSDymieyReYB+RPb8fHTTmntgqw@mail.gmail.com>
-	 <20130904022617.GG13318@ZenIV.linux.org.uk>
-	 <20130904024230.GH13318@ZenIV.linux.org.uk>
-	 <1378456682.2311.21.camel@perseus.fritz.box>
+Subject: Re: [PATCH 2/2, 2nd attempt] samples/auto.smb: add logic to obtain
+ credentials
+Date: Fri, 06 Sep 2013 17:26:31 +0800
+Message-ID: <1378459591.2311.28.camel@perseus.fritz.box>
+References: <51081EF4.20105@ts.fujitsu.com>
+	  <1359549686-7246-1-git-send-email-martin.wilck@ts.fujitsu.com>
+	  <1359549686-7246-3-git-send-email-martin.wilck@ts.fujitsu.com>
+	 <1378454358.2311.1.camel@perseus.fritz.box>
+	 <52299118.4080103@ts.fujitsu.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
 	message-id:subject:from:to:cc:date:in-reply-to:references
 	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
-	 bh=cVTO0wDZ1BgtGTihL+77+rAvelo=; b=a2Bqh3qKCiqGwqo/KGAJY40Lxiv5
-	qtLen1uWOV3n7FJ9I+iajPR0WzTOwQ23dGaFolpvgKYu+MwHq58H2LIPjF5T7LPI
-	6tOLI+f3ENYEOb+oUAD1zu/+Lc9T+Kt0TMnZDmf5b+Kw3VBDNOmxWrsWU/w5/0yw
-	d9FoRN87AKxBDs8=
+	 bh=cCr5rjH4GrIhPGJjvbeyzqTn3cE=; b=p4dsZpaGWu+7f7nGhm6vqtbBcL8G
+	wH5u8A4TQIGJJMXCLw6AHnBpKAmdoKHrRWabSlK7ZYOVjXkzju9lCfU8BxjwbKFh
+	Sve8psoEbOPuOtDj3xJ4hBAJ6unyuS9raD3QwpjDyVqqrP7FbIbGdlMnb/5XEGWR
+	V9p4oUquP48pdZI=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=message-id:subject:from:to:cc:date
 	:in-reply-to:references:content-type:mime-version
-	:content-transfer-encoding; s=smtpout; bh=cVTO0wDZ1BgtGTihL+77+r
-	Avelo=; b=HLIttji0ns+mNSieGvuu+YnwSeVYx9YajR+g8Ka/BxiulY2m50S+b+
-	tWyxuP2lQjPMlXl/JptOjdcSEBOEbaUrSREjzXhqLISLMVkNBM7jHrc+u3uCKFaF
-	uPvpNn0M7jegrfSMi8u7gZOoqtKHRH0AIZEI7DyDZjmEFjq5lndEg=
-In-Reply-To: <1378456682.2311.21.camel@perseus.fritz.box>
+	:content-transfer-encoding; s=smtpout; bh=cCr5rjH4GrIhPGJjvbeyzq
+	Tn3cE=; b=Gr63PEZlcnDxJpg3mGg6ECvGXLBELH7/7/d9SQmkR1DQr96VGjbPxu
+	Q51qGSDM8TM/tEHrvuycLg52mZzmtRwtPCJRPFKjMqdbdfePXvyOXw44DCLqHot+
+	tlPv2j4bBPKswdPwuED27iPpibyV9cRsa9pxroONtv7wRQoLPYNZo=
+In-Reply-To: <52299118.4080103@ts.fujitsu.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Jeffrey Layton <jlayton@redhat.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, rui.xiang@huawei.com, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Al Viro <viro@ZenIV.linux.org.uk>
+To: Martin Wilck <martin.wilck@ts.fujitsu.com>
+Cc: "autofs@vger.kernel.org" <autofs@vger.kernel.org>
 
-
-Sorry, I should have added Jeff to the cc for this post.
-
-On Fri, 2013-09-06 at 16:38 +0800, Ian Kent wrote:
-> On Wed, 2013-09-04 at 03:42 +0100, Al Viro wrote:
-> > On Wed, Sep 04, 2013 at 03:26:17AM +0100, Al Viro wrote:
-> > > I've applied slightly modified variant of Jeff's "vfs: allow umount to handle
-> > > mountpoints without revalidating them" (modified by just leaving the
-> > > struct path filled with mountpoint and leaving the equivalent of follow_mount()
-> > > to caller) to the local queue and I'm pretty sure that it's what we want
-> > > here as well.
+On Fri, 2013-09-06 at 10:23 +0200, Martin Wilck wrote:
+> On 09/06/2013 09:59 AM, Ian Kent wrote:
+> 
+> >> -$SMBCLIENT -gNL $key 2>/dev/null| awk -v key="$key" -v opts="$opts" -F'|' -- '
+> >> +creds=/etc/creds/$key
+> >> +if [ -f "$creds" ]; then
+> >> +    opts="$opts"',uid=$UID,gid=$GID,credentials='"$creds"
+> >> +    smbopts="-A $creds"
+> >> +else
+> >> +    get_krb5_cache
+> >> +    if [ -n "$cache" ]; then
+> >> +        opts="$opts"',multiuser,cruid=$UID,sec=krb5i'
+> >> +        smbopts="-k"
+> >> +        export KRB5CCNAME=$cache 
+> >> +    else
+> >> +        opts="$opts"',guest'
 > > 
-> > ... and killed the modifications since the result ends up uglier for
-> > caller(s) anyway.  Reapplied as-is.
+> > Why add guest?
 > 
-> Looks like Jeff's patch has been merged, commit 8033426e6.
+> "guest" means "don't prompt for a password" which is what mount.cifs
+> will attempt to do if no credentials are available already (e.g. via
+> kerberos ticket). IMO that's what's needed for autofs, otherwise the
+> mount attempt might hang waiting for password input.
 > 
-> Revalidation isn't the only thing not done on the last component using
-> Jeff's user_path_umountat() path walk. It also bypasses the managed
-> dentry code for the last component, which is why it's what I need as
-> well.
+> > Is that going to change the behavior of the existing script.
 > 
-> Encoding umount in the name seems misleading as to what it really does
-> as would encoding unmanaged or similar since that doesn't properly cover
-> it either.
+> "guest" mode was all the previous script could do, thus it seems to have
+> been written with servers in mind that only offered guest access in the
+> first place (und thus wouldn't prompt for a password, either).
+
+From my POV auto.smb is an example program map that happens to get
+installed. I don't think it was never meant to be sophisticated.
+
+You are saying that adding guest doesn't change anything as it is the
+default when no credentials are provided, correct?
+
 > 
-> I can rename it in a patch to solve my autofs problem, so how about
-> something like user_path_simple_last(), other suggestions anyone?
+> Martin
 > 
-> Ian
 
 
