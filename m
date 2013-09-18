@@ -1,9 +1,22 @@
-From: Tim Landscheidt <tim@tim-landscheidt.de>
-Subject: How to specify "helper=x" option?
-Date: Wed, 18 Sep 2013 01:41:12 +0000
-Message-ID: <8761tyx5xj.fsf@passepartout.tim-landscheidt.de>
+From: Stef Bon <stefbon@gmail.com>
+Subject: Re: How to specify "helper=x" option?
+Date: Wed, 18 Sep 2013 07:56:10 +0200
+Message-ID: <CANXojcwqLj9qUJGtBCy5=ra7f+hFd3LBzrm7L0FF8hF1ba85fw@mail.gmail.com>
+References: <8761tyx5xj.fsf@passepartout.tim-landscheidt.de>
 Mime-Version: 1.0
 Return-path: <autofs-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20120113;
+        h=mime-version:in-reply-to:references:date:message-id:subject:from:to
+         :content-type;
+        bh=b04ecl4yIBHqo5WOeETdwkkeuYwg2cHmhNqKQu1aOZU=;
+        b=ihsNMctBx5kUGy919N/UZR93C9isnAXd/DAwSaftfGNdTb1UIddKZaTs3/gz5TeKFD
+         Oy7iiYsZztnZRMz8uhvOSXiibiI9VpvV1frK6A/O9r6pVy1xJW1++R6qpteevNv9yffn
+         FGnlB8rJWYbVjTGiLFmZtkNOQGc6fimjNkIrhtA7HK/rAT4v6AHcSq+GyIT6eToHAp/8
+         wbWwVkz9pLxvrgl6z5XZJtvLxV8VVFamyKQKao9j+OXqNnEEu54jb0mcLcJ02dfLcHBS
+         fO9zWl/4lLj8KcyHFonMn6yZqu7y4kempjVy5RUgyeCfKZ6QXblhnbjLSpCafbzhHgXs
+         VwIQ==
+In-Reply-To: <8761tyx5xj.fsf@passepartout.tim-landscheidt.de>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
@@ -12,33 +25,13 @@ To: autofs@vger.kernel.org
 
 Hi,
 
-on Fedora 19 with autofs 5.0.7-28, I want to set up auto-
-matic mounting and unmounting of encrypted removable devices
-with the basic idea: The program used as a map unlocks the
-device to /dev/mapper/a and then makes autofs mount the lat-
-ter with "helper=x", so that when unmounting, my script
-/sbin/umount.x is called that unmounts the file system and
-locks the device again.
+I've had the same problem. I did not use the helper option, but
+specified a non existent filesystem:
 
-However, with a (for testing static) map of:
+*   -fstype=md5key    :/&
 
-| test   -fstype=ext4,helper=test,ro   :/dev/vg_passepartout/test
+Now this made my mount.md5key script is called.
 
-the helper option doesn't survive:
+But with unmountng autofs ignored my md5key filesystem.
 
-| /dev/mapper/vg_passepartout-test on /mnt/test type ext4 (ro,relatime,seclabel,data=ordered)
-
-The "ro" shows that the options aren't ignored altogether.
-
-Mounting manually ("mount -o helper=test
-/dev/vg_passepartout/test t") works:
-
-| /dev/mapper/vg_passepartout-test on /root/t type ext4 (rw,relatime,seclabel,data=ordered,helper=test)
-
-Are the options to mount filtered by autofs?  Are there
-other hooks that are called on autofs unmounts and could be
-used for that purpose?
-
-TIA,
-Tim
-
+Stef
