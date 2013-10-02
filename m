@@ -1,69 +1,36 @@
-From: fedfs-utils Release Announcements <fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
-Subject: fedfs-utils 0.9.3 packaged in Fedora
-Date: Tue, 24 Sep 2013 09:00:00 -0400
-Message-ID: <B94A9B58-EA2D-4566-A3B5-EAC15F428E9A@oracle.com>
-Reply-To: fedfs-utils Release Announcements
-	<fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <fedfs-utils-announce-bounces-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <https://oss.oracle.com/mailman/listinfo/fedfs-utils-announce>, 
-	<mailto:fedfs-utils-announce-request-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://oss.oracle.com/pipermail/fedfs-utils-announce>
-List-Post: <mailto:fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
-List-Help: <mailto:fedfs-utils-announce-request-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org?subject=help>
-List-Subscribe: <https://oss.oracle.com/mailman/listinfo/fedfs-utils-announce>, 
-	<mailto:fedfs-utils-announce-request-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org?subject=subscribe>
-Sender: fedfs-utils-announce-bounces-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
-Errors-To: fedfs-utils-announce-bounces-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
-To: "fedfs-utils;release announcements" <fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
-Cc: Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "autofs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <autofs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org" <samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org>
+From: Ian Kent <raven@themaw.net>
+Subject: Current patch queue has been committed
+Date: Wed, 02 Oct 2013 10:13:52 +0800
+Message-ID: <1380680032.2286.14.camel@perseus.fritz.box>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Return-path: <autofs-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
+	message-id:subject:from:to:date:content-type:mime-version
+	:content-transfer-encoding; s=mesmtp; bh=8FNqZ2jbKCxsrucyYWvKCbn
+	Dwzc=; b=qGz2VDX8HyitpvkK9g5cj5/3xF+zSOKotYV6zv7CGkLJXBDBs/csrbE
+	RCaqJZT53Or0D7+LDXBpuke/cIIgjKVLeAMCK5PlOdvpg8x7Cdf1rI3orfIk3uHZ
+	yep5HZrM+9GWV6svBSIZFK9nG77v8DZlrrOPIWGfjKA9SU7+qHK0=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=message-id:subject:from:to:date
+	:content-type:mime-version:content-transfer-encoding; s=smtpout;
+	 bh=8FNqZ2jbKCxsrucyYWvKCbnDwzc=; b=LMVL0yVgS+P+N2CNkK80icXEZ8BU
+	mSWBB5tL/cCWxL7TI6dFb4l8Tl34fDPGle8hzxI2znOh5YM0Lm1K/LitM9Qp2YYu
+	XpP49EtfnKrdHtW4Ormm337uLzVhu8QT2XdBd/1Dt5ai2IbSTR+VPzjx7y7Z9EnI
+	w1Le/N2B+e7GDUY=
+Sender: autofs-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: autofs <autofs@vger.kernel.org>
 
-The latest upstream release of fedfs-utils (0.9.3) is now available in Fedo=
-ra 18, 19, 20, and rawhide.  This update replaces the previous version of t=
-he package (0.9.2).
+Hi all,
 
-The fedfs-utils package contains an implementation of the Federated Filesys=
-tem (FedFS) Proposed Standard for Linux.  For an introduction to FedFS, see=
- RFC 5716.
+Just to let those of you with patches that were in the current queue, I
+have committed then and pushed the changes to the autofs git repository.
 
-This is an ALPHA quality release.  The code in this release is not guarante=
-ed to work. Programming, administrative, and user interfaces may change sig=
-nificantly before the next release.  This release is for technology preview=
- only.
+Please have a look and let me know if there are any omissions or
+mistakes.
 
-Changes since 0.9.2:
-	=95 Allow fedfs-utils to build on systems that do not have liburiparser
+Ian
 
-Changes since 0.9.1:
-	=95 Packaging-related improvements
 
-Changes since 0.9.0:
-	=95 Address build issues with recent automake and libtools
-	=95 Replace nl_langinfo(CODESET) check in command line tools
-
-New with fedfs-utils 0.9.0:
-	=95 NSDB schema complies with latest draft standard
-	=95 DNS SRV support complies with RFC 6641
-	=95 NSDB clients support the FEDFS_SEC_TLS security type
-	=95 NSDB clients can follow LDAP referrals returned by NSDB nodes
-	=95 New tools for configuration of NSDBs
-	=95 New "display-junction" debugging command
-
-Project web site
-http://wiki.linux-nfs.org/wiki/index.php/FedFsUtilsProject
-
-Installation guide:
-http://wiki.linux-nfs.org/wiki/index.php/FedFsInstallationGuide0.9
-
-Tarball releases available at
-http://git.linux-nfs.org/?p=3Dcel/fedfs-releases.git;a=3Dsummary
-
-Git repository available at
-http://git.linux-nfs.org/?p=3Dcel/fedfs-utils.git;a=3Dshortlog;h=3Drefs/hea=
-ds/0.9-stable
-
-Patchwork available at
-http://patchwork.ozlabs.org/project/fedfs-utils/list/
