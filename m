@@ -1,35 +1,99 @@
-From: David Ahern <dsahern@gmail.com>
-Subject: Re: NULL pointer dereference in autofs4_expire_wait
-Date: Sun, 13 Oct 2013 14:13:56 -0600
-Message-ID: <525AFF04.50306@gmail.com>
-References: <525736C7.9080400@gmail.com>	  <1381457199.2631.3.camel@perseus.fritz.box>	 <1381485327.2631.18.camel@perseus.fritz.box> <5257FD34.2060406@gmail.com> <1381542984.2272.21.camel@perseus.fritz.box>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+From: Chuck Lever <chuck.lever@oracle.com>
+Subject: Announcing the release of fedfs-utils 0.9.4
+Date: Tue, 15 Oct 2013 10:51:35 -0400
+Message-ID: <B878534C-41AD-439B-B81A-C557418F9B17@oracle.com>
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Content-Type: multipart/signed; boundary="Apple-Mail=_A5964627-06DE-4A72-905B-E33EC5D9DFAB"; protocol="application/pgp-signature"; micalg=pgp-sha1
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20120113;
-        h=message-id:date:from:user-agent:mime-version:to:cc:subject
-         :references:in-reply-to:content-type:content-transfer-encoding;
-        bh=zhyH+yw3fWORjaCeeZK+RSvZHpA7Oc/J8dMoGAlrbzg=;
-        b=fQCj/d6mKt6MixgCZf6AukpNYLxOa4kaXpOw9RajuKoLVsoWSHyTAS6QD/QXyb+hys
-         vF2NHXzsxjO72Or6fPnv0MXeqUsGK+baaj50kQUXYcxlmiwo5JlISbA6ECpe8bZB7bx3
-         1Dhtq2u3lthLgkPIrSrqE4yBuN+dvDLE5Bz59ww3MiRv7Eb5aOf7MwiXkgayyWNRNicV
-         TFr/eO2wie5hiXIjiJdevZCaoavodO4z4H7rJs9Txj+x2GlPk/OupEfXNfklxN+Ertil
-         eBoncSSd2S9yD2eRhS48uMw9NrTtt/gxbH5+TmFvapXVVi8DVCi1Yy5yQk01b6N0EcqT
-         8cQA==
-In-Reply-To: <1381542984.2272.21.camel@perseus.fritz.box>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@vger.kernel.org, viro@ZenIV.linux.org.uk, linux-kernel@vger.kernel.org
+To: "fedfs-utils;release announcements" <fedfs-utils-announce@oss.oracle.com>
+Cc: Linux NFS Mailing List <linux-nfs@vger.kernel.org>, "autofs@vger.kernel.org" <autofs@vger.kernel.org>, "samba-technical@lists.samba.org" <samba-technical@lists.samba.org>
 
-On 10/11/13 7:56 PM, Ian Kent wrote:
-> So more history please, had you used 3.11 for an extended amount of
-> time, before using the 3.12-rc? IOW what's your kernel version use
-> history please?
 
-I think I did have a 3.11 installed, but was not doing a heavy 
-nfs/autofs load. That started in the past week.
+--Apple-Mail=_A5964627-06DE-4A72-905B-E33EC5D9DFAB
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+	charset=windows-1252
 
-David
+This package contains an implementation of the Federated Filesystem =
+(FedFS) Proposed Standard for Linux.  For an introduction to FedFS, see =
+RFC 5716.
+
+This is an ALPHA quality release.  The code in this release is not =
+guaranteed to work.  Programming, administrative, and user interfaces =
+may change significantly before the next release.  This release is for =
+technology preview only.
+
+Changes since 0.9.3:
+	=95 Mount fails when domain has multiple SRV records
+	=95 Fix a problem with build environment
+
+Changes since 0.9.2:
+	=95 Make the use of liburiparser optional
+
+Changes since 0.9.1:
+	=95 Packaging-related improvements
+
+Changes since 0.9.0:
+	=95 Address build issues with recent automake and libtools
+	=95 Replace nl_langinfo(CODESET) check in command line tools
+
+New with fedfs-utils 0.9.0:
+	=95 NSDB schema complies with latest draft standard
+	=95 DNS SRV support complies with RFC 6641
+	=95 NSDB clients support the FEDFS_SEC_TLS security type
+	=95 NSDB clients can follow LDAP referrals returned by NSDB =
+nodes
+	=95 New tools for configuration of NSDBs
+	=95 New "display-junction" debugging command
+
+Project web site
+http://wiki.linux-nfs.org/wiki/index.php/FedFsUtilsProject
+
+Installation guide:
+http://wiki.linux-nfs.org/wiki/index.php/FedFsInstallationGuide0.9
+
+Tarball releases:
+http://git.linux-nfs.org/?p=3Dcel/fedfs-releases.git;a=3Dsummary
+
+Git repository:
+=
+http://git.linux-nfs.org/?p=3Dcel/fedfs-utils.git;a=3Dshortlog;h=3Drefs/he=
+ads/0.9-stable
+
+Patchwork:
+http://patchwork.ozlabs.org/project/fedfs-utils/list/
+
+--=20
+Chuck Lever
+chuck[dot]lever[at]oracle[dot]com
+
+
+--Apple-Mail=_A5964627-06DE-4A72-905B-E33EC5D9DFAB
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename=signature.asc
+Content-Type: application/pgp-signature;
+	name=signature.asc
+Content-Description: Message signed with OpenPGP using GPGMail
+
+-----BEGIN PGP SIGNATURE-----
+Comment: GPGTools - http://gpgtools.org
+
+iQIcBAEBAgAGBQJSXVZ3AAoJEKtSGoIDWtn6MrYP/3DKooIQSs9uk0CtR/nNEVtB
+8kzipP3iiUHYaNEBJ+rtnGonDJvHwjo59BkKXowB54OqWRx6+WTyQC9j8q6o2FJB
+jtAJehbZAqyTz1zvFpXLX5J8YMgJmWfOsM4EzBg7bl4yhAYl5lBUlIXg0VVT4fs3
+Rf9MxJtUwXAoTZlBbxe4+CxMuX0dZFO/L58Vdra9bpUkCBj+OA90CkDQk1t2lW18
+A/QcykMtwlyxMmElg4vzvCQ71jJ+UWXSpqg3XTf+uWaNZsAr37XaVnqflyFQMeBd
+AvSRVpwM1IOiQwSgA719MgQ0zWYDTNPr8eHRyejGkcy3koLIzahite6h5hDJOfsl
+Fh4X5pbVEEH1gzLTylB8e/fjoGD2SIkY1xoCdUQJ3YbZThXn9p04HOXRYGpPnA32
+e91FrsolKSBFx2cKKGtOAghdj+cE/gQ5zAbWZ2Fkt7jVaptQZAW3X9UJj+8weTkM
+xwgRlk/wVbHtnScqQD0/V1h7+/iKBOibF5bHu/GFxsFG63KxIFpZgKIS9gSbbTGk
+3GOi/BDIoqg8xmQ5y0a/k2GplZoRXDlYYGLY5Q5iyXxBeiAQ1JzzzRcfwKhYTjyv
+wSMor1WR/sIBfXOWGuaQQKH1+WkU2qyUal4TIvgpy04c+sjG73QLUC4D4CEXyWD3
+UVmhWZnMK4bhHQNAv08B
+=Xhph
+-----END PGP SIGNATURE-----
+
+--Apple-Mail=_A5964627-06DE-4A72-905B-E33EC5D9DFAB--
