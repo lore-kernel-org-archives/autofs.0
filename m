@@ -1,99 +1,153 @@
-From: Chuck Lever <chuck.lever@oracle.com>
-Subject: Announcing the release of fedfs-utils 0.9.4
-Date: Tue, 15 Oct 2013 10:51:35 -0400
-Message-ID: <B878534C-41AD-439B-B81A-C557418F9B17@oracle.com>
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Content-Type: multipart/signed; boundary="Apple-Mail=_A5964627-06DE-4A72-905B-E33EC5D9DFAB"; protocol="application/pgp-signature"; micalg=pgp-sha1
+From: Ian Kent <raven@themaw.net>
+Subject: [ANNOUNCE] autofs 5.0.8 release
+Date: Thu, 17 Oct 2013 16:00:54 +0800
+Message-ID: <1381996854.2861.2.camel@perseus.fritz.box>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
+	message-id:subject:from:to:cc:date:content-type:mime-version
+	:content-transfer-encoding; s=mesmtp; bh=s35uPhaIsb4Idhpcy3QwycK
+	kogo=; b=y2edej+eYI5y8Qs6NJ5cD0mknp8mRI8jm65ME4CmXsF3jzhYD2/d51m
+	ZkmiHPldgIRtgPVO8UlrNN35pJKOXUOwpoZGIM71Vz8Rt/dUlE1TUw7zdVqzRR1/
+	TxKBbCHkl+qE4+Whs2WwAQtABsUdMLbn74oP17qiH/le4N+OE8kU=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=message-id:subject:from:to:cc:date
+	:content-type:mime-version:content-transfer-encoding; s=smtpout;
+	 bh=s35uPhaIsb4Idhpcy3QwycKkogo=; b=JeicQJOEvydaFOUyH/b/f8AcUIPk
+	snDCJgzkPvv+ljEvK5UdSHM3HeK+jUjkf0myb1oOlg9fehFm6zhBstx4bj6UnoNO
+	tt+2CtapiNI7+QdK+odrH7w86geSk+EfGyh7sCnGTfmXk+VhBmnL/P5s1srSaM/3
+	xjhG0W7qBMzElgU=
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-To: "fedfs-utils;release announcements" <fedfs-utils-announce@oss.oracle.com>
-Cc: Linux NFS Mailing List <linux-nfs@vger.kernel.org>, "autofs@vger.kernel.org" <autofs@vger.kernel.org>, "samba-technical@lists.samba.org" <samba-technical@lists.samba.org>
+Content-Type: text/plain; charset="us-ascii"
+To: autofs@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 
+Hi all,
 
---Apple-Mail=_A5964627-06DE-4A72-905B-E33EC5D9DFAB
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain;
-	charset=windows-1252
+Once again this is long overdue so there are many changes.
 
-This package contains an implementation of the Federated Filesystem =
-(FedFS) Proposed Standard for Linux.  For an introduction to FedFS, see =
-RFC 5716.
+The kernel patches are not being updated any more because of the
+introduction of the vfs-automount changes to the VFS. If there
+are needs in this area we will need to discuss how to deal with
+them on the mailing list.
 
-This is an ALPHA quality release.  The code in this release is not =
-guaranteed to work.  Programming, administrative, and user interfaces =
-may change significantly before the next release.  This release is for =
-technology preview only.
+Known issues (haven't changed since 5.0.7, still)
+================================================
 
-Changes since 0.9.3:
-	=95 Mount fails when domain has multiple SRV records
-	=95 Fix a problem with build environment
+- Quoted strings in the master map are still not yet handled.
+- When the active restart is being used it will happily re-connect a
+  mount that is unresponsive, perhaps because the server is not
+  responding. A forced expire (USR1 signal) should be enough to clean
+  up.
 
-Changes since 0.9.2:
-	=95 Make the use of liburiparser optional
+autofs
+======
 
-Changes since 0.9.1:
-	=95 Packaging-related improvements
+The package can be found at:
 
-Changes since 0.9.0:
-	=95 Address build issues with recent automake and libtools
-	=95 Replace nl_langinfo(CODESET) check in command line tools
+ftp://ftp.kernel.org/pub/linux/daemons/autofs/v5
 
-New with fedfs-utils 0.9.0:
-	=95 NSDB schema complies with latest draft standard
-	=95 DNS SRV support complies with RFC 6641
-	=95 NSDB clients support the FEDFS_SEC_TLS security type
-	=95 NSDB clients can follow LDAP referrals returned by NSDB =
-nodes
-	=95 New tools for configuration of NSDBs
-	=95 New "display-junction" debugging command
+It is autofs-5.0.8.tar.[gz|bz2|xz]
 
-Project web site
-http://wiki.linux-nfs.org/wiki/index.php/FedFsUtilsProject
+No source rpm is there as it can be produced by using:
 
-Installation guide:
-http://wiki.linux-nfs.org/wiki/index.php/FedFsInstallationGuide0.9
+rpmbuild -ts autofs-5.0.8.tar.gz
 
-Tarball releases:
-http://git.linux-nfs.org/?p=3Dcel/fedfs-releases.git;a=3Dsummary
+and the binary rpm by using:
 
-Git repository:
-=
-http://git.linux-nfs.org/?p=3Dcel/fedfs-utils.git;a=3Dshortlog;h=3Drefs/he=
-ads/0.9-stable
+rpmbuild -tb autofs-5.0.8.tar.gz
 
-Patchwork:
-http://patchwork.ozlabs.org/project/fedfs-utils/list/
+See the INSTALL file for information about configure options and
+kernel requirements.
 
---=20
-Chuck Lever
-chuck[dot]lever[at]oracle[dot]com
+Here are the entries from the CHANGELOG which outline the updates:
 
+17/10/2013 autofs-5.0.8
+=======================
+- fix nobind sun escaped map entries.
+- fix use cache entry after free in lookup_prune_one_cache().
+- fix ipv6 proximity calculation.
+- fix parse buffer initialization.
+- fix typo in automount(8).
+- dont wait forever to restart.
+- add timeout option description to man page.
+- fix null map entry order handling.
+- make description of default MOUNT_WAIT setting clear.
+- configure.in: allow cross compilation.
+- README: update mailing list subscription info.
+- allow non root user to check status.
+- fix recursive mount deadlock.
+- increase file map read buffer size.
+- handle new location of systemd.
+- fix map entry duplicate offset detection.
+- Allow nsswitch.conf to not contain "automount:" lines.
+- fix nobind man page description.
+- fix submount offset delete.
+- fix init script status return.
+- fix use get_proximity() without libtirpc.
+- don't use dirent d_type to filter out files in scandir()
+- don't schedule new alarms after readmap.
+- use numeric protocol ids instead of protoent structs.
+- lib/defaults.c: use WITH_LDAP conditional around LDAP types.
+- make yellow pages support optional.
+- modules/replicated.c: use sin6_addr.s6_addr32.
+- workaround missing GNU versionsort extension.
+- dont fail on master map self include.
+- fix wildcard multi map regression.
+- fix file descriptor leak when reloading the daemon.
+- depricate nosymlink pseudo option.
+- add symlink pseudo option.
+- fix requires in spec file.
+- fix libtirpc build option to require libtirpc-devel if needed.
+- fix systemd unidir in spec file.
+- document browse option in man page.
+- fix some automount(8) typos.
+- syncronize handle_mounts() shutdown.
+- fix submount tree not all expiring.
+- make dump maps check for duplicate indirect mounts.
+- document allowed map sources in auto.master.
+- add enable sloppy mount option to configure.
+- fix interface address null check.
+- dont probe rdma mounts.
+- fix master map mount options matching.
+- fix master map bogus keywork match.
+- fix fix map entry duplicate offset detection.
+- probe each nfs version in turn for singleton mounts.
+- add changlog entry for coverity fixes.
+- fix probe each nfs version in turn for singleton mounts.
+- misc man page fixes.
+- fix add null check in parse_server_string().
+- don't override LDFLAGS in make rules.
+- fix a couple of compiler warnings.
+- add after sssd dependency to unit file.
+- dont start readmap unless ready.
+- fix crash due to thread unsafe use of libldap.
+- fix compile error with heimdal support enabled.
+- fix typo forced-shutdown should be force-shutdown.
+- fix hesiod check error and use correct $(LIBS) setting.
+- fix dead LDAP symbolic link when LDAP support is disabled.
+- add missing libtirpc lib to mount_nfs.so when TIRPC enabled.
+- use compiler determined by configure instead of hard-coded ones.
+- remove hard-coded STRIP variable.
+- use LIBS for link libraries.
+- unbundle NOTSTRIP from DEBUG so they dont depend on each other.
+- fix compilation of lookup_ldap.c without sasl.
+- fix dumpmaps multi output.
+- try and cleanup after dumpmaps.
+- teach dumpmaps to output simple key value pairs.
+- fix syncronize handle_mounts() shutdown.
+- fix fix wildcard multi map regression.
+- improve timeout option description.
+- only probe specific nfs version if requested.
+- fix bad mkdir permission on create.
+- setup program map env from macro table.
+- add short host name standard marco variable.
+- fix get_nfs_info() probe.
+- fix portmap lookup.
+- add std vars to program map invocation.
+- samples/auto.smb: add logic to obtain credentials.
 
---Apple-Mail=_A5964627-06DE-4A72-905B-E33EC5D9DFAB
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename=signature.asc
-Content-Type: application/pgp-signature;
-	name=signature.asc
-Content-Description: Message signed with OpenPGP using GPGMail
+Ian
 
------BEGIN PGP SIGNATURE-----
-Comment: GPGTools - http://gpgtools.org
-
-iQIcBAEBAgAGBQJSXVZ3AAoJEKtSGoIDWtn6MrYP/3DKooIQSs9uk0CtR/nNEVtB
-8kzipP3iiUHYaNEBJ+rtnGonDJvHwjo59BkKXowB54OqWRx6+WTyQC9j8q6o2FJB
-jtAJehbZAqyTz1zvFpXLX5J8YMgJmWfOsM4EzBg7bl4yhAYl5lBUlIXg0VVT4fs3
-Rf9MxJtUwXAoTZlBbxe4+CxMuX0dZFO/L58Vdra9bpUkCBj+OA90CkDQk1t2lW18
-A/QcykMtwlyxMmElg4vzvCQ71jJ+UWXSpqg3XTf+uWaNZsAr37XaVnqflyFQMeBd
-AvSRVpwM1IOiQwSgA719MgQ0zWYDTNPr8eHRyejGkcy3koLIzahite6h5hDJOfsl
-Fh4X5pbVEEH1gzLTylB8e/fjoGD2SIkY1xoCdUQJ3YbZThXn9p04HOXRYGpPnA32
-e91FrsolKSBFx2cKKGtOAghdj+cE/gQ5zAbWZ2Fkt7jVaptQZAW3X9UJj+8weTkM
-xwgRlk/wVbHtnScqQD0/V1h7+/iKBOibF5bHu/GFxsFG63KxIFpZgKIS9gSbbTGk
-3GOi/BDIoqg8xmQ5y0a/k2GplZoRXDlYYGLY5Q5iyXxBeiAQ1JzzzRcfwKhYTjyv
-wSMor1WR/sIBfXOWGuaQQKH1+WkU2qyUal4TIvgpy04c+sjG73QLUC4D4CEXyWD3
-UVmhWZnMK4bhHQNAv08B
-=Xhph
------END PGP SIGNATURE-----
-
---Apple-Mail=_A5964627-06DE-4A72-905B-E33EC5D9DFAB--
