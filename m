@@ -1,99 +1,71 @@
-From: Colin Coe <colin.coe@gmail.com>
-Subject: autofs not releasing mounts
-Date: Thu, 24 Oct 2013 11:17:30 +0800
-Message-ID: <CANvHAxTfGZ9jXskeNJ2T_QXs3eY=VuxkSzLvrU8UKJTNr7SidA@mail.gmail.com>
+From: "Dennis Lan (dlan)" <dennis.yxun@gmail.com>
+Subject: fix undefined authtype_requires_creds error
+Date: Thu, 24 Oct 2013 11:34:28 +0800
+Message-ID: <CAF1ZMEc84Ep6cpEbnmYw4YJpuQJwrOVketBtNcgNZZTGTBHz_g@mail.gmail.com>
 Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary=001a11c3127ea85e2d04e9744fdc
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20120113;
         h=mime-version:date:message-id:subject:from:to:content-type;
-        bh=bdb8UVfvkZQzlTeyCmOch/mQ0zf6BX+IwMrZssnlyF0=;
-        b=qpbmkabiz3l/EoOYSVMsi6B1iJh7HJO3dJ3ACV2sJjHu4vy64f+eBRKmeor3h6SIKd
-         UDPGp/k5f8pJVBZtzyj7BaVbJ0pCsKrcwjBTeSr0wCyAgdcTVKQCsdKOGFQDt2ae/epl
-         b+LlcyTHyjOJCyyQDEOVXOCxwHaoQM+WrLREFXA1YKZTTJONqeF4OIJLRcSNZTkGiL/3
-         cVLHE86dG8ilbXkrlwtI0H1ybsQ2QMoD6PgBKSxufFjkdhzo3/m/tWmQIBsEP7V+cVnF
-         4FgQhKqhU2HTJSWA5B7/hsQJpxSV0TYD31QN+6GM+U9ImQFSaQnv4RL54qU1kjzXkzBo
-         SgYA==
+        bh=a5ZjDxhvMlU7vmXzfACB6DukMkK6+q2ZX5PV/d+WE1k=;
+        b=dIuMx0rUHwLBhtWsft1XtX6Lhqh3VDtaU3pPXBeBUteBDA9m1UXwssc/WJVwtVzuHM
+         5pAd5EW7UfPvX4Beh+kSZk9bao5BVb94OTWqZxalAguuTB9UVYrBYvC1v45kJwtKgN92
+         aWD+BthssElB2mvwJyoUCNKaXyw9ka7Wzq7Phf+Wsc9DW4mp2TJ/BJeuTa4+RKpIJVCe
+         4HUj0UQIObgNkCXilWsMZOocHuYpo+tGnDswxgbyvlibdiFZEDsKwv8QcgD4YIR9dYPJ
+         iSQiCkFPY+61ySZYxpfKugJ8ygUgPMuYNIiWCJtnuDdzZsTSj5l8z3Idj4ERMDyt2IIO
+         Dhgw==
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: "autofs@vger.kernel.org" <autofs@vger.kernel.org>
+To: autofs mailing list <autofs@vger.kernel.org>
 
-Hi all
+--001a11c3127ea85e2d04e9744fdc
+Content-Type: text/plain; charset=UTF-8
 
-We are using a pair of Windows 2012 Servers to provide CIFS and NFS
-shares to a mix of Windows and RHEL clients.  These servers are
-geographically diverse and use DFS-R to replicate content.
+HI Ian:
+  here is simple patch for fixing undefined authtype_requires_creds
+error while LDAP enabled but without SASL.
 
-I'm finding that the RHEL clients are not releasing the mounts after
-the 300 second time out specified in /etc/sysconfig/autofs.
+  sorry for using attached file, since I have problem to use "git
+send-email" in my office.
 
-I logged into a node and my home dir auto mounted.
-I logged out
-From the console where I logged in as root I ran 'lsof /home/myhome'
-and nothing was returned
-From console tail -f /var/log/messages I see
----
-Oct 24 10:17:55 benadm1p automount[19980]: Starting automounter
-version 5.0.5-75.el6_4, master map auto.master
-Oct 24 10:17:55 benadm1p automount[19980]: using kernel protocol version 5.02
-Oct 24 10:17:55 benadm1p automount[19980]: mounted direct on
-/fileshare with timeout 300, freq 75 seconds
-Oct 24 10:17:55 benadm1p automount[19980]: mounted indirect on /home
-with timeout 300, freq 75 seconds
-Oct 24 10:17:55 benadm1p automount[19980]: ghosting enabled
-Oct 24 10:36:31 benadm1p automount[19980]: attempting to mount entry
-/home/h086629
-Oct 24 10:36:31 benadm1p automount[19980]: mount(nfs): mounted
-benfil2p:/home/h086629 on /home/h086629
-Oct 24 10:36:31 benadm1p automount[19980]: mounted /home/h086629
-Oct 24 10:37:12 benadm1p automount[19980]: 1 remaining in /home
-Oct 24 10:38:27 benadm1p automount[19980]: 1 remaining in /home
-Oct 24 10:39:42 benadm1p automount[19980]: 1 remaining in /home
-Oct 24 10:40:57 benadm1p automount[19980]: 1 remaining in /home
-Oct 24 10:42:12 benadm1p automount[19980]: 1 remaining in /home
-Oct 24 10:43:27 benadm1p automount[19980]: 1 remaining in /home
-Oct 24 10:44:42 benadm1p automount[19980]: 1 remaining in /home
-Oct 24 10:45:57 benadm1p automount[19980]: 1 remaining in /home
-Oct 24 10:47:12 benadm1p automount[19980]: 1 remaining in /home
-Oct 24 10:48:27 benadm1p automount[19980]: 1 remaining in /home
-Oct 24 10:49:11 benadm1p automount[19980]: attempting to mount entry /fileshare
-Oct 24 10:49:11 benadm1p automount[19980]: mount(nfs): mounted
-benfil2p:/fileshare on /fileshare
-Oct 24 10:49:11 benadm1p automount[19980]: mounted /fileshare
-Oct 24 10:49:36 benadm1p automount[19980]: 1 remaining in /-
-Oct 24 10:49:42 benadm1p automount[19980]: 1 remaining in /home
-Oct 24 10:50:51 benadm1p automount[19980]: 1 remaining in /-
-Oct 24 10:50:57 benadm1p automount[19980]: 1 remaining in /home
-Oct 24 10:52:06 benadm1p automount[19980]: 1 remaining in /-
-Oct 24 10:52:12 benadm1p automount[19980]: 1 remaining in /home
-Oct 24 10:53:21 benadm1p automount[19980]: 1 remaining in /-
-Oct 24 10:53:27 benadm1p automount[19980]: 1 remaining in /home
-Oct 24 10:54:36 benadm1p automount[19980]: 1 remaining in /-
-Oct 24 10:54:42 benadm1p automount[19980]: 1 remaining in /home
----
-/etc/auto.master
-/-              /etc/auto.hp --ghost
-/home     /etc/auto.home --ghost
+  also the downstream bug here, https://bugs.gentoo.org/show_bug.cgi?id=489128
 
-/etc/auto.hp
-/fileshare      -rw,vers=3,tcp,nolock benfil2p,karfil2p:/fileshare
+Lan Yixun (dlan)
 
-/etc/auto.home
-*       -rw,vers=3,tcp,nolock        benfil2p,karfil2p::/home/&
+--001a11c3127ea85e2d04e9744fdc
+Content-Type: application/octet-stream; 
+	name="0001-fix-undefined-authtype_requires_creds-err-if-ldap-en.patch"
+Content-Disposition: attachment; 
+	filename="0001-fix-undefined-authtype_requires_creds-err-if-ldap-en.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_hn5fshrl0
 
-/etc/sysconfig/autofs (with comment and blank lines stripped out)
-TIMEOUT=300
-BROWSE_MODE="no"
-MOUNT_NFS_DEFAULT_PROTOCOL=3
-LOGGING="verbose"
-USE_MISC_DEVICE="yes"
-
-
-Thanks in advance
-
-CC
-
--- 
-RHCE#805007969328369
+RnJvbSBkZDkxNGU1M2E0ODQ4MTdlMjU2NzE1NGFhZjdkZDNjZWQyZDg1MDhhIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiAiTGFuIFlpeHVuIChkbGFuKSIgPGRlbm5pcy55eHVuQGdtYWls
+LmNvbT4KRGF0ZTogVGh1LCAyNCBPY3QgMjAxMyAxMDoxNToxMCArMDgwMApTdWJqZWN0OiBbUEFU
+Q0hdIGZpeCB1bmRlZmluZWQgYXV0aHR5cGVfcmVxdWlyZXNfY3JlZHMgZXJyIGlmIGxkYXAgZW5h
+YmxlZCBidXQKIHdpdGhvdXQgc2FzbAoKdGhpcyBwYXRjaCBpcyBtb3ZpbmcgIldJVEhfU0FTTCIg
+aW50byBhdXRodHlwZV9yZXF1aXJlc19jcmVkcyBmdW5jdGlvbgptYWtlIGl0IHJldHVybiAwIGlm
+IHNhc2wgbm90IGVuYWJsZWQsIHdoaWNoIG1lYW4gYXV0aHR5cGVfcmVxdWlyZXNfY3JlZHMgaXMg
+bm90IGVuYWJsZWQKCmh0dHBzOi8vYnVncy5nZW50b28ub3JnL3Nob3dfYnVnLmNnaT9pZD00ODkx
+MjgKCi0tLQpvcGVuX2xvb2t1cDo5MDogY2Fubm90IG9wZW4gbG9va3VwIG1vZHVsZSBsZGFwICgv
+dXNyL2xpYjY0L2F1dG9mcy9sb29rdXBfbGRhcC5zbzogdW5kZWZpbmVkIHN5bWJvbDoKYXV0aHR5
+cGVfcmVxdWlyZXNfY3JlZHMpCmxvb2t1cChmaWxlKTogZmFpbGVkIHRvIHJlYWQgaW5jbHVkZWQg
+bWFzdGVyIG1hcCBhdXRvLm1hc3RlcgpubyBtb3VudHMgaW4gdGFibGUKClNpZ25lZC1vZmYtYnk6
+IExhbiBZaXh1biAoZGxhbikgPGRlbm5pcy55eHVuQGdtYWlsLmNvbT4KLS0tCiBtb2R1bGVzL2xv
+b2t1cF9sZGFwLmMgfCA0ICsrLS0KIDEgZmlsZSBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKyksIDIg
+ZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvbW9kdWxlcy9sb29rdXBfbGRhcC5jIGIvbW9kdWxl
+cy9sb29rdXBfbGRhcC5jCmluZGV4IDJhYjFlOGMuLjA0YjFkYTcgMTAwNjQ0Ci0tLSBhL21vZHVs
+ZXMvbG9va3VwX2xkYXAuYworKysgYi9tb2R1bGVzL2xvb2t1cF9sZGFwLmMKQEAgLTg0NiwyMCAr
+ODQ2LDIwIEBAIGludCBnZXRfcHJvcGVydHkodW5zaWduZWQgbG9nb3B0LCB4bWxOb2RlUHRyIG5v
+ZGUsIGNvbnN0IGNoYXIgKnByb3AsIGNoYXIgKip2YWx1CiAJcmV0dXJuIDA7CiB9CiAKLSNpZmRl
+ZiBXSVRIX1NBU0wKIC8qCiAgKiAgRm9yIHBsYWluIHRleHQsIGxvZ2luIGFuZCBkaWdlc3QtbWQ1
+IGF1dGhlbnRpY2F0aW9uIHR5cGVzLCB3ZSBuZWVkCiAgKiAgdXNlciBhbmQgcGFzc3dvcmQgY3Jl
+ZGVudGlhbHMuCiAgKi8KIGludCBhdXRodHlwZV9yZXF1aXJlc19jcmVkcyhjb25zdCBjaGFyICph
+dXRodHlwZSkKIHsKKyNpZmRlZiBXSVRIX1NBU0wKIAlpZiAoIXN0cm5jbXAoYXV0aHR5cGUsICJQ
+TEFJTiIsIHN0cmxlbigiUExBSU4iKSkgfHwKIAkgICAgIXN0cm5jbXAoYXV0aHR5cGUsICJESUdF
+U1QtTUQ1Iiwgc3RybGVuKCJESUdFU1QtTUQ1IikpIHx8CiAJICAgICFzdHJuY21wKGF1dGh0eXBl
+LCAiTE9HSU4iLCBzdHJsZW4oIkxPR0lOIikpKQogCQlyZXR1cm4gMTsKKyNlbmRpZgogCXJldHVy
+biAwOwogfQotI2VuZGlmCiAKIC8qCiAgKiAgUmV0dXJuczoKLS0gCjEuOC4zLjIKCg==
+--001a11c3127ea85e2d04e9744fdc--
