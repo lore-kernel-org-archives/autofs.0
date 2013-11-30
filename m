@@ -1,9 +1,9 @@
 From: Donald Buczek <buczek@molgen.mpg.de>
 Subject: expire after kill -HUP ?
-Date: Fri, 29 Nov 2013 23:50:11 +0100
-Message-ID: <52991A23.5010101@molgen.mpg.de>
+Date: Sat, 30 Nov 2013 11:11:27 +0100
+Message-ID: <5299B9CF.8030808@molgen.mpg.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha1; boundary="------------ms020902040503040707080505"
+Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha1; boundary="------------ms070307020003040906080408"
 Return-path: <autofs-owner@vger.kernel.org>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
@@ -11,7 +11,7 @@ To: autofs@vger.kernel.org
 
 This is a cryptographically signed message in MIME format.
 
---------------ms020902040503040707080505
+--------------ms070307020003040906080408
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: quoted-printable
 
@@ -30,7 +30,7 @@ and processed ("re-reading master map"...).
 Maybe the signal goes to the st_queue_handler task?
 
 Regards
-   Donald Buczek
+    Donald Buczek
 
 --=20
 Donald Buczek
@@ -39,7 +39,8 @@ Tel: +49 30 8413 1433
 
 
 
---------------ms020902040503040707080505
+
+--------------ms070307020003040906080408
 Content-Type: application/pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -116,18 +117,18 @@ LDQLzpXrB2JPR9eMhh/8Qez6ikCYgIP0vNPdX2wTc1FwLvrN2YIyGqmLgGBdbUEwqY1dFn8I
 SE8yrLDmMYIDVTCCA1ECAQEwaTBeMQswCQYDVQQGEwJERTEgMB4GA1UEChMXTWF4LVBsYW5j
 ay1HZXNlbGxzY2hhZnQxDzANBgNVBAMTBk1QRyBDQTEcMBoGCSqGSIb3DQEJARYNbXBnLWNh
 QG1wZy5kZQIHE6OvPm/+aDAJBgUrDgMCGgUAoIIBwTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcN
-AQcBMBwGCSqGSIb3DQEJBTEPFw0xMzExMjkyMjUwMTFaMCMGCSqGSIb3DQEJBDEWBBQi6c8i
-3iB9QEs8iGkWY91rvR+GdzBsBgkqhkiG9w0BCQ8xXzBdMAsGCWCGSAFlAwQBKjALBglghkgB
+AQcBMBwGCSqGSIb3DQEJBTEPFw0xMzExMzAxMDExMjdaMCMGCSqGSIb3DQEJBDEWBBRJz6R5
+yKErT/cVnPQE2JNL0dfa7zBsBgkqhkiG9w0BCQ8xXzBdMAsGCWCGSAFlAwQBKjALBglghkgB
 ZQMEAQIwCgYIKoZIhvcNAwcwDgYIKoZIhvcNAwICAgCAMA0GCCqGSIb3DQMCAgFAMAcGBSsO
 AwIHMA0GCCqGSIb3DQMCAgEoMHgGCSsGAQQBgjcQBDFrMGkwXjELMAkGA1UEBhMCREUxIDAe
 BgNVBAoTF01heC1QbGFuY2stR2VzZWxsc2NoYWZ0MQ8wDQYDVQQDEwZNUEcgQ0ExHDAaBgkq
 hkiG9w0BCQEWDW1wZy1jYUBtcGcuZGUCBxOjrz5v/mgwegYLKoZIhvcNAQkQAgsxa6BpMF4x
 CzAJBgNVBAYTAkRFMSAwHgYDVQQKExdNYXgtUGxhbmNrLUdlc2VsbHNjaGFmdDEPMA0GA1UE
 AxMGTVBHIENBMRwwGgYJKoZIhvcNAQkBFg1tcGctY2FAbXBnLmRlAgcTo68+b/5oMA0GCSqG
-SIb3DQEBAQUABIIBALMzatyOFD0raFM96BdiWIzNIxJmpYddkPIuq/2Dkjekz69XqfOIeAYa
-tGUcuVFUoa0NILov/6WSyYAj4i9zO8KQ/GRu0p3XXfG2kHhAevLqwTmRdVt6OrmMztjLxpyg
-WP1Coq5GDrBn8iN+dddT9yNQTqkJZCtPNjPlNr1XSsmxGCD9rAuRwOpn/pONnz0I/5KuaEmk
-mtSjyEt/Wd9IMeCjrH3aL6C+uAhaowXF+TnhPTqymBVXn6OmoCG0XCfePzJGFvG/NADitWeP
-chtBlIvAS8Dm19ZDA/LhRa5ah1ZVIT1QLotRMtqCDb4D8AEnc9dBKruYqPsyBQ9+0dt7/g0A
+SIb3DQEBAQUABIIBAJBuOoQhyPaQhhSvboBGW8zgVXlbWdttTideDxLuRgx+uxh5h0BQf/vY
+usxjdzt32df5Sh1Xquy/y3nGH08l3T+cFeoNvjOr3ATMsPnH52cmikjMkDBZ+kpxJMqh3HDf
+XzAdSUZkwREdoGGoO4BBtJNgO3GskUKftou601Zo2y0tLxwzUdmS9MuDmSIvIXPvhnjfluzX
+eiSoYN9EDoXmjiijpf+IpbMej68VdGI2RJEZ6p2pJdGkNOd+F4FKuTnoJ6xopOy2Hkr0oh13
+k8D+GBo1ndXT4RUVepOvi8HnWEjEX2KevbuiiK2aOkTWmmOGWi6zYImyPR6ZrP432L5TXI0A
 AAAAAAA=
---------------ms020902040503040707080505--
+--------------ms070307020003040906080408--
