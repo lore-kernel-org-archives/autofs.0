@@ -1,8 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 3/5] autofs-5.0.8 - get_nfs_info() should query portmapper
- if port is not given
-Date: Tue, 24 Dec 2013 16:02:22 +0800
-Message-ID: <20131224080222.8321.98415.stgit@perseus.fritz.box>
+Subject: [PATCH 4/5] autofs-5.0.8 - fix rpc_portmap_getport() proto not set
+Date: Tue, 24 Dec 2013 16:02:28 +0800
+Message-ID: <20131224080228.8321.27468.stgit@perseus.fritz.box>
 References: <20131224075909.8321.95699.stgit@perseus.fritz.box>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -10,17 +9,17 @@ Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
 	subject:to:from:cc:date:message-id:in-reply-to:references
 	:mime-version:content-type:content-transfer-encoding; s=mesmtp;
-	 bh=ODwiQTg+9J5dYlU8Ghm8Twjh6Ns=; b=e7Q3n1opO3KshHFa9KC5YUGKiPRZ
-	G8xDwu11EJjINVdC0P5RAcHKUIWRP+QIMT/WFRlMWmTYFH3Db3Vo4Xw+nQuCFEhv
-	sbouvftnslnijMI04bBCGDfL5etyqzWafRb5ElNRlHDgi9yoqlM9ZeR2wRXzfU6E
-	k1oWnMnhqGIiku0=
+	 bh=0JKcmGiBSAMi6DE4ZxQo5/TqLls=; b=aGJppEtAuqUaxcgcfnYOBI4CESSA
+	l0b6bNsPrndiMCRzqyuwUQfJkcE0CIQJiEXFrhyFX/VvV2rHCY4rhNkFkbmiLUcz
+	qxw/g9dIlIGAwE7s6nKsOPaK3NdsiKAz0sRMSps+nRbyV5XuovQSp0jalvHAVAk7
+	fFVokC2XDQMro7k=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=subject:to:from:cc:date:message-id
 	:in-reply-to:references:mime-version:content-type
-	:content-transfer-encoding; s=smtpout; bh=ODwiQTg+9J5dYlU8Ghm8Tw
-	jh6Ns=; b=Y5ZFDjH169wfsmcgkU4pfD72qEbinYAB1ziY5KC8A+TVnvhqcFdl50
-	xZN429oqre2fht/6hXdFRD65vGsxfs0lOXcHgtTaeAfP/nAR5n1Abw0TWTfMWSEE
-	asxf05jypaf4/6skNNOsuifnpXjo9KgwpZSmkIZc3TKTcTESJXxpU=
+	:content-transfer-encoding; s=smtpout; bh=0JKcmGiBSAMi6DE4ZxQo5/
+	TqLls=; b=Oi2C0dUXoweSfBpkcZP3KNDePUozqDcVcgOIt7K2jdEwyAHdh2nwQ7
+	KMpVupa+o/bTfib8F0nz/q4+tRprkALkczyKJXvcWcAlIcomG0KdwZmuNpVNhIZE
+	qng0ayhsrabcBlvXTgJfVjSE4CLNMkE7TfnWo/t+nwfeI7BoIvQHM=
 In-Reply-To: <20131224075909.8321.95699.stgit@perseus.fritz.box>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
@@ -28,33 +27,32 @@ Content-Type: text/plain; charset="us-ascii"
 To: "Lan Yixun (dlan)" <dennis.yxun@gmail.com>
 Cc: autofs mailing list <autofs@vger.kernel.org>
 
-From: Scott Mayhew <smayhew@redhat.com>
+Recent changes to fix libtirpc usage problems when getting a server
+exports list cause later server probing to fail.
 
-It shouldn't just assume it can use port 2049.
+When getting an exports list a new rpc client is always created for
+the query, which includes setting the protocol in the parameters
+structure. But when probing availability the client is reused where
+possible and the protocol is not set in the parameters structure in
+this case.
 
-Signed-off-by: Scott Mayhew <smayhew@redhat.com>
+The rpc_portmap_getport() changes require that the protocol is set
+in oder to function.
 ---
- modules/replicated.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ lib/rpc_subs.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/modules/replicated.c b/modules/replicated.c
-index 5fdd9d9..2463235 100644
---- a/modules/replicated.c
-+++ b/modules/replicated.c
-@@ -444,9 +444,12 @@ static unsigned int get_nfs_info(unsigned logopt, struct host *host,
- 		      host->name, proto, version);
+diff --git a/lib/rpc_subs.c b/lib/rpc_subs.c
+index cfb63d2..7c99ea8 100644
+--- a/lib/rpc_subs.c
++++ b/lib/rpc_subs.c
+@@ -877,6 +877,8 @@ int rpc_portmap_getport(struct conn_info *info,
  
- 	rpc_info->proto = proto;
--	if (port < 0)
--		rpc_info->port = NFS_PORT;
--	else if (port > 0)
-+	if (port < 0) {
-+		if (version & NFS4_REQUESTED)
-+			rpc_info->port = NFS_PORT;
-+		else
-+			port = 0;
-+	} else if (port > 0)
- 		rpc_info->port = port;
+ 	memset(&pmap_info, 0, sizeof(struct conn_info));
  
- 	memset(&parms, 0, sizeof(struct pmap));
++	pmap_info.proto = proto;
++
+ 	if (proto == IPPROTO_TCP)
+ 		pmap_info.timeout.tv_sec = PMAP_TOUT_TCP;
+ 	else
 
