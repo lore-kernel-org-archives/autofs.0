@@ -1,51 +1,65 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH] autofs - fix fix symlinks arent checked for expiry
-Date: Tue, 24 Dec 2013 17:44:59 +0800
-Message-ID: <20131224094459.20051.4889.stgit@perseus.fritz.box>
+Subject: Re: [PATCH 0/5] fyi, here are the patches that I haven't yet
+ committed
+Date: Tue, 24 Dec 2013 18:34:22 +0800
+Message-ID: <1387881262.7351.15.camel@perseus.fritz.box>
+References: <20131224075909.8321.95699.stgit@perseus.fritz.box>
+	 <CAF1ZMEf+Bd664eVgkLOvGKTFGBzpgS+UoDZmJyFK-f=Rv59bkg@mail.gmail.com>
+	 <1387875881.7351.12.camel@perseus.fritz.box>
+	 <CAF1ZMEeUDS8wunF9AHXwQ=xf0OW6_ucmyfQicfbpP7sVavpaSw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	subject:to:from:cc:date:message-id:mime-version:content-type
-	:content-transfer-encoding; s=mesmtp; bh=6BW1NXrcCeKWckhK5r7jtEx
-	OWJE=; b=UuAn23Ynyg9DsRus0qBQEPfSI/K7bCdQ6AfZua0I2Jz+bCBKjmvYq2W
-	uoing/+SyIaGDpxVpV+nsSJ0xX+qO1iN0l9qAbhXpu1LMQOKzDynUfYRPVFMO5Hm
-	JoiRJX9Z9aFtNfwkfsPY4iJgGkCVqgue9ooZgZt+FJdgKp6sLQgc=
+	message-id:subject:from:to:cc:date:in-reply-to:references
+	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
+	 bh=40pqU4AgVbmbkWLiylhWSp9PPi4=; b=SEdyO/5G1a0STK0Hxqa6Fo5ob46Q
+	wbGNMcs6R7/LzHDFTDX8IoYojq5e83h2SuNevDd5xHmq6cCIOnGqhywMXE4exKL5
+	95PUZ4kF5qo/XTzTNADWt6GFXCqTvSvPGbOoLGd16dmafhDNg6qoBQWtxmCL3hJn
+	PuhpWgOESzOEcHQ=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=subject:to:from:cc:date:message-id
-	:mime-version:content-type:content-transfer-encoding; s=smtpout;
-	 bh=6BW1NXrcCeKWckhK5r7jtExOWJE=; b=tVxcIXdLYkT57w2vOjEAGIwthqJH
-	X7ibEd1DIWGRZp0vTp6ZDb5pa31qHjvQwqbvtywOPsLosuVBJJfFnTNwifdqJWF3
-	AyWmeM2sp0BlVOQJRrmP8ceHWGvVsRdr98d7MGwCbk8h6nOrYIW1b3o2zRkc60qJ
-	YycddLnWQMRq/FA=
+	messagingengine.com; h=message-id:subject:from:to:cc:date
+	:in-reply-to:references:content-type:mime-version
+	:content-transfer-encoding; s=smtpout; bh=40pqU4AgVbmbkWLiylhWSp
+	9PPi4=; b=bxXI4curmbsAhHzrAK/3XxZClW8cuP5httSR52YVsMjGznJFz+26ix
+	sfjvChVs0mumacYpeesdMBbwrUJfRoxpEuDoDnQyXC2FdKPUta6A9QKJIVSepCOk
+	E1br5YtcmpH2jnJZ1JSGh8YhAbnvEejZMI0f3aCR9CuWsb+blmGk0=
+In-Reply-To: <CAF1ZMEeUDS8wunF9AHXwQ=xf0OW6_ucmyfQicfbpP7sVavpaSw@mail.gmail.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: "Dennis Lan (dlan)" <dennis.yxun@gmail.com>
+Cc: autofs mailing list <autofs@vger.kernel.org>
 
-When following a symlink the last_used counter is unconditionally
-updated causing the expire checks from user space to prevent
-expiry. Opps!
+On Tue, 2013-12-24 at 17:42 +0800, Dennis Lan (dlan) wrote:
+> On Tue, Dec 24, 2013 at 5:04 PM, Ian Kent <raven@themaw.net> wrote:
+> > On Tue, 2013-12-24 at 16:38 +0800, Dennis Lan (dlan) wrote:
+> >> Hi Ian:
+> >>   Do you mind push a temporary branch into your git repo (if you don't
+> >> want to queue other patches)?
+> >> That would much convenient for me to test.
+> >
+> > Try branch autofs-5.0.public.
+> > As master and autofs-5.0 branches diverge the autofs-5.0 will be the
+> > place for version 5.0.
+> >
+> >
+> 
+> Hi Ian
+>  Have problem with branch autofs-5.0.public
+> most obvious error
+> 461:Dec 24 17:29:12 ofire automount[11496]: mount(nfs): no hosts available
+> 462:Dec 24 17:29:12 ofire automount[11496]: dev_ioctl_send_fail: token = 79
 
-Signed-off-by: Ian Kent <raven@themaw.net>
----
- fs/autofs4/symlink.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Are you sure you're using the autofs-5.0.public branch.
+That's the error I'd expect to see using master.
 
-diff --git a/fs/autofs4/symlink.c b/fs/autofs4/symlink.c
-index 061a692..1e8ea19 100644
---- a/fs/autofs4/symlink.c
-+++ b/fs/autofs4/symlink.c
-@@ -14,8 +14,9 @@
- 
- static void *autofs4_follow_link(struct dentry *dentry, struct nameidata *nd)
- {
-+	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
- 	struct autofs_info *ino = autofs4_dentry_ino(dentry);
--	if (ino)
-+	if (ino && !autofs4_oz_mode(sbi))
- 		ino->last_used = jiffies;
- 	nd_set_link(nd, dentry->d_inode->i_private);
- 	return NULL;
+I put an entry with the same options into a map and tested it.
+Worked fine for me.
+
+What server are you using?
+What kernel is on the server?
+rpcbind or portmap?
+
+Ian
 
