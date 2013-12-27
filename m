@@ -1,265 +1,80 @@
-From: "Dennis Lan (dlan)" <dennis.yxun@gmail.com>
-Subject: Re: [PATCH 0/5] fyi, here are the patches that I haven't yet committed
-Date: Fri, 27 Dec 2013 15:30:55 +0800
-Message-ID: <CAF1ZMEdRhy5LcfEwUW3Os5M8nKXT1j2+M4oqOKgqF3sjLPyWpw@mail.gmail.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [PATCH 0/5] fyi, here are the patches that I haven't yet
+ committed
+Date: Fri, 27 Dec 2013 16:50:51 +0800
+Message-ID: <1388134251.2623.3.camel@perseus.fritz.box>
 References: <20131224075909.8321.95699.stgit@perseus.fritz.box>
-	<CAF1ZMEf+Bd664eVgkLOvGKTFGBzpgS+UoDZmJyFK-f=Rv59bkg@mail.gmail.com>
-	<1387875881.7351.12.camel@perseus.fritz.box>
-	<CAF1ZMEeUDS8wunF9AHXwQ=xf0OW6_ucmyfQicfbpP7sVavpaSw@mail.gmail.com>
-	<1387881262.7351.15.camel@perseus.fritz.box>
-	<CAF1ZMEcfVTYS=6sfVhSbO8MVaMxcU2v8qV_7O6ACMCRHLxMXeA@mail.gmail.com>
-	<CAF1ZMEfbrpZ_=GxYTNS-sfus9-QTBD-WCMaZR-ZaEpShPbFdBg@mail.gmail.com>
+	 <CAF1ZMEf+Bd664eVgkLOvGKTFGBzpgS+UoDZmJyFK-f=Rv59bkg@mail.gmail.com>
+	 <1387875881.7351.12.camel@perseus.fritz.box>
+	 <CAF1ZMEeUDS8wunF9AHXwQ=xf0OW6_ucmyfQicfbpP7sVavpaSw@mail.gmail.com>
+	 <1387881262.7351.15.camel@perseus.fritz.box>
+	 <CAF1ZMEcfVTYS=6sfVhSbO8MVaMxcU2v8qV_7O6ACMCRHLxMXeA@mail.gmail.com>
+	 <CAF1ZMEfbrpZ_=GxYTNS-sfus9-QTBD-WCMaZR-ZaEpShPbFdBg@mail.gmail.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20120113;
-        h=mime-version:in-reply-to:references:date:message-id:subject:from:to
-         :cc:content-type;
-        bh=VIt4LUqkP646HhUoEBuJdRThUOb4srShbXprlGCJgPo=;
-        b=WL9qpEu8E2qq530BmLOgLbe3Hso0B2MuhnqhhGjPfGZZq5MiYur9l4BPMlnuJO7ybi
-         13I73VakkYl8CZLkzgcaM7ZYileQx6+69UChPu1X0ZvIJwgE3LFwM4QmZ0/BIyg+vFXG
-         rxAn5PYc0PZpvNaLR2FarlxPpjP3WKOMOPms4o5QflXyRC09ac8VDsx3rNWAuMelKsVl
-         n/KigKcWCnw6D1ap+zlXADyShj7KSBW4OCk0vM6puu+7iDwB8kW3+x8Lu5hm32rgMPyp
-         DifbDexD6Qw5iZyLCpK0zx2ap8ZToXtnL9tUFaeQZYxjioGL+Z1daI4EUvQxdgMNfGGB
-         O4sg==
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
+	message-id:subject:from:to:cc:date:in-reply-to:references
+	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
+	 bh=5imNCCOGdM+h/XCDA2IXe0oRKXM=; b=vUo0wEx2EN9+vuKWSmzbzcqJyNHj
+	Y86ni0FhWlv0JsgLTDqLj83ULUg7hgYyWj5ufbAJCJzCf0fIxR7GsSC6L/m3pFU+
+	ep8Elw1rWR9Aq2SWv/S9rXFmkkcobMJcRckR4eOYGVzhay1wimLaGn3rYwvvyg5L
+	YxJMhsSSdXxK5j4=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=message-id:subject:from:to:cc:date
+	:in-reply-to:references:content-type:mime-version
+	:content-transfer-encoding; s=smtpout; bh=5imNCCOGdM+h/XCDA2IXe0
+	oRKXM=; b=Uxwr6iINJ6Wlm03WXIJhtfIQj+RJNEBCrY3QkSTBRdgdJbBZChtB/s
+	3FBr/AGl8V/MPXq/LEI0eWQ7bFrxNN9zg234XCGv9ubhFWvV5fYjmH0MeuCVjl2n
+	UcmzdOyqKboCSO81/gcBCmlAij9PrnGWNPNDRFJywiLbSUGDO9fTk=
 In-Reply-To: <CAF1ZMEfbrpZ_=GxYTNS-sfus9-QTBD-WCMaZR-ZaEpShPbFdBg@mail.gmail.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Ian Kent <raven@themaw.net>
+To: "Dennis Lan (dlan)" <dennis.yxun@gmail.com>
 Cc: autofs mailing list <autofs@vger.kernel.org>
 
-sorry, I was not accurate about the failure cases.
+On Fri, 2013-12-27 at 14:36 +0800, Dennis Lan (dlan) wrote:
+> Hi Ian
+>   I've tested with various USE combinations,  still got segfault err.
+> wi all USE="-dmalloc -hesiod -ldap -libtirpc -mount-locking -sasl"
+> disabled, with libtirpc en/disabled.
+> 
+>  Next, I may need a few more time to setup gdb to investigate this..
+> 
+> also this patch needed to fix compile error while with libtirpc disabled,
 
-using commit ec267c2c406256e401540e5bc890b2e0c2ff6c35
+Umm .. libtirpc disabled!
+That's going to need work I think.
 
-snip from file /etc/autofs/auto.misc
-mkynfs -ro,soft,intr,nfsvers=3 192.168.90.12:/home/dennis
-mkydns -ro,soft,intr,nfsvers=4 mickeycn:/home/dennis
+All of what's going on atm. is specifically for libtirpc so let me fix
+that and then we can address side effects of the case when libtirpc is
+disabled.
 
-with libtirpc enabled (all other features disabled),[1]
-"ls /mnt/misc/mkynfs" lead to automount segfault
-"ls /mnt/misc/mkydns" automount fail (no crash), but report "no hosts available"
+> 
+> diff --git a/lib/rpc_subs.c b/lib/rpc_subs.c
+> index aeece1e..a003074 100644
+> --- a/lib/rpc_subs.c
+> +++ b/lib/rpc_subs.c
+> @@ -235,7 +235,8 @@ static int rpc_do_create_client(struct sockaddr
+> *addr, struct conn_info *info, i
+>         return 0;
+>  }
+>  static int rpc_getport(struct conn_info *info,
+> -                      struct pmap *parms, CLIENT *client)
+> +                      struct pmap *parms, CLIENT *client,
+> +                                 unsigned short *port)
+>  {
+> 
+> 
+> [1] commit 076adfb0718e4b8a15ec11bf62597371ceb92399
+> Author: Ian Kent <ikent@redhat.com>
+> Date:   Mon Nov 18 12:15:52 2013 +0800
+> 
+>     autofs-5.0.8 - fix ipv6 libtirpc getport
 
-with libtirpc disabled (all other features disabled)[2]
-"ls /mnt/misc/mkynfs" automount fail (no crash), report "no hosts available"
-"ls /mnt/misc/mkydns" works fine
+I'll check this anyway ....
 
-[1]
-Dec 27 15:08:19 ofire automount[32570]: handle_packet: type = 3
-Dec 27 15:08:19 ofire automount[32570]:
-handle_packet_missing_indirect: token 106, name mkydns, request pid
-32583
-Dec 27 15:08:19 ofire automount[32570]: attempting to mount entry
-/mnt/misc/mkydns
-Dec 27 15:08:19 ofire automount[32570]: lookup_mount: lookup(file):
-looking up mkydns
-Dec 27 15:08:19 ofire automount[32570]: lookup_mount: lookup(file):
-mkydns -> -ro,soft,intr,nfsvers=4 mickeycn:/home/dennis
-Dec 27 15:08:19 ofire automount[32570]: parse_mount: parse(sun):
-expanded entry: -ro,soft,intr,nfsvers=4 mickeycn:/home/dennis
-Dec 27 15:08:19 ofire automount[32570]: parse_mount: parse(sun):
-gathered options: ro,soft,intr,nfsvers=4
-Dec 27 15:08:19 ofire automount[32570]: parse_mount: parse(sun):
-dequote("mickeycn:/home/dennis") -> mickeycn:/home/dennis
-Dec 27 15:08:19 ofire automount[32570]: parse_mount: parse(sun): core
-of entry: options=ro,soft,intr,nfsvers=4, loc=mickeycn:/home/dennis
-Dec 27 15:08:19 ofire automount[32570]: sun_mount: parse(sun):
-mounting root /mnt/misc, mountpoint mkydns, what
-mickeycn:/home/dennis, fstype nfs, options ro,soft,intr,nfsvers=4
-Dec 27 15:08:19 ofire automount[32570]: mount_mount: mount(nfs):
-root=/mnt/misc name=mkydns what=mickeycn:/home/dennis, fstype=nfs,
-options=ro,soft,intr,nfsvers=4
-Dec 27 15:08:19 ofire automount[32570]: mount_mount: mount(nfs): nfs
-options="ro,soft,intr,nfsvers=4", nobind=0, nosymlink=0, ro=1
-Dec 27 15:08:19 ofire automount[32570]: get_nfs_info: called with host
-mickeycn(192.168.90.12) proto 6 version 0x40
-Dec 27 15:08:19 ofire automount[32570]: mount(nfs): no hosts available
-Dec 27 15:08:19 ofire automount[32570]: dev_ioctl_send_fail: token = 106
-Dec 27 15:08:19 ofire automount[32570]: failed to mount /mnt/misc/mkydns
-Dec 27 15:08:19 ofire automount[32570]: handle_packet: type = 3
-Dec 27 15:08:19 ofire automount[32570]:
-handle_packet_missing_indirect: token 107, name mkydns, request pid
-32583
-Dec 27 15:08:19 ofire automount[32570]: dev_ioctl_send_fail: token = 107
-Dec 27 15:08:26 ofire automount[32570]: st_expire: state 1 path /net
-Dec 27 15:08:26 ofire automount[32570]: expire_proc: exp_proc =
-140502330578688 path /net
-Dec 27 15:08:26 ofire automount[32570]: expire_cleanup: got thid
-140502330578688 path /net stat 0
-Dec 27 15:08:26 ofire automount[32570]: expire_cleanup: sigchld: exp
-140502330578688 finished, switching from 2 to 1
-Dec 27 15:08:26 ofire automount[32570]: st_ready: st_ready(): state =
-2 path /net
-Dec 27 15:08:26 ofire automount[32570]: handle_packet: type = 3
-Dec 27 15:08:26 ofire automount[32570]:
-handle_packet_missing_indirect: token 108, name mkynfs, request pid
-32586
-Dec 27 15:08:26 ofire automount[32570]: attempting to mount entry
-/mnt/misc/mkynfs
-Dec 27 15:08:26 ofire automount[32570]: lookup_mount: lookup(file):
-looking up mkynfs
-Dec 27 15:08:26 ofire automount[32570]: lookup_mount: lookup(file):
-mkynfs -> -ro,soft,intr,nfsvers=3 192.168.90.12:/home/dennis
-Dec 27 15:08:26 ofire automount[32570]: parse_mount: parse(sun):
-expanded entry: -ro,soft,intr,nfsvers=3 192.168.90.12:/home/dennis
-Dec 27 15:08:26 ofire automount[32570]: parse_mount: parse(sun):
-gathered options: ro,soft,intr,nfsvers=3
-Dec 27 15:08:26 ofire automount[32570]: parse_mount: parse(sun):
-dequote("192.168.90.12:/home/dennis") -> 192.168.90.12:/home/dennis
-Dec 27 15:08:26 ofire automount[32570]: parse_mount: parse(sun): core
-of entry: options=ro,soft,intr,nfsvers=3,
-loc=192.168.90.12:/home/dennis
-Dec 27 15:08:26 ofire automount[32570]: sun_mount: parse(sun):
-mounting root /mnt/misc, mountpoint mkynfs, what
-192.168.90.12:/home/dennis, fstype nfs, options ro,soft,intr,nfsvers=3
-Dec 27 15:08:26 ofire automount[32570]: mount_mount: mount(nfs):
-root=/mnt/misc name=mkynfs what=192.168.90.12:/home/dennis,
-fstype=nfs, options=ro,soft,intr,nfsvers=3
-Dec 27 15:08:26 ofire automount[32570]: mount_mount: mount(nfs): nfs
-options="ro,soft,intr,nfsvers=3", nobind=0, nosymlink=0, ro=1
-Dec 27 15:08:26 ofire automount[32570]: get_nfs_info: called with host
-192.168.90.12(192.168.90.12) proto 6 version 0x20
-Dec 27 15:08:26 ofire automount[32570]: get_nfs_info: called with host
-192.168.90.12(192.168.90.12) proto 17 version 0x20
-Dec 27 15:08:26 ofire kernel: [20427.317530] automount[32587]:
-segfault at 0 ip           (null) sp 00007fc93f808c88 error 14
+Ian
 
 
-[2] log
-Dec 27 15:16:52 ofire automount[3879]: st_expire: state 1 path /net
-Dec 27 15:16:52 ofire automount[3879]: expire_proc: exp_proc =
-139809608951552 path /net
-Dec 27 15:16:52 ofire automount[3879]: expire_cleanup: got thid
-139809608951552 path /net stat 0
-Dec 27 15:16:52 ofire automount[3879]: expire_cleanup: sigchld: exp
-139809608951552 finished, switching from 2 to 1
-Dec 27 15:16:52 ofire automount[3879]: st_ready: st_ready(): state = 2 path /net
-Dec 27 15:16:53 ofire automount[3879]: handle_packet: type = 3
-Dec 27 15:16:53 ofire automount[3879]: handle_packet_missing_indirect:
-token 119, name mkydns, request pid 3898
-Dec 27 15:16:53 ofire automount[3879]: attempting to mount entry
-/mnt/misc/mkydns
-Dec 27 15:16:53 ofire automount[3879]: lookup_mount: lookup(file):
-looking up mkydns
-Dec 27 15:16:53 ofire automount[3879]: lookup_mount: lookup(file):
-mkydns -> -ro,soft,intr,nfsvers=4 mickeycn:/home/dennis
-Dec 27 15:16:53 ofire automount[3879]: parse_mount: parse(sun):
-expanded entry: -ro,soft,intr,nfsvers=4 mickeycn:/home/dennis
-Dec 27 15:16:53 ofire automount[3879]: parse_mount: parse(sun):
-gathered options: ro,soft,intr,nfsvers=4
-Dec 27 15:16:53 ofire automount[3879]: parse_mount: parse(sun):
-dequote("mickeycn:/home/dennis") -> mickeycn:/home/dennis
-Dec 27 15:16:53 ofire automount[3879]: parse_mount: parse(sun): core
-of entry: options=ro,soft,intr,nfsvers=4, loc=mickeycn:/home/dennis
-Dec 27 15:16:53 ofire automount[3879]: sun_mount: parse(sun): mounting
-root /mnt/misc, mountpoint mkydns, what mickeycn:/home/dennis, fstype
-nfs, options ro,soft,intr,nfsvers=4
-Dec 27 15:16:53 ofire automount[3879]: mount_mount: mount(nfs):
-root=/mnt/misc name=mkydns what=mickeycn:/home/dennis, fstype=nfs,
-options=ro,soft,intr,nfsvers=4
-Dec 27 15:16:53 ofire automount[3879]: mount_mount: mount(nfs): nfs
-options="ro,soft,intr,nfsvers=4", nobind=0, nosymlink=0, ro=1
-Dec 27 15:16:53 ofire automount[3879]: get_nfs_info: called with host
-mickeycn(192.168.90.12) proto 6 version 0x40
-Dec 27 15:16:53 ofire automount[3879]: get_nfs_info: nfs v4 rpc ping
-time: 0.000599
-Dec 27 15:16:53 ofire automount[3879]: get_nfs_info: host mickeycn
-cost 598 weight 0
-Dec 27 15:16:53 ofire automount[3879]: prune_host_list: selected
-subset of hosts that support NFS4 over TCP
-Dec 27 15:16:53 ofire automount[3879]: mount_mount: mount(nfs):
-calling mkdir_path /mnt/misc/mkydns
-Dec 27 15:16:53 ofire automount[3879]: mount_mount: mount(nfs):
-calling mount -t nfs -s -o ro,soft,intr,nfsvers=4
-mickeycn:/home/dennis /mnt/misc/mkydns
-Dec 27 15:16:53 ofire automount[3879]: mount_mount: mount(nfs):
-mounted mickeycn:/home/dennis on /mnt/misc/mkydns
-Dec 27 15:16:53 ofire automount[3879]: dev_ioctl_send_ready: token = 119
-Dec 27 15:16:53 ofire automount[3879]: mounted /mnt/misc/mkydns
-Dec 27 15:17:00 ofire automount[3879]: st_expire: state 1 path /net
-Dec 27 15:17:00 ofire automount[3879]: expire_proc: exp_proc =
-139809608951552 path /net
-Dec 27 15:17:00 ofire automount[3879]: expire_cleanup: got thid
-139809608951552 path /net stat 0
-Dec 27 15:17:00 ofire automount[3879]: expire_cleanup: sigchld: exp
-139809608951552 finished, switching from 2 to 1
-Dec 27 15:17:00 ofire automount[3879]: st_ready: st_ready(): state = 2 path /net
-Dec 27 15:17:08 ofire automount[3879]: st_expire: state 1 path /net
-Dec 27 15:17:08 ofire automount[3879]: expire_proc: exp_proc =
-139809608951552 path /net
-Dec 27 15:17:08 ofire automount[3879]: expire_cleanup: got thid
-139809608951552 path /net stat 0
-Dec 27 15:17:08 ofire automount[3879]: expire_cleanup: sigchld: exp
-139809608951552 finished, switching from 2 to 1
-Dec 27 15:17:08 ofire automount[3879]: st_ready: st_ready(): state = 2 path /net
-Dec 27 15:17:16 ofire automount[3879]: st_expire: state 1 path /net
-Dec 27 15:17:16 ofire automount[3879]: expire_proc: exp_proc =
-139809608951552 path /net
-Dec 27 15:17:16 ofire automount[3879]: expire_cleanup: got thid
-139809608951552 path /net stat 0
-Dec 27 15:17:16 ofire automount[3879]: expire_cleanup: sigchld: exp
-139809608951552 finished, switching from 2 to 1
-Dec 27 15:17:16 ofire automount[3879]: st_ready: st_ready(): state = 2 path /net
-Dec 27 15:17:17 ofire automount[3879]: handle_packet: type = 3
-Dec 27 15:17:17 ofire automount[3879]: handle_packet_missing_indirect:
-token 120, name mkynfs, request pid 3918
-Dec 27 15:17:17 ofire automount[3879]: attempting to mount entry
-/mnt/misc/mkynfs
-Dec 27 15:17:17 ofire automount[3879]: lookup_mount: lookup(file):
-looking up mkynfs
-Dec 27 15:17:17 ofire automount[3879]: lookup_mount: lookup(file):
-mkynfs -> -ro,soft,intr,nfsvers=3 192.168.90.12:/home/dennis
-Dec 27 15:17:17 ofire automount[3879]: parse_mount: parse(sun):
-expanded entry: -ro,soft,intr,nfsvers=3 192.168.90.12:/home/dennis
-Dec 27 15:17:17 ofire automount[3879]: parse_mount: parse(sun):
-gathered options: ro,soft,intr,nfsvers=3
-Dec 27 15:17:17 ofire automount[3879]: parse_mount: parse(sun):
-dequote("192.168.90.12:/home/dennis") -> 192.168.90.12:/home/dennis
-Dec 27 15:17:17 ofire automount[3879]: parse_mount: parse(sun): core
-of entry: options=ro,soft,intr,nfsvers=3,
-loc=192.168.90.12:/home/dennis
-Dec 27 15:17:17 ofire automount[3879]: sun_mount: parse(sun): mounting
-root /mnt/misc, mountpoint mkynfs, what 192.168.90.12:/home/dennis,
-fstype nfs, options ro,soft,intr,nfsvers=3
-Dec 27 15:17:17 ofire automount[3879]: mount_mount: mount(nfs):
-root=/mnt/misc name=mkynfs what=192.168.90.12:/home/dennis,
-fstype=nfs, options=ro,soft,intr,nfsvers=3
-Dec 27 15:17:17 ofire automount[3879]: mount_mount: mount(nfs): nfs
-options="ro,soft,intr,nfsvers=3", nobind=0, nosymlink=0, ro=1
-Dec 27 15:17:17 ofire automount[3879]: get_nfs_info: called with host
-192.168.90.12(192.168.90.12) proto 6 version 0x20
-Dec 27 15:17:17 ofire automount[3879]: get_nfs_info: called with host
-192.168.90.12(192.168.90.12) proto 17 version 0x20
-Dec 27 15:17:20 ofire automount[3879]: mount(nfs): no hosts available
-Dec 27 15:17:20 ofire automount[3879]: dev_ioctl_send_fail: token = 120
-Dec 27 15:17:20 ofire automount[3879]: failed to mount /mnt/misc/mkynfs
-Dec 27 15:17:20 ofire automount[3879]: handle_packet: type = 3
-Dec 27 15:17:20 ofire automount[3879]: handle_packet_missing_indirect:
-token 121, name mkynfs, request pid 3918
-Dec 27 15:17:20 ofire automount[3879]: dev_ioctl_send_fail: token = 121
-Dec 27 15:17:24 ofire automount[3879]: st_expire: state 1 path /net
-Dec 27 15:17:24 ofire automount[3879]: expire_proc: exp_proc =
-139809608951552 path /net
-Dec 27 15:17:24 ofire automount[3879]: expire_cleanup: got thid
-139809608951552 path /net stat 0
-Dec 27 15:17:24 ofire automount[3879]: expire_cleanup: sigchld: exp
-139809608951552 finished, switching from 2 to 1
-Dec 27 15:17:24 ofire automount[3879]: st_ready: st_ready(): state = 2 path /net
-Dec 27 15:17:32 ofire automount[3879]: st_expire: state 1 path /net
-Dec 27 15:17:32 ofire automount[3879]: expire_proc: exp_proc =
-139809608951552 path /net
-Dec 27 15:17:32 ofire automount[3879]: expire_cleanup: got thid
-139809608951552 path /net stat 0
-Dec 27 15:17:32 ofire automount[3879]: expire_cleanup: sigchld: exp
-139809608951552 finished, switching from 2 to 1
-Dec 27 15:17:32 ofire automount[3879]: st_ready: st_ready(): state = 2 path /net
-Dec 27 15:17:40 ofire automount[3879]: st_expire: state 1 path /net
-Dec 27 15:17:40 ofire automount[3879]: expire_proc: exp_proc =
-139809608951552 path /net
-Dec 27 15:17:40 ofire automount[3879]: expire_cleanup: got thid
-139809608951552 path /net stat 0
-Dec 27 15:17:40 ofire automount[3879]: expire_cleanup: sigchld: exp
-139809608951552 finished, switching from 2 to 1
-Dec 27 15:17:40 ofire automount[3879]: st_ready: st_ready(): state = 2 path /net
