@@ -1,123 +1,71 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH] autofs - fix symlinks aren't checked for expiry
-Date: Sat, 28 Dec 2013 10:31:54 +0800
-Message-ID: <1388197914.13774.1.camel@perseus.fritz.box>
-References: <20131227042828.3519.11223.stgit@perseus.fritz.box>
-	 <20131227043216.3519.3477.stgit@perseus.fritz.box>
-	 <CA+icZUVz0imGxosj2gzXt9gi93VwdD2qFP-9=M3TgSkbfMNy4w@mail.gmail.com>
+Subject: Re: [PATCH 0/5] fyi, here are the patches that I haven't yet
+ committed
+Date: Sat, 28 Dec 2013 10:41:59 +0800
+Message-ID: <1388198519.13774.4.camel@perseus.fritz.box>
+References: <20131224075909.8321.95699.stgit@perseus.fritz.box>
+	 <CAF1ZMEf+Bd664eVgkLOvGKTFGBzpgS+UoDZmJyFK-f=Rv59bkg@mail.gmail.com>
+	 <1387875881.7351.12.camel@perseus.fritz.box>
+	 <CAF1ZMEeUDS8wunF9AHXwQ=xf0OW6_ucmyfQicfbpP7sVavpaSw@mail.gmail.com>
+	 <1387881262.7351.15.camel@perseus.fritz.box>
+	 <CAF1ZMEcfVTYS=6sfVhSbO8MVaMxcU2v8qV_7O6ACMCRHLxMXeA@mail.gmail.com>
+	 <CAF1ZMEfbrpZ_=GxYTNS-sfus9-QTBD-WCMaZR-ZaEpShPbFdBg@mail.gmail.com>
+	 <CAF1ZMEdRhy5LcfEwUW3Os5M8nKXT1j2+M4oqOKgqF3sjLPyWpw@mail.gmail.com>
+	 <1388134613.2623.7.camel@perseus.fritz.box>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
 	message-id:subject:from:to:cc:date:in-reply-to:references
 	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
-	 bh=3zElMSTLoKPpBkDqjpghhYhZiE0=; b=PmKJMJXStif2zPFOGQWEAv+Ax+0F
-	HrefQi9uLVXfL+9wnMLjzs2tVw9oFnVqryVO4SsEwjIxFmjQYco25xlKi7OqXFHY
-	tsP8quTrZiOM19I37ylGaQDUmfR83lG5l1dIovt4D/s8I1XcIA0OIEhnsfzdECvc
-	tQNb1v2sZeummwQ=
+	 bh=5m0C3DY5xzfVOQK7BcXAw4HaUNg=; b=m2X1VOASygQ2tF1/Hdh8kqx0/VRF
+	1/FWzJdJTVvjyxu25ke0crOUMdIMxTVW7s8sCu/4/9JwdIzphczzON109+gAkkxb
+	w5DqUteBGbKZTSaP80nrlUj8arYNfyKDjavvgfbxGK4vyIzuyyHdUMIcNSiLKp5t
+	i2IOik9p18bsEGk=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=message-id:subject:from:to:cc:date
 	:in-reply-to:references:content-type:mime-version
-	:content-transfer-encoding; s=smtpout; bh=3zElMSTLoKPpBkDqjpghhY
-	hZiE0=; b=RslfERRA9bxnOlWSNBn0F4sO+UnMVyYEr2aaLQAGST8dGwEUIqAmQ+
-	5v4WDigMJVGQ6lIKc6ZRxHaorPTaS7tdGdu6Xz+IcPV+/ZhKineL1M9YEyyxyd6n
-	uENvXxEoIYADZ1zM7REwhwcQG8zcqnZEJmgQXHnAqc9FMdlwcVPBo=
-In-Reply-To: <CA+icZUVz0imGxosj2gzXt9gi93VwdD2qFP-9=M3TgSkbfMNy4w@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+	:content-transfer-encoding; s=smtpout; bh=5m0C3DY5xzfVOQK7BcXAw4
+	HaUNg=; b=tBSobAwk3oiG0R0Rv8f4hazmGicct8eUmTvhdPkcWv407Vb/0gZkOJ
+	O8ojDs5TdVQelXV9cRvoPJxTU6W90nQzuJfBzGLCVbjxsA5tglFECU1KlpF6ykpi
+	Z2qoBM8w1w3RjRNpVCmooTJgmxjxCm0Rgjcg1wj9Zh2egnCq1NqqM=
+In-Reply-To: <1388134613.2623.7.camel@perseus.fritz.box>
+Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: sedat.dilek@gmail.com
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: "Dennis Lan (dlan)" <dennis.yxun@gmail.com>
+Cc: autofs mailing list <autofs@vger.kernel.org>
 
-On Fri, 2013-12-27 at 11:53 +0100, Sedat Dilek wrote:
-> On Fri, Dec 27, 2013 at 5:32 AM, Ian Kent <raven@themaw.net> wrote:
+On Fri, 2013-12-27 at 16:56 +0800, Ian Kent wrote:
+> On Fri, 2013-12-27 at 15:30 +0800, Dennis Lan (dlan) wrote:
+> > sorry, I was not accurate about the failure cases.
+> > 
+> > using commit ec267c2c406256e401540e5bc890b2e0c2ff6c35
+> > 
+> > snip from file /etc/autofs/auto.misc
+> > mkynfs -ro,soft,intr,nfsvers=3 192.168.90.12:/home/dennis
+> > mkydns -ro,soft,intr,nfsvers=4 mickeycn:/home/dennis
+> > 
+> > with libtirpc enabled (all other features disabled),[1]
+> > "ls /mnt/misc/mkynfs" lead to automount segfault
+> > "ls /mnt/misc/mkydns" automount fail (no crash), but report "no hosts available"
 > 
-> Hi,
+> Right, I think I've worked out the issue with this second case.
+> I'll push my recent changes to autofs-5.0.public once I've had a look at
+> the segfault issue.
 > 
-> saw some typos...
+> > 
+> > with libtirpc disabled (all other features disabled)[2]
+> > "ls /mnt/misc/mkynfs" automount fail (no crash), report "no hosts available"
+> > "ls /mnt/misc/mkydns" works fine
+> 
+> Mmmm .. I'll need to duplicate this and have a look.
+> The libtirpc disabled case shouldn't really have changed ....
+> 
+> Let me work through these logs and see if I can spot anything obvious.
 
-Right, I'm pretty tired, and seem to be so a lot these days.
+I've updated the autofs-5.0.public branch.
+Can you test it please.
 
-Andrew, let me fix the typos and re-submit the patch.
-
-> 
-> > From: Ian Kent <ikent@redhat.com>
-> >
-> > The autofs4 module doesn't consider symlinks for expire as it did
-> > in the older autofs v3 module (so it's actually a long stnding
-> 
-> s/stnding/standing
-> 
-> > regression).
-> >
-> > The user space daemon has focused on the use of bind mounts instead
-> > of symlinks for a long time now and that's why this has not been
-> > noticed. But with the future addition of amd map parsing to
-> > automount(8), not to mention amd itself (of am-utils), symlink
-> > expiry will be needed.
-> >
-> > The direct and offset mount types can't be symlinks and the tree
-> > mounts of version 4 were always real mounts so only indirect
-> > mounts need expire symlinks.
-> >
-> > Since the current users of the autofs4 module haven't reproted
-> 
-> s/reproted/reported
-> 
-> - Sedat -
-> 
-> > this as a problem to date this patch probably isn't a candidate
-> > for backport to stable.
-> >
-> > Signed-off-by: Ian Kent <ikent@redhat.com>
-> > ---
-> >  fs/autofs4/expire.c  |   14 ++++++++++++++
-> >  fs/autofs4/symlink.c |    4 ++++
-> >  2 files changed, 18 insertions(+)
-> >
-> > diff --git a/fs/autofs4/expire.c b/fs/autofs4/expire.c
-> > index 3d9d3f5..394e90b 100644
-> > --- a/fs/autofs4/expire.c
-> > +++ b/fs/autofs4/expire.c
-> > @@ -402,6 +402,20 @@ struct dentry *autofs4_expire_indirect(struct super_block *sb,
-> >                         goto next;
-> >                 }
-> >
-> > +               if (dentry->d_inode && S_ISLNK(dentry->d_inode->i_mode)) {
-> > +                       DPRINTK("checking symlink %p %.*s",
-> > +                               dentry, (int)dentry->d_name.len, dentry->d_name.name);
-> > +                       /*
-> > +                        * A symlink can't be "busy" in the usual sense so
-> > +                        * just check last used for expire timeout.
-> > +                        */
-> > +                       if (autofs4_can_expire(dentry, timeout, do_now)) {
-> > +                               expired = dentry;
-> > +                               goto found;
-> > +                       }
-> > +                       goto next;
-> > +               }
-> > +
-> >                 if (simple_empty(dentry))
-> >                         goto next;
-> >
-> > diff --git a/fs/autofs4/symlink.c b/fs/autofs4/symlink.c
-> > index f27c094..1e8ea19 100644
-> > --- a/fs/autofs4/symlink.c
-> > +++ b/fs/autofs4/symlink.c
-> > @@ -14,6 +14,10 @@
-> >
-> >  static void *autofs4_follow_link(struct dentry *dentry, struct nameidata *nd)
-> >  {
-> > +       struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
-> > +       struct autofs_info *ino = autofs4_dentry_ino(dentry);
-> > +       if (ino && !autofs4_oz_mode(sbi))
-> > +               ino->last_used = jiffies;
-> >         nd_set_link(nd, dentry->d_inode->i_private);
-> >         return NULL;
-> >  }
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-fsdevel" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ian
 
