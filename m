@@ -1,85 +1,60 @@
-From: "Dennis Lan (dlan)" <dennis.yxun@gmail.com>
-Subject: Re: [PATCH 0/5] fyi, here are the patches that I haven't yet committed
-Date: Mon, 30 Dec 2013 15:44:57 +0800
-Message-ID: <CAF1ZMEcWWeQkE6hVZhVxhd31Lk_6RE5Op7rD1x0TcHdexActxQ@mail.gmail.com>
-References: <20131224075909.8321.95699.stgit@perseus.fritz.box>
-	<CAF1ZMEf+Bd664eVgkLOvGKTFGBzpgS+UoDZmJyFK-f=Rv59bkg@mail.gmail.com>
-	<1387875881.7351.12.camel@perseus.fritz.box>
-	<CAF1ZMEeUDS8wunF9AHXwQ=xf0OW6_ucmyfQicfbpP7sVavpaSw@mail.gmail.com>
-	<1387881262.7351.15.camel@perseus.fritz.box>
-	<CAF1ZMEcfVTYS=6sfVhSbO8MVaMxcU2v8qV_7O6ACMCRHLxMXeA@mail.gmail.com>
-	<CAF1ZMEfbrpZ_=GxYTNS-sfus9-QTBD-WCMaZR-ZaEpShPbFdBg@mail.gmail.com>
-	<CAF1ZMEdRhy5LcfEwUW3Os5M8nKXT1j2+M4oqOKgqF3sjLPyWpw@mail.gmail.com>
-	<1388317008.26021.9.camel@perseus.fritz.box>
+From: Leonardo Chiquitto <leonardo.lists@gmail.com>
+Subject: Re: [PATCH] autofs-5.0.7 don't reset errno
+Date: Mon, 20 Jan 2014 11:45:00 -0200
+Message-ID: <CAEySpB5C8gOhsCd3Mv+2C_4+wX+jHVGP227i9kuY1QPZ4FJTDQ@mail.gmail.com>
+References: <CAEySpB5qJqSennSmX_kxXxA2YXvL7UweqyhhvLOvMcHYQP_Rcw@mail.gmail.com>
 Mime-Version: 1.0
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20120113;
         h=mime-version:in-reply-to:references:date:message-id:subject:from:to
-         :cc:content-type;
-        bh=g9kLGfXlcqi6L7WSzLqpKJ80+1IEMSi8JR5XuuUi6hs=;
-        b=nRB/qyCgHP96QZ7oGzrueGZjMfbR2jPhMGamZHqsMXflJaquAPyRm+jLrCfoHnMAar
-         eRn0c+5MJlRMt720l7MYhNO0dUT0xp8+oPjSTXXGC3/5c22NOnjuCup9oeNHXSafOJxH
-         AWEhL0fDzK8geGkCz8o8phywsx6/Pkgtk5EI7rnG0cDJu2EoJTnO6MfpIW+T+ESA3pqu
-         YOxde3mXlEa3AoLJkx9m1Uxk/EcxpI+sBPjI4V5kqMZVK0b5nsr+6vDre/IIoGqPmvr2
-         FYzGRUuNp3rHu9T+ZCV8UfhXe4s2ZaBVq0ToEQ7qxAu2Ym56fD6hp9lrc9yOfqcH88ll
-         z0aA==
-In-Reply-To: <1388317008.26021.9.camel@perseus.fritz.box>
+         :content-type;
+        bh=XCwYKuOWRNqhZF2gEyu48VqgWG6JXUfklpvx/Sb2TDU=;
+        b=enY1UQo92kF66xiezA0EApS5LH3bC5pgQEgRdvgpzRuhCzJhkEoRtUadUMNHcWVPPd
+         vhQI3CX69AaYwUZdNiIeYrflCjlKaQn1I2fQd/oTLT/j8i7Ig7IrY931/SFOGW3xFDap
+         AbhF7mJrNX7YGFm2DhkZf/PEPpd2/Jbq/nc2Bq1iIurdonAuS/oY6gRXDOBBWJO6tbLE
+         5/+OD+tTisoqkatvjcI9Q19XGn5ILpniqtbf3cc58x0joj8LYwx+lHB0nh3YFvEv6MQf
+         BQIJEzzDrcsFfq+6mvg2J8Yi53aZkN4p8aUVvlSzu2QAEbeyOkIIKaIjmMiFI7PCk7XB
+         MNeQ==
+In-Reply-To: <CAEySpB5qJqSennSmX_kxXxA2YXvL7UweqyhhvLOvMcHYQP_Rcw@mail.gmail.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ian Kent <raven@themaw.net>
-Cc: autofs mailing list <autofs@vger.kernel.org>
+To: autofs <autofs@vger.kernel.org>
 
-On Sun, Dec 29, 2013 at 7:36 PM, Ian Kent <raven@themaw.net> wrote:
-> On Fri, 2013-12-27 at 15:30 +0800, Dennis Lan (dlan) wrote:
->> sorry, I was not accurate about the failure cases.
->>
->> using commit ec267c2c406256e401540e5bc890b2e0c2ff6c35
->>
->> snip from file /etc/autofs/auto.misc
->> mkynfs -ro,soft,intr,nfsvers=3 192.168.90.12:/home/dennis
->> mkydns -ro,soft,intr,nfsvers=4 mickeycn:/home/dennis
->>
->> with libtirpc enabled (all other features disabled),[1]
->> "ls /mnt/misc/mkynfs" lead to automount segfault
->> "ls /mnt/misc/mkydns" automount fail (no crash), but report "no hosts available"
->>
->> with libtirpc disabled (all other features disabled)[2]
->> "ls /mnt/misc/mkynfs" automount fail (no crash), report "no hosts available"
->> "ls /mnt/misc/mkydns" works fine
+On Thu, Sep 20, 2012 at 12:35 PM, Leonardo Chiquitto
+<leonardo.lists@gmail.com> wrote:
+> Hello Ian,
 >
-> What exactly does "all other features disabled" mean from a configure
-> POV. I always use --disable-mount-locking and --enable-ignore-busy,
-> always.
+> Please consider the patch below for inclusion.
 >
-  $ /var/tmp/portage/net-fs/autofs-9999/work/autofs-9999/configure
---prefix=/usr --build=x86_64-pc-linux-gnu --host=x86_64-pc-linux-gnu
---mandir=/usr/share/man --infodir=/usr/share/info --datadir=/usr/share
---sysconfdir=/etc --localstatedir=/var/lib --libdir=/usr/lib64
---docdir=/usr/share/doc/autofs-9999 --with-confdir=/etc/conf.d
---with-mapdir=/etc/autofs --with-dmalloc --with-openldap
---with-libtirpc --with-sasl --with-hesiod --disable-mount-locking
---disable-ext-env --enable-sloppy-mount --enable-force-shutdown
---enable-ignore-busy --with-systemd=/usr/lib/systemd/system
-RANLIB=/usr/bin/x86_64-pc-linux-gnu-ranlib
-
- # automount --version
-
-Linux automount version 5.0.8
-
-Directories:
-        config dir:     /etc/conf.d
-        maps dir:       /etc/autofs
-        modules dir:    /usr/lib64/autofs
-
-Compile options:
-  DISABLE_MOUNT_LOCKING ENABLE_FORCED_SHUTDOWN ENABLE_IGNORE_BUSY_MOUNTS
-  WITH_HESIOD WITH_LDAP WITH_SASL WITH_DMALLOC LIBXML2_WORKAROUND
-  WITH_LIBTIRPC
-
-> Maybe that's something to do with the problem your seeing .....
+> Thanks,
+> Leonardo
 >
-> Ian
+> From: Werner Fink <werner@suse.de>
 >
+> Do not reset the error code that might just have been set to ENOTDIR.
+>
+> Index: autofs/daemon/automount.c
+> ===================================================================
+> --- autofs.orig/daemon/automount.c
+> +++ autofs/daemon/automount.c
+> @@ -107,9 +107,9 @@ static int do_mkdir(const char *parent,
+>         /* If path exists we're done */
+>         status = stat(path, &st);
+>         if (status == 0) {
+> +               errno = EEXIST;
+>                 if (!S_ISDIR(st.st_mode))
+>                         errno = ENOTDIR;
+> -               errno = EEXIST;
+>                 return 0;
+>         }
+
+Hi Ian,
+
+Looks like this one has slipped through the cracks. Could you review
+and commit if appropriate?
+
+Thanks,
+Leonardo
