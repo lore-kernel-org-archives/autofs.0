@@ -1,378 +1,107 @@
 From: Leonardo Chiquitto <leonardo.lists@gmail.com>
-Subject: Re: Segmentation fault in st_queue_handler()
-Date: Mon, 20 Jan 2014 14:42:00 -0200
-Message-ID: <CAEySpB6rq5wU+45_+0BHR3zXVZUhGKbmW-pB4ZN31oubXP9zAA@mail.gmail.com>
-References: <CAEySpB5YrZdPtv=DPXYKf759k7BtCF7JMfK5rmZNDCMs5CuvUw@mail.gmail.com>
-	<1322007510.3340.14.camel@perseus.themaw.net>
-	<CAEySpB6K3RffsKbnDPMW9Evu_3gayrmm59jdTKMoZd7sqfYL5A@mail.gmail.com>
-	<CAEySpB7z0Wy88MLJ-L6CHoRdgGoozmPqF8RqEeHOAG6KO01uZw@mail.gmail.com>
-	<CAEySpB4rf8JvSY2yoGX6jhRr3nUQExTGX3pxAodwO0AgHi8ZZA@mail.gmail.com>
-	<1322786402.2171.30.camel@perseus.themaw.net>
+Subject: [PATCH] Extend fix for crash due to thread unsafe use of libldap
+Date: Mon, 20 Jan 2014 22:26:57 -0200
+Message-ID: <CAEySpB6AgCD+NJtpf-dHxC=gy2eNyg63Jeok19_3rmUDtB+Zjg@mail.gmail.com>
 Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary=089e01538360e4f4a504f0701041
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20120113;
-        h=mime-version:in-reply-to:references:date:message-id:subject:from:to
-         :cc:content-type;
-        bh=TXFI5eyxGCvJZjkf3F1KRV0TBu2q5ZFuYYy2LsQ8wwg=;
-        b=iKDU5mYLCHXxUoKYTzOP32yz6fJ8edKsVKNVrWP3PcP8J1yEJ5KDCvHG1mssonSy4w
-         vqUgIA1Y4FwBiMH8vJnZt0fx2wRX//uLA9t185yfkdUgkBPXoN8hNhc3UBAHeTu8/FhW
-         z9+J064rAkBMl5JwhyVkTyGjj2IZE8PqT7/9KvWO4yutajeGUEWiS95HcnWYYuNn8lIt
-         lzk/rhTSNCe2RRnmDGbeZavVuAiDck6MtgM+1hJeKiGWCNgw2XHxUGJQYLlF++Rb4M0S
-         04+ge7SK2DNW+AQ5N+DAcHxIZczvtmRgFCorJUWSu4eY+Ol2dlidamYNl//kc7lXJ4Xs
-         pEJA==
-In-Reply-To: <1322786402.2171.30.camel@perseus.themaw.net>
+        h=mime-version:date:message-id:subject:from:to:content-type;
+        bh=kLjn/zkSDnWUCEOdciasXejmIvrt55D4yKkjWRFvGOI=;
+        b=bONqvI1E/giYuhv4jH5MNRGeJEySxspPOc8vPjtzKdFgGujTcOjegrZdVCHpt3f40l
+         s1i0JqbDOmAy9YDmuio3eweoNrVfQ2+tSX+SanflihWb+wAmOFXMJFsvefpTeCWNtsre
+         EfIf3JSVevKo0GYzHdSoJEnG0eCddF1BXX+HmDo1YMQzzdemplA5Denr/zbYcbPXjvSW
+         MfQSeFMbbXoW25x2KmHatE8RHQN0UQ7FD0zpKn5PXNoeTUSa2ODBhgom80Ob6Z7c79ea
+         tmfB0rA6hvafuUoQ9aV0ROP+IgYdrXD2aWM9AFTOCng3aHpTS1I/qU5ePa7R9By6sb0t
+         lQgg==
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Ian Kent <raven@themaw.net>
-Cc: autofs <autofs@vger.kernel.org>
+To: autofs <autofs@vger.kernel.org>
 
-On Thu, Dec 1, 2011 at 10:40 PM, Ian Kent <raven@themaw.net> wrote:
-> On Thu, 2011-12-01 at 13:00 -0300, Leonardo Chiquitto wrote:
->> On Thu, Nov 24, 2011 at 3:06 PM, Leonardo Chiquitto
->> <leonardo.lists@gmail.com> wrote:
->> > On Wed, Nov 23, 2011 at 7:14 AM, Leonardo Chiquitto
->> > <leonardo.lists@gmail.com> wrote:
->> >> On Tue, Nov 22, 2011 at 9:18 PM, Ian Kent <raven@themaw.net> wrote:
->> >>> On Tue, 2011-11-22 at 16:34 -0300, Leonardo Chiquitto wrote:
->> >>>> Hello,
->> >>>>
->> >>>> We received a bug report describing a segfault in automount, more
->> >>>> specifically at st_queue_handler():
->> >>>>
->> >>>> 1140 remove:
->> >>>> 1141         /* No more tasks for this queue */
->> >>>> 1142         if (list_empty(&task->pending)) {
->> >>>> 1143           list_del(&task->list);
->> >>>> 1144           free(task);
->> >>>> 1145           continue;
->> >>>> 1146         }
->> >>>> 1147
->> >>>> 1148         /* Next task */
->> >>>> 1149         next = list_entry((&task->pending)->next,
->> >>>> 1150               struct state_queue, pending);
->> >>>> 1151
->> >>>> 1152         list_del(&task->list);
->> >>>> 1153         free(task);
->> >>>> 1154
->> >>>> 1155         list_del_init(&next->pending);     <== SEGV
->> >>>> 1156         list_add_tail(&next->list, head);
->> >>>> 1157         if (p == head)
->> >>>> 1158           p = head->next;
->> >>>> 1159       }
->> >>>> 1160
->> >>>> 1161       if (list_empty(head))
->> >>>> 1162         break;
->> >>>>
->> >>>> The crash happens because we're trying to remove an element from an empty
->> >>>> list (next->pending):
->> >>>>
->> >>>> (gdb) print next
->> >>>> $38 = (struct state_queue *) 0x2aaaad1003b0
->> >>>>
->> >>>> (gdb) print *next
->> >>>> $39 = {thid = 0, list = {next = 0x2aaaad1003b8, prev = 0x2aaaad1003b8},
->> >>>>   pending = {next = 0x2aaaad500048, prev = 0x2aaaad500048},
->> >>>>   ap = 0x55555569d1e0, state = ST_READMAP, busy = 0, done = 0, cancel = 0}
->> >>>>
->> >>>> (gdb) print next->pending
->> >>>> $40 = {next = 0x2aaaad500048, prev = 0x2aaaad500048}  <== Empty
->> >>>>
->> >>>> (gdb) print *next->pending->next
->> >>>> Cannot access memory at address 0x2aaaad500048
->> >>>>
->> >>>> Should it be testing if the list is not empty before trying to remove the
->> >>>> element or this condition should never happen?
->> >>>
->> >>> There's definitely something fishy going on.
->> >>>
->> >>> Above, at line 1142 the pending list is checked to see if it is empty so
->> >>> it can't be empty if we manage to get to the list_del_init() at line
->> >>> 1155 since the list mutex is held during these operations.
->> >>
->> >> Ah, thanks for pointing this.
->> >>
->> >>>> Unfortunately I don't have the debug logs, only verbose:
->> >>>>
->> >>>> Oct 27 16:15:56 host automount[4621]: 83 remaining in /-
->> >>>> Oct 27 16:16:03 host automount[4621]: 15 remaining in /usr2
->> >>>> Oct 27 16:16:51 host automount[4621]: 83 remaining in /-
->> >>>> Oct 27 16:19:10 host automount[4621]: 15 remaining in /usr2
->> >>>> Oct 27 16:20:03 host automount[4621]: 83 remaining in /-
->> >>>> Oct 27 16:20:03 host automount[4621]: 15 remaining in /usr2
->> >>>> Oct 27 16:20:04 host automount[4621]: re-reading master map auto_master
->> >>>> Oct 27 16:20:04 host automount[4621]: 83 remaining in /-
->> >>>> Oct 27 16:20:04 host kernel: automount[4623]: segfault at
->> >>>> 00002aaaad500050 rip 000055555556c9fb rsp 0000000040021190 error 6
->> >>>
->> >>> I have had recent reports of overlap of tasks.
->> >>>
->> >>> For example expire not completing before continuing (but only relevant
->> >>> for submounts) and read map tasks starting before a current task is
->> >>> done.
->> >>>
->> >>> I have a couple of patches but they've seen little testing since I can't
->> >>> reproduce the problems at will.
->> >>>
->> >>>>
->> >>>> And here is the full call trace, for reference:
->> >>>>
->> >>>> Thread 8 (Thread 4621):
->> >>>> #0  do_sigwait (set=0x7fffb4737710, sig=0x7fffb473782c)
->> >>>>     at ../nptl/sysdeps/unix/sysv/linux/../../../../../sysdeps/unix/sysv/linux/sigwait.c:65
->> >>>> #1  0x00002b1a096c9aed in __sigwait (set=0x7fffb4737710, sig=0x7fffb473782c)
->> >>>>     at ../nptl/sysdeps/unix/sysv/linux/../../../../../sysdeps/unix/sysv/linux/sigwait.c:100
->> >>>> #2  0x0000555555560b96 in statemachine (argc=<value optimized out>,
->> >>>>     argv=<value optimized out>) at automount.c:1327
->> >>>> #3  main (argc=<value optimized out>, argv=<value optimized out>)
->> >>>>     at automount.c:2142
->> >>>>
->> >>>> Thread 7 (Thread 4622):
->> >>>> #0  0x00002b1a096c6517 in pthread_cond_timedwait@@GLIBC_2.3.2 ()
->> >>>>     from /lib64/libpthread.so.0
->> >>>> #1  0x0000555555573812 in alarm_handler (arg=<value optimized out>)
->> >>>>     at alarm.c:206
->> >>>> #2  0x00002b1a096c2193 in start_thread (arg=<value optimized out>)
->> >>>>     at pthread_create.c:306
->> >>>> #3  0x00002b1a09e480dd in clone () from /lib64/libc.so.6
->> >>>>
->> >>>> Thread 6 (Thread 4626):
->> >>>> #0  0x00002b1a09e3fdc6 in __poll (fds=0x40822150, nfds=3, timeout=-1)
->> >>>>     at ../sysdeps/unix/sysv/linux/poll.c:87
->> >>>> #1  0x000055555555f2a9 in get_pkt (arg=<value optimized out>)
->> >>>>     at automount.c:882
->> >>>> #2  handle_packet (arg=<value optimized out>) at automount.c:1019
->> >>>> #3  handle_mounts (arg=<value optimized out>) at automount.c:1551
->> >>>> #4  0x00002b1a096c2193 in start_thread (arg=<value optimized out>)
->> >>>>     at pthread_create.c:306
->> >>>> #5  0x00002b1a09e480dd in clone () from /lib64/libc.so.6
->> >>>>
->> >>>> Thread 5 (Thread 4629):
->> >>>> #0  0x00002b1a09e3fdc6 in __poll (fds=0x41023150, nfds=3, timeout=-1)
->> >>>>     at ../sysdeps/unix/sysv/linux/poll.c:87
->> >>>> #1  0x000055555555f2a9 in get_pkt (arg=<value optimized out>)
->> >>>>     at automount.c:882
->> >>>> #2  handle_packet (arg=<value optimized out>) at automount.c:1019
->> >>>> #3  handle_mounts (arg=<value optimized out>) at automount.c:1551
->> >>>> #4  0x00002b1a096c2193 in start_thread (arg=<value optimized out>)
->> >>>>     at pthread_create.c:306
->> >>>> #5  0x00002b1a09e480dd in clone () from /lib64/libc.so.6
->> >>>>
->> >>>> Thread 4 (Thread 4630):
->> >>>> #0  0x00002b1a09e3fdc6 in __poll (fds=0x41824150, nfds=3, timeout=-1)
->> >>>>     at ../sysdeps/unix/sysv/linux/poll.c:87
->> >>>> #1  0x000055555555f2a9 in get_pkt (arg=<value optimized out>)
->> >>>>     at automount.c:882
->> >>>> #2  handle_packet (arg=<value optimized out>) at automount.c:1019
->> >>>> #3  handle_mounts (arg=<value optimized out>) at automount.c:1551
->> >>>> #4  0x00002b1a096c2193 in start_thread (arg=<value optimized out>)
->> >>>>     at pthread_create.c:306
->> >>>> #5  0x00002b1a09e480dd in clone () from /lib64/libc.so.6
->> >>>>
->> >>>> Thread 3 (Thread 23927):
->> >>>> #0  _IO_vfscanf_internal (s=0x41921820, format=<value optimized out>,
->> >>>>     argptr=0x41921940, errp=0x0) at vfscanf.c:1534
->> >>>> #1  0x00002b1a09de6bd5 in _IO_vsscanf (string=0x41921ef8 "0 0",
->> >>>>     format=0x2b1a09e91adf " %d %d ", args=0x41921940) at iovsscanf.c:45
->> >>>> #2  0x00002b1a09de1e98 in __sscanf (s=0xa <Address 0xa out of bounds>,
->> >>>>     format=0x41921100 "0") at sscanf.c:34
->> >>>> #3  0x00002b1a09e433e5 in __getmntent_r (stream=0x55555596aa20, mp=0x41924e80,
->> >>>>     buffer=0x41921ef8 "0 0", bufsiz=12288) at mntent_r.c:170
->> >>>> #4  0x0000555555571429 in get_mnt_list (table=<value optimized out>,
->> >>>>     path=0x55555569d610 "/net", include=0) at mounts.c:227
->> >>>> #5  0x0000555555561ed9 in expire_proc_indirect (arg=<value optimized out>)
->> >>>>     at indirect.c:554
->> >>>> #6  0x00002b1a096c2193 in start_thread (arg=<value optimized out>)
->> >>>>     at pthread_create.c:306
->> >>>> #7  0x00002b1a09e480dd in clone () from /lib64/libc.so.6
->> >>>>
->> >>>> Thread 2 (Thread 23928):
->> >>>> #0  0x00002b1a09e3a91b in read () from /lib64/libc.so.6
->> >>>> #1  0x00002b1a09defca2 in _IO_new_file_underflow (fp=0x555555989470)
->> >>>>     at fileops.c:590
->> >>>> #2  0x00002b1a09df042e in _IO_default_uflow (fp=0x67) at genops.c:435
->> >>>> #3  0x00002b1a09de56e4 in _IO_getline_info (fp=0x555555989470,
->> >>>>     buf=0x41a22e80 "auto.projects /a/b/c/d autofs
->> >>>> rw,fd=7,pgrp=4621,timeout=86400,minproto=5,maxproto=5,direct=5,maxproto=5,direct",
->> >>>> n=12184,
->> >>>>     delim=10, extract_delim=1, eof=0x0) at iogetline.c:74
->> >>>> #4  0x00002b1a09dedec9 in fgets_unlocked (
->> >>>>     buf=0x41a22e80 "auto.projects /a/b/c/d autofs
->> >>>> rw,fd=7,pgrp=4621,timeout=86400,minproto=5,maxproto=5,direct=5,maxproto=5,direct",
->> >>>>     at fileops.c:590
->> >>>> #2  0x00002b1a09df042e in _IO_default_uflow (fp=0x67) at genops.c:435
->> >>>> #3  0x00002b1a09de56e4 in _IO_getline_info (fp=0x555555989470,
->> >>>>     buf=0x41a22e80 "auto.projects /a/b/c/d autofs
->> >>>> rw,fd=7,pgrp=4621,timeout=86400,minproto=5,maxproto=5,direct=5,maxproto=5,direct",
->> >>>> n=12184,
->> >>>>     delim=10, extract_delim=1, eof=0x0) at iogetline.c:74
->> >>>> #4  0x00002b1a09dedec9 in fgets_unlocked (
->> >>>>     buf=0x41a22e80 "auto.projects /a/b/c/d autofs
->> >>>> rw,fd=7,pgrp=4621,timeout=86400,minproto=5,maxproto=5,direct=5,maxproto=5,direct",
->> >>>>     n=<value optimized out>, fp=0x555555989470) at iofgets_u.c:56
->> >>>> #5  0x00002b1a09e43252 in __getmntent_r (stream=0x555555989470, mp=0x41a25e80,
->> >>>>     buffer=0x41a22e80 "auto.projects /a/b/c/d autofs
->> >>>> rw,fd=7,pgrp=4621,timeout=86400,minproto=5,maxproto=5,direct=5,maxproto=5,direct",
->> >>>>     bufsiz=12288) at mntent_r.c:133
->> >>>> #6  0x0000555555571429 in get_mnt_list (table=<value optimized out>,
->> >>>>     path=0x55555569d960 "/usr2", include=0) at mounts.c:227
->> >>>> #7  0x0000555555561ed9 in expire_proc_indirect (arg=<value optimized out>)
->> >>>>     at indirect.c:554
->> >>>> #8  0x00002b1a096c2193 in start_thread (arg=<value optimized out>)
->> >>>>     at pthread_create.c:306
->> >>>> #9  0x00002b1a09e480dd in clone () from /lib64/libc.so.6
->> >>>>
->> >>>> Thread 1 (Thread 4623):
->> >>>> #0  st_queue_handler (arg=<value optimized out>) at ../include/list.h:79
->> >>>> #1  0x00002b1a096c2193 in start_thread (arg=<value optimized out>)
->> >>>>     at pthread_create.c:306
->> >>>> #2  0x00002b1a09e480dd in clone () from /lib64/libc.so.6
->> >>>
->> >>> So the SEGV is in thread 1?
->> >>
->> >> Yes.
->> >>
->> >>> Now did you work out the location of the SEGV from this backtrace?
->> >>
->> >> I cross checked some facts. This is what gdb prints when I open the core
->> >> dump:
->> >>
->> >>  Core was generated by `/usr/sbin/automount -p /var/run/automount.pid'.
->> >>  Program terminated with signal 11, Segmentation fault.
->> >>  #0  st_queue_handler (arg=<value optimized out>) at ../include/list.h:79
->> >>  79            next->prev = prev;
->> >>
->> >> And this is the segfault message printed by the kernel:
->> >>
->> >>  Oct 27 16:20:04 host kernel: automount[4623]: segfault at
->> >>  00002aaaad500050 rip 000055555556c9fb rsp 0000000040021190 error 6
->> >>
->> >> Disassembling %RIP confirms the function st_queue_handler() was running:
->> >>
->> >>  (gdb) disassemble 0x000055555556c9fb
->> >>  Dump of assembler code for function st_queue_handler:
->> >>     0x000055555556c860 <+0>:   push   %r13
->> >> (...)
->> >>  => 0x000055555556c9fb <+411>: mov    %rdx,0x8(%rcx)
->> >>
->> >>  %RCX is 0x2aaaad500048 and the SEGV happened when it tried to deref
->> >>  0x2aaaad500048+0x8 (0x2aaaad500050).
->> >>
->> >> Figuring out where exactly inside st_queue_handler() the crash happened
->> >> was a bit trickier because all these list functions are inlined by the compiler,
->> >> so the assembly code gets more complicated.
->> >>
->> >>> We can't be sure this is really the source of the SEGV.
->> >>> Does your customer see a different failure location on other occurrences
->> >>> of the SEGV?
->> >>
->> >> So far it occurred only once.
->> >
->> > Ian,
->> >
->> > Another idea:
->> >
->> > 1140 remove:
->> > 1141         /* No more tasks for this queue */
->> > 1142         if (list_empty(&task->pending)) {
->> > 1143           list_del(&task->list);
->> > 1144           free(task);
->> > 1145           continue;
->> > 1146         }
->> >
->> > As you said, at this point &task->pending has at least one element.
->> >
->> > 1148         /* Next task */
->> > 1149         next = list_entry((&task->pending)->next,
->> > 1150               struct state_queue, pending);
->> >
->> > Now what could be happening here is that (&task->pending)->next == task.
->
-> Anything is possible but if there is anything on the pending list it
-> should not have had a task started, since it is pending. We would need
-> to work out if there is a case where a task is taken from the pending
-> list, started and not moved to the task list or just copied not deleted
-> from the pending list. On the face of it, it doesn't look like that can
-> happen.
->
->> >
->> > 1152         list_del(&task->list);
->> > 1153         free(task);
->> >
->> > Since we free task here, &next won't be valid anymore in the next line:
->> >
->> > 1155         list_del_init(&next->pending);
->> > 1156         list_add_tail(&next->list, head);
->> > 1157         if (p == head)
->> > 1158           p = head->next;
->> >
->> > Proposed fix:
->> >
->> > diff --git a/daemon/state.c b/daemon/state.c
->> > index 51809a1..0015618 100644
->> > --- a/daemon/state.c
->> > +++ b/daemon/state.c
->> > @@ -1150,12 +1150,12 @@ remove:
->> >                                                        struct state_queue, pending);
->> >
->> >                                list_del(&task->list);
->> > -                               free(task);
->> >
->> >                                list_del_init(&next->pending);
->> >                                list_add_tail(&next->list, head);
->> >                                if (p == head)
->> >                                        p = head->next;
->> > +                               free(task);
->> >                        }
->> >
->> >                        if (list_empty(head))
->> >
->> >
->> > Before commit 6273ab63c, task was being freed after the call to list_del_init().
->> > What do you think?
->
-> We can try it but since the problem is so infrequent it will be hard to
-> confirm.
->
-> The real problem is that we don't really know the root cause.
-> It could be late reporting or an indirect fail caused by something in
-> another place in the code. This sort of bug is really difficult to
-> diagnose.
->
->>
->> Ian,
->>
->> Do you think this makes sense or is it just masking a symptom of a
->> more generic bug?
->
-> It's probably a symptom of something else, *sigh*.
->
-> btw, the git repo is now available at kernel.org.
-> Check http://git.kernel.org/ and search for autofs.
-> I haven't committed any updates yet and probably won't until some time
-> after I have posted a message to the new autofs mailing list telling
-> everyone about it.
->
->>
->> Thanks,
->> Leonardo
+--089e01538360e4f4a504f0701041
+Content-Type: text/plain; charset=ISO-8859-1
 
 Hello Ian,
 
-Sorry to resurrect such an old thread. We're still carrying this patch
-in our package and I'd like to get rid of it, preferably by getting it
-accepted upstream :-)
+I got a similar report to the one that resulted in commit 9fc20db13.
+This time automount crashed in unbind_ldap_connection():
 
-As described above, the core dump analysis really pointed to an
-use after free condition when (&task->pending)->next == task. It's
-unfortunate that we received such report only once and had no
-specific info about the circumstances that could trigger the problem.
+Thread 1 (Thread 0x7f4a8ae44700 (LWP 851)):
+#0  0x00007f4a8fab3729 in sk_free () from ./usr/lib64/libcrypto.so.0.9.8
+#1  0x00007f4a8fd9f819 in SSL_SESSION_free () from ./usr/lib64/libssl.so.0.9.8
+#2  0x00007f4a8fab3ae3 in ?? () from ./usr/lib64/libcrypto.so.0.9.8
+#3  0x00007f4a8fd9f737 in SSL_CTX_flush_sessions () from
+./usr/lib64/libssl.so.0.9.8
+#4  0x00007f4a8fd9d772 in SSL_CTX_free () from ./usr/lib64/libssl.so.0.9.8
+#5  0x00007f4a8fd9e210 in SSL_free () from ./usr/lib64/libssl.so.0.9.8
+#6  0x00007f4a90efb8ea in ?? () from ./usr/lib64/libldap-2.4.so.2
+#7  0x00007f4a90cc1406 in ber_sockbuf_remove_io () from
+./usr/lib64/liblber-2.4.so.2
+#8  0x00007f4a90cc149d in ber_int_sb_destroy () from
+./usr/lib64/liblber-2.4.so.2
+#9  0x00007f4a90cc151c in ber_sockbuf_free () from ./usr/lib64/liblber-2.4.so.2
+#10 0x00007f4a90edffdc in ldap_ld_free () from ./usr/lib64/libldap-2.4.so.2
+#11 0x00007f4a91118000 in unbind_ldap_connection () from
+./usr/lib64/autofs/lookup_ldap.so
+#12 0x00007f4a9111c0f9 in lookup_mount () from
+./usr/lib64/autofs/lookup_ldap.so
+#13 0x00007f4a9333be00 in lookup_nss_mount ()
+#14 0x00007f4a93333be5 in ?? ()
+#15 0x00007f4a92eee7b6 in start_thread () from ./lib64/libpthread.so.0
+#16 0x00007f4a92032c5d in clone () from ./lib64/libc.so.6
+#17 0x0000000000000000 in ?? ()
 
-In any case, moving free(task) to the end of the block should be
-safe and is actually how it was done before commit 6273ab63c. Do
-you think you can accept the patch as is?
+It's necessary to serialize calls to ldap_unbind() as well. Please consider
+the patch attached for inclusion.
 
 Thanks,
 Leonardo
+
+--089e01538360e4f4a504f0701041
+Content-Type: text/x-patch; charset=US-ASCII; 
+	name="autofs-5.0.8-extend-libldap-serialization.patch"
+Content-Disposition: attachment; 
+	filename="autofs-5.0.8-extend-libldap-serialization.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_hqofa8j80
+
+SW5kZXg6IGF1dG9mcy01LjAuOC9DSEFOR0VMT0cKPT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQotLS0gYXV0b2ZzLTUuMC44
+Lm9yaWcvQ0hBTkdFTE9HCisrKyBhdXRvZnMtNS4wLjgvQ0hBTkdFTE9HCkBAIC02LDYgKzYsNyBA
+QAogLSBhbGxvdyAtLXdpdGgtc3lzdGVtZCB0byB0YWtlIGEgcGF0aCBhcmcuCiAtIGZpeCBXSVRI
+X0xJQlRJUlBDIGZ1bmN0aW9uIG5hbWUuCiAtIGZpeCBpcHY2IGxpYnRpcnBjIGdldHBvcnQuCist
+IGV4dGVuZCBmaXggZm9yIGNyYXNoIGR1ZSB0byB0aHJlYWQgdW5zYWZlIHVzZSBvZiBsaWJsZGFw
+LgogCiAxNy8xMC8yMDEzIGF1dG9mcy01LjAuOAogPT09PT09PT09PT09PT09PT09PT09PT0KSW5k
+ZXg6IGF1dG9mcy01LjAuOC9tb2R1bGVzL2xvb2t1cF9sZGFwLmMKPT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQotLS0gYXV0
+b2ZzLTUuMC44Lm9yaWcvbW9kdWxlcy9sb29rdXBfbGRhcC5jCisrKyBhdXRvZnMtNS4wLjgvbW9k
+dWxlcy9sb29rdXBfbGRhcC5jCkBAIC01Myw4ICs1Myw5IEBAIHN0YXRpYyBzdHJ1Y3QgbGRhcF9z
+Y2hlbWEgY29tbW9uX3NjaGVtYVsKIHN0YXRpYyB1bnNpZ25lZCBpbnQgY29tbW9uX3NjaGVtYV9j
+b3VudCA9IHNpemVvZihjb21tb25fc2NoZW1hKS9zaXplb2Yoc3RydWN0IGxkYXBfc2NoZW1hKTsK
+IAogLyoKLSAqIEluaXRpYWxpemF0aW9uIG9mIExEQVAgYW5kIE9wZW5TU0wgbXVzdCBiZSBhbHdh
+eXMgc2VyaWFsaXplZCB0bwotICogYXZvaWQgY29ycnVwdGlvbiBvZiBjb250ZXh0IHN0cnVjdHVy
+ZXMgaW5zaWRlIHRoZXNlIGxpYnJhcmllcy4KKyAqIEluaXRpYWxpemF0aW9uIGFuZCBkZS1pbml0
+aWFsaXphdGlvbiBvZiBMREFQIGFuZCBPcGVuU1NMIG11c3QgYmUKKyAqIGFsd2F5cyBzZXJpYWxp
+emVkIHRvIGF2b2lkIGNvcnJ1cHRpb24gb2YgY29udGV4dCBzdHJ1Y3R1cmVzIGluc2lkZQorICog
+dGhlc2UgbGlicmFyaWVzLgogICovCiBwdGhyZWFkX211dGV4X3QgbGRhcGluaXRfbXV0ZXggPSBQ
+VEhSRUFEX01VVEVYX0lOSVRJQUxJWkVSOwogCkBAIC0yMDMsNyArMjA0LDcgQEAgaW50IGJpbmRf
+bGRhcF9zaW1wbGUodW5zaWduZWQgbG9nb3B0LCBMRAogCXJldHVybiAwOwogfQogCi1pbnQgdW5i
+aW5kX2xkYXBfY29ubmVjdGlvbih1bnNpZ25lZCBsb2dvcHQsIExEQVAgKmxkYXAsIHN0cnVjdCBs
+b29rdXBfY29udGV4dCAqY3R4dCkKK2ludCBfX3VuYmluZF9sZGFwX2Nvbm5lY3Rpb24odW5zaWdu
+ZWQgbG9nb3B0LCBMREFQICpsZGFwLCBzdHJ1Y3QgbG9va3VwX2NvbnRleHQgKmN0eHQpCiB7CiAJ
+aW50IHJ2OwogCkBAIC0yMjAsNiArMjIxLDE3IEBAIGludCB1bmJpbmRfbGRhcF9jb25uZWN0aW9u
+KHVuc2lnbmVkIGxvZ28KIAlyZXR1cm4gcnY7CiB9CiAKK2ludCB1bmJpbmRfbGRhcF9jb25uZWN0
+aW9uKHVuc2lnbmVkIGxvZ29wdCwgTERBUCAqbGRhcCwgc3RydWN0IGxvb2t1cF9jb250ZXh0ICpj
+dHh0KQoreworCWludCBydjsKKworCWxkYXBpbml0X211dGV4X2xvY2soKTsKKwlydiA9IF9fdW5i
+aW5kX2xkYXBfY29ubmVjdGlvbihsb2dvcHQsIGxkYXAsIGN0eHQpOworCWxkYXBpbml0X211dGV4
+X3VubG9jaygpOworCisJcmV0dXJuIHJ2OworfQorCiBMREFQICpfX2luaXRfbGRhcF9jb25uZWN0
+aW9uKHVuc2lnbmVkIGxvZ29wdCwgY29uc3QgY2hhciAqdXJpLCBzdHJ1Y3QgbG9va3VwX2NvbnRl
+eHQgKmN0eHQpCiB7CiAJTERBUCAqbGRhcCA9IE5VTEw7CkBAIC0yODAsNyArMjkyLDcgQEAgTERB
+UCAqX19pbml0X2xkYXBfY29ubmVjdGlvbih1bnNpZ25lZCBsbwogCiAJCXJ2ID0gbGRhcF9zdGFy
+dF90bHNfcyhsZGFwLCBOVUxMLCBOVUxMKTsKIAkJaWYgKHJ2ICE9IExEQVBfU1VDQ0VTUykgewot
+CQkJdW5iaW5kX2xkYXBfY29ubmVjdGlvbihsb2dvcHQsIGxkYXAsIGN0eHQpOworCQkJX191bmJp
+bmRfbGRhcF9jb25uZWN0aW9uKGxvZ29wdCwgbGRhcCwgY3R4dCk7CiAJCQlpZiAoY3R4dC0+dGxz
+X3JlcXVpcmVkKSB7CiAJCQkJZXJyb3IobG9nb3B0LCBNT0RQUkVGSVgKIAkJCQkgICAgICAiVExT
+IHJlcXVpcmVkIGJ1dCBTVEFSVF9UTFMgZmFpbGVkOiAlcyIsCg==
+--089e01538360e4f4a504f0701041--
