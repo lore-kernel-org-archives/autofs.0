@@ -1,130 +1,40 @@
 From: Donald Buczek <buczek@molgen.mpg.de>
 Subject: Re: autofs linux 3.8.13 and "Too many levels of symbolic links"
-Date: Sat, 01 Feb 2014 14:01:09 +0100
-Message-ID: <52ECF015.9030707@molgen.mpg.de>
-References: <52E92627.9050801@molgen.mpg.de> <1391223436.2501.39.camel@perseus.fritz.box>
+Date: Sat, 01 Feb 2014 14:08:02 +0100
+Message-ID: <52ECF1B2.5010009@molgen.mpg.de>
+References: <52E92627.9050801@molgen.mpg.de>		 <1391139080.2486.19.camel@perseus.fritz.box>	 <1391145206.2486.25.camel@perseus.fritz.box> <52EB7694.20707@molgen.mpg.de> <1391225528.2501.60.camel@perseus.fritz.box>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha1; boundary="------------ms000001050700070308050203"
+Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha1; boundary="------------ms060803010903080003020005"
 Return-path: <autofs-owner@vger.kernel.org>
-In-Reply-To: <1391223436.2501.39.camel@perseus.fritz.box>
+In-Reply-To: <1391225528.2501.60.camel@perseus.fritz.box>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-To: Ian Kent <raven@themaw.net>
+To: Ian Kent <raven@themaw.net>, David Howells <dhowells@redhat.com>
 Cc: autofs <autofs@vger.kernel.org>
 
 This is a cryptographically signed message in MIME format.
 
---------------ms000001050700070308050203
+--------------ms060803010903080003020005
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: quoted-printable
 
-Am 01.02.2014 03:57, schrieb Ian Kent:
-> On Wed, 2014-01-29 at 17:02 +0100, Donald Buczek wrote:
->> Hello,
->>
->> we are trying to switch from amd to autofs. After successfully testing=
+Am 01.02.2014 04:32, schrieb Ian Kent:
 
-> I didn't notice this before, so as an aside from our discussion
->
-> You were (perhaps are) an amd user.
->
-> As it happens I'm working on adding an amd map parser to autofs,
-> probably for similar reasons to you needing to switch away from using
-> it. I guess it won't make much difference to you since many people use
-> amd for its cross platform abilities. And, well, there's that bug we're=
+> But first, a question for Donald. Given that the autofs configuration=20
+> has BROWSE_MODE=3D"no" we don't know how the tmp directory in /scratch =
 
-> discussing ....
->
-> But, fyi, let me tell you where it's at.
->
-> I'm not sure how much of the functionality will end up in autofs quite
-> yet but so far the things that likely won't be available are:
->
-> - type program mounts
->    - needed in autofs too.
->    - but can't be done without significant autofs infrastructure
->      change (or they would have been done in autofs ages ago).
->    - would like to add this, probably some time later.
->
-> - type nfsx mounts
->    - might (but probably not) get done for the initial commit.
->    - a bit hard to do within autofs.
->
-> - type lustre mounts
->    - would like to do for initial commit but ....
->
-> - type direct mounts
->    - I think I understand how these are supposed to work.
->    - don't work in amd on linux so can't check.
->    - can't find any references to users of them either.
->    - a bit difficult to do in autofs.
->    - undecided as yet, at best will do some time later.
->
-> - map type passwd
->    - seems to prescriptive to be useful.
->    - unlikely to be implemented.
->
-> - map type ndbm
->    - may implement later if people use it.
->    - would need to add to autofs as well for sane implementation.
->
-> - configuration options not yet implemented
->    - fully_qualified_hosts
->    - unmount_on_exit
->    - browsable_dirs
->    - probably a couple of others I've missed.
->    - many of the configuration options aren't used or aren't
->      sensible within autofs.
->
-> - man page for amd options
->    - autofs(5) will need to be updated before initial commit.
->
->
-> I've probably missed a few things but this will give you an idea.
-> My plan is to commit initial changes, announce this to try and get some=
+> got created since it has never been mounted. It shouldn't exist, any=20
+> idea how it got created?=20
 
-> testers and continue to work on it after that. Eventually the amd map
-> changes will be autofs-5.1.0.
->
-> Any interest in this?
-> Ian
->
+The users or scripts know the complete path or it is referenced by=20
+symlinks or is a home directory.  So the first access is directly to=20
+"/scratch/tmp/whatever" without needing to browse  and discover "tmp" in =
 
-Well, to be true, we don't need anything of this. Where we have used=20
-some of the more complex map features of amd, I consider this a mistake=20
-and I'm happy to find  another solution for that. As small and simple as =
+/scratch. I assume the directory "tmp" was created by autofs code after=20
+the user tried to access "/scratch/tmp/something" to give the daemon=20
+something to mount on. It looks like this mount attempt didn't reach the =
 
-possible is what we would appreciate the most.
-
-Even with the current autofs code, much of the complexity comes from=20
-features, we don't need (though I surly acknowledge that other do):=20
-direct maps, nested mountpoints, ldap maps, nis maps... We could even=20
-live without multithreading in the daemon. We could live without=20
-automatic selection between nfs and local bind mounts (because we build=20
-the maps on each node individually after we pushed around the=20
-configuration data). We could live without expiration support in kernel=20
-and daemon and just try to /bin/umount from our own scripts ourselves.=20
-I'm not to happy with uid/gid of the original mount persisting in kernel =
-
-data structure, perhaps to see the daemon die on getpwuid() in two=20
-years, because the original account expired some month ago. For what?=20
-For /${uid}/ in the paths? Our goal is to provide a stable, global=20
-namespace to our nodes and not a "depends on who asked for it" namespace =
-
-:-)
-
-In our current setting, amd sits as a local nfs-server on the automount=20
-directories, so any path resolution of an already mounted subdirectory=20
-still goes through RPC serialisation and context switches and a big,=20
-buggy user-mode daemon. This is the great performance and stability=20
-problem we want to get rid of, so we go for in-kernel autofs. I think,=20
-in the latest versions of amd they are working on supporting autofs too, =
-
-but we had too many bad experience, we don't want to upgrade amd away=20
-from our more or less stable version. So, please, autofs/automount,=20
-don't become a second amd, stay as small and simple and fast and bugfree =
-
-as possible. Just my view.
+fileserver. We don't know yet, if it reached the daemon or not.
 
 Regards
    Donald
@@ -136,7 +46,7 @@ Tel: +49 30 8413 1433
 
 
 
---------------ms000001050700070308050203
+--------------ms060803010903080003020005
 Content-Type: application/pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -213,18 +123,18 @@ LDQLzpXrB2JPR9eMhh/8Qez6ikCYgIP0vNPdX2wTc1FwLvrN2YIyGqmLgGBdbUEwqY1dFn8I
 SE8yrLDmMYIDVTCCA1ECAQEwaTBeMQswCQYDVQQGEwJERTEgMB4GA1UEChMXTWF4LVBsYW5j
 ay1HZXNlbGxzY2hhZnQxDzANBgNVBAMTBk1QRyBDQTEcMBoGCSqGSIb3DQEJARYNbXBnLWNh
 QG1wZy5kZQIHE6OvPm/+aDAJBgUrDgMCGgUAoIIBwTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcN
-AQcBMBwGCSqGSIb3DQEJBTEPFw0xNDAyMDExMzAxMDlaMCMGCSqGSIb3DQEJBDEWBBQFvzlL
-FaOKoSAD23wfm8TCegAYdzBsBgkqhkiG9w0BCQ8xXzBdMAsGCWCGSAFlAwQBKjALBglghkgB
+AQcBMBwGCSqGSIb3DQEJBTEPFw0xNDAyMDExMzA4MDJaMCMGCSqGSIb3DQEJBDEWBBSGd/Ux
+oE6QFi9YF9PVG6BHF5xTOTBsBgkqhkiG9w0BCQ8xXzBdMAsGCWCGSAFlAwQBKjALBglghkgB
 ZQMEAQIwCgYIKoZIhvcNAwcwDgYIKoZIhvcNAwICAgCAMA0GCCqGSIb3DQMCAgFAMAcGBSsO
 AwIHMA0GCCqGSIb3DQMCAgEoMHgGCSsGAQQBgjcQBDFrMGkwXjELMAkGA1UEBhMCREUxIDAe
 BgNVBAoTF01heC1QbGFuY2stR2VzZWxsc2NoYWZ0MQ8wDQYDVQQDEwZNUEcgQ0ExHDAaBgkq
 hkiG9w0BCQEWDW1wZy1jYUBtcGcuZGUCBxOjrz5v/mgwegYLKoZIhvcNAQkQAgsxa6BpMF4x
 CzAJBgNVBAYTAkRFMSAwHgYDVQQKExdNYXgtUGxhbmNrLUdlc2VsbHNjaGFmdDEPMA0GA1UE
 AxMGTVBHIENBMRwwGgYJKoZIhvcNAQkBFg1tcGctY2FAbXBnLmRlAgcTo68+b/5oMA0GCSqG
-SIb3DQEBAQUABIIBABUG97W9X42cxGlJRrmRO7nAAdcM9uEegESZY/gvJd293w5mEkR0Mj5D
-5a0MbXBCo/kRbGJeTyMygE4zDQccHQB3drhPSbNeXb6B9suHkIAlDwCuqgzH3hZcTF7ZeI7l
-9wmkso0bpntry1n34SQNtQgw9OastCujcGKB7nxOJSKyr6Cf4FjP/gaxr5Ic6zaW6DxXTJob
-bIjoqhr2RgUFhqwD6ZhIcALLXE8ZTSFZ49rgevrrbtnzVZ5Dgsa5CEIKnEAkJMXgUoyZLsLN
-S5t8f46ChQDJgd27k+YwIbVt2O7yN+wQlfydAq0d9KIMWx7Fh4uUbmUBezCB+lM5rSq6Od4A
+SIb3DQEBAQUABIIBAGg0ODxeSVc6mrIvoNbguC6GWme3b5s6Ys9hDQ7b0dHZkHF7+3LnVjAA
+mRUB0DhP/QveHs3IAcNgluZmuywuTY8AlsSdiB7ZYbjjPVdUaQEK5GvNHqxLkvBMMMV5/BL1
+oim8N/0SUyjv/AeTP6NO3Lk/bN/RXSVXGsAjoXAGlUa1Q1RMOdvWzl06EiluMOiOhefqGMOv
+fVfzJ0IAnPNpF8tR3e0rcx3O2LqkuxtdKiIU8Hrzhme0JJO6CziAf2GSrJ1kL0ZOX/uJT92c
+jugn4BVI1wQXffYWQNfg/yXSCq8keM29sfPo8QLx2oul8SggYp5cKKXYaQZPohnT0JN2JGEA
 AAAAAAA=
---------------ms000001050700070308050203--
+--------------ms060803010903080003020005--
