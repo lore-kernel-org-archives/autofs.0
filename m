@@ -1,140 +1,202 @@
-From: Donald Buczek <buczek@molgen.mpg.de>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: autofs linux 3.8.13 and "Too many levels of symbolic links"
-Date: Sat, 01 Feb 2014 14:08:02 +0100
-Message-ID: <52ECF1B2.5010009@molgen.mpg.de>
-References: <52E92627.9050801@molgen.mpg.de>		 <1391139080.2486.19.camel@perseus.fritz.box>	 <1391145206.2486.25.camel@perseus.fritz.box> <52EB7694.20707@molgen.mpg.de> <1391225528.2501.60.camel@perseus.fritz.box>
+Date: Sun, 02 Feb 2014 11:45:51 +0800
+Message-ID: <1391312751.2670.48.camel@perseus.fritz.box>
+References: <52E92627.9050801@molgen.mpg.de>
+	 <1391223436.2501.39.camel@perseus.fritz.box>
+	 <52ECF015.9030707@molgen.mpg.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha1; boundary="------------ms060803010903080003020005"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-In-Reply-To: <1391225528.2501.60.camel@perseus.fritz.box>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
+	message-id:subject:from:to:cc:date:in-reply-to:references
+	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
+	 bh=Z5a2m0G36DnnA3pgFv836gQinVg=; b=kXvhg57poSd55tnPlllaauE246yu
+	IAGBFsXwnR8LWo3+j8Ss5FyGnGswD7bVA2+aTKgVXhvaay8NQa3Jy33/tF7qyoHk
+	qU+XQpwkzJuU0WUTo58L2thWz97djNjhtzZCdPZ5AMTlpNbNt02Ok0W12S7vdDee
+	s3KUJ+qASntnE0o=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=message-id:subject:from:to:cc:date
+	:in-reply-to:references:content-type:mime-version
+	:content-transfer-encoding; s=smtpout; bh=Z5a2m0G36DnnA3pgFv836g
+	QinVg=; b=DgrFzQ/fTEsJWTdsdiSxqKIRNQSqYFR8Vlk9jVewQi3+FssHfpaiGO
+	3K3Qq9NUxXrGdTVDPUL2A4UDfXu3LcuZtS7p/GD2b/koPgSv2wjgR6QlcO4VNqpP
+	gdWVmUjZp1Fpeh5Bi1RwKGSMlW5MrtWEEkpo+2zHjYgaPX+t9Ezx0=
+In-Reply-To: <52ECF015.9030707@molgen.mpg.de>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-To: Ian Kent <raven@themaw.net>, David Howells <dhowells@redhat.com>
+Content-Type: text/plain; charset="us-ascii"
+To: Donald Buczek <buczek@molgen.mpg.de>
 Cc: autofs <autofs@vger.kernel.org>
 
-This is a cryptographically signed message in MIME format.
+On Sat, 2014-02-01 at 14:01 +0100, Donald Buczek wrote:
+> Am 01.02.2014 03:57, schrieb Ian Kent:
+> > On Wed, 2014-01-29 at 17:02 +0100, Donald Buczek wrote:
+> >> Hello,
+> >>
+> >> we are trying to switch from amd to autofs. After successfully testing
+> > I didn't notice this before, so as an aside from our discussion
+> >
+> > You were (perhaps are) an amd user.
+> >
+> > As it happens I'm working on adding an amd map parser to autofs,
+> > probably for similar reasons to you needing to switch away from using
+> > it. I guess it won't make much difference to you since many people use
+> > amd for its cross platform abilities. And, well, there's that bug we're
+> > discussing ....
+> >
+> > But, fyi, let me tell you where it's at.
+> >
+> > I'm not sure how much of the functionality will end up in autofs quite
+> > yet but so far the things that likely won't be available are:
+> >
+> > - type program mounts
+> >    - needed in autofs too.
+> >    - but can't be done without significant autofs infrastructure
+> >      change (or they would have been done in autofs ages ago).
+> >    - would like to add this, probably some time later.
+> >
+> > - type nfsx mounts
+> >    - might (but probably not) get done for the initial commit.
+> >    - a bit hard to do within autofs.
+> >
+> > - type lustre mounts
+> >    - would like to do for initial commit but ....
+> >
+> > - type direct mounts
+> >    - I think I understand how these are supposed to work.
+> >    - don't work in amd on linux so can't check.
+> >    - can't find any references to users of them either.
+> >    - a bit difficult to do in autofs.
+> >    - undecided as yet, at best will do some time later.
+> >
+> > - map type passwd
+> >    - seems to prescriptive to be useful.
+> >    - unlikely to be implemented.
+> >
+> > - map type ndbm
+> >    - may implement later if people use it.
+> >    - would need to add to autofs as well for sane implementation.
+> >
+> > - configuration options not yet implemented
+> >    - fully_qualified_hosts
+> >    - unmount_on_exit
+> >    - browsable_dirs
+> >    - probably a couple of others I've missed.
+> >    - many of the configuration options aren't used or aren't
+> >      sensible within autofs.
+> >
+> > - man page for amd options
+> >    - autofs(5) will need to be updated before initial commit.
+> >
+> >
+> > I've probably missed a few things but this will give you an idea.
+> > My plan is to commit initial changes, announce this to try and get some
+> > testers and continue to work on it after that. Eventually the amd map
+> > changes will be autofs-5.1.0.
+> >
+> > Any interest in this?
+> > Ian
+> >
+> 
+> Well, to be true, we don't need anything of this. Where we have used 
+> some of the more complex map features of amd, I consider this a mistake 
+> and I'm happy to find  another solution for that. As small and simple as 
+> possible is what we would appreciate the most.
 
---------------ms060803010903080003020005
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Yeah, when I first saw amd maps (quite a long time ago now) my thought
+was they were more complex than they need to be and, at the time,
+recommended against using amd for that reason. There was also the
+potential support headache that could result from using something that
+people could bend and twist in hard to understand ways.
 
-Am 01.02.2014 04:32, schrieb Ian Kent:
+> 
+> Even with the current autofs code, much of the complexity comes from 
+> features, we don't need (though I surly acknowledge that other do): 
+> direct maps, nested mountpoints, ldap maps, nis maps... We could even 
+> live without multithreading in the daemon. We could live without 
+> automatic selection between nfs and local bind mounts (because we build 
+> the maps on each node individually after we pushed around the 
+> configuration data). We could live without expiration support in kernel 
+> and daemon and just try to /bin/umount from our own scripts ourselves. 
+> I'm not to happy with uid/gid of the original mount persisting in kernel 
+> data structure, perhaps to see the daemon die on getpwuid() in two 
+> years, because the original account expired some month ago. For what? 
+> For /${uid}/ in the paths? Our goal is to provide a stable, global 
+> namespace to our nodes and not a "depends on who asked for it" namespace 
+> :-)
 
-> But first, a question for Donald. Given that the autofs configuration=20
-> has BROWSE_MODE=3D"no" we don't know how the tmp directory in /scratch =
+Yes, autofs is too complex, I agree.
 
-> got created since it has never been mounted. It shouldn't exist, any=20
-> idea how it got created?=20
+But, it's been my experience that trying to simplify something mostly
+leads to even more complex code which misses the point completely. So
+I'll most likely leave it the way it is until I have a reason to change
+it.
 
-The users or scripts know the complete path or it is referenced by=20
-symlinks or is a home directory.  So the first access is directly to=20
-"/scratch/tmp/whatever" without needing to browse  and discover "tmp" in =
+Other people do use the features though so it's worth spending time to
+make them function as best I can.
 
-/scratch. I assume the directory "tmp" was created by autofs code after=20
-the user tried to access "/scratch/tmp/something" to give the daemon=20
-something to mount on. It looks like this mount attempt didn't reach the =
+Your saying that if an automounted mount remains mounted for a long time
+the uid/gid in the dentry info struct can become stale and cause
+subsequent failures.
 
-fileserver. We don't know yet, if it reached the daemon or not.
+I guess that could happen but a stale uid/gid shouldn't cause a mount
+failure in AFAICS, except for those whose maps use those settings. In
+which case they do need to (and should) be concerned with mounts that
+stay mounted for long amounts of time.
 
-Regards
-   Donald
+Beside the macro usage it's used to trigger dependent mounts in the
+mount location path, since the daemon doesn't trigger mounts itself. I
+guess the requesting uid/gid isn't really needed for that, I suppose I
+could make the spawned mount its own process group leader and that would
+be enough but I have the uid/gid.
 
---=20
-Donald Buczek
-buczek@molgen.mpg.de
-Tel: +49 30 8413 1433
+Sure, something else you don't need but .....
+
+> 
+> In our current setting, amd sits as a local nfs-server on the automount 
+> directories, so any path resolution of an already mounted subdirectory 
+> still goes through RPC serialisation and context switches and a big, 
+> buggy user-mode daemon. This is the great performance and stability 
+> problem we want to get rid of, so we go for in-kernel autofs. I think, 
+> in the latest versions of amd they are working on supporting autofs too, 
+> but we had too many bad experience, we don't want to upgrade amd away 
+> from our more or less stable version. So, please, autofs/automount, 
+> don't become a second amd, stay as small and simple and fast and bugfree 
+> as possible. Just my view.
+
+It's way too late for autofs to be small and simple, ;)
+
+In amd autofs support has been present for quite a while.
+
+What is recent is support for sun format maps but I don't expect that
+will ever make it into an actual release given the current lack of
+activity in the project.
+
+It's too late, the amd parser is nearly ready for initial commit.
+
+In my defense, there's quite good code separation between the amd and
+autofs specific parts due to how a parser is added to autofs. Sure, the
+map sources (like file, nis, etc.) necessarily need changes for the key
+matching logic but that isn't a great deal of code. And the changes to
+other parts of the code base are relatively small. I'm not saying there
+won't be problems with it initially but I don't think it is as bad as
+you think it will be. The implementation itself is much smaller than it
+is in amd.
+
+Indeed, the amd parser implementation is, IMHO, much better than the
+autofs parser implementation from a design POV and I'm thinking of
+re-writing the autofs parser with a similar design.
+
+As I said above I've resisted doing that to date because I've spent so
+much time getting it adequately stable and it has been doing it's job
+well enough. But I need to add a feature for the amd parser that has
+been requested for autofs also and the best way to do it means doing the
+re-write (rather than just adding a hard to maintain hack). Not only
+that there's a real possibility for simplification of the autofs parser
+(in this case anyway) that usually doesn't actually happen during a
+re-write. So I have some compelling reasons to do it.
+
+Ian
 
 
-
---------------ms060803010903080003020005
-Content-Type: application/pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIOKjCC
-BCEwggMJoAMCAQICAgDHMA0GCSqGSIb3DQEBBQUAMHExCzAJBgNVBAYTAkRFMRwwGgYDVQQK
-ExNEZXV0c2NoZSBUZWxla29tIEFHMR8wHQYDVQQLExZULVRlbGVTZWMgVHJ1c3QgQ2VudGVy
-MSMwIQYDVQQDExpEZXV0c2NoZSBUZWxla29tIFJvb3QgQ0EgMjAeFw0wNjEyMTkxMDI5MDBa
-Fw0xOTA2MzAyMzU5MDBaMFoxCzAJBgNVBAYTAkRFMRMwEQYDVQQKEwpERk4tVmVyZWluMRAw
-DgYDVQQLEwdERk4tUEtJMSQwIgYDVQQDExtERk4tVmVyZWluIFBDQSBHbG9iYWwgLSBHMDEw
-ggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDpm8NnhfkNrvWNVMOWUDU9YuluTO2U
-1wBblSJ01CDrNI/W7MAxBAuZgeKmFNJSoCgjhIt0iQReW+DieMF4yxbLKDU5ey2QRdDtoAB6
-fL9KDhsAw4bpXCsxEXsM84IkQ4wcOItqaACa7txPeKvSxhObdq3u3ibo7wGvdA/BCaL2a869
-080UME/15eOkyGKbghoDJzANAmVgTe3RCSMqljVYJ9N2xnG2kB3E7f81hn1vM7PbD8URwoqD
-oZRdQWvY0hD1TP3KUazZve+Sg7va64sWVlZDz+HVEz2mHycwzUlU28kTNJpxdcVs6qcLmPkh
-nSevPqM5OUhqjK3JmfvDEvK9AgMBAAGjgdkwgdYwcAYDVR0fBGkwZzBloGOgYYZfaHR0cDov
-L3BraS50ZWxlc2VjLmRlL2NnaS1iaW4vc2VydmljZS9hZl9Eb3dubG9hZEFSTC5jcmw/LWNy
-bF9mb3JtYXQ9WF81MDkmLWlzc3Vlcj1EVF9ST09UX0NBXzIwHQYDVR0OBBYEFEm3xs/oPR9/
-6kR7Eyn38QpwPt5kMB8GA1UdIwQYMBaAFDHDeRu69VPXF+CJei0XbAqzK50zMA4GA1UdDwEB
-/wQEAwIBBjASBgNVHRMBAf8ECDAGAQH/AgECMA0GCSqGSIb3DQEBBQUAA4IBAQA74Vp3wEgX
-3KkY7IGvWonwvSiSpspZGBJw7Cjy565/lizn8l0ZMfYTK3S9vYCyufdnyTmieTvhERHua3iR
-M347XyYndVNljjNj7s9zw7CSI0khUHUjoR8Y4pSFPT8z6XcgjaK95qGFKUD2P3MyWA0Ja6ba
-hWzAP7uNZmRWJE6uDT8yNQFb6YyC2XJZT7GGhfF0hVblw/hc843uR7NTBXDn5U2KaYMo4RMJ
-hp5eyOpYHgwf+aTUWgRo/Sg+iwK2WLX2oSw3VwBnqyNojWOl75lrXP1LVvarQIc01BGSbOyH
-xQoLBzNytG8MHVQs2FHHzL8w00Ny8TK/jM5JY6gA9/IcMIIE5zCCA8+gAwIBAgIECs6x2DAN
-BgkqhkiG9w0BAQUFADBaMQswCQYDVQQGEwJERTETMBEGA1UEChMKREZOLVZlcmVpbjEQMA4G
-A1UECxMHREZOLVBLSTEkMCIGA1UEAxMbREZOLVZlcmVpbiBQQ0EgR2xvYmFsIC0gRzAxMB4X
-DTA3MDczMTEzMDgyNVoXDTE5MDYzMDAwMDAwMFowXjELMAkGA1UEBhMCREUxIDAeBgNVBAoT
-F01heC1QbGFuY2stR2VzZWxsc2NoYWZ0MQ8wDQYDVQQDEwZNUEcgQ0ExHDAaBgkqhkiG9w0B
-CQEWDW1wZy1jYUBtcGcuZGUwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDYUXKe
-oNTLgkGwbani4rlua5jzlzISfHnaj/5qS+mojQqA/eYa0bGucylV5hyQuyJz7d4gRckdhMDV
-8DZIxERUIsFlXFj6HGHjaZjlhIHbo4S12GjLhTH5YZ37O7MHVw0L/JhhzUIxESM1ZfRT/xLq
-hz2idJYjT98W9OFvzPgT0yrdieMzkLUz5X/fpY8MuyYBgxnddBJRw6ZtlhdCml4F8Q35pSb8
-J2qANiwuJVu3WCTgL/ydo3eA8vDieMMZ7O+L1wAnCzBbHAjJ5H6xU1B7mlwmu7V3pToKPgcW
-mlO0HcTpa68McNTGGiY8pO0/Rn1fXkqDYf8z0lPdWUWxbM1RAgMBAAGjggGvMIIBqzASBgNV
-HRMBAf8ECDAGAQH/AgEBMAsGA1UdDwQEAwIBBjAdBgNVHQ4EFgQUAtYebgmrv1hlpwo8SDNh
-0c59w1swHwYDVR0jBBgwFoAUSbfGz+g9H3/qRHsTKffxCnA+3mQwGAYDVR0RBBEwD4ENbXBn
-LWNhQG1wZy5kZTCBiAYDVR0fBIGAMH4wPaA7oDmGN2h0dHA6Ly9jZHAxLnBjYS5kZm4uZGUv
-Z2xvYmFsLXJvb3QtY2EvcHViL2NybC9jYWNybC5jcmwwPaA7oDmGN2h0dHA6Ly9jZHAyLnBj
-YS5kZm4uZGUvZ2xvYmFsLXJvb3QtY2EvcHViL2NybC9jYWNybC5jcmwwgaIGCCsGAQUFBwEB
-BIGVMIGSMEcGCCsGAQUFBzAChjtodHRwOi8vY2RwMS5wY2EuZGZuLmRlL2dsb2JhbC1yb290
-LWNhL3B1Yi9jYWNlcnQvY2FjZXJ0LmNydDBHBggrBgEFBQcwAoY7aHR0cDovL2NkcDIucGNh
-LmRmbi5kZS9nbG9iYWwtcm9vdC1jYS9wdWIvY2FjZXJ0L2NhY2VydC5jcnQwDQYJKoZIhvcN
-AQEFBQADggEBABtJz5i/SGqQOficdRUN6myFVmVelCYgkGT+zX7frnBRJFoVVafXolstZdVB
-7ZpH9FAcqj8O6FTZyhAANwh3+Y1D6xYBWTB7mQGy0lUoUL+j0msZjaMvyj/2LCQp7cKB5vA4
-h6Ntq5BN5MPcaRhunzjJey/i+J/3jMdG7KpufV47Gl0E8ky9lDegaM7SToG4IOQKwv1wsnuH
-oxoGLRewxO7FmYd9uq9f4L2mHtqgq+vibT1DeehT0HGPnrjjd8NK6g2TvZwirwjydbGs7szB
-5oxDm/pfWoJxYzO68HKTiVBlmaWMLpGw4/UsLE+5xJHpvNXfkYCQ3T+k99KBUZuIpKwwggUW
-MIID/qADAgECAgcTo68+b/5oMA0GCSqGSIb3DQEBBQUAMF4xCzAJBgNVBAYTAkRFMSAwHgYD
-VQQKExdNYXgtUGxhbmNrLUdlc2VsbHNjaGFmdDEPMA0GA1UEAxMGTVBHIENBMRwwGgYJKoZI
-hvcNAQkBFg1tcGctY2FAbXBnLmRlMB4XDTEyMDQxMDEzMTIxNFoXDTE1MDQxMDEzMTIxNFow
-gYoxCzAJBgNVBAYTAkRFMSAwHgYDVQQKExdNYXgtUGxhbmNrLUdlc2VsbHNjaGFmdDE0MDIG
-A1UECxMrTWF4LVBsYW5jay1JbnN0aXR1dCBmdWVyIG1vbGVrdWxhcmUgR2VuZXRpazELMAkG
-A1UECxMCSVQxFjAUBgNVBAMTDURvbmFsZCBCdWN6ZWswggEiMA0GCSqGSIb3DQEBAQUAA4IB
-DwAwggEKAoIBAQC8AkX5++7fOB5qItwhRS7gQ6VJthfPItK8AMTlGeyuqHztDM4us3VKll9t
-Z7HybeXypqTt38JNrU56RnIqRwk+ajvNngk0Z+72eLUXH+TydvemBJ4fvnkIYtOgO7PZfKTy
-iDSCo2tt/PuqnMlacXhCOWrgljhYhZgaPeecoDC+7EA3S3IKVJNBPxT1VtwRb3M691Igu2Th
-yar3F7BkeyimbJ8UKHLpeHX1UvUwfdO0Geem7tkC5JPHlhwMb0Lpr6VImyl6a1CW88yGP5s2
-sp1Bnr31ZLISjwq3VCRggzjPcjZPo1bMXzg2yAsh3BUp3ljYYTxJHe2u/LGzsJoVB1crAgMB
-AAGjggGqMIIBpjAJBgNVHRMEAjAAMAsGA1UdDwQEAwIF4DAdBgNVHSUEFjAUBggrBgEFBQcD
-AgYIKwYBBQUHAwQwHQYDVR0OBBYEFEUP5hp3anavBSte9vwsqlJ/LpMSMB8GA1UdIwQYMBaA
-FALWHm4Jq79YZacKPEgzYdHOfcNbMB8GA1UdEQQYMBaBFGJ1Y3pla0Btb2xnZW4ubXBnLmRl
-MHcGA1UdHwRwMG4wNaAzoDGGL2h0dHA6Ly9jZHAxLnBjYS5kZm4uZGUvbXBnLWNhL3B1Yi9j
-cmwvY2FjcmwuY3JsMDWgM6Axhi9odHRwOi8vY2RwMi5wY2EuZGZuLmRlL21wZy1jYS9wdWIv
-Y3JsL2NhY3JsLmNybDCBkgYIKwYBBQUHAQEEgYUwgYIwPwYIKwYBBQUHMAKGM2h0dHA6Ly9j
-ZHAxLnBjYS5kZm4uZGUvbXBnLWNhL3B1Yi9jYWNlcnQvY2FjZXJ0LmNydDA/BggrBgEFBQcw
-AoYzaHR0cDovL2NkcDIucGNhLmRmbi5kZS9tcGctY2EvcHViL2NhY2VydC9jYWNlcnQuY3J0
-MA0GCSqGSIb3DQEBBQUAA4IBAQAn66b/WvVhpEsNXTGaZhxnUbN4+unYyQ930uxLwYrvGVxz
-oEb/DoB/HJnxwly4ZVPhJ+Md8JabjkUPU7uUV/DBKjpatREOzLESa1wE++lP1QytuhEU9eIn
-LDQLzpXrB2JPR9eMhh/8Qez6ikCYgIP0vNPdX2wTc1FwLvrN2YIyGqmLgGBdbUEwqY1dFn8I
-9LOZR0tZT+ynNfPoQv4W7ec4BtqAbvC6bEbJ9bu2ZNEOoeX4FzpCgvtKdwQQJVDbZ9U8F3BY
-5rTzZnfc73PkcSN+oDTYUQi6tVhbIqEp+DIRwx3VynbXYzJUbyKB5I2TEi2896KnWEdkdiYD
-SE8yrLDmMYIDVTCCA1ECAQEwaTBeMQswCQYDVQQGEwJERTEgMB4GA1UEChMXTWF4LVBsYW5j
-ay1HZXNlbGxzY2hhZnQxDzANBgNVBAMTBk1QRyBDQTEcMBoGCSqGSIb3DQEJARYNbXBnLWNh
-QG1wZy5kZQIHE6OvPm/+aDAJBgUrDgMCGgUAoIIBwTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcN
-AQcBMBwGCSqGSIb3DQEJBTEPFw0xNDAyMDExMzA4MDJaMCMGCSqGSIb3DQEJBDEWBBSGd/Ux
-oE6QFi9YF9PVG6BHF5xTOTBsBgkqhkiG9w0BCQ8xXzBdMAsGCWCGSAFlAwQBKjALBglghkgB
-ZQMEAQIwCgYIKoZIhvcNAwcwDgYIKoZIhvcNAwICAgCAMA0GCCqGSIb3DQMCAgFAMAcGBSsO
-AwIHMA0GCCqGSIb3DQMCAgEoMHgGCSsGAQQBgjcQBDFrMGkwXjELMAkGA1UEBhMCREUxIDAe
-BgNVBAoTF01heC1QbGFuY2stR2VzZWxsc2NoYWZ0MQ8wDQYDVQQDEwZNUEcgQ0ExHDAaBgkq
-hkiG9w0BCQEWDW1wZy1jYUBtcGcuZGUCBxOjrz5v/mgwegYLKoZIhvcNAQkQAgsxa6BpMF4x
-CzAJBgNVBAYTAkRFMSAwHgYDVQQKExdNYXgtUGxhbmNrLUdlc2VsbHNjaGFmdDEPMA0GA1UE
-AxMGTVBHIENBMRwwGgYJKoZIhvcNAQkBFg1tcGctY2FAbXBnLmRlAgcTo68+b/5oMA0GCSqG
-SIb3DQEBAQUABIIBAGg0ODxeSVc6mrIvoNbguC6GWme3b5s6Ys9hDQ7b0dHZkHF7+3LnVjAA
-mRUB0DhP/QveHs3IAcNgluZmuywuTY8AlsSdiB7ZYbjjPVdUaQEK5GvNHqxLkvBMMMV5/BL1
-oim8N/0SUyjv/AeTP6NO3Lk/bN/RXSVXGsAjoXAGlUa1Q1RMOdvWzl06EiluMOiOhefqGMOv
-fVfzJ0IAnPNpF8tR3e0rcx3O2LqkuxtdKiIU8Hrzhme0JJO6CziAf2GSrJ1kL0ZOX/uJT92c
-jugn4BVI1wQXffYWQNfg/yXSCq8keM29sfPo8QLx2oul8SggYp5cKKXYaQZPohnT0JN2JGEA
-AAAAAAA=
---------------ms060803010903080003020005--
