@@ -1,65 +1,57 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [Bug 53951] race condition on mounting local disks with autofs
-Date: Thu, 06 Feb 2014 08:18:49 +0800
-Message-ID: <1391645929.2608.17.camel@perseus.fritz.box>
-References: <bug-53951-13602@https.bugzilla.kernel.org/>
-	 <bug-53951-13602-54xc3ri31k@https.bugzilla.kernel.org/>
-	 <20140205174917.GH11667@thunk.org>
+From: Sven Geggus <lists@fuchsschwanzdomain.de>
+Subject: Using Multiple SEARCH_BASE entries
+Date: Fri, 7 Feb 2014 15:11:30 +0100
+Message-ID: <20140207141130.GA18340@geggus.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	message-id:subject:from:to:cc:date:in-reply-to:references
-	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
-	 bh=XszNZ99F2HOTG/GdkjhoAhdUJwI=; b=CBpDUk8PnrKcBlx3H7oYnOjBOS5s
-	+knQdGpy3rBG/p7hlnXTtdK2LJ6FApyfi67JZnzOYhXdJqrwFPv+bBUEU2xWjk/K
-	/UmkNuuxt6PwK3xnyfkEwq2p+JJYqORamgd5vD9vsRZ0ZmOiya+s/lvdMH6zYNlp
-	4KT+W53aaU1Svi8=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=message-id:subject:from:to:cc:date
-	:in-reply-to:references:content-type:mime-version
-	:content-transfer-encoding; s=smtpout; bh=XszNZ99F2HOTG/GdkjhoAh
-	dUJwI=; b=tZNHiR+ETbZVE70TpuMJ71HS8vK1pdUapIXYgw8QHkcSCjB24JaYmx
-	2hlZX4NoW7u3dk/uee3ZCdJ6mf7achPeTYqc6BCWCjXgZlG5cDHbGsat9P+VTWCT
-	v1aIhTfUOFErmzzvYzNtRZAlXoiA9rB8lZ3DwSC+50aWVzQ1xGGvU=
-In-Reply-To: <20140205174917.GH11667@thunk.org>
+Content-Disposition: inline
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: harri@afaics.de
-Cc: bugzilla-daemon@bugzilla.kernel.org, linux-ext4@vger.kernel.org, autofs@vger.kernel.org, Theodore Ts'o <tytso@mit.edu>
+Content-Transfer-Encoding: 7bit
+To: autofs@vger.kernel.org
 
-On Wed, 2014-02-05 at 12:49 -0500, Theodore Ts'o wrote:
-> Original bug report, from https://bugzilla.kernel.org/show_bug.cgi?id=53951:
-> 
-> Harald Dunkel 2013-02-16 15:55:40 UTC
-> 
-> I am using autofs to mount a local disk to /misc/data6 on
-> request. Problem: It seems that the first access silently fails, if
-> the disk is not yet mounted.
+Hello,
 
-Does it!
+while migrating my autofs entries to another directory server I also tried
+to split the entries by organisational units.
 
-Or is it the mix of system calls that are made, some of which won't
-trigger the mount and others that will. I know from experience that
-find(1) does a fairly unusual mix of these calls.
+For this purpose I put the following in /etc/default/autofs:
+SEARCH_BASE="ou=autofs,OU=department1,OU=myplace,OU=mydivision,dc=mycompany,DC=com"
+SEARCH_BASE="ou=autofs,OU=department2,OU=myplace,OU=mydivision,dc=mycompany,DC=com"
 
-Does it still happen if you append a "/" to /misc/data6.
+Autofs schema is NIS style because this is the only one which active directory
+and Samba4 support without too much hassle.
 
-Since there are a number of system calls that won't trigger mounts,
-which is required to avoid mount storms, there needs to be some way to
-selectively force mount triggering and appending a "/" to a path is the
-way it's done (at least it should function that way).
+However, the splitting does not seem to work.
 
-Mind you the mix of calls won't matter if the automount is mounted
-"nobrowse" since mount point directories that don't yet exist should
-trigger a mount on any access.
+It is always using the first entry only:
 
-The default installed autofs configuration sets this but if you wiped
-out the configuration and didn't retain that setting then the automount
-will be mounted "browse", the internal program default.
+...
+get_query_dn: lookup(ldap): found search base under ou=autofs,OU=department1,OU=myplace,OU=mydivision,dc=mycompany,DC=com
+get_query_dn: lookup(ldap): found query dn CN=auto.master,OU=autofs,OU=department1,OU=myplace,OU=mydivision,dc=mycompany,DC=com
+...
 
-What are you using for that setting?
+Changing SEARCH_BASE to the following does not help either:
+SEARCH_BASE="OU=myplace,OU=mydivision,dc=mycompany,DC=com"
 
-Ian
+...
+get_query_dn: lookup(ldap): found search base under OU=myplace,OU=mydivision,dc=mycompany,DC=com"
+get_query_dn: lookup(ldap): found query dn CN=auto.master,OU=autofs,OU=department2,OU=myplace,OU=mydivision,dc=mycompany,DC=com"
+...
 
+No idea why it ends up using department2 in the second case.
+
+Any Idea?
+
+Regards
+
+Sven
+
+P.S.: My autofs version is 5.0.7-3 from Debian 7.0
+
+-- 
+Those who would give up Essential Liberty to purchase a little Temporary
+Safety, deserve neither Liberty nor Safety (Benjamin Franklin)
+
+/me is giggls@ircnet, http://sven.gegg.us/ on the Web
