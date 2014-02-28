@@ -1,68 +1,209 @@
-From: Leonardo Chiquitto <leonardo.lists@gmail.com>
-Subject: Re: Segmentation fault in st_queue_handler()
-Date: Tue, 25 Feb 2014 11:18:48 -0300
-Message-ID: <CAEySpB5g2FMMYgL5-uVYzNK2fi3a2LoQVH=uEPUCNfvZc-Z7ww@mail.gmail.com>
-References: <CAEySpB5YrZdPtv=DPXYKf759k7BtCF7JMfK5rmZNDCMs5CuvUw@mail.gmail.com>
-	<1322007510.3340.14.camel@perseus.themaw.net>
-	<CAEySpB6K3RffsKbnDPMW9Evu_3gayrmm59jdTKMoZd7sqfYL5A@mail.gmail.com>
-	<CAEySpB7z0Wy88MLJ-L6CHoRdgGoozmPqF8RqEeHOAG6KO01uZw@mail.gmail.com>
-	<CAEySpB4rf8JvSY2yoGX6jhRr3nUQExTGX3pxAodwO0AgHi8ZZA@mail.gmail.com>
-	<1322786402.2171.30.camel@perseus.themaw.net>
-	<CAEySpB6rq5wU+45_+0BHR3zXVZUhGKbmW-pB4ZN31oubXP9zAA@mail.gmail.com>
-	<1390265483.2541.50.camel@perseus.fritz.box>
-	<CAEySpB5oKye2KJ5H_J=a5YoTBVvPEBW7CN5o6HU+FTmmqh2u5g@mail.gmail.com>
+From: Donald Buczek <buczek@molgen.mpg.de>
+Subject: Re: "Too many levels of symbolic links"
+Date: Fri, 28 Feb 2014 13:12:58 +0100
+Message-ID: <53107D4A.90904@molgen.mpg.de>
+References: <52E92627.9050801@molgen.mpg.de>		 <1391139080.2486.19.camel@perseus.fritz.box>		 <1391145206.2486.25.camel@perseus.fritz.box>	 <52EB7694.20707@molgen.mpg.de>	 <52EB7B07.2070707@molgen.mpg.de>	 <530484B7.6030305@molgen.mpg.de>		 <1392896501.2508.16.camel@perseus.fritz.box>	 <1392898704.2508.26.camel@perseus.fritz.box>	 <530625D0.7020808@molgen.mpg.de> <1392946952.2495.3.camel@perseus.fritz.box> <53076D91.7050703@molgen.mpg.de>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20120113;
-        h=mime-version:in-reply-to:references:date:message-id:subject:from:to
-         :cc:content-type;
-        bh=bjtvvNwNlvOghDOTlWeIwRR+rWIhfX0nJ36uJCCAQ8c=;
-        b=QswLH+QJtjE0023vXLzHd/ju0S5/m0S5GrK6mwpAmNRFPpomZeC3Mk1s+NcLF9yWTO
-         jGlSKawRU99xaPWhQ3AJWbkf+aYQ7gE7WvJ0yeyuEWFxdl9d4NomXi42OIqhk3b2RLa0
-         uhpKeZmsgaNLwguoWLIY9rzqI3vd75Qbaf44blMrHyDXWYi80EK5v94uFPoxgjpqv0v9
-         5x+mIUDZiYeNhhRIcdIUM6Rx2mOSIUdnQwm7E9zTjCh6GZ0Dfrk32drFos1h1JT+Mxh/
-         tWN+8Slbc/qk474+JaBcTF/2FiQUUKP2MQL4QqSCshtMFr+u1GaVKWTbR0uz+GDbA5X2
-         gnsA==
-In-Reply-To: <CAEySpB5oKye2KJ5H_J=a5YoTBVvPEBW7CN5o6HU+FTmmqh2u5g@mail.gmail.com>
+In-Reply-To: <53076D91.7050703@molgen.mpg.de>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
 To: Ian Kent <raven@themaw.net>
-Cc: autofs <autofs@vger.kernel.org>
+Cc: autofs <autofs@vger.kernel.org>, Alexander Viro <aviro@redhat.com>
 
-(...)
+Hello,
 
->>> Hello Ian,
->>>
->>> Sorry to resurrect such an old thread. We're still carrying this patch
->>> in our package and I'd like to get rid of it, preferably by getting it
->>> accepted upstream :-)
->>>
->>> As described above, the core dump analysis really pointed to an
->>> use after free condition when (&task->pending)->next == task. It's
->>> unfortunate that we received such report only once and had no
->>> specific info about the circumstances that could trigger the problem.
->>>
->>> In any case, moving free(task) to the end of the block should be
->>> safe and is actually how it was done before commit 6273ab63c. Do
->>> you think you can accept the patch as is?
->>
->> I didn't see a patch in the previous thread.
->> Presumably you have a patch with a description you could post.
->>
->> TBH, I don't think it's worth perusing this further since the change
->> looks safe enough I can just add it to my commit queue for the next time
->> I commit changes.
+bug hit again with new gcc.
+
+(one of my added) debug is
+
+> *** namespace.c 2014/02/21 14:41:22 1.1
+> --- namespace.c 2014/02/21 14:49:25
+> ***************
+> *** 665,674 ****
+> --- 665,677 ----
 >
-> Sure! Please see the patch attached (for some reason Gmail is no
-> longer expanding tabs here).
+>   static void put_mountpoint(struct mountpoint *mp)
+>   {
+> +       DPRINTK("mp=%p");
+> +
+>         if (!--mp->m_count) {
+>                 struct dentry *dentry = mp->m_dentry;
+>                 spin_lock(&dentry->d_lock);
+>                 dentry->d_flags &= ~DCACHE_MOUNTED;
+> +               DPRINTK("cleared mounted on dentry=%p %.*s",dentry, 
+> dentry->d_name.len, dentry->d_name.name);
+>                 spin_unlock(&dentry->d_lock);
+>                 list_del(&mp->m_hash);
+>                 kfree(mp);
+>
+>
 
-Hello Ian,
 
-Looks like this one was not included in the last commit round.
-Could you perhaps schedule it for the next one?
+Here is an extract from the logfile from a successful dismount of 
+/package/sequencer:
 
-Thanks,
-Leonardo
+> 939 2014-02-24T07:54:30.278237+01:00 kasslerbraten kernel: [  
+> 695.352155] pid 1425: autofs4_expire_indirect: checking mountpoint 
+> ffff8800c2433c90 sequencer
+> 940 2014-02-24T07:54:30.278238+01:00 kasslerbraten kernel: [ 
+> 695.352157] pid 1425: autofs4_mount_busy: dentry ffff8800c2433c90 
+> sequencer
+> 941 2014-02-24T07:54:30.278239+01:00 kasslerbraten kernel: [ 
+> 695.352159] pid 1425: autofs4_mount_busy: returning = 0
+> 942 2014-02-24T07:54:30.278240+01:00 kasslerbraten kernel: [ 
+> 695.352160] pid 1425: autofs4_expire_indirect: returning 
+> ffff8800c2433c90 sequencer
+> 943 2014-02-24T07:54:30.278241+01:00 kasslerbraten kernel: [ 
+> 695.352161] pid 1425: autofs4_wait: new wait id = 0x0000000a, name = 
+> sequencer, nfy=2
+> 944 2014-02-24T07:54:30.278242+01:00 kasslerbraten kernel: [ 
+> 695.352162] pid 1425: autofs4_notify_daemon: wait id = 0x0000000a, 
+> name = sequencer, type=4
+>
+> 969 2014-02-24T07:54:30.312515+01:00 kasslerbraten kernel: [ 
+> 695.386185] pid 1433: put_mountpoint: mp=ffff8800c9e215d0
+> 970 2014-02-24T07:54:30.312527+01:00 kasslerbraten kernel: [ 
+> 695.386188] pid 1433: put_mountpoint: cleared mounted on 
+> dentry=ffff8800c2433c90 sequencer
+>
+> 971 2014-02-24T07:54:30+01:00 kasslerbraten automount[626]: expired 
+> /package/sequencer
+>
+> 972 2014-02-24T07:54:30.324519+01:00 kasslerbraten kernel: [ 
+> 695.398095] pid 1428: autofs4_dir_open: file=ffff880126f43ec0 
+> dentry=ffff8800c2433c90 sequencer
+> 973 2014-02-24T07:54:30.324531+01:00 kasslerbraten kernel: [ 
+> 695.398105] pid 1428: autofs4_dentry_release: releasing ffff8800ad2d4a50
+> 974 2014-02-24T07:54:30.324534+01:00 kasslerbraten kernel: [ 
+> 695.398109] pid 1428: autofs4_dir_rmdir: dentry ffff8800c2433c90, 
+> removing sequencer
+>
+> 975 2014-02-24T07:54:30.324536+01:00 kasslerbraten kernel: [ 
+> 695.398157] pid 1425: autofs4_dentry_release: releasing ffff8800c2433c90
+
+Here is an extract from the logfile from a  failed dismount of 
+/package/sequencer:
+
+> 91779 2014-02-26T14:13:16.157522+01:00 kasslerbraten kernel: 
+> [196176.289030] pid 8739: autofs4_expire_indirect: checking mountpoint 
+> ffff880046a45810 sequencer
+> 91780 2014-02-26T14:13:16.157523+01:00 kasslerbraten kernel: 
+> [196176.289033] pid 8739: autofs4_mount_busy: dentry ffff880046a45810 
+> sequencer
+> 91781 2014-02-26T14:13:16.157524+01:00 kasslerbraten kernel: 
+> [196176.289034] pid 8739: autofs4_mount_busy: returning = 0
+> 91782 2014-02-26T14:13:16.157525+01:00 kasslerbraten kernel: 
+> [196176.289036] pid 8739: autofs4_expire_indirect: returning 
+> ffff880046a45810 sequencer
+> 91783 2014-02-26T14:13:16.157526+01:00 kasslerbraten kernel: 
+> [196176.289039] pid 8739: autofs4_wait: new wait id = 0x00000085, name 
+> = sequencer, nfy=2
+> 91784 2014-02-26T14:13:16.157527+01:00 kasslerbraten kernel: 
+> [196176.289040] pid 8739: autofs4_notify_daemon: wait id = 0x00000085, 
+> name = sequencer, type=4
+>
+> 91785 2014-02-26T14:13:16.178496+01:00 kasslerbraten kernel: 
+> [196176.310371] pid 8742: put_mountpoint: mp=ffff8800c9e215d0
+>
+> 91786 2014-02-26T14:13:16+01:00 kasslerbraten automount[626]: expired 
+> /package/sequencer
+>
+> 91787 2014-02-26T14:13:16.183536+01:00 kasslerbraten kernel: 
+> [196176.314881] pid 8740: autofs4_d_automount: dentry=ffff880046a45810 
+> sequencer
+> 91788 2014-02-26T14:13:16.183542+01:00 kasslerbraten kernel: 
+> [196176.314883] pid 8740: autofs4_d_automount: dentry=ffff880046a45810 
+> sequencer
+> 91789 2014-02-26T14:13:16.183544+01:00 kasslerbraten kernel: 
+> [196176.314884] pid 8740: autofs4_d_automount: dentry=ffff880046a45810 
+> sequencer
+> 91790 2014-02-26T14:13:16.183545+01:00 kasslerbraten kernel: 
+> [196176.314885] pid 8740: autofs4_d_automount: dentry=ffff880046a45810 
+> sequencer
+
+( Full file from boot to shutdown with  egrep 
+'automount|autofs|d_set_mounted|put_mountpoint'  in 
+http://owww.molgen.mpg.de/~buczek/autofs-demo/kasslerbraten.2014-02-26.l )
+
+Obviously, "cleared mounted on dentry" is missing.
+
+It looks like we enter put_mountpoint() but don't get to dentry->d_flags 
+&= ~DCACHE_MOUNTED;
+
+mp->m_count is not zero probably.
+
+What does it mean? The mount is still locked but not in the mount hash?
+Alas, the user has rebootet the system, I can not look at the mountpoint 
+struct in memory.
+
+I don't understand the vfs models. Anyone? Ideas?
+
+Regards
+   Donald
+
+
+
+On 02/21/14 16:15, Donald Buczek wrote:
+> Hello,
+>
+> I've taken your idea "Apart from a really odd compiler optimization or 
+> bug" and compiled with gcc 4.8.2 (instead of 4.7.3)
+>
+> Also I've put some additional DPRINTKs into the routines setting or 
+> clearing DCACHE_MOUNTED
+>
+> So lets wait for the next event .....
+>
+> Regards
+>   Donald
+>
+>
+>
+> On 02/21/14 02:42, Ian Kent wrote:
+>> On Thu, 2014-02-20 at 16:57 +0100, Donald Buczek wrote:
+>>> On 02/20/14 13:18, Ian Kent wrote:
+>>>> On Thu, 2014-02-20 at 19:41 +0800, Ian Kent wrote:
+>>>>>> 1969 (gdb) print *(struct dentry *) 0xffff88007fd06c50
+>>>>>> 1970 $3 = {d_flags = 1523840, d_seq = {sequence = 4}, d_hash = 
+>>>>>> {next = 0xffff880214025c98, pprev = 0xffffc9000013d570}, d_parent 
+>>>>>> = 0xffff8800caa66810, d_name = {{{hash = 1876415966, len = 7}, 
+>>>>>> hash_len = 31941187038}, name = 0xffff88007fd06c88 "gbrowse"}, 
+>>>>>> d_inode = 0xffff8800961ad250, d_iname = "gbrowse", '\000' 
+>>>>>> <repeats 24 times>, d_lockref = {{lock_count = 8610971969, {
+>>>>>> 1971         lock = {{rlock = {raw_lock = {{head_tail = 21037377, 
+>>>>>> tickets = {head = 321, tail = 321}}}}}}, count = 2}}}, d_op = 
+>>>>>> 0xffffffff81c45b40, d_sb = 0xffff880222a33800, d_time = 0, 
+>>>>>> d_fsdata = 0xffff8800ca443b80, d_lru = {next = 
+>>>>>> 0xffff88007fd06cd0, prev = 0xffff88007fd06cd0}, d_u = {d_child = 
+>>>>>> {next = 0xffff88007fc9f420, prev = 0xffff8800caa668b0}, d_rcu = {
+>>>>>> 1972       next = 0xffff88007fc9f420, func = 
+>>>>>> 0xffff8800caa668b0}}, d_subdirs = {next = 0xffff88007fd06cf0, 
+>>>>>> prev = 0xffff88007fd06cf0}, d_alias = {next = 0x0, pprev = 
+>>>>>> 0xffff8800961ad360}}
+>>>> I wonder if there's a struct mount for which this dentry is
+>>>> mnt_mountpoint and if so what the value of m_count is for the struct
+>>>> mountpoint of the struct mount?
+>>> No there isn't. Already checked in
+>>> http://owww.molgen.mpg.de/~buczek/autofs-demo/typescript.l lines 1795ff
+>> Oh right, I forgot about that, must have been the seemingly endless list
+>> of dentrys above it, ;)
+>>
+>> LOL, and if there was a mount that's unlinked we'd never find it, but
+>> yes, a ref counting problem would most likely leave it on the list.
+>>
+>>> Regards
+>>>     Donald
+>>>
+>>
+>
+>
+
+
+-- 
+Donald Buczek
+buczek@molgen.mpg.de
+Tel: +49 30 8413 1433
+
