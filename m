@@ -1,12 +1,12 @@
 From: Donald Buczek <buczek@molgen.mpg.de>
 Subject: Re: "Too many levels of symbolic links"
-Date: Fri, 28 Feb 2014 21:35:25 +0100
-Message-ID: <5310F30D.9040407@molgen.mpg.de>
-References: <1391145206.2486.25.camel@perseus.fritz.box> <52EB7694.20707@molgen.mpg.de> <52EB7B07.2070707@molgen.mpg.de> <530484B7.6030305@molgen.mpg.de> <1392896501.2508.16.camel@perseus.fritz.box> <1392898704.2508.26.camel@perseus.fritz.box> <530625D0.7020808@molgen.mpg.de> <1392946952.2495.3.camel@perseus.fritz.box> <53076D91.7050703@molgen.mpg.de> <53107D4A.90904@molgen.mpg.de> <20140228132906.GM15017@sh-el6.eng.rdu2.redhat.com>
+Date: Sat, 01 Mar 2014 22:56:01 +0100
+Message-ID: <53125771.4030000@molgen.mpg.de>
+References: <1391145206.2486.25.camel@perseus.fritz.box> <52EB7694.20707@molgen.mpg.de> <52EB7B07.2070707@molgen.mpg.de> <530484B7.6030305@molgen.mpg.de> <1392896501.2508.16.camel@perseus.fritz.box> <1392898704.2508.26.camel@perseus.fritz.box> <530625D0.7020808@molgen.mpg.de> <1392946952.2495.3.camel@perseus.fritz.box> <53076D91.7050703@molgen.mpg.de> <53107D4A.90904@molgen.mpg.de> <20140228132906.GM15017@sh-el6.eng.rdu2.redhat.com> <5310F30D.9040407@molgen.mpg.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha1; boundary="------------ms060500050902020704000207"
+Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha1; boundary="------------ms000807060103040509090604"
 Return-path: <autofs-owner@vger.kernel.org>
-In-Reply-To: <20140228132906.GM15017@sh-el6.eng.rdu2.redhat.com>
+In-Reply-To: <5310F30D.9040407@molgen.mpg.de>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 To: Alexander Viro <aviro@redhat.com>
@@ -14,100 +14,47 @@ Cc: Ian Kent <raven@themaw.net>, autofs <autofs@vger.kernel.org>
 
 This is a cryptographically signed message in MIME format.
 
---------------ms060500050902020704000207
+--------------ms000807060103040509090604
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: quoted-printable
 
-Am 28.02.2014 14:29, schrieb Alexander Viro:
-> On Fri, Feb 28, 2014 at 01:12:58PM +0100, Donald Buczek wrote:
+Am 28.02.2014 21:35, schrieb Donald Buczek:
+
+>> 91298 2014-02-26T14:09:56.830542+01:00 kasslerbraten kernel:=20
+>> [195977.007955] pid 8644: put_mountpoint: mp=3D0000000000000006
+
+At least this mystery is solved. My fault of course.
+
+Missing argument in my DPRINTK("mp=3D%p");
+
+Sorry!
+   Donald
+
 >
->> Obviously, "cleared mounted on dentry" is missing.
+>> *** namespace.c 2014/02/21 14:41:22 1.1
+>> --- namespace.c 2014/02/21 14:49:25
+>> ***************
+>> *** 665,674 ****
+>> --- 665,677 ----
 >>
->> It looks like we enter put_mountpoint() but don't get to
->> dentry->d_flags &=3D ~DCACHE_MOUNTED;
+>>   static void put_mountpoint(struct mountpoint *mp)
+>>   {
+>> +       DPRINTK("mp=3D%p");
+>> +
+>>         if (!--mp->m_count) {
+>>                 struct dentry *dentry =3D mp->m_dentry;
+>>                 spin_lock(&dentry->d_lock);
+>>                 dentry->d_flags &=3D ~DCACHE_MOUNTED;
+>> +               DPRINTK("cleared mounted on dentry=3D%p %.*s",dentry, =
+
+>> dentry->d_name.len, dentry->d_name.name);
+>>                 spin_unlock(&dentry->d_lock);
+>>                 list_del(&mp->m_hash);
+>>                 kfree(mp);
 >>
->> mp->m_count is not zero probably.
->>
->> What does it mean? The mount is still locked but not in the mount hash=
-?
-> No, it means that something else is mounted on the same dentry (in anot=
-her
-> part of mount tree, obviously).
->
-> If you mount the same fs on two different mountpoints, e.g.
-> mount /dev/sda1 /mnt
-> mount /dev/sda1 /tmp/foo
-> you will have the same dentries seen in two places.  Now,
-> mount /dev/sdb11 /mnt/a
-> mount /dev/sdc5 /tmp/foo/a
->
-> and you've got two different filesystems mounted on two different place=
-s
-> (/mnt/a and /tmp/foo/a).  These two places have different vfsmounts,
-> but the same dentry.  struct mountpoint is associated with dentry, so
-> it's also the same for both.  And it serves as a mountpoint for two
-> vfsmounts - one for fs from sdb11, another for fs from sdc5.
->
-> Now umount /mnt/a; one of those two vfsmounts is gone now.  struct moun=
-tpoint
-> survives, of course, and dentry is *still* a mountpoint.  sdc5 is still=
 
-> mounted on /tmp/foo/a, after all...
 
-Thanks. So I guess, the idea of "struct mountpoint" is to make the=20
-dentries smaller by not having the mount count embedded in each one,=20
-99.9%  not needing it?
 
-OMG, I've just found this in the log:
-
-> 91286 2014-02-26T14:09:56.830515+01:00 kasslerbraten kernel:=20
-> [195977.007799] pid 8644: d_set_mounted: dentry=3Dffff88004690c710 root=
-
-> 91287 2014-02-26T14:09:56.830527+01:00 kasslerbraten kernel:=20
-> [195977.007802] pid 8644: d_set_mounted: set mounted on=20
-> dentry=3Dffff88004690c710 root
-> 91288 2014-02-26T14:09:56.830529+01:00 kasslerbraten kernel:=20
-> [195977.007873] pid 8644: put_mountpoint: mp=3Dffff8800b8aa1a38
-> 91289 2014-02-26T14:09:56.830530+01:00 kasslerbraten kernel:=20
-> [195977.007877] pid 8644: d_set_mounted: dentry=3Dffff8800ca45e810 tmp
-> 91290 2014-02-26T14:09:56.830535+01:00 kasslerbraten kernel:=20
-> [195977.007878] pid 8644: d_set_mounted: set mounted on=20
-> dentry=3Dffff8800ca45e810 tmp
-> 91291 2014-02-26T14:09:56.830536+01:00 kasslerbraten kernel:=20
-> [195977.007881] pid 8644: put_mountpoint: mp=3Dffff8800b8aa1a38
-> 91292 2014-02-26T14:09:56.830537+01:00 kasslerbraten kernel:=20
-> [195977.007900] pid 8644: d_set_mounted: dentry=3Dffff880046960450=20
-> old-root-mjn70Q
-> 91293 2014-02-26T14:09:56.830538+01:00 kasslerbraten kernel:=20
-> [195977.007901] pid 8644: d_set_mounted: set mounted on=20
-> dentry=3Dffff880046960450 old-root-mjn70Q
-> 91294 2014-02-26T14:09:56.830539+01:00 kasslerbraten kernel:=20
-> [195977.007903] pid 8644: put_mountpoint: mp=3Dffff8800a5f1dbd0
-> 91295 2014-02-26T14:09:56.830540+01:00 kasslerbraten kernel:=20
-> [195977.007904] pid 8644: put_mountpoint: cleared mounted on=20
-> dentry=3Dffff88004690c710 root
-> 91296 2014-02-26T14:09:56.830541+01:00 kasslerbraten kernel:=20
-> [195977.007905] pid 8644: put_mountpoint: mp=3Dffff8800a5f1da90
-> 91297 2014-02-26T14:09:56.830541+01:00 kasslerbraten kernel:=20
-> [195977.007954] pid 8644: put_mountpoint: mp=3D0000014f00490049
-> 91298 2014-02-26T14:09:56.830542+01:00 kasslerbraten kernel:=20
-> [195977.007955] pid 8644: put_mountpoint: mp=3D0000000000000006
-> 91299 2014-02-26T14:09:56.830543+01:00 kasslerbraten kernel:=20
-> [195977.007961] pid 8644: put_mountpoint: mp=3Dffff8800a5f1dbd0
-> 91300 2014-02-26T14:09:56.830544+01:00 kasslerbraten kernel:=20
-> [195977.007963] pid 8644: put_mountpoint: mp=3Dffff8800a6023d10
-> 91301 2014-02-26T14:09:56.830544+01:00 kasslerbraten kernel:=20
-> [195977.007963] pid 8644: put_mountpoint: mp=3Dffff8800a6023d10
-> 91302 2014-02-26T14:09:56.830545+01:00 kasslerbraten kernel:=20
-> [195977.007964] pid 8644: put_mountpoint: mp=3Dffff8800a5f1dbd0
-
-What is this? Where does "root" and "old-root-" come from? Why does 8644 =
-
-survive dereferencing mp=3D0000000000000006 from the kernel? Is this stil=
-l=20
-related to autofs?
-
-D.
 
 --=20
 Donald Buczek
@@ -116,7 +63,7 @@ Tel: +49 30 8413 1433
 
 
 
---------------ms060500050902020704000207
+--------------ms000807060103040509090604
 Content-Type: application/pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -193,18 +140,18 @@ LDQLzpXrB2JPR9eMhh/8Qez6ikCYgIP0vNPdX2wTc1FwLvrN2YIyGqmLgGBdbUEwqY1dFn8I
 SE8yrLDmMYIDVTCCA1ECAQEwaTBeMQswCQYDVQQGEwJERTEgMB4GA1UEChMXTWF4LVBsYW5j
 ay1HZXNlbGxzY2hhZnQxDzANBgNVBAMTBk1QRyBDQTEcMBoGCSqGSIb3DQEJARYNbXBnLWNh
 QG1wZy5kZQIHE6OvPm/+aDAJBgUrDgMCGgUAoIIBwTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcN
-AQcBMBwGCSqGSIb3DQEJBTEPFw0xNDAyMjgyMDM1MjVaMCMGCSqGSIb3DQEJBDEWBBRNkbjc
-GOJMvMp9TCgw2EzIyPlDVDBsBgkqhkiG9w0BCQ8xXzBdMAsGCWCGSAFlAwQBKjALBglghkgB
+AQcBMBwGCSqGSIb3DQEJBTEPFw0xNDAzMDEyMTU2MDFaMCMGCSqGSIb3DQEJBDEWBBT/IlsI
+/uo/uT4uMGiEyxK8M3r6TjBsBgkqhkiG9w0BCQ8xXzBdMAsGCWCGSAFlAwQBKjALBglghkgB
 ZQMEAQIwCgYIKoZIhvcNAwcwDgYIKoZIhvcNAwICAgCAMA0GCCqGSIb3DQMCAgFAMAcGBSsO
 AwIHMA0GCCqGSIb3DQMCAgEoMHgGCSsGAQQBgjcQBDFrMGkwXjELMAkGA1UEBhMCREUxIDAe
 BgNVBAoTF01heC1QbGFuY2stR2VzZWxsc2NoYWZ0MQ8wDQYDVQQDEwZNUEcgQ0ExHDAaBgkq
 hkiG9w0BCQEWDW1wZy1jYUBtcGcuZGUCBxOjrz5v/mgwegYLKoZIhvcNAQkQAgsxa6BpMF4x
 CzAJBgNVBAYTAkRFMSAwHgYDVQQKExdNYXgtUGxhbmNrLUdlc2VsbHNjaGFmdDEPMA0GA1UE
 AxMGTVBHIENBMRwwGgYJKoZIhvcNAQkBFg1tcGctY2FAbXBnLmRlAgcTo68+b/5oMA0GCSqG
-SIb3DQEBAQUABIIBAKzMGTGKosWkoHGI8Cr1sgyXByQ9oHyG3WGzGRu3p53/Ih21GLWNOa0O
-rLIu1xg0PNZ1ZLGApeBWQ8PIbLOCvYVvpYGZcAhDW24L00iEpPzGmK/RMHMX3BzQKw0jyx1/
-ZNz+Ft66y9PY4drOaV/0to/3/1UPYRMxNuXoaIzhkw+RN6rDAGOsI8nIqTzMyYueyxykp6zw
-RvmJX3WjsYjn8mChqQaX/Ced7odZIMflFGMmXKxCIJ/8rnh/ie23f53o8fsgb/3sDtx0MH5i
-+BulZZdb7sazF0WjCdnlBaJk0S2BQ03cElO41v+4uGZ7VsbePdLHDCQt5GyQ4w+KqMFpgNUA
+SIb3DQEBAQUABIIBACl/CsS0ftgwsd9k0ud6XZPO4WoAa5Ud6lEK+swKPLXHlPriMj1RvLdj
+miUP8HbrUgUw6iQxkVv+jZyJV1r+k5cmu75l7k1t/ry1EZqG6GYSMUm9BGAZOlIXZqaeayIo
+NNgBYxhNuKOXvJF2y7q/BUY5LbWg+qeDSshXvTB85agf2VboyD7Krt0KRuI4BjuDWmJNcbmZ
+yAAHfne+MeKQnWmqJn+QGNEROyxO8w4ZXuIAso6UkHqJmxuALKBhlJY9+dXTUk84Lp1l9oNA
+5lZn+RYJtEepl8kJHePt9RDZRE6m4OUupu5Gum3e/5mETpDzkKdt2auZsTSRX9S26yOYU4IA
 AAAAAAA=
---------------ms060500050902020704000207--
+--------------ms000807060103040509090604--
