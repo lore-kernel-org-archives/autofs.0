@@ -1,92 +1,127 @@
-From: Ian Kent <raven@themaw.net>
+From: Donald Buczek <buczek@molgen.mpg.de>
 Subject: Re: "Too many levels of symbolic links"
-Date: Sun, 02 Mar 2014 15:10:41 +0800
-Message-ID: <1393744241.9725.16.camel@perseus.fritz.box>
-References: <1391145206.2486.25.camel@perseus.fritz.box>
-	 <52EB7694.20707@molgen.mpg.de> <52EB7B07.2070707@molgen.mpg.de>
-	 <530484B7.6030305@molgen.mpg.de>
-	 <1392896501.2508.16.camel@perseus.fritz.box>
-	 <1392898704.2508.26.camel@perseus.fritz.box>
-	 <530625D0.7020808@molgen.mpg.de>
-	 <1392946952.2495.3.camel@perseus.fritz.box>
-	 <53076D91.7050703@molgen.mpg.de> <53107D4A.90904@molgen.mpg.de>
-	 <20140228132906.GM15017@sh-el6.eng.rdu2.redhat.com>
-	 <1393726942.9725.5.camel@perseus.fritz.box>
+Date: Sun, 02 Mar 2014 09:28:28 +0100
+Message-ID: <5312EBAC.2070200@molgen.mpg.de>
+References: <1391145206.2486.25.camel@perseus.fritz.box>	 <52EB7694.20707@molgen.mpg.de> <52EB7B07.2070707@molgen.mpg.de>	 <530484B7.6030305@molgen.mpg.de>	 <1392896501.2508.16.camel@perseus.fritz.box>	 <1392898704.2508.26.camel@perseus.fritz.box>	 <530625D0.7020808@molgen.mpg.de>	 <1392946952.2495.3.camel@perseus.fritz.box>	 <53076D91.7050703@molgen.mpg.de> <53107D4A.90904@molgen.mpg.de>	 <20140228132906.GM15017@sh-el6.eng.rdu2.redhat.com>	 <5310F30D.9040407@molgen.mpg.de> <53125771.4030000@molgen.mpg.de>	 <531280C5.1050906@molgen.mpg.de> <1393726632.9725.3.camel@perseus.fritz.box>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha1; boundary="------------ms000207020507050807080203"
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	message-id:subject:from:to:cc:date:in-reply-to:references
-	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
-	 bh=4NQYho5HDWwv5llP5epu5deuW3w=; b=VAzrTq8C1kfxTQ7mZUbSACJtnZiO
-	TyzLa1nv3QEGze9lpqAB5ACHD1U0rggrahsrt7zjzQnitgyDC/3L9nOCfAP19rsz
-	LXJL4uTg+gS1B6NnJ9ofbZfn1EXceQ7oM+SPlh+62vwSqG5O/jNs+Lz6Szk8H2hn
-	+oIPztuk60dwUuc=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=message-id:subject:from:to:cc:date
-	:in-reply-to:references:content-type:mime-version
-	:content-transfer-encoding; s=smtpout; bh=4NQYho5HDWwv5llP5epu5d
-	euW3w=; b=lYUNskpQrmThgDTlRw2tp0okeNuv7btHPQQH3HuJmdv73pwesDDlIT
-	ljAFDN+2umK6yg4xSkLrzimSCT5ng8JZae0tsHvQ5dSZSrsrUfX4QOP1m8tSli8R
-	Avokm0oLG3kR/adQWxfU/mBINSjpVw7NKpWUtRF3Qc4v9VrzaeY4A=
-In-Reply-To: <1393726942.9725.5.camel@perseus.fritz.box>
+In-Reply-To: <1393726632.9725.3.camel@perseus.fritz.box>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: Alexander Viro <aviro@redhat.com>
-Cc: Donald Buczek <buczek@molgen.mpg.de>, autofs <autofs@vger.kernel.org>
+To: Ian Kent <raven@themaw.net>
+Cc: Alexander Viro <aviro@redhat.com>, autofs <autofs@vger.kernel.org>
 
-On Sun, 2014-03-02 at 10:22 +0800, Ian Kent wrote:
-> On Fri, 2014-02-28 at 08:29 -0500, Alexander Viro wrote:
-> > On Fri, Feb 28, 2014 at 01:12:58PM +0100, Donald Buczek wrote:
-> > 
-> > > Obviously, "cleared mounted on dentry" is missing.
-> > > 
-> > > It looks like we enter put_mountpoint() but don't get to
-> > > dentry->d_flags &= ~DCACHE_MOUNTED;
-> > > 
-> > > mp->m_count is not zero probably.
-> > > 
-> > > What does it mean? The mount is still locked but not in the mount hash?
-> > 
-> > No, it means that something else is mounted on the same dentry (in another
-> > part of mount tree, obviously).
-> > 
-> > If you mount the same fs on two different mountpoints, e.g.
-> > mount /dev/sda1 /mnt
-> > mount /dev/sda1 /tmp/foo
-> > you will have the same dentries seen in two places.  Now,
-> > mount /dev/sdb11 /mnt/a
-> > mount /dev/sdc5 /tmp/foo/a
-> > 
-> > and you've got two different filesystems mounted on two different places
-> > (/mnt/a and /tmp/foo/a).  These two places have different vfsmounts,
-> > but the same dentry.  struct mountpoint is associated with dentry, so
-> > it's also the same for both.  And it serves as a mountpoint for two
-> > vfsmounts - one for fs from sdb11, another for fs from sdc5.
-> > 
-> > Now umount /mnt/a; one of those two vfsmounts is gone now.  struct mountpoint
-> > survives, of course, and dentry is *still* a mountpoint.  sdc5 is still
-> > mounted on /tmp/foo/a, after all...
+This is a cryptographically signed message in MIME format.
 
-Good example but for autofs file systems doesn't this amount to saying
-its been bound somewhere else?
+--------------ms000207020507050807080203
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: quoted-printable
 
-Illegal as far as autofs is concerned because an autofs mount is
-strictly associated with a path defined by its map.
+Am 02.03.2014 03:17, schrieb Ian Kent:
+> mnt_hash->next =3D=3D mnt_hash->prev, mount has been unlinked from the =
+mount
+> tree so is not "visible". As far as we are concerned this mount has
+> gone.
 
-And, yes, bind mounting an autofs file system elsewhere isn't vetoed by
-the kernel.
+No, prev and next both point to the list_head in the mount_hashtable.
 
-This makes be start thinking about implications wrt. containers ....
-
-> 
-> Ahh, right ... I'll need to think about my use (misuse) of
-> d_mountpoint().
-
-So maybe I don't need to worry about this just yet.
-
-> 
-> Thanks Al.
+--=20
+Donald Buczek
+buczek@molgen.mpg.de
+Tel: +49 30 8413 1433
 
 
+
+--------------ms000207020507050807080203
+Content-Type: application/pkcs7-signature; name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Description: S/MIME Cryptographic Signature
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIOKjCC
+BCEwggMJoAMCAQICAgDHMA0GCSqGSIb3DQEBBQUAMHExCzAJBgNVBAYTAkRFMRwwGgYDVQQK
+ExNEZXV0c2NoZSBUZWxla29tIEFHMR8wHQYDVQQLExZULVRlbGVTZWMgVHJ1c3QgQ2VudGVy
+MSMwIQYDVQQDExpEZXV0c2NoZSBUZWxla29tIFJvb3QgQ0EgMjAeFw0wNjEyMTkxMDI5MDBa
+Fw0xOTA2MzAyMzU5MDBaMFoxCzAJBgNVBAYTAkRFMRMwEQYDVQQKEwpERk4tVmVyZWluMRAw
+DgYDVQQLEwdERk4tUEtJMSQwIgYDVQQDExtERk4tVmVyZWluIFBDQSBHbG9iYWwgLSBHMDEw
+ggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDpm8NnhfkNrvWNVMOWUDU9YuluTO2U
+1wBblSJ01CDrNI/W7MAxBAuZgeKmFNJSoCgjhIt0iQReW+DieMF4yxbLKDU5ey2QRdDtoAB6
+fL9KDhsAw4bpXCsxEXsM84IkQ4wcOItqaACa7txPeKvSxhObdq3u3ibo7wGvdA/BCaL2a869
+080UME/15eOkyGKbghoDJzANAmVgTe3RCSMqljVYJ9N2xnG2kB3E7f81hn1vM7PbD8URwoqD
+oZRdQWvY0hD1TP3KUazZve+Sg7va64sWVlZDz+HVEz2mHycwzUlU28kTNJpxdcVs6qcLmPkh
+nSevPqM5OUhqjK3JmfvDEvK9AgMBAAGjgdkwgdYwcAYDVR0fBGkwZzBloGOgYYZfaHR0cDov
+L3BraS50ZWxlc2VjLmRlL2NnaS1iaW4vc2VydmljZS9hZl9Eb3dubG9hZEFSTC5jcmw/LWNy
+bF9mb3JtYXQ9WF81MDkmLWlzc3Vlcj1EVF9ST09UX0NBXzIwHQYDVR0OBBYEFEm3xs/oPR9/
+6kR7Eyn38QpwPt5kMB8GA1UdIwQYMBaAFDHDeRu69VPXF+CJei0XbAqzK50zMA4GA1UdDwEB
+/wQEAwIBBjASBgNVHRMBAf8ECDAGAQH/AgECMA0GCSqGSIb3DQEBBQUAA4IBAQA74Vp3wEgX
+3KkY7IGvWonwvSiSpspZGBJw7Cjy565/lizn8l0ZMfYTK3S9vYCyufdnyTmieTvhERHua3iR
+M347XyYndVNljjNj7s9zw7CSI0khUHUjoR8Y4pSFPT8z6XcgjaK95qGFKUD2P3MyWA0Ja6ba
+hWzAP7uNZmRWJE6uDT8yNQFb6YyC2XJZT7GGhfF0hVblw/hc843uR7NTBXDn5U2KaYMo4RMJ
+hp5eyOpYHgwf+aTUWgRo/Sg+iwK2WLX2oSw3VwBnqyNojWOl75lrXP1LVvarQIc01BGSbOyH
+xQoLBzNytG8MHVQs2FHHzL8w00Ny8TK/jM5JY6gA9/IcMIIE5zCCA8+gAwIBAgIECs6x2DAN
+BgkqhkiG9w0BAQUFADBaMQswCQYDVQQGEwJERTETMBEGA1UEChMKREZOLVZlcmVpbjEQMA4G
+A1UECxMHREZOLVBLSTEkMCIGA1UEAxMbREZOLVZlcmVpbiBQQ0EgR2xvYmFsIC0gRzAxMB4X
+DTA3MDczMTEzMDgyNVoXDTE5MDYzMDAwMDAwMFowXjELMAkGA1UEBhMCREUxIDAeBgNVBAoT
+F01heC1QbGFuY2stR2VzZWxsc2NoYWZ0MQ8wDQYDVQQDEwZNUEcgQ0ExHDAaBgkqhkiG9w0B
+CQEWDW1wZy1jYUBtcGcuZGUwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDYUXKe
+oNTLgkGwbani4rlua5jzlzISfHnaj/5qS+mojQqA/eYa0bGucylV5hyQuyJz7d4gRckdhMDV
+8DZIxERUIsFlXFj6HGHjaZjlhIHbo4S12GjLhTH5YZ37O7MHVw0L/JhhzUIxESM1ZfRT/xLq
+hz2idJYjT98W9OFvzPgT0yrdieMzkLUz5X/fpY8MuyYBgxnddBJRw6ZtlhdCml4F8Q35pSb8
+J2qANiwuJVu3WCTgL/ydo3eA8vDieMMZ7O+L1wAnCzBbHAjJ5H6xU1B7mlwmu7V3pToKPgcW
+mlO0HcTpa68McNTGGiY8pO0/Rn1fXkqDYf8z0lPdWUWxbM1RAgMBAAGjggGvMIIBqzASBgNV
+HRMBAf8ECDAGAQH/AgEBMAsGA1UdDwQEAwIBBjAdBgNVHQ4EFgQUAtYebgmrv1hlpwo8SDNh
+0c59w1swHwYDVR0jBBgwFoAUSbfGz+g9H3/qRHsTKffxCnA+3mQwGAYDVR0RBBEwD4ENbXBn
+LWNhQG1wZy5kZTCBiAYDVR0fBIGAMH4wPaA7oDmGN2h0dHA6Ly9jZHAxLnBjYS5kZm4uZGUv
+Z2xvYmFsLXJvb3QtY2EvcHViL2NybC9jYWNybC5jcmwwPaA7oDmGN2h0dHA6Ly9jZHAyLnBj
+YS5kZm4uZGUvZ2xvYmFsLXJvb3QtY2EvcHViL2NybC9jYWNybC5jcmwwgaIGCCsGAQUFBwEB
+BIGVMIGSMEcGCCsGAQUFBzAChjtodHRwOi8vY2RwMS5wY2EuZGZuLmRlL2dsb2JhbC1yb290
+LWNhL3B1Yi9jYWNlcnQvY2FjZXJ0LmNydDBHBggrBgEFBQcwAoY7aHR0cDovL2NkcDIucGNh
+LmRmbi5kZS9nbG9iYWwtcm9vdC1jYS9wdWIvY2FjZXJ0L2NhY2VydC5jcnQwDQYJKoZIhvcN
+AQEFBQADggEBABtJz5i/SGqQOficdRUN6myFVmVelCYgkGT+zX7frnBRJFoVVafXolstZdVB
+7ZpH9FAcqj8O6FTZyhAANwh3+Y1D6xYBWTB7mQGy0lUoUL+j0msZjaMvyj/2LCQp7cKB5vA4
+h6Ntq5BN5MPcaRhunzjJey/i+J/3jMdG7KpufV47Gl0E8ky9lDegaM7SToG4IOQKwv1wsnuH
+oxoGLRewxO7FmYd9uq9f4L2mHtqgq+vibT1DeehT0HGPnrjjd8NK6g2TvZwirwjydbGs7szB
+5oxDm/pfWoJxYzO68HKTiVBlmaWMLpGw4/UsLE+5xJHpvNXfkYCQ3T+k99KBUZuIpKwwggUW
+MIID/qADAgECAgcTo68+b/5oMA0GCSqGSIb3DQEBBQUAMF4xCzAJBgNVBAYTAkRFMSAwHgYD
+VQQKExdNYXgtUGxhbmNrLUdlc2VsbHNjaGFmdDEPMA0GA1UEAxMGTVBHIENBMRwwGgYJKoZI
+hvcNAQkBFg1tcGctY2FAbXBnLmRlMB4XDTEyMDQxMDEzMTIxNFoXDTE1MDQxMDEzMTIxNFow
+gYoxCzAJBgNVBAYTAkRFMSAwHgYDVQQKExdNYXgtUGxhbmNrLUdlc2VsbHNjaGFmdDE0MDIG
+A1UECxMrTWF4LVBsYW5jay1JbnN0aXR1dCBmdWVyIG1vbGVrdWxhcmUgR2VuZXRpazELMAkG
+A1UECxMCSVQxFjAUBgNVBAMTDURvbmFsZCBCdWN6ZWswggEiMA0GCSqGSIb3DQEBAQUAA4IB
+DwAwggEKAoIBAQC8AkX5++7fOB5qItwhRS7gQ6VJthfPItK8AMTlGeyuqHztDM4us3VKll9t
+Z7HybeXypqTt38JNrU56RnIqRwk+ajvNngk0Z+72eLUXH+TydvemBJ4fvnkIYtOgO7PZfKTy
+iDSCo2tt/PuqnMlacXhCOWrgljhYhZgaPeecoDC+7EA3S3IKVJNBPxT1VtwRb3M691Igu2Th
+yar3F7BkeyimbJ8UKHLpeHX1UvUwfdO0Geem7tkC5JPHlhwMb0Lpr6VImyl6a1CW88yGP5s2
+sp1Bnr31ZLISjwq3VCRggzjPcjZPo1bMXzg2yAsh3BUp3ljYYTxJHe2u/LGzsJoVB1crAgMB
+AAGjggGqMIIBpjAJBgNVHRMEAjAAMAsGA1UdDwQEAwIF4DAdBgNVHSUEFjAUBggrBgEFBQcD
+AgYIKwYBBQUHAwQwHQYDVR0OBBYEFEUP5hp3anavBSte9vwsqlJ/LpMSMB8GA1UdIwQYMBaA
+FALWHm4Jq79YZacKPEgzYdHOfcNbMB8GA1UdEQQYMBaBFGJ1Y3pla0Btb2xnZW4ubXBnLmRl
+MHcGA1UdHwRwMG4wNaAzoDGGL2h0dHA6Ly9jZHAxLnBjYS5kZm4uZGUvbXBnLWNhL3B1Yi9j
+cmwvY2FjcmwuY3JsMDWgM6Axhi9odHRwOi8vY2RwMi5wY2EuZGZuLmRlL21wZy1jYS9wdWIv
+Y3JsL2NhY3JsLmNybDCBkgYIKwYBBQUHAQEEgYUwgYIwPwYIKwYBBQUHMAKGM2h0dHA6Ly9j
+ZHAxLnBjYS5kZm4uZGUvbXBnLWNhL3B1Yi9jYWNlcnQvY2FjZXJ0LmNydDA/BggrBgEFBQcw
+AoYzaHR0cDovL2NkcDIucGNhLmRmbi5kZS9tcGctY2EvcHViL2NhY2VydC9jYWNlcnQuY3J0
+MA0GCSqGSIb3DQEBBQUAA4IBAQAn66b/WvVhpEsNXTGaZhxnUbN4+unYyQ930uxLwYrvGVxz
+oEb/DoB/HJnxwly4ZVPhJ+Md8JabjkUPU7uUV/DBKjpatREOzLESa1wE++lP1QytuhEU9eIn
+LDQLzpXrB2JPR9eMhh/8Qez6ikCYgIP0vNPdX2wTc1FwLvrN2YIyGqmLgGBdbUEwqY1dFn8I
+9LOZR0tZT+ynNfPoQv4W7ec4BtqAbvC6bEbJ9bu2ZNEOoeX4FzpCgvtKdwQQJVDbZ9U8F3BY
+5rTzZnfc73PkcSN+oDTYUQi6tVhbIqEp+DIRwx3VynbXYzJUbyKB5I2TEi2896KnWEdkdiYD
+SE8yrLDmMYIDVTCCA1ECAQEwaTBeMQswCQYDVQQGEwJERTEgMB4GA1UEChMXTWF4LVBsYW5j
+ay1HZXNlbGxzY2hhZnQxDzANBgNVBAMTBk1QRyBDQTEcMBoGCSqGSIb3DQEJARYNbXBnLWNh
+QG1wZy5kZQIHE6OvPm/+aDAJBgUrDgMCGgUAoIIBwTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcN
+AQcBMBwGCSqGSIb3DQEJBTEPFw0xNDAzMDIwODI4MjhaMCMGCSqGSIb3DQEJBDEWBBSY4Abv
+M/elM3pwHR735g4IEERN6jBsBgkqhkiG9w0BCQ8xXzBdMAsGCWCGSAFlAwQBKjALBglghkgB
+ZQMEAQIwCgYIKoZIhvcNAwcwDgYIKoZIhvcNAwICAgCAMA0GCCqGSIb3DQMCAgFAMAcGBSsO
+AwIHMA0GCCqGSIb3DQMCAgEoMHgGCSsGAQQBgjcQBDFrMGkwXjELMAkGA1UEBhMCREUxIDAe
+BgNVBAoTF01heC1QbGFuY2stR2VzZWxsc2NoYWZ0MQ8wDQYDVQQDEwZNUEcgQ0ExHDAaBgkq
+hkiG9w0BCQEWDW1wZy1jYUBtcGcuZGUCBxOjrz5v/mgwegYLKoZIhvcNAQkQAgsxa6BpMF4x
+CzAJBgNVBAYTAkRFMSAwHgYDVQQKExdNYXgtUGxhbmNrLUdlc2VsbHNjaGFmdDEPMA0GA1UE
+AxMGTVBHIENBMRwwGgYJKoZIhvcNAQkBFg1tcGctY2FAbXBnLmRlAgcTo68+b/5oMA0GCSqG
+SIb3DQEBAQUABIIBAK9OqsjOZ/5SFNARfysMry+y17kZ8WVb+J4W81aN+Blb+5I4vFkL1Umk
+isZQZzs5dUkof5NYbz35A7ntgN2U6J8u9DmkoFSRCcr72uB7OZEukWW2gFg0K747CFHjUXE7
+E/0DA/82H9TzoRCMNYh1PKZqcnfsxP687/CElvjNTjc0rTGkr006UkaY9DkZ3+YxfcTqHDmX
+rUiJHMbg4a21meJlK6aGxPFqLtH2UKgGrgq7BhkeKXidwBT3dP0/HO4dIBDpxlUoNWFjMLIp
+lsT645Nhpd0+zy83p2QUdQJJNGcoOTtIhfecAUnKvVXYHvyAYlNdDFFh8EJeWTwgDLtieDIA
+AAAAAAA=
+--------------ms000207020507050807080203--
