@@ -1,12 +1,12 @@
 From: Donald Buczek <buczek@molgen.mpg.de>
 Subject: Re: "Too many levels of symbolic links"
-Date: Sun, 02 Mar 2014 15:55:56 +0100
-Message-ID: <5313467C.9080102@molgen.mpg.de>
-References: <1391145206.2486.25.camel@perseus.fritz.box>	 <52EB7694.20707@molgen.mpg.de> <52EB7B07.2070707@molgen.mpg.de>	 <530484B7.6030305@molgen.mpg.de>	 <1392896501.2508.16.camel@perseus.fritz.box>	 <1392898704.2508.26.camel@perseus.fritz.box>	 <530625D0.7020808@molgen.mpg.de>	 <1392946952.2495.3.camel@perseus.fritz.box>	 <53076D91.7050703@molgen.mpg.de> <53107D4A.90904@molgen.mpg.de>	 <20140228132906.GM15017@sh-el6.eng.rdu2.redhat.com>	 <1393726942.9725.5.camel@perseus.fritz.box> <1393744241.9725.16.camel@perseus.fritz.box>
+Date: Sun, 02 Mar 2014 19:51:08 +0100
+Message-ID: <53137D9C.5020405@molgen.mpg.de>
+References: <1391145206.2486.25.camel@perseus.fritz.box>	 <52EB7694.20707@molgen.mpg.de> <52EB7B07.2070707@molgen.mpg.de>	 <530484B7.6030305@molgen.mpg.de>	 <1392896501.2508.16.camel@perseus.fritz.box>	 <1392898704.2508.26.camel@perseus.fritz.box>	 <530625D0.7020808@molgen.mpg.de>	 <1392946952.2495.3.camel@perseus.fritz.box>	 <53076D91.7050703@molgen.mpg.de> <53107D4A.90904@molgen.mpg.de>	 <20140228132906.GM15017@sh-el6.eng.rdu2.redhat.com>	 <1393726942.9725.5.camel@perseus.fritz.box> <1393744241.9725.16.camel@perseus.fritz.box> <5313467C.9080102@molgen.mpg.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha1; boundary="------------ms040507080401020204040505"
+Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha1; boundary="------------ms040105050601000601030403"
 Return-path: <autofs-owner@vger.kernel.org>
-In-Reply-To: <1393744241.9725.16.camel@perseus.fritz.box>
+In-Reply-To: <5313467C.9080102@molgen.mpg.de>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 To: Ian Kent <raven@themaw.net>, Alexander Viro <aviro@redhat.com>
@@ -14,140 +14,41 @@ Cc: autofs <autofs@vger.kernel.org>
 
 This is a cryptographically signed message in MIME format.
 
---------------ms040507080401020204040505
+--------------ms040105050601000601030403
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: quoted-printable
 
-Am 02.03.2014 08:10, schrieb Ian Kent:
-> On Sun, 2014-03-02 at 10:22 +0800, Ian Kent wrote:
->> On Fri, 2014-02-28 at 08:29 -0500, Alexander Viro wrote:
->>> On Fri, Feb 28, 2014 at 01:12:58PM +0100, Donald Buczek wrote:
->>>
->>>> Obviously, "cleared mounted on dentry" is missing.
->>>>
->>>> It looks like we enter put_mountpoint() but don't get to
->>>> dentry->d_flags &=3D ~DCACHE_MOUNTED;
->>>>
->>>> mp->m_count is not zero probably.
->>>>
->>>> What does it mean? The mount is still locked but not in the mount ha=
-sh?
->>> No, it means that something else is mounted on the same dentry (in an=
-other
->>> part of mount tree, obviously).
->>>
->>> If you mount the same fs on two different mountpoints, e.g.
->>> mount /dev/sda1 /mnt
->>> mount /dev/sda1 /tmp/foo
->>> you will have the same dentries seen in two places.  Now,
->>> mount /dev/sdb11 /mnt/a
->>> mount /dev/sdc5 /tmp/foo/a
->>>
->>> and you've got two different filesystems mounted on two different pla=
-ces
->>> (/mnt/a and /tmp/foo/a).  These two places have different vfsmounts,
->>> but the same dentry.  struct mountpoint is associated with dentry, so=
+Addendum:
 
->>> it's also the same for both.  And it serves as a mountpoint for two
->>> vfsmounts - one for fs from sdb11, another for fs from sdc5.
->>>
->>> Now umount /mnt/a; one of those two vfsmounts is gone now.  struct mo=
-untpoint
->>> survives, of course, and dentry is *still* a mountpoint.  sdc5 is sti=
-ll
->>> mounted on /tmp/foo/a, after all...
-> Good example but for autofs file systems doesn't this amount to saying
-> its been bound somewhere else?
->
-> Illegal as far as autofs is concerned because an autofs mount is
-> strictly associated with a path defined by its map.
->
-> And, yes, bind mounting an autofs file system elsewhere isn't vetoed by=
+The error can be reproduced with this script (and /project/mariux32=20
+being an automount point of course) :
+---------------
+#! /bin/sh
 
-> the kernel.
->
-> This makes be start thinking about implications wrt. containers ....
->
->> Ahh, right ... I'll need to think about my use (misuse) of
->> d_mountpoint().
-> So maybe I don't need to worry about this just yet.
+ls -ld /project/mariux32/.
+unshare -m -- bash -c "sleep 6;ls -ld /project/mariux32/.;echo exit..." &=
 
-I think you should, because exactly this is the bug.
-d_mountpoint(dentry) just says, that we have a struct mountpoint for the =
+kill -USR1  `cat /var/run/autofs-running`
+sleep 3
+ls -ld /project/mariux32/.
+wait
+---------------
 
-dentry. It does not say, that the path is mounted in the current=20
-namespace. The struct mountpoint might exists, because the path is=20
-mounted in other namespaces but not ours.
+Output:
 
-The problem at our site is clear now:
+> root:dose:/home/buczek/autofs/# ./test.sh
+> drwxrwsr-x 6 mx32prj mx32grp 56 Feb 24  2011 /project/mariux32/.
+> ls: cannot access /project/mariux32/.: Too many levels of symbolic link=
+s
+> drwxrwsr-x 6 mx32prj mx32grp 56 Feb 24  2011 /project/mariux32/.
+> exit...
 
-We have only one service with PrivateTmp=3Dyes which is colord.service.=20
-And here is the missing mount:
-
-> root:kasslerbraten:/lib/systemd/system/# ps -Af|fgrep colord
-> root      7670     1  0 Feb28 ?        00:00:00 /usr/lib/colord/colord
-> root      7897  7329  0 14:46 pts/8    00:00:00 fgrep colord
-> root:kasslerbraten:/lib/systemd/system/# cat /proc/7670/mounts|grep=20
-> mariux32
-> pille:/amd/pille/1/project/mariux32 /project/mariux32 nfs=20
-> rw,nosuid,relatime,vers=3D3,rsize=3D524288,wsize=3D524288,namlen=3D255,=
-hard,proto=3Dtcp,timeo=3D600,retrans=3D2,sec=3Dsys,mountaddr=3D141.14.28.=
-250,mountvers=3D3,mountport=3D56263,mountproto=3Dudp,local_lock=3Dnone,ad=
-dr=3D141.14.28.250=20
-> 0 0
-
-colord.service is dbus-started. So it is started quiet randomly and=20
-depending on user usage pattern, mostly but not exclusively on=20
-workstations. That is exactly how we've seen the bug to appear.
-
-When the services is started, systemd uses unshare(CLONE_NEWNS) to clone =
-
-the namespace. This new namespace inherits existing mounts, including=20
-automounted ones.
-These mounts might eventually expire at a later time. When this occurs,=20
-they are dismounted from the automount daemons namespace, which is the=20
-global, pid 1 namespace. But because they are still mounted in another=20
-namespace, the dentry stays flagged as DCACHE_MOUNTED, which prevents=20
-autofs to remount it on access. The mount, however, just exists in=20
-another namespace and is useless for anybody else.
-
-Final prove, that this is the true story:
-
-> root:kasslerbraten:/lib/systemd/system/# ls /project/mariux32
-> ls: cannot open directory /project/mariux32: Too many levels of=20
-> symbolic links
-> root:kasslerbraten:/lib/systemd/system/# kill -9 7670
-> root:kasslerbraten:/lib/systemd/system/# ls /project/mariux32
-> beeroot  home  i686  svnroot
-> root:kasslerbraten:/lib/systemd/system/#
-
-Of course, I can easily work around that in our environment (eg. just=20
-remove PrivateTmp=3Dyes from the service). So I'm pretty sure, it will=20
-work for me now.
-The bug, however, is in autofs. systemd is doing perfectly legal=20
-user-mode things.
-
-Perhaps autofs should use lookup_mnt()  to decide along this pattern:
-
-if ( dentry->d_flags & DCACHE_MOUNTED && lookup_mnt(path)  ) {
-   /* mounted */
-} else {
-   /* not mounted */
-}
-
-That doesn't solve the problem, however, that mounts cloned by a=20
-unshare(CLONE_NEWNS) would never expire. Also there is another bug=20
-somewhere, because I see, that the mount, visible to the=20
-/usr/lib/colord/colord process was logged as "unmounted" in the nfs=20
-server when it expired in the global namespace. So I doubt it would be=20
-working even for that process. So possibly automounted mounts shouldn't=20
-be cloned at all? Together with chroot or pivot_root the sematics would=20
-be more than unclear anyway. Your problem now :-)
-
-Thanks for you help with this!
+And yes, the fileserver logs "authenticated unmount request" , but the=20
+(later!) ls succeeds anyway.
 
 Regards
    Donald
+
 
 --=20
 Donald Buczek
@@ -156,7 +57,7 @@ Tel: +49 30 8413 1433
 
 
 
---------------ms040507080401020204040505
+--------------ms040105050601000601030403
 Content-Type: application/pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -233,18 +134,18 @@ LDQLzpXrB2JPR9eMhh/8Qez6ikCYgIP0vNPdX2wTc1FwLvrN2YIyGqmLgGBdbUEwqY1dFn8I
 SE8yrLDmMYIDVTCCA1ECAQEwaTBeMQswCQYDVQQGEwJERTEgMB4GA1UEChMXTWF4LVBsYW5j
 ay1HZXNlbGxzY2hhZnQxDzANBgNVBAMTBk1QRyBDQTEcMBoGCSqGSIb3DQEJARYNbXBnLWNh
 QG1wZy5kZQIHE6OvPm/+aDAJBgUrDgMCGgUAoIIBwTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcN
-AQcBMBwGCSqGSIb3DQEJBTEPFw0xNDAzMDIxNDU1NTZaMCMGCSqGSIb3DQEJBDEWBBQCdIiA
-ZP+72UntSucXGwCoT/G/ijBsBgkqhkiG9w0BCQ8xXzBdMAsGCWCGSAFlAwQBKjALBglghkgB
+AQcBMBwGCSqGSIb3DQEJBTEPFw0xNDAzMDIxODUxMDhaMCMGCSqGSIb3DQEJBDEWBBTrAg9z
+Vs9Q71Xx2j1L/RF2O33qHjBsBgkqhkiG9w0BCQ8xXzBdMAsGCWCGSAFlAwQBKjALBglghkgB
 ZQMEAQIwCgYIKoZIhvcNAwcwDgYIKoZIhvcNAwICAgCAMA0GCCqGSIb3DQMCAgFAMAcGBSsO
 AwIHMA0GCCqGSIb3DQMCAgEoMHgGCSsGAQQBgjcQBDFrMGkwXjELMAkGA1UEBhMCREUxIDAe
 BgNVBAoTF01heC1QbGFuY2stR2VzZWxsc2NoYWZ0MQ8wDQYDVQQDEwZNUEcgQ0ExHDAaBgkq
 hkiG9w0BCQEWDW1wZy1jYUBtcGcuZGUCBxOjrz5v/mgwegYLKoZIhvcNAQkQAgsxa6BpMF4x
 CzAJBgNVBAYTAkRFMSAwHgYDVQQKExdNYXgtUGxhbmNrLUdlc2VsbHNjaGFmdDEPMA0GA1UE
 AxMGTVBHIENBMRwwGgYJKoZIhvcNAQkBFg1tcGctY2FAbXBnLmRlAgcTo68+b/5oMA0GCSqG
-SIb3DQEBAQUABIIBAK8sZr5i5RWjhP4ebMG4DTTDiVmnJPdpcaEqzjBA2amf1Wd9Anp5IOVJ
-N1PrhX5vt1fMxW925P0uClY0CXdWFAKxrAqtDlGBt+LlnQkW/JcBdrLyHHuqCbmd+rLoVh3B
-q3Au3l+5huP4cQfp32aG24yaYcBlQTSt7P58x1alyAwZysiMuXc+s/o98OOzRES3YlwdxmiQ
-lxbTqqjjYA8FOCkbhmZvse8PBRGpiJcY8+hQ3yKNqIpRc/WLfXsCvbcx9NGtDXwJSERuxpXZ
-PnUQnj7e6mHBzLGqOKMA4/9iM1M2FcSQ8cQ2GbFqZsewI1wYIjTxRxK9SeHSqJ3xBaoBo8UA
+SIb3DQEBAQUABIIBAHQkLVSovgVMTQO8TWuXSIDPOHlu7ahy9nIehyI/RjkfpU69ELa7pGyl
+8MN1/WW/znmLgGTbcG8Lf+Z53v9HxVYChT+ua5dotdtKBX8nE8uC/QX/EipWFqu9XKFp2bZy
+yyyvCYtXKf6mw2vKV2qXYatgSijBoyCv6/hlXW2/+Ya/1+Vk8BhfVrAFrNvSK7LIbNK5u4U3
+ATxtRQtAJAT8/2CtmDcQpWWiXSF2usZR0AgLPIZtXsk5ogWln5JqfwrsOdoeveYYGmH6ZT7d
+SkLIqzItz83L+NFpEZElT9UH8VviYXpVY85/EYjDHPz6dqRbqX4oWoDsdvuTO1OtOkZ912YA
 AAAAAAA=
---------------ms040507080401020204040505--
+--------------ms040105050601000601030403--
