@@ -1,59 +1,87 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Special map type "-hosts" no longer works
-Date: Mon, 24 Mar 2014 12:53:47 +0800
-Message-ID: <1395636827.2466.3.camel@perseus.fritz.box>
-References: <CAEySpB4QciPfW4Cck=jrtZ0ht1neig8re9DG0i1BZ7NOQsfU4w@mail.gmail.com>
+From: Vincent McIntyre <vincent.mcintyre@csiro.au>
+Subject: [PATCH] Fixes for samples/auto.master
+Date: Thu, 27 Mar 2014 17:31:01 +1100
+Message-ID: <20140327063059.GG19822@mayhem.atnf.CSIRO.AU>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	message-id:subject:from:to:cc:date:in-reply-to:references
-	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
-	 bh=yAmhD7nEl8qVC14F70tKzbw/KDk=; b=s10lzegQcNn2rJX6wR6A0zdfgERQ
-	+9UmQy1M6hK9n5DPv+anfHnXfYaXakAouucTxNLsBLmuAbAmgFhfmupx6wbREr9w
-	lDZPvllKGwOIc0d4b9Lj4HvXI/Yno1G1nau9XrsfeEBEGox9Fwgii+kSmVtmpwUC
-	9ZoqYPZ7U8TdlKc=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=message-id:subject:from:to:cc:date
-	:in-reply-to:references:content-type:mime-version
-	:content-transfer-encoding; s=smtpout; bh=yAmhD7nEl8qVC14F70tKzb
-	w/KDk=; b=b9Te2bagjp1gDZy+AHFcV2NuVXU8j/T8F1f6UdwMfLOpIH1iS8pQbs
-	VW/K8kyin5q1a1f+ZH8x95aNYAx7jrJGHAG4gFEJeZCV8xEAaNqFXsAiHb84GTHg
-	yhN53W6JhqNa0WloREysg1gqmMSaqEYEODNIvS6QDRmNe02pLAMNc=
-In-Reply-To: <CAEySpB4QciPfW4Cck=jrtZ0ht1neig8re9DG0i1BZ7NOQsfU4w@mail.gmail.com>
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
+  d=csiro.au; i=@csiro.au; q=dns/txt; s=email;
+  t=1395902468; x=1427438468;
+  h=date:from:to:subject:message-id:mime-version;
+  bh=rjGpcQUiXMVqfi3lMEvgs7qoF2OoJW919897USYQz4I=;
+  b=Mu8HejnWCC1pVEMXBulOPE7bYP2SP2TrBL5DwjoFup4Q0ktc5+YemaRK
+   IBolbqiGMeNPpmcOg927I3AxLSiBZA03LlnvM9bPnhDq8QHNOor7E2ZKH
+   hUzgLlvc4pDo44a;
+Content-Disposition: inline
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Leonardo Chiquitto <leonardo.lists@gmail.com>
-Cc: autofs <autofs@vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+To: autofs@vger.kernel.org
 
-On Fri, 2014-03-21 at 10:17 -0300, Leonardo Chiquitto wrote:
-> Hi,
-> 
-> The last patches pushed to the git repository break the special -hosts
-> map:
+Hi,
 
-Indeed it does, thanks for catching this.
+I noticed that the preamble in samples/auto.master seemed to be
+referring to a regular autofs map, not a 'master' map.
+Perhaps this patch would clear that up?
 
-> 
-> automount[29770]: ghosting enabled
-> automount[29770]: master_do_mount: mounting /net
-> automount[29770]: automount_path_to_fifo: fifo name /run/autofs.fifo-net
-> automount[29770]: lookup_nss_read_map: reading map hosts (null)
-> automount[29770]: mount_autofs_indirect: failed to read map for /net
-> automount[29770]: handle_mounts: mount of /net failed!
-> automount[29770]: master_do_mount: failed to startup mount
-> systemd[1]: Started Automounts filesystems on demand.
+Kind regards,
+Vince
 
-Yep, got that.
+Signed-off-by: <vincent.mcintyre@csiro.au>
 
-snip ...
+  Vincent McIntyre (2):
+---
+  Replace description that described regular automount maps, not master
+    maps.     Add a note about the format of included files.
+  Clarify what happens to master map options not consumed by 'mount'.
 
-> 
-> The culprit is probably commit e40bff4fb ("fix map source with type lookup").
+ man/auto.master.5.in |    2 +-
+ samples/auto.master  |    7 ++++---
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-Indeed it is, will fix immediately.
 
-Ian
+diff --git a/samples/auto.master b/samples/auto.master
+index 72f086c..0f2c8ab 100644
+--- a/samples/auto.master
++++ b/samples/auto.master
+@@ -1,8 +1,8 @@
+ #
+ # Sample auto.master file
+-# This is an automounter map and it has the following format
+-# key [ -mount-options-separated-by-comma ] location
+-# For details of the format look at autofs(5).
++# This is a 'master' automounter map and it has the following format:
++# mount-point [map-type[,format]:]map [options]
++# For details of the format look at auto.master(5).
+ #
+ /misc	/etc/auto.misc
+ #
+@@ -13,6 +13,7 @@
+ /net	-hosts
+ #
+ # Include /etc/auto.master.d/*.autofs
++# The included files must conform to the format of this file.
+ #
+ +dir:/etc/auto.master.d
+ #
+-- 
+1.7.2.5
 
+
+diff --git a/man/auto.master.5.in b/man/auto.master.5.in
+index 1d96d7e..1095406 100644
+--- a/man/auto.master.5.in
++++ b/man/auto.master.5.in
+@@ -139,7 +139,7 @@ the \fBdn\fP of an LDAP entry for maps of type \fBldap\fP.
+ .br
+ Any remaining command line arguments without leading dashes (\-) are
+ taken as options (\fI\-o\fP) to \fBmount\fP.  Arguments with leading
+-dashes are considered options for the maps.
++dashes are considered options for the maps and are passed to automount (8).
+ .sp
+ The \fBsun\fP format supports the following options:
+ .RS
+-- 
+1.7.2.5
 
