@@ -1,138 +1,98 @@
-From: fedfs-utils Release Announcements <fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
-Subject: Announcing the release of fedfs-utils
-	version 0.10.1
-Date: Thu, 27 Mar 2014 17:03:09 -0700
-Message-ID: <5F7BC3EF-E0B8-4CB9-AE09-5C9913452E2B@oracle.com>
-Reply-To: fedfs-utils Release Announcements
-	<fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
-Mime-Version: 1.0 (Mac OS X Mail 7.2 \(1874\))
-Content-Type: multipart/mixed; boundary="===============6980173171383100898=="
-Return-path: <fedfs-utils-announce-bounces-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <https://oss.oracle.com/mailman/listinfo/fedfs-utils-announce>, 
-	<mailto:fedfs-utils-announce-request-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://oss.oracle.com/pipermail/fedfs-utils-announce>
-List-Post: <mailto:fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
-List-Help: <mailto:fedfs-utils-announce-request-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org?subject=help>
-List-Subscribe: <https://oss.oracle.com/mailman/listinfo/fedfs-utils-announce>, 
-	<mailto:fedfs-utils-announce-request-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org?subject=subscribe>
-Sender: fedfs-utils-announce-bounces-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
-Errors-To: fedfs-utils-announce-bounces-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
-To: "fedfs-utils;release announcements" <fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
-Cc: Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, autofs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org
-
-
---===============6980173171383100898==
-Content-Type: multipart/signed;
-	boundary="Apple-Mail=_2001E2B5-4572-46FC-8CC9-81734A411BD6";
-	protocol="application/pgp-signature"; micalg=pgp-sha512
-
-
---Apple-Mail=_2001E2B5-4572-46FC-8CC9-81734A411BD6
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain;
-	charset=windows-1252
-
-This package contains an implementation of the Federated Filesystem =
-(FedFS) Proposed Standard for Linux.  For an introduction to FedFS, see =
-RFC 5716.
-
-This is an ALPHA quality release.  The code in this release is not =
-guaranteed to work.  Programming, administrative, and user interfaces =
-may change significantly before the next release.  This release is for =
-technology preview only.
-
-
-Changes since 0.10.0:
-	=95 Address packaging issues
-
-
-New with fedfs-utils 0.10.0:
-
-Non-backwards compatible changes:
-	=95 *ldaperr removed from libnsdb API
-	=95 ADMIN client tools no longer use AUTH_NONE security
-	=95 ADMIN client tools no longer exit with FedFS status code
-
-New features:
-	=95 Python package PyFedfs added
-	=95 Tool for configuring FedFS domain root directories
-	=95 Tool for setting up NSDBs using OpenLDAP
-	=95 Simpler NCE discovery (compliant with new FedFS NCE I-D)
-	=95 admin_t API for performing remote ADMIN requests
-	=95 rpc.fedfsd uses an ACL to control who can perform ADMIN =
-requests
-	=95 rpc.fedfsd and ADMIN tools support RPCSEC and Kerberos v5
-
-Minor fixes:
-	=95 FEDFS_LOOKUP_JUNCTION no longer returns NSDB_LDAP_VAL
-	=95 fedfs-map-nfs4 handles multiple SRV records
-	=95 Packaging simplifications
-	=95 Dozens of code clean-ups and bug fixes; consult Changelog =
-for details
-
-
-Going forward, stable patches now go into =93master,=94 rather than a =
-separate branch.  Development for fedfs-utils 0.11 will be moved to a =
-topic branch.
-
-fedfs-utils 0.9 is packaged for EPEL 6 and will continue to see bug =
-fixes.
-
-
-Tarball releases available at:
- http://git.linux-nfs.org/?p=3Dcel/fedfs-releases.git;a=3Dsummary
-
-Git repository available at:
- =
-http://git.linux-nfs.org/?p=3Dcel/fedfs-utils.git;a=3Dshortlog;h=3Drefs/he=
-ads/master
-
-Patchwork available at:
- http://patchwork.ozlabs.org/project/fedfs-utils/list/
-
---
-Chuck Lever
-
-
---Apple-Mail=_2001E2B5-4572-46FC-8CC9-81734A411BD6
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [PATCH] Fixes for samples/auto.master
+Date: Fri, 28 Mar 2014 08:20:02 +0800
+Message-ID: <1395966002.2704.0.camel@perseus.fritz.box>
+References: <20140327063059.GG19822@mayhem.atnf.CSIRO.AU>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename=signature.asc
-Content-Type: application/pgp-signature;
-	name=signature.asc
-Content-Description: Message signed with OpenPGP using GPGMail
-
------BEGIN PGP SIGNATURE-----
-Comment: GPGTools - http://gpgtools.org
-
-iQIcBAEBCgAGBQJTNLxHAAoJEKtSGoIDWtn6jEQP/RH/tkfaEu8PINCmFFcG8oSj
-tVZdUs7kKmoHOb0Skg//3LWWCiC+PUAO1hvHGZfwJ8t81jZZ2hLxmIbl6UVhrpVc
-40NhklNvyszOcKCbnZE2IQLyhk8ypcSU3pwTIn8uK160M1QCOJoy3pKLulAgPx/n
-z1PcgzgaEoAz/kD908dFGoIJY5IH47SDSP1fcvxCZp6SEVdGOMGhDL75d3uc3BHJ
-/WIicfHgc62wB8E7X/bEfGNqxwcCR4nWpFWO2dQEArWajkOufh+EiPxYWn3jSXBN
-RycH7F/qqkC/+FwL3Tbk6CwjVnhV85M/hO4Al2csepNAD7lqF6KruSGR91glkOQY
-Szo/SFf0XXACCCmP6jw4GUCSLDEi9xqeEZYUkYrqWCcUBbAwjKsc7/ZCXK+YbfUk
-h3FHYIW3S/2SD6DVLmw7+nDgUDQbEq+AibKCnH0s/0GYn2A/RMI+5ijCnBV94JXC
-q8xTT0gm/jL84kPwxhwUIw/TbDw0zPeDW8md2H3ruqBiIHO8FKEG+znRj/yzWRu+
-liiiCORyloSqLmTQB1XP0hi9v4QlH19TD6Q2gZDc06ljv1ILYQzsUELTmZ8pKq3m
-ntQy2YV0sowQPg3IzsOw+/QlvZWdsVNVBcDL93HLSLUtv2oK040VwJKeg/9BKfck
-hCPZ1JfohAkPcD3i7QU9
-=1ObQ
------END PGP SIGNATURE-----
-
---Apple-Mail=_2001E2B5-4572-46FC-8CC9-81734A411BD6--
-
-
---===============6980173171383100898==
+Return-path: <autofs-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
+	message-id:subject:from:to:cc:date:in-reply-to:references
+	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
+	 bh=QNV2BG/JtopIRbH3/3n2tiG90Sg=; b=XtfBRjpFCH1yt5IqrQss0QIhAswt
+	qeqQg6OnBOqEqRhYC6EP0513ziTIiVu90bZDLuRNmxdqGGB97uv+1reIC+jFo2mp
+	MVJgufFXx3+HejLkGQjbcmAcOb7ethQNjUwWTPEjSc9dc2KD/B/4mxOk6J+7IOrE
+	PJGdV5EwoH8gbD8=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=message-id:subject:from:to:cc:date
+	:in-reply-to:references:content-type:mime-version
+	:content-transfer-encoding; s=smtpout; bh=QNV2BG/JtopIRbH3/3n2ti
+	G90Sg=; b=tlWEIPke/Q/meW0OeMiU5j3hQM0oV2oU4C3Swf57mfH5W29ZgBMZQh
+	6I1qQIzGJ9PYvxT8QCf0FkyyWMdW+DCDu4Jn2MV/sQucG4AKvLbXyRuxXWyFJzc3
+	ZwQ+MoT/DxWFOcSqB1P37LeN5psDSH6NMNi114xDGU9KIM+n1xaFw=
+In-Reply-To: <20140327063059.GG19822@mayhem.atnf.CSIRO.AU>
+Sender: autofs-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: Vincent McIntyre <vincent.mcintyre@csiro.au>
+Cc: autofs@vger.kernel.org
 
-_______________________________________________
-fedfs-utils-announce mailing list
-fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
-https://oss.oracle.com/mailman/listinfo/fedfs-utils-announce
---===============6980173171383100898==--
+On Thu, 2014-03-27 at 17:31 +1100, Vincent McIntyre wrote:
+> Hi,
+> 
+> I noticed that the preamble in samples/auto.master seemed to be
+> referring to a regular autofs map, not a 'master' map.
+> Perhaps this patch would clear that up?
+
+Thanks, I'll add that to my patch queue for the next push.
+
+> 
+> Kind regards,
+> Vince
+> 
+> Signed-off-by: <vincent.mcintyre@csiro.au>
+> 
+>   Vincent McIntyre (2):
+> ---
+>   Replace description that described regular automount maps, not master
+>     maps.     Add a note about the format of included files.
+>   Clarify what happens to master map options not consumed by 'mount'.
+> 
+>  man/auto.master.5.in |    2 +-
+>  samples/auto.master  |    7 ++++---
+>  2 files changed, 5 insertions(+), 4 deletions(-)
+> 
+> 
+> diff --git a/samples/auto.master b/samples/auto.master
+> index 72f086c..0f2c8ab 100644
+> --- a/samples/auto.master
+> +++ b/samples/auto.master
+> @@ -1,8 +1,8 @@
+>  #
+>  # Sample auto.master file
+> -# This is an automounter map and it has the following format
+> -# key [ -mount-options-separated-by-comma ] location
+> -# For details of the format look at autofs(5).
+> +# This is a 'master' automounter map and it has the following format:
+> +# mount-point [map-type[,format]:]map [options]
+> +# For details of the format look at auto.master(5).
+>  #
+>  /misc	/etc/auto.misc
+>  #
+> @@ -13,6 +13,7 @@
+>  /net	-hosts
+>  #
+>  # Include /etc/auto.master.d/*.autofs
+> +# The included files must conform to the format of this file.
+>  #
+>  +dir:/etc/auto.master.d
+>  #
+> -- 
+> 1.7.2.5
+> 
+> 
+> diff --git a/man/auto.master.5.in b/man/auto.master.5.in
+> index 1d96d7e..1095406 100644
+> --- a/man/auto.master.5.in
+> +++ b/man/auto.master.5.in
+> @@ -139,7 +139,7 @@ the \fBdn\fP of an LDAP entry for maps of type \fBldap\fP.
+>  .br
+>  Any remaining command line arguments without leading dashes (\-) are
+>  taken as options (\fI\-o\fP) to \fBmount\fP.  Arguments with leading
+> -dashes are considered options for the maps.
+> +dashes are considered options for the maps and are passed to automount (8).
+>  .sp
+>  The \fBsun\fP format supports the following options:
+>  .RS
+
 
