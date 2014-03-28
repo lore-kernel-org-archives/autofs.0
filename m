@@ -1,64 +1,136 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: question about master map options
-Date: Fri, 28 Mar 2014 08:27:29 +0800
-Message-ID: <1395966449.2704.5.camel@perseus.fritz.box>
-References: <20140327063454.GH19822@mayhem.atnf.CSIRO.AU>
+Subject: [ANNOUNCE] autofs 5.0.9 release
+Date: Fri, 28 Mar 2014 15:21:12 +0800
+Message-ID: <1395991272.2704.16.camel@perseus.fritz.box>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <autofs-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-LDsRlOBtqTRj6+DRClSC"
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	message-id:subject:from:to:cc:date:in-reply-to:references
-	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
-	 bh=LS3AcmjYETzgmX/hZjvJqamrQVQ=; b=spDqLkvNLy0xm1W8rFm20ZuvdKQS
-	HVo5Dvfz15BpUIS9jd91OMb+9k5aNjrFHAznCJmfr7AcT6qtRtXLM1RJsoI6JL0I
-	NRyL1K7CYJeY0+dyr9QD2nhNwbx/Dw7XNENRV8G+ofK2Kdjndbm+1+ImuID5F6Ez
-	eMo/UJbndAL33Iw=
+	message-id:subject:from:to:cc:date:content-type:mime-version; s=
+	mesmtp; bh=vfSzG0ny5ZnYqpFrTesWygFytwI=; b=x1tP6zW/mDlkyFEIXV/Zb
+	6JRr53TBpClPmWdmPSvvt+v0OKU9hdToV/uR56OEApz6Th4ngeQFhkoUPmP1f8nT
+	1cOfm/fvIQm9hckn89UJxm8hML7LOM+jHxLLucOtr7LESiwsVZxFlSnkxyqDs5Xo
+	ZYnunRlTizX/tRN03h9oSA=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=message-id:subject:from:to:cc:date
-	:in-reply-to:references:content-type:mime-version
-	:content-transfer-encoding; s=smtpout; bh=LS3AcmjYETzgmX/hZjvJqa
-	mrQVQ=; b=iRCF1PlJB176ozlmo8IKlcX6vEZExRAHEtQVDvSs1WIo+UKTCcYiHN
-	8ekbgBCBu0SKTVoRRDzIvMZSYQyw/epSLoEcpT6QYWf+p3kQcKiBrp+prK2GWf46
-	nJIf3A99ONtRi+UZwLZSmEr5ZSJRtdldJesec7RCyKGJhAwCHRxW0=
-In-Reply-To: <20140327063454.GH19822@mayhem.atnf.CSIRO.AU>
-Sender: autofs-owner@vger.kernel.org
+	:content-type:mime-version; s=smtpout; bh=vfSzG0ny5ZnYqpFrTesWyg
+	FytwI=; b=l/XnU0aKtQCJMLpcL0qZ3GIh1UIuLhnqzOsb8WnxnOWi/4C6nmvu8n
+	nR7VxkwWOzcabgL55LcKa2C4xILs5fYx2rnBeYRXhvSbXQXe8OWXJaRfd7R8TaoN
+	fJEhmAET+al/kJrTaRwp9iGXqTfwDSj9eMUjHUPTANLqIofQ/Vrx8=
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: Vincent McIntyre <vincent.mcintyre@csiro.au>
-Cc: autofs@vger.kernel.org
-
-On Thu, 2014-03-27 at 17:34 +1100, Vincent McIntyre wrote:
-> Hi,
-> 
-
-It's been a long time since I wrote that.
+To: autofs@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-> in README.v5.release it says
-> - mount options present in the master map are now overridden by mount
->   options in map entries instead of being accumulated. This behaviour
->   is in line with other industry automount implementations.
+--=-LDsRlOBtqTRj6+DRClSC
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-That's not correct by the look of it.
+Hi all,
 
-> 
-> but other places in the documentation refer to
-> mount options in the master map being appended
-> to those given to a specific map entry,
-> modulo the setting of APPEND_OPTIONS in /etc/defaults/autofs.
-> 
-> I can't figure it out from the code. Which way round is it, please?
-> I'd like to make the documentation consistent with itself
-> and the code.
+Here is a bug fix release for autofs.
 
-The README was probably correct when it was written, possibly before the
-APPEND_OPTIONS configuration option was added.
+For those that have clones of the git repository the master branch
+will progress to autofs-5.1.0 and autofs-5.0 will continue to be
+updated with bug fixes (and periodic releases) on the new branch
+autofs-5.0-stable.
 
-It ended up that options are appended by default (as they are in
-previous versions) and the option was added for those that need it.
+For those that have git clones that include the branch autofs-5.0
+you probably want to prune your remote as that branch has been
+deleted.
 
-> 
-> Kind regards,
-> Vince
+autofs
+=3D=3D=3D=3D=3D=3D
 
+The package can be found at:
+
+ftp://ftp.kernel.org/pub/linux/daemons/autofs/v5
+
+It is autofs-5.0.9.tar.[gz|bz2|xz]
+
+No source rpm is there as it can be produced by using:
+
+rpmbuild -ts autofs-5.0.9.tar.gz
+
+and the binary rpm by using:
+
+rpmbuild -tb autofs-5.0.9.tar.gz
+
+See the INSTALL file for information about configure options and
+kernel requirements.
+
+Here are the entries from the CHANGELOG which outline the updates:
+- fix undefined authtype_requires_creds err if ldap enabled but without sas=
+l.
+- fix master map type check.
+- fix task manager not getting signaled.
+- allow --with-systemd to take a path arg.
+- fix WITH_LIBTIRPC function name.
+- fix ipv6 libtirpc getport.
+- fix ipv6 link local address handling.
+- fix fix ipv6 libtirpc getport.
+- get_nfs_info() should query portmapper if port is not given.
+- fix rpc_portmap_getport() proto not set.
+- fix protmap not trying proto v2.
+- fix rpc_getport() when libtirpc is disabled.
+- fix rpc_getrpcbport() when libtirpc is disabled.
+- don't reset errno.
+- extend fix for crash due to thread unsafe use of libldap.
+- fix deadlock in init_ldap_connection.
+- fix options compare.
+- fix negative status being reset on map read.
+- check for existing offset mount before mounting.
+- fix max() declaration.
+- fix symlink fail message in mount_bind.c.
+- fix cache readlock not taken on lookup.
+- pass map_source as function paramter where possible.
+- check for bind onto self in mount_bind.c.
+- fix symlink expire.
+- dont clobber mapent for negative cache.
+- fix macro_addvar() and move init to main thread.
+- change walk_tree() to take ap.
+- add negative cache lookup to hesiod lookup.
+- fix external env configure.
+- make autofs(5) consistent with auto.master(5).
+- fix map source with type lookup.
+- fix lookup_nss_mount() map lookup.
+- dont ignore null cache entries on multi mount umount.
+- fix inconsistent error returns in handle_packet_missing_direct().
+- simple coverity fixes.
+- fix fix options compare.
+- use open(2) instead of access(2) to trigger dependent mounts.
+- fix fix map source with type lookup.
+- fixes for samples/auto.master.
+- fix variable substitution description.
+- fix incorrect append options description in README.v5-release.
+
+Ian
+
+
+--=-LDsRlOBtqTRj6+DRClSC
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAABAgAGBQJTNSLoAAoJEOdnc4D1T9ipjxcP+gLSHyPYAaKEoVO5VniQzWrD
+0x/hPNCSFnkBBQKstliuJalZJNSijZMEm9yLpPU+/+sNom/2SuwobR27w4vo9ZMw
+ubEFiRUIADFa4PugCStmeYYEF1Kn0Dmoy+7ZhT6gZGlGd+UO5hiMzzCGRM+M5OFG
+driOV5z/1QtXk7sUAlHxutTr49AYTX1Q93kpaDHNWMgmqDJP5aJlpiJVFj1q9+yi
+fzzZuH7hFdb0rGba78hSprnazS0FRggGiHE+DSLsvQl/OiWDGo+TTGz2P+6eJjYC
+Y55fKMVLg7sseVpcwbi/4luEccXH+sPFtuHw2IrwtUKLZoZNplbrSkIp5QlhIKah
+pLkmSsWSvxyW+n6Us9LdyMDCmyjhyd1ZngKuRVOMKKZIcI8h4tCnCqtCRQsf4wB6
+Nk0u3ldCM2wNdXVmcouKviKb1dC/o0HxiqvZ8CfrPjbjc6uyQUT8BvS6M9ndju6a
+s6L/uaB7vyNqF3Zi6lGq2db7E1qd0qDyzaGVvp/zGbuLrDtiVQBfcuYTbu8SSjK9
+vQ0qBAJ+r4A85F6ATWaMKIFSTo6wfF4iJBqaXw9V63rYFMi1I6Cwn3NAaTnYOzV8
+vMKXeG6yxMyhcDfIrWxWOUidHQAfqdWuQ/8xUczJ2jNaCAPJogcLZVyQgoS7d2/I
+m77UzzTmemV8Xw8q1E3d
+=Xflv
+-----END PGP SIGNATURE-----
+
+--=-LDsRlOBtqTRj6+DRClSC--
 
