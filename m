@@ -1,98 +1,64 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH] Fixes for samples/auto.master
-Date: Fri, 28 Mar 2014 08:20:02 +0800
-Message-ID: <1395966002.2704.0.camel@perseus.fritz.box>
-References: <20140327063059.GG19822@mayhem.atnf.CSIRO.AU>
+Subject: Re: question about master map options
+Date: Fri, 28 Mar 2014 08:27:29 +0800
+Message-ID: <1395966449.2704.5.camel@perseus.fritz.box>
+References: <20140327063454.GH19822@mayhem.atnf.CSIRO.AU>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
 	message-id:subject:from:to:cc:date:in-reply-to:references
 	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
-	 bh=QNV2BG/JtopIRbH3/3n2tiG90Sg=; b=XtfBRjpFCH1yt5IqrQss0QIhAswt
-	qeqQg6OnBOqEqRhYC6EP0513ziTIiVu90bZDLuRNmxdqGGB97uv+1reIC+jFo2mp
-	MVJgufFXx3+HejLkGQjbcmAcOb7ethQNjUwWTPEjSc9dc2KD/B/4mxOk6J+7IOrE
-	PJGdV5EwoH8gbD8=
+	 bh=LS3AcmjYETzgmX/hZjvJqamrQVQ=; b=spDqLkvNLy0xm1W8rFm20ZuvdKQS
+	HVo5Dvfz15BpUIS9jd91OMb+9k5aNjrFHAznCJmfr7AcT6qtRtXLM1RJsoI6JL0I
+	NRyL1K7CYJeY0+dyr9QD2nhNwbx/Dw7XNENRV8G+ofK2Kdjndbm+1+ImuID5F6Ez
+	eMo/UJbndAL33Iw=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=message-id:subject:from:to:cc:date
 	:in-reply-to:references:content-type:mime-version
-	:content-transfer-encoding; s=smtpout; bh=QNV2BG/JtopIRbH3/3n2ti
-	G90Sg=; b=tlWEIPke/Q/meW0OeMiU5j3hQM0oV2oU4C3Swf57mfH5W29ZgBMZQh
-	6I1qQIzGJ9PYvxT8QCf0FkyyWMdW+DCDu4Jn2MV/sQucG4AKvLbXyRuxXWyFJzc3
-	ZwQ+MoT/DxWFOcSqB1P37LeN5psDSH6NMNi114xDGU9KIM+n1xaFw=
-In-Reply-To: <20140327063059.GG19822@mayhem.atnf.CSIRO.AU>
+	:content-transfer-encoding; s=smtpout; bh=LS3AcmjYETzgmX/hZjvJqa
+	mrQVQ=; b=iRCF1PlJB176ozlmo8IKlcX6vEZExRAHEtQVDvSs1WIo+UKTCcYiHN
+	8ekbgBCBu0SKTVoRRDzIvMZSYQyw/epSLoEcpT6QYWf+p3kQcKiBrp+prK2GWf46
+	nJIf3A99ONtRi+UZwLZSmEr5ZSJRtdldJesec7RCyKGJhAwCHRxW0=
+In-Reply-To: <20140327063454.GH19822@mayhem.atnf.CSIRO.AU>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: Vincent McIntyre <vincent.mcintyre@csiro.au>
 Cc: autofs@vger.kernel.org
 
-On Thu, 2014-03-27 at 17:31 +1100, Vincent McIntyre wrote:
+On Thu, 2014-03-27 at 17:34 +1100, Vincent McIntyre wrote:
 > Hi,
 > 
-> I noticed that the preamble in samples/auto.master seemed to be
-> referring to a regular autofs map, not a 'master' map.
-> Perhaps this patch would clear that up?
 
-Thanks, I'll add that to my patch queue for the next push.
+It's been a long time since I wrote that.
+
+
+> in README.v5.release it says
+> - mount options present in the master map are now overridden by mount
+>   options in map entries instead of being accumulated. This behaviour
+>   is in line with other industry automount implementations.
+
+That's not correct by the look of it.
+
+> 
+> but other places in the documentation refer to
+> mount options in the master map being appended
+> to those given to a specific map entry,
+> modulo the setting of APPEND_OPTIONS in /etc/defaults/autofs.
+> 
+> I can't figure it out from the code. Which way round is it, please?
+> I'd like to make the documentation consistent with itself
+> and the code.
+
+The README was probably correct when it was written, possibly before the
+APPEND_OPTIONS configuration option was added.
+
+It ended up that options are appended by default (as they are in
+previous versions) and the option was added for those that need it.
 
 > 
 > Kind regards,
 > Vince
-> 
-> Signed-off-by: <vincent.mcintyre@csiro.au>
-> 
->   Vincent McIntyre (2):
-> ---
->   Replace description that described regular automount maps, not master
->     maps.     Add a note about the format of included files.
->   Clarify what happens to master map options not consumed by 'mount'.
-> 
->  man/auto.master.5.in |    2 +-
->  samples/auto.master  |    7 ++++---
->  2 files changed, 5 insertions(+), 4 deletions(-)
-> 
-> 
-> diff --git a/samples/auto.master b/samples/auto.master
-> index 72f086c..0f2c8ab 100644
-> --- a/samples/auto.master
-> +++ b/samples/auto.master
-> @@ -1,8 +1,8 @@
->  #
->  # Sample auto.master file
-> -# This is an automounter map and it has the following format
-> -# key [ -mount-options-separated-by-comma ] location
-> -# For details of the format look at autofs(5).
-> +# This is a 'master' automounter map and it has the following format:
-> +# mount-point [map-type[,format]:]map [options]
-> +# For details of the format look at auto.master(5).
->  #
->  /misc	/etc/auto.misc
->  #
-> @@ -13,6 +13,7 @@
->  /net	-hosts
->  #
->  # Include /etc/auto.master.d/*.autofs
-> +# The included files must conform to the format of this file.
->  #
->  +dir:/etc/auto.master.d
->  #
-> -- 
-> 1.7.2.5
-> 
-> 
-> diff --git a/man/auto.master.5.in b/man/auto.master.5.in
-> index 1d96d7e..1095406 100644
-> --- a/man/auto.master.5.in
-> +++ b/man/auto.master.5.in
-> @@ -139,7 +139,7 @@ the \fBdn\fP of an LDAP entry for maps of type \fBldap\fP.
->  .br
->  Any remaining command line arguments without leading dashes (\-) are
->  taken as options (\fI\-o\fP) to \fBmount\fP.  Arguments with leading
-> -dashes are considered options for the maps.
-> +dashes are considered options for the maps and are passed to automount (8).
->  .sp
->  The \fBsun\fP format supports the following options:
->  .RS
 
 
