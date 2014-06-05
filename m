@@ -1,142 +1,108 @@
-From: fedfs-utils Release Announcements <fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
-Subject: [ANNOUNCE] Announcing the release of
-	fedfs-utils 0.9.6
-Date: Wed, 4 Jun 2014 10:48:25 -0400
-Message-ID: <D15355AD-FF6D-40B5-92FA-43F7A1061F80@oracle.com>
-Reply-To: fedfs-utils Release Announcements
-	<fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.2\))
-Content-Type: multipart/mixed; boundary="===============8394447629490758216=="
-Return-path: <fedfs-utils-announce-bounces-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <https://oss.oracle.com/mailman/listinfo/fedfs-utils-announce>, 
-	<mailto:fedfs-utils-announce-request-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://oss.oracle.com/pipermail/fedfs-utils-announce>
-List-Post: <mailto:fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
-List-Help: <mailto:fedfs-utils-announce-request-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org?subject=help>
-List-Subscribe: <https://oss.oracle.com/mailman/listinfo/fedfs-utils-announce>, 
-	<mailto:fedfs-utils-announce-request-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org?subject=subscribe>
-Sender: fedfs-utils-announce-bounces-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
-Errors-To: fedfs-utils-announce-bounces-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
-To: "fedfs-utils;release announcements" <fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
-Cc: Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, autofs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org
+From: Ian Kent <raven@themaw.net>
+Subject: [ANNOUNCE] autofs 5.1.0 release
+Date: Thu, 05 Jun 2014 13:45:23 +0800
+Message-ID: <1401947123.2560.19.camel@perseus.fritz.box>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-RHIMmcwtTCGGXhPGq5M/"
+Return-path: <autofs-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
+	message-id:subject:from:to:cc:date:content-type:mime-version; s=
+	mesmtp; bh=3e44OcEJjJopxwncYB1B05IDSQM=; b=AFNrsYekItIzmtvMUEZ+e
+	lhbXMQuYDsm3qXKa4kfpomXvj3eIkZazsygvGpV70NXdWsRlBgI6eoZOtKXx4NWg
+	PHYlfLJ0Aue0N8+wNYxywoWER43JDI9BLjXb66ohq4c++jf/GvAuxBXELkrZojFM
+	HEjVx9UkmvKDe8JGNoijY0=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=message-id:subject:from:to:cc:date
+	:content-type:mime-version; s=smtpout; bh=3e44OcEJjJopxwncYB1B05
+	IDSQM=; b=JE6ptaK1fdEpl+x1YNPMmQadv4F17ZICQd03VRZPmMpLi8m8cnVaTP
+	kUJHX9KX+NGm26rSU/6yGR5sv5qBjbRFnHCVRKcS/jEtGSJWjYNftg6yonmgLOtj
+	Do70ILHpNaqwpORvCJD/28dmerI0KWu5gpCj/r1EdcsulNt7adovg=
+Sender: autofs-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
+To: autofs@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
---===============8394447629490758216==
-Content-Type: multipart/signed;
-	boundary="Apple-Mail=_30B0B594-81C2-4703-9619-9982BD265C11";
-	protocol="application/pgp-signature"; micalg=pgp-sha512
-
-
---Apple-Mail=_30B0B594-81C2-4703-9619-9982BD265C11
+--=-RHIMmcwtTCGGXhPGq5M/
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain;
-	charset=windows-1252
 
-This package contains an implementation of the Federated Filesystem =
-(FedFS) Proposed Standard for Linux. For an introduction to FedFS, see =
-RFC 5716.
+Hi all,
 
-This is an ALPHA quality release.  The code in this release is not =
-guaranteed to work.  Programming, administrative, and user interfaces =
-may change significantly before the next release.  This release is for =
-technology preview only.
+A lot of testing has been done to check that the amd format map
+implementation doesn't break existing function. There's more to
+do but it's time to release 5.1.0.
 
-Git repository:
-git://git.linux-nfs.org/projects/cel/fedfs-utils.git 0.9-stable
+autofs
+=3D=3D=3D=3D=3D=3D
 
-The new head of the 0.9-stable branch is commit:
+The package can be found at:
+ftp://ftp.kernel.org/pub/linux/daemons/autofs/v5
+It is autofs-5.1.0.tar.[gz|xz]
 
-  f04774c5 Release 0.9.6
+No source rpm is there as it can be produced by using:
+rpmbuild -ts autofs-5.1.0.tar.gz
 
+and the binary rpm by using:
+rpmbuild -tb autofs-5.1.0.tar.gz
 
-Changes since 0.9.5:   =20
-	=95 Man page correction
-	=95 Numerous fixes to error handling paths
+See the README.amd-maps file for information about using amd format
+maps.
 
-Changes since 0.9.4:
-	=95 Run rpcfedfsd.service after network.target is started
-	=95 Use correct RPC result type in fedfs-get-limited-nsdb-params
-	=95 SET_NSDB_PARAMS should not return NSDB_LDAP_VAL
+Here are the entries from the CHANGELOG which outline the updates:
+- fix mistake in assignment (included in 5.1.0-beta1).
+- add amd map format parser (included in 5.1.0-beta1).
+- check for non existent negative entries in lookup_ghost().
+- fix reset flex scan buffer on init.
+- fix fix negative status being reset on map read.
+- amd lookup update lookup ldap to handle amd keys.
+  - inadvertantly dropped from initial series.
+- amd lookup update lookup hesiod to handle amd keys.
+  - inadvertantly dropped from initial series.
+- fix wildcard key lookup.
+- fix out of order amd timestamp lookup.
+- fix ldap default schema config.
+- fix ldap default master map name config.
+- fix map format init in lookup_init().
+- fix incorrect max key length in defaults get_hash().
+- fix xfn sets incorrect lexer state.
+- fix old style key lookup.
+- fix expire when server not responding.
+- fix ldap_uri config update.
+- fix typo in conf_load_autofs_defaults().
+- fix hash on confg option add and delete.
+- add plus to path match pattern.
+- fix multi entry ldap option handling.
+- cleanup options in amd_parse.c
+- allow empty value for some map options.
+- allow empty value in macro selectors.
 
-Changes since 0.9.3:
-	=95 Mount fails when domain has multiple SRV records
-	=95 Fix a problem with build environment
-
-Changes since 0.9.2:
-	=95 Make the use of liburiparser optional
-
-Changes since 0.9.1:
-	=95 Packaging-related improvements
-
-Changes since 0.9.0:
-	=95 Address build issues with recent automake and libtools
-	=95 Replace nl_langinfo(CODESET) check in command line tools
-
-New with fedfs-utils 0.9.0:
-	=95 NSDB schema complies with latest draft standard
-	=95 DNS SRV support complies with RFC 6641
-	=95 NSDB clients support the FEDFS_SEC_TLS security type
-	=95 NSDB clients can follow LDAP referrals returned by NSDB =
-nodes
-	=95 New tools for configuration of NSDBs
-	=95 New "display-junction" debugging command
-
-Tarball releases:
-git://git.linux-nfs.org/projects/cel/fedfs-releases.git
-
-Project web site
-http://wiki.linux-nfs.org/wiki/index.php/FedFsUtilsProject
-
-Installation guide:
-http://wiki.linux-nfs.org/wiki/index.php/FedFsInstallationGuide0.9
-
-Patchwork:
-http://patchwork.ozlabs.org/project/fedfs-utils/list/
-
---=20
-Chuck Lever
-chuck[dot]lever[at]oracle[dot]com
+Ian
 
 
---Apple-Mail=_30B0B594-81C2-4703-9619-9982BD265C11
+--=-RHIMmcwtTCGGXhPGq5M/
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename=signature.asc
-Content-Type: application/pgp-signature;
-	name=signature.asc
-Content-Description: Message signed with OpenPGP using GPGMail
 
 -----BEGIN PGP SIGNATURE-----
-Comment: GPGTools - http://gpgtools.org
+Version: GnuPG v2.0.22 (GNU/Linux)
 
-iQIcBAEBCgAGBQJTjzHBAAoJEDNqszNvZn+Xm+0P/0SkE8sty+biFrS19h8zfl8E
-ZdKrQtA18717tdamPUw7P6e1jUyCF3vmHXlJ0FUQ1RT7vxO7w5h6M8/b9BvfZpuw
-GLUZuq0Sa/M5xqDoZcNtRAHUMq+2+VziuqaDC5Gryin1/wL2skZYlmhb1BdKWH4E
-Op0FB/QW3TAbQoa/0XUGl913MqLysGWeK6gCDD2J+G9IUctSzM6qWhRengOoauDX
-j44D+ep4jT4swN6y66SwfDDibeyU62a6hbYIDGaAy8XlCHSIwoIzG70JmWDcvsCK
-V2i2xFjs4SHDB3AfLbLkawJbjjPgCV9iU/24mH/D/om9uks/iNrQp0Q1e0iu8l4Y
-/PKp9DfGghMwB7MZydIrBbAOaSel4WhDQTy7dphc30drtXlE94QvejzX5/cJN0sj
-/mBG+P/P7gyus100j537b57DJ+mLhKj88JqJQmv4Gy43RGxW9E5usfyrEzGL6T6A
-dJvR3oo2Ki7mkJhfnd9CWKfOyy8I9sF+crBQyu64KJVfzXHTQTgP7Kor7uOs10xK
-n6MKiJAuScJsMPzq9FHeY44sSgEqV8pL28IWn5E95BPX/Te3Y78y4jA5WTqfPAgd
-r9OLlsSG/TaGTqRDIO96IMX8DlYZmB9FXOJoLEOaKFYt7auYiap5qFW3MxqHttSV
-mQm5bdDyGENP1qvmTbeF
-=Kchk
+iQIcBAABAgAGBQJTkAQOAAoJEOdnc4D1T9ip3ScQAI0MtG8PgZwNMqh9CDW4BGYP
+XTgVP0kaJJ9crt57leRHKR46rZsEcG+9NxQyC98R/xmi1vUR0I0C8UPXq94yJF8k
+RErTKJAyRbggOSrbJqsf0eGXs5IJaulappS328RPOfLrMuYpHv4ksfMbLnhQGBAn
+eknu1oErfLJe77J97W+lrlfY7jnLsDumlWNKAYwaM54SRXc1vBhr8VsQVSol7bP9
+lwohIpXwVtYLEqnse6Mkm3PhoFm3UtkXvEgVOJTzxqMicc3eD/yT46YqqwHRuD3f
+q643UZ8x1pS5ZD1UChhjF2fcNu6ir/bmq6cqxdwU6jkXE+xnRUWlbGp9Vfk0ocA5
+pXthoWzSukUeb9r8ofV3tWTnT8tA8lAbAUKUdjW2hTjcnwrG07Hh1M2fF6hWzd8f
+wETQppLK2FEccJyy+TvBRq3Y4gqT+cV0vz5XSGnOgqNXHwffpvkhhpoSe+DQiAv8
+Rdl4sTBuhHr1iYiudjkRTPvCyhsD7IcrIEixoSsxt/QqTFJ18DLdoEaUrdSbPzt2
+xJlS/MoG9EUFAgn6kyNgQQTH+Jr3EGOiS1C/dETQD5+vIFVfviFUKHwxHG/UlBad
+uW1W3n+FMvPv6CBBrqZ17osXdld3gf/KljMDVP+KQ04AZ+st2J2yTXknmbaYihWt
+bP6WBbKpnO6MvPLHh9hr
+=d8So
 -----END PGP SIGNATURE-----
 
---Apple-Mail=_30B0B594-81C2-4703-9619-9982BD265C11--
-
-
---===============8394447629490758216==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-fedfs-utils-announce mailing list
-fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
-https://oss.oracle.com/mailman/listinfo/fedfs-utils-announce
---===============8394447629490758216==--
+--=-RHIMmcwtTCGGXhPGq5M/--
 
