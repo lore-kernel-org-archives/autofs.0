@@ -1,108 +1,58 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [ANNOUNCE] autofs 5.1.0 release
-Date: Thu, 05 Jun 2014 13:45:23 +0800
-Message-ID: <1401947123.2560.19.camel@perseus.fritz.box>
+Subject: [PATCH] autofs4 - fix false positive compile error
+Date: Wed, 25 Jun 2014 20:49:39 +0800
+Message-ID: <20140625124939.31035.84884.stgit@perseus.fritz.box>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-RHIMmcwtTCGGXhPGq5M/"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	message-id:subject:from:to:cc:date:content-type:mime-version; s=
-	mesmtp; bh=3e44OcEJjJopxwncYB1B05IDSQM=; b=AFNrsYekItIzmtvMUEZ+e
-	lhbXMQuYDsm3qXKa4kfpomXvj3eIkZazsygvGpV70NXdWsRlBgI6eoZOtKXx4NWg
-	PHYlfLJ0Aue0N8+wNYxywoWER43JDI9BLjXb66ohq4c++jf/GvAuxBXELkrZojFM
-	HEjVx9UkmvKDe8JGNoijY0=
+	subject:from:to:cc:date:message-id:mime-version:content-type
+	:content-transfer-encoding; s=mesmtp; bh=GbLCHwP4PR0gMQMgW0qcNEa
+	ZyWA=; b=xUfWg3KSq9Q8PgYj+15h8mjx5codkM2tUeCzro0Bm2jY1xIZFZOHoOI
+	Mwut4aWEOSSSAIbT4KKR7K4gNw624UJgEwx2rnDRXOS0CvB0wqHLUTLQ0qhmhYL6
+	/S2DE6G+rxC5Ex44XpcRZLT/ALONS7qZTgEz8BlkUSnBOYr+eppM=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=message-id:subject:from:to:cc:date
-	:content-type:mime-version; s=smtpout; bh=3e44OcEJjJopxwncYB1B05
-	IDSQM=; b=JE6ptaK1fdEpl+x1YNPMmQadv4F17ZICQd03VRZPmMpLi8m8cnVaTP
-	kUJHX9KX+NGm26rSU/6yGR5sv5qBjbRFnHCVRKcS/jEtGSJWjYNftg6yonmgLOtj
-	Do70ILHpNaqwpORvCJD/28dmerI0KWu5gpCj/r1EdcsulNt7adovg=
+	messagingengine.com; h=subject:from:to:cc:date:message-id
+	:mime-version:content-type:content-transfer-encoding; s=smtpout;
+	 bh=GbLCHwP4PR0gMQMgW0qcNEaZyWA=; b=czYnh/He0hJZgVU5+Xlo7zYT6sQT
+	+xDugODg0TXa8ZzrXn4F7JXQrXSB/CRWzeHxNybSnwD8Jqu/D0/z57Ao8Nat7iTg
+	tgoOd5RIoUBed0VHNUhw0gfN7QXHF8HGgiFLpjtiQJVGIsKvOIn8hH4zDuYAS4hZ
+	wkury1izZdCNrFw=
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-To: autofs@vger.kernel.org
-Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
+On strict build environments we can see:
 
---=-RHIMmcwtTCGGXhPGq5M/
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+fs/autofs4/inode.c: In function 'autofs4_fill_super':
+fs/autofs4/inode.c:312: error: 'pgrp' may be used uninitialized in this
+function
+make[2]: *** [fs/autofs4/inode.o] Error 1
+make[1]: *** [fs/autofs4] Error 2
+make: *** [fs] Error 2
+make: *** Waiting for unfinished jobs....
 
-Hi all,
+This is due to the use of pgrp_set being used to indicate pgrp has
+has been set rather than initializing pgrp itself.
 
-A lot of testing has been done to check that the amd format map
-implementation doesn't break existing function. There's more to
-do but it's time to release 5.1.0.
+Signed-off-by: Ian Kent <raven@themaw.net>
+---
+ fs/autofs4/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-autofs
-=3D=3D=3D=3D=3D=3D
-
-The package can be found at:
-ftp://ftp.kernel.org/pub/linux/daemons/autofs/v5
-It is autofs-5.1.0.tar.[gz|xz]
-
-No source rpm is there as it can be produced by using:
-rpmbuild -ts autofs-5.1.0.tar.gz
-
-and the binary rpm by using:
-rpmbuild -tb autofs-5.1.0.tar.gz
-
-See the README.amd-maps file for information about using amd format
-maps.
-
-Here are the entries from the CHANGELOG which outline the updates:
-- fix mistake in assignment (included in 5.1.0-beta1).
-- add amd map format parser (included in 5.1.0-beta1).
-- check for non existent negative entries in lookup_ghost().
-- fix reset flex scan buffer on init.
-- fix fix negative status being reset on map read.
-- amd lookup update lookup ldap to handle amd keys.
-  - inadvertantly dropped from initial series.
-- amd lookup update lookup hesiod to handle amd keys.
-  - inadvertantly dropped from initial series.
-- fix wildcard key lookup.
-- fix out of order amd timestamp lookup.
-- fix ldap default schema config.
-- fix ldap default master map name config.
-- fix map format init in lookup_init().
-- fix incorrect max key length in defaults get_hash().
-- fix xfn sets incorrect lexer state.
-- fix old style key lookup.
-- fix expire when server not responding.
-- fix ldap_uri config update.
-- fix typo in conf_load_autofs_defaults().
-- fix hash on confg option add and delete.
-- add plus to path match pattern.
-- fix multi entry ldap option handling.
-- cleanup options in amd_parse.c
-- allow empty value for some map options.
-- allow empty value in macro selectors.
-
-Ian
-
-
---=-RHIMmcwtTCGGXhPGq5M/
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAABAgAGBQJTkAQOAAoJEOdnc4D1T9ip3ScQAI0MtG8PgZwNMqh9CDW4BGYP
-XTgVP0kaJJ9crt57leRHKR46rZsEcG+9NxQyC98R/xmi1vUR0I0C8UPXq94yJF8k
-RErTKJAyRbggOSrbJqsf0eGXs5IJaulappS328RPOfLrMuYpHv4ksfMbLnhQGBAn
-eknu1oErfLJe77J97W+lrlfY7jnLsDumlWNKAYwaM54SRXc1vBhr8VsQVSol7bP9
-lwohIpXwVtYLEqnse6Mkm3PhoFm3UtkXvEgVOJTzxqMicc3eD/yT46YqqwHRuD3f
-q643UZ8x1pS5ZD1UChhjF2fcNu6ir/bmq6cqxdwU6jkXE+xnRUWlbGp9Vfk0ocA5
-pXthoWzSukUeb9r8ofV3tWTnT8tA8lAbAUKUdjW2hTjcnwrG07Hh1M2fF6hWzd8f
-wETQppLK2FEccJyy+TvBRq3Y4gqT+cV0vz5XSGnOgqNXHwffpvkhhpoSe+DQiAv8
-Rdl4sTBuhHr1iYiudjkRTPvCyhsD7IcrIEixoSsxt/QqTFJ18DLdoEaUrdSbPzt2
-xJlS/MoG9EUFAgn6kyNgQQTH+Jr3EGOiS1C/dETQD5+vIFVfviFUKHwxHG/UlBad
-uW1W3n+FMvPv6CBBrqZ17osXdld3gf/KljMDVP+KQ04AZ+st2J2yTXknmbaYihWt
-bP6WBbKpnO6MvPLHh9hr
-=d8So
------END PGP SIGNATURE-----
-
---=-RHIMmcwtTCGGXhPGq5M/--
+diff --git a/fs/autofs4/inode.c b/fs/autofs4/inode.c
+index d7bd395..1c55388 100644
+--- a/fs/autofs4/inode.c
++++ b/fs/autofs4/inode.c
+@@ -210,7 +210,7 @@ int autofs4_fill_super(struct super_block *s, void *data, int silent)
+ 	int pipefd;
+ 	struct autofs_sb_info *sbi;
+ 	struct autofs_info *ino;
+-	int pgrp;
++	int pgrp = 0;
+ 	bool pgrp_set = false;
+ 	int ret = -EINVAL;
+ 
 
