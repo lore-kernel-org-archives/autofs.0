@@ -1,145 +1,57 @@
-From: fedfs-utils Release Announcements <fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
-Subject: Announcing the release of fedfs-utils
-	version 0.10.3
-Date: Sun, 6 Jul 2014 12:09:10 -0400
-Message-ID: <B58F990E-01CC-4449-8665-19A1A29BCD04@oracle.com>
-Reply-To: fedfs-utils Release Announcements
-	<fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
-Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
-Content-Type: multipart/mixed; boundary="===============6004152159107974026=="
-Return-path: <fedfs-utils-announce-bounces-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <https://oss.oracle.com/mailman/listinfo/fedfs-utils-announce>, 
-	<mailto:fedfs-utils-announce-request-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://oss.oracle.com/pipermail/fedfs-utils-announce>
-List-Post: <mailto:fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
-List-Help: <mailto:fedfs-utils-announce-request-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org?subject=help>
-List-Subscribe: <https://oss.oracle.com/mailman/listinfo/fedfs-utils-announce>, 
-	<mailto:fedfs-utils-announce-request-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org?subject=subscribe>
-Sender: fedfs-utils-announce-bounces-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
-Errors-To: fedfs-utils-announce-bounces-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
-To: "fedfs-utils;release announcements" <fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
-Cc: Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, autofs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org
-
-
---===============6004152159107974026==
-Content-Type: multipart/signed;
-	boundary="Apple-Mail=_C0B953FC-AA6C-4747-8114-9F8C2AE640F5";
-	protocol="application/pgp-signature"; micalg=pgp-sha512
-
-
---Apple-Mail=_C0B953FC-AA6C-4747-8114-9F8C2AE640F5
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain;
-	charset=windows-1252
-
-This package contains an implementation of the Federated Filesystem
-(FedFS) Proposed Standard for Linux. For an introduction to FedFS, see
-RFC 5716.
-
-This is an ALPHA quality release.  The code in this release is not
-guaranteed to work.  Programming, administrative, and user interfaces
-may change significantly before the next release.  This release is for
-technology preview only.
-
-
-Changes since 0.10.2:
-	=95 More error handling fixes
-	=95 Remove an incorrect package dependency
-
-
-Changes since 0.10.1:
-	=95 Fix bugs in nsdb-jumpstart
-	=95 Numerous fixes to error handling paths
-	=95 Introduce basic support for Coverity analysis
-
-
-Changes since 0.10.0:
-	=95 Address packaging issues
-
-
-New with fedfs-utils 0.10.0:
-
-Non-backwards compatible changes:
-	=95 *ldaperr removed from libnsdb API
-	=95 ADMIN client tools no longer use AUTH_NONE security
-	=95 ADMIN client tools no longer exit with FedFS status code
-
-New features:
-	=95 Python package PyFedfs added
-	=95 Tool for configuring FedFS domain root directories
-	=95 Tool for setting up NSDBs using OpenLDAP
-	=95 Simpler NCE discovery (compliant with new FedFS NCE I-D)
-	=95 admin_t API for performing remote ADMIN requests
-	=95 rpc.fedfsd uses an ACL to control who can perform ADMIN =
-requests
-	=95 rpc.fedfsd and ADMIN tools support RPCSEC and Kerberos v5
-
-Minor fixes:
-	=95 FEDFS_LOOKUP_JUNCTION no longer returns NSDB_LDAP_VAL
-	=95 fedfs-map-nfs4 handles multiple SRV records
-	=95 Packaging simplifications
-	=95 Dozens of code clean-ups and bug fixes; consult Changelog =
-for details
-
-
-Git repository available at:
-=
-http://git.linux-nfs.org/?p=3Dcel/fedfs-utils.git;a=3Dshortlog;h=3Drefs/he=
-ads/master
-
-The new head of the master branch is commit:
-
-  cb9f4319 Release 0.10.3
-
-Patchwork available at:
-http://patchwork.ozlabs.org/project/fedfs-utils/list/
-
-Tarball releases available at:
-http://git.linux-nfs.org/?p=3Dcel/fedfs-releases.git;a=3Dsummary
-
---
-Chuck Lever
-
-
---Apple-Mail=_C0B953FC-AA6C-4747-8114-9F8C2AE640F5
+From: NeilBrown <neilb@suse.de>
+Subject: [PATCH 0/6] autofs4: support RCU-walk
+Date: Thu, 10 Jul 2014 09:41:14 +1000
+Message-ID: <20140709233541.4525.25151.stgit@notabene.brown>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename=signature.asc
-Content-Type: application/pgp-signature;
-	name=signature.asc
-Content-Description: Message signed with OpenPGP using GPGMail
-
------BEGIN PGP SIGNATURE-----
-Comment: GPGTools - http://gpgtools.org
-
-iQIcBAEBCgAGBQJTuXStAAoJEDNqszNvZn+XSdIP/iVymDd++Lw+C2NJbRe0cm7C
-Hmx6ZUZmeOfkj+pfIppJ05or56uvAeBnB6O49WTKHrKLroBaLZfWNM8RfLgiceKM
-GevWMIyG8hofpuMA+UXMlHUctGchzo9wdwG3yd26VRTJjb/0OP5mBIG8w2V1nIcK
-EpySrFsU4L5/vLfuZ9ZunXQPTwV+kb3a1a8R04hBOAF0E/87Idd1bHHA8u/0vzbH
-Irj2vB8B5W3dhsf02LvdXObJuuCFT/wtQAuB6aHWvppNQNRvii8PtltuJd36lvKj
-Xcoemmvg9/hIbQUw+DDCTv6xvJTKlf4N0ZiE0yD0Ubiiic9rlAr5/wEL5RwdW5Gm
-IdHVT1tXdAh6cT7UTGTUyMZ+ABdemr3VwywjM7kNr+KFooOyi06Ss4dlLMRVcuWx
-tfYo2/o4EQ0wmusxvR8vUWEsa96df2F/+iX9GP8t9eRnJX/JP9HX7p/EmrnPpw08
-D5FXyXxKM7fbMNkWqAicqxDZQ6xdHCTDpyVfR+VL+A+2efr1Q34/T46lsCURmxHy
-X104XBTEdHiY8OuhYgXqjOB/I1QsIZOA6R1BxtFdjscwWDyb8RjScjogD/eY+Qt+
-3V53AU3cH7k8IHvmacs2TFojZY+MrOMVOxj+YhzZK1Q9jV8BHOLtqNylCcAAl+Sf
-AD3wFCkqIZx/PviPIbH6
-=Ci2+
------END PGP SIGNATURE-----
-
---Apple-Mail=_C0B953FC-AA6C-4747-8114-9F8C2AE640F5--
-
-
---===============6004152159107974026==
+Return-path: <autofs-owner@vger.kernel.org>
+Sender: autofs-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@vger.kernel.org, linux-kernel@vger.kernel.org
 
-_______________________________________________
-fedfs-utils-announce mailing list
-fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
-https://oss.oracle.com/mailman/listinfo/fedfs-utils-announce
---===============6004152159107974026==--
+autofs4 currently doesn't support RCU-walk - it immediately
+aborts any attempt at RCU-walk to force REF-walk for path name
+lookup.
+
+This can cause a significant performance impact on multi-core
+systems.
+I have a client with a test case which spends >80% of its time
+waiting for spinlocks with a "make -j 40" on a 40 core system.
+
+This patchset aims to remove most of these spinlocks.  To be fully
+effective in the particular case it needs a second patch set which
+makes NFS RCU-walk friendly, but one thing at a time.
+
+This has only been lightly tested so far so I'm really after feed-back
+rather than to have the patch set accepted, though the first two
+patches are trivial and could be taken immediately.
+
+The last two patches are the most interesting so review comments on
+those are particularly welcome.
+
+Thanks,
+NeilBrown
+
+
+---
+
+NeilBrown (6):
+      autofs4: remove unused autofs4_ispending()
+      autofs4: remove a redundant assignment
+      autofs4: allow RCU-walk to walk through autofs4.
+      autofs4: factor should_expire() out of autofs4_expire_indirect.
+      autofs4: avoid taking fs_lock during rcu-walk
+      autofs4: don't take spinlock when not needed in autofs4_lookup_expiring
+
+
+ fs/autofs4/autofs_i.h  |   20 +----
+ fs/autofs4/dev-ioctl.c |    2 -
+ fs/autofs4/expire.c    |  192 +++++++++++++++++++++++++++++-------------------
+ fs/autofs4/root.c      |   46 ++++++++----
+ 4 files changed, 151 insertions(+), 109 deletions(-)
+
+-- 
+Signature
 
