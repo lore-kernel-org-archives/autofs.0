@@ -1,81 +1,111 @@
 From: NeilBrown <neilb@suse.de>
-Subject: Re: [PATCH 0/6] autofs4: support RCU-walk
-Date: Wed, 16 Jul 2014 16:00:05 +1000
-Message-ID: <20140716160005.6c43668d@notabene.brown>
+Subject: Re: [PATCH 6/6] autofs4: don't take spinlock when not needed in
+ autofs4_lookup_expiring
+Date: Wed, 16 Jul 2014 16:10:03 +1000
+Message-ID: <20140716161003.48abe8c1@notabene.brown>
 References: <20140709233541.4525.25151.stgit@notabene.brown>
-	<1405481098.2527.9.camel@perseus.fritz.box>
+	<20140709234114.4525.70534.stgit@notabene.brown>
+	<1405482132.2527.26.camel@perseus.fritz.box>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
- boundary="Sig_/CNjf.8X8joeXB44spg2oeiO"; protocol="application/pgp-signature"
+ boundary="Sig_/GzHX+fqAmHWt4OZX2HMlMH6"; protocol="application/pgp-signature"
 Return-path: <autofs-owner@vger.kernel.org>
-In-Reply-To: <1405481098.2527.9.camel@perseus.fritz.box>
+In-Reply-To: <1405482132.2527.26.camel@perseus.fritz.box>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 To: Ian Kent <raven@themaw.net>
 Cc: autofs@vger.kernel.org, linux-kernel@vger.kernel.org
 
---Sig_/CNjf.8X8joeXB44spg2oeiO
+--Sig_/GzHX+fqAmHWt4OZX2HMlMH6
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 16 Jul 2014 11:24:58 +0800 Ian Kent <raven@themaw.net> wrote:
+On Wed, 16 Jul 2014 11:42:12 +0800 Ian Kent <raven@themaw.net> wrote:
 
 > On Thu, 2014-07-10 at 09:41 +1000, NeilBrown wrote:
-> > autofs4 currently doesn't support RCU-walk - it immediately
-> > aborts any attempt at RCU-walk to force REF-walk for path name
-> > lookup.
+> > If the expiring_list is empty, we can avoid a costly spinlock
+> > in the rcu-walk path through authfs4_d_manage.
+> >=20
+> > Signed-off-by: NeilBrown <neilb@suse.de>
 >=20
-> As discussed I don't have time to properly test these just now but I'll
-> do my best to review the patches and return to test them later.
-
-Thanks.
-
+> I know it should be straight forward to say this is OK but I always
+> think twice and again about areas that are subject to race pressure,
+> such as the expire to mount pressure of this code.
 >=20
-> My impression is that you will be submitting these patches rather than
-> expecting me to pick them up and submit them. If that's not what your
-> expecting please let me know.
-
-I had assumed that you would take them as you are listed as the maintainer.
-However if you would like me to send them on I can certainly do that.
-You seem to send via Andrew Morton so I'll do that when they seem to be rea=
-dy
-if you like.
-
+> After thinking about it for a while now I don't have any reason to think
+> this would be a problem. Perhaps later pressure testing will reveal
+> something I missed.
 >=20
-> I appreciate you including me in this work, all to often things get
-> merged that I'm miss and while I may not have identified any problem
-> with them at the time at least I would be aware of what I might need to
-> look at when problems arise.
-> =20
+> It occurs to me that autofs4_lookup_active() might benefit from a
+> similar addition. Multiple calls to ->lookup() made while the dentry is
+> still unhashed should have enforced ordering due to the directory
+> i_mutex so there shouldn't be a problem adding this. But perhaps you
+> haven't seen delays in that function.
 
-Maybe I'm old fashioned, but I have this idea that all patches *must* at
-least be Cc:ed to the maintainer and if they are as intrusive as these, they
-*must* be approved.  Maybe others behave different?
+Yes I think the same optimisation could apply to autofs4_lookup_active().  =
+It
+wouldn't benefit as much though.
+autofs4_lookup_active() is only called from autofs4_lookup() which is only
+called when the dentry doesn't already exist.  So it isn't called so often
+and isn't on the fast path.
+
+However ... maybe "is on the active list" is exactly the "flag" I was wanti=
+ng
+earlier to see if a dentry might be waiting to be mounted on - in which case
+d_managed already does the right thing.
+I think it is time to read through the code again.  I seem to be
+understanding more of it which always helps:-)
 
 Thanks,
 NeilBrown
 
 
---Sig_/CNjf.8X8joeXB44spg2oeiO
+>=20
+> Acked-by: Ian Kent <raven@themaw.net>
+>=20
+> > ---
+> >  fs/autofs4/root.c |    2 ++
+> >  1 file changed, 2 insertions(+)
+> >=20
+> > diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
+> > index 1ad119407e2f..774c2dab331b 100644
+> > --- a/fs/autofs4/root.c
+> > +++ b/fs/autofs4/root.c
+> > @@ -219,6 +219,8 @@ static struct dentry *autofs4_lookup_expiring(struc=
+t dentry *dentry,
+> >  	const unsigned char *str =3D name->name;
+> >  	struct list_head *p, *head;
+> > =20
+> > +	if (list_empty(&sbi->expiring_list))
+> > +		return NULL;
+> >  	spin_lock(&sbi->lookup_lock);
+> >  	head =3D &sbi->expiring_list;
+> >  	list_for_each(p, head) {
+> >=20
+> >=20
+>=20
+
+
+--Sig_/GzHX+fqAmHWt4OZX2HMlMH6
 Content-Type: application/pgp-signature; name=signature.asc
 Content-Disposition: attachment; filename=signature.asc
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2.0.22 (GNU/Linux)
 
-iQIVAwUBU8YU5Tnsnt1WYoG5AQK31BAAomCdO1FMBN6B8AEMIwrrUjm6sAs2UH+w
-IMNLjG5B9I6AXcUNX9BxY5VT+6hv+IwkTBAgBmECW2vuLv5pLjWZdUptGSkSDUss
-+tPwdBoIxrMY0slNV+jarFNl/yDfB2mKz5B42IF/gIeA9F6J1/inFoBkec4eJOfZ
-9VuW1J/9g4gKZQeBkGf6E1ZpBYanR/Sk+Q67GbXVtiRIYDCAUkLLFDrF5/VYoYmE
-DR8PO34oTZMzmkR+SDpoL83bIUUYFLuxMfwSed4Myh40Civ1zJuFK+99gjxbdvom
-bCU1vjkLeSg2c8bjMVfvDfHGZ5NFommD4cnlgA4Hk7ZFMpqMggEWaJtST2636XP0
-yci6wYmn0cvy+jjAQ/UUTnYEyHP4L5OOkNx0/vczmzLKtJnq6lmtmSY48pM2D5V3
-HGFtRSzB26RiLKsbNqztnE3v48r7X3HzE3N/VbeLLWZPLxPJpFu1lo26s60BOdW1
-UcS0HpA1zAKpTSUdBq0faofbqL+BgrTITRHE+rcAJzBa1AVZOJzRXYNJSSZUGfD7
-ma+N0TmWgr1CsVedWZnst8L/JdG0WnstTJAqMmuwFVw1p9DD2K2+cB1HCYfquzb5
-BYQ90VlZAFPYVoOr7q3yqEyXVGYc1bNd4dzDXFiy4cE4Mk62B8KcEZ+F1F4v1bBR
-1n4qwEdmDUs=
-=TOWw
+iQIVAwUBU8YXOznsnt1WYoG5AQKycw/+JY2QqMUx0l995/CINJ66+LRlLNR7gIXP
+B+L+SMWUdVGNGDYc9G4Q1PCQLsVhoGF4s1bOIbqM+2RSQXITm2nxcKqjrEgd9fCT
+8cte+RhXV2moHDdrVWSkE7zSikbZXzc7B7kaMHtSGc4BCKhKR0xXdDyBfOPmpTBj
+5fxT8DZStnHIviW8v1jrG1s06tFozNcUVxde4twqMJbsFzLeVG6UIMH3rplsEbMa
+WjmKNkPSgAkNa/MaF6Sbr3wK22lulK+AgU192yhD1MSBINZ7eBFXnaz4vr0UUYkd
+jY7W0aRsJNcf6HmGPzCfTh1QXdBMiRFFTwd1SWtnkcpQVIcYfqIt0euDEUMaOHlx
+EEi7colFdLJ2yc6962Za5eo/l8GBnDVeuC00d20GIqws6TKbMXt9MNNF6pjSqGYE
+3E68Oyci9IeT5sXckZedMh/+Rq19+D3JjAE/rHNzGD9Me9puJy4A80sjxpDApWoS
+yKnxipQNpPdSgCD3NxyYctAnk5sEYm1z5RtoNI7HdZ7XvmZL0n180uU1pgTLgpVc
+pwh9Jdqa9Gy6etEkAeyDcVvOwJ1YkAuBFqCtX34EjPJeTUtOjlcTkWLA0HxN4Zpj
+33X8wzE1mOfpSVIrYdF51Za8X/98xsEAtKZPIbBOjXhDOp9D55+aBgHdhogy+P7q
+yUM67arAorA=
+=fuaS
 -----END PGP SIGNATURE-----
 
---Sig_/CNjf.8X8joeXB44spg2oeiO--
+--Sig_/GzHX+fqAmHWt4OZX2HMlMH6--
