@@ -1,173 +1,97 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 5/6] autofs4: avoid taking fs_lock during rcu-walk
-Date: Wed, 16 Jul 2014 17:52:30 +0800
-Message-ID: <1405504350.2527.95.camel@perseus.fritz.box>
+From: NeilBrown <neilb@suse.de>
+Subject: Re: [PATCH 4/6 v2] autofs4: factor should_expire() out of
+ autofs4_expire_indirect.
+Date: Thu, 17 Jul 2014 14:34:35 +1000
+Message-ID: <20140717143435.2fc69837@notabene.brown>
 References: <20140709233541.4525.25151.stgit@notabene.brown>
-	 <20140709234114.4525.24652.stgit@notabene.brown>
+	<20140709234114.4525.25725.stgit@notabene.brown>
+	<20140714105359.4415aab4@notabene.brown>
+	<1405497017.2527.89.camel@perseus.fritz.box>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ boundary="Sig_/=PE+AHc+SOMeN=N=c=zw6lS"; protocol="application/pgp-signature"
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	message-id:subject:from:to:cc:date:in-reply-to:references
-	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
-	 bh=MeFYHo2r3aYhUAZrK9Fkmw4w5Pc=; b=EnY+wttmRjkEmMq/VHgOBaVXqTUh
-	kNcz61CW/zEDSvPLVG5U+v94bXehymlWGnT8V0GsLjQnVn9dzdzp6S+wFZnJ9eLV
-	zFxzo8JyyNenmMp/hDEECzhuRgtjoZg1Q/krqn0nYgqpXLPsxwjPNCRz4QEsrqBS
-	W9Q1+8TvDEf8QrE=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=message-id:subject:from:to:cc:date
-	:in-reply-to:references:content-type:mime-version
-	:content-transfer-encoding; s=smtpout; bh=MeFYHo2r3aYhUAZrK9Fkmw
-	4w5Pc=; b=CnTzkg9Cb8LJT9Q5uUOxrgYvQ6u4voUSUrtErV1lrtXG41DQKmk15F
-	G9OziLwHTcQ96bhsV8GcDUTnmT+1xwc3BIUwLg6XXvd6JOuKOh8/eP1Mo5p/r6BU
-	LlFd2+qkAAXIKKBKA+VF4EuOtC8rngkoNj75VlK73ceFWrqInbXIs=
-In-Reply-To: <20140709234114.4525.24652.stgit@notabene.brown>
+In-Reply-To: <1405497017.2527.89.camel@perseus.fritz.box>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: NeilBrown <neilb@suse.de>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, 2014-07-10 at 09:41 +1000, NeilBrown wrote:
-> ->fs_lock protects AUTOFS_INF_EXPIRING.  We need to be sure
-> that once the flag is set, no new references beneath the dentry
-> are taken.  So rcu-walk currently needs to take fs_lock before
-> checking the flag.  This hurts performance.
-> 
-> Change the expiry to a two-stage process.
-> First set AUTHFS_INF_NO_RCU which forces any path walk into
-> ref-walk mode, then drop the lock and call synchronize_rcu().
-> Once that returns we can be sure no rcu-walk is active beneath
-> the dentry and we can check reference counts again.
-> 
-> Now during an RCU-walk we can test AUTHFS_INF_EXPIRING without
-> taking the lock as along as we test AUTHFS_INF_NO_RCU too.
+--Sig_/=PE+AHc+SOMeN=N=c=zw6lS
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Couple of typos above, eeek!
-
-> If either are set, we must abort the RCU-walk
-> If neither are set, we know that refcounts will be tested again
-> after we finish the RCU-walk so we are safe to continue.
-
-I believe the idea is sound and the patch looks good.
-Nevertheless I think this is probably the tricky bit and if there is a
-problem I'm not seeing it's probably in this patch.
-
-The submount-test will probably help with that.
-
-> 
-> Signed-off-by: NeilBrown <neilb@suse.de>
-> ---
->  fs/autofs4/autofs_i.h |    4 ++++
->  fs/autofs4/expire.c   |   46 ++++++++++++++++++++++++++++++++++++++--------
->  2 files changed, 42 insertions(+), 8 deletions(-)
-> 
-> diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
-> index 99dbb05d6148..469724d7568c 100644
-> --- a/fs/autofs4/autofs_i.h
-> +++ b/fs/autofs4/autofs_i.h
-> @@ -79,6 +79,10 @@ struct autofs_info {
->  };
->  
->  #define AUTOFS_INF_EXPIRING	(1<<0) /* dentry is in the process of expiring */
-> +#define AUTOFS_INF_NO_RCU	(1<<1) /* the dentry is being considered
-> +					* for expiry, so RCU_walk is
-> +					* not permitted
-> +					*/
->  #define AUTOFS_INF_PENDING	(1<<2) /* dentry pending mount */
->  
->  struct autofs_wait_queue {
-> diff --git a/fs/autofs4/expire.c b/fs/autofs4/expire.c
-> index fb0b5003353f..98a6fd4957f8 100644
-> --- a/fs/autofs4/expire.c
-> +++ b/fs/autofs4/expire.c
-> @@ -333,10 +333,19 @@ struct dentry *autofs4_expire_direct(struct super_block *sb,
->  	if (ino->flags & AUTOFS_INF_PENDING)
->  		goto out;
->  	if (!autofs4_direct_busy(mnt, root, timeout, do_now)) {
-> -		ino->flags |= AUTOFS_INF_EXPIRING;
-> -		init_completion(&ino->expire_complete);
-> +		ino->flags |= AUTOFS_INF_NO_RCU;
->  		spin_unlock(&sbi->fs_lock);
-> -		return root;
-> +		synchronize_rcu();
-> +		spin_lock(&sbi->fs_lock);
-> +		if (!autofs4_direct_busy(mnt, root, timeout, do_now)) {
-> +			ino->flags |= AUTOFS_INF_EXPIRING;
-> +			smp_mb()
-> +			ino->flags &= ~AUTOFS_INF_NO_RCU;
-> +			init_completion(&ino->expire_complete);
-> +			spin_unlock(&sbi->fs_lock);
-> +			return root;
-> +		}
-> +		ino->flags &= ~AUTOFS_INF_NO_RCU;
->  	}
->  out:
->  	spin_unlock(&sbi->fs_lock);
-> @@ -445,12 +454,29 @@ struct dentry *autofs4_expire_indirect(struct super_block *sb,
->  	dentry = NULL;
->  	while ((dentry = get_next_positive_subdir(dentry, root))) {
->  		spin_lock(&sbi->fs_lock);
-> -		expired = should_expire(dentry, mnt, timeout, how);
-> -		if (expired) {
-> +		ino = autofs4_dentry_ino(dentry);
-> +		if (ino->flags & AUTOFS_INF_NO_RCU)
-> +			expired = NULL;
-> +		else
-> +			expired = should_expire(dentry, mnt, timeout, how);
-> +		if (!expired) {
-> +			spin_unlock(&sbi->fs_lock);
-> +			continue;
-> +		}
-> +		ino = autofs4_dentry_ino(expired);
-> +		ino->flags |= AUTOFS_INF_NO_RCU;
-> +		spin_unlock(&sbi->fs_lock);
-> +		synchronize_rcu();
-> +		spin_lock(&sbi->fs_lock);
-> +		if (should_expire(expired, mnt, timeout, how)) {
->  			if (expired != dentry)
->  				dput(dentry);
->  			goto found;
->  		}
-> +
-> +		ino->flags &= ~AUTOFS_INF_NO_RCU;
-> +		if (expired != dentry)
-> +			dput(expired);
->  		spin_unlock(&sbi->fs_lock);
->  	}
->  	return NULL;
-> @@ -458,8 +484,9 @@ struct dentry *autofs4_expire_indirect(struct super_block *sb,
->  found:
->  	DPRINTK("returning %p %.*s",
->  		expired, (int)expired->d_name.len, expired->d_name.name);
-> -	ino = autofs4_dentry_ino(expired);
->  	ino->flags |= AUTOFS_INF_EXPIRING;
-> +	smp_mb()
-> +	ino->flags &= ~AUTOFS_INF_NO_RCU;
->  	init_completion(&ino->expire_complete);
->  	spin_unlock(&sbi->fs_lock);
->  	spin_lock(&sbi->lookup_lock);
-> @@ -479,11 +506,14 @@ int autofs4_expire_wait(struct dentry *dentry, int rcu_walk)
->  	int status;
->  
->  	/* Block on any pending expire */
-> +	if (!(ino->flags & (AUTOFS_INF_EXPIRING | AUTOFS_INF_NO_RCU)))
-> +		return 0;
-> +
-> +	if (rcu_walk)
-> +		return -ECHILD;
-
-Be nice to add a blank line here.
-
->  	spin_lock(&sbi->fs_lock);
->  	if (ino->flags & AUTOFS_INF_EXPIRING) {
->  		spin_unlock(&sbi->fs_lock);
-> -		if (rcu_walk)
-> -			return -ECHILD;
->  
->  		DPRINTK("waiting for expire %p name=%.*s",
->  			 dentry, dentry->d_name.len, dentry->d_name.name);
-> 
-> 
+On Wed, 16 Jul 2014 15:50:17 +0800 Ian Kent <raven@themaw.net> wrote:
 
 
+> > +	if (simple_empty(dentry))
+> > +		return NULL;
+> > +
+> > +	/* Case 2: tree mount, expire iff entire tree is not busy */
+> > +	if (!exp_leaves) {
+> > +		/* Path walk currently on this dentry? */
+> > +		ino_count =3D atomic_read(&ino->count) + 1;
+> > +		if (d_count(dentry) > ino_count)
+> > +			return NULL;
+> > +
+> > +		if (!autofs4_tree_busy(mnt, dentry, timeout, do_now))
+> > +			return dentry;
+> > +		/*
+> > +		 * Case 3: pseudo direct mount, expire individual leaves
+> > +		 *	   (autofs-4.1).
+> > +		 */
+>=20
+> I recommend removing one of the tab stops on this since it relates to
+> the else case but feels like it's "attached" to the code above the else.
+
+The auto-reindent feature of emacs put it there and I didn't double check.
+I've fix it.
+
+
+>=20
+> > +	} else {
+> > +		/* Path walk currently on this dentry? */
+> > +		struct dentry *expired;
+> > +		ino_count =3D atomic_read(&ino->count) + 1;
+> > +		if (d_count(dentry) > ino_count)
+> > +			return NULL;
+> > +
+> > +		expired =3D autofs4_check_leaves(mnt, dentry, timeout, do_now);
+> > +		if (expired) {
+> > +			if (expired =3D=3D dentry)
+> > +				dput(dentry);
+> > +			return dentry;
+>=20
+> Umm .. I think this should be "return expired".
+
+Yes, of course it should.  Fixed.
+
+>=20
+> Otherwise this looks like a straight refactor.
+
+Thanks,
+NeilBrown
+
+--Sig_/=PE+AHc+SOMeN=N=c=zw6lS
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIVAwUBU8dSWznsnt1WYoG5AQLlYBAApd5Yf+k/kyaTcqXxFmaeBqxeChQzOK9X
+jNqttzEIDAapShyePQg6XNbBLCJV2+4Cm9OhVXcVO48z35daIvB5lZUlMCWjTpH9
+pOTutQB40Uk1pWaj+D0EzbY+JEVRFkl/cmQVtLLp7+Qs2pKDQJtXZrD22mL3p3ab
+6sK9xjlE9fWTjFjhyhjUn7BRAtHkzrtpeTzF7Z8JKIEpSaIoSEG3wLgvu5lGZZLu
+jmNzcwgW5mjUPxO/Qu37V8/cRXFOvd+hNj7z23xMYzk9FnoP9Helz94I5RiJe3Gb
+bBVcCDAZ+LdJMckK/c7xW2C55TtlX3bgdA/17slcm4xPLA4I6Q+Z3I5xgrXztUq0
+5EWPLuxjcYkVViDDIrQ9QhoufbYdj5VOe+rAfitm9fBNzFT8pMBsjq+yay+MK3bI
+Y62UrInmBjYRu2qfEBP/sylNO1WJMSJ+U3pH/sy2jUonr0sLXsTu66E/Rl2Ch9CE
+mUpCi6cd7g9xIh4jN7ypqJu4/nUgGAkxiel+wuNmd7UQNyEbA7kOudbPEbAYNv+r
+mfAW98KmyIL52KSQKT922E8va9Zez81vgllJ9rsVPE2L7f38VSZ6pCpWci3+hGyv
+k11aCIyQ6lCnmaKL7kdo+nTJ8by3pbyw9OqS4EnrcokS/y+293HEfE54TmM63Hi3
+P5BNwWbWHQQ=
+=LC1B
+-----END PGP SIGNATURE-----
+
+--Sig_/=PE+AHc+SOMeN=N=c=zw6lS--
