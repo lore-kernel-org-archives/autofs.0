@@ -1,7 +1,7 @@
 From: NeilBrown <neilb@suse.de>
-Subject: [PATCH 4/5] autofs4: remove some unused inline functions.
+Subject: [PATCH 5/5] autofs4: comment typo: remove a a doubled word.
 Date: Fri, 18 Jul 2014 10:48:28 +1000
-Message-ID: <20140718004828.19389.22584.stgit@notabene.brown>
+Message-ID: <20140718004828.19389.95882.stgit@notabene.brown>
 References: <20140718004353.19389.48104.stgit@notabene.brown>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -13,74 +13,23 @@ Content-Type: text/plain; charset="us-ascii"
 To: Andrew Morton <akpm@linux-foundation.org>
 Cc: autofs@vger.kernel.org, linux-kernel@vger.kernel.org, Ian Kent <raven@themaw.net>
 
-{__,}manage_dentry_{set,clear}_{automount,transit}
-
-are 4 unused inline functions.  Discard them.
-
 Signed-off-by: NeilBrown <neilb@suse.de>
 Acked-by: Ian Kent <raven@themaw.net>
 ---
- fs/autofs4/autofs_i.h |   49 -------------------------------------------------
- 1 file changed, 49 deletions(-)
+ fs/autofs4/root.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
-index 22a280151e45..9e359fb20c0a 100644
---- a/fs/autofs4/autofs_i.h
-+++ b/fs/autofs4/autofs_i.h
-@@ -177,55 +177,6 @@ extern const struct file_operations autofs4_root_operations;
- extern const struct dentry_operations autofs4_dentry_operations;
- 
- /* VFS automount flags management functions */
--
--static inline void __managed_dentry_set_automount(struct dentry *dentry)
--{
--	dentry->d_flags |= DCACHE_NEED_AUTOMOUNT;
--}
--
--static inline void managed_dentry_set_automount(struct dentry *dentry)
--{
--	spin_lock(&dentry->d_lock);
--	__managed_dentry_set_automount(dentry);
--	spin_unlock(&dentry->d_lock);
--}
--
--static inline void __managed_dentry_clear_automount(struct dentry *dentry)
--{
--	dentry->d_flags &= ~DCACHE_NEED_AUTOMOUNT;
--}
--
--static inline void managed_dentry_clear_automount(struct dentry *dentry)
--{
--	spin_lock(&dentry->d_lock);
--	__managed_dentry_clear_automount(dentry);
--	spin_unlock(&dentry->d_lock);
--}
--
--static inline void __managed_dentry_set_transit(struct dentry *dentry)
--{
--	dentry->d_flags |= DCACHE_MANAGE_TRANSIT;
--}
--
--static inline void managed_dentry_set_transit(struct dentry *dentry)
--{
--	spin_lock(&dentry->d_lock);
--	__managed_dentry_set_transit(dentry);
--	spin_unlock(&dentry->d_lock);
--}
--
--static inline void __managed_dentry_clear_transit(struct dentry *dentry)
--{
--	dentry->d_flags &= ~DCACHE_MANAGE_TRANSIT;
--}
--
--static inline void managed_dentry_clear_transit(struct dentry *dentry)
--{
--	spin_lock(&dentry->d_lock);
--	__managed_dentry_clear_transit(dentry);
--	spin_unlock(&dentry->d_lock);
--}
--
- static inline void __managed_dentry_set_managed(struct dentry *dentry)
- {
- 	dentry->d_flags |= (DCACHE_NEED_AUTOMOUNT|DCACHE_MANAGE_TRANSIT);
+diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
+index fb202cadd4b3..cdb25ebccc4c 100644
+--- a/fs/autofs4/root.c
++++ b/fs/autofs4/root.c
+@@ -377,7 +377,7 @@ static struct vfsmount *autofs4_d_automount(struct path *path)
+ 		 * this because the leaves of the directory tree under the
+ 		 * mount never trigger mounts themselves (they have an autofs
+ 		 * trigger mount mounted on them). But v4 pseudo direct mounts
+-		 * do need the leaves to to trigger mounts. In this case we
++		 * do need the leaves to trigger mounts. In this case we
+ 		 * have no choice but to use the list_empty() check and
+ 		 * require user space behave.
+ 		 */
 
