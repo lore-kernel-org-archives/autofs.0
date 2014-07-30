@@ -1,128 +1,147 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 3/6] autofs4: allow RCU-walk to walk through autofs4.
-Date: Tue, 29 Jul 2014 14:37:59 +0800
-Message-ID: <1406615879.2776.19.camel@perseus.fritz.box>
-References: <20140709233541.4525.25151.stgit@notabene.brown>
-	 <20140709234114.4525.46882.stgit@notabene.brown>
-	 <1405485857.2527.38.camel@perseus.fritz.box>
-	 <20140716155150.044c2ea3@notabene.brown>
-	 <1405493777.2527.72.camel@perseus.fritz.box>
-	 <1405573256.3002.25.camel@perseus.fritz.box>
-	 <20140717180414.2e2596d1@notabene.brown>
-	 <1405592252.20621.63.camel@perseus.fritz.box>
-	 <20140729115101.0805ecd8@notabene.brown>
+From: NeilBrown <neilb@suse.de>
+Subject: [PATCH] VFS: allow ->d_manage() to declare -EISDIR in rcu_walk
+ mode.
+Date: Wed, 30 Jul 2014 16:08:33 +1000
+Message-ID: <20140730160833.5eac00ec@notabene.brown>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	message-id:subject:from:to:cc:date:in-reply-to:references
-	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
-	 bh=ntnrehC8JBmlPFoFP2/A6iW8gI8=; b=HRu6J/Q92PHQ+UyE4kXLj9YJs0SP
-	Zqwpl8bWGoY/YnmupvY0imtq6EshMkvHu/R38f9GOabP8mGqr8a75ijCIIPrJ6c/
-	fuYV2BIrbZNBKiFNkND87p4RvsZdzk+urik78/Ukqve3nPEeBLVEpggg3a/OI0Ki
-	xNMHRpdeUtZbOZ4=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=message-id:subject:from:to:cc:date
-	:in-reply-to:references:content-type:mime-version
-	:content-transfer-encoding; s=smtpout; bh=ntnrehC8JBmlPFoFP2/A6i
-	W8gI8=; b=Zo2LpM75wxvOPmLMH8WEoC7DD+Rw1/rrI3mX7/cetcwsZ5LCpOe9Rt
-	G/ewKF95a/9eTuKr6zY5+e3bl/DNjh2Ns9CbWZaHz0/x+M8AGw+deGpxiELmSOUl
-	n8kM+XFGQxFTc4kG/DbJV3onR4KKO+OLux1yPt9Xoim4KY135q8sQ=
-In-Reply-To: <20140729115101.0805ecd8@notabene.brown>
-Sender: autofs-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ boundary="Sig_/VDJluVxi5hQZE_pok=5O+BL"; protocol="application/pgp-signature"
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: NeilBrown <neilb@suse.de>
-Cc: autofs@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Ian Kent <raven@themaw.net>, autofs@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, Randy Dunlap <rdunlap@infradead.org>, linux-fsdevel@vger.kernel.org
 
-On Tue, 2014-07-29 at 11:51 +1000, NeilBrown wrote:
-> On Thu, 17 Jul 2014 18:17:32 +0800 Ian Kent <raven@themaw.net> wrote:
-> 
-> > 
-> > On Thu, 2014-07-17 at 18:04 +1000, NeilBrown wrote:
-> > > If there some documentation about the interactions between the automountd and
-> > > the kernel?
-> > 
-> > Not really, only the ioctl interaction described in
-> > Documentation/filesystems/autofs4-mount-control.txt
-> > 
-> > > It looks like:
-> > >  With V5, every name in the root directory gets something mounted on it,
-> > >       either another autofs or the target filesystem.
-> > >  With V4, you don't mount an autofs onto an autofs, but when a name in the
-> > >       root is automounted, all the names beneath there are created and the
-> > >       target filesystems are mounted before the top level automount is
-> > >       acknowledged.
-> > > 
-> > > Does that sound at all right (I suspect I haven't explained it very clearly).
-> > 
-> > Mostly, but let me try and simplify it (or perhaps confuse you even more
-> > and bore you as a bonus, ;)) and offer a broader picture.
-> 
-> Thanks for going into all that detail!  Having read that, and read the code
-> (a few times) and having tried to document it myself I think I really
-> understand it all now.
+--Sig_/VDJluVxi5hQZE_pok=5O+BL
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Glad you appreciated the effort.
 
-> 
-> I wanted to be sure I understood from the perspective of what the module
-> actually supports rather than just how the automount daemon uses it, so I put
-> together a document describing the module.  At 3000 words, I'm not sure
-> whether to call it "verbose" or "thorough".  I'll post it separately.
+In REF-walk mode, ->d_manage can return -EISDIR to indicate
+that the dentry is not really a mount trap (or even a mount point)
+and that any mounts or any DCACHE_NEED_AUTOMOUNT flag should be
+ignored.
 
-Indeed, that's very sensible since it can easily be used by others.
+RCU-walk mode doesn't currently support this, so if there is a dentry
+with DCACHE_NEED_AUTOMOUNT set but which shouldn't be a mount-trap,
+lookup_fast() will always drop in REF-walk mode.
 
-I still way behind and I'm ill, in fact the whole family is ill (winter
-here as you know), so I'll have a look at what you've put together soon
-as I can.
+With this patch, an -EISDIR from ->d_manage will always cause mounts
+and automounts to be ignored, both in REF-walk and RCU-walk.
 
-FWICS you've put a lot of effort into writing it and I appreciate it
-very much.
+Cc: Ian Kent <raven@themaw.net>
+Signed-off-by: NeilBrown <neilb@suse.de>
 
-Once we're both happy with it do you think it should go somewhere in
-Documents in the kernel tree or did you have somewhere else in mind?
+---
+Hi Al,
+ this patch is needed before I can make autofs4 fully support RCU-walk.
+There are cases currently were directories have DCACHE_NEED_AUTOMOUNT but f=
+or which
+no automount is required.
 
-> 
-> I did discover one thing that is important for the RCU-walk work.
-> If you have a "root-less multimount" then the top-level directory will have
-> DCACHE_NEED_AUTOMOUNT set even though it is not a mount-trap.
-> As it contains a sub-directory (or more), d_manage will return -EISDIR so
-> normal REF-walking will side-step d_automount and it will be treated as a
-> normal directory.
-> However in RCU-walk mode, d_manage cannot usefully return -EISDIR so the VFS
-> will always drop into REF-walk mode, which negates some of the value of my
-> RCU-walk patches.
+Thanks,
+NeilBrown
 
-Yes, think we discussed that before.
 
-> 
-> I see two ways to fix this:
->  1- clear DCACHE_NEED_AUTOMOUNT when creating a subdir or symlink, just like
->     we do with protocol-version 4
->  2- teach the VFS to accept -EISDIR from d_manage and to ignore
->     DCACHE_NEED_AUTOMOUNT in that case.  I have a patch to do this and it is
->     fairly straight forward.
-> 
-> I think I prefer 2 (it seems easier to document:-) but thought I'd ask if you
-> have an opinion before I post it (I haven't even tested it properly yet).
+diff --git a/Documentation/filesystems/vfs.txt b/Documentation/filesystems/=
+vfs.txt
+index a1d0d7a30165..61d65cc65c54 100644
+--- a/Documentation/filesystems/vfs.txt
++++ b/Documentation/filesystems/vfs.txt
+@@ -1053,7 +1053,8 @@ struct dentry_operations {
+ 	If the 'rcu_walk' parameter is true, then the caller is doing a
+ 	pathwalk in RCU-walk mode.  Sleeping is not permitted in this mode,
+ 	and the caller can be asked to leave it and call again by returning
+-	-ECHILD.
++	-ECHILD.  -EISDIR may also be returned to tell pathwalk to
++	ignore d_automount or any mounts.
+=20
+ 	This function is only used if DCACHE_MANAGE_TRANSIT is set on the
+ 	dentry being transited from.
+diff --git a/fs/namei.c b/fs/namei.c
+index 985c6f368485..0abfea5697e0 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -1091,10 +1091,10 @@ int follow_down_one(struct path *path)
+ }
+ EXPORT_SYMBOL(follow_down_one);
+=20
+-static inline bool managed_dentry_might_block(struct dentry *dentry)
++static inline int managed_dentry_rcu(struct dentry *dentry)
+ {
+-	return (dentry->d_flags & DCACHE_MANAGE_TRANSIT &&
+-		dentry->d_op->d_manage(dentry, true) < 0);
++	return (dentry->d_flags & DCACHE_MANAGE_TRANSIT) ?
++		dentry->d_op->d_manage(dentry, true) : 0;
+ }
+=20
+ /*
+@@ -1110,11 +1110,16 @@ static bool __follow_mount_rcu(struct nameidata *nd=
+, struct path *path,
+ 		 * Don't forget we might have a non-mountpoint managed dentry
+ 		 * that wants to block transit.
+ 		 */
+-		if (unlikely(managed_dentry_might_block(path->dentry)))
++		switch (managed_dentry_rcu(path->dentry)) {
++		case -ECHILD:
++		default:
+ 			return false;
++		case -EISDIR:
++			return true;
++		}
+=20
+ 		if (!d_mountpoint(path->dentry))
+-			return true;
++			return !(path->dentry->d_flags & DCACHE_NEED_AUTOMOUNT);
+=20
+ 		mounted =3D __lookup_mnt(path->mnt, path->dentry);
+ 		if (!mounted)
+@@ -1130,7 +1135,8 @@ static bool __follow_mount_rcu(struct nameidata *nd, =
+struct path *path,
+ 		 */
+ 		*inode =3D path->dentry->d_inode;
+ 	}
+-	return read_seqretry(&mount_lock, nd->m_seq);
++	return read_seqretry(&mount_lock, nd->m_seq) &&
++		!(path->dentry->d_flags & DCACHE_NEED_AUTOMOUNT);
+ }
+=20
+ static int follow_dotdot_rcu(struct nameidata *nd)
+@@ -1402,11 +1408,8 @@ static int lookup_fast(struct nameidata *nd,
+ 		}
+ 		path->mnt =3D mnt;
+ 		path->dentry =3D dentry;
+-		if (unlikely(!__follow_mount_rcu(nd, path, inode)))
+-			goto unlazy;
+-		if (unlikely(path->dentry->d_flags & DCACHE_NEED_AUTOMOUNT))
+-			goto unlazy;
+-		return 0;
++		if (likely(__follow_mount_rcu(nd, path, inode)))
++			return 0;
+ unlazy:
+ 		if (unlazy_walk(nd, dentry))
+ 			return -ECHILD;
 
-I definitely prefer option 2 also.
+--Sig_/VDJluVxi5hQZE_pok=5O+BL
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
 
-Trying to juggle the flag adds at least one seriously ugly test in the
-expire code and the path walk code and likely eliminates the ability to
-use the optimization of not calling ->d_automount() for these.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
 
-Keep in mind that there's also the multiple namespace problem I
-mentioned before.
+iQIVAwUBU9iL4Tnsnt1WYoG5AQJ8+A//VvVIwNjVJZ6MV6tNY3o+s2lgC3KF0ZSf
+o7B9Jw9uAsWFm+MSfOG/D00sYZvruBnlu2vL3TI84ErtVmH947mMOvToWIEVna/f
+VcysCV6sfPbmwdySe6Av0Mhwtp6Q9DO0Ipc3d5U7XJuXok9C+0fxvSCO43Hkit3C
+WXptetSLdQKzyE/ugi85azuXiPU6YN/D3XfpFPXg0RJ5i/aIPLed1tvOkstwNb6r
+DstGI8FnEerJuYAUXzvq+A3CPtmXV+76N276omDl3ftrPHM7P0ze0y5nujgHiwD8
+k1Gv4c6r8NrapXKJ+xE4Da0vlLEUY3L+wQWxN4XFFPEGUef2gAgBVLBx2fYvSsa8
+n7IxJwD+m2h2t7im9m9yZHKZrMhhmELTui6wBMpBMtGjj9jkgfiwtmLipKWMXvNT
+RABjc6ypDpwrGzdwDYRCnfBxgQukbLubrbMmbekv/nmcgi4sLCrnHKnXiHEzsQ9+
+88rWJ0EGkFb9nwTNCV3XSA0HSFxcGkRvobHZZjsvYoa5jz2Qi/A8q10NGq8CubUw
+JpIK6AV6wlxU4zBK0AZSpc6nlI1BQLlsSSIBdHct6dEwTQ4Cv26bi7xM1ODg7I/s
+BRjGNeXI/wrhY3TQkWdrhbOcFzCgAXCJIoNh8CpNbsGuWuGfwsgtib/zCoI2vMZ1
+ab04tIgKw1M=
+=Z2dx
+-----END PGP SIGNATURE-----
 
-d_mountpoint() says, "is this dentry mounted (in any namespace)" which
-is clearly unreliable.
-
-Since autofs path walks were always done in ref-walk mode I haven't
-looked at how this would be done in rcu-walk mode but in ref-walk mode I
-believe the only solution is to use lookup_mnt() and that won't work in
-rcu-walk and would require kicking the process back to ref-walk mode.
-
-Ian
-
+--Sig_/VDJluVxi5hQZE_pok=5O+BL--
