@@ -1,53 +1,67 @@
 From: NeilBrown <neilb@suse.de>
-Subject: Re: [PATCH] VFS: allow ->d_manage() to declare -EISDIR in rcu_walk
- mode.
-Date: Thu, 31 Jul 2014 09:49:10 +1000
-Message-ID: <20140731094910.20bd9f9f@notabene.brown>
-References: <20140730160833.5eac00ec@notabene.brown>
-	<20140730201652.GA23156@infradead.org>
+Subject: Re: [PATCH/RFC] autofs: the documentation I wanted to read
+Date: Thu, 31 Jul 2014 14:06:27 +1000
+Message-ID: <20140731140627.5c5bfb06@notabene.brown>
+References: <20140729120017.53590fad@notabene.brown>
+	<53D93B5A.1040707@infradead.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
- boundary="Sig_/l5V6yubzZ0.mI73jlyTdety"; protocol="application/pgp-signature"
+ boundary="Sig_/VY2gxxN+burVxzaGlvESzde"; protocol="application/pgp-signature"
 Return-path: <autofs-owner@vger.kernel.org>
-In-Reply-To: <20140730201652.GA23156@infradead.org>
+In-Reply-To: <53D93B5A.1040707@infradead.org>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>, Ian Kent <raven@themaw.net>, autofs@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, Randy Dunlap <rdunlap@infradead.org>, linux-fsdevel@vger.kernel.org
+To: Randy Dunlap <rdunlap@infradead.org>
+Cc: Ian Kent <raven@themaw.net>, autofs@vger.kernel.org, linux-kernel@vger.kernel.org
 
---Sig_/l5V6yubzZ0.mI73jlyTdety
+--Sig_/VY2gxxN+burVxzaGlvESzde
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 30 Jul 2014 13:16:52 -0700 Christoph Hellwig <hch@infradead.org>
-wrote:
+On Wed, 30 Jul 2014 11:37:14 -0700 Randy Dunlap <rdunlap@infradead.org> wro=
+te:
 
-> This looks good enough that I'll apply it to the interim vfs queue.
+> On 07/28/14 19:00, NeilBrown wrote:
 
-Thanks!
+> > +Directories further down the tree depend on the *max_proto* mount
+>=20
+>                                                     max_proto or maxproto=
+?  or either?
+> check/fix other places also.
 
+The mount option is "maxproto", the internal variable name is
+"max_proto" :-)
+=20
+>=20
+> Thanks.  Nice job.
+>=20
+
+Thanks so much for all those improvements - I really appreciate it.
+They'll all be in the next posting.
+
+Thanks,
 NeilBrown
 
---Sig_/l5V6yubzZ0.mI73jlyTdety
+--Sig_/VY2gxxN+burVxzaGlvESzde
 Content-Type: application/pgp-signature; name=signature.asc
 Content-Disposition: attachment; filename=signature.asc
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2.0.22 (GNU/Linux)
 
-iQIVAwUBU9mEdjnsnt1WYoG5AQJQvw/+KPhOc7es7mQqknLZod3/oKLDC2dZ+/yL
-R3ZS/I6Ez7h1cSC6wf4NenYs3j1ypzYinLjG2cOzMJeKdwri4mRbpM/7UKoTuTHi
-VBwboxHsomLyKuGAk7FNFQRMP3e4pFun63eMC4ddedMF/p8D1i7QmROulg/WGYfM
-Zip/qa0SG3fjJDARuQK6vyLB1kDT1QQIDX1VR6o7kZMJ6jMzQZ4YMsQEZxkDMNJL
-sLNfNC8w0yRpaM97vxmhkO322tPO44U03jYbDlmaG5w0C7U+F+fL97GPDJuz3Fwf
-bfQDmrZeksH0BawvbP/+j9EV+60oA5omr8gGzKPfBxP3D/VFWYT7YylQrtJ7v9UK
-O5BaOCvtOVlIKQQuKJPQGURkM31gpW/XuyfCYmDo6PAZs1NX6K1XI6X7SGeyMCkk
-vzP/ME76dz1K1Okq3UeltTsnBwnNo1AwC2seENy4P7+EQjWXFDXCgVsG/Fwxn9i+
-iEXi0nodrBAXUDX1TrYQmJp5nFmE5NJ/jnXrowr4jTrA/muAZoEVUB7IYVORPOdM
-c02EDuBlrwf/wut6v7kzrg98wzFB9wgdBeHzJfrHsPpbqrkbdgbQe6lvJTjXTH73
-pozLhhNegsFjhzyCJXTHdZiax73JN+e7ota4efRlg9qFoGDfIaYP1C7X/8V6oLci
-WlHqML2/yvk=
-=nA1A
+iQIVAwUBU9nAxDnsnt1WYoG5AQKMhg//R3YlNTvX9wlsVrQ3f+8CVy6U1/Y9W/7j
+u1VzyrRfeBTQFjxDWJfM0CqZuSCOR2Of7jPtVtJxVKkFz1fu+ig+9cRaFHfVjWNb
+87QxEktDbgFEWDQFLPQ5tBqn5+88M5Y1ZKIz5MWq+5b0vqS0QPhXZUlWK9WOM9Kc
+bSf+y2g2UUgaTuG+Z4qnqbjnG3X2nOY3aPHB7/chpMoQ1E0ifRaTHe0c8XvyxRf6
+2fjzTNS5WZek8THiL9IdcgEUNhCciys7RpAOXhFGn2Kq9cyDRMMdr3MPRIzAxhA6
+5rqM8hnPUUfuIDpA3t2Erjh+vZrnRoFyyfG1tg5idiqplyHtPwoHopHFpsT1KaIh
+RWJP5fMui49in6l39B7UW0j9f/QXy+8ZxtngvxZy8EX1N4XWaLQnA06lLhY2seJ+
+cfHcLKZ0pOzVlG4xnhrlVkJ80FpNWWbBa+uBMOpK5k4/hspC/ZLY3vjkXDuiPjgQ
+3VkcQx58AKaD21poZs6gDw5IudY7Bg2Ybib/6Eo/V5npBat3MD6NmQiu5ul/SqVX
+iNNFSFsu2OrQdvyFEv3eUrHBEuN/LZRpra+cEiKqNkG3HPlC7mWB4GUIex8qOvjZ
+sVQqVTdOcVOhTRoWO4RVDMtj+cpE/70Ds+u664+yr2eTKP+6lkJcKafKv7zoIKhf
+gncrODesEjw=
+=GTGW
 -----END PGP SIGNATURE-----
 
---Sig_/l5V6yubzZ0.mI73jlyTdety--
+--Sig_/VY2gxxN+burVxzaGlvESzde--
