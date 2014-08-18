@@ -1,82 +1,74 @@
-From: NeilBrown <neilb@suse.de>
-Subject: [PATCH 4/5] autofs4: d_manage() should return -EISDIR when
- appropriate in rcu-walk mode.
-Date: Mon, 18 Aug 2014 16:33:01 +1000
-Message-ID: <20140818063301.9860.65391.stgit@notabene.brown>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [PATCH 0/5] RCU-walk support for autofs
+Date: Mon, 18 Aug 2014 16:25:40 +0800
+Message-ID: <1408350340.2533.3.camel@perseus.fritz.box>
 References: <20140818062844.9860.43007.stgit@notabene.brown>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <autofs-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
+	message-id:subject:from:to:cc:date:in-reply-to:references
+	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
+	 bh=zTa30W+V8/AG+UDK5XGB/8loYDE=; b=hcXpyqwifg1WbLNesa8ky+vZNdmX
+	+fcF7geou0S5+DpKzcnaa/c9+LsF8V5VN1YNphPA6+UiOmXyz4Mma63G1Kpub4w6
+	6QjV8h8qQMIrkh25lnt4K40P5WM0JMzov0Fhp8QJ6wpK5yqvfjnZx6SV0wd5lDHW
+	Pa82cQ9iL9ZMWxg=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=message-id:subject:from:to:cc:date
+	:in-reply-to:references:content-type:mime-version
+	:content-transfer-encoding; s=smtpout; bh=zTa30W+V8/AG+UDK5XGB/8
+	loYDE=; b=THeZ2LlFwqwt76T5qygd6MjCbzjKKcnazTi80DiMn+DkAjOuKrC2CS
+	quIOdPEW1QIlqAFGSE48hWMS+o7PsgGAcuhcDz9WfXt/EbCrKbRNDodw9INZWlem
+	gSRHi5Duk+dXOp9aXbH2IIk71aSa7N10Xc0Arxa7WjyppnUi6lX44=
 In-Reply-To: <20140818062844.9860.43007.stgit@notabene.brown>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Ian Kent <raven@themaw.net>
+To: NeilBrown <neilb@suse.de>
 Cc: autofs@vger.kernel.org, linux-kernel@vger.kernel.org
 
-If rcu-walk mode we don't *have* to return -EISDIR for non-mount-traps
-as we will simply drop into REF-walk and handling DCACHE_NEED_AUTOMOUNT
-dentrys the slow way.  But it is better if we do when possible.
+On Mon, 2014-08-18 at 16:33 +1000, NeilBrown wrote:
+> Hi Ian,
+>  Have you had a chance to run your tests in these patches yet?
+>  I've done what testing I can think of and cannot fault them.
 
-In 'oz_mode', use the same condition as ref-walk: if not a mountpoint,
-then it must be -EISDIR.
+I haven't, I've been plagued with illness so I'm not getting nearly
+enough done. I'll try to put a kernel together and run the test in the
+next week or so.
 
-In regular mode there are most tests needed.  Most of them can be
-performed without taking any spinlocks.
-If we find a directory that isn't obviously empty, and isn't mounted
-on, we need to call 'simple_empty()' which does take a spinlock.
-If this turned out to hurt performance, some other approach could
-be found to signal when a directory is known to be empty.
+> 
+>  This set is against 3.17-rc1 and make use of the new -EISDIR handling
+>  for d_manage() and assumes the other patches which already went in
+>  through Andrew Morton.
+> 
+>  I've added a section to autofs4.txt about mount namespaces, but it is
+>  otherwise unchanged.
+> 
+>  If I could get an {Acked,Reviewed,Tested}-By in the next few weeks so
+>  I can send them on to Andrew I would really appreciate it.
+> 
+> Thanks,
+> NeilBrown
+> 
+> 
+> 
+> ---
+> 
+> NeilBrown (5):
+>       autofs4: allow RCU-walk to walk through autofs4.
+>       autofs4: factor should_expire() out of autofs4_expire_indirect.
+>       autofs4: avoid taking fs_lock during rcu-walk
+>       autofs4: d_manage() should return -EISDIR when appropriate in rcu-walk mode.
+>       autofs: the documentation I wanted to read
+> 
+> 
+>  Documentation/filesystems/autofs4.txt |  520 +++++++++++++++++++++++++++++++++
+>  fs/autofs4/autofs_i.h                 |    6 
+>  fs/autofs4/dev-ioctl.c                |    2 
+>  fs/autofs4/expire.c                   |  200 ++++++++-----
+>  fs/autofs4/root.c                     |   62 +++-
+>  5 files changed, 694 insertions(+), 96 deletions(-)
+>  create mode 100644 Documentation/filesystems/autofs4.txt
+> 
 
-Signed-off-by: NeilBrown <neilb@suse.de>
----
- fs/autofs4/root.c |   26 ++++++++++++++++++++------
- 1 file changed, 20 insertions(+), 6 deletions(-)
-
-diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
-index 2296c8301b66..71e4413d65c8 100644
---- a/fs/autofs4/root.c
-+++ b/fs/autofs4/root.c
-@@ -433,8 +433,6 @@ static int autofs4_d_manage(struct dentry *dentry, bool rcu_walk)
- 
- 	/* The daemon never waits. */
- 	if (autofs4_oz_mode(sbi)) {
--		if (rcu_walk)
--			return 0;
- 		if (!d_mountpoint(dentry))
- 			return -EISDIR;
- 		return 0;
-@@ -452,12 +450,28 @@ static int autofs4_d_manage(struct dentry *dentry, bool rcu_walk)
- 	if (status)
- 		return status;
- 
--	if (rcu_walk)
--		/* it is always safe to return 0 as the worst that
--		 * will happen is we retry in REF-walk mode.
--		 * Better than always taking a lock.
-+	if (rcu_walk) {
-+		/* We don't need fs_lock in rcu_walk mode,
-+		 * just testing 'AUTOFS_INFO_NO_RCU' is enough.
-+		 * simple_empty() takes a spinlock, so leave it
-+		 * to last.
-+		 * We only return -EISDIR when certain this isn't
-+		 * a mount-trap.
- 		 */
-+		struct inode *inode;
-+		if (ino->flags & (AUTOFS_INF_EXPIRING | AUTOFS_INF_NO_RCU))
-+			return 0;
-+		if (d_mountpoint(dentry))
-+			return 0;
-+		inode = rcu_dereference(dentry->d_inode);
-+		if (inode && S_ISLNK(inode->i_mode))
-+			return -EISDIR;
-+		if (list_empty(&dentry->d_subdirs))
-+			return 0;
-+		if (!simple_empty(dentry))
-+			return -EISDIR;
- 		return 0;
-+	}
- 
- 	spin_lock(&sbi->fs_lock);
- 	/*
 
