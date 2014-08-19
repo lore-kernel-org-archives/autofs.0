@@ -1,93 +1,103 @@
-From: NeilBrown <neilb@suse.de>
-Subject: Re: [PATCH 5/5] autofs: the documentation I wanted to read
-Date: Tue, 19 Aug 2014 17:00:26 +1000
-Message-ID: <20140819170026.5a8600a5@notabene.brown>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [PATCH 0/5] RCU-walk support for autofs
+Date: Tue, 19 Aug 2014 18:02:27 +0800
+Message-ID: <1408442547.11314.9.camel@perseus.themaw.net>
 References: <20140818062844.9860.43007.stgit@notabene.brown>
-	<20140818063301.9860.35420.stgit@notabene.brown>
-	<1408356832.2533.5.camel@perseus.fritz.box>
+	 <1408350340.2533.3.camel@perseus.fritz.box>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- boundary="Sig_/jpEzJjcs=gn9bdv3e93VVx_"; protocol="application/pgp-signature"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-In-Reply-To: <1408356832.2533.5.camel@perseus.fritz.box>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
+	message-id:subject:from:to:cc:date:in-reply-to:references
+	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
+	 bh=RZgZzxb0cXtydNdOqH01/Z0nHMg=; b=b0OaII7tqMqSmuNoz0r4aJiOaSIB
+	PF8NNEraaXPPdNk+5D4QtYmmLdncRI6SdIdaGhEODgMWgIve5kCl27z6pMnlxMS0
+	smUhWbI1L0jiCHjnsG430jOcCL2HWahTSoN4mJR4X8Q7Sd/FrhQMc7YeeGdcamwE
+	g4J/n5SSP4owkio=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=message-id:subject:from:to:cc:date
+	:in-reply-to:references:content-type:mime-version
+	:content-transfer-encoding; s=smtpout; bh=RZgZzxb0cXtydNdOqH01/Z
+	0nHMg=; b=civuyFc9Ine70uuHvNGZ5bDRvkCSFUv858PruFMrJu3X/QdBi/DJb0
+	3fgWzGCLYnoSCrAJ9lg6BBT8KbQekBxEaF/Rc9/toxc1EZg+oWuHJRo8VcZ0cSef
+	rbEfbhJLc0kvfZjZ+K8dy7zGbLH+FyT9JhtEMlsWkeiIm+3VGEj9g=
+In-Reply-To: <1408350340.2533.3.camel@perseus.fritz.box>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-To: Ian Kent <raven@themaw.net>
+Content-Type: text/plain; charset="us-ascii"
+To: NeilBrown <neilb@suse.de>
 Cc: autofs@vger.kernel.org, linux-kernel@vger.kernel.org
 
---Sig_/jpEzJjcs=gn9bdv3e93VVx_
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+On Mon, 2014-08-18 at 16:25 +0800, Ian Kent wrote:
+> On Mon, 2014-08-18 at 16:33 +1000, NeilBrown wrote:
+> > Hi Ian,
+> >  Have you had a chance to run your tests in these patches yet?
+> >  I've done what testing I can think of and cannot fault them.
+> 
+> I haven't, I've been plagued with illness so I'm not getting nearly
+> enough done. I'll try to put a kernel together and run the test in the
+> next week or so.
 
-On Mon, 18 Aug 2014 18:13:52 +0800 Ian Kent <raven@themaw.net> wrote:
+Just to let you know that I managed to spend some time on this. I built
+a kernel (3.17.0-rc1) with the series and ran a couple of tests.
+
+I'm not certain that the patches I used are identical to your posting, I
+saw one difference, after the fact, that shouldn't matter, I'll have to
+check that.
+
+It isn't possible to test expire to mount races because the mounts in
+the tree never expire.
+
+At first I thought it was because so many processes were accessing the
+tree all the time but manually constructing the maps and mounting the
+mounts shows that nothing ever expires, at least for this tree.
+
+However, issuing a shut down does expire all the mounts and shuts down
+autofs cleanly.
+
+So there is something not quite right with the expire check or my
+patches have mistakes.
+
+> 
+> > 
+> >  This set is against 3.17-rc1 and make use of the new -EISDIR handling
+> >  for d_manage() and assumes the other patches which already went in
+> >  through Andrew Morton.
+> > 
+> >  I've added a section to autofs4.txt about mount namespaces, but it is
+> >  otherwise unchanged.
+> > 
+> >  If I could get an {Acked,Reviewed,Tested}-By in the next few weeks so
+> >  I can send them on to Andrew I would really appreciate it.
+> > 
+> > Thanks,
+> > NeilBrown
+> > 
+> > 
+> > 
+> > ---
+> > 
+> > NeilBrown (5):
+> >       autofs4: allow RCU-walk to walk through autofs4.
+> >       autofs4: factor should_expire() out of autofs4_expire_indirect.
+> >       autofs4: avoid taking fs_lock during rcu-walk
+> >       autofs4: d_manage() should return -EISDIR when appropriate in rcu-walk mode.
+> >       autofs: the documentation I wanted to read
+> > 
+> > 
+> >  Documentation/filesystems/autofs4.txt |  520 +++++++++++++++++++++++++++++++++
+> >  fs/autofs4/autofs_i.h                 |    6 
+> >  fs/autofs4/dev-ioctl.c                |    2 
+> >  fs/autofs4/expire.c                   |  200 ++++++++-----
+> >  fs/autofs4/root.c                     |   62 +++-
+> >  5 files changed, 694 insertions(+), 96 deletions(-)
+> >  create mode 100644 Documentation/filesystems/autofs4.txt
+> > 
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe autofs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
-> > +The available ioctl commands are:
-> > +
-> > +- **AUTOFS_IOC_READY**: a notification has been handled.  The argument
-> > +    to the ioctl command is the "wait_queue_token" number
-> > +    corresponding to the notification being acknowledged.
-> > +- **AUTOFS_IOC_FAIL**: similar to above, but indicates failure with
-> > +    the error code `ENOENT`.
-> > +- **AUTOFS_IOC_CATATONIC**: Causes the autofs to enter "catatonic"
-> > +    mode meaning that it stops sending notifications to the daemon.
-> > +    This mode is also entered if a write to the pipe fails.
-> > +- **AUTOFS_IOC_PROTOVER**:  This returns the protocol version in use.
-> > +- **AUTOFS_IOC_PROTOSUBVER**: Returns the protocol sub-version which
-> > +    is really a version number for the implementation.  It is
-> > +    currently 2.
-> > +- **AUTOFS_IOC_SETTIMEOUT**:  This passes a pointer to an unsigned
-> > +    long.  The value is used to set the timeout for expiry, and
-> > +    the current timeout value is stored back through the pointer.
-> > +- **AUTOFS_IOC_ASKUMOUNT**:  Returns, in the pointed-to `int`, 1 if
-> > +    the filesystem could be unmounted.  This is only a hint as
-> > +    the situation could change at any instant.  This call can be
-> > +    use to avoid a more expensive full unmount attempt.
-> > +- **AUTOFS_IOC_EXPIRE**: as described above, this asks if there is
-> > +    anything suitable to expire.  A pointer to a packet:
-> > +
-> > +        struct autofs_packet_expire_multi {
-> > +        	int proto_version;              /* Protocol version */
-> > +        	int type;                       /* Type of packet */
-> > +        	autofs_wqt_t wait_queue_token;
-> > +        	int len;
-> > +        	char name[NAME_MAX+1];
->=20
-> These fields have leading <spaces><tab> StGit complains about on import.
-> Think it should be <tab><tab>.
->=20
-
-I think I did that because I thought it would work better for markdown
-processors (e.g. markdown_py).
-However I just tested, and it works best if I turn all the tabs to spaces.
-So that is what I have done.
-
-And no rush with testing etc - I just wanted to make sure you had current
-code now that -rc1 was out.
-
-Thanks,
-NeilBrown
-
---Sig_/jpEzJjcs=gn9bdv3e93VVx_
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIVAwUBU/L2Cjnsnt1WYoG5AQJdcg//QlgF9Bx8IdpfVY1ustYEewGDPlY9yB9m
-q7fp/KRo5mTC70kc6JC7QwwpBQ42F2Wtd0i0po3WWB7DsKWJviA5roTz9uLWRCly
-0nf26MTxDDiU9hkZGQHSJfkkf4gn4XKYlxRDZh8slEAUxLSOYsZLJCA1NEX1aUE1
-W9yaiY3PYcmpJtgJ0HHJp/YWoiFl0o9miZqLy1DIkHYBmP6cV0dLe6L/j+7+cIe7
-lcHMqx/xA2u71cv1roPJUxSu2deVif8ML1EStURqoS0yjPWBSp/+eMrtHaN8AwlB
-OR0mlAKm8+a4vKE+x3u0OCI/KljfZS3NAh6rNMUY94/zcD5OA5XZclW7EtrGcCv2
-4hS+prpH7ojqs2lb+DD8xFSOFkm3no3ZtrxQGExZxINMWr8L9DMHSXF0cleOgcJD
-xnX8qFefGBfDCg9G9sCn7OzykAQ8xgvjzyQDB1PZiojqF0DHR/ZP8x51/ysD+qb1
-TlLcrC5lw9OXM5Nb/v30NVoywlwesqoTI62K0HQyLeO2ewob7k6SYL2522485ifo
-36D4X8sliL1C/gpVvDwID8M3t/o/Ug7/vAc+hF9/uRIp4j+ZzvbH+8eimqKDfNPV
-AK8c0VdDGfrg1ezb/GGamDrGo5daaWh5krsje3aU6tp/7L2NC5daR8LRed34TV6/
-cdnlOqqqCpI=
-=Mqq5
------END PGP SIGNATURE-----
-
---Sig_/jpEzJjcs=gn9bdv3e93VVx_--
