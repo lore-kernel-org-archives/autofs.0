@@ -1,103 +1,108 @@
-From: Ian Kent <raven@themaw.net>
+From: NeilBrown <neilb@suse.de>
 Subject: Re: [PATCH 0/5] RCU-walk support for autofs
-Date: Tue, 19 Aug 2014 18:02:27 +0800
-Message-ID: <1408442547.11314.9.camel@perseus.themaw.net>
+Date: Tue, 19 Aug 2014 21:16:54 +1000
+Message-ID: <20140819211654.5ec3853a@notabene.brown>
 References: <20140818062844.9860.43007.stgit@notabene.brown>
-	 <1408350340.2533.3.camel@perseus.fritz.box>
+	<1408350340.2533.3.camel@perseus.fritz.box>
+	<1408442547.11314.9.camel@perseus.themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ boundary="Sig_/XgXnPR2MAOak02yXB+y2Jzu"; protocol="application/pgp-signature"
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	message-id:subject:from:to:cc:date:in-reply-to:references
-	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
-	 bh=RZgZzxb0cXtydNdOqH01/Z0nHMg=; b=b0OaII7tqMqSmuNoz0r4aJiOaSIB
-	PF8NNEraaXPPdNk+5D4QtYmmLdncRI6SdIdaGhEODgMWgIve5kCl27z6pMnlxMS0
-	smUhWbI1L0jiCHjnsG430jOcCL2HWahTSoN4mJR4X8Q7Sd/FrhQMc7YeeGdcamwE
-	g4J/n5SSP4owkio=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=message-id:subject:from:to:cc:date
-	:in-reply-to:references:content-type:mime-version
-	:content-transfer-encoding; s=smtpout; bh=RZgZzxb0cXtydNdOqH01/Z
-	0nHMg=; b=civuyFc9Ine70uuHvNGZ5bDRvkCSFUv858PruFMrJu3X/QdBi/DJb0
-	3fgWzGCLYnoSCrAJ9lg6BBT8KbQekBxEaF/Rc9/toxc1EZg+oWuHJRo8VcZ0cSef
-	rbEfbhJLc0kvfZjZ+K8dy7zGbLH+FyT9JhtEMlsWkeiIm+3VGEj9g=
-In-Reply-To: <1408350340.2533.3.camel@perseus.fritz.box>
+In-Reply-To: <1408442547.11314.9.camel@perseus.themaw.net>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: NeilBrown <neilb@suse.de>
+To: Ian Kent <raven@themaw.net>
 Cc: autofs@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, 2014-08-18 at 16:25 +0800, Ian Kent wrote:
-> On Mon, 2014-08-18 at 16:33 +1000, NeilBrown wrote:
-> > Hi Ian,
-> >  Have you had a chance to run your tests in these patches yet?
-> >  I've done what testing I can think of and cannot fault them.
-> 
-> I haven't, I've been plagued with illness so I'm not getting nearly
-> enough done. I'll try to put a kernel together and run the test in the
-> next week or so.
+--Sig_/XgXnPR2MAOak02yXB+y2Jzu
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Just to let you know that I managed to spend some time on this. I built
-a kernel (3.17.0-rc1) with the series and ran a couple of tests.
+On Tue, 19 Aug 2014 18:02:27 +0800 Ian Kent <raven@themaw.net> wrote:
 
-I'm not certain that the patches I used are identical to your posting, I
-saw one difference, after the fact, that shouldn't matter, I'll have to
-check that.
+> On Mon, 2014-08-18 at 16:25 +0800, Ian Kent wrote:
+> > On Mon, 2014-08-18 at 16:33 +1000, NeilBrown wrote:
+> > > Hi Ian,
+> > >  Have you had a chance to run your tests in these patches yet?
+> > >  I've done what testing I can think of and cannot fault them.
+> >=20
+> > I haven't, I've been plagued with illness so I'm not getting nearly
+> > enough done. I'll try to put a kernel together and run the test in the
+> > next week or so.
+>=20
+> Just to let you know that I managed to spend some time on this. I built
+> a kernel (3.17.0-rc1) with the series and ran a couple of tests.
+>=20
+> I'm not certain that the patches I used are identical to your posting, I
+> saw one difference, after the fact, that shouldn't matter, I'll have to
+> check that.
+>=20
+> It isn't possible to test expire to mount races because the mounts in
+> the tree never expire.
+>=20
+> At first I thought it was because so many processes were accessing the
+> tree all the time but manually constructing the maps and mounting the
+> mounts shows that nothing ever expires, at least for this tree.
+>=20
+> However, issuing a shut down does expire all the mounts and shuts down
+> autofs cleanly.
+>=20
+> So there is something not quite right with the expire check or my
+> patches have mistakes.
 
-It isn't possible to test expire to mount races because the mounts in
-the tree never expire.
+Ahh.. I bet I know what it is.
+autofs4_can_expire() isn't idempotent.
+Because we call should_expire twice, autofs4_can_expire() is called twice a=
+nd
+the second time it failed because  the first time it resets ->last_used.
 
-At first I thought it was because so many processes were accessing the
-tree all the time but manually constructing the maps and mounting the
-mounts shows that nothing ever expires, at least for this tree.
-
-However, issuing a shut down does expire all the mounts and shuts down
-autofs cleanly.
-
-So there is something not quite right with the expire check or my
-patches have mistakes.
-
-> 
-> > 
-> >  This set is against 3.17-rc1 and make use of the new -EISDIR handling
-> >  for d_manage() and assumes the other patches which already went in
-> >  through Andrew Morton.
-> > 
-> >  I've added a section to autofs4.txt about mount namespaces, but it is
-> >  otherwise unchanged.
-> > 
-> >  If I could get an {Acked,Reviewed,Tested}-By in the next few weeks so
-> >  I can send them on to Andrew I would really appreciate it.
-> > 
-> > Thanks,
-> > NeilBrown
-> > 
-> > 
-> > 
-> > ---
-> > 
-> > NeilBrown (5):
-> >       autofs4: allow RCU-walk to walk through autofs4.
-> >       autofs4: factor should_expire() out of autofs4_expire_indirect.
-> >       autofs4: avoid taking fs_lock during rcu-walk
-> >       autofs4: d_manage() should return -EISDIR when appropriate in rcu-walk mode.
-> >       autofs: the documentation I wanted to read
-> > 
-> > 
-> >  Documentation/filesystems/autofs4.txt |  520 +++++++++++++++++++++++++++++++++
-> >  fs/autofs4/autofs_i.h                 |    6 
-> >  fs/autofs4/dev-ioctl.c                |    2 
-> >  fs/autofs4/expire.c                   |  200 ++++++++-----
-> >  fs/autofs4/root.c                     |   62 +++-
-> >  5 files changed, 694 insertions(+), 96 deletions(-)
-> >  create mode 100644 Documentation/filesystems/autofs4.txt
-> > 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe autofs" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/fs/autofs4/expire.c b/fs/autofs4/expire.c
+index eb4b770a4bf6..80133a9d9427 100644
+--- a/fs/autofs4/expire.c
++++ b/fs/autofs4/expire.c
+@@ -26,6 +26,9 @@ static inline int autofs4_can_expire(struct dentry *dentr=
+y,
+ 	if (ino =3D=3D NULL)
+ 		return 0;
+=20
++	if (ino->flags & AUTOFS_INF_NO_RCU)
++		/* Already performed this test */
++		return 1;
+ 	if (!do_now) {
+ 		/* Too young to die */
+ 		if (!timeout || time_after(ino->last_used + timeout, now))
 
 
+
+might fix it, but might be a hack.
+(tests.... yep, that seems to fix it).
+
+I'll think some more tomorrow.
+
+Thanks,
+NeilBrown
+
+--Sig_/XgXnPR2MAOak02yXB+y2Jzu
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIVAwUBU/MyJznsnt1WYoG5AQL0kA//Q26OtkMFtRDEr08DMnFTtdDXmSm+4/kv
+jatZfcaJ6Lj7Q70S5xR18f++uyKO48A1WHwUcfVbIbFzRo+GyRsZ0s9vtPqgnpO7
+7PjUpfH+4Ro4gVOQ1d4DrcbFLvAWRKbeNlns6oQZoL9TCIkFb78qGob6Aq6423Sy
+4ujESZvJtg3VVUZrv0E6sN1Qz3cLHkTXNgl3Sm/ozBIq7/Y8TaUROb9ICr3LkQMH
+HcFpbO46vdHUrIo40rSki1hDYU1Emcwr3fNgyUAPEcRs+9dMB5r0WYNGa7kz9SZF
+95JKwx5LIs0rIhszUdqBBwm35qMHPA5FMlUnEyG13bDPWTDd+LKoWB7P9iiMI/4C
+WlFxN2bdvLxaZJGtROjBBHhSYr+qvzSKOaGoqKjkXWxGV6pfvUJklOgAQYMigEhz
+lV1j0Am0QVcVw4veeVQ3LEEXK36yjMm3m7P3iwbcDWxH3eA0+drEDinlfzxaEEoq
+JBRlAUIp6pm44jg6BDHHY7B8iMmZTosSKdRpCSncGEBmnxfkrMRxmbDBKFOLKgWT
+++XyHeaARvRm64LRz6qbK8ZRosgi6WOF9pWxOqImpzQn5Gsk2HJq803duKVTSKlM
+Z2HS68OKkVA+FalHt1M6NNW/mcgEXkmXhxu6P9qvL/vHOckz5rTeAMhCS2N8wqYo
+hLGgXIrEZP4=
+=RFQb
+-----END PGP SIGNATURE-----
+
+--Sig_/XgXnPR2MAOak02yXB+y2Jzu--
