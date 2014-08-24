@@ -1,8 +1,7 @@
 From: NeilBrown <neilb@suse.de>
-Subject: [PATCH 5/6] autofs4: d_manage() should return -EISDIR when
- appropriate in rcu-walk mode.
+Subject: [PATCH 4/6] autofs4: avoid taking fs_lock during rcu-walk
 Date: Mon, 25 Aug 2014 08:42:36 +1000
-Message-ID: <20140824224236.16196.45803.stgit@notabene.brown>
+Message-ID: <20140824224236.16196.49289.stgit@notabene.brown>
 References: <20140824223628.16196.5795.stgit@notabene.brown>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -14,71 +13,134 @@ Content-Type: text/plain; charset="us-ascii"
 To: Andrew Morton <akpm@linux-foundation.org>
 Cc: autofs@vger.kernel.org, linux-kernel@vger.kernel.org, Ian Kent <raven@themaw.net>
 
-If rcu-walk mode we don't *have* to return -EISDIR for non-mount-traps
-as we will simply drop into REF-walk and handling DCACHE_NEED_AUTOMOUNT
-dentrys the slow way.  But it is better if we do when possible.
+->fs_lock protects AUTOFS_INF_EXPIRING.  We need to be sure
+that once the flag is set, no new references beneath the dentry
+are taken.  So rcu-walk currently needs to take fs_lock before
+checking the flag.  This hurts performance.
 
-In 'oz_mode', use the same condition as ref-walk: if not a mountpoint,
-then it must be -EISDIR.
+Change the expiry to a two-stage process.
+First set AUTOFS_INF_NO_RCU which forces any path walk into
+ref-walk mode, then drop the lock and call synchronize_rcu().
+Once that returns we can be sure no rcu-walk is active beneath
+the dentry and we can check reference counts again.
 
-In regular mode there are most tests needed.  Most of them can be
-performed without taking any spinlocks.
-If we find a directory that isn't obviously empty, and isn't mounted
-on, we need to call 'simple_empty()' which does take a spinlock.
-If this turned out to hurt performance, some other approach could
-be found to signal when a directory is known to be empty.
+Now during an RCU-walk we can test AUTOFS_INF_EXPIRING without
+taking the lock as along as we test AUTOFS_INF_NO_RCU too.
+If either are set, we must abort the RCU-walk
+If neither are set, we know that refcounts will be tested again
+after we finish the RCU-walk so we are safe to continue.
+
+->fs_lock is still taken in d_manage() to check for a non-trap
+directory.  That will be resolved in the next patch.
 
 Reviewed-by: Ian Kent <raven@themaw.net>
 Tested-by: Ian Kent <raven@themaw.net>
 Signed-off-by: NeilBrown <neilb@suse.de>
 ---
- fs/autofs4/root.c |   26 ++++++++++++++++++++------
- 1 file changed, 20 insertions(+), 6 deletions(-)
+ fs/autofs4/autofs_i.h |    4 ++++
+ fs/autofs4/expire.c   |   46 ++++++++++++++++++++++++++++++++++++++--------
+ 2 files changed, 42 insertions(+), 8 deletions(-)
 
-diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
-index 2296c8301b66..71e4413d65c8 100644
---- a/fs/autofs4/root.c
-+++ b/fs/autofs4/root.c
-@@ -433,8 +433,6 @@ static int autofs4_d_manage(struct dentry *dentry, bool rcu_walk)
+diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
+index 2f1032f12d91..8e98cf954bab 100644
+--- a/fs/autofs4/autofs_i.h
++++ b/fs/autofs4/autofs_i.h
+@@ -79,6 +79,10 @@ struct autofs_info {
+ };
  
- 	/* The daemon never waits. */
- 	if (autofs4_oz_mode(sbi)) {
--		if (rcu_walk)
--			return 0;
- 		if (!d_mountpoint(dentry))
- 			return -EISDIR;
- 		return 0;
-@@ -452,12 +450,28 @@ static int autofs4_d_manage(struct dentry *dentry, bool rcu_walk)
- 	if (status)
- 		return status;
+ #define AUTOFS_INF_EXPIRING	(1<<0) /* dentry is in the process of expiring */
++#define AUTOFS_INF_NO_RCU	(1<<1) /* the dentry is being considered
++					* for expiry, so RCU_walk is
++					* not permitted
++					*/
+ #define AUTOFS_INF_PENDING	(1<<2) /* dentry pending mount */
  
--	if (rcu_walk)
--		/* it is always safe to return 0 as the worst that
--		 * will happen is we retry in REF-walk mode.
--		 * Better than always taking a lock.
-+	if (rcu_walk) {
-+		/* We don't need fs_lock in rcu_walk mode,
-+		 * just testing 'AUTOFS_INFO_NO_RCU' is enough.
-+		 * simple_empty() takes a spinlock, so leave it
-+		 * to last.
-+		 * We only return -EISDIR when certain this isn't
-+		 * a mount-trap.
- 		 */
-+		struct inode *inode;
-+		if (ino->flags & (AUTOFS_INF_EXPIRING | AUTOFS_INF_NO_RCU))
-+			return 0;
-+		if (d_mountpoint(dentry))
-+			return 0;
-+		inode = rcu_dereference(dentry->d_inode);
-+		if (inode && S_ISLNK(inode->i_mode))
-+			return -EISDIR;
-+		if (list_empty(&dentry->d_subdirs))
-+			return 0;
-+		if (!simple_empty(dentry))
-+			return -EISDIR;
- 		return 0;
-+	}
+ struct autofs_wait_queue {
+diff --git a/fs/autofs4/expire.c b/fs/autofs4/expire.c
+index af09dada91bc..4d52272952ec 100644
+--- a/fs/autofs4/expire.c
++++ b/fs/autofs4/expire.c
+@@ -327,10 +327,19 @@ struct dentry *autofs4_expire_direct(struct super_block *sb,
+ 	if (ino->flags & AUTOFS_INF_PENDING)
+ 		goto out;
+ 	if (!autofs4_direct_busy(mnt, root, timeout, do_now)) {
+-		ino->flags |= AUTOFS_INF_EXPIRING;
+-		init_completion(&ino->expire_complete);
++		ino->flags |= AUTOFS_INF_NO_RCU;
+ 		spin_unlock(&sbi->fs_lock);
+-		return root;
++		synchronize_rcu();
++		spin_lock(&sbi->fs_lock);
++		if (!autofs4_direct_busy(mnt, root, timeout, do_now)) {
++			ino->flags |= AUTOFS_INF_EXPIRING;
++			smp_mb();
++			ino->flags &= ~AUTOFS_INF_NO_RCU;
++			init_completion(&ino->expire_complete);
++			spin_unlock(&sbi->fs_lock);
++			return root;
++		}
++		ino->flags &= ~AUTOFS_INF_NO_RCU;
+ 	}
+ out:
+ 	spin_unlock(&sbi->fs_lock);
+@@ -448,12 +457,29 @@ struct dentry *autofs4_expire_indirect(struct super_block *sb,
+ 	dentry = NULL;
+ 	while ((dentry = get_next_positive_subdir(dentry, root))) {
+ 		spin_lock(&sbi->fs_lock);
+-		expired = should_expire(dentry, mnt, timeout, how);
+-		if (expired) {
++		ino = autofs4_dentry_ino(dentry);
++		if (ino->flags & AUTOFS_INF_NO_RCU)
++			expired = NULL;
++		else
++			expired = should_expire(dentry, mnt, timeout, how);
++		if (!expired) {
++			spin_unlock(&sbi->fs_lock);
++			continue;
++		}
++		ino = autofs4_dentry_ino(expired);
++		ino->flags |= AUTOFS_INF_NO_RCU;
++		spin_unlock(&sbi->fs_lock);
++		synchronize_rcu();
++		spin_lock(&sbi->fs_lock);
++		if (should_expire(expired, mnt, timeout, how)) {
+ 			if (expired != dentry)
+ 				dput(dentry);
+ 			goto found;
+ 		}
++
++		ino->flags &= ~AUTOFS_INF_NO_RCU;
++		if (expired != dentry)
++			dput(expired);
+ 		spin_unlock(&sbi->fs_lock);
+ 	}
+ 	return NULL;
+@@ -461,8 +487,9 @@ struct dentry *autofs4_expire_indirect(struct super_block *sb,
+ found:
+ 	DPRINTK("returning %p %.*s",
+ 		expired, (int)expired->d_name.len, expired->d_name.name);
+-	ino = autofs4_dentry_ino(expired);
+ 	ino->flags |= AUTOFS_INF_EXPIRING;
++	smp_mb();
++	ino->flags &= ~AUTOFS_INF_NO_RCU;
+ 	init_completion(&ino->expire_complete);
+ 	spin_unlock(&sbi->fs_lock);
+ 	spin_lock(&sbi->lookup_lock);
+@@ -482,11 +509,14 @@ int autofs4_expire_wait(struct dentry *dentry, int rcu_walk)
+ 	int status;
  
+ 	/* Block on any pending expire */
++	if (!(ino->flags & (AUTOFS_INF_EXPIRING | AUTOFS_INF_NO_RCU)))
++		return 0;
++	if (rcu_walk)
++		return -ECHILD;
++
  	spin_lock(&sbi->fs_lock);
- 	/*
+ 	if (ino->flags & AUTOFS_INF_EXPIRING) {
+ 		spin_unlock(&sbi->fs_lock);
+-		if (rcu_walk)
+-			return -ECHILD;
+ 
+ 		DPRINTK("waiting for expire %p name=%.*s",
+ 			 dentry, dentry->d_name.len, dentry->d_name.name);
 
