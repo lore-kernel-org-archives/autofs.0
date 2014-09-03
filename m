@@ -1,51 +1,69 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: configure script bug --with-flagdir
-Date: Mon, 01 Sep 2014 15:06:50 +0800
-Message-ID: <1409555210.2551.5.camel@perseus.themaw.net>
-References: <201408311748.59806.rln-autofs@arbetsmyra.dyndns.org>
-	 <5404041F.2030107@msgid.tls.msk.ru>
+From: NeilBrown <neilb@suse.de>
+Subject: [PATCH] autofs4: use ACCESS_ONCE rather than rcu_dereference for
+ dentry->d_inode
+Date: Wed, 3 Sep 2014 14:06:17 +1000
+Message-ID: <20140903140617.7502ad32@notabene.brown>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ boundary="Sig_/8Xnn/5WxTxmXnB0/OkC4vFD"; protocol="application/pgp-signature"
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	message-id:subject:from:to:cc:date:in-reply-to:references
-	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
-	 bh=QjpAEfDw8X32tzji4zDpVDAJlKs=; b=xDgPE3dq868eF98bH2fbCCV5oguc
-	yvMOCsNhpprXhz3ub/ztOqmboMKT7vvLMRPgtjPdNWFqwC6399WqIiAiLQO7q7X0
-	+9sPEMASoLJA1TDqdk2nqIdPoZXTKLSErx7B0ZtRQbsrhUgNC83zlcG7P+pLu91s
-	owJzKSvx0Yft7g4=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=message-id:subject:from:to:cc:date
-	:in-reply-to:references:content-type:mime-version
-	:content-transfer-encoding; s=smtpout; bh=QjpAEfDw8X32tzji4zDpVD
-	AJlKs=; b=oReAqHPMLjfJzqQEhWUdTaMt0ecImUj3ADlWhfcg0FzKKwQ5KLi9OO
-	nJkKaxgwkjB30W8qGcO3nX/BQsLFg334W8odyakekiKp2twn60Y8O6W56zzFO+1p
-	jpinL/AGaTo7Trp/9SfTQfznb0ogiNIZXWU6jaCBnCWWsLO8JQRi8=
-In-Reply-To: <5404041F.2030107@msgid.tls.msk.ru>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: Michael Tokarev <mjt@tls.msk.ru>
-Cc: Ronny Nilsson <rln-autofs@arbetsmyra.dyndns.org>, autofs@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: kbuild-all@01.org, lkml <linux-kernel@vger.kernel.org>, Ian Kent <raven@themaw.net>, autofs@vger.kernel.org
 
-On Mon, 2014-09-01 at 09:29 +0400, Michael Tokarev wrote:
-> 31.08.2014 19:48, Ronny Nilsson wrote:
-> > Hi
-> > I would like to report a possible bug in the configure script. The 
-> > option "--with-flagdir" doesn't seem to work. Studying the source it looks 
-> 
-> http://www.spinics.net/lists/autofs/msg00159.html -- I think autofs is hopeless.
-
-LOL, right, missed that one.
-Thanks for the encouragement Michael, ;)
-
-> 
-> Thanks,
-> 
-> /mjt
-> --
-> To unsubscribe from this list: send the line "unsubscribe autofs" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--Sig_/8Xnn/5WxTxmXnB0/OkC4vFD
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
 
+
+As the kbuild test robot reports, rcu_dereference() isn't really
+appropriate here - we don't need a memory barrier, just a guard
+against accidentally dereferencing NULL.
+
+This can be merged into
+ autofs4: d_manage() should return -EISDIR when appropriate in rcu-walk mod=
+e.
+in 'mm'.
+
+Signed-off-by: NeilBrown <neilb@suse.de>
+
+diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
+index 71e4413d65c8..d76d083f2f06 100644
+--- a/fs/autofs4/root.c
++++ b/fs/autofs4/root.c
+@@ -463,7 +463,7 @@ static int autofs4_d_manage(struct dentry *dentry, bool=
+ rcu_walk)
+ 			return 0;
+ 		if (d_mountpoint(dentry))
+ 			return 0;
+-		inode =3D rcu_dereference(dentry->d_inode);
++		inode =3D ACCESS_ONCE(dentry->d_inode);
+ 		if (inode && S_ISLNK(inode->i_mode))
+ 			return -EISDIR;
+ 		if (list_empty(&dentry->d_subdirs))
+
+--Sig_/8Xnn/5WxTxmXnB0/OkC4vFD
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIVAwUBVAaTujnsnt1WYoG5AQKuXhAAtOkxbxEp6cXChqxzp9nNwhsxbxqeBYdl
+rFDJPLgZVbe1bOcqmkuQfZdzh+pOQzowhb09m6doLg/d2JwkB0cLgmAeZKS6ufOa
+U6BPw0lIfxjf6i257t+rGcKBkJAFF/IoPz3XIazZIm3hELoLc/y9nPtoIA9/cgnH
+p1DTJWfm7RPAskSwJJooNUD8ccb2/MvQ1i94K9rEgrJsyJYH7tniyt/ySJyx0F7g
+DWYUhBNYxZ17I16lcuD4GvR5nYCKfkpsyZVTmJtTwU1Yo6CQa/K8IAPwfZyNhxbP
+ZZ72HPNoOFPl783uTwWLLc4/VVR9DjAMKggnncDQKogtnJt+MARqpvtRYPMwOg5e
+uxIo15XOwOzmNaXC5cQ8knBDJkFfHamFTxmdHVPLPWVG5neqmwlcRRcBRmUfTmr8
+TYNtPGrcpyuWA4CP/PKCtynpE+L2Qxwg4/ICO0f2a2I1/DeJ1mOZ+dTau5mgIgo5
+rgzdv9vzfx35pC1RuV0RmTPcjOuqhzNvhPAYGirH37Zxl28RGybY9bNp34iqEo11
+aDqmREGs899LB3Ei/qv+LOxt1RM1C6LDcwDpuTBLt/XENbPzIzKItcRUqvMvvR7N
+Z3fJFsQ6LOtI8URb/MRztZVQNqh9DEmYh+DRGKfWW53uO7otFRzBqYBJGVdE3w5P
+uv5LJ9BoInY=
+=r/9g
+-----END PGP SIGNATURE-----
+
+--Sig_/8Xnn/5WxTxmXnB0/OkC4vFD--
