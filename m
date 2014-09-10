@@ -1,53 +1,66 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: Difference between '/net -hosts' and '/net /etc/auto.net'
- auto.master entries?
-Date: Wed, 10 Sep 2014 09:33:50 +0800
-Message-ID: <1410312830.2548.11.camel@perseus.themaw.net>
-References: <CAK2T3rox0jyPQYxH60RoOLiWDOTvGYRs3Y4uZmEzgs5YaGUUyg@mail.gmail.com>
+Subject: [PATCH] autofs - remove obsolete d_invalidate() from expire
+Date: Wed, 10 Sep 2014 09:56:22 +0800
+Message-ID: <20140910015622.4059.66829.stgit@perseus.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	message-id:subject:from:to:cc:date:in-reply-to:references
-	:content-type:mime-version:content-transfer-encoding; s=mesmtp;
-	 bh=EiydInq7ZnXYowMy4bCKzXahLPA=; b=HVBPBYDS9nVPMa9RnYJF38feKxxs
-	lPQFj+STgq5G2BmlJGEXuFCLNL/zU4noZGKhokZRdvMxNtkB/jSo1l+tX0/fYUom
-	KNFbHVovhF8gIm9SJj/G45BhvmQYhzGEcMTNHNeYp1BSLvs5zVjxiGJgqcoxDTnC
-	VEaHiVlKr/Pm0ro=
+	subject:from:to:cc:date:message-id:mime-version:content-type
+	:content-transfer-encoding; s=mesmtp; bh=9SIBlcxqlFtCo/jM0GL7pWK
+	oihg=; b=krMEO4bjFjjAkpcLFMl36nx2kHZQcpoUfql+s0EnfITL0EQ6cwaFEJ5
+	vQs2VaMKyU/2MnDedK4jP3jvA5DtURCArS6uSCLgwRqZBhJp3wFBKs+rrjsBk8Hp
+	x1bJb1dE+hFlCmRg3e4DzhtJZ/feraPL0/vfPhu7BP172KtMnhqM=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=message-id:subject:from:to:cc:date
-	:in-reply-to:references:content-type:mime-version
-	:content-transfer-encoding; s=smtpout; bh=EiydInq7ZnXYowMy4bCKzX
-	ahLPA=; b=hBsVz5jn+tbok7zdIPKURNxqoucNnP2KCClYEomjzwifHAh5M/qT9w
-	QZxp4H6KQbJD7sLU+8x276FGJFPZwKMQXffo8gcN0yQTJOkt85LCinlh+RiFI4Ax
-	JhRBkmByKCK5mcmdH2PRg6mWAxB8xw5EN/S0tAC0KSgrwiADUL5Lg=
-In-Reply-To: <CAK2T3rox0jyPQYxH60RoOLiWDOTvGYRs3Y4uZmEzgs5YaGUUyg@mail.gmail.com>
-Sender: autofs-owner@vger.kernel.org
+	messagingengine.com; h=subject:from:to:cc:date:message-id
+	:mime-version:content-type:content-transfer-encoding; s=smtpout;
+	 bh=9SIBlcxqlFtCo/jM0GL7pWKoihg=; b=RjihNVKaVB11nilkSjaPVSTx6slY
+	echs0NP5jMq9eg1uthD0xqGiaAR+tm6M9xD2KkVD+dwc51ju1Uz6XZ2d9VOgYSiq
+	u1sPDQoFploec3aCiJ43GuEkT0O+oFfhWiSxutLfuDJBzZgYNATZb0iti/w6uQQX
+	jECTO0bJ5kVlyEM=
+Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Rufe Glick <rufe.glick@gmail.com>
-Cc: autofs@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Al Viro <viro@ZenIV.linux.org.uk>
 
-On Tue, 2014-09-09 at 15:16 -0400, Rufe Glick wrote:
-> Hello,
-> 
-> In my /etc/auto.master file I add the following two entries:
->     /net   -hosts
->     /net2  /etc/auto.net
-> 
-> After starting the autofs service I can now access the same remote NFS
-> share under either of these paths:
->     ls  /net/192.168.0.50/
->     ls  /net2/192.168.0.50/
-> 
-> Is there any difference between those two ways of achieving the same
-> result? Is -hosts option just a shortcut for the auto.net script?
+Biederman's commit c4625721f changes d_invalidate() to sumarily remove
+mounts under the passed in dentry regardless of whether they are busy
+or not. So calling this in fs/autofs4/expire.c:autofs4_tree_busy() is
+definitely the wrong thing to do becuase it will silently umount entries
+instead of just cleaning stale dentrys.
 
-The result is the same but the later is a script that depends on
-external programs while the former doesn't. And the script doesn't allow
-the use of the expected standard syntax, the "-hosts" option. The script
-hasn't been removed because people may be using it and because it's an
-example of functional program map.
+But this call shouldn't be needed and testing shows that automounting
+continues to function without it.
 
-Ian
+As Al Viro correctly surmises the original intent of the call was to
+perform what shrink_dcache_parent() does.
 
+If at some time in the future I see stale dentries accumulating
+following failed mounts I'll revisit the issue and possibly add a
+shrink_dcache_parent() call if needed.
+
+Signed-off-by: Ian Kent <raven@themaw.net>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+---
+ fs/autofs4/expire.c |    6 ------
+ 1 file changed, 6 deletions(-)
+
+diff --git a/fs/autofs4/expire.c b/fs/autofs4/expire.c
+index d97a761..b45fe2c 100644
+--- a/fs/autofs4/expire.c
++++ b/fs/autofs4/expire.c
+@@ -249,12 +249,6 @@ static int autofs4_tree_busy(struct vfsmount *mnt,
+ 			struct autofs_info *ino = autofs4_dentry_ino(p);
+ 			unsigned int ino_count = atomic_read(&ino->count);
+ 
+-			/*
+-			 * Clean stale dentries below that have not been
+-			 * invalidated after a mount fail during lookup
+-			 */
+-			d_invalidate(p);
+-
+ 			/* allow for dget above and top is already dgot */
+ 			if (p == top)
+ 				ino_count += 2;
