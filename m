@@ -1,66 +1,72 @@
-From: Ian Kent <raven@themaw.net>
-Subject: [PATCH] autofs - remove obsolete d_invalidate() from expire
-Date: Wed, 10 Sep 2014 09:56:22 +0800
-Message-ID: <20140910015622.4059.66829.stgit@perseus.themaw.net>
+From: Andreas Reis <andreas.reis@gmail.com>
+Subject: NFSv4: Unable to mount, nonsensical error
+Date: Sat, 27 Sep 2014 16:27:15 +0200
+Message-ID: <5426C943.1060307@gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	subject:from:to:cc:date:message-id:mime-version:content-type
-	:content-transfer-encoding; s=mesmtp; bh=9SIBlcxqlFtCo/jM0GL7pWK
-	oihg=; b=krMEO4bjFjjAkpcLFMl36nx2kHZQcpoUfql+s0EnfITL0EQ6cwaFEJ5
-	vQs2VaMKyU/2MnDedK4jP3jvA5DtURCArS6uSCLgwRqZBhJp3wFBKs+rrjsBk8Hp
-	x1bJb1dE+hFlCmRg3e4DzhtJZ/feraPL0/vfPhu7BP172KtMnhqM=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=subject:from:to:cc:date:message-id
-	:mime-version:content-type:content-transfer-encoding; s=smtpout;
-	 bh=9SIBlcxqlFtCo/jM0GL7pWKoihg=; b=RjihNVKaVB11nilkSjaPVSTx6slY
-	echs0NP5jMq9eg1uthD0xqGiaAR+tm6M9xD2KkVD+dwc51ju1Uz6XZ2d9VOgYSiq
-	u1sPDQoFploec3aCiJ43GuEkT0O+oFfhWiSxutLfuDJBzZgYNATZb0iti/w6uQQX
-	jECTO0bJ5kVlyEM=
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <autofs-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20120113;
+        h=message-id:date:from:user-agent:mime-version:to:subject
+         :content-type:content-transfer-encoding;
+        bh=J6efdIsVzVYMY6fjxe21dSBsKJw37b/2EOZAH6FITB8=;
+        b=QWla0uF0y5WIXeJ9SDXcaWOP27e0s1a5aliTx68y5Puzgt6FQcECzWYszPUs1GILHT
+         KgV5tvuF9fl193Ys/JGMwOVV4eDf1Y12tTZa0h0R4hvDJ19QnIh1Sbe5HhWMcnjmxvHx
+         bA5jnw1Cm/TPFndd9sQKjV9JokZIxCpCbfgR7g5AXXAGUkctxVtiOGS4E/gPO1jkDWAk
+         LnLx25RY4HMvDxkZkROboHrepkABQYopNcQNeglctysrh12ms0b8JbOd715Q6l8rnm9i
+         QJA/jFyXQuklersLupaIs8H9XfJ5EO3hjZAn9LlTZvSjXyM/AFh+oipVxp5DkFeK2hw/
+         7HXQ==
+Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Al Viro <viro@ZenIV.linux.org.uk>
+Content-Type: text/plain; charset="utf-8"; format="flowed"
+To: autofs@vger.kernel.org
 
-Biederman's commit c4625721f changes d_invalidate() to sumarily remove
-mounts under the passed in dentry regardless of whether they are busy
-or not. So calling this in fs/autofs4/expire.c:autofs4_tree_busy() is
-definitely the wrong thing to do becuase it will silently umount entries
-instead of just cleaning stale dentrys.
+Hi,
 
-But this call shouldn't be needed and testing shows that automounting
-continues to function without it.
+I'm trying to automount a NFSv4 share to /mnt/bar from Host A via a=20
+direct map, but can't get it to work no matter what.
 
-As Al Viro correctly surmises the original intent of the call was to
-perform what shrink_dcache_parent() does.
+Mounting it manually with the very same options works perfectly fine.
 
-If at some time in the future I see stale dentries accumulating
-following failed mounts I'll revisit the issue and possibly add a
-shrink_dcache_parent() call if needed.
+auto.master:
+/-     /etc/autofs/bar.nfs    --timeout=3D15 --ghost
+/foo   /etc/autofs/auto.nfs   --timeout=3D15
 
-Signed-off-by: Ian Kent <raven@themaw.net>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
----
- fs/autofs4/expire.c |    6 ------
- 1 file changed, 6 deletions(-)
+The second line is an executable map for NFSv3 shares from Host B. That=
+=20
+one works as intended. However=E2=80=A6
 
-diff --git a/fs/autofs4/expire.c b/fs/autofs4/expire.c
-index d97a761..b45fe2c 100644
---- a/fs/autofs4/expire.c
-+++ b/fs/autofs4/expire.c
-@@ -249,12 +249,6 @@ static int autofs4_tree_busy(struct vfsmount *mnt,
- 			struct autofs_info *ino = autofs4_dentry_ino(p);
- 			unsigned int ino_count = atomic_read(&ino->count);
- 
--			/*
--			 * Clean stale dentries below that have not been
--			 * invalidated after a mount fail during lookup
--			 */
--			d_invalidate(p);
--
- 			/* allow for dget above and top is already dgot */
- 			if (p == top)
- 				ino_count += 2;
+fs.nfs:
+/mnt/bar -fstype=3Dnfs4,rw,soft,async,_netdev,rsize=3D8192,wsize=3D8192=
+=20
+192.168.1.144:bar
+(on one line)
+
+=E2=80=A6 fails. Instead, the folder is still created, but accessing it=
+ yields=20
+"No such file or directory".
+
+Meanwhile automount prints a nonsensical =E2=80=A6
+
+"validate_location: expected colon delimeter not found in location=20
+192.168.1.144:bar"
+
+=E2=80=A6 which from an error path (with a typo) in parse_sun.c's=20
+validate_location that was added in autofs 5.0.6.
+
+Maybe the person who added it missed that unlike mount requests for=20
+NFSv3 shares, NFSv4 ones need not (depending on the server, must not)=20
+have a "/" after the ":"?
+
+Because that however is what the somewhat misleadingly named check_colo=
+n=20
+function called by validate_location checks.
+
+Nonetheless, patching that path to still return 1 resolved nothing.
+
+Any ideas?
+
+(Distro is Arch, updated packages, ie. autofs 5.1.0.)
+
+Thanks,
+Andreas
