@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 10/13] autofs - create autofs Kconfig and Makefile
-Date: Mon, 03 Nov 2014 16:13:06 +0800
-Message-ID: <20141103081305.6215.64958.stgit@perseus.themaw.net>
+Subject: [PATCH 12/13] autofs - update fs/autofs4/Makefile
+Date: Mon, 03 Nov 2014 16:13:16 +0800
+Message-ID: <20141103081316.6215.67442.stgit@perseus.themaw.net>
 References: <20141103081218.6215.85903.stgit@perseus.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -9,17 +9,17 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
 	x-sasl-enc:subject:from:to:cc:date:message-id:in-reply-to
 	:references:mime-version:content-type:content-transfer-encoding;
-	 s=mesmtp; bh=vIYw470vvFNSWEe+8faYyIwlj6c=; b=EI4fH7YYK9Dx66u/UM
-	LjKDQfkPvs2Aiqq28hffhFTBwlUBut2AAHt9uF+ScZEnabUx0/MGievhpPCHi9Fb
-	c2IX0AlS5JQWX/ZcP5c4oX0/+qBi0PkzA/HO0gnYYA+amqCC70quWjpHLI1Gebtl
-	Dovzoml9SMlg+A58eyMf7HS5I=
+	 s=mesmtp; bh=xvjlPPPMlEsQUumIX9qyF/annWU=; b=IMPUSIue+uSZbgQ38w
+	IVSAVzJN4L5AI8zYYcXI0psVB8nP31dr6P0wejIrQ7kKuR9LKQVnDuh5vlh2z1p5
+	Q3N26DzGPiDFC6hEzpvU83WPHTdCHbgLY1uEw2uRswmuHCGc5Xat98jx1yRt3bLj
+	cXeQSczY5tgcdstpr7CHQBEHc=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=x-sasl-enc:subject:from:to:cc:date
 	:message-id:in-reply-to:references:mime-version:content-type
-	:content-transfer-encoding; s=smtpout; bh=vIYw470vvFNSWEe+8faYyI
-	wlj6c=; b=f2RWy+oGErFerrMSQ6hJZdo7JAY3mPFRb9lQoAWZSTh1TXrUpymVZF
-	KPPcIhbvnQTvv6e2X/2itiF/ySJLz8glvJNqt03kn6J/S+2eoeSBJlb6Hju0MlNk
-	iNwpIBZ97l4mX6t1HLbrB6u/bD6ebXUtDRPine+Fi7vXaVMFRxghg=
+	:content-transfer-encoding; s=smtpout; bh=xvjlPPPMlEsQUumIX9qyF/
+	annWU=; b=uLI/yCiA4wmaF+5TG+J23KFmEHXjhHtHAshGc64sNhHJbTXaIyFMcO
+	kNHCTHmi6Xd15lCb/F702+tgXBMbAbsLf2T+UZMSfk3wfzR+E9Ogyknn2H9f2Qn3
+	eK6RAYmqKXSQZhYNVjGpbHSrI5+iAv5gWQbDVCFQlgQ9WwCV/jp7Y=
 In-Reply-To: <20141103081218.6215.85903.stgit@perseus.themaw.net>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
@@ -27,77 +27,23 @@ Content-Type: text/plain; charset="us-ascii"
 To: Andrew Morton <akpm@linux-foundation.org>
 Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Create Makefile and Kconfig for autofs module.
+Update Makefile to build from source in fs/autofs instead of
+fs/autofs4.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 ---
- fs/Kconfig         |    1 +
- fs/Makefile        |    1 +
- fs/autofs/Kconfig  |   19 +++++++++++++++++++
- fs/autofs/Makefile |    7 +++++++
- 4 files changed, 28 insertions(+)
- create mode 100644 fs/autofs/Kconfig
- create mode 100644 fs/autofs/Makefile
+ fs/autofs4/Makefile |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/fs/Kconfig b/fs/Kconfig
-index 664991a..18fa31d 100644
---- a/fs/Kconfig
-+++ b/fs/Kconfig
-@@ -65,6 +65,7 @@ source "fs/notify/Kconfig"
+diff --git a/fs/autofs4/Makefile b/fs/autofs4/Makefile
+index a811c1f..417dd72 100644
+--- a/fs/autofs4/Makefile
++++ b/fs/autofs4/Makefile
+@@ -4,4 +4,6 @@
  
- source "fs/quota/Kconfig"
+ obj-$(CONFIG_AUTOFS4_FS) += autofs4.o
  
-+source "fs/autofs/Kconfig"
- source "fs/autofs4/Kconfig"
- source "fs/fuse/Kconfig"
- source "fs/overlayfs/Kconfig"
-diff --git a/fs/Makefile b/fs/Makefile
-index 34a1b9de..7e1b396 100644
---- a/fs/Makefile
-+++ b/fs/Makefile
-@@ -101,6 +101,7 @@ obj-$(CONFIG_AFFS_FS)		+= affs/
- obj-$(CONFIG_ROMFS_FS)		+= romfs/
- obj-$(CONFIG_QNX4FS_FS)		+= qnx4/
- obj-$(CONFIG_QNX6FS_FS)		+= qnx6/
-+obj-$(CONFIG_AUTOFS_FS)		+= autofs/
- obj-$(CONFIG_AUTOFS4_FS)	+= autofs4/
- obj-$(CONFIG_ADFS_FS)		+= adfs/
- obj-$(CONFIG_FUSE_FS)		+= fuse/
-diff --git a/fs/autofs/Kconfig b/fs/autofs/Kconfig
-new file mode 100644
-index 0000000..17f77a6
---- /dev/null
-+++ b/fs/autofs/Kconfig
-@@ -0,0 +1,19 @@
-+config AUTOFS_FS
-+	tristate "Kernel automounter support (supports v3, v4 and v5)"
-+	help
-+	   The automounter is a tool to automatically mount remote file systems
-+	   on demand. This implementation is partially kernel-based to reduce
-+	   overhead in the already-mounted case; this is unlike the BSD
-+	   automounter (amd), which is a pure user space daemon.
-+
-+	   To use the automounter you need the user-space tools from
-+	   <ftp://ftp.kernel.org/pub/linux/daemons/autofs/>; you also want
-+	   to answer Y to "NFS file system support", below.
-+
-+	   To compile this support as a module, choose M here: the module will be
-+	   called autofs.
-+
-+	   If you are not a part of a fairly large, distributed network or
-+	   don't have a laptop which needs to dynamically reconfigure to the
-+	   local network, you probably do not need an automounter, and can say
-+	   N here.
-diff --git a/fs/autofs/Makefile b/fs/autofs/Makefile
-new file mode 100644
-index 0000000..43fedde
---- /dev/null
-+++ b/fs/autofs/Makefile
-@@ -0,0 +1,7 @@
-+#
-+# Makefile for the linux autofs-filesystem routines.
-+#
-+
-+obj-$(CONFIG_AUTOFS_FS) += autofs.o
-+
-+autofs-objs := init.o inode.o root.o symlink.o waitq.o expire.o dev-ioctl.o
+-autofs4-objs := init.o inode.o root.o symlink.o waitq.o expire.o dev-ioctl.o
++autofs4-objs := ../autofs/init.o ../autofs/inode.o ../autofs/root.o \
++	../autofs/symlink.o ../autofs/waitq.o ../autofs/expire.o \
++	../autofs/dev-ioctl.o
