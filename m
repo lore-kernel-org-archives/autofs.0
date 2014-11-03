@@ -1,402 +1,103 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 07/13] autofs - merge auto_fs.h and auto_fs4.h
-Date: Mon, 03 Nov 2014 16:12:50 +0800
-Message-ID: <20141103081250.6215.81368.stgit@perseus.themaw.net>
+Subject: [PATCH 10/13] autofs - create autofs Kconfig and Makefile
+Date: Mon, 03 Nov 2014 16:13:06 +0800
+Message-ID: <20141103081305.6215.64958.stgit@perseus.themaw.net>
 References: <20141103081218.6215.85903.stgit@perseus.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
 	x-sasl-enc:subject:from:to:cc:date:message-id:in-reply-to
 	:references:mime-version:content-type:content-transfer-encoding;
-	 s=mesmtp; bh=z8Pn5QxsB97SMx01bIQpk50HHU4=; b=AsOofxByaD3Swauq4a
-	EMazxXzRmjjPbsazaCCHKaMkfcuGfopZrDrKUAnYf5S+QEJpiLzJQGDfS3EXV4Tu
-	oj7fscKo6VnzE0CdsEY8ZyvAOCxFIvIv5yd2zFH1gN9RNQeA3+A3KGZtEffsHv1R
-	i2VLe9txB2QQeUOJAX65wxWmw=
+	 s=mesmtp; bh=vIYw470vvFNSWEe+8faYyIwlj6c=; b=EI4fH7YYK9Dx66u/UM
+	LjKDQfkPvs2Aiqq28hffhFTBwlUBut2AAHt9uF+ScZEnabUx0/MGievhpPCHi9Fb
+	c2IX0AlS5JQWX/ZcP5c4oX0/+qBi0PkzA/HO0gnYYA+amqCC70quWjpHLI1Gebtl
+	Dovzoml9SMlg+A58eyMf7HS5I=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=x-sasl-enc:subject:from:to:cc:date
 	:message-id:in-reply-to:references:mime-version:content-type
-	:content-transfer-encoding; s=smtpout; bh=z8Pn5QxsB97SMx01bIQpk5
-	0HHU4=; b=hKof6aqYyINaOYzvtCWbGF1Gr8W3A2WSaNumYU7Ux9PXE8QfEvfpDu
-	+lAhHzjwojeK2QCiYC+QPI9488gjwdzqbLmvI4bXBkXfDVPOibt8aHa/H5ahcmI/
-	L6Xxj/DYOaAIsC+TemlAzGK6UJTMnalTE1jvjvqPxlkfdSk/Zj2Fw=
+	:content-transfer-encoding; s=smtpout; bh=vIYw470vvFNSWEe+8faYyI
+	wlj6c=; b=f2RWy+oGErFerrMSQ6hJZdo7JAY3mPFRb9lQoAWZSTh1TXrUpymVZF
+	KPPcIhbvnQTvv6e2X/2itiF/ySJLz8glvJNqt03kn6J/S+2eoeSBJlb6Hju0MlNk
+	iNwpIBZ97l4mX6t1HLbrB6u/bD6ebXUtDRPine+Fi7vXaVMFRxghg=
 In-Reply-To: <20141103081218.6215.85903.stgit@perseus.themaw.net>
-Sender: autofs-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: Andrew Morton <akpm@linux-foundation.org>
 Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-The autofs module has long since been removed so there's no need to have
-two separate include files for autofs.
+Create Makefile and Kconfig for autofs module.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 ---
- fs/autofs4/autofs_i.h         |    2 -
- fs/compat_ioctl.c             |    1 
- include/uapi/linux/auto_fs.h  |  147 ++++++++++++++++++++++++++++++++++++++--
- include/uapi/linux/auto_fs4.h |  149 +----------------------------------------
- 4 files changed, 143 insertions(+), 156 deletions(-)
+ fs/Kconfig         |    1 +
+ fs/Makefile        |    1 +
+ fs/autofs/Kconfig  |   19 +++++++++++++++++++
+ fs/autofs/Makefile |    7 +++++++
+ 4 files changed, 28 insertions(+)
+ create mode 100644 fs/autofs/Kconfig
+ create mode 100644 fs/autofs/Makefile
 
-diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
-index b33b939..fc33904 100644
---- a/fs/autofs4/autofs_i.h
-+++ b/fs/autofs4/autofs_i.h
-@@ -10,7 +10,7 @@
+diff --git a/fs/Kconfig b/fs/Kconfig
+index 664991a..18fa31d 100644
+--- a/fs/Kconfig
++++ b/fs/Kconfig
+@@ -65,6 +65,7 @@ source "fs/notify/Kconfig"
  
- /* Internal header file for autofs */
+ source "fs/quota/Kconfig"
  
--#include <linux/auto_fs4.h>
-+#include <linux/auto_fs.h>
- #include <linux/auto_dev-ioctl.h>
- #include <linux/mutex.h>
- #include <linux/spinlock.h>
-diff --git a/fs/compat_ioctl.c b/fs/compat_ioctl.c
-index afec645..8638407 100644
---- a/fs/compat_ioctl.c
-+++ b/fs/compat_ioctl.c
-@@ -38,7 +38,6 @@
- #include <linux/if_pppox.h>
- #include <linux/mtio.h>
- #include <linux/auto_fs.h>
--#include <linux/auto_fs4.h>
- #include <linux/tty.h>
- #include <linux/vt_kern.h>
- #include <linux/fb.h>
-diff --git a/include/uapi/linux/auto_fs.h b/include/uapi/linux/auto_fs.h
-index 9175a1b..b3122451 100644
---- a/include/uapi/linux/auto_fs.h
-+++ b/include/uapi/linux/auto_fs.h
-@@ -1,5 +1,7 @@
- /*
-- *   Copyright 1997 Transmeta Corporation - All Rights Reserved
-+ * Copyright 1997 Transmeta Corporation - All Rights Reserved
-+ * Copyright 1999-2000 Jeremy Fitzhardinge <jeremy@goop.org>
-+ * Copyright 2005-2006,2013 Ian Kent <raven@themaw.net>
-  *
-  * This file is part of the Linux kernel and is made available under
-  * the terms of the GNU General Public License, version 2, or at your
-@@ -7,7 +9,6 @@
-  *
-  * ----------------------------------------------------------------------- */
- 
--
- #ifndef _UAPI_LINUX_AUTO_FS_H
- #define _UAPI_LINUX_AUTO_FS_H
- 
-@@ -16,13 +17,11 @@
- #include <sys/ioctl.h>
- #endif /* __KERNEL__ */
- 
-+#define AUTOFS_PROTO_VERSION		5
-+#define AUTOFS_MIN_PROTO_VERSION	3
-+#define AUTOFS_MAX_PROTO_VERSION	5
- 
--/* This file describes autofs v3 */
--#define AUTOFS_PROTO_VERSION	3
--
--/* Range of protocol versions defined */
--#define AUTOFS_MAX_PROTO_VERSION	AUTOFS_PROTO_VERSION
--#define AUTOFS_MIN_PROTO_VERSION	AUTOFS_PROTO_VERSION
-+#define AUTOFS_PROTO_SUBVERSION		2
- 
- /*
-  * The wait_queue_token (autofs_wqt_t) is part of a structure which is passed
-@@ -68,4 +67,136 @@ struct autofs_packet_expire {
- #define AUTOFS_IOC_SETTIMEOUT _IOWR(0x93, 0x64, unsigned long)
- #define AUTOFS_IOC_EXPIRE     _IOR(0x93, 0x65, struct autofs_packet_expire)
- 
-+/* autofs version 4 and later definitions */
++source "fs/autofs/Kconfig"
+ source "fs/autofs4/Kconfig"
+ source "fs/fuse/Kconfig"
+ source "fs/overlayfs/Kconfig"
+diff --git a/fs/Makefile b/fs/Makefile
+index 34a1b9de..7e1b396 100644
+--- a/fs/Makefile
++++ b/fs/Makefile
+@@ -101,6 +101,7 @@ obj-$(CONFIG_AFFS_FS)		+= affs/
+ obj-$(CONFIG_ROMFS_FS)		+= romfs/
+ obj-$(CONFIG_QNX4FS_FS)		+= qnx4/
+ obj-$(CONFIG_QNX6FS_FS)		+= qnx6/
++obj-$(CONFIG_AUTOFS_FS)		+= autofs/
+ obj-$(CONFIG_AUTOFS4_FS)	+= autofs4/
+ obj-$(CONFIG_ADFS_FS)		+= adfs/
+ obj-$(CONFIG_FUSE_FS)		+= fuse/
+diff --git a/fs/autofs/Kconfig b/fs/autofs/Kconfig
+new file mode 100644
+index 0000000..17f77a6
+--- /dev/null
++++ b/fs/autofs/Kconfig
+@@ -0,0 +1,19 @@
++config AUTOFS_FS
++	tristate "Kernel automounter support (supports v3, v4 and v5)"
++	help
++	   The automounter is a tool to automatically mount remote file systems
++	   on demand. This implementation is partially kernel-based to reduce
++	   overhead in the already-mounted case; this is unlike the BSD
++	   automounter (amd), which is a pure user space daemon.
 +
-+/* Mask for expire behaviour */
-+#define AUTOFS_EXP_IMMEDIATE		1
-+#define AUTOFS_EXP_LEAVES		2
++	   To use the automounter you need the user-space tools from
++	   <ftp://ftp.kernel.org/pub/linux/daemons/autofs/>; you also want
++	   to answer Y to "NFS file system support", below.
 +
-+#define AUTOFS_TYPE_ANY			0U
-+#define AUTOFS_TYPE_INDIRECT		1U
-+#define AUTOFS_TYPE_DIRECT		2U
-+#define AUTOFS_TYPE_OFFSET		4U
++	   To compile this support as a module, choose M here: the module will be
++	   called autofs.
 +
-+static inline void set_autofs_type_indirect(unsigned int *type)
-+{
-+	*type = AUTOFS_TYPE_INDIRECT;
-+}
++	   If you are not a part of a fairly large, distributed network or
++	   don't have a laptop which needs to dynamically reconfigure to the
++	   local network, you probably do not need an automounter, and can say
++	   N here.
+diff --git a/fs/autofs/Makefile b/fs/autofs/Makefile
+new file mode 100644
+index 0000000..43fedde
+--- /dev/null
++++ b/fs/autofs/Makefile
+@@ -0,0 +1,7 @@
++#
++# Makefile for the linux autofs-filesystem routines.
++#
 +
-+static inline unsigned int autofs_type_indirect(unsigned int type)
-+{
-+	return (type == AUTOFS_TYPE_INDIRECT);
-+}
++obj-$(CONFIG_AUTOFS_FS) += autofs.o
 +
-+static inline void set_autofs_type_direct(unsigned int *type)
-+{
-+	*type = AUTOFS_TYPE_DIRECT;
-+}
-+
-+static inline unsigned int autofs_type_direct(unsigned int type)
-+{
-+	return (type == AUTOFS_TYPE_DIRECT);
-+}
-+
-+static inline void set_autofs_type_offset(unsigned int *type)
-+{
-+	*type = AUTOFS_TYPE_OFFSET;
-+}
-+
-+static inline unsigned int autofs_type_offset(unsigned int type)
-+{
-+	return (type == AUTOFS_TYPE_OFFSET);
-+}
-+
-+static inline unsigned int autofs_type_trigger(unsigned int type)
-+{
-+	return (type == AUTOFS_TYPE_DIRECT || type == AUTOFS_TYPE_OFFSET);
-+}
-+
-+/*
-+ * This isn't really a type as we use it to say "no type set" to
-+ * indicate we want to search for "any" mount in the
-+ * autofs_dev_ioctl_ismountpoint() device ioctl function.
-+ */
-+static inline void set_autofs_type_any(unsigned int *type)
-+{
-+	*type = AUTOFS_TYPE_ANY;
-+}
-+
-+static inline unsigned int autofs_type_any(unsigned int type)
-+{
-+	return (type == AUTOFS_TYPE_ANY);
-+}
-+
-+/* Daemon notification packet types */
-+enum autofs_notify {
-+	NFY_NONE,
-+	NFY_MOUNT,
-+	NFY_EXPIRE
-+};
-+
-+/* Kernel protocol version 4 packet types */
-+
-+/* Expire entry (umount request) */
-+#define autofs_ptype_expire_multi	2
-+
-+/* Kernel protocol version 5 packet types */
-+
-+/* Indirect mount missing and expire requests. */
-+#define autofs_ptype_missing_indirect	3
-+#define autofs_ptype_expire_indirect	4
-+
-+/* Direct mount missing and expire requests */
-+#define autofs_ptype_missing_direct	5
-+#define autofs_ptype_expire_direct	6
-+
-+/* v4 multi expire (via pipe) */
-+struct autofs_packet_expire_multi {
-+	struct autofs_packet_hdr hdr;
-+	autofs_wqt_t wait_queue_token;
-+	int len;
-+	char name[NAME_MAX+1];
-+};
-+
-+union autofs_packet_union {
-+	struct autofs_packet_hdr hdr;
-+	struct autofs_packet_missing missing;
-+	struct autofs_packet_expire expire;
-+	struct autofs_packet_expire_multi expire_multi;
-+};
-+
-+/* autofs v5 common packet struct */
-+struct autofs_v5_packet {
-+	struct autofs_packet_hdr hdr;
-+	autofs_wqt_t wait_queue_token;
-+	__u32 dev;
-+	__u64 ino;
-+	__u32 uid;
-+	__u32 gid;
-+	__u32 pid;
-+	__u32 tgid;
-+	__u32 len;
-+	char name[NAME_MAX+1];
-+};
-+
-+typedef struct autofs_v5_packet autofs_packet_missing_indirect_t;
-+typedef struct autofs_v5_packet autofs_packet_expire_indirect_t;
-+typedef struct autofs_v5_packet autofs_packet_missing_direct_t;
-+typedef struct autofs_v5_packet autofs_packet_expire_direct_t;
-+
-+union autofs_v5_packet_union {
-+	struct autofs_packet_hdr hdr;
-+	struct autofs_v5_packet v5_packet;
-+	autofs_packet_missing_indirect_t missing_indirect;
-+	autofs_packet_expire_indirect_t expire_indirect;
-+	autofs_packet_missing_direct_t missing_direct;
-+	autofs_packet_expire_direct_t expire_direct;
-+};
-+
-+#define AUTOFS_IOC_EXPIRE_MULTI		_IOW(0x93, 0x66, int)
-+#define AUTOFS_IOC_EXPIRE_INDIRECT	AUTOFS_IOC_EXPIRE_MULTI
-+#define AUTOFS_IOC_EXPIRE_DIRECT	AUTOFS_IOC_EXPIRE_MULTI
-+#define AUTOFS_IOC_PROTOSUBVER		_IOR(0x93, 0x67, int)
-+#define AUTOFS_IOC_ASKUMOUNT		_IOR(0x93, 0x70, int)
-+
- #endif /* _UAPI_LINUX_AUTO_FS_H */
-diff --git a/include/uapi/linux/auto_fs4.h b/include/uapi/linux/auto_fs4.h
-index 8f8f1bd..69205a3 100644
---- a/include/uapi/linux/auto_fs4.h
-+++ b/include/uapi/linux/auto_fs4.h
-@@ -6,152 +6,9 @@
-  * option, any later version, incorporated herein by reference.
-  */
- 
--#ifndef _LINUX_AUTO_FS4_H
--#define _LINUX_AUTO_FS4_H
-+#ifndef _UAPI_LINUX_AUTO_FS4_H
-+#define _UAPI_LINUX_AUTO_FS4_H
- 
--/* Include common v3 definitions */
--#include <linux/types.h>
- #include <linux/auto_fs.h>
- 
--/* autofs v4 definitions */
--#undef AUTOFS_PROTO_VERSION
--#undef AUTOFS_MIN_PROTO_VERSION
--#undef AUTOFS_MAX_PROTO_VERSION
--
--#define AUTOFS_PROTO_VERSION		5
--#define AUTOFS_MIN_PROTO_VERSION	3
--#define AUTOFS_MAX_PROTO_VERSION	5
--
--#define AUTOFS_PROTO_SUBVERSION		2
--
--/* Mask for expire behaviour */
--#define AUTOFS_EXP_IMMEDIATE		1
--#define AUTOFS_EXP_LEAVES		2
--
--#define AUTOFS_TYPE_ANY			0U
--#define AUTOFS_TYPE_INDIRECT		1U
--#define AUTOFS_TYPE_DIRECT		2U
--#define AUTOFS_TYPE_OFFSET		4U
--
--static inline void set_autofs_type_indirect(unsigned int *type)
--{
--	*type = AUTOFS_TYPE_INDIRECT;
--}
--
--static inline unsigned int autofs_type_indirect(unsigned int type)
--{
--	return (type == AUTOFS_TYPE_INDIRECT);
--}
--
--static inline void set_autofs_type_direct(unsigned int *type)
--{
--	*type = AUTOFS_TYPE_DIRECT;
--}
--
--static inline unsigned int autofs_type_direct(unsigned int type)
--{
--	return (type == AUTOFS_TYPE_DIRECT);
--}
--
--static inline void set_autofs_type_offset(unsigned int *type)
--{
--	*type = AUTOFS_TYPE_OFFSET;
--}
--
--static inline unsigned int autofs_type_offset(unsigned int type)
--{
--	return (type == AUTOFS_TYPE_OFFSET);
--}
--
--static inline unsigned int autofs_type_trigger(unsigned int type)
--{
--	return (type == AUTOFS_TYPE_DIRECT || type == AUTOFS_TYPE_OFFSET);
--}
--
--/*
-- * This isn't really a type as we use it to say "no type set" to
-- * indicate we want to search for "any" mount in the
-- * autofs_dev_ioctl_ismountpoint() device ioctl function.
-- */
--static inline void set_autofs_type_any(unsigned int *type)
--{
--	*type = AUTOFS_TYPE_ANY;
--}
--
--static inline unsigned int autofs_type_any(unsigned int type)
--{
--	return (type == AUTOFS_TYPE_ANY);
--}
--
--/* Daemon notification packet types */
--enum autofs_notify {
--	NFY_NONE,
--	NFY_MOUNT,
--	NFY_EXPIRE
--};
--
--/* Kernel protocol version 4 packet types */
--
--/* Expire entry (umount request) */
--#define autofs_ptype_expire_multi	2
--
--/* Kernel protocol version 5 packet types */
--
--/* Indirect mount missing and expire requests. */
--#define autofs_ptype_missing_indirect	3
--#define autofs_ptype_expire_indirect	4
--
--/* Direct mount missing and expire requests */
--#define autofs_ptype_missing_direct	5
--#define autofs_ptype_expire_direct	6
--
--/* v4 multi expire (via pipe) */
--struct autofs_packet_expire_multi {
--	struct autofs_packet_hdr hdr;
--	autofs_wqt_t wait_queue_token;
--	int len;
--	char name[NAME_MAX+1];
--};
--
--union autofs_packet_union {
--	struct autofs_packet_hdr hdr;
--	struct autofs_packet_missing missing;
--	struct autofs_packet_expire expire;
--	struct autofs_packet_expire_multi expire_multi;
--};
--
--/* autofs v5 common packet struct */
--struct autofs_v5_packet {
--	struct autofs_packet_hdr hdr;
--	autofs_wqt_t wait_queue_token;
--	__u32 dev;
--	__u64 ino;
--	__u32 uid;
--	__u32 gid;
--	__u32 pid;
--	__u32 tgid;
--	__u32 len;
--	char name[NAME_MAX+1];
--};
--
--typedef struct autofs_v5_packet autofs_packet_missing_indirect_t;
--typedef struct autofs_v5_packet autofs_packet_expire_indirect_t;
--typedef struct autofs_v5_packet autofs_packet_missing_direct_t;
--typedef struct autofs_v5_packet autofs_packet_expire_direct_t;
--
--union autofs_v5_packet_union {
--	struct autofs_packet_hdr hdr;
--	struct autofs_v5_packet v5_packet;
--	autofs_packet_missing_indirect_t missing_indirect;
--	autofs_packet_expire_indirect_t expire_indirect;
--	autofs_packet_missing_direct_t missing_direct;
--	autofs_packet_expire_direct_t expire_direct;
--};
--
--#define AUTOFS_IOC_EXPIRE_MULTI		_IOW(0x93, 0x66, int)
--#define AUTOFS_IOC_EXPIRE_INDIRECT	AUTOFS_IOC_EXPIRE_MULTI
--#define AUTOFS_IOC_EXPIRE_DIRECT	AUTOFS_IOC_EXPIRE_MULTI
--#define AUTOFS_IOC_PROTOSUBVER		_IOR(0x93, 0x67, int)
--#define AUTOFS_IOC_ASKUMOUNT		_IOR(0x93, 0x70, int)
--
--#endif /* _LINUX_AUTO_FS4_H */
-+#endif /* _UAPI_LINUX_AUTO_FS4_H */
-
++autofs-objs := init.o inode.o root.o symlink.o waitq.o expire.o dev-ioctl.o
