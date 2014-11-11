@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: [PATCH 1/3] autofs - fix log print messages
-Date: Tue, 11 Nov 2014 14:01:52 +0800
-Message-ID: <1415685712.2486.17.camel@perseus.themaw.net>
+Date: Tue, 11 Nov 2014 14:07:28 +0800
+Message-ID: <1415686048.2486.20.camel@perseus.themaw.net>
 References: <20141111012954.25773.4002.stgit@perseus.themaw.net>
 	 <1415676341.16070.0.camel@perches.com>
 	 <1415684245.2486.9.camel@perseus.themaw.net>
@@ -12,17 +12,17 @@ Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
 	x-sasl-enc:message-id:subject:from:to:cc:date:in-reply-to
 	:references:content-type:mime-version:content-transfer-encoding;
-	 s=mesmtp; bh=SqEXhNzlz8g+w6pYkq7vkngz39w=; b=SCUIytIdBDSqW1xXfm
-	M1dG/y0WWZm3BwRSA3V+fz4PYP1kUEWrpdJCmyreAd1oM65wb2yS1WJP+4REg8z6
-	bNEhpUltx2PdhEndbw8SbTTpPzcKc7dZOvtPAxO0fhCos67+tJ7hUlUv4XKa+tWs
-	nIlpqnRhtADAg+qXxaIV9y1qg=
+	 s=mesmtp; bh=HREe3tf/X+xsIxZj/3fYrrNaqcY=; b=XM6SUwDx5jbGMfzMD3
+	5mwZAteSB5sz62Zeq2AeVDhWArCkFBuFUSVtipzv2n7G/UN/UuLG5P07+1KPb1bO
+	B0WZAUfIySLopDCrn9QyrAawKp1R6iD/Vq7lnA75e//xUYWb8TJlHrpccR3gFOg5
+	5bN+cb8sdvn/2mZOjg8mYpjek=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=x-sasl-enc:message-id:subject:from:to:cc
 	:date:in-reply-to:references:content-type:mime-version
-	:content-transfer-encoding; s=smtpout; bh=SqEXhNzlz8g+w6pYkq7vkn
-	gz39w=; b=tRxEsyq4j0QNpKjxXEi51BOMEk2v4aDUHB3cyQuKuerSo0dtGLKTqT
-	Ji/Gps/NNg0QjjVG68uooI+xWyynJM0E+YJJFcwV9RNmgr+bS+PJ6Y9l4702ohdw
-	bm9fTLfCTklJe7Ne+94OMoc62mpWPcO0DRl7mTq6dbv15q5f3vztA=
+	:content-transfer-encoding; s=smtpout; bh=HREe3tf/X+xsIxZj/3fYrr
+	NaqcY=; b=jZ+ANzF+LVFitfLRcWJaqqttNYsPu6wtSAfWTmc/jfrce4bKH5uJV9
+	FbM8oMc7ImsEx296r8YAjRhmX0qihBej3YYuRAALVB+PyeWJWIaBfOGRUrLxtUKF
+	S4HQrLRoiHH6/hpSFQI843rD7YCJoAQmy7R3Eroqq+8g8bscKBecE=
 In-Reply-To: <1415684989.16070.2.camel@perches.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
@@ -61,23 +61,9 @@ On Mon, 2014-11-10 at 21:49 -0800, Joe Perches wrote:
 > MAINTAINERS-L:  autofs@vger.kernel.org
 > MAINTAINERS-S:  Maintained
 > MAINTAINERS:F:  fs/autofs4/
-> 
-> T:	git git://somewhere_or_other...
-> 
-> and maybe you also could get Stephen Rothwell
-> to add that tree to -next
 
-Oh, you meant what public tree.
+... and I forgot about updating that fs/autofs4/ in MAINTAINERS too, ha,
+that'll need another patch.
 
-I guess I could make a kernel.org tree but, apart from this recent
-rename autofs4 -> autofs, the number of autofs changes hasn't warranted
-maintaining a separate tree for quite a while.
-
-It looks like the place holder under /pub/scm/linux/kernel/git/raven is
-no longer present so I expect I'd need to request that be setup.
-
-That's why I just send my patches to Andrew to include them in -next.
-
-Andrew, thoughts?
 Ian
 
