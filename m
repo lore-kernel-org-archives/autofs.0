@@ -1,69 +1,84 @@
-From: Ian Kent <raven@themaw.net>
+From: Andrew Morton <akpm@linux-foundation.org>
 Subject: Re: [PATCH 1/3] autofs - fix log print messages
-Date: Tue, 11 Nov 2014 14:07:28 +0800
-Message-ID: <1415686048.2486.20.camel@perseus.themaw.net>
+Date: Wed, 12 Nov 2014 15:07:00 -0800
+Message-ID: <20141112150700.bbb0d82dad1b133fccc1a0ec@linux-foundation.org>
 References: <20141111012954.25773.4002.stgit@perseus.themaw.net>
-	 <1415676341.16070.0.camel@perches.com>
-	 <1415684245.2486.9.camel@perseus.themaw.net>
-	 <1415684989.16070.2.camel@perches.com>
+	<1415676341.16070.0.camel@perches.com>
+	<1415684245.2486.9.camel@perseus.themaw.net>
+	<1415684989.16070.2.camel@perches.com>
+	<1415685712.2486.17.camel@perseus.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	x-sasl-enc:message-id:subject:from:to:cc:date:in-reply-to
-	:references:content-type:mime-version:content-transfer-encoding;
-	 s=mesmtp; bh=HREe3tf/X+xsIxZj/3fYrrNaqcY=; b=XM6SUwDx5jbGMfzMD3
-	5mwZAteSB5sz62Zeq2AeVDhWArCkFBuFUSVtipzv2n7G/UN/UuLG5P07+1KPb1bO
-	B0WZAUfIySLopDCrn9QyrAawKp1R6iD/Vq7lnA75e//xUYWb8TJlHrpccR3gFOg5
-	5bN+cb8sdvn/2mZOjg8mYpjek=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=x-sasl-enc:message-id:subject:from:to:cc
-	:date:in-reply-to:references:content-type:mime-version
-	:content-transfer-encoding; s=smtpout; bh=HREe3tf/X+xsIxZj/3fYrr
-	NaqcY=; b=jZ+ANzF+LVFitfLRcWJaqqttNYsPu6wtSAfWTmc/jfrce4bKH5uJV9
-	FbM8oMc7ImsEx296r8YAjRhmX0qihBej3YYuRAALVB+PyeWJWIaBfOGRUrLxtUKF
-	S4HQrLRoiHH6/hpSFQI843rD7YCJoAQmy7R3Eroqq+8g8bscKBecE=
-In-Reply-To: <1415684989.16070.2.camel@perches.com>
-Sender: autofs-owner@vger.kernel.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <1415685712.2486.17.camel@perseus.themaw.net>
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Joe Perches <joe@perches.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Ian Kent <raven@themaw.net>
+Cc: Joe Perches <joe@perches.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Mon, 2014-11-10 at 21:49 -0800, Joe Perches wrote:
-> On Tue, 2014-11-11 at 13:37 +0800, Ian Kent wrote:
-> > On Mon, 2014-11-10 at 19:25 -0800, Joe Perches wrote:
-> > > On Tue, 2014-11-11 at 09:29 +0800, Ian Kent wrote:
-> > > > Fix some inconsistencies in log print output and ensure that
-> > > > the module name is included in all log prints.
-> > > > 
-> > > > Signed-off-by: Ian Kent <raven@themaw.net>
-> > > > Cc: Joe Perches <joe@perches.com>
-> > > > ---
-> > > >  fs/autofs/autofs_i.h  |    6 +++---
-> > > >  fs/autofs/dev-ioctl.c |    2 +-
-> > > >  fs/autofs/inode.c     |   10 +++++-----
-> > > >  fs/autofs/waitq.c     |    4 ++--
-> > > >  4 files changed, 11 insertions(+), 11 deletions(-)
-> > > 
-> > > What tree are these patches made against?
-> > 
-> > They live in an StGit patch queue against the current Linus tree.
-> > They depend on the prior series to rename autofs4 to autofs.
+On Tue, 11 Nov 2014 14:01:52 +0800 Ian Kent <raven@themaw.net> wrote:
+
+> I guess I could make a kernel.org tree but, apart from this recent
+> rename autofs4 -> autofs, the number of autofs changes hasn't warranted
+> maintaining a separate tree for quite a while.
 > 
-> Hey Ian.
+> It looks like the place holder under /pub/scm/linux/kernel/git/raven is
+> no longer present so I expect I'd need to request that be setup.
 > 
-> Maybe you could add the git tree location to
-> the MAINTAINERS entry:
+> That's why I just send my patches to Andrew to include them in -next.
 > 
-> MAINTAINERS-KERNEL AUTOMOUNTER v4 (AUTOFS4)
-> MAINTAINERS-M:  Ian Kent <raven@themaw.net>
-> MAINTAINERS-L:  autofs@vger.kernel.org
-> MAINTAINERS-S:  Maintained
-> MAINTAINERS:F:  fs/autofs4/
+> Andrew, thoughts?
 
-... and I forgot about updating that fs/autofs4/ in MAINTAINERS too, ha,
-that'll need another patch.
+Various options.
 
-Ian
+a) redo these patches against mainline and I merge them into
+   3.19-rc1.  Shortly after that you send me the big rename as plain
+   old patches or, preferably, you send Linus a git pull request.  For
+   -rc2.
 
+b) You run a git tree for a while.
+
+The tree which these patches were based on seem to have more than a
+plain rename.  For example I get
+
+--- fs/autofs4/autofs_i.h
++++ fs/autofs4/autofs_i.h
+@@ -37,15 +37,15 @@
+ /* #define DEBUG */
+ 
+ #define DPRINTK(fmt, ...)				\
+-	pr_debug("pid %d: %s: " fmt "\n",		\
++	pr_debug(KBUILD_MODNAME ":pid:%d:%s: " fmt "\n",\
+ 		current->pid, __func__, ##__VA_ARGS__)
+ 
+ #define AUTOFS_WARN(fmt, ...)				\
+-	pr_warn("pid %d: %s: " fmt "\n",	\
++	pr_warn(KBUILD_MODNAME ":pid:%d:%s: " fmt "\n",	\
+ 		current->pid, __func__, ##__VA_ARGS__)
+ 
+ #define AUTOFS_ERROR(fmt, ...)				\
+-	pr_err("pid %d: %s: " fmt "\n",	\
++	pr_err(KBUILD_MODNAME ":pid:%d:%s: " fmt "\n",	\
+ 		current->pid, __func__, ##__VA_ARGS__)
+ 
+ /*
+
+
+But I'm seeing
+
+#define DPRINTK(fmt, ...)				\
+	pr_debug("pid %d: %s: " fmt "\n",		\
+		current->pid, __func__, ##__VA_ARGS__)
+
+#define AUTOFS_WARN(fmt, ...)				\
+	printk(KERN_WARNING "pid %d: %s: " fmt "\n",	\
+		current->pid, __func__, ##__VA_ARGS__)
+
+#define AUTOFS_ERROR(fmt, ...)				\
+	printk(KERN_ERR "pid %d: %s: " fmt "\n",	\
+		current->pid, __func__, ##__VA_ARGS__)
+
+/* Unified info structure.  This is pointed to by both the dentry and
+
+ie: the comment layout was changed.
