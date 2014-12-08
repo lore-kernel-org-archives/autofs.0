@@ -1,64 +1,152 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 1/3] autofs - fix log print messages
-Date: Thu, 13 Nov 2014 11:50:06 +0800
-Message-ID: <1415850606.2631.19.camel@perseus.themaw.net>
-References: <20141111012954.25773.4002.stgit@perseus.themaw.net>
-	 <1415676341.16070.0.camel@perches.com>
-	 <1415684245.2486.9.camel@perseus.themaw.net>
-	 <1415684989.16070.2.camel@perches.com>
-	 <1415685712.2486.17.camel@perseus.themaw.net>
-	 <20141112150700.bbb0d82dad1b133fccc1a0ec@linux-foundation.org>
-	 <1415837458.2631.13.camel@perseus.themaw.net>
+From: Shachar Raindel <raindel@mellanox.com>
+Subject: lockdep warning from autofs4 when fuzzing with trinity
+Date: Mon, 8 Dec 2014 13:44:01 +0000
+Message-ID: <AM3PR05MB0935053AB03E0B424C81DD14DC640@AM3PR05MB0935.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	x-sasl-enc:message-id:subject:from:to:cc:date:in-reply-to
-	:references:content-type:mime-version:content-transfer-encoding;
-	 s=mesmtp; bh=V/kHnYp6rX2y71kaLWu5cGXqhVg=; b=hQG1+OYYM93x8LZweX
-	hEuQx5Zsw/AxRlRNtkRyjr5b+pfZuVdPku5E07UmaODtmw88u7Xssj89b9itE83k
-	D3sPjW7gjwsz0F+DgM0YCgpyH8tBzn2RoOPmueeWAunLli47MtvOMkSeBebdk8Qn
-	NvnjdAWxp1KAU1fH4wgZUHuV8=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=x-sasl-enc:message-id:subject:from:to:cc
-	:date:in-reply-to:references:content-type:mime-version
-	:content-transfer-encoding; s=smtpout; bh=V/kHnYp6rX2y71kaLWu5cG
-	XqhVg=; b=IyfudGComCyl3ahylX08tiQKpw34wKn0ARiFcS1g7kZI9pjuWB7l89
-	qbAhZiE4T4pA9U1RgJtamFZLxBmbG/RV+rKiguY1Uhtrte1KBfd31q817uXb9o5Z
-	TJP7YliOhPN6PuBD57WHhgNDNZAc6B2PGmUgLOEQQeeASIOco+tn4=
-In-Reply-To: <1415837458.2631.13.camel@perseus.themaw.net>
+Content-Language: en-US
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Joe Perches <joe@perches.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: "autofs@vger.kernel.org" <autofs@vger.kernel.org>, Ian Kent <raven@themaw.net>
 
-On Thu, 2014-11-13 at 08:10 +0800, Ian Kent wrote:
-> > 
-> > The tree which these patches were based on seem to have more than a
-> > plain rename.  For example I get
-> 
-> Right, looks like something has gone missing along the way. 
+Hi,
 
-Ahh .. I get it now.
-
-> The tree the patches are against is just a local clone of the Linus tree
-> with the patches I'd sent previously applied.
-> 
-> Folding these recent patches into the original series and sending one
-> series only that applies on the current Linus tree should sort out the
-> problem.
-> 
-> > 
-> > --- fs/autofs4/autofs_i.h
-> > +++ fs/autofs4/autofs_i.h
-
-Looks like the patches I sent on 3rd Dec, which is what Joe commented
-on, were missed.
-
-It's probably better for me to start over once its decided how I'll be
-sending the patches.
-
-Ian
+I was fuzzing linux 3.18 (plus a minor, unrelated patch in the memory management subsystem) using trinity. I got the following lock-dep splat, which seems to originate from the autofs4 code:
 
 
+[ 8890.416041] ======================================================
+[ 8890.416041] [ INFO: possible circular locking dependency detected ]
+[ 8890.416041] 3.18.0+ #25 Tainted: G        W     
+[ 8890.416041] -------------------------------------------------------
+[ 8890.416041] bash/4644 is trying to acquire lock:
+[ 8890.416041]  (&sbi->pipe_mutex){+.+.+.}, at: [<ffffffff812a25fb>] autofs4_notify_daemon+0x1cb/0x340
+[ 8890.416041] 
+but task is already holding lock:
+[ 8890.416041]  (&sig->cred_guard_mutex){+.+.+.}, at: [<ffffffff8121f1e4>] prepare_bprm_creds+0x34/0x90
+[ 8890.416041] 
+which lock already depends on the new lock.
+
+[ 8890.416041] 
+the existing dependency chain (in reverse order) is:
+[ 8890.416041] 
+-> #2 (&sig->cred_guard_mutex){+.+.+.}:
+[ 8890.416041]        [<ffffffff810cc5b6>] validate_chain.isra.36+0x486/0x930
+[ 8890.416041]        [<ffffffff810ced48>] __lock_acquire+0x378/0xbe0
+[ 8890.416041]        [<ffffffff810cf677>] lock_acquire+0xc7/0x160
+[ 8890.416041]        [<ffffffff816d15e1>] mutex_lock_interruptible_nested+0x81/0x5c0
+[ 8890.416041]        [<ffffffff8128628d>] proc_pid_attr_write+0xfd/0x150
+[ 8890.416041]        [<ffffffff81216e48>] __kernel_write+0x68/0x160
+[ 8890.416041]        [<ffffffff81249445>] write_pipe_buf+0x85/0xb0
+[ 8890.416041]        [<ffffffff81248f5e>] __splice_from_pipe+0x11e/0x190
+[ 8890.416041]        [<ffffffff8124afde>] splice_from_pipe+0x5e/0x90
+[ 8890.416041]        [<ffffffff8124b04d>] default_file_splice_write+0x1d/0x30
+[ 8890.416041]        [<ffffffff8124b51a>] SyS_splice+0x25a/0x800
+[ 8890.416041]        [<ffffffff816d65e9>] system_call_fastpath+0x12/0x17
+[ 8890.416041] 
+-> #1 (&pipe->mutex/1){+.+.+.}:
+[ 8890.416041]        [<ffffffff810cc5b6>] validate_chain.isra.36+0x486/0x930
+[ 8890.416041]        [<ffffffff810ced48>] __lock_acquire+0x378/0xbe0
+[ 8890.416041]        [<ffffffff810cf677>] lock_acquire+0xc7/0x160
+[ 8890.416041]        [<ffffffff816d20b1>] mutex_lock_nested+0x81/0x510
+[ 8890.416041]        [<ffffffff8122022f>] pipe_write+0x3f/0x490
+[ 8890.416041]        [<ffffffff81216b3e>] new_sync_write+0x8e/0xd0
+[ 8890.416041]        [<ffffffff812a2613>] autofs4_notify_daemon+0x1e3/0x340
+[ 8890.416041]        [<ffffffff812a2f65>] autofs4_wait+0x7f5/0xa20
+[ 8890.416041]        [<ffffffff812a0ce0>] autofs4_mount_wait+0x50/0xf0
+[ 8890.416041]        [<ffffffff812a1609>] autofs4_d_automount+0xe9/0x240
+[ 8890.416041]        [<ffffffff81221f93>] follow_managed+0x143/0x310
+[ 8890.416041]        [<ffffffff816c96e2>] lookup_slow+0x7d/0xad
+[ 8890.416041]        [<ffffffff81226732>] link_path_walk+0x792/0x860
+[ 8890.416041]        [<ffffffff8122740b>] path_openat+0xab/0x640
+[ 8890.416041]        [<ffffffff81229a69>] do_filp_open+0x49/0xc0
+[ 8890.416041]        [<ffffffff81216397>] do_sys_open+0x137/0x240
+[ 8890.416041]        [<ffffffff812164be>] SyS_open+0x1e/0x20
+[ 8890.416041]        [<ffffffff816d65e9>] system_call_fastpath+0x12/0x17
+[ 8890.416041] 
+-> #0 (&sbi->pipe_mutex){+.+.+.}:
+[ 8890.416041]        [<ffffffff810cc10f>] check_prevs_add+0x9af/0x9d0
+[ 8890.416041]        [<ffffffff810cc5b6>] validate_chain.isra.36+0x486/0x930
+[ 8890.416041]        [<ffffffff810ced48>] __lock_acquire+0x378/0xbe0
+[ 8890.416041]        [<ffffffff810cf677>] lock_acquire+0xc7/0x160
+[ 8890.416041]        [<ffffffff816d20b1>] mutex_lock_nested+0x81/0x510
+[ 8890.416041]        [<ffffffff812a25fb>] autofs4_notify_daemon+0x1cb/0x340
+[ 8890.416041]        [<ffffffff812a2f65>] autofs4_wait+0x7f5/0xa20
+[ 8890.416041]        [<ffffffff812a0ce0>] autofs4_mount_wait+0x50/0xf0
+[ 8890.416041]        [<ffffffff812a1609>] autofs4_d_automount+0xe9/0x240
+[ 8890.416041]        [<ffffffff81221f93>] follow_managed+0x143/0x310
+[ 8890.416041]        [<ffffffff816c96e2>] lookup_slow+0x7d/0xad
+[ 8890.416041]        [<ffffffff812266a7>] link_path_walk+0x707/0x860
+[ 8890.416041]        [<ffffffff8122740b>] path_openat+0xab/0x640
+[ 8890.416041]        [<ffffffff81229a69>] do_filp_open+0x49/0xc0
+[ 8890.416041]        [<ffffffff8121e546>] do_open_exec+0x26/0xf0
+[ 8890.416041]        [<ffffffff8121f458>] do_execve_common.isra.24+0x218/0x710
+[ 8890.416041]        [<ffffffff8121fb99>] SyS_execve+0x29/0x30
+[ 8890.416041]        [<ffffffff816d6bf9>] stub_execve+0x69/0xa0
+[ 8890.416041] 
+other info that might help us debug this:
+
+[ 8890.416041] Chain exists of:
+  &sbi->pipe_mutex --> &pipe->mutex/1 --> &sig->cred_guard_mutex
+
+[ 8890.416041]  Possible unsafe locking scenario:
+
+[ 8890.416041]        CPU0                    CPU1
+[ 8890.416041]        ----                    ----
+[ 8890.416041]   lock(&sig->cred_guard_mutex);
+[ 8890.416041]                                lock(&pipe->mutex/1);
+[ 8890.416041]                                lock(&sig->cred_guard_mutex);
+[ 8890.416041]   lock(&sbi->pipe_mutex);
+[ 8890.416041] 
+ *** DEADLOCK ***
+
+[ 8890.416041] 1 lock held by bash/4644:
+[ 8890.416041]  #0:  (&sig->cred_guard_mutex){+.+.+.}, at: [<ffffffff8121f1e4>] prepare_bprm_creds+0x34/0x90
+[ 8890.416041] 
+stack backtrace:
+[ 8890.416041] CPU: 1 PID: 4644 Comm: bash Tainted: G        W      3.18.0+ #25
+[ 8890.416041] Hardware name: Red Hat KVM, BIOS Bochs 01/01/2007
+[ 8890.416041]  0000000000000000 0000000043c40f29 ffff88004dc775b8 ffffffff816cbade
+[ 8890.416041]  0000000000000000 ffffffff829fc330 ffff88004dc77608 ffffffff816c4bf0
+[ 8890.416041]  ffff88000d401b70 ffff88004dc77648 ffff88004dc77608 0000000000000000
+[ 8890.416041] Call Trace:
+[ 8890.416041]  [<ffffffff816cbade>] dump_stack+0x4e/0x68
+[ 8890.416041]  [<ffffffff816c4bf0>] print_circular_bug+0x1fb/0x20c
+[ 8890.416041]  [<ffffffff810cc10f>] check_prevs_add+0x9af/0x9d0
+[ 8890.416041]  [<ffffffff8105f4d7>] ? kvm_clock_read+0x27/0x40
+[ 8890.416041]  [<ffffffff810cc5b6>] validate_chain.isra.36+0x486/0x930
+[ 8890.416041]  [<ffffffff810ced48>] __lock_acquire+0x378/0xbe0
+[ 8890.416041]  [<ffffffff810b02c6>] ? local_clock+0x16/0x30
+[ 8890.416041]  [<ffffffff810cf677>] lock_acquire+0xc7/0x160
+[ 8890.416041]  [<ffffffff812a25fb>] ? autofs4_notify_daemon+0x1cb/0x340
+[ 8890.416041]  [<ffffffff816d20b1>] mutex_lock_nested+0x81/0x510
+[ 8890.416041]  [<ffffffff812a25fb>] ? autofs4_notify_daemon+0x1cb/0x340
+[ 8890.416041]  [<ffffffff812a25fb>] ? autofs4_notify_daemon+0x1cb/0x340
+[ 8890.416041]  [<ffffffff810cd11d>] ? trace_hardirqs_on+0xd/0x10
+[ 8890.416041]  [<ffffffff812a25fb>] autofs4_notify_daemon+0x1cb/0x340
+[ 8890.416041]  [<ffffffff812a2f65>] autofs4_wait+0x7f5/0xa20
+[ 8890.416041]  [<ffffffff812a28fb>] ? autofs4_wait+0x18b/0xa20
+[ 8890.416041]  [<ffffffff812a15ff>] ? autofs4_d_automount+0xdf/0x240
+[ 8890.416041]  [<ffffffff812a0ce0>] autofs4_mount_wait+0x50/0xf0
+[ 8890.416041]  [<ffffffff812a1609>] autofs4_d_automount+0xe9/0x240
+[ 8890.416041]  [<ffffffff81221f93>] follow_managed+0x143/0x310
+[ 8890.416041]  [<ffffffff816c96e2>] lookup_slow+0x7d/0xad
+[ 8890.416041]  [<ffffffff812266a7>] link_path_walk+0x707/0x860
+[ 8890.416041]  [<ffffffff812242e5>] ? path_init+0x4b5/0x700
+[ 8890.416041]  [<ffffffff8122740b>] path_openat+0xab/0x640
+[ 8890.416041]  [<ffffffff8105f4d7>] ? kvm_clock_read+0x27/0x40
+[ 8890.416041]  [<ffffffff81020009>] ? sched_clock+0x9/0x10
+[ 8890.416041]  [<ffffffff81020009>] ? sched_clock+0x9/0x10
+[ 8890.416041]  [<ffffffff810affc5>] ? sched_clock_local+0x25/0x90
+[ 8890.416041]  [<ffffffff81229a69>] do_filp_open+0x49/0xc0
+[ 8890.416041]  [<ffffffff8121f43c>] ? do_execve_common.isra.24+0x1fc/0x710
+[ 8890.416041]  [<ffffffff8121f3f2>] ? do_execve_common.isra.24+0x1b2/0x710
+[ 8890.416041]  [<ffffffff8121e546>] do_open_exec+0x26/0xf0
+[ 8890.416041]  [<ffffffff8121f458>] do_execve_common.isra.24+0x218/0x710
+[ 8890.416041]  [<ffffffff8121f377>] ? do_execve_common.isra.24+0x137/0x710
+[ 8890.416041]  [<ffffffff8121fb99>] SyS_execve+0x29/0x30
+[ 8890.416041]  [<ffffffff816d6bf9>] stub_execve+0x69/0xa0
+
+Thanks,
+--Shachar
