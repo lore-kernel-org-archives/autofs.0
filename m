@@ -1,44 +1,65 @@
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: [PATCH] autofs4: Wrong format for printing dentry
-Date: Fri,  6 Feb 2015 16:28:17 +0100
-Message-ID: <1423236497-28139-1-git-send-email-linux@rasmusvillemoes.dk>
+From: Pete Beardmore <pete.beardmore@msn.com>
+Subject: [PATCH] fix map option parsing for 'strictatime'
+Date: Tue, 10 Feb 2015 17:04:57 +0000
+Message-ID: <DUB122-W513EB1C3223DD0FD66F71A8A240@phx.gbl>
+References: <DUB122-W3438A418D6CC75FC3C903D8A240@phx.gbl>
+Mime-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="_0f76e13f-9a7c-4661-ae3c-7b7f6e941691_"
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=rasmusvillemoes.dk; s=google;
-        h=from:to:cc:subject:date:message-id;
-        bh=cgRx3Y7rD57SFg2aUeRC/HWyyLrHb2fVXpx/pi0dTbU=;
-        b=c12j9F+CcVQBcRfLfDCbk/Illyd+omY+1rJiP3zCJZmbfoiF62FhDOqfY1HACdDnyH
-         lgapiLQIzMsGI/Yk/tB4Nz5dOQukDjw4wl5gxrj7FEuBj7xMZGX/wAmsjslAow9NzpdS
-         1MeHch7XNvMtYRcA8pN1ZhfzKRz9QSJUB5ifc=
+In-Reply-To: <DUB122-W3438A418D6CC75FC3C903D8A240@phx.gbl>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Ian Kent <raven@themaw.net>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, autofs@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "autofs@vger.kernel.org" <autofs@vger.kernel.org>
 
-%pD for struct file*, %pd for struct dentry*.
+--_0f76e13f-9a7c-4661-ae3c-7b7f6e941691_
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-Fixes: a455589f181e ("assorted conversions to %p[dD]")
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
----
- fs/autofs4/root.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+=0A=
+=0A=
+=0A=
+Hi=2C=0A=
+=0A=
+I tried adding the 'strictatime' fs option in a map today to no avail. It l=
+ooks like the current logic for the automount 'strict' option is erroneousl=
+y consuming that option. Trivial patch attached.=0A=
+=0A=
+Cheers=2C=0A=
+Pete.=0A=
+=0A=
+=0A=
+ 		 	   		  =0A=
+ 		 	   		  =
 
-diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
-index dbb5b7212ce1..7ba355b8d4ac 100644
---- a/fs/autofs4/root.c
-+++ b/fs/autofs4/root.c
-@@ -108,7 +108,7 @@ static int autofs4_dir_open(struct inode *inode, struct file *file)
- 	struct dentry *dentry = file->f_path.dentry;
- 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
- 
--	DPRINTK("file=%p dentry=%p %pD", file, dentry, dentry);
-+	DPRINTK("file=%p dentry=%p %pd", file, dentry, dentry);
- 
- 	if (autofs4_oz_mode(sbi))
- 		goto out;
--- 
-2.1.3
+--_0f76e13f-9a7c-4661-ae3c-7b7f6e941691_
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+	filename="fix.map.option.parsing.for.'strictatime'.diff"
 
+RnJvbSBmOWU3Njg1ODQ0ZDgxZjM2MzY3ZDBiYTIyMmM2Y2Y5YjU1MGYwMjViIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBQZXRlIEJlYXJkbW9yZSA8cGV0ZS5iZWFyZG1vcmVAbXNuLmNv
+bT4KRGF0ZTogVHVlLCAxMCBGZWIgMjAxNSAxNTozNzoxMCArMDAwMApTdWJqZWN0OiBmaXggbWFw
+IG9wdGlvbiBwYXJzaW5nIGZvciAnc3RyaWN0YXRpbWUnCgpBZGRlZCBhIHRyaXZpYWwgdG9rZW4g
+bGVuZ3RoIGNoZWNrIHRvIGVuc3VyZSB0aGUgJ3N0cmljdGF0aW1lJwptb3VudCBvcHRpb24gaXMg
+bm90IGNvbnN1bWVkIGJ5IHN0cmluZyBsb2dpYyBmb3IgdGhlICdzdHJpY3QnCmF1dG9tb3VudCBv
+cHRpb24uCgpQcmUtcGF0Y2gsIGFkZGluZyB0aGUgJ3N0cmljdGF0aW1lJyB0byBhIG1hcCBlZmZl
+Y3RpdmVseSBzd2l0Y2hlZApzdHJpY3QgbW9kZSAoZm9yIG11bHRpLW1vdW50IGhhbmRsaW5nKSBv
+biwgYW5kIGZhaWxlZCB0byBwYXNzIHRoZQonc3RyaWN0YXRpbWUnIG9wdGlvbiB0aHJvdWdoIHRv
+ICdtb3VudCcuCgpUaGlzIHdpbGwgaGF2ZSBiZWVuIGFuIGlzc3VlIHNpbmNlICdzdHJpY3RhdGlt
+ZScgd2FzIGludHJvZHVjZWQKZm9yIHRoZSAyLjYuMzAga2VybmVsLgotLS0KIG1vZHVsZXMvcGFy
+c2Vfc3VuLmMgfCAzICsrLQogMSBmaWxlIGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygrKSwgMSBkZWxl
+dGlvbigtKQoKZGlmZiAtLWdpdCBhL21vZHVsZXMvcGFyc2Vfc3VuLmMgYi9tb2R1bGVzL3BhcnNl
+X3N1bi5jCmluZGV4IGI4ODFlZTkuLjg2ZWUyNzkgMTAwNjQ0Ci0tLSBhL21vZHVsZXMvcGFyc2Vf
+c3VuLmMKKysrIGIvbW9kdWxlcy9wYXJzZV9zdW4uYwpAQCAtNTA5LDcgKzUwOSw4IEBAIHN0YXRp
+YyBpbnQgc3VuX21vdW50KHN0cnVjdCBhdXRvZnNfcG9pbnQgKmFwLCBjb25zdCBjaGFyICpyb290
+LAogCQkJCWZzdHlwZVt0eXBlbGVuXSA9ICdcMCc7CiAJCQl9IGVsc2UgaWYgKF9zdHJuY21wKCJu
+b25zdHJpY3QiLCBjcCwgOSkgPT0gMCkgewogCQkJCW5vbnN0cmljdCA9IDE7Ci0JCQl9IGVsc2Ug
+aWYgKF9zdHJuY21wKCJzdHJpY3QiLCBjcCwgNikgPT0gMCkgeworCQkJfSBlbHNlIGlmIChfc3Ry
+bmNtcCgic3RyaWN0IiwgY3AsIDYpID09IDAgJiYKKwkJCQkgICBjb21tYSAtIGNwID09IDYpIHsK
+IAkJCQlub25zdHJpY3QgPSAwOwogCQkJfSBlbHNlIGlmIChfc3RybmNtcCgibm9icm93c2UiLCBj
+cCwgOCkgPT0gMCB8fAogCQkJCSAgIF9zdHJuY21wKCJicm93c2UiLCBjcCwgNikgPT0gMCB8fAot
+LSAKMS44LjQKCg==
+
+--_0f76e13f-9a7c-4661-ae3c-7b7f6e941691_--
