@@ -1,61 +1,44 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH] autofs4: Wrong format for printing dentry
-Date: Thu, 12 Feb 2015 09:08:51 +0800
-Message-ID: <1423703331.2663.2.camel@pluto.fritz.box>
-References: <1423236497-28139-1-git-send-email-linux@rasmusvillemoes.dk>
-	 <87bnl0w58e.fsf@rasmusvillemoes.dk>
+From: Ujjwal Lanjewar <ujjwal@yahoo.com>
+Subject: Re: [ANNOUNCE] fedfs-utils for Linux
+Date: Fri, 13 Feb 2015 03:33:02 +0000 (UTC)
+Message-ID: <loom.20150213T043048-742@post.gmane.org>
+References: <AB0460DE-A056-47AA-B387-156D35334E04@oracle.com> <20110412155431.GA8583@infradead.org> <8086DF6B-252D-4746-AA6E-A6A85FEDAAE5@oracle.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	x-sasl-enc:message-id:subject:from:to:cc:date:in-reply-to
-	:references:content-type:mime-version:content-transfer-encoding;
-	 s=mesmtp; bh=KzfmhfeIVNQGCKd9LFIAHFp/7Zk=; b=EB1HMQemN7OKlclX4U
-	bVr0zNwYwrJJMO/13xpbuhLM99cCkTvtDWTsMLgckiM2eBo+mUCXKMX5SRcVVIH+
-	vLGJa7UcfKYVHNEW7Dl8CKbTq15K7ClPZeC4zmbeeGN23qHlBZkuwXMP5xhXIKAJ
-	PEVlJc2YZT9jbmdxpKiXaG6/I=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=x-sasl-enc:message-id:subject:from:to:cc
-	:date:in-reply-to:references:content-type:mime-version
-	:content-transfer-encoding; s=smtpout; bh=KzfmhfeIVNQGCKd9LFIAHF
-	p/7Zk=; b=uBjzw/ydfifVCwfxpaC+vK13JZLmLOBzp/QxZHO5dGuIN1hYkfQ2ou
-	5dPc4RflUAbjQzbFGhjcauBZ55PzZqBY68AufG9IXUKMmw0ZFJsiNXcnVHkept4w
-	OjendX/f5brg+Mte0HRruvPI+HV36dM7sVxydfcIDT7TvU44gYYUg=
-In-Reply-To: <87bnl0w58e.fsf@rasmusvillemoes.dk>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <autofs-owner@vger.kernel.org>
+Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, autofs@vger.kernel.org, linux-kernel@vger.kernel.org
+To: autofs@vger.kernel.org
 
-On Wed, 2015-02-11 at 21:41 +0100, Rasmus Villemoes wrote:
-> Ping...
-
-The patch looks fine to me.
-I'll check there are no other instances of this and send it to Al.
-
+Chuck Lever <chuck.lever@...> writes:
 > 
-> On Fri, Feb 06 2015, Rasmus Villemoes <linux@rasmusvillemoes.dk> wrote:
 > 
-> > %pD for struct file*, %pd for struct dentry*.
-> >
-> > Fixes: a455589f181e ("assorted conversions to %p[dD]")
-> > Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-> > ---
-> >  fs/autofs4/root.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
-> > index dbb5b7212ce1..7ba355b8d4ac 100644
-> > --- a/fs/autofs4/root.c
-> > +++ b/fs/autofs4/root.c
-> > @@ -108,7 +108,7 @@ static int autofs4_dir_open(struct inode *inode, struct file *file)
-> >  	struct dentry *dentry = file->f_path.dentry;
-> >  	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
-> >  
-> > -	DPRINTK("file=%p dentry=%p %pD", file, dentry, dentry);
-> > +	DPRINTK("file=%p dentry=%p %pd", file, dentry, dentry);
-> >  
-> >  	if (autofs4_oz_mode(sbi))
-> >  		goto out;
+> On Apr 12, 2011, at 11:54 AM, Christoph Hellwig wrote:
+> 
+> > On Thu, Apr 07, 2011 at 04:24:29PM -0400, Chuck Lever wrote:
+> >> See http://oss.oracle.com/projects/fedfs-utils for more information and 
+source code downloads. 
+> Two mailman mailing lists are also available:
+> >> 
+> >>  fedfs-utils-announce@...
+> >>  fedfs-utils-devel@...
+> > 
+> > Is it really a good idea to not just one but two separate mailinglist
+> > for something tightly integrated with nfs anyway?  Why not just use
+> > linux-nfs for the small amount of additional traffic?
+> 
+> FedFS is agnostic to the underlying file protocol.  The current Linux 
+FedFS prototype happens to be
+> NFS-only, but we don't expect it to stay that way.
+> 
+
+
+I cant access link
+    http://oss.oracle.com/projects/fedfs-utils
+
+Is this link still active or accessible to all ?
+
+--Ujjwal
+
 
