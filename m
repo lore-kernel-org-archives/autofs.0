@@ -1,7 +1,7 @@
 From: Ian Kent <ikent@redhat.com>
 Subject: Re: [PATCH] autofs: handle old configuration format
-Date: Thu, 18 Jun 2015 12:52:27 +0800
-Message-ID: <1434603147.3898.2.camel@pluto.fritz.box>
+Date: Thu, 18 Jun 2015 14:37:05 +0800
+Message-ID: <1434609425.3898.11.camel@pluto.fritz.box>
 References: <1434558586-9442-1-git-send-email-jbacik@fb.com>
 	 <1434587998.2649.12.camel@pluto.fritz.box> <5582406E.2090401@fb.com>
 Mime-Version: 1.0
@@ -60,18 +60,86 @@ On Wed, 2015-06-17 at 20:52 -0700, Josef Bacik wrote:
 > do what I've done here, or change conf_lookup to add the DEFAULT_ to the 
 > front of anything we search for if we can't find it.  Thanks,
 
-Yes, I was thinking about this and I think my handling of configuration
-entries with a "DEFAULT_" prefix might be backward.
+Yes, that looks to be the case.
 
-It's been so long (from an upstream POV) since the "DEFAULT_" prefix was
-used I've probably got it wrong.
+I can't just strip the DEFAULT_ prefix on adding values because there
+could be configuration key names that are meant to have the prefix.
 
-Thought I tested it though ....
+So I think it's best to try and handle this in the conf_lookup()
+function.
 
-Let me look further.
+You may get some conflicts with this as it's against current upstream
+but if you can resolve them, does this patch resolve the problem?
 
-> 
-> Josef
-> 
+If you have difficulty with conflicts then give me the package revision
+and I'll back port the patch to it so you can test it.
+
+autofs-5.1.1 - fix config old name lookup
+
+From: Ian Kent <raven@themaw.net>
+
+There are three cases needed to handle configuration name lookup.
+
+First there's the configuration key name, the name match is case
+insensitive so the recent case change isn't a seperate case.
+
+But the much older configuration key names that began with "DEFAULT_"
+need special handling.
+
+There are two cases that need to be covered:
+1) an old name is given but a new name needs to be located.
+2) a new name is given but an old name needs to be located.
+
+Only 1) is currently covered, so fix that in conf_lookup().
+
+Signed-off-by: Ian Kent <raven@themaw.net>
+---
+ CHANGELOG      |    1 +
+ lib/defaults.c |   13 +++++++++++++
+ 2 files changed, 14 insertions(+)
+
+diff --git a/CHANGELOG b/CHANGELOG
+index 1fcb763..606817c 100644
+--- a/CHANGELOG
++++ b/CHANGELOG
+@@ -2,6 +2,7 @@
+ =======================
+ - fix left mount count return from umount_multi_triggers().
+ - fix rwlock unlock crash.
++- fix config old name lookup.
+ 
+ 21/04/2015 autofs-5.1.1
+ =======================
+diff --git a/lib/defaults.c b/lib/defaults.c
+index 5711e65..dc162a6 100644
+--- a/lib/defaults.c
++++ b/lib/defaults.c
+@@ -31,6 +31,8 @@
+ #include "log.h"
+ #include "automount.h"
+ 
++#define MAX_CONF_KEY_LEN		40
++
+ #define AUTOFS_GLOBAL_SECTION		"autofs"
+ #define AMD_GLOBAL_SECTION		"amd"
+ 
+@@ -728,6 +730,17 @@ static struct conf_option *conf_lookup(const char *section, const char *key)
+ 		 */
+ 		if (strlen(key) > 8 && !strncasecmp("DEFAULT_", key, 8))
+ 			co = conf_lookup_key(section, key + 8);
++		else {
++			/* A new key name has been given but the value
++			 * we seek is stored under an old key name (which
++			 * includes the "DEFAULT_" prefix.
++			 */
++			char old_key[MAX_CONF_KEY_LEN];
++
++			strcpy(old_key, "DEFAULT_");
++			strcat(old_key, key);
++			co = conf_lookup_key(section, old_key);
++		}
+ 	}
+ 
+ 	return co;
 
 
