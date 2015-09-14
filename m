@@ -1,58 +1,51 @@
-From: Ian Kent <raven@themaw.net>
+From: "Cyril B." <cbay@excellency.fr>
 Subject: Re: [PATCH] Add a --mode option to chmod the mount point of the maps
-Date: Mon, 14 Sep 2015 17:52:20 +0800
-Message-ID: <1442224340.3030.70.camel@themaw.net>
-References: <55F58085.4090509@excellency.fr>
-	 <1442197882.3030.33.camel@themaw.net> <55F68878.40803@excellency.fr>
-	 <55F69162.5080601@embl-heidelberg.de> <55F69382.2060605@excellency.fr>
+Date: Mon, 14 Sep 2015 12:12:50 +0200
+Message-ID: <55F69DA2.7060204@excellency.fr>
+References: <55F58085.4090509@excellency.fr>  <1442197882.3030.33.camel@themaw.net> <55F68878.40803@excellency.fr> <1442223945.3030.64.camel@themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to:x-sasl-enc
-	:x-sasl-enc; s=mesmtp; bh=cwHsnXvt6vFj3tixGEbnRZXQgDc=; b=hWQQog
-	IzNDabeoZLZsuD3/p9b0S/UvnEx4QmYRiNDNq2sCJMHS88jSWAx+9xPUYjXhETgQ
-	SBGWfSe+ni1D62cMmleTVBWp6+LxZnrGEO2RLbInexmM1Hvt0ICMDf+irjW3nHoW
-	mq8WMODEJF0MCnLWd73dgU+dl3WVLlTDyYrYw=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:content-transfer-encoding:content-type
-	:date:from:in-reply-to:message-id:mime-version:references
-	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=cwHsnXvt6vFj3ti
-	xGEbnRZXQgDc=; b=gvcbZCfdVDMc7oEmdlIZupCOy/V/AMmAtVdOGQb+n2MVvdF
-	4Nrxc+B7FVwnkrLtX7Z9RKAdH2AoeQK7coGqdoSud0XnwHIgI/NG5fAp5idjaTvC
-	vKRnKIdEbD/WJFQMDRc7sFsG7QmZEidMuPzq62GHJQF7WqcDQdyELcpxfhCU=
-In-Reply-To: <55F69382.2060605@excellency.fr>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=excellency.fr; s=default;
+	h=Content-Transfer-Encoding:Content-Type:In-Reply-To:References:Subject:CC:To:MIME-Version:From:Date:Message-ID; bh=mSEmlhIbu3rUD9535lR1KHIRNNiwOY8PVQ58ymH5+8I=;
+	b=DrxVXsCfCvky4uB8cbrhLgsa5bpULI3cVLAE2jfrNDzMoS/K1oYq5oOzAD3wmehYkHT+nB6te98xBQKCpxteDOTze5BnIyMuUys/JrJ6Y6OF1HXqMD9OeSAIJpWaj1dBrN9G4mwawSMqSdjGardkAj2RhB3YohayyWd2eHqMBXrJygI5lMooXiHzq0Gyh1f47J4jin473kEUsYSSSnEk1rlCvzUr/iLKEvkbVPk5ASlZtGqdpy2gnwMCiv8FwvWhhpU7mQVPhbQx/a4e+5RPMbexa4ZOwuqHrc51E6N4YVwcTr0ddA3EaMa8LaNvW0bgs66pueWhLCZaiAvIq6lXUw==;
+In-Reply-To: <1442223945.3030.64.camel@themaw.net>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: cbay@excellency.fr
-Cc: Frank Thommen <frank.thommen@embl-heidelberg.de>, "autofs@vger.kernel.org" <autofs@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: Ian Kent <raven@themaw.net>
+Cc: "autofs@vger.kernel.org" <autofs@vger.kernel.org>
 
-On Mon, 2015-09-14 at 11:29 +0200, Cyril B. wrote:
-> Frank Thommen wrote:
-> > They are not "re"set.  These are the permissions of the filesystem that
-> > you are mounting over /home (e.g. myfileserver:/export/homes).  Change
-> > the permissions of /export/homes on myfileserver.
-> 
-> In my case, I haven't mounted anything at all yet. My map is an 
-> executable, and since I haven't triggered an automatic mount (by 
-> accessing /home/foo), the executable has not even been called once. 
-> /home is empty.
+Ian Kent wrote:
+> So are you saying you don't have sufficient faith in the permissions set
+> on the file systems your mounting, that contain the information you want
+> to protect, that you must have the permissions of an intermediate file
+> system set to ensure that information about that vulnerability is not
+> seen?
 
-And if you create a file inside /home before starting automount(8) it
-will (not so) mysteriously disappear when automount is started.
+I do know that there's no vulnerability at all, and that you can 
+trivially list users by other means.
 
-Why don't you check what mounts you have after automount is started.
+Unfortunately, some of my less tech savvy users believe that there's a 
+vulnerability because they can see other accounts' home directories, and 
+thus feel that their own files are not safe. Is this stupid? absolutely. 
+But changing my /home permissions to 751 makes those users happy and 
+saves my time -- and my reputation as a sysadmin :)
 
-That may well answer your question and don't forget to check
-if /etc/mtab is a symlink to a mount table in the proc file system.
+I also do realize that the 755 permissions come from the autofs kernel 
+filesystem itself. But the kernel doesn't support a 'mode' option for 
+autofs (some other file systems do), and even if it did, autofs would 
+have to be patched to support it (in a slightly different way than my 
+current patch).
 
-If it isn't then the autofs file system mounts won't be present
-in /etc/mtab but they will be seen in the mount table within the proc
-pseudo file system at /proc/mounts.
+I understand that my use case may be a corner case, and I'm perfectly 
+fine with keeping my patch in my own tree. I figured that since I had 
+written the patch for myself anway, I may as well post it here as it 
+could be useful for others :)
 
-Ian
+Thanks!
 
+-- 
+Cyril B.
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
