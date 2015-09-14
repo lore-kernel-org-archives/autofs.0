@@ -1,64 +1,60 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: automount subprocesses accumulate
-Date: Mon, 14 Sep 2015 09:30:58 +0800
-Message-ID: <1442194258.3030.4.camel@themaw.net>
-References: <55F1971B.1050301@excellency.fr>
-	   <1441949699.5198.6.camel@themaw.net> <55F2EFBD.2020104@excellency.fr>
-	  <1442142599.2902.13.camel@themaw.net> <55F55C0E.3010806@excellency.fr>
-	 <1442145133.2902.26.camel@themaw.net> <55F5669B.7050409@excellency.fr>
+Subject: Re: [PATCH] Add a --mode option to chmod the mount point of the maps
+Date: Mon, 14 Sep 2015 10:31:22 +0800
+Message-ID: <1442197882.3030.33.camel@themaw.net>
+References: <55F58085.4090509@excellency.fr>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=cc
 	:content-transfer-encoding:content-type:date:from:in-reply-to
 	:message-id:mime-version:references:subject:to:x-sasl-enc
-	:x-sasl-enc; s=mesmtp; bh=g6DX4eZ+3FL8CVhi2sfvIx4JrgM=; b=Sp2bHE
-	i0rKrST79zBXUB3ZQACWGeKX4DHXIGaNe+OkG9lrbxv/XfqWxv3Hh8BC1okohDDG
-	JEMhrCjU9nzfX9zHG86qLk4Y9YDUgb3lJtztUVqjMJlth22Azw33QCmZNeNnj5Q0
-	ddvOQt0O5jeeLK89TbfJv1epQfuO5SzUm8nok=
+	:x-sasl-enc; s=mesmtp; bh=o+vwK2XYP/u15ga3jruZXlsEC7w=; b=dQqXuU
+	gaxIwhmeimjC3bxV9hQywduCnsb+KKtZHvU+cG4Y2E6s2zb4hOB7oiERo9sYEKc4
+	iJikkEc4n1+xuMJLTYTCulBh3mnf5b4fF6BQD2/DKNP7tMvcH/EnOMjRkZhkZb4p
+	qvRNJvneu3799IN1s2x25Dxp0NbSnoj24ZRZM=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=cc:content-transfer-encoding:content-type
 	:date:from:in-reply-to:message-id:mime-version:references
-	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=g6DX4eZ+3FL8CVh
-	i2sfvIx4JrgM=; b=olOcAHPid0ZC6yG10rr7bqOfkoeMfxKASHAPUakuIjwz7EE
-	Z3Epc59Q5BtrrchF+0NoBI7MMGzyrs43gO4eykL0LlTFW0G8YlohyqNNrQ8IONdG
-	fZG3EQdKXhjYkqw5p22vRnLT6ww65AAU68J8qopPKQ/rqdQLP3ul99mTakKc=
-In-Reply-To: <55F5669B.7050409@excellency.fr>
+	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=o+vwK2XYP/u15ga
+	3jruZXlsEC7w=; b=S09LXAxaN9NEOi2CVPMaoK+Uq2qcTpuoTTfHCdAm3hYdGa1
+	IoD3VMTdDQFtjUoSfG21K6KUN1EdqjavX9U6UO1xRWmOvkbD0EuMeUF4paOOLV0T
+	6MhRDuB2gtaueDzZ5g8lkxenTtFKj9G7b4tilZ+fjsIDJSzRqRXxs0Mo6yd4=
+In-Reply-To: <55F58085.4090509@excellency.fr>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: cbay@excellency.fr
-Cc: autofs@vger.kernel.org
+To: "Cyril B." <cbay@excellency.fr>
+Cc: "autofs@vger.kernel.org" <autofs@vger.kernel.org>
 
-On Sun, 2015-09-13 at 14:05 +0200, Cyril B. wrote:
-> Ian Kent wrote:
-> > OK, see if you can apply this patch.
-> > The CHANGELOG hunk won't apply, of course, so just ignore the reject or
-> > delete the hunk from the patch before applying it.
-> >
-> > Umm ... now I see I need to fix a couple of spelling mistakes as
-> > well,;)
+On Sun, 2015-09-13 at 15:56 +0200, Cyril B. wrote:
+> Hello,
 > 
-> 
-> It looks like it fixes the bug indeed! At least I'm unable to reproduce 
-> it on my test environment.
+> It looks like the mount point of the maps have fixed permissions, 755. I 
+> need to have different permissions: in my use case, I want /home (which 
+> is handled by autofs) to be set to 751.
 
-Sounds promising.
+Why is this needed?
 
 > 
-> I'll deploy that version on my production server today, I'll let you 
-> know how it goes.
+> The initial permissions of /home are overwritten when autofs is started, 
+> so changing those doesn't help.
 
-OK, assuming it goes well, I have a bunch of other patches but I'm still
-not sure they're ready to be committed upstream. I'll work through those
-to work out what I can commit so I can make those (including this)
-available in the repo and as a patch on kernel.org.
+They aren't overwritten.
+The permissions are those of the autofs mount that is mounted
+over /home.
 
 > 
-> Thank you!
-> 
+> I can change the permissions of /home after autofs has started, but it's 
+> really not convenient: there's no easy way to do that automatically with 
+> either sysvinit or systemd.
 
-My pleasure.
+I still don't understand why this is needed.
+
+For indirect mounts no-one can copy things into the autofs mount and the
+permissions of mounts on mount points will be the same as those of the
+mounted file system when they are done.
+
 Ian
 
 --
