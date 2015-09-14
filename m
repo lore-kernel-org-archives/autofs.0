@@ -1,33 +1,76 @@
-From: "Cyril B." <cbay@excellency.fr>
+From: Frank Thommen <frank.thommen@embl-heidelberg.de>
 Subject: Re: [PATCH] Add a --mode option to chmod the mount point of the maps
-Date: Mon, 14 Sep 2015 11:29:38 +0200
-Message-ID: <55F69382.2060605@excellency.fr>
-References: <55F58085.4090509@excellency.fr> <1442197882.3030.33.camel@themaw.net> <55F68878.40803@excellency.fr> <55F69162.5080601@embl-heidelberg.de>
-Reply-To: cbay@excellency.fr
+Date: Mon, 14 Sep 2015 11:20:34 +0200
+Message-ID: <55F69162.5080601@embl-heidelberg.de>
+References: <55F58085.4090509@excellency.fr>
+ <1442197882.3030.33.camel@themaw.net> <55F68878.40803@excellency.fr>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=excellency.fr; s=default;
-	h=Content-Transfer-Encoding:Content-Type:In-Reply-To:References:Subject:CC:To:MIME-Version:Reply-To:From:Date:Message-ID; bh=qx4I1hhSegsU2TCmEYOAf7qO0hix/S7AtvpLjZ1xgjM=;
-	b=EVw3LdHL4wXchbh5TcFiuU/Q7b6nImBN5IvGEwT5R9ayhWobn2D3tYKwrHOH8c6SwUGI6HQOMzog/yzK1e5VFFxbQy6EUD+9LN5EwlQKKelsD2zhLt5ZwVuzbzkWVIbVwAlBeoCtC/Waw+WVW4/9R2FkslS96H/wVSNpVkFkxh85cJWwWSaQ1M91IhsNjU5eVtX2ewlCEhgNp07gYOvMKh/KFisaMD8bnS7jWLaX/sXjm0TRrunphehnXR0ML7llHjnIz/PjOC3z1ADnhk9pG/mmf3YUhuCrvf3lZp9yji9zETqsSEYYi8fiU8PUauB9zvLIYQfNXhWWa6SrU/ZQwA==;
-In-Reply-To: <55F69162.5080601@embl-heidelberg.de>
+In-Reply-To: <55F68878.40803@excellency.fr>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Frank Thommen <frank.thommen@embl-heidelberg.de>
-Cc: Ian Kent <raven@themaw.net>, "autofs@vger.kernel.org" <autofs@vger.kernel.org>
+To: cbay@excellency.fr, Ian Kent <raven@themaw.net>
+Cc: "autofs@vger.kernel.org" <autofs@vger.kernel.org>
 
-Frank Thommen wrote:
-> They are not "re"set.  These are the permissions of the filesystem that
-> you are mounting over /home (e.g. myfileserver:/export/homes).  Change
-> the permissions of /export/homes on myfileserver.
+On 14.09.15 10:42, Cyril B. wrote:
+> Ian Kent wrote:
+>> On Sun, 2015-09-13 at 15:56 +0200, Cyril B. wrote:
+>>> It looks like the mount point of the maps have fixed permissions, 755. I
+>>> need to have different permissions: in my use case, I want /home (which
+>>> is handled by autofs) to be set to 751.
+>>
+>> Why is this needed?
+>
+> Why do I want to set /home to 751? When it was set to 755, I frequently
+> had users believing there was a serious vulnerability because they could
+> list /home. Stupid, I know, but setting the permissions to 751 was a
+> trivial solution for this.
+>
+>>> The initial permissions of /home are overwritten when autofs is started,
+>>> so changing those doesn't help.
+>>
+>> They aren't overwritten.
+>> The permissions are those of the autofs mount that is mounted
+>> over /home.
+>
+> I'm not sure I'm following you. Here's my auto.master:
+>
+> /home program:/etc/auto.home
+>
+> Before launching autofs, permissions are set to 751:
+>
+> # ls -ald /home
+> drwxr-x--x 2 root root 4096 Aug  7 11:09 /home
+>
+> Once I've launched autofs, permissions are reset to 755:
+>
+> # ls -ald /home
+> drwxr-xr-x 2 root root 0 Sep 14 10:32 /home
 
-In my case, I haven't mounted anything at all yet. My map is an 
-executable, and since I haven't triggered an automatic mount (by 
-accessing /home/foo), the executable has not even been called once. 
-/home is empty.
+They are not "re"set.  These are the permissions of the filesystem that 
+you are mounting over /home (e.g. myfileserver:/export/homes).  Change 
+the permissions of /export/homes on myfileserver.
+
+frank
+
+
+>
+> And when I quit autofs, my permissions are back to 751:
+>
+> # ls -ald /home
+> drwxr-x--x 2 root root 4096 Aug  7 11:09 /home
+>
+> What I want is to always have /home permissions set to 751.
+>
+> Note that I'm not talking about mount points below /home (e.g.
+> /home/foobar), those do have the correct permissions.
+>
+
 
 -- 
-Cyril B.
+Frank Thommen - Structures IT Management and Support - EMBL Heidelberg
+frank.thommen@embl-heidelberg.de - +49 6221 387 8353
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
