@@ -1,91 +1,121 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH v5 0/8] Series to change autofs to using a monotonic clock
-Date: Fri, 18 Sep 2015 17:34:20 +0800
-Message-ID: <20150918092704.29311.84246.stgit@pluto.fritz.box>
+Subject: [PATCH v5 1/8] autofs-5.1.1 - define monotonic clock helper
+ functions
+Date: Fri, 18 Sep 2015 17:34:27 +0800
+Message-ID: <20150918093426.29311.149.stgit@pluto.fritz.box>
+References: <20150918092704.29311.84246.stgit@pluto.fritz.box>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=cc
-	:content-transfer-encoding:content-type:date:from:message-id
-	:mime-version:subject:to:x-sasl-enc:x-sasl-enc; s=mesmtp; bh=KUS
-	/rWapn7YkrFEfJ8F7PKa1+ec=; b=aRQ2MKDsfS+kApltUw6TX4foaY/Ich0rm3c
-	h+Lpd6j2mD6D1Dbi4q5x9iSLTyI2P6kJ0tifto0DKaU6LQ/BdN7C1oOMhhVbaMWW
-	oVxUPVhUCN1KjAzv4Lv2t83G308PAiezJ0vnFj/qtCmcXIIyIE9P0m09PfVItgPk
-	m2fzpn/w=
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to:x-sasl-enc
+	:x-sasl-enc; s=mesmtp; bh=7isrRi/1hSqDyQB0kfD4apsEH5M=; b=fmC1Fd
+	wvqRxGYB+XNFPa7/oL3A6ZFezWCQilerwemXakYJmQ3cndSwmZh5VbnZyHFEfJmp
+	oJskfYB2OGDOEp4tvrMppFN1LHi0Y/ArMg/xD3NLN4uthycGkhAOqfkO3sevyDLH
+	DUbeXjjipMdB6/A2B3DrTQ55CGhXZjXq9VsWg=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=cc:content-transfer-encoding:content-type
-	:date:from:message-id:mime-version:subject:to:x-sasl-enc
-	:x-sasl-enc; s=smtpout; bh=KUS/rWapn7YkrFEfJ8F7PKa1+ec=; b=AVAkb
-	K+ZUzhV73odke/NEOyKO9w/c4Ta032QixfnRmajpdgNZ6NkmBYaLK+uPQwPmMDiE
-	F3jo4wwDR6XkFDaS8MMaBh1wI6bLcA4j9KUQfNlym9bFcJupXEJm3exA2i/LQ3Fi
-	xypRu9ZzDMWBSoori7pd5tGIbgPuZvFUeRajFA=
+	:date:from:in-reply-to:message-id:mime-version:references
+	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=7isrRi/1hSqDyQB
+	0kfD4apsEH5M=; b=APKKgFo8V5qSn3lpiO5u+HrJe4FrJflEx1tNsjEjgowFZjM
+	Rbio1lDRu5/RSJMsesFmMLU5Q48ThXbbLWvpgI8V0CKY7sSyUTsI7ielub+EAVdS
+	ZAQ86zcAu6cCoUnVctqLB0lAcE+joIW3CLpnZKvfwosHTTdWE5K2Jy+tEKm8=
+In-Reply-To: <20150918092704.29311.84246.stgit@pluto.fritz.box>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: Yu Ning <ning.yu@ubuntu.com>
 Cc: autofs mailing list <autofs@vger.kernel.org>
 
-This is what I get using "stg mail" when mailing patch series.
+From: Yu Ning <ning.yu@ubuntu.com>
 
-I've made a few changes to te breakdown of the patches.
-I tried to implement the alarm module change we discussued.
-I changed the mount and expire condition to use a monotonic clock
-as well for both the direc and indirect modules for completeness.
-And I changed the patch descriptions a bit.
+The time returned by gettimeofday() is affected by discontinuous jumps
+in the system time, so it causes an issue that autofs may not auto
+unmount a mount point if system time is manually changed by the system
+administrator.
 
-I'll add my "Signed-off-by" after we've verified the series is OK
-and I've completed some samity testing.
+To fix the issue we need to convert to using a monotonic clock source
+instead of the clock source used by gettimeofday().
 
-The series should apply, I don't think there are conflicts with
-patches in my queue that are before them. The CHANGELOG hunk will
-be a problem though, as expected, and will likely change due to
-me changing the patch order before actually committing them.
+Start by defining two helper functions that will be used by later
+patches.
 
-Let me know if you can see any problem with the series.
-
+Signed-off-by: Yu Ning <ning.yu@ubuntu.com>
 ---
+ CHANGELOG           |    1 +
+ include/automount.h |   10 ++++++++++
+ include/rpc_subs.h  |    1 +
+ lib/rpc_subs.c      |   11 +++++++++++
+ 4 files changed, 23 insertions(+)
 
-Ian Kent (1):
-      autofs-5.1.1 - remove unused function elapsed()
+diff --git a/CHANGELOG b/CHANGELOG
+index f072bd4..6eb4daf 100644
+--- a/CHANGELOG
++++ b/CHANGELOG
+@@ -18,6 +18,7 @@
+ - fix handling of ldap bind/unbind operations.
+ - fix error handling of is_mounted().
+ - Add a mode option for master map entries.
++- define monotonic clock helper functions.
+ 
+ 21/04/2015 autofs-5.1.1
+ =======================
+diff --git a/include/automount.h b/include/automount.h
+index 15cd436..34fe91d 100644
+--- a/include/automount.h
++++ b/include/automount.h
+@@ -566,6 +566,16 @@ do { \
+ 		fatal(_m_unlock); \
+ } while(0)
+ 
++static inline time_t monotonic_time(time_t *t)
++{
++	struct timespec ts;
++
++	clock_gettime(CLOCK_MONOTONIC, &ts);
++	if (t)
++		*t = (time_t) ts.tv_sec;
++	return (time_t) ts.tv_sec;
++}
++
+ /* Expire alarm handling routines */
+ int alarm_start_handler(void);
+ int alarm_add(struct autofs_point *ap, time_t seconds);
+diff --git a/include/rpc_subs.h b/include/rpc_subs.h
+index b6d59f9..e329224 100644
+--- a/include/rpc_subs.h
++++ b/include/rpc_subs.h
+@@ -71,6 +71,7 @@ int rpc_portmap_getport(struct conn_info *, struct pmap *, unsigned short *);
+ int rpc_ping_proto(struct conn_info *);
+ int rpc_ping(const char *, long, long, unsigned int);
+ double elapsed(struct timeval, struct timeval);
++double monotonic_elapsed(struct timespec, struct timespec);
+ int rpc_time(const char *, unsigned int, unsigned int, long, long, unsigned int, double *);
+ const char *get_addr_string(struct sockaddr *, char *, socklen_t);
+ 
+diff --git a/lib/rpc_subs.c b/lib/rpc_subs.c
+index 846c40e..14e5f94 100644
+--- a/lib/rpc_subs.c
++++ b/lib/rpc_subs.c
+@@ -1086,6 +1086,17 @@ double elapsed(struct timeval start, struct timeval end)
+ 	return t2-t1;
+ }
+ 
++double monotonic_elapsed(struct timespec start, struct timespec end)
++{
++	double t1, t2;
++
++	t1 =  (double) start.tv_sec +
++		(double) (start.tv_nsec/(1000*1000*1000));
++	t2 =  (double) end.tv_sec +
++		(double) (end.tv_nsec/(1000*1000*1000));
++	return t2 - t1;
++}
++
+ int rpc_time(const char *host,
+ 	     unsigned int ping_vers, unsigned int ping_proto,
+ 	     long seconds, long micros, unsigned int option, double *result)
 
-Yu Ning (7):
-      autofs-5.1.1 - define monotonic clock helper functions
-      autofs-5.1.1 - use monotonic clock for alarm thread condition wait
-      autofs-5.1.1 - define pending condition init helper function
-      autofs-5.1.1 - use monotonic clock for direct mount condition
-      autofs-5.1.1 - use monotonic clock for indirect mount condition
-      autofs-5.1.1 - change remaining gettimeofday() to use clock_gettime()
-      autofs-5.1.1 - change time() to use monotonic_clock()
-
-
- CHANGELOG                 |    7 +++++++
- daemon/automount.c        |    4 ++--
- daemon/direct.c           |   24 ++++++++----------------
- daemon/indirect.c         |   24 ++++++++----------------
- daemon/lookup.c           |    6 +++---
- daemon/state.c            |    2 +-
- include/automount.h       |   31 +++++++++++++++++++++++++++++++
- include/rpc_subs.h        |    1 +
- lib/alarm.c               |   28 ++++++++++++++++++++++------
- lib/cache.c               |    2 +-
- lib/master.c              |    4 ++--
- lib/rpc_subs.c            |   20 +++++++++++---------
- modules/dclist.c          |    2 +-
- modules/lookup_file.c     |    8 ++++----
- modules/lookup_hesiod.c   |    6 +++---
- modules/lookup_hosts.c    |    4 ++--
- modules/lookup_ldap.c     |   10 +++++-----
- modules/lookup_nisplus.c  |   10 +++++-----
- modules/lookup_program.c  |   10 +++++-----
- modules/lookup_sss.c      |    6 +++---
- modules/lookup_userhome.c |    2 +-
- modules/lookup_yp.c       |    8 ++++----
- modules/mount_autofs.c    |    2 +-
- modules/parse_amd.c       |    2 +-
- modules/replicated.c      |   34 ++++++++++++++++------------------
- 25 files changed, 148 insertions(+), 109 deletions(-)
-
---
-Ian
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
