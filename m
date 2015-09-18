@@ -1,143 +1,316 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH v3 2/3] autofs-5.1.1 - use monotonic clock for pthread
- cond timed wait.
-Date: Fri, 18 Sep 2015 09:36:52 +0800
-Message-ID: <1442540212.2947.43.camel@themaw.net>
-References: <1442402500.2977.80.camel@themaw.net>
-	 <1442461733-22907-1-git-send-email-ning.yu@ubuntu.com>
-	 <1442461733-22907-2-git-send-email-ning.yu@ubuntu.com>
-	 <1442472560.2915.14.camel@themaw.net>
-	 <CAA1QoHR848Ddirva0Gorpd6_zSHa3zhLkh5TCqAVvCH5KZCgEw@mail.gmail.com>
-	 <1442479188.2915.25.camel@themaw.net>
-	 <CAA1QoHRDtSESx97ZG8zEN9XciUZqd2VSKwtAbcqC=NcsAA_CpA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+From: Yu Ning <ning.yu@canonical.com>
+Subject: [PATCH v5 1/3] autofs-5.1.1 - use clock_gettime() instead of gettimeofday().
+Date: Fri, 18 Sep 2015 15:16:02 +0800
+Message-ID: <1442560564-6453-1-git-send-email-ning.yu@ubuntu.com>
+References: <1442540212.2947.43.camel@themaw.net>
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to:x-sasl-enc
-	:x-sasl-enc; s=mesmtp; bh=J493qTAww1m6zQrk05AqzYgb/Io=; b=jST5MO
-	2i+m7iXO0ZXd784GeTQwFm4bpwhdc4qBwFf/97CAdShyhjT1yJVnnC2IG/8YKL8p
-	bHyf4oShEshXOTq5rtIeAYmXiJW/Yr25v6epXilfQc2kUlbJKeogohrp9Bxkt91L
-	JBqs5d9wGAMI/waHIZwRYMkjLot5/QpIvY41w=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:content-transfer-encoding:content-type
-	:date:from:in-reply-to:message-id:mime-version:references
-	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=J493qTAww1m6zQr
-	k05AqzYgb/Io=; b=CXNYNLFwK/Krwbki5A7TNpiOr+eQ0qi/qefnd5xtf6cwTzT
-	eTDpSv/16ZMS+m3fKXTRGRPB/HohxNY0GXtFBYoKFOaG06WpuU2f2r2oV7OofgkU
-	Bxf/9dnBuBlqf6NEX+6RQygGIHh9n32fLxRXvrpUBxjwSDsZ87OWVwLniZbM=
-In-Reply-To: <CAA1QoHRDtSESx97ZG8zEN9XciUZqd2VSKwtAbcqC=NcsAA_CpA@mail.gmail.com>
+In-Reply-To: <1442540212.2947.43.camel@themaw.net>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-To: Ning Yu <ning.yu@canonical.com>
+Content-Transfer-Encoding: 7bit
+To: Ian Kent <raven@themaw.net>
 Cc: autofs <autofs@vger.kernel.org>, Yu Ning <ning.yu@ubuntu.com>
 
-On Thu, 2015-09-17 at 17:12 +0800, Ning Yu wrote:
-> On Thu, Sep 17, 2015 at 4:39 PM, Ian Kent <raven@themaw.net> wrote:
-> > On Thu, 2015-09-17 at 15:19 +0800, Ning Yu wrote:
-> >> On Thu, Sep 17, 2015 at 2:49 PM, Ian Kent <raven@themaw.net> wrote:
-> >> > On Thu, 2015-09-17 at 11:48 +0800, Yu Ning wrote:
-> >> >> The default PTHREAD_COND_INITIALIZER initializer uses realtime clock,
-> >> >> we need to switch to use the monotic clock.
-> >> >>
-> >> >> Signed-off-by: Yu Ning <ning.yu@ubuntu.com>
-> >> >> ---
-> >> >>  lib/alarm.c | 13 ++++++++++++-
-> >> >>  1 file changed, 12 insertions(+), 1 deletion(-)
-> >> >>
-> >> >> diff --git a/lib/alarm.c b/lib/alarm.c
-> >> >> index 65a80ae..5b98b2d 100755
-> >> >> --- a/lib/alarm.c
-> >> >> +++ b/lib/alarm.c
-> >> >> @@ -23,7 +23,7 @@ struct alarm {
-> >> >>  };
-> >> >>
-> >> >>  static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-> >> >> -static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
-> >> >> +static pthread_cond_t cond;
-> >> >>  static LIST_HEAD(alarms);
-> >> >>
-> >> >>  #define alarm_lock() \
-> >> >> @@ -212,6 +212,7 @@ int alarm_start_handler(void)
-> >> >>       pthread_t thid;
-> >> >>       pthread_attr_t attrs;
-> >> >>       pthread_attr_t *pattrs = &attrs;
-> >> >> +     pthread_condattr_t condattrs;
-> >> >>       int status;
-> >> >>
-> >> >>       status = pthread_attr_init(pattrs);
-> >> >> @@ -224,8 +225,18 @@ int alarm_start_handler(void)
-> >> >>  #endif
-> >> >>       }
-> >> >>
-> >> >> +     status = pthread_condattr_init(&condattrs);
-> >> >> +     if (status)
-> >> >> +             fatal(status);
-> >> >> +
-> >> >> +     pthread_condattr_setclock(&condattrs, CLOCK_MONOTONIC);
-> >> >> +     pthread_cond_init(&cond, &condattrs);
-> >> >> +
-> >> >>       status = pthread_create(&thid, pattrs, alarm_handler, NULL);
-> >> >>
-> >> >> +     pthread_condattr_destroy(&condattrs);
-> >> >> +     pthread_condattr_destroy(&cond);
-> >> >
-> >> > I don't think we can do this.
-> >> >
-> >> > The condition is used by the alarm_handler() for the duration of it's
-> >> > life so I don't think we can't destroy its attributes after thread
-> >> > creation.
-> >> >
-> >> > In fact I'm not sure we even need the pthread_condattr_destroy(&cond)
-> >> > but I'm not sure.
-> >> >
-> >> > Destroying the condition attributes (condattrs) OTOH must not affect any
-> >> > condition which it has been used to initialize so destroying that is
-> >> > fine.
-> >> >
-> >> > Let me have a closer look at this, maybe I've misunderstood what's going
-> >> > on, and report back later.
-> >> >
-> >>
-> >> I think you are right, we shouldn't destroy the cond attrs, nor the cond
-> >> (and I used wrong function to destroy cond...) if the thread is successfully
-> >> created.
-> >>
-> >> In fact I think we should do the cleanup at the end of the thread, however
-> >> since the thread is expected to live __forever__, maybe we can simply ignore
-> >> the cleanup.
-> >
-> > That's what I'm thinking too.
-> >
-> > I don't think there is any problem assuming the monotonic clock is
-> > available (I think it's been around a very long time) so there's no
-> > point in complicating things to cater for that case.
-> >
-> > Although I am thinking of checking the return and calling the fatal()
-> > function on failure as I do for other pthreads functions that should
-> > never fail, so if it does fail we'll get a simple message and a core so
-> > we know where to look.
-> >
-> 
-> Yes, those messages will definitely be very useful for debugging, do
-> you mind that I update my patch to add those checking and messages? Or
-> will it be better to submit a new patch for that job?
+The time returned by gettimeofday() is affected by discontinuous jumps
+in the system time, so it causes an issue that autofs may not auto
+unmount a mount point if system time is manually changed by the system
+administrator.
 
-Sure, send an updated patch, I'm not able to start work on it quite yet.
+To fix the issue we can use clock_gettime(CLOCK_MONOTONIC) instead of
+gettimeofday().
 
-> 
-> >>
-> >> >> +
-> >> >>       if (pattrs)
-> >> >>               pthread_attr_destroy(pattrs);
-> >> >>
-> >> >
-> >> >
-> >
-> >
+A new function monotonic_elapsed() is introduced in rpc_subs.h as a
+timespec version of elapsed().
 
+Signed-off-by: Yu Ning <ning.yu@ubuntu.com>
+---
+ daemon/direct.c      | 12 ++++++------
+ daemon/indirect.c    | 12 ++++++------
+ include/rpc_subs.h   |  1 +
+ lib/alarm.c          |  6 +++---
+ lib/rpc_subs.c       | 17 ++++++++++++-----
+ modules/replicated.c | 30 ++++++++++++++----------------
+ 6 files changed, 42 insertions(+), 36 deletions(-)
+
+diff --git a/daemon/direct.c b/daemon/direct.c
+index 5569299..cdd7f49 100644
+--- a/daemon/direct.c
++++ b/daemon/direct.c
+@@ -1041,7 +1041,7 @@ int handle_packet_expire_direct(struct autofs_point *ap, autofs_packet_expire_di
+ 	char buf[MAX_ERR_BUF];
+ 	pthread_t thid;
+ 	struct timespec wait;
+-	struct timeval now;
++	struct timespec now;
+ 	int status, state;
+ 
+ 	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &state);
+@@ -1159,9 +1159,9 @@ int handle_packet_expire_direct(struct autofs_point *ap, autofs_packet_expire_di
+ 
+ 	mt->signaled = 0;
+ 	while (!mt->signaled) {
+-		gettimeofday(&now, NULL);
++		clock_gettime(CLOCK_MONOTONIC, &now);
+ 		wait.tv_sec = now.tv_sec + 2;
+-		wait.tv_nsec = now.tv_usec * 1000;
++		wait.tv_nsec = now.tv_nsec;
+ 		status = pthread_cond_timedwait(&mt->cond, &mt->mutex, &wait);
+ 		if (status && status != ETIMEDOUT)
+ 			fatal(status);
+@@ -1296,7 +1296,7 @@ int handle_packet_missing_direct(struct autofs_point *ap, autofs_packet_missing_
+ 	char buf[MAX_ERR_BUF];
+ 	int status = 0;
+ 	struct timespec wait;
+-	struct timeval now;
++	struct timespec now;
+ 	int ioctlfd, len, state;
+ 	unsigned int kver_major = get_kver_major();
+ 	unsigned int kver_minor = get_kver_minor();
+@@ -1478,9 +1478,9 @@ int handle_packet_missing_direct(struct autofs_point *ap, autofs_packet_missing_
+ 
+ 	mt->signaled = 0;
+ 	while (!mt->signaled) {
+-		gettimeofday(&now, NULL);
++		clock_gettime(CLOCK_MONOTONIC, &now);
+ 		wait.tv_sec = now.tv_sec + 2;
+-		wait.tv_nsec = now.tv_usec * 1000;
++		wait.tv_nsec = now.tv_nsec;
+ 		status = pthread_cond_timedwait(&mt->cond, &mt->mutex, &wait);
+ 		if (status && status != ETIMEDOUT)
+ 			fatal(status);
+diff --git a/daemon/indirect.c b/daemon/indirect.c
+index a04a624..0ea9b19 100644
+--- a/daemon/indirect.c
++++ b/daemon/indirect.c
+@@ -636,7 +636,7 @@ int handle_packet_expire_indirect(struct autofs_point *ap, autofs_packet_expire_
+ 	char buf[MAX_ERR_BUF];
+ 	pthread_t thid;
+ 	struct timespec wait;
+-	struct timeval now;
++	struct timespec now;
+ 	int status, state;
+ 
+ 	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &state);
+@@ -691,9 +691,9 @@ int handle_packet_expire_indirect(struct autofs_point *ap, autofs_packet_expire_
+ 
+ 	mt->signaled = 0;
+ 	while (!mt->signaled) {
+-		gettimeofday(&now, NULL);
++		clock_gettime(CLOCK_MONOTONIC, &now);
+ 		wait.tv_sec = now.tv_sec + 2;
+-		wait.tv_nsec = now.tv_usec * 1000;
++		wait.tv_nsec = now.tv_nsec;
+ 		status = pthread_cond_timedwait(&mt->cond, &mt->mutex, &wait);
+ 		if (status && status != ETIMEDOUT)
+ 			fatal(status);
+@@ -795,7 +795,7 @@ int handle_packet_missing_indirect(struct autofs_point *ap, autofs_packet_missin
+ 	char buf[MAX_ERR_BUF];
+ 	struct pending_args *mt;
+ 	struct timespec wait;
+-	struct timeval now;
++	struct timespec now;
+ 	struct mapent *me;
+ 	int status, state;
+ 
+@@ -884,9 +884,9 @@ int handle_packet_missing_indirect(struct autofs_point *ap, autofs_packet_missin
+ 
+ 	mt->signaled = 0;
+ 	while (!mt->signaled) {
+-		gettimeofday(&now, NULL);
++		clock_gettime(CLOCK_MONOTONIC, &now);
+ 		wait.tv_sec = now.tv_sec + 2;
+-		wait.tv_nsec = now.tv_usec * 1000;
++		wait.tv_nsec = now.tv_nsec;
+ 		status = pthread_cond_timedwait(&mt->cond, &mt->mutex, &wait);
+ 		if (status && status != ETIMEDOUT)
+ 			fatal(status);
+diff --git a/include/rpc_subs.h b/include/rpc_subs.h
+index b6d59f9..e329224 100644
+--- a/include/rpc_subs.h
++++ b/include/rpc_subs.h
+@@ -71,6 +71,7 @@ int rpc_portmap_getport(struct conn_info *, struct pmap *, unsigned short *);
+ int rpc_ping_proto(struct conn_info *);
+ int rpc_ping(const char *, long, long, unsigned int);
+ double elapsed(struct timeval, struct timeval);
++double monotonic_elapsed(struct timespec, struct timespec);
+ int rpc_time(const char *, unsigned int, unsigned int, long, long, unsigned int, double *);
+ const char *get_addr_string(struct sockaddr *, char *, socklen_t);
+ 
+diff --git a/lib/alarm.c b/lib/alarm.c
+index 0f04ef8..65a80ae 100755
+--- a/lib/alarm.c
++++ b/lib/alarm.c
+@@ -178,14 +178,14 @@ static void *alarm_handler(void *arg)
+ 		now = time(NULL);
+ 
+ 		if (first->time > now) {
+-			struct timeval usecs;
++			struct timespec nsecs;
+ 			/* 
+ 			 * Wait for alarm to trigger or a new alarm 
+ 			 * to be added.
+ 			 */
+-			gettimeofday(&usecs, NULL);
++			clock_gettime(CLOCK_MONOTONIC, &nsecs);
+ 			expire.tv_sec = first->time;
+-			expire.tv_nsec = usecs.tv_usec * 1000;
++			expire.tv_nsec = nsecs.tv_nsec;
+ 
+ 			status = pthread_cond_timedwait(&cond, &mutex, &expire);
+ 			if (status && status != ETIMEDOUT)
+diff --git a/lib/rpc_subs.c b/lib/rpc_subs.c
+index 846c40e..e8c0ca5 100644
+--- a/lib/rpc_subs.c
++++ b/lib/rpc_subs.c
+@@ -1086,25 +1086,32 @@ double elapsed(struct timeval start, struct timeval end)
+ 	return t2-t1;
+ }
+ 
++double monotonic_elapsed(struct timespec start, struct timespec end)
++{
++	double t1, t2;
++	t1 =  (double)start.tv_sec + (double)start.tv_nsec/(1000*1000*1000);
++	t2 =  (double)end.tv_sec + (double)end.tv_nsec/(1000*1000*1000);
++	return t2-t1;
++}
++
+ int rpc_time(const char *host,
+ 	     unsigned int ping_vers, unsigned int ping_proto,
+ 	     long seconds, long micros, unsigned int option, double *result)
+ {
+ 	int status;
+ 	double taken;
+-	struct timeval start, end;
+-	struct timezone tz;
++	struct timespec start, end;
+ 	int proto = (ping_proto & RPC_PING_UDP) ? IPPROTO_UDP : IPPROTO_TCP;
+ 	unsigned long vers = ping_vers;
+ 
+-	gettimeofday(&start, &tz);
++	clock_gettime(CLOCK_MONOTONIC, &start);
+ 	status = __rpc_ping(host, vers, proto, seconds, micros, option);
+-	gettimeofday(&end, &tz);
++	clock_gettime(CLOCK_MONOTONIC, &end);
+ 
+ 	if (status == RPC_PING_FAIL || status < 0)
+ 		return status;
+ 
+-	taken = elapsed(start, end);
++	taken = monotonic_elapsed(start, end);
+ 
+ 	if (result != NULL)
+ 		*result = taken;
+diff --git a/modules/replicated.c b/modules/replicated.c
+index 32860d5..0f0cc51 100644
+--- a/modules/replicated.c
++++ b/modules/replicated.c
+@@ -231,8 +231,7 @@ static unsigned int get_nfs_info(unsigned logopt, struct host *host,
+ 	socklen_t len = INET6_ADDRSTRLEN;
+ 	char buf[len + 1];
+ 	struct pmap parms;
+-	struct timeval start, end;
+-	struct timezone tz;
++	struct timespec start, end;
+ 	unsigned int supported = 0;
+ 	double taken = 0;
+ 	int status, count = 0;
+@@ -292,9 +291,9 @@ static unsigned int get_nfs_info(unsigned logopt, struct host *host,
+ 		supported = status;
+ 		goto done_ver;
+ 	} else if (!status) {
+-		gettimeofday(&start, &tz);
++		clock_gettime(CLOCK_MONOTONIC, &start);
+ 		status = rpc_ping_proto(rpc_info);
+-		gettimeofday(&end, &tz);
++		clock_gettime(CLOCK_MONOTONIC, &end);
+ 		if (status == -ETIMEDOUT) {
+ 			supported = status;
+ 			goto done_ver;
+@@ -306,7 +305,7 @@ static unsigned int get_nfs_info(unsigned logopt, struct host *host,
+ 				debug(logopt,
+ 				      "nfs v4 random selection time: %f", reply);
+ 			} else {
+-				reply = elapsed(start, end);
++				reply = monotonic_elapsed(start, end);
+ 				debug(logopt, "nfs v4 rpc ping time: %f", reply);
+ 			}
+ 			taken += reply;
+@@ -351,9 +350,9 @@ v3_ver:
+ 		supported = status;
+ 		goto done_ver;
+ 	} else if (!status) {
+-		gettimeofday(&start, &tz);
++		clock_gettime(CLOCK_MONOTONIC, &start);
+ 		status = rpc_ping_proto(rpc_info);
+-		gettimeofday(&end, &tz);
++		clock_gettime(CLOCK_MONOTONIC, &end);
+ 		if (status == -ETIMEDOUT) {
+ 			supported = status;
+ 			goto done_ver;
+@@ -365,7 +364,7 @@ v3_ver:
+ 				debug(logopt,
+ 				      "nfs v3 random selection time: %f", reply);
+ 			} else {
+-				reply = elapsed(start, end);
++				reply = monotonic_elapsed(start, end);
+ 				debug(logopt, "nfs v3 rpc ping time: %f", reply);
+ 			}
+ 			taken += reply;
+@@ -407,9 +406,9 @@ v2_ver:
+ 		supported = status;
+ 		goto done_ver;
+ 	} else if (!status) {
+-		gettimeofday(&start, &tz);
++		clock_gettime(CLOCK_MONOTONIC, &start);
+ 		status = rpc_ping_proto(rpc_info);
+-		gettimeofday(&end, &tz);
++		clock_gettime(CLOCK_MONOTONIC, &end);
+ 		if (status == -ETIMEDOUT)
+ 			supported = status;
+ 		else if (status > 0) {
+@@ -420,7 +419,7 @@ v2_ver:
+ 				debug(logopt,
+ 				      "nfs v2 random selection time: %f", reply);
+ 			} else {
+-				reply = elapsed(start, end);;
++				reply = monotonic_elapsed(start, end);;
+ 				debug(logopt, "nfs v2 rpc ping time: %f", reply);
+ 			}
+ 			taken += reply;
+@@ -523,8 +522,7 @@ static int get_supported_ver_and_cost(unsigned logopt, struct host *host,
+ 	struct conn_info pm_info, rpc_info;
+ 	int proto;
+ 	unsigned int vers;
+-	struct timeval start, end;
+-	struct timezone tz;
++	struct timespec start, end;
+ 	double taken = 0;
+ 	time_t timeout = RPC_TIMEOUT;
+ 	int status = 0;
+@@ -610,16 +608,16 @@ static int get_supported_ver_and_cost(unsigned logopt, struct host *host,
+ 	if (status == -EHOSTUNREACH)
+ 		goto done;
+ 	else if (!status) {
+-		gettimeofday(&start, &tz);
++		clock_gettime(CLOCK_MONOTONIC, &start);
+ 		status = rpc_ping_proto(&rpc_info);
+-		gettimeofday(&end, &tz);
++		clock_gettime(CLOCK_MONOTONIC, &end);
+ 		if (status > 0) {
+ 			if (random_selection) {
+ 				/* Random value between 0 and 1 */
+ 				taken = ((float) random())/((float) RAND_MAX+1);
+ 				debug(logopt, "random selection time %f", taken);
+ 			} else {
+-				taken = elapsed(start, end);
++				taken = monotonic_elapsed(start, end);
+ 				debug(logopt, "rpc ping time %f", taken);
+ 			}
+ 		}
+-- 
+1.9.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
