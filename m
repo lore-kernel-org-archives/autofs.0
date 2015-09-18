@@ -1,8 +1,8 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH v5 4/8] autofs-5.1.1 - use monotonic clock for direct mount
- condition
-Date: Fri, 18 Sep 2015 17:34:48 +0800
-Message-ID: <20150918093447.29311.7789.stgit@pluto.fritz.box>
+Subject: [PATCH v5 5/8] autofs-5.1.1 - use monotonic clock for indirect
+ mount condition
+Date: Fri, 18 Sep 2015 17:34:56 +0800
+Message-ID: <20150918093454.29311.26064.stgit@pluto.fritz.box>
 References: <20150918092704.29311.84246.stgit@pluto.fritz.box>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -10,17 +10,17 @@ Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=cc
 	:content-transfer-encoding:content-type:date:from:in-reply-to
 	:message-id:mime-version:references:subject:to:x-sasl-enc
-	:x-sasl-enc; s=mesmtp; bh=KVeuiMfDWn5Ha9eG0Js6NOG5f2M=; b=MI8qd+
-	n733FD00KrJ3SLsD0upE4zelw7QmitcfsGj8vbihFq4NbxcAXO4Lk68Cklbazgq3
-	7XSd7UsebSF7UbSOLBp3nitXxMrEvNRxOT3ncdWYFkonnkXsJXnaeC/HBOjZKBKq
-	py94I0TURo8eIrDxu2H6mrwD5N8VoC3g9A+pE=
+	:x-sasl-enc; s=mesmtp; bh=U1RZFqwrP3Q31bQPDgHWkcUGoLo=; b=s4Sf/n
+	DawCpLFw2HcXodzmZbBpbjY03NGTyFrveqU6A0chOryZ64oze9/1veXyXUxfSDFn
+	6QGhZYhTvv0lSqubGEVTNYfpt106BBZau8KgahBcwBu7x6JxH47nolGN4X6Sp1Us
+	scaaMibUembIUiCA1/oNh7DoBLRkUdP10ekWA=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=cc:content-transfer-encoding:content-type
 	:date:from:in-reply-to:message-id:mime-version:references
-	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=KVeuiMfDWn5Ha9e
-	G0Js6NOG5f2M=; b=ahk971V05niTX04WQU9ib+78UplaxKh4mG0fS9SFIzwtbtW
-	wk743r8qVqiGZdFzQ1goF5vjZ5K2e6p0dZNdTxzEe1r+s3NvLpLr8E3ayWdPLmme
-	uif1QWqJ/ByjshfvwsDeNfW83PKzPeY5SyMBcRXbhwlsZS2OngFCbAJr82hc=
+	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=U1RZFqwrP3Q31bQ
+	PDgHWkcUGoLo=; b=K6sxZTa4+GQpyzilECWBGJU2A17EtnsKWeEbXuDQALcBQ5x
+	D1hso7GE1IrKva3wcWq2O7VAmDEMRP8FSvyLYLJeoa2pAALWD5iHV9liYprKKcZb
+	IDp8q1sDQRl1mi30bIPaOX6MYaBhjmWbKVbn4skDbv0QFnrlCFmDVghj+Jv0=
 In-Reply-To: <20150918092704.29311.84246.stgit@pluto.fritz.box>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
@@ -38,32 +38,32 @@ administrator.
 To fix the issue we need to convert to using a monotonic clock source
 instead of the clock source used by gettimeofday().
 
-Change the direct mount and expire thread creation to use a monotonic
+Change the indirect mount and expire thread creation to use a monotonic
 clock source.
 
 Signed-off-by: Yu Ning <ning.yu@ubuntu.com>
 ---
- CHANGELOG       |    1 +
- daemon/direct.c |   20 ++++++--------------
+ CHANGELOG         |    1 +
+ daemon/indirect.c |   20 ++++++--------------
  2 files changed, 7 insertions(+), 14 deletions(-)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index fd0f7cd..6a51fa7 100644
+index 6a51fa7..63b91aa 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -21,6 +21,7 @@
- - define monotonic clock helper functions.
+@@ -22,6 +22,7 @@
  - use monotonic clock for alarm thread condition wait.
  - define pending condition init helper function.
-+- use monotonic clock for direct mount condition.
+ - use monotonic clock for direct mount condition.
++- use monotonic clock for indirect mount condition.
  
  21/04/2015 autofs-5.1.1
  =======================
-diff --git a/daemon/direct.c b/daemon/direct.c
-index 1962a58..9b7fd76 100644
---- a/daemon/direct.c
-+++ b/daemon/direct.c
-@@ -1045,7 +1045,6 @@ int handle_packet_expire_direct(struct autofs_point *ap, autofs_packet_expire_di
+diff --git a/daemon/indirect.c b/daemon/indirect.c
+index bfd181d..263fff1 100644
+--- a/daemon/indirect.c
++++ b/daemon/indirect.c
+@@ -640,7 +640,6 @@ int handle_packet_expire_indirect(struct autofs_point *ap, autofs_packet_expire_
  	char buf[MAX_ERR_BUF];
  	pthread_t thid;
  	struct timespec wait;
@@ -71,7 +71,7 @@ index 1962a58..9b7fd76 100644
  	int status, state;
  
  	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &state);
-@@ -1115,9 +1114,7 @@ int handle_packet_expire_direct(struct autofs_point *ap, autofs_packet_expire_di
+@@ -658,9 +657,7 @@ int handle_packet_expire_indirect(struct autofs_point *ap, autofs_packet_expire_
  		return 1;
  	}
  
@@ -82,7 +82,7 @@ index 1962a58..9b7fd76 100644
  
  	status = pthread_mutex_init(&mt->mutex, NULL);
  	if (status)
-@@ -1163,9 +1160,8 @@ int handle_packet_expire_direct(struct autofs_point *ap, autofs_packet_expire_di
+@@ -695,9 +692,8 @@ int handle_packet_expire_indirect(struct autofs_point *ap, autofs_packet_expire_
  
  	mt->signaled = 0;
  	while (!mt->signaled) {
@@ -94,15 +94,15 @@ index 1962a58..9b7fd76 100644
  		status = pthread_cond_timedwait(&mt->cond, &mt->mutex, &wait);
  		if (status && status != ETIMEDOUT)
  			fatal(status);
-@@ -1300,7 +1296,6 @@ int handle_packet_missing_direct(struct autofs_point *ap, autofs_packet_missing_
+@@ -799,7 +795,6 @@ int handle_packet_missing_indirect(struct autofs_point *ap, autofs_packet_missin
  	char buf[MAX_ERR_BUF];
- 	int status = 0;
+ 	struct pending_args *mt;
  	struct timespec wait;
 -	struct timeval now;
- 	int ioctlfd, len, state;
- 	unsigned int kver_major = get_kver_major();
- 	unsigned int kver_minor = get_kver_minor();
-@@ -1431,9 +1426,7 @@ int handle_packet_missing_direct(struct autofs_point *ap, autofs_packet_missing_
+ 	struct mapent *me;
+ 	int status, state;
+ 
+@@ -845,9 +840,7 @@ int handle_packet_missing_indirect(struct autofs_point *ap, autofs_packet_missin
  	}
  	memset(mt, 0, sizeof(struct pending_args));
  
@@ -113,7 +113,7 @@ index 1962a58..9b7fd76 100644
  
  	status = pthread_mutex_init(&mt->mutex, NULL);
  	if (status)
-@@ -1482,9 +1475,8 @@ int handle_packet_missing_direct(struct autofs_point *ap, autofs_packet_missing_
+@@ -888,9 +881,8 @@ int handle_packet_missing_indirect(struct autofs_point *ap, autofs_packet_missin
  
  	mt->signaled = 0;
  	while (!mt->signaled) {
