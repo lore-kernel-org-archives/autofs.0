@@ -1,131 +1,91 @@
-From: Ning Yu <ning.yu@canonical.com>
-Subject: Re: [PATCH v3 2/3] autofs-5.1.1 - use monotonic clock for pthread
- cond timed wait.
-Date: Fri, 18 Sep 2015 15:20:06 +0800
-Message-ID: <CAA1QoHSCj0h4bmx7d5wS+WQqC73p572iVv_p23TNihG5kVnQ2w@mail.gmail.com>
-References: <1442402500.2977.80.camel@themaw.net> <1442461733-22907-1-git-send-email-ning.yu@ubuntu.com>
- <1442461733-22907-2-git-send-email-ning.yu@ubuntu.com> <1442472560.2915.14.camel@themaw.net>
- <CAA1QoHR848Ddirva0Gorpd6_zSHa3zhLkh5TCqAVvCH5KZCgEw@mail.gmail.com>
- <1442479188.2915.25.camel@themaw.net> <CAA1QoHRDtSESx97ZG8zEN9XciUZqd2VSKwtAbcqC=NcsAA_CpA@mail.gmail.com>
- <1442540212.2947.43.camel@themaw.net>
+From: Ian Kent <raven@themaw.net>
+Subject: [PATCH v5 0/8] Series to change autofs to using a monotonic clock
+Date: Fri, 18 Sep 2015 17:34:20 +0800
+Message-ID: <20150918092704.29311.84246.stgit@pluto.fritz.box>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-In-Reply-To: <1442540212.2947.43.camel@themaw.net>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=cc
+	:content-transfer-encoding:content-type:date:from:message-id
+	:mime-version:subject:to:x-sasl-enc:x-sasl-enc; s=mesmtp; bh=KUS
+	/rWapn7YkrFEfJ8F7PKa1+ec=; b=aRQ2MKDsfS+kApltUw6TX4foaY/Ich0rm3c
+	h+Lpd6j2mD6D1Dbi4q5x9iSLTyI2P6kJ0tifto0DKaU6LQ/BdN7C1oOMhhVbaMWW
+	oVxUPVhUCN1KjAzv4Lv2t83G308PAiezJ0vnFj/qtCmcXIIyIE9P0m09PfVItgPk
+	m2fzpn/w=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:content-transfer-encoding:content-type
+	:date:from:message-id:mime-version:subject:to:x-sasl-enc
+	:x-sasl-enc; s=smtpout; bh=KUS/rWapn7YkrFEfJ8F7PKa1+ec=; b=AVAkb
+	K+ZUzhV73odke/NEOyKO9w/c4Ta032QixfnRmajpdgNZ6NkmBYaLK+uPQwPmMDiE
+	F3jo4wwDR6XkFDaS8MMaBh1wI6bLcA4j9KUQfNlym9bFcJupXEJm3exA2i/LQ3Fi
+	xypRu9ZzDMWBSoori7pd5tGIbgPuZvFUeRajFA=
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Ian Kent <raven@themaw.net>
-Cc: autofs <autofs@vger.kernel.org>, Yu Ning <ning.yu@ubuntu.com>
+To: Yu Ning <ning.yu@ubuntu.com>
+Cc: autofs mailing list <autofs@vger.kernel.org>
 
-On Fri, Sep 18, 2015 at 9:36 AM, Ian Kent <raven@themaw.net> wrote:
-> On Thu, 2015-09-17 at 17:12 +0800, Ning Yu wrote:
->> On Thu, Sep 17, 2015 at 4:39 PM, Ian Kent <raven@themaw.net> wrote:
->> > On Thu, 2015-09-17 at 15:19 +0800, Ning Yu wrote:
->> >> On Thu, Sep 17, 2015 at 2:49 PM, Ian Kent <raven@themaw.net> wrote:
->> >> > On Thu, 2015-09-17 at 11:48 +0800, Yu Ning wrote:
->> >> >> The default PTHREAD_COND_INITIALIZER initializer uses realtime clock,
->> >> >> we need to switch to use the monotic clock.
->> >> >>
->> >> >> Signed-off-by: Yu Ning <ning.yu@ubuntu.com>
->> >> >> ---
->> >> >>  lib/alarm.c | 13 ++++++++++++-
->> >> >>  1 file changed, 12 insertions(+), 1 deletion(-)
->> >> >>
->> >> >> diff --git a/lib/alarm.c b/lib/alarm.c
->> >> >> index 65a80ae..5b98b2d 100755
->> >> >> --- a/lib/alarm.c
->> >> >> +++ b/lib/alarm.c
->> >> >> @@ -23,7 +23,7 @@ struct alarm {
->> >> >>  };
->> >> >>
->> >> >>  static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
->> >> >> -static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
->> >> >> +static pthread_cond_t cond;
->> >> >>  static LIST_HEAD(alarms);
->> >> >>
->> >> >>  #define alarm_lock() \
->> >> >> @@ -212,6 +212,7 @@ int alarm_start_handler(void)
->> >> >>       pthread_t thid;
->> >> >>       pthread_attr_t attrs;
->> >> >>       pthread_attr_t *pattrs = &attrs;
->> >> >> +     pthread_condattr_t condattrs;
->> >> >>       int status;
->> >> >>
->> >> >>       status = pthread_attr_init(pattrs);
->> >> >> @@ -224,8 +225,18 @@ int alarm_start_handler(void)
->> >> >>  #endif
->> >> >>       }
->> >> >>
->> >> >> +     status = pthread_condattr_init(&condattrs);
->> >> >> +     if (status)
->> >> >> +             fatal(status);
->> >> >> +
->> >> >> +     pthread_condattr_setclock(&condattrs, CLOCK_MONOTONIC);
->> >> >> +     pthread_cond_init(&cond, &condattrs);
->> >> >> +
->> >> >>       status = pthread_create(&thid, pattrs, alarm_handler, NULL);
->> >> >>
->> >> >> +     pthread_condattr_destroy(&condattrs);
->> >> >> +     pthread_condattr_destroy(&cond);
->> >> >
->> >> > I don't think we can do this.
->> >> >
->> >> > The condition is used by the alarm_handler() for the duration of it's
->> >> > life so I don't think we can't destroy its attributes after thread
->> >> > creation.
->> >> >
->> >> > In fact I'm not sure we even need the pthread_condattr_destroy(&cond)
->> >> > but I'm not sure.
->> >> >
->> >> > Destroying the condition attributes (condattrs) OTOH must not affect any
->> >> > condition which it has been used to initialize so destroying that is
->> >> > fine.
->> >> >
->> >> > Let me have a closer look at this, maybe I've misunderstood what's going
->> >> > on, and report back later.
->> >> >
->> >>
->> >> I think you are right, we shouldn't destroy the cond attrs, nor the cond
->> >> (and I used wrong function to destroy cond...) if the thread is successfully
->> >> created.
->> >>
->> >> In fact I think we should do the cleanup at the end of the thread, however
->> >> since the thread is expected to live __forever__, maybe we can simply ignore
->> >> the cleanup.
->> >
->> > That's what I'm thinking too.
->> >
->> > I don't think there is any problem assuming the monotonic clock is
->> > available (I think it's been around a very long time) so there's no
->> > point in complicating things to cater for that case.
->> >
->> > Although I am thinking of checking the return and calling the fatal()
->> > function on failure as I do for other pthreads functions that should
->> > never fail, so if it does fail we'll get a simple message and a core so
->> > we know where to look.
->> >
->>
->> Yes, those messages will definitely be very useful for debugging, do
->> you mind that I update my patch to add those checking and messages? Or
->> will it be better to submit a new patch for that job?
->
-> Sure, send an updated patch, I'm not able to start work on it quite yet.
->
+This is what I get using "stg mail" when mailing patch series.
 
-v5 patches are sent to you, please check for v5-0002 for the updates.
+I've made a few changes to te breakdown of the patches.
+I tried to implement the alarm module change we discussued.
+I changed the mount and expire condition to use a monotonic clock
+as well for both the direc and indirect modules for completeness.
+And I changed the patch descriptions a bit.
 
->>
->> >>
->> >> >> +
->> >> >>       if (pattrs)
->> >> >>               pthread_attr_destroy(pattrs);
->> >> >>
->> >> >
->> >> >
->> >
->> >
->
->
+I'll add my "Signed-off-by" after we've verified the series is OK
+and I've completed some samity testing.
+
+The series should apply, I don't think there are conflicts with
+patches in my queue that are before them. The CHANGELOG hunk will
+be a problem though, as expected, and will likely change due to
+me changing the patch order before actually committing them.
+
+Let me know if you can see any problem with the series.
+
+---
+
+Ian Kent (1):
+      autofs-5.1.1 - remove unused function elapsed()
+
+Yu Ning (7):
+      autofs-5.1.1 - define monotonic clock helper functions
+      autofs-5.1.1 - use monotonic clock for alarm thread condition wait
+      autofs-5.1.1 - define pending condition init helper function
+      autofs-5.1.1 - use monotonic clock for direct mount condition
+      autofs-5.1.1 - use monotonic clock for indirect mount condition
+      autofs-5.1.1 - change remaining gettimeofday() to use clock_gettime()
+      autofs-5.1.1 - change time() to use monotonic_clock()
+
+
+ CHANGELOG                 |    7 +++++++
+ daemon/automount.c        |    4 ++--
+ daemon/direct.c           |   24 ++++++++----------------
+ daemon/indirect.c         |   24 ++++++++----------------
+ daemon/lookup.c           |    6 +++---
+ daemon/state.c            |    2 +-
+ include/automount.h       |   31 +++++++++++++++++++++++++++++++
+ include/rpc_subs.h        |    1 +
+ lib/alarm.c               |   28 ++++++++++++++++++++++------
+ lib/cache.c               |    2 +-
+ lib/master.c              |    4 ++--
+ lib/rpc_subs.c            |   20 +++++++++++---------
+ modules/dclist.c          |    2 +-
+ modules/lookup_file.c     |    8 ++++----
+ modules/lookup_hesiod.c   |    6 +++---
+ modules/lookup_hosts.c    |    4 ++--
+ modules/lookup_ldap.c     |   10 +++++-----
+ modules/lookup_nisplus.c  |   10 +++++-----
+ modules/lookup_program.c  |   10 +++++-----
+ modules/lookup_sss.c      |    6 +++---
+ modules/lookup_userhome.c |    2 +-
+ modules/lookup_yp.c       |    8 ++++----
+ modules/mount_autofs.c    |    2 +-
+ modules/parse_amd.c       |    2 +-
+ modules/replicated.c      |   34 ++++++++++++++++------------------
+ 25 files changed, 148 insertions(+), 109 deletions(-)
+
+--
+Ian
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
