@@ -1,110 +1,50 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH v5 0/8] Series to change autofs to using a monotonic
- clock
-Date: Sun, 20 Sep 2015 10:15:45 +0800
-Message-ID: <1442715345.3189.3.camel@themaw.net>
-References: <20150918092704.29311.84246.stgit@pluto.fritz.box>
-	 <CAA1QoHSMtakm4mXxH=SbzRDEFL+fJAkkC=Od85VM3G4t7jpEtQ@mail.gmail.com>
+From: Ning Yu <ning.yu@canonical.com>
+Subject: Re: [PATCH v5 8/8] autofs-5.1.1 - remove unused function elapsed()
+Date: Mon, 21 Sep 2015 13:25:58 +0800
+Message-ID: <CAA1QoHSmAeB34Xb7Q5HXx5+usu56fQ6J51ewHngkckxEXf=PmQ@mail.gmail.com>
+References: <20150918092704.29311.84246.stgit@pluto.fritz.box> <20150918093516.29311.58158.stgit@pluto.fritz.box>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to:x-sasl-enc
-	:x-sasl-enc; s=mesmtp; bh=0I3c7rQjl6JC/nKufTEjEvOmzQA=; b=ku0PWO
-	RVVOd+r/Q9cxkCGyoYz5MaQhDt24HOfAsWYqPmaEko5Q5gth8Sy2URX8+XtVBSo+
-	pxI5M8TbkoCbPmtBT5JuqXxzg08Xp8MKlicV2E5QohNcShB5zDsxUL/irAurEb2N
-	whZgNtUrI51zckrvfHe4R9V9nHPbCrzFRf8zA=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:content-transfer-encoding:content-type
-	:date:from:in-reply-to:message-id:mime-version:references
-	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=0I3c7rQjl6JC/nK
-	ufTEjEvOmzQA=; b=hIIzCtVLY3PSw7DzO1Md8IkZT+xHxah5c75wSIyz8svH5Jt
-	5Xs7fTJSAOYIAU0FT8+nOmgMvVYJpy015x9lbvohk2Q6cYnb8eDP+DAxofp8UMaX
-	kAz01wPgcCdw+ypte7nvdbgLiNU6+41CLeBaeKQSkiuTJ6S4Y2fH5yL8F824=
-In-Reply-To: <CAA1QoHSMtakm4mXxH=SbzRDEFL+fJAkkC=Od85VM3G4t7jpEtQ@mail.gmail.com>
+In-Reply-To: <20150918093516.29311.58158.stgit@pluto.fritz.box>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Ning Yu <ning.yu@canonical.com>
+Content-Transfer-Encoding: 7bit
+To: Ian Kent <raven@themaw.net>
 Cc: Yu Ning <ning.yu@ubuntu.com>, autofs mailing list <autofs@vger.kernel.org>
 
-On Fri, 2015-09-18 at 18:18 +0800, Ning Yu wrote:
-> On Fri, Sep 18, 2015 at 5:34 PM, Ian Kent <raven@themaw.net> wrote:
-> > This is what I get using "stg mail" when mailing patch series.
-> >
-> > I've made a few changes to te breakdown of the patches.
-> > I tried to implement the alarm module change we discussued.
-> > I changed the mount and expire condition to use a monotonic clock
-> > as well for both the direc and indirect modules for completeness.
-> > And I changed the patch descriptions a bit.
-> >
-> > I'll add my "Signed-off-by" after we've verified the series is OK
-> > and I've completed some samity testing.
-> >
-> > The series should apply, I don't think there are conflicts with
-> > patches in my queue that are before them. The CHANGELOG hunk will
-> > be a problem though, as expected, and will likely change due to
-> > me changing the patch order before actually committing them.
-> >
-> > Let me know if you can see any problem with the series.
-> >
-> 
-> It looks much more better than my original version, thanks very much.
+On Fri, Sep 18, 2015 at 5:35 PM, Ian Kent <raven@themaw.net> wrote:
+> Now that the monotonic clock source is used the elapsed() function
+> is no longer used, remove it.
+>
+> Signed-off-by: Ian Kent <raven@themaw.net>
+> ---
+>  lib/rpc_subs.c |    8 --------
+>  1 file changed, 8 deletions(-)
 
-Really it's much the same, but thanks,
+Oh, I think we also need to remove the declaration of elapsed() in
+include/rpc_subs.h
 
-> I'm OK with it, and hope it won't cause any regression issue ;)
-
-Yeah, but this is very much about changes to expire and that's fairly
-easy to test, we'll see.
-
-> 
-> > ---
-> >
-> > Ian Kent (1):
-> >       autofs-5.1.1 - remove unused function elapsed()
-> >
-> > Yu Ning (7):
-> >       autofs-5.1.1 - define monotonic clock helper functions
-> >       autofs-5.1.1 - use monotonic clock for alarm thread condition wait
-> >       autofs-5.1.1 - define pending condition init helper function
-> >       autofs-5.1.1 - use monotonic clock for direct mount condition
-> >       autofs-5.1.1 - use monotonic clock for indirect mount condition
-> >       autofs-5.1.1 - change remaining gettimeofday() to use clock_gettime()
-> >       autofs-5.1.1 - change time() to use monotonic_clock()
-> >
-> >
-> >  CHANGELOG                 |    7 +++++++
-> >  daemon/automount.c        |    4 ++--
-> >  daemon/direct.c           |   24 ++++++++----------------
-> >  daemon/indirect.c         |   24 ++++++++----------------
-> >  daemon/lookup.c           |    6 +++---
-> >  daemon/state.c            |    2 +-
-> >  include/automount.h       |   31 +++++++++++++++++++++++++++++++
-> >  include/rpc_subs.h        |    1 +
-> >  lib/alarm.c               |   28 ++++++++++++++++++++++------
-> >  lib/cache.c               |    2 +-
-> >  lib/master.c              |    4 ++--
-> >  lib/rpc_subs.c            |   20 +++++++++++---------
-> >  modules/dclist.c          |    2 +-
-> >  modules/lookup_file.c     |    8 ++++----
-> >  modules/lookup_hesiod.c   |    6 +++---
-> >  modules/lookup_hosts.c    |    4 ++--
-> >  modules/lookup_ldap.c     |   10 +++++-----
-> >  modules/lookup_nisplus.c  |   10 +++++-----
-> >  modules/lookup_program.c  |   10 +++++-----
-> >  modules/lookup_sss.c      |    6 +++---
-> >  modules/lookup_userhome.c |    2 +-
-> >  modules/lookup_yp.c       |    8 ++++----
-> >  modules/mount_autofs.c    |    2 +-
-> >  modules/parse_amd.c       |    2 +-
-> >  modules/replicated.c      |   34 ++++++++++++++++------------------
-> >  25 files changed, 148 insertions(+), 109 deletions(-)
-> >
-> > --
-> > Ian
-
-
+>
+> diff --git a/lib/rpc_subs.c b/lib/rpc_subs.c
+> index 2364744..3d99f56 100644
+> --- a/lib/rpc_subs.c
+> +++ b/lib/rpc_subs.c
+> @@ -1078,14 +1078,6 @@ int rpc_ping(const char *host, long seconds, long micros, unsigned int option)
+>         return status;
+>  }
+>
+> -double elapsed(struct timeval start, struct timeval end)
+> -{
+> -       double t1, t2;
+> -       t1 =  (double)start.tv_sec + (double)start.tv_usec/(1000*1000);
+> -       t2 =  (double)end.tv_sec + (double)end.tv_usec/(1000*1000);
+> -       return t2-t1;
+> -}
+> -
+>  double monotonic_elapsed(struct timespec start, struct timespec end)
+>  {
+>         double t1, t2;
+>
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
