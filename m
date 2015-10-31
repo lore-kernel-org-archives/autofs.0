@@ -1,72 +1,124 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH v5 8/8] autofs-5.1.1 - remove unused function elapsed()
-Date: Mon, 21 Sep 2015 16:45:28 +0800
-Message-ID: <1442825128.6123.8.camel@themaw.net>
-References: <20150918092704.29311.84246.stgit@pluto.fritz.box>
-	 <20150918093516.29311.58158.stgit@pluto.fritz.box>
-	 <CAA1QoHSmAeB34Xb7Q5HXx5+usu56fQ6J51ewHngkckxEXf=PmQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+From: Chuck Lever <chuck.lever@oracle.com>
+Subject: Announcing the release of fedfs-utils version 0.10.5
+Date: Sat, 31 Oct 2015 17:37:07 -0400
+Message-ID: <B532CF95-7E25-42DC-91F3-E96BDCC87F22@oracle.com>
+Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
+Content-Type: multipart/signed; boundary="Apple-Mail=_6B82C4B5-104E-406E-9FFD-3B5C523FC149"; protocol="application/pgp-signature"; micalg=pgp-sha512
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to:x-sasl-enc
-	:x-sasl-enc; s=mesmtp; bh=Qtuy0FK0R/XrBip1i0iy3Nrvx5g=; b=HhE9D/
-	/6hVyW5uELac3Ly8Q2iZdqqTCBimsIxQpfQXAYLMyFBFGaTi0/+k4vp+wTwbh/RE
-	5R0bSIjlxeK8nX/gSAb8B/GB4R8RR05rRwsbTFTPxe/8T5K3KHGrLCC1DN6IdT8O
-	XDCCcAQLaSOABvMkc31JKC9pLcekcDXmMsStg=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:content-transfer-encoding:content-type
-	:date:from:in-reply-to:message-id:mime-version:references
-	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=Qtuy0FK0R/XrBip
-	1i0iy3Nrvx5g=; b=cAG8hrp6N5Xd5cRez3y38o0X60mVCVXAMZjS/72emCLdW1J
-	sB98bJZFwpy6/wNFSo9Gs+MWj4EFBOdGnMfluDynAtpLOrNBY5aNoz3kfw+j0u70
-	93at+l59Rdhz00cXds8DWhvHrGmA5QGzVeK+vp81VL31x6YMXn43aI2Sgz3g=
-In-Reply-To: <CAA1QoHSmAeB34Xb7Q5HXx5+usu56fQ6J51ewHngkckxEXf=PmQ@mail.gmail.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: Ning Yu <ning.yu@canonical.com>
-Cc: Yu Ning <ning.yu@ubuntu.com>, autofs mailing list <autofs@vger.kernel.org>
-
-On Mon, 2015-09-21 at 13:25 +0800, Ning Yu wrote:
-> On Fri, Sep 18, 2015 at 5:35 PM, Ian Kent <raven@themaw.net> wrote:
-> > Now that the monotonic clock source is used the elapsed() function
-> > is no longer used, remove it.
-> >
-> > Signed-off-by: Ian Kent <raven@themaw.net>
-> > ---
-> >  lib/rpc_subs.c |    8 --------
-> >  1 file changed, 8 deletions(-)
-> 
-> Oh, I think we also need to remove the declaration of elapsed() in
-> include/rpc_subs.h
-
-Ha, indeed we do.
-
-> 
-> >
-> > diff --git a/lib/rpc_subs.c b/lib/rpc_subs.c
-> > index 2364744..3d99f56 100644
-> > --- a/lib/rpc_subs.c
-> > +++ b/lib/rpc_subs.c
-> > @@ -1078,14 +1078,6 @@ int rpc_ping(const char *host, long seconds, long micros, unsigned int option)
-> >         return status;
-> >  }
-> >
-> > -double elapsed(struct timeval start, struct timeval end)
-> > -{
-> > -       double t1, t2;
-> > -       t1 =  (double)start.tv_sec + (double)start.tv_usec/(1000*1000);
-> > -       t2 =  (double)end.tv_sec + (double)end.tv_usec/(1000*1000);
-> > -       return t2-t1;
-> > -}
-> > -
-> >  double monotonic_elapsed(struct timespec start, struct timespec end)
-> >  {
-> >         double t1, t2;
-> >
+To: "fedfs-utils;release announcements" <fedfs-utils-announce@oss.oracle.com>
+Cc: Linux NFS Mailing List <linux-nfs@vger.kernel.org>, samba-technical@lists.samba.org, autofs@vger.kernel.org
 
 
+--Apple-Mail=_6B82C4B5-104E-406E-9FFD-3B5C523FC149
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+	charset=utf-8
+
+This package contains an implementation of the Federated Filesystem
+(FedFS) Proposed Standard for Linux. For an introduction to FedFS, see
+RFC 5716.
+
+This is an ALPHA quality release.  The code in this release is not
+guaranteed to work.  Programming, administrative, and user interfaces
+may change significantly before the next release.  This release is for
+technology preview only.
+
+Changes since 0.10.4:
+	=E2=80=A2 More fixes in admin tools
+
+
+Changes since 0.10.3:
+	=E2=80=A2 Fix bugs in admin tools
+
+
+Changes since 0.10.2:
+	=E2=80=A2 More error handling fixes
+	=E2=80=A2 Remove an incorrect package dependency
+
+
+Changes since 0.10.1:
+	=E2=80=A2 Fix bugs in nsdb-jumpstart
+	=E2=80=A2 Numerous fixes to error handling paths
+	=E2=80=A2 Introduce basic support for Coverity analysis
+
+
+Changes since 0.10.0:
+	=E2=80=A2 Address packaging issues
+
+
+New with fedfs-utils 0.10.0:
+
+Non-backwards compatible changes:
+	=E2=80=A2 *ldaperr removed from libnsdb API
+	=E2=80=A2 ADMIN client tools no longer use AUTH_NONE security
+	=E2=80=A2 ADMIN client tools no longer exit with FedFS status =
+code
+
+New features:
+	=E2=80=A2 Python package PyFedfs added
+	=E2=80=A2 Tool for configuring FedFS domain root directories
+	=E2=80=A2 Tool for setting up NSDBs using OpenLDAP
+	=E2=80=A2 Simpler NCE discovery (compliant with new FedFS NCE =
+I-D)
+	=E2=80=A2 admin_t API for performing remote ADMIN requests
+	=E2=80=A2 rpc.fedfsd uses an ACL to control who can perform =
+ADMIN requests
+	=E2=80=A2 rpc.fedfsd and ADMIN tools support RPCSEC and Kerberos =
+v5
+
+Minor fixes:
+	=E2=80=A2 FEDFS_LOOKUP_JUNCTION no longer returns NSDB_LDAP_VAL
+	=E2=80=A2 fedfs-map-nfs4 handles multiple SRV records
+	=E2=80=A2 Packaging simplifications
+	=E2=80=A2 Dozens of code clean-ups and bug fixes; consult =
+Changelog for details
+
+
+Source code available at:
+http://git.linux-nfs.org/?p=3Dcel/fedfs-utils.git
+
+The new head of the master branch is commit:
+
+df0bf073399a Release 0.10.5
+
+Patchwork available at:
+http://patchwork.ozlabs.org/project/fedfs-utils/list/
+
+Tarball releases available at:
+http://git.linux-nfs.org/?p=3Dcel/fedfs-releases.git;a=3Dsummary
+
+--
+Chuck Lever
+
+
+--Apple-Mail=_6B82C4B5-104E-406E-9FFD-3B5C523FC149
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename=signature.asc
+Content-Type: application/pgp-signature;
+	name=signature.asc
+Content-Description: Message signed with OpenPGP using GPGMail
+
+-----BEGIN PGP SIGNATURE-----
+Comment: GPGTools - http://gpgtools.org
+
+iQIcBAEBCgAGBQJWNTSNAAoJEDNqszNvZn+X5hkP/0pRxgLWKoE5nwCsKj1L0d1Z
+c7/of3be4CfGEKanAsxJT0VtdyNsCYPKl2vwFXe8s7eqLlQ8TKcO4mI4BZLe/u4t
+fgIykKXILoUMLnfx+LCxxLp6GJ79VCcGvxBgJs/Xp0x+2NHA5OG5RGAfbmIQblSi
+alYKR5gWJDWp931BTHfkaR+JXz5HJoxmXe51M3zbHZfASgY2clw1E0mn/5SNXWwE
+YQ4SFuG9euNB9EmSDa9xALXMrQTq4WMEojUESaBEEMEV0cPW9386EeZAm46e+z43
+hkWipf/I9PZmOz5upzb0ATDK9Rip1ZuMXxQJhjAXTrHTCbIiLlEXuKo7RjAeiMMW
+eEvrNln8+5eLs3KuBJLhTa1otKnvhWZn/A40Om2cVZ0s35dYHzbYqHBA2x+qcMQP
+tPA8NV3QRnpnDnhxbBv1zF9HQZ+9n2sB665gTJ7N6QufuhfROgDXezbE4jzu+P0u
+d9/P3sBYQhIhUGJ0BROz/7M7jvBRnvMF5bCgq3w8wiRwRkyatpHwJIs3SB7Rne4F
+TJmh6+uwdN8UNphUojY2JgOltjw+8hJ2/FkdxZyu+bX5KGwe5GROZefgCSSTEad/
+bh4o2bo03jHG1gQnpmDKLODFjMPf2aPYyeAx/OO7cfeQfdkeKMzEDAv5kd6ANHzl
+M/loZbdGvq4wkMVZcOfd
+=XnmX
+-----END PGP SIGNATURE-----
+
+--Apple-Mail=_6B82C4B5-104E-406E-9FFD-3B5C523FC149--
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
