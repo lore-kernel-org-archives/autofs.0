@@ -1,124 +1,62 @@
-From: Chuck Lever <chuck.lever@oracle.com>
-Subject: Announcing the release of fedfs-utils version 0.10.5
-Date: Sat, 31 Oct 2015 17:37:07 -0400
-Message-ID: <B532CF95-7E25-42DC-91F3-E96BDCC87F22@oracle.com>
+From: Greg Earle <earle@isolar.DynDNS.ORG>
+Subject: "rmdir_path: lstat of <path> failed" issues, despite updated autofs RPM
+Date: Fri, 6 Nov 2015 13:03:23 -0800
+Message-ID: <7D63CDFD-57AB-4BCA-AD12-138CBC44342D@isolar.DynDNS.ORG>
+Reply-To: autofs@vger.kernel.org
 Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
-Content-Type: multipart/signed; boundary="Apple-Mail=_6B82C4B5-104E-406E-9FFD-3B5C523FC149"; protocol="application/pgp-signature"; micalg=pgp-sha512
+Content-Transfer-Encoding: 8BIT
 Return-path: <autofs-owner@vger.kernel.org>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-To: "fedfs-utils;release announcements" <fedfs-utils-announce@oss.oracle.com>
-Cc: Linux NFS Mailing List <linux-nfs@vger.kernel.org>, samba-technical@lists.samba.org, autofs@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: autofs@vger.kernel.org
 
+Ian et al.:
 
---Apple-Mail=_6B82C4B5-104E-406E-9FFD-3B5C523FC149
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain;
-	charset=utf-8
+We just upgraded a production server from RHEL 5.4 to 5.10.  (Yeah, yeah, I
+know - I work at a place that has things called "flight project freezes".)
 
-This package contains an implementation of the Federated Filesystem
-(FedFS) Proposed Standard for Linux. For an introduction to FedFS, see
-RFC 5716.
+Ever since then, we keep getting these mysterious autofs messages:
 
-This is an ALPHA quality release.  The code in this release is not
-guaranteed to work.  Programming, administrative, and user interfaces
-may change significantly before the next release.  This release is for
-technology preview only.
+[root@mipldiv log]# grep rmdir_path messages | wc -l
+100
 
-Changes since 0.10.4:
-	=E2=80=A2 More fixes in admin tools
+[root@mipldiv log]# grep rmdir_path messages | tail -5
+Nov  6 08:30:05 mipldiv automount[31419]: rmdir_path: lstat of /home/objects failed
+Nov  6 09:30:05 mipldiv automount[31419]: rmdir_path: lstat of /home/objects failed
+Nov  6 11:30:05 mipldiv automount[31419]: rmdir_path: lstat of /home/refs failed
+Nov  6 11:45:05 mipldiv automount[31419]: rmdir_path: lstat of /home/objects failed
+Nov  6 12:30:05 mipldiv automount[31419]: rmdir_path: lstat of /home/refs failed
 
+[root@mipldiv log]# ypcat -k auto.home | grep objects
+[root@mipldiv log]# ypcat -k auto.home | grep refs
+[root@mipldiv log]# 
 
-Changes since 0.10.3:
-	=E2=80=A2 Fix bugs in admin tools
+(I have no idea where these "/home/objects" or "/home/refs" paths come from;
+we do not have any accounts with those names, obviously.)
 
+We're running the latest RHEL 5.x autofs version as far as I can tell:
 
-Changes since 0.10.2:
-	=E2=80=A2 More error handling fixes
-	=E2=80=A2 Remove an incorrect package dependency
+[root@mipldiv log]# rpm -qa autofs*
+autofs-5.0.1-0.rc2.184.el5
 
+I have this problem on several machines; including - bizarrely enough -
+3 machines on one flight project that get a rash of them all at exactly
+the same time (usually 8:45 PM).  Those systems are currently frozen but
+may also be upgraded to 5.10 soon.
 
-Changes since 0.10.1:
-	=E2=80=A2 Fix bugs in nsdb-jumpstart
-	=E2=80=A2 Numerous fixes to error handling paths
-	=E2=80=A2 Introduce basic support for Coverity analysis
+Bug 336961 implies that this was addressed in an Errata (RHBA-2008-0354),
+but we are a full superseded Errata revision (RHBA-2014:1240-2) beyond that
+one already, and yet I'm still seeing these messages.
 
+https://bugzilla.redhat.com/show_bug.cgi?id=336961
 
-Changes since 0.10.0:
-	=E2=80=A2 Address packaging issues
+Given the age of RHEL 5.x am I better off trying to track down the cause
+of these phantom "/home" paths so the messages won't come out at all?
+Because I really don't have a clue where these "objects" & "refs" references
+are coming from.
 
+	- Greg
 
-New with fedfs-utils 0.10.0:
-
-Non-backwards compatible changes:
-	=E2=80=A2 *ldaperr removed from libnsdb API
-	=E2=80=A2 ADMIN client tools no longer use AUTH_NONE security
-	=E2=80=A2 ADMIN client tools no longer exit with FedFS status =
-code
-
-New features:
-	=E2=80=A2 Python package PyFedfs added
-	=E2=80=A2 Tool for configuring FedFS domain root directories
-	=E2=80=A2 Tool for setting up NSDBs using OpenLDAP
-	=E2=80=A2 Simpler NCE discovery (compliant with new FedFS NCE =
-I-D)
-	=E2=80=A2 admin_t API for performing remote ADMIN requests
-	=E2=80=A2 rpc.fedfsd uses an ACL to control who can perform =
-ADMIN requests
-	=E2=80=A2 rpc.fedfsd and ADMIN tools support RPCSEC and Kerberos =
-v5
-
-Minor fixes:
-	=E2=80=A2 FEDFS_LOOKUP_JUNCTION no longer returns NSDB_LDAP_VAL
-	=E2=80=A2 fedfs-map-nfs4 handles multiple SRV records
-	=E2=80=A2 Packaging simplifications
-	=E2=80=A2 Dozens of code clean-ups and bug fixes; consult =
-Changelog for details
-
-
-Source code available at:
-http://git.linux-nfs.org/?p=3Dcel/fedfs-utils.git
-
-The new head of the master branch is commit:
-
-df0bf073399a Release 0.10.5
-
-Patchwork available at:
-http://patchwork.ozlabs.org/project/fedfs-utils/list/
-
-Tarball releases available at:
-http://git.linux-nfs.org/?p=3Dcel/fedfs-releases.git;a=3Dsummary
-
---
-Chuck Lever
-
-
---Apple-Mail=_6B82C4B5-104E-406E-9FFD-3B5C523FC149
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename=signature.asc
-Content-Type: application/pgp-signature;
-	name=signature.asc
-Content-Description: Message signed with OpenPGP using GPGMail
-
------BEGIN PGP SIGNATURE-----
-Comment: GPGTools - http://gpgtools.org
-
-iQIcBAEBCgAGBQJWNTSNAAoJEDNqszNvZn+X5hkP/0pRxgLWKoE5nwCsKj1L0d1Z
-c7/of3be4CfGEKanAsxJT0VtdyNsCYPKl2vwFXe8s7eqLlQ8TKcO4mI4BZLe/u4t
-fgIykKXILoUMLnfx+LCxxLp6GJ79VCcGvxBgJs/Xp0x+2NHA5OG5RGAfbmIQblSi
-alYKR5gWJDWp931BTHfkaR+JXz5HJoxmXe51M3zbHZfASgY2clw1E0mn/5SNXWwE
-YQ4SFuG9euNB9EmSDa9xALXMrQTq4WMEojUESaBEEMEV0cPW9386EeZAm46e+z43
-hkWipf/I9PZmOz5upzb0ATDK9Rip1ZuMXxQJhjAXTrHTCbIiLlEXuKo7RjAeiMMW
-eEvrNln8+5eLs3KuBJLhTa1otKnvhWZn/A40Om2cVZ0s35dYHzbYqHBA2x+qcMQP
-tPA8NV3QRnpnDnhxbBv1zF9HQZ+9n2sB665gTJ7N6QufuhfROgDXezbE4jzu+P0u
-d9/P3sBYQhIhUGJ0BROz/7M7jvBRnvMF5bCgq3w8wiRwRkyatpHwJIs3SB7Rne4F
-TJmh6+uwdN8UNphUojY2JgOltjw+8hJ2/FkdxZyu+bX5KGwe5GROZefgCSSTEad/
-bh4o2bo03jHG1gQnpmDKLODFjMPf2aPYyeAx/OO7cfeQfdkeKMzEDAv5kd6ANHzl
-M/loZbdGvq4wkMVZcOfd
-=XnmX
------END PGP SIGNATURE-----
-
---Apple-Mail=_6B82C4B5-104E-406E-9FFD-3B5C523FC149--
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
