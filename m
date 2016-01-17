@@ -1,245 +1,109 @@
-From: Stanislav Kinsburskiy <skinsbursky@odin.com>
-Subject: Re: [PATCH] autofs: show pipe inode in mount options
-Date: Mon, 11 Jan 2016 12:33:51 +0100
-Message-ID: <5693931F.9070101@odin.com>
-References: <20151216120222.19097.54512.stgit@localhost.localdomain>
- <568E8840.3010801@odin.com> <1452237640.2973.19.camel@themaw.net>
- <568F9D85.6070601@odin.com> <1452257913.7030.25.camel@themaw.net>
- <568FD028.5090207@odin.com> <1452303110.3067.29.camel@themaw.net>
-Reply-To: <skinsbursky@virtuozzo.com>
+From: Andreas Steinmetz <ast@domdv.de>
+Subject: [PATCH] prevent autofs to try the wrong IP protocol
+Date: Sun, 17 Jan 2016 22:14:39 +0100
+Message-ID: <1453065279.8867.21.camel@domdv.de>
 Mime-Version: 1.0
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/mixed; boundary="=-/0kBEsmuuPoDzbo860H0"
 Return-path: <autofs-owner@vger.kernel.org>
-In-Reply-To: <1452303110.3067.29.camel@themaw.net>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=domdv.de;
+	 s=dk3; h=Mime-Version:Content-Type:Date:To:From:Subject:Message-ID;
+	bh=WRqk0CkfyaLQ9SXXD3Xu08m958CeZQmGq9wjGd/9l+U=; b=hF69Rbi09PQedgqn0iU5AaiaYL
+	pgjxHTSm7VjweA9KTMP5el+crRlR/pSzXsNqPUemZghjPgdaRQVTOfIO+TH1WEQKcfM0r7X1X4KVW
+	5Hq+KQQPeCZd1yu60pEAgufXKQ0XfQfarYKG8a9EMCncxfvizpBfSQqRTTxq20/i3Y5k=;
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="utf-8"; format="flowed"
-To: Ian Kent <raven@themaw.net>, skinsbursky@virtuozzo.com
-Cc: criu@openvz.org, autofs@vger.kernel.org, linux-kernel@vger.kernel.org, Al Viro <viro@ZenIV.linux.org.uk>, Stephen Rothwell <sfr@canb.auug.org.au>
+To: autofs@vger.kernel.org
 
 
+--=-/0kBEsmuuPoDzbo860H0
+Content-Type: text/plain; charset="ansi_x3.4-1968"
+Content-Transfer-Encoding: 7bit
 
-09.01.2016 02:31, Ian Kent =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
-> On Fri, 2016-01-08 at 16:05 +0100, Stanislav Kinsburskiy wrote:
->> 08.01.2016 13:58, Ian Kent =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
->>> On Fri, 2016-01-08 at 12:29 +0100, Stanislav Kinsburskiy wrote:
->>>> 08.01.2016 08:20, Ian Kent =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
->>>>> On Thu, 2016-01-07 at 16:46 +0100, Stanislav Kinsburskiy wrote:
->>>>>> Good day, gentlemen.
->>>>>>
->>>>>> Could you update, what's the status with this patch?
->>>>>> Without it it's impossible to match process pipe with kernel
->>>>>> pipe,
->>>>>> while
->>>>>> this is "must have" to be able to migrate AutoFS via CRIU.
->>>>> Right, I did mean to reply to this mail but have been
->>>>> distracted by
->>>>> family stuff.
->>>>>
->>>>> I don't know what CRIU is and people looking at changelog
->>>>> entries
->>>>> shouldn't need to do a web search to find out.
->>>>>
->>>>> Could you change it a little.
->>>> Fair enough. I'll resend with more descriptive message.
->>>> But first I would like to clarify to you the problem root and why
->>>> it's
->>>> done like this.
->>>>
->>>>> I'm also not sure whether to forward this (assuming the
->>>>> description
->>>>> is
->>>>> updated a little) to Al or to include it in the series to
->>>>> rename
->>>>> autofs4 to autofs that I'm hoping to ask be included in linux
->>>>> -next
->>>>> fairly soon.
->>>> Here I don't know, what's better. Of course Al can take it as
->>>> well.
->>>> But,
->>>> probably, first would be nice to make sure, that this solution is
->>>> the
->>>> best one.
->>>> Description of the problem is below.
->>>>
->>>>> Passing it on to Al will likely interfere with the series
->>>>> coming
->>>>> from
->>>>> linux-next so that could be bit of a hassle.
->>>>>
->>>>> Another thing I'm wondering about is the order this entry will
->>>>> appear
->>>>> at in the options. You order choice is sensible though and
->>>>> autofs
->>>>> shouldn't have a problem with the inserted option but other
->>>>> applications might.
->>>> I should put it at the end, probably?
->>>>
->>>>> Finally, and perhaps most importantly, I don't get what your
->>>>> trying
->>>>> to
->>>>> do, you also haven't given any clues to that in the patch
->>>>> dscription.
->>>>>
->>>>> IOW how do you expect to use this.
->>>>>
->>>>>> 16.12.2015 13:02, Stanislav Kinsburskiy =D0=BF=D0=B8=D1=88=D0=B5=
-=D1=82:
->>>>>>> This is required for CRIU to migrate a mount point, when
->>>>>>> write
->>>>>>> end
->>>>>>> in user
->>>>>>> space is closed.
->>>>> Like I said what does this mean.
->>>>>
->>>>> autofs doesn't need this when it re-constructs a mount tree
->>>>> from
->>>>> existing mounts on re-start or after a SIGKILL on the automount
->>>>> process.
->>>>>
->>>>> How is this different and how will it be used?
->>>>>
->>>>> The question to be answered here is "is this the best way to do
->>>>> it
->>>>> and
->>>>> will it work for the autofs mount types you expect it to"?
->>>> So, here is a brief description of the problem.
->>>> To migrate autofs mount, one have to reconstruct control pipe
->>>> between
->>>> kernel and autofs master.
->>>> There are two cases I'm wiling to support:
->>>> 1) Automount binary (autofs package). This program is very gentle
->>>> and
->>>> it
->>>> doesn't close write end of the pipe after mount.
->>>> 2) Systemd. This program closes write end of the pipe once the
->>>> mount
->>>> is
->>>> done.
->>> I must admit I'm having trouble understanding the description.
->>> Give me a little time with it.
->>>
->>> I don't know how systemd works with autofs mounts only that it uses
->>> the
->>> autofs direct mount type.
->> Systemd closes write end of the pipe after mount.
->>
->>> autofs uses both indirect and direct mounts and both can have
->>> offsets
->>> (from the kernel POV semantically direct mounts). So there is quite
->>> a
->>> bit to worry about beside the kernel pipe.
->> It's not about direct or indirects mounts.
->> It's about process state restore.
->> With CRIU migration, any task is frozen, then disassembled into
->> pieces
->> (dump files), which are used to assemble task exactly in the same
->> state
->> in was before dump.
->> The technology is very complex and uses a lot a different tricky
->> techniques to make this possible in userspace to describe all the
->> details here.
->>
->> But below is a bit more information, which, hopefully, will clarify
->> all
->> this a little bit more.
->> One of a process attributed to migrate is "opened files". Pipes also
->> belong to this attribute.
->>
->> To restore a pipe CRIU does the following (a very simplified
->> description):
->> 1) Creates a new pipe.
->> 2) Writes (previously stores in images) its contents via write end.
->> 3) Duplicate pipe descriptors to the fds of the process, which were
->> used
->> before dump, if required
->> 4) Send pipe descriptors to other processes, sharing it, via unix
->> socket.
->> 5) Close those pipe descriptors, which are not required (say, this
->> process had only read end, while it's child had write end).
->>
->> Thus in case of restoring and autofs mount of systemd (which, for
->> example, closed write end and has read end on fd 40), one have to
->> create
->> a pipe (say, appeared with fd 5 and fd 6), fill it with content via
->> fd
->> 6, duplicate fd 5 into fd 40, call mount with pipe fd 6 and then
->> close fd 6.
->> This is, yet again, a very simple explanation.
-> Right, as said initially (more or less), if you need the patch you
-> posted then it shouldn't cause a problem so it should be ok. Al hasn'=
-t
-> responded so I guess that means I should go the linux-next path
-> possibly via pull request for the series I have to rename autofs4 to
-> autofs (along with this one, to prevent merge conflicts).
->
-> I haven't asked Steven about this yet so I'm not sure if a pull reque=
-st
-> is even the right thing to do.
->
-> There is another case I was wondering about.
->
-> That's when there is a direct mount that is covered by a real mount.
->
-> autofs will have a file handle open to it (on the underlying mount
-> point path) to use for control purposes like expires. I think you als=
-o
-> need to restore those file handles to restore process state and in th=
-is
-> case the mount point is covered.
->
+[please CC me on replies, I'm not subscribed]
 
-This is covered: all the mount points first mounted somewhere to be abl=
-e=20
-to reopen files. Then mount order is restored.
+If the user configures an IPv6 protocol for nfs, autofs tries IPv4 too,
+and vice versa. The attached patch against autofs-5.1.1 prevents this.
 
->>> Anyway, it seems your only concern is the kernel pipe and I wonder
->>> why
->>> you can't just set the mount catatonic (in autofs speak) on save
->>> and
->>> open a new kernel pipe then set the pipefd on the autofs mount on
->>> restore.
->> I can't because of a bunch of reasons:
->> 1) It can be migration, thus I don't have autofs mount on destinatio=
-n
->> node at all
->> 2) It can be a container, which is stopped after dump (thus mount
->> point
->> is destroyed).
->>
->>> But probably my suggestion is far to simplistic as I get the
->>> impression
->>> you have a process already in a given state which you want to
->>> restore.
->>>
->>> One thing to keep in mind is that if an autofs mount is not set
->>> catatonic any access other than the owner process (process group
->>> pid)
->>> will hang unless there is an actual user space process to service
->>> the
->>> callback.
->>>
->>> Although I don't know the flow of things that might be important at
->>> some point.
->>>
->>> And if the mount is set catatonic the process needs to set the
->>> pipefd
->>> to take "ownership" which also clears the mount catatonic flag.
->> The migration is already implemented and sent to CRIU mailing list.
->> Here is the list, if you are interesting (I use kernel with this
->> patch
->> applied):
->> https://lists.openvz.org/pipermail/criu/2016-January/024749.html
-> ok, I'll try and have a look although I'm pressed for time so I'm not
-> sure I'll spend much time on it.
->
-> In any case the project needs to do what it thinks best so my only re=
-al
-> concern is to try and alert you to possible problems.
+The additional tries for the wrong IP protocol can be quite costly if
+e.g. an IPSec tunnel must be brought up.
+-- 
+Andreas Steinmetz                       SPAMmers use robotrap@domdv.de
 
-Thanks for the alerts.
-Should I move this option to the end of the list to preserve the sequen=
-ce?
+
+--=-/0kBEsmuuPoDzbo860H0
+Content-Disposition: attachment; filename="autofs-5.1.1-netproto.patch"
+Content-Type: text/x-patch; name="autofs-5.1.1-netproto.patch"; charset="ansi_x3.4-1968"
+Content-Transfer-Encoding: base64
+
+ZGlmZiAtck51IGF1dG9mcy01LjEuMS9pbmNsdWRlL3JlcGxpY2F0ZWQuaCBhdXRvZnMtNS4xLjEt
+bmV3L2luY2x1ZGUvcmVwbGljYXRlZC5oCi0tLSBhdXRvZnMtNS4xLjEvaW5jbHVkZS9yZXBsaWNh
+dGVkLmgJMjAxNS0wNC0yMSAxMTozNzo0NS4wMDAwMDAwMDAgKzAyMDAKKysrIGF1dG9mcy01LjEu
+MS1uZXcvaW5jbHVkZS9yZXBsaWNhdGVkLmgJMjAxNi0wMS0xNyAyMTozMzozOC41MTQwMjM5MTQg
+KzAxMDAKQEAgLTcyLDcgKzcyLDcgQEAKIAkJICAgICAgdW5zaWduZWQgaW50LCB1bnNpZ25lZCBp
+bnQsIHVuc2lnbmVkIGludCk7CiB2b2lkIGZyZWVfaG9zdF9saXN0KHN0cnVjdCBob3N0ICoqKTsK
+IGludCBwYXJzZV9sb2NhdGlvbih1bnNpZ25lZCwgc3RydWN0IGhvc3QgKiosIGNvbnN0IGNoYXIg
+KiwgdW5zaWduZWQgaW50KTsKLWludCBwcnVuZV9ob3N0X2xpc3QodW5zaWduZWQsIHN0cnVjdCBo
+b3N0ICoqLCB1bnNpZ25lZCBpbnQsIGludCk7CitpbnQgcHJ1bmVfaG9zdF9saXN0KHVuc2lnbmVk
+LCBzdHJ1Y3QgaG9zdCAqKiwgdW5zaWduZWQgaW50LCBpbnQsIGludCk7CiB2b2lkIGR1bXBfaG9z
+dF9saXN0KHN0cnVjdCBob3N0ICopOwogCiAjZW5kaWYKZGlmZiAtck51IGF1dG9mcy01LjEuMS9t
+b2R1bGVzL21vdW50X25mcy5jIGF1dG9mcy01LjEuMS1uZXcvbW9kdWxlcy9tb3VudF9uZnMuYwot
+LS0gYXV0b2ZzLTUuMS4xL21vZHVsZXMvbW91bnRfbmZzLmMJMjAxNS0wNC0yMSAxMTozNzo0NS4w
+MDAwMDAwMDAgKzAyMDAKKysrIGF1dG9mcy01LjEuMS1uZXcvbW9kdWxlcy9tb3VudF9uZnMuYwky
+MDE2LTAxLTE3IDIxOjU2OjI0LjkzMjAzOTQ1OCArMDEwMApAQCAtNzIsNiArNzIsNyBAQAogCWlu
+dCBwb3J0ID0gLTE7CiAJaW50IHJvID0gMDsgICAgICAgICAgICAvKiBTZXQgaWYgbW91bnQgYmlu
+ZCBzaG91bGQgYmUgcmVhZC1vbmx5ICovCiAJaW50IHJkbWEgPSAwOworCWludCB2NHY2ID0gMDsK
+IAogCWlmIChhcC0+ZmxhZ3MgJiBNT1VOVF9GTEFHX1JFTU9VTlQpCiAJCXJldHVybiAwOwpAQCAt
+MTY0LDEyICsxNjUsMjIgQEAKIAkJCQkJaWYgKHBvcnQgPCAwKQogCQkJCQkJcG9ydCA9IDA7CiAJ
+CQkJCXBvcnRfb3B0ID0gY3A7CisJCQkJfSBlbHNlIGlmIChfc3RybmNtcCgicHJvdG89dWRwNiIs
+IGNwLCBvX2xlbikgPT0gMCB8fAorCQkJCQkgICBfc3RybmNtcCgidWRwNiIsIGNwLCBvX2xlbikg
+PT0gMCkgeworCQkJCQl2ZXJzICY9IH5UQ1BfU1VQUE9SVEVEOworCQkJCQl2NHY2ID0gMjsKKwkJ
+CQl9IGVsc2UgaWYgKF9zdHJuY21wKCJwcm90bz10Y3A2IiwgY3AsIG9fbGVuKSA9PSAwIHx8CisJ
+CQkJCSAgIF9zdHJuY21wKCJ0Y3A2IiwgY3AsIG9fbGVuKSA9PSAwKSB7CisJCQkJCXZlcnMgJj0g
+flVEUF9TVVBQT1JURUQ7CisJCQkJCXY0djYgPSAyOwogCQkJCX0gZWxzZSBpZiAoX3N0cm5jbXAo
+InByb3RvPXVkcCIsIGNwLCBvX2xlbikgPT0gMCB8fAogCQkJCQkgICBfc3RybmNtcCgidWRwIiwg
+Y3AsIG9fbGVuKSA9PSAwKSB7CiAJCQkJCXZlcnMgJj0gflRDUF9TVVBQT1JURUQ7CisJCQkJCXY0
+djYgPSAxOwogCQkJCX0gZWxzZSBpZiAoX3N0cm5jbXAoInByb3RvPXRjcCIsIGNwLCBvX2xlbikg
+PT0gMCB8fAogCQkJCQkgICBfc3RybmNtcCgidGNwIiwgY3AsIG9fbGVuKSA9PSAwKSB7CiAJCQkJ
+CXZlcnMgJj0gflVEUF9TVVBQT1JURUQ7CisJCQkJCXY0djYgPSAxOwogCQkJCX0KIAkJCQkvKiBD
+aGVjayBmb3Igb3B0aW9ucyB0aGF0IGFsc28gbWFrZSBzZW5zZQogCQkJCSAgIHdpdGggYmluZCBt
+b3VudHMgKi8KQEAgLTIyMCw3ICsyMzEsOCBAQAogCQlpZiAodG1wKSB7CiAJCQl0bXAtPnJyID0g
+aG9zdHMtPnJyOwogCQkJcHJ1bmVfaG9zdF9saXN0KGFwLT5sb2dvcHQsICZ0bXAsCi0JCQkJCU5G
+UzRfVkVSU19NQVNLfFRDUF9TVVBQT1JURUQsIHBvcnQpOworCQkJCQlORlM0X1ZFUlNfTUFTS3xU
+Q1BfU1VQUE9SVEVELCBwb3J0LAorCQkJCQl2NHY2KTsKIAkJCS8qIElmIHByb2JlIHN1Y2NlZWRz
+IGp1c3QgdHJ5IHRoZSBtb3VudCB3aXRoIGhvc3QgaW4gaG9zdHMgKi8KIAkJCWlmICh0bXApIHsK
+IAkJCQl2NF9wcm9iZV9vayA9IDE7CkBAIC0yMjgsOSArMjQwLDkgQEAKIAkJCX0KIAkJfQogCQlp
+ZiAoIXY0X3Byb2JlX29rKQotCQkJcHJ1bmVfaG9zdF9saXN0KGFwLT5sb2dvcHQsICZob3N0cywg
+dmVycywgcG9ydCk7CisJCQlwcnVuZV9ob3N0X2xpc3QoYXAtPmxvZ29wdCwgJmhvc3RzLCB2ZXJz
+LCBwb3J0LCB2NHY2KTsKIAl9IGVsc2UgewotCQlwcnVuZV9ob3N0X2xpc3QoYXAtPmxvZ29wdCwg
+Jmhvc3RzLCB2ZXJzLCBwb3J0KTsKKwkJcHJ1bmVfaG9zdF9saXN0KGFwLT5sb2dvcHQsICZob3N0
+cywgdmVycywgcG9ydCwgdjR2Nik7CiAJfQogCiBkb250X3Byb2JlOgpkaWZmIC1yTnUgYXV0b2Zz
+LTUuMS4xL21vZHVsZXMvcmVwbGljYXRlZC5jIGF1dG9mcy01LjEuMS1uZXcvbW9kdWxlcy9yZXBs
+aWNhdGVkLmMKLS0tIGF1dG9mcy01LjEuMS9tb2R1bGVzL3JlcGxpY2F0ZWQuYwkyMDE1LTA0LTIx
+IDExOjM3OjQ1LjAwMDAwMDAwMCArMDIwMAorKysgYXV0b2ZzLTUuMS4xLW5ldy9tb2R1bGVzL3Jl
+cGxpY2F0ZWQuYwkyMDE2LTAxLTE3IDIxOjU3OjUwLjgyODQwMTc1NyArMDEwMApAQCAtNjUzLDcg
+KzY1Myw3IEBACiB9CiAKIGludCBwcnVuZV9ob3N0X2xpc3QodW5zaWduZWQgbG9nb3B0LCBzdHJ1
+Y3QgaG9zdCAqKmxpc3QsCi0JCSAgICB1bnNpZ25lZCBpbnQgdmVycywgaW50IHBvcnQpCisJCSAg
+ICB1bnNpZ25lZCBpbnQgdmVycywgaW50IHBvcnQsIGludCB2NHY2KQogewogCXN0cnVjdCBob3N0
+ICp0aGlzLCAqbGFzdCwgKmZpcnN0OwogCXN0cnVjdCBob3N0ICpuZXcgPSBOVUxMOwpAQCAtNzEw
+LDcgKzcxMCwxNCBAQAogCQkJYnJlYWs7CiAKIAkJaWYgKHRoaXMtPm5hbWUpIHsKLQkJCXN0YXR1
+cyA9IGdldF92ZXJzX2FuZF9jb3N0KGxvZ29wdCwgdGhpcywgdmVycywgcG9ydCk7CisJCQlpZiAo
+KHY0djYgPT0gMiAmJiB0aGlzLT5hZGRyX2xlbiA9PSBJTkVUX0FERFJTVFJMRU4pIHx8CisJCQkJ
+CSh2NHY2ICA9PSAxICYmCisJCQkJCXRoaXMtPmFkZHJfbGVuID09IElORVQ2X0FERFJTVFJMRU4p
+KSB7CisJCQkJc3RhdHVzID0gMDsKKwkJCX0gZWxzZSB7CisJCQkJc3RhdHVzID0gZ2V0X3ZlcnNf
+YW5kX2Nvc3QobG9nb3B0LCB0aGlzLAorCQkJCQkJIHZlcnMsIHBvcnQpOworCQkJfQogCQkJaWYg
+KCFzdGF0dXMpIHsKIAkJCQlpZiAodGhpcyA9PSBmaXJzdCkgewogCQkJCQlmaXJzdCA9IG5leHQ7
+CkBAIC04MTgsOCArODI1LDE0IEBACiAJCQlyZW1vdmVfaG9zdChsaXN0LCB0aGlzKTsKIAkJCWFk
+ZF9ob3N0KCZuZXcsIHRoaXMpOwogCQl9IGVsc2UgewotCQkJc3RhdHVzID0gZ2V0X3N1cHBvcnRl
+ZF92ZXJfYW5kX2Nvc3QobG9nb3B0LCB0aGlzLAotCQkJCQkJc2VsZWN0ZWRfdmVyc2lvbiwgcG9y
+dCk7CisJCQlpZiAoKHY0djYgPT0gMiAmJiB0aGlzLT5hZGRyX2xlbiA9PSBJTkVUX0FERFJTVFJM
+RU4pIHx8CisJCQkJCSh2NHY2ID09IDEgJiYKKwkJCQkJdGhpcy0+YWRkcl9sZW4gPT0gSU5FVDZf
+QUREUlNUUkxFTikpIHsKKwkJCQlzdGF0dXMgPSAwOworCQkJfSBlbHNlIHsKKwkJCQlzdGF0dXMg
+PSBnZXRfc3VwcG9ydGVkX3Zlcl9hbmRfY29zdChsb2dvcHQsCisJCQkJCQkgdGhpcywgc2VsZWN0
+ZWRfdmVyc2lvbiwgcG9ydCk7CisJCQl9CiAJCQlpZiAoc3RhdHVzKSB7CiAJCQkJdGhpcy0+dmVy
+c2lvbiA9IHNlbGVjdGVkX3ZlcnNpb247CiAJCQkJcmVtb3ZlX2hvc3QobGlzdCwgdGhpcyk7Cg==
+
+
+--=-/0kBEsmuuPoDzbo860H0--
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
