@@ -1,109 +1,51 @@
-From: Andreas Steinmetz <ast@domdv.de>
-Subject: [PATCH] prevent autofs to try the wrong IP protocol
-Date: Sun, 17 Jan 2016 22:14:39 +0100
-Message-ID: <1453065279.8867.21.camel@domdv.de>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [PATCH] prevent autofs to try the wrong IP protocol
+Date: Mon, 18 Jan 2016 09:04:10 +0800
+Message-ID: <1453079050.3005.7.camel@themaw.net>
+References: <1453065279.8867.21.camel@domdv.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-/0kBEsmuuPoDzbo860H0"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=domdv.de;
-	 s=dk3; h=Mime-Version:Content-Type:Date:To:From:Subject:Message-ID;
-	bh=WRqk0CkfyaLQ9SXXD3Xu08m958CeZQmGq9wjGd/9l+U=; b=hF69Rbi09PQedgqn0iU5AaiaYL
-	pgjxHTSm7VjweA9KTMP5el+crRlR/pSzXsNqPUemZghjPgdaRQVTOfIO+TH1WEQKcfM0r7X1X4KVW
-	5Hq+KQQPeCZd1yu60pEAgufXKQ0XfQfarYKG8a9EMCncxfvizpBfSQqRTTxq20/i3Y5k=;
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
+	content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to:x-sasl-enc
+	:x-sasl-enc; s=mesmtp; bh=c61t+kOeYzaCzQEpyOF56TZLC40=; b=HLMhb5
+	8qRehUCQWasE3ze2RqGZMyJAkGHdZfewbnwXqhbvWqC8+EepZM5APTfYBB437JW7
+	AhQlOGh5UuDUqtLJAYGQuZ8t//ZOKmPu8kZlsCywW8dF6cYEcQ3gQtWIsMtP5NTk
+	HLfqPeDNLIOwvqqZfQ+5SrhVR15w6hZ9H/pY0=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=content-transfer-encoding:content-type
+	:date:from:in-reply-to:message-id:mime-version:references
+	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=c61t+kOeYzaCzQE
+	pyOF56TZLC40=; b=lUISWZH0yjPPZVBsbAoeSzadtBDd18UbApZ3zS6q/PPvwWC
+	x6/MHkaaBpkVk4tgCLnK4EfbDwg7jOhsTeUi26ZLQ6B7wQg+3+bF/WcC/rVqrbQR
+	if02YTod5sinXuhvPtdsG8RIJQnyEe3zBO66Flu7hqqebX+pSKYaxaad+IWw=
+In-Reply-To: <1453065279.8867.21.camel@domdv.de>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-To: autofs@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: Andreas Steinmetz <ast@domdv.de>, autofs@vger.kernel.org
 
+On Sun, 2016-01-17 at 22:14 +0100, Andreas Steinmetz wrote:
+> [please CC me on replies, I'm not subscribed]
+> 
+> If the user configures an IPv6 protocol for nfs, autofs tries IPv4
+> too,
+> and vice versa. The attached patch against autofs-5.1.1 prevents
+> this.
+> 
+> The additional tries for the wrong IP protocol can be quite costly if
+> e.g. an IPSec tunnel must be brought up.
 
---=-/0kBEsmuuPoDzbo860H0
-Content-Type: text/plain; charset="ansi_x3.4-1968"
-Content-Transfer-Encoding: 7bit
+I get what your trying to say and agree that it should be fixed but I
+wouldn't do it quite this way.
 
-[please CC me on replies, I'm not subscribed]
+The method you have used is not in line with the way the code currently
+works so I'll need to have a look at it when I get some time.
 
-If the user configures an IPv6 protocol for nfs, autofs tries IPv4 too,
-and vice versa. The attached patch against autofs-5.1.1 prevents this.
-
-The additional tries for the wrong IP protocol can be quite costly if
-e.g. an IPSec tunnel must be brought up.
--- 
-Andreas Steinmetz                       SPAMmers use robotrap@domdv.de
-
-
---=-/0kBEsmuuPoDzbo860H0
-Content-Disposition: attachment; filename="autofs-5.1.1-netproto.patch"
-Content-Type: text/x-patch; name="autofs-5.1.1-netproto.patch"; charset="ansi_x3.4-1968"
-Content-Transfer-Encoding: base64
-
-ZGlmZiAtck51IGF1dG9mcy01LjEuMS9pbmNsdWRlL3JlcGxpY2F0ZWQuaCBhdXRvZnMtNS4xLjEt
-bmV3L2luY2x1ZGUvcmVwbGljYXRlZC5oCi0tLSBhdXRvZnMtNS4xLjEvaW5jbHVkZS9yZXBsaWNh
-dGVkLmgJMjAxNS0wNC0yMSAxMTozNzo0NS4wMDAwMDAwMDAgKzAyMDAKKysrIGF1dG9mcy01LjEu
-MS1uZXcvaW5jbHVkZS9yZXBsaWNhdGVkLmgJMjAxNi0wMS0xNyAyMTozMzozOC41MTQwMjM5MTQg
-KzAxMDAKQEAgLTcyLDcgKzcyLDcgQEAKIAkJICAgICAgdW5zaWduZWQgaW50LCB1bnNpZ25lZCBp
-bnQsIHVuc2lnbmVkIGludCk7CiB2b2lkIGZyZWVfaG9zdF9saXN0KHN0cnVjdCBob3N0ICoqKTsK
-IGludCBwYXJzZV9sb2NhdGlvbih1bnNpZ25lZCwgc3RydWN0IGhvc3QgKiosIGNvbnN0IGNoYXIg
-KiwgdW5zaWduZWQgaW50KTsKLWludCBwcnVuZV9ob3N0X2xpc3QodW5zaWduZWQsIHN0cnVjdCBo
-b3N0ICoqLCB1bnNpZ25lZCBpbnQsIGludCk7CitpbnQgcHJ1bmVfaG9zdF9saXN0KHVuc2lnbmVk
-LCBzdHJ1Y3QgaG9zdCAqKiwgdW5zaWduZWQgaW50LCBpbnQsIGludCk7CiB2b2lkIGR1bXBfaG9z
-dF9saXN0KHN0cnVjdCBob3N0ICopOwogCiAjZW5kaWYKZGlmZiAtck51IGF1dG9mcy01LjEuMS9t
-b2R1bGVzL21vdW50X25mcy5jIGF1dG9mcy01LjEuMS1uZXcvbW9kdWxlcy9tb3VudF9uZnMuYwot
-LS0gYXV0b2ZzLTUuMS4xL21vZHVsZXMvbW91bnRfbmZzLmMJMjAxNS0wNC0yMSAxMTozNzo0NS4w
-MDAwMDAwMDAgKzAyMDAKKysrIGF1dG9mcy01LjEuMS1uZXcvbW9kdWxlcy9tb3VudF9uZnMuYwky
-MDE2LTAxLTE3IDIxOjU2OjI0LjkzMjAzOTQ1OCArMDEwMApAQCAtNzIsNiArNzIsNyBAQAogCWlu
-dCBwb3J0ID0gLTE7CiAJaW50IHJvID0gMDsgICAgICAgICAgICAvKiBTZXQgaWYgbW91bnQgYmlu
-ZCBzaG91bGQgYmUgcmVhZC1vbmx5ICovCiAJaW50IHJkbWEgPSAwOworCWludCB2NHY2ID0gMDsK
-IAogCWlmIChhcC0+ZmxhZ3MgJiBNT1VOVF9GTEFHX1JFTU9VTlQpCiAJCXJldHVybiAwOwpAQCAt
-MTY0LDEyICsxNjUsMjIgQEAKIAkJCQkJaWYgKHBvcnQgPCAwKQogCQkJCQkJcG9ydCA9IDA7CiAJ
-CQkJCXBvcnRfb3B0ID0gY3A7CisJCQkJfSBlbHNlIGlmIChfc3RybmNtcCgicHJvdG89dWRwNiIs
-IGNwLCBvX2xlbikgPT0gMCB8fAorCQkJCQkgICBfc3RybmNtcCgidWRwNiIsIGNwLCBvX2xlbikg
-PT0gMCkgeworCQkJCQl2ZXJzICY9IH5UQ1BfU1VQUE9SVEVEOworCQkJCQl2NHY2ID0gMjsKKwkJ
-CQl9IGVsc2UgaWYgKF9zdHJuY21wKCJwcm90bz10Y3A2IiwgY3AsIG9fbGVuKSA9PSAwIHx8CisJ
-CQkJCSAgIF9zdHJuY21wKCJ0Y3A2IiwgY3AsIG9fbGVuKSA9PSAwKSB7CisJCQkJCXZlcnMgJj0g
-flVEUF9TVVBQT1JURUQ7CisJCQkJCXY0djYgPSAyOwogCQkJCX0gZWxzZSBpZiAoX3N0cm5jbXAo
-InByb3RvPXVkcCIsIGNwLCBvX2xlbikgPT0gMCB8fAogCQkJCQkgICBfc3RybmNtcCgidWRwIiwg
-Y3AsIG9fbGVuKSA9PSAwKSB7CiAJCQkJCXZlcnMgJj0gflRDUF9TVVBQT1JURUQ7CisJCQkJCXY0
-djYgPSAxOwogCQkJCX0gZWxzZSBpZiAoX3N0cm5jbXAoInByb3RvPXRjcCIsIGNwLCBvX2xlbikg
-PT0gMCB8fAogCQkJCQkgICBfc3RybmNtcCgidGNwIiwgY3AsIG9fbGVuKSA9PSAwKSB7CiAJCQkJ
-CXZlcnMgJj0gflVEUF9TVVBQT1JURUQ7CisJCQkJCXY0djYgPSAxOwogCQkJCX0KIAkJCQkvKiBD
-aGVjayBmb3Igb3B0aW9ucyB0aGF0IGFsc28gbWFrZSBzZW5zZQogCQkJCSAgIHdpdGggYmluZCBt
-b3VudHMgKi8KQEAgLTIyMCw3ICsyMzEsOCBAQAogCQlpZiAodG1wKSB7CiAJCQl0bXAtPnJyID0g
-aG9zdHMtPnJyOwogCQkJcHJ1bmVfaG9zdF9saXN0KGFwLT5sb2dvcHQsICZ0bXAsCi0JCQkJCU5G
-UzRfVkVSU19NQVNLfFRDUF9TVVBQT1JURUQsIHBvcnQpOworCQkJCQlORlM0X1ZFUlNfTUFTS3xU
-Q1BfU1VQUE9SVEVELCBwb3J0LAorCQkJCQl2NHY2KTsKIAkJCS8qIElmIHByb2JlIHN1Y2NlZWRz
-IGp1c3QgdHJ5IHRoZSBtb3VudCB3aXRoIGhvc3QgaW4gaG9zdHMgKi8KIAkJCWlmICh0bXApIHsK
-IAkJCQl2NF9wcm9iZV9vayA9IDE7CkBAIC0yMjgsOSArMjQwLDkgQEAKIAkJCX0KIAkJfQogCQlp
-ZiAoIXY0X3Byb2JlX29rKQotCQkJcHJ1bmVfaG9zdF9saXN0KGFwLT5sb2dvcHQsICZob3N0cywg
-dmVycywgcG9ydCk7CisJCQlwcnVuZV9ob3N0X2xpc3QoYXAtPmxvZ29wdCwgJmhvc3RzLCB2ZXJz
-LCBwb3J0LCB2NHY2KTsKIAl9IGVsc2UgewotCQlwcnVuZV9ob3N0X2xpc3QoYXAtPmxvZ29wdCwg
-Jmhvc3RzLCB2ZXJzLCBwb3J0KTsKKwkJcHJ1bmVfaG9zdF9saXN0KGFwLT5sb2dvcHQsICZob3N0
-cywgdmVycywgcG9ydCwgdjR2Nik7CiAJfQogCiBkb250X3Byb2JlOgpkaWZmIC1yTnUgYXV0b2Zz
-LTUuMS4xL21vZHVsZXMvcmVwbGljYXRlZC5jIGF1dG9mcy01LjEuMS1uZXcvbW9kdWxlcy9yZXBs
-aWNhdGVkLmMKLS0tIGF1dG9mcy01LjEuMS9tb2R1bGVzL3JlcGxpY2F0ZWQuYwkyMDE1LTA0LTIx
-IDExOjM3OjQ1LjAwMDAwMDAwMCArMDIwMAorKysgYXV0b2ZzLTUuMS4xLW5ldy9tb2R1bGVzL3Jl
-cGxpY2F0ZWQuYwkyMDE2LTAxLTE3IDIxOjU3OjUwLjgyODQwMTc1NyArMDEwMApAQCAtNjUzLDcg
-KzY1Myw3IEBACiB9CiAKIGludCBwcnVuZV9ob3N0X2xpc3QodW5zaWduZWQgbG9nb3B0LCBzdHJ1
-Y3QgaG9zdCAqKmxpc3QsCi0JCSAgICB1bnNpZ25lZCBpbnQgdmVycywgaW50IHBvcnQpCisJCSAg
-ICB1bnNpZ25lZCBpbnQgdmVycywgaW50IHBvcnQsIGludCB2NHY2KQogewogCXN0cnVjdCBob3N0
-ICp0aGlzLCAqbGFzdCwgKmZpcnN0OwogCXN0cnVjdCBob3N0ICpuZXcgPSBOVUxMOwpAQCAtNzEw
-LDcgKzcxMCwxNCBAQAogCQkJYnJlYWs7CiAKIAkJaWYgKHRoaXMtPm5hbWUpIHsKLQkJCXN0YXR1
-cyA9IGdldF92ZXJzX2FuZF9jb3N0KGxvZ29wdCwgdGhpcywgdmVycywgcG9ydCk7CisJCQlpZiAo
-KHY0djYgPT0gMiAmJiB0aGlzLT5hZGRyX2xlbiA9PSBJTkVUX0FERFJTVFJMRU4pIHx8CisJCQkJ
-CSh2NHY2ICA9PSAxICYmCisJCQkJCXRoaXMtPmFkZHJfbGVuID09IElORVQ2X0FERFJTVFJMRU4p
-KSB7CisJCQkJc3RhdHVzID0gMDsKKwkJCX0gZWxzZSB7CisJCQkJc3RhdHVzID0gZ2V0X3ZlcnNf
-YW5kX2Nvc3QobG9nb3B0LCB0aGlzLAorCQkJCQkJIHZlcnMsIHBvcnQpOworCQkJfQogCQkJaWYg
-KCFzdGF0dXMpIHsKIAkJCQlpZiAodGhpcyA9PSBmaXJzdCkgewogCQkJCQlmaXJzdCA9IG5leHQ7
-CkBAIC04MTgsOCArODI1LDE0IEBACiAJCQlyZW1vdmVfaG9zdChsaXN0LCB0aGlzKTsKIAkJCWFk
-ZF9ob3N0KCZuZXcsIHRoaXMpOwogCQl9IGVsc2UgewotCQkJc3RhdHVzID0gZ2V0X3N1cHBvcnRl
-ZF92ZXJfYW5kX2Nvc3QobG9nb3B0LCB0aGlzLAotCQkJCQkJc2VsZWN0ZWRfdmVyc2lvbiwgcG9y
-dCk7CisJCQlpZiAoKHY0djYgPT0gMiAmJiB0aGlzLT5hZGRyX2xlbiA9PSBJTkVUX0FERFJTVFJM
-RU4pIHx8CisJCQkJCSh2NHY2ID09IDEgJiYKKwkJCQkJdGhpcy0+YWRkcl9sZW4gPT0gSU5FVDZf
-QUREUlNUUkxFTikpIHsKKwkJCQlzdGF0dXMgPSAwOworCQkJfSBlbHNlIHsKKwkJCQlzdGF0dXMg
-PSBnZXRfc3VwcG9ydGVkX3Zlcl9hbmRfY29zdChsb2dvcHQsCisJCQkJCQkgdGhpcywgc2VsZWN0
-ZWRfdmVyc2lvbiwgcG9ydCk7CisJCQl9CiAJCQlpZiAoc3RhdHVzKSB7CiAJCQkJdGhpcy0+dmVy
-c2lvbiA9IHNlbGVjdGVkX3ZlcnNpb247CiAJCQkJcmVtb3ZlX2hvc3QobGlzdCwgdGhpcyk7Cg==
-
-
---=-/0kBEsmuuPoDzbo860H0--
-
+For example, it would probably be better to define TCP6_SUPPORTED, and
+a corresponding define for UDP, and use that to determine which of UDP
+or TCP should be tried in the same way that TCP_SUPPORTED and
+UDP_SUPPORTED is used.
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
