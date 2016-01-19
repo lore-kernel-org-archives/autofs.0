@@ -1,61 +1,143 @@
-From: Ian Kent <raven@themaw.net>
+From: Andreas Steinmetz <ast@domdv.de>
 Subject: Re: [PATCH] prevent autofs to try the wrong IP protocol
-Date: Mon, 18 Jan 2016 15:40:14 +0800
-Message-ID: <1453102814.3073.1.camel@themaw.net>
+Date: Tue, 19 Jan 2016 01:45:31 +0100
+Message-ID: <1453164331.8867.30.camel@domdv.de>
 References: <1453065279.8867.21.camel@domdv.de>
 	 <1453084618.3005.14.camel@themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="=-xaRNTAtePfAGBDc9ubML"
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to:x-sasl-enc
-	:x-sasl-enc; s=mesmtp; bh=KiexiHaYZnHJLKrC7PcD8LHWVe0=; b=TZHsrm
-	MoS3E7/elpWyZnYj8vsWzZ7VKwUUd0D2XxKQqtU5wDxC6aDjaLOx6l3TkO5b4Nh6
-	oxfIonx8/3o8nOBCVeCsCrlAh3+Vh49AMwoaDPCb5blCXLbz8hhAkbrekOylqFXg
-	XfK9HL5JdEVlqPwgThGwBYcLfVVY6qTbBXNbg=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=content-transfer-encoding:content-type
-	:date:from:in-reply-to:message-id:mime-version:references
-	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=KiexiHaYZnHJLKr
-	C7PcD8LHWVe0=; b=cDAjJ0KrzCODZDYw00KpfpWHaYMZcYBQavkNUVP2v3w8zO3
-	+DlB4uSzbCjSSv8zlQ/lR4DYEIxL4FQfJq8J1U2fF2sjTUqCQrenBGqC7Ob8DDee
-	qrKfRXjuKitwJryU26isn79QYhVlz3l7bj3ZVFUjyuzWQ+nt/2BloXEhBRo8=
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=domdv.de;
+	 s=dk3; h=Mime-Version:Content-Type:References:In-Reply-To:Date:To:From:
+	Subject:Message-ID; bh=MLdx+N1S7BDRkc6T+L/IfBj2F86h+1haKaCu04xylI0=; b=b2NPEf
+	4tMn4+AkmfGpa0/p5kzsSw8iNMSwTyhB8t/gJ9NLCumwQNQ+PAdgI9GtN2UXwbDar2VceyhhqnWDl
+	FLhRwqpTjazSEzlLjL2zK7g3CHaa1rfOa5/i36NUtswmGrtgkWrvzRYv62RSShTNc7qxnRU3wNnjH
+	ulNkDNTA6ak=;
 In-Reply-To: <1453084618.3005.14.camel@themaw.net>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: Andreas Steinmetz <ast@domdv.de>, autofs@vger.kernel.org
+To: Ian Kent <raven@themaw.net>, autofs@vger.kernel.org
 
-On Mon, 2016-01-18 at 10:36 +0800, Ian Kent wrote:
->  
-> +static int check_address_proto(unsigned logopt,
-> +> 	> 	> 	>        struct host *host, unsigned int version)
-> +{
-> +> 	> int ipv6_requested = version & (TCP6_REQUESTED | UDP6_REQUESTED);
-> +> 	> int ret = 1;
-> +
-> +> 	> /* If a protocol has been explicitly requested then don't
-> +> 	>  * consider addresses that don't match the requested protocol.
-> +> 	>  */
-> +> 	> if (version & ipv6_requested) {
 
-Umm .. I think this should just be:
-if (ipv6_requested) {
+--=-xaRNTAtePfAGBDc9ubML
+Content-Type: text/plain; charset="ansi_x3.4-1968"
+Content-Transfer-Encoding: 7bit
 
-> +		if (host->addr_len == INET_ADDRSTRLEN)
-> +> 	> 	> 	> ret = 0;
-> +> 	> } else {
-> +> 	> 	> if (host->addr_len == INET6_ADDRSTRLEN)
-> +> 	> 	> 	> ret = 0;
-> +> 	> }
-> +
-> +> 	> if (!ret)
-> +> 	> 	> debug(logopt, "requested protocol does not match address");
-> +
-> +> 	> return ret;
-> +}
-> +
+On Mo, 2016-01-18 at 10:36 +0800, Ian Kent wrote:
+> On Sun, 2016-01-17 at 22:14 +0100, Andreas Steinmetz wrote:
+> > [please CC me on replies, I'm not subscribed]
+> > 
+> > If the user configures an IPv6 protocol for nfs, autofs tries IPv4
+> > too,
+> > and vice versa. The attached patch against autofs-5.1.1 prevents
+> > this.
+> > 
+> > The additional tries for the wrong IP protocol can be quite costly
+> > if
+> > e.g. an IPSec tunnel must be brought up.
+> 
+> Is this close to what your asking for (not even compile tested)?
+> 
+> I'm not certain this won't have any undesired side effects AFAICS it
+> looks ok.
+> 
+> autofs-5.1.1 - fix ipv6 proto option handling
+> 
+
+Well, I had to fix up your patch slightly to work, at least for my IPv6
+use cases. Except for the fact that there are now new version bits in
+use which do hopefully not cause any unwanted side effects it now seems
+ok to me. Modified patch of yours is attached.
+
+-- 
+Andreas Steinmetz                       SPAMmers use robotrap@domdv.de
+
+
+--=-xaRNTAtePfAGBDc9ubML
+Content-Disposition: attachment; filename="autofs-5.1.1-netproto.patch"
+Content-Type: text/x-patch; name="autofs-5.1.1-netproto.patch"; charset="ansi_x3.4-1968"
+Content-Transfer-Encoding: base64
+
+ZGlmZiAtck51cCBhdXRvZnMtNS4xLjEub3JpZy9pbmNsdWRlL3JlcGxpY2F0ZWQuaCBhdXRvZnMt
+NS4xLjEvaW5jbHVkZS9yZXBsaWNhdGVkLmgKLS0tIGF1dG9mcy01LjEuMS5vcmlnL2luY2x1ZGUv
+cmVwbGljYXRlZC5oCTIwMTUtMDQtMjEgMTE6Mzc6NDUuMDAwMDAwMDAwICswMjAwCisrKyBhdXRv
+ZnMtNS4xLjEvaW5jbHVkZS9yZXBsaWNhdGVkLmgJMjAxNi0wMS0xOSAwMToxNzo1My43NzUwODg1
+ODIgKzAxMDAKQEAgLTM3LDcgKzM3LDEwIEBACiAjZGVmaW5lIFVEUF9TVVBQT1JURUQJCTB4MDAw
+MgogI2RlZmluZSBUQ1BfUkVRVUVTVEVECQlUQ1BfU1VQUE9SVEVECiAjZGVmaW5lIFVEUF9SRVFV
+RVNURUQJCVVEUF9TVVBQT1JURUQKKyNkZWZpbmUgVENQNl9SRVFVRVNURUQJCTB4MDEwMAorI2Rl
+ZmluZSBVRFA2X1JFUVVFU1RFRAkJMHgwMjAwCiAjZGVmaW5lIE5GU19QUk9UT19NQVNLCQkoVENQ
+X1NVUFBPUlRFRHxVRFBfU1VQUE9SVEVEKQorI2RlZmluZSBORlNfSVBWNl9NQVNLCQkoVENQNl9S
+RVFVRVNURUR8VURQNl9SRVFVRVNURUQpCiAKICNkZWZpbmUgTkZTMl9UQ1BfU1VQUE9SVEVECU5G
+UzJfU1VQUE9SVEVECiAjZGVmaW5lIE5GUzNfVENQX1NVUFBPUlRFRAlORlMzX1NVUFBPUlRFRApk
+aWZmIC1yTnVwIGF1dG9mcy01LjEuMS5vcmlnL21vZHVsZXMvbW91bnRfbmZzLmMgYXV0b2ZzLTUu
+MS4xL21vZHVsZXMvbW91bnRfbmZzLmMKLS0tIGF1dG9mcy01LjEuMS5vcmlnL21vZHVsZXMvbW91
+bnRfbmZzLmMJMjAxNS0wNC0yMSAxMTozNzo0NS4wMDAwMDAwMDAgKzAyMDAKKysrIGF1dG9mcy01
+LjEuMS9tb2R1bGVzL21vdW50X25mcy5jCTIwMTYtMDEtMTggMjM6NTg6MjkuODgyODEwNTc5ICsw
+MTAwCkBAIC0xNjcsOSArMTY3LDE3IEBAIGludCBtb3VudF9tb3VudChzdHJ1Y3QgYXV0b2ZzX3Bv
+aW50ICphcCwKIAkJCQl9IGVsc2UgaWYgKF9zdHJuY21wKCJwcm90bz11ZHAiLCBjcCwgb19sZW4p
+ID09IDAgfHwKIAkJCQkJICAgX3N0cm5jbXAoInVkcCIsIGNwLCBvX2xlbikgPT0gMCkgewogCQkJ
+CQl2ZXJzICY9IH5UQ1BfU1VQUE9SVEVEOworCQkJCX0gZWxzZSBpZiAoX3N0cm5jbXAoInByb3Rv
+PXVkcDYiLCBjcCwgb19sZW4pID09IDAgfHwKKwkJCQkJICAgX3N0cm5jbXAoInVkcDYiLCBjcCwg
+b19sZW4pID09IDApIHsKKwkJCQkJdmVycyAmPSB+VENQX1NVUFBPUlRFRDsKKwkJCQkJdmVycyB8
+PSBVRFA2X1JFUVVFU1RFRDsKIAkJCQl9IGVsc2UgaWYgKF9zdHJuY21wKCJwcm90bz10Y3AiLCBj
+cCwgb19sZW4pID09IDAgfHwKIAkJCQkJICAgX3N0cm5jbXAoInRjcCIsIGNwLCBvX2xlbikgPT0g
+MCkgewogCQkJCQl2ZXJzICY9IH5VRFBfU1VQUE9SVEVEOworCQkJCX0gZWxzZSBpZiAoX3N0cm5j
+bXAoInByb3RvPXRjcDYiLCBjcCwgb19sZW4pID09IDAgfHwKKwkJCQkJICAgX3N0cm5jbXAoInRj
+cDYiLCBjcCwgb19sZW4pID09IDApIHsKKwkJCQkJdmVycyAmPSB+VURQX1NVUFBPUlRFRDsKKwkJ
+CQkJdmVycyB8PSBUQ1A2X1JFUVVFU1RFRDsKIAkJCQl9CiAJCQkJLyogQ2hlY2sgZm9yIG9wdGlv
+bnMgdGhhdCBhbHNvIG1ha2Ugc2Vuc2UKIAkJCQkgICB3aXRoIGJpbmQgbW91bnRzICovCkBAIC0y
+MDcsMTEgKzIxNSwxNiBAQCBpbnQgbW91bnRfbW91bnQoc3RydWN0IGF1dG9mc19wb2ludCAqYXAs
+CiAJICogY29uZmlndXJhdGlvbiBvbmx5IHByb2JlIE5GU3Y0IGFuZCBsZXQgbW91bnQubmZzKDgp
+IGRvIGZhbGxiYWNrCiAJICogdG8gTkZTdjMgKGlmIGl0IGNhbikuIElmIHRoZSBORlN2NCBwcm9i
+ZSBmYWlscyB0aGVuIHByb2JlIGFzCiAJICogbm9ybWFsLgorCSAqCisJICogTm90ZTogc29tZSBO
+RlMgc2VydmVycyBjb25zaWRlciBpdCBhIHByb3RvY29sIHZpb2xhdGlvbiB0byB1c2UKKwkgKiBO
+RlN2NCBvdmVyIFVEUCBzbyBpZiBpdCBoYXMgYmVlbiByZXF1ZXN0ZWQgaW4gdGhlIG1vdW50IG9w
+dGlvbnMKKwkgKiB3ZSBjYW4ndCB1c2UgdGhpcyBhdCBhbGwuCiAJICovCiAJaWYgKChob3N0cyAm
+JiAhaG9zdHMtPm5leHQpICYmCiAJICAgIG1vdW50X2RlZmF1bHRfcHJvdG8gPT0gNCAmJgogCSAg
+ICAodmVycyAmIE5GU19WRVJTX01BU0spICE9IDAgJiYKLQkgICAgKHZlcnMgJiBORlM0X1ZFUlNf
+TUFTSykgIT0gMCkgeworCSAgICAodmVycyAmIE5GUzRfVkVSU19NQVNLKSAhPSAwICYmCisJICAg
+ICEodmVycyAmIFVEUDZfUkVRVUVTVEVEKSkgewogCQl1bnNpZ25lZCBpbnQgdjRfcHJvYmVfb2sg
+PSAwOwogCQlzdHJ1Y3QgaG9zdCAqdG1wID0gbmV3X2hvc3QoaG9zdHMtPm5hbWUsCiAJCQkJCSAg
+ICBob3N0cy0+YWRkciwgaG9zdHMtPmFkZHJfbGVuLApkaWZmIC1yTnVwIGF1dG9mcy01LjEuMS5v
+cmlnL21vZHVsZXMvcmVwbGljYXRlZC5jIGF1dG9mcy01LjEuMS9tb2R1bGVzL3JlcGxpY2F0ZWQu
+YwotLS0gYXV0b2ZzLTUuMS4xLm9yaWcvbW9kdWxlcy9yZXBsaWNhdGVkLmMJMjAxNS0wNC0yMSAx
+MTozNzo0NS4wMDAwMDAwMDAgKzAyMDAKKysrIGF1dG9mcy01LjEuMS9tb2R1bGVzL3JlcGxpY2F0
+ZWQuYwkyMDE2LTAxLTE5IDAxOjEzOjA3Ljk5MjQ3MjAxMSArMDEwMApAQCAtNDU5LDYgKzQ1OSwz
+MiBAQCBkb25lX3ZlcjoKIAlyZXR1cm4gc3VwcG9ydGVkOwogfQogCitzdGF0aWMgaW50IGNoZWNr
+X2FkZHJlc3NfcHJvdG8odW5zaWduZWQgbG9nb3B0LAorCQkJICAgICAgIHN0cnVjdCBob3N0ICpo
+b3N0LCB1bnNpZ25lZCBpbnQgdmVyc2lvbikKK3sKKwlpbnQgaXB2Nl9yZXF1ZXN0ZWQgPSB2ZXJz
+aW9uICYgTkZTX0lQVjZfTUFTSzsKKwlpbnQgcmV0ID0gMTsKKwlzb2NrbGVuX3QgbGVuID0gSU5F
+VDZfQUREUlNUUkxFTjsKKwljaGFyIGJ1ZltsZW4gKyAxXTsKKworCS8qIElmIGEgcHJvdG9jb2wg
+aGFzIGJlZW4gZXhwbGljaXRseSByZXF1ZXN0ZWQgdGhlbiBkb24ndAorCSAqIGNvbnNpZGVyIGFk
+ZHJlc3NlcyB0aGF0IGRvbid0IG1hdGNoIHRoZSByZXF1ZXN0ZWQgcHJvdG9jb2wuCisJICovCisJ
+aWYgKGlwdjZfcmVxdWVzdGVkKSB7CisJCWlmIChob3N0LT5hZGRyX2xlbiA9PSBJTkVUX0FERFJT
+VFJMRU4pCisJCQlyZXQgPSAwOworCX0gZWxzZSB7CisJCWlmIChob3N0LT5hZGRyX2xlbiA9PSBJ
+TkVUNl9BRERSU1RSTEVOKQorCQkJcmV0ID0gMDsKKwl9CisKKwlpZiAoIXJldCkKKwkJZGVidWco
+bG9nb3B0LCAicmVxdWVzdGVkIHByb3RvY29sIGRvZXMgbm90IG1hdGNoIGhvc3QgJXMoJXMpIiwK
+KwkJCWhvc3QtPm5hbWUsIGdldF9hZGRyX3N0cmluZyhob3N0LT5hZGRyLCBidWYsIGxlbikpOwor
+CisJcmV0dXJuIHJldDsKK30KKwogc3RhdGljIGludCBnZXRfdmVyc19hbmRfY29zdCh1bnNpZ25l
+ZCBsb2dvcHQsIHN0cnVjdCBob3N0ICpob3N0LAogCQkJICAgICB1bnNpZ25lZCBpbnQgdmVyc2lv
+biwgaW50IHBvcnQpCiB7CkBAIC00NjcsNiArNDkzLDkgQEAgc3RhdGljIGludCBnZXRfdmVyc19h
+bmRfY29zdCh1bnNpZ25lZCBsbwogCXVuc2lnbmVkIGludCBzdXBwb3J0ZWQsIHZlcnMgPSAoTkZT
+X1ZFUlNfTUFTSyB8IE5GUzRfVkVSU19NQVNLKTsKIAlpbnQgcmV0ID0gMDsKIAorCWlmICghY2hl
+Y2tfYWRkcmVzc19wcm90byhsb2dvcHQsIGhvc3QsIHZlcnNpb24pKQorCQlyZXR1cm4gMDsKKwog
+CW1lbXNldCgmcG1faW5mbywgMCwgc2l6ZW9mKHN0cnVjdCBjb25uX2luZm8pKTsKIAltZW1zZXQo
+JnJwY19pbmZvLCAwLCBzaXplb2Yoc3RydWN0IGNvbm5faW5mbykpOwogCkBAIC01MjksNiArNTU4
+LDExIEBAIHN0YXRpYyBpbnQgZ2V0X3N1cHBvcnRlZF92ZXJfYW5kX2Nvc3QodW4KIAl0aW1lX3Qg
+dGltZW91dCA9IFJQQ19USU1FT1VUOwogCWludCBzdGF0dXMgPSAwOwogCisJaWYgKCFjaGVja19h
+ZGRyZXNzX3Byb3RvKGxvZ29wdCwgaG9zdCwgdmVyc2lvbikpCisJCXJldHVybiAwOworCisJdmVy
+c2lvbiAmPSB+TkZTX0lQVjZfTUFTSzsKKwogCWlmIChob3N0LT5hZGRyKQogCQlkZWJ1Zyhsb2dv
+cHQsICJjYWxsZWQgd2l0aCBob3N0ICVzKCVzKSB2ZXJzaW9uIDB4JXgiLAogCQkJaG9zdC0+bmFt
+ZSwgZ2V0X2FkZHJfc3RyaW5nKGhvc3QtPmFkZHIsIGJ1ZiwgbGVuKSwKQEAgLTgxOSw3ICs4NTMs
+OCBAQCBpbnQgcHJ1bmVfaG9zdF9saXN0KHVuc2lnbmVkIGxvZ29wdCwgc3RyCiAJCQlhZGRfaG9z
+dCgmbmV3LCB0aGlzKTsKIAkJfSBlbHNlIHsKIAkJCXN0YXR1cyA9IGdldF9zdXBwb3J0ZWRfdmVy
+X2FuZF9jb3N0KGxvZ29wdCwgdGhpcywKLQkJCQkJCXNlbGVjdGVkX3ZlcnNpb24sIHBvcnQpOwor
+CQkJCXNlbGVjdGVkX3ZlcnNpb24gfCAodmVycyAmIE5GU19JUFY2X01BU0spLAorCQkJCXBvcnQp
+OwogCQkJaWYgKHN0YXR1cykgewogCQkJCXRoaXMtPnZlcnNpb24gPSBzZWxlY3RlZF92ZXJzaW9u
+OwogCQkJCXJlbW92ZV9ob3N0KGxpc3QsIHRoaXMpOwo=
+
+
+--=-xaRNTAtePfAGBDc9ubML--
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
