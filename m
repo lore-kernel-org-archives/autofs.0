@@ -1,60 +1,46 @@
-From: Stanislav Kinsburskiy <skinsbursky@virtuozzo.com>
-Subject: [PATCH v2] autofs: show pipe inode in mount options
-Date: Mon, 25 Jan 2016 15:29:43 +0400
-Message-ID: <20160125112929.3570.41795.stgit@localhost.localdomain>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: [PATCH] autofs: show pipe inode in mount options
+Date: Tue, 26 Jan 2016 10:19:07 +1100
+Message-ID: <20160126101907.388686e7@canb.auug.org.au>
+References: <20151216120222.19097.54512.stgit@localhost.localdomain>
+	<568E8840.3010801@odin.com>
+	<1452237640.2973.19.camel@themaw.net>
+	<568F9D85.6070601@odin.com>
+	<1452257913.7030.25.camel@themaw.net>
+	<568FD028.5090207@odin.com>
+	<1452303110.3067.29.camel@themaw.net>
+	<5693931F.9070101@odin.com>
+	<56A213CA.5090704@odin.com>
+	<1453509017.3042.7.camel@themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=canb.auug.org.au;
+	s=201601; t=1453763948;
+	bh=/Lr/hSgSpmNr6MF9zo2I0X6oANFd7gPbwby+tngz+xQ=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=b4MIV0nsltDaUpVa6FS8TiLRYdEWFSJ+s3kH0edH/hN5VomJukhzToK5wRSsSh+jR
+	 n+Y2fa0Baj1tpwAon5H0xFMhd02uhfkvFTwVC/pYK1CVB3NI684YGoPbrnJx9YnTr8
+	 y5omRN1XAdSy1cb5OLYeZrlwCOyjE/8xfCofB8h4=
+In-Reply-To: <1453509017.3042.7.camel@themaw.net>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: autofs@vger.kernel.org, linux-kernel@vger.kernel.org, raven@themaw.net
-Cc: criu@openvz.org, skinsbursky@virtuozzo.com
+To: Ian Kent <raven@themaw.net>
+Cc: skinsbursky@virtuozzo.com, criu@openvz.org, autofs@vger.kernel.org, linux-kernel@vger.kernel.org, Al Viro <viro@ZenIV.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>
 
-This is required for CRIU (Checkpoint Restart In Userspace) to migrate a mount
-point, when write end in user space is closed.
-Below is the brief description of the problem.
-To migrate non-catatonic autofs mount point, one have to restore control
-pipe between kernel and and autofs master process.
-One of the autofs masters is systemd, which closes pipe write end after
-passing it to the kernel with mount call.
-To be able to restore systemd control pipe, one have to know, which read pipe
-end in systemd corresponds to the write pipe end in the kernel. Pipe "fd" in
-mount options is not enough, because it was closed and probably replaced by
-some other descriptor.
-Thus, some other attribute is required to be able to find the read pipe end.
-The best attribute, allowing to find correct pipe end is inode number, becuase
-it's unique for the whole system and can't be reused until autofs mount
-exists. This attribute also allows to recognize a situation with autofs mount
-without master (no process with specified "pgrp" or not file descriptor with
-"pipe_ino", specified in autofs mount options).
+Hi Ian,
 
-v2:
-1) New option "pipe_ino" was moved to the end of the options list.
-2) Option is printed only if CONFIG_CHECKPOINT_RESTORE is set.
+On Sat, 23 Jan 2016 08:30:17 +0800 Ian Kent <raven@themaw.net> wrote:
+>
+> I haven't had anything significant enough for autofs to warrant
+> maintaining a tree and sending push requests so I'll need to ask
+> Stephen what I need to do (perhaps you could offer some advise on that
+> now Stephen, please).
 
+I guess if its just a few patches every now and then, then Andrew
+Morton may be the best person to shepherd them upstream.
 
-Signed-off-by: Stanislav Kinsburskiy <skinsbursky@virtuozzo.com>
----
- fs/autofs4/inode.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
-
-diff --git a/fs/autofs4/inode.c b/fs/autofs4/inode.c
-index a3ae0b2..4320faa 100644
---- a/fs/autofs4/inode.c
-+++ b/fs/autofs4/inode.c
-@@ -94,7 +94,12 @@ static int autofs4_show_options(struct seq_file *m, struct dentry *root)
- 		seq_printf(m, ",direct");
- 	else
- 		seq_printf(m, ",indirect");
--
-+#ifdef CONFIG_CHECKPOINT_RESTORE
-+	if (sbi->pipe)
-+		seq_printf(m, ",pipe_ino=%ld", sbi->pipe->f_inode->i_ino);
-+	else
-+		seq_printf(m, ",pipe_ino=-1");
-+#endif
- 	return 0;
- }
- 
-
+-- 
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
