@@ -1,57 +1,60 @@
-From: Stanislav Kinsburskiy <skinsbursky@odin.com>
-Subject: Re: [PATCH] autofs: show pipe inode in mount options
-Date: Mon, 25 Jan 2016 12:30:29 +0100
-Message-ID: <56A60755.2020709@odin.com>
-References: <20151216120222.19097.54512.stgit@localhost.localdomain>
- <568E8840.3010801@odin.com> <1452237640.2973.19.camel@themaw.net>
- <568F9D85.6070601@odin.com> <1452257913.7030.25.camel@themaw.net>
- <568FD028.5090207@odin.com> <1452303110.3067.29.camel@themaw.net>
- <5693931F.9070101@odin.com> <56A213CA.5090704@odin.com>
- <1453509017.3042.7.camel@themaw.net>
-Reply-To: <skinsbursky@virtuozzo.com>
+From: Stanislav Kinsburskiy <skinsbursky@virtuozzo.com>
+Subject: [PATCH v2] autofs: show pipe inode in mount options
+Date: Mon, 25 Jan 2016 15:29:43 +0400
+Message-ID: <20160125112929.3570.41795.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <autofs-owner@vger.kernel.org>
-In-Reply-To: <1453509017.3042.7.camel@themaw.net>
-Sender: autofs-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="utf-8"; format="flowed"
-To: Ian Kent <raven@themaw.net>, skinsbursky@virtuozzo.com
-Cc: criu@openvz.org, autofs@vger.kernel.org, linux-kernel@vger.kernel.org, Al Viro <viro@ZenIV.linux.org.uk>, Stephen Rothwell <sfr@canb.auug.org.au>
+Content-Type: text/plain; charset="us-ascii"
+To: autofs@vger.kernel.org, linux-kernel@vger.kernel.org, raven@themaw.net
+Cc: criu@openvz.org, skinsbursky@virtuozzo.com
+
+This is required for CRIU (Checkpoint Restart In Userspace) to migrate a mount
+point, when write end in user space is closed.
+Below is the brief description of the problem.
+To migrate non-catatonic autofs mount point, one have to restore control
+pipe between kernel and and autofs master process.
+One of the autofs masters is systemd, which closes pipe write end after
+passing it to the kernel with mount call.
+To be able to restore systemd control pipe, one have to know, which read pipe
+end in systemd corresponds to the write pipe end in the kernel. Pipe "fd" in
+mount options is not enough, because it was closed and probably replaced by
+some other descriptor.
+Thus, some other attribute is required to be able to find the read pipe end.
+The best attribute, allowing to find correct pipe end is inode number, becuase
+it's unique for the whole system and can't be reused until autofs mount
+exists. This attribute also allows to recognize a situation with autofs mount
+without master (no process with specified "pgrp" or not file descriptor with
+"pipe_ino", specified in autofs mount options).
+
+v2:
+1) New option "pipe_ino" was moved to the end of the options list.
+2) Option is printed only if CONFIG_CHECKPOINT_RESTORE is set.
 
 
+Signed-off-by: Stanislav Kinsburskiy <skinsbursky@virtuozzo.com>
+---
+ fs/autofs4/inode.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-23.01.2016 01:30, Ian Kent =D0=BF=D0=B8=D1=88=D0=B5=D1=82:
-> On Fri, 2016-01-22 at 12:34 +0100, Stanislav Kinsburskiy wrote:
->> Hi again,
->>
->> I would like to ask about any progress with this patch?
->> Any other requirements to make it able to merge?
-> Sorry for the delay.
->
-> Since there haven't been any comments from Al or Stephen I'm think I
-> should include it in the series I plan on sending to linux-next to
-> rename autofs4 to autofs (among other things).
->
-> I haven't had anything significant enough for autofs to warrant
-> maintaining a tree and sending push requests so I'll need to ask
-> Stephen what I need to do (perhaps you could offer some advise on tha=
-t
-> now Stephen, please).
->
-> I'm also struggling to get back to this and carry out the needed
-> testing and I'll need to re-base the series too now but I'm getting
-> there.
->
-> I didn't see a follow up patch with an updated description, did I mis=
-s
-> it?
+diff --git a/fs/autofs4/inode.c b/fs/autofs4/inode.c
+index a3ae0b2..4320faa 100644
+--- a/fs/autofs4/inode.c
++++ b/fs/autofs4/inode.c
+@@ -94,7 +94,12 @@ static int autofs4_show_options(struct seq_file *m, struct dentry *root)
+ 		seq_printf(m, ",direct");
+ 	else
+ 		seq_printf(m, ",indirect");
+-
++#ifdef CONFIG_CHECKPOINT_RESTORE
++	if (sbi->pipe)
++		seq_printf(m, ",pipe_ino=%ld", sbi->pipe->f_inode->i_ino);
++	else
++		seq_printf(m, ",pipe_ino=-1");
++#endif
+ 	return 0;
+ }
+ 
 
-No, you didn't.
-I have send it few minutes ago.
-Thanks.
-
-> Ian
-
---
-To unsubscribe from this list: send the line "unsubscribe autofs" in
