@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: "Too many levels of symbolic links"
-Date: Wed, 16 Mar 2016 09:32:14 +0800
-Message-ID: <1458091934.2967.45.camel@themaw.net>
+Date: Wed, 16 Mar 2016 09:58:55 +0800
+Message-ID: <1458093535.2967.65.camel@themaw.net>
 References: <1391145206.2486.25.camel@perseus.fritz.box>
 		 <52EB7694.20707@molgen.mpg.de> <52EB7B07.2070707@molgen.mpg.de>
 		 <530484B7.6030305@molgen.mpg.de>
@@ -23,17 +23,17 @@ Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=cc
 	:content-transfer-encoding:content-type:date:from:in-reply-to
 	:message-id:mime-version:references:subject:to:x-sasl-enc
-	:x-sasl-enc; s=mesmtp; bh=NNk4ILnrs86/g6Wufq3OrselTQo=; b=hnk477
-	XLT2QZe6BDVui8MN/Iut65M34xjLiiHWECqEm3GQBF4D7V5tEUmTsgt8x/2mRTNF
-	NCl/2/kukpg3u7wsjRxOigJA/8ty5UvZg40sFGF8mt2hqeqSm0X3/bdkKyf2se+D
-	UHQMHuzqQ/0hMO3z3pTFHKA9dNbblR/NG1w3E=
+	:x-sasl-enc; s=mesmtp; bh=VbrNZ4cDLqSv10kNa+wXpPE5QaQ=; b=DT8tMT
+	sqhmpZaT5jCH0kB3WqSYALgJIDcjAiRRD3hgE3oF04vaoRn/W2xFphAao3RVbEqm
+	RyyM1sXS3D5cU4dv5YQOKjzpTSm4ATgUtReIZkWi7myf90S9DY5WwTPdveSvw8Eh
+	8Xw/FzkkLhkyx+5uIzjywiMRe+q08WkHd9iaU=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=cc:content-transfer-encoding:content-type
 	:date:from:in-reply-to:message-id:mime-version:references
-	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=NNk4ILnrs86/g6W
-	ufq3OrselTQo=; b=bcA6JWPJkB+VopV1d8xwC9BWkgBw76+jgTLtXrnj7gG+MYg
-	FU1MJjxHMamcYqYZVbf9+04StdU8i2XQkEzWKO8kq5CZdilkJKjL4h/W0lHXXRFs
-	KD4UV4Hi69m2Lq0g1rhM6NEPEL1h6u9MLdzfWE9PiXP+hk7k7XMlqFtNvdeE=
+	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=VbrNZ4cDLqSv10k
+	Na+wXpPE5QaQ=; b=cWPP1+MulZzU7x11O8CKZVxsva3mQryJ2I6B9y9KmlWVcSm
+	Owgas/JxX8Gx4qtzG1YZfCLerocNkmTYjdTY3qrpeRg00rN0ORw3kEvAUgLs4OYK
+	Nz7V7VwaiZnkuWKOJUXBFHKAeGIJDbKi3bLsgnLB3cU62VBHr5fRtDyrQhaM=
 In-Reply-To: <56E0610F.9020704@molgen.mpg.de>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
@@ -42,57 +42,60 @@ To: Donald Buczek <buczek@molgen.mpg.de>
 Cc: autofs <autofs@vger.kernel.org>
 
 On Wed, 2016-03-09 at 18:44 +0100, Donald Buczek wrote:
-> Hi, Kent,
 > 
-> in 2014 we analyzed and discussed a problem which in my view boiled
-> down 
-> to "autofs refuses to mount on a path (dentry) which already is
-> mounted 
-> in another namespace." This is because it uses d_mountpoint ( = 
-> DCACHE_MOUNTED) to decide whether a mount should be attempted or not.
-> At 
-> that point I selfishly changed our setting to avoid use of mount 
-> namespaces and left you alone with the problem.
+> As a reminder, here is the script we used to demonstrate the problem (
+> assuming /project/mariux32 is served by autofs) :
 > 
-> But now we need mount namespaces ourselves using kernel 4.4.2 and the 
-> old problem reoccurred
+> ===
+> #! /bin/sh
 > 
-> So my questions:
+> ls -ld /project/mariux32/.
+> unshare -m -- bash -c "sleep 6;ls -ld /project/mariux32/.;echo
+> exit..." &
+> kill -USR1  `cat /var/run/autofs-running`
+> sleep 3
+> ls -ld /project/mariux32/.
+> wait
+> ===
 > 
-> * am I right, that this problem is still unresolved?
-> * is this considered a bug?
+> In your mail quoted below you wrote, the error would be avoided if "/"
+> was set to shared before automount is started, but I can't confirm
+> this.
+> 
+> ===
+> root:nsa:/scratch/local/# systemctl stop automount.service
+> root:nsa:/scratch/local/# mount --make-rshared /
+> root:nsa:/scratch/local/# systemctl start automount.service
+> root:nsa:/scratch/local/# ./test.sh
+> drwxrwsr-x 6 mx32prj mx32grp 56 Feb 24  2011 /project/mariux32/.
+> ls: cannot access /project/mariux32/.: Too many levels of symbolic
+> links
+> drwxrwsr-x 6 mx32prj mx32grp 56 Feb 24  2011 /project/mariux32/.
+> exit...
+> root:nsa:/scratch/local/#
 
-I originally made a couple of patches to make autofs namespace aware for
-this case but I'm still holding on to them because, as I did them, I
-realized there's quite a bit more going on with this.
+And, sadly, it's not that simple as I tried to describe with the cases
+of the previous mail.
 
-For example, suppose autofs is namespace aware, the autofs file system
-has been cloned as part of the namespace creation, the filesystem in the
-new namespace is propagation private and the automount daemon is running
-in the root namespace.
+One thing that occurred to me long ago was setting the autofs mounts
+propagation private at mount so they wouldn't be cloned to namespaces.
 
-In this case there's no limit on the number of times the namespace can
-attempt to trigger a mount which is possibly open to be used as a denial
-of service attack. So the current ELOOP behaviour is probably needed in
-this case.
+So you'd think, problem solved for some selected cases, but other cases,
+such as container implementations that need mounts to be propagation
+slave, broken.
 
-Another example, assume the automount daemon is running in the root
-namespace, there are multiple containers where an indirect mount map has
-been passed as a volume and the container implementation sets it's
-mounts as propagation slave.
+But setting the autofs mounts themselves propagation private doesn't
+stop them being cloned, it only prevents the child mount from
+propagating which would just force the ELOOP behaviour regardless of the
+namespace mount propagation status.
 
-In this case the mounts are mounted in the root namespace and propagated
-to the containers. And similarly, if there's a bad mount the containers
-are capped on the number of mount attempts by the current ELOOP
-behaviour. But ELOOP probably isn't the error return the containers
-should be getting either and allowing unabated callbacks is probably not
-good either.
+And, as I found out, it isn't possible to set a mount so it doesn't
+propagate, it can only be done by setting the parent to not propagate
+(all of) it's children. So there's no way to selectively set individual
+mounts to not propagate at mount time, so they don't show up in a
+created namespace.
 
-There are more cases, some of which I haven't properly investigated.
-
-So I ended up holding onto the patches.
-
-What exactly is your usage need?
+So it is quite a difficult problem.
 
 Ian
 --
