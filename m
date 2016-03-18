@@ -1,137 +1,134 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: "Too many levels of symbolic links"
-Date: Wed, 16 Mar 2016 10:10:29 +0800
-Message-ID: <1458094229.2967.72.camel@themaw.net>
-References: <1391145206.2486.25.camel@perseus.fritz.box>
-		 <52EB7694.20707@molgen.mpg.de> <52EB7B07.2070707@molgen.mpg.de>
-		 <530484B7.6030305@molgen.mpg.de>
-		 <1392896501.2508.16.camel@perseus.fritz.box>
-		 <1392898704.2508.26.camel@perseus.fritz.box>
-		 <530625D0.7020808@molgen.mpg.de>
-		 <1392946952.2495.3.camel@perseus.fritz.box>
-		 <53076D91.7050703@molgen.mpg.de> <53107D4A.90904@molgen.mpg.de>
-		 <20140228132906.GM15017@sh-el6.eng.rdu2.redhat.com>
-		 <1393726942.9725.5.camel@perseus.fritz.box>
-		 <1393744241.9725.16.camel@perseus.fritz.box>
-		 <5313467C.9080102@molgen.mpg.de>
-		 <1393814402.2787.19.camel@perseus.fritz.box>
-	 <1393913207.2781.20.camel@perseus.fritz.box>
-	 <56E0610F.9020704@molgen.mpg.de>
+From: Jeff Mahoney <jeffm@suse.com>
+Subject: [BUG] contained_in_local_fs will *always* return true
+Date: Fri, 18 Mar 2016 16:44:07 -0400
+Message-ID: <56EC6897.7040409@suse.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="LnLeULDECsUQ05d9P4p1NGvhoBdQM1iaD"
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to:x-sasl-enc
-	:x-sasl-enc; s=mesmtp; bh=8VeIX9Vq4Utlyk7qb1dw7f5VykQ=; b=gjmhSJ
-	RHsAGE9XGtIsIZRDOy5DEfAes6kgVNwkxFl57LuGOhJ7Da/Amds1FOD61+8nxDXa
-	vFGv+uEAMkZvfMtMJg1EsDrkaOF/J/s1mQkhN1qDjmCu5QvaKBds+6yFy5ZZu/3I
-	U7yVsFAra9iyDWEulvAfLSvC1SZ23PTDuuyqA=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:content-transfer-encoding:content-type
-	:date:from:in-reply-to:message-id:mime-version:references
-	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=8VeIX9Vq4Utlyk7
-	qb1dw7f5VykQ=; b=Q3T9YrfVRxRVLZb3rYVKT3YWrU8tL7wF0NgycP9A2GIVecX
-	d2BX3K0Wp+tl6McsC0OxL7F66gWK11iXu7l8mH3GcspJq96f0m4H+kVZVGQiuMfJ
-	QkjQJ06+Ki/SpNtlGmZpQMxAS8jqPZaNzbZ5GxPEgcoMDMd/l+fYsGOZWBqI=
-In-Reply-To: <56E0610F.9020704@molgen.mpg.de>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: Donald Buczek <buczek@molgen.mpg.de>
-Cc: autofs <autofs@vger.kernel.org>
+To: autofs@vger.kernel.org
+Cc: Ian Kent <raven@themaw.net>
 
-On Wed, 2016-03-09 at 18:44 +0100, Donald Buczek wrote:
-> As a reminder, here is the script we used to demonstrate the problem (
-> assuming /project/mariux32 is served by autofs) :
-> 
-> ===
-> #! /bin/sh
-> 
-> ls -ld /project/mariux32/.
-> unshare -m -- bash -c "sleep 6;ls -ld /project/mariux32/.;echo
-> exit..." &
-> kill -USR1  `cat /var/run/autofs-running`
-> sleep 3
-> ls -ld /project/mariux32/.
-> wait
-> ===
-> 
-> In your mail quoted below you wrote, the error would be avoided if "/"
-> was set to shared before automount is started, but I can't confirm
-> this.
-> 
-> ===
-> root:nsa:/scratch/local/# systemctl stop automount.service
-> root:nsa:/scratch/local/# mount --make-rshared /
-> root:nsa:/scratch/local/# systemctl start automount.service
-> root:nsa:/scratch/local/# ./test.sh
-> drwxrwsr-x 6 mx32prj mx32grp 56 Feb 24  2011 /project/mariux32/.
-> ls: cannot access /project/mariux32/.: Too many levels of symbolic
-> links
-> drwxrwsr-x 6 mx32prj mx32grp 56 Feb 24  2011 /project/mariux32/.
-> exit...
-> root:nsa:/scratch/local/#
-> ===
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--LnLeULDECsUQ05d9P4p1NGvhoBdQM1iaD
+Content-Type: multipart/mixed; boundary="XuvwtdjjIUMQQ9HFLQuw2fKtTaTeNvNv6"
+From: Jeff Mahoney <jeffm@suse.com>
+To: autofs@vger.kernel.org
+Cc: Ian Kent <raven@themaw.net>
+Message-ID: <56EC6897.7040409@suse.com>
+Subject: [BUG] contained_in_local_fs will *always* return true
 
-Actually, assuming /project is an indirect mount, I think that should
-have been OK.
+--XuvwtdjjIUMQQ9HFLQuw2fKtTaTeNvNv6
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Again, there's more going on, probably unshare not cloning file handles
-(the -m clones only the mount namespace I think). Without a way of
-sending mount requests to the automount daemon, which needs to be done
-via a file handle (the current pipe implementation or even if it was
-socket based) the symptom will be the same as when / is propagation
-private.
+Hi autofs maintainers -
 
-This is just a guess though.
+I'm investigating a bug in which the user has > 8k direct mounts set up.
+ As documented in the README, this performs very, very badly and I'm
+looking at ways to improve that situation.
 
-> 
-> Thank you!
-> 
->    Donald
-> 
-> 
-> On 03/04/14 07:06, Ian Kent wrote:
-> > On Mon, 2014-03-03 at 10:40 +0800, Ian Kent wrote:
-> > > > That doesn't solve the problem, however, that mounts cloned by a
-> > > > unshare(CLONE_NEWNS) would never expire. Also there is another
-> > > > bug
-> > > > somewhere, because I see, that the mount, visible to the
-> > > > /usr/lib/colord/colord process was logged as "unmounted" in the
-> > > > nfs
-> > > > server when it expired in the global namespace. So I doubt it
-> > > > would be
-> > > > working even for that process. So possibly automounted mounts
-> > > > shouldn't
-> > > > be cloned at all? Together with chroot or pivot_root the
-> > > > sematics would
-> > > > be more than unclear anyway. Your problem now :-)
-> > > Hehe, like I said some people are going to be disappointed.
-> > > 
-> > > There's just one question about this that remains.
-> > > 
-> > > Assuming systemd is setting "/" shared what happens if "mount
-> > > --make-rprivate /" is run before autofs is started?
-> > > 
-> > > So if you can spend a little more time on this an answer to this
-> > > would
-> > > be helpful.
-> > No need for this, thanks to your reproducer.
-> > 
-> > In fact the problem doesn't appear happen if "/" is set shared so in
-> > your case "/" must be set either slave or private.
-> > 
-> > And expanding the reproducer a bit I see another failure case too,
-> > and
-> > it doesn't appear to be the unreliable d_mountpoint() check, not
-> > sure
-> > yet exactly what it is.
-> > 
-> > Thanks
-> > Ian
-> > 
-> 
-> 
+In my research, I discovered commit d3ce65e05d1 (autofs-5.0.3 - allow
+directory create on NFS root), which was intended to return true for
+rootfs.  It would pass that test.  It also returns true for every other
+case as long as there is *any* root file system in the mount table.  So,
+ultimately, we read the mount table for every path component of every
+direct mount for no benefit whatsoever.
+
+=3D=3D=3D=3D8<=3D=3D=3D=3D
+for (this =3D mnts; this !=3D NULL; this =3D this->next) {
+        size_t len =3D strlen(this->path);
+
+        if (!strncmp(path, this->path, len)) {
+                if (len > 1 && pathlen > len && path[len] !=3D '/')
+                        continue;
+                else if (len =3D=3D 1 && this->path[0] =3D=3D '/') {
+
+			/*
+			 * jeffm -> This will cause the entire
+			 * function to always return true.  It
+			 * turns the loop into a test to see if
+			 * anything is mounted on /.
+			 */
+
+                        /*
+                         * always return true on rootfs, we don't
+                         * want to break diskless clients.
+                         */
+                        ret =3D 1;
+                } else if (this->fs_name[0] =3D=3D '/') {
+                        if (strlen(this->fs_name) > 1) {
+                                if (this->fs_name[1] !=3D '/')
+                                        ret =3D 1;
+                        } else
+                                ret =3D 1;
+                } else if (!strncmp("LABEL=3D", this->fs_name, 6) ||
+                           !strncmp("UUID=3D", this->fs_name, 5))
+                        ret =3D 1;
+                break;
+        }
+}
+=3D=3D=3D=3D>8=3D=3D=3D=3D
+
+This commit landed in 2008 and, since it hasn't changed since then, I
+assume there haven't been any bugs reported.  I had trouble trying to
+locate a mailing list archive for the autofs list, so I can't confirm
+that.  Googling for contained_in_local_fs really only showed the thread
+that proposed the patch initially.
+
+So, I suppose my question is this:  Since this bug has existed for
+nearly 8 years already, would fixing it at this point be considered a
+regression?
+
+If so, we can skip all the checking in do_mkdir entirely, which also
+removes the performance impact of large numbers of direct mounts while
+using /proc/self/mounts.
+
+If not, how do we move forward ensuring minimal breakage?  I have a
+patch worked up that skips the mount table parsing entirely and just
+tests to see if the parent is either on the root file system, regardless
+of file system type, or contained in a file system mounted on a block
+device (grab st_dev and see if it exists in /sys/dev/block).  Is that
+enough or is there a corner case I'm missing?
+
+Thanks,
+
+-Jeff
+
+--=20
+Jeff Mahoney
+SUSE Labs
+
+
+--XuvwtdjjIUMQQ9HFLQuw2fKtTaTeNvNv6--
+
+--LnLeULDECsUQ05d9P4p1NGvhoBdQM1iaD
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG/MacGPG2 v2.0.19 (Darwin)
+Comment: GPGTools - http://gpgtools.org
+
+iQIcBAEBAgAGBQJW7GidAAoJEB57S2MheeWy6t4P/RelJNI2J5o3xieIw4RfUjAF
+2yHh30GEIgua5MTzhZGbvXcAAvmqUZuvGgeAV9XPCelfX2TYIpamNstW9BtH1gbl
+Bd5G7isEWxIpwtZOY/nVwIRQD0cq8qtIV888+8Au71AxR0eTgAq0UoB2os0/1q66
+0GPaFEOc5ukmgEHz2I/FbmeOVhHLWdBQZTAJn409IzJ3BSTT+gqUimr3+aWB9R0T
+iGFn9Myxuw1i+ZipFIGFinhBI3BXk7tK3aPEsnRus2J93gtiC7XuH3igcu6unqs/
+eaI0cHDGZ4K+WuiuAn5NnWkADVeIMEVqS2QHK4CyAl+askFLO/XTG6YqLcShjyB2
+5FngTM7CYzsn0vyzXEDKqc/CpYa00iV2aP2lJRBY9koxLRHwiRQMJK1Me6V5p30j
+eLN9dV/R49kbQt/YY3LrnI3u1U7haavd96IyH6ErQYPXeirfFPJv0eonRDAGWxL1
+Xy3k4enAxqdezM5LAB0df+9UuBLlnmQU9fKYBf+NIBfpvEMDiSlnR7Bk2zab1YHn
++PzXkFE6zCUo0Qax1ds1kYFDiRvg/WNhcAHZs0AbPeSl5WXrPMK0sXDGH2pH7S5b
+Wyg0wbq+XDgHbQkj++B0UZ57fBM9JwXjHlWSvvReae+DV8OAnOqC7mzaZXxt7NUk
+G82oPNDJzk9K1RUMmyos
+=uMC4
+-----END PGP SIGNATURE-----
+
+--LnLeULDECsUQ05d9P4p1NGvhoBdQM1iaD--
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
