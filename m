@@ -1,365 +1,205 @@
 From: Jeff Mahoney <jeffm@suse.com>
-Subject: Re: [PATCH] autofs: fix contained_in_local_fs and improve scalability
-Date: Mon, 21 Mar 2016 23:50:51 -0400
-Message-ID: <56F0C11B.9000005@suse.com>
+Subject: [PATCH] autofs: improve scalability of direct mount path component
+ creation
+Date: Tue, 22 Mar 2016 10:13:14 -0400
+Message-ID: <56F152FA.1000205@suse.com>
 References: <56EC6897.7040409@suse.com> <56EC7267.6000103@suse.com>
  <1458531845.3042.36.camel@themaw.net> <56F070F6.7030802@suse.com>
- <1458606264.3014.20.camel@themaw.net>
+ <1458606264.3014.20.camel@themaw.net> <56F0C11B.9000005@suse.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="KAiCQA6gcvGvEtHNPMubhRJnFxRobNQIo"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-In-Reply-To: <1458606264.3014.20.camel@themaw.net>
+In-Reply-To: <56F0C11B.9000005@suse.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
 To: Ian Kent <raven@themaw.net>, autofs@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---KAiCQA6gcvGvEtHNPMubhRJnFxRobNQIo
-Content-Type: multipart/mixed; boundary="IDGlrOUdujKc8LEl1s0wdLk2GQ65MN8mw"
-From: Jeff Mahoney <jeffm@suse.com>
-To: Ian Kent <raven@themaw.net>, autofs@vger.kernel.org
-Message-ID: <56F0C11B.9000005@suse.com>
-Subject: Re: [PATCH] autofs: fix contained_in_local_fs and improve scalability
-References: <56EC6897.7040409@suse.com> <56EC7267.6000103@suse.com>
- <1458531845.3042.36.camel@themaw.net> <56F070F6.7030802@suse.com>
- <1458606264.3014.20.camel@themaw.net>
-In-Reply-To: <1458606264.3014.20.camel@themaw.net>
+With direct mounts, we want to avoid creating path components on
+remote file systems unless that file system is the root file system.
 
---IDGlrOUdujKc8LEl1s0wdLk2GQ65MN8mw
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+The check boils down to allowing the mkdir if:
+1/ If it's the root directory, or
+2/ If it's not a remote file system, or
+3/ If it's a remote file system that's the root file system
 
-On 3/21/16 8:24 PM, Ian Kent wrote:
-> On Mon, 2016-03-21 at 18:08 -0400, Jeff Mahoney wrote:
->> On 3/20/16 11:44 PM, Ian Kent wrote:
->>> On Fri, 2016-03-18 at 17:25 -0400, Jeff Mahoney wrote:
->>>> Commit d3ce65e05d1 (autofs-5.0.3 - allow directory create on NFS
->>>> root),
->>>> introduced a bug where contained_in_local_fs would *always* return
->>>> true.=20
->>>>
->>>> Since the goal of contained_in_local_fs is only to determine if
->>>> the
->>>> path would be created on a local file system, it's enough to check
->>>> a
->>>> few things directly without parsing the mount table at all.
->>>>
->>>> We can check via stat calls:
->>>> 1) If parent is the root directory
->>>> 2) If the parent is located on the root file system
->>>> 3) If the parent is located within a file system mounted
->>>>    via a block device
->>>>
->>>> Large numbers of direct mounts when using /proc/self/mounts
->>>> instead
->>>> of /etc/mtab result in very slow startup time.  In testing, we
->>>> observed
->>>> ~8k mounts taking over 6 hours to complete.
->>>
->>> When this was originally done the mtab was (usually) an actual file
->>> so
->>> the autofs mounts weren't present. So mostly it was fairly small.
->>>
->>> But now, with the symlinking of the mtab to a proc filesystem, this
->>> is a
->>> big problem.=20
->>>
->>>>
->>>> This is due to reading /proc/self/mounts for every path component
->>>> of
->>>> every mount.  For my test case, that turns out to be about 119k
->>>> times
->>>> for a total of just under 400 GB read.  If it were a flat file, it
->>>> would be also be slow, but /proc/self/mounts is dynamically
->>>> generated
->>>> every time it's read.
->>>>
->>>> By avoiding reading /proc/self/mounts many times, startup time
->>>> with 8k
->>>> direct mounts drops from ~6 hours to about 25 seconds.
->>>
->>> Yeah, I get that.
->>>
->>> In some tests done before the symlinking became the norm I saw
->>> direct
->>> mount tables of over 20k entries taking between 20-30 seconds or a
->>> bit
->>> more (can't quite remember now, it was a long time ago) but nothing
->>> like
->>> this.
->>
->> Yep, I figured you'd remember what was up since it's in the README,
->> but
->> the context is mostly for a complete commit log entry.
->>
->>> I thought that was bad so this really needs to be fixed.
->>>
->>> I am puzzled why I haven't seen other bug reports.
->>
->> Yeah, I usually see all of the autofs bugs reported against our
->> products
->> and it's the first time I've seen it too.
->>
->>>>
->>>> Signed-off-by: Jeff Mahoney <jeffm@suse.com>
->>>> ---
->>>>  daemon/automount.c |   47
->>>> ++++++++++++++++++++++++++++++++++++++++++++---
->>>>  include/mounts.h   |    1 -
->>>>  lib/mounts.c       |   45 ---------------------------------------
->>>> ----
->>>> --
->>>>  3 files changed, 44 insertions(+), 49 deletions(-)
->>>>
->>>> --- a/daemon/automount.c
->>>> +++ b/daemon/automount.c
->>>> @@ -98,6 +98,46 @@ static int umount_all(struct autofs_poin
->>>> =20
->>>>  extern struct master *master_list;
->>>> =20
->>>> +#define SYSFS_PATTERN "/sys/dev/block/%d:%d"
->>>> +static int contained_in_local_fs(const char *parent)
->>>> +{
->>>> +	char buf[128];
->>>> +	struct stat st, root;
->>>> +	int ret;
->>>> +
->>>> +	/* The root directory is always considered local, even if
->>>> it's not. */
->>>> +	if (!*parent)
->>>> +		return 1;
->>>> +
->>>> +	ret =3D stat("/", &root);
->>>> +	if (ret !=3D 0) {
->>>> +		logerr("error: stat failed on /: %s",
->>>> strerror(errno));
->>>> +		return 0;
->>>> +	}
->>>> +
->>>> +	ret =3D stat(parent, &st);
->>>> +	if (ret)
->>>> +		return 0;
->>>> +	/*
->>>> +	 * If the parent is on the root file system, it's local.
->>>> +	 */
->>>> +	if (root.st_dev =3D=3D st.st_dev)
->>>> +		return 1;
->>>
->>> I'm struggling to remember now.
->>>
->>> I think the problem was only when the root itself was an NFS file
->>> system
->>> and automount was trying to create a directory.
->>
->> That sounds like the problem that the patch that caused it to always
->> return true was supposed to solve.
->>
->> Git tells me that contained_in_local_fs matches up with:
->> commit 8293b030944eb402893a008a7d2ed1f8969ebee8
->> Author: Ian Kent <raven@raven.themaw.net>
->> Date:   Wed Oct 25 15:51:13 2006 +0800
->>
->>     - deal with changed semantics of mkdir in 2.6.19.
->>
->> Does that ring a bell?  Google associates it with a patch called
->> "don't
->> create remote dirs" which makes sense on its own but I can't find
->> anything in the kernel changelog between v2.6.18 and v2.6.19 that
->> stands
->> out as changed mkdir semantics that would necessitate the work being
->> done here.
->=20
-> There was a log going on at that time, it was around the initial v5
-> development.
->=20
-> I had started cataloguing the patches for each release at that time but=
+We can do that without parsing the mount table and can
+improve startup time for all cases.
 
-> by the look of the path order there's nothing else related that went in=
+Signed-off-by: Jeff Mahoney <jeffm@suse.com>
+---
+ daemon/automount.c  | 56 +++++++++++++++++++++++++++++++++++++++--------------
+ include/automount.h |  2 ++
+ include/mounts.h    |  1 -
+ lib/mounts.c        | 45 ------------------------------------------
+ 4 files changed, 44 insertions(+), 60 deletions(-)
 
-> with it. Not only that, at that time, my change log entries were either=
-
-> non-existent or less than stellar.
->=20
-> You can see the patch series for each release at:
-> https://www.kernel.org/pub/linux/daemons/autofs/v5/
->=20
-> I think this all arose from a discussion on the NFS mailing list due to=
-
-> problems when trying to create mount point directories that resulted in=
-
-> something like "automount shouldn't be creating directories on NFS file=
-
-> systems". So the changed semantics were probably wrt. NFS and not the
-> VFS.
->=20
-> But the same logic extends to remote file systems in general.
->=20
->>
->> At the point where that commit was added, the test for an autofs
->> parent
->> wasn't in the caller.  That searched through the mount table to see if=
-
->> there was a match and if it was autofs.  The statfs call was
->> originally
->> in the loop and was rightly moved out of it since statfs() doesn't
->> actually require that its path argument be a mountpoint.  So that just=
-
->> makes the loop test whether it's a block device.  Sort of, since it
->> uses
->> /[^/] as a pattern to mean block device.  Later that was extended to
->> include UUID/LABEL and also with the patch that was intended to match
->> NFS roots.
->=20
-> There's not really enough context, we'll just need to resolve it based
-> on what's sensible.
->=20
->>
->> So, I suppose the question is this: if that patch was accepted based
->> on
->> its intent, it should be ok to write to a remote file system if it's
->> the
->> root file system, right?  The root file system should be assumed to be=
-
->> private, but once we follow a path off of the root file system we
->> shouldn't write anymore.
->=20
-> The mount table scan has to go, whatever we come up with is going to ge=
-t
-> committed with the next bunch of patches.
->=20
->>
->>>> +
->>>> +	/*
->>>> +	 * If the sysfs node for the block device exists, it's
->>>> local.
->>>> +	 */
->>>> +	ret =3D snprintf(buf, sizeof(buf), SYSFS_PATTERN,
->>>> +		       major(st.st_dev), minor(st.st_dev));
->>>> +	if (ret !=3D 0) {
->>>> +		logerr("error: not enough space for sysfs path");
->>>> +		return 0;
->>>> +	}
->>>
->>> This is the only bit that concerns me.
->>>
->>> Not because I think it's wrong, on the contrary, it looks ok.
->>>
->>> I just can't think of cases where it might not cover what's needed.
->>
->> I realized shortly after posting the patch that anything using
->> anonymous
->> device nodes would fail the lookup test since they don't register a
->> node
->> in /sys/dev/block (nor should they.)  This includes btrfs since it
->> uses
->> anonymous devices to account for the fact that virtualizes the file
->> system across multiple devices and also needs separate namespace for
->> inode numbers between snapshots.  Ubifs also uses an anonymous device,=
-
->> but I've never actually seen an ubifs file system in the wild.
->=20
-> Or perhaps pass down the statfs buffer and check for remote fs magic
-> numbers. That's got to be a smaller list and should be much less likely=
-
-> to change.
->=20
->> Overlayfs will use an anonymous device for directories since they're
->> also virtualized.  That's a separate issue, though, since it reports
->> the
->> device as 'none' in the mount table so direct mounts don't work on
->> overlayfs yet anyway.
->>
->>> After all, it's already been checked if the parent is an autofs
->>> filesystem which should take care of the bulk of cases except for
->>> longer
->>> direct mount paths, but will often not be the case for offset
->>> mounts.
->>>
->>> For example a mount entry with offset mounts like:
->>>
->>> <direct or indirect key>     /      server:/path \
->>>                              /other server:/otherpath \
->>>                              ...
->>>
->>> But the intermediate path components of a direct mount path (and
->>> offset
->>> mount path) must already exist if within a remote mount. So the
->>> existenc
->>> e case, checked before this, should cover these cases.
->>>
->>> Let me think about it a little longer.
->>
->> Sure.  It seems like the solution, whatever it ends up being, will
->> simplify this code a lot.  It seems like it boils down to "don't
->> create
->> directories on a remote file system unless it's the root file system."=
-
->>
->> As noted above, my patch is incomplete.  I think a complete solution
->> would look like this:
->>
->> 1/ Test whether the parent is autofs.
->> 2/ Test whether the parent resides on a type of file system known to
->> be
->> local.  This is mostly because we'll need to at least test for btrfs,
->> and if we're already testing file system type, we might as well test
->> for
->> the common local file systems as well.
->> 3/ Test whether the parent resides on the root file system.
->> 4/ Test whether the file system is mounted on a block device using the=
-
->> /sys/dev/block lookup.  This is mostly a fallback for the test in (2)
->> being imperfect WRT new file systems.
->>
->> Is this missing any other cases?
->=20
-> The only bit that looks tricky is the test for a block device, the rest=
-
-> covers many of the cases.
->=20
-> And the point is to prohibit mount point directory creation on remote
-> file systems, so if we get that far then just checking the magic number=
-
-> of of the statfs struct we already have for known remote file systems
-> should be enough and be a fairly short list.
-
-Ok, that's an easy enough change to code up.  I'll post an updated patch.=
+diff --git a/daemon/automount.c b/daemon/automount.c
+index 74e62a1..9d07425 100644
+--- a/daemon/automount.c
++++ b/daemon/automount.c
+@@ -98,10 +98,25 @@ static int umount_all(struct autofs_point *ap, int force);
+ 
+ extern struct master *master_list;
+ 
++static int is_remote_fstype(unsigned int fs_type)
++{
++	int ret = 0;
++	switch (fs_type) {
++	case SMB_SUPER_MAGIC:
++	case CIFS_MAGIC_NUMBER:
++	case NCP_SUPER_MAGIC:
++	case NFS_SUPER_MAGIC:
++		ret = 1;
++		break;
++	};
++	return ret;
++}
++
+ static int do_mkdir(const char *parent, const char *path, mode_t mode)
+ {
+ 	int status;
+-	struct stat st;
++	mode_t mask;
++	struct stat st, root;
+ 	struct statfs fs;
+ 
+ 	/* If path exists we're done */
+@@ -114,24 +129,37 @@ static int do_mkdir(const char *parent, const char *path, mode_t mode)
+ 	}
+ 
+ 	/*
+-	 * If we're trying to create a directory within an autofs fs
+-	 * or the path is contained in a localy mounted fs go ahead.
++	 * We don't want to create the path on a remote file system
++	 * unless it's the root file system.
++	 * An empty parent means it's the root directory and always ok.
+ 	 */
+-	status = -1;
+-	if (*parent)
++	if (*parent) {
+ 		status = statfs(parent, &fs);
+-	if ((status != -1 && fs.f_type == (__SWORD_TYPE) AUTOFS_SUPER_MAGIC) ||
+-	    contained_in_local_fs(path)) {
+-		mode_t mask = umask(0022);
+-		int ret = mkdir(path, mode);
+-		(void) umask(mask);
+-		if (ret == -1) {
+-			errno = EACCES;
+-			return 0;
++		if (status == -1)
++			goto fail;
++
++		if (is_remote_fstype(fs.f_type)) {
++			status = stat(parent, &st);
++			if (status == -1)
++				goto fail;
++
++			status = stat("/", &root);
++			if (status == -1)
++				goto fail;
++
++			if (st.st_dev != root.st_dev)
++				goto fail;
+ 		}
+-		return 1;
+ 	}
+ 
++	mask = umask(0022);
++	status = mkdir(path, mode);
++	(void) umask(mask);
++	if (status == -1)
++		goto fail;
++
++	return 1;
++fail:
+ 	errno = EACCES;
+ 	return 0;
+ }
+diff --git a/include/automount.h b/include/automount.h
+index 2cf0611..c0f5fbf 100644
+--- a/include/automount.h
++++ b/include/automount.h
+@@ -75,6 +75,8 @@ int load_autofs4_module(void);
+ #define AUTOFS_SUPER_MAGIC 0x00000187L
+ #define SMB_SUPER_MAGIC    0x0000517BL
+ #define CIFS_MAGIC_NUMBER  0xFF534D42L
++#define NCP_SUPER_MAGIC    0x0000564CL
++#define NFS_SUPER_MAGIC    0x00006969L
+ 
+ /* This sould be enough for at least 20 host aliases */
+ #define HOST_ENT_BUF_SIZE	2048
+diff --git a/include/mounts.h b/include/mounts.h
+index cce646a..489025c 100644
+--- a/include/mounts.h
++++ b/include/mounts.h
+@@ -101,7 +101,6 @@ int ext_mount_remove(struct list_head *, const char *);
+ struct mnt_list *get_mnt_list(const char *table, const char *path, int include);
+ struct mnt_list *reverse_mnt_list(struct mnt_list *list);
+ void free_mnt_list(struct mnt_list *list);
+-int contained_in_local_fs(const char *path);
+ int is_mounted(const char *table, const char *path, unsigned int type);
+ int has_fstab_option(const char *opt);
+ void tree_free_mnt_tree(struct mnt_list *tree);
+diff --git a/lib/mounts.c b/lib/mounts.c
+index 455bdca..1d1b4da 100644
+--- a/lib/mounts.c
++++ b/lib/mounts.c
+@@ -941,51 +941,6 @@ void free_mnt_list(struct mnt_list *list)
+ 	}
+ }
+ 
+-int contained_in_local_fs(const char *path)
+-{
+-	struct mnt_list *mnts, *this;
+-	size_t pathlen = strlen(path);
+-	int ret;
+-
+-	if (!path || !pathlen || pathlen > PATH_MAX)
+-		return 0;
+-
+-	mnts = get_mnt_list(_PATH_MOUNTED, "/", 1);
+-	if (!mnts)
+-		return 0;
+-
+-	ret = 0;
+-
+-	for (this = mnts; this != NULL; this = this->next) {
+-		size_t len = strlen(this->path);
+-
+-		if (!strncmp(path, this->path, len)) {
+-			if (len > 1 && pathlen > len && path[len] != '/')
+-				continue;
+-			else if (len == 1 && this->path[0] == '/') {
+-				/*
+-				 * always return true on rootfs, we don't
+-				 * want to break diskless clients.
+-				 */
+-				ret = 1;
+-			} else if (this->fs_name[0] == '/') {
+-				if (strlen(this->fs_name) > 1) {
+-					if (this->fs_name[1] != '/')
+-						ret = 1;
+-				} else
+-					ret = 1;
+-			} else if (!strncmp("LABEL=", this->fs_name, 6) ||
+-				   !strncmp("UUID=", this->fs_name, 5))
+-				ret = 1;
+-			break;
+-		}
+-	}
+-
+-	free_mnt_list(mnts);
+-
+-	return ret;
+-}
+-
+ static int table_is_mounted(const char *table, const char *path, unsigned int type)
+ {
+ 	struct mntent *mnt;
+-- 
+2.7.1
 
 
--Jeff
-
---=20
-Jeff Mahoney
-SUSE Labs
-
-
---IDGlrOUdujKc8LEl1s0wdLk2GQ65MN8mw--
-
---KAiCQA6gcvGvEtHNPMubhRJnFxRobNQIo
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG/MacGPG2 v2
-
-iQIcBAEBCAAGBQJW8MEfAAoJEB57S2MheeWyVO8P/Awhg7RhLdEz7M8jTK8OEHmj
-hooLe2pstgPdVt8fwDqC2xHFaU/3VC0LsjBbHsVGpeVmiO/lgxmzLyDl/K+wxNzK
-Y6NA+8SLot9H0aPWxiKZzygvFjNgecL8Ek8Rx/9OukNL6w46fnnT/fuVWPsde1yK
-wC+VT1yg0TtEcaksjupnlXC/ngBWTgHsSXwXV+imZakFidfW+I8wuprWW5zeGSWi
-CPErB+hDURLXCbimwJp5TG9xoRnBaPvnOxcvSOgBxjJ5wn4s4Gdp3JilfNOkQjdO
-r2s4X5C29kPl9ALAxtIUgWZ1dkmBbt/iC/WO/fffgR+IwThRXVrYSgNhHU0ajQ36
-8rxqUe5WeXq5WVfO9IIyXa4fLEcFPGnLc6FhgUyfr1H6Qf45opKevOOubRbgyWtu
-cRCgAJ3zOnHdY7GcZ5w57Xh+uIu8Vy3xDorse8YAiaCiWlZYKi2faw8t+zRkmbEb
-7VwRH3qn1uzW/38H3aBcJvIjbbrLoK5Kg0De5sJkCN3stgs522CIigkz4mmaiPMC
-vFu2Nk502w6flr3jLkp7hPYB5y8zUZ5dGjMS+MSq2GmDIzoli8HXMLhy4r7FRL1k
-7iNRWySkCu+pEpSB5VJFCa508pMRSj4KNezMhukKkJZjl5UMEOidEQX4rnl2+FVH
-aLpjI+Q/j1zuc5+Fd6+H
-=7Q9O
------END PGP SIGNATURE-----
-
---KAiCQA6gcvGvEtHNPMubhRJnFxRobNQIo--
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
