@@ -1,176 +1,244 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs submount question/issue
-Date: Thu, 24 Mar 2016 09:00:02 +0800
-Message-ID: <1458781202.2976.22.camel@themaw.net>
-References: <CA+ctBiAjuPzUK5tYdLSQZB3SHVYYpF3TYELQeJ5Ub4-7yF4PNQ@mail.gmail.com>
+Subject: Re: [PATCH] autofs: improve scalability of direct mount path
+ component creation
+Date: Thu, 24 Mar 2016 09:23:08 +0800
+Message-ID: <1458782588.2976.27.camel@themaw.net>
+References: <56EC6897.7040409@suse.com> <56EC7267.6000103@suse.com>
+	 <1458531845.3042.36.camel@themaw.net> <56F070F6.7030802@suse.com>
+	 <1458606264.3014.20.camel@themaw.net> <56F0C11B.9000005@suse.com>
+	 <56F152FA.1000205@suse.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
 	content-transfer-encoding:content-type:date:from:in-reply-to
 	:message-id:mime-version:references:subject:to:x-sasl-enc
-	:x-sasl-enc; s=mesmtp; bh=Scb/ZLUPuDiESOnVw32FOLl8AJQ=; b=I7KlBO
-	7vnIr+QNU90IxmDWV5tT0l4JurTKRWKvJHx0zze+1Z6/WMIPEthQKMhpaEp5T9F8
-	zHkrJ4am7GpXuPs6UYT/ZqK6RsXkgT3+HLtTvcwnZlUga3Y1gcEzAoWIaXWfBICK
-	zHsCtrMXQE685yKDrm2EkJbyA0nRKoytyMehQ=
+	:x-sasl-enc; s=mesmtp; bh=4OMaHsurpEP343hnlilTI7jk/W8=; b=suzDLI
+	wYG5VIRmOyJU2BZIbhBfyVP0Ah2j7aeEgb1uR2sQUgQqsdHiOnp0Eh07R9nd2H+c
+	9Wv+0HLayUzTIsfj5X/fZXojK3ef3V0sldJYV1sGHbbUD+kmFfEIpcM7HmpaqyvS
+	prRLAEpcqqDKpSrecNcyjZs0MltoxRtKcH5ZM=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=content-transfer-encoding:content-type
 	:date:from:in-reply-to:message-id:mime-version:references
-	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=Scb/ZLUPuDiESOn
-	Vw32FOLl8AJQ=; b=aeeGwFkLHAt3ThjGdiCIgPOBGtIKfHiThBzvx3ZKO/6ixP/
-	eUQPxIHNK1Pd7QP/imaiAygBndzwZBxtD37M8d3CLerfNh/h6es1Cf4QiS2UbaH3
-	4d8oGtxgHUOybgf2oXHeIT9UG16Q29R8LM6aPB60n3GwQHop+iT/8FsU7Bns=
-In-Reply-To: <CA+ctBiAjuPzUK5tYdLSQZB3SHVYYpF3TYELQeJ5Ub4-7yF4PNQ@mail.gmail.com>
+	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=4OMaHsurpEP343h
+	nlilTI7jk/W8=; b=B7Y31d5E1mzdkdve7ADtpETkEHiGljRR//o66RHrM+VCT3b
+	WlSLU3Arr0xuMwXJerEA4reFLQ+mq5Qe9rvZ9OAhcqUV2Hv5luyGNaztWApnfuyA
+	GR6rXdr4L0dzngH0LzF1y7tF3YgsLp4bNh5p/arjZ0ja/wsX9nWP39jTSSgg=
+In-Reply-To: <56F152FA.1000205@suse.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Dana Arnold <davedomainx@gmail.com>, autofs@vger.kernel.org
+To: Jeff Mahoney <jeffm@suse.com>, autofs@vger.kernel.org
 
-On Wed, 2016-03-23 at 09:50 +0100, Dana Arnold wrote:
-> Hi,
+On Tue, 2016-03-22 at 10:13 -0400, Jeff Mahoney wrote:
+> With direct mounts, we want to avoid creating path components on
+> remote file systems unless that file system is the root file system.
 > 
-> are there some limitations to how automount can handle submount-maps ?
+> The check boils down to allowing the mkdir if:
+> 1/ If it's the root directory, or
+> 2/ If it's not a remote file system, or
+> 3/ If it's a remote file system that's the root file system
 > 
-> I'm using CentOS 6.5 with automount information delivered via SSSD,
-> talking to an Active Directory server.  Automount works fine with
-> direct + indirect maps.
-> 
-> But I cannot seem to automount a stanza like so:
-> 
-> /gnu                -> automounts okay
-> /gnu/var/guix/pro   -> does not automount
-> 
-> I can direct-mount the directories no problems.
-> 
-> Everything I have read tells me that I should be able to automount the
-> above stanza, if they have _direct map_ entries (see below)
+> We can do that without parsing the mount table and can
+> improve startup time for all cases.
 
-You can't do that.
+This looks like it covers the important cases.
 
-In order for automount to get mount request call backs there needs to be
-an autofs file system to trigger it.
+It's in the queue of patches I have for the next commit but I can't say
+when that will be.
 
-What happens with this is when /gnu is mounted, the NFS file system
-covers the previously mounted direct mount on /gnu/var/guix/pro.
+If there are other special cases that have been missed they'll need to
+be reported and handled as they come up, the mount table traversal has
+to go.
 
-So when a path walk occurs it follows into the NFS mount on /gnu and
-never sees the later path.
+Thanks for your help.
+Ian
 
 > 
-> I CAN _indirect_ automount a stanza like below, where each of the
-> below directories is handled by a single nisMapEntry in AD:
+> Signed-off-by: Jeff Mahoney <jeffm@suse.com>
+> ---
+>  daemon/automount.c  | 56 +++++++++++++++++++++++++++++++++++++++-----
+> ---------
+>  include/automount.h |  2 ++
+>  include/mounts.h    |  1 -
+>  lib/mounts.c        | 45 ------------------------------------------
+>  4 files changed, 44 insertions(+), 60 deletions(-)
 > 
-> /data
-> /data/test
-> /data/test/here
-> 
-> nisMapEntry:
-> /test 192.168.1.100:/export/test /test/here 192.168.1.100:/export/here
-
-You can write this like (removing the invalid "/" from the indirect map
-key test):
-
-test   /            192.168.1.100:/export/test \
-       /test/here   192.168.1.100:/export/here
-
-These are different because the autofs offset triggers mounts are
-mounted inside the root offset at "/" when it is automounted so they can
-trigger mounts within the NFS file system.
-
-> 
-> Some obscured config info below.  Any assistance greatly appreciated!
-> I'll ask the sssd folks next, but at the moment this feels more of an
-> autofs question..
-> 
-> -------
-> 
-> cat /etc/auto.master:
-> +auto.master                ## lookup SSSD..
-> 
-> In auto.master:
-> dn: CN=/-,CN=auto.master ...
-> objectClass: top
-> objectClass: nisObject
-> nisMapEntry: auto.direct
-> nisMapName: auto.master
-> 
-> In auto.direct:
-> # /gnu, auto.direct
-> dn: CN=/gnu,CN=auto.direct
-> objectClass: top
-> objectClass: nisObject
-> nisMapEntry: 192.168.1.20:/export/guix_store
-> nisMapName: auto.direct
-> 
-> # /gnu/var/guix/pro, auto.direct
-> dn: CN=/gnu/var/guix/pro,CN=auto.direct
-> objectClass: top
-> objectClass: nisObject
-> nisMapEntry: 192.168.1.20:/export/guix_profiles
-> nisMapName: auto.direct
-
-The only way you might be able to do this is with something like:
-
-dn: CN=/gnu,CN=auto.direct
-objectClass: top
-objectClass: nisObject
-nisMapEntry: 192.168.1.20:/export/guix_store /var/guix/pro
- 192.168.1.20:/export/guix_profiles
-
-That essentially changes it to an offset direct mount entry:
-
-/gnu    /               192.168.1.20:/export/guix_store \
-        /var/guix/pro   192.168.1.20:/export/guix_profiles
-
-But having a mount triggered so high up in the direct mount tree hind of
-negates the usefulness of direct mounts being able to be mounted into
-the file system without covering large portions of the underlying file
-systems.
-
-Also, if you have a larger number of paths then such an entry could
-easily get unmanageably large.
-
-In this case you would probably be better to change /gnu to an indirect
-mount map with some keys possibly having offsets themselves since a
-direct mount at /gnu will cover any mounts below it any way.
-
-> 
-> -------
-> /etc/sssd/sssd.conf:        ## relevant bits only
-> autofs_provider = ldap
-> ldap_autofs_entry_key = cn
-> ldap_autofs_entry_object_class = nisObject
-> ldap_autofs_entry_value = nisMapEntry
-> ldap_autofs_map_name = nisMapName
-> ldap_autofs_map_object_class = nisMap
-> ldap_autofs_search_base = XXX
-> 
-> [sssd]
-> services = nss, pam, autofs
-> 
-> ------
-> grep auto /etc/nsswitch.conf    ## relevant bits only
-> automount:  files sss
-> 
-> ------
-> 
-> sudo rpm -qa |grep sssd
-> 
-> sssd-client-1.12.4-47.el6_7.7.x86_64
-> sssd-ldap-1.12.4-47.el6_7.7.x86_64
-> sssd-common-pac-1.12.4-47.el6_7.7.x86_64
-> sssd-common-1.12.4-47.el6_7.7.x86_64
-> sssd-krb5-1.12.4-47.el6_7.7.x86_64
-> sssd-krb5-common-1.12.4-47.el6_7.7.x86_64
-> sssd-ad-1.12.4-47.el6_7.7.x86_64
-> sssd-1.12.4-47.el6_7.7.x86_64
-> python-sssdconfig-1.12.4-47.el6_7.7.noarch
-> sssd-ipa-1.12.4-47.el6_7.7.x86_64
-> sssd-proxy-1.12.4-47.el6_7.7.x86_64
-> 
-> sudo rpm -qa |grep autofs
-> autofs-5.0.5-113.el6.x86_64
-> --
-> To unsubscribe from this list: send the line "unsubscribe autofs" in
+> diff --git a/daemon/automount.c b/daemon/automount.c
+> index 74e62a1..9d07425 100644
+> --- a/daemon/automount.c
+> +++ b/daemon/automount.c
+> @@ -98,10 +98,25 @@ static int umount_all(struct autofs_point *ap, int
+> force);
+>  
+>  extern struct master *master_list;
+>  
+> +static int is_remote_fstype(unsigned int fs_type)
+> +{
+> +	int ret = 0;
+> +	switch (fs_type) {
+> +	case SMB_SUPER_MAGIC:
+> +	case CIFS_MAGIC_NUMBER:
+> +	case NCP_SUPER_MAGIC:
+> +	case NFS_SUPER_MAGIC:
+> +		ret = 1;
+> +		break;
+> +	};
+> +	return ret;
+> +}
+> +
+>  static int do_mkdir(const char *parent, const char *path, mode_t
+> mode)
+>  {
+>  	int status;
+> -	struct stat st;
+> +	mode_t mask;
+> +	struct stat st, root;
+>  	struct statfs fs;
+>  
+>  	/* If path exists we're done */
+> @@ -114,24 +129,37 @@ static int do_mkdir(const char *parent, const
+> char *path, mode_t mode)
+>  	}
+>  
+>  	/*
+> -	 * If we're trying to create a directory within an autofs fs
+> -	 * or the path is contained in a localy mounted fs go ahead.
+> +	 * We don't want to create the path on a remote file system
+> +	 * unless it's the root file system.
+> +	 * An empty parent means it's the root directory and always
+> ok.
+>  	 */
+> -	status = -1;
+> -	if (*parent)
+> +	if (*parent) {
+>  		status = statfs(parent, &fs);
+> -	if ((status != -1 && fs.f_type == (__SWORD_TYPE)
+> AUTOFS_SUPER_MAGIC) ||
+> -	    contained_in_local_fs(path)) {
+> -		mode_t mask = umask(0022);
+> -		int ret = mkdir(path, mode);
+> -		(void) umask(mask);
+> -		if (ret == -1) {
+> -			errno = EACCES;
+> -			return 0;
+> +		if (status == -1)
+> +			goto fail;
+> +
+> +		if (is_remote_fstype(fs.f_type)) {
+> +			status = stat(parent, &st);
+> +			if (status == -1)
+> +				goto fail;
+> +
+> +			status = stat("/", &root);
+> +			if (status == -1)
+> +				goto fail;
+> +
+> +			if (st.st_dev != root.st_dev)
+> +				goto fail;
+>  		}
+> -		return 1;
+>  	}
+>  
+> +	mask = umask(0022);
+> +	status = mkdir(path, mode);
+> +	(void) umask(mask);
+> +	if (status == -1)
+> +		goto fail;
+> +
+> +	return 1;
+> +fail:
+>  	errno = EACCES;
+>  	return 0;
+>  }
+> diff --git a/include/automount.h b/include/automount.h
+> index 2cf0611..c0f5fbf 100644
+> --- a/include/automount.h
+> +++ b/include/automount.h
+> @@ -75,6 +75,8 @@ int load_autofs4_module(void);
+>  #define AUTOFS_SUPER_MAGIC 0x00000187L
+>  #define SMB_SUPER_MAGIC    0x0000517BL
+>  #define CIFS_MAGIC_NUMBER  0xFF534D42L
+> +#define NCP_SUPER_MAGIC    0x0000564CL
+> +#define NFS_SUPER_MAGIC    0x00006969L
+>  
+>  /* This sould be enough for at least 20 host aliases */
+>  #define HOST_ENT_BUF_SIZE	2048
+> diff --git a/include/mounts.h b/include/mounts.h
+> index cce646a..489025c 100644
+> --- a/include/mounts.h
+> +++ b/include/mounts.h
+> @@ -101,7 +101,6 @@ int ext_mount_remove(struct list_head *, const
+> char *);
+>  struct mnt_list *get_mnt_list(const char *table, const char *path,
+> int include);
+>  struct mnt_list *reverse_mnt_list(struct mnt_list *list);
+>  void free_mnt_list(struct mnt_list *list);
+> -int contained_in_local_fs(const char *path);
+>  int is_mounted(const char *table, const char *path, unsigned int
+> type);
+>  int has_fstab_option(const char *opt);
+>  void tree_free_mnt_tree(struct mnt_list *tree);
+> diff --git a/lib/mounts.c b/lib/mounts.c
+> index 455bdca..1d1b4da 100644
+> --- a/lib/mounts.c
+> +++ b/lib/mounts.c
+> @@ -941,51 +941,6 @@ void free_mnt_list(struct mnt_list *list)
+>  	}
+>  }
+>  
+> -int contained_in_local_fs(const char *path)
+> -{
+> -	struct mnt_list *mnts, *this;
+> -	size_t pathlen = strlen(path);
+> -	int ret;
+> -
+> -	if (!path || !pathlen || pathlen > PATH_MAX)
+> -		return 0;
+> -
+> -	mnts = get_mnt_list(_PATH_MOUNTED, "/", 1);
+> -	if (!mnts)
+> -		return 0;
+> -
+> -	ret = 0;
+> -
+> -	for (this = mnts; this != NULL; this = this->next) {
+> -		size_t len = strlen(this->path);
+> -
+> -		if (!strncmp(path, this->path, len)) {
+> -			if (len > 1 && pathlen > len && path[len] !=
+> '/')
+> -				continue;
+> -			else if (len == 1 && this->path[0] == '/') {
+> -				/*
+> -				 * always return true on rootfs, we
+> don't
+> -				 * want to break diskless clients.
+> -				 */
+> -				ret = 1;
+> -			} else if (this->fs_name[0] == '/') {
+> -				if (strlen(this->fs_name) > 1) {
+> -					if (this->fs_name[1] != '/')
+> -						ret = 1;
+> -				} else
+> -					ret = 1;
+> -			} else if (!strncmp("LABEL=", this->fs_name,
+> 6) ||
+> -				   !strncmp("UUID=", this->fs_name,
+> 5))
+> -				ret = 1;
+> -			break;
+> -		}
+> -	}
+> -
+> -	free_mnt_list(mnts);
+> -
+> -	return ret;
+> -}
+> -
+>  static int table_is_mounted(const char *table, const char *path,
+> unsigned int type)
+>  {
+>  	struct mntent *mnt;
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
