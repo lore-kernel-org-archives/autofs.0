@@ -1,76 +1,69 @@
-From: Jeff Mahoney <jeffm@suse.com>
-Subject: mount -oaddr=<ipaddr> ?
-Date: Mon, 4 Apr 2016 20:55:32 -0400
-Message-ID: <57030D04.7010805@suse.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: mount -oaddr=<ipaddr> ?
+Date: Tue, 05 Apr 2016 11:12:29 +0800
+Message-ID: <1459825949.4090.10.camel@themaw.net>
+References: <57030D04.7010805@suse.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="mufwAXxXOGtlt4QDK74N2nKg1GBtvlWbi"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
+	content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to:x-sasl-enc
+	:x-sasl-enc; s=mesmtp; bh=MCkc3zpntCjbTfjMf/GYFmVxGJg=; b=GJq0Ss
+	vgR/P/N1tDX6Sm0oxMkYYvUhtqG1gv1x1DdJtje/KEdsqYZ8aStiMIy+A44yhRZ4
+	CN8ED/EdU5GLnPhqLMz/BRNc+XloXv0KrYGuiHT3IdZPjDan3ACC30Qd0DPhOboq
+	aGeVCn6DhaCu7PrCyer4C8TX8iDlEBh/3T7OI=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=content-transfer-encoding:content-type
+	:date:from:in-reply-to:message-id:mime-version:references
+	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=MCkc3zpntCjbTfj
+	Mf/GYFmVxGJg=; b=QaVglHuto4TUGfuDv0kt1o7eZcpYRXgbjxaeQNCdyEtAE4/
+	WQsr7MAAQlcrdX7uwc02tGNxxvyaPBngTbxl84oHKITGKYPpwcmgkySn6Of1e79H
+	yKgvvtVAeky+Wss4YpgYqItbUZg3Vt3GodYONtxSE2Q8eeQb/oYYBXA28kfU=
+In-Reply-To: <57030D04.7010805@suse.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-To: autofs@vger.kernel.org, Ian Kent <raven@themaw.net>
+Content-Type: text/plain; charset="us-ascii"
+To: Jeff Mahoney <jeffm@suse.com>, autofs@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---mufwAXxXOGtlt4QDK74N2nKg1GBtvlWbi
-Content-Type: multipart/mixed; boundary="1k3jll9HPAXulEXPJ6UM99R9E90844UP0"
-From: Jeff Mahoney <jeffm@suse.com>
-To: autofs@vger.kernel.org, Ian Kent <raven@themaw.net>
-Message-ID: <57030D04.7010805@suse.com>
-Subject: mount -oaddr=<ipaddr> ?
+On Mon, 2016-04-04 at 20:55 -0400, Jeff Mahoney wrote:
+> Hi all -
+> 
+> I'm investigating an issue where our user updated from SLE11 to SLE12
+> and the hostname for autofs mounts stopped appearing in the 'mount'
+> output.  I know why this happens, what the reason for it being this
+> way
+> is, and that it can be overridden by setting the
+> use_hostname_for_mounts=yes option (and the side effects).  Before I
+> go
+> and write up the patch implementing it, is there a reason why autofs
+> doesn't pass the hostname in the mount source and specify the ip
+> address
+> using the -oaddr=<ipaddr> option?  Was this tried and found to be
+> wanting somehow?
 
---1k3jll9HPAXulEXPJ6UM99R9E90844UP0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+TBH I didn't even consider doing that.
 
-Hi all -
+But the daemon needs to be conservative in the options it uses because
+maps may be used with other platforms and unknown or non-standard
+options can cause mount failures.
 
-I'm investigating an issue where our user updated from SLE11 to SLE12
-and the hostname for autofs mounts stopped appearing in the 'mount'
-output.  I know why this happens, what the reason for it being this way
-is, and that it can be overridden by setting the
-use_hostname_for_mounts=3Dyes option (and the side effects).  Before I go=
+While Linux mount.nfs(8) has the sloppy option (which maintainers seem
+to try and remove from time to time) other platforms probably don't.
 
-and write up the patch implementing it, is there a reason why autofs
-doesn't pass the hostname in the mount source and specify the ip address
-using the -oaddr=3D<ipaddr> option?  Was this tried and found to be
-wanting somehow?
+The addr=<address> option isn't listed as a valid option in nfs(5) and
+neither is it listed in on-line Solaris documentation that I could find
+so I'm not sure making the daemon use it is a good idea.
 
-Thanks,
+Maybe there's another way...
 
--Jeff
+Note that I do need to be able to mount to a specific IP address while
+specifying the host name in the mount command but don't know of a way todo it.
 
---=20
-Jeff Mahoney
-SUSE Labs
-
-
---1k3jll9HPAXulEXPJ6UM99R9E90844UP0--
-
---mufwAXxXOGtlt4QDK74N2nKg1GBtvlWbi
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG/MacGPG2 v2.0.19 (Darwin)
-Comment: GPGTools - http://gpgtools.org
-
-iQIcBAEBAgAGBQJXAw0HAAoJEB57S2MheeWyGbkQAKn/tNp5UDaosFyzBsA/xuDy
-3LBC/0+cldMSKTXewoAsVQV2ssACxFsjYp3T52Ow+wW9qTwemxKIotj/zI5WpqxR
-r4NWIjtn9niO2sCzFW2a9oqgQ1eHAbqDailFhbI4A4nGN3jqZTHzBpHr19DvF7lV
-7X2HPWZI0aHgKKLX06Vc6O6Vo6onS9B4e2+2EOung/pDjeguG+b+hu8Ob5q48t6n
-k7uLORG4xVY0OzhBdG/IlJN6+SPFnF6vBf3/Au3zzsak0saheF7aViR2bHtp6Caj
-omD7enUJk/N2oePyqTrYcK6ubdRoNQ/MHTGvDQ/DMdPIuiujhD1Xw6lfBzyI2OnD
-Bk1XLyjNN6SMJPADfmIjUcptiO0LRobxhy7C+XJ5jqrw2VUMYhZ7Zne2zfevl3yc
-JqrVSq0LxEdeW/s30i33V33vSoRL4QStMdB9My+GohXv0OLMu5fApfBogY4X0xN5
-hgCQrHa8lLIpnm1tLfFxd2lqdYg7eFRxlyk/n98cFLgVMpsYV5e4eqzDLL/zS6GU
-OLNTW5ZkvKCcFcify47fP8o3Y4k76N1uo1uKG2Cmrgq1Yd+J534zCIFlYo5FEXsb
-a1YTqsp7apkwtLfNZhiv1RWrCi1WqfKQ8bxZukYCDcIVNB8yKUsG4Np2uyOpTGpX
-BSaVxmdBV7zBbZBderVT
-=zjY3
------END PGP SIGNATURE-----
-
---mufwAXxXOGtlt4QDK74N2nKg1GBtvlWbi--
+> 
+> Thanks,
+> 
+> -Jeff
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
