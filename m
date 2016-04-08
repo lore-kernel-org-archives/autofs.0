@@ -1,108 +1,138 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: autofs reverts to IPv4 for multi-homed IPv6 server ?
-Date: Fri, 08 Apr 2016 12:46:00 +0800
-Message-ID: <1460090760.3135.53.camel@themaw.net>
-References: <20160407141906.GU15153@bccms.uni-bremen.de>
+From: Marcel De Boer <marcel.de_boer@nokia.com>
+Subject: Near-simultaneous automount of multiple directories fails
+Date: Fri, 8 Apr 2016 09:55:13 +0200
+Message-ID: <alpine.LRH.2.11.1604080846130.26210@carrot.ant.ipd.priv>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to:x-sasl-enc
-	:x-sasl-enc; s=mesmtp; bh=akioTcdtb3EnhFKpWyjtoiWc7J4=; b=vfOKCP
-	MZzTbSd4IQmsucdmYbsKkBlKIfD/+XN8HcXrd7GIBvmO/3S2f1fEi6KMBH83EqqZ
-	3mYnqwIizWYS1Z6bT+zG1PBgFdWyewPpOvL0VnRl49odDxuogvSjMcrySkHBUaOg
-	wBf+cMuXp8bMypVHu00eyl+8JnF9o78t1VdBY=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=content-transfer-encoding:content-type
-	:date:from:in-reply-to:message-id:mime-version:references
-	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=akioTcdtb3EnhFK
-	pWyjtoiWc7J4=; b=qpPf0nsutPOeJQGlqAW0H7DszcwhZ8yYrrsW2tQ2KhEnO7Y
-	1ta13yUX/XW/FcbyFs/C5uRCiMJok+jr6AKqgca+EDo70Im22HbGi8aYCoxKiwV5
-	0utDQNnIBgXAPbMU887UMPMPy38JI7GyLsolHgDDO8Urn5Fg3KfKPEabzVK4=
-In-Reply-To: <20160407141906.GU15153@bccms.uni-bremen.de>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: christof.koehler@bccms.uni-bremen.de, autofs@vger.kernel.org
+Content-Type: text/plain; format="flowed"; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: autofs@vger.kernel.org
 
-On Thu, 2016-04-07 at 16:19 +0200, Christof Koehler wrote:
-> Hello everybody,
-> 
-> I am on ubuntu 14.04 with autofs 5.0.7 and I observe an (for me)
-> unexpected behaviour as detailed below. Apparently using autofs NFS4
-> mounts fall back to using IPv4 addresses although valid IPv6 addresses
-> are available under certain circumstances, while a plain mount works
-> as
-> expected.
+Hi!
 
-Can you provide a full debug log.
+I've already reported this on the CentOS bug tracker a while ago, but I 
+thought I'd report it here too.
 
-It might be autofs interfering with the mount but mount.nfs(8) is a more
-likely candidate.
+https://bugs.centos.org/view.php?id=9835
 
-> 
-> Setup:
-> ------
-> Both, NFS server and client, are configured with an IPv4 address and
-> an
-> IPv6 GUA and IPv6 ULA. For brevity I will shorten the IPv4 address to
-> 192, the GUA to 2001 and the ULA to fd5f  below. I will only change
-> the
-> DNS AAAA record in the following, the network configuration on
-> server/client or the A records never change. Server and client have
-> always working IPv4 and IPv6 GUA and ULA.
-> 
-> Test with mount:
-> ----------------
-> Using a plain "mount  -t nfs4 server:/locals /mnt/disk1/" on the
-> client
-> gives depending on the DNS entries for the server the expected
-> source/target selection:
-> 
-> Server DNS entry|	client address used to mount
-> 2001		|	2001
-> fd5f		|	fd5f
-> 2001+fd5f	|	fd5f
-> 
-> So in all cases RFC 6724/3484 is observed selecting the addresses.
-> Please note that the server has two AAAA records (multi-homed) in the
-> last test.
-> 
-> Test with autofs:
-> -----------------
-> A map lookup will yield "-fstype=nfs4,rw,intr,nosuid,soft,nodev
-> server:/locals"
-> for the mount. Now I change again the servers AAAA records with the
-> following result:
-> 
-> Server DNS entry|	client address used to mount
-> 2001		|	2001
-> fd5f		|	fd5f
-> 2001+fd5f	|	192
-> 
-> For a multi-homed NFS4 server autofs apparently falls back to IPv4
-> although valid IPv6 options exist. As shown above just mounting
-> without
-> autofs would stick to RFC 6724/3484 instead. I believe that autofs
-> should 
-> also select fd5f ULAs in the multi-homed case.
-> 
-> Is this a known behaviour ? Do any workarounds exist ? I could not
-> find
-> anything.
-> 
-> I tried to compile autofs 5.1.1 with --with-libtirpc because
-> of https://bugs.launchpad.net/ubuntu/+source/autofs/+bug/1101779 but
-> could not get the binary to work. I filed a bug report for the
-> behaviour
-> described above 
-> https://bugs.launchpad.net/ubuntu/+source/autofs/+bug/1564380
-> but suspect that this is better suited for this list.
-> 
-> Best Regards
-> 
-> Christof
-> 
+Summarized (there's more information on the bug report): on one of our 
+servers we initially saw that every few days one home directory became 
+inaccessible. This happened to two different homedirectories (but only one 
+at a time) out of the couple hundred we have. We traced this to 
+simultaneously scheduled cron scripts running out of the affected 
+homedirectories, which caused both directories to be mounted nearly 
+simultaneously.
+
+A test setup on a different machine (the primary description from the bug 
+report, as the server was not stock CentOS) also showed that if we had 
+cron simultaneously mount four directories every 10 minutes, only half of 
+them would get mounted every time. On this machine an RPM rebuild of 
+autofs made the issue disappear, but it was much more persistent on the 
+server.
+
+Eventually it seems that there is an issue in mount_mount() from 
+mount_nfs.c; to my untrained eye, it looks like it can get called 
+simultaneously from different threads, where they change shared 
+information, probably the 'hosts' or 'tmp' lists.
+
+I made a patch that seems to work reliably for our situation, but it's 
+very crude, it just makes sure everything touching the 'hosts' list (and 
+everything else during that time) does not run in parallel. It might be a 
+starting point for someone who knows the code better, though. (Patch was 
+made against the code used in the 5.0.5_115 CentOS 6 RPM.)
+
+The server has received some more upgrades in the mean while, so we may no 
+be able to reproduce it on that system anymore.
+
+Kind regards,
+ 	Marcel de Boer
+
+
+--- autofs-5.0.5-orig/modules/mount_nfs.c	2016-01-05 15:26:55.993014650 +0100
++++ autofs-5.0.5/modules/mount_nfs.c	2016-01-05 15:25:51.434011526 +0100
+@@ -40,6 +40,9 @@
+  static struct mount_mod *mount_bind = NULL;
+  static int init_ctr = 0;
+
++/* Multiple access to hosts workaround */
++static pthread_mutex_t host_list_mutex = PTHREAD_MUTEX_INITIALIZER;
++
+  int mount_init(void **context)
+  {
+  	/* Make sure we have the local mount method available */
+@@ -190,7 +193,9 @@
+  		      nfsoptions, nobind, nosymlink, ro);
+  	}
+
++	pthread_mutex_lock(&host_list_mutex);
+  	if (!parse_location(ap->logopt, &hosts, what, flags)) {
++        	pthread_mutex_unlock(&host_list_mutex);
+  		info(ap->logopt, MODPREFIX "no hosts available");
+  		return 1;
+  	}
+@@ -235,6 +240,7 @@
+
+  dont_probe:
+  	if (!hosts) {
++        	pthread_mutex_unlock(&host_list_mutex);
+  		info(ap->logopt, MODPREFIX "no hosts available");
+  		return 1;
+  	}
+@@ -264,6 +270,7 @@
+  		char *estr = strerror_r(errno, buf, MAX_ERR_BUF);
+  		error(ap->logopt,
+  		      MODPREFIX "mkdir_path %s failed: %s", fullpath, estr);
++        	pthread_mutex_unlock(&host_list_mutex);
+  		return 1;
+  	}
+
+@@ -300,6 +307,7 @@
+  			/* Success - we're done */
+  			if (!err) {
+  				free_host_list(&hosts);
++                        	pthread_mutex_unlock(&host_list_mutex);
+  				return 0;
+  			}
+
+@@ -325,6 +333,7 @@
+  			if (!loc) {
+  				char *estr = strerror_r(errno, buf, MAX_ERR_BUF);
+  				error(ap->logopt, "malloc: %s", estr);
++                        	pthread_mutex_unlock(&host_list_mutex);
+  				return 1;
+  			}
+  			if (this->addr->sa_family == AF_INET6) {
+@@ -338,6 +347,7 @@
+  			if (!loc) {
+  				char *estr = strerror_r(errno, buf, MAX_ERR_BUF);
+  				error(ap->logopt, "malloc: %s", estr);
++                        	pthread_mutex_unlock(&host_list_mutex);
+  				return 1;
+  			}
+  			strcpy(loc, this->name);
+@@ -365,6 +375,7 @@
+  			info(ap->logopt, MODPREFIX "mounted %s on %s", loc, fullpath);
+  			free(loc);
+  			free_host_list(&hosts);
++                       	pthread_mutex_unlock(&host_list_mutex);
+  			return 0;
+  		}
+
+@@ -374,6 +385,7 @@
+
+  forced_fail:
+  	free_host_list(&hosts);
++	pthread_mutex_unlock(&host_list_mutex);
+
+  	/* If we get here we've failed to complete the mount */
+
+
+
+-- 
+Marcel de Boer
+Test engineer, Service Routing R&D, IP/Optical Networks
+Nokia, Antwerp, Belgium
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
