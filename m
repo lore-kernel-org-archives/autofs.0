@@ -1,175 +1,139 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: Near-simultaneous automount of multiple directories fails
-Date: Fri, 08 Apr 2016 17:46:34 +0800
-Message-ID: <1460108794.2979.22.camel@themaw.net>
-References: <alpine.LRH.2.11.1604080846130.26210@carrot.ant.ipd.priv>
-	 <1460105679.2979.2.camel@themaw.net>
+Subject: Re: autofs reverts to IPv4 for multi-homed IPv6 server ?
+Date: Fri, 08 Apr 2016 18:10:24 +0800
+Message-ID: <1460110224.2979.35.camel@themaw.net>
+References: <20160407141906.GU15153@bccms.uni-bremen.de>
+	 <1460090760.3135.53.camel@themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
 	content-transfer-encoding:content-type:date:from:in-reply-to
 	:message-id:mime-version:references:subject:to:x-sasl-enc
-	:x-sasl-enc; s=mesmtp; bh=yxPO89QaqYtbPtCSrbuki6aujVo=; b=hQyaLF
-	61nLO6ksEGhewcveJ17XhC4l6QbFTKnWozjZZx8emaEwz0899+IrpwAowAEC9VPn
-	ANugqBAFZM+EWP1TwfkhnRI0wBse8yrR3BM6VxkpkwkiGrawPmYecw17fIsAi0R3
-	WOUaQExlQS26ZWeKvghJsXxwMTDRImdiGcCJg=
+	:x-sasl-enc; s=mesmtp; bh=/idAzC2EFn8XBaj0tXgr4+8MBew=; b=p/Gv15
+	bfrmmiO2mJWNBuFa5H5LkHNgYp9moJ1N8F6TjLeS20XEYleQAlAHAvxHFRx2CeoQ
+	aF2s7ERezNc4wbepvq39GUOVHpzXdNEEVwC2zh6NEZfRYoWuU9AqLHVAYzgX6dU2
+	19hF76/IL7ECMqyTDiLgLwNsLrtULaQTwiu+E=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=content-transfer-encoding:content-type
 	:date:from:in-reply-to:message-id:mime-version:references
-	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=yxPO89QaqYtbPtC
-	Srbuki6aujVo=; b=suuQUH8GRuzuwCGMhFoAqHcUe4Ht+xW8sKYX/wEB2ujcgwu
-	xHdDbo8ug3/MT82dDsWRzM6SK0bL2z4B2Tn3GR1UHmNGc28OSj1boBlEoXNgi2LZ
-	Zb4b3zEMLkFtHgGQyYpvhA4pLKImrMtFVlSBjPT+ro1dTg3U9npysaTKRXp8=
-In-Reply-To: <1460105679.2979.2.camel@themaw.net>
+	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=/idAzC2EFn8XBaj
+	0tXgr4+8MBew=; b=ZFvzsIuq5hTAAU19gWtv5/OXwJb4mpsjxh5GTNoFzoOAHf4
+	p1UYksFvY6A8//8gGmsmlTQGbdGHDAfoEw5Yps8sI8KCFXz60xmeSlmmsvYE9hPJ
+	NDv3KZzkdfk39i46+u502KC11+Ml/sz+dHmQ6n3W1rmPiNPDcJataOwncVK0=
+In-Reply-To: <1460090760.3135.53.camel@themaw.net>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Marcel De Boer <marcel.de_boer@nokia.com>, autofs@vger.kernel.org
+To: christof.koehler@bccms.uni-bremen.de, autofs@vger.kernel.org
 
-On Fri, 2016-04-08 at 16:54 +0800, Ian Kent wrote:
-> On Fri, 2016-04-08 at 09:55 +0200, Marcel De Boer wrote:
-> > Hi!
+On Fri, 2016-04-08 at 12:46 +0800, Ian Kent wrote:
+> On Thu, 2016-04-07 at 16:19 +0200, Christof Koehler wrote:
+> > Hello everybody,
 > > 
-> > I've already reported this on the CentOS bug tracker a while ago,
-> > but
-> > I 
-> > thought I'd report it here too.
+> > I am on ubuntu 14.04 with autofs 5.0.7 and I observe an (for me)
+> > unexpected behaviour as detailed below. Apparently using autofs NFS4
+> > mounts fall back to using IPv4 addresses although valid IPv6
+> > addresses
+> > are available under certain circumstances, while a plain mount works
+> > as
+> > expected.
+> 
+> Can you provide a full debug log.
+> 
+> It might be autofs interfering with the mount but mount.nfs(8) is a
+> more
+> likely candidate.
+> 
 > > 
-> > https://bugs.centos.org/view.php?id=9835
-> > 
-> > Summarized (there's more information on the bug report): on one of
-> > our
-> > servers we initially saw that every few days one home directory
-> > became
-> > inaccessible. This happened to two different homedirectories (but
-> > only
-> > one 
-> > at a time) out of the couple hundred we have. We traced this to 
-> > simultaneously scheduled cron scripts running out of the affected 
-> > homedirectories, which caused both directories to be mounted nearly 
-> > simultaneously.
-> > 
-> > A test setup on a different machine (the primary description from
+> > Setup:
+> > ------
+> > Both, NFS server and client, are configured with an IPv4 address and
+> > an
+> > IPv6 GUA and IPv6 ULA. For brevity I will shorten the IPv4 address
+> > to
+> > 192, the GUA to 2001 and the ULA to fd5f  below. I will only change
 > > the
-> > bug 
-> > report, as the server was not stock CentOS) also showed that if we
-> > had
-> > cron simultaneously mount four directories every 10 minutes, only
-> > half
-> > of 
-> > them would get mounted every time. On this machine an RPM rebuild of
-> > autofs made the issue disappear, but it was much more persistent on
-> > the 
-> > server.
+> > DNS AAAA record in the following, the network configuration on
+> > server/client or the A records never change. Server and client have
+> > always working IPv4 and IPv6 GUA and ULA.
 > > 
-> > Eventually it seems that there is an issue in mount_mount() from 
-> > mount_nfs.c; to my untrained eye, it looks like it can get called 
-> > simultaneously from different threads, where they change shared 
-> > information, probably the 'hosts' or 'tmp' lists.
-> 
-> Whatever the problem is it isn't access to either of these two
-> variables
-> or the lists they may represent.
-> 
-> They are both local variables of the mount_mount() function and so
-> cannot be accessed simultaneously by any other function.
+> > Test with mount:
+> > ----------------
+> > Using a plain "mount  -t nfs4 server:/locals /mnt/disk1/" on the
+> > client
+> > gives depending on the DNS entries for the server the expected
+> > source/target selection:
+> > 
+> > Server DNS entry|	client address used to mount
+> > 2001		|	2001
+> > fd5f		|	fd5f
+> > 2001+fd5f	|	fd5f
+> > 
+> > So in all cases RFC 6724/3484 is observed selecting the addresses.
+> > Please note that the server has two AAAA records (multi-homed) in
+> > the
+> > last test.
+> > 
+> > Test with autofs:
+> > -----------------
+> > A map lookup will yield "-fstype=nfs4,rw,intr,nosuid,soft,nodev
+> > server:/locals"
+> > for the mount. Now I change again the servers AAAA records with the
+> > following result:
+> > 
+> > Server DNS entry|	client address used to mount
+> > 2001		|	2001
+> > fd5f		|	fd5f
+> > 2001+fd5f	|	192
+> > 
+> > For a multi-homed NFS4 server autofs apparently falls back to IPv4
+> > although valid IPv6 options exist. As shown above just mounting
+> > without
+> > autofs would stick to RFC 6724/3484 instead. I believe that autofs
+> > should 
+> > also select fd5f ULAs in the multi-homed case.
+> > 
+> > Is this a known behaviour ? Do any workarounds exist ? I could not
+> > find
+> > anything.
+> > 
+> > I tried to compile autofs 5.1.1 with --with-libtirpc because
+> > of https://bugs.launchpad.net/ubuntu/+source/autofs/+bug/1101779 but
+> > could not get the binary to work. I filed a bug report for the
+> > behaviour
+> > described above 
+> > https://bugs.launchpad.net/ubuntu/+source/autofs/+bug/1564380
+> > but suspect that this is better suited for this list.
 
-Btw, there has been no actual RHEL release of revision 115.
+I've been thinking about this and I have a couple of thoughts.
 
-Only 113 in RHEL-6.7 and (probably) revision 122 will be RHEL-6.8.
-So I wonder what else went into revision 115.
+As far a IPv6 goes using glibc RPC is, I think, not going to work!
 
-AFAICS revision 115, if it is truly from RHEL, is a mid debug
-development revision and really shouldn't be used unless provided by
-RedHat support, to get development feedback from testing.
+That's the first thing that needs to be sorted out.
 
-We probably shouldn't work with revision 122 yet so may be we should
-work with revision 113, not sure about that though.
+I've been using libtirpc in Fedora and RHEL builds for nearly 10 years
+so I don't think the library problem is with autofs.
 
-Anyway it could be function calls to some other shared library causing a
-problem.
+This is an indication someone is doing something a little dumb:
 
-AFAICS the autofs code called in this region is re-entrant in the same
-way as the hosts and tmp variables are in mount_mount(), so there's
-something else going on.
+automount[20444]: open_mount:247: parse(sun): cannot open mount module
+nfs (/usr/lib/x86_64-linux-gnu/autofs/mount_nfs.so: undefined symbol:
+clnt_dg_create)
+automount[20444]: lookup(file): failed to open parse context
 
-I'm not sure I could reproduce this because I have a stress test (used
-for RHEL) that uses (IIRC) 8 concurrent threads to test mount
-concurrency and to test for mount to expire races.
+clnt_dg_create() is an entry point in libtirpc and I'm fairly sure it
+has been present in libtirpc from the beginning but maybe not and there
+is a very old libtirpc in use, don't know.
 
-The maps used are somewhat more complex than what you have here so
-perhaps I missed this point with that test.
+Anyway, it looks more like either the matching shared library from the
+build is not present on the system or the package was built with a
+libtirpc devel package but the runtime library isn't present (and
+obviously is not a dependency of the package).
 
-However, I've recently written another RHEL test (based on this test)
-that uses a simple indirect map with the 8 concurrent threads to try and
-duplicate a different problem.
+I'm not familiar with the Debian build system so I'm probably not going
+to be much help on that.
 
-I would have though this test would expose this sort of problem but
-after (I can't actually remember the longest run) about three days of
-continuous running I didn't see any problems.
-
-Granted it was a different scenario to yours though.
-
-So I think we need to narrow down where this is occurring.
-
-To start with I'd add mutexes around just the parse_location() and
- prune_host_list() functions and then if that also resolves the problem
-drill down from there.
-
-Something like (totally untested):
-
-debug
-
-From: Ian Kent <raven@themaw.net>
-
-
----
- modules/mount_nfs.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
-
-diff --git a/modules/mount_nfs.c b/modules/mount_nfs.c
-index 84f7bda..95df40f 100644
---- a/modules/mount_nfs.c
-+++ b/modules/mount_nfs.c
-@@ -54,6 +54,8 @@ int mount_init(void **context)
- 	return !mount_bind;
- }
- 
-+static pthread_mutex_t host_list_mutex = PTHREAD_MUTEX_INITIALIZER;
-+
- int mount_mount(struct autofs_point *ap, const char *root, const char *name, int name_len,
- 		const char *what, const char *fstype, const char *options,
- 		void *context)
-@@ -190,16 +192,20 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name, int
- 		      nfsoptions, nobind, nosymlink, ro);
- 	}
- 
-+	pthread_mutex_lock(&host_list_mutex);
- 	if (!parse_location(ap->logopt, &hosts, what, flags)) {
- 		info(ap->logopt, MODPREFIX "no hosts available");
-+		pthread_mutex_unlock(&host_list_mutex);
- 		return 1;
- 	}
- 	/*
- 	 * We can't probe protocol rdma so leave it to mount.nfs(8)
- 	 * and and suffer the delay if a server isn't available.
- 	 */
--	if (rdma)
-+	if (rdma) {
-+		pthread_mutex_unlock(&host_list_mutex);
- 		goto dont_probe;
-+	}
- 
- 	/*
- 	 * If this is a singleton mount, and NFSv4 only hasn't been asked
-@@ -232,6 +238,7 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name, int
- 	} else {
- 		prune_host_list(ap->logopt, &hosts, vers, port);
- 	}
-+	pthread_mutex_unlock(&host_list_mutex);
- 
- dont_probe:
- 	if (!hosts) {
+Ian
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
