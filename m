@@ -1,60 +1,140 @@
-From: Omar Sandoval <osandov@osandov.com>
-Subject: Re: Autofs and mount namespaces
-Date: Fri, 8 Apr 2016 13:21:23 -0700
-Message-ID: <20160408202123.GA12948@vader.dhcp.thefacebook.com>
-References: <20160407181911.GA9018@vader>
- <1460076663.3135.37.camel@themaw.net>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: autofs reverts to IPv4 for multi-homed IPv6 server ?
+Date: Sat, 09 Apr 2016 09:35:28 +0800
+Message-ID: <1460165728.3073.17.camel@themaw.net>
+References: <20160407141906.GU15153@bccms.uni-bremen.de>
+	 <1460090760.3135.53.camel@themaw.net> <1460110224.2979.35.camel@themaw.net>
+	 <20160408122552.GW15153@bccms.uni-bremen.de>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=osandov-com.20150623.gappssmtp.com; s=20150623;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=S/QAac0ezotIL+lrm1Yv8XXMeWGGi3VT/L/INlodEF0=;
-        b=Fw/LfEnOF2Ec9LZ9kreRhuMjSUnotpTaVwM7IUJ8ZuJp1zGdPS8m01mvF5y8KtfsVJ
-         cywk7iCdKzeG0sQ+Un0C39yTMuE8U29JKeP4D/fho5XKGePzuNwPWWVYVqU57FNShW+D
-         m0IuBPQ3fHWbBYwz0lN7oucyJHw9HObZ7z+nvd3i1vp7DuTyHwJjhsfHdlsZGIdYjlB0
-         oeflfTNwKJ1DKXvsxwvbMIGdtP6+e5+qV/kZ/nzr/6Z8XTCzqd50VuJT5ELNOnVsmdeD
-         SV2Xr8FDVkMnfkF0gS0ZXivFikMp+tvr71sosOtfSh/7XDTrU2ayiNbTp+QKJGKqFiOr
-         GSqQ==
-Content-Disposition: inline
-In-Reply-To: <1460076663.3135.37.camel@themaw.net>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
+	content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to:x-sasl-enc
+	:x-sasl-enc; s=mesmtp; bh=vcnuzvWV0Hi9vBR6DeF/vJPrqlg=; b=UPKhLB
+	YKnkYotUPTwO6zCH3Cige/mkInM45sgj+HV5B4Lcdrj6TvjEmA7C9LNBugSuTqGn
+	xsGY/kVz+uotECuH6Lx4i8TQsMZMUnjR3u9ZG7LDeVSQzSL7RxHWmSq9W9rGofQA
+	rvn2o8y7MFIMmFDzNI1QDY847ErCKmUuWZdnc=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=content-transfer-encoding:content-type
+	:date:from:in-reply-to:message-id:mime-version:references
+	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=vcnuzvWV0Hi9vBR
+	6DeF/vJPrqlg=; b=QygDD2tVygJw3SBpVZbOc6nTlKpFmHgyJh1roTmAU70QrOk
+	AqASXWG49YwO4EEfDcKD/v+Mzsxh2Qv+PBxDO0IuxT6ABRsqIn4fZs/mL4V++IHy
+	aDLz7JrVB7GxmBaOVeoSx5mOfXd7/DrOQihjU/wP2hRvtztJbysc4nVp/oMo=
+In-Reply-To: <20160408122552.GW15153@bccms.uni-bremen.de>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Ian Kent <raven@themaw.net>
-Cc: autofs@vger.kernel.org, linux-fsdevel@vger.kernel.org, kernel-team@fb.com
+To: christof.koehler@bccms.uni-bremen.de, autofs@vger.kernel.org
 
-On Fri, Apr 08, 2016 at 08:51:03AM +0800, Ian Kent wrote:
-> On Thu, 2016-04-07 at 11:19 -0700, Omar Sandoval wrote:
-> > Hi, Ian,
+On Fri, 2016-04-08 at 14:25 +0200, Christof Koehler wrote:
+> Hello again,
+> > I've been thinking about this and I have a couple of thoughts.
 > > 
-> > I wanted to bring up the issue of autofs and mount namespaces again,
-> > which recently resurfaced in the thread here [1]. In that thread, you
-> > mentioned that you had some patches to make autofs namespace-aware
-> > that
-> > you were holding on to. Do you think you could put those up so we can
-> > all work out the issues you mentioned?
+> > As far a IPv6 goes using glibc RPC is, I think, not going to work!
+> > 
+> > That's the first thing that needs to be sorted out.
+> > 
+> > I've been using libtirpc in Fedora and RHEL builds for nearly 10
+> > years
+> > so I don't think the library problem is with autofs.
+> > 
+> > This is an indication someone is doing something a little dumb:
+> > 
+> > automount[20444]: open_mount:247: parse(sun): cannot open mount
+> > module
+> > nfs (/usr/lib/x86_64-linux-gnu/autofs/mount_nfs.so: undefined
+> > symbol:
+> > clnt_dg_create)
 > 
-> I can but I haven't tested them at all.
+> concerning my failures to build autofs. First the client has all
+> libtirpc packages I think are necessary:
+> # dpkg -l libtirpc\*|grep ii
+> ii  libtirpc-dev                                   0.2.2-5ubuntu2
+> ii  libtirpc1:amd64                                0.2.2-5ubuntu2
 > 
-> Possibly I could post them to the autofs list if you want to test and
-> probably make changes to get them working.
+> We have libtirpc1 on the machines by default and I had to
+> install libtirpc-dev so that ./configure would conclude that
+> --with-libtirpc should do anything. 
 > 
-> Would that be ok .... umm, I think I need to post the patch now anyway
-> as it's the easiest way to demonstrate what I think is a better approach
-> than the patch below ....
+> Actually I tried to compile autofs 5.1.1 from source and a new 5.0.7
+> package from ubuntu's source deb.
 > 
-> I'm struggling to get back to work on this but I'm getting there and
-> hope to return to it soon.
+> Using the sources at 
+> https://www.kernel.org/pub/linux/daemons/autofs/v5/
+> I was basically confused what to do about the patches. Do I have to
+> apply everything in patches-5.1.2 to autofs-5.1.1.tar.gz to get 5.1.2
+> ? 
 
-Thanks for taking a look. Your patch fixes the case I provided, and it
-does look much better than my hack :) Like you said in your other email,
-there are more cases, but this fix is a good start independent of those
-cases. Were there any other patches that needed testing?
+That's entirely up to you.
+Those patches are the patches that have been committed to the repo. so
+far toward the unreleased 5.1.2.
 
--- 
-Omar
+> How do I do that automatically ? I noticed that autofs-5.1.1.tar.gz
+
+I don't know what you mean.
+
+If your talking about building a deb then there's a place in the build
+tree for patches where each patch usually has a number prefix to
+establish order. They are then applied prior to the configure step I
+think.
+
+If your talking about the autofs source then you could try quilt.
+I pretty sure the patch order file will work with it.
+
+> misses the patch mentioned in message 15 of
+> https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=737679
+> but contained in autofs-5.1.1-revert-fix-libtirpc-name-clash.patch.
+
+Whether that patch is needed or not depends on the version of libtirpc.
+
+At one point it had a define in one of the header files that clashed
+with an internal name in autofs.
+
+That's been removed in later versions of libtirpc (and I think wasn't
+present in earlier versions, don't know the specifics).
+
+> 
+> So to make it short I certainly messed something up
+> somewhere, the final binary and libs were no success . Additionally
+> installation did not play nice, although --prefix= was set it
+> overwrote
+> configuration files in /etc.  But I think I
+> cleaned everything up afterwards.
+
+Again, not clear if your talking deb or source install.
+
+I'm pretty sure the make install will copy existing configs to a backup,
+not sure what happens in a Debian type environment.
+
+The deb install should certainly consider existing configuration.
+
+Not sure what you mean about the prefix.
+The prefix is meant to alter the default install directories.
+If your using a package build system then typically you install to some
+other directory by using DESTDIR (IIRC) during the package build and the
+build system packages the installed files from DESTDIR down.
+
+> 
+> If someone can provide some hints I would try it again.
+> 
+> After that I rebuild the 5.0.7 package from source deb after adding
+> --with-libtirpc to debian/rules as suggested in the bug reports. I
+> installed from that package.  I checked with ldd after installing
+> that ldd /usr/lib/x86_64-linux-gnu/autofs/mount_nfs.so was build with
+> a
+> reference to libtirpc. 
+
+I looked at a log you provided and the build does appear to use libtirpc
+and version 0.2.2 of libtirpc certainly has clnt_dg_create().
+
+So not sure about that.
+
+TBH I really don't want to construct a Ubuntu VM and struggle with the
+Debian build system. I really don't like it and its been so long since I
+used it, it would takes ages to work out what I need to do, again.
+
+Ian
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
