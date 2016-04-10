@@ -1,113 +1,285 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: autofs reverts to IPv4 for multi-homed IPv6 server ?
-Date: Sun, 10 Apr 2016 10:09:02 +0800
-Message-ID: <1460254142.3508.6.camel@themaw.net>
+Date: Sun, 10 Apr 2016 10:14:13 +0800
+Message-ID: <1460254453.3508.9.camel@themaw.net>
 References: <20160407141906.GU15153@bccms.uni-bremen.de>
 	 <1460090760.3135.53.camel@themaw.net> <1460110224.2979.35.camel@themaw.net>
 	 <20160408122552.GW15153@bccms.uni-bremen.de>
 	 <20160408142907.GX15153@bccms.uni-bremen.de>
-	 <20160408153224.GY15153@bccms.uni-bremen.de>
+	 <20160408161226.GZ15153@bccms.uni-bremen.de>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
 	content-transfer-encoding:content-type:date:from:in-reply-to
 	:message-id:mime-version:references:subject:to:x-sasl-enc
-	:x-sasl-enc; s=mesmtp; bh=iSA3dP+dIWpj5iS/nXd/vBvfRz8=; b=sdsrhw
-	wxzCVjuwVi+n5e1IZxvoHbIhJ7VG+2c4PB/XbGWlMRJKpfEuXGrRevlWa2m27tmw
-	ooutIRFMXvJaoZjXys5iuoZBBiRHi0xBARWO0UYAqEbock0NXVXQXUyJYo70pD/v
-	9bATBRlemfcTl4lAls+/eRf91vLDFs3pO8C6Y=
+	:x-sasl-enc; s=mesmtp; bh=6m6oa6JBzV02IabqE/K2NQRDumM=; b=RkMxac
+	7MKF0DonvA93I+n9beDNS9PUrO9H8gZ3Fj7dxZ96exYyPzvXDRZCE1PpSnryijBY
+	QoT4zWl24zmxKAYmXoahyN11N7DN2Hpo5/tH3XnPVUWJxmtuyWwLpilu20vSQ1wz
+	lXfa5LxcuNlXUfGlOdRWMuAyZCsKS8aCSfSq0=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=content-transfer-encoding:content-type
 	:date:from:in-reply-to:message-id:mime-version:references
-	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=iSA3dP+dIWpj5iS
-	/nXd/vBvfRz8=; b=g2HcrLwV+W0IIGkXTTmjOZDPTvrtjeh5xKGF1RZKPiMyM1k
-	8cdq689MMFp60WHkKBtUfBxiYq0ozwBz5VJmZPp8glmTxLCLtna5Et/VwXEVc068
-	oCvBNaG/SEm74nkGeo4FXp6EPU9iuwwA91rM67IttPR2cF132uG7Mr/T+KhE=
-In-Reply-To: <20160408153224.GY15153@bccms.uni-bremen.de>
+	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=6m6oa6JBzV02Iab
+	qE/K2NQRDumM=; b=D+XumMY/hGLGpBxkSutnyDnRVHT+UHEtbB3xrSG9kKOHMf5
+	CTv6x8OLJjiT8tyIpCPveDB74UYLWbuYUUXhS9kXBNu5YgLOR6+Zq4Yo7QJeHJjr
+	qb55pBEgOCGOjUpvtvXLY7cbAuLD3Bh5GbhajQVvfCnO3k2sstsl7bn38H2s=
+In-Reply-To: <20160408161226.GZ15153@bccms.uni-bremen.de>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 To: christof.koehler@bccms.uni-bremen.de, autofs@vger.kernel.org
 
-On Fri, 2016-04-08 at 17:32 +0200, Christof Koehler wrote:
+On Fri, 2016-04-08 at 18:12 +0200, Christof Koehler wrote:
 > Hello,
-> 
-> I might add that using an IPv6 address, i.e.
-> [2001:638:708:1261:2000::118]:/locals, in the automounter map does not
-> work either while an IPv4 address, i.e. 192.168.220.118:/locals, works
-> without a hitch. Is it desirable to be able to specify IPv6 addresses 
->  ?
-> I am just noting the inconsistency.
+>=20
+> I managed to build a new autofs 5.1.1 from the ubuntu 16.04 source
+> package after throwing out all systemd dependencies. With that
+>=20
+> root@core324:~/autofs-5.1.1# ldd /usr/lib/x86_64-linux
+> -gnu/autofs/mount_nfs.so
+>         linux-vdso.so.1 =3D>  (0x00007ffff7ffd000)
+>         libpthread.so.0 =3D> /lib/x86_64-linux-gnu/libpthread.so.0
+> (0x00007ffff7b73000)
+>         libtirpc.so.1 =3D> /lib/x86_64-linux-gnu/libtirpc.so.1
+> (0x00007ffff794b000)
+>         libc.so.6 =3D> /lib/x86_64-linux-gnu/libc.so.6
+> (0x00007ffff7585000)
+>         /lib64/ld-linux-x86-64.so.2 (0x0000555555554000)
+>         libgssglue.so.1 =3D> /lib/x86_64-linux-gnu/libgssglue.so.1
+> (0x00007ffff737b000)
+>         libdl.so.2 =3D> /lib/x86_64-linux-gnu/libdl.so.2
+> (0x00007ffff7177000)
+>=20
+> However, I had to edit lib/rpc_subs.c as indicated in=20
+> https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=3D737679, otherwise=
+ it
+> would not=20
+> work (/usr/lib/x86_64-linux-gnu/autofs/mount_nfs.so: undefined symbol=
+:
+> auth_put).
 
-It's not entirely straight forward to answer that due to the way autofs
-will probe availability and proximity to work out which server to use.
+I think that is caused the libtirpc problem you asked about earlier.
+As I say it depends on the version of libtirpc in use.
 
-That's possibly part of the multi-homed problem your seeing and whether
-autofs should restrict itself to only IPv6 addresses is, I suspect, a
-question we will end up asking.
-
-But there seems to be more to this at the moment so that needs to be
-resolved first.
-
-The short answer is that IPv6 addresses should be usable but there have 
-been changes along the way to how autofs uses libtirpc.
-
-> 
-> Have a nice weekend !
-> 
-> Apr  8 17:25:24 core324 automount[24310]: attempting to mount entry
-> /local/core330
-> Apr  8 17:25:24 core324 automount[24310]: lookup_mount:
-> lookup(program): core330 -> -fstype=nfs4,rw,intr,nosuid,soft,nodev
-> 192.168.220.118:/locals
-> Apr  8 17:25:24 core324 automount[24310]: lookup_mount:
-> lookup(program): looking up core330
-> Apr  8 17:25:24 core324 automount[24310]: lookup_mount:
-> lookup(program): core330 -> -fstype=nfs4,rw,intr,nosuid,soft,nodev
-> [2001:638:708:1261:2000::118]:/locals
-> Apr  8 17:25:24 core324 automount[24310]: parse_mount: parse(sun):
-> expanded entry: -fstype=nfs4,rw,intr,nosuid,soft,nodev
-> [2001:638:708:1261:2000::118]:/locals
-> Apr  8 17:25:24 core324 automount[24310]: parse_mount: parse(sun):
-> gathered options: fstype=nfs4,rw,intr,nosuid,soft,nodev
-> Apr  8 17:25:24 core324 automount[24310]: parse_mount: parse(sun):
-> dequote("[2001:638:708:1261:2000::118]:/locals") ->
-> [2001:638:708:1261:2000::118]:/locals
-> Apr  8 17:25:24 core324 automount[24310]: parse_mount: parse(sun):
-> core of entry:
-> options=fstype=nfs4,rw,intr,nosuid,soft,nodev,loc=[2001:638:708:1261:2
-> 000::118]:/locals
-> Apr  8 17:25:24 core324 automount[24310]: sun_mount: parse(sun):
-> mounting root /local, mountpoint core330, what
-> [2001:638:708:1261:2000::118]:/locals, fstype nfs4, options
+>=20
+> With the new binary /local/core330 does not mount either, but the
+> error message is
+> probably an improvement:
+>=20
+> Apr  8 18:05:25 core324 automount[963]: parse_mount: parse(sun):
+> dequote("core330:/locals"
+> ) -> core330:/locals
+> Apr  8 18:05:25 core324 automount[963]: parse_mount: parse(sun): core
+> of entry: options=3Dfs
+> type=3Dnfs4,rw,intr,nosuid,soft,nodev, loc=3Dcore330:/locals
+> Apr  8 18:05:25 core324 automount[963]: sun_mount: parse(sun):
+> mounting root /local, mount
+> point core330, what core330:/locals, fstype nfs4, options
 > rw,intr,nosuid,soft,nodev
-> Apr  8 17:25:24 core324 automount[24310]: mount_mount: mount(nfs):
-> root=/local name=core33
-> 0 what=[2001:638:708:1261:2000::118]:/locals, fstype=nfs4,
-> options=rw,intr,nosuid,soft,nod
-> ev
-> Apr  8 17:25:24 core324 automount[24310]: mount_mount: mount(nfs): nfs
-> options="rw,intr,no
-> suid,soft,nodev", nobind=0, nosymlink=0, ro=0
-> Apr  8 17:25:24 core324 automount[24310]: mount(nfs): no hosts
-> available
-> Apr  8 17:25:24 core324 automount[24310]: dev_ioctl_send_fail: token =
-> 1923
-> Apr  8 17:25:24 core324 automount[24310]: failed to mount
-> /local/core330
-> Apr  8 17:25:24 core324 automount[24310]: handle_packet: type = 3
-> Apr  8 17:25:24 core324 automount[24310]:
-> handle_packet_missing_indirect: token 1924, name core330, request pid
-> 24519
-> Apr  8 17:25:24 core324 automount[24310]: dev_ioctl_send_fail: token =
-> 1924
-> 
+> Apr  8 18:05:25 core324 automount[963]: mount_mount: mount(nfs):
+> root=3D/local name=3Dcore330=20
+> what=3Dcore330:/locals, fstype=3Dnfs4, options=3Drw,intr,nosuid,soft,=
+nodev
+> Apr  8 18:05:25 core324 automount[963]: mount_mount: mount(nfs): nfs
+> options=3D"rw,intr,nosu
+> id,soft,nodev", nobind=3D0, nosymlink=3D0, ro=3D0
+> Apr  8 18:05:25 core324 automount[963]: get_nfs_info: called with hos=
+t
+> core330(192.168.220
+> .118) proto 6 version 0x40
+> Apr  8 18:05:25 core324 automount[963]: get_nfs_info: called with hos=
+t
+> core330(fd5f:852:a27c:1261:2000::118) proto 6 version 0x40
+> Apr  8 18:05:25 core324 automount[963]: get_nfs_info: called with hos=
+t
+> core330(2001:638:708:1261:2000::118) proto 6 version 0x40
+> Apr  8 18:05:25 core324 automount[963]: mount(nfs): no hosts availabl=
+e
+
+Sadly that doesn't tell us much either, only that the rpc communication
+has failed to get a result in some expected way.
+
+I'm not sure where to go from here....
+
+> Apr  8 18:05:25 core324 automount[963]: dev_ioctl_send_fail: token =3D
+> 3004
+> Apr  8 18:05:25 core324 automount[963]: failed to mount /local/core33=
+0
+> Apr  8 18:05:25 core324 automount[963]: handle_packet: type =3D 3
+> Apr  8 18:05:25 core324 automount[963]:
+> handle_packet_missing_indirect: token 3005, name core330, request pid
+> 2397
+>=20
+> I had no success trying to get the 5.0.7 source package to actually
+> link libtirpc,=20
+> no idea why.
+> =20
 > Best Regards
-> 
+>=20
 > Christof
-> 
-> 
-> 
+>=20
+> On Fri, Apr 08, 2016 at 04:29:07PM +0200, Christof Koehler wrote:
+> > Hello,
+> >=20
+> > apparently I confused my 5.1.1 source built experiment and my debia=
+n
+> > package rebuild experiment when I reported that libtirpc was used i=
+n
+> > my
+> > last email. So here is a new try to rebuild the deb source with
+> > --with-libtirpc.
+> >=20
+> > I did a apt-get source autofs and added --with-libtirpc to debian
+> > rules.
+> > After that it would of course not allow me to build a package,
+> > "aborting
+> > due to unexpected upstream changes". So I just did a "dpkg
+> > -buildpackage
+> > -b" and then dpkg -i autofs... . Attached is the file build.out.gz
+> > which
+> > contains the stdout output. Clearly libtirpc is used somehow in the
+> > build.
+> >=20
+> > After restoring maps in /etc I did a service restart autofs and wit=
+h
+> > debug loglevel I get=20
+> >=20
+> > Apr  8 16:20:33 core324 automount[14615]: open_mount:247:
+> > parse(sun):
+> > cannot open mount module nfs
+> > (/usr/lib/x86_64-linux-gnu/autofs/mount_nfs.so: undefined symbol:
+> > clnt_dg_create)
+> >=20
+> > as reported. I then double checked and actually
+> >=20
+> > root@core324:~# ldd /usr/lib/x86_64-linux-gnu/autofs/mount_nfs.so
+> >         linux-vdso.so.1 =3D>  (0x00007ffff7ffd000)
+> >         libc.so.6 =3D> /lib/x86_64-linux-gnu/libc.so.6
+> > (0x00007ffff79f3000)
+> >         /lib64/ld-linux-x86-64.so.2 (0x0000555555554000)
+> >=20
+> > no libtirpc.=20
+> >=20
+> > I will have to read up on how to properly rebuild the package. The
+> > debian documentation is unfortunately not very user friendly, any
+> > hints are appreciated.
+> >=20
+> > Best Regards
+> >=20
+> > Christof
+> >=20
+> > On Fri, Apr 08, 2016 at 02:25:52PM +0200, Christof Koehler wrote:
+> > > Hello again,
+> > > > I've been thinking about this and I have a couple of thoughts.
+> > > >=20
+> > > > As far a IPv6 goes using glibc RPC is, I think, not going to
+> > > > work!
+> > > >=20
+> > > > That's the first thing that needs to be sorted out.
+> > > >=20
+> > > > I've been using libtirpc in Fedora and RHEL builds for nearly 1=
+0
+> > > > years
+> > > > so I don't think the library problem is with autofs.
+> > > >=20
+> > > > This is an indication someone is doing something a little dumb:
+> > > >=20
+> > > > automount[20444]: open_mount:247: parse(sun): cannot open mount
+> > > > module
+> > > > nfs (/usr/lib/x86_64-linux-gnu/autofs/mount_nfs.so: undefined
+> > > > symbol:
+> > > > clnt_dg_create)
+> > >=20
+> > > concerning my failures to build autofs. First the client has all
+> > > libtirpc packages I think are necessary:
+> > > # dpkg -l libtirpc\*|grep ii
+> > > ii  libtirpc-dev                                   0.2.2-5ubuntu2
+> > > ii  libtirpc1:amd64                                0.2.2-5ubuntu2
+> > >=20
+> > > We have libtirpc1 on the machines by default and I had to
+> > > install libtirpc-dev so that ./configure would conclude that
+> > > --with-libtirpc should do anything.=20
+> > >=20
+> > > Actually I tried to compile autofs 5.1.1 from source and a new
+> > > 5.0.7
+> > > package from ubuntu's source deb.
+> > >=20
+> > > Using the sources at=20
+> > > https://www.kernel.org/pub/linux/daemons/autofs/v5/
+> > > I was basically confused what to do about the patches. Do I have
+> > > to
+> > > apply everything in patches-5.1.2 to autofs-5.1.1.tar.gz to get
+> > > 5.1.2 ?=20
+> > > How do I do that automatically ? I noticed that autofs
+> > > -5.1.1.tar.gz
+> > > misses the patch mentioned in message 15 of
+> > > https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=3D737679
+> > > but contained in autofs-5.1.1-revert-fix-libtirpc-name
+> > > -clash.patch.
+> > >=20
+> > > So to make it short I certainly messed something up
+> > > somewhere, the final binary and libs were no success .
+> > > Additionally
+> > > installation did not play nice, although --prefix=3D was set it
+> > > overwrote
+> > > configuration files in /etc.  But I think I
+> > > cleaned everything up afterwards.
+> > >=20
+> > > If someone can provide some hints I would try it again.
+> > >=20
+> > > After that I rebuild the 5.0.7 package from source deb after
+> > > adding
+> > > --with-libtirpc to debian/rules as suggested in the bug reports. =
+I
+> > > installed from that package.  I checked with ldd after installing
+> > > that ldd /usr/lib/x86_64-linux-gnu/autofs/mount_nfs.so was build
+> > > with a
+> > > reference to libtirpc.=20
+> > >=20
+> > > This try gave the error message in the ubuntu bug
+> > > report=20
+> > > https://bugs.launchpad.net/ubuntu/+source/autofs/+bug/1564380
+> > >=20
+> > > So, any hints are appreciated. As long as I can stick to 5.0.7
+> > > rebuilt
+> > > from the source deb installing/re-installing is no problem and I
+> > > can try
+> > > different things you might want. Assuming I can get the program t=
+o
+> > > work :-)
+> > >=20
+> > > Thank you very much for all your help !
+> > >=20
+> > >=20
+> > > Best Regards
+> > >=20
+> > > Christof
+> > >=20
+> > >=20
+> > >=20
+> > > --=20
+> > > Dr. rer. nat. Christof K=C3=B6hler       email:=20
+> > > c.koehler@bccms.uni-bremen.de
+> > > Universitaet Bremen/ BCCMS          phone:  +49-(0)421-218-62334
+> > > Am Fallturm 1/ TAB/ Raum 3.12       fax: +49-(0)421-218-62770
+> > > 28359 Bremen =20
+> > >=20
+> > > PGP: http://www.bccms.uni-bremen.de/cms/people/c_koehler/
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe autofs"
+> > > in
+> >=20
+> > --=20
+> > Dr. rer. nat. Christof K=C3=B6hler       email:=20
+> > c.koehler@bccms.uni-bremen.de
+> > Universitaet Bremen/ BCCMS          phone:  +49-(0)421-218-62334
+> > Am Fallturm 1/ TAB/ Raum 3.12       fax: +49-(0)421-218-62770
+> > 28359 Bremen =20
+> >=20
+> > PGP: http://www.bccms.uni-bremen.de/cms/people/c_koehler/
+>=20
+>=20
+>=20
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
