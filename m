@@ -1,121 +1,87 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: Near-simultaneous automount of multiple directories fails
-Date: Sun, 10 Apr 2016 10:34:09 +0800
-Message-ID: <1460255649.3508.24.camel@themaw.net>
-References: <alpine.LRH.2.11.1604080846130.26210@carrot.ant.ipd.priv>
-	  <1460105679.2979.2.camel@themaw.net> <1460108794.2979.22.camel@themaw.net>
-	 <alpine.LRH.2.11.1604081231040.26210@carrot.ant.ipd.priv>
+Subject: Re: Autofs and mount namespaces
+Date: Sun, 10 Apr 2016 10:53:22 +0800
+Message-ID: <1460256802.3508.39.camel@themaw.net>
+References: <20160407181911.GA9018@vader>
+	 <1460076663.3135.37.camel@themaw.net>
+	 <20160408202123.GA12948@vader.dhcp.thefacebook.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=cc
 	:content-transfer-encoding:content-type:date:from:in-reply-to
 	:message-id:mime-version:references:subject:to:x-sasl-enc
-	:x-sasl-enc; s=mesmtp; bh=AxaTviio9YagCuUc44Oj/fW4M0I=; b=h0c0Pr
-	2An6FcOfZaBI8cQVRnUiijIDut9mwS1UYDtnzAQuZuXab2VB3Q2evvVTIiungKTZ
-	dDUMC9Mb+8Y5AvtOsft0Btc4cm6omDhAw7mew2jGk3O2H+gQI0CZZcmyD4yDM2Nx
-	NrY5sVMVflM7DD7C94fvqlKel/LvsM94xAtj8=
+	:x-sasl-enc; s=mesmtp; bh=w1BygN/LOZNE3BeA73M7XhSJVQM=; b=ytEgIf
+	csXX07YB/JZjwrYQ4WjJc2yjsRZthqcop6gWg3WU8hngd1g8O+5yNUhRrClq7zom
+	KDubWxALGPFDVreKCD08kkZH8HlGjhDAwqVllXzrouQJg/GeI/cD8kCDx98ldifa
+	U7vDN8p05OaEP7NORbfgo770El/wWpm9EO79g=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=cc:content-transfer-encoding:content-type
 	:date:from:in-reply-to:message-id:mime-version:references
-	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=AxaTviio9YagCuU
-	c44Oj/fW4M0I=; b=MT+1Up5xO3L7/+ndvrdM7gzGQhS8sPUAZStI2lLNgSbrMa/
-	7/8BdXF0q3kNeDIKtTIG4e2Qp6wSQk0RfsvmZwnsA5h0Er/SXlOc1pP76FMFbVHS
-	rataXeSBkutpzxd1Lfgmv0rFg+mfx2TALtPXfYOivazhSn/IRYGgP16G+bVk=
-In-Reply-To: <alpine.LRH.2.11.1604081231040.26210@carrot.ant.ipd.priv>
+	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=w1BygN/LOZNE3Be
+	A73M7XhSJVQM=; b=IU1Pdkn2cxBowJ2yAQSPV7cKN/MHNVec2KMZ9y9QDNSOHZ6
+	GBd8dcpStfB+5aj0M4GOxPx6vZ5VOA3sLhk+nb02vbsOrbiSQhztJNQgIYzvHmUN
+	9gktMlqwZRpeTAwU2joSXeaFvdcFQW7iJYN5BKNVCaGJd+X+nXJh1bw4XyR8=
+In-Reply-To: <20160408202123.GA12948@vader.dhcp.thefacebook.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Marcel De Boer <marcel.de_boer@nokia.com>
-Cc: autofs@vger.kernel.org
+To: Omar Sandoval <osandov@osandov.com>
+Cc: autofs@vger.kernel.org, linux-fsdevel@vger.kernel.org, kernel-team@fb.com
 
-On Fri, 2016-04-08 at 13:37 +0200, Marcel De Boer wrote:
-> Hi!
-> 
-> > > Whatever the problem is it isn't access to either of these two 
-> > > variables or the lists they may represent.
+On Fri, 2016-04-08 at 13:21 -0700, Omar Sandoval wrote:
+> On Fri, Apr 08, 2016 at 08:51:03AM +0800, Ian Kent wrote:
+> > On Thu, 2016-04-07 at 11:19 -0700, Omar Sandoval wrote:
+> > > Hi, Ian,
 > > > 
-> > > They are both local variables of the mount_mount() function and so
-> > > cannot be accessed simultaneously by any other function.
-> 
-> Too bad... that means my changes probably just mixed up the timing
-> enough 
-> to avoid the problem.
-> 
-> > Btw, there has been no actual RHEL release of revision 115.
+> > > I wanted to bring up the issue of autofs and mount namespaces
+> > > again,
+> > > which recently resurfaced in the thread here [1]. In that thread,
+> > > you
+> > > mentioned that you had some patches to make autofs namespace-aware
+> > > that
+> > > you were holding on to. Do you think you could put those up so we
+> > > can
+> > > all work out the issues you mentioned?
 > > 
-> > Only 113 in RHEL-6.7 and (probably) revision 122 will be RHEL-6.8.
-> > So I wonder what else went into revision 115.
-> <...>
-> > We probably shouldn't work with revision 122 yet so may be we should
-> > work with revision 113, not sure about that though.
-> 
-> Ah wait... because it was just for local testing, I also changed the 
-> patchlevel so yum wouldn't complain. Judging from the build machine 
-> history, it actually is -113. Postponing writing this mail for too
-> long 
-> made me forget too much...
-> 
-> > I'm not sure I could reproduce this because I have a stress test
-> > (used
-> > for RHEL) that uses (IIRC) 8 concurrent threads to test mount
-> > concurrency and to test for mount to expire races.
+> > I can but I haven't tested them at all.
 > > 
-> > The maps used are somewhat more complex than what you have here so
-> > perhaps I missed this point with that test.
-> 
-> The configuration for the server uses indirect maps from the local 
-> filesystem. All other machines get a slightly different config through
-> NIS.
-> 
-> > However, I've recently written another RHEL test (based on this
-> > test)
-> > that uses a simple indirect map with the 8 concurrent threads to try
+> > Possibly I could post them to the autofs list if you want to test
 > > and
-> > duplicate a different problem.
+> > probably make changes to get them working.
 > > 
-> > I would have though this test would expose this sort of problem but
-> > after (I can't actually remember the longest run) about three days
-> > of
-> > continuous running I didn't see any problems.
+> > Would that be ok .... umm, I think I need to post the patch now
+> > anyway
+> > as it's the easiest way to demonstrate what I think is a better
+> > approach
+> > than the patch below ....
 > > 
-> > Granted it was a different scenario to yours though.
+> > I'm struggling to get back to work on this but I'm getting there and
+> > hope to return to it soon.
 > 
-> Of course it also looks timing-related, so there's no telling in
-> exactly 
-> which configuration it'll pop up. For the machine I used for testing
-> (not 
-> the same hardware as the server), the issue already disappeared when I
-> locally rebuilt the same RPM as the one that was already installed.
-> 
-> I already noticed changes in the frequency when I changed the versions
-> of 
-> supporting packages (libtirpc) or ran it in the foreground or with 
-> debugging.
-> 
-> > So I think we need to narrow down where this is occurring.
-> > 
-> > To start with I'd add mutexes around just the parse_location() and
-> > prune_host_list() functions and then if that also resolves the
-> > problem
-> > drill down from there.
-> 
-> I'll see if I can do that next week (even though the server is busy,
-> it's 
-> not a disaster if it happens, but I prefer to be around to unwedge
-> it.)
+> Thanks for taking a look. Your patch fixes the case I provided, and it
+> does look much better than my hack :) Like you said in your other
+> email,
+> there are more cases, but this fix is a good start independent of
+> those
+> cases. Were there any other patches that needed testing?
 
-I can help with that by providing patches.
+It changed a few times since I first looked at it and there were other
+approaches that had more patches but this single patch is what I have
+come up with most recently.
 
-To start with the change here is quite conservative, next one would be
-much less so (and quite a bit more difficult to write). The idea being
-much like a kernel bi-sect to narrow the search quickly.
+One problem is that with any change that I can come up with the limit on
+request call backs (the ELOOP return that's seen) is removed and that
+means it's possible to get a tight call back loop with no exit
+condition.
 
-> 
-> Thanks!
-> 
-> Kind regards,
->  	Marcel de Boer
-> 
+For a long time I was most concerned about this but now I'm thinking
+this is a sufficient improvement, at least for the most common use case
+and I think a couple of not so common cases, to go ahead with it anyway
+as a similar call back problem is possible when not using namespaces any
+way. The daemon does handle that sufficiently well now so .....
+
+Ian
+
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
