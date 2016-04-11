@@ -1,179 +1,129 @@
-From: Ian Kent <raven@themaw.net>
+From: Christof Koehler <christof.koehler@bccms.uni-bremen.de>
 Subject: Re: autofs reverts to IPv4 for multi-homed IPv6 server ?
-Date: Mon, 11 Apr 2016 10:42:10 +0800
-Message-ID: <1460342530.6494.31.camel@themaw.net>
+Date: Mon, 11 Apr 2016 18:32:41 +0200
+Message-ID: <20160411163241.GB15079@bccms.uni-bremen.de>
 References: <20160407141906.GU15153@bccms.uni-bremen.de>
-	 <1460090760.3135.53.camel@themaw.net> <1460110224.2979.35.camel@themaw.net>
+ <1460090760.3135.53.camel@themaw.net>
+ <1460110224.2979.35.camel@themaw.net>
+ <1460342530.6494.31.camel@themaw.net>
+Reply-To: christof.koehler@bccms.uni-bremen.de
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to:x-sasl-enc
-	:x-sasl-enc; s=mesmtp; bh=Tq+Kh+OW6Nt+GGqfEsAcx5Ou1sg=; b=hKBlcq
-	hIkw14yGu3AOCqfW78lkhxPXi0ecHS2HMkh6JAHknf+eXoffyr5+nwG2xSErbdE3
-	ckvcw7OGF0drraY4niswpOqvGmdv9kdaxKfe89UZhuG5Ukjhku6dMC0J/PtxOYgJ
-	cddLZnzwncpV1YOBh/hZ7clhBeqqOJgPj2NKA=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=content-transfer-encoding:content-type
-	:date:from:in-reply-to:message-id:mime-version:references
-	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=Tq+Kh+OW6Nt+GGq
-	fEsAcx5Ou1sg=; b=Y3HwfUxtoK9uGF4qQmjUYlOlHj0kIoJI/NvAI88bjsX/vqY
-	tesc9d8p4hIyalgTdVhsMuvgib9g4rWsEiOBTLj2QuaZdoag9162Bdl/X+cZivhE
-	hKibG0OYaAx2RZxtPGCZHGe5fCNaaZ2NmFi9SmkkkxTGA0P+AegeKfmRXS+8=
-In-Reply-To: <1460110224.2979.35.camel@themaw.net>
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=bccms.uni-bremen.de;
+	s=dkim; t=1460392362;
+	bh=GxTB8KQbO2o69iqWVytiEBRmsVM9p7ORobjouCuutKs=;
+	h=Date:From:To:Reply-To:References:In-Reply-To;
+	b=LzpeESILxx9fyLDTNzI25ZrZpMqdq3mwPArB6F8OcDs5pyN81AIwv7jZQfSN2QUT9
+	 wMhxaq0re2sSI/wwj+LGOV9ns5N/DceB5njVlAV7EpJZAykQv8cv8IiVHt+ClFYx60
+	 SfJJpyPxEvT8IgnuDytWeshwAKvdNYMnANVYIiUU=
+Content-Disposition: inline
+In-Reply-To: <1460342530.6494.31.camel@themaw.net>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: christof.koehler@bccms.uni-bremen.de, autofs@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+To: autofs@vger.kernel.org
 
-On Fri, 2016-04-08 at 18:10 +0800, Ian Kent wrote:
-> On Fri, 2016-04-08 at 12:46 +0800, Ian Kent wrote:
-> > On Thu, 2016-04-07 at 16:19 +0200, Christof Koehler wrote:
-> > > Hello everybody,
-> > > 
-> > > I am on ubuntu 14.04 with autofs 5.0.7 and I observe an (for me)
-> > > unexpected behaviour as detailed below. Apparently using autofs
-> > > NFS4
-> > > mounts fall back to using IPv4 addresses although valid IPv6
-> > > addresses
-> > > are available under certain circumstances, while a plain mount
-> > > works
-> > > as
-> > > expected.
-> > 
-> > Can you provide a full debug log.
-> > 
-> > It might be autofs interfering with the mount but mount.nfs(8) is a
-> > more
-> > likely candidate.
-> > 
-> > > 
-> > > Setup:
-> > > ------
-> > > Both, NFS server and client, are configured with an IPv4 address
-> > > and
-> > > an
-> > > IPv6 GUA and IPv6 ULA. For brevity I will shorten the IPv4 address
-> > > to
-> > > 192, the GUA to 2001 and the ULA to fd5f  below. I will only
-> > > change
-> > > the
-> > > DNS AAAA record in the following, the network configuration on
-> > > server/client or the A records never change. Server and client
-> > > have
-> > > always working IPv4 and IPv6 GUA and ULA.
-> > > 
-> > > Test with mount:
-> > > ----------------
-> > > Using a plain "mount  -t nfs4 server:/locals /mnt/disk1/" on the
-> > > client
-> > > gives depending on the DNS entries for the server the expected
-> > > source/target selection:
-> > > 
-> > > Server DNS entry|	client address used to mount
-> > > 2001		|	2001
-> > > fd5f		|	fd5f
-> > > 2001+fd5f	|	fd5f
-> > > 
-> > > So in all cases RFC 6724/3484 is observed selecting the addresses.
-> > > Please note that the server has two AAAA records (multi-homed) in
-> > > the
-> > > last test.
-> > > 
-> > > Test with autofs:
-> > > -----------------
-> > > A map lookup will yield "-fstype=nfs4,rw,intr,nosuid,soft,nodev
-> > > server:/locals"
-> > > for the mount. Now I change again the servers AAAA records with
-> > > the
-> > > following result:
-> > > 
-> > > Server DNS entry|	client address used to mount
-> > > 2001		|	2001
-> > > fd5f		|	fd5f
-> > > 2001+fd5f	|	192
-> > > 
-> > > For a multi-homed NFS4 server autofs apparently falls back to IPv4
-> > > although valid IPv6 options exist. As shown above just mounting
-> > > without
-> > > autofs would stick to RFC 6724/3484 instead. I believe that autofs
-> > > should 
-> > > also select fd5f ULAs in the multi-homed case.
-> > > 
-> > > Is this a known behaviour ? Do any workarounds exist ? I could not
-> > > find
-> > > anything.
-> > > 
-> > > I tried to compile autofs 5.1.1 with --with-libtirpc because
-> > > of https://bugs.launchpad.net/ubuntu/+source/autofs/+bug/1101779 b
-> > > ut
-> > > could not get the binary to work. I filed a bug report for the
-> > > behaviour
-> > > described above 
-> > > https://bugs.launchpad.net/ubuntu/+source/autofs/+bug/1564380
-> > > but suspect that this is better suited for this list.
-> 
-> I've been thinking about this and I have a couple of thoughts.
-> 
-> As far a IPv6 goes using glibc RPC is, I think, not going to work!
+Hello,
 
-I'm still trying to understand what happens here and I've only just now
-looked at the logs you provided and compared to the source.
+I will try to consolidate the answer in a single email without messing
+up the quoting too much.
 
-The first thing that stands out is that if libtirpc is not being used
-all IPv6 hosts will be ignored because (my impression is that) glibc RPC
-doesn't support IPv6.
+> But we can't really start to work out what needs to be done unless
+> libtirpc is being used.
 
-Basically the get_proximity() function will return PROXIMITY_UNSUPPORTED
-due to:
+> And I think the best chance is to use 5.1.1 and possibly back port an=
+y
+> changes.
 
-	case AF_INET6:
-#ifndef WITH_LIBTIRPC
-                return PROXIMITY_UNSUPPORTED;
-#else
+> As I say, the only other thing we can do is add some targeted debug
+> logging and see if we can spot what is going wrong.
 
-and the add_new_host() function will not add the host to the hosts list
-due to:
+I will then stick to the plan to defer this
+until ubuntu 16.04 has been released which should contain autofs 5.1.1
+and libtirpc 0.25.2. From the libtirpc git repo and the sourceforge pag=
+e
+I see that 0.25.2 is from 2014, but not even debian unstable is
+using a newer version (and from the changelog things like gss_api
+support are the main changes ?).=20
 
-        /*
-         * If we tried to add an IPv6 address and we don't have IPv6
-         * support return success in the hope of getting an IPv4
-         * address later.
-         */
-        if (prx == PROXIMITY_UNSUPPORTED)
-                return 1;
+I will use a virtual machine with ubuntu 16.04 (or if preferable debian=
+=20
+testing or unstable) and then start experimenting. In that environment =
+we=20
+can do to autofs and also libtirpc (and nfs-common if necessary) whatev=
+er=20
+is needed to get the necessary information.=20
 
-And the log doesn't give any hint as to what's happening.
+I will let you know when I start with that and what the baseline with
+the original packages of the distribution and simple rebuild of autofs
+--with-libtirpc is.
 
-The only thing that the log shows is that in 2001 autofs thinks there is
-a single IPv4 address so it attempts to mount using the host name as it
-should.
+>> Apr  8 18:05:25 core324 automount[963]: get_nfs_info: called with ho=
+st
+>> core330(fd5f:852:a27c:1261:2000::118) proto 6 version 0x40
+>> Apr  8 18:05:25 core324 automount[963]: get_nfs_info: called with ho=
+st
+>> core330(2001:638:708:1261:2000::118) proto 6 version 0x40
+>> Apr  8 18:05:25 core324 automount[963]: mount(nfs): no hosts availab=
+le
 
-But in ipv4 autofs is using the IPv4 address which implies it thinks
-there is more than one (IPv4) address for the host being considered so
-it uses the IP address for the mount.
+> Sadly that doesn't tell us much either, only that the rpc communicati=
+on
+> has failed to get a result in some expected way.
 
-There's appears to be an autofs problem with this later case because (I
-think) your description implies there is only one IPv4 address in all
-cases.
+Well, at least it shows that this autofs built at least is somehow awar=
+e of
+all the different IP adresses and trying the IPv4 one first. Of course
+no other conclusions can be drawn from this.
 
-Not only that, in both cases only one address has proximity calculated
-for it which also implies there is only one address. So if there was no
-mistake in the code it should also use the host name for the later
-mount.
+> That's right, as I say the RPC communication isn't failing in an
+> unexpected way so we aren't seeing any error messages.
+>=20
+> About all that can be done is to add a patch that adds some extra
+> logging to try and get to the bottom of it.
 
-It's mount.nfs(8) mounting from the IPv6 address (when given a host name
-not an address) in the former case and not autofs that's getting you an
-IPv6 mount. And, AFAICS, the mount.nfs your using does use libtirpc.
+That should be possible with a virtual machine as mentioned above.
 
-Finally, if libtirpc is used there is no preference given to IPv6 over
-IPv4 which may not be what is expected and might not be what should be
-done.
+> The first thing that stands out is that if libtirpc is not being used
+> all IPv6 hosts will be ignored because (my impression is that) glibc =
+RPC
+> doesn't support IPv6.
 
-But we can't really start to work out what needs to be done unless
-libtirpc is being used.
+The libtirpc documentation says that libtirpc is needed for IPv6 ready
+rpc support, http://nfsv4.bullopensource.org/doc/tirpc_rpcbind.php as
+linked from sourceforge.
+Might even be that glibc does actually no longer contain any rpc
+functionality ?
+https://archives.gentoo.org/gentoo-dev/message/186be8dc9753d18aafc9a5a6=
+16b3b991
+This would be supported by information on the tirpc web page mentioned
+above.
 
-Ian
+As far as I understand your analysis you are saying the IPv6
+mount in the "2001" case is just working by accident, right ?
+
+> It's mount.nfs(8) mounting from the IPv6 address (when given a host n=
+ame
+> not an address) in the former case and not autofs that's getting you =
+an
+> IPv6 mount. And, AFAICS, the mount.nfs your using does use libtirpc.
+Yes.
+# ldd /sbin/mount.nfs4|grep tirpc
+        libtirpc.so.1 =3D> /lib/x86_64-linux-gnu/libtirpc.so.1 (0x00007=
+ffff7d9d000)
+and libtirpc is a hard package dependency of nfs-common.
+
+Best Regards
+
+Christof
+--=20
+Dr. rer. nat. Christof K=C3=B6hler       email: c.koehler@bccms.uni-bre=
+men.de
+Universitaet Bremen/ BCCMS          phone:  +49-(0)421-218-62334
+Am Fallturm 1/ TAB/ Raum 3.12       fax: +49-(0)421-218-62770
+28359 Bremen =20
+
+PGP: http://www.bccms.uni-bremen.de/cms/people/c_koehler/
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
