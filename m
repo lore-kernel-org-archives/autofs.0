@@ -1,95 +1,135 @@
-From: Chuck Lever <chuck.lever@oracle.com>
-Subject: Annoucing the release of fedfs-utils version 0.10.6
-Date: Mon, 25 Apr 2016 14:41:51 -0400
-Message-ID: <BA325E78-BE55-455F-A22C-474360322C1D@oracle.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Ian Kent <raven@themaw.net>
+Subject: Re: autofs reverts to IPv4 for multi-homed IPv6 server ?
+Date: Tue, 26 Apr 2016 09:06:58 +0800
+Message-ID: <1461632818.3218.29.camel@themaw.net>
+References: <20160407141906.GU15153@bccms.uni-bremen.de>
+	 <1460090760.3135.53.camel@themaw.net> <1460110224.2979.35.camel@themaw.net>
+	 <20160408122552.GW15153@bccms.uni-bremen.de>
+	 <20160408142907.GX15153@bccms.uni-bremen.de>
+	 <1460166126.3073.20.camel@themaw.net>
+	 <20160409095659.GB15153@bccms.uni-bremen.de>
+	 <1461559248.3012.24.camel@themaw.net>
+	 <20160425150638.GC30271@bccms.uni-bremen.de>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=cc
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to:x-sasl-enc
+	:x-sasl-enc; s=mesmtp; bh=KahqM7vAAshOrqcKbIRfCUVzGQc=; b=edyN63
+	L+Ev+7ax2EKh4DiBZEWQFUbXdtsKFqo6rSfJxPTfCX8i4hU7oxBV2vfD3j3GmJgJ
+	mObaBlNCARcDeMv9qKpM6uueLsOSiBOlTx1Xc96KyO5uOMTn0K9LPdPBwyg1Ws8x
+	kPRx1tC3jgQoBuwz58tDV1XTEWxz4qZE69hQk=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:content-transfer-encoding:content-type
+	:date:from:in-reply-to:message-id:mime-version:references
+	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=KahqM7vAAshOrqc
+	KbIRfCUVzGQc=; b=ZE/XEjTGCoYR3YI5ob9IPCBKtnqKyOpPBOPAXlXuBUByqPM
+	ZxE/pSOAtS//Mi0rXavIvh0nzU/xNlMuGjZAEQEknxGQ/XmSl0e+KA/lLwc2SkTz
+	2GMVfVLMbod4/zHckFv7gf8x9InSSfa7qK74jaIS5MwfgkmLIQgU3xIbF9eQ=
+In-Reply-To: <20160425150638.GC30271@bccms.uni-bremen.de>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="utf-8"
-To: "fedfs-utils;release announcements" <fedfs-utils-announce@oss.oracle.com>
-Cc: Linux NFS Mailing List <linux-nfs@vger.kernel.org>, samba-technical@lists.samba.org, autofs@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: christof.koehler@bccms.uni-bremen.de
+Cc: autofs@vger.kernel.org
 
-This package contains an implementation of the Federated Filesystem
-(FedFS) Proposed Standard for Linux. For an introduction to FedFS, see
-RFC 5716.
+On Mon, 2016-04-25 at 17:06 +0200, Christof Koehler wrote:
+> Hello,
+> 
+> that is bad news overall, but thank you very much for testing and
+> trying
+> it.  I had just installed 16.04 into a vm last week and would have
+> made
+> first attempts with autofs this week. So you saved me quite some work
+> discovering that it is broken in an interesting way (I assume the SEGV
+> refers to 16.04).
 
-This is an ALPHA quality release.  The code in this release is not
-guaranteed to work.  Programming, administrative, and user interfaces
-may change significantly before the next release.  This release is for
-technology preview only.
+Yep, that's right.
 
+The point is there will almost certainly be changes needed even for it
+to build and produce binaries with proper dependencies let alone
+anything that might be needed for the IPv6 functionality.
 
-Changes since 0.10.5:
-	=E2=80=A2 Fix compatibility issues with newer glibc/libtirpc releases
+btw, I expect there will be changes needed in the IPv6 area because when
+that was done there were quite a number of things that I wasn't sure
+about and guessed at or that I didn't know I didn't know, ;)
 
+Anyway, I will check the Makefile changes don't interfere with anything
+else and have a think about what's really going on then most likely
+commit them to the repo.
 
-Changes since 0.10.4:
-	=E2=80=A2 More fixes in admin tools
+The Makefile cleanup patch is straight forward, that'll go straight in.
 
+It will also be a while before my next commit and push to the repo. and
+longer before they are available in a release, so I'll need to provide
+patches if the Ubuntu folks can be persuaded to update the package.
 
-Changes since 0.10.3:
-	=E2=80=A2 Fix bugs in admin tools
+That's probably not as simple as it sounds for a couple of reasons to do
+with the Ubuntu build subsystem, how they want things to be in it and
+that the autofs build is antiquated. Basically it barely uses the
+autohell tools which could be part of the problem (or not, it's already
+hard enough to make changes with the simple make file setup I have).
 
+> A very complicated and confusing situation. This is basically the same
+> I was in when I first asked about IPv6 support on this list. Not
+> knowing 
+> what to do and whom to ask about what in which order.
+> 
+> I fear I can be of no actual help with the segfault, I am not a 
+> C programmer at all. 
 
-Changes since 0.10.2:
-	=E2=80=A2 More error handling fixes
-	=E2=80=A2 Remove an incorrect package dependency
+It's that much more puzzling when I can see what I'm doing is just about
+identical to showmount(8) which functions as it should but autofs
+doesn't.
 
+The main difference is the RPC client creation that happens before that
+and that's been ok for a while now. Unfortunately the client creation is
+rather complicated because I need to control the timeouts and minimize
+reserved port usage.
 
-Changes since 0.10.1:
-	=E2=80=A2 Fix bugs in nsdb-jumpstart
-	=E2=80=A2 Numerous fixes to error handling paths
-	=E2=80=A2 Introduce basic support for Coverity analysis
+>  
+> 
+> However, if I understand the difference between direct and
+> indirect maps correctly what I am using is an indirect map ? The
+> auto.master line is "/local  /etc/auto.local --timeout=150" and
+> /etc/auto.local is an executable map which prints [1]
+> # /etc/auto.local core330
+> -fstype=nfs4,rw,intr,nosuid,soft,nodev core330:/locals
 
+Yep, that's a fairly simple indirect mount.
 
-Changes since 0.10.0:
-	=E2=80=A2 Address packaging issues
+> 
+> So re-building and testing autofs on 16.04 with IPv6 could still be
+> useful assuming the segfault is a separable problem (which might not
+> be
+> the case of course) ?
 
+That most likely will function ok from what I saw.
 
-New with fedfs-utils 0.10.0:
+Even more surprising is the proximity and availability probe code uses
+the same client creation as the code that has the problem and it seems
+to work ....
 
-Non-backwards compatible changes:
-	=E2=80=A2 *ldaperr removed from libnsdb API
-	=E2=80=A2 ADMIN client tools no longer use AUTH_NONE security
-	=E2=80=A2 ADMIN client tools no longer exit with FedFS status code
+Anyway I can cleanup what I have and send over what's needed to build
+the debs when your ready.
 
-New features:
-	=E2=80=A2 Python package PyFedfs added
-	=E2=80=A2 Tool for configuring FedFS domain root directories
-	=E2=80=A2 Tool for setting up NSDBs using OpenLDAP
-	=E2=80=A2 Simpler NCE discovery (compliant with new FedFS NCE I-D)
-	=E2=80=A2 admin_t API for performing remote ADMIN requests
-	=E2=80=A2 rpc.fedfsd uses an ACL to control who can perform ADMIN requ=
-ests
-	=E2=80=A2 rpc.fedfsd and ADMIN tools support RPCSEC and Kerberos v5
+> 
+> 
+> I can also offer to try to do it with debian testing in a vm. If it
+> also
+> segfaults I could file a bug report hoping to get the maintainer
+> interested, especially if there are no problems with fedora. Shall I
+> try
+> that ? Instead or in addition to the test with IPv6 mentioned above ?
 
-Minor fixes:
-	=E2=80=A2 FEDFS_LOOKUP_JUNCTION no longer returns NSDB_LDAP_VAL
-	=E2=80=A2 fedfs-map-nfs4 handles multiple SRV records
-	=E2=80=A2 Packaging simplifications
-	=E2=80=A2 Dozens of code clean-ups and bug fixes; consult Changelog fo=
-r details
+Not sure how to go about this.
+I think a couple of changes are needed but fiddling with LDFLAGS
+presence and position as I did might not be in line with what the Debian
+folks want.
 
+I suggest we just go along and see what we come up with.
 
-Source code available at:
-http://git.linux-nfs.org/?p=3Dcel/fedfs-utils.git
-
-The new head of the master branch is commit:
-
-448da0508a10 Release 0.10.6
-
-Patchwork available at:
-http://patchwork.ozlabs.org/project/fedfs-utils/list/
-
-Tarball releases available at:
-http://git.linux-nfs.org/?p=3Dcel/fedfs-releases.git;a=3Dsummary
-
---
-Chuck Lever
-
-
-
+Ian
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
