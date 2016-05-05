@@ -1,10 +1,8 @@
 From: jeffm@suse.com
-Subject: [PATCH 2/2] autofs: properly handle errors in lookup_nss_mount
-Date: Wed,  4 May 2016 20:03:32 -0400
-Message-ID: <1462406612-2354-3-git-send-email-jeffm@suse.com>
-References: <1462406612-2354-1-git-send-email-jeffm@suse.com>
+Subject: [PATCH 0/2] autofs: fix two related bugs with lookup + expired yp maps
+Date: Wed,  4 May 2016 20:03:30 -0400
+Message-ID: <1462406612-2354-1-git-send-email-jeffm@suse.com>
 Return-path: <autofs-owner@vger.kernel.org>
-In-Reply-To: <1462406612-2354-1-git-send-email-jeffm@suse.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 MIME-Version: 1.0
@@ -15,60 +13,34 @@ Cc: Jeff Mahoney <jeffm@suse.com>
 
 From: Jeff Mahoney <jeffm@suse.com>
 
-The 'result' variable is initialized to 0 and inconsistently
-set in the main while loop.  If the map is expired, the strdup("ldap")
-fails, or we end up bailing on an sss source with an amd map, and we're
-processing the only map in the list or check_nss_result indicates that
-we should continue even when we have NSS_STATUS_SUCCESS, we'll return
-success when a failure has occured.
+Hi Ian -
 
-Without this change, the end result is still a failure for the user.
-The caller attempting to traverse the map will eventually receive
-ELOOP once the kernel has reached its internal automount/link follow
-limit.  We will have just wasted a bunch of time in the interim.  This
-behavior was observed on a system that was affected by the missing
-map->age update fixed in the previous patch.
----
- daemon/lookup.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+We recently encountered an issue where a client would all of a sudden
+start returning ELOOP for anything involving crossing an autofs mount.
+We tracked it down to two bugs, one which obscured the other.  The first
+is that we were not properly updating the map age for yp maps when we retry
+the lookup with dots instead of underscores.  The second is that it is
+possible under several situations to return success when there was a
+failure in lookup_nss_mount.  In this particular case, it was the only
+map in the list and since the age wasn't update, it was skipped.  Then
+we exit the while loop with ret == 0, ultimately returning success to
+the caller.  Autofs would tell the kernel it succeeded, the kernel would
+retry the lookup, and we'd loop until we hit the kernel loop limit (40).
 
-diff --git a/daemon/lookup.c b/daemon/lookup.c
-index 0129f75..173f53e 100644
---- a/daemon/lookup.c
-+++ b/daemon/lookup.c
-@@ -1073,7 +1073,7 @@ int lookup_nss_mount(struct autofs_point *ap, struct map_source *source, const c
- 	struct nss_source *this;
- 	struct map_source *map;
- 	enum nsswitch_status status;
--	int result = 0;
-+	int result = NSS_STATUS_UNKNOWN;
- 
- 	/*
- 	 * For each map source (ie. each entry for the mount
-@@ -1092,6 +1092,7 @@ int lookup_nss_mount(struct autofs_point *ap, struct map_source *source, const c
- 		 * the map entry was last updated.
- 		 */
- 		if (entry->age > map->age) {
-+			status = NSS_STATUS_UNAVAIL;
- 			map = map->next;
- 			continue;
- 		}
-@@ -1113,6 +1114,7 @@ int lookup_nss_mount(struct autofs_point *ap, struct map_source *source, const c
- 				char *tmp = strdup("ldap");
- 				if (!tmp) {
- 					map = map->next;
-+					status = NSS_STATUS_TRYAGAIN;
- 					continue;
- 				}
- 				map->type = tmp;
-@@ -1145,6 +1147,7 @@ int lookup_nss_mount(struct autofs_point *ap, struct map_source *source, const c
- 			    !strcmp(this->source, "sss")) {
- 				warn(ap->logopt,
- 				     "source sss is not available for amd maps.");
-+				result = NSS_STATUS_UNAVAIL;
- 				continue;
- 			}
- 
+These two patches fix each of the issues.
+
+Thanks,
+
+-Jeff
+
+Jeff Mahoney (2):
+  autofs: fix yp map age not updated in s/_/./g case
+  autofs: properly handle errors in lookup_nss_mount
+
+ daemon/lookup.c     |  5 ++++-
+ modules/lookup_yp.c | 17 ++++++++---------
+ 2 files changed, 12 insertions(+), 10 deletions(-)
+
 -- 
 2.7.1
 
