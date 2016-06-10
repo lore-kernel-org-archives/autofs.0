@@ -1,46 +1,63 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH] autofs: don't stuck in a loop if vfs_write returns an
- error
-Date: Fri, 10 Jun 2016 12:07:20 -0700
-Message-ID: <20160610120720.60e26470d41b002db9218c10@linux-foundation.org>
-References: <1459487558-21258-1-git-send-email-avagin@gmail.com>
-	<1459496266.2974.1.camel@themaw.net>
-	<CANaxB-wWRaQYz5cku5iQ=HpA34Fzijz0UvYvFJnbCgrXHwX12A@mail.gmail.com>
-	<1464053664.3108.21.camel@themaw.net>
-	<1464587527.3025.6.camel@themaw.net>
-	<1465435406.3154.4.camel@themaw.net>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 04/21] fs: Replace CURRENT_TIME with
+	current_fs_time() for inode timestamps
+Date: Sat, 11 Jun 2016 00:23:39 +0200
+Message-ID: <3828814.bejVmX1kJo@wuerfel>
+References: <1465448705-25055-1-git-send-email-deepa.kernel@gmail.com>
+	<1465448705-25055-5-git-send-email-deepa.kernel@gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <autofs-owner@vger.kernel.org>
-In-Reply-To: <1465435406.3154.4.camel@themaw.net>
-Sender: autofs-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Ian Kent <raven@themaw.net>
-Cc: Andrei Vagin <avagin@gmail.com>, autofs@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Content-Transfer-Encoding: 7Bit
+Return-path: <cluster-devel-bounces@redhat.com>
+In-Reply-To: <1465448705-25055-5-git-send-email-deepa.kernel@gmail.com>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <https://www.redhat.com/mailman/options/cluster-devel>,
+	<mailto:cluster-devel-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/archives/cluster-devel>
+List-Post: <mailto:cluster-devel@redhat.com>
+List-Help: <mailto:cluster-devel-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/cluster-devel>,
+	<mailto:cluster-devel-request@redhat.com?subject=subscribe>
+Sender: cluster-devel-bounces@redhat.com
+Errors-To: cluster-devel-bounces@redhat.com
+To: Deepa Dinamani <deepa.kernel@gmail.com>, Mike Marshall <hubcap@omnibond.com>, Nadia Yvette Chambers <nyc@holomorphy.com>, Chao Yu <chao2.yu@samsung.com>, linux-nilfs@vger.kernel.org
+Cc: Latchesar Ionkov <lucho@ionkov.net>, Dave Kleikamp <shaggy@kernel.org>, jfs-discussion@lists.sourceforge.net, Michal Hocko <mhocko@suse.com>, Matt Fleming <matt@codeblueprint.co.uk>, Firo Yang <firogm@gmail.com>, Trond Myklebust <trond.myklebust@primarydata.com>, Alexei Starovoitov <ast@kernel.org>, David Howells <dhowells@redhat.com>, linux-efi@vger.kernel.org, selinux@tycho.nsa.gov, Eric Paris <eparis@parisplace.org>, Matthew Garrett <matthew.garrett@nebula.com>, Jeff Layton <jlayton@poochiereds.net>, linux-f2fs-devel@lists.sourceforge.net, Sean Hefty <sean.hefty@intel.com>, Ian Kent <raven@themaw.net>, linux-cifs@vger.kernel.org, Paul Moore <paul@paul-moore.com>, "David S. Miller" <davem@davemloft.net>, y2038@lists.linaro.org, Anton Vorontsov <anton@enomsg.org>, Hugh Dickins <hu>
 
-On Thu, 09 Jun 2016 09:23:26 +0800 Ian Kent <raven@themaw.net> wrote:
+On Wednesday, June 8, 2016 10:04:48 PM CEST Deepa Dinamani wrote:
+> 
+> Signed-off-by: Deepa Dinamani <deepa.kernel@gmail.com>
+> Cc: Steve French <sfrench@samba.org>
+> Cc: linux-cifs@vger.kernel.org
+> Cc: samba-technical@lists.samba.org
+> Cc: Joern Engel <joern@logfs.org>
+> Cc: Prasad Joshi <prasadjoshi.linux@gmail.com>
+> Cc: logfs@logfs.org
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: Julia Lawall <Julia.Lawall@lip6.fr>
+> Cc: David Howells <dhowells@redhat.com>
+> Cc: Firo Yang <firogm@gmail.com>
+> Cc: Jaegeuk Kim <jaegeuk@kernel.org>
+> Cc: Changman Lee <cm224.lee@samsung.com>
+> ...
 
-> > I was getting ready to send these over to Andrew and found that opendir(3) is
-> > failing on a number of tests (51 of 230, 9 fails are expected) with 4.6.0.
-> > 
-> > It's not the patches, yours or mine and it doesn't happen with 4.4.x kernels.
-> > 
-> > Looks like I'm going to have to bisect to work out what's going on and that
-> > will
-> > take a while.
-> 
-> The regression has been fixed now.
-> 
-> Al Viro sent a patch for it to Linus yesterday, it's commit e6ec03a25f1 in the
-> Linux tree.
-> 
-> I can send my patches to Andrew (after re-testing) but any autofs related
-> testing of linux.next will need the above commit.
-> 
-> Andrew, surely this isn't the first time this type of problem has happened, how 
-> is it usually handled, what do I need to do to make this go smoothly?
 
-e6ec03a25f1 is in Linus's tree now so everything should be good.
---
-To unsubscribe from this list: send the line "unsubscribe autofs" in
+Hi Deepa,
+
+
+Just FYI, the vger.kernel.org list server and some others
+intentionally reject mails with more than 1024 characters in the
+Cc header, to stop people from cross-posting to too many folks.
+
+I realize that you merged the patch after Linus' comment about
+doing things in fewer steps for the simple conversion, which is
+fine, but then the patch should be obvious enough that you
+don't need to Cc every single maintainer and mailing list.
+
+I've had some cases like this, and I usually remove the people
+that are less likely to reply, leaving one per subsystem.
+Leaving out the cleartext names is another trick you can use
+if you think that you really need to Cc more people than
+allowed ;-)
+
+	Arnd
+
