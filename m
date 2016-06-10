@@ -1,110 +1,161 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [PATCH 04/21] fs: Replace CURRENT_TIME with current_fs_time() for
- inode timestamps
-Date: Thu, 9 Jun 2016 14:02:03 -0700
-Message-ID: <CA+55aFwcbsCfwDa8VSYQcL4ghq-8stiqUWJ0+xsSvxp1sASi5w@mail.gmail.com>
-References: <1465448705-25055-1-git-send-email-deepa.kernel@gmail.com>
- <1465448705-25055-5-git-send-email-deepa.kernel@gmail.com>
- <CA+55aFzceGREzGEJda8qt6gv6=iE_yDbM+mO2dJJa0wbu-o-Ww@mail.gmail.com> <CABeXuvouhSSAd6nymV4hjq3U2QCO0d-ueeCOnzqrbpdWzjLwjA@mail.gmail.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [PATCH] autofs: don't stuck in a loop if vfs_write returns an
+ error
+Date: Fri, 10 Jun 2016 16:45:23 +0800
+Message-ID: <1465548323.3174.2.camel@themaw.net>
+References: <1459487558-21258-1-git-send-email-avagin@gmail.com>
+	 <1459496266.2974.1.camel@themaw.net>
+	 <CANaxB-wWRaQYz5cku5iQ=HpA34Fzijz0UvYvFJnbCgrXHwX12A@mail.gmail.com>
+	 <1464053664.3108.21.camel@themaw.net> <1464587527.3025.6.camel@themaw.net>
+	 <1465435406.3154.4.camel@themaw.net>
+	 <CANaxB-y93uqDzt2+VPSTBtw7bohSgM-OT_XYU1qC+N=Zu=ECDw@mail.gmail.com>
 Mime-Version: 1.0
-Return-path: <owner-linux-mm@kvack.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20120113;
-        h=mime-version:sender:in-reply-to:references:from:date:message-id
-         :subject:to:cc;
-        bh=dnUs7dHawPAUUXtRfdLXgUBOFQvoVRTPyVx1wR5/RXQ=;
-        b=vNhjtZArH4rWPgB8vbDVSpaNvrWnLaRnqy4vPq+QxKmNMqAjBQp/hRD3CjkyhM8wIJ
-         Wm/pdrygytQaLG3cmoDOikvP1l46l8qlIbHkTYVIEYKVpRKblRa26RwbsatRBv2TLOqR
-         AktotSsSPhwWqXbrUOeArp/xLUn34Vpy9xhwqlEeLubNFgZthv3oSq7c7p7ApLans/UN
-         bcwyWIbFKk8W/8iXG+FwfMtrcXrhrZDDPBDZ8aCsbzJ3zG0SwyYQenaPE3fyz/jwEjZ0
-         tjfE1o4XBvqdnKgEqCM41uY2RlSww4D2fEJOmOCUonnSGa9bHTlKgeAIJ6y/ds87NzxC
-         zDqg==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google;
-        h=mime-version:sender:in-reply-to:references:from:date:message-id
-         :subject:to:cc;
-        bh=dnUs7dHawPAUUXtRfdLXgUBOFQvoVRTPyVx1wR5/RXQ=;
-        b=IVSNCi5LmOLEL2V69K2OP+jP2owE4KXpH2L3b4X5DSiHhEILWe5fUgyJrXECB4xXZu
-         w8hNruICzIy2M4rinX/r8/Re8oqwx0vXc/SyzEhw8c/ZV/Fmu62DhRYaIs85zCT0QVPW
-         +dViQQMMlz3RENqPryszRIR2jtFVxa4wOb/50=
-In-Reply-To: <CABeXuvouhSSAd6nymV4hjq3U2QCO0d-ueeCOnzqrbpdWzjLwjA@mail.gmail.com>
-Sender: owner-linux-mm@kvack.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=cc
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to:x-sasl-enc
+	:x-sasl-enc; s=mesmtp; bh=cQpBc2h91y2SFk1kObHzEKbEksM=; b=ML6iNh
+	2CZUpgk0hxKC5Oj0zZumFWuCRidPuPX+oUr/iTPCLQHORD6zVwGKcL3MyOsjainy
+	VycaAV/ig2k7jY6tC0hKV4JHCc7Hcm1cQ2ZjNY0um6EwsqQaKsB7WqNTw+BlN86t
+	m2l83XNPRAu1xjhqUpxUZdFfLbN1H99eWc534=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:content-transfer-encoding:content-type
+	:date:from:in-reply-to:message-id:mime-version:references
+	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=cQpBc2h91y2SFk1
+	kObHzEKbEksM=; b=NkemAVinBHkv1cECF/T4JmFtC5KRD4vGIHPAjsnSMik2vWR
+	bpmmVA/Jsu3P0WUfAVtNOLovPG5dVi5wihB7SCleqaVPOAbcUs0MJbD6Z8dc7bn/
+	DD8BLkLl2i9IV/IYP8WRU8rtVrEXkGCB8vO9/kE/kjjsln9PTe8AfiUkHuLY=
+In-Reply-To: <CANaxB-y93uqDzt2+VPSTBtw7bohSgM-OT_XYU1qC+N=Zu=ECDw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Deepa Dinamani <deepa.kernel@gmail.com>
-Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>, Al Viro <viro@zeniv.linux.org.uk>, y2038@lists.linaro.org, Steve French <sfrench@samba.org>, "linux-cifs@vger.kernel.org" <linux-cifs@vger.kernel.org>, samba-technical@lists.samba.org, Joern Engel <joern@logfs.org>, Prasad Joshi <prasadjoshi.linux@gmail.com>, logfs@logfs.org, Andrew Morton <akpm@linux-foundation.org>, Julia Lawall <Julia.Lawall@lip6.fr>, David Howells <dhowells@redhat.com>, Firo Yang <firogm@gmail.com>, Jaegeuk Kim <jaegeuk@kernel.org>, Changman Lee <cm224.lee@samsung.com>, Chao Yu <chao2.yu@samsung.com>, "Linux F2FS DEV, Mailing List" <linux-f2fs-devel@lists.sourceforge.net>, Michal Hocko <mhocko@suse.com>, Konstantin Khlebnikov <koct9i@gmail.com>, Naoya Horiguchi <n-horiguch>
+To: Andrei Vagin <avagin@gmail.com>
+Cc: autofs@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 
-On Thu, Jun 9, 2016 at 1:38 PM, Deepa Dinamani <deepa.kernel@gmail.com> wrote:
->
-> 1. There are a few link, rename functions which assign times like this:
->
-> -       inode->i_ctime = dir->i_ctime = dir->i_mtime = CURRENT_TIME;
-> +       inode->i_ctime = dir->i_ctime = dir->i_mtime =
-> current_fs_time(dir->i_sb);
+On Thu, 2016-06-09 at 10:27 -0700, Andrei Vagin wrote:
+> On Wed, Jun 8, 2016 at 6:23 PM, Ian Kent <raven@themaw.net> wrote:
+> > On Mon, 2016-05-30 at 13:52 +0800, Ian Kent wrote:
+> > > On Tue, 2016-05-24 at 09:34 +0800, Ian Kent wrote:
+> > > > On Mon, 2016-05-23 at 14:50 -0700, Andrei Vagin wrote:
+> > > > > Hi Ian,
+> > > > > 
+> > > > > When are you going to apply this patch? We can't test linux-next
+> > > > > without
+> > > > > it.
+> > > > 
+> > > > I though I sent this with the last series but I can't see that I have.
+> > > > 
+> > > > I have the rest of that series to send over to Andrew which I was
+> > > > planning
+> > > > to
+> > > > do
+> > > > after the current merge window closes (which is about now I guess).
+> > > > 
+> > > > I'll include it in that series.
+> > > > Sorry for the hold up, ;)
+> > > 
+> > > Some bad news I'm afraid.
+> > > 
+> > > I was getting ready to send these over to Andrew and found that opendir(3)
+> > > is
+> > > failing on a number of tests (51 of 230, 9 fails are expected) with 4.6.0.
+> > > 
+> > > It's not the patches, yours or mine and it doesn't happen with 4.4.x
+> > > kernels.
+> > > 
+> > > Looks like I'm going to have to bisect to work out what's going on and
+> > > that
+> > > will
+> > > take a while.
+> > 
+> > The regression has been fixed now.
+> > 
+> > Al Viro sent a patch for it to Linus yesterday, it's commit e6ec03a25f1 in
+> > the
+> > Linux tree.
+> 
+> It's good!
+> 
+> > 
+> > I can send my patches to Andrew (after re-testing) but any autofs related
+> > testing of linux.next will need the above commit.
+> > 
+> > Andrew, surely this isn't the first time this type of problem has happened,
+> > how
+> > is it usually handled, what do I need to do to make this go smoothly?
+> 
+> In linux-next we catch two sorts of bugs.
+> 
+> 1. If bugs is triggered very often, we report it, when it isn't in
+> Linus' tree. And such bugs are fixed very fast.
+> 2. If bugs is triggered rarely. In this case we may detect this bug
+> too late, when it's in Linus' tree. In this case we may need to
+> workaraound it.
+> 
+> Here the problem belongs to the second type. It is triggered only when
+> one or more tests failed and we try to kill all test processes.
+> Actually it doesn't affect regular runs of tests, but it's annoying
+> when we are investigating something.
+> 
+> Ian, I don't think that you need to do anything special. Thank you for
+> handling this patch!
 
-So I think you should just pass one any of the two inodes and just add
-a comment.
+LOL, it's good that it was my standard (relatively simple) testing that exposed
+it.
 
-Then, if we hit a filesystem that actually wants to have different
-granularity for different inodes, we'll split it up, but even then
-we'd be better off than with the superblock, since then we *could*
-easily split this one case up into "get directory time" and "get inode
-time".
+I'll wait a little longer in case Andrew has anything to add then send the patch
+series to him.
 
-
-> 2. Also, this means that we will make it an absolute policy that any filesystem
-> timestamp that is not directly connected to an inode would have to use
-> ktime_get_* apis.
-
-The thing is, those kinds of things are all going to be inside the
-filesystem itself.
-
-At that point, the *filesystem* already knows what the timekeeping
-rules for that filesystem is.
-
-I think we should strive to design the "current_fs_time()" not for
-internal filesystem use, but for actual generic use where we *don't*
-know a priori what the rules are, and we have to go to this helper
-function to figure it out.
-
-Inside a filesystem, why *shouldn't* the low-level filesystem already
-use the normal "get time" functions?
-
-See what I'm saying? The primary value-add to "current_fs_time()" is
-for layers like the VFS and security layer that don't know what the
-filesystem itself does.
-
-At the low-level filesystem layer, you may just know that "ok, I only
-have 32-bit timestamps anyway, so I should just use a 32-bit time
-function".
-
-> 3. Even if the filesystem inode has extra timestamps and these are not
-> part of vfs inode, we still use
-> vfs inode to get the timestamps from current_fs_time(): Eg: ext4 create time
-
-But those already have an inode.
-
-In fact, ext4 is a particularly bad example, since it uses the
-ext4_current_time() function to get the time. And that one gets an
-inode pointer.
-
-So at least one filesystem that already does this, already uses a
-inode-based model.
-
-Everything I see just says "times are about inodes". Anything else
-almost has to be filesystem-internal anyway, since the only thing that
-is ever visible outside the filesystem (time-wise) is the inode.
-
-And as mentioned, once it's internal to the low-level filesystem, it's
-not obvious at all that you'd have to use "currenf_fs_time()" anyway.
-The internal filesystem code might very well decide to use other
-timekeeping functions.
-
-                 Linus
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+> 
+> Thanks,
+> Andrew
+> 
+> > 
+> > > 
+> > > > 
+> > > > Ian
+> > > > 
+> > > > > 
+> > > > > Thanks,
+> > > > > Andrew
+> > > > > 
+> > > > > 
+> > > > > On Fri, Apr 1, 2016 at 12:37 AM, Ian Kent <raven@themaw.net> wrote:
+> > > > > > On Thu, 2016-03-31 at 22:12 -0700, Andrey Vagin wrote:
+> > > > > > > From: Andrey Vagin <avagin@openvz.org>
+> > > > > > > 
+> > > > > > > __vfs_write() returns a negative value in a error case.
+> > > > > > 
+> > > > > > Ha, right, I'll send this along to Andrew with my next series which
+> > > > > > should be soon.
+> > > > > > 
+> > > > > > > 
+> > > > > > > Cc: Ian Kent <raven@themaw.net>
+> > > > > > > Signed-off-by: Andrey Vagin <avagin@openvz.org>
+> > > > > > > ---
+> > > > > > >  fs/autofs4/waitq.c | 7 ++++---
+> > > > > > >  1 file changed, 4 insertions(+), 3 deletions(-)
+> > > > > > > 
+> > > > > > > diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
+> > > > > > > index 0146d91..631f155 100644
+> > > > > > > --- a/fs/autofs4/waitq.c
+> > > > > > > +++ b/fs/autofs4/waitq.c
+> > > > > > > @@ -66,11 +66,12 @@ static int autofs4_write(struct autofs_sb_info
+> > > > > > > *sbi,
+> > > > > > >       set_fs(KERNEL_DS);
+> > > > > > > 
+> > > > > > >       mutex_lock(&sbi->pipe_mutex);
+> > > > > > > -     wr = __vfs_write(file, data, bytes, &file->f_pos);
+> > > > > > > -     while (bytes && wr) {
+> > > > > > > +     while (bytes) {
+> > > > > > > +             wr = __vfs_write(file, data, bytes, &file->f_pos);
+> > > > > > > +             if (wr <= 0)
+> > > > > > > +                     break;
+> > > > > > >               data += wr;
+> > > > > > >               bytes -= wr;
+> > > > > > > -             wr = __vfs_write(file, data, bytes, &file->f_pos);
+> > > > > > >       }
+> > > > > > >       mutex_unlock(&sbi->pipe_mutex);
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe autofs" in
