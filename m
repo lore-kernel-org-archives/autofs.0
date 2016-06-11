@@ -1,63 +1,99 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 04/21] fs: Replace CURRENT_TIME with
-	current_fs_time() for inode timestamps
-Date: Sat, 11 Jun 2016 00:23:39 +0200
-Message-ID: <3828814.bejVmX1kJo@wuerfel>
-References: <1465448705-25055-1-git-send-email-deepa.kernel@gmail.com>
-	<1465448705-25055-5-git-send-email-deepa.kernel@gmail.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [PATCH] autofs4: Fix endless loop in autofs4_write
+Date: Sat, 11 Jun 2016 09:09:36 +0800
+Message-ID: <1465607376.3152.15.camel@themaw.net>
+References: <1465578459-8624-1-git-send-email-ldufour@linux.vnet.ibm.com>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Return-path: <autofs-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=cc
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to:x-sasl-enc
+	:x-sasl-enc; s=mesmtp; bh=7f/PfCealqhbpOCt6mC2aiwmraY=; b=f4zuJb
+	glyFhTeQl7Iz2RM9mHvNBfeogv9YAhf8zbjI0F26lr3JuhfZfXiR9OG4WUlQP86B
+	PpukabLVUlfI0GF11tiYkHjJX2YZTFOORajSdUkNS1Ru0bur9qL0qG2nQDhyZ4BC
+	W6cw37/FHKJeWinWBQW8CRgFwyCI53Q0ypzsM=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:content-transfer-encoding:content-type
+	:date:from:in-reply-to:message-id:mime-version:references
+	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=7f/PfCealqhbpOC
+	t6mC2aiwmraY=; b=Xudrk0ARSVn93HIV5qe0gQZB56CFqJhOWBumL91j8JWjkMk
+	MEqJOqkNIulaAw4ixmcQjdyzYOR1g06vGcNsvXIoFC4sIucY9yFijPdd+TTBL1fR
+	242JhiGCGf7tkp/l6ziF62YpHLr1f8cjKhLXEVVuAZB9biPulJm8Ur6V5IFU=
+In-Reply-To: <1465578459-8624-1-git-send-email-ldufour@linux.vnet.ibm.com>
+Sender: autofs-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <cluster-devel-bounces@redhat.com>
-In-Reply-To: <1465448705-25055-5-git-send-email-deepa.kernel@gmail.com>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <https://www.redhat.com/mailman/options/cluster-devel>,
-	<mailto:cluster-devel-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/archives/cluster-devel>
-List-Post: <mailto:cluster-devel@redhat.com>
-List-Help: <mailto:cluster-devel-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/cluster-devel>,
-	<mailto:cluster-devel-request@redhat.com?subject=subscribe>
-Sender: cluster-devel-bounces@redhat.com
-Errors-To: cluster-devel-bounces@redhat.com
-To: Deepa Dinamani <deepa.kernel@gmail.com>, Mike Marshall <hubcap@omnibond.com>, Nadia Yvette Chambers <nyc@holomorphy.com>, Chao Yu <chao2.yu@samsung.com>, linux-nilfs@vger.kernel.org
-Cc: Latchesar Ionkov <lucho@ionkov.net>, Dave Kleikamp <shaggy@kernel.org>, jfs-discussion@lists.sourceforge.net, Michal Hocko <mhocko@suse.com>, Matt Fleming <matt@codeblueprint.co.uk>, Firo Yang <firogm@gmail.com>, Trond Myklebust <trond.myklebust@primarydata.com>, Alexei Starovoitov <ast@kernel.org>, David Howells <dhowells@redhat.com>, linux-efi@vger.kernel.org, selinux@tycho.nsa.gov, Eric Paris <eparis@parisplace.org>, Matthew Garrett <matthew.garrett@nebula.com>, Jeff Layton <jlayton@poochiereds.net>, linux-f2fs-devel@lists.sourceforge.net, Sean Hefty <sean.hefty@intel.com>, Ian Kent <raven@themaw.net>, linux-cifs@vger.kernel.org, Paul Moore <paul@paul-moore.com>, "David S. Miller" <davem@davemloft.net>, y2038@lists.linaro.org, Anton Vorontsov <anton@enomsg.org>, Hugh Dickins <hu>
+To: Laurent Dufour <ldufour@linux.vnet.ibm.com>, autofs@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 
-On Wednesday, June 8, 2016 10:04:48 PM CEST Deepa Dinamani wrote:
+On Fri, 2016-06-10 at 19:07 +0200, Laurent Dufour wrote:
+> The 'commit e9a7c2f1a548 ("autofs4: coding style fixes")' removed the
+> check done on the __vfs_write()'s returned value in autofs4_write().
+> This may lead to a spinning process which can't catch any signal.
+
+Yeah, sorry my bad.
+
 > 
-> Signed-off-by: Deepa Dinamani <deepa.kernel@gmail.com>
-> Cc: Steve French <sfrench@samba.org>
-> Cc: linux-cifs@vger.kernel.org
-> Cc: samba-technical@lists.samba.org
-> Cc: Joern Engel <joern@logfs.org>
-> Cc: Prasad Joshi <prasadjoshi.linux@gmail.com>
-> Cc: logfs@logfs.org
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: Julia Lawall <Julia.Lawall@lip6.fr>
-> Cc: David Howells <dhowells@redhat.com>
-> Cc: Firo Yang <firogm@gmail.com>
-> Cc: Jaegeuk Kim <jaegeuk@kernel.org>
-> Cc: Changman Lee <cm224.lee@samsung.com>
-> ...
+> Call stack showed in xmon could be :
+> [c0000003a76c7500] c00000000030df74 __vfs_write+0x134/0x1c0
+> (unreliable)
+> [c0000003a76c75a0] d0000000052a35d4 autofs4_notify_daemon+0x174/0x3f0
+> [autofs4]
+> [c0000003a76c7780] d0000000052a3fa0 autofs4_wait+0x750/0xa10 [autofs4]
+> [c0000003a76c78b0] d0000000052a24d8 autofs4_mount_wait+0x78/0x140
+> [autofs4]
+> [c0000003a76c7930] d0000000052a2f48 autofs4_d_automount+0x1d8/0x370
+> [autofs4]
+> [c0000003a76c79c0] c0000000003221e4 follow_managed+0x204/0x3a0
+> [c0000003a76c7a20] c000000000322c10 lookup_fast+0x220/0x420
+> [c0000003a76c7a90] c00000000032324c walk_component+0x5c/0x3e0
+> [c0000003a76c7b00] c000000000323794 link_path_walk+0x1c4/0x5f0
+> [c0000003a76c7b90] c000000000324b00 path_openat+0xf0/0x1620
+> [c0000003a76c7c90] c000000000327f6c do_filp_open+0xfc/0x170
+> [c0000003a76c7dc0] c00000000030d06c do_sys_open+0x1bc/0x2e0
+> [c0000003a76c7e30] c000000000009260 system_call+0x38/0x108
+> --- Exception: c01 (System Call) at 00003fffa38a0988
+> 
+> Cc: Ian Kent <raven@themaw.net>
+> Cc: autofs@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org
+> Cc: stable@vger.kernel.org
+> Reviewed-by: Greg Kurz <groug@kaod.org>
+> Signed-off-by: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+> Fixes: e9a7c2f1a548 ("autofs4: coding style fixes")
+> ---
+>  fs/autofs4/waitq.c | 7 ++++---
+>  1 file changed, 4 insertions(+), 3 deletions(-)
+> 
+> diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
+> index 0146d911f468..106d94139281 100644
+> --- a/fs/autofs4/waitq.c
+> +++ b/fs/autofs4/waitq.c
+> @@ -66,11 +66,12 @@ static int autofs4_write(struct autofs_sb_info *sbi,
+>  	set_fs(KERNEL_DS);
+>  
+>  	mutex_lock(&sbi->pipe_mutex);
+> -	wr = __vfs_write(file, data, bytes, &file->f_pos);
+> -	while (bytes && wr) {
+
+Right but why not just wr >= 0 here.
+
+I guess this patch probably saves a few bytes.
+
+I'll add it to the series.
+ 
+> +	while (bytes) {
+> +		wr = __vfs_write(file, data, bytes, &file->f_pos);
+> +		if (wr < 0)
+> +			break;
+>  		data += wr;
+>  		bytes -= wr;
+> -		wr = __vfs_write(file, data, bytes, &file->f_pos);
+>  	}
+>  	mutex_unlock(&sbi->pipe_mutex);
+>  
 
 
-Hi Deepa,
-
-
-Just FYI, the vger.kernel.org list server and some others
-intentionally reject mails with more than 1024 characters in the
-Cc header, to stop people from cross-posting to too many folks.
-
-I realize that you merged the patch after Linus' comment about
-doing things in fewer steps for the simple conversion, which is
-fine, but then the patch should be obvious enough that you
-don't need to Cc every single maintainer and mailing list.
-
-I've had some cases like this, and I usually remove the people
-that are less likely to reply, leaving one per subsystem.
-Leaving out the cleartext names is another trick you can use
-if you think that you really need to Cc more people than
-allowed ;-)
-
-	Arnd
-
+--
+To unsubscribe from this list: send the line "unsubscribe autofs" in
