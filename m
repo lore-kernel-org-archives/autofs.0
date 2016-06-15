@@ -1,109 +1,115 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH] autofs4: Fix endless loop in autofs4_write
-Date: Sat, 11 Jun 2016 09:49:13 +0800
-Message-ID: <1465609753.3152.19.camel@themaw.net>
-References: <1465578459-8624-1-git-send-email-ldufour@linux.vnet.ibm.com>
-	 <1465607376.3152.15.camel@themaw.net>
+Subject: [ANNOUNCE] autofs 5.1.2 release
+Date: Wed, 15 Jun 2016 11:15:37 +0800
+Message-ID: <1465960537.3164.1.camel@themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to:x-sasl-enc
-	:x-sasl-enc; s=mesmtp; bh=jOe1qWYRxSMDy3Z+Bx70jz6W/+M=; b=P3IVer
-	4PFBYg9+aHxdEe/FjlCdagdPURqGBfPyDHFkbsx6hh1575EKR1wYXbNpPYesDsuI
-	upT13Lq08rDHJN0e/3RW1K3L+40KPJxQ5pwRPJ88yzUSCqqsuKdtSjPutB3Q8SgV
-	G4M8SmZQ6K23CTjfbGXTHgDat5KonFc8RZTqM=
+	:content-transfer-encoding:content-type:date:from:message-id
+	:mime-version:subject:to:x-sasl-enc:x-sasl-enc; s=mesmtp; bh=KCg
+	NIAl73ENEhx9TEJV7w+VpxBo=; b=osH3kkNxPRx2Dw+YWRiIKFXa+5izrSYPz9Y
+	QCMiQCDc3VLlonAfPKejqBXjcVhygAZ9NxdWCcqPTDajBcHt4BmXemTAse8r1vzS
+	1E1pFYpWhqREqRdPkqohMmYRbpMW/djp/8lwzctly1e9RkLqCUgPnXXgXczLU6zk
+	5kAb2Ylg=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=cc:content-transfer-encoding:content-type
-	:date:from:in-reply-to:message-id:mime-version:references
-	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=jOe1qWYRxSMDy3Z
-	+Bx70jz6W/+M=; b=p3aMcjGVXMkKDB1HsIds+zxiNgpqVFvwl0NVxEyg0HLvnbq
-	K0oYWNGoZy/coOa5K3KUoqlyxpys/ymWJozhbX1b2HfUlsOVaFgNAcpjuFc68ZWg
-	alflWNQfufgURu17GdDYK+T4kqXmTq5CHsccqLljwaOheU0fmDlP5a2akZHQ=
-In-Reply-To: <1465607376.3152.15.camel@themaw.net>
+	:date:from:message-id:mime-version:subject:to:x-sasl-enc
+	:x-sasl-enc; s=smtpout; bh=KCgNIAl73ENEhx9TEJV7w+VpxBo=; b=s+ch9
+	Fpgqo6tgbrW+dDRP/TZLJH3hjZc5b28zyde0CUnQhAfoE/BRkWjEM85qpGXng4Qh
+	+J4dTK7JbcbucvJ33JyfHe+PSltKDmufl1cXNGJEbYiPkhZ4Z3Wcr3PtSTmcKvXg
+	VSbsQOMv2n0R/iNd9ByY1TQqmAXR0ZFI3Ycj4Y=
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Laurent Dufour <ldufour@linux.vnet.ibm.com>, autofs@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+To: autofs@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sat, 2016-06-11 at 09:09 +0800, Ian Kent wrote:
-> On Fri, 2016-06-10 at 19:07 +0200, Laurent Dufour wrote:
-> > The 'commit e9a7c2f1a548 ("autofs4: coding style fixes")' removed the
-> > check done on the __vfs_write()'s returned value in autofs4_write().
-> > This may lead to a spinning process which can't catch any signal.
-> 
-> Yeah, sorry my bad.
+Hi all,
 
-Actually Andrei Vagin has already sent this patch to me some time ago and I'm
-working to send it to Andrew Morton (along with several others).
+An update is overdue so here it is.
 
-There have been a couple of hold ups on this, sorry about that.
+It's mostly a bug fix update.
 
-> 
-> > 
-> > Call stack showed in xmon could be :
-> > [c0000003a76c7500] c00000000030df74 __vfs_write+0x134/0x1c0
-> > (unreliable)
-> > [c0000003a76c75a0] d0000000052a35d4 autofs4_notify_daemon+0x174/0x3f0
-> > [autofs4]
-> > [c0000003a76c7780] d0000000052a3fa0 autofs4_wait+0x750/0xa10 [autofs4]
-> > [c0000003a76c78b0] d0000000052a24d8 autofs4_mount_wait+0x78/0x140
-> > [autofs4]
-> > [c0000003a76c7930] d0000000052a2f48 autofs4_d_automount+0x1d8/0x370
-> > [autofs4]
-> > [c0000003a76c79c0] c0000000003221e4 follow_managed+0x204/0x3a0
-> > [c0000003a76c7a20] c000000000322c10 lookup_fast+0x220/0x420
-> > [c0000003a76c7a90] c00000000032324c walk_component+0x5c/0x3e0
-> > [c0000003a76c7b00] c000000000323794 link_path_walk+0x1c4/0x5f0
-> > [c0000003a76c7b90] c000000000324b00 path_openat+0xf0/0x1620
-> > [c0000003a76c7c90] c000000000327f6c do_filp_open+0xfc/0x170
-> > [c0000003a76c7dc0] c00000000030d06c do_sys_open+0x1bc/0x2e0
-> > [c0000003a76c7e30] c000000000009260 system_call+0x38/0x108
-> > --- Exception: c01 (System Call) at 00003fffa38a0988
-> > 
-> > Cc: Ian Kent <raven@themaw.net>
-> > Cc: autofs@vger.kernel.org
-> > Cc: linux-kernel@vger.kernel.org
-> > Cc: stable@vger.kernel.org
-> > Reviewed-by: Greg Kurz <groug@kaod.org>
-> > Signed-off-by: Laurent Dufour <ldufour@linux.vnet.ibm.com>
-> > Fixes: e9a7c2f1a548 ("autofs4: coding style fixes")
-> > ---
-> >  fs/autofs4/waitq.c | 7 ++++---
-> >  1 file changed, 4 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
-> > index 0146d911f468..106d94139281 100644
-> > --- a/fs/autofs4/waitq.c
-> > +++ b/fs/autofs4/waitq.c
-> > @@ -66,11 +66,12 @@ static int autofs4_write(struct autofs_sb_info *sbi,
-> >  	set_fs(KERNEL_DS);
-> >  
-> >  	mutex_lock(&sbi->pipe_mutex);
-> > -	wr = __vfs_write(file, data, bytes, &file->f_pos);
-> > -	while (bytes && wr) {
-> 
-> Right but why not just wr >= 0 here.
-> 
-> I guess this patch probably saves a few bytes.
-> 
-> I'll add it to the series.
->  
-> > +	while (bytes) {
-> > +		wr = __vfs_write(file, data, bytes, &file->f_pos);
-> > +		if (wr < 0)
-> > +			break;
-> >  		data += wr;
-> >  		bytes -= wr;
-> > -		wr = __vfs_write(file, data, bytes, &file->f_pos);
-> >  	}
-> >  	mutex_unlock(&sbi->pipe_mutex);
-> >  
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe autofs" in
+autofs
+======
+
+The package can be found at:
+
+ftp://ftp.kernel.org/pub/linux/daemons/autofs/v5
+
+It is autofs-5.1.2.tar.[gz|xz]
+
+No source rpm is there as it can be produced by using:
+
+rpmbuild -ts autofs-5.1.2.tar.gz
+
+and the binary rpm by using:
+
+rpmbuild -tb autofs-5.1.2.tar.gz
+
+See the README.amd-maps file for information about using amd format
+maps.
+
+Here are the entries from the CHANGELOG which outline the updates:
+
+15/06/2015 autofs-5.1.2
+=======================
+- update libtirpc workaround for new soname.
+- revert fix libtirpc name clash.
+- fix left mount count return from umount_multi_triggers().
+- fix return handling in sss lookup module.
+- move query dn calculation from do_bind() to do_connect().
+- make do_connect() return a status.
+- make connect_to_server() return a status.
+- make find_dc_server() return a status.
+- make find_server() return a status.
+- fix return handling of do_reconnect() in ldap module.
+- fix rwlock unlock crash.
+- fix config old name lookup.
+- fix error handling on ldap bind fail.
+- fix direct mount stale instance flag reset.
+- fix direct map expire not set for initail empty map.
+- fix missing source sss in multi map lookup.
+- fix update_hosts_mounts() return.
+- change lookup to use reinit instead of reopen.
+- update map_hash_table_size description.
+- add configuration option to use fqdn in mounts.
+- fix out of order call in program map lookup.
+- fix error handling of is_mounted().
+- Add a mode option for master map entries.
+- define monotonic clock helper functions.
+- use monotonic clock for alarm thread condition wait.
+- define pending condition init helper function.
+- use monotonic clock for direct mount condition.
+- use monotonic clock for indirect mount condition.
+- change remaining gettimeofday() to use clock_gettime().
+- change time() to use monotonic_clock().
+- remove unused function elapsed().
+- fix unbind sasl external mech.
+- fix sasl connection concurrancy problem.
+- fix memory leak in nisplus lookup_reinit().
+- fix memory leak in ldap do_init().
+- fix use after free in sun parser parse_init().
+- fix use after free in open_lookup().
+- fix typo in autofs_sasl_bind().
+- fix memory leak in get_network_proximity().
+- fix use after free in match_my_name().
+- improve scalability of direct mount path component.
+- always set direct mounts catatonic at exit.
+- fix use-after-free in st_queue_handler().
+- log pipe read errors.
+- fix handle_mounts() termination condition check.
+- fix Makefile linking dependencies.
+- fix modules make clean target.
+- fix autofs(5) description of supported map sources.
+- add autofs(5) note of IPv6 libtirpc requirement.
+- add remote-fs.target systemd dependency.
+- fix typo in autofs.conf.
+- fix yp map age not updated during map lookup.
+- add config option to supress not found log message.
+- fix possible memory leak in nfs mount.
+
+Ian
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
