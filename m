@@ -1,115 +1,83 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [ANNOUNCE] autofs 5.1.2 release
-Date: Wed, 15 Jun 2016 11:15:37 +0800
-Message-ID: <1465960537.3164.1.camel@themaw.net>
+Subject: Re: [PATCH] autofs: don't stuck in a loop if vfs_write returns an
+ error
+Date: Thu, 16 Jun 2016 15:58:48 +0800
+Message-ID: <1466063928.3157.6.camel@themaw.net>
+References: <1459487558-21258-1-git-send-email-avagin@gmail.com>
+	 <1459496266.2974.1.camel@themaw.net>
+	 <CANaxB-wWRaQYz5cku5iQ=HpA34Fzijz0UvYvFJnbCgrXHwX12A@mail.gmail.com>
+	 <1464053664.3108.21.camel@themaw.net> <1464587527.3025.6.camel@themaw.net>
+	 <1465435406.3154.4.camel@themaw.net>
+	 <20160610120720.60e26470d41b002db9218c10@linux-foundation.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=cc
-	:content-transfer-encoding:content-type:date:from:message-id
-	:mime-version:subject:to:x-sasl-enc:x-sasl-enc; s=mesmtp; bh=KCg
-	NIAl73ENEhx9TEJV7w+VpxBo=; b=osH3kkNxPRx2Dw+YWRiIKFXa+5izrSYPz9Y
-	QCMiQCDc3VLlonAfPKejqBXjcVhygAZ9NxdWCcqPTDajBcHt4BmXemTAse8r1vzS
-	1E1pFYpWhqREqRdPkqohMmYRbpMW/djp/8lwzctly1e9RkLqCUgPnXXgXczLU6zk
-	5kAb2Ylg=
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to:x-sasl-enc
+	:x-sasl-enc; s=mesmtp; bh=EK5Kt/XtCPWKcGcxf5bYfLLXQu8=; b=YPBNFu
+	GNt1L/VHlZtfAwxSASNkkTCcGFSRFThhu5aGiohUc7rDJSvzzFTEKsB2wT7Wq2te
+	2sXdJSS5G9h7ze3iWaqmm0Kb4lv89zoU5iPYzULQVYEJGeQoVwv38IwISgt1v69W
+	jjF1WeeVIgNu3x+MgSU9pyMJtaiAiEW+Osd7w=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=cc:content-transfer-encoding:content-type
-	:date:from:message-id:mime-version:subject:to:x-sasl-enc
-	:x-sasl-enc; s=smtpout; bh=KCgNIAl73ENEhx9TEJV7w+VpxBo=; b=s+ch9
-	Fpgqo6tgbrW+dDRP/TZLJH3hjZc5b28zyde0CUnQhAfoE/BRkWjEM85qpGXng4Qh
-	+J4dTK7JbcbucvJ33JyfHe+PSltKDmufl1cXNGJEbYiPkhZ4Z3Wcr3PtSTmcKvXg
-	VSbsQOMv2n0R/iNd9ByY1TQqmAXR0ZFI3Ycj4Y=
+	:date:from:in-reply-to:message-id:mime-version:references
+	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=EK5Kt/XtCPWKcGc
+	xf5bYfLLXQu8=; b=MnXfUk8wjydne71yE8KfsHFskfPOBwo7X/P094YpKkV9Np/
+	NDTH0Lg8wFl0rRmeEhs/ku5AjkD8qcJzoF6mwvRw+PcW5qfC0pv2sxOFuRJZUa21
+	dE5lAQ79/Pl0lwBdzQ9G0k/rkDbVDgZEcQrfCpDqay8/1Xyh1o1qPrmfPXB4=
+In-Reply-To: <20160610120720.60e26470d41b002db9218c10@linux-foundation.org>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: autofs@vger.kernel.org
-Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andrei Vagin <avagin@gmail.com>, autofs@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 
-Hi all,
+On Fri, 2016-06-10 at 12:07 -0700, Andrew Morton wrote:
+> On Thu, 09 Jun 2016 09:23:26 +0800 Ian Kent <raven@themaw.net> wrote:
+> 
+> > > I was getting ready to send these over to Andrew and found that opendir(3)
+> > > is
+> > > failing on a number of tests (51 of 230, 9 fails are expected) with 4.6.0.
+> > > 
+> > > It's not the patches, yours or mine and it doesn't happen with 4.4.x
+> > > kernels.
+> > > 
+> > > Looks like I'm going to have to bisect to work out what's going on and
+> > > that
+> > > will
+> > > take a while.
+> > 
+> > The regression has been fixed now.
+> > 
+> > Al Viro sent a patch for it to Linus yesterday, it's commit e6ec03a25f1 in
+> > the
+> > Linux tree.
+> > 
+> > I can send my patches to Andrew (after re-testing) but any autofs related
+> > testing of linux.next will need the above commit.
+> > 
+> > Andrew, surely this isn't the first time this type of problem has happened,
+> > how 
+> > is it usually handled, what do I need to do to make this go smoothly?
+> 
+> e6ec03a25f1 is in Linus's tree now so everything should be good.
 
-An update is overdue so here it is.
+Everything was good.
 
-It's mostly a bug fix update.
+There's another autofs patch in Al's for-linus tree now and I don't know when it
+will go to Linus.
 
-autofs
-======
+That one will definitely cause merge conflicts.
 
-The package can be found at:
+After thinking about it, it's probably best to defer the module rename series
+until after the next merge window, after all it's not urgent (apart from being
+needed for so long).
 
-ftp://ftp.kernel.org/pub/linux/daemons/autofs/v5
+I'll send over Andrei's patch alone soonish.
 
-It is autofs-5.1.2.tar.[gz|xz]
-
-No source rpm is there as it can be produced by using:
-
-rpmbuild -ts autofs-5.1.2.tar.gz
-
-and the binary rpm by using:
-
-rpmbuild -tb autofs-5.1.2.tar.gz
-
-See the README.amd-maps file for information about using amd format
-maps.
-
-Here are the entries from the CHANGELOG which outline the updates:
-
-15/06/2015 autofs-5.1.2
-=======================
-- update libtirpc workaround for new soname.
-- revert fix libtirpc name clash.
-- fix left mount count return from umount_multi_triggers().
-- fix return handling in sss lookup module.
-- move query dn calculation from do_bind() to do_connect().
-- make do_connect() return a status.
-- make connect_to_server() return a status.
-- make find_dc_server() return a status.
-- make find_server() return a status.
-- fix return handling of do_reconnect() in ldap module.
-- fix rwlock unlock crash.
-- fix config old name lookup.
-- fix error handling on ldap bind fail.
-- fix direct mount stale instance flag reset.
-- fix direct map expire not set for initail empty map.
-- fix missing source sss in multi map lookup.
-- fix update_hosts_mounts() return.
-- change lookup to use reinit instead of reopen.
-- update map_hash_table_size description.
-- add configuration option to use fqdn in mounts.
-- fix out of order call in program map lookup.
-- fix error handling of is_mounted().
-- Add a mode option for master map entries.
-- define monotonic clock helper functions.
-- use monotonic clock for alarm thread condition wait.
-- define pending condition init helper function.
-- use monotonic clock for direct mount condition.
-- use monotonic clock for indirect mount condition.
-- change remaining gettimeofday() to use clock_gettime().
-- change time() to use monotonic_clock().
-- remove unused function elapsed().
-- fix unbind sasl external mech.
-- fix sasl connection concurrancy problem.
-- fix memory leak in nisplus lookup_reinit().
-- fix memory leak in ldap do_init().
-- fix use after free in sun parser parse_init().
-- fix use after free in open_lookup().
-- fix typo in autofs_sasl_bind().
-- fix memory leak in get_network_proximity().
-- fix use after free in match_my_name().
-- improve scalability of direct mount path component.
-- always set direct mounts catatonic at exit.
-- fix use-after-free in st_queue_handler().
-- log pipe read errors.
-- fix handle_mounts() termination condition check.
-- fix Makefile linking dependencies.
-- fix modules make clean target.
-- fix autofs(5) description of supported map sources.
-- add autofs(5) note of IPv6 libtirpc requirement.
-- add remote-fs.target systemd dependency.
-- fix typo in autofs.conf.
-- fix yp map age not updated during map lookup.
-- add config option to supress not found log message.
-- fix possible memory leak in nfs mount.
-
+Thanks all for your patience,
 Ian
+
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
