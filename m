@@ -1,60 +1,77 @@
-From: Ian Kent <raven@themaw.net>
-Subject: [PATCH] autofs: don't stuck in a loop if vfs_write returns an error
-Date: Thu, 16 Jun 2016 16:31:08 +0800
-Message-ID: <20160616083108.6278.65815.stgit@pluto.themaw.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+From: Gustavo Zacarias <gustavo@zacarias.com.ar>
+Subject: [PATCH] autofs: build: check for clock_gettime in librt
+Date: Sun, 19 Jun 2016 00:19:13 -0300
+Message-ID: <1466306353-11612-1-git-send-email-gustavo@zacarias.com.ar>
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=cc
-	:content-transfer-encoding:content-type:date:from:message-id
-	:mime-version:subject:to:x-sasl-enc:x-sasl-enc; s=mesmtp; bh=7lZ
-	d8zd94c9eHGfex7SozqQkXz4=; b=bKuWzCKg9Hdg+3d1Qb2o/TJGDY3DgLJKz38
-	7uD7FwZDamq3v7fnf4NUddZz2YkfTzn5VvqlkiNAtERom190Iu5u3O5qiPw1jfM5
-	RmssK2dKIVVkC9bVlgNcuHrAfXSTmmuVXad4JNnN6Eoa5I419hohKpHODczPoPT9
-	RrG8fHhw=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:content-transfer-encoding:content-type
-	:date:from:message-id:mime-version:subject:to:x-sasl-enc
-	:x-sasl-enc; s=smtpout; bh=7lZd8zd94c9eHGfex7SozqQkXz4=; b=EHO71
-	1nxVxlxrg9gqzNJZYTZ+kW+xb4WuhpU/TYjjynwjrPRwUyrIzpKAzWONh/H9KFb2
-	dJnN82TiQkkRPkZ3yex+WxlrDk5CHLGw7RqeJq2Wchvvj+jepdZUANkLjlibzgN7
-	tdqNcD3S+DqF+WBbrz5xBXPi8P0g+j0lfSljEQ=
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=zacarias.com.ar;
+	s=dkey; t=1466306361;
+	bh=lCMsKAG2JZbq/XDKIm7A0fhd/u/4k0+zdWfGf7yNiPA=;
+	h=From:To:Cc:Subject:Date;
+	b=WiuQ9RKoCYPG/QbhXxsr3T1j7VbL+9P28gisIqb32gNxH6IDwJMNmRNwAQwh9/WH+
+	 GKMhSOJQASgGInAPE6XsF0m5WnH4yZQxc0F8zKdexwXtRJP3Pt+vsUEYFGmdD+CdgL
+	 Ni6robkDsecyPcX69/fnlKA5tUYzxS8TFRbWGpak=
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@vger.kernel.org>, Andrey Vagin <avagin@openvz.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+To: autofs@vger.kernel.org
+Cc: Gustavo Zacarias <gustavo@zacarias.com.ar>
 
-From: Andrey Vagin <avagin@openvz.org>
+Glibc versions older than 2.17 define clock_gettime() in librt, so add a
+check for this.
 
-__vfs_write() returns a negative value in a error case.
-
-Signed-off-by: Andrey Vagin <avagin@openvz.org>
-Signed-off-by: Ian Kent <raven@themaw.net>
+Signed-off-by: Gustavo Zacarias <gustavo@zacarias.com.ar>
 ---
- fs/autofs4/waitq.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ Makefile.conf.in | 3 +++
+ Makefile.rules   | 2 ++
+ configure.in     | 4 ++++
+ 3 files changed, 9 insertions(+)
 
-diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
-index 0146d91..631f155 100644
---- a/fs/autofs4/waitq.c
-+++ b/fs/autofs4/waitq.c
-@@ -66,11 +66,12 @@ static int autofs4_write(struct autofs_sb_info *sbi,
- 	set_fs(KERNEL_DS);
+diff --git a/Makefile.conf.in b/Makefile.conf.in
+index cb53e66..2bc3202 100644
+--- a/Makefile.conf.in
++++ b/Makefile.conf.in
+@@ -11,6 +11,9 @@
+ DAEMON_CFLAGS  = @DAEMON_CFLAGS@
+ DAEMON_LDFLAGS = @DAEMON_LDFLAGS@
  
- 	mutex_lock(&sbi->pipe_mutex);
--	wr = __vfs_write(file, data, bytes, &file->f_pos);
--	while (bytes && wr) {
-+	while (bytes) {
-+		wr = __vfs_write(file, data, bytes, &file->f_pos);
-+		if (wr <= 0)
-+			break;
- 		data += wr;
- 		bytes -= wr;
--		wr = __vfs_write(file, data, bytes, &file->f_pos);
- 	}
- 	mutex_unlock(&sbi->pipe_mutex);
++# Glibc < 2.17 requires librt for clock_gettime()
++LIBCLOCK_GETTIME = @LIBCLOCK_GETTIME@
++
+ # Special parameters for glibc (libc 6)
+ LIBNSL    = @LIBNSL@
+ LIBRESOLV = @LIBRESOLV@
+diff --git a/Makefile.rules b/Makefile.rules
+index 6fa3e02..7d1af2e 100644
+--- a/Makefile.rules
++++ b/Makefile.rules
+@@ -56,6 +56,8 @@ endif
  
+ LIBS += $(LIBNSL)
+ 
++LIBS += $(LIBCLOCK_GETTIME)
++
+ # Standard rules
+ 
+ .SUFFIXES: .c .o .s .so
+diff --git a/configure.in b/configure.in
+index 25d7c4e..a4318e8 100644
+--- a/configure.in
++++ b/configure.in
+@@ -177,6 +177,10 @@ if test "$ac_cv_search_versionsort" = "no"; then
+ 		[Define if your C library does not provide versionsort])
+ fi
+ 
++# glibc < 2.17 needs librt for clock_gettime()
++AC_CHECK_LIB(rt, clock_gettime, LIBCLOCK_GETTIME="-lrt")
++AC_SUBST(LIBCLOCK_GETTIME)
++
+ #
+ # glibc/libc 6 new libraries
+ #
+-- 
+2.7.3
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
