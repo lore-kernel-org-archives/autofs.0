@@ -1,70 +1,50 @@
-From: Ian Kent <raven@themaw.net>
+From: "Cyril B." <cbay@excellency.fr>
 Subject: Re: Regular deadlocks
-Date: Fri, 01 Jul 2016 15:28:42 +0800
-Message-ID: <1467358122.3908.56.camel@themaw.net>
+Date: Fri, 1 Jul 2016 09:48:50 +0200
+Message-ID: <4df27a99-1834-c8be-74d6-f7bdb17df724@excellency.fr>
 References: <3eece3d9-ea5a-ee47-100d-6fccf58f5356@excellency.fr>
-	 <1466906389.739.25.camel@themaw.net>
-	 <c4d585e4-fae9-829f-b7ad-74724af5c2f9@excellency.fr>
-	 <1466987208.3191.6.camel@themaw.net>
-	 <17c66f92-bda8-1eb9-621c-47e39406acc2@excellency.fr>
-	 <1467073622.3767.17.camel@themaw.net>
-	 <2792b835-962a-e1a5-6113-032eb63e03d1@excellency.fr>
+ <1466906389.739.25.camel@themaw.net>
+ <c4d585e4-fae9-829f-b7ad-74724af5c2f9@excellency.fr>
+ <1466987208.3191.6.camel@themaw.net>
+ <17c66f92-bda8-1eb9-621c-47e39406acc2@excellency.fr>
+ <1467073622.3767.17.camel@themaw.net>
+ <2792b835-962a-e1a5-6113-032eb63e03d1@excellency.fr>
+ <1467358122.3908.56.camel@themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to:x-sasl-enc
-	:x-sasl-enc; s=mesmtp; bh=8Fic+/IuGvMskJ0jO4nkIZKXUAU=; b=Gn0HA2
-	/M+LyfbHtJTl64No5bkog6hUoccKXfB5zqor1A7+jsItkNXUH1kT9tTlJ5hBqDz2
-	HGuL/f/N6rK2JrNd2A/uFjiiUYPyczNq4GkQb2PU9xLruVEVppKkyHVlDPdb5kvv
-	nwvOFb6ZPHXPWveD1H+rQt8jjHNc9pxRlirh4=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=content-transfer-encoding:content-type
-	:date:from:in-reply-to:message-id:mime-version:references
-	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=8Fic+/IuGvMskJ0
-	jO4nkIZKXUAU=; b=H/sgdRVG8En3L+/jKgtS3dhCqxRoJXXJIeWPZ6hMSjIlitk
-	n2pmrP8oyGKhmpQqpYNziv/K/61VoSPmmMXi3nplJfRI9DK62YJ0oBKiRf/FMUu2
-	d7M7Ol3QQdVk4rybXs6kuzDhBWeYFBp29UDnCoFxjH7AcklXGI11TO4pRxck=
-In-Reply-To: <2792b835-962a-e1a5-6113-032eb63e03d1@excellency.fr>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=alwaysdata.net; s=ad;
+	h=Content-Transfer-Encoding:Content-Type:In-Reply-To:MIME-Version:Date:Message-ID:From:References:To:Subject; bh=gdSNAccPZ5AkTnkllLuI9Mix5SzK/+9iO7grl0J5TS8=;
+	b=cDtI6ALFkiiB7aZCQkeW8yKajj2/IXD9iRgoSsUW5LFyJ6yIZXEK1+dH3Sq9DuVIPwtP+UhCMsF2W3jNiehvS2lu6H4nmUJhX5tmhpoxNHXCyi5ybv6ThXf1eVfzrjOe97B1p+mCYxvRbSxkzw0WF1abvftx7szmbjiyGwNlXQ0=;
+In-Reply-To: <1467358122.3908.56.camel@themaw.net>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: "Cyril B." <cbay@excellency.fr>, autofs@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: Ian Kent <raven@themaw.net>, autofs@vger.kernel.org
 
-On Tue, 2016-06-28 at 09:48 +0200, Cyril B. wrote:
-> On 06/28/2016 02:27 AM, Ian Kent wrote:
-> > Can you describe again how this fits together?
-> 
-> Sure. Please let me know if I'm not clear. Here's my /etc/auto.master:
+On 07/01/2016 09:28 AM, Ian Kent wrote:
+>> /nfs program:/etc/auto.nfs nobind
+>> > /home program:/etc/auto.home --mode=751
+>> >
+>> > /etc/auto.nfs does some sanity checks, then does:
+>> > echo -fstype=nfs4,noatime,nosuid,_netdev,soft,intr,timeo=1000 $1:/
+ >
+> Is there a reason you need to use the nfsv4 root namespace rather than using the
+> /home export directly?
 
-Thanks for this, after reading this I see I should have been able to work it out
-from your original post.
+You mean get rid of the bind mounts and have /home/foo be a NFSv4 mount 
+to (e.g.) http12:/foo?
 
-Usually I don't like to question why people set things up the way they do, in
-fact I find it annoying when someone asks a question and people respond with
-"don't do it that way, do it this way" because, usually, if that was an option
-the poster wouldn't have asked the question.
+If so, I assumed that it would mean having a lot of independant mounts 
+over NFS (and as many TCP connections between the NFS client and 
+server), and doing a single NFS mount with local bind mounts would be 
+better.
 
-But in this case I think it's worth mentioning because due to the mount
-independence required by kernel mount namespaces the problem we are seeing with
-/nfs/http12 might not be easily solvable or solvable at all. 
+However, my assumption may very well be wrong. Would the kernel share 
+the same underlying NFS mount (and TCP connection) for all those mount 
+points to the same NFS server?
 
-> 
-> /nfs program:/etc/auto.nfs nobind
-> /home program:/etc/auto.home --mode=751
-> 
-> /etc/auto.nfs does some sanity checks, then does:
-> echo -fstype=nfs4,noatime,nosuid,_netdev,soft,intr,timeo=1000 $1:/
-
-Is there a reason you need to use the nfsv4 root namespace rather than using the
-/home export directly?
-
-That was a problem, particularly for autofs, and needed to be done long ago but
-that has long since changed.
-
-You should be able to use nfsv4 mounts directly without this intermediate mount.
-
-Ian
+-- 
+Cyril B.
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
