@@ -1,55 +1,61 @@
-From: Yury Krivopalov <ykrivopalov@yandex.ru>
-Subject: Automounting of smb shares with dollar sign
-Date: Thu, 30 Jun 2016 13:21:04 +0300
-Message-ID: <974581467282064@web15m.yandex.ru>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: Automounting of smb shares with dollar sign
+Date: Fri, 01 Jul 2016 11:15:35 +0800
+Message-ID: <1467342935.3900.17.camel@themaw.net>
+References: <974581467282064@web15m.yandex.ru>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----==--bound.97459.web15m.yandex.ru"
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yandex.ru; s=mail; t=1467282065;
-	bh=wSI32xIPndmFppp2HLkyXrjycpM214DRi3ZYoL2cJMY=;
-	h=From:To:Subject:MIME-Version:Message-Id:X-Mailer:Date:
-	 Content-Type;
-	b=BdGg1cFaZfIC39EnkhTN9kgUwGXdpclA6yPTPFgf7Jww8l8hZp2CxiRX+2tYrGByg
-	 j4tkVLZWiZjXdHpmRAY/AgDirVwaHNmJwCCFg/RWl0fJXGtk5aRb9XCCQTj9t9573S
-	 esEXbPwEujQiznsd6v7MGCysVpmHOLcvtkI4Ykrw=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
+	content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to:x-sasl-enc
+	:x-sasl-enc; s=mesmtp; bh=o19yb8BNpMfxV6WQlBJa5rqdvaQ=; b=YreTvP
+	6utWvhwLs0vYTkP4WCVO8jXNNwmzNILbNF8mDsig1mZcifMOmU86f5lDIhaRBoo1
+	LhOkYN0OUpOdgWUf08tZxeZBr2Jdy66RXvzPxXsvqV9OEOllCWwTyIY9rBdignjZ
+	ynPi8a4qintPRuAN8Y0xc+iUNHd6cUbv3fUWA=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=content-transfer-encoding:content-type
+	:date:from:in-reply-to:message-id:mime-version:references
+	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=o19yb8BNpMfxV6W
+	QlBJa5rqdvaQ=; b=ESfqII6aRmvd7qsOsxCZIsSRLGsd7rdzyck3EAWCCWpiap5
+	MY1ofYU8fE2wiY3yOKDqQNq9FIQbDjqE1zo9UVl54sdJAiLP8+qDl+H2NI/tc+5R
+	kMne8yveL3syTnE6M+r3QA0EV7+kVt8H9SF4YzDIzTCHOCpvtlj3/OlUFRbk=
+In-Reply-To: <974581467282064@web15m.yandex.ru>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-To: autofs@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: Yury Krivopalov <ykrivopalov@yandex.ru>, autofs@vger.kernel.org
 
+On Thu, 2016-06-30 at 13:21 +0300, Yury Krivopalov wrote:
+> Hello,
+> I found a problem, that started to reproduce on my new environment
+> (archlinux), before that I used Debian Wheezy and everything worked fine.
+> The point is that I can't automount smb shares with dollar sign (Ex.:
+> //hostname/C$).
+>  
+> It happend because two facts:
+> 1. Autofs reads '$' as a special symbol
+> 2. mount.cifs reads '\\' as a delimiter
+>  
+> So in my case if I returns "//hostname/C$" from auto.smb, then automount
+> daemon replace '$' to '' and if I returns "//hostname/C\\$" then mount.cifs
+> crops "\\$" and uses '$' as a prefixpath mount option.
 
-------==--bound.97459.web15m.yandex.ru
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain
+Escaping of cifs mount entries has been a long standing problem over and over
+again.
 
-Hello,
-I found a problem, that started to reproduce on my new environment (archlinux), before that I used Debian Wheezy and everything worked fine.
-The point is that I can't automount smb shares with dollar sign (Ex.: //hostname/C$).
- 
-It happend because two facts:
-1. Autofs reads '$' as a special symbol
-2. mount.cifs reads '\\' as a delimiter
- 
-So in my case if I returns "//hostname/C$" from auto.smb, then automount daemon replace '$' to '' and if I returns "//hostname/C\\$" then mount.cifs crops "\\$" and uses '$' as a prefixpath mount option.
- 
-I attached simple fix for autofs-5.1.2, that drops back slash after arguments parsing. It works in my case, 
- 
--- 
-Regards,
-Yury Krivopalov
-------==--bound.97459.web15m.yandex.ru
-Content-Disposition: attachment;
-	filename="drop_back_slash_after_parsing.patch"
-Content-Transfer-Encoding: base64
-Content-Type: text/x-diff;
-	name="drop_back_slash_after_parsing.patch"
+Mostly fixes seem to always to have bad side effects, dropping them of trying to
+fix them often results in the problems returning.
 
-LS0tIG1vZHVsZXMvcGFyc2Vfc3VuLmMub3JpZwkyMDE2LTA2LTMwIDEyOjI1OjI0LjMwMzE3MTQw
-NSArMDMwMAorKysgbW9kdWxlcy9wYXJzZV9zdW4uYwkyMDE2LTA2LTMwIDEyOjI3OjE3LjI2OTgz
-MzE1MSArMDMwMApAQCAtMTc3LDEzICsxNzcsMTAgQEAKIAkJCX0KIAkJCWJyZWFrOwogCiAJCWNh
-c2UgJ1xcJzoKIAkJCWxlbisrOwotCQkJaWYgKGRzdCkKLQkJCQkqZHN0KysgPSBjaDsKLQogCQkJ
-aWYgKCpzcmMpIHsKIAkJCQlsZW4rKzsKIAkJCQlpZiAoZHN0KQogCQkJCQkqZHN0KysgPSAqc3Jj
-OwogCQkJCXNyYysrOwo=
-------==--bound.97459.web15m.yandex.ru--
+I'll have a look at this and try and work out if it would have side effects for
+other than cifs mounts.
+
+>  
+> I attached simple fix for autofs-5.1.2, that drops back slash after arguments
+> parsing. It works in my case, 
+>  
+
+Thanks for our patch.
+Ian
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
