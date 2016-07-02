@@ -1,18 +1,20 @@
 From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
-Subject: [PATCH 1/2] autofs: Use autofs4_free_ino() to kfree dentry data
-Date: Sun,  3 Jul 2016 02:24:23 +0900
-Message-ID: <1467480264-1801-1-git-send-email-kusumi.tomohiro@gmail.com>
+Subject: [PATCH 2/2] autofs: Fix conditional to kfree dentry data
+Date: Sun,  3 Jul 2016 02:24:24 +0900
+Message-ID: <1467480264-1801-2-git-send-email-kusumi.tomohiro@gmail.com>
+References: <1467480264-1801-1-git-send-email-kusumi.tomohiro@gmail.com>
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20120113;
-        h=from:to:cc:subject:date:message-id;
-        bh=oS4Jl1ZOJD4By5NcxqslNXyJ3c74TF/j94wK2Jp1+1k=;
-        b=QvyF8q3vFdSpkWrWroLuEssPBgWVzHO5hr8yThF5NKAqzo5EbSvfpAqjTzFafqIxt1
-         T5Ii2/PXhinNBJLQaSknNh60YfDr67uUea8ySXfPEW3lLLpBXREYCmyfWxxLOonTQdN6
-         YTzlBC2G3jUUOSWZtjpwZbqzy9okDX9KcoEbVbqH2BEE+QQqLNyiMINVB96v08H79fO+
-         E33fzlW2QohA/35TNwLIc5uTIueTnI6i7QPYMAz8wbkpgSB3TcJWkGyYdXy5ok613pV1
-         ayyeY0wi3AZS2TkTgP15B8OizivosvEqXcY/cC1xpmQ/IfB+tBOtr7pzysrwEXE3eKRY
-         kn5A==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references;
+        bh=YsL/J7eGM5HKUG0Gx9fI6IM+aLLxt6C6A6ikvIg3QcQ=;
+        b=gWMoRazFEr7jmlvG7SferJtkkCJfMtKyBzSNyZrqhn7/TtabMcqPRk85qGZZbt6OPz
+         qKn8h5eRgd/3VHLX6TjYbql7I36XYPWKr5KfaSz+iA8FfoZuRWzYI2LZA/EtRRtV3pYv
+         rZjeqUzY0KThwhqHHgoQyfNT/aE/wJdGN5xkMnlRHM+QCvL6cwx9ug3Vw0QOGlx6Fmiq
+         KazaEhHhInmAjRNVAbkmVW5gLG6C75n7t1Z6hbVlUemxl7PgZpfM4uOx+x2gvniNFIXo
+         5k5Gpw5que0w8HTJBfYVgTT4agkq2KjHHMLIFbNfUnmmcPK+wCjq0cCkvaC8kbZpj3i7
+         E+Wg==
+In-Reply-To: <1467480264-1801-1-git-send-email-kusumi.tomohiro@gmail.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 MIME-Version: 1.0
@@ -21,42 +23,26 @@ Content-Transfer-Encoding: 7bit
 To: raven@themaw.net
 Cc: autofs@vger.kernel.org, Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 
-kfree dentry data allocated by autofs4_new_ino() with
-autofs4_free_ino() instead of raw kfree.
-(since we have the interface to free autofs_info*)
+if (!dentry->d_fsdata) should be testing d_fsdata or ino without !.
 
 Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 ---
- fs/autofs4/inode.c | 2 +-
- fs/autofs4/root.c  | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ fs/autofs4/root.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/fs/autofs4/inode.c b/fs/autofs4/inode.c
-index 8357544..ad0ee93 100644
---- a/fs/autofs4/inode.c
-+++ b/fs/autofs4/inode.c
-@@ -339,7 +339,7 @@ fail_dput:
- 	dput(root);
- 	goto fail_free;
- fail_ino:
--	kfree(ino);
-+	autofs4_free_ino(ino);
- fail_free:
- 	put_pid(sbi->oz_pgrp);
- 	kfree(sbi);
 diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
-index 3767f66..93d3232 100644
+index 93d3232..5a877bf 100644
 --- a/fs/autofs4/root.c
 +++ b/fs/autofs4/root.c
-@@ -578,7 +578,7 @@ static int autofs4_dir_symlink(struct inode *dir,
+@@ -577,7 +577,7 @@ static int autofs4_dir_symlink(struct inode *dir,
+ 	inode = autofs4_get_inode(dir->i_sb, S_IFLNK | 0555);
  	if (!inode) {
  		kfree(cp);
- 		if (!dentry->d_fsdata)
--			kfree(ino);
-+			autofs4_free_ino(ino);
+-		if (!dentry->d_fsdata)
++		if (ino)
+ 			autofs4_free_ino(ino);
  		return -ENOMEM;
  	}
- 	inode->i_private = cp;
 -- 
 2.5.5
 
