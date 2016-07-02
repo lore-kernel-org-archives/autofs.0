@@ -1,50 +1,89 @@
-From: "Cyril B." <cbay@excellency.fr>
-Subject: Re: Regular deadlocks
-Date: Fri, 1 Jul 2016 09:48:50 +0200
-Message-ID: <4df27a99-1834-c8be-74d6-f7bdb17df724@excellency.fr>
-References: <3eece3d9-ea5a-ee47-100d-6fccf58f5356@excellency.fr>
- <1466906389.739.25.camel@themaw.net>
- <c4d585e4-fae9-829f-b7ad-74724af5c2f9@excellency.fr>
- <1466987208.3191.6.camel@themaw.net>
- <17c66f92-bda8-1eb9-621c-47e39406acc2@excellency.fr>
- <1467073622.3767.17.camel@themaw.net>
- <2792b835-962a-e1a5-6113-032eb63e03d1@excellency.fr>
- <1467358122.3908.56.camel@themaw.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
+Subject: [PATCH] autofs: Test autofs versions first on sb initialization
+Date: Sat,  2 Jul 2016 22:29:43 +0900
+Message-ID: <1467466183-7058-1-git-send-email-kusumi.tomohiro@gmail.com>
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=alwaysdata.net; s=ad;
-	h=Content-Transfer-Encoding:Content-Type:In-Reply-To:MIME-Version:Date:Message-ID:From:References:To:Subject; bh=gdSNAccPZ5AkTnkllLuI9Mix5SzK/+9iO7grl0J5TS8=;
-	b=cDtI6ALFkiiB7aZCQkeW8yKajj2/IXD9iRgoSsUW5LFyJ6yIZXEK1+dH3Sq9DuVIPwtP+UhCMsF2W3jNiehvS2lu6H4nmUJhX5tmhpoxNHXCyi5ybv6ThXf1eVfzrjOe97B1p+mCYxvRbSxkzw0WF1abvftx7szmbjiyGwNlXQ0=;
-In-Reply-To: <1467358122.3908.56.camel@themaw.net>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20120113;
+        h=from:to:cc:subject:date:message-id;
+        bh=OtIw2tf4fUvVWr1n1m5t5Ch6g6xDcuRNW/cEPTM+eLM=;
+        b=F8WVwHdaECCu/jZUn0pN9Dx4PYentni3eqUylEIIw1vXCbpTFX2/bXSEdBU7gj7o+d
+         4xkdgEtK3DdVpU+COTQKHye6hKow9dh2Yv3+Tg/YhCgp4ae9VmOo3O6JzEGfwPZPeL+I
+         JHJMyAYV2MS6IoElPTJbYTQ29Kb4L+WfgtZRaSiFL5m3K4xm/g26NuoSI5jE74h6sCbH
+         CTxa6+E8olk1h2nXG6HcXrkOFarSeDauMhDst/2RpqsHpmDAm2g8NTh6nqzNsHQ/9Iaj
+         bz0Z3KpVezMKsmqXkTAImotwbu9fl5nLURMJQc5PEmQmRrURkI72k7B9Aqeaxpk5U8ee
+         R9dA==
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Ian Kent <raven@themaw.net>, autofs@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: raven@themaw.net
+Cc: autofs@vger.kernel.org, Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 
-On 07/01/2016 09:28 AM, Ian Kent wrote:
->> /nfs program:/etc/auto.nfs nobind
->> > /home program:/etc/auto.home --mode=751
->> >
->> > /etc/auto.nfs does some sanity checks, then does:
->> > echo -fstype=nfs4,noatime,nosuid,_netdev,soft,intr,timeo=1000 $1:/
- >
-> Is there a reason you need to use the nfsv4 root namespace rather than using the
-> /home export directly?
+This patch does what the below comment says.
+It could be and it's considered better to do this first
+before various functions get called during initialization.
 
-You mean get rid of the bind mounts and have /home/foo be a NFSv4 mount 
-to (e.g.) http12:/foo?
+/* Couldn't this be tested earlier? */
+---
+ fs/autofs4/inode.c | 34 +++++++++++++++++-----------------
+ 1 file changed, 17 insertions(+), 17 deletions(-)
 
-If so, I assumed that it would mean having a lot of independant mounts 
-over NFS (and as many TCP connections between the NFS client and 
-server), and doing a single NFS mount with local bind mounts would be 
-better.
-
-However, my assumption may very well be wrong. Would the kernel share 
-the same underlying NFS mount (and TCP connection) for all those mount 
-points to the same NFS server?
-
+diff --git a/fs/autofs4/inode.c b/fs/autofs4/inode.c
+index 61b2105..8357544 100644
+--- a/fs/autofs4/inode.c
++++ b/fs/autofs4/inode.c
+@@ -274,6 +274,23 @@ int autofs4_fill_super(struct super_block *s, void *data, int silent)
+ 		goto fail_dput;
+ 	}
+ 
++	/* Test versions first */
++	if (sbi->max_proto < AUTOFS_MIN_PROTO_VERSION ||
++	    sbi->min_proto > AUTOFS_MAX_PROTO_VERSION) {
++		pr_err("kernel does not match daemon version "
++		       "daemon (%d, %d) kernel (%d, %d)\n",
++		       sbi->min_proto, sbi->max_proto,
++		       AUTOFS_MIN_PROTO_VERSION, AUTOFS_MAX_PROTO_VERSION);
++		goto fail_dput;
++	}
++
++	/* Establish highest kernel protocol version */
++	if (sbi->max_proto > AUTOFS_MAX_PROTO_VERSION)
++		sbi->version = AUTOFS_MAX_PROTO_VERSION;
++	else
++		sbi->version = sbi->max_proto;
++	sbi->sub_version = AUTOFS_PROTO_SUBVERSION;
++
+ 	if (pgrp_set) {
+ 		sbi->oz_pgrp = find_get_pid(pgrp);
+ 		if (!sbi->oz_pgrp) {
+@@ -291,23 +308,6 @@ int autofs4_fill_super(struct super_block *s, void *data, int silent)
+ 	root_inode->i_fop = &autofs4_root_operations;
+ 	root_inode->i_op = &autofs4_dir_inode_operations;
+ 
+-	/* Couldn't this be tested earlier? */
+-	if (sbi->max_proto < AUTOFS_MIN_PROTO_VERSION ||
+-	    sbi->min_proto > AUTOFS_MAX_PROTO_VERSION) {
+-		pr_err("kernel does not match daemon version "
+-		       "daemon (%d, %d) kernel (%d, %d)\n",
+-		       sbi->min_proto, sbi->max_proto,
+-		       AUTOFS_MIN_PROTO_VERSION, AUTOFS_MAX_PROTO_VERSION);
+-		goto fail_dput;
+-	}
+-
+-	/* Establish highest kernel protocol version */
+-	if (sbi->max_proto > AUTOFS_MAX_PROTO_VERSION)
+-		sbi->version = AUTOFS_MAX_PROTO_VERSION;
+-	else
+-		sbi->version = sbi->max_proto;
+-	sbi->sub_version = AUTOFS_PROTO_SUBVERSION;
+-
+ 	pr_debug("pipe fd = %d, pgrp = %u\n", pipefd, pid_nr(sbi->oz_pgrp));
+ 	pipe = fget(pipefd);
+ 
 -- 
-Cyril B.
+2.5.5
+
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
