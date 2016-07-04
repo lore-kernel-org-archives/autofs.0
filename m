@@ -1,18 +1,18 @@
 From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
-Subject: [PATCH] automount: Fix compiler warning
-Date: Mon,  4 Jul 2016 18:32:23 +0900
-Message-ID: <1467624743-7222-1-git-send-email-kusumi.tomohiro@gmail.com>
+Subject: [PATCH] automount: Drop redundant \n in logerr()
+Date: Mon,  4 Jul 2016 19:48:52 +0900
+Message-ID: <1467629332-8581-1-git-send-email-kusumi.tomohiro@gmail.com>
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20120113;
         h=from:to:cc:subject:date:message-id;
-        bh=uoGH/R6272Za0l94HR0mJanRqWT1HwYKJ0Q9ErA8yvU=;
-        b=UUF2NSW49XW2ohFUtrWAYC48Jx3QPfcGnJ/5JopSMV5DH4qxMCh1l8vKhfL7GMRHu/
-         +3IOgdhLBkSL6BI6ulov2RWaLgUBz5V1x4QONkLHTq6e9DXlYf4IehcNNPvboQu3TRx8
-         0ZIqQt51esbir26huGuWDvWdr06pBYm8Rq9RRAf2tRfR08fDfFAR0YT/99U53J5zUbtR
-         L448Whq1AOt/00CRCUDoQC7OizmM98EV3ZYWalXU/bmZRNfv7cGaF7fetqhNvZxc5MmE
-         VmSKWuqz3KQTqTrIUR3u6325odRai6fflUiUfT1aKv/tjyA4y44GoDn6nZQZFxe+sgxN
-         hj/w==
+        bh=/+oMoBl95tfTo16so/KSLwKpgxSbotDheDhbgGVKtI8=;
+        b=d85SRjtcgwTI3odUaxbFNQZye+APPKZLAxd3Z1e+uJFsTL1FdswTa1JPAACM0AMfDv
+         pUXp0z0lCJzcJc+1cduLdS37W7FVqsdqNztFG6i1mmLaXOkUYPTiX/bAgPARYYwfpcZI
+         OHkMsDpGtuFlduSjHkktShQ6Gh7barmZgr6WfQ2c4Yqxon+ddjNvMOhhlMC8wNTZMAe6
+         Sev5DZDdmBej14Et7uo5g+SByrQvD2I8ekUVQKDTPBVrqR8JgI1oji3jrFNAYbBkvZln
+         T4RN29TxLmVZgCFlIdn+JAlRet1Ld93mJ/bxw9EPQ9Ckw23A/Ij8PWm8kJcpv4T2r7+N
+         RwDg==
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 MIME-Version: 1.0
@@ -21,37 +21,41 @@ Content-Transfer-Encoding: 7bit
 To: raven@themaw.net
 Cc: autofs@vger.kernel.org, Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 
-Fix below compiler (gcc5) warning which isn't autoconf result dependent.
-mounts.c:1779:7: warning: variable 'ret' set but not used [-Wunused-but-set-variable]
+Line break isn't necessary from the way logerr (and logmsg) is implemented,
+and these two probably aren't intentional.
 
 Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 ---
- lib/mounts.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ daemon/module.c | 2 +-
+ lib/nss_parse.y | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/lib/mounts.c b/lib/mounts.c
-index 1d1b4da..c67548e 100644
---- a/lib/mounts.c
-+++ b/lib/mounts.c
-@@ -1776,16 +1776,15 @@ static int remount_active_mount(struct autofs_point *ap,
- 			*ioctlfd = -1;
- 		}
- 	} else {
--		int ret;
- 		/*
- 		 * What can I do if we can't remount the existing
- 		 * mount(s) (possibly a partial failure), everything
- 		 * following will be broken?
- 		 */
- 		if (type == t_indirect)
--			ret = do_remount_indirect(ap, fd, path);
-+			do_remount_indirect(ap, fd, path);
- 		else
--			ret = do_remount_direct(ap, fd, path);
-+			do_remount_direct(ap, fd, path);
+diff --git a/daemon/module.c b/daemon/module.c
+index bed8f7a..db01db8 100644
+--- a/daemon/module.c
++++ b/daemon/module.c
+@@ -34,7 +34,7 @@ int load_autofs4_module(void)
+ 	 */
+ 	fp = open_fopen_r("/proc/filesystems");
+ 	if (!fp) {
+-		logerr("cannot open /proc/filesystems\n");
++		logerr("cannot open /proc/filesystems");
+ 		return 0;
  	}
  
- 	debug(ap->logopt, "re-connected to mount %s", path);
+diff --git a/lib/nss_parse.y b/lib/nss_parse.y
+index 055e9d7..0721ba1 100644
+--- a/lib/nss_parse.y
++++ b/lib/nss_parse.y
+@@ -169,7 +169,7 @@ int nsswitch_parse(struct list_head *list)
+ 
+ 	nsswitch = open_fopen_r(NSSWITCH_FILE);
+ 	if (!nsswitch) {
+-		logerr("couldn't open %s\n", NSSWITCH_FILE);
++		logerr("couldn't open %s", NSSWITCH_FILE);
+ 		return 1;
+ 	}
+ 
 -- 
 2.5.5
 
