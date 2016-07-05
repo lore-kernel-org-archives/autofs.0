@@ -1,211 +1,239 @@
-From: Xen <list@xenhideout.nl>
-Subject: documentation issues
-Date: Tue, 05 Jul 2016 23:17:55 +0200
-Message-ID: <cec586e96030cbbc150886909bf34a45@dds.nl>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: Autofs and mount namespaces
+Date: Wed, 06 Jul 2016 07:35:56 +0800
+Message-ID: <1467761756.4580.1.camel@themaw.net>
+References: <20160407181911.GA9018@vader>
+	 <1460076663.3135.37.camel@themaw.net>
+	 <20160705184754.GA28931@vader.DHCP.thefacebook.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-owner@vger.kernel.org>
-Sender: autofs-owner@vger.kernel.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=cc
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to:x-sasl-enc
+	:x-sasl-enc; s=mesmtp; bh=06543asrqn8iACniQ6MdiMFhvTs=; b=fdCTUz
+	eOaYIQaGyvjHTfr8OrPWuTiFH2SovCkX6bzpXEAMFj3fyPp8usbx4LKutzl+UVtd
+	TVeyT99u9C3Z0UBiJSzH5laPgmzxP9BjKWJiwMJ5A5k4cFzRWlYIsuX0ZYVaTjeb
+	JpZjtPixu/eVyIIApNCWUdsYTMVqRezT4m/Pc=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:content-transfer-encoding:content-type
+	:date:from:in-reply-to:message-id:mime-version:references
+	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=06543asrqn8iACn
+	iQ6MdiMFhvTs=; b=VdoMYtSxYCqI+3WK0uY3p45vsL4k199RcrlBtjzsXc3l9rJ
+	4HlKA34/2AZV3Jpjg8IksG7LCWuJwaw2r0pRnNEbDjcKRiZs6LL41Tv9gA26WwWz
+	lMrRANPXD+DpK3DEBp1ll4i7PCWzv5w6GPitGbapaMFdbOiv2XvyhghMLhHM=
+In-Reply-To: <20160705184754.GA28931@vader.DHCP.thefacebook.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: autofs@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: Omar Sandoval <osandov@osandov.com>
+Cc: autofs@vger.kernel.org, linux-fsdevel@vger.kernel.org, kernel-team@fb.com
 
-Hi,
+On Tue, 2016-07-05 at 11:47 -0700, Omar Sandoval wrote:
+> On Fri, Apr 08, 2016 at 08:51:03AM +0800, Ian Kent wrote:
+> [snip]
+> > 
+> > I think this is a better approach (beware, not even compile tested so it
+> > almost certainly doesn't work properly) and I'm not even sure that
+> > exposing __is_local_mountpoint() is ok from a VFS POV but something
+> > needs to be done:
+> > 
+> > autofs4 - make mountpoint checks namespace aware
+> > 
+> > From: Ian Kent <ikent@redhat.com>
+> > 
+> > If an automount mount is clone(2)ed into a file system that is
+> > propagation private, when it later expires the mount subsequent
+> > calls to autofs ->d_automount() for in that dentry in that
+> > namespace will return ELOOP until the mount is manually umounted.
+> > 
+> > In the same way, if an autofs mount is triggered by automount(8)
+> > within a container the dentry will be seen as mounted in the
+> > root init namespace and calls to ->d_automount() in that namespace
+> > will return ELOOP until the mount is umounted within the container.
+> > 
+> > Also, have_submounts() can return an incorect result when a mount
+> > exists in a namespace other than the one being checked.
+> > 
+> > Signed-off-by: Ian Kent <ikent@redhat.com>
+> > Cc: Al Viro <viro@ZenIV.linux.org.uk>
+> > Cc: Eric W. Biederman <ebiederm@xmission.com>
+> > ---
+> >  fs/autofs4/expire.c   |    4 ++--
+> >  fs/autofs4/root.c     |   14 +++++++-------
+> >  fs/dcache.c           |    2 +-
+> >  fs/mount.h            |    9 ---------
+> >  fs/namespace.c        |    1 +
+> >  include/linux/mount.h |    9 +++++++++
+> >  6 files changed, 20 insertions(+), 19 deletions(-)
+> > 
+> > diff --git a/fs/autofs4/expire.c b/fs/autofs4/expire.c
+> > index 9510d8d..23b9701 100644
+> > --- a/fs/autofs4/expire.c
+> > +++ b/fs/autofs4/expire.c
+> > @@ -236,7 +236,7 @@ static int autofs4_tree_busy(struct vfsmount *mnt,
+> >  		 * count for the autofs dentry.
+> >  		 * If the fs is busy update the expiry counter.
+> >  		 */
+> > -		if (d_mountpoint(p)) {
+> > +		if (is_local_mountpoint(p)) {
+> >  			if (autofs4_mount_busy(mnt, p)) {
+> >  				top_ino->last_used = jiffies;
+> >  				dput(p);
+> > @@ -280,7 +280,7 @@ static struct dentry *autofs4_check_leaves(struct
+> > vfsmount *mnt,
+> >  	while ((p = get_next_positive_dentry(p, parent))) {
+> >  		pr_debug("dentry %p %pd\n", p, p);
+> >  
+> > -		if (d_mountpoint(p)) {
+> > +		if (is_local_mountpoint(p)) {
+> >  			/* Can we umount this guy */
+> >  			if (autofs4_mount_busy(mnt, p))
+> >  				continue;
+> > diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
+> > index 7ab9239..9ba487a 100644
+> > --- a/fs/autofs4/root.c
+> > +++ b/fs/autofs4/root.c
+> > @@ -123,7 +123,7 @@ static int autofs4_dir_open(struct inode *inode, struct
+> > file *file)
+> >  	 * it.
+> >  	 */
+> >  	spin_lock(&sbi->lookup_lock);
+> > -	if (!d_mountpoint(dentry) && simple_empty(dentry)) {
+> > +	if (!is_local_mountpoint(dentry) && simple_empty(dentry)) {
+> >  		spin_unlock(&sbi->lookup_lock);
+> >  		return -ENOENT;
+> >  	}
+> > @@ -370,15 +370,15 @@ static struct vfsmount *autofs4_d_automount(struct
+> > path *path)
+> >  
+> >  	/*
+> >  	 * If the dentry is a symlink it's equivalent to a directory
+> > -	 * having d_mountpoint() true, so there's no need to call back
+> > -	 * to the daemon.
+> > +	 * having is_local_mountpoint() true, so there's no need to
+> > +	 * call back to the daemon.
+> >  	 */
+> >  	if (d_really_is_positive(dentry) && d_is_symlink(dentry)) {
+> >  		spin_unlock(&sbi->fs_lock);
+> >  		goto done;
+> >  	}
+> >  
+> > -	if (!d_mountpoint(dentry)) {
+> > +	if (!is_local_mountpoint(dentry)) {
+> >  		/*
+> >  		 * It's possible that user space hasn't removed directories
+> >  		 * after umounting a rootless multi-mount, although it
+> > @@ -431,7 +431,7 @@ static int autofs4_d_manage(struct dentry *dentry, bool
+> > rcu_walk)
+> >  
+> >  	/* The daemon never waits. */
+> >  	if (autofs4_oz_mode(sbi)) {
+> > -		if (!d_mountpoint(dentry))
+> > +		if (!is_local_mountpoint(dentry))
+> >  			return -EISDIR;
+> >  		return 0;
+> >  	}
+> > @@ -460,7 +460,7 @@ static int autofs4_d_manage(struct dentry *dentry, bool
+> > rcu_walk)
+> >  
+> >  		if (ino->flags & (AUTOFS_INF_EXPIRING | AUTOFS_INF_NO_RCU))
+> >  			return 0;
+> > -		if (d_mountpoint(dentry))
+> > +		if (is_local_mountpoint(dentry))
+> >  			return 0;
+> >  		inode = d_inode_rcu(dentry);
+> >  		if (inode && S_ISLNK(inode->i_mode))
+> > @@ -487,7 +487,7 @@ static int autofs4_d_manage(struct dentry *dentry, bool
+> > rcu_walk)
+> >  		 * we can avoid needless calls ->d_automount() and avoid
+> >  		 * an incorrect ELOOP error return.
+> >  		 */
+> > -		if ((!d_mountpoint(dentry) && !simple_empty(dentry)) ||
+> > +		if ((!is_local_mountpoint(dentry) && !simple_empty(dentry))
+> > ||
+> >  		    (d_really_is_positive(dentry) && d_is_symlink(dentry)))
+> >  			status = -EISDIR;
+> >  	}
+> > diff --git a/fs/dcache.c b/fs/dcache.c
+> > index 32ceae3..9c42dc9 100644
+> > --- a/fs/dcache.c
+> > +++ b/fs/dcache.c
+> > @@ -1271,7 +1271,7 @@ rename_retry:
+> >  static enum d_walk_ret check_mount(void *data, struct dentry *dentry)
+> >  {
+> >  	int *ret = data;
+> > -	if (d_mountpoint(dentry)) {
+> > +	if (is_local_mountpoint(dentry)) {
+> >  		*ret = 1;
+> >  		return D_WALK_QUIT;
+> >  	}
+> > diff --git a/fs/mount.h b/fs/mount.h
+> > index 14db05d..c25e6e8 100644
+> > --- a/fs/mount.h
+> > +++ b/fs/mount.h
+> > @@ -127,12 +127,3 @@ struct proc_mounts {
+> >  };
+> >  
+> >  extern const struct seq_operations mounts_op;
+> > -
+> > -extern bool __is_local_mountpoint(struct dentry *dentry);
+> > -static inline bool is_local_mountpoint(struct dentry *dentry)
+> > -{
+> > -	if (!d_mountpoint(dentry))
+> > -		return false;
+> > -
+> > -	return __is_local_mountpoint(dentry);
+> > -}
+> > diff --git a/fs/namespace.c b/fs/namespace.c
+> > index 4fb1691..9e1bc00 100644
+> > --- a/fs/namespace.c
+> > +++ b/fs/namespace.c
+> > @@ -725,6 +725,7 @@ bool __is_local_mountpoint(struct dentry *dentry)
+> >  out:
+> >  	return is_covered;
+> >  }
+> > +EXPORT_SYMBOL(__is_local_mountpoint);
+> >  
+> >  static struct mountpoint *lookup_mountpoint(struct dentry *dentry)
+> >  {
+> > diff --git a/include/linux/mount.h b/include/linux/mount.h
+> > index f822c3c..7419c0c 100644
+> > --- a/include/linux/mount.h
+> > +++ b/include/linux/mount.h
+> > @@ -15,6 +15,7 @@
+> >  #include <linux/spinlock.h>
+> >  #include <linux/seqlock.h>
+> >  #include <linux/atomic.h>
+> > +#include <linux/dcache.h>
+> >  
+> >  struct super_block;
+> >  struct vfsmount;
+> > @@ -95,4 +96,12 @@ extern void mark_mounts_for_expiry(struct list_head
+> > *mounts);
+> >  
+> >  extern dev_t name_to_dev_t(const char *name);
+> >  
+> > +extern bool __is_local_mountpoint(struct dentry *dentry);
+> > +static inline bool is_local_mountpoint(struct dentry *dentry)
+> > +{
+> > +	if (!d_mountpoint(dentry))
+> > +		return false;
+> > +
+> > +	return __is_local_mountpoint(dentry);
+> > +}
+> >  #endif /* _LINUX_MOUNT_H */
+> 
+> Hi, Ian,
+> 
+> Just wanted to check on the status of this fix. Is this still the
+> approach you wanted to take/is there anything else you wanted to do with
+> this?
 
-a few things.
+The problem is that someone tested this back ported to an older kernel and
+claimed it caused file system corruption.
 
-A user attempting to use autofs for the first time will assume that 
-autofs will mount mount poins that already exist. Nowhere is it stated 
-that mount points will only get created when accessed (through a "direct 
-path").
+That leaves me in a bad place indeed.
 
-Such a user (such as me) trying to use this thing (even with a tutorial 
-on Ubuntu site) will be flabbergasted that nothing happens; he/she 
-expects mount entries to appear, but nothing happens.
+Ian
 
-This renders the "nobrowse" default dysfunctional for a desktop user, 
-who expects to see something before going there. It only works for 
-automated systems, really.
-
-Further, you will only become aware of "browse" after having been able 
-to use the system, because otherwise you won't go reading entire manuals 
-just to see what is wrong.
-
-So in my case someone explained to me that the mount points would only 
-get created when accessed, at which point I finally was able to have 
-some result.
-
-
-So I say two things:
-
-- browse only works for static maps, and what person with a static map 
-is going to run into performance issues when mount points are created in 
-advance? Can we please remove this from the default config? (turning it 
-off).
-
-- browse being turned off by default combined with a complete lack of 
-mention that you need to access these "nonexistent" directory paths / 
-components before you will be able to see them, turns autofs into a 
-complete mystery for someone who is not privy to the details yet.
-
-
-Further I would say that on a desktop OS, the most likely use case is 
-going to be this:
-
-- have several shares in your home network
-- want to access them through a GUI
-- prefer automounting since mounting at boot can be problematic
-- need to see them before you can access them in a GUI
-- only alternative is "bookmarks" or "places" that work regardless of 
-the things not being visible/listed in the directory.
-
-Then I will also say,
-
-that there is no documentation on the format of the map files other than 
-auto.master. The documentation for map files is this:
-
-cat /etc/auto.misc.
-
-That is the documentation.
-
-After you've figured out that e.g. auto.smb wants the servername as the 
-key ($1) the documentation becomes this:
-
-/etc/auto.smb <servername>
-
->> watch results pour out.
-
-But auto.smb doesn't mention that it wants the servername as the key.
-
-Of course, it does mention that:
-
-# You'll be able to access Windows and Samba shares in your network
-# under /cifs/host.domain/share
-
-But at this point you still don't know that the "host.domain" part will 
-be invisible until you access it.
-
-I'm sorry if I sound abrasive but I was doing freaking straces and even 
-kernel traces before realizing how this was supposed to work. There is 
-just no documentation on it. The most important thing is missing. Is not 
-mentioned.
-
-I wasted so much time trying to figure out how this was supposed to 
-work... in the game of Zelda 1 I believe in some dungeon there is a wall 
-somewhere that you can walk through. You need to go through that wall to 
-get ahead in the game, but there is no visual indication that you can go 
-through. It is a secret.
-
-Well. So is this :P.
-
-How is anyone supposed to know that automounting a "mount point" does 
-not require a mount point to exist in advance?????
-
-I had even (previously, for something else) been reading kernel source 
-code in namei.c or whatever and came across autofs in e.g. lookup_slow 
-or something. Even then it never dawned to me that the typical use case 
-would be for some mount point to not exist yet.
-
-So you start this thing and you cannot write to the mount point any 
-longer so you know it is getting managed.
-
-But nothing ever shows. I even .... well let's not say that here :P.
-
-;-) I had done "touch a" and the file was not created; however I had put 
-some command in auto.smb that would output $1 to some file. So the file 
-said "a" but it never occured to me that this was the result of my 
-"touch a" command ;-). Stupid!.
-
-So I would plead for just two things for other people:
-
-a) get rid of the browse_mode = no, in the configuration file, for 
-static mounts
-b) say something about mounts not being created automatically in the man 
-page for auto.master, if nothing else. If you also do (a), this only 
-applies now to programmatic mounts.
-
-=============================================================
-
-You could also do nothing but change the default auto.master:
--------------------------------------------------------------
-
-# This is the sample auto.master file installed on your system.
-# This map contains entries for mount points that are to be managed
-# by autofs.
-#
-# Each of these mount points will be mounted with the required map
-# file as the parameter to the autofs filesystem module that will
-# manage this mount point for you in one of its threads.
-
-# Each entry mentions a mount point that must already exist on your
-# system, as well as a map file to be loaded onto that mount point.
-# Its format is as follows:
-
-
-# <mount-point>  [map-type[,format]:]<map> [options]
-
-# where <mount-point> indicates a directory on your filesystem and
-#       <map> indicates the map file to be used for it.
-
-# For further details see the man page for auto.master(5).
-
-# Example:
-#
-# /misc  /etc/auto.misc  browse
-#
-# This will create entries from /etc/auto.misc under /misc. The browse
-# option guarantees that its entries will be created straight away as
-# sub-directories to /misc.
-
-# Without the browse option, they would only be created after being
-# accessed, e.g. by direct reference. The browse option is only
-# applicable to static map files.
-#
-#
-# /net   -hosts
-#
-# This mounts all accessible NFS shares from hosts in your network
-# under /net/<hostname>/ when you first access that path.
-
-
-# NOTE: mounts done from a hosts map will be mounted with the
-#       "nosuid" and "nodev" options unless the "suid" and "dev"
-#       options are explicitly given.
-#
-#
-# Include *.autofs from /etc/auto.master.d/ and the included files
-# must conform to the format of this file.
-
-+dir:/etc/auto.master.d
-
-# Include another central master map if it can be found using
-# nsswitch sources. Note that duplicate entries will be discarded
-# as keys must be unique and the keys from this file will take
-# precedence. That means you can only specify each mount point once.
-
-+auto.master
-
-# Note that map files can be scripts that take the accessed path as a
-# parameter. E.g. the following would mount all Samba shares from a
-# certain host under /cifs/<hostname>/* when /cifs/<hostname> was
-# accessed:
-
-# /cifs   program:/etc/auto.smb
-#
-# See /etc/auto.smb for more documentation.
-
--------------------------------------------------------------
-
-I mean you could rewrite more documentation but this is the simplest I 
-could do right here right now.
-
-I think that would clarify a lot for everyone but of course perhaps you 
-would want to rewrite more so the central documentation is also up to 
-date, but please see this as a more modest attempt for making it more 
-accessible to a new user.
-
-Regards,
-
-Bart Schouten.
---
-To unsubscribe from this list: send the line "unsubscribe autofs" in
