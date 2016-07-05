@@ -1,18 +1,18 @@
 From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
-Subject: [PATCH] automount: Fix size arg of fgets(3)
-Date: Mon,  4 Jul 2016 23:31:25 +0900
-Message-ID: <1467642685-2117-1-git-send-email-kusumi.tomohiro@gmail.com>
+Subject: [PATCH] autofs: Remove obsolete sb fields
+Date: Wed,  6 Jul 2016 00:18:09 +0900
+Message-ID: <1467731889-6512-1-git-send-email-kusumi.tomohiro@gmail.com>
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20120113;
         h=from:to:cc:subject:date:message-id;
-        bh=l9dsmngLRSDRHVlmvocTGeDbWiPz6bGaRAQiq+/sxZY=;
-        b=iPs5hAN0Dp66v6PsZRfYnKDB6J8hqOAmmtF3goWhptnl9OdfNWaasNh6PF9iaaaC8y
-         m0tzNmeYt/o8RNVBas3VPhvUyJN4Ki7BT3Hn7AXTg0QuexEzfpD5Ch3XipTuF5skdiWw
-         MM+sWKQtLZdezwvLemfci2sC9s2L/UZ0RBxM5DUZeP9nGZijIkP0FYT7eHHU/0CHElBi
-         z/NDyzkOvbsbgFI9sU30swfQvR6cer0hUNRDirdpOzaij+Jeyc2FIGx1UOxPANFVR7VO
-         pdi3BebThdO/AsW80xWPx8C9HYP3FJg6h08nYYyTtM3+CSKbhxDDI13hrzC6hemfqQLn
-         mdrQ==
+        bh=NYLHywA2xT1Bea8y2ZJjCCqKT1eNbie11t/wbt8C4lM=;
+        b=AG5doOR8xpzEjvtPwen8RgT0rIQ12gj2S8OywceoV1CeyKhqSLYxNvLTlKWLqs8g6u
+         oKObV5/FEKJwHcRs59YC9YN9n3HpBXAV5HOtTyvng0TquE3GBiFz3nbeOwpcjHNzXWVZ
+         ohP/+8r7tBs48iNVI8MFNJN++DbwJYJmWUcKxLZFGN+QT81cNGCC77IwSk0C8Yfpxf5u
+         gJfJw0JR9zmpuaTRZh5X7BJeagHF4s5jRDNV0n9w83vM+cndTpb+atDPh3mGiWQzgv61
+         m5yi5l7j2Io3RfuiTpCpOfLKn6SpQLC0PFVqZD94g2Y9eObodKmKkWY7E9tmGM4KWXlY
+         Kpvw==
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 MIME-Version: 1.0
@@ -21,31 +21,26 @@ Content-Transfer-Encoding: 7bit
 To: raven@themaw.net
 Cc: autofs@vger.kernel.org, Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 
-Since fgets(3) reads at most 1 less than size arg, it should
-probably pass MAX_LINE_LEN+1 given that the conditional in the
-next line tests if strlen() exceeds MAX_LINE_LEN.
-(i.e. MAX_LINE_LEN isn't designed to include terminating \0)
-
-buf has MAX_LINE_LEN+2 bytes, so passing MAX_LINE_LEN+1 is ok.
+These two were left from aa55ddf3 which removed unused ioctls.
 
 Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 ---
- lib/defaults.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/autofs4/autofs_i.h | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/lib/defaults.c b/lib/defaults.c
-index 0e48a78..ae76513 100644
---- a/lib/defaults.c
-+++ b/lib/defaults.c
-@@ -879,7 +879,7 @@ static int read_config(unsigned int to_syslog, FILE *f, const char *name)
- 	char *res;
- 
- 	new_sec = NULL;
--	while ((res = fgets(buf, MAX_LINE_LEN, f))) {
-+	while ((res = fgets(buf, MAX_LINE_LEN + 1, f))) {
- 		char *sec, *key, *value;
- 
- 		if (strlen(res) > MAX_LINE_LEN) {
+diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
+index eb87055..73e3d38 100644
+--- a/fs/autofs4/autofs_i.h
++++ b/fs/autofs4/autofs_i.h
+@@ -111,8 +111,6 @@ struct autofs_sb_info {
+ 	int max_proto;
+ 	unsigned long exp_timeout;
+ 	unsigned int type;
+-	int reghost_enabled;
+-	int needs_reghost;
+ 	struct super_block *sb;
+ 	struct mutex wq_mutex;
+ 	struct mutex pipe_mutex;
 -- 
 2.5.5
 
