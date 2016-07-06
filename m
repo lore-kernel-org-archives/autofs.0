@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: [PATCH] automount: Drop redundant \n in logerr()
-Date: Wed, 06 Jul 2016 17:31:19 +0800
-Message-ID: <1467797479.4580.52.camel@themaw.net>
+Date: Wed, 06 Jul 2016 17:55:13 +0800
+Message-ID: <1467798913.4580.53.camel@themaw.net>
 References: <1467629332-8581-1-git-send-email-kusumi.tomohiro@gmail.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -9,17 +9,17 @@ Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=cc
 	:content-transfer-encoding:content-type:date:from:in-reply-to
 	:message-id:mime-version:references:subject:to:x-sasl-enc
-	:x-sasl-enc; s=mesmtp; bh=V/Ok2DCK7UrtKNstMvmEalrkuJM=; b=Pt0VIB
-	2TZVuMdi5Nnzp9RQbLV23Fhy8d5kWjoGbbdAv2+23QrcHIJrLGX4w20T4oNyUtok
-	xshPLOtqOvmq1iHOuPgKvJZc4FMiR5hZsU77pCIu9CsmasuLkw4rIBRQ+OTKIrzM
-	+x4lNCT4kbp6+87qfYyt9z0AZjlohjP/Je0zs=
+	:x-sasl-enc; s=mesmtp; bh=8KhMu10h27j4Eq/6wO9/+EHi0MM=; b=fUpmRI
+	ChkDzLrgKa8549I/P2GFyZ59IIVjS2sL57Kzwa/LzC+2dOZam1tGOWc3j7mPwZO9
+	SPnMsIiaDf77GBo2sad7EvMy+GN/CNSNcdNCjJ2dS+bhAb7mP7XaIVv2ytTwcmMj
+	nMIoojwaoaodY50npa2UmieVM9CY+pqh9elj8=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=cc:content-transfer-encoding:content-type
 	:date:from:in-reply-to:message-id:mime-version:references
-	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=V/Ok2DCK7UrtKNs
-	tMvmEalrkuJM=; b=rKvk/ZwHaYaW+E54BhTkHOQOvsj2lyi3Qaff03eFwTge7vY
-	HQKZ0RLtFp4UMhRDWdNBMco99GHHb6G8GlmdQcJwe/g2tj+THFPqhh8HUkAQTgjA
-	l01ddtpX3kq4HIxqX7oWKC3IPUNnDIigPoa3ql+C8xD5xkGB3ueu6cxsbtkA=
+	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=8KhMu10h27j4Eq/
+	6wO9/+EHi0MM=; b=gDIXSU8pYRKiSpvN8UYTHn8E6ZTnlWB80Fo2TDqnPqBFr7G
+	H9RhssP0ORc/kTuDI15V5fv2bXYCrI70Q0TLeNFgqGt9KaUWngAyfv8bf7gU4aF5
+	+bxpuXMtk1dK3C9GWVvKMkrSnIGSz1wp/sZ5FHkImGex6eZjJIVHvwHiaZT4=
 In-Reply-To: <1467629332-8581-1-git-send-email-kusumi.tomohiro@gmail.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
@@ -31,7 +31,7 @@ On Mon, 2016-07-04 at 19:48 +0900, Tomohiro Kusumi wrote:
 > Line break isn't necessary from the way logerr (and logmsg) is implemented,
 > and these two probably aren't intentional.
 
-Also added to the list.
+Added to the list, same as the previous in terms of pushing it to the repo.
 
 > 
 > Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
