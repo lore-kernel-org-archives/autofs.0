@@ -1,82 +1,72 @@
-From: Martin von Gagern <Martin.vGagern@gmx.net>
-Subject: [PATCH] autofs: fix libtirpc detection with -Wl,--as-needed
-Date: Wed,  6 Jul 2016 22:29:14 +0200
-Message-ID: <20160706202914.26861-1-Martin.vGagern@gmx.net>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [PATCH 2/2] autofs: Fix conditional to kfree dentry data
+Date: Thu, 07 Jul 2016 12:14:13 +0800
+Message-ID: <1467864853.3206.12.camel@themaw.net>
+References: <1467480264-1801-1-git-send-email-kusumi.tomohiro@gmail.com>
+	 <1467480264-1801-2-git-send-email-kusumi.tomohiro@gmail.com>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=cc
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to:x-sasl-enc
+	:x-sasl-enc; s=mesmtp; bh=bDbGsi77ylPGnVc0YOuWAZNHSfM=; b=d6ys2j
+	THdCRRaPp5CR6VWCXkcb1n8WZ+xifqkOy+1kzUkQq0EBX4U0EUv9lxmqOcRFgBJI
+	vtM/s0SgEQsEAimQHaCHujMX4dgyoHJlgC6gWpctqtbbx1czaCtzjjh6CnMxyoT+
+	1Gkyd1UebUFBHpLGDqAq3DMb6gZN9nhc5Zq1k=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:content-transfer-encoding:content-type
+	:date:from:in-reply-to:message-id:mime-version:references
+	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=bDbGsi77ylPGnVc
+	0YOuWAZNHSfM=; b=CodpwbkgMZB29QbRrADMMej4xemS7OO5RnV4ve/ApVsFERi
+	6IiNHu25zfWvqfHJfdWZz75FsibFo0Kas40yn2cO0lhBzXMbdnmil82LmzIHRLtc
+	COaebkI7/O3KP8NwFCJO10Iibi30J0b11qbOArxy+6YP/wqVI7gO2EpUv5kg=
+In-Reply-To: <1467480264-1801-2-git-send-email-kusumi.tomohiro@gmail.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: autofs@vger.kernel.org
-Cc: Martin von Gagern <Martin.vGagern@gmx.net>
+To: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
+Cc: autofs@vger.kernel.org
 
-As reported in https://bugs.gentoo.org/show_bug.cgi?id=588106, the configure
-script will fail to detect the presence of libtirpc if -Wl,--as-needed is
-included in LDFLAGS.  That is because the check incorrectly includes the
-argument -ltircp in the LDFLAGS variable, instead of the LIBS variable where
-it belongs.  LIBS comes after the objects so it will be used to satisfy
-their dependencies.  LDFLAGS will come before them, causing the library to
-be skipped if the --as-needed linker flag is in effect.
+On Sun, 2016-07-03 at 02:24 +0900, Tomohiro Kusumi wrote:
+> if (!dentry->d_fsdata) should be testing d_fsdata or ino without !.
 
-Signed-off-by: Martin von Gagern <Martin.vGagern@gmx.net>
----
- aclocal.m4 | 6 +++---
- configure  | 6 +++---
- 2 files changed, 6 insertions(+), 6 deletions(-)
+I've added both of these to the list of kernel patches I have, hopefully I'll be
+able to get the needed testing done to send them to Andrew after the next merge
+window.
 
-diff --git a/aclocal.m4 b/aclocal.m4
-index 2115204..fe949a2 100644
---- a/aclocal.m4
-+++ b/aclocal.m4
-@@ -413,9 +413,9 @@ AC_DEFUN([AF_CHECK_LIBTIRPC],
- [
- # save current flags
- af_check_libtirpc_save_cflags="$CFLAGS"
--af_check_libtirpc_save_ldflags="$LDFLAGS"
-+af_check_libtirpc_save_libs="$LIBS"
- CFLAGS="$CFLAGS -I/usr/include/tirpc"
--LDFLAGS="$LDFLAGS -ltirpc"
-+LIBS="$LIBS -ltirpc"
- 
- AC_TRY_LINK(
-     [ #include <rpc/rpc.h> ],
-@@ -438,7 +438,7 @@ AC_CHECK_FUNCS([getrpcbyname getservbyname])
- 
- # restore flags
- CFLAGS="$af_check_libtirpc_save_cflags"
--LDFLAGS="$af_check_libtirpc_save_ldflags"
-+LIBS="$af_check_libtirpc_save_libs"
- ])
- 
- AC_DEFUN([AF_WITH_LIBTIRPC],
-diff --git a/configure b/configure
-index 3e2de6f..3227c71 100755
---- a/configure
-+++ b/configure
-@@ -3194,9 +3194,9 @@ if test "${with_libtirpc+set}" = set; then :
- 
- # save current flags
- af_check_libtirpc_save_cflags="$CFLAGS"
--af_check_libtirpc_save_ldflags="$LDFLAGS"
-+af_check_libtirpc_save_libs="$LIBS"
- CFLAGS="$CFLAGS -I/usr/include/tirpc"
--LDFLAGS="$LDFLAGS -ltirpc"
-+LIBS="$LIBS -ltirpc"
- 
- cat confdefs.h - <<_ACEOF >conftest.$ac_ext
- /* end confdefs.h.  */
-@@ -3249,7 +3249,7 @@ done
- 
- # restore flags
- CFLAGS="$af_check_libtirpc_save_cflags"
--LDFLAGS="$af_check_libtirpc_save_ldflags"
-+LIBS="$af_check_libtirpc_save_libs"
- 
- else
-   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
--- 
-2.9.0
+But I need to take a closer look at this one though.
 
+There's another ENOMEM return just above this where ino is not freed.
+
+So I'm wondering if it should be freed here at all.
+
+It belongs to the dentry and would get freed using autofs4_dentry_release() on
+final dput() and that takes care of additional house keeping too (although a
+symlink dentry is a bit different and shouldn't need that extra cleanup).
+
+What really worries me is that autofs4_free_ino() doesn't set d_fsdata to NULL
+so there's a chance of a double free when autofs4_dentry_release() is finally
+called.
+
+> 
+> Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
+> ---
+>  fs/autofs4/root.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
+> index 93d3232..5a877bf 100644
+> --- a/fs/autofs4/root.c
+> +++ b/fs/autofs4/root.c
+> @@ -577,7 +577,7 @@ static int autofs4_dir_symlink(struct inode *dir,
+>  	inode = autofs4_get_inode(dir->i_sb, S_IFLNK | 0555);
+>  	if (!inode) {
+>  		kfree(cp);
+> -		if (!dentry->d_fsdata)
+> +		if (ino)
+>  			autofs4_free_ino(ino);
+>  		return -ENOMEM;
+>  	}
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
