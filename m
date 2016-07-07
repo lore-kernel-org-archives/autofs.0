@@ -1,72 +1,84 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 2/2] autofs: Fix conditional to kfree dentry data
-Date: Thu, 07 Jul 2016 12:14:13 +0800
-Message-ID: <1467864853.3206.12.camel@themaw.net>
-References: <1467480264-1801-1-git-send-email-kusumi.tomohiro@gmail.com>
-	 <1467480264-1801-2-git-send-email-kusumi.tomohiro@gmail.com>
+Subject: Re: [PATCH] autofs: Fix typos in
+ Documentation/filesystems/autofs4.txt
+Date: Thu, 07 Jul 2016 12:26:25 +0800
+Message-ID: <1467865585.3206.14.camel@themaw.net>
+References: <1467484618-1908-1-git-send-email-kusumi.tomohiro@gmail.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=cc
 	:content-transfer-encoding:content-type:date:from:in-reply-to
 	:message-id:mime-version:references:subject:to:x-sasl-enc
-	:x-sasl-enc; s=mesmtp; bh=bDbGsi77ylPGnVc0YOuWAZNHSfM=; b=d6ys2j
-	THdCRRaPp5CR6VWCXkcb1n8WZ+xifqkOy+1kzUkQq0EBX4U0EUv9lxmqOcRFgBJI
-	vtM/s0SgEQsEAimQHaCHujMX4dgyoHJlgC6gWpctqtbbx1czaCtzjjh6CnMxyoT+
-	1Gkyd1UebUFBHpLGDqAq3DMb6gZN9nhc5Zq1k=
+	:x-sasl-enc; s=mesmtp; bh=QpbmH4g82EOBIjOiMLok8c7gHNc=; b=lzrIae
+	6QuFWYkJa5Pr0SuR53MFb1FCfo2JvDjFWqskPYXqgXgjZF77IActX+sniHPhEJWH
+	mH0WlUpVrJx1CsKahTlDE6pAwjBeqsxBgiQM/+vsWcZwoh1s/Ya5PDfZ8jpBUXb3
+	lXS2DzNh74BHT89nE/ea6Em2l4zi4ujdvxSl8=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=cc:content-transfer-encoding:content-type
 	:date:from:in-reply-to:message-id:mime-version:references
-	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=bDbGsi77ylPGnVc
-	0YOuWAZNHSfM=; b=CodpwbkgMZB29QbRrADMMej4xemS7OO5RnV4ve/ApVsFERi
-	6IiNHu25zfWvqfHJfdWZz75FsibFo0Kas40yn2cO0lhBzXMbdnmil82LmzIHRLtc
-	COaebkI7/O3KP8NwFCJO10Iibi30J0b11qbOArxy+6YP/wqVI7gO2EpUv5kg=
-In-Reply-To: <1467480264-1801-2-git-send-email-kusumi.tomohiro@gmail.com>
+	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=QpbmH4g82EOBIjO
+	iMLok8c7gHNc=; b=DtLN/5dJZbWoKIayyEFj0T1mqY+OAH3DAqx1G1ddiQSAz8E
+	TzBz7TzW+SD1hFpmPeueKJiR4/o3+Ix8UJ/TvJldH4MOND4uJ0TXIvwan1+5KDby
+	PFTfkPoJ6Jiv6qdNEOBxZRmJCTXCkUj5qOqHe6GQU4Pu3BjGSnseM//VN7F4=
+In-Reply-To: <1467484618-1908-1-git-send-email-kusumi.tomohiro@gmail.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 Cc: autofs@vger.kernel.org
 
-On Sun, 2016-07-03 at 02:24 +0900, Tomohiro Kusumi wrote:
-> if (!dentry->d_fsdata) should be testing d_fsdata or ino without !.
+On Sun, 2016-07-03 at 03:36 +0900, Tomohiro Kusumi wrote:
+> plus minor whitespace fixes.
 
-I've added both of these to the list of kernel patches I have, hopefully I'll be
-able to get the needed testing done to send them to Andrew after the next merge
-window.
+Also added to my patch queue.
 
-But I need to take a closer look at this one though.
+It's great you are looking around in here.
 
-There's another ENOMEM return just above this where ino is not freed.
-
-So I'm wondering if it should be freed here at all.
-
-It belongs to the dentry and would get freed using autofs4_dentry_release() on
-final dput() and that takes care of additional house keeping too (although a
-symlink dentry is a bit different and shouldn't need that extra cleanup).
-
-What really worries me is that autofs4_free_ino() doesn't set d_fsdata to NULL
-so there's a chance of a double free when autofs4_dentry_release() is finally
-called.
+I had completely forgotten about the interface documentation and this file needs
+to be renamed as well for my autofs4 -> autofs rename series.
 
 > 
 > Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 > ---
->  fs/autofs4/root.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  Documentation/filesystems/autofs4.txt | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
 > 
-> diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
-> index 93d3232..5a877bf 100644
-> --- a/fs/autofs4/root.c
-> +++ b/fs/autofs4/root.c
-> @@ -577,7 +577,7 @@ static int autofs4_dir_symlink(struct inode *dir,
->  	inode = autofs4_get_inode(dir->i_sb, S_IFLNK | 0555);
->  	if (!inode) {
->  		kfree(cp);
-> -		if (!dentry->d_fsdata)
-> +		if (ino)
->  			autofs4_free_ino(ino);
->  		return -ENOMEM;
->  	}
+> diff --git a/Documentation/filesystems/autofs4.txt
+> b/Documentation/filesystems/autofs4.txt
+> index 39d02e1..8fac3fe 100644
+> --- a/Documentation/filesystems/autofs4.txt
+> +++ b/Documentation/filesystems/autofs4.txt
+> @@ -203,9 +203,9 @@ initiated or is being considered, otherwise it returns 0.
+>  Mountpoint expiry
+>  -----------------
+>  
+> -The VFS has a mechansim for automatically expiring unused mounts,
+> +The VFS has a mechanism for automatically expiring unused mounts,
+>  much as it can expire any unused dentry information from the dcache.
+> -This is guided by the MNT_SHRINKABLE flag.  This  only applies to
+> +This is guided by the MNT_SHRINKABLE flag.  This only applies to
+>  mounts that were created by `d_automount()` returning a filesystem to be
+>  mounted.  As autofs doesn't return such a filesystem but leaves the
+>  mounting to the automount daemon, it must involve the automount daemon
+> @@ -298,7 +298,7 @@ remove directories and symlinks using normal filesystem
+> operations.
+>  autofs knows whether a process requesting some operation is the daemon
+>  or not based on its process-group id number (see getpgid(1)).
+>  
+> -When an autofs filesystem it mounted the pgid of the mounting
+> +When an autofs filesystem is mounted the pgid of the mounting
+>  processes is recorded unless the "pgrp=" option is given, in which
+>  case that number is recorded instead.  Any request arriving from a
+>  process in that process group is considered to come from the daemon.
+> @@ -450,7 +450,7 @@ Commands are:
+>      numbers for existing filesystems can be found in
+>      `/proc/self/mountinfo`.
+>  - **AUTOFS_DEV_IOCTL_CLOSEMOUNT_CMD**: same as `close(ioctlfd)`.
+> -- **AUTOFS_DEV_IOCTL_SETPIPEFD_CMD**: if the  filesystem is in
+> +- **AUTOFS_DEV_IOCTL_SETPIPEFD_CMD**: if the filesystem is in
+>      catatonic mode, this can provide the write end of a new pipe
+>      in `arg1` to re-establish communication with a daemon.  The
+>      process group of the calling process is used to identify the
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
