@@ -1,171 +1,78 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH] autofs: Test autofs versions first on sb initialization
-Date: Thu, 07 Jul 2016 14:39:02 +0800
-Message-ID: <1467873542.3206.26.camel@themaw.net>
-References: <1467466183-7058-1-git-send-email-kusumi.tomohiro@gmail.com>
-	 <1467598729.3317.6.camel@themaw.net> <1467870153.3206.20.camel@themaw.net>
+From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
+Subject: Re: [PATCH v2] autofs: Add WARN_ON(1) for non dir/link inode case
+Date: Thu, 7 Jul 2016 15:46:43 +0900
+Message-ID: <CAHndrB=R8OCikM+WZD_LizLWSbBOZc8izbcTJyWP_WCNYgAfww@mail.gmail.com>
+References: <1467603603-1530-1-git-send-email-kusumi.tomohiro@gmail.com> <1467871749.3206.25.camel@themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=cc
-	:content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to:x-sasl-enc
-	:x-sasl-enc; s=mesmtp; bh=oY9WQ1zAGyaV6jxUDRJLKmRXxik=; b=BQBXvX
-	ZNawcyJ8l7hPm/yxiHKT2REGAJyRlrA+Us1cyoigZJVRvVVA0uX5ncOGSzs+ofmr
-	LFbP423GNGd4dBNtAqbxFSQFCg/HEORqI6qUr9QbgBWeu/pJtNiUaqsKAhcPQQdW
-	XCznTpGPKeydafmtBKAaoU8Dbadc8AOh7ECig=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:content-transfer-encoding:content-type
-	:date:from:in-reply-to:message-id:mime-version:references
-	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=oY9WQ1zAGyaV6jx
-	UDRJLKmRXxik=; b=aR6nn8h7Y7/DL6X+BH4gYr2CtZ+7D1RsK76CZMF8FuBOMfq
-	n5YGfUHzqNAyP48/l8t8QBi/aH20kZ2gTghbI5VxJcMUCWM6WoORI49o1Cvyyj5b
-	Jnlkm4NVWMNqCh94hnS1XkA6gLBHSGrGJs8a/2aTaItvn2tRyHyJRcTjp3JE=
-In-Reply-To: <1467870153.3206.20.camel@themaw.net>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20120113;
+        h=mime-version:in-reply-to:references:from:date:message-id:subject:to
+         :cc;
+        bh=TwmIhr3QGKZELQj3tc5Ns5sVrbnHfjVs3WSp0dbQBrs=;
+        b=jd5hboEMhItxgJ5GrY9p/YA87enC4ktq3r1yX2e5Mu6okFCINqxYTIsrVQe4yC5FaD
+         8sthhassOUTL6FhTux5qYB9HakRlijAJeL8r5LNjBd9Ja9LsIA8SQdxDnOJFnFcD6L+t
+         00K8fvlzmsJ0dAn05FnHkDnL6LqQ5roVF1hk6GtvqGwil9nT0HxVZ5WUVInJs0ofodhR
+         bb8gEPhHAyNnHVTeowaZVsCmt3kiAAwwcJsrGkiOUDiuwIlP23O9nBwW08Vrdwo6XVrr
+         m7qhP2mJ7pI37j87rx5I8Y/wgKDtLNE5HO0HclPlQ4YninRf8oD8qjK5XAqJTAM4QRT1
+         w7cw==
+In-Reply-To: <1467871749.3206.25.camel@themaw.net>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
-Cc: autofs@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+To: Ian Kent <raven@themaw.net>
+Cc: Jeff Mahoney <jeffm@suse.com>, autofs@vger.kernel.org
 
-On Thu, 2016-07-07 at 13:42 +0800, Ian Kent wrote:
-> On Mon, 2016-07-04 at 10:18 +0800, Ian Kent wrote:
-> > On Sat, 2016-07-02 at 22:29 +0900, Tomohiro Kusumi wrote:
-> > > This patch does what the below comment says.
-> > > It could be and it's considered better to do this first
-> > > before various functions get called during initialization.
-> > 
-> > I don't really see the importance of this but ok.
-> > 
-> > Though looking at it I think a problem with the error handling gotos has
-> > crept
-> > in (I think prior to your patch).
-> > 
-> > I'll need to look more closely at that when I get time.
-> 
-> I've added this to the list as well, along with a patch I think resolves the
-> error handling exit gotos, could you have a look in case I've made any stupid
-> mistakes.
-> 
-> autofs - fix autofs4_fill_super() error exit handling
-> 
-> From: Ian Kent <raven@themaw.net>
-> 
-> Somewhere along the line the error handling gotos have become incorrect
-> and a little more complicated than need be.
-> 
-> Signed-off-by: Ian Kent <raven@themaw.net>
-> ---
->  fs/autofs4/inode.c |    7 +++----
->  1 file changed, 3 insertions(+), 4 deletions(-)
-> 
-> diff --git a/fs/autofs4/inode.c b/fs/autofs4/inode.c
-> index 8357544..2b3b54b 100644
-> --- a/fs/autofs4/inode.c
-> +++ b/fs/autofs4/inode.c
-> @@ -313,7 +313,7 @@ int autofs4_fill_super(struct super_block *s, void *data,
-> int silent)
->  
->  	if (!pipe) {
->  		pr_err("could not open pipe file descriptor\n");
-> -		goto fail_dput;
-> +		goto fail_put_pid;
->  	}
->  	ret = autofs_prepare_pipe(pipe);
->  	if (ret < 0)
-> @@ -334,14 +334,13 @@ int autofs4_fill_super(struct super_block *s, void
-> *data,
-> int silent)
->  fail_fput:
->  	pr_err("pipe file descriptor does not contain proper ops\n");
->  	fput(pipe);
-> -	/* fall through */
-> +fail_put_pid:
-> +	put_pid(sbi->oz_pgrp);
->  fail_dput:
->  	dput(root);
-> -	goto fail_free;
+Sure, thank you for applying.
 
-Ummm ... that goto is still needed, I've added it back.
-
->  fail_ino:
->  	kfree(ino);
->  fail_free:
-> -	put_pid(sbi->oz_pgrp);
->  	kfree(sbi);
->  	s->s_fs_info = NULL;
->  	return ret;
-> 
-> 
-> 
-> > > 
-> > > /* Couldn't this be tested earlier? */
-> > > ---
-> > >  fs/autofs4/inode.c | 34 +++++++++++++++++-----------------
-> > >  1 file changed, 17 insertions(+), 17 deletions(-)
-> > > 
-> > > diff --git a/fs/autofs4/inode.c b/fs/autofs4/inode.c
-> > > index 61b2105..8357544 100644
-> > > --- a/fs/autofs4/inode.c
-> > > +++ b/fs/autofs4/inode.c
-> > > @@ -274,6 +274,23 @@ int autofs4_fill_super(struct super_block *s, void
-> > > *data,
-> > > int silent)
-> > >  		goto fail_dput;
-> > >  	}
-> > >  
-> > > +	/* Test versions first */
-> > > +	if (sbi->max_proto < AUTOFS_MIN_PROTO_VERSION ||
-> > > +	    sbi->min_proto > AUTOFS_MAX_PROTO_VERSION) {
-> > > +		pr_err("kernel does not match daemon version "
-> > > +		       "daemon (%d, %d) kernel (%d, %d)\n",
-> > > +		       sbi->min_proto, sbi->max_proto,
-> > > +		       AUTOFS_MIN_PROTO_VERSION,
-> > > AUTOFS_MAX_PROTO_VERSION);
-> > > +		goto fail_dput;
-> > > +	}
-> > > +
-> > > +	/* Establish highest kernel protocol version */
-> > > +	if (sbi->max_proto > AUTOFS_MAX_PROTO_VERSION)
-> > > +		sbi->version = AUTOFS_MAX_PROTO_VERSION;
-> > > +	else
-> > > +		sbi->version = sbi->max_proto;
-> > > +	sbi->sub_version = AUTOFS_PROTO_SUBVERSION;
-> > > +
-> > >  	if (pgrp_set) {
-> > >  		sbi->oz_pgrp = find_get_pid(pgrp);
-> > >  		if (!sbi->oz_pgrp) {
-> > > @@ -291,23 +308,6 @@ int autofs4_fill_super(struct super_block *s, void
-> > > *data,
-> > > int silent)
-> > >  	root_inode->i_fop = &autofs4_root_operations;
-> > >  	root_inode->i_op = &autofs4_dir_inode_operations;
-> > >  
-> > > -	/* Couldn't this be tested earlier? */
-> > > -	if (sbi->max_proto < AUTOFS_MIN_PROTO_VERSION ||
-> > > -	    sbi->min_proto > AUTOFS_MAX_PROTO_VERSION) {
-> > > -		pr_err("kernel does not match daemon version "
-> > > -		       "daemon (%d, %d) kernel (%d, %d)\n",
-> > > -		       sbi->min_proto, sbi->max_proto,
-> > > -		       AUTOFS_MIN_PROTO_VERSION,
-> > > AUTOFS_MAX_PROTO_VERSION);
-> > > -		goto fail_dput;
-> > > -	}
-> > > -
-> > > -	/* Establish highest kernel protocol version */
-> > > -	if (sbi->max_proto > AUTOFS_MAX_PROTO_VERSION)
-> > > -		sbi->version = AUTOFS_MAX_PROTO_VERSION;
-> > > -	else
-> > > -		sbi->version = sbi->max_proto;
-> > > -	sbi->sub_version = AUTOFS_PROTO_SUBVERSION;
-> > > -
-> > >  	pr_debug("pipe fd = %d, pgrp = %u\n", pipefd, pid_nr(sbi
-> > > ->oz_pgrp));
-> > >  	pipe = fget(pipefd);
-> > >  
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe autofs" in
-> --
-> To unsubscribe from this list: send the line "unsubscribe autofs" in
+2016-07-07 15:09 GMT+09:00 Ian Kent <raven@themaw.net>:
+> On Mon, 2016-07-04 at 12:40 +0900, Tomohiro Kusumi wrote:
+>> It's invalid if the given mode is neither dir nor link,
+>> so warn on else case.
+>
+> I've added this too.
+>
+> But ....
+>
+>>
+>> (v2 changed BUG_ON to WARN_ON)
+>>
+>> Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
+>> ---
+>>  fs/autofs4/inode.c | 4 +++-
+>>  1 file changed, 3 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/fs/autofs4/inode.c b/fs/autofs4/inode.c
+>> index ad0ee93..89174ec 100644
+>> --- a/fs/autofs4/inode.c
+>> +++ b/fs/autofs4/inode.c
+>> @@ -305,6 +305,7 @@ int autofs4_fill_super(struct super_block *s, void *data,
+>> int silent)
+>>       if (autofs_type_trigger(sbi->type))
+>>               __managed_dentry_set_managed(root);
+>>
+>> +     WARN_ON(!root_inode->i_fop || !root_inode->i_op);
+>
+> I'm dropping this.
+>
+> We know for a fact that this is a directory inode because above it was created
+> with autofs4_get_inode(s, S_IFDIR | 0755) and here the operations are changed to
+> those specific to the root inode.
+>
+>>       root_inode->i_fop = &autofs4_root_operations;
+>>       root_inode->i_op = &autofs4_dir_inode_operations;
+>>
+>> @@ -368,7 +369,8 @@ struct inode *autofs4_get_inode(struct super_block *sb,
+>> umode_t mode)
+>>               inode->i_fop = &autofs4_dir_operations;
+>>       } else if (S_ISLNK(mode)) {
+>>               inode->i_op = &autofs4_symlink_inode_operations;
+>> -     }
+>> +     } else
+>> +             WARN_ON(1);
+>>
+>>       return inode;
+>>  }
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
