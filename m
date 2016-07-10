@@ -1,19 +1,19 @@
 From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
-Subject: [PATCH 12/12] autofs: Move inclusion of linux/limits.h to uapi
-Date: Sun, 10 Jul 2016 17:07:53 +0900
-Message-ID: <1468138073-4870-12-git-send-email-kusumi.tomohiro@gmail.com>
+Subject: [PATCH 10/12] autofs: Add autofs_dev_ioctl_version() for AUTOFS_DEV_IOCTL_VERSION_CMD
+Date: Sun, 10 Jul 2016 17:07:51 +0900
+Message-ID: <1468138073-4870-10-git-send-email-kusumi.tomohiro@gmail.com>
 References: <1468138073-4870-1-git-send-email-kusumi.tomohiro@gmail.com>
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20120113;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=gbym63WBVaf1oxQJkMNh0Hh/Tq6rMvoi+1LlVatMyG4=;
-        b=CRRX2eD3rvBZ0LJwJ/Tl7lnbaEjjLoRQZpRQeER8dER2TpE5/cZeF0hR+Kik+jE/qd
-         uYbmP9yM+FEm7vUgfTCfya1ExxtMyC8dC4A4RAnYJq9GHOHYnrsa6CLiyvDb7Ydo8/53
-         Lfod+CcBoWpttOrjWzCfS+fjMxTXn8G/+bY+HkYrI4m0n+aBZIqDlz+UmKO52HsgauU9
-         xdB6KHAcHQLg0y96g4+Uwr73jABHZ/tlXpO+Vsdo5s6bpQ60zaIfiOcpvkXtoKPj5Niw
-         +t60Mr2ss7+CvFP+aauGul1014GzULFKQRU74QyIWOb6gpnlkKfKlAIHW50F8MHck0va
-         1+pg==
+        bh=lUi3L9OGXl7/0I1GcwOOkENZaPgwZItZxzuCjNradXg=;
+        b=g9bA4/x9cAGrijRTqDh/v2jQfeaSYG+PszQUdBZ9u+d7q8YNK2Zd85IEUYW1rzWkOv
+         Ksv8Rexg0ZgdhvDt3w3ucElR5yo6XIjkTtpoCru2P6aPtc/sKt1uWm+gU1va7MYqxIS/
+         Q28comDInT90xOB0qA+r0y6mFli1ojwtc4juq/L74GP5VMo2r4p+Un5r7tGBG06mtKan
+         yMYGUlbr/5l8pw+emxqny7+mkIiz1FLDg0HKRZjFlkTiHOBr/fK24ZNM5wOBhAoFu9D4
+         dow7zIvUNy8SaNaL8KFDafg5PqR5NmW7RTDMUuR5fjDPrEz6hKfaN+GJKJOFzn5DSSJE
+         EWVw==
 In-Reply-To: <1468138073-4870-1-git-send-email-kusumi.tomohiro@gmail.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
@@ -23,52 +23,85 @@ Content-Transfer-Encoding: 7bit
 To: raven@themaw.net, autofs@vger.kernel.org
 Cc: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 
-linux/limits.h should be included by uapi instead of linux/auto_fs.h
-so as not to cause compile error in userspace.
+No functional changes, based on the following justification.
 
- # cat << EOF > ./test1.c
- > #include <stdio.h>
- > #include <linux/auto_fs.h>
- > int main(void) {
- >     return 0;
- > }
- > EOF
- # gcc -Wall -g ./test1.c
- In file included from ./test1.c:2:0:
- /usr/include/linux/auto_fs.h:54:12: error: 'NAME_MAX' undeclared here (not in a function)
-   char name[NAME_MAX+1];
-             ^
+1. Make the code more consistent using the ioctl vector _ioctls[],
+   rather than assigning NULL only for this ioctl command.
+2. Remove goto done; for better maintainability in the long run.
+3. The existing code is based on the fact that validate_dev_ioctl()
+   sets ioctl version for any command, but AUTOFS_DEV_IOCTL_VERSION_CMD
+   should explicitly set it regardless of the default behavior.
 
 Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 ---
- include/linux/auto_fs.h      | 1 -
- include/uapi/linux/auto_fs.h | 1 +
- 2 files changed, 1 insertion(+), 1 deletion(-)
+ fs/autofs4/dev-ioctl.c | 25 +++++++++++++++++--------
+ 1 file changed, 17 insertions(+), 8 deletions(-)
 
-diff --git a/include/linux/auto_fs.h b/include/linux/auto_fs.h
-index b4066bb..b8f814c 100644
---- a/include/linux/auto_fs.h
-+++ b/include/linux/auto_fs.h
-@@ -10,7 +10,6 @@
- #define _LINUX_AUTO_FS_H
+diff --git a/fs/autofs4/dev-ioctl.c b/fs/autofs4/dev-ioctl.c
+index d47b35a..3a1a969 100644
+--- a/fs/autofs4/dev-ioctl.c
++++ b/fs/autofs4/dev-ioctl.c
+@@ -172,6 +172,17 @@ static struct autofs_sb_info *autofs_dev_ioctl_sbi(struct file *f)
+ 	return sbi;
+ }
  
- #include <linux/fs.h>
--#include <linux/limits.h>
- #include <linux/ioctl.h>
- #include <uapi/linux/auto_fs.h>
- #endif /* _LINUX_AUTO_FS_H */
-diff --git a/include/uapi/linux/auto_fs.h b/include/uapi/linux/auto_fs.h
-index 9175a1b..1bfc3ed 100644
---- a/include/uapi/linux/auto_fs.h
-+++ b/include/uapi/linux/auto_fs.h
-@@ -12,6 +12,7 @@
- #define _UAPI_LINUX_AUTO_FS_H
++/* Return autofs dev ioctl version */
++static int autofs_dev_ioctl_version(struct file *fp,
++				    struct autofs_sb_info *sbi,
++				    struct autofs_dev_ioctl *param)
++{
++	/* This should have already been set. */
++	param->ver_major = AUTOFS_DEV_IOCTL_VERSION_MAJOR;
++	param->ver_minor = AUTOFS_DEV_IOCTL_VERSION_MINOR;
++	return 0;
++}
++
+ /* Return autofs module protocol version */
+ static int autofs_dev_ioctl_protover(struct file *fp,
+ 				     struct autofs_sb_info *sbi,
+@@ -590,7 +601,8 @@ static ioctl_fn lookup_dev_ioctl(unsigned int cmd)
+ 		int cmd;
+ 		ioctl_fn fn;
+ 	} _ioctls[] = {
+-		{cmd_idx(AUTOFS_DEV_IOCTL_VERSION_CMD), NULL},
++		{cmd_idx(AUTOFS_DEV_IOCTL_VERSION_CMD),
++			 autofs_dev_ioctl_version},
+ 		{cmd_idx(AUTOFS_DEV_IOCTL_PROTOVER_CMD),
+ 			 autofs_dev_ioctl_protover},
+ 		{cmd_idx(AUTOFS_DEV_IOCTL_PROTOSUBVER_CMD),
+@@ -655,10 +667,6 @@ static int _autofs_dev_ioctl(unsigned int command,
+ 	if (err)
+ 		goto out;
  
- #include <linux/types.h>
-+#include <linux/limits.h>
- #ifndef __KERNEL__
- #include <sys/ioctl.h>
- #endif /* __KERNEL__ */
+-	/* The validate routine above always sets the version */
+-	if (cmd == AUTOFS_DEV_IOCTL_VERSION_CMD)
+-		goto done;
+-
+ 	fn = lookup_dev_ioctl(cmd);
+ 	if (!fn) {
+ 		pr_warn("unknown command 0x%08x\n", command);
+@@ -672,9 +680,11 @@ static int _autofs_dev_ioctl(unsigned int command,
+ 	/*
+ 	 * For obvious reasons the openmount can't have a file
+ 	 * descriptor yet. We don't take a reference to the
+-	 * file during close to allow for immediate release.
++	 * file during close to allow for immediate release,
++	 * and the same for retrieving ioctl version.
+ 	 */
+-	if (cmd != AUTOFS_DEV_IOCTL_OPENMOUNT_CMD &&
++	if (cmd != AUTOFS_DEV_IOCTL_VERSION_CMD &&
++	    cmd != AUTOFS_DEV_IOCTL_OPENMOUNT_CMD &&
+ 	    cmd != AUTOFS_DEV_IOCTL_CLOSEMOUNT_CMD) {
+ 		fp = fget(param->ioctlfd);
+ 		if (!fp) {
+@@ -707,7 +717,6 @@ cont:
+ 
+ 	if (fp)
+ 		fput(fp);
+-done:
+ 	if (err >= 0 && copy_to_user(user, param, AUTOFS_DEV_IOCTL_SIZE))
+ 		err = -EFAULT;
+ out:
 -- 
 2.5.5
 
