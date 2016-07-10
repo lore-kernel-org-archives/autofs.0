@@ -1,107 +1,48 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH] autofs: fix libtirpc detection with -Wl,--as-needed
-Date: Fri, 08 Jul 2016 09:43:59 +0800
-Message-ID: <1467942239.3832.7.camel@themaw.net>
-References: <20160706202914.26861-1-Martin.vGagern@gmx.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
+Subject: [PATCH 01/12] autofs: Remove obsolete sb fields
+Date: Sun, 10 Jul 2016 17:07:42 +0900
+Message-ID: <1468138073-4870-1-git-send-email-kusumi.tomohiro@gmail.com>
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to:x-sasl-enc
-	:x-sasl-enc; s=mesmtp; bh=X9DW0FnWiSuYrQoKqvcCg5sg/qA=; b=fDAGBF
-	XrD6JPBXu8ok8SBTwBH+ve1ufQ4xCJBlBcrk6u0eEW0FeS1LPk3L9mMo0AFhyJJ2
-	3MIW0eMqRacM6LRWHPNRZjHRbIOhL155ggs9fN2hRBo+IsXoPCwRHHRoMXuj2+Hy
-	3w4xrBat1sCYNK0Y1Y+9JBus105SaPbPAS+1c=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=content-transfer-encoding:content-type
-	:date:from:in-reply-to:message-id:mime-version:references
-	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=X9DW0FnWiSuYrQo
-	KqvcCg5sg/qA=; b=D91Sax7/IAc/m1BhRyzxNP1BlhDUZrTHM+XuUPAxnQ2RKkp
-	vGIzE8EiBvU3cc9/Vxlz+jIwN8rikL7cH43WU9rXMnpROxs2iwCWszxsbsXJJeEv
-	nv0W7Paqn+AkkIo5y6hzKLZBwzo4xFIvVhwdUwnkpLy5ehJC9LkfXagB2cRU=
-In-Reply-To: <20160706202914.26861-1-Martin.vGagern@gmx.net>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20120113;
+        h=from:to:cc:subject:date:message-id;
+        bh=NYLHywA2xT1Bea8y2ZJjCCqKT1eNbie11t/wbt8C4lM=;
+        b=NOTy3VCjS//EzpdV/3KaxG/SStAsm08fnF+oFnzlIeOTMVw8J2O9XwEpAfGqKd9C5k
+         +UykUI7BDXEKgtii8Y26bUW4PU7ID6WJaH+xVPUAhE+OtNjHGQ/gn0N5LXS9GkNV3T4C
+         J1v0+0+cTDEd5ea1lHysr64euu1IOvWy1ws1uIVQXlzdEEdM9pcKJldNKhF6lQJNXDtm
+         SUU9Dc/Eabtop59I3TMOVT1Fe7zi5apcCazoPGjTbDlDYZ5L+pvyW6TaBJCnf5lYIN+6
+         lCJlTalq7HHHt8e3Gv8DVBWUZ65qAL00LTex7uasGQandiMqh0djOhmJeKfwvuEf2ggs
+         CE4w==
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-To: Martin von Gagern <Martin.vGagern@gmx.net>, autofs@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+To: raven@themaw.net, autofs@vger.kernel.org
+Cc: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 
-On Wed, 2016-07-06 at 22:29 +0200, Martin von Gagern wrote:
-> As reported in https://bugs.gentoo.org/show_bug.cgi?id=588106, the configure
-> script will fail to detect the presence of libtirpc if -Wl,--as-needed is
-> included in LDFLAGS.  That is because the check incorrectly includes the
-> argument -ltircp in the LDFLAGS variable, instead of the LIBS variable where
-> it belongs.  LIBS comes after the objects so it will be used to satisfy
-> their dependencies.  LDFLAGS will come before them, causing the library to
-> be skipped if the --as-needed linker flag is in effect.
+These two were left from aa55ddf3 which removed unused ioctls.
 
-Thanks for making the effort to send over the patch.
+Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
+---
+ fs/autofs4/autofs_i.h | 2 --
+ 1 file changed, 2 deletions(-)
 
-I've added it to my list for the next commit and push, don't know when that will
-be though.
+diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
+index eb87055..73e3d38 100644
+--- a/fs/autofs4/autofs_i.h
++++ b/fs/autofs4/autofs_i.h
+@@ -111,8 +111,6 @@ struct autofs_sb_info {
+ 	int max_proto;
+ 	unsigned long exp_timeout;
+ 	unsigned int type;
+-	int reghost_enabled;
+-	int needs_reghost;
+ 	struct super_block *sb;
+ 	struct mutex wq_mutex;
+ 	struct mutex pipe_mutex;
+-- 
+2.5.5
 
-While having to use kernel.org majordomo mailing list is not my favourite I
-particularly like having a place to put all the individual patches that make up
-each release so autofs stays at kernel.org.
-
-TBH I don't much like using github, perhaps one day I'll look into using gitlab.
-
-> 
-> Signed-off-by: Martin von Gagern <Martin.vGagern@gmx.net>
-> ---
->  aclocal.m4 | 6 +++---
->  configure  | 6 +++---
->  2 files changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/aclocal.m4 b/aclocal.m4
-> index 2115204..fe949a2 100644
-> --- a/aclocal.m4
-> +++ b/aclocal.m4
-> @@ -413,9 +413,9 @@ AC_DEFUN([AF_CHECK_LIBTIRPC],
->  [
->  # save current flags
->  af_check_libtirpc_save_cflags="$CFLAGS"
-> -af_check_libtirpc_save_ldflags="$LDFLAGS"
-> +af_check_libtirpc_save_libs="$LIBS"
->  CFLAGS="$CFLAGS -I/usr/include/tirpc"
-> -LDFLAGS="$LDFLAGS -ltirpc"
-> +LIBS="$LIBS -ltirpc"
->  
->  AC_TRY_LINK(
->      [ #include <rpc/rpc.h> ],
-> @@ -438,7 +438,7 @@ AC_CHECK_FUNCS([getrpcbyname getservbyname])
->  
->  # restore flags
->  CFLAGS="$af_check_libtirpc_save_cflags"
-> -LDFLAGS="$af_check_libtirpc_save_ldflags"
-> +LIBS="$af_check_libtirpc_save_libs"
->  ])
->  
->  AC_DEFUN([AF_WITH_LIBTIRPC],
-> diff --git a/configure b/configure
-> index 3e2de6f..3227c71 100755
-> --- a/configure
-> +++ b/configure
-> @@ -3194,9 +3194,9 @@ if test "${with_libtirpc+set}" = set; then :
->  
->  # save current flags
->  af_check_libtirpc_save_cflags="$CFLAGS"
-> -af_check_libtirpc_save_ldflags="$LDFLAGS"
-> +af_check_libtirpc_save_libs="$LIBS"
->  CFLAGS="$CFLAGS -I/usr/include/tirpc"
-> -LDFLAGS="$LDFLAGS -ltirpc"
-> +LIBS="$LIBS -ltirpc"
->  
->  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
->  /* end confdefs.h.  */
-> @@ -3249,7 +3249,7 @@ done
->  
->  # restore flags
->  CFLAGS="$af_check_libtirpc_save_cflags"
-> -LDFLAGS="$af_check_libtirpc_save_ldflags"
-> +LIBS="$af_check_libtirpc_save_libs"
->  
->  else
->    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
