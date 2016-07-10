@@ -1,19 +1,19 @@
 From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
-Subject: [PATCH 09/12] autofs: Fix wrong file/function/macro names in comments
-Date: Sun, 10 Jul 2016 17:07:50 +0900
-Message-ID: <1468138073-4870-9-git-send-email-kusumi.tomohiro@gmail.com>
+Subject: [PATCH 11/12] autofs: Fix print format for ioctl warning message
+Date: Sun, 10 Jul 2016 17:07:52 +0900
+Message-ID: <1468138073-4870-11-git-send-email-kusumi.tomohiro@gmail.com>
 References: <1468138073-4870-1-git-send-email-kusumi.tomohiro@gmail.com>
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20120113;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=ZnD/QJ1BWTRgpA5Qe6NVYHQ+DNXdD82SPuVpbbWRiVc=;
-        b=LVYN4zUVr4ZEHH/g72BtwgWAdvmmxkMPC9QwBReVjV9U6U/EAUlCdbfajRh8vZ4vS+
-         8211HrL087v+0Q8DTYBee/X4NR4NSX3nVvyBKDVDfE68+ubnECLBa86Q4qTA4CvjOAPG
-         lkdKBUbGIyx3vAzl8vpjziqGWxtGHAFZH8j0s02apv7nN1BKVmtua2GAGIlC4gqw0X10
-         NwYfPoF13RjGzllG4Wgn2QZGbh81/SHV343v1YP8CFQc4whyhQwoYRcA6wAjMDhhe8rV
-         fMS1CELwSHsaam3FP191ZwJUWmzFoxTaPOJ0p6av9xyZOF8F0N2UqQgk24W7e4il2nCb
-         73Mw==
+        bh=B456KxGn/WY/CYBcGG/Pg5at+c6Apw6GYdbFCYK89bM=;
+        b=cyZ5nWrgqWemNk9pNPvVXbLkfCf9cN8BjpNecUpIS1tS0TzjZINNIMB4hH+2WQxeT2
+         KL/LgzBm7+ymY3LLprAcZ0A6DMtK21BmK4k8A/5geku74KZJNQF/B6mLF2Rv6wMqsB+2
+         g3VYc3HGQd7sR+EuKdNY4jJU52Ux9W4ra963MZCOiy1ZxS8MHr4MttTBSVht/VCDOqj1
+         SbMe5qm4016zyHMK3qu41zaWUzepOQLa/G91jJRC/oerAw0YQIafNxVHT/LH/chw15vi
+         20rhd3Bl6UUJI1nyasqk/n2lcMhXg+aIljeXgrEdycn5xu6i4EyC6crb4jaV52a4mPZh
+         +cSA==
 In-Reply-To: <1468138073-4870-1-git-send-email-kusumi.tomohiro@gmail.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
@@ -23,38 +23,29 @@ Content-Transfer-Encoding: 7bit
 To: raven@themaw.net, autofs@vger.kernel.org
 Cc: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 
+All other warnings use "cmd(0x%08x)" and this is the only one with "cmd(%d)".
+(below comes from my userspace debug program, but not automount daemon)
+
+[ 1139.905676] autofs4:pid:1640:check_dev_ioctl_version: ioctl control interface version mismatch: kernel(1.0), user(0.0), cmd(-1072131215)
+
 Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 ---
- fs/autofs4/root.c              | 2 +-
- include/linux/auto_dev-ioctl.h | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ fs/autofs4/dev-ioctl.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
-index b5e6f64..a00e71b 100644
---- a/fs/autofs4/root.c
-+++ b/fs/autofs4/root.c
-@@ -645,7 +645,7 @@ static int autofs4_dir_unlink(struct inode *dir, struct dentry *dentry)
-  * Version 4 of autofs provides a pseudo direct mount implementation
-  * that relies on directories at the leaves of a directory tree under
-  * an indirect mount to trigger mounts. To allow for this we need to
-- * set the DMANAGED_AUTOMOUNT and DMANAGED_TRANSIT flags on the leaves
-+ * set the DCACHE_NEED_AUTOMOUNT and DCACHE_MANAGE_TRANSIT flags on the leaves
-  * of the directory tree. There is no need to clear the automount flag
-  * following a mount or restore it after an expire because these mounts
-  * are always covered. However, it is necessary to ensure that these
-diff --git a/include/linux/auto_dev-ioctl.h b/include/linux/auto_dev-ioctl.h
-index bf82e3a..f7e1f2c 100644
---- a/include/linux/auto_dev-ioctl.h
-+++ b/include/linux/auto_dev-ioctl.h
-@@ -122,7 +122,7 @@ static inline void init_autofs_dev_ioctl(struct autofs_dev_ioctl *in)
- 
- /*
-  * If you change this make sure you make the corresponding change
-- * to autofs-dev-ioctl.c:lookup_ioctl()
-+ * to fs/autofs4/dev-ioctl.c:lookup_dev_ioctl()
-  */
- enum {
- 	/* Get various version info */
+diff --git a/fs/autofs4/dev-ioctl.c b/fs/autofs4/dev-ioctl.c
+index 3a1a969..53dfd7d 100644
+--- a/fs/autofs4/dev-ioctl.c
++++ b/fs/autofs4/dev-ioctl.c
+@@ -75,7 +75,7 @@ static int check_dev_ioctl_version(int cmd, struct autofs_dev_ioctl *param)
+ 	if ((param->ver_major != AUTOFS_DEV_IOCTL_VERSION_MAJOR) ||
+ 	    (param->ver_minor > AUTOFS_DEV_IOCTL_VERSION_MINOR)) {
+ 		pr_warn("ioctl control interface version mismatch: "
+-			"kernel(%u.%u), user(%u.%u), cmd(%d)\n",
++			"kernel(%u.%u), user(%u.%u), cmd(0x%08x)\n",
+ 			AUTOFS_DEV_IOCTL_VERSION_MAJOR,
+ 			AUTOFS_DEV_IOCTL_VERSION_MINOR,
+ 			param->ver_major, param->ver_minor, cmd);
 -- 
 2.5.5
 
