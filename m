@@ -1,66 +1,101 @@
-From: "Marion, Mike" <mmarion@qualcomm.com>
-Subject: Re: documentation issues
-Date: Wed, 13 Jul 2016 02:17:42 +0000
-Message-ID: <20160713021741.GJ18749@qualcomm.com>
-References: <cec586e96030cbbc150886909bf34a45@dds.nl>
- <1467766653.4580.46.camel@themaw.net>
- <120efa5371880caa1f603fb7a4cded84@dds.nl>
- <1467809314.4580.172.camel@themaw.net>
- <9c9a4677493eb868dc68f02d8e5b10c7@dds.nl>
- <1468246190.3102.121.camel@themaw.net>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [PATCH 03/12] autofs: Fix AUTOFS_DEV_IOCTL_IOC_COUNT value
+Date: Tue, 19 Jul 2016 09:34:15 +0800
+Message-ID: <1468892055.5120.29.camel@themaw.net>
+References: <1468138073-4870-1-git-send-email-kusumi.tomohiro@gmail.com>
+	 <1468138073-4870-3-git-send-email-kusumi.tomohiro@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
-  d=qualcomm.com; i=@qualcomm.com; q=dns/txt; s=qcdkim;
-  t=1468376285; x=1499912285;
-  h=from:to:cc:subject:thread-topic:thread-index:date:
-   message-id:references:in-reply-to:accept-language:
-   content-language:x-ms-has-attach:x-ms-tnef-correlator:
-   user-agent:x-operating-system:x-distribution:
-   x-ms-exchange-messagesentrepresentingtype:
-   x-ms-exchange-transport-fromentityheader:x-originating-ip:
-   content-type:content-id:content-transfer-encoding:
-   mime-version;
-  bh=YU6VwaIteJyi8mW9WWbN0P6CwZ0xwWuxxUZbTYmkzAE=;
-  b=cdvUmvBOQYTM66jgEQtCphyLGFq3OZNzJpk4LR0LJMsxKCG5L64rgoPa
-   HSGxFj+2f6O4L6gIvp4GlUDCQgqiUQpoA9nAZ6CY0ONRAbsmvXeFVEmIe
-   C24irT73Jjfco4fJNVX9uNQv30gj6r1IKBzLj6CZif5/uklmxhp8K9GPR
-   M=;
-In-Reply-To: <1468246190.3102.121.camel@themaw.net>
-Content-Language: en-US
-Content-ID: <D89853DEB551944199835F9B7988155C@qualcomm.com>
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
+	content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to:x-sasl-enc
+	:x-sasl-enc; s=mesmtp; bh=TtMo2x48rQychZwOcsdDHGr5omQ=; b=jLRcWx
+	a3IHrIA1muhfEdYukOKOpymcxprGcqCUsvZhpwhqO3dnoGQ7nKRA4Ixj/LqNqH7d
+	OkZP4afYhVj1fpJpuj4tIXlqtfc+Rk6F+F/tXd1K+fmdC7lsrU6DdUR12zyppsy8
+	1AP8Uknxe3ERdgC74VMUg3ZoSi2esM9+6QSk4=
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
+	messagingengine.com; h=content-transfer-encoding:content-type
+	:date:from:in-reply-to:message-id:mime-version:references
+	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=TtMo2x48rQychZw
+	OcsdDHGr5omQ=; b=neUXNZq6q1fF24buerLo+XaiH0O1ahVcujepdZ3TFHyRUp+
+	Ak0F5MwbcsbaPzb2Ho2f/L3g/oYWm+gDmsbXhm+zljqcj4FCZi6bfslqeW7mcHAB
+	25iQZk9abHO9HSk7HMPWWjUhUA8Ag8FPeH5npqmpO1QRaNT8BKT17Oe2fZeQ=
+In-Reply-To: <1468138073-4870-3-git-send-email-kusumi.tomohiro@gmail.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-To: Ian Kent <raven@themaw.net>
-Cc: Autofs <autofs@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>, autofs@vger.kernel.org
 
-On Mon, Jul 11, 2016 at 10:09:50PM +0800, Ian Kent wrote:
-
-> What is needed is a re-write of the user space <-> kernel space communication
-> essentially to add readdir functionality.
+On Sun, 2016-07-10 at 17:07 +0900, Tomohiro Kusumi wrote:
+> According to include/uapi/linux/auto_fs.h, include/uapi/linux/auto_fs4.h,
+> and include/linux/auto_dev-ioctl.h, nr part of
+> AUTOFS_IOC_XXX starts off from 0x60 and
+> AUTOFS_DEV_IOCTL_XXX starts off from 0x71 which is 0x60+0x11.
 > 
-> So that listing a directory would show the possible map mount points without the
-> need to create the mount point directories.
+> From the way above macros are defined, it seems
+> AUTOFS_DEV_IOCTL_IOC_COUNT should be (0x20-0x11) instead of (0x20-11).
+> (Otherwise it's hard to figure out where 11 comes from)
 
-Oh my god.. we need this!  
+You're correct, this is wrong but I think this change is also wrong.
 
-We have huge direct maps here and with the changing of /etc/mtab to a
-link to /proc/self/mounts things have gotten horrible.  We've worked
-with suse to help speed up the start of autofs (it was taking 6+ hours
-to simply start the first time due to how automount reads the mtab file,
-stats paths, does the mkdir, etc).  But things like mkinitrd running
-with our huge maps loaded can take 20-30 min due to all the parsing
-different steps do for various filesystem checks. I've learned to stop
-automount and do a full umount -t autofs -a before running something
-like a zypper update with a kernel upgrade.
+And so is the range check in dev-ioctl.c.
 
--- 
-Mike Marion-Unix SysAdmin/Sr. Staff IT Engineer-http://www.qualcomm.com
-Brian: "So enlighten us, what's your idea of the perfect man?"
-Helen: "Oh, I don't know...  Solid, sensitive and dependable, but with a sense of 
-whimsy, a love of music and children.  A sense of commitment but a respect for my 
-independence; adventurous yet a homebody... I really hadn't thought about it that 
-much."  Joe: "Sounds great Helen, but Kermit is a frog."  => Wings--
+There's no check for an ioctl number greater than the range claimed by autofs
+and the check in dev-ioctl.c seeks to check the number used is within the range
+used by the dev ioctls.
+
+Essentially
+
+AUTOFS_DEV_IOCTL_VERSION_CMD - AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD = 0xd
+
+14 ioctls ranging from 0x71 - 0x7e (inclusive).
+
+The range check in dev-ioctl.c is:
+
+        if (_IOC_TYPE(command) != _IOC_TYPE(AUTOFS_DEV_IOCTL_IOC_FIRST) ||
+            cmd - cmd_first >= AUTOFS_DEV_IOCTL_IOC_COUNT) {
+                return -ENOTTY;
+        }
+
+so I think AUTOFS_DEV_IOCTL_IOC_COUNT should be:
+
+#define AUTOFS_DEV_IOCTL_IOC_COUNT \
+	(AUTOFS_DEV_IOCTL_VERSION_CMD - AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD)
+
+and the check should be:
+
+        if (_IOC_TYPE(command) != _IOC_TYPE(AUTOFS_DEV_IOCTL_IOC_FIRST) ||
+      
+      cmd_first - cmd >= AUTOFS_DEV_IOCTL_IOC_COUNT) {
+                return 
+-ENOTTY;
+        }
+
+What do you think?
+
+> 
+> COUNT macros are being used to test distance of an ioctl command
+> in question from the smallest one, so we don't want it to be
+> larger than necessary.
+> 
+> Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
+> ---
+>  fs/autofs4/autofs_i.h | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
+> index 73e3d38..7ef4d08 100644
+> --- a/fs/autofs4/autofs_i.h
+> +++ b/fs/autofs4/autofs_i.h
+> @@ -20,7 +20,7 @@
+>  #define AUTOFS_IOC_COUNT     32
+>  
+>  #define AUTOFS_DEV_IOCTL_IOC_FIRST	(AUTOFS_DEV_IOCTL_VERSION)
+> -#define AUTOFS_DEV_IOCTL_IOC_COUNT	(AUTOFS_IOC_COUNT - 11)
+> +#define AUTOFS_DEV_IOCTL_IOC_COUNT	(AUTOFS_IOC_COUNT - 0x11)
+>  
+>  #include <linux/kernel.h>
+>  #include <linux/slab.h>
+--
 To unsubscribe from this list: send the line "unsubscribe autofs" in
