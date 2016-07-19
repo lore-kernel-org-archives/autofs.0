@@ -1,177 +1,124 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 2/2] autofs-5.1.2 - Change .requestor to .requester for
- consistency
-Date: Tue, 19 Jul 2016 11:26:59 +0800
-Message-ID: <1468898819.5120.35.camel@themaw.net>
-References: <1468138220-4952-1-git-send-email-kusumi.tomohiro@gmail.com>
-	 <1468138220-4952-2-git-send-email-kusumi.tomohiro@gmail.com>
+From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
+Subject: Re: [PATCH 03/12] autofs: Fix AUTOFS_DEV_IOCTL_IOC_COUNT value
+Date: Wed, 20 Jul 2016 04:29:04 +0900
+Message-ID: <CAHndrBmcKOk+YMxfNcBOX8jJj1H96=WpQNw1bMzL0sRhRP4Tdg@mail.gmail.com>
+References: <1468138073-4870-1-git-send-email-kusumi.tomohiro@gmail.com>
+ <1468138073-4870-3-git-send-email-kusumi.tomohiro@gmail.com> <1468892055.5120.29.camel@themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
-	content-transfer-encoding:content-type:date:from:in-reply-to
-	:message-id:mime-version:references:subject:to:x-sasl-enc
-	:x-sasl-enc; s=mesmtp; bh=EEfIeY1jAzvp0ntgnaZgRr1yBi4=; b=PoAmLp
-	G2ViIgzWJzFqMpqNVSPvAtfMfROXJQWwkEWe5PFHBtUF/wHrEXy83zIeLf1IES7f
-	Vg6+p8oOQEhePCCdypfBleGO2n6WAin0HKoRsHNLAslsHJzu6YCCRMNkRJ14STPe
-	ATSlsnJF6N5jl6RbViyxPqsJfLaCPttqZcwLQ=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-	messagingengine.com; h=content-transfer-encoding:content-type
-	:date:from:in-reply-to:message-id:mime-version:references
-	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=EEfIeY1jAzvp0nt
-	gnaZgRr1yBi4=; b=gHtGLUfXi0CGtx8kbUs/h06JCDfyCtM4pyAJdg6lqu6szxs
-	imkpKFzyc9+8fqSJmkjF2IigP9tN2soGDwDIxYyEwdfJhJoPX2D5zoHBaRcwVUNI
-	b7fHPysxmkeBTzlnvjip5gjp48JYqLSmZlS5OpV3z7QFUTMviKzYdfC4XDr0=
-In-Reply-To: <1468138220-4952-2-git-send-email-kusumi.tomohiro@gmail.com>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20120113;
+        h=mime-version:in-reply-to:references:from:date:message-id:subject:to
+         :cc;
+        bh=NGDQWLWkaUMEqZX3NWUVwXmmcZtliwfLbqjb1eMQ31I=;
+        b=cSRO4DnMSjlz4bMw0YtDxcSM6NUB2xP8XUwQ7XH1mEFHJU3ii6KWH1vZuE9PQFpuVR
+         2na1x4nsy6ZNP2fyUjZRl+/dG1NK4cgqLAiiwDbJPpE01Slnv9NLykWnR1NH7r1zceQz
+         haHR5yLJ8zYXNlD9US7wuT/3ykD7Zty4mDsOghXeLa3TPccko62em5hPOdkcv8nPFDD+
+         mtAfvkHw4VlCJb+wmFoKORuY6X62NqzIT7uvid4X8ZqWyKAn9agpj8elFQ/wxlbBEjr0
+         NsRDV3+R8ESEBCxiCLRD+S/SmzYC5bXwyAs0LDpix7j+bep73/+9LHAfJWp9E2pn4P41
+         k8/Q==
+In-Reply-To: <1468892055.5120.29.camel@themaw.net>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>, autofs@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@vger.kernel.org
 
-On Sun, 2016-07-10 at 17:10 +0900, Tomohiro Kusumi wrote:
-> Since the name of ioctl command is AUTOFS_DEV_IOCTL_REQUESTER,
-> we should use .requester for consistency, assuming autofs
-> userspace doesn't have intention to provide these interface
-> for external programs or libraries which break api compatibiliy.
-> 
-> Also note that kernel code of autofs uses "requester".
+Thanks for your review,
 
-Added to the patches list.
+Yes, yours apparently works and that's exactly the right test based on
+currently existing ioctl cmds.
+I first thought about changing it like you did, but thought about
+meaning of AUTOFS_IOC_COUNT which is 32.
 
-> 
-> Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
-> ---
->  daemon/automount.c      |  2 +-
->  include/automount.h     |  4 ++--
->  include/dev-ioctl-lib.h |  2 +-
->  lib/dev-ioctl-lib.c     | 10 +++++-----
->  lib/mounts.c            |  4 ++--
->  5 files changed, 11 insertions(+), 11 deletions(-)
-> 
-> diff --git a/daemon/automount.c b/daemon/automount.c
-> index ad5cafd..fee93cc 100644
-> --- a/daemon/automount.c
-> +++ b/daemon/automount.c
-> @@ -238,7 +238,7 @@ int rmdir_path(struct autofs_point *ap, const char *path,
-> dev_t dev)
->  			crit(ap->logopt, "attempt to remove directory from a
-> "
->  			     "non-autofs filesystem!");
->  			crit(ap->logopt,
-> -			     "requestor dev == %llu, \"%s\" owner dev ==
-> %llu",
-> +			     "requester dev == %llu, \"%s\" owner dev ==
-> %llu",
->  			     dev, buf, st.st_dev);
->  			return -1;
->  		}
-> diff --git a/include/automount.h b/include/automount.h
-> index c0f5fbf..2029e3d 100644
-> --- a/include/automount.h
-> +++ b/include/automount.h
-> @@ -425,8 +425,8 @@ struct pending_args {
->  	char name[PATH_MAX];		/* Name field of the request */
->  	dev_t dev;			/* device number of mount */
->  	unsigned int len;		/* Name field len */
-> -	uid_t uid;			/* uid of requestor */
-> -	gid_t gid;			/* gid of requestor */
-> +	uid_t uid;			/* uid of requester */
-> +	gid_t gid;			/* gid of requester */
->  	unsigned long wait_queue_token;	/* Associated kernel wait
-> token */
->  };
->  
-> diff --git a/include/dev-ioctl-lib.h b/include/dev-ioctl-lib.h
-> index b96e0dd..eb9075c 100644
-> --- a/include/dev-ioctl-lib.h
-> +++ b/include/dev-ioctl-lib.h
-> @@ -46,7 +46,7 @@ struct ioctl_ops {
->  	int (*setpipefd)(unsigned int, int, int);
->  	int (*catatonic)(unsigned int, int);
->  	int (*timeout)(unsigned int, int, time_t);
-> -	int (*requestor)(unsigned int, int, const char *, uid_t *, gid_t *);
-> +	int (*requester)(unsigned int, int, const char *, uid_t *, gid_t *);
->  	int (*expire)(unsigned int, int, const char *, unsigned int);
->  	int (*askumount)(unsigned int, int, unsigned int *);
->  	int (*ismountpoint)(unsigned int, int, const char *, unsigned int *);
-> diff --git a/lib/dev-ioctl-lib.c b/lib/dev-ioctl-lib.c
-> index 85b3272..e851923 100644
-> --- a/lib/dev-ioctl-lib.c
-> +++ b/lib/dev-ioctl-lib.c
-> @@ -56,7 +56,7 @@ static int dev_ioctl_send_fail(unsigned int, int, unsigned
-> int, int);
->  static int dev_ioctl_setpipefd(unsigned int, int, int);
->  static int dev_ioctl_catatonic(unsigned int, int);
->  static int dev_ioctl_timeout(unsigned int, int, time_t);
-> -static int dev_ioctl_requestor(unsigned int, int, const char *, uid_t *,
-> gid_t *);
-> +static int dev_ioctl_requester(unsigned int, int, const char *, uid_t *,
-> gid_t *);
->  static int dev_ioctl_expire(unsigned int, int, const char *, unsigned int);
->  static int dev_ioctl_askumount(unsigned int, int, unsigned int *);
->  static int dev_ioctl_ismountpoint(unsigned int, int, const char *, unsigned
-> int *);
-> @@ -85,7 +85,7 @@ static struct ioctl_ops dev_ioctl_ops = {
->  	.setpipefd	= dev_ioctl_setpipefd,
->  	.catatonic	= dev_ioctl_catatonic,
->  	.timeout	= dev_ioctl_timeout,
-> -	.requestor	= dev_ioctl_requestor,
-> +	.requester	= dev_ioctl_requester,
->  	.expire		= dev_ioctl_expire,
->  	.askumount	= dev_ioctl_askumount,
->  	.ismountpoint	= dev_ioctl_ismountpoint
-> @@ -103,7 +103,7 @@ static struct ioctl_ops ioctl_ops = {
->  	.setpipefd	= NULL,
->  	.catatonic	= ioctl_catatonic,
->  	.timeout	= ioctl_timeout,
-> -	.requestor	= NULL,
-> +	.requester	= NULL,
->  	.expire		= ioctl_expire,
->  	.askumount	= ioctl_askumount,
->  	.ismountpoint	= NULL
-> @@ -261,7 +261,7 @@ static void free_dev_ioctl_open(struct autofs_dev_ioctl
-> *ioctl)
->  
->  /*
->   * Allocate a parameter struct for misc device ioctl which includes
-> - * a path. This is used when getting the last mount requestor uid
-> + * a path. This is used when getting the last mount requester uid
->   * and gid and when checking if a path within the autofs filesystem
->   * is a mount point. We add the path to the end of the struct.
->   */
-> @@ -607,7 +607,7 @@ static int ioctl_timeout(unsigned int logopt, int ioctlfd,
-> time_t timeout)
->   * process uid and gid (or string variations of them) for mount
->   * lookups within the map entry.
->   */
-> -static int dev_ioctl_requestor(unsigned int logopt,
-> +static int dev_ioctl_requester(unsigned int logopt,
->  			       int ioctlfd, const char *path,
->  			       uid_t *uid, gid_t *gid)
->  {
-> diff --git a/lib/mounts.c b/lib/mounts.c
-> index 1d1b4da..db24395 100644
-> --- a/lib/mounts.c
-> +++ b/lib/mounts.c
-> @@ -1602,7 +1602,7 @@ static int do_remount_direct(struct autofs_point *ap,
-> int fd, const char *path)
->  	gid_t gid;
->  	int ret;
->  
-> -	ops->requestor(ap->logopt, fd, path, &uid, &gid);
-> +	ops->requester(ap->logopt, fd, path, &uid, &gid);
->  	if (uid != -1 && gid != -1)
->  		set_tsd_user_vars(ap->logopt, uid, gid);
->  
-> @@ -1671,7 +1671,7 @@ static int do_remount_indirect(struct autofs_point *ap,
-> int fd, const char *path
->  			}
->  		}
->  
-> -		ops->requestor(ap->logopt, fd, buf, &uid, &gid);
-> +		ops->requester(ap->logopt, fd, buf, &uid, &gid);
->  		if (uid != -1 && gid != -1)
->  			set_tsd_user_vars(ap->logopt, uid, gid);
->  
+I took this 32 as some sort of reserved range for autofs ioctl cmds,
+where the whole ioctl cmds are designed to be somewhere in 0x60-0x80
+range, and /dev/autofs ioctl cmds are in 0x71-0x80 range.
+So in theory a potential ioctl cmd for /dev/autofs counting from the
+smallest cmd must be no larger than 32-0x11 (or 0x80-0x71).
+
+I've no idea what this reservation/limitation up to 0x80 is supposed
+to mean though, as ioctl has 8 bits for nr part.
+If you say this 32 is meaningless, I'll resubmit it with your proposed change.
+
+
+     0x60               0x71            0x80
+-----+------------------+---------------+------------------> NR
+     <----------------------------------> AUTOFS_IOC_COUNT (32)
+                        <---------------> AUTOFS_DEV_IOCTL_IOC_COUNT
+
+
+2016-07-19 10:34 GMT+09:00 Ian Kent <raven@themaw.net>:
+> On Sun, 2016-07-10 at 17:07 +0900, Tomohiro Kusumi wrote:
+>> According to include/uapi/linux/auto_fs.h, include/uapi/linux/auto_fs4.h,
+>> and include/linux/auto_dev-ioctl.h, nr part of
+>> AUTOFS_IOC_XXX starts off from 0x60 and
+>> AUTOFS_DEV_IOCTL_XXX starts off from 0x71 which is 0x60+0x11.
+>>
+>> From the way above macros are defined, it seems
+>> AUTOFS_DEV_IOCTL_IOC_COUNT should be (0x20-0x11) instead of (0x20-11).
+>> (Otherwise it's hard to figure out where 11 comes from)
+>
+> You're correct, this is wrong but I think this change is also wrong.
+>
+> And so is the range check in dev-ioctl.c.
+>
+> There's no check for an ioctl number greater than the range claimed by autofs
+> and the check in dev-ioctl.c seeks to check the number used is within the range
+> used by the dev ioctls.
+>
+> Essentially
+>
+> AUTOFS_DEV_IOCTL_VERSION_CMD - AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD = 0xd
+>
+> 14 ioctls ranging from 0x71 - 0x7e (inclusive).
+>
+> The range check in dev-ioctl.c is:
+>
+>         if (_IOC_TYPE(command) != _IOC_TYPE(AUTOFS_DEV_IOCTL_IOC_FIRST) ||
+>             cmd - cmd_first >= AUTOFS_DEV_IOCTL_IOC_COUNT) {
+>                 return -ENOTTY;
+>         }
+>
+> so I think AUTOFS_DEV_IOCTL_IOC_COUNT should be:
+>
+> #define AUTOFS_DEV_IOCTL_IOC_COUNT \
+>         (AUTOFS_DEV_IOCTL_VERSION_CMD - AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD)
+>
+> and the check should be:
+>
+>         if (_IOC_TYPE(command) != _IOC_TYPE(AUTOFS_DEV_IOCTL_IOC_FIRST) ||
+>
+>       cmd_first - cmd >= AUTOFS_DEV_IOCTL_IOC_COUNT) {
+>                 return
+> -ENOTTY;
+>         }
+>
+> What do you think?
+>
+>>
+>> COUNT macros are being used to test distance of an ioctl command
+>> in question from the smallest one, so we don't want it to be
+>> larger than necessary.
+>>
+>> Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
+>> ---
+>>  fs/autofs4/autofs_i.h | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
+>> index 73e3d38..7ef4d08 100644
+>> --- a/fs/autofs4/autofs_i.h
+>> +++ b/fs/autofs4/autofs_i.h
+>> @@ -20,7 +20,7 @@
+>>  #define AUTOFS_IOC_COUNT     32
+>>
+>>  #define AUTOFS_DEV_IOCTL_IOC_FIRST   (AUTOFS_DEV_IOCTL_VERSION)
+>> -#define AUTOFS_DEV_IOCTL_IOC_COUNT   (AUTOFS_IOC_COUNT - 11)
+>> +#define AUTOFS_DEV_IOCTL_IOC_COUNT   (AUTOFS_IOC_COUNT - 0x11)
+>>
+>>  #include <linux/kernel.h>
+>>  #include <linux/slab.h>
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
