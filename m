@@ -1,55 +1,57 @@
-From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
-Subject: [PATCH 3/3] autofs-5.1.2 - Fix fgets(3) size argument (another one)
-Date: Sat, 30 Jul 2016 13:35:39 +0900
-Message-ID: <1469853339-2291-3-git-send-email-kusumi.tomohiro@gmail.com>
-References: <1469853339-2291-1-git-send-email-kusumi.tomohiro@gmail.com>
+From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Subject: [PATCH] configure: add cache variable for Linux proc filesystem check
+Date: Sat, 30 Jul 2016 22:32:05 +0200
+Message-ID: <1469910725-11607-1-git-send-email-thomas.petazzoni@free-electrons.com>
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20120113;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=fQKaSUwFz8h401VWS8Kmr/4KZaxIryv4ZkNIOPGDsiA=;
-        b=GiKj0abiSJP1qOz0WHOofXDs35/pxR4ADTdjdjQJ9qKPFxkvs+OFso0loQo9xaQIS9
-         6VNslTU6i49KiR78tA3q9b4y6EkSUF5KgXBFqLjUNTlcgPdze2niOh99GvBeq7vV6uUb
-         JeRRXdTjBAqnc9QxkocK7NJuK/c7frXVHPZ9/ZiagEQhwXc6NAfxDgwWzMAun0U0aSkm
-         M2zeNKpg+dzL0x4gf1ftr+892s5ZbzM36k/yfMg7e1y7+0xAgnKVa7je+53vTxSgH9Fh
-         4PaiinM5BVMYDKP4FHdg4O7PCzGqS/dvMkztdZSbRx/ER3DvXx6bv8LmHjiM9j0A89oj
-         TLyA==
-In-Reply-To: <1469853339-2291-1-git-send-email-kusumi.tomohiro@gmail.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: raven@themaw.net, autofs@vger.kernel.org
-Cc: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@vger.kernel.org, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
 
-1. fgets(3) reads at most 1 less then the size argument.
-2. Each line of /proc/filesystem isn't a filesystem path.
+When cross-compiling, whether the /proc filesystem is available in the
+build environment does not give any indication as to whether it will
+be available in the execution environment.
 
-So it doesn't really matter if the size argument is PATH_MAX-1
-or PATH_MAX (=sizeof(buf)) as long as the buffer is large enough.
-We can just use sizeof(buf).
+This commit therefore adjust the AF_LINUX_PROCFS macro to use
+AC_CACHE_CHECK(), so that an ac_cv_linux_procfs variable can be
+preseeded in the environment to force the result of this check.
 
-Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
+Signed-off-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
 ---
- daemon/module.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ aclocal.m4 | 15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
-diff --git a/daemon/module.c b/daemon/module.c
-index bed8f7a..6cf7b7b 100644
---- a/daemon/module.c
-+++ b/daemon/module.c
-@@ -38,7 +38,7 @@ int load_autofs4_module(void)
- 		return 0;
- 	}
- 
--	while (fgets(buf, PATH_MAX - 1, fp)) {
-+	while (fgets(buf, sizeof(buf), fp)) {
- 		if (strstr(buf, "autofs")) {
- 			fclose(fp);
- 			return 1;
+diff --git a/aclocal.m4 b/aclocal.m4
+index 2115204..333699c 100644
+--- a/aclocal.m4
++++ b/aclocal.m4
+@@ -80,16 +80,11 @@ dnl
+ dnl Check for the Linux /proc filesystem
+ dnl --------------------------------------------------------------------------
+ AC_DEFUN(AF_LINUX_PROCFS,
+-[AC_MSG_CHECKING(for Linux proc filesystem)
+-if test "x`cat /proc/sys/kernel/ostype 2>&-`" = "xLinux"
+-then
+-	linux_procfs=yes
+-else
+-	linux_procfs=no
+-fi
+-AC_MSG_RESULT($linux_procfs)
+-if test $linux_procfs = yes
+-then
++[AC_CACHE_CHECK([for Linux proc filesystem], [ac_cv_linux_procfs],
++	[ac_cv_linux_procfs=no
++	 test "x`cat /proc/sys/kernel/ostype 2>&-`" = "xLinux" && ac_cv_linux_procfs=yes])
++ if test $ac_cv_linux_procfs = yes
++ then
+ 	AC_DEFINE(HAVE_LINUX_PROCFS, 1,
+ 		[Define if you have the Linux /proc filesystem.])
+ fi])
 -- 
-2.5.5
+2.7.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
