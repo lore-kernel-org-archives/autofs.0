@@ -1,18 +1,20 @@
 From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
-Subject: [PATCH 1/3] autofs-5.1.2 - Remove unused local 2KB buffer
-Date: Sat, 30 Jul 2016 13:35:37 +0900
-Message-ID: <1469853339-2291-1-git-send-email-kusumi.tomohiro@gmail.com>
+Subject: [PATCH 2/3] autofs-5.1.2 - Fix typos in error messages
+Date: Sat, 30 Jul 2016 13:35:38 +0900
+Message-ID: <1469853339-2291-2-git-send-email-kusumi.tomohiro@gmail.com>
+References: <1469853339-2291-1-git-send-email-kusumi.tomohiro@gmail.com>
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20120113;
-        h=from:to:cc:subject:date:message-id;
-        bh=aM2P0z/XgAoQ9zlBk7SDYYgrP6g6f1GYR7aiLtJPodE=;
-        b=QT1/T/rDXv8QyqwgSmwwoG5EbmNHPBcdpJVWodjbEnE60BaGHev/z6qn/ypbaKVpdg
-         DsGO1RDUNU1X/9UPsbDT1Ow3o3x0kJoxmeDazA08wDFt+VcXK/ZWyel5Kt7UuBBMtE4N
-         rWUqbw5ZqaYphGyMmJoBM3ZBDaSrZfQK5DmIKvz0pVZzUnVTGuPFCxFHF6IaFhRv93r8
-         u1AK3PDJjYn57zJQAWJ/ve6eWHnru13RpBcsmvY0HH+xrfy3b+5+wbe6oKCHRpw0xwcr
-         GhFeHAN8D5efId/bNfKg80xBXZmR4vS1luD6njb9Cel/+RpWIEDsy6pvZ8r+CVHxLjhc
-         VwJg==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references;
+        bh=zZNJL9VefJLc8RO7H0292maaWohEIhUyBb8aXCma16Q=;
+        b=d5fCCu9XjFsnfg+1nt0NpGwxiMmSG3oN4N7w55f6UNPiv35O9oEhz9HObyAuwUbVSk
+         JaSNuAEUs5nD/TddePyFBuD83K5y3dtJ45VFxpzXV8lX+gIpMyPDP7aMRqKIv4ihzGHW
+         7XzMIjI71jgWQN2uq4+jdEbnej0OlNCx2WJcNqvWHAaARZPFVwg0cB+REl2ql15nrp22
+         fbcwy8jfAZ+qOw5LpPlo396HXowjKXnDPAxd6YZoE+sh/oohiGoIr+JyNQBp3SqBj0My
+         E3b8PVBW0zCyYiVBTYqUv+AeFTAGRyWMnWDuhyoX/accMLxpkdO9mDcD7zd8nNF35ay4
+         mkIw==
+In-Reply-To: <1469853339-2291-1-git-send-email-kusumi.tomohiro@gmail.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 MIME-Version: 1.0
@@ -23,30 +25,54 @@ Cc: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 
 Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 ---
- daemon/automount.c | 3 ---
- 1 file changed, 3 deletions(-)
+ daemon/automount.c | 4 ++--
+ daemon/state.c     | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/daemon/automount.c b/daemon/automount.c
-index ad5cafd..3afa860 100644
+index 3afa860..ca5e090 100644
 --- a/daemon/automount.c
 +++ b/daemon/automount.c
-@@ -1901,7 +1901,6 @@ static void usage(void)
+@@ -945,7 +945,7 @@ static int set_log_priority(const char *path, int priority)
  
- static void show_build_info(void)
- {
--	char buf[2048];
- 	int count = 0;
+ 	if (priority > LOG_DEBUG || priority < LOG_EMERG) {
+ 		fprintf(stderr, "Log priority %d is invalid.\n", priority);
+-		fprintf(stderr, "Please spcify a number in the range 0-7.\n");
++		fprintf(stderr, "Please specify a number in the range 0-7.\n");
+ 		return -1;
+ 	}
  
- 	printf("\nLinux automount version %s\n", version);
-@@ -1913,8 +1912,6 @@ static void show_build_info(void)
+@@ -1078,7 +1078,7 @@ int do_expire(struct autofs_point *ap, const char *name, int namelen)
+ 	}
  
- 	printf("\nCompile options:\n  ");
+ 	if (!len) {
+-		crit(ap->logopt, "path to long for buffer");
++		crit(ap->logopt, "path too long for buffer");
+ 		return 1;
+ 	}
  
--	memset(buf, 0, 2048);
--
- #ifndef ENABLE_MOUNT_LOCKING
- 	printf("DISABLE_MOUNT_LOCKING ");
- 	count = 22;
+diff --git a/daemon/state.c b/daemon/state.c
+index ed533da..5d81438 100644
+--- a/daemon/state.c
++++ b/daemon/state.c
+@@ -575,7 +575,7 @@ static unsigned int st_readmap(struct autofs_point *ap)
+ 
+ 	ra = malloc(sizeof(struct readmap_args));
+ 	if (!ra) {
+-		error(ap->logopt, "failed to malloc reamap cond struct");
++		error(ap->logopt, "failed to malloc readmap cond struct");
+ 		/* It didn't work: return to ready */
+ 		st_ready(ap);
+ 		if (!ap->submount)
+@@ -600,7 +600,7 @@ static unsigned int st_readmap(struct autofs_point *ap)
+ 
+ 	status = pthread_create(&thid, &th_attr_detached, do_readmap, ra);
+ 	if (status) {
+-		error(ap->logopt, "read map thread create failed");
++		error(ap->logopt, "readmap thread create failed");
+ 		st_readmap_cleanup(ra);
+ 		free(ra);
+ 		/* It didn't work: return to ready */
 -- 
 2.5.5
 
