@@ -1,27 +1,27 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 08/18] autofs: Remove obsolete sb fields
-Date: Fri, 12 Aug 2016 10:48:10 +0800
-Message-ID: <20160812024810.12352.96377.stgit@pluto.themaw.net>
+Subject: [PATCH 10/18] autofs: Remove AUTOFS_DEVID_LEN
+Date: Fri, 12 Aug 2016 10:48:20 +0800
+Message-ID: <20160812024820.12352.21210.stgit@pluto.themaw.net>
 References: <20160812024734.12352.17122.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=cc
 	:content-transfer-encoding:content-type:date:from:in-reply-to
 	:message-id:mime-version:references:subject:to:x-sasl-enc
-	:x-sasl-enc; s=mesmtp; bh=6lNM6eURirB3s7Wqc9DJLWEigxI=; b=UT7PrP
-	49Sv1EbVsShkV6Y60FS5738gn+Ag0n4r85r05gyRfp1MmumZfpYMfaRcCENR7Yo3
-	bhaCU/qjqiGatTiLsBa2TfOSPJ+oGeNOn62VvYBdtAd2+HHAlHq4miptVylOukfT
-	+aY2UmocsJzvX7594OQcTfqvKeTqTHFe9inaw=
+	:x-sasl-enc; s=mesmtp; bh=foG8Sf7VQp///bDi1Bigh5XgYSs=; b=vJa9P6
+	WbNYTr2yZlquekImvoLiHAWu/X/zlKyULESeqW3LxmMKYRjiyZsDFHIHDGEXN+MM
+	l9QDFfeerZVLv2pZMjnEp7wySUGazKsqeF+16f9KDEb6oAgH7jNL/++sZaMnA07/
+	404xxqalW4s2iYvT4feWL5VGDfZaH13h6mvms=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=cc:content-transfer-encoding:content-type
 	:date:from:in-reply-to:message-id:mime-version:references
-	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=6lNM6eURirB3s7W
-	qc9DJLWEigxI=; b=Tau7Cn3l+EcUYxBQ1mFNC2qSq8oMoHutuew6705zKZ9jbCc
-	IyyHL9NSCcLGV3IcJidOP6JCTlzkLE5SGHCOBn3JekYvZ1yRMOcNjDQYAj68H6F5
-	AqJAHMp4vhjeUokEB3qkkpu3WfSo3dCUd4kyImY1bc1kkxviFJsDB8nv+x6E=
+	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=foG8Sf7VQp///bD
+	i1Bigh5XgYSs=; b=G40eRDJ2HjjyY8awLrSnItHYz2o+51zAhap5/bEx9z4+l5r
+	z6cny8XlM5CSYwSjPez8zBObj1EyKCF5HN8pSZHdNZjJ953nZl/sY5ZmDP7LUUff
+	8L4688VYcilYi0TmBa0J3J/QIvBfj7JWBLrzrIqo7OuFkAfPHnjiz3bhLnDo=
 In-Reply-To: <20160812024734.12352.17122.stgit@pluto.themaw.net>
-Sender: autofs-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: Andrew Morton <akpm@linux-foundation.org>
@@ -29,27 +29,27 @@ Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, Tomohiro Kusumi <kusumi.tomoh
 
 From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 
-These two were left from aa55ddf3 which removed unused ioctls.
+This macro was never used by neither kernel nor userspace,
+and also doesn't represent "devid length" in bytes.
+(unless it was added to mean something else).
 
 Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 Signed-off-by: Ian Kent <ikent@redhat.com>
 ---
- fs/autofs4/autofs_i.h |    2 --
+ include/linux/auto_dev-ioctl.h |    2 --
  1 file changed, 2 deletions(-)
 
-diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
-index eb87055..73e3d38 100644
---- a/fs/autofs4/autofs_i.h
-+++ b/fs/autofs4/autofs_i.h
-@@ -111,8 +111,6 @@ struct autofs_sb_info {
- 	int max_proto;
- 	unsigned long exp_timeout;
- 	unsigned int type;
--	int reghost_enabled;
--	int needs_reghost;
- 	struct super_block *sb;
- 	struct mutex wq_mutex;
- 	struct mutex pipe_mutex;
+diff --git a/include/linux/auto_dev-ioctl.h b/include/linux/auto_dev-ioctl.h
+index 7caaf29..bf82e3a 100644
+--- a/include/linux/auto_dev-ioctl.h
++++ b/include/linux/auto_dev-ioctl.h
+@@ -18,8 +18,6 @@
+ #define AUTOFS_DEV_IOCTL_VERSION_MAJOR	1
+ #define AUTOFS_DEV_IOCTL_VERSION_MINOR	0
+ 
+-#define AUTOFS_DEVID_LEN		16
+-
+ #define AUTOFS_DEV_IOCTL_SIZE		sizeof(struct autofs_dev_ioctl)
+ 
+ /*
 
---
-To unsubscribe from this list: send the line "unsubscribe autofs" in
