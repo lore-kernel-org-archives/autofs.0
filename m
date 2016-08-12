@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 16/18] autofs: Fix print format for ioctl warning message
-Date: Fri, 12 Aug 2016 10:48:51 +0800
-Message-ID: <20160812024851.12352.75458.stgit@pluto.themaw.net>
+Subject: [PATCH 14/18] autofs - fix dev ioctl number range check
+Date: Fri, 12 Aug 2016 10:48:41 +0800
+Message-ID: <20160812024841.12352.11975.stgit@pluto.themaw.net>
 References: <20160812024734.12352.17122.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -9,17 +9,17 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=cc
 	:content-transfer-encoding:content-type:date:from:in-reply-to
 	:message-id:mime-version:references:subject:to:x-sasl-enc
-	:x-sasl-enc; s=mesmtp; bh=o8GuvIsIt+skLgLefe+VHBjGCA4=; b=xqrh+L
-	NCHSg65aVTZJFKI87HGYeO7pMZlNkQ9exNFEhiT52IfuiR6UecJjkxkxRlAAbp4i
-	BxBA5SwLEP/YFnmpCsgm54oB7KPmRYQIraPQaPCFOPprpEQzj2l+eLuqj3EBRkq1
-	jv0xmrzjE00eo7Duwn5v76B1q86PBj8jOwJU0=
+	:x-sasl-enc; s=mesmtp; bh=8mA4rtaIsYakCUjnJfZMsFxQqgE=; b=gNC1w6
+	Z8ymvbf+WcRO5i+Qw4AvvCYlzFDDBouHi/Mv3TOsZRxhPIyY353R75l77Jd5DZ15
+	o92UOKqwQXN4y+pk3Eikky3FauO5GXXIcaGNgkxTJ5aCNkMy4zl34vG/RjziuCcR
+	JuQOY6pX+G5hqQ8BS552IAEnRB6RrnqEJiczs=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
 	messagingengine.com; h=cc:content-transfer-encoding:content-type
 	:date:from:in-reply-to:message-id:mime-version:references
-	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=o8GuvIsIt+skLgL
-	efe+VHBjGCA4=; b=toP8wN6+Y8FOVmqgUQ3M0zZMbS14WJ+dlclLDoz49FKFAJb
-	EiWjp2+vtwt3nYB4Qn7uICHZypBOEnQ37JEC23zhh3pFOr+H3f5dNUbfgqJaC/+b
-	C3bSaiCbUGvMNLa61QvhaTPZMaZzrfZpHDJ1DBP2OzWhxaGhrB/ZaYkFE5PE=
+	:subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=8mA4rtaIsYakCUj
+	nJfZMsFxQqgE=; b=juO9mi2PhRWXdwOlWN2OcrUvxh46jjXwWG5y77W42VvX2pe
+	T38mRX/vFIaPTkNGrMH0dlEEb+T0rKflwDR+HjZVe72brNjwTAFNOmn1z5mbcFBE
+	rSwdfge8kBynfieKOLxBZ9bmB42uVLU/RJTo3lzgPel3WzUX9aB12rrsrjvA=
 In-Reply-To: <20160812024734.12352.17122.stgit@pluto.themaw.net>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
@@ -27,30 +27,44 @@ Content-Type: text/plain; charset="us-ascii"
 To: Andrew Morton <akpm@linux-foundation.org>
 Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, Tomohiro Kusumi <kusumi.tomohiro@gmail.com>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
+The count of miscellaneous device ioctls in fs/autofs4/autofs_i.h is wrong.
 
-All other warnings use "cmd(0x%08x)" and this is the only one with "cmd(%d)".
-(below comes from my userspace debug program, but not automount daemon)
+The number of ioctls is the difference between AUTOFS_DEV_IOCTL_VERSION_CMD
+and AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD (14) not the difference between
+AUTOFS_IOC_COUNT and 11 (21).
 
-[ 1139.905676] autofs4:pid:1640:check_dev_ioctl_version: ioctl control interface version mismatch: kernel(1.0), user(0.0), cmd(-1072131215)
-
-Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
-Signed-off-by: Ian Kent <ikent@redhat.com>
+Signed-off-by: Ian Kent <raven@themaw.net>
+Cc: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 ---
+ fs/autofs4/autofs_i.h  |    3 ++-
  fs/autofs4/dev-ioctl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
+diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
+index 73e3d38..dd71bd4 100644
+--- a/fs/autofs4/autofs_i.h
++++ b/fs/autofs4/autofs_i.h
+@@ -20,7 +20,8 @@
+ #define AUTOFS_IOC_COUNT     32
+ 
+ #define AUTOFS_DEV_IOCTL_IOC_FIRST	(AUTOFS_DEV_IOCTL_VERSION)
+-#define AUTOFS_DEV_IOCTL_IOC_COUNT	(AUTOFS_IOC_COUNT - 11)
++#define AUTOFS_DEV_IOCTL_IOC_COUNT \
++	(AUTOFS_DEV_IOCTL_VERSION_CMD - AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD)
+ 
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
 diff --git a/fs/autofs4/dev-ioctl.c b/fs/autofs4/dev-ioctl.c
-index 7289216..e89d6bb 100644
+index d47b35a..13e7517 100644
 --- a/fs/autofs4/dev-ioctl.c
 +++ b/fs/autofs4/dev-ioctl.c
-@@ -75,7 +75,7 @@ static int check_dev_ioctl_version(int cmd, struct autofs_dev_ioctl *param)
- 	if ((param->ver_major != AUTOFS_DEV_IOCTL_VERSION_MAJOR) ||
- 	    (param->ver_minor > AUTOFS_DEV_IOCTL_VERSION_MINOR)) {
- 		pr_warn("ioctl control interface version mismatch: "
--			"kernel(%u.%u), user(%u.%u), cmd(%d)\n",
-+			"kernel(%u.%u), user(%u.%u), cmd(0x%08x)\n",
- 			AUTOFS_DEV_IOCTL_VERSION_MAJOR,
- 			AUTOFS_DEV_IOCTL_VERSION_MINOR,
- 			param->ver_major, param->ver_minor, cmd);
+@@ -642,7 +642,7 @@ static int _autofs_dev_ioctl(unsigned int command,
+ 	cmd = _IOC_NR(command);
+ 
+ 	if (_IOC_TYPE(command) != _IOC_TYPE(AUTOFS_DEV_IOCTL_IOC_FIRST) ||
+-	    cmd - cmd_first >= AUTOFS_DEV_IOCTL_IOC_COUNT) {
++	    cmd - cmd_first > AUTOFS_DEV_IOCTL_IOC_COUNT) {
+ 		return -ENOTTY;
+ 	}
+ 
 
