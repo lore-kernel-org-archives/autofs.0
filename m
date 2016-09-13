@@ -1,48 +1,251 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH] autofs - use dentry flags to block walks during expire
-Date: Mon, 12 Sep 2016 14:07:15 -0700
-Message-ID: <20160912140715.a56f7d696dec7acc19180025@linux-foundation.org>
-References: <20160912014017.1773.73060.stgit@pluto.themaw.net>
+From: Omar Sandoval <osandov@osandov.com>
+Subject: Re: Autofs and mount namespaces
+Date: Tue, 13 Sep 2016 11:19:21 -0700
+Message-ID: <20160913181921.GA4124@vader.dhcp.thefacebook.com>
+References: <20160407181911.GA9018@vader>
+ <1460076663.3135.37.camel@themaw.net>
+ <20160705184754.GA28931@vader.DHCP.thefacebook.com>
+ <1467761756.4580.1.camel@themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-In-Reply-To: <20160912014017.1773.73060.stgit@pluto.themaw.net>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=osandov-com.20150623.gappssmtp.com; s=20150623;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=BLKJfzwvQC8VSbcBPXddZUPPxbI4iJhpmZAsZCFpQqE=;
+        b=l64mpJnIIl/4uoP8Bxtyc+7ExltspR4kIrsc6fr8ttJPaeF5tmICpKEhZQcZM1E0iY
+         aWr+4jfXXwI6WrZUzVzsuXrHfL83osZhKVc0fbQxbjJbPE5ekTJAIT71w91SKNE1DsTb
+         4OHNkfs/+Vf0SE1nsfdd30YzJ9DwTBtj+xHu1s3S+tYffbC/dFwR9TLmmTG93Sb1z0bR
+         CHBeCGgnQyCtmkvl9fZEoMTxC8jDTvRU49RqxAld5oETPC6fIyjeJQBbXsm8ISffWfXG
+         LlXu8w+E05FIVGBpPOyvukY4JhRpwmsCXScj1Ut7R3qKXVUpbVKj25yv9E+dbJVju0P1
+         woJQ==
+Content-Disposition: inline
+In-Reply-To: <1467761756.4580.1.camel@themaw.net>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: Ian Kent <raven@themaw.net>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>, Takashi Iwai <tiwai@suse.de>, autofs mailing list <autofs@vger.kernel.org>, NeilBrown <neilb@suse.com>, Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Cc: autofs@vger.kernel.org, linux-fsdevel@vger.kernel.org, kernel-team@fb.com
 
-On Mon, 12 Sep 2016 09:40:17 +0800 Ian Kent <raven@themaw.net> wrote:
-
-> Somewhere along the way the autofs expire operation has changed to
-> hold a spin lock over expired dentry selection. The autofs indirect
-> mount expired dentry selection is complicated and quite lengthy so
-> it isn't appropriate to hold a spin lock over the operation.
+On Wed, Jul 06, 2016 at 07:35:56AM +0800, Ian Kent wrote:
+> On Tue, 2016-07-05 at 11:47 -0700, Omar Sandoval wrote:
+> > On Fri, Apr 08, 2016 at 08:51:03AM +0800, Ian Kent wrote:
+> > [snip]
+> > > 
+> > > I think this is a better approach (beware, not even compile tested so it
+> > > almost certainly doesn't work properly) and I'm not even sure that
+> > > exposing __is_local_mountpoint() is ok from a VFS POV but something
+> > > needs to be done:
+> > > 
+> > > autofs4 - make mountpoint checks namespace aware
+> > > 
+> > > From: Ian Kent <ikent@redhat.com>
+> > > 
+> > > If an automount mount is clone(2)ed into a file system that is
+> > > propagation private, when it later expires the mount subsequent
+> > > calls to autofs ->d_automount() for in that dentry in that
+> > > namespace will return ELOOP until the mount is manually umounted.
+> > > 
+> > > In the same way, if an autofs mount is triggered by automount(8)
+> > > within a container the dentry will be seen as mounted in the
+> > > root init namespace and calls to ->d_automount() in that namespace
+> > > will return ELOOP until the mount is umounted within the container.
+> > > 
+> > > Also, have_submounts() can return an incorect result when a mount
+> > > exists in a namespace other than the one being checked.
+> > > 
+> > > Signed-off-by: Ian Kent <ikent@redhat.com>
+> > > Cc: Al Viro <viro@ZenIV.linux.org.uk>
+> > > Cc: Eric W. Biederman <ebiederm@xmission.com>
+> > > ---
+> > >  fs/autofs4/expire.c   |    4 ++--
+> > >  fs/autofs4/root.c     |   14 +++++++-------
+> > >  fs/dcache.c           |    2 +-
+> > >  fs/mount.h            |    9 ---------
+> > >  fs/namespace.c        |    1 +
+> > >  include/linux/mount.h |    9 +++++++++
+> > >  6 files changed, 20 insertions(+), 19 deletions(-)
+> > > 
+> > > diff --git a/fs/autofs4/expire.c b/fs/autofs4/expire.c
+> > > index 9510d8d..23b9701 100644
+> > > --- a/fs/autofs4/expire.c
+> > > +++ b/fs/autofs4/expire.c
+> > > @@ -236,7 +236,7 @@ static int autofs4_tree_busy(struct vfsmount *mnt,
+> > >  		 * count for the autofs dentry.
+> > >  		 * If the fs is busy update the expiry counter.
+> > >  		 */
+> > > -		if (d_mountpoint(p)) {
+> > > +		if (is_local_mountpoint(p)) {
+> > >  			if (autofs4_mount_busy(mnt, p)) {
+> > >  				top_ino->last_used = jiffies;
+> > >  				dput(p);
+> > > @@ -280,7 +280,7 @@ static struct dentry *autofs4_check_leaves(struct
+> > > vfsmount *mnt,
+> > >  	while ((p = get_next_positive_dentry(p, parent))) {
+> > >  		pr_debug("dentry %p %pd\n", p, p);
+> > >  
+> > > -		if (d_mountpoint(p)) {
+> > > +		if (is_local_mountpoint(p)) {
+> > >  			/* Can we umount this guy */
+> > >  			if (autofs4_mount_busy(mnt, p))
+> > >  				continue;
+> > > diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
+> > > index 7ab9239..9ba487a 100644
+> > > --- a/fs/autofs4/root.c
+> > > +++ b/fs/autofs4/root.c
+> > > @@ -123,7 +123,7 @@ static int autofs4_dir_open(struct inode *inode, struct
+> > > file *file)
+> > >  	 * it.
+> > >  	 */
+> > >  	spin_lock(&sbi->lookup_lock);
+> > > -	if (!d_mountpoint(dentry) && simple_empty(dentry)) {
+> > > +	if (!is_local_mountpoint(dentry) && simple_empty(dentry)) {
+> > >  		spin_unlock(&sbi->lookup_lock);
+> > >  		return -ENOENT;
+> > >  	}
+> > > @@ -370,15 +370,15 @@ static struct vfsmount *autofs4_d_automount(struct
+> > > path *path)
+> > >  
+> > >  	/*
+> > >  	 * If the dentry is a symlink it's equivalent to a directory
+> > > -	 * having d_mountpoint() true, so there's no need to call back
+> > > -	 * to the daemon.
+> > > +	 * having is_local_mountpoint() true, so there's no need to
+> > > +	 * call back to the daemon.
+> > >  	 */
+> > >  	if (d_really_is_positive(dentry) && d_is_symlink(dentry)) {
+> > >  		spin_unlock(&sbi->fs_lock);
+> > >  		goto done;
+> > >  	}
+> > >  
+> > > -	if (!d_mountpoint(dentry)) {
+> > > +	if (!is_local_mountpoint(dentry)) {
+> > >  		/*
+> > >  		 * It's possible that user space hasn't removed directories
+> > >  		 * after umounting a rootless multi-mount, although it
+> > > @@ -431,7 +431,7 @@ static int autofs4_d_manage(struct dentry *dentry, bool
+> > > rcu_walk)
+> > >  
+> > >  	/* The daemon never waits. */
+> > >  	if (autofs4_oz_mode(sbi)) {
+> > > -		if (!d_mountpoint(dentry))
+> > > +		if (!is_local_mountpoint(dentry))
+> > >  			return -EISDIR;
+> > >  		return 0;
+> > >  	}
+> > > @@ -460,7 +460,7 @@ static int autofs4_d_manage(struct dentry *dentry, bool
+> > > rcu_walk)
+> > >  
+> > >  		if (ino->flags & (AUTOFS_INF_EXPIRING | AUTOFS_INF_NO_RCU))
+> > >  			return 0;
+> > > -		if (d_mountpoint(dentry))
+> > > +		if (is_local_mountpoint(dentry))
+> > >  			return 0;
+> > >  		inode = d_inode_rcu(dentry);
+> > >  		if (inode && S_ISLNK(inode->i_mode))
+> > > @@ -487,7 +487,7 @@ static int autofs4_d_manage(struct dentry *dentry, bool
+> > > rcu_walk)
+> > >  		 * we can avoid needless calls ->d_automount() and avoid
+> > >  		 * an incorrect ELOOP error return.
+> > >  		 */
+> > > -		if ((!d_mountpoint(dentry) && !simple_empty(dentry)) ||
+> > > +		if ((!is_local_mountpoint(dentry) && !simple_empty(dentry))
+> > > ||
+> > >  		    (d_really_is_positive(dentry) && d_is_symlink(dentry)))
+> > >  			status = -EISDIR;
+> > >  	}
+> > > diff --git a/fs/dcache.c b/fs/dcache.c
+> > > index 32ceae3..9c42dc9 100644
+> > > --- a/fs/dcache.c
+> > > +++ b/fs/dcache.c
+> > > @@ -1271,7 +1271,7 @@ rename_retry:
+> > >  static enum d_walk_ret check_mount(void *data, struct dentry *dentry)
+> > >  {
+> > >  	int *ret = data;
+> > > -	if (d_mountpoint(dentry)) {
+> > > +	if (is_local_mountpoint(dentry)) {
+> > >  		*ret = 1;
+> > >  		return D_WALK_QUIT;
+> > >  	}
+> > > diff --git a/fs/mount.h b/fs/mount.h
+> > > index 14db05d..c25e6e8 100644
+> > > --- a/fs/mount.h
+> > > +++ b/fs/mount.h
+> > > @@ -127,12 +127,3 @@ struct proc_mounts {
+> > >  };
+> > >  
+> > >  extern const struct seq_operations mounts_op;
+> > > -
+> > > -extern bool __is_local_mountpoint(struct dentry *dentry);
+> > > -static inline bool is_local_mountpoint(struct dentry *dentry)
+> > > -{
+> > > -	if (!d_mountpoint(dentry))
+> > > -		return false;
+> > > -
+> > > -	return __is_local_mountpoint(dentry);
+> > > -}
+> > > diff --git a/fs/namespace.c b/fs/namespace.c
+> > > index 4fb1691..9e1bc00 100644
+> > > --- a/fs/namespace.c
+> > > +++ b/fs/namespace.c
+> > > @@ -725,6 +725,7 @@ bool __is_local_mountpoint(struct dentry *dentry)
+> > >  out:
+> > >  	return is_covered;
+> > >  }
+> > > +EXPORT_SYMBOL(__is_local_mountpoint);
+> > >  
+> > >  static struct mountpoint *lookup_mountpoint(struct dentry *dentry)
+> > >  {
+> > > diff --git a/include/linux/mount.h b/include/linux/mount.h
+> > > index f822c3c..7419c0c 100644
+> > > --- a/include/linux/mount.h
+> > > +++ b/include/linux/mount.h
+> > > @@ -15,6 +15,7 @@
+> > >  #include <linux/spinlock.h>
+> > >  #include <linux/seqlock.h>
+> > >  #include <linux/atomic.h>
+> > > +#include <linux/dcache.h>
+> > >  
+> > >  struct super_block;
+> > >  struct vfsmount;
+> > > @@ -95,4 +96,12 @@ extern void mark_mounts_for_expiry(struct list_head
+> > > *mounts);
+> > >  
+> > >  extern dev_t name_to_dev_t(const char *name);
+> > >  
+> > > +extern bool __is_local_mountpoint(struct dentry *dentry);
+> > > +static inline bool is_local_mountpoint(struct dentry *dentry)
+> > > +{
+> > > +	if (!d_mountpoint(dentry))
+> > > +		return false;
+> > > +
+> > > +	return __is_local_mountpoint(dentry);
+> > > +}
+> > >  #endif /* _LINUX_MOUNT_H */
+> > 
+> > Hi, Ian,
+> > 
+> > Just wanted to check on the status of this fix. Is this still the
+> > approach you wanted to take/is there anything else you wanted to do with
+> > this?
 > 
-> Commit 47be6184 added a might_sleep() to dput() causing a BUG()
-> about this usage to be issued.
-
-It's a WARN_ONCE(), not a BUG()?
-
-> But the spin lock doesn't need to be held over this check, the
-> autofs dentry info. flags are enough to block walks into dentrys
-> during the expire.
+> The problem is that someone tested this back ported to an older kernel and
+> claimed it caused file system corruption.
 > 
-> I've left the direct mount expire as it is (for now) becuase it
-> is much simpler and quicker than the indirect mount expire and
-> adding spin lock release and re-aquires would do nothing more
-> than add overhead.
+> That leaves me in a bad place indeed.
 > 
-> Fixes: 47be61845c77 ("fs/dcache.c: avoid soft-lockup in dput()")
-> Signed-off-by: Ian Kent <raven@themaw.net>
-> Cc: Takashi Iwai <tiwai@suse.de>
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: NeilBrown <neilb@suse.com>
+> Ian
 
-47be61845c77 is cc:stable, so this should be likewise.
+Hi, Ian,
 
-I've made those two changes to my copy of this changelog.
+Dredging this up again because I forgot to reply in a timely manner last
+time. Do you have more details on that report? I'm having a hard time
+seeing how this change would cause filesystem corruption, and I still
+think a fix for this really needs to go in.
 
+Thanks,
+-- 
+Omar
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
