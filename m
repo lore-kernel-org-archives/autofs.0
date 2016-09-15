@@ -1,234 +1,90 @@
-From: Ian Kent <raven@themaw.net>
+From: Omar Sandoval <osandov@osandov.com>
 Subject: Re: [PATCH 3/4] autofs - make mountpoint checks namespace aware
-Date: Thu, 15 Sep 2016 08:09:23 +0800
-Message-ID: <1473898163.3205.32.camel@themaw.net>
+Date: Wed, 14 Sep 2016 17:32:43 -0700
+Message-ID: <20160915003243.GA16372@vader>
 References: <20160914061434.24714.490.stgit@pluto.themaw.net>
-         <20160914061445.24714.68331.stgit@pluto.themaw.net>
-         <87zina9ys3.fsf@x220.int.ebiederm.org>
+ <20160914061445.24714.68331.stgit@pluto.themaw.net>
+ <87zina9ys3.fsf@x220.int.ebiederm.org>
+ <1473898163.3205.32.camel@themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=cc
-        :content-transfer-encoding:content-type:date:from:in-reply-to
-        :message-id:mime-version:references:subject:to:x-sasl-enc
-        :x-sasl-enc; s=mesmtp; bh=R+ra00qL1V3rY5wXwxbd+vzlZDE=; b=b0UJg4
-        95785ZiXPj9RFEKlrSPhfTd42PoZ4wLN8SKfVtMf4LRxD1XcuVpECDL1+Hxp/7nl
-        8aaJw9/v6jTpkJs9ywD/JwvzLqmH4xFjOR5scIP7JUH7RCj+w+c10dtctmENZ1Xf
-        ifRIGiWZJWIv/Ov9Vn+PEE1Vug5KN0/dLB7L0=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:content-transfer-encoding:content-type
-        :date:from:in-reply-to:message-id:mime-version:references
-        :subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=R+ra00qL1V3rY5w
-        Xwxbd+vzlZDE=; b=iXZ2H/Ws9pA2CL98zIwqDa1K+LW+QfIB01oh7dEtsmaRFEe
-        HZAy8hU6O5RdX4QSSCZO8JfYBzQYmP/JCYjJwTspvAE4WolpdUGUeX86KScuYBIx
-        XTh1fGNNXbe6hfngGMbTNdPEp7AViDeVxrvaHwfBva7Py1reVqihYnto7ceg=
-In-Reply-To: <87zina9ys3.fsf@x220.int.ebiederm.org>
-Sender: autofs-owner@vger.kernel.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=osandov-com.20150623.gappssmtp.com; s=20150623;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=8tgNKf0JXDZWYCkfLPB/8E1Wr89PzV7j4vtYBSD+h7I=;
+        b=oM9JHLl8hfMiet1fNNPWCki6T6ujOeA1nYVC0N6+ZuT0ILpMImQyijRCTBhwDP9Vf/
+         bRGSFT9H5UviOYUKjhtYA4TkwwN02qFUeTH1FHXg86kaeYqYWdsSUY2Gpr6aWPe9oD62
+         crwhpVzwFD4Q9WU3GFg3ExiyDUciP6e9I2RFRtBhNxRknWXzFN0cxZHpip/xWuaoINwd
+         +lDvWR+p7VT4GXyRB6SAk7EVUDeWEbpyYYQVS3WbTLVGXlS/dy3ZkRX9gqTxzTls9P86
+         dJYCeZYANR3A2iKSQU3fDKW7xLOnQdx1Qk5ff/k+B6aovao4D5dQC9M9/Q2FEuhB2bBB
+         kBug==
+Content-Disposition: inline
+In-Reply-To: <1473898163.3205.32.camel@themaw.net>
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Al Viro <viro@ZenIV.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Omar Sandoval <osandov@osandov.com>
+Content-Transfer-Encoding: 7bit
+To: Ian Kent <raven@themaw.net>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>, Andrew Morton <akpm@linux-foundation.org>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Al Viro <viro@ZenIV.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, kernel-team@fb.com
 
-On Wed, 2016-09-14 at 12:28 -0500, Eric W. Biederman wrote:
-> Ian Kent <raven@themaw.net> writes:
-> 
-> > If an automount mount is clone(2)ed into a file system that is
-> > propagation private, when it later expires in the originating
-> > namespace subsequent calls to autofs ->d_automount() for that
-> > dentry in the original namespace will return ELOOP until the
-> > mount is manually umounted in the cloned namespace.
+On Thu, Sep 15, 2016 at 08:09:23AM +0800, Ian Kent wrote:
+> On Wed, 2016-09-14 at 12:28 -0500, Eric W. Biederman wrote:
+> > Ian Kent <raven@themaw.net> writes:
 > > 
-> > In the same way, if an autofs mount is triggered by automount(8)
-> > running within a container the dentry will be seen as mounted in
-> > the root init namespace and calls to ->d_automount() in that namespace
-> > will return ELOOP until the mount is umounted within the container.
+> > > If an automount mount is clone(2)ed into a file system that is
+> > > propagation private, when it later expires in the originating
+> > > namespace subsequent calls to autofs ->d_automount() for that
+> > > dentry in the original namespace will return ELOOP until the
+> > > mount is manually umounted in the cloned namespace.
+> > > 
+> > > In the same way, if an autofs mount is triggered by automount(8)
+> > > running within a container the dentry will be seen as mounted in
+> > > the root init namespace and calls to ->d_automount() in that namespace
+> > > will return ELOOP until the mount is umounted within the container.
+> > > 
+> > > Also, have_submounts() can return an incorect result when a mount
+> > > exists in a namespace other than the one being checked.
 > > 
-> > Also, have_submounts() can return an incorect result when a mount
-> > exists in a namespace other than the one being checked.
-> 
-> Overall this appears to be a fairly reasonable set of changes.  It does
-> increase the expense when an actual mount point is encountered, but if
-> these are the desired some increase in cost when a dentry is a
-> mountpoint is unavoidable.
-> 
-> May I ask the motiviation for this set of changes?  Reading through the
-> changes I don't grasp why we want to change the behavior of autofs.
-> What problem is being solved?  What are the benefits?
-
-LOL, it's all too easy for me to give a patch description that I think explains
-a problem I need to solve without realizing it isn't clear to others what the
-problem is, sorry about that.
-
-For quite a while now, and not that frequently but consistently, I've been
-getting reports of people using autofs getting ELOOP errors and not being able
-to mount automounts.
-
-This has been due to the cloning of autofs file systems (that have active
-automounts at the time of the clone) by other systems.
-
-An unshare, as one example, can easily result in the cloning of an autofs file
-system that has active mounts which shows this problem.
-
-Once an active mount that has been cloned is expired in the namespace that
-performed the unshare it can't be (auto)mounted again in the the originating
-namespace because the mounted check in the autofs module will think it is
-already mounted.
-
-I'm not sure this is a clear description either, hopefully it is enough to
-demonstrate the type of problem I'm typing to solve.
-
-> Eric
-> 
-> > Signed-off-by: Ian Kent <raven@themaw.net>
-> > Cc: Al Viro <viro@ZenIV.linux.org.uk>
-> > Cc: Eric W. Biederman <ebiederm@xmission.com>
-> > Cc: Omar Sandoval <osandov@osandov.com>
-> > ---
-> >  fs/autofs4/dev-ioctl.c |    2 +-
-> >  fs/autofs4/expire.c    |    4 ++--
-> >  fs/autofs4/root.c      |   30 +++++++++++++++---------------
-> >  fs/autofs4/waitq.c     |    2 +-
-> >  4 files changed, 19 insertions(+), 19 deletions(-)
+> > Overall this appears to be a fairly reasonable set of changes.  It does
+> > increase the expense when an actual mount point is encountered, but if
+> > these are the desired some increase in cost when a dentry is a
+> > mountpoint is unavoidable.
 > > 
-> > diff --git a/fs/autofs4/dev-ioctl.c b/fs/autofs4/dev-ioctl.c
-> > index c7fcc74..0024e25 100644
-> > --- a/fs/autofs4/dev-ioctl.c
-> > +++ b/fs/autofs4/dev-ioctl.c
-> > @@ -564,7 +564,7 @@ static int autofs_dev_ioctl_ismountpoint(struct file
-> > *fp,
-> >  
-> >  		devid = new_encode_dev(dev);
-> >  
-> > -		err = have_submounts(path.dentry);
-> > +		err = have_local_submounts(path.dentry);
-> >  
-> >  		if (follow_down_one(&path))
-> >  			magic = path.dentry->d_sb->s_magic;
-> > diff --git a/fs/autofs4/expire.c b/fs/autofs4/expire.c
-> > index d8e6d42..7cc34ef 100644
-> > --- a/fs/autofs4/expire.c
-> > +++ b/fs/autofs4/expire.c
-> > @@ -236,7 +236,7 @@ static int autofs4_tree_busy(struct vfsmount *mnt,
-> >  		 * count for the autofs dentry.
-> >  		 * If the fs is busy update the expiry counter.
-> >  		 */
-> > -		if (d_mountpoint(p)) {
-> > +		if (is_local_mountpoint(p)) {
-> >  			if (autofs4_mount_busy(mnt, p)) {
-> >  				top_ino->last_used = jiffies;
-> >  				dput(p);
-> > @@ -280,7 +280,7 @@ static struct dentry *autofs4_check_leaves(struct
-> > vfsmount *mnt,
-> >  	while ((p = get_next_positive_dentry(p, parent))) {
-> >  		pr_debug("dentry %p %pd\n", p, p);
-> >  
-> > -		if (d_mountpoint(p)) {
-> > +		if (is_local_mountpoint(p)) {
-> >  			/* Can we umount this guy */
-> >  			if (autofs4_mount_busy(mnt, p))
-> >  				continue;
-> > diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
-> > index fa84bb8..4150ad6 100644
-> > --- a/fs/autofs4/root.c
-> > +++ b/fs/autofs4/root.c
-> > @@ -123,7 +123,7 @@ static int autofs4_dir_open(struct inode *inode, struct
-> > file *file)
-> >  	 * it.
-> >  	 */
-> >  	spin_lock(&sbi->lookup_lock);
-> > -	if (!d_mountpoint(dentry) && simple_empty(dentry)) {
-> > +	if (!is_local_mountpoint(dentry) && simple_empty(dentry)) {
-> >  		spin_unlock(&sbi->lookup_lock);
-> >  		return -ENOENT;
-> >  	}
-> > @@ -370,28 +370,28 @@ static struct vfsmount *autofs4_d_automount(struct
-> > path *path)
-> >  
-> >  	/*
-> >  	 * If the dentry is a symlink it's equivalent to a directory
-> > -	 * having d_mountpoint() true, so there's no need to call back
-> > -	 * to the daemon.
-> > +	 * having is_local_mountpoint() true, so there's no need to
-> > +	 * call back to the daemon.
-> >  	 */
-> >  	if (d_really_is_positive(dentry) && d_is_symlink(dentry)) {
-> >  		spin_unlock(&sbi->fs_lock);
-> >  		goto done;
-> >  	}
-> >  
-> > -	if (!d_mountpoint(dentry)) {
-> > +	if (!is_local_mountpoint(dentry)) {
-> >  		/*
-> >  		 * It's possible that user space hasn't removed directories
-> >  		 * after umounting a rootless multi-mount, although it
-> > -		 * should. For v5 have_submounts() is sufficient to handle
-> > -		 * this because the leaves of the directory tree under the
-> > -		 * mount never trigger mounts themselves (they have an
-> > autofs
-> > -		 * trigger mount mounted on them). But v4 pseudo direct
-> > mounts
-> > -		 * do need the leaves to trigger mounts. In this case we
-> > -		 * have no choice but to use the list_empty() check and
-> > -		 * require user space behave.
-> > +		 * should. For v5 have_local_submounts() is sufficient to
-> > +		 * handle this because the leaves of the directory tree
-> > under
-> > +		 * the mount never trigger mounts themselves (they have an
-> > +		 * autofs trigger mount mounted on them). But v4 pseudo
-> > +		 * direct mounts do need the leaves to trigger mounts. In
-> > +		 * this case we have no choice but to use the list_empty()
-> > +		 * check and require user space behave.
-> >  		 */
-> >  		if (sbi->version > 4) {
-> > -			if (have_submounts(dentry)) {
-> > +			if (have_local_submounts(dentry)) {
-> >  				spin_unlock(&sbi->fs_lock);
-> >  				goto done;
-> >  			}
-> > @@ -431,7 +431,7 @@ static int autofs4_d_manage(struct dentry *dentry, bool
-> > rcu_walk)
-> >  
-> >  	/* The daemon never waits. */
-> >  	if (autofs4_oz_mode(sbi)) {
-> > -		if (!d_mountpoint(dentry))
-> > +		if (!is_local_mountpoint(dentry))
-> >  			return -EISDIR;
-> >  		return 0;
-> >  	}
-> > @@ -460,7 +460,7 @@ static int autofs4_d_manage(struct dentry *dentry, bool
-> > rcu_walk)
-> >  
-> >  		if (ino->flags & AUTOFS_INF_WANT_EXPIRE)
-> >  			return 0;
-> > -		if (d_mountpoint(dentry))
-> > +		if (is_local_mountpoint(dentry))
-> >  			return 0;
-> >  		inode = d_inode_rcu(dentry);
-> >  		if (inode && S_ISLNK(inode->i_mode))
-> > @@ -487,7 +487,7 @@ static int autofs4_d_manage(struct dentry *dentry, bool
-> > rcu_walk)
-> >  		 * we can avoid needless calls ->d_automount() and avoid
-> >  		 * an incorrect ELOOP error return.
-> >  		 */
-> > -		if ((!d_mountpoint(dentry) && !simple_empty(dentry)) ||
-> > +		if ((!is_local_mountpoint(dentry) && !simple_empty(dentry))
-> > ||
-> >  		    (d_really_is_positive(dentry) && d_is_symlink(dentry)))
-> >  			status = -EISDIR;
-> >  	}
-> > diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
-> > index 431fd7e..911f4d5 100644
-> > --- a/fs/autofs4/waitq.c
-> > +++ b/fs/autofs4/waitq.c
-> > @@ -333,7 +333,7 @@ static int validate_request(struct autofs_wait_queue
-> > **wait,
-> >  					dentry = new;
-> >  			}
-> >  		}
-> > -		if (have_submounts(dentry))
-> > +		if (have_local_submounts(dentry))
-> >  			valid = 0;
-> >  
-> >  		if (new)
---
-To unsubscribe from this list: send the line "unsubscribe autofs" in
+> > May I ask the motiviation for this set of changes?  Reading through the
+> > changes I don't grasp why we want to change the behavior of autofs.
+> > What problem is being solved?  What are the benefits?
+> 
+> LOL, it's all too easy for me to give a patch description that I think explains
+> a problem I need to solve without realizing it isn't clear to others what the
+> problem is, sorry about that.
+> 
+> For quite a while now, and not that frequently but consistently, I've been
+> getting reports of people using autofs getting ELOOP errors and not being able
+> to mount automounts.
+> 
+> This has been due to the cloning of autofs file systems (that have active
+> automounts at the time of the clone) by other systems.
+> 
+> An unshare, as one example, can easily result in the cloning of an autofs file
+> system that has active mounts which shows this problem.
+> 
+> Once an active mount that has been cloned is expired in the namespace that
+> performed the unshare it can't be (auto)mounted again in the the originating
+> namespace because the mounted check in the autofs module will think it is
+> already mounted.
+> 
+> I'm not sure this is a clear description either, hopefully it is enough to
+> demonstrate the type of problem I'm typing to solve.
+
+Yup, at Facebook we've been hitting this issue for years. Our container
+setup doesn't clean up the base system's mounts after the
+unshare(CLONE_NEWNS) and before the chroot(), so we very frequently see
+the base system's autofs mounts get broken with ELOOP. The solution
+there might be to fix our container setup, but I think it's still a
+kernel bug, as it breaks the isolation between namespaces.
+
+Ian, I'm going to test these patches, thanks for sending them out.
+
+-- 
+Omar
