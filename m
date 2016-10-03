@@ -1,28 +1,27 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [RFC PATCH 4/8] autofs - change autofs4_expire_wait() to take
- struct path
-Date: Mon, 03 Oct 2016 08:46:43 +0800
-Message-ID: <20161003004643.4865.9069.stgit@pluto.themaw.net>
+Subject: [RFC PATCH 5/8] autofs - change autofs4_wait() to take struct path
+Date: Mon, 03 Oct 2016 08:46:49 +0800
+Message-ID: <20161003004649.4865.80982.stgit@pluto.themaw.net>
 References: <20161003003646.4865.42500.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=cc
         :content-transfer-encoding:content-type:date:from:in-reply-to
         :message-id:mime-version:references:subject:to:x-sasl-enc
-        :x-sasl-enc; s=mesmtp; bh=Y5Ny9uBT6prs4mwAYngFImZ2xQI=; b=nvaoYS
-        /Zxm9pPBoEWTW0TAne/pHprzRP6NzWHiUCXFBzlQ2CFHcJfPNM7DsUTcgWyLa9t6
-        BJLfMi3dWJHuJzLJ7EWYxGjDTl3Uz9wFnHmi0DluR15MELdYzvbCuC5HfYsUAso4
-        2xHl8p/rAS5Oa9zd3UBQwR2O/Gl8L7wBKBQxs=
+        :x-sasl-enc; s=mesmtp; bh=dEIJeikQ9JXJgnsYKuMHzKaK90c=; b=PeiypX
+        YXtYlnpP50P/zSRKFdgTlSgnjqkmB0zU2wokESG/o1DPhLqclDuW60y7RIpD8ccY
+        6Qc4B1ciD5QC+Smvwr7BXxyDce4ojgRT31zAST7cBIRvOqMJG3IG0skDdFopz78E
+        VK0b0LWAKX2vlZGI2hdHe5+MCXkfdlaNKfLW8=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
         messagingengine.com; h=cc:content-transfer-encoding:content-type
         :date:from:in-reply-to:message-id:mime-version:references
-        :subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=Y5Ny9uBT6prs4mw
-        AYngFImZ2xQI=; b=pQn8kwUh6uz+sIS49d+qylz6Q32ETHH1DGXmQ7xU+wkYblT
-        XvEAU489tEnyegMkJp/E7Nq7ikUBwcejFPflLRcHbyPE/7XnlmuDS+7PcnBMi46F
-        ChBJLoTE1ypaB3PonjGdv99MpOj01TLSdqjzP3Kpy2+yTuRR9V/7JsDER1v8=
+        :subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=dEIJeikQ9JXJgns
+        YKuMHzKaK90c=; b=kU4FAb9YMFXvv9vwCyScVjHGJFSUz78OsAOWhVDinWYj9ez
+        5vQ2O1Rvpu55PxUB470+BGNcAa739TGTHP2qND2eM/l5n5l5pfdSZt1AAxFpA6DB
+        SbU51frCO8ZeOZy0kXuScfX0R9Vpx4IgBf65ZqP4ihpnRatfqSvajvxSh8R4=
 In-Reply-To: <20161003003646.4865.42500.stgit@pluto.themaw.net>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: Kernel Mailing List <linux-kernel@vger.kernel.org>
@@ -30,113 +29,133 @@ Cc: autofs mailing list <autofs@vger.kernel.org>, Al Viro <viro@ZenIV.linux.org.
 
 From: Ian Kent <ikent@redhat.com>
 
-In order to use the functions path_is_mountpoint() (or it's rcu-walk
+In order to use the functions path_is_mountpoint() (or its rcu-walk
 variant) and path_has_submounts() autofs needs to pass a struct path
 in several places.
 
-Start by changing autofs4_expire_wait() to take a struct path instead
-of a struct dentry.
+Now change autofs4_wait() to take a struct path instead of a struct
+dentry.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 Cc: Al Viro <viro@ZenIV.linux.org.uk>
 Cc: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Omar Sandoval <osandov@osandov.com>
 ---
- fs/autofs4/autofs_i.h  |    2 +-
- fs/autofs4/dev-ioctl.c |    2 +-
- fs/autofs4/expire.c    |    3 ++-
- fs/autofs4/root.c      |   12 +++++++-----
- 4 files changed, 11 insertions(+), 8 deletions(-)
+ fs/autofs4/autofs_i.h |    2 +-
+ fs/autofs4/expire.c   |    5 +++--
+ fs/autofs4/root.c     |   16 ++++++++--------
+ fs/autofs4/waitq.c    |    3 ++-
+ 4 files changed, 14 insertions(+), 12 deletions(-)
 
 diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
-index a439548..b548ee6 100644
+index b548ee6..1b6ed78 100644
 --- a/fs/autofs4/autofs_i.h
 +++ b/fs/autofs4/autofs_i.h
-@@ -148,7 +148,7 @@ void autofs4_free_ino(struct autofs_info *);
+@@ -220,7 +220,7 @@ static inline int autofs_prepare_pipe(struct file *pipe)
  
- /* Expiration */
- int is_autofs4_dentry(struct dentry *);
--int autofs4_expire_wait(struct dentry *dentry, int rcu_walk);
-+int autofs4_expire_wait(struct path *path, int rcu_walk);
- int autofs4_expire_run(struct super_block *, struct vfsmount *,
- 		       struct autofs_sb_info *,
- 		       struct autofs_packet_expire __user *);
-diff --git a/fs/autofs4/dev-ioctl.c b/fs/autofs4/dev-ioctl.c
-index c7fcc74..3cd96e6 100644
---- a/fs/autofs4/dev-ioctl.c
-+++ b/fs/autofs4/dev-ioctl.c
-@@ -457,7 +457,7 @@ static int autofs_dev_ioctl_requester(struct file *fp,
- 	ino = autofs4_dentry_ino(path.dentry);
- 	if (ino) {
- 		err = 0;
--		autofs4_expire_wait(path.dentry, 0);
-+		autofs4_expire_wait(&path, 0);
- 		spin_lock(&sbi->fs_lock);
- 		param->requester.uid =
- 			from_kuid_munged(current_user_ns(), ino->uid);
+ /* Queue management functions */
+ 
+-int autofs4_wait(struct autofs_sb_info *, struct dentry *, enum autofs_notify);
++int autofs4_wait(struct autofs_sb_info *, struct path *, enum autofs_notify);
+ int autofs4_wait_release(struct autofs_sb_info *, autofs_wqt_t, int);
+ void autofs4_catatonic_mode(struct autofs_sb_info *);
+ 
 diff --git a/fs/autofs4/expire.c b/fs/autofs4/expire.c
-index d8e6d42..7eac498 100644
+index 7eac498..a37ba40 100644
 --- a/fs/autofs4/expire.c
 +++ b/fs/autofs4/expire.c
-@@ -495,8 +495,9 @@ found:
- 	return expired;
- }
+@@ -526,7 +526,7 @@ retry:
  
--int autofs4_expire_wait(struct dentry *dentry, int rcu_walk)
-+int autofs4_expire_wait(struct path *path, int rcu_walk)
- {
-+	struct dentry *dentry = path->dentry;
- 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
- 	struct autofs_info *ino = autofs4_dentry_ino(dentry);
- 	int status;
+ 		pr_debug("waiting for expire %p name=%pd\n", dentry, dentry);
+ 
+-		status = autofs4_wait(sbi, dentry, NFY_NONE);
++		status = autofs4_wait(sbi, path, NFY_NONE);
+ 		wait_for_completion(&ino->expire_complete);
+ 
+ 		pr_debug("expire done status=%d\n", status);
+@@ -593,11 +593,12 @@ int autofs4_do_expire_multi(struct super_block *sb, struct vfsmount *mnt,
+ 
+ 	if (dentry) {
+ 		struct autofs_info *ino = autofs4_dentry_ino(dentry);
++		struct path path = { .mnt = mnt, .dentry = dentry };
+ 
+ 		/* This is synchronous because it makes the daemon a
+ 		 * little easier
+ 		 */
+-		ret = autofs4_wait(sbi, dentry, NFY_EXPIRE);
++		ret = autofs4_wait(sbi, &path, NFY_EXPIRE);
+ 
+ 		spin_lock(&sbi->fs_lock);
+ 		/* avoid rapid-fire expire attempts if expiry fails */
 diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
-index 0705daa..e5ed061 100644
+index e5ed061..a12c248 100644
 --- a/fs/autofs4/root.c
 +++ b/fs/autofs4/root.c
-@@ -286,22 +286,24 @@ static int autofs4_mount_wait(struct dentry *dentry, bool rcu_walk)
- 	return status;
+@@ -269,17 +269,17 @@ next:
+ 	return NULL;
  }
  
--static int do_expire_wait(struct dentry *dentry, bool rcu_walk)
-+static int do_expire_wait(struct path *path, bool rcu_walk)
+-static int autofs4_mount_wait(struct dentry *dentry, bool rcu_walk)
++static int autofs4_mount_wait(struct path *path, bool rcu_walk)
+ {
+-	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
+-	struct autofs_info *ino = autofs4_dentry_ino(dentry);
++	struct autofs_sb_info *sbi = autofs4_sbi(path->dentry->d_sb);
++	struct autofs_info *ino = autofs4_dentry_ino(path->dentry);
+ 	int status = 0;
+ 
+ 	if (ino->flags & AUTOFS_INF_PENDING) {
+ 		if (rcu_walk)
+ 			return -ECHILD;
+-		pr_debug("waiting for mount name=%pd\n", dentry);
+-		status = autofs4_wait(sbi, dentry, NFY_MOUNT);
++		pr_debug("waiting for mount name=%pd\n", path->dentry);
++		status = autofs4_wait(sbi, path, NFY_MOUNT);
+ 		pr_debug("mount wait done status=%d\n", status);
+ 	}
+ 	ino->last_used = jiffies;
+@@ -364,7 +364,7 @@ static struct vfsmount *autofs4_d_automount(struct path *path)
+ 	spin_lock(&sbi->fs_lock);
+ 	if (ino->flags & AUTOFS_INF_PENDING) {
+ 		spin_unlock(&sbi->fs_lock);
+-		status = autofs4_mount_wait(dentry, 0);
++		status = autofs4_mount_wait(path, 0);
+ 		if (status)
+ 			return ERR_PTR(status);
+ 		goto done;
+@@ -405,7 +405,7 @@ static struct vfsmount *autofs4_d_automount(struct path *path)
+ 		}
+ 		ino->flags |= AUTOFS_INF_PENDING;
+ 		spin_unlock(&sbi->fs_lock);
+-		status = autofs4_mount_wait(dentry, 0);
++		status = autofs4_mount_wait(path, 0);
+ 		spin_lock(&sbi->fs_lock);
+ 		ino->flags &= ~AUTOFS_INF_PENDING;
+ 		if (status) {
+@@ -447,7 +447,7 @@ static int autofs4_d_manage(struct path *path, bool rcu_walk)
+ 	 * This dentry may be under construction so wait on mount
+ 	 * completion.
+ 	 */
+-	status = autofs4_mount_wait(dentry, rcu_walk);
++	status = autofs4_mount_wait(path, rcu_walk);
+ 	if (status)
+ 		return status;
+ 
+diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
+index 431fd7e..f757f87 100644
+--- a/fs/autofs4/waitq.c
++++ b/fs/autofs4/waitq.c
+@@ -345,8 +345,9 @@ static int validate_request(struct autofs_wait_queue **wait,
+ }
+ 
+ int autofs4_wait(struct autofs_sb_info *sbi,
+-		 struct dentry *dentry, enum autofs_notify notify)
++		 struct path *path, enum autofs_notify notify)
  {
 +	struct dentry *dentry = path->dentry;
- 	struct dentry *expiring;
- 
- 	expiring = autofs4_lookup_expiring(dentry, rcu_walk);
- 	if (IS_ERR(expiring))
- 		return PTR_ERR(expiring);
- 	if (!expiring)
--		return autofs4_expire_wait(dentry, rcu_walk);
-+		return autofs4_expire_wait(path, rcu_walk);
- 	else {
-+		struct path this = { .mnt = path->mnt, .dentry = expiring };
- 		/*
- 		 * If we are racing with expire the request might not
- 		 * be quite complete, but the directory has been removed
- 		 * so it must have been successful, just wait for it.
- 		 */
--		autofs4_expire_wait(expiring, 0);
-+		autofs4_expire_wait(&this, 0);
- 		autofs4_del_expiring(expiring);
- 		dput(expiring);
- 	}
-@@ -354,7 +356,7 @@ static struct vfsmount *autofs4_d_automount(struct path *path)
- 	 * and the directory was removed, so just go ahead and try
- 	 * the mount.
- 	 */
--	status = do_expire_wait(dentry, 0);
-+	status = do_expire_wait(path, 0);
- 	if (status && status != -EAGAIN)
- 		return NULL;
- 
-@@ -438,7 +440,7 @@ static int autofs4_d_manage(struct path *path, bool rcu_walk)
- 	}
- 
- 	/* Wait for pending expires */
--	if (do_expire_wait(dentry, rcu_walk) == -ECHILD)
-+	if (do_expire_wait(path, rcu_walk) == -ECHILD)
- 		return -ECHILD;
- 
- 	/*
+ 	struct autofs_wait_queue *wq;
+ 	struct qstr qstr;
+ 	char *name;
 
+--
+To unsubscribe from this list: send the line "unsubscribe autofs" in
