@@ -1,7 +1,8 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [RFC PATCH 5/8] autofs - change autofs4_wait() to take struct path
-Date: Mon, 03 Oct 2016 08:46:49 +0800
-Message-ID: <20161003004649.4865.80982.stgit@pluto.themaw.net>
+Subject: [RFC PATCH 7/8] autofs - use path_has_submounts() to fix unreliable
+ have_submount() checks
+Date: Mon, 03 Oct 2016 08:46:59 +0800
+Message-ID: <20161003004659.4865.60429.stgit@pluto.themaw.net>
 References: <20161003003646.4865.42500.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -9,17 +10,17 @@ Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=cc
         :content-transfer-encoding:content-type:date:from:in-reply-to
         :message-id:mime-version:references:subject:to:x-sasl-enc
-        :x-sasl-enc; s=mesmtp; bh=dEIJeikQ9JXJgnsYKuMHzKaK90c=; b=PeiypX
-        YXtYlnpP50P/zSRKFdgTlSgnjqkmB0zU2wokESG/o1DPhLqclDuW60y7RIpD8ccY
-        6Qc4B1ciD5QC+Smvwr7BXxyDce4ojgRT31zAST7cBIRvOqMJG3IG0skDdFopz78E
-        VK0b0LWAKX2vlZGI2hdHe5+MCXkfdlaNKfLW8=
+        :x-sasl-enc; s=mesmtp; bh=8ibuMTAkiKDRtxAi6DPfVAI4smA=; b=XfDibA
+        c0Z9YrOQlzvF0knko+WcW/IFlmz/xe3rZwD7IkFJStWI5AZVHchs7A2U0Ckdy9S2
+        FX1f0pWsFlozbVo7QBuQlsSmYsW9AHSx7kq6ivmKecwYr/8nVORmzIa3rwZyy+cH
+        vkUWjCjF0G9O3Cuf+NXc2OlIq6yE+RGhpntxg=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
         messagingengine.com; h=cc:content-transfer-encoding:content-type
         :date:from:in-reply-to:message-id:mime-version:references
-        :subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=dEIJeikQ9JXJgns
-        YKuMHzKaK90c=; b=kU4FAb9YMFXvv9vwCyScVjHGJFSUz78OsAOWhVDinWYj9ez
-        5vQ2O1Rvpu55PxUB470+BGNcAa739TGTHP2qND2eM/l5n5l5pfdSZt1AAxFpA6DB
-        SbU51frCO8ZeOZy0kXuScfX0R9Vpx4IgBf65ZqP4ihpnRatfqSvajvxSh8R4=
+        :subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=8ibuMTAkiKDRtxA
+        i6DPfVAI4smA=; b=U1FJ/qtHV8rE52PLldcR4rkg1ejBgoCFTFjx5yNb3+xKPd4
+        1Yz5uIVyyjiLYsfvPjnHGewenS6uXuZJT596yHvYygg0zirU9Z5meqEm0DplJlOj
+        MBDHJO46FCDaq/+ErzZs/6sB3ZYo8Xn9VJdtQvGPDfjeYRb0JDF8So5Fxf6M=
 In-Reply-To: <20161003003646.4865.42500.stgit@pluto.themaw.net>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
@@ -29,133 +30,109 @@ Cc: autofs mailing list <autofs@vger.kernel.org>, Al Viro <viro@ZenIV.linux.org.
 
 From: Ian Kent <ikent@redhat.com>
 
-In order to use the functions path_is_mountpoint() (or its rcu-walk
-variant) and path_has_submounts() autofs needs to pass a struct path
-in several places.
+If an automount mount is clone(2)ed into a file system that is propagation
+private, when it later expires in the originating namespace, subsequent
+calls to autofs ->d_automount() for that dentry in the original namespace
+will return ELOOP until the mount is umounted in the cloned namespace.
 
-Now change autofs4_wait() to take a struct path instead of a struct
-dentry.
+Now that a struct path is available where needed use path_has_submounts()
+instead of have_submounts() so we don't get false positives when checking
+if a dentry is a mount point or contains mounts in the current namespace.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 Cc: Al Viro <viro@ZenIV.linux.org.uk>
 Cc: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Omar Sandoval <osandov@osandov.com>
 ---
- fs/autofs4/autofs_i.h |    2 +-
- fs/autofs4/expire.c   |    5 +++--
- fs/autofs4/root.c     |   16 ++++++++--------
- fs/autofs4/waitq.c    |    3 ++-
- 4 files changed, 14 insertions(+), 12 deletions(-)
+ fs/autofs4/dev-ioctl.c |    2 +-
+ fs/autofs4/root.c      |   14 +++++++-------
+ fs/autofs4/waitq.c     |   10 +++++++---
+ 3 files changed, 15 insertions(+), 11 deletions(-)
 
-diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
-index b548ee6..1b6ed78 100644
---- a/fs/autofs4/autofs_i.h
-+++ b/fs/autofs4/autofs_i.h
-@@ -220,7 +220,7 @@ static inline int autofs_prepare_pipe(struct file *pipe)
+diff --git a/fs/autofs4/dev-ioctl.c b/fs/autofs4/dev-ioctl.c
+index 3cd96e6..953e790 100644
+--- a/fs/autofs4/dev-ioctl.c
++++ b/fs/autofs4/dev-ioctl.c
+@@ -564,7 +564,7 @@ static int autofs_dev_ioctl_ismountpoint(struct file *fp,
  
- /* Queue management functions */
+ 		devid = new_encode_dev(dev);
  
--int autofs4_wait(struct autofs_sb_info *, struct dentry *, enum autofs_notify);
-+int autofs4_wait(struct autofs_sb_info *, struct path *, enum autofs_notify);
- int autofs4_wait_release(struct autofs_sb_info *, autofs_wqt_t, int);
- void autofs4_catatonic_mode(struct autofs_sb_info *);
+-		err = have_submounts(path.dentry);
++		err = path_has_submounts(&path);
  
-diff --git a/fs/autofs4/expire.c b/fs/autofs4/expire.c
-index 7eac498..a37ba40 100644
---- a/fs/autofs4/expire.c
-+++ b/fs/autofs4/expire.c
-@@ -526,7 +526,7 @@ retry:
- 
- 		pr_debug("waiting for expire %p name=%pd\n", dentry, dentry);
- 
--		status = autofs4_wait(sbi, dentry, NFY_NONE);
-+		status = autofs4_wait(sbi, path, NFY_NONE);
- 		wait_for_completion(&ino->expire_complete);
- 
- 		pr_debug("expire done status=%d\n", status);
-@@ -593,11 +593,12 @@ int autofs4_do_expire_multi(struct super_block *sb, struct vfsmount *mnt,
- 
- 	if (dentry) {
- 		struct autofs_info *ino = autofs4_dentry_ino(dentry);
-+		struct path path = { .mnt = mnt, .dentry = dentry };
- 
- 		/* This is synchronous because it makes the daemon a
- 		 * little easier
- 		 */
--		ret = autofs4_wait(sbi, dentry, NFY_EXPIRE);
-+		ret = autofs4_wait(sbi, &path, NFY_EXPIRE);
- 
- 		spin_lock(&sbi->fs_lock);
- 		/* avoid rapid-fire expire attempts if expiry fails */
+ 		if (follow_down_one(&path))
+ 			magic = path.dentry->d_sb->s_magic;
 diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
-index e5ed061..a12c248 100644
+index 0f5d264..cf90d37 100644
 --- a/fs/autofs4/root.c
 +++ b/fs/autofs4/root.c
-@@ -269,17 +269,17 @@ next:
- 	return NULL;
- }
- 
--static int autofs4_mount_wait(struct dentry *dentry, bool rcu_walk)
-+static int autofs4_mount_wait(struct path *path, bool rcu_walk)
- {
--	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
--	struct autofs_info *ino = autofs4_dentry_ino(dentry);
-+	struct autofs_sb_info *sbi = autofs4_sbi(path->dentry->d_sb);
-+	struct autofs_info *ino = autofs4_dentry_ino(path->dentry);
- 	int status = 0;
- 
- 	if (ino->flags & AUTOFS_INF_PENDING) {
- 		if (rcu_walk)
- 			return -ECHILD;
--		pr_debug("waiting for mount name=%pd\n", dentry);
--		status = autofs4_wait(sbi, dentry, NFY_MOUNT);
-+		pr_debug("waiting for mount name=%pd\n", path->dentry);
-+		status = autofs4_wait(sbi, path, NFY_MOUNT);
- 		pr_debug("mount wait done status=%d\n", status);
- 	}
- 	ino->last_used = jiffies;
-@@ -364,7 +364,7 @@ static struct vfsmount *autofs4_d_automount(struct path *path)
- 	spin_lock(&sbi->fs_lock);
- 	if (ino->flags & AUTOFS_INF_PENDING) {
- 		spin_unlock(&sbi->fs_lock);
--		status = autofs4_mount_wait(dentry, 0);
-+		status = autofs4_mount_wait(path, 0);
- 		if (status)
- 			return ERR_PTR(status);
- 		goto done;
-@@ -405,7 +405,7 @@ static struct vfsmount *autofs4_d_automount(struct path *path)
- 		}
- 		ino->flags |= AUTOFS_INF_PENDING;
- 		spin_unlock(&sbi->fs_lock);
--		status = autofs4_mount_wait(dentry, 0);
-+		status = autofs4_mount_wait(path, 0);
- 		spin_lock(&sbi->fs_lock);
- 		ino->flags &= ~AUTOFS_INF_PENDING;
- 		if (status) {
-@@ -447,7 +447,7 @@ static int autofs4_d_manage(struct path *path, bool rcu_walk)
- 	 * This dentry may be under construction so wait on mount
- 	 * completion.
- 	 */
--	status = autofs4_mount_wait(dentry, rcu_walk);
-+	status = autofs4_mount_wait(path, rcu_walk);
- 	if (status)
- 		return status;
- 
+@@ -387,16 +387,16 @@ static struct vfsmount *autofs4_d_automount(struct path *path)
+ 		/*
+ 		 * It's possible that user space hasn't removed directories
+ 		 * after umounting a rootless multi-mount, although it
+-		 * should. For v5 have_submounts() is sufficient to handle
+-		 * this because the leaves of the directory tree under the
+-		 * mount never trigger mounts themselves (they have an autofs
+-		 * trigger mount mounted on them). But v4 pseudo direct mounts
+-		 * do need the leaves to trigger mounts. In this case we
+-		 * have no choice but to use the list_empty() check and
++		 * should. For v5 path_has_submounts() is sufficient to
++		 * handle this because the leaves of the directory tree under
++		 * the mount never trigger mounts themselves (they have an
++		 * autofs trigger mount mounted on them). But v4 pseudo direct
++		 * mounts do need the leaves to trigger mounts. In this case
++		 * we have no choice but to use the list_empty() check and
+ 		 * require user space behave.
+ 		 */
+ 		if (sbi->version > 4) {
+-			if (have_submounts(dentry)) {
++			if (path_has_submounts(path)) {
+ 				spin_unlock(&sbi->fs_lock);
+ 				goto done;
+ 			}
 diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
-index 431fd7e..f757f87 100644
+index f757f87..ed05cae 100644
 --- a/fs/autofs4/waitq.c
 +++ b/fs/autofs4/waitq.c
-@@ -345,8 +345,9 @@ static int validate_request(struct autofs_wait_queue **wait,
- }
- 
- int autofs4_wait(struct autofs_sb_info *sbi,
--		 struct dentry *dentry, enum autofs_notify notify)
-+		 struct path *path, enum autofs_notify notify)
+@@ -250,8 +250,9 @@ autofs4_find_wait(struct autofs_sb_info *sbi, const struct qstr *qstr)
+ static int validate_request(struct autofs_wait_queue **wait,
+ 			    struct autofs_sb_info *sbi,
+ 			    const struct qstr *qstr,
+-			    struct dentry *dentry, enum autofs_notify notify)
++			    struct path *path, enum autofs_notify notify)
  {
 +	struct dentry *dentry = path->dentry;
  	struct autofs_wait_queue *wq;
- 	struct qstr qstr;
- 	char *name;
+ 	struct autofs_info *ino;
+ 
+@@ -314,6 +315,7 @@ static int validate_request(struct autofs_wait_queue **wait,
+ 	 */
+ 	if (notify == NFY_MOUNT) {
+ 		struct dentry *new = NULL;
++		struct path this;
+ 		int valid = 1;
+ 
+ 		/*
+@@ -333,7 +335,9 @@ static int validate_request(struct autofs_wait_queue **wait,
+ 					dentry = new;
+ 			}
+ 		}
+-		if (have_submounts(dentry))
++		this.mnt = path->mnt;
++		this.dentry = dentry;
++		if (path_has_submounts(&this))
+ 			valid = 0;
+ 
+ 		if (new)
+@@ -406,7 +410,7 @@ int autofs4_wait(struct autofs_sb_info *sbi,
+ 		return -EINTR;
+ 	}
+ 
+-	ret = validate_request(&wq, sbi, &qstr, dentry, notify);
++	ret = validate_request(&wq, sbi, &qstr, path, notify);
+ 	if (ret <= 0) {
+ 		if (ret != -EINTR)
+ 			mutex_unlock(&sbi->wq_mutex);
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
