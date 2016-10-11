@@ -1,7 +1,8 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 2/8] vfs - add path_is_mountpoint() helper
-Date: Tue, 11 Oct 2016 13:33:58 +0800
-Message-ID: <20161011053358.27645.9729.stgit@pluto.themaw.net>
+Subject: [PATCH 6/8] autofs - use path_is_mountpoint() to fix unreliable
+ d_mountpoint() checks
+Date: Tue, 11 Oct 2016 13:34:18 +0800
+Message-ID: <20161011053418.27645.15241.stgit@pluto.themaw.net>
 References: <20161011053352.27645.83962.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -9,17 +10,17 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=cc
         :content-transfer-encoding:content-type:date:from:in-reply-to
         :message-id:mime-version:references:subject:to:x-sasl-enc
-        :x-sasl-enc; s=mesmtp; bh=Vvl0KD7IiHe3FsE343LhScnULjo=; b=j2x95Q
-        VO81oiZEojAN6tG8ywF5FCo+eGOB58z63zizr5zelEq8F2ER7m41iI3o7xXMRWz5
-        9X31ErrstgVfuSKdurZCgT/tlHtxF6+DRhBiCjJ338F52pz3AX8biwnWvefJZ1se
-        OXMOPjDwwjBURc+XT/VH8Ve0MGODGFPm4PBQ4=
+        :x-sasl-enc; s=mesmtp; bh=7gLbjZ8hQXXzNO1tU2SvzSbqCEU=; b=IfPJ5i
+        LsE0oR8l+4ckW6F+/X8V0fxjNrHlZEoFCj00DiRwhGdM4NBJS5nJAyKv6kMVLd1Z
+        AZzZxSxw8Bim+997cqhT2wFGs6+PwI/+ReZqo9hyKT7TCsXFYa0usiWM3jpi5nze
+        Cnhg8xQa+DKet1oeA3FOCqijbGpNE6Hc/XcZc=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
         messagingengine.com; h=cc:content-transfer-encoding:content-type
         :date:from:in-reply-to:message-id:mime-version:references
-        :subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=Vvl0KD7IiHe3FsE
-        343LhScnULjo=; b=uADOy/r2qkR2F05KK1touHWLcCGO+oZ36Cf14U29N6/QB+a
-        vD52aUJzfPLcn9+c/3WhIKdMBOgcvB0facJhPjmbul+AMtI0dDHZVuVNmw8xCv/A
-        kewYCIGGf+jf5Ca7XlwxIf4y7PyekpXe7vXRs5nW2FCHj7gXFg+0T4EZp4ps=
+        :subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=7gLbjZ8hQXXzNO1
+        tU2SvzSbqCEU=; b=rSRsf2WlO1Q+boBdsa7OU9hFfX8U2pdZPt1GhlCacE+K7Bh
+        DR6L8vTpb7RjBpdCXec7x5dbDcq2YzZ/rk05NrDzqmku3zaAZvmYyf6+gbTtp/XP
+        ASFebSXAfiTVlktyywJqXcWPDemE4bcF8B5zf2elAkgYkdbXwbObDTw5UunU=
 In-Reply-To: <20161011053352.27645.83962.stgit@pluto.themaw.net>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
@@ -29,88 +30,103 @@ Cc: autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-ker
 
 From: Ian Kent <ikent@redhat.com>
 
-d_mountpoint() can only be used reliably to establish if a dentry is
-not mounted in any namespace. It isn't aware of the possibility there
-may be multiple mounts using a given dentry that may be in a different
-namespace.
+If an automount mount is clone(2)ed into a file system that is propagation
+private, when it later expires in the originating namespace, subsequent
+calls to autofs ->d_automount() for that dentry in the original namespace
+will return ELOOP until the mount is umounted in the cloned namespace.
 
-Add helper functions, path_is_mountpoint() and an rcu version , that
-checks if a struct path is a mountpoint for this case.
+Now that a struct path is available where needed use path_is_mountpoint()
+instead of d_mountpoint() so we don't get false positives when checking
+if a dentry is a mount point in the current namespace.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 Cc: Al Viro <viro@ZenIV.linux.org.uk>
 Cc: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Omar Sandoval <osandov@osandov.com>
 ---
- fs/namespace.c     |   43 +++++++++++++++++++++++++++++++++++++++++++
- include/linux/fs.h |    2 ++
- 2 files changed, 45 insertions(+)
+ fs/autofs4/root.c |   24 ++++++++++++++++--------
+ 1 file changed, 16 insertions(+), 8 deletions(-)
 
-diff --git a/fs/namespace.c b/fs/namespace.c
-index ff1cd14..5ef9618 100644
---- a/fs/namespace.c
-+++ b/fs/namespace.c
-@@ -1160,6 +1160,49 @@ struct vfsmount *mntget(struct vfsmount *mnt)
- }
- EXPORT_SYMBOL(mntget);
- 
-+static bool __path_is_mountpoint(struct path *path)
-+{
-+	struct mount *mount;
-+	struct vfsmount *mnt;
-+	unsigned seq;
-+
-+	do {
-+		seq = read_seqbegin(&mount_lock);
-+		mount = __lookup_mnt(path->mnt, path->dentry);
-+		mnt = mount ? &mount->mnt : NULL;
-+	} while (mnt &&
-+		 !(mnt->mnt_flags & MNT_SYNC_UMOUNT) &&
-+		 read_seqretry(&mount_lock, seq));
-+
-+	return mnt != NULL;
-+}
-+
-+/* Check if path is a mount in current namespace */
-+bool path_is_mountpoint(struct path *path)
-+{
-+	bool res;
-+
-+	if (!d_mountpoint(path->dentry))
-+		return 0;
-+
-+	rcu_read_lock();
-+	res = __path_is_mountpoint(path);
-+	rcu_read_unlock();
-+
-+	return res;
-+}
-+EXPORT_SYMBOL(path_is_mountpoint);
-+
-+/* Check if path is a mount in current namespace */
-+bool path_is_mountpoint_rcu(struct path *path)
-+{
-+	if (!d_mountpoint(path->dentry))
-+		return 0;
-+
-+	return __path_is_mountpoint(path);
-+}
-+EXPORT_SYMBOL(path_is_mountpoint_rcu);
-+
- struct vfsmount *mnt_clone_internal(struct path *path)
+diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
+index d47930ad..d7e48fe 100644
+--- a/fs/autofs4/root.c
++++ b/fs/autofs4/root.c
+@@ -107,12 +107,15 @@ static int autofs4_dir_open(struct inode *inode, struct file *file)
  {
- 	struct mount *p;
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 09a8c41..deaf08b 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -2142,6 +2142,8 @@ extern int vfs_ustat(dev_t, struct kstatfs *);
- extern int freeze_super(struct super_block *super);
- extern int thaw_super(struct super_block *super);
- extern bool our_mnt(struct vfsmount *mnt);
-+extern bool path_is_mountpoint(struct path *);
-+extern bool path_is_mountpoint_rcu(struct path *);
+ 	struct dentry *dentry = file->f_path.dentry;
+ 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
++	struct path path;
  
- extern int current_umask(void);
+ 	pr_debug("file=%p dentry=%p %pd\n", file, dentry, dentry);
  
+ 	if (autofs4_oz_mode(sbi))
+ 		goto out;
+ 
++	path = file->f_path;
++
+ 	/*
+ 	 * An empty directory in an autofs file system is always a
+ 	 * mount point. The daemon must have failed to mount this
+@@ -123,7 +126,7 @@ static int autofs4_dir_open(struct inode *inode, struct file *file)
+ 	 * it.
+ 	 */
+ 	spin_lock(&sbi->lookup_lock);
+-	if (!d_mountpoint(dentry) && simple_empty(dentry)) {
++	if (!path_is_mountpoint(&path) && simple_empty(dentry)) {
+ 		spin_unlock(&sbi->lookup_lock);
+ 		return -ENOENT;
+ 	}
+@@ -372,15 +375,15 @@ static struct vfsmount *autofs4_d_automount(struct path *path)
+ 
+ 	/*
+ 	 * If the dentry is a symlink it's equivalent to a directory
+-	 * having d_mountpoint() true, so there's no need to call back
+-	 * to the daemon.
++	 * having path_is_mountpoint() true, so there's no need to call
++	 * back to the daemon.
+ 	 */
+ 	if (d_really_is_positive(dentry) && d_is_symlink(dentry)) {
+ 		spin_unlock(&sbi->fs_lock);
+ 		goto done;
+ 	}
+ 
+-	if (!d_mountpoint(dentry)) {
++	if (!path_is_mountpoint(path)) {
+ 		/*
+ 		 * It's possible that user space hasn't removed directories
+ 		 * after umounting a rootless multi-mount, although it
+@@ -434,8 +437,13 @@ static int autofs4_d_manage(struct path *path, bool rcu_walk)
+ 
+ 	/* The daemon never waits. */
+ 	if (autofs4_oz_mode(sbi)) {
+-		if (!d_mountpoint(dentry))
+-			return -EISDIR;
++		if (rcu_walk) {
++			if (!path_is_mountpoint_rcu(path))
++				return -EISDIR;
++		} else {
++			if (!path_is_mountpoint(path))
++				return -EISDIR;
++		}
+ 		return 0;
+ 	}
+ 
+@@ -463,7 +471,7 @@ static int autofs4_d_manage(struct path *path, bool rcu_walk)
+ 
+ 		if (ino->flags & AUTOFS_INF_WANT_EXPIRE)
+ 			return 0;
+-		if (d_mountpoint(dentry))
++		if (path_is_mountpoint_rcu(path))
+ 			return 0;
+ 		inode = d_inode_rcu(dentry);
+ 		if (inode && S_ISLNK(inode->i_mode))
+@@ -490,7 +498,7 @@ static int autofs4_d_manage(struct path *path, bool rcu_walk)
+ 		 * we can avoid needless calls ->d_automount() and avoid
+ 		 * an incorrect ELOOP error return.
+ 		 */
+-		if ((!d_mountpoint(dentry) && !simple_empty(dentry)) ||
++		if ((!path_is_mountpoint(path) && !simple_empty(dentry)) ||
+ 		    (d_really_is_positive(dentry) && d_is_symlink(dentry)))
+ 			status = -EISDIR;
+ 	}
 
