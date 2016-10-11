@@ -1,153 +1,107 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 1/8] vfs - change d_manage() to take a struct path
-Date: Tue, 11 Oct 2016 13:33:52 +0800
-Message-ID: <20161011053352.27645.83962.stgit@pluto.themaw.net>
+Subject: [PATCH 3/8] vfs - add path_has_submounts()
+Date: Tue, 11 Oct 2016 13:34:03 +0800
+Message-ID: <20161011053403.27645.55242.stgit@pluto.themaw.net>
+References: <20161011053352.27645.83962.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=cc
-        :content-transfer-encoding:content-type:date:from:message-id
-        :mime-version:subject:to:x-sasl-enc:x-sasl-enc; s=mesmtp; bh=9Jx
-        kvkQHy8lybqPKLuABQYa4zR8=; b=NSXHRzCfq1zJpQ4BsyhrHxzd57I3YAqyUNa
-        dtPI5jRaaxHsepeAEZTBiO1zYdZlpDEDiGb9lCNphsOMe8fRVbTu6qq0xhRSF8RR
-        AhLNGncekPUgtRYagIeb8Fgztfk2CcSsnUQ4ZgK/Ry8BAs8qLlYZaxxu7wA16tq5
-        6v749Li4=
+        :content-transfer-encoding:content-type:date:from:in-reply-to
+        :message-id:mime-version:references:subject:to:x-sasl-enc
+        :x-sasl-enc; s=mesmtp; bh=yQaQmb2ZvqS2cPb3Ps8+otMivlk=; b=AmekM7
+        J9F0ksbv1wNzipijRUz1TzPa7gv8xFcxRicWvYy6CdXUehv1QbBz5gPQ80nuajHw
+        rVv+OFIYrARKBQ7tD+zeIpCpDLVFJTxqjQ94ff1GIM4m5FzOWQogQmd8saabFLN8
+        mPub9SZJv9RiNHduNuugmagx3fJ4cesEqUWXM=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
         messagingengine.com; h=cc:content-transfer-encoding:content-type
-        :date:from:message-id:mime-version:subject:to:x-sasl-enc
-        :x-sasl-enc; s=smtpout; bh=9JxkvkQHy8lybqPKLuABQYa4zR8=; b=hrIGR
-        5gR8/9CiHFmQXagEIM1FgEPEP8ybHK4w+gVPOpLzrJzA3Eg/6DQPv+0PVOSBTQfL
-        p//ufgYzH0VDRFCAc7vApRfRu6WGOf4ULqs+f4VC3AGKAXCMSHYx4aTczIB7iSXe
-        o6YS5HI5zFmBBNl8BBtGDxW5nysIpZLZX2cZ0U=
+        :date:from:in-reply-to:message-id:mime-version:references
+        :subject:to:x-sasl-enc:x-sasl-enc; s=smtpout; bh=yQaQmb2ZvqS2cPb
+        3Ps8+otMivlk=; b=HeCpOcUZosnvlcL7dCyJdA6HK9edziJfuz3atl82SqkDW41
+        4I1us7TCwu+sjVX1WwU2A1AcIG1XQjpuRyhI3uCK5h4wu/7+wSplYXP+vMO1y1dl
+        VwxY5Tapxh2xuGyuI8wFcS+hUF8J8XVido6d6DQkVRPxSmZwl0qeL4GPONYQ=
+In-Reply-To: <20161011053352.27645.83962.stgit@pluto.themaw.net>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: Andrew Morton <akpm@linux-foundation.org>
 Cc: autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, "Eric W. Biederman" <ebiederm@xmission.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Omar Sandoval <osandov@osandov.com>, Al Viro <viro@ZenIV.linux.org.uk>
 
-For the autofs module to be able to reliably check if a dentry is a
-mountpoint in a multiple namespace environment the ->d_manage() dentry
-operation will need to take a path argument instead of a dentry.
+From: Ian Kent <ikent@redhat.com>
+
+d_mountpoint() can only be used reliably to establish if a dentry is
+not mounted in any namespace. It isn't aware of the possibility there
+may be multiple mounts using the given dentry, possibly in a different
+namespace.
+
+Add function, path_has_submounts(), that checks is a struct path contains
+mounts (or is a mountpoint itself) to handle this case.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 Cc: Al Viro <viro@ZenIV.linux.org.uk>
 Cc: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Omar Sandoval <osandov@osandov.com>
 ---
- Documentation/filesystems/Locking |    2 +-
- Documentation/filesystems/vfs.txt |    2 +-
- fs/autofs4/root.c                 |    5 +++--
- fs/namei.c                        |   13 ++++++-------
- include/linux/dcache.h            |    2 +-
- 5 files changed, 12 insertions(+), 12 deletions(-)
+ fs/dcache.c            |   35 +++++++++++++++++++++++++++++++++++
+ include/linux/dcache.h |    1 +
+ 2 files changed, 36 insertions(+)
 
-diff --git a/Documentation/filesystems/Locking b/Documentation/filesystems/Locking
-index fe15682..1949ac4 100644
---- a/Documentation/filesystems/Locking
-+++ b/Documentation/filesystems/Locking
-@@ -20,7 +20,7 @@ prototypes:
- 	void (*d_iput)(struct dentry *, struct inode *);
- 	char *(*d_dname)((struct dentry *dentry, char *buffer, int buflen);
- 	struct vfsmount *(*d_automount)(struct path *path);
--	int (*d_manage)(struct dentry *, bool);
-+	int (*d_manage)(struct path *, bool);
- 	struct dentry *(*d_real)(struct dentry *, const struct inode *,
- 				 unsigned int);
- 
-diff --git a/Documentation/filesystems/vfs.txt b/Documentation/filesystems/vfs.txt
-index bc3b8e0..db70d71 100644
---- a/Documentation/filesystems/vfs.txt
-+++ b/Documentation/filesystems/vfs.txt
-@@ -934,7 +934,7 @@ struct dentry_operations {
- 	void (*d_iput)(struct dentry *, struct inode *);
- 	char *(*d_dname)(struct dentry *, char *, int);
- 	struct vfsmount *(*d_automount)(struct path *);
--	int (*d_manage)(struct dentry *, bool);
-+	int (*d_manage)(struct path *, bool);
- 	struct dentry *(*d_real)(struct dentry *, const struct inode *,
- 				 unsigned int);
- };
-diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
-index a11f731..5cbd4e1 100644
---- a/fs/autofs4/root.c
-+++ b/fs/autofs4/root.c
-@@ -32,7 +32,7 @@ static int autofs4_dir_open(struct inode *inode, struct file *file);
- static struct dentry *autofs4_lookup(struct inode *,
- 				     struct dentry *, unsigned int);
- static struct vfsmount *autofs4_d_automount(struct path *);
--static int autofs4_d_manage(struct dentry *, bool);
-+static int autofs4_d_manage(struct path *, bool);
- static void autofs4_dentry_release(struct dentry *);
- 
- const struct file_operations autofs4_root_operations = {
-@@ -421,8 +421,9 @@ static struct vfsmount *autofs4_d_automount(struct path *path)
- 	return NULL;
+diff --git a/fs/dcache.c b/fs/dcache.c
+index 5c7cc95..872f04e 100644
+--- a/fs/dcache.c
++++ b/fs/dcache.c
+@@ -1306,6 +1306,41 @@ int have_submounts(struct dentry *parent)
  }
+ EXPORT_SYMBOL(have_submounts);
  
--static int autofs4_d_manage(struct dentry *dentry, bool rcu_walk)
-+static int autofs4_d_manage(struct path *path, bool rcu_walk)
- {
-+	struct dentry *dentry = path->dentry;
- 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
- 	struct autofs_info *ino = autofs4_dentry_ino(dentry);
- 	int status;
-diff --git a/fs/namei.c b/fs/namei.c
-index a7f601c..704766a 100644
---- a/fs/namei.c
-+++ b/fs/namei.c
-@@ -1200,7 +1200,7 @@ static int follow_managed(struct path *path, struct nameidata *nd)
- 		if (managed & DCACHE_MANAGE_TRANSIT) {
- 			BUG_ON(!path->dentry->d_op);
- 			BUG_ON(!path->dentry->d_op->d_manage);
--			ret = path->dentry->d_op->d_manage(path->dentry, false);
-+			ret = path->dentry->d_op->d_manage(path, false);
- 			if (ret < 0)
- 				break;
- 		}
-@@ -1263,10 +1263,10 @@ int follow_down_one(struct path *path)
- }
- EXPORT_SYMBOL(follow_down_one);
- 
--static inline int managed_dentry_rcu(struct dentry *dentry)
-+static inline int managed_dentry_rcu(struct path *path)
- {
--	return (dentry->d_flags & DCACHE_MANAGE_TRANSIT) ?
--		dentry->d_op->d_manage(dentry, true) : 0;
-+	return (path->dentry->d_flags & DCACHE_MANAGE_TRANSIT) ?
-+		path->dentry->d_op->d_manage(path, true) : 0;
- }
- 
++struct check_mount {
++	struct vfsmount *mnt;
++	unsigned int mounted;
++};
++
++static enum d_walk_ret path_check_mount(void *data, struct dentry *dentry)
++{
++	struct check_mount *info = data;
++	struct path path = { .mnt = info->mnt, .dentry = dentry };
++
++	if (path_is_mountpoint(&path)) {
++		info->mounted = 1;
++		return D_WALK_QUIT;
++	}
++	return D_WALK_CONTINUE;
++}
++
++/**
++ * path_has_submounts - check for mounts over a dentry in the
++ *                      current namespace.
++ * @parent: path to check.
++ *
++ * Return true if the parent or its subdirectories contain
++ * a mount point in the current namespace.
++ */
++int path_has_submounts(struct path *parent)
++{
++	struct check_mount data = { .mnt = parent->mnt, .mounted = 0 };
++
++	d_walk(parent->dentry, &data, path_check_mount, NULL);
++
++	return data.mounted;
++}
++EXPORT_SYMBOL(path_has_submounts);
++
  /*
-@@ -1282,7 +1282,7 @@ static bool __follow_mount_rcu(struct nameidata *nd, struct path *path,
- 		 * Don't forget we might have a non-mountpoint managed dentry
- 		 * that wants to block transit.
- 		 */
--		switch (managed_dentry_rcu(path->dentry)) {
-+		switch (managed_dentry_rcu(path)) {
- 		case -ECHILD:
- 		default:
- 			return false;
-@@ -1392,8 +1392,7 @@ int follow_down(struct path *path)
- 		if (managed & DCACHE_MANAGE_TRANSIT) {
- 			BUG_ON(!path->dentry->d_op);
- 			BUG_ON(!path->dentry->d_op->d_manage);
--			ret = path->dentry->d_op->d_manage(
--				path->dentry, false);
-+			ret = path->dentry->d_op->d_manage(path, false);
- 			if (ret < 0)
- 				return ret == -EISDIR ? 0 : ret;
- 		}
+  * Called by mount code to set a mountpoint and check if the mountpoint is
+  * reachable (e.g. NFS can unhash a directory dentry and then the complete
 diff --git a/include/linux/dcache.h b/include/linux/dcache.h
-index 5beed7b..798bc04 100644
+index 798bc04..e351646 100644
 --- a/include/linux/dcache.h
 +++ b/include/linux/dcache.h
-@@ -139,7 +139,7 @@ struct dentry_operations {
- 	void (*d_iput)(struct dentry *, struct inode *);
- 	char *(*d_dname)(struct dentry *, char *, int);
- 	struct vfsmount *(*d_automount)(struct path *);
--	int (*d_manage)(struct dentry *, bool);
-+	int (*d_manage)(struct path *, bool);
- 	struct dentry *(*d_real)(struct dentry *, const struct inode *,
- 				 unsigned int);
- } ____cacheline_aligned;
+@@ -255,6 +255,7 @@ extern void d_prune_aliases(struct inode *);
+ 
+ /* test whether we have any submounts in a subdir tree */
+ extern int have_submounts(struct dentry *);
++extern int path_has_submounts(struct path *);
+ 
+ /*
+  * This adds the entry to the hash queues.
 
