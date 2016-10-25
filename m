@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 04/37] autofs-5.1.2 - Drop redundant \n in logerr()
-Date: Tue, 25 Oct 2016 09:17:46 +0800
-Message-ID: <20161025011746.7778.75284.stgit@pluto.themaw.net>
+Subject: [PATCH 07/37] autofs-5.1.2 - Fix a typo in CREDITS
+Date: Tue, 25 Oct 2016 09:18:02 +0800
+Message-ID: <20161025011802.7778.21120.stgit@pluto.themaw.net>
 References: <20161025010014.7778.69274.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -9,17 +9,17 @@ Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
         x-sasl-enc:subject:from:to:date:message-id:in-reply-to
         :references:mime-version:content-type:content-transfer-encoding;
-         s=mesmtp; bh=Jg3OrfcBDssjg2ML+fCgxF4hHq4=; b=n/grPFnwbPc9dKma8L
-        pALFxL+93UjfcxbB2/y20YiXIGqIQqH/yAgVohqBNI0O15uV7rxlxkbmAfypYuUn
-        /r84P/gHkRyhAJ8ZEm8WZg4QbDOHeLFjX8L7SSQvD56ku2tm9CG+drjvlHyfuy3w
-        e8WifRMiYTCxWSk82bDCskfok=
+         s=mesmtp; bh=HWD63JCpVfjMKgGslnCtDkexX6w=; b=YHd/r8IJBzJFm5EQbI
+        H/7ZfsfrRKCKVORdOE58j3q8q0fSbcZLFx2U6YBg0c4QFSri6cb6UgRZ1unydCox
+        dxiiTF9PWFgxMUdONL7g/9Ad5pFuaaZOdrkkG/oQd4tbphXs18U4NK9XxeDaJtFi
+        jMizUAGl7X0Sq6vJWnKeWjCxs=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
         messagingengine.com; h=x-sasl-enc:subject:from:to:date
         :message-id:in-reply-to:references:mime-version:content-type
-        :content-transfer-encoding; s=smtpout; bh=Jg3OrfcBDssjg2ML+fCgxF
-        4hHq4=; b=MMSNGN/5RgJdIZyVLJ4YoZTOC1KJcBoQG5+L7VNywEkEuwEBFkT8Xp
-        K4/f34CrMgc0s9SlNFI4/9LQNGL089Dniax0Y1+MtPN/TCY4c00ibcwREjpkR2Wc
-        HNMrRut4Rt/bBh/rpakjdNi9scSckZA5NhZvqKF0wDy97wTZwAGWI=
+        :content-transfer-encoding; s=smtpout; bh=HWD63JCpVfjMKgGslnCtDk
+        exX6w=; b=M4ncNWOjo/w1eEQp/13ny17IpPEkRHDbeK4A/Xou7GAGPO7nn/hMFY
+        RhOPNI9d7wZm91t1E/EGdeRwFQgdvOFhUwmW3E16jSp+/UBwKClgVcfEB9J0KK5A
+        /yV/WK0wAidly0M4RjlOltq6HHCDAIKi+vI2zQ8eoW5fGqvpUfnjo=
 In-Reply-To: <20161025010014.7778.69274.stgit@pluto.themaw.net>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
@@ -28,55 +28,41 @@ To: autofs mailing list <autofs@vger.kernel.org>
 
 From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 
-Line break isn't necessary from the way logerr (and logmsg) is implemented,
-and these two probably aren't intentional.
+Fix a typo in a contributor's name.
+Two other parts of this file says "Aaron".
 
 Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
-Signed-off-by: Ian Kent <raven@themaw.net>
+Signed-off-by: Ian Kent <ikent@redhat.com>
 ---
- CHANGELOG       |    1 +
- daemon/module.c |    2 +-
- lib/nss_parse.y |    2 +-
- 3 files changed, 3 insertions(+), 2 deletions(-)
+ CHANGELOG |    1 +
+ CREDITS   |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index 288d175..99dc245 100644
+index 9291c20..96260b7 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -3,6 +3,7 @@ xx/xx/2016 autofs-5.1.3
- - fix release date in CHANGELOG.
- - build: check for clock_gettime in librt.
- - fix compiler warning in try_remount().
-+- drop redundant \n in logerr().
+@@ -6,6 +6,7 @@ xx/xx/2016 autofs-5.1.3
+ - drop redundant \n in logerr().
+ - Fix size arg of fgets(3).
+ - fix libtirpc detection with -Wl,--as-needed.
++- Fix a typo in CREDITS.
  
  15/06/2016 autofs-5.1.2
  =======================
-diff --git a/daemon/module.c b/daemon/module.c
-index bed8f7a..db01db8 100644
---- a/daemon/module.c
-+++ b/daemon/module.c
-@@ -34,7 +34,7 @@ int load_autofs4_module(void)
- 	 */
- 	fp = open_fopen_r("/proc/filesystems");
- 	if (!fp) {
--		logerr("cannot open /proc/filesystems\n");
-+		logerr("cannot open /proc/filesystems");
- 		return 0;
- 	}
+diff --git a/CREDITS b/CREDITS
+index 8d5057a..a931de1 100644
+--- a/CREDITS
++++ b/CREDITS
+@@ -2,7 +2,7 @@
+ CREDITS
+ =======
  
-diff --git a/lib/nss_parse.y b/lib/nss_parse.y
-index 055e9d7..0721ba1 100644
---- a/lib/nss_parse.y
-+++ b/lib/nss_parse.y
-@@ -169,7 +169,7 @@ int nsswitch_parse(struct list_head *list)
+-Arron Ogden
++Aaron Ogden
+ -----------
  
- 	nsswitch = open_fopen_r(NSSWITCH_FILE);
- 	if (!nsswitch) {
--		logerr("couldn't open %s\n", NSSWITCH_FILE);
-+		logerr("couldn't open %s", NSSWITCH_FILE);
- 		return 1;
- 	}
- 
+ While other people have contributed to autofs in various ways
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
