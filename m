@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 14/37] autofs-5.1.2 - fix count_mounts() function
-Date: Tue, 25 Oct 2016 09:18:40 +0800
-Message-ID: <20161025011840.7778.12233.stgit@pluto.themaw.net>
+Subject: [PATCH 10/37] autofs-5.1.2 - Remove unused local 2KB buffer
+Date: Tue, 25 Oct 2016 09:18:19 +0800
+Message-ID: <20161025011818.7778.26674.stgit@pluto.themaw.net>
 References: <20161025010014.7778.69274.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -9,57 +9,65 @@ Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
         x-sasl-enc:subject:from:to:date:message-id:in-reply-to
         :references:mime-version:content-type:content-transfer-encoding;
-         s=mesmtp; bh=ZvNJJmXCo4YdfybN0o8VrrAvsZI=; b=WMsGY5aVH07UbOsPHa
-        tWOeq5q9o+sTKvNZ9ewzCnw5Ma3h/YYZSo3XMigujbIXEuJMvCsB7NakIa80jV2C
-        +HtjBTfD9isasLU4if3KsOg2GaQeps6VvQDDY12PLrLm0OprQeqUK2MMbq5CtB/p
-        qjlFXcU877aPs6x4458riCkMg=
+         s=mesmtp; bh=MSeF+m0oPNIbugbciC703gpu5c0=; b=NMKAGb0aUMw3Uviu5M
+        nAVDoyHtsOzIesz2o+8BE8q8C8iEOluxKfqEBBtoF+2UcyBsF43MnL6vy4HplrLZ
+        1Y5f19dLSjRLZUbORbkXlsLCqbEn1B4bGqsIZJwPCGTC94IoBqaYwAXTt7mdk8Ao
+        FJE+QPcHHrNbByu86gnQZA5oA=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
         messagingengine.com; h=x-sasl-enc:subject:from:to:date
         :message-id:in-reply-to:references:mime-version:content-type
-        :content-transfer-encoding; s=smtpout; bh=ZvNJJmXCo4YdfybN0o8Vrr
-        AvsZI=; b=KOLxTN8AOcCYCPh3PIpQ6RXsCiGZxaE37myJ0atRu2+2/JMUKFbjGB
-        zcgCUUls0HmfwoaqRIlkRyw1y6JwRrvcos7Wi0QGfK0M8GTKZabDN/bx833j1d4c
-        oFL8fP9GqYamc1maJq4TDUFmRyR+ej9k7doZdREOhVCgFLV8XELAo=
+        :content-transfer-encoding; s=smtpout; bh=MSeF+m0oPNIbugbciC703g
+        pu5c0=; b=HCTGbMMecXC35BIMyUkyJWv39P1DplWsuVXpl60mIOGkrgA5RQjfB3
+        Q5dI+IPMOOSNFf10KOHDRDsOsiBgwXitx4Wn6RuPMgEKpucDemZAFlmaAezpDLz1
+        cXrg2UuheXbtSuKB16t+iw8slZjiFirnqNz/OfVLy0hLVk5sYXg3k=
 In-Reply-To: <20161025010014.7778.69274.stgit@pluto.themaw.net>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: autofs mailing list <autofs@vger.kernel.org>
 
-count_mounts() gets the number of mounts wrong, make it include the
-base directory also.
+From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 
+Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 Signed-off-by: Ian Kent <raven@themaw.net>
 ---
  CHANGELOG          |    1 +
- daemon/automount.c |    2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ daemon/automount.c |    3 ---
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index 551443a..5fcd123 100644
+index 837debd..7aa7b4a 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -13,6 +13,7 @@ xx/xx/2016 autofs-5.1.3
- - Fix typos in error messages.
- - Fix fgets(3) size argument (another one).
- - fix short memory allocation in lookup_amd_instance().
-+- fix count_mounts() function.
+@@ -9,6 +9,7 @@ xx/xx/2016 autofs-5.1.3
+ - Fix a typo in CREDITS.
+ - Change .requestor to .requester for consistency.
+ - fix file map changed check.
++- Remove unused local 2KB buffer.
  
  15/06/2016 autofs-5.1.2
  =======================
 diff --git a/daemon/automount.c b/daemon/automount.c
-index e51909c..8d98054 100644
+index fee93cc..1bdc3aa 100644
 --- a/daemon/automount.c
 +++ b/daemon/automount.c
-@@ -420,7 +420,7 @@ int count_mounts(struct autofs_point *ap, const char *path, dev_t dev)
- 	counter.count = 0;
- 	counter.dev = dev;
- 	
--	if (walk_tree(path, counter_fn, 0, ap, &counter) == -1)
-+	if (walk_tree(path, counter_fn, 1, ap, &counter) == -1)
- 		return -1;
+@@ -1901,7 +1901,6 @@ static void usage(void)
  
- 	return counter.count;
+ static void show_build_info(void)
+ {
+-	char buf[2048];
+ 	int count = 0;
+ 
+ 	printf("\nLinux automount version %s\n", version);
+@@ -1913,8 +1912,6 @@ static void show_build_info(void)
+ 
+ 	printf("\nCompile options:\n  ");
+ 
+-	memset(buf, 0, 2048);
+-
+ #ifndef ENABLE_MOUNT_LOCKING
+ 	printf("DISABLE_MOUNT_LOCKING ");
+ 	count = 22;
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
