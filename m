@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 19/37] autofs-5.1.2 - fix argc off by one in mount_autofs.c
-Date: Tue, 25 Oct 2016 09:19:06 +0800
-Message-ID: <20161025011906.7778.45739.stgit@pluto.themaw.net>
+Subject: [PATCH 23/37] autofs-5.1.2 - wait for master map available at start
+Date: Tue, 25 Oct 2016 09:19:27 +0800
+Message-ID: <20161025011927.7778.7380.stgit@pluto.themaw.net>
 References: <20161025010014.7778.69274.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -9,77 +9,312 @@ Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
         x-sasl-enc:subject:from:to:date:message-id:in-reply-to
         :references:mime-version:content-type:content-transfer-encoding;
-         s=mesmtp; bh=PHisSIevSPARTmlhjCmJHQeAsBE=; b=oXw2MfwKtTk4YVLdWP
-        AMVPA+FBOLuLpvNbZRGMpaxG7sApjUQS3KRaWDJFB5wN4N85bCxgT4z+JnvSORLb
-        NXaZDdXVkqWwUW+F9Db6m38L62nlGD2L/zd7Np5KHcTTkrNy74m7mSQTiCFaArOY
-        0MnB4S+YMn11eSeOoAZeeKY6Q=
+         s=mesmtp; bh=fV8VYEQCKUZJ6Ci2sLK8ABrBMfw=; b=Zu2fSUb4lvp5VA9Axr
+        xgEcVHD4LtA4LMgi3lP15OugTtVr7LjI6C2RfbouvumMaXPrZ0e/BBSqWlsFmAon
+        9jPRceFpFBXsxsFoccCjhCCxBf1Q5suWk0CwPrGLKvYDWRyOX/RSvm3rZ3BExTf7
+        ++FDQHyvpK6YcdsJEr4qMKnvM=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
         messagingengine.com; h=x-sasl-enc:subject:from:to:date
         :message-id:in-reply-to:references:mime-version:content-type
-        :content-transfer-encoding; s=smtpout; bh=PHisSIevSPARTmlhjCmJHQ
-        eAsBE=; b=VGIyoe4DrhGRyzAkCFXgJXCK5gPLJXB4eexfhMMOuA1KXTByJ50Rm2
-        qpYvTOpzGI58ENbv/wP1gPgE4LXgqvZ+khXKjOcSNLQtRXEhhJyuiNay+pTaWVWf
-        2iyxxzEpjJJ40Be+tNGrgrOTL79oNXMYvXQA17CLFcXH1+yoRkCls=
+        :content-transfer-encoding; s=smtpout; bh=fV8VYEQCKUZJ6Ci2sLK8AB
+        rBMfw=; b=U7l8ekMlwL3hn6G9DSWxw0tOAoL7k+xBoywUx+M87wcN3VAgSFYcnI
+        sGgnR1yKq2VjYlNYtJJPko1UWaBHogWr2aMtYQycZp5lEcYxFRGuI04ME5wtKiyV
+        qRXtwrjW3Y9khC2NTNKgRtdf9tirdRCqwmr1jbpxil9Hmf3tZcB/s=
 In-Reply-To: <20161025010014.7778.69274.stgit@pluto.themaw.net>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: autofs mailing list <autofs@vger.kernel.org>
 
-The mount_autofs.c module incorrectly calculates the number of
-arguments to its map.
+If the network map source isn't available at start the master map
+can't be read. In this case we should wait until it is available
+so we can get a startup map.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 ---
- CHANGELOG              |    1 +
- modules/mount_autofs.c |    8 ++++----
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ CHANGELOG                |    1 +
+ daemon/automount.c       |   81 ++++++++++++++++++++++++++++++++++++++++------
+ daemon/lookup.c          |    8 +++++
+ lib/master.c             |    3 ++
+ modules/lookup_file.c    |    6 +++
+ modules/lookup_nisplus.c |   14 ++++++--
+ modules/lookup_yp.c      |   13 +++++--
+ 7 files changed, 108 insertions(+), 18 deletions(-)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index 853d40c..f46428c 100644
+index 686d404..d1bc1e1 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -16,6 +16,7 @@ xx/xx/2016 autofs-5.1.3
- - fix count_mounts() function.
- - configure: add cache variable for Linux proc filesystem check.
- - Avoid local variable name shadowing another.
-+- fix argc off by one in mount_autofs.c.
+@@ -20,6 +20,7 @@ xx/xx/2016 autofs-5.1.3
+ - fix _strncmp() usage.
+ - fix create_client() RPC client handling.
+ - update and add README for old autofs schema.
++- wait for master map available at start.
  
  15/06/2016 autofs-5.1.2
  =======================
-diff --git a/modules/mount_autofs.c b/modules/mount_autofs.c
-index c6a3199..65c0a06 100644
---- a/modules/mount_autofs.c
-+++ b/modules/mount_autofs.c
-@@ -179,11 +179,11 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name,
+diff --git a/daemon/automount.c b/daemon/automount.c
+index 9d4c2b7..14af9ff 100644
+--- a/daemon/automount.c
++++ b/daemon/automount.c
+@@ -1403,9 +1403,10 @@ static void *do_read_master(void *arg)
+ 	return NULL;
+ }
  
- 	if (options) {
- 		char *t = options;
--		do {
-+		while ((t = strchr(t, ',')) != NULL) {
- 			argc++;
- 			if (*t == ',')
- 				t++;
--		} while ((t = strchr(t, ',')) != NULL);
+-static int do_hup_signal(struct master *master, time_t age)
++static int do_hup_signal(struct master *master)
+ {
+ 	unsigned int logopt = master->logopt;
++	time_t age = monotonic_time(NULL);
+ 	pthread_t thid;
+ 	int status;
+ 
+@@ -1494,7 +1495,7 @@ static void *statemachine(void *arg)
+ 			break;
+ 
+ 		case SIGHUP:
+-			do_hup_signal(master_list, monotonic_time(NULL));
++			do_hup_signal(master_list);
+ 			break;
+ 
+ 		default:
+@@ -2052,12 +2053,56 @@ static void remove_empty_args(char **argv, int *argc)
+ 	*argc = j;
+ }
+ 
++static int do_master_read_master(struct master *master, int wait)
++{
++	sigset_t signalset;
++	/* Wait must be at least 1 second */
++	unsigned int retry_wait = 2;
++	unsigned int elapsed = 0;
++	int max_wait = wait;
++	int ret = 0;
++	time_t age;
++
++	sigemptyset(&signalset);
++	sigaddset(&signalset, SIGTERM);
++	sigaddset(&signalset, SIGINT);
++	sigaddset(&signalset, SIGHUP);
++	sigprocmask(SIG_UNBLOCK, &signalset, NULL);
++
++	while (1) {
++		struct timespec t = { retry_wait, 0 };
++
++		age = monotonic_time(NULL);
++		if (master_read_master(master, age, 0)) {
++			ret = 1;
++			break;
 +		}
++
++		if (nanosleep(&t, NULL) == -1)
++			break;
++
++		if (max_wait > 0) {
++			elapsed += retry_wait;
++			if (elapsed >= max_wait) {
++				logmsg("problem reading master map, "
++					"maximum wait exceeded");
++				break;
++			}
++		}
++	}
++
++	sigprocmask(SIG_BLOCK, &signalset, NULL);
++
++	return ret;
++}
++
+ int main(int argc, char *argv[])
+ {
+ 	int res, opt, status;
+ 	int logpri = -1;
+ 	unsigned ghost, logging, daemon_check;
+ 	unsigned dumpmaps, foreground, have_global_options;
++	unsigned master_read;
+ 	time_t timeout;
+ 	time_t age = monotonic_time(NULL);
+ 	struct rlimit rlim;
+@@ -2452,14 +2497,16 @@ int main(int argc, char *argv[])
+ 		dh_tirpc = dlopen("libtirpc.so.3", RTLD_NOW);
+ #endif
+ 
+-	if (!master_read_master(master_list, age, 0)) {
+-		master_kill(master_list);
+-		*pst_stat = 3;
+-		res = write(start_pipefd[1], pst_stat, sizeof(*pst_stat));
+-		close(start_pipefd[1]);
+-		release_flag_file();
+-		macro_free_global_table();
+-		exit(3);
++	master_read = master_read_master(master_list, age, 0);
++	if (!master_read) {
++		if (foreground)
++			logerr("%s: failed to read master map, "
++			       "will retry!",
++			       program);
++		else
++			logerr("%s: failed to read master map, "
++			       "will retry in background!",
++			       program);
  	}
- 	argv = (const char **) alloca((argc + 1) * sizeof(char *));
  
-@@ -235,13 +235,13 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name,
+ 	/*
+@@ -2472,6 +2519,20 @@ int main(int argc, char *argv[])
+ 	res = write(start_pipefd[1], pst_stat, sizeof(*pst_stat));
+ 	close(start_pipefd[1]);
  
- 	if (options) {
- 		p = options;
--		do {
-+		while ((p = strchr(p, ',')) != NULL) {
- 			if (*p == ',') {
- 				*p = '\0';
- 				p++;
++	if (!master_read) {
++		/*
++		 * Read master map, waiting until it is available, unless
++		 * a signal is received, in which case exit returning an
++		 * error.
++		 */
++		if (!do_master_read_master(master_list, -1)) {
++			logerr("%s: failed to read master map!", program);
++			master_kill(master_list);
++			release_flag_file();
++			exit(3);
++		}
++	}
++
+ 	state_mach_thid = pthread_self();
+ 	statemachine(NULL);
+ 
+diff --git a/daemon/lookup.c b/daemon/lookup.c
+index 582b5c9..0c2a01f 100644
+--- a/daemon/lookup.c
++++ b/daemon/lookup.c
+@@ -241,6 +241,7 @@ int lookup_nss_read_master(struct master *master, time_t age)
+ 	}
+ 
+ 	/* First one gets it */
++	result = NSS_STATUS_UNKNOWN;
+ 	head = &nsslist;
+ 	list_for_each(p, head) {
+ 		struct nss_source *this;
+@@ -248,6 +249,13 @@ int lookup_nss_read_master(struct master *master, time_t age)
+ 
+ 		this = list_entry(p, struct nss_source, list);
+ 
++		if (strncmp(this->source, "files", 5) &&
++		    strncmp(this->source, "nis", 3) &&
++		    strncmp(this->source, "nisplus", 7) &&
++		    strncmp(this->source, "ldap", 4) &&
++		    strncmp(this->source, "sss", 3))
++			continue;
++
+ 		debug(logopt,
+ 		      "reading master %s %s", this->source, master->name);
+ 
+diff --git a/lib/master.c b/lib/master.c
+index 9ffdd1a..4c6e79b 100644
+--- a/lib/master.c
++++ b/lib/master.c
+@@ -923,7 +923,10 @@ int master_read_master(struct master *master, time_t age, int readall)
+ 		master_mount_mounts(master, age, readall);
+ 	else {
+ 		master->read_fail = 0;
++		/* HUP signal sets readall == 1 only */
+ 		if (!readall)
++			return 0;
++		else
+ 			master_mount_mounts(master, age, readall);
+ 	}
+ 
+diff --git a/modules/lookup_file.c b/modules/lookup_file.c
+index d87ec73..d5f8c9e 100644
+--- a/modules/lookup_file.c
++++ b/modules/lookup_file.c
+@@ -507,6 +507,12 @@ int lookup_read_master(struct master *master, time_t age, void *context)
+ 				     MODPREFIX
+ 				     "failed to read included master map %s",
+ 				     master->name);
++				/*
++				 * If we're starting up wee need the whole
++				 * master map initially, so tell the upper
++				 * layer to retry.
++				 */
++				master->read_fail = 1;
  			}
- 			argv[argc++] = p;
--		} while ((p = strchr(p, ',')) != NULL);
+ 			master->depth--;
+ 			master->recurse = 0;
+diff --git a/modules/lookup_nisplus.c b/modules/lookup_nisplus.c
+index 7832611..c8b75e6 100644
+--- a/modules/lookup_nisplus.c
++++ b/modules/lookup_nisplus.c
+@@ -149,19 +149,25 @@ int lookup_read_master(struct master *master, time_t age, void *context)
+ 		char *estr = strerror_r(errno, buf, MAX_ERR_BUF);
+ 		logerr(MODPREFIX "malloc: %s", estr);
+ 		pthread_setcancelstate(cur_state, NULL);
+-		return NSS_STATUS_UNAVAIL;
++		return NSS_STATUS_UNKNOWN;
+ 	}
+ 	sprintf(tablename, "%s.org_dir.%s", ctxt->mapname, ctxt->domainname);
+ 
+ 	/* check that the table exists */
+ 	result = nis_lookup(tablename, FOLLOW_PATH | FOLLOW_LINKS);
+ 	if (result->status != NIS_SUCCESS && result->status != NIS_S_SUCCESS) {
++		int status = result->status;
+ 		nis_freeresult(result);
+-		crit(logopt,
+-		     MODPREFIX "couldn't locate nis+ table %s", ctxt->mapname);
+ 		free(tablename);
+ 		pthread_setcancelstate(cur_state, NULL);
+-		return NSS_STATUS_NOTFOUND;
++		if (status == NIS_UNAVAIL || status == NIS_FAIL)
++			return NSS_STATUS_UNAVAIL;
++		else {
++			crit(logopt,
++			     MODPREFIX "couldn't locate nis+ table %s",
++			     ctxt->mapname);
++			return NSS_STATUS_NOTFOUND;
 +		}
  	}
- 	argv[argc] = NULL;
+ 
+ 	sprintf(tablename, "[],%s.org_dir.%s", ctxt->mapname, ctxt->domainname);
+diff --git a/modules/lookup_yp.c b/modules/lookup_yp.c
+index 502d850..0d319fd 100644
+--- a/modules/lookup_yp.c
++++ b/modules/lookup_yp.c
+@@ -282,9 +282,9 @@ int lookup_read_master(struct master *master, time_t age, void *context)
+ 	char *mapname;
+ 	int err;
+ 
+-	mapname = alloca(strlen(ctxt->mapname) + 1);
++	mapname = malloc(strlen(ctxt->mapname) + 1);
+ 	if (!mapname)
+-		return 0;
++		return NSS_STATUS_UNKNOWN;
+ 
+ 	strcpy(mapname, ctxt->mapname);
+ 
+@@ -308,19 +308,24 @@ int lookup_read_master(struct master *master, time_t age, void *context)
+ 			err = yp_all((char *) ctxt->domainname, mapname, &ypcb);
+ 		}
+ 
+-		if (err == YPERR_SUCCESS)
++		if (err == YPERR_SUCCESS) {
++			free(mapname);
+ 			return NSS_STATUS_SUCCESS;
++		}
+ 
+ 		info(logopt,
+ 		     MODPREFIX "read of master map %s failed: %s",
+ 		     mapname, yperr_string(err));
+ 
+-		if (err == YPERR_PMAP || err == YPERR_YPSERV)
++		free(mapname);
++
++		if (err == YPERR_YPSERV || err == YPERR_DOMAIN)
+ 			return NSS_STATUS_UNAVAIL;
+ 
+ 		return NSS_STATUS_NOTFOUND;
+ 	}
+ 
++	free(mapname);
+ 	return NSS_STATUS_SUCCESS;
+ }
  
 
 --
