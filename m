@@ -1,7 +1,8 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 34/37] autofs-5.1.2 - add function conf_get_map_options()
-Date: Tue, 25 Oct 2016 09:20:27 +0800
-Message-ID: <20161025012026.7778.68710.stgit@pluto.themaw.net>
+Subject: [PATCH 37/37] autofs-5.1.2 - handle amd cache option all in amd
+ type auto mounts
+Date: Tue, 25 Oct 2016 09:20:42 +0800
+Message-ID: <20161025012042.7778.35649.stgit@pluto.themaw.net>
 References: <20161025010014.7778.69274.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -9,85 +10,152 @@ Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
         x-sasl-enc:subject:from:to:date:message-id:in-reply-to
         :references:mime-version:content-type:content-transfer-encoding;
-         s=mesmtp; bh=3IX7D9z6sJHcFwiFGgE+PJ8WTh4=; b=Kx1pyhyh7ib126h5Hf
-        zF71ntR63u6+19oCqFDIKVjCqTEy7HcsgI1LGkJ3Yr1MzNe9PSywCyV7FI9Z38Ys
-        ucv4bRTfEM+sFI7wgWjL8SBCdqJhe0VoE5eem51S1Mu8hffmVtK/hw7gol6xo5+E
-        3PSpiKIM9QTSPinf/js3r4Wqw=
+         s=mesmtp; bh=EgHM5dJlGHUBfubyejUuaI/EL3U=; b=jWNutRc+X8IlXEWZwV
+        j+Vq4D4vkmiA7UB9LXV9hXcDdb8BDCHoEWUQoqeuUZKvaqQlaN7QQC8DCSjCrMgj
+        bGr6G+e/fjojakrUYPRVlNwaLAlFAMJmEG0b1O+tfqVuWV3daVS20BWV4YiuJtzT
+        mYF1lxJtBrLQ8p3GTMj1VkhP4=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
         messagingengine.com; h=x-sasl-enc:subject:from:to:date
         :message-id:in-reply-to:references:mime-version:content-type
-        :content-transfer-encoding; s=smtpout; bh=3IX7D9z6sJHcFwiFGgE+PJ
-        8WTh4=; b=ErSNbXz73GxMdXd66deL1QSQaLKKGGIpjh9Vncj2JrBnfq9pWOG5t7
-        nLjEomNQU69jN4/NAzZ8/x0ysxFrHbQNWlzd7ooqgi6X0gewqPZ7GOTYd7vmLdgp
-        OTjJSszIa8ASueGN4STzehhoeZUSvNKoXZCsFklbwkHPOIwSYY6b0=
+        :content-transfer-encoding; s=smtpout; bh=EgHM5dJlGHUBfubyejUuaI
+        /EL3U=; b=bFw5BdA+GtYzAH2j7ZIhOZf5guPo5J3ZxE9m3KihOI3DBxu6UvbMPp
+        icdWByVEXW640OHYqBjQiTOdKS3LUoXFAz3nu/bxELerbnPk0NOAW60KPF2Y1pMW
+        bw4rkMdhq8Uf/cnOWyY9UdDDzzbGobwZfxk/piYzidXjrlo6V1eDs=
 In-Reply-To: <20161025010014.7778.69274.stgit@pluto.themaw.net>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: autofs mailing list <autofs@vger.kernel.org>
 
-Add configuration function to get the map_options option from
-an amd mount configuration section.
+In order to read in the map at mount time autofs submounts must be
+set as browasble but amd type auto mounts that have the cache:=all
+option set need to read in the map without the browse option being
+set.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 ---
- CHANGELOG          |    1 +
- include/defaults.h |    1 +
- lib/defaults.c     |   10 ++++++++++
- 3 files changed, 12 insertions(+)
+ CHANGELOG                |    1 +
+ modules/lookup_ldap.c    |   10 ++++++----
+ modules/lookup_nisplus.c |   10 ++++++----
+ modules/lookup_sss.c     |   10 ++++++----
+ modules/lookup_yp.c      |   10 ++++++----
+ modules/mount_autofs.c   |    3 +++
+ 6 files changed, 28 insertions(+), 16 deletions(-)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index 6553a40..32452de 100644
+index 8f47520..0df6b31 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -31,6 +31,7 @@ xx/xx/2016 autofs-5.1.3
- - add function conf_amd_get_mount_paths().
- - include amd mount sections mounts in master mounts list.
- - check for conflicting amd section mounts.
-+- add function conf_get_map_options().
+@@ -34,6 +34,7 @@ xx/xx/2016 autofs-5.1.3
+ - add function conf_get_map_options().
+ - capture cache option and its settings during parsing.
+ - handle map_option cache for top level mounts.
++- handle amd cache option all in amd type auto mounts.
  
  15/06/2016 autofs-5.1.2
  =======================
-diff --git a/include/defaults.h b/include/defaults.h
-index c0d0aef..d3f2c2d 100644
---- a/include/defaults.h
-+++ b/include/defaults.h
-@@ -196,6 +196,7 @@ char *conf_amd_get_nis_domain(void);
- unsigned int conf_amd_set_nis_domain(const char *);
- char *conf_amd_get_map_defaults(const char *);
- char *conf_amd_get_map_name(const char *);
-+char *conf_get_map_options(const char *);
- char *conf_amd_get_map_type(const char *);
- char *conf_amd_get_search_path(const char *);
- unsigned int conf_amd_get_dismount_interval(const char *);
-diff --git a/lib/defaults.c b/lib/defaults.c
-index 102eda5..a1e041d 100644
---- a/lib/defaults.c
-+++ b/lib/defaults.c
-@@ -109,6 +109,7 @@
- #define NAME_AMD_MAP_OPTIONS			"map_options"
- #define NAME_AMD_MAP_RELOAD_INTERVAL		"map_reload_interval"
- #define NAME_AMD_MAP_NAME			"map_name"
-+#define NAME_AMD_MAP_OPTIONS			"map_options"
- #define NAME_AMD_MAP_TYPE			"map_type"
- #define NAME_AMD_MOUNT_TYPE			"mount_type"
- #define NAME_AMD_PID_FILE			"pid_file"
-@@ -2024,6 +2025,15 @@ char *conf_amd_get_map_name(const char *section)
- 	return tmp;
- }
+diff --git a/modules/lookup_ldap.c b/modules/lookup_ldap.c
+index 45100ab..98701e5 100644
+--- a/modules/lookup_ldap.c
++++ b/modules/lookup_ldap.c
+@@ -2797,11 +2797,13 @@ static int read_one_map(struct autofs_point *ap,
+ 	int rv, l;
  
-+char *conf_get_map_options(const char *section)
-+{
-+	char *tmp = NULL;
-+	if (section)
-+		tmp = conf_get_string(section, NAME_AMD_MAP_OPTIONS);
+ 	/*
+-	 * If we don't need to create directories then there's no use
+-	 * reading the map. We always need to read the whole map for
+-	 * direct mounts in order to mount the triggers.
++	 * If we don't need to create directories (or don't need
++	 * to read an amd cache:=all map) then there's no use
++	 * reading the map. We always need to read the whole map
++	 * for direct mounts in order to mount the triggers.
+ 	 */
+-	if (!(ap->flags & MOUNT_FLAG_GHOST) && ap->type != LKP_DIRECT) {
++	if (ap->type != LKP_DIRECT &&
++	    !(ap->flags & (MOUNT_FLAG_GHOST|MOUNT_FLAG_AMD_CACHE_ALL))) {
+ 		debug(ap->logopt, "map read not needed, so not done");
+ 		return NSS_STATUS_SUCCESS;
+ 	}
+diff --git a/modules/lookup_nisplus.c b/modules/lookup_nisplus.c
+index c8b75e6..6430b89 100644
+--- a/modules/lookup_nisplus.c
++++ b/modules/lookup_nisplus.c
+@@ -239,11 +239,13 @@ int lookup_read_map(struct autofs_point *ap, time_t age, void *context)
+ 	master_source_current_signal(ap->entry);
+ 
+ 	/*
+-	 * If we don't need to create directories then there's no use
+-	 * reading the map. We always need to read the whole map for
+-	 * direct mounts in order to mount the triggers.
++	 * If we don't need to create directories (or don't need
++	 * to read an amd cache:=all map) then there's no use
++	 * reading the map. We always need to read the whole map
++	 * for direct mounts in order to mount the triggers.
+ 	 */
+-	if (!(ap->flags & MOUNT_FLAG_GHOST) && ap->type != LKP_DIRECT) {
++	if (ap->type != LKP_DIRECT &&
++	    !(ap->flags & (MOUNT_FLAG_GHOST|MOUNT_FLAG_AMD_CACHE_ALL))) {
+ 		debug(ap->logopt, "map read not needed, so not done");
+ 		return NSS_STATUS_SUCCESS;
+ 	}
+diff --git a/modules/lookup_sss.c b/modules/lookup_sss.c
+index ce4d0ed..6d924cf 100644
+--- a/modules/lookup_sss.c
++++ b/modules/lookup_sss.c
+@@ -402,11 +402,13 @@ int lookup_read_map(struct autofs_point *ap, time_t age, void *context)
+ 	mc = source->mc;
+ 
+ 	/*
+-	 * If we don't need to create directories then there's no use
+-	 * reading the map. We always need to read the whole map for
+-	 * direct mounts in order to mount the triggers.
++	 * If we don't need to create directories (or don't need
++	 * to read an amd cache:=all map) then there's no use
++	 * reading the map. We always need to read the whole map
++	 * for direct mounts in order to mount the triggers.
+ 	 */
+-	if (!(ap->flags & MOUNT_FLAG_GHOST) && ap->type != LKP_DIRECT) {
++	if (ap->type != LKP_DIRECT &&
++	    !(ap->flags & (MOUNT_FLAG_GHOST|MOUNT_FLAG_AMD_CACHE_ALL))) {
+ 		debug(ap->logopt, "map read not needed, so not done");
+ 		return NSS_STATUS_SUCCESS;
+ 	}
+diff --git a/modules/lookup_yp.c b/modules/lookup_yp.c
+index 0d319fd..b139b28 100644
+--- a/modules/lookup_yp.c
++++ b/modules/lookup_yp.c
+@@ -401,11 +401,13 @@ int lookup_read_map(struct autofs_point *ap, time_t age, void *context)
+ 	master_source_current_signal(ap->entry);
+ 
+ 	/*
+-	 * If we don't need to create directories then there's no use
+-	 * reading the map. We always need to read the whole map for
+-	 * direct mounts in order to mount the triggers.
++	 * If we don't need to create directories (or don't need
++	 * to read an amd cache:=all map) then there's no use
++	 * reading the map. We always need to read the whole map
++	 * for direct mounts in order to mount the triggers.
+ 	 */
+-	if (!(ap->flags & MOUNT_FLAG_GHOST) && ap->type != LKP_DIRECT) {
++	if (ap->type != LKP_DIRECT &&
++	    !(ap->flags & (MOUNT_FLAG_GHOST|MOUNT_FLAG_AMD_CACHE_ALL))) {
+ 		debug(ap->logopt, "map read not needed, so not done");
+ 		return NSS_STATUS_SUCCESS;
+ 	}
+diff --git a/modules/mount_autofs.c b/modules/mount_autofs.c
+index e404c83..20bcd11 100644
+--- a/modules/mount_autofs.c
++++ b/modules/mount_autofs.c
+@@ -289,6 +289,9 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name,
+ 			nap->pref = am_entry->pref;
+ 			am_entry->pref = NULL;
+ 		}
 +
-+	return tmp;
-+}
-+
- char *conf_amd_get_map_type(const char *section)
- {
- 	char *tmp = NULL;
++		if (am_entry->cache_opts & AMD_CACHE_OPTION_ALL)
++			nap->flags |= MOUNT_FLAG_AMD_CACHE_ALL;
+ 	}
+ 
+ 	if (handle_mounts_startup_cond_init(&suc)) {
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
