@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 03/37] autofs-5.1.2 - Fix compiler warning in try_remount()
-Date: Tue, 25 Oct 2016 09:17:40 +0800
-Message-ID: <20161025011740.7778.72349.stgit@pluto.themaw.net>
+Subject: [PATCH 05/37] autofs-5.1.2 - Fix size arg of fgets(3)
+Date: Tue, 25 Oct 2016 09:17:51 +0800
+Message-ID: <20161025011751.7778.53635.stgit@pluto.themaw.net>
 References: <20161025010014.7778.69274.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -9,17 +9,17 @@ Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
         x-sasl-enc:subject:from:to:date:message-id:in-reply-to
         :references:mime-version:content-type:content-transfer-encoding;
-         s=mesmtp; bh=cYHAYdZZRVVFSLJRFwlVTIfdjeM=; b=gdP9NoDDSxKSf1F9F2
-        VqcF14eC+dUjEK4ZtIOAYhV5BfVat7lE5xFHJ7VVN+GRgHvitmR2OdQqUeckXWqp
-        wj7pCcdjxqwsmQ70HivTs0Yrt/4DZpw65o/meSj7wO1cM2HatJR4s6JIJJvi8noG
-        GzWVrgw/WWusnh+NNdja+4m5k=
+         s=mesmtp; bh=cnjOD5Z6+nv9yGTNsJ6zyM5YAQw=; b=ERA/QsqI1/FOrP9Hj3
+        Vt8KFYl6XE44bpFpu2HcmsRYJWj1mMXRezdSjtdCzVvBI+3JQr8GrzABmEU9Be53
+        g9cHPRLwhhydrw/GT/kN/kBZtkZRqIe/MufoJ5hHVJTz+fZoAVExusAVLTTrepVx
+        2LoyjpFqkbBOsX2XR6MRsqXjk=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
         messagingengine.com; h=x-sasl-enc:subject:from:to:date
         :message-id:in-reply-to:references:mime-version:content-type
-        :content-transfer-encoding; s=smtpout; bh=cYHAYdZZRVVFSLJRFwlVTI
-        fdjeM=; b=RGnMtEZkigYmUgMad8n2ty8Nu1nioLNFlUbRmDXlpngpSHHQRR6ptj
-        BOHv8wyRaUR2d4TRPIXM1FIe92BOqwTUU2TCiwFJzKpZ0NJ7BM6IK5/gubwVxeRl
-        n0HORi7yPk1QSb9Rtkb3L0SwR4l5K++kdc/33/ny+4n9MLzBfWZGU=
+        :content-transfer-encoding; s=smtpout; bh=cnjOD5Z6+nv9yGTNsJ6zyM
+        5YAQw=; b=gA+f8lbZ2Vq4RnxXel1rUscuqj3+s0LJ+bzShXOW64yFOxDNqXFwYR
+        7DKD/i/DsxRhKlRQZXxd7Cwpox2NNhpMGoUAh5kCPc7DcYH6WmalROmpESCv1PM9
+        SZuuMUCnBHlR/+xOg9pTwHl0uhldzGta2ndaOk2tkzEqtHbsBkab4=
 In-Reply-To: <20161025010014.7778.69274.stgit@pluto.themaw.net>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
@@ -28,51 +28,45 @@ To: autofs mailing list <autofs@vger.kernel.org>
 
 From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 
-Fix below compiler (gcc5) warning which isn't autoconf result dependent.
-mounts.c:1779:7: warning: variable 'ret' set but not used [-Wunused-but-set-variable]
+Since fgets(3) reads at most 1 less than size arg, it should
+probably pass MAX_LINE_LEN+1 given that the conditional in the
+next line tests if strlen() exceeds MAX_LINE_LEN.
+(i.e. MAX_LINE_LEN isn't designed to include terminating \0)
+
+buf has MAX_LINE_LEN+2 bytes, so passing MAX_LINE_LEN+1 is ok.
 
 Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 Signed-off-by: Ian Kent <raven@themaw.net>
 ---
- CHANGELOG    |    1 +
- lib/mounts.c |    5 ++---
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ CHANGELOG      |    1 +
+ lib/defaults.c |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index 2e51f62..288d175 100644
+index 99dc245..cb895c4 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -2,6 +2,7 @@ xx/xx/2016 autofs-5.1.3
- =======================
- - fix release date in CHANGELOG.
+@@ -4,6 +4,7 @@ xx/xx/2016 autofs-5.1.3
  - build: check for clock_gettime in librt.
-+- fix compiler warning in try_remount().
+ - fix compiler warning in try_remount().
+ - drop redundant \n in logerr().
++- Fix size arg of fgets(3).
  
  15/06/2016 autofs-5.1.2
  =======================
-diff --git a/lib/mounts.c b/lib/mounts.c
-index 1d1b4da..c67548e 100644
---- a/lib/mounts.c
-+++ b/lib/mounts.c
-@@ -1776,16 +1776,15 @@ static int remount_active_mount(struct autofs_point *ap,
- 			*ioctlfd = -1;
- 		}
- 	} else {
--		int ret;
- 		/*
- 		 * What can I do if we can't remount the existing
- 		 * mount(s) (possibly a partial failure), everything
- 		 * following will be broken?
- 		 */
- 		if (type == t_indirect)
--			ret = do_remount_indirect(ap, fd, path);
-+			do_remount_indirect(ap, fd, path);
- 		else
--			ret = do_remount_direct(ap, fd, path);
-+			do_remount_direct(ap, fd, path);
- 	}
+diff --git a/lib/defaults.c b/lib/defaults.c
+index 0e48a78..ae76513 100644
+--- a/lib/defaults.c
++++ b/lib/defaults.c
+@@ -879,7 +879,7 @@ static int read_config(unsigned int to_syslog, FILE *f, const char *name)
+ 	char *res;
  
- 	debug(ap->logopt, "re-connected to mount %s", path);
+ 	new_sec = NULL;
+-	while ((res = fgets(buf, MAX_LINE_LEN, f))) {
++	while ((res = fgets(buf, MAX_LINE_LEN + 1, f))) {
+ 		char *sec, *key, *value;
+ 
+ 		if (strlen(res) > MAX_LINE_LEN) {
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
