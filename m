@@ -1,8 +1,8 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 16/37] autofs-5.1.2 - Avoid local variable name shadowing
- another
-Date: Tue, 25 Oct 2016 09:18:50 +0800
-Message-ID: <20161025011850.7778.3154.stgit@pluto.themaw.net>
+Subject: [PATCH 22/37] autofs-5.1.2 - update and add README for old autofs
+ schema
+Date: Tue, 25 Oct 2016 09:19:22 +0800
+Message-ID: <20161025011921.7778.54651.stgit@pluto.themaw.net>
 References: <20161025010014.7778.69274.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -10,70 +10,120 @@ Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=
         x-sasl-enc:subject:from:to:date:message-id:in-reply-to
         :references:mime-version:content-type:content-transfer-encoding;
-         s=mesmtp; bh=q5jvYG+eJDD7HXXpjIj3wZEmf0I=; b=HPAxtbFgg+iFBQxpgO
-        Ex4c0cNVweYyURPzPFWgH559iEKY+l4mdenk1hTK8IpcHISc8t+bWpJIPnPRE1nL
-        YsQUezUXFGx6yhkerKM0eDuVUBhmCirpzYdw7g9ROyMzSOwAupitlrtqKch/kQj5
-        iv2eeY/tKnotvp9TUGKXf6LzM=
+         s=mesmtp; bh=uNI6wIx7cU/Bbwo0jU+P40xuYp8=; b=bNesuJE6h98+tvhseN
+        yXgKKT+AjWbOcogjQjRiA0mODijqJ19f3y4dNITJC4j+tWTDXGK4tolL3xExJJZ3
+        +SC8XWk2AZXDliK45dJPS62Ip65EWJnIZk2QZowaC8A0KOtWY9JYvvlOyyk3JM/a
+        pOgWX9cuUv4DHQ9GO5Zq8BT4Q=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
         messagingengine.com; h=x-sasl-enc:subject:from:to:date
         :message-id:in-reply-to:references:mime-version:content-type
-        :content-transfer-encoding; s=smtpout; bh=q5jvYG+eJDD7HXXpjIj3wZ
-        Emf0I=; b=BP7p5/qlSCf4GIb+v7pkpC35OuofIbpObgn3/QBDnUwGLmbxEEDMNR
-        ZgOLC780Ga1WYKRxeVQkHHp282ztZeaaN9WZp+8QtgM7v3tUYGd7flKPUf0cdoKC
-        WAleygi3cvELk837lMaNm0I8dTAgYuzQVeTLLHIyZa/V1RVrC2j4A=
+        :content-transfer-encoding; s=smtpout; bh=uNI6wIx7cU/Bbwo0jU+P40
+        xuYp8=; b=KH2A1TbHusK/dLOFY+N31NBJ5CVgWI8PZ8J6Er/rkkVPaPujBFXCWx
+        8T0HKiNpkSdEEaawE+G2muty/A/S1zu+0ETVvjdCqUbBIjQrRNRrSZBZGmaGErFw
+        l11ZwqQevPXLzVIhFEU4ZMe9CO34sfUU1NM616l5S2MuKtk4q5eUo=
 In-Reply-To: <20161025010014.7778.69274.stgit@pluto.themaw.net>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: autofs mailing list <autofs@vger.kernel.org>
 
-From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
+The distribution file samples/autofs.schema is very old and is
+incorrect.
 
-There are two local variabls int ret, and the one in the
-inner scope doesn't need to be named as int ret.
+This schema was added to the discribution long ago when it was
+not clear what schema to use for Linux autofs information.
 
-Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
+The schema was updated (at least to have consistent OIDs) somewhere
+along the line but the autofs distribution copy was never updated.
+The schema has now been updated in autofs but it is not recommended
+for use as the schema for autofs map information.
+
+The rfc2307 or, preferably the, rfc2307bis schema is the recommened
+schema to use.
+
 Signed-off-by: Ian Kent <raven@themaw.net>
 ---
- CHANGELOG          |    1 +
- daemon/automount.c |    6 +-----
- 2 files changed, 2 insertions(+), 5 deletions(-)
+ CHANGELOG             |    1 +
+ README.autofs-schema  |   18 ++++++++++++++++++
+ samples/autofs.schema |   24 ++++++++++--------------
+ 3 files changed, 29 insertions(+), 14 deletions(-)
+ create mode 100644 README.autofs-schema
 
 diff --git a/CHANGELOG b/CHANGELOG
-index ec1812a..853d40c 100644
+index 4e2e482..686d404 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -15,6 +15,7 @@ xx/xx/2016 autofs-5.1.3
- - fix short memory allocation in lookup_amd_instance().
- - fix count_mounts() function.
- - configure: add cache variable for Linux proc filesystem check.
-+- Avoid local variable name shadowing another.
+@@ -19,6 +19,7 @@ xx/xx/2016 autofs-5.1.3
+ - fix argc off by one in mount_autofs.c.
+ - fix _strncmp() usage.
+ - fix create_client() RPC client handling.
++- update and add README for old autofs schema.
  
  15/06/2016 autofs-5.1.2
  =======================
-diff --git a/daemon/automount.c b/daemon/automount.c
-index 8d98054..9d4c2b7 100644
---- a/daemon/automount.c
-+++ b/daemon/automount.c
-@@ -310,17 +310,13 @@ static int walk_tree(const char *base, int (*fn) (struct autofs_point *ap,
- 				return -1;
+diff --git a/README.autofs-schema b/README.autofs-schema
+new file mode 100644
+index 0000000..c121e1c
+--- /dev/null
++++ b/README.autofs-schema
+@@ -0,0 +1,18 @@
++autofs schema
++=============
++
++The distribution file samples/autofs.schema is very old and is
++incorrect.
++
++This schema was added to the discribution long ago when it was
++not clear what schema to use for Linux autofs information.
++
++The schema was corrected somewhere along the line but the autofs
++distribution copy was never updated. The schema has now been
++updated but it is not recommended for use as the schema for autofs
++map information.
++
++The rfc2307 or, preferably the, rfc2307bis schema is the recommened
++schema to use.
++
++Ian
+diff --git a/samples/autofs.schema b/samples/autofs.schema
+index 98d78c4..07e23b4 100644
+--- a/samples/autofs.schema
++++ b/samples/autofs.schema
+@@ -1,6 +1,3 @@
+-#
+-# $id$
+-#
+ # Depends upon core.schema and cosine.schema
  
- 			while (n--) {
--				int ret, size;
+ # OID Base is 1.3.6.1.4.1.2312.4
+@@ -11,17 +8,16 @@
+ 
+ # Attribute Type Definitions
+ 
+-attributetype ( 1.3.6.1.1.1.1.25 NAME 'automountInformation'
+-        DESC 'Information used by the autofs automounter'
+-        EQUALITY caseExactIA5Match
+-        SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE )
++attributetype ( 1.3.6.1.4.1.2312.4.1.2 NAME 'automountInformation'
++	DESC 'Information used by the autofs automounter'
++	EQUALITY caseExactMatch
++	SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE )
+ 
+-objectclass ( 1.3.6.1.1.1.1.13 NAME 'automount' SUP top STRUCTURAL
+-        DESC 'An entry in an automounter map'
+-        MUST ( cn $ automountInformation $ objectclass )
+-        MAY ( description ) )
++objectclass ( 1.3.6.1.4.1.2312.4.2.3 NAME 'automount' SUP top STRUCTURAL
++	DESC 'An entry in an automounter map'
++	MUST ( cn $ automountInformation $ objectclass )
++	MAY ( description ) )
+ 
+ objectclass ( 1.3.6.1.4.1.2312.4.2.2 NAME 'automountMap' SUP top STRUCTURAL
+-        DESC 'An group of related automount objects'
+-        MUST ( ou ) )
 -
- 				if (strcmp(de[n]->d_name, ".") == 0 ||
- 				    strcmp(de[n]->d_name, "..") == 0) {
- 					free(de[n]);
- 					continue;
- 				}
- 
--				size = sizeof(buf);
--				ret = cat_path(buf, size, base, de[n]->d_name);
--				if (!ret) {
-+				if (!cat_path(buf, sizeof(buf), base, de[n]->d_name)) {
- 					do {
- 						free(de[n]);
- 					} while (n--);
++	DESC 'An group of related automount objects'
++	MUST ( ou ) )
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
