@@ -1,8 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 3/7] autofs - change struct path to const in
- autofs4_expire_wait() and autofs4_wait()
-Date: Mon, 28 Nov 2016 10:11:59 +0800
-Message-ID: <148029911911.27779.6329959807249612394.stgit@pluto.themaw.net>
+Subject: [PATCH 6/7] autofs - dont hold spin lock over direct mount expire
+Date: Mon, 28 Nov 2016 10:12:14 +0800
+Message-ID: <148029913453.27779.15747032937407838983.stgit@pluto.themaw.net>
 References: <148029910861.27779.4517883721395202453.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -10,18 +9,18 @@ Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=cc
         :content-transfer-encoding:content-type:date:from:in-reply-to
         :message-id:mime-version:references:subject:to:x-me-sender
-        :x-me-sender:x-sasl-enc:x-sasl-enc; s=mesmtp; bh=cbXsIevlf/OcFjd
-        2ekohvQ3xRsk=; b=wHeo+MS73vdezG7rYXdTF4LEwFvrNsZPjzcB93b3FVlGyAF
-        EOlhzo026jRnDpjA3iAcczloXo9EPEuu1jsiKE/k7/5zQcoZaf/VWd5saMzyX0WY
-        XO0PGctQk8fVNpgMKVtL1a3zDEA1p7zgjNSkfH93rRbU5mpb/UF6VmKV+l2Y=
+        :x-me-sender:x-sasl-enc:x-sasl-enc; s=mesmtp; bh=5GZkY+gefQqd8DF
+        LRee0OuMcLqU=; b=ht1OO+uEVYvfMcZ0oACG10Yf3IXylA7wigevczl9d6RLpJo
+        j51piOnJf7yght5RU4XEO4FKLbWOWeb2wBQzvmLWNAFroMB5wH2TJcMTf4rCuhxw
+        f4scVq+8FywqxvNkpwXqlRAbj2I9D5albvM3HMP7NPJm68k0NyezLqYNkUJQ=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
         messagingengine.com; h=cc:content-transfer-encoding:content-type
         :date:from:in-reply-to:message-id:mime-version:references
         :subject:to:x-me-sender:x-me-sender:x-sasl-enc:x-sasl-enc; s=
-        smtpout; bh=cbXsIevlf/OcFjd2ekohvQ3xRsk=; b=UMc4+d85Br93w7gazoAu
-        9ckgFtqXvk6pnumtYh6yYBkVkwXnR9VNz1P/IvtHVqLqtXc+l6C/AaQTWHrFPDla
-        zIc6NuOhMR3vh8oloCFtngykVmmxTysmXJuJbHkxjxdDDi6yYjAecJHw2RIdBUbY
-        ZrrjPGLdRptY/XhEXRlMIqA=
+        smtpout; bh=5GZkY+gefQqd8DFLRee0OuMcLqU=; b=mRVwwYBcZjZ3qQbEDYVQ
+        2UzZ1Ail14WoyShtm3QQcEGJyGBexrMV3MI9tS2G7e5LLuA44pwUTRJwXJRvKP8T
+        WeW6uoIzBKA1e8IpwDEeFFfdpqTVuHJpIxnuJcV+noW4xsMfcVoV8BGA39BEwM+f
+        7UCLmLLJf4OCAduwo0ms2ns=
 In-Reply-To: <148029910861.27779.4517883721395202453.stgit@pluto.themaw.net>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
@@ -31,118 +30,67 @@ Cc: autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-ker
 
 From: Ian Kent <ikent@redhat.com>
 
-The functions autofs4_expire_wait() and autofs4_wait() don't modify
-the passed struct path so change it to a const.
+Commit 7cbdb4a286 altered the autofs indirect mount expire to
+not hold a spin lock during the expire check.
+
+The direct mount expire needs the same treatment because to
+make autofs expires namespace aware may_umount_tree() needs to
+to use a similar method to may_umount() when checking if a mount
+tree is in use.
+
+This means may_umount_tree() will end up taking the namespace_sem
+for the check so the autofs direct mount expire won't be allowed
+to hold a spin lock over the check.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 Cc: Al Viro <viro@ZenIV.linux.org.uk>
 Cc: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Omar Sandoval <osandov@osandov.com>
 ---
- fs/autofs4/autofs_i.h |    5 +++--
- fs/autofs4/expire.c   |    4 ++--
- fs/autofs4/root.c     |    6 +++---
- fs/autofs4/waitq.c    |    4 ++--
- 4 files changed, 10 insertions(+), 9 deletions(-)
+ fs/autofs4/expire.c |   17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
-diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
-index 14cef41..c885daa 100644
---- a/fs/autofs4/autofs_i.h
-+++ b/fs/autofs4/autofs_i.h
-@@ -145,7 +145,7 @@ void autofs4_free_ino(struct autofs_info *);
- 
- /* Expiration */
- int is_autofs4_dentry(struct dentry *);
--int autofs4_expire_wait(struct path *path, int rcu_walk);
-+int autofs4_expire_wait(const struct path *path, int rcu_walk);
- int autofs4_expire_run(struct super_block *, struct vfsmount *,
- 		       struct autofs_sb_info *,
- 		       struct autofs_packet_expire __user *);
-@@ -217,7 +217,8 @@ static inline int autofs_prepare_pipe(struct file *pipe)
- 
- /* Queue management functions */
- 
--int autofs4_wait(struct autofs_sb_info *, struct path *, enum autofs_notify);
-+int autofs4_wait(struct autofs_sb_info *,
-+		 const struct path *, enum autofs_notify);
- int autofs4_wait_release(struct autofs_sb_info *, autofs_wqt_t, int);
- void autofs4_catatonic_mode(struct autofs_sb_info *);
- 
 diff --git a/fs/autofs4/expire.c b/fs/autofs4/expire.c
-index a37ba40..13178bf 100644
+index 13178bf..57725d4 100644
 --- a/fs/autofs4/expire.c
 +++ b/fs/autofs4/expire.c
-@@ -495,7 +495,7 @@ struct dentry *autofs4_expire_indirect(struct super_block *sb,
- 	return expired;
- }
+@@ -310,26 +310,29 @@ struct dentry *autofs4_expire_direct(struct super_block *sb,
+ 	now = jiffies;
+ 	timeout = sbi->exp_timeout;
  
--int autofs4_expire_wait(struct path *path, int rcu_walk)
-+int autofs4_expire_wait(const struct path *path, int rcu_walk)
- {
- 	struct dentry *dentry = path->dentry;
- 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
-@@ -593,7 +593,7 @@ int autofs4_do_expire_multi(struct super_block *sb, struct vfsmount *mnt,
+-	spin_lock(&sbi->fs_lock);
+-	ino = autofs4_dentry_ino(root);
+-	/* No point expiring a pending mount */
+-	if (ino->flags & AUTOFS_INF_PENDING)
+-		goto out;
+ 	if (!autofs4_direct_busy(mnt, root, timeout, do_now)) {
++		spin_lock(&sbi->fs_lock);
++		ino = autofs4_dentry_ino(root);
++		/* No point expiring a pending mount */
++		if (ino->flags & AUTOFS_INF_PENDING) {
++			spin_unlock(&sbi->fs_lock);
++			goto out;
++		}
+ 		ino->flags |= AUTOFS_INF_WANT_EXPIRE;
+ 		spin_unlock(&sbi->fs_lock);
+ 		synchronize_rcu();
+-		spin_lock(&sbi->fs_lock);
+ 		if (!autofs4_direct_busy(mnt, root, timeout, do_now)) {
++			spin_lock(&sbi->fs_lock);
+ 			ino->flags |= AUTOFS_INF_EXPIRING;
+ 			init_completion(&ino->expire_complete);
+ 			spin_unlock(&sbi->fs_lock);
+ 			return root;
+ 		}
++		spin_lock(&sbi->fs_lock);
+ 		ino->flags &= ~AUTOFS_INF_WANT_EXPIRE;
++		spin_unlock(&sbi->fs_lock);
+ 	}
+ out:
+-	spin_unlock(&sbi->fs_lock);
+ 	dput(root);
  
- 	if (dentry) {
- 		struct autofs_info *ino = autofs4_dentry_ino(dentry);
--		struct path path = { .mnt = mnt, .dentry = dentry };
-+		const struct path path = { .mnt = mnt, .dentry = dentry };
- 
- 		/* This is synchronous because it makes the daemon a
- 		 * little easier
-diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
-index 3e33f00..859eef9 100644
---- a/fs/autofs4/root.c
-+++ b/fs/autofs4/root.c
-@@ -272,7 +272,7 @@ static struct dentry *autofs4_lookup_expiring(struct dentry *dentry,
  	return NULL;
- }
- 
--static int autofs4_mount_wait(struct path *path, bool rcu_walk)
-+static int autofs4_mount_wait(const struct path *path, bool rcu_walk)
- {
- 	struct autofs_sb_info *sbi = autofs4_sbi(path->dentry->d_sb);
- 	struct autofs_info *ino = autofs4_dentry_ino(path->dentry);
-@@ -289,7 +289,7 @@ static int autofs4_mount_wait(struct path *path, bool rcu_walk)
- 	return status;
- }
- 
--static int do_expire_wait(struct path *path, bool rcu_walk)
-+static int do_expire_wait(const struct path *path, bool rcu_walk)
- {
- 	struct dentry *dentry = path->dentry;
- 	struct dentry *expiring;
-@@ -300,7 +300,7 @@ static int do_expire_wait(struct path *path, bool rcu_walk)
- 	if (!expiring)
- 		return autofs4_expire_wait(path, rcu_walk);
- 	else {
--		struct path this = { .mnt = path->mnt, .dentry = expiring };
-+		const struct path this = { .mnt = path->mnt, .dentry = expiring };
- 		/*
- 		 * If we are racing with expire the request might not
- 		 * be quite complete, but the directory has been removed
-diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
-index e7a037f..1278335 100644
---- a/fs/autofs4/waitq.c
-+++ b/fs/autofs4/waitq.c
-@@ -250,7 +250,7 @@ autofs4_find_wait(struct autofs_sb_info *sbi, const struct qstr *qstr)
- static int validate_request(struct autofs_wait_queue **wait,
- 			    struct autofs_sb_info *sbi,
- 			    const struct qstr *qstr,
--			    struct path *path, enum autofs_notify notify)
-+			    const struct path *path, enum autofs_notify notify)
- {
- 	struct dentry *dentry = path->dentry;
- 	struct autofs_wait_queue *wq;
-@@ -349,7 +349,7 @@ static int validate_request(struct autofs_wait_queue **wait,
- }
- 
- int autofs4_wait(struct autofs_sb_info *sbi,
--		 struct path *path, enum autofs_notify notify)
-+		 const struct path *path, enum autofs_notify notify)
- {
- 	struct dentry *dentry = path->dentry;
- 	struct autofs_wait_queue *wq;
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
