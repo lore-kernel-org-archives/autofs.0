@@ -1,28 +1,28 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 5/7] vfs - constify path parameter of path_has_submounts()
-Date: Mon, 28 Nov 2016 10:12:09 +0800
-Message-ID: <148029912941.27779.3775940087450770440.stgit@pluto.themaw.net>
+Subject: [PATCH 4/7] vfs - change struct path to const in d_manage()
+Date: Mon, 28 Nov 2016 10:12:04 +0800
+Message-ID: <148029912424.27779.1122354411609730492.stgit@pluto.themaw.net>
 References: <148029910861.27779.4517883721395202453.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=themaw.net; h=cc
         :content-transfer-encoding:content-type:date:from:in-reply-to
         :message-id:mime-version:references:subject:to:x-me-sender
-        :x-me-sender:x-sasl-enc:x-sasl-enc; s=mesmtp; bh=K0E2o37ySprtJQN
-        8IJU7MNiwtKk=; b=siKtNzVHDefQAyGfsj7Wprm/P4NdVNUxu1vZcD+/1Ffr0tr
-        UH9IsMS4Ais9lqOFcLuJ41ijjnfYOD8oahgW60LNTyWZKM4YTp53l8sO85sH/b4G
-        Lqvf5hc0K3yJGeiFuFs7zsTova3M9mgS/z81rCKu1Fz+JxaO0AEHsyz0croI=
+        :x-me-sender:x-sasl-enc:x-sasl-enc; s=mesmtp; bh=cl2r9WukmuxtR5/
+        XzWDBhqzQIU8=; b=w5NQ6P/osIKkTTXJaneQn290l3d5ZBdvjLf6GdbZR6fz4K0
+        fBDyvFm5lfLZEuLRJniqt5+rwbo4I1j+Me83f4LIcbOxmVFkgcUTy5gQ/YH9ltjr
+        fXaW2oein94gR+Mu6vDUMs4DMJjde9C+pOWy8OmX006hwmuOWFiDJhASDLwA=
 DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; d=
         messagingengine.com; h=cc:content-transfer-encoding:content-type
         :date:from:in-reply-to:message-id:mime-version:references
         :subject:to:x-me-sender:x-me-sender:x-sasl-enc:x-sasl-enc; s=
-        smtpout; bh=K0E2o37ySprtJQN8IJU7MNiwtKk=; b=qFY3Jpd8D/mHFgYcZG9O
-        GhlWCm2jAzrbtCMeyiAm72uKUzcAbfrNu2rk5e6iLv/80Mn5Nalq6JWal97p9dOV
-        h75ZgTKjAOz9HpvR9Md/79lMHqa9AKjG5GzWV4Hg67Oqb0tucPzO5AIVjG0xtClm
-        UNwHdSzI8HuWGXmNbJ/HDxo=
+        smtpout; bh=cl2r9WukmuxtR5/XzWDBhqzQIU8=; b=hQzm4gLkfliIbwkettzx
+        iWBtO/EvRv+tjmGRQVYkWTR4IvLGUtjVjBWnlQGZQ80iB2N9XWq90djyYLVHK8ht
+        DyyAsVTkfjo3zJTZGbU6BmMC1vbeb8pxBl0P/G+fXySBSXvliMExzBd6zJVHRird
+        MoWOgbsCSrwGjexLyOtkTXg=
 In-Reply-To: <148029910861.27779.4517883721395202453.stgit@pluto.themaw.net>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: Andrew Morton <akpm@linux-foundation.org>
@@ -30,42 +30,101 @@ Cc: autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-ker
 
 From: Ian Kent <ikent@redhat.com>
 
-path_has_submounts() doesn't modify the passed in path parameter,
-and shouldn't need to, make that usage explicit.
+The ->d_manage() function is meant to be used to check if an
+automount is in progress and to block if needed before the
+mount is followed.
+
+It shouldn't need to modify the passed struct path.
+
+Make that usage explicit by changing ->d_manage() path parameter
+to a const.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 Cc: Al Viro <viro@ZenIV.linux.org.uk>
 Cc: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Omar Sandoval <osandov@osandov.com>
 ---
- fs/dcache.c            |    2 +-
- include/linux/dcache.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ Documentation/filesystems/Locking |    2 +-
+ Documentation/filesystems/vfs.txt |    2 +-
+ fs/autofs4/root.c                 |    4 ++--
+ fs/namei.c                        |    2 +-
+ include/linux/dcache.h            |    2 +-
+ 5 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/fs/dcache.c b/fs/dcache.c
-index 719d8b4..29bc910 100644
---- a/fs/dcache.c
-+++ b/fs/dcache.c
-@@ -1298,7 +1298,7 @@ static enum d_walk_ret path_check_mount(void *data, struct dentry *dentry)
-  * Return true if the parent or its subdirectories contain
-  * a mount point in the current namespace.
-  */
--int path_has_submounts(struct path *parent)
-+int path_has_submounts(const struct path *parent)
- {
- 	struct check_mount data = { .mnt = parent->mnt, .mounted = 0 };
+diff --git a/Documentation/filesystems/Locking b/Documentation/filesystems/Locking
+index 08c9e56..ace63cd 100644
+--- a/Documentation/filesystems/Locking
++++ b/Documentation/filesystems/Locking
+@@ -20,7 +20,7 @@ prototypes:
+ 	void (*d_iput)(struct dentry *, struct inode *);
+ 	char *(*d_dname)((struct dentry *dentry, char *buffer, int buflen);
+ 	struct vfsmount *(*d_automount)(struct path *path);
+-	int (*d_manage)(struct path *, bool);
++	int (*d_manage)(const struct path *, bool);
+ 	struct dentry *(*d_real)(struct dentry *, const struct inode *,
+ 				 unsigned int);
  
+diff --git a/Documentation/filesystems/vfs.txt b/Documentation/filesystems/vfs.txt
+index e54e992..3893f4d 100644
+--- a/Documentation/filesystems/vfs.txt
++++ b/Documentation/filesystems/vfs.txt
+@@ -948,7 +948,7 @@ struct dentry_operations {
+ 	void (*d_iput)(struct dentry *, struct inode *);
+ 	char *(*d_dname)(struct dentry *, char *, int);
+ 	struct vfsmount *(*d_automount)(struct path *);
+-	int (*d_manage)(struct path *, bool);
++	int (*d_manage)(const struct path *, bool);
+ 	struct dentry *(*d_real)(struct dentry *, const struct inode *,
+ 				 unsigned int);
+ };
+diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
+index 859eef9..08718d3 100644
+--- a/fs/autofs4/root.c
++++ b/fs/autofs4/root.c
+@@ -32,7 +32,7 @@ static int autofs4_dir_open(struct inode *inode, struct file *file);
+ static struct dentry *autofs4_lookup(struct inode *,
+ 				     struct dentry *, unsigned int);
+ static struct vfsmount *autofs4_d_automount(struct path *);
+-static int autofs4_d_manage(struct path *, bool);
++static int autofs4_d_manage(const struct path *, bool);
+ static void autofs4_dentry_release(struct dentry *);
+ 
+ const struct file_operations autofs4_root_operations = {
+@@ -426,7 +426,7 @@ static struct vfsmount *autofs4_d_automount(struct path *path)
+ 	return NULL;
+ }
+ 
+-static int autofs4_d_manage(struct path *path, bool rcu_walk)
++static int autofs4_d_manage(const struct path *path, bool rcu_walk)
+ {
+ 	struct dentry *dentry = path->dentry;
+ 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
+diff --git a/fs/namei.c b/fs/namei.c
+index 1669c93d..8e9a358 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -1263,7 +1263,7 @@ int follow_down_one(struct path *path)
+ }
+ EXPORT_SYMBOL(follow_down_one);
+ 
+-static inline int managed_dentry_rcu(struct path *path)
++static inline int managed_dentry_rcu(const struct path *path)
+ {
+ 	return (path->dentry->d_flags & DCACHE_MANAGE_TRANSIT) ?
+ 		path->dentry->d_op->d_manage(path, true) : 0;
 diff --git a/include/linux/dcache.h b/include/linux/dcache.h
-index f835bd4..c965e44 100644
+index 44a9a9b..f835bd4 100644
 --- a/include/linux/dcache.h
 +++ b/include/linux/dcache.h
-@@ -254,7 +254,7 @@ extern struct dentry *d_find_alias(struct inode *);
- extern void d_prune_aliases(struct inode *);
- 
- /* test whether we have any submounts in a subdir tree */
--extern int path_has_submounts(struct path *);
-+extern int path_has_submounts(const struct path *);
- 
- /*
-  * This adds the entry to the hash queues.
+@@ -139,7 +139,7 @@ struct dentry_operations {
+ 	void (*d_iput)(struct dentry *, struct inode *);
+ 	char *(*d_dname)(struct dentry *, char *, int);
+ 	struct vfsmount *(*d_automount)(struct path *);
+-	int (*d_manage)(struct path *, bool);
++	int (*d_manage)(const struct path *, bool);
+ 	struct dentry *(*d_real)(struct dentry *, const struct inode *,
+ 				 unsigned int);
+ } ____cacheline_aligned;
 
+--
+To unsubscribe from this list: send the line "unsubscribe autofs" in
