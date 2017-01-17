@@ -1,20 +1,18 @@
 From: kusumi.tomohiro@gmail.com
-Subject: [PATCH 6/6] autofs: remove duplicated AUTOFS_DEV_IOCTL_SIZE definition
-Date: Tue, 17 Jan 2017 23:42:33 +0900
-Message-ID: <1484664153-20478-6-git-send-email-tkusumi@tuxera.com>
-References: <1484664153-20478-1-git-send-email-tkusumi@tuxera.com>
+Subject: [PATCH 1/6] autofs: remove wrong comment
+Date: Tue, 17 Jan 2017 23:42:28 +0900
+Message-ID: <1484664153-20478-1-git-send-email-tkusumi@tuxera.com>
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=smNmG9huQ+C6Z0mGeR8DH1zW1yW2eUoUDryNmdVyJ18=;
-        b=IYQkpCOJ5jg7ORpj3lNWouJ/NAGT/ptcd5PTAMokdY+Vpzg2PZ4PB0DHRGDZx3QIVf
-         Tac5BijZHRtfYWzRG6Dn7GmiZjP/2KzUpOv3ejhOlM2LpDN7zE8cr1QvTCvMRmKXKcg6
-         TyLZY3SmXr5HC3zdGzUOhzYNNNZQByJ3QiPLUoGpCoc4rkeZ9Uf5RAHFuvnNi4kuM7Ks
-         5Jr3P+QRCSWcJ8clyj2FWAIyeVOyH9qj36QWx9yY9csO6rbUmSemSFrfEhaVvhPb24Gy
-         vULaG/HvQ6StWe5EJRsy7i1G46umcZpmKhThKv3+V0ncj41WpTSdLXSdYYsr5Ef6KNds
-         LZUQ==
-In-Reply-To: <1484664153-20478-1-git-send-email-tkusumi@tuxera.com>
+        h=from:to:cc:subject:date:message-id;
+        bh=75iL/EG96pqtVB/HQhNmKNe5YMG9mo9zW7L/GD3p7q8=;
+        b=EXteJZxXux3JDQAwA78Fzgw5rxzkvKucRu2RvREh1UVNKrMjlblUfkurgGc/vv0OfE
+         hDupciozbEbUjKHGczvZwAeKi2PKyuZafegxu3GQXhzh51HL7eu/dkcpHRjjaVe7BNFA
+         nIL7SMPTHxBt4SozrLhKxna5M8nWTu5KApIBR2EmlkJOUA1be8WInLHDAry+SYZdIFxw
+         ucbaZ/Xjvlyk5CnVNgBj4uqHL2p2q4/GLd1tQlCkghoYMPdbT9cc74pQ/QpGLE6A3HwM
+         iGT/zZK7OV0bqzYIAx2kVK/5OyOpgugSrYzY/ANnG9Iwx5Wk/tSNkb0XRUJP0AOjclWS
+         O5Lw==
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 MIME-Version: 1.0
@@ -25,45 +23,29 @@ Cc: Tomohiro Kusumi <tkusumi@tuxera.com>
 
 From: Tomohiro Kusumi <tkusumi@tuxera.com>
 
-This macro is already defined in uapi header.
-Also use this macro where possible.
+This format seems to have been taken from device mapper header,
+but autofs has no such file:function in both kernel and userspace.
 
 Signed-off-by: Tomohiro Kusumi <tkusumi@tuxera.com>
 ---
- fs/autofs4/dev-ioctl.c              | 2 --
- include/uapi/linux/auto_dev-ioctl.h | 4 ++--
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ include/uapi/linux/auto_dev-ioctl.h | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/fs/autofs4/dev-ioctl.c b/fs/autofs4/dev-ioctl.c
-index 6f48d67..806df74 100644
---- a/fs/autofs4/dev-ioctl.c
-+++ b/fs/autofs4/dev-ioctl.c
-@@ -38,8 +38,6 @@
-  * which have been left busy at at service shutdown.
-  */
- 
--#define AUTOFS_DEV_IOCTL_SIZE	sizeof(struct autofs_dev_ioctl)
--
- typedef int (*ioctl_fn)(struct file *, struct autofs_sb_info *,
- 			struct autofs_dev_ioctl *);
- 
 diff --git a/include/uapi/linux/auto_dev-ioctl.h b/include/uapi/linux/auto_dev-ioctl.h
-index af107aa..744b3d0 100644
+index 021ed33..388739b 100644
 --- a/include/uapi/linux/auto_dev-ioctl.h
 +++ b/include/uapi/linux/auto_dev-ioctl.h
-@@ -113,10 +113,10 @@ struct autofs_dev_ioctl {
- 
- static inline void init_autofs_dev_ioctl(struct autofs_dev_ioctl *in)
- {
--	memset(in, 0, sizeof(struct autofs_dev_ioctl));
-+	memset(in, 0, AUTOFS_DEV_IOCTL_SIZE);
- 	in->ver_major = AUTOFS_DEV_IOCTL_VERSION_MAJOR;
- 	in->ver_minor = AUTOFS_DEV_IOCTL_VERSION_MINOR;
--	in->size = sizeof(struct autofs_dev_ioctl);
-+	in->size = AUTOFS_DEV_IOCTL_SIZE;
+@@ -120,10 +120,6 @@ static inline void init_autofs_dev_ioctl(struct autofs_dev_ioctl *in)
  	in->ioctlfd = -1;
  }
  
+-/*
+- * If you change this make sure you make the corresponding change
+- * to autofs-dev-ioctl.c:lookup_ioctl()
+- */
+ enum {
+ 	/* Get various version info */
+ 	AUTOFS_DEV_IOCTL_VERSION_CMD = 0x71,
 -- 
 2.5.5
 
