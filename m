@@ -1,19 +1,19 @@
 From: kusumi.tomohiro@gmail.com
-Subject: [PATCH 2/6] autofs: fix typo in Documentation
-Date: Tue, 17 Jan 2017 23:42:29 +0900
-Message-ID: <1484664153-20478-2-git-send-email-tkusumi@tuxera.com>
+Subject: [PATCH 4/6] autofs: update ioctl documentation regarding struct autofs_dev_ioctl
+Date: Tue, 17 Jan 2017 23:42:31 +0900
+Message-ID: <1484664153-20478-4-git-send-email-tkusumi@tuxera.com>
 References: <1484664153-20478-1-git-send-email-tkusumi@tuxera.com>
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=/9yD5s/bJsV29d2NH25KtGpX5xs9zyTBQg61ItEvggM=;
-        b=o7mOm0xmaAR6bEgq2LJKvUnSNE77CzHpdAc+yTGXQIvgYj0c+o3VtflBVhyDIkZSSp
-         Ibcv5aC3XGnWA1gzyojm4tpUgPrifEONeltcOkn9Zi0JGkc/dWmAiwom4GPP9gpBo76P
-         /zGfCq/iQ85TV/W4K9Sl6nYmNpTLsMqSaAsBqPuFVAmKeX5z5GQaG4l9eATYtk8OE9yT
-         dgnKgaKNc8Bxpsr/wYWnOIuYEq5/TG80pgd7dr31x9StgFaAD2G+j2AFoH1685i8syXo
-         26FLSbNgh2yjy9k8ctAMIKEUhJ1QTgCyVnXxgz5owdQpnv2nKDrriMTN+F8PoPTLW7r+
-         k5bA==
+        bh=Lx0/r/PZmYUp+C8+kVmZVzia/n6x90NaKpgx++ZTUG4=;
+        b=Geyj6JHyzv4221TfHf5RLwfEC2PkYQlu2zUqD6wlvsgjVBozdI6vtnOGgvtaqa5McH
+         uXG5KVz2LVGEAJwzzYmKF9ogUJI69GMpG7AfQw4Ie3nacFmQIPYc2N+jSasdpSXvedpf
+         jZnLk3NpGzxB45xnZbhL4nF0OCt7P4MwITROUJ3Cpk8b/jQLED+ZI023qah5/TB+6W7J
+         0JBIni3MePGGnhkIOQYzZUVjlmo1rtHeTET+blss3gm9oBA8Rbgn3OcarWhVeyGAC3l1
+         OHqYPY9CNCqA1dC00JHHQeuu1nVNea7VS8LDsGHGktPHzpuJgkMDSFVbVsQD/afRe/+H
+         fMIw==
 In-Reply-To: <1484664153-20478-1-git-send-email-tkusumi@tuxera.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
@@ -25,42 +25,94 @@ Cc: Tomohiro Kusumi <tkusumi@tuxera.com>
 
 From: Tomohiro Kusumi <tkusumi@tuxera.com>
 
+This is the same as bf72eda5 except that it's a different file.
+Sync documentation with changes made by 730c9eec in 2009.
+
 Signed-off-by: Tomohiro Kusumi <tkusumi@tuxera.com>
 ---
- Documentation/filesystems/autofs4.txt | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ .../filesystems/autofs4-mount-control.txt          |  1 +
+ Documentation/filesystems/autofs4.txt              | 32 ++++++++++++++--------
+ 2 files changed, 22 insertions(+), 11 deletions(-)
 
+diff --git a/Documentation/filesystems/autofs4-mount-control.txt b/Documentation/filesystems/autofs4-mount-control.txt
+index 50a3e01..e5177cb 100644
+--- a/Documentation/filesystems/autofs4-mount-control.txt
++++ b/Documentation/filesystems/autofs4-mount-control.txt
+@@ -179,6 +179,7 @@ struct autofs_dev_ioctl {
+ 				 * including this struct */
+ 	__s32 ioctlfd;          /* automount command fd */
+ 
++	/* Command parameters */
+ 	union {
+ 		struct args_protover		protover;
+ 		struct args_protosubver		protosubver;
 diff --git a/Documentation/filesystems/autofs4.txt b/Documentation/filesystems/autofs4.txt
-index 8fac3fe..a5dc56f 100644
+index 7534863..f10dd59 100644
 --- a/Documentation/filesystems/autofs4.txt
 +++ b/Documentation/filesystems/autofs4.txt
-@@ -65,7 +65,7 @@ directory is a mount trap only if the filesystem is mounted *direct*
- and the root is empty.
+@@ -425,8 +425,20 @@ Each ioctl is passed a pointer to an `autofs_dev_ioctl` structure:
+                                          * including this struct */
+                 __s32 ioctlfd;          /* automount command fd */
  
- Directories created in the root directory are mount traps only if the
--filesystem is mounted  *indirect* and they are empty.
-+filesystem is mounted *indirect* and they are empty.
+-                __u32 arg1;             /* Command parameters */
+-                __u32 arg2;
++		/* Command parameters */
++		union {
++			struct args_protover		protover;
++			struct args_protosubver		protosubver;
++			struct args_openmount		openmount;
++			struct args_ready		ready;
++			struct args_fail		fail;
++			struct args_setpipefd		setpipefd;
++			struct args_timeout		timeout;
++			struct args_requester		requester;
++			struct args_expire		expire;
++			struct args_askumount		askumount;
++			struct args_ismountpoint	ismountpoint;
++		};
  
- Directories further down the tree depend on the *maxproto* mount
- option and particularly whether it is less than five or not.
-@@ -352,7 +352,7 @@ Communicating with autofs: root directory ioctls
- ------------------------------------------------
+                 char path[0];
+         };
+@@ -446,24 +458,22 @@ Commands are:
+     set version numbers.
+ - **AUTOFS_DEV_IOCTL_OPENMOUNT_CMD**: return an open file descriptor
+     on the root of an autofs filesystem.  The filesystem is identified
+-    by name and device number, which is stored in `arg1`.  Device
+-    numbers for existing filesystems can be found in
++    by name and device number, which is stored in `openmount.devid`.
++    Device numbers for existing filesystems can be found in
+     `/proc/self/mountinfo`.
+ - **AUTOFS_DEV_IOCTL_CLOSEMOUNT_CMD**: same as `close(ioctlfd)`.
+ - **AUTOFS_DEV_IOCTL_SETPIPEFD_CMD**: if the filesystem is in
+     catatonic mode, this can provide the write end of a new pipe
+-    in `arg1` to re-establish communication with a daemon.  The
+-    process group of the calling process is used to identify the
++    in `setpipefd.pipefd` to re-establish communication with a daemon.
++    The process group of the calling process is used to identify the
+     daemon.
+ - **AUTOFS_DEV_IOCTL_REQUESTER_CMD**: `path` should be a
+     name within the filesystem that has been auto-mounted on.
+-    On successful return, `arg1` and `arg2` will be the UID and GID
+-    of the process which triggered that mount.
+-
++    On successful return, `requester.uid` and `requester.gid` will be
++    the UID and GID of the process which triggered that mount.
+ - **AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD**: Check if path is a
+     mountpoint of a particular type - see separate documentation for
+     details.
+-
+ - **AUTOFS_DEV_IOCTL_PROTOVER_CMD**:
+ - **AUTOFS_DEV_IOCTL_PROTOSUBVER_CMD**:
+ - **AUTOFS_DEV_IOCTL_READY_CMD**:
+@@ -473,7 +483,7 @@ Commands are:
+ - **AUTOFS_DEV_IOCTL_EXPIRE_CMD**:
+ - **AUTOFS_DEV_IOCTL_ASKUMOUNT_CMD**:  These all have the same
+     function as the similarly named **AUTOFS_IOC** ioctls, except
+-    that **FAIL** can be given an explicit error number in `arg1`
++    that **FAIL** can be given an explicit error number in `fail.status`
+     instead of assuming `ENOENT`, and this **EXPIRE** command
+     corresponds to **AUTOFS_IOC_EXPIRE_MULTI**.
  
- The root directory of an autofs filesystem will respond to a number of
--ioctls.   The process issuing the ioctl must have the CAP_SYS_ADMIN
-+ioctls.  The process issuing the ioctl must have the CAP_SYS_ADMIN
- capability, or must be the automount daemon.
- 
- The available ioctl commands are:
-@@ -512,7 +512,7 @@ always be mounted "shared". e.g.
- 
- > `mount --make-shared /autofs/mount/point`
- 
--The automount daemon is only able to mange a single mount location for
-+The automount daemon is only able to manage a single mount location for
- an autofs filesystem and if mounts on that are not 'shared', other
- locations will not behave as expected.  In particular access to those
- other locations will likely result in the `ELOOP` error
 -- 
 2.5.5
 
