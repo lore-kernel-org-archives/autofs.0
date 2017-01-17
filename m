@@ -1,18 +1,20 @@
 From: kusumi.tomohiro@gmail.com
-Subject: [PATCH 1/6] autofs: remove wrong comment
-Date: Tue, 17 Jan 2017 23:42:28 +0900
-Message-ID: <1484664153-20478-1-git-send-email-tkusumi@tuxera.com>
+Subject: [PATCH 3/6] autofs: fix wrong ioctl documentation regarding devid
+Date: Tue, 17 Jan 2017 23:42:30 +0900
+Message-ID: <1484664153-20478-3-git-send-email-tkusumi@tuxera.com>
+References: <1484664153-20478-1-git-send-email-tkusumi@tuxera.com>
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id;
-        bh=75iL/EG96pqtVB/HQhNmKNe5YMG9mo9zW7L/GD3p7q8=;
-        b=EXteJZxXux3JDQAwA78Fzgw5rxzkvKucRu2RvREh1UVNKrMjlblUfkurgGc/vv0OfE
-         hDupciozbEbUjKHGczvZwAeKi2PKyuZafegxu3GQXhzh51HL7eu/dkcpHRjjaVe7BNFA
-         nIL7SMPTHxBt4SozrLhKxna5M8nWTu5KApIBR2EmlkJOUA1be8WInLHDAry+SYZdIFxw
-         ucbaZ/Xjvlyk5CnVNgBj4uqHL2p2q4/GLd1tQlCkghoYMPdbT9cc74pQ/QpGLE6A3HwM
-         iGT/zZK7OV0bqzYIAx2kVK/5OyOpgugSrYzY/ANnG9Iwx5Wk/tSNkb0XRUJP0AOjclWS
-         O5Lw==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references;
+        bh=JUzNCdDDAXtE71hp9h3Hm67vLbwCI7ikctVQ1834bLQ=;
+        b=ghEmX9AyWrV+1bzxgadjgG8dsMTRYfFfQclRbGI4DO7WQZEBqi9k3W5lxkB5JR/Cud
+         mg6pknKzCFIq6AIdyJRFVC0moUP32f1QmaXeCLOcs5lHKGVqJJmUYDN+KCv0U2Mu1V1P
+         q4XLlzzPURfMjszd42vgD5de6pjZ2xNI6HThKzGKhQrF92hT3eN4w1IaSwvAVAGnJrlO
+         s0buY5Zfu39vtB+r+ghJtPgcxgME99FyxUd0xPbFGJWPJj10u257o3SH7NK9D1OG+uVR
+         fNW9TdKmIP5PBEswEnhSvv8n0ioBgpLIU1n2xwmXS9ViIUJcdVAWrRo3xHNgGeamCiWu
+         I+7Q==
+In-Reply-To: <1484664153-20478-1-git-send-email-tkusumi@tuxera.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 MIME-Version: 1.0
@@ -23,29 +25,30 @@ Cc: Tomohiro Kusumi <tkusumi@tuxera.com>
 
 From: Tomohiro Kusumi <tkusumi@tuxera.com>
 
-This format seems to have been taken from device mapper header,
-but autofs has no such file:function in both kernel and userspace.
+This is the same as d8732841 except that it's a different file.
+A caller has no devid input, and devid is obtained via superblock.
 
 Signed-off-by: Tomohiro Kusumi <tkusumi@tuxera.com>
 ---
- include/uapi/linux/auto_dev-ioctl.h | 4 ----
- 1 file changed, 4 deletions(-)
+ Documentation/filesystems/autofs4.txt | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/include/uapi/linux/auto_dev-ioctl.h b/include/uapi/linux/auto_dev-ioctl.h
-index 021ed33..388739b 100644
---- a/include/uapi/linux/auto_dev-ioctl.h
-+++ b/include/uapi/linux/auto_dev-ioctl.h
-@@ -120,10 +120,6 @@ static inline void init_autofs_dev_ioctl(struct autofs_dev_ioctl *in)
- 	in->ioctlfd = -1;
- }
+diff --git a/Documentation/filesystems/autofs4.txt b/Documentation/filesystems/autofs4.txt
+index a5dc56f..7534863 100644
+--- a/Documentation/filesystems/autofs4.txt
++++ b/Documentation/filesystems/autofs4.txt
+@@ -457,9 +457,8 @@ Commands are:
+     daemon.
+ - **AUTOFS_DEV_IOCTL_REQUESTER_CMD**: `path` should be a
+     name within the filesystem that has been auto-mounted on.
+-    arg1 is the dev number of the underlying autofs.  On successful
+-    return, `arg1` and `arg2` will be the UID and GID of the process
+-    which triggered that mount.
++    On successful return, `arg1` and `arg2` will be the UID and GID
++    of the process which triggered that mount.
  
--/*
-- * If you change this make sure you make the corresponding change
-- * to autofs-dev-ioctl.c:lookup_ioctl()
-- */
- enum {
- 	/* Get various version info */
- 	AUTOFS_DEV_IOCTL_VERSION_CMD = 0x71,
+ - **AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD**: Check if path is a
+     mountpoint of a particular type - see separate documentation for
 -- 
 2.5.5
 
