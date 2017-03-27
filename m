@@ -1,57 +1,51 @@
-From: kusumi.tomohiro@gmail.com
-Subject: [PATCH 1/3] autofs: remove unused AUTOFS_IOC_EXPIRE_DIRECT/INDIRECT
-Date: Mon, 27 Mar 2017 03:00:35 +0300
-Message-ID: <20170327000037.2179-1-tkusumi@tuxera.com>
-Return-path: <autofs-owner@vger.kernel.org>
+From: SeongJae Park <sj38.park@gmail.com>
+Subject: [PATCH 1/5] MAINTAINERS: Fix a dead URL to ftp.kernel.org
+Date: Mon, 27 Mar 2017 14:47:27 +0900
+Message-ID: <20170327054731.31882-2-sj38.park@gmail.com>
+References: <20170327054731.31882-1-sj38.park@gmail.com>
+Return-path: <linux-kbuild-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id;
-        bh=Q0qZfe1ZqmfSMkgVF53o+r4y2oR9tlIaNt9kff44zKY=;
-        b=WmlJzFYxVDI/MWDi65beIqXg72QYFd8MeOAmCcvztGdLcXOf01pH0KZ/i89zReAMpx
-         9Oz20UQW1KjfCP8+zZOKNBDus3RzsQ445sq0dzMpX09t4ZiDLGjtTNifVqP3zu3ZJaBS
-         j63wSBn6bGqRFxQFbglhcG2wTCXJXAXhf4HdGp94bF36k2PxspgOgIsgiqo3eolhluhs
-         szeQeSuCK0FqC6GPBhxzV+eqOWtdw9cvGUsmuLvAVhEZfSilBvtTk0DhQEKppUs3yztF
-         pOgcZkl6QA0yGRMX2RaY9SDnU/3JSyIRVQPYajG2wMR/RZsVaWhzYn+pWaZzRiDyaGiZ
-         EIRA==
-Sender: autofs-owner@vger.kernel.org
+        h=from:to:cc:subject:date:message-id:in-reply-to:references;
+        bh=2Pu6fT2beTiCW2CpuqQIm4X6T6t9K1KKjoTzbihGoWI=;
+        b=k/04qKmgLnSCSOVjyZ1tIwHWKmwi6+skQras5n/6gyr+g/wT7XO211+p2lVaknUJ8p
+         t4oYEx5jHbsoapnmYNFKtOYQiwH1yTCs1XmX9p09y4O9eS3FU2a2cxznWHO7bY317gtj
+         KSrwltWYn4Hrw0WTX3QxtbfB8ETuk6BvWeiCAIHHNDFaquNoA2yIaYAsvKh9iXt0IEcn
+         GwkWhPWBqbGmyyxsy16JAaq8EkN+CQpj67GoBHy9aK+b/Td5aYOxIz326mvuk6oclRDF
+         F7HkkMrAZ5/g5lvPWO2OEeCNIk7WGtZuIHwTGJz0b4WkcgskCs9sJYLB0T7sj/F7+fhf
+         HBWg==
+In-Reply-To: <20170327054731.31882-1-sj38.park@gmail.com>
+Sender: linux-kbuild-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: raven@themaw.net, autofs@vger.kernel.org
-Cc: Tomohiro Kusumi <tkusumi@tuxera.com>
+To: rml@tech9.net, axboe@fb.com, shli@kernel.org, raven@themaw.net, yamada.masahito@socionext.com, mmarek@suse.com
+Cc: linux-raid@vger.kernel.org, autofs@vger.kernel.org, linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, SeongJae Park <sj38.park@gmail.com>
 
-From: Tomohiro Kusumi <tkusumi@tuxera.com>
+As ftp.kernel.org is closed [0], this commit fixes a dead URL to
+ftp.kernel.org in MAINTAINERS file to use www.kernel.org instead.
 
-These are not used by either kernel or userspace, although
-AUTOFS_IOC_EXPIRE_DIRECT once seems to have been used by userspace
-in around 2006-2008, which was technically just an alias of the
-existing ioctl AUTOFS_IOC_EXPIRE_MULTI.
+[0] https://www.kernel.org/shutting-down-ftp-services.html
 
-ioctls for autofs are already complicated enough that they could
-be removed unless these are staying here to be able to compile
-userspace code of certain period of time from a decade ago.
-
-Signed-off-by: Tomohiro Kusumi <tkusumi@tuxera.com>
+Signed-off-by: SeongJae Park <sj38.park@gmail.com>
 ---
- include/uapi/linux/auto_fs4.h | 2 --
- 1 file changed, 2 deletions(-)
+ MAINTAINERS | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/uapi/linux/auto_fs4.h b/include/uapi/linux/auto_fs4.h
-index 7c6da42..9453e9a 100644
---- a/include/uapi/linux/auto_fs4.h
-+++ b/include/uapi/linux/auto_fs4.h
-@@ -155,8 +155,6 @@ enum {
- };
- 
- #define AUTOFS_IOC_EXPIRE_MULTI    _IOW(AUTOFS_IOCTL, AUTOFS_IOC_EXPIRE_MULTI_CMD, int)
--#define AUTOFS_IOC_EXPIRE_INDIRECT AUTOFS_IOC_EXPIRE_MULTI
--#define AUTOFS_IOC_EXPIRE_DIRECT   AUTOFS_IOC_EXPIRE_MULTI
- #define AUTOFS_IOC_PROTOSUBVER     _IOR(AUTOFS_IOCTL, AUTOFS_IOC_PROTOSUBVER_CMD, int)
- #define AUTOFS_IOC_ASKUMOUNT       _IOR(AUTOFS_IOCTL, AUTOFS_IOC_ASKUMOUNT_CMD, int)
- 
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 9c768d79cf3f..6367f0739394 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -10158,7 +10158,7 @@ W:	http://sourceforge.net/projects/accel-pptp
+ PREEMPTIBLE KERNEL
+ M:	Robert Love <rml@tech9.net>
+ L:	kpreempt-tech@lists.sourceforge.net
+-W:	ftp://ftp.kernel.org/pub/linux/kernel/people/rml/preempt-kernel
++W:	https://www.kernel.org/pub/linux/kernel/people/rml/preempt-kernel
+ S:	Supported
+ F:	Documentation/preempt-locking.txt
+ F:	include/linux/preempt.h
 -- 
-2.9.3
+2.10.0
 
---
-To unsubscribe from this list: send the line "unsubscribe autofs" in
