@@ -1,127 +1,67 @@
-From: SeongJae Park <sj38.park@gmail.com>
-Subject: [PATCH] Fix dead URLs to ftp.kernel.org
-Date: Mon, 27 Mar 2017 21:44:06 +0900
-Message-ID: <20170327124406.6910-1-sj38.park@gmail.com>
-References: <CAEjAshqR0Nhp4Wkmkg_HrswsiuUb3rYJ=TOUSBSvoUT3FSWTjg@mail.gmail.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [PATCH 4/5] fs/autofs4: Fix a dead URL to ftp.kernel.org
+Date: Tue, 28 Mar 2017 10:02:01 +0800
+Message-ID: <1490666521.3187.0.camel@themaw.net>
+References: <20170327054731.31882-1-sj38.park@gmail.com>
+         <20170327054731.31882-5-sj38.park@gmail.com>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=hBz+rEWw29Get/5dPkDbOir04zZeKRjwU2iyPASrIeU=;
-        b=Pki8Hya0nEPdSF6qIoLy8a9C0eOZA01p0wo2zylZLAyVK7D/QJPDjd3einu/4sH+P/
-         qZkpZqgSe0cLunWn3m1Lbz1yFrt2YTl+rGKWczIBAMaFDvkZ3vpS3pJ9BOozld6JgPTQ
-         iFrwXD+1ozjH2pwlttY1UndVCnirLU4wyqHivPPbj9cXpUQaFkqa4GI86vEDwHrIfuLD
-         EwPIiRppU+f2jmShSNf8ryr0VLkokDihcD2hApGKho9kYA6a8qIq/bUksVv8bXD2//vc
-         Q4PzA9l0WrvJUEqf3OqMdFSkN1iXdcCikq1NxT+UzvNKh/f+BFwwG05DeMyDZPbK+Dn3
-         Icow==
-In-Reply-To: <CAEjAshqR0Nhp4Wkmkg_HrswsiuUb3rYJ=TOUSBSvoUT3FSWTjg@mail.gmail.com>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
+        :content-transfer-encoding:content-type:date:from:in-reply-to
+        :message-id:mime-version:references:subject:to:x-me-sender
+        :x-me-sender:x-sasl-enc:x-sasl-enc; s=fm1; bh=KNgs9n5bRiP5vygec/
+        ZQ/V4Z3ks3oORLN7ijNYVWmVA=; b=ScSAPEJydaZbBhd8nrODo3puprieR/Hfer
+        fDi8B25usz+BESmIqszjFWrmfagSU1o3HKRRn+ejUBL1Kyotz1KNEx8rPDcpM5Jj
+        Cui6M13TDeeQ9I896+jxKoh4Z8GJV4UHzrfIy/iWcgv0A6b9eUqEa1dTIDyk6xWA
+        YJ0OujNS4vlAz53b36QvFL9px4yc1kt5a0841Efp8M2GJBaTJTHCKEZmAFjLITSl
+        WSgQj9LkeDKVlE8p/YXvIn/+o3UTlB+ogZ/d0q+OY99TujW5e1mykl/Qg1roi2TP
+        HA7iRQBccezgkm9aYrW290jCiFnIJeSNOwJwlENd7JCg2VdJJIRQ==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:content-transfer-encoding:content-type
+        :date:from:in-reply-to:message-id:mime-version:references
+        :subject:to:x-me-sender:x-me-sender:x-sasl-enc:x-sasl-enc; s=
+        fm1; bh=KNgs9n5bRiP5vygec/ZQ/V4Z3ks3oORLN7ijNYVWmVA=; b=GeJAwpV/
+        FwfSPI5c1n1xi/lioKnkepT6krt17VX6GBJ8Xov3pbXVHeeCNRwiEkG3DbFWjHOg
+        Uvs3BblqHU1pL5zN5a0jisdn3PcLExyCOKU4rDmHzc3WLJYoTE1hO+uNwnQ4ZHX4
+        avYW/YlQ6MnrQ2y3oWnf/l8hNr+cjtOLiwBbwkxTheeZS80u3aPYZSLV5bJpawb4
+        uJTIfArEgAf56UOZjypZL/QoO5+4MTRGGj5/1EFWcK5PzyywdUzLbkMhe2dBBMJh
+        WoKBzEfK60aIZOXOPHcfzRGm1DE97ADY5NrKPOd9DtziKwVuW2UXmQfZpxWqWqQe
+        fqQjXmZLDI/MYA==
+In-Reply-To: <20170327054731.31882-5-sj38.park@gmail.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: trivial@kernel.org, rml@tech9.net, axboe@fb.com, shli@kernel.org, raven@themaw.net, yamada.masahito@socionext.com, mmarek@suse.com
-Cc: linux-raid@vger.kernel.org, autofs@vger.kernel.org, linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, SeongJae Park <sj38.park@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+To: SeongJae Park <sj38.park@gmail.com>, rml@tech9.net, axboe@fb.com, shli@kernel.org, yamada.masahito@socionext.com, mmarek@suse.com
+Cc: linux-raid@vger.kernel.org, autofs@vger.kernel.org, linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org
 
-URLs to ftp.kernel.org are still exist though the service is closed [0].
-This commit fixes the URLs to use www.kernel.org instead.
+On Mon, 2017-03-27 at 14:47 +0900, SeongJae Park wrote:
+> As ftp.kernel.org is closed [0], this commit fixes a dead URL to
+> ftp.kernel.org in fs/autofs4/ to use www.kernel.org instead.
+> 
+> [0] https://www.kernel.org/shutting-down-ftp-services.html
+> 
+> Signed-off-by: SeongJae Park <sj38.park@gmail.com>
 
-[0] https://www.kernel.org/shutting-down-ftp-services.html
+ACK, and thanks for fixing this.
 
-Signed-off-by: SeongJae Park <sj38.park@gmail.com>
----
- MAINTAINERS              | 2 +-
- drivers/block/Kconfig    | 2 +-
- drivers/md/Kconfig       | 2 +-
- fs/autofs4/Kconfig       | 2 +-
- scripts/ksymoops/README  | 5 ++---
- scripts/package/builddeb | 4 ++--
- 6 files changed, 8 insertions(+), 9 deletions(-)
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index c45c02bc6082..0a4df79c0823 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -10068,7 +10068,7 @@ W:	http://sourceforge.net/projects/accel-pptp
- PREEMPTIBLE KERNEL
- M:	Robert Love <rml@tech9.net>
- L:	kpreempt-tech@lists.sourceforge.net
--W:	ftp://ftp.kernel.org/pub/linux/kernel/people/rml/preempt-kernel
-+W:	https://www.kernel.org/pub/linux/kernel/people/rml/preempt-kernel
- S:	Supported
- F:	Documentation/preempt-locking.txt
- F:	include/linux/preempt.h
-diff --git a/drivers/block/Kconfig b/drivers/block/Kconfig
-index f744de7a0f9b..7b608cf2516f 100644
---- a/drivers/block/Kconfig
-+++ b/drivers/block/Kconfig
-@@ -219,7 +219,7 @@ config BLK_DEV_LOOP
- 
- 	  To use the loop device, you need the losetup utility, found in the
- 	  util-linux package, see
--	  <ftp://ftp.kernel.org/pub/linux/utils/util-linux/>.
-+	  <https://www.kernel.org/pub/linux/utils/util-linux/>.
- 
- 	  The loop device driver can also be used to "hide" a file system in
- 	  a disk partition, floppy, or regular file, either using encryption
-diff --git a/drivers/md/Kconfig b/drivers/md/Kconfig
-index b7767da50c26..585ff3284bf5 100644
---- a/drivers/md/Kconfig
-+++ b/drivers/md/Kconfig
-@@ -115,7 +115,7 @@ config MD_RAID10
- 
- 	  RAID-10 requires mdadm-1.7.0 or later, available at:
- 
--	  ftp://ftp.kernel.org/pub/linux/utils/raid/mdadm/
-+	  https://www.kernel.org/pub/linux/utils/raid/mdadm/
- 
- 	  If unsure, say Y.
- 
-diff --git a/fs/autofs4/Kconfig b/fs/autofs4/Kconfig
-index 1204d6384d39..44727bf18297 100644
---- a/fs/autofs4/Kconfig
-+++ b/fs/autofs4/Kconfig
-@@ -7,7 +7,7 @@ config AUTOFS4_FS
- 	  automounter (amd), which is a pure user space daemon.
- 
- 	  To use the automounter you need the user-space tools from
--	  <ftp://ftp.kernel.org/pub/linux/daemons/autofs/v4/>; you also
-+	  <https://www.kernel.org/pub/linux/daemons/autofs/v4/>; you also
- 	  want to answer Y to "NFS file system support", below.
- 
- 	  To compile this support as a module, choose M here: the module will be
-diff --git a/scripts/ksymoops/README b/scripts/ksymoops/README
-index f6cb06e3f30e..413043980127 100644
---- a/scripts/ksymoops/README
-+++ b/scripts/ksymoops/README
-@@ -1,8 +1,7 @@
- ksymoops has been removed from the kernel.  It was always meant to be a
- free standing utility, not linked to any particular kernel version.
- The latest version can be found in
--ftp://ftp.<country>.kernel.org/pub/linux/utils/kernel/ksymoops together
--with patches to other utilities in order to give more accurate Oops
--debugging.
-+https://www.kernel.org/pub/linux/utils/kernel/ksymoops together with patches to
-+other utilities in order to give more accurate Oops debugging.
- 
- Keith Owens <kaos@ocs.com.au> Sat Jun 19 10:30:34 EST 1999
-diff --git a/scripts/package/builddeb b/scripts/package/builddeb
-index 3c575cd07888..676fc10c9514 100755
---- a/scripts/package/builddeb
-+++ b/scripts/package/builddeb
-@@ -262,8 +262,8 @@ EOF
- cat <<EOF > debian/copyright
- This is a packacked upstream version of the Linux kernel.
- 
--The sources may be found at most Linux ftp sites, including:
--ftp://ftp.kernel.org/pub/linux/kernel
-+The sources may be found at most Linux archive sites, including:
-+https://www.kernel.org/pub/linux/kernel
- 
- Copyright: 1991 - 2015 Linus Torvalds and others.
- 
--- 
-2.10.0
-
+> ---
+>  fs/autofs4/Kconfig | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/fs/autofs4/Kconfig b/fs/autofs4/Kconfig
+> index 1204d6384d39..44727bf18297 100644
+> --- a/fs/autofs4/Kconfig
+> +++ b/fs/autofs4/Kconfig
+> @@ -7,7 +7,7 @@ config AUTOFS4_FS
+>  	  automounter (amd), which is a pure user space daemon.
+>  
+>  	  To use the automounter you need the user-space tools from
+> -	  <ftp://ftp.kernel.org/pub/linux/daemons/autofs/v4/>; you also
+> +	  <https://www.kernel.org/pub/linux/daemons/autofs/v4/>; you also
+>  	  want to answer Y to "NFS file system support", below.
+>  
+>  	  To compile this support as a module, choose M here: the module will
+> be
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
