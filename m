@@ -1,36 +1,36 @@
 From: Ian Kent <raven@themaw.net>
 Subject: Re: Changes to special character escaping?
-Date: Mon, 10 Apr 2017 15:49:38 +0800
-Message-ID: <1491810578.4382.1.camel@themaw.net>
+Date: Mon, 10 Apr 2017 16:07:17 +0800
+Message-ID: <1491811637.4382.3.camel@themaw.net>
 References: <CAFVxx_NaVK6J=tvfCa7AUQDaGLPE0ipZjpcqc1N55N4KrY5kKA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=
         content-transfer-encoding:content-type:date:from:in-reply-to
         :message-id:mime-version:references:subject:to:x-me-sender
-        :x-me-sender:x-sasl-enc:x-sasl-enc; s=fm1; bh=QO8D+I/snoEkNCMEno
-        rAsOzj12CJdTxOWn6t7G6/n9E=; b=RthqgzHHnxKiTIRav+5kJaHqHNVZYM45In
-        cEyHTpcgk+dksilxzKAXxoD7nR5bZrEsKdV35e+wTG6hZTfT4vML1PgO1ADtQg7k
-        xOWO6OlcFUpCES2q+zWRZs2FCxlg6fm7SCmztyAqCG0EoOW1FXAKxz2Qg8E5O1S9
-        4UrsiOyo4MWmhqNnAu1VGlPVNAipPDsNi5ah2U25pXKAcQn9wA9O064ZTubJFM1Y
-        Y48vxBGQ7mhBAbKiAx0F/9lL756LiGF5TLgBzZF/YCTHm86voo6OlI87P+beKt+D
-        Bi4oWtgfqrmtMQed2E6NHGcngWbNofxtSMnN3/VdFY19zxt7mnfQ==
+        :x-me-sender:x-sasl-enc:x-sasl-enc; s=fm1; bh=0DmZMuPcA4SRsIuM/3
+        HQd2nCXa8kVDNwoYZNvLp7ncY=; b=Kcm4FNDaeBu+73Eao3XLY2Sma75xtNgcw1
+        JM1xLh5xZAHUYcuLPnQESbAm3MlXi473UxbizCe3oa6Y5+9XBpww++6eBBuJL+IL
+        WvQ7HjTJ4SAImrL2ZPh0DBbROh8Tm9F4jXVt/6PrOBs16AEk+7PUG1/0vJ+EzoDb
+        h2CqJ/PlN0eFHB1c4BSMGgCUMWoKIj8BluHSKnTwzOxJebMFVCjVSBmbu/n7DQb0
+        6xsW50HzNmRHVMfMUTrkgnbkWWQTST6JUOD2jd80btFzpwtQYuIFUEqCiQK/91rF
+        FfXOBBzBFAPoVZIjmYAJODwP0g93Qk2W2Esop+5qYiiUqAjT3xAQ==
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
         messagingengine.com; h=content-transfer-encoding:content-type
         :date:from:in-reply-to:message-id:mime-version:references
         :subject:to:x-me-sender:x-me-sender:x-sasl-enc:x-sasl-enc; s=
-        fm1; bh=QO8D+I/snoEkNCMEnorAsOzj12CJdTxOWn6t7G6/n9E=; b=lAgRevuq
-        QsZ+bYioIB16jflGZaGmhet8CXbXldj+tOQJErhF0w+fef9wv5E6rSNt/LGlb1bV
-        OeEq80dgmX58rWyfeGlK1lL+ySEeGVBAl4n1b7WTX1reOX4u9agH778BM9elWoSz
-        IvvGx0L7/+lgZYrgUAhP9s8ysPjoF6LM02DingqtSFmlGfarjZF79RrVrWABQfbg
-        4bacy6SxHkdPjCrwCzVZbm/Izlx3yS17rRuOi/NyJtRqzd8vlQ+1ADePzGvRMC/W
-        7rVfvPT3zb+nOxzuj2Bzdfp/0ouwxDJplVCWbX7T40GKSWjp2Mg4rw3pAAQp23YH
-        KWcURpSGDioeuA==
+        fm1; bh=0DmZMuPcA4SRsIuM/3HQd2nCXa8kVDNwoYZNvLp7ncY=; b=S1bulyjF
+        K23lW65c6iZ2lV/cQut/cvg4qXB4jhbBjywBZ0f5gK2SReRBFgvFdjd+bpzy4T3G
+        3Deu+DPejzgH1REKmFOVzcoLz4nzi1xfvabbRv0yXW0pUT3cMc46DCoYX/U5MDsX
+        lUbY4+/XRCgUs+ur8JzYdJqBRzVRBpuE2T2c4wXrXjnBEBvGkOSpGotv848UjT4L
+        4jIzbrjoPLQ0B6h1mNpQw+12M8Q3TIERrz7sMdLw+kGnuoZKR/51djk5S4XLWFZn
+        TILUBdecnXHR8RsftCka/E+F30eZxUaPPKWQubakFCKs2GJf6BqBz3jYniKt7iB5
+        gXmc+pJKW0P0xw==
 In-Reply-To: <CAFVxx_NaVK6J=tvfCa7AUQDaGLPE0ipZjpcqc1N55N4KrY5kKA@mail.gmail.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 To: Mark Fox <mfox@customdatacentre.com>, autofs@vger.kernel.org
 
 On Fri, 2017-04-07 at 16:56 -0600, Mark Fox wrote:
@@ -39,50 +39,116 @@ On Fri, 2017-04-07 at 16:56 -0600, Mark Fox wrote:
 > in distributions (ie. Ubuntu 16.04.2, so automount 5.1.1) no longer
 > seem to work.
 
-There was at least one change related to escaping, didn't expect it to break
-this though.
+The problem is probably this patch, as you can see from the description
+(spelling mistakes and all) there's a conflict depending on how the map entry
+key is obtained, not sure what to do about it yet since I think this will be (at
+least) the third time cifs escaping has been a problem .... lets look at a log.
 
-TBH, the escaping is difficult and this is probably an example of fixing one
-thing and breaking another.
+autofs-5.1.0 - revert special case cifs escapes
 
-> 
-> Without special characters, autofs works wonderfully on all sorts of
-> CIFS shares. However, with a CIFS administrative share (C$), or a
-> share with an ampersand, I've had no luck. The shares work fine
-> through smbclient or when mounted by hand, but I haven't stumbled onto
-> how to get it working under autofs.
-> 
-> My problem setup is simple:
-> 
-> --- /etc/auto.master ---
-> +auto.master
-> /cifs /etc/auto.cifs --timeout=300 --ghost
-> ------
-> 
-> --- /etc/auto.cifs ---
-> CDC1 -fstype=cifs,rw,noperm,credentials=/etc/creds/CDC1 \
->      "/C$" "://CDC1/C\$"
-> ------
-> 
-> It doesn't work as configured above. The output from 'automount -f -v' is:
+From: Ian Kent <ikent@redhat.com>
 
-Can you get a full debug log of this please.
-Use the -d instead of the -v.
+The patch this reverts added an additional dquote on the mount location
+to revolve "\"s but this causes inconsistent quoting between the lookup
+key and the mount location when it is substituted using the &.
 
-> 
-> ------
-> attempting to mount entry /cifs/CDC1/C$
-> > > Retrying with upper case share name
-> > > mount error(6): No such device or address
-> > > Refer to the mount.cifs(8) manual page (e.g. man mount.cifs)
-> 
-> mount(generic): failed to mount //CDC1/C\$ (type cifs) on
-> /cifs/CDC1/C$
-> failed to mount /cifs/CDC1/C$
+As described in the original patch:
+"Since "\" is a valid seperator for cifs shares it can't be used to escape
+characters in the share name passed to mount.cifs. So we have no choice
+but to require that the seperator we use is "/" and de-quote the string
+before sending it to mount.cifs."
 
-That "/cifs/CDC1/C$" looks ok and the log entry says it's trying to mount
-"//CDC1/C\$" which might have become the problem.
+We do need to require that the seperator "/" is used which alone should
+eliminate the need for an additional dequote and expect that invalid
+share name mounts will fail.
+---
+ CHANGELOG               |    1 +
+ modules/mount_generic.c |   36 ++++++------------------------------
+ 2 files changed, 7 insertions(+), 30 deletions(-)
 
-Ian
+diff --git a/CHANGELOG b/CHANGELOG
+index 8080743..e21752b 100644
+--- a/CHANGELOG
++++ b/CHANGELOG
+@@ -46,6 +46,7 @@
+ - add config option to force use of program map stdvars.
+ - fix incorrect check in parse_mount().
+ - handle duplicates in multi mounts.
++- revert special case cifs escapes.
+ 
+ 04/06/2014 autofs-5.1.0
+ =======================
+diff --git a/modules/mount_generic.c b/modules/mount_generic.c
+index 2473b80..c4108e6 100644
+--- a/modules/mount_generic.c
++++ b/modules/mount_generic.c
+@@ -39,7 +39,6 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name, int
+ {
+ 	char fullpath[PATH_MAX];
+ 	char buf[MAX_ERR_BUF];
+-	char *loc;
+ 	int err;
+ 	int len, status, existed = 1;
+ 
+@@ -75,44 +74,22 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name, int
+ 	if (!status)
+ 		existed = 0;
+ 
+-	/*
+-	 * Special case quoting for cifs share names.
+-	 *
+-	 * Since "\" is a valid seperator for cifs shares it can't be
+-	 * used to escape characters in the share name passed to
+-	 * mount.cifs. So we have no choice but to require that the
+-	 * seperator we use is "/" and de-quote the string before
+-	 * sending it to mount.cifs.
+-	 */
+-	loc = NULL;
+-	if (strcmp(fstype, "cifs"))
+-		loc = strdup(what);
+-	else
+-		loc = dequote(what, strlen(what), ap->logopt);
+-	if (!loc) {
+-		error(ap->logopt,
+-		      MODPREFIX "failed to alloc buffer for mount location");
+-		return 1;
+-	}
+-
+ 	if (options && options[0]) {
+ 		debug(ap->logopt,
+ 		      MODPREFIX "calling mount -t %s -o %s %s %s",
+-		      fstype, options, loc, fullpath);
++		      fstype, options, what, fullpath);
+ 
+ 		err = spawn_mount(ap->logopt, "-t", fstype,
+-				  "-o", options, loc, fullpath, NULL);
++				  "-o", options, what, fullpath, NULL);
+ 	} else {
+ 		debug(ap->logopt, MODPREFIX "calling mount -t %s %s %s",
+-		      fstype, loc, fullpath);
+-		err = spawn_mount(ap->logopt, "-t", fstype, loc, fullpath, NULL);
++		      fstype, what, fullpath);
++		err = spawn_mount(ap->logopt, "-t", fstype, what, fullpath, NULL);
+ 	}
+ 
+ 	if (err) {
+ 		info(ap->logopt, MODPREFIX "failed to mount %s (type %s) on %s",
+-		     loc, fstype, fullpath);
+-
+-		free(loc);
++		     what, fstype, fullpath);
+ 
+ 		if (ap->type != LKP_INDIRECT)
+ 			return 1;
+@@ -123,8 +100,7 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name, int
+ 		return 1;
+ 	} else {
+ 		debug(ap->logopt, MODPREFIX "mounted %s type %s on %s",
+-		     loc, fstype, fullpath);
+-		free(loc);
++		     what, fstype, fullpath);
+ 		return 0;
+ 	}
+ }
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
