@@ -1,124 +1,253 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 00/34] fyi ... current patch list
-Date: Mon, 24 Apr 2017 09:00:12 +0800
-Message-ID: <149299547753.23475.9924538846721477415.stgit@pluto.themaw.net>
+Subject: [PATCH 08/34] autofs-5.1.2 - set autofs mounts catatonic at exit
+Date: Mon, 24 Apr 2017 09:00:54 +0800
+Message-ID: <149299565441.23475.9620706883107301793.stgit@pluto.themaw.net>
+References: <149299547753.23475.9924538846721477415.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=
-        content-transfer-encoding:content-type:date:from:message-id
-        :mime-version:subject:to:x-me-sender:x-me-sender:x-sasl-enc
-        :x-sasl-enc; s=fm1; bh=zqStrXxZM1x76q7koypeiI44fZJFNlm/p4huZpPSl
-        sk=; b=iZfLV6o9H2l6kNDjzGrUvXlz4Z4d/Fx6sBsaxvoUla0z0tDWkxA8087gL
-        VKTvAEejaw+hMGz44VnIbsMuxJ3gZxWo9iVL2PRePG/17/lfgR/Datv5aK98mRWa
-        pIjWG1N5p/6KJgB3fdoQdzBe+TM7gavRP/VbfVAKr9VHHhcyZ/7dfF5YiuTm5gta
-        RgXQxV0XzpdNK6XzWzDx8jsOi6ghrNutZxxS9ndHfyYPNWBxguZ8z4HxWJSI9ngh
-        +qKUCk2UMLF3fIz6+XUNfxAu8DEtFW37VStla88++1pgzam5yYaw9iQzoyapohps
-        SlpvHV09Ym/Kni2FktfPq6MK/Tbhg==
+        content-transfer-encoding:content-type:date:from:in-reply-to
+        :message-id:mime-version:references:subject:to:x-me-sender
+        :x-me-sender:x-sasl-enc:x-sasl-enc; s=fm1; bh=nAGb0uDYLzFrEL4c81
+        vxmYbg4n/CjhKNmVIpEeHU4SY=; b=cYqs32LiNNZV3z6Y+Wiuae3x88KRxDbZtp
+        9x9RQp3klD8cUBG1G72HpeXUsO7jeQx/UnHU0SUXm/DgZeNR18qS6pBXsp/slDWz
+        9iXoidYKYVNucCJTmLt7ciyuYZ+6Ju+9mS1WOOR5HBWcRmtThdM2k7mafxdDdvyX
+        iZW845lxvce8egtfe4AAuZ2HIZnZ8of6UdMrpr8Yq6mmpmfbdmRlnal9Ak2OKoVh
+        RLcvi8n0Js8z16GEVw6Ky6mLCHUmpXvBGrB4iEhlTgv3vPG5net8kwjHfWtokx45
+        Pql/7/XU9c0l3f11X8II2adnPj+GEku/p0A939/uFVkeccE0gZvQ==
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
         messagingengine.com; h=content-transfer-encoding:content-type
-        :date:from:message-id:mime-version:subject:to:x-me-sender
-        :x-me-sender:x-sasl-enc:x-sasl-enc; s=fm1; bh=zqStrXxZM1x76q7koy
-        peiI44fZJFNlm/p4huZpPSlsk=; b=MHvHn4rYeuYzFd4x0Lh2+XSFh+c7IoCP1g
-        Dz8nEj6A2v9UTTfmbqciCg4SUUiFrXx1KYxNoYmTNXk0UzDAxJN6Na4nP5eyujX5
-        ASj++NUGcfJWd6Mv8PE14d0D9vvE+t+ODIlWk5XMtQVtm14SvrKS4YWp4NkcfsH/
-        bxvnIozkxmq95N8JApRgdSLDoYBu90AVo8APvkJQAc6LBN2P8VybFQ20mIIk2kUy
-        pXqTK7IOvC/K8Iq1V3MF3Wba43FutGlMis103qZDF6tJC1TrYq1FWicS1Wdnc+FL
-        Ky2v2HxZu+HC+k/OCYWb+QWG2DKAls6k6q+ShcJJY7Ukl5ax2J6w==
+        :date:from:in-reply-to:message-id:mime-version:references
+        :subject:to:x-me-sender:x-me-sender:x-sasl-enc:x-sasl-enc; s=
+        fm1; bh=nAGb0uDYLzFrEL4c81vxmYbg4n/CjhKNmVIpEeHU4SY=; b=ErHEehfs
+        MyaTxJPR6B2Yz0oz1LBNVRmdzMJlBg4NopyvOLo25l8Hx84GlLNTFV+Nrj/rsaxC
+        aQpP3NIYtewZXXY5CIcd5MRnU4BMAqgolbEESqTPAi4aw23msklulrJrxBYDKcKj
+        Hp/v4Gr/zejjkpxJWckFoF3RqhNWSiuJzKDEp+6fJYTowvMeLgtUvaZRbLFAdhgr
+        shsYKvLpQKlr0r/IGk1Z4sh4R+40P4nZYy2rsyJV+RSWlStq4493SFc21EOY7Gx5
+        dF04Q9saFzRX4vkpZ9bRlMhqizuqpVkbscSHDtYlMlY0kizyP1UeQvfpC7vS7Wuq
+        rY5fpuTX60UOAw==
+In-Reply-To: <149299547753.23475.9924538846721477415.stgit@pluto.themaw.net>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: autofs mailing list <autofs@vger.kernel.org>
 
-Here is my current patch list.
+Setting direct mounts catatonic at exit doesn't go far enough.
 
-If there are no concerns from anyone I expect to commit them to the repo.
-some time in the next few days.
+To avoid possible hang on access of automount managed paths when
+the daemon has exited all mounted autofs file systems must be set
+catatonic when the daemon exits.
 
-Most notable change is the addition of browse support for amd format maps.
-
-I'd like to get the amd browse changes into a release so hopefully that
-will follow not too long after the commit.
-
+Signed-off-by: Ian Kent <raven@themaw.net>
 ---
+ CHANGELOG          |    1 +
+ daemon/automount.c |    1 +
+ daemon/direct.c    |   17 +++++--------
+ daemon/indirect.c  |    3 --
+ include/mounts.h   |    3 ++
+ lib/mounts.c       |   69 +++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 6 files changed, 78 insertions(+), 16 deletions(-)
 
-David Jeffery (1):
-      autofs-5.1.2 - honor last rw in mount options when doing a bind mount
+diff --git a/CHANGELOG b/CHANGELOG
+index 8b7de5f..8eedad3 100644
+--- a/CHANGELOG
++++ b/CHANGELOG
+@@ -34,6 +34,7 @@ xx/xx/2016 autofs-5.1.3
+ - make lookup_nss_read_master() return nss status.
+ - check NFS server availability on local mount fallback.
+ - make set_direct_mount_catatonic() more general.
++- set autofs mounts catatonic at exit.
+ 
+ 15/06/2016 autofs-5.1.2
+ =======================
+diff --git a/daemon/automount.c b/daemon/automount.c
+index 15dadb5..6ebe885 100644
+--- a/daemon/automount.c
++++ b/daemon/automount.c
+@@ -1756,6 +1756,7 @@ int handle_mounts_exit(struct autofs_point *ap)
+ 	 */
+ 	ret = umount_autofs(ap, NULL, 1);
+ 	if (!ret) {
++		set_indirect_mount_tree_catatonic(ap);
+ 		handle_mounts_cleanup(ap);
+ 		return 1;
+ 	}
+diff --git a/daemon/direct.c b/daemon/direct.c
+index 81f6e67..7a8d309 100644
+--- a/daemon/direct.c
++++ b/daemon/direct.c
+@@ -130,20 +130,16 @@ int do_umount_autofs_direct(struct autofs_point *ap, struct mnt_list *mnts, stru
+ 				error(ap->logopt,
+ 				      "ask umount returned busy for %s",
+ 				      me->key);
+-				if (ap->state != ST_READMAP)
+-					set_mount_catatonic(ap, me, ioctlfd);
+ 				if (opened)
+ 					ops->close(ap->logopt, ioctlfd);
+ 				return 1;
+ 			} else {
+ 				me->ioctlfd = -1;
+-				set_mount_catatonic(ap, me, ioctlfd);
+ 				ops->close(ap->logopt, ioctlfd);
+ 				goto force_umount;
+ 			}
+ 		}
+ 		me->ioctlfd = -1;
+-		set_mount_catatonic(ap, me, ioctlfd);
+ 		ops->close(ap->logopt, ioctlfd);
+ 	} else {
+ 		error(ap->logopt,
+@@ -173,8 +169,11 @@ int do_umount_autofs_direct(struct autofs_point *ap, struct mnt_list *mnts, stru
+ 			warn(ap->logopt, "mount point %s is in use", me->key);
+ 			if (ap->state == ST_SHUTDOWN_FORCE)
+ 				goto force_umount;
+-			else
++			else {
++				if (ap->state != ST_READMAP)
++					set_direct_mount_tree_catatonic(ap, me);
+ 				return 0;
++			}
+ 			break;
+ 		case ENOTDIR:
+ 			error(ap->logopt, "mount point is not a directory");
+@@ -238,12 +237,8 @@ int umount_autofs_direct(struct autofs_point *ap)
+ 			if (!error)
+ 				goto done;
+ 
+-			error = set_mount_catatonic(ap, me, me->ioctlfd);
+-			if (!error)
+-				goto done;
+-
+-			/* We really need to set this, last ditch attempt */
+-			set_mount_catatonic(ap, me, -1);
++			if (ap->state != ST_READMAP)
++				set_direct_mount_tree_catatonic(ap, me);
+ done:
+ 			me = cache_enumerate(mc, me);
+ 		}
+diff --git a/daemon/indirect.c b/daemon/indirect.c
+index 4c32bdb..8171fb0 100644
+--- a/daemon/indirect.c
++++ b/daemon/indirect.c
+@@ -290,9 +290,6 @@ int umount_autofs_indirect(struct autofs_point *ap, const char *root)
+ #endif
+ 	}
+ 
+-	if (ap->shutdown)
+-		ops->catatonic(ap->logopt, ap->ioctlfd);
+-
+ 	ops->close(ap->logopt, ap->ioctlfd);
+ 	ap->ioctlfd = -1;
+ 	sched_yield();
+diff --git a/include/mounts.h b/include/mounts.h
+index 9ec6bd9..8425818 100644
+--- a/include/mounts.h
++++ b/include/mounts.h
+@@ -113,7 +113,8 @@ void set_tsd_user_vars(unsigned int, uid_t, gid_t);
+ const char *mount_type_str(unsigned int);
+ void notify_mount_result(struct autofs_point *, const char *, time_t, const char *);
+ int try_remount(struct autofs_point *, struct mapent *, unsigned int);
+-int set_mount_catatonic(struct autofs_point *, struct mapent *, int);
++void set_indirect_mount_tree_catatonic(struct autofs_point *);
++void set_direct_mount_tree_catatonic(struct autofs_point *, struct mapent *);
+ int umount_ent(struct autofs_point *, const char *);
+ int mount_multi_triggers(struct autofs_point *, struct mapent *, const char *, unsigned int, const char *);
+ int umount_multi_triggers(struct autofs_point *, struct mapent *, char *, const char *);
+diff --git a/lib/mounts.c b/lib/mounts.c
+index 44c907e..a9be906 100644
+--- a/lib/mounts.c
++++ b/lib/mounts.c
+@@ -1860,7 +1860,7 @@ int try_remount(struct autofs_point *ap, struct mapent *me, unsigned int type)
+  * are busy on not, to avoid a hang on access once the daemon has gone
+  * away.
+  */
+-int set_mount_catatonic(struct autofs_point *ap, struct mapent *me, int ioctlfd)
++static int set_mount_catatonic(struct autofs_point *ap, struct mapent *me, int ioctlfd)
+ {
+ 	struct ioctl_ops *ops = get_ioctl_ops();
+ 	unsigned int opened = 0;
+@@ -1887,6 +1887,9 @@ int set_mount_catatonic(struct autofs_point *ap, struct mapent *me, int ioctlfd)
+ 			int err = errno;
+ 			char *estr;
+ 
++			if (errno == ENOENT)
++				return 0;
++
+ 			estr = strerror_r(errno, buf, MAX_ERR_BUF);
+ 			error(ap->logopt,
+ 			      "failed to open ioctlfd for %s, error: %s",
+@@ -1919,6 +1922,70 @@ int set_mount_catatonic(struct autofs_point *ap, struct mapent *me, int ioctlfd)
+ 	return 0;
+ }
+ 
++static void set_multi_mount_tree_catatonic(struct autofs_point *ap, struct mapent *me)
++{
++	if (!list_empty(&me->multi_list)) {
++		struct list_head *head = &me->multi_list;
++		struct list_head *p;
++
++		list_for_each(p, head) {
++			struct mapent *this;
++
++			this = list_entry(p, struct mapent, multi_list);
++			set_mount_catatonic(ap, this, this->ioctlfd);
++		}
++	}
++}
++
++void set_indirect_mount_tree_catatonic(struct autofs_point *ap)
++{
++	struct master_mapent *entry = ap->entry;
++	struct map_source *map;
++	struct mapent_cache *mc;
++	struct mapent *me;
++
++	if (!is_mounted(_PROC_MOUNTS, ap->path, MNTS_AUTOFS))
++		return;
++
++	map = entry->maps;
++	while (map) {
++		mc = map->mc;
++		cache_readlock(mc);
++		me = cache_enumerate(mc, NULL);
++		while (me) {
++			/* Skip negative map entries and wildcard entries */
++			if (!me->mapent)
++				goto next;
++
++			if (!strcmp(me->key, "*"))
++				goto next;
++
++			/* Only need to set offset mounts catatonic */
++			if (me->multi && me->multi == me)
++				set_multi_mount_tree_catatonic(ap, me);
++next:
++			me = cache_enumerate(mc, me);
++		}
++		cache_unlock(mc);
++		map = map->next;
++	}
++
++	/* By the time this function is called ap->ioctlfd will have
++	 * been closed so don't try and use it.
++	 */
++	set_mount_catatonic(ap, NULL, -1);
++
++	return;
++}
++
++void set_direct_mount_tree_catatonic(struct autofs_point *ap, struct mapent *me)
++{
++	/* Set offset mounts catatonic for this mapent */
++	if (me->multi && me->multi == me)
++		set_multi_mount_tree_catatonic(ap, me);
++	set_mount_catatonic(ap, me, me->ioctlfd);
++}
++
+ int umount_ent(struct autofs_point *ap, const char *path)
+ {
+ 	int rv;
 
-Ian Kent (30):
-      autofs-5.1.2 - fix included master map not found return
-      autofs-5.1.2 - dont exit on master map read fail timeout
-      autofs-5.1.2 - set sane default master read wait timeout
-      autofs-5.1.2 - don't return until after master map retry read
-      autofs-5.1.2 - make lookup_nss_read_master() return nss status
-      autofs-5.1.2 - check NFS server availability on local mount fallback
-      autofs-5.1.2 - make set_direct_mount_catatonic() more general
-      autofs-5.1.2 - set autofs mounts catatonic at exit
-      autofs-5.1.2 - fix typos in README.amd-maps
-      autofs-5.1.2 - add ref counting to struct map_source
-      autofs-5.1.2 - add support for amd browsable option
-      autofs-5.1.2 - add function conf_amd_get_map_name()
-      autofs-5.1.2 - add function conf_amd_get_mount_paths()
-      autofs-5.1.2 - include amd mount section mounts in master mounts list
-      autofs-5.1.2 - check for conflicting amd section mounts
-      autofs-5.1.2 - add function conf_amd_get_map_options()
-      autofs-5.1.2 - capture cache option and its settings during parsing
-      autofs-5.1.2 - handle map_option cache for top level mounts
-      autofs-5.1.2 - handle amd cache option all in amd type auto mounts
-      autofs-5.1.2 - fix bogus check in expire_cleanup()
-      autofs-5.1.2 - delay submount exit for amd submounts
-      autofs-5.1.2 - factor out set_thread_mount_request_log_id()
-      autofs-5.1.2 - add config option to use mount request log id
-      autofs-5.1.2 - use autofs_point to store expire timeout where possibe
-      autofs-5.1.2 - fix possible NULL derefernce
-      autofs-5.1.2 - fix work around sss startup delay
-      autofs-5.1.2 - fix invalid reference in remount_active_mount()
-      autofs-5.1.2 - use malloc for expanded map location
-      autofs-5.1.2 - fix offset mount location multiple expansion
-      autofs-5.1.2 - increase worker thread per-thread stack size
-
-Lars R. Damerow (3):
-      autofs-5.1.2 - add the mount requestor's pid to pending_args
-      autofs-5.1.2 - create thread-local ID for mount attempts
-      autofs-5.1.2 - log functions to prefix messages with attempt_id if available
-
-
- CHANGELOG                      |   34 +++++++
- README.amd-maps                |   64 ++++++++++---
- daemon/automount.c             |   89 +++++++++++++-----
- daemon/direct.c                |   85 ++---------------
- daemon/indirect.c              |   15 ++-
- daemon/lookup.c                |  126 ++++++++++++++++++++-----
- daemon/state.c                 |   34 +++++--
- include/automount.h            |   12 ++
- include/defaults.h             |    7 +
- include/master.h               |    4 +
- include/mounts.h               |    4 +
- include/parse_amd.h            |    7 +
- lib/defaults.c                 |  121 ++++++++++++++++++++++++
- lib/log.c                      |  164 +++++++++++++++++++++++++++-----
- lib/master.c                   |  202 ++++++++++++++++++++++++++++++++++++++++
- lib/master_parse.y             |   55 ++++++++---
- lib/mounts.c                   |  160 ++++++++++++++++++++++++++++++--
- lib/rpc_subs.c                 |   11 ++
- man/autofs.conf.5.in           |   25 ++++-
- modules/amd_parse.y            |   15 ++-
- modules/amd_tok.l              |    2 
- modules/lookup_dir.c           |    2 
- modules/lookup_file.c          |   20 +++-
- modules/lookup_ldap.c          |   10 +-
- modules/lookup_nisplus.c       |   10 +-
- modules/lookup_sss.c           |   18 ++--
- modules/lookup_yp.c            |   10 +-
- modules/mount_autofs.c         |   79 ++++++++++------
- modules/mount_nfs.c            |   17 +++
- modules/parse_amd.c            |    2 
- modules/parse_sun.c            |   90 +++++++++++++++---
- redhat/autofs.conf.default.in  |   20 +++-
- samples/autofs.conf.default.in |   20 +++-
- 33 files changed, 1236 insertions(+), 298 deletions(-)
-
---
-Ian
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
