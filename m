@@ -1,8 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 25/34] autofs-5.1.2 - log functions to prefix messages with
- attempt_id if available
-Date: Mon, 24 Apr 2017 09:02:21 +0800
-Message-ID: <149299574164.23475.17911865152534699663.stgit@pluto.themaw.net>
+Subject: [PATCH 13/34] autofs-5.1.2 - add function conf_amd_get_map_name()
+Date: Mon, 24 Apr 2017 09:01:20 +0800
+Message-ID: <149299568007.23475.8196146262828292356.stgit@pluto.themaw.net>
 References: <149299547753.23475.9924538846721477415.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -10,325 +9,92 @@ Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=
         content-transfer-encoding:content-type:date:from:in-reply-to
         :message-id:mime-version:references:subject:to:x-me-sender
-        :x-me-sender:x-sasl-enc:x-sasl-enc; s=fm1; bh=pBox8t0PJzDlb8Nh29
-        HMOdrxdL2n6RMKpddvl/Zfuwk=; b=czOTt4WeFuwXVHT/2gRVKHs7zK9eS6bMSV
-        npNqEBDu9KBW3n0EqWRs9+fHdGT4nd7iFx/7DpWlT74nN/KlTjeMaIpZumlk9Tc5
-        cplnD5mtS+Mb/9GUTRKjoirkDSMBIBcusYG7BAGCYxjvYfz7rVuUabARR4AgiYiQ
-        c3OMwwTRVf7TLuu5v8ZXni2Cy3H53kPZWPx+uy+9l7Yc2eomwV275ZLBAqjvpX77
-        i1dZok6nOhTpvgkVLrB/eqaYjoImOQnzaDF7K5plvsyPqgmBRdHOvhiWBZpjOFT9
-        /buGsPt20MrZ86m3MMqVVWC/QjgShQvZYB9orCMeaJrxk1JQgCBA==
+        :x-me-sender:x-sasl-enc:x-sasl-enc; s=fm1; bh=E/6y3AZZatwSeKeVmd
+        1jG3NMzJohZX8HdAN6XPE370U=; b=WuLt37P9OE/GwEAblblmqHIDqdCyiGXGzm
+        Josk4PCqL3mgEfyx1Azi0yKVPSVZwuT5oQWfj8nxwOwNfMnkJeS8Th78HzLqtfyC
+        v7sYniKfJC1oqyhz6q4M8jzqFZsNVQvIKOOcRHcF4dUk2hg5TRI1IHBeij4tyUQC
+        0x+4IjHS/BTaQ9T1XTY7X/61Yj/XmwmigYaojBCyN8fzGpm5qLMTDIcPDXZsxx+l
+        kDAGz9Hl+5VvOfzgoYDd029x4G8q5GdeAD7lV3dQcgEwn4Xtxqfw87oRHHf8+e5v
+        YyryES7+qcRD4sHjsyJNDWDF+9yZ/ybiOEw5L2ECoZ0DuighIYhg==
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
         messagingengine.com; h=content-transfer-encoding:content-type
         :date:from:in-reply-to:message-id:mime-version:references
         :subject:to:x-me-sender:x-me-sender:x-sasl-enc:x-sasl-enc; s=
-        fm1; bh=pBox8t0PJzDlb8Nh29HMOdrxdL2n6RMKpddvl/Zfuwk=; b=dbVDkaAt
-        +R264kAG++lhoaQ46GdxOo0W1oqw7o/9GwkPF8KIlvcwhyFU5bAXl+LEnmxzubuo
-        6BWy+aaXfHVXEOYcTEz+UzwMhQ1I7bVRCC/zfWQteJ2+xsf584zyn3aPY91FTpFP
-        RK/jFBOL9gfzecqI7sPOfzRpFhU6oPcaiTS7g55AOPqAC3qk+1RZ7z+3Mg6qsJCp
-        h8EMOoqDuzHbsTazzlNKlK39tAj4FX60JhyFaVH/6DPPbAR1J5D3nmSus/OLWERj
-        GIFPhCO1PvloaBYrNvEQTYNVj1KMIwvfWbmIIwQR2EG9f9onsBzcE3VSY8y/0FsA
-        Fcwk86HrBnNajQ==
+        fm1; bh=E/6y3AZZatwSeKeVmd1jG3NMzJohZX8HdAN6XPE370U=; b=oteBM946
+        lQ0HihVgN+cw5k/gIOVfKsoXA7DzU5HfBNiFQNjfZNH/dXwSjxq32UWzMpdy1ndR
+        hvfSZmJ96g4Jq3NgyP/nPClzUdwPQ5RZeg2lQu8QK3kp6h3Ziv+YTPkH9XqR+bbo
+        PbBD/ZjbbjkujXJSK81k05HKOzelw68pUK/MlVjIWPM/BoM5RqpFniMgYZjsBVn5
+        g4zswZWvMWuC50lS/PZu8+LLqlJOHxVDWS05d4Y8PS+6JmrYb4kHeOtXFoKguvWG
+        gkeolok9/aL4LYZZns83YTXN3KSOYE8a4YJ9rFNxl/6yOSDEczmqNqh6ugmDLXrX
+        bxZKwetBVWKqmQ==
 In-Reply-To: <149299547753.23475.9924538846721477415.stgit@pluto.themaw.net>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: autofs mailing list <autofs@vger.kernel.org>
 
-From: Lars R. Damerow <lars@pixar.com>
+Add configuration function to get the map_name option from
+an amd mount configuration section.
 
-Now that there should be a mount attempt id try and include it in log entries.
-
-Signed-off-by: Lars R. Damerow <lars@pixar.com>
 Signed-off-by: Ian Kent <raven@themaw.net>
 ---
- CHANGELOG |    1 
- lib/log.c |  164 +++++++++++++++++++++++++++++++++++++++++++++++++++----------
- 2 files changed, 137 insertions(+), 28 deletions(-)
+ CHANGELOG          |    1 +
+ include/defaults.h |    1 +
+ lib/defaults.c     |   10 ++++++++++
+ 3 files changed, 12 insertions(+)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index 0cd0d45..eed9697 100644
+index b67fd56..ac195ed 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -51,6 +51,7 @@ xx/xx/2016 autofs-5.1.3
- - delay submount exit for amd submounts.
- - add the mount requestor's pid to pending_args.
- - create thread-local ID for mount attempts.
-+- log functions to prefix messages with attempt_id if available.
+@@ -39,6 +39,7 @@ xx/xx/2016 autofs-5.1.3
+ - fix typos in README.amd-maps.
+ - add ref counting to struct map_source.
+ - add support for amd browsable option.
++- add function conf_amd_get_map_name().
  
  15/06/2016 autofs-5.1.2
  =======================
-diff --git a/lib/log.c b/lib/log.c
-index 832add7..1a0bc3f 100644
---- a/lib/log.c
-+++ b/lib/log.c
-@@ -32,6 +32,26 @@ static unsigned int logging_to_syslog = 0;
- static unsigned int do_verbose = 0;		/* Verbose feedback option */
- static unsigned int do_debug = 0;		/* Full debug output */
+diff --git a/include/defaults.h b/include/defaults.h
+index b93fda3..650f3e6 100644
+--- a/include/defaults.h
++++ b/include/defaults.h
+@@ -194,6 +194,7 @@ char *conf_amd_get_nfs_proto(void);
+ char *conf_amd_get_nis_domain(void);
+ unsigned int conf_amd_set_nis_domain(const char *);
+ char *conf_amd_get_map_defaults(const char *);
++char *conf_amd_get_map_name(const char *);
+ char *conf_amd_get_map_type(const char *);
+ char *conf_amd_get_search_path(const char *);
+ unsigned int conf_amd_get_dismount_interval(const char *);
+diff --git a/lib/defaults.c b/lib/defaults.c
+index 3ac231b..fba5d78 100644
+--- a/lib/defaults.c
++++ b/lib/defaults.c
+@@ -108,6 +108,7 @@
+ #define NAME_AMD_MAP_DEFAULTS			"map_defaults"
+ #define NAME_AMD_MAP_OPTIONS			"map_options"
+ #define NAME_AMD_MAP_RELOAD_INTERVAL		"map_reload_interval"
++#define NAME_AMD_MAP_NAME			"map_name"
+ #define NAME_AMD_MAP_TYPE			"map_type"
+ #define NAME_AMD_MOUNT_TYPE			"mount_type"
+ #define NAME_AMD_PID_FILE			"pid_file"
+@@ -1934,6 +1935,15 @@ char *conf_amd_get_map_defaults(const char *section)
+ 	return tmp;
+ }
  
-+static char *prepare_attempt_prefix(const char *msg)
++char *conf_amd_get_map_name(const char *section)
 +{
-+	unsigned long *attempt_id;
-+	char buffer[ATTEMPT_ID_SIZE + 1];
-+	char *prefixed_msg = NULL;
++	char *tmp = NULL;
++	if (section)
++		tmp = conf_get_string(section, NAME_AMD_MAP_NAME);
 +
-+	attempt_id = pthread_getspecific(key_thread_attempt_id);
-+	if (attempt_id) {
-+		int len = sizeof(buffer) + 1 + strlen(msg) + 1;
-+
-+		snprintf(buffer, ATTEMPT_ID_SIZE, "%02lx", *attempt_id);
-+		prefixed_msg = (char *) calloc(len, sizeof(char));
-+		strcpy(prefixed_msg, buffer);
-+		strcat(prefixed_msg, "|");
-+		strcat(prefixed_msg, msg);
-+	}
-+
-+	return prefixed_msg;
++	return tmp;
 +}
 +
- void set_log_norm(void)
+ char *conf_amd_get_map_type(const char *section)
  {
- 	do_verbose = 0;
-@@ -72,124 +92,212 @@ void set_log_debug_ap(struct autofs_point *ap)
- void log_info(unsigned int logopt, const char *msg, ...)
- {
- 	unsigned int opt_log = logopt & (LOGOPT_DEBUG | LOGOPT_VERBOSE);
-+	char *prefixed_msg;
- 	va_list ap;
- 
- 	if (!do_debug && !do_verbose && !opt_log)
- 		return;
- 
-+	prefixed_msg = prepare_attempt_prefix(msg);
-+
- 	va_start(ap, msg);
--	if (logging_to_syslog)
--		vsyslog(LOG_INFO, msg, ap);
--	else {
--		vfprintf(stderr, msg, ap);
-+	if (logging_to_syslog) {
-+		if (prefixed_msg)
-+			vsyslog(LOG_INFO, prefixed_msg, ap);
-+		else
-+			vsyslog(LOG_INFO, msg, ap);
-+	} else {
-+		if (prefixed_msg)
-+			vfprintf(stderr, prefixed_msg, ap);
-+		else
-+			vfprintf(stderr, msg, ap);
- 		fputc('\n', stderr);
- 	}
- 	va_end(ap);
- 
-+	if (prefixed_msg)
-+		free(prefixed_msg);
-+
- 	return;
- }
- 
- void log_notice(unsigned int logopt, const char *msg, ...)
- {
- 	unsigned int opt_log = logopt & (LOGOPT_DEBUG | LOGOPT_VERBOSE);
-+	char *prefixed_msg;
- 	va_list ap;
- 
- 	if (!do_debug && !do_verbose && !opt_log)
- 		return;
- 
-+	prefixed_msg = prepare_attempt_prefix(msg);
-+
- 	va_start(ap, msg);
--	if (logging_to_syslog)
--		vsyslog(LOG_NOTICE, msg, ap);
--	else {
--		vfprintf(stderr, msg, ap);
-+	if (logging_to_syslog) {
-+		if (prefixed_msg)
-+			vsyslog(LOG_NOTICE, prefixed_msg, ap);
-+		else
-+			vsyslog(LOG_INFO, msg, ap);
-+	} else {
-+		if (prefixed_msg)
-+			vfprintf(stderr, prefixed_msg, ap);
-+		else
-+			vfprintf(stderr, msg, ap);
- 		fputc('\n', stderr);
- 	}
- 	va_end(ap);
- 
-+	if (prefixed_msg)
-+		free(prefixed_msg);
-+
- 	return;
- }
- 
- void log_warn(unsigned int logopt, const char *msg, ...)
- {
- 	unsigned int opt_log = logopt & (LOGOPT_DEBUG | LOGOPT_VERBOSE);
-+	char *prefixed_msg;
- 	va_list ap;
- 
- 	if (!do_debug && !do_verbose && !opt_log)
- 		return;
- 
-+	prefixed_msg = prepare_attempt_prefix(msg);
-+
- 	va_start(ap, msg);
--	if (logging_to_syslog)
--		vsyslog(LOG_WARNING, msg, ap);
--	else {
--		vfprintf(stderr, msg, ap);
-+	if (logging_to_syslog) {
-+		if (prefixed_msg)
-+			vsyslog(LOG_WARNING, prefixed_msg, ap);
-+		else
-+			vsyslog(LOG_INFO, msg, ap);
-+	} else {
-+		if (prefixed_msg)
-+			vfprintf(stderr, prefixed_msg, ap);
-+		else
-+			vfprintf(stderr, msg, ap);
- 		fputc('\n', stderr);
- 	}
- 	va_end(ap);
- 
-+	if (prefixed_msg)
-+		free(prefixed_msg);
-+
- 	return;
- }
- 
- void log_error(unsigned logopt, const char *msg, ...)
- {
-+	char *prefixed_msg;
- 	va_list ap;
- 
-+	prefixed_msg = prepare_attempt_prefix(msg);
-+
- 	va_start(ap, msg);
--	if (logging_to_syslog)
--		vsyslog(LOG_ERR, msg, ap);
--	else {
--		vfprintf(stderr, msg, ap);
-+	if (logging_to_syslog) {
-+		if (prefixed_msg)
-+			vsyslog(LOG_ERR, prefixed_msg, ap);
-+		else
-+			vsyslog(LOG_INFO, msg, ap);
-+	} else {
-+		if (prefixed_msg)
-+			vfprintf(stderr, prefixed_msg, ap);
-+		else
-+			vfprintf(stderr, msg, ap);
- 		fputc('\n', stderr);
- 	}
- 	va_end(ap);
-+
-+	if (prefixed_msg)
-+		free(prefixed_msg);
-+
- 	return;
- }
- 
- void log_crit(unsigned logopt, const char *msg, ...)
- {
-+	char *prefixed_msg;
- 	va_list ap;
- 
-+	prefixed_msg = prepare_attempt_prefix(msg);
-+
- 	va_start(ap, msg);
--	if (logging_to_syslog)
--		vsyslog(LOG_CRIT, msg, ap);
--	else {
--		vfprintf(stderr, msg, ap);
-+	if (logging_to_syslog) {
-+		if (prefixed_msg)
-+			vsyslog(LOG_CRIT, prefixed_msg, ap);
-+		else
-+			vsyslog(LOG_INFO, msg, ap);
-+	} else {
-+		if (prefixed_msg)
-+			vfprintf(stderr, prefixed_msg, ap);
-+		else
-+			vfprintf(stderr, msg, ap);
- 		fputc('\n', stderr);
- 	}
- 	va_end(ap);
-+
-+	if (prefixed_msg)
-+		free(prefixed_msg);
-+
- 	return;
- }
- 
- void log_debug(unsigned int logopt, const char *msg, ...)
- {
- 	unsigned int opt_log = logopt & LOGOPT_DEBUG;
-+	char *prefixed_msg;
- 	va_list ap;
- 
- 	if (!do_debug && !opt_log)
- 		return;
- 
-+	prefixed_msg = prepare_attempt_prefix(msg);
-+
- 	va_start(ap, msg);
--	if (logging_to_syslog)
--		vsyslog(LOG_WARNING, msg, ap);
--	else {
--		vfprintf(stderr, msg, ap);
-+	if (logging_to_syslog) {
-+		if (prefixed_msg)
-+			vsyslog(LOG_WARNING, prefixed_msg, ap);
-+		else
-+			vsyslog(LOG_INFO, msg, ap);
-+	} else {
-+		if (prefixed_msg)
-+			vfprintf(stderr, prefixed_msg, ap);
-+		else
-+			vfprintf(stderr, msg, ap);
- 		fputc('\n', stderr);
- 	}
- 	va_end(ap);
- 
-+	if (prefixed_msg)
-+		free(prefixed_msg);
-+
- 	return;
- }
- 
- void logmsg(const char *msg, ...)
- {
-+	char *prefixed_msg;
- 	va_list ap;
-+
-+	prefixed_msg = prepare_attempt_prefix(msg);
-+
- 	va_start(ap, msg);
--	if (logging_to_syslog)
--		vsyslog(LOG_CRIT, msg, ap);
--	else {
--		vfprintf(stderr, msg, ap);
-+	if (logging_to_syslog) {
-+		if (prefixed_msg)
-+			vsyslog(LOG_CRIT, prefixed_msg, ap);
-+		else
-+			vsyslog(LOG_INFO, msg, ap);
-+	} else {
-+		if (prefixed_msg)
-+			vfprintf(stderr, prefixed_msg, ap);
-+		else
-+			vfprintf(stderr, msg, ap);
- 		fputc('\n', stderr);
- 	}
- 	va_end(ap);
-+
-+	if (prefixed_msg)
-+		free(prefixed_msg);
-+
- 	return;
- }
- 
+ 	char *tmp = NULL;
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
