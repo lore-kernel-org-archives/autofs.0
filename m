@@ -1,8 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 03/34] autofs-5.1.2 - set sane default master read wait
- timeout
-Date: Mon, 24 Apr 2017 09:00:28 +0800
-Message-ID: <149299562852.23475.8419202329550494609.stgit@pluto.themaw.net>
+Subject: [PATCH 17/34] autofs-5.1.2 - add function conf_amd_get_map_options()
+Date: Mon, 24 Apr 2017 09:01:40 +0800
+Message-ID: <149299570063.23475.9623751606923760923.stgit@pluto.themaw.net>
 References: <149299547753.23475.9924538846721477415.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -10,121 +9,96 @@ Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=
         content-transfer-encoding:content-type:date:from:in-reply-to
         :message-id:mime-version:references:subject:to:x-me-sender
-        :x-me-sender:x-sasl-enc:x-sasl-enc; s=fm1; bh=Ql8eMDFg1wgFcTuOVn
-        V7EoKIFkcg+97xEl/cT3CJm48=; b=XPSNqAa0UrPOpJI63GwKntHNQIkTqIQq0/
-        Un9T7x4a+svalHPdvNVQFcu+Y47FHTzxnfb2SKHZZ7rc0EjEP7cJ0mI0CnyggPkL
-        fegMHhyehlb/3P3qcJu32aoLVnHv1taQU+0bQjfoBH1apjjdMcIQk1gGGOhRVxQx
-        vj19XGYdWT/qKyMZmJe81EPqIwb6Hr+0fKX61sIurZedh6Q2JNon4A+UkxdtFnJ6
-        AmO8rOm8MEcoX9aulvgAIeQ9ueOGk0MdAWl8LMy3dgqMEynYcSjUFRn1DQ1mcsmj
-        MQgUMeh4Cg9zm7Ci27g4hKsTfZSjGNGb4j8jD7qQOXn9esfVEOyQ==
+        :x-me-sender:x-sasl-enc:x-sasl-enc; s=fm1; bh=T1lCqgnIu8XxB5QY8E
+        VkeAK69JoN8ruglHf63+qex1M=; b=LFG9R2VbIGr/IVbUmYoPfEX1hV7wKSETSm
+        /NXCnEqxnIkIMT/jwr8490kvDtvLQeygnuKLG4Lwziao3GR4VqVrWZKgDshmlSKg
+        44ESbRtfF1tscJgSzHR+4hhTB5/ndpPfj2rMpHcgAOSAmJe1d2h2Db8dzr18Mfzi
+        vGz4X9Ax3ftbT0iG0LmhudczksW5VRicQ32WcCgHYvxRH5D6XGOlhBVV+zYuYH59
+        k7BC1XhWiXNZivka3VJIoMSjoexO09tOFDp5W4Qb2jp1wb54AAlO9nRXwveKJ4nL
+        XGVsAdRD8LMOiWApHz51P5HnmmTLTasEex5utMmFLwU+wrw53VQQ==
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
         messagingengine.com; h=content-transfer-encoding:content-type
         :date:from:in-reply-to:message-id:mime-version:references
         :subject:to:x-me-sender:x-me-sender:x-sasl-enc:x-sasl-enc; s=
-        fm1; bh=Ql8eMDFg1wgFcTuOVnV7EoKIFkcg+97xEl/cT3CJm48=; b=nxlHdFkR
-        1iiTAQMsE0tOwEqS30K16TEWhHmPnObTLnVysZWVRivJA3vULh7nxV1uX0rGE7XS
-        hv2eCWuwIKDTBp1i+ICrIE51SvdJtM9qqk4nmS9quir4GnTmNz5pagfeIt80IRxI
-        CNoeALzXLnFU0JSoCrEVcn2O/I/4sRYHl8sCppq2L7XTN5uqp6898TdgfYhG8er6
-        nmcZJnfnimBUKiO7dUrwHy9Eb2ccXeF7J8kEmws+Qmh4D91OhRrXYAtLCRndIqpG
-        +HlmfJpBkQtCNffvJqdnXHWkTodHD9CiBiDNruG79NJEE4QNhdBUR7Mx3XYkYCDg
-        ydWeOhCMPAK77A==
+        fm1; bh=T1lCqgnIu8XxB5QY8EVkeAK69JoN8ruglHf63+qex1M=; b=Q1vjvhd8
+        8ieAwoh6cqtdsui6Btu7SO3bLMnNxwkrT7TB1bXN6luEysgu5BwlmYjl9+UBPiYj
+        LqY/FL+iIy47nUR7sKYHEmiIoqsmFh8s72qoT8ytUo7i4lknACRN5CsydRClT2LQ
+        on+NjBGRFLx1i3utLSZchTOPi9Ujz7QwcOeuMMp4p6/NP4V5328lDvGGpA1YLcz9
+        mSkg8L4aYVxyyTRyzF2x0FEy6W+sqzFAnQGy+R5MOeO4FvqmiaURLmE8mpp/dCe2
+        QvmemqNB0NqxGnu9WxpQZr0hZFtfOACTU0tXJcWSTwd5ZZXeJB7L1ZCq40pI3b+P
+        KQGQArx48CHA9g==
 In-Reply-To: <149299547753.23475.9924538846721477415.stgit@pluto.themaw.net>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: autofs mailing list <autofs@vger.kernel.org>
 
-If an unused map source is configured in nss, with the default
-of waiting indefinitely, autofs will not start.
-
-To restore the previous behaviour of this case set a sensible
-default timeout for the configuration option master_wait.
+Add configuration function to get the map_options option from
+an amd mount configuration section.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 ---
- CHANGELOG                      |    1 +
- include/defaults.h             |    2 +-
- man/autofs.conf.5.in           |    4 ++--
- redhat/autofs.conf.default.in  |    6 +++---
- samples/autofs.conf.default.in |    6 +++---
- 5 files changed, 10 insertions(+), 9 deletions(-)
+ CHANGELOG          |    1 +
+ include/defaults.h |    1 +
+ lib/defaults.c     |   14 ++++++++++++++
+ 3 files changed, 16 insertions(+)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index 85b1480..92a6ea9 100644
+index 3615de7..115afdb 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -29,6 +29,7 @@ xx/xx/2016 autofs-5.1.3
- - fix quoted key handling in sanitize_path().
- - fix included master map not found return.
- - dont exit on master map read fail timeout.
-+- set sane default master read wait timeout.
+@@ -43,6 +43,7 @@ xx/xx/2016 autofs-5.1.3
+ - add function conf_amd_get_mount_paths().
+ - include amd mount sections mounts in master mounts list.
+ - check for conflicting amd section mounts.
++- add function conf_get_map_options().
  
  15/06/2016 autofs-5.1.2
  =======================
 diff --git a/include/defaults.h b/include/defaults.h
-index 1dea48c..b93fda3 100644
+index 7766196..7f0129b 100644
 --- a/include/defaults.h
 +++ b/include/defaults.h
-@@ -25,7 +25,7 @@
- #define DEFAULT_MASTER_MAP_NAME	"auto.master"
+@@ -196,6 +196,7 @@ char *conf_amd_get_nis_domain(void);
+ unsigned int conf_amd_set_nis_domain(const char *);
+ char *conf_amd_get_map_defaults(const char *);
+ char *conf_amd_get_map_name(const char *);
++char *conf_amd_get_map_options(const char *);
+ char *conf_amd_get_map_type(const char *);
+ char *conf_amd_get_search_path(const char *);
+ unsigned int conf_amd_get_dismount_interval(const char *);
+diff --git a/lib/defaults.c b/lib/defaults.c
+index 102eda5..4a14367 100644
+--- a/lib/defaults.c
++++ b/lib/defaults.c
+@@ -501,6 +501,11 @@ static int conf_load_amd_defaults(void)
+ 	if (ret == CFG_FAIL)
+ 		goto error;
  
- #define DEFAULT_TIMEOUT			"600"
--#define DEFAULT_MASTER_WAIT		"-1"
-+#define DEFAULT_MASTER_WAIT		"10"
- #define DEFAULT_NEGATIVE_TIMEOUT	"60"
- #define DEFAULT_MOUNT_WAIT		"-1"
- #define DEFAULT_UMOUNT_WAIT		"12"
-diff --git a/man/autofs.conf.5.in b/man/autofs.conf.5.in
-index 93ff7af..a9a08f9 100644
---- a/man/autofs.conf.5.in
-+++ b/man/autofs.conf.5.in
-@@ -32,8 +32,8 @@ with earlier autofs releases.
- .TP
- .B master_wait
- sets the default maximum time to wait for the master map to become
--available if it cannot be read at program start (program default -1,
--wait forever).
-+available if it cannot be read at program start (program default 10,
-+wait for 10 seconds then continue).
- .TP
- .B negative_timeout
- .br
-diff --git a/redhat/autofs.conf.default.in b/redhat/autofs.conf.default.in
-index 9bceab3..c7e4d97 100644
---- a/redhat/autofs.conf.default.in
-+++ b/redhat/autofs.conf.default.in
-@@ -16,10 +16,10 @@ timeout = 300
- #
- # master_wait - set the default maximum time to wait for the
- # 		master map to become available if it cannot
--# 		be read at program start (default -1, wait
--# 		forever).
-+# 		be read at program start (default 10, wait
-+# 		for 10 seconds then continue).
- #
--#master_wait = -1
-+#master_wait = 10
- #
- # negative_timeout - set the default negative timeout for
- # 		     failed mount attempts (default 60).
-diff --git a/samples/autofs.conf.default.in b/samples/autofs.conf.default.in
-index a275e08..d52ad85 100644
---- a/samples/autofs.conf.default.in
-+++ b/samples/autofs.conf.default.in
-@@ -16,10 +16,10 @@ timeout = 300
- #
- # master_wait - set the default maximum time to wait for the
- # 		master map to become available if it cannot
--# 		be read at program start (default -1, wait
--# 		forever).
-+# 		be read at program start (default 10, wait
-+# 		for 10 seconds then continue).
- #
--# master_wait = -1
-+# master_wait = 10
- #
- # negative_timeout - set the default negative timeout for
- # 		     failed mount attempts (default 60).
++	ret = conf_update(sec, NAME_AMD_MAP_OPTIONS,
++			  DEFAULT_AMD_MAP_OPTIONS, CONF_NONE);
++	if (ret == CFG_FAIL)
++		goto error;
++
+ 	ret = conf_update(sec, NAME_AMD_MAP_TYPE,
+ 			  DEFAULT_AMD_MAP_TYPE, CONF_NONE);
+ 	if (ret == CFG_FAIL)
+@@ -2024,6 +2029,15 @@ char *conf_amd_get_map_name(const char *section)
+ 	return tmp;
+ }
+ 
++char *conf_amd_get_map_options(const char *section)
++{
++	char *tmp = NULL;
++	if (section)
++		tmp = conf_get_string(section, NAME_AMD_MAP_OPTIONS);
++
++	return tmp;
++}
++
+ char *conf_amd_get_map_type(const char *section)
+ {
+ 	char *tmp = NULL;
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
