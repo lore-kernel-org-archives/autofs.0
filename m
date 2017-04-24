@@ -1,8 +1,8 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 07/34] autofs-5.1.2 - make set_direct_mount_catatonic() more
- general
-Date: Mon, 24 Apr 2017 09:00:49 +0800
-Message-ID: <149299564929.23475.1779708203895937564.stgit@pluto.themaw.net>
+Subject: [PATCH 09/34] autofs-5.1.2 - honor last rw in mount options when
+ doing a bind mount
+Date: Mon, 24 Apr 2017 09:00:59 +0800
+Message-ID: <149299565953.23475.5917060313247272073.stgit@pluto.themaw.net>
 References: <149299547753.23475.9924538846721477415.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -10,253 +10,75 @@ Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=
         content-transfer-encoding:content-type:date:from:in-reply-to
         :message-id:mime-version:references:subject:to:x-me-sender
-        :x-me-sender:x-sasl-enc:x-sasl-enc; s=fm1; bh=IggG0tXAtdjl1M2ULR
-        QDasb2kCIRZYv9UIrpKloZh2U=; b=MXO/uumEsiPzmXHYLFs5GUEHuyajqKBn63
-        yIfovIMHW+L5ElaoIIajmNKeM4M/vMf2qKkXtx/5XKpBKngEcSgze0Y6Gv/DYukA
-        voGG/0XFUprUnownnV4f1T/OG1MoLgvvRGMci5PjVHH7eLdET17gEWEbTHihKeAv
-        bKkJbmdJS/1wLfO/0cigeGeWkC8b0KX+QPQLgu60qSrozbkWZ9SIZttrYDUr3IyF
-        ivNDZzDftNi5pnVT+UdWSn7i5HJcBHS9SGSulR8CnUcW4vN5Y1SKJhv/HYiwW0Tu
-        xjcaNlQ9ZD1/jkQMu33wc+czUzXI3VO7894O8lghboTBwGrrckLA==
+        :x-me-sender:x-sasl-enc:x-sasl-enc; s=fm1; bh=gH/3hvQ9ditgyfgbE/
+        SmYXXjNLl0mTqsCePdUKdv9ME=; b=caxnUv655inKzTI83NnVM3j1iJuXBwlFLr
+        DX2NUsq7U+xmlHPHsHLn4bW057dhOlKUCN+miKW8eQkxheNFs9iHk9FsShOL7v89
+        VCWB4azZATcNSlN114xIPVhtFbh8ywx3HiyPv4L78G/TQCb2zc33S6nHV1BBhY1p
+        /K1nQZ6e8hV0LDE6XWLcHqTcajKDT96ggCT+SWLi4U+o+ZNuJQLHQy015guPQmNi
+        FaqnqkZyCPS4uxfav9mJwt5dlAjcA7oGdLCACVGDZfGQGeCpu4lHEp6CHUJhnycy
+        kIjA+3rl7x5BWyv2dGrfukbiwDMMsFJeVlYRiJ+Bl/6iUHfx8bkQ==
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
         messagingengine.com; h=content-transfer-encoding:content-type
         :date:from:in-reply-to:message-id:mime-version:references
         :subject:to:x-me-sender:x-me-sender:x-sasl-enc:x-sasl-enc; s=
-        fm1; bh=IggG0tXAtdjl1M2ULRQDasb2kCIRZYv9UIrpKloZh2U=; b=nUIJ33R1
-        OLFYdbx5aTGkylPJ/wCkdtzz6JP1476YcqVTjH77xco2WZrmOChb4OiiFRg/wIzk
-        P03i/XQqlj4/q6sH0S+uYKtnyksg5VGAWqarCqj0rnzRjU2CNqP7XtONecTLQd8T
-        Ei8qoi0D0GRJ5OmteOZbuYLYs7qywS3bBc6L/UzRbhbpf3zNQdlabRhIYyUbAYIV
-        t1kjLiVTkh4Kir262lPDWJkXAf710RlaEzPGzbN3TER2gk0/NvBB67kY3QRpj2nb
-        iPrbCYtWJhkamzuJNfvUDGSiK6sMsOs/ChUvvUNAgFJllQE4/vNrznj49O//sRA4
-        qLc167dBtvhlaw==
+        fm1; bh=gH/3hvQ9ditgyfgbE/SmYXXjNLl0mTqsCePdUKdv9ME=; b=j88BgElE
+        Ili5dATVyL8WIgzBOpWdcqTmw3YIR2NSbyMRuESoS1kTW3Y9A1Pg1WU19aa5L1Zn
+        2JN33L32dOnxnwd/BjPOrYdUNb7gd67zTTNV9+/tjBoB22VN0ysYgdogq6Sdyz18
+        DFi2soRL5eJz3D0zN5OD5jC6biVvJtOqCwp70YF4izLbKLMfCloHzWYC6porQgDv
+        rtaWHLkHYy/4LJ1vOg1i1R+rJS4WlHg4+Hj4BPGP+Ca9eDXFdnUTsS+maewDTnqN
+        ru55wa7kZBDLVdCXzPSeU0kX9t36WOTaJq0yJGSfwBJeSOUpKT7DiyE0kLSjLS0J
+        PCaD35/WufzqGA==
 In-Reply-To: <149299547753.23475.9924538846721477415.stgit@pluto.themaw.net>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: autofs mailing list <autofs@vger.kernel.org>
 
-Setting direct mounts catatonic at exit doesn't go far enough.
+From: David Jeffery <djeffery@redhat.com>
 
-To avoid possible hang on access of automount managed paths when
-the daemon has exited all mounted autofs file systems must be set
-catatonic when the daemon exits.
+mount(8) will use the last ro/rw option in its options list.
+e.g. "mount -o ro,rw" will make a read-write mount while
+"mount -o rw,ro" will make a read-only mount.
 
-Start by making set_direct_mount_catatonic() able to handle the
-different types of autofs mounts and move it to the mounts function
-library.
+The patch changes the option parsing for mount_mount() in
+modules/mount_nfs.c to clear the ro variable when a "rw"
+option is seen. This will handle occurrences of both "ro"
+and "rw" options, resulting in a read-only option being
+passed to a bind mount only if the option order would also
+have resulted in an nfs mount being read-only.
+
+Signed-off-by: David Jeffery <djeffery@redhat.com>
+Signed-off-by: Ian Kent <raven@themaw.net>
 ---
- CHANGELOG        |    1 +
- daemon/direct.c  |   69 ++++--------------------------------------------------
- include/mounts.h |    1 +
- lib/mounts.c     |   64 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 71 insertions(+), 64 deletions(-)
+ CHANGELOG           |    1 +
+ modules/mount_nfs.c |    2 ++
+ 2 files changed, 3 insertions(+)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index c43ebc9..8b7de5f 100644
+index 8eedad3..f841eaa 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -33,6 +33,7 @@ xx/xx/2016 autofs-5.1.3
- - don't return until after master map retry read.
- - make lookup_nss_read_master() return nss status.
+@@ -35,6 +35,7 @@ xx/xx/2016 autofs-5.1.3
  - check NFS server availability on local mount fallback.
-+- make set_direct_mount_catatonic() more general.
+ - make set_direct_mount_catatonic() more general.
+ - set autofs mounts catatonic at exit.
++- honor last rw in mount options when doing a bind mount.
  
  15/06/2016 autofs-5.1.2
  =======================
-diff --git a/daemon/direct.c b/daemon/direct.c
-index 3cce0db..81f6e67 100644
---- a/daemon/direct.c
-+++ b/daemon/direct.c
-@@ -82,65 +82,6 @@ static void mnts_cleanup(void *arg)
- 	return;
- }
- 
--/* When exiting direct mount triggers must be set catatonic, regardless
-- * of whether they are busy on not, to avoid a hang on access once the
-- * daemon has gone away.
-- */
--static int set_direct_mount_catatonic(struct autofs_point *ap, struct mapent *me, int ioctlfd)
--{
--	struct ioctl_ops *ops = get_ioctl_ops();
--	unsigned int opened = 0;
--	char buf[MAX_ERR_BUF];
--	int fd = -1;
--	int error;
--
--	/* In case the miscellaneous device isn't being used try
--	 * and use an existing ioctl control fd. In this case if
--	 * we don't already have an ioctl fd the mount can't be
--	 * set catatonic if it's covered.
--	 */
--	if (ioctlfd >= 0)
--		fd = ioctlfd;
--	else if (me->ioctlfd >= 0)
--		fd = me->ioctlfd;
--	else {
--		error = ops->open(ap->logopt, &fd, me->dev, me->key);
--		if (error == -1) {
--			int err = errno;
--			char *estr;
--
--			estr = strerror_r(errno, buf, MAX_ERR_BUF);
--			error(ap->logopt,
--			      "failed to open ioctlfd for %s, error: %s",
--			      me->key, estr);
--			return err;
--		}
--		opened = 1;
--	}
--
--	if (fd >= 0) {
--		error = ops->catatonic(ap->logopt, fd);
--		if (error == -1) {
--			int err = errno;
--			char *estr;
--
--			estr = strerror_r(errno, buf, MAX_ERR_BUF);
--			error(ap->logopt,
--			      "failed to set %s catatonic, error: %s",
--			      me->key, estr);
--			if (opened)
--				ops->close(ap->logopt, fd);
--			return err;
--		}
--		if (opened)
--			ops->close(ap->logopt, fd);
--	}
--
--	debug(ap->logopt, "set %s catatonic", me->key);
--
--	return 0;
--}
--
- int do_umount_autofs_direct(struct autofs_point *ap, struct mnt_list *mnts, struct mapent *me)
- {
- 	struct ioctl_ops *ops = get_ioctl_ops();
-@@ -190,19 +131,19 @@ int do_umount_autofs_direct(struct autofs_point *ap, struct mnt_list *mnts, stru
- 				      "ask umount returned busy for %s",
- 				      me->key);
- 				if (ap->state != ST_READMAP)
--					set_direct_mount_catatonic(ap, me, ioctlfd);
-+					set_mount_catatonic(ap, me, ioctlfd);
- 				if (opened)
- 					ops->close(ap->logopt, ioctlfd);
- 				return 1;
- 			} else {
- 				me->ioctlfd = -1;
--				set_direct_mount_catatonic(ap, me, ioctlfd);
-+				set_mount_catatonic(ap, me, ioctlfd);
- 				ops->close(ap->logopt, ioctlfd);
- 				goto force_umount;
- 			}
- 		}
- 		me->ioctlfd = -1;
--		set_direct_mount_catatonic(ap, me, ioctlfd);
-+		set_mount_catatonic(ap, me, ioctlfd);
- 		ops->close(ap->logopt, ioctlfd);
- 	} else {
- 		error(ap->logopt,
-@@ -297,12 +238,12 @@ int umount_autofs_direct(struct autofs_point *ap)
- 			if (!error)
- 				goto done;
- 
--			error = set_direct_mount_catatonic(ap, me, me->ioctlfd);
-+			error = set_mount_catatonic(ap, me, me->ioctlfd);
- 			if (!error)
- 				goto done;
- 
- 			/* We really need to set this, last ditch attempt */
--			set_direct_mount_catatonic(ap, me, -1);
-+			set_mount_catatonic(ap, me, -1);
- done:
- 			me = cache_enumerate(mc, me);
- 		}
-diff --git a/include/mounts.h b/include/mounts.h
-index 489025c..9ec6bd9 100644
---- a/include/mounts.h
-+++ b/include/mounts.h
-@@ -113,6 +113,7 @@ void set_tsd_user_vars(unsigned int, uid_t, gid_t);
- const char *mount_type_str(unsigned int);
- void notify_mount_result(struct autofs_point *, const char *, time_t, const char *);
- int try_remount(struct autofs_point *, struct mapent *, unsigned int);
-+int set_mount_catatonic(struct autofs_point *, struct mapent *, int);
- int umount_ent(struct autofs_point *, const char *);
- int mount_multi_triggers(struct autofs_point *, struct mapent *, const char *, unsigned int, const char *);
- int umount_multi_triggers(struct autofs_point *, struct mapent *, char *, const char *);
-diff --git a/lib/mounts.c b/lib/mounts.c
-index d3d7345..44c907e 100644
---- a/lib/mounts.c
-+++ b/lib/mounts.c
-@@ -1855,6 +1855,70 @@ int try_remount(struct autofs_point *ap, struct mapent *me, unsigned int type)
- 	return 0;
- }
- 
-+/*
-+ * When exiting mounts need be set catatonic, regardless of whether they
-+ * are busy on not, to avoid a hang on access once the daemon has gone
-+ * away.
-+ */
-+int set_mount_catatonic(struct autofs_point *ap, struct mapent *me, int ioctlfd)
-+{
-+	struct ioctl_ops *ops = get_ioctl_ops();
-+	unsigned int opened = 0;
-+	char buf[MAX_ERR_BUF];
-+	char *path;
-+	int fd = -1;
-+	int error;
-+	dev_t dev;
-+
-+	path = ap->path;
-+	dev = ap->dev;
-+	if (me && (ap->type == LKP_DIRECT || *me->key == '/')) {
-+		path = me->key;
-+		dev = me->dev;
-+	}
-+
-+	if (ioctlfd >= 0)
-+		fd = ioctlfd;
-+	else if (me && me->ioctlfd >= 0)
-+		fd = me->ioctlfd;
-+	else {
-+		error = ops->open(ap->logopt, &fd, dev, path);
-+		if (error == -1) {
-+			int err = errno;
-+			char *estr;
-+
-+			estr = strerror_r(errno, buf, MAX_ERR_BUF);
-+			error(ap->logopt,
-+			      "failed to open ioctlfd for %s, error: %s",
-+			      path, estr);
-+			return err;
-+		}
-+		opened = 1;
-+	}
-+
-+	if (fd >= 0) {
-+		error = ops->catatonic(ap->logopt, fd);
-+		if (error == -1) {
-+			int err = errno;
-+			char *estr;
-+
-+			estr = strerror_r(errno, buf, MAX_ERR_BUF);
-+			error(ap->logopt,
-+			      "failed to set %s catatonic, error: %s",
-+			      path, estr);
-+			if (opened)
-+				ops->close(ap->logopt, fd);
-+			return err;
-+		}
-+		if (opened)
-+			ops->close(ap->logopt, fd);
-+	}
-+
-+	debug(ap->logopt, "set %s catatonic", path);
-+
-+	return 0;
-+}
-+
- int umount_ent(struct autofs_point *ap, const char *path)
- {
- 	int rv;
+diff --git a/modules/mount_nfs.c b/modules/mount_nfs.c
+index 2712140..c558a73 100644
+--- a/modules/mount_nfs.c
++++ b/modules/mount_nfs.c
+@@ -180,6 +180,8 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name, int
+ 				   with bind mounts */
+ 				else if (_strncmp("ro", cp, o_len) == 0)
+ 					ro = 1;
++				else if (_strncmp("rw", cp, o_len) == 0)
++					ro = 0;
+ 				/* and jump over trailing white space */
+ 				memcpy(nfsp, cp, comma - cp + 1);
+ 				nfsp += comma - cp + 1;
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
