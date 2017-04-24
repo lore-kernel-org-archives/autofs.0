@@ -1,277 +1,129 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 15/34] autofs-5.1.2 - include amd mount section mounts in
- master mounts list
-Date: Mon, 24 Apr 2017 09:01:30 +0800
-Message-ID: <149299569039.23475.5782658296004978547.stgit@pluto.themaw.net>
+Subject: [PATCH 18/34] autofs-5.1.2 - capture cache option and its settings
+ during parsing
+Date: Mon, 24 Apr 2017 09:01:45 +0800
+Message-ID: <149299570575.23475.11254269068717255139.stgit@pluto.themaw.net>
 References: <149299547753.23475.9924538846721477415.stgit@pluto.themaw.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=
         content-transfer-encoding:content-type:date:from:in-reply-to
         :message-id:mime-version:references:subject:to:x-me-sender
-        :x-me-sender:x-sasl-enc:x-sasl-enc; s=fm1; bh=2MhchdhN6n36rQruGr
-        kSrK91Ovg6SzAoFlXIyUamSdg=; b=Z4tjpop+HkXsRjp9zQAubTuTU66MXU0cMR
-        TV7Pp+WG+OlrFaBR2UzvsYcx9jqCci6GBUqIrZBFcyhC0X9AUa/3GyBOWoNCFbJg
-        w8L7sXvHXXJV3npD0kLBC/h1unXG7e0Ug5E46ExJgCJsbXC5/nRamBZYVcoLCPoj
-        t1aOjNkEUPFzvIXe76dQbv6v76E6lFyJ+C00C7B+vF1EX7PvS7U0PzeDS1qjWBjZ
-        Ovi890uM+hc9vDXSCsXDQStD4nUGgHMmC7BMG8PUgHpFDs4+mEy/nH7u7S7IxGWU
-        8TGwmue4ur7U+1JZSb6AK467CTg/ux2iTiJKXjjZb3l6lahHkjfQ==
+        :x-me-sender:x-sasl-enc:x-sasl-enc; s=fm1; bh=9A/lCnJF359IRa+y6o
+        1cMzxVTNS5c8NVf2bkyab9qTM=; b=dgKZYFsZNxO1zeKlIWt0dVMGDoj44FTCU7
+        7gKfwRVR6OxVeNIkki5//Pimv/XMC2F36lPsARz4wA3SBr+IMhZNquT6Mxooj3xP
+        sRtWkDb95W9sJ80NqtjkDtVrbO//9zdbBCtf/2abBG75PKVaoXurYTrJ/hJpPVEu
+        cGQhvRAf5P7v16pdXIjNH54/TwnXmmyX3M5EPcJQb+lvKkIEtDUSb9EcFWUwC6td
+        9MJfCoT56MPVKA02CfyPLf4aMXdUsDFyNUMshhUlXIaEKghUwkzVXRFBZW3rqyGn
+        NxPmXDhEb83ypLQ/bXoQD15RS/xMgzPZEUIZxQjGhsfmTjYtpiRg==
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
         messagingengine.com; h=content-transfer-encoding:content-type
         :date:from:in-reply-to:message-id:mime-version:references
         :subject:to:x-me-sender:x-me-sender:x-sasl-enc:x-sasl-enc; s=
-        fm1; bh=2MhchdhN6n36rQruGrkSrK91Ovg6SzAoFlXIyUamSdg=; b=E42z5zZP
-        FHpIJfbh5cFcgqxNmVwG6v/c/H1gXbG9O5/mcW4+8JWRvzNsE4T446lIet8qqgMm
-        SsM0dSYtv3N5XgyLuJa2dj6XawobOC3N1KO6uvexzet/9Ig99+Pjy0lWoBwfE/Lb
-        r11s5zRLXA/RtI8hc/c3tCqSeiV9MQuK4JUfgRR8Vn9rikV6mADrm33wuvRzdqMV
-        3GxUfTnfd+5zE7kKRi2/roFQYfhCPOq+rujE/Ho8vG+wKepYOQdVswPlXZ2I5anF
-        7IRgvWKM2Em+msSn34hHu/A+3lCQyCRGUv8ax/O4vWjWalajNvCHzixSgmmjKCTv
-        XQ7tBVOo1UleQQ==
+        fm1; bh=9A/lCnJF359IRa+y6o1cMzxVTNS5c8NVf2bkyab9qTM=; b=LzETVtRB
+        qcec9icNKyTNoz43tXkGriLt6+BALwQzrAVxtlCqFMSF+skQ8MtvfCfFxFvE+BkB
+        Qz+SXNTrMYbjyr3oAdHNK2tQna/qaQYv2rMRBLudJb779UO/eu5fjOvruTPdIZpF
+        R3Xs0NKbycYADllTo3s7kk1GIii3NNQb8oKGYymwfTANPz+bPk8I8TuPx69c6ITR
+        WGOjKER+ILZI8+mZYMSxV5KxegVJoRGH3YNseWVgK3sgUiE8lthTvxiKaBcxR3vd
+        NYNyLfKB6fuJ3IOGSjcw1y1q2y171DBedDicXqRWj7acx3ryntvw4iJxaHKlfeYu
+        LyPIsWkABjY6Jw==
 In-Reply-To: <149299547753.23475.9924538846721477415.stgit@pluto.themaw.net>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
 To: autofs mailing list <autofs@vger.kernel.org>
 
-Currently a master map entry is required for amd format maps and
-top level amd mount path configuration sections can only used to
-provide additional per-mount configuration.
+The amd map format parser was not aware of the optional sync
+parameter of the cache option.
 
-But being able to use the top level amd format mount path
-configuration sections alone allows potentially incompatible
-master map entries to not be included in the master map.
+Make the parser aware of the sync option and capture the cache
+option and its settings during map parsing.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 ---
- CHANGELOG       |    1 +
- README.amd-maps |   49 +++++++++++++++++++++----
- lib/master.c    |  109 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 152 insertions(+), 7 deletions(-)
+ CHANGELOG           |    1 +
+ include/parse_amd.h |    7 +++++++
+ modules/amd_parse.y |   12 +++++++++---
+ modules/amd_tok.l   |    2 +-
+ 4 files changed, 18 insertions(+), 4 deletions(-)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index 750b803..4e677e2 100644
+index 115afdb..3999298 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -41,6 +41,7 @@ xx/xx/2016 autofs-5.1.3
- - add support for amd browsable option.
- - add function conf_amd_get_map_name().
- - add function conf_amd_get_mount_paths().
-+- include amd mount sections mounts in master mounts list.
+@@ -44,6 +44,7 @@ xx/xx/2016 autofs-5.1.3
+ - include amd mount sections mounts in master mounts list.
+ - check for conflicting amd section mounts.
+ - add function conf_get_map_options().
++- capture cache option and its settings during parsing.
  
  15/06/2016 autofs-5.1.2
  =======================
-diff --git a/README.amd-maps b/README.amd-maps
-index 4f1d58d..386b068 100644
---- a/README.amd-maps
-+++ b/README.amd-maps
-@@ -9,8 +9,10 @@ How to use amd maps in autofs
+diff --git a/include/parse_amd.h b/include/parse_amd.h
+index 313edd5..1664947 100644
+--- a/include/parse_amd.h
++++ b/include/parse_amd.h
+@@ -39,9 +39,16 @@
+ #define AMD_DEFAULTS_RESET	0x02000000
+ #define AMD_DEFAULTS_MASK	0xff000000
  
- To add amd map parsing to autofs a new "format" module has been added.
++#define AMD_CACHE_OPTION_NONE	0x0000
++#define AMD_CACHE_OPTION_INC	0x0001
++#define AMD_CACHE_OPTION_ALL	0x0002
++#define AMD_CACHE_OPTION_REGEXP	0x0004
++#define AMD_CACHE_OPTION_SYNC	0x8000
++
+ struct amd_entry {
+ 	char *path;
+ 	unsigned long flags;
++	unsigned int cache_opts;
+ 	char *type;
+ 	char *map_type;
+ 	char *pref;
+diff --git a/modules/amd_parse.y b/modules/amd_parse.y
+index b33250a..e99820b 100644
+--- a/modules/amd_parse.y
++++ b/modules/amd_parse.y
+@@ -425,9 +425,14 @@ option_assignment: MAP_OPTION OPTION_ASSIGN FS_TYPE
+ 	}
+ 	| MAP_OPTION OPTION_ASSIGN CACHE_OPTION
+ 	{
+-		sprintf(msg_buf, "option %s is not used, autofs "
+-				 "default caching is always used", $1);
+-		amd_info(msg_buf);
++		if (strncmp($3, "inc", 3))
++			entry.cache_opts = AMD_CACHE_OPTION_INC;
++		else if (strncmp($3, "all", 3))
++			entry.cache_opts = AMD_CACHE_OPTION_ALL;
++		else if (strncmp($3, "re", 2))
++			entry.cache_opts = AMD_CACHE_OPTION_REGEXP;
++		if (strstr($3, "sync"))
++			entry.cache_opts |= AMD_CACHE_OPTION_SYNC;
+ 	}
+ 	;
  
--To use this new map format module the existing master map syntax is
--used as described below.
-+There are two ways to use this new map format module. First, the existing
-+master map syntax can be used as described below, and second, sections that
-+use the top level mount path may be added to the autofs configuration below
-+the "amd" section in much the same way as is done with amd.
- 
- The master map entry syntax is:
- 
-@@ -21,8 +23,22 @@ For amd format maps this becomes:
- /amd/mp   file,amd:amd.mp
- 
- which will use file as the map source and the amd format parser for
--the map. But see the section below on configuration for how to
--eliminate the need to specify "map-type,format" in the master map.
-+the map.
-+
-+In order to use nsswitch to specify the map source an amd per-mount
-+section needs to be added to the autofs configuration so autofs
-+knows the master map entry is an amd format mount.
-+
-+If an amd-per-mount section is added to the autofs configuration a
-+corresponding master map entry is optional. If both are present the
-+map name given in the master map entry will override a "map_name"
-+option in the amd per-mount section.
-+
-+If an amd per-mount section is used alone then not giving the "map_type"
-+option will alow the use of nsswicth for map selection.
-+
-+See below for an example of an amd per-mount configuration entry.
-+
- 
- Configuration sub-system changes
- --------------------------------
-@@ -56,12 +72,19 @@ avoid the need to specify the "type,format" part of the master map
- entry. This allows them to use the nsswitch map source functionality
- in the same way autofs master map entries do.
- 
-+If amd per-mount sections are present in the autofs configuration
-+their corresponding master map entries are optional. This allows
-+amd maps to be used without adding incompatible entries to the autofs
-+master map in shared infrastructure environments.
-+
- If a section for an amd mount is added below the global amd section
- using the mount point path (as is done in amd.conf) then autofs will
- know the map format is amd (it doesn't matter if there are no other
--configuration options in the mount point section). Since the map must
--be given in the master map entry the map_name option is not mandatory
--as it is in amd and will no be used.
-+configuration options in the mount point section).
-+
-+If there is a corresponding master map entry the map given in the
-+master map entry will be used over the map_name option if it is
-+present in an amd per-mount section.
- 
- If a mount point is present in the master map and the source of the
- map is nis then it is sufficient to use (for example):
-@@ -86,6 +109,18 @@ or
- [ /amd/mp ]
- map_type = nis
- 
-+An example of an amd per-mount configuration entry is:
-+
-+[ amd ]
-+...
-+
-+[ /test ]
-+map_name = /etc/amd.test
-+#map_type = file
-+#search_path =			/etc
-+#browsable_dirs =		yes | no
-+browsable_dirs =		yes
-+
- 
- amd map options that can be used
- --------------------------------
-diff --git a/lib/master.c b/lib/master.c
-index fceb5dd..ba48d1b 100644
---- a/lib/master.c
-+++ b/lib/master.c
-@@ -911,6 +911,114 @@ struct master *master_new(const char *name, unsigned int timeout, unsigned int g
- 	return master;
+@@ -535,6 +540,7 @@ static int amd_msg(const char *s)
+ static void local_init_vars(void)
+ {
+ 	memset(&entry, 0, sizeof(entry));
++	entry.cache_opts = AMD_CACHE_OPTION_NONE;
+ 	memset(opts, 0, sizeof(opts));
  }
  
-+static void master_add_amd_mount_section_mounts(struct master *master, time_t age)
-+{
-+	unsigned int m_logopt = master->logopt;
-+	struct master_mapent *entry;
-+	struct map_source *source;
-+	unsigned int loglevel;
-+	unsigned int logopt;
-+	unsigned int flags;
-+	char *argv[2];
-+	char **paths;
-+	int ret;
-+	int i;
-+
-+	loglevel = conf_amd_get_log_options();
-+
-+	paths = conf_amd_get_mount_paths();
-+	if (!paths)
-+		return;
-+
-+	i = 0;
-+	while (paths[i]) {
-+		const char *path = paths[i];
-+		unsigned int ghost = 0;
-+		char *type = NULL;
-+		char *map = NULL;
-+
-+		entry = master_find_mapent(master, path);
-+		if (entry) {
-+			info(m_logopt,
-+			     "ignoring duplicate amd section mount %s",
-+			     path);
-+			goto next;
-+		}
-+
-+		map = conf_amd_get_map_name(path);
-+		if (!map) {
-+			error(m_logopt,
-+			      "failed to get map name for amd section mount %s",
-+			      path);
-+			goto next;
-+		}
-+
-+		entry = master_new_mapent(master, path, age);
-+		if (!entry) {
-+			error(m_logopt,
-+			      "failed to allocate new amd section mount %s",
-+			      path);
-+			goto next;
-+		}
-+
-+		logopt = m_logopt;
-+		if (loglevel <= LOG_DEBUG && loglevel > LOG_INFO)
-+			logopt = LOGOPT_DEBUG;
-+		else if (loglevel <= LOG_INFO && loglevel > LOG_ERR)
-+			logopt = LOGOPT_VERBOSE;
-+
-+		/* It isn't possible to provide the fullybrowsable amd
-+		 * browsing functionality within the autofs framework.
-+		 * This flag will not be set if browsable_dirs = full
-+		 * in the configuration or fullybrowsable is present as
-+		 * an option.
-+		 */
-+		flags = conf_amd_get_flags(path);
-+		if (flags & CONF_BROWSABLE_DIRS)
-+			ghost = 1;
-+
-+		ret = master_add_autofs_point(entry, logopt, 0, ghost, 0);
-+		if (!ret) {
-+			error(m_logopt, "failed to add autofs_point");
-+			master_free_mapent(entry);
-+			goto next;
-+		}
-+
-+		type = conf_amd_get_map_type(path);
-+		argv[0] = map;
-+		argv[1] = NULL;
-+
-+		source = master_add_map_source(entry, type, "amd",
-+					       age, 1, (const char **) argv);
-+		if (!source) {
-+			error(m_logopt,
-+			      "failed to add source for amd section mount %s",
-+			      path);
-+			master_free_mapent(entry);
-+			goto next;
-+		}
-+
-+		source->exp_timeout = conf_amd_get_dismount_interval(path);
-+		source->master_line = 0;
-+
-+		entry->age = age;
-+		entry->current = NULL;
-+
-+		master_add_mapent(master, entry);
-+next:
-+		if (type)
-+			free(type);
-+		if (map)
-+			free(map);
-+		i++;
-+	}
-+
-+	i = 0;
-+	while (paths[i])
-+		free(paths[i++]);
-+	free(paths);
-+}
-+
- int master_read_master(struct master *master, time_t age, int readall)
- {
- 	unsigned int logopt = master->logopt;
-@@ -939,6 +1047,7 @@ int master_read_master(struct master *master, time_t age, int readall)
- 	master_init_scan();
- 	lookup_nss_read_master(master, age);
- 	cache_unlock(nc);
-+	master_add_amd_mount_section_mounts(master, age);
- 	master_mutex_unlock();
- 
- 	if (!master->read_fail)
+diff --git a/modules/amd_tok.l b/modules/amd_tok.l
+index 03e716f..2eac5cb 100644
+--- a/modules/amd_tok.l
++++ b/modules/amd_tok.l
+@@ -101,7 +101,7 @@ NOPT		({SSTR}|(({IP4ADDR}(\/{V4MASK})?)|({IP6ADDR}(\/{V6MASK})?)))
+ MAPOPT		(fs|type|maptype|pref|sublink|cache)
+ MNTOPT		(opts|addopts|remopts)
+ FSOPTS		(rhost|rfs|dev|cachedir|mount|unmount|umount|delay)
+-CHEOPT		(mapdefault|none|inc|re|regexp|all)
++CHEOPT		((mapdefault|none|inc|re|regexp|all)(,sync)?)
+ MAPTYPE		(file|nis|nisplus|ldap|hesiod|exec|ndbm|passwd|union)
+ FSTYPE_LOCAL	(link|linkx|lofs|ufs|ext2|ext3|ext4|xfs|jfs|cdfs|cachefs)
+ FSTYPE_NET	(nfs|nfsx|nfsl|host)
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
