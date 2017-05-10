@@ -1,112 +1,113 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 2/3] autofs - make dev ioctl version and ismountpoint user
- accessible
-Date: Wed, 10 May 2017 12:18:43 +0800
-Message-ID: <149438992338.26550.10884570110596019368.stgit@pluto.themaw.net>
+Subject: [PATCH 3/3] autofs - fix AT_NO_AUTOMOUNT not being honored
+Date: Wed, 10 May 2017 12:18:48 +0800
+Message-ID: <149438992850.26550.14370272866390445786.stgit@pluto.themaw.net>
 References: <149438991819.26550.11290804420751932707.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <autofs-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
         :content-transfer-encoding:content-type:date:from:in-reply-to
         :message-id:mime-version:references:subject:to:x-me-sender
-        :x-me-sender:x-sasl-enc:x-sasl-enc; s=fm1; bh=7/62A3y/4yxanZZpNw
-        fJunfGoJObkMbekvifbrXVkyU=; b=A1G40w+G8fHEF1m9OUidj8WIs5bBoojgU1
-        h/qJdS4dsPc70X2G3TNzXC9hIrYzzripnvPtjYnvIcwDYdkqk2VpSvD/gj3wUD3S
-        VF4SXaeW795fzTtHTe3AVXPSNulIc/CkbeAHh2XplrT9CSPlveM2VPZtJoP+PEB5
-        7DfF3stpDuHi1eOiFkCU/iS0h+Mcib25GB8E5y2MSGC7sX1XUV/RUbK38F++TX62
-        1X1QwOylQ18f8a8vZ3uvaeIURmDSpvkpvvFOb8t8zymhYKFoEOvEbMO11rqkgGMr
-        ZL8r2ybku8Kd5vGarv196rIYpYR4SPPW8PjBxd04MI3LOfm4OMhA==
+        :x-me-sender:x-sasl-enc:x-sasl-enc; s=fm1; bh=S1F+XydPslgv0zFO/i
+        gMr8MEBffMLSvxuyPJCJryMYA=; b=KpdZ68qgBFj3DEwES1ywX/kVBnqD1NSkDM
+        iOdic4GtbfMGvXIKKiqtFI76tJzMmAcK8Tt8+5ZoGRVVDl/6SFTuhbf9xouMVpIL
+        pFgD2RUrlS3hthS5doqW6UhXuVI5J84ZcZ0w2q25UIQIHT/jvhKCKk1dqY2jQjx9
+        i2G8NDejPLW7ptY1Z6Q08jHiCCqY1QvAMflsAwHh6TucSQS7Weor14eDAVcqQp7v
+        /TCeaLk11LB+7dK46g0zU3PcHFwmjHNSd+3j/RbLucu2bjURPb74XaqYZnxxnGpP
+        myeDbhthMw1BOGGiCZNZiLMdbxAH7em0Hj/tsa0WT1qH4OPMq4XQ==
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
         messagingengine.com; h=cc:content-transfer-encoding:content-type
         :date:from:in-reply-to:message-id:mime-version:references
         :subject:to:x-me-sender:x-me-sender:x-sasl-enc:x-sasl-enc; s=
-        fm1; bh=7/62A3y/4yxanZZpNwfJunfGoJObkMbekvifbrXVkyU=; b=NolMLiCw
-        U3kvsDDPV4hFo7rm+ayh1SXpvV2jduOVKWGbK2Y5ojix/BGim6DWP8CutgKljnda
-        knrWPQD5ui+zT12KK+3bVbx+GJBCDiswvnsTWB5BD5rAD+Lck6nTVQLkHwhtGgRZ
-        CgTy7K81h5mKvADn6Bf6r0/o6d/Bn/Fgupya8/eSj01q2H8MhAPfFRGeKnHzovDt
-        xvnFp7rqeicB5esqWBN2EainV/DbwpOMo3A7QASq/SKe7dd2EDZv4b07fUGR8UNW
-        6yqkTGm0Z9egjLwtsqGQjXysKvAUlv69+LMDfT8pcHlv94PSSwijrawh/ntyave1
-        K4l3vPAQNhomOQ==
+        fm1; bh=S1F+XydPslgv0zFO/igMr8MEBffMLSvxuyPJCJryMYA=; b=MY3Sh6yf
+        D93JyVTbkOlPyyFUOrKHQkQ5CAdJPX1Kf0oCevEDQMZ+ndEOe6tpYiknij5CeBHg
+        YjZQt0i6riXWg9EfYYwk+UyL25mvBlaNtsGRD7m8MCfAoN8jdJ28wcUadzxNp5dr
+        2Q5ByBKWpZDHhP8XQYbPxsbIK2PvPzBd7kkzS8iACh+ey1fikQdKE7A1KkWTc9ES
+        hKI2JY3bn8YdM9KC/79p8Al6L68nQ45u7nrSxmwN+EGR7ozZAifxHuixxs+pJeFL
+        83rxsQjjMG5TlHYvHn2WLzsvAF+dxRGRU8IFJIh5qLEf5nGz3wZ3scq8UDyDqEwQ
+        ObZf9igcTYqC0Q==
 In-Reply-To: <149438991819.26550.11290804420751932707.stgit@pluto.themaw.net>
-Sender: autofs-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: Al Viro <viro@ZenIV.linux.org.uk>
 Cc: Colin Walters <walters@redhat.com>, Ondrej Holy <oholy@redhat.com>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, David Howells <dhowells@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-Some of the autofs miscellaneous device ioctls need to be accessable to
-user space applications without CAP_SYS_ADMIN to get information about
-autofs mounts.
+The fstatat(2) and statx() calls can pass the flag AT_NO_AUTOMOUNT
+which is meant to clear the LOOKUP_AUTOMOUNT flag and prevent triggering
+of an automount by the call. But this flag is unconditionally cleared
+for all stat family system calls except statx().
 
-Start by making the autofs miscellaneous device ioctl header available
-and allow applications to use version and ismountpoint ioctls.
+stat family system calls have always triggered mount requests for the
+negative dentry case in follow_automount() which is intended but prevents
+the fstatat(2) and statx() AT_NO_AUTOMOUNT case from being handled.
+
+In order to handle the AT_NO_AUTOMOUNT for both system calls the
+negative dentry case in follow_automount() needs to be changed to
+return ENOENT when the LOOKUP_AUTOMOUNT flag is clear (and the other
+required flags are clear).
+
+AFAICT this change doesn't have any noticable side effects and may,
+in some use cases (although I didn't see it in testing) prevent
+unnecessary callbacks to the automount daemon.
+
+It's also possible that a stat family call has been made with a
+path that is in the process of being mounted by some other process.
+But stat family calls should return the automount state of the path
+as it is "now" so it shouldn't wait for mount completion.
+
+This is the same semantic as the positive dentry case already
+handled.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
+Cc: David Howells <dhowells@redhat.com>
 Cc: Colin Walters <walters@redhat.com>
 Cc: Ondrej Holy <oholy@redhat.com>
 Cc: stable@vger.kernel.org
 ---
- fs/autofs4/dev-ioctl.c              |   12 ++++++++----
- include/uapi/linux/Kbuild           |    1 +
- include/uapi/linux/auto_dev-ioctl.h |    2 +-
- 3 files changed, 10 insertions(+), 5 deletions(-)
+ fs/namei.c         |   15 ++++++++++++---
+ include/linux/fs.h |    3 +--
+ 2 files changed, 13 insertions(+), 5 deletions(-)
 
-diff --git a/fs/autofs4/dev-ioctl.c b/fs/autofs4/dev-ioctl.c
-index 9b58d6e..f8cb3f6 100644
---- a/fs/autofs4/dev-ioctl.c
-+++ b/fs/autofs4/dev-ioctl.c
-@@ -628,10 +628,6 @@ static int _autofs_dev_ioctl(unsigned int command,
- 	ioctl_fn fn = NULL;
- 	int err = 0;
+diff --git a/fs/namei.c b/fs/namei.c
+index 7286f87..cd74838 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -1129,9 +1129,18 @@ static int follow_automount(struct path *path, struct nameidata *nd,
+ 	 * of the daemon to instantiate them before they can be used.
+ 	 */
+ 	if (!(nd->flags & (LOOKUP_PARENT | LOOKUP_DIRECTORY |
+-			   LOOKUP_OPEN | LOOKUP_CREATE | LOOKUP_AUTOMOUNT)) &&
+-	    path->dentry->d_inode)
+-		return -EISDIR;
++			   LOOKUP_OPEN | LOOKUP_CREATE |
++			   LOOKUP_AUTOMOUNT))) {
++		/* Positive dentry that isn't meant to trigger an
++		 * automount, EISDIR will allow it to be used,
++		 * otherwise there's no mount here "now" so return
++		 * ENOENT.
++		 */
++		if (path->dentry->d_inode)
++			return -EISDIR;
++		else
++			return -ENOENT;
++	}
  
--	/* only root can play with this */
--	if (!capable(CAP_SYS_ADMIN))
--		return -EPERM;
--
- 	cmd_first = _IOC_NR(AUTOFS_DEV_IOCTL_IOC_FIRST);
- 	cmd = _IOC_NR(command);
- 
-@@ -640,6 +636,14 @@ static int _autofs_dev_ioctl(unsigned int command,
- 		return -ENOTTY;
- 	}
- 
-+	/* Only root can use ioctls other than AUTOFS_DEV_IOCTL_VERSION_CMD
-+	 * and AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD
-+	 */
-+	if (cmd != AUTOFS_DEV_IOCTL_VERSION_CMD &&
-+	    cmd != AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD &&
-+	    !capable(CAP_SYS_ADMIN))
-+		return -EPERM;
-+
- 	/* Copy the parameters into kernel space. */
- 	param = copy_dev_ioctl(user);
- 	if (IS_ERR(param))
-diff --git a/include/uapi/linux/Kbuild b/include/uapi/linux/Kbuild
-index 662c592..1f22bbb 100644
---- a/include/uapi/linux/Kbuild
-+++ b/include/uapi/linux/Kbuild
-@@ -61,6 +61,7 @@ header-y += atm_zatm.h
- header-y += audit.h
- header-y += auto_fs4.h
- header-y += auto_fs.h
-+header-y += auto_dev-ioctl.h
- header-y += auxvec.h
- header-y += ax25.h
- header-y += b1lli.h
-diff --git a/include/uapi/linux/auto_dev-ioctl.h b/include/uapi/linux/auto_dev-ioctl.h
-index 744b3d0..5558db8 100644
---- a/include/uapi/linux/auto_dev-ioctl.h
-+++ b/include/uapi/linux/auto_dev-ioctl.h
-@@ -16,7 +16,7 @@
- #define AUTOFS_DEVICE_NAME		"autofs"
- 
- #define AUTOFS_DEV_IOCTL_VERSION_MAJOR	1
--#define AUTOFS_DEV_IOCTL_VERSION_MINOR	0
-+#define AUTOFS_DEV_IOCTL_VERSION_MINOR	1
- 
- #define AUTOFS_DEV_IOCTL_SIZE		sizeof(struct autofs_dev_ioctl)
- 
+ 	if (path->dentry->d_sb->s_user_ns != &init_user_ns)
+ 		return -EACCES;
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 26488b4..be09684 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -2935,8 +2935,7 @@ static inline int vfs_lstat(const char __user *name, struct kstat *stat)
+ static inline int vfs_fstatat(int dfd, const char __user *filename,
+ 			      struct kstat *stat, int flags)
+ {
+-	return vfs_statx(dfd, filename, flags | AT_NO_AUTOMOUNT,
+-			 stat, STATX_BASIC_STATS);
++	return vfs_statx(dfd, filename, flags, stat, STATX_BASIC_STATS);
+ }
+ static inline int vfs_fstat(int fd, struct kstat *stat)
+ {
 
---
-To unsubscribe from this list: send the line "unsubscribe autofs" in
