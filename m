@@ -1,171 +1,84 @@
-From: Ian Kent <raven@themaw.net>
-Subject: [ANNOUNCE] autofs 5.1.3 release
-Date: Fri, 26 May 2017 15:18:07 +0800
-Message-ID: <1495783087.2574.1.camel@themaw.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
-        :content-transfer-encoding:content-type:date:from:message-id
-        :mime-version:subject:to:x-me-sender:x-me-sender:x-sasl-enc
-        :x-sasl-enc; s=fm1; bh=XHLDjaBz+ae2nKHBkTqftNX/q0c0dsnhkCan8/Ull
-        3Q=; b=Qygweqhbf2qFaS/I0t6VuEYqqH/Es37DIjeXfS9KhSf3O7dYReXgjV0N+
-        GSNMfLVLJrCDq6VYRiXU03/ZDqQCee5kW78Mo1iiOeg3ufQxj6zduWAQmrtl8Tro
-        VTyNSB+cKr/cD28OaftwEQAwWmWnFUXQHytTOYdW2+upq+y2pXkhpHwqvCgMvyxC
-        XfnNvV8ACGtw6v9UtakemrWOs4aKp3FJewiKJiHmd/z2jj54JjU2UlvyXU1n+Iac
-        bdvRC4CZx3Avsq2VHSeaLRwjhowPptTDyzsc3CSb14TTfROnw7nje68nZPX2+Yod
-        ZOBLm6aUTSc+zjD9t97Fwxxwvp5wQ==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:content-transfer-encoding:content-type
-        :date:from:message-id:mime-version:subject:to:x-me-sender
-        :x-me-sender:x-sasl-enc:x-sasl-enc; s=fm1; bh=XHLDjaBz+ae2nKHBkT
-        qftNX/q0c0dsnhkCan8/Ull3Q=; b=afz7zOpqBsHE3QCbeOTD8M5BWXfV+qh73v
-        Qtyrh5ejALr67BPXxY+hJu8s3Bqpqqg87FPgFsjJ+uXzc8tS+BaTVfHwUK/VXi/3
-        /8Jr83t3+/jSavTl+VHo6xuIhDQW1vOb2Z9jYuS0V6RmS8KjmQ07bmTtKrPLp/oZ
-        uGxLjQjj0aT/0f36R5WhLuYh/Yzv7nyxoswB/s+VgsH9rySbSc46UHPiFhuQrPmU
-        28GiysLMddF5GOihQGyPncVDOcqkPHtI1V/jFgJjytX6fvRaqtE0eRKJkJ3X2Rk3
-        k7epZ09K453fmZGg1edX2MQ2zWqU6PYAhzvm5E+oMXqyYlR1LjVQ==
-Sender: linux-kernel-owner@vger.kernel.org
+From: Donald Buczek <buczek@molgen.mpg.de>
+Subject: [PATCH] Fix usage of uninitialized pointer
+Date: Tue, 30 May 2017 15:35:37 +0200
+Message-ID: <1496151337-21367-1-git-send-email-buczek@molgen.mpg.de>
+Return-path: <autofs-owner@vger.kernel.org>
+Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="utf-8"
-To: autofs@vger.kernel.org
-Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: raven@themaw.net, autofs@vger.kernel.org
+Cc: Donald Buczek <buczek@molgen.mpg.de>
 
-Hi all,
+In the error path after a getgrgid_r failure (e.g. when a unnamed gid
+was used), the pointer tsv->group was left unitialized. Still the tsv
+was given to pthread_setspecific(key_thread_stdenv_vars,...) and the
+consumers used and freed the uninitialized pointer.
 
-It's time for a new release, autofs-5.1.3.
+    2017-05-29T18:16:11+02:00 rofl automount[14749]: attempting to mount entry /package/twiki
+    2017-05-29T18:16:11+02:00 rofl automount[14749]: set_tsd_user_vars: failed to get group info from getgrgid_r
+    2017-05-29T18:16:11+02:00 rofl automount[14749]: mounted /package/twiki
+    2017-05-29T18:16:11+02:00 rofl systemd[1]: automount.service: main process exited, code=dumped, status=6
+    2017-05-29T18:16:12+02:00 rofl systemd[1]: automount.service holdoff time over, scheduling restart.
+    2017-05-29T18:16:12+02:00 rofl systemd[1]: Unit automount.service entered failed state.
+    2017-05-29T18:16:12+02:00 rofl automount[17936]: Starting automounter version 5.1.3, master map auto.master
 
-Of particular interest is the addition browse support for amd format
-maps.
+    [May29 18:16] traps: automount[18234] general protection ip:7f8b025c324a sp:7f8b0049a508 error:0 in libc-2.19.so[7f8b02541000+1a2000]
 
-The browsable_dirs configuration option can be set to either "yes" or
-"no" and the pseudo option "browsable" can be used as an option of
-mount type "auto" mounts.
+Handle the error by not calling pthread_setspecific. Clean up
+and return instead.
+---
+ lib/mounts.c | 21 ++++++++++++---------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
 
-Note that the browsable_dirs "full" option and the mount type auto
-"fullybrowsabe" option, mostly used for map debugging, cannot be
-provided by autofs.
+diff --git a/lib/mounts.c b/lib/mounts.c
+index ce6a60a..fe1a6cd 100644
+--- a/lib/mounts.c
++++ b/lib/mounts.c
+@@ -1552,28 +1552,31 @@ void set_tsd_user_vars(unsigned int logopt, uid_t uid, gid_t gid)
+ 	}
+ 
+ no_group:
+-	if (status || !pgr)
++	if (status || !pgr) {
+ 		error(logopt, "failed to get group info from getgrgid_r");
+-	else {
++		goto free_gr_tmp;
++	} else {
+ 		tsv->group = strdup(gr.gr_name);
+-		if (!tsv->group)
++		if (!tsv->group) {
+ 			error(logopt, "failed to malloc buffer for group");
++			goto free_gr_tmp;
++		}
+ 	}
+ 
+-	if (gr_tmp)
+-		free(gr_tmp);
+-
+ 	status = pthread_setspecific(key_thread_stdenv_vars, tsv);
+ 	if (status) {
+ 		error(logopt, "failed to set stdenv thread var");
+ 		goto free_tsv_group;
+ 	}
+-
++	if (gr_tmp)
++		free(gr_tmp);
+ 	return;
+ 
+ free_tsv_group:
+-	if (tsv->group)
+-		free(tsv->group);
++	free(tsv->group);
++free_gr_tmp:
++	if (gr_tmp)
++		free(gr_tmp);
+ free_tsv_home:
+ 	free(tsv->home);
+ free_tsv_user:
+-- 
+2.4.1
 
-Related changes are the removal of the requirement to include entries
-for amd format maps in the master map. The optional amd format map
- mount sections may be used without adding these entries, in the same
-way these sections are used in the amd configuration.
-
-This prevents the need to include potentially incompatible entries in
-shared master maps in multi-vendor environments.
-
-Something to watch out for is that autofs is no longer tolerant of
-misconfigured nsswitch "automount:" entries. If nsswitch sources that
-aren't configured are present it can lead to an unconditional 10
-second delay at startup with some unexpected log errors. autofs is
-probably not going to interfere with nsswitch.conf because it is not
-the owner of the file so it needs to be set correctly by people using
-autofs. This will often mean just removing the inappropriate "nisplus"
-source present in the default installed nsswitch.conf. 
-
-There's two added configuration parameters which hopefully will help
-with map source availability problems at startup.
-
-The "master_wait" configuration option (default 10 seconds) will retry
-reading the master map for the configured time when certain errors are
-encountered (the reason misconfigured nsswitch configurations cause a
-delay).
-
-And the option "sss_master_map_wait" (default 0, disabled) has been
-added specifically for the sss source. This option may be needed
-because the error returned when sss is not yet available to answer
-queries can't be distinguished from a real "map does not exist" return.
-The default of disabled is because the sss source not being ready
-problem has already be resolved in recent versions of sss itself.
-
-Additionally there a number of bug fixes and small improvements.
-
-autofs
-======
-
-The package can be found at:
-https://www.kernel.org/pub/linux/daemons/autofs/v5/
-
-It is autofs-5.1.3.tar.[gz|xz]
-
-No source rpm is there as it can be produced by using:
-
-rpmbuild -ts autofs-5.1.3.tar.gz
-
-and the binary rpm by using:
-
-rpmbuild -tb autofs-5.1.3.tar.gz
-
-See the README.amd-maps file for information about using amd format
-maps.
-
-Here are the entries from the CHANGELOG which outline the updates:
-
-24/05/2016 autofs-5.1.3
-=======================
-- fix release date in CHANGELOG.
-- build: check for clock_gettime in librt.
-- fix compiler warning in try_remount().
-- drop redundant \n in logerr().
-- Fix size arg of fgets(3).
-- fix libtirpc detection with -Wl,--as-needed.
-- Fix a typo in CREDITS.
-- Change .requestor to .requester for consistency.
-- fix file map changed check.
-- Remove unused local 2KB buffer.
-- Fix typos in error messages.
-- Fix fgets(3) size argument (another one).
-- fix short memory allocation in lookup_amd_instance().
-- fix count_mounts() function.
-- configure: add cache variable for Linux proc filesystem check.
-- Avoid local variable name shadowing another.
-- fix typo in MOUNT_FLAG_GHOST comment.
-- fix cachefs parse message not being logged.
-- fix argc off by one in mount_autofs.c.
-- fix _strncmp() usage.
-- fix create_client() RPC client handling.
-- update and add README for old autofs schema.
-- wait for master map available at start.
-- add master read wait option.
-- work around sss startup delay.
-- add sss master map wait config option.
-- fix quoted key handling in sanitize_path().
-- fix included master map not found return.
-- dont exit on master map read fail timeout.
-- set sane default master read wait timeout.
-- don't return until after master map retry read.
-- make lookup_nss_read_master() return nss status.
-- check NFS server availability on local mount fallback.
-- check NFS server availability on local mount fallback.
-- make set_direct_mount_catatonic() more general.
-- set autofs mounts catatonic at exit.
-- honor last rw in mount options when doing a bind mount.
-- fix typos in README.amd-maps.
-- add ref counting to struct map_source.
-- add support for amd browsable option.
-- add function conf_amd_get_map_name().
-- add function conf_amd_get_mount_paths().
-- include amd mount sections mounts in master mounts list.
-- check for conflicting amd section mounts.
-- add function conf_get_map_options().
-- capture cache option and its settings during parsing.
-- handle map_option cache for top level mounts.
-- handle amd cache option all in amd type auto mounts.
-- fix bogus check in expire_cleanup().
-- delay submount exit for amd submounts.
-- add the mount requestor's pid to pending_args.
-- create thread-local ID for mount attempts.
-- log functions to prefix messages with attempt_id if available.
-- factor out set_thread_mount_request_log_id().
-- add config option to use mount request log id.
-- use autofs_point to store expire timeout where possibe.
-- fix possible NULL derefernce.
-- fix work around sss startup delay.
-- fix invalid reference in remount_active_mount().
-- use malloc for expanded map location.
-- fix offset mount location multiple expansion.
-- increase worker thread per-thread stack size.
-- limit getgrgid_r() buffer size.
-- add congigure option for limiting getgrgid_r() stack usage.
-
-Ian
+--
+To unsubscribe from this list: send the line "unsubscribe autofs" in
