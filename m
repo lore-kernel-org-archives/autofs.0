@@ -1,234 +1,49 @@
 From: NeilBrown <neilb@suse.com>
-Subject: [autofs PATCH] Add -c option when calling /bin/umount - if supported.
-Date: Wed, 07 Jun 2017 10:32:49 +1000
-Message-ID: <87d1agd4cu.fsf@notabene.neil.brown.name>
+Subject: [PATCH] autofs: sanity check status reported with AUTOFS_DEV_IOCTL_FAIL
+Date: Wed, 07 Jun 2017 12:08:38 +1000
+Message-ID: <871sqwczx5.fsf@notabene.neil.brown.name>
 Mime-Version: 1.0
 Content-Type: multipart/signed; boundary="=-=-=";
         micalg=pgp-sha256; protocol="application/pgp-signature"
 Return-path: <autofs-owner@vger.kernel.org>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-To: Ian Kent <raven@themaw.net>
-Cc: autofs mailing list <autofs@vger.kernel.org>, linux-nfs@vger.kernel.org, util-linux@vger.kernel.org
+To: Ian Kent <raven@themaw.net>, Andrew Morton <akpm@linux-foundation.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, autofs mailing list <autofs@vger.kernel.org>
 
 --=-=-=
 Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
 
-The "-c" option has been supported by umount since util-linux 2.17.
-It tells umount that the path name is "canonical", meaning no
-symlinks or ".." etc.
-This is appropriate for autofs to use and it always uses canonical
-path names.
-The advantage of "-c" is that it means umount doesn't need to
-'lstat()' the path so much.
-From=20util-linux 2.30, umount doesn't lstat the path at all when
-"-c" is passed.  This is particularly beneficial when unmounting
-an NFS filesystem for which the server is no reachable. In that
-case an 'lstat()' will hang, but the umount(2) can succeed.
+If a positive status is passed with the AUTOFS_DEV_IOCTL_FAIL
+ioctl, autofs4_d_automount() will return
+   ERR_PTR(status)
+with that status to follow_automount(), which will then
+dereference an invalid pointer.
 
-So check if "-c" is supported, and if so, use it.
-Prior to 2.30 this doesn't help much, but doesn't hurt.
-After 2.30 (and a similar small change to nfs-utils),
-"-c" will mean that unmounting NFS filesystems will not hang.
+So treat a positive status the same as zero, and map
+to ENOENT.
+
+See comment in systemd src/core/automount.c::automount_send_ready().
 
 Signed-off-by: NeilBrown <neilb@suse.com>
 =2D--
- aclocal.m4          | 18 ++++++++++++++++++
- configure           | 33 +++++++++++++++++++++++++++++++++
- configure.in        | 14 ++++++++++++++
- daemon/spawn.c      | 23 +++++++++++++++--------
- include/config.h.in |  3 +++
- 5 files changed, 83 insertions(+), 8 deletions(-)
+ fs/autofs4/dev-ioctl.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/aclocal.m4 b/aclocal.m4
-index 00811e08dabe..40e1ee97e905 100644
-=2D-- a/aclocal.m4
-+++ b/aclocal.m4
-@@ -73,6 +73,24 @@ AC_DEFUN(AF_SLOPPY_MOUNT,
-   fi
- fi])
+diff --git a/fs/autofs4/dev-ioctl.c b/fs/autofs4/dev-ioctl.c
+index 734cbf8d9676..dd9f1bebb5a3 100644
+=2D-- a/fs/autofs4/dev-ioctl.c
++++ b/fs/autofs4/dev-ioctl.c
+@@ -344,7 +344,7 @@ static int autofs_dev_ioctl_fail(struct file *fp,
+ 	int status;
 =20
-+dnl ----------------------------------------------------------------------=
-----
-+dnl AF_NO_CANON_UMOUNT
-+dnl
-+dnl Check to see if umount(8) supports the no-canonicalize (-c) option, an=
-d define
-+dnl the cpp variable HAVE_NO_CANON_UMOUNT if so.  This requires that UMOUN=
-T is
-+dnl already defined by a call to AF_PATH_INCLUDE or AC_PATH_PROGS.
-+dnl ----------------------------------------------------------------------=
-----
-+AC_DEFUN(AF_NO_CANON_UMOUNT,
-+[if test -n "$UMOUNT" ; then
-+  AC_MSG_CHECKING([if umount accepts the -c option])
-+  if "$UMOUNT" -h 2>&1 | grep -e '-c.*--no-canonicalize' > /dev/null 2>&1 =
-; then
-+    enable_no_canon_umount=3Dyes
-+    AC_MSG_RESULT(yes)
-+  else
-+    AC_MSG_RESULT(no)
-+  fi
-+fi])
-+
-=20
- dnl ----------------------------------------------------------------------=
-----
- dnl AF_LINUX_PROCFS
-diff --git a/configure b/configure
-index 10f907e36a9b..9ba267073e62 100755
-=2D-- a/configure
-+++ b/configure
-@@ -737,6 +737,7 @@ with_flagdir
- with_libtirpc
- with_dmalloc
- enable_sloppy_mount
-+enable_no_canon_umount
- with_hesiod
- with_openldap
- with_sasl
-@@ -1363,6 +1364,7 @@ Optional Features:
-   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=
-=3Dno)
-   --enable-FEATURE[=3DARG]  include FEATURE [ARG=3Dyes]
-   --enable-sloppy-mount         enable the use of the -s option to mount
-+  --enable-no-canon-umount         enable the use of the -c option to umou=
-nt
-   --disable-ext-env	        disable search in environment for substitution=
- variable
-   --disable-mount-locking       disable use of locking when spawning mount=
- command
-   --enable-force-shutdown       enable USR1 signal to force unlink umount =
-of any
-@@ -3993,6 +3995,37 @@ $as_echo "#define HAVE_SLOPPY_MOUNT 1" >>confdefs.h
-=20
- fi
-=20
-+#
-+# Newer umounts have the -c (--no-canonicalize) option to avoid
-+# stating the path and possible blocking.  Good for NFS.
-+#
-+# Check whether --enable-no-canon-umount was given.
-+if test "${enable_no_canon_umount+set}" =3D set; then :
-+  enableval=3D$enable_no_canon_umount;
-+else
-+  enable_no_canon_umount=3Dauto
-+fi
-+
-+if test x$enable_no_canon_umount =3D xauto; then
-+	if test -n "$UMOUNT" ; then
-+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking if umount accepts the =
--c option" >&5
-+$as_echo_n "checking if umount accepts the -c option... " >&6; }
-+  if "$UMOUNT" -h 2>&1 | grep -e '-c.*--no-canonicalize' > /dev/null 2>&1 =
-; then
-+    enable_no_canon_umount=3Dyes
-+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-+$as_echo "yes" >&6; }
-+  else
-+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-+$as_echo "no" >&6; }
-+  fi
-+fi
-+fi
-+if test x$enable_no_canon_umount =3D xyes; then
-+
-+$as_echo "#define HAVE_NO_CANON_UMOUNT 1" >>confdefs.h
-+
-+fi
-+
- # LDAP SASL auth needs libxml and Kerberos
- for ac_prog in xml2-config
- do
-diff --git a/configure.in b/configure.in
-index 05212521b2a9..d408b209cace 100644
-=2D-- a/configure.in
-+++ b/configure.in
-@@ -167,6 +167,20 @@ if test x$enable_sloppy_mount =3D xyes; then
- 	AC_DEFINE(HAVE_SLOPPY_MOUNT, 1, [define if the mount command supports the=
- -s option])
- fi
-=20
-+#
-+# Newer umounts have the -c (--no-canonicalize) option to avoid
-+# stating the path and possible blocking.  Good for NFS.
-+#
-+AC_ARG_ENABLE(no-canon-umount,
-+[  --enable-no-canon-umount         enable the use of the -c option to umo=
-unt],,
-+	enable_no_canon_umount=3Dauto)
-+if test x$enable_no_canon_umount =3D xauto; then
-+	AF_NO_CANON_UMOUNT()
-+fi
-+if test x$enable_no_canon_umount =3D xyes; then
-+	AC_DEFINE(HAVE_NO_CANON_UMOUNT, 1, [define if the umount command supports=
- the -c option])
-+fi
-+
- # LDAP SASL auth needs libxml and Kerberos
- AF_CHECK_LIBXML()
- AF_CHECK_KRB5()
-diff --git a/daemon/spawn.c b/daemon/spawn.c
-index c640d97601da..4515607ba022 100644
-=2D-- a/daemon/spawn.c
-+++ b/daemon/spawn.c
-@@ -592,6 +592,11 @@ int spawn_umount(unsigned logopt, ...)
- 	char **argv, **p;
- 	char prog[] =3D PATH_UMOUNT;
- 	char arg0[] =3D PATH_UMOUNT;
-+#ifdef HAVE_NO_CANON_UMOUNT
-+	char * const arg_c =3D "-c";
-+#else
-+	char * const arg_c =3D NULL;
-+#endif
- 	char argn[] =3D "-n";
- 	unsigned int options;
- 	unsigned int retries =3D MTAB_LOCK_RETRIES;
-@@ -620,19 +625,21 @@ int spawn_umount(unsigned logopt, ...)
- 			update_mtab =3D 0;
- 		}
- 	}
-+	if (arg_c)
-+		argc++;;
-=20
-=2D	if (!(argv =3D alloca(sizeof(char *) * argc + 1)))
-+	if (!(argv =3D alloca(sizeof(char *) * (argc + 1))))
- 		return -1;
-=20
-=2D	argv[0] =3D arg0;
-+	p =3D argv;
-+	*p++ =3D arg0;
-+	if (arg_c)
-+		*p++ =3D arg_c;
-+
-+	if (!update_mtab)
-+		*p++ =3D argn;
-=20
- 	va_start(arg, logopt);
-=2D	if (update_mtab)
-=2D		p =3D argv + 1;
-=2D	else {
-=2D		argv[1] =3D argn;
-=2D		p =3D argv + 2;
-=2D	}
- 	while ((*p++ =3D va_arg(arg, char *)));
- 	va_end(arg);
-=20
-diff --git a/include/config.h.in b/include/config.h.in
-index e8885092f858..6ed0d832bb60 100644
-=2D-- a/include/config.h.in
-+++ b/include/config.h.in
-@@ -57,6 +57,9 @@
- /* define if you have MOUNT_NFS */
- #undef HAVE_MOUNT_NFS
-=20
-+/* define if the umount command supports the -c option */
-+#undef HAVE_NO_CANON_UMOUNT
-+
- /* define if the mount command supports the -s option */
- #undef HAVE_SLOPPY_MOUNT
+ 	token =3D (autofs_wqt_t) param->fail.token;
+=2D	status =3D param->fail.status ? param->fail.status : -ENOENT;
++	status =3D param->fail.status < 0 ? param->fail.status : -ENOENT;
+ 	return autofs4_wait_release(sbi, token, status);
+ }
 =20
 =2D-=20
 2.12.2
@@ -239,19 +54,19 @@ Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEG8Yp69OQ2HB7X0l6Oeye3VZigbkFAlk3SbMACgkQOeye3VZi
-gbngDxAAutFgEa3DflICsz5VJPdXS6vxqYtoVUve3et4FIaPttlcGz14tERDqWq3
-cUenU1Y/zAdzcYXyU/vBbEMuvq4/dMtNbOvzGghQrJXQmdLxK2aFpD6c16akXfNO
-fuqM7kDlji0oMd45TXdJHL4QNwM+nVamvWWQ1A/suON/gv2QEXAYwpFZjJnLeZuK
-hJCEUlGKGw4WXkYKUhMZg7QyZwXYOMdKT22OsOuCaYeB5s7AMZkIa4H3CPVqvd42
-x4zI1ZoOMlETrM3cjfYjKBCD70JCc7fnwzySxIOd0dWyGvoSq+DwttT2iG8DAfb+
-uOe1yrf9MDR0XOAv1UH9S/oAKDiGgsBelFGmfPUQcJXLEchE+cAkaRPnBvQKuGgK
-g7vJYUJdbPvAjC6sZh647c3cqe9cFj7IHhUb246c0bcyX6cHz3k1+tNW0QttNJ5P
-cT23Lks6A1BN5eAT31Oa8pZ/HNdMthoUdTHwE90HQBdu7p1K7bqZHnx2pe6vCl6x
-t8YLIS5siGl9ozRsxz4q1fbMMVe1o7JlVjb08gSjtDx26HGO14sd0CejQLKACgaL
-41Ox08BPy9SgO/5lVad6xmBWYgsUVurnWIkCLmJvfhw34ni/U3nweW+n92K7jYGM
-IgRvY3o1CmVkmkeK0zZOIIsHuGJuYs3jAFi+FPzp+kZsEQx8Fao=
-=bB9O
+iQIzBAEBCAAdFiEEG8Yp69OQ2HB7X0l6Oeye3VZigbkFAlk3YCgACgkQOeye3VZi
+gbkeBhAAobUhyASoRZSHqAAFSiyUk3qvglPQD/DnAVKQHatm87Kky6/JBZPy4ESr
+KpjgrBY/CIJQ5RM3/8rH5CbKYgX8gP2upa7/OP1Hd1caW5pyYQot/8S5SpeBynkA
+x0h9cH/mEVyG/cYlVhoGnjNJr7huFU7OffW2pgRqINYVUhPcskKFryjmfwRf9a3L
++aZIJi1cf/xTCVGBKdYGY7djsQIcgt7JE0xQegBiiNYzJuVK+ZJEpvZOm0hlXXc1
+/CfaXLx/FS0sxTn4C+brQBIKaBVI1PkXd/iRbSkZRT1ym5TM8AXz9Svo7YlPjl8O
+MmM4QT235ftB4hJUWUA5rjV1pm4Vu6cOfNamgllTjDmzGoejJGsF0L/OK5pHAa59
+QMhSWTetQhO6XP2wbcLVIO87by86dAuDOz981Vzv5RMzQbu3AZcBQl4nzWbvoT9Y
+3WOO5W/6I2Y3pWVqMcguYAJHtAXN3TERF6F8WS9mAiK6B6tVBBXvLOARBp5MInN1
+EH2e7jhhqqoPwi4O5fMcyJVg9M+/qFpItd/i12yU4wbKl0jc+Gv2T1UH1Wp5NZL1
+Y/tn2j9N+PQZzg5BxEY19gyXGBEtMnWD1PBfv6blYQ5T7fr7ueiDmY7pgrokMx/S
+YNgdLaiK7LTBNI5okOVKTkQtMJSRWXq3D7eZcqRGGg02TOv/8Eg=
+=Obeh
 -----END PGP SIGNATURE-----
 --=-=-=--
 --
