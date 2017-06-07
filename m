@@ -1,301 +1,258 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH] Fix usage of uninitialized pointer
-Date: Thu, 01 Jun 2017 17:13:33 +0800
-Message-ID: <1496308413.2580.6.camel@themaw.net>
-References: <1496151337-21367-1-git-send-email-buczek@molgen.mpg.de>
-         <1496190434.3804.1.camel@themaw.net> <1496194664.3804.3.camel@themaw.net>
-         <e4e26a3f-7bda-1c6a-18e6-af05c2490d6d@molgen.mpg.de>
-         <350fd28e-8e61-24b0-f2e4-38a4476c8108@molgen.mpg.de>
+From: NeilBrown <neilb@suse.com>
+Subject: [autofs PATCH] Add -c option when calling /bin/umount - if supported.
+Date: Wed, 07 Jun 2017 10:32:49 +1000
+Message-ID: <87d1agd4cu.fsf@notabene.neil.brown.name>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; boundary="=-=-=";
+        micalg=pgp-sha256; protocol="application/pgp-signature"
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
-        :content-transfer-encoding:content-type:date:from:in-reply-to
-        :message-id:mime-version:references:subject:to:x-me-sender
-        :x-me-sender:x-sasl-enc:x-sasl-enc; s=fm1; bh=1X23q+ay4Y8Tn1t2XZ
-        4hHg8XmNMtEIZny1+o1XANQQA=; b=imeXiZqfQARb7A9isNatPYSy5Jj7xADJtg
-        xNEuSYk5vMyXlPIbOWw7+1lSwk+8DPTeH1q/6zDTUJzH9AkR8kftTL/pbb6UdG9A
-        N3MWOw1YtLowkCiWiQzRcmN4uIoBDlK79Qj2JwacQYWTvJyoidWIxNxeb2qqiuop
-        VMg+mnBKiC1Yqgm8pX5tR8pBA0U/gHsXF7TytIVBJU26067S79FSXHiIXdgaf6TW
-        TEzYvl4XH5StvqWQ9Dl9LLkV7LZUAS2WtJ7JaAIU3exK7aU6+S75nv7IDZCdDGNW
-        hVM2fzTXcWCR2s/lZwmzQbQfuZqRQa3lhhF2jKbIZci7nLYPpxDA==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:content-transfer-encoding:content-type
-        :date:from:in-reply-to:message-id:mime-version:references
-        :subject:to:x-me-sender:x-me-sender:x-sasl-enc:x-sasl-enc; s=
-        fm1; bh=1X23q+ay4Y8Tn1t2XZ4hHg8XmNMtEIZny1+o1XANQQA=; b=EmftroL8
-        70bX8W1+cZHMz8MQaPqpq7DvDHzO+WNdv6KjspLuLYdhiB34OwD0E+3kNYmmRcbB
-        mksVN3nHiZZzlrO7Gl0LGZ6+HUO+pXvd3iPcnOfGgX0SpV4ffMNjcrPdayvDx+Wo
-        88NPiqdfAwraprG0oC+r6Xr6ucDSiBtjamZFj7TQtWdeIJpbOwXHY0iB7lKc9upo
-        1enXDFVqX3fhkMdCo1KBy+FqWQEGbNZSBY+6FrkHgSkLMHiUWennODxlHiyzVL1H
-        F+lEMiT/kK1FWKkar6ZMJvRFZxnVTGHDPe1TMG3e6wwgILjIv/+EM4Hnsx/ZVYeg
-        khH+s6Tael6iAw==
-In-Reply-To: <350fd28e-8e61-24b0-f2e4-38a4476c8108@molgen.mpg.de>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="utf-8"
-To: Donald Buczek <buczek@molgen.mpg.de>
-Cc: autofs@vger.kernel.org
+To: Ian Kent <raven@themaw.net>
+Cc: autofs mailing list <autofs@vger.kernel.org>, linux-nfs@vger.kernel.org, util-linux@vger.kernel.org
 
-On Wed, 2017-05-31 at 22:28 +0200, Donald Buczek wrote:
-> On 31.05.2017 16:22, Donald Buczek wrote:
-> > On 05/31/17 03:37, Ian Kent wrote:
-> > > On Wed, 2017-05-31 at 08:27 +0800, Ian Kent wrote:
-> > > > On Tue, 2017-05-30 at 15:35 +0200, Donald Buczek wrote:
-> > > > > In the error path after a getgrgid_r failure (e.g. when a unnamed gid
-> > > > > was used), the pointer tsv->group was left unitialized. Still the tsv
-> > > > > was given to pthread_setspecific(key_thread_stdenv_vars,...) and the
-> > > > > consumers used and freed the uninitialized pointer.
-> > > > 
-> > > > Umm ... ok, I'll check ... good catch.
-> > > 
-> > > I think this bug will warrant another release.
-> > > 
-> > > > >      2017-05-29T18:16:11+02:00 rofl automount[14749]: attempting to
-> > > > > mount
-> > > > > entry
-> > > > > /package/twiki
-> > > > >      2017-05-29T18:16:11+02:00 rofl automount[14749]:
-> > > > > set_tsd_user_vars:
-> > > > > failed
-> > > > > to get group info from getgrgid_r
-> > > > >      2017-05-29T18:16:11+02:00 rofl automount[14749]: mounted
-> > > > > /package/twiki
-> > > > >      2017-05-29T18:16:11+02:00 rofl systemd[1]: automount.service:
-> > > > > main
-> > > > > process
-> > > > > exited, code=dumped, status=6
-> > > > >      2017-05-29T18:16:12+02:00 rofl systemd[1]: automount.service
-> > > > > holdoff
-> > > > > time
-> > > > > over, scheduling restart.
-> > > > >      2017-05-29T18:16:12+02:00 rofl systemd[1]: Unit automount.service
-> > > > > entered
-> > > > > failed state.
-> > > > >      2017-05-29T18:16:12+02:00 rofl automount[17936]: Starting
-> > > > > automounter
-> > > > > version 5.1.3, master map auto.master
-> > > > > 
-> > > > >      [May29 18:16] traps: automount[18234] general protection
-> > > > > ip:7f8b025c324a
-> > > > > sp:7f8b0049a508 error:0 in libc-2.19.so[7f8b02541000+1a2000]
-> > > > > 
-> > > > > Handle the error by not calling pthread_setspecific. Clean up
-> > > > > and return instead.
-> > > > > ---
-> > > > >   lib/mounts.c | 21 ++++++++++++---------
-> > > > >   1 file changed, 12 insertions(+), 9 deletions(-)
-> > > > > 
-> > > > > diff --git a/lib/mounts.c b/lib/mounts.c
-> > > > > index ce6a60a..fe1a6cd 100644
-> > > > > --- a/lib/mounts.c
-> > > > > +++ b/lib/mounts.c
-> > > > > @@ -1552,28 +1552,31 @@ void set_tsd_user_vars(unsigned int logopt,
-> > > > > uid_t
-> > > > > uid,
-> > > > > gid_t gid)
-> > > > >       }
-> > > > >     no_group:
-> > > > > -    if (status || !pgr)
-> > > > > +    if (status || !pgr) {
-> > > > >           error(logopt, "failed to get group info from getgrgid_r");
-> > > > > -    else {
-> > > > 
-> > > > Extra braces, I leave these out (when I can) on single statement clauses
-> > > > deliberately and always try to put the single statement as the first
-> > > > branch of
-> > > > the if.
-> > > > 
-> > > > > +        goto free_gr_tmp;
-> > > > > +    } else {
-> > > > >           tsv->group = strdup(gr.gr_name);
-> > > > > -        if (!tsv->group)
-> > > > > +        if (!tsv->group) {
-> > > > >               error(logopt, "failed to malloc buffer for group");
-> > > > > +            goto free_gr_tmp;
-> > > > > +        }
-> > > > >       }
-> > > > >   -    if (gr_tmp)
-> > > > > -        free(gr_tmp);
-> > > > > -
-> > > > >       status = pthread_setspecific(key_thread_stdenv_vars, tsv);
-> > > > >       if (status) {
-> > > > >           error(logopt, "failed to set stdenv thread var");
-> > > > >           goto free_tsv_group;
-> > > > >       }
-> > > > > -
-> > > > > +    if (gr_tmp)
-> > > > > +        free(gr_tmp);
-> > > > 
-> > > > But this doesn't do what I intended.
-> > > > 
-> > > > What I want to do is set the thread specific standard variables even
-> > > > if the
-> > > > group name can't be obtained.
-> > > > 
-> > > > It looks like I've made an assumption elsewhere that if the tsd is
-> > > > set then
-> > > > all
-> > > > the variables have valid values, I'd rather fix that than do this.
-> > > 
-> > > I would prefer to do this instead.
-> > > 
-> > > Could you check this resolves the problem you have seen please.
-> > 
-> > Sorry, the patch doesn't apply, because it is line wrapped and contains
-> > utf8 unicode non breaking space characters. Can I pull it?
-> 
-> 
-> Never mind, edited it in by hand.
-> 
-> I can confirm, that the bug is fixed.
-> 
-> Test procedure:
-> 
-> run
-> 
->      valgrind --leak-check=full daemon/automount -f -v
-> 
-> in one shell. Run
-> 
->      perl -e '$(=65533;$)=65533;system("ls /project/SOME_AUTOMOUNT_PATH")'
-> 
-> in another.
-> 
-> Result from master (release_5.1.3) are several valgrind warnings and 
-> death by segv:
-> 
->      set_tsd_user_vars: failed to get group info from getgrgid_r
->      ==18686== Use of uninitialised value of size 8
->      ==18686==    at 0x4C2AAF2: strlen (vg_replace_strmem.c:454)
->      ==18686==    by 0x619FF8D: strdup (strdup.c:41)
->      [...]
->      ==18686== Invalid read of size 1
->      ==18686==    at 0x4C2AAF2: strlen (vg_replace_strmem.c:454)
->      ==18686==    by 0x619FF8D: strdup (strdup.c:41)
->      ==18686==    by 0x13A18D: macro_addvar (macros.c:305)
->      [...]
->      ==18686==  Address 0x0 is not stack'd, malloc'd or (recently) free'd
->      ==18686== Process terminating with default action of signal 11 
-> (SIGSEGV): dumping core
->      ==18686==  Access not within mapped region at address 0x0
->      ==18686==    at 0x4C2AAF2: strlen (vg_replace_strmem.c:454)
->      ==18686==    by 0x619FF8D: strdup (strdup.c:41)
->      ==18686==    by 0x13A18D: macro_addvar (macros.c:305)
->      ==18686==    by 0x12F1E4: do_macro_addvar (mounts.c:368)
-> 
-> Result with you patch on top: No errors (aside from expected 
-> "set_tsd_user_vars: failed to get group info from getgrgid_r") and a 
-> mounted directory.
-> 
-> Didn't try to expand the variables in a map, though.
-> 
-> Thumbs up from my side.
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Thanks for doing this.
 
-> 
->    Donald
-> 
-> 
-> 
-> > 
-> > Donald
-> > 
-> > 
-> > > 
-> > > autofs-5.1.3 - fix unset tsd group name handling
-> > > 
-> > > From: Ian Kent <raven@themaw.net>
-> > > 
-> > > Commit 1a64a6bbc5 changed set_tsd_user_vars() to set the thread specific
-> > > values even if the group name could not be obtained.
-> > > 
-> > > But the structure holding the values was not initialized on allocation
-> > > so the group field might not be NULL when no group name is available.
-> > > 
-> > > Also the macro addition and removal functions didn't handle setting a
-> > > macro name with a NULL value.
-> > > 
-> > > Signed-off-by: Ian Kent <raven@themaw.net>
-> > > Reported-by: Donald Buczek <buczek@molgen.mpg.de>
-> > > ---
-> > >   lib/macros.c |   27 +++++++++++++--------------
-> > >   lib/mounts.c |    1 +
-> > >   2 files changed, 14 insertions(+), 14 deletions(-)
-> > > 
-> > > diff --git a/lib/macros.c b/lib/macros.c
-> > > index ff9ba89..30dbcdb 100644
-> > > --- a/lib/macros.c
-> > > +++ b/lib/macros.c
-> > > @@ -281,19 +281,21 @@ macro_addvar(struct substvar *table, const char
-> > > *str, int
-> > > len, const char *value
-> > >       }
-> > >         if (lv) {
-> > > -        char *this = malloc(strlen(value) + 1);
-> > > -        if (!this) {
-> > > -            lv = table;
-> > > -            goto done;
-> > > +        char *this = NULL;
-> > > +
-> > > +        if (value) {
-> > > +            this = malloc(strlen(value) + 1);
-> > > +            if (this)
-> > > +                strcpy(this, value);
-> > >           }
-> > > -        strcpy(this, value);
-> > > -        free(lv->val);
-> > > +        if (lv->val)
-> > > +            free(lv->val);
-> > >           lv->val = this;
-> > >           if (lv != table)
-> > >               lv = table;
-> > >       } else {
-> > >           struct substvar *new;
-> > > -        char *def, *val;
-> > > +        char *def, *val = NULL;
-> > >             def = strdup(str);
-> > >           if (!def) {
-> > > @@ -302,18 +304,15 @@ macro_addvar(struct substvar *table, const char
-> > > *str, int
-> > > len, const char *value
-> > >           }
-> > >           def[len] = '\0';
-> > >   -        val = strdup(value);
-> > > -        if (!val) {
-> > > -            lv = table;
-> > > -            free(def);
-> > > -            goto done;
-> > > -        }
-> > > +        if (value)
-> > > +            val = strdup(value);
-> > >             new = malloc(sizeof(struct substvar));
-> > >           if (!new) {
-> > >               lv = table;
-> > >               free(def);
-> > > -            free(val);
-> > > +            if (val)
-> > > +                free(val);
-> > >               goto done;
-> > >           }
-> > >           new->def = def;
-> > > diff --git a/lib/mounts.c b/lib/mounts.c
-> > > index ce6a60a..0b38bd8 100644
-> > > --- a/lib/mounts.c
-> > > +++ b/lib/mounts.c
-> > > @@ -1463,6 +1463,7 @@ void set_tsd_user_vars(unsigned int logopt,
-> > > uid_t uid,
-> > > gid_t gid)
-> > >           error(logopt, "failed alloc tsv storage");
-> > >           return;
-> > >       }
-> > > +    memset(tsv, 0, sizeof(struct thread_stdenv_vars));
-> > >         tsv->uid = uid;
-> > >       tsv->gid = gid;
-> > 
-> > 
-> 
-> 
+The "-c" option has been supported by umount since util-linux 2.17.
+It tells umount that the path name is "canonical", meaning no
+symlinks or ".." etc.
+This is appropriate for autofs to use and it always uses canonical
+path names.
+The advantage of "-c" is that it means umount doesn't need to
+'lstat()' the path so much.
+From=20util-linux 2.30, umount doesn't lstat the path at all when
+"-c" is passed.  This is particularly beneficial when unmounting
+an NFS filesystem for which the server is no reachable. In that
+case an 'lstat()' will hang, but the umount(2) can succeed.
+
+So check if "-c" is supported, and if so, use it.
+Prior to 2.30 this doesn't help much, but doesn't hurt.
+After 2.30 (and a similar small change to nfs-utils),
+"-c" will mean that unmounting NFS filesystems will not hang.
+
+Signed-off-by: NeilBrown <neilb@suse.com>
+=2D--
+ aclocal.m4          | 18 ++++++++++++++++++
+ configure           | 33 +++++++++++++++++++++++++++++++++
+ configure.in        | 14 ++++++++++++++
+ daemon/spawn.c      | 23 +++++++++++++++--------
+ include/config.h.in |  3 +++
+ 5 files changed, 83 insertions(+), 8 deletions(-)
+
+diff --git a/aclocal.m4 b/aclocal.m4
+index 00811e08dabe..40e1ee97e905 100644
+=2D-- a/aclocal.m4
++++ b/aclocal.m4
+@@ -73,6 +73,24 @@ AC_DEFUN(AF_SLOPPY_MOUNT,
+   fi
+ fi])
+=20
++dnl ----------------------------------------------------------------------=
+----
++dnl AF_NO_CANON_UMOUNT
++dnl
++dnl Check to see if umount(8) supports the no-canonicalize (-c) option, an=
+d define
++dnl the cpp variable HAVE_NO_CANON_UMOUNT if so.  This requires that UMOUN=
+T is
++dnl already defined by a call to AF_PATH_INCLUDE or AC_PATH_PROGS.
++dnl ----------------------------------------------------------------------=
+----
++AC_DEFUN(AF_NO_CANON_UMOUNT,
++[if test -n "$UMOUNT" ; then
++  AC_MSG_CHECKING([if umount accepts the -c option])
++  if "$UMOUNT" -h 2>&1 | grep -e '-c.*--no-canonicalize' > /dev/null 2>&1 =
+; then
++    enable_no_canon_umount=3Dyes
++    AC_MSG_RESULT(yes)
++  else
++    AC_MSG_RESULT(no)
++  fi
++fi])
++
+=20
+ dnl ----------------------------------------------------------------------=
+----
+ dnl AF_LINUX_PROCFS
+diff --git a/configure b/configure
+index 10f907e36a9b..9ba267073e62 100755
+=2D-- a/configure
++++ b/configure
+@@ -737,6 +737,7 @@ with_flagdir
+ with_libtirpc
+ with_dmalloc
+ enable_sloppy_mount
++enable_no_canon_umount
+ with_hesiod
+ with_openldap
+ with_sasl
+@@ -1363,6 +1364,7 @@ Optional Features:
+   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=
+=3Dno)
+   --enable-FEATURE[=3DARG]  include FEATURE [ARG=3Dyes]
+   --enable-sloppy-mount         enable the use of the -s option to mount
++  --enable-no-canon-umount         enable the use of the -c option to umou=
+nt
+   --disable-ext-env	        disable search in environment for substitution=
+ variable
+   --disable-mount-locking       disable use of locking when spawning mount=
+ command
+   --enable-force-shutdown       enable USR1 signal to force unlink umount =
+of any
+@@ -3993,6 +3995,37 @@ $as_echo "#define HAVE_SLOPPY_MOUNT 1" >>confdefs.h
+=20
+ fi
+=20
++#
++# Newer umounts have the -c (--no-canonicalize) option to avoid
++# stating the path and possible blocking.  Good for NFS.
++#
++# Check whether --enable-no-canon-umount was given.
++if test "${enable_no_canon_umount+set}" =3D set; then :
++  enableval=3D$enable_no_canon_umount;
++else
++  enable_no_canon_umount=3Dauto
++fi
++
++if test x$enable_no_canon_umount =3D xauto; then
++	if test -n "$UMOUNT" ; then
++  { $as_echo "$as_me:${as_lineno-$LINENO}: checking if umount accepts the =
+-c option" >&5
++$as_echo_n "checking if umount accepts the -c option... " >&6; }
++  if "$UMOUNT" -h 2>&1 | grep -e '-c.*--no-canonicalize' > /dev/null 2>&1 =
+; then
++    enable_no_canon_umount=3Dyes
++    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
++$as_echo "yes" >&6; }
++  else
++    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
++$as_echo "no" >&6; }
++  fi
++fi
++fi
++if test x$enable_no_canon_umount =3D xyes; then
++
++$as_echo "#define HAVE_NO_CANON_UMOUNT 1" >>confdefs.h
++
++fi
++
+ # LDAP SASL auth needs libxml and Kerberos
+ for ac_prog in xml2-config
+ do
+diff --git a/configure.in b/configure.in
+index 05212521b2a9..d408b209cace 100644
+=2D-- a/configure.in
++++ b/configure.in
+@@ -167,6 +167,20 @@ if test x$enable_sloppy_mount =3D xyes; then
+ 	AC_DEFINE(HAVE_SLOPPY_MOUNT, 1, [define if the mount command supports the=
+ -s option])
+ fi
+=20
++#
++# Newer umounts have the -c (--no-canonicalize) option to avoid
++# stating the path and possible blocking.  Good for NFS.
++#
++AC_ARG_ENABLE(no-canon-umount,
++[  --enable-no-canon-umount         enable the use of the -c option to umo=
+unt],,
++	enable_no_canon_umount=3Dauto)
++if test x$enable_no_canon_umount =3D xauto; then
++	AF_NO_CANON_UMOUNT()
++fi
++if test x$enable_no_canon_umount =3D xyes; then
++	AC_DEFINE(HAVE_NO_CANON_UMOUNT, 1, [define if the umount command supports=
+ the -c option])
++fi
++
+ # LDAP SASL auth needs libxml and Kerberos
+ AF_CHECK_LIBXML()
+ AF_CHECK_KRB5()
+diff --git a/daemon/spawn.c b/daemon/spawn.c
+index c640d97601da..4515607ba022 100644
+=2D-- a/daemon/spawn.c
++++ b/daemon/spawn.c
+@@ -592,6 +592,11 @@ int spawn_umount(unsigned logopt, ...)
+ 	char **argv, **p;
+ 	char prog[] =3D PATH_UMOUNT;
+ 	char arg0[] =3D PATH_UMOUNT;
++#ifdef HAVE_NO_CANON_UMOUNT
++	char * const arg_c =3D "-c";
++#else
++	char * const arg_c =3D NULL;
++#endif
+ 	char argn[] =3D "-n";
+ 	unsigned int options;
+ 	unsigned int retries =3D MTAB_LOCK_RETRIES;
+@@ -620,19 +625,21 @@ int spawn_umount(unsigned logopt, ...)
+ 			update_mtab =3D 0;
+ 		}
+ 	}
++	if (arg_c)
++		argc++;;
+=20
+=2D	if (!(argv =3D alloca(sizeof(char *) * argc + 1)))
++	if (!(argv =3D alloca(sizeof(char *) * (argc + 1))))
+ 		return -1;
+=20
+=2D	argv[0] =3D arg0;
++	p =3D argv;
++	*p++ =3D arg0;
++	if (arg_c)
++		*p++ =3D arg_c;
++
++	if (!update_mtab)
++		*p++ =3D argn;
+=20
+ 	va_start(arg, logopt);
+=2D	if (update_mtab)
+=2D		p =3D argv + 1;
+=2D	else {
+=2D		argv[1] =3D argn;
+=2D		p =3D argv + 2;
+=2D	}
+ 	while ((*p++ =3D va_arg(arg, char *)));
+ 	va_end(arg);
+=20
+diff --git a/include/config.h.in b/include/config.h.in
+index e8885092f858..6ed0d832bb60 100644
+=2D-- a/include/config.h.in
++++ b/include/config.h.in
+@@ -57,6 +57,9 @@
+ /* define if you have MOUNT_NFS */
+ #undef HAVE_MOUNT_NFS
+=20
++/* define if the umount command supports the -c option */
++#undef HAVE_NO_CANON_UMOUNT
++
+ /* define if the mount command supports the -s option */
+ #undef HAVE_SLOPPY_MOUNT
+=20
+=2D-=20
+2.12.2
+
+
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEG8Yp69OQ2HB7X0l6Oeye3VZigbkFAlk3SbMACgkQOeye3VZi
+gbngDxAAutFgEa3DflICsz5VJPdXS6vxqYtoVUve3et4FIaPttlcGz14tERDqWq3
+cUenU1Y/zAdzcYXyU/vBbEMuvq4/dMtNbOvzGghQrJXQmdLxK2aFpD6c16akXfNO
+fuqM7kDlji0oMd45TXdJHL4QNwM+nVamvWWQ1A/suON/gv2QEXAYwpFZjJnLeZuK
+hJCEUlGKGw4WXkYKUhMZg7QyZwXYOMdKT22OsOuCaYeB5s7AMZkIa4H3CPVqvd42
+x4zI1ZoOMlETrM3cjfYjKBCD70JCc7fnwzySxIOd0dWyGvoSq+DwttT2iG8DAfb+
+uOe1yrf9MDR0XOAv1UH9S/oAKDiGgsBelFGmfPUQcJXLEchE+cAkaRPnBvQKuGgK
+g7vJYUJdbPvAjC6sZh647c3cqe9cFj7IHhUb246c0bcyX6cHz3k1+tNW0QttNJ5P
+cT23Lks6A1BN5eAT31Oa8pZ/HNdMthoUdTHwE90HQBdu7p1K7bqZHnx2pe6vCl6x
+t8YLIS5siGl9ozRsxz4q1fbMMVe1o7JlVjb08gSjtDx26HGO14sd0CejQLKACgaL
+41Ox08BPy9SgO/5lVad6xmBWYgsUVurnWIkCLmJvfhw34ni/U3nweW+n92K7jYGM
+IgRvY3o1CmVkmkeK0zZOIIsHuGJuYs3jAFi+FPzp+kZsEQx8Fao=
+=bB9O
+-----END PGP SIGNATURE-----
+--=-=-=--
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
