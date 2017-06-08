@@ -1,41 +1,128 @@
-From: Ian Kent <raven@themaw.net>
-Subject: The add -c option when calling /bin/umount
-Date: Thu, 08 Jun 2017 11:00:15 +0800
-Message-ID: <1496890815.9718.1.camel@themaw.net>
+From: Paul Menzel <pmenzel@molgen.mpg.de>
+Subject: Valgrind warnings for `automount`
+Date: Thu, 8 Jun 2017 15:14:07 +0200
+Message-ID: <e60981ac-2b4e-0dab-1333-2bf88160bda2@molgen.mpg.de>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
-        :content-transfer-encoding:content-type:date:from:message-id
-        :mime-version:subject:to:x-me-sender:x-me-sender:x-sasl-enc
-        :x-sasl-enc; s=fm1; bh=OKZ+e1C4yVE3oIxlcd5lahKQkGTzQwkaR5jWFzKGR
-        YI=; b=ck6SrTP7TDV4o7hL8N0PHg/iYBuFuj9pmVUZ0OAhVziFAuBtA3hDCcDkf
-        0qBhsF4/13Fehakktm0O5xA8ROgNG3+N2KSf/alpV4z5HdwlYCu2Pd/q+DKzszfn
-        vvuH/xsFX7RYQHj3OZk3l23mpMKA7mVLoAViLplKWtNtllYRdQpx6j+gBd5j3EJw
-        JlF0NjPoVpqVyewMekc7hnzPuCOJ5gNcGIXNEQik3ZEDmG5kj2rA4zMWoTeYnZ51
-        mSGneJcwMOc2R7wJLo40GX8RPQSsvZYMdQIKLKYPy8ho77c3q8w2Cc9HSxk14/Rz
-        BsKHDs499EfifdMDjwRPcZYAWYmqg==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:content-transfer-encoding:content-type
-        :date:from:message-id:mime-version:subject:to:x-me-sender
-        :x-me-sender:x-sasl-enc:x-sasl-enc; s=fm1; bh=OKZ+e1C4yVE3oIxlcd
-        5lahKQkGTzQwkaR5jWFzKGRYI=; b=pQ/TbN8cQNo/uJ6rPwsR3uWSkWgSZkWQBN
-        UGmq/075C3El8neDv2dObWr72xHN/IzU/VvaBhUaArMlPowAZpzU4iFccOu5LUnc
-        I5RmLy/SLYH7QFClU6Wu7pRP00ycpINGZp/cimlMQQ9XlnwlqSYTyXy2GZKUVEgt
-        nOEWGaXU/UJd1i+MSA2YFaWPgZxtJtU2qiSaPpEmPHyJUJi4G+5SyFw8VX43frdn
-        LrDJgiYruAZG1O3Vzs2ccLLdJqBqrzYisqtsRK7GDfSO8KlC1y04x1D8UsNzVcAz
-        opVRxEyU97/oXosdJ+Nj5LVXdV5jZFFrnsf2FzNVf/u+6s1c6f6w==
+Content-Language: en-US
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: NeilBrown <neilb@suse.com>
-Cc: autofs mailing list <autofs@vger.kernel.org>
+Content-Type: text/plain; charset="windows-1252"; format="flowed"
+To: autofs@vger.kernel.org
+Cc: it+autofs@molgen.mpg.de
 
-Hi Neil,
+Dear autofs folks,
 
-Can you re-send the patch please.
-I've "lost" it ....
 
-Ian
+Valgrind 3.12.0 shows the following when running `automount`.
+
+```
+=3D=3D63563=3D=3D Thread 12:
+=3D=3D63563=3D=3D Conditional jump or move depends on uninitialised value(s)
+=3D=3D63563=3D=3D    at 0x4C2E826: rawmemchr (vg_replace_strmem.c:1402)
+=3D=3D63563=3D=3D    by 0x61D3FB6: _nss_files_parse_grent (fgetgrent_r.c:37)
+=3D=3D63563=3D=3D    by 0xB3CA5FA: internal_getent (files-XXX.c:272)
+=3D=3D63563=3D=3D    by 0xB3CA9E0: _nss_files_getgrgid_r (files-grp.c:39)
+=3D=3D63563=3D=3D    by 0x61D393B: getgrgid_r@@GLIBC_2.2.5 (getXXbyYY_r.c:2=
+66)
+=3D=3D63563=3D=3D    by 0x131AC3: set_tsd_user_vars (mounts.c:1538)
+=3D=3D63563=3D=3D    by 0x11B652: do_mount_indirect (indirect.c:776)
+=3D=3D63563=3D=3D    by 0x4E3B190: start_thread (pthread_create.c:309)
+=3D=3D63563=3D=3D  Uninitialised value was created by a heap allocation
+=3D=3D63563=3D=3D    at 0x4C27A10: malloc (vg_replace_malloc.c:298)
+=3D=3D63563=3D=3D    by 0x4C299DC: realloc (vg_replace_malloc.c:785)
+=3D=3D63563=3D=3D    by 0x131A4D: set_tsd_user_vars (mounts.c:1530)
+=3D=3D63563=3D=3D    by 0x11B652: do_mount_indirect (indirect.c:776)
+=3D=3D63563=3D=3D    by 0x4E3B190: start_thread (pthread_create.c:309)
+=3D=3D63563=3D=3D
+=3D=3D63563=3D=3D Conditional jump or move depends on uninitialised value(s)
+=3D=3D63563=3D=3D    at 0x4C2A4A5: __GI_strchr (vg_replace_strmem.c:246)
+=3D=3D63563=3D=3D    by 0x61D3DBB: _nss_files_parse_grent (fgetgrent_r.c:37)
+=3D=3D63563=3D=3D    by 0xB3CA5FA: internal_getent (files-XXX.c:272)
+=3D=3D63563=3D=3D    by 0xB3CA9E0: _nss_files_getgrgid_r (files-grp.c:39)
+=3D=3D63563=3D=3D    by 0x61D393B: getgrgid_r@@GLIBC_2.2.5 (getXXbyYY_r.c:2=
+66)
+=3D=3D63563=3D=3D    by 0x131AC3: set_tsd_user_vars (mounts.c:1538)
+=3D=3D63563=3D=3D    by 0x11B652: do_mount_indirect (indirect.c:776)
+=3D=3D63563=3D=3D    by 0x4E3B190: start_thread (pthread_create.c:309)
+=3D=3D63563=3D=3D  Uninitialised value was created by a heap allocation
+=3D=3D63563=3D=3D    at 0x4C27A10: malloc (vg_replace_malloc.c:298)
+=3D=3D63563=3D=3D    by 0x4C299DC: realloc (vg_replace_malloc.c:785)
+=3D=3D63563=3D=3D    by 0x131A4D: set_tsd_user_vars (mounts.c:1530)
+=3D=3D63563=3D=3D    by 0x11B652: do_mount_indirect (indirect.c:776)
+=3D=3D63563=3D=3D    by 0x4E3B190: start_thread (pthread_create.c:309)
+=3D=3D63563=3D=3D
+=3D=3D63563=3D=3D Conditional jump or move depends on uninitialised value(s)
+=3D=3D63563=3D=3D    at 0x4C2A49A: __GI_strchr (vg_replace_strmem.c:246)
+=3D=3D63563=3D=3D    by 0x61D3DBB: _nss_files_parse_grent (fgetgrent_r.c:37)
+=3D=3D63563=3D=3D    by 0xB3CA5FA: internal_getent (files-XXX.c:272)
+=3D=3D63563=3D=3D    by 0xB3CA9E0: _nss_files_getgrgid_r (files-grp.c:39)
+=3D=3D63563=3D=3D    by 0x61D393B: getgrgid_r@@GLIBC_2.2.5 (getXXbyYY_r.c:2=
+66)
+=3D=3D63563=3D=3D    by 0x131AC3: set_tsd_user_vars (mounts.c:1538)
+=3D=3D63563=3D=3D    by 0x11B652: do_mount_indirect (indirect.c:776)
+=3D=3D63563=3D=3D    by 0x4E3B190: start_thread (pthread_create.c:309)
+=3D=3D63563=3D=3D  Uninitialised value was created by a heap allocation
+=3D=3D63563=3D=3D    at 0x4C27A10: malloc (vg_replace_malloc.c:298)
+=3D=3D63563=3D=3D    by 0x4C299DC: realloc (vg_replace_malloc.c:785)
+=3D=3D63563=3D=3D    by 0x131A4D: set_tsd_user_vars (mounts.c:1530)
+=3D=3D63563=3D=3D    by 0x11B652: do_mount_indirect (indirect.c:776)
+=3D=3D63563=3D=3D    by 0x4E3B190: start_thread (pthread_create.c:309)
+=3D=3D63563=3D=3D
+```
+
+The corresponding code looks like below.
+
+```
+         gr_tmp =3D NULL;
+         status =3D ERANGE;
+#ifdef ENABLE_LIMIT_GETGRGID_SIZE
+         if (!maxgrpbuf)
+                 maxgrpbuf =3D detached_thread_stack_size * 0.9;
+#endif
+
+         /* If getting the group name fails go on without it. It's
+          * used to set an environment variable for program maps
+          * which may or may not use it so it isn't critical to
+          * operation.
+          */
+
+         tmplen =3D grplen;
+         while (1) {
+                 char *tmp =3D realloc(gr_tmp, tmplen + 1);
+                 if (!tmp) {
+                         error(logopt, "failed to malloc buffer for=20
+getgrgid_r");
+                         goto no_group;
+                 }
+                 gr_tmp =3D tmp;
+                 pgr =3D &gr;
+                 ppgr =3D &pgr;
+                 status =3D getgrgid_r(gid, pgr, gr_tmp, tmplen, ppgr);
+                 if (status !=3D ERANGE)
+                         break;
+                 tmplen +=3D grplen;
+
+                 /* Don't tempt glibc to alloca() larger than is (likely)
+                  * available on the stack if limit-getgrgid-size is=20
+enabled.
+                  */
+                 if (!maxgrpbuf || (tmplen < maxgrpbuf))
+                         continue;
+
+                 /* Add a message so we know this happened */
+                 debug(logopt, "group buffer allocation would be too=20
+large");
+                 break;
+         }
+```
+
+Unfortunately, I don=E2=80=99t spot the problem. Do you see it?
+
+
+Kind regards,
+
+Paul
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
