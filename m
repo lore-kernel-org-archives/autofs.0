@@ -1,47 +1,41 @@
-From: Karel Zak <kzak-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [autofs PATCH] Add -c option when calling /bin/umount - if
- supported.
-Date: Wed, 7 Jun 2017 17:55:46 +0200
-Message-ID: <20170607155546.os45xr6zv5emhf7g@ws.net.home>
-References: <87d1agd4cu.fsf@notabene.neil.brown.name>
- <20170607155202.5zyzuvy6l3fsawkl@ws.net.home>
+From: Ian Kent <raven@themaw.net>
+Subject: The add -c option when calling /bin/umount
+Date: Thu, 08 Jun 2017 11:00:15 +0800
+Message-ID: <1496890815.9718.1.camel@themaw.net>
 Mime-Version: 1.0
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-DKIM-Filter: OpenDKIM Filter v2.11.0 mx1.redhat.com ACB3937EEF
-Content-Disposition: inline
-In-Reply-To: <20170607155202.5zyzuvy6l3fsawkl-xkT7n84Rsxv/9pzu0YdTqQ@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Transfer-Encoding: 7bit
+Return-path: <autofs-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
+        :content-transfer-encoding:content-type:date:from:message-id
+        :mime-version:subject:to:x-me-sender:x-me-sender:x-sasl-enc
+        :x-sasl-enc; s=fm1; bh=OKZ+e1C4yVE3oIxlcd5lahKQkGTzQwkaR5jWFzKGR
+        YI=; b=ck6SrTP7TDV4o7hL8N0PHg/iYBuFuj9pmVUZ0OAhVziFAuBtA3hDCcDkf
+        0qBhsF4/13Fehakktm0O5xA8ROgNG3+N2KSf/alpV4z5HdwlYCu2Pd/q+DKzszfn
+        vvuH/xsFX7RYQHj3OZk3l23mpMKA7mVLoAViLplKWtNtllYRdQpx6j+gBd5j3EJw
+        JlF0NjPoVpqVyewMekc7hnzPuCOJ5gNcGIXNEQik3ZEDmG5kj2rA4zMWoTeYnZ51
+        mSGneJcwMOc2R7wJLo40GX8RPQSsvZYMdQIKLKYPy8ho77c3q8w2Cc9HSxk14/Rz
+        BsKHDs499EfifdMDjwRPcZYAWYmqg==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:content-transfer-encoding:content-type
+        :date:from:message-id:mime-version:subject:to:x-me-sender
+        :x-me-sender:x-sasl-enc:x-sasl-enc; s=fm1; bh=OKZ+e1C4yVE3oIxlcd
+        5lahKQkGTzQwkaR5jWFzKGRYI=; b=pQ/TbN8cQNo/uJ6rPwsR3uWSkWgSZkWQBN
+        UGmq/075C3El8neDv2dObWr72xHN/IzU/VvaBhUaArMlPowAZpzU4iFccOu5LUnc
+        I5RmLy/SLYH7QFClU6Wu7pRP00ycpINGZp/cimlMQQ9XlnwlqSYTyXy2GZKUVEgt
+        nOEWGaXU/UJd1i+MSA2YFaWPgZxtJtU2qiSaPpEmPHyJUJi4G+5SyFw8VX43frdn
+        LrDJgiYruAZG1O3Vzs2ccLLdJqBqrzYisqtsRK7GDfSO8KlC1y04x1D8UsNzVcAz
+        opVRxEyU97/oXosdJ+Nj5LVXdV5jZFFrnsf2FzNVf/u+6s1c6f6w==
+Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: NeilBrown <neilb-IBi9RG/b67k@public.gmane.org>
-Cc: Ian Kent <raven-PKsaG3nR2I+sTnJN9+BGXg@public.gmane.org>, autofs mailing list <autofs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, util-linux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: NeilBrown <neilb@suse.com>
+Cc: autofs mailing list <autofs@vger.kernel.org>
 
-On Wed, Jun 07, 2017 at 05:52:02PM +0200, Karel Zak wrote:
-> On Wed, Jun 07, 2017 at 10:32:49AM +1000, NeilBrown wrote:
-> > 
-> > The "-c" option has been supported by umount since util-linux 2.17.
-> > It tells umount that the path name is "canonical", meaning no
-> > symlinks or ".." etc.
-> > This is appropriate for autofs to use and it always uses canonical
-> > path names.
-> > The advantage of "-c" is that it means umount doesn't need to
-> > 'lstat()' the path so much.
-> 
-> It would be also nice to force systemd to use "umount -c" on shutdown
-> to avoid automount storm...
+Hi Neil,
 
-$ git blame -L889,+1 src/core/mount.c
-83897d54 (Neil Brown 2017-06-07 22:28:23 +1000 889)         r = exec_command_set(m->control_command, UMOUNT_PATH, m->where, "-c", NULL);
+Can you re-send the patch please.
+I've "lost" it ....
 
-OK.... ;-)
-
-    Karel
-
--- 
- Karel Zak  <kzak-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
- http://karelzak.blogspot.com
+Ian
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe from this list: send the line "unsubscribe autofs" in
