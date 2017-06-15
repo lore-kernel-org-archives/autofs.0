@@ -1,63 +1,69 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Proposal for end-of-life for fedfs-utils development
-Date: Wed, 14 Jun 2017 16:53:07 -0400
-Message-ID: <43E4D612-8CCD-4511-9E1D-265F4D459EE6@oracle.com>
-References: <56804FBE-34B2-47FB-96EF-013D4476D89A@oracle.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56804FBE-34B2-47FB-96EF-013D4476D89A-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-ID: <autofs.vger.kernel.org>
+From: Vincent McIntyre <vincent.mcintyre@csiro.au>
+Subject: expected behaviour for replicated servers
+Date: Thu, 15 Jun 2017 12:19:49 +1000
+Message-ID: <20170615021949.GM10434@mayhem.atnf.CSIRO.AU>
+Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-To: fedfs-utils Developers <fedfs-utils-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "fedfs-utils;release announcements" <fedfs-utils-announce-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>, autofs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Chuck Lever via samba-technical <samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org>
+Return-path: <autofs-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
+  d=csiro.au; i=@csiro.au; q=dns/txt; s=dkim;
+  t=1497493800; x=1529029800;
+  h=date:from:to:subject:message-id:mime-version;
+  bh=vFywW65k8kRwoVDUYHM2jc+RQXrWoysJdBOA9kCBGbk=;
+  b=k9tMcb5HNgFMekTqCrG+rnWw+XvoZY03NbnzokCeASP8P0lgaJqjCu/S
+   cqBr7ZIAORW+lkLPv3eiSk+6R9w/j+Hfa18kQyUMV3FuVSMmHFwyoCZdL
+   kwq3VkDBNcETCpXGTFaJk1zm+G8xXI/iwUJqfqTZP17l2o6f7gUfQ06++
+   8=;
+Content-Disposition: inline
+Sender: autofs-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+To: autofs@vger.kernel.org
+
+Hello
+
+I can't see this in the manpages or README.replicated-server,
+perhaps I can provide a patch...
+
+I have this setup:
+
+$ grep autofs /etc/nsswitch.conf
+autofs: files nis
+
+$ cat /etc/auto.master
+/nfs  auto.nfs  -rw,hard,intr,vers=3
+$ ypcat -k auto.nfs
+foo  -ro,hard  boxa,boxb:/export/foo
 
 
-> On Jun 2, 2017, at 11:01 AM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
-> 
-> Upstream fedfs-utils has not been under active development for
-> two years or more, and there is a scant user base. I'd like to
-> propose making 0.10 the final major release of fedfs-utils.
-> 
-> The plan:
-> 
-> - Since 0.10 is in at least one major enterprise distribution,
-> I will remain available to integrate security fixes and make
-> new minor releases in the 0.10 line, as needed, for one to
-> two more years.
-> 
-> - Retire and remove fedfs-utils from upstream mirror distros
-> such as Fedora rawhide.
-> 
-> - Transfer utilities such as nfsref into nfs-utils, with
-> support for FedFS junctions removed.
-> 
-> - Announcements of the change in status will be made on
-> fedfs-utils-announce and on the wiki.linux-nfs.org site.
-> 
-> 
-> 
-> Comments welcome!
+Question:
 
-This was meant as a Request For Comments, but the cat is
-out of bag now:
+If boxa has the NFS server running (so autofs ping works)
+but does not export /export/foo,
+what is the expected behaviour?
 
-https://lwn.net/Articles/725411/rss
+boxa and boxb are in different subnets, the client is in
+the same subnet as boxa.
 
-;-)
-
-I haven't heard any objections to this proposal, so let's
-go with it. Consider this the official announcement of
-the end-of-life of fedfs-utils.
+What I am seeing is that the automount fails completely
+upon trying boxa. boxb is never tried (no request logged on boxb).
+Looking at the autofs debug log, I can see
+get_nfs_info called for boxa, twice in fact.
+For boxb, only get_supported_ver_and_cost is called,
+after which the daemon tries to mount the share from boxa.
 
 
+What I was hoping to see is that the client also tries boxb
+before giving up.
+
+I tried fiddling with:
+ the order (boxb,boxa:/export/foo)
+ weights (boxb(3),boxa:/export/foo),
+but none of this made any difference.
+
+This happens to be  5.0.8-2+deb8u1 but that's probably irrelevant.
+
+Kind regards
+Vince
 --
-Chuck Lever
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe from this list: send the line "unsubscribe autofs" in
