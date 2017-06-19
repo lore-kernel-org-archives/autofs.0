@@ -1,56 +1,73 @@
-From: Michael Ellerman <mpe@ellerman.id.au>
-Subject: Re: [PATCH] autofs: sanity check status reported with AUTOFS_DEV_IOCTL_FAIL
-Date: Fri, 16 Jun 2017 20:33:11 +1000
-Message-ID: <8760fww7bs.fsf@concordia.ellerman.id.au>
-References: <871sqwczx5.fsf@notabene.neil.brown.name> <20170615163400.e2f024125581f452d48f1aca@linux-foundation.org> <87fuf07k84.fsf@notabene.neil.brown.name>
+From: Roland Hopferwieser <rhopfer@ica.jku.at>
+Subject: [PATCH] Typo in man pages
+Date: Mon, 19 Jun 2017 16:50:48 +0200
+Message-ID: <ea0127fc-496d-56cf-71e8-4602c7570b23@ica.jku.at>
 Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------B5714071DAB25F92608B9A46"
 Return-path: <autofs-owner@vger.kernel.org>
-In-Reply-To: <87fuf07k84.fsf@notabene.neil.brown.name>
+Content-Language: de-AT
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
+To: autofs@vger.kernel.org
+
+This is a multi-part message in MIME format.
+--------------B5714071DAB25F92608B9A46
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-To: NeilBrown <neilb@suse.com>, Andrew Morton <akpm@linux-foundation.org>
-Cc: Ian Kent <raven@themaw.net>, LKML <linux-kernel@vger.kernel.org>, autofs mailing list <autofs@vger.kernel.org>
 
-NeilBrown <neilb@suse.com> writes:
-> On Thu, Jun 15 2017, Andrew Morton wrote:
->> On Wed, 07 Jun 2017 12:08:38 +1000 NeilBrown <neilb@suse.com> wrote:
->>> --- a/fs/autofs4/dev-ioctl.c
->>> +++ b/fs/autofs4/dev-ioctl.c
->>> @@ -344,7 +344,7 @@ static int autofs_dev_ioctl_fail(struct file *fp,
->>>  	int status;
->>>  
->>>  	token = (autofs_wqt_t) param->fail.token;
->>> -	status = param->fail.status ? param->fail.status : -ENOENT;
->>> +	status = param->fail.status < 0 ? param->fail.status : -ENOENT;
->>>  	return autofs4_wait_release(sbi, token, status);
->>>  }
->>
->> Sounds serious.  Was the absence of a cc:stable deliberate?
->
-> You need CAP_SYS_ADMIN to  get the ioctl even looked at.  Doesn't that
-> mean the bug can only be triggered by a process that could easily do
-> worse?
->
-> Or do containers allow admins to give out CAP_SYS_ADMIN to untrusted
-> people??  I haven't been keeping up.
+Hi,
 
-Yep. They can be configured individually in fact, eg:
+I found two typos in the man pages of autofs.5 and autofs.conf.5.in.
 
-  $ docker run --cap-drop=ALL --cap-add=sys_admin -it debian:jessie /bin/bash
-  root@aedebe8c46e0:/# capsh --print
-  Current: = cap_sys_admin+eip
-  Bounding set =cap_sys_admin
-  Securebits: 00/0x0/1'b0
-   secure-noroot: no (unlocked)
-   secure-no-suid-fixup: no (unlocked)
-   secure-keep-caps: no (unlocked)
-  uid=0(root)
-  gid=0(root)
-  groups=
+Best regards,
+Roland
+
+--------------B5714071DAB25F92608B9A46
+Content-Type: text/x-patch;
+ name="0001-Fix-man-typos.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="0001-Fix-man-typos.patch"
+
+From 8b9f5eeee50a2c453b25fc8ab21c0d694be9783b Mon Sep 17 00:00:00 2001
+From: Roland Hopferwieser <rhopfer@ica.jku.at>
+Date: Mon, 19 Jun 2017 16:24:35 +0200
+Subject: [PATCH] Fix man typos
+
+---
+ man/autofs.5         | 2 +-
+ man/autofs.conf.5.in | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/man/autofs.5 b/man/autofs.5
+index efde77a..0063fbe 100644
+--- a/man/autofs.5
++++ b/man/autofs.5
+@@ -447,7 +447,7 @@ This is the mount filesystem \fBtype\fP.
+ It can have a value of
+ .BR auto ", " link ", " linkx ", " host ", " lofs ", " ext2-4 ", "
+ .BR xfs ", " nfs ", " nfsl " or " cdfs "."
+-Other types that are not yet implemented or are not available iin autofs are
++Other types that are not yet implemented or are not available in autofs are
+ .BR nfsx ", " lustre ", " jfs ", " program ", " cachefs " and " direct "."
+ .TP
+ .B maptype
+diff --git a/man/autofs.conf.5.in b/man/autofs.conf.5.in
+index a777c58..0efe0d4 100644
+--- a/man/autofs.conf.5.in
++++ b/man/autofs.conf.5.in
+@@ -1,5 +1,5 @@
+ .\" t
+-.TH AUTOFS.CONF "23 Jan 2014"
++.TH AUTOFS.CONF 5 "23 Jan 2014"
+ .SH NAME
+ autofs.conf \- autofs configuration
+ .SH "DESCRIPTION"
+-- 
+2.13.1
 
 
-cheers
+--------------B5714071DAB25F92608B9A46--
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
