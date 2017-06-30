@@ -1,102 +1,975 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH v2] use pkg-config to search for libtirpc to fix
+From: Waldemar Brodkorb <wbx@openadk.org>
+Subject: [PATCH v3] use pkg-config to search for libtirpc to fix
  cross-compilation
-Date: Thu, 29 Jun 2017 21:15:00 +0800
-Message-ID: <1498742100.2734.6.camel@themaw.net>
-References: <20170628102950.GA7247@waldemar-brodkorb.de>
-         <1498694049.2734.0.camel@themaw.net>
-         <20170629090814.GD26922@waldemar-brodkorb.de>
+Date: Fri, 30 Jun 2017 10:54:39 +0200
+Message-ID: <20170630085439.GA14206@waldemar-brodkorb.de>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
-        :content-transfer-encoding:content-type:date:from:in-reply-to
-        :message-id:mime-version:references:subject:to:x-me-sender
-        :x-me-sender:x-sasl-enc:x-sasl-enc; s=fm1; bh=QNgCKztifzkhrMQ2Op
-        dKHgxOfEaivsGwWQ6d/G53qfk=; b=VelaH6NuJzjHP5/P8r5kNnn1puUnQCR7qP
-        qGAXfn13XtSc/X0wXxC8OataZrAJNQJ+3U41o2A5bADI/QLhZAUPsCh9WUW2nHhH
-        pADMB6YzJ6tZ8yyPFFKYFqu346c0lxOtltuZcG4+LvSqs5fwPezPQwYRz6YPFlCu
-        Qdl1UncQo8cQI04o1xxMpfmcuuUT9I7+6e2GdZnUndA4VdxUNGxzXeI7bksjDk/q
-        nIHT6Oy22whpYR31zqQIlWOKGLnl1DdXZdaBiVAHbfNsQvlU3whNHP2NuNhxNhAp
-        Y0eG3R08T+84T1oiQeuOPffCAz1WwmXmqy9wU1trDHNwyy4Qd84Q==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:content-transfer-encoding:content-type
-        :date:from:in-reply-to:message-id:mime-version:references
-        :subject:to:x-me-sender:x-me-sender:x-sasl-enc:x-sasl-enc; s=
-        fm1; bh=QNgCKztifzkhrMQ2OpdKHgxOfEaivsGwWQ6d/G53qfk=; b=YtqvcLDf
-        JXnRFK1JmShy6hq5Y+d849UppHtEERCrA/59wfg/o7Y6q/uyxc6KF/a6Mty2zIny
-        5lYLL0505g27XiQABOh5gv0NLa6lWzbTQiLw88UUOq+/tzBwnUujgCLVyGVe2b9l
-        49gdqOHCU2I04btnq2pSMlkPTAHKZgqyfxps6wNyZOGdu5kaLUzV504VtUnM+f1a
-        yloqt9pXu6ysCsaZ6xydtYssZxfCTJQqhrBoaVptLERioS+bNsnz+KKQHRWH53Ea
-        WSTJS/HUCBp9tlcdjj8e9vqxsdp4cnixr/wOROyW1QJCVPj9yv9JiSihSa26S66b
-        aJP09bS6y2CATg==
-In-Reply-To: <20170629090814.GD26922@waldemar-brodkorb.de>
+Content-Disposition: inline
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="utf-8"
-To: Waldemar Brodkorb <wbx@openadk.org>
-Cc: autofs@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: autofs@vger.kernel.org
+Cc: Ian Kent <raven@themaw.net>
 
-On Thu, 2017-06-29 at 11:08 +0200, Waldemar Brodkorb wrote:
-> Hi,
-> Ian Kent wrote,
-> 
-> > On Wed, 2017-06-28 at 12:29 +0200, Waldemar Brodkorb wrote:
-> > > When trying to cross-compile autofs for example with a buildsystem
-> > > like buildroot, the compilation fails in case the user wants to use
-> > > libtirpc library as RPC implementation. A hard coded include path
-> > > in aclocal.m4 is used. Other opensource software like rpcbind or
-> > > nfs-utils are suing autotools pkgconfig infrastructure to find
-> > > the libtirpc headers and to pass the correct linker flags.
-> > > 
-> > > Convert configure.in to use PKG_CHECK_MODULES and remove the
-> > > hand written autoconf macros from aclocal.m4.
-> > > 
-> > > To autoreconf the package you need pkg-config or pkgconf installed,
-> > > which provides the needed autoconf macros in pkg.m4. For an
-> > > non-automake project a full path to pkg.m4 is required.
-> > > 
-> > > This fixes cross-compilation of autofs and allows to use
-> > > alternative C libraries as uClibc-ng without internal RPC
-> > > support to be used in cross-compiling environments.
-> > > 
-> > > Signed-off-by: Waldemar Brodkorb <wbx@openadk.org>
-> > > ---
-> > > v1 -> v2:
-> > >   - add a better commit decription
-> > >   - add back missing TIRPC_WORKAROUND/WITH_LIBTIRPC defines
-> > >   - add back AC_CHECK_FUNCS([getrpcbyname getservbyname])
-> > > 
-> > > For autoheader/autoconf to generate configure/config.h you
-> > > need to have pkg-config installed on your development machine.
-> > > When the user does not have installed pkg-config later, he
-> > > can use autofs without libtirpc as before. 
-> > > Configure will fail when the user use --with-libtirpc and
-> > > pkg-config is not installed.
-> > 
-> > Thanks for this, I'll have a look through it.
-> > 
-> > > +# for pkg-config macros
-> > > +m4_include([/usr/share/aclocal/pkg.m4])
-> > > +
-> 
-> Yann (Buildroot developer) found out, that this include
-> can be avoided when the aclocal.m4 would be moved.
-> It seems autoconf does not search for macros in any
-> global directories, if this file is in the current
-> directory found.
+When trying to cross-compile autofs for example with a buildsystem
+like buildroot, the compilation fails in case the user wants to use
+libtirpc library as RPC implementation. A hard coded include path
+in aclocal.m4 is used. Other opensource software like rpcbind or
+nfs-utils are suing autotools pkgconfig infrastructure to find
+the libtirpc headers and to pass the correct linker flags.
 
-Yes, I was wondering if there was a way to avoid the full path.
+Convert configure.in to use PKG_CHECK_MODULES and remove the
+hand written autoconf macros from aclocal.m4. Move aclocal.m4
+to m4 directory, so that autoconf does not skip global
+directories, otherwise pkg.m4 (pkg-config macros) are not found.
 
-> 
-> Add this to configure.in: AC_CONFIG_MACRO_DIR([m4])
-> mkdir m4
-> git mv aclocal.m4 m4/autofs-macros.m4
-> 
-> Should I update the patch, according to this?
+This fixes cross-compilation of autofs and allows to use
+alternative C libraries as uClibc-ng without internal RPC
+support to be used in cross-compiling environments.
 
-You could, to save me a bit of time, I won't get to it until tomorrow (my time).
+Signed-off-by: Waldemar Brodkorb <wbx@openadk.org>
+---
+v1 -> v2:                                                                                     
+  - add a better commit decription                                                            
+  - add back missing TIRPC_WORKAROUND/WITH_LIBTIRPC defines                                   
+  - add back AC_CHECK_FUNCS([getrpcbyname getservbyname])     
+v2 -> v3:
+  - move aclocal.m4 to m4 directory and remove m4_include
+---
+ Makefile.conf.in    |   3 +-
+ Makefile.rules      |   2 +-
+ aclocal.m4          | 449 ----------------------------------------------------
+ configure.in        |  14 +-
+ m4/autofs-macros.m4 | 401 ++++++++++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 416 insertions(+), 453 deletions(-)
+ delete mode 100644 aclocal.m4
+ create mode 100644 m4/autofs-macros.m4
 
-Ian
+diff --git a/Makefile.conf.in b/Makefile.conf.in
+index 2bc3202..f879e26 100644
+--- a/Makefile.conf.in
++++ b/Makefile.conf.in
+@@ -64,7 +64,8 @@ RPCGEN = @PATH_RPCGEN@
+ RANLIB = @PATH_RANLIB@
+ 
+ # Use libtirpc if requested and available
+-TIRPCLIB = @TIRPCLIB@
++TIRPCLIB = @TIRPC_LIBS@
++TIRPCCFLAGS = @TIRPC_CFLAGS@
+ 
+ # Use dmalloc for memory debuging
+ DMALLOCLIB = @DMALLOCLIB@
+diff --git a/Makefile.rules b/Makefile.rules
+index 7d1af2e..0edf9bf 100644
+--- a/Makefile.rules
++++ b/Makefile.rules
+@@ -46,7 +46,7 @@ CFLAGS += -D_REENTRANT -D_FILE_OFFSET_BITS=64
+ LIBS += -lpthread
+ 
+ ifdef TIRPCLIB
+-CFLAGS += -I/usr/include/tirpc
++CFLAGS += $(TIRPCCFLAGS)
+ LIBS += $(TIRPCLIB)
+ endif
+ 
+diff --git a/aclocal.m4 b/aclocal.m4
+deleted file mode 100644
+index 00811e0..0000000
+--- a/aclocal.m4
++++ /dev/null
+@@ -1,449 +0,0 @@
+-dnl
+-dnl --------------------------------------------------------------------------
+-dnl AF_PATH_INCLUDE:
+-dnl
+-dnl Like AC_PATH_PROGS, but add to the .h file as well
+-dnl --------------------------------------------------------------------------
+-AC_DEFUN(AF_PATH_INCLUDE,
+-[AC_PATH_PROGS($1,$2,$3,$4)
+-if test -n "$$1"; then
+-  AC_DEFINE(HAVE_$1,1,[define if you have $1])
+-  AC_DEFINE_UNQUOTED(PATH_$1, "$$1", [define if you have $1])
+-  HAVE_$1=1
+-else
+-  HAVE_$1=0
+-fi
+-AC_SUBST(HAVE_$1)])
+-
+-dnl --------------------------------------------------------------------------
+-dnl AF_CHECK_PROG:
+-dnl
+-dnl Like AC_CHECK_PROG, but fail configure if not found
+-dnl and only define PATH_<name> variable
+-dnl --------------------------------------------------------------------------
+-AC_DEFUN(AF_CHECK_PROG,
+-[AC_PATH_PROGS($1,$2,$3,$4)
+-if test -n "$$1"; then
+-  AC_DEFINE_UNQUOTED(PATH_$1, "$$1", [define if you have $1])
+-  PATH_$1="$$1"
+-else
+-  AC_MSG_ERROR([required program $1 not found])
+-fi
+-AC_SUBST(PATH_$1)])
+-
+-dnl --------------------------------------------------------------------------
+-dnl AF_CHECK_SSS_LIB:
+-dnl
+-dnl Check if a sss autofs library exists.
+-dnl --------------------------------------------------------------------------
+-AC_DEFUN(AF_CHECK_SSS_LIB,
+-[if test -z "$sssldir"; then
+-  AC_MSG_CHECKING(for sssd autofs library)
+-  for libd in /usr/lib64 /usr/lib; do
+-    if test -z "$sssldir"; then
+-      if test -e "$libd/sssd/modules/$2"; then
+-        sssldir=$libd/sssd/modules
+-      fi
+-    fi
+-  done
+-  if test -n "$sssldir"; then
+-    HAVE_$1=1
+-    AC_MSG_RESULT(yes)
+-  else
+-    HAVE_$1=0
+-    AC_MSG_RESULT(no)
+-  fi
+-fi])
+-
+-dnl --------------------------------------------------------------------------
+-dnl AF_SLOPPY_MOUNT
+-dnl
+-dnl Check to see if mount(8) supports the sloppy (-s) option, and define
+-dnl the cpp variable HAVE_SLOPPY_MOUNT if so.  This requires that MOUNT is
+-dnl already defined by a call to AF_PATH_INCLUDE or AC_PATH_PROGS.
+-dnl --------------------------------------------------------------------------
+-AC_DEFUN(AF_SLOPPY_MOUNT,
+-[if test -n "$MOUNT" ; then
+-  AC_MSG_CHECKING([if mount accepts the -s option])
+-  if "$MOUNT" -s > /dev/null 2>&1 ; then
+-    enable_sloppy_mount=yes
+-    AC_MSG_RESULT(yes)
+-  else
+-    AC_MSG_RESULT(no)
+-  fi
+-fi])
+-
+-
+-dnl --------------------------------------------------------------------------
+-dnl AF_LINUX_PROCFS
+-dnl
+-dnl Check for the Linux /proc filesystem
+-dnl --------------------------------------------------------------------------
+-AC_DEFUN(AF_LINUX_PROCFS,
+-[AC_CACHE_CHECK([for Linux proc filesystem], [ac_cv_linux_procfs],
+-	[ac_cv_linux_procfs=no
+-	 test "x`cat /proc/sys/kernel/ostype 2>&-`" = "xLinux" && ac_cv_linux_procfs=yes])
+- if test $ac_cv_linux_procfs = yes
+- then
+-	AC_DEFINE(HAVE_LINUX_PROCFS, 1,
+-		[Define if you have the Linux /proc filesystem.])
+-fi])
+-
+-dnl --------------------------------------------------------------------------
+-dnl AF_INIT_D
+-dnl
+-dnl Check the location of the init.d directory
+-dnl --------------------------------------------------------------------------
+-AC_DEFUN(AF_INIT_D,
+-[if test -z "$initdir"; then
+-  AC_MSG_CHECKING([location of the init.d directory])
+-  for init_d in /etc/init.d /etc/rc.d/init.d; do
+-    if test -z "$initdir"; then
+-      if test -d "$init_d"; then
+-	initdir="$init_d"
+-	AC_MSG_RESULT($initdir)
+-      fi
+-    fi
+-  done
+-fi])
+-
+-dnl --------------------------------------------------------------------------
+-dnl AF_CONF_D
+-dnl
+-dnl Check the location of the configuration defaults directory
+-dnl --------------------------------------------------------------------------
+-AC_DEFUN(AF_CONF_D,
+-[if test -z "$confdir"; then
+-  for conf_d in /etc/sysconfig /etc/defaults /etc/conf.d /etc/default; do
+-    if test -z "$confdir"; then
+-      if test -d "$conf_d"; then
+-	confdir="$conf_d"
+-      fi
+-    fi
+-  done
+-fi])
+-
+-dnl --------------------------------------------------------------------------
+-dnl AF_MAP_D
+-dnl
+-dnl Check the location of the autofs maps directory
+-dnl --------------------------------------------------------------------------
+-AC_DEFUN(AF_MAP_D,
+-[if test -z "$mapdir"; then
+-  for map_d in /etc/autofs /etc; do
+-    if test -z "$mapdir"; then
+-      if test -d "$map_d"; then
+-	mapdir="$map_d"
+-      fi
+-    fi
+-  done
+-fi])
+-
+-dnl --------------------------------------------------------------------------
+-dnl AF_PID_D
+-dnl
+-dnl Check the location of the pid file directory.
+-dnl --------------------------------------------------------------------------
+-AC_DEFUN(AF_PID_D,
+-[if test -z "$piddir"; then
+-  for pid_d in /run /var/run /tmp; do
+-    if test -z "$piddir"; then
+-      if test -d "$pid_d"; then
+-        piddir="$pid_d"
+-      fi
+-    fi
+-  done
+-fi])
+-
+-dnl --------------------------------------------------------------------------
+-dnl AF_FIFO_D
+-dnl
+-dnl Check the location of the autofs fifos directory
+-dnl --------------------------------------------------------------------------
+-AC_DEFUN(AF_FIFO_D,
+-[if test -z "$fifodir"; then
+-  for fifo_d in /run /var/run /tmp; do
+-    if test -z "$fifodir"; then
+-      if test -d "$fifo_d"; then
+-        fifodir="$fifo_d"
+-      fi
+-    fi
+-  done
+-fi])
+-
+-dnl --------------------------------------------------------------------------
+-dnl AF_FLAG_D
+-dnl
+-dnl Check the location of the autofs flag file directory
+-dnl --------------------------------------------------------------------------
+-AC_DEFUN(AF_FLAG_D,
+-[if test -z "$flagdir"; then
+-  for flag_d in /run /var/run /tmp; do
+-    if test -z "$flagdir"; then
+-      if test -d "$flag_d"; then
+-        flagdir="$flag_d"
+-      fi
+-    fi
+-  done
+-fi])
+-
+-dnl ----------------------------------- ##                   -*- Autoconf -*-
+-dnl Check if --with-dmalloc was given.  ##
+-dnl From Franc,ois Pinard               ##
+-dnl ----------------------------------- ##
+-dnl
+-dnl Copyright (C) 1996, 1998, 1999, 2000, 2001, 2002, 2003, 2005
+-dnl Free Software Foundation, Inc.
+-dnl
+-dnl This file is free software; the Free Software Foundation
+-dnl gives unlimited permission to copy and/or distribute it,
+-dnl with or without modifications, as long as this notice is preserved.
+-
+-dnl serial 3
+-
+-AC_DEFUN([AM_WITH_DMALLOC],
+-[AC_MSG_CHECKING([if malloc debugging is wanted])
+-AC_ARG_WITH(dmalloc,
+-[  --with-dmalloc          use dmalloc, as in
+-			  http://www.dmalloc.com/dmalloc.tar.gz],
+-[if test "$withval" = yes; then
+-  AC_MSG_RESULT(yes)
+-  AC_DEFINE(WITH_DMALLOC,1,
+-	    [Define if using the dmalloc debugging malloc package])
+-  DMALLOCLIB="-ldmallocth"
+-  LDFLAGS="$LDFLAGS -g"
+-else
+-  AC_MSG_RESULT(no)
+-fi], [AC_MSG_RESULT(no)])
+-])
+-
+-dnl --------------------------------------------------------------------------
+-dnl AF_WITH_SYSTEMD
+-dnl
+-dnl Check the location of the systemd unit files directory
+-dnl --------------------------------------------------------------------------
+-AC_DEFUN([AF_WITH_SYSTEMD],
+-[AC_ARG_WITH(systemd,
+-[  --with-systemd@<:@=systemddir@:>@  install systemd unit file.  If 'yes'
+-			  probe the system for unit directory.
+-			  If a path is specified, assume that
+-			  is a valid install path.],
+-[if test "$withval" = yes; then
+-  if test -z "$systemddir"; then
+-    AC_MSG_CHECKING([location of the systemd unit files directory])
+-    for systemd_d in /usr/lib/systemd/system /usr/lib64/systemd/system /lib/systemd/system /lib64/systemd/system; do
+-      if test -z "$systemddir"; then
+-        if test -d "$systemd_d"; then
+-          systemddir="$systemd_d"
+-        fi
+-      fi
+-    done
+-  fi
+-  if test -n "$systemddir"; then
+-    AC_MSG_RESULT($systemddir)
+-  else
+-    AC_MSG_RESULT(not found)
+-  fi
+-else
+- if test "$withval" != no; then
+-  systemddir=$withval
+- fi
+-fi])
+-])
+-
+-dnl --------------------------------------------------------------------------
+-dnl AF_CHECK_LIBXML
+-dnl
+-dnl Check for lib xml
+-dnl --------------------------------------------------------------------------
+-AC_DEFUN([AF_CHECK_LIBXML],
+-[AC_PATH_PROGS(XML_CONFIG, xml2-config, no)
+-AC_MSG_CHECKING(for libxml2)
+-if test "$XML_CONFIG" = "no"
+-then
+-  AC_MSG_RESULT(no)
+-  HAVE_LIBXML=0
+-else
+-  AC_MSG_RESULT(yes)
+-  HAVE_LIBXML=1
+-  XML_LIBS=`$XML_CONFIG --libs`
+-  XML_FLAGS=`$XML_CONFIG --cflags`
+-  XML_VER=`$XML_CONFIG --version`
+-  XML_MAJOR=`echo $XML_VER|cut -d\. -f1`
+-  if test $XML_MAJOR -le 99
+-  then
+-    XML_MINOR=`echo $XML_VER|cut -d\. -f2`
+-    if test $XML_MINOR -le 99
+-    then
+-      XML_REV=`echo $XML_VER|cut -d\. -f3`
+-      if test $XML_REV -le 99; then
+-        AC_DEFINE(LIBXML2_WORKAROUND,1, [Use libxml2 tsd usage workaround])
+-      fi
+-    fi
+-  fi
+-fi])
+-
+-dnl --------------------------------------------------------------------------
+-dnl AF_CHECK_KRB5
+-dnl
+-dnl Check for Kerberos 5
+-dnl --------------------------------------------------------------------------
+-AC_DEFUN([AF_CHECK_KRB5],
+-[AC_PATH_PROGS(KRB5_CONFIG, krb5-config, no)
+-AC_MSG_CHECKING(for Kerberos library)
+-if test "$KRB5_CONFIG" = "no"
+-then
+-  AC_MSG_RESULT(no)
+-  HAVE_KRB5=0
+-else
+-  AC_MSG_RESULT(yes)
+-  HAVE_KRB5=1
+-  KRB5_LIBS=`$KRB5_CONFIG --libs`
+-  KRB5_FLAGS=`$KRB5_CONFIG --cflags`
+-
+-  SAVE_CFLAGS=$CFLAGS
+-  SAVE_LIBS=$LIBS
+-  CFLAGS="$CFLAGS $KRB5_FLAGS"
+-  LIBS="$LIBS $KRB5_LIBS"
+-
+-  AC_CHECK_FUNCS([krb5_principal_get_realm])
+-fi])
+-
+-dnl --------------------------------------------------------------------------
+-dnl AF_CHECK_LIBHESIOD
+-dnl
+-dnl Check for lib hesiod
+-dnl --------------------------------------------------------------------------
+-AC_DEFUN([AF_CHECK_LIBHESIOD],
+-[AC_MSG_CHECKING(for libhesiod)
+-
+-# save current libs
+-af_check_hesiod_save_libs="$LIBS"
+-LIBS="$LIBS -lhesiod -lresolv"
+-
+-AC_TRY_LINK(
+-  [ #include <hesiod.h> ],
+-  [ void *c; hesiod_init(&c); ],
+-  [ HAVE_HESIOD=1
+-    LIBHESIOD="$LIBHESIOD -lhesiod -lresolv"
+-    AC_MSG_RESULT(yes) ],
+-  [ AC_MSG_RESULT(no) ])
+-
+-# restore libs
+-LIBS="$af_check_hesiod_save_libs"
+-])
+-
+-dnl --------------------------------------------------------------------------
+-dnl AF_CHECK_FUNC_LDAP_CREATE_PAGE_CONTROL
+-dnl
+-dnl Check for function ldap_create_page_control
+-dnl --------------------------------------------------------------------------
+-AC_DEFUN([AF_CHECK_FUNC_LDAP_CREATE_PAGE_CONTROL],
+-[AC_MSG_CHECKING(for ldap_create_page_control in -lldap)
+-
+-# save current libs
+-af_check_ldap_create_page_control_save_libs="$LIBS"
+-LIBS="$LIBS -lldap"
+-
+-AC_TRY_LINK(
+-  [ #include <ldap.h> ],
+-  [ LDAP *ld;
+-    ber_int_t ps;
+-    struct berval *c;
+-    int ic, ret;
+-    LDAPControl **clp;
+-    ret = ldap_create_page_control(ld,ps,c,ic,clp); ],
+-  [ af_have_ldap_create_page_control=yes
+-    AC_MSG_RESULT(yes) ],
+-  [ AC_MSG_RESULT(no) ])
+-
+-if test "$af_have_ldap_create_page_control" = "yes"; then
+-  AC_DEFINE(HAVE_LDAP_CREATE_PAGE_CONTROL, 1,
+-        [Define to 1 if you have the `ldap_create_page_control' function.])
+-fi
+-
+-# restore libs
+-LIBS="$af_check_ldap_create_page_control_save_libs"
+-])
+-
+-dnl --------------------------------------------------------------------------
+-dnl AF_CHECK_FUNC_LDAP_PARSE_PAGE_CONTROL
+-dnl
+-dnl Check for function ldap_parse_page_control
+-dnl --------------------------------------------------------------------------
+-AC_DEFUN([AF_CHECK_FUNC_LDAP_PARSE_PAGE_CONTROL],
+-[AC_MSG_CHECKING(for ldap_parse_page_control in -lldap)
+-
+-# save current libs
+-af_check_ldap_parse_page_control_save_libs="$LIBS"
+-LIBS="$LIBS -lldap"
+-
+-AC_TRY_LINK(
+-  [ #include <ldap.h> ],
+-  [ LDAP *ld;
+-    ber_int_t ct;
+-    struct berval *c;
+-    int ret;
+-    LDAPControl **clp;
+-    ret = ldap_parse_page_control(ld,clp,ct,c); ],
+-  [ af_have_ldap_parse_page_control=yes
+-    AC_MSG_RESULT(yes) ],
+-  [ AC_MSG_RESULT(no) ])
+-
+-if test "$af_have_ldap_create_page_control" = "yes"; then
+-  AC_DEFINE(HAVE_LDAP_PARSE_PAGE_CONTROL, 1,
+-        [Define to 1 if you have the `ldap_parse_page_control' function.])
+-fi
+-
+-# restore libs
+-LIBS="$af_check_ldap_parse_page_control_save_libs"
+-])
+-
+-dnl --------------------------------------------------------------------------
+-dnl AF_CHECK_LIBTIRPC
+-dnl
+-dnl Use libtirpc for rpc transport
+-dnl --------------------------------------------------------------------------
+-AC_DEFUN([AF_CHECK_LIBTIRPC],
+-[
+-# save current flags
+-af_check_libtirpc_save_cflags="$CFLAGS"
+-af_check_libtirpc_save_libs="$LIBS"
+-CFLAGS="$CFLAGS -I/usr/include/tirpc"
+-LIBS="$LIBS -ltirpc"
+-
+-AC_TRY_LINK(
+-    [ #include <rpc/rpc.h> ],
+-    [ CLIENT *cl;
+-      struct sockaddr_in addr;
+-      int fd;
+-      unsigned long ul; struct timeval t; unsigned int ui;
+-      cl = clntudp_bufcreate(&addr,ul,ul,t,&fd,ui,ui); ],
+-    [ af_have_libtirpc=yes
+-      AC_MSG_RESULT(yes) ],
+-    [ AC_MSG_RESULT(no) ])
+-
+-if test "$af_have_libtirpc" = "yes"; then
+-    AC_DEFINE(WITH_LIBTIRPC,1, [Define to 1 if you have the libtirpc library installed])
+-    AC_DEFINE(TIRPC_WORKAROUND,1, [Define to 1 to use the libtirpc tsd usage workaround])
+-    TIRPCLIB="-ltirpc"
+-fi
+-
+-AC_CHECK_FUNCS([getrpcbyname getservbyname])
+-
+-# restore flags
+-CFLAGS="$af_check_libtirpc_save_cflags"
+-LIBS="$af_check_libtirpc_save_libs"
+-])
+-
+-AC_DEFUN([AF_WITH_LIBTIRPC],
+-[AC_MSG_CHECKING([if libtirpc is requested and available])
+-AC_ARG_WITH(libtirpc,
+-[  --with-libtirpc         use libtirpc if available],
+-[if test "$withval" = yes; then
+-  AF_CHECK_LIBTIRPC()
+-else
+-  AC_MSG_RESULT(no)
+-fi], [AC_MSG_RESULT(no)])
+-])
+-
+diff --git a/configure.in b/configure.in
+index 0521252..16653ed 100644
+--- a/configure.in
++++ b/configure.in
+@@ -11,6 +11,7 @@ define([AC_CACHE_LOAD], )dnl
+ define([AC_CACHE_SAVE], )dnl
+ AC_INIT(.autofs-5.1.3)
+ 
++AC_CONFIG_MACRO_DIR([m4])
+ #
+ # autofs installs by default in /usr
+ #
+@@ -124,8 +125,17 @@ AC_SUBST(flagdir)
+ #
+ # Use libtirpc
+ #
+-AF_WITH_LIBTIRPC()
+-AC_SUBST(TIRPCLIB)
++PKG_PROG_PKG_CONFIG()
++AC_ARG_WITH([libtirpc], AS_HELP_STRING([--with-libtirpc], [use libtirpc if available]))
++if test "x$with_libtirpc" = "xyes"; then
++  PKG_CHECK_MODULES([TIRPC],[libtirpc],[
++		AC_DEFINE(WITH_LIBTIRPC,1,
++			[Define to 1 if you have the libtirpc library installed])
++		AC_DEFINE(TIRPC_WORKAROUND,1,
++			[Define to 1 to use the libtirpc tsd usage workaround])
++    ])
++  AC_CHECK_FUNCS([getrpcbyname getservbyname])
++fi
+ 
+ #
+ # Optional include dmalloc
+diff --git a/m4/autofs-macros.m4 b/m4/autofs-macros.m4
+new file mode 100644
+index 0000000..31ca602
+--- /dev/null
++++ b/m4/autofs-macros.m4
+@@ -0,0 +1,401 @@
++dnl
++dnl --------------------------------------------------------------------------
++dnl AF_PATH_INCLUDE:
++dnl
++dnl Like AC_PATH_PROGS, but add to the .h file as well
++dnl --------------------------------------------------------------------------
++AC_DEFUN(AF_PATH_INCLUDE,
++[AC_PATH_PROGS($1,$2,$3,$4)
++if test -n "$$1"; then
++  AC_DEFINE(HAVE_$1,1,[define if you have $1])
++  AC_DEFINE_UNQUOTED(PATH_$1, "$$1", [define if you have $1])
++  HAVE_$1=1
++else
++  HAVE_$1=0
++fi
++AC_SUBST(HAVE_$1)])
++
++dnl --------------------------------------------------------------------------
++dnl AF_CHECK_PROG:
++dnl
++dnl Like AC_CHECK_PROG, but fail configure if not found
++dnl and only define PATH_<name> variable
++dnl --------------------------------------------------------------------------
++AC_DEFUN(AF_CHECK_PROG,
++[AC_PATH_PROGS($1,$2,$3,$4)
++if test -n "$$1"; then
++  AC_DEFINE_UNQUOTED(PATH_$1, "$$1", [define if you have $1])
++  PATH_$1="$$1"
++else
++  AC_MSG_ERROR([required program $1 not found])
++fi
++AC_SUBST(PATH_$1)])
++
++dnl --------------------------------------------------------------------------
++dnl AF_CHECK_SSS_LIB:
++dnl
++dnl Check if a sss autofs library exists.
++dnl --------------------------------------------------------------------------
++AC_DEFUN(AF_CHECK_SSS_LIB,
++[if test -z "$sssldir"; then
++  AC_MSG_CHECKING(for sssd autofs library)
++  for libd in /usr/lib64 /usr/lib; do
++    if test -z "$sssldir"; then
++      if test -e "$libd/sssd/modules/$2"; then
++        sssldir=$libd/sssd/modules
++      fi
++    fi
++  done
++  if test -n "$sssldir"; then
++    HAVE_$1=1
++    AC_MSG_RESULT(yes)
++  else
++    HAVE_$1=0
++    AC_MSG_RESULT(no)
++  fi
++fi])
++
++dnl --------------------------------------------------------------------------
++dnl AF_SLOPPY_MOUNT
++dnl
++dnl Check to see if mount(8) supports the sloppy (-s) option, and define
++dnl the cpp variable HAVE_SLOPPY_MOUNT if so.  This requires that MOUNT is
++dnl already defined by a call to AF_PATH_INCLUDE or AC_PATH_PROGS.
++dnl --------------------------------------------------------------------------
++AC_DEFUN(AF_SLOPPY_MOUNT,
++[if test -n "$MOUNT" ; then
++  AC_MSG_CHECKING([if mount accepts the -s option])
++  if "$MOUNT" -s > /dev/null 2>&1 ; then
++    enable_sloppy_mount=yes
++    AC_MSG_RESULT(yes)
++  else
++    AC_MSG_RESULT(no)
++  fi
++fi])
++
++
++dnl --------------------------------------------------------------------------
++dnl AF_LINUX_PROCFS
++dnl
++dnl Check for the Linux /proc filesystem
++dnl --------------------------------------------------------------------------
++AC_DEFUN(AF_LINUX_PROCFS,
++[AC_CACHE_CHECK([for Linux proc filesystem], [ac_cv_linux_procfs],
++	[ac_cv_linux_procfs=no
++	 test "x`cat /proc/sys/kernel/ostype 2>&-`" = "xLinux" && ac_cv_linux_procfs=yes])
++ if test $ac_cv_linux_procfs = yes
++ then
++	AC_DEFINE(HAVE_LINUX_PROCFS, 1,
++		[Define if you have the Linux /proc filesystem.])
++fi])
++
++dnl --------------------------------------------------------------------------
++dnl AF_INIT_D
++dnl
++dnl Check the location of the init.d directory
++dnl --------------------------------------------------------------------------
++AC_DEFUN(AF_INIT_D,
++[if test -z "$initdir"; then
++  AC_MSG_CHECKING([location of the init.d directory])
++  for init_d in /etc/init.d /etc/rc.d/init.d; do
++    if test -z "$initdir"; then
++      if test -d "$init_d"; then
++	initdir="$init_d"
++	AC_MSG_RESULT($initdir)
++      fi
++    fi
++  done
++fi])
++
++dnl --------------------------------------------------------------------------
++dnl AF_CONF_D
++dnl
++dnl Check the location of the configuration defaults directory
++dnl --------------------------------------------------------------------------
++AC_DEFUN(AF_CONF_D,
++[if test -z "$confdir"; then
++  for conf_d in /etc/sysconfig /etc/defaults /etc/conf.d /etc/default; do
++    if test -z "$confdir"; then
++      if test -d "$conf_d"; then
++	confdir="$conf_d"
++      fi
++    fi
++  done
++fi])
++
++dnl --------------------------------------------------------------------------
++dnl AF_MAP_D
++dnl
++dnl Check the location of the autofs maps directory
++dnl --------------------------------------------------------------------------
++AC_DEFUN(AF_MAP_D,
++[if test -z "$mapdir"; then
++  for map_d in /etc/autofs /etc; do
++    if test -z "$mapdir"; then
++      if test -d "$map_d"; then
++	mapdir="$map_d"
++      fi
++    fi
++  done
++fi])
++
++dnl --------------------------------------------------------------------------
++dnl AF_PID_D
++dnl
++dnl Check the location of the pid file directory.
++dnl --------------------------------------------------------------------------
++AC_DEFUN(AF_PID_D,
++[if test -z "$piddir"; then
++  for pid_d in /run /var/run /tmp; do
++    if test -z "$piddir"; then
++      if test -d "$pid_d"; then
++        piddir="$pid_d"
++      fi
++    fi
++  done
++fi])
++
++dnl --------------------------------------------------------------------------
++dnl AF_FIFO_D
++dnl
++dnl Check the location of the autofs fifos directory
++dnl --------------------------------------------------------------------------
++AC_DEFUN(AF_FIFO_D,
++[if test -z "$fifodir"; then
++  for fifo_d in /run /var/run /tmp; do
++    if test -z "$fifodir"; then
++      if test -d "$fifo_d"; then
++        fifodir="$fifo_d"
++      fi
++    fi
++  done
++fi])
++
++dnl --------------------------------------------------------------------------
++dnl AF_FLAG_D
++dnl
++dnl Check the location of the autofs flag file directory
++dnl --------------------------------------------------------------------------
++AC_DEFUN(AF_FLAG_D,
++[if test -z "$flagdir"; then
++  for flag_d in /run /var/run /tmp; do
++    if test -z "$flagdir"; then
++      if test -d "$flag_d"; then
++        flagdir="$flag_d"
++      fi
++    fi
++  done
++fi])
++
++dnl ----------------------------------- ##                   -*- Autoconf -*-
++dnl Check if --with-dmalloc was given.  ##
++dnl From Franc,ois Pinard               ##
++dnl ----------------------------------- ##
++dnl
++dnl Copyright (C) 1996, 1998, 1999, 2000, 2001, 2002, 2003, 2005
++dnl Free Software Foundation, Inc.
++dnl
++dnl This file is free software; the Free Software Foundation
++dnl gives unlimited permission to copy and/or distribute it,
++dnl with or without modifications, as long as this notice is preserved.
++
++dnl serial 3
++
++AC_DEFUN([AM_WITH_DMALLOC],
++[AC_MSG_CHECKING([if malloc debugging is wanted])
++AC_ARG_WITH(dmalloc,
++[  --with-dmalloc          use dmalloc, as in
++			  http://www.dmalloc.com/dmalloc.tar.gz],
++[if test "$withval" = yes; then
++  AC_MSG_RESULT(yes)
++  AC_DEFINE(WITH_DMALLOC,1,
++	    [Define if using the dmalloc debugging malloc package])
++  DMALLOCLIB="-ldmallocth"
++  LDFLAGS="$LDFLAGS -g"
++else
++  AC_MSG_RESULT(no)
++fi], [AC_MSG_RESULT(no)])
++])
++
++dnl --------------------------------------------------------------------------
++dnl AF_WITH_SYSTEMD
++dnl
++dnl Check the location of the systemd unit files directory
++dnl --------------------------------------------------------------------------
++AC_DEFUN([AF_WITH_SYSTEMD],
++[AC_ARG_WITH(systemd,
++[  --with-systemd@<:@=systemddir@:>@  install systemd unit file.  If 'yes'
++			  probe the system for unit directory.
++			  If a path is specified, assume that
++			  is a valid install path.],
++[if test "$withval" = yes; then
++  if test -z "$systemddir"; then
++    AC_MSG_CHECKING([location of the systemd unit files directory])
++    for systemd_d in /usr/lib/systemd/system /usr/lib64/systemd/system /lib/systemd/system /lib64/systemd/system; do
++      if test -z "$systemddir"; then
++        if test -d "$systemd_d"; then
++          systemddir="$systemd_d"
++        fi
++      fi
++    done
++  fi
++  if test -n "$systemddir"; then
++    AC_MSG_RESULT($systemddir)
++  else
++    AC_MSG_RESULT(not found)
++  fi
++else
++ if test "$withval" != no; then
++  systemddir=$withval
++ fi
++fi])
++])
++
++dnl --------------------------------------------------------------------------
++dnl AF_CHECK_LIBXML
++dnl
++dnl Check for lib xml
++dnl --------------------------------------------------------------------------
++AC_DEFUN([AF_CHECK_LIBXML],
++[AC_PATH_PROGS(XML_CONFIG, xml2-config, no)
++AC_MSG_CHECKING(for libxml2)
++if test "$XML_CONFIG" = "no"
++then
++  AC_MSG_RESULT(no)
++  HAVE_LIBXML=0
++else
++  AC_MSG_RESULT(yes)
++  HAVE_LIBXML=1
++  XML_LIBS=`$XML_CONFIG --libs`
++  XML_FLAGS=`$XML_CONFIG --cflags`
++  XML_VER=`$XML_CONFIG --version`
++  XML_MAJOR=`echo $XML_VER|cut -d\. -f1`
++  if test $XML_MAJOR -le 99
++  then
++    XML_MINOR=`echo $XML_VER|cut -d\. -f2`
++    if test $XML_MINOR -le 99
++    then
++      XML_REV=`echo $XML_VER|cut -d\. -f3`
++      if test $XML_REV -le 99; then
++        AC_DEFINE(LIBXML2_WORKAROUND,1, [Use libxml2 tsd usage workaround])
++      fi
++    fi
++  fi
++fi])
++
++dnl --------------------------------------------------------------------------
++dnl AF_CHECK_KRB5
++dnl
++dnl Check for Kerberos 5
++dnl --------------------------------------------------------------------------
++AC_DEFUN([AF_CHECK_KRB5],
++[AC_PATH_PROGS(KRB5_CONFIG, krb5-config, no)
++AC_MSG_CHECKING(for Kerberos library)
++if test "$KRB5_CONFIG" = "no"
++then
++  AC_MSG_RESULT(no)
++  HAVE_KRB5=0
++else
++  AC_MSG_RESULT(yes)
++  HAVE_KRB5=1
++  KRB5_LIBS=`$KRB5_CONFIG --libs`
++  KRB5_FLAGS=`$KRB5_CONFIG --cflags`
++
++  SAVE_CFLAGS=$CFLAGS
++  SAVE_LIBS=$LIBS
++  CFLAGS="$CFLAGS $KRB5_FLAGS"
++  LIBS="$LIBS $KRB5_LIBS"
++
++  AC_CHECK_FUNCS([krb5_principal_get_realm])
++fi])
++
++dnl --------------------------------------------------------------------------
++dnl AF_CHECK_LIBHESIOD
++dnl
++dnl Check for lib hesiod
++dnl --------------------------------------------------------------------------
++AC_DEFUN([AF_CHECK_LIBHESIOD],
++[AC_MSG_CHECKING(for libhesiod)
++
++# save current libs
++af_check_hesiod_save_libs="$LIBS"
++LIBS="$LIBS -lhesiod -lresolv"
++
++AC_TRY_LINK(
++  [ #include <hesiod.h> ],
++  [ void *c; hesiod_init(&c); ],
++  [ HAVE_HESIOD=1
++    LIBHESIOD="$LIBHESIOD -lhesiod -lresolv"
++    AC_MSG_RESULT(yes) ],
++  [ AC_MSG_RESULT(no) ])
++
++# restore libs
++LIBS="$af_check_hesiod_save_libs"
++])
++
++dnl --------------------------------------------------------------------------
++dnl AF_CHECK_FUNC_LDAP_CREATE_PAGE_CONTROL
++dnl
++dnl Check for function ldap_create_page_control
++dnl --------------------------------------------------------------------------
++AC_DEFUN([AF_CHECK_FUNC_LDAP_CREATE_PAGE_CONTROL],
++[AC_MSG_CHECKING(for ldap_create_page_control in -lldap)
++
++# save current libs
++af_check_ldap_create_page_control_save_libs="$LIBS"
++LIBS="$LIBS -lldap"
++
++AC_TRY_LINK(
++  [ #include <ldap.h> ],
++  [ LDAP *ld;
++    ber_int_t ps;
++    struct berval *c;
++    int ic, ret;
++    LDAPControl **clp;
++    ret = ldap_create_page_control(ld,ps,c,ic,clp); ],
++  [ af_have_ldap_create_page_control=yes
++    AC_MSG_RESULT(yes) ],
++  [ AC_MSG_RESULT(no) ])
++
++if test "$af_have_ldap_create_page_control" = "yes"; then
++  AC_DEFINE(HAVE_LDAP_CREATE_PAGE_CONTROL, 1,
++        [Define to 1 if you have the `ldap_create_page_control' function.])
++fi
++
++# restore libs
++LIBS="$af_check_ldap_create_page_control_save_libs"
++])
++
++dnl --------------------------------------------------------------------------
++dnl AF_CHECK_FUNC_LDAP_PARSE_PAGE_CONTROL
++dnl
++dnl Check for function ldap_parse_page_control
++dnl --------------------------------------------------------------------------
++AC_DEFUN([AF_CHECK_FUNC_LDAP_PARSE_PAGE_CONTROL],
++[AC_MSG_CHECKING(for ldap_parse_page_control in -lldap)
++
++# save current libs
++af_check_ldap_parse_page_control_save_libs="$LIBS"
++LIBS="$LIBS -lldap"
++
++AC_TRY_LINK(
++  [ #include <ldap.h> ],
++  [ LDAP *ld;
++    ber_int_t ct;
++    struct berval *c;
++    int ret;
++    LDAPControl **clp;
++    ret = ldap_parse_page_control(ld,clp,ct,c); ],
++  [ af_have_ldap_parse_page_control=yes
++    AC_MSG_RESULT(yes) ],
++  [ AC_MSG_RESULT(no) ])
++
++if test "$af_have_ldap_create_page_control" = "yes"; then
++  AC_DEFINE(HAVE_LDAP_PARSE_PAGE_CONTROL, 1,
++        [Define to 1 if you have the `ldap_parse_page_control' function.])
++fi
++
++# restore libs
++LIBS="$af_check_ldap_parse_page_control_save_libs"
++])
++
+-- 
+2.1.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
