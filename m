@@ -1,72 +1,58 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH v3] use pkg-config to search for libtirpc to fix
- cross-compilation
-Date: Fri, 7 Jul 2017 08:56:21 +0800
-Message-ID: <cc2a1c58-56d4-a3f3-2e8b-09d357ae9a92@themaw.net>
-References: <20170630085439.GA14206@waldemar-brodkorb.de>
- <20170706210947.GG2081@waldemar-brodkorb.de>
+From: doron cohen <doron@weka.io>
+Subject: autofs startup issue
+Date: Tue, 25 Jul 2017 08:33:24 +0300
+Message-ID: <CAH+JqnCXyQTQO8RQm_4J9mv3SZkRO1G4jgfBoZtE=dnQO5RGkA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=
-        content-transfer-encoding:content-type:date:from:in-reply-to
-        :message-id:mime-version:references:subject:to:x-me-sender
-        :x-me-sender:x-sasl-enc:x-sasl-enc; s=fm1; bh=+nv8LEYFIfngPBUoGb
-        OeBnE6H2y7YAYGDlzepSCObWY=; b=jLeARmBfy6PYZ5BIC0EiPFyD8g5rOd7dGo
-        nhQ3ubFm+c7ie536Qxamv7r11tN58ZMleCLan2qaHRuhZ6uxArIt/pe3uJHLfedA
-        24wtvN+aUiQvi6vW9kXDu8o/FHz14zWw4xxxdnilGBIhJOJvIYpOKBcwUJa7EsfD
-        SsC05q4QMD2QGqlpdF446Fe2COOcsv6iQqRVY/BQtZiAuBhnUk4xrE5iwPHs2lRI
-        9kXvJXU1T2PA/AF5qtx6cVcqHqu4zPzxrrDyVjxMLhrWfyfR+4E/r2bOrpf12t3K
-        kDf4+KD7IKwxbnjzKpbDgJwLMOe9Oz4XTZiKMFfeC0HQbidLXL8w==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=content-transfer-encoding:content-type
-        :date:from:in-reply-to:message-id:mime-version:references
-        :subject:to:x-me-sender:x-me-sender:x-sasl-enc:x-sasl-enc; s=
-        fm1; bh=+nv8LEYFIfngPBUoGbOeBnE6H2y7YAYGDlzepSCObWY=; b=rvQIuCEz
-        qu1qm+tdve3dC1oFVGdg49QRBQZd8SY7jksDhAU0Qr9QKkTCxJR+FQKO+5t46XfT
-        jkzqjkPpOadL3oKGq40T2uZNH0j4BORATS+CDAZZ7F1/IhHiXvomATxgy+q/MBOZ
-        uw686mQo8acg4huBolJ+y8dI4iVG4w9YdXTG9xcpQy5rI2Or/OODAQlwXuCJeXzR
-        efOdNu8kPUrW3Y+MFTUDLIw5XWhc9Ih8JGKjnQz7Q0OvuHQSili11z5yi7Vx9Pfo
-        /IfbBmtLAo6H8KFCgqiOBJtLe71OOo1Zx/WUzCyD3Wy65qqazQspceifnpNpEVFo
-        BqpV43CypRkbRg==
-In-Reply-To: <20170706210947.GG2081@waldemar-brodkorb.de>
-Content-Language: en-US
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=weka.io; s=google;
+        h=mime-version:from:date:message-id:subject:to
+         :content-transfer-encoding;
+        bh=sdxSxRgMZYstdvjiGSjfNMuWQnUx0ayy1TwHfh5VxVE=;
+        b=QIHl++CJrIuZSHIeSDsCiupYhCtUCs8a3ld2avYyu+w2eQRn850L13YbqDoGUw8Wne
+         Cx1KFDi0FLDUlEf3MUcHzGKtlrdwurp7mNqZHDNqhGX7/3p/QkXiIJl/MLmwZQ7SUlMD
+         h4cL5MpeoDfY5I2f38nV1JgFOf0LrKdrSHjpA=
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Waldemar Brodkorb <wbx@openadk.org>, autofs@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+To: autofs@vger.kernel.org
 
-On 07/07/17 05:09, Waldemar Brodkorb wrote:
-> Hi,
-> 
-> friendly ping?
+Hi,
 
-Oh right, I didn't say what's happening.
+I encounterd an issue involving automount start.
+As part of our tests we reboot our machines and test their state after
+they have recovered. Sometimes these reboots include the --force flag
+and even --no-sync. At other times we are forces to use more drastic
+commands like "echo 1 > /proc/sys/kernel/sysrq; echo b >
+/proc/sysrq-trigger".
+Once in a while, after a reboot, we detect autofs is not running.
+After some investigating we discovered that the pid file in
+/run/autofs-running hasn't been cleaned before reboot and autofs
+reports it is already running:
 
-The patch is in my patch queue.
+[root@autofs-6 ~]# pidof automount
+[root@autofs-6 ~]# automount --debug
+automount: program is already running.
+[root@autofs-6 ~]# cat /run/autofs-running
+3394
+[root@autofs-6 ~]# rm /run/autofs-running
+rm: remove regular file =E2=80=98/run/autofs-running=E2=80=99? y
+[root@autofs-6 ~]# automount --debug
+[root@autofs-6 ~]# pidof automount
+6362
+[root@autofs-6 ~]# cat /run/autofs-running
+6362
 
-I'll get to committing what I have in the queue fairly soon.
+This seems very odd to me. Why doesn't automount check if the process
+is really running (like with pidof or any other way) and how do we
+solve this issue?
+some guesses to why this is happening include: an issue with the tmpfs
+/run directory or a mount race. We are trying to reproduce and collect
+some data.
+We are using autofs 5.1.2.
 
-There were a couple of bugs in the 5.1.3 release that need to be fixed.
-So another release will be done sooner rather than later as well, can't 
-say exactly when but I'd like to do it fairly soon.
-
-> 
->> When trying to cross-compile autofs for example with a buildsystem
->> like buildroot, the compilation fails in case the user wants to use
->> libtirpc library as RPC implementation. A hard coded include path
->> in aclocal.m4 is used. Other opensource software like rpcbind or
->> nfs-utils are suing autotools pkgconfig infrastructure to find
->> the libtirpc headers and to pass the correct linker flags.
->>
->> Convert configure.in to use PKG_CHECK_MODULES and remove the
->> hand written autoconf macros from aclocal.m4. Move aclocal.m4
->> to m4 directory, so that autoconf does not skip global
->> directories, otherwise pkg.m4 (pkg-config macros) are not found.
->>
->> This fixes cross-compilation of autofs and allows to use
->> alternative C libraries as uClibc-ng without internal RPC
->> support to be used in cross-compiling environments.
-
+Thanks,
+Doron
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
