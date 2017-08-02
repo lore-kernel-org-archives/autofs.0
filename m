@@ -1,8 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 16/19] autofs-5.1.3 - add some more debug logging to
- get_nfs_info()
-Date: Wed, 02 Aug 2017 10:18:32 +0800
-Message-ID: <150164031207.6106.8216008074611453459.stgit@pluto.themaw.net>
+Subject: [PATCH 15/19] autofs-5.1.3 - fix some man page problems
+Date: Wed, 02 Aug 2017 10:18:26 +0800
+Message-ID: <150164030657.6106.8226480917775670191.stgit@pluto.themaw.net>
 References: <150164013844.6106.10264212633586462386.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -13,157 +12,135 @@ List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: autofs mailing list <autofs@vger.kernel.org>
 
-Add some additional debug logging to get_nfs_info() for failure cases.
+Fix a few problems with the autofs man pages:
+- autofs(8) missing "autofs -" in NAME string.
+- punctuation marks in some SEE ALSO sections.
+- change NAME string to include key word "autofs" in auto.master(5).
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 ---
- CHANGELOG            |    1 +
- modules/replicated.c |   36 +++++++++++++++++++++++++++++++-----
- 2 files changed, 32 insertions(+), 5 deletions(-)
+ CHANGELOG                      |    1 +
+ man/auto.master.5.in           |    4 ++--
+ man/autofs.5                   |    4 ++--
+ man/autofs.8.in                |    8 ++++----
+ man/autofs.conf.5.in           |    2 +-
+ man/autofs_ldap_auth.conf.5.in |    2 +-
+ man/automount.8                |    4 ++--
+ 7 files changed, 13 insertions(+), 12 deletions(-)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index c6423ce8..a21da121 100644
+index d5dca873..c6423ce8 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -14,6 +14,7 @@ xx/xx/2017 autofs-5.1.4
+@@ -13,6 +13,7 @@ xx/xx/2017 autofs-5.1.4
+ - fix a couple of compiler warnings.
  - set systemd KillMode to process.
  - fix mount.nfs blocks on first mount.
- - fix some man page problems.
-+- add some more debug logging to get_nfs_info().
++- fix some man page problems.
  
  24/05/2017 autofs-5.1.3
  =======================
-diff --git a/modules/replicated.c b/modules/replicated.c
-index c5c4f392..c44ed466 100644
---- a/modules/replicated.c
-+++ b/modules/replicated.c
-@@ -266,20 +266,29 @@ static unsigned int get_nfs_info(unsigned logopt, struct host *host,
- 				host->name, host->addr, host->addr_len,
- 				proto, RPC_CLOSE_DEFAULT);
- 		if (status == -EHOSTUNREACH) {
-+			debug(logopt,
-+			      "host not reachable getting portmap client");
- 			supported = status;
- 			goto done_ver;
--		} else if (status)
-+		} else if (status) {
-+			debug(logopt, "error 0x%d getting portmap client");
- 			goto done_ver;
-+		}
- 		parms.pm_vers = NFS4_VERSION;
- 		status = rpc_portmap_getport(pm_info, &parms, &rpc_info->port);
- 		if (status == -EHOSTUNREACH || status == -ETIMEDOUT) {
-+			debug(logopt,
-+			      "host not reachable or timedout getting service port");
- 			supported = status;
- 			goto done_ver;
- 		} else if (status < 0) {
- 			if (version & NFS_VERS_MASK)
- 				goto v3_ver; /* MOUNT_NFS_DEFAULT_PROTOCOL=4 */
--			else
-+			else {
-+				debug(logopt,
-+				      "error 0x%d getting service port");
- 				goto done_ver;
-+			}
- 		}
- 	}
+diff --git a/man/auto.master.5.in b/man/auto.master.5.in
+index ba28494e..c87fb7f4 100644
+--- a/man/auto.master.5.in
++++ b/man/auto.master.5.in
+@@ -1,7 +1,7 @@
+ .\" t
+ .TH AUTO.MASTER 5 "11 Apr 2006"
+ .SH NAME
+-auto.master \- Master Map for automounter
++auto.master \- Master Map for automounter consulted by autofs
+ .SH "DESCRIPTION"
+ The
+ .B auto.master
+@@ -367,7 +367,7 @@ configuration will be used to locate the source of the map
+ .BR autofs (5),
+ .BR autofs (8),
+ .BR autofs.conf (5),
+-.BR autofs_ldap_auth.conf (5)
++.BR autofs_ldap_auth.conf (5).
+ .SH AUTHOR
+ This manual page was written by Christoph Lameter <chris@waterf.org>,
+ for the Debian GNU/Linux system.  Edited by <hpa@transmeta.com> and
+diff --git a/man/autofs.5 b/man/autofs.5
+index 0063fbea..c2421272 100644
+--- a/man/autofs.5
++++ b/man/autofs.5
+@@ -602,8 +602,8 @@ depricated so this is not likely to change.
+ .BR auto.master (5),
+ .BR autofs (8),
+ .BR autofs.conf (5),
+-.BR mount (8).
+-.BR autofs_ldap_auth.conf (5)
++.BR mount (8),
++.BR autofs_ldap_auth.conf (5).
+ .SH AUTHOR
+ This manual page was written by Christoph Lameter <chris@waterf.org>,
+ for the Debian GNU/Linux system.  Edited by H. Peter Avian
+diff --git a/man/autofs.8.in b/man/autofs.8.in
+index b2b757bb..9f03eada 100644
+--- a/man/autofs.8.in
++++ b/man/autofs.8.in
+@@ -1,6 +1,6 @@
+ .TH AUTOFS 8 "9 Sep 1997"
+ .SH NAME
+-Service control for the automounter
++autofs \- Service control for the automounter
+ .SH SYNOPSIS
+ If a SysV init script system is being used:
+ .br
+@@ -72,9 +72,9 @@ for more information.
+ .BR automount (8),
+ .BR autofs (5),
+ .BR autofs.conf (5),
+-.BR auto.master (5).
+-.BR autofs_ldap_auth.conf (5)
+-.BR systemctl(1)
++.BR auto.master (5),
++.BR autofs_ldap_auth.conf (5),
++.BR systemctl(1).
+ .SH AUTHOR
+ This manual page was written by Christoph Lameter <chris@waterf.org>,
+ for the Debian GNU/Linux system.  Edited by H. Peter Anvin
+diff --git a/man/autofs.conf.5.in b/man/autofs.conf.5.in
+index 0efe0d4f..ec2d4bb3 100644
+--- a/man/autofs.conf.5.in
++++ b/man/autofs.conf.5.in
+@@ -513,6 +513,6 @@ map_type = file
+ .SH "SEE ALSO"
+ .BR automount (8),
+ .BR auto.master (5),
+-.BR autofs_ldap_auth.conf (5)
++.BR autofs_ldap_auth.conf (5).
+ .SH AUTHOR
+ This manual page was written by Ian Kent <raven@themaw.net>.
+diff --git a/man/autofs_ldap_auth.conf.5.in b/man/autofs_ldap_auth.conf.5.in
+index fe5077dd..e035ebe5 100644
+--- a/man/autofs_ldap_auth.conf.5.in
++++ b/man/autofs_ldap_auth.conf.5.in
+@@ -113,6 +113,6 @@ externally configured credential cache that is used during authentication.
+ By default, autofs will setup a memory based credential cache.
+ .SH "SEE ALSO"
+ .BR auto.master (5),
+-.BR autofs.conf (5),
++.BR autofs.conf (5).
+ .SH AUTHOR
+ This manual page was written by Ian Kent <raven@themaw.net>.
+diff --git a/man/automount.8 b/man/automount.8
+index 601c18c8..8e0551e9 100644
+--- a/man/automount.8
++++ b/man/automount.8
+@@ -178,8 +178,8 @@ constructed has been detached from the mount tree.
+ .BR autofs (8),
+ .BR autofs.conf (5),
+ .BR auto.master (5),
+-.BR mount (8).
+-.BR autofs_ldap_auth.conf (5)
++.BR mount (8),
++.BR autofs_ldap_auth.conf (5).
+ .SH BUGS
+ Don't know, I've fixed everything I know about.
  
-@@ -288,6 +297,7 @@ static unsigned int get_nfs_info(unsigned logopt, struct host *host,
- 	else
- 		status = rpc_tcp_getclient(rpc_info, NFS_PROGRAM, NFS4_VERSION);
- 	if (status == -EHOSTUNREACH) {
-+		debug(logopt, "host not reachable getting RPC client");
- 		supported = status;
- 		goto done_ver;
- 	} else if (!status) {
-@@ -295,6 +305,7 @@ static unsigned int get_nfs_info(unsigned logopt, struct host *host,
- 		status = rpc_ping_proto(rpc_info);
- 		clock_gettime(CLOCK_MONOTONIC, &end);
- 		if (status == -ETIMEDOUT) {
-+			debug(logopt, "host NFS ping timed out");
- 			supported = status;
- 			goto done_ver;
- 		} else if (status > 0) {
-@@ -326,16 +337,23 @@ v3_ver:
- 				host->name, host->addr, host->addr_len,
- 				proto, RPC_CLOSE_DEFAULT);
- 		if (status == -EHOSTUNREACH) {
-+			debug(logopt,
-+			      "host not reachable getting portmap client");
- 			supported = status;
- 			goto done_ver;
--		} else if (status)
-+		} else if (status) {
-+			debug(logopt,
-+			      "error 0x%d getting getting portmap client");
- 			goto done_ver;
-+		}
- 	}
- 
- 	if (!port) {
- 		parms.pm_vers = NFS3_VERSION;
- 		status = rpc_portmap_getport(pm_info, &parms, &rpc_info->port);
- 		if (status == -EHOSTUNREACH || status == -ETIMEDOUT) {
-+			debug(logopt,
-+			      "host not reachable or timedout getting service port");
- 			supported = status;
- 			goto done_ver;
- 		} else if (status < 0)
-@@ -347,6 +365,7 @@ v3_ver:
- 	else
- 		status = rpc_tcp_getclient(rpc_info, NFS_PROGRAM, NFS3_VERSION);
- 	if (status == -EHOSTUNREACH) {
-+		debug(logopt, "host not reachable getting RPC client");
- 		supported = status;
- 		goto done_ver;
- 	} else if (!status) {
-@@ -354,6 +373,7 @@ v3_ver:
- 		status = rpc_ping_proto(rpc_info);
- 		clock_gettime(CLOCK_MONOTONIC, &end);
- 		if (status == -ETIMEDOUT) {
-+			debug(logopt, "host NFS ping timed out");
- 			supported = status;
- 			goto done_ver;
- 		} else if (status > 0) {
-@@ -382,6 +402,8 @@ v2_ver:
- 				host->name, host->addr, host->addr_len,
- 				proto, RPC_CLOSE_DEFAULT);
- 		if (status == -EHOSTUNREACH) {
-+			debug(logopt,
-+			      "host not reachable getting portmap client");
- 			supported = status;
- 			goto done_ver;
- 		} else if (status)
-@@ -392,6 +414,8 @@ v2_ver:
- 		parms.pm_vers = NFS2_VERSION;
- 		status = rpc_portmap_getport(pm_info, &parms, &rpc_info->port);
- 		if (status == -EHOSTUNREACH || status == -ETIMEDOUT) {
-+			debug(logopt,
-+			      "host not reachable or timedout getting service port");
- 			supported = status;
- 			goto done_ver;
- 		} else if (status < 0)
-@@ -403,15 +427,17 @@ v2_ver:
- 	else
- 		status = rpc_tcp_getclient(rpc_info, NFS_PROGRAM, NFS2_VERSION);
- 	if (status == -EHOSTUNREACH) {
-+		debug(logopt, "host not reachable getting RPC client");
- 		supported = status;
- 		goto done_ver;
- 	} else if (!status) {
- 		clock_gettime(CLOCK_MONOTONIC, &start);
- 		status = rpc_ping_proto(rpc_info);
- 		clock_gettime(CLOCK_MONOTONIC, &end);
--		if (status == -ETIMEDOUT)
-+		if (status == -ETIMEDOUT) {
-+			debug(logopt, "host NFS ping timed out");
- 			supported = status;
--		else if (status > 0) {
-+		} else if (status > 0) {
- 			double reply;
- 			if (random_selection) {
- 				/* Random value between 0 and 1 */
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
