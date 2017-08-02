@@ -1,84 +1,93 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 00/19] Current autofs patch queue
-Date: Wed, 02 Aug 2017 10:17:03 +0800
-Message-ID: <150164013844.6106.10264212633586462386.stgit@pluto.themaw.net>
+Subject: [PATCH 02/19] autofs-5.1.3 - fix unset tsd group name handling
+Date: Wed, 02 Aug 2017 10:17:15 +0800
+Message-ID: <150164023526.6106.17582507413814713044.stgit@pluto.themaw.net>
+References: <150164013844.6106.10264212633586462386.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
+In-Reply-To: <150164013844.6106.10264212633586462386.stgit@pluto.themaw.net>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: autofs mailing list <autofs@vger.kernel.org>
 
-This is the current autofs patch queue.
+Commit 1a64a6bbc5 changed set_tsd_user_vars() to set thread specific
+values even if the group name could not be obtained.
 
-I'm hoping to commit these in the next few days and, because of a couple
-of regressions introduced in 5.1.3, I'm keen to release 5.1.4.
+But the structure holding the values was not initialized on allocation
+so the group field might not be NULL when no group name is available.
 
-Any concerns or comments are welcome.
+Also the macro addition and removal functions didn't properly handle a
+macro value of NULL.
 
+Signed-off-by: Ian Kent <raven@themaw.net>
+Reported-by: Donald Buczek <buczek@molgen.mpg.de>
 ---
+ CHANGELOG    |    1 +
+ lib/macros.c |    8 +++++---
+ lib/mounts.c |    1 +
+ 3 files changed, 7 insertions(+), 3 deletions(-)
 
-Ian Kent (17):
-      autofs-5.1.3 - fix spec file url
-      autofs-5.1.3 - fix unset tsd group name handling
-      autofs-5.1.3 - remove some redundant rpc library code
-      autofs-5.1.3 - add port parameter to rpc_ping()
-      autofs-5.1.3 - dont probe NFSv2 by default
-      autofs-5.1.3 - add version parameter to rpc_ping()
-      autofs-5.1.3 - fix typo in autofs config file comments
-      autofs-5.1.3 - fix typos in autofs man pages
-      autofs-5.1.3 - fix incorrect status return in get_nfs_info()
-      autofs-5.1.3 - fix a couple of compiler warnings
-      autofs-5.1.3 - set systemd KillMode to process
-      autofs-5.1.3 - fix mount.nfs blocks on first mount
-      autofs-5.1.3 - fix some man page problems
-      autofs-5.1.3 - add some more debug logging to get_nfs_info()
-      autofs-5.1.3 - add some more debug logging to get_supported_ver_and_cost()
-      autofs-5.1.3 - fix ipv6 proto option handling
-      autofs-5.1.3 - also check flag file exe name
+diff --git a/CHANGELOG b/CHANGELOG
+index e796fb36..8d79bd60 100644
+--- a/CHANGELOG
++++ b/CHANGELOG
+@@ -1,5 +1,6 @@
+ xx/xx/2017 autofs-5.1.4
+ - fix spec file url.
++- fix unset tsd group name handling.
+ 
+ 24/05/2017 autofs-5.1.3
+ =======================
+diff --git a/lib/macros.c b/lib/macros.c
+index ff9ba899..dfdca857 100644
+--- a/lib/macros.c
++++ b/lib/macros.c
+@@ -281,18 +281,20 @@ macro_addvar(struct substvar *table, const char *str, int len, const char *value
+ 	}
+ 
+ 	if (lv) {
+-		char *this = malloc(strlen(value) + 1);
++		const char *val = value ? value : "";
++		char *this = malloc(strlen(val) + 1);
+ 		if (!this) {
+ 			lv = table;
+ 			goto done;
+ 		}
+-		strcpy(this, value);
++		strcpy(this, val);
+ 		free(lv->val);
+ 		lv->val = this;
+ 		if (lv != table)
+ 			lv = table;
+ 	} else {
+ 		struct substvar *new;
++		const char *this = value ? value : "";
+ 		char *def, *val;
+ 
+ 		def = strdup(str);
+@@ -302,7 +304,7 @@ macro_addvar(struct substvar *table, const char *str, int len, const char *value
+ 		}
+ 		def[len] = '\0';
+ 
+-		val = strdup(value);
++		val = strdup(this);
+ 		if (!val) {
+ 			lv = table;
+ 			free(def);
+diff --git a/lib/mounts.c b/lib/mounts.c
+index ce6a60a7..0b38bd86 100644
+--- a/lib/mounts.c
++++ b/lib/mounts.c
+@@ -1463,6 +1463,7 @@ void set_tsd_user_vars(unsigned int logopt, uid_t uid, gid_t gid)
+ 		error(logopt, "failed alloc tsv storage");
+ 		return;
+ 	}
++	memset(tsv, 0, sizeof(struct thread_stdenv_vars));
+ 
+ 	tsv->uid = uid;
+ 	tsv->gid = gid;
 
-NeilBrown (1):
-      autofs-5.1.3 - Add -c option when calling /bin/umount - if supported.
-
-Waldemar Brodkorb (1):
-      autofs-5.1.3 - use pkg-config to search for libtirpc to fix cross-compilation
-
-
- CHANGELOG                      |   23 ++-
- Makefile.conf.in               |    3 
- Makefile.rules                 |    2 
- aclocal.m4                     |   66 ++-----
- autofs.spec                    |    2 
- configure                      |  362 +++++++++++++++++++++++++++++++++-------
- configure.in                   |   30 +++
- daemon/flag.c                  |   35 ++++
- daemon/spawn.c                 |   43 +++--
- include/config.h.in            |    3 
- include/replicated.h           |    4 
- include/rpc_subs.h             |    3 
- lib/macros.c                   |    8 +
- lib/master_tok.l               |    2 
- lib/mounts.c                   |    1 
- lib/parse_subs.c               |    2 
- lib/rpc_subs.c                 |  171 ++++++-------------
- man/auto.master.5.in           |    4 
- man/autofs.5                   |    6 -
- man/autofs.8.in                |    8 -
- man/autofs.conf.5.in           |    4 
- man/autofs_ldap_auth.conf.5.in |    2 
- man/automount.8                |    4 
- modules/base64.c               |    2 
- modules/lookup_file.c          |    4 
- modules/lookup_hesiod.c        |    3 
- modules/mount_nfs.c            |   17 ++
- modules/replicated.c           |   79 ++++++++-
- redhat/autofs.conf.default.in  |    2 
- samples/autofs.conf.default.in |    2 
- samples/autofs.service.in      |    3 
- 31 files changed, 604 insertions(+), 296 deletions(-)
-
---
-Ian
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
