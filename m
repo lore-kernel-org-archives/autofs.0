@@ -1,63 +1,49 @@
-From: Oscar Salvador <osalvador@suse.com>
-Subject: [PATCH] Test for ldap connectivity during lookup_ldap initialization
-Date: Thu, 10 Aug 2017 23:15:21 +0200
-Message-ID: <1502399721-2491-1-git-send-email-osalvador@suse.com>
-Return-path: <autofs-owner@vger.kernel.org>
-Sender: autofs-owner@vger.kernel.org
-List-ID: <autofs.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+From: Ian Kent <raven@themaw.net>
+Subject: [PATCH 1/5] autofs: remove unused AUTOFS_IOC_EXPIRE_DIRECT/INDIRECT
+Date: Wed, 16 Aug 2017 10:31:13 +0800
+Message-ID: <150285067347.4670.11494624644273072003.stgit@pluto.themaw.net>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: autofs@vger.kernel.org
-Cc: Oscar Salvador <osalvador@suse.com>, Jeff Mahoney <jeffm@suse.com>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Sender: linux-fsdevel-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, Tomohiro Kusumi <kusumi.tomohiro@gmail.com>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Right now we are just checking and parsing the ldap's configuration
-in lookup_init() function, and if everything goes well we return a zero
-value indicating that everything worked fine.
+From: Tomohiro Kusumi <tkusumi@tuxera.com>
 
-This has a problem, because in the case we set ldap method in
-/etc/nsswitch.conf, configuration parsing goes fine but ldap is not working,
-we will return a zero value in lookup_init() function, so autofs will move on,
-but then we will return NSS_STATUS_UNAVAIL in lookup_read_master() function
-once do_reconnect() fails, and because of this autofs will not be able to
-reread the maps.
+These are not used by either kernel or userspace, although
+AUTOFS_IOC_EXPIRE_DIRECT once seems to have been used by userspace
+in around 2006-2008, which was technically just an alias of the
+existing ioctl AUTOFS_IOC_EXPIRE_MULTI.
 
-NIS already handles this by testing for server connectivity during initialization.
-This patch does the same thing for LDAP.
+ioctls for autofs are already complicated enough that they could
+be removed unless these are staying here to be able to compile
+userspace code of certain period of time from a decade ago.
 
-Signed-off-by: Oscar Salvador <osalvador@suse.com>
-Signed-off-by: Jeff Mahoney <jeffm@suse.com>
+Edit: imk
+Yes, this is indeed very old and anything that still uses must
+be updated becuase it will be using broken functionality.
+End edit: imk
+
+Signed-off-by: Tomohiro Kusumi <tkusumi@tuxera.com>
+Signed-off-by: Ian Kent <raven@themaw.net>
 ---
- modules/lookup_ldap.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ include/uapi/linux/auto_fs4.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/modules/lookup_ldap.c b/modules/lookup_ldap.c
-index 98701e5..29a67a5 100644
---- a/modules/lookup_ldap.c
-+++ b/modules/lookup_ldap.c
-@@ -1681,6 +1681,7 @@ static int do_init(const char *mapfmt,
- 		   int argc, const char *const *argv,
- 		   struct lookup_context *ctxt, unsigned int reinit)
- {
-+	struct ldap_conn conn;
- 	unsigned int is_amd_format;
- 	int ret;
+diff --git a/include/uapi/linux/auto_fs4.h b/include/uapi/linux/auto_fs4.h
+index 7c6da423d54e..9453e9a07c9d 100644
+--- a/include/uapi/linux/auto_fs4.h
++++ b/include/uapi/linux/auto_fs4.h
+@@ -155,8 +155,6 @@ enum {
+ };
  
-@@ -1810,6 +1811,12 @@ static int do_init(const char *mapfmt,
- 		}
- 	}
+ #define AUTOFS_IOC_EXPIRE_MULTI    _IOW(AUTOFS_IOCTL, AUTOFS_IOC_EXPIRE_MULTI_CMD, int)
+-#define AUTOFS_IOC_EXPIRE_INDIRECT AUTOFS_IOC_EXPIRE_MULTI
+-#define AUTOFS_IOC_EXPIRE_DIRECT   AUTOFS_IOC_EXPIRE_MULTI
+ #define AUTOFS_IOC_PROTOSUBVER     _IOR(AUTOFS_IOCTL, AUTOFS_IOC_PROTOSUBVER_CMD, int)
+ #define AUTOFS_IOC_ASKUMOUNT       _IOR(AUTOFS_IOCTL, AUTOFS_IOC_ASKUMOUNT_CMD, int)
  
-+	memset(&conn, 0, sizeof(struct ldap_conn));
-+	ret = do_reconnect (LOGOPT_ANY, &conn, ctxt);
-+	if (ret != NSS_STATUS_SUCCESS)
-+		return 1;
-+
-+	unbind_ldap_connection(LOGOPT_ANY, &conn, ctxt);
- 	return ret;
- }
- 
--- 
-2.12.3
 
---
-To unsubscribe from this list: send the line "unsubscribe autofs" in
