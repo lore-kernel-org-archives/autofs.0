@@ -1,11 +1,13 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 1/5] autofs: remove unused AUTOFS_IOC_EXPIRE_DIRECT/INDIRECT
-Date: Wed, 16 Aug 2017 10:31:13 +0800
-Message-ID: <150285067347.4670.11494624644273072003.stgit@pluto.themaw.net>
+Subject: [PATCH 2/5] autofs: non functional header inclusion cleanup
+Date: Wed, 16 Aug 2017 10:31:20 +0800
+Message-ID: <150285068011.4670.10271483982093996996.stgit@pluto.themaw.net>
+References: <150285067347.4670.11494624644273072003.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <150285067347.4670.11494624644273072003.stgit@pluto.themaw.net>
+Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: Andrew Morton <akpm@linux-foundation.org>
@@ -13,37 +15,57 @@ Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, Tomohiro Kusumi <kusumi.tomoh
 
 From: Tomohiro Kusumi <tkusumi@tuxera.com>
 
-These are not used by either kernel or userspace, although
-AUTOFS_IOC_EXPIRE_DIRECT once seems to have been used by userspace
-in around 2006-2008, which was technically just an alias of the
-existing ioctl AUTOFS_IOC_EXPIRE_MULTI.
-
-ioctls for autofs are already complicated enough that they could
-be removed unless these are staying here to be able to compile
-userspace code of certain period of time from a decade ago.
-
-Edit: imk
-Yes, this is indeed very old and anything that still uses must
-be updated becuase it will be using broken functionality.
-End edit: imk
+Having header includes before any macro (without any dependency)
+simply looks normal. No reason to have these macros in between.
 
 Signed-off-by: Tomohiro Kusumi <tkusumi@tuxera.com>
 Signed-off-by: Ian Kent <raven@themaw.net>
 ---
- include/uapi/linux/auto_fs4.h |    2 --
- 1 file changed, 2 deletions(-)
+ fs/autofs4/autofs_i.h |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff --git a/include/uapi/linux/auto_fs4.h b/include/uapi/linux/auto_fs4.h
-index 7c6da423d54e..9453e9a07c9d 100644
---- a/include/uapi/linux/auto_fs4.h
-+++ b/include/uapi/linux/auto_fs4.h
-@@ -155,8 +155,6 @@ enum {
- };
+diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
+index beef981aa54f..4737615f0eaa 100644
+--- a/fs/autofs4/autofs_i.h
++++ b/fs/autofs4/autofs_i.h
+@@ -11,10 +11,21 @@
  
- #define AUTOFS_IOC_EXPIRE_MULTI    _IOW(AUTOFS_IOCTL, AUTOFS_IOC_EXPIRE_MULTI_CMD, int)
--#define AUTOFS_IOC_EXPIRE_INDIRECT AUTOFS_IOC_EXPIRE_MULTI
--#define AUTOFS_IOC_EXPIRE_DIRECT   AUTOFS_IOC_EXPIRE_MULTI
- #define AUTOFS_IOC_PROTOSUBVER     _IOR(AUTOFS_IOCTL, AUTOFS_IOC_PROTOSUBVER_CMD, int)
- #define AUTOFS_IOC_ASKUMOUNT       _IOR(AUTOFS_IOCTL, AUTOFS_IOC_ASKUMOUNT_CMD, int)
+ #include <linux/auto_fs4.h>
+ #include <linux/auto_dev-ioctl.h>
++
++#include <linux/kernel.h>
++#include <linux/slab.h>
++#include <linux/time.h>
++#include <linux/string.h>
++#include <linux/wait.h>
++#include <linux/sched.h>
++#include <linux/mount.h>
++#include <linux/namei.h>
++#include <linux/uaccess.h>
+ #include <linux/mutex.h>
+ #include <linux/spinlock.h>
+ #include <linux/list.h>
+ #include <linux/completion.h>
++#include <asm/current.h>
  
+ /* This is the range of ioctl() numbers we claim as ours */
+ #define AUTOFS_IOC_FIRST     AUTOFS_IOC_READY
+@@ -24,17 +35,6 @@
+ #define AUTOFS_DEV_IOCTL_IOC_COUNT \
+ 	(AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD - AUTOFS_DEV_IOCTL_VERSION_CMD)
+ 
+-#include <linux/kernel.h>
+-#include <linux/slab.h>
+-#include <linux/time.h>
+-#include <linux/string.h>
+-#include <linux/wait.h>
+-#include <linux/sched.h>
+-#include <linux/mount.h>
+-#include <linux/namei.h>
+-#include <asm/current.h>
+-#include <linux/uaccess.h>
+-
+ #ifdef pr_fmt
+ #undef pr_fmt
+ #endif
 
