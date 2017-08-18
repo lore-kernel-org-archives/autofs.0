@@ -1,8 +1,8 @@
-From: Ian Kent <raven@themaw.net>
+From: Oscar Salvador <osalvador@suse.com>
 Subject: Re: [PATCH] Test for ldap connectivity during lookup_ldap
  initialization
-Date: Fri, 18 Aug 2017 15:54:07 +0800
-Message-ID: <f0d8cc7e-ed84-ca04-1b09-9d51468acf36@themaw.net>
+Date: Fri, 18 Aug 2017 10:03:32 +0200
+Message-ID: <6aef666c-c776-1924-c391-f0e3340c19cd@suse.com>
 References: <1502399721-2491-1-git-send-email-osalvador@suse.com>
  <a1205319-aa1f-13c4-51c6-740ac6d15a4c@themaw.net>
  <b93d61bf-ebea-1dd4-9618-f365a6b80727@themaw.net>
@@ -16,35 +16,16 @@ References: <1502399721-2491-1-git-send-email-osalvador@suse.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=
-        content-transfer-encoding:content-type:date:from:in-reply-to
-        :message-id:mime-version:references:subject:to:x-me-sender
-        :x-me-sender:x-sasl-enc:x-sasl-enc; s=fm1; bh=geR3WJ5nWJwEcCD+o9
-        rxD4stDQ0oiMLYQkPNW/bzgII=; b=i3boIJx3p7uZWtkakxExC0qTsOhH8j/qje
-        Bo+CBPTdeON5NvM8UxslCfGaBe8tp2RJyPvMfgj+Q97SFWp3aL4ZWSRI6adQfXig
-        FkVI09FdePpvvqvQAC4F18xw9ZZ8Kewa4/T4AZBhc+fPfl6EeFsjG1B/7hvtY6w3
-        Yqb7LKn7k7YwJinJidJeOQvTaLT4e8X/9vcA9wqyXnrNZCA6d02sK6IrNM0fdqqm
-        NdeIDdGV3okoDJdRa/uzyx9om4UjUZ2urJ9ICe44PVt/u/nlRfd+GI0wVWjoPxky
-        4pHu6zma7HoMjICtiibltFWWTQVO+8m54a5IYpmIFs44RKBlVtJA==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=content-transfer-encoding:content-type
-        :date:from:in-reply-to:message-id:mime-version:references
-        :subject:to:x-me-sender:x-me-sender:x-sasl-enc:x-sasl-enc; s=
-        fm1; bh=geR3WJ5nWJwEcCD+o9rxD4stDQ0oiMLYQkPNW/bzgII=; b=jj1ksG1j
-        lK3kTuIP5xAb7PBqUXHEbBql5XKrl0bIMudnh19aD8bDaAYTx4XN2C2lqLSxmBHa
-        u25xZOrAzFcemKUQpthUEHZE6Ryt3EDELCJ6qAbXYTDwM1csVIpzvau2XQBAzbti
-        kBGLt4yUoAVmedhBcq6bLmxNcIsS8sjngrkpF5aT4CzUsL2Y799GPZCh50WeeoNe
-        4/so3BSqklfczvl9wACnKl4dJi8wvytbdFB2B4juMfoeymWl6Wd73Lhu17Mm8ZSM
-        y6qNft84l27YHO9pYZawGZtiJ5Pxn07ZvWV5eZXFtC6daiO98V5FfJvaDljxnuwZ
-        r+3gSOzejysvxQ==
 In-Reply-To: <301dc10b-dcf7-af3b-a1e1-d9008f8e7e76@themaw.net>
 Content-Language: en-US
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: Oscar Salvador <osalvador@suse.com>, autofs@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
+To: Ian Kent <raven@themaw.net>, autofs@vger.kernel.org
 
-On 18/08/17 15:35, Ian Kent wrote:
+
+
+On 08/18/2017 09:35 AM, Ian Kent wrote:
 > On 17/08/17 17:48, Oscar Salvador wrote:
 >>
 >>
@@ -76,10 +57,11 @@ On 18/08/17 15:35, Ian Kent wrote:
 > But it could also be I didn't actually use LDAP, I used NIS, I'll have to
 > try harder to replicate it.
 
-Success, I have now been able to reproduce this, give me some time
-to work out what's going on.
+With NIS you will not have any problem, it just works because 
+open_lookup() returns NSS_STATUS_NOTFOUND in case it fails.
+But if you replace "nis" with "ldap" in /etc/nsswitch.conf, then you 
+should be able to see the issue.
 
-> 
 >>
 >> My setup is quite simple:
 >>
@@ -121,12 +103,37 @@ to work out what's going on.
 > not being re-read and so not being updated.
 > 
 > Is that what you mean?
-> 
-> Ian
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe autofs" in
-> 
 
+No, sorry, maybe I didn't explain it correctly.
+I'm not talking about mountpoints not being unmounted, but about maps 
+not being updated.
+
+f.i:
+
+If I have
+
+auto.host on /data3 type autofs 
+(rw,relatime,fd=7,pgrp=29843,timeout=300,minproto=5,maxproto=5,direct)
+auto.host on /data2 type autofs 
+(rw,relatime,fd=7,pgrp=29843,timeout=300,minproto=5,maxproto=5,direct)
+auto.host on /data1 type autofs 
+(rw,relatime,fd=7,pgrp=29843,timeout=300,minproto=5,maxproto=5,direct)
+
+
+then I comment /data3 in /etc/auto.host, and then I signal autofs with -HUP.
+autofs will re-read the maps and update them, so /data3 will not appear 
+anymore when executing "mount"
+
+
+This works unless you have two lookup methods in /etc/nsswitch.conf, one 
+of them being ldap and having ldap not being able to connect to its server.
+
+This is why I came up with the latest patch from my previous comment.
+In case you have two lookup methods, and one of them is working and the 
+other not, you still should be able to update the maps since you at 
+least got one method working.
+
+Thanks
+Oscar
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
