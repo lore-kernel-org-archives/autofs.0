@@ -1,75 +1,75 @@
-From: "Badics, Alex" <alex.badics@balabit.com>
-Subject: Autofs + shared mount namespaces
-Date: Tue, 12 Sep 2017 15:17:43 +0200
-Message-ID: <CAJsjXgryH912APrqk3rzECB=MHKdDg_ROfa6mjTETKKBrW7mmg@mail.gmail.com>
+From: Ian Kent <raven@themaw.net>
+Subject: Re: [RFC PATCH 0/2] autofs: fix autofs_v5_packet dlivery in compat
+ mode
+Date: Thu, 14 Sep 2017 08:32:43 +0800
+Message-ID: <bc3ada96-1f10-7d5b-6711-50f1cc8ce898@themaw.net>
+References: <20170901110906.2669.1577.stgit@localhost.localdomain>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=balabit-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:from:date:message-id:subject:to;
-        bh=an/nWUHBEPRUbAdxsRffFh2WiBicGu5LVdTZWgvoERc=;
-        b=V21oMNQ0yqdFyz8bOtBSoJ6+NiGGsYQXj4zTQ+Y8uTkXk2FpZoNIvUVNGb0149h3i1
-         RCIGTsRZJedkITsxyF4pWBvak7aLkx2MUXTwacff3BTEokhKEy5SQFPflOPdvI7nnbOu
-         wZ6m+bp+leKsg6CrktROm5pKpnIwee8nUXnbtxTsXBeOKOx65UZiUv43DReP3NcNm6m7
-         WPlnOTI58H2mMW/Coytsz5iPBG81btsagiEc3KURcQj/R+WbkpTHUd9GssVuubkH21dx
-         lchbgT53vfGm0tIIpY+t301PxzAej4BY9trtyZ75cQHHGI9nHze6OxfPsM9zYcV0t4bh
-         Ag6g==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
+        :content-transfer-encoding:content-type:date:from:in-reply-to
+        :message-id:mime-version:references:subject:to:x-me-sender
+        :x-me-sender:x-sasl-enc:x-sasl-enc; s=fm1; bh=xlnZZ+kGwrkbGNkxD8
+        NJ4YZzFKVPiKGUr5S2E+r7YXQ=; b=YYyboxoxyN7EtRpyBOzZ6m2+VEorzvQQGy
+        GyD6EXM+7bJ7WzEdtV3/Ph6HhWZtvIJmReQwF49VpDA88/g3f/uzpMfROVrJUwnM
+        DORS03iY7Ejzm4MetwyaOG0ujo8b3RJ3q+4SUudhTZ3mIvFuDDQUYY2iG+uNodnm
+        u/crGEdmSsHgllwsNJnKS1A7bV/8T9lhas/HwRH9GmjL0i3VUWCJfyfxD4GiQQvR
+        23rl+Bqs1Y/mXj7hzNPYx4NYvGxBLnUe+l9VaPPoLB0C3ZQMxt6zGmDKydcw191c
+        Jx6UDksVTQVQz6VB1SqyVbp2YR6Wmh8XCxVwW6lHZBuxRc4jI6Vw==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:content-transfer-encoding:content-type
+        :date:from:in-reply-to:message-id:mime-version:references
+        :subject:to:x-me-sender:x-me-sender:x-sasl-enc:x-sasl-enc; s=
+        fm1; bh=xlnZZ+kGwrkbGNkxD8NJ4YZzFKVPiKGUr5S2E+r7YXQ=; b=CKuS1R2I
+        KN/bxJtdbY1KZ4nmkYXT0iYNYeT5I4n09rtn1hDJWY3uKU96Yyl/jFrxeyxza0Oh
+        rXyy0CO6/g0RQckzBQx1480Lpk4ryT3ub3+CASfdzZli7F1KCk15dnfAnp3TGMHh
+        79OegyoRX8vCmulec8D31K+ePc8n0bb4FM7AlxeLjirMaYjUBWbOXgfRfPxCN/KS
+        Y04Kw28IA+/df8mZrlaqkWLADZbmleTNCGiIBoDEmEfw+SZYIK1I+N7SuH6OVWLA
+        r0XlDinwyosgr9MgFp2hKEO8mehm48S+uK5kPnmxNUqaCncP/AMCeORmIg2XC5rs
+        OqdWMDxm+776BA==
+In-Reply-To: <20170901110906.2669.1577.stgit@localhost.localdomain>
+Content-Language: en-US
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: autofs@vger.kernel.org
+To: Stanislav Kinsburskiy <skinsbursky@virtuozzo.com>
+Cc: autofs@vger.kernel.org, linux-kernel@vger.kernel.org, devel@openvz.org, ldv@altlinux.org
 
-Hi,
+On 01/09/17 19:21, Stanislav Kinsburskiy wrote:
+> The problem is that in compat mode struct autofs_v5_packet has to have different size
+> (i.e. 4 bytes less).
 
-We've been trying out autofs with both systemd-automount and the
-autofs userspace daemon, and it seems like it incorrectly marks a
-mountpoint as "expired" even though it's still in use in a different
-mount namespace. Am I doing something wrong? Are mount namespaces
-supported by the autofs driver?
+I regret (several times over) my original decision to not make v5 packets
+packed ....
 
-Reproduction:
-/etc/autofs/auto.master:
-/mnt/test   /etc/autofs/auto.test.nfs --timeout 10
+I have to say the description of the problem is not all that good.
 
-/etc/autofs/auto.test.nfs:
-test  -rw,soft,intr server.domain:/exports/nfs
+> 
+> This is RFC because:
+> 1) This issue is hidden, because autofs pipe has O_DIRECT and the rest of the
+> epacket is truncated when read.
+> 2) X86 arch doesn't have is_compat_task() helper
+> 3) It's now clear, what to do if "pgrp" option is specified.
 
-On one tab, I start autofs:
-# automount -f -v
+I don't understand what the "pgrp" option has to do with this?
 
-On another, I unshare a namespace, and cd into the test directory:
-# cd /mnt
-# unshare -m --propagation shared
-# cd test/test
+> 
+> The following series implements...
+> 
+> ---
+> 
+> Stanislav Kinsburskiy (2):
+>       autofs: set compat flag on sbi when daemon uses 32bit addressation
+>       autofs: sent 32-bit sized packet for 32-bit process
+> 
+> 
+>  fs/autofs4/autofs_i.h  |    3 +++
+>  fs/autofs4/dev-ioctl.c |    3 +++
+>  fs/autofs4/inode.c     |    4 +++-
+>  fs/autofs4/waitq.c     |    5 +++++
+>  4 files changed, 14 insertions(+), 1 deletion(-)
+> 
 
-And just wait. The mount correctly happens, but after 10 seconds, the
-autofs daemon gets an expired message and tries to umount hte nfs
-mount, and fails, because it's busy. It retries until I cd out of the
-nfs directory, then it of course succeeds:
-
-Starting automounter version 5.1.3, master map auto.master
-using kernel protocol version 5.02
-mounted indirect on /mnt/test with timeout 10, freq 3 seconds
-attempting to mount entry /mnt/test/test
-mounted /mnt/test/test
-1 remaining in /mnt/test
-1 remaining in /mnt/test
-1 remaining in /mnt/test
-expiring path /mnt/test/test
->> umount.nfs4: /mnt/test/test: device is busy
->> umount.nfs4: /mnt/test/test: device is busy
->> umount.nfs4: /mnt/test/test: device is busy
-Unable to update the mtab file, /proc/mounts and /etc/mtab will differ
-expired /mnt/test/test
-1 remaining in /mnt/test
-1 remaining in /mnt/test
-1 remaining in /mnt/test
-1 remaining in /mnt/test
-expiring path /mnt/test/test
-expired /mnt/test/test
-
-Thanks,
-Alex Badics
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
