@@ -1,102 +1,108 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [RFC PATCH 1/2] autofs: set compat flag on sbi when daemon uses
- 32bit addressation
-Date: Thu, 14 Sep 2017 08:38:02 +0800
-Message-ID: <e86c66c6-7430-00e2-518a-cb2b87ab4130@themaw.net>
-References: <20170901110906.2669.1577.stgit@localhost.localdomain>
- <20170901112144.2669.1453.stgit@localhost.localdomain>
+Subject: Re: Autofs + shared mount namespaces
+Date: Thu, 14 Sep 2017 08:51:56 +0800
+Message-ID: <3b5cb023-09ad-ccad-dc61-968a1b44dd31@themaw.net>
+References: <CAJsjXgryH912APrqk3rzECB=MHKdDg_ROfa6mjTETKKBrW7mmg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
-        :content-transfer-encoding:content-type:date:from:in-reply-to
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=
+        content-transfer-encoding:content-type:date:from:in-reply-to
         :message-id:mime-version:references:subject:to:x-me-sender
-        :x-me-sender:x-sasl-enc:x-sasl-enc; s=fm1; bh=XsASarR7mtDxXC+18o
-        oUwhU7OFwAsZeHqcK/Hxqcr4Q=; b=VcS0iUHOFon++JtYFkrycCK8LfSNNFhJRb
-        q5uwIaIRbJuS/OQScvAn1bPlm7QhhHBmtErFUtBm+F4P1wNgM4h6J9InjDNE7cmk
-        B9SkdIOtgupBPiqlyxa0sogiVHSORbtSbF130l/UO6BYaptHCQ9s0/EA84LjXYsZ
-        /9sTgEINDXap7m/iRNJrYSMuaLERb6QHxe4BiPX66y2F0Y+TsKMKwPk9wUg7Zn1o
-        VDFSyR6OT9TfE1vjLz2jUd3ypSd04mxr8iMoUeEAmXBxl7/Fniy/hoxLbn+FmTAw
-        EpPpejvI4l8zegRg7USPz1iz2sJuJNwvUK4DdNKh0QmO3KwD5Law==
+        :x-me-sender:x-sasl-enc:x-sasl-enc; s=fm1; bh=GVN40B75SerXOoThmX
+        IFNAWH7EmvmCQCjSMKhbmwMDg=; b=jCpNoJYl75/YC5Rm1m/yojJ67+eU/heV/z
+        E+sxEupWOFhyxUoXjPTn/4jbMs9gUhfDTda6FprG14TGoLML5lIglhOHgT3McRLY
+        NLdbNJv6t6DnPJTNZ5OgfkvBrL+aW1OzaPCBoHjdJoH0LW5p2V3TRoJWxrSlSOe7
+        UI+eSktnHcuFOzt9lCZ0KkymTUmcmlUX2dVkIZhAyMMi9B5+4qWXEY5I/u3h4COF
+        WK3TOY5R1HvgWJDgq9TMQpH/NZQZjvgnM+awij+jXHwjyAnYfb6vpZXR3Zl3pXlw
+        ZgFT35HI8j4Qs+KWYnegx+/sDz9YydrH9fsEfdw1oRlDcNvVUMXQ==
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:content-transfer-encoding:content-type
+        messagingengine.com; h=content-transfer-encoding:content-type
         :date:from:in-reply-to:message-id:mime-version:references
         :subject:to:x-me-sender:x-me-sender:x-sasl-enc:x-sasl-enc; s=
-        fm1; bh=XsASarR7mtDxXC+18ooUwhU7OFwAsZeHqcK/Hxqcr4Q=; b=k103FsMg
-        csw0l58tPdDM6yXzT+ZreKvdmJHrUcmxxZ3ogWVlD3zQGOsE+eUNSraf/G0btuAX
-        BAfXmJKAluPLcUmOsigNybBj1b85MHJV07YNQnxF7ioufhmwZYOeX/nyu2VvB6cZ
-        bUnVJJp47GTDQH3d2KXVcIRBcrl8TphtXpOG2xmt5fwfTgl7RxW2RYdqwRXaLJi1
-        Ar4gx5KnWlGzMPx2t2+k7N3RaNhGxFb23sK6y+FJlfNd+X1o1DhNMQM708GXOBxq
-        SDIsMku32ZDMdAIISsS/qRNwk7v8d+q2fiQ0UBh4IfUxSaOjBoV8kT1vnxlP76yq
-        hMbTYwDjEAp4Fw==
-In-Reply-To: <20170901112144.2669.1453.stgit@localhost.localdomain>
+        fm1; bh=GVN40B75SerXOoThmXIFNAWH7EmvmCQCjSMKhbmwMDg=; b=c1ldwmWA
+        1saSz+xRqsFev7olVU0Jf5joj2/doqKLo6EL0Lk3LBGyFKJbEw5kIqxw7N4l5iMZ
+        6lGP0h7a7DejoSJimWbcQzFzGpxrf0ZrZtlPwj0fCNLeG1HT2h1O33/WbCtOMoMZ
+        NWsZF84OTUmxriExLmWKK6uC0lXcjY2xz/Kky4q04z5OuWzoDeHQnvcu/PgRajhF
+        3USDXLqWGw7Is2SjbuUP7kvHdbx7eWORR0DIkx0R6QjteHJuz+SWquVGbAkYkuWv
+        2z0z0FKpD19rdqSGzEZlSYdUujTVaYeX5Q8jVgW5AiHbsAW0F55xx1hWdYJMxp8/
+        virq5fDnYUpY7g==
+In-Reply-To: <CAJsjXgryH912APrqk3rzECB=MHKdDg_ROfa6mjTETKKBrW7mmg@mail.gmail.com>
 Content-Language: en-US
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Stanislav Kinsburskiy <skinsbursky@virtuozzo.com>
-Cc: autofs@vger.kernel.org, linux-kernel@vger.kernel.org, devel@openvz.org, ldv@altlinux.org
+To: "Badics, Alex" <alex.badics@balabit.com>, autofs@vger.kernel.org
 
-On 01/09/17 19:21, Stanislav Kinsburskiy wrote:
-> Signed-off-by: Stanislav Kinsburskiy <skinsbursky@virtuozzo.com>
-> ---
->  fs/autofs4/autofs_i.h  |    3 +++
->  fs/autofs4/dev-ioctl.c |    3 +++
->  fs/autofs4/inode.c     |    4 +++-
->  3 files changed, 9 insertions(+), 1 deletion(-)
+On 12/09/17 21:17, Badics, Alex wrote:
+> Hi,
 > 
-> diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
-> index 4737615..3da105f 100644
-> --- a/fs/autofs4/autofs_i.h
-> +++ b/fs/autofs4/autofs_i.h
-> @@ -120,6 +120,9 @@ struct autofs_sb_info {
->  	struct list_head active_list;
->  	struct list_head expiring_list;
->  	struct rcu_head rcu;
-> +#ifdef CONFIG_COMPAT
-> +	unsigned is32bit:1;
-> +#endif
->  };
->  
->  static inline struct autofs_sb_info *autofs4_sbi(struct super_block *sb)
-> diff --git a/fs/autofs4/dev-ioctl.c b/fs/autofs4/dev-ioctl.c
-> index b7c816f..467d6c4 100644
-> --- a/fs/autofs4/dev-ioctl.c
-> +++ b/fs/autofs4/dev-ioctl.c
-> @@ -397,6 +397,9 @@ static int autofs_dev_ioctl_setpipefd(struct file *fp,
->  		sbi->pipefd = pipefd;
->  		sbi->pipe = pipe;
->  		sbi->catatonic = 0;
-> +#ifdef CONFIG_COMPAT
-> +		sbi->is32bit = is_compat_task();
-> +#endif
->  	}
->  out:
->  	put_pid(new_pid);
-> diff --git a/fs/autofs4/inode.c b/fs/autofs4/inode.c
-> index 09e7d68..21d3c0b 100644
-> --- a/fs/autofs4/inode.c
-> +++ b/fs/autofs4/inode.c
-> @@ -301,7 +301,9 @@ int autofs4_fill_super(struct super_block *s, void *data, int silent)
->  	} else {
->  		sbi->oz_pgrp = get_task_pid(current, PIDTYPE_PGID);
->  	}
-> -
-> +#ifdef CONFIG_COMPAT
-> +	sbi->is32bit = is_compat_task();
-> +#endif
->  	if (autofs_type_trigger(sbi->type))
->  		__managed_dentry_set_managed(root);
->  
+> We've been trying out autofs with both systemd-automount and the
+> autofs userspace daemon, and it seems like it incorrectly marks a
+> mountpoint as "expired" even though it's still in use in a different
+> mount namespace. Am I doing something wrong? Are mount namespaces
+> supported by the autofs driver?
+
+There are challenges with namespaces that I'm unable to resolve.
+
+The specific behavior your seeing is one of those problems.
+
+I'm unable to find a way to check propogated mounts.
+
+I tried recently and could only come up with a method that was
+order n squared cost with the number of mounts which was, as you
+would expect, rejected upstream.
+
+And what kernel version are you using?
+
 > 
+> Reproduction:
+> /etc/autofs/auto.master:
+> /mnt/test   /etc/autofs/auto.test.nfs --timeout 10
+> 
+> /etc/autofs/auto.test.nfs:
+> test  -rw,soft,intr server.domain:/exports/nfs
+> 
+> On one tab, I start autofs:
+> # automount -f -v
+> 
+> On another, I unshare a namespace, and cd into the test directory:
+> # cd /mnt
+> # unshare -m --propagation shared
+> # cd test/test
+> 
+> And just wait. The mount correctly happens, but after 10 seconds, the
+> autofs daemon gets an expired message and tries to umount hte nfs
+> mount, and fails, because it's busy. It retries until I cd out of the
+> nfs directory, then it of course succeeds:
+> 
+> Starting automounter version 5.1.3, master map auto.master
+> using kernel protocol version 5.02
+> mounted indirect on /mnt/test with timeout 10, freq 3 seconds
+> attempting to mount entry /mnt/test/test
+> mounted /mnt/test/test
+> 1 remaining in /mnt/test
+> 1 remaining in /mnt/test
+> 1 remaining in /mnt/test
+> expiring path /mnt/test/test
+>>> umount.nfs4: /mnt/test/test: device is busy
+>>> umount.nfs4: /mnt/test/test: device is busy
+>>> umount.nfs4: /mnt/test/test: device is busy
+> Unable to update the mtab file, /proc/mounts and /etc/mtab will differ
+> expired /mnt/test/test
+> 1 remaining in /mnt/test
+> 1 remaining in /mnt/test
+> 1 remaining in /mnt/test
+> 1 remaining in /mnt/test
+> expiring path /mnt/test/test
+> expired /mnt/test/test
 
-Not sure about this.
+What is it your trying to do?
+How would you like this to behave?
 
-Don't you think it would be better to avoid the in code #ifdefs by doing some
-checks and defines in the header file and defining what's need to just use
-is_compat_task().
-
-Not sure 2 patches are needed for this either ......
+Keep in mind that a mount namespace is little more than a view of
+the set of current mounts so there is limited mount independence
+possible.
 
 Ian
 --
