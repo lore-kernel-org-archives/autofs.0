@@ -1,114 +1,106 @@
-From: "Badics, Alex" <alex.badics@balabit.com>
-Subject: Re: Autofs + shared mount namespaces
-Date: Thu, 14 Sep 2017 10:52:05 +0200
-Message-ID: <CAJsjXgr4R988Vxe2sb237fD4mYfJYoZNzP_dHsYk-CFw3TgyGQ@mail.gmail.com>
-References: <CAJsjXgryH912APrqk3rzECB=MHKdDg_ROfa6mjTETKKBrW7mmg@mail.gmail.com>
- <3b5cb023-09ad-ccad-dc61-968a1b44dd31@themaw.net>
+From: Stanislav Kinsburskiy <skinsbursky@virtuozzo.com>
+Subject: Re: [RFC PATCH 1/2] autofs: set compat flag on sbi when daemon uses
+ 32bit addressation
+Date: Thu, 14 Sep 2017 11:24:41 +0200
+Message-ID: <b35f6e37-5138-7ede-4c6c-0aa016645977@virtuozzo.com>
+References: <20170901110906.2669.1577.stgit@localhost.localdomain>
+ <20170901112144.2669.1453.stgit@localhost.localdomain>
+ <e86c66c6-7430-00e2-518a-cb2b87ab4130@themaw.net>
+Reply-To: skinsbursky@virtuozzo.com
 Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=balabit-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:in-reply-to:references:from:date:message-id:subject:to
-         :cc;
-        bh=4GKn9VcX4/7dR70/yRKFavhl6ER+1X2aG1EEbk4dt9w=;
-        b=vnxnZuuaVZxtRpanskmBBI9WXXqnrOkMQqoaoWvTGwN/1M23ej4DKkOIPqmlGlhvok
-         oBQzyDLg4rkSJJCBxW1dHr72dA4+HAYDS09sHbSn6wwutUIlu6Q9IL/vHM1+MGO9jAfz
-         6yQQM61d/SUImntR9TdSe0GuCKKsaRWqFbn/PBbtI2wgbyKlem+3dyqUZtmeMVgLLO6Q
-         +glZ+HnFNfqpXrjhFRasISnavX617X/6d5Lege3gG5lgQ5T6fO+uYqe3gSh4O5g1VfNP
-         0VaHbonZc3etIVNu4mqO8SV9kloLdmsZT3yGg0NdX1YkKLpRxDIYCWmOjVxIn0tlDr/7
-         sETQ==
-In-Reply-To: <3b5cb023-09ad-ccad-dc61-968a1b44dd31@themaw.net>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=virtuozzo.com;
+ s=selector1; h=From:Date:Subject:Message-ID:Content-Type:MIME-Version;
+ bh=jXpIu/m1nkLi0DdIDrvepvAZ91a2RER3Eg4tarNNQK4=;
+ b=RYIVuooA86BhmzR4kOco0H/hYCZkRwdgFZzjuEQyBp2yvYjH59J8DqFzx8DHU66HTbrI4G3KFTjrxllkgChj8crMQp89qApQFuMnXsBw4nEs2LDcjd7dVU9UaHxTD23sDi4n6VGII+Z3QHWYWfQNBSi1hfc3WNYMGUFpQBsDM0o=
+In-Reply-To: <e86c66c6-7430-00e2-518a-cb2b87ab4130@themaw.net>
+Content-Language: en-US
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
 To: Ian Kent <raven@themaw.net>
-Cc: autofs@vger.kernel.org
+Cc: autofs@vger.kernel.org, linux-kernel@vger.kernel.org, devel@openvz.org, ldv@altlinux.org
 
-> On 12/09/17 21:17, Badics, Alex wrote:
->> Hi,
->>
->> We've been trying out autofs with both systemd-automount and the
->> autofs userspace daemon, and it seems like it incorrectly marks a
->> mountpoint as "expired" even though it's still in use in a different
->> mount namespace. Am I doing something wrong? Are mount namespaces
->> supported by the autofs driver?
->
-> There are challenges with namespaces that I'm unable to resolve.
->
-> The specific behavior your seeing is one of those problems.
->
-> I'm unable to find a way to check propogated mounts.
->
-> I tried recently and could only come up with a method that was
-> order n squared cost with the number of mounts which was, as you
-> would expect, rejected upstream.
->
-> And what kernel version are you using?
-We tried with the latest stable (4.13.1), the latest Arch one
-(4.12.10), and the Xenial one (4.4.0)
 
->
->>
->> Reproduction:
->> /etc/autofs/auto.master:
->> /mnt/test   /etc/autofs/auto.test.nfs --timeout 10
->>
->> /etc/autofs/auto.test.nfs:
->> test  -rw,soft,intr server.domain:/exports/nfs
->>
->> On one tab, I start autofs:
->> # automount -f -v
->>
->> On another, I unshare a namespace, and cd into the test directory:
->> # cd /mnt
->> # unshare -m --propagation shared
->> # cd test/test
->>
->> And just wait. The mount correctly happens, but after 10 seconds, the
->> autofs daemon gets an expired message and tries to umount hte nfs
->> mount, and fails, because it's busy. It retries until I cd out of the
->> nfs directory, then it of course succeeds:
->>
->> Starting automounter version 5.1.3, master map auto.master
->> using kernel protocol version 5.02
->> mounted indirect on /mnt/test with timeout 10, freq 3 seconds
->> attempting to mount entry /mnt/test/test
->> mounted /mnt/test/test
->> 1 remaining in /mnt/test
->> 1 remaining in /mnt/test
->> 1 remaining in /mnt/test
->> expiring path /mnt/test/test
->>>> umount.nfs4: /mnt/test/test: device is busy
->>>> umount.nfs4: /mnt/test/test: device is busy
->>>> umount.nfs4: /mnt/test/test: device is busy
->> Unable to update the mtab file, /proc/mounts and /etc/mtab will differ
->> expired /mnt/test/test
->> 1 remaining in /mnt/test
->> 1 remaining in /mnt/test
->> 1 remaining in /mnt/test
->> 1 remaining in /mnt/test
->> expiring path /mnt/test/test
->> expired /mnt/test/test
->
-> What is it your trying to do?
-> How would you like this to behave?
-We are trying to mount network shares under a container after it was
-started, and umount it when the container no longer uses it. /mnt is
-mounted with shared (or slave, we haven't decided on that yet)
-propagation, so simple mounts and umounts work fine. The container
-does no mount/umount calls whatsoever.
 
-What I found (in my limited research) is that may_umount_tree() is not
-namespace-aware, but may_umount is. I thought these should be
-semantically the same (one umount a mountpoint IFF she can umount
-everything under it), but I guess there are minor differences?
+14.09.2017 02:38, Ian Kent пишет:
+> On 01/09/17 19:21, Stanislav Kinsburskiy wrote:
+>> Signed-off-by: Stanislav Kinsburskiy <skinsbursky@virtuozzo.com>
+>> ---
+>>  fs/autofs4/autofs_i.h  |    3 +++
+>>  fs/autofs4/dev-ioctl.c |    3 +++
+>>  fs/autofs4/inode.c     |    4 +++-
+>>  3 files changed, 9 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
+>> index 4737615..3da105f 100644
+>> --- a/fs/autofs4/autofs_i.h
+>> +++ b/fs/autofs4/autofs_i.h
+>> @@ -120,6 +120,9 @@ struct autofs_sb_info {
+>>  	struct list_head active_list;
+>>  	struct list_head expiring_list;
+>>  	struct rcu_head rcu;
+>> +#ifdef CONFIG_COMPAT
+>> +	unsigned is32bit:1;
+>> +#endif
+>>  };
+>>  
+>>  static inline struct autofs_sb_info *autofs4_sbi(struct super_block *sb)
+>> diff --git a/fs/autofs4/dev-ioctl.c b/fs/autofs4/dev-ioctl.c
+>> index b7c816f..467d6c4 100644
+>> --- a/fs/autofs4/dev-ioctl.c
+>> +++ b/fs/autofs4/dev-ioctl.c
+>> @@ -397,6 +397,9 @@ static int autofs_dev_ioctl_setpipefd(struct file *fp,
+>>  		sbi->pipefd = pipefd;
+>>  		sbi->pipe = pipe;
+>>  		sbi->catatonic = 0;
+>> +#ifdef CONFIG_COMPAT
+>> +		sbi->is32bit = is_compat_task();
+>> +#endif
+>>  	}
+>>  out:
+>>  	put_pid(new_pid);
+>> diff --git a/fs/autofs4/inode.c b/fs/autofs4/inode.c
+>> index 09e7d68..21d3c0b 100644
+>> --- a/fs/autofs4/inode.c
+>> +++ b/fs/autofs4/inode.c
+>> @@ -301,7 +301,9 @@ int autofs4_fill_super(struct super_block *s, void *data, int silent)
+>>  	} else {
+>>  		sbi->oz_pgrp = get_task_pid(current, PIDTYPE_PGID);
+>>  	}
+>> -
+>> +#ifdef CONFIG_COMPAT
+>> +	sbi->is32bit = is_compat_task();
+>> +#endif
+>>  	if (autofs_type_trigger(sbi->type))
+>>  		__managed_dentry_set_managed(root);
+>>  
+>>
+> 
+> Not sure about this.
+> 
+> Don't you think it would be better to avoid the in code #ifdefs by doing some
+> checks and defines in the header file and defining what's need to just use
+> is_compat_task().
+> 
 
->
-> Keep in mind that a mount namespace is little more than a view of
-> the set of current mounts so there is limited mount independence
-> possible.
->
+Yes, might be...
+
+> Not sure 2 patches are needed for this either ......
+> 
+
+Well, I found this issue occasionally.
+And, frankly speaking, it's not clear to me, whether this issue is important at all, so I wanted to clarify this first.
+Thanks to O_DIRECT, the only way to catch the issue is to try to read more, than expected, in compat task (that's how I found it).
+I don't see any other flaw so far. And if so, that, probably, we shouldn't care about the issue at all.
+What do you think?
+
+
 > Ian
+> 
+
+
+ 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
