@@ -1,7 +1,8 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 24/35] autofs-5.1.3 - fix amd parser error buffer size
-Date: Mon, 16 Oct 2017 13:08:30 +0800
-Message-ID: <150813051018.25695.5260169967641980525.stgit@pluto.themaw.net>
+Subject: [PATCH 26/35] autofs-5.1.3 - document ghost option in auto.master
+ man page
+Date: Mon, 16 Oct 2017 13:08:42 +0800
+Message-ID: <150813052207.25695.16615651390055095096.stgit@pluto.themaw.net>
 References: <150813019190.25695.13810689562896522990.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -12,43 +13,44 @@ List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: autofs mailing list <autofs@vger.kernel.org>
 
-There is an inconsistency between the error message buffer length
-of the amd parser and the possible string length the bison generated
-parser can pass to it.
+The --ghost pseudo option has been depricated for quite a while now
+in favour of the browse option as descibed in auto.master(5).
 
-Just increase the error buffer size to cover it.
+However it isn't noted in the description of the browse option that
+the --ghost option is the same as the browse option.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 ---
- CHANGELOG           |    1 +
- modules/amd_parse.y |    2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ CHANGELOG            |    1 +
+ man/auto.master.5.in |    3 ++-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index 25dc7301..90d06d59 100644
+index 6a18fd15..7457e620 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -22,6 +22,7 @@ xx/xx/2017 autofs-5.1.4
- - check map instances for staleness on map update.
- - allow dot in OPTIONSTR value lexer pattern.
+@@ -24,6 +24,7 @@ xx/xx/2017 autofs-5.1.4
  - fix autofs_use_lofs description.
-+- fix amd parser error buffer size.
+ - fix amd parser error buffer size.
+ - make spawn_bind_mount() use mount_wait as well.
++- document ghost option in auto.master man page.
  
  24/05/2017 autofs-5.1.3
  =======================
-diff --git a/modules/amd_parse.y b/modules/amd_parse.y
-index e99820b9..9694515d 100644
---- a/modules/amd_parse.y
-+++ b/modules/amd_parse.y
-@@ -31,7 +31,7 @@
- #include "log.h"
- 
- #define MAX_OPTS_LEN	1024
--#define MAX_ERR_LEN	512
-+#define MAX_ERR_LEN	3096
- 
- static pthread_mutex_t parse_mutex = PTHREAD_MUTEX_INITIALIZER;
- 
+diff --git a/man/auto.master.5.in b/man/auto.master.5.in
+index c87fb7f4..4475186a 100644
+--- a/man/auto.master.5.in
++++ b/man/auto.master.5.in
+@@ -168,7 +168,8 @@ can cause performance problem if the indirect map is large so it should
+ be used with caution. The internal program default is to enable browse
+ mode for indirect mounts but the default installed configuration overrides
+ this by setting BROWSE_MODE to "no" because of the potential performance
+-problem.
++problem. This option does the same as the depricated --ghost option, the
++browse option is preferred because it is used by other autofs implementations.
+ .TP
+ .I "nobind"
+ This is an autofs specific option that is a pseudo mount option and
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
