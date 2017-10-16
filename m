@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 19/35] autofs-5.1.3 - also check flag file exe name
-Date: Mon, 16 Oct 2017 13:07:55 +0800
-Message-ID: <150813047531.25695.7074710238580737551.stgit@pluto.themaw.net>
+Subject: [PATCH 20/35] autofs-5.1.3 - fix possible map instance memory leak
+Date: Mon, 16 Oct 2017 13:08:01 +0800
+Message-ID: <150813048131.25695.8698015440611658720.stgit@pluto.themaw.net>
 References: <150813019190.25695.13810689562896522990.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -12,91 +12,52 @@ List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: autofs mailing list <autofs@vger.kernel.org>
 
-automount(8) uses a flag file if it needs to check for multiple
-invocations of itself at startup.
-
-The check to see if a flag file is owned by an existing automount(8)
-process can return a false positive because it doesn't also check the
-name of the executable of the given pid.
+When using a temporary map unconditionally updating the original map
+instance pointer will lead to a memory leak when the instance pointer
+is already set (among other problems).
 
 Signed-off-by: Ian Kent <raven@themaw.net>
-Reported-by: Doron Cohen <doron@weka.io>
 ---
- CHANGELOG     |    1 +
- daemon/flag.c |   35 +++++++++++++++++++++++++++++++++++
- 2 files changed, 36 insertions(+)
+ CHANGELOG       |    1 +
+ daemon/lookup.c |    6 ++++--
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index af8b099c..1b5c69ee 100644
+index 1b5c69ee..fab5ed49 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -17,6 +17,7 @@ xx/xx/2017 autofs-5.1.4
- - add some more debug logging to get_nfs_info().
+@@ -18,6 +18,7 @@ xx/xx/2017 autofs-5.1.4
  - add some more debug logging to get_supported_ver_and_cost().
  - fix ipv6 proto option handling.
-+- also check flag file exe name.
+ - also check flag file exe name.
++- fix possible map instance memory leak.
  
  24/05/2017 autofs-5.1.3
  =======================
-diff --git a/daemon/flag.c b/daemon/flag.c
-index db9a4bde..99f26847 100644
---- a/daemon/flag.c
-+++ b/daemon/flag.c
-@@ -33,12 +33,43 @@
- #define MAX_PIDSIZE	20
- #define FLAG_FILE	AUTOFS_FLAG_DIR "/autofs-running"
+diff --git a/daemon/lookup.c b/daemon/lookup.c
+index 583d3d37..569fffaf 100644
+--- a/daemon/lookup.c
++++ b/daemon/lookup.c
+@@ -536,7 +536,8 @@ static enum nsswitch_status read_map_source(struct nss_source *this,
+ 	result = read_file_source_instance(ap, &tmap, age);
+ 	pthread_cleanup_pop(1);
  
-+#define EXE_SELF	"/proc/self/exe"
-+#define EXE_PID		"/proc/%u/exe"
-+
- /* Flag for already existing flag file. */
- static int we_created_flagfile = 0;
+-	map->instance = tmap.instance;
++	if (!map->instance)
++		map->instance = tmap.instance;
  
- /* file descriptor of flag file */
- static int fd = -1;
+ 	return result;
+ }
+@@ -1089,7 +1090,8 @@ static enum nsswitch_status lookup_map_name(struct nss_source *this,
  
-+static int check_pid_exe_name(pid_t pid)
-+{
-+	char self_name[PATH_MAX + 1];
-+	char pid_name[PATH_MAX + 1];
-+	char exe_pid[MAX_PIDSIZE + 1];
-+	int len, ret = 0;
-+
-+	len = readlink(EXE_SELF, self_name, PATH_MAX);
-+	if (len == -1 || len == PATH_MAX)
-+		goto out;
-+	else
-+		self_name[len] = 0;
-+
-+	len = snprintf(exe_pid, MAX_PIDSIZE, EXE_PID, pid);
-+	if (len >= MAX_PIDSIZE)
-+		goto out;
-+
-+	len = readlink(exe_pid, pid_name, PATH_MAX);
-+	if (len == -1 || len == PATH_MAX)
-+		goto out;
-+	else
-+		pid_name[len] = 0;
-+
-+	ret = !strcmp(self_name, pid_name);
-+out:
-+	return ret;
-+}
-+
- static int flag_is_owned(int fd)
- {
- 	int pid = 0, tries = 3;
-@@ -83,6 +114,10 @@ static int flag_is_owned(int fd)
- 		 */
- 		if (ret == -1 && errno == ESRCH)
- 			return 0;
-+
-+		/* If there is a process check if it is automount */
-+		if (!check_pid_exe_name(pid))
-+			return 0;
- 	} else {
- 		/*
- 		 * Odd, no pid in file - so what should we do?
+ 	result = lookup_name_file_source_instance(ap, &tmap, name, name_len);
+ 
+-	map->instance = tmap.instance;
++	if (!map->instance)
++		map->instance = tmap.instance;
+ 
+ 	/* path is freed in free_argv */
+ 	free_argv(tmap.argc, tmap.argv);
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
