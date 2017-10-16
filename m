@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 15/35] autofs-5.1.3 - fix some man page problems
-Date: Mon, 16 Oct 2017 13:07:31 +0800
-Message-ID: <150813045128.25695.4870909409066680292.stgit@pluto.themaw.net>
+Subject: [PATCH 13/35] autofs-5.1.3 - set systemd KillMode to process
+Date: Mon, 16 Oct 2017 13:07:19 +0800
+Message-ID: <150813043950.25695.1729027409566079186.stgit@pluto.themaw.net>
 References: <150813019190.25695.13810689562896522990.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -12,135 +12,47 @@ List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: autofs mailing list <autofs@vger.kernel.org>
 
-Fix a few problems with the autofs man pages:
-- autofs(8) missing "autofs -" in NAME string.
-- punctuation marks in some SEE ALSO sections.
-- change NAME string to include key word "autofs" in auto.master(5).
+It's been reported that fuse based filesystem mounts are lost when
+restarting autofs.
+
+This behaviour is due to systemd default KillMode being control-group
+rather than process.
+
+While changing this from control-group to process might occassionally
+not kill some processes that should be killed on shutdown or restart
+these processes are much less common and less problematic than processes
+managing fuse based mounts.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 ---
- CHANGELOG                      |    1 +
- man/auto.master.5.in           |    4 ++--
- man/autofs.5                   |    4 ++--
- man/autofs.8.in                |    8 ++++----
- man/autofs.conf.5.in           |    2 +-
- man/autofs_ldap_auth.conf.5.in |    2 +-
- man/automount.8                |    4 ++--
- 7 files changed, 13 insertions(+), 12 deletions(-)
+ CHANGELOG                 |    1 +
+ samples/autofs.service.in |    1 +
+ 2 files changed, 2 insertions(+)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index d5dca873..c6423ce8 100644
+index 823b0832..4a57ca0b 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -13,6 +13,7 @@ xx/xx/2017 autofs-5.1.4
+@@ -11,6 +11,7 @@ xx/xx/2017 autofs-5.1.4
+ - use pkg-config to search for libtirpc to fix cross-compilation.
+ - fix incorrect status return in get_nfs_info().
  - fix a couple of compiler warnings.
- - set systemd KillMode to process.
- - fix mount.nfs blocks on first mount.
-+- fix some man page problems.
++- set systemd KillMode to process.
  
  24/05/2017 autofs-5.1.3
  =======================
-diff --git a/man/auto.master.5.in b/man/auto.master.5.in
-index ba28494e..c87fb7f4 100644
---- a/man/auto.master.5.in
-+++ b/man/auto.master.5.in
-@@ -1,7 +1,7 @@
- .\" t
- .TH AUTO.MASTER 5 "11 Apr 2006"
- .SH NAME
--auto.master \- Master Map for automounter
-+auto.master \- Master Map for automounter consulted by autofs
- .SH "DESCRIPTION"
- The
- .B auto.master
-@@ -367,7 +367,7 @@ configuration will be used to locate the source of the map
- .BR autofs (5),
- .BR autofs (8),
- .BR autofs.conf (5),
--.BR autofs_ldap_auth.conf (5)
-+.BR autofs_ldap_auth.conf (5).
- .SH AUTHOR
- This manual page was written by Christoph Lameter <chris@waterf.org>,
- for the Debian GNU/Linux system.  Edited by <hpa@transmeta.com> and
-diff --git a/man/autofs.5 b/man/autofs.5
-index 0063fbea..c2421272 100644
---- a/man/autofs.5
-+++ b/man/autofs.5
-@@ -602,8 +602,8 @@ depricated so this is not likely to change.
- .BR auto.master (5),
- .BR autofs (8),
- .BR autofs.conf (5),
--.BR mount (8).
--.BR autofs_ldap_auth.conf (5)
-+.BR mount (8),
-+.BR autofs_ldap_auth.conf (5).
- .SH AUTHOR
- This manual page was written by Christoph Lameter <chris@waterf.org>,
- for the Debian GNU/Linux system.  Edited by H. Peter Avian
-diff --git a/man/autofs.8.in b/man/autofs.8.in
-index b2b757bb..9f03eada 100644
---- a/man/autofs.8.in
-+++ b/man/autofs.8.in
-@@ -1,6 +1,6 @@
- .TH AUTOFS 8 "9 Sep 1997"
- .SH NAME
--Service control for the automounter
-+autofs \- Service control for the automounter
- .SH SYNOPSIS
- If a SysV init script system is being used:
- .br
-@@ -72,9 +72,9 @@ for more information.
- .BR automount (8),
- .BR autofs (5),
- .BR autofs.conf (5),
--.BR auto.master (5).
--.BR autofs_ldap_auth.conf (5)
--.BR systemctl(1)
-+.BR auto.master (5),
-+.BR autofs_ldap_auth.conf (5),
-+.BR systemctl(1).
- .SH AUTHOR
- This manual page was written by Christoph Lameter <chris@waterf.org>,
- for the Debian GNU/Linux system.  Edited by H. Peter Anvin
-diff --git a/man/autofs.conf.5.in b/man/autofs.conf.5.in
-index 0efe0d4f..ec2d4bb3 100644
---- a/man/autofs.conf.5.in
-+++ b/man/autofs.conf.5.in
-@@ -513,6 +513,6 @@ map_type = file
- .SH "SEE ALSO"
- .BR automount (8),
- .BR auto.master (5),
--.BR autofs_ldap_auth.conf (5)
-+.BR autofs_ldap_auth.conf (5).
- .SH AUTHOR
- This manual page was written by Ian Kent <raven@themaw.net>.
-diff --git a/man/autofs_ldap_auth.conf.5.in b/man/autofs_ldap_auth.conf.5.in
-index fe5077dd..e035ebe5 100644
---- a/man/autofs_ldap_auth.conf.5.in
-+++ b/man/autofs_ldap_auth.conf.5.in
-@@ -113,6 +113,6 @@ externally configured credential cache that is used during authentication.
- By default, autofs will setup a memory based credential cache.
- .SH "SEE ALSO"
- .BR auto.master (5),
--.BR autofs.conf (5),
-+.BR autofs.conf (5).
- .SH AUTHOR
- This manual page was written by Ian Kent <raven@themaw.net>.
-diff --git a/man/automount.8 b/man/automount.8
-index 601c18c8..8e0551e9 100644
---- a/man/automount.8
-+++ b/man/automount.8
-@@ -178,8 +178,8 @@ constructed has been detached from the mount tree.
- .BR autofs (8),
- .BR autofs.conf (5),
- .BR auto.master (5),
--.BR mount (8).
--.BR autofs_ldap_auth.conf (5)
-+.BR mount (8),
-+.BR autofs_ldap_auth.conf (5).
- .SH BUGS
- Don't know, I've fixed everything I know about.
+diff --git a/samples/autofs.service.in b/samples/autofs.service.in
+index f9fa96c4..b37d970a 100644
+--- a/samples/autofs.service.in
++++ b/samples/autofs.service.in
+@@ -9,6 +9,7 @@ PIDFile=@@autofspiddir@@/autofs.pid
+ EnvironmentFile=-@@autofsconfdir@@/autofs
+ ExecStart=@@sbindir@@/automount $OPTIONS --pid-file @@autofspiddir@@/autofs.pid
+ ExecReload=/usr/bin/kill -HUP $MAINPID
++KillMode=process
+ TimeoutSec=180
  
+ [Install]
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
