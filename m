@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 05/35] autofs-5.1.3 - add port parameter to rpc_ping()
-Date: Mon, 16 Oct 2017 13:06:19 +0800
-Message-ID: <150813037899.25695.8905060059677442768.stgit@pluto.themaw.net>
+Subject: [PATCH 02/35] autofs-5.1.3 - fix unset tsd group name handling
+Date: Mon, 16 Oct 2017 13:06:01 +0800
+Message-ID: <150813036170.25695.10708028814225890860.stgit@pluto.themaw.net>
 References: <150813019190.25695.13810689562896522990.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -12,151 +12,82 @@ List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: autofs mailing list <autofs@vger.kernel.org>
 
-Commit 4914be96 introduced an NFS ping probe to check availability on
-fallback from bind mount failure but failed to take into account the
-case where the port option had been given to avoid bind mounting.
+Commit 1a64a6bbc5 changed set_tsd_user_vars() to set thread specific
+values even if the group name could not be obtained.
 
-Change rpc_ping() and __rpc_ping() to take a port parameter and don't
-contact the portmapper or rpcbind if it is valid.
+But the structure holding the values was not initialized on allocation
+so the group field might not be NULL when no group name is available.
+
+Also the macro addition and removal functions didn't properly handle a
+macro value of NULL.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
+Reported-by: Donald Buczek <buczek@molgen.mpg.de>
 ---
- CHANGELOG           |    1 +
- include/rpc_subs.h  |    2 +-
- lib/rpc_subs.c      |   41 ++++++++++++++++++++++++++---------------
- modules/mount_nfs.c |    2 +-
- 4 files changed, 29 insertions(+), 17 deletions(-)
+ CHANGELOG    |    1 +
+ lib/macros.c |    8 +++++---
+ lib/mounts.c |    1 +
+ 3 files changed, 7 insertions(+), 3 deletions(-)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index 977dfcda..1aa1dbb5 100644
+index e796fb36..8d79bd60 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -3,6 +3,7 @@ xx/xx/2017 autofs-5.1.4
- - fix unset tsd group name handling.
- - Add -c option when calling /bin/umount - if supported.
- - remove some redundant rpc library code.
-+- add port parameter to rpc_ping().
+@@ -1,5 +1,6 @@
+ xx/xx/2017 autofs-5.1.4
+ - fix spec file url.
++- fix unset tsd group name handling.
  
  24/05/2017 autofs-5.1.3
  =======================
-diff --git a/include/rpc_subs.h b/include/rpc_subs.h
-index a344ed16..def80a2f 100644
---- a/include/rpc_subs.h
-+++ b/include/rpc_subs.h
-@@ -69,7 +69,7 @@ void rpc_destroy_tcp_client(struct conn_info *);
- int rpc_portmap_getclient(struct conn_info *, const char *, struct sockaddr *, size_t, int, unsigned int);
- int rpc_portmap_getport(struct conn_info *, struct pmap *, unsigned short *);
- int rpc_ping_proto(struct conn_info *);
--int rpc_ping(const char *, long, long, unsigned int);
-+int rpc_ping(const char *, int, long, long, unsigned int);
- double monotonic_elapsed(struct timespec, struct timespec);
- const char *get_addr_string(struct sockaddr *, char *, socklen_t);
+diff --git a/lib/macros.c b/lib/macros.c
+index ff9ba899..dfdca857 100644
+--- a/lib/macros.c
++++ b/lib/macros.c
+@@ -281,18 +281,20 @@ macro_addvar(struct substvar *table, const char *str, int len, const char *value
+ 	}
  
-diff --git a/lib/rpc_subs.c b/lib/rpc_subs.c
-index 5828a447..a039e8ee 100644
---- a/lib/rpc_subs.c
-+++ b/lib/rpc_subs.c
-@@ -1001,12 +1001,11 @@ int rpc_ping_proto(struct conn_info *info)
- }
- 
- static int __rpc_ping(const char *host,
--		      unsigned long version, int proto,
-+		      unsigned long version, int proto, int port,
- 		      long seconds, long micros, unsigned int option)
- {
- 	int status;
- 	struct conn_info info;
--	struct pmap parms;
- 
- 	info.proto = proto;
- 	info.host = host;
-@@ -1023,32 +1022,41 @@ static int __rpc_ping(const char *host,
- 
- 	status = RPC_PING_FAIL;
- 
--	parms.pm_prog = NFS_PROGRAM;
--	parms.pm_vers = version;
--	parms.pm_prot = info.proto;
--	parms.pm_port = 0;
- 
--	status = rpc_portmap_getport(&info, &parms, &info.port);
--	if (status < 0)
--		return status;
-+	if (port > 0)
-+		info.port = port;
-+	else {
-+		struct pmap parms;
-+
-+		parms.pm_prog = NFS_PROGRAM;
-+		parms.pm_vers = version;
-+		parms.pm_prot = info.proto;
-+		parms.pm_port = 0;
-+		status = rpc_portmap_getport(&info, &parms, &info.port);
-+		if (status < 0)
-+			return status;
-+	}
- 
- 	status = rpc_ping_proto(&info);
- 
- 	return status;
- }
- 
--int rpc_ping(const char *host, long seconds, long micros, unsigned int option)
-+int rpc_ping(const char *host, int port,
-+	     long seconds, long micros, unsigned int option)
- {
- 	unsigned long vers4 = NFS4_VERSION;
- 	unsigned long vers3 = NFS3_VERSION;
- 	unsigned long vers2 = NFS2_VERSION;
- 	int status;
- 
--	status = __rpc_ping(host, vers2, IPPROTO_UDP, seconds, micros, option);
-+	status = __rpc_ping(host, vers2,
-+			    IPPROTO_UDP, port, seconds, micros, option);
- 	if (status > 0)
- 		return RPC_PING_V2 | RPC_PING_UDP;
- 
--	status = __rpc_ping(host, vers3, IPPROTO_UDP, seconds, micros, option);
-+	status = __rpc_ping(host, vers3,
-+			    IPPROTO_UDP, port, seconds, micros, option);
- 	if (status > 0)
- 		return RPC_PING_V3 | RPC_PING_UDP;
- 
-@@ -1058,15 +1066,18 @@ int rpc_ping(const char *host, long seconds, long micros, unsigned int option)
- 		return RPC_PING_V4 | RPC_PING_UDP;
- 	*/
- 
--	status = __rpc_ping(host, vers2, IPPROTO_TCP, seconds, micros, option);
-+	status = __rpc_ping(host, vers2,
-+			    IPPROTO_TCP, port, seconds, micros, option);
- 	if (status > 0)
- 		return RPC_PING_V2 | RPC_PING_TCP;
- 
--	status = __rpc_ping(host, vers3, IPPROTO_TCP, seconds, micros, option);
-+	status = __rpc_ping(host, vers3, port,
-+			    IPPROTO_TCP, seconds, micros, option);
- 	if (status > 0)
- 		return RPC_PING_V3 | RPC_PING_TCP;
- 
--	status = __rpc_ping(host, vers4, IPPROTO_TCP, seconds, micros, option);
-+	status = __rpc_ping(host, vers4,
-+			    IPPROTO_TCP, port, seconds, micros, option);
- 	if (status > 0)
- 		return RPC_PING_V4 | RPC_PING_TCP;
- 
-diff --git a/modules/mount_nfs.c b/modules/mount_nfs.c
-index c558a738..a0ab656b 100644
---- a/modules/mount_nfs.c
-+++ b/modules/mount_nfs.c
-@@ -358,7 +358,7 @@ dont_probe:
- 			char *host = this->name ? this->name : "localhost";
- 			int ret;
- 
--			ret = rpc_ping(host, 2, 0, RPC_CLOSE_DEFAULT);
-+			ret = rpc_ping(host, port, 2, 0, RPC_CLOSE_DEFAULT);
- 			if (ret <= 0)
- 				goto next;
+ 	if (lv) {
+-		char *this = malloc(strlen(value) + 1);
++		const char *val = value ? value : "";
++		char *this = malloc(strlen(val) + 1);
+ 		if (!this) {
+ 			lv = table;
+ 			goto done;
  		}
+-		strcpy(this, value);
++		strcpy(this, val);
+ 		free(lv->val);
+ 		lv->val = this;
+ 		if (lv != table)
+ 			lv = table;
+ 	} else {
+ 		struct substvar *new;
++		const char *this = value ? value : "";
+ 		char *def, *val;
+ 
+ 		def = strdup(str);
+@@ -302,7 +304,7 @@ macro_addvar(struct substvar *table, const char *str, int len, const char *value
+ 		}
+ 		def[len] = '\0';
+ 
+-		val = strdup(value);
++		val = strdup(this);
+ 		if (!val) {
+ 			lv = table;
+ 			free(def);
+diff --git a/lib/mounts.c b/lib/mounts.c
+index ce6a60a7..0b38bd86 100644
+--- a/lib/mounts.c
++++ b/lib/mounts.c
+@@ -1463,6 +1463,7 @@ void set_tsd_user_vars(unsigned int logopt, uid_t uid, gid_t gid)
+ 		error(logopt, "failed alloc tsv storage");
+ 		return;
+ 	}
++	memset(tsv, 0, sizeof(struct thread_stdenv_vars));
+ 
+ 	tsv->uid = uid;
+ 	tsv->gid = gid;
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
