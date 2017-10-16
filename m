@@ -1,8 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 30/35] autofs-5.1.3 - make open_lookup() error handling more
- consistent
-Date: Mon, 16 Oct 2017 13:09:05 +0800
-Message-ID: <150813054518.25695.18076142455132738021.stgit@pluto.themaw.net>
+Subject: [PATCH 32/35] autofs-5.1.3 - be silent about nis domain not set
+Date: Mon, 16 Oct 2017 13:09:17 +0800
+Message-ID: <150813055728.25695.979212507236177578.stgit@pluto.themaw.net>
 References: <150813019190.25695.13810689562896522990.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -13,104 +12,55 @@ List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: autofs mailing list <autofs@vger.kernel.org>
 
-If the open of a lookup module fails then open_lookup() should return
-an NSS status that causes the source to be skipped as it is most likely
-due to the map source not being configured.
+When initializing the lookup module for NIS or NISPLUS if the domain
+is found to be not set then the service is not configured.
 
-Currently open_lookup() returns NSS_STATUS_UNAVAIL for failures whereas
-much of the other lookup code returns NSS_STATUS_UNKNOWN for similar
-errors encountered by open_lookup().
-
-But NSS_STATUS_UNAVAIL will result in waiting for the lookup module to
-become avaiable when trying to read the master map at startup even
-though it isn't likely to become available. So NSS_STATUS_UNKNOWN is
-more appropriate becuase that will cause the source to be skipped and
-is used for the same purpose elsewhere.
+So be silent about the failure.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 ---
- CHANGELOG       |    1 +
- daemon/module.c |   14 +++++++-------
- 2 files changed, 8 insertions(+), 7 deletions(-)
+ CHANGELOG                |    1 +
+ modules/lookup_nisplus.c |    1 -
+ modules/lookup_yp.c      |    2 --
+ 3 files changed, 1 insertion(+), 3 deletions(-)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index 5a2bf171..25e5a8c7 100644
+index 704f550a..56af6b94 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -28,6 +28,7 @@ xx/xx/2017 autofs-5.1.4
- - only take master map mutex for master map update.
- - revert fix argc off by one in mount_autofs.c.
+@@ -30,6 +30,7 @@ xx/xx/2017 autofs-5.1.4
  - fix nisplus lookup init not configured check.
-+- make open_lookup() error handling more consistent.
+ - make open_lookup() error handling more consistent.
+ - be silent about sss library not found.
++- be silent about nis domain not set.
  
  24/05/2017 autofs-5.1.3
  =======================
-diff --git a/daemon/module.c b/daemon/module.c
-index 8879b64c..b1a94f56 100644
---- a/daemon/module.c
-+++ b/daemon/module.c
-@@ -73,7 +73,7 @@ int open_lookup(const char *name, const char *err_prefix, const char *mapfmt,
- 			char *estr = strerror_r(errno, buf, MAX_ERR_BUF);
- 			logerr("%s%s", err_prefix, estr);
+diff --git a/modules/lookup_nisplus.c b/modules/lookup_nisplus.c
+index 5e80bfe1..398e8931 100644
+--- a/modules/lookup_nisplus.c
++++ b/modules/lookup_nisplus.c
+@@ -49,7 +49,6 @@ static int do_init(const char *mapfmt,
+ 	 */
+ 	ctxt->domainname = nis_local_directory();
+ 	if (!ctxt->domainname || !strcmp(ctxt->domainname, "(none).")) {
+-		logmsg(MODPREFIX "NIS+ domain not set");
+ 		ret = 1;
+ 		goto out;
+ 	}
+diff --git a/modules/lookup_yp.c b/modules/lookup_yp.c
+index b139b287..9f186ac6 100644
+--- a/modules/lookup_yp.c
++++ b/modules/lookup_yp.c
+@@ -127,8 +127,6 @@ static int do_init(const char *mapfmt,
+ 		/* This should, but doesn't, take a const char ** */
+ 		err = yp_get_default_domain(&domainname);
+ 		if (err) {
+-			logerr(MODPREFIX
+-			      "map %s: %s", ctxt->mapname, yperr_string(err));
+ 			ret = 1;
+ 			goto out;
  		}
--		return NSS_STATUS_UNAVAIL;
-+		return NSS_STATUS_UNKNOWN;
- 	}
- 
- 	type = strdup(name);
-@@ -83,7 +83,7 @@ int open_lookup(const char *name, const char *err_prefix, const char *mapfmt,
- 			char *estr = strerror_r(errno, buf, MAX_ERR_BUF);
- 			logerr("%s%s", err_prefix, estr);
- 		}
--		return NSS_STATUS_UNAVAIL;
-+		return NSS_STATUS_UNKNOWN;
- 	}
- 
- 	size = snprintf(fnbuf, sizeof(fnbuf),
-@@ -95,7 +95,7 @@ int open_lookup(const char *name, const char *err_prefix, const char *mapfmt,
- 			char *estr = strerror_r(errno, buf, MAX_ERR_BUF);
- 			logerr("%s%s", err_prefix, estr);
- 		}
--		return NSS_STATUS_UNAVAIL;
-+		return NSS_STATUS_UNKNOWN;
- 	}
- 
- 	if (!(dh = dlopen(fnbuf, RTLD_NOW))) {
-@@ -104,7 +104,7 @@ int open_lookup(const char *name, const char *err_prefix, const char *mapfmt,
- 			       err_prefix, name, dlerror());
- 		free(mod);
- 		free(type);
--		return NSS_STATUS_UNAVAIL;
-+		return NSS_STATUS_UNKNOWN;
- 	}
- 
- 	if (!(ver = (int *) dlsym(dh, "lookup_version"))
-@@ -115,7 +115,7 @@ int open_lookup(const char *name, const char *err_prefix, const char *mapfmt,
- 		dlclose(dh);
- 		free(mod);
- 		free(type);
--		return NSS_STATUS_UNAVAIL;
-+		return NSS_STATUS_UNKNOWN;
- 	}
- 
- 	if (!(mod->lookup_init = (lookup_init_t) dlsym(dh, "lookup_init")) ||
-@@ -129,14 +129,14 @@ int open_lookup(const char *name, const char *err_prefix, const char *mapfmt,
- 		dlclose(dh);
- 		free(mod);
- 		free(type);
--		return NSS_STATUS_UNAVAIL;
-+		return NSS_STATUS_UNKNOWN;
- 	}
- 
- 	if (mod->lookup_init(mapfmt, argc, argv, &mod->context)) {
- 		dlclose(dh);
- 		free(mod);
- 		free(type);
--		return NSS_STATUS_NOTFOUND;
-+		return NSS_STATUS_UNKNOWN;
- 	}
- 
- 	mod->type = type;
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
