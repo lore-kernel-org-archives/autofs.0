@@ -1,337 +1,149 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: Using autofs with Active directory
-Date: Wed, 4 Oct 2017 11:21:07 +0800
-Message-ID: <52bbfd4d-2623-4a5e-ce02-cda854573bd0@themaw.net>
-References: <20171002192855.554d1e3a@devstation.samdom.example.com>
- <49527a45-8ba3-f9d1-30b9-8906dc8c19c4@themaw.net>
- <20171003155557.39eb1396@devstation.samdom.example.com>
- <9ff859d3-505b-98ce-b70b-117d133ec196@themaw.net>
+Subject: [PATCH 18/35] autofs-5.1.3 - fix ipv6 proto option handling
+Date: Mon, 16 Oct 2017 13:07:49 +0800
+Message-ID: <150813046950.25695.1103281677112793770.stgit@pluto.themaw.net>
+References: <150813019190.25695.13810689562896522990.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=
-        content-transfer-encoding:content-type:date:from:in-reply-to
-        :message-id:mime-version:references:subject:to:x-me-sender
-        :x-me-sender:x-sasl-enc:x-sasl-enc; s=fm1; bh=okkW53rZrxrP0YInQx
-        zxnBlYwDT2clneUdQ79lR3P30=; b=UqrsrzSqs+DSTOCK9k2kXEVXQXpTuSp5SI
-        U0FtYrPlS+x4k+jqhSAAdA3gs9hFQjARCr2iHz1dzDpnjgO0eDq5uo0CuWbC/Yh3
-        upOuhulD2Pk0PWIyuSG2GxmyMygi2+61dhinyMyOYhBIA2nEc32HA2C+Y/8RIKGQ
-        UF+edDhAeqh3JvOXkyKqGg+z44fJLcs7qIHbfNvHiwr//JFFxhDwuLzajqV5sHFL
-        bLXwmGpWvsrZQxOjTDGlVMzPIYTHNy+XcSEHHZqYX8zBCBF/17v+eMDeqfFm8urs
-        Xr8ARbNAK3gWZmgKQR4SprrcG/venQ1wkeGrst1i+I0XylSzjtpw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=content-transfer-encoding:content-type
-        :date:from:in-reply-to:message-id:mime-version:references
-        :subject:to:x-me-sender:x-me-sender:x-sasl-enc:x-sasl-enc; s=
-        fm1; bh=okkW53rZrxrP0YInQxzxnBlYwDT2clneUdQ79lR3P30=; b=a1AgL05x
-        6B6uYfNaaRXWLqm2zTRrMNtFtVJlLN2ljsUlpCLVf40/mE0eP1hPvR4RlKoBpJ/i
-        iZYPTHfM12I082bvGLC2DtaOhY+QfEM18mXvxNndEzbOV1euJR5r7iIoqo/25Cs6
-        Jhxx3KMb3CulUaiygyJko52Rz1FLpkxvJ7N2JOBh/SM5D0x2zf4fSDhquUeYi6TC
-        IdEO8xh8EWZLDMuH3The6tShzFffr5o4NBB4plhGfXL5ciyduNHEhSy3UtdcDq8K
-        niUIZf++adHdX+jR10dKvTjAKskljf5W0fJAUmdgt072TJma9WvGXZ0/3CCF13Pp
-        XKjky25urNFWnw==
-In-Reply-To: <9ff859d3-505b-98ce-b70b-117d133ec196@themaw.net>
-Content-Language: en-US
+In-Reply-To: <150813019190.25695.13810689562896522990.stgit@pluto.themaw.net>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Rowland Penny <rpenny@samba.org>, autofs@vger.kernel.org
+To: autofs mailing list <autofs@vger.kernel.org>
 
-On 04/10/17 10:21, Ian Kent wrote:
-> On 03/10/17 22:55, Rowland Penny wrote:
->> On Tue, 3 Oct 2017 14:13:02 +0800
->> Ian Kent <raven@themaw.net> wrote:
->>
->>> On 03/10/17 02:28, Rowland Penny wrote:
->>>>
->>>> Hi, I hope this is the right place to send this to, but if not, can
->>>> you advise just where I should send it to ;-)
->>>>
->>>>
->>>> I am trying to get Automount to work with a Samba AD DC and I am
->>>> struggling. I think I might have read just about everything there
->>>> is on the internet, but there isn't much for using Autofs with ldap
->>>> and even less about AD.
->>>
->>> Yes, that is true but to change that would we would need input from
->>> people using this functionality.
->>
->> If I can get this to work, I will put something on the Samba wiki.
->>
->>
->>>
->>> Looks ok although I'm not sure about using CN, a case insensitive
->>> attribute.
->>
->> Everything is case insensitive on windows ;-)
->>
->>>
->>>>
->>>>
->>>> Set /etc/default/autofs to this:
->>>>
->>>> USE_MISC_DEVICE="yes"
->>>> #OPTIONS=""
->>>> MASTER_MAP_NAME="ldap:ou=auto.master,ou=automount,dc=example,dc=com"
->>>> #MASTER_MAP_NAME="ou=auto.master,ou=automount,dc=example,dc=com"
->>>> LDAP_URI="ldaps://dc1.example.com" # AD server name
->>>> SEARCH_BASE="ou=automount,dc=example,dc=com"
->>>> #LOGGING="verbose"
->>>> LOGGING="debug"
->>>> #LDAP_URI="ldap://dc1.example.com" # AD server name
->>>> #LDAP_URI="ldap:///dc=example,dc=com" # AD server name
->>>> MAP_OBJECT_CLASS="automountMap"
->>>> ENTRY_OBJECT_CLASS="automount"
->>>> MAP_ATTRIBUTE="automountMapName"
->>>> ENTRY_ATTRIBUTE="automountKey"
->>>> VALUE_ATTRIBUTE="automountInformation"
->>>> AUTH_CONF_FILE="/etc/autofs_ldap_auth.conf"
->>>
->>> Well, old style configuration but that should still work regardless
->>> of autofs version.
->>
->> I take it from that, there is a new style configuration, is this
->> documented anywhere ?
->>
->>>
->>>>
->>>> Set /etc/autofs_ldap_auth.conf to this:
->>>>
->>>> <?xml version="1.0" ?>
->>>> <!--
->>>> This files contains a single entry with multiple attributes tied to
->>>> it. See autofs_ldap_auth.conf(5) for more information.
->>>> -->
->>>>
->>>> <autofs_ldap_sasl_conf
->>>>         usetls="no"
->>>>         tlsrequired="yes"
->>>>         authrequired="yes"
->>>>         authtype="GSSAPI"
->>>>         clientprinc="asciiclient$@EXAMPLE.COM"
->>>> />
->>>>
->>>>
->>>> Set /etc/ldap/ldap.conf to this:
->>>>
->>>> BASE    dc=example,dc=com
->>>> URI     ldaps://dc1.example.com
->>>> HOST dc1.example.com
->>>> TLS_CACERT /etc/ssl/certs/dc1cert.pem
->>>> TLS_REQCERT never
->>>
->>> LDAP + Kerberos is not my favorite, anyway here are some things to
->>> think about.
->>
->> Sort of goes with an AD domain ;-)
->>
->>>
->>> Is EXAMPLE.COM is a valid Kerberos realm?
->>
->> Definitely.
->>
->>>
->>> Has it got a principle asciiclient$@EXAMPLE.COM that doesn't require
->>> a password?
->>
->> Oh dear, no it hasn't, but there is ASCIICLIENT$@EXAMPLE.COM
->> Feel a bit of a fool now, I should have known better.
->>
->> OK, fixing that got me a bit further, but I now cannot login to
->> asciiclient, the home dirs get overwritten, so I am now trying to
->> setup an indirect mount.
-> 
-> Overwritten?
-> 
->>
->> The automount objects now look like this:
->>
->>  dn: OU=automount,DC=example,DC=com
->> objectClass: top
->> objectClass: organizationalUnit
->> ou: automount
->> name: automount
->>
->> dn: OU=auto.master,OU=automount,DC=example,DC=com
->> objectClass: top
->> objectClass: automountMap
->> objectClass: organizationalUnit
->> ou: auto.master
->> name: auto.master
->> automountMapName: auto.master
->>
->> dn: CN=*,OU=auto.master,OU=automount,DC=example,DC=com
->> objectClass: top
->> objectClass: automount
->> objectClass: container
->> cn: *
->> name: *
->> automountKey: *
->> automountInformation: -fstype=nfs4,rw,sec=krb5 dc1//:/home/users/&
-> 
-> Shouldn't that be "dc1:/home/users/&" or "dc1.example.com:/home/users/&".
-> The / character isn't valid in host names.
-> 
-> The wildcard map key will work but you may find you get unexpected lookups
-> trying to mount directories you probably think shouldn't be being accessed.
-> 
-> There's nothing autofs can do about that because if something tries to access
-> a path in the automount base directory the kernel is duty bound to call back
-> to the daemon, and the daemon will match the name to the wild card entry, and
-> try and mount it.
-> 
->>
->> dn: OU=auto.home,OU=automount,DC=example,DC=com
->> objectClass: top
->> objectClass: automountMap
->> objectClass: organizationalUnit
->> ou: auto.home
->> name: auto.home
->> automountMapName: auto.home
->>
->> Which leads to this:
->>
->> Oct  3 15:20:26 asciiclient automount[1587]: connected to uri ldaps://dc1.example.com
->> Oct  3 15:20:26 asciiclient automount[1587]: lookup_read_master: lookup(ldap): searching for "(objectclass=automount)" under "OU=auto.master,OU=automount,DC=example,DC=com"
->> Oct  3 15:20:26 asciiclient automount[1587]: lookup_read_master: lookup(ldap): examining entries
->> Oct  3 15:20:26 asciiclient automount[1587]: syntax error in map near [ * -fstype=nfs4,rw,sec=krb5 dc1 ]
+If the option proto=(tcp6|udp6) is given on the NFS mount command line
+autofs does not properly recognise it needs to probe only the given
+protocol for matching address type.
 
-Oh wait, there's no master map entry, this is trying to interpret the map
-entry for auto.home as a master map entry which isn't going to work regardless
-of the host name.
+Signed-off-by: Ian Kent <raven@themaw.net>
+Reported-by: Andreas Steinmetz <ast@domdv.de>
+---
+ CHANGELOG            |    1 +
+ include/replicated.h |    2 ++
+ modules/mount_nfs.c  |   15 ++++++++++++++-
+ modules/replicated.c |   29 +++++++++++++++++++++++++++++
+ 4 files changed, 46 insertions(+), 1 deletion(-)
 
-The automount maps in LDAP need to be something like:
+diff --git a/CHANGELOG b/CHANGELOG
+index 94e79a0c..af8b099c 100644
+--- a/CHANGELOG
++++ b/CHANGELOG
+@@ -16,6 +16,7 @@ xx/xx/2017 autofs-5.1.4
+ - fix some man page problems.
+ - add some more debug logging to get_nfs_info().
+ - add some more debug logging to get_supported_ver_and_cost().
++- fix ipv6 proto option handling.
+ 
+ 24/05/2017 autofs-5.1.3
+ =======================
+diff --git a/include/replicated.h b/include/replicated.h
+index 5e142f4f..69ab7800 100644
+--- a/include/replicated.h
++++ b/include/replicated.h
+@@ -37,6 +37,8 @@
+ #define UDP_SUPPORTED		0x0002
+ #define TCP_REQUESTED		TCP_SUPPORTED
+ #define UDP_REQUESTED		UDP_SUPPORTED
++#define TCP6_REQUESTED		0x0100
++#define UDP6_REQUESTED		0x0200
+ #define NFS_PROTO_MASK		(TCP_SUPPORTED|UDP_SUPPORTED)
+ 
+ #define NFS2_TCP_SUPPORTED	NFS2_SUPPORTED
+diff --git a/modules/mount_nfs.c b/modules/mount_nfs.c
+index 97f12c4d..63f16b19 100644
+--- a/modules/mount_nfs.c
++++ b/modules/mount_nfs.c
+@@ -172,9 +172,17 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name, int
+ 				} else if (_strncmp("proto=udp", cp, o_len) == 0 ||
+ 					   _strncmp("udp", cp, o_len) == 0) {
+ 					vers &= ~TCP_SUPPORTED;
++				} else if (_strncmp("proto=udp6", cp, o_len) == 0 ||
++					   _strncmp("udp6", cp, o_len) == 0) {
++					vers &= ~TCP_SUPPORTED;
++					vers |= UDP6_REQUESTED;
+ 				} else if (_strncmp("proto=tcp", cp, o_len) == 0 ||
+ 					   _strncmp("tcp", cp, o_len) == 0) {
+ 					vers &= ~UDP_SUPPORTED;
++				} else if (_strncmp("proto=tcp6", cp, o_len) == 0 ||
++					   _strncmp("tcp6", cp, o_len) == 0) {
++					vers &= ~UDP_SUPPORTED;
++					vers |= TCP6_REQUESTED;
+ 				}
+ 				/* Check for options that also make sense
+ 				   with bind mounts */
+@@ -214,11 +222,16 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name, int
+ 	 * configuration only probe NFSv4 and let mount.nfs(8) do fallback
+ 	 * to NFSv3 (if it can). If the NFSv4 probe fails then probe as
+ 	 * normal.
++	 *
++	 * Note: some NFS servers consider it a protocol violation to use
++	 * NFSv4 over UDP so if it has been requested in the mount options
++	 * we can't use this at all.
+ 	 */
+ 	if ((hosts && !hosts->next) &&
+ 	    mount_default_proto == 4 &&
+ 	    (vers & NFS_VERS_MASK) != 0 &&
+-	    (vers & NFS4_VERS_MASK) != 0) {
++	    (vers & NFS4_VERS_MASK) != 0 &&
++	    !(vers & UDP6_REQUESTED)) {
+ 		unsigned int v4_probe_ok = 0;
+ 		struct host *tmp = new_host(hosts->name,
+ 					    hosts->addr, hosts->addr_len,
+diff --git a/modules/replicated.c b/modules/replicated.c
+index 634275b8..de5a4b06 100644
+--- a/modules/replicated.c
++++ b/modules/replicated.c
+@@ -484,6 +484,29 @@ done_ver:
+ 	return supported;
+ }
+ 
++static int check_address_proto(unsigned logopt,
++			       struct host *host, unsigned int version)
++{
++	int ipv6_requested = version & (TCP6_REQUESTED | UDP6_REQUESTED);
++	int ret = 1;
++
++	/* If a protocol has been explicitly requested then don't
++	 * consider addresses that don't match the requested protocol.
++	 */
++	if (ipv6_requested) {
++		if (host->addr_len == INET_ADDRSTRLEN)
++			ret = 0;
++	} else {
++		if (host->addr_len == INET6_ADDRSTRLEN)
++			ret = 0;
++	}
++
++	if (!ret)
++		debug(logopt, "requested protocol does not match address");
++
++	return ret;
++}
++
+ static int get_vers_and_cost(unsigned logopt, struct host *host,
+ 			     unsigned int version, int port)
+ {
+@@ -492,6 +515,9 @@ static int get_vers_and_cost(unsigned logopt, struct host *host,
+ 	unsigned int supported, vers = (NFS_VERS_MASK | NFS4_VERS_MASK);
+ 	int ret = 0;
+ 
++	if (!check_address_proto(logopt, host, version))
++		return 0;
++
+ 	memset(&pm_info, 0, sizeof(struct conn_info));
+ 	memset(&rpc_info, 0, sizeof(struct conn_info));
+ 
+@@ -561,6 +587,9 @@ static int get_supported_ver_and_cost(unsigned logopt, struct host *host,
+ 		debug(logopt, "called with host %s version 0x%x",
+ 			host->name, version);
+ 
++	if (!check_address_proto(logopt, host, version))
++		return 0;
++
+ 	memset(&pm_info, 0, sizeof(struct conn_info));
+ 	memset(&rpc_info, 0, sizeof(struct conn_info));
+ 
 
-Top level container:
-
-dn: OU=automount,DC=example,DC=com
-objectClass: top
-objectClass: organizationalUnit
-ou: automount
-name: automount
-distinguishedName: OU=automount,DC=example,DC=com
-
-Master map container:
-
-dn: OU=auto.master,OU=automount,DC=example,DC=com
-objectClass: top
-objectClass: automountMap
-objectClass: organizationalUnit
-ou: auto.master
-name: auto.master
-automountMapName: auto.master
-
-Master map entries to define top level automount points, essentially these
-amount to the master map entries that would be found in a file master map
-(like /etc/auto.mastter):
-
-dn: CN=/home,OU=auto.master,OU=automount,DC=example,DC=com
-objectClass: top
-objectClass: automount
-objectClass: container
-cn: /home
-name: /home
-automountKey: /home
-automountInformation: ldap:ou=auto.home,ou=Automount,dc=example,dc=com rsize=8192,wsize=8192
-
-for mounting /home that uses the auto.home map.
-
-(but see below for using an unqualified map names in your entries)
-
-Then a container for the auto.home map:
-
-dn: OU=auto.home,OU=automount,DC=example,DC=com
-objectClass: top
-objectClass: automountMap
-objectClass: organizationalUnit
-ou: auto.home
-name: auto.home
-automountMapName: auto.home
-
-and entries for the auto.home map:
-
-dn: CN=user,OU=auto.home,OU=automount,DC=example,DC=com
-objectClass: top
-objectClass: automount
-objectClass: container
-cn: user
-name: user
-automountKey: user
-automountInformation: -fstype=nfs4,rw,sec=krb5 dc1.example.com:/home/user/&
-
-or, in your current case:
-
-dn: CN=*,OU=auto.home,OU=automount,DC=example,DC=com
-objectClass: top
-objectClass: automount
-objectClass: container
-cn: *
-name: *
-automountKey: *
-automountInformation: -fstype=nfs4,rw,sec=krb5 dc1//:/home/users/&
-
-There was a convention of using "/" as the wildcard map key.
-
-I though it was needed because "/" had some special meaning in ldap but if this
-works for you there's no need to change it (I'm pretty sure I look for either
-* and /).
-
-The container entries, for the master map and for the maps referred to by the
-master map entries are used to calculate a basedn for entry lookup so things
-like:
-ldap:ou=auto.home,ou=Automount,dc=example,dc=com
-shouldn't be needed.
-
-TBH I can't remember now but if you really want to use these then I'd suggest
-something like (I think):
-ldap://<server name/ou=auto.home,ou=Automount,dc=example,dc=com
-rather than the potentially ambiguous ldap:ou=....
-
-or just use auto.home and let nsswitch fill in the bits from the (calculated)
-basedn and other configuration in autofs and the client ldap configuration. For
-that to work you would need to list ldap as a map source in /etc/nsswitch.conf,
-like:
-automount: ldap
-
-and the master map entry for auto.home could then be:
-
-dn: CN=/home,OU=auto.master,OU=automount,DC=example,DC=com
-objectClass: top
-objectClass: automount
-objectClass: container
-cn: /home
-name: /home
-automountKey: /home
-automountInformation: auto.home rsize=8192,wsize=8192
-
-Additionally that would also allow you to leave the
-MASTER_MAP_NAME="ldap:ou=auto.master,ou=automount,dc=example,dc=com"
-out so it just uses the (default) name auto.master and uses nsswitch
-and the client ldap configuration to fill in the missing bits.
-
-Also, you shouldn't need the:
-MAP_OBJECT_CLASS="automountMap"
-ENTRY_OBJECT_CLASS="automount"
-MAP_ATTRIBUTE="automountMapName"
-ENTRY_ATTRIBUTE="automountKey"
-VALUE_ATTRIBUTE="automountInformation"
-
-If your consistently using one of the expected schema autofs should
-automatically detect the schema to use although there is a small
-amount of overhead in working that out.
-
-Another thing you might be interested in is using DNS SRV records to
-get the list DC servers (and their priority order) but lets leave
-that for now.
-
-Keep in mind that you want to avoid using server names (other than in
-actual mount targets) and protocol names (like ldap:) in you setup so
-that you can leverage nsswitch and DNS SRV server name lookups at a
-later stage.
-
-So all that's probably a bit confusing, sorry, hopefully it will help
-though.
-
-Ian
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
