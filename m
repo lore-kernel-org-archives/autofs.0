@@ -1,99 +1,111 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 26/35] autofs-5.1.3 - document ghost option in auto.master
- man page
-Date: Mon, 16 Oct 2017 14:07:24 +0800
-Message-ID: <7e8af081-4a72-f4dc-a3b4-adb23909bddc@themaw.net>
+From: Jeff Mahoney <jeffm@suse.com>
+Subject: Re: [PATCH 12/35] autofs-5.1.3 - fix a couple of compiler warnings
+Date: Wed, 18 Oct 2017 16:46:11 -0400
+Message-ID: <cf4f19a9-cbf4-2077-a26a-922268c80507@suse.com>
 References: <150813019190.25695.13810689562896522990.stgit@pluto.themaw.net>
- <150813052207.25695.16615651390055095096.stgit@pluto.themaw.net>
- <20171016060014.GP15217@mayhem.atnf.CSIRO.AU>
+ <150813043348.25695.10697953082315362911.stgit@pluto.themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="7epRL6IJUf7LJk5VxQGwGu6dx9Baxwqow"
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
-        :content-transfer-encoding:content-type:date:from:in-reply-to
-        :message-id:mime-version:references:subject:to:x-me-sender
-        :x-me-sender:x-sasl-enc; s=fm1; bh=rha+iBm/7cBBSbvUfyhty0/cInVOO
-        kRpoxnkbZwMCqs=; b=K3m6UuL2qr1hQqi5Q8sdP0/igz+eG+nil95I7PXQJuKqD
-        R7nCbWOlM3THMaL7LVEAPf38tcUQ1NC2jVBzFc2sGGvGHYrW0kTC/DM6ElV+gzkl
-        xoGdv4gN9yl1utpgiTgIWgFi1FVMuMQ2uHk+G2UpDuohJGNnF/RRKTq8LL94Tx39
-        WQQaSnGcC9n+BfxDlvBFC3ASiIgIVmNi062lE/LNLB0agaFVvOqIkheqKYZyToEt
-        cGvr/hJjq+6IwTvCSyd37Bo5S8cwltaBJXXtJF17xJoaZ0TCzK5mq0f+ww0J+G7f
-        E85I2UQ3De9FyVqTPc8pZNEhODwVDibTV5nfrBCsw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:content-transfer-encoding:content-type
-        :date:from:in-reply-to:message-id:mime-version:references
-        :subject:to:x-me-sender:x-me-sender:x-sasl-enc; s=fm1; bh=rha+iB
-        m/7cBBSbvUfyhty0/cInVOOkRpoxnkbZwMCqs=; b=KYYG5u3PgekDIs6pggBOrx
-        ABjCankc//rFbeAfnr2Z5HoOy3y3lDvEULpWEzbv1RpPOeG4UqqbdZABIduAJ9Ok
-        KYkVFiMqTMmsjU3rgMh/jb2Afrvr/kfm/orHFvQfhlNKO+3Rl0NDMa5MJPz9Z69d
-        WhYtL6+ilDgLWI1+p78byuKZIafSVm6osjpTLA+3358Iel//t1R5P8q/ca4s7Rnr
-        iNrJBL/8M7uCA8Dz+t4iiNKPbhIFhFbfDzeoapowgVSEC2+NwVjvyQzwx94X6/jb
-        xX+Dj3w2q21Bx51Rks7FofZ7oboYmOUiV6InNB6LOitDH5HAXVQFLSuTKgQW9Xtg
-        ==
-In-Reply-To: <20171016060014.GP15217@mayhem.atnf.CSIRO.AU>
-Content-Language: en-US
+In-Reply-To: <150813043348.25695.10697953082315362911.stgit@pluto.themaw.net>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: Vincent McIntyre <vincent.mcintyre@csiro.au>
-Cc: autofs mailing list <autofs@vger.kernel.org>
+To: Ian Kent <raven@themaw.net>, autofs mailing list <autofs@vger.kernel.org>
 
-On 16/10/17 14:00, Vincent McIntyre wrote:
-> On Mon, Oct 16, 2017 at 01:08:42PM +0800, Ian Kent wrote:
->> The --ghost pseudo option has been depricated for quite a while now
->> in favour of the browse option as descibed in auto.master(5).
->>
->> However it isn't noted in the description of the browse option that
->> the --ghost option is the same as the browse option.
->>
->> Signed-off-by: Ian Kent <raven@themaw.net>
->> ---
->>  CHANGELOG            |    1 +
->>  man/auto.master.5.in |    3 ++-
->>  2 files changed, 3 insertions(+), 1 deletion(-)
->>
->> diff --git a/CHANGELOG b/CHANGELOG
->> index 6a18fd15..7457e620 100644
->> --- a/CHANGELOG
->> +++ b/CHANGELOG
->> @@ -24,6 +24,7 @@ xx/xx/2017 autofs-5.1.4
->>  - fix autofs_use_lofs description.
->>  - fix amd parser error buffer size.
->>  - make spawn_bind_mount() use mount_wait as well.
->> +- document ghost option in auto.master man page.
->>  
->>  24/05/2017 autofs-5.1.3
->>  =======================
->> diff --git a/man/auto.master.5.in b/man/auto.master.5.in
->> index c87fb7f4..4475186a 100644
->> --- a/man/auto.master.5.in
->> +++ b/man/auto.master.5.in
->> @@ -168,7 +168,8 @@ can cause performance problem if the indirect map is large so it should
->>  be used with caution. The internal program default is to enable browse
->>  mode for indirect mounts but the default installed configuration overrides
->>  this by setting BROWSE_MODE to "no" because of the potential performance
->> -problem.
->> +problem. This option does the same as the depricated --ghost option, the
-> 
-> nit:
-> s/depricated/deprecated/g
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--7epRL6IJUf7LJk5VxQGwGu6dx9Baxwqow
+Content-Type: multipart/mixed; boundary="9JmJ4u5mRcEcoUIvcbdJUWaHsJB7Vb6T0";
+ protected-headers="v1"
+From: Jeff Mahoney <jeffm@suse.com>
+To: Ian Kent <raven@themaw.net>, autofs mailing list <autofs@vger.kernel.org>
+Message-ID: <cf4f19a9-cbf4-2077-a26a-922268c80507@suse.com>
+Subject: Re: [PATCH 12/35] autofs-5.1.3 - fix a couple of compiler warnings
+References: <150813019190.25695.13810689562896522990.stgit@pluto.themaw.net>
+ <150813043348.25695.10697953082315362911.stgit@pluto.themaw.net>
+In-Reply-To: <150813043348.25695.10697953082315362911.stgit@pluto.themaw.net>
 
-And again, yes.
+--9JmJ4u5mRcEcoUIvcbdJUWaHsJB7Vb6T0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: quoted-printable
 
-> 
->> +browse option is preferred because it is used by other autofs implementations.
->>  .TP
->>  .I "nobind"
->>  This is an autofs specific option that is a pseudo mount option and
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe autofs" in
->>
-> 
-> Vince
-> --
-> To unsubscribe from this list: send the line "unsubscribe autofs" in
-> 
+On 10/16/17 1:07 AM, Ian Kent wrote:
+> Fix a few compiler warnings that have been around far too long.
 
+Hi Ian -
+> diff --git a/daemon/spawn.c b/daemon/spawn.c
+> index 4515607b..b931d678 100644
+> --- a/daemon/spawn.c
+> +++ b/daemon/spawn.c
+> @@ -195,8 +195,14 @@ static int do_spawn(unsigned logopt, unsigned int =
+wait,
+>  			 * program group to trigger mount
+>  			 */
+>  			if (euid) {
+> -				seteuid(euid);
+> -				setegid(egid);
+> +				if (seteuid(euid) =3D=3D -1)
+> +					fprintf(stderr,
+> +						"warning: seteuid: %s\n",
+> +						strerror(errno));
+> +				if (setegid(egid) =3D=3D -1)
+> +					fprintf(stderr,
+> +						"warning: setegid: %s\n",
+> +						strerror(errno));
+>  			}
+>  			setpgrp();
+
+
+This one fixes the warning but there are a few issues with it, but none
+of them are new.
+
+1) We'll see that second warning *every* time since we just dropped root
+privs and no longer have permission to change groups.  That's a bug
+that's been lurking there for a while but now we're informed of it.
+
+2) We're only changing the primary group and not the supplementary
+groups, so the open is being performed with root's other group
+membership (if any) and none of the user's other groups.
+
+3) Do we really want to continue if we couldn't setuid?
+
+I'll post a patch to address the first two as a reply to this post.
+What's your take on point 3?
+
+-Jeff
+
+--=20
+Jeff Mahoney
+SUSE Labs
+
+
+--9JmJ4u5mRcEcoUIvcbdJUWaHsJB7Vb6T0--
+
+--7epRL6IJUf7LJk5VxQGwGu6dx9Baxwqow
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG/MacGPG2 v2
+
+iQIVAwUBWee9lx57S2MheeWyAQh9fQ//Shv9ms94cz3tzjzdfoxXARqTjlng0zKi
+AMuH5VwiAt0F53XD8OiJqXf9V7jXERHnL/BPRN6sixRUMsecRX8cg472PaDUvxA0
+2BWevtz3JwQqM+aIJ2LMc7ZNJ+TN87Afe3qxyOKxGo+NXwEkJuNT6ty6ix/g5oPp
+f9RHQYnLxPGhBuXkW3+JtCBQnPc1OyV0mESNPPtQ1t+GTHsqCqyIJMI4KVdRO80u
+B5nFuyFT8vUfBzrwG/0+03nGs6l3ueHfPC0oWZzntVlWBpc2wzyEmnpnThZgY36F
+SFotbKF2YYJhaJeEPvAsFJPfDDSdEN5tY6nX5W+unuyHMF6mQ7jJfYr7s5bdpXEb
+DHmIVFumbt53BGMbOE5IJYl4WN+ytduamslwAg/x2Gfe+wEKCJmiQSXAheXIPozH
+xob6vnoPZ/LVCcBoNuY+JTcWJCxkHc+rzj6v6mvK1D45aqmKnAfV+zVXq4cYIkj/
+xpSr6rgCqMWN+sIpBXAYl1ujXExs98hiaeIeP/tG24AUVsVggblDTwpD1E8ITsPk
+LnOjbigeuw8cRdPcNGicc2CmZjp4ZY1GvVHzUCAiaqvn4aTV4UhBT4tqbdHL65Wy
+pPheGnUgi+Ga+D9SSTnLb0996Pgu81G7PmT1gPNSoJ3lC22d+juOAqpxgfyjYjcv
+RYbgn7H6gho=
+=J/YF
+-----END PGP SIGNATURE-----
+
+--7epRL6IJUf7LJk5VxQGwGu6dx9Baxwqow--
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
