@@ -1,53 +1,54 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: Error in autofs man page
-Date: Thu, 26 Oct 2017 10:26:12 +0800
-Message-ID: <f0244eac-36a0-8514-ce54-a6454bf79ff6@themaw.net>
-References: <1508939789.11045.31.camel@surrey.ac.uk>
+From: NeilBrown <neilb@suse.com>
+Subject: [PATCH 0/3] VFS: name lookup improvements.
+Date: Thu, 09 Nov 2017 18:20:24 +1100
+Message-ID: <151021179901.22743.15252956909042161062.stgit@noble>
 Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=
-        content-transfer-encoding:content-type:date:from:in-reply-to
-        :message-id:mime-version:references:subject:to:x-me-sender
-        :x-me-sender:x-sasl-enc; s=fm1; bh=Yl/tYUjLLleb8z3Ya2rvMMlFOrabx
-        qdRe0DWxlCIp1I=; b=T3hevzS+ajdCpYKA+OmioXxI9d7O63uYkLwvW8h0zZQ80
-        GCZXyv+7+ZjHgPOj4bKUYyd1Y7PgZQ9CPnjaH60ef1lsM9AjzhZ9u0kRpd8ILU5l
-        MY5dSwx360SjwchYDJKk66jWhypVYZLHB2Haybs+YfOggba0DEED6liuc4WmxkEX
-        7UVQVM+VkxvWclkU3NF2qKRY1QaOxFZjGJnuKK0Ahs3Va3DZONsDS1ost6NWpaQe
-        c63SmvOMlQcZy3C9vvW8gYLzTmjWF9H7JZHRWYVOfx2ieKEpO8goPU4Hgl67zIMW
-        7CEoWxGS8baL3c+k/t3yUjPlGHwIz5BLNMcBvxDug==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=content-transfer-encoding:content-type
-        :date:from:in-reply-to:message-id:mime-version:references
-        :subject:to:x-me-sender:x-me-sender:x-sasl-enc; s=fm1; bh=Yl/tYU
-        jLLleb8z3Ya2rvMMlFOrabxqdRe0DWxlCIp1I=; b=kIOWnk52TOI0OkZyNN5gOU
-        b2vP1L/fJRbAWYlLmAneOrShoDEY5iUsVTPqPgAmmwI9g5Mb3dAMtVh/HUsJRKna
-        r9EuRzZgeeLvn6iOqUXUXN0gX9xnKzbRRJIHEJRas8j6hAHykw9BT+T+GdpMxNMb
-        r7GefcAcmhgicFVfRYyVClLRZjyjYuD2bUFExcZDBL9J2V5GWlV2Kf5oO50Q4vd3
-        hQ/lqGusKTKU01ylXeBLCCXCe2gpg8jWBg6EZMbg2VDWL+THFjZBoD48YsnWsVnT
-        gkGpjVP5hgxnbO9/bC78KR2d0KgyRqjgcgT6RsLManl/9FZxfZwXiQ9X+Br7n8WQ
-        ==
-In-Reply-To: <1508939789.11045.31.camel@surrey.ac.uk>
-Content-Language: en-US
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="iso-8859-1"
-To: b.king@surrey.ac.uk, autofs@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: Ian Kent <ikent@redhat.com>, Latchesar Ionkov <lucho@ionkov.net>, Jeff Layton <jlayton@redhat.com>, Eric Van Hensbergen <ericvh@gmail.com>, Al Viro <viro@zeniv.linux.org.uk>, Ron Minnich <rminnich@sandia.gov>, Trond Myklebust <trondmy@primarydata.com>
+Cc: linux-nfs@vger.kernel.org, autofs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, v9fs-developer@lists.sourceforge.net, Linus Torvalds <torvalds@linux-foundation.org>
 
-On 25/10/17 21:56, b.king@surrey.ac.uk wrote:
-> Hi There
->=20
-> Your man page (auto.master(5)) points to autofs.org which appears to
-> now be an Arabic football site. =C2=A0Could this be corrected to the corr=
-ect
-> place to now look for AutoFS (automounter) related things, such as
-> example auto.master files?
+These three patches address two issues: d_weak_revalidate and
+path_mountpoint lookups.
 
-Can you be more specific about where you see this.
+The former is poorly defined and doesn't actually do the one thing
+that it would be useful for it to do.  So the nfs implemention
+is improved, the 9p one discarded, and the documentation clarified.
 
-I can't see any reference to autofs.org in auto.master(5) in the current
-source.
+Given this change and recent change to follow_automount() the
+mountpoint path lookup functions are no longer needed.  The regular
+path look functions are quite sufficient.
+The second two patches remove this with detailed explanation of why
+it is OK.
 
-Ian
+Thanks,
+NeilBrown
+
+
+---
+
+NeilBrown (3):
+      VFS/nfs/9p: revise meaning of d_weak_invalidate.
+      VFS: remove user_path_mountpoint_at()
+      VFS / autofs4: remove kern_path_mountpoint()
+
+
+ Documentation/filesystems/porting |    5 +
+ Documentation/filesystems/vfs.txt |   11 +--
+ fs/9p/vfs_dentry.c                |    1 
+ fs/autofs4/dev-ioctl.c            |    5 -
+ fs/internal.h                     |    1 
+ fs/namei.c                        |  150 -------------------------------------
+ fs/namespace.c                    |    2 
+ fs/nfs/dir.c                      |   60 ++-------------
+ include/linux/namei.h             |    1 
+ 9 files changed, 24 insertions(+), 212 deletions(-)
+
+--
+Signature
+
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
