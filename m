@@ -1,81 +1,55 @@
-From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 1/2] autofs: revert take more care to not update last_used
- on path walk
-Date: Mon, 27 Nov 2017 09:48:14 +0800
-Message-ID: <151174729420.6162.1832622523537052460.stgit@pluto.themaw.net>
+From: Mike Marion <mmarion@qualcomm.com>
+Subject: Re: [PATCH 3/3] autofs - fix AT_NO_AUTOMOUNT not being honored
+Date: Mon, 27 Nov 2017 16:01:53 +0000
+Message-ID: <20171127160147.GA27613@qualcomm.com>
+References: <149438991819.26550.11290804420751932707.stgit@pluto.themaw.net>
+ <149438992850.26550.14370272866390445786.stgit@pluto.themaw.net>
+ <874lpo2y9e.fsf@notabene.neil.brown.name>
+ <ed908288-536c-d34a-6d3d-c21bb8fdfc62@themaw.net>
+ <864efc64-c430-a862-3e98-fe5ce2535329@themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <autofs-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
+  d=qualcomm.com; i=@qualcomm.com; q=dns/txt; s=qcdkim;
+  t=1511798515; x=1543334515;
+  h=x-ironport-av:x-mga-submission:from:to:cc:subject:
+   thread-topic:thread-index:date:message-id:references:
+   in-reply-to:accept-language:content-language:
+   x-ms-has-attach:x-ms-tnef-correlator:user-agent:
+   x-operating-system:x-distribution:
+   x-ms-exchange-messagesentrepresentingtype:
+   x-ms-exchange-transport-fromentityheader:x-originating-ip:
+   content-type:content-id:content-transfer-encoding:
+   mime-version;
+  bh=iUcT2Mqf2BfyttiT3D/IQh9/N043d62q3OMKHNMOi7M=;
+  b=geCO2Yb71QQf2Vu6zvQbng1d+7R78RzJ98OUXUkQMaoNaWtEdWJGMt/o
+   xM/IE9KIhLsL8GD/kgswOYppEVN+Pb+4QDUjRU4uE1AwFmmyBHxJXYrlF
+   Q2szyJmy9bdMFUypMImv2PuwEGAChLMg9t1LCIbeRbfDTfEXHU1nqxjwl
+   w=;
+In-Reply-To: <864efc64-c430-a862-3e98-fe5ce2535329@themaw.net>
+Content-Language: en-US
+Content-ID: <8EAD71283B752143ACC919036A8947F6@qualcomm.com>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Colin Walters <walters@redhat.com>, Ondrej Holy <oholy@redhat.com>, autofs mailing list <autofs@vger.kernel.org>, NeilBrown <neilb@suse.com>, Kernel Mailing List <linux-kernel@vger.kernel.org>, David Howells <dhowells@redhat.com>, Al Viro <viro@ZenIV.linux.org.uk>
+To: Ian Kent <raven@themaw.net>
+Cc: NeilBrown <neilb@suse.com>, Al Viro <viro@ZenIV.linux.org.uk>, Colin Walters <walters@redhat.com>, Ondrej Holy <oholy@redhat.com>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, David Howells <dhowells@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-While the patch of commit 092a53452b helped (partially) resolve a
-problem where automounts were not expiring due to aggressive accesses
-from user space it has a side effect for very large environments.
+On Thu, Nov 23, 2017 at 08:36:49AM +0800, Ian Kent wrote:
 
-This change helps with the expire problem by making the expire more
-aggressive but, for very large environments, that means more mount
-requests from clients. When there are a lot of clients that can mean
-fairly significant server load increases.
+> And with the move of userspace to use /proc based mount tables (one
+> example being the symlink of /etc/mtab into /proc) even modest sized
+> direct mount maps will be a problem with every entry getting mounted.
+>=20
+> Systems will cope with this fine but larger systems not so much.
 
-It turns out I put the last_used in this position to solve this
-very problem and failed to update my own thinking of the autofs
-expire policy. So the patch being reverted introduces a regression
-which should be fixed.
+Yes.. we've run into some big issues due to the change of /etc/mtab from
+a file to a symlink to /proc/self/mounts.  Most have been worked around
+thus far (mostly due to Suse coming up with patches) but still have a
+few annoying ones.
 
-Reverts: 092a53452b
-
-Signed-off-by: Ian Kent <raven@themaw.net>
-Cc: Neil Brown <neilb@suse.com>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
----
- fs/autofs4/root.c |   17 ++++++-----------
- 1 file changed, 6 insertions(+), 11 deletions(-)
-
-diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
-index d79ced925861..82e8f6edfb48 100644
---- a/fs/autofs4/root.c
-+++ b/fs/autofs4/root.c
-@@ -281,8 +281,8 @@ static int autofs4_mount_wait(const struct path *path, bool rcu_walk)
- 		pr_debug("waiting for mount name=%pd\n", path->dentry);
- 		status = autofs4_wait(sbi, path, NFY_MOUNT);
- 		pr_debug("mount wait done status=%d\n", status);
--		ino->last_used = jiffies;
- 	}
-+	ino->last_used = jiffies;
- 	return status;
- }
- 
-@@ -321,21 +321,16 @@ static struct dentry *autofs4_mountpoint_changed(struct path *path)
- 	 */
- 	if (autofs_type_indirect(sbi->type) && d_unhashed(dentry)) {
- 		struct dentry *parent = dentry->d_parent;
-+		struct autofs_info *ino;
- 		struct dentry *new;
- 
- 		new = d_lookup(parent, &dentry->d_name);
- 		if (!new)
- 			return NULL;
--		if (new == dentry)
--			dput(new);
--		else {
--			struct autofs_info *ino;
--
--			ino = autofs4_dentry_ino(new);
--			ino->last_used = jiffies;
--			dput(path->dentry);
--			path->dentry = new;
--		}
-+		ino = autofs4_dentry_ino(new);
-+		ino->last_used = jiffies;
-+		dput(path->dentry);
-+		path->dentry = new;
- 	}
- 	return path->dentry;
- }
-
+--=20
+Mike Marion-Unix SysAdmin/Sr. Staff IT Engineer-http://www.qualcomm.com=
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
