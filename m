@@ -1,8 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 13/27] autofs-5.1.3 - remove expand_selectors() call on amd
- parser entry
-Date: Mon, 11 Dec 2017 16:58:55 +0800
-Message-ID: <151298273578.19722.8674279908901688160.stgit@pluto.themaw.net>
+Subject: [PATCH 14/27] autofs-5.1.3 - fix amd defaults map entry handling
+Date: Mon, 11 Dec 2017 16:59:01 +0800
+Message-ID: <151298274152.19722.12674128615379093740.stgit@pluto.themaw.net>
 References: <151298256987.19722.18421086447160152668.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -13,103 +12,195 @@ List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: autofs mailing list <autofs@vger.kernel.org>
 
-Macro expansion within the amd parser has to be done during the mount
-attempt loop, after any defaults are setup and also after any defaults
-overrides from the map entry itself.
+When parsing an amd map entry the map entry defaults were not being
+handled properly.
+
+A "-" in the map entry requires a reset to defaults, which wasn't being
+done.
+
+A "-<map options>" in the map entry requires merging the <map options>
+with the current defaults map entry, which was also not being done
+properly.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 ---
- CHANGELOG           |    1 +
- modules/parse_amd.c |   22 ++++++----------------
- 2 files changed, 7 insertions(+), 16 deletions(-)
+ CHANGELOG           |    1 
+ modules/parse_amd.c |  109 +++++++++++++++++++++++++++++++++------------------
+ 2 files changed, 72 insertions(+), 38 deletions(-)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index df87df49..9721f74e 100644
+index 9721f74e..c856f9cb 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -46,6 +46,7 @@ xx/xx/2017 autofs-5.1.4
- - fix typo in amd_parse.c.
+@@ -47,6 +47,7 @@ xx/xx/2017 autofs-5.1.4
  - add missing MODPREFIX to logging in amd parser.
  - fix symlink false negative in umount_multi().
-+- remove expand_selectors() on amd parser entry.
+ - remove expand_selectors() on amd parser entry.
++- fix amd defaults map entry handling.
  
  24/05/2017 autofs-5.1.3
  =======================
 diff --git a/modules/parse_amd.c b/modules/parse_amd.c
-index f2332b15..8741dd53 100644
+index 8741dd53..8030b271 100644
 --- a/modules/parse_amd.c
 +++ b/modules/parse_amd.c
-@@ -1844,7 +1844,6 @@ int parse_mount(struct autofs_point *ap, const char *name,
- 	struct amd_entry *defaults_entry;
- 	struct amd_entry *cur_defaults;
- 	char *defaults;
--	char *pmapent;
- 	int len, rv = 1;
- 	int cur_state;
- 	int ret;
-@@ -1869,17 +1868,8 @@ int parse_mount(struct autofs_point *ap, const char *name,
- 		return 1;
- 	}
+@@ -1830,45 +1830,24 @@ out:
+ 	return make_default_entry(ap, sv);
+ }
  
--	len = expand_selectors(ap, mapent, &pmapent, sv);
--	if (!len) {
+-int parse_mount(struct autofs_point *ap, const char *name,
+-		int name_len, const char *mapent, void *context)
++static struct amd_entry *setup_defaults(struct autofs_point *ap,
++					const char *name, int name_len,
++					struct map_source *source,
++					struct substvar **sv)
+ {
+-	struct parse_context *ctxt = (struct parse_context *) context;
+-	unsigned int flags = conf_amd_get_flags(ap->path);
+-	struct substvar *sv = NULL;
+-	struct map_source *source;
++	struct amd_entry *defaults_entry;
+ 	struct mapent_cache *mc;
+ 	struct mapent *me;
+-	unsigned int at_least_one;
+-	struct list_head entries, *p, *head;
+-	struct amd_entry *defaults_entry;
+-	struct amd_entry *cur_defaults;
++	struct substvar *nsv;
+ 	char *defaults;
+-	int len, rv = 1;
+-	int cur_state;
+-	int ret;
+-
+-	source = ap->entry->current;
+-	ap->entry->current = NULL;
+-	master_source_current_signal(ap->entry);
+ 
+ 	mc = source->mc;
++	defaults = NULL;
++	defaults_entry = NULL;
+ 
+-	if (!mapent) {
+-		warn(ap->logopt, MODPREFIX "error: empty map entry");
+-		return 1;
+-	}
+-
+-	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &cur_state);
+-
+-	sv = add_lookup_vars(ap, name, name_len, source, sv);
+-	if (!sv) {
 -		macro_free_table(sv);
 -		pthread_setcancelstate(cur_state, NULL);
 -		return 1;
 -	}
 -
- 	pthread_setcancelstate(cur_state, NULL);
+-	pthread_setcancelstate(cur_state, NULL);
++	nsv = add_lookup_vars(ap, name, name_len, source, NULL);
++	if (!nsv)
++		goto done;
  
--	debug(ap->logopt, MODPREFIX "expanded mapent: %s", pmapent);
--
  	defaults = conf_amd_get_map_defaults(ap->path);
  	if (defaults) {
- 		debug(ap->logopt, MODPREFIX
-@@ -1901,7 +1891,6 @@ int parse_mount(struct autofs_point *ap, const char *name,
- 		error(ap->logopt, MODPREFIX "failed to get a defaults entry");
- 		if (defaults)
- 			free(defaults);
--		free(pmapent);
- 		macro_free_table(sv);
- 		return 1;
+@@ -1883,22 +1862,63 @@ int parse_mount(struct autofs_point *ap, const char *name,
+ 			char buf[MAX_ERR_BUF];
+ 			char *estr = strerror_r(errno, buf, MAX_ERR_BUF);
+ 			error(ap->logopt, MODPREFIX "malloc: %s", estr);
++			macro_free_table(nsv);
++			nsv = NULL;
++			goto done;
+ 		}
  	}
-@@ -1910,16 +1899,13 @@ int parse_mount(struct autofs_point *ap, const char *name,
+ 
+-	defaults_entry = get_defaults_entry(ap, defaults, sv);
++	defaults_entry = get_defaults_entry(ap, defaults, nsv);
+ 	if (!defaults_entry) {
+ 		error(ap->logopt, MODPREFIX "failed to get a defaults entry");
+-		if (defaults)
+-			free(defaults);
+-		macro_free_table(sv);
+-		return 1;
++		macro_free_table(nsv);
++		nsv = NULL;
+ 	}
++done:
+ 	if (defaults)
+ 		free(defaults);
++	if (*sv)
++		macro_free_table(*sv);
++	*sv = nsv;
++
++	return defaults_entry;
++}
++
++int parse_mount(struct autofs_point *ap, const char *name,
++		int name_len, const char *mapent, void *context)
++{
++	struct parse_context *ctxt = (struct parse_context *) context;
++	unsigned int flags = conf_amd_get_flags(ap->path);
++	struct substvar *sv = NULL;
++	struct map_source *source;
++	unsigned int at_least_one;
++	struct list_head entries, *p, *head;
++	struct amd_entry *defaults_entry;
++	struct amd_entry *cur_defaults;
++	int rv = 1;
++	int cur_state;
++	int ret;
++
++	source = ap->entry->current;
++	ap->entry->current = NULL;
++	master_source_current_signal(ap->entry);
++
++	if (!mapent) {
++		warn(ap->logopt, MODPREFIX "error: empty map entry");
++		return 1;
++	}
  
  	INIT_LIST_HEAD(&entries);
  
--	ret = amd_parse_list(ap, pmapent, &entries, &sv);
-+	ret = amd_parse_list(ap, mapent, &entries, &sv);
++	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &cur_state);
++
++	defaults_entry = setup_defaults(ap, name, name_len, source, &sv);
++	if (!defaults_entry) {
++		error(ap->logopt, MODPREFIX
++		      "failed to setup defaults entry");
++		goto done;
++	}
++
+ 	ret = amd_parse_list(ap, mapent, &entries, &sv);
  	if (ret) {
  		error(ap->logopt,
--		      MODPREFIX "failed to parse entry: %s", pmapent);
--		free(pmapent);
-+		      MODPREFIX "failed to parse entry: %s", mapent);
- 		goto done;
- 	}
- 
--	free(pmapent);
--
- 	if (list_empty(&entries)) {
- 		error(ap->logopt, MODPREFIX "no location found after parse");
- 		goto done;
-@@ -1956,6 +1942,9 @@ int parse_mount(struct autofs_point *ap, const char *name,
+@@ -1929,9 +1949,20 @@ int parse_mount(struct autofs_point *ap, const char *name,
+ 			free_amd_entry(cur_defaults);
+ 			list_del_init(&this->list);
+ 			cur_defaults = this;
++			update_with_defaults(defaults_entry, cur_defaults, sv);
  			continue;
- 		}
- 
-+		debug(ap->logopt, "expand defaults entry");
-+		sv = expand_entry(ap, cur_defaults, flags, sv);
+ 		} else if (this->flags & AMD_DEFAULTS_RESET) {
+-			struct amd_entry *new;
++			struct amd_entry *nd, *new;
++			struct substvar *nsv = NULL;
 +
- 		if (this->flags & AMD_ENTRY_CUT && at_least_one) {
- 			info(ap->logopt, MODPREFIX
- 			     "at least one entry tried before cut selector, "
-@@ -1968,6 +1957,7 @@ int parse_mount(struct autofs_point *ap, const char *name,
++			nd = setup_defaults(ap, name, name_len, source, &nsv);
++			if (nd) {
++				free_amd_entry(defaults_entry);
++				defaults_entry = nd;
++				macro_free_table(sv);
++				sv = nsv;
++			}
++
+ 			new = dup_defaults_entry(defaults_entry);
+ 			if (new) {
+ 				free_amd_entry(cur_defaults);
+@@ -1997,6 +2028,8 @@ done:
+ 	free_amd_entry(defaults_entry);
+ 	macro_free_table(sv);
  
- 		at_least_one = 1;
++	pthread_setcancelstate(cur_state, NULL);
++
+ 	return rv;
+ }
  
-+		debug(ap->logopt, "expand mount entry");
- 		update_with_defaults(cur_defaults, this, sv);
- 		sv = expand_entry(ap, this, flags, sv);
- 		sv = merge_entry_options(ap, this, sv);
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
