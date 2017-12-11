@@ -1,7 +1,8 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 21/27] autofs-5.1.3 - add function ext_mount_inuse()
-Date: Mon, 11 Dec 2017 16:59:42 +0800
-Message-ID: <151298278234.19722.14417124723830136226.stgit@pluto.themaw.net>
+Subject: [PATCH 24/27] autofs-5.1.3 - fix memory leak in
+ umount_amd_ext_mount()
+Date: Mon, 11 Dec 2017 17:00:07 +0800
+Message-ID: <151298280732.19722.7835389839355918967.stgit@pluto.themaw.net>
 References: <151298256987.19722.18421086447160152668.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -12,67 +13,49 @@ List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: autofs mailing list <autofs@vger.kernel.org>
 
-Add function to check if a path is an amd externally managed mount.
+Free allocated resources before returning success if mount is
+found to be in use by another user.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 ---
- CHANGELOG        |    1 +
- include/mounts.h |    1 +
- lib/mounts.c     |   17 +++++++++++++++++
- 3 files changed, 19 insertions(+)
+ CHANGELOG    |    1 +
+ lib/mounts.c |    4 ++--
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index 66b82074..80a6a5c7 100644
+index f3cdcd52..8a9fdb1f 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -54,6 +54,7 @@ xx/xx/2017 autofs-5.1.4
- - fix possible memory leak during amd parse.
- - remove path restriction of amd external mount.
- - add function umount_amd_ext_mount().
-+- add function ext_mount_inuse().
+@@ -57,6 +57,7 @@ xx/xx/2017 autofs-5.1.4
+ - add function ext_mount_inuse().
+ - add function construct_argv().
+ - add amd mount type program mount support.
++- fix memory leak in umount_amd_ext_mount().
  
  24/05/2017 autofs-5.1.3
  =======================
-diff --git a/include/mounts.h b/include/mounts.h
-index d6ddc0e1..74b23db6 100644
---- a/include/mounts.h
-+++ b/include/mounts.h
-@@ -98,6 +98,7 @@ char *make_options_string(char *path, int kernel_pipefd, const char *extra);
- char *make_mnt_name_string(char *path);
- int ext_mount_add(struct list_head *, const char *, unsigned int);
- int ext_mount_remove(struct list_head *, const char *);
-+int ext_mount_inuse(const char *);
- struct mnt_list *get_mnt_list(const char *table, const char *path, int include);
- struct mnt_list *reverse_mnt_list(struct mnt_list *list);
- void free_mnt_list(struct mnt_list *list);
 diff --git a/lib/mounts.c b/lib/mounts.c
-index 0ca86962..29c8a8f5 100644
+index 8367a50e..6fa304aa 100644
 --- a/lib/mounts.c
 +++ b/lib/mounts.c
-@@ -770,6 +770,23 @@ done:
- 	return ret;
- }
+@@ -2084,7 +2084,7 @@ int umount_amd_ext_mount(struct autofs_point *ap, struct amd_entry *entry)
  
-+int ext_mount_inuse(const char *path)
-+{
-+	struct ext_mount *em;
-+	int ret = 0;
-+
-+	pthread_mutex_lock(&ext_mount_hash_mutex);
-+	em = ext_mount_lookup(path);
-+	if (!em)
-+		goto done;
-+
-+	if (!list_empty(&em->mounts))
-+		ret = 1;
-+done:
-+	pthread_mutex_unlock(&ext_mount_hash_mutex);
-+	return ret;
-+}
-+
- /*
-  * Get list of mounts under path in longest->shortest order
-  */
+ 		if (!ext_mount_remove(&entry->ext_mount, entry->fs)) {
+ 			rv =0;
+-			goto out;
++			goto out_free;
+ 		}
+ 
+ 		rv = spawnv(ap->logopt, prog, (const char * const *) argv);
+@@ -2097,7 +2097,7 @@ int umount_amd_ext_mount(struct autofs_point *ap, struct amd_entry *entry)
+ 			      "umounted program mount at %s", entry->fs);
+ 			rmdir_path(ap, entry->fs, ap->dev);
+ 		}
+-
++out_free:
+ 		free_argv(argc, (const char **) argv);
+ 		free(str);
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
