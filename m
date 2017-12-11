@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 14/27] autofs-5.1.3 - fix amd defaults map entry handling
-Date: Mon, 11 Dec 2017 16:59:01 +0800
-Message-ID: <151298274152.19722.12674128615379093740.stgit@pluto.themaw.net>
+Subject: [PATCH 16/27] autofs-5.1.3 - fix amd parser double quote handling
+Date: Mon, 11 Dec 2017 16:59:13 +0800
+Message-ID: <151298275303.19722.5364113023443606857.stgit@pluto.themaw.net>
 References: <151298256987.19722.18421086447160152668.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -12,195 +12,274 @@ List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: autofs mailing list <autofs@vger.kernel.org>
 
-When parsing an amd map entry the map entry defaults were not being
-handled properly.
+While the natuaral usage of amd maps doesn't use double quotes
+it is allowed to use them to enclose option values.
 
-A "-" in the map entry requires a reset to defaults, which wasn't being
-done.
-
-A "-<map options>" in the map entry requires merging the <map options>
-with the current defaults map entry, which was also not being done
-properly.
+The options mount, umount and unmount usually require them to
+preserve spaces in the option value.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 ---
  CHANGELOG           |    1 
- modules/parse_amd.c |  109 +++++++++++++++++++++++++++++++++------------------
- 2 files changed, 72 insertions(+), 38 deletions(-)
+ modules/amd_parse.y |  150 ++++++++++++++++++++++++++++++++++++++++++++-------
+ modules/amd_tok.l   |    4 +
+ 3 files changed, 132 insertions(+), 23 deletions(-)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index 9721f74e..c856f9cb 100644
+index 3ad8bd7e..b50158f9 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -47,6 +47,7 @@ xx/xx/2017 autofs-5.1.4
- - add missing MODPREFIX to logging in amd parser.
- - fix symlink false negative in umount_multi().
+@@ -49,6 +49,7 @@ xx/xx/2017 autofs-5.1.4
  - remove expand_selectors() on amd parser entry.
-+- fix amd defaults map entry handling.
+ - fix amd defaults map entry handling.
+ - refactor amd_parse.c.
++- fix amd parser double quote handling.
  
  24/05/2017 autofs-5.1.3
  =======================
-diff --git a/modules/parse_amd.c b/modules/parse_amd.c
-index 8741dd53..8030b271 100644
---- a/modules/parse_amd.c
-+++ b/modules/parse_amd.c
-@@ -1830,45 +1830,24 @@ out:
- 	return make_default_entry(ap, sv);
- }
- 
--int parse_mount(struct autofs_point *ap, const char *name,
--		int name_len, const char *mapent, void *context)
-+static struct amd_entry *setup_defaults(struct autofs_point *ap,
-+					const char *name, int name_len,
-+					struct map_source *source,
-+					struct substvar **sv)
- {
--	struct parse_context *ctxt = (struct parse_context *) context;
--	unsigned int flags = conf_amd_get_flags(ap->path);
--	struct substvar *sv = NULL;
--	struct map_source *source;
-+	struct amd_entry *defaults_entry;
- 	struct mapent_cache *mc;
- 	struct mapent *me;
--	unsigned int at_least_one;
--	struct list_head entries, *p, *head;
--	struct amd_entry *defaults_entry;
--	struct amd_entry *cur_defaults;
-+	struct substvar *nsv;
- 	char *defaults;
--	int len, rv = 1;
--	int cur_state;
--	int ret;
--
--	source = ap->entry->current;
--	ap->entry->current = NULL;
--	master_source_current_signal(ap->entry);
- 
- 	mc = source->mc;
-+	defaults = NULL;
-+	defaults_entry = NULL;
- 
--	if (!mapent) {
--		warn(ap->logopt, MODPREFIX "error: empty map entry");
--		return 1;
--	}
--
--	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &cur_state);
--
--	sv = add_lookup_vars(ap, name, name_len, source, sv);
--	if (!sv) {
--		macro_free_table(sv);
--		pthread_setcancelstate(cur_state, NULL);
--		return 1;
--	}
--
--	pthread_setcancelstate(cur_state, NULL);
-+	nsv = add_lookup_vars(ap, name, name_len, source, NULL);
-+	if (!nsv)
-+		goto done;
- 
- 	defaults = conf_amd_get_map_defaults(ap->path);
- 	if (defaults) {
-@@ -1883,22 +1862,63 @@ int parse_mount(struct autofs_point *ap, const char *name,
- 			char buf[MAX_ERR_BUF];
- 			char *estr = strerror_r(errno, buf, MAX_ERR_BUF);
- 			error(ap->logopt, MODPREFIX "malloc: %s", estr);
-+			macro_free_table(nsv);
-+			nsv = NULL;
-+			goto done;
- 		}
+diff --git a/modules/amd_parse.y b/modules/amd_parse.y
+index d7f4ef07..52509ca1 100644
+--- a/modules/amd_parse.y
++++ b/modules/amd_parse.y
+@@ -99,6 +99,7 @@ static int amd_fprintf(FILE *, char *, ...);
+ %token CUT
+ %token NOT_EQUAL
+ %token COMMA
++%token QUOTE
+ %token OPTION_ASSIGN
+ %token LBRACKET
+ %token RBRACKET
+@@ -268,62 +269,114 @@ option_assignment: MAP_OPTION OPTION_ASSIGN FS_TYPE
  	}
- 
--	defaults_entry = get_defaults_entry(ap, defaults, sv);
-+	defaults_entry = get_defaults_entry(ap, defaults, nsv);
- 	if (!defaults_entry) {
- 		error(ap->logopt, MODPREFIX "failed to get a defaults entry");
--		if (defaults)
--			free(defaults);
--		macro_free_table(sv);
--		return 1;
-+		macro_free_table(nsv);
-+		nsv = NULL;
- 	}
-+done:
- 	if (defaults)
- 		free(defaults);
-+	if (*sv)
-+		macro_free_table(*sv);
-+	*sv = nsv;
+ 	| MAP_OPTION OPTION_ASSIGN FS_OPT_VALUE
+ 	{
+-		if (!strcmp($1, "fs"))
+-			entry.fs = amd_strdup($3);
+-		else if (!strcmp($1, "sublink"))
+-			entry.sublink = amd_strdup($3);
+-		else if (!strcmp($1, "pref")) {
+-			if (!strcmp($3, "null"))
+-				entry.pref = amd_strdup("");
+-			else
+-				entry.pref = amd_strdup($3);
++		/* Quoted value for type, maptype or cache assign */
++		if (!strcmp($1, "type")) {
++			if (!match_map_option_fs_type($1, $3))
++				YYABORT;
++		} else if (!strcmp($1, "maptype")) {
++			if (!match_map_option_map_type($1, $3))
++				YYABORT;
++		} else if (!strcmp($1, "cache")) {
++			if (!match_map_option_cache_option($3))
++				YYABORT;
+ 		} else {
+-			amd_notify($1);
+-			YYABORT;
++			char *fs_opt_val;
 +
-+	return defaults_entry;
-+}
-+
-+int parse_mount(struct autofs_point *ap, const char *name,
-+		int name_len, const char *mapent, void *context)
-+{
-+	struct parse_context *ctxt = (struct parse_context *) context;
-+	unsigned int flags = conf_amd_get_flags(ap->path);
-+	struct substvar *sv = NULL;
-+	struct map_source *source;
-+	unsigned int at_least_one;
-+	struct list_head entries, *p, *head;
-+	struct amd_entry *defaults_entry;
-+	struct amd_entry *cur_defaults;
-+	int rv = 1;
-+	int cur_state;
-+	int ret;
-+
-+	source = ap->entry->current;
-+	ap->entry->current = NULL;
-+	master_source_current_signal(ap->entry);
-+
-+	if (!mapent) {
-+		warn(ap->logopt, MODPREFIX "error: empty map entry");
-+		return 1;
-+	}
- 
- 	INIT_LIST_HEAD(&entries);
- 
-+	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &cur_state);
-+
-+	defaults_entry = setup_defaults(ap, name, name_len, source, &sv);
-+	if (!defaults_entry) {
-+		error(ap->logopt, MODPREFIX
-+		      "failed to setup defaults entry");
-+		goto done;
-+	}
-+
- 	ret = amd_parse_list(ap, mapent, &entries, &sv);
- 	if (ret) {
- 		error(ap->logopt,
-@@ -1929,9 +1949,20 @@ int parse_mount(struct autofs_point *ap, const char *name,
- 			free_amd_entry(cur_defaults);
- 			list_del_init(&this->list);
- 			cur_defaults = this;
-+			update_with_defaults(defaults_entry, cur_defaults, sv);
- 			continue;
- 		} else if (this->flags & AMD_DEFAULTS_RESET) {
--			struct amd_entry *new;
-+			struct amd_entry *nd, *new;
-+			struct substvar *nsv = NULL;
-+
-+			nd = setup_defaults(ap, name, name_len, source, &nsv);
-+			if (nd) {
-+				free_amd_entry(defaults_entry);
-+				defaults_entry = nd;
-+				macro_free_table(sv);
-+				sv = nsv;
++			fs_opt_val = amd_strdup($3);
++			if (!fs_opt_val) {
++				amd_notify($3);
++				YYABORT;
 +			}
 +
- 			new = dup_defaults_entry(defaults_entry);
- 			if (new) {
- 				free_amd_entry(cur_defaults);
-@@ -1997,6 +2028,8 @@ done:
- 	free_amd_entry(defaults_entry);
- 	macro_free_table(sv);
- 
-+	pthread_setcancelstate(cur_state, NULL);
++			if (!strcmp($1, "fs"))
++				entry.fs = fs_opt_val;
++			else if (!strcmp($1, "sublink")) {
++				entry.sublink = fs_opt_val;
++			} else if (!strcmp($1, "pref")) {
++				if (strcmp(fs_opt_val, "null"))
++					entry.pref = fs_opt_val;
++				else {
++					entry.pref = amd_strdup("");
++					if (!entry.pref) {
++						amd_notify($3);
++						free(fs_opt_val);
++						YYABORT;
++					}
++					free(fs_opt_val);
++				}
++			} else {
++				amd_notify($1);
++				free(fs_opt_val);
++				YYABORT;
++			}
+ 		}
+ 	}
+ 	| MAP_OPTION OPTION_ASSIGN
+ 	{
+-		if (!strcmp($1, "fs"))
++		if (!strcmp($1, "fs")) {
+ 			entry.fs = amd_strdup("");
+-		else {
++			if (!entry.fs) {
++				amd_notify($1);
++				YYABORT;
++			}
++		} else {
+ 			amd_notify($1);
+ 			YYABORT;
+ 		}
+ 	}
+ 	| FS_OPTION OPTION_ASSIGN FS_OPT_VALUE
+ 	{
++		char *fs_opt_val;
 +
- 	return rv;
++		fs_opt_val = amd_strdup($3);
++		if (!fs_opt_val) {
++			amd_notify($1);
++			YYABORT;
++		}
++
+ 		if (!strcmp($1, "rhost"))
+-			entry.rhost = amd_strdup($3);
++			entry.rhost = fs_opt_val;
+ 		else if (!strcmp($1, "rfs"))
+-			entry.rfs = amd_strdup($3);
++			entry.rfs = fs_opt_val;
+ 		else if (!strcmp($1, "dev"))
+-			entry.dev = amd_strdup($3);
++			entry.dev = fs_opt_val;
+ 		else if (!strcmp($1, "mount") ||
+ 			 !strcmp($1, "unmount") ||
+ 			 !strcmp($1, "umount")) {
+ 			amd_info("file system type program is not "
+ 				 "yet implemented, option ignored");
++			free(fs_opt_val);
+ 			YYABORT;
+ 		} else if (!strcmp($1, "delay") ||
+ 			   !strcmp($1, "cachedir")) {
+ 			sprintf(msg_buf, "option %s is not used by autofs", $1);
+ 			amd_info(msg_buf);
++			free(fs_opt_val);
+ 		} else {
+ 			amd_notify($1);
++			free(fs_opt_val);
+ 			YYABORT;
+ 		}
+ 	}
+ 	| FS_OPTION OPTION_ASSIGN
+ 	{
++		char *empty;
++
++		empty = amd_strdup("");
++		if (!empty) {
++			amd_notify($1);
++			YYABORT;
++		}
++
+ 		if (!strcmp($1, "rhost"))
+-			entry.rhost = amd_strdup("");
++			entry.rhost = empty;
+ 		else if (!strcmp($1, "rfs"))
+-			entry.rfs = amd_strdup("");
++			entry.rfs = empty;
+ 		else if (!strcmp($1, "dev"))
+-			entry.dev = amd_strdup("");
++			entry.dev = empty;
+ 		else {
+ 			amd_notify($1);
++			free(empty);
+ 			YYABORT;
+ 		}
+ 	}
+@@ -335,6 +388,14 @@ option_assignment: MAP_OPTION OPTION_ASSIGN FS_TYPE
+ 		}
+ 		memset(opts, 0, sizeof(opts));
+ 	}
++	| MNT_OPTION OPTION_ASSIGN QUOTE options QUOTE
++	{
++		if (!match_mnt_option_options($1, $4)) {
++			amd_notify($1);
++			YYABORT;
++		}
++		memset(opts, 0, sizeof(opts));
++	}
+ 	| MNT_OPTION OPTION_ASSIGN
+ 	{
+ 		memset(opts, 0, sizeof(opts));
+@@ -601,11 +662,56 @@ static int amd_fprintf(FILE *f, char *msg, ...)
+ 
+ static char *amd_strdup(char *str)
+ {
++	unsigned int quoted, len;
+ 	char *tmp;
+ 
+-	tmp = strdup(str);
+-	if (!tmp)
+-		amd_error("memory allocation error");
++	len = strlen(str);
++	quoted = 0;
++
++	if (*str == '"') {
++		quoted = 1;
++		len -= 2;
++	}
++
++	tmp = strdup(str + quoted);
++	if (!tmp) {
++		amd_msg("memory allocation error");
++		return NULL;
++	} else {
++		unsigned int squote;
++		char *ptr;
++
++		if (quoted) {
++			if (tmp[len] != '"') {
++				sprintf(msg_buf,
++					"unmatched double quote near: %s", str);
++				amd_info(msg_buf);
++				free(tmp);
++				return NULL;
++			}
++			tmp[len] = 0;
++		}
++
++		/* Check for matching single quotes */
++		if (!strchr(tmp, 39))
++			goto done;
++
++		ptr = tmp;
++		squote = 0;
++		while (*ptr) {
++			if (*ptr == 39)
++				squote = !squote;
++			ptr++;
++		}
++		if (squote) {
++			sprintf(msg_buf,
++				"unmatched single quote near: %s", str);
++			amd_info(msg_buf);
++			free(tmp);
++			return NULL;
++		}
++	}
++done:
+ 	return tmp;
  }
  
+diff --git a/modules/amd_tok.l b/modules/amd_tok.l
+index 2eac5cb2..cb1ebf77 100644
+--- a/modules/amd_tok.l
++++ b/modules/amd_tok.l
+@@ -94,7 +94,7 @@ IP6ADDR		((([A-Fa-f0-9]{1,4}\:\:?){1,7}[A-Fa-f0-9]{1,4})|(\:\:1))
+ V6MASK		(12[0-8]|1[0-1][0-9]|[1-9][0-9]|[1-9])
+ 
+ FOPT		(({QSTR}|{FSTR}|{MACRO})+)
+-OPTS		({OSTR}(=({VSTR}|{QSTR}|{MACRO})+)?)
++OPTS		({OSTR}(=({VSTR}|{MACRO})+)?)
+ SOPT		(({SSTR}|{QSTR}|{MACRO})+)
+ NOPT		({SSTR}|(({IP4ADDR}(\/{V4MASK})?)|({IP6ADDR}(\/{V6MASK})?)))
+ 
+@@ -288,6 +288,8 @@ CUTSEP		(\|\||\/)
+ 
+ 	,+ { return COMMA; }
+ 
++	"\"" { return QUOTE; }
++
+ 	{OPTS} {
+ 		amd_copy_buffer();
+ 		return OPTION;
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
