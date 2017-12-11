@@ -1,88 +1,58 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 00/27] Still trying to get 5.1.4 released
-Date: Mon, 11 Dec 2017 16:56:58 +0800
-Message-ID: <151298256987.19722.18421086447160152668.stgit@pluto.themaw.net>
+Subject: [PATCH 01/27] autofs-5.1.3 - handle additional nfs versions in
+ mount_nfs.c
+Date: Mon, 11 Dec 2017 16:57:05 +0800
+Message-ID: <151298262571.19722.2895089225787451346.stgit@pluto.themaw.net>
+References: <151298256987.19722.18421086447160152668.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <autofs-owner@vger.kernel.org>
+In-Reply-To: <151298256987.19722.18421086447160152668.stgit@pluto.themaw.net>
 Sender: autofs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: autofs mailing list <autofs@vger.kernel.org>
 
-I have committed the last series I posted to the autofs repository,
-expect for the "fix ordering of seteuid/setegid in do_spawn()" patch
-which changed order in the queue during the discussion of the previous
-series.
+Since NFSv4 can now have a subversion it needs to be allowed for.
 
-But now there are a number of additional patches that I really
-would like to include in 5.1.4 too.
+It's enough to check for an options string starting with "vers=4" or
+"nfsvers=4" because it's used only to set a flag used for special
+casing the availibility probe for any NFS version 4 version.
 
-Comments welcome.
+Signed-off-by: Ian Kent <raven@themaw.net>
 ---
+ CHANGELOG           |    1 +
+ modules/mount_nfs.c |    5 +++--
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-Ian Kent (25):
-      autofs-5.1.3 - handle additional nfs versions in mount_nfs.c
-      autofs-5.1.3 - fix symlink option passthrough in mount_nfs.c
-      autofs-5.1.3 - update configure to check for pipe2(2)
-      autofs-5.1.3 - fix open calls not using open_xxxx() calls
-      autofs-5.1.3 - move open_xxxx() functions to spawn.c
-      autofs-5.1.3 - serialize calls to open_xxxx() functions
-      autofs-5.1.3 - improve debug logging of lookup key
-      autofs-5.1.3 - fix typo in amd_parse.c
-      autofs-5.1.3 - add missing MODPREFIX to logging in amd parser
-      autofs-5.1.3 - fix symlink false negative in umount_multi()
-      autofs-5.1.3 - remove expand_selectors() call on amd parser entry
-      autofs-5.1.3 - fix amd defaults map entry handling
-      autofs-5.1.3 - refactor amd_parse.c
-      autofs-5.1.3 - fix amd parser double quote handling
-      autofs-5.1.3 - fix expandamdent() quote handling
-      autofs-5.1.3 - fix possible memory leak during amd parse
-      autofs-5.1.3 - remove path restriction of amd external mount
-      autofs-5.1.3 - add function umount_amd_ext_mount()
-      autofs-5.1.3 - add function ext_mount_inuse()
-      autofs-5.1.3 - add function construct_argv()
-      autofs-5.1.3 - add amd mount type program mount support
-      autofs-5.1.3 - fix memory leak in umount_amd_ext_mount()
-      autofs-5.1.3 - fix strerror_r() parameter declaration in do program_mount()
-      autofs-5.1.3 - fix incorrect check in validate_program_options()
-      autofs-5.1.3 - fix log message in spawn_umount()
+diff --git a/CHANGELOG b/CHANGELOG
+index 2da2cdc9..3a1e4a6a 100644
+--- a/CHANGELOG
++++ b/CHANGELOG
+@@ -35,6 +35,7 @@ xx/xx/2017 autofs-5.1.4
+ - make map source reference message debug only.
+ - improve description of mount_nfs_default_protocol.
+ - the port option should not behave like nobind option.
++- handle additional nfs versions in mount_nfs.c.
+ 
+ 24/05/2017 autofs-5.1.3
+ =======================
+diff --git a/modules/mount_nfs.c b/modules/mount_nfs.c
+index 5245d960..d3ebd923 100644
+--- a/modules/mount_nfs.c
++++ b/modules/mount_nfs.c
+@@ -147,8 +147,9 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name, int
+ 			} else if (_strncmp("use-weight-only", cp, o_len) == 0) {
+ 				flags |= MOUNT_FLAG_USE_WEIGHT_ONLY;
+ 			} else {
+-				if (_strncmp("vers=4", cp, o_len) == 0 ||
+-				    _strncmp("nfsvers=4", cp, o_len) == 0)
++				/* Is any version of NFSv4 in the options */
++				if (_strncmp("vers=4", cp, 6) == 0 ||
++				    _strncmp("nfsvers=4", cp, 9) == 0)
+ 					vers = NFS4_VERS_MASK | TCP_SUPPORTED;
+ 				else if (_strncmp("vers=3", cp, o_len) == 0 ||
+ 					 _strncmp("nfsvers=3", cp, o_len) == 0) {
 
-Jeff Mahoney (1):
-      autofs-5.1.3 - fix ordering of seteuid/setegid in do_spawn()
-
-Thiago Rafael Becker (1):
-      autofs-5.1.3 - Fix two typos
-
-
- CHANGELOG                |   26 ++
- README.amd-maps          |    6 -
- configure                |   18 ++
- configure.in             |    2 
- daemon/automount.c       |   29 ---
- daemon/spawn.c           |  185 +++++++++++++++++
- include/automount.h      |  134 +------------
- include/config.h.in      |    3 
- include/mounts.h         |    2 
- include/parse_amd.h      |    3 
- include/parse_subs.h     |    1 
- lib/mounts.c             |   96 +++++++--
- lib/parse_subs.c         |  103 ++++++++--
- man/auto.master.5.in     |    2 
- man/automount.8          |    2 
- modules/amd_parse.y      |  489 ++++++++++++++++++++++++++++++++++------------
- modules/amd_tok.l        |    4 
- modules/lookup_file.c    |   14 +
- modules/lookup_hesiod.c  |   20 ++
- modules/lookup_ldap.c    |   15 +
- modules/lookup_nisplus.c |   15 +
- modules/lookup_program.c |    3 
- modules/lookup_yp.c      |   43 ++--
- modules/mount_nfs.c      |   13 +
- modules/parse_amd.c      |  302 ++++++++++++++++++++++------
- 25 files changed, 1105 insertions(+), 425 deletions(-)
-
---
-Ian
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
