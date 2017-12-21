@@ -1,216 +1,261 @@
-From: NeilBrown <neilb@suse.com>
+From: Ian Kent <raven@themaw.net>
 Subject: Re: [ANNOUNCE] autofs 5.1.2 release
-Date: Thu, 21 Dec 2017 12:09:28 +1100
-Message-ID: <87po78khtj.fsf@notabene.neil.brown.name>
-References: <1465960537.3164.1.camel@themaw.net> <876092krew.fsf@notabene.neil.brown.name> <5aee2303-d1c3-49fd-0ef9-362fb0256fd5@themaw.net> <be60384c-8d76-b384-3fdd-5f9f2f21a8e2@themaw.net>
+Date: Thu, 21 Dec 2017 19:06:08 +0800
+Message-ID: <2e032b27-6776-9177-ae15-42f016a2979c@themaw.net>
+References: <1465960537.3164.1.camel@themaw.net>
+ <876092krew.fsf@notabene.neil.brown.name>
+ <5aee2303-d1c3-49fd-0ef9-362fb0256fd5@themaw.net>
+ <be60384c-8d76-b384-3fdd-5f9f2f21a8e2@themaw.net>
+ <87po78khtj.fsf@notabene.neil.brown.name>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-        micalg=pgp-sha256; protocol="application/pgp-signature"
-Return-path: <autofs-owner@vger.kernel.org>
-In-Reply-To: <be60384c-8d76-b384-3fdd-5f9f2f21a8e2@themaw.net>
-Sender: autofs-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
+        :content-transfer-encoding:content-type:date:from:in-reply-to
+        :message-id:mime-version:references:subject:to:x-me-sender
+        :x-me-sender:x-sasl-enc; s=fm1; bh=r62C+nCLSW4cPWhRAtgTrM9RcZsJU
+        m5nqF2pVhLQiR0=; b=lbTTGDK0xuicPi7rcmDp7bi/X1Dveb0mkibN4sPidjVzw
+        ekfx6Accc5ozvLB4GxTyeMfVf3LX63662Pa3V7Km+bn0qgTfdP7j6UKc8UbEFCQ4
+        TFUKROEZf/hqi7J0txebDA1QRHdOAu+IQJytnFQkHnfwQnKz8qJ+bggVfPq8hbyt
+        O44t7iQ7LtO1f3ncZhRxHl3d5jN0AdwIV1wfAg3wzjCimd2q3l+ehLLvcNIvhArN
+        QPbXEpm9rRSkYyN5L3sLDlvXpJUHJj7b2c0Fyikqsd4wVKJ46mnZv18dXptX4sEq
+        07PQ2B0+dPRROxUQ7GEhxKj/udTjwOikQFiAtib3Q==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:content-transfer-encoding:content-type
+        :date:from:in-reply-to:message-id:mime-version:references
+        :subject:to:x-me-sender:x-me-sender:x-sasl-enc; s=fm1; bh=r62C+n
+        CLSW4cPWhRAtgTrM9RcZsJUm5nqF2pVhLQiR0=; b=r0++X5vnkdA1J+nHx5t54d
+        IzRdCK3ty8q9WQVj7Lpp318dtsHh3x8veP66UlcVcpR+xW4whWHhzQJnMI/AwWGc
+        cNdRa2PJZR9C3PtDcbHr6mllzjWYfgQ6lggYnNiu93iMV8rHvpAq4nvpfmHhwq/4
+        SIUfwnbTISKC3TIuwM0V93Ut7Rj5gkqoKKzGX2LdxtLNoHRhtXHU7ev0kpuwbHBB
+        PJfv324o453NGlhVQ0riCr33hr3sQwC4rywYii1voSd3owjgtR3FSV18i8QhATyt
+        rhWo6F55AHFMwYWiMfstHbB1WfS+acqNkp5ABv2uZhMwKf7J/uJkPxWKJCHGhb3A
+        ==
+In-Reply-To: <87po78khtj.fsf@notabene.neil.brown.name>
+Content-Language: en-US
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-To: Ian Kent <raven@themaw.net>, autofs@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+To: NeilBrown <neilb@suse.com>, autofs@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, Dec 20 2017, Ian Kent wrote:
-
-> On 20/12/17 13:52, Ian Kent wrote:
->> On 20/12/17 11:29, NeilBrown wrote:
+On 21/12/17 09:09, NeilBrown wrote:
+> On Wed, Dec 20 2017, Ian Kent wrote:
+> 
+>> On 20/12/17 13:52, Ian Kent wrote:
+>>> On 20/12/17 11:29, NeilBrown wrote:
+>>>>
+>>>> Hi Ian,
+>>>>  I've been looking at:
+>>>>
+>>>>> - add configuration option to use fqdn in mounts.
+>>>>
+>>>> (commit 9aeef772604) because using this new option causes a regression.
+>>>> If you are using the "replicated server" functionality, then
+>>>>   use_hostname_for_mounts = yes
+>>>> completely disables it.
 >>>
->>> Hi Ian,
->>>  I've been looking at:
+>>> Yes, that's not quite right.
 >>>
->>>> - add configuration option to use fqdn in mounts.
+>>> It disables the probe and proximity check for each distinct host
+>>> name used.
 >>>
->>> (commit 9aeef772604) because using this new option causes a regression.
->>> If you are using the "replicated server" functionality, then
->>>   use_hostname_for_mounts =3D yes
->>> completely disables it.
->>=20
->> Yes, that's not quite right.
->>=20
->> It disables the probe and proximity check for each distinct host
->> name used.
->>=20
->> Each of the entries in the list of hosts should still be
->> attempted and given that NFS ping is also now used in the NFS
->> mount module what's lost is the preferred ordering of the hosts
->> list.
->>=20
+>>> Each of the entries in the list of hosts should still be
+>>> attempted and given that NFS ping is also now used in the NFS
+>>> mount module what's lost is the preferred ordering of the hosts
+>>> list.
 >>>
->>> This is caused by:
+>>>>
+>>>> This is caused by:
+>>>>
+>>>> diff --git a/modules/replicated.c b/modules/replicated.c
+>>>> index 32860d5fe245..8437f5f3d5b2 100644
+>>>> --- a/modules/replicated.c
+>>>> +++ b/modules/replicated.c
+>>>> @@ -667,6 +667,12 @@ int prune_host_list(unsigned logopt, struct host **list,
+>>>>         if (!*list)
+>>>>                 return 0;
+>>>>  
+>>>> +       /* If we're using the host name then there's no point probing
+>>>> +        * avialability and respose time.
+>>>> +        */
+>>>> +       if (defaults_use_hostname_for_mounts())
+>>>> +               return 1;
+>>>> +
+>>>>         /* Use closest hosts to choose NFS version */
+>>>>
+>>>> My question is: why what this particular change made.
 >>>
->>> diff --git a/modules/replicated.c b/modules/replicated.c
->>> index 32860d5fe245..8437f5f3d5b2 100644
->>> --- a/modules/replicated.c
->>> +++ b/modules/replicated.c
->>> @@ -667,6 +667,12 @@ int prune_host_list(unsigned logopt, struct host *=
-*list,
->>>         if (!*list)
->>>                 return 0;
->>>=20=20
->>> +       /* If we're using the host name then there's no point probing
->>> +        * avialability and respose time.
->>> +        */
->>> +       if (defaults_use_hostname_for_mounts())
->>> +               return 1;
->>> +
->>>         /* Use closest hosts to choose NFS version */
+>>> It was a while ago but there were complains about using the IP
+>>> address for mounts. It was requested to provide a way to prevent
+>>> that and force the use of the host name in mounts.
 >>>
->>> My question is: why what this particular change made.
->>=20
->> It was a while ago but there were complains about using the IP
->> address for mounts. It was requested to provide a way to prevent
->> that and force the use of the host name in mounts.
->>=20
->>> Why can't prune_host_list() be allowed to do it's thing
->>> when use_hostname_for_mounts is set.
->>=20
->> We could if each host name resolved to a single IP address.
->>=20
->> I'd need to check that use_hostname_for_mounts doesn't get
->> in the road but the host struct should have ->rr set to true
->> if it has multiple addresses so changing it to work the way
->> your recommending shouldn't be hard. I think there's a couple
->> of places that would need to be checked.
->>=20
->> If the host does resolve to multiple addresses the situation
->> is different. There's no way to stop the actual mount from
->> trying an IP address that's not responding and proximity
->> doesn't make sense either again because every time a lookup
->> is done on the host name (eg. at mount time) the next address
->> in its list will be returned which can and usually is different
->> from what would have been checked.
->>=20
->>> I understand that it would be pointless choosing between
->>> the different interfaces of a multi-homed host, but there is still value
->>> in choosing between multiple distinct hosts.
+>>>> Why can't prune_host_list() be allowed to do it's thing
+>>>> when use_hostname_for_mounts is set.
 >>>
->>> What, if anything, might go wrong if I simply reverse this chunk of the
->>> patch?
->>=20
->> You'll get IP addresses in the logs in certain cases but that
->> should be all.
->>=20
->> It would probably be better to ensure that the checks are done
->> if the host name resolves to a single IP address.
->
-> I think that should be "if the host names in the list each resolve
-> to a single IP address", otherwise the round robin behavior would
-> probably still get in the road.
+>>> We could if each host name resolved to a single IP address.
+>>>
+>>> I'd need to check that use_hostname_for_mounts doesn't get
+>>> in the road but the host struct should have ->rr set to true
+>>> if it has multiple addresses so changing it to work the way
+>>> your recommending shouldn't be hard. I think there's a couple
+>>> of places that would need to be checked.
+>>>
+>>> If the host does resolve to multiple addresses the situation
+>>> is different. There's no way to stop the actual mount from
+>>> trying an IP address that's not responding and proximity
+>>> doesn't make sense either again because every time a lookup
+>>> is done on the host name (eg. at mount time) the next address
+>>> in its list will be returned which can and usually is different
+>>> from what would have been checked.
+>>>
+>>>> I understand that it would be pointless choosing between
+>>>> the different interfaces of a multi-homed host, but there is still value
+>>>> in choosing between multiple distinct hosts.
+>>>>
+>>>> What, if anything, might go wrong if I simply reverse this chunk of the
+>>>> patch?
+>>>
+>>> You'll get IP addresses in the logs in certain cases but that
+>>> should be all.
+>>>
+>>> It would probably be better to ensure that the checks are done
+>>> if the host name resolves to a single IP address.
+>>
+>> I think that should be "if the host names in the list each resolve
+>> to a single IP address", otherwise the round robin behavior would
+>> probably still get in the road.
+> 
+> I cannot see why the round-robin behavior would get in the road.
+> It might be pointless to probe each IP address on a multi-homed host if
+> we are just going to mount by host name, but I don't see how it hurts.
 
-I cannot see why the round-robin behavior would get in the road.
-It might be pointless to probe each IP address on a multi-homed host if
-we are just going to mount by host name, but I don't see how it hurts.
+I was wondering whether I had considered the configuration option
+when setting ->rr of the host struct. I haven't so it should be set
+if the name resolves to multiple addresses.
 
-So this is what I'm thinking.  Some simple testing suggests that
-it does the right things.
+> 
+> So this is what I'm thinking.  Some simple testing suggests that
+> it does the right things.
+> 
+> If a host has addresses with different proximity they will still be
+> probed separately, but this won't affect the final choice.
 
-If a host has addresses with different proximity they will still be
-probed separately, but this won't affect the final choice.
+Well no but ...
 
-Thanks,
-NeilBrown
+The prune_host_list() function is meant to put the list of hosts
+in proximity order with hosts ordered by response time within proximity.
 
-=2D-------8<---------------
-Subject: use_hostname_for_mounts shouldn't prevent selection among replica
+It's also meant to remove hosts that don't respond from the list so that
+mount attempts are not made to them (hence the need to use address).
 
-If several replicas have been specified for a mount point, and
-use_hostname_for_mount is set to "yes", the selection between
-these replicas is currently disabled and the last in the list is always
-chosen.
+When use_hostname_for_mounts is set there will be multiple host structures
+with the same host name and each would be probed by name so all would be
+considered.
 
-There is little point selecting between different interfaces on the one
-host in this case, but it is still worth selecting between different
-hosts, particularly if different weights have been specified.
+But the probe is not tied to IP address so each probe failure would remove
+one of the structures from the list resulting in a reduced list of hosts
+to try to mount.
 
-This patch restores the "prune_host_list()" functionality when
-use_hostname_for_mount is set, and modifies it slightly so that once
-an IP address with a given proximity has been successfully probed,
-other IP address for the same host(weight):/path and proximity are ignored.
+So it's then quite possible a mount attempt will be made to a host that
+isn't responding with an associated long delay, around 3 minutes IIRC.
+That's not good for the interactive nature of autofs.
 
-Signed-off-by: NeilBrown <neilb@suse.com>
+It's also possible that a number of the hosts in the list are not
+responding causing a portion of them to be removed making the list
+smaller and the likelihood that the mount will fail when one of the
+hosts actually would succeed but isn't tried because of the reduced
+list size. Worse, is the long delay for each host that's not responding.
 
-diff --git a/modules/replicated.c b/modules/replicated.c
-index 3ac4c70f4062..16cf873513ff 100644
-=2D-- a/modules/replicated.c
-+++ b/modules/replicated.c
-@@ -714,7 +714,7 @@ done:
- int prune_host_list(unsigned logopt, struct host **list,
- 		    unsigned int vers, int port)
- {
-=2D	struct host *this, *last, *first;
-+	struct host *this, *last, *first, *prev;
- 	struct host *new =3D NULL;
- 	unsigned int proximity, selected_version =3D 0;
- 	unsigned int v2_tcp_count, v3_tcp_count, v4_tcp_count;
-@@ -726,12 +726,6 @@ int prune_host_list(unsigned logopt, struct host **lis=
-t,
- 	if (!*list)
- 		return 0;
-=20
-=2D	/* If we're using the host name then there's no point probing
-=2D	 * avialability and respose time.
-=2D	 */
-=2D	if (defaults_use_hostname_for_mounts())
-=2D		return 1;
-=2D
- 	/* Use closest hosts to choose NFS version */
-=20
- 	first =3D *list;
-@@ -877,11 +871,18 @@ int prune_host_list(unsigned logopt, struct host **li=
-st,
-=20
- 	first =3D last;
- 	this =3D first;
-+	prev =3D NULL;
- 	while (this) {
- 		struct host *next =3D this->next;
- 		if (!this->name) {
- 			remove_host(list, this);
- 			add_host(&new, this);
-+		} else if (defaults_use_hostname_for_mounts() && prev &&
-+			   prev->proximity =3D=3D this->proximity &&
-+			   strcmp(prev->name, this->name) =3D=3D 0 &&
-+			   strcmp(prev->path, this->path) =3D=3D 0 &&
-+			   prev->weight =3D=3D this->weight) {
-+			/* No need to probe same host(weight):/path again */
- 		} else {
- 			status =3D get_supported_ver_and_cost(logopt, this,
- 						selected_version, port);
-@@ -889,6 +890,7 @@ int prune_host_list(unsigned logopt, struct host **list,
- 				this->version =3D selected_version;
- 				remove_host(list, this);
- 				add_host(&new, this);
-+				prev =3D this;
- 			}
- 		}
- 		this =3D next;
+What I was trying to get at in my previous reply is that when
+use_hostname_for_mounts is set and the hosts haven't been probed then
+an nfs_ping should be done before attempting the mount to avoid the long
+delay.
 
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
+Before calling the prune function all the potential hosts are present on
+the list so I think pruning the list isn't going to be of any benefit and
+will cause problems of the type I described.
 
------BEGIN PGP SIGNATURE-----
+You have certainly identified a problem and I'd like to fix it but what is
+the problem your seeing and trying to resolve?
 
-iQIzBAEBCAAdFiEEG8Yp69OQ2HB7X0l6Oeye3VZigbkFAlo7CckACgkQOeye3VZi
-gbl67g/+Oy+dnA4Wxyq4tHnNUtgWcjcwt95Trpr5JxXIU3qZeyOJKUG3ThY2gbHf
-Dcj7+tZH8PniEwsGDqxYMqZICPbunPrr2hsUBo89u7m2InhWLUpMN4Xi+Hwcge5y
-9eHg1pl7vMBHpLiMFCWSgRCh07y6ybCXFMHEuBiIglIGo+O4z24PnVbLmDe8Kbxd
-GhVYyXbUfuwxt3qIWzKYb3xgNFhy/odkbFmd3IYbqR+vdX4gIF85rEKSGcBJ3QZZ
-FmA0qi0bTEYuv2G/+W4UJ0N0trtId5arftbGHH/DfO5q6FMO+Vz1MkONn/RJcfYW
-Yv7YwiSNEMEj9rpUcbvcJ8n40YYLtjekEL+KE8lxn/1gbeKBm38FY8MCoanCysDd
-z7MSVDwd7Z0DT8EXQkWJD2GJOo6lipeAo4suO9AXg/L5iQ2tSpRifWxKWcR0lrTt
-dKnSG2vFFh2/t6QUNMf2wSHa9iun8Pr2VY7isXwVqvuyDiEMuIF8AEsmXMqF+JwZ
-G4aKFY3pq9QqH/K2e4khtg+3IpM9WF+d4OJhPdR1aPL+82UXSXgvZSIbpzL4S+SN
-7Fa/ueQJnf+NdxrtjLF19uHfYs8+y+UOC09o1f6VkbaNVtdWtBZnCAoaEzMt9Gce
-KjrLJtX3MJtXjm/hIcQxQLtHSAwS3rCWmNqi8w5MfAObfQQ5mBc=
-=1fMG
------END PGP SIGNATURE-----
---=-=-=--
---
-To unsubscribe from this list: send the line "unsubscribe autofs" in
+Maybe we are approaching this the wrong way.
+
+> 
+> Thanks,
+> NeilBrown
+> 
+> --------8<---------------
+> Subject: use_hostname_for_mounts shouldn't prevent selection among replica
+> 
+> If several replicas have been specified for a mount point, and
+> use_hostname_for_mount is set to "yes", the selection between
+> these replicas is currently disabled and the last in the list is always
+> chosen.
+> 
+> There is little point selecting between different interfaces on the one
+> host in this case, but it is still worth selecting between different
+> hosts, particularly if different weights have been specified.
+> 
+> This patch restores the "prune_host_list()" functionality when
+> use_hostname_for_mount is set, and modifies it slightly so that once
+> an IP address with a given proximity has been successfully probed,
+> other IP address for the same host(weight):/path and proximity are ignored.
+> 
+> Signed-off-by: NeilBrown <neilb@suse.com>
+> 
+> diff --git a/modules/replicated.c b/modules/replicated.c
+> index 3ac4c70f4062..16cf873513ff 100644
+> --- a/modules/replicated.c
+> +++ b/modules/replicated.c
+> @@ -714,7 +714,7 @@ done:
+>  int prune_host_list(unsigned logopt, struct host **list,
+>  		    unsigned int vers, int port)
+>  {
+> -	struct host *this, *last, *first;
+> +	struct host *this, *last, *first, *prev;
+>  	struct host *new = NULL;
+>  	unsigned int proximity, selected_version = 0;
+>  	unsigned int v2_tcp_count, v3_tcp_count, v4_tcp_count;
+> @@ -726,12 +726,6 @@ int prune_host_list(unsigned logopt, struct host **list,
+>  	if (!*list)
+>  		return 0;
+>  
+> -	/* If we're using the host name then there's no point probing
+> -	 * avialability and respose time.
+> -	 */
+> -	if (defaults_use_hostname_for_mounts())
+> -		return 1;
+> -
+>  	/* Use closest hosts to choose NFS version */
+>  
+>  	first = *list;
+> @@ -877,11 +871,18 @@ int prune_host_list(unsigned logopt, struct host **list,
+>  
+>  	first = last;
+>  	this = first;
+> +	prev = NULL;
+>  	while (this) {
+>  		struct host *next = this->next;
+>  		if (!this->name) {
+>  			remove_host(list, this);
+>  			add_host(&new, this);
+> +		} else if (defaults_use_hostname_for_mounts() && prev &&
+> +			   prev->proximity == this->proximity &&
+> +			   strcmp(prev->name, this->name) == 0 &&
+> +			   strcmp(prev->path, this->path) == 0 &&
+> +			   prev->weight == this->weight) {
+> +			/* No need to probe same host(weight):/path again */
+>  		} else {
+>  			status = get_supported_ver_and_cost(logopt, this,
+>  						selected_version, port);
+> @@ -889,6 +890,7 @@ int prune_host_list(unsigned logopt, struct host **list,
+>  				this->version = selected_version;
+>  				remove_host(list, this);
+>  				add_host(&new, this);
+> +				prev = this;
+>  			}
+>  		}
+>  		this = next;
+> 
+
