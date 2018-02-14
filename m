@@ -1,7 +1,8 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 16/20] autofs-5.1.4 - add fedfs-getsrvinfo.c
-Date: Wed, 14 Feb 2018 14:44:22 +0800
-Message-ID: <151859066218.8026.6372757741287844640.stgit@pluto.themaw.net>
+Subject: [PATCH 19/20] autofs-5.1.4 - add conditional inclusion of fedfs
+ binaries
+Date: Wed, 14 Feb 2018 14:44:38 +0800
+Message-ID: <151859067893.8026.5712731288964290545.stgit@pluto.themaw.net>
 References: <151859051902.8026.13693256398323544616.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -12,404 +13,186 @@ List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: autofs mailing list <autofs@vger.kernel.org>
 
-Add the fedfs domain information discovery library functions.
+Add conditional inclusion of the fedfs binaries.
+
+Using configure a --with-fedfs is needed to build and install
+the fedfs binaries.
+
+Using rpmbuild -tb <autofs tar> it's necessary to add the option
+--without fedfs to exclude the fedfs binaries from the resulting
+rpm package.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 ---
- CHANGELOG                |    1 
- fedfs/fedfs-getsrvinfo.c |  311 ++++++++++++++++++++++++++++++++++++++++++++++
- fedfs/fedfs-getsrvinfo.h |   52 ++++++++
- 3 files changed, 364 insertions(+)
- create mode 100644 fedfs/fedfs-getsrvinfo.c
- create mode 100644 fedfs/fedfs-getsrvinfo.h
+ CHANGELOG        |    1 +
+ Makefile.conf.in |    2 ++
+ Makefile.rules   |    6 +++++-
+ autofs.spec      |   12 +++++++++++-
+ configure        |   16 ++++++++++++++++
+ configure.in     |    9 +++++++++
+ 6 files changed, 44 insertions(+), 2 deletions(-)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index dbfb8389..8d6c737c 100644
+index 412e3382..bbe8019e 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -14,6 +14,7 @@ xx/xx/2018 autofs-5.1.5
- - Makefiles.rules: remove 'samples' from SUBDIRS.
- - dont allow trailing slash in master map mount points.
- - fix libresolv configure check.
-+- add fedfs-getsrvinfo.c.
+@@ -17,6 +17,7 @@ xx/xx/2018 autofs-5.1.5
+ - add fedfs-getsrvinfo.c.
+ - add mount.fedfs.c.
+ - add fedfs-map-nfs4.c.
++- add conditional inclusion of fedfs binaries.
  
  19/12/2017 autofs-5.1.4
  - fix spec file url.
-diff --git a/fedfs/fedfs-getsrvinfo.c b/fedfs/fedfs-getsrvinfo.c
-new file mode 100644
-index 00000000..02ad16b5
---- /dev/null
-+++ b/fedfs/fedfs-getsrvinfo.c
-@@ -0,0 +1,311 @@
-+/*
-+ * Copyright 2011 Oracle.  All rights reserved.
-+ *
-+ * This file is part of fedfs-utils.
-+ *
-+ * fedfs-utils is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2.0 as
-+ * published by the Free Software Foundation.
-+ *
-+ * fedfs-utils is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License version 2.0 for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * version 2.0 along with fedfs-utils.  If not, see:
-+ *
-+ *	http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
-+ */
+diff --git a/Makefile.conf.in b/Makefile.conf.in
+index 85662654..3fe1a0a0 100644
+--- a/Makefile.conf.in
++++ b/Makefile.conf.in
+@@ -58,6 +58,8 @@ EXT3FS = @HAVE_E3FSCK@
+ # Support for calling e4fsck when mounting ext4 filesystems
+ EXT4FS = @HAVE_E4FSCK@
+ 
++FEDFS = @ENABLE_FEDFS@
 +
-+#ifdef HAVE_CONFIG_H
-+#include <config.h>
-+#endif
+ LEX = @PATH_LEX@
+ YACC = @PATH_YACC@
+ RPCGEN = @PATH_RPCGEN@
+diff --git a/Makefile.rules b/Makefile.rules
+index fc9f6019..2ccb1f6e 100644
+--- a/Makefile.rules
++++ b/Makefile.rules
+@@ -3,12 +3,16 @@
+ #
+ 
+ # Root directory contents
+-SUBDIRS = lib daemon fedfs modules man
++SUBDIRS = lib daemon modules man
+ INCDIRS = include
+ INCFILES = COPYING COPYRIGHT NEWS README* TODO Makefile Makefile.rules \
+ 	   Makefile.conf.in .version .autofs-* configure.in aclocal.m4 \
+ 	   configure *.patch autofs.spec
+ 
++ifeq ($(FEDFS), 1)
++	SUBDIRS += fedfs
++endif
 +
-+#include <sys/types.h>
-+#include <sys/socket.h>
+ # Attempt to be friends with autotools
+ INSTALLROOT = $(DESTDIR)
+ 
+diff --git a/autofs.spec b/autofs.spec
+index 157c09b4..2cb09ef0 100644
+--- a/autofs.spec
++++ b/autofs.spec
+@@ -16,6 +16,10 @@
+ # disable them.
+ %define with_libtirpc        %{?_without_libtirpc:        0} %{?!_without_libtirpc:        1}
+ 
++# Use --without fedfs in your rpmbuild command or force values to 0 to
++# disable them.
++%define with_fedfs           %{?_without_fedfs:         0} %{?!_without_fedfs: 1}
 +
-+#include <stdbool.h>
-+#include <string.h>
-+#include <unistd.h>
-+#include <stdlib.h>
-+#include <stdint.h>
+ Summary: A tool from automatically mounting and umounting filesystems.
+ Name: autofs
+ %define version 5.1.4
+@@ -82,6 +86,9 @@ echo %{version}-%{release} > .version
+ %if %{with_libtirpc}
+   %define libtirpc_configure_arg --with-libtirpc
+ %endif
++%if %{with_fedfs}
++  %define fedfs_configure_arg --enable-fedfs
++%endif
+ 
+ %build
+ CFLAGS="$RPM_OPT_FLAGS -Wall" \
+@@ -90,7 +97,8 @@ LDFLAGS="-Wl,-z,now" \
+ 	--disable-mount-locking \
+ 	--enable-ignore-busy \
+ 	%{?systemd_configure_arg:} \
+-	%{?libtirpc_configure_arg:}
++	%{?libtirpc_configure_arg:} \
++	%{?fedfs_configure_arg:}
+ CFLAGS="$RPM_OPT_FLAGS -Wall" LDFLAGS="-Wl,-z,now" make initdir=/etc/rc.d/init.d DONTSTRIP=1
+ 
+ %install
+@@ -191,8 +199,10 @@ fi
+ %config(noreplace) /etc/sysconfig/autofs
+ %config(noreplace) /etc/autofs_ldap_auth.conf
+ %{_sbindir}/automount
++%if %{with_fedfs}
+ %{_sbindir}/mount.fedfs
+ %{_sbindir}/fedfs-map-nfs4
++%endif
+ %dir %{_libdir}/autofs
+ %{_libdir}/autofs/*
+ %{_mandir}/*/*
+diff --git a/configure b/configure
+index 5c8aae30..9682b36f 100755
+--- a/configure
++++ b/configure
+@@ -648,6 +648,7 @@ NSL_CFLAGS
+ LIBCLOCK_GETTIME
+ KRB5_CONFIG
+ XML_CONFIG
++ENABLE_FEDFS
+ sssldir
+ HAVE_SSS_AUTOFS
+ PATH_RPCGEN
+@@ -743,6 +744,7 @@ with_libtirpc
+ with_dmalloc
+ enable_sloppy_mount
+ enable_no_canon_umount
++enable_fedfs
+ with_hesiod
+ with_openldap
+ with_sasl
+@@ -1377,6 +1379,7 @@ Optional Features:
+   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+   --enable-sloppy-mount         enable the use of the -s option to mount
+   --enable-no-canon-umount         enable the use of the -c option to umount
++  --enable-fedfs                enable inclusion of fedfs binaries mount.fedfs and fedfs-map-nfs4
+   --disable-ext-env	        disable search in environment for substitution variable
+   --disable-mount-locking       disable use of locking when spawning mount command
+   --enable-force-shutdown       enable USR1 signal to force unlink umount of any
+@@ -4246,6 +4249,19 @@ $as_echo "#define HAVE_NO_CANON_UMOUNT 1" >>confdefs.h
+ 
+ fi
+ 
++ENABLE_FEDFS=""
++# Check whether --enable-fedfs was given.
++if test "${enable_fedfs+set}" = set; then :
++  enableval=$enable_fedfs;
++else
++  enable_fedfs=no
++fi
 +
-+#include <stdio.h>
-+#include <errno.h>
-+#include <netdb.h>
-+#include <netinet/in.h>
-+#include <arpa/inet.h>
-+#include <arpa/nameser.h>
-+#include <arpa/nameser_compat.h>
-+#include <resolv.h>
++if test x$enable_fedfs = xyes; then
++	ENABLE_FEDFS="1"
++fi
 +
-+#include "fedfs-getsrvinfo.h"
 +
-+/**
-+ * Parsing overlay for DNS query result record header.  Fields are
-+ * in network byte order.
-+ */
-+struct rechdr {
-+	uint16_t		 type;
-+	uint16_t		 class;
-+	uint32_t		 ttl;
-+	uint16_t		 length;
-+} __attribute__((__packed__));
+ # LDAP SASL auth needs libxml and Kerberos
+ for ac_prog in xml2-config
+ do
+diff --git a/configure.in b/configure.in
+index 4d1208f5..de06a96d 100644
+--- a/configure.in
++++ b/configure.in
+@@ -195,6 +195,15 @@ if test x$enable_no_canon_umount = xyes; then
+ 	AC_DEFINE(HAVE_NO_CANON_UMOUNT, 1, [define if the umount command supports the -c option])
+ fi
+ 
++ENABLE_FEDFS=""
++AC_ARG_ENABLE(fedfs,
++[  --enable-fedfs                enable inclusion of fedfs binaries mount.fedfs and fedfs-map-nfs4],,
++	enable_fedfs=no)
++if test x$enable_fedfs = xyes; then
++	ENABLE_FEDFS="1"
++fi
++AC_SUBST(ENABLE_FEDFS)
 +
-+/**
-+ * Parsing overlay for DNS query result SRV record data.  Fields
-+ * are in network byte order.
-+ */
-+struct srv {
-+	uint16_t		 priority;
-+	uint16_t		 weight;
-+	uint16_t		 port;
-+	unsigned char		*target;
-+} __attribute__((__packed__));
-+
-+/**
-+ * Return C string matching error value of "status"
-+ *
-+ * @param status error status returned by getsrvinfo
-+ * @return pointer to static NUL-terminated C string containing error message
-+ */
-+const char *
-+gsi_strerror(int status)
-+{
-+	static char buf[256];
-+
-+	switch (status) {
-+	case ESI_SUCCESS:
-+		return "Success";
-+	case ESI_NONAME:
-+		return "Name not found";
-+	case ESI_AGAIN:
-+		return "Temporary failure in name resolution";
-+	case ESI_FAIL:
-+		return "Non-recoverable failure in name resolution";
-+	case ESI_NODATA:
-+		return "No SRV record returned";
-+	case ESI_SERVICE:
-+		return "Service is not available";
-+	case ESI_MEMORY:
-+		return "Memory allocation failure";
-+	case ESI_SYSTEM:
-+		snprintf(buf, sizeof(buf), "System error (%d): %s",
-+				status, strerror(errno));
-+		return buf;
-+	case ESI_PARSE:
-+		return "Failed to parse server response";
-+	}
-+
-+	snprintf(buf, sizeof(buf), "Unknown error (%d)", status);
-+	return buf;
-+}
-+
-+/**
-+ * Release a list of SRV records allocated by getsrvinfo()
-+ *
-+ * @param si pointer to first element of a list of struct srvinfo
-+ *
-+ */
-+void freesrvinfo(struct srvinfo *si)
-+{
-+	struct srvinfo *tmp;
-+
-+	while (si != NULL) {
-+		tmp = si;
-+		si = si->si_next;
-+		free(tmp->si_target);
-+		free(tmp);
-+	}
-+}
-+
-+/**
-+ * Ordering predicate for srvinfo lists
-+ *
-+ * @param a a srvinfo list element to compare
-+ * @param b another srvinfo list element to compare
-+ * @return true if "b" should fall later in the list than "a"
-+ *
-+ * See RFC 2782.   The list is ordered as follows:
-+ *
-+ *  o Lowest priority first.
-+ *  o In each priority class, highest weight first.
-+ */
-+static _Bool
-+srvinfo_is_after(const struct srvinfo *a, const struct srvinfo *b)
-+{
-+	if (a->si_priority > b->si_priority)
-+		return true;
-+	if (a->si_priority < b->si_priority)
-+		return false;
-+
-+	if (a->si_weight < b->si_weight)
-+		return true;
-+	return false;
-+}
-+
-+/**
-+ * Insert a srvinfo element into a list
-+ *
-+ * @param head pointer to head of list of elements
-+ * @param entry new list element to insert
-+ *
-+ */
-+static void
-+insert_srvinfo(struct srvinfo **head, struct srvinfo *entry)
-+{
-+	entry->si_next = *head;
-+	*head = entry;
-+}
-+
-+/**
-+ * Insert a srvinfo element into a list, in order
-+ *
-+ * @param head pointer to head of list of elements
-+ * @param entry new list element to insert
-+ *
-+ */
-+static void
-+insert_srvinfo_sorted(struct srvinfo **head, struct srvinfo *entry)
-+{
-+	struct srvinfo *spot, *back;
-+
-+	spot = *head;
-+	back = NULL;
-+	while (spot && srvinfo_is_after(spot, entry)) {
-+		back = spot;
-+		spot = spot->si_next;
-+	}
-+
-+	if (spot == (*head))
-+		insert_srvinfo(head, entry);
-+	else {
-+		insert_srvinfo(&spot, entry);
-+		/* off the end of the list? */
-+		if (spot == entry)
-+			back->si_next = entry;
-+	}
-+}
-+
-+/**
-+ * Retrieve list of SRV records from DNS service
-+ *
-+ * @param srvname NUL-terminated C string containing record type to look up
-+ * @param domainname NUL-terminated C string containing domain name to look up
-+ * @param si OUT: list of SRV record information retrieved
-+ * @return zero on success, or an ESI_ status code describing the error
-+ *
-+ * Caller must free list of records using freesrvinfo().
-+ */
-+int
-+getsrvinfo(const char *srvname, const char *domainname, struct srvinfo **si)
-+{
-+	unsigned char *msg, *eom, *comp_dn;
-+	struct srvinfo *results;
-+	unsigned short count, i;
-+	int status, len;
-+	char *exp_dn;
-+	HEADER *hdr;
-+
-+	msg = calloc(1, NS_MAXMSG);
-+	exp_dn = calloc(1, NS_MAXDNAME);
-+	if (msg == NULL || exp_dn == NULL) {
-+		status = ESI_MEMORY;
-+		goto out;
-+	}
-+
-+	_res.options |= RES_AAONLY;
-+	len = res_querydomain(srvname, domainname, C_IN, T_SRV, msg, NS_MAXMSG);
-+	if (len == -1) {
-+		switch (h_errno) {
-+		case HOST_NOT_FOUND:
-+			status = ESI_NONAME;
-+			break;
-+		case TRY_AGAIN:
-+			status = ESI_AGAIN;
-+			break;
-+		case NO_RECOVERY:
-+			status = ESI_FAIL;
-+			break;
-+		case NO_DATA:
-+			status = ESI_NODATA;
-+			break;
-+		default:
-+			fprintf(stderr, "SRV query failed for %s.%s: %s\n",
-+				srvname, domainname, hstrerror(h_errno));
-+			status = ESI_FAIL;
-+		}
-+		goto out;
-+	}
-+
-+	hdr = (HEADER *)msg;
-+	count = ntohs(hdr->ancount);
-+	if (count == 0) {
-+		status = ESI_NODATA;
-+		goto out;
-+	}
-+	eom = msg + len;
-+
-+	comp_dn = &msg[HFIXEDSZ];
-+	comp_dn += dn_skipname(comp_dn, eom) + QFIXEDSZ;
-+
-+	results = NULL;
-+	for (i = 0; i < count; i++) {
-+		struct srvinfo *new;
-+		struct srv *record;
-+		int l;
-+
-+		l = dn_expand(msg, eom, comp_dn, exp_dn, NS_MAXDNAME);
-+		if (l == -1) {
-+			status = ESI_PARSE;
-+			goto out_free;
-+		}
-+		comp_dn += l;
-+
-+		record = (struct srv *)&comp_dn[10];
-+		comp_dn += 16;
-+
-+		l = dn_expand(msg, eom, comp_dn, exp_dn, NS_MAXDNAME);
-+		if (l == -1) {
-+			status = ESI_PARSE;
-+			goto out_free;
-+		}
-+		comp_dn += l;
-+
-+		if (count == 1 && strcmp(exp_dn, ".") == 0) {
-+			status = ESI_SERVICE;
-+			goto out_free;
-+		}
-+
-+		new = calloc(1, sizeof(*new));
-+		if (new == NULL) {
-+			status = ESI_MEMORY;
-+			goto out;
-+		}
-+
-+		new->si_target = strdup(exp_dn);
-+		if (new->si_target == NULL) {
-+			free(new);
-+			status = ESI_MEMORY;
-+			goto out;
-+		}
-+		new->si_priority = ntohs(record->priority);
-+		new->si_weight = ntohs(record->weight);
-+		new->si_port = ntohs(record->port);
-+
-+		insert_srvinfo_sorted(&results, new);
-+	}
-+
-+	status = ESI_SUCCESS;
-+	*si = results;
-+
-+out:
-+	free(exp_dn);
-+	free(msg);
-+	return status;
-+
-+out_free:
-+	freesrvinfo(results);
-+	goto out;
-+}
-diff --git a/fedfs/fedfs-getsrvinfo.h b/fedfs/fedfs-getsrvinfo.h
-new file mode 100644
-index 00000000..13170359
---- /dev/null
-+++ b/fedfs/fedfs-getsrvinfo.h
-@@ -0,0 +1,52 @@
-+/*
-+ * Copyright 2011 Oracle.  All rights reserved.
-+ *
-+ * This file is part of fedfs-utils.
-+ *
-+ * fedfs-utils is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2.0 as
-+ * published by the Free Software Foundation.
-+ *
-+ * fedfs-utils is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License version 2.0 for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * version 2.0 along with fedfs-utils.  If not, see:
-+ *
-+ *	http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
-+ */
-+
-+#ifndef _FEDFS_GETSRVINFO_H_
-+#define _FEDFS_GETSRVINFO_H_
-+
-+/**
-+ * Single list element containing SRV record data
-+ */
-+struct srvinfo {
-+	struct srvinfo		*si_next;
-+	char			*si_target;
-+	unsigned short		 si_priority;
-+	unsigned short		 si_weight;
-+	unsigned short		 si_port;
-+};
-+
-+enum {
-+	ESI_SUCCESS	= 0,
-+	ESI_NONAME	= -2,
-+	ESI_AGAIN	= -3,
-+	ESI_FAIL	= -4,
-+	ESI_NODATA	= -5,
-+	ESI_SERVICE	= -8,
-+	ESI_MEMORY	= -10,
-+	ESI_SYSTEM	= -11,
-+	ESI_PARSE	= -1000,
-+};
-+
-+int		 getsrvinfo(const char *srvname, const char *domainname,
-+				struct srvinfo **si);
-+void		 freesrvinfo(struct srvinfo *si);
-+const char	*gsi_strerror(int status);
-+
-+#endif	/* !_FEDFS_GETSRVINFO_H_ */
+ # LDAP SASL auth needs libxml and Kerberos
+ AF_CHECK_LIBXML()
+ AF_CHECK_KRB5()
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
