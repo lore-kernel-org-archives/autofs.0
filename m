@@ -1,8 +1,8 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 20/20] autofs-5.1.4 - add an example fedfs master map entry
- to the installed master map
-Date: Wed, 14 Feb 2018 14:44:44 +0800
-Message-ID: <151859068445.8026.13141630121236897160.stgit@pluto.themaw.net>
+Subject: [PATCH 13/20] autofs-5.1.4 - Makefiles.rules: remove 'samples' from
+ SUBDIRS
+Date: Wed, 14 Feb 2018 14:44:04 +0800
+Message-ID: <151859064479.8026.18296994162768686740.stgit@pluto.themaw.net>
 References: <151859051902.8026.13693256398323544616.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -13,42 +13,70 @@ List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: autofs mailing list <autofs@vger.kernel.org>
 
-Add an example of using the fedfs program map (to facilitate access
-to fedfs domain mounts) to the installed master map.
+From: NeilBrown <neilb@suse.com>
+
+The rules in Makefile make it quite clear that
+'samples' is not expected to be part of SUBDIRS.
+e.g.
+ - The rule for "clean" handles both $(SUBDIRS) *and* samples.
+ - There are separate "install" and "install_samples" targets.
+
+However SUBDIRS does contain 'samples'.  This means that
+a simple "make; make install" will over-write your configuration files.
+
+So remove 'samples' from SUBDIRS.  Note that it has been removed in
+the past, but then got added back again.
+
+Signed-off-by: NeilBrown <neilb@suse.com>
+Signed-off-by: Ian Kent <raven@themaw.net>
 ---
- CHANGELOG           |    1 +
- samples/auto.master |    6 ++++++
- 2 files changed, 7 insertions(+)
+ CHANGELOG      |    1 +
+ Makefile.rules |    2 +-
+ autofs.spec    |    6 ++++++
+ 3 files changed, 8 insertions(+), 1 deletion(-)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index bbe8019e..f771a433 100644
+index 313730b1..1e5ec15b 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -18,6 +18,7 @@ xx/xx/2018 autofs-5.1.5
- - add mount.fedfs.c.
- - add fedfs-map-nfs4.c.
- - add conditional inclusion of fedfs binaries.
-+- add an example fedfs master map entry to the installed master map.
+@@ -11,6 +11,7 @@ xx/xx/2018 autofs-5.1.5
+ - account for recent libnsl changes.
+ - use_hostname_for_mounts shouldn't prevent selection among replicas.
+ - fix monotonic_elapsed.
++- Makefiles.rules: remove 'samples' from SUBDIRS.
  
  19/12/2017 autofs-5.1.4
  - fix spec file url.
-diff --git a/samples/auto.master b/samples/auto.master
-index 0f2c8ab0..6c95fadf 100644
---- a/samples/auto.master
-+++ b/samples/auto.master
-@@ -17,6 +17,12 @@
+diff --git a/Makefile.rules b/Makefile.rules
+index 2bfa043c..4deab3b9 100644
+--- a/Makefile.rules
++++ b/Makefile.rules
+@@ -3,7 +3,7 @@
  #
- +dir:/etc/auto.master.d
- #
-+# If you have fedfs setup and the realted binaries, either
-+# built as part of autofs or installed from another package,
-+# uncomment this line to use the fedfs program map to access
-+# your fedfs mounts.
-+#/nfs4  /usr/sbin/fedfs-map-nfs4 nobind
-+#
- # Include central master map if it can be found using
- # nsswitch sources.
- #
+ 
+ # Root directory contents
+-SUBDIRS = lib daemon modules man samples
++SUBDIRS = lib daemon modules man
+ INCDIRS = include
+ INCFILES = COPYING COPYRIGHT NEWS README* TODO Makefile Makefile.rules \
+ 	   Makefile.conf.in .version .autofs-* configure.in aclocal.m4 \
+diff --git a/autofs.spec b/autofs.spec
+index 6da0655d..2464e741 100644
+--- a/autofs.spec
++++ b/autofs.spec
+@@ -121,6 +121,12 @@ install -m 755 redhat/autofs.init $RPM_BUILD_ROOT/etc/rc.d/init.d/autofs
+ install -m 644 redhat/autofs.conf $RPM_BUILD_ROOT/etc/autofs.conf
+ install -m 644 redhat/autofs.sysconfig $RPM_BUILD_ROOT/etc/sysconfig/autofs
+ 
++install -m 644 samples/auto.master $RPM_BUILD_ROOT/etc/auto.master
++install -m 644 samples/auto.misc $RPM_BUILD_ROOT/etc/auto.misc
++install -m 644 samples/auto.net $RPM_BUILD_ROOT/etc/auto.net
++install -m 644 samples/auto.smb $RPM_BUILD_ROOT/etc/auto.smb
++install -m 600 samples/autofs_ldap_auth.conf $RPM_BUILD_ROOT/etc/autofs_ldap_auth.conf
++
+ %clean
+ [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
