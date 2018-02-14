@@ -1,8 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 19/20] autofs-5.1.4 - add conditional inclusion of fedfs
- binaries
-Date: Wed, 14 Feb 2018 14:44:38 +0800
-Message-ID: <151859067893.8026.5712731288964290545.stgit@pluto.themaw.net>
+Subject: [PATCH 18/20] autofs-5.1.4 - add fedfs-map-nfs4.c
+Date: Wed, 14 Feb 2018 14:44:33 +0800
+Message-ID: <151859067333.8026.8452320813383845127.stgit@pluto.themaw.net>
 References: <151859051902.8026.13693256398323544616.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -13,186 +12,344 @@ List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: autofs mailing list <autofs@vger.kernel.org>
 
-Add conditional inclusion of the fedfs binaries.
-
-Using configure a --with-fedfs is needed to build and install
-the fedfs binaries.
-
-Using rpmbuild -tb <autofs tar> it's necessary to add the option
---without fedfs to exclude the fedfs binaries from the resulting
-rpm package.
+Add build (and install) of the fedfs program map, fedfs-map-nfs4.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 ---
- CHANGELOG        |    1 +
- Makefile.conf.in |    2 ++
- Makefile.rules   |    6 +++++-
- autofs.spec      |   12 +++++++++++-
- configure        |   16 ++++++++++++++++
- configure.in     |    9 +++++++++
- 6 files changed, 44 insertions(+), 2 deletions(-)
+ CHANGELOG              |    1 
+ autofs.spec            |    1 
+ fedfs/Makefile         |   12 ++-
+ fedfs/fedfs-map-nfs4.c |  204 ++++++++++++++++++++++++++++++++++++++++++++++++
+ fedfs/fedfs-token.h    |   40 +++++++++
+ 5 files changed, 256 insertions(+), 2 deletions(-)
+ create mode 100644 fedfs/fedfs-map-nfs4.c
+ create mode 100644 fedfs/fedfs-token.h
 
 diff --git a/CHANGELOG b/CHANGELOG
-index 412e3382..bbe8019e 100644
+index 88992147..412e3382 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -17,6 +17,7 @@ xx/xx/2018 autofs-5.1.5
+@@ -16,6 +16,7 @@ xx/xx/2018 autofs-5.1.5
+ - fix libresolv configure check.
  - add fedfs-getsrvinfo.c.
  - add mount.fedfs.c.
- - add fedfs-map-nfs4.c.
-+- add conditional inclusion of fedfs binaries.
++- add fedfs-map-nfs4.c.
  
  19/12/2017 autofs-5.1.4
  - fix spec file url.
-diff --git a/Makefile.conf.in b/Makefile.conf.in
-index 85662654..3fe1a0a0 100644
---- a/Makefile.conf.in
-+++ b/Makefile.conf.in
-@@ -58,6 +58,8 @@ EXT3FS = @HAVE_E3FSCK@
- # Support for calling e4fsck when mounting ext4 filesystems
- EXT4FS = @HAVE_E4FSCK@
- 
-+FEDFS = @ENABLE_FEDFS@
-+
- LEX = @PATH_LEX@
- YACC = @PATH_YACC@
- RPCGEN = @PATH_RPCGEN@
-diff --git a/Makefile.rules b/Makefile.rules
-index fc9f6019..2ccb1f6e 100644
---- a/Makefile.rules
-+++ b/Makefile.rules
-@@ -3,12 +3,16 @@
- #
- 
- # Root directory contents
--SUBDIRS = lib daemon fedfs modules man
-+SUBDIRS = lib daemon modules man
- INCDIRS = include
- INCFILES = COPYING COPYRIGHT NEWS README* TODO Makefile Makefile.rules \
- 	   Makefile.conf.in .version .autofs-* configure.in aclocal.m4 \
- 	   configure *.patch autofs.spec
- 
-+ifeq ($(FEDFS), 1)
-+	SUBDIRS += fedfs
-+endif
-+
- # Attempt to be friends with autotools
- INSTALLROOT = $(DESTDIR)
- 
 diff --git a/autofs.spec b/autofs.spec
-index 157c09b4..2cb09ef0 100644
+index 2cc0e38f..157c09b4 100644
 --- a/autofs.spec
 +++ b/autofs.spec
-@@ -16,6 +16,10 @@
- # disable them.
- %define with_libtirpc        %{?_without_libtirpc:        0} %{?!_without_libtirpc:        1}
- 
-+# Use --without fedfs in your rpmbuild command or force values to 0 to
-+# disable them.
-+%define with_fedfs           %{?_without_fedfs:         0} %{?!_without_fedfs: 1}
-+
- Summary: A tool from automatically mounting and umounting filesystems.
- Name: autofs
- %define version 5.1.4
-@@ -82,6 +86,9 @@ echo %{version}-%{release} > .version
- %if %{with_libtirpc}
-   %define libtirpc_configure_arg --with-libtirpc
- %endif
-+%if %{with_fedfs}
-+  %define fedfs_configure_arg --enable-fedfs
-+%endif
- 
- %build
- CFLAGS="$RPM_OPT_FLAGS -Wall" \
-@@ -90,7 +97,8 @@ LDFLAGS="-Wl,-z,now" \
- 	--disable-mount-locking \
- 	--enable-ignore-busy \
- 	%{?systemd_configure_arg:} \
--	%{?libtirpc_configure_arg:}
-+	%{?libtirpc_configure_arg:} \
-+	%{?fedfs_configure_arg:}
- CFLAGS="$RPM_OPT_FLAGS -Wall" LDFLAGS="-Wl,-z,now" make initdir=/etc/rc.d/init.d DONTSTRIP=1
- 
- %install
-@@ -191,8 +199,10 @@ fi
- %config(noreplace) /etc/sysconfig/autofs
+@@ -192,6 +192,7 @@ fi
  %config(noreplace) /etc/autofs_ldap_auth.conf
  %{_sbindir}/automount
-+%if %{with_fedfs}
  %{_sbindir}/mount.fedfs
- %{_sbindir}/fedfs-map-nfs4
-+%endif
++%{_sbindir}/fedfs-map-nfs4
  %dir %{_libdir}/autofs
  %{_libdir}/autofs/*
  %{_mandir}/*/*
-diff --git a/configure b/configure
-index 5c8aae30..9682b36f 100755
---- a/configure
-+++ b/configure
-@@ -648,6 +648,7 @@ NSL_CFLAGS
- LIBCLOCK_GETTIME
- KRB5_CONFIG
- XML_CONFIG
-+ENABLE_FEDFS
- sssldir
- HAVE_SSS_AUTOFS
- PATH_RPCGEN
-@@ -743,6 +744,7 @@ with_libtirpc
- with_dmalloc
- enable_sloppy_mount
- enable_no_canon_umount
-+enable_fedfs
- with_hesiod
- with_openldap
- with_sasl
-@@ -1377,6 +1379,7 @@ Optional Features:
-   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
-   --enable-sloppy-mount         enable the use of the -s option to mount
-   --enable-no-canon-umount         enable the use of the -c option to umount
-+  --enable-fedfs                enable inclusion of fedfs binaries mount.fedfs and fedfs-map-nfs4
-   --disable-ext-env	        disable search in environment for substitution variable
-   --disable-mount-locking       disable use of locking when spawning mount command
-   --enable-force-shutdown       enable USR1 signal to force unlink umount of any
-@@ -4246,6 +4249,19 @@ $as_echo "#define HAVE_NO_CANON_UMOUNT 1" >>confdefs.h
+diff --git a/fedfs/Makefile b/fedfs/Makefile
+index cb325bed..dff749e4 100644
+--- a/fedfs/Makefile
++++ b/fedfs/Makefile
+@@ -6,11 +6,13 @@
+ include ../Makefile.rules
  
- fi
+ SRCS = mount.fedfs.c
+-HDRS = fedfs-getsrvinfo.h fedfs-gpl-boiler.h fedfs-nls.h
++HDRS = fedfs-getsrvinfo.h fedfs-gpl-boiler.h fedfs-nls.h \
++       fedfs-token.h
  
-+ENABLE_FEDFS=""
-+# Check whether --enable-fedfs was given.
-+if test "${enable_fedfs+set}" = set; then :
-+  enableval=$enable_fedfs;
-+else
-+  enable_fedfs=no
-+fi
-+
-+if test x$enable_fedfs = xyes; then
-+	ENABLE_FEDFS="1"
-+fi
-+
-+
- # LDAP SASL auth needs libxml and Kerberos
- for ac_prog in xml2-config
- do
-diff --git a/configure.in b/configure.in
-index 4d1208f5..de06a96d 100644
---- a/configure.in
-+++ b/configure.in
-@@ -195,6 +195,15 @@ if test x$enable_no_canon_umount = xyes; then
- 	AC_DEFINE(HAVE_NO_CANON_UMOUNT, 1, [define if the umount command supports the -c option])
- fi
+ fedfs-getsrvinfo_OBJ = fedfs-getsrvinfo.o
  
-+ENABLE_FEDFS=""
-+AC_ARG_ENABLE(fedfs,
-+[  --enable-fedfs                enable inclusion of fedfs binaries mount.fedfs and fedfs-map-nfs4],,
-+	enable_fedfs=no)
-+if test x$enable_fedfs = xyes; then
-+	ENABLE_FEDFS="1"
-+fi
-+AC_SUBST(ENABLE_FEDFS)
+ mount_fedfs_OBJ = mount.fedfs.o
++fedfs-map-nfs4_OBJ = fedfs-map-nfs4.o
+ 
+ version := $(shell cat ../.version)
+ 
+@@ -18,18 +20,24 @@ CFLAGS += -rdynamic $(DAEMON_CFLAGS) -D_GNU_SOURCE -I../include
+ CFLAGS += -DVERSION_STRING=\"$(version)\"
+ LDFLAGS += -rdynamic
+ 
+-all: mount.fedfs
++all: mount.fedfs fedfs-map-nfs4
+ 
+ mount.fedfs: $(mount_fedfs_OBJ) $(fedfs-getsrvinfo_OBJ) $(HDRS)
+ 	$(CC) -o mount.fedfs \
+ 	       $(mount_fedfs_OBJ) $(fedfs-getsrvinfo_OBJ) \
+ 	       $(LDFLAGS) $(LIBRESOLV) $(LIBS)
+ 
++fedfs-map-nfs4: $(fedfs-map-nfs4_OBJ) $(fedfs-getsrvinfo_OBJ) $(HDRS)
++	$(CC) -o fedfs-map-nfs4 \
++	       $(fedfs-map-nfs4_OBJ) $(fedfs-getsrvinfo_OBJ) \
++	       $(LDFLAGS) $(LIBRESOLV) $(LIBS)
 +
- # LDAP SASL auth needs libxml and Kerberos
- AF_CHECK_LIBXML()
- AF_CHECK_KRB5()
+ clean:
+ 	rm -f *.o *.s *~ mount.fedfs
+ 
+ install: all
+ 	install -d -m 755 $(INSTALLROOT)$(sbindir)
++	install -c fedfs-map-nfs4 -m 755 $(INSTALLROOT)$(sbindir); \
+ 	if ! test -x $(INSTALLROOT)$(sbindir)/mount.fedfs; \
+ 	then \
+ 		install -c mount.fedfs -m 755 $(INSTALLROOT)$(sbindir); \
+diff --git a/fedfs/fedfs-map-nfs4.c b/fedfs/fedfs-map-nfs4.c
+new file mode 100644
+index 00000000..9f831cd7
+--- /dev/null
++++ b/fedfs/fedfs-map-nfs4.c
+@@ -0,0 +1,204 @@
++/*
++ * Copyright 2011 Oracle.  All rights reserved.
++ *
++ * This file is part of fedfs-utils.
++ *
++ * fedfs-utils is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2.0 as
++ * published by the Free Software Foundation.
++ *
++ * fedfs-utils is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License version 2.0 for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * version 2.0 along with fedfs-utils.  If not, see:
++ *
++ *	http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
++ */
++
++#ifdef HAVE_CONFIG_H
++#include <config.h>
++#endif
++
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <sys/socket.h>
++#include <sys/mount.h>
++#include <sys/wait.h>
++
++#include <stdbool.h>
++#include <string.h>
++#include <stdlib.h>
++#include <unistd.h>
++#include <stdio.h>
++#include <libgen.h>
++#include <errno.h>
++#include <getopt.h>
++#include <locale.h>
++#include <netdb.h>
++#include <langinfo.h>
++
++#include "fedfs-nls.h"
++#include "fedfs-token.h"
++#include "fedfs-getsrvinfo.h"
++#include "fedfs-gpl-boiler.h"
++
++/**
++ * Name of SRV record containing NFSv4 FedFS root
++ */
++#define FEDFS_NFS_DOMAINROOT	"_nfs-domainroot._tcp"
++
++/**
++ * Export pathname of NFSv4 FedFS root
++ */
++#define FEDFS_NFS_EXPORTPATH	"/.domainroot"
++
++static char *progname;
++
++/**
++ * Display usage message
++ */
++static void
++fedfs_map_usage(void)
++{
++	printf(_("\nUsage: %s [domain]\n\n"), progname);
++
++	printf("%s", fedfs_gpl_boilerplate);
++}
++
++/**
++ * Construct an NFSv4 map entry for "domainname" with one server
++ *
++ * @param si single-entry list of SRV records
++ * @param domainname NUL-terminated UTF-8 string containing name of FedFS domain
++ * @return command exit status
++ */
++static int fedfs_map_nfs4_oneserver(struct srvinfo *si, const char *domainname)
++{
++	printf("-fstype=nfs,vers=4,fg");
++	if (si->si_port != 2049)
++		printf(",port=%u", si->si_port);
++	printf(" %s:%s/%s\n", si->si_target, FEDFS_NFS_EXPORTPATH, domainname);
++	return 0;
++}
++
++/**
++ * Construct an NFSv4 map entry for "domainname" with multiple servers
++ *
++ * @param si list of SRV records for requested FedFS domain
++ * @param domainname NUL-terminated UTF-8 string containing name of FedFS domain
++ * @return command exit status
++ */
++static int fedfs_map_nfs4_replicas(struct srvinfo *si, const char *domainname)
++{
++	struct srvinfo *cur;
++	unsigned short port;
++	_Bool comma;
++
++	/*
++	 * Unfortunately our automounter can't handle a list of
++	 * replicas where the various servers live on different
++	 * ports from one another.
++	 */
++	port = si->si_port;
++	for (cur = si; cur != NULL; cur = cur->si_next)
++		if (cur->si_port != port) {
++			fprintf(stderr, _("%s: Replicas on different ports not supported\n"),
++				progname);
++			return 1;
++		}
++
++	if (port != 2049)
++		printf("-fstype=nfs,vers=4,fg,port=%u ", port);
++	else
++		printf("-fstype=nfs,vers=4,fg ");
++
++	/*
++	 * Note that the export path is required to be indentical
++	 * for all domain root servers for this domain.
++	 */
++	for (comma = false, cur = si; cur != NULL; cur = cur->si_next) {
++		if (comma)
++			printf(",");
++		printf("%s(%u)", cur->si_target, cur->si_weight);
++		comma = true;
++	}
++	printf(":%s/%s\n", FEDFS_NFS_EXPORTPATH, domainname);
++
++	return 0;
++}
++
++/**
++ * Construct an NFSv4 map entry for "domainname"
++ *
++ * @param domainname NUL-terminated UTF-8 string containing name of FedFS domain
++ * @return command exit status
++ */
++static int fedfs_map_nfs4(const char *domainname)
++{
++	struct srvinfo *cur, *si = NULL;
++	unsigned int count;
++	int error, result;
++
++	result = 1;
++	error = getsrvinfo(FEDFS_NFS_DOMAINROOT, domainname, &si);
++	switch (error) {
++	case ESI_SUCCESS:
++		break;
++	case ESI_NONAME:
++		fprintf(stderr, _("%s: Domain name %s not found\n"),
++			progname, domainname);
++		goto out;
++	case ESI_SERVICE:
++		fprintf(stderr, _("%s: No FedFS domain root available for %s\n"),
++			progname, domainname);
++		goto out;
++	default:
++		fprintf(stderr, _("%s: Failed to resolve %s: %s\n"),
++			progname, domainname, gsi_strerror(error));
++		goto out;
++	}
++
++	for (count = 0, cur = si; cur != NULL; cur = cur->si_next)
++		count++;
++	if (count == 1)
++		result = fedfs_map_nfs4_oneserver(si, domainname);
++	else
++		result = fedfs_map_nfs4_replicas(si, domainname);
++
++out:
++	freesrvinfo(si);
++	return result;
++}
++
++/**
++ * Program entry point
++ *
++ * @param argc count of command line arguments
++ * @param argv array of NUL-terminated C strings containing command line arguments
++ * @return program exit status
++ */
++int main(int argc, char *argv[])
++{
++	(void)setlocale(LC_ALL, "");
++
++	progname = basename(argv[0]);
++
++	if (argc != 2) {
++		fedfs_map_usage();
++		return 1;
++	}
++
++	if (strcmp(progname, "fedfs-map-nfs4") == 0)
++		return fedfs_map_nfs4(argv[1]);
++#ifdef EXAMPLE
++	/* CIFS support might plug in here */
++	else if (strcmp(progname, "fedfs-map-cifs") == 0)
++		return fedfs_map_cifs(argv[1]);
++#endif
++
++	fprintf(stderr, _("%s: Unsupported file system type\n"), progname);
++	return 1;
++}
+diff --git a/fedfs/fedfs-token.h b/fedfs/fedfs-token.h
+new file mode 100644
+index 00000000..5651409d
+--- /dev/null
++++ b/fedfs/fedfs-token.h
+@@ -0,0 +1,40 @@
++/*
++ * Copyright (C) 2007 Oracle.  All rights reserved.
++ * Copyright (C) 2007 Chuck Lever <chuck.lever@oracle.com>
++ *
++ * This file is part of fedfs-utils.
++ *
++ * fedfs-utils is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2.0 as
++ * published by the Free Software Foundation.
++ *
++ * fedfs-utils is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License version 2.0 for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * version 2.0 along with fedfs-utils.  If not, see:
++ *
++ *	http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
++ */
++
++#ifndef _FEDFS_UTILS_TOKEN_H
++#define _FEDFS_UTILS_TOKEN_H
++
++#include <sys/cdefs.h>
++
++/**
++ * Private tokenizer state object
++ */
++struct tokenizer;
++
++__attribute_malloc__
++struct tokenizer	*tk_new_tokenizer(const char *string,
++						const char delimiter);
++__attribute_malloc__
++char				*tk_next_token(struct tokenizer *state);
++void				 tk_free_tokenizer(struct tokenizer *state);
++int				 tk_tokenizer_error(const struct tokenizer *state);
++
++#endif	/* !_FEDFS_UTILS_TOKEN_H */
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
