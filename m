@@ -1,8 +1,8 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 13/20] autofs-5.1.4 - Makefiles.rules: remove 'samples' from
- SUBDIRS
-Date: Wed, 14 Feb 2018 14:44:04 +0800
-Message-ID: <151859064479.8026.18296994162768686740.stgit@pluto.themaw.net>
+Subject: [PATCH 14/20] autofs-5.1.4 - dont allow trailing slash in master
+ map mount points
+Date: Wed, 14 Feb 2018 14:44:10 +0800
+Message-ID: <151859065065.8026.6740815327574732259.stgit@pluto.themaw.net>
 References: <151859051902.8026.13693256398323544616.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -13,70 +13,50 @@ List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: autofs mailing list <autofs@vger.kernel.org>
 
-From: NeilBrown <neilb@suse.com>
+If a master map mount point path has a trailing '/' this can cause
+problems so remove them at parse time.
 
-The rules in Makefile make it quite clear that
-'samples' is not expected to be part of SUBDIRS.
-e.g.
- - The rule for "clean" handles both $(SUBDIRS) *and* samples.
- - There are separate "install" and "install_samples" targets.
-
-However SUBDIRS does contain 'samples'.  This means that
-a simple "make; make install" will over-write your configuration files.
-
-So remove 'samples' from SUBDIRS.  Note that it has been removed in
-the past, but then got added back again.
-
-Signed-off-by: NeilBrown <neilb@suse.com>
 Signed-off-by: Ian Kent <raven@themaw.net>
 ---
- CHANGELOG      |    1 +
- Makefile.rules |    2 +-
- autofs.spec    |    6 ++++++
- 3 files changed, 8 insertions(+), 1 deletion(-)
+ CHANGELOG          |    1 +
+ lib/master_parse.y |    5 +++++
+ 2 files changed, 6 insertions(+)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index 313730b1..1e5ec15b 100644
+index 1e5ec15b..a7bb89dc 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -11,6 +11,7 @@ xx/xx/2018 autofs-5.1.5
- - account for recent libnsl changes.
+@@ -12,6 +12,7 @@ xx/xx/2018 autofs-5.1.5
  - use_hostname_for_mounts shouldn't prevent selection among replicas.
  - fix monotonic_elapsed.
-+- Makefiles.rules: remove 'samples' from SUBDIRS.
+ - Makefiles.rules: remove 'samples' from SUBDIRS.
++- dont allow trailing slash in master map mount points.
  
  19/12/2017 autofs-5.1.4
  - fix spec file url.
-diff --git a/Makefile.rules b/Makefile.rules
-index 2bfa043c..4deab3b9 100644
---- a/Makefile.rules
-+++ b/Makefile.rules
-@@ -3,7 +3,7 @@
- #
+diff --git a/lib/master_parse.y b/lib/master_parse.y
+index 42e03c2d..761ade9b 100644
+--- a/lib/master_parse.y
++++ b/lib/master_parse.y
+@@ -749,6 +749,7 @@ int master_parse_entry(const char *buffer, unsigned int default_timeout, unsigne
+ 	struct map_source *source;
+ 	unsigned int logopt = logging;
+ 	unsigned int m_logopt = master->logopt;
++	size_t mp_len;
+ 	int ret;
  
- # Root directory contents
--SUBDIRS = lib daemon modules man samples
-+SUBDIRS = lib daemon modules man
- INCDIRS = include
- INCFILES = COPYING COPYRIGHT NEWS README* TODO Makefile Makefile.rules \
- 	   Makefile.conf.in .version .autofs-* configure.in aclocal.m4 \
-diff --git a/autofs.spec b/autofs.spec
-index 6da0655d..2464e741 100644
---- a/autofs.spec
-+++ b/autofs.spec
-@@ -121,6 +121,12 @@ install -m 755 redhat/autofs.init $RPM_BUILD_ROOT/etc/rc.d/init.d/autofs
- install -m 644 redhat/autofs.conf $RPM_BUILD_ROOT/etc/autofs.conf
- install -m 644 redhat/autofs.sysconfig $RPM_BUILD_ROOT/etc/sysconfig/autofs
+ 	local_init_vars();
+@@ -763,6 +764,10 @@ int master_parse_entry(const char *buffer, unsigned int default_timeout, unsigne
+ 		return 0;
+ 	}
  
-+install -m 644 samples/auto.master $RPM_BUILD_ROOT/etc/auto.master
-+install -m 644 samples/auto.misc $RPM_BUILD_ROOT/etc/auto.misc
-+install -m 644 samples/auto.net $RPM_BUILD_ROOT/etc/auto.net
-+install -m 644 samples/auto.smb $RPM_BUILD_ROOT/etc/auto.smb
-+install -m 600 samples/autofs_ldap_auth.conf $RPM_BUILD_ROOT/etc/autofs_ldap_auth.conf
++	mp_len = strlen(path);
++	while (mp_len && path[--mp_len] == '/')
++		path[mp_len] = 0;
 +
- %clean
- [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+ 	nc = master->nc;
  
+ 	/* Add null map entries to the null map cache */
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
