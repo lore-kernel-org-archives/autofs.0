@@ -1,8 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 14/20] autofs-5.1.4 - dont allow trailing slash in master
- map mount points
-Date: Wed, 14 Feb 2018 14:44:10 +0800
-Message-ID: <151859065065.8026.6740815327574732259.stgit@pluto.themaw.net>
+Subject: [PATCH 09/20] autofs-5.1.4 - add error handling for ext_mount_add()
+Date: Wed, 14 Feb 2018 14:43:42 +0800
+Message-ID: <151859062243.8026.16053425953604984633.stgit@pluto.themaw.net>
 References: <151859051902.8026.13693256398323544616.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -13,50 +12,123 @@ List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: autofs mailing list <autofs@vger.kernel.org>
 
-If a master map mount point path has a trailing '/' this can cause
-problems so remove them at parse time.
+Add error handling (memory allocation failures) for ext_mount_add().
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 ---
- CHANGELOG          |    1 +
- lib/master_parse.y |    5 +++++
- 2 files changed, 6 insertions(+)
+ CHANGELOG           |    1 +
+ lib/mounts.c        |    5 +----
+ modules/parse_amd.c |   42 ++++++++++++++++++++++++++++++------------
+ 3 files changed, 32 insertions(+), 16 deletions(-)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index 1e5ec15b..a7bb89dc 100644
+index d0cfa19b..9d19c0a7 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -12,6 +12,7 @@ xx/xx/2018 autofs-5.1.5
- - use_hostname_for_mounts shouldn't prevent selection among replicas.
- - fix monotonic_elapsed.
- - Makefiles.rules: remove 'samples' from SUBDIRS.
-+- dont allow trailing slash in master map mount points.
+@@ -7,6 +7,7 @@ xx/xx/2018 autofs-5.1.5
+ - fix prefix option handling in expand_entry().
+ - fix sublink option not set from defaults.
+ - fix error return in do_nfs_mount().
++- add error handling for ext_mount_add().
  
  19/12/2017 autofs-5.1.4
  - fix spec file url.
-diff --git a/lib/master_parse.y b/lib/master_parse.y
-index 42e03c2d..761ade9b 100644
---- a/lib/master_parse.y
-+++ b/lib/master_parse.y
-@@ -749,6 +749,7 @@ int master_parse_entry(const char *buffer, unsigned int default_timeout, unsigne
- 	struct map_source *source;
- 	unsigned int logopt = logging;
- 	unsigned int m_logopt = master->logopt;
-+	size_t mp_len;
- 	int ret;
- 
- 	local_init_vars();
-@@ -763,6 +764,10 @@ int master_parse_entry(const char *buffer, unsigned int default_timeout, unsigne
- 		return 0;
+diff --git a/lib/mounts.c b/lib/mounts.c
+index 6fa304aa..f46fab2b 100644
+--- a/lib/mounts.c
++++ b/lib/mounts.c
+@@ -715,15 +715,12 @@ int ext_mount_add(struct list_head *entry, const char *path, unsigned int umount
  	}
  
-+	mp_len = strlen(path);
-+	while (mp_len && path[--mp_len] == '/')
-+		path[mp_len] = 0;
-+
- 	nc = master->nc;
+ 	em = malloc(sizeof(struct ext_mount));
+-	if (!em) {
+-		ret = -1;
++	if (!em)
+ 		goto done;
+-	}
  
- 	/* Add null map entries to the null map cache */
+ 	em->mountpoint = strdup(path);
+ 	if (!em->mountpoint) {
+ 		free(em);
+-		ret = -1;
+ 		goto done;
+ 	}
+ 	em->umount = umount;
+diff --git a/modules/parse_amd.c b/modules/parse_amd.c
+index 2a5d9a30..e7debc56 100644
+--- a/modules/parse_amd.c
++++ b/modules/parse_amd.c
+@@ -1080,7 +1080,14 @@ static int do_generic_mount(struct autofs_point *ap, const char *name,
+ 			umount = 1;
+ 		}
+ 		/* We have an external mount */
+-		ext_mount_add(&entry->ext_mount, entry->fs, umount);
++		if (!ext_mount_add(&entry->ext_mount, entry->fs, umount)) {
++			umount_ent(ap, entry->fs);
++			error(ap->logopt, MODPREFIX
++			      "error: could not add external mount %s",
++			      entry->fs);
++			ret = 1;
++			goto out;
++		}
+ 		ret = do_link_mount(ap, name, entry, flags);
+ 	}
+ out:
+@@ -1124,7 +1131,13 @@ static int do_nfs_mount(struct autofs_point *ap, const char *name,
+ 			umount = 1;
+ 		}
+ 		/* We might be using an external mount */
+-		ext_mount_add(&entry->ext_mount, entry->fs, umount);
++		if (!ext_mount_add(&entry->ext_mount, entry->fs, umount)) {
++			umount_ent(ap, entry->fs);
++			error(ap->logopt, MODPREFIX
++			      "error: could not add external mount %s", entry->fs);
++			ret = 1;
++			goto out;
++		}
+ 		ret = do_link_mount(ap, name, entry, flags);
+ 	}
+ out:
+@@ -1309,6 +1322,9 @@ static int do_program_mount(struct autofs_point *ap,
+ 	 */
+ 	if (ext_mount_inuse(entry->fs)) {
+ 		rv = 0;
++		/* An external mount with path entry->fs exists
++		 * so ext_mount_add() won't fail.
++		 */
+ 		ext_mount_add(&entry->ext_mount, entry->fs, 1);
+ 	} else {
+ 		rv = mkdir_path(entry->fs, mp_mode);
+@@ -1325,17 +1341,19 @@ static int do_program_mount(struct autofs_point *ap,
+ 
+ 		rv = spawnv(ap->logopt, prog, (const char * const *) argv);
+ 		if (WIFEXITED(rv) && !WEXITSTATUS(rv)) {
+-			rv = 0;
+-			ext_mount_add(&entry->ext_mount, entry->fs, 1);
+-			debug(ap->logopt, MODPREFIX
+-			      "%s: mounted %s", entry->type, entry->fs);
+-		} else {
+-			if (!ext_mount_inuse(entry->fs))
+-				rmdir_path(ap, entry->fs, ap->dev);
+-			error(ap->logopt, MODPREFIX
+-			     "%s: failed to mount using: %s",
+-			     entry->type, entry->mount);
++			if (ext_mount_add(&entry->ext_mount, entry->fs, 1)) {
++				rv = 0;
++				debug(ap->logopt, MODPREFIX
++				     "%s: mounted %s", entry->type, entry->fs);
++				goto do_free;
++			}
++			umount_ent(ap, entry->fs);
+ 		}
++
++		if (!ext_mount_inuse(entry->fs))
++			rmdir_path(ap, entry->fs, ap->dev);
++		error(ap->logopt, MODPREFIX
++		   "%s: failed to mount using %s", entry->type, entry->mount);
+ 	}
+ do_free:
+ 	free_argv(argc, (const char **) argv);
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
