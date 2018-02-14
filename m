@@ -1,7 +1,8 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 04/20] autofs-5.1.4 - fix deadlock in dumpmaps
-Date: Wed, 14 Feb 2018 14:43:14 +0800
-Message-ID: <151859059427.8026.12144677606815148164.stgit@pluto.themaw.net>
+Subject: [PATCH 07/20] autofs-5.1.4 - fix sublink option not set from
+ defaults
+Date: Wed, 14 Feb 2018 14:43:30 +0800
+Message-ID: <151859061087.8026.11202638462703599281.stgit@pluto.themaw.net>
 References: <151859051902.8026.13693256398323544616.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -12,42 +13,50 @@ List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: autofs mailing list <autofs@vger.kernel.org>
 
-Commit a223d11fa8e (autofs-5.1.3 - serialize calls to open_xxxx()
-functions) introduces a deadlock when using the dumpmaps function.
-
-In this case the open fd mutex needs to be unlocked in the forked
-child process of the do_spawn() function.
+If the amd entry sublink option is given in a defaults entry
+it isn't merged into the current entry during parsing.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 ---
- CHANGELOG      |    1 +
- daemon/spawn.c |    1 +
- 2 files changed, 2 insertions(+)
+ CHANGELOG           |    1 +
+ modules/parse_amd.c |   12 ++++++++++++
+ 2 files changed, 13 insertions(+)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index 2747327b..0f30596f 100644
+index 19aec2ae..756ef927 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -2,6 +2,7 @@ xx/xx/2018 autofs-5.1.5
- - fix flag file permission.
- - fix directory create permission.
- - fix use after free in do_master_list_reset().
-+- fix deadlock in dumpmaps.
+@@ -5,6 +5,7 @@ xx/xx/2018 autofs-5.1.5
+ - fix deadlock in dumpmaps.
+ - dont use array for path when not necessary.
+ - fix prefix option handling in expand_entry().
++- fix sublink option not set from defaults.
  
  19/12/2017 autofs-5.1.4
  - fix spec file url.
-diff --git a/daemon/spawn.c b/daemon/spawn.c
-index fabe577e..dbbca7fa 100644
---- a/daemon/spawn.c
-+++ b/daemon/spawn.c
-@@ -338,6 +338,7 @@ static int do_spawn(unsigned logopt, unsigned int wait,
- 		dup2(pipefd[1], STDOUT_FILENO);
- 		dup2(pipefd[1], STDERR_FILENO);
- 		close(pipefd[1]);
-+		open_mutex_unlock();
+diff --git a/modules/parse_amd.c b/modules/parse_amd.c
+index 1a5a2960..1c962fff 100644
+--- a/modules/parse_amd.c
++++ b/modules/parse_amd.c
+@@ -645,6 +645,18 @@ static void update_with_defaults(struct amd_entry *defaults,
+ 		}
+ 	}
  
- 		/* what to mount must always be second last */
- 		while (*pargv++)
++	if (!entry->sublink) {
++		if (defaults->sublink) {
++			tmp = strdup(defaults->sublink);
++			if (tmp)
++				entry->sublink = tmp;
++		} else {
++			v = macro_findvar(sv, "sublink", 2);
++			if (v)
++				entry->sublink = strdup(v->val);
++		}
++	}
++
+ 	return;
+ }
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
