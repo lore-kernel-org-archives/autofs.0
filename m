@@ -1,7 +1,8 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 01/20] autofs-5.1.4 - fix flag file permission
-Date: Wed, 14 Feb 2018 14:42:57 +0800
-Message-ID: <151859057773.8026.6719354511090927498.stgit@pluto.themaw.net>
+Subject: [PATCH 06/20] autofs-5.1.4 - fix prefix option handling in
+ expand_entry()
+Date: Wed, 14 Feb 2018 14:43:25 +0800
+Message-ID: <151859060538.8026.6393319689523285634.stgit@pluto.themaw.net>
 References: <151859051902.8026.13693256398323544616.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -12,43 +13,57 @@ List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: autofs mailing list <autofs@vger.kernel.org>
 
-The flag file used to check if automount(8) is running was being
-created with mode 0 which caused unnecessary dac_override AVC
-failures.
+The changes to fix the defaults handling in the amd map parser caused
+the prefix option to not be expanded and also to not be propagated to
+submounts in some cases.
 
-There's no reason to protect this file so just use 0644 as the
-file permission.
+But the prefix should be expanded in modules/parse_amd.c:expand_entry()
+along with the reset of the amd map entry fields.
+
+Just adding this to modules/parse_amd.c:expand_entry() (where it should
+be) fixes the amd map entry expansion and also fixes the propagation
+of the prefix to submounts.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 ---
- CHANGELOG     |    3 +++
- daemon/flag.c |    2 +-
- 2 files changed, 4 insertions(+), 1 deletion(-)
+ CHANGELOG           |    1 +
+ modules/parse_amd.c |   11 +++++++++++
+ 2 files changed, 12 insertions(+)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index 246279ae..d07d88ce 100644
+index 13f01397..19aec2ae 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -1,3 +1,6 @@
-+xx/xx/2018 autofs-5.1.5
-+- fix flag file permission.
-+
+@@ -4,6 +4,7 @@ xx/xx/2018 autofs-5.1.5
+ - fix use after free in do_master_list_reset().
+ - fix deadlock in dumpmaps.
+ - dont use array for path when not necessary.
++- fix prefix option handling in expand_entry().
+ 
  19/12/2017 autofs-5.1.4
  - fix spec file url.
- - fix unset tsd group name handling.
-diff --git a/daemon/flag.c b/daemon/flag.c
-index 99f26847..ff9858c8 100644
---- a/daemon/flag.c
-+++ b/daemon/flag.c
-@@ -164,7 +164,7 @@ int aquire_flag_file(void)
- 	while (!we_created_flagfile) {
- 		int errsv, i, j;
- 
--		i = open_fd_mode(linkf, O_WRONLY|O_CREAT, 0);
-+		i = open_fd_mode(linkf, O_WRONLY|O_CREAT, 0644);
- 		if (i < 0) {
- 			release_flag_file();
- 			return 0;
+diff --git a/modules/parse_amd.c b/modules/parse_amd.c
+index 2cce5417..1a5a2960 100644
+--- a/modules/parse_amd.c
++++ b/modules/parse_amd.c
+@@ -725,6 +725,17 @@ static struct substvar *expand_entry(struct autofs_point *ap,
+ 		entry->rhost = host;
+ 	}
+ next:
++	if (entry->pref) {
++		if (expand_selectors(ap, entry->pref, &expand, sv)) {
++			debug(logopt, MODPREFIX
++			      "pref expand(\"%s\") -> %s",
++			      entry->pref, expand);
++			free(entry->pref);
++			entry->pref = expand;
++		}
++		sv = macro_addvar(sv, "pref", 4, entry->pref);
++	}
++
+ 	if (entry->sublink) {
+ 		if (expand_selectors(ap, entry->sublink, &expand, sv)) {
+ 			debug(logopt, MODPREFIX
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
