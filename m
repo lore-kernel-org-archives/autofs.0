@@ -1,7 +1,8 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 10/20] autofs-5.1.4 - account for recent libnsl changes
-Date: Wed, 14 Feb 2018 14:43:48 +0800
-Message-ID: <151859062794.8026.498208503383164964.stgit@pluto.themaw.net>
+Subject: [PATCH 11/20] autofs-5.1.4 - use_hostname_for_mounts shouldn't
+ prevent selection among replicas
+Date: Wed, 14 Feb 2018 14:43:53 +0800
+Message-ID: <151859063362.8026.7340859705736972912.stgit@pluto.themaw.net>
 References: <151859051902.8026.13693256398323544616.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -12,559 +13,230 @@ List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: autofs mailing list <autofs@vger.kernel.org>
 
-The glibc RPC code has been dropped.
+From: NeilBrown <neilb@suse.com>
 
-The NIS functionality comes in the libnsl library but it installs
-its files into sub directories of the system include and library
-directories.
+If several replicas have been specified for a mount point,
+and use_hostname_for_mount is set to "yes", the selection
+between these replicas is currently disabled and the last in
+the list is always chosen.
 
-So configure needs to check for this and allow for it in the
-compile and linking of the NIS and NIS+ lookup modules.
+There is little point selecting between different addresses
+for the one host in this case, but it is still worth
+selecting between different hosts, particularly if different
+weights have been specified.
+
+This patch restores the "prune_host_list()" functionality
+when use_hostname_for_mount is set, and modifies it slightly
+so that only on IP address for any host:/path entry in the
+config file is willl be successfully probed.  After a
+success, further addresses from the same entry are skipped.
+This is achieved by tracking an entry number ("ent_num") for
+each 'struct host'.
+
+Signed-off-by: NeilBrown <neilb@suse.com>
+Signed-off-by: Ian Kent <raven@themaw.net>
 ---
- CHANGELOG           |    1 
- Makefile.conf.in    |    4 -
- Makefile.rules      |    2 
- aclocal.m4          |   45 ++++++++
- configure           |  288 ++++++++++++++++++++++++++++++++++++++++++++++++---
- configure.in        |   27 ++---
- include/config.h.in |    3 +
- modules/Makefile    |   10 ++
- 8 files changed, 343 insertions(+), 37 deletions(-)
+ CHANGELOG            |    1 +
+ include/replicated.h |    3 ++-
+ modules/mount_nfs.c  |    2 +-
+ modules/replicated.c |   35 ++++++++++++++++++++---------------
+ 4 files changed, 24 insertions(+), 17 deletions(-)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index 9d19c0a7..2d5d5b1f 100644
+index 2d5d5b1f..104fca90 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -8,6 +8,7 @@ xx/xx/2018 autofs-5.1.5
- - fix sublink option not set from defaults.
+@@ -9,6 +9,7 @@ xx/xx/2018 autofs-5.1.5
  - fix error return in do_nfs_mount().
  - add error handling for ext_mount_add().
-+- account for recent libnsl changes.
+ - account for recent libnsl changes.
++- use_hostname_for_mounts shouldn't prevent selection among replicas.
  
  19/12/2017 autofs-5.1.4
  - fix spec file url.
-diff --git a/Makefile.conf.in b/Makefile.conf.in
-index f879e262..85662654 100644
---- a/Makefile.conf.in
-+++ b/Makefile.conf.in
-@@ -14,8 +14,8 @@ DAEMON_LDFLAGS = @DAEMON_LDFLAGS@
- # Glibc < 2.17 requires librt for clock_gettime()
- LIBCLOCK_GETTIME = @LIBCLOCK_GETTIME@
+diff --git a/include/replicated.h b/include/replicated.h
+index 69ab7800..0f482d21 100644
+--- a/include/replicated.h
++++ b/include/replicated.h
+@@ -57,6 +57,7 @@
  
--# Special parameters for glibc (libc 6)
--LIBNSL    = @LIBNSL@
-+NSLLIB    = @NSL_LIBS@
-+NSLCFLAGS = @NSL_CFLAGS@
- LIBRESOLV = @LIBRESOLV@
+ struct host {
+ 	char *name;
++	int ent_num;
+ 	struct sockaddr *addr;
+ 	size_t addr_len;
+ 	unsigned int rr;
+@@ -70,7 +71,7 @@ struct host {
+ };
  
- # Hesiod support: yes (1) no (0)
-diff --git a/Makefile.rules b/Makefile.rules
-index 0edf9bfe..2bfa043c 100644
---- a/Makefile.rules
-+++ b/Makefile.rules
-@@ -54,8 +54,6 @@ ifdef DMALLOCLIB
- LIBS += $(DMALLOCLIB)
- endif
+ void seed_random(void);
+-struct host *new_host(const char *, struct sockaddr *, size_t,
++struct host *new_host(const char *, int, struct sockaddr *, size_t,
+ 		      unsigned int, unsigned int, unsigned int);
+ void free_host_list(struct host **);
+ int parse_location(unsigned, struct host **, const char *, unsigned int);
+diff --git a/modules/mount_nfs.c b/modules/mount_nfs.c
+index 77166544..4cf0cd27 100644
+--- a/modules/mount_nfs.c
++++ b/modules/mount_nfs.c
+@@ -236,7 +236,7 @@ int mount_mount(struct autofs_point *ap, const char *root, const char *name, int
+ 	    (vers & NFS4_VERS_MASK) != 0 &&
+ 	    !(vers & UDP6_REQUESTED)) {
+ 		unsigned int v4_probe_ok = 0;
+-		struct host *tmp = new_host(hosts->name,
++		struct host *tmp = new_host(hosts->name, 0,
+ 					    hosts->addr, hosts->addr_len,
+ 					    hosts->proximity,
+ 					    hosts->weight, hosts->options);
+diff --git a/modules/replicated.c b/modules/replicated.c
+index 3ac4c70f..f7b83236 100644
+--- a/modules/replicated.c
++++ b/modules/replicated.c
+@@ -83,7 +83,7 @@ void seed_random(void)
+ 	return;
+ }
  
--LIBS += $(LIBNSL)
+-struct host *new_host(const char *name,
++struct host *new_host(const char *name, int ent_num,
+ 		      struct sockaddr *addr, size_t addr_len,
+ 		      unsigned int proximity, unsigned int weight,
+ 		      unsigned int options)
+@@ -116,6 +116,7 @@ struct host *new_host(const char *name,
+ 	memset(new, 0, sizeof(struct host));
+ 
+ 	new->name = tmp1;
++	new->ent_num = ent_num;
+ 	new->addr_len = addr_len;
+ 	new->addr = tmp2;
+ 	new->proximity = proximity;
+@@ -714,7 +715,7 @@ done:
+ int prune_host_list(unsigned logopt, struct host **list,
+ 		    unsigned int vers, int port)
+ {
+-	struct host *this, *last, *first;
++	struct host *this, *last, *first, *prev;
+ 	struct host *new = NULL;
+ 	unsigned int proximity, selected_version = 0;
+ 	unsigned int v2_tcp_count, v3_tcp_count, v4_tcp_count;
+@@ -726,12 +727,6 @@ int prune_host_list(unsigned logopt, struct host **list,
+ 	if (!*list)
+ 		return 0;
+ 
+-	/* If we're using the host name then there's no point probing
+-	 * avialability and respose time.
+-	 */
+-	if (defaults_use_hostname_for_mounts())
+-		return 1;
 -
- LIBS += $(LIBCLOCK_GETTIME)
+ 	/* Use closest hosts to choose NFS version */
  
- # Standard rules
-diff --git a/aclocal.m4 b/aclocal.m4
-index 51772043..f1ed3870 100644
---- a/aclocal.m4
-+++ b/aclocal.m4
-@@ -417,3 +417,48 @@ fi
- LIBS="$af_check_ldap_parse_page_control_save_libs"
- ])
+ 	first = *list;
+@@ -877,11 +872,18 @@ int prune_host_list(unsigned logopt, struct host **list,
  
-+dnl --------------------------------------------------------------------------
-+dnl AF_CHECK_YPCLNT_HEADER
-+dnl
-+dnl Check for include file rpcsvc/ypclnt.h for YellowPages support.
-+dnl --------------------------------------------------------------------------
-+AC_DEFUN([AF_CHECK_YPCLNT_HEADER],
-+[
-+# save current CFLAGS
-+af_check_ypclnt_header_save_cflags="$CFLAGS"
-+CFLAGS="$CFLAGS $NSL_CFLAGS $TIRPC_CFLAGS"
-+
-+HAVE_YPCLNT=0
-+AC_CHECK_HEADER([rpcsvc/ypclnt.h], HAVE_YPCLNT=1)
-+AC_SUBST(HAVE_YPCLNT)
-+if test "$HAVE_YPCLNT" = "1"; then
-+	AC_DEFINE(HAVE_YPCLNT, 1,
-+		[Define if using YellowPages])
-+fi
-+
-+# restore libs
-+CFLAGS="$af_check_ypclnt_header_save_cflags"
-+])
-+
-+dnl --------------------------------------------------------------------------
-+dnl AF_CHECK_NIS_HEADER
-+dnl
-+dnl Check for include file rpcsvc/nis.h for NIS+ support.
-+dnl --------------------------------------------------------------------------
-+AC_DEFUN([AF_CHECK_NIS_HEADER],
-+[
-+# save current CFLAGS
-+af_check_nis_header_save_cflags="$CFLAGS"
-+CFLAGS="$CFLAGS $NSL_CFLAGS $TIRPC_CFLAGS"
-+
-+HAVE_NISPLUS=0
-+AC_CHECK_HEADER([rpcsvc/nis.h], HAVE_NISPLUS=1)
-+AC_SUBST(HAVE_NISPLUS)
-+if test "$HAVE_NISPLUS" = "1"; then
-+	AC_DEFINE(HAVE_NISPLUS, 1,
-+		[Define if using NIS+])
-+fi
-+
-+# restore libs
-+CFLAGS="$af_check_nis_header_save_cflags"
-+])
-diff --git a/configure b/configure
-index 476cea4b..2d517aac 100755
---- a/configure
-+++ b/configure
-@@ -634,8 +634,8 @@ XML_FLAGS
- LIBLDAP
- HAVE_LDAP
- LDAP_FLAGS
--HAVE_YPCLNT
- HAVE_NISPLUS
-+HAVE_YPCLNT
- EGREP
- GREP
- CPP
-@@ -643,7 +643,8 @@ HESIOD_FLAGS
- LIBHESIOD
- HAVE_HESIOD
- LIBRESOLV
--LIBNSL
-+NSL_LIBS
-+NSL_CFLAGS
- LIBCLOCK_GETTIME
- KRB5_CONFIG
- XML_CONFIG
-@@ -764,6 +765,8 @@ CFLAGS
- LDFLAGS
- LIBS
- CPPFLAGS
-+NSL_CFLAGS
-+NSL_LIBS
- CPP'
+ 	first = last;
+ 	this = first;
++	prev = NULL;
+ 	while (this) {
+ 		struct host *next = this->next;
+ 		if (!this->name) {
+ 			remove_host(list, this);
+ 			add_host(&new, this);
++		} else if (defaults_use_hostname_for_mounts() && prev &&
++			   prev->ent_num == this->ent_num) {
++			/* When we use the hostname to mount, there is no
++			 * point in probing every address it has, just one is
++			 * enough.  Skip the rest.
++			 */
+ 		} else {
+ 			status = get_supported_ver_and_cost(logopt, this,
+ 						selected_version, port);
+@@ -889,6 +891,7 @@ int prune_host_list(unsigned logopt, struct host **list,
+ 				this->version = selected_version;
+ 				remove_host(list, this);
+ 				add_host(&new, this);
++				prev = this;
+ 			}
+ 		}
+ 		this = next;
+@@ -901,7 +904,7 @@ int prune_host_list(unsigned logopt, struct host **list,
+ }
  
+ static int add_new_host(struct host **list,
+-			const char *host, unsigned int weight,
++			const char *host, int ent_num, unsigned int weight,
+ 			struct addrinfo *host_addr,
+ 			unsigned int rr, unsigned int options)
+ {
+@@ -940,7 +943,7 @@ static int add_new_host(struct host **list,
+ 	else
+ 		return 0;
  
-@@ -1417,6 +1420,8 @@ Some influential environment variables:
-   LIBS        libraries to pass to the linker, e.g. -l<library>
-   CPPFLAGS    (Objective) C/C++ preprocessor flags, e.g. -I<include dir> if
-               you have headers in a nonstandard directory <include dir>
-+  NSL_CFLAGS  C compiler flags for NSL, overriding pkg-config
-+  NSL_LIBS    linker flags for NSL, overriding pkg-config
-   CPP         C preprocessor
+-	new = new_host(host, host_addr->ai_addr, addr_len, prx, weight, options);
++	new = new_host(host, ent_num, host_addr->ai_addr, addr_len, prx, weight, options);
+ 	if (!new)
+ 		return 0;
  
- Use these variables to override the choices made by `configure' or to help
-@@ -4500,9 +4505,186 @@ fi
+@@ -953,7 +956,7 @@ static int add_new_host(struct host **list,
+ 	return 1;
+ }
  
+-static int add_host_addrs(struct host **list, const char *host,
++static int add_host_addrs(struct host **list, const char *host, int ent_num,
+ 			  unsigned int weight, unsigned int options)
+ {
+ 	struct addrinfo hints, *ni, *this;
+@@ -988,7 +991,7 @@ static int add_host_addrs(struct host **list, const char *host,
  
+ 	this = ni;
+ 	while (this) {
+-		ret = add_new_host(list, host, weight, this, 0, options);
++		ret = add_new_host(list, host, ent_num, weight, this, 0, options);
+ 		if (!ret)
+ 			break;
+ 		this = this->ai_next;
+@@ -1027,7 +1030,7 @@ try_name:
+ 		rr++;
+ 	this = ni;
+ 	while (this) {
+-		ret = add_new_host(list, host, weight, this, rr, options);
++		ret = add_new_host(list, host, ent_num, weight, this, rr, options);
+ 		if (!ret)
+ 			break;
+ 		this = this->ai_next;
+@@ -1120,6 +1123,7 @@ int parse_location(unsigned logopt, struct host **hosts,
+ {
+ 	char *str, *p, *delim;
+ 	unsigned int empty = 1;
++	int ent_num = 1;
  
--#
--# glibc/libc 6 new libraries
--#
-+
-+
-+
-+
-+
-+
-+
-+if test "x$ac_cv_env_PKG_CONFIG_set" != "xset"; then
-+	if test -n "$ac_tool_prefix"; then
-+  # Extract the first word of "${ac_tool_prefix}pkg-config", so it can be a program name with args.
-+set dummy ${ac_tool_prefix}pkg-config; ac_word=$2
-+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-+$as_echo_n "checking for $ac_word... " >&6; }
-+if ${ac_cv_path_PKG_CONFIG+:} false; then :
-+  $as_echo_n "(cached) " >&6
-+else
-+  case $PKG_CONFIG in
-+  [\\/]* | ?:[\\/]*)
-+  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
-+  ;;
-+  *)
-+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-+for as_dir in $PATH
-+do
-+  IFS=$as_save_IFS
-+  test -z "$as_dir" && as_dir=.
-+    for ac_exec_ext in '' $ac_executable_extensions; do
-+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-+    ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
-+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-+    break 2
-+  fi
-+done
-+  done
-+IFS=$as_save_IFS
-+
-+  ;;
-+esac
-+fi
-+PKG_CONFIG=$ac_cv_path_PKG_CONFIG
-+if test -n "$PKG_CONFIG"; then
-+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PKG_CONFIG" >&5
-+$as_echo "$PKG_CONFIG" >&6; }
-+else
-+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-+$as_echo "no" >&6; }
-+fi
-+
-+
-+fi
-+if test -z "$ac_cv_path_PKG_CONFIG"; then
-+  ac_pt_PKG_CONFIG=$PKG_CONFIG
-+  # Extract the first word of "pkg-config", so it can be a program name with args.
-+set dummy pkg-config; ac_word=$2
-+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-+$as_echo_n "checking for $ac_word... " >&6; }
-+if ${ac_cv_path_ac_pt_PKG_CONFIG+:} false; then :
-+  $as_echo_n "(cached) " >&6
-+else
-+  case $ac_pt_PKG_CONFIG in
-+  [\\/]* | ?:[\\/]*)
-+  ac_cv_path_ac_pt_PKG_CONFIG="$ac_pt_PKG_CONFIG" # Let the user override the test with a path.
-+  ;;
-+  *)
-+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-+for as_dir in $PATH
-+do
-+  IFS=$as_save_IFS
-+  test -z "$as_dir" && as_dir=.
-+    for ac_exec_ext in '' $ac_executable_extensions; do
-+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-+    ac_cv_path_ac_pt_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
-+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-+    break 2
-+  fi
-+done
-+  done
-+IFS=$as_save_IFS
-+
-+  ;;
-+esac
-+fi
-+ac_pt_PKG_CONFIG=$ac_cv_path_ac_pt_PKG_CONFIG
-+if test -n "$ac_pt_PKG_CONFIG"; then
-+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_pt_PKG_CONFIG" >&5
-+$as_echo "$ac_pt_PKG_CONFIG" >&6; }
-+else
-+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-+$as_echo "no" >&6; }
-+fi
-+
-+  if test "x$ac_pt_PKG_CONFIG" = x; then
-+    PKG_CONFIG=""
-+  else
-+    case $cross_compiling:$ac_tool_warned in
-+yes:)
-+{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
-+$as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
-+ac_tool_warned=yes ;;
-+esac
-+    PKG_CONFIG=$ac_pt_PKG_CONFIG
-+  fi
-+else
-+  PKG_CONFIG="$ac_cv_path_PKG_CONFIG"
-+fi
-+
-+fi
-+if test -n "$PKG_CONFIG"; then
-+	_pkg_min_version=0.9.0
-+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking pkg-config is at least version $_pkg_min_version" >&5
-+$as_echo_n "checking pkg-config is at least version $_pkg_min_version... " >&6; }
-+	if $PKG_CONFIG --atleast-pkgconfig-version $_pkg_min_version; then
-+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-+$as_echo "yes" >&6; }
-+	else
-+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-+$as_echo "no" >&6; }
-+		PKG_CONFIG=""
-+	fi
-+fi
-+
-+pkg_failed=no
-+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for NSL" >&5
-+$as_echo_n "checking for NSL... " >&6; }
-+
-+if test -n "$NSL_CFLAGS"; then
-+    pkg_cv_NSL_CFLAGS="$NSL_CFLAGS"
-+ elif test -n "$PKG_CONFIG"; then
-+    if test -n "$PKG_CONFIG" && \
-+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libnsl\""; } >&5
-+  ($PKG_CONFIG --exists --print-errors "libnsl") 2>&5
-+  ac_status=$?
-+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-+  test $ac_status = 0; }; then
-+  pkg_cv_NSL_CFLAGS=`$PKG_CONFIG --cflags "libnsl" 2>/dev/null`
-+		      test "x$?" != "x0" && pkg_failed=yes
-+else
-+  pkg_failed=yes
-+fi
-+ else
-+    pkg_failed=untried
-+fi
-+if test -n "$NSL_LIBS"; then
-+    pkg_cv_NSL_LIBS="$NSL_LIBS"
-+ elif test -n "$PKG_CONFIG"; then
-+    if test -n "$PKG_CONFIG" && \
-+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libnsl\""; } >&5
-+  ($PKG_CONFIG --exists --print-errors "libnsl") 2>&5
-+  ac_status=$?
-+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-+  test $ac_status = 0; }; then
-+  pkg_cv_NSL_LIBS=`$PKG_CONFIG --libs "libnsl" 2>/dev/null`
-+		      test "x$?" != "x0" && pkg_failed=yes
-+else
-+  pkg_failed=yes
-+fi
-+ else
-+    pkg_failed=untried
-+fi
-+
-+
-+
-+if test $pkg_failed = yes; then
-+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-+$as_echo "no" >&6; }
-+
-+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
-+        _pkg_short_errors_supported=yes
-+else
-+        _pkg_short_errors_supported=no
-+fi
-+        if test $_pkg_short_errors_supported = yes; then
-+	        NSL_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libnsl" 2>&1`
-+        else
-+	        NSL_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libnsl" 2>&1`
-+        fi
-+	# Put the nasty error message in config.log where it belongs
-+	echo "$NSL_PKG_ERRORS" >&5
-+
-+
- { $as_echo "$as_me:${as_lineno-$LINENO}: checking for yp_match in -lnsl" >&5
- $as_echo_n "checking for yp_match in -lnsl... " >&6; }
- if ${ac_cv_lib_nsl_yp_match+:} false; then :
-@@ -4540,10 +4722,66 @@ fi
- { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_nsl_yp_match" >&5
- $as_echo "$ac_cv_lib_nsl_yp_match" >&6; }
- if test "x$ac_cv_lib_nsl_yp_match" = xyes; then :
--  LIBNSL="-lnsl"
-+  NSL_LIBS="-lnsl"
- fi
+ 	if (!list)
+ 		return 0;
+@@ -1177,7 +1181,7 @@ int parse_location(unsigned logopt, struct host **hosts,
+ 				}
  
+ 				if (p != delim) {
+-					if (!add_host_addrs(hosts, p, weight, options)) {
++					if (!add_host_addrs(hosts, p, ent_num, weight, options)) {
+ 						if (empty) {
+ 							p = next;
+ 							continue;
+@@ -1199,7 +1203,7 @@ int parse_location(unsigned logopt, struct host **hosts,
+ 				*delim = '\0';
+ 				next = delim + 1;
  
-+NSL_CFLAGS=""
-+
-+elif test $pkg_failed = untried; then
-+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-+$as_echo "no" >&6; }
-+
-+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for yp_match in -lnsl" >&5
-+$as_echo_n "checking for yp_match in -lnsl... " >&6; }
-+if ${ac_cv_lib_nsl_yp_match+:} false; then :
-+  $as_echo_n "(cached) " >&6
-+else
-+  ac_check_lib_save_LIBS=$LIBS
-+LIBS="-lnsl  $LIBS"
-+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-+/* end confdefs.h.  */
-+
-+/* Override any GCC internal prototype to avoid an error.
-+   Use char because int might match the return type of a GCC
-+   builtin and then its argument prototype would still apply.  */
-+#ifdef __cplusplus
-+extern "C"
-+#endif
-+char yp_match ();
-+int
-+main ()
-+{
-+return yp_match ();
-+  ;
-+  return 0;
-+}
-+_ACEOF
-+if ac_fn_c_try_link "$LINENO"; then :
-+  ac_cv_lib_nsl_yp_match=yes
-+else
-+  ac_cv_lib_nsl_yp_match=no
-+fi
-+rm -f core conftest.err conftest.$ac_objext \
-+    conftest$ac_exeext conftest.$ac_ext
-+LIBS=$ac_check_lib_save_LIBS
-+fi
-+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_nsl_yp_match" >&5
-+$as_echo "$ac_cv_lib_nsl_yp_match" >&6; }
-+if test "x$ac_cv_lib_nsl_yp_match" = xyes; then :
-+  NSL_LIBS="-lnsl"
-+fi
-+
-+
-+NSL_CFLAGS=""
-+
-+else
-+	NSL_CFLAGS=$pkg_cv_NSL_CFLAGS
-+	NSL_LIBS=$pkg_cv_NSL_LIBS
-+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-+$as_echo "yes" >&6; }
-+
-+fi
+-				if (!add_host_addrs(hosts, p, weight, options)) {
++				if (!add_host_addrs(hosts, p, ent_num, weight, options)) {
+ 					p = next;
+ 					continue;
+ 				}
+@@ -1213,6 +1217,7 @@ int parse_location(unsigned logopt, struct host **hosts,
+ 			return 0;
+ 		}
  
- { $as_echo "$as_me:${as_lineno-$LINENO}: checking for res_query in -lresolv" >&5
- $as_echo_n "checking for res_query in -lresolv... " >&6; }
-@@ -4659,8 +4897,6 @@ fi
++		ent_num++;
+ 		p = next;
+ 	}
  
- LDFLAGS="${AF_tmp_ldflags}"
- 
--# NIS+ support?
--HAVE_NISPLUS=0
- ac_ext=c
- ac_cpp='$CPP $CPPFLAGS'
- ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-@@ -5058,15 +5294,11 @@ fi
- done
- 
- 
--ac_fn_c_check_header_mongrel "$LINENO" "rpcsvc/nis.h" "ac_cv_header_rpcsvc_nis_h" "$ac_includes_default"
--if test "x$ac_cv_header_rpcsvc_nis_h" = xyes; then :
--  HAVE_NISPLUS=1
--fi
--
- 
-+# save current CFLAGS
-+af_check_ypclnt_header_save_cflags="$CFLAGS"
-+CFLAGS="$CFLAGS $NSL_CFLAGS $TIRPC_CFLAGS"
- 
--
--# YellowPages support?
- HAVE_YPCLNT=0
- ac_fn_c_check_header_mongrel "$LINENO" "rpcsvc/ypclnt.h" "ac_cv_header_rpcsvc_ypclnt_h" "$ac_includes_default"
- if test "x$ac_cv_header_rpcsvc_ypclnt_h" = xyes; then :
-@@ -5081,6 +5313,32 @@ $as_echo "#define HAVE_YPCLNT 1" >>confdefs.h
- 
- fi
- 
-+# restore libs
-+CFLAGS="$af_check_ypclnt_header_save_cflags"
-+
-+
-+# save current CFLAGS
-+af_check_nis_header_save_cflags="$CFLAGS"
-+CFLAGS="$CFLAGS $NSL_CFLAGS $TIRPC_CFLAGS"
-+
-+HAVE_NISPLUS=0
-+ac_fn_c_check_header_mongrel "$LINENO" "rpcsvc/nis.h" "ac_cv_header_rpcsvc_nis_h" "$ac_includes_default"
-+if test "x$ac_cv_header_rpcsvc_nis_h" = xyes; then :
-+  HAVE_NISPLUS=1
-+fi
-+
-+
-+
-+if test "$HAVE_NISPLUS" = "1"; then
-+
-+$as_echo "#define HAVE_NISPLUS 1" >>confdefs.h
-+
-+fi
-+
-+# restore libs
-+CFLAGS="$af_check_nis_header_save_cflags"
-+
-+
- #
- # OpenLDAP support?  Expect that this may have a special directory...
- #
-diff --git a/configure.in b/configure.in
-index d3660923..d74775cc 100644
---- a/configure.in
-+++ b/configure.in
-@@ -209,11 +209,13 @@ fi
- AC_CHECK_LIB(rt, clock_gettime, LIBCLOCK_GETTIME="-lrt")
- AC_SUBST(LIBCLOCK_GETTIME)
- 
--#
--# glibc/libc 6 new libraries
--#
--AC_CHECK_LIB(nsl, yp_match, LIBNSL="-lnsl")
--AC_SUBST(LIBNSL)
-+PKG_PROG_PKG_CONFIG()
-+PKG_CHECK_MODULES([NSL],[libnsl],,
-+[
-+AC_CHECK_LIB(nsl, yp_match, NSL_LIBS="-lnsl")
-+AC_SUBST(NSL_LIBS)
-+NSL_CFLAGS=""
-+])
- 
- AC_CHECK_LIB(resolv, res_query, LIBRESOLV="-lresolv")
- AC_SUBST(LIBRESOLV)
-@@ -254,19 +256,8 @@ AC_SUBST(LIBHESIOD)
- AC_SUBST(HESIOD_FLAGS)
- LDFLAGS="${AF_tmp_ldflags}"
- 
--# NIS+ support?
--HAVE_NISPLUS=0
--AC_CHECK_HEADER(rpcsvc/nis.h, HAVE_NISPLUS=1)
--AC_SUBST(HAVE_NISPLUS)
--
--# YellowPages support?
--HAVE_YPCLNT=0
--AC_CHECK_HEADER([rpcsvc/ypclnt.h], HAVE_YPCLNT=1)
--AC_SUBST(HAVE_YPCLNT)
--if test "$HAVE_YPCLNT" = "1"; then
--	AC_DEFINE(HAVE_YPCLNT, 1,
--		[Define if using YellowPages])
--fi
-+AF_CHECK_YPCLNT_HEADER()
-+AF_CHECK_NIS_HEADER()
- 
- #
- # OpenLDAP support?  Expect that this may have a special directory...
-diff --git a/include/config.h.in b/include/config.h.in
-index 04873e8f..991a2bda 100644
---- a/include/config.h.in
-+++ b/include/config.h.in
-@@ -57,6 +57,9 @@
- /* define if you have MOUNT_NFS */
- #undef HAVE_MOUNT_NFS
- 
-+/* Define if using NIS+ */
-+#undef HAVE_NISPLUS
-+
- /* define if the umount command supports the -c option */
- #undef HAVE_NO_CANON_UMOUNT
- 
-diff --git a/modules/Makefile b/modules/Makefile
-index d9ab06c5..0447559a 100644
---- a/modules/Makefile
-+++ b/modules/Makefile
-@@ -116,6 +116,16 @@ parse_amd.so: parse_amd.c amd_parse.tab.o amd_tok.o
- #
- # Ad hoc compilation rules for modules which need auxilliary libraries
- #
-+lookup_yp.so: lookup_yp.c
-+	$(CC) $(SOLDFLAGS) $(CFLAGS) $(NSLCFLAGS) -o lookup_yp.so \
-+		lookup_yp.c $(LDFLAGS) $(AUTOFS_LIB) $(LIBS) $(NSLLIB)
-+	$(STRIP) lookup_yp.so
-+
-+lookup_nisplus.so: lookup_nisplus.c
-+	$(CC) $(SOLDFLAGS) $(CFLAGS) $(NSLCFLAGS) -o lookup_nisplus.so \
-+		lookup_nisplus.c $(LDFLAGS) $(AUTOFS_LIB) $(LIBS) $(NSLLIB)
-+	$(STRIP) lookup_nisplus.so
-+
- lookup_hesiod.so: lookup_hesiod.c
- 	$(CC) $(SOLDFLAGS) $(CFLAGS) $(HESIOD_FLAGS) -o lookup_hesiod.so \
- 		lookup_hesiod.c $(LDFLAGS) $(AUTOFS_LIB) $(LIBHESIOD) $(LIBRESOLV) $(LIBS)
 
 --
 To unsubscribe from this list: send the line "unsubscribe autofs" in
