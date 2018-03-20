@@ -1,108 +1,66 @@
-From: Ian Kent <raven@themaw.net>
+From: Matthew Wilcox <willy@infradead.org>
 Subject: Re: [PATCH] autofs4: Use wait_event_killable
-Date: Tue, 20 Mar 2018 10:42:34 +0800
-Message-ID: <daecdffe-b768-9c69-8609-b899ddde720c@themaw.net>
+Date: Mon, 19 Mar 2018 20:12:02 -0700
+Message-ID: <20180320031202.GA22556@bombadil.infradead.org>
 References: <20180319191609.23880-1-willy@infradead.org>
- <alpine.DEB.2.20.1803191218210.114201@chino.kir.corp.google.com>
+ <7dae3cc8-bad1-ec18-bcf1-ae91a87f74fa@themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
-        :content-transfer-encoding:content-type:date:from:in-reply-to
-        :message-id:mime-version:references:subject:to:x-me-sender
-        :x-me-sender:x-sasl-enc; s=fm2; bh=ovxptibihKsCZlm8g7JXjSGnoMsbK
-        xrF08t5M9WO/is=; b=RlfMhwk8+w5eC7FonTostNvV9Rk6ek2fVLnyMXG39SjKy
-        8xmnYRTeDbm+WVJY/P67ogkT4VETSZZEymfTuUvPqslv2KSaTs8JO7wPmLPR8t1k
-        EpKRBy5PwYxGpz6DX7FNWdBNhZMTQaCpVfUxjx72H0gCGwKCnYFxTG443NcMVyWB
-        8N63yip45hclSx+P7txKlj/Ajwie4/jir+FhJ+muWHEzgYfg0CkJoTD4PI2W/Hqz
-        ssa2QhVzxtWtebteEAe8L2ADpkCkHp3yYpfcGeM0AQ+gSfGxGXHjAIVvXc/JX7ev
-        y0c+O3l1xT9pz6R9wU9JJS9TkDvChWrT/0pkd2Myg==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:content-transfer-encoding:content-type
-        :date:from:in-reply-to:message-id:mime-version:references
-        :subject:to:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; bh=ovxpti
-        bihKsCZlm8g7JXjSGnoMsbKxrF08t5M9WO/is=; b=QnCqfftxjtGamQCdmc/iVd
-        kTkAfrTX0X1R6P4o9v7UeNxJgYT2P3+p6D199osXmPF8p6mTS7HG8/gYiMTZNY3k
-        7IYET7m9g0Sz1wrpxTjdk6t7ZRoq4NsPshQElqv6b4WB/+TTJ2FbWqAEdQ/3a8R6
-        WdMDmKO16IWQGipBmk47DW60W0bo0+xnWcnmue4qvcIbvq4HtG5uSXJeUJE0SHQj
-        D1ukYjH82h29oEoIgkLQhAq19yXD7ce5xoc5+tNnXSvyxbWiA4SQ27RJo3Q4ULLV
-        QSk4LgNVKExNGp7OZVYD2wg3MT9Q+G78fMyr608Q4/t5MSfP0TU3nvsCheDFrL9w
-        ==
-In-Reply-To: <alpine.DEB.2.20.1803191218210.114201@chino.kir.corp.google.com>
-Content-Language: en-US
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20170209; h=In-Reply-To:Content-Type:MIME-Version
+        :References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:
+        Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
+        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+         bh=tjjk+rb/ftUaO9vkrqzDbtFa/l1wD5Rxr+D4zkm4h2E=; b=AHz9Y5jp9nPhLGsOha/5XD8KB
+        u/u/3fcl+Nz2Dthloic9GfBdRpi4u3ANP6Zjz/gIDtlpZJPam4QCXyy2rU2qqayJk9OqA8LEAbkIT
+        iuP6TjSn6LQB0/wc64U/q6DzMNPzPEMmjTTRCHc7FPR2k3PH212HB0cHxfbh6EnmlVmdlFrIqGewy
+        v5zu6rgEhA/rO9bfxIyiYiV4p3+OilYmZmhu/NeIMlTloGP5Gm/mDofIPAadwyuvilZ18CXdKDNqm
+        8wmkiDQU4yRtBzHfi5PMBuY1zHR8JkjOmb2MxzmAIsuhQ5JTzai7h6NJqFwD4T67tZztCoEEEbsyi
+    
+Content-Disposition: inline
+In-Reply-To: <7dae3cc8-bad1-ec18-bcf1-ae91a87f74fa@themaw.net>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: David Rientjes <rientjes@google.com>, Matthew Wilcox <willy@infradead.org>
-Cc: autofs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>
+Content-Transfer-Encoding: 7bit
+To: Ian Kent <raven@themaw.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, autofs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 20/03/18 03:25, David Rientjes wrote:
-> On Mon, 19 Mar 2018, Matthew Wilcox wrote:
+On Tue, Mar 20, 2018 at 09:58:59AM +0800, Ian Kent wrote:
+> On 20/03/18 03:16, Matthew Wilcox wrote:
+> > From: Matthew Wilcox <mawilcox@microsoft.com>
+> > This playing with signals to allow only fatal signals appears to predate
+> > the introduction of wait_event_killable(), and I'm fairly sure that
+> > wait_event_killable is what was meant to happen here.
 > 
->> diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
->> index a0c57c37fa21..c160e9b3aa0f 100644
->> --- a/fs/autofs4/waitq.c
->> +++ b/fs/autofs4/waitq.c
->> @@ -19,9 +19,6 @@
->>   */
->>  static autofs_wqt_t autofs4_next_wait_queue = 1;
->>  
->> -/* These are the signals we allow interrupting a pending mount */
->> -#define SHUTDOWN_SIGS	(sigmask(SIGKILL) | sigmask(SIGINT) | sigmask(SIGQUIT))
->> -
->>  void autofs4_catatonic_mode(struct autofs_sb_info *sbi)
->>  {
->>  	struct autofs_wait_queue *wq, *nwq;
->> @@ -486,29 +483,7 @@ int autofs4_wait(struct autofs_sb_info *sbi,
->>  	 * wq->name.name is NULL iff the lock is already released
->>  	 * or the mount has been made catatonic.
->>  	 */
->> -	if (wq->name.name) {
->> -		/* Block all but "shutdown" signals while waiting */
->> -		unsigned long shutdown_sigs_mask;
->> -		unsigned long irqflags;
->> -		sigset_t oldset;
->> -
->> -		spin_lock_irqsave(&current->sighand->siglock, irqflags);
->> -		oldset = current->blocked;
->> -		shutdown_sigs_mask = SHUTDOWN_SIGS & ~oldset.sig[0];
->> -		siginitsetinv(&current->blocked, shutdown_sigs_mask);
->> -		recalc_sigpending();
->> -		spin_unlock_irqrestore(&current->sighand->siglock, irqflags);
->> -
->> -		wait_event_interruptible(wq->queue, wq->name.name == NULL);
->> -
->> -		spin_lock_irqsave(&current->sighand->siglock, irqflags);
->> -		current->blocked = oldset;
->> -		recalc_sigpending();
->> -		spin_unlock_irqrestore(&current->sighand->siglock, irqflags);
->> -	} else {
->> -		pr_debug("skipped sleeping\n");
->> -	}
->> -
->> +	wait_event_killable(wq->queue, wq->name.name == NULL);
->>  	status = wq->status;
->>  
->>  	/*
+> Predates is an understatement, this is really, really old code.
+> Do I need to forward this to Al or Andrew?
+
+Looks like Andrew usually picks these up directly.  Here's the line
+he'll want:
+
+Link: http://lkml.kernel.org/r/20180319191609.23880-1-willy@infradead.org
+
+> > Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
+> Signed-off-by: Ian Kent <raven@themaw.net>
+
+
+> > +	wait_event_killable(wq->queue, wq->name.name == NULL);
 > 
-> I understand converting the wait_event_interruptible() to 
-> wait_event_killable(), but why was the above wait_event_interruptible() 
-> only called when wq->name.name != NULL?  
+> The wait event code looks like this will wake up on most any unmasked signal.
+> But my assumption is that TASK_KILLABLE tasks are only forwarded specific
+> signals ...
+> 
+> Is that right or am I missing something?
 
-The code pre-dates my involvement in autofs too.
+The signal code is gnarly.  As far as I can decipher it, a fatal
+signal is always turned into SIGKILL (in complete_signal()), and the
+task is woken.  For a task sleeping in TASK_KILLABLE, signal_wake_up()
+passes TASK_WAKEKILL to signal_wake_up_state() if the signal is SIGKILL.
+TASK_KILLABLE sets (TASK_WAKEKILL | TASK_UNINTERRUPTIBLE) so it will be
+woken in order to die.
 
-I always thought it was because wq->name.name can become NULL before
-the wait is reached. Such as if the user space daemon manages to invoke
-autofs4_wait_release() before the wait call.
-
-And if the autofs mount is made catatonic before the wait is reached
-wq->name.name will be set to NULL and wake up called for each waiter
-so that doesn't seem to require the if conditional either.
-
-Both of these cases to fit with what Matthew has already said and I
-can't think of any others.
-
-There may have been other reasons at some point, a lot has changed
-over (a long) time.
-
-Ian
+If the signal being sent isn't sig_fatal(), then we don't wake the task.
+The signal will still be in the pending set, so it can notice when
+exiting to userspace, but it won't be woken.
