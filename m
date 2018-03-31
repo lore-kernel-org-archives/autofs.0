@@ -1,66 +1,52 @@
-From: Matthew Wilcox <willy@infradead.org>
-Subject: Re: [PATCH] autofs4: Use wait_event_killable
-Date: Mon, 19 Mar 2018 20:12:02 -0700
-Message-ID: <20180320031202.GA22556@bombadil.infradead.org>
-References: <20180319191609.23880-1-willy@infradead.org>
- <7dae3cc8-bad1-ec18-bcf1-ae91a87f74fa@themaw.net>
-Mime-Version: 1.0
+From: Andrei Vagin <avagin@openvz.org>
+Subject: [PATCH] autofs4: use wake_up() instead of wake_up_interruptible
+Date: Fri, 30 Mar 2018 19:28:39 -0700
+Message-ID: <20180331022839.21277-1-avagin@openvz.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20170209; h=In-Reply-To:Content-Type:MIME-Version
-        :References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:
-        Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
-        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-         bh=tjjk+rb/ftUaO9vkrqzDbtFa/l1wD5Rxr+D4zkm4h2E=; b=AHz9Y5jp9nPhLGsOha/5XD8KB
-        u/u/3fcl+Nz2Dthloic9GfBdRpi4u3ANP6Zjz/gIDtlpZJPam4QCXyy2rU2qqayJk9OqA8LEAbkIT
-        iuP6TjSn6LQB0/wc64U/q6DzMNPzPEMmjTTRCHc7FPR2k3PH212HB0cHxfbh6EnmlVmdlFrIqGewy
-        v5zu6rgEhA/rO9bfxIyiYiV4p3+OilYmZmhu/NeIMlTloGP5Gm/mDofIPAadwyuvilZ18CXdKDNqm
-        8wmkiDQU4yRtBzHfi5PMBuY1zHR8JkjOmb2MxzmAIsuhQ5JTzai7h6NJqFwD4T67tZztCoEEEbsyi
-    
-Content-Disposition: inline
-In-Reply-To: <7dae3cc8-bad1-ec18-bcf1-ae91a87f74fa@themaw.net>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=sender:from:to:cc:subject:date:message-id;
+        bh=q0/Tgktlo0TN6a5tI0UEjZvwGI3Z3CaIMzwWUajoMNM=;
+        b=PvkumO9Ey97EMxZKN10m1zVj8/BVp2vcJ9EFpBTERTRtFZ9WFQL2DW146EHHros59r
+         O8cp28/BYz6CdvYMMCGHg/m5H4Ij+Dzchu6kLDjSepDMlTb+Oi48Ez9KMH1s1P+avVha
+         g1QaKL/+1cAjaiitQ6DpiSLKEvN20znwuj3USJ3mVHR5r3CPimpbCtV/78gn9g0kuvyP
+         eKsV4ZG3OdtxM2GM/le9pb9MyB6EN8kUAcCf9VXQpPiSDUMQjMqqse3y/3rYCCPb8DR5
+         xO0NVx2brahDHcfnmYpBFp9MmQYGH4t4em20BsPGDuaFElKQPvi6R0bCpQP0UvYwphbx
+         oBBA==
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Ian Kent <raven@themaw.net>
-Cc: Andrew Morton <akpm@linux-foundation.org>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, autofs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: autofs@vger.kernel.org, linux-kernel@vger.kernel.org, Andrei Vagin <avagin@openvz.org>, Matthew Wilcox <mawilcox@microsoft.com>, Andrew Morton <akpm@linux-foundation.org>, Stephen Rothwell <sfr@canb.auug.org.au>
 
-On Tue, Mar 20, 2018 at 09:58:59AM +0800, Ian Kent wrote:
-> On 20/03/18 03:16, Matthew Wilcox wrote:
-> > From: Matthew Wilcox <mawilcox@microsoft.com>
-> > This playing with signals to allow only fatal signals appears to predate
-> > the introduction of wait_event_killable(), and I'm fairly sure that
-> > wait_event_killable is what was meant to happen here.
-> 
-> Predates is an understatement, this is really, really old code.
-> Do I need to forward this to Al or Andrew?
+In "autofs4: use wait_event_killable",  wait_event_interruptible() was
+replaced by wait_event_killable(), but in this case we have to use
+wake_up() instead of wake_up_interruptible().
 
-Looks like Andrew usually picks these up directly.  Here's the line
-he'll want:
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Ian Kent <raven@themaw.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Andrei Vagin <avagin@openvz.org>
+---
+ fs/autofs4/waitq.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Link: http://lkml.kernel.org/r/20180319191609.23880-1-willy@infradead.org
+diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
+index c160e9b3aa0f..be9c3dc048ab 100644
+--- a/fs/autofs4/waitq.c
++++ b/fs/autofs4/waitq.c
+@@ -549,7 +549,7 @@ int autofs4_wait_release(struct autofs_sb_info *sbi, autofs_wqt_t wait_queue_tok
+ 	kfree(wq->name.name);
+ 	wq->name.name = NULL;	/* Do not wait on this queue */
+ 	wq->status = status;
+-	wake_up_interruptible(&wq->queue);
++	wake_up(&wq->queue);
+ 	if (!--wq->wait_ctr)
+ 		kfree(wq);
+ 	mutex_unlock(&sbi->wq_mutex);
+-- 
+2.13.6
 
-> > Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
-> Signed-off-by: Ian Kent <raven@themaw.net>
-
-
-> > +	wait_event_killable(wq->queue, wq->name.name == NULL);
-> 
-> The wait event code looks like this will wake up on most any unmasked signal.
-> But my assumption is that TASK_KILLABLE tasks are only forwarded specific
-> signals ...
-> 
-> Is that right or am I missing something?
-
-The signal code is gnarly.  As far as I can decipher it, a fatal
-signal is always turned into SIGKILL (in complete_signal()), and the
-task is woken.  For a task sleeping in TASK_KILLABLE, signal_wake_up()
-passes TASK_WAKEKILL to signal_wake_up_state() if the signal is SIGKILL.
-TASK_KILLABLE sets (TASK_WAKEKILL | TASK_UNINTERRUPTIBLE) so it will be
-woken in order to die.
-
-If the signal being sent isn't sig_fatal(), then we don't wake the task.
-The signal will still be in the pending set, so it can notice when
-exiting to userspace, but it won't be woken.
