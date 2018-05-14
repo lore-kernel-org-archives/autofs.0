@@ -1,126 +1,414 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH] autofs4: use wake_up() instead of wake_up_interruptible
-Date: Tue, 3 Apr 2018 07:39:33 +0800
-Message-ID: <46f1c699-21bd-3615-0d2c-52ea3ac565e2@themaw.net>
-References: <20180331022839.21277-1-avagin@openvz.org>
- <ebdc431d-cea8-378c-aae5-3b7441bb93c0@themaw.net>
- <8d578e49-c1a0-a38d-3b91-f0a07de0089b@themaw.net>
- <20180401062117.GA27067@outlook.office365.com>
+Subject: [PATCH 01/10] autofs4 - merge auto_fs.h and auto_fs4.h
+Date: Mon, 14 May 2018 11:03:50 +0800
+Message-ID: <152626703024.28589.9571964661718767929.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
-        :content-transfer-encoding:content-type:date:from:in-reply-to
-        :message-id:mime-version:references:subject:to:x-me-sender
-        :x-me-sender:x-sasl-enc; s=fm2; bh=qWOL860cWVHGd5xlVTltZee+4nF5p
-        tgJoKkN7mTvDw0=; b=GSB++nlgdnYBlGnJzpLDCGuwQPb3kKPnHDpEwCBpgMFQ9
-        z4lnOeJm6BjuaSS7IIdCDf0CgVA/gsnhEkst2KAfP29lLqA1KJdTlRmBgd/12FCL
-        Z2ckjNGxWNl/ro4jFB+iZAM2IWAAq+vZxH0n6zFMYOmsHHiugKMefj1mggzZerVY
-        xBTr7RsCaIZbooUygQQDr8ds6AMij+itQ4fDYnhldkI8/gFhZnPXatcK/zUZJb4G
-        VBkOJwRXAP6DPoGyCQWvpWZUjWV8fl/0GHmCs+ZahWI+UHsAE8i+f9uIgPmPy1JH
-        XMXFsgtJ3fssCHMNA8RXHx691kQmL4QSionuGA53A==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:content-transfer-encoding:content-type
-        :date:from:in-reply-to:message-id:mime-version:references
-        :subject:to:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; bh=qWOL86
-        0cWVHGd5xlVTltZee+4nF5ptgJoKkN7mTvDw0=; b=hLDejNAQSf9YqRa++2iXxB
-        F4KrPjQEnhdn8m2cb9m6lBTx03KMlrEA31kNaJHvxMQtcTWi3ZTvcaEz7WfJeNt3
-        lVzO56+9JzzRnbpdS3G0Oqsr70EZAd0KSrTIze2U/4atUcCpBZMAuATHG5EVUMXq
-        cXIUFUTDbGKZeJAhynSmCfdFVgDChzuElzJYpzAy5Kxb/Smc4fv5OwMXYgTZyJN8
-        Hh26BiwUz/7/dwKUaYgdaKTbI5cShY978MsRLRkaufr1IACJnNs6PEHx3KvDRJAc
-        dOeB51/Las442zkCevE6VZ07QXAj9/XYy4FtBU3B34Ya7q+zrH6dq0LR9wpaZNag
-        ==
-In-Reply-To: <20180401062117.GA27067@outlook.office365.com>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Andrei Vagin <avagin@virtuozzo.com>, Andrew Morton <akpm@linux-foundation.org>
-Cc: Andrei Vagin <avagin@openvz.org>, autofs@vger.kernel.org, linux-kernel@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, Stephen Rothwell <sfr@canb.auug.org.au>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On 01/04/18 14:21, Andrei Vagin wrote:
-> On Sun, Apr 01, 2018 at 10:01:41AM +0800, Ian Kent wrote:
->> On 01/04/18 09:31, Ian Kent wrote:
->>> On 31/03/18 10:28, Andrei Vagin wrote:
->>>> In "autofs4: use wait_event_killable",  wait_event_interruptible() was
->>>> replaced by wait_event_killable(), but in this case we have to use
->>>> wake_up() instead of wake_up_interruptible().
->>>
->>> Why do you believe wake_up() is needed rather than wake_up_interruptible()?
->>>
->>> Now that I'm thinking about the wake up I'm wondering if this is in fact
->>> what's needed. Rather, I think maybe wake_up_all() is probably the only
->>> one that will actually do what's needed.
->>
->> Ok, so that 1 is the number of exclusive waiters.
->> So what is the difference between the two wake_up calls in this case?
-> 
-> In CRIU, we have the autofs test:
-> https://github.com/checkpoint-restore/criu/blob/master/test/zdtm/static/autofs.c
-> 
-> We run CRIU tests on the linux-next kernels and a few days ago this test
-> started to fail, actually it hangs up.
-> 
-> I found that wake_up_interruptible() doesn't wake up a thread, which is
-> waiting.
-> 
-> try_to_wake_up() has the argument "state", it is the mask of task states
-> that can be woken.
-> 
-> For wake_up_interruptible(), state is TASK_INTERRUPTIBLE.
-> For wake_up(). state is TASK_NORMAL (TASK_INTERRUPTIBLE | TASK_UNINTERRUPTIBLE)
-> 
-> If we use wait_event_killable(), the task sleeps in the TASK_KILLABLE
-> state, so wake_up_interruptible() isn't suitable in this case.
-> 
-> #define TASK_KILLABLE                   (TASK_WAKEKILL | TASK_UNINTERRUPTIBLE)
-> 
-> I checked that our test passes with this patch. I mean that we had a
-> real problem and we checked that it is fixed by this patch.
+The autofs module has long since been removed so there's no need to have
+two separate include files for autofs.
 
-Ahh, I see, wake_up_*() functions do just what they say, they skip
-TASK_UNINTERRUPTIBLE tasks.
+Signed-off-by: Ian Kent <raven@themaw.net>
+---
+ fs/autofs4/autofs_i.h         |    2 
+ fs/compat_ioctl.c             |    1 
+ include/uapi/linux/auto_fs.h  |  169 ++++++++++++++++++++++++++++++++++++++---
+ include/uapi/linux/auto_fs4.h |  153 +------------------------------------
+ 4 files changed, 161 insertions(+), 164 deletions(-)
 
-Now it makes sense.
-
-Acked-by: Ian Kent <raven@themaw.net>
-
-Andrew could you a take this patch as well please.
-
-> 
-> Thanks,
-> Andrei
-> 
->>
->>>
->>> There's an individual wait queue for each mount, there can be multiple
->>> waiters for a mount, they all should be woken up when the daemon signals
->>> mount completion.
->>>
->>>>
->>>> Cc: Matthew Wilcox <mawilcox@microsoft.com>
->>>> Cc: Ian Kent <raven@themaw.net>
->>>> Cc: Andrew Morton <akpm@linux-foundation.org>
->>>> Cc: Stephen Rothwell <sfr@canb.auug.org.au>
->>>> Signed-off-by: Andrei Vagin <avagin@openvz.org>
->>>> ---
->>>>  fs/autofs4/waitq.c | 2 +-
->>>>  1 file changed, 1 insertion(+), 1 deletion(-)
->>>>
->>>> diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
->>>> index c160e9b3aa0f..be9c3dc048ab 100644
->>>> --- a/fs/autofs4/waitq.c
->>>> +++ b/fs/autofs4/waitq.c
->>>> @@ -549,7 +549,7 @@ int autofs4_wait_release(struct autofs_sb_info *sbi, autofs_wqt_t wait_queue_tok
->>>>  	kfree(wq->name.name);
->>>>  	wq->name.name = NULL;	/* Do not wait on this queue */
->>>>  	wq->status = status;
->>>> -	wake_up_interruptible(&wq->queue);
->>>> +	wake_up(&wq->queue);
->>>>  	if (!--wq->wait_ctr)
->>>>  		kfree(wq);
->>>>  	mutex_unlock(&sbi->wq_mutex);
->>>>
->>>
->>
+diff --git a/fs/autofs4/autofs_i.h b/fs/autofs4/autofs_i.h
+index 4737615f0eaa..01636f3945d5 100644
+--- a/fs/autofs4/autofs_i.h
++++ b/fs/autofs4/autofs_i.h
+@@ -9,7 +9,7 @@
+ 
+ /* Internal header file for autofs */
+ 
+-#include <linux/auto_fs4.h>
++#include <linux/auto_fs.h>
+ #include <linux/auto_dev-ioctl.h>
+ 
+ #include <linux/kernel.h>
+diff --git a/fs/compat_ioctl.c b/fs/compat_ioctl.c
+index ef80085ed564..b3e1768b636e 100644
+--- a/fs/compat_ioctl.c
++++ b/fs/compat_ioctl.c
+@@ -39,7 +39,6 @@
+ #include <linux/if_pppox.h>
+ #include <linux/mtio.h>
+ #include <linux/auto_fs.h>
+-#include <linux/auto_fs4.h>
+ #include <linux/tty.h>
+ #include <linux/vt_kern.h>
+ #include <linux/fb.h>
+diff --git a/include/uapi/linux/auto_fs.h b/include/uapi/linux/auto_fs.h
+index 2a4432c7a4b4..e13eec3dfb2f 100644
+--- a/include/uapi/linux/auto_fs.h
++++ b/include/uapi/linux/auto_fs.h
+@@ -1,6 +1,8 @@
+ /* SPDX-License-Identifier: GPL-2.0+ WITH Linux-syscall-note */
+ /*
+- *   Copyright 1997 Transmeta Corporation - All Rights Reserved
++ * Copyright 1997 Transmeta Corporation - All Rights Reserved
++ * Copyright 1999-2000 Jeremy Fitzhardinge <jeremy@goop.org>
++ * Copyright 2005-2006,2013,2017-2018 Ian Kent <raven@themaw.net>
+  *
+  * This file is part of the Linux kernel and is made available under
+  * the terms of the GNU General Public License, version 2, or at your
+@@ -8,7 +10,6 @@
+  *
+  * ----------------------------------------------------------------------- */
+ 
+-
+ #ifndef _UAPI_LINUX_AUTO_FS_H
+ #define _UAPI_LINUX_AUTO_FS_H
+ 
+@@ -18,13 +19,11 @@
+ #include <sys/ioctl.h>
+ #endif /* __KERNEL__ */
+ 
++#define AUTOFS_PROTO_VERSION		5
++#define AUTOFS_MIN_PROTO_VERSION	3
++#define AUTOFS_MAX_PROTO_VERSION	5
+ 
+-/* This file describes autofs v3 */
+-#define AUTOFS_PROTO_VERSION	3
+-
+-/* Range of protocol versions defined */
+-#define AUTOFS_MAX_PROTO_VERSION	AUTOFS_PROTO_VERSION
+-#define AUTOFS_MIN_PROTO_VERSION	AUTOFS_PROTO_VERSION
++#define AUTOFS_PROTO_SUBVERSION		2
+ 
+ /*
+  * The wait_queue_token (autofs_wqt_t) is part of a structure which is passed
+@@ -76,9 +75,155 @@ enum {
+ #define AUTOFS_IOC_READY        _IO(AUTOFS_IOCTL, AUTOFS_IOC_READY_CMD)
+ #define AUTOFS_IOC_FAIL         _IO(AUTOFS_IOCTL, AUTOFS_IOC_FAIL_CMD)
+ #define AUTOFS_IOC_CATATONIC    _IO(AUTOFS_IOCTL, AUTOFS_IOC_CATATONIC_CMD)
+-#define AUTOFS_IOC_PROTOVER     _IOR(AUTOFS_IOCTL, AUTOFS_IOC_PROTOVER_CMD, int)
+-#define AUTOFS_IOC_SETTIMEOUT32 _IOWR(AUTOFS_IOCTL, AUTOFS_IOC_SETTIMEOUT_CMD, compat_ulong_t)
+-#define AUTOFS_IOC_SETTIMEOUT   _IOWR(AUTOFS_IOCTL, AUTOFS_IOC_SETTIMEOUT_CMD, unsigned long)
+-#define AUTOFS_IOC_EXPIRE       _IOR(AUTOFS_IOCTL, AUTOFS_IOC_EXPIRE_CMD, struct autofs_packet_expire)
++#define AUTOFS_IOC_PROTOVER     _IOR(AUTOFS_IOCTL, \
++				     AUTOFS_IOC_PROTOVER_CMD, int)
++#define AUTOFS_IOC_SETTIMEOUT32 _IOWR(AUTOFS_IOCTL, \
++				      AUTOFS_IOC_SETTIMEOUT_CMD, \
++				      compat_ulong_t)
++#define AUTOFS_IOC_SETTIMEOUT   _IOWR(AUTOFS_IOCTL, \
++				      AUTOFS_IOC_SETTIMEOUT_CMD, \
++				      unsigned long)
++#define AUTOFS_IOC_EXPIRE       _IOR(AUTOFS_IOCTL, \
++				     AUTOFS_IOC_EXPIRE_CMD, \
++				     struct autofs_packet_expire)
++
++/* autofs version 4 and later definitions */
++
++/* Mask for expire behaviour */
++#define AUTOFS_EXP_IMMEDIATE		1
++#define AUTOFS_EXP_LEAVES		2
++
++#define AUTOFS_TYPE_ANY			0U
++#define AUTOFS_TYPE_INDIRECT		1U
++#define AUTOFS_TYPE_DIRECT		2U
++#define AUTOFS_TYPE_OFFSET		4U
++
++static inline void set_autofs_type_indirect(unsigned int *type)
++{
++	*type = AUTOFS_TYPE_INDIRECT;
++}
++
++static inline unsigned int autofs_type_indirect(unsigned int type)
++{
++	return (type == AUTOFS_TYPE_INDIRECT);
++}
++
++static inline void set_autofs_type_direct(unsigned int *type)
++{
++	*type = AUTOFS_TYPE_DIRECT;
++}
++
++static inline unsigned int autofs_type_direct(unsigned int type)
++{
++	return (type == AUTOFS_TYPE_DIRECT);
++}
++
++static inline void set_autofs_type_offset(unsigned int *type)
++{
++	*type = AUTOFS_TYPE_OFFSET;
++}
++
++static inline unsigned int autofs_type_offset(unsigned int type)
++{
++	return (type == AUTOFS_TYPE_OFFSET);
++}
++
++static inline unsigned int autofs_type_trigger(unsigned int type)
++{
++	return (type == AUTOFS_TYPE_DIRECT || type == AUTOFS_TYPE_OFFSET);
++}
++
++/*
++ * This isn't really a type as we use it to say "no type set" to
++ * indicate we want to search for "any" mount in the
++ * autofs_dev_ioctl_ismountpoint() device ioctl function.
++ */
++static inline void set_autofs_type_any(unsigned int *type)
++{
++	*type = AUTOFS_TYPE_ANY;
++}
++
++static inline unsigned int autofs_type_any(unsigned int type)
++{
++	return (type == AUTOFS_TYPE_ANY);
++}
++
++/* Daemon notification packet types */
++enum autofs_notify {
++	NFY_NONE,
++	NFY_MOUNT,
++	NFY_EXPIRE
++};
++
++/* Kernel protocol version 4 packet types */
++
++/* Expire entry (umount request) */
++#define autofs_ptype_expire_multi	2
++
++/* Kernel protocol version 5 packet types */
++
++/* Indirect mount missing and expire requests. */
++#define autofs_ptype_missing_indirect	3
++#define autofs_ptype_expire_indirect	4
++
++/* Direct mount missing and expire requests */
++#define autofs_ptype_missing_direct	5
++#define autofs_ptype_expire_direct	6
++
++/* v4 multi expire (via pipe) */
++struct autofs_packet_expire_multi {
++	struct autofs_packet_hdr hdr;
++	autofs_wqt_t wait_queue_token;
++	int len;
++	char name[NAME_MAX+1];
++};
++
++union autofs_packet_union {
++	struct autofs_packet_hdr hdr;
++	struct autofs_packet_missing missing;
++	struct autofs_packet_expire expire;
++	struct autofs_packet_expire_multi expire_multi;
++};
++
++/* autofs v5 common packet struct */
++struct autofs_v5_packet {
++	struct autofs_packet_hdr hdr;
++	autofs_wqt_t wait_queue_token;
++	__u32 dev;
++	__u64 ino;
++	__u32 uid;
++	__u32 gid;
++	__u32 pid;
++	__u32 tgid;
++	__u32 len;
++	char name[NAME_MAX+1];
++};
++
++typedef struct autofs_v5_packet autofs_packet_missing_indirect_t;
++typedef struct autofs_v5_packet autofs_packet_expire_indirect_t;
++typedef struct autofs_v5_packet autofs_packet_missing_direct_t;
++typedef struct autofs_v5_packet autofs_packet_expire_direct_t;
++
++union autofs_v5_packet_union {
++	struct autofs_packet_hdr hdr;
++	struct autofs_v5_packet v5_packet;
++	autofs_packet_missing_indirect_t missing_indirect;
++	autofs_packet_expire_indirect_t expire_indirect;
++	autofs_packet_missing_direct_t missing_direct;
++	autofs_packet_expire_direct_t expire_direct;
++};
++
++enum {
++	AUTOFS_IOC_EXPIRE_MULTI_CMD = 0x66, /* AUTOFS_IOC_EXPIRE_CMD + 1 */
++	AUTOFS_IOC_PROTOSUBVER_CMD,
++	AUTOFS_IOC_ASKUMOUNT_CMD = 0x70, /* AUTOFS_DEV_IOCTL_VERSION_CMD - 1 */
++};
++
++#define AUTOFS_IOC_EXPIRE_MULTI		_IOW(AUTOFS_IOCTL, \
++					     AUTOFS_IOC_EXPIRE_MULTI_CMD, int)
++#define AUTOFS_IOC_PROTOSUBVER		_IOR(AUTOFS_IOCTL, \
++					     AUTOFS_IOC_PROTOSUBVER_CMD, int)
++#define AUTOFS_IOC_ASKUMOUNT		_IOR(AUTOFS_IOCTL, \
++					     AUTOFS_IOC_ASKUMOUNT_CMD, int)
+ 
+ #endif /* _UAPI_LINUX_AUTO_FS_H */
+diff --git a/include/uapi/linux/auto_fs4.h b/include/uapi/linux/auto_fs4.h
+index 1f608e27a06f..d01ef0a0189c 100644
+--- a/include/uapi/linux/auto_fs4.h
++++ b/include/uapi/linux/auto_fs4.h
+@@ -7,156 +7,9 @@
+  * option, any later version, incorporated herein by reference.
+  */
+ 
+-#ifndef _LINUX_AUTO_FS4_H
+-#define _LINUX_AUTO_FS4_H
++#ifndef _UAPI_LINUX_AUTO_FS4_H
++#define _UAPI_LINUX_AUTO_FS4_H
+ 
+-/* Include common v3 definitions */
+-#include <linux/types.h>
+ #include <linux/auto_fs.h>
+ 
+-/* autofs v4 definitions */
+-#undef AUTOFS_PROTO_VERSION
+-#undef AUTOFS_MIN_PROTO_VERSION
+-#undef AUTOFS_MAX_PROTO_VERSION
+-
+-#define AUTOFS_PROTO_VERSION		5
+-#define AUTOFS_MIN_PROTO_VERSION	3
+-#define AUTOFS_MAX_PROTO_VERSION	5
+-
+-#define AUTOFS_PROTO_SUBVERSION		2
+-
+-/* Mask for expire behaviour */
+-#define AUTOFS_EXP_IMMEDIATE		1
+-#define AUTOFS_EXP_LEAVES		2
+-
+-#define AUTOFS_TYPE_ANY			0U
+-#define AUTOFS_TYPE_INDIRECT		1U
+-#define AUTOFS_TYPE_DIRECT		2U
+-#define AUTOFS_TYPE_OFFSET		4U
+-
+-static inline void set_autofs_type_indirect(unsigned int *type)
+-{
+-	*type = AUTOFS_TYPE_INDIRECT;
+-}
+-
+-static inline unsigned int autofs_type_indirect(unsigned int type)
+-{
+-	return (type == AUTOFS_TYPE_INDIRECT);
+-}
+-
+-static inline void set_autofs_type_direct(unsigned int *type)
+-{
+-	*type = AUTOFS_TYPE_DIRECT;
+-}
+-
+-static inline unsigned int autofs_type_direct(unsigned int type)
+-{
+-	return (type == AUTOFS_TYPE_DIRECT);
+-}
+-
+-static inline void set_autofs_type_offset(unsigned int *type)
+-{
+-	*type = AUTOFS_TYPE_OFFSET;
+-}
+-
+-static inline unsigned int autofs_type_offset(unsigned int type)
+-{
+-	return (type == AUTOFS_TYPE_OFFSET);
+-}
+-
+-static inline unsigned int autofs_type_trigger(unsigned int type)
+-{
+-	return (type == AUTOFS_TYPE_DIRECT || type == AUTOFS_TYPE_OFFSET);
+-}
+-
+-/*
+- * This isn't really a type as we use it to say "no type set" to
+- * indicate we want to search for "any" mount in the
+- * autofs_dev_ioctl_ismountpoint() device ioctl function.
+- */
+-static inline void set_autofs_type_any(unsigned int *type)
+-{
+-	*type = AUTOFS_TYPE_ANY;
+-}
+-
+-static inline unsigned int autofs_type_any(unsigned int type)
+-{
+-	return (type == AUTOFS_TYPE_ANY);
+-}
+-
+-/* Daemon notification packet types */
+-enum autofs_notify {
+-	NFY_NONE,
+-	NFY_MOUNT,
+-	NFY_EXPIRE
+-};
+-
+-/* Kernel protocol version 4 packet types */
+-
+-/* Expire entry (umount request) */
+-#define autofs_ptype_expire_multi	2
+-
+-/* Kernel protocol version 5 packet types */
+-
+-/* Indirect mount missing and expire requests. */
+-#define autofs_ptype_missing_indirect	3
+-#define autofs_ptype_expire_indirect	4
+-
+-/* Direct mount missing and expire requests */
+-#define autofs_ptype_missing_direct	5
+-#define autofs_ptype_expire_direct	6
+-
+-/* v4 multi expire (via pipe) */
+-struct autofs_packet_expire_multi {
+-	struct autofs_packet_hdr hdr;
+-	autofs_wqt_t wait_queue_token;
+-	int len;
+-	char name[NAME_MAX+1];
+-};
+-
+-union autofs_packet_union {
+-	struct autofs_packet_hdr hdr;
+-	struct autofs_packet_missing missing;
+-	struct autofs_packet_expire expire;
+-	struct autofs_packet_expire_multi expire_multi;
+-};
+-
+-/* autofs v5 common packet struct */
+-struct autofs_v5_packet {
+-	struct autofs_packet_hdr hdr;
+-	autofs_wqt_t wait_queue_token;
+-	__u32 dev;
+-	__u64 ino;
+-	__u32 uid;
+-	__u32 gid;
+-	__u32 pid;
+-	__u32 tgid;
+-	__u32 len;
+-	char name[NAME_MAX+1];
+-};
+-
+-typedef struct autofs_v5_packet autofs_packet_missing_indirect_t;
+-typedef struct autofs_v5_packet autofs_packet_expire_indirect_t;
+-typedef struct autofs_v5_packet autofs_packet_missing_direct_t;
+-typedef struct autofs_v5_packet autofs_packet_expire_direct_t;
+-
+-union autofs_v5_packet_union {
+-	struct autofs_packet_hdr hdr;
+-	struct autofs_v5_packet v5_packet;
+-	autofs_packet_missing_indirect_t missing_indirect;
+-	autofs_packet_expire_indirect_t expire_indirect;
+-	autofs_packet_missing_direct_t missing_direct;
+-	autofs_packet_expire_direct_t expire_direct;
+-};
+-
+-enum {
+-	AUTOFS_IOC_EXPIRE_MULTI_CMD = 0x66, /* AUTOFS_IOC_EXPIRE_CMD + 1 */
+-	AUTOFS_IOC_PROTOSUBVER_CMD,
+-	AUTOFS_IOC_ASKUMOUNT_CMD = 0x70, /* AUTOFS_DEV_IOCTL_VERSION_CMD - 1 */
+-};
+-
+-#define AUTOFS_IOC_EXPIRE_MULTI    _IOW(AUTOFS_IOCTL, AUTOFS_IOC_EXPIRE_MULTI_CMD, int)
+-#define AUTOFS_IOC_PROTOSUBVER     _IOR(AUTOFS_IOCTL, AUTOFS_IOC_PROTOSUBVER_CMD, int)
+-#define AUTOFS_IOC_ASKUMOUNT       _IOR(AUTOFS_IOCTL, AUTOFS_IOC_ASKUMOUNT_CMD, int)
+-
+-#endif /* _LINUX_AUTO_FS4_H */
++#endif /* _UAPI_LINUX_AUTO_FS4_H */
 
