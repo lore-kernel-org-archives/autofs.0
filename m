@@ -1,63 +1,135 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 01/10] autofs4 - merge auto_fs.h and auto_fs4.h
-Date: Mon, 14 May 2018 13:49:00 +0800
-Message-ID: <5a7355b4-7bf1-c911-e010-263e3380794a@themaw.net>
-References: <152626703024.28589.9571964661718767929.stgit@pluto.themaw.net>
- <20180514031509.GC30522@ZenIV.linux.org.uk>
+Subject: [PATCH] autofs - clean up includes
+Date: Tue, 15 May 2018 10:20:52 +0800
+Message-ID: <152635085258.5968.9743527195522188148.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
-        :content-transfer-encoding:content-type:date:from:in-reply-to
-        :message-id:mime-version:references:subject:to:x-me-sender
-        :x-me-sender:x-sasl-enc; s=fm3; bh=buRURQDPw+A1NIWS/vKYURwx14ibf
-        iBmL4MLwjbertQ=; b=iDj4aA/dzQ3e5v+aTS/IP8D+Pl5S4tQk1rrdgXwA7u8Sd
-        CItiCphmIX/DlTVu3c9jGI8Ly7EsZzr45kYIMMc/bEyP2QbxUSWllbWezJtJTtas
-        QxIjfRFhJgyeQkScUPu83RhTPJCHaqIwm8GdfT0GBAYt7uFQKRnZ27Ql4iPDybkt
-        WbzI2D2me5gDbt4C7qVfQrzp9gRa/FVv0B20jZKWOuMjjpcnOw86UV54xti9WpHX
-        BjvfvSFiiz8pFEY47MAjsiNkF8Wd36FX8tKY1Ucs6zzMTxT2GwYZSGWhfht+xPbY
-        LoCzBATj655jmOEN8qUlCYfQ/cQXkYe2AtYEw2GBA==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:content-transfer-encoding:content-type
-        :date:from:in-reply-to:message-id:mime-version:references
-        :subject:to:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; bh=buRURQ
-        DPw+A1NIWS/vKYURwx14ibfiBmL4MLwjbertQ=; b=V81SebriaXmahs6I9yZ8BD
-        HPTVBWwaUi3OgjpX0w7xMjFIJJyxeU6PL4B4S3O0AV1+MwDtoGoNBg51h9otFJca
-        89lJo2Jf9pT1VsKG+tjh7Hr+9SHIvnHoNUaFgNctr30/zuTbADMz0CkY1mUrhPmP
-        zUq2sKhrFWz6gB7YaDk1cvuM75LPzeXH0GuwxfAMMjSV1VcL2npswVDp2jfEcNOK
-        /lUhT4N6q3RTjOaGfUdF2ub5SrMG+RA6MAtMOZpiTr2jjjTmIQs9KgodHjdWf61n
-        iTxnsh1/mA0WtA40/UuF+jQVsscvx54fE+XX8t/jl7cdUq1zVUb2A0S5vlPv3Hsg
-        ==
-In-Reply-To: <20180514031509.GC30522@ZenIV.linux.org.uk>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On 14/05/18 11:15, Al Viro wrote:
-> On Mon, May 14, 2018 at 11:03:50AM +0800, Ian Kent wrote:
->> The autofs module has long since been removed so there's no need to have
->> two separate include files for autofs.
-> 
-> Umm...  Why does fs/compat_ioctl.c need either include, actually?
-> 
->> --- a/fs/compat_ioctl.c
->> +++ b/fs/compat_ioctl.c
->> @@ -39,7 +39,6 @@
->>  #include <linux/if_pppox.h>
->>  #include <linux/mtio.h>
->>  #include <linux/auto_fs.h>
->> -#include <linux/auto_fs4.h>
->>  #include <linux/tty.h>
->>  #include <linux/vt_kern.h>
->>  #include <linux/fb.h>
-> 
-> AFAICS, we can just delete both.  Matter of fact, a *lot* of those includes are
-> pointless nowadays...
-> 
+Remove includes that aren't needed from autofs (and fs/compat_ioctl.c).
 
-OK, I'll have a look at that and post a follow up patch.
+Signed-off-by: Ian Kent <raven@themaw.net>
+---
+ fs/autofs/autofs_i.h  |    2 +-
+ fs/autofs/dev-ioctl.c |   13 -------------
+ fs/autofs/inode.c     |    6 +-----
+ fs/autofs/root.c      |    6 ------
+ fs/autofs/waitq.c     |    4 ----
+ fs/compat_ioctl.c     |    1 -
+ 6 files changed, 2 insertions(+), 30 deletions(-)
 
-Thanks for having a look at these Al.
+diff --git a/fs/autofs/autofs_i.h b/fs/autofs/autofs_i.h
+index 9110b66c7ef1..9400a9f6318a 100644
+--- a/fs/autofs/autofs_i.h
++++ b/fs/autofs/autofs_i.h
+@@ -25,7 +25,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/list.h>
+ #include <linux/completion.h>
+-#include <asm/current.h>
++#include <linux/file.h>
+ 
+ /* This is the range of ioctl() numbers we claim as ours */
+ #define AUTOFS_IOC_FIRST     AUTOFS_IOC_READY
+diff --git a/fs/autofs/dev-ioctl.c b/fs/autofs/dev-ioctl.c
+index a2281ab2b957..ea4ca1445ab7 100644
+--- a/fs/autofs/dev-ioctl.c
++++ b/fs/autofs/dev-ioctl.c
+@@ -7,23 +7,10 @@
+  * option, any later version, incorporated herein by reference.
+  */
+ 
+-#include <linux/module.h>
+-#include <linux/vmalloc.h>
+ #include <linux/miscdevice.h>
+-#include <linux/init.h>
+-#include <linux/wait.h>
+-#include <linux/namei.h>
+-#include <linux/fcntl.h>
+-#include <linux/file.h>
+-#include <linux/fdtable.h>
+-#include <linux/sched.h>
+-#include <linux/cred.h>
+ #include <linux/compat.h>
+ #include <linux/syscalls.h>
+ #include <linux/magic.h>
+-#include <linux/dcache.h>
+-#include <linux/uaccess.h>
+-#include <linux/slab.h>
+ 
+ #include "autofs_i.h"
+ 
+diff --git a/fs/autofs/inode.c b/fs/autofs/inode.c
+index 6262819ede45..b51980fc274e 100644
+--- a/fs/autofs/inode.c
++++ b/fs/autofs/inode.c
+@@ -7,16 +7,12 @@
+  * option, any later version, incorporated herein by reference.
+  */
+ 
+-#include <linux/kernel.h>
+-#include <linux/slab.h>
+-#include <linux/file.h>
+ #include <linux/seq_file.h>
+ #include <linux/pagemap.h>
+ #include <linux/parser.h>
+-#include <linux/bitops.h>
+ #include <linux/magic.h>
++
+ #include "autofs_i.h"
+-#include <linux/module.h>
+ 
+ struct autofs_info *autofs_new_ino(struct autofs_sb_info *sbi)
+ {
+diff --git a/fs/autofs/root.c b/fs/autofs/root.c
+index a4b36e44f73c..a3d414150578 100644
+--- a/fs/autofs/root.c
++++ b/fs/autofs/root.c
+@@ -9,13 +9,7 @@
+  */
+ 
+ #include <linux/capability.h>
+-#include <linux/errno.h>
+-#include <linux/stat.h>
+-#include <linux/slab.h>
+-#include <linux/param.h>
+-#include <linux/time.h>
+ #include <linux/compat.h>
+-#include <linux/mutex.h>
+ 
+ #include "autofs_i.h"
+ 
+diff --git a/fs/autofs/waitq.c b/fs/autofs/waitq.c
+index 8a566fa66afe..8c858126c751 100644
+--- a/fs/autofs/waitq.c
++++ b/fs/autofs/waitq.c
+@@ -7,11 +7,7 @@
+  * option, any later version, incorporated herein by reference.
+  */
+ 
+-#include <linux/slab.h>
+-#include <linux/time.h>
+-#include <linux/signal.h>
+ #include <linux/sched/signal.h>
+-#include <linux/file.h>
+ #include "autofs_i.h"
+ 
+ /* We make this a static variable rather than a part of the superblock; it
+diff --git a/fs/compat_ioctl.c b/fs/compat_ioctl.c
+index b3e1768b636e..9907475b4226 100644
+--- a/fs/compat_ioctl.c
++++ b/fs/compat_ioctl.c
+@@ -38,7 +38,6 @@
+ #include <linux/ppp-ioctl.h>
+ #include <linux/if_pppox.h>
+ #include <linux/mtio.h>
+-#include <linux/auto_fs.h>
+ #include <linux/tty.h>
+ #include <linux/vt_kern.h>
+ #include <linux/fb.h>
+
