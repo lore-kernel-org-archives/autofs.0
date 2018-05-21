@@ -1,7 +1,8 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH] autofs - make autofs4 Kconfig depend on AUTOFS_FS
-Date: Mon, 21 May 2018 09:04:18 +0800
-Message-ID: <152686465885.5980.4013776735694914550.stgit@pluto.themaw.net>
+Subject: [PATCH] autofs - comment on selinux changes needed for module
+ autoload
+Date: Mon, 21 May 2018 09:05:41 +0800
+Message-ID: <152686474171.6155.1239659539983577463.stgit@pluto.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
@@ -9,49 +10,39 @@ Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@vger.kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Setting AUTOFS_FS and AUTOFS4_FS to y or m results in a compile
-failure.
+Due to the autofs4 module using a file system type name of autofs
+different from the module containing directory name autoload did
+not function properly. To work around this kernel configurations
+have often elected to build the module into the kernel.
 
-It isn't possible to unset one if the other is set because it
-introduces a circular dependency.
+This can result in selinux policies that prohibit autoloading of
+the autofs module which need to be changed.
 
-But adding "depends on AUTOFS_FS = n && AUTOFS_FS != m" will make
-autofs4 appear under the autofs entry which should call attention
-to it. It also results in AUTOFS4_FS being removed from .config
-for any setting of AUTOFS_FS except n.
-
-Adding a "NOTE" to the AUTOFS4_FS help text will hopefully raise
-awareness of the change to smooth the transition.
+Add a comment about this to "possible changes" section of the
+autofs4 module help.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
-Cc: Randy Dunlap <rdunlap@infradead.org>
 ---
- fs/autofs4/Kconfig |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ fs/autofs4/Kconfig |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
 diff --git a/fs/autofs4/Kconfig b/fs/autofs4/Kconfig
-index 53bc592a250d..2c2fdf989f90 100644
+index 2c2fdf989f90..99fda4d6da25 100644
 --- a/fs/autofs4/Kconfig
 +++ b/fs/autofs4/Kconfig
-@@ -1,6 +1,7 @@
- config AUTOFS4_FS
- 	tristate "Kernel automounter version 4 support (also supports v3 and v5)"
- 	default n
-+	depends on AUTOFS_FS = n
- 	help
- 	  The automounter is a tool to automatically mount remote file systems
- 	  on demand. This implementation is partially kernel-based to reduce
-@@ -30,3 +31,10 @@ config AUTOFS4_FS
+@@ -29,6 +29,12 @@ config AUTOFS4_FS
+ 	    and the module name are the same as the file system name there
+ 	    is no need to manually load module.
  	  - any "alias autofs autofs4" will need to be removed.
++	  - due to the autofs4 module directory name not being the same as
++	    its file system name autoloading didn't work properly. Because
++	    of this kernel configurations would often build the module into
++	    the kernel. This may have resulted in selinux policies that will
++	    prevent the autofs module from autoloading and will need to be
++	    updated.
  
  	  Please configure AUTOFS_FS instead of AUTOFS4_FS from now on.
-+
-+	  NOTE: Since the modules autofs and autofs4 use the same file system
-+		type name of "autofs" only one can be built. The "depends"
-+		above will result in AUTOFS4_FS not appearing in .config for
-+		any setting of AUTOFS_FS other than n and AUTOFS4_FS will
-+		appear under the AUTOFS_FS entry otherwise which is intended
-+		to draw attention to the module rename change.
+ 
 
