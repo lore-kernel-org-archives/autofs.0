@@ -1,58 +1,70 @@
-From: Ian Kent <raven@themaw.net>
-Subject: [PATCH] autofs - fix autofs_sbi() does not check super block type
-Date: Mon, 20 Aug 2018 16:37:09 +0800
-Message-ID: <153475422934.17131.7563724552005298277.stgit@pluto.themaw.net>
+From: Al Viro <viro@ZenIV.linux.org.uk>
+Subject: Re: [PATCH] autofs - fix autofs_sbi() does not check super block type
+Date: Mon, 27 Aug 2018 02:03:58 +0100
+Message-ID: <20180827010358.GZ6515@ZenIV.linux.org.uk>
+References: <153475422934.17131.7563724552005298277.stgit@pluto.themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <153475422934.17131.7563724552005298277.stgit@pluto.themaw.net>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+To: Ian Kent <raven@themaw.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-The autofs_sbi() inline function does not check the super block
-magic number to verify it has been given an autofs super block.
+On Mon, Aug 20, 2018 at 04:37:09PM +0800, Ian Kent wrote:
+> The autofs_sbi() inline function does not check the super block
+> magic number to verify it has been given an autofs super block.
 
-Reported-by: syzbot+87c3c541582e56943277@syzkaller.appspotmail.com
-Signed-off-by: Ian Kent <raven@themaw.net>
----
- fs/autofs/autofs_i.h |    4 +++-
- fs/autofs/inode.c    |    1 -
- 2 files changed, 3 insertions(+), 2 deletions(-)
+IMO it's the wrong way to fix it.  The one and only caller where that
+check might trigger is
 
-diff --git a/fs/autofs/autofs_i.h b/fs/autofs/autofs_i.h
-index 9400a9f6318a..5057b9f0f846 100644
---- a/fs/autofs/autofs_i.h
-+++ b/fs/autofs/autofs_i.h
-@@ -26,6 +26,7 @@
- #include <linux/list.h>
- #include <linux/completion.h>
- #include <linux/file.h>
-+#include <linux/magic.h>
- 
- /* This is the range of ioctl() numbers we claim as ours */
- #define AUTOFS_IOC_FIRST     AUTOFS_IOC_READY
-@@ -124,7 +125,8 @@ struct autofs_sb_info {
- 
- static inline struct autofs_sb_info *autofs_sbi(struct super_block *sb)
- {
--	return (struct autofs_sb_info *)(sb->s_fs_info);
-+	return sb->s_magic != AUTOFS_SUPER_MAGIC ?
-+		NULL : (struct autofs_sb_info *)(sb->s_fs_info);
- }
- 
- static inline struct autofs_info *autofs_dentry_ino(struct dentry *dentry)
-diff --git a/fs/autofs/inode.c b/fs/autofs/inode.c
-index b51980fc274e..846c052569dd 100644
---- a/fs/autofs/inode.c
-+++ b/fs/autofs/inode.c
-@@ -10,7 +10,6 @@
- #include <linux/seq_file.h>
- #include <linux/pagemap.h>
- #include <linux/parser.h>
--#include <linux/magic.h>
- 
- #include "autofs_i.h"
- 
+                if (!fp) {
+                        if (cmd == AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD)
+                                goto cont;
+                        err = -EBADF;
+                        goto out;
+                }
 
+                sbi = autofs_dev_ioctl_sbi(fp);
+                if (!sbi || sbi->magic != AUTOFS_SBI_MAGIC) {
+                        err = -EINVAL;
+                        fput(fp);
+                        goto out;
+                }
+with
+static struct autofs_sb_info *autofs_dev_ioctl_sbi(struct file *f)
+{
+        struct autofs_sb_info *sbi = NULL;
+        struct inode *inode;
+
+        if (f) { 
+                inode = file_inode(f);
+                sbi = autofs_sbi(inode->i_sb);
+        }
+        return sbi;
+}
+
+First of all, what is that `if (f)' doing in there?  We have just checked
+that in the only caller.
+
+Next, dereferencing the result of autofs_sbi() does need to be preceded
+by making sure that superblock is autofs one, all right... and what are
+we doing in that first dereferencing, again?
+
+IOW, turn that into
+
+	if (!fp) {
+		....
+		goto out;
+	}
+	sb = file_inode(fp)->i_sb;
+	if (sb->s_type != &autofs_fs_type)
+		bugger off
+	sbi = autofs_sbi(sb);
+	....
+
+and be done with that.  Other callers of autofs_sbi() really shouldn't
+happen to other filesystem's superblocks...
