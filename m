@@ -1,105 +1,146 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH] autofs - fix autofs_sbi() does not check super block
- type
-Date: Wed, 29 Aug 2018 14:35:14 +0800
-Message-ID: <1535524514.2679.12.camel@themaw.net>
-References: <153475422934.17131.7563724552005298277.stgit@pluto.themaw.net>
-         <20180827010358.GZ6515@ZenIV.linux.org.uk>
+Subject: [ANNOUNCE] autofs 5.1.5 release
+Date: Tue, 30 Oct 2018 15:21:18 +0800
+Message-ID: <2045305c1fdf94f1f36c06f158264afbc01194ca.camel@themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
-        :content-transfer-encoding:content-type:date:from:in-reply-to
-        :message-id:mime-version:references:subject:to:x-me-sender
-        :x-me-sender:x-sasl-enc; s=fm1; bh=PbPhtZCVZN49VTIZF36yZA7CnNqtk
-        /5IjWzEC+dSqUc=; b=EhZXKPr4ZVY7aEyjvCG3bzpxQSQoYUWgOtiN/ylbknFKW
-        vE2nF1HzdwcQ1h0j1/kbRHrYlZLrbYB3X4KcmZ4OIEWWgKMaMLlI8cdIotonCWcE
-        nEbqyfIPOBV3MBHDPCTISrL9M3Uodnq5sJ1S90jIpti4ybe7rH1B0IZVfFJKcKaI
-        xmjbvoOAmuNzmyTWgtJ0CZXRfscC1jJUK8zEd7n47lYSt8VuBE/ZiIi9dMbKBBWe
-        m6V7Ip3jecxdeg8gpU3tWqc1YAjgDJGmwKaSxuOBSqPXTUQOXRhk6mkrhiOQF3Pi
-        ydzzJq5PYO5l6mvuNirVJzQdETeD2mWdeO1O32Rlg==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=
+        message-id:subject:from:to:cc:date:content-type:mime-version
+        :content-transfer-encoding; s=fm1; bh=/h9Zn0k6+SUQDai2HesjXXiQIQ
+        9tXoY2NmhgM/bdfM4=; b=FaOQuSQJl3rReJlKrGPjahOx74Zr59s4dExdki4QxJ
+        e3lFQJ4SGnjWeLTTiooL7QKL07Uot1OXT6Ton20ukNCNzKnijFy8Q3QlQCTuHtTW
+        bEoHvNgmgfCY/Ky+huoBVSY1sb/sDafq3YqIqYHLYCdtVB1wjg6IuJRYbqa5SfkT
+        Dy4fPdI1IbzwKiHxGMKCs7VW0/k1DPK0sif1abAN8As/PEQmW0PPcrxLqM13S/wZ
+        xqwawdXBENcLvSDN7aVOGu3asmiv25uQU2KHUKLrdW8uafu+PEOUYqOyFwrWcHkR
+        ik98s+ySnno59lPya3oShTQhATpBo+gFpQUcYTPFzQMQ==
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
         messagingengine.com; h=cc:content-transfer-encoding:content-type
-        :date:from:in-reply-to:message-id:mime-version:references
-        :subject:to:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; bh=PbPhtZ
-        CVZN49VTIZF36yZA7CnNqtk/5IjWzEC+dSqUc=; b=uyIZWAjN+FRG1OKgG6qHyO
-        RX6WVRZrVrfzta5hQmzcJz9Cjbs90h7xBYyzCUqkBXFSQqeUh1exQHh/1oguVyqe
-        b+CYwYvRZKHBo5lExQTi+eUl/gWeLUgYlWcaDNjRfy5AWGFeJPPlKVkAhTrwjA0C
-        N94RVUTDNRGGyIJw2zXxlGbbnE+N1IrYa4leb4cEquf3W+sPPOseD9pJF32CLFpz
-        ASNSa+p7P8tUUc/+UHuVHHvjhBGfkY8z+i5lrhbwkIRAFsBfwdAKucxh/PsF7+Is
-        2psDO9ev/6KrzOdvFMlfTZw5w8xzDlkvi5G0J42sKP/ZqyLMrV+R0EtH/6m3eEqA
+        :date:from:message-id:mime-version:subject:to:x-me-proxy
+        :x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm1; bh=/h9Zn0
+        k6+SUQDai2HesjXXiQIQ9tXoY2NmhgM/bdfM4=; b=C6Nacrj2YHQOQq176/Kw3Y
+        3JlryVwU/00KN9Elmj0UXAHrRY7PHvptWMA3Z4+CH1FG1ihfk94yRj80hMSMoh92
+        PETDOeNJ+lDZqHLYjwxt+JeuGHBmXjmqL8lCnDAh3EzwGY2mXurLJKVdJ0O/KhxR
+        otKYEia0nWUtZl2bMFuZCOTiV+m41sQHU/EvwEAO6owK24AQNKjMQlN19erI7IKQ
+        NoU9lQLCOenJQs9epvEZKQ86KbWnUtR0PVtZpCzm6i8FS1pmdO0/dYGjYJW/UqV3
+        TdUMuU1S7XxqtcCS4iLuPoybx8w3sXvs6icoi9nbZdJ+ZxyjK4RY7jLTNrn/YrIQ
         ==
-In-Reply-To: <20180827010358.GZ6515@ZenIV.linux.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: autofs@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, 2018-08-27 at 02:03 +0100, Al Viro wrote:
-> On Mon, Aug 20, 2018 at 04:37:09PM +0800, Ian Kent wrote:
-> > The autofs_sbi() inline function does not check the super block
-> > magic number to verify it has been given an autofs super block.
-> 
-> IMO it's the wrong way to fix it.  The one and only caller where that
-> check might trigger is
-> 
->                 if (!fp) {
->                         if (cmd == AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD)
->                                 goto cont;
->                         err = -EBADF;
->                         goto out;
->                 }
-> 
->                 sbi = autofs_dev_ioctl_sbi(fp);
->                 if (!sbi || sbi->magic != AUTOFS_SBI_MAGIC) {
->                         err = -EINVAL;
->                         fput(fp);
->                         goto out;
->                 }
-> with
-> static struct autofs_sb_info *autofs_dev_ioctl_sbi(struct file *f)
-> {
->         struct autofs_sb_info *sbi = NULL;
->         struct inode *inode;
-> 
->         if (f) { 
->                 inode = file_inode(f);
->                 sbi = autofs_sbi(inode->i_sb);
->         }
->         return sbi;
-> }
-> 
-> First of all, what is that `if (f)' doing in there?  We have just checked
-> that in the only caller.
-> 
-> Next, dereferencing the result of autofs_sbi() does need to be preceded
-> by making sure that superblock is autofs one, all right... and what are
-> we doing in that first dereferencing, again?
-> 
-> IOW, turn that into
-> 
-> 	if (!fp) {
-> 		....
-> 		goto out;
-> 	}
-> 	sb = file_inode(fp)->i_sb;
-> 	if (sb->s_type != &autofs_fs_type)
-> 		bugger off
-> 	sbi = autofs_sbi(sb);
-> 	....
-> 
-> and be done with that.  Other callers of autofs_sbi() really shouldn't
-> happen to other filesystem's superblocks...
+Hi all,
 
-Yes, adding it to the inline does add a little extra for other
-callers that won't get a non-autofs super block.
+It's time for a release, autofs-5.1.5.
 
-I was tempted to just change autofs_dev_ioctl_sbi() in case other
-callers were added but your suggestion is somewhat simpler and
-really only requires due attention if changes are made.
+A few changes of note are:
 
-I'll send a patch to Andrew based on what you recommend.
+With the deprecation of the fedfs-utils package it was necessary
+to add a couple of binaries from that package for fedfs users to
+give them time to migrate away from using fedfs. The binaries
+included in autofs are fedfs-map-nfs4 and mount.fedfs. To exclude
+these binaries from being included use "--without fedfs" with the
+configure invocation.
 
-Thanks
+A regression which broke amd format maps option parsing resulting
+from the addition of amd program mount support was fixed.
+
+When used as a systemd service there were problems with dependency
+interactions that required changing the way autofs interacts with
+systemd. Other than fixing the problem this should not have any
+visible changes other than noticing a new command line option used
+with automount(8) in the systemd unit definition.
+
+There are some minor improvements to building without hesiod
+support. This amounts to providing sensible error messages to
+indicate autofs has been built without hesiod support rather
+than the terse messages that would result otherwise.
+
+The SIGUSR2 handling didn't work as documented in the automount(8)
+man page. Adding the "--enable-forced-shutdown" option to configure
+will now work as described in automount(8) if the kernel changes
+needed to support it are present.
+
+Additionally there are a number of bug fixes and other minor
+improvements.
+
+autofs
+======
+
+The package can be found at:
+https://www.kernel.org/pub/linux/daemons/autofs/v5/
+
+It is autofs-5.1.5.tar.[gz|xz]
+
+No source rpm is there as it can be produced by using:
+
+rpmbuild -ts autofs-5.1.5.tar.gz
+
+and the binary rpm by using:
+
+rpmbuild -tb autofs-5.1.5.tar.gz
+
+See the README.amd-maps file for information about using amd format
+maps.
+
+Here are the entries from the CHANGELOG which outline the updates:
+
+30/10/2018 autofs-5.1.5
+- fix flag file permission.
+- fix directory create permission.
+- fix use after free in do_master_list_reset().
+- fix deadlock in dumpmaps.
+- dont use array for path when not necessary.
+- fix prefix option handling in expand_entry().
+- fix sublink option not set from defaults.
+- fix error return in do_nfs_mount().
+- add error handling for ext_mount_add().
+- account for recent libnsl changes.
+- use_hostname_for_mounts shouldn't prevent selection among replicas.
+- fix monotonic_elapsed.
+- Makefiles.rules: remove 'samples' from SUBDIRS.
+- dont allow trailing slash in master map mount points.
+- fix libresolv configure check.
+- add fedfs-getsrvinfo.c.
+- add mount.fedfs.c.
+- add fedfs-map-nfs4.c.
+- add conditional inclusion of fedfs binaries.
+- add an example fedfs master map entry to the installed master map.
+- improve hostname lookup error logging.
+- fix rpm spec install premissions on auto.net and auto.smb.
+- tiny patch for autofs typo and possible bug.
+- add units After line to include statd service.
+- use systemd sd_notify() at startup.
+- fix NFS version mask usage.
+- fix fd leak in rpc_do_create_client().
+- add-man page note about extra slashes in paths.
+- change expire type naming to better reflect usage.
+- use defines for expire type.
+- enable SIGUSR2 handling in rpm spec file.
+- fix age setting at startup.
+- fix update_negative_cache() map source usage.
+- fix program usage message.
+- mark removed cache entry negative.
+- set bind mount as propagation slave.
+- add master map pseudo options for mount propagation.
+- fix use after free in parse_ldap_config().
+- fix incorrect locking in sss lookup.
+- fix amd parser opts option handling.
+- fix possible NULL pointer dereference in get_defaults_entry().
+- better handle hesiod support not built in.
+- fix indent in automount(8) man page.
+- remove autofs4 module load code.
+- add NULL check in prepare_attempt_prefix().
+- update build info with systemd.
+- use flags for startup boolean options.
+- move close stdio descriptors to become_daemon().
+- add systemd service command line option.
+- refactor negative map entry check.
+- remove unused function dump_master().
+- remove unused function dump_state_queue().
+- remove couple of undeeded requires.
+
 Ian
+
