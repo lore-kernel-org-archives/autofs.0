@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 5/6] autofs - change catatonic setting to a bit flag
-Date: Tue, 13 Nov 2018 09:36:53 +0800
-Message-ID: <154207298652.11064.8570858641027372025.stgit@pluto-themaw-net>
+Subject: [PATCH 6/6] autofs - add strictexpire mount option
+Date: Tue, 13 Nov 2018 09:37:08 +0800
+Message-ID: <154207302780.11064.8291702401952765872.stgit@pluto-themaw-net>
 References: <154207295533.11064.12485527860509413072.stgit@pluto-themaw-net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -13,192 +13,130 @@ Content-Type: text/plain; charset="us-ascii"
 To: Andrew Morton <akpm@linux-foundation.org>
 Cc: Al Viro <viro@ZenIV.linux.org.uk>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-Change the super block info. catatonic setting to be part of a
-flags bit field.
+Commit 092a53452b (("autofs: take more care to not update last_used
+on path walk") helped to (partially) resolve a problem where automounts
+were not expiring due to aggressive accesses from user space.
+
+This patch was later reverted because, for very large environments,
+it meant more mount requests from clients and when there are a lot
+of clients this caused a fairly significant increase in server load.
+
+But there is a need for both types of expire check, depending on use
+case, so add a mount option to allow for strict update of last use
+of autofs dentrys (which just means not updating the last use on path
+walk accesses).
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 ---
- fs/autofs/autofs_i.h  |    7 +++++--
- fs/autofs/dev-ioctl.c |    4 ++--
- fs/autofs/inode.c     |    4 ++--
- fs/autofs/root.c      |   11 ++++++-----
- fs/autofs/waitq.c     |   10 +++++-----
- 5 files changed, 20 insertions(+), 16 deletions(-)
+ fs/autofs/autofs_i.h         |    1 +
+ fs/autofs/inode.c            |   13 ++++++++++++-
+ fs/autofs/root.c             |    5 ++++-
+ include/uapi/linux/auto_fs.h |    2 +-
+ 4 files changed, 18 insertions(+), 3 deletions(-)
 
 diff --git a/fs/autofs/autofs_i.h b/fs/autofs/autofs_i.h
-index c4301e33c027..032cbb12531a 100644
+index 032cbb12531a..fa3733beb52e 100644
 --- a/fs/autofs/autofs_i.h
 +++ b/fs/autofs/autofs_i.h
-@@ -101,16 +101,18 @@ struct autofs_wait_queue {
- 
+@@ -102,6 +102,7 @@ struct autofs_wait_queue {
  #define AUTOFS_SBI_MAGIC 0x6d4a556d
  
-+#define AUTOFS_SBI_CATATONIC	0x0001
-+
+ #define AUTOFS_SBI_CATATONIC	0x0001
++#define AUTOFS_SBI_STRICTEXPIRE 0x0002
+ 
  struct autofs_sb_info {
  	u32 magic;
- 	int pipefd;
- 	struct file *pipe;
- 	struct pid *oz_pgrp;
--	int catatonic;
- 	int version;
- 	int sub_version;
- 	int min_proto;
- 	int max_proto;
-+	unsigned int flags;
- 	unsigned long exp_timeout;
- 	unsigned int type;
- 	struct super_block *sb;
-@@ -140,7 +142,8 @@ static inline struct autofs_info *autofs_dentry_ino(struct dentry *dentry)
-  */
- static inline int autofs_oz_mode(struct autofs_sb_info *sbi)
- {
--	return sbi->catatonic || task_pgrp(current) == sbi->oz_pgrp;
-+	return ((sbi->flags & AUTOFS_SBI_CATATONIC) ||
-+		 task_pgrp(current) == sbi->oz_pgrp);
- }
- 
- struct inode *autofs_get_inode(struct super_block *, umode_t);
-diff --git a/fs/autofs/dev-ioctl.c b/fs/autofs/dev-ioctl.c
-index 3de4f5e61caf..fc1caf449fa3 100644
---- a/fs/autofs/dev-ioctl.c
-+++ b/fs/autofs/dev-ioctl.c
-@@ -352,7 +352,7 @@ static int autofs_dev_ioctl_setpipefd(struct file *fp,
- 	pipefd = param->setpipefd.pipefd;
- 
- 	mutex_lock(&sbi->wq_mutex);
--	if (!sbi->catatonic) {
-+	if (!(sbi->flags & AUTOFS_SBI_CATATONIC)) {
- 		mutex_unlock(&sbi->wq_mutex);
- 		return -EBUSY;
- 	} else {
-@@ -379,7 +379,7 @@ static int autofs_dev_ioctl_setpipefd(struct file *fp,
- 		swap(sbi->oz_pgrp, new_pid);
- 		sbi->pipefd = pipefd;
- 		sbi->pipe = pipe;
--		sbi->catatonic = 0;
-+		sbi->flags &= ~AUTOFS_SBI_CATATONIC;
- 	}
- out:
- 	put_pid(new_pid);
 diff --git a/fs/autofs/inode.c b/fs/autofs/inode.c
-index 53ed6c637cbf..5e774852ae84 100644
+index 5e774852ae84..75d61f5a3069 100644
 --- a/fs/autofs/inode.c
 +++ b/fs/autofs/inode.c
-@@ -275,7 +275,7 @@ static int autofs_apply_sbi_options(struct autofs_sb_info *sbi,
+@@ -87,6 +87,8 @@ static int autofs_show_options(struct seq_file *m, struct dentry *root)
+ 		seq_printf(m, ",direct");
+ 	else
+ 		seq_printf(m, ",indirect");
++	if (sbi->flags & AUTOFS_SBI_STRICTEXPIRE)
++		seq_printf(m, ",strictexpire");
+ #ifdef CONFIG_CHECKPOINT_RESTORE
+ 	if (sbi->pipe)
+ 		seq_printf(m, ",pipe_ino=%ld", file_inode(sbi->pipe)->i_ino);
+@@ -116,11 +118,12 @@ struct autofs_fs_params {
+ 	bool pgrp_set;
+ 	int min_proto;
+ 	int max_proto;
++	bool strictexpire;
+ 	unsigned int type;
+ };
+ 
+ enum {Opt_err, Opt_fd, Opt_uid, Opt_gid, Opt_pgrp, Opt_minproto, Opt_maxproto,
+-	Opt_indirect, Opt_direct, Opt_offset};
++	Opt_indirect, Opt_direct, Opt_offset, Opt_strictexpire};
+ 
+ static const match_table_t tokens = {
+ 	{Opt_fd, "fd=%u"},
+@@ -132,6 +135,7 @@ static const match_table_t tokens = {
+ 	{Opt_indirect, "indirect"},
+ 	{Opt_direct, "direct"},
+ 	{Opt_offset, "offset"},
++	{Opt_strictexpire, "strictexpire"},
+ 	{Opt_err, NULL}
+ };
+ 
+@@ -155,6 +159,7 @@ static int autofs_parse_options(char *options, struct autofs_fs_params *params)
+ 	params->max_proto = AUTOFS_MAX_PROTO_VERSION;
+ 
+ 	params->pgrp_set = false;
++	params->strictexpire = false;
+ 
+ 	while ((p = strsep(&options, ",")) != NULL) {
+ 		int token;
+@@ -210,6 +215,9 @@ static int autofs_parse_options(char *options, struct autofs_fs_params *params)
+ 		case Opt_offset:
+ 			set_autofs_type_offset(&params->type);
+ 			break;
++		case Opt_strictexpire:
++			params->strictexpire = true;
++			break;
+ 		default:
+ 			return 1;
+ 		}
+@@ -275,6 +283,9 @@ static int autofs_apply_sbi_options(struct autofs_sb_info *sbi,
  	if (err < 0)
  		goto out_fput;
  
--	sbi->catatonic = 0;
-+	sbi->flags &= ~AUTOFS_SBI_CATATONIC;
++	if (params->strictexpire)
++		sbi->flags |= AUTOFS_SBI_STRICTEXPIRE;
++
+ 	sbi->flags &= ~AUTOFS_SBI_CATATONIC;
  
  	return 0;
- 
-@@ -299,7 +299,7 @@ static struct autofs_sb_info *autofs_alloc_sbi(struct super_block *s)
- 	sbi->sb = s;
- 	sbi->pipefd = -1;
- 	sbi->pipe = NULL;
--	sbi->catatonic = 1;
-+	sbi->flags = AUTOFS_SBI_CATATONIC;
- 	set_autofs_type_indirect(&sbi->type);
- 	mutex_init(&sbi->wq_mutex);
- 	mutex_init(&sbi->pipe_mutex);
 diff --git a/fs/autofs/root.c b/fs/autofs/root.c
-index 782e57b911ab..164ccd3402cf 100644
+index 164ccd3402cf..1246f396bf0e 100644
 --- a/fs/autofs/root.c
 +++ b/fs/autofs/root.c
-@@ -510,7 +510,8 @@ static struct dentry *autofs_lookup(struct inode *dir,
- 	sbi = autofs_sbi(dir->i_sb);
- 
- 	pr_debug("pid = %u, pgrp = %u, catatonic = %d, oz_mode = %d\n",
--		 current->pid, task_pgrp_nr(current), sbi->catatonic,
-+		 current->pid, task_pgrp_nr(current),
-+		 sbi->flags & AUTOFS_SBI_CATATONIC,
- 		 autofs_oz_mode(sbi));
- 
- 	active = autofs_lookup_active(dentry);
-@@ -563,7 +564,7 @@ static int autofs_dir_symlink(struct inode *dir,
- 	 * autofs mount is catatonic but the state of an autofs
- 	 * file system needs to be preserved over restarts.
- 	 */
--	if (sbi->catatonic)
-+	if (sbi->flags & AUTOFS_SBI_CATATONIC)
- 		return -EACCES;
- 
- 	BUG_ON(!ino);
-@@ -626,7 +627,7 @@ static int autofs_dir_unlink(struct inode *dir, struct dentry *dentry)
- 	 * autofs mount is catatonic but the state of an autofs
- 	 * file system needs to be preserved over restarts.
- 	 */
--	if (sbi->catatonic)
-+	if (sbi->flags & AUTOFS_SBI_CATATONIC)
- 		return -EACCES;
- 
- 	if (atomic_dec_and_test(&ino->count)) {
-@@ -714,7 +715,7 @@ static int autofs_dir_rmdir(struct inode *dir, struct dentry *dentry)
- 	 * autofs mount is catatonic but the state of an autofs
- 	 * file system needs to be preserved over restarts.
- 	 */
--	if (sbi->catatonic)
-+	if (sbi->flags & AUTOFS_SBI_CATATONIC)
- 		return -EACCES;
- 
- 	spin_lock(&sbi->lookup_lock);
-@@ -759,7 +760,7 @@ static int autofs_dir_mkdir(struct inode *dir,
- 	 * autofs mount is catatonic but the state of an autofs
- 	 * file system needs to be preserved over restarts.
- 	 */
--	if (sbi->catatonic)
-+	if (sbi->flags & AUTOFS_SBI_CATATONIC)
- 		return -EACCES;
- 
- 	pr_debug("dentry %p, creating %pd\n", dentry, dentry);
-diff --git a/fs/autofs/waitq.c b/fs/autofs/waitq.c
-index f6385c6ef0a5..15a3e31d0904 100644
---- a/fs/autofs/waitq.c
-+++ b/fs/autofs/waitq.c
-@@ -20,14 +20,14 @@ void autofs_catatonic_mode(struct autofs_sb_info *sbi)
- 	struct autofs_wait_queue *wq, *nwq;
- 
- 	mutex_lock(&sbi->wq_mutex);
--	if (sbi->catatonic) {
-+	if (sbi->flags & AUTOFS_SBI_CATATONIC) {
- 		mutex_unlock(&sbi->wq_mutex);
- 		return;
+@@ -275,8 +275,11 @@ static int autofs_mount_wait(const struct path *path, bool rcu_walk)
+ 		pr_debug("waiting for mount name=%pd\n", path->dentry);
+ 		status = autofs_wait(sbi, path, NFY_MOUNT);
+ 		pr_debug("mount wait done status=%d\n", status);
++		ino->last_used = jiffies;
++		return status;
  	}
+-	ino->last_used = jiffies;
++	if (!(sbi->flags & AUTOFS_SBI_STRICTEXPIRE))
++		ino->last_used = jiffies;
+ 	return status;
+ }
  
- 	pr_debug("entering catatonic mode\n");
+diff --git a/include/uapi/linux/auto_fs.h b/include/uapi/linux/auto_fs.h
+index df31aa9c9a8c..082119630b49 100644
+--- a/include/uapi/linux/auto_fs.h
++++ b/include/uapi/linux/auto_fs.h
+@@ -23,7 +23,7 @@
+ #define AUTOFS_MIN_PROTO_VERSION	3
+ #define AUTOFS_MAX_PROTO_VERSION	5
  
--	sbi->catatonic = 1;
-+	sbi->flags |= AUTOFS_SBI_CATATONIC;
- 	wq = sbi->queues;
- 	sbi->queues = NULL;	/* Erase all wait queues */
- 	while (wq) {
-@@ -255,7 +255,7 @@ static int validate_request(struct autofs_wait_queue **wait,
- 	struct autofs_wait_queue *wq;
- 	struct autofs_info *ino;
+-#define AUTOFS_PROTO_SUBVERSION		3
++#define AUTOFS_PROTO_SUBVERSION		4
  
--	if (sbi->catatonic)
-+	if (sbi->flags & AUTOFS_SBI_CATATONIC)
- 		return -ENOENT;
- 
- 	/* Wait in progress, continue; */
-@@ -290,7 +290,7 @@ static int validate_request(struct autofs_wait_queue **wait,
- 			if (mutex_lock_interruptible(&sbi->wq_mutex))
- 				return -EINTR;
- 
--			if (sbi->catatonic)
-+			if (sbi->flags & AUTOFS_SBI_CATATONIC)
- 				return -ENOENT;
- 
- 			wq = autofs_find_wait(sbi, qstr);
-@@ -359,7 +359,7 @@ int autofs_wait(struct autofs_sb_info *sbi,
- 	pid_t tgid;
- 
- 	/* In catatonic mode, we don't wait for nobody */
--	if (sbi->catatonic)
-+	if (sbi->flags & AUTOFS_SBI_CATATONIC)
- 		return -ENOENT;
- 
- 	/*
+ /*
+  * The wait_queue_token (autofs_wqt_t) is part of a structure which is passed
 
