@@ -1,54 +1,71 @@
-From: Ian Kent <raven@themaw.net>
-Subject: [PATCH] autofs - use seq_puts() for simple strings in
- autofs_show_options()
-Date: Thu, 31 Jan 2019 07:15:26 +0800
-Message-ID: <154889012613.4863.12231175554744203482.stgit@pluto-themaw-net>
+From: NeilBrown <neilb@suse.com>
+Subject: [PATCH] autofs: clear O_NONBLOCK on the pipe.
+Date: Mon, 11 Feb 2019 10:37:02 +1100
+Message-ID: <871s4fi5b5.fsf@notabene.neil.brown.name>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; boundary="=-=-=";
+        micalg=pgp-sha256; protocol="application/pgp-signature"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+To: Ian Kent <raven@themaw.net>, Andrew Morton <akpm@linux-foundation.org>
+Cc: autofs@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Fix checkpatch.sh WARNING about the use of seq_printf() to print simple
-strings in autofs_show_options(), use seq_puts() in this case.
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Ian Kent <raven@themaw.net>
----
- fs/autofs/inode.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/fs/autofs/inode.c b/fs/autofs/inode.c
-index 8647ecaa89fc..80597b88718b 100644
---- a/fs/autofs/inode.c
-+++ b/fs/autofs/inode.c
-@@ -82,20 +82,20 @@ static int autofs_show_options(struct seq_file *m, struct dentry *root)
- 	seq_printf(m, ",maxproto=%d", sbi->max_proto);
- 
- 	if (autofs_type_offset(sbi->type))
--		seq_printf(m, ",offset");
-+		seq_puts(m, ",offset");
- 	else if (autofs_type_direct(sbi->type))
--		seq_printf(m, ",direct");
-+		seq_puts(m, ",direct");
- 	else
--		seq_printf(m, ",indirect");
-+		seq_puts(m, ",indirect");
- 	if (sbi->flags & AUTOFS_SBI_STRICTEXPIRE)
--		seq_printf(m, ",strictexpire");
-+		seq_puts(m, ",strictexpire");
- 	if (sbi->flags & AUTOFS_SBI_IGNORE)
--		seq_printf(m, ",ignore");
-+		seq_puts(m, ",ignore");
- #ifdef CONFIG_CHECKPOINT_RESTORE
- 	if (sbi->pipe)
- 		seq_printf(m, ",pipe_ino=%ld", file_inode(sbi->pipe)->i_ino);
- 	else
--		seq_printf(m, ",pipe_ino=-1");
-+		seq_puts(m, ",pipe_ino=-1");
- #endif
+autofs does not expect the pipe it is given
+to have O_NONBLOCK set - specifically if __kernel_write()
+in autofs_write() returns -EAGAIN, this is treated
+as a fatal error and the pipe is closed.
+
+For safety autofs should, therefore, clear the O_NONBLOCK flag.
+
+Releases of systemd prior to 8th February 2019 used
+  pipe2(p, O_NONBLOCK|O_CLOEXEC)
+and thus (inadvertently) set this flag.
+
+Signed-off-by: NeilBrown <neilb@suse.com>
+=2D--
+ fs/autofs/autofs_i.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/fs/autofs/autofs_i.h b/fs/autofs/autofs_i.h
+index 3e59f0ed777b..331192bed0d5 100644
+=2D-- a/fs/autofs/autofs_i.h
++++ b/fs/autofs/autofs_i.h
+@@ -215,6 +215,8 @@ static inline int autofs_prepare_pipe(struct file *pipe)
+ 		return -EINVAL;
+ 	/* We want a packet pipe */
+ 	pipe->f_flags |=3D O_DIRECT;
++	/* We don't expect -EAGAIN */
++	pipe->f_flags &=3D ~O_NONBLOCK;
  	return 0;
  }
+=20
+=2D-=20
+2.14.0.rc0.dirty
 
+
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEG8Yp69OQ2HB7X0l6Oeye3VZigbkFAlxgtZ8ACgkQOeye3VZi
+gbkKfxAAovzwzLeVTTLauw7I0IV/UMT4W3i6kGU0oz3My/MjneljT69J03n9049j
+LS+nZ0NwUx3sRjbVzZaExcG1v3W//72laRRGrZaYReyezH2oC1FVaDNwbDzO7QcV
+poElvVKtf8XGi5jRzY2hF+Olvhudfg4DqaTOBCBqiqwJBJoR7SLhOOzp6nC+coem
+0bLn3p6igW6W7M5J4n44RdQ0R+ITvKd8B3iuWrlDEel8cl/OMDHwbqS1ndPYBYJ+
+e+gsWgSBb63GT0wG6l8ZjolVA0piF+H3Gol97kWo5lSwZdSyd/Ti4vfymBsmhSyi
+dcrpcZ1/ymiXSWkY3q2T72UJfRWA7Zq9scRn4e71Pz7tADQaRh1BTBQ4dq9YzyOO
+dwWfvYxowOXDUYqU9OIGwR0ct+yuuz+XEvX1u/2Xk+s60PHmY6IWvRy1qDmPc3eN
+GaoiQA36psC6u3WiCkjVvPoCV7JJhrSTiNetnbqavRf21yTNowt9wtHokRFsE3+o
+JBQRTcFta4mSDO0NZcZy1JJOrv6b4xhvuHap18qjqpWKWARe92SvfE8C64a+b7HO
+kkWGgnuwSs6ywKP/nzvTMKDzVaBslB0/xKHSIvr7SuUyD3ZWzxWptKofuEkpVBxi
+B/27RMA508BfXFXbiMpy5nqPwFz7Wgg6IMwS3deF6NCPPQ5cJK4=
+=gIWk
+-----END PGP SIGNATURE-----
+--=-=-=--
