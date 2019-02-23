@@ -1,46 +1,58 @@
-From: Ian Kent <raven@themaw.net>
-Subject: [PATCH] autofs: clear O_NONBLOCK on the pipe.
-Date: Tue, 12 Feb 2019 09:38:29 +0800
-Message-ID: <154993550902.3321.1183632970046073478.stgit@pluto-themaw-net>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 65/65] autofs: fix error return in autofs_fill_super()
+Date: Sat, 23 Feb 2019 16:06:40 -0500
+Message-ID: <20190223210640.200911-65-sashal@kernel.org>
+References: <20190223210640.200911-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1550956114;
+        bh=rm1pjeuZgujoWtqLzBSUx1GVZxftep5+WZQSIkKcL68=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=dONF2X1is6XST831AkKMYECNcc7KJDXAbPhuuh2gKC2fHayQMQP9+KtMp5iTlqE/i
+         ChEeWM9ba16Ey4KvdN6uGATNKmNHDGP3Dl9Kc1lFeG/GDKd834vzAx+SASj5ALIUWd
+         aBJWwrrPsYfO3jI8/51un3BGFh9oB+/ISCSPA/F4=
+In-Reply-To: <20190223210640.200911-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: autofs mailing list <autofs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, NeilBrown <neilb@suse.com>
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Ian Kent <raven@themaw.net>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Sasha Levin <sashal@kernel.org>, autofs@vger.kernel.org
 
-From: NeilBrown <neilb@suse.com>
+From: Ian Kent <raven@themaw.net>
 
-autofs does not expect the pipe it is given
-to have O_NONBLOCK set - specifically if __kernel_write()
-in autofs_write() returns -EAGAIN, this is treated
-as a fatal error and the pipe is closed.
+[ Upstream commit f585b283e3f025754c45bbe7533fc6e5c4643700 ]
 
-For safety autofs should, therefore, clear the O_NONBLOCK flag.
+In autofs_fill_super() on error of get inode/make root dentry the return
+should be ENOMEM as this is the only failure case of the called
+functions.
 
-Releases of systemd prior to 8th February 2019 used
-  pipe2(p, O_NONBLOCK|O_CLOEXEC)
-and thus (inadvertently) set this flag.
-
-Signed-off-by: NeilBrown <neilb@suse.com>
+Link: http://lkml.kernel.org/r/154725123240.11260.796773942606871359.stgit@pluto-themaw-net
 Signed-off-by: Ian Kent <raven@themaw.net>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- fs/autofs/autofs_i.h |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/autofs/inode.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/fs/autofs/autofs_i.h b/fs/autofs/autofs_i.h
-index b735f2b1e462..70c132acdab1 100644
---- a/fs/autofs/autofs_i.h
-+++ b/fs/autofs/autofs_i.h
-@@ -216,6 +216,8 @@ static inline int autofs_prepare_pipe(struct file *pipe)
- 		return -EINVAL;
- 	/* We want a packet pipe */
- 	pipe->f_flags |= O_DIRECT;
-+	/* We don't expect -EAGAIN */
-+	pipe->f_flags &= ~O_NONBLOCK;
- 	return 0;
- }
+diff --git a/fs/autofs/inode.c b/fs/autofs/inode.c
+index 846c052569dd4..3c14a8e45ffb6 100644
+--- a/fs/autofs/inode.c
++++ b/fs/autofs/inode.c
+@@ -255,8 +255,10 @@ int autofs_fill_super(struct super_block *s, void *data, int silent)
+ 	}
+ 	root_inode = autofs_get_inode(s, S_IFDIR | 0755);
+ 	root = d_make_root(root_inode);
+-	if (!root)
++	if (!root) {
++		ret = -ENOMEM;
+ 		goto fail_ino;
++	}
+ 	pipe = NULL;
  
+ 	root->d_fsdata = ino;
+-- 
+2.19.1
 
