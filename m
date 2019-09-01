@@ -1,51 +1,41 @@
-From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 5/5] autofs - add description of ignore pseudo mount option
-Date: Mon, 18 Mar 2019 09:00:46 +0800
-Message-ID: <155287084617.12593.812733161112154904.stgit@pluto.themaw.net>
-References: <155287082394.12593.6506084453911662450.stgit@pluto.themaw.net>
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH] autofs: remove redundant assignment to variable err
+Date: Sun,  1 Sep 2019 16:22:51 +0100
+Message-ID: <20190901152251.11374-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <155287082394.12593.6506084453911662450.stgit@pluto.themaw.net>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Kernel Mailing List <linux-kernel@vger.kernel.org>, autofs mailing list <autofs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+To: Ian Kent <raven@themaw.net>, autofs@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Add a idescription of the "ignore" pseudo mount option that can be
-used to provide a generic indicator to applications that the mount
-entry should be ignored when displaying mount information.
+From: Colin Ian King <colin.king@canonical.com>
 
-Signed-off-by: Ian Kent <raven@themaw.net>
+Variable err is being assigned a value that is never read and
+is being re-assigned a little later on. The assignment is redundant
+and hence can be removed.
+
+Addresses-Coverity: ("Ununsed value")
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 ---
- Documentation/filesystems/autofs.txt |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ fs/autofs/dev-ioctl.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Documentation/filesystems/autofs.txt b/Documentation/filesystems/autofs.txt
-index 409e6411904d..3af38c7fd26d 100644
---- a/Documentation/filesystems/autofs.txt
-+++ b/Documentation/filesystems/autofs.txt
-@@ -526,6 +526,21 @@ directories.
- Catatonic mode can only be left via the
- **AUTOFS_DEV_IOCTL_OPENMOUNT_CMD** ioctl on the `/dev/autofs`.
+diff --git a/fs/autofs/dev-ioctl.c b/fs/autofs/dev-ioctl.c
+index a3cdb0036c5d..65d84b4d4464 100644
+--- a/fs/autofs/dev-ioctl.c
++++ b/fs/autofs/dev-ioctl.c
+@@ -422,7 +422,7 @@ static int autofs_dev_ioctl_requester(struct file *fp,
+ 	struct autofs_info *ino;
+ 	struct path path;
+ 	dev_t devid;
+-	int err = -ENOENT;
++	int err;
  
-+The "ignore" mount option
-+-------------------------
-+
-+The "ignore" mount option can be used to provide a generic indicator
-+to applications that the mount entry should be ignored when displaying
-+mount information.
-+
-+In other OSes that provide autofs and that provide a mount list to user
-+space based on the kernel mount list a no-op mount option ("ignore" is
-+the one use on the most common OSes) is allowed so that autofs file
-+system users can optionally use it.
-+
-+This is intended to be used by user space programs to exclude autofs
-+mounts from consideration when reading the mounts list.
-+
- autofs, name spaces, and shared mounts
- --------------------------------------
+ 	/* param->path has been checked in validate_dev_ioctl() */
  
+-- 
+2.20.1
 
