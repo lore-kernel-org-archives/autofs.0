@@ -1,159 +1,54 @@
-From: Ian Kent <raven@themaw.net>
-Subject: [ANNOUNCE] autofs 5.1.6 release
-Date: Mon, 07 Oct 2019 08:51:00 +0800
-Message-ID: <199d4dd82398c5a2cc915525024a122ed73a6637.camel@themaw.net>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 01/25] autofs: fix a leak in autofs_expire_indirect()
+Date: Fri, 22 Nov 2019 14:48:34 -0500
+Message-ID: <20191122194859.24508-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=
-        message-id:subject:from:to:cc:date:content-type:mime-version
-        :content-transfer-encoding; s=fm1; bh=AUCWi7dg8CtTdu5/plLNnp01CE
-        E4wJlXKJek4yB9CPI=; b=3HG4LrcTHN9Rt/xJv6OQOYG4uykAeci7ZaesvYVqtA
-        98SCnmKSFkIbvAvi5v8alch9hVABsNEtXKfagZipFoAX0JZr9F9sSKbGmv8DXSI1
-        IQB47gas/pvfledWYBMybbOYsgz6Ndvqu7RhnC+AUnFvKhSqSCw4TM9xwW/Y+y1Q
-        jFngz5AnMcvweIye+bF9HukBtI5ItKLd0npPgcvt6YJZm3ajXmT/JfNpcBfTYkSF
-        nE20fjgqeIoe8rvLZfzypeeAbPiIJGV6xNa4g76JCLMm9489sUQUtbkVPwyiUuD6
-        jW2Wp5tvWmeOWEVUsTXEku1IEBjTT1nmKfmqrpCBE6Lg==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:content-transfer-encoding:content-type
-        :date:from:message-id:mime-version:subject:to:x-me-proxy
-        :x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; bh=AUCWi7
-        dg8CtTdu5/plLNnp01CEE4wJlXKJek4yB9CPI=; b=B1vpEkXfw6jp1jIhBihmsn
-        me06S9umVe0fiZYflrjG6CUdp3dzeZTS3DSaRbELikITq/w9eK7F0OcND0osxXmq
-        Le+7ICBdK+ZdevvU/o3/HvjyaB/xRxTgp6ge5Px03SqZh/O1Sv/doZXTFekc0Gbn
-        oUCl6TNpGgnYvVxsm84pQ7Hse1bqFCdEe+av6uPODpAIhzqnglgQzDxntJrVnpZQ
-        G50+JJIOM0LQI8M9uBFFL8OZpXREktXPNPUzbl21lDWmFSzXf2R/mm6oBdwYMGS2
-        Jqdm1timoX5QWzEoKg7XI99uo0jvXqnuckC+mTlS4iFVG6Gszzmm33zxkd6ePYHA
-        ==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=default; t=1574452141;
+        bh=uXh2vBvBRQO36GgVX8ar8zmIAph80dMhJHJkUXgaPvw=;
+        h=From:To:Cc:Subject:Date:From;
+        b=Zidza78BSt3f9YKVgCMPobEyOpxJNXtgCzWK81sEimiTw+zqlWVPc6eSkaCLZLvEG
+         2JCy7TyNOjgp8AUSRRgjPLiy6mxDFLkGTUIN4eBXgPnk7i2mhsSgO/i9PJe7363vmI
+         ID5mqmpZGIHUXo2WJqMx/akS1GrSzldrQL91GL0o=
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: autofs@vger.kernel.org
-Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Al Viro <viro@zeniv.linux.org.uk>, Sasha Levin <sashal@kernel.org>, autofs@vger.kernel.org
 
-Hi all,
+From: Al Viro <viro@zeniv.linux.org.uk>
 
-It's time for a release, autofs-5.1.6.
+[ Upstream commit 03ad0d703df75c43f78bd72e16124b5b94a95188 ]
 
-This is an important release because it marks the beginning of
-work to be done torward resolving the very long standing problem
-of using very large direct mount maps in autofs, along with the
-needed mitigatigation of the effects of those large mount tables
-in user space.
+if the second call of should_expire() in there ends up
+grabbing and returning a new reference to dentry, we need
+to drop it before continuing.
 
-The first thing that needs to be done is for autofs to get back
-to what is was before the symlinking of the mount table to the
-proc file system. From experience having a large number of (largely
-not useful) autofs mount entries showing up in the mount table
-makes system administation frustrating and is quite annoying.
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ fs/autofs/expire.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-To do this I'm using the same approach used in other SysV autofs
-implementations of providing an autofs pseudo mount option "ignore"
-that can be used by user space as a hint to ignore these mount
-entries.
-
-This will require fairly straight forward changes to glibc and
-libmount at least. The glibc change has been accepted and I plan
-on submitting a change for libmount when I get a chance.
-
-A configuration option, use_ignore_mount_option, has been added
-to autofs that is initially disabled to allow people to enable it
-when they are confident that there won't be unexpected problems.
-
-The side effects of very large mount tables in user space is
-somewhat difficult to mitigate.
-
-First, to acheive this autofs needs to not use the system mount
-table for expiration "at all". Not using the mount table for expires
-has proven very difficult to do and initial attempts resulted in
-changes that didn't fit in well at all.
-
-The changes to clean up the mount table listing amounted to making
-autofs use it's own genmntent(3) implementation (borrowed from glibc)
-but quite a bit of that change was re-factoring toward eliminating
-the need to use the mount table during expires. I had trouble getting
-that to work, let alone stable, but the approach will fit in well
-with the current design so it's progress.
-
-Then there's the affect of very large mount tables on other user
-space applications.
-
-For example, under rapid mount activity we see several user space
-process, systemd, udisk2, et. al., growing to consume all available
-CPU and a couple of others performing poorly simply because the
-mount table is large.
-
-I had planned on using the fsinfo() system call being proposed by
-David Howells for initial mount handing improvements in libmount,
-and later David's related kernel notifications proposal for further
-libmount mount table handling improvements but those propsals have
-seen some challenges being accepted so we will have to wait and see
-how things go before working out how to acheive this rather difficult
-goal.
-
-So there's a long way to go but progress is bieng made!
-
-Additionally there are a number of bug fixes and other minor
-improvements.
-
-autofs
-======
-
-The package can be found at:
-https://www.kernel.org/pub/linux/daemons/autofs/v5/
-
-It is autofs-5.1.6.tar.[gz|xz]
-
-No source rpm is there as it can be produced by using:
-
-rpmbuild -ts autofs-5.1.6.tar.gz
-
-and the binary rpm by using:
-
-rpmbuild -tb autofs-5.1.6.tar.gz
-
-Here are the entries from the CHANGELOG which outline the updates:
-
-07/10/2019 autofs-5.1.6
-- support strictexpire mount option.
-- fix hesiod string check in master_parse().
-- add NULL check for get_addr_string() return.
-- use malloc(3) in spawn.c.
-- add mount_verbose configuration option.
-- optionally log mount requestor process info.
-- log mount call arguments if mount_verbose is set.
-- Fix NFS mount from IPv6 addresses.
-- make expire remaining log level debug.
-- allow period following macro in selector value.
-- fix macro expansion in selector values.
-- fix typing errors.
-- Explain /etc/auto.master.d usage.
-- plus map includes are only allowed in file sources.
-- Update README.
-- fix additional typing errors.
-- update autofs(8) offset map entry update description.
-- increase group buffer size geometrically.
-- also use strictexpire for offsets.
-- remove unused function has_fstab_option().
-- remove unused function reverse_mnt_list().
-- remove a couple of old debug messages.
-- fix amd entry memory leak.
-- fix unlink_mount_tree() not umounting mounts.
-- use ignore option for offset mounts as well.
-- add config option for "ignore" mount option
-- use bit flags for autofs mount types in mnt_list.
-- use mp instead of path in mnt_list entries.
-- always use PROC_MOUNTS to make mount lists.
-- add glibc getmntent_r().
-- use local getmntent_r in table_is_mounted().
-- refactor unlink_active_mounts() in direct.c.
-- don't use tree_is_mounted() for mounted checks.
-- use single unlink_umount_tree() for both direct and indirect mounts.
-- move unlink_mount_tree() to lib/mounts.c.
-- use local_getmntent_r() for unlink_mount_tree().
-- use local getmntent_r() in get_mnt_list().
-- use local getmntent_r() in tree_make_mnt_list().
-- fix missing initialization of autofs_point flags.
-
-Ian
+diff --git a/fs/autofs/expire.c b/fs/autofs/expire.c
+index 28d9c2b1b3bb3..70e9afe589fbf 100644
+--- a/fs/autofs/expire.c
++++ b/fs/autofs/expire.c
+@@ -501,9 +501,10 @@ static struct dentry *autofs_expire_indirect(struct super_block *sb,
+ 		 */
+ 		how &= ~AUTOFS_EXP_LEAVES;
+ 		found = should_expire(expired, mnt, timeout, how);
+-		if (!found || found != expired)
+-			/* Something has changed, continue */
++		if (found != expired) { // something has changed, continue
++			dput(found);
+ 			goto next;
++		}
+ 
+ 		if (expired != dentry)
+ 			dput(dentry);
+-- 
+2.20.1
 
