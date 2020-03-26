@@ -1,54 +1,143 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 01/25] autofs: fix a leak in autofs_expire_indirect()
-Date: Fri, 22 Nov 2019 14:48:34 -0500
-Message-ID: <20191122194859.24508-1-sashal@kernel.org>
+From: Ian Kent <raven@themaw.net>
+Subject: [PATCH 2/4] autofs: remove rcu_walk parameter from
+ autofs_expire_wait()
+Date: Thu, 26 Mar 2020 13:23:23 +0800
+Message-ID: <158520020391.5325.4702796205483079373.stgit@mickey.themaw.net>
+References: <158520019862.5325.7856909810909592388.stgit@mickey.themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=default; t=1574452141;
-        bh=uXh2vBvBRQO36GgVX8ar8zmIAph80dMhJHJkUXgaPvw=;
-        h=From:To:Cc:Subject:Date:From;
-        b=Zidza78BSt3f9YKVgCMPobEyOpxJNXtgCzWK81sEimiTw+zqlWVPc6eSkaCLZLvEG
-         2JCy7TyNOjgp8AUSRRgjPLiy6mxDFLkGTUIN4eBXgPnk7i2mhsSgO/i9PJe7363vmI
-         ID5mqmpZGIHUXo2WJqMx/akS1GrSzldrQL91GL0o=
+In-Reply-To: <158520019862.5325.7856909810909592388.stgit@mickey.themaw.net>
 Sender: linux-kernel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Al Viro <viro@zeniv.linux.org.uk>, Sasha Levin <sashal@kernel.org>, autofs@vger.kernel.org
+To: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: autofs mailing list <autofs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-From: Al Viro <viro@zeniv.linux.org.uk>
+Now that do_expire_wait() isn't called from autofs_d_manage() the
+rcu_walk boolean parameter can be removed. Now autofs_expire_wait()
+and autofs_lookup_expiring() are no longer called from rcu-walk
+context either so remove the extra parameter from them too.
 
-[ Upstream commit 03ad0d703df75c43f78bd72e16124b5b94a95188 ]
-
-if the second call of should_expire() in there ends up
-grabbing and returning a new reference to dentry, we need
-to drop it before continuing.
-
-Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Signed-off-by: Ian Kent <raven@themaw.net>
 ---
- fs/autofs/expire.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/autofs/autofs_i.h  |    2 +-
+ fs/autofs/dev-ioctl.c |    2 +-
+ fs/autofs/expire.c    |    5 +----
+ fs/autofs/root.c      |   18 ++++++------------
+ 4 files changed, 9 insertions(+), 18 deletions(-)
 
+diff --git a/fs/autofs/autofs_i.h b/fs/autofs/autofs_i.h
+index 054f97b07754..5fc0c31b1fd5 100644
+--- a/fs/autofs/autofs_i.h
++++ b/fs/autofs/autofs_i.h
+@@ -152,7 +152,7 @@ void autofs_free_ino(struct autofs_info *);
+ 
+ /* Expiration */
+ int is_autofs_dentry(struct dentry *);
+-int autofs_expire_wait(const struct path *path, int rcu_walk);
++int autofs_expire_wait(const struct path *path);
+ int autofs_expire_run(struct super_block *, struct vfsmount *,
+ 		      struct autofs_sb_info *,
+ 		      struct autofs_packet_expire __user *);
+diff --git a/fs/autofs/dev-ioctl.c b/fs/autofs/dev-ioctl.c
+index a3cdb0036c5d..a892a517c695 100644
+--- a/fs/autofs/dev-ioctl.c
++++ b/fs/autofs/dev-ioctl.c
+@@ -437,7 +437,7 @@ static int autofs_dev_ioctl_requester(struct file *fp,
+ 	ino = autofs_dentry_ino(path.dentry);
+ 	if (ino) {
+ 		err = 0;
+-		autofs_expire_wait(&path, 0);
++		autofs_expire_wait(&path);
+ 		spin_lock(&sbi->fs_lock);
+ 		param->requester.uid =
+ 			from_kuid_munged(current_user_ns(), ino->uid);
 diff --git a/fs/autofs/expire.c b/fs/autofs/expire.c
-index 28d9c2b1b3bb3..70e9afe589fbf 100644
+index a1c7701007e7..f67da46f6992 100644
 --- a/fs/autofs/expire.c
 +++ b/fs/autofs/expire.c
-@@ -501,9 +501,10 @@ static struct dentry *autofs_expire_indirect(struct super_block *sb,
- 		 */
- 		how &= ~AUTOFS_EXP_LEAVES;
- 		found = should_expire(expired, mnt, timeout, how);
--		if (!found || found != expired)
--			/* Something has changed, continue */
-+		if (found != expired) { // something has changed, continue
-+			dput(found);
- 			goto next;
-+		}
+@@ -486,7 +486,7 @@ static struct dentry *autofs_expire_indirect(struct super_block *sb,
+ 	return expired;
+ }
  
- 		if (expired != dentry)
- 			dput(dentry);
--- 
-2.20.1
+-int autofs_expire_wait(const struct path *path, int rcu_walk)
++int autofs_expire_wait(const struct path *path)
+ {
+ 	struct dentry *dentry = path->dentry;
+ 	struct autofs_sb_info *sbi = autofs_sbi(dentry->d_sb);
+@@ -497,9 +497,6 @@ int autofs_expire_wait(const struct path *path, int rcu_walk)
+ 	/* Block on any pending expire */
+ 	if (!(ino->flags & AUTOFS_INF_WANT_EXPIRE))
+ 		return 0;
+-	if (rcu_walk)
+-		return -ECHILD;
+-
+ retry:
+ 	spin_lock(&sbi->fs_lock);
+ 	state = ino->flags & (AUTOFS_INF_WANT_EXPIRE | AUTOFS_INF_EXPIRING);
+diff --git a/fs/autofs/root.c b/fs/autofs/root.c
+index a3b7c72a298d..a1c9c32e104f 100644
+--- a/fs/autofs/root.c
++++ b/fs/autofs/root.c
+@@ -177,8 +177,7 @@ static struct dentry *autofs_lookup_active(struct dentry *dentry)
+ 	return NULL;
+ }
+ 
+-static struct dentry *autofs_lookup_expiring(struct dentry *dentry,
+-					     bool rcu_walk)
++static struct dentry *autofs_lookup_expiring(struct dentry *dentry)
+ {
+ 	struct autofs_sb_info *sbi = autofs_sbi(dentry->d_sb);
+ 	struct dentry *parent = dentry->d_parent;
+@@ -197,11 +196,6 @@ static struct dentry *autofs_lookup_expiring(struct dentry *dentry,
+ 		struct dentry *expiring;
+ 		const struct qstr *qstr;
+ 
+-		if (rcu_walk) {
+-			spin_unlock(&sbi->lookup_lock);
+-			return ERR_PTR(-ECHILD);
+-		}
+-
+ 		ino = list_entry(p, struct autofs_info, expiring);
+ 		expiring = ino->dentry;
+ 
+@@ -257,16 +251,16 @@ static int autofs_mount_wait(const struct path *path, bool rcu_walk)
+ 	return status;
+ }
+ 
+-static int do_expire_wait(const struct path *path, bool rcu_walk)
++static int do_expire_wait(const struct path *path)
+ {
+ 	struct dentry *dentry = path->dentry;
+ 	struct dentry *expiring;
+ 
+-	expiring = autofs_lookup_expiring(dentry, rcu_walk);
++	expiring = autofs_lookup_expiring(dentry);
+ 	if (IS_ERR(expiring))
+ 		return PTR_ERR(expiring);
+ 	if (!expiring)
+-		return autofs_expire_wait(path, rcu_walk);
++		return autofs_expire_wait(path);
+ 	else {
+ 		const struct path this = { .mnt = path->mnt, .dentry = expiring };
+ 		/*
+@@ -274,7 +268,7 @@ static int do_expire_wait(const struct path *path, bool rcu_walk)
+ 		 * be quite complete, but the directory has been removed
+ 		 * so it must have been successful, just wait for it.
+ 		 */
+-		autofs_expire_wait(&this, 0);
++		autofs_expire_wait(&this);
+ 		autofs_del_expiring(expiring);
+ 		dput(expiring);
+ 	}
+@@ -327,7 +321,7 @@ static struct vfsmount *autofs_d_automount(struct path *path)
+ 	 * and the directory was removed, so just go ahead and try
+ 	 * the mount.
+ 	 */
+-	status = do_expire_wait(path, 0);
++	status = do_expire_wait(path);
+ 	if (status && status != -EAGAIN)
+ 		return NULL;
+ 
 
