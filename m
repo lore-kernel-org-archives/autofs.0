@@ -1,62 +1,61 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH v2 0/4] Fix stat() family ping/pong on expiring autofs mounts
-Date: Tue, 31 Mar 2020 08:54:07 +0800
-Message-ID: <158561511964.23197.716188410829525903.stgit@mickey.themaw.net>
+Subject: [PATCH v2 1/4] autofs: dont call do_expire_wait() in
+ autofs_d_manage()
+Date: Tue, 31 Mar 2020 08:54:13 +0800
+Message-ID: <158561605361.23197.2200523340622024577.stgit@mickey.themaw.net>
+References: <158561511964.23197.716188410829525903.stgit@mickey.themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <158561511964.23197.716188410829525903.stgit@mickey.themaw.net>
 Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: Al Viro <viro@ZenIV.linux.org.uk>
 Cc: autofs mailing list <autofs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-This patch series is meant to fix a case were a stat() family system
-call is being done at the same time a mount point dentry is being
-expired.
+Calling do_expire_wait() in autofs_d_manage() isn't really necessary.
 
-When this happens it results in a ping/pong of returning the stat() of
-the mounted file system and stat() of the autofs file system.
+If in rcu-walk mode -ECHILD will be returned and if in ref-walk mode
+and the dentry might be picked for expire (or is expiring) 0 will be
+returned otherwise it waits for the expire.
 
-What needs to be done here is ensure a consistent stat() return based
-on the state of the mount at the time.
+But waiting is meant to be done in autofs_d_automount() so simplify
+autofs_d_manage() by testing the expire status and returning only
+what's needed.
 
-There are actually a number of cases and, unavoidably, there remains
-inconsistency because stat family system calls are not meant to trigger
-mounts to avoid mount storms. So they will still return the stat of the
-autofs file system if not mounted and the stat of the mounted file
-system if they are, including if they are being expired at the time of
-the stat() call.
-
-Some of these patches are based on other work that I'm doing as a
-result of our recent discussions on the autofs kernel module. For
-example the removal do_expire_wait() from autofs_d_manage() and
-simplifying the called functions. And the last patch which adds
-comments about cases of the autofs_mountpoint_changed() function.
-In fact, as you though, there's not much left in autofs_d_manage()
-in the endi. 
-
-But I'm not finished with the series yet and I need to get this bug 
-fixed.
-
-Changes since v1.
-- fix several grammatical mistakes.
-
+Signed-off-by: Ian Kent <raven@themaw.net>
 ---
+ fs/autofs/root.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-Ian Kent (4):
-      autofs: dont call do_expire_wait() in autofs_d_manage()
-      autofs: remove rcu_walk parameter from autofs_expire_wait()
-      vfs: check for autofs expiring dentry in follow_automount()
-      autofs: add comment about autofs_mountpoint_changed()
+diff --git a/fs/autofs/root.c b/fs/autofs/root.c
+index 5aaa1732bf1e..a3b7c72a298d 100644
+--- a/fs/autofs/root.c
++++ b/fs/autofs/root.c
+@@ -410,9 +410,12 @@ static int autofs_d_manage(const struct path *path, bool rcu_walk)
+ 		return 0;
+ 	}
+ 
+-	/* Wait for pending expires */
+-	if (do_expire_wait(path, rcu_walk) == -ECHILD)
+-		return -ECHILD;
++	/* Check for (possible) pending expire */
++	if (ino->flags & AUTOFS_INF_WANT_EXPIRE) {
++		if (rcu_walk)
++			return -ECHILD;
++		return 0;
++	}
+ 
+ 	/*
+ 	 * This dentry may be under construction so wait on mount
+@@ -432,8 +435,6 @@ static int autofs_d_manage(const struct path *path, bool rcu_walk)
+ 		 */
+ 		struct inode *inode;
+ 
+-		if (ino->flags & AUTOFS_INF_WANT_EXPIRE)
+-			return 0;
+ 		if (path_is_mountpoint(path))
+ 			return 0;
+ 		inode = d_inode_rcu(dentry);
 
-
- fs/autofs/autofs_i.h  |    2 +-
- fs/autofs/dev-ioctl.c |    2 +-
- fs/autofs/expire.c    |    5 +---
- fs/autofs/root.c      |   58 ++++++++++++++++++++++++++++++++-----------------
- fs/namei.c            |   13 +++++++++--
- 5 files changed, 52 insertions(+), 28 deletions(-)
-
---
-Ian
