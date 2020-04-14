@@ -1,168 +1,100 @@
-From: Emanuele Giuseppe Esposito <eesposit@redhat.com>
-Subject: [PATCH 8/8] tracefs: switch to simplefs inode creation API
-Date: Tue, 14 Apr 2020 14:43:02 +0200
-Message-ID: <20200414124304.4470-9-eesposit@redhat.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 2/8] fs: extract simple_pin/release_fs to separate files
+Date: Tue, 14 Apr 2020 14:54:18 +0200
+Message-ID: <20200414125418.GA720679@kroah.com>
 References: <20200414124304.4470-1-eesposit@redhat.com>
+ <20200414124304.4470-3-eesposit@redhat.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane-mx.org@lists.ozlabs.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
- s=mimecast20190719; t=1586868274;
- h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
- to:to:cc:cc:mime-version:mime-version:content-type:content-type:
- content-transfer-encoding:content-transfer-encoding:
- in-reply-to:in-reply-to:references:references;
- bh=d4V8mrlSuDSVlkahuOUJ4Ixvzo/y3rjT0a9yuAvHerg=;
- b=afMS7G7pJrStxDVBsjqfIIdyUri5R299a1L4L52AKFaJEM24XoHlMqqG8vRqgeKYUIsWIm
- +TACeeQ9VahsZLmYGayX4EznzV9AXcOJFqh9hISguE1ySvaPbrBOTbtFnoUF7MjIup5qCZ
- P239gwimgRsdvzfOLWpyzPRTKD4P48k=
-In-Reply-To: <20200414124304.4470-1-eesposit@redhat.com>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
-List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
-List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
-Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane-mx.org@lists.ozlabs.org
-Sender: "Linuxppc-dev"
- <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane-mx.org@lists.ozlabs.org>
 Content-Type: text/plain; charset="us-ascii"
-To: linux-nfs@vger.kernel.org
-Cc: Song Liu <songliubraving@fb.com>, linux-usb@vger.kernel.org, bpf@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, David Airlie <airlied@linux.ie>, Heiko Carstens <heiko.carstens@de.ibm.com>, Alexei Starovoitov <ast@kernel.org>, dri-devel@lists.freedesktop.org, "J. Bruce Fields" <bfields@fieldses.org>, Joseph Qi <joseph.qi@linux.alibaba.com>, Hugh Dickins <hughd@google.com>, Paul Mackerras <paulus@samba.org>, John Johansen <john.johansen@canonical.com>, netdev@vger.kernel.org, linux-s390@vger.kernel.org, Christoph Hellwig <hch@lst.de>, Andrew Donnellan <ajd@linux.ibm.com>, Emanuele Giuseppe Esposito <eesposit@redhat.com>, Matthew Garrett <matthew.garrett@nebula.com>, linux-efi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Daniel Borkmann <daniel@iogearbox.net>, Christian Borntraeger <borntraeger@de.ibm.com>, linux-rdma@vger.kernel.org, Mark Fasheh <mark@fasheh.>
+Content-Transfer-Encoding: 7bit
+Return-path: <oprofile-list-bounces@lists.sourceforge.net>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+ d=sourceforge.net; s=x; h=In-Reply-To:Content-Type:MIME-Version:References:
+ Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:
+ Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
+ Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
+ List-Subscribe:List-Post:List-Owner:List-Archive;
+ bh=Ho1WYZcuYJxaOveuqzjzhhN7Qc3fQZuer0IuVwVVPcQ=; b=igB0sh+Se1e/Ni1gH4in+JXOx3
+ E/ks6gkL8LV0V0yQW86THK3EyCDsXPfZu+uBCaV5DnDAAuJmgYREAQXwfYoiYeCS52WYWRtkacDA6
+ iCdQlh030IuHL4tiuZKkrFw2sA5QQyQevOiJJh/fhAayDS0UVpRC9TnK+Fo2RegXs9vM=;
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=sf.net; s=x
+ ;
+ h=In-Reply-To:Content-Type:MIME-Version:References:Message-ID:Subject:Cc:To
+ :From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+ Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+ :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+ List-Post:List-Owner:List-Archive;
+ bh=Ho1WYZcuYJxaOveuqzjzhhN7Qc3fQZuer0IuVwVVPcQ=; b=hOu/pmDycZg4/GZ4CcuLDMhj1+
+ Z1GqkZQFAphR96FE0ODDzmL7gQm5AhIf8j3hp+pAq+XYqTyKZvYll+9CoWnVdbe6i22w1ZWE4dVq+
+ Ym2SlSKfChrtA1pmL4oIRz5kaEsp0/5MkvaQOSLUpJPApR/UVYSFHLYbgsmPnDTY4CWA=;
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+ s=default; t=1586868861;
+ bh=w6XXP195+Jxp1MIJYohG3U+bL2LY4rMomokRATUVj6Y=;
+ h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+ b=KUUWawnRhZWVZA4Mx1xQ7dOhftFNPIxzf1waPD79QN2nHLTwGwIA6cevta1EjCSOo
+ //wKDlEIhBkx41x9paKY8+IyKktSaZFdJL/+3KUH2daqkCRS3WinhuXoTw3ctowKfO
+ 34eA1F0TTUmwr4Vr1nPyvba5Bm60H1KoF4fIh+7c=
+Content-Disposition: inline
+In-Reply-To: <20200414124304.4470-3-eesposit@redhat.com>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/options/oprofile-list>, 
+ <mailto:oprofile-list-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=oprofile-list>
+List-Post: <mailto:oprofile-list@lists.sourceforge.net>
+List-Help: <mailto:oprofile-list-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/oprofile-list>, 
+ <mailto:oprofile-list-request@lists.sourceforge.net?subject=subscribe>
+Errors-To: oprofile-list-bounces@lists.sourceforge.net
+To: Emanuele Giuseppe Esposito <eesposit@redhat.com>
+Cc: Song Liu <songliubraving@fb.com>, linux-usb@vger.kernel.org, bpf@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, David Airlie <airlied@linux.ie>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, Alexei Starovoitov <ast@kernel.org>, dri-devel@lists.freedesktop.org, "J. Bruce Fields" <bfields@fieldses.org>, Joseph Qi <joseph.qi@linux.alibaba.com>, Hugh Dickins <hughd@google.com>, Paul Mackerras <paulus@samba.org>, John Johansen <john.johansen@canonical.com>, netdev@vger.kernel.org, ocfs2-devel@oss.oracle.com, Christoph Hellwig <hch@lst.de>, Andrew Donnellan <ajd@linux.ibm.com>, Matthew Garrett <matthew.garrett@nebula.com>, linux-efi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Daniel Borkmann <daniel@iogearbox.net>, Christian Borntraeger <borntraeger@de.ibm.com>, linux-rdma@vger.kernel.org, Michael Ellerman <mpe@e>
 
-There is no semantic change intended; the code in the simplefs.c functions =
-in
-fact was derived from debugfs and tracefs code.
+On Tue, Apr 14, 2020 at 02:42:56PM +0200, Emanuele Giuseppe Esposito wrote:
+> We will augment this family of functions with inode management.  To avoid
+> littering include/linux/fs.h and fs/libfs.c, move them to a separate header,
+> with a Kconfig symbol to enable them.
+> 
+> Signed-off-by: Emanuele Giuseppe Esposito <eesposit@redhat.com>
 
-Signed-off-by: Emanuele Giuseppe Esposito <eesposit@redhat.com>
----
- fs/tracefs/inode.c | 86 ++++------------------------------------------
- 1 file changed, 7 insertions(+), 79 deletions(-)
+You have a lot of people on cc:, this is going to be hard for everyone
+to review...
 
-diff --git a/fs/tracefs/inode.c b/fs/tracefs/inode.c
-index a30837a8e1d4..69e2215c797b 100644
---- a/fs/tracefs/inode.c
-+++ b/fs/tracefs/inode.c
-@@ -298,57 +298,6 @@ static struct file_system_type trace_fs_type =3D {
- };
- MODULE_ALIAS_FS("tracefs");
-=20
--static struct dentry *start_creating(const char *name, struct dentry *pare=
-nt)
--{
--=09struct dentry *dentry;
--=09int error;
--
--=09pr_debug("tracefs: creating file '%s'\n",name);
--
--=09error =3D simple_pin_fs(&tracefs, &trace_fs_type);
--=09if (error)
--=09=09return ERR_PTR(error);
--
--=09/* If the parent is not specified, we create it in the root.
--=09 * We need the root dentry to do this, which is in the super
--=09 * block. A pointer to that is in the struct vfsmount that we
--=09 * have around.
--=09 */
--=09if (!parent)
--=09=09parent =3D tracefs.mount->mnt_root;
--
--=09inode_lock(parent->d_inode);
--=09if (unlikely(IS_DEADDIR(parent->d_inode)))
--=09=09dentry =3D ERR_PTR(-ENOENT);
--=09else
--=09=09dentry =3D lookup_one_len(name, parent, strlen(name));
--=09if (!IS_ERR(dentry) && dentry->d_inode) {
--=09=09dput(dentry);
--=09=09dentry =3D ERR_PTR(-EEXIST);
--=09}
--
--=09if (IS_ERR(dentry)) {
--=09=09inode_unlock(parent->d_inode);
--=09=09simple_release_fs(&tracefs);
--=09}
--
--=09return dentry;
--}
--
--static struct dentry *failed_creating(struct dentry *dentry)
--{
--=09inode_unlock(dentry->d_parent->d_inode);
--=09dput(dentry);
--=09simple_release_fs(&tracefs);
--=09return NULL;
--}
--
--static struct dentry *end_creating(struct dentry *dentry)
--{
--=09inode_unlock(dentry->d_parent->d_inode);
--=09return dentry;
--}
--
- /**
-  * tracefs_create_file - create a file in the tracefs filesystem
-  * @name: a pointer to a string containing the name of the file to create.
-@@ -385,49 +334,28 @@ struct dentry *tracefs_create_file(const char *name, =
-umode_t mode,
- =09if (security_locked_down(LOCKDOWN_TRACEFS))
- =09=09return NULL;
-=20
--=09if (!(mode & S_IFMT))
--=09=09mode |=3D S_IFREG;
--=09BUG_ON(!S_ISREG(mode));
--=09dentry =3D start_creating(name, parent);
--
-+=09dentry =3D simplefs_create_file(&tracefs, &trace_fs_type,
-+=09=09=09=09      name, mode, parent, data, &inode);
- =09if (IS_ERR(dentry))
- =09=09return NULL;
-=20
--=09inode =3D simple_new_inode(dentry->d_sb);
--=09if (unlikely(!inode))
--=09=09return failed_creating(dentry);
--
--=09inode->i_mode =3D mode;
- =09inode->i_fop =3D fops ? fops : &tracefs_file_operations;
--=09inode->i_private =3D data;
--=09d_instantiate(dentry, inode);
--=09fsnotify_create(dentry->d_parent->d_inode, dentry);
--=09return end_creating(dentry);
-+=09return simplefs_finish_dentry(dentry, inode);
- }
-=20
- static struct dentry *__create_dir(const char *name, struct dentry *parent=
-,
- =09=09=09=09   const struct inode_operations *ops)
- {
--=09struct dentry *dentry =3D start_creating(name, parent);
-+=09struct dentry *dentry;
- =09struct inode *inode;
-=20
-+=09dentry =3D simplefs_create_dir(&tracefs, &trace_fs_type,
-+=09=09=09=09     name, 0755, parent, &inode);
- =09if (IS_ERR(dentry))
- =09=09return NULL;
-=20
--=09inode =3D simple_new_inode(dentry->d_sb);
--=09if (unlikely(!inode))
--=09=09return failed_creating(dentry);
--
--=09inode->i_mode =3D S_IFDIR | S_IRWXU | S_IRUGO | S_IXUGO;
- =09inode->i_op =3D ops;
--=09inode->i_fop =3D &simple_dir_operations;
--
--=09/* directory inodes start off with i_nlink =3D=3D 2 (for "." entry) */
--=09inc_nlink(inode);
--=09d_instantiate(dentry, inode);
--=09inc_nlink(dentry->d_parent->d_inode);
--=09fsnotify_mkdir(dentry->d_parent->d_inode, dentry);
--=09return end_creating(dentry);
-+=09return simplefs_finish_dentry(dentry, inode);
- }
-=20
- /**
---=20
-2.25.2
 
+> diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
+> index d1398cef3b18..fc38a6f0fc11 100644
+> --- a/lib/Kconfig.debug
+> +++ b/lib/Kconfig.debug
+> @@ -288,12 +288,16 @@ config STRIP_ASM_SYMS
+>  
+>  config READABLE_ASM
+>  	bool "Generate readable assembler code"
+> -	depends on DEBUG_KERNEL
+> -	help
+> -	  Disable some compiler optimizations that tend to generate human unreadable
+> -	  assembler output. This may make the kernel slightly slower, but it helps
+> -	  to keep kernel developers who have to stare a lot at assembler listings
+> -	  sane.
+> +    depends on DEBUG_KERNEL
+> +    help
+> +      Disable some compiler optimizations that tend to generate human unreadable
+> +      assembler output. This may make the kernel slightly slower, but it helps
+> +      to keep kernel developers who have to stare a lot at assembler listings
+> +      sane.
+> +	  
+
+Why did you loose the indentation here and add trailing whitespace?
+
+> +config DEBUG_FS
+> +	bool "Debug Filesystem"
+> +	select SIMPLEFS
+>  
+
+We already have a DEBUG_FS config option in this file, why another one?
+And what happened to the help text?
+
+I think you need to rework your patch series to do smaller things on
+each step, which would make it reviewable much easier, and prevent
+mistakes like this one.
+
+thanks,
+
+greg k-h
