@@ -1,33 +1,13 @@
-From: Emanuele Giuseppe Esposito <eesposit@redhat.com>
-Subject: Re: [PATCH 0/8] Simplefs: group and simplify linux fs code
-Date: Mon, 20 Apr 2020 16:01:08 +0200
-Message-ID: <79e3dd06-7cea-7798-42a2-596c185abd7b@redhat.com>
+From: Frederic Barrat <fbarrat@linux.ibm.com>
+Subject: Re: [PATCH 2/8] fs: extract simple_pin/release_fs to separate files
+Date: Tue, 21 Apr 2020 13:19:45 +0200
+Message-ID: <7abfdd3b-dbbe-52ab-df53-95e9f86d39cd@linux.ibm.com>
 References: <20200414124304.4470-1-eesposit@redhat.com>
- <20200416065922.GS11244@42.do-not-panic.com>
+ <20200414124304.4470-3-eesposit@redhat.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane-mx.org@lists.ozlabs.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
- s=mimecast20190719; t=1587391279;
- h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
- to:to:cc:cc:mime-version:mime-version:content-type:content-type:
- content-transfer-encoding:content-transfer-encoding:
- in-reply-to:in-reply-to:references:references;
- bh=CRCdhBzjtov7RvcoLcOwUA5fYrO6qOb+mWbouXaiL5k=;
- b=HIpqY6r43kH/FzbD5R1+A5UZ+BgK28llVnveeeHeX2tXhDuGWJahaxx8nE2jQ2HscVo06u
- eFPiqlfnbb0CMKbCBPkbuNjRXAIT4KcPj7Y/j+AmBsOhu9xafYxZricmItF0y6lnUPKnjm
- b3rTskufbbHZHwOURsKs14cZW4bJhQI=
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
- s=mimecast20190719; t=1587391279;
- h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
- to:to:cc:cc:mime-version:mime-version:content-type:content-type:
- content-transfer-encoding:content-transfer-encoding:
- in-reply-to:in-reply-to:references:references;
- bh=CRCdhBzjtov7RvcoLcOwUA5fYrO6qOb+mWbouXaiL5k=;
- b=HIpqY6r43kH/FzbD5R1+A5UZ+BgK28llVnveeeHeX2tXhDuGWJahaxx8nE2jQ2HscVo06u
- eFPiqlfnbb0CMKbCBPkbuNjRXAIT4KcPj7Y/j+AmBsOhu9xafYxZricmItF0y6lnUPKnjm
- b3rTskufbbHZHwOURsKs14cZW4bJhQI=
-In-Reply-To: <20200416065922.GS11244@42.do-not-panic.com>
+In-Reply-To: <20200414124304.4470-3-eesposit@redhat.com>
 Content-Language: en-US
 List-Id: <autofs.vger.kernel.org>
 List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
@@ -41,35 +21,48 @@ Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane-mx.org@lists.o
 Sender: "Linuxppc-dev"
  <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane-mx.org@lists.ozlabs.org>
 Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Luis Chamberlain <mcgrof@kernel.org>
+To: Emanuele Giuseppe Esposito <eesposit@redhat.com>, linux-nfs@vger.kernel.org
 Cc: Song Liu <songliubraving@fb.com>, linux-usb@vger.kernel.org, bpf@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, David Airlie <airlied@linux.ie>, Heiko Carstens <heiko.carstens@de.ibm.com>, Alexei Starovoitov <ast@kernel.org>, dri-devel@lists.freedesktop.org, "J. Bruce Fields" <bfields@fieldses.org>, Joseph Qi <joseph.qi@linux.alibaba.com>, Hugh Dickins <hughd@google.com>, Paul Mackerras <paulus@samba.org>, John Johansen <john.johansen@canonical.com>, netdev@vger.kernel.org, linux-s390@vger.kernel.org, Christoph Hellwig <hch@lst.de>, Andrew Donnellan <ajd@linux.ibm.com>, Matthew Garrett <matthew.garrett@nebula.com>, linux-efi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Daniel Borkmann <daniel@iogearbox.net>, Christian Borntraeger <borntraeger@de.ibm.com>, linux-rdma@vger.kernel.org, Mark Fasheh <mark@fasheh.com>, Anton Vorontsov <anton@enomsg.org>, John
 
 
 
-On 4/16/20 8:59 AM, Luis Chamberlain wrote:
-> On Tue, Apr 14, 2020 at 02:42:54PM +0200, Emanuele Giuseppe Esposito wrote:
->> This series of patches introduce wrappers for functions,
->> arguments simplification in functions calls and most importantly
->> groups duplicated code in a single header, simplefs, to avoid redundancy
->> in the linux fs, especially debugfs and tracefs.
-> 
-> The general goal seems worthy, but here I don't see explained why hasn't
-> this gone through libfs, and what the intention was long term. For
-> instance, you added some other generalizations which you have found. It
-> was not clear that this was the goal here, to expand on these paths.
-> 
-> What if common code on fs is found which are not part of debugfs and
-> tracefs, how does one decide if to move to libfs or simplefs?
+> diff --git a/drivers/misc/cxl/Kconfig b/drivers/misc/cxl/Kconfig
+> index 39eec9031487..a62795079d9c 100644
+> --- a/drivers/misc/cxl/Kconfig
+> +++ b/drivers/misc/cxl/Kconfig
+> @@ -19,6 +19,7 @@ config CXL
+>   	select CXL_BASE
+>   	select CXL_AFU_DRIVER_OPS
+>   	select CXL_LIB
+> +	select SIMPLEFS
+>   	default m
+>   	help
+>   	  Select this option to enable driver support for IBM Coherent
+> diff --git a/drivers/misc/cxl/api.c b/drivers/misc/cxl/api.c
+> index b493de962153..0b8f8de7475a 100644
+> --- a/drivers/misc/cxl/api.c
+> +++ b/drivers/misc/cxl/api.c
+> @@ -9,6 +9,7 @@
+>   #include <misc/cxl.h>
+>   #include <linux/module.h>
+>   #include <linux/mount.h>
+> +#include <linux/simplefs.h>
+>   #include <linux/pseudo_fs.h>
+>   #include <linux/sched/mm.h>
+>   #include <linux/mmu_context.h>
+> diff --git a/drivers/misc/ocxl/Kconfig b/drivers/misc/ocxl/Kconfig
+> index 2d2266c1439e..ddd9245fff3d 100644
+> --- a/drivers/misc/ocxl/Kconfig
+> +++ b/drivers/misc/ocxl/Kconfig
+> @@ -12,6 +12,7 @@ config OCXL
+>   	depends on PPC_POWERNV && PCI && EEH
+>   	select OCXL_BASE
+>   	select HOTPLUG_PCI_POWERNV
+> +	select SIMPLEFS
 
-The idea of simplefs (that I will also explain better in the cover 
-letter and commit messages) is that not only it groups common code, but 
-also introduces a new struct simple_fs that simplifies parameter 
-passing. This means all fs that use these functions and the struct 
-should include linux/simplefs.h, while all common functions that take a 
-simple_fs struct will be added in simplefs.c
 
-Thank you for all the feedback, I will incorporate it and send a new 
-patch series soon.
+It's not clear to me the Kconfig updated is needed for the ocxl driver. 
+I think it's only needed for the cxl driver.
 
-Emanuele
+   Fred
 
