@@ -1,23 +1,23 @@
 From: Randy Dunlap <rdunlap@infradead.org>
-Subject: [PATCH 05/10] Documentation: filesystems: fsverity: drop doubled word
-Date: Fri,  3 Jul 2020 14:43:20 -0700
-Message-ID: <20200703214325.31036-6-rdunlap@infradead.org>
+Subject: [PATCH 07/10] Documentation: filesystems: overlayfs: drop doubled word
+Date: Fri,  3 Jul 2020 14:43:22 -0700
+Message-ID: <20200703214325.31036-8-rdunlap@infradead.org>
 References: <20200703214325.31036-1-rdunlap@infradead.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Return-path: <linux-unionfs-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=merlin.20170209; h=Content-Transfer-Encoding:MIME-Version:
         References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
         Content-Type:Content-ID:Content-Description;
-        bh=QYt3pLrvEkgdE5J9HL0HcJrm5k49qsMnkbwk8AJ+Pa4=; b=DYk4ml3k/OpYg3wEdP54cuw5kr
-        9boTO/p72S7yr71IB6JW1UzHP60tl2Rjpizt8RMtwF/N+xBTrN/W43HOaKN7e/KUAlKoWB18QOBGd
-        4HJZTZ7ziQNpfeu2fN/PcKVghE+Y45mLZGCntE7MFVoTk+9DXhBS+VqbOUNF2dLgx5EvJOKa9EAvR
-        BFLuKH6X7/OrHc2z2e3CwCxWdlHV5roAefwDtQMbQbcN+J/KMVXX/j6y8ljQqa3QBTtaOeSrdQHx7
-        9/JSu6jVUxiH8uZayeLZMvfnbKE5ET4/3GgZrnomJyH2UWYzO6pCIOvmp+Tj9pc8cVvEX3arI9ZRg
-        btS/XlIg==;
+        bh=incZpa5IzYuxKoiVY1wfaG2NDrHQ8Af3HlDfc4ZtKDk=; b=KEMj7EoGqSbPuk7g2qxJF1qUP/
+        CY6kqOAsh2Juj8iQvnuFEy2bV69j9JSGthAPu2m68ycrMUgtQM72hXhI6P/dQTowSl0qhQYAi19fG
+        KPgIaXtFNhbtYxo2657TsAWYkg4bHcxNFwDVQ2ZPeoMCoI8SehbPfp/UPte4cgP8uaa4Bi+8yQVnA
+        EdGeZBlNiZ3yPuC4TFSgkBJPUMfS2/0nHSRbTBk/Eh7WgpMt5zPHsB2LMC0CMrlkLwDFIbTj5szCn
+        t0gH80gG70GITOIlbUZY4Oudy0vu59YfhplxD9y3riRQuMaUf+oBfyWccwA5NI+1XdA+fvi9XceNV
+        e1WJ04ow==;
 In-Reply-To: <20200703214325.31036-1-rdunlap@infradead.org>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Sender: linux-unionfs-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: linux-kernel@vger.kernel.org
@@ -28,21 +28,20 @@ Drop the doubled word "the".
 Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: linux-doc@vger.kernel.org
-Cc: Eric Biggers <ebiggers@kernel.org>
-Cc: Theodore Y. Ts'o <tytso@mit.edu>
-Cc: linux-fscrypt@vger.kernel.org
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org
 ---
- Documentation/filesystems/fsverity.rst |    2 +-
+ Documentation/filesystems/overlayfs.rst |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- linux-next-20200701.orig/Documentation/filesystems/fsverity.rst
-+++ linux-next-20200701/Documentation/filesystems/fsverity.rst
-@@ -659,7 +659,7 @@ weren't already directly answered in oth
-       retrofit existing filesystems with new consistency mechanisms.
-       Data journalling is available on ext4, but is very slow.
+--- linux-next-20200701.orig/Documentation/filesystems/overlayfs.rst
++++ linux-next-20200701/Documentation/filesystems/overlayfs.rst
+@@ -328,7 +328,7 @@ the time of copy (on-demand vs. up-front
+ Multiple lower layers
+ ---------------------
  
--    - Rebuilding the the Merkle tree after every write, which would be
-+    - Rebuilding the Merkle tree after every write, which would be
-       extremely inefficient.  Alternatively, a different authenticated
-       dictionary structure such as an "authenticated skiplist" could
-       be used.  However, this would be far more complex.
+-Multiple lower layers can now be given using the the colon (":") as a
++Multiple lower layers can now be given using the colon (":") as a
+ separator character between the directory names.  For example:
+ 
+   mount -t overlay overlay -olowerdir=/lower1:/lower2:/lower3 /merged
