@@ -1,47 +1,56 @@
 From: Randy Dunlap <rdunlap@infradead.org>
-Subject: [PATCH 07/10] Documentation: filesystems: overlayfs: drop doubled word
-Date: Fri,  3 Jul 2020 14:43:22 -0700
-Message-ID: <20200703214325.31036-8-rdunlap@infradead.org>
+Subject: [PATCH 06/10] Documentation: filesystems: mount_api: drop doubled word
+Date: Fri,  3 Jul 2020 14:43:21 -0700
+Message-ID: <20200703214325.31036-7-rdunlap@infradead.org>
 References: <20200703214325.31036-1-rdunlap@infradead.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-unionfs-owner@vger.kernel.org>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=merlin.20170209; h=Content-Transfer-Encoding:MIME-Version:
         References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
         Content-Type:Content-ID:Content-Description;
-        bh=incZpa5IzYuxKoiVY1wfaG2NDrHQ8Af3HlDfc4ZtKDk=; b=KEMj7EoGqSbPuk7g2qxJF1qUP/
-        CY6kqOAsh2Juj8iQvnuFEy2bV69j9JSGthAPu2m68ycrMUgtQM72hXhI6P/dQTowSl0qhQYAi19fG
-        KPgIaXtFNhbtYxo2657TsAWYkg4bHcxNFwDVQ2ZPeoMCoI8SehbPfp/UPte4cgP8uaa4Bi+8yQVnA
-        EdGeZBlNiZ3yPuC4TFSgkBJPUMfS2/0nHSRbTBk/Eh7WgpMt5zPHsB2LMC0CMrlkLwDFIbTj5szCn
-        t0gH80gG70GITOIlbUZY4Oudy0vu59YfhplxD9y3riRQuMaUf+oBfyWccwA5NI+1XdA+fvi9XceNV
-        e1WJ04ow==;
+        bh=+9BMx8vXl0RZqSK+MgrF6zLZBmku3oa+32qwOecwZUg=; b=rZ/20u0Ti2mJi1e37mKEYHghIH
+        60xqLsz5GHX+Pk01aa37T0Cb+T+CwvDTnRTWgjcK6latUX3pIy9dwcRPVCSLqvbBwljN/hr06vHr8
+        Q0e+ujHDCDJMcY+VZ/vOLA1y3hf5dhGd6SI5fKUGJ5z5/o6b1eywWjp9IgjzUrEml6fuuom401BOe
+        +PBWkK6XoLG4G2ZBP/evAgydhGDU+5KLAuUL4fqxqzZA91ViZleW05VLi5UYv8FlZkWNkDVzYoHSY
+        crsyxR+8FY1QnRmGEw4z2r91dHH2gtAFH5axuW4KpwcjGGofQc8HTaaE+Z3QxHWXbyD3bCMyAQ6jk
+        p8ZQHPBQ==;
 In-Reply-To: <20200703214325.31036-1-rdunlap@infradead.org>
-Sender: linux-unionfs-owner@vger.kernel.org
+Sender: linux-fsdevel-owner@vger.kernel.org
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: linux-kernel@vger.kernel.org
 Cc: Randy Dunlap <rdunlap@infradead.org>, Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org, Ian Kent <raven@themaw.net>, autofs@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-cachefs@redhat.com, Joel Becker <jlbec@evilplan.org>, Christoph Hellwig <hch@lst.de>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Eric Biggers <ebiggers@kernel.org>, "Theodore Y . Ts'o" <tytso@mit.edu>, linux-fscrypt@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
 
-Drop the doubled word "the".
+Drop the doubled word "struct".
 
 Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: linux-doc@vger.kernel.org
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: linux-fsdevel@vger.kernel.org
 ---
- Documentation/filesystems/overlayfs.rst |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/filesystems/mount_api.rst |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- linux-next-20200701.orig/Documentation/filesystems/overlayfs.rst
-+++ linux-next-20200701/Documentation/filesystems/overlayfs.rst
-@@ -328,7 +328,7 @@ the time of copy (on-demand vs. up-front
- Multiple lower layers
- ---------------------
+--- linux-next-20200701.orig/Documentation/filesystems/mount_api.rst
++++ linux-next-20200701/Documentation/filesystems/mount_api.rst
+@@ -213,7 +213,7 @@ The filesystem context points to a table
+ 		void (*free)(struct fs_context *fc);
+ 		int (*dup)(struct fs_context *fc, struct fs_context *src_fc);
+ 		int (*parse_param)(struct fs_context *fc,
+-				   struct struct fs_parameter *param);
++				   struct fs_parameter *param);
+ 		int (*parse_monolithic)(struct fs_context *fc, void *data);
+ 		int (*get_tree)(struct fs_context *fc);
+ 		int (*reconfigure)(struct fs_context *fc);
+@@ -247,7 +247,7 @@ manage the filesystem context.  They are
+    * ::
  
--Multiple lower layers can now be given using the the colon (":") as a
-+Multiple lower layers can now be given using the colon (":") as a
- separator character between the directory names.  For example:
+ 	int (*parse_param)(struct fs_context *fc,
+-			   struct struct fs_parameter *param);
++			   struct fs_parameter *param);
  
-   mount -t overlay overlay -olowerdir=/lower1:/lower2:/lower3 /merged
+      Called when a parameter is being added to the filesystem context.  param
+      points to the key name and maybe a value object.  VFS-specific options
