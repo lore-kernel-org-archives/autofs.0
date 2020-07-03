@@ -1,100 +1,54 @@
-From: Emanuele Giuseppe Esposito <eesposit@redhat.com>
-Subject: Re: [PATCH 2/8] fs: extract simple_pin/release_fs to separate files
-Date: Tue, 21 Apr 2020 13:26:43 +0200
-Message-ID: <0d33b363-3801-8147-6f49-f1d6a845fdaf@redhat.com>
-References: <20200414124304.4470-1-eesposit@redhat.com>
- <20200414124304.4470-3-eesposit@redhat.com>
- <7abfdd3b-dbbe-52ab-df53-95e9f86d39cd@linux.ibm.com>
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: [PATCH 00/10] Documentation: filesystems: eliminate duplicated words
+Date: Fri,  3 Jul 2020 14:43:15 -0700
+Message-ID: <20200703214325.31036-1-rdunlap@infradead.org>
 Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane-mx.org@lists.ozlabs.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
- s=mimecast20190719; t=1587468413;
- h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
- to:to:cc:cc:mime-version:mime-version:content-type:content-type:
- content-transfer-encoding:content-transfer-encoding:
- in-reply-to:in-reply-to:references:references;
- bh=wz4VbvB++wEfRs6vgYsKShIscVlUFGxxa9BcmRhqVZE=;
- b=bztazM9d7Ve3/nqCTE1J3qFDkuKV1zj5R+2Ut9MvPnPQtfTbyEdQijk/vRmCb4ka4/FQlz
- 4dYuRfyU3H1z6L8PjMpk7U/SQVGwhR09h6Ol0gQuhkisiQxTCOiwDfOLduBTOk6DSEWKXi
- /ACK1PITnxToKTllyeT0whrmMkiKBso=
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
- s=mimecast20190719; t=1587468413;
- h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
- to:to:cc:cc:mime-version:mime-version:content-type:content-type:
- content-transfer-encoding:content-transfer-encoding:
- in-reply-to:in-reply-to:references:references;
- bh=wz4VbvB++wEfRs6vgYsKShIscVlUFGxxa9BcmRhqVZE=;
- b=bztazM9d7Ve3/nqCTE1J3qFDkuKV1zj5R+2Ut9MvPnPQtfTbyEdQijk/vRmCb4ka4/FQlz
- 4dYuRfyU3H1z6L8PjMpk7U/SQVGwhR09h6Ol0gQuhkisiQxTCOiwDfOLduBTOk6DSEWKXi
- /ACK1PITnxToKTllyeT0whrmMkiKBso=
-In-Reply-To: <7abfdd3b-dbbe-52ab-df53-95e9f86d39cd@linux.ibm.com>
-Content-Language: en-US
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
-List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
-List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
-Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane-mx.org@lists.ozlabs.org
-Sender: "Linuxppc-dev"
- <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane-mx.org@lists.ozlabs.org>
-Content-Type: text/plain; charset="utf-8"; format="flowed"
-To: Frederic Barrat <fbarrat@linux.ibm.com>, linux-nfs@vger.kernel.org
-Cc: Song Liu <songliubraving@fb.com>, linux-usb@vger.kernel.org, bpf@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, David Airlie <airlied@linux.ie>, Heiko Carstens <heiko.carstens@de.ibm.com>, Alexei Starovoitov <ast@kernel.org>, dri-devel@lists.freedesktop.org, "J. Bruce Fields" <bfields@fieldses.org>, Joseph Qi <joseph.qi@linux.alibaba.com>, Hugh Dickins <hughd@google.com>, Paul Mackerras <paulus@samba.org>, John Johansen <john.johansen@canonical.com>, netdev@vger.kernel.org, linux-s390@vger.kernel.org, Christoph Hellwig <hch@lst.de>, Andrew Donnellan <ajd@linux.ibm.com>, Matthew Garrett <matthew.garrett@nebula.com>, linux-efi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Daniel Borkmann <daniel@iogearbox.net>, Christian Borntraeger <borntraeger@de.ibm.com>, linux-rdma@vger.kernel.org, Mark Fasheh <mark@fasheh.com>, Anton Vorontsov <anton@enomsg.org>, John
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-unionfs-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=merlin.20170209; h=Content-Transfer-Encoding:MIME-Version:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:In-Reply-To:References;
+        bh=DSkLdwA8XxSZdlvPiriZ+UIh2jMZmNiuIw4Gi/uxGAg=; b=Xd2zq2HkI3a0FU1VBBjtPJvqTX
+        CGXLZmLSDI3L5qG/DVedVDS5awYqCdV1BFqob+4VuvTrTnrUkb0EXjDT64f27cLBrSSCioggLdi3A
+        SSaCaup+QndnrggX7aX3O/n6wXHjDe4GAXQWqwduGnAEsJRbhHjtYCo+PErhJukhbXxlgA+uA/tAN
+        4NAM3YHXlgfQ7lhOGj0Y7+x2iXQE+CVqXFoDWbfBZeUekvHMK4fMsHG861Tz6daghBjgf8IzcwDJ6
+        lLvzSkJTgJEEdKOMP5wAhkXr1GHC1GpjcTM54CtMm0KALo+ln3Y4Tw7A0HwryPVWrfKLvsFgPUrtY
+        ZhXUP3TA==;
+Sender: linux-unionfs-owner@vger.kernel.org
+List-ID: <autofs.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: linux-kernel@vger.kernel.org
+Cc: Randy Dunlap <rdunlap@infradead.org>, Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org, Ian Kent <raven@themaw.net>, autofs@vger.kernel.org, David Howells <dhowells@redhat.com>, linux-cachefs@redhat.com, Joel Becker <jlbec@evilplan.org>, Christoph Hellwig <hch@lst.de>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Eric Biggers <ebiggers@kernel.org>, "Theodore Y . Ts'o" <tytso@mit.edu>, linux-fscrypt@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
+
+Fix doubled words in filesystems files.
 
 
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: linux-doc@vger.kernel.org
+Cc: Ian Kent <raven@themaw.net>
+Cc: autofs@vger.kernel.org
+Cc: David Howells <dhowells@redhat.com>
+Cc: linux-cachefs@redhat.com
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: linux-fsdevel@vger.kernel.org
+Cc: Eric Biggers <ebiggers@kernel.org>
+Cc: Theodore Y. Ts'o <tytso@mit.edu>
+Cc: linux-fscrypt@vger.kernel.org
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org
 
-On 4/21/20 1:19 PM, Frederic Barrat wrote:
->=20
->=20
->> diff --git a/drivers/misc/cxl/Kconfig b/drivers/misc/cxl/Kconfig
->> index 39eec9031487..a62795079d9c 100644
->> --- a/drivers/misc/cxl/Kconfig
->> +++ b/drivers/misc/cxl/Kconfig
->> @@ -19,6 +19,7 @@ config CXL
->> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 select CXL_BASE
->> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 select CXL_AFU_DRIVER_OPS
->> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 select CXL_LIB
->> +=C2=A0=C2=A0=C2=A0 select SIMPLEFS
->> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 default m
->> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 help
->> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 Select this option to enable =
-driver support for IBM Coherent
->> diff --git a/drivers/misc/cxl/api.c b/drivers/misc/cxl/api.c
->> index b493de962153..0b8f8de7475a 100644
->> --- a/drivers/misc/cxl/api.c
->> +++ b/drivers/misc/cxl/api.c
->> @@ -9,6 +9,7 @@
->> =C2=A0 #include <misc/cxl.h>
->> =C2=A0 #include <linux/module.h>
->> =C2=A0 #include <linux/mount.h>
->> +#include <linux/simplefs.h>
->> =C2=A0 #include <linux/pseudo_fs.h>
->> =C2=A0 #include <linux/sched/mm.h>
->> =C2=A0 #include <linux/mmu_context.h>
->> diff --git a/drivers/misc/ocxl/Kconfig b/drivers/misc/ocxl/Kconfig
->> index 2d2266c1439e..ddd9245fff3d 100644
->> --- a/drivers/misc/ocxl/Kconfig
->> +++ b/drivers/misc/ocxl/Kconfig
->> @@ -12,6 +12,7 @@ config OCXL
->> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 depends on PPC_POWERNV && PCI && EEH
->> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 select OCXL_BASE
->> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 select HOTPLUG_PCI_POWERNV
->> +=C2=A0=C2=A0=C2=A0 select SIMPLEFS
->=20
->=20
-> It's not clear to me the Kconfig updated is needed for the ocxl driver.=
-=20
-> I think it's only needed for the cxl driver.
 
-I am going to get rid of the separate simplefs.c file and related=20
-Kconfig entry and put everything in fs/libfs.c, so this file (together=20
-with many others touched in this patch) won't be modified in v2.
-
-Thanks,
-
-Emanuele
-
+ Documentation/filesystems/autofs-mount-control.rst |    6 +++---
+ Documentation/filesystems/caching/operations.rst   |    2 +-
+ Documentation/filesystems/configfs.rst             |    2 +-
+ Documentation/filesystems/directory-locking.rst    |    4 ++--
+ Documentation/filesystems/fsverity.rst             |    2 +-
+ Documentation/filesystems/mount_api.rst            |    4 ++--
+ Documentation/filesystems/overlayfs.rst            |    2 +-
+ Documentation/filesystems/path-lookup.rst          |    2 +-
+ Documentation/filesystems/sysfs-tagging.rst        |    2 +-
+ Documentation/filesystems/vfs.rst                  |    4 ++--
+ 10 files changed, 15 insertions(+), 15 deletions(-)
