@@ -1,16 +1,16 @@
 From: Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>
 Subject: [RFC PATCH] autofs: find_autofs_mount overmounted parent support
-Date: Wed,  3 Mar 2021 18:28:59 +0300
-Message-ID: <20210303152931.771996-1-alexander.mikhalitsyn@virtuozzo.com>
+Date: Wed,  3 Mar 2021 19:17:03 +0300
+Message-ID: <20210303161705.776241-1-alexander.mikhalitsyn@virtuozzo.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=virtuozzo.com; s=relay; h=MIME-Version:Message-Id:Date:Subject:From:
-        Content-Type; bh=ytMuFTYJbOuVzYAB8UcxHSbHYeMMy8+JvA85KaeMmIU=; b=vZqwYNQG/blc
-        IfoK6sw52c+h/GJYjxXDQjk48bIVzjekeInDmLslNCZ+1EgrF3xv2YtIjH9E/YUdZTtR9Tp1m/Hk+
-        owbOhv3CbY6w8mjTwzMRl0gS7vdEs8mYAazsfr1J8p5whUx1qDEgSCVm2bLsZXgnsBTt27k8AE3lu
-        iU7TI=;
+        Content-Type; bh=ytMuFTYJbOuVzYAB8UcxHSbHYeMMy8+JvA85KaeMmIU=; b=g8uozpPqx1C0
+        3iniseSFPsuNf9qb1sPPVJB3Vos6T9/wmyTzMZE2dvgS8Fz9f3a6O8ojrRyrOwr1T9xACeFKkmEqo
+        mKsdzX5yAaUM4hDDYdsIzhJQ/rG6RqoLCSMxWR/BaU0KlrpWxy+oiPXMsytOVWCDqW2INy9iNWXsM
+        fnAoI=;
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: raven@themaw.net
