@@ -1,101 +1,176 @@
 From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH] autofs: fix wait name hash calculation in autofs_wait()
-Date: Fri, 15 Oct 2021 08:08:22 +0800
-Message-ID: <2449a6ad3ea38087d546279ac5a483e5c718a2b3.camel@themaw.net>
-References: <163238121836.315941.18066358755443618960.stgit@mickey.themaw.net>
-         <CAFxkdAraAe37_5bGLJtTtxZCaKTqgVPh4hTbcVC=08vRt-Zizg@mail.gmail.com>
+Subject: [ANNOUNCE] autofs 5.1.8 release
+Date: Tue, 19 Oct 2021 14:07:55 +0800
+Message-ID: <b54fb31652a4ba76b39db66b8ae795ee3af6f025.camel@themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=
-        message-id:subject:from:to:cc:date:in-reply-to:references
-        :content-type:mime-version:content-transfer-encoding; s=fm1; bh=
-        uQ2ph/m96pNwPz5SmsbAnB4GNfg56La5NKbKXh/rpLA=; b=XMPa/VHCYlUnmsVj
-        5GsmfVZY2n/EPEunz6OzUle7J42fCHuZ975jpZN1JU0odZQs2SQoGXPXdiVJkmVV
-        7wsG4p2xFeSO5+6ghcJVJl2WqS9tZB8Q2kjPByH4B59SntDJ4tyA8/NLsBshtKy3
-        E/a9jbOs9lfOjNN/+i5kDwwcz4p+VRigwW5Muan/5VqDOkZC9goBFSjFn/gDzxri
-        aPNTjVymH/pg6rl0ykcW7l8ZxL7p49mW88WTiqB5UQjxNmd0R46KLtcI3G6x+O1e
-        oudSpxGvoW/Y2Xy68UlVr26HAJj0ZklGoEATkdo3BFjBZlmlilPrRM4M2voIQUBG
-        2/vPdA==
+        message-id:subject:from:to:cc:date:content-type:mime-version
+        :content-transfer-encoding; s=fm1; bh=hRkgF8ZZUt/Xog6cwemU0+CcHu
+        F63kpq3UXZqXJb3o4=; b=FBXQq6WeG5I6iCMgCXshirHJL4kIBEjxMje0gYWmqk
+        axiECcT11JQp0tw4/jV6uKNbA+KhH5ccSJqomwFAELDrv0mmNtOuPjoSrtYkz8u4
+        c18XnTvRw/RlECguaxY1BFtPtVXh4s5t3ucJ46Bg5wgwkWTxVPj78m10uQdab+lA
+        00Hoxxgy954btfkSZVP5dAHTf7EBo2yvob9GQu4rYoly+wzAAiFepMLe97zvD2yw
+        Y0R6nboPruv6q2wsN4PDdJejqMpnFuInkqjm8mVJPX/L59LhN2AM3THPQmeFi6jC
+        TLvjVqjtQVjzq6SpaCqWxCH4q1s56YBfMaS35RdFJIIA==
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
         messagingengine.com; h=cc:content-transfer-encoding:content-type
-        :date:from:in-reply-to:message-id:mime-version:references
-        :subject:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
-        :x-sasl-enc; s=fm1; bh=uQ2ph/m96pNwPz5SmsbAnB4GNfg56La5NKbKXh/rp
-        LA=; b=n63/Cle+6WI0/ny4JTBshPoGk9cgWLf430Nyt0fE5BrIAPn75aubkKjcZ
-        uqAVbIGi0EhtrlqXyofKtCWRaw01OAf5lLcw2V3ANf0EXRMF9B4iA3xWmeujwqXq
-        px2/IKPZKZS+wWJfvZwcSWhTPizoW1NUx4QqzhAI9/alA1LEYCtgsWb7ciCn2VWV
-        /MB5tY5fRqxcJ/qFzzM8IffogK9a0f92JMUg7mCEUiHfK9YwZL1nGm0faVy6aTTG
-        jUZMyy/e1pXITMKhzqakoIglpaeyC54VKKjIcJA6MuqcpzJ5lVMhrxJGVhuO8XGH
-        8fG1iMSwebiV9oZnXAV6d+f9Gd21w==
-In-Reply-To: <CAFxkdAraAe37_5bGLJtTtxZCaKTqgVPh4hTbcVC=08vRt-Zizg@mail.gmail.com>
+        :date:from:message-id:mime-version:subject:to:x-me-proxy
+        :x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm1; bh=hRkgF8
+        ZZUt/Xog6cwemU0+CcHuF63kpq3UXZqXJb3o4=; b=A+eTYj3bXGuU6EXzOTZI+A
+        01l/kDxnDtmXdqZG+jZlGO7gmlA9ozi+KT4PIoeGPkd7lHYr/uGdu27cssG0MhsJ
+        rZGX/NaFoQHSXxhZEIYigoAsAuROEGvFzpvC7A9t07mM0qqvyxesrqayp0YX2jkU
+        QD7FVHjtcfmJ2nzRnxMeZDXqwi17W+SlB7PUJYtJ1ESN++S8lD4yKaqHOKAn+SfQ
+        zR7XGVYNlPAMQtj9+78d7buz/lZaa8sP/wHBjTz3c97OOcQwFtAB5RJrd5hp9Pbd
+        lXrORK0jReIr0f4ZRWmWp/7Gh822C0iP3aVnUPhoEgX5SN3x2L2cmPY6d0pY7zjg
+        ==
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="utf-8"
-To: Justin Forbes <jmforbes@linuxtx.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, autofs mailing list <autofs@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: autofs@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, 2021-10-14 at 10:11 -0500, Justin Forbes wrote:
-> On Thu, Sep 23, 2021 at 2:20 AM Ian Kent <raven@themaw.net> wrote:
-> > 
-> > There's a mistake in commit 2be7828c9fefc ("get rid of
-> > autofs_getpath()")
-> > that affects kernels from v5.13.0, basically missed because of me
-> > not
-> > fully testing the change for Al.
-> > 
-> > The problem is that the hash calculation for the wait name qstr
-> > hasn't
-> > been updated to account for the change to use dentry_path_raw().
-> > This
-> > prevents the correct matching an existing wait resulting in
-> > multiple
-> > notifications being sent to the daemon for the same mount which
-> > must
-> > not occur.
-> > 
-> > The problem wasn't discovered earlier because it only occurs when
-> > multiple processes trigger a request for the same mount
-> > concurrently
-> > so it only shows up in more aggressive testing.
-> 
-> I suppose it shows up in more than just testing, as we have a bug
-> where this is impacting a user doing regular desktop things.
+Hi all,
 
-Yes, but what the patch description is talking about is my not
-discovering the problem when I tested the original change.
+It's time for a release, autofs-5.1.8.
 
-I have a similar Fedora bug too but that came in some time after
-I discovered the problem when testing a new autofs release.
+The bulk of the changes in this release are improvements to the
+internal hosts map and related code.
 
-All it takes is multiple processes concurrently triggering an
-autofs automount point. Because the qstr hash doesn't match
-duplicate mount requests are sent to the daemon which is a
-problem.
+The internal hosts map was performing very poorly when there were a
+very large number of exports from a server. This was because the
+server exports are turned into an autofs map entry with an offset
+for each of the exports and the offset handling code was written
+with the assumption the number of offsets is small. After doing
+as much optimization as possible with the existing code accessing
+a server with 30k exports took more than 45 seconds on initial
+access and shutting down autofs would take more than a minute (with
+all offsets still present), not ok at all.
 
-> 
-> Justin
-> 
-> > Fixes: 2be7828c9fefc ("get rid of autofs_getpath()")
-> > Cc: stable@vger.kernel.org
-> > Signed-off-by: Ian Kent <raven@themaw.net>
-> > ---
-> >  fs/autofs/waitq.c |    2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/fs/autofs/waitq.c b/fs/autofs/waitq.c
-> > index 16b5fca0626e..54c1f8b8b075 100644
-> > --- a/fs/autofs/waitq.c
-> > +++ b/fs/autofs/waitq.c
-> > @@ -358,7 +358,7 @@ int autofs_wait(struct autofs_sb_info *sbi,
-> >                 qstr.len = strlen(p);
-> >                 offset = p - name;
-> >         }
-> > -       qstr.hash = full_name_hash(dentry, name, qstr.len);
-> > +       qstr.hash = full_name_hash(dentry, qstr.name, qstr.len);
-> > 
-> >         if (mutex_lock_interruptible(&sbi->wq_mutex)) {
-> >                 kfree(name);
-> > 
-> > 
+Because of need to handle offset mount trees as subtrees the existing
+linear list implementation was complicated and hard to maintain so it
+was re-written to leverage the recently added (in autofs-5.1.7) binary
+tree implementation. The result is much simpler and cleaner and takes
+10-15 seconds on initial access and about the same amount of time to
+shutdown autofs for a server with 30k exports. That's not quite good
+enough for interactive use but it's pretty close and, after all, there
+are a "lot" of exports.
+
+There are also quite a few bug fixes and minor improvements.
+
+autofs
+======
+
+The package can be found at:
+https://www.kernel.org/pub/linux/daemons/autofs/v5/
+
+It is autofs-5.1.8.tar.[gz|xz]
+
+No source rpm is there as it can be produced by using:
+
+rpmbuild -ts autofs-5.1.8.tar.gz
+
+and the binary rpm by using:
+
+rpmbuild -tb autofs-5.1.8.tar.gz
+
+Here are the entries from the CHANGELOG which outline the updates:
+
+- add xdr_exports().
+- remove mount.x and rpcgen dependencies.
+- dont use realloc in host exports list processing.
+- use sprintf() when constructing hosts mapent.
+- fix mnts_remove_amdmount() uses wrong list.
+- Fix option for master read wait.
+- eliminate cache_lookup_offset() usage.
+- fix is mounted check on non existent path.
+- simplify cache_get_parent().
+- set offset parent in update_offset_entry().
+- remove redundant variables from mount_autofs_offset().
+- remove unused parameter form do_mount_autofs_offset().
+- refactor umount_multi_triggers().
+- eliminate clean_stale_multi_triggers().
+- simplify mount_subtree() mount check.
+- fix mnts_get_expire_list() expire list construction.
+- fix inconsistent locking in umount_subtree_mounts().
+- fix return from umount_subtree_mounts() on offset list delete.
+- pass mapent_cache to update_offset_entry().
+- fix inconsistent locking in parse_mount().
+- remove unused mount offset list lock functions.
+- eliminate count_mounts() from expire_proc_indirect().
+- eliminate some strlen calls in offset handling.
+- don't add offset mounts to mounted mounts table.
+- reduce umount EBUSY check delay.
+- cleanup cache_delete() a little.
+- rename path to m_offset in update_offset_entry().
+- don't pass root to do_mount_autofs_offset().
+- rename tree implementation functions.
+- add some multi-mount macros.
+- remove unused functions cache_dump_multi() and cache_dump_cache().
+- add a len field to struct autofs_point.
+- make tree implementation data independent.
+- add mapent tree implementation.
+- add tree_mapent_add_node().
+- add tree_mapent_delete_offsets().
+- add tree_mapent_traverse_subtree().
+- fix mount_fullpath().
+- add tree_mapent_cleanup_offsets().
+- add set_offset_tree_catatonic().
+- add mount and umount offsets functions.
+- switch to use tree implementation for offsets.
+- remove obsolete functions.
+- remove redundant local var from sun_mount().
+- use mount_fullpath() in one spot in parse_mount().
+- pass root length to mount_fullpath().
+- remove unused function master_submount_list_empty().
+- move amd mounts removal into lib/mounts.c.
+- check for offset with no mount location.
+- remove mounts_mutex.
+- remove unused variable from get_exports().
+- add missing free in handle_mounts().
+- remove redundant if check.
+- fix possible memory leak in master_parse().
+- fix possible memory leak in mnts_add_amdmount().
+- fix double unlock in parse_mount().
+- add length check in umount_subtree_mounts().
+- fix flags check in umount_multi().
+- dont try umount after stat() ENOENT fail.
+- remove redundant assignment in master_add_amd_mount_section_mounts().
+- fix dead code in mnts_add_mount().
+- fix arg not used in error print.
+- fix missing lock release in mount_subtree().
+- fix double free in parse_mapent().
+- refactor lookup_prune_one_cache() a bit.
+- cater for empty mounts list in mnts_get_expire_list().
+- add ext_mount_hash_mutex lock helpers.
+- fix amd section mounts map reload.
+- fix dandling symlink creation if nis support is not available.
+- dont use AUTOFS_DEV_IOCTL_CLOSEMOUNT.
+- fix lookup_prune_one_cache() refactoring change.
+- fix amd hosts mount expire.
+- fix offset entries order.
+- use mapent tree root for tree_mapent_add_node().
+- eliminate redundant cache lookup in tree_mapent_add_node().
+- fix hosts map offset order.
+- fix direct mount deadlock.
+- add missing description of null map option.
+- fix nonstrict offset mount fail handling.
+- fix concat_options() error handling.
+- eliminate some more alloca usage.
+- use default stack size for threads.
+- fix use of possibly NULL var in lookup_program.c:match_key().
+- fix incorrect print format specifiers in get_pkt().
+- add mapent path length check in handle_packet_expire_direct().
+- add copy length check in umount_autofs_indirect().
+- add some buffer length checks to master map parser.
+- add buffer length check to rmdir_path().
+- eliminate buffer usage from handle_mounts_cleanup().
+- add buffer length checks to autofs mount_mount().
+- make NFS version check flags consistent.
+- refactor get_nfs_info().
+- also require TCP_REQUESTED when setting NFS port.
+
+Ian
+
 
 
