@@ -1,131 +1,101 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: [PATCH 0/1] autofs: fix memory leak of waitqueues in
- autofs_catatonic_mode
-Date: Sat, 11 Mar 2023 15:01:45 +0800
-Message-ID: <ff12aef6-b3a1-e8ab-45c4-0976673bce84@themaw.net>
-References: <20230211195950.452364-1-pchelkin@ispras.ru>
- <5b86f03b-020b-1584-be8f-b7dc7277fa0a@themaw.net>
- <2f87a31c-7879-dce8-9c4b-01d2e781e22c@themaw.net>
- <20230310175627.dvmkyvgb7b3qehbx@fpc>
+From: Arnd Bergmann <arnd@kernel.org>
+Subject: [PATCH] autofs: use flexible array in ioctl structure
+Date: Tue, 23 May 2023 10:19:35 +0200
+Message-ID: <20230523081944.581710-1-arnd@kernel.org>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
-        :cc:content-transfer-encoding:content-type:content-type:date
-        :date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-        :references:reply-to:sender:subject:subject:to:to; s=fm1; t=
-        1678518111; x=1678604511; bh=feqTz2HniZqY/yt47o/AlWtYhoQHaXGw7ql
-        1hoEkXKY=; b=BYtuz7HWC/S3Oh0s4/uNl714hq2Bu/njK8bv3IWaYhKCllp2/0C
-        Mi+prRlVDMjJoun7FFvmtcZypv0k4ZgXBq0xdWz5g89mMHLpHtghWlHqtvtt3NqP
-        Yul8D0z3W1hCzYbMA4JK7Zti2pMDjMHXgVSBbE/AVFf7CSShauBEkEk4LNlZOVkT
-        gz+io8HfZqQ1gX5au9ho12aTpcKQAM7AgKFpK/YMl/G46joM+wWtlNeCnvJJjs6F
-        cbCZDrj1mIQJOY/4L2Cy/gMD59AOJR+iellIqquGuzRuCxBMZgUF+882WN2dmdU9
-        RoBJxy9R8GmDrO7Rc7IBYyqKtjRUY3spTAA==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-transfer-encoding
-        :content-type:content-type:date:date:feedback-id:feedback-id
-        :from:from:in-reply-to:in-reply-to:message-id:mime-version
-        :references:reply-to:sender:subject:subject:to:to:x-me-proxy
-        :x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=
-        1678518111; x=1678604511; bh=feqTz2HniZqY/yt47o/AlWtYhoQHaXGw7ql
-        1hoEkXKY=; b=C6COX5XoTMnu1fmW+GAFv7Jk+hkNnpaRLmmvXh0M6brkO8xUskJ
-        hQFTQylX/XL5h+RMt86497enasRzFPx60Dcfx/BpyX9onmta1/igdDjOaUFpc5Cl
-        mq4MD+e2eEQYeIvvkiu+05Oj0ZNkzPT7OFcby1doXAHSGn7ab2aXmiWn55znc1F2
-        ftwZXJz096Qax+5xfByzJrQCmUcf0aPLKApP2Idg1dlXHYr6op7euVzUpKIww/xX
-        n14ATT5ffnnG9t60AE7puYeaGEkzikwwlOR8WPpWGBZSjZ5jsoGGccmx8OWuxnzD
-        nDUJOxib2qJZyTxErqIZ6Ed6J2oNSpLTm3g==
-Content-Language: en-US
-In-Reply-To: <20230310175627.dvmkyvgb7b3qehbx@fpc>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1684829991;
+        bh=A0k4JoNWJBA9S3JzueEEL26tq0QQWLvGW3XSCqvpSaY=;
+        h=From:To:Cc:Subject:Date:From;
+        b=svMPzrcZ6aqyEWn8O2IwjO0F19CyCKHU+2VvTS3vLA35lKrR1Rj7g1nOkSYQfqXkq
+         AHZ4fk1U+MLZRJkaYM7Y1uisI2+9NMOQAS6psMa1n+zL3Fs/+HaJ/hAlyWwg3cHTEi
+         0sqJZGXDmtmxte3YKS83p1nLC3lT3P8PM95nHBUlItFR99DoXSCfcEevj1Hi9/p/nT
+         jK63u7aP3cky+U2AyDyqFB1KhcIL6E7S7M89yRrPifJJSwZxBj7dtHqY8MJLUeDuOw
+         C4FBNhvGliAabn0RsZB3k/vVZC2n//vlhwxA19Zs+YpIZvSJeYEn75F+ag8Qy00wHm
+         UtQ1L2X6SG4vw==
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Fedor Pchelkin <pchelkin@ispras.ru>, Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Matthew Wilcox <willy@infradead.org>, Andrei Vagin <avagin@gmail.com>, Takeshi Misawa <jeliantsurux@gmail.com>, autofs@vger.kernel.org, linux-kernel@vger.kernel.org, Alexey Khoroshilov <khoroshilov@ispras.ru>, lvc-project@linuxtesting.org
+Content-Type: text/plain; charset="us-ascii"
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, stable@vger.kernel.org, Kees Cook <keescook@chromium.org>, Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
 
+From: Arnd Bergmann <arnd@arndb.de>
 
-On 11/3/23 01:56, Fedor Pchelkin wrote:
-> On Mon, Feb 13, 2023 at 12:37:16PM +0800, Ian Kent wrote:
->> I was going to Ack the patch but I wondering if we should wait a little
->>
->> while and perhaps (probably) include the wake up call change as well.
->>
-> Hmm, those would be separate patches?
->
-> An interesting thing is that the code itself supposes the wake up calls
-> from autofs_wait_release() and autofs_catatonic_mode() to be related in
-> some way (see autofs_wait fragment):
->
-> 	/*
-> 	 * wq->name.name is NULL iff the lock is already released
-> 	 * or the mount has been made catatonic.
-> 	 */
-> 	wait_event_killable(wq->queue, wq->name.name == NULL);
-> 	status = wq->status;
->
-> It seems 'the lock is already released' refers to autofs_wait_release()
-> as there is no alternative except the call to catatonic function where
-> wq->name.name is NULL. So apparently the wake up calls should be the same
-> (although I don't know if autofs_catatonic_mode has some different
-> behaviour in such case, but probably it doesn't differ here).
+Commit df8fc4e934c1 ("kbuild: Enable -fstrict-flex-arrays=3") introduced a warning
+for the autofs_dev_ioctl structure:
 
-I think that, because there are processes waiting, they will always go
+In function 'check_name',
+    inlined from 'validate_dev_ioctl' at fs/autofs/dev-ioctl.c:131:9,
+    inlined from '_autofs_dev_ioctl' at fs/autofs/dev-ioctl.c:624:8:
+fs/autofs/dev-ioctl.c:33:14: error: 'strchr' reading 1 or more bytes from a region of size 0 [-Werror=stringop-overread]
+   33 |         if (!strchr(name, '/'))
+      |              ^~~~~~~~~~~~~~~~~
+In file included from include/linux/auto_dev-ioctl.h:10,
+                 from fs/autofs/autofs_i.h:10,
+                 from fs/autofs/dev-ioctl.c:14:
+include/uapi/linux/auto_dev-ioctl.h: In function '_autofs_dev_ioctl':
+include/uapi/linux/auto_dev-ioctl.h:112:14: note: source object 'path' of size 0
+  112 |         char path[0];
+      |              ^~~~
 
-via the tail of autofs_wait() so the wait will be freed at that point.
+This is easily fixed by changing the gnu 0-length array into a c99
+flexible array. Since this is a uapi structure, we have to be careful
+about possible regressions but this one should be fine as they are
+equivalent here. While it would break building with ancient gcc versions
+that predate c99, it helps building with --std=c99 and -Wpedantic builds
+in user space, as well as non-gnu compilers. This means we probably
+also want it fixed in stable kernels.
 
+Cc: stable@vger.kernel.org
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Gustavo A. R. Silva" <gustavoars@kernel.org>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ Documentation/filesystems/autofs-mount-control.rst | 2 +-
+ Documentation/filesystems/autofs.rst               | 2 +-
+ include/uapi/linux/auto_dev-ioctl.h                | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-Alternately autofs_wait_release() will be called from user space daemon
-
-to tell the kernel it's done with the current notification.
-
-
-I think there was an order of execution problem at some point between
-
-autofs_wait() and autofs_wait_release() hence the code there. The same
-
-may be the case for autofs_catatonic_mode() which is what the patch
-
-implies.
-
-
-These mount points can be left mounted after the user space daemon
-
-exits with the processes still blocked so umounting the mount should
-
-trigger the freeing of the name or they may be set catatonic by the
-
-daemon at exit, again freeing the name, and in both cases unblocking
-
-the processes to free the wait.
-
-
-So I didn't think there was a memory leak here but SyZkaller says
-
-there is.
-
-
->
-> It's also strange that autofs_kill_sb() calls autofs_catatonic_mode() and
-> currently it just decrements the wait_ctr's and it is not clear to me
-> where the waitqueues are eventually freed in such case. Only if
-> autofs_wait_release() or autofs_wait() are called? I'm not sure whether
-> they are definitely called after that or not.
->
-> [1] https://www.spinics.net/lists/autofs/msg01878.html
->> In any case we need Al to accept it (cc'd).
->>
->> Hopefully Al will offer his opinion on the changes too.
->>
-> It would be very nice if probably Al would make it more clear.
->
-> At the moment I think that the leak issue should be fixed with the
-> currenly discussed patch and the wake up call issue should be fixed like
-> in [1], but perhaps I'm missing something.
-
-The question I have is, is it possible a process waiting on the wait
-
-queue gets unblocked after the wait is freed in autofs_catatonic_mode?
-
-
-Ian
-
-
+diff --git a/Documentation/filesystems/autofs-mount-control.rst b/Documentation/filesystems/autofs-mount-control.rst
+index bf4b511cdbe8..b5a379d25c40 100644
+--- a/Documentation/filesystems/autofs-mount-control.rst
++++ b/Documentation/filesystems/autofs-mount-control.rst
+@@ -196,7 +196,7 @@ information and return operation results::
+ 		    struct args_ismountpoint	ismountpoint;
+ 	    };
+ 
+-	    char path[0];
++	    char path[];
+     };
+ 
+ The ioctlfd field is a mount point file descriptor of an autofs mount
+diff --git a/Documentation/filesystems/autofs.rst b/Documentation/filesystems/autofs.rst
+index 4f490278d22f..3b6e38e646cd 100644
+--- a/Documentation/filesystems/autofs.rst
++++ b/Documentation/filesystems/autofs.rst
+@@ -467,7 +467,7 @@ Each ioctl is passed a pointer to an `autofs_dev_ioctl` structure::
+ 			struct args_ismountpoint	ismountpoint;
+ 		};
+ 
+-                char path[0];
++                char path[];
+         };
+ 
+ For the **OPEN_MOUNT** and **IS_MOUNTPOINT** commands, the target
+diff --git a/include/uapi/linux/auto_dev-ioctl.h b/include/uapi/linux/auto_dev-ioctl.h
+index 62e625356dc8..08be539605fc 100644
+--- a/include/uapi/linux/auto_dev-ioctl.h
++++ b/include/uapi/linux/auto_dev-ioctl.h
+@@ -109,7 +109,7 @@ struct autofs_dev_ioctl {
+ 		struct args_ismountpoint	ismountpoint;
+ 	};
+ 
+-	char path[0];
++	char path[];
+ };
+ 
+ static inline void init_autofs_dev_ioctl(struct autofs_dev_ioctl *in)
+-- 
+2.39.2
 
