@@ -1,75 +1,73 @@
-From: Jeff Layton <jlayton@kernel.org>
-Subject: Re: [PATCH 0/9] fs: add some missing ctime updates
-Date: Fri, 09 Jun 2023 09:27:36 -0400
-Message-ID: <671ceeb2e019c11617a481739c2e17604456c48c.camel@kernel.org>
+From: Andreas Gruenbacher <agruenba@redhat.com>
+Subject: Re: [PATCH 7/9] gfs2: update ctime when quota is
+ updated
+Date: Fri, 9 Jun 2023 18:44:41 +0200
+Message-ID: <CAHc6FU4wyfQT7T75j2Sd9WNp=ag7hpDZGYkR=m73h2nOaH+AqQ@mail.gmail.com>
 References: <20230609125023.399942-1-jlayton@kernel.org>
-         <2023060931-magazine-nickname-f386@gregkh>
+ <20230609125023.399942-8-jlayton@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1686317260;
-        bh=oSuiJiclTzvMA00+ishDDZSJ5F4CCgIPlxz3qberOkU=;
-        h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
-        b=ctTfeKacHWo5l9K9DxzQOrtlTLoG85/EKA7MvHQ/F1/2q0zByBrbmyXzsM5xu9ZiB
-         z9wHdsdfD4pFeRxFcqVecbJ+Otm388ULgG+bsoled+ga5itRm8LLiC22OcTX19F+j+
-         6yIPcNN1B7m9Ur7wYkJS4IGiKr+2aBq5+dqDL6XT4Raq7b5xw0RxxqP1BRnkC/teoQ
-         1BBAFxOID86v/atOu3NX+L9wnqyt+99xF7OTaMcfAz05y5B3IH3bJDB665QOEe/kU6
-         AzdHw7nXRvFkJ5TMlrv7YVHd1aILHvSrpMhR/sNk7+XbKVcwqz4pHqjL+n9s6tGy8X
-         915cASV+pKXDw==
-In-Reply-To: <2023060931-magazine-nickname-f386@gregkh>
-List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Christian Brauner <brauner@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, Brad Warrum <bwarrum@linux.ibm.com>, Ritu Agarwal <rituagar@linux.ibm.com>, Arnd Bergmann <arnd@arndb.de>, Ian Kent <raven@themaw.net>, "Tigran A. Aivazian" <aivazian.tigran@gmail.com>, Jeremy Kerr <jk@ozlabs.org>, Ard Biesheuvel <ardb@kernel.org>, Namjae Jeon <linkinjeon@kernel.org>, Sungjong Seo <sj1557.seo@samsung.com>, Bob Peterson <rpeterso@redhat.com>, Andreas Gruenbacher <agruenba@redhat.com>, Steve French <sfrench@samba.org>, Paulo Alcantara <pc@manguebit.com>, Ronnie Sahlberg <lsahlber@redhat.com>, Shyam Prasad N <sprasad@microsoft.com>, Tom Talpey <tom@talpey.com>, John Johansen <john.johansen@canonical.com>, Paul Moore <paul@paul-moore.com>, James Morris <jm>
+Return-path: <cluster-devel-bounces@redhat.com>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1686329103;
+	h=from:from:sender:sender:reply-to:subject:subject:date:date:
+	 message-id:message-id:to:to:cc:cc:mime-version:mime-version:
+	 content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:list-id:list-help:
+	 list-unsubscribe:list-subscribe:list-post;
+	bh=lP5O6Y+WWlbHJraaUNqLEu0298uTs2XTBNqgvHhDjHo=;
+	b=JgZH2QVQq38xRzZChfOuyFo+JnlMlKVT4bh3zEXcviEoh6et9jQ7MKwnCKMD8Yyv+ifMoL
+	SDkDMTHWw3Z8VFYocgEgu2dW+DaXP2qmSKGZb9Shrba9yfprfsV7o37RacU8pPqDWew2YP
+	UfuueNMR4GagczG0l+gjIpGY8wxjdTw=
+In-Reply-To: <20230609125023.399942-8-jlayton@kernel.org>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <https://listman.redhat.com/mailman/options/cluster-devel>, 
+ <mailto:cluster-devel-request@redhat.com?subject=unsubscribe>
+List-Archive: <http://listman.redhat.com/archives/cluster-devel/>
+List-Post: <mailto:cluster-devel@redhat.com>
+List-Help: <mailto:cluster-devel-request@redhat.com?subject=help>
+List-Subscribe: <https://listman.redhat.com/mailman/listinfo/cluster-devel>,
+ <mailto:cluster-devel-request@redhat.com?subject=subscribe>
+Errors-To: cluster-devel-bounces@redhat.com
+Sender: "Cluster-devel" <cluster-devel-bounces@redhat.com>
+Content-Type: text/plain; charset="windows-1252"
+To: Jeff Layton <jlayton@kernel.org>
+Cc: linux-efi@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.com>, Ruihan Li <lrh2000@pku.edu.cn>, Ard Biesheuvel <ardb@kernel.org>, Ian Kent <raven@themaw.net>, Paulo Alcantara <pc@manguebit.com>, linux-cifs@vger.kernel.org, Paul Moore <paul@paul-moore.com>, Ritu Agarwal <rituagar@linux.ibm.com>, James Morris <jmorris@namei.org>, cluster-devel@redhat.com, Namjae Jeon <linkinjeon@kernel.org>, "Serge E. Hallyn" <serge@hallyn.com>, Shyam Prasad N <sprasad@microsoft.com>, Arnd Bergmann <arnd@arndb.de>, autofs@vger.kernel.org, apparmor@lists.ubuntu.com, Tom Talpey <tom@talpey.com>, linux-fsdevel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, "Tigran A. Aivazian" <aivazian.tigran@gmail.com>, Suren Baghdasaryan <surenb@google.com>, Christian Brauner <brauner@kernel.org>, John Johansen <john.johansen@canonical.com>, Wolfram Sang <wsa+renesas@sang-engineering.>
 
-On Fri, 2023-06-09 at 15:10 +0200, Greg Kroah-Hartman wrote:
-> On Fri, Jun 09, 2023 at 08:50:14AM -0400, Jeff Layton wrote:
-> > While working on a patch series to change how we handle the ctime, I
-> > found a number of places that update the mtime without a corresponding
-> > ctime update. POSIX requires that when the mtime is updated that the
-> > ctime also be updated.
-> >=20
-> > Note that these are largely untested other than for compilation, so
-> > please review carefully. These are a preliminary set for the upcoming
-> > rework of how we handle the ctime.
-> >=20
-> > None of these seem to be very crucial, but it would be nice if
-> > various maintainers could pick these up for v6.5. Please let me know if
-> > you do.
-> >=20
-> > Jeff Layton (9):
-> >   ibmvmc: update ctime in conjunction with mtime on write
-> >   usb: update the ctime as well when updating mtime after an ioctl
-> >   autofs: set ctime as well when mtime changes on a dir
-> >   bfs: update ctime in addition to mtime when adding entries
-> >   efivarfs: update ctime when mtime changes on a write
-> >   exfat: ensure that ctime is updated whenever the mtime is
-> >   gfs2: update ctime when quota is updated
-> >   apparmor: update ctime whenever the mtime changes on an inode
-> >   cifs: update the ctime on a partial page write
-> >=20
-> >  drivers/misc/ibmvmc.c             |  2 +-
-> >  drivers/usb/core/devio.c          | 16 ++++++++--------
-> >  fs/autofs/root.c                  |  6 +++---
-> >  fs/bfs/dir.c                      |  2 +-
-> >  fs/efivarfs/file.c                |  2 +-
-> >  fs/exfat/namei.c                  |  8 ++++----
-> >  fs/gfs2/quota.c                   |  2 +-
-> >  fs/smb/client/file.c              |  2 +-
-> >  security/apparmor/apparmorfs.c    |  7 +++++--
-> >  security/apparmor/policy_unpack.c | 11 +++++++----
-> >  10 files changed, 32 insertions(+), 26 deletions(-)
-> >=20
-> > --=20
-> > 2.40.1
-> >=20
->=20
-> All of these need commit log messages, didn't checkpatch warn you about
-> that?
+Jeff,
 
-It did, once I ran it. ;)
+On Fri, Jun 9, 2023 at 2:50=E2=80=AFPM Jeff Layton <jlayton@kernel.org> wro=
+te:
+> Signed-off-by: Jeff Layton <jlayton@kernel.org>
+> ---
+>  fs/gfs2/quota.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/fs/gfs2/quota.c b/fs/gfs2/quota.c
+> index 1ed17226d9ed..6d283e071b90 100644
+> --- a/fs/gfs2/quota.c
+> +++ b/fs/gfs2/quota.c
+> @@ -869,7 +869,7 @@ static int gfs2_adjust_quota(struct gfs2_inode *ip, l=
+off_t loc,
+>                 size =3D loc + sizeof(struct gfs2_quota);
+>                 if (size > inode->i_size)
+>                         i_size_write(inode, size);
+> -               inode->i_mtime =3D inode->i_atime =3D current_time(inode)=
+;
+> +               inode->i_mtime =3D inode->i_atime =3D inode->i_ctime =3D =
+current_time(inode);
 
-I'll repost the set with more elaborate changelogs.
---=20
-Jeff Layton <jlayton@kernel.org>
+I don't think we need to worry about the ctime of the quota inode as
+that inode is internal to the filesystem only.
+
+>                 mark_inode_dirty(inode);
+>                 set_bit(QDF_REFRESH, &qd->qd_flags);
+>         }
+> --
+> 2.40.1
+>
+
+Thanks,
+Andreas
+
