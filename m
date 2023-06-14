@@ -1,72 +1,50 @@
-From: Tigran Aivazian <aivazian.tigran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 0/8] fs: add some missing ctime updates
-Date: Mon, 12 Jun 2023 12:01:52 +0100
-Message-ID: <CAK+_RLkoAX_n-PPYv9zEpitbMk3DxZx2EWYaKT7YKH_wEys+ew@mail.gmail.com>
-References: <20230612104524.17058-1-jlayton@kernel.org>
+From: Christian Brauner <brauner@kernel.org>
+Subject: Re: (subset) [PATCH v2 3/8] autofs: set ctime as well when mtime changes on a dir
+Date: Wed, 14 Jun 2023 10:30:13 +0200
+Message-ID: <20230614-marmeladen-blechnapf-873c26e176cb@brauner>
+References: <20230612104524.17058-1-jlayton@kernel.org> <20230612104524.17058-4-jlayton@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/alternative; boundary="000000000000a1886905fded7cd8"
-Return-path: <apparmor-bounces-nLRlyDuq1AZFpShjVBNYrg@public.gmane.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=gmail.com; s=20221208; t=1686571323; x=1689163323;
- h=cc:to:subject:message-id:date:from:in-reply-to:references
- :mime-version:from:to:cc:subject:date:message-id:reply-to;
- bh=gIeNho+iq7fIieD/uaaC3C3MZzDx4EtnWzlRBh9eZ+o=;
- b=a7THlsmPARBVuXhzhi14HAL+cHx3H+b+HMY+KwHAWyVnB306A74iDPjXZKE6csTPsB
- B+bdDGNFHHk9WPYPc5NGsEgxYafyt0qHlcvElGOhaJ9+XsIwsZ5HpsS7X0DD+t5FsLmE
- 2WWwj78e6erno17rzYlLGGBNVEc2S3SxyKgJtMuemuPyPCM2mcfoatNj6uwBYUq7nc3w
- 0yRPEUTfQmqBSB2Uz4oA4ZFAoHa0h9ySH/tWWRuNXOkQ4n4OH+06yQRuZTrmjCxQa1nG
- k0NQI/qkhkmROAtHkSDiTy2KULtdr5U9FDMSqTzxip8LEa7WEHAjTzbOFR8O5WolEZ4B
- NuLg==
-In-Reply-To: <20230612104524.17058-1-jlayton-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <https://lists.ubuntu.com/mailman/options/apparmor>,
- <mailto:apparmor-request-nLRlyDuq1AZFpShjVBNYrg@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.ubuntu.com/archives/apparmor>
-List-Post: <mailto:apparmor-nLRlyDuq1AZFpShjVBNYrg@public.gmane.org>
-List-Help: <mailto:apparmor-request-nLRlyDuq1AZFpShjVBNYrg@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ubuntu.com/mailman/listinfo/apparmor>,
- <mailto:apparmor-request-nLRlyDuq1AZFpShjVBNYrg@public.gmane.org?subject=subscribe>
-Errors-To: apparmor-bounces-nLRlyDuq1AZFpShjVBNYrg@public.gmane.org
-Sender: "AppArmor" <apparmor-bounces-nLRlyDuq1AZFpShjVBNYrg@public.gmane.org>
-To: Jeff Layton <jlayton-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, James Morris <jmorris-gx6/JNMH7DfYtjvyW6yDsg@public.gmane.org>, Ruihan Li <lrh2000-NXN67KNX7eEnDS1+zs4M5A@public.gmane.org>, Ard Biesheuvel <ardb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ian Kent <raven-PKsaG3nR2I+sTnJN9+BGXg@public.gmane.org>, Paulo Alcantara <pc-mxznQ8SDR6Dby3iVrkZq2A@public.gmane.org>, linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Moore <paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org>, Ritu Agarwal <rituagar-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>, Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Namjae Jeon <linkinjeon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Serge E. Hallyn" <serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org>, Shyam Prasad N <sprasad-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, autofs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, apparmor-nLRlyDuq1AZFpShjVBNYrg@public.gmane.org, Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Suren Baghdasaryan <surenb-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Christian Brauner <brauner-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Wolfram Sang <wsa+renesas-jBu1N2QxHDJrcw3mvpCnnVaTQe2KTcn/@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, samba-technical-w/Ol4Ecudpkbz5eF0SucJw@public.gmane.org
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1686731436;
+        bh=5sOkTNkkHBdbRw2JX2dJi2tKIH7ENjxXYhVFqEgiEpg=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=IRZqPUqU0BwUN9jHEoglWuy0xEgoYyag/Ebn+rb0Vkv1pU4YIEbzbp79ipCyUrtxh
+         uu5SSmyKUoI1KIaFNYpCGmYHIXb2asmRHSE1NzBkLRpCt3Lk6SOguRjQnw2e7R7/RE
+         3jA20kzbdthCOfDkyHAr2RIu4FsSLyLI6XH8DA2HcU29jUMoC2mD9jrm9rg2mkUfCC
+         fiHIUATN1wcmkhYcliwSeMfAeYVI8hK2mr8m3NIMM3pMKtWaDqvzxe5VRX3IwZIRDp
+         k6p3K+ytT5NuIM6/QXPL9ncD1YxYtMcfr5ZIYEUleDDbnRtoLwM75vc9NwENqU3Y1d
+         e+ig0BIIgMwMg==
+In-Reply-To: <20230612104524.17058-4-jlayton@kernel.org>
+X-Developer-Signature: v=1; a=openpgp-sha256; l=890; i=brauner@kernel.org; h=from:subject:message-id; bh=5sOkTNkkHBdbRw2JX2dJi2tKIH7ENjxXYhVFqEgiEpg=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMaR0VvWrXuWb1qASt//kd4FHqU18By+ppS/RFud89ejpqjjT Z+/1O0pZGMS4GGTFFFkc2k3C5ZbzVGw2ytSAmcPKBDKEgYtTACby5Bgjw7qZ1+/qxD5ZFinJah7vuf 6TQM5RjfV3nHf+b3iWcMttHxfDb9bHk9/X5L+18DmgM//eoU3cO9eIMDluPBbqbjtNMHa/Fg8A
+X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
+List-ID: <autofs.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: Jeff Layton <jlayton@kernel.org>
+Cc: Christian Brauner <brauner@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, Brad Warrum <bwarrum@linux.ibm.com>, Ritu Agarwal <rituagar@linux.ibm.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ian Kent <raven@themaw.net>, "Tigran A. Aivazian" <aivazian.tigran@gmail.com>, Jeremy Kerr <jk@ozlabs.org>, Ard Biesheuvel <ardb@kernel.org>, Namjae Jeon <linkinjeon@kernel.org>, Sungjong Seo <sj1557.seo@samsung.com>, Steve French <sfrench@samba.org>, Paulo Alcantara <pc@manguebit.com>, Ronnie Sahlberg <lsahlber@redhat.com>, Shyam Prasad N <sprasad@microsoft.com>, Tom Talpey <tom@talpey.com>, John Johansen <john.johansen@canonical.com>, Paul Moore <paul@paul-moore.com>, James Morris <jmorris@namei.org>, Ser
 
---000000000000a1886905fded7cd8
-Content-Type: text/plain; charset="UTF-8"
+On Mon, 12 Jun 2023 06:45:19 -0400, Jeff Layton wrote:
+> When adding entries to a directory, POSIX generally requires that the
+> ctime also be updated alongside the mtime.
+> 
+> 
 
-Hi Jeff and all,
+Can't find a tree for this patch, so picking this patch up unless told otherwise.
 
-On Mon, 12 Jun 2023 at 11:45, Jeff Layton <jlayton-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+---
 
-> None of these seem to be very crucial, but it would be nice if various
-> maintainers could pick these up for v6.5. Please let me know if you do,
-> or would rather I shepherd the patch upstream.
->
+Applied to the vfs.misc branch of the vfs/vfs.git tree.
+Patches in the vfs.misc branch should appear in linux-next soon.
 
-Yes, if you could shepherd the patch upstream, that would be great, as it's
-been a very long time since I did any kernel hacking, and the patch
-submission procedures must have changed in a decade or two :) Thank you!
+Please report any outstanding bugs that were missed during review in a
+new review to the original patch series allowing us to drop it.
 
-Kind regards,
-Tigran
+It's encouraged to provide Acked-bys and Reviewed-bys even though the
+patch has now been applied. If possible patch trailers will be updated.
 
---000000000000a1886905fded7cd8
-Content-Type: text/html; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
+branch: vfs.misc
 
-<div dir=3D"ltr"><div>Hi Jeff and all,</div><br><div class=3D"gmail_quote">=
-<div dir=3D"ltr" class=3D"gmail_attr">On Mon, 12 Jun 2023 at 11:45, Jeff La=
-yton &lt;<a href=3D"mailto:jlayton-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org">jlayton-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org</a>&gt; w=
-rote:<br></div><blockquote class=3D"gmail_quote" style=3D"margin:0px 0px 0p=
-x 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex">None of th=
-ese seem to be very crucial, but it would be nice if various<br>
-maintainers could pick these up for v6.5. Please let me know if you do,<br>
-or would rather I shepherd the patch upstream.<br></blockquote><div><br></d=
-iv><div>Yes, if you could shepherd the patch upstream, that would be great,=
- as it&#39;s been a very long time since I did any kernel hacking, and the =
-patch submission procedures must have changed in a decade or two :) Thank y=
-ou!</div><div><br></div><div>Kind regards,</div><div>Tigran</div></div></di=
-v>
-
---000000000000a1886905fded7cd8--
-
+[3/8] autofs: set ctime as well when mtime changes on a dir
+      https://git.kernel.org/vfs/vfs/c/9b37b3342a98
