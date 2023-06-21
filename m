@@ -1,101 +1,54 @@
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH 13/79] autofs: switch to new ctime accessors
-Date: Wed, 21 Jun 2023 18:43:47 +0200
-Message-ID: <20230621164347.qfzqyxdu6k3t3unc@quack3>
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: Re: [PATCH 00/79] fs: new accessors for inode->i_ctime
+Date: Wed, 21 Jun 2023 15:21:41 -0400
+Message-ID: <20230621152141.5961cf5f@gandalf.local.home>
 References: <20230621144507.55591-1-jlayton@kernel.org>
- <20230621144735.55953-1-jlayton@kernel.org>
- <20230621144735.55953-12-jlayton@kernel.org>
 Mime-Version: 1.0
-Return-path: <linux-kernel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-        t=1687365827; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=SW8r+78YHL2HQQT/A92GF4QTN/9RpyRtse9JVJJVsr4=;
-        b=KVhYCJZZ3Mzn9nHTbc+LDWEW89VaXSt0bSvd/kuuKaH85N8X3N+oZHuzK7pGediSc/IeNW
-        0D7bOR367bXgqEc6rvwu8uv9jtQGj2/+tsESknVYoSVfXrstNGVQRajPrPJXT+IAzFSaDe
-        5UJKhvIGQHOhQO54h1hsW1lAaYO/gxo=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-        s=susede2_ed25519; t=1687365827;
-        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=SW8r+78YHL2HQQT/A92GF4QTN/9RpyRtse9JVJJVsr4=;
-        b=iX9fn4sOORitLAx5Z+Ye3zUVvAvkdD62b53ou8MesfRr3sqK1URmEN+C5MRuigIGvZE6l1
-        P5ovOrhr/bIIotDQ==
-Content-Disposition: inline
-In-Reply-To: <20230621144735.55953-12-jlayton@kernel.org>
-List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Return-path: <linux-f2fs-devel-bounces@lists.sourceforge.net>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+ d=sourceforge.net; s=x; h=Content-Transfer-Encoding:Content-Type:MIME-Version
+ :References:In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+ Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
+ Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
+ List-Subscribe:List-Post:List-Owner:List-Archive;
+ bh=f7ZPpeY/pUTL/3pt09RFwymSSI1p5pOpdla6e7cL0TQ=; b=M+cDxDViENXMv+nwY6z7+e1SWj
+ YZf7OaHhuwcvIP5EAx2eguZ38xuCbzW7FVES+NZbEVYGUNjJkPqlfsrX4702RCNZePs52Gzj4ZIxz
+ hZASiQ0fHG7wSjEdRYJyNa+ndmR+r371DANIBBn4+nX+xY1goT0if1uZpm7IvThmcnWI=;
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=sf.net; s=x
+ ;
+ h=Content-Transfer-Encoding:Content-Type:MIME-Version:References:
+ In-Reply-To:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:Content-ID:
+ Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+ :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+ List-Post:List-Owner:List-Archive;
+ bh=f7ZPpeY/pUTL/3pt09RFwymSSI1p5pOpdla6e7cL0TQ=; b=XHEa2S0iqKqfmefCzF+dV+umJr
+ 2VnVnTyCUg669brdUdJH2/z6+lqPDTWkEPl8RCPgE//O524vGkf3jidSs2TnTu3zFCmUMdHwehYbv
+ o9pKLqxZ4/gZMtRNKnBedpHQWNjnKXg04tAO9uGrpwnsIa7X6N0yaSbQU4SaDILuU+nc=;
+In-Reply-To: <20230621144507.55591-1-jlayton@kernel.org>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/options/linux-f2fs-devel>, 
+ <mailto:linux-f2fs-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=linux-f2fs-devel>
+List-Post: <mailto:linux-f2fs-devel@lists.sourceforge.net>
+List-Help: <mailto:linux-f2fs-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-f2fs-devel>, 
+ <mailto:linux-f2fs-devel-request@lists.sourceforge.net?subject=subscribe>
+Errors-To: linux-f2fs-devel-bounces@lists.sourceforge.net
 To: Jeff Layton <jlayton@kernel.org>
-Cc: Christian Brauner <brauner@kernel.org>, Ian Kent <raven@themaw.net>, Al Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>, autofs@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Latchesar Ionkov <lucho@ionkov.net>, "Rafael
+ J. Wysocki" <rafael@kernel.org>, "Darrick J. Wong" <djwong@kernel.org>, Anders Larsen <al@alarsen.net>, Carlos Llamas <cmllamas@google.com>, Andrii Nakryiko <andrii@kernel.org>, Hugh Dickins <hughd@google.com>, John Johansen <john.johansen@canonical.com>, Seth Forshee <sforshee@digitalocean.com>, Alexander Gordeev <agordeev@linux.ibm.com>, Christoph Hellwig <hch@lst.de>, Mike Marshall <hubcap@omnibond.com>, Paulo Alcantara <pc@manguebit.com>, linux-xfs@vger.kernel.org, Bart Van Assche <bvanassche@acm.org>, Michael Ellerman <mpe@ellerman.id.au>, John Keeping <john@keeping.me.uk>, Zhang Yi <yi.zhang@huawei.com>, James Morris <jmorris@namei.org>, Christophe Leroy <christophe.leroy@csgroup.eu>, Tyler Hicks <code@tyhicks.com>, Alan Stern <stern@rowland.harvard.edu>, Christian Borntraeger <borntraeger@linux.ibm.com>, devel@lists.ora
 
-On Wed 21-06-23 10:45:26, Jeff Layton wrote:
-> In later patches, we're going to change how the ctime.tv_nsec field is
-> utilized. Switch to using accessor functions instead of raw accesses of
-> inode->i_ctime.
-> 
-> Signed-off-by: Jeff Layton <jlayton@kernel.org>
+On Wed, 21 Jun 2023 10:45:05 -0400
+Jeff Layton <jlayton@kernel.org> wrote:
 
-Looks good to me. Feel free to add:
+> Most of this conversion was done via coccinelle, with a few of the more
+> non-standard accesses done by hand. There should be no behavioral
+> changes with this set. That will come later, as we convert individual
+> filesystems to use multigrain timestamps.
 
-Reviewed-by: Jan Kara <jack@suse.cz>
+BTW, Linus has suggested to me that whenever a conccinelle script is used,
+it should be included in the change log.
 
-								Honza
-
-> ---
->  fs/autofs/inode.c | 2 +-
->  fs/autofs/root.c  | 6 +++---
->  2 files changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/fs/autofs/inode.c b/fs/autofs/inode.c
-> index affa70360b1f..47e3054b29dc 100644
-> --- a/fs/autofs/inode.c
-> +++ b/fs/autofs/inode.c
-> @@ -370,7 +370,7 @@ struct inode *autofs_get_inode(struct super_block *sb, umode_t mode)
->  		inode->i_uid = d_inode(sb->s_root)->i_uid;
->  		inode->i_gid = d_inode(sb->s_root)->i_gid;
->  	}
-> -	inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
-> +	inode->i_atime = inode->i_mtime = inode_ctime_set_current(inode);
->  	inode->i_ino = get_next_ino();
->  
->  	if (S_ISDIR(mode)) {
-> diff --git a/fs/autofs/root.c b/fs/autofs/root.c
-> index 93046c9dc461..4c0fc0f8d688 100644
-> --- a/fs/autofs/root.c
-> +++ b/fs/autofs/root.c
-> @@ -600,7 +600,7 @@ static int autofs_dir_symlink(struct mnt_idmap *idmap,
->  	p_ino = autofs_dentry_ino(dentry->d_parent);
->  	p_ino->count++;
->  
-> -	dir->i_mtime = dir->i_ctime = current_time(dir);
-> +	dir->i_mtime = inode_ctime_set_current(dir);
->  
->  	return 0;
->  }
-> @@ -633,7 +633,7 @@ static int autofs_dir_unlink(struct inode *dir, struct dentry *dentry)
->  	d_inode(dentry)->i_size = 0;
->  	clear_nlink(d_inode(dentry));
->  
-> -	dir->i_mtime = dir->i_ctime = current_time(dir);
-> +	dir->i_mtime = inode_ctime_set_current(dir);
->  
->  	spin_lock(&sbi->lookup_lock);
->  	__autofs_add_expiring(dentry);
-> @@ -749,7 +749,7 @@ static int autofs_dir_mkdir(struct mnt_idmap *idmap,
->  	p_ino = autofs_dentry_ino(dentry->d_parent);
->  	p_ino->count++;
->  	inc_nlink(dir);
-> -	dir->i_mtime = dir->i_ctime = current_time(dir);
-> +	dir->i_mtime = inode_ctime_set_current(dir);
->  
->  	return 0;
->  }
-> -- 
-> 2.41.0
-> 
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+-- Steve
