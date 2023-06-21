@@ -1,76 +1,82 @@
-From: Ian Kent <raven@themaw.net>
-Subject: Re: (subset) [PATCH v2 3/8] autofs: set ctime as well when mtime
- changes on a dir
-Date: Thu, 15 Jun 2023 18:14:55 +0800
-Message-ID: <ebad4167-6fec-b603-9be8-54457b2a32fd@themaw.net>
-References: <20230612104524.17058-1-jlayton@kernel.org>
- <20230612104524.17058-4-jlayton@kernel.org>
- <20230614-marmeladen-blechnapf-873c26e176cb@brauner>
+From: Jeff Layton <jlayton@kernel.org>
+Subject: [PATCH 13/79] autofs: switch to new ctime accessors
+Date: Wed, 21 Jun 2023 10:45:26 -0400
+Message-ID: <20230621144735.55953-12-jlayton@kernel.org>
+References: <20230621144507.55591-1-jlayton@kernel.org>
+ <20230621144735.55953-1-jlayton@kernel.org>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
-        :cc:content-transfer-encoding:content-type:content-type:date
-        :date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-        :references:reply-to:sender:subject:subject:to:to; s=fm1; t=
-        1686824113; x=1686910513; bh=jvOa0kUu39x3GQIUZew1mtO2AZHY76muWFu
-        JjSogrbo=; b=EPuJmmgzGiJ225PcqtobDHqYGSJ9FbMR2/HM25N5yJWC19vNsWc
-        Mc6g6a+7u+xOngvo9ql+gTvTIpzuGWBoP/5w/homxwocEszbS2BY66xEYK6rhU39
-        fKC/2J9A/tppqgMokw04lHq9ClAM1NidgPPF8XwPFb8brMaJ+yC9q3lx2oIXOqxk
-        NwLzZE/EEO50omOBh8TzBe3YSIduGwMWsqcNQv/QxRuOtVG1aQhGmfZDS7sPfd2L
-        ivZT6v6WRn+ar6/Ercj4MGKWKcxqfmYJxSQn9HNqtGrfvghNPb7RO/tPUhDvWwyc
-        AMWwvLlS+hTH2y5s8+UvqcROZ9GavRIlJjA==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-transfer-encoding
-        :content-type:content-type:date:date:feedback-id:feedback-id
-        :from:from:in-reply-to:in-reply-to:message-id:mime-version
-        :references:reply-to:sender:subject:subject:to:to:x-me-proxy
-        :x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=
-        1686824113; x=1686910513; bh=jvOa0kUu39x3GQIUZew1mtO2AZHY76muWFu
-        JjSogrbo=; b=WQJvt4ZbovTVmVpd9nLF3ZaQUs0YTu6cciUQMWaCHlkUVtF3OXV
-        BWs4+jr1+AQmOje/HwT59Uc+gCIA11iaI+HKQgg1BQI7sTScTCZe5aMc5Lf00ImL
-        QDpPl/Z5yXuNtNsNhoruSIK8Cot14nLIGVBTkr3kM9F5w/zLjQQXCcCm3wqRDJm2
-        HeWiDlna/Wo0l7rNZ01teWvAvYCqAbsjWmH0BfmI4FUBZcNogxXmZuNoaQmWIcoC
-        YVUfDU4KdHqT7PrUPo6RaUGRnMnVFM5UYZZEwh9IGjmkuLSVwVR7KWHfNcqZIgQY
-        s3tbtsbhHV1NfiIcQHLDi22Z7h98FbB3k5w==
-Content-Language: en-US
-In-Reply-To: <20230614-marmeladen-blechnapf-873c26e176cb@brauner>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1687358877;
+        bh=1s5jb03ngCAy3P6/5pQ4jEHKe8Ls9LBYi2bivIIThCU=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=sfjrU8aKKDtyx20ZuKC+t4c8fe7fTPTGpgT2TMwrgAznX9O0Qr+kcfBOrI7+0KfRc
+         G2GNJaecNaF5zwGYdc4z323q6bxyAiSuTX8JlpTGUX0vI0Z5TbkAq1Vdr4jnPcshyG
+         lpkZPYO5cTGuMrpVO7/0bIh3x/+4zvvLmz/hjvjd2TJESG33nAkUA504I4xGy8GRVa
+         gMgFLAVJeYKLIIv3hptk1Bs2I1a7B/W4+TxcDij+HIqqdhtFJHQJjsI6htekFlDyu6
+         jo/OUqSMMZiEN9Gr0k8YbMC/+sAf209oCz62i1DbGvF6KI1HfdcJLOweQNtZ9U4S+v
+         8/bnAVTJpkx2w==
+In-Reply-To: <20230621144735.55953-1-jlayton@kernel.org>
 List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
-To: Christian Brauner <brauner@kernel.org>, Jeff Layton <jlayton@kernel.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, Brad Warrum <bwarrum@linux.ibm.com>, Ritu Agarwal <rituagar@linux.ibm.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Tigran A. Aivazian" <aivazian.tigran@gmail.com>, Jeremy Kerr <jk@ozlabs.org>, Ard Biesheuvel <ardb@kernel.org>, Namjae Jeon <linkinjeon@kernel.org>, Sungjong Seo <sj1557.seo@samsung.com>, Steve French <sfrench@samba.org>, Paulo Alcantara <pc@manguebit.com>, Ronnie Sahlberg <lsahlber@redhat.com>, Shyam Prasad N <sprasad@microsoft.com>, Tom Talpey <tom@talpey.com>, John Johansen <john.johansen@canonical.com>, Paul Moore <paul@paul-moore.com>, James Morris <jmorris@namei.org>, "Serge E. Hallyn" <serge@hallyn.com>, Ruihan Li <lrh2000@pku.edu.cn>, Seb
+Content-Type: text/plain; charset="us-ascii"
+To: Christian Brauner <brauner@kernel.org>, Ian Kent <raven@themaw.net>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>, autofs@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 14/6/23 16:30, Christian Brauner wrote:
-> On Mon, 12 Jun 2023 06:45:19 -0400, Jeff Layton wrote:
->> When adding entries to a directory, POSIX generally requires that the
->> ctime also be updated alongside the mtime.
->>
->>
-> Can't find a tree for this patch, so picking this patch up unless told otherwise.
+In later patches, we're going to change how the ctime.tv_nsec field is
+utilized. Switch to using accessor functions instead of raw accesses of
+inode->i_ctime.
 
-There's relatively few changes to autofs and Linus asked me to send
+Signed-off-by: Jeff Layton <jlayton@kernel.org>
+---
+ fs/autofs/inode.c | 2 +-
+ fs/autofs/root.c  | 6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-changes via. Al or Andrew so there's no point in maintaining a tree
+diff --git a/fs/autofs/inode.c b/fs/autofs/inode.c
+index affa70360b1f..47e3054b29dc 100644
+--- a/fs/autofs/inode.c
++++ b/fs/autofs/inode.c
+@@ -370,7 +370,7 @@ struct inode *autofs_get_inode(struct super_block *sb, umode_t mode)
+ 		inode->i_uid = d_inode(sb->s_root)->i_uid;
+ 		inode->i_gid = d_inode(sb->s_root)->i_gid;
+ 	}
+-	inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
++	inode->i_atime = inode->i_mtime = inode_ctime_set_current(inode);
+ 	inode->i_ino = get_next_ino();
+ 
+ 	if (S_ISDIR(mode)) {
+diff --git a/fs/autofs/root.c b/fs/autofs/root.c
+index 93046c9dc461..4c0fc0f8d688 100644
+--- a/fs/autofs/root.c
++++ b/fs/autofs/root.c
+@@ -600,7 +600,7 @@ static int autofs_dir_symlink(struct mnt_idmap *idmap,
+ 	p_ino = autofs_dentry_ino(dentry->d_parent);
+ 	p_ino->count++;
+ 
+-	dir->i_mtime = dir->i_ctime = current_time(dir);
++	dir->i_mtime = inode_ctime_set_current(dir);
+ 
+ 	return 0;
+ }
+@@ -633,7 +633,7 @@ static int autofs_dir_unlink(struct inode *dir, struct dentry *dentry)
+ 	d_inode(dentry)->i_size = 0;
+ 	clear_nlink(d_inode(dentry));
+ 
+-	dir->i_mtime = dir->i_ctime = current_time(dir);
++	dir->i_mtime = inode_ctime_set_current(dir);
+ 
+ 	spin_lock(&sbi->lookup_lock);
+ 	__autofs_add_expiring(dentry);
+@@ -749,7 +749,7 @@ static int autofs_dir_mkdir(struct mnt_idmap *idmap,
+ 	p_ino = autofs_dentry_ino(dentry->d_parent);
+ 	p_ino->count++;
+ 	inc_nlink(dir);
+-	dir->i_mtime = dir->i_ctime = current_time(dir);
++	dir->i_mtime = inode_ctime_set_current(dir);
+ 
+ 	return 0;
+ }
+-- 
+2.41.0
 
-anyway.
-
-
-Ian
-
->
-> ---
->
-> Applied to the vfs.misc branch of the vfs/vfs.git tree.
-> Patches in the vfs.misc branch should appear in linux-next soon.
->
-> Please report any outstanding bugs that were missed during review in a
-> new review to the original patch series allowing us to drop it.
->
-> It's encouraged to provide Acked-bys and Reviewed-bys even though the
-> patch has now been applied. If possible patch trailers will be updated.
->
-> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
-> branch: vfs.misc
->
-> [3/8] autofs: set ctime as well when mtime changes on a dir
->        https://git.kernel.org/vfs/vfs/c/9b37b3342a98
