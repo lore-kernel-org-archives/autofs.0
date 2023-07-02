@@ -1,41 +1,74 @@
-From: Luis Chamberlain <mcgrof@kernel.org>
-Subject: Re: [PATCH 01/79] fs: add ctime accessors infrastructure
-Date: Fri, 30 Jun 2023 15:12:43 -0700
-Message-ID: <ZJ9TW9MQmlqmbRU/@bombadil.infradead.org>
-References: <20230621144507.55591-1-jlayton@kernel.org>
- <20230621144507.55591-2-jlayton@kernel.org>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.4 15/16] autofs: set ctime as well when mtime changes on a dir
+Date: Sun,  2 Jul 2023 15:38:14 -0400
+Message-ID: <20230702193815.1775684-15-sashal@kernel.org>
+References: <20230702193815.1775684-1-sashal@kernel.org>
 Mime-Version: 1.0
-Return-path: <ecryptfs-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20210309; h=Sender:In-Reply-To:Content-Type:
-        MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=lAGAJ28n1AlcMoZYeCm9uRz7rvcCocSlQtZJp9kS4hM=; b=MDK5OMbWDIQ7k5BUsVfTTCeUKK
-        ykHg2ksytfiKty5DqeoojsJgI19pnpO3bU4G0Nu4GjG2hEs2ZxnYXR7D6/oVlp5Pe2D5JneqmFcdb
-        aqUSSmtLLmtBD1hqWecPq0g6kKIyzG4SS3mQ1IFdkZFT8q1yIbLznGNVCRFkmuvgVZewrQL+j94VD
-        WaM6JFD5ZLKSStA4y0A2mjB/5tQW5fCKp810bYosB6+mCMAVZBJndIY7cGkKy5/JBuK2Tl+F43Ugr
-        599NI5n1vZXoqkj6Re0aIa5xI5fj+j2Mg09LQQtRQAZLHqXoNHWcWfm/2CAipcBnuw9FG3zZ4Gpbp
-        XVBvS0Ww==;
-Content-Disposition: inline
-In-Reply-To: <20230621144507.55591-2-jlayton@kernel.org>
-Sender: Luis Chamberlain <mcgrof@infradead.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <stable-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1688326733;
+        bh=Av03rwNzvIUGcDE3jFO/D0wlmqH+PZSBkTKuwNYnWDw=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=dRUNNUE8zDOPrlUefVk0H+NBq1s/FQ5yGG0/+0sposdW0nvsq101pmid/E752siIO
+         WBep7H9zMzdlPPUOCSAL1y459yLI2KcFv3u8J0gvkvZ00P1TdHbcLQZtTZ4YQqZM8G
+         n5UDJ76J1k9fm2WHD97j5vdukaTpG82GSGobCvkAj6vGAMXAXURLpVZn5JPwC0tmhQ
+         wap/tuQiurWl2j3J+G+NG2UNg/Fi0rSyWLZnSjuhsYzprdGrIpGi+xx0wyf1NVWvdK
+         in2WN9Z6+M1E+Gs9MdUSh2ybDC61nIE/4h6X/HBy146Zaosdk3IDsI9yNh+3Y0YJhi
+         jl6zK/44xN4vQ==
+In-Reply-To: <20230702193815.1775684-1-sashal@kernel.org>
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Jeff Layton <jlayton@kernel.org>
-Cc: Jeremy Kerr <jk@ozlabs.org>, Arnd Bergmann <arnd@arndb.de>, Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>, Christophe Leroy <christophe.leroy@csgroup.eu>, Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, Christian Borntraeger <borntraeger@linux.ibm.com>, Sven Schnelle <svens@linux.ibm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>, Todd Kjos <tkjos@android.com>, Martijn Coenen <maco@android.com>, Joel Fernandes <joel@joelfernandes.org>, Christian Brauner <brauner@kernel.org>, Carlos Llamas <cmllamas@google.com>, Suren Baghdasaryan <surenb@google.com>, Dennis Dalessandro <dennis.dalessandro@cornel>
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Jeff Layton <jlayton@kernel.org>, Ian Kent <raven@themaw.net>, Christian Brauner <brauner@kernel.org>, Sasha Levin <sashal@kernel.org>, autofs@vger.kernel.org
 
-On Wed, Jun 21, 2023 at 10:45:06AM -0400, Jeff Layton wrote:
-> struct timespec64 has unused bits in the tv_nsec field that can be used
-> for other purposes. In future patches, we're going to change how the
-> inode->i_ctime is accessed in certain inodes in order to make use of
-> them. In order to do that safely though, we'll need to eradicate raw
-> accesses of the inode->i_ctime field from the kernel.
-> 
-> Add new accessor functions for the ctime that we can use to replace them.
-> 
-> Signed-off-by: Jeff Layton <jlayton@kernel.org>
+From: Jeff Layton <jlayton@kernel.org>
 
-Reviewed-by: Luis Chamberlain <mcgrof@kernel.org>
+[ Upstream commit 797a1d894d7b7586f422cabf8d7807cd39d0b5aa ]
 
-  Luis
+When adding entries to a directory, POSIX generally requires that the
+ctime also be updated alongside the mtime.
+
+Signed-off-by: Jeff Layton <jlayton@kernel.org>
+Acked-by: Ian Kent <raven@themaw.net>
+Message-Id: <20230612104524.17058-4-jlayton@kernel.org>
+Signed-off-by: Christian Brauner <brauner@kernel.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ fs/autofs/root.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/fs/autofs/root.c b/fs/autofs/root.c
+index 6baf90b08e0ef..93046c9dc4610 100644
+--- a/fs/autofs/root.c
++++ b/fs/autofs/root.c
+@@ -600,7 +600,7 @@ static int autofs_dir_symlink(struct mnt_idmap *idmap,
+ 	p_ino = autofs_dentry_ino(dentry->d_parent);
+ 	p_ino->count++;
+ 
+-	dir->i_mtime = current_time(dir);
++	dir->i_mtime = dir->i_ctime = current_time(dir);
+ 
+ 	return 0;
+ }
+@@ -633,7 +633,7 @@ static int autofs_dir_unlink(struct inode *dir, struct dentry *dentry)
+ 	d_inode(dentry)->i_size = 0;
+ 	clear_nlink(d_inode(dentry));
+ 
+-	dir->i_mtime = current_time(dir);
++	dir->i_mtime = dir->i_ctime = current_time(dir);
+ 
+ 	spin_lock(&sbi->lookup_lock);
+ 	__autofs_add_expiring(dentry);
+@@ -749,7 +749,7 @@ static int autofs_dir_mkdir(struct mnt_idmap *idmap,
+ 	p_ino = autofs_dentry_ino(dentry->d_parent);
+ 	p_ino->count++;
+ 	inc_nlink(dir);
+-	dir->i_mtime = current_time(dir);
++	dir->i_mtime = dir->i_ctime = current_time(dir);
+ 
+ 	return 0;
+ }
+-- 
+2.39.2
+
