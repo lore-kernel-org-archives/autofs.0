@@ -1,84 +1,101 @@
-From: Jeff Layton <jlayton@kernel.org>
-Subject: [PATCH v2 26/92] autofs: convert to ctime accessor functions
-Date: Wed,  5 Jul 2023 15:00:51 -0400
-Message-ID: <20230705190309.579783-24-jlayton@kernel.org>
-References: <20230705185755.579053-1-jlayton@kernel.org>
- <20230705190309.579783-1-jlayton@kernel.org>
+From: Andreas Gruenbacher <agruenba@redhat.com>
+Subject: Re: [PATCH 7/9] gfs2: update ctime when quota is
+ updated
+Date: Wed, 5 Jul 2023 22:25:51 +0200
+Message-ID: <CAHc6FU54Gh+5hovqXZZSADqym=VCMis-EH9sKhAjgjXD6MUtqw@mail.gmail.com>
+References: <20230609125023.399942-1-jlayton@kernel.org>
+ <20230609125023.399942-8-jlayton@kernel.org>
+ <CAHc6FU4wyfQT7T75j2Sd9WNp=ag7hpDZGYkR=m73h2nOaH+AqQ@mail.gmail.com>
+ <a1f7a725186082d933aff702d1d50c6456da6f20.camel@kernel.org>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1688583828;
-        bh=VKXzwQVEpqzwAn2zr28fV/ocLF/ZTfcqcAZm4WHBcUE=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=QL+9A8CRS0JtOr1uR0GOj5A9Ne5Uh2DuRDFtt6sauq4vBdl9YbFxhrOnlAvEOBmi8
-         QiLozocDcw8otXcnlIOYHOY+Q3ufzOEb71eqpT+tR9UrYLp7eM8xwSYt6/7Tu+HN8f
-         dg5ecqw0Ngs18gpqShHvR8YkWrsLa3mUerTocRqPs4bccL28SAzAfSwOapba/4tVPv
-         BaMIrjKJslGoIksb4lLT0oTuTmSw+mhy2isJQWq9vxiDUax9xqGCaFvzOD12/VAoLf
-         TaDyCtArYiYqZV47eh3z16ysFTJbNCWeGnqm2zP2SCkvIpBVNz1lwxlyO8NMMu1GPZ
-         NrlJ746LIvDLw==
-In-Reply-To: <20230705190309.579783-1-jlayton@kernel.org>
-List-ID: <autofs.vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
-To: Christian Brauner <brauner@kernel.org>, Ian Kent <raven@themaw.net>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, autofs@vger.kernel.org
+Content-Transfer-Encoding: quoted-printable
+Return-path: <cluster-devel-bounces@redhat.com>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1688588771;
+	h=from:from:sender:sender:reply-to:subject:subject:date:date:
+	 message-id:message-id:to:to:cc:cc:mime-version:mime-version:
+	 content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:list-id:list-help:
+	 list-unsubscribe:list-subscribe:list-post;
+	bh=t45r9A2YvfoSJv2GZo8UC8AtO/lxGa/2A2TsFaxOzFQ=;
+	b=LucSyPy06sA24SyclYm/hHMDFjr79/dQzuQLd4ABB7QCYFkPyoH/xvy+ketxT+lIHvWhG/
+	zvA387H/SpEKuFqTS1NAFCJcXHtFfX05wE8o4MT3NtVHsTkW2dYL+GMq0fguzOPBWk4ED/
+	iSCohQg8tDt3MY+oUA6cJridwW9zda4=
+In-Reply-To: <a1f7a725186082d933aff702d1d50c6456da6f20.camel@kernel.org>
+List-Id: <autofs.vger.kernel.org>
+List-Unsubscribe: <https://listman.redhat.com/mailman/options/cluster-devel>, 
+ <mailto:cluster-devel-request@redhat.com?subject=unsubscribe>
+List-Archive: <http://listman.redhat.com/archives/cluster-devel/>
+List-Post: <mailto:cluster-devel@redhat.com>
+List-Help: <mailto:cluster-devel-request@redhat.com?subject=help>
+List-Subscribe: <https://listman.redhat.com/mailman/listinfo/cluster-devel>,
+ <mailto:cluster-devel-request@redhat.com?subject=subscribe>
+Errors-To: cluster-devel-bounces@redhat.com
+Sender: "Cluster-devel" <cluster-devel-bounces@redhat.com>
+Content-Type: text/plain; charset="utf-8"
+To: Jeff Layton <jlayton@kernel.org>
+Cc: linux-efi@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.com>, Ruihan Li <lrh2000@pku.edu.cn>, Ard Biesheuvel <ardb@kernel.org>, Ian Kent <raven@themaw.net>, Paulo Alcantara <pc@manguebit.com>, linux-cifs@vger.kernel.org, Paul Moore <paul@paul-moore.com>, Ritu Agarwal <rituagar@linux.ibm.com>, James Morris <jmorris@namei.org>, cluster-devel@redhat.com, Namjae Jeon <linkinjeon@kernel.org>, "Serge E. Hallyn" <serge@hallyn.com>, Shyam Prasad N <sprasad@microsoft.com>, Arnd Bergmann <arnd@arndb.de>, autofs@vger.kernel.org, apparmor@lists.ubuntu.com, Tom Talpey <tom@talpey.com>, linux-fsdevel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, "Tigran A. Aivazian" <aivazian.tigran@gmail.com>, Suren Baghdasaryan <surenb@google.com>, Christian Brauner <brauner@kernel.org>, John Johansen <john.johansen@canonical.com>, Wolfram Sang <wsa+renesas@sang-engineering.>
 
-In later patches, we're going to change how the inode's ctime field is
-used. Switch to using accessor functions instead of raw accesses of
-inode->i_ctime.
+On Mon, Jun 12, 2023 at 12:36=E2=80=AFPM Jeff Layton <jlayton@kernel.org> w=
+rote:
+> On Fri, 2023-06-09 at 18:44 +0200, Andreas Gruenbacher wrote:
+> > Jeff,
+> >
+> > On Fri, Jun 9, 2023 at 2:50=E2=80=AFPM Jeff Layton <jlayton@kernel.org>=
+ wrote:
+> > > Signed-off-by: Jeff Layton <jlayton@kernel.org>
+> > > ---
+> > >  fs/gfs2/quota.c | 2 +-
+> > >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > >
+> > > diff --git a/fs/gfs2/quota.c b/fs/gfs2/quota.c
+> > > index 1ed17226d9ed..6d283e071b90 100644
+> > > --- a/fs/gfs2/quota.c
+> > > +++ b/fs/gfs2/quota.c
+> > > @@ -869,7 +869,7 @@ static int gfs2_adjust_quota(struct gfs2_inode *i=
+p, loff_t loc,
+> > >                 size =3D loc + sizeof(struct gfs2_quota);
+> > >                 if (size > inode->i_size)
+> > >                         i_size_write(inode, size);
+> > > -               inode->i_mtime =3D inode->i_atime =3D current_time(in=
+ode);
+> > > +               inode->i_mtime =3D inode->i_atime =3D inode->i_ctime =
+=3D current_time(inode);
+> >
+> > I don't think we need to worry about the ctime of the quota inode as
+> > that inode is internal to the filesystem only.
+> >
+>
+> Thanks Andreas.  I'll plan to drop this patch from the series for now.
+>
+> Does updating the mtime and atime here serve any purpose, or should
+> those also be removed? If you plan to keep the a/mtime updates then I'd
+> still suggest updating the ctime for consistency's sake. It shouldn't
+> cost anything extra to do so since you're dirtying the inode below
+> anyway.
 
-Reviewed-by: Ian Kent <raven@themaw.net>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Signed-off-by: Jeff Layton <jlayton@kernel.org>
----
- fs/autofs/inode.c | 2 +-
- fs/autofs/root.c  | 6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+Yes, good point actually, we should keep things consistent for simplicity.
 
-diff --git a/fs/autofs/inode.c b/fs/autofs/inode.c
-index affa70360b1f..2b49662ed237 100644
---- a/fs/autofs/inode.c
-+++ b/fs/autofs/inode.c
-@@ -370,7 +370,7 @@ struct inode *autofs_get_inode(struct super_block *sb, umode_t mode)
- 		inode->i_uid = d_inode(sb->s_root)->i_uid;
- 		inode->i_gid = d_inode(sb->s_root)->i_gid;
- 	}
--	inode->i_atime = inode->i_mtime = inode->i_ctime = current_time(inode);
-+	inode->i_atime = inode->i_mtime = inode_set_ctime_current(inode);
- 	inode->i_ino = get_next_ino();
- 
- 	if (S_ISDIR(mode)) {
-diff --git a/fs/autofs/root.c b/fs/autofs/root.c
-index 93046c9dc461..512b9a26c63d 100644
---- a/fs/autofs/root.c
-+++ b/fs/autofs/root.c
-@@ -600,7 +600,7 @@ static int autofs_dir_symlink(struct mnt_idmap *idmap,
- 	p_ino = autofs_dentry_ino(dentry->d_parent);
- 	p_ino->count++;
- 
--	dir->i_mtime = dir->i_ctime = current_time(dir);
-+	dir->i_mtime = inode_set_ctime_current(dir);
- 
- 	return 0;
- }
-@@ -633,7 +633,7 @@ static int autofs_dir_unlink(struct inode *dir, struct dentry *dentry)
- 	d_inode(dentry)->i_size = 0;
- 	clear_nlink(d_inode(dentry));
- 
--	dir->i_mtime = dir->i_ctime = current_time(dir);
-+	dir->i_mtime = inode_set_ctime_current(dir);
- 
- 	spin_lock(&sbi->lookup_lock);
- 	__autofs_add_expiring(dentry);
-@@ -749,7 +749,7 @@ static int autofs_dir_mkdir(struct mnt_idmap *idmap,
- 	p_ino = autofs_dentry_ino(dentry->d_parent);
- 	p_ino->count++;
- 	inc_nlink(dir);
--	dir->i_mtime = dir->i_ctime = current_time(dir);
-+	dir->i_mtime = inode_set_ctime_current(dir);
- 
- 	return 0;
- }
--- 
-2.41.0
+Would you add this back in if you do another posting?
+
+Thanks,
+Andreas
+
+> Thanks!
+>
+> > >                 mark_inode_dirty(inode);
+> > >                 set_bit(QDF_REFRESH, &qd->qd_flags);
+> > >         }
+> > > --
+> > > 2.40.1
+> > >
+> >
+> > Thanks,
+> > Andreas
+> >
+>
+> --
+> Jeff Layton <jlayton@kernel.org>
+>
 
