@@ -1,103 +1,979 @@
-From: Jeff Layton <jlayton@kernel.org>
-Subject: Re: [PATCH v2 00/89] fs: new accessors for
- inode->i_ctime
-Date: Mon, 10 Jul 2023 09:32:23 -0400
-Message-ID: <c4eaff9389fe63ec4e29404ec0d1181b74935426.camel@kernel.org>
-References: <20230705185812.579118-1-jlayton@kernel.org>
- <5e40891f6423feb5b68f025e31f26e9a50ae9390.camel@kernel.org>
- <20230710-zudem-entkam-bb508cbd8c78@brauner>
+From: Sven Joachim <svenjoac@gmx.de>
+Subject: [PATCH] arch/*/configs/*defconfig: Replace AUTOFS4_FS by AUTOFS_FS
+Date: Thu, 27 Jul 2023 22:00:41 +0200
+Message-ID: <20230727200041.21404-1-svenjoac@gmx.de>
 Mime-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
-Return-path: <cluster-devel-bounces@redhat.com>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1688995975;
-	h=from:from:sender:sender:reply-to:subject:subject:date:date:
-	 message-id:message-id:to:to:cc:cc:mime-version:mime-version:
-	 content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:list-id:list-help:
-	 list-unsubscribe:list-subscribe:list-post;
-	bh=ypo6EEC/a10vTp0LME1omXwBE1UiKK/mReyAl6l5UHQ=;
-	b=DXnqApzEtbWlfgwnEz+7m8CDyjIvXf2fgGhSF5qhBu7Aye1JYbTAMwSYZl82iRu13wMB+t
-	zFdX2QJ5gahRU8JBKPJQBQHv1CE/dJQC2+jeZlILdObSp860aNABLPHR0rH4yKsEhWPA1F
-	WmzHsb7UN/qIta7NKNloc6zQzs4TQ5g=
-In-Reply-To: <20230710-zudem-entkam-bb508cbd8c78@brauner>
-List-Id: <autofs.vger.kernel.org>
-List-Unsubscribe: <https://listman.redhat.com/mailman/options/cluster-devel>, 
- <mailto:cluster-devel-request@redhat.com?subject=unsubscribe>
-List-Archive: <http://listman.redhat.com/archives/cluster-devel/>
-List-Post: <mailto:cluster-devel@redhat.com>
-List-Help: <mailto:cluster-devel-request@redhat.com?subject=help>
-List-Subscribe: <https://listman.redhat.com/mailman/listinfo/cluster-devel>,
- <mailto:cluster-devel-request@redhat.com?subject=subscribe>
-Errors-To: cluster-devel-bounces@redhat.com
-Sender: "Cluster-devel" <cluster-devel-bounces@redhat.com>
-Content-Type: text/plain; charset="iso-8859-1"
-To: Christian Brauner <brauner@kernel.org>
-Cc: lucho@ionkov.net, rafael@kernel.org, djwong@kernel.org, al@alarsen.net, cmllamas@google.com, andrii@kernel.org, hughd@google.com, john.johansen@canonical.com, agordeev@linux.ibm.com, hch@lst.de, hubcap@omnibond.com, pc@manguebit.com, linux-xfs@vger.kernel.org, bvanassche@acm.org, jeffxu@chromium.org, mpe@ellerman.id.au, john@keeping.me.uk, yi.zhang@huawei.com, jmorris@namei.org, christophe.leroy@csgroup.eu, code@tyhicks.com, stern@rowland.harvard.edu, borntraeger@linux.ibm.com, devel@lists.orangefs.org, mirimmad17@gmail.com, sprasad@microsoft.com, jaharkes@cs.cmu.edu, linux-um@lists.infradead.org, npiggin@gmail.com, viro@zeniv.linux.org.uk, ericvh@kernel.org, surenb@google.com, trond.myklebust@hammerspace.com, anton@tuxera.com, wsa+renesas@sang-engineering.com, gregkh@linuxfoundation.org, stephen.smalley.work@gmail.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel
+Return-path: <linux-kernel-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=gmx.de;
+ s=s31663417; t=1690488096; x=1691092896; i=svenjoac@gmx.de;
+ bh=bsLwwhFoP0n5ZIkQPMJFliLf9pV9i7/hQosqjnnBdPk=;
+ h=X-UI-Sender-Class:From:To:Cc:Subject:Date;
+ b=N+q39g1FQXajj9SQ6XNK8hyQa8BLKAz7I31X0QPpW1MCMijpyGBnY5jP2K3Wrz5BphtuMNS
+ k94MwkPUpf2+cMtmljfakzBNhAk79TeFOsNQ7+9QXPSDGb0h1KMre9NP7C6wooYO+2E0MonxA
+ RNOVatieUnrsoGFFmVdVB7Eg5iTNE5G5bIZ0LLNM6ca0ztl//KQLY/gRvReMGG2Hz1dkcA/6l
+ H2FXw7k3t5I/upPvrj5BLzJx9HT1JtDex9m4d6nxWS/M/ipw+5MRHfyFQ9/P2hBJSLd0qLcIe
+ RAbPxDq9hExUzAJaJXWtLIBx+2bkWDbWpKR5GC9T02LtMCYJzoWw==
+List-ID: <autofs.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+To: Ian Kent <raven@themaw.net>, Linus Torvalds <torvalds@linux-foundation.org>
+Cc: autofs@vger.kernel.org, linux-kernel@vger.kernel.org, Sven Joachim <svenjoac@gmx.de>
 
-On Mon, 2023-07-10 at 14:35 +0200, Christian Brauner wrote:
-> On Fri, Jul 07, 2023 at 08:42:31AM -0400, Jeff Layton wrote:
-> > On Wed, 2023-07-05 at 14:58 -0400, Jeff Layton wrote:
-> > > v2:
-> > > - prepend patches to add missing ctime updates
-> > > - add simple_rename_timestamp helper function
-> > > - rename ctime accessor functions as inode_get_ctime/inode_set_ctime_=
-*
-> > > - drop individual inode_ctime_set_{sec,nsec} helpers
-> > >=20
-> >=20
-> > After review by Jan and others, and Jan's ext4 rework, the diff on top
-> > of the series I posted a couple of days ago is below. I don't really
-> > want to spam everyone with another ~100 patch v3 series, but I can if
-> > you think that's best.
-> >=20
-> > Christian, what would you like me to do here?
->=20
-> I picked up the series from the list and folded the fixups you posted
-> here into the respective fs conversion patches. I hope that helps you
-> avoid a resend. You should have received a separate "thank you" mail for
-> all of this.
->=20
-> To each patch that I folded one of the fixlets from below into I added a
-> git note that records a link to your mail here and the respective patch
-> hunk from this mail that I folded into the patch. git.kernel.org will
-> show notes by default. For example,
-> https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git/commit/?h=3Dv=
-fs.ctime&id=3D8b0e3c2e99004609a16ba145bcbdfdddb78e220e
-> should show you the note I added. You can also fetch them via
-> git fetch $remote refs/notes/*:refs/notes/*
-> (You probably know that ofc but jic.) if you're interested.
->=20
-> Based on v6.5-rc1 as of today.
->=20
+Commit a2225d931f75 ("autofs: remove left-over autofs4 stubs")
+promised the removal of the fs/autofs/Kconfig fragment for AUTOFS4_FS
+within a couple of releases, but five years later this still has not
+happened yet, and AUTOFS4_FS is still enabled in 63 defconfigs.  Get
+rid of it mechanically:
 
-Many thanks!!! I'll get to work rebasing the multigrain timestamp series
-on top of that.
+find arch -name "*defconfig" -exec sed -i 's/AUTOFS4_FS/AUTOFS_FS/' '{}' \=
+;
 
-> Btw, both b4 and patchwork somehow treat the series in weird was.
-> IOW, based on the message id of the cover letter I was able to pull most
-> messages except for:
->=20
-> [07/92] fs: add ctime accessors infrastructure
-> [08/92] fs: new helper: simple_rename_timestamp
-> [92/92] fs: rename i_ctime field to __i_ctime
->=20
-> which I pulled in separately. Not sure what the cause of=A0
->=20
-> this is.
+Signed-off-by: Sven Joachim <svenjoac@gmx.de>
+=2D--
+ arch/arm/configs/axm55xx_defconfig          | 2 +-
+ arch/arm/configs/davinci_all_defconfig      | 2 +-
+ arch/arm/configs/exynos_defconfig           | 2 +-
+ arch/arm/configs/footbridge_defconfig       | 2 +-
+ arch/arm/configs/imx_v6_v7_defconfig        | 2 +-
+ arch/arm/configs/keystone_defconfig         | 2 +-
+ arch/arm/configs/lpc32xx_defconfig          | 2 +-
+ arch/arm/configs/milbeaut_m10v_defconfig    | 2 +-
+ arch/arm/configs/multi_v7_defconfig         | 2 +-
+ arch/arm/configs/omap1_defconfig            | 2 +-
+ arch/arm/configs/omap2plus_defconfig        | 2 +-
+ arch/arm/configs/pxa_defconfig              | 2 +-
+ arch/arm/configs/rpc_defconfig              | 2 +-
+ arch/arm/configs/s5pv210_defconfig          | 2 +-
+ arch/arm/configs/socfpga_defconfig          | 2 +-
+ arch/arm/configs/spear13xx_defconfig        | 2 +-
+ arch/arm/configs/spear3xx_defconfig         | 2 +-
+ arch/arm/configs/spear6xx_defconfig         | 2 +-
+ arch/arm64/configs/defconfig                | 2 +-
+ arch/ia64/configs/bigsur_defconfig          | 2 +-
+ arch/ia64/configs/generic_defconfig         | 2 +-
+ arch/ia64/configs/gensparse_defconfig       | 2 +-
+ arch/ia64/configs/tiger_defconfig           | 2 +-
+ arch/loongarch/configs/loongson3_defconfig  | 2 +-
+ arch/mips/configs/bigsur_defconfig          | 2 +-
+ arch/mips/configs/fuloong2e_defconfig       | 2 +-
+ arch/mips/configs/ip22_defconfig            | 2 +-
+ arch/mips/configs/ip32_defconfig            | 2 +-
+ arch/mips/configs/jazz_defconfig            | 2 +-
+ arch/mips/configs/lemote2f_defconfig        | 2 +-
+ arch/mips/configs/loongson2k_defconfig      | 2 +-
+ arch/mips/configs/loongson3_defconfig       | 2 +-
+ arch/mips/configs/mtx1_defconfig            | 2 +-
+ arch/mips/configs/pic32mzda_defconfig       | 2 +-
+ arch/mips/configs/rm200_defconfig           | 2 +-
+ arch/parisc/configs/generic-32bit_defconfig | 2 +-
+ arch/parisc/configs/generic-64bit_defconfig | 2 +-
+ arch/powerpc/configs/44x/sam440ep_defconfig | 2 +-
+ arch/powerpc/configs/85xx/stx_gp3_defconfig | 2 +-
+ arch/powerpc/configs/cell_defconfig         | 2 +-
+ arch/powerpc/configs/ep8248e_defconfig      | 2 +-
+ arch/powerpc/configs/mgcoge_defconfig       | 2 +-
+ arch/powerpc/configs/pasemi_defconfig       | 2 +-
+ arch/powerpc/configs/pmac32_defconfig       | 2 +-
+ arch/powerpc/configs/powernv_defconfig      | 2 +-
+ arch/powerpc/configs/ppc64_defconfig        | 2 +-
+ arch/powerpc/configs/ppc64e_defconfig       | 2 +-
+ arch/powerpc/configs/ppc6xx_defconfig       | 2 +-
+ arch/powerpc/configs/ps3_defconfig          | 2 +-
+ arch/riscv/configs/defconfig                | 2 +-
+ arch/riscv/configs/rv32_defconfig           | 2 +-
+ arch/s390/configs/debug_defconfig           | 2 +-
+ arch/s390/configs/defconfig                 | 2 +-
+ arch/sh/configs/espt_defconfig              | 2 +-
+ arch/sh/configs/sdk7780_defconfig           | 2 +-
+ arch/sh/configs/sdk7786_defconfig           | 2 +-
+ arch/sh/configs/sh03_defconfig              | 2 +-
+ arch/sh/configs/sh7763rdp_defconfig         | 2 +-
+ arch/sparc/configs/sparc32_defconfig        | 2 +-
+ arch/um/configs/i386_defconfig              | 2 +-
+ arch/um/configs/x86_64_defconfig            | 2 +-
+ arch/x86/configs/i386_defconfig             | 2 +-
+ arch/x86/configs/x86_64_defconfig           | 2 +-
+ 63 files changed, 63 insertions(+), 63 deletions(-)
 
-Good to know.
-
-I ended up doing the send in two phases: one for the cover letter and
-infrastructure patches that went to everyone, and one for the per-
-subsystem patches that went do individual maintainers and lists.
-
-I suspect that screwed up the message IDs somehow. Hopefully I won't
-need to do a posting like that again soon, but I'll pay closer attention
-to the message id handling next time.
-
-Thanks again!
---=20
-Jeff Layton <jlayton@kernel.org>
+diff --git a/arch/arm/configs/axm55xx_defconfig b/arch/arm/configs/axm55xx=
+_defconfig
+index bfbaa2df3be5..d1c550894a65 100644
+=2D-- a/arch/arm/configs/axm55xx_defconfig
++++ b/arch/arm/configs/axm55xx_defconfig
+@@ -197,7 +197,7 @@ CONFIG_EXT2_FS=3Dy
+ CONFIG_EXT3_FS=3Dy
+ # CONFIG_EXT3_DEFAULTS_TO_ORDERED is not set
+ CONFIG_EXT4_FS=3Dy
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_FUSE_FS=3Dy
+ CONFIG_CUSE=3Dy
+ CONFIG_FSCACHE=3Dy
+diff --git a/arch/arm/configs/davinci_all_defconfig b/arch/arm/configs/dav=
+inci_all_defconfig
+index 821d966c95a5..05ea71778ef8 100644
+=2D-- a/arch/arm/configs/davinci_all_defconfig
++++ b/arch/arm/configs/davinci_all_defconfig
+@@ -232,7 +232,7 @@ CONFIG_EXT2_FS=3Dy
+ CONFIG_EXT3_FS=3Dy
+ CONFIG_EXT4_FS_POSIX_ACL=3Dy
+ CONFIG_XFS_FS=3Dm
+-CONFIG_AUTOFS4_FS=3Dm
++CONFIG_AUTOFS_FS=3Dm
+ CONFIG_MSDOS_FS=3Dy
+ CONFIG_VFAT_FS=3Dy
+ CONFIG_TMPFS=3Dy
+diff --git a/arch/arm/configs/exynos_defconfig b/arch/arm/configs/exynos_d=
+efconfig
+index b0f0baa3a6c4..53b1d41b4a8b 100644
+=2D-- a/arch/arm/configs/exynos_defconfig
++++ b/arch/arm/configs/exynos_defconfig
+@@ -327,7 +327,7 @@ CONFIG_PWM_SAMSUNG=3Dy
+ CONFIG_PHY_EXYNOS5250_SATA=3Dy
+ CONFIG_EXT2_FS=3Dy
+ CONFIG_EXT4_FS=3Dy
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_MSDOS_FS=3Dy
+ CONFIG_VFAT_FS=3Dy
+ CONFIG_TMPFS=3Dy
+diff --git a/arch/arm/configs/footbridge_defconfig b/arch/arm/configs/foot=
+bridge_defconfig
+index 87c489337d0e..c9f4594b7ca9 100644
+=2D-- a/arch/arm/configs/footbridge_defconfig
++++ b/arch/arm/configs/footbridge_defconfig
+@@ -94,7 +94,7 @@ CONFIG_LEDS_CLASS=3Dy
+ CONFIG_LEDS_TRIGGERS=3Dy
+ CONFIG_LEDS_TRIGGER_TIMER=3Dy
+ CONFIG_EXT2_FS=3Dy
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_ISO9660_FS=3Dm
+ CONFIG_JOLIET=3Dy
+ CONFIG_MSDOS_FS=3Dm
+diff --git a/arch/arm/configs/imx_v6_v7_defconfig b/arch/arm/configs/imx_v=
+6_v7_defconfig
+index 05706696a5fb..0a90583f9f01 100644
+=2D-- a/arch/arm/configs/imx_v6_v7_defconfig
++++ b/arch/arm/configs/imx_v6_v7_defconfig
+@@ -442,7 +442,7 @@ CONFIG_EXT3_FS_SECURITY=3Dy
+ CONFIG_QUOTA=3Dy
+ CONFIG_QUOTA_NETLINK_INTERFACE=3Dy
+ # CONFIG_PRINT_QUOTA_WARNING is not set
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_FUSE_FS=3Dy
+ CONFIG_ISO9660_FS=3Dm
+ CONFIG_JOLIET=3Dy
+diff --git a/arch/arm/configs/keystone_defconfig b/arch/arm/configs/keysto=
+ne_defconfig
+index d7a0bca641eb..1cb145633a91 100644
+=2D-- a/arch/arm/configs/keystone_defconfig
++++ b/arch/arm/configs/keystone_defconfig
+@@ -207,7 +207,7 @@ CONFIG_RESET_TI_SYSCON=3Dm
+ CONFIG_EXT4_FS=3Dy
+ CONFIG_EXT4_FS_POSIX_ACL=3Dy
+ CONFIG_FANOTIFY=3Dy
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_MSDOS_FS=3Dy
+ CONFIG_VFAT_FS=3Dy
+ CONFIG_NTFS_FS=3Dy
+diff --git a/arch/arm/configs/lpc32xx_defconfig b/arch/arm/configs/lpc32xx=
+_defconfig
+index d7df0486850f..e2b0ff0b253f 100644
+=2D-- a/arch/arm/configs/lpc32xx_defconfig
++++ b/arch/arm/configs/lpc32xx_defconfig
+@@ -162,7 +162,7 @@ CONFIG_MAX517=3Dy
+ CONFIG_PWM=3Dy
+ CONFIG_PWM_LPC32XX=3Dy
+ CONFIG_EXT2_FS=3Dy
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_MSDOS_FS=3Dy
+ CONFIG_VFAT_FS=3Dy
+ CONFIG_TMPFS=3Dy
+diff --git a/arch/arm/configs/milbeaut_m10v_defconfig b/arch/arm/configs/m=
+ilbeaut_m10v_defconfig
+index 385ad0f391a8..7d4284502325 100644
+=2D-- a/arch/arm/configs/milbeaut_m10v_defconfig
++++ b/arch/arm/configs/milbeaut_m10v_defconfig
+@@ -81,7 +81,7 @@ CONFIG_SOC_BRCMSTB=3Dy
+ CONFIG_MEMORY=3Dy
+ # CONFIG_ARM_PMU is not set
+ CONFIG_EXT4_FS=3Dy
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_MSDOS_FS=3Dy
+ CONFIG_VFAT_FS=3Dy
+ CONFIG_NTFS_FS=3Dy
+diff --git a/arch/arm/configs/multi_v7_defconfig b/arch/arm/configs/multi_=
+v7_defconfig
+index f0800f806b5f..c7b2550d706c 100644
+=2D-- a/arch/arm/configs/multi_v7_defconfig
++++ b/arch/arm/configs/multi_v7_defconfig
+@@ -1226,7 +1226,7 @@ CONFIG_COUNTER=3Dm
+ CONFIG_STM32_TIMER_CNT=3Dm
+ CONFIG_STM32_LPTIMER_CNT=3Dm
+ CONFIG_EXT4_FS=3Dy
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_MSDOS_FS=3Dy
+ CONFIG_VFAT_FS=3Dy
+ CONFIG_NTFS_FS=3Dy
+diff --git a/arch/arm/configs/omap1_defconfig b/arch/arm/configs/omap1_def=
+config
+index 53dd0717cea5..7c2cc7a89511 100644
+=2D-- a/arch/arm/configs/omap1_defconfig
++++ b/arch/arm/configs/omap1_defconfig
+@@ -188,7 +188,7 @@ CONFIG_RTC_DRV_OMAP=3Dy
+ CONFIG_EXT2_FS=3Dy
+ CONFIG_EXT3_FS=3Dy
+ # CONFIG_DNOTIFY is not set
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_ISO9660_FS=3Dy
+ CONFIG_JOLIET=3Dy
+ CONFIG_MSDOS_FS=3Dy
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2=
+plus_defconfig
+index 9bd36dd39bd0..b685018dcf54 100644
+=2D-- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -678,7 +678,7 @@ CONFIG_EXT4_FS_SECURITY=3Dy
+ CONFIG_FANOTIFY=3Dy
+ CONFIG_QUOTA=3Dy
+ CONFIG_QFMT_V2=3Dy
+-CONFIG_AUTOFS4_FS=3Dm
++CONFIG_AUTOFS_FS=3Dm
+ CONFIG_MSDOS_FS=3Dy
+ CONFIG_VFAT_FS=3Dy
+ CONFIG_TMPFS=3Dy
+diff --git a/arch/arm/configs/pxa_defconfig b/arch/arm/configs/pxa_defconf=
+ig
+index b46e39369dbb..b0c3355e2599 100644
+=2D-- a/arch/arm/configs/pxa_defconfig
++++ b/arch/arm/configs/pxa_defconfig
+@@ -589,7 +589,7 @@ CONFIG_REISERFS_FS_XATTR=3Dy
+ CONFIG_REISERFS_FS_POSIX_ACL=3Dy
+ CONFIG_REISERFS_FS_SECURITY=3Dy
+ CONFIG_XFS_FS=3Dm
+-CONFIG_AUTOFS4_FS=3Dm
++CONFIG_AUTOFS_FS=3Dm
+ CONFIG_FUSE_FS=3Dm
+ CONFIG_CUSE=3Dm
+ CONFIG_FSCACHE=3Dy
+diff --git a/arch/arm/configs/rpc_defconfig b/arch/arm/configs/rpc_defconf=
+ig
+index 65a3fded55be..b1d12a2c2ef8 100644
+=2D-- a/arch/arm/configs/rpc_defconfig
++++ b/arch/arm/configs/rpc_defconfig
+@@ -79,7 +79,7 @@ CONFIG_RTC_CLASS=3Dy
+ CONFIG_RTC_DRV_PCF8583=3Dy
+ CONFIG_EXT2_FS=3Dy
+ CONFIG_EXT3_FS=3Dy
+-CONFIG_AUTOFS4_FS=3Dm
++CONFIG_AUTOFS_FS=3Dm
+ CONFIG_ISO9660_FS=3Dy
+ CONFIG_JOLIET=3Dy
+ CONFIG_MSDOS_FS=3Dm
+diff --git a/arch/arm/configs/s5pv210_defconfig b/arch/arm/configs/s5pv210=
+_defconfig
+index 4c1e480b5bbd..72df854878f8 100644
+=2D-- a/arch/arm/configs/s5pv210_defconfig
++++ b/arch/arm/configs/s5pv210_defconfig
+@@ -103,7 +103,7 @@ CONFIG_PHY_SAMSUNG_USB2=3Dm
+ CONFIG_PHY_S5PV210_USB2=3Dy
+ CONFIG_EXT2_FS=3Dy
+ CONFIG_EXT4_FS=3Dy
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_MSDOS_FS=3Dy
+ CONFIG_VFAT_FS=3Dy
+ CONFIG_TMPFS=3Dy
+diff --git a/arch/arm/configs/socfpga_defconfig b/arch/arm/configs/socfpga=
+_defconfig
+index 70739e09d0f4..d6dfae196f84 100644
+=2D-- a/arch/arm/configs/socfpga_defconfig
++++ b/arch/arm/configs/socfpga_defconfig
+@@ -136,7 +136,7 @@ CONFIG_EXT2_FS=3Dy
+ CONFIG_EXT2_FS_XATTR=3Dy
+ CONFIG_EXT2_FS_POSIX_ACL=3Dy
+ CONFIG_EXT3_FS=3Dy
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_VFAT_FS=3Dy
+ CONFIG_NTFS_FS=3Dy
+ CONFIG_NTFS_RW=3Dy
+diff --git a/arch/arm/configs/spear13xx_defconfig b/arch/arm/configs/spear=
+13xx_defconfig
+index bfde0c86cdc5..c8128a6180e7 100644
+=2D-- a/arch/arm/configs/spear13xx_defconfig
++++ b/arch/arm/configs/spear13xx_defconfig
+@@ -85,7 +85,7 @@ CONFIG_EXT2_FS_XATTR=3Dy
+ CONFIG_EXT2_FS_SECURITY=3Dy
+ CONFIG_EXT3_FS=3Dy
+ CONFIG_EXT3_FS_SECURITY=3Dy
+-CONFIG_AUTOFS4_FS=3Dm
++CONFIG_AUTOFS_FS=3Dm
+ CONFIG_FUSE_FS=3Dy
+ CONFIG_MSDOS_FS=3Dm
+ CONFIG_VFAT_FS=3Dm
+diff --git a/arch/arm/configs/spear3xx_defconfig b/arch/arm/configs/spear3=
+xx_defconfig
+index a96ed5cf778e..97ea2e9a6f07 100644
+=2D-- a/arch/arm/configs/spear3xx_defconfig
++++ b/arch/arm/configs/spear3xx_defconfig
+@@ -68,7 +68,7 @@ CONFIG_EXT2_FS_XATTR=3Dy
+ CONFIG_EXT2_FS_SECURITY=3Dy
+ CONFIG_EXT3_FS=3Dy
+ CONFIG_EXT3_FS_SECURITY=3Dy
+-CONFIG_AUTOFS4_FS=3Dm
++CONFIG_AUTOFS_FS=3Dm
+ CONFIG_MSDOS_FS=3Dm
+ CONFIG_VFAT_FS=3Dm
+ CONFIG_FAT_DEFAULT_IOCHARSET=3D"ascii"
+diff --git a/arch/arm/configs/spear6xx_defconfig b/arch/arm/configs/spear6=
+xx_defconfig
+index 3e2c2abae5ba..a7a3413ac968 100644
+=2D-- a/arch/arm/configs/spear6xx_defconfig
++++ b/arch/arm/configs/spear6xx_defconfig
+@@ -54,7 +54,7 @@ CONFIG_EXT2_FS_XATTR=3Dy
+ CONFIG_EXT2_FS_SECURITY=3Dy
+ CONFIG_EXT3_FS=3Dy
+ CONFIG_EXT3_FS_SECURITY=3Dy
+-CONFIG_AUTOFS4_FS=3Dm
++CONFIG_AUTOFS_FS=3Dm
+ CONFIG_MSDOS_FS=3Dm
+ CONFIG_VFAT_FS=3Dm
+ CONFIG_FAT_DEFAULT_IOCHARSET=3D"ascii"
+diff --git a/arch/arm64/configs/defconfig b/arch/arm64/configs/defconfig
+index 0777bcae9104..a25d783dfb95 100644
+=2D-- a/arch/arm64/configs/defconfig
++++ b/arch/arm64/configs/defconfig
+@@ -1469,7 +1469,7 @@ CONFIG_BTRFS_FS_POSIX_ACL=3Dy
+ CONFIG_FANOTIFY=3Dy
+ CONFIG_FANOTIFY_ACCESS_PERMISSIONS=3Dy
+ CONFIG_QUOTA=3Dy
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_FUSE_FS=3Dm
+ CONFIG_CUSE=3Dm
+ CONFIG_OVERLAY_FS=3Dm
+diff --git a/arch/ia64/configs/bigsur_defconfig b/arch/ia64/configs/bigsur=
+_defconfig
+index 3e1337aceb37..7cb96db9a25d 100644
+=2D-- a/arch/ia64/configs/bigsur_defconfig
++++ b/arch/ia64/configs/bigsur_defconfig
+@@ -77,7 +77,7 @@ CONFIG_EXT3_FS=3Dy
+ CONFIG_XFS_FS=3Dy
+ CONFIG_XFS_QUOTA=3Dy
+ CONFIG_XFS_POSIX_ACL=3Dy
+-CONFIG_AUTOFS4_FS=3Dm
++CONFIG_AUTOFS_FS=3Dm
+ CONFIG_ISO9660_FS=3Dm
+ CONFIG_JOLIET=3Dy
+ CONFIG_UDF_FS=3Dm
+diff --git a/arch/ia64/configs/generic_defconfig b/arch/ia64/configs/gener=
+ic_defconfig
+index f8033bacea89..4581240013dd 100644
+=2D-- a/arch/ia64/configs/generic_defconfig
++++ b/arch/ia64/configs/generic_defconfig
+@@ -146,7 +146,7 @@ CONFIG_REISERFS_FS_XATTR=3Dy
+ CONFIG_REISERFS_FS_POSIX_ACL=3Dy
+ CONFIG_REISERFS_FS_SECURITY=3Dy
+ CONFIG_XFS_FS=3Dy
+-CONFIG_AUTOFS4_FS=3Dm
++CONFIG_AUTOFS_FS=3Dm
+ CONFIG_ISO9660_FS=3Dm
+ CONFIG_JOLIET=3Dy
+ CONFIG_UDF_FS=3Dm
+diff --git a/arch/ia64/configs/gensparse_defconfig b/arch/ia64/configs/gen=
+sparse_defconfig
+index ffebe6c503f5..c9e806616544 100644
+=2D-- a/arch/ia64/configs/gensparse_defconfig
++++ b/arch/ia64/configs/gensparse_defconfig
+@@ -127,7 +127,7 @@ CONFIG_REISERFS_FS_XATTR=3Dy
+ CONFIG_REISERFS_FS_POSIX_ACL=3Dy
+ CONFIG_REISERFS_FS_SECURITY=3Dy
+ CONFIG_XFS_FS=3Dy
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_ISO9660_FS=3Dm
+ CONFIG_JOLIET=3Dy
+ CONFIG_UDF_FS=3Dm
+diff --git a/arch/ia64/configs/tiger_defconfig b/arch/ia64/configs/tiger_d=
+efconfig
+index 45f5d6e2da0a..d7d8fb5c7b71 100644
+=2D-- a/arch/ia64/configs/tiger_defconfig
++++ b/arch/ia64/configs/tiger_defconfig
+@@ -110,7 +110,7 @@ CONFIG_REISERFS_FS_XATTR=3Dy
+ CONFIG_REISERFS_FS_POSIX_ACL=3Dy
+ CONFIG_REISERFS_FS_SECURITY=3Dy
+ CONFIG_XFS_FS=3Dy
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_ISO9660_FS=3Dm
+ CONFIG_JOLIET=3Dy
+ CONFIG_UDF_FS=3Dm
+diff --git a/arch/loongarch/configs/loongson3_defconfig b/arch/loongarch/c=
+onfigs/loongson3_defconfig
+index 6cd26dd3c134..d64849b4cba1 100644
+=2D-- a/arch/loongarch/configs/loongson3_defconfig
++++ b/arch/loongarch/configs/loongson3_defconfig
+@@ -769,7 +769,7 @@ CONFIG_QUOTA=3Dy
+ # CONFIG_PRINT_QUOTA_WARNING is not set
+ CONFIG_QFMT_V1=3Dm
+ CONFIG_QFMT_V2=3Dm
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_FUSE_FS=3Dm
+ CONFIG_OVERLAY_FS=3Dy
+ CONFIG_OVERLAY_FS_INDEX=3Dy
+diff --git a/arch/mips/configs/bigsur_defconfig b/arch/mips/configs/bigsur=
+_defconfig
+index b0cbfa781ffc..e463a9acae03 100644
+=2D-- a/arch/mips/configs/bigsur_defconfig
++++ b/arch/mips/configs/bigsur_defconfig
+@@ -153,7 +153,7 @@ CONFIG_QUOTA=3Dy
+ CONFIG_QUOTA_NETLINK_INTERFACE=3Dy
+ # CONFIG_PRINT_QUOTA_WARNING is not set
+ CONFIG_QFMT_V2=3Dm
+-CONFIG_AUTOFS4_FS=3Dm
++CONFIG_AUTOFS_FS=3Dm
+ CONFIG_FUSE_FS=3Dm
+ CONFIG_ISO9660_FS=3Dm
+ CONFIG_JOLIET=3Dy
+diff --git a/arch/mips/configs/fuloong2e_defconfig b/arch/mips/configs/ful=
+oong2e_defconfig
+index 5458573286a2..1843468f84a3 100644
+=2D-- a/arch/mips/configs/fuloong2e_defconfig
++++ b/arch/mips/configs/fuloong2e_defconfig
+@@ -178,7 +178,7 @@ CONFIG_EXT3_FS=3Dy
+ CONFIG_EXT4_FS_POSIX_ACL=3Dy
+ CONFIG_EXT4_FS_SECURITY=3Dy
+ CONFIG_REISERFS_FS=3Dm
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_FUSE_FS=3Dy
+ CONFIG_ISO9660_FS=3Dm
+ CONFIG_JOLIET=3Dy
+diff --git a/arch/mips/configs/ip22_defconfig b/arch/mips/configs/ip22_def=
+config
+index 897e55579af0..44821f497261 100644
+=2D-- a/arch/mips/configs/ip22_defconfig
++++ b/arch/mips/configs/ip22_defconfig
+@@ -245,7 +245,7 @@ CONFIG_QUOTA=3Dy
+ CONFIG_QUOTA_NETLINK_INTERFACE=3Dy
+ # CONFIG_PRINT_QUOTA_WARNING is not set
+ CONFIG_QFMT_V2=3Dm
+-CONFIG_AUTOFS4_FS=3Dm
++CONFIG_AUTOFS_FS=3Dm
+ CONFIG_FUSE_FS=3Dm
+ CONFIG_ISO9660_FS=3Dm
+ CONFIG_JOLIET=3Dy
+diff --git a/arch/mips/configs/ip32_defconfig b/arch/mips/configs/ip32_def=
+config
+index 418a4181e2fe..930c5f6ed182 100644
+=2D-- a/arch/mips/configs/ip32_defconfig
++++ b/arch/mips/configs/ip32_defconfig
+@@ -95,7 +95,7 @@ CONFIG_EXT3_FS_SECURITY=3Dy
+ CONFIG_QUOTA=3Dy
+ CONFIG_QFMT_V1=3Dm
+ CONFIG_QFMT_V2=3Dm
+-CONFIG_AUTOFS4_FS=3Dm
++CONFIG_AUTOFS_FS=3Dm
+ CONFIG_FUSE_FS=3Dm
+ CONFIG_ISO9660_FS=3Dm
+ CONFIG_JOLIET=3Dy
+diff --git a/arch/mips/configs/jazz_defconfig b/arch/mips/configs/jazz_def=
+config
+index 6b5d7e963ed9..fdf374574105 100644
+=2D-- a/arch/mips/configs/jazz_defconfig
++++ b/arch/mips/configs/jazz_defconfig
+@@ -76,7 +76,7 @@ CONFIG_REISERFS_FS_POSIX_ACL=3Dy
+ CONFIG_REISERFS_FS_SECURITY=3Dy
+ CONFIG_XFS_FS=3Dm
+ CONFIG_XFS_QUOTA=3Dy
+-CONFIG_AUTOFS4_FS=3Dm
++CONFIG_AUTOFS_FS=3Dm
+ CONFIG_FUSE_FS=3Dm
+ CONFIG_ISO9660_FS=3Dm
+ CONFIG_JOLIET=3Dy
+diff --git a/arch/mips/configs/lemote2f_defconfig b/arch/mips/configs/lemo=
+te2f_defconfig
+index 7e598d338979..83d9a8ff4270 100644
+=2D-- a/arch/mips/configs/lemote2f_defconfig
++++ b/arch/mips/configs/lemote2f_defconfig
+@@ -240,7 +240,7 @@ CONFIG_XFS_POSIX_ACL=3Dy
+ CONFIG_BTRFS_FS=3Dm
+ CONFIG_QUOTA=3Dy
+ CONFIG_QFMT_V2=3Dm
+-CONFIG_AUTOFS4_FS=3Dm
++CONFIG_AUTOFS_FS=3Dm
+ CONFIG_FSCACHE=3Dm
+ CONFIG_CACHEFILES=3Dm
+ CONFIG_ISO9660_FS=3Dm
+diff --git a/arch/mips/configs/loongson2k_defconfig b/arch/mips/configs/lo=
+ongson2k_defconfig
+index 0ab029ecad21..ec3ee8df737d 100644
+=2D-- a/arch/mips/configs/loongson2k_defconfig
++++ b/arch/mips/configs/loongson2k_defconfig
+@@ -296,7 +296,7 @@ CONFIG_XFS_QUOTA=3Dy
+ CONFIG_XFS_POSIX_ACL=3Dy
+ CONFIG_QUOTA=3Dy
+ # CONFIG_PRINT_QUOTA_WARNING is not set
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_FUSE_FS=3Dm
+ CONFIG_ISO9660_FS=3Dm
+ CONFIG_JOLIET=3Dy
+diff --git a/arch/mips/configs/loongson3_defconfig b/arch/mips/configs/loo=
+ngson3_defconfig
+index 3087e64e6ebe..129426351237 100644
+=2D-- a/arch/mips/configs/loongson3_defconfig
++++ b/arch/mips/configs/loongson3_defconfig
+@@ -352,7 +352,7 @@ CONFIG_QUOTA=3Dy
+ # CONFIG_PRINT_QUOTA_WARNING is not set
+ CONFIG_QFMT_V1=3Dm
+ CONFIG_QFMT_V2=3Dm
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_FUSE_FS=3Dm
+ CONFIG_VIRTIO_FS=3Dm
+ CONFIG_FSCACHE=3Dm
+diff --git a/arch/mips/configs/mtx1_defconfig b/arch/mips/configs/mtx1_def=
+config
+index b64172179160..935585d8bb26 100644
+=2D-- a/arch/mips/configs/mtx1_defconfig
++++ b/arch/mips/configs/mtx1_defconfig
+@@ -601,7 +601,7 @@ CONFIG_EXT3_FS=3Dm
+ CONFIG_EXT3_FS_POSIX_ACL=3Dy
+ CONFIG_EXT3_FS_SECURITY=3Dy
+ CONFIG_QUOTA=3Dy
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_FUSE_FS=3Dm
+ CONFIG_ISO9660_FS=3Dm
+ CONFIG_JOLIET=3Dy
+diff --git a/arch/mips/configs/pic32mzda_defconfig b/arch/mips/configs/pic=
+32mzda_defconfig
+index 8397f28355d5..0e494c24246f 100644
+=2D-- a/arch/mips/configs/pic32mzda_defconfig
++++ b/arch/mips/configs/pic32mzda_defconfig
+@@ -66,7 +66,7 @@ CONFIG_LEDS_TRIGGER_DEFAULT_ON=3Dy
+ CONFIG_EXT4_FS=3Dy
+ CONFIG_EXT4_FS_POSIX_ACL=3Dy
+ CONFIG_EXT4_FS_SECURITY=3Dy
+-CONFIG_AUTOFS4_FS=3Dm
++CONFIG_AUTOFS_FS=3Dm
+ CONFIG_FUSE_FS=3Dm
+ CONFIG_FSCACHE=3Dm
+ CONFIG_ISO9660_FS=3Dm
+diff --git a/arch/mips/configs/rm200_defconfig b/arch/mips/configs/rm200_d=
+efconfig
+index 7475c2cbea89..e0e312dd968a 100644
+=2D-- a/arch/mips/configs/rm200_defconfig
++++ b/arch/mips/configs/rm200_defconfig
+@@ -317,7 +317,7 @@ CONFIG_REISERFS_FS_POSIX_ACL=3Dy
+ CONFIG_REISERFS_FS_SECURITY=3Dy
+ CONFIG_XFS_FS=3Dm
+ CONFIG_XFS_QUOTA=3Dy
+-CONFIG_AUTOFS4_FS=3Dm
++CONFIG_AUTOFS_FS=3Dm
+ CONFIG_FUSE_FS=3Dm
+ CONFIG_ISO9660_FS=3Dm
+ CONFIG_JOLIET=3Dy
+diff --git a/arch/parisc/configs/generic-32bit_defconfig b/arch/parisc/con=
+figs/generic-32bit_defconfig
+index 9651f4390029..ee4febb30386 100644
+=2D-- a/arch/parisc/configs/generic-32bit_defconfig
++++ b/arch/parisc/configs/generic-32bit_defconfig
+@@ -237,7 +237,7 @@ CONFIG_EXT3_FS_SECURITY=3Dy
+ CONFIG_QUOTA=3Dy
+ CONFIG_QUOTA_NETLINK_INTERFACE=3Dy
+ CONFIG_QFMT_V2=3Dy
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_ISO9660_FS=3Dy
+ CONFIG_JOLIET=3Dy
+ CONFIG_VFAT_FS=3Dy
+diff --git a/arch/parisc/configs/generic-64bit_defconfig b/arch/parisc/con=
+figs/generic-64bit_defconfig
+index 6758c030b09d..f6ded7147b4d 100644
+=2D-- a/arch/parisc/configs/generic-64bit_defconfig
++++ b/arch/parisc/configs/generic-64bit_defconfig
+@@ -259,7 +259,7 @@ CONFIG_BTRFS_FS=3Dm
+ CONFIG_QUOTA=3Dy
+ CONFIG_QUOTA_NETLINK_INTERFACE=3Dy
+ CONFIG_QFMT_V2=3Dy
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_FUSE_FS=3Dy
+ CONFIG_CUSE=3Dy
+ CONFIG_ISO9660_FS=3Dy
+diff --git a/arch/powerpc/configs/44x/sam440ep_defconfig b/arch/powerpc/co=
+nfigs/44x/sam440ep_defconfig
+index ef09786d49b9..51499ee6366b 100644
+=2D-- a/arch/powerpc/configs/44x/sam440ep_defconfig
++++ b/arch/powerpc/configs/44x/sam440ep_defconfig
+@@ -79,7 +79,7 @@ CONFIG_EXT2_FS_POSIX_ACL=3Dy
+ CONFIG_EXT4_FS=3Dy
+ CONFIG_EXT4_FS_POSIX_ACL=3Dy
+ CONFIG_REISERFS_FS=3Dy
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_ISO9660_FS=3Dy
+ CONFIG_JOLIET=3Dy
+ CONFIG_ZISOFS=3Dy
+diff --git a/arch/powerpc/configs/85xx/stx_gp3_defconfig b/arch/powerpc/co=
+nfigs/85xx/stx_gp3_defconfig
+index ecbcc853307d..e7080497048d 100644
+=2D-- a/arch/powerpc/configs/85xx/stx_gp3_defconfig
++++ b/arch/powerpc/configs/85xx/stx_gp3_defconfig
+@@ -50,7 +50,7 @@ CONFIG_DRM=3Dm
+ CONFIG_SOUND=3Dm
+ CONFIG_EXT2_FS=3Dy
+ CONFIG_EXT4_FS=3Dy
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_ISO9660_FS=3Dm
+ CONFIG_UDF_FS=3Dm
+ CONFIG_MSDOS_FS=3Dm
+diff --git a/arch/powerpc/configs/cell_defconfig b/arch/powerpc/configs/ce=
+ll_defconfig
+index 06391cc2af3a..53f43a34e1a9 100644
+=2D-- a/arch/powerpc/configs/cell_defconfig
++++ b/arch/powerpc/configs/cell_defconfig
+@@ -172,7 +172,7 @@ CONFIG_EDAC_CELL=3Dy
+ CONFIG_UIO=3Dm
+ CONFIG_EXT2_FS=3Dy
+ CONFIG_EXT4_FS=3Dy
+-CONFIG_AUTOFS4_FS=3Dm
++CONFIG_AUTOFS_FS=3Dm
+ CONFIG_ISO9660_FS=3Dm
+ CONFIG_JOLIET=3Dy
+ CONFIG_UDF_FS=3Dm
+diff --git a/arch/powerpc/configs/ep8248e_defconfig b/arch/powerpc/configs=
+/ep8248e_defconfig
+index b9dfa3a0713b..0d8d3f41f194 100644
+=2D-- a/arch/powerpc/configs/ep8248e_defconfig
++++ b/arch/powerpc/configs/ep8248e_defconfig
+@@ -47,7 +47,7 @@ CONFIG_SERIAL_CPM_CONSOLE=3Dy
+ # CONFIG_USB_SUPPORT is not set
+ CONFIG_EXT2_FS=3Dy
+ CONFIG_EXT4_FS=3Dy
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_PROC_KCORE=3Dy
+ CONFIG_TMPFS=3Dy
+ CONFIG_CRAMFS=3Dy
+diff --git a/arch/powerpc/configs/mgcoge_defconfig b/arch/powerpc/configs/=
+mgcoge_defconfig
+index ce220ceeb91c..2101bfe6db94 100644
+=2D-- a/arch/powerpc/configs/mgcoge_defconfig
++++ b/arch/powerpc/configs/mgcoge_defconfig
+@@ -60,7 +60,7 @@ CONFIG_USB_FSL_USB2=3Dy
+ CONFIG_USB_G_SERIAL=3Dy
+ CONFIG_UIO=3Dy
+ CONFIG_EXT2_FS=3Dy
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_PROC_KCORE=3Dy
+ CONFIG_TMPFS=3Dy
+ CONFIG_JFFS2_FS=3Dy
+diff --git a/arch/powerpc/configs/pasemi_defconfig b/arch/powerpc/configs/=
+pasemi_defconfig
+index 96aa5355911f..61993944db40 100644
+=2D-- a/arch/powerpc/configs/pasemi_defconfig
++++ b/arch/powerpc/configs/pasemi_defconfig
+@@ -143,7 +143,7 @@ CONFIG_EXT2_FS=3Dy
+ CONFIG_EXT2_FS_XATTR=3Dy
+ CONFIG_EXT2_FS_POSIX_ACL=3Dy
+ CONFIG_EXT4_FS=3Dy
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_ISO9660_FS=3Dy
+ CONFIG_UDF_FS=3Dy
+ CONFIG_MSDOS_FS=3Dy
+diff --git a/arch/powerpc/configs/pmac32_defconfig b/arch/powerpc/configs/=
+pmac32_defconfig
+index 019163c2571e..05ed58576464 100644
+=2D-- a/arch/powerpc/configs/pmac32_defconfig
++++ b/arch/powerpc/configs/pmac32_defconfig
+@@ -254,7 +254,7 @@ CONFIG_LEDS_TRIGGER_DEFAULT_ON=3Dy
+ CONFIG_EXT2_FS=3Dy
+ CONFIG_EXT4_FS=3Dy
+ CONFIG_EXT4_FS_POSIX_ACL=3Dy
+-CONFIG_AUTOFS4_FS=3Dm
++CONFIG_AUTOFS_FS=3Dm
+ CONFIG_FUSE_FS=3Dm
+ CONFIG_ISO9660_FS=3Dy
+ CONFIG_JOLIET=3Dy
+diff --git a/arch/powerpc/configs/powernv_defconfig b/arch/powerpc/configs=
+/powernv_defconfig
+index e02ab94a09bf..ee84ade7a033 100644
+=2D-- a/arch/powerpc/configs/powernv_defconfig
++++ b/arch/powerpc/configs/powernv_defconfig
+@@ -270,7 +270,7 @@ CONFIG_BTRFS_FS=3Dm
+ CONFIG_BTRFS_FS_POSIX_ACL=3Dy
+ CONFIG_NILFS2_FS=3Dm
+ CONFIG_FANOTIFY=3Dy
+-CONFIG_AUTOFS4_FS=3Dm
++CONFIG_AUTOFS_FS=3Dm
+ CONFIG_FUSE_FS=3Dm
+ CONFIG_OVERLAY_FS=3Dm
+ CONFIG_ISO9660_FS=3Dy
+diff --git a/arch/powerpc/configs/ppc64_defconfig b/arch/powerpc/configs/p=
+pc64_defconfig
+index 268fa361a06d..c0f4bbc2c975 100644
+=2D-- a/arch/powerpc/configs/ppc64_defconfig
++++ b/arch/powerpc/configs/ppc64_defconfig
+@@ -327,7 +327,7 @@ CONFIG_BTRFS_FS=3Dm
+ CONFIG_BTRFS_FS_POSIX_ACL=3Dy
+ CONFIG_NILFS2_FS=3Dm
+ CONFIG_FS_DAX=3Dy
+-CONFIG_AUTOFS4_FS=3Dm
++CONFIG_AUTOFS_FS=3Dm
+ CONFIG_FUSE_FS=3Dm
+ CONFIG_OVERLAY_FS=3Dm
+ CONFIG_ISO9660_FS=3Dy
+diff --git a/arch/powerpc/configs/ppc64e_defconfig b/arch/powerpc/configs/=
+ppc64e_defconfig
+index 776c32964e12..624c371ffcc3 100644
+=2D-- a/arch/powerpc/configs/ppc64e_defconfig
++++ b/arch/powerpc/configs/ppc64e_defconfig
+@@ -185,7 +185,7 @@ CONFIG_JFS_SECURITY=3Dy
+ CONFIG_XFS_FS=3Dm
+ CONFIG_XFS_POSIX_ACL=3Dy
+ CONFIG_FS_DAX=3Dy
+-CONFIG_AUTOFS4_FS=3Dm
++CONFIG_AUTOFS_FS=3Dm
+ CONFIG_ISO9660_FS=3Dy
+ CONFIG_UDF_FS=3Dm
+ CONFIG_MSDOS_FS=3Dy
+diff --git a/arch/powerpc/configs/ppc6xx_defconfig b/arch/powerpc/configs/=
+ppc6xx_defconfig
+index f21170b8fa11..1034aeabdd6c 100644
+=2D-- a/arch/powerpc/configs/ppc6xx_defconfig
++++ b/arch/powerpc/configs/ppc6xx_defconfig
+@@ -969,7 +969,7 @@ CONFIG_XFS_POSIX_ACL=3Dy
+ CONFIG_GFS2_FS=3Dm
+ CONFIG_FS_DAX=3Dy
+ CONFIG_QUOTA_NETLINK_INTERFACE=3Dy
+-CONFIG_AUTOFS4_FS=3Dm
++CONFIG_AUTOFS_FS=3Dm
+ CONFIG_FUSE_FS=3Dm
+ CONFIG_ISO9660_FS=3Dy
+ CONFIG_JOLIET=3Dy
+diff --git a/arch/powerpc/configs/ps3_defconfig b/arch/powerpc/configs/ps3=
+_defconfig
+index ea3ee0719bb2..1ea732c19235 100644
+=2D-- a/arch/powerpc/configs/ps3_defconfig
++++ b/arch/powerpc/configs/ps3_defconfig
+@@ -129,7 +129,7 @@ CONFIG_EXT2_FS=3Dm
+ CONFIG_EXT4_FS=3Dy
+ CONFIG_QUOTA=3Dy
+ CONFIG_QFMT_V2=3Dy
+-CONFIG_AUTOFS4_FS=3Dm
++CONFIG_AUTOFS_FS=3Dm
+ CONFIG_ISO9660_FS=3Dm
+ CONFIG_JOLIET=3Dy
+ CONFIG_UDF_FS=3Dm
+diff --git a/arch/riscv/configs/defconfig b/arch/riscv/configs/defconfig
+index 0a0107460a5c..ab86ec3b9eab 100644
+=2D-- a/arch/riscv/configs/defconfig
++++ b/arch/riscv/configs/defconfig
+@@ -192,7 +192,7 @@ CONFIG_EXT4_FS_POSIX_ACL=3Dy
+ CONFIG_EXT4_FS_SECURITY=3Dy
+ CONFIG_BTRFS_FS=3Dm
+ CONFIG_BTRFS_FS_POSIX_ACL=3Dy
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_OVERLAY_FS=3Dm
+ CONFIG_ISO9660_FS=3Dy
+ CONFIG_JOLIET=3Dy
+diff --git a/arch/riscv/configs/rv32_defconfig b/arch/riscv/configs/rv32_d=
+efconfig
+index 38760e4296cf..89b601e253a6 100644
+=2D-- a/arch/riscv/configs/rv32_defconfig
++++ b/arch/riscv/configs/rv32_defconfig
+@@ -98,7 +98,7 @@ CONFIG_RPMSG_CTRL=3Dy
+ CONFIG_RPMSG_VIRTIO=3Dy
+ CONFIG_EXT4_FS=3Dy
+ CONFIG_EXT4_FS_POSIX_ACL=3Dy
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_MSDOS_FS=3Dy
+ CONFIG_VFAT_FS=3Dy
+ CONFIG_TMPFS=3Dy
+diff --git a/arch/s390/configs/debug_defconfig b/arch/s390/configs/debug_d=
+efconfig
+index aa95cf6dfabb..d03d4cb9332c 100644
+=2D-- a/arch/s390/configs/debug_defconfig
++++ b/arch/s390/configs/debug_defconfig
+@@ -624,7 +624,7 @@ CONFIG_QUOTA_NETLINK_INTERFACE=3Dy
+ CONFIG_QUOTA_DEBUG=3Dy
+ CONFIG_QFMT_V1=3Dm
+ CONFIG_QFMT_V2=3Dm
+-CONFIG_AUTOFS4_FS=3Dm
++CONFIG_AUTOFS_FS=3Dm
+ CONFIG_FUSE_FS=3Dy
+ CONFIG_CUSE=3Dm
+ CONFIG_VIRTIO_FS=3Dm
+diff --git a/arch/s390/configs/defconfig b/arch/s390/configs/defconfig
+index f041945f9148..1855759cdc6a 100644
+=2D-- a/arch/s390/configs/defconfig
++++ b/arch/s390/configs/defconfig
+@@ -609,7 +609,7 @@ CONFIG_FANOTIFY_ACCESS_PERMISSIONS=3Dy
+ CONFIG_QUOTA_NETLINK_INTERFACE=3Dy
+ CONFIG_QFMT_V1=3Dm
+ CONFIG_QFMT_V2=3Dm
+-CONFIG_AUTOFS4_FS=3Dm
++CONFIG_AUTOFS_FS=3Dm
+ CONFIG_FUSE_FS=3Dy
+ CONFIG_CUSE=3Dm
+ CONFIG_VIRTIO_FS=3Dm
+diff --git a/arch/sh/configs/espt_defconfig b/arch/sh/configs/espt_defconf=
+ig
+index 623012d9af9d..67716a44463e 100644
+=2D-- a/arch/sh/configs/espt_defconfig
++++ b/arch/sh/configs/espt_defconfig
+@@ -61,7 +61,7 @@ CONFIG_USB_STORAGE=3Dy
+ CONFIG_EXT2_FS=3Dy
+ CONFIG_EXT3_FS=3Dy
+ # CONFIG_EXT3_DEFAULTS_TO_ORDERED is not set
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_PROC_KCORE=3Dy
+ CONFIG_TMPFS=3Dy
+ CONFIG_TMPFS_POSIX_ACL=3Dy
+diff --git a/arch/sh/configs/sdk7780_defconfig b/arch/sh/configs/sdk7780_d=
+efconfig
+index 41cb588ca99c..cd24cf08210e 100644
+=2D-- a/arch/sh/configs/sdk7780_defconfig
++++ b/arch/sh/configs/sdk7780_defconfig
+@@ -105,7 +105,7 @@ CONFIG_EXT2_FS_POSIX_ACL=3Dy
+ CONFIG_EXT3_FS=3Dy
+ # CONFIG_EXT3_DEFAULTS_TO_ORDERED is not set
+ CONFIG_EXT3_FS_POSIX_ACL=3Dy
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_ISO9660_FS=3Dy
+ CONFIG_MSDOS_FS=3Dy
+ CONFIG_VFAT_FS=3Dy
+diff --git a/arch/sh/configs/sdk7786_defconfig b/arch/sh/configs/sdk7786_d=
+efconfig
+index a080c5d05a7b..cf59b98446e4 100644
+=2D-- a/arch/sh/configs/sdk7786_defconfig
++++ b/arch/sh/configs/sdk7786_defconfig
+@@ -168,7 +168,7 @@ CONFIG_EXT3_FS=3Dy
+ CONFIG_EXT4_FS=3Dy
+ CONFIG_XFS_FS=3Dy
+ CONFIG_BTRFS_FS=3Dy
+-CONFIG_AUTOFS4_FS=3Dm
++CONFIG_AUTOFS_FS=3Dm
+ CONFIG_FUSE_FS=3Dy
+ CONFIG_CUSE=3Dm
+ CONFIG_FSCACHE=3Dm
+diff --git a/arch/sh/configs/sh03_defconfig b/arch/sh/configs/sh03_defconf=
+ig
+index f661ef816f09..48f38ec236b6 100644
+=2D-- a/arch/sh/configs/sh03_defconfig
++++ b/arch/sh/configs/sh03_defconfig
+@@ -60,7 +60,7 @@ CONFIG_EXT2_FS_XATTR=3Dy
+ CONFIG_EXT3_FS=3Dy
+ # CONFIG_EXT3_DEFAULTS_TO_ORDERED is not set
+ CONFIG_EXT3_FS_POSIX_ACL=3Dy
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_ISO9660_FS=3Dm
+ CONFIG_JOLIET=3Dy
+ CONFIG_ZISOFS=3Dy
+diff --git a/arch/sh/configs/sh7763rdp_defconfig b/arch/sh/configs/sh7763r=
+dp_defconfig
+index ae726745d9a0..57923c3296cc 100644
+=2D-- a/arch/sh/configs/sh7763rdp_defconfig
++++ b/arch/sh/configs/sh7763rdp_defconfig
+@@ -63,7 +63,7 @@ CONFIG_MMC=3Dy
+ CONFIG_EXT2_FS=3Dy
+ CONFIG_EXT3_FS=3Dy
+ # CONFIG_EXT3_DEFAULTS_TO_ORDERED is not set
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_MSDOS_FS=3Dy
+ CONFIG_VFAT_FS=3Dy
+ CONFIG_PROC_KCORE=3Dy
+diff --git a/arch/sparc/configs/sparc32_defconfig b/arch/sparc/configs/spa=
+rc32_defconfig
+index 7c489e7f19b7..5010164de3e4 100644
+=2D-- a/arch/sparc/configs/sparc32_defconfig
++++ b/arch/sparc/configs/sparc32_defconfig
+@@ -65,7 +65,7 @@ CONFIG_EXT2_FS=3Dy
+ CONFIG_EXT2_FS_XATTR=3Dy
+ CONFIG_EXT2_FS_POSIX_ACL=3Dy
+ CONFIG_EXT2_FS_SECURITY=3Dy
+-CONFIG_AUTOFS4_FS=3Dm
++CONFIG_AUTOFS_FS=3Dm
+ CONFIG_ISO9660_FS=3Dm
+ CONFIG_PROC_KCORE=3Dy
+ CONFIG_ROMFS_FS=3Dm
+diff --git a/arch/um/configs/i386_defconfig b/arch/um/configs/i386_defconf=
+ig
+index 05ae535ba0dc..630be793759e 100644
+=2D-- a/arch/um/configs/i386_defconfig
++++ b/arch/um/configs/i386_defconfig
+@@ -62,7 +62,7 @@ CONFIG_UML_NET_SLIRP=3Dy
+ CONFIG_EXT4_FS=3Dy
+ CONFIG_REISERFS_FS=3Dy
+ CONFIG_QUOTA=3Dy
+-CONFIG_AUTOFS4_FS=3Dm
++CONFIG_AUTOFS_FS=3Dm
+ CONFIG_ISO9660_FS=3Dm
+ CONFIG_JOLIET=3Dy
+ CONFIG_PROC_KCORE=3Dy
+diff --git a/arch/um/configs/x86_64_defconfig b/arch/um/configs/x86_64_def=
+config
+index 1c757238be7f..8540d3370272 100644
+=2D-- a/arch/um/configs/x86_64_defconfig
++++ b/arch/um/configs/x86_64_defconfig
+@@ -60,7 +60,7 @@ CONFIG_UML_NET_SLIRP=3Dy
+ CONFIG_EXT4_FS=3Dy
+ CONFIG_REISERFS_FS=3Dy
+ CONFIG_QUOTA=3Dy
+-CONFIG_AUTOFS4_FS=3Dm
++CONFIG_AUTOFS_FS=3Dm
+ CONFIG_ISO9660_FS=3Dm
+ CONFIG_JOLIET=3Dy
+ CONFIG_PROC_KCORE=3Dy
+diff --git a/arch/x86/configs/i386_defconfig b/arch/x86/configs/i386_defco=
+nfig
+index 3cf34912abfe..75a343f10e58 100644
+=2D-- a/arch/x86/configs/i386_defconfig
++++ b/arch/x86/configs/i386_defconfig
+@@ -245,7 +245,7 @@ CONFIG_QUOTA=3Dy
+ CONFIG_QUOTA_NETLINK_INTERFACE=3Dy
+ # CONFIG_PRINT_QUOTA_WARNING is not set
+ CONFIG_QFMT_V2=3Dy
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_ISO9660_FS=3Dy
+ CONFIG_JOLIET=3Dy
+ CONFIG_ZISOFS=3Dy
+diff --git a/arch/x86/configs/x86_64_defconfig b/arch/x86/configs/x86_64_d=
+efconfig
+index 27759236fd60..0902518e9b93 100644
+=2D-- a/arch/x86/configs/x86_64_defconfig
++++ b/arch/x86/configs/x86_64_defconfig
+@@ -242,7 +242,7 @@ CONFIG_QUOTA=3Dy
+ CONFIG_QUOTA_NETLINK_INTERFACE=3Dy
+ # CONFIG_PRINT_QUOTA_WARNING is not set
+ CONFIG_QFMT_V2=3Dy
+-CONFIG_AUTOFS4_FS=3Dy
++CONFIG_AUTOFS_FS=3Dy
+ CONFIG_ISO9660_FS=3Dy
+ CONFIG_JOLIET=3Dy
+ CONFIG_ZISOFS=3Dy
+=2D-
+2.40.1
 
