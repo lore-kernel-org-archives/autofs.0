@@ -1,20 +1,20 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 5.4 1/3] autofs: fix memory leak of waitqueues in autofs_catatonic_mode
-Date: Thu,  7 Sep 2023 11:44:21 -0400
-Message-ID: <20230907154423.3422014-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 1/2] autofs: fix memory leak of waitqueues in autofs_catatonic_mode
+Date: Thu,  7 Sep 2023 11:44:29 -0400
+Message-ID: <20230907154430.3422062-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <stable-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1694101466;
-        bh=hIvDbjOIqW50OQ+qe1PIhVjqv5NYTvhiyd3gF1xpKBk=;
+        s=k20201202; t=1694101474;
+        bh=JwCsZY+aK9pAUlYWX5Rn6KecM6QTIyDLKxTgJbzclmY=;
         h=From:To:Cc:Subject:Date:From;
-        b=H5/udqMYL5LGBbcx23UDNyOczHzpwr6orhKLszg6AQz2AYgOJExi0NdrPZa1NoU1r
-         2mlgpbEBAma1n9/c0jKOVkACc6FwmcBwplTkCTkserILRlXJMFCnKtI43WNLtKC2/P
-         b9E9vr/JFo5o5Mc9rLvxIUKPsLD7STfa7B3F1P9339xjbqsVJAspAl6sD+CZ2b3UxW
-         fIA8jkpGsCniPy4q9SpOh0JsQQYnkkJ2supBtF8UZ6IgO2Wk42Ol0hsFCEW1pWz75N
-         erphJDdIQswyjTxzC7d8cGg8fEaQdKBHtaUExz3lV3pKvkMXC+BjydRY8HwWrNePeV
-         FNw1nDx9sBBjA==
+        b=NYWl03+ifD0uqdC5uCyneLDbXX2siUjb9sZW9Xw+4yTIMh1tJddCthn51QFGNl/eW
+         Q8B1XyaCRV585/glIoSfGYCZuvZRByAQ05AutuDKIHhrbdTeR4AK1FxFblfx2XmCNd
+         8/meXbwsWzTLBrPL96aOc4dkQan6+WEBuN/ragRyjvpD2HcMgcEZhwdT/+E2sQp+dE
+         HCI2stlFN/Xm5BI02TL+cisDXOiQ+BAsLfx447MKq7R+zRauP7Btu1Gthiju0Oq1by
+         rF1XQWs8jmRIXP/77KHy+2REx/sy3geYhOXVvrPoQvf1AnLdf8JRzzmVXuvWmbxx0w
+         FAVLPpCVH/Bpg==
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
@@ -104,10 +104,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/fs/autofs/waitq.c b/fs/autofs/waitq.c
-index b04c528b19d34..1230bdf329898 100644
+index f6385c6ef0a56..44ba0cd4ebc4f 100644
 --- a/fs/autofs/waitq.c
 +++ b/fs/autofs/waitq.c
-@@ -32,8 +32,9 @@ void autofs_catatonic_mode(struct autofs_sb_info *sbi)
+@@ -35,8 +35,9 @@ void autofs_catatonic_mode(struct autofs_sb_info *sbi)
  		wq->status = -ENOENT; /* Magic is gone - report failure */
  		kfree(wq->name.name);
  		wq->name.name = NULL;
