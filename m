@@ -1,20 +1,20 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 5.15 1/3] autofs: fix memory leak of waitqueues in autofs_catatonic_mode
-Date: Thu,  7 Sep 2023 11:44:06 -0400
-Message-ID: <20230907154408.3421918-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.1 1/4] autofs: fix memory leak of waitqueues in autofs_catatonic_mode
+Date: Thu,  7 Sep 2023 11:43:57 -0400
+Message-ID: <20230907154400.3421858-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <stable-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1694101452;
+        s=k20201202; t=1694101443;
         bh=m1gBSKQyE+///fvwwSS0gZyVVINTrFGUxYc7GN99hFQ=;
         h=From:To:Cc:Subject:Date:From;
-        b=j/kAMapeqyKMeNSzihP1ub73TqNEguSej26u5SsMzhSoqNHNgzupt0acqwSMF4I4X
-         iEJW+0b3/HabRLely6tDnbASb+SdbWpOm4Dq9M40/wVBzchETcZFOiln9HBw2aJPXG
-         rP24RTc79mrOewVXTf/p0yVo68ImkVDdz2NrGCF8jGN0eONopDuEO7MpJRUNiAxhtY
-         t2+oC6GiTRMJ+W5jKLnG2XXYJiExdMUNFtpoAtXQrX/Z1RBr6qwa8QaJOVezjTyXhI
-         3VNRb8JeXpceXZ2gGFyjY2c8X/eYaoOWqW0hIWDCib376ft2VZCz9QNMaXZX16Ekcm
-         64l8dSKSx6/4g==
+        b=O08RV71BlCCSVDzTsUFSh8iie/leLsaIuWOY/q4ygWzSPpy6LCpQRzCCldWqIgyi+
+         Y8pBaTDLBLFHs0WEU/cF2iQN71sSChGTjyjwwbqimL0aK+6NYIgvzR5il14TFX3N7J
+         rV5N2DJe0woEIXm6sn486hgTTj1Rvij0MUDAHo1r0YQcphJ50Kd6NkMHn6FDEl8SCF
+         ixSoI29ucIL9kJmNxuwXoViQKXcVblsSSVc3flSXutFqoD9NtXo/XaeB5vmKx/nhE7
+         6mrTG9njvWeaUZYkzYQjh5VQkDcuF1qEq36/Tc6wA3vmGxgCAwcdyclWmPcMBG5Dfs
+         pqPCk7nW424oQ==
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
