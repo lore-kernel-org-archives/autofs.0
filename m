@@ -1,22 +1,22 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 6.4 2/5] autofs: fix memory leak of waitqueues in autofs_catatonic_mode
-Date: Thu,  7 Sep 2023 11:43:46 -0400
-Message-ID: <20230907154349.3421707-2-sashal@kernel.org>
-References: <20230907154349.3421707-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.5 2/6] autofs: fix memory leak of waitqueues in autofs_catatonic_mode
+Date: Thu,  7 Sep 2023 11:43:33 -0400
+Message-ID: <20230907154338.3421582-2-sashal@kernel.org>
+References: <20230907154338.3421582-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <stable-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1694101434;
+        s=k20201202; t=1694101422;
         bh=m1gBSKQyE+///fvwwSS0gZyVVINTrFGUxYc7GN99hFQ=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=eLHkVgA31C7Td9QIQhV2r4y6vx3tjW0A8+RPIA4WGgYovqJO0UVodgrAuPQmDX33Y
-         feAj3oIn8mzPkcVJyvJeg71sqvgRIrBe9DDUjMzfHePIFw0S9/pCDk9d9XSil497V7
-         Sw4lA4FK+T5NLxBCZAow+FInK+91haLQyP4uLJvut8xo/UXN89HUEHnusKqajETfJc
-         fmwlDRROP3FqUmsDskrMxy/hGDTzHdUsa1KvVrgSTTVOH8wuKcvw/ryQXt2Ksysv+Y
-         p3nagx4BwMZql4j4USUcohTN5RZLS1RFTQLrUntvfysWB8vI/3bcx7s3lu7AoEeSVQ
-         0e84d3MFrWYZA==
-In-Reply-To: <20230907154349.3421707-1-sashal@kernel.org>
+        b=RKDREBu7Ri/TBCS3RdVmYicZUH1M0HiMIBj5/560Zl/4T/VKtf2xaFy5SlXnwfbIG
+         RVvFLTu8N2uJLaozhwpGRc/aghcDZHZYY5cIKOj/Shipswf699cWsHv3OweqRp5WhN
+         n4ztztPI19UKNWTIR9sADBaJRdivAy01DX2JGBbNWtTINVXm9xMq2HdOdMRaspJiCy
+         07AOXNLt2DpXJHUVy4fSg+Y5f7Eg2s5WLynkny5iT6gKccE8IaWBtXrW3/C0lK/ajp
+         49YVIRbrPdvTOCVgdK0uczhfyqd1Xe+KBQnsSATA8PEh6D4r3aWJM2WksgZAiegbBj
+         VUVtMv7AtSI8w==
+In-Reply-To: <20230907154338.3421582-1-sashal@kernel.org>
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
