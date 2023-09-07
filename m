@@ -1,59 +1,123 @@
-From: patchwork-bot+f2fs@kernel.org
-Subject: Re: [f2fs-dev] [PATCH v2 00/89] fs: new accessors for inode->i_ctime
-Date: Mon, 04 Sep 2023 18:11:08 +0000
-Message-ID: <169385106881.19669.3510550425397118597.git-patchwork-notify@kernel.org>
-References: <20230705185812.579118-1-jlayton@kernel.org>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 1/3] autofs: fix memory leak of waitqueues in autofs_catatonic_mode
+Date: Thu,  7 Sep 2023 11:44:21 -0400
+Message-ID: <20230907154423.3422014-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <ecryptfs-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1693851069;
-        bh=XLoa47KxRcps38wwidPhLGQHNoTClCg5nlSU2UvnxSI=;
-        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
-        b=XZUD/xT7QAeS9CwkDxlRqT/gRWQx0TmxhnpK0eSpl5TdmWje1tq2yvGH+3vZ2+BCT
-         jCeZ3PliMwtj4PI/YG14pbxznaZzZiLpm9dwOITxs9QimCVLsdgcY+tXdL8VHHo6Xo
-         yN1Gfw9YZmIyD8m43UuRL17+XTyHWk7a5WXn6oF5ggWXw6RS9S101xrDjQsPd+ZkCx
-         1CnWWAtQSCxTFtksNwHsJ+bzmvgeWVNV2ZHBFMah4WlUviOzbSHDkb9JT06sfaty1l
-         sU4YI09Bt9xI2xASG0RHXL6Mglihp9xk051QekITKNbwSi+f4qbVFzWkXoKrsHAJfp
-         TL/wsjYXrOQBg==
-In-Reply-To: <20230705185812.579118-1-jlayton@kernel.org>
+        s=k20201202; t=1694101466;
+        bh=hIvDbjOIqW50OQ+qe1PIhVjqv5NYTvhiyd3gF1xpKBk=;
+        h=From:To:Cc:Subject:Date:From;
+        b=H5/udqMYL5LGBbcx23UDNyOczHzpwr6orhKLszg6AQz2AYgOJExi0NdrPZa1NoU1r
+         2mlgpbEBAma1n9/c0jKOVkACc6FwmcBwplTkCTkserILRlXJMFCnKtI43WNLtKC2/P
+         b9E9vr/JFo5o5Mc9rLvxIUKPsLD7STfa7B3F1P9339xjbqsVJAspAl6sD+CZ2b3UxW
+         fIA8jkpGsCniPy4q9SpOh0JsQQYnkkJ2supBtF8UZ6IgO2Wk42Ol0hsFCEW1pWz75N
+         erphJDdIQswyjTxzC7d8cGg8fEaQdKBHtaUExz3lV3pKvkMXC+BjydRY8HwWrNePeV
+         FNw1nDx9sBBjA==
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Jeff Layton <jlayton@kernel.org>
-Cc: jk@ozlabs.org, arnd@arndb.de, mpe@ellerman.id.au, npiggin@gmail.com, christophe.leroy@csgroup.eu, hca@linux.ibm.com, gor@linux.ibm.com, agordeev@linux.ibm.com, borntraeger@linux.ibm.com, svens@linux.ibm.com, gregkh@linuxfoundation.org, arve@android.com, tkjos@android.com, maco@android.com, joel@joelfernandes.org, brauner@kernel.org, cmllamas@google.com, surenb@google.com, dennis.dalessandro@cornelisnetworks.com, jgg@ziepe.ca, leon@kernel.org, bwarrum@linux.ibm.com, rituagar@linux.ibm.com, ericvh@kernel.org, lucho@ionkov.net, asmadeus@codewreck.org, linux_oss@crudebyte.com, dsterba@suse.com, dhowells@redhat.com, marc.dionne@auristor.com, viro@zeniv.linux.org.uk, raven@themaw.net, luisbg@kernel.org, salah.triki@gmail.com, aivazian.tigran@gmail.com, ebiederm@xmission.com, kees
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Fedor Pchelkin <pchelkin@ispras.ru>, syzbot+5e53f70e69ff0c0a1c0c@syzkaller.appspotmail.com, Takeshi Misawa <jeliantsurux@gmail.com>, Alexey Khoroshilov <khoroshilov@ispras.ru>, Ian Kent <raven@themaw.net>, Matthew Wilcox <willy@infradead.org>, Andrei Vagin <avagin@gmail.com>, autofs@vger.kernel.org, Christian Brauner <brauner@kernel.org>, Sasha Levin <sashal@kernel.org>
 
-Hello:
+From: Fedor Pchelkin <pchelkin@ispras.ru>
 
-This series was applied to jaegeuk/f2fs.git (dev)
-by Christian Brauner <brauner@kernel.org>:
+[ Upstream commit ccbe77f7e45dfb4420f7f531b650c00c6e9c7507 ]
 
-On Wed,  5 Jul 2023 14:58:09 -0400 you wrote:
-> v2:
-> - prepend patches to add missing ctime updates
-> - add simple_rename_timestamp helper function
-> - rename ctime accessor functions as inode_get_ctime/inode_set_ctime_*
-> - drop individual inode_ctime_set_{sec,nsec} helpers
-> 
-> I've been working on a patchset to change how the inode->i_ctime is
-> accessed in order to give us conditional, high-res timestamps for the
-> ctime and mtime. struct timespec64 has unused bits in it that we can use
-> to implement this. In order to do that however, we need to wrap all
-> accesses of inode->i_ctime to ensure that bits used as flags are
-> appropriately handled.
-> 
-> [...]
+Syzkaller reports a memory leak:
 
-Here is the summary with links:
-  - [f2fs-dev,v2,07/92] fs: add ctime accessors infrastructure
-    https://git.kernel.org/jaegeuk/f2fs/c/9b6304c1d537
-  - [f2fs-dev,v2,08/92] fs: new helper: simple_rename_timestamp
-    https://git.kernel.org/jaegeuk/f2fs/c/0c4767923ed6
-  - [f2fs-dev,v2,92/92] fs: rename i_ctime field to __i_ctime
-    https://git.kernel.org/jaegeuk/f2fs/c/13bc24457850
+BUG: memory leak
+unreferenced object 0xffff88810b279e00 (size 96):
+  comm "syz-executor399", pid 3631, jiffies 4294964921 (age 23.870s)
+  hex dump (first 32 bytes):
+    00 00 00 00 00 00 00 00 08 9e 27 0b 81 88 ff ff  ..........'.....
+    08 9e 27 0b 81 88 ff ff 00 00 00 00 00 00 00 00  ..'.............
+  backtrace:
+    [<ffffffff814cfc90>] kmalloc_trace+0x20/0x90 mm/slab_common.c:1046
+    [<ffffffff81bb75ca>] kmalloc include/linux/slab.h:576 [inline]
+    [<ffffffff81bb75ca>] autofs_wait+0x3fa/0x9a0 fs/autofs/waitq.c:378
+    [<ffffffff81bb88a7>] autofs_do_expire_multi+0xa7/0x3e0 fs/autofs/expire.c:593
+    [<ffffffff81bb8c33>] autofs_expire_multi+0x53/0x80 fs/autofs/expire.c:619
+    [<ffffffff81bb6972>] autofs_root_ioctl_unlocked+0x322/0x3b0 fs/autofs/root.c:897
+    [<ffffffff81bb6a95>] autofs_root_ioctl+0x25/0x30 fs/autofs/root.c:910
+    [<ffffffff81602a9c>] vfs_ioctl fs/ioctl.c:51 [inline]
+    [<ffffffff81602a9c>] __do_sys_ioctl fs/ioctl.c:870 [inline]
+    [<ffffffff81602a9c>] __se_sys_ioctl fs/ioctl.c:856 [inline]
+    [<ffffffff81602a9c>] __x64_sys_ioctl+0xfc/0x140 fs/ioctl.c:856
+    [<ffffffff84608225>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+    [<ffffffff84608225>] do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+    [<ffffffff84800087>] entry_SYSCALL_64_after_hwframe+0x63/0xcd
 
-You are awesome, thank you!
+autofs_wait_queue structs should be freed if their wait_ctr becomes zero.
+Otherwise they will be lost.
+
+In this case an AUTOFS_IOC_EXPIRE_MULTI ioctl is done, then a new
+waitqueue struct is allocated in autofs_wait(), its initial wait_ctr
+equals 2. After that wait_event_killable() is interrupted (it returns
+-ERESTARTSYS), so that 'wq->name.name == NULL' condition may be not
+satisfied. Actually, this condition can be satisfied when
+autofs_wait_release() or autofs_catatonic_mode() is called and, what is
+also important, wait_ctr is decremented in those places. Upon the exit of
+autofs_wait(), wait_ctr is decremented to 1. Then the unmounting process
+begins: kill_sb calls autofs_catatonic_mode(), which should have freed the
+waitqueues, but it only decrements its usage counter to zero which is not
+a correct behaviour.
+
+edit:imk
+This description is of course not correct. The umount performed as a result
+of an expire is a umount of a mount that has been automounted, it's not the
+autofs mount itself. They happen independently, usually after everything
+mounted within the autofs file system has been expired away. If everything
+hasn't been expired away the automount daemon can still exit leaving mounts
+in place. But expires done in both cases will result in a notification that
+calls autofs_wait_release() with a result status. The problem case is the
+summary execution of of the automount daemon. In this case any waiting
+processes won't be woken up until either they are terminated or the mount
+is umounted.
+end edit: imk
+
+So in catatonic mode we should free waitqueues which counter becomes zero.
+
+edit: imk
+Initially I was concerned that the calling of autofs_wait_release() and
+autofs_catatonic_mode() was not mutually exclusive but that can't be the
+case (obviously) because the queue entry (or entries) is removed from the
+list when either of these two functions are called. Consequently the wait
+entry will be freed by only one of these functions or by the woken process
+in autofs_wait() depending on the order of the calls.
+end edit: imk
+
+Reported-by: syzbot+5e53f70e69ff0c0a1c0c@syzkaller.appspotmail.com
+Suggested-by: Takeshi Misawa <jeliantsurux@gmail.com>
+Signed-off-by: Fedor Pchelkin <pchelkin@ispras.ru>
+Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+Signed-off-by: Ian Kent <raven@themaw.net>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Andrei Vagin <avagin@gmail.com>
+Cc: autofs@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Message-Id: <169112719161.7590.6700123246297365841.stgit@donald.themaw.net>
+Signed-off-by: Christian Brauner <brauner@kernel.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ fs/autofs/waitq.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/fs/autofs/waitq.c b/fs/autofs/waitq.c
+index b04c528b19d34..1230bdf329898 100644
+--- a/fs/autofs/waitq.c
++++ b/fs/autofs/waitq.c
+@@ -32,8 +32,9 @@ void autofs_catatonic_mode(struct autofs_sb_info *sbi)
+ 		wq->status = -ENOENT; /* Magic is gone - report failure */
+ 		kfree(wq->name.name);
+ 		wq->name.name = NULL;
+-		wq->wait_ctr--;
+ 		wake_up_interruptible(&wq->queue);
++		if (!--wq->wait_ctr)
++			kfree(wq);
+ 		wq = nwq;
+ 	}
+ 	fput(sbi->pipe);	/* Close the pipe */
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/patchwork/pwbot.html
-
+2.40.1
 
