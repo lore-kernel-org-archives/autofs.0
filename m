@@ -1,25 +1,25 @@
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 4.14 149/186] autofs: fix memory leak of waitqueues in autofs_catatonic_mode
-Date: Wed, 20 Sep 2023 13:30:52 +0200
-Message-ID: <20230920112842.349000704@linuxfoundation.org>
-References: <20230920112836.799946261@linuxfoundation.org>
+Subject: [PATCH 4.19 237/273] autofs: fix memory leak of waitqueues in autofs_catatonic_mode
+Date: Wed, 20 Sep 2023 13:31:17 +0200
+Message-ID: <20230920112853.679254815@linuxfoundation.org>
+References: <20230920112846.440597133@linuxfoundation.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <stable-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-        s=korg; t=1695211590;
-        bh=22WZIh8qPYXQhbhW6eHxOmZFqpcXexaNc+fMv2+ZMK4=;
+        s=korg; t=1695212405;
+        bh=0POdhAC/mGygJsOOLT0+wrwJKmbpRMW52iymlcOP9jk=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=iUuu15aC8w9haaJew70ibVIYVCMaUMbCBE1GRjngG1m4xrTxnsGaS/Gf9almE3wI3
-         m9V42lj4u5L4Wi3dujL3EiNzB8bd4wWvRQeV1J/bmNx3P0s9SBxF1v66G0zZPux0b0
-         k2rrsnVeOWPh68HuPRgsEUl8RUGS8wk4eax0CnSk=
-In-Reply-To: <20230920112836.799946261@linuxfoundation.org>
+        b=K+D+6628whfL25DPSAWsxtwS0R01hX09mIlWJRe4va2yKEttyMn58Z4ZYTNTcOWnO
+         Ynrqa/qAbVGg8W1J4rzairKnjsDv4S7Db76mSAc/l+pO4HjJ/qYFX8eLP1QERaGBa/
+         lS4Z42qLpWvC5YHVCqGVzacLyLkvwkfhvx/yBZvM=
+In-Reply-To: <20230920112846.440597133@linuxfoundation.org>
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: stable@vger.kernel.org
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, patches@lists.linux.dev, syzbot+5e53f70e69ff0c0a1c0c@syzkaller.appspotmail.com, Takeshi Misawa <jeliantsurux@gmail.com>, Fedor Pchelkin <pchelkin@ispras.ru>, Alexey Khoroshilov <khoroshilov@ispras.ru>, Ian Kent <raven@themaw.net>, Matthew Wilcox <willy@infradead.org>, Andrei Vagin <avagin@gmail.com>, autofs@vger.kernel.org, linux-kernel@vger.kernel.org, Christian Brauner <brauner@kernel.org>, Sasha Levin <sashal@kernel.org>
 
-4.14-stable review patch.  If anyone has any objections, please let me know.
+4.19-stable review patch.  If anyone has any objections, please let me know.
 
 ------------------
 
@@ -103,14 +103,14 @@ Message-Id: <169112719161.7590.6700123246297365841.stgit@donald.themaw.net>
 Signed-off-by: Christian Brauner <brauner@kernel.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- fs/autofs4/waitq.c | 3 ++-
+ fs/autofs/waitq.c | 3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
-index 961a12dc6dc81..5863532675e3c 100644
---- a/fs/autofs4/waitq.c
-+++ b/fs/autofs4/waitq.c
-@@ -42,8 +42,9 @@ void autofs4_catatonic_mode(struct autofs_sb_info *sbi)
+diff --git a/fs/autofs/waitq.c b/fs/autofs/waitq.c
+index f6385c6ef0a56..44ba0cd4ebc4f 100644
+--- a/fs/autofs/waitq.c
++++ b/fs/autofs/waitq.c
+@@ -35,8 +35,9 @@ void autofs_catatonic_mode(struct autofs_sb_info *sbi)
  		wq->status = -ENOENT; /* Magic is gone - report failure */
  		kfree(wq->name.name);
  		wq->name.name = NULL;
