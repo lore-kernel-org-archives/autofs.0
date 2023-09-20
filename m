@@ -1,24 +1,27 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 6.1 1/4] autofs: fix memory leak of waitqueues in autofs_catatonic_mode
-Date: Thu,  7 Sep 2023 11:43:57 -0400
-Message-ID: <20230907154400.3421858-1-sashal@kernel.org>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: [PATCH 6.5 002/211] autofs: fix memory leak of waitqueues in autofs_catatonic_mode
+Date: Wed, 20 Sep 2023 13:27:26 +0200
+Message-ID: <20230920112845.931609612@linuxfoundation.org>
+References: <20230920112845.859868994@linuxfoundation.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <stable-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1694101443;
-        bh=m1gBSKQyE+///fvwwSS0gZyVVINTrFGUxYc7GN99hFQ=;
-        h=From:To:Cc:Subject:Date:From;
-        b=O08RV71BlCCSVDzTsUFSh8iie/leLsaIuWOY/q4ygWzSPpy6LCpQRzCCldWqIgyi+
-         Y8pBaTDLBLFHs0WEU/cF2iQN71sSChGTjyjwwbqimL0aK+6NYIgvzR5il14TFX3N7J
-         rV5N2DJe0woEIXm6sn486hgTTj1Rvij0MUDAHo1r0YQcphJ50Kd6NkMHn6FDEl8SCF
-         ixSoI29ucIL9kJmNxuwXoViQKXcVblsSSVc3flSXutFqoD9NtXo/XaeB5vmKx/nhE7
-         6mrTG9njvWeaUZYkzYQjh5VQkDcuF1qEq36/Tc6wA3vmGxgCAwcdyclWmPcMBG5Dfs
-         pqPCk7nW424oQ==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+        s=korg; t=1695210249;
+        bh=DyKwxzaJYpoA4xccVeB9/sY8k2MBqmWTPVNgHC29ZJI=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=O7TiMV+pDIK3FoaObHDGu1K4CQ6eJwE4N9erCjK5mtgXnvNlBjylqB7riLvnSKTrf
+         G8GQVyd/K3L7d81la5ACGOV3ooYzYNP+nmo80nf/BI9L9kfGpf0C2NGRgW+7uGH+8n
+         QQ+/141Y0130ehiahkBefwIkFnVz/n2FpslRmrAU=
+In-Reply-To: <20230920112845.859868994@linuxfoundation.org>
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Fedor Pchelkin <pchelkin@ispras.ru>, syzbot+5e53f70e69ff0c0a1c0c@syzkaller.appspotmail.com, Takeshi Misawa <jeliantsurux@gmail.com>, Alexey Khoroshilov <khoroshilov@ispras.ru>, Ian Kent <raven@themaw.net>, Matthew Wilcox <willy@infradead.org>, Andrei Vagin <avagin@gmail.com>, autofs@vger.kernel.org, Christian Brauner <brauner@kernel.org>, Sasha Levin <sashal@kernel.org>
+To: stable@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, patches@lists.linux.dev, syzbot+5e53f70e69ff0c0a1c0c@syzkaller.appspotmail.com, Takeshi Misawa <jeliantsurux@gmail.com>, Fedor Pchelkin <pchelkin@ispras.ru>, Alexey Khoroshilov <khoroshilov@ispras.ru>, Ian Kent <raven@themaw.net>, Matthew Wilcox <willy@infradead.org>, Andrei Vagin <avagin@gmail.com>, autofs@vger.kernel.org, linux-kernel@vger.kernel.org, Christian Brauner <brauner@kernel.org>, Sasha Levin <sashal@kernel.org>
+
+6.5-stable review patch.  If anyone has any objections, please let me know.
+
+------------------
 
 From: Fedor Pchelkin <pchelkin@ispras.ru>
 
@@ -120,4 +123,6 @@ index 54c1f8b8b0757..efdc76732faed 100644
  	fput(sbi->pipe);	/* Close the pipe */
 -- 
 2.40.1
+
+
 
