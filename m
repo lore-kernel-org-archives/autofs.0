@@ -1,25 +1,25 @@
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 6.5 002/211] autofs: fix memory leak of waitqueues in autofs_catatonic_mode
-Date: Wed, 20 Sep 2023 13:27:26 +0200
-Message-ID: <20230920112845.931609612@linuxfoundation.org>
-References: <20230920112845.859868994@linuxfoundation.org>
+Subject: [PATCH 6.1 001/139] autofs: fix memory leak of waitqueues in autofs_catatonic_mode
+Date: Wed, 20 Sep 2023 13:28:55 +0200
+Message-ID: <20230920112835.606672517@linuxfoundation.org>
+References: <20230920112835.549467415@linuxfoundation.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <stable-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-        s=korg; t=1695210249;
-        bh=DyKwxzaJYpoA4xccVeB9/sY8k2MBqmWTPVNgHC29ZJI=;
+        s=korg; t=1695210831;
+        bh=2Wid6czrTEuk4bdVMbpgvq4dLWr7BlIxoN00MZqYWZk=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=O7TiMV+pDIK3FoaObHDGu1K4CQ6eJwE4N9erCjK5mtgXnvNlBjylqB7riLvnSKTrf
-         G8GQVyd/K3L7d81la5ACGOV3ooYzYNP+nmo80nf/BI9L9kfGpf0C2NGRgW+7uGH+8n
-         QQ+/141Y0130ehiahkBefwIkFnVz/n2FpslRmrAU=
-In-Reply-To: <20230920112845.859868994@linuxfoundation.org>
+        b=jPJgClVL9u6w90lJs/MYfy2aLeuXUvPwIMSX78QqCnnzKYHxRPy2QE+VujAlxDjIw
+         HYRgqeZCGO62FleHRJr9Rjrq2vbMqwtLyDnAIo4GOq+l432xFs27tFj44GYrZ6Xqna
+         UFWOlgOpyGCoGqPz9YTARejdNfUbFkOzGsQ6zq34=
+In-Reply-To: <20230920112835.549467415@linuxfoundation.org>
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: stable@vger.kernel.org
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, patches@lists.linux.dev, syzbot+5e53f70e69ff0c0a1c0c@syzkaller.appspotmail.com, Takeshi Misawa <jeliantsurux@gmail.com>, Fedor Pchelkin <pchelkin@ispras.ru>, Alexey Khoroshilov <khoroshilov@ispras.ru>, Ian Kent <raven@themaw.net>, Matthew Wilcox <willy@infradead.org>, Andrei Vagin <avagin@gmail.com>, autofs@vger.kernel.org, linux-kernel@vger.kernel.org, Christian Brauner <brauner@kernel.org>, Sasha Levin <sashal@kernel.org>
 
-6.5-stable review patch.  If anyone has any objections, please let me know.
+6.1-stable review patch.  If anyone has any objections, please let me know.
 
 ------------------
 
