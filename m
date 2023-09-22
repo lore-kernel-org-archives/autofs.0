@@ -1,153 +1,68 @@
 From: Christian Brauner <brauner@kernel.org>
-Subject: Re: [PATCH 7/8] autofs: convert autofs to use the new mount api
-Date: Fri, 22 Sep 2023 13:59:28 +0200
-Message-ID: <20230922-vorbringen-spaghetti-946729122076@brauner>
+Subject: Re: [PATCH 0/8] autofs - convert to to use mount api
+Date: Fri, 22 Sep 2023 14:11:04 +0200
+Message-ID: <20230922-fixieren-antworten-dbae8fccfeeb@brauner>
 References: <20230922041215.13675-1-raven@themaw.net>
- <20230922041215.13675-8-raven@themaw.net>
 Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1695383973;
-        bh=ORzIDixyYNN/jJb/Sxa5K2h12YMiO0mDofirvWtUYDU=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=fbA9AsP6p4xsjJaKQy9RAcs3SFDkJUxohUtLbQfIivmE20XLy+RMcYpcwNxR+Y33d
-         mqGSO32J30z4pjw1IUvNWnfU27xq7uksjaYhXUpPOzTrlR8fj/8lcNE5GBZZHyX7FU
-         IlNnm93Nhzzs2RpERpkh0yqFoR/fGKcvMtM1/0MRy3LDIvcf4ikJIq4xpiEiCKEzBE
-         Rk9bUkaKnEhyaCzWgSKEEHX5OHCLPshTO8ueyaJAnF5VLtlDn0euzEvuOvhFaEEdJs
-         9oGHb78rRcxDQa57tYaUDigbJtw8Dqg+8QptH5vNcKT+bSHL8RP+XPGV2McBFYXCDC
-         KbjE0uN4eFWnA==
-Content-Disposition: inline
-In-Reply-To: <20230922041215.13675-8-raven@themaw.net>
+        s=k20201202; t=1695384803;
+        bh=X0ckH1uMhzVew8rdJB1QtaZb/LOJh4Jl5v+9Kf3dRDA=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=JBwRrE78uA8RQbQfRMa+35uiC4QjM9urZKGRDdpohYAWUh4OGBf1kSr6p3BeNGGwu
+         pYWJzuuwdcJ3fNVslQKb53ZxdOVHrXTYghrYGrZmuUJrTaJnTAIDNx9IzVkdYroUXJ
+         X13pprrSpkewOp7blgroQunq0lxZOnEKk5lF3PGbo3YmZM5RICQubYlDuek/fbyVhn
+         Ecgi4yNsNpVETf1zpQiFV5w9L7NcvEbYRAA6DplaPLcwda8+Ak2CggEGPQ4fn5Wmz7
+         8t3v3YlAaS143H2SCuz4Ct2XcMocgaB+C6ahxlzjmiTDfErwlMFJNHiWu+G8q6vOHb
+         9YlXuEAD/HazA==
+In-Reply-To: <20230922041215.13675-1-raven@themaw.net>
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1786; i=brauner@kernel.org; h=from:subject:message-id; bh=X0ckH1uMhzVew8rdJB1QtaZb/LOJh4Jl5v+9Kf3dRDA=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMaTytpin5a/9tb2nI6XRStBr4lSJeRvK6q+JcqrYr566Yx9T 4APDjlIWBjEuBlkxRRaHdpNwueU8FZuNMjVg5rAygQxh4OIUgIl8n8bwz/BkUkexclAIc8iyRYmCEy MiD9XtVf73uyHF2isvP8l0JiPD4wcfczYnengxR3Vr9YvP91+62zr5dsPnzm2KdYoVzpwcAA==
+X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: Ian Kent <raven@themaw.net>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>, autofs mailing list <autofs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Bill O'Donnell <billodo@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, David Howells <dhowells@redhat.com>
+Cc: Christian Brauner <brauner@kernel.org>, autofs mailing list <autofs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Bill O'Donnell <billodo@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, David Howells <dhowells@redhat.com>, Al Viro <viro@ZenIV.linux.org.uk>
 
-> +	fsparam_fd	("fd",			Opt_fd),
+On Fri, 22 Sep 2023 12:12:07 +0800, Ian Kent wrote:
+> There was a patch from David Howells to convert autofs to use the mount
+> api but it was never merged.
+> 
+> I have taken David's patch and refactored it to make the change easier
+> to review in the hope of having it merged.
+> 
+> Signed-off-by: Ian Kent <raven@themaw.net>
+> 
+> [...]
 
-> +/*
-> + * Open the fd.  We do it here rather than in get_tree so that it's done in the
-> + * context of the system call that passed the data and not the one that
-> + * triggered the superblock creation, lest the fd gets reassigned.
-> + */
-> +static int autofs_parse_fd(struct fs_context *fc, int fd)
->  {
-> +	struct autofs_sb_info *sbi = fc->s_fs_info;
->  	struct file *pipe;
->  	int ret;
->  
->  	pipe = fget(fd);
->  	if (!pipe) {
-> -		pr_err("could not open pipe file descriptor\n");
-> +		errorf(fc, "could not open pipe file descriptor");
->  		return -EBADF;
->  	}
->  
->  	ret = autofs_check_pipe(pipe);
->  	if (ret < 0) {
-> -		pr_err("Invalid/unusable pipe\n");
-> +		errorf(fc, "Invalid/unusable pipe");
->  		fput(pipe);
->  		return -EBADF;
->  	}
+Applied to the vfs.autofs branch of the vfs/vfs.git tree.
+Patches in the vfs.autofs branch should appear in linux-next soon.
 
-> +static int autofs_parse_param(struct fs_context *fc, struct fs_parameter *param)
->  {
-> +		return autofs_parse_fd(fc, result.int_32);
+Please report any outstanding bugs that were missed during review in a
+new review to the original patch series allowing us to drop it.
 
-Mah, so there's a difference between the new and the old mount api that we
-should probably hide on the VFS level for fsparam_fd. Basically, if you're
-coming through the new mount api via fsconfig(FSCONFIG_SET_FD, fd) then the vfs
-will have done param->file = fget(fd) for you already so there's no need to
-call fget() again. We can just take ownership of the reference that the vfs
-took for us.
+It's encouraged to provide Acked-bys and Reviewed-bys even though the
+patch has now been applied. If possible patch trailers will be updated.
 
-But if we're coming in through the old mount api then we need to call fget.
-There's nothing wrong with your code but it doesn't take advantage of the new
-mount api which would be unfortunate. So I folded a small extension into this
-see [1].
+Note that commit hashes shown below are subject to change due to rebase,
+trailer updates or similar. If in doubt, please check the listed branch.
 
-There's an unrelated bug in fs_param_is_fd() that I'm also fixing see [2].
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
+branch: vfs.autofs
 
-I've tested both changes with the old and new mount api.
-
-[1]:
-diff --git a/fs/autofs/inode.c b/fs/autofs/inode.c
-index 3f2dfed428f9..0477bce7d277 100644
---- a/fs/autofs/inode.c
-+++ b/fs/autofs/inode.c
-@@ -150,13 +150,20 @@ struct autofs_fs_context {
-  * context of the system call that passed the data and not the one that
-  * triggered the superblock creation, lest the fd gets reassigned.
-  */
--static int autofs_parse_fd(struct fs_context *fc, int fd)
-+static int autofs_parse_fd(struct fs_context *fc, struct autofs_sb_info *sbi,
-+                          struct fs_parameter *param,
-+                          struct fs_parse_result *result)
- {
--       struct autofs_sb_info *sbi = fc->s_fs_info;
-        struct file *pipe;
-        int ret;
-
--       pipe = fget(fd);
-+       if (param->type == fs_value_is_file) {
-+               /* came through the new api */
-+               pipe = param->file;
-+               param->file = NULL;
-+       } else {
-+               pipe = fget(result->uint_32);
-+       }
-        if (!pipe) {
-                errorf(fc, "could not open pipe file descriptor");
-                return -EBADF;
-@@ -165,14 +172,15 @@ static int autofs_parse_fd(struct fs_context *fc, int fd)
-        ret = autofs_check_pipe(pipe);
-        if (ret < 0) {
-                errorf(fc, "Invalid/unusable pipe");
--               fput(pipe);
-+               if (param->type != fs_value_is_file)
-+                       fput(pipe);
-                return -EBADF;
-        }
-
-        if (sbi->pipe)
-                fput(sbi->pipe);
-
--       sbi->pipefd = fd;
-+       sbi->pipefd = result->uint_32;
-        sbi->pipe = pipe;
-
-        return 0;
-
-[2]:
-From 2f9171200505c82e744a235c85377e36ed190109 Mon Sep 17 00:00:00 2001
-From: Christian Brauner <brauner@kernel.org>
-Date: Fri, 22 Sep 2023 13:49:05 +0200
-Subject: [PATCH] fsconfig: ensure that dirfd is set to aux
-
-The code in fs_param_is_fd() expects param->dirfd to be set to the fd
-that was used to set param->file to initialize result->uint_32. So make
-sure it's set so users like autofs using FSCONFIG_SET_FD with the new
-mount api can rely on this to be set to the correct value.
-
-Signed-off-by: Christian Brauner <brauner@kernel.org>
----
- fs/fsopen.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/fs/fsopen.c b/fs/fsopen.c
-index ce03f6521c88..6593ae518115 100644
---- a/fs/fsopen.c
-+++ b/fs/fsopen.c
-@@ -465,6 +465,7 @@ SYSCALL_DEFINE5(fsconfig,
- 		param.file = fget(aux);
- 		if (!param.file)
- 			goto out_key;
-+		param.dirfd = aux;
- 		break;
- 	default:
- 		break;
--- 
-2.34.1
-
+[1/8] autofs: refactor autofs_prepare_pipe()
+      https://git.kernel.org/vfs/vfs/c/a1388470620f
+[2/8] autofs: add autofs_parse_fd()
+      https://git.kernel.org/vfs/vfs/c/917c4dd6e625
+[3/8] autofs: refactor super block info init
+      https://git.kernel.org/vfs/vfs/c/81a57bf0af7c
+[4/8] autofs: reformat 0pt enum declaration
+      https://git.kernel.org/vfs/vfs/c/34539aa9def8
+[5/8] autofs: refactor parse_options()
+      https://git.kernel.org/vfs/vfs/c/805b2411ca1c
+[6/8] autofs: validate protocol version
+      https://git.kernel.org/vfs/vfs/c/89405b46e168
+[7/8] autofs: convert autofs to use the new mount api
+      https://git.kernel.org/vfs/vfs/c/7bf383b78c56
+[8/8] autofs: fix protocol sub version setting
+      https://git.kernel.org/vfs/vfs/c/10afd722e290
