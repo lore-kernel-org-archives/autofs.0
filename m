@@ -1,30 +1,28 @@
-From: Christian Brauner <brauner@kernel.org>
+From: Bill O'Donnell <bodonnel@redhat.com>
 Subject: Re: [PATCH 0/8] autofs - convert to to use mount api
-Date: Fri, 22 Sep 2023 14:11:04 +0200
-Message-ID: <20230922-fixieren-antworten-dbae8fccfeeb@brauner>
+Date: Fri, 22 Sep 2023 08:25:39 -0500
+Message-ID: <ZQ2V0wa6Hia9xbWS@redhat.com>
 References: <20230922041215.13675-1-raven@themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1695384803;
-        bh=X0ckH1uMhzVew8rdJB1QtaZb/LOJh4Jl5v+9Kf3dRDA=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=JBwRrE78uA8RQbQfRMa+35uiC4QjM9urZKGRDdpohYAWUh4OGBf1kSr6p3BeNGGwu
-         pYWJzuuwdcJ3fNVslQKb53ZxdOVHrXTYghrYGrZmuUJrTaJnTAIDNx9IzVkdYroUXJ
-         X13pprrSpkewOp7blgroQunq0lxZOnEKk5lF3PGbo3YmZM5RICQubYlDuek/fbyVhn
-         Ecgi4yNsNpVETf1zpQiFV5w9L7NcvEbYRAA6DplaPLcwda8+Ak2CggEGPQ4fn5Wmz7
-         8t3v3YlAaS143H2SCuz4Ct2XcMocgaB+C6ahxlzjmiTDfErwlMFJNHiWu+G8q6vOHb
-         9YlXuEAD/HazA==
+Return-path: <linux-kernel-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1695389147;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=ZOSEgdaNayKQCj0Rd2l3QVa88rL7jTEBUClTXsv6/B0=;
+        b=IPqjX/86ROqU43p11Lyu1RaCzAXf2GLMTLtyoFZKYzOOSiPE5xNolEzNiP4p5QxZk+Jp/2
+        WbRbvFRXBNiA1fxzl5TnPcAhiCxOTn4KJ3ODsemcBqOckoBOJd6e6E6ftO+muw4hZvm6tX
+        wpycElvFn8KQotIqYqDVlejh/p9RoBE=
+Content-Disposition: inline
 In-Reply-To: <20230922041215.13675-1-raven@themaw.net>
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1786; i=brauner@kernel.org; h=from:subject:message-id; bh=X0ckH1uMhzVew8rdJB1QtaZb/LOJh4Jl5v+9Kf3dRDA=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMaTytpin5a/9tb2nI6XRStBr4lSJeRvK6q+JcqrYr566Yx9T 4APDjlIWBjEuBlkxRRaHdpNwueU8FZuNMjVg5rAygQxh4OIUgIl8n8bwz/BkUkexclAIc8iyRYmCEy MiD9XtVf73uyHF2isvP8l0JiPD4wcfczYnengxR3Vr9YvP91+62zr5dsPnzm2KdYoVzpwcAA==
-X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: Ian Kent <raven@themaw.net>
-Cc: Christian Brauner <brauner@kernel.org>, autofs mailing list <autofs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Bill O'Donnell <billodo@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, David Howells <dhowells@redhat.com>, Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, autofs mailing list <autofs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Bill O'Donnell <billodo@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, David Howells <dhowells@redhat.com>
 
-On Fri, 22 Sep 2023 12:12:07 +0800, Ian Kent wrote:
+On Fri, Sep 22, 2023 at 12:12:07PM +0800, Ian Kent wrote:
 > There was a patch from David Howells to convert autofs to use the mount
 > api but it was never merged.
 > 
@@ -32,37 +30,28 @@ On Fri, 22 Sep 2023 12:12:07 +0800, Ian Kent wrote:
 > to review in the hope of having it merged.
 > 
 > Signed-off-by: Ian Kent <raven@themaw.net>
+
+for the series...
+Reviewed-by: Bill O'Donnell <bodonnel@redhat.com>
+
+
 > 
-> [...]
+> Ian Kent (8):
+>   autofs: refactor autofs_prepare_pipe()
+>   autofs: add autofs_parse_fd()
+>   autofs: refactor super block info init
+>   autofs: reformat 0pt enum declaration
+>   autofs: refactor parse_options()
+>   autofs: validate protocol version
+>   autofs: convert autofs to use the new mount api
+>   autofs: fix protocol sub version setting
+> 
+>  fs/autofs/autofs_i.h |  15 +-
+>  fs/autofs/init.c     |   9 +-
+>  fs/autofs/inode.c    | 423 +++++++++++++++++++++++++------------------
+>  3 files changed, 266 insertions(+), 181 deletions(-)
+> 
+> -- 
+> 2.41.0
+> 
 
-Applied to the vfs.autofs branch of the vfs/vfs.git tree.
-Patches in the vfs.autofs branch should appear in linux-next soon.
-
-Please report any outstanding bugs that were missed during review in a
-new review to the original patch series allowing us to drop it.
-
-It's encouraged to provide Acked-bys and Reviewed-bys even though the
-patch has now been applied. If possible patch trailers will be updated.
-
-Note that commit hashes shown below are subject to change due to rebase,
-trailer updates or similar. If in doubt, please check the listed branch.
-
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
-branch: vfs.autofs
-
-[1/8] autofs: refactor autofs_prepare_pipe()
-      https://git.kernel.org/vfs/vfs/c/a1388470620f
-[2/8] autofs: add autofs_parse_fd()
-      https://git.kernel.org/vfs/vfs/c/917c4dd6e625
-[3/8] autofs: refactor super block info init
-      https://git.kernel.org/vfs/vfs/c/81a57bf0af7c
-[4/8] autofs: reformat 0pt enum declaration
-      https://git.kernel.org/vfs/vfs/c/34539aa9def8
-[5/8] autofs: refactor parse_options()
-      https://git.kernel.org/vfs/vfs/c/805b2411ca1c
-[6/8] autofs: validate protocol version
-      https://git.kernel.org/vfs/vfs/c/89405b46e168
-[7/8] autofs: convert autofs to use the new mount api
-      https://git.kernel.org/vfs/vfs/c/7bf383b78c56
-[8/8] autofs: fix protocol sub version setting
-      https://git.kernel.org/vfs/vfs/c/10afd722e290
