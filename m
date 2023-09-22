@@ -1,72 +1,218 @@
-From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 8/8] autofs: fix protocol sub version setting
-Date: Fri, 22 Sep 2023 12:12:15 +0800
-Message-ID: <20230922041215.13675-9-raven@themaw.net>
+From: Christian Brauner <brauner@kernel.org>
+Subject: Re: [PATCH 7/8] autofs: convert autofs to use the new mount api
+Date: Fri, 22 Sep 2023 10:31:44 +0200
+Message-ID: <20230922-appell-vordach-1608445c5251@brauner>
 References: <20230922041215.13675-1-raven@themaw.net>
+ <20230922041215.13675-8-raven@themaw.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
-        :cc:content-transfer-encoding:content-type:date:date:from:from
-        :in-reply-to:in-reply-to:message-id:mime-version:references
-        :reply-to:sender:subject:subject:to:to; s=fm1; t=1695355986; x=
-        1695442386; bh=TVdA8h0DNl8QhVA+dGkTgVhkAap2oNQG0MwE5XL5kpw=; b=i
-        KyjMpSdhrt3uQsxr6T6UxoeYCbayRCf6SkJDZKUT4DjCRR4XZI7A4vp6vVa7IWY2
-        iAlx/Z5r7iLqsma8ChIdZ0uHbC6hqEiGT/J1VYhxYkNNsvNnRIPgkWk0gKhsIDFY
-        WtgUstVwu6J+U17BBmdF06sF2Pr9eCAEbdMGKuA5YupM4mj7WfP9lz7h29e4/9Na
-        +B2kmRJo1xVJ9ygM6cmPc2LT4bNSqqh9Y6BKwROZfdep7y87BBdKrPW6OTdFRRbQ
-        iRE+MQi//Uy3JQhSGl/sLN0+4R06QVi0eVulUtvzfmVGOoEWmU/ZNJ87zlOmYE5V
-        g3+OU2puQL+OQocE6EgZg==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-transfer-encoding
-        :content-type:date:date:feedback-id:feedback-id:from:from
-        :in-reply-to:in-reply-to:message-id:mime-version:references
-        :reply-to:sender:subject:subject:to:to:x-me-proxy:x-me-proxy
-        :x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1695355986; x=
-        1695442386; bh=TVdA8h0DNl8QhVA+dGkTgVhkAap2oNQG0MwE5XL5kpw=; b=L
-        7OBvXe8GQHWpMoWy0wgEbjaCZ212zowRiQ+RXQILK5CTv+qTNNaMNV3LMpx2ZncF
-        jcH4elhoAb8due9ZEchpzGG0xafIPAKpgC31HpEZFHO/ASLmmanGazJslyE/WI5n
-        pvXZ0OuFQyrOS8IjBkEJQOO5EP43Q9g9zzW5Q6bKwIzKOS406f4Q3WDVv+vTRuVq
-        AGPpUhHDDoqaauZLdG3SxtmsGpOyog7/Zvc7YGXstxk0v+loWIjiLoviaLido0ft
-        aOOR5cQmcvvdJhcqoD0M87w4DOvu5Gd+cavaQG8nXyEaQC936trU16dw+7H4ofvP
-        1nUnDIL5R22VvFGLFSWQw==
-In-Reply-To: <20230922041215.13675-1-raven@themaw.net>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1695371509;
+        bh=Skwpb1KLcQdKy7MKh1L9QT77S3+jQE5C8QaP3kqYiBU=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=DQzComXhXZGvl7G5wtkxVHvHbwcf5+8KcdIeohPb6+hxGS85lPGoUkc89m62RIT40
+         4pIOVmUcHuW/Cd1MYkikaqStRRPvOAPO/wWcyX7GNTqX6aXOJenPzP2XuT8dC8DYeP
+         Puli961YyXoj7dB/ixbbdVU974cLFFruEIZG4OaUVWmaPoA3EOsPDGwC3pP4KJnTl6
+         XKQ6aadnyhMwbaMuj5p/N4827wAn2nmaAn/XeszAWgFnaHeCPxKtE3rFjCkT8KaTWI
+         rE61WEw4FJZQd9B2f3HUWQ5pWN4GJ1OlHJn9r05F6oexe4+KG5jbH+U70qiBKQ4628
+         +uNx8VHFZ6GLw==
+Content-Disposition: inline
+In-Reply-To: <20230922041215.13675-8-raven@themaw.net>
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
-To: Al Viro <viro@ZenIV.linux.org.uk>, Christian Brauner <brauner@kernel.org>
-Cc: autofs mailing list <autofs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Bill O'Donnell <billodo@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, David Howells <dhowells@redhat.com>, Ian Kent <raven@themaw.net>
+Content-Transfer-Encoding: 7bit
+To: Ian Kent <raven@themaw.net>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>, autofs mailing list <autofs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Bill O'Donnell <billodo@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, David Howells <dhowells@redhat.com>
 
-There were a number of updates to protocol version 4, take account of
-that when setting the super block info sub version field.
+On Fri, Sep 22, 2023 at 12:12:14PM +0800, Ian Kent wrote:
+> Convert the autofs filesystem to use the mount API.
+> 
+> The conversion patch was originally written by David Howells.
+> I have taken that patch and broken it into several patches in an effort
+> to make the change easier to review.
+> 
+> Signed-off-by: Ian Kent <raven@themaw.net>
+> ---
+>  fs/autofs/autofs_i.h |   5 +-
+>  fs/autofs/init.c     |   9 +-
+>  fs/autofs/inode.c    | 247 ++++++++++++++++++++++++-------------------
+>  3 files changed, 142 insertions(+), 119 deletions(-)
+> 
+> diff --git a/fs/autofs/autofs_i.h b/fs/autofs/autofs_i.h
+> index c24d32be7937..244f18cdf23c 100644
+> --- a/fs/autofs/autofs_i.h
+> +++ b/fs/autofs/autofs_i.h
+> @@ -25,6 +25,8 @@
+>  #include <linux/completion.h>
+>  #include <linux/file.h>
+>  #include <linux/magic.h>
+> +#include <linux/fs_context.h>
+> +#include <linux/fs_parser.h>
+>  
+>  /* This is the range of ioctl() numbers we claim as ours */
+>  #define AUTOFS_IOC_FIRST     AUTOFS_IOC_READY
+> @@ -205,7 +207,8 @@ static inline void managed_dentry_clear_managed(struct dentry *dentry)
+>  
+>  /* Initializing function */
+>  
+> -int autofs_fill_super(struct super_block *, void *, int);
+> +extern const struct fs_parameter_spec autofs_param_specs[];
+> +int autofs_init_fs_context(struct fs_context *fc);
+>  struct autofs_info *autofs_new_ino(struct autofs_sb_info *);
+>  void autofs_clean_ino(struct autofs_info *);
+>  
+> diff --git a/fs/autofs/init.c b/fs/autofs/init.c
+> index d3f55e874338..b5e4dfa04ed0 100644
+> --- a/fs/autofs/init.c
+> +++ b/fs/autofs/init.c
+> @@ -7,16 +7,11 @@
+>  #include <linux/init.h>
+>  #include "autofs_i.h"
+>  
+> -static struct dentry *autofs_mount(struct file_system_type *fs_type,
+> -	int flags, const char *dev_name, void *data)
+> -{
+> -	return mount_nodev(fs_type, flags, data, autofs_fill_super);
+> -}
+> -
+>  struct file_system_type autofs_fs_type = {
+>  	.owner		= THIS_MODULE,
+>  	.name		= "autofs",
+> -	.mount		= autofs_mount,
+> +	.init_fs_context = autofs_init_fs_context,
+> +	.parameters	= autofs_param_specs,
+>  	.kill_sb	= autofs_kill_sb,
+>  };
+>  MODULE_ALIAS_FS("autofs");
+> diff --git a/fs/autofs/inode.c b/fs/autofs/inode.c
+> index e2026e063d8c..3f2dfed428f9 100644
+> --- a/fs/autofs/inode.c
+> +++ b/fs/autofs/inode.c
+> @@ -6,7 +6,6 @@
+>  
+>  #include <linux/seq_file.h>
+>  #include <linux/pagemap.h>
+> -#include <linux/parser.h>
+>  
+>  #include "autofs_i.h"
+>  
+> @@ -111,7 +110,6 @@ static const struct super_operations autofs_sops = {
+>  };
+>  
+>  enum {
+> -	Opt_err,
+>  	Opt_direct,
+>  	Opt_fd,
+>  	Opt_gid,
+> @@ -125,35 +123,48 @@ enum {
+>  	Opt_uid,
+>  };
+>  
+> -static const match_table_t tokens = {
+> -	{Opt_fd, "fd=%u"},
+> -	{Opt_uid, "uid=%u"},
+> -	{Opt_gid, "gid=%u"},
+> -	{Opt_pgrp, "pgrp=%u"},
+> -	{Opt_minproto, "minproto=%u"},
+> -	{Opt_maxproto, "maxproto=%u"},
+> -	{Opt_indirect, "indirect"},
+> -	{Opt_direct, "direct"},
+> -	{Opt_offset, "offset"},
+> -	{Opt_strictexpire, "strictexpire"},
+> -	{Opt_ignore, "ignore"},
+> -	{Opt_err, NULL}
+> +const struct fs_parameter_spec autofs_param_specs[] = {
+> +	fsparam_flag	("direct",		Opt_direct),
+> +	fsparam_fd	("fd",			Opt_fd),
+> +	fsparam_u32	("gid",			Opt_gid),
+> +	fsparam_flag	("ignore",		Opt_ignore),
+> +	fsparam_flag	("indirect",		Opt_indirect),
+> +	fsparam_u32	("maxproto",		Opt_maxproto),
+> +	fsparam_u32	("minproto",		Opt_minproto),
+> +	fsparam_flag	("offset",		Opt_offset),
+> +	fsparam_u32	("pgrp",		Opt_pgrp),
+> +	fsparam_flag	("strictexpire",	Opt_strictexpire),
+> +	fsparam_u32	("uid",			Opt_uid),
+> +	{}
+>  };
+>  
+> -static int autofs_parse_fd(struct autofs_sb_info *sbi, int fd)
+> +struct autofs_fs_context {
+> +	kuid_t	uid;
+> +	kgid_t	gid;
+> +	int	pgrp;
+> +	bool	pgrp_set;
+> +};
+> +
+> +/*
+> + * Open the fd.  We do it here rather than in get_tree so that it's done in the
+> + * context of the system call that passed the data and not the one that
+> + * triggered the superblock creation, lest the fd gets reassigned.
+> + */
+> +static int autofs_parse_fd(struct fs_context *fc, int fd)
+>  {
+> +	struct autofs_sb_info *sbi = fc->s_fs_info;
+>  	struct file *pipe;
+>  	int ret;
+>  
+>  	pipe = fget(fd);
+>  	if (!pipe) {
+> -		pr_err("could not open pipe file descriptor\n");
+> +		errorf(fc, "could not open pipe file descriptor");
+>  		return -EBADF;
+>  	}
+>  
+>  	ret = autofs_check_pipe(pipe);
+>  	if (ret < 0) {
+> -		pr_err("Invalid/unusable pipe\n");
+> +		errorf(fc, "Invalid/unusable pipe");
+>  		fput(pipe);
+>  		return -EBADF;
+>  	}
+> @@ -167,58 +178,43 @@ static int autofs_parse_fd(struct autofs_sb_info *sbi, int fd)
+>  	return 0;
+>  }
+>  
+> -static int autofs_parse_param(char *optstr, struct inode *root,
+> -			      int *pgrp, bool *pgrp_set,
+> -			      struct autofs_sb_info *sbi)
+> +static int autofs_parse_param(struct fs_context *fc, struct fs_parameter *param)
+>  {
+> -	substring_t args[MAX_OPT_ARGS];
+> -	int option;
+> -	int pipefd = -1;
+> +	struct autofs_fs_context *ctx = fc->fs_private;
+> +	struct autofs_sb_info *sbi = fc->s_fs_info;
+> +	struct fs_parse_result result;
+>  	kuid_t uid;
+>  	kgid_t gid;
+> -	int token;
+> -	int ret;
+> +	int opt;
+>  
+> -	token = match_token(optstr, tokens, args);
+> -	switch (token) {
+> +	opt = fs_parse(fc, autofs_param_specs, param, &result);
+> +	if (opt < 0)
+> +		return opt;
+> +
+> +	switch (opt) {
+>  	case Opt_fd:
+> -		if (match_int(args, &pipefd))
+> -			return 1;
+> -		ret = autofs_parse_fd(sbi, pipefd);
+> -		if (ret)
+> -			return 1;
+> -		break;
+> +		return autofs_parse_fd(fc, result.int_32);
+>  	case Opt_uid:
+> -		if (match_int(args, &option))
+> -			return 1;
+> -		uid = make_kuid(current_user_ns(), option);
+> +		uid = make_kuid(current_user_ns(), result.uint_32);
+>  		if (!uid_valid(uid))
+>  			return 1;
 
-Signed-off-by: Ian Kent <raven@themaw.net>
----
- fs/autofs/inode.c | 12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
-
-diff --git a/fs/autofs/inode.c b/fs/autofs/inode.c
-index 3f2dfed428f9..53c0df354206 100644
---- a/fs/autofs/inode.c
-+++ b/fs/autofs/inode.c
-@@ -279,7 +279,17 @@ static int autofs_validate_protocol(struct fs_context *fc)
- 		sbi->version = AUTOFS_MAX_PROTO_VERSION;
- 	else
- 		sbi->version = sbi->max_proto;
--	sbi->sub_version = AUTOFS_PROTO_SUBVERSION;
-+
-+	switch (sbi->version) {
-+	case 4:
-+		sbi->sub_version = 7;
-+		break;
-+	case 5:
-+		sbi->sub_version = AUTOFS_PROTO_SUBVERSION;
-+		break;
-+	default:
-+		sbi->sub_version = 0;
-+	}
- 
- 	return 0;
- }
--- 
-2.41.0
-
+This and the make_kgid() instance below need to return -EINVAL or use
+invalfc() to return an error message. I can fix this up though so no
+need to resend for this.
