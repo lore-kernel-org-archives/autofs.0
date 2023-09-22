@@ -1,7 +1,7 @@
 From: Ian Kent <raven@themaw.net>
-Subject: [PATCH 5/8] autofs: refactor parse_options()
-Date: Fri, 22 Sep 2023 12:12:12 +0800
-Message-ID: <20230922041215.13675-6-raven@themaw.net>
+Subject: [PATCH 6/8] autofs: validate protocol version
+Date: Fri, 22 Sep 2023 12:12:13 +0800
+Message-ID: <20230922041215.13675-7-raven@themaw.net>
 References: <20230922041215.13675-1-raven@themaw.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,209 +9,97 @@ Return-path: <linux-fsdevel-owner@vger.kernel.org>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
         :cc:content-transfer-encoding:content-type:date:date:from:from
         :in-reply-to:in-reply-to:message-id:mime-version:references
-        :reply-to:sender:subject:subject:to:to; s=fm1; t=1695355973; x=
-        1695442373; bh=F3KK0azHrvJ3S4DAAH+Vjr5j2tc3bC5JP4rnLJ/SSuQ=; b=H
-        81IOwlmkYtrJv8vDJiJPq3FUWLzvvHTxbiNPTDq0W7MLhClHzD0FDTF97QQ/hEa6
-        t6oMaretIz/pM5ahS1WPK6VzGXSnDaAd5qWKzvbxAUDqMGo9/abhpfkk8DGha1Vn
-        zxQOY9wjBTWqt0ADZ2aXskleKXZkFaHHKRQb/zMvSstd1GFpskOjHQA786wCw3VE
-        4p0B+0tYXcYZF69lni/XJgfRMAFnSYkMpXAu69uxz3Do1G0jZp2AjV8hDfWKQ7fn
-        D/DYYA06n/kasIUl/tkaY/xgdqWs5RuVEiNbs6/Sgz9V/gdAhq42UV17PZ5eGcZ2
-        WIdgwLiX5eW8NmkWlyG+g==
+        :reply-to:sender:subject:subject:to:to; s=fm1; t=1695355978; x=
+        1695442378; bh=1rBf/tENa8Po/M99DgSqwjUd7A6nMFydxVLGoW1DBxw=; b=m
+        Zr0GwKdhkpe1LLNAYPe/pVq2UTvLZ0nFT4U5r4Rkk8bcpkT3T+aYfSEnMrk008uQ
+        PLanhuWeVexXiwIzYYEpL9mQk0alBM6Y38DxJyGeisbJVsWYdA4FNqAQ9SqdM3Rb
+        BDXnL6abA37CcV0xLnUnNZI3vcYV4pmvzWnBvGOwcyi5qKlh5whKhRMYZEGUMMXI
+        TEz/cwbwvwN4gFvE1RLYR2j2vO5McwXkhifYpqJIm70+jgnKoecpNe2gIuCSCxnt
+        xjhgM3yZ0cPJHvAQzzuzh/zgsevzGLuJcwSpVzBtDHrOFABM+yXKsMgMTukVubjQ
+        dh3u6ZyF2FuShML9Ns2lQ==
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
         messagingengine.com; h=cc:cc:content-transfer-encoding
         :content-type:date:date:feedback-id:feedback-id:from:from
         :in-reply-to:in-reply-to:message-id:mime-version:references
         :reply-to:sender:subject:subject:to:to:x-me-proxy:x-me-proxy
-        :x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1695355973; x=
-        1695442373; bh=F3KK0azHrvJ3S4DAAH+Vjr5j2tc3bC5JP4rnLJ/SSuQ=; b=Q
-        B6lMBWAVWbjSzSoaiiNPaalZYj62ulHn2Gxy2ayy0kW2PC1HKCEWiEXSYpl14UwQ
-        hi+UChcd8IwnANXXsdUzYjnwyQv9iO/iAsgg2jDnxbLTzzja+n34VqPK3MNw1z5w
-        5mhkiAhiwL/UneFstCgPUH9hs86mh8F55ycx1ZAi2IEr8cAy1o0k2GugWSEOFO5I
-        QmjRXGazQifIWXCGvu9S+S35PoFi1uStX8ATCEsX0DYcOnj0k+BS7xXcI0thN3LG
-        avN1oowNGbdzTEuKGUnX9xXbJaztzBkwT2XLBoFboUfSjiejLgxKOzyMa5t5j4AV
-        hDH0vhsA85vakhjTEzX3Q==
+        :x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1695355978; x=
+        1695442378; bh=1rBf/tENa8Po/M99DgSqwjUd7A6nMFydxVLGoW1DBxw=; b=L
+        Cj7AFu6VB8QYslobSLTvwCkrvIZn6n4zN60yexHUeBwRJcTn/Cf2hU/9M/k2/heD
+        iw3mM/gsCFV8R+N85xcR47mbtU4lwe38WyDcyCLIdLnH/UVzh3w58Kuvs4EDAPAh
+        f9t0wM3lDIiZ7TV5sAHi++UP308NgjqknXOEbdjZfNUI0GutCRFHXcFs7oG/WzGv
+        TkE1VLhnz4O/ETOD0YD02x94Nzxg+RZylN+blTowT67Z6kOkvO/RyjYqpWIlAzGb
+        YtfLbfABQcLyfZlZdFLsDv9ZDQldAqh+u905kGMlHMfTFsC1Svoe3r268mO2Z0QV
+        rAXZpurAlvt1zck2HuNlw==
 In-Reply-To: <20230922041215.13675-1-raven@themaw.net>
 List-ID: <autofs.vger.kernel.org>
 Content-Type: text/plain; charset="us-ascii"
 To: Al Viro <viro@ZenIV.linux.org.uk>, Christian Brauner <brauner@kernel.org>
 Cc: autofs mailing list <autofs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, Bill O'Donnell <billodo@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, David Howells <dhowells@redhat.com>, Ian Kent <raven@themaw.net>
 
-Seperate out parts of parse_options() that will match better the
-individual option processing used in the mount API to further simplify
-the upcoming conversion.
+Move the protocol parameter validation into a seperate function.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 ---
- fs/autofs/inode.c | 136 ++++++++++++++++++++++++----------------------
- 1 file changed, 72 insertions(+), 64 deletions(-)
+ fs/autofs/inode.c | 38 +++++++++++++++++++++++---------------
+ 1 file changed, 23 insertions(+), 15 deletions(-)
 
 diff --git a/fs/autofs/inode.c b/fs/autofs/inode.c
-index d2b333c0682a..5e061ce3ab8d 100644
+index 5e061ce3ab8d..e2026e063d8c 100644
 --- a/fs/autofs/inode.c
 +++ b/fs/autofs/inode.c
-@@ -167,18 +167,84 @@ static int autofs_parse_fd(struct autofs_sb_info *sbi, int fd)
- 	return 0;
+@@ -287,6 +287,28 @@ static struct autofs_sb_info *autofs_alloc_sbi(void)
+ 	return sbi;
  }
  
--static int parse_options(char *options,
--			 struct inode *root, int *pgrp, bool *pgrp_set,
--			 struct autofs_sb_info *sbi)
-+static int autofs_parse_param(char *optstr, struct inode *root,
-+			      int *pgrp, bool *pgrp_set,
-+			      struct autofs_sb_info *sbi)
- {
--	char *p;
- 	substring_t args[MAX_OPT_ARGS];
- 	int option;
- 	int pipefd = -1;
- 	kuid_t uid;
- 	kgid_t gid;
-+	int token;
- 	int ret;
- 
-+	token = match_token(optstr, tokens, args);
-+	switch (token) {
-+	case Opt_fd:
-+		if (match_int(args, &pipefd))
-+			return 1;
-+		ret = autofs_parse_fd(sbi, pipefd);
-+		if (ret)
-+			return 1;
-+		break;
-+	case Opt_uid:
-+		if (match_int(args, &option))
-+			return 1;
-+		uid = make_kuid(current_user_ns(), option);
-+		if (!uid_valid(uid))
-+			return 1;
-+		root->i_uid = uid;
-+		break;
-+	case Opt_gid:
-+		if (match_int(args, &option))
-+			return 1;
-+		gid = make_kgid(current_user_ns(), option);
-+		if (!gid_valid(gid))
-+			return 1;
-+		root->i_gid = gid;
-+		break;
-+	case Opt_pgrp:
-+		if (match_int(args, &option))
-+			return 1;
-+		*pgrp = option;
-+		*pgrp_set = true;
-+		break;
-+	case Opt_minproto:
-+		if (match_int(args, &option))
-+			return 1;
-+		sbi->min_proto = option;
-+		break;
-+	case Opt_maxproto:
-+		if (match_int(args, &option))
-+			return 1;
-+		sbi->max_proto = option;
-+		break;
-+	case Opt_indirect:
-+		set_autofs_type_indirect(&sbi->type);
-+		break;
-+	case Opt_direct:
-+		set_autofs_type_direct(&sbi->type);
-+		break;
-+	case Opt_offset:
-+		set_autofs_type_offset(&sbi->type);
-+		break;
-+	case Opt_strictexpire:
-+		sbi->flags |= AUTOFS_SBI_STRICTEXPIRE;
-+		break;
-+	case Opt_ignore:
-+		sbi->flags |= AUTOFS_SBI_IGNORE;
++static int autofs_validate_protocol(struct autofs_sb_info *sbi)
++{
++	/* Test versions first */
++	if (sbi->max_proto < AUTOFS_MIN_PROTO_VERSION ||
++	    sbi->min_proto > AUTOFS_MAX_PROTO_VERSION) {
++		pr_err("kernel does not match daemon version "
++		       "daemon (%d, %d) kernel (%d, %d)\n",
++		       sbi->min_proto, sbi->max_proto,
++		       AUTOFS_MIN_PROTO_VERSION, AUTOFS_MAX_PROTO_VERSION);
++		return -EINVAL;
 +	}
++
++	/* Establish highest kernel protocol version */
++	if (sbi->max_proto > AUTOFS_MAX_PROTO_VERSION)
++		sbi->version = AUTOFS_MAX_PROTO_VERSION;
++	else
++		sbi->version = sbi->max_proto;
++	sbi->sub_version = AUTOFS_PROTO_SUBVERSION;
 +
 +	return 0;
 +}
 +
-+static int parse_options(char *options,
-+			 struct inode *root, int *pgrp, bool *pgrp_set,
-+			 struct autofs_sb_info *sbi)
-+{
-+	char *p;
-+
- 	root->i_uid = current_uid();
- 	root->i_gid = current_gid();
- 
-@@ -186,71 +252,13 @@ static int parse_options(char *options,
- 		return 1;
- 
- 	while ((p = strsep(&options, ",")) != NULL) {
--		int token;
--
- 		if (!*p)
- 			continue;
- 
--		token = match_token(p, tokens, args);
--		switch (token) {
--		case Opt_fd:
--			if (match_int(args, &pipefd))
--				return 1;
--			ret = autofs_parse_fd(sbi, pipefd);
--			if (ret)
--				return 1;
--			break;
--		case Opt_uid:
--			if (match_int(args, &option))
--				return 1;
--			uid = make_kuid(current_user_ns(), option);
--			if (!uid_valid(uid))
--				return 1;
--			root->i_uid = uid;
--			break;
--		case Opt_gid:
--			if (match_int(args, &option))
--				return 1;
--			gid = make_kgid(current_user_ns(), option);
--			if (!gid_valid(gid))
--				return 1;
--			root->i_gid = gid;
--			break;
--		case Opt_pgrp:
--			if (match_int(args, &option))
--				return 1;
--			*pgrp = option;
--			*pgrp_set = true;
--			break;
--		case Opt_minproto:
--			if (match_int(args, &option))
--				return 1;
--			sbi->min_proto = option;
--			break;
--		case Opt_maxproto:
--			if (match_int(args, &option))
--				return 1;
--			sbi->max_proto = option;
--			break;
--		case Opt_indirect:
--			set_autofs_type_indirect(&sbi->type);
--			break;
--		case Opt_direct:
--			set_autofs_type_direct(&sbi->type);
--			break;
--		case Opt_offset:
--			set_autofs_type_offset(&sbi->type);
--			break;
--		case Opt_strictexpire:
--			sbi->flags |= AUTOFS_SBI_STRICTEXPIRE;
--			break;
--		case Opt_ignore:
--			sbi->flags |= AUTOFS_SBI_IGNORE;
--			break;
--		default:
-+		if (autofs_parse_param(p, root, pgrp, pgrp_set, sbi))
- 			return 1;
--		}
+ int autofs_fill_super(struct super_block *s, void *data, int silent)
+ {
+ 	struct inode *root_inode;
+@@ -335,22 +357,8 @@ int autofs_fill_super(struct super_block *s, void *data, int silent)
+ 		goto fail_dput;
  	}
-+
- 	return (sbi->pipefd < 0);
- }
  
+-	/* Test versions first */
+-	if (sbi->max_proto < AUTOFS_MIN_PROTO_VERSION ||
+-	    sbi->min_proto > AUTOFS_MAX_PROTO_VERSION) {
+-		pr_err("kernel does not match daemon version "
+-		       "daemon (%d, %d) kernel (%d, %d)\n",
+-		       sbi->min_proto, sbi->max_proto,
+-		       AUTOFS_MIN_PROTO_VERSION, AUTOFS_MAX_PROTO_VERSION);
++	if (autofs_validate_protocol(sbi))
+ 		goto fail_dput;
+-	}
+-
+-	/* Establish highest kernel protocol version */
+-	if (sbi->max_proto > AUTOFS_MAX_PROTO_VERSION)
+-		sbi->version = AUTOFS_MAX_PROTO_VERSION;
+-	else
+-		sbi->version = sbi->max_proto;
+-	sbi->sub_version = AUTOFS_PROTO_SUBVERSION;
+ 
+ 	if (pgrp_set) {
+ 		sbi->oz_pgrp = find_get_pid(pgrp);
 -- 
 2.41.0
 
