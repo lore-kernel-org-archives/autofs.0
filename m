@@ -2,191 +2,235 @@ Return-Path: <autofs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D654E7734E
-	for <autofs@archiver.kernel.org>; Sat, 30 Sep 2023 01:34:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 752D5E77378
+	for <autofs@archiver.kernel.org>; Sat, 30 Sep 2023 14:50:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229514AbjI3BeC (ORCPT <rfc822;autofs@archiver.kernel.org>);
-        Fri, 29 Sep 2023 21:34:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57778 "EHLO
+        id S234327AbjI3Ou7 (ORCPT <rfc822;autofs@archiver.kernel.org>);
+        Sat, 30 Sep 2023 10:50:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48792 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229489AbjI3BeC (ORCPT
-        <rfc822;autofs@vger.kernel.org>); Fri, 29 Sep 2023 21:34:02 -0400
-Received: from wout1-smtp.messagingengine.com (wout1-smtp.messagingengine.com [64.147.123.24])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 735F5F3
-        for <autofs@vger.kernel.org>; Fri, 29 Sep 2023 18:34:00 -0700 (PDT)
-Received: from compute3.internal (compute3.nyi.internal [10.202.2.43])
-        by mailout.west.internal (Postfix) with ESMTP id 7BCB23200904;
-        Fri, 29 Sep 2023 21:33:59 -0400 (EDT)
-Received: from mailfrontend2 ([10.202.2.163])
-  by compute3.internal (MEProxy); Fri, 29 Sep 2023 21:33:59 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
-        :cc:content-transfer-encoding:content-type:content-type:date
-        :date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-        :references:reply-to:sender:subject:subject:to:to; s=fm1; t=
-        1696037638; x=1696124038; bh=9qKqtCNALmJNysz25qZ7VS6I2Y7XClOkbOX
-        /ojoGafo=; b=JsoZPN+eis/IxaPNBmpeGVlDeI9HMzUnbskEcxAbSHneG6fT/Gy
-        5iQxHhhjoxp5pXN+CvZOnnQVWPFqWXJnU5t4mhRtkEo9NGKb0XPrBP7EQjJFlvrq
-        CJbdYW8WFR3c2oi4wTFLu1DZNe8bfZJZSLvxoTutJfZE+cvmahARNNMjNaKAQrbX
-        UQ9T1OoLLiXTPLhGlESb8u9TIoaTywAqPKXmHDco4f+GTWNO3Hhw2SyhDGUL2b5C
-        5E7e6nPGCCQ0ZMdXtJFkFOVhSE+6nuRUpoYmwcrRXKHydw93roXUeZ1B70sZkL4x
-        f6iZiYXJg1iCEvf83KKuRWutdyvCtxo3Npg==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-transfer-encoding
-        :content-type:content-type:date:date:feedback-id:feedback-id
-        :from:from:in-reply-to:in-reply-to:message-id:mime-version
-        :references:reply-to:sender:subject:subject:to:to:x-me-proxy
-        :x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=
-        1696037638; x=1696124038; bh=9qKqtCNALmJNysz25qZ7VS6I2Y7XClOkbOX
-        /ojoGafo=; b=LQ2jg9474V1OppC72yK23rOsjIROsssHQmpHzAYOEXJAzJNOQxh
-        MReor7KdpvDEi1bTYgpdCWqgybzHZHmHUb+qBvYSnZXk5kzj3Cy94QBEiHTwjkI3
-        8dLk/KQkXT90ywIQsftk41+EIXa582IFv4NhzoyTaCDzEKFf94V6F55vM0Cr6UK6
-        tHEYUIke9aK74Ta1lRmytPZr81NJ6HsTw0s1fuN4q7zOOytuetYP3uyL+qpRTEZm
-        +S1BbAnF5sciYOrzDxvqiL+jG7mvhPuqHlo+FiLkx0ZoRyb3rNTeAp3hFD2hYDqk
-        wbG8npiqdpIJBpVe/YeS6NMC3xsJEFFCWiw==
-X-ME-Sender: <xms:BnsXZf-SyRJg85e91mIlbw4Ptu4uEorxnnFFhYY7rx5Ccm0ybYUqKg>
-    <xme:BnsXZbvM7ga5XGvU2xLx04sRRpUrCLyzbsmTnNGSz_o-ZeV_UuHxD3l4AyfvLzURu
-    sXjyiOiyQRq>
-X-ME-Received: <xmr:BnsXZdCFYV1qXgWS4i1JyIBEM8QxbNrVPt9e6nXjnZS3I3J2HPOIVmQ6OCPHJFtsPhsQKw>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvkedrtdehgddukecutefuodetggdotefrodftvf
-    curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
-    uegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenuc
-    fjughrpefkffggfgfuvfevfhfhjggtgfesthejredttdefjeenucfhrhhomhepkfgrnhcu
-    mfgvnhhtuceorhgrvhgvnhesthhhvghmrgifrdhnvghtqeenucggtffrrghtthgvrhhnpe
-    euhfeuieeijeeuveekgfeitdethefguddtleffhfelfeelhfduuedvfefhgefhheenucev
-    lhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpehrrghvvghnse
-    hthhgvmhgrfidrnhgvth
-X-ME-Proxy: <xmx:BnsXZbdFYmGfuukPEkcFhZndHIrKzlOrmJfILUJQVIgdwgqlIdumUw>
-    <xmx:BnsXZUPdcfRvAYiDKygPUD2bti0jicTcZIM0wVI5hywDRJcuSv5Aiw>
-    <xmx:BnsXZdkD8PWVmsZv9by_M9XfM4vmhfXOBSQRyBSK07yNfZ_eL8SWEw>
-    <xmx:BnsXZeWMC0tLV-dxxjbtVW4gdhzao0BdWqFeg160BjsjsWU3GdugWQ>
-Feedback-ID: i31e841b0:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Fri,
- 29 Sep 2023 21:33:57 -0400 (EDT)
-Message-ID: <4e1cfb77-0839-3a57-0c44-c33e49659129@themaw.net>
-Date:   Sat, 30 Sep 2023 09:33:54 +0800
+        with ESMTP id S234317AbjI3Ou6 (ORCPT
+        <rfc822;autofs@vger.kernel.org>); Sat, 30 Sep 2023 10:50:58 -0400
+Received: from mail-lf1-x12c.google.com (mail-lf1-x12c.google.com [IPv6:2a00:1450:4864:20::12c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4DB1CB7;
+        Sat, 30 Sep 2023 07:50:55 -0700 (PDT)
+Received: by mail-lf1-x12c.google.com with SMTP id 2adb3069b0e04-5046bf37daeso14337382e87.1;
+        Sat, 30 Sep 2023 07:50:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1696085453; x=1696690253; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=laSU2ptF5dJtGJTOfsu2vTDoKsI4bo31YwsLIpMZHsY=;
+        b=MwDUKEd6QG0EtvDSCKf1uxGsuk6yCPhM15PYIYhqDJOgasuaT7+4Oh6GiJZ/vmFugy
+         lmSCSLc0F+hG3ukOAM3WdNdBnEAtspfwfQIzIK1Wl+hsYj7CnlRK1SN0CwP2toV4bow4
+         LCG2gYB2ozawxJ9b/KfUJbxAn6Xa7t4YEVAl9uocXX1Jw3qs6c/EXfaIr8Rz78OCo8KR
+         46YxdeGs8zmcFe+Db4BddvMZE57ZBrJ3u+0YeAZwI0lUMX0nfUrsuM9wr1T+Cx+4tFCh
+         43LmQPeSUyLxSTkiFSJ67LGdePIyZblA6OKDAQ/vyk5/2yD5+W+J95PEpgI6GVNdDKdn
+         9Sww==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1696085453; x=1696690253;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=laSU2ptF5dJtGJTOfsu2vTDoKsI4bo31YwsLIpMZHsY=;
+        b=T8inobxiaergECByFFZ1CXDbC3XpIp10sjfxquseZvUOFeu2160pvxp0AzdP6cwpsW
+         2kGV7KJk9GIz1Oj9AnixG0avheyT4r8wY1P+7mDouL4LbpFsN872mecuBdlfe7NvnDab
+         GVoo3WnsccIQpZ/XcHAdxWvc0C/REEi9X+IEwN2c1ii0X+WC4DGXGa6GwNPTKxqdIBet
+         A334oKWX3Ex4J8ygtgZKUbCrnpRs8SMDnD0/WXU+7QCJl4wyW29GabzCdhVuOYa/0CGr
+         fQvavOmh3je7pojydXHqJ+BKy6MuKRDfSGS4f/Azl+4tfeMHRvqFQCuuvAwXMD6ztg51
+         hRKA==
+X-Gm-Message-State: AOJu0YwxCCE2ZdXfvn+fN9bDB86YP0y09EvvFI143pYlVp4qXIMaSumB
+        jxSh19bFZGCMwTmkGL2yJGIgODIRi2Yhl2GhGJQ=
+X-Google-Smtp-Source: AGHT+IFKxuEfsWI2Hoye015VefDxXDDWWovJHhYR0GsRnul5m9+uvo7GWv6zNWozBrWHqGB+PwbJIGFbA8W5CapoIHU=
+X-Received: by 2002:a05:6512:124a:b0:503:5cd:998b with SMTP id
+ fb10-20020a056512124a00b0050305cd998bmr7557694lfb.28.1696085453195; Sat, 30
+ Sep 2023 07:50:53 -0700 (PDT)
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.13.0
-Subject: Re: autofs-5.1.8 - define LDAP_DEPRECATED during LDAP configure check
-Content-Language: en-US
-To:     Florian Weimer <fweimer@redhat.com>, autofs@vger.kernel.org
-Cc:     Arjun Shankar <ashankar@redhat.com>
-References: <87v8bt1eph.fsf@oldenburg.str.redhat.com>
-From:   Ian Kent <raven@themaw.net>
-In-Reply-To: <87v8bt1eph.fsf@oldenburg.str.redhat.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+References: <20230928110554.34758-1-jlayton@kernel.org> <20230928110554.34758-2-jlayton@kernel.org>
+ <6020d6e7-b187-4abb-bf38-dc09d8bd0f6d@app.fastmail.com> <af047e4a1c6947c59d4a13d4ae221c784a5386b4.camel@kernel.org>
+ <20230928171943.GK11439@frogsfrogsfrogs> <6a6f37d16b55a3003af3f3dbb7778a367f68cd8d.camel@kernel.org>
+ <636661.1695969129@warthog.procyon.org.uk>
+In-Reply-To: <636661.1695969129@warthog.procyon.org.uk>
+From:   Steve French <smfrench@gmail.com>
+Date:   Sat, 30 Sep 2023 09:50:41 -0500
+Message-ID: <CAH2r5ms14hPaz=Ex2a=Dj0Hz3XxYLRKFj_rHHekznTbNJ_wABQ@mail.gmail.com>
+Subject: Re: [PATCH 86/87] fs: switch timespec64 fields in inode to discrete integers
+To:     David Howells <dhowells@redhat.com>
+Cc:     Jeff Layton <jlayton@kernel.org>,
+        Latchesar Ionkov <lucho@ionkov.net>,
+        Konstantin Komarov <almaz.alexandrovich@paragon-software.com>,
+        "Rafael J . Wysocki" <rafael@kernel.org>,
+        "Darrick J. Wong" <djwong@kernel.org>,
+        Anders Larsen <al@alarsen.net>,
+        Carlos Llamas <cmllamas@google.com>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Mattia Dongili <malattia@linux.it>,
+        Hugh Dickins <hughd@google.com>,
+        John Johansen <john.johansen@canonical.com>,
+        Yonghong Song <yonghong.song@linux.dev>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Christoph Hellwig <hch@lst.de>,
+        Mike Marshall <hubcap@omnibond.com>,
+        Paulo Alcantara <pc@manguebit.com>, linux-xfs@vger.kernel.org,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        James Morris <jmorris@namei.org>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        devel@lists.orangefs.org, Shyam Prasad N <sprasad@microsoft.com>,
+        linux-um@lists.infradead.org, Nicholas Piggin <npiggin@gmail.com>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Eric Van Hensbergen <ericvh@kernel.org>,
+        Suren Baghdasaryan <surenb@google.com>,
+        Trond Myklebust <trond.myklebust@hammerspace.com>,
+        Anton Altaparmakov <anton@tuxera.com>,
+        Christian Brauner <brauner@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Stephen Smalley <stephen.smalley.work@gmail.com>,
+        linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Ronnie Sahlberg <lsahlber@redhat.com>,
+        Sergey Senozhatsky <senozhatsky@chromium.org>,
+        =?UTF-8?B?QXJ2ZSBIasO4bm5ldsOlZw==?= <arve@android.com>,
+        Chuck Lever <chuck.lever@oracle.com>,
+        Sven Schnelle <svens@linux.ibm.com>,
+        Jiri Olsa <jolsa@kernel.org>, Jan Kara <jack@suse.com>,
+        Tejun Heo <tj@kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        linux-trace-kernel@vger.kernel.org,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Dave Kleikamp <shaggy@kernel.org>, linux-mm@kvack.org,
+        Joel Fernandes <joel@joelfernandes.org>,
+        Eric Dumazet <edumazet@google.com>,
+        Stanislav Fomichev <sdf@google.com>,
+        linux-s390@vger.kernel.org, linux-nilfs@vger.kernel.org,
+        Paul Moore <paul@paul-moore.com>,
+        Leon Romanovsky <leon@kernel.org>,
+        John Fastabend <john.fastabend@gmail.com>,
+        Luis Chamberlain <mcgrof@kernel.org>, codalist@coda.cs.cmu.edu,
+        Iurii Zaikin <yzaikin@google.com>,
+        Namjae Jeon <linkinjeon@kernel.org>,
+        Masami Hiramatsu <mhiramat@kernel.org>,
+        Todd Kjos <tkjos@android.com>,
+        Vasily Gorbik <gor@linux.ibm.com>, selinux@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, reiserfs-devel@vger.kernel.org,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        Yue Hu <huyue2@coolpad.com>, Jaegeuk Kim <jaegeuk@kernel.org>,
+        Martijn Coenen <maco@android.com>,
+        OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>,
+        Hao Luo <haoluo@google.com>, Tony Luck <tony.luck@intel.com>,
+        "Theodore Ts'o" <tytso@mit.edu>, Nicolas Pitre <nico@fluxnic.net>,
+        linux-ntfs-dev@lists.sourceforge.net,
+        Muchun Song <muchun.song@linux.dev>,
+        linux-f2fs-devel@lists.sourceforge.net,
+        "Guilherme G. Piccoli" <gpiccoli@igalia.com>, gfs2@lists.linux.dev,
+        "Eric W. Biederman" <ebiederm@xmission.com>,
+        Anna Schumaker <anna@kernel.org>,
+        Brad Warrum <bwarrum@linux.ibm.com>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        linux-efi@vger.kernel.org,
+        Martin Brandenburg <martin@omnibond.com>,
+        ocfs2-devel@lists.linux.dev, Alexei Starovoitov <ast@kernel.org>,
+        platform-driver-x86@vger.kernel.org, Chris Mason <clm@fb.com>,
+        linux-mtd@lists.infradead.org, linux-hardening@vger.kernel.org,
+        Marc Dionne <marc.dionne@auristor.com>,
+        Jiri Slaby <jirislaby@kernel.org>,
+        linux-afs@lists.infradead.org, Ian Kent <raven@themaw.net>,
+        Naohiro Aota <naohiro.aota@wdc.com>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+        linux-rdma@vger.kernel.org, coda@cs.cmu.edu,
+        =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+        Ilya Dryomov <idryomov@gmail.com>,
+        Paolo Abeni <pabeni@redhat.com>,
+        "Serge E. Hallyn" <serge@hallyn.com>,
+        Christian Schoenebeck <linux_oss@crudebyte.com>,
+        Kees Cook <keescook@chromium.org>,
+        Arnd Bergmann <arnd@arndb.de>, autofs@vger.kernel.org,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Mark Gross <markgross@kernel.org>,
+        Damien Le Moal <dlemoal@kernel.org>,
+        Eric Paris <eparis@parisplace.org>, ceph-devel@vger.kernel.org,
+        Gao Xiang <xiang@kernel.org>, Jan Harkes <jaharkes@cs.cmu.edu>,
+        linux-nfs@vger.kernel.org, linux-ext4@vger.kernel.org,
+        Olga Kornievskaia <kolga@netapp.com>,
+        Song Liu <song@kernel.org>, samba-technical@lists.samba.org,
+        Steve French <sfrench@samba.org>, Jeremy Kerr <jk@ozlabs.org>,
+        Netdev <netdev@vger.kernel.org>,
+        Bob Peterson <rpeterso@redhat.com>,
+        linux-fsdevel@vger.kernel.org, bpf@vger.kernel.org,
+        ntfs3@lists.linux.dev, linux-erofs@lists.ozlabs.org,
+        "David S . Miller" <davem@davemloft.net>,
+        Chandan Babu R <chandan.babu@oracle.com>,
+        jfs-discussion@lists.sourceforge.net, Jan Kara <jack@suse.cz>,
+        Neil Brown <neilb@suse.de>,
+        Dominique Martinet <asmadeus@codewreck.org>,
+        Amir Goldstein <amir73il@gmail.com>,
+        Bob Copeland <me@bobcopeland.com>,
+        KP Singh <kpsingh@kernel.org>, linux-unionfs@vger.kernel.org,
+        Joseph Qi <joseph.qi@linux.alibaba.com>,
+        Andreas Dilger <adilger.kernel@dilger.ca>,
+        Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
+        Ard Biesheuvel <ardb@kernel.org>,
+        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+        Andreas Gruenbacher <agruenba@redhat.com>,
+        Richard Weinberger <richard@nod.at>,
+        Mark Fasheh <mark@fasheh.com>, Dai Ngo <Dai.Ngo@oracle.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>, linux-serial@vger.kernel.org,
+        Jakub Kicinski <kuba@kernel.org>,
+        Salah Triki <salah.triki@gmail.com>,
+        Evgeniy Dushistov <dushistov@mail.ru>,
+        linux-cifs@vger.kernel.org, Heiko Carstens <hca@linux.ibm.com>,
+        Chao Yu <chao@kernel.org>, apparmor@lists.ubuntu.com,
+        Josef Bacik <josef@toxicpanda.com>,
+        Tom Talpey <tom@talpey.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        "Tigran A. Aivazian" <aivazian.tigran@gmail.com>,
+        David Sterba <dsterba@suse.com>, Xiubo Li <xiubli@redhat.com>,
+        Ryusuke Konishi <konishi.ryusuke@gmail.com>,
+        Johannes Thumshirn <jth@kernel.org>,
+        Ritu Agarwal <rituagar@linux.ibm.com>,
+        Luis de Bethencourt <luisbg@kernel.org>,
+        Martin KaFai Lau <martin.lau@linux.dev>,
+        v9fs@lists.linux.dev, David Sterba <dsterba@suse.cz>,
+        linux-security-module@vger.kernel.org,
+        Jeffle Xu <jefflexu@linux.alibaba.com>,
+        Phillip Lougher <phillip@squashfs.org.uk>,
+        Johannes Berg <johannes@sipsolutions.net>,
+        Sungjong Seo <sj1557.seo@samsung.com>,
+        David Woodhouse <dwmw2@infradead.org>,
+        linux-karma-devel@lists.sourceforge.net,
+        linux-btrfs@vger.kernel.org, Joel Becker <jlbec@evilplan.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <autofs.vger.kernel.org>
 X-Mailing-List: autofs@vger.kernel.org
 
-On 29/9/23 18:00, Florian Weimer wrote:
-> From: Arjun Shankar <arjun@redhat.com>
+On Fri, Sep 29, 2023 at 3:06=E2=80=AFAM David Howells via samba-technical
+<samba-technical@lists.samba.org> wrote:
 >
-> This commit defines LDAP_DEPRECATED as 1 during a configure check for
-> ldap_parse_page_control.  This is in line with how lookup_ldap.c is
-> compiled at build time.  Also tweak the type of ct to avoid an
-> -Wint-conversion warning.
 >
-> The configure script is regenerated with autoconf 2.69.
+> Jeff Layton <jlayton@kernel.org> wrote:
 >
-> The regeneration of the configure script also includes changes due to
-> commit 69fda4f090e3.  That commit intended to run checks with implicit
-> function declaration warnings enabled in order to recognize missing
-> libldap functions.  However, the in-tree copy of the configure script
-> was not regenerated at that time.
+> > Correct. We'd lose some fidelity in currently stored timestamps, but as
+> > Linus and Ted pointed out, anything below ~100ns granularity is
+> > effectively just noise, as that's the floor overhead for calling into
+> > the kernel. It's hard to argue that any application needs that sort of
+> > timestamp resolution, at least with contemporary hardware.
 >
-> Signed-off-by: Arjun Shankar <arjun@redhat.com>
-> Signed-off-by: Florian Weimer <fweimer@redhat.com>
->
-> ---
-> Resubmitting because apparently this got never merged, also added
-> the -Wint-conversion fix.
+> Albeit with the danger of making Steve French very happy;-), would it mak=
+e
+> sense to switch internally to Microsoft-style 64-bit timestamps with thei=
+r
+> 100ns granularity?
 
-Umm, ok, I admit I don't remember this.
+100ns granularity does seem to make sense and IIRC was used by various
+DCE standards in the 90s and 2000s (not just used for SMB2/SMB3 protocol an=
+d
+various Windows filesystems)
 
 
-I'll have a look at it and include it in my next commit.
+--=20
+Thanks,
 
-I need to start working on a release, it's way overdue, so this should
-
-be generally available fairly soon.
-
-
-Ian
-
->
->   aclocal.m4 |  5 +++--
->   configure  | 11 +++++++++--
->   2 files changed, 12 insertions(+), 4 deletions(-)
->
-> diff --git a/aclocal.m4 b/aclocal.m4
-> index 33561aaeb9f5eaa4..1920672d37d25a27 100644
-> --- a/aclocal.m4
-> +++ b/aclocal.m4
-> @@ -368,9 +368,10 @@ af_check_ldap_parse_page_control_save_libs="$LIBS"
->   LIBS="$LIBS -lldap"
->   
->   AC_TRY_LINK(
-> -  [ #include <ldap.h> ],
-> +  [ #define LDAP_DEPRECATED 1
-> +    #include <ldap.h> ],
->     [ LDAP *ld;
-> -    ber_int_t ct;
-> +    ber_int_t *ct;
->       struct berval *c;
->       int ret;
->       LDAPControl **clp;
-> diff --git a/configure b/configure
-> index 394a8d55121c12ed..c84ef2a94d1df1b4 100755
-> --- a/configure
-> +++ b/configure
-> @@ -5407,6 +5407,8 @@ $as_echo_n "checking for ldap_create_page_control in -lldap... " >&6; }
->   # save current libs
->   af_check_ldap_create_page_control_save_libs="$LIBS"
->   LIBS="$LIBS -lldap"
-> +af_check_ldap_create_page_control_save_cflags="$CFLAGS"
-> +CFLAGS="$CFLAGS -Werror=implicit-function-declaration"
->   
->   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
->   /* end confdefs.h.  */
-> @@ -5443,6 +5445,7 @@ fi
->   
->   # restore libs
->   LIBS="$af_check_ldap_create_page_control_save_libs"
-> +CFLAGS="$af_check_ldap_create_page_control_save_cflags"
->   
->   	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ldap_parse_page_control in -lldap" >&5
->   $as_echo_n "checking for ldap_parse_page_control in -lldap... " >&6; }
-> @@ -5450,15 +5453,18 @@ $as_echo_n "checking for ldap_parse_page_control in -lldap... " >&6; }
->   # save current libs
->   af_check_ldap_parse_page_control_save_libs="$LIBS"
->   LIBS="$LIBS -lldap"
-> +af_check_ldap_parse_page_control_save_cflags="$CFLAGS"
-> +CFLAGS="$CFLAGS -Werror=implicit-function-declaration"
->   
->   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
->   /* end confdefs.h.  */
-> - #include <ldap.h>
-> + #define LDAP_DEPRECATED 1
-> +    #include <ldap.h>
->   int
->   main ()
->   {
->    LDAP *ld;
-> -    ber_int_t ct;
-> +    ber_int_t *ct;
->       struct berval *c;
->       int ret;
->       LDAPControl **clp;
-> @@ -5486,6 +5492,7 @@ fi
->   
->   # restore libs
->   LIBS="$af_check_ldap_parse_page_control_save_libs"
-> +CFLAGS="$af_check_ldap_parse_page_control_save_cflags"
->   
->   fi
->   
->
-> base-commit: ab70c4c070d8e21cd51df93f7a603788aa50dd5f
->
+Steve
