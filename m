@@ -2,109 +2,110 @@ Return-Path: <autofs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1C20CDB465
-	for <autofs@archiver.kernel.org>; Thu, 19 Oct 2023 15:28:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD5B7CDB474
+	for <autofs@archiver.kernel.org>; Fri, 20 Oct 2023 06:37:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345938AbjJSP2I (ORCPT <rfc822;autofs@archiver.kernel.org>);
-        Thu, 19 Oct 2023 11:28:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36692 "EHLO
+        id S230320AbjJTGhE (ORCPT <rfc822;autofs@archiver.kernel.org>);
+        Fri, 20 Oct 2023 02:37:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32784 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345550AbjJSP2H (ORCPT
-        <rfc822;autofs@vger.kernel.org>); Thu, 19 Oct 2023 11:28:07 -0400
-Received: from mail-ua1-x929.google.com (mail-ua1-x929.google.com [IPv6:2607:f8b0:4864:20::929])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D88A512A
-        for <autofs@vger.kernel.org>; Thu, 19 Oct 2023 08:28:05 -0700 (PDT)
-Received: by mail-ua1-x929.google.com with SMTP id a1e0cc1a2514c-7b625ed7208so3404272241.1
-        for <autofs@vger.kernel.org>; Thu, 19 Oct 2023 08:28:05 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1697729285; x=1698334085; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:mime-version:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=ePdjmTFlmWfaU2E17cd2rM20Zga7y8maCxRmtdGFBCc=;
-        b=Zg4/aLh6AhTSDdo7KIdqEZgb4FAOnWiw4lafqI37kOB7W3Pl5eu4zSI4jMu1MXIVj0
-         tBzG0LMB6tbXmSjcKkTSRf/ZxqBYxDJDUNDuZZB09T6HfA9x3Ooy7SGehpamTE9rtuJ7
-         cGSsgZ7Nd+N1vntrIEKyFBn3nBSg6f8urI/5AEIbbnQ6Hr7a7vsIpD7GSjEoLU7x+xai
-         P8GdgWo8oeIe2Z70ALxZcmQAoyTVrwqMW2VFHvDDejG2M3rQaYDBZSMYFmtO3+9e/7SY
-         MO1YDKKbUWQ+SkTjUsojbIwpBr4Refge4Rt+efkrdvrWCSHOlf9bA1pWsyeu1cmMf2bn
-         p2kQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1697729285; x=1698334085;
-        h=cc:to:subject:message-id:date:from:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=ePdjmTFlmWfaU2E17cd2rM20Zga7y8maCxRmtdGFBCc=;
-        b=d0qeqTelqQZ0acIBtyJtiek5OIiiSs7ISFIZIRHV5V2T0AZurrepddEw/6Z2NuzsYh
-         0IngNppWTzF5sit2Kmt+/20zORxUHuCY8kWzVDE0gYtxNRARwFJuIlNIrtgBMgCXGzzA
-         CLsZvB5oXF+4Hp1fPCR5s9dOA2V1HNMwNhVwmOBaIngL6PnrC1jTWx7KWQLJdGF8Pt/R
-         HrDJ+14zFbE97Qwx/jOk1uGFgo00n2aiODFa0pkGI3X2dxKZjTlbpqiQpUXzx50OenI3
-         qvY5jnTvMxlrAZiuKcrB9eXmtDwcGQ3C+bagooo+op3v9zKZimjUAna8UqxVTDEkbZuS
-         LiCg==
-X-Gm-Message-State: AOJu0YzBY0jIT1Ax/LqXDnh3jXCb5tDnPhm2gCezrqygCpO5RQm1b5zT
-        EoqVajF0Fy/s/odUcLzQBaos0A/RXp6zH1tyrYuSmQ==
-X-Google-Smtp-Source: AGHT+IFRtisHRQ8llbCtMKcbt98E2rge5LFbQnavaVa23CCczzG4eiu/FxAW29PkAGxdTosFN9IPxLiigCvq1crVf+A=
-X-Received: by 2002:a05:6102:1009:b0:457:ce8f:ded8 with SMTP id
- q9-20020a056102100900b00457ce8fded8mr2492151vsp.3.1697729284825; Thu, 19 Oct
- 2023 08:28:04 -0700 (PDT)
+        with ESMTP id S229558AbjJTGhC (ORCPT
+        <rfc822;autofs@vger.kernel.org>); Fri, 20 Oct 2023 02:37:02 -0400
+Received: from out1-smtp.messagingengine.com (out1-smtp.messagingengine.com [66.111.4.25])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06393A3;
+        Thu, 19 Oct 2023 23:37:01 -0700 (PDT)
+Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
+        by mailout.nyi.internal (Postfix) with ESMTP id 7401E5C0BD9;
+        Fri, 20 Oct 2023 02:37:00 -0400 (EDT)
+Received: from imap51 ([10.202.2.101])
+  by compute5.internal (MEProxy); Fri, 20 Oct 2023 02:37:00 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
+        :cc:content-type:content-type:date:date:from:from:in-reply-to
+        :in-reply-to:message-id:mime-version:references:reply-to:sender
+        :subject:subject:to:to; s=fm2; t=1697783820; x=1697870220; bh=xA
+        WhvJyTwIlMRjiPKv8rd0f6EZnz1syx0+2giec34Ls=; b=JGJvSwBi2KS9Z09BYB
+        fJVxONUbLX7Z4H3etKXqaHoHj29lkP8DiHI93taxql0ZYLHdCII2C4SaljI1Yina
+        6OZ5tpfbD/7lV+0Z8R4IQjaP4DzQWIawi0uHZnHDPzWFesrBuvQjK07LBGg21RHC
+        WiK/90slio8eFBjDUV9QojelCKfXay1MhzWZT/NYNi0VHPuWGHfY5R18GmbLxTVd
+        BnETZX/MRMdl1DEMk8t5AG9u1n0tI3NEYe95zi9FIDERy7r/xPUP2OFnI5a04czq
+        wRrM2fHfVIU0h5wa3bs9EG2FbbC98wDTTyRPsWSd3YmKAwKv7CAShUgYPhEjZdDp
+        lKRg==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:cc:content-type:content-type:date:date
+        :feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+        :message-id:mime-version:references:reply-to:sender:subject
+        :subject:to:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
+        :x-sasl-enc; s=fm3; t=1697783820; x=1697870220; bh=xAWhvJyTwIlMR
+        jiPKv8rd0f6EZnz1syx0+2giec34Ls=; b=LC0wQbnyB2iq8ETSI9WRrIMX/Bkjk
+        YAEsisbyPxiLLZOPcp4qoUaQ4jwWmTJaTWhakoWIjCsjMleEHOzED5av8hgAM0Gc
+        XE6enpluUOKV19cdZ0QBMlUxhQbl7a+iiSo8UmB5536NN5+N4Kb8ESUzqQv7nnQs
+        /JDATVM3sgDxyGD1QEOyj+R1pKxF/HTVNnv2tAW/HM53gik6Qx9aYOaIXpamycqa
+        FvUKbjvJfFZDIlW6OzMGjiL3C40vu+WN39SC0PLJcVomwrxUv4HO71Of6QKQOnsx
+        aV9JaoM0d5HifHMQnwjPXj3mGHZNqdnjpPaYFLFqIcbS5OxFaYO7je5Dw==
+X-ME-Sender: <xms:DCAyZV74mP2H0aDjEcE-9ZyXUl743ig-YDnrN8LHDelVz6r5cA-Ixw>
+    <xme:DCAyZS5Q5Csfw8kYT6u7jduf4n7UKf3G1vv_xOHVqKwk9q25x7rCFlniSflKOb326
+    PQhFFmYFmS0fPlRWao>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvkedrjeejgddutdejucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
+    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
+    cujfgurhepofgfggfkjghffffhvfevufgtsehttdertderredtnecuhfhrohhmpedftehr
+    nhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrth
+    htvghrnhepffehueegteeihfegtefhjefgtdeugfegjeelheejueethfefgeeghfektdek
+    teffnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprg
+    hrnhgusegrrhhnuggsrdguvg
+X-ME-Proxy: <xmx:DCAyZcfPB5YpCJZZu3BmSFLjpUPcSiJpbSlSB1SgdrCnI2UUnlJSPA>
+    <xmx:DCAyZeKtV0j3GkVcdTE2wRWGHeDdoUDIyTtGoaOPKsNK9vD5_zhykw>
+    <xmx:DCAyZZLZKRi4pqukADcJxP7eHgSQyR-Pif-4KnYvK58RMeUArIAbfA>
+    <xmx:DCAyZepB2nT6S-keWgBFCWivTkyLef3Pm9zg8qU0_p91whZnnoneEg>
+Feedback-ID: i56a14606:Fastmail
+Received: by mailuser.nyi.internal (Postfix, from userid 501)
+        id 237B7B60089; Fri, 20 Oct 2023 02:37:00 -0400 (EDT)
+X-Mailer: MessagingEngine.com Webmail Interface
+User-Agent: Cyrus-JMAP/3.9.0-alpha0-1048-g9229b632c5-fm-20231019.001-g9229b632
 MIME-Version: 1.0
-From:   Naresh Kamboju <naresh.kamboju@linaro.org>
-Date:   Thu, 19 Oct 2023 20:57:53 +0530
-Message-ID: <CA+G9fYt75r4i39DuB4E3y6jRLaLoSEHGbBcJy=AQZBQ2SmBbiQ@mail.gmail.com>
-Subject: re: autofs: add autofs_parse_fd()
-To:     open list <linux-kernel@vger.kernel.org>,
+Message-Id: <71adfca4-4e80-4a93-b480-3031e26db409@app.fastmail.com>
+In-Reply-To: <CA+G9fYt75r4i39DuB4E3y6jRLaLoSEHGbBcJy=AQZBQ2SmBbiQ@mail.gmail.com>
+References: <CA+G9fYt75r4i39DuB4E3y6jRLaLoSEHGbBcJy=AQZBQ2SmBbiQ@mail.gmail.com>
+Date:   Fri, 20 Oct 2023 08:36:39 +0200
+From:   "Arnd Bergmann" <arnd@arndb.de>
+To:     "Naresh Kamboju" <naresh.kamboju@linaro.org>,
+        "open list" <linux-kernel@vger.kernel.org>,
         lkft-triage@lists.linaro.org, linux-fsdevel@vger.kernel.org,
         autofs@vger.kernel.org
-Cc:     Ian Kent <raven@themaw.net>,
+Cc:     "Ian Kent" <raven@themaw.net>,
         "Bill O'Donnell" <bodonnel@redhat.com>,
-        Christian Brauner <brauner@kernel.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Dan Carpenter <dan.carpenter@linaro.org>,
-        Anders Roxell <anders.roxell@linaro.org>
-Content-Type: text/plain; charset="UTF-8"
+        "Christian Brauner" <brauner@kernel.org>,
+        "Dan Carpenter" <dan.carpenter@linaro.org>,
+        "Anders Roxell" <anders.roxell@linaro.org>
+Subject: Re: autofs: add autofs_parse_fd()
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <autofs.vger.kernel.org>
 X-Mailing-List: autofs@vger.kernel.org
 
-The qemu-x86_64 and x86_64 booting with 64bit kernel and 32bit rootfs we call
-it as compat mode boot testing. Recently it started to failed to get login
-prompt.
+On Thu, Oct 19, 2023, at 17:27, Naresh Kamboju wrote:
+> The qemu-x86_64 and x86_64 booting with 64bit kernel and 32bit rootfs we call
+> it as compat mode boot testing. Recently it started to failed to get login
+> prompt.
+>
+> We have not seen any kernel crash logs.
+>
+> Anders, bisection is pointing to first bad commit,
+> 546694b8f658 autofs: add autofs_parse_fd()
+>
+> Reported-by: Linux Kernel Functional Testing <lkft@linaro.org>
+> Reported-by: Anders Roxell <anders.roxell@linaro.org>
 
-We have not seen any kernel crash logs.
+I tried to find something in that commit that would be different
+in compat mode, but don't see anything at all -- this appears
+to be just a simple refactoring of the code, unlike the commits
+that immediately follow it and that do change the mount
+interface.
 
-Anders, bisection is pointing to first bad commit,
-546694b8f658 autofs: add autofs_parse_fd()
+Unfortunately this makes it impossible to just revert the commit
+on top of linux-next. Can you double-check your bisection by
+testing 546694b8f658 and the commit before it again?
 
-Reported-by: Linux Kernel Functional Testing <lkft@linaro.org>
-Reported-by: Anders Roxell <anders.roxell@linaro.org>
+What are the exact mount options you pass to autofs in your fstab?
 
-steps to reproduce:
-----------------
-# To install tuxrun to your home directory at ~/.local/bin:
-# pip3 install -U --user tuxrun==0.49.2
-#
-# Or install a deb/rpm depending on the running distribution
-# See https://tuxmake.org/install-deb/ or
-# https://tuxmake.org/install-rpm/
-#
-# See https://tuxrun.org/ for complete documentation.
-#
-
-tuxrun --runtime podman --device qemu-x86_64 --boot-args rw --kernel
-https://storage.tuxsuite.com/public/linaro/lkft/builds/2WyQyyM0OvXnnbI0d84HL0v1J56/bzImage
---modules https://storage.tuxsuite.com/public/linaro/lkft/builds/2WyQyyM0OvXnnbI0d84HL0v1J56/modules.tar.xz
---rootfs https://storage.tuxboot.com/debian/bookworm/i386/rootfs.ext4.xz
---parameters SKIPFILE=skipfile-lkft.yaml --parameters SHARD_NUMBER=10
---parameters SHARD_INDEX=3 --image
-docker.io/linaro/tuxrun-dispatcher:v0.49.2 --tests ltp-cve --timeouts
-boot=15 --overlay
-https://storage.tuxboot.com/overlays/debian/bookworm/i386/ltp/20230929/ltp.tar.xz
-
-
-Please find related links to test and results comparison.
-
-Links:
- - https://qa-reports.linaro.org/lkft/linux-next-master/build/next-20231019/testrun/20695093/suite/boot/test/gcc-13-lkftconfig-compat/history/?page=1
- - https://qa-reports.linaro.org/lkft/linux-next-master/build/next-20230926/testrun/20125035/suite/boot/test/gcc-13-lkftconfig-compat/details/
- - https://tuxapi.tuxsuite.com/v1/groups/linaro/projects/lkft/tests/2WyR2MGbyTalC8rGugHIZXPMldC/reproducer
- - https://tuxapi.tuxsuite.com/v1/groups/linaro/projects/lkft/tests/2WyR2MGbyTalC8rGugHIZXPMldC
---
-Linaro LKFT
-https://lkft.linaro.org
+    Arnd
