@@ -1,81 +1,74 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from lindbergh.monkeyblade.net (lindbergh.monkeyblade.net [23.128.96.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F5081FDF;
-	Tue, 24 Oct 2023 09:05:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3645615AF2
+	for <autofs@vger.kernel.org>; Mon,  6 Nov 2023 17:05:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MGA4ESXh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF8BCC433C8;
-	Tue, 24 Oct 2023 09:05:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1698138343;
-	bh=59hvrldRJ6uHH8sM4+zj+t2v8z3bBouCHY3CG9BajyU=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=MGA4ESXhY0f2OKr4KInojAvuScuCjl6gw45D8810SB2NH1jT9Qkw2Fwh/77nYuDLm
-	 WU/1Rhdxr1BvFskdbItp3xC5s6cgPLw/NT3evNHurwJUU5M9/tfCLWyEgV/9H6CIL7
-	 TMMJOvJu/RDOG6ijDVUzPtUluBMs+OhpvNTzwRj3fz00rguNZ9arGfMB1njOu06jSI
-	 4RVpXmoPLasREjRm3E+7wI2yzjK7367voCx5QTP6sMpAz9czVeZstHqriVgHLFlt4y
-	 9lRiqs+t40TnJdB/wcohgUeoKMcsV2Iop/lmRxBAi85icypa8bB3NsSRry6JLg2wBP
-	 VDos+C0gyn9ig==
-From: Christian Brauner <brauner@kernel.org>
-To: Ian Kent <raven@themaw.net>
-Cc: Christian Brauner <brauner@kernel.org>,
-	Naresh Kamboju <naresh.kamboju@linaro.org>,
-	Bill O'Donnell <bodonnel@redhat.com>,
-	Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	autofs mailing list <autofs@vger.kernel.org>,
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-	lkft-triage@lists.linaro.org,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	Linux Kernel Functional Testing <lkft@linaro.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Anders Roxell <anders.roxell@linaro.org>,
-	Dan Carpenter <dan.carpenter@linaro.org>
-Subject: Re: [PATCH] autofs: fix add autofs_parse_fd()
-Date: Tue, 24 Oct 2023 11:05:30 +0200
-Message-Id: <20231024-vorarbeit-unmittelbar-009365985901@brauner>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20231023093359.64265-1-raven@themaw.net>
-References: <20231023093359.64265-1-raven@themaw.net>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="l/G4RiNB"
+Received: from mail-ej1-x62b.google.com (mail-ej1-x62b.google.com [IPv6:2a00:1450:4864:20::62b])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DEB9ED45
+	for <autofs@vger.kernel.org>; Mon,  6 Nov 2023 09:05:54 -0800 (PST)
+Received: by mail-ej1-x62b.google.com with SMTP id a640c23a62f3a-9db6cf8309cso676953266b.0
+        for <autofs@vger.kernel.org>; Mon, 06 Nov 2023 09:05:54 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1699290353; x=1699895153; darn=vger.kernel.org;
+        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=blbZ40FgCk5BFlMJfglC/r9zWAKtXuG5aisFMqikZIs=;
+        b=l/G4RiNBxHP+TmVxymITFknV0rlwEYNaDAJCMKmWNQ1+Z69PCIHoiGZem8/U/2u1Tv
+         A+3z7NHpA2gtbW0dzHO42je5b29R6J+Wq29qD9A9iidYi/heAXW1BKBjZq81xbu5m5ma
+         dA9qCYgHuG3Gf7jQKypetTeQvnqubXLKM1Mzpru1A6Z17exEOfuPPGjRGwsfbw+Xr6xM
+         eF+cs+c/SR8xbY5FQ+FG0G1DiaY6Xv8alInwnjokt9iWA0Lo6sOOonJGUQg/F76ksOBu
+         xG2JWY1yzyHqo511K8APNdkiCAIN3grVW9hJ1Y369pL463lvs9geQeD+S/wAG3GQIl2T
+         M+Jw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1699290353; x=1699895153;
+        h=to:subject:message-id:date:from:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=blbZ40FgCk5BFlMJfglC/r9zWAKtXuG5aisFMqikZIs=;
+        b=J8jQE1RNELJZB7ZQD/M/2kL2XAm7TRklXcmhHM7XIEB6oa7wKN6o58bS5A1rK4Nx+k
+         SZce2343eh2Gd1Vp9J2SZ7pU9KDLxRP8E7K/fGb5Z/h1Bsgw1EcXuH5rr5eRJyT/St3b
+         /orQheBopg4A4MsOgPbxl7wfxr/nKn4bKTLwL2rxLvmoFxGgGaoAq6HiYreWWfLjADOS
+         z8h80roGu/drWPEvW0Vk4MnffQDMiwQaWAN651dGPRP9fqp4D22+3jNHsBIVUUZFP6EZ
+         h6zADn/4K3oTzMQzHfnLaSZNINvs8Yv8jEZgenurcjvm52/xNbDYegUxScNAGcLxJJ4j
+         D7bw==
+X-Gm-Message-State: AOJu0YyENfD8UmxzhF1UR3GMMurp3ShY7M4ou8UdoqBJxFD8clSqccxV
+	FQNMvr22FkxpabgRTw9m2AuOxTb038x9j+dpRsg2TQ7DQsA=
+X-Google-Smtp-Source: AGHT+IEuiK3DA4rNGqKKvsE/4Ss26QjYuw5K1f3i+k8toGPi2EfxdvV+vjTV3/hFe9Dv6Z7y1Bh/qwZ0wZAk/PI5ek0=
+X-Received: by 2002:a17:907:6ea2:b0:9a5:846d:d823 with SMTP id
+ sh34-20020a1709076ea200b009a5846dd823mr15648609ejc.45.1699290353209; Mon, 06
+ Nov 2023 09:05:53 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 List-Subscribe: <mailto:autofs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1107; i=brauner@kernel.org; h=from:subject:message-id; bh=aN5/eaaNILz6XykqLa8odZYq/sxBDsVAL1pYfRRqBBo=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMaSad+wXlSgyEkhNUlzaGalaaiWs94KfLf3doztHQo59nPL6 TfmUjlIWBjEuBlkxRRaHdpNwueU8FZuNMjVg5rAygQxh4OIUgInoZjP8D97ucS50F9fss3Mm+Si2qr JcP2F7feGBixtsgqZbqu72PM7wP/3PhByWVMfnBh8f/6v/8MZEN6uyY1Pxpf/VhzMONj1iZAQA
-X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
-Content-Transfer-Encoding: 8bit
+From: Robert Vasek <rvasek01@gmail.com>
+Date: Mon, 6 Nov 2023 18:05:41 +0100
+Message-ID: <CADVsYmhjjKYUCHGWmzeTHXuQNAiR6ELbGzyy+m30ar+yaYLBzQ@mail.gmail.com>
+Subject: Skip autofs unmount on daemon exit
+To: autofs@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-On Mon, 23 Oct 2023 17:33:59 +0800, Ian Kent wrote:
-> We are seeing systemd hang on its autofs direct mount at
-> /proc/sys/fs/binfmt_misc.
-> 
-> Historically this was due to a mismatch in the communication structure
-> size between a 64 bit kernel and a 32 bit user space and was fixed by
-> making the pipe communication record oriented.
-> 
-> [...]
+Dear autofs community,
 
-Thanks for the fix!
+We run an instance of the automount daemon inside a container (a part
+of a storage plugin in Kubernetes). The autofs mount root is shared
+between different containers, and must survive restarting the daemon.
 
----
+The problem is that when the daemon exits, it tries to clean up all
+its mounts -- including the autofs root, so there is nothing to
+reconnect to. At the moment, we're getting around the issue by sending
+it a SIGKILL upon the daemon container exit, which skips the mount
+cleanup, leaving it available for reconnect when the container comes
+back.
 
-Applied to the vfs.autofs branch of the vfs/vfs.git tree.
-Patches in the vfs.autofs branch should appear in linux-next soon.
+While this works nicely for the moment, we don't want to rely on some
+random signal which may be handled differently in the future, and I
+didn't see anything in the options that would explicitly skip mount
+clean up at exit. Would you accept a patch that adds a dedicated
+command line flag for this?
 
-Please report any outstanding bugs that were missed during review in a
-new review to the original patch series allowing us to drop it.
-
-It's encouraged to provide Acked-bys and Reviewed-bys even though the
-patch has now been applied. If possible patch trailers will be updated.
-
-Note that commit hashes shown below are subject to change due to rebase,
-trailer updates or similar. If in doubt, please check the listed branch.
-
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
-branch: vfs.autofs
-
-[1/1] autofs: fix add autofs_parse_fd()
-      https://git.kernel.org/vfs/vfs/c/d3c50061765d
+Cheers,
+Robert Vasek
