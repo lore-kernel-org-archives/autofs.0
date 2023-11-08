@@ -1,211 +1,188 @@
 Received: from lindbergh.monkeyblade.net (lindbergh.monkeyblade.net [23.128.96.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B50A8F40
-	for <autofs@vger.kernel.org>; Tue,  7 Nov 2023 04:17:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D501FD51D
+	for <autofs@vger.kernel.org>; Wed,  8 Nov 2023 16:29:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="N5ZYgr1R"
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C57BED
-	for <autofs@vger.kernel.org>; Mon,  6 Nov 2023 20:17:33 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1699330652;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=OEClqip8Hd/4yw5LjGu4+pn6BbKEnTze4Tcl/EjSE1A=;
-	b=N5ZYgr1RvD6+nk1TW9ABuB04fhS9qIlKFr9z3+AX7FTuGyDTxFam4DTiRYJEyQYnLJRjcI
-	5Ed8WyojgKLAGHRX9r6oBsdVBX71GIN7obx361JkmomCqRdiYqrmlEc7HEWaztYVIr1PE2
-	HciBTfvMDqpLfyepLAPbmmQlR/LEVF8=
-Received: from mail-pj1-f70.google.com (mail-pj1-f70.google.com
- [209.85.216.70]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-1-7nIUO3X3NseDTuRK86SYOA-1; Mon, 06 Nov 2023 23:17:29 -0500
-X-MC-Unique: 7nIUO3X3NseDTuRK86SYOA-1
-Received: by mail-pj1-f70.google.com with SMTP id 98e67ed59e1d1-27ff8065e61so4515247a91.1
-        for <autofs@vger.kernel.org>; Mon, 06 Nov 2023 20:17:29 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jeQfD1kP"
+Received: from mail-ej1-x62c.google.com (mail-ej1-x62c.google.com [IPv6:2a00:1450:4864:20::62c])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E4DE131
+	for <autofs@vger.kernel.org>; Wed,  8 Nov 2023 08:29:31 -0800 (PST)
+Received: by mail-ej1-x62c.google.com with SMTP id a640c23a62f3a-9df8d0c556eso591369766b.2
+        for <autofs@vger.kernel.org>; Wed, 08 Nov 2023 08:29:31 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1699460969; x=1700065769; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=/JznNn1VUPyffRbTPFM8pEbsrutBVuwljz1cicHLr4U=;
+        b=jeQfD1kPT7T+G6nrljR8UEp3AL9iNSFBRFHy4HtMd9nvJK6G6nYelcQUdpvF33/cf0
+         F1j2lhoaP4++zkjKIj9eli5+6bMS14Quhpn3HR3PC/iqjYbH2tzvncyfzDAORHRicaoX
+         5JjJ958MsKcGU0OWYUjCYi64pqDtvGLDvuJxAoXYRvnQE2HftEb7wBkZK7SwnYzMp3bk
+         PFDEczpWw/R+JpzOtdrMy+C09u3bbPx163o/4Vewh1L47CzmK2jMs/XYOGaAbCsNRxV+
+         HXGllCcG4nTHmwsA0kToKrJPKo3jWLOnkuzpaAmKQgZ4tM3aR+BlPNdyEr3Qd0uDlLza
+         Wbjw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1699330648; x=1699935448;
-        h=content-transfer-encoding:subject:from:cc:to:content-language
-         :user-agent:mime-version:date:message-id:x-gm-message-state:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=OEClqip8Hd/4yw5LjGu4+pn6BbKEnTze4Tcl/EjSE1A=;
-        b=pbhDU8pX9acaSkqnrXAl5n2luTjplmIbeUkFUg8bOJwB9kiZ0jS3XlgjmBLfHWSkw1
-         mwbCU+BA3lFY/hxbkGfLP/GVrInG70X3ZIekMlCqHD5vyuUhybhxkbJFF4v9O8+JDMHD
-         dFOvgz+CBttRyAHjnPZWjWVTwOgR3JWqtPQ3+u5b0zh+Wr4zvQVDMmy/ONE+PMvn5qbQ
-         h8jMKasLUEtULLDs1wA8Ij6Irh7TCTuog1VkQo1EYY5/py1A2MpCv1pSzGFsVQLASSvq
-         jVBlJYcdMZSv/AamTsveDPdfNemQr4vMLGxBWsOZcMVCGaCp9jWlUgNCzarBKQEM/Ynp
-         ln3A==
-X-Gm-Message-State: AOJu0Yw8+dv6vlSIJcGgmYLPngZoJ5SawuvFpaENlaWlWbiQI2dNDvNH
-	La+nJ9HQv28TPi1HOLX0zsh5/aprEhnHUoyJfZzI2qKOqRVVn4nqJGBfNFPB1EkxWcFlFIq8/e1
-	VSlTWGGhU6zBo3bingBVdWof/AXqW7UBGewHLFU2nEGIdBl1lP/exAJ7eUs05riVrhfa8iOlS
-X-Received: by 2002:a17:902:da87:b0:1cc:548d:4252 with SMTP id j7-20020a170902da8700b001cc548d4252mr27501634plx.57.1699330648036;
-        Mon, 06 Nov 2023 20:17:28 -0800 (PST)
-X-Google-Smtp-Source: AGHT+IH/bDSpYLFMGA8/IP0/ZDBgoerLMJpNRCRJpSAHrDXrDr7fFUbf3eUOwgyPRyBg+Ru2wXoVVg==
-X-Received: by 2002:a17:902:da87:b0:1cc:548d:4252 with SMTP id j7-20020a170902da8700b001cc548d4252mr27501620plx.57.1699330647618;
-        Mon, 06 Nov 2023 20:17:27 -0800 (PST)
-Received: from [192.168.68.219] (159-196-82-144.9fc452.per.static.aussiebb.net. [159.196.82.144])
-        by smtp.gmail.com with ESMTPSA id h4-20020a170902f54400b001c898328289sm6636558plf.158.2023.11.06.20.17.25
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 06 Nov 2023 20:17:27 -0800 (PST)
-Message-ID: <26101f57-e5b3-e07b-c67f-259ab820cb0d@redhat.com>
-Date: Tue, 7 Nov 2023 12:17:22 +0800
+        d=1e100.net; s=20230601; t=1699460969; x=1700065769;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=/JznNn1VUPyffRbTPFM8pEbsrutBVuwljz1cicHLr4U=;
+        b=DfkHop2/dUf6qbcBfj5Pv3ypmz2WStbQXpsMrAN6b6aU7iU0XZF/TnmKBybzdXQIka
+         OCnyf1RBfqnpC3fXHvkoRTN/h7f7sUECTHGTnWraTPNOU0E4J6RnCV8zKamvGI0G+0sS
+         isD6k8aRpadUnStIlrjKDmEKmIFwUlPu+BcUgE78wN9ISuRaSJNJ4fOS3NpR+wvMK/d+
+         7irBd1ytcYAiouq4BVDjyoxJFx8FvKFVMu8N24jhDgh/y/GSB5CmHh2gd5CCtm08Qr+L
+         ao2xdxrm5iwhczkFp4pLUxXPm/1UEN+YuHimb6q+nlqopd0PFh5IygU4JvgbTRz2yn6H
+         kb2Q==
+X-Gm-Message-State: AOJu0YwlNvQj3UOONP4DFWevPc/NOrFH6jU1W6GZLAFJpge8XHrgxOsu
+	6HOymOJf+LuFA//fFu/3Og2+U0SJkST1FoXxNiDEMHtoRzG+ew==
+X-Google-Smtp-Source: AGHT+IFyvKUYIWBvoBhtnEhJOPTMlZxjn+XkljBsemiEFC5a2aSssRxngxxLgXVWYfmCDZ8c3BbYP0Sq7mktqLgOG2Y=
+X-Received: by 2002:a17:907:2ce2:b0:9e2:d087:86de with SMTP id
+ hz2-20020a1709072ce200b009e2d08786demr1703729ejc.42.1699460969289; Wed, 08
+ Nov 2023 08:29:29 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 List-Subscribe: <mailto:autofs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.15.1
-Content-Language: en-US
-To: autofs mailing list <autofs@vger.kernel.org>
-Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>,
- Kernel Mailing List <linux-kernel@vger.kernel.org>
-From: Ian Kent <ikent@redhat.com>
-Subject: [ANNOUNCE] autofs 5.1.9 release
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+References: <CADVsYmhjjKYUCHGWmzeTHXuQNAiR6ELbGzyy+m30ar+yaYLBzQ@mail.gmail.com>
+ <aeb5af36-4686-9d69-22fd-89adf5fd2c80@themaw.net>
+In-Reply-To: <aeb5af36-4686-9d69-22fd-89adf5fd2c80@themaw.net>
+From: Robert Vasek <rvasek01@gmail.com>
+Date: Wed, 8 Nov 2023 17:29:17 +0100
+Message-ID: <CADVsYmiTK0UtkkxZfMqMEniVNMd7f=vJ8tm-TmDNXkYhkh-hBQ@mail.gmail.com>
+Subject: Re: Skip autofs unmount on daemon exit
+To: Ian Kent <raven@themaw.net>
+Cc: autofs@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi all,
+Hi Ian,
 
-A release is long overdue so here it is, autofs-5.1.9.
+> That sounds unusual, please tell me more about how this works?
 
-There are quite a lot of changes in the release but they are mostly
-bug fixes arising from a number significant improvements done over
-the last several releases.
+Essentially, you have two roles for containers:
+* mount provider: mounts a volume in a path; provided by a storage vendor
+* consumer: makes use of the mounted volume; user application
 
-Some general performance overheads have crept in over quite a while
-and work has been done to improve on it but once the obvious is done
-it gets much harder to improve, so that's ongoing as time permits.
+There are also two directories on the host:
+* /staging: publisher mounts the volume once into /staging/{volume_id}
+* /publish: the mounts from /staging/{volume_id} are bind-mounted into
+/publish/{consumer_id}/{volume_id}
 
-autofs
-======
+The provider container(s) gets access to /staging and /publish as a
+shared bind-mount, while the consumer gets access only to its own
+/publish/{consumer_id} as a slave bind-mount. This is it as far as how
+things are connected together. Here's a bit more concrete example:
+* the provider we're developing has the map definitions, runs the
+automount daemon and exposes an indirect map mount in /staging/x
+* when a new consumer is scheduled on the node, the provider receives
+a request to expose volume x for container y, and so it runs `mkdir
+/publish/y/x && mount --rbind --make-slave /staging/x /publish/y/x`,
+* the container runtime then makes sure /publish/y/x is exposed to the
+consumer container.
 
-The package can be found at:
-https://www.kernel.org/pub/linux/daemons/autofs/v5/
+All this is of course a bit simplified, but should be enough to
+illustrate the setup. automount's reconnect feature here is critical,
+as the provider may be restarted (due crash or upgrade, etc.). If
+there are any more questions about this, I'm happy to give more
+details!
 
-It is autofs-5.1.9.tar.[gz|xz]
+> By all means, send it over.
 
-No source rpm is there as it can be produced by using:
+Cool, I should have something ready in the coming days, thanks!
 
-rpmbuild -ts autofs-5.1.9.tar.gz
+PS: more details on how this works can be found here (in general,
+unrelated to autofs):
+* https://github.com/kubernetes/design-proposals-archive/blob/main/storage/=
+container-storage-interface.md
+* https://github.com/container-storage-interface/spec/blob/master/spec.md
 
-and the binary rpm by using:
+Cheers,
+Robert
 
-rpmbuild -tb autofs-5.1.9.tar.gz
+ut 7. 11. 2023 o 3:15 Ian Kent <raven@themaw.net> nap=C3=ADsal(a):
 
-Here are the entries from the CHANGELOG which outline the updates:
-
-- fix kernel mount status notification.
-- fix fedfs build flags.
-- fix set open file limit.
-- improve descriptor open error reporting.
-- fix root offset error handling.
-- fix fix root offset error handling.
-- fix nonstrict fail handling of last offset mount.
-- dont fail on duplicate offset entry tree add.
-- fix loop under run in cache_get_offset_parent().
-- bailout on rpc systemerror.
-- fix nfsv4 only mounts should not use rpcbind.
-- simplify cache_add() a little.
-- fix use after free in tree_mapent_delete_offset_tree().
-- fix memory leak in xdr_exports().
-- avoid calling pthread_getspecific() with NULL key_thread_attempt_id.
-- fix sysconf(3) return handling.
-- remove nonstrict parameter from tree_mapent_umount_offsets().
-- fix handling of incorrect return from umount_ent().
-- dont use initgroups() at spawn.
-- fix bashism in configure.
-- musl: fix missing include in hash.h.
-- musl: define fallback dummy NSS config path
-- musl: avoid internal stat.h definitions.
-- musl: add missing include to hash.h for _WORDSIZE.
-- musl: add missing include to log.h for pid_t.
-- musl: define _SWORD_TYPE.
-- add autofs_strerror_r() helper for musl.
-- update configure.
-- handle innetgr() not present in musl.
-- fix missing unlock in sasl_do_kinit_ext_cc().
-- fix a couple of null cache locking problems.
-- restore gcc flags after autoconf Kerberos 5 check.
-- prepare for OpenLDAP SASL binding.
-- let OpenLDAP handle SASL binding.
-- configure: LDAP function checks ignore implicit declarations.
-- improve debug logging of LDAP binds.
-- improve debug logging of SASL binds.
-- internal SASL logging only in debug log mode.
-- more comprehensive verbose logging for LDAP maps.
-- fix invalid tsv access.
-- support SCRAM for SASL binding.
-- ldap_sasl_interactive_bind() needs credentials for auto-detection.
-- fix autofs regression due to positive_timeout.
-- fix parse module instance mutex naming.
-- serialise lookup module open and reinit.
-- coverity fix for invalid access.
-- fix hosts map deadlock on restart.
-- fix deadlock with hosts map reload.
-- fix memory leak in update_hosts_mounts().
-- fix minus only option handling in concat_options().
-- fix incorrect path for is_mounted() in try_remount().
-- fix additional tsv invalid access.
-- fix use_ignore_mount_option description.
-- include addtional log info for mounts.
-- fail on empty replicated host name.
-- improve handling of ENOENT in sss setautomntent().
-- don't immediately call function when waiting.
-- define LDAP_DEPRECATED during LDAP configure check.
-- fix return status of mount_autofs().
-- don't close lookup at umount.
-- fix deadlock in lookups.
-- dont delay expire.
-- make amd mapent search function name clear.
-- rename statemachine() to signal_handler().
-- make signal handling consistent.
-- eliminate last remaining state_pipe usage.
-- add function master_find_mapent_by_devid().
-- use device id to locate autofs_point when setting log priotity.
-- add command pipe handling functions.
-- switch to application wide command pipe.
-- get rid of unused field submnt_count.
-- fix mount tree startup reconnect.
-- fix unterminated read in handle_cmd_pipe_fifo_message().
-- fix memory leak in sasl_do_kinit()
-- fix fix mount tree startup reconnect.
-- fix amd selector function matching.
-- get rid entry thid field.
-- continue expire immediately after submount check.
-- eliminate realpath from mount of submount.
-- eliminate root param from autofs mount and umount.
-- remove redundant fstat from do_mount_direct().
-- get rid of strlen call in handle_packet_missing_direct().
-- remove redundant stat call in lookup_ghost().
-- set mapent dev and ino before adding to index.
-- change to use printf functions in amd parser.
-- dont call umount_subtree_mounts() on parent at umount.
-- dont take parent source lock at mount shutdown.
-- fix possible use after free in handle_mounts_exit().
-- make submount cleanup the same as top level mounts.
-- add soucre parameter to module functions.
-- add ioctlfd open helper.
-- make open files limit configurable.
-- use correct reference for IN6 macro call.
-- dont probe interface that cant send packet.
-- fix some sss error return cases.
-- fix incorrect matching of cached wildcard key.
-- fix expire retry looping.
-- allow -null map in indirect maps.
-- fix multi-mount check.
-- fix let OpenLDAP handle SASL binding.
-- always recreate credential cache.
-- fix ldap_parse_page_control() check.
-- fix typo in create_cmd_pipe_fifo().
-- add null check in master_kill().
-- be more careful with cmd pipe at exit.
-- rename configure.in to configure.ac.
-- update autoconf macros.
-- update autoconf release.
-- update autofs release.
-
-Ian
-
+>
+> On 7/11/23 01:05, Robert Vasek wrote:
+> > Dear autofs community,
+> >
+> > We run an instance of the automount daemon inside a container (a part
+> > of a storage plugin in Kubernetes). The autofs mount root is shared
+> > between different containers, and must survive restarting the daemon.
+>
+> That sounds unusual, please tell me more about how this works?
+>
+>
+> My thought was always that there are two ways one would use autofs in
+>
+> a container.
+>
+>
+> One is mapping an indirect mount root (from the init mount namespace)
+>
+> as a volume into the container thereby using the daemon present in the in=
+it
+>
+> namespace. Yes, this has had an expire problem for a long time but that w=
+ill
+>
+> change (soon I hope).
+>
+>
+> The second way is to run an instance of the daemon completely independent=
+ly
+>
+> within the container.
+>
+>
+> But this sounds like a combination of both of these which is something I
+>
+> hadn't considered.
+>
+>
+> >
+> > The problem is that when the daemon exits, it tries to clean up all
+> > its mounts -- including the autofs root, so there is nothing to
+> > reconnect to. At the moment, we're getting around the issue by sending
+> > it a SIGKILL upon the daemon container exit, which skips the mount
+> > cleanup, leaving it available for reconnect when the container comes
+> > back.
+>
+> Yes, it does.
+>
+>
+> My preferred configure setup is to leave mounts in use mounted at
+>
+> exit but that's not what you need ...
+>
+>
+> While the SIGKILL usage won't change I agree it would be better
+>
+> to be able to tell automount to just leave everything mounted at
+>
+> exit. You might need to send a HUP signal at container start in
+>
+> case of map updates but indirect mounts should detect changes
+>
+> anyway.
+>
+>
+> >
+> > While this works nicely for the moment, we don't want to rely on some
+> > random signal which may be handled differently in the future, and I
+> > didn't see anything in the options that would explicitly skip mount
+> > clean up at exit. Would you accept a patch that adds a dedicated
+> > command line flag for this?
+>
+> By all means, send it over.
+>
+>
+> I'm not sure how this will fit in with the configure options for
+>
+> mount handling at exit ... we'll see what we get, ;)
+>
+>
+> Ian
+>
