@@ -1,176 +1,93 @@
 Received: from lindbergh.monkeyblade.net (lindbergh.monkeyblade.net [23.128.96.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6ABD4412
-	for <autofs@vger.kernel.org>; Tue, 14 Nov 2023 01:02:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dkim=none
-Received: from mail-pg1-f205.google.com (mail-pg1-f205.google.com [209.85.215.205])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A927D51
-	for <autofs@vger.kernel.org>; Mon, 13 Nov 2023 17:02:21 -0800 (PST)
-Received: by mail-pg1-f205.google.com with SMTP id 41be03b00d2f7-5b7f3f47547so4611744a12.3
-        for <autofs@vger.kernel.org>; Mon, 13 Nov 2023 17:02:21 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1699923740; x=1700528540;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=KN1VPTD/XwpbHmD08h+5JEdAa2L6wLXqNqbY4sMw3iY=;
-        b=OKcSXb0kvhdWo/yIkQZZK9laYvYc/mgEDi/Aj99l/cJmv4qjMLg9fltF20TKgQXtDu
-         zIYKn2GTfqts4bIMY2f0nzhm/UONKwaIOxNuawMVjZVylNOYLbz8HHLRITcY3D5Qrnds
-         juEBOFFFMxb+6bduwlwlMXoe4w5ciDU4RxdvrZiZJBEjHauehcgxxEzb6qiSVkQYrPHF
-         w94povCtbxKUIiPIbNADNrG7SFOd2NRWwjZvz3sm9DqTSEaglPu+Rco2sIBwJN1Nh8+W
-         OELP2r6RSGugZinu10tCwJx+oA1P3/ZnGxqi6HQOMSGnWSbhju5Mh4K3n8DtRB+fEfSd
-         uOTQ==
-X-Gm-Message-State: AOJu0YxAA5ZfnjgyaU6Z72TOgV3+7KRjo360wMyFfJD6iqlkN0k8+WoM
-	jlubqstFdLusD82Fb2dVYLLVrjzf1ImItp3uQ6wqumCLAL+qkOFKfQ==
-X-Google-Smtp-Source: AGHT+IGQDS/+RsZx5/GmMdEPaSRZ42IsNktfLincp8HEf8aX2nQeqvyPv0Nm1z1fXUxlSQCivx5TbtfzlKj9YnLKWjuOl/3xTeYN
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BDA68F55
+	for <autofs@vger.kernel.org>; Tue, 14 Nov 2023 03:58:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b="geOfokAq"
+Received: from out162-62-57-210.mail.qq.com (out162-62-57-210.mail.qq.com [162.62.57.210])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 552071A7
+	for <autofs@vger.kernel.org>; Mon, 13 Nov 2023 19:58:38 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qq.com; s=s201512;
+	t=1699934315; bh=lg+AxG6nmCwiRU7/zoqFobhF9shMWgq6Z2Z7gSmW0z4=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=geOfokAqI0HkzrgbgJRZ+Bk/BORXRqXzDtdz/aYWirVABxUYIU2pbuvZvwtqjQMYl
+	 3sT5TuU2tORBL3qw4xxpfeavkmKNUKR8QiJyId8TR5CR9F4g+KP/+rvt6Dhu+o6Db+
+	 2lDnilrEzB2j+DzN8MqjMKKaCS8DaBinhvEnTOIc=
+Received: from pek-lxu-l1.wrs.com ([111.198.228.56])
+	by newxmesmtplogicsvrsza10-0.qq.com (NewEsmtp) with SMTP
+	id D1C01E23; Tue, 14 Nov 2023 11:52:28 +0800
+X-QQ-mid: xmsmtpt1699933948tuov78bdg
+Message-ID: <tencent_3744B76B9760E6DA33798369C96563B2C405@qq.com>
+X-QQ-XMAILINFO: NEoGzTA04D+52sRBA2ec1IXMY1ou3fobcAWlr77b1Urev4qLHPcI3kJ7vZYXW0
+	 +bOh1syTpWwymZUZfnKJQZ7/gmAPuZFo0HnxPQGgSiDpiIw116KpWy0vW0w5jwNDoaK3+6sp9C1b
+	 1/VCH/AMWAIAAgZegH20/HNNRILOB8cCQRWcECw6zBXMwirB0hDbbuu6HTWCFQnKlz7VU0pzjY7c
+	 9tLvwWmIk0erJl7TSDXgPcPuHABD80AIVXbhNwCIVppqV3NbgMPsS/jAq/ZvDHIFDqcHo34MTBzb
+	 CYMzacCZgGjkvX/2g9skDizMLrt/xLADC8DjBN6+ymDEkkQS65XGYb/MQsLYjvBa+VT3pg7Tb9go
+	 f45/D8d9oqvK70zAvZ5A5GGj1/1HomMPENK4Oad07ckMrqkxA3cFdQx7Fl8kfwWOmC8VIoHTc2D2
+	 Ttt7Gw+b+ZLbW5OayJ3IOxpIOl006rx9YpIvK8EYWXlJSQf55gPni704Qt1SrC4n1bBdsCXBPAKf
+	 7zDVRiyWpBitJvzBzeQoSFufJFFFpEUtY29IF6mSYvQ3vKOh4XNh5GKNUArYKKd8TDU+YBmU4580
+	 hIj7bbK+qI8kKSf32V/aa6nihOIjrnRX9vc1PPt6Di9ppQb397SvqgZ4mlurIXS5H27OCrGhrtUX
+	 DrDZSXoon0Fz5ydYHazN0+WB3UD3eqRBTADmhodUY6n9P8Un1sWpN/v39UBW1LxF1l5RNZwDTP1/
+	 /LBkBzpli4Dci0mFiK/FcbCHuu2X61bHJWoHYAMXLlbSG4tnr+c/n51JTY5e8PIg2SXpGsuFq7K7
+	 GLKBXrHOMU644bnPvBQyDq+TlzIMR3zWT2yAENRU+QNkYTskoZZSQWvhDPbgYNNDN9QWVB5/MhMj
+	 OaIBX0rWxgV374IoToLrf7Icy3S6H2LJrRJTr0SO4T1cWEgVpttFwMHyjfIijZUiit36XnduwS
+X-QQ-XMRINFO: Nq+8W0+stu50PRdwbJxPCL0=
+From: Edward Adam Davis <eadavis@qq.com>
+To: syzbot+662f87a8ef490f45fa64@syzkaller.appspotmail.com
+Cc: autofs@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	raven@themaw.net,
+	syzkaller-bugs@googlegroups.com
+Subject: [PATCH] autofs: fix null deref in autofs_fill_super
+Date: Tue, 14 Nov 2023 11:52:29 +0800
+X-OQ-MSGID: <20231114035228.2123194-2-eadavis@qq.com>
+X-Mailer: git-send-email 2.42.0
+In-Reply-To: <000000000000ae5995060a125650@google.com>
+References: <000000000000ae5995060a125650@google.com>
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 List-Subscribe: <mailto:autofs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a63:104a:0:b0:5c1:7124:d9aa with SMTP id
- 10-20020a63104a000000b005c17124d9aamr165450pgq.12.1699923740213; Mon, 13 Nov
- 2023 17:02:20 -0800 (PST)
-Date: Mon, 13 Nov 2023 17:02:20 -0800
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000ae5995060a125650@google.com>
-Subject: [syzbot] [autofs?] general protection fault in autofs_fill_super
-From: syzbot <syzbot+662f87a8ef490f45fa64@syzkaller.appspotmail.com>
-To: autofs@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, raven@themaw.net, 
-	syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-Hello,
-
-syzbot found the following issue on:
-
-HEAD commit:    4bbdb725a36b Merge tag 'iommu-updates-v6.7' of git://git.k..
-git tree:       upstream
-console+strace: https://syzkaller.appspot.com/x/log.txt?x=15dc14a8e80000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=beb32a598fd79db9
-dashboard link: https://syzkaller.appspot.com/bug?extid=662f87a8ef490f45fa64
-compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=14384a7b680000
-
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/fd459eb1acfc/disk-4bbdb725.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/d784829734e1/vmlinux-4bbdb725.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/db2c9e9ae9c3/bzImage-4bbdb725.xz
-
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+662f87a8ef490f45fa64@syzkaller.appspotmail.com
-
-Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 e1 20 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b0 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007ffe4723a6f8 EFLAGS: 00000246 ORIG_RAX: 00000000000000a5
-RAX: ffffffffffffffda RBX: 00007fae5d99bf80 RCX: 00007fae5d87cae9
-RDX: 0000000020000040 RSI: 0000000020000380 RDI: 0000000000000000
-RBP: 00007ffe4723a750 R08: 0000000020000400 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000002
-R13: 00000000000009f9 R14: 00007fae5d99bf80 R15: 00007fae5d99bf80
- </TASK>
-general protection fault, probably for non-canonical address 0xdffffc0000000000: 0000 [#1] PREEMPT SMP KASAN
+[Syz logs]
 KASAN: null-ptr-deref in range [0x0000000000000000-0x0000000000000007]
 CPU: 0 PID: 5098 Comm: syz-executor.0 Not tainted 6.6.0-syzkaller-15601-g4bbdb725a36b #0
 Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/09/2023
 RIP: 0010:autofs_fill_super+0x47d/0xb50 fs/autofs/inode.c:334
-Code: 03 60 d7 9f 8b 4d 8d 67 04 48 8b 14 24 48 89 d0 48 c1 e8 03 42 0f b6 04 30 84 c0 0f 85 58 03 00 00 8b 1a 4c 89 e0 48 c1 e8 03 <42> 0f b6 04 30 84 c0 4c 89 f5 0f 85 61 03 00 00 41 89 5f 04 4d 8d
-RSP: 0018:ffffc90003bafc90 EFLAGS: 00010247
-RAX: 0000000000000000 RBX: 0000000000000000 RCX: ffff88807b190000
-RDX: ffff8880136beac0 RSI: ffffffff8bbdc620 RDI: ffffffff8bbdc5e0
-RBP: ffff8880206d0580 R08: ffffffff8da2aa13 R09: 1ffffffff1b45542
-R10: dffffc0000000000 R11: fffffbfff1b45543 R12: 0000000000000004
-R13: ffff8880206d0500 R14: dffffc0000000000 R15: 0000000000000000
-FS:  0000555555cbc480(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007ffe47239e08 CR3: 0000000024f32000 CR4: 00000000003506f0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
- <TASK>
- vfs_get_super fs/super.c:1338 [inline]
- get_tree_nodev+0xb4/0x140 fs/super.c:1357
- vfs_get_tree+0x8c/0x280 fs/super.c:1771
- do_new_mount+0x28f/0xae0 fs/namespace.c:3337
- do_mount fs/namespace.c:3677 [inline]
- __do_sys_mount fs/namespace.c:3886 [inline]
- __se_sys_mount+0x2d9/0x3c0 fs/namespace.c:3863
- do_syscall_x64 arch/x86/entry/common.c:51 [inline]
- do_syscall_64+0x44/0x110 arch/x86/entry/common.c:82
- entry_SYSCALL_64_after_hwframe+0x63/0x6b
-RIP: 0033:0x7fae5d87cae9
-Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 e1 20 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b0 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007ffe4723a6f8 EFLAGS: 00000246 ORIG_RAX: 00000000000000a5
-RAX: ffffffffffffffda RBX: 00007fae5d99bf80 RCX: 00007fae5d87cae9
-RDX: 0000000020000040 RSI: 0000000020000380 RDI: 0000000000000000
-RBP: 00007ffe4723a750 R08: 0000000020000400 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000002
-R13: 00000000000009f9 R14: 00007fae5d99bf80 R15: 00007fae5d99bf80
- </TASK>
-Modules linked in:
----[ end trace 0000000000000000 ]---
-RIP: 0010:autofs_fill_super+0x47d/0xb50 fs/autofs/inode.c:334
-Code: 03 60 d7 9f 8b 4d 8d 67 04 48 8b 14 24 48 89 d0 48 c1 e8 03 42 0f b6 04 30 84 c0 0f 85 58 03 00 00 8b 1a 4c 89 e0 48 c1 e8 03 <42> 0f b6 04 30 84 c0 4c 89 f5 0f 85 61 03 00 00 41 89 5f 04 4d 8d
-RSP: 0018:ffffc90003bafc90 EFLAGS: 00010247
-RAX: 0000000000000000 RBX: 0000000000000000 RCX: ffff88807b190000
-RDX: ffff8880136beac0 RSI: ffffffff8bbdc620 RDI: ffffffff8bbdc5e0
-RBP: ffff8880206d0580 R08: ffffffff8da2aa13 R09: 1ffffffff1b45542
-R10: dffffc0000000000 R11: fffffbfff1b45543 R12: 0000000000000004
-R13: ffff8880206d0500 R14: dffffc0000000000 R15: 0000000000000000
-FS:  0000555555cbc480(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007ffe47239e08 CR3: 0000000024f32000 CR4: 00000000003506f0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-----------------
-Code disassembly (best guess):
-   0:	28 00                	sub    %al,(%rax)
-   2:	00 00                	add    %al,(%rax)
-   4:	75 05                	jne    0xb
-   6:	48 83 c4 28          	add    $0x28,%rsp
-   a:	c3                   	ret
-   b:	e8 e1 20 00 00       	call   0x20f1
-  10:	90                   	nop
-  11:	48 89 f8             	mov    %rdi,%rax
-  14:	48 89 f7             	mov    %rsi,%rdi
-  17:	48 89 d6             	mov    %rdx,%rsi
-  1a:	48 89 ca             	mov    %rcx,%rdx
-  1d:	4d 89 c2             	mov    %r8,%r10
-  20:	4d 89 c8             	mov    %r9,%r8
-  23:	4c 8b 4c 24 08       	mov    0x8(%rsp),%r9
-  28:	0f 05                	syscall
-* 2a:	48 3d 01 f0 ff ff    	cmp    $0xfffffffffffff001,%rax <-- trapping instruction
-  30:	73 01                	jae    0x33
-  32:	c3                   	ret
-  33:	48 c7 c1 b0 ff ff ff 	mov    $0xffffffffffffffb0,%rcx
-  3a:	f7 d8                	neg    %eax
-  3c:	64 89 01             	mov    %eax,%fs:(%rcx)
-  3f:	48                   	rex.W
 
+[pid  5095] mount(NULL, "./file1", "autofs", 0, "fd=0x0000000000000000") = -1 ENOMEM (Cannot allocate memory)
 
+[Analysis]
+autofs_get_inode() will return null, when memory cannot be allocated.
+
+[Fix]
+Confirm that root_inde is not null before using it.
+
+Reported-and-tested-by: syzbot+662f87a8ef490f45fa64@syzkaller.appspotmail.com
+Signed-off-by: Edward Adam Davis <eadavis@qq.com>
 ---
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+ fs/autofs/inode.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+diff --git a/fs/autofs/inode.c b/fs/autofs/inode.c
+index a5083d447a62..f2e89a444edf 100644
+--- a/fs/autofs/inode.c
++++ b/fs/autofs/inode.c
+@@ -331,6 +331,9 @@ static int autofs_fill_super(struct super_block *s, struct fs_context *fc)
+ 		goto fail;
+ 
+ 	root_inode = autofs_get_inode(s, S_IFDIR | 0755);
++	if (!root_inode)
++		goto fail;
++
+ 	root_inode->i_uid = ctx->uid;
+ 	root_inode->i_gid = ctx->gid;
+ 
+-- 
+2.25.1
 
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
-
-If you want syzbot to run the reproducer, reply with:
-#syz test: git://repo/address.git branch-or-commit-hash
-If you attach or paste a git patch, syzbot will apply it before testing.
-
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
-
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
-
-If you want to undo deduplication, reply with:
-#syz undup
