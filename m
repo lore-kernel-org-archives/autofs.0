@@ -1,103 +1,176 @@
 Received: from lindbergh.monkeyblade.net (lindbergh.monkeyblade.net [23.128.96.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5173E32C71
-	for <autofs@vger.kernel.org>; Wed,  8 Nov 2023 17:49:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=qualcomm.com header.i=@qualcomm.com header.b="BJLC0X2O"
-Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B50131BEF
-	for <autofs@vger.kernel.org>; Wed,  8 Nov 2023 09:49:14 -0800 (PST)
-Received: from pps.filterd (m0279869.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 3A8Gufrc031141
-	for <autofs@vger.kernel.org>; Wed, 8 Nov 2023 17:49:13 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qualcomm.com; h=date : from : to :
- subject : message-id : references : mime-version : content-type :
- in-reply-to; s=qcppdkim1; bh=ASQrDy8y9+bWZ2880ccNgKRtSGk8MZxiAltUq2AzKN0=;
- b=BJLC0X2OBff+OX3OKexk+b8Pcz3dNxr13qLvDThxM6FFJXfZUkjpbtHi8Lzwb8oII6wX
- qhovI6Vt/Rpt0Ft27E3TQPkFLxkM1updYGG2ZRwFjzoXqL++kYyEdwJkK8r3KcC4VlXX
- 88aHMQiJapmhCddcL+qHq1f0r7FmBbt4EjjFflTKyDLubWSIYZf1jZbMY3vDSrftSZTA
- u0aiYsqHF7mAYqzB5k/kI4GVktW0/1aCY7RzJn+F9SYnyz4cx9INzVDCXgrjGEqyErUg
- bKEv7ZkEPRmAnRa1kWjdSA/Ok78ZwXJgNcN806oRccqxkoyieRJtJ9elI/6YEVz1a+lj YQ== 
-Received: from nasanppmta01.qualcomm.com (i-global254.qualcomm.com [199.106.103.254])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 3u7wt2ab90-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT)
-	for <autofs@vger.kernel.org>; Wed, 08 Nov 2023 17:49:13 +0000
-Received: from sunapee.qualcomm.com (sunapee.qualcomm.com [10.62.117.90])
-	by NASANPPMTA01.qualcomm.com (8.17.1.5/8.17.1.5) with ESMTP id 3A8HnC5L023793
-	for <autofs@vger.kernel.org>; Wed, 8 Nov 2023 17:49:12 GMT
-Received: by sunapee.qualcomm.com (Postfix, from userid 32836)
-	id 7F30D416B; Wed,  8 Nov 2023 09:49:12 -0800 (PST)
-Date: Wed, 8 Nov 2023 09:49:12 -0800
-From: Mike Marion <mmarion@qualcomm.com>
-To: autofs@vger.kernel.org
-Subject: Re: Skip autofs unmount on daemon exit
-Message-ID: <20231108174912.GI5574@qualcomm.com>
-References: <CADVsYmhjjKYUCHGWmzeTHXuQNAiR6ELbGzyy+m30ar+yaYLBzQ@mail.gmail.com>
- <aeb5af36-4686-9d69-22fd-89adf5fd2c80@themaw.net>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6ABD4412
+	for <autofs@vger.kernel.org>; Tue, 14 Nov 2023 01:02:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dkim=none
+Received: from mail-pg1-f205.google.com (mail-pg1-f205.google.com [209.85.215.205])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A927D51
+	for <autofs@vger.kernel.org>; Mon, 13 Nov 2023 17:02:21 -0800 (PST)
+Received: by mail-pg1-f205.google.com with SMTP id 41be03b00d2f7-5b7f3f47547so4611744a12.3
+        for <autofs@vger.kernel.org>; Mon, 13 Nov 2023 17:02:21 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1699923740; x=1700528540;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=KN1VPTD/XwpbHmD08h+5JEdAa2L6wLXqNqbY4sMw3iY=;
+        b=OKcSXb0kvhdWo/yIkQZZK9laYvYc/mgEDi/Aj99l/cJmv4qjMLg9fltF20TKgQXtDu
+         zIYKn2GTfqts4bIMY2f0nzhm/UONKwaIOxNuawMVjZVylNOYLbz8HHLRITcY3D5Qrnds
+         juEBOFFFMxb+6bduwlwlMXoe4w5ciDU4RxdvrZiZJBEjHauehcgxxEzb6qiSVkQYrPHF
+         w94povCtbxKUIiPIbNADNrG7SFOd2NRWwjZvz3sm9DqTSEaglPu+Rco2sIBwJN1Nh8+W
+         OELP2r6RSGugZinu10tCwJx+oA1P3/ZnGxqi6HQOMSGnWSbhju5Mh4K3n8DtRB+fEfSd
+         uOTQ==
+X-Gm-Message-State: AOJu0YxAA5ZfnjgyaU6Z72TOgV3+7KRjo360wMyFfJD6iqlkN0k8+WoM
+	jlubqstFdLusD82Fb2dVYLLVrjzf1ImItp3uQ6wqumCLAL+qkOFKfQ==
+X-Google-Smtp-Source: AGHT+IGQDS/+RsZx5/GmMdEPaSRZ42IsNktfLincp8HEf8aX2nQeqvyPv0Nm1z1fXUxlSQCivx5TbtfzlKj9YnLKWjuOl/3xTeYN
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 List-Subscribe: <mailto:autofs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aeb5af36-4686-9d69-22fd-89adf5fd2c80@themaw.net>
-X-Operating-System: Linux 5.14.21-150400.24.69-default x86_64
-X-Distribution: SUSE Linux Enterprise Server 15 (x86_64) 15.4
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-QCInternal: smtphost
-X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=5800 signatures=585085
-X-Proofpoint-ORIG-GUID: ZE65B3rL8mQsDHy-a2JRShvTPfOvw_7c
-X-Proofpoint-GUID: ZE65B3rL8mQsDHy-a2JRShvTPfOvw_7c
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.272,Aquarius:18.0.987,Hydra:6.0.619,FMLib:17.11.176.26
- definitions=2023-11-08_06,2023-11-08_01,2023-05-22_02
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxscore=0 lowpriorityscore=0
- spamscore=0 phishscore=0 bulkscore=0 adultscore=0 impostorscore=0
- suspectscore=0 priorityscore=1501 clxscore=1011 mlxlogscore=999
- malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2311060000 definitions=main-2311080147
+X-Received: by 2002:a63:104a:0:b0:5c1:7124:d9aa with SMTP id
+ 10-20020a63104a000000b005c17124d9aamr165450pgq.12.1699923740213; Mon, 13 Nov
+ 2023 17:02:20 -0800 (PST)
+Date: Mon, 13 Nov 2023 17:02:20 -0800
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000ae5995060a125650@google.com>
+Subject: [syzbot] [autofs?] general protection fault in autofs_fill_super
+From: syzbot <syzbot+662f87a8ef490f45fa64@syzkaller.appspotmail.com>
+To: autofs@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, raven@themaw.net, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-On Tue, Nov 07, 2023 at 10:15:05AM +0800, Ian Kent wrote:
+Hello,
 
-> On 7/11/23 01:05, Robert Vasek wrote:
-> > Dear autofs community,
-> >
-> > We run an instance of the automount daemon inside a container (a part
-> > of a storage plugin in Kubernetes). The autofs mount root is shared
-> > between different containers, and must survive restarting the daemon.
-> 
-> That sounds unusual, please tell me more about how this works?
-> 
-> My thought was always that there are two ways one would use autofs in
-> a container.
-> 
-> One is mapping an indirect mount root (from the init mount namespace)
-> as a volume into the container thereby using the daemon present in the init
-> namespace. Yes, this has had an expire problem for a long time but that will
-> change (soon I hope).
-> 
-> The second way is to run an instance of the daemon completely independently
-> within the container.
-> 
-> But this sounds like a combination of both of these which is something I
-> hadn't considered.
+syzbot found the following issue on:
 
-FYI, as a third option/way, one thing we do is that we bind the root of
-direct automount maps into containers (though we're using singularity)
-and the automount bits continue to work just fine inside and out of said
-containers.  We have not noticed any big issues with expirations not
-happening, at least that we can contribute specifically to the container
-use in these cases.
+HEAD commit:    4bbdb725a36b Merge tag 'iommu-updates-v6.7' of git://git.k..
+git tree:       upstream
+console+strace: https://syzkaller.appspot.com/x/log.txt?x=15dc14a8e80000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=beb32a598fd79db9
+dashboard link: https://syzkaller.appspot.com/bug?extid=662f87a8ef490f45fa64
+compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=14384a7b680000
 
-Note that singularity seems to understand autofs mount points though,
-and if started with debug it walks and loads the direct map into its
-internal /proc/mounts, which is probably why it works so well.  Now that
-I think of it, I have no idea if it continues to work with any paths
-added after the container starts though since it wouldn't have been
-there when starting and might not be seen as a trigger.
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/fd459eb1acfc/disk-4bbdb725.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/d784829734e1/vmlinux-4bbdb725.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/db2c9e9ae9c3/bzImage-4bbdb725.xz
 
--- 
-Mike Marion-Unix SysAdmin/Sr. Staff IT Engineer-http://www.qualcomm.com
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+662f87a8ef490f45fa64@syzkaller.appspotmail.com
+
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 e1 20 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffe4723a6f8 EFLAGS: 00000246 ORIG_RAX: 00000000000000a5
+RAX: ffffffffffffffda RBX: 00007fae5d99bf80 RCX: 00007fae5d87cae9
+RDX: 0000000020000040 RSI: 0000000020000380 RDI: 0000000000000000
+RBP: 00007ffe4723a750 R08: 0000000020000400 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000002
+R13: 00000000000009f9 R14: 00007fae5d99bf80 R15: 00007fae5d99bf80
+ </TASK>
+general protection fault, probably for non-canonical address 0xdffffc0000000000: 0000 [#1] PREEMPT SMP KASAN
+KASAN: null-ptr-deref in range [0x0000000000000000-0x0000000000000007]
+CPU: 0 PID: 5098 Comm: syz-executor.0 Not tainted 6.6.0-syzkaller-15601-g4bbdb725a36b #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/09/2023
+RIP: 0010:autofs_fill_super+0x47d/0xb50 fs/autofs/inode.c:334
+Code: 03 60 d7 9f 8b 4d 8d 67 04 48 8b 14 24 48 89 d0 48 c1 e8 03 42 0f b6 04 30 84 c0 0f 85 58 03 00 00 8b 1a 4c 89 e0 48 c1 e8 03 <42> 0f b6 04 30 84 c0 4c 89 f5 0f 85 61 03 00 00 41 89 5f 04 4d 8d
+RSP: 0018:ffffc90003bafc90 EFLAGS: 00010247
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: ffff88807b190000
+RDX: ffff8880136beac0 RSI: ffffffff8bbdc620 RDI: ffffffff8bbdc5e0
+RBP: ffff8880206d0580 R08: ffffffff8da2aa13 R09: 1ffffffff1b45542
+R10: dffffc0000000000 R11: fffffbfff1b45543 R12: 0000000000000004
+R13: ffff8880206d0500 R14: dffffc0000000000 R15: 0000000000000000
+FS:  0000555555cbc480(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007ffe47239e08 CR3: 0000000024f32000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ vfs_get_super fs/super.c:1338 [inline]
+ get_tree_nodev+0xb4/0x140 fs/super.c:1357
+ vfs_get_tree+0x8c/0x280 fs/super.c:1771
+ do_new_mount+0x28f/0xae0 fs/namespace.c:3337
+ do_mount fs/namespace.c:3677 [inline]
+ __do_sys_mount fs/namespace.c:3886 [inline]
+ __se_sys_mount+0x2d9/0x3c0 fs/namespace.c:3863
+ do_syscall_x64 arch/x86/entry/common.c:51 [inline]
+ do_syscall_64+0x44/0x110 arch/x86/entry/common.c:82
+ entry_SYSCALL_64_after_hwframe+0x63/0x6b
+RIP: 0033:0x7fae5d87cae9
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 e1 20 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffe4723a6f8 EFLAGS: 00000246 ORIG_RAX: 00000000000000a5
+RAX: ffffffffffffffda RBX: 00007fae5d99bf80 RCX: 00007fae5d87cae9
+RDX: 0000000020000040 RSI: 0000000020000380 RDI: 0000000000000000
+RBP: 00007ffe4723a750 R08: 0000000020000400 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000002
+R13: 00000000000009f9 R14: 00007fae5d99bf80 R15: 00007fae5d99bf80
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:autofs_fill_super+0x47d/0xb50 fs/autofs/inode.c:334
+Code: 03 60 d7 9f 8b 4d 8d 67 04 48 8b 14 24 48 89 d0 48 c1 e8 03 42 0f b6 04 30 84 c0 0f 85 58 03 00 00 8b 1a 4c 89 e0 48 c1 e8 03 <42> 0f b6 04 30 84 c0 4c 89 f5 0f 85 61 03 00 00 41 89 5f 04 4d 8d
+RSP: 0018:ffffc90003bafc90 EFLAGS: 00010247
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: ffff88807b190000
+RDX: ffff8880136beac0 RSI: ffffffff8bbdc620 RDI: ffffffff8bbdc5e0
+RBP: ffff8880206d0580 R08: ffffffff8da2aa13 R09: 1ffffffff1b45542
+R10: dffffc0000000000 R11: fffffbfff1b45543 R12: 0000000000000004
+R13: ffff8880206d0500 R14: dffffc0000000000 R15: 0000000000000000
+FS:  0000555555cbc480(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007ffe47239e08 CR3: 0000000024f32000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+----------------
+Code disassembly (best guess):
+   0:	28 00                	sub    %al,(%rax)
+   2:	00 00                	add    %al,(%rax)
+   4:	75 05                	jne    0xb
+   6:	48 83 c4 28          	add    $0x28,%rsp
+   a:	c3                   	ret
+   b:	e8 e1 20 00 00       	call   0x20f1
+  10:	90                   	nop
+  11:	48 89 f8             	mov    %rdi,%rax
+  14:	48 89 f7             	mov    %rsi,%rdi
+  17:	48 89 d6             	mov    %rdx,%rsi
+  1a:	48 89 ca             	mov    %rcx,%rdx
+  1d:	4d 89 c2             	mov    %r8,%r10
+  20:	4d 89 c8             	mov    %r9,%r8
+  23:	4c 8b 4c 24 08       	mov    0x8(%rsp),%r9
+  28:	0f 05                	syscall
+* 2a:	48 3d 01 f0 ff ff    	cmp    $0xfffffffffffff001,%rax <-- trapping instruction
+  30:	73 01                	jae    0x33
+  32:	c3                   	ret
+  33:	48 c7 c1 b0 ff ff ff 	mov    $0xffffffffffffffb0,%rcx
+  3a:	f7 d8                	neg    %eax
+  3c:	64 89 01             	mov    %eax,%fs:(%rcx)
+  3f:	48                   	rex.W
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want syzbot to run the reproducer, reply with:
+#syz test: git://repo/address.git branch-or-commit-hash
+If you attach or paste a git patch, syzbot will apply it before testing.
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
