@@ -1,148 +1,63 @@
 Authentication-Results: smtp.subspace.kernel.org; dkim=none
-Received: from smtp01.aussiebb.com.au (smtp01.aussiebb.com.au [IPv6:2403:5800:3:25::1001])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B10AA19E;
-	Wed, 15 Nov 2023 16:07:56 -0800 (PST)
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by smtp01.aussiebb.com.au (Postfix) with ESMTP id 8D4B6100382;
-	Thu, 16 Nov 2023 11:07:51 +1100 (AEDT)
-X-Virus-Scanned: Debian amavisd-new at smtp01.aussiebb.com.au
-Received: from smtp01.aussiebb.com.au ([127.0.0.1])
-	by localhost (smtp01.aussiebb.com.au [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id iXf2Fp4tVd8S; Thu, 16 Nov 2023 11:07:51 +1100 (AEDT)
-Received: by smtp01.aussiebb.com.au (Postfix, from userid 116)
-	id 82227100369; Thu, 16 Nov 2023 11:07:51 +1100 (AEDT)
-X-Spam-Level: 
-Received: from donald.themaw.com (2403-580f-7fe0--101a.ip6.aussiebb.net [IPv6:2403:580f:7fe0::101a])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	(Authenticated sender: ian146@aussiebb.com.au)
-	by smtp01.aussiebb.com.au (Postfix) with ESMTPSA id C1732100290;
-	Thu, 16 Nov 2023 11:07:49 +1100 (AEDT)
-From: Ian Kent <raven@themaw.net>
-To: Al Viro <viro@zeniv.linux.org.uk>,
-	Christian Brauner <brauner@kernel.org>
-Cc: Bill O'Donnell <billodo@redhat.com>,
-	Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	autofs mailing list <autofs@vger.kernel.org>,
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-	Ian Kent <raven@themaw.net>,
-	syzbot+662f87a8ef490f45fa64@syzkaller.appspotmail.com
-Subject: [PATCH] autofs: add: new_inode check in autofs_fill_super()
-Date: Thu, 16 Nov 2023 08:07:46 +0800
-Message-ID: <20231116000746.7359-1-raven@themaw.net>
-X-Mailer: git-send-email 2.41.0
+Received: from mail-pg1-f200.google.com (mail-pg1-f200.google.com [209.85.215.200])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C58E5187
+	for <autofs@vger.kernel.org>; Thu, 16 Nov 2023 01:51:10 -0800 (PST)
+Received: by mail-pg1-f200.google.com with SMTP id 41be03b00d2f7-5b7fb057153so762889a12.1
+        for <autofs@vger.kernel.org>; Thu, 16 Nov 2023 01:51:10 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1700128269; x=1700733069;
+        h=to:from:subject:message-id:in-reply-to:date:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=UiNHOjfzTCRSZhLxgg5CyThWc28KBQzyvt0Gk1pd2sA=;
+        b=Xyo8XraInrfRkmApmGtzD6RieHUfnMnSWJt3N3H/9MgC036dy/AtWf5D7788lVUAJX
+         Dm0/Y6LUDwZjVzByG+IpcQaJvfbBzcrjX0+Iw1Ciw16VUuQ0P74IHS+sumuPINHrcd8j
+         rInRKMqQ0FpRqL4GfdeJJq/Y4XUc0pfPVkA8rU0nlo6FphjYpl7aLHib9fC6af6u3TVX
+         8sUGXR/xcYhznqntiO+7lnxa2rYMljVfvLm4UqEhMFEZ1GcSzAXWMgEtkVwUWULmr/fr
+         D+EYMdQHiwc/q+HxKaRt6uO0Y/0mvc85IwsMyNxsAQ7V8dr7tWljzBWdRPNlMLwfgcuU
+         I3iw==
+X-Gm-Message-State: AOJu0Yyf5OfwcMSMNSE1xQ1m3hbfjrJl9fktKPhHzAOULqhpGC5+1l66
+	Z1J43Xr3KooxDWOlkQau2D4vXImv61Fb6KDKQVEmEKigLIStdCM=
+X-Google-Smtp-Source: AGHT+IGFkiPFsgApk8aUnzxiA3nQo2YGU1aJ7rbgvlaLBurc6k5+bkMItSzH20RLWujRkf0/mfiX8H+dDfidMqvoyI7pX9pP4ert
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 List-Subscribe: <mailto:autofs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-Received: by 2002:a63:dd4a:0:b0:5c1:589d:b3e5 with SMTP id
+ g10-20020a63dd4a000000b005c1589db3e5mr253325pgj.2.1700128269720; Thu, 16 Nov
+ 2023 01:51:09 -0800 (PST)
+Date: Thu, 16 Nov 2023 01:51:09 -0800
+In-Reply-To: <000000000000ae5995060a125650@google.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <00000000000096e7d5060a41f594@google.com>
+Subject: Re: [syzbot] [autofs?] general protection fault in autofs_fill_super
+From: syzbot <syzbot+662f87a8ef490f45fa64@syzkaller.appspotmail.com>
+To: autofs@vger.kernel.org, billodo@redhat.com, bodonnel@redhat.com, 
+	brauner@kernel.org, eadavis@qq.com, linux-fsdevel@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, raven@themaw.net, 
+	syzkaller-bugs@googlegroups.com, viro@zeniv.linux.org.uk
+Content-Type: text/plain; charset="UTF-8"
 
-Add missing NULL check of root_inode in autofs_fill_super().
+syzbot has bisected this issue to:
 
-While we are at it simplify the logic by taking advantage of the VFS
-cleanup procedures and get rid of the goto error handling, as suggested
-by Al Viro.
+commit e6ec453bd0f03a60a80f00f95ae2eaa260faa3c2
+Author: Ian Kent <raven@themaw.net>
+Date:   Fri Sep 22 04:12:14 2023 +0000
 
-Signed-off-by: Ian Kent <raven@themaw.net>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Bill O'Donnell <billodo@redhat.com>
+    autofs: convert autofs to use the new mount api
+
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=12d04220e80000
+start commit:   4bbdb725a36b Merge tag 'iommu-updates-v6.7' of git://git.k..
+git tree:       upstream
+final oops:     https://syzkaller.appspot.com/x/report.txt?x=11d04220e80000
+console output: https://syzkaller.appspot.com/x/log.txt?x=16d04220e80000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=beb32a598fd79db9
+dashboard link: https://syzkaller.appspot.com/bug?extid=662f87a8ef490f45fa64
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=14384a7b680000
+
 Reported-by: syzbot+662f87a8ef490f45fa64@syzkaller.appspotmail.com
----
- fs/autofs/inode.c | 50 ++++++++++++++++++-----------------------------
- 1 file changed, 19 insertions(+), 31 deletions(-)
+Fixes: e6ec453bd0f0 ("autofs: convert autofs to use the new mount api")
 
-diff --git a/fs/autofs/inode.c b/fs/autofs/inode.c
-index a5083d447a62..d5dd4223b461 100644
---- a/fs/autofs/inode.c
-+++ b/fs/autofs/inode.c
-@@ -311,7 +311,6 @@ static int autofs_fill_super(struct super_block *s, struct fs_context *fc)
- 	struct inode *root_inode;
- 	struct dentry *root;
- 	struct autofs_info *ino;
--	int ret = -ENOMEM;
- 
- 	pr_debug("starting up, sbi = %p\n", sbi);
- 
-@@ -328,56 +327,45 @@ static int autofs_fill_super(struct super_block *s, struct fs_context *fc)
- 	 */
- 	ino = autofs_new_ino(sbi);
- 	if (!ino)
--		goto fail;
-+		goto -ENOMEM;
- 
- 	root_inode = autofs_get_inode(s, S_IFDIR | 0755);
--	root_inode->i_uid = ctx->uid;
--	root_inode->i_gid = ctx->gid;
--
--	root = d_make_root(root_inode);
--	if (!root)
--		goto fail_ino;
--
--	root->d_fsdata = ino;
-+	if (root_inode) {
-+		root_inode->i_uid = ctx->uid;
-+		root_inode->i_gid = ctx->gid;
-+		root_inode->i_fop = &autofs_root_operations;
-+		root_inode->i_op = &autofs_dir_inode_operations;
-+	}
-+	s->s_root = d_make_root(root_inode);
-+	if (unlikely(!s->s_root)) {
-+		autofs_free_ino(ino);
-+		return -ENOMEM;
-+	}
-+	s->s_root->d_fsdata = ino;
- 
- 	if (ctx->pgrp_set) {
- 		sbi->oz_pgrp = find_get_pid(ctx->pgrp);
- 		if (!sbi->oz_pgrp) {
- 			ret = invalf(fc, "Could not find process group %d",
- 				     ctx->pgrp);
--			goto fail_dput;
-+			return ret;
- 		}
- 	} else {
- 		sbi->oz_pgrp = get_task_pid(current, PIDTYPE_PGID);
- 	}
- 
- 	if (autofs_type_trigger(sbi->type))
--		__managed_dentry_set_managed(root);
--
--	root_inode->i_fop = &autofs_root_operations;
--	root_inode->i_op = &autofs_dir_inode_operations;
-+		/* s->s_root won't be contended so there's little to
-+		 * be gained by not taking the d_lock when setting
-+		 * d_flags, even when a lot mounts are being done.
-+		 */
-+		managed_dentry_set_managed(s->s_root);
- 
- 	pr_debug("pipe fd = %d, pgrp = %u\n",
- 		 sbi->pipefd, pid_nr(sbi->oz_pgrp));
- 
- 	sbi->flags &= ~AUTOFS_SBI_CATATONIC;
--
--	/*
--	 * Success! Install the root dentry now to indicate completion.
--	 */
--	s->s_root = root;
- 	return 0;
--
--	/*
--	 * Failure ... clean up.
--	 */
--fail_dput:
--	dput(root);
--	goto fail;
--fail_ino:
--	autofs_free_ino(ino);
--fail:
--	return ret;
- }
- 
- /*
--- 
-2.41.0
-
+For information about bisection process see: https://goo.gl/tpsmEJ#bisection
