@@ -1,73 +1,28 @@
-Received: from wout2-smtp.messagingengine.com (wout2-smtp.messagingengine.com [64.147.123.25])
+Received: from mx3.molgen.mpg.de (mx3.molgen.mpg.de [141.14.17.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D83BD13AC0
-	for <autofs@vger.kernel.org>; Wed, 20 Mar 2024 03:43:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=64.147.123.25
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BB971DA3A
+	for <autofs@vger.kernel.org>; Wed, 20 Mar 2024 07:51:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=141.14.17.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710906209; cv=none; b=g2wVO6rlAriu6ZEYP5aAW/wtUF0DI6rzW82x78hFrkn5tLWsn1sAY5CaAQz4kJJSatDJ/vCTOvqs0UVtEq4nmwYrFjBXkrcPZg+jPdWqAlyrlcRdWNc8tHher7zrUwLrzi6KcMrID89H0tT4rZCj40vxPiMaEPVjPukE6EL5JAs=
+	t=1710921102; cv=none; b=rZfRD3/EYX8PqFk739v5TPd+SpjozmW0Q4CcgsKAdT8NSbU4sfur1ClFRKNhSGRMcm/pEbK3gymYE1uLsVQtNfv3aRbn+oSPE2HnytL4hrBZO9V+xEgV7nvqARoBmm1GPaPvG+V+eZQ9VExiJ/yPszOD5KrIx/axyDgUMn87zaQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710906209; c=relaxed/simple;
-	bh=asHXdRlv//kgp9ZCc66d7tmRiRuQCNJQ2eRh8U7P0S8=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=DhnI6qdyYrr2MfLI6TnfUTSzxBqq4zX3qpWYEG06wK14aGAaB7VgM9rTnATVVCGk8J9mD5V8zVs8CF5BGjWdFL05FCUnfmKnorFP5/4yitKkf4+07wtc3LXrsLscbPATdN/bGqjHnA1DR+SeJEcjE3PPPvSilaxTqWTNK3DunJA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net; spf=none smtp.mailfrom=themaw.net; dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b=0xSXBXfd; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=ETkjin0Y; arc=none smtp.client-ip=64.147.123.25
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=themaw.net
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b="0xSXBXfd";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="ETkjin0Y"
-Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
-	by mailout.west.internal (Postfix) with ESMTP id 94BA732002E2;
-	Tue, 19 Mar 2024 23:43:25 -0400 (EDT)
-Received: from mailfrontend1 ([10.202.2.162])
-  by compute6.internal (MEProxy); Tue, 19 Mar 2024 23:43:25 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
-	:content-transfer-encoding:content-type:content-type:date:date
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm1; t=1710906205;
-	 x=1710992605; bh=B5/Vs4bwthmejiCBL6vPTBYPjQIr5dRayyqbR1HHejo=; b=
-	0xSXBXfdl6mg1mLxDWYlrlSBMEYQonVY7gnrIqbYvoewPb6kTB5l7Znc1zcT523C
-	qumi2zv65dxLgyDm/DDN77CTQ/OdgQw0+DpYnOY/SfcQjfvJvucPj+mIWbJKGuIv
-	lMzm3Njs+O0QEoBAytQeGtY50iAmolwHL5+qJoms90kyB+C2lSGeAi/USrV9+zIg
-	/Xs0TQij+QOunfObjlsGtuVgBmAyQn60QuswcnRrAunGx5pGSBQuoUZFYAeIQad6
-	RSrQ6rh+FaEs8LwV9Zl6rkRXz5S7zwl04Dp8pMKBTak46VDwVszwFX7Wbql6tQyE
-	OXRVfWJhrpRiYqvaV2ih+A==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:content-transfer-encoding:content-type
-	:content-type:date:date:feedback-id:feedback-id:from:from
-	:in-reply-to:in-reply-to:message-id:mime-version:references
-	:reply-to:subject:subject:to:to:x-me-proxy:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1710906205; x=
-	1710992605; bh=B5/Vs4bwthmejiCBL6vPTBYPjQIr5dRayyqbR1HHejo=; b=E
-	Tkjin0Y5W83wrSDMusLhMFsOsjCYMBJ26ujHCXeveIF1svOfWSJiAvIKfNTX288V
-	7nJdd3ca2tAvcnLWPYMqekdLT81urKEwozN2UhGAOgF5S/gL24mFjpd2KiyZ1JOT
-	sJMeU0l8Ftc+YJ18T29nHgTpamJD7Vtb806pSjk/XSaxNKTToHJxGJc59bZF34Tr
-	HTHbjM2GL0IfI8QKOFzJqIPrq3vHSLXE233SzKcNYCYsWgJPfmFYUHhXznfJGFUJ
-	Y5YqjM77EDOsI89pTqtuyqRIvbvRuYi80pUychZBA6ZvAcIEawQXXiAp39ntPwX6
-	crkCc11KXeoILcOMnL6Fw==
-X-ME-Sender: <xms:XFv6ZQN-0e1aly2BJ_9wZwPyVslQR78I-RM5qgzzJvdHOws053vGBw>
-    <xme:XFv6ZW91I4ax-iyAz6vQ0MdMLrqz0twpVjIy6nff4b_yCvoR1r_MtLIV4QcxMQ8CJ
-    lyFeJa4i57D>
-X-ME-Received: <xmr:XFv6ZXQST3SuRPtK8BCRQmDWh_vAChvD9ykdlqZqjxdbo-HPa9nzccgdJue_AEf4feO-bKPiqrzcjyxCu1vQ-Ti6jOKxjsMlDnlPF37-Bv26ZkMOeghoXZjd>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvledrleefgddtkecutefuodetggdotefrodftvf
-    curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
-    uegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenuc
-    fjughrpefkffggfgfuvfhfhfgjtgfgsehtjeertddtvdejnecuhfhrohhmpefkrghnucfm
-    vghnthcuoehrrghvvghnsehthhgvmhgrfidrnhgvtheqnecuggftrfgrthhtvghrnhepje
-    euueetffeugeejheekteeiudefhedvheetjedtjeetleelheekgfeffeeutdfgnecuvehl
-    uhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprhgrvhgvnhesth
-    hhvghmrgifrdhnvght
-X-ME-Proxy: <xmx:XFv6ZYt_EnBZh5TDJ5iv_s9ii3g0hNjVcMcJbZLVjCDUt58YhXctrw>
-    <xmx:XFv6ZYf03rCyVLgAtnAKA-W0XsMnn3axSVr_jbFw1OTywEbdDyJ1FA>
-    <xmx:XFv6Zc0D-p17M0p8JUCwIVvuwa-iTHEsIwcMlVsRJmH8XMcKcq1eNQ>
-    <xmx:XFv6Zc9dd5xLvOzfJtQnB41fYzCab4cNL1apMxlEAayizxhAMJ3QMw>
-    <xmx:XVv6ZUHRB8_DzmM4W6wpbfWzsbCADskYaLlzvq5dRrR1GUf7SlDfXQ>
-Feedback-ID: i31e841b0:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Tue,
- 19 Mar 2024 23:43:23 -0400 (EDT)
-Message-ID: <02526a0f-5f6c-43e1-9a3b-15d7f0a72e18@themaw.net>
-Date: Wed, 20 Mar 2024 11:43:19 +0800
+	s=arc-20240116; t=1710921102; c=relaxed/simple;
+	bh=hxHISuVcSSgUqHXujv9XidxaJ8sDOSud8vK1ce+XPo8=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:Cc:From:
+	 In-Reply-To:Content-Type; b=h4y8dK6wl0uNbFjPIodO9Nr30RnumgEplkCeHCnHQiDduX9PZ1R7hoSa1CGKjPYZ81W1eKlHsqY06956RAmkU29tTVveswSq88XV4Y+htpTXXrjvblNJmobswUVP5K3UlKUkF/RQPkv8Sww75MvdSDA5PY0x22/o9VpauwMFNlA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=molgen.mpg.de; spf=pass smtp.mailfrom=molgen.mpg.de; arc=none smtp.client-ip=141.14.17.11
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=molgen.mpg.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=molgen.mpg.de
+Received: from [192.168.178.112] (p57b378ee.dip0.t-ipconnect.de [87.179.120.238])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	(Authenticated sender: pmenzel)
+	by mx.molgen.mpg.de (Postfix) with ESMTPSA id B609061E5FE01;
+	Wed, 20 Mar 2024 08:51:31 +0100 (CET)
+Message-ID: <fe523469-beb4-493e-b88a-af7242f27714@molgen.mpg.de>
+Date: Wed, 20 Mar 2024 08:51:30 +0100
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
@@ -76,18 +31,24 @@ List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
 Subject: Re: [PATCH] autofs-5.1.9 - fix ldap_parse_page_control() check
-Content-Language: en-US
-To: David Disseldorp <ddiss@suse.de>, autofs@vger.kernel.org
+To: David Disseldorp <ddiss@suse.de>
 References: <20240320005949.2661-1-ddiss@suse.de>
-From: Ian Kent <raven@themaw.net>
+Content-Language: en-US
+Cc: autofs@vger.kernel.org
+From: Paul Menzel <pmenzel@molgen.mpg.de>
 In-Reply-To: <20240320005949.2661-1-ddiss@suse.de>
 Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On 20/3/24 08:59, David Disseldorp wrote:
+Dear David,
+
+
+Thank you for your patch.
+
+Am 20.03.24 um 01:59 schrieb David Disseldorp:
 > The final @cookie parameter should be a struct berval ** type. The
 > check currently fails when -Werror=incompatible-pointer-types is set:
->
+> 
 > conftest.c: In function 'main':
 > conftest.c:54:47: error: passing argument 4 of 'ldap_parse_page_control'
 > from incompatible pointer type [-Werror=incompatible-pointer-types]
@@ -102,12 +63,17 @@ On 20/3/24 08:59, David Disseldorp wrote:
 > /usr/include/ldap.h:2155:25: note: expected 'struct berval **' but
 > argument is of type 'struct berval *'
 >   2155 | ldap_parse_page_control LDAP_P((
->
+
+I wouldn’t wrap the lines of the pasted parts, and use a more specific 
+commit message summary instead of just *fix … check*. Maybe:
+
+     ldap_parse_page_control(): Use correct type for @cookie
+
 > Signed-off-by: David Disseldorp <ddiss@suse.de>
 > ---
 >   aclocal.m4 | 2 +-
 >   1 file changed, 1 insertion(+), 1 deletion(-)
->
+> 
 > diff --git a/aclocal.m4 b/aclocal.m4
 > index 1046d72..fa18eb1 100644
 > --- a/aclocal.m4
@@ -122,10 +88,9 @@ On 20/3/24 08:59, David Disseldorp wrote:
 >         LDAPControl **clp;
 >         ret = ldap_parse_page_control(ld,clp,ct,c); ]])],
 
-
-Thanks David, looks ok to me, will have a closer look and (I expect) 
-will apply it.
+Reviewed-by: Paul Menzel <pmenzel@molgen.mpg.de>
 
 
-Ian
+Kind regards,
 
+Paul
