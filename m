@@ -1,73 +1,73 @@
-Received: from wfhigh3-smtp.messagingengine.com (wfhigh3-smtp.messagingengine.com [64.147.123.154])
+Received: from wfhigh4-smtp.messagingengine.com (wfhigh4-smtp.messagingengine.com [64.147.123.155])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57F07524AF
-	for <autofs@vger.kernel.org>; Thu, 18 Apr 2024 03:47:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=64.147.123.154
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC1F2433A6
+	for <autofs@vger.kernel.org>; Thu, 18 Apr 2024 04:49:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=64.147.123.155
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713412022; cv=none; b=JF3h0FdMawC3zpE71zjnK6crOIC2qNLAVxZhKrY1GxyB2AtD6G4mpfq9cjGsePcDfw2KekHct2mm5Mstn1HS7DXAOkYFxfvPWS5+7b2vy2gnmEptYuYBM/UFY8EXrSB3evck+qLRPBPG8wWw2M/2lAegqtdmVxGFUVtBSiVqjXU=
+	t=1713415768; cv=none; b=q9cZpWAIi3uX9Jfzb8bhcTCDGzokNSj9ByqpOkQxRmHkCHGhchKC//xk4dBLGem1OTKI+G1iSYDa3pBg501oqXEzANj3llKHZ1N85D9fX+QjeXLrrkApGuA4rES+bYVNKSto8zI3xF1blrMqjyLa1qQy9GcAD4zL8jmWU+0T0M0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713412022; c=relaxed/simple;
-	bh=COPHTjsFFtI0TwgArso204Gpmq/hnali3DJtLigpg5w=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=gXXnfLtsqIbGsZE0DR9G0aUCQgMf+vNxrpS0SLbpo+fW6QY7hkUojtj5L45ByyINHt4odibH7t1lOxAOmen/Zn3X2Vr9PR4GEBkJECkRaPPCB70UAAncBLvr12do8bfNKapXDi2xu4GXgSLsAuFG6b+gl/o0J4yjg6koDXjbUCg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net; spf=none smtp.mailfrom=themaw.net; dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b=AJRoiX1x; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=ghVle9ZC; arc=none smtp.client-ip=64.147.123.154
+	s=arc-20240116; t=1713415768; c=relaxed/simple;
+	bh=DT/nU+DjXzLacx9eewsIv3qocoeJoOfJ5MQMssTDdxY=;
+	h=Message-ID:Date:MIME-Version:Subject:From:To:References:
+	 In-Reply-To:Content-Type; b=RVNdqIkusUOtnwt2W3NWxGESe4a21PFKA80r+YHbCngcei/VzNfCuvFTwyNd6/hqAS3c4CGAR+FWe7itJxgKbGYWzQOLJUnFLNou92FxzbPWBRwkCB0XVdyP0E3qpaeO5vRAl/Dhbn/QCbvXVvNLrXeWJBWXK7iCgcr3Q9ed/u8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net; spf=none smtp.mailfrom=themaw.net; dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b=ur4ZgW1j; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=QDqTSb7Q; arc=none smtp.client-ip=64.147.123.155
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=themaw.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b="AJRoiX1x";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="ghVle9ZC"
-Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
-	by mailfhigh.west.internal (Postfix) with ESMTP id 2F26718000B9;
-	Wed, 17 Apr 2024 23:46:59 -0400 (EDT)
+	dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b="ur4ZgW1j";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="QDqTSb7Q"
+Received: from compute1.internal (compute1.nyi.internal [10.202.2.41])
+	by mailfhigh.west.internal (Postfix) with ESMTP id B77D9180019B;
+	Thu, 18 Apr 2024 00:49:24 -0400 (EDT)
 Received: from mailfrontend1 ([10.202.2.162])
-  by compute6.internal (MEProxy); Wed, 17 Apr 2024 23:46:59 -0400
+  by compute1.internal (MEProxy); Thu, 18 Apr 2024 00:49:24 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
 	:content-transfer-encoding:content-type:content-type:date:date
 	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm2; t=1713412018;
-	 x=1713498418; bh=ah8ErdMe/sHDDiCkehx/WRiVHKoDNRAO2/68SIqSWZk=; b=
-	AJRoiX1xrYpOLkXjMCaPQVCh8hOTga52QHxl9aGOEGCKRVuYhnZdMKNUdnYl/ce3
-	Q6KAeDJ76U/wSn/y2r41CbO3Jpq6dM+H99CY2uq0wLEVPyIzlFGXp3LPH0GY3Y8j
-	79pgrX58HCdKLrX7BpRcUrLiUOnGjFxTIXdJSGx+ncfxoia2gjDbv0xYgZiTCTRA
-	3+9UBIh4dWKskcNQWGBf1lwb7tZY4bU33StRFFUR+CC0kBzoB11qqzmRoqoLZO83
-	fPFUpIYUqJ2Z887ERSQhFXDszcGHuB68NMwmYcqwKc38pMNLYTtnwpw5OqiSsGrE
-	1I3splQ/yFcidZMMucpJiw==
+	:references:reply-to:subject:subject:to:to; s=fm2; t=1713415764;
+	 x=1713502164; bh=0VyLKiUoGA5+UmisUfQuIDH6a4RRg/jZCzGw8ncS0XM=; b=
+	ur4ZgW1jsQ6rCAiZI6k37Dn8/Ll5YrP0vaj90ZyaH8tR+1JpHk6yOFhLIr8ezcW4
+	pg/oS26HSq2tI+EVX5UhdYdyUSZkdaIuIEwF6Y2pY2HAJS7x6Ee1aLudgPt416hP
+	gkN5uFqP/zFHx1TAVpTMZ3j/pYiuM68div+COmO8HA7GD+fkLU3m7pHaXtPyfIr9
+	NlAc27wi51aImtu3aSRH8GsLnpwu5/Flm0I6FT9nOrRJ1TbVnKR1CD3XZ/6JLAg8
+	vks3F+GGFQmgs2SONmvmUfyYFJZJptEj4szDzOqqg0UE6svUKkvr6AkDiumP6hdh
+	yQZo/6mFXgytakFMQtsJ/Q==
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
 	messagingengine.com; h=cc:content-transfer-encoding:content-type
 	:content-type:date:date:feedback-id:feedback-id:from:from
 	:in-reply-to:in-reply-to:message-id:mime-version:references
 	:reply-to:subject:subject:to:to:x-me-proxy:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=1713412018; x=
-	1713498418; bh=ah8ErdMe/sHDDiCkehx/WRiVHKoDNRAO2/68SIqSWZk=; b=g
-	hVle9ZCeRw+tZzCtJD7FFSxD5Yo2kxA5HMEHH8qOZHLsv91K/gWlGjKjjBLeIg9K
-	TOxn8gGuhdrxvHZBqVGcwpSeuTjlxnWNTsUQ+LvXDZhFOYQodfyzAjEznFNQdZN4
-	zg8SYMpttJJurdILmkdCcPX9KD4NIiKg/PtfaPFHNJjOlW0t6L9xcqwbwb+3gPYs
-	MFobsUaPpqxO31Z91R+d6oEnbLaAxR+tPt5U/qgrP+lxDrdRRtSXI1D2UVphfKB+
-	ShwjYa9aLXhhu/xJkW0kZ2kFRsNvqQJaBVR8FGDIOnPsguPHETHFHjSDO+IyMfLY
-	FPBddF9awUN+ifgEkhQyw==
-X-ME-Sender: <xms:spcgZpX-5q2H12UEeH55OJPf4j5CG19EHpTTrGtVBga8Kd1Ms3yNPw>
-    <xme:spcgZplfZsMaHtDzkmMbKerJtR3gRc3Ntr8cwX9OGQahHsphFnlgzQqF-svUeTRjq
-    4jcCtnPsoOJ>
-X-ME-Received: <xmr:spcgZlaC5vK0eZzEZEdLQsJjKOjKfi50TvTr4padhdsawKTrYvlMINvCP9m9J06jM9tyNeQ1xyuSP2RtWWCyAGVtJVEPLL8T6p5l9-XKfgKufR0RdcCujP36>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvledrudejledgjeehucetufdoteggodetrfdotf
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=1713415764; x=
+	1713502164; bh=0VyLKiUoGA5+UmisUfQuIDH6a4RRg/jZCzGw8ncS0XM=; b=Q
+	DqTSb7Q+zkYoj+l8RaastoSray3rE7Lp8DD+OlxJDyslIQ5fdtbGrOlwcG+kQfzf
+	OtzIRN3t4fhqJqYO59DxbeK62HQDMrilGopWobLALNThw7Z91hgY2Y7e4EqrGsl4
+	AGJ6NUvpumZ/3/npW7XL2i4+2S5WI3hJU45dkWSoQE884KRgXzrp/qM2slNTv1kp
+	CMTDtf5ZojaWZIY1JoB+na5m0nRxn78M91PQ4TKCSRk0Dog7pVdhuA7rhKr/vgps
+	ZoYKE6FAdS25J4HUY5U6slLoUXXTzgi5Jd9XsLcEs6rIuXKqQklzdsU8qPGAhmUi
+	CDl3WaGTrMFneO1b8OgJw==
+X-ME-Sender: <xms:VKYgZqXzANFapJHrot0h53RSDo5AtUyX8QEhhlu-Z6ExL76aTCMwrw>
+    <xme:VKYgZmkXYNIcBlkjKmJ7bLqfA0bOeIdtcbrCxmHtOuRvKuSo9ql0yQ0XMJUUnUIPj
+    eqyz-FLwABj>
+X-ME-Received: <xmr:VKYgZualHoKwkT0M-ZI0j9OgAb8oRyOybWKh5OPRa569u7uePABkkqNbiX9zyCiFp39VZr7cWME3meCw2Az7BKRcY5KzJ3VKWywiXuK-f_yyNKe5YADc_N3Q>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvledrudejledgkeekucetufdoteggodetrfdotf
     fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
     uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    cujfgurhepkfffgggfuffvfhfhjggtgfesthekredttddvjeenucfhrhhomhepkfgrnhcu
+    cujfgurhepkfffgggfuffhvfhfjggtgfesthekredttddvjeenucfhrhhomhepkfgrnhcu
     mfgvnhhtuceorhgrvhgvnhesthhhvghmrgifrdhnvghtqeenucggtffrrghtthgvrhhnpe
-    eiudeiledvtdfgheeglefgfeetleejfffhgfdvheevtdeigefffeekjeffvdejieenucev
+    ffkeeiffdufeeugfdtheekgeejleetfeetudejieeuieekjeetvdeiheejudejfeenucev
     lhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpehrrghvvghnse
     hthhgvmhgrfidrnhgvth
-X-ME-Proxy: <xmx:spcgZsUuaoWpEDofYOtCpVzhMEbB5X18dyb1_jEB3bUUehm4R6SwBA>
-    <xmx:spcgZjmsGmT2PL0C_967AU3cdQX1tSFU3pSkrOgUz3oCK6yWUiVnag>
-    <xmx:spcgZpcmiUkC2YuLnAA-scpBR6QrBn_FYGT4qhcQnQYLVWATAgqjyQ>
-    <xmx:spcgZtGp4n-6FLWrgdNv3RtD045x6HzwRAF2wFecY8yhlXyizoCNyw>
-    <xmx:spcgZrttjF6n4fZD7glOSnRZuInw1pReJUZWBaEVFwqzA6Upp1YdimXM>
+X-ME-Proxy: <xmx:VKYgZhWzBJm4OKlhdsLod12QVH3L3LcKm-HV7871776Uv_MFBZqV4A>
+    <xmx:VKYgZknihOmNJ3rQOYg5W0K_V-CXa-a75bmJUoMyBvCoZT11eHtiqA>
+    <xmx:VKYgZmeLFDu0ZB8PPmrK01qgqvZQpumQG1Q-bm-kCdnrcIxpXtE6gg>
+    <xmx:VKYgZmF2j-T9zJxuHsG8MXkeVWi8TqgXq3rtDs6XMoQIfW1uO-QMHg>
+    <xmx:VKYgZgssNa3Ps1Eusm7ogZwFet1ZsTp8q1wjhZ3rjseVNqetyDsg1tts>
 Feedback-ID: i31e841b0:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Wed,
- 17 Apr 2024 23:46:57 -0400 (EDT)
-Message-ID: <f06e1ea3-22e1-4748-ac61-9235643daa55@themaw.net>
-Date: Thu, 18 Apr 2024 11:46:52 +0800
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
+ 18 Apr 2024 00:49:22 -0400 (EDT)
+Message-ID: <75049a54-f4e1-4685-9150-139b2d1a48f8@themaw.net>
+Date: Thu, 18 Apr 2024 12:49:17 +0800
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
@@ -76,11 +76,12 @@ List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
 Subject: Re: autofs 5.1.9 snprintf() crash with -D_FORTIFY_SOURCE=3
+From: Ian Kent <raven@themaw.net>
 To: Andreas Hasenack <andreas@canonical.com>,
  autofs mailing list <autofs@vger.kernel.org>
 References: <CANYNYEEpJabu=qiQ2VUde6J4HUC9mQSgCGksbLQqGsr1-w5NYg@mail.gmail.com>
+ <f06e1ea3-22e1-4748-ac61-9235643daa55@themaw.net>
 Content-Language: en-US
-From: Ian Kent <raven@themaw.net>
 Autocrypt: addr=raven@themaw.net;
  keydata= xsFNBE6c/ycBEADdYbAI5BKjE+yw+dOE+xucCEYiGyRhOI9JiZLUBh+PDz8cDnNxcCspH44o
  E7oTH0XPn9f7Zh0TkXWA8G6BZVCNifG7mM9K8Ecp3NheQYCk488ucSV/dz6DJ8BqX4psd4TI
@@ -123,184 +124,96 @@ Autocrypt: addr=raven@themaw.net;
  +coCSBkOU1xMiW5Td7QwkNmtXKHyEF6dxCAMK1KHIqxrBaZO27PEDSHaIPHePi7y4KKq9C9U
  8k5V5dFA0mqH/st9Sw6tFbqPkqjvvMLETDPVxOzinpU2VBGhce4wufSIoVLOjQnbIo1FIqWg
  Dx24eHv235mnNuGHrG+EapIh7g/67K0uAzwp17eyUYlE5BMcwRlaHMuKTil6
-In-Reply-To: <CANYNYEEpJabu=qiQ2VUde6J4HUC9mQSgCGksbLQqGsr1-w5NYg@mail.gmail.com>
+In-Reply-To: <f06e1ea3-22e1-4748-ac61-9235643daa55@themaw.net>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 
-On 18/4/24 01:28, Andreas Hasenack wrote:
-> Hi,
+On 18/4/24 11:46, Ian Kent wrote:
+> On 18/4/24 01:28, Andreas Hasenack wrote:
+>> Hi,
+>>
+>> in Ubuntu we are building most packages with -D_FORTIFY_SOURCE=3
+>> nowadays, and we just got a bug report that 5.1.9 was crashing with a
+>> buffer overflow warning. When rebuilt with -D_FORTIFY_SOURCE=2, it
+>> does not crash.
+>>
+>> Here is a small reproducer using a loop device. This is on kernel 6.8.0:
+>>
+>> /etc/auto.master:
+>> /- file,sun:/etc/auto.mp strictexpire
+>>
+>> "strictexpire" is what triggers the crash.
+>>
+>> /etc/auto.mp:
+>> /mp defaults :/dev/loop0
+>>
+>> # automount -f -d3
+>> Starting automounter version 5.1.9, master map /etc/auto.master
+>> using kernel protocol version 5.05
+>> lookup_nss_read_master: reading master file /etc/auto.master
+>> do_init: parse(sun): init gathered global options: (null)
+>> lookup_read_master: lookup(file): read entry /-
+>> master_do_mount: mounting /-
+>> reading file map /etc/auto.mp
+>> do_init: parse(sun): init gathered global options: (null)
+>> *** buffer overflow detected ***: terminated
+>> Aborted (core dumped)
+>>
+>> gdb show this being in the snprintf call in lib/mounts.c when
+>> ",strictexpire" is being added to the autofs mount options string:
+>> #9  0x00007ffff7dbaab4 in snprintf (__fmt=0x7ffff7dca232 "%s", __n=93,
+>> __s=0x7fffec002c1c "") at
+>> /usr/include/x86_64-linux-gnu/bits/stdio2.h:54
+>> No locals.
+>> #10 make_options_string (path=0x5555555b7d50 "/-", pipefd=6,
+>> type=type@entry=0x7ffff7dca02b "direct", flags=2560) at
+>> /usr/src/autofs-5.1.9-1ubuntu3/lib/mounts.c:764
+>>          kver_major = <optimized out>
+>>          kver_minor = 5
+>>          options = 0x7fffec002bf0
+>> "fd=6,pgrp=22935,minproto=5,maxproto=5,direct"
+>>          max_len = 93
+>>          len = 44
+>>          new = <optimized out>
+>>          __FUNCTION__ = "make_options_string"
+>>
+>> lib/mounts.c:760
+>>      /* maybe add ",strictexpire" */
+>>      if (flags & MOUNT_FLAG_STRICTEXPIRE) {
+>>          new = snprintf(options + len,
+>>                     max_len, "%s", ",strictexpire");
+>>
+>> I don't think this is actually overflowing options in this particular
+>> case, but the max_len argument doesn't seem right, as that was the
+>> original max size for options.
 >
-> in Ubuntu we are building most packages with -D_FORTIFY_SOURCE=3
-> nowadays, and we just got a bug report that 5.1.9 was crashing with a
-> buffer overflow warning. When rebuilt with -D_FORTIFY_SOURCE=2, it
-> does not crash.
+> Ha, I had report of this just the other day and I missed that obvious 
+> stupid mistake so thanks
 >
-> Here is a small reproducer using a loop device. This is on kernel 6.8.0:
+> for reporting it.
 >
-> /etc/auto.master:
-> /- file,sun:/etc/auto.mp strictexpire
 >
-> "strictexpire" is what triggers the crash.
+> I chose to change the snprintf() to strcat() because it clearly wasn't 
+> going to overflow as
 >
-> /etc/auto.mp:
-> /mp defaults :/dev/loop0
+> the calculated maximum size was sure to be larger than the contents.
 >
-> # automount -f -d3
-> Starting automounter version 5.1.9, master map /etc/auto.master
-> using kernel protocol version 5.05
-> lookup_nss_read_master: reading master file /etc/auto.master
-> do_init: parse(sun): init gathered global options: (null)
-> lookup_read_master: lookup(file): read entry /-
-> master_do_mount: mounting /-
-> reading file map /etc/auto.mp
-> do_init: parse(sun): init gathered global options: (null)
-> *** buffer overflow detected ***: terminated
-> Aborted (core dumped)
 >
-> gdb show this being in the snprintf call in lib/mounts.c when
-> ",strictexpire" is being added to the autofs mount options string:
-> #9  0x00007ffff7dbaab4 in snprintf (__fmt=0x7ffff7dca232 "%s", __n=93,
-> __s=0x7fffec002c1c "") at
-> /usr/include/x86_64-linux-gnu/bits/stdio2.h:54
-> No locals.
-> #10 make_options_string (path=0x5555555b7d50 "/-", pipefd=6,
-> type=type@entry=0x7ffff7dca02b "direct", flags=2560) at
-> /usr/src/autofs-5.1.9-1ubuntu3/lib/mounts.c:764
->          kver_major = <optimized out>
->          kver_minor = 5
->          options = 0x7fffec002bf0
-> "fd=6,pgrp=22935,minproto=5,maxproto=5,direct"
->          max_len = 93
->          len = 44
->          new = <optimized out>
->          __FUNCTION__ = "make_options_string"
+> fyi, what I used was this but I'll update the description to include 
+> the max_len usage mistake
 >
-> lib/mounts.c:760
->      /* maybe add ",strictexpire" */
->      if (flags & MOUNT_FLAG_STRICTEXPIRE) {
->          new = snprintf(options + len,
->                     max_len, "%s", ",strictexpire");
->
-> I don't think this is actually overflowing options in this particular
-> case, but the max_len argument doesn't seem right, as that was the
-> original max size for options.
+> you have pointed out (and push the change to the repo. in case you 
+> prefer to use it in Ubuntu):
 
-Ha, I had report of this just the other day and I missed that obvious 
-stupid mistake so thanks
+I have pushed this change and a couple of others to the repo.
 
-for reporting it.
+Unfortunately I made a grammatical mistake in the description which will 
+have to remain since I don't want
+
+to force push a change to fix it because that might cause problems for 
+people with existing repo. copies.
 
 
-I chose to change the snprintf() to strcat() because it clearly wasn't 
-going to overflow as
-
-the calculated maximum size was sure to be larger than the contents.
-
-
-fyi, what I used was this but I'll update the description to include the 
-max_len usage mistake
-
-you have pointed out (and push the change to the repo. in case you 
-prefer to use it in Ubuntu):
-
-
-autofs-5.1.9 - fix crash in make_options_string()
-
-From: Ian Kent <raven@themaw.net>
-
-glibc claims there's a memory overflow when make_options_string() tries
-to use the pointer <malloc()ed options string> + <current offset> with
-snprintf().
-
-The maximum options string length is calculated earlier in the function
-and analysis shows there's no overflow possible.
-
-To fix this use strcat(3) instead of snprintf(), in this case it's
-probably less overhead anyway. While we are at it drop the useless error
-checks because we know it won't overflow.
-
-Signed-off-by: Ian Kent <raven@themaw.net>
----
-  lib/mounts.c |   35 +++++++++--------------------------
-  1 file changed, 9 insertions(+), 26 deletions(-)
-
-diff --git a/lib/mounts.c b/lib/mounts.c
-index 05f18dbcf..7680c59c1 100644
---- a/lib/mounts.c
-+++ b/lib/mounts.c
-@@ -695,10 +695,11 @@ static int cacl_max_options_len(unsigned int flags)
-         unsigned int kver_minor = get_kver_minor();
-         int max_len;
-
--       /* %d and %u are maximum lenght of 10 and mount type is maximum
--        * length of 9 (e. ",indirect").
-+       /* %d and %u are maximum length of 10 and mount type is maximum
-+        * length of 9 (ie. ",indirect").
-          * The base temaplate is "fd=%d,pgrp=%u,minproto=5,maxproto=%d"
--        * plus the length of mount type plus 1 for the NULL.
-+        * plus the length of mount type plus 1 for the NULL (and an
-+        * additional 10 characters for good measure!).
-          */
-         max_len = 79 + 1;
-
-@@ -728,7 +729,7 @@ char *make_options_string(char *path, int pipefd,
-         unsigned int kver_major = get_kver_major();
-         unsigned int kver_minor = get_kver_minor();
-         char *options;
--       int max_len, len, new;
-+       int max_len, len;
-
-         max_len = cacl_max_options_len(flags);
-
-@@ -751,21 +752,13 @@ char *make_options_string(char *path, int pipefd,
-         if (len < 0)
-                 goto error_out;
-
--       if (len >= max_len)
--               goto truncated;
--
-         if (kver_major < 5 || (kver_major == 5 && kver_minor < 4))
-                 goto out;
-
-         /* maybe add ",strictexpire" */
-         if (flags & MOUNT_FLAG_STRICTEXPIRE) {
--               new = snprintf(options + len,
--                              max_len, "%s", ",strictexpire");
--               if (new < 0)
--                      goto error_out;
--               len += new;
--               if (len >= max_len)
--                       goto truncated;
-+               strcat(options, ",strictexpire");
-+               len += 13;
-         }
-
-         if (kver_major == 5 && kver_minor < 5)
-@@ -773,23 +766,13 @@ char *make_options_string(char *path, int pipefd,
-
-         /* maybe add ",ignore" */
-         if (flags & MOUNT_FLAG_IGNORE) {
--               new = snprintf(options + len,
--                              max_len, "%s", ",ignore");
--               if (new < 0)
--                      goto error_out;
--               len += new;
--               if (len >= max_len)
--                       goto truncated;
-+               strcat(options, ",ignore");
-+               len += 7;
-         }
-  out:
-         options[len] = '\0';
-         return options;
-
--truncated:
--       logerr("buffer to small for options - truncated");
--       len = max_len -1;
--       goto out;
--
-  error_out:
-         logerr("error constructing mount options string for %s", path);
-         free(options);
+Ian
 
 
