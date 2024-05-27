@@ -1,219 +1,101 @@
-Received: from wfhigh4-smtp.messagingengine.com (wfhigh4-smtp.messagingengine.com [64.147.123.155])
+Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC1F2433A6
-	for <autofs@vger.kernel.org>; Thu, 18 Apr 2024 04:49:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=64.147.123.155
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 832A5168C4;
+	Mon, 27 May 2024 19:22:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.168.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713415768; cv=none; b=q9cZpWAIi3uX9Jfzb8bhcTCDGzokNSj9ByqpOkQxRmHkCHGhchKC//xk4dBLGem1OTKI+G1iSYDa3pBg501oqXEzANj3llKHZ1N85D9fX+QjeXLrrkApGuA4rES+bYVNKSto8zI3xF1blrMqjyLa1qQy9GcAD4zL8jmWU+0T0M0=
+	t=1716837745; cv=none; b=nZMLvo/xrWBRTkhA0YZ2v0yF9lNLJBuouu5lZbUHNVjnAygv8RAkD2sy6xEq4RON8Uc8y7Lvi/gkOVJUOhh7jiPTRoyNOUonn1L0mnGSFLcsJcsedhbNAHjWs+aVGUGtrAOux9S4q8b+edjBnQ12NOU7UVoTqbr9jDOUh6nb0zE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713415768; c=relaxed/simple;
-	bh=DT/nU+DjXzLacx9eewsIv3qocoeJoOfJ5MQMssTDdxY=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:References:
-	 In-Reply-To:Content-Type; b=RVNdqIkusUOtnwt2W3NWxGESe4a21PFKA80r+YHbCngcei/VzNfCuvFTwyNd6/hqAS3c4CGAR+FWe7itJxgKbGYWzQOLJUnFLNou92FxzbPWBRwkCB0XVdyP0E3qpaeO5vRAl/Dhbn/QCbvXVvNLrXeWJBWXK7iCgcr3Q9ed/u8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net; spf=none smtp.mailfrom=themaw.net; dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b=ur4ZgW1j; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=QDqTSb7Q; arc=none smtp.client-ip=64.147.123.155
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=themaw.net
+	s=arc-20240116; t=1716837745; c=relaxed/simple;
+	bh=kRjyh3oVDFHZzlBJvCjPHdot1YuoXmIouFWC6CTwPJ0=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-ID:To:CC; b=tIIqV1w5z9gHSzedzFScVfMMA845WtqPpshH+voTIDTbGLyffgz/UfwHFspK3CKmWUODTxm/Zy/o3dB83ccFqB6Q9tl454uoTUiL+DT4cXll+iXgsK/rxyzEzVYRWz5QXRqwXQ2QvXGaZBsypDFnQQF9blJiWuR5rFzvSkLxjuQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=quicinc.com; spf=pass smtp.mailfrom=quicinc.com; dkim=pass (2048-bit key) header.d=quicinc.com header.i=@quicinc.com header.b=HRMsubYG; arc=none smtp.client-ip=205.220.168.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=quicinc.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=quicinc.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b="ur4ZgW1j";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="QDqTSb7Q"
-Received: from compute1.internal (compute1.nyi.internal [10.202.2.41])
-	by mailfhigh.west.internal (Postfix) with ESMTP id B77D9180019B;
-	Thu, 18 Apr 2024 00:49:24 -0400 (EDT)
-Received: from mailfrontend1 ([10.202.2.162])
-  by compute1.internal (MEProxy); Thu, 18 Apr 2024 00:49:24 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
-	:content-transfer-encoding:content-type:content-type:date:date
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm2; t=1713415764;
-	 x=1713502164; bh=0VyLKiUoGA5+UmisUfQuIDH6a4RRg/jZCzGw8ncS0XM=; b=
-	ur4ZgW1jsQ6rCAiZI6k37Dn8/Ll5YrP0vaj90ZyaH8tR+1JpHk6yOFhLIr8ezcW4
-	pg/oS26HSq2tI+EVX5UhdYdyUSZkdaIuIEwF6Y2pY2HAJS7x6Ee1aLudgPt416hP
-	gkN5uFqP/zFHx1TAVpTMZ3j/pYiuM68div+COmO8HA7GD+fkLU3m7pHaXtPyfIr9
-	NlAc27wi51aImtu3aSRH8GsLnpwu5/Flm0I6FT9nOrRJ1TbVnKR1CD3XZ/6JLAg8
-	vks3F+GGFQmgs2SONmvmUfyYFJZJptEj4szDzOqqg0UE6svUKkvr6AkDiumP6hdh
-	yQZo/6mFXgytakFMQtsJ/Q==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:content-transfer-encoding:content-type
-	:content-type:date:date:feedback-id:feedback-id:from:from
-	:in-reply-to:in-reply-to:message-id:mime-version:references
-	:reply-to:subject:subject:to:to:x-me-proxy:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=1713415764; x=
-	1713502164; bh=0VyLKiUoGA5+UmisUfQuIDH6a4RRg/jZCzGw8ncS0XM=; b=Q
-	DqTSb7Q+zkYoj+l8RaastoSray3rE7Lp8DD+OlxJDyslIQ5fdtbGrOlwcG+kQfzf
-	OtzIRN3t4fhqJqYO59DxbeK62HQDMrilGopWobLALNThw7Z91hgY2Y7e4EqrGsl4
-	AGJ6NUvpumZ/3/npW7XL2i4+2S5WI3hJU45dkWSoQE884KRgXzrp/qM2slNTv1kp
-	CMTDtf5ZojaWZIY1JoB+na5m0nRxn78M91PQ4TKCSRk0Dog7pVdhuA7rhKr/vgps
-	ZoYKE6FAdS25J4HUY5U6slLoUXXTzgi5Jd9XsLcEs6rIuXKqQklzdsU8qPGAhmUi
-	CDl3WaGTrMFneO1b8OgJw==
-X-ME-Sender: <xms:VKYgZqXzANFapJHrot0h53RSDo5AtUyX8QEhhlu-Z6ExL76aTCMwrw>
-    <xme:VKYgZmkXYNIcBlkjKmJ7bLqfA0bOeIdtcbrCxmHtOuRvKuSo9ql0yQ0XMJUUnUIPj
-    eqyz-FLwABj>
-X-ME-Received: <xmr:VKYgZualHoKwkT0M-ZI0j9OgAb8oRyOybWKh5OPRa569u7uePABkkqNbiX9zyCiFp39VZr7cWME3meCw2Az7BKRcY5KzJ3VKWywiXuK-f_yyNKe5YADc_N3Q>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvledrudejledgkeekucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    cujfgurhepkfffgggfuffhvfhfjggtgfesthekredttddvjeenucfhrhhomhepkfgrnhcu
-    mfgvnhhtuceorhgrvhgvnhesthhhvghmrgifrdhnvghtqeenucggtffrrghtthgvrhhnpe
-    ffkeeiffdufeeugfdtheekgeejleetfeetudejieeuieekjeetvdeiheejudejfeenucev
-    lhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpehrrghvvghnse
-    hthhgvmhgrfidrnhgvth
-X-ME-Proxy: <xmx:VKYgZhWzBJm4OKlhdsLod12QVH3L3LcKm-HV7871776Uv_MFBZqV4A>
-    <xmx:VKYgZknihOmNJ3rQOYg5W0K_V-CXa-a75bmJUoMyBvCoZT11eHtiqA>
-    <xmx:VKYgZmeLFDu0ZB8PPmrK01qgqvZQpumQG1Q-bm-kCdnrcIxpXtE6gg>
-    <xmx:VKYgZmF2j-T9zJxuHsG8MXkeVWi8TqgXq3rtDs6XMoQIfW1uO-QMHg>
-    <xmx:VKYgZgssNa3Ps1Eusm7ogZwFet1ZsTp8q1wjhZ3rjseVNqetyDsg1tts>
-Feedback-ID: i31e841b0:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
- 18 Apr 2024 00:49:22 -0400 (EDT)
-Message-ID: <75049a54-f4e1-4685-9150-139b2d1a48f8@themaw.net>
-Date: Thu, 18 Apr 2024 12:49:17 +0800
+	dkim=pass (2048-bit key) header.d=quicinc.com header.i=@quicinc.com header.b="HRMsubYG"
+Received: from pps.filterd (m0279863.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 44RB5iAb011373;
+	Mon, 27 May 2024 19:22:20 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=quicinc.com; h=
+	cc:content-transfer-encoding:content-type:date:from:message-id
+	:mime-version:subject:to; s=qcppdkim1; bh=uigtUjAeyX0roe9lGMfghP
+	X4bcugzbG6bapakn4jByw=; b=HRMsubYGJfCaf5sR3VYKV02iFhdRl4LeY8c6zz
+	Mf9qdyDwa/JR5QVO2J/hS1sbJYgR1QfvF1NIjMFCiqjlC3+IUmCKMvNeAFre5WDr
+	DyBlNLuQXNmUEgKYtJ1sXLc1sr0ji88xoM/Cbcdu9jfHYkfUZP0tSnqL6/FaKdLS
+	1oIFGBXRSEramOURRDhMHSyYpsn28BzMWnOMVfIPSS0+6k6lCCQJ5yfuOxG5LHox
+	RyZwDXFXOc9/RqR1dNDM+5MPakp9JUorj5mZgjqqYC7cF4mnKphg13RmkjRL/47C
+	59ttesy+pDYmJ5xdtGqPMUi83Lfjjd3UOMqKSDrEfUQvjK4A==
+Received: from nalasppmta01.qualcomm.com (Global_NAT1.qualcomm.com [129.46.96.20])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 3yba1k4g7n-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 27 May 2024 19:22:19 +0000 (GMT)
+Received: from nalasex01a.na.qualcomm.com (nalasex01a.na.qualcomm.com [10.47.209.196])
+	by NALASPPMTA01.qualcomm.com (8.17.1.5/8.17.1.5) with ESMTPS id 44RJMIER020640
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 27 May 2024 19:22:18 GMT
+Received: from [169.254.0.1] (10.49.16.6) by nalasex01a.na.qualcomm.com
+ (10.47.209.196) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.9; Mon, 27 May
+ 2024 12:22:17 -0700
+From: Jeff Johnson <quic_jjohnson@quicinc.com>
+Date: Mon, 27 May 2024 12:22:16 -0700
+Subject: [PATCH] fs: autofs: add MODULE_DESCRIPTION()
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 List-Subscribe: <mailto:autofs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: autofs 5.1.9 snprintf() crash with -D_FORTIFY_SOURCE=3
-From: Ian Kent <raven@themaw.net>
-To: Andreas Hasenack <andreas@canonical.com>,
- autofs mailing list <autofs@vger.kernel.org>
-References: <CANYNYEEpJabu=qiQ2VUde6J4HUC9mQSgCGksbLQqGsr1-w5NYg@mail.gmail.com>
- <f06e1ea3-22e1-4748-ac61-9235643daa55@themaw.net>
-Content-Language: en-US
-Autocrypt: addr=raven@themaw.net;
- keydata= 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
-In-Reply-To: <f06e1ea3-22e1-4748-ac61-9235643daa55@themaw.net>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-ID: <20240527-md-fs-autofs-v1-1-e06db1951bd1@quicinc.com>
+X-B4-Tracking: v=1; b=H4sIAGfdVGYC/x2MQQqDQAxFryJZN2BDZ4RepXQxo7EG6lgSFUG8e
+ 6Orz+Pz3g7GKmzwrHZQXsVkKg73WwXtkMqHUTpnoJoedaAGxw57w7TMk0+kSCH6EZoMrvyUe9m
+ u3OvtnJMxZk2lHc7IV8qy4ZhsZoXj+ANfkFCMfQAAAA==
+To: Ian Kent <raven@themaw.net>, Alexander Viro <viro@zeniv.linux.org.uk>,
+        Christian Brauner <brauner@kernel.org>
+CC: <linux-fsdevel@vger.kernel.org>, <autofs@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <kernel-janitors@vger.kernel.org>,
+        "Jeff
+ Johnson" <quic_jjohnson@quicinc.com>
+X-Mailer: b4 0.13.0
+X-ClientProxiedBy: nalasex01c.na.qualcomm.com (10.47.97.35) To
+ nalasex01a.na.qualcomm.com (10.47.209.196)
+X-QCInternal: smtphost
+X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=5800 signatures=585085
+X-Proofpoint-ORIG-GUID: CvnCgo5XStgD70_VHR9EQR6Gj2C_lBf9
+X-Proofpoint-GUID: CvnCgo5XStgD70_VHR9EQR6Gj2C_lBf9
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1039,Hydra:6.0.650,FMLib:17.12.28.16
+ definitions=2024-05-27_05,2024-05-27_01,2024-05-17_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxscore=0 impostorscore=0
+ suspectscore=0 phishscore=0 clxscore=1011 priorityscore=1501
+ lowpriorityscore=0 bulkscore=0 spamscore=0 adultscore=0 malwarescore=0
+ mlxlogscore=729 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.19.0-2405170001 definitions=main-2405270159
 
-On 18/4/24 11:46, Ian Kent wrote:
-> On 18/4/24 01:28, Andreas Hasenack wrote:
->> Hi,
->>
->> in Ubuntu we are building most packages with -D_FORTIFY_SOURCE=3
->> nowadays, and we just got a bug report that 5.1.9 was crashing with a
->> buffer overflow warning. When rebuilt with -D_FORTIFY_SOURCE=2, it
->> does not crash.
->>
->> Here is a small reproducer using a loop device. This is on kernel 6.8.0:
->>
->> /etc/auto.master:
->> /- file,sun:/etc/auto.mp strictexpire
->>
->> "strictexpire" is what triggers the crash.
->>
->> /etc/auto.mp:
->> /mp defaults :/dev/loop0
->>
->> # automount -f -d3
->> Starting automounter version 5.1.9, master map /etc/auto.master
->> using kernel protocol version 5.05
->> lookup_nss_read_master: reading master file /etc/auto.master
->> do_init: parse(sun): init gathered global options: (null)
->> lookup_read_master: lookup(file): read entry /-
->> master_do_mount: mounting /-
->> reading file map /etc/auto.mp
->> do_init: parse(sun): init gathered global options: (null)
->> *** buffer overflow detected ***: terminated
->> Aborted (core dumped)
->>
->> gdb show this being in the snprintf call in lib/mounts.c when
->> ",strictexpire" is being added to the autofs mount options string:
->> #9  0x00007ffff7dbaab4 in snprintf (__fmt=0x7ffff7dca232 "%s", __n=93,
->> __s=0x7fffec002c1c "") at
->> /usr/include/x86_64-linux-gnu/bits/stdio2.h:54
->> No locals.
->> #10 make_options_string (path=0x5555555b7d50 "/-", pipefd=6,
->> type=type@entry=0x7ffff7dca02b "direct", flags=2560) at
->> /usr/src/autofs-5.1.9-1ubuntu3/lib/mounts.c:764
->>          kver_major = <optimized out>
->>          kver_minor = 5
->>          options = 0x7fffec002bf0
->> "fd=6,pgrp=22935,minproto=5,maxproto=5,direct"
->>          max_len = 93
->>          len = 44
->>          new = <optimized out>
->>          __FUNCTION__ = "make_options_string"
->>
->> lib/mounts.c:760
->>      /* maybe add ",strictexpire" */
->>      if (flags & MOUNT_FLAG_STRICTEXPIRE) {
->>          new = snprintf(options + len,
->>                     max_len, "%s", ",strictexpire");
->>
->> I don't think this is actually overflowing options in this particular
->> case, but the max_len argument doesn't seem right, as that was the
->> original max size for options.
->
-> Ha, I had report of this just the other day and I missed that obvious 
-> stupid mistake so thanks
->
-> for reporting it.
->
->
-> I chose to change the snprintf() to strcat() because it clearly wasn't 
-> going to overflow as
->
-> the calculated maximum size was sure to be larger than the contents.
->
->
-> fyi, what I used was this but I'll update the description to include 
-> the max_len usage mistake
->
-> you have pointed out (and push the change to the repo. in case you 
-> prefer to use it in Ubuntu):
+Fix the 'make W=1' warning:
+WARNING: modpost: missing MODULE_DESCRIPTION() in fs/autofs/autofs4.o
 
-I have pushed this change and a couple of others to the repo.
+Signed-off-by: Jeff Johnson <quic_jjohnson@quicinc.com>
+---
+ fs/autofs/init.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Unfortunately I made a grammatical mistake in the description which will 
-have to remain since I don't want
+diff --git a/fs/autofs/init.c b/fs/autofs/init.c
+index b5e4dfa04ed0..1d644a35ffa0 100644
+--- a/fs/autofs/init.c
++++ b/fs/autofs/init.c
+@@ -38,4 +38,5 @@ static void __exit exit_autofs_fs(void)
+ 
+ module_init(init_autofs_fs)
+ module_exit(exit_autofs_fs)
++MODULE_DESCRIPTION("Kernel automounter support");
+ MODULE_LICENSE("GPL");
 
-to force push a change to fix it because that might cause problems for 
-people with existing repo. copies.
-
-
-Ian
-
+---
+base-commit: 2bfcfd584ff5ccc8bb7acde19b42570414bf880b
+change-id: 20240527-md-fs-autofs-62625640557b
 
