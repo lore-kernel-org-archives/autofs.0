@@ -1,31 +1,31 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B978117E8F4;
-	Tue, 28 May 2024 10:09:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C67716C6B1;
+	Tue, 28 May 2024 11:39:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716890955; cv=none; b=MFbqecOb34lvqbv3Sp0JozKsCXZmHlUHXhFA6ReCNoFn+JQWEVIMG/YhKhGhlUVLfnTNFh/RvjiVx4kDuW0zRGLGMSADqbybElws4eBspmG5lxVD5TA8DSLbk4ts4RCYT+4+hKBArK+6OqShqbA0kVpkbSEMQxb1GkWL/Gw+06M=
+	t=1716896369; cv=none; b=R9mJAYQcM804DOxFPc16Oq8r0DUAcG35ouJAFa7kTtvLeB30NZzZzpOC5+b5rF/Orz2Oj4UY4wOrV887m+vBKTtcTNiwGrjbfK8jD2x8QxEnDW9hyt3mcl+9EnKlMBMuCdN0rcjQ5kE+HTVzpr2dQ/AQgBsp18ug6Efykyvo+pc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716890955; c=relaxed/simple;
-	bh=u0H4aL4Zr2+tv0WfZ/TAAEYj4LV89tFQZguReEdgKUQ=;
+	s=arc-20240116; t=1716896369; c=relaxed/simple;
+	bh=G717kZ3GlAFRjBo95YsZ6259IX83RnHKDLX49SWlhEU=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=et7m0Jv8D8axPd+xFdHlkHPRr+h1pyGWzaoVD7It6x2zyQF914idaWbEw786liQ8pBN3OuovSmab4PbOliPyl2Iff4xAhaU9NcVsADntdL3DuLjAQdSgfpwh4oQcHIBXhV3mFiue9i7abKOf95T2GM1jqBvbvivUDJmOVIMbkSo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iDRpmt/5; arc=none smtp.client-ip=10.30.226.201
+	 MIME-Version:Content-Type; b=WEMmT/aK00LcIwoBHqjHRuRCiuFofQBu3ja/eAFVKe/xmZiH18Hf/yjmNVpGKiPA3OZJGDT7SMa/6D5h9siETeJR4+HvVVXiQwK4Al1pEDp1qfCh1LX6vEgTfJNZq2CRbbkxtRHUO+7PoBobki06gKWwFW8n8aRGpqx8yUOwpHQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bX8slS2y; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iDRpmt/5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80B3DC3277B;
-	Tue, 28 May 2024 10:09:13 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bX8slS2y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DCB4C3277B;
+	Tue, 28 May 2024 11:39:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1716890955;
-	bh=u0H4aL4Zr2+tv0WfZ/TAAEYj4LV89tFQZguReEdgKUQ=;
+	s=k20201202; t=1716896368;
+	bh=G717kZ3GlAFRjBo95YsZ6259IX83RnHKDLX49SWlhEU=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=iDRpmt/5lxhvelyALqnhGPuhOwpTfS48hFraVk2K58w5jNmpB+NMnMMLQ1Q5pQCZ/
-	 C7OcVV7qBaYo8J3Yb43Mx03LfsYQUCEvJyAPuNBOp+eUPTHrR1uUYR/EcsGqb6WA/m
-	 Hw8Wlk8FL5Iki1xocRntw7E+WoV/xng/qLco3qCDgLfd/96tyIDvqYnKbmEbuNtjsV
-	 dVwzVUb/idB714hSNlwgRf59s10eJVNCYWckIyqdC6ENpLx0OJNhciAxtTsZboUC2H
-	 xcQbjK4uUWgncJv7o340sZ/53r7RhKYSgsoIgCF8UTbKDBjkzHZpve6LvTllkwvZba
-	 cZB1EAk5b0d2w==
+	b=bX8slS2yQ+Bafw2t3X92kwBGNMxFIf2DY52pjJmO5FwwGtA75ATyz1ALnHJ8yBsQs
+	 NhQ/a1VbyjARY5ASB+CR+ZLzZ+Mbezp7GLV9iHjUdbvFMaiyrK3lPO6SyEF9kHooZi
+	 wdbeKs5H7iqbz9hVAfAtH0/5kIlHw8rkxPjWuOvNCZ+IIieHYBrVn4HZs539jWxNOW
+	 wHOuorDMwWHKeuUudqzDQ6eUphJr5rScxh6AK37ZWWb9pSfob4Vzx6Ezt3qbfpomVT
+	 bv8eraWASVjfPBRdjs7wHn0serAZHcWP0tIdpHrd4NEqfvjlxkYdOSgHDHoGenLi5m
+	 lKUtWZBg24ckg==
 From: Christian Brauner <brauner@kernel.org>
 To: Jeff Johnson <quic_jjohnson@quicinc.com>
 Cc: Christian Brauner <brauner@kernel.org>,
@@ -36,8 +36,8 @@ Cc: Christian Brauner <brauner@kernel.org>,
 	Ian Kent <raven@themaw.net>,
 	Alexander Viro <viro@zeniv.linux.org.uk>
 Subject: Re: [PATCH] fs: autofs: add MODULE_DESCRIPTION()
-Date: Tue, 28 May 2024 12:09:04 +0200
-Message-ID: <20240528-umwegen-specht-0d7e82bb5ed3@brauner>
+Date: Tue, 28 May 2024 13:39:03 +0200
+Message-ID: <20240528-ausnimmt-leise-4feb91054db2@brauner>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20240527-md-fs-autofs-v1-1-e06db1951bd1@quicinc.com>
 References: <20240527-md-fs-autofs-v1-1-e06db1951bd1@quicinc.com>
@@ -48,7 +48,7 @@ List-Subscribe: <mailto:autofs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-X-Developer-Signature: v=1; a=openpgp-sha256; l=891; i=brauner@kernel.org; h=from:subject:message-id; bh=u0H4aL4Zr2+tv0WfZ/TAAEYj4LV89tFQZguReEdgKUQ=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMaSFrnVu/e/wYrv71jpW4zJBrhbXE51/9ef9TupbZ1q9J 1B7y9eMjlIWBjEuBlkxRRaHdpNwueU8FZuNMjVg5rAygQxh4OIUgIlkZTIyXFzjJey/5ahZz+UX +ewL7r5q+ft2pSW3w4/c6TuqzCUmCDP8j60wYH7OKGy17t1WuSwPmVNPFaa/qJExKC+KeJH5itW KCQA=
+X-Developer-Signature: v=1; a=openpgp-sha256; l=920; i=brauner@kernel.org; h=from:subject:message-id; bh=G717kZ3GlAFRjBo95YsZ6259IX83RnHKDLX49SWlhEU=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMaSFHko40Lq58vmrFW5vjsqJ+TUCZYwc3Xo4vqbtW/mS/ Vp9v01HKQuDGBeDrJgii0O7Sbjccp6KzUaZGjBzWJlAhjBwcQrARBZ5MTLsvmuS9z6+22B+7/ek SsVr0fKTq93jktUez7r0U06l3uIoI8Ova9x7hDomNaxUXiT5421EUeaSptOphw59OmTTEuRzZQ8 fAA==
 X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 Content-Transfer-Encoding: 8bit
 
@@ -74,4 +74,4 @@ tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
 branch: v6.10-rc1
 
 [1/1] fs: autofs: add MODULE_DESCRIPTION()
-      (no commit info)
+      https://git.kernel.org/vfs/vfs/c/5478ce951be8
