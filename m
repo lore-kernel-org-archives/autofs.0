@@ -1,200 +1,194 @@
-Received: from wfout1-smtp.messagingengine.com (wfout1-smtp.messagingengine.com [64.147.123.144])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04DDC171C9;
-	Mon,  1 Jul 2024 03:06:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=64.147.123.144
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E47D56EB5B;
+	Mon,  1 Jul 2024 09:34:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719803166; cv=none; b=IFSLQ6rQEIy2+A6FpI7UHgIBWfJk/EQE0WT846PMw/3iHPGptJlFj1pc5kq1g2cph2Ff+a2rb+eLmVROG4x5KqfDu4ZLRud3TWzJjiQRuvgHMbqX5zbSoYXVQWnmZ7+mIVHshmRD4m7x6UVe8MWPZtY9MNJq8nMjLR5GbZkeXJI=
+	t=1719826482; cv=none; b=TYcc5NuqIWdcio3CIgYfSrkGYDvKQenotZ6gk0RehoEfX8VxlYGzmWWSDg6aVhYrSva/tAWC2zP9uMZ6/W594kpdN1EDIIMpdovBtmFcVEi1lMsILseSMY5ApjThkyPp/DXYGrA1porVS63MATEQlypvxCRw/Smi5ICO9fBCsRI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719803166; c=relaxed/simple;
-	bh=WdLI9+KQMowdRE4lt/uDMQf5cs86flgWpmReQzVfpQg=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=uGKthf8SQwuC8yZrlT8Qmbvg1oVgd2dsUM1ogQ4Bm22TDLeW+QRhHsQCTEzQ1zi5jLH6CKecSxNuLUvwRteXFt89gGqmgxye3FttqJY3p/bL6DDNg2BzfMAoey+P/L/wgbIw6hd9zoQYU8cmVRB4NDCfx0lwa2D3Nan4V2GtLsw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net; spf=none smtp.mailfrom=themaw.net; dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b=ERwIOWab; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=CaLft+Wb; arc=none smtp.client-ip=64.147.123.144
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=themaw.net
+	s=arc-20240116; t=1719826482; c=relaxed/simple;
+	bh=f8A4N+tEl5e0q03GpDKXFyL2ptcO6DWC6XTKDmFJvfo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=jJFic4Wk5XKfvukBEJ5Gh0fryVwUNmvs5pSh0KZFwnaS2urq8rU89iKrXOghHq6INT4XOauWiFr8EfwuM4YKu2ssRjcEMlNq0LjJfDzeFoK5IlQrmbzc7y1GDpnMb/skzrIsS/ezsQFdgx1s6ysQQ0aL5mF7LRjpaN5ApTOCjeA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=NbE49N1w; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=rxylWUg+; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=a/p0kXeh; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=UOg+M19d; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b="ERwIOWab";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="CaLft+Wb"
-Received: from compute2.internal (compute2.nyi.internal [10.202.2.46])
-	by mailfout.west.internal (Postfix) with ESMTP id F36851C00092;
-	Sun, 30 Jun 2024 23:06:02 -0400 (EDT)
-Received: from mailfrontend1 ([10.202.2.162])
-  by compute2.internal (MEProxy); Sun, 30 Jun 2024 23:06:03 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
-	:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm1; t=1719803162;
-	 x=1719889562; bh=blAxKVj7q0jwyu+EbjanaoPWlHbeXSCclOdG6j2yjMs=; b=
-	ERwIOWabVaaMR5gTgfZDkN2VHLmxLmGEsHXTPKWiuRfPbj1IHYJ6Ay6zr+rZo2EH
-	6ywTpS05qtJpqoEDXh0UHeacpg4uRmHPDb7zdlq6COJ21qbOfs8VdkL0BOqVGH0j
-	np7ebgww2y8krla7iYJQbduWPXKxqZbYkeTBPtaIEZPp98MmlKCdEktn9mu3EFt0
-	qVKKWqhWhG2nrzwrJ0buTt+XkpNNZJaqwIWZpxQh4Ioa9dg2hRQR7RKp3ddpVQxi
-	zMg0cAPrTxIG8weNhla5e1N8HTAtYKrmwYw20uvMbwciOifhmsSBCBOnzDiWOOrw
-	xCmIQB6vqZSMunrl91Ej4g==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to:x-me-proxy:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1719803162; x=
-	1719889562; bh=blAxKVj7q0jwyu+EbjanaoPWlHbeXSCclOdG6j2yjMs=; b=C
-	aLft+WbY3GV1DDLMxyDNSnLqzRwrOdxeiowo7BKPaT8eBbtc2U8wM1hDZnU74YmM
-	yze3ApszyllIyWHs3LgmjNg34PWuSxmxhOKStOGB4PIfYiwkfBluQLyvdZT9jHb+
-	aqG5f8C0IF8UyTCGMmEEtzFalPh316qMPut3/OQI6FAWpb/gzaXtm6j+DdI+lWmK
-	2M8enZtmUiKZcZbJ7OjXvMtD6aiw7im522CrV0wQxPq2i4B7OfPrp64V6lB5+zIs
-	SXQbCqQ9Hrf5pU9TcOSrPXOpPZHH7rlpOxCJM1jpPDVRPtWbBP2s0VfHZPtDoHw6
-	Fl+TKJnZ+3g5FR+YBBHJg==
-X-ME-Sender: <xms:Gh2CZozGUAwP8JX7nsbR2BVTBn0nk7pMd8Y2hOUjNRDz3QSMTN14NQ>
-    <xme:Gh2CZsRtzIkkJQo-r8z-vV5sELO9ufdzAh4YWwsSKZqchEWYlM1NX_3tZb3hb6fR4
-    RYZC280i5Ia>
-X-ME-Received: <xmr:Gh2CZqUsuXZnX-eWehJ8ESE6K92wzNsL6t7XxbO1kjhz3QvjA0IAWrK1kIOmFbGicDkkku-OjgTU3bgaJEgDpQu-oThEu49mirf2_pAo3TerL8AiBR5X-wA>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeftddruddvgdeihecutefuodetggdotefrodftvf
-    curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
-    uegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenuc
-    fjughrpefkffggfgfuvfevfhfhjggtgfesthejredttddvjeenucfhrhhomhepkfgrnhcu
-    mfgvnhhtuceorhgrvhgvnhesthhhvghmrgifrdhnvghtqeenucggtffrrghtthgvrhhnpe
-    efkefhgeeigeetleffgeelteejkeduvdfhheejhfehueeitdehuefhkeeukeffheenucev
-    lhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpehrrghvvghnse
-    hthhgvmhgrfidrnhgvth
-X-ME-Proxy: <xmx:Gh2CZmis822uieLplCdDT13iPQleY6Lz3J_PPlseRUJVqzRNb1pPhQ>
-    <xmx:Gh2CZqCcyRn4DDJPd088BJEb2SKJXrtGcsd3onru_sMrIoFR-Z7iPQ>
-    <xmx:Gh2CZnIM9sEkoED2AueVyhTAVzKABgYRQM7ob5nl5Zj5wxK9FMU49g>
-    <xmx:Gh2CZhBKp2xwh6hdxCd9CZwS2vCNVylRQSyuXJz62Ejde0ERSEuEvg>
-    <xmx:Gh2CZlPOlFLRhuOgtLaSvhhoBDGgZteWrPaB9EKqt3UsXkgMJuRUYtFu>
-Feedback-ID: i31e841b0:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Sun,
- 30 Jun 2024 23:06:00 -0400 (EDT)
-Message-ID: <da8b776e-f5af-4d61-b030-c5a18e2276cf@themaw.net>
-Date: Mon, 1 Jul 2024 11:05:55 +0800
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="NbE49N1w";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="rxylWUg+";
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="a/p0kXeh";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="UOg+M19d"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id EE0FD21AE6;
+	Mon,  1 Jul 2024 09:34:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1719826479; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=FozuB0CgYy31OmZnoj5QofV+vYenuNBwwgLrQA0VLBg=;
+	b=NbE49N1wg6cM3fA5V/gAHBOfJZ3iQ6sNbuWpsuZ4Zp+bn9Z5Umyo3ZIVsTHpUWUPn2enzW
+	tsMj7AFVvfs8oGvA3u0u0q4fHUpLk8ljfoqfa7KBA0sAlgAvwo7GlAk02ifm04KQgEK8+W
+	oPs5DXZdULhit68Q3ZL6j/6brVN45y0=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1719826479;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=FozuB0CgYy31OmZnoj5QofV+vYenuNBwwgLrQA0VLBg=;
+	b=rxylWUg+p7ebJEM0zMG68ju2VcNhbAxt57fAMc54omZ0LcTD2DD8Ho+V0qlj9iLpi3Z+YY
+	SmqhwNuzV3gVgjCw==
+Authentication-Results: smtp-out1.suse.de;
+	none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1719826477; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=FozuB0CgYy31OmZnoj5QofV+vYenuNBwwgLrQA0VLBg=;
+	b=a/p0kXehdSYe3JnwY+HlC46fhPrRSpXxMBXGv/2xw9LkSth2INE9N3aQvcU8OPTBNXf0GK
+	pGHA3H2sYuP9fsloNxZQY+e55cDT7gCJpurzfVnq8ETslMJpp110cle3MpclosQ69nvXFd
+	lPF9U2+C59K1awyl3VaCyb0n98PPWyk=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1719826477;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=FozuB0CgYy31OmZnoj5QofV+vYenuNBwwgLrQA0VLBg=;
+	b=UOg+M19dnm3PpJnbD1VmxR+FfwdjHAe4yQgxNY1Q9aGxTYVLbOO6OYpafqcZhp4u9ItxH5
+	NnuyFGkeLi7VTnCQ==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id DD63813800;
+	Mon,  1 Jul 2024 09:34:37 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id ps0FNi14gmb4FwAAD6G6ig
+	(envelope-from <jack@suse.cz>); Mon, 01 Jul 2024 09:34:37 +0000
+Received: by quack3.suse.cz (Postfix, from userid 1000)
+	id 533E2A088E; Mon,  1 Jul 2024 11:34:37 +0200 (CEST)
+Date: Mon, 1 Jul 2024 11:34:37 +0200
+From: Jan Kara <jack@suse.cz>
+To: Christian Brauner <brauner@kernel.org>
+Cc: Jan Kara <jack@suse.cz>, Eric Sandeen <sandeen@redhat.com>,
+	linux-fsdevel@vger.kernel.org, autofs@vger.kernel.org,
+	"Rafael J. Wysocki" <rafael@kernel.org>, linux-efi@vger.kernel.org,
+	Namjae Jeon <linkinjeon@kernel.org>, linux-ext4@vger.kernel.org,
+	Miklos Szeredi <miklos@szeredi.hu>, linux-mm@kvack.org,
+	ntfs3@lists.linux.dev, linux-cifs@vger.kernel.org,
+	linux-trace-kernel@vger.kernel.org,
+	Hans Caniullan <hcaniull@redhat.com>
+Subject: Re: [PATCH 01/14] fs_parse: add uid & gid option option parsing
+ helpers
+Message-ID: <20240701093437.d2654yek4nnq2ep6@quack3>
+References: <8dca3c11-99f4-446d-a291-35c50ed2dc14@redhat.com>
+ <de859d0a-feb9-473d-a5e2-c195a3d47abb@redhat.com>
+ <20240628094517.ifs4bp73nlggsnxz@quack3>
+ <20240628-fernfahrt-missverstanden-01543e7492b4@brauner>
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 List-Subscribe: <mailto:autofs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 02/14] autofs: Convert to new uid/gid option parsing
- helpers
-To: Eric Sandeen <sandeen@redhat.com>, linux-fsdevel@vger.kernel.org,
- Christian Brauner <brauner@kernel.org>
-Cc: autofs@vger.kernel.org
-References: <8dca3c11-99f4-446d-a291-35c50ed2dc14@redhat.com>
- <faccdd51-07d6-413f-aa55-41bb0e7660df@redhat.com>
-Content-Language: en-US
-From: Ian Kent <raven@themaw.net>
-Autocrypt: addr=raven@themaw.net;
- keydata= xsFNBE6c/ycBEADdYbAI5BKjE+yw+dOE+xucCEYiGyRhOI9JiZLUBh+PDz8cDnNxcCspH44o
- E7oTH0XPn9f7Zh0TkXWA8G6BZVCNifG7mM9K8Ecp3NheQYCk488ucSV/dz6DJ8BqX4psd4TI
- gpcs2iDQlg5CmuXDhc5z1ztNubv8hElSlFX/4l/U18OfrdTbbcjF/fivBkzkVobtltiL+msN
- bDq5S0K2KOxRxuXGaDShvfbz6DnajoVLEkNgEnGpSLxQNlJXdQBTE509MA30Q2aGk6oqHBQv
- zxjVyOu+WLGPSj7hF8SdYOjizVKIARGJzDy8qT4v/TLdVqPa2d0rx7DFvBRzOqYQL13/Zvie
- kuGbj3XvFibVt2ecS87WCJ/nlQxCa0KjGy0eb3i4XObtcU23fnd0ieZsQs4uDhZgzYB8LNud
- WXx9/Q0qsWfvZw7hEdPdPRBmwRmt2O1fbfk5CQN1EtNgS372PbOjQHaIV6n+QQP2ELIa3X5Z
- RnyaXyzwaCt6ETUHTslEaR9nOG6N3sIohIwlIywGK6WQmRBPyz5X1oF2Ld9E0crlaZYFPMRH
- hQtFxdycIBpTlc59g7uIXzwRx65HJcyBflj72YoTzwchN6Wf2rKq9xmtkV2Eihwo8WH3XkL9
- cjVKjg8rKRmqIMSRCpqFBWJpT1FzecQ8EMV0fk18Q5MLj441yQARAQABzRtJYW4gS2VudCA8
- cmF2ZW5AdGhlbWF3Lm5ldD7CwXsEEwECACUCGwMGCwkIBwMCBhUIAgkKCwQWAgMBAh4BAheA
- BQJOnjOcAhkBAAoJEOdnc4D1T9iphrYQALHK3J5rjzy4qPiLJ0EE9eJkyV1rqtzct5Ah9pu6
- LSkqxgQCfN3NmKOoj+TpbXGagg28qTGjkFvJSlpNY7zAj+fA11UVCxERgQBOJcPrbgaeYZua
- E4ST+w/inOdatNZRnNWGugqvez80QGuxFRQl1ttMaky7VxgwNTXcFNjClW3ifdD75gHlrU0V
- ZUULa1a0UVip0rNc7mFUKxhEUk+8NhowRZUk0nt1JUwezlyIYPysaN7ToVeYE4W0VgpWczmA
- tHtkRGIAgwL7DCNNJ6a+H50FEsyixmyr/pMuNswWbr3+d2MiJ1IYreZLhkGfNq9nG/+YK/0L
- Q2/OkIsz8bOrkYLTw8WwzfTz2RXV1N2NtsMKB/APMcuuodkSI5bzzgyu1cDrGLz43faFFmB9
- xAmKjibRLk6ChbmrZhuCYL0nn+RkL036jMLw5F1xiu2ltEgK2/gNJhm29iBhvScUKOqUnbPw
- DSMZ2NipMqj7Xy3hjw1CStEy3pCXp8/muaB8KRnf92VvjO79VEls29KuX6rz32bcBM4qxsVn
- cOqyghSE69H3q4SY7EbhdIfacUSEUV+m/pZK5gnJIl6n1Rh6u0MFXWttvu0j9JEl92Ayj8u8
- J/tYvFMpag3nTeC3I+arPSKpeWDX08oisrEp0Yw15r+6jbPjZNz7LvrYZ2fa3Am6KRn0zsFN
- BE6c/ycBEADZzcb88XlSiooYoEt3vuGkYoSkz7potX864MSNGekek1cwUrXeUdHUlw5zwPoC
- 4H5JF7D8q7lYoelBYJ+Mf0vdLzJLbbEtN5+v+s2UEbkDlnUQS1yRo1LxyNhJiXsQVr7WVA/c
- 8qcDWUYX7q/4Ckg77UO4l/eHCWNnHu7GkvKLVEgRjKPKroIEnjI0HMK3f6ABDReoc741RF5X
- X3qwmCgKZx0AkLjObXE3W769dtbNbWmW0lgFKe6dxlYrlZbq25Aubhcu2qTdQ/okx6uQ41+v
- QDxgYtocsT/CG1u0PpbtMeIm3mVQRXmjDFKjKAx9WOX/BHpk7VEtsNQUEp1lZo6hH7jeo5me
- CYFzgIbXdsMA9TjpzPpiWK9GetbD5KhnDId4ANMrWPNuGC/uPHDjtEJyf0cwknsRFLhL4/NJ
- KvqAuiXQ57x6qxrkuuinBQ3S9RR3JY7R7c3rqpWyaTuNNGPkIrRNyePky/ZTgTMA5of8Wioy
- z06XNhr6mG5xT+MHztKAQddV3xFy9f3Jrvtd6UvFbQPwG7Lv+/UztY5vPAzp7aJGz2pDbb0Q
- BC9u1mrHICB4awPlja/ljn+uuIb8Ow3jSy+Sx58VFEK7ctIOULdmnHXMFEihnOZO3NlNa6q+
- XZOK7J00Ne6y0IBAaNTM+xMF+JRc7Gx6bChES9vxMyMbXwARAQABwsFfBBgBAgAJBQJOnP8n
- AhsMAAoJEOdnc4D1T9iphf4QAJuR1jVyLLSkBDOPCa3ejvEqp4H5QUogl1ASkEboMiWcQJQd
- LaH6zHNySMnsN6g/UVhuviANBxtW2DFfANPiydox85CdH71gLkcOE1J7J6Fnxgjpc1Dq5kxh
- imBSqa2hlsKUt3MLXbjEYL5OTSV2RtNP04KwlGS/xMfNwQf2O2aJoC4mSs4OeZwsHJFVF8rK
- XDvL/NzMCnysWCwjVIDhHBBIOC3mecYtXrasv9nl77LgffyyaAAQZz7yZcvn8puj9jH9h+mr
- L02W+gd+Sh6Grvo5Kk4ngzfT/FtscVGv9zFWxfyoQHRyuhk0SOsoTNYN8XIWhosp9GViyDtE
- FXmrhiazz7XHc32u+o9+WugpTBZktYpORxLVwf9h1PY7CPDNX4EaIO64oyy9O3/huhOTOGha
- nVvqlYHyEYCFY7pIfaSNhgZs2aV0oP13XV6PGb5xir5ah+NW9gQk/obnvY5TAVtgTjAte5tZ
- +coCSBkOU1xMiW5Td7QwkNmtXKHyEF6dxCAMK1KHIqxrBaZO27PEDSHaIPHePi7y4KKq9C9U
- 8k5V5dFA0mqH/st9Sw6tFbqPkqjvvMLETDPVxOzinpU2VBGhce4wufSIoVLOjQnbIo1FIqWg
- Dx24eHv235mnNuGHrG+EapIh7g/67K0uAzwp17eyUYlE5BMcwRlaHMuKTil6
-In-Reply-To: <faccdd51-07d6-413f-aa55-41bb0e7660df@redhat.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240628-fernfahrt-missverstanden-01543e7492b4@brauner>
+X-Spam-Score: -3.80
+X-Spam-Level: 
+X-Spam-Flag: NO
+X-Spamd-Result: default: False [-3.80 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	MID_RHS_NOT_FQDN(0.50)[];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	RCVD_COUNT_THREE(0.00)[3];
+	FROM_HAS_DN(0.00)[];
+	ARC_NA(0.00)[];
+	RCPT_COUNT_TWELVE(0.00)[15];
+	MIME_TRACE(0.00)[0:+];
+	FUZZY_BLOCKED(0.00)[rspamd.com];
+	RCVD_TLS_LAST(0.00)[];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	FROM_EQ_ENVFROM(0.00)[];
+	TO_DN_SOME(0.00)[];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	MISSING_XM_UA(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[sandeen.net:email,suse.com:email]
 
-On 28/6/24 08:27, Eric Sandeen wrote:
-> Convert to new uid/gid option parsing helpers
->
-> Signed-off-by: Eric Sandeen <sandeen@sandeen.net>
-> ---
->   fs/autofs/inode.c | 16 ++++------------
->   1 file changed, 4 insertions(+), 12 deletions(-)
->
-> diff --git a/fs/autofs/inode.c b/fs/autofs/inode.c
-> index 1f5db6863663..cf792d4de4f1 100644
-> --- a/fs/autofs/inode.c
-> +++ b/fs/autofs/inode.c
-> @@ -126,7 +126,7 @@ enum {
->   const struct fs_parameter_spec autofs_param_specs[] = {
->   	fsparam_flag	("direct",		Opt_direct),
->   	fsparam_fd	("fd",			Opt_fd),
-> -	fsparam_u32	("gid",			Opt_gid),
-> +	fsparam_gid	("gid",			Opt_gid),
->   	fsparam_flag	("ignore",		Opt_ignore),
->   	fsparam_flag	("indirect",		Opt_indirect),
->   	fsparam_u32	("maxproto",		Opt_maxproto),
-> @@ -134,7 +134,7 @@ const struct fs_parameter_spec autofs_param_specs[] = {
->   	fsparam_flag	("offset",		Opt_offset),
->   	fsparam_u32	("pgrp",		Opt_pgrp),
->   	fsparam_flag	("strictexpire",	Opt_strictexpire),
-> -	fsparam_u32	("uid",			Opt_uid),
-> +	fsparam_uid	("uid",			Opt_uid),
->   	{}
->   };
->   
-> @@ -193,8 +193,6 @@ static int autofs_parse_param(struct fs_context *fc, struct fs_parameter *param)
->   	struct autofs_fs_context *ctx = fc->fs_private;
->   	struct autofs_sb_info *sbi = fc->s_fs_info;
->   	struct fs_parse_result result;
-> -	kuid_t uid;
-> -	kgid_t gid;
->   	int opt;
->   
->   	opt = fs_parse(fc, autofs_param_specs, param, &result);
-> @@ -205,16 +203,10 @@ static int autofs_parse_param(struct fs_context *fc, struct fs_parameter *param)
->   	case Opt_fd:
->   		return autofs_parse_fd(fc, sbi, param, &result);
->   	case Opt_uid:
-> -		uid = make_kuid(current_user_ns(), result.uint_32);
-> -		if (!uid_valid(uid))
-> -			return invalfc(fc, "Invalid uid");
-> -		ctx->uid = uid;
-> +		ctx->uid = result.uid;
->   		break;
->   	case Opt_gid:
-> -		gid = make_kgid(current_user_ns(), result.uint_32);
-> -		if (!gid_valid(gid))
-> -			return invalfc(fc, "Invalid gid");
-> -		ctx->gid = gid;
-> +		ctx->gid = result.gid;
->   		break;
->   	case Opt_pgrp:
->   		ctx->pgrp = result.uint_32;
+On Fri 28-06-24 14:23:35, Christian Brauner wrote:
+> On Fri, Jun 28, 2024 at 11:45:17AM GMT, Jan Kara wrote:
+> > On Thu 27-06-24 19:26:24, Eric Sandeen wrote:
+> > > Multiple filesystems take uid and gid as options, and the code to
+> > > create the ID from an integer and validate it is standard boilerplate
+> > > that can be moved into common helper functions, so do that for
+> > > consistency and less cut&paste.
+> > > 
+> > > This also helps avoid the buggy pattern noted by Seth Jenkins at
+> > > https://lore.kernel.org/lkml/CALxfFW4BXhEwxR0Q5LSkg-8Vb4r2MONKCcUCVioehXQKr35eHg@mail.gmail.com/
+> > > because uid/gid parsing will fail before any assignment in most
+> > > filesystems.
+> > > 
+> > > Signed-off-by: Eric Sandeen <sandeen@sandeen.net>
+> > 
+> > I like the idea since this seems like a nobrainer but is actually
+> > surprisingly subtle...
+> > 
+> > > diff --git a/fs/fs_parser.c b/fs/fs_parser.c
+> > > index a4d6ca0b8971..24727ec34e5a 100644
+> > > --- a/fs/fs_parser.c
+> > > +++ b/fs/fs_parser.c
+> > > @@ -308,6 +308,40 @@ int fs_param_is_fd(struct p_log *log, const struct fs_parameter_spec *p,
+> > >  }
+> > >  EXPORT_SYMBOL(fs_param_is_fd);
+> > >  
+> > > +int fs_param_is_uid(struct p_log *log, const struct fs_parameter_spec *p,
+> > > +		    struct fs_parameter *param, struct fs_parse_result *result)
+> > > +{
+> > > +	kuid_t uid;
+> > > +
+> > > +	if (fs_param_is_u32(log, p, param, result) != 0)
+> > > +		return fs_param_bad_value(log, param);
+> > > +
+> > > +	uid = make_kuid(current_user_ns(), result->uint_32);
+> > 
+> > But here is the problem: Filesystems mountable in user namespaces need to use
+> > fc->user_ns for resolving uids / gids (e.g. like fuse_parse_param()).
+> > Having helpers that work for some filesystems and are subtly broken for
+> > others is worse than no helpers... Or am I missing something?
+> > 
+> > And the problem with fc->user_ns is that currently __fs_parse() does not
+> > get fs_context as an argument... So that will need some larger work.
+> 
+> Not really. If someone does an fsopen() in a namespace but the process
+> that actually sets mount options is in another namespace then it's
+> completely intransparent what uid/gid this will resolve to if it's
+> resovled according to fsopen().
+> 
+> It's also a bit strange if someone ends up handing off a tmpfs fscontext
+> that was created in the initial namespace to some random namespace and
+> they now can set uid/gid options that aren't mapped according to their
+> namespace but instead are 1:1 resolved according to the intial
+> namespace. So this would hinder delegation.
+> 
+> The expectation is that uid/gid options are resolved in the caller's
+> namespace and that shouldn't be any different for fscontexts for
+> namespace mountable filesystems. The crucial point is to ensure that the
+> resulting kuid/kgid can be resolved in the namespace the filesystem is
+> mounted in at the end. That's what was lacking in e.g., tmpfs in commit
+> 0200679fc795 ("tmpfs: verify {g,u}id mount options correctly")
+> 
+> The fuse conversion is the only inconsistency in that regard.
 
+OK, thanks for explanation!
 
-I like the idea and it looks just fine for autofs.
-
-Acked-by: Ian Kent <raven@themaw.net>
-
-
-Ian
-
-
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
