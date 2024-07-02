@@ -1,194 +1,120 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E47D56EB5B;
-	Mon,  1 Jul 2024 09:34:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E1183F8E2;
+	Tue,  2 Jul 2024 04:27:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719826482; cv=none; b=TYcc5NuqIWdcio3CIgYfSrkGYDvKQenotZ6gk0RehoEfX8VxlYGzmWWSDg6aVhYrSva/tAWC2zP9uMZ6/W594kpdN1EDIIMpdovBtmFcVEi1lMsILseSMY5ApjThkyPp/DXYGrA1porVS63MATEQlypvxCRw/Smi5ICO9fBCsRI=
+	t=1719894437; cv=none; b=uNxepcjEW8w29a23JyVt6p3qvEpY5Tt1selM2Gyk6VqyMcM+54d9fCfCExXrp1jg1g3WPgrYwLesrz/jY1c455Qv+q11M99MNto8zFLPDPrhXksi0yDB4HZPEzNXdUiq3IRwMfzetZ0ItydV43t/NyTd5mVF2rap0TSqPuewDkc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719826482; c=relaxed/simple;
-	bh=f8A4N+tEl5e0q03GpDKXFyL2ptcO6DWC6XTKDmFJvfo=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=jJFic4Wk5XKfvukBEJ5Gh0fryVwUNmvs5pSh0KZFwnaS2urq8rU89iKrXOghHq6INT4XOauWiFr8EfwuM4YKu2ssRjcEMlNq0LjJfDzeFoK5IlQrmbzc7y1GDpnMb/skzrIsS/ezsQFdgx1s6ysQQ0aL5mF7LRjpaN5ApTOCjeA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=NbE49N1w; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=rxylWUg+; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=a/p0kXeh; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=UOg+M19d; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
+	s=arc-20240116; t=1719894437; c=relaxed/simple;
+	bh=Pv0BfDTulESS3H2hspa9V/qPBcr+GryRdQNP1DxU5JY=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=BHjo1UmSc5jUdZNWi6C4S2G6AXBMcu3yUgWMIWzCZK5ABww3irvjwLUarizT4STM4xEXdRd0ZiLWOtCz4aVDNWYdCxD1LdiEPXSjBnJ3ZIzpXljIzwON3UbV6JgPxru6xIUYzdZWMFo4CiqwT9DwEfioxfs0+cGHR2TSlRZfxrA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QmThOihg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="NbE49N1w";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="rxylWUg+";
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="a/p0kXeh";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="UOg+M19d"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id EE0FD21AE6;
-	Mon,  1 Jul 2024 09:34:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1719826479; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=FozuB0CgYy31OmZnoj5QofV+vYenuNBwwgLrQA0VLBg=;
-	b=NbE49N1wg6cM3fA5V/gAHBOfJZ3iQ6sNbuWpsuZ4Zp+bn9Z5Umyo3ZIVsTHpUWUPn2enzW
-	tsMj7AFVvfs8oGvA3u0u0q4fHUpLk8ljfoqfa7KBA0sAlgAvwo7GlAk02ifm04KQgEK8+W
-	oPs5DXZdULhit68Q3ZL6j/6brVN45y0=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1719826479;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=FozuB0CgYy31OmZnoj5QofV+vYenuNBwwgLrQA0VLBg=;
-	b=rxylWUg+p7ebJEM0zMG68ju2VcNhbAxt57fAMc54omZ0LcTD2DD8Ho+V0qlj9iLpi3Z+YY
-	SmqhwNuzV3gVgjCw==
-Authentication-Results: smtp-out1.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1719826477; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=FozuB0CgYy31OmZnoj5QofV+vYenuNBwwgLrQA0VLBg=;
-	b=a/p0kXehdSYe3JnwY+HlC46fhPrRSpXxMBXGv/2xw9LkSth2INE9N3aQvcU8OPTBNXf0GK
-	pGHA3H2sYuP9fsloNxZQY+e55cDT7gCJpurzfVnq8ETslMJpp110cle3MpclosQ69nvXFd
-	lPF9U2+C59K1awyl3VaCyb0n98PPWyk=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1719826477;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=FozuB0CgYy31OmZnoj5QofV+vYenuNBwwgLrQA0VLBg=;
-	b=UOg+M19dnm3PpJnbD1VmxR+FfwdjHAe4yQgxNY1Q9aGxTYVLbOO6OYpafqcZhp4u9ItxH5
-	NnuyFGkeLi7VTnCQ==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id DD63813800;
-	Mon,  1 Jul 2024 09:34:37 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id ps0FNi14gmb4FwAAD6G6ig
-	(envelope-from <jack@suse.cz>); Mon, 01 Jul 2024 09:34:37 +0000
-Received: by quack3.suse.cz (Postfix, from userid 1000)
-	id 533E2A088E; Mon,  1 Jul 2024 11:34:37 +0200 (CEST)
-Date: Mon, 1 Jul 2024 11:34:37 +0200
-From: Jan Kara <jack@suse.cz>
-To: Christian Brauner <brauner@kernel.org>
-Cc: Jan Kara <jack@suse.cz>, Eric Sandeen <sandeen@redhat.com>,
-	linux-fsdevel@vger.kernel.org, autofs@vger.kernel.org,
-	"Rafael J. Wysocki" <rafael@kernel.org>, linux-efi@vger.kernel.org,
-	Namjae Jeon <linkinjeon@kernel.org>, linux-ext4@vger.kernel.org,
-	Miklos Szeredi <miklos@szeredi.hu>, linux-mm@kvack.org,
-	ntfs3@lists.linux.dev, linux-cifs@vger.kernel.org,
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QmThOihg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B27DDC116B1;
+	Tue,  2 Jul 2024 04:27:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1719894437;
+	bh=Pv0BfDTulESS3H2hspa9V/qPBcr+GryRdQNP1DxU5JY=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=QmThOihg9UGFPaNoDYQyvvbRVQdaQkcab25Xy2SgQMsBgmC3a7qBKgUNdrsX6AoTx
+	 mJhcmZq7U/oVhTFsfpggxVdwg8WRJXrYHREzkqOw34vvGDGgZX7R90e2xCIGko+vvA
+	 qBmWLbhllc4Ea/2SnLbt4k0Kb0R8dMBE1S9D1iXW7Zt27SE0Ya2hVrO11DbQWG+2ri
+	 HqbBH6dAx7D01N9uC0MQBTZvFaqmMw13gj3qDjJVI6mwSkBuY2ATeM1/wpABIqaAhH
+	 8z+HoC0itipm7i+VVUwgjskOl6FhAVgVuLe2pHxeKVLhhG2BoVo9KTzlu0+oEK8oN3
+	 q8sGJHAxqGD8Q==
+From: Christian Brauner <brauner@kernel.org>
+To: linux-fsdevel@vger.kernel.org,
+	Eric Sandeen <sandeen@redhat.com>
+Cc: Christian Brauner <brauner@kernel.org>,
+	autofs@vger.kernel.org,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	linux-efi@vger.kernel.org,
+	Namjae Jeon <linkinjeon@kernel.org>,
+	linux-ext4@vger.kernel.org,
+	Miklos Szeredi <miklos@szeredi.hu>,
+	linux-mm@kvack.org,
+	Jan Kara <jack@suse.cz>,
+	ntfs3@lists.linux.dev,
+	linux-cifs@vger.kernel.org,
 	linux-trace-kernel@vger.kernel.org,
 	Hans Caniullan <hcaniull@redhat.com>
-Subject: Re: [PATCH 01/14] fs_parse: add uid & gid option option parsing
- helpers
-Message-ID: <20240701093437.d2654yek4nnq2ep6@quack3>
+Subject: Re: (subset) [PATCH 0/14] New uid & gid mount option parsing helpers
+Date: Tue,  2 Jul 2024 06:25:05 +0200
+Message-ID: <20240702-putzig-krater-aea1bf2b652d@brauner>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <8dca3c11-99f4-446d-a291-35c50ed2dc14@redhat.com>
 References: <8dca3c11-99f4-446d-a291-35c50ed2dc14@redhat.com>
- <de859d0a-feb9-473d-a5e2-c195a3d47abb@redhat.com>
- <20240628094517.ifs4bp73nlggsnxz@quack3>
- <20240628-fernfahrt-missverstanden-01543e7492b4@brauner>
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 List-Subscribe: <mailto:autofs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240628-fernfahrt-missverstanden-01543e7492b4@brauner>
-X-Spam-Score: -3.80
-X-Spam-Level: 
-X-Spam-Flag: NO
-X-Spamd-Result: default: False [-3.80 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	MID_RHS_NOT_FQDN(0.50)[];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
-	RCVD_COUNT_THREE(0.00)[3];
-	FROM_HAS_DN(0.00)[];
-	ARC_NA(0.00)[];
-	RCPT_COUNT_TWELVE(0.00)[15];
-	MIME_TRACE(0.00)[0:+];
-	FUZZY_BLOCKED(0.00)[rspamd.com];
-	RCVD_TLS_LAST(0.00)[];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	TO_DN_SOME(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	MISSING_XM_UA(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[sandeen.net:email,suse.com:email]
+Content-Type: text/plain; charset="utf-8"
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2869; i=brauner@kernel.org; h=from:subject:message-id; bh=Pv0BfDTulESS3H2hspa9V/qPBcr+GryRdQNP1DxU5JY=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMaQ1N86epaB8O+RGuUfcyR2t/+MibkifPWzJrzm/ojW// bz+7/jIjlIWBjEuBlkxRRaHdpNwueU8FZuNMjVg5rAygQxh4OIUgIncDGf4p3JIf1/9yu1MzKr3 pz/12149IctCKa9v5339fMP28/emGDIyXF+35fODGL28nUFvD8xImtm5d1dfRe/hRdfiA9seu4Y HcwIA
+X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
+Content-Transfer-Encoding: 8bit
 
-On Fri 28-06-24 14:23:35, Christian Brauner wrote:
-> On Fri, Jun 28, 2024 at 11:45:17AM GMT, Jan Kara wrote:
-> > On Thu 27-06-24 19:26:24, Eric Sandeen wrote:
-> > > Multiple filesystems take uid and gid as options, and the code to
-> > > create the ID from an integer and validate it is standard boilerplate
-> > > that can be moved into common helper functions, so do that for
-> > > consistency and less cut&paste.
-> > > 
-> > > This also helps avoid the buggy pattern noted by Seth Jenkins at
-> > > https://lore.kernel.org/lkml/CALxfFW4BXhEwxR0Q5LSkg-8Vb4r2MONKCcUCVioehXQKr35eHg@mail.gmail.com/
-> > > because uid/gid parsing will fail before any assignment in most
-> > > filesystems.
-> > > 
-> > > Signed-off-by: Eric Sandeen <sandeen@sandeen.net>
-> > 
-> > I like the idea since this seems like a nobrainer but is actually
-> > surprisingly subtle...
-> > 
-> > > diff --git a/fs/fs_parser.c b/fs/fs_parser.c
-> > > index a4d6ca0b8971..24727ec34e5a 100644
-> > > --- a/fs/fs_parser.c
-> > > +++ b/fs/fs_parser.c
-> > > @@ -308,6 +308,40 @@ int fs_param_is_fd(struct p_log *log, const struct fs_parameter_spec *p,
-> > >  }
-> > >  EXPORT_SYMBOL(fs_param_is_fd);
-> > >  
-> > > +int fs_param_is_uid(struct p_log *log, const struct fs_parameter_spec *p,
-> > > +		    struct fs_parameter *param, struct fs_parse_result *result)
-> > > +{
-> > > +	kuid_t uid;
-> > > +
-> > > +	if (fs_param_is_u32(log, p, param, result) != 0)
-> > > +		return fs_param_bad_value(log, param);
-> > > +
-> > > +	uid = make_kuid(current_user_ns(), result->uint_32);
-> > 
-> > But here is the problem: Filesystems mountable in user namespaces need to use
-> > fc->user_ns for resolving uids / gids (e.g. like fuse_parse_param()).
-> > Having helpers that work for some filesystems and are subtly broken for
-> > others is worse than no helpers... Or am I missing something?
-> > 
-> > And the problem with fc->user_ns is that currently __fs_parse() does not
-> > get fs_context as an argument... So that will need some larger work.
+On Thu, 27 Jun 2024 19:24:59 -0500, Eric Sandeen wrote:
+> Multiple filesystems take uid and gid as options, and the code to
+> create the ID from an integer and validate it is standard boilerplate
+> that can be moved into common helper functions, so do that for
+> consistency and less cut&paste.
 > 
-> Not really. If someone does an fsopen() in a namespace but the process
-> that actually sets mount options is in another namespace then it's
-> completely intransparent what uid/gid this will resolve to if it's
-> resovled according to fsopen().
+> This also helps avoid the buggy pattern noted by Seth Jenkins at
+> https://lore.kernel.org/lkml/CALxfFW4BXhEwxR0Q5LSkg-8Vb4r2MONKCcUCVioehXQKr35eHg@mail.gmail.com/
+> because uid/gid parsing will fail before any assignment in most
+> filesystems.
 > 
-> It's also a bit strange if someone ends up handing off a tmpfs fscontext
-> that was created in the initial namespace to some random namespace and
-> they now can set uid/gid options that aren't mapped according to their
-> namespace but instead are 1:1 resolved according to the intial
-> namespace. So this would hinder delegation.
-> 
-> The expectation is that uid/gid options are resolved in the caller's
-> namespace and that shouldn't be any different for fscontexts for
-> namespace mountable filesystems. The crucial point is to ensure that the
-> resulting kuid/kgid can be resolved in the namespace the filesystem is
-> mounted in at the end. That's what was lacking in e.g., tmpfs in commit
-> 0200679fc795 ("tmpfs: verify {g,u}id mount options correctly")
-> 
-> The fuse conversion is the only inconsistency in that regard.
+> [...]
 
-OK, thanks for explanation!
+I've snatched everything but the fuse change as we should do that one in
+two steps.
 
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+---
+
+Applied to the vfs.mount.api branch of the vfs/vfs.git tree.
+Patches in the vfs.mount.api branch should appear in linux-next soon.
+
+Please report any outstanding bugs that were missed during review in a
+new review to the original patch series allowing us to drop it.
+
+It's encouraged to provide Acked-bys and Reviewed-bys even though the
+patch has now been applied. If possible patch trailers will be updated.
+
+Note that commit hashes shown below are subject to change due to rebase,
+trailer updates or similar. If in doubt, please check the listed branch.
+
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
+branch: vfs.mount.api
+
+[01/14] fs_parse: add uid & gid option option parsing helpers
+        https://git.kernel.org/vfs/vfs/c/9f111059e725
+[02/14] autofs: Convert to new uid/gid option parsing helpers
+        https://git.kernel.org/vfs/vfs/c/748cddf13de5
+[03/14] debugfs: Convert to new uid/gid option parsing helpers
+        https://git.kernel.org/vfs/vfs/c/49abee5991e1
+[04/14] efivarfs: Convert to new uid/gid option parsing helpers
+        https://git.kernel.org/vfs/vfs/c/dcffad38c767
+[05/14] exfat: Convert to new uid/gid option parsing helpers
+        https://git.kernel.org/vfs/vfs/c/ffe1b94d7464
+[06/14] ext4: Convert to new uid/gid option parsing helpers
+        https://git.kernel.org/vfs/vfs/c/6b5732b5ca4f
+[08/14] hugetlbfs: Convert to new uid/gid option parsing helpers
+        https://git.kernel.org/vfs/vfs/c/eefc13247722
+[09/14] isofs: Convert to new uid/gid option parsing helpers
+        https://git.kernel.org/vfs/vfs/c/6a265845db28
+[10/14] ntfs3: Convert to new uid/gid option parsing helpers
+        https://git.kernel.org/vfs/vfs/c/c449cb5d1bce
+[11/14] tmpfs: Convert to new uid/gid option parsing helpers
+        https://git.kernel.org/vfs/vfs/c/2ec07010b6a9
+[12/14] smb: client: Convert to new uid/gid option parsing helpers
+        https://git.kernel.org/vfs/vfs/c/3229e3a5a374
+[13/14] tracefs: Convert to new uid/gid option parsing helpers
+        https://git.kernel.org/vfs/vfs/c/b548291690d1
+[14/14] vboxsf: Convert to new uid/gid option parsing helpers
+        https://git.kernel.org/vfs/vfs/c/da99d45bd551
