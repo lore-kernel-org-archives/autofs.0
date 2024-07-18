@@ -1,118 +1,144 @@
-Received: from mout-p-102.mailbox.org (mout-p-102.mailbox.org [80.241.56.152])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01C261422AD;
-	Thu, 18 Jul 2024 14:35:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=80.241.56.152
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E9C78564A;
+	Thu, 18 Jul 2024 23:36:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.10
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721313313; cv=none; b=qfwUURNKqUvANqxIMEZLNcMrIBKrQxU/jH9VH61kqPBm09cutI9guQzYbepQooUo6s2ohqcKU0lN3w/LOxusmzax6FVaXUgUPYa8qMmBcv0Nhz/Horh1+WkMyp28sVjYAi2JNNZ17QQEH7UthDaKYT3z7v6vrItO48zT9pH5LdM=
+	t=1721345821; cv=none; b=Q8JOgnGmhk5VLGT0TiXGXcU96AmokiMafx4m7IDRBQqgalP77bwfI3FyjmxF3NB7lnjM0Gs725m+We115ael1nNJLdc+Q50a9SMoEa/9F4gcV3kzG8hdXB/UifondACjzTS8hoZ61QS3uwMrP7NsJHCpBU56OYkZi3oaef2V8pg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721313313; c=relaxed/simple;
-	bh=Jr28ONTGEGZ3llmBJFJ08PD+m7WITrYvPmt5Q25QSjI=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=i0wGyvkls1jipqzCz/uyCONQAUeAS4LZxABVfVU/aFT/zryBYNtLTtCLY0ChaDxEnlxGtLAe5fQiSHlkofVcmEtK1CaMo6QSESsCHVqFdgPHiG/KYhNWsm9VOFL6b2mCyfjE2vt5C8mQprjli0wteQ6g7cSHfzpbbxmE7ijrcZ0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=cyphar.com; spf=pass smtp.mailfrom=cyphar.com; dkim=pass (2048-bit key) header.d=cyphar.com header.i=@cyphar.com header.b=VnGYqHbU; arc=none smtp.client-ip=80.241.56.152
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=cyphar.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cyphar.com
+	s=arc-20240116; t=1721345821; c=relaxed/simple;
+	bh=smtS2+CWeRfe2e3JgEKaqC4HezPRhn7ty+Xynx0V4gM=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=jOo0jvDVHa6JoWjvhtYuwgaOOMCoK8bukGU+8nLKMOtWKYybhSufF52NntQdfHsqJS8I1hXQLbodFTbHWEQIfETs1lgx6tdtRTa4/reyDCxqzBu+a4uD/v6YK4AQP4SH9a1UMh/oHrI165rNUkOBWkrMRhBUOzH8TxYDAgQ5RWk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=CNQqwMlE; arc=none smtp.client-ip=192.198.163.10
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=cyphar.com header.i=@cyphar.com header.b="VnGYqHbU"
-Received: from smtp1.mailbox.org (smtp1.mailbox.org [IPv6:2001:67c:2050:b231:465::1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mout-p-102.mailbox.org (Postfix) with ESMTPS id 4WPwM00pWwz9sTY;
-	Thu, 18 Jul 2024 16:35:08 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cyphar.com; s=MBO0001;
-	t=1721313308;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=y8TGL2R+w47tHxEFLpwjFBSwDP9Gz+5DRz2BodXc/7w=;
-	b=VnGYqHbUrwfjP50NAyDvmrSbDzhAvXdSNgOOTcMKw1VO1zdPqHUOYVM5veajyQP4n4zLnH
-	25jKaMWDxUEwBO6DGQBLDaEpPukqAps23Sw87RnJuGT5tfVeYlcsdm3C+rO7T9KBpZkScT
-	FSPbMAzbjpAb8HeqrlsebwTdaVOchayoEceNiRR5v4MhZvnRYKVAxJXX2V64OGQvE5NxtJ
-	653+YLvb95USyLZ3iTFkKbpfOGtf2dCR+AZ0FcHAlgqQu76H7Hv1OBYDsiJg8IDPF0Mgvc
-	bIyAX6QvmoUFlWSa17kRQ4XnhEv8VsaDO2opp3pA/HUznSPR4hSbqWUvKDg0jg==
-From: Aleksa Sarai <cyphar@cyphar.com>
-Date: Fri, 19 Jul 2024 00:34:23 +1000
-Subject: [PATCH 2/2] coda: support FSCONFIG_SET_FD for fd mount flag
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="CNQqwMlE"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1721345820; x=1752881820;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=smtS2+CWeRfe2e3JgEKaqC4HezPRhn7ty+Xynx0V4gM=;
+  b=CNQqwMlEZ22SyXOXVnIZmy88eFOYVZFHkAnIe9vR1lK+k9jZx8gK9iA8
+   BwnfdoTrPJWQBmRFljFEwByr+P4cbFAjN1FfMQLLNlvJgdNxckBT93pXK
+   JPwp+mX6xsEZk0MYRqKP+atb7sX/doeAGT+myPjtEqHuXqa8HDFIyXuGs
+   WqXoOecSfVIltZuAcJSjKHjpdbYHlVsDWOorpStAppesGqruT16Ksd7Wt
+   QTbdZ/sI6e0m0uWNrS+JIj1HExq2XAGlG2jRMAlTkGuz5jCh7xjslFFKX
+   rrL2RS+Aa5VqvpH6oW+lYXF5y7KOt0avlOKHX6MeQ99LR8bbkOJWAPFnb
+   A==;
+X-CSE-ConnectionGUID: V0DBpDz/RVensmE5g2snaA==
+X-CSE-MsgGUID: ub4xldJGRHao+dhWr9+mRg==
+X-IronPort-AV: E=McAfee;i="6700,10204,11137"; a="30362622"
+X-IronPort-AV: E=Sophos;i="6.09,219,1716274800"; 
+   d="scan'208";a="30362622"
+Received: from orviesa004.jf.intel.com ([10.64.159.144])
+  by fmvoesa104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Jul 2024 16:36:59 -0700
+X-CSE-ConnectionGUID: 4nF54jINR/WpSqgZUoeTsQ==
+X-CSE-MsgGUID: jolg39cRQDySgDn3xBO2LA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.09,219,1716274800"; 
+   d="scan'208";a="56083519"
+Received: from lkp-server01.sh.intel.com (HELO 68891e0c336b) ([10.239.97.150])
+  by orviesa004.jf.intel.com with ESMTP; 18 Jul 2024 16:36:56 -0700
+Received: from kbuild by 68891e0c336b with local (Exim 4.96)
+	(envelope-from <lkp@intel.com>)
+	id 1sUag9-000hfG-1F;
+	Thu, 18 Jul 2024 23:36:53 +0000
+Date: Fri, 19 Jul 2024 07:36:01 +0800
+From: kernel test robot <lkp@intel.com>
+To: Aleksa Sarai <cyphar@cyphar.com>, Ian Kent <raven@themaw.net>,
+	Bill O'Donnell <bodonnel@redhat.com>,
+	Christian Brauner <brauner@kernel.org>,
+	Jan Harkes <jaharkes@cs.cmu.edu>, coda@cs.cmu.edu,
+	Eric Sandeen <sandeen@redhat.com>,
+	David Howells <dhowells@redhat.com>
+Cc: oe-kbuild-all@lists.linux.dev, autofs@vger.kernel.org,
+	linux-kernel@vger.kernel.org, codalist@coda.cs.cmu.edu,
+	Aleksa Sarai <cyphar@cyphar.com>
+Subject: Re: [PATCH 2/2] coda: support FSCONFIG_SET_FD for fd mount flag
+Message-ID: <202407190741.8fA9KJbt-lkp@intel.com>
+References: <20240719-fsconfig-fsparam_fd-fixes-v1-2-7ccd315c2ad4@cyphar.com>
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 List-Subscribe: <mailto:autofs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20240719-fsconfig-fsparam_fd-fixes-v1-2-7ccd315c2ad4@cyphar.com>
-References: <20240719-fsconfig-fsparam_fd-fixes-v1-0-7ccd315c2ad4@cyphar.com>
-In-Reply-To: <20240719-fsconfig-fsparam_fd-fixes-v1-0-7ccd315c2ad4@cyphar.com>
-To: Ian Kent <raven@themaw.net>, Bill O'Donnell <bodonnel@redhat.com>, 
- Christian Brauner <brauner@kernel.org>, Jan Harkes <jaharkes@cs.cmu.edu>, 
- coda@cs.cmu.edu, Eric Sandeen <sandeen@redhat.com>, 
- David Howells <dhowells@redhat.com>
-Cc: autofs@vger.kernel.org, linux-kernel@vger.kernel.org, 
- codalist@coda.cs.cmu.edu, Aleksa Sarai <cyphar@cyphar.com>
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1371; i=cyphar@cyphar.com;
- h=from:subject:message-id; bh=Jr28ONTGEGZ3llmBJFJ08PD+m7WITrYvPmt5Q25QSjI=;
- b=owGbwMvMwCWmMf3Xpe0vXfIZT6slMaTN1GD+OUWzb6v3ig13jtrrtyzN3/lyx/VpaXtW71y+w
- KFqluavFx2lLAxiXAyyYoos2/w8QzfNX3wl+dNKNpg5rEwgQxi4OAVgIjksjAzzNsffMjn35qK3
- gNSWHh5PQ3PfYxN4zF8ZTRV/3rHdwImB4Z9Ww4UXE6wzvH8fns6h7LHG9drTZxP0H0x6kjzpYdT
- c2TbsAA==
-X-Developer-Key: i=cyphar@cyphar.com; a=openpgp;
- fpr=C9C370B246B09F6DBCFC744C34401015D1D2D386
-X-Rspamd-Queue-Id: 4WPwM00pWwz9sTY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240719-fsconfig-fsparam_fd-fixes-v1-2-7ccd315c2ad4@cyphar.com>
 
-It's possible for users to pass file descriptors directly using
-FSCONFIG_SET_FD, but the old version only supported the string-based
-passing of file descriptors.
+Hi Aleksa,
 
-Fixes: 5916f439f2eb ("Convert coda to use the new mount API")
-Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
----
- fs/coda/inode.c | 18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+kernel test robot noticed the following build errors:
 
-diff --git a/fs/coda/inode.c b/fs/coda/inode.c
-index 6898dc621011..df477a7218a2 100644
---- a/fs/coda/inode.c
-+++ b/fs/coda/inode.c
-@@ -122,21 +122,27 @@ static const struct fs_parameter_spec coda_param_specs[] = {
- static int coda_parse_fd(struct fs_context *fc, int fd)
- {
- 	struct coda_fs_context *ctx = fc->fs_private;
--	struct fd f;
-+	struct file *file;
- 	struct inode *inode;
- 	int idx;
- 
--	f = fdget(fd);
--	if (!f.file)
-+	if (param->type == fs_value_is_file) {
-+		file = param->file;
-+		param->file = NULL;
-+	} else {
-+		file = fget(result->uint_32);
-+	}
-+	if (!file)
- 		return -EBADF;
--	inode = file_inode(f.file);
-+
-+	inode = file_inode(file);
- 	if (!S_ISCHR(inode->i_mode) || imajor(inode) != CODA_PSDEV_MAJOR) {
--		fdput(f);
-+		fput(file);
- 		return invalf(fc, "code: Not coda psdev");
- 	}
- 
- 	idx = iminor(inode);
--	fdput(f);
-+	fput(file);
- 
- 	if (idx < 0 || idx >= MAX_CODADEVS)
- 		return invalf(fc, "coda: Bad minor number");
+[auto build test ERROR on b80cc4df1124702c600fd43b784e423a30919204]
+
+url:    https://github.com/intel-lab-lkp/linux/commits/Aleksa-Sarai/autofs-fix-missing-fput-for-FSCONFIG_SET_FD/20240718-230056
+base:   b80cc4df1124702c600fd43b784e423a30919204
+patch link:    https://lore.kernel.org/r/20240719-fsconfig-fsparam_fd-fixes-v1-2-7ccd315c2ad4%40cyphar.com
+patch subject: [PATCH 2/2] coda: support FSCONFIG_SET_FD for fd mount flag
+config: arm-randconfig-003-20240719 (https://download.01.org/0day-ci/archive/20240719/202407190741.8fA9KJbt-lkp@intel.com/config)
+compiler: arm-linux-gnueabi-gcc (GCC) 14.1.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20240719/202407190741.8fA9KJbt-lkp@intel.com/reproduce)
+
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202407190741.8fA9KJbt-lkp@intel.com/
+
+All errors (new ones prefixed by >>):
+
+   fs/coda/inode.c: In function 'coda_parse_fd':
+>> fs/coda/inode.c:129:13: error: 'param' undeclared (first use in this function); did you mean 'parameq'?
+     129 |         if (param->type == fs_value_is_file) {
+         |             ^~~~~
+         |             parameq
+   fs/coda/inode.c:129:13: note: each undeclared identifier is reported only once for each function it appears in
+>> fs/coda/inode.c:133:29: error: 'result' undeclared (first use in this function); did you mean 'mf_result'?
+     133 |                 file = fget(result->uint_32);
+         |                             ^~~~~~
+         |                             mf_result
+
+
+vim +129 fs/coda/inode.c
+
+   121	
+   122	static int coda_parse_fd(struct fs_context *fc, int fd)
+   123	{
+   124		struct coda_fs_context *ctx = fc->fs_private;
+   125		struct file *file;
+   126		struct inode *inode;
+   127		int idx;
+   128	
+ > 129		if (param->type == fs_value_is_file) {
+   130			file = param->file;
+   131			param->file = NULL;
+   132		} else {
+ > 133			file = fget(result->uint_32);
+   134		}
+   135		if (!file)
+   136			return -EBADF;
+   137	
+   138		inode = file_inode(file);
+   139		if (!S_ISCHR(inode->i_mode) || imajor(inode) != CODA_PSDEV_MAJOR) {
+   140			fput(file);
+   141			return invalf(fc, "code: Not coda psdev");
+   142		}
+   143	
+   144		idx = iminor(inode);
+   145		fput(file);
+   146	
+   147		if (idx < 0 || idx >= MAX_CODADEVS)
+   148			return invalf(fc, "coda: Bad minor number");
+   149		ctx->idx = idx;
+   150		return 0;
+   151	}
+   152	
 
 -- 
-2.45.2
-
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
