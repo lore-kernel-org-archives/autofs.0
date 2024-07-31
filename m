@@ -1,41 +1,42 @@
-Received: from mout-p-103.mailbox.org (mout-p-103.mailbox.org [80.241.56.161])
+Received: from mout-p-202.mailbox.org (mout-p-202.mailbox.org [80.241.56.172])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0972C1A7F73;
-	Wed, 31 Jul 2024 13:11:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=80.241.56.161
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FF9F1B1425;
+	Wed, 31 Jul 2024 13:11:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=80.241.56.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722431475; cv=none; b=UbOVk+jHK9d2BQmKJkBItguE+jFNW8FYljICq7Lhx4Z6bMHP2egRamN1KqcLU3C7KE+9zV9xyHyManN8rcr4z3CDhxeX0DIPVT4D4KczKnLn/s25vOF0UoJIvZkL8tIsNhDTVXCqmoZOJjf8h7fNU0Nj9fy5BXhZjPoq+3TWsFg=
+	t=1722431484; cv=none; b=M17WVeejz15RhGh88M/Qq6hyxIJ4yO1kJk4tr9Kx8trrr40pjLrXgz6IFMqyhbeccHUgo5E+klqQzTSQf8JEU+l2v4OQ9g7Cq0RS53sbGg2+fnIY06Xpf7aihIZpweVFW5O5EXM7jeU/lC3GYZgqEZYj0Jra5JeQgkzj4oFQmFA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722431475; c=relaxed/simple;
-	bh=7wr5lyQ8MOB8ZLoD7O/L7tMEUqp2EeRSmwAzoTuq3BY=;
-	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=ZT0BuxQdFpKqYK/KCN9pdEX/o2LXMjR2u5v9GSUC0JmjQemLlLU7jJDI7hhbFQ3tII5Rz7kneEyS0C6MJx2JJYLxbxbSbDsC/9VSZY+djVG+ZyjnN89ipPwd/wdtKJvuTbEd5/WjSURZ8FKjO0o0L9q5yGyRNbeCtyOHb+uYJGI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=cyphar.com; spf=pass smtp.mailfrom=cyphar.com; dkim=pass (2048-bit key) header.d=cyphar.com header.i=@cyphar.com header.b=qKooJRnG; arc=none smtp.client-ip=80.241.56.161
+	s=arc-20240116; t=1722431484; c=relaxed/simple;
+	bh=nwwox7wiK60TjQf4dnqdHdDLigJoZ2vLTf1McgQxlUk=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
+	 In-Reply-To:To:Cc; b=EWwfL2zrDJRwvhpGDv5FZnfQZr12hVlAOsR2WF0P1ld2S95tlxgrvromoYmQB7UwkpF7ymCUkRpejAtmFkPvRkG2IMeKMMGDgpX5GYqI05azksoaun6v5mTGTIppZzRer3S04yltJ6eQMrqfjrUAbY6ClYwNDrADm/Lug25gmvk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=cyphar.com; spf=pass smtp.mailfrom=cyphar.com; dkim=pass (2048-bit key) header.d=cyphar.com header.i=@cyphar.com header.b=wi3lp5NS; arc=none smtp.client-ip=80.241.56.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=cyphar.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cyphar.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=cyphar.com header.i=@cyphar.com header.b="qKooJRnG"
-Received: from smtp2.mailbox.org (smtp2.mailbox.org [10.196.197.2])
+	dkim=pass (2048-bit key) header.d=cyphar.com header.i=@cyphar.com header.b="wi3lp5NS"
+Received: from smtp2.mailbox.org (smtp2.mailbox.org [IPv6:2001:67c:2050:b231:465::2])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by mout-p-103.mailbox.org (Postfix) with ESMTPS id 4WYssy3Rmyz9sly;
-	Wed, 31 Jul 2024 15:11:02 +0200 (CEST)
+	by mout-p-202.mailbox.org (Postfix) with ESMTPS id 4WYst83HGXz9sbh;
+	Wed, 31 Jul 2024 15:11:12 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cyphar.com; s=MBO0001;
-	t=1722431462;
+	t=1722431472;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=P2Ap0zYgBzE2v8VJI5iw8HpeN4m3eODczA+epRyT8CM=;
-	b=qKooJRnG5J1qPMn13j7OOYAmf2APVfwXCrYtSecN76+Ij56JEbbaDtMf5uHkDoNVHpZzMB
-	Z7eGuNtVli2Unn0H3NbnPukgzEwnppnUft+8fkB0wsj4IAlrrvQWvc6vib/ZZcTPfc9PiF
-	LAb9EoiMa3Ft5vW4OLIOCTVJMv+VrHL0oAT0ntGXOQW4TI/ABoy3ljFWeZ/fMe6kCT7FhB
-	avuW/mk1obIxx3Sd6m+AEY8TVdGXqhM+m6GuNoTZPdaS0gAjSfTJJP6uNrCHVSEf7eSiur
-	d4TNG76l9Dpqf4prIRPVHH335kR1W2E3/h5VPdiEpmAZ3XWLhG6rWQhLHBWdGg==
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=QQ64E/5nYDkIveNsG21KEe7BJushDixGGpF55h3Bonk=;
+	b=wi3lp5NSpCLCDDduDAlP6r5I00LJflSASHMSR2aqTReEs24dzJNh2t1dF5Pf3TiW4G7IsL
+	R7dcXwiVTh/24sOyUUTihJDOr52Sl7ZJmthd7S9kIQxujRHVKzK7C8kT4PfA5FOwKdupU+
+	vk+lkSkYAGWN27x/knFWfEiF/2t+NwcjViPD1kaTOwF4jCDg8gBs8UkT54nFyy0gWUg6qc
+	+uc1wQC7R3Tz7CRL+J+9bfZPVnV6nWif0waspS0as9nSAIuTJx8ImYM1t9BWvQ08M1DYpo
+	CvR64xRGX0n7jACdxctZRo+sodLqZoMd0mgXCH9k72RAq7WZxlbR6scfOZEheg==
 From: Aleksa Sarai <cyphar@cyphar.com>
-Subject: [PATCH v2 0/2] fsconfig: minor fsparam_fd fixes
-Date: Wed, 31 Jul 2024 23:10:26 +1000
-Message-Id: <20240731-fsconfig-fsparam_fd-fixes-v2-0-e7c472224417@cyphar.com>
+Date: Wed, 31 Jul 2024 23:10:28 +1000
+Subject: [PATCH v2 2/2] coda: use param->file for FSCONFIG_SET_FD
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
@@ -44,59 +45,123 @@ List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-B4-Tracking: v=1; b=H4sIAMI3qmYC/32NwQrCMBBEf6Xs2UgSI7Ge+h9SJGw2zR7alESKp
- fTfjQWv3ubNMDMbFMpMBe7NBpkWLpymCvrUAEY3DSTYVwYttZFWGREKpinwUMXsshufwYvAbyp
- CtkGTNQr1zUPtz5mOoNYffeXI5ZXyelwt6uv+Vts/q4sSUlhEf1FX1M6bDtc5unzGNEK/7/sHy
- JEwXcMAAAA=
+Message-Id: <20240731-fsconfig-fsparam_fd-fixes-v2-2-e7c472224417@cyphar.com>
+References: <20240731-fsconfig-fsparam_fd-fixes-v2-0-e7c472224417@cyphar.com>
+In-Reply-To: <20240731-fsconfig-fsparam_fd-fixes-v2-0-e7c472224417@cyphar.com>
 To: Ian Kent <raven@themaw.net>, Bill O'Donnell <bodonnel@redhat.com>, 
  Christian Brauner <brauner@kernel.org>, Jan Harkes <jaharkes@cs.cmu.edu>, 
  coda@cs.cmu.edu, Eric Sandeen <sandeen@redhat.com>, 
  David Howells <dhowells@redhat.com>
 Cc: autofs@vger.kernel.org, linux-kernel@vger.kernel.org, 
  codalist@coda.cs.cmu.edu, Aleksa Sarai <cyphar@cyphar.com>
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1332; i=cyphar@cyphar.com;
- h=from:subject:message-id; bh=7wr5lyQ8MOB8ZLoD7O/L7tMEUqp2EeRSmwAzoTuq3BY=;
- b=owGbwMvMwCWmMf3Xpe0vXfIZT6slMaStMr9tuGpv2ku7lVr/mCd1vvOvdPh6+t+J4PIJEuG5z
- 7/WVxY96ShlYRDjYpAVU2TZ5ucZumn+4ivJn1aywcxhZQIZwsDFKQATMVjK8N+zQ048L+DW1UmG
- v+Zrn38Xm6fwaVPe0uDEZfXTudoK2FoY/odVXL7/KTxw1xXdDMn0BUm/Hmx5ypvKq1WdciaL96T
- lJC4A
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2629; i=cyphar@cyphar.com;
+ h=from:subject:message-id; bh=nwwox7wiK60TjQf4dnqdHdDLigJoZ2vLTf1McgQxlUk=;
+ b=owGbwMvMwCWmMf3Xpe0vXfIZT6slMaStMr/NMrdn2aTmilCz9wvy+Lm/p8Yyzdie9257pCPTb
+ ZZ7pxzLO0pZGMS4GGTFFFm2+XmGbpq/+Eryp5VsMHNYmUCGMHBxCsBE7p5h+MPx+Ufhr7e7gx3c
+ Wd1m5BtMWBJm823/rNWZcryNdXsONBUy/K/gOGSzJbTmw09Nh2XiV1yZWmeIbc15JxTdVmZ6Si5
+ LlAkA
 X-Developer-Key: i=cyphar@cyphar.com; a=openpgp;
  fpr=C9C370B246B09F6DBCFC744C34401015D1D2D386
+X-Rspamd-Queue-Id: 4WYst83HGXz9sbh
 
-While working on adding an fsparam_fd() argument to cgroupfs, I noticed
-that there are only two users of fsparam_fd() and they both seemed to
-have minor issues:
-
-* autofs has a missing fput() when using FSCONFIG_SET_FD.
-* coda uses fsparam_fd() but it ignores param->file and so ends up
-  re-getting the file. This doesn't change the behaviour but it seems
-  preferable to have all users of fsparam_fd() have the same logic.
-
-I have tested this logic for the cgroupfs patch but I have only compile
-tested the fixes for autofs and coda.
-
-The second patch is not really required, so feel free to drop it if you
-feel the original version was cleaner.
+While the old code did support FSCONFIG_SET_FD, there's no need to
+re-get the file the fs_context infrastructure already grabbed for us.
 
 Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
 ---
-Changes in v2:
-- Fix fs/coda/inode.c build errors.
-- Link to v1: https://lore.kernel.org/r/20240719-fsconfig-fsparam_fd-fixes-v1-0-7ccd315c2ad4@cyphar.com
+ fs/coda/inode.c | 43 ++++++++++++++++++++++++++++++-------------
+ 1 file changed, 30 insertions(+), 13 deletions(-)
 
----
-Aleksa Sarai (2):
-      autofs: fix missing fput for FSCONFIG_SET_FD
-      coda: use param->file for FSCONFIG_SET_FD
+diff --git a/fs/coda/inode.c b/fs/coda/inode.c
+index 6898dc621011..6896fce122e1 100644
+--- a/fs/coda/inode.c
++++ b/fs/coda/inode.c
+@@ -119,31 +119,43 @@ static const struct fs_parameter_spec coda_param_specs[] = {
+ 	{}
+ };
+ 
+-static int coda_parse_fd(struct fs_context *fc, int fd)
++static int coda_set_idx(struct fs_context *fc, struct file *file)
+ {
+ 	struct coda_fs_context *ctx = fc->fs_private;
+-	struct fd f;
+ 	struct inode *inode;
+ 	int idx;
+ 
+-	f = fdget(fd);
+-	if (!f.file)
+-		return -EBADF;
+-	inode = file_inode(f.file);
++	inode = file_inode(file);
+ 	if (!S_ISCHR(inode->i_mode) || imajor(inode) != CODA_PSDEV_MAJOR) {
+-		fdput(f);
+-		return invalf(fc, "code: Not coda psdev");
++		return invalf(fc, "coda: Not coda psdev");
+ 	}
+-
+ 	idx = iminor(inode);
+-	fdput(f);
+-
+ 	if (idx < 0 || idx >= MAX_CODADEVS)
+ 		return invalf(fc, "coda: Bad minor number");
+ 	ctx->idx = idx;
+ 	return 0;
+ }
+ 
++static int coda_parse_fd(struct fs_context *fc, struct fs_parameter *param,
++			 struct fs_parse_result *result)
++{
++	struct file *file;
++	int err;
++
++	if (param->type == fs_value_is_file) {
++		file = param->file;
++		param->file = NULL;
++	} else {
++		file = fget(result->uint_32);
++	}
++	if (!file)
++		return -EBADF;
++
++	err = coda_set_idx(fc, file);
++	fput(file);
++	return err;
++}
++
+ static int coda_parse_param(struct fs_context *fc, struct fs_parameter *param)
+ {
+ 	struct fs_parse_result result;
+@@ -155,7 +167,7 @@ static int coda_parse_param(struct fs_context *fc, struct fs_parameter *param)
+ 
+ 	switch (opt) {
+ 	case Opt_fd:
+-		return coda_parse_fd(fc, result.uint_32);
++		return coda_parse_fd(fc, param, &result);
+ 	}
+ 
+ 	return 0;
+@@ -167,6 +179,7 @@ static int coda_parse_param(struct fs_context *fc, struct fs_parameter *param)
+  */
+ static int coda_parse_monolithic(struct fs_context *fc, void *_data)
+ {
++	struct file *file;
+ 	struct coda_mount_data *data = _data;
+ 
+ 	if (!data)
+@@ -175,7 +188,11 @@ static int coda_parse_monolithic(struct fs_context *fc, void *_data)
+ 	if (data->version != CODA_MOUNT_VERSION)
+ 		return invalf(fc, "coda: Bad mount version");
+ 
+-	coda_parse_fd(fc, data->fd);
++	file = fget(data->fd);
++	if (file) {
++		coda_set_idx(fc, file);
++		fput(file);
++	}
+ 	return 0;
+ }
+ 
 
- fs/autofs/inode.c |  3 +--
- fs/coda/inode.c   | 43 ++++++++++++++++++++++++++++++-------------
- 2 files changed, 31 insertions(+), 15 deletions(-)
----
-base-commit: c7b9563b58a77423d4c6e026ff831a69612b02fc
-change-id: 20240714-fsconfig-fsparam_fd-fixes-09f2e741c28d
-
-Best regards,
 -- 
-Aleksa Sarai <cyphar@cyphar.com>
+2.45.2
 
