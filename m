@@ -1,78 +1,78 @@
-Received: from fout4-smtp.messagingengine.com (fout4-smtp.messagingengine.com [103.168.172.147])
+Received: from fhigh7-smtp.messagingengine.com (fhigh7-smtp.messagingengine.com [103.168.172.158])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 882292231C;
-	Thu, 15 Aug 2024 03:10:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.147
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D3AE6FC3;
+	Thu, 15 Aug 2024 03:33:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.158
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723691421; cv=none; b=s7hQJauRGwz7mzGnH9KbEjub5kwPBUaKhBiq9FfuH2/fp0FUpewzH2E1VkOWvbeFin9RVt+jr+K+DX2Sf2ByDa9UC3BsucA5NZrcGDHV7G/FCIeEHkUEH5tVle5I11YtDSjRcbKZPyBbC0awvnMH4LowPJYdJGWi1tySNLrB1ao=
+	t=1723692834; cv=none; b=Ge4NVbA2h22YPvSTGZLNI5mHGX4X2EZJwW9PWft68R91r8YphdfU3vACg1t+/qjcTPvamQeTxxXlAQrTV9PAlBmhuG/vKwBDxA83jrxWCu3B/1JFxuvl28eMfqwLzwSRlOy+S5s6AL9wED0/xPlusO4riaW4mS5v2U7qll5VXqs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723691421; c=relaxed/simple;
-	bh=M6YjnpmvNw00EeGqOmJgxN3F843Y4UfDXvq3cCI3kY4=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=pT1CnVOa6Eo3XYgRQLNizvmThKvYfoyXxbPXd3HwthTxP5cV0qgGSYHW+Y97diGn5YqZxVbobzV6OqmeLj+ubG+7dwrYZV9f9fGGGymotC+5H5nkgX/lfynhzyAzvN52ESoDOdH1c9+eOrJMjRPLLaY8t2QZ55uE9wWSDhJGjNA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net; spf=none smtp.mailfrom=themaw.net; dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b=pm5S3hKd; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=G3JdjC7s; arc=none smtp.client-ip=103.168.172.147
+	s=arc-20240116; t=1723692834; c=relaxed/simple;
+	bh=ixC0+t6WfWaaVZ/Lgn75gF74zaPemthMM9/IM/zFK+c=;
+	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
+	 In-Reply-To:Content-Type; b=XSMtZBU5gijH95lagg0DilruaswciziskJ7qFTzGnneXv8SG9qhCa/MlCameZwlu43A7GlpuuLDnZKY2R51+2D5W+w92GZbc/eD2Ks1pBg3n3B9K5CEShYDsUrZ0xeRjK+7/tUFbvCeztyJKm53gYHjNu4ojy/Mt3C/NUIaY4/4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net; spf=none smtp.mailfrom=themaw.net; dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b=EbvmbmIO; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=Rgxzq+L+; arc=none smtp.client-ip=103.168.172.158
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=themaw.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b="pm5S3hKd";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="G3JdjC7s"
+	dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b="EbvmbmIO";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="Rgxzq+L+"
 Received: from phl-compute-03.internal (phl-compute-03.nyi.internal [10.202.2.43])
-	by mailfout.nyi.internal (Postfix) with ESMTP id 8FE97138FF32;
-	Wed, 14 Aug 2024 23:10:17 -0400 (EDT)
+	by mailfhigh.nyi.internal (Postfix) with ESMTP id 395171151BDD;
+	Wed, 14 Aug 2024 23:33:51 -0400 (EDT)
 Received: from phl-mailfrontend-01 ([10.202.2.162])
-  by phl-compute-03.internal (MEProxy); Wed, 14 Aug 2024 23:10:17 -0400
+  by phl-compute-03.internal (MEProxy); Wed, 14 Aug 2024 23:33:51 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
 	:cc:content-transfer-encoding:content-type:content-type:date
 	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm2; t=1723691417;
-	 x=1723777817; bh=yd8hIN8ro0TGxbEHyb5uWlyQKIUnGX2i3Lay/yghMRw=; b=
-	pm5S3hKdg0cfvmuBOP2aMlfsAETBrdbpmlH0NmvXYbaQKGs7SWnmkqS2J//JH2Uq
-	EwRjw6ZMVBb4e0xC430fffotsT+fTGZjeb0yEgJICDyVM84mjNLhEBvP8gDhVlBn
-	ePf+aEH0UJRbBqbexOc9zPMf2k/Jf150UuImwQ3sejL6q0pzljoPQDmWtCmEfKf+
-	IoWgNIxZ5mDk2FVF73hY93MqaT9ucJLvaReXqaVwNZA+OJUALZMFha8i/dqqMRQZ
-	aZWnNqjTm3RPQS6tFUpxf3nQbnH0PN2YtegASllna/NeB8CKSONTwh5z4Sa5c+WS
-	/2Cpl/5dhyVVi042CdNFQQ==
+	:references:reply-to:subject:subject:to:to; s=fm2; t=1723692831;
+	 x=1723779231; bh=cJ2UvaJpYFZzglZBu7tFIhf+1iu0zJoGYRia8VK/wIQ=; b=
+	EbvmbmIOklwGFyQiawwWpsUQZwfG0jDwpLagUzhxZeBWbJ0tGVR9sqBYHHeg/Upz
+	+I5WR0s01ep1nhMXkJrs7ZVpr4RRQB/NijJDNiWAF/zzUdgaylz+nfC0l9jHp8L8
+	E1fNEjFKmjEqvpXH2v8NRjkXAUmRnUmgWhSSN+3aqsTvtrgK6yh1BGNAKmWexYr0
+	nYB2hTvShrDCUyhP//ffHlWmHpIfhteu7iQSWd8fNQ/ggCSrw4ZTjGOYvzBAnvOD
+	oVo1NO27kOo/K3sBR5LdY/hLaJDBrteU6PNoIsOZUGJnuUSo1+fdPmGIrUNQEjRe
+	wv7D6wpL/TFKFo7EvbAj5A==
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
 	messagingengine.com; h=cc:cc:content-transfer-encoding
 	:content-type:content-type:date:date:feedback-id:feedback-id
 	:from:from:in-reply-to:in-reply-to:message-id:mime-version
 	:references:reply-to:subject:subject:to:to:x-me-proxy:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=1723691417; x=
-	1723777817; bh=yd8hIN8ro0TGxbEHyb5uWlyQKIUnGX2i3Lay/yghMRw=; b=G
-	3JdjC7saYCaxVwQQqspCWCmVrjdXxH5i8urmkGHjoTyCGmjaKZlZ6S4r8mgrMu6g
-	BskpED1kOGFM4JY+jJFzzD/4/Al5jmFPYm47whFp4aWEatdkPt1hS7ipIExBdovj
-	wSiJIf8Vb5tOS0rlYMvVC0spUSpZLtGoY8PJs5OlQrzPQhw2IdHUK0Sd/SFU+I4E
-	SASskDuQs3ABhn+WZDzfphcxJt8uyn23d839oDXLiD3YGQYGRmclgBljOmoBuYdm
-	HeAyutasYxcw8a8JBAPgb6JwYoY7bNs7bLZmsSxThWSgaVs6NH7Uc4ZpWJ4ZLLVq
-	ERsdicJjMIOy+XbnvDACQ==
-X-ME-Sender: <xms:mXG9ZrlRYol_JpJjq9OlXi3jfvu5mNhvkNAjncaS7QXy3Wldi6bBrg>
-    <xme:mXG9Zu0dy-B17e5mUeLCa-yYGj9FQMAUwdRxUbAzGKr8yXAwy1QzIb4EgWLagiK70
-    T8LAXq5YHZ8>
-X-ME-Received: <xmr:mXG9ZhoEO0eGeAYFSmjaz4v2oOkBTlB0XEqcV6HR3oifsAFWmREklvfC21q1EVy53YIl_E2DoB0r7hnknyT2FMwMVZgweig4JTHXELZJ0QpI_gU8riyOlsg>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeftddruddthedgieekucetufdoteggodetrfdotf
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=1723692831; x=
+	1723779231; bh=cJ2UvaJpYFZzglZBu7tFIhf+1iu0zJoGYRia8VK/wIQ=; b=R
+	gxzq+L+dixWxn5aZRi7QtrDiu2/vnUbnJj0NfrpILFwR91Oe0RFqrcs+fMzey3hu
+	/SMJisZ6ioIoIgdeU17NAH4LCOaLEp5ZKrmo+IJ7kH70dYqkcERlqELt812mfkZ6
+	g08F1aaoDmvze7Iq9fWDt+wSFcbXLUxG/yCphqxGcWem4oXw3BB+McnrCaWgUgzJ
+	ZHyDgN84qaRGlGgPZFRux6bkh5cM4ZUrFDVPwuemRE+ovK2FS6KGZnyHWqS8Qg27
+	MYGziYomtQ6/mxLV+ZaxEsXBd3nGGmcyIP3e8buRZmeM6g+MB71QCjpsidK7rUVM
+	qpEYO+gO3rYm+6XXXyjWA==
+X-ME-Sender: <xms:Hne9ZjZxHxqjznvMkq4f2q9qfVPeZKEW65mKgvjE_J9690mcCk4oag>
+    <xme:Hne9ZibU19i-SpiZrCi3-5uL9iaGSo0sX-4Cspfi29C07tMVzfLLGDKv0xQMlMNQU
+    mQL9wWrIBbW>
+X-ME-Received: <xmr:Hne9Zl_Q57qDLrX1ldlHb9_JxzyI8GmKidAyknBnuGyoFDQbhLsu75Y2TRA9gwbYUeP3cpJCgGDYhUt7A0_Ohm2AZpLGwbMpcsmvcVXXdEvDYWe-HAx9eqE>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeftddruddthedgjeefucetufdoteggodetrfdotf
     fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdggtfgfnhhsuhgsshgtrhhisggvpdfu
     rfetoffkrfgpnffqhgenuceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnh
-    htshculddquddttddmnecujfgurhepkfffgggfuffvvehfhfgjtgfgsehtjeertddtvdej
+    htshculddquddttddmnecujfgurhepkfffgggfuffhvfevfhgjtgfgsehtkeertddtvdej
     necuhfhrohhmpefkrghnucfmvghnthcuoehrrghvvghnsehthhgvmhgrfidrnhgvtheqne
-    cuggftrfgrthhtvghrnhepfeekhfegieegteelffegleetjeekuddvhfehjefhheeuiedt
-    heeuhfekueekffehnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilh
+    cuggftrfgrthhtvghrnhepvefgvdehhfevhfevgfegffejheetieegjefhjeefffeutdfh
+    tdeikefhgfejjeejnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilh
     hfrhhomheprhgrvhgvnhesthhhvghmrgifrdhnvghtpdhnsggprhgtphhtthhopeehpdhm
     ohguvgepshhmthhpohhuthdprhgtphhtthhopegsrhgruhhnvghrsehkvghrnhgvlhdroh
     hrghdprhgtphhtthhopehvihhrohesiigvnhhivhdrlhhinhhugidrohhrghdruhhkpdhr
     tghpthhtoheprghuthhofhhssehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoh
     eplhhinhhugidqfhhsuggvvhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphht
     thhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrgh
-X-ME-Proxy: <xmx:mXG9ZjmHq_Kx-FvfhTWcj_w9qx09fhvbttDbwB4m5bK7cMy5OLZJ9g>
-    <xmx:mXG9Zp2NVcGcZ-VeX9qtct8BaRRdXSfdbPK1FegYLSnx178i4e67cw>
-    <xmx:mXG9Ziv2SmIQQ079FonGXywxSuehShUV24wujwDrBoa52IAEzgqs1Q>
-    <xmx:mXG9ZtUDV98ddysruJJ0T3Q1OrxZzYz4N9wKEf-xkwXncMaV9bKvBw>
-    <xmx:mXG9ZkRYUwMrb6PPlpWT0V0f-fuozex3m_XU8qiTZrfHYd3xuPN9WJRY>
+X-ME-Proxy: <xmx:Hne9Zpp-YJjsM0bv3cYfB_nBf3rhxnm9xWXw4ev5LaBW7A13V1HVdQ>
+    <xmx:H3e9ZuoHEBFInkZnWYXDE-hkwRqPSdr53KHOyjQFMYBrXjJz0fxbog>
+    <xmx:H3e9ZvQ2jmNnqAcCNEWJxesfXUbCubB4hYGTZVD_6lCB3e8z2cYynA>
+    <xmx:H3e9ZmovetxcUmCJyAseNE-KaBGSeoGewQZYdhd27lRbAqc96eJIYg>
+    <xmx:H3e9ZnmBdlSgSt2NlPEz22OG1tFq4kCxszv2LhHdumq0UEnKKoFJlEE0>
 Feedback-ID: i31e841b0:Fastmail
 Received: by mail.messagingengine.com (Postfix) with ESMTPA; Wed,
- 14 Aug 2024 23:10:15 -0400 (EDT)
-Message-ID: <67656e13-c816-44f0-8a69-5efa7c76a907@themaw.net>
-Date: Thu, 15 Aug 2024 11:10:10 +0800
+ 14 Aug 2024 23:33:48 -0400 (EDT)
+Message-ID: <ea45c08a-f2cd-47fe-a45c-1f0431bd32ec@themaw.net>
+Date: Thu, 15 Aug 2024 11:33:45 +0800
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
@@ -81,6 +81,7 @@ List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
 Subject: Re: [PATCH v2] autofs: add per dentry expire timeout
+From: Ian Kent <raven@themaw.net>
 To: Christian Brauner <brauner@kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>,
  autofs mailing list <autofs@vger.kernel.org>,
@@ -88,8 +89,8 @@ Cc: Al Viro <viro@zeniv.linux.org.uk>,
  Kernel Mailing List <linux-kernel@vger.kernel.org>
 References: <20240814090231.963520-1-raven@themaw.net>
  <20240814-darauf-schund-23ec844f4a09@brauner>
+ <67656e13-c816-44f0-8a69-5efa7c76a907@themaw.net>
 Content-Language: en-US
-From: Ian Kent <raven@themaw.net>
 Autocrypt: addr=raven@themaw.net;
  keydata= xsFNBE6c/ycBEADdYbAI5BKjE+yw+dOE+xucCEYiGyRhOI9JiZLUBh+PDz8cDnNxcCspH44o
  E7oTH0XPn9f7Zh0TkXWA8G6BZVCNifG7mM9K8Ecp3NheQYCk488ucSV/dz6DJ8BqX4psd4TI
@@ -132,206 +133,241 @@ Autocrypt: addr=raven@themaw.net;
  +coCSBkOU1xMiW5Td7QwkNmtXKHyEF6dxCAMK1KHIqxrBaZO27PEDSHaIPHePi7y4KKq9C9U
  8k5V5dFA0mqH/st9Sw6tFbqPkqjvvMLETDPVxOzinpU2VBGhce4wufSIoVLOjQnbIo1FIqWg
  Dx24eHv235mnNuGHrG+EapIh7g/67K0uAzwp17eyUYlE5BMcwRlaHMuKTil6
-In-Reply-To: <20240814-darauf-schund-23ec844f4a09@brauner>
+In-Reply-To: <67656e13-c816-44f0-8a69-5efa7c76a907@themaw.net>
 Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On 14/8/24 22:39, Christian Brauner wrote:
-> On Wed, Aug 14, 2024 at 05:02:31PM GMT, Ian Kent wrote:
->> Add ability to set per-dentry mount expire timeout to autofs.
->>
->> There are two fairly well known automounter map formats, the autofs
->> format and the amd format (more or less System V and Berkley).
->>
->> Some time ago Linux autofs added an amd map format parser that
->> implemented a fair amount of the amd functionality. This was done
->> within the autofs infrastructure and some functionality wasn't
->> implemented because it either didn't make sense or required extra
->> kernel changes. The idea was to restrict changes to be within the
->> existing autofs functionality as much as possible and leave changes
->> with a wider scope to be considered later.
->>
->> One of these changes is implementing the amd options:
->> 1) "unmount", expire this mount according to a timeout (same as the
->>     current autofs default).
->> 2) "nounmount", don't expire this mount (same as setting the autofs
->>     timeout to 0 except only for this specific mount) .
->> 3) "utimeout=<seconds>", expire this mount using the specified
->>     timeout (again same as setting the autofs timeout but only for
->>     this mount).
->>
->> To implement these options per-dentry expire timeouts need to be
->> implemented for autofs indirect mounts. This is because all map keys
->> (mounts) for autofs indirect mounts use an expire timeout stored in
->> the autofs mount super block info. structure and all indirect mounts
->> use the same expire timeout.
->>
->> Now I have a request to add the "nounmount" option so I need to add
->> the per-dentry expire handling to the kernel implementation to do this.
->>
->> The implementation uses the trailing path component to identify the
->> mount (and is also used as the autofs map key) which is passed in the
->> autofs_dev_ioctl structure path field. The expire timeout is passed
->> in autofs_dev_ioctl timeout field (well, of the timeout union).
->>
->> If the passed in timeout is equal to -1 the per-dentry timeout and
->> flag are cleared providing for the "unmount" option. If the timeout
->> is greater than or equal to 0 the timeout is set to the value and the
->> flag is also set. If the dentry timeout is 0 the dentry will not expire
->> by timeout which enables the implementation of the "nounmount" option
->> for the specific mount. When the dentry timeout is greater than zero it
->> allows for the implementation of the "utimeout=<seconds>" option.
->>
->> Signed-off-by: Ian Kent <raven@themaw.net>
->> ---
->>   fs/autofs/autofs_i.h         |  4 ++
->>   fs/autofs/dev-ioctl.c        | 97 ++++++++++++++++++++++++++++++++++--
->>   fs/autofs/expire.c           |  7 ++-
->>   fs/autofs/inode.c            |  2 +
->>   include/uapi/linux/auto_fs.h |  2 +-
->>   5 files changed, 104 insertions(+), 8 deletions(-)
->>
->> diff --git a/fs/autofs/autofs_i.h b/fs/autofs/autofs_i.h
->> index 8c1d587b3eef..77c7991d89aa 100644
->> --- a/fs/autofs/autofs_i.h
->> +++ b/fs/autofs/autofs_i.h
->> @@ -62,6 +62,7 @@ struct autofs_info {
->>   	struct list_head expiring;
->>   
->>   	struct autofs_sb_info *sbi;
->> +	unsigned long exp_timeout;
->>   	unsigned long last_used;
->>   	int count;
->>   
->> @@ -81,6 +82,9 @@ struct autofs_info {
->>   					*/
->>   #define AUTOFS_INF_PENDING	(1<<2) /* dentry pending mount */
->>   
->> +#define AUTOFS_INF_EXPIRE_SET	(1<<3) /* per-dentry expire timeout set for
->> +					  this mount point.
->> +					*/
->>   struct autofs_wait_queue {
->>   	wait_queue_head_t queue;
->>   	struct autofs_wait_queue *next;
->> diff --git a/fs/autofs/dev-ioctl.c b/fs/autofs/dev-ioctl.c
->> index 5bf781ea6d67..f011e026358e 100644
->> --- a/fs/autofs/dev-ioctl.c
->> +++ b/fs/autofs/dev-ioctl.c
->> @@ -128,7 +128,13 @@ static int validate_dev_ioctl(int cmd, struct autofs_dev_ioctl *param)
->>   			goto out;
->>   		}
->>   
->> +		/* Setting the per-dentry expire timeout requires a trailing
->> +		 * path component, ie. no '/', so invert the logic of the
->> +		 * check_name() return for AUTOFS_DEV_IOCTL_TIMEOUT_CMD.
->> +		 */
->>   		err = check_name(param->path);
->> +		if (cmd == AUTOFS_DEV_IOCTL_TIMEOUT_CMD)
->> +			err = err ? 0 : -EINVAL;
->>   		if (err) {
->>   			pr_warn("invalid path supplied for cmd(0x%08x)\n",
->>   				cmd);
->> @@ -396,16 +402,97 @@ static int autofs_dev_ioctl_catatonic(struct file *fp,
->>   	return 0;
->>   }
->>   
->> -/* Set the autofs mount timeout */
->> +/*
->> + * Set the autofs mount expire timeout.
->> + *
->> + * There are two places an expire timeout can be set, in the autofs
->> + * super block info. (this is all that's needed for direct and offset
->> + * mounts because there's a distinct mount corresponding to each of
->> + * these) and per-dentry within within the dentry info. If a per-dentry
->> + * timeout is set it will override the expire timeout set in the parent
->> + * autofs super block info.
->> + *
->> + * If setting the autofs super block expire timeout the autofs_dev_ioctl
->> + * size field will be equal to the autofs_dev_ioctl structure size. If
->> + * setting the per-dentry expire timeout the mount point name is passed
->> + * in the autofs_dev_ioctl path field and the size field updated to
->> + * reflect this.
->> + *
->> + * Setting the autofs mount expire timeout sets the timeout in the super
->> + * block info. struct. Setting the per-dentry timeout does a little more.
->> + * If the timeout is equal to -1 the per-dentry timeout (and flag) is
->> + * cleared which reverts to using the super block timeout, otherwise if
->> + * timeout is 0 the timeout is set to this value and the flag is left
->> + * set which disables expiration for the mount point, lastly the flag
->> + * and the timeout are set enabling the dentry to use this timeout.
->> + */
->>   static int autofs_dev_ioctl_timeout(struct file *fp,
->>   				    struct autofs_sb_info *sbi,
->>   				    struct autofs_dev_ioctl *param)
->>   {
->> -	unsigned long timeout;
->> +	unsigned long timeout = param->timeout.timeout;
->> +
->> +	/* If setting the expire timeout for an individual indirect
->> +	 * mount point dentry the mount trailing component path is
->> +	 * placed in param->path and param->size adjusted to account
->> +	 * for it otherwise param->size it is set to the structure
->> +	 * size.
->> +	 */
->> +	if (param->size == AUTOFS_DEV_IOCTL_SIZE) {
->> +		param->timeout.timeout = sbi->exp_timeout / HZ;
->> +		sbi->exp_timeout = timeout * HZ;
->> +	} else {
->> +		struct dentry *base = fp->f_path.dentry;
->> +		struct inode *inode = base->d_inode;
->> +		int path_len = param->size - AUTOFS_DEV_IOCTL_SIZE - 1;
->> +		struct dentry *dentry;
->> +		struct autofs_info *ino;
->> +
->> +		if (!autofs_type_indirect(sbi->type))
->> +			return -EINVAL;
->> +
->> +		/* An expire timeout greater than the superblock timeout
->> +		 * could be a problem at shutdown but the super block
->> +		 * timeout itself can change so all we can really do is
->> +		 * warn the user.
->> +		 */
->> +		if (timeout >= sbi->exp_timeout)
->> +			pr_warn("per-mount expire timeout is greater than "
->> +				"the parent autofs mount timeout which could "
->> +				"prevent shutdown\n");
-> Wouldn't it be possible to just record the lowest known per-dentry
-> timeout in idk sbi->exp_lower_bound and reject sbi->exp_timeout changes
-> that go below that?
+On 15/8/24 11:10, Ian Kent wrote:
+> On 14/8/24 22:39, Christian Brauner wrote:
+>> On Wed, Aug 14, 2024 at 05:02:31PM GMT, Ian Kent wrote:
+>>> Add ability to set per-dentry mount expire timeout to autofs.
+>>>
+>>> There are two fairly well known automounter map formats, the autofs
+>>> format and the amd format (more or less System V and Berkley).
+>>>
+>>> Some time ago Linux autofs added an amd map format parser that
+>>> implemented a fair amount of the amd functionality. This was done
+>>> within the autofs infrastructure and some functionality wasn't
+>>> implemented because it either didn't make sense or required extra
+>>> kernel changes. The idea was to restrict changes to be within the
+>>> existing autofs functionality as much as possible and leave changes
+>>> with a wider scope to be considered later.
+>>>
+>>> One of these changes is implementing the amd options:
+>>> 1) "unmount", expire this mount according to a timeout (same as the
+>>>     current autofs default).
+>>> 2) "nounmount", don't expire this mount (same as setting the autofs
+>>>     timeout to 0 except only for this specific mount) .
+>>> 3) "utimeout=<seconds>", expire this mount using the specified
+>>>     timeout (again same as setting the autofs timeout but only for
+>>>     this mount).
+>>>
+>>> To implement these options per-dentry expire timeouts need to be
+>>> implemented for autofs indirect mounts. This is because all map keys
+>>> (mounts) for autofs indirect mounts use an expire timeout stored in
+>>> the autofs mount super block info. structure and all indirect mounts
+>>> use the same expire timeout.
+>>>
+>>> Now I have a request to add the "nounmount" option so I need to add
+>>> the per-dentry expire handling to the kernel implementation to do this.
+>>>
+>>> The implementation uses the trailing path component to identify the
+>>> mount (and is also used as the autofs map key) which is passed in the
+>>> autofs_dev_ioctl structure path field. The expire timeout is passed
+>>> in autofs_dev_ioctl timeout field (well, of the timeout union).
+>>>
+>>> If the passed in timeout is equal to -1 the per-dentry timeout and
+>>> flag are cleared providing for the "unmount" option. If the timeout
+>>> is greater than or equal to 0 the timeout is set to the value and the
+>>> flag is also set. If the dentry timeout is 0 the dentry will not expire
+>>> by timeout which enables the implementation of the "nounmount" option
+>>> for the specific mount. When the dentry timeout is greater than zero it
+>>> allows for the implementation of the "utimeout=<seconds>" option.
+>>>
+>>> Signed-off-by: Ian Kent <raven@themaw.net>
+>>> ---
+>>>   fs/autofs/autofs_i.h         |  4 ++
+>>>   fs/autofs/dev-ioctl.c        | 97 
+>>> ++++++++++++++++++++++++++++++++++--
+>>>   fs/autofs/expire.c           |  7 ++-
+>>>   fs/autofs/inode.c            |  2 +
+>>>   include/uapi/linux/auto_fs.h |  2 +-
+>>>   5 files changed, 104 insertions(+), 8 deletions(-)
+>>>
+>>> diff --git a/fs/autofs/autofs_i.h b/fs/autofs/autofs_i.h
+>>> index 8c1d587b3eef..77c7991d89aa 100644
+>>> --- a/fs/autofs/autofs_i.h
+>>> +++ b/fs/autofs/autofs_i.h
+>>> @@ -62,6 +62,7 @@ struct autofs_info {
+>>>       struct list_head expiring;
+>>>         struct autofs_sb_info *sbi;
+>>> +    unsigned long exp_timeout;
+>>>       unsigned long last_used;
+>>>       int count;
+>>>   @@ -81,6 +82,9 @@ struct autofs_info {
+>>>                       */
+>>>   #define AUTOFS_INF_PENDING    (1<<2) /* dentry pending mount */
+>>>   +#define AUTOFS_INF_EXPIRE_SET    (1<<3) /* per-dentry expire 
+>>> timeout set for
+>>> +                      this mount point.
+>>> +                    */
+>>>   struct autofs_wait_queue {
+>>>       wait_queue_head_t queue;
+>>>       struct autofs_wait_queue *next;
+>>> diff --git a/fs/autofs/dev-ioctl.c b/fs/autofs/dev-ioctl.c
+>>> index 5bf781ea6d67..f011e026358e 100644
+>>> --- a/fs/autofs/dev-ioctl.c
+>>> +++ b/fs/autofs/dev-ioctl.c
+>>> @@ -128,7 +128,13 @@ static int validate_dev_ioctl(int cmd, struct 
+>>> autofs_dev_ioctl *param)
+>>>               goto out;
+>>>           }
+>>>   +        /* Setting the per-dentry expire timeout requires a trailing
+>>> +         * path component, ie. no '/', so invert the logic of the
+>>> +         * check_name() return for AUTOFS_DEV_IOCTL_TIMEOUT_CMD.
+>>> +         */
+>>>           err = check_name(param->path);
+>>> +        if (cmd == AUTOFS_DEV_IOCTL_TIMEOUT_CMD)
+>>> +            err = err ? 0 : -EINVAL;
+>>>           if (err) {
+>>>               pr_warn("invalid path supplied for cmd(0x%08x)\n",
+>>>                   cmd);
+>>> @@ -396,16 +402,97 @@ static int autofs_dev_ioctl_catatonic(struct 
+>>> file *fp,
+>>>       return 0;
+>>>   }
+>>>   -/* Set the autofs mount timeout */
+>>> +/*
+>>> + * Set the autofs mount expire timeout.
+>>> + *
+>>> + * There are two places an expire timeout can be set, in the autofs
+>>> + * super block info. (this is all that's needed for direct and offset
+>>> + * mounts because there's a distinct mount corresponding to each of
+>>> + * these) and per-dentry within within the dentry info. If a 
+>>> per-dentry
+>>> + * timeout is set it will override the expire timeout set in the 
+>>> parent
+>>> + * autofs super block info.
+>>> + *
+>>> + * If setting the autofs super block expire timeout the 
+>>> autofs_dev_ioctl
+>>> + * size field will be equal to the autofs_dev_ioctl structure size. If
+>>> + * setting the per-dentry expire timeout the mount point name is 
+>>> passed
+>>> + * in the autofs_dev_ioctl path field and the size field updated to
+>>> + * reflect this.
+>>> + *
+>>> + * Setting the autofs mount expire timeout sets the timeout in the 
+>>> super
+>>> + * block info. struct. Setting the per-dentry timeout does a little 
+>>> more.
+>>> + * If the timeout is equal to -1 the per-dentry timeout (and flag) is
+>>> + * cleared which reverts to using the super block timeout, 
+>>> otherwise if
+>>> + * timeout is 0 the timeout is set to this value and the flag is left
+>>> + * set which disables expiration for the mount point, lastly the flag
+>>> + * and the timeout are set enabling the dentry to use this timeout.
+>>> + */
+>>>   static int autofs_dev_ioctl_timeout(struct file *fp,
+>>>                       struct autofs_sb_info *sbi,
+>>>                       struct autofs_dev_ioctl *param)
+>>>   {
+>>> -    unsigned long timeout;
+>>> +    unsigned long timeout = param->timeout.timeout;
+>>> +
+>>> +    /* If setting the expire timeout for an individual indirect
+>>> +     * mount point dentry the mount trailing component path is
+>>> +     * placed in param->path and param->size adjusted to account
+>>> +     * for it otherwise param->size it is set to the structure
+>>> +     * size.
+>>> +     */
+>>> +    if (param->size == AUTOFS_DEV_IOCTL_SIZE) {
+>>> +        param->timeout.timeout = sbi->exp_timeout / HZ;
+>>> +        sbi->exp_timeout = timeout * HZ;
+>>> +    } else {
+>>> +        struct dentry *base = fp->f_path.dentry;
+>>> +        struct inode *inode = base->d_inode;
+>>> +        int path_len = param->size - AUTOFS_DEV_IOCTL_SIZE - 1;
+>>> +        struct dentry *dentry;
+>>> +        struct autofs_info *ino;
+>>> +
+>>> +        if (!autofs_type_indirect(sbi->type))
+>>> +            return -EINVAL;
+>>> +
+>>> +        /* An expire timeout greater than the superblock timeout
+>>> +         * could be a problem at shutdown but the super block
+>>> +         * timeout itself can change so all we can really do is
+>>> +         * warn the user.
+>>> +         */
+>>> +        if (timeout >= sbi->exp_timeout)
+>>> +            pr_warn("per-mount expire timeout is greater than "
+>>> +                "the parent autofs mount timeout which could "
+>>> +                "prevent shutdown\n");
+>> Wouldn't it be possible to just record the lowest known per-dentry
+>> timeout in idk sbi->exp_lower_bound and reject sbi->exp_timeout changes
+>> that go below that?
+>
+> Not sure I understand what your saying here.
 
-Not sure I understand what your saying here.
+Having re-read what you said I think I understand what your saying now.
 
 
-The (amd) auto-mounted mounts are each meant to be able to expire 
-independently,
+I was mislead by the lower bound wording, the warning talks about a 
+per-dentry timeout setting
 
-according to the timeout set for each of them rather than use the global 
-timeout set
+that's longer than the timeout set for this indirect autofs mount. TBH 
+I'm not even sure this
 
-in the autofs (parent) mount.
+warning is worthwhile since most user space builds should just leave 
+in-use mounts mounted at exit
+
+and automount should just re-instate them at startup and continue on as 
+though nothing had happened.
+
+But I thought it worth a warning so that users know the timeouts they 
+are using are longer than the
+
+parent (global for these indirect mounts) timeout.
 
 
-But your comment is useful because I do use a polling mechanism in user 
-space to check
-
-for expiration and the frequency of checking becomes a problem when I 
-introduce this.
-
-Setting a lower bound may make the frequency to short (for very large 
-directories) and
-
-I think there will be difficulties working out when the frequency needs 
-to be reduced
-
-after changes. But these are problems that I think can be left to user 
-space, not sure
-
-yet. For now it will be adequate to go with the default frequency based 
-on the parent
-
-mount as it is now (ie. a check frequency of one quarter of the expire 
-global timeout).
+I can certainly get rid of it if you prefer.
 
 
 Ian
 
+>
+>
+> The (amd) auto-mounted mounts are each meant to be able to expire 
+> independently,
+>
+> according to the timeout set for each of them rather than use the 
+> global timeout set
+>
+> in the autofs (parent) mount.
+>
+>
+> But your comment is useful because I do use a polling mechanism in 
+> user space to check
+>
+> for expiration and the frequency of checking becomes a problem when I 
+> introduce this.
+>
+> Setting a lower bound may make the frequency to short (for very large 
+> directories) and
+>
+> I think there will be difficulties working out when the frequency 
+> needs to be reduced
+>
+> after changes. But these are problems that I think can be left to user 
+> space, not sure
+>
+> yet. For now it will be adequate to go with the default frequency 
+> based on the parent
+>
+> mount as it is now (ie. a check frequency of one quarter of the expire 
+> global timeout).
+>
+>
+> Ian
+>
+>
