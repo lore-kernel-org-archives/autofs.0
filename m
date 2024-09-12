@@ -1,64 +1,64 @@
-Received: from mail-lf1-f50.google.com (mail-lf1-f50.google.com [209.85.167.50])
+Received: from mail-ed1-f50.google.com (mail-ed1-f50.google.com [209.85.208.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF1147DA9C
-	for <autofs@vger.kernel.org>; Thu, 12 Sep 2024 21:45:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67F411BE857
+	for <autofs@vger.kernel.org>; Thu, 12 Sep 2024 21:48:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726177535; cv=none; b=X1OEP3iT87R3XzPW+LUPlUFmXncKGBgkRYMZpWyPkEqzKdXVuuPlkQbQ+aHjgm7lCGIiVBk1bXi5CNc4yrBLCI2uJ+5heyIyPDG9IQsLjaAyVs0D+LlcJoRrWaYLORdvqwrDpQiPy5hDWIJxNMyGzwMal93ONB6DF/WfwqS40i0=
+	t=1726177741; cv=none; b=KTxAr4lv+XofHHpryttdhGkgFgSEOiUvVOhCB0aI+YHky4bDfmeDllOLggbO9yHnYr24y0jCStFF/TeToX0a9NiA1mbXlTgPyRExnpMvuFsElBpxl4EUEReGsbcS/mgWtiZrSf2LajeSmBHCq3Tg00d2rdEkeh2nL83QAaYOlKU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726177535; c=relaxed/simple;
-	bh=pzfKU/0TA8MwrO3YQSE73IF/qF9RRSG7Y2uMgwRSdI0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=nI5+lHNTHyfAkMVpL01w9M6ppXq3JVngzuf+n8YpTSC6wMivvZGwPJMsVMcSawxO3wytmfYqeI/8Wb22xzGbYbERBEu7klo/6Dn7/BCUesGGAUjnU0A0ZqRWjlRwqF0hgQxryfgfwL5uqutZSf5MXgjRVtFizi5S+8Tt7TAhELI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ZHCPUC9x; arc=none smtp.client-ip=209.85.167.50
+	s=arc-20240116; t=1726177741; c=relaxed/simple;
+	bh=A3kXMnRCd6iA+9Q1YUeKkOSjsCNckFTGNyUWObsLFUs=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=bCPXeTYoHsCyUr10A5xI5i3ICXDjTFPo2CzqE42917zDsuL3VjP1fViKcP395YmAFZ/GP7MRARZUVBHgQbevQGTq2FZSIAvuoLNKH7K+eNcS1VUXP1Ho3NOIYD6xRKbBtC0Nl9gTEcodmkY4IkIEj0WCrQLWenKucY+HIBUwPHM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=fYQvb/3f; arc=none smtp.client-ip=209.85.208.50
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ZHCPUC9x"
-Received: by mail-lf1-f50.google.com with SMTP id 2adb3069b0e04-53659867cbdso409964e87.3
-        for <autofs@vger.kernel.org>; Thu, 12 Sep 2024 14:45:33 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fYQvb/3f"
+Received: by mail-ed1-f50.google.com with SMTP id 4fb4d7f45d1cf-5bef295a429so1868829a12.2
+        for <autofs@vger.kernel.org>; Thu, 12 Sep 2024 14:48:59 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1726177532; x=1726782332; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1726177738; x=1726782538; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:sender:from:to:cc:subject:date:message-id:reply-to;
-        bh=5ObH+aPY1Wo8LjMBkDtC3K7EZHKERSYDEW5fNJE8Aj4=;
-        b=ZHCPUC9x3gLe1ejnp7UMiOrJdo/dfX5E2g+1S8heKtzpA/WxV4Sgiz8aYdDE1KWgZt
-         /afpk8Lr9LDLKHEf8b8BV1SmEk6eDr0fnthuB5q4EsfOc71ZHVd9aPp3m0fKkvsFxTpc
-         GPV8pgwsd/ge6mNjZtAU4bYcTxl3H7HuXDgVfEbSvOh/pSlWmjH/8v1zUa5/VBzzLb9a
-         xGuNn8Wbe8xgjvQN1g+zIxNTurR/+nGW7LsEmHbYPZ41eWLb7p4c+cwLDGxKmxJpGqDp
-         qVwXlargBQfIXIfB/CC1ymzW7fZSolnd+SRs2zy3XRetiVIsFn2YBEp/o9Wg5wxAPUJ9
-         sfMw==
+        bh=LmphLjy4FI+CYhnqweQ89KePE0/Vpkw200LA/S39w9c=;
+        b=fYQvb/3fJwEfhg4KhRoFtg89JSJ2ua3F/xrQ34lqGwuv0+99bFf3zX/Ql3KmKFMcFo
+         ldVANdiP7TdBsX71c365kTk/XuFq0xhhHkOWAcFinjbaetKSVe1/yZP08wdtokts9hZW
+         GTH0HimavKVM13jWIibxgqIhj2kO7dl0fbaUSDbGuFSJsUfUqODleAgUQ3+8dspmawx4
+         ph663Ey4I1ucvNJK7odiinBzj1B22Ba/sdKMNVSE8c0Exa8Gs/sl8HEDP2HzSoi5oBhT
+         yZTOMPBIBLeUf0i1tm4yKxYGLOyJQsc+FmtO/LBVefv9ffClb7ib3hpuZ0E/pYnSnksn
+         Y5eQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1726177532; x=1726782332;
+        d=1e100.net; s=20230601; t=1726177738; x=1726782538;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:sender:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=5ObH+aPY1Wo8LjMBkDtC3K7EZHKERSYDEW5fNJE8Aj4=;
-        b=PF4pSQ1RWiIQuwmUupxFwhA1a5+uzlQ0u4+mzT0dkRiTOHWNFEbB+ZaFdYNtf1bx/S
-         m0PoJl9OTFKTLkVF5SYb3CmTwggd8Ra4TeJXXHnxszCG+QjiXFZrH8+nlTJ74v5pVxKL
-         XpPnRD56DtOtcR+4v5MESrv/zKu8cmJoEqONBSS3w6JgrTdSudLsg4oolHm0IL6UH54m
-         aCev6a2armt43GC0qcSkAJGTKpl+b7bx7K/i1335cxe4ihJxW4ouzVc+DgYYlx2uRDqO
-         QzewSgwChOj5Fb4fNRWR8ZpAAQBbLV+rwa/yl100gZsgz7dSPHMteTWqYyKyaYeL78V9
-         7ADA==
-X-Gm-Message-State: AOJu0YzW/nS3DdYROiS+BE0S8IAHTxbolc2SYF1a6RLWdGEr7EG32VSz
-	Pk/YtzDy/DccgEEecBoax4SekNJAZ0MSaCb3GAshDpOEu2sKeJSYZSoQJfNG
-X-Google-Smtp-Source: AGHT+IH6rB1plFxmiWvSS/sceG7mwkx8LQXPZidIm6jrh9XZY911fuZM/oYrpTwbAih3l+ub3GLKPg==
-X-Received: by 2002:a05:6512:10cb:b0:536:5625:511f with SMTP id 2adb3069b0e04-5367ff24cabmr473826e87.45.1726177531747;
-        Thu, 12 Sep 2024 14:45:31 -0700 (PDT)
+        bh=LmphLjy4FI+CYhnqweQ89KePE0/Vpkw200LA/S39w9c=;
+        b=HJDzrpAzIiHs8SYvo1S0I1yIICCqIRbszYCtuQ6DFEqkOx72uKxy3fAU8pRSh8iqki
+         IDxzr18b2Wo3Q9sbcZulcHq/fDrTLdXCADRsr53HOtEEQtm64qjhBzP19GsL2EQRHKgV
+         MhBv9A56me9Q/iXNS+mdvzo2lnYH41ssLhZ7KvEPWJT+0SusFEk4hLW5jiiQxgBz7V3f
+         aK64l3SCLZ9n8hNU16cFAcsWwnL1Ze6QMUtKuSjcFC5+xtELMsg/Z+ZhnmG5bSCn0PVJ
+         RlaZPW5XktDJ/FmhooLsONwLN1nMThI/pMtAtKDYKkUYs11orezlgs0C6HzJ+LFIYKvM
+         kB1A==
+X-Gm-Message-State: AOJu0Yx4R90qeQ8uC46ykDjX7U4QsB4E3CnykWbLhXF/tEB6TZQwOfeW
+	EchDS8BhZnWMAPenpXXa25FWzCtOYZXXxBtM0/n19YqRZ6iGuxXa
+X-Google-Smtp-Source: AGHT+IHzKj0nY0JzIqenC+4upHsMwwOkTgm47DEj3DwwrhqMo0+38VIc9EJwyhdUagmA4MTofcuBlg==
+X-Received: by 2002:a05:6402:27ce:b0:5c0:ab6f:652a with SMTP id 4fb4d7f45d1cf-5c413e06ca6mr3179301a12.3.1726177737645;
+        Thu, 12 Sep 2024 14:48:57 -0700 (PDT)
 Received: from eldamar.lan (c-82-192-242-114.customer.ggaweb.ch. [82.192.242.114])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a8d25ced41esm808379066b.171.2024.09.12.14.45.31
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-5c3ebd8cd43sm7020684a12.93.2024.09.12.14.48.56
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 12 Sep 2024 14:45:31 -0700 (PDT)
+        Thu, 12 Sep 2024 14:48:56 -0700 (PDT)
 Sender: Salvatore Bonaccorso <salvatore.bonaccorso@gmail.com>
 Received: by eldamar.lan (Postfix, from userid 1000)
-	id 977C6BE2DE0; Thu, 12 Sep 2024 23:45:30 +0200 (CEST)
+	id C0208BE2DE0; Thu, 12 Sep 2024 23:48:55 +0200 (CEST)
 From: Salvatore Bonaccorso <carnil@debian.org>
 To: Ian Kent <raven@themaw.net>
 Cc: autofs@vger.kernel.org,
 	Salvatore Bonaccorso <carnil@debian.org>
-Subject: [PATCH] sample/auto.smb: Use AUTOFS_ prevised environment variables
-Date: Thu, 12 Sep 2024 23:45:29 +0200
-Message-ID: <20240912214529.3586463-1-carnil@debian.org>
+Subject: [PATCH v2] sample/auto.smb: Use AUTOFS_ prefixed environment variables
+Date: Thu, 12 Sep 2024 23:48:31 +0200
+Message-ID: <20240912214830.3586792-2-carnil@debian.org>
 X-Mailer: git-send-email 2.45.2
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
@@ -79,6 +79,9 @@ sample code for the auto.smb program map.
 Link: https://bugs.debian.org/949075
 Signed-off-by: Salvatore Bonaccorso <carnil@debian.org>
 ---
+Changes in v2:
+ - Fix typo 'prevised' -> 'prefixed'
+
  samples/auto.smb | 6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
