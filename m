@@ -1,85 +1,95 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f51.google.com (mail-wr1-f51.google.com [209.85.221.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48D411714A2;
-	Thu, 15 Aug 2024 13:10:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CDBE1BFDE3
+	for <autofs@vger.kernel.org>; Thu, 12 Sep 2024 20:03:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723727456; cv=none; b=N33C5nXXKtybZQucAFpwmSm0+rtX8rIzTxIgkH0CDNLYzruAlsbjta4fkk0Bc31f5lAN3RGdkRQE/ck7WkgIs0s0CZCy766NitlJ2jYiHSiDmTAE/BVx4XY542aAclbGfXUdOq6T8eevAq66gdmwGFwX4eqPEdo6hmdeD50vlFk=
+	t=1726171387; cv=none; b=Gyf1jOYfzGR1Ves8vT+P0YYdY0Jf05N7Gn18f/BmDiub9XsziW33RCbhnlgpFw2K7maEW90P4sMMsSyT8sHzGnuv+ftat5VhLZfGLwwCtvOhsBFgE7wXQk4vO6Y2J7TRiZNxwyIUvmpyxCm84QRfOWuIWMAWmuE4UH0FW9Nh8e0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723727456; c=relaxed/simple;
-	bh=5GxrifkwgDDU8FVJ7SFx02XcVFuwRfBC0Pmkg9TExfc=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=B5TQGhqT00IFfqcNNeGeDv6hKC6qvenn9AwHOLLpJhbgwCJHtWkrvlG0IBT2VfO7N9WGCMioCuyjyTIe+ZGTZ5TrKKp/KlZ1Iy/wSR6XO36oDRFcCcPEwTSk2bzON6Dg8BBZv5594oc05LePCOvOKcJN2mGwtj3Hg236OKAjV4o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kmFL2Gfm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1726171387; c=relaxed/simple;
+	bh=y1dTnlq4OW9UE4obMGsT+qx7oHSniUjZwV8ZJv33aPA=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=PxG2A7iDyCYrdyT9Ozs5YrH0qyVSQeiV1vbHgOpX5s5JzibVNZf5UeACxKHgFbQYEinAmrZk5idU6Y1U8tL/jHze6Gm6sGUEYS3x8WaH9W4HBlW4Fde+8aOLTdhUtyeel0loPbqC0ycUa8MN7+YLbItiyYB2bHIFfefBn/n0Z34=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=X3Xl0PHK; arc=none smtp.client-ip=209.85.221.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=debian.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kmFL2Gfm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21F6EC32786;
-	Thu, 15 Aug 2024 13:10:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1723727455;
-	bh=5GxrifkwgDDU8FVJ7SFx02XcVFuwRfBC0Pmkg9TExfc=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=kmFL2GfmGcDAr5HuVoWi2j4G4gfkl4+DY5BDY3VblsMOJj6SovIowh+58I7iII6zL
-	 dGHYPygUYWue2rdOzgqqmcYh4hEn9G4cjRj8OHhLJoITnKkppc3cLUfdsgpiNUHJU5
-	 MwoCvvGJofO5g16wHZPe+jbIWkvdNk2SgA0Jk26KM/J0PgufzfG034lu3ALM1N70qa
-	 ENL1HgA9YpEnDN41THaZUcZgCm4boSvmyICV7H41sdFoyJX5rEoajKDVXvPitcFr/2
-	 nG6tlE4xXOmm7qT/r6N+Uo8Lyy8SiSi/IgNSulXIDEm0nFNmMZb0KvrhCKwoaXMiLf
-	 2TsMvLz7je5Rw==
-From: Christian Brauner <brauner@kernel.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="X3Xl0PHK"
+Received: by mail-wr1-f51.google.com with SMTP id ffacd0b85a97d-374c4c6cb29so186856f8f.3
+        for <autofs@vger.kernel.org>; Thu, 12 Sep 2024 13:03:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1726171384; x=1726776184; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:sender:from:to:cc:subject:date:message-id:reply-to;
+        bh=ka7y7QYauElCtxf0PGckhaOaKAcUmRSEUuH9zVHmnqQ=;
+        b=X3Xl0PHKD5h7FJCMocqB6FFQ9/yjkRThXmidwDQ75PFaWoywHqlCs45QoUGLbv031u
+         zf3e+usyoJbUr7y5qmWEr7CYrMW956K8m5/dI4im4OPlhpHoIQOsmsPojYU0VhxOzy2P
+         giygEkinnTfVfkzUhjkaARHZfgT4nwKAdp6ZzrI+9z0tJwvGJJnk9Grhc7fGO0/JQfxR
+         cwra2WWh/4FGGmcvAArz9rlGqTa71H3rMNR6Ax8urK/2QBOx1QgNmqZlJUmzeltSpNc4
+         jTBRNbMdznFdTFjxyJKOIf6hvsewfoCU5g4hdiY5839/zErVzXZU1z/CEp01/aPTYAiB
+         8+gg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1726171384; x=1726776184;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:sender:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=ka7y7QYauElCtxf0PGckhaOaKAcUmRSEUuH9zVHmnqQ=;
+        b=iO1e91johPViYtInqLH5YK9fVfoWDJTCaP9GwfiKfpxIe5ksjr3LNXNqVOd3+Scfl2
+         EgWV1miLukaJlJZrLZPr3Po5rVkBZPuK+fRnKsHTfG7Wox+h5in/LyEI1HD6/5WJbD+n
+         8QQ6D1JtK8OUxudQMRjK/Mr2LT3HPM2reCCglEzs9nVHshf0Q/ZFLkvHKsj0L5qn6wSl
+         IHyTsJ42zg0DEU1qW6nBZnhphAct/lkX/yLnfnZyk9zXXZGRYpIQ01dUHyrzLY4vyd1U
+         09Ql1oqbJM4k8WhN1Ds1uNcmopvuxlHR/ESo1cR3UDvlLCxWXcGUlzbHuuuKQ6yI3rA2
+         +8WQ==
+X-Gm-Message-State: AOJu0YyMfetk17pRA4/6N+HZngh2Arlfjp9VPdudVOBeExeKM9lteZBE
+	4wRqXuO96dlWUsPQCP7xptpzgnV8sYdS4y1p5XM3bFQ8nlGNR/ee
+X-Google-Smtp-Source: AGHT+IEwOkdIp8SGUnJ/rr3P/Skr8opYLK8Efw7EokEpGXo9R8NmcNdBvNToDk6FJBz3rTTV35nLxg==
+X-Received: by 2002:a05:6000:2ca:b0:378:81aa:2653 with SMTP id ffacd0b85a97d-378d61d49dbmr345712f8f.9.1726171384005;
+        Thu, 12 Sep 2024 13:03:04 -0700 (PDT)
+Received: from eldamar.lan (c-82-192-242-114.customer.ggaweb.ch. [82.192.242.114])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a8d25c726f8sm788034966b.121.2024.09.12.13.03.03
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 12 Sep 2024 13:03:03 -0700 (PDT)
+Sender: Salvatore Bonaccorso <salvatore.bonaccorso@gmail.com>
+Received: by eldamar.lan (Postfix, from userid 1000)
+	id 85C5BBE2DE0; Thu, 12 Sep 2024 22:03:02 +0200 (CEST)
+From: Salvatore Bonaccorso <carnil@debian.org>
 To: Ian Kent <raven@themaw.net>
-Cc: Christian Brauner <brauner@kernel.org>,
-	autofs mailing list <autofs@vger.kernel.org>,
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-	Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Al Viro <viro@zeniv.linux.org.uk>
-Subject: Re: [PATCH v2] autofs: add per dentry expire timeout
-Date: Thu, 15 Aug 2024 15:10:44 +0200
-Message-ID: <20240815-genie-dreschen-db0d18e4d849@brauner>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20240814090231.963520-1-raven@themaw.net>
-References: <20240814090231.963520-1-raven@themaw.net>
+Cc: autofs@vger.kernel.org,
+	Salvatore Bonaccorso <carnil@debian.org>
+Subject: [PATCH] samples/auto.net: Remove mentioning of 'nosymlink' option
+Date: Thu, 12 Sep 2024 22:02:52 +0200
+Message-ID: <20240912200252.3570157-1-carnil@debian.org>
+X-Mailer: git-send-email 2.45.2
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 List-Subscribe: <mailto:autofs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1481; i=brauner@kernel.org; h=from:subject:message-id; bh=5GxrifkwgDDU8FVJ7SFx02XcVFuwRfBC0Pmkg9TExfc=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMaTt/Rc164OMzrJQ3+U3dptEvf6//1yNfXJvxYTvOb92r DvIHCTg2VHKwiDGxSArpsji0G4SLrecp2KzUaYGzBxWJpAhDFycAjCRbhuG//HKvRqmbn+Or7dL +rSs9kB8WGl4MiM7n/VM0b3fVk768ZPhnyZP+JO+wiXHv955+uH6unRXW77Pbxsj9io2bfafFrK WgQkA
-X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 Content-Transfer-Encoding: 8bit
 
-On Wed, 14 Aug 2024 17:02:31 +0800, Ian Kent wrote:
-> Add ability to set per-dentry mount expire timeout to autofs.
-> 
-> There are two fairly well known automounter map formats, the autofs
-> format and the amd format (more or less System V and Berkley).
-> 
-> Some time ago Linux autofs added an amd map format parser that
-> implemented a fair amount of the amd functionality. This was done
-> within the autofs infrastructure and some functionality wasn't
-> implemented because it either didn't make sense or required extra
-> kernel changes. The idea was to restrict changes to be within the
-> existing autofs functionality as much as possible and leave changes
-> with a wider scope to be considered later.
-> 
-> [...]
+The 'nosymlink' option is deprecated since 61e6b979b441 ("autofs-5.0.7 -
+depricate nosymlink pseudo option"). When using the 'nosymlink' option
+we warn about its deprecation and to use 'nobind' instead. As such drop
+the comment from the sample auto.net file.
 
-Applied to the vfs.misc branch of the vfs/vfs.git tree.
-Patches in the vfs.misc branch should appear in linux-next soon.
+Signed-off-by: Salvatore Bonaccorso <carnil@debian.org>
+---
+ samples/auto.net | 1 -
+ 1 file changed, 1 deletion(-)
 
-Please report any outstanding bugs that were missed during review in a
-new review to the original patch series allowing us to drop it.
+diff --git a/samples/auto.net b/samples/auto.net
+index c5b145d545fc..dc7adf20d960 100755
+--- a/samples/auto.net
++++ b/samples/auto.net
+@@ -7,7 +7,6 @@
+ 
+ key="$1"
+ 
+-# add "nosymlink" here if you want to suppress symlinking local filesystems
+ # add "nonstrict" to make it OK for some filesystems to not mount
+ opts="-fstype=nfs,hard,nodev,nosuid"
+ 
+-- 
+2.45.2
 
-It's encouraged to provide Acked-bys and Reviewed-bys even though the
-patch has now been applied. If possible patch trailers will be updated.
-
-Note that commit hashes shown below are subject to change due to rebase,
-trailer updates or similar. If in doubt, please check the listed branch.
-
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
-branch: vfs.misc
-
-[1/1] autofs: add per dentry expire timeout
-      https://git.kernel.org/vfs/vfs/c/70089655316e
