@@ -1,79 +1,72 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-f194.google.com (mail-pg1-f194.google.com [209.85.215.194])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3CE217C61;
-	Mon, 28 Oct 2024 12:18:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43B8B1DD867
+	for <autofs@vger.kernel.org>; Mon, 28 Oct 2024 12:43:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.194
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730117925; cv=none; b=oZhmryqwBKLs/O8Pv8eWY56GmoP5E95Hj4Btla+cVgwFg+BS0ClCyNjGpnhZWJSEcIegqc/DcQ4TNYxbK1Y2piEG9dx78JNsGLiOZzJZcHORcquTTVJvETMYPmqMCTbrvBwuT6bhkbZPFZI5CiYA5No/4imL3bOwAECosbDkrZU=
+	t=1730119430; cv=none; b=ZAecBsMjvQa6cK+Ge4UWsOqoxXe8yO3OxR56roMgc27flFT5gjpIzYhJC/2oLXbAAxo1u/i3P1p6T/Gbt9mzXaqs0gngbX0hGfCuweryllnNs9MNTI+xOeftf9jZERJHwPxsUgE0MmAaLZoHoOjgkOLbSoZerKVBhzW4BoDGY8Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730117925; c=relaxed/simple;
-	bh=0H8r7TBHT37tjzCNRwO0VZNVQ8S36hpd0jKeDGVcZik=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=knqLdU4Ceav3Qz2oDYU4YBVuI+59A0DmD8SZcE3c9UIUvTOlXOtO+fkX5VqCwJkw7kxAGJoH0InQtJm7d97DKlgmZ06mxr2n7cMIE7Lofequ5fq3lL9nxBTRUFxlLf2UXErOlvs6ng1H2Os6I/ehy2k7mbh74sEtgYsWhiU6Vis=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QKpH/xlX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1730119430; c=relaxed/simple;
+	bh=BX28rAzmD4iiFzVyOHBt728GRE15tu8MjCYp4yUF6Zs=;
+	h=From:Message-ID:To:Subject:Date:MIME-Version:Content-Type; b=n1n4tETvQFoYvvKHVYHr3iNdaJ95vaMX5fBbCs8NZnYVEhQVUWgX2SnVKdvZDPUssf6nNpwh7x81AXF+uijvpONxJJOVzK/6Vigsn8bV9n7ikZj6Hw8u/OSyQJ6J4TTA6LLIyQXwupOAfLUW5uUAp//9YdIIJgfX7fpbZSWC1mk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jlgISpdl; arc=none smtp.client-ip=209.85.215.194
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QKpH/xlX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C67E1C4CEC3;
-	Mon, 28 Oct 2024 12:18:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1730117925;
-	bh=0H8r7TBHT37tjzCNRwO0VZNVQ8S36hpd0jKeDGVcZik=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=QKpH/xlXRxMKcdNtTRHI7tjVhS3KsWBpLiVeqHxpekiGCWHsZp3lsaK2JD74E20CS
-	 6vNs4prZ7MwLJwuqhw+hGthiYZ4Ndy1DNAhkOeCWVrfrfgiJvgjsWXCcgFdUph8AFe
-	 b4B0YyUkDD+4drWqBj6Sdv17dTsMULxP8ESE/MjIHRg+jXvyxfm3msbUoDtmWCVb5h
-	 IylKJWjNMeHqH+FWB+kA1OD6EVuNhZFa7razs7Ul4OAmispAjXn1X61EmkQNuM9ktb
-	 e7pHevDdQK8NEY5zHZiP2mJCq1arj+Kq9AqhUgFgwkij8jjBx9XmCedesmppXZsAnL
-	 23ed9Q/sQNWBg==
-From: Christian Brauner <brauner@kernel.org>
-To: Ian Kent <raven@themaw.net>
-Cc: Christian Brauner <brauner@kernel.org>,
-	Al Viro <viro@ZenIV.linux.org.uk>,
-	autofs mailing list <autofs@vger.kernel.org>,
-	Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>
-Subject: Re: [PATCH] autofs: fix thinko in validate_dev_ioctl()
-Date: Mon, 28 Oct 2024 13:18:39 +0100
-Message-ID: <20241028-filmt-lesebrille-20feb7581897@brauner>
-X-Mailer: git-send-email 2.45.2
-In-Reply-To: <20241027224732.5507-1-raven@themaw.net>
-References: <20241027224732.5507-1-raven@themaw.net>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jlgISpdl"
+Received: by mail-pg1-f194.google.com with SMTP id 41be03b00d2f7-7ed9f1bcb6bso2744206a12.1
+        for <autofs@vger.kernel.org>; Mon, 28 Oct 2024 05:43:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1730119428; x=1730724228; darn=vger.kernel.org;
+        h=mime-version:date:subject:to:reply-to:message-id:from:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=BX28rAzmD4iiFzVyOHBt728GRE15tu8MjCYp4yUF6Zs=;
+        b=jlgISpdlD6yYFgGwvSgpqdnxOQTExW/Ti8uqY8LQs4RdcR85KsxlWtGFs+zC3WCbE3
+         pYYlrMJ361r7ScShn1V3fEY4jg0fmWc8NDyj7s6pIMUyZGMt80B1IEymvq4KkPBHZ89f
+         s/QSzBw5ODMX/67/vh2m1TFFOmZqOyrT1VOsk3St0eX/WV6PIDuxVaGQo+AE9PKqBJc7
+         AgpsbuwtTaWolv4JFPmdg3S+exCU7bslQCwSSOn2fS6G5HGFUPuaNPKXvGlQb7qnzUSI
+         5WTPfqqaHfdw0QXqSrkcfczfry6IlKSijtxH+pfyE3lnjqADfhPkSst+NhUJG9XrQqwM
+         z+vQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1730119428; x=1730724228;
+        h=mime-version:date:subject:to:reply-to:message-id:from
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=BX28rAzmD4iiFzVyOHBt728GRE15tu8MjCYp4yUF6Zs=;
+        b=AiJZVQmu4R6NKB01Rwp5S4w2nT3A1P7CrQV7Ogrb9lAo4a5h8mvY7XkbaGgW364ZBu
+         KJx6/rQ7FgZ24dllDMev7QpWucylmeG1TpGE+kezz5J9Q0WTcKCEo8/r9TG9wEE0ztd0
+         d2IrUq29V0F3DHwHYKfE/3ju9NOPJqsXz/cRBqxYPQ0RQ3d/Asb0vWSuHG+d/Ip69o8f
+         GmNCtfbaOGCwwOaYtBBKbfGgbrB1EqYkTdhcHb0s+a1YxtspcpUxBexLpyFGY0374ILZ
+         /rRgvwkwv3BqsCteoesh2/Gq3rkLUKT97liI9ehHMWFgGYO1v88tpKTX38HfJj17zPOS
+         1loA==
+X-Gm-Message-State: AOJu0YymTTPzbKoeGJWuPAJWqxKVcvvFB1w2/slc4HXLMjxhH07Uc5G1
+	Cjsddna23KVZY93grSuOrmQSInf5ylsAYAPCbeG9POkPH0o4MaQqfl9m2ThX
+X-Google-Smtp-Source: AGHT+IEveoTOXMgFkgjiXwyCbtgrw1N8vhuOwJ6bKZdDImDpCcdByrcStEH67729DnCg9L5sYECrow==
+X-Received: by 2002:a05:6a20:bb06:b0:1d9:c743:860f with SMTP id adf61e73a8af0-1d9c7438653mr3228176637.11.1730119428534;
+        Mon, 28 Oct 2024 05:43:48 -0700 (PDT)
+Received: from [103.67.163.162] ([103.67.163.162])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-7205791d4d9sm5824449b3a.15.2024.10.28.05.43.47
+        for <autofs@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 28 Oct 2024 05:43:48 -0700 (PDT)
+From: Debbie Magoffin <naghamtony726256@gmail.com>
+X-Google-Original-From: Debbie Magoffin <dmagoffin@outlook.com>
+Message-ID: <ce9c0447ceda14523ffd89664f61636e335871d11603d8d77055f12961fcbe2e@mx.google.com>
+Reply-To: dmagoffin@outlook.com
+To: autofs@vger.kernel.org
+Subject: Yamaha Piano 10/28
+Date: Mon, 28 Oct 2024 08:43:44 -0400
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 List-Subscribe: <mailto:autofs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1064; i=brauner@kernel.org; h=from:subject:message-id; bh=0H8r7TBHT37tjzCNRwO0VZNVQ8S36hpd0jKeDGVcZik=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMaTLN8rr/SrTW8ukyDXD4lva61nluXsruCp+b1rgdWFp4 7xAaZcjHaUsDGJcDLJiiiwO7Sbhcst5KjYbZWrAzGFlAhnCwMUpABOxmMvwP/L2r2WGwZf7jKN0 bC5J6QR/cdl5Z+K0LF+uiSU3GNYGejMyvF5nv/tYfNivgI5CMy8OH86Pl/1PlX0RMdv8KjTlRPs fNgA=
-X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 
-On Mon, 28 Oct 2024 06:47:17 +0800, Ian Kent wrote:
-> I was so sure the per-dentry expire timeout patch worked ok but my
-> testing was flawed.
-> 
-> In validate_dev_ioctl() the check for ioctl AUTOFS_DEV_IOCTL_TIMEOUT_CMD
-> should use the ioctl number not the passed in ioctl command.
-> 
-> 
-> [...]
+Hello,
 
-Applied to the vfs.fixes branch of the vfs/vfs.git tree.
-Patches in the vfs.fixes branch should appear in linux-next soon.
+I am offering my late husband?s Yamaha piano to anyone who would truly appreciate it. If you or someone you know would be interested in receiving this instrument for free, please do not hesitate to contact me.
 
-Please report any outstanding bugs that were missed during review in a
-new review to the original patch series allowing us to drop it.
-
-It's encouraged to provide Acked-bys and Reviewed-bys even though the
-patch has now been applied. If possible patch trailers will be updated.
-
-Note that commit hashes shown below are subject to change due to rebase,
-trailer updates or similar. If in doubt, please check the listed branch.
-
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
-branch: vfs.fixes
-
-[1/1] autofs: fix thinko in validate_dev_ioctl()
-      https://git.kernel.org/vfs/vfs/c/f19910006eff
+Warm regards,
+Debbie
