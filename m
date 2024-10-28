@@ -1,134 +1,79 @@
-Received: from fout-a2-smtp.messagingengine.com (fout-a2-smtp.messagingengine.com [103.168.172.145])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA337286A1;
-	Sun, 27 Oct 2024 22:48:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.145
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3CE217C61;
+	Mon, 28 Oct 2024 12:18:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730069293; cv=none; b=uetT16QmdiLp4/k2/qzNgBZE8lGAQEsG0y/tj7FRY2arKJVQihJzbaqvi2z/9pgEuHzzCcE9Al/LRX+Ar2boc7qdt6FPop8znK0mgp0BNXyOAGN2pcVNxUdTID586Wz9eufKHU+Ajv+lErpA2iX+S+zuqBKb3eoCi/3B1K6b8go=
+	t=1730117925; cv=none; b=oZhmryqwBKLs/O8Pv8eWY56GmoP5E95Hj4Btla+cVgwFg+BS0ClCyNjGpnhZWJSEcIegqc/DcQ4TNYxbK1Y2piEG9dx78JNsGLiOZzJZcHORcquTTVJvETMYPmqMCTbrvBwuT6bhkbZPFZI5CiYA5No/4imL3bOwAECosbDkrZU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730069293; c=relaxed/simple;
-	bh=mNwCDYHaewSTiQZC6F8XtuBW3oExxbRrggmg6HesAN4=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=MM0XtmCca6hWl6F/I4ISfhc/rW4BbsngGuryov+rBpe98nn7z++J6OtuLLNZ9+tYhBpjT43g1eUvB8dCc1l2wHzDoShcSA8vCbTkQnOr51hVnKalug3AfJoHXL6EJg2NGo3f0Yg2Mf9ytP9BwXtcqqE8qcGMaXS/QzRqb+vm9h0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net; spf=pass smtp.mailfrom=themaw.net; dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b=Z5amQny2; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=Y3SZoRA9; arc=none smtp.client-ip=103.168.172.145
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=themaw.net
+	s=arc-20240116; t=1730117925; c=relaxed/simple;
+	bh=0H8r7TBHT37tjzCNRwO0VZNVQ8S36hpd0jKeDGVcZik=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=knqLdU4Ceav3Qz2oDYU4YBVuI+59A0DmD8SZcE3c9UIUvTOlXOtO+fkX5VqCwJkw7kxAGJoH0InQtJm7d97DKlgmZ06mxr2n7cMIE7Lofequ5fq3lL9nxBTRUFxlLf2UXErOlvs6ng1H2Os6I/ehy2k7mbh74sEtgYsWhiU6Vis=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QKpH/xlX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b="Z5amQny2";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="Y3SZoRA9"
-Received: from phl-compute-10.internal (phl-compute-10.phl.internal [10.202.2.50])
-	by mailfout.phl.internal (Postfix) with ESMTP id DDE821380174;
-	Sun, 27 Oct 2024 18:48:09 -0400 (EDT)
-Received: from phl-mailfrontend-02 ([10.202.2.163])
-  by phl-compute-10.internal (MEProxy); Sun, 27 Oct 2024 18:48:09 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
-	:cc:content-transfer-encoding:content-type:date:date:from:from
-	:in-reply-to:message-id:mime-version:reply-to:subject:subject:to
-	:to; s=fm2; t=1730069289; x=1730155689; bh=ovpSW08eRQWRSpckMlBzd
-	TJs6o+8zDMYbK3U5gGCDho=; b=Z5amQny2a0z7rN/Q/E40o+6idE/O/tW743VsL
-	rsusfhOs5wS8OiPTVrnLKBjNG315kSkq0ueWvMlaKF40+n/1bh20lgqJHOGqrJDz
-	g/eeleneftMg5rjJ+WwqxK/6BaL+WcKOQigZ25eREPPxUrJ7+SpkBvFq0wxjJ1JY
-	bmh4n9atQ+Q03W0ku3GycA5pZBs2ye8/W+8MEATfpqFIHIqxBJr9virp5B37ZVtt
-	9WsFfWxunuK4NjVlcEJ6ZpkY6qK9Cjl9q9pJzSJY4oa0GBDdlfqLnzGVJD/EZMi0
-	c2f02xuzsUqeBMLygDGnW8jIcNjkITMAJ/Y5625HuaPHwmyvQ==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:date:date:feedback-id:feedback-id:from:from
-	:in-reply-to:message-id:mime-version:reply-to:subject:subject:to
-	:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
-	fm3; t=1730069289; x=1730155689; bh=ovpSW08eRQWRSpckMlBzdTJs6o+8
-	zDMYbK3U5gGCDho=; b=Y3SZoRA9f4uscKyiBfLaHEp8BcaHWSKu81zhsrwAeugw
-	TP+6SkyWjidStAMCzFKo1iX+NRBLSQu7QYGJKgZtn8h5T7BZmNnLkW/1+k2Nxcc5
-	d5tUV1cKPEfp0L6iOQFqEc0QV374c/7FV08OS9jdw6UoPi9haLO0KixPUwTnwxvU
-	LV14uNLzjI/6em6xFSdPyGseD4I5Zda7MGw5qKjferqURPuKeqTYP26VqVFa73nk
-	WLNqMbPLXXe4h18JNAltj5zFuttL2iwSXfbMocch/0SQqR7IJgLAep3LvQq0JfX7
-	0jB6Ppna35OYRWfsHjYVqLVeC2qLV40TSQu40PaTjQ==
-X-ME-Sender: <xms:KcMeZ3_tqvVxSx0K6Iz_SzEoVL2FErWUMmApL-uZBaLATMnhQSjIFg>
-    <xme:KcMeZztVMYZlpK4nZdexcHVuvXvhfwlQsfrmymWC9TVcdZ3mrgUc_t-yFg_shRBad
-    PwCBo4_-8cn>
-X-ME-Received: <xmr:KcMeZ1CkWCnj1mENtV0u9d5iOk2VtZRBvNj9LBlGQyizXfAlIBsLP3IRm5XoRI9M7T9GU_j312nAAgia7RVBqmdC4Ae7D0MuESiC8RD1Fgx37xAjkvxXVOPG8A>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeftddrvdejjedgtdefucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdggtfgfnhhsuhgsshgtrhhisggvpdfu
-    rfetoffkrfgpnffqhgenuceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnh
-    htshculddquddttddmnecujfgurhephffvvefufffkofgggfestdekredtredttdenucfh
-    rhhomhepkfgrnhcumfgvnhhtuceorhgrvhgvnhesthhhvghmrgifrdhnvghtqeenucggtf
-    frrghtthgvrhhnpedutdfhveehuefhjefgffegieduhefhtdejkefhvdekteeihfehtddt
-    gffgheduleenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhroh
-    hmpehrrghvvghnsehthhgvmhgrfidrnhgvthdpnhgspghrtghpthhtohepiedpmhhouggv
-    pehsmhhtphhouhhtpdhrtghpthhtohepsghrrghunhgvrheskhgvrhhnvghlrdhorhhgpd
-    hrtghpthhtoheprhgrvhgvnhesthhhvghmrgifrdhnvghtpdhrtghpthhtohepvhhirhho
-    seiivghnihhvrdhlihhnuhigrdhorhhgrdhukhdprhgtphhtthhopegruhhtohhfshesvh
-    hgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhes
-    vhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhfshguvghvvg
-    hlsehvghgvrhdrkhgvrhhnvghlrdhorhhg
-X-ME-Proxy: <xmx:KcMeZzdCAV1YzSwxzgetXf9xvVNJcthcDsgMynmDDfDby5Pgh0ZmvA>
-    <xmx:KcMeZ8Nf_rPKE9eYOW8JoQlOBNe86a1UXBPC2BGjeOnUqLOQA6DhnQ>
-    <xmx:KcMeZ1mUAhD3jvpnXqTd0t_Pmow9sUlrIsdEg5oXPYB6lCe0cjQMqA>
-    <xmx:KcMeZ2uxCoWqAxR4zHG-_12J_8eKLkyY2ajX98DjlvOZtI6tfTR30g>
-    <xmx:KcMeZ4CwOp8wGzCnd_HapAsFzhgmXD2i4brtg2gpngdylC_FJ2mFkg1X>
-Feedback-ID: i31e841b0:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Sun,
- 27 Oct 2024 18:48:07 -0400 (EDT)
-From: Ian Kent <raven@themaw.net>
-To: Christian Brauner <brauner@kernel.org>
-Cc: Ian Kent <raven@themaw.net>,
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QKpH/xlX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C67E1C4CEC3;
+	Mon, 28 Oct 2024 12:18:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1730117925;
+	bh=0H8r7TBHT37tjzCNRwO0VZNVQ8S36hpd0jKeDGVcZik=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=QKpH/xlXRxMKcdNtTRHI7tjVhS3KsWBpLiVeqHxpekiGCWHsZp3lsaK2JD74E20CS
+	 6vNs4prZ7MwLJwuqhw+hGthiYZ4Ndy1DNAhkOeCWVrfrfgiJvgjsWXCcgFdUph8AFe
+	 b4B0YyUkDD+4drWqBj6Sdv17dTsMULxP8ESE/MjIHRg+jXvyxfm3msbUoDtmWCVb5h
+	 IylKJWjNMeHqH+FWB+kA1OD6EVuNhZFa7razs7Ul4OAmispAjXn1X61EmkQNuM9ktb
+	 e7pHevDdQK8NEY5zHZiP2mJCq1arj+Kq9AqhUgFgwkij8jjBx9XmCedesmppXZsAnL
+	 23ed9Q/sQNWBg==
+From: Christian Brauner <brauner@kernel.org>
+To: Ian Kent <raven@themaw.net>
+Cc: Christian Brauner <brauner@kernel.org>,
 	Al Viro <viro@ZenIV.linux.org.uk>,
 	autofs mailing list <autofs@vger.kernel.org>,
 	Kernel Mailing List <linux-kernel@vger.kernel.org>,
 	linux-fsdevel <linux-fsdevel@vger.kernel.org>
-Subject: [PATCH] autofs: fix thinko in validate_dev_ioctl()
-Date: Mon, 28 Oct 2024 06:47:17 +0800
-Message-ID: <20241027224732.5507-1-raven@themaw.net>
-X-Mailer: git-send-email 2.46.2
+Subject: Re: [PATCH] autofs: fix thinko in validate_dev_ioctl()
+Date: Mon, 28 Oct 2024 13:18:39 +0100
+Message-ID: <20241028-filmt-lesebrille-20feb7581897@brauner>
+X-Mailer: git-send-email 2.45.2
+In-Reply-To: <20241027224732.5507-1-raven@themaw.net>
+References: <20241027224732.5507-1-raven@themaw.net>
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 List-Subscribe: <mailto:autofs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1064; i=brauner@kernel.org; h=from:subject:message-id; bh=0H8r7TBHT37tjzCNRwO0VZNVQ8S36hpd0jKeDGVcZik=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMaTLN8rr/SrTW8ukyDXD4lva61nluXsruCp+b1rgdWFp4 7xAaZcjHaUsDGJcDLJiiiwO7Sbhcst5KjYbZWrAzGFlAhnCwMUpABOxmMvwP/L2r2WGwZf7jKN0 bC5J6QR/cdl5Z+K0LF+uiSU3GNYGejMyvF5nv/tYfNivgI5CMy8OH86Pl/1PlX0RMdv8KjTlRPs fNgA=
+X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 Content-Transfer-Encoding: 8bit
 
-I was so sure the per-dentry expire timeout patch worked ok but my
-testing was flawed.
+On Mon, 28 Oct 2024 06:47:17 +0800, Ian Kent wrote:
+> I was so sure the per-dentry expire timeout patch worked ok but my
+> testing was flawed.
+> 
+> In validate_dev_ioctl() the check for ioctl AUTOFS_DEV_IOCTL_TIMEOUT_CMD
+> should use the ioctl number not the passed in ioctl command.
+> 
+> 
+> [...]
 
-In validate_dev_ioctl() the check for ioctl AUTOFS_DEV_IOCTL_TIMEOUT_CMD
-should use the ioctl number not the passed in ioctl command.
+Applied to the vfs.fixes branch of the vfs/vfs.git tree.
+Patches in the vfs.fixes branch should appear in linux-next soon.
 
-Signed-off-by: Ian Kent <raven@themaw.net>
----
- fs/autofs/dev-ioctl.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+Please report any outstanding bugs that were missed during review in a
+new review to the original patch series allowing us to drop it.
 
-diff --git a/fs/autofs/dev-ioctl.c b/fs/autofs/dev-ioctl.c
-index f011e026358e..6d57efbb8110 100644
---- a/fs/autofs/dev-ioctl.c
-+++ b/fs/autofs/dev-ioctl.c
-@@ -110,6 +110,7 @@ static inline void free_dev_ioctl(struct autofs_dev_ioctl *param)
-  */
- static int validate_dev_ioctl(int cmd, struct autofs_dev_ioctl *param)
- {
-+	unsigned int inr = _IOC_NR(cmd);
- 	int err;
- 
- 	err = check_dev_ioctl_version(cmd, param);
-@@ -133,7 +134,7 @@ static int validate_dev_ioctl(int cmd, struct autofs_dev_ioctl *param)
- 		 * check_name() return for AUTOFS_DEV_IOCTL_TIMEOUT_CMD.
- 		 */
- 		err = check_name(param->path);
--		if (cmd == AUTOFS_DEV_IOCTL_TIMEOUT_CMD)
-+		if (inr == AUTOFS_DEV_IOCTL_TIMEOUT_CMD)
- 			err = err ? 0 : -EINVAL;
- 		if (err) {
- 			pr_warn("invalid path supplied for cmd(0x%08x)\n",
-@@ -141,8 +142,6 @@ static int validate_dev_ioctl(int cmd, struct autofs_dev_ioctl *param)
- 			goto out;
- 		}
- 	} else {
--		unsigned int inr = _IOC_NR(cmd);
--
- 		if (inr == AUTOFS_DEV_IOCTL_OPENMOUNT_CMD ||
- 		    inr == AUTOFS_DEV_IOCTL_REQUESTER_CMD ||
- 		    inr == AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD) {
--- 
-2.46.2
+It's encouraged to provide Acked-bys and Reviewed-bys even though the
+patch has now been applied. If possible patch trailers will be updated.
 
+Note that commit hashes shown below are subject to change due to rebase,
+trailer updates or similar. If in doubt, please check the listed branch.
+
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
+branch: vfs.fixes
+
+[1/1] autofs: fix thinko in validate_dev_ioctl()
+      https://git.kernel.org/vfs/vfs/c/f19910006eff
