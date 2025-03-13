@@ -1,109 +1,108 @@
-Received: from mout-p-102.mailbox.org (mout-p-102.mailbox.org [80.241.56.152])
+Received: from neil.brown.name (neil.brown.name [103.29.64.221])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CB031876
-	for <autofs@vger.kernel.org>; Fri, 21 Feb 2025 01:39:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=80.241.56.152
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6EDC22612;
+	Thu, 13 Mar 2025 22:32:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.29.64.221
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740101970; cv=none; b=bYWKjGY2ce0COmwNQDz0M9H16SukLn/f4Hki7TCC/9Ya+mKe9VgDD3TjhVjXtZ3YwKWNNc6VcNXG8N5VjoP1M9UN43wAt1syxxizrBoY3X33qFj4WbAfH9JLfiKTmlWiYHiuCfLICQuZPKLll/07uubrs81uP0cFjDkv2kp/0RQ=
+	t=1741905182; cv=none; b=oQKcCoZRJiYkHZuz4dZwP4UZ7YumsX1RtEoXFQOU1j7X5yuAg3eyEmC47Oyp8d7DgOTX1IyOW4La8EvTKeloNmt18ssqGuZ9gyYbX1xK4Jp1RuGErvZwQuU77ur5980HqGQBWuAPzKwBk4JYTV1mjjrRWlCrU3ECg0TVZ6P+bIQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740101970; c=relaxed/simple;
-	bh=1JK4j55jckYJ4tPwATAptxTneNd1c3tjPdgE4zxKZWE=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=o9ZdpqySTIgFryrELHASE+dpe3Iz7Xc7rKpP3wzggGyFDejNsBTLKer8ZBJPvzrB4yhVJxrrE3V4sMgCdHnaQWWXeLNxIDN3W6qloLq8TIdc4ERxOmii5bgjSmBjkMsFgHqTXEWXIcA89AwlUDD7Diioex2mlE46KfmogfsZVNM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=benbuhse.email; spf=pass smtp.mailfrom=benbuhse.email; arc=none smtp.client-ip=80.241.56.152
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=benbuhse.email
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=benbuhse.email
-Received: from smtp202.mailbox.org (smtp202.mailbox.org [IPv6:2001:67c:2050:b231:465::202])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mout-p-102.mailbox.org (Postfix) with ESMTPS id 4YzXqJ3199z9sqC;
-	Fri, 21 Feb 2025 02:39:24 +0100 (CET)
-From: Ben Buhse <me@benbuhse.email>
-To: autofs@vger.kernel.org
-Cc: Ben Buhse <me@benbuhse.email>
-Subject: [PATCH] fix building on musl
-Date: Thu, 20 Feb 2025 19:39:10 -0600
-Message-ID: <20250221013910.13794-1-me@benbuhse.email>
+	s=arc-20240116; t=1741905182; c=relaxed/simple;
+	bh=FwB7tbMC2wL4+ylCvdz2zcoRUGupeXXHPStpgXIXNAc=;
+	h=Content-Type:MIME-Version:From:To:Cc:Subject:Date:Message-id; b=kKJQridxEuZ0lhEwHaXrCqWRtF/NaYctwRFUnDrL/lBjQe3Bi2fo2h7ZIci6+XP6UG1uVIqGB0c63g/LbF3XWXeoCD+RV3cZ2vALQPDyklp5pbN5O2ESa4hbW4ndf/lY1yGxdilS/STQsh9Zffe8m70/yBFTjRAYAfEs6checus=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name; spf=pass smtp.mailfrom=neil.brown.name; arc=none smtp.client-ip=103.29.64.221
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=neil.brown.name
+Received: from 196.186.233.220.static.exetel.com.au ([220.233.186.196] helo=home.neil.brown.name)
+	by neil.brown.name with esmtp (Exim 4.95)
+	(envelope-from <mr@neil.brown.name>)
+	id 1tsr6k-00Dytg-Lo;
+	Thu, 13 Mar 2025 22:32:54 +0000
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 List-Subscribe: <mailto:autofs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Rspamd-Queue-Id: 4YzXqJ3199z9sqC
+From: "NeilBrown" <neil@brown.name>
+To: Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+ Ian Kent <raven@themaw.net>
+Cc: linux-fsdevel@vger.kernel.org, autofs@vger.kernel.org
+Subject: [PATCH] VFS/autofs: try_lookup_one_len() does not need any locks
+Date: Fri, 14 Mar 2025 09:32:54 +1100
+Message-id: <174190517441.9342.5956460781380903128@noble.neil.brown.name>
 
-musl 1.2.5 removed basename from string.h and only kept it in libgen.h: https://git.musl-libc.org/cgit/musl/commit/?id=725e17ed6dff4d0cd22487bb64470881e86a92e7
+
+try_lookup_one_len() is identical to lookup_one_unlocked() except that
+it doesn't include the call to lookup_slow().  The latter doesn't need
+the inode to be locked, so the former cannot either.
+
+So fix the documentation, remove the WARN_ON and fix the only caller to
+not take the lock.
+
+Signed-off-by: NeilBrown <neilb@suse.de>
 ---
- daemon/automount.c    | 20 +++++++++++++++-----
- daemon/master.c       |  1 +
- modules/lookup_file.c |  1 +
- 3 files changed, 17 insertions(+), 5 deletions(-)
 
-diff --git a/daemon/automount.c b/daemon/automount.c
-index 474b29a..5256426 100644
---- a/daemon/automount.c
-+++ b/daemon/automount.c
-@@ -21,6 +21,7 @@
- 
- #include <dirent.h>
- #include <getopt.h>
-+#include <libgen.h>
- #include <signal.h>
- #include <stdio.h>
- #include <stdlib.h>
-@@ -2538,12 +2539,21 @@ int main(int argc, char *argv[])
- 
- 		lookup_nss_read_master(master_list, 0);
- 		if (type) {
--			const char *map = basename(name);
--			if (!map)
--				printf("%s: invalid map name %s\n",
-+			const char *map = NULL;
-+			char *name_dup = strdup(name);
-+			if (!name_dup) {
-+				printf("%s: failed to copy name %s for parsing\n",
- 					program, name);
--			else
--				dump_map(master_list, type, map);
-+			} else {
-+				map = basename(name_dup);
-+				if (!map)
-+					printf("%s: invalid map name %s\n",
-+						program, name);
-+				else
-+					dump_map(master_list, type, map);
-+				free(name_dup);
-+				name_dup = NULL;
-+			}
- 		} else
- 			master_show_mounts(master_list);
- 
-diff --git a/daemon/master.c b/daemon/master.c
-index f2c11e9..1455e40 100644
---- a/daemon/master.c
-+++ b/daemon/master.c
-@@ -21,6 +21,7 @@
- #include <string.h>
- #include <memory.h>
- #include <limits.h>
-+#include <libgen.h>
- #include <signal.h>
- #include <sys/types.h>
- #include <sys/stat.h>
-diff --git a/modules/lookup_file.c b/modules/lookup_file.c
-index 99f2e21..4914395 100644
---- a/modules/lookup_file.c
-+++ b/modules/lookup_file.c
-@@ -15,6 +15,7 @@
- 
- #include <stdio.h>
- #include <malloc.h>
-+#include <libgen.h>
- #include <stdlib.h>
- #include <string.h>
- #include <time.h>
--- 
-2.45.3
+Note that in current upstream fs/afs/dynroot.c also contains a call to
+try_lookup_one_len() with unnecessary locking.  However
+vfs-6.15.shared.afs contains a patch which removes that call, so I
+didn't bother addressing it here.
+
+NeilBrown
+
+
+ fs/autofs/dev-ioctl.c | 3 ---
+ fs/namei.c            | 5 ++---
+ 2 files changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/fs/autofs/dev-ioctl.c b/fs/autofs/dev-ioctl.c
+index 6d57efbb8110..c5a6aae12d2c 100644
+--- a/fs/autofs/dev-ioctl.c
++++ b/fs/autofs/dev-ioctl.c
+@@ -442,7 +442,6 @@ static int autofs_dev_ioctl_timeout(struct file *fp,
+ 		sbi->exp_timeout =3D timeout * HZ;
+ 	} else {
+ 		struct dentry *base =3D fp->f_path.dentry;
+-		struct inode *inode =3D base->d_inode;
+ 		int path_len =3D param->size - AUTOFS_DEV_IOCTL_SIZE - 1;
+ 		struct dentry *dentry;
+ 		struct autofs_info *ino;
+@@ -460,9 +459,7 @@ static int autofs_dev_ioctl_timeout(struct file *fp,
+ 				"the parent autofs mount timeout which could "
+ 				"prevent shutdown\n");
+=20
+-		inode_lock_shared(inode);
+ 		dentry =3D try_lookup_one_len(param->path, base, path_len);
+-		inode_unlock_shared(inode);
+ 		if (IS_ERR_OR_NULL(dentry))
+ 			return dentry ? PTR_ERR(dentry) : -ENOENT;
+ 		ino =3D autofs_dentry_ino(dentry);
+diff --git a/fs/namei.c b/fs/namei.c
+index ecb7b95c2ca3..c6cef0af0625 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -2863,15 +2863,14 @@ static int lookup_one_common(struct mnt_idmap *idmap,
+  * Note that this routine is purely a helper for filesystem usage and should
+  * not be called by generic code.
+  *
+- * The caller must hold base->i_mutex.
++ * No locks need be held - only a counted reference to @base is needed.
++ *
+  */
+ struct dentry *try_lookup_one_len(const char *name, struct dentry *base, int=
+ len)
+ {
+ 	struct qstr this;
+ 	int err;
+=20
+-	WARN_ON_ONCE(!inode_is_locked(base->d_inode));
+-
+ 	err =3D lookup_one_common(&nop_mnt_idmap, name, base, len, &this);
+ 	if (err)
+ 		return ERR_PTR(err);
+--=20
+2.48.1
 
