@@ -1,108 +1,84 @@
-Received: from neil.brown.name (neil.brown.name [103.29.64.221])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6EDC22612;
-	Thu, 13 Mar 2025 22:32:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.29.64.221
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E055B1779AE;
+	Fri, 14 Mar 2025 10:46:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1741905182; cv=none; b=oQKcCoZRJiYkHZuz4dZwP4UZ7YumsX1RtEoXFQOU1j7X5yuAg3eyEmC47Oyp8d7DgOTX1IyOW4La8EvTKeloNmt18ssqGuZ9gyYbX1xK4Jp1RuGErvZwQuU77ur5980HqGQBWuAPzKwBk4JYTV1mjjrRWlCrU3ECg0TVZ6P+bIQ=
+	t=1741949201; cv=none; b=WrTJGedAff95YtbVc3cuE6pTTjt7ScLNPwP7jabmzqtjUeRXUERhHW8TFjO54vf8smZbwx/JxFfRKL003rt4VgJFBCr/q1B8HD2yS8ckWcc0VNRloWKbZL7PXysHP/s4eqzds9DvpfKGvcfP18/b0gLTm916wJ3obrINSOeVhlo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1741905182; c=relaxed/simple;
-	bh=FwB7tbMC2wL4+ylCvdz2zcoRUGupeXXHPStpgXIXNAc=;
-	h=Content-Type:MIME-Version:From:To:Cc:Subject:Date:Message-id; b=kKJQridxEuZ0lhEwHaXrCqWRtF/NaYctwRFUnDrL/lBjQe3Bi2fo2h7ZIci6+XP6UG1uVIqGB0c63g/LbF3XWXeoCD+RV3cZ2vALQPDyklp5pbN5O2ESa4hbW4ndf/lY1yGxdilS/STQsh9Zffe8m70/yBFTjRAYAfEs6checus=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name; spf=pass smtp.mailfrom=neil.brown.name; arc=none smtp.client-ip=103.29.64.221
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=neil.brown.name
-Received: from 196.186.233.220.static.exetel.com.au ([220.233.186.196] helo=home.neil.brown.name)
-	by neil.brown.name with esmtp (Exim 4.95)
-	(envelope-from <mr@neil.brown.name>)
-	id 1tsr6k-00Dytg-Lo;
-	Thu, 13 Mar 2025 22:32:54 +0000
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+	s=arc-20240116; t=1741949201; c=relaxed/simple;
+	bh=lF7PTFH51arnQLHq6qNQ430Ar2rzGHBSApw39Lpcj5o=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=tFDh+yFEx6hdJvj4CGIsAIjFxWWCGXc9MQvDcY1ZJTTpd3BJXHtUC8sQaXULQIpPDoQ658jkhjtMmg+0YWHrym+dBAm/TDhWXLxG0uhuI7mlj8cpjGTIXSk1gSqeSB9Q2gpPWdmxyo0K5MIuL3DJvN4aV18LHL8HXR0xvvFL7t8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=cHYBgeVF; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="cHYBgeVF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A7A8C4CEE3;
+	Fri, 14 Mar 2025 10:46:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1741949200;
+	bh=lF7PTFH51arnQLHq6qNQ430Ar2rzGHBSApw39Lpcj5o=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=cHYBgeVFZ0aqVinWffoUSzfX1ha7jnpHUVyMtjJbqxcTpSxJ/brygARCYeH89lGuG
+	 jRrVaj/Zpo5RX/BgTH/aH9Nq5xPRmmZBdytWNRulpiHRMUyXezM5BiF4N8tHYoglEk
+	 jMcAiwGxHTAQMs6bYCjbm4NycSmIhdS/zYcWT4mg4I8MG2REVODnRtXVA0XAKidst6
+	 fF2f4Mf9XxYJtcWqNx6MwkgksNY+Wy8IPLadarzhM3vgdpOF2GacodEieW/PteqMzK
+	 HOwJrlf8B0q58ggoPf9D6sfOBPqDyTLDy2EjYy6nMOgBWWqzubtoiPho/o514O78N0
+	 YIbLSFXASwcCQ==
+From: Christian Brauner <brauner@kernel.org>
+To: NeilBrown <neil@brown.name>
+Cc: Christian Brauner <brauner@kernel.org>,
+	linux-fsdevel@vger.kernel.org,
+	autofs@vger.kernel.org,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Jan Kara <jack@suse.cz>,
+	Ian Kent <raven@themaw.net>
+Subject: Re: [PATCH] VFS/autofs: try_lookup_one_len() does not need any locks
+Date: Fri, 14 Mar 2025 11:45:51 +0100
+Message-ID: <20250314-parabel-anmeldung-db05fcf4d133@brauner>
+X-Mailer: git-send-email 2.47.2
+In-Reply-To: <174190517441.9342.5956460781380903128@noble.neil.brown.name>
+References: <174190517441.9342.5956460781380903128@noble.neil.brown.name>
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 List-Subscribe: <mailto:autofs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-From: "NeilBrown" <neil@brown.name>
-To: Alexander Viro <viro@zeniv.linux.org.uk>,
- Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
- Ian Kent <raven@themaw.net>
-Cc: linux-fsdevel@vger.kernel.org, autofs@vger.kernel.org
-Subject: [PATCH] VFS/autofs: try_lookup_one_len() does not need any locks
-Date: Fri, 14 Mar 2025 09:32:54 +1100
-Message-id: <174190517441.9342.5956460781380903128@noble.neil.brown.name>
+Content-Type: text/plain; charset="utf-8"
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1257; i=brauner@kernel.org; h=from:subject:message-id; bh=lF7PTFH51arnQLHq6qNQ430Ar2rzGHBSApw39Lpcj5o=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMaRf4eQsE89dZu4suFBt9hF1vSU5Al8Xv/k082LR8hm3r buMxNcxd5SyMIhxMciKKbI4tJuEyy3nqdhslKkBM4eVCWQIAxenAExkgxbD/+TghBSe3YuERM7L ZEkzd/D9sO1de8OxbaVPicD526nHTzIyvG5TPOnW9oHzas56jSa9d3vm/4+9VZ161vmf2+aadUF 7+QA=
+X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
+Content-Transfer-Encoding: 8bit
 
+On Fri, 14 Mar 2025 09:32:54 +1100, NeilBrown wrote:
+> try_lookup_one_len() is identical to lookup_one_unlocked() except that
+> it doesn't include the call to lookup_slow().  The latter doesn't need
+> the inode to be locked, so the former cannot either.
+> 
+> So fix the documentation, remove the WARN_ON and fix the only caller to
+> not take the lock.
+> 
+> [...]
 
-try_lookup_one_len() is identical to lookup_one_unlocked() except that
-it doesn't include the call to lookup_slow().  The latter doesn't need
-the inode to be locked, so the former cannot either.
+Ok, I merged this into the afs branch with a merge commit explaining why.
 
-So fix the documentation, remove the WARN_ON and fix the only caller to
-not take the lock.
-
-Signed-off-by: NeilBrown <neilb@suse.de>
 ---
 
-Note that in current upstream fs/afs/dynroot.c also contains a call to
-try_lookup_one_len() with unnecessary locking.  However
-vfs-6.15.shared.afs contains a patch which removes that call, so I
-didn't bother addressing it here.
+Applied to the vfs-6.15.shared.afs branch of the vfs/vfs.git tree.
+Patches in the vfs-6.15.shared.afs branch should appear in linux-next soon.
 
-NeilBrown
+Please report any outstanding bugs that were missed during review in a
+new review to the original patch series allowing us to drop it.
 
+It's encouraged to provide Acked-bys and Reviewed-bys even though the
+patch has now been applied. If possible patch trailers will be updated.
 
- fs/autofs/dev-ioctl.c | 3 ---
- fs/namei.c            | 5 ++---
- 2 files changed, 2 insertions(+), 6 deletions(-)
+Note that commit hashes shown below are subject to change due to rebase,
+trailer updates or similar. If in doubt, please check the listed branch.
 
-diff --git a/fs/autofs/dev-ioctl.c b/fs/autofs/dev-ioctl.c
-index 6d57efbb8110..c5a6aae12d2c 100644
---- a/fs/autofs/dev-ioctl.c
-+++ b/fs/autofs/dev-ioctl.c
-@@ -442,7 +442,6 @@ static int autofs_dev_ioctl_timeout(struct file *fp,
- 		sbi->exp_timeout =3D timeout * HZ;
- 	} else {
- 		struct dentry *base =3D fp->f_path.dentry;
--		struct inode *inode =3D base->d_inode;
- 		int path_len =3D param->size - AUTOFS_DEV_IOCTL_SIZE - 1;
- 		struct dentry *dentry;
- 		struct autofs_info *ino;
-@@ -460,9 +459,7 @@ static int autofs_dev_ioctl_timeout(struct file *fp,
- 				"the parent autofs mount timeout which could "
- 				"prevent shutdown\n");
-=20
--		inode_lock_shared(inode);
- 		dentry =3D try_lookup_one_len(param->path, base, path_len);
--		inode_unlock_shared(inode);
- 		if (IS_ERR_OR_NULL(dentry))
- 			return dentry ? PTR_ERR(dentry) : -ENOENT;
- 		ino =3D autofs_dentry_ino(dentry);
-diff --git a/fs/namei.c b/fs/namei.c
-index ecb7b95c2ca3..c6cef0af0625 100644
---- a/fs/namei.c
-+++ b/fs/namei.c
-@@ -2863,15 +2863,14 @@ static int lookup_one_common(struct mnt_idmap *idmap,
-  * Note that this routine is purely a helper for filesystem usage and should
-  * not be called by generic code.
-  *
-- * The caller must hold base->i_mutex.
-+ * No locks need be held - only a counted reference to @base is needed.
-+ *
-  */
- struct dentry *try_lookup_one_len(const char *name, struct dentry *base, int=
- len)
- {
- 	struct qstr this;
- 	int err;
-=20
--	WARN_ON_ONCE(!inode_is_locked(base->d_inode));
--
- 	err =3D lookup_one_common(&nop_mnt_idmap, name, base, len, &this);
- 	if (err)
- 		return ERR_PTR(err);
---=20
-2.48.1
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
+branch: vfs-6.15.shared.afs
 
+[1/1] VFS/autofs: try_lookup_one_len() does not need any locks
+      https://git.kernel.org/vfs/vfs/c/be348aed9b44
