@@ -1,128 +1,114 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp01.aussiebb.com.au (smtp01.aussiebb.com.au [121.200.0.92])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A7AF78F3A
-	for <autofs@vger.kernel.org>; Mon, 28 Apr 2025 05:34:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1884A8F5B
+	for <autofs@vger.kernel.org>; Tue, 29 Apr 2025 00:30:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=121.200.0.92
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745818480; cv=none; b=Whm/tCF+w1QhB8PhWnQu3MykuKdlomH+WFhAzzwMYzdoAIGmxo47pXmJhEfsPFNkZs9ANP3am7LijXpPGwTkY9psvaEPKzwj6Ml6sH0KjEcl2skN5B5GYB7C9wiPZBpw8C9Y9O9FDwgscY5qR041usqGroCk66a8GdE3itssui4=
+	t=1745886617; cv=none; b=oesgGf8m06tahYykMvpeay7coaf5rp9zrEY9mglUXjmfxSCqwzRB5P77YN5RhY/ClPcQlPmQwpFEN+M3iEju0QYiiQ7e1LfaZEGN3LxJiHUktpPllwOUR18sbJWbXNbNToU0ZQccncrRv9GFWAdbA1i5dpemHV2f8DPFVzEHkLQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745818480; c=relaxed/simple;
-	bh=GqdQZ74wTjAqp9CeoBQBFDrPyg0ef4E8Pq4dLcQKb4w=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=QJGyFm1/n5fSsRSDBuBqBFemhVA3sjgGPI2XViDtejxyC9guMp1m/Dd1uXWe6QzD5EJq1UjXRwLYDloS9awT37tc1D3xBBy5LiqJPDRuC4uCYoClO+BY7BohuxB2/ZTGhy3noS9L7kUO0Bq2YVQzsyW4XeAcXlQq2BBp0NA2Ovw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=uLwTZUpe; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=GHaZh2ev; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=uLwTZUpe; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=GHaZh2ev; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="uLwTZUpe";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="GHaZh2ev";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="uLwTZUpe";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="GHaZh2ev"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	s=arc-20240116; t=1745886617; c=relaxed/simple;
+	bh=HjRm+GV8tsDFe8sAYiPalMos/uwMYBxTx/HdOG8XRGU=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=e+ThkruwqJykqLA6Mpwa4D4nvQ92ulqia52ibE2+kqdtbVt1PCrP7E+JLbvZwSbWVAoqs2axPHKbM12K9rRa/iPASW+AZs3eVAJ/BBYxVeEplDw/xWDJF5jjD57vdik0SWMiEGS8Ao+qIzn2jfsEyjFGWXLhBEURv1IT93hEjuw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=themaw.net; spf=fail smtp.mailfrom=themaw.net; arc=none smtp.client-ip=121.200.0.92
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=themaw.net
+Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=themaw.net
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by smtp01.aussiebb.com.au (Postfix) with ESMTP id CBFC3102313
+	for <autofs@vger.kernel.org>; Tue, 29 Apr 2025 10:19:46 +1000 (AEST)
+X-Virus-Scanned: Debian amavisd-new at smtp01.aussiebb.com.au
+Received: from smtp01.aussiebb.com.au ([127.0.0.1])
+	by localhost (smtp01.aussiebb.com.au [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id tlOyTjBS6poR for <autofs@vger.kernel.org>;
+	Tue, 29 Apr 2025 10:19:46 +1000 (AEST)
+Received: by smtp01.aussiebb.com.au (Postfix, from userid 116)
+	id A687C100FDA; Tue, 29 Apr 2025 10:19:46 +1000 (AEST)
+X-Spam-Level: 
+Received: from [192.168.50.229] (159-196-82-144.9fc452.per.static.aussiebb.net [159.196.82.144])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 2BCAC211F9;
-	Mon, 28 Apr 2025 05:34:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1745818476; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=/4Ij3tkrvRey7dHihqAia2fGL0+oW5cT0DPxj3Jf8RI=;
-	b=uLwTZUpehgtA9T+g+JVmUVP3o4tvmuXT/vcjdJEKndy/6ifHDNLBTlncAkdk+GZJ2ednHP
-	qAG04aztCzAo7kgeUC6eyqv09nfDvnHCWG4Kddihehcjeeeep4iN/E9apWMtWl0qkQ4ARt
-	4uwxtGpqLKkGuqf5h30jVTiMbnWyfbc=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1745818476;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=/4Ij3tkrvRey7dHihqAia2fGL0+oW5cT0DPxj3Jf8RI=;
-	b=GHaZh2evk5O5IYR+JTWUxA4PLMyEyl2DTHQDQygotZcb/l3Nxx8h3XX579kAXbuveHiO/k
-	jYB11xa4XBU7DACg==
-Authentication-Results: smtp-out1.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1745818476; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=/4Ij3tkrvRey7dHihqAia2fGL0+oW5cT0DPxj3Jf8RI=;
-	b=uLwTZUpehgtA9T+g+JVmUVP3o4tvmuXT/vcjdJEKndy/6ifHDNLBTlncAkdk+GZJ2ednHP
-	qAG04aztCzAo7kgeUC6eyqv09nfDvnHCWG4Kddihehcjeeeep4iN/E9apWMtWl0qkQ4ARt
-	4uwxtGpqLKkGuqf5h30jVTiMbnWyfbc=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1745818476;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=/4Ij3tkrvRey7dHihqAia2fGL0+oW5cT0DPxj3Jf8RI=;
-	b=GHaZh2evk5O5IYR+JTWUxA4PLMyEyl2DTHQDQygotZcb/l3Nxx8h3XX579kAXbuveHiO/k
-	jYB11xa4XBU7DACg==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id EB435136A5;
-	Mon, 28 Apr 2025 05:34:34 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id WXfcJ2oTD2jcSgAAD6G6ig
-	(envelope-from <ddiss@suse.de>); Mon, 28 Apr 2025 05:34:34 +0000
-Date: Mon, 28 Apr 2025 15:34:16 +1000
-From: David Disseldorp <ddiss@suse.de>
-To: Anthony Iliopoulos <ailiop@suse.com>
-Cc: autofs@vger.kernel.org
-Subject: Re: [PATCH] man/autofs.conf.5: fix manpage formatting
-Message-ID: <20250428153416.35621f2c.ddiss@suse.de>
-In-Reply-To: <20250427221034.149247-1-ailiop@suse.com>
-References: <20250427221034.149247-1-ailiop@suse.com>
+	(Authenticated sender: ian146@aussiebb.com.au)
+	by smtp01.aussiebb.com.au (Postfix) with ESMTPSA id 3D836102393;
+	Tue, 29 Apr 2025 10:19:44 +1000 (AEST)
+Message-ID: <d918fa71-bc30-4026-9552-87f6695191a4@themaw.net>
+Date: Tue, 29 Apr 2025 08:19:43 +0800
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 List-Subscribe: <mailto:autofs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] man/autofs.conf.5: fix manpage formatting
+To: David Disseldorp <ddiss@suse.de>, Anthony Iliopoulos <ailiop@suse.com>
+Cc: autofs@vger.kernel.org
+References: <20250427221034.149247-1-ailiop@suse.com>
+ <20250428153416.35621f2c.ddiss@suse.de>
+Content-Language: en-US
+From: Ian Kent <raven@themaw.net>
+Autocrypt: addr=raven@themaw.net; keydata=
+ xsFNBE6c/ycBEADdYbAI5BKjE+yw+dOE+xucCEYiGyRhOI9JiZLUBh+PDz8cDnNxcCspH44o
+ E7oTH0XPn9f7Zh0TkXWA8G6BZVCNifG7mM9K8Ecp3NheQYCk488ucSV/dz6DJ8BqX4psd4TI
+ gpcs2iDQlg5CmuXDhc5z1ztNubv8hElSlFX/4l/U18OfrdTbbcjF/fivBkzkVobtltiL+msN
+ bDq5S0K2KOxRxuXGaDShvfbz6DnajoVLEkNgEnGpSLxQNlJXdQBTE509MA30Q2aGk6oqHBQv
+ zxjVyOu+WLGPSj7hF8SdYOjizVKIARGJzDy8qT4v/TLdVqPa2d0rx7DFvBRzOqYQL13/Zvie
+ kuGbj3XvFibVt2ecS87WCJ/nlQxCa0KjGy0eb3i4XObtcU23fnd0ieZsQs4uDhZgzYB8LNud
+ WXx9/Q0qsWfvZw7hEdPdPRBmwRmt2O1fbfk5CQN1EtNgS372PbOjQHaIV6n+QQP2ELIa3X5Z
+ RnyaXyzwaCt6ETUHTslEaR9nOG6N3sIohIwlIywGK6WQmRBPyz5X1oF2Ld9E0crlaZYFPMRH
+ hQtFxdycIBpTlc59g7uIXzwRx65HJcyBflj72YoTzwchN6Wf2rKq9xmtkV2Eihwo8WH3XkL9
+ cjVKjg8rKRmqIMSRCpqFBWJpT1FzecQ8EMV0fk18Q5MLj441yQARAQABzRtJYW4gS2VudCA8
+ cmF2ZW5AdGhlbWF3Lm5ldD7CwXsEEwECACUCGwMGCwkIBwMCBhUIAgkKCwQWAgMBAh4BAheA
+ BQJOnjOcAhkBAAoJEOdnc4D1T9iphrYQALHK3J5rjzy4qPiLJ0EE9eJkyV1rqtzct5Ah9pu6
+ LSkqxgQCfN3NmKOoj+TpbXGagg28qTGjkFvJSlpNY7zAj+fA11UVCxERgQBOJcPrbgaeYZua
+ E4ST+w/inOdatNZRnNWGugqvez80QGuxFRQl1ttMaky7VxgwNTXcFNjClW3ifdD75gHlrU0V
+ ZUULa1a0UVip0rNc7mFUKxhEUk+8NhowRZUk0nt1JUwezlyIYPysaN7ToVeYE4W0VgpWczmA
+ tHtkRGIAgwL7DCNNJ6a+H50FEsyixmyr/pMuNswWbr3+d2MiJ1IYreZLhkGfNq9nG/+YK/0L
+ Q2/OkIsz8bOrkYLTw8WwzfTz2RXV1N2NtsMKB/APMcuuodkSI5bzzgyu1cDrGLz43faFFmB9
+ xAmKjibRLk6ChbmrZhuCYL0nn+RkL036jMLw5F1xiu2ltEgK2/gNJhm29iBhvScUKOqUnbPw
+ DSMZ2NipMqj7Xy3hjw1CStEy3pCXp8/muaB8KRnf92VvjO79VEls29KuX6rz32bcBM4qxsVn
+ cOqyghSE69H3q4SY7EbhdIfacUSEUV+m/pZK5gnJIl6n1Rh6u0MFXWttvu0j9JEl92Ayj8u8
+ J/tYvFMpag3nTeC3I+arPSKpeWDX08oisrEp0Yw15r+6jbPjZNz7LvrYZ2fa3Am6KRn0zsFN
+ BE6c/ycBEADZzcb88XlSiooYoEt3vuGkYoSkz7potX864MSNGekek1cwUrXeUdHUlw5zwPoC
+ 4H5JF7D8q7lYoelBYJ+Mf0vdLzJLbbEtN5+v+s2UEbkDlnUQS1yRo1LxyNhJiXsQVr7WVA/c
+ 8qcDWUYX7q/4Ckg77UO4l/eHCWNnHu7GkvKLVEgRjKPKroIEnjI0HMK3f6ABDReoc741RF5X
+ X3qwmCgKZx0AkLjObXE3W769dtbNbWmW0lgFKe6dxlYrlZbq25Aubhcu2qTdQ/okx6uQ41+v
+ QDxgYtocsT/CG1u0PpbtMeIm3mVQRXmjDFKjKAx9WOX/BHpk7VEtsNQUEp1lZo6hH7jeo5me
+ CYFzgIbXdsMA9TjpzPpiWK9GetbD5KhnDId4ANMrWPNuGC/uPHDjtEJyf0cwknsRFLhL4/NJ
+ KvqAuiXQ57x6qxrkuuinBQ3S9RR3JY7R7c3rqpWyaTuNNGPkIrRNyePky/ZTgTMA5of8Wioy
+ z06XNhr6mG5xT+MHztKAQddV3xFy9f3Jrvtd6UvFbQPwG7Lv+/UztY5vPAzp7aJGz2pDbb0Q
+ BC9u1mrHICB4awPlja/ljn+uuIb8Ow3jSy+Sx58VFEK7ctIOULdmnHXMFEihnOZO3NlNa6q+
+ XZOK7J00Ne6y0IBAaNTM+xMF+JRc7Gx6bChES9vxMyMbXwARAQABwsFfBBgBAgAJBQJOnP8n
+ AhsMAAoJEOdnc4D1T9iphf4QAJuR1jVyLLSkBDOPCa3ejvEqp4H5QUogl1ASkEboMiWcQJQd
+ LaH6zHNySMnsN6g/UVhuviANBxtW2DFfANPiydox85CdH71gLkcOE1J7J6Fnxgjpc1Dq5kxh
+ imBSqa2hlsKUt3MLXbjEYL5OTSV2RtNP04KwlGS/xMfNwQf2O2aJoC4mSs4OeZwsHJFVF8rK
+ XDvL/NzMCnysWCwjVIDhHBBIOC3mecYtXrasv9nl77LgffyyaAAQZz7yZcvn8puj9jH9h+mr
+ L02W+gd+Sh6Grvo5Kk4ngzfT/FtscVGv9zFWxfyoQHRyuhk0SOsoTNYN8XIWhosp9GViyDtE
+ FXmrhiazz7XHc32u+o9+WugpTBZktYpORxLVwf9h1PY7CPDNX4EaIO64oyy9O3/huhOTOGha
+ nVvqlYHyEYCFY7pIfaSNhgZs2aV0oP13XV6PGb5xir5ah+NW9gQk/obnvY5TAVtgTjAte5tZ
+ +coCSBkOU1xMiW5Td7QwkNmtXKHyEF6dxCAMK1KHIqxrBaZO27PEDSHaIPHePi7y4KKq9C9U
+ 8k5V5dFA0mqH/st9Sw6tFbqPkqjvvMLETDPVxOzinpU2VBGhce4wufSIoVLOjQnbIo1FIqWg
+ Dx24eHv235mnNuGHrG+EapIh7g/67K0uAzwp17eyUYlE5BMcwRlaHMuKTil6
+In-Reply-To: <20250428153416.35621f2c.ddiss@suse.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-X-Spam-Score: -7.25
-X-Spamd-Result: default: False [-7.25 / 50.00];
-	REPLY(-4.00)[];
-	BAYES_HAM(-2.95)[99.78%];
-	MID_CONTAINS_FROM(1.00)[];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	ARC_NA(0.00)[];
-	RCVD_TLS_ALL(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	MISSING_XM_UA(0.00)[];
-	RCPT_COUNT_TWO(0.00)[2];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FUZZY_BLOCKED(0.00)[rspamd.com];
-	FROM_HAS_DN(0.00)[];
-	TO_DN_SOME(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[suse.com:email,suse.de:mid,imap1.dmz-prg2.suse.org:helo]
-X-Spam-Flag: NO
-X-Spam-Level: 
 
-On Mon, 28 Apr 2025 00:10:34 +0200, Anthony Iliopoulos wrote:
+On 28/4/25 13:34, David Disseldorp wrote:
+> On Mon, 28 Apr 2025 00:10:34 +0200, Anthony Iliopoulos wrote:
+>
+>> Fix man page formatting by removing stray "+" characters preceding the
+>> open_file_limit option description, which also corrects the rendering of
+>> the timeout option.
+>>
+>> Signed-off-by: Anthony Iliopoulos <ailiop@suse.com>
+> Might be worth adding a:
+> Fixes: 29f7882 ("autofs-5.1.8 - make open files limit configurable")
+>
+> Either way this looks fine to me.
+>
+Thanks for this, it does look fine, I'll add the Fixes annotation too.
 
-> Fix man page formatting by removing stray "+" characters preceding the
-> open_file_limit option description, which also corrects the rendering of
-> the timeout option.
-> 
-> Signed-off-by: Anthony Iliopoulos <ailiop@suse.com>
 
-Might be worth adding a:
-Fixes: 29f7882 ("autofs-5.1.8 - make open files limit configurable")
+Ian
 
-Either way this looks fine to me.
