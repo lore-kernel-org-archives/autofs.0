@@ -1,114 +1,261 @@
-Received: from smtp01.aussiebb.com.au (smtp01.aussiebb.com.au [121.200.0.92])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-il1-f205.google.com (mail-il1-f205.google.com [209.85.166.205])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1884A8F5B
-	for <autofs@vger.kernel.org>; Tue, 29 Apr 2025 00:30:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=121.200.0.92
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35AB528E5E4
+	for <autofs@vger.kernel.org>; Fri,  9 May 2025 10:10:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.205
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745886617; cv=none; b=oesgGf8m06tahYykMvpeay7coaf5rp9zrEY9mglUXjmfxSCqwzRB5P77YN5RhY/ClPcQlPmQwpFEN+M3iEju0QYiiQ7e1LfaZEGN3LxJiHUktpPllwOUR18sbJWbXNbNToU0ZQccncrRv9GFWAdbA1i5dpemHV2f8DPFVzEHkLQ=
+	t=1746785428; cv=none; b=m26HieTLCETCga33cCSDwmLbzXdh2KHw4PHvHP3rqcXcsmyOkLgIKeTaSU1Pl2uv6IV+/qXPLY6LJcEA3lRUBd0mR6zpmPcI4EvYgABNQDCBXBa6S59A2lsiQP4E1zuAKihzHQCATnxuo59iEsHck+fDt4JUvH7+158ezIpzQoE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745886617; c=relaxed/simple;
-	bh=HjRm+GV8tsDFe8sAYiPalMos/uwMYBxTx/HdOG8XRGU=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=e+ThkruwqJykqLA6Mpwa4D4nvQ92ulqia52ibE2+kqdtbVt1PCrP7E+JLbvZwSbWVAoqs2axPHKbM12K9rRa/iPASW+AZs3eVAJ/BBYxVeEplDw/xWDJF5jjD57vdik0SWMiEGS8Ao+qIzn2jfsEyjFGWXLhBEURv1IT93hEjuw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=themaw.net; spf=fail smtp.mailfrom=themaw.net; arc=none smtp.client-ip=121.200.0.92
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=themaw.net
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=themaw.net
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by smtp01.aussiebb.com.au (Postfix) with ESMTP id CBFC3102313
-	for <autofs@vger.kernel.org>; Tue, 29 Apr 2025 10:19:46 +1000 (AEST)
-X-Virus-Scanned: Debian amavisd-new at smtp01.aussiebb.com.au
-Received: from smtp01.aussiebb.com.au ([127.0.0.1])
-	by localhost (smtp01.aussiebb.com.au [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id tlOyTjBS6poR for <autofs@vger.kernel.org>;
-	Tue, 29 Apr 2025 10:19:46 +1000 (AEST)
-Received: by smtp01.aussiebb.com.au (Postfix, from userid 116)
-	id A687C100FDA; Tue, 29 Apr 2025 10:19:46 +1000 (AEST)
-X-Spam-Level: 
-Received: from [192.168.50.229] (159-196-82-144.9fc452.per.static.aussiebb.net [159.196.82.144])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	(Authenticated sender: ian146@aussiebb.com.au)
-	by smtp01.aussiebb.com.au (Postfix) with ESMTPSA id 3D836102393;
-	Tue, 29 Apr 2025 10:19:44 +1000 (AEST)
-Message-ID: <d918fa71-bc30-4026-9552-87f6695191a4@themaw.net>
-Date: Tue, 29 Apr 2025 08:19:43 +0800
+	s=arc-20240116; t=1746785428; c=relaxed/simple;
+	bh=MWcHZN4Tnpd9NleOwcRsf738CIl68RyshheujKhARZ8=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=aB2vxF4rbSHTqzz0+270rEMwLW8vHvvJEfvBBb1LNMzqOv4Gg+WsJF+24vxE8sD2MzMmxFx4MH4XKCBnLRPteBHm0ofLgvf8mACp15rY+THmoROQcbZ4p/GPZ/fQkElP8JN7OFnisl930Oc3pESEivoJKy1O4YRyg04MLGEuA8A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.205
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-il1-f205.google.com with SMTP id e9e14a558f8ab-3d922570570so22906205ab.3
+        for <autofs@vger.kernel.org>; Fri, 09 May 2025 03:10:25 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1746785425; x=1747390225;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=n0lKQms4WA2Vd3mIlqw0q0UZ+Q2kxi4T8Yoi1K/CTqE=;
+        b=I8FNICX7OS/TuWboxDyzhVR5T1EvhAL8fU+wTqUhhH3K4I2p3jRTC4cjLhGVkhUyow
+         G0bEXL15X4T7GtN/cKbWvI3Ud/14tBH63dvoyQo9wfHcDonZlBuejTDh245cyWGvDnHl
+         Rm4RlPUYf/qVSIjmZlJBrHASDTIMgB5/oER3AhRUljBM9M++mkxmaBI3qNPzYx/WE+jL
+         sokX115UVIdbs2lffwkWgwM/hN9dgMvlWmQnWicd6Eqa53XDC2iQcM7ROY2YyrK27l6p
+         yStXY8+HdUHiKhTjv82qFARubr8JkEjTNUcKvqhdFqsfHCxH8JLU9duxxaa4vkCiT/z9
+         CQUQ==
+X-Gm-Message-State: AOJu0YxCH6F4bw53R/JIanuJw2QLtb4kyYMVIktLdoHp/YB1hyV3CqlL
+	JtBTlWReuFWb27STxRSperU8WU1Wt//bgsI4Kj01oM1soIjWtpf+nRp4IKevaCsP3GhLkq3/i6D
+	jVbbCJsFeiGCtdd5VDfBw9lApLAqa1HVWcdT/FtHPKuKiID/C9hQ7Zx6Yyg==
+X-Google-Smtp-Source: AGHT+IFrGPfr3JTIgZMK3aCNi4zdxIKNNyTklGUFCf3wg1uunylqBYOOdK4kZwhRoiWpsQZVSuQH6W+KA5lsaBwC+1bBGpxiR/sC
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 List-Subscribe: <mailto:autofs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] man/autofs.conf.5: fix manpage formatting
-To: David Disseldorp <ddiss@suse.de>, Anthony Iliopoulos <ailiop@suse.com>
-Cc: autofs@vger.kernel.org
-References: <20250427221034.149247-1-ailiop@suse.com>
- <20250428153416.35621f2c.ddiss@suse.de>
-Content-Language: en-US
-From: Ian Kent <raven@themaw.net>
-Autocrypt: addr=raven@themaw.net; keydata=
- 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
-In-Reply-To: <20250428153416.35621f2c.ddiss@suse.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+X-Received: by 2002:a05:6e02:b2a:b0:3d6:d162:be12 with SMTP id
+ e9e14a558f8ab-3da7e213504mr38059075ab.21.1746785425253; Fri, 09 May 2025
+ 03:10:25 -0700 (PDT)
+Date: Fri, 09 May 2025 03:10:25 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <681dd491.050a0220.a19a9.012b.GAE@google.com>
+Subject: [syzbot] [autofs?] possible deadlock in anon_pipe_write
+From: syzbot <syzbot+247d7a192c296bf9769c@syzkaller.appspotmail.com>
+To: autofs@vger.kernel.org, linux-kernel@vger.kernel.org, raven@themaw.net, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-On 28/4/25 13:34, David Disseldorp wrote:
-> On Mon, 28 Apr 2025 00:10:34 +0200, Anthony Iliopoulos wrote:
->
->> Fix man page formatting by removing stray "+" characters preceding the
->> open_file_limit option description, which also corrects the rendering of
->> the timeout option.
->>
->> Signed-off-by: Anthony Iliopoulos <ailiop@suse.com>
-> Might be worth adding a:
-> Fixes: 29f7882 ("autofs-5.1.8 - make open files limit configurable")
->
-> Either way this looks fine to me.
->
-Thanks for this, it does look fine, I'll add the Fixes annotation too.
+Hello,
+
+syzbot found the following issue on:
+
+HEAD commit:    0d8d44db295c Merge tag 'for-6.15-rc5-tag' of git://git.ker..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=1236fb68580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=b39cb28b0a399ed3
+dashboard link: https://syzkaller.appspot.com/bug?extid=247d7a192c296bf9769c
+compiler:       gcc (Debian 12.2.0-14) 12.2.0, GNU ld (GNU Binutils for Debian) 2.40
+
+Unfortunately, I don't have any reproducer for this issue yet.
+
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/5536cda9f25f/disk-0d8d44db.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/92d52f7afb23/vmlinux-0d8d44db.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/a31f0b2e7b87/bzImage-0d8d44db.xz
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+247d7a192c296bf9769c@syzkaller.appspotmail.com
+
+======================================================
+WARNING: possible circular locking dependency detected
+6.15.0-rc5-syzkaller-00032-g0d8d44db295c #0 Not tainted
+------------------------------------------------------
+syz.4.1562/14048 is trying to acquire lock:
+ffff88807af9fc68 (&pipe->mutex){+.+.}-{4:4}, at: anon_pipe_write+0x15d/0x1a70 fs/pipe.c:459
+
+but task is already holding lock:
+ffff8880588b8140 (&sbi->pipe_mutex){+.+.}-{4:4}, at: autofs_write fs/autofs/waitq.c:55 [inline]
+ffff8880588b8140 (&sbi->pipe_mutex){+.+.}-{4:4}, at: autofs_notify_daemon+0x4a6/0xd60 fs/autofs/waitq.c:164
+
+which lock already depends on the new lock.
 
 
-Ian
+the existing dependency chain (in reverse order) is:
 
+-> #2 (&sbi->pipe_mutex){+.+.}-{4:4}:
+       __mutex_lock_common kernel/locking/mutex.c:601 [inline]
+       __mutex_lock+0x199/0xb90 kernel/locking/mutex.c:746
+       autofs_write fs/autofs/waitq.c:55 [inline]
+       autofs_notify_daemon+0x4a6/0xd60 fs/autofs/waitq.c:164
+       autofs_wait+0x10ca/0x1a70 fs/autofs/waitq.c:426
+       autofs_mount_wait+0x132/0x380 fs/autofs/root.c:255
+       autofs_d_automount+0x390/0x7f0 fs/autofs/root.c:401
+       follow_automount fs/namei.c:1455 [inline]
+       __traverse_mounts+0x192/0x790 fs/namei.c:1500
+       traverse_mounts fs/namei.c:1529 [inline]
+       handle_mounts fs/namei.c:1632 [inline]
+       step_into+0x5aa/0x2270 fs/namei.c:1976
+       walk_component+0xfc/0x5b0 fs/namei.c:2144
+       lookup_last fs/namei.c:2636 [inline]
+       path_lookupat+0x17e/0x780 fs/namei.c:2660
+       filename_lookup+0x224/0x5f0 fs/namei.c:2689
+       kern_path+0x35/0x50 fs/namei.c:2822
+       lookup_bdev+0xd8/0x280 block/bdev.c:1205
+       resume_store+0x1d6/0x460 kernel/power/hibernate.c:1248
+       kobj_attr_store+0x55/0x80 lib/kobject.c:840
+       sysfs_kf_write+0xef/0x150 fs/sysfs/file.c:145
+       kernfs_fop_write_iter+0x351/0x510 fs/kernfs/file.c:334
+       new_sync_write fs/read_write.c:591 [inline]
+       vfs_write+0x5ba/0x1180 fs/read_write.c:684
+       ksys_write+0x12a/0x240 fs/read_write.c:736
+       do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+       do_syscall_64+0xcd/0x260 arch/x86/entry/syscall_64.c:94
+       entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+-> #1 (&of->mutex){+.+.}-{4:4}:
+       __mutex_lock_common kernel/locking/mutex.c:601 [inline]
+       __mutex_lock+0x199/0xb90 kernel/locking/mutex.c:746
+       kernfs_fop_write_iter+0x28f/0x510 fs/kernfs/file.c:325
+       iter_file_splice_write+0x91c/0x1150 fs/splice.c:738
+       do_splice_from fs/splice.c:935 [inline]
+       do_splice+0x1475/0x1fc0 fs/splice.c:1348
+       __do_splice+0x32a/0x360 fs/splice.c:1430
+       __do_sys_splice fs/splice.c:1633 [inline]
+       __se_sys_splice fs/splice.c:1615 [inline]
+       __x64_sys_splice+0x187/0x250 fs/splice.c:1615
+       do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+       do_syscall_64+0xcd/0x260 arch/x86/entry/syscall_64.c:94
+       entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+-> #0 (&pipe->mutex){+.+.}-{4:4}:
+       check_prev_add kernel/locking/lockdep.c:3166 [inline]
+       check_prevs_add kernel/locking/lockdep.c:3285 [inline]
+       validate_chain kernel/locking/lockdep.c:3909 [inline]
+       __lock_acquire+0x1173/0x1ba0 kernel/locking/lockdep.c:5235
+       lock_acquire kernel/locking/lockdep.c:5866 [inline]
+       lock_acquire+0x179/0x350 kernel/locking/lockdep.c:5823
+       __mutex_lock_common kernel/locking/mutex.c:601 [inline]
+       __mutex_lock+0x199/0xb90 kernel/locking/mutex.c:746
+       anon_pipe_write+0x15d/0x1a70 fs/pipe.c:459
+       __kernel_write_iter+0x71d/0xa90 fs/read_write.c:617
+       __kernel_write+0xf5/0x140 fs/read_write.c:637
+       autofs_write fs/autofs/waitq.c:57 [inline]
+       autofs_notify_daemon+0x4db/0xd60 fs/autofs/waitq.c:164
+       autofs_wait+0x10ca/0x1a70 fs/autofs/waitq.c:426
+       autofs_mount_wait+0x132/0x380 fs/autofs/root.c:255
+       autofs_d_automount+0x390/0x7f0 fs/autofs/root.c:401
+       follow_automount fs/namei.c:1455 [inline]
+       __traverse_mounts+0x192/0x790 fs/namei.c:1500
+       traverse_mounts fs/namei.c:1529 [inline]
+       handle_mounts fs/namei.c:1632 [inline]
+       step_into+0x5aa/0x2270 fs/namei.c:1976
+       walk_component+0xfc/0x5b0 fs/namei.c:2144
+       lookup_last fs/namei.c:2636 [inline]
+       path_lookupat+0x17e/0x780 fs/namei.c:2660
+       filename_lookup+0x224/0x5f0 fs/namei.c:2689
+       user_path_at+0x3a/0x60 fs/namei.c:3120
+       do_mount fs/namespace.c:4221 [inline]
+       __do_sys_mount fs/namespace.c:4435 [inline]
+       __se_sys_mount fs/namespace.c:4412 [inline]
+       __x64_sys_mount+0x1fc/0x310 fs/namespace.c:4412
+       do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+       do_syscall_64+0xcd/0x260 arch/x86/entry/syscall_64.c:94
+       entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+other info that might help us debug this:
+
+Chain exists of:
+  &pipe->mutex --> &of->mutex --> &sbi->pipe_mutex
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&sbi->pipe_mutex);
+                               lock(&of->mutex);
+                               lock(&sbi->pipe_mutex);
+  lock(&pipe->mutex);
+
+ *** DEADLOCK ***
+
+1 lock held by syz.4.1562/14048:
+ #0: ffff8880588b8140 (&sbi->pipe_mutex){+.+.}-{4:4}, at: autofs_write fs/autofs/waitq.c:55 [inline]
+ #0: ffff8880588b8140 (&sbi->pipe_mutex){+.+.}-{4:4}, at: autofs_notify_daemon+0x4a6/0xd60 fs/autofs/waitq.c:164
+
+stack backtrace:
+CPU: 1 UID: 0 PID: 14048 Comm: syz.4.1562 Not tainted 6.15.0-rc5-syzkaller-00032-g0d8d44db295c #0 PREEMPT(full) 
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 04/29/2025
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:94 [inline]
+ dump_stack_lvl+0x116/0x1f0 lib/dump_stack.c:120
+ print_circular_bug+0x275/0x350 kernel/locking/lockdep.c:2079
+ check_noncircular+0x14c/0x170 kernel/locking/lockdep.c:2211
+ check_prev_add kernel/locking/lockdep.c:3166 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3285 [inline]
+ validate_chain kernel/locking/lockdep.c:3909 [inline]
+ __lock_acquire+0x1173/0x1ba0 kernel/locking/lockdep.c:5235
+ lock_acquire kernel/locking/lockdep.c:5866 [inline]
+ lock_acquire+0x179/0x350 kernel/locking/lockdep.c:5823
+ __mutex_lock_common kernel/locking/mutex.c:601 [inline]
+ __mutex_lock+0x199/0xb90 kernel/locking/mutex.c:746
+ anon_pipe_write+0x15d/0x1a70 fs/pipe.c:459
+ __kernel_write_iter+0x71d/0xa90 fs/read_write.c:617
+ __kernel_write+0xf5/0x140 fs/read_write.c:637
+ autofs_write fs/autofs/waitq.c:57 [inline]
+ autofs_notify_daemon+0x4db/0xd60 fs/autofs/waitq.c:164
+ autofs_wait+0x10ca/0x1a70 fs/autofs/waitq.c:426
+ autofs_mount_wait+0x132/0x380 fs/autofs/root.c:255
+ autofs_d_automount+0x390/0x7f0 fs/autofs/root.c:401
+ follow_automount fs/namei.c:1455 [inline]
+ __traverse_mounts+0x192/0x790 fs/namei.c:1500
+ traverse_mounts fs/namei.c:1529 [inline]
+ handle_mounts fs/namei.c:1632 [inline]
+ step_into+0x5aa/0x2270 fs/namei.c:1976
+ walk_component+0xfc/0x5b0 fs/namei.c:2144
+ lookup_last fs/namei.c:2636 [inline]
+ path_lookupat+0x17e/0x780 fs/namei.c:2660
+ filename_lookup+0x224/0x5f0 fs/namei.c:2689
+ user_path_at+0x3a/0x60 fs/namei.c:3120
+ do_mount fs/namespace.c:4221 [inline]
+ __do_sys_mount fs/namespace.c:4435 [inline]
+ __se_sys_mount fs/namespace.c:4412 [inline]
+ __x64_sys_mount+0x1fc/0x310 fs/namespace.c:4412
+ do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+ do_syscall_64+0xcd/0x260 arch/x86/entry/syscall_64.c:94
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7faef658e969
+Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 a8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007faef7347038 EFLAGS: 00000246 ORIG_RAX: 00000000000000a5
+RAX: ffffffffffffffda RBX: 00007faef67b5fa0 RCX: 00007faef658e969
+RDX: 0000000000000000 RSI: 00002000000001c0 RDI: 0000000000000000
+RBP: 00007faef6610ab1 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000010000 R11: 0000000000000246 R12: 0000000000000000
+R13: 0000000000000000 R14: 00007faef67b5fa0 R15: 00007ffeefd9fb38
+ </TASK>
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
