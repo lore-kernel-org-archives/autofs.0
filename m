@@ -1,79 +1,84 @@
-Received: from fhigh-a4-smtp.messagingengine.com (fhigh-a4-smtp.messagingengine.com [103.168.172.155])
+Received: from fout-a5-smtp.messagingengine.com (fout-a5-smtp.messagingengine.com [103.168.172.148])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 961551A705C
-	for <autofs@vger.kernel.org>; Thu,  7 Aug 2025 06:20:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.155
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2AA21D88A4
+	for <autofs@vger.kernel.org>; Thu,  7 Aug 2025 06:20:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.148
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754547643; cv=none; b=WSjrZVLOoHnRJWHqOyxiFI/7mhyoayS6vhraWb+af4vxyKlDnisG5CT0rQcg+QOGKblMWzfyT/0x4yz8RF31ZX35Z35Cbtnv3wURcdYCBEVlkknkTqypQ6YU1gvcU/XR5OBQsUktAdzToQqa+EdUhhsTlJ4FF0Ltx2cCJ6R+tKA=
+	t=1754547645; cv=none; b=Z53auGND6v9aCrFmXV7wdu4pT8IFIjmOiZoy5TNyYykuHWexLFO4wP1bjfjaUntutM46HcoVwHeS1AspOl5iQPcQuI5acA0jXRTuST+u4zzjp24rdFAxKqtbbRPegU+W9Ta2e0hrUwjpUwWsLR1eMvhne+XBmDjaEF5MNBYuEDE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754547643; c=relaxed/simple;
-	bh=6cjXoM6e/ItTcn7cKJpfxKVCdj2ecKaqPmQCQhxL8P8=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=oCD8zvJC+EmsZ8KFqKSjftkRjoOySd70RfESUBlqgqpk6b9sO3xmWJcYv37LFcoJ7L2dpoo9N+u2ieanXt1MQn2EFgUPFmT35AKUG0CnEG5cCUGbOerwNoi8Mo+Z7Q23QBTzUV7b/MSOIH1VkKtDqG6TiWgX5av9cG5Pbs4gBqk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net; spf=pass smtp.mailfrom=themaw.net; dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b=K+RyP1/8; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=JG1Mer9p; arc=none smtp.client-ip=103.168.172.155
+	s=arc-20240116; t=1754547645; c=relaxed/simple;
+	bh=2J45DKXANRHqU66rbL6GDAUJIM4VvSP7wKr1I2TssSo=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=o9swaaLUqVhRCQbOBvKpzUuOah3ztabxbm1IjVzO3oOi4wJTzvXzi1ozb6K1hUsSiv9hDyujV574VIohbj4WCweM+DzUuOAcSnWbZhgVb4/LTbXHwhQRAYgQMWRmK6LBB91nXWutD5738vSaGK9Y7MgLAttSfYerBCh4ynIwwzc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net; spf=pass smtp.mailfrom=themaw.net; dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b=hxGrCbFi; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=b9Vso9YT; arc=none smtp.client-ip=103.168.172.148
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=themaw.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b="K+RyP1/8";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="JG1Mer9p"
+	dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b="hxGrCbFi";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="b9Vso9YT"
 Received: from phl-compute-12.internal (phl-compute-12.internal [10.202.2.52])
-	by mailfhigh.phl.internal (Postfix) with ESMTP id 9CBC91400182;
-	Thu,  7 Aug 2025 02:20:39 -0400 (EDT)
+	by mailfout.phl.internal (Postfix) with ESMTP id C2CD1EC0191;
+	Thu,  7 Aug 2025 02:20:41 -0400 (EDT)
 Received: from phl-mailfrontend-01 ([10.202.2.162])
-  by phl-compute-12.internal (MEProxy); Thu, 07 Aug 2025 02:20:39 -0400
+  by phl-compute-12.internal (MEProxy); Thu, 07 Aug 2025 02:20:41 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
 	:cc:content-transfer-encoding:content-type:date:date:from:from
-	:in-reply-to:message-id:mime-version:reply-to:subject:subject:to
-	:to; s=fm2; t=1754547639; x=1754634039; bh=Kv8Jqmt1iwtlx72g9qrds
-	oLmqds0LF/DjkkdnirZYQc=; b=K+RyP1/8GqJZfS7+ov3jGskwIExxs9lYp8YWE
-	pCRgS6SRINugvcCcLXYaqcNh/sJIyTk8AppHmt/xeKa8Ki2q6VVt8Yfe/uF34Z/0
-	FLM7JXX+DUg2f4IyXfrWnmuTLmwGpFSO/vOEQ9qGAq2FjFI1scgQJq9MKil1e9mr
-	2Gxty3Vtt+2npod5WE8yhuWC5wZaG35q8HWLaECRpY6dTVvcjecSzAiQy75qPOFV
-	9FMBFzz8IA/A9FwSQMZrkFbGjN32SSfeC/K4m2+Ccf8iATejWDlR7tgKRhxlUVtN
-	8i3GQda9iZ89+/OvQ7z5T44Yj5B3XfaJskYG9g84sQmgHyYBw==
+	:in-reply-to:in-reply-to:message-id:mime-version:references
+	:reply-to:subject:subject:to:to; s=fm2; t=1754547641; x=
+	1754634041; bh=wsX0qyushtOWSKiYLFtw/URyCoeWs7jD2Zg+XGefeYU=; b=h
+	xGrCbFiVfWfBhKgvH9BxfYLXV4MjGDeoO6ymF04K7zsaLrWO/z8t62wrEoiFNNBn
+	zrNp++45dJckvpcgFKahl9yFrl/iJ1dmE4pmReW3UxPdOklsdp0foF7AuWp6gPWo
+	N1TtrICPak75nWIWfoz3sbxUbAQfj8G3EOQx/5pqw/+s1fvDMeuTgQZF2EHwYFFI
+	WdIbfw2ej89WVUaaSqmVxYLRzPNyIf/Iipivgr3Wv3bi0IZVsdq/gYj+ctvQLhAD
+	dbd/bBc/aGI6H6TYNSARN3FUx7GWvdCBoyx1LYsda5q6c5I6GqtlQDTePtxamGt+
+	KvydjFRFAvBNSVNDOWVZQ==
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
 	messagingengine.com; h=cc:cc:content-transfer-encoding
 	:content-type:date:date:feedback-id:feedback-id:from:from
-	:in-reply-to:message-id:mime-version:reply-to:subject:subject:to
-	:to:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=
-	1754547639; x=1754634039; bh=Kv8Jqmt1iwtlx72g9qrdsoLmqds0LF/Djkk
-	dnirZYQc=; b=JG1Mer9pfEeVU7TqYX2UqseTp+8+EewUOjAXPYFxO9Iia4tge8L
-	Vb9NMLowOHG30Co4fRoaQGfioBsSZPpHsSF17Ld+fcm/CQQaIYLtsLpDaDBxkXOQ
-	YNsmsVF/pMxAigi37tD2JhP8Vqd+5Gm9jTkDLDpiaiLCSV4rnC9C6jgzmsu2hE9V
-	nsMMwXgCh8an09S8Xu8QYKkcSNbZEO7fV3Q5gn+pKTDXhn760tFgpxkgFfYxncm1
-	n8QZaKSz3u/mBCVl8xQtVk6A6hHCaKBJmZAOs2YVMsFITMQW0M96Vn9Xm/1s1KGi
-	WztOh0aHFBmkZgOzJuRx2PVvUHWHcQP1e3Q==
-X-ME-Sender: <xms:t0WUaH0YreCfPJb88TlDWz2Kw8e_1lj3p4e09WzCvKimU6ucW4tSsw>
-    <xme:t0WUaJXDbVuP6U2n2V-t-xXoyZcvYTh2mT7MzdYtaTmj7l4DeMPzozEeQjBbaRDxP
-    20PGPwCcLab>
-X-ME-Received: <xmr:t0WUaBWomvfqmuQQzpvgqVLGZTzosxeSgP6lMPK2SEO9_NbVGthuSl4rrZzWYzQHCcfM0PgaN6og4NAezbsiJh2FpGnSw_7rbZ6yZ0_a-qb8ZB_GNF9fF5w-yg>
+	:in-reply-to:in-reply-to:message-id:mime-version:references
+	:reply-to:subject:subject:to:to:x-me-proxy:x-me-sender
+	:x-me-sender:x-sasl-enc; s=fm3; t=1754547641; x=1754634041; bh=w
+	sX0qyushtOWSKiYLFtw/URyCoeWs7jD2Zg+XGefeYU=; b=b9Vso9YTrNJYqH21E
+	vd0RSeVF4qkbPT2hXYBAuR56qaaTiKuOhyZr+0bsvlfZqgBCgI84wOte25F6bu05
+	K202tqU9/qKZmPY7+YUu2pQgrIy1LW0z1kVQab7xh9RjQ4KdfavayGjIwxCV4vSO
+	5Gbe4P7GqabgpLYHfnhao79PecZGtNCkPfO5ZPrwrt92DG5boOUhaYfeSR07U9CI
+	faA/IxUsVHhq6w31Sy16NMKB1gOa4r85YZojNx4MkLVl0TfKp0jE+Me+4ePzhYlc
+	0pr2lee0bv1tLW24z9i5S6BHzgr/GR9nMhR/7xpu5Kb2T4hGVcHyvr4Gc+aWzget
+	ObPeA==
+X-ME-Sender: <xms:uUWUaL1pBdVcjQSj_S89y9r5xuTvMfJAiFVppYlQUJr-GIzZSdIL8A>
+    <xme:uUWUaNXbByU7i3cSrbK5FX9caKSbJ10zUHn4hmApwYmGzU9goQ3Nwqug-uh_CqQW4
+    fu3gNgBRBRp>
+X-ME-Received: <xmr:uUWUaFV7ABtHBheYCh3vGB16T13_Jj0oB1nj4d8wVQ_5SyErySjzSS2pLqzPTpGcZxS_a49Yu7M4EmXA3FfenHDKdUMtcHl6zQURjT1qjk9VZEeEgtl_MFwg7w>
 X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeffedrtdefgdduvddtudelucetufdoteggodetrf
     dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
     rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujf
-    gurhephffvvefufffkofgggfestdekredtredttdenucfhrhhomhepkfgrnhcumfgvnhht
-    uceorhgrvhgvnhesthhhvghmrgifrdhnvghtqeenucggtffrrghtthgvrhhnpedutdfhve
-    ehuefhjefgffegieduhefhtdejkefhvdekteeihfehtddtgffgheduleenucevlhhushht
-    vghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpehrrghvvghnsehthhgvmh
-    grfidrnhgvthdpnhgspghrtghpthhtohepfedpmhhouggvpehsmhhtphhouhhtpdhrtghp
-    thhtohepugguihhsshesshhushgvrdguvgdprhgtphhtthhopegruhhtohhfshesvhhgvg
-    hrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehrrghvvghnsehthhgvmhgrfidrnhgv
-    th
-X-ME-Proxy: <xmx:t0WUaIfqmfPc6GJGAnyWceKEhgvryUZAzwnAJ4-7b8ED-1bW0IvMCA>
-    <xmx:t0WUaKWmQ1I1j5KyAb4rExZHaWejpJa8WjNlAiSjG-kXwyuDQlz-5g>
-    <xmx:t0WUaBc8dfJYtA5sMxFzBcL29iMmAPVNhgForHOnfANpA-JMDTY4Hw>
-    <xmx:t0WUaGMASkpOepmvhZSzcOFSyXCTl-q_GOJBIqXwu2TgK_Dnb-bc3A>
-    <xmx:t0WUaDlgA8Rfy6rGaood0XJ4yoFlJBcQRG5lpnTI7_h3404bjSCb4Lnj>
+    gurhephffvvefufffkofgjfhgggfestdekredtredttdenucfhrhhomhepkfgrnhcumfgv
+    nhhtuceorhgrvhgvnhesthhhvghmrgifrdhnvghtqeenucggtffrrghtthgvrhhnpedule
+    egueffgfehudeufedtffeiudfghfejgeehvdffgefgjeetvdfffeeihfdvveenucevlhhu
+    shhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpehrrghvvghnsehthh
+    gvmhgrfidrnhgvthdpnhgspghrtghpthhtohepfedpmhhouggvpehsmhhtphhouhhtpdhr
+    tghpthhtohepugguihhsshesshhushgvrdguvgdprhgtphhtthhopegruhhtohhfshesvh
+    hgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehrrghvvghnsehthhgvmhgrfidr
+    nhgvth
+X-ME-Proxy: <xmx:uUWUaMdcwMBhf4EqACboXDXyn6ShM1fCVgCMgfnrNrapAwuoFxCLNQ>
+    <xmx:uUWUaOXLRwmOfNLne_ebtNKHktaL7cwTjv_ImUmn5FQxBY5nVO9Ipw>
+    <xmx:uUWUaFeYsG8sbgeSTDVvhPNehaMdMYukN5MBna1i4kUeYvwUPMTGsA>
+    <xmx:uUWUaKPHcXxe59edcO6I-KcLsBwQsjMWEsv5vI9-SFrRsJj9HdLGEA>
+    <xmx:uUWUaHkknXmu-tRkxsc_mqzDOunrP5ZKK1vHGUSGuyD5eQPdboGLGLqb>
 Feedback-ID: i31e841b0:Fastmail
 Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
- 7 Aug 2025 02:20:37 -0400 (EDT)
+ 7 Aug 2025 02:20:39 -0400 (EDT)
 From: Ian Kent <raven@themaw.net>
 To: David Disseldorp <ddiss@suse.de>
 Cc: autofs mailing list <autofs@vger.kernel.org>,
 	Ian Kent <raven@themaw.net>
-Subject: [PATCH 0/9] Patch series for direct map reload bug
-Date: Thu,  7 Aug 2025 14:19:58 +0800
-Message-ID: <20250807062007.14996-1-raven@themaw.net>
+Subject: [PATCH 1/9] autofs-5.1.9 - quiet possibly noisy log message
+Date: Thu,  7 Aug 2025 14:19:59 +0800
+Message-ID: <20250807062007.14996-2-raven@themaw.net>
 X-Mailer: git-send-email 2.50.1
+In-Reply-To: <20250807062007.14996-1-raven@themaw.net>
+References: <20250807062007.14996-1-raven@themaw.net>
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
@@ -82,64 +87,41 @@ List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-There have been reports of log messages like:
-automount[nnnn]: handle_packet_expire_direct: can't find map entry for (1048647,114082)
+The message that logs when a mount is already mounted and only the
+timeout will be updated on map re-read can create a lot of noise in
+the log for direct mount maps. But this is normal operation and is of
+limited value for both direct and indirect maps, so remove it.
 
-These messages are fatal because the direct mount path must be known to
-lookup the mount. Historically the autofs kernel communication packet
-size is fixed and based on the maximum path name component size used by
-indirect mounts but direct mounts have a variable length multi-component
-path. To solve this while maintaining compatability with indirect mounts,
-an index of (device, inode) tuples is maintained to allow lookup of the
-direct mount path so the map entry can be located.
+Signed-off-by: Ian Kent <raven@themaw.net>
+---
+ CHANGELOG    | 1 +
+ lib/mounts.c | 1 -
+ 2 files changed, 1 insertion(+), 1 deletion(-)
 
-Also it's necessary to understand that direct mount maps are always read
-fully in order to mount direct mount triggers for all direct mount map
-entries so they must exist so this approach should always work.
-
-So the message above only occurs for direct mounts and the ioctl file
-handle used by each direct mount is stored in the map entry so it's
-not possibile to respond to the kernel at all if the map entry cache
-entry can't be found.
-
-Unfortunately map entry cache cleanup on update is complicated and can
-lead to problems which (I believe) is what's happening here.
-
-While I suspect your reproducer is a different case to what I've seen
-it probably symtomatic of the underlying problem.
-
-Patches "autofs-5.1.9 - fix devid update on reload" and "autofs-5.1.9
-- fix stale direct mount trigger not umounted on expire" are the main
-fixes I was able to identify working through the code.
-
-Please test them and let me know how it goes.
-
-Note: The CHANGELOG hunks will conflict so you'll need to compensate
-for that.
-
-Ian
-
-Ian Kent (9):
-  autofs-5.1.9 - quiet possibly noisy log message
-  autofs-5.1.9 - fix devid update on reload
-  autofs-5.1.9 - fix cache writelock must be taken in update_map_cache()
-  autofs-5.1.9 - fix skip valid map entries on expire cleanup
-  autofs-5.1.9 - remove unnecessary call to
-    set_direct_mount_tree_catatonic()
-  autofs-5.1.9 - remove unnecessary assignment in umount_multi()
-  autofs-5.1.9 - fix direct mount trigger umount failure case
-  autofs-5.1.9 - refactor do_umount_autofs_direct()
-  autofs-5.1.9 - fix stale direct mount trigger not umounted on expire
-
- CHANGELOG           |   9 +++
- daemon/automount.c  |  35 +++++-------
- daemon/direct.c     | 130 ++++++++++++++++++++++++++------------------
- daemon/lookup.c     |  33 ++++-------
- daemon/state.c      |  17 ++----
- include/automount.h |   2 +-
- lib/mounts.c        |   1 -
- 7 files changed, 118 insertions(+), 109 deletions(-)
-
+diff --git a/CHANGELOG b/CHANGELOG
+index 2e4f05cb7..37a0d25c5 100644
+--- a/CHANGELOG
++++ b/CHANGELOG
+@@ -32,6 +32,7 @@
+ - fix lock ordering deadlock in expire_cleanup().
+ - fix handling of ignored offsets.
+ - fix invalidated map entry handling in hosts module.
++- quiet possibly noisy log message.
+ 
+ 02/11/2023 autofs-5.1.9
+ - fix kernel mount status notification.
+diff --git a/lib/mounts.c b/lib/mounts.c
+index ab16252c7..dd295f4b3 100644
+--- a/lib/mounts.c
++++ b/lib/mounts.c
+@@ -2880,7 +2880,6 @@ static int remount_active_mount(struct autofs_point *ap,
+ 
+ 	/* Re-reading the map, set timeout and return */
+ 	if (ap->state == ST_READMAP) {
+-		debug(ap->logopt, "already mounted, update timeout");
+ 		ops->timeout(ap->logopt, fd, NULL, timeout);
+ 		ops->close(ap->logopt, fd);
+ 		return REMOUNT_READ_MAP;
 -- 
 2.50.1
 
