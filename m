@@ -1,81 +1,81 @@
-Received: from fhigh-b6-smtp.messagingengine.com (fhigh-b6-smtp.messagingengine.com [202.12.124.157])
+Received: from fout-b2-smtp.messagingengine.com (fout-b2-smtp.messagingengine.com [202.12.124.145])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B44B7DA6A
-	for <autofs@vger.kernel.org>; Fri,  8 Aug 2025 02:17:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.157
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0310E7FD
+	for <autofs@vger.kernel.org>; Fri,  8 Aug 2025 02:17:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.145
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754619462; cv=none; b=cj0QOWp8zjX69A2hiixWRLQIIP90Cs+4c+1rEQE/DAn9RPJ/PbYje+64wQVXqcAoiKkYBt0EOnNI7Nl4SArE9D6LK6srCaO31XYgxrgbRdML8vZ0K6+pp03T2Be2EM9iOBwmKuKFfaEL3mBvXbCDzID2Lulnl2hLeAm9kBTceHE=
+	t=1754619465; cv=none; b=deRztV4uNO5G5WAj9sb/40UfeV4IWZWcOSbUwAIzA6zAUy5er7p/2bqp7+F3yU/7eT+EYRMQpCvKvpl2lnwABRuYIOcuvsOeQejX5wnZstZ3MXdYzXgzS+yqWhtDxZwRy+ZOLah4Zqc03XEa/zg1wzryxZU1kgGT6tn7dKrFIU0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754619462; c=relaxed/simple;
-	bh=3d66ZkDJtuQ/itOEtEoIsOp8ddwl0fn3Lcmm5D6v0PU=;
+	s=arc-20240116; t=1754619465; c=relaxed/simple;
+	bh=JY/zKVD8uGJXiNupiLPfgzkp9MwsIMkvW6sB6gBQtzE=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=kSkSaIyGf4ECdf+I6f1qbMEkovKAkPA72bWQMH6p4nJ+mLOP6VsuM/alU70HJA1EoxpIYqQHN/q4j14VlaYUlHjd2GWhcqiPCY2K/ZVAwvQQs5wD4JlzdK56MM+j10wXEVlcoIRhlqM+6IukqlF2atF53oPd4ft6DRiSIm3Jg2s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net; spf=pass smtp.mailfrom=themaw.net; dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b=O+yy//CM; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=jMC8N6Re; arc=none smtp.client-ip=202.12.124.157
+	 MIME-Version; b=EA3QAOiM/G7ObyaCCcKPaIwAsPOQZYvvRtMzBjwXOElcLFWvGqZV9Jv3AgSeF+bM9KPDtGsBnvRZOPoL/UYNp8bCF05Sz8pop89dA4ON6faLHXbotm0/wZbpcKjLu0X0MAXuG7H0z0hzZ30J+aiZ7/2Z52uG0UTEqxxRWvyZ96I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net; spf=pass smtp.mailfrom=themaw.net; dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b=M7BAdiNZ; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=SrCnmZ7g; arc=none smtp.client-ip=202.12.124.145
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=themaw.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b="O+yy//CM";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="jMC8N6Re"
+	dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b="M7BAdiNZ";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="SrCnmZ7g"
 Received: from phl-compute-01.internal (phl-compute-01.internal [10.202.2.41])
-	by mailfhigh.stl.internal (Postfix) with ESMTP id 8434E7A00C1;
-	Thu,  7 Aug 2025 22:17:39 -0400 (EDT)
+	by mailfout.stl.internal (Postfix) with ESMTP id 091A71D00136;
+	Thu,  7 Aug 2025 22:17:43 -0400 (EDT)
 Received: from phl-mailfrontend-02 ([10.202.2.163])
-  by phl-compute-01.internal (MEProxy); Thu, 07 Aug 2025 22:17:39 -0400
+  by phl-compute-01.internal (MEProxy); Thu, 07 Aug 2025 22:17:43 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
 	:cc:content-transfer-encoding:content-type:date:date:from:from
 	:in-reply-to:in-reply-to:message-id:mime-version:references
-	:reply-to:subject:subject:to:to; s=fm2; t=1754619459; x=
-	1754705859; bh=0NOT9+SEBCC6gAkma92lg7vKli/0Hp3i+UfKi09EnEM=; b=O
-	+yy//CM28J/DETfM7oZDF+EapJ3B5hFfyqk8E8gQa97GPOmdWagth+gdzV5PUTi2
-	NqjJe9CBGupqgpgGDBu9opvUDXucQSKYux3V3dhlzoVhiRpSTXhgKJzkD0TMymqj
-	jQrg9PlDxoNnhmySwODrUSbWNwhYjWZwEQqSHGmbPlmnI1exkn39FeXZWciulvxy
-	mYFKrddgGK1PtrEFjV+pQO3hrNpkGmk4l+D3xBuTZl9HlMaaGz1SsNDkXK6nDIVm
-	sFpvp/oMF4nKp2SRiP49r+ZpjoglDZB8OqGgqbYr/LXNKd2Bhe90Pu3cMhJt4/ZW
-	kDjHGW5xy9Sg5dR4XTsLw==
+	:reply-to:subject:subject:to:to; s=fm2; t=1754619462; x=
+	1754705862; bh=4eVNC4DsaXBc2GC6InYAM0v9l3cFtFRV96Nt01exS44=; b=M
+	7BAdiNZhciI2u1AXV24avTDe6egvvlNhO0jMlain+z0cn+pvo3RW2ni+97bM5hih
+	UISp1ZaiZZDIuWOodI7dHWn8U3TlHMuyFzDw6WBn/T28ePGdyZiRAkB7IAth8MBA
+	rEuWu/QCmed0Tj6XoxvCc/SeNhd+FtXuotTtxvvhDZK2MEexGuSNHDUYUKA+hTB3
+	J9wzxYFOtZ/LSGGcwg3FiIJlLropuZ5LP0VFtS03KVWTIZDhmPkdJi7eA0XBYjjN
+	VATdv+QKTPqjm61V5i7YZilURbRfuBpTjvLGH16DMas9tEJ0JelB4WaxlIIELs/X
+	u1nsVrtAABqO1ZXTfq9cg==
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
 	messagingengine.com; h=cc:cc:content-transfer-encoding
 	:content-type:date:date:feedback-id:feedback-id:from:from
 	:in-reply-to:in-reply-to:message-id:mime-version:references
 	:reply-to:subject:subject:to:to:x-me-proxy:x-me-sender
-	:x-me-sender:x-sasl-enc; s=fm3; t=1754619459; x=1754705859; bh=0
-	NOT9+SEBCC6gAkma92lg7vKli/0Hp3i+UfKi09EnEM=; b=jMC8N6Regw0Sx38z4
-	wRqeYgC82kJowy7XCtDCqqH4puz1I2AOPk2FsYpqWYDaaIu3KMf+sDxiTnCck+RI
-	hAMS4ZmsMGC4maPRadV2NAfmbTO+J00h1G+TsODOHTwq2hIbYWILXQxad1ivZObx
-	3d1WbQkUvCygwtJBB6QOGT0R5h5gZ8Ae78JZYJUik3tkRC5l3ySGUYNzOuWhtxq/
-	y51imN6PBgezR1AHljylRZMmSQzjda2jGe5Suc+BRr8BPhLRBarmJJqfVzGlmGcT
-	a9fXgiNk/Aqy48K9QqEH2BlGH61srnyEv58A/KJDZgh/lfdpn5pvjhbc//TQVsTl
-	MXivQ==
-X-ME-Sender: <xms:Q16VaNuJ4OjCQHDFTo09GSDd9bzYRzOaO-oJ-CZQUQ_Gudj2GU8IZg>
-    <xme:Q16VaJt81xdwHRB8IvB6fx7-Yre4Y1xLAjPZg4Z0XbfQnFdw5ALcFDdAp0hTUSy2J
-    3RHhKnsZT6j>
-X-ME-Received: <xmr:Q16VaKPTYfKS6zfcaSEW88XUmPC-uQsCaSx85r32fXch-rmJZH0WBE2B_8GQrV_bWWaD1HAL4lunxaxVjj3lqgaWOS9KiWPZ7QWVMQ-WsZpwNUf7maYL-ZP90Q>
+	:x-me-sender:x-sasl-enc; s=fm3; t=1754619462; x=1754705862; bh=4
+	eVNC4DsaXBc2GC6InYAM0v9l3cFtFRV96Nt01exS44=; b=SrCnmZ7grGvpgxmP3
+	sGcw19ZhLeTFn2hxnHmJ2TtA2n20PfHvzJ/4mHxSwjCvq/25VzD4zQ2dra2GeM3F
+	5bnYS4ISOn2tMK1Tf6aE6Ur1Ifrb8vYnyV8J1OF+MJ6P6/T1nMoQC/Bwe1dUK5NH
+	vbb6eVvMItpCEqHKepUrrf/ap7xMYfjGfsPGxio409DCdgTeLGGnW4m2D2O7/MMx
+	vDpL3ar1VPXZRGAcJ0MNzrGQpAtSlBoCV2FmPUlp+WQ57024Eo7jlZBzL2AK+whW
+	sOd+PAVvWoZTvEtNknrE6Ugqo4xp9zGXU4B8lGy4HXHxgG8EdINtPmYe9HPLdmof
+	M4pnw==
+X-ME-Sender: <xms:Rl6VaJt5hfOVNOLS-R_q4XecNtPyHJAbqdvdXHAJdPdQNlFB7Z9KHg>
+    <xme:Rl6VaFsReFSkxIkS5WkULNyQU62EEUZ96KfNPkvVx4PIoNqiL7sX71LvPj_L5lpbg
+    R-1bGn-WPT7>
+X-ME-Received: <xmr:Rl6VaGOpZammmH7xdff6jr9FJRtvCgm1gb0Av-2XFHS0CHZymFss_TVRShnDWDCAp4up-JMdw9KnZyQAvYkyg9UCxXn_JFLSL0LcPh268RuzJMbSdDKSK6abyw>
 X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeffedrtdefgdduvddvheelucetufdoteggodetrf
     dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
     rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujf
     gurhephffvvefufffkofgjfhgggfestdekredtredttdenucfhrhhomhepkfgrnhcumfgv
     nhhtuceorhgrvhgvnhesthhhvghmrgifrdhnvghtqeenucggtffrrghtthgvrhhnpedule
     egueffgfehudeufedtffeiudfghfejgeehvdffgefgjeetvdfffeeihfdvveenucevlhhu
-    shhtvghrufhiiigvpedunecurfgrrhgrmhepmhgrihhlfhhrohhmpehrrghvvghnsehthh
+    shhtvghrufhiiigvpedvnecurfgrrhgrmhepmhgrihhlfhhrohhmpehrrghvvghnsehthh
     gvmhgrfidrnhgvthdpnhgspghrtghpthhtohepfedpmhhouggvpehsmhhtphhouhhtpdhr
     tghpthhtoheprhgrvhgvnhesthhhvghmrgifrdhnvghtpdhrtghpthhtohepugguihhssh
     esshhushgvrdguvgdprhgtphhtthhopegruhhtohhfshesvhhgvghrrdhkvghrnhgvlhdr
     ohhrgh
-X-ME-Proxy: <xmx:Q16VaP0JcfbOw6VavAZXxCE5iibDyWlF2dJhf-8PdLyKLl_Wi-Cyew>
-    <xmx:Q16VaOMP6CJq4UJ37H2EWmkEFJtv02U6q6UCI7RfpyfhomSivFz6zQ>
-    <xmx:Q16VaH2_K0jejNb998ASQEvgFeEGPGZAjemEfVRACyPFd8KP2-aCzA>
-    <xmx:Q16VaNGWFVl8FbywV3saPIq5bv0vYhlhm5zBMICUwU9uvFhu2oTGwA>
-    <xmx:Q16VaF-1gq97y3-ymTRZb9VmEtdPYyx7sj85iYPduOqSoE5nde6pYnRi>
+X-ME-Proxy: <xmx:Rl6VaL2MHeJHwKpQLHd4kELo1i4UTvu-jiDvN-PI2PBC6oZcO8Hzmw>
+    <xmx:Rl6VaKM71IGgO4JvLZJTDJiXb-7b47eGb0jJAl5yPaOTreir2m5bTg>
+    <xmx:Rl6VaD3gCLcW-5poRDjJafm7KGVubJ5mPPOCwrRCk0fSTMvJJR5UEg>
+    <xmx:Rl6VaJEIqekRl2WClSq7lyKOJUGcca_VVpUwl4hh-xZulDRLnnk6AA>
+    <xmx:Rl6VaB-OhkzZCcrTzDJWnA07WtBl4vkAMjSUdJtGE_WlPydwuVPwWEyr>
 Feedback-ID: i31e841b0:Fastmail
 Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
- 7 Aug 2025 22:17:37 -0400 (EDT)
+ 7 Aug 2025 22:17:41 -0400 (EDT)
 From: Ian Kent <raven@themaw.net>
 To: Ian Kent <raven@themaw.net>,
 	David Disseldorp <ddiss@suse.de>
 Cc: autofs mailing list <autofs@vger.kernel.org>
-Subject: [PATCH 8/9] autofs-5.1.9 - refactor do_umount_autofs_direct()
-Date: Fri,  8 Aug 2025 10:16:54 +0800
-Message-ID: <20250808021655.12774-9-raven@themaw.net>
+Subject: [PATCH 9/9] autofs-5.1.9 - fix stale direct mount trigger not umounted on expire
+Date: Fri,  8 Aug 2025 10:16:55 +0800
+Message-ID: <20250808021655.12774-10-raven@themaw.net>
 X-Mailer: git-send-email 2.50.1
 In-Reply-To: <20250808021655.12774-1-raven@themaw.net>
 References: <20250808021655.12774-1-raven@themaw.net>
@@ -87,164 +87,98 @@ List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Refactor functon do_umount_autofs_direct() so that it can be called from
-do_expire_direct() to clean up stale direct mounts that couldn't be
-cleaned up at map re-load.
+If a direct mount map entry is removed but has an active real mount the
+mount trigger needs to be unmounted during the expire cleanup.
+
+If the direct mount map entry has been re-added the map entry age will
+have been updated so the entry won't be seen as stale so the umount
+won't be done.
+
+Also in function umount_multi() update_map_cache() and check_rm_dirs()
+are not called for direct mounts because count_mounts() always returns
+1 or more for top level direct mounts. Make this clear by using ap->type
+in the logical check and rely on the left == 0 check to verify there are
+no remaining mounts for indirect mounts since count_mounts() will be
+more expensive.
 
 Signed-off-by: Ian Kent <raven@themaw.net>
 ---
- CHANGELOG       |   1 +
- daemon/direct.c | 106 ++++++++++++++++++++++++++----------------------
- 2 files changed, 58 insertions(+), 49 deletions(-)
+ CHANGELOG          |  1 +
+ daemon/automount.c | 12 ++++++++----
+ daemon/direct.c    | 22 +++++++++++++++++++++-
+ 3 files changed, 30 insertions(+), 5 deletions(-)
 
 diff --git a/CHANGELOG b/CHANGELOG
-index ee1d46987..d41527cc1 100644
+index d41527cc1..663ceee8f 100644
 --- a/CHANGELOG
 +++ b/CHANGELOG
-@@ -39,6 +39,7 @@
- - remove unnecessary call to set_direct_mount_tree_catatonic().
+@@ -40,6 +40,7 @@
  - remove unnecessary assignment in umount_multi().
  - fix direct mount trigger umount failure case.
-+- refactor do_umount_autofs_direct().
+ - refactor do_umount_autofs_direct().
++- fix stale direct mount trigger not umounted on expire.
  
  02/11/2023 autofs-5.1.9
  - fix kernel mount status notification.
+diff --git a/daemon/automount.c b/daemon/automount.c
+index c2c8d8f00..f523a3df9 100644
+--- a/daemon/automount.c
++++ b/daemon/automount.c
+@@ -712,10 +712,14 @@ int umount_multi(struct autofs_point *ap, const char *path, int incl)
+ 
+ 	left = umount_subtree_mounts(ap, path, is_autofs_fs);
+ 
+-	/* Delete detritus like unwanted mountpoints and symlinks */
+-	if (left == 0 &&
+-	    ap->state != ST_READMAP &&
+-	    !count_mounts(ap, path, ap->dev)) {
++	/* Delete detritus like unwanted mountpoints and symlinks
++	 * for indirect mounts. This can't be done for direct mounts
++	 * here because there's an ioctl file handle open on the
++	 * autofs trigger mount for them so it must be done after
++	 * the expire.
++	 */
++	if (ap->type == LKP_INDIRECT &&
++	    ap->state != ST_READMAP && left == 0) {
+ 		update_map_cache(ap, path);
+ 		check_rm_dirs(ap, path, incl);
+ 	}
 diff --git a/daemon/direct.c b/daemon/direct.c
-index 7648b301c..6562b183a 100644
+index 6562b183a..90e1a8092 100644
 --- a/daemon/direct.c
 +++ b/daemon/direct.c
-@@ -81,12 +81,66 @@ static void mnts_cleanup(void *arg)
- 	mnts_put_expire_list(mnts);
- }
- 
-+static int finish_umount(struct autofs_point *ap, struct mapent *me, int rv)
-+{
-+	char buf[MAX_ERR_BUF];
+@@ -1005,10 +1005,30 @@ static void *do_expire_direct(void *arg)
+ 			       mt.ioctlfd, mt.wait_queue_token, -ENOENT);
+ 	else {
+ 		struct mapent *me;
 +
-+	if (rv != 0) {
-+		info(ap->logopt, "forcing umount of direct mount %s", me->key);
-+		rv = umount2(me->key, MNT_DETACH);
-+	} else
-+		info(ap->logopt, "umounted direct mount %s", me->key);
-+
-+	if (!rv && me->flags & MOUNT_FLAG_DIR_CREATED) {
-+		if  (rmdir(me->key) == -1) {
-+			char *estr = strerror_r(errno, buf, MAX_ERR_BUF);
-+			warn(ap->logopt, "failed to remove dir %s: %s",
-+			     me->key, estr);
+ 		cache_writelock(mt.mc);
+ 		me = cache_lookup_distinct(mt.mc, mt.name);
+-		if (me)
++		if (me) {
++			/* If the direct mount map entry is no longer
++			 * valid but there is an autofs mount trigger
++			 * for the mount the mount trigger needs to be
++			 * umounted, the map entry deleted and the mount
++			 * point directory removed (if it was created by
++			 * us).
++			 */
+ 			me->ioctlfd = -1;
++			if (me->mc->map->age > me->age &&
++			    is_mounted(mt.name, MNTS_AUTOFS)) {
++				/* We must detach the mount becuase the
++				 * umount must be completed before
++				 * notifying status to the kernel but
++				 * there's an ioctlfd open on the
++				 * trigger.
++				 */
++				if (!finish_umount(ap, me, -1))
++					cache_delete(me->mc, me->key);
++			}
 +		}
-+	}
-+	return rv;
-+}
-+
-+static int do_umount_direct(struct autofs_point *ap, struct mapent *me)
-+{
-+	int rv, retries = UMOUNT_RETRIES;
-+
-+	while ((rv = umount(me->key)) == -1 && retries--) {
-+		struct timespec tm = {0, 50000000};
-+		if (errno != EBUSY)
-+			break;
-+		nanosleep(&tm, NULL);
-+	}
-+
-+	if (rv == -1) {
-+		switch (errno) {
-+		case ENOENT:
-+		case EINVAL:
-+			warn(ap->logopt, "mount point %s does not exist",
-+			      me->key);
-+			return 0;
-+		case EBUSY:
-+			warn(ap->logopt, "mount point %s is in use", me->key);
-+			if (ap->state == ST_SHUTDOWN_FORCE)
-+				goto out;
-+			else
-+				return 0;
-+		case ENOTDIR:
-+			error(ap->logopt, "mount point is not a directory");
-+			return 0;
-+		}
-+		return 1;
-+	}
-+out:
-+	return finish_umount(ap, me, rv);
-+}
-+
- int do_umount_autofs_direct(struct autofs_point *ap, struct mapent *me)
- {
- 	struct ioctl_ops *ops = get_ioctl_ops();
- 	struct mapent_cache *mc = me->mc;
- 	char buf[MAX_ERR_BUF];
--	int ioctlfd = -1, rv, left, retries;
-+	int ioctlfd = -1, rv, left;
- 	char key[PATH_MAX + 1];
- 	struct mapent *tmp;
- 	int opened = 0;
-@@ -153,8 +207,7 @@ int do_umount_autofs_direct(struct autofs_point *ap, struct mapent *me)
- 			} else {
- 				me->ioctlfd = -1;
- 				ops->close(ap->logopt, ioctlfd);
--				rv = -1;
--				goto force_umount;
-+				return finish_umount(ap, me, -1);
- 			}
- 		}
- 		me->ioctlfd = -1;
-@@ -167,52 +220,7 @@ int do_umount_autofs_direct(struct autofs_point *ap, struct mapent *me)
- 
- 	sched_yield();
- 
--	retries = UMOUNT_RETRIES;
--	while ((rv = umount(me->key)) == -1 && retries--) {
--		struct timespec tm = {0, 50000000};
--		if (errno != EBUSY)
--			break;
--		nanosleep(&tm, NULL);
--	}
--
--	if (rv == -1) {
--		switch (errno) {
--		case ENOENT:
--		case EINVAL:
--			warn(ap->logopt, "mount point %s does not exist",
--			      me->key);
--			return 0;
--			break;
--		case EBUSY:
--			warn(ap->logopt, "mount point %s is in use", me->key);
--			if (ap->state == ST_SHUTDOWN_FORCE)
--				goto force_umount;
--			else
--				return 0;
--			break;
--		case ENOTDIR:
--			error(ap->logopt, "mount point is not a directory");
--			return 0;
--			break;
--		}
--		return 1;
--	}
--
--force_umount:
--	if (rv != 0) {
--		info(ap->logopt, "forcing umount of direct mount %s", me->key);
--		rv = umount2(me->key, MNT_DETACH);
--	} else
--		info(ap->logopt, "umounted direct mount %s", me->key);
--
--	if (!rv && me->flags & MOUNT_FLAG_DIR_CREATED) {
--		if  (rmdir(me->key) == -1) {
--			char *estr = strerror_r(errno, buf, MAX_ERR_BUF);
--			warn(ap->logopt, "failed to remove dir %s: %s",
--			     me->key, estr);
--		}
--	}
--	return rv;
-+	return do_umount_direct(ap, me);
- }
- 
- int umount_autofs_direct(struct autofs_point *ap)
+ 		cache_unlock(mt.mc);
+ 		ops->send_ready(ap->logopt, mt.ioctlfd, mt.wait_queue_token);
+ 		ops->close(ap->logopt, mt.ioctlfd);
 -- 
 2.50.1
 
