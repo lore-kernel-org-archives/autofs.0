@@ -1,84 +1,63 @@
-Received: from fout-b2-smtp.messagingengine.com (fout-b2-smtp.messagingengine.com [202.12.124.145])
+Received: from sender4-pp-o95.zoho.com (sender4-pp-o95.zoho.com [136.143.188.95])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0310E7FD
-	for <autofs@vger.kernel.org>; Fri,  8 Aug 2025 02:17:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.145
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1754619465; cv=none; b=deRztV4uNO5G5WAj9sb/40UfeV4IWZWcOSbUwAIzA6zAUy5er7p/2bqp7+F3yU/7eT+EYRMQpCvKvpl2lnwABRuYIOcuvsOeQejX5wnZstZ3MXdYzXgzS+yqWhtDxZwRy+ZOLah4Zqc03XEa/zg1wzryxZU1kgGT6tn7dKrFIU0=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1754619465; c=relaxed/simple;
-	bh=JY/zKVD8uGJXiNupiLPfgzkp9MwsIMkvW6sB6gBQtzE=;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3B7147F4A;
+	Sun, 17 Aug 2025 07:53:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=136.143.188.95
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1755417221; cv=pass; b=YZCHfnaLAE/3/xWhi8NI+3Baq6b0nRvGqLBwu4kl1q+ImpjJHi3JJJDhFSO1LwnC/IbdmO+D8uoA1/DAXTaYfs/zKK9PBi/Yx2APqq5r30Oba6l4De/wHLX2v+hqCqcSFuSU4qb9vnah8gLW3/xDiXONI4Z5OLTrp8DVtegsqfo=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1755417221; c=relaxed/simple;
+	bh=+A/lL2Vivktg9Fcjb1RlmK8N9LuyWC8xYg1ZWXsLqfs=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=EA3QAOiM/G7ObyaCCcKPaIwAsPOQZYvvRtMzBjwXOElcLFWvGqZV9Jv3AgSeF+bM9KPDtGsBnvRZOPoL/UYNp8bCF05Sz8pop89dA4ON6faLHXbotm0/wZbpcKjLu0X0MAXuG7H0z0hzZ30J+aiZ7/2Z52uG0UTEqxxRWvyZ96I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net; spf=pass smtp.mailfrom=themaw.net; dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b=M7BAdiNZ; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=SrCnmZ7g; arc=none smtp.client-ip=202.12.124.145
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=themaw.net
+	 MIME-Version; b=VXIByBQcIWAzUZRWDCwEtZx9eRaNlU7p28NT6ZKX3CW6n8YBvGqiebEsBF6vlq5xaCSgAFotJ61Yz9Mae78IFn/TZKIu8cYErCKjJnzSVcHPjfWW7sDxqNyqwJKU5txythi5rXlTjx0imflzQQP3KLYiUhHVjCcvm7AUCuCfWjA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=zohomail.com; spf=pass smtp.mailfrom=zohomail.com; dkim=pass (1024-bit key) header.d=zohomail.com header.i=safinaskar@zohomail.com header.b=GloQMCCj; arc=pass smtp.client-ip=136.143.188.95
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=zohomail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zohomail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b="M7BAdiNZ";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="SrCnmZ7g"
-Received: from phl-compute-01.internal (phl-compute-01.internal [10.202.2.41])
-	by mailfout.stl.internal (Postfix) with ESMTP id 091A71D00136;
-	Thu,  7 Aug 2025 22:17:43 -0400 (EDT)
-Received: from phl-mailfrontend-02 ([10.202.2.163])
-  by phl-compute-01.internal (MEProxy); Thu, 07 Aug 2025 22:17:43 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
-	:cc:content-transfer-encoding:content-type:date:date:from:from
-	:in-reply-to:in-reply-to:message-id:mime-version:references
-	:reply-to:subject:subject:to:to; s=fm2; t=1754619462; x=
-	1754705862; bh=4eVNC4DsaXBc2GC6InYAM0v9l3cFtFRV96Nt01exS44=; b=M
-	7BAdiNZhciI2u1AXV24avTDe6egvvlNhO0jMlain+z0cn+pvo3RW2ni+97bM5hih
-	UISp1ZaiZZDIuWOodI7dHWn8U3TlHMuyFzDw6WBn/T28ePGdyZiRAkB7IAth8MBA
-	rEuWu/QCmed0Tj6XoxvCc/SeNhd+FtXuotTtxvvhDZK2MEexGuSNHDUYUKA+hTB3
-	J9wzxYFOtZ/LSGGcwg3FiIJlLropuZ5LP0VFtS03KVWTIZDhmPkdJi7eA0XBYjjN
-	VATdv+QKTPqjm61V5i7YZilURbRfuBpTjvLGH16DMas9tEJ0JelB4WaxlIIELs/X
-	u1nsVrtAABqO1ZXTfq9cg==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:date:date:feedback-id:feedback-id:from:from
-	:in-reply-to:in-reply-to:message-id:mime-version:references
-	:reply-to:subject:subject:to:to:x-me-proxy:x-me-sender
-	:x-me-sender:x-sasl-enc; s=fm3; t=1754619462; x=1754705862; bh=4
-	eVNC4DsaXBc2GC6InYAM0v9l3cFtFRV96Nt01exS44=; b=SrCnmZ7grGvpgxmP3
-	sGcw19ZhLeTFn2hxnHmJ2TtA2n20PfHvzJ/4mHxSwjCvq/25VzD4zQ2dra2GeM3F
-	5bnYS4ISOn2tMK1Tf6aE6Ur1Ifrb8vYnyV8J1OF+MJ6P6/T1nMoQC/Bwe1dUK5NH
-	vbb6eVvMItpCEqHKepUrrf/ap7xMYfjGfsPGxio409DCdgTeLGGnW4m2D2O7/MMx
-	vDpL3ar1VPXZRGAcJ0MNzrGQpAtSlBoCV2FmPUlp+WQ57024Eo7jlZBzL2AK+whW
-	sOd+PAVvWoZTvEtNknrE6Ugqo4xp9zGXU4B8lGy4HXHxgG8EdINtPmYe9HPLdmof
-	M4pnw==
-X-ME-Sender: <xms:Rl6VaJt5hfOVNOLS-R_q4XecNtPyHJAbqdvdXHAJdPdQNlFB7Z9KHg>
-    <xme:Rl6VaFsReFSkxIkS5WkULNyQU62EEUZ96KfNPkvVx4PIoNqiL7sX71LvPj_L5lpbg
-    R-1bGn-WPT7>
-X-ME-Received: <xmr:Rl6VaGOpZammmH7xdff6jr9FJRtvCgm1gb0Av-2XFHS0CHZymFss_TVRShnDWDCAp4up-JMdw9KnZyQAvYkyg9UCxXn_JFLSL0LcPh268RuzJMbSdDKSK6abyw>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeffedrtdefgdduvddvheelucetufdoteggodetrf
-    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
-    rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujf
-    gurhephffvvefufffkofgjfhgggfestdekredtredttdenucfhrhhomhepkfgrnhcumfgv
-    nhhtuceorhgrvhgvnhesthhhvghmrgifrdhnvghtqeenucggtffrrghtthgvrhhnpedule
-    egueffgfehudeufedtffeiudfghfejgeehvdffgefgjeetvdfffeeihfdvveenucevlhhu
-    shhtvghrufhiiigvpedvnecurfgrrhgrmhepmhgrihhlfhhrohhmpehrrghvvghnsehthh
-    gvmhgrfidrnhgvthdpnhgspghrtghpthhtohepfedpmhhouggvpehsmhhtphhouhhtpdhr
-    tghpthhtoheprhgrvhgvnhesthhhvghmrgifrdhnvghtpdhrtghpthhtohepugguihhssh
-    esshhushgvrdguvgdprhgtphhtthhopegruhhtohhfshesvhhgvghrrdhkvghrnhgvlhdr
-    ohhrgh
-X-ME-Proxy: <xmx:Rl6VaL2MHeJHwKpQLHd4kELo1i4UTvu-jiDvN-PI2PBC6oZcO8Hzmw>
-    <xmx:Rl6VaKM71IGgO4JvLZJTDJiXb-7b47eGb0jJAl5yPaOTreir2m5bTg>
-    <xmx:Rl6VaD3gCLcW-5poRDjJafm7KGVubJ5mPPOCwrRCk0fSTMvJJR5UEg>
-    <xmx:Rl6VaJEIqekRl2WClSq7lyKOJUGcca_VVpUwl4hh-xZulDRLnnk6AA>
-    <xmx:Rl6VaB-OhkzZCcrTzDJWnA07WtBl4vkAMjSUdJtGE_WlPydwuVPwWEyr>
-Feedback-ID: i31e841b0:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
- 7 Aug 2025 22:17:41 -0400 (EDT)
-From: Ian Kent <raven@themaw.net>
-To: Ian Kent <raven@themaw.net>,
-	David Disseldorp <ddiss@suse.de>
-Cc: autofs mailing list <autofs@vger.kernel.org>
-Subject: [PATCH 9/9] autofs-5.1.9 - fix stale direct mount trigger not umounted on expire
-Date: Fri,  8 Aug 2025 10:16:55 +0800
-Message-ID: <20250808021655.12774-10-raven@themaw.net>
-X-Mailer: git-send-email 2.50.1
-In-Reply-To: <20250808021655.12774-1-raven@themaw.net>
-References: <20250808021655.12774-1-raven@themaw.net>
+	dkim=pass (1024-bit key) header.d=zohomail.com header.i=safinaskar@zohomail.com header.b="GloQMCCj"
+ARC-Seal: i=1; a=rsa-sha256; t=1755417184; cv=none; 
+	d=zohomail.com; s=zohoarc; 
+	b=XK9TUXUIImJ+S6YxKYji5AxuTW5lGuY8dd+ySQD4ic6g5ZDtTft9jYBjdCI+5FyosXuofqwB+nCkpkEFM7W0VGmSf64na/FokUFLwYLOw5pTk6sGkTREJJjB/90VsWUZY8fPbZpHUGm8gM9nJzXErl01GzxCs1romYVAWmn77p8=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
+	t=1755417184; h=Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:Subject:To:To:Message-Id:Reply-To; 
+	bh=FxEUlubSzS/ImSmy9LZfYIWs7jCDlWOHoKLlk40PBY4=; 
+	b=E3FC664HU6sv2FfICrC6I2ocZIAHg3Wu62IZIDTidy3mS2+MG1I3wEDbngmIia/DSK2HopvDaZ9jY3obHlBApOMooPia9WscG77uG5ocWMZA8nem5XD5Us05VqOe3NYJiDapox1BupcV2oO9IG3dVufo5gOJYs9VwxVdPpJSWiY=
+ARC-Authentication-Results: i=1; mx.zohomail.com;
+	dkim=pass  header.i=zohomail.com;
+	spf=pass  smtp.mailfrom=safinaskar@zohomail.com;
+	dmarc=pass header.from=<safinaskar@zohomail.com>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1755417183;
+	s=zm2022; d=zohomail.com; i=safinaskar@zohomail.com;
+	h=From:From:To:To:Cc:Cc:Subject:Subject:Date:Date:Message-ID:In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:Feedback-ID:Message-Id:Reply-To;
+	bh=FxEUlubSzS/ImSmy9LZfYIWs7jCDlWOHoKLlk40PBY4=;
+	b=GloQMCCjcT4dXCZ2G2ZJdEWJgRqPoJbiEklJhtk+J8XF2yYPEtvD98cparmnXsgN
+	GmDKDhQAdViSTL2lCQvyUXpHTq5nS2FyQ0+J+mIVX6Ic8VAZDDHBjG3CHfUszRZ6nhv
+	WTsEmeuP54CPO+LOSkL33GMaBolI2yELwHnt6t0U=
+Received: by mx.zohomail.com with SMTPS id 1755417180137848.3990767083374;
+	Sun, 17 Aug 2025 00:53:00 -0700 (PDT)
+From: Askar Safin <safinaskar@zohomail.com>
+To: cyphar@cyphar.com
+Cc: alx@kernel.org,
+	brauner@kernel.org,
+	dhowells@redhat.com,
+	g.branden.robinson@gmail.com,
+	jack@suse.cz,
+	linux-api@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-man@vger.kernel.org,
+	mtk.manpages@gmail.com,
+	safinaskar@zohomail.com,
+	viro@zeniv.linux.org.uk,
+	Ian Kent <raven@themaw.net>,
+	autofs mailing list <autofs@vger.kernel.org>
+Subject: Re: [PATCH v3 00/12] man2: document "new" mount API
+Date: Sun, 17 Aug 2025 10:52:52 +0300
+Message-ID: <20250817075252.4137628-1-safinaskar@zohomail.com>
+X-Mailer: git-send-email 2.47.2
+In-Reply-To: <20250809-new-mount-api-v3-0-f61405c80f34@cyphar.com>
+References: <20250809-new-mount-api-v3-0-f61405c80f34@cyphar.com>
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
@@ -86,99 +65,201 @@ List-Subscribe: <mailto:autofs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Feedback-ID: rr0801122748e966da49482809fcfa4ba9000041892980e08522db2c57f7da5fd32461398966667a65ec4920:zu0801122761e17a577db9357d25cc90f1000019da1d41d054edff11faa48fb5cc9ad3192d1c4f5edfc9c349:rf0801122b16bfbc0e5b8ba3441d3450190000fa2c120cde899195b935c940a75f78d1882c67a53c1470cea4170e57be:ZohoMail
+X-ZohoMailClient: External
 
-If a direct mount map entry is removed but has an active real mount the
-mount trigger needs to be unmounted during the expire cleanup.
+I noticed that you changed docs for automounts.
+So I dig into automounts implementation.
+And I found a bug in openat2.
+If RESOLVE_NO_XDEV is specified, then name resolution
+doesn't cross automount points (i. e. we get EXDEV),
+but automounts still happen!
+I think this is a bug.
+Bug is reproduced in 6.17-rc1.
+In the end of this mail you will find reproducer.
+And miniconfig.
 
-If the direct mount map entry has been re-added the map entry age will
-have been updated so the entry won't be seen as stale so the umount
-won't be done.
+If you send patches for this bug, please, CC me.
 
-Also in function umount_multi() update_map_cache() and check_rm_dirs()
-are not called for direct mounts because count_mounts() always returns
-1 or more for top level direct mounts. Make this clear by using ap->type
-in the logical check and rely on the left == 0 check to verify there are
-no remaining mounts for indirect mounts since count_mounts() will be
-more expensive.
+Are automounts actually used? Is it possible to deprecate or
+remove them? It seems for me automounts are rarely tested obscure
+feature, which affects core namei code.
 
-Signed-off-by: Ian Kent <raven@themaw.net>
----
- CHANGELOG          |  1 +
- daemon/automount.c | 12 ++++++++----
- daemon/direct.c    | 22 +++++++++++++++++++++-
- 3 files changed, 30 insertions(+), 5 deletions(-)
+This reproducer is based on "tracing" automount, which
+actually *IS* already deprecated. But automount mechanism
+itself is not deprecated, as well as I know.
 
-diff --git a/CHANGELOG b/CHANGELOG
-index d41527cc1..663ceee8f 100644
---- a/CHANGELOG
-+++ b/CHANGELOG
-@@ -40,6 +40,7 @@
- - remove unnecessary assignment in umount_multi().
- - fix direct mount trigger umount failure case.
- - refactor do_umount_autofs_direct().
-+- fix stale direct mount trigger not umounted on expire.
- 
- 02/11/2023 autofs-5.1.9
- - fix kernel mount status notification.
-diff --git a/daemon/automount.c b/daemon/automount.c
-index c2c8d8f00..f523a3df9 100644
---- a/daemon/automount.c
-+++ b/daemon/automount.c
-@@ -712,10 +712,14 @@ int umount_multi(struct autofs_point *ap, const char *path, int incl)
- 
- 	left = umount_subtree_mounts(ap, path, is_autofs_fs);
- 
--	/* Delete detritus like unwanted mountpoints and symlinks */
--	if (left == 0 &&
--	    ap->state != ST_READMAP &&
--	    !count_mounts(ap, path, ap->dev)) {
-+	/* Delete detritus like unwanted mountpoints and symlinks
-+	 * for indirect mounts. This can't be done for direct mounts
-+	 * here because there's an ioctl file handle open on the
-+	 * autofs trigger mount for them so it must be done after
-+	 * the expire.
-+	 */
-+	if (ap->type == LKP_INDIRECT &&
-+	    ap->state != ST_READMAP && left == 0) {
- 		update_map_cache(ap, path);
- 		check_rm_dirs(ap, path, incl);
- 	}
-diff --git a/daemon/direct.c b/daemon/direct.c
-index 6562b183a..90e1a8092 100644
---- a/daemon/direct.c
-+++ b/daemon/direct.c
-@@ -1005,10 +1005,30 @@ static void *do_expire_direct(void *arg)
- 			       mt.ioctlfd, mt.wait_queue_token, -ENOENT);
- 	else {
- 		struct mapent *me;
-+
- 		cache_writelock(mt.mc);
- 		me = cache_lookup_distinct(mt.mc, mt.name);
--		if (me)
-+		if (me) {
-+			/* If the direct mount map entry is no longer
-+			 * valid but there is an autofs mount trigger
-+			 * for the mount the mount trigger needs to be
-+			 * umounted, the map entry deleted and the mount
-+			 * point directory removed (if it was created by
-+			 * us).
-+			 */
- 			me->ioctlfd = -1;
-+			if (me->mc->map->age > me->age &&
-+			    is_mounted(mt.name, MNTS_AUTOFS)) {
-+				/* We must detach the mount becuase the
-+				 * umount must be completed before
-+				 * notifying status to the kernel but
-+				 * there's an ioctlfd open on the
-+				 * trigger.
-+				 */
-+				if (!finish_umount(ap, me, -1))
-+					cache_delete(me->mc, me->key);
-+			}
-+		}
- 		cache_unlock(mt.mc);
- 		ops->send_ready(ap->logopt, mt.ioctlfd, mt.wait_queue_token);
- 		ops->close(ap->logopt, mt.ioctlfd);
--- 
-2.50.1
+Also, I did read namei code, and I think that
+options AT_NO_AUTOMOUNT, FSPICK_NO_AUTOMOUNT, etc affect
+last component only, not all of them. I didn't test this yet.
+I plan to test this within next days.
 
+Also, I still didn't finish my experiments. Hopefully I will
+finish them in 7 days. :)
+
+Askar Safin
+
+====
+
+miniconfig:
+
+CONFIG_64BIT=y
+
+CONFIG_EXPERT=y
+
+CONFIG_PRINTK=y
+CONFIG_PRINTK_TIME=y
+
+CONFIG_TTY=y
+CONFIG_VT=y
+CONFIG_VT_CONSOLE=y
+CONFIG_FRAMEBUFFER_CONSOLE=y
+
+CONFIG_PROC_FS=y
+CONFIG_DEVTMPFS=y
+CONFIG_SYSFS=y
+CONFIG_TMPFS=y
+CONFIG_DEBUG_FS=y
+CONFIG_USER_EVENTS=y
+CONFIG_FTRACE=y
+CONFIG_MULTIUSER=y
+CONFIG_NAMESPACES=y
+CONFIG_USER_NS=y
+CONFIG_PID_NS=y
+
+
+CONFIG_SERIAL_8250=y
+CONFIG_SERIAL_8250_CONSOLE=y
+
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_RD_GZIP=y
+
+CONFIG_BINFMT_ELF=y
+CONFIG_BINFMT_SCRIPT=y
+
+CONFIG_TRACEFS_AUTOMOUNT_DEPRECATED=y
+
+CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT=y
+
+====
+
+/*
+Author: Askar Safin
+Public domain
+
+Make sure your kernel is compiled with CONFIG_TRACEFS_AUTOMOUNT_DEPRECATED=y
+
+If that openat2 bug reproduces, then this program will
+print "BUG REPRODUCED". If openat2 is fixed, then
+the program will print "BUG NOT REPRODUCED".
+Any other output means that something gone wrong,
+i. e. results are indeterminate.
+
+This program requires root in initial user namespace
+*/
+
+#define _GNU_SOURCE
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sched.h>
+#include <errno.h>
+#include <sys/stat.h>
+#include <sys/mount.h>
+#include <sys/syscall.h>
+#include <linux/openat2.h>
+
+int
+main (void)
+{
+    if (unshare (CLONE_NEWNS) != 0)
+        {
+            perror ("unshare");
+            return 1;
+        }
+    if (mount (NULL, "/", NULL, MS_REC | MS_PRIVATE, NULL) != 0)
+        {
+            perror ("mount(NULL, /, NULL, MS_REC | MS_PRIVATE, NULL)");
+            return 1;
+        }
+    if (mount (NULL, "/tmp", "tmpfs", 0, NULL) != 0)
+        {
+            perror ("mount tmpfs");
+            return 1;
+        }
+    if (mkdir ("/tmp/debugfs", 0777) != 0)
+        {
+            perror ("mkdir(/tmp/debugfs)");
+            return 1;
+        }
+    if (mount (NULL, "/tmp/debugfs", "debugfs", 0, NULL) != 0)
+        {
+            perror ("mount debugfs");
+            return 1;
+        }
+    {
+        struct statx tracing;
+        if (statx (AT_FDCWD, "/tmp/debugfs/tracing", AT_NO_AUTOMOUNT, 0, &tracing) != 0)
+            {
+                perror ("statx tracing");
+                return 1;
+            }
+        if (!(tracing.stx_attributes_mask & STATX_ATTR_MOUNT_ROOT))
+            {
+                fprintf (stderr, "???\n");
+                return 1;
+            }
+        // Let's check that nothing is mounted at /tmp/debugfs/tracing yet
+        if (tracing.stx_attributes & STATX_ATTR_MOUNT_ROOT)
+            {
+                fprintf (stderr, "Something already mounted at /tmp/debugfs/tracing\n");
+                return 1;
+            }
+    }
+    if (chdir ("/tmp/debugfs") != 0)
+        {
+            perror ("chdir");
+            return 1;
+        }
+    {
+        struct open_how how;
+        memset (&how, 0, sizeof how);
+        how.flags = O_DIRECTORY;
+        how.mode = 0;
+        how.resolve = RESOLVE_NO_XDEV | RESOLVE_NO_MAGICLINKS | RESOLVE_NO_SYMLINKS;
+        if (syscall (SYS_openat2, AT_FDCWD, "tracing", &how, sizeof how) != -1)
+            {
+                fprintf (stderr, "openat2 crossed automount point");
+                return 1;
+            }
+        if (errno != EXDEV)
+            {
+                fprintf (stderr, "wrong errno");
+                return 1;
+            }
+    }
+    {
+        struct statx tracing;
+        if (statx (AT_FDCWD, "/tmp/debugfs/tracing", AT_NO_AUTOMOUNT, 0, &tracing) != 0)
+            {
+                perror ("statx tracing (2)");
+                return 1;
+            }
+        if (!(tracing.stx_attributes_mask & STATX_ATTR_MOUNT_ROOT))
+            {
+                fprintf (stderr, "???\n");
+                return 1;
+            }
+        if (tracing.stx_attributes & STATX_ATTR_MOUNT_ROOT)
+            {
+                fprintf (stderr, "BUG REPRODUCED. Something mounted at /tmp/debugfs/tracing\n");
+                return 0;
+            }
+        else
+            {
+                fprintf (stderr, "BUG NOT REPRODUCED\n");
+                return 0;
+            }
+    }
+}
