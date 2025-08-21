@@ -1,91 +1,119 @@
-Received: from sender4-pp-o94.zoho.com (sender4-pp-o94.zoho.com [136.143.188.94])
+Received: from mout-p-101.mailbox.org (mout-p-101.mailbox.org [80.241.56.151])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E2A32E9ED7
-	for <autofs@vger.kernel.org>; Thu, 21 Aug 2025 08:09:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=136.143.188.94
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1755763786; cv=pass; b=B3Fw133caPTJ6geq+nUSABAwfWXC4pnO5HPTdlUOYzcIYGuDk4fENIHdEHuIcTDQEDoHFap20EDJeOB/2fH+umm8QkHorU5uwTbfj/dMTYcDpRgWXtIAsxQhuN1KEVjq4kROoARi74GLV8/OeKMsebXP9+AyP8hcoL+sSAdVgkU=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1755763786; c=relaxed/simple;
-	bh=ByIlTuut10mitMJ5VgXN30BouWWoxM56LFqXsOv6Oco=;
-	h=Date:From:To:Cc:Message-ID:In-Reply-To:Subject:MIME-Version:
-	 Content-Type; b=miXtn2ovC6rvOYw+I0Vtlx1APyJ0sIglTwWU5PIo3yfiSUdJ918EEv2+V5yUwXw9/5sgvgxQ1XW9YXIl/jBN+r6pmT9BRZlU30tANl+vf5G2pQIfXoMA+tPFBFud0ob2uQA8JbXi2+tOyTmwwAnXZLNWnFBpddd+FLKZNo4Mqac=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=zohomail.com; spf=pass smtp.mailfrom=zohomail.com; dkim=pass (1024-bit key) header.d=zohomail.com header.i=safinaskar@zohomail.com header.b=c1XQAWIl; arc=pass smtp.client-ip=136.143.188.94
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=zohomail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zohomail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E55C020C47C;
+	Thu, 21 Aug 2025 11:49:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=80.241.56.151
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1755776982; cv=none; b=foSGN8xwwZ+osrNIFQFoqR4nheNxoUbk+QsZ7X7srJ+V6W0ewgopKVa+gTtCgaVfGovqKxToZtnwf/3Cb5bi++vMjaSK/aJGr6JmAi7LlD7zaPQPQUXvzlY1xPuFb+2mQLFjiOkTWEF1gMmRhGsLsskChMk/EfEg3DNEhE6ljQU=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1755776982; c=relaxed/simple;
+	bh=tfZrXbfc4oq1S3cVt2v2d1owIpM4+3slLwHaRwR4LrI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=OgYVzNCn6zjaSvuTeZPo93tweaCjk9B2DmMzxnby/u4ojMX+m08/VSA7/fBa0kCQp4GU/bslDllN2mvcyG/8lNGetVUYEuIiQ0Ax3MZsWHJSFN/uL1t17o7jkItQlrscWsMgpEYuQQ15ixYpTmYs9ot3twf6fEFh0bw7JhZYuQY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=cyphar.com; spf=pass smtp.mailfrom=cyphar.com; dkim=pass (2048-bit key) header.d=cyphar.com header.i=@cyphar.com header.b=2AlFnXuu; arc=none smtp.client-ip=80.241.56.151
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=cyphar.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cyphar.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=zohomail.com header.i=safinaskar@zohomail.com header.b="c1XQAWIl"
-ARC-Seal: i=1; a=rsa-sha256; t=1755762840; cv=none; 
-	d=zohomail.com; s=zohoarc; 
-	b=SIwZiQ/wOi+VfCzGhdLbFu8vzCTxN9QfBq5F/xmFQ7lEkMb8u/gZ39IKLfXwLowtrlUub7VYpRdWJJIitmoi6tBlCLcu78l1u3tYc4ZVS3cBd4RW4Qdsy4kgtizdGSMbcWkqSyrODynGGjCQXOCrl9NpZpmugGzy473JQzRPLhw=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
-	t=1755762840; h=Content-Type:Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:MIME-Version:Message-ID:Subject:Subject:To:To:Message-Id:Reply-To; 
-	bh=ByIlTuut10mitMJ5VgXN30BouWWoxM56LFqXsOv6Oco=; 
-	b=QH4dG4wvaXGHeT+V6nVHNW23P66rhv04My9rC9uRMV/TogzQIagSSqEWBianw42wDYgmntq465CDBb412bt33ufywKgcwTrG059JXcQr89m35rRrlQE9N8mV2eZLC6wIOrhFRb7vWez6Lp9aAWW2L0g9W565QMNbr91TvIKzV3U=
-ARC-Authentication-Results: i=1; mx.zohomail.com;
-	dkim=pass  header.i=zohomail.com;
-	spf=pass  smtp.mailfrom=safinaskar@zohomail.com;
-	dmarc=pass header.from=<safinaskar@zohomail.com>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1755762840;
-	s=zm2022; d=zohomail.com; i=safinaskar@zohomail.com;
-	h=Date:Date:From:From:To:To:Cc:Cc:Message-ID:In-Reply-To:Subject:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding:Feedback-ID:Message-Id:Reply-To;
-	bh=ByIlTuut10mitMJ5VgXN30BouWWoxM56LFqXsOv6Oco=;
-	b=c1XQAWIl1TRYJtK2PcZnD4IdXQJ8yWEja40d8vwdd1IsCHBOI6CPF81tS19ZgBvI
-	35BVnJcnp8py68EibNkkQwjItogp+VDfibqxrysy/mHtxVCEmGFbfLmX8wFD4lLvUVJ
-	5mhG5GCmtpipOxIKxnVe1uAG7gR2xGX8bSOCfPbI=
-Received: from mail.zoho.com by mx.zohomail.com
-	with SMTP id 1755762838350148.54268594130883; Thu, 21 Aug 2025 00:53:58 -0700 (PDT)
-Received: from  [212.73.77.104] by mail.zoho.com
-	with HTTP;Thu, 21 Aug 2025 00:53:58 -0700 (PDT)
-Date: Thu, 21 Aug 2025 11:53:58 +0400
-From: Askar Safin <safinaskar@zohomail.com>
-To: "Ian Kent" <raven@themaw.net>
-Cc: "autofs mailing list" <autofs@vger.kernel.org>,
-	"linux-fsdevel" <linux-fsdevel@vger.kernel.org>,
-	"cyphar" <cyphar@cyphar.com>, "viro" <viro@zeniv.linux.org.uk>
-Message-ID: <198cb9ecb3f.11d0829dd84663.7100887892816504587@zohomail.com>
-In-Reply-To: 
-Subject: Serious error in autofs docs, which has design implications
+	dkim=pass (2048-bit key) header.d=cyphar.com header.i=@cyphar.com header.b="2AlFnXuu"
+Received: from smtp1.mailbox.org (smtp1.mailbox.org [IPv6:2001:67c:2050:b231:465::1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mout-p-101.mailbox.org (Postfix) with ESMTPS id 4c71nl1glTz9tKb;
+	Thu, 21 Aug 2025 13:49:31 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cyphar.com; s=MBO0001;
+	t=1755776971;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=EFlH+VJnfrLLvhDqPUsmhgOah2IOEJ+syE2BNTTu8Pc=;
+	b=2AlFnXuuuvTyN1LrBkJ82MvdtZ3oGos2Kjqc1UlNstcLZKzt+Zi4wd3BOm2flmbE6XeB/P
+	Z8r7oeKgN2rF+3QYrrjg3l7AuWwXYUUldsLlrV+OaqhpIIU1Enw9wgxb6axATEoxzAFLAm
+	dLTnebeROZI30n5dTBiBRYoGWQYvovijTT3+4QrI/K5Cz8Hg6UopN9HO1hiJbrGZTNa6Ye
+	A8JMJG2m2k47N2XjOb5RshVVsGIR9e3WtmTH1Hy72m5m1yGBNm4pyFrvRMAK8EhUJlDI8M
+	M7RdlZMdA3YeYjlws6X0JcAx24gN6E3TLf4tgas1qhDpxVtRn4yliL84yGYdKg==
+Authentication-Results: outgoing_mbo_mout;
+	dkim=none;
+	spf=pass (outgoing_mbo_mout: domain of cyphar@cyphar.com designates 2001:67c:2050:b231:465::1 as permitted sender) smtp.mailfrom=cyphar@cyphar.com
+Date: Thu, 21 Aug 2025 21:49:18 +1000
+From: Aleksa Sarai <cyphar@cyphar.com>
+To: Askar Safin <safinaskar@zohomail.com>
+Cc: alx <alx@kernel.org>, brauner <brauner@kernel.org>, 
+	dhowells <dhowells@redhat.com>, "g.branden.robinson" <g.branden.robinson@gmail.com>, 
+	jack <jack@suse.cz>, linux-api <linux-api@vger.kernel.org>, 
+	linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, 
+	linux-man <linux-man@vger.kernel.org>, "mtk.manpages" <mtk.manpages@gmail.com>, 
+	viro <viro@zeniv.linux.org.uk>, Ian Kent <raven@themaw.net>, 
+	autofs mailing list <autofs@vger.kernel.org>
+Subject: Re: [PATCH v3 00/12] man2: document "new" mount API
+Message-ID: <2025-08-21.1755776865-swank-rusted-doorbell-brads-U3HJFf@cyphar.com>
+References: <20250809-new-mount-api-v3-0-f61405c80f34@cyphar.com>
+ <20250817075252.4137628-1-safinaskar@zohomail.com>
+ <2025-08-17.1755446479-rotten-curled-charms-robe-vWOBH5@cyphar.com>
+ <198c74541c8.c835b65275081.1338200284666207736@zohomail.com>
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 List-Subscribe: <mailto:autofs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Importance: Medium
-User-Agent: Zoho Mail
-X-Mailer: Zoho Mail
-Feedback-ID: rr08011227b2d2fca8b18d2b918a7a07350000d02a1b5b4804ed5d9cd074adc6e811c1276d652845d7662084:zu080112278e8398b6583a74f01e74011f000082b712e1f9b3cc5761894bdda92474ff633a4d06199a7ae9ff:rf0801122cdc325dddc41d7172a753f6fb0000aa9258eb201d4c47637105abbbd5245d9aae768ee31be6bdaa69532943a3:ZohoMail
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="ecr4qyhlla7cietw"
+Content-Disposition: inline
+In-Reply-To: <198c74541c8.c835b65275081.1338200284666207736@zohomail.com>
+X-Rspamd-Queue-Id: 4c71nl1glTz9tKb
 
-Hi, Ian Kent and other autofs people.
 
-autofs.rst says:
-> mounting onto a directory is considered to be "beyond a `stat`"
-in https://elixir.bootlin.com/linux/v6.17-rc2/source/Documentation/filesystems/autofs.rst#L109
+--ecr4qyhlla7cietw
+Content-Type: text/plain; protected-headers=v1; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Subject: Re: [PATCH v3 00/12] man2: document "new" mount API
+MIME-Version: 1.0
 
-This is not true. Mounting does not trigger automounts.
+On 2025-08-20, Askar Safin <safinaskar@zohomail.com> wrote:
+>  ---- On Sun, 17 Aug 2025 20:16:04 +0400  Aleksa Sarai <cyphar@cyphar.com=
+> wrote ---=20
+>  > They are not tested by fstests AFAICS, but that's more of a flaw in
+>  > fstests (automount requires you to have a running autofs daemon, which
+>  > probably makes testing it in fstests or selftests impractical) not the
+>  > feature itself.
+>=20
+> I suggest testing automounts in fstests/selftests using "tracing" automou=
+nt.
+> This is what I do in my reproducers.
+>=20
+>  > The automount behaviour of tracefs is different to the general automou=
+nt
+>  > mechanism which is managed by userspace with the autofs daemon.
+>=20
+> Yes. But I still was able to write reproducers using "tracing", so this
+> automount point is totally okay for tests. (At least for some tests,
+> such as RESOLVE_NO_XDEV.)
 
-mount syscall (
-https://elixir.bootlin.com/linux/v6.17-rc2/source/fs/namespace.c#L4321
-) calls "do_mount" (
-https://elixir.bootlin.com/linux/v6.17-rc2/source/fs/namespace.c#L4124
-), which calls "user_path_at" without LOOKUP_AUTOMOUNT.
-This means automounts are not followed.
-I didn't test this, but I'm pretty sure about this by reading code.
+Sure, but I don't think people use allyesconfig when running selftests.
+I wonder if the automated test runners even enable deprecated features
+like that.
 
-But what is worse, autofs.rst then proceeds to use this as an argument in
-favor of introducing DCACHE_MANAGE_TRANSIT!
+In any case, you can definitely write some tests for it. :D
 
-I. e. it seems that introducing DCACHE_MANAGE_TRANSIT rests on
-wrong premise.
+--=20
+Aleksa Sarai
+Senior Software Engineer (Containers)
+SUSE Linux GmbH
+https://www.cyphar.com/
 
-Thus, it seems (from reading autofs.rst) that DCACHE_MANAGE_TRANSIT and all accociated logic
-can be removed from kernel.
+--ecr4qyhlla7cietw
+Content-Type: application/pgp-signature; name="signature.asc"
 
---
-Askar Safin
-https://types.pl/@safinaskar
+-----BEGIN PGP SIGNATURE-----
 
+iJEEABYKADkWIQS2TklVsp+j1GPyqQYol/rSt+lEbwUCaKcHvRsUgAAAAAAEAA5t
+YW51MiwyLjUrMS4xMSwyLDIACgkQKJf60rfpRG+GeAEAwCxqWJ6XP3XwGopXed+M
+svbRnf0/cL/a4UUPHvcBzH0BAPDSaOqMP2tkb8R201zdSZfnOP0PAD9/nnceTG96
+QpgL
+=xu3t
+-----END PGP SIGNATURE-----
+
+--ecr4qyhlla7cietw--
