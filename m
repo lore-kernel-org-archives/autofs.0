@@ -1,54 +1,60 @@
 Received: from sender4-pp-o95.zoho.com (sender4-pp-o95.zoho.com [136.143.188.95])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1E251CEAC2;
-	Mon, 25 Aug 2025 14:38:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 217852D7D3A;
+	Mon, 25 Aug 2025 17:48:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=136.143.188.95
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756132735; cv=pass; b=TZmbPezJVOX+uY6R+ICO6bRsoGIs3Qtwa+oMyjPnHLlpt2AGWQoHWVTNCqZxQW39ord6pRKIrKmmQQuLpkoWHAooVbDqDx8C/241Rkr9OSyBYoslBNhtlw+OkChni2cCupLYWm5ygigLonC6zRBj3W+jDpXRJ8qE1Z2lwNjAXaI=
+	t=1756144131; cv=pass; b=FU6PV2DJnBxLniETPgpue7x+bY1vtkSmEaeMcMEpPBw5ABHW3vyCKnGeUaxMlo7sSSZMY1tbSfWwVW/njOlNKD+X5792DZuVYvA2nZVBA3e2tZCi/9MrlhsbwUM7gyoIk5weXoA3mTf+Ucc+KdbJv7xr7yKqCoB9aKcyXnpDaJo=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756132735; c=relaxed/simple;
-	bh=JyDsaTf2cmqkYBpIopEfs+Rm8oxWFihlc2DtOtbSh9c=;
+	s=arc-20240116; t=1756144131; c=relaxed/simple;
+	bh=pFpAZ6/+tuhgVQ/tVmNw2+7Gi5jfRwf1ydAsfOOZ1c0=;
 	h=Date:From:To:Cc:Message-ID:In-Reply-To:References:Subject:
-	 MIME-Version:Content-Type; b=tomUT5jOY547hwjUjbNImuTm+jbeYwOXh87DpM3y7moT/meWBA1ujylFIHL8GQS5sO3ZL+KhYHHTFpoigRZiDwle/q5p4/Fvx6hayrN4btHwGcMSnyrnVXWgok2AVICWOIuLRlbmsj3HpsRNQVgPljNXi/+sJ6Ptwnp6zXAw2c8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=zohomail.com; spf=pass smtp.mailfrom=zohomail.com; dkim=pass (1024-bit key) header.d=zohomail.com header.i=safinaskar@zohomail.com header.b=QVoFywjx; arc=pass smtp.client-ip=136.143.188.95
+	 MIME-Version:Content-Type; b=dY6cWkAU7u5aswZoNKS1TedSEPUlr0x2UIeG9Y+NFPcL+0yWF98b9E5+I0qtRGBTICXVlGJxWw74hTo/5cpATjYidHiD7qvWonJ7le4yPRQRcV0hpTyGMb1MMezDTPFx6XuNEm9gZdxg/1AlIv3N+PvRXK8R29Ni4wc2EBceePc=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=zohomail.com; spf=pass smtp.mailfrom=zohomail.com; dkim=pass (1024-bit key) header.d=zohomail.com header.i=safinaskar@zohomail.com header.b=On0ohUOB; arc=pass smtp.client-ip=136.143.188.95
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=zohomail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zohomail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=zohomail.com header.i=safinaskar@zohomail.com header.b="QVoFywjx"
-ARC-Seal: i=1; a=rsa-sha256; t=1756132707; cv=none; 
+	dkim=pass (1024-bit key) header.d=zohomail.com header.i=safinaskar@zohomail.com header.b="On0ohUOB"
+ARC-Seal: i=1; a=rsa-sha256; t=1756144099; cv=none; 
 	d=zohomail.com; s=zohoarc; 
-	b=EjolHzsQrkYIvdt51bMWyO1LtXlcLE2FdU7VHAIXZ1yx+u3VrGtP7qhMrUWE50PNZCh79yCoJ2DFKB6pElWj5/4ngphrbhEP8W4GPDtD55b8VBcXoy51LJgchLMo7bS0mOsXkB+i1p4l/7aPtR39odHsjxAgS7z/T/cIWmpl3hc=
+	b=WwgA4eCtepSTJxg7SRbWXEBp2Sej5QS6Vp0rQ11jy6WT7XUJddtEEsgypBFWHwgxJdJ3YAiZr7tHhg1rfiRW2x5Gg1yb9N0wSA0GWrRZ/OFgp1j+kAeLKoZIzEnHLCki3uQu9fQ5GNbMYit5AZRv4Zp1/uok1YUKEO3JRzxWm4c=
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc; 
-	t=1756132707; h=Content-Type:Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:Subject:To:To:Message-Id:Reply-To; 
-	bh=BT0rrVzpyCgI24zRL6FXBl0HT7KvkigH00uEW7fga0I=; 
-	b=lyc6lhbGSdVgl3fztWk9EViUMmBbdTFFMwRrYN/rC8oSRNNErKXsuhYW3bJq5STvrSP/l+UnfZu+XTqZK5lbAAcawu1GfRyejAmZXcxeLadJj5zwA+0bsRaZI/cPCw8nOhbXCQPbOCRdf0ZgrHejueRbpV87LHrAJF4oz/Z3QyA=
+	t=1756144099; h=Content-Type:Content-Transfer-Encoding:Cc:Cc:Date:Date:From:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:Subject:To:To:Message-Id:Reply-To; 
+	bh=w9O1yPvqufsvxRA4exPaj+gPXTjYubFjFbod212n8qs=; 
+	b=j5zIUT3bapMR9PnovbGhztfDMlofmtw4X06YyZf2zyJCWK2lZJOWbr0j2qCJj2lfPUsZE+ba9YT/KjR47QT8EVcw+vhBpGvpxsWWA3VNHQp6jIKLUACX9BposGCcKrKniYCfTPoV51CD7KPxX+f9pcV3gZnSrQUpAHbEA/eXmlM=
 ARC-Authentication-Results: i=1; mx.zohomail.com;
 	dkim=pass  header.i=zohomail.com;
 	spf=pass  smtp.mailfrom=safinaskar@zohomail.com;
 	dmarc=pass header.from=<safinaskar@zohomail.com>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1756132707;
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1756144099;
 	s=zm2022; d=zohomail.com; i=safinaskar@zohomail.com;
 	h=Date:Date:From:From:To:To:Cc:Cc:Message-ID:In-Reply-To:References:Subject:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding:Feedback-ID:Message-Id:Reply-To;
-	bh=BT0rrVzpyCgI24zRL6FXBl0HT7KvkigH00uEW7fga0I=;
-	b=QVoFywjxisJwIhxyTfzB93AfZC9dpDhn5Sg46BbWdyvABEbrqUr8ugUQ0316jZ9f
-	vMm1tgluNjKZ181xAyhuYd44pHJmRFOcP2bv3bhjBw2unBaAcHEoQntLvum+/hfIqfr
-	/m8enyeZnLIz1AwRJ1mVf5x9aFNBparq18I5oZl4=
+	bh=w9O1yPvqufsvxRA4exPaj+gPXTjYubFjFbod212n8qs=;
+	b=On0ohUOBInVRvYafJmttDqHaLOKC30vgto0XmCqeRlITDU0p5LIhdBoA7MOE/usq
+	qFl2inWMG4JvgdekN+Km7NWq8qrZAGD2X5Xo+3yINF0GyUtgY2l7v+BkqAO8lH/emcQ
+	qXZ+eMRr2osgWRK2BP7T+7vmz7t0hYFTUwCe4wMM=
 Received: from mail.zoho.com by mx.zohomail.com
-	with SMTP id 1756132705461122.44899931909401; Mon, 25 Aug 2025 07:38:25 -0700 (PDT)
+	with SMTP id 1756144097840227.0333466039475; Mon, 25 Aug 2025 10:48:17 -0700 (PDT)
 Received: from  [212.73.77.104] by mail.zoho.com
-	with HTTP;Mon, 25 Aug 2025 07:38:25 -0700 (PDT)
-Date: Mon, 25 Aug 2025 18:38:25 +0400
+	with HTTP;Mon, 25 Aug 2025 10:48:17 -0700 (PDT)
+Date: Mon, 25 Aug 2025 21:48:17 +0400
 From: Askar Safin <safinaskar@zohomail.com>
-To: "Ian Kent" <raven@themaw.net>
-Cc: "autofs mailing list" <autofs@vger.kernel.org>,
+To: "Aleksa Sarai" <cyphar@cyphar.com>
+Cc: "Alexander Viro" <viro@zeniv.linux.org.uk>,
+	"Christian Brauner" <brauner@kernel.org>, "Jan Kara" <jack@suse.cz>,
+	"Ian Kent" <raven@themaw.net>,
 	"linux-fsdevel" <linux-fsdevel@vger.kernel.org>,
-	"cyphar" <cyphar@cyphar.com>, "viro" <viro@zeniv.linux.org.uk>,
-	"NeilBrown" <neil@brown.name>
-Message-ID: <198e1aa84a6.fad5ff4026331.4114043174169557399@zohomail.com>
-In-Reply-To: <f83491c4-e535-4ee2-a2a8-935ccebec292@themaw.net>
-References: <198cb9ecb3f.11d0829dd84663.7100887892816504587@zohomail.com> <f83491c4-e535-4ee2-a2a8-935ccebec292@themaw.net>
-Subject: Re: Serious error in autofs docs, which has design implications
+	"David Howells" <dhowells@redhat.com>,
+	"autofs mailing list" <autofs@vger.kernel.org>,
+	"patches" <patches@lists.linux.dev>
+Message-ID: <198e2585a21.11b3f90ad28165.4887709828549472380@zohomail.com>
+In-Reply-To: <2025-08-18.1755500319-dumb-naughty-errors-dash-YpWnja@cyphar.com>
+References: <20250817171513.259291-1-safinaskar@zohomail.com>
+ <20250817171513.259291-5-safinaskar@zohomail.com>
+ <2025-08-18.1755493390-violent-felt-issues-dares-AIMnxT@cyphar.com> <2025-08-18.1755500319-dumb-naughty-errors-dash-YpWnja@cyphar.com>
+Subject: Re: [PATCH 4/4] vfs: fs/namei.c: if RESOLVE_NO_XDEV passed to
+ openat2, don't *trigger* automounts
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
@@ -60,121 +66,24 @@ Content-Transfer-Encoding: 7bit
 Importance: Medium
 User-Agent: Zoho Mail
 X-Mailer: Zoho Mail
-Feedback-ID: rr08011227b35657434efceb686dab333d00007e6fa32192badf5076c93ae95307de2670814652bea61ed230:zu080112276d926ede09271d2132fb10440000b6d6b82197b85fb0b1f8b78b6c7b33588a37136e9d1f63300c:rf0801122c153d2d5b1eb5ea3415cc0229000076842eb0585f3c55b61fe757099c73fa51584f153e871cb9c62c52ff925c:ZohoMail
+Feedback-ID: rr08011227bedd04d36cc79f327257c44f00002555878cfb6e35e4dbc59498dd44f339c34d491f1475af421e:zu08011227bbe600540125c4bba0a24583000023832f6ab693eb8da42f7bb18e6565add98338dc8dc2df0ccc:rf0801122cd8c46131bd8860e3f4d9692f0000908284c610cec6fca7169d07dc3782783c330ed91bd7eea7f39c7104c386:ZohoMail
 
- ---- On Fri, 22 Aug 2025 16:31:46 +0400  Ian Kent <raven@themaw.net> wrote --- 
- > On 21/8/25 15:53, Askar Safin wrote:
- > > autofs.rst says:
- > >> mounting onto a directory is considered to be "beyond a `stat`"
- > > in https://elixir.bootlin.com/linux/v6.17-rc2/source/Documentation/filesystems/autofs.rst#L109
- > >
- > > This is not true. Mounting does not trigger automounts.
- > 
- > I don't understand that statement either, it's been many years
+ ---- On Mon, 18 Aug 2025 11:15:16 +0400  Aleksa Sarai <cyphar@cyphar.com> wrote --- 
+ > but we should have O_PATH|O_DIRECTORY produce
+ > identical behaviour to O_PATH in this case IMHO.
 
-Let me explain.
+I agree.
 
-Some syscalls follow (and trigger) automounts in last
-component of path, and some - not.
+Original intention of autofs was so: stat should not trigger automounts
+in final component, and everything else - should trigger (by default).
+See
+https://elixir.bootlin.com/linux/v6.17-rc2/source/Documentation/filesystems/autofs.rst#L93
+.
 
-stat(2) is one of syscalls, which don't follow
-automounts in last component of supplied path.
-
-Many other syscalls do follow automounts.
-
-autofs.rst calls syscalls, which follow automounts,
-as "beyond a stat".
-
-Notably mount(2) doesn't follow automounts in second argument
-(i. e. mountpoint). I know this, because I closely did read the code.
-Also I did experiment (see source in the end of this letter).
-Experiment was on 6.17-rc1.
-
-But "autofs.rst" says:
-> mounting onto a directory is considered to be "beyond a `stat`"
-
-I. e. "autofs.rst" says that mount(2) does follow automounts.
-
-This is wrong, as I explained above. (Again: I did experiment,
-so I'm totally sure that this "autofs.rst" sentence is wrong.)
-
-Moreover, then "autofs.rst" proceeds to explain why
-DCACHE_MANAGE_TRANSIT was introduced, based on this wrong fact.
-
-So it is possible that DCACHE_MANAGE_TRANSIT is in fact, not needed.
-
-I'm not asking for removal of DCACHE_MANAGE_TRANSIT.
-
-I merely point error in autofs.rst file and ask for fix.
-
-And if in process of fixing autofs.rst you will notice that
-DCACHE_MANAGE_TRANSIT is indeed not needed, then,
-of course, it should be removed.
+So, yes, theoretically both O_PATH and O_PATH | O_DIRECTORY
+should follow automounts (and nearly all other syscalls should, too).
 
 --
 Askar Safin
 https://types.pl/@safinaskar
-
-====
-
-// This code is public domain
-// You should be root in initial user namespace
-
-#define _GNU_SOURCE
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sched.h>
-#include <errno.h>
-#include <sys/stat.h>
-#include <sys/mount.h>
-#include <sys/syscall.h>
-#include <sys/vfs.h>
-#include <sys/sysmacros.h>
-#include <sys/statvfs.h>
-#include <sys/wait.h>
-#include <linux/openat2.h>
-#include <linux/nsfs.h>
-
-#define MY_ASSERT(cond) do { \
-    if (!(cond)) { \
-        fprintf (stderr, "%d: %s: assertion failed\n", __LINE__, #cond); \
-        exit (1); \
-    } \
-} while (0)
-
-#define MY_ASSERT_ERRNO(cond) do { \
-    if (!(cond)) { \
-        fprintf (stderr, "%d: %s: %m\n", __LINE__, #cond); \
-        exit (1); \
-    } \
-} while (0)
-
-static void
-mount_debugfs (void)
-{
-    if (mount (NULL, "/tmp/debugfs", "debugfs", 0, NULL) != 0)
-        {
-            perror ("mount debugfs");
-            exit (1);
-        }
-}
-
-int
-main (void)
-{
-    MY_ASSERT_ERRNO (chdir ("/") == 0);
-    MY_ASSERT_ERRNO (unshare (CLONE_NEWNS) == 0);
-    MY_ASSERT_ERRNO (mount (NULL, "/", NULL, MS_PRIVATE | MS_REC, NULL) == 0);
-    MY_ASSERT_ERRNO (mount (NULL, "/tmp", "tmpfs", 0, NULL) == 0);
-    MY_ASSERT_ERRNO (mkdir ("/tmp/debugfs", 0777) == 0);
-    mount_debugfs ();
-    MY_ASSERT_ERRNO (mount (NULL, "/tmp/debugfs/tracing", "tmpfs", 0, NULL) == 0);
-    execlp ("/bin/busybox", "sh", NULL);
-    MY_ASSERT (false);
-}
 
