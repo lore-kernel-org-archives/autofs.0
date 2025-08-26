@@ -1,75 +1,79 @@
-Received: from fout-a1-smtp.messagingengine.com (fout-a1-smtp.messagingengine.com [103.168.172.144])
+Received: from fhigh-a1-smtp.messagingengine.com (fhigh-a1-smtp.messagingengine.com [103.168.172.152])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31ADA1C84D0
-	for <autofs@vger.kernel.org>; Tue, 26 Aug 2025 00:49:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.144
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58AAD61FCE;
+	Tue, 26 Aug 2025 02:22:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.152
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756169368; cv=none; b=o91n2mLoeBVbL68hLPQ5lbFiHmuBAqELzMF/Ad0bE6BTUYy9HzMHkwiDrg5hKbn7xzKg7zQyoJGUzJQmPD9++tM+YLoEUCGKefzJ+j6p8Bd6l92e2jO0UBOmqVmTvrnBfCl1sYT6kpa/kt1ljs3iI/G2ljmtUDmMASoef+uA8ac=
+	t=1756174931; cv=none; b=Pztv4JcjVfjQ6LP9EUUWW2rqztyFnCQprtqyKaS09XttILnyHJ8CXVcBNjzyelIYxjaemOTHblGLwVbb/pi9QXz7VlE84oi4crL3yz1777ecXpTglxMcbfc72FSuppfptOX7XQDBPqfvglzfFcwfrq09VcQjs6eWImFQqzp3rnc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756169368; c=relaxed/simple;
-	bh=+6lgQ1/ZiwN/BbPNG0mLbUkp8ST9NgQwerKZTscv+3c=;
+	s=arc-20240116; t=1756174931; c=relaxed/simple;
+	bh=4DisX/0+xAhmuwOzqh9mzJ7havIlGj9BYenoKo1eLuk=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=VvjtfxcpPu+HaqijpnkeghZ2fxOoANlBbXdUWxtutQZb/X5ZldsORzEeXyvR8T28pnQ4dREPEfBhxF037ENKmJgj/CRYEC8b/PvEh//J61rSExh4cR7+5Bl4SNPgV1oMXmvy8C8j9ou6N/LD0mVbUpupUUNJ+qni/Kx7MxOUl9A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net; spf=pass smtp.mailfrom=themaw.net; dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b=nkpSt8L/; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=eXGAjERe; arc=none smtp.client-ip=103.168.172.144
+	 In-Reply-To:Content-Type; b=GTDM/VZVojI/8PnyYJnOBr2/IKr4wLXdDmxl2NPpQaKiy6+mzjs8FC4rJQ+1YA+ZwoRhTdFKrfV2n8wCgLE6aMjBbecR6loBePwhM7ZHCmJwPxjKkz56imuvTvOc8TPkdWEspgBCzJ9+dogrzr+iIo5/YaQRdy7EDsprKAEnkLc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net; spf=pass smtp.mailfrom=themaw.net; dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b=lpSyLA/n; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=Q+DhBAvv; arc=none smtp.client-ip=103.168.172.152
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=themaw.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b="nkpSt8L/";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="eXGAjERe"
-Received: from phl-compute-11.internal (phl-compute-11.internal [10.202.2.51])
-	by mailfout.phl.internal (Postfix) with ESMTP id 2688EEC0489;
-	Mon, 25 Aug 2025 20:49:24 -0400 (EDT)
+	dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b="lpSyLA/n";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="Q+DhBAvv"
+Received: from phl-compute-12.internal (phl-compute-12.internal [10.202.2.52])
+	by mailfhigh.phl.internal (Postfix) with ESMTP id 4ECD614001B5;
+	Mon, 25 Aug 2025 22:22:07 -0400 (EDT)
 Received: from phl-mailfrontend-01 ([10.202.2.162])
-  by phl-compute-11.internal (MEProxy); Mon, 25 Aug 2025 20:49:24 -0400
+  by phl-compute-12.internal (MEProxy); Mon, 25 Aug 2025 22:22:07 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
 	:cc:content-transfer-encoding:content-type:content-type:date
 	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm2; t=1756169364;
-	 x=1756255764; bh=jki7qQgBFxWu8a+PH/6QgLnoBQNqQQSwz0swOvk4lFk=; b=
-	nkpSt8L/QImh1GCDmh3k1w+nX+frypt+bT1t8sxkDgwXlpWf/QhRVEEm5qIyu2pz
-	SWCBRa6NyzRxnybwHFRGMaC2lCS4ELwql7aJ35vyIgi4B6tAMBhw6rup0T3DsQ54
-	9FdUE0AtCzTY1hE40o4OLSIIjat1/1MxPp3tKCvnTWdKa2zHexDq4RXIXP8Mxo5M
-	QjhcJ0nsALLGASxeXx7gONBvsmBbCkX8c4ZqUtvEEgMRzFY2MMbyl1btj38TfRSy
-	Oguz8NPKXM89Iahhl3Fd0SsXPkk9UCs02JM3hiKPuJCq6tKjhV2ZaJbRT4c3z+wP
-	AaueofriPMTrR78g5T9VXA==
+	:references:reply-to:subject:subject:to:to; s=fm2; t=1756174927;
+	 x=1756261327; bh=6+KKvThnHGiZN9NiGPmzI6no1FAXTq2guIHPygvxlbY=; b=
+	lpSyLA/n5kiHcGfvyxW33Ovucy5s6fOMz7EPdrEdXFwwrHPUwe4zuYkNz/WrS63j
+	SQMENmsT7SqOfl5bNHMk+OTmtCcWf/moJQHjKLhwaT9btCuQ1eA6nrlGxnj8pSNz
+	hIVGcTkiYxXPQq4CiA00wRwlV1HqfvEbZvJ6po+9VDXFOIayeY80v8FtYUSGWJ5x
+	MUoK1bndOS3Oqpm5gIknjCzx8LMnUoqe+tFVFnRSXnUkcaHi7eYA8ovJWzgTRUDX
+	oAHb22I2R7ti7GgxsaLbFs/65C4/X/6RQuuruvdhEN9z8pLprVT+e4bmBypmB9Fd
+	StMTJD/hkBwd9vxcM/ygIg==
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
 	messagingengine.com; h=cc:cc:content-transfer-encoding
 	:content-type:content-type:date:date:feedback-id:feedback-id
 	:from:from:in-reply-to:in-reply-to:message-id:mime-version
 	:references:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=1756169364; x=
-	1756255764; bh=jki7qQgBFxWu8a+PH/6QgLnoBQNqQQSwz0swOvk4lFk=; b=e
-	XGAjERexHZ1BltLjnZTP3RwpdMKTH7lLvaBwnFxc56ON/8E1SfFSKfWtUiINfQVI
-	j7HrJBsvHTUzJuGMWzn/lvCuvTQRLlfUeq3NfC/65/SIwM/jpZ3pVJ9lcFg0g6vv
-	m//fcUsjz84NtOsLDjX4PZh2125r+QsGG38dSJE+hG1lRT8b+whwpCmmWL0y2+W+
-	grs9bij+XDYAmArMrGKWmhkAOwLEuY8rIKceTzLfPBqehBV8qrXX3IRu1KMGPJ1W
-	yZN2T22wMk1uw1Dg5bmgxq/ALvZHrAIoQxJjlL8OPpj27otiwsmBvaGGDmLQOTcr
-	pfbCFhdjLmbvP3FVg6jEg==
-X-ME-Sender: <xms:kwStaNZfe6LPkbO9IXV_D0dqwZiM_lPr6bBUatwLUTwmE9_pZiH4QA>
-    <xme:kwStaEkIMyiKFsVnUUjG2Jsf0X6V9NfCyYapFru2v4MQbmt_ro_bpZGP1F2-qS60R
-    jGpL6zDc1sB>
-X-ME-Received: <xmr:kwStaBxmUhCeDwxDJz4kRWCFbP4avs5kB2rCtIrnUWylGL0zHPUUYUQXSsiJDKNB9yvhGDkl8Ybn3uto9kAtv1BTFNbITpXkruubmvAZssgQPYpioe_ijEQ>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeffedrtdefgddujeefkeejucetufdoteggodetrf
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=1756174927; x=
+	1756261327; bh=6+KKvThnHGiZN9NiGPmzI6no1FAXTq2guIHPygvxlbY=; b=Q
+	+DhBAvv9cVw4jlkxAwq8QFpk2heceFoLh+fqvp/tsFc0QnqCiDnq9JgqeNDHI3AV
+	3oNgq+tRV49Lcg/Nq8Jd8qmmmySZiOvCqyS5ivUjVsogOn/aaUPLc8BcCi/jFs+i
+	QTtdqutPvrY/q26KD7qeU4GbqkAhG3x1JBADQNPwXgtZm9v9b5u4L8+0EUIexhou
+	LX/TJi/paHx9IWfZDiQyDf6BdoJ9x+VHTUy1+HnRuvskNCVGNButFjF2hfoD3B7L
+	y8gGbX0hsTcBjtaHJu0ZqPbF7d3eJXyuIa7TxSdhP//5gdv9PPl2meh2U9DKXjAm
+	c7WEruqIkwTQXtIHh6xAQ==
+X-ME-Sender: <xms:ThqtaJRJuH-SKobZIFpDQ1j8Qcj4E_67dipv8TLCX9zihN8rlwiNwQ>
+    <xme:ThqtaAUoRgtymKcSMNV1cd3xM9b-BQOyEgTbVBIyZjkjBCpBqd4II0V2cnlqu5aUC
+    9Rq7PfBkPb_>
+X-ME-Received: <xmr:ThqtaFT2Hp6-3Rt_Fgc5doUCgo7nSLcIOei3jf8l3xxVmpGXNmnR3kGPCe-W7dEhICwipNN4nRKwXyh_eT_Bz6apm6L0_xANBylQ4h5v-bL6kncom2nTbeY>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeffedrtdefgddujeegtdehucetufdoteggodetrf
     dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
     rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujf
     gurhepkfffgggfuffvvehfhfgjtgfgsehtjeertddtvdejnecuhfhrohhmpefkrghnucfm
-    vghnthcuoehrrghvvghnsehthhgvmhgrfidrnhgvtheqnecuggftrfgrthhtvghrnhepie
-    fggfevffdvjedttedutdefheehgfejieduueffveelueeffeeuffduffdvkeevnecuffho
-    mhgrihhnpehkvghrnhgvlhdrohhrghenucevlhhushhtvghrufhiiigvpedtnecurfgrrh
-    grmhepmhgrihhlfhhrohhmpehrrghvvghnsehthhgvmhgrfidrnhgvthdpnhgspghrtghp
-    thhtohepvddpmhhouggvpehsmhhtphhouhhtpdhrtghpthhtohepugguihhsshesshhush
-    gvrdguvgdprhgtphhtthhopegruhhtohhfshesvhhgvghrrdhkvghrnhgvlhdrohhrgh
-X-ME-Proxy: <xmx:kwStaKMfaU424yMWVsk1N5GyuXEHNtAmgVIX0rjr8QAUqcD_Vj40eg>
-    <xmx:kwStaNTVCvcdsvaTCc16rZ7X3u3gqI2KfpcTa0LzPAIQ-SkiEX9_bw>
-    <xmx:kwStaAY2vr45YuikIM_d5e4Bh16VK24AWznMMzVUYTzLptbkqLe6_A>
-    <xmx:kwStaC1c4M7M1umFNDEhmG7Sy1bG8sdligjq2bAdU7G11mt0TpE1yw>
-    <xmx:lAStaH_-dib70TM7fJIzJ5ZgriR426SCevV1Cj1S_mG1wGe6gXjJd8nA>
+    vghnthcuoehrrghvvghnsehthhgvmhgrfidrnhgvtheqnecuggftrfgrthhtvghrnhepud
+    fhffevfedugfevgedvveekheffkeegteduudduffefffevtdetffdtveekffffnecuffho
+    mhgrihhnpegsohhothhlihhnrdgtohhmpdhthihpvghsrdhplhenucevlhhushhtvghruf
+    hiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpehrrghvvghnsehthhgvmhgrfidr
+    nhgvthdpnhgspghrtghpthhtohepiedpmhhouggvpehsmhhtphhouhhtpdhrtghpthhtoh
+    epshgrfhhinhgrshhkrghrseiiohhhohhmrghilhdrtghomhdprhgtphhtthhopegruhht
+    ohhfshesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhfsh
+    guvghvvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheptgihphhhrghr
+    segthihphhgrrhdrtghomhdprhgtphhtthhopehvihhrohesiigvnhhivhdrlhhinhhugi
+    drohhrghdruhhkpdhrtghpthhtohepnhgvihhlsegsrhhofihnrdhnrghmvg
+X-ME-Proxy: <xmx:ThqtaCkuo1ld6NZl6VLyM3v3XI1jS_qe3P-M-3gGiG7IbCesFI-eMA>
+    <xmx:ThqtaD7dDDRvc53WoWWxW7KYAZ9od6SGPTug1Rjg-Z2B-O-orXjOwg>
+    <xmx:ThqtaAhDQuVcGkSHRfuhg420pN8jwv43F1l8eG3qP_CdwArwWGWMww>
+    <xmx:ThqtaIG1OG_JsspuVXIiKi86xWOvHzJJ2EJ3_QbipAzRQf6K6Mblag>
+    <xmx:TxqtaPVyHhsDfYIujEnyQ8KQBX7mBJff_zhVeQRHYWBZrznCWN7cKipx>
 Feedback-ID: i31e841b0:Fastmail
 Received: by mail.messagingengine.com (Postfix) with ESMTPA; Mon,
- 25 Aug 2025 20:49:22 -0400 (EDT)
-Message-ID: <f9ae0076-d4fc-4041-b652-da3d07e206e1@themaw.net>
-Date: Tue, 26 Aug 2025 08:49:19 +0800
+ 25 Aug 2025 22:22:04 -0400 (EDT)
+Message-ID: <56423903-7978-404e-af32-a683c9efac72@themaw.net>
+Date: Tue, 26 Aug 2025 10:22:01 +0800
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
@@ -77,11 +81,14 @@ List-Subscribe: <mailto:autofs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 0/9] Patch series for direct map reload bug
-To: David Disseldorp <ddiss@suse.de>
-Cc: autofs mailing list <autofs@vger.kernel.org>
-References: <20250808021655.12774-1-raven@themaw.net>
- <20250822205019.40573a03.ddiss@suse.de>
+Subject: Re: Serious error in autofs docs, which has design implications
+To: Askar Safin <safinaskar@zohomail.com>
+Cc: autofs mailing list <autofs@vger.kernel.org>,
+ linux-fsdevel <linux-fsdevel@vger.kernel.org>, cyphar <cyphar@cyphar.com>,
+ viro <viro@zeniv.linux.org.uk>, NeilBrown <neil@brown.name>
+References: <198cb9ecb3f.11d0829dd84663.7100887892816504587@zohomail.com>
+ <f83491c4-e535-4ee2-a2a8-935ccebec292@themaw.net>
+ <198e1aa84a6.fad5ff4026331.4114043174169557399@zohomail.com>
 Content-Language: en-AU
 From: Ian Kent <raven@themaw.net>
 Autocrypt: addr=raven@themaw.net;
@@ -126,71 +133,157 @@ Autocrypt: addr=raven@themaw.net;
  +coCSBkOU1xMiW5Td7QwkNmtXKHyEF6dxCAMK1KHIqxrBaZO27PEDSHaIPHePi7y4KKq9C9U
  8k5V5dFA0mqH/st9Sw6tFbqPkqjvvMLETDPVxOzinpU2VBGhce4wufSIoVLOjQnbIo1FIqWg
  Dx24eHv235mnNuGHrG+EapIh7g/67K0uAzwp17eyUYlE5BMcwRlaHMuKTil6
-In-Reply-To: <20250822205019.40573a03.ddiss@suse.de>
+In-Reply-To: <198e1aa84a6.fad5ff4026331.4114043174169557399@zohomail.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
-On 22/8/25 18:50, David Disseldorp wrote:
-> Hi Ian,
+On 25/8/25 22:38, Askar Safin wrote:
+>   ---- On Fri, 22 Aug 2025 16:31:46 +0400  Ian Kent <raven@themaw.net> wrote ---
+>   > On 21/8/25 15:53, Askar Safin wrote:
+>   > > autofs.rst says:
+>   > >> mounting onto a directory is considered to be "beyond a `stat`"
+>   > > in https://elixir.bootlin.com/linux/v6.17-rc2/source/Documentation/filesystems/autofs.rst#L109
+>   > >
+>   > > This is not true. Mounting does not trigger automounts.
+>   >
+>   > I don't understand that statement either, it's been many years
 >
-> On Fri,  8 Aug 2025 10:16:46 +0800, Ian Kent wrote:
->
->> There have been reports of log messages like:
->> automount[nnnn]: handle_packet_expire_direct: can't find map entry for (1048647,114082)
->>
->> These messages are fatal because the direct mount path must be known to
->> lookup the mount. Historically the autofs kernel communication packet
->> size is fixed and based on the maximum path name component size used by
->> indirect mounts but direct mounts have a variable length multi-component
->> path. To solve this while maintaining compatability with indirect mounts,
->> an index of (device, inode) tuples is maintained to allow lookup of the
->> direct mount path so the map entry can be located.
->>
->> Also it's necessary to understand that direct mount maps are always read
->> fully in order to mount direct mount triggers for all direct mount map
->> entries so they must exist so this approach should always work.
->>
->> So the message above only occurs for direct mounts and the ioctl file
->> handle used by each direct mount is stored in the map entry so it's
->> not possibile to respond to the kernel at all if the map entry cache
->> entry can't be found.
->>
->> Unfortunately map entry cache cleanup on update is complicated and can
->> lead to problems which (I believe) is what's happening here.
->>
->> While I suspect your reproducer is a different case to what I've seen
->> it probably symtomatic of the underlying problem.
->>
->> Patches "autofs-5.1.9 - fix devid update on reload" and "autofs-5.1.9
->> - fix stale direct mount trigger not umounted on expire" are the main
->> fixes I was able to identify working through the code.
->>
->> Please test them and let me know how it goes.
-> Your patches do indeed resolve the kernel stall in autofs_wait following
-> direct map reload, but there's one slight difference in behaviour
-> between my RFC and this series when running the reproducer from the
-> https://lore.kernel.org/autofs/20250801152210.15501-2-ddiss@suse.de/
-> commit msg:
-> The share that gets removed from the direct map and then explicitly
-> unmounted will be remounted by the background `df` workload when running
-> this series. With my RFC the MOUNT_FLAG_STALE flag tracks removal,
-> avoiding subsequent remount.
+> Let me explain.
 
-I didn't think this would be a problem because the case should only
+I do understand what your saying but without more information about
 
-apply to map cache entries that have a real mount for which the cache
+the meaning and intent of the text your concerned about I don't think
 
-entry has been removed. The trigger mount has to be umounted after
-
-being uncovered by the expire and walks should be blocked until the
-
-daemon responds to the kernel with a result status.
+anything can be done about this right now.
 
 
-Clearly something isn't right with my series, let me have a look.
+I guess that I should also apologise to you as I'm pretty sure I
 
-We may need to merge in your recommendation of adding a flag ...
+reviewed this at the time it was posted and didn't question this
+
+at the time. But I most likely didn't see this as a problem because,
+
+to my thinking, what follows explains what it's needed for rather
+
+than the earlier statement justifying it.
+
+
+To be clear, in my previous reply I said two things, first I also
+
+find the statement you are concerned about unclear, perhaps even
+
+misleading (but I would need to understand the statement original
+
+intent to interpret that, which I don't) and second, the ->d_namage()
+
+callback is most definitely needed for the function of the user space
+
+daemon, automount(8) (via the autofs file system).
 
 
 Ian
 
+>
+> Some syscalls follow (and trigger) automounts in last
+> component of path, and some - not.
+>
+> stat(2) is one of syscalls, which don't follow
+> automounts in last component of supplied path.
+>
+> Many other syscalls do follow automounts.
+>
+> autofs.rst calls syscalls, which follow automounts,
+> as "beyond a stat".
+>
+> Notably mount(2) doesn't follow automounts in second argument
+> (i. e. mountpoint). I know this, because I closely did read the code.
+> Also I did experiment (see source in the end of this letter).
+> Experiment was on 6.17-rc1.
+>
+> But "autofs.rst" says:
+>> mounting onto a directory is considered to be "beyond a `stat`"
+> I. e. "autofs.rst" says that mount(2) does follow automounts.
+>
+> This is wrong, as I explained above. (Again: I did experiment,
+> so I'm totally sure that this "autofs.rst" sentence is wrong.)
+>
+> Moreover, then "autofs.rst" proceeds to explain why
+> DCACHE_MANAGE_TRANSIT was introduced, based on this wrong fact.
+>
+> So it is possible that DCACHE_MANAGE_TRANSIT is in fact, not needed.
+>
+> I'm not asking for removal of DCACHE_MANAGE_TRANSIT.
+>
+> I merely point error in autofs.rst file and ask for fix.
+>
+> And if in process of fixing autofs.rst you will notice that
+> DCACHE_MANAGE_TRANSIT is indeed not needed, then,
+> of course, it should be removed.
+>
+> --
+> Askar Safin
+> https://types.pl/@safinaskar
+>
+> ====
+>
+> // This code is public domain
+> // You should be root in initial user namespace
+>
+> #define _GNU_SOURCE
+>
+> #include <stdio.h>
+> #include <stdlib.h>
+> #include <stdbool.h>
+> #include <string.h>
+> #include <unistd.h>
+> #include <fcntl.h>
+> #include <sched.h>
+> #include <errno.h>
+> #include <sys/stat.h>
+> #include <sys/mount.h>
+> #include <sys/syscall.h>
+> #include <sys/vfs.h>
+> #include <sys/sysmacros.h>
+> #include <sys/statvfs.h>
+> #include <sys/wait.h>
+> #include <linux/openat2.h>
+> #include <linux/nsfs.h>
+>
+> #define MY_ASSERT(cond) do { \
+>      if (!(cond)) { \
+>          fprintf (stderr, "%d: %s: assertion failed\n", __LINE__, #cond); \
+>          exit (1); \
+>      } \
+> } while (0)
+>
+> #define MY_ASSERT_ERRNO(cond) do { \
+>      if (!(cond)) { \
+>          fprintf (stderr, "%d: %s: %m\n", __LINE__, #cond); \
+>          exit (1); \
+>      } \
+> } while (0)
+>
+> static void
+> mount_debugfs (void)
+> {
+>      if (mount (NULL, "/tmp/debugfs", "debugfs", 0, NULL) != 0)
+>          {
+>              perror ("mount debugfs");
+>              exit (1);
+>          }
+> }
+>
+> int
+> main (void)
+> {
+>      MY_ASSERT_ERRNO (chdir ("/") == 0);
+>      MY_ASSERT_ERRNO (unshare (CLONE_NEWNS) == 0);
+>      MY_ASSERT_ERRNO (mount (NULL, "/", NULL, MS_PRIVATE | MS_REC, NULL) == 0);
+>      MY_ASSERT_ERRNO (mount (NULL, "/tmp", "tmpfs", 0, NULL) == 0);
+>      MY_ASSERT_ERRNO (mkdir ("/tmp/debugfs", 0777) == 0);
+>      mount_debugfs ();
+>      MY_ASSERT_ERRNO (mount (NULL, "/tmp/debugfs/tracing", "tmpfs", 0, NULL) == 0);
+>      execlp ("/bin/busybox", "sh", NULL);
+>      MY_ASSERT (false);
+> }
+>
