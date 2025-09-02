@@ -1,209 +1,89 @@
-Received: from neil.brown.name (neil.brown.name [103.29.64.221])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37F4929D29B;
-	Tue, 26 Aug 2025 10:58:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.29.64.221
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EDF120311;
+	Tue,  2 Sep 2025 08:41:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1756205911; cv=none; b=r532T94xeWjM8jmqeLEVdz8EP9iWiYTZHv3chozBXNb/EvZsHzgsPPZQb9WXmLvSdsiXBSCn0hNOF5+d7w58zKa8v43eUwH3XouUIT0xa0dliynuy2ZAxEb08OnpkvOmWXm5/KXbqxA5GZbhLuNXVsoHCwdW5kk9JHHRNKe1D7Q=
+	t=1756802515; cv=none; b=VC5L5vVJur6I6C4ErbZz8YTvagIKeb1YqaKUPygYR2FHpXhpg4ao473HCM1JYO46c4GWV91KZxc9HSAntCfMxh/uDKa+pgXwlvnKACHsDqoS4iWEcqCdhbzE2PTRR6kaIM2izog4Xy6SEPp83uW1TCdd77YMjcmNLmiZVeRpmpU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1756205911; c=relaxed/simple;
-	bh=Fb39EwM+YcEFX9FefkBqx+tAJ/PcDLAXRTmuleGUd6I=;
-	h=Content-Type:MIME-Version:From:To:Cc:Subject:In-reply-to:
-	 References:Date:Message-id; b=Lo2f4kinpcaBoyDrtH2YYibRNblnFxIY4uZ6V9njhxMhH0arwQFErYtLB7kp4Xvz3UcYbnihu/wuvtkir72Ci3CZ63LXuPlHwekHyC5FiFKyWo3X2+zHmdn8gfb2yFQ9QY/BG3YFD1Nt2vd9sjIg0NlwbhAgljmPZWMxw27nGns=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name; spf=pass smtp.mailfrom=neil.brown.name; arc=none smtp.client-ip=103.29.64.221
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=brown.name
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=neil.brown.name
-Received: from 196.186.233.220.static.exetel.com.au ([220.233.186.196] helo=home.neil.brown.name)
-	by neil.brown.name with esmtp (Exim 4.95)
-	(envelope-from <mr@neil.brown.name>)
-	id 1uqrNT-007F6b-D5;
-	Tue, 26 Aug 2025 10:58:13 +0000
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+	s=arc-20240116; t=1756802515; c=relaxed/simple;
+	bh=nTVFxlclw7LzSbfNNJ2PFsMG6pslgAy3nBhdtLRyuMI=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=NapCZLnq9i/FqouEy0xYieiz7p9F2fS1irah9WqrSTwBC82E9ewh/rZvLFdKYYJFxJl1qFFEnCC5+Z3Tj8piMP4FVQoIuy8dRc+g87JHH+GhweU3RJSq8wHVOJckxDcvEDYjBiPzUiy6AG1TtkFXm8PfYtQc3U7Il/BVlqFi0j4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Fa8Kgybk; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Fa8Kgybk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FE58C4CEF5;
+	Tue,  2 Sep 2025 08:41:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1756802514;
+	bh=nTVFxlclw7LzSbfNNJ2PFsMG6pslgAy3nBhdtLRyuMI=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=Fa8KgybkloK9zH2folFrqDD83Vf8o+wVxFdBgfExirxGdm/XX9K0HW1y2c//FvtsE
+	 bq+69491gGnM7IyA9GiglDg2bTVBesj1mBKTK49I6b+fBqUUq6PH7OUho6wquxqsPE
+	 gmihHI7+lznB5ew1m4+r3dgN854dYwGGmim+03aa9S5OjM7Iae2YfYuiTqZyiRwXIU
+	 ztms7W7iWkq8XkvEXPwTV7KuzHK2AHvJlJpBZfbwi/9ttSxP1VgCMnb9chtYl6+aAQ
+	 E4hceOgwigEBXsx+0nBVlnhBuwNi5u7QZiKz62l3KYUVB7Q5B05DnKKd/R8AgqqcH2
+	 iMu8vJxq448Cg==
+From: Christian Brauner <brauner@kernel.org>
+To: Askar Safin <safinaskar@zohomail.com>
+Cc: Christian Brauner <brauner@kernel.org>,
+	linux-fsdevel@vger.kernel.org,
+	David Howells <dhowells@redhat.com>,
+	cyphar@cyphar.com,
+	Ian Kent <raven@themaw.net>,
+	autofs mailing list <autofs@vger.kernel.org>,
+	patches@lists.linux.dev,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v2 0/4] vfs: if RESOLVE_NO_XDEV passed to openat2, don't *trigger* automounts
+Date: Tue,  2 Sep 2025 10:41:42 +0200
+Message-ID: <20250902-bankwesen-knirps-184b6ed28587@brauner>
+X-Mailer: git-send-email 2.47.2
+In-Reply-To: <20250825181233.2464822-1-safinaskar@zohomail.com>
+References: <20250825181233.2464822-1-safinaskar@zohomail.com>
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 List-Subscribe: <mailto:autofs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-From: "NeilBrown" <neil@brown.name>
-To: "Ian Kent" <raven@themaw.net>
-Cc: "Askar Safin" <safinaskar@zohomail.com>,
- "autofs mailing list" <autofs@vger.kernel.org>,
- "linux-fsdevel" <linux-fsdevel@vger.kernel.org>, "cyphar" <cyphar@cyphar.com>,
- "viro" <viro@zeniv.linux.org.uk>
-Subject: Re: Serious error in autofs docs, which has design implications
-In-reply-to: <56423903-7978-404e-af32-a683c9efac72@themaw.net>
-References: <>, <56423903-7978-404e-af32-a683c9efac72@themaw.net>
-Date: Tue, 26 Aug 2025 20:58:12 +1000
-Message-id: <175620589277.2234665.6559839127267068134@noble.neil.brown.name>
+Content-Type: text/plain; charset="utf-8"
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1498; i=brauner@kernel.org; h=from:subject:message-id; bh=nTVFxlclw7LzSbfNNJ2PFsMG6pslgAy3nBhdtLRyuMI=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMWRsW3t27pNvM94pTq1lbZDaXpv1xuLSwwXCZz/Msq2Ue tHn/TdqakcJC4MYF4OsmCKLQ7tJuNxynorNRpkaMHNYmUCGMHBxCsBEci8zfK/pW+0ZsJFtxfW6 wFrupnciO5JcEx5MNAjld8/z/qe9mZFhxunPl6a+M05KnCX8PbJaplxGcFohd2u+f2faimBV972 MAA==
+X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
+Content-Transfer-Encoding: 8bit
 
-On Tue, 26 Aug 2025, Ian Kent wrote:
-> On 25/8/25 22:38, Askar Safin wrote:
-> >   ---- On Fri, 22 Aug 2025 16:31:46 +0400  Ian Kent <raven@themaw.net> wr=
-ote ---
-> >   > On 21/8/25 15:53, Askar Safin wrote:
-> >   > > autofs.rst says:
-> >   > >> mounting onto a directory is considered to be "beyond a `stat`"
-> >   > > in https://elixir.bootlin.com/linux/v6.17-rc2/source/Documentation/=
-filesystems/autofs.rst#L109
-> >   > >
-> >   > > This is not true. Mounting does not trigger automounts.
-> >   >
-> >   > I don't understand that statement either, it's been many years
-> >
-> > Let me explain.
->=20
-> I do understand what your saying but without more information about
->=20
-> the meaning and intent of the text your concerned about I don't think
->=20
-> anything can be done about this right now.
+On Mon, 25 Aug 2025 18:12:29 +0000, Askar Safin wrote:
+> openat2 had a bug: if we pass RESOLVE_NO_XDEV, then openat2
+> doesn't traverse through automounts, but may still trigger them.
+> See this link for full bug report with reproducer:
+> https://lore.kernel.org/linux-fsdevel/20250817075252.4137628-1-safinaskar@zohomail.com/
+> 
+> This patchset fixes the bug.
+> 
+> [...]
 
-Yes, there is definitely something wrong there.  I'll try to work out
-what I really meant to say and propose some alternate wording -
-hopefully within a week or so.
+Applied to the vfs-6.18.misc branch of the vfs/vfs.git tree.
+Patches in the vfs-6.18.misc branch should appear in linux-next soon.
 
-Thanks for raising this Askar,
+Please report any outstanding bugs that were missed during review in a
+new review to the original patch series allowing us to drop it.
 
-NeilBrown
+It's encouraged to provide Acked-bys and Reviewed-bys even though the
+patch has now been applied. If possible patch trailers will be updated.
 
+Note that commit hashes shown below are subject to change due to rebase,
+trailer updates or similar. If in doubt, please check the listed branch.
 
->=20
->=20
-> I guess that I should also apologise to you as I'm pretty sure I
->=20
-> reviewed this at the time it was posted and didn't question this
->=20
-> at the time. But I most likely didn't see this as a problem because,
->=20
-> to my thinking, what follows explains what it's needed for rather
->=20
-> than the earlier statement justifying it.
->=20
->=20
-> To be clear, in my previous reply I said two things, first I also
->=20
-> find the statement you are concerned about unclear, perhaps even
->=20
-> misleading (but I would need to understand the statement original
->=20
-> intent to interpret that, which I don't) and second, the ->d_namage()
->=20
-> callback is most definitely needed for the function of the user space
->=20
-> daemon, automount(8) (via the autofs file system).
->=20
->=20
-> Ian
->=20
-> >
-> > Some syscalls follow (and trigger) automounts in last
-> > component of path, and some - not.
-> >
-> > stat(2) is one of syscalls, which don't follow
-> > automounts in last component of supplied path.
-> >
-> > Many other syscalls do follow automounts.
-> >
-> > autofs.rst calls syscalls, which follow automounts,
-> > as "beyond a stat".
-> >
-> > Notably mount(2) doesn't follow automounts in second argument
-> > (i. e. mountpoint). I know this, because I closely did read the code.
-> > Also I did experiment (see source in the end of this letter).
-> > Experiment was on 6.17-rc1.
-> >
-> > But "autofs.rst" says:
-> >> mounting onto a directory is considered to be "beyond a `stat`"
-> > I. e. "autofs.rst" says that mount(2) does follow automounts.
-> >
-> > This is wrong, as I explained above. (Again: I did experiment,
-> > so I'm totally sure that this "autofs.rst" sentence is wrong.)
-> >
-> > Moreover, then "autofs.rst" proceeds to explain why
-> > DCACHE_MANAGE_TRANSIT was introduced, based on this wrong fact.
-> >
-> > So it is possible that DCACHE_MANAGE_TRANSIT is in fact, not needed.
-> >
-> > I'm not asking for removal of DCACHE_MANAGE_TRANSIT.
-> >
-> > I merely point error in autofs.rst file and ask for fix.
-> >
-> > And if in process of fixing autofs.rst you will notice that
-> > DCACHE_MANAGE_TRANSIT is indeed not needed, then,
-> > of course, it should be removed.
-> >
-> > --
-> > Askar Safin
-> > https://types.pl/@safinaskar
-> >
-> > =3D=3D=3D=3D
-> >
-> > // This code is public domain
-> > // You should be root in initial user namespace
-> >
-> > #define _GNU_SOURCE
-> >
-> > #include <stdio.h>
-> > #include <stdlib.h>
-> > #include <stdbool.h>
-> > #include <string.h>
-> > #include <unistd.h>
-> > #include <fcntl.h>
-> > #include <sched.h>
-> > #include <errno.h>
-> > #include <sys/stat.h>
-> > #include <sys/mount.h>
-> > #include <sys/syscall.h>
-> > #include <sys/vfs.h>
-> > #include <sys/sysmacros.h>
-> > #include <sys/statvfs.h>
-> > #include <sys/wait.h>
-> > #include <linux/openat2.h>
-> > #include <linux/nsfs.h>
-> >
-> > #define MY_ASSERT(cond) do { \
-> >      if (!(cond)) { \
-> >          fprintf (stderr, "%d: %s: assertion failed\n", __LINE__, #cond);=
- \
-> >          exit (1); \
-> >      } \
-> > } while (0)
-> >
-> > #define MY_ASSERT_ERRNO(cond) do { \
-> >      if (!(cond)) { \
-> >          fprintf (stderr, "%d: %s: %m\n", __LINE__, #cond); \
-> >          exit (1); \
-> >      } \
-> > } while (0)
-> >
-> > static void
-> > mount_debugfs (void)
-> > {
-> >      if (mount (NULL, "/tmp/debugfs", "debugfs", 0, NULL) !=3D 0)
-> >          {
-> >              perror ("mount debugfs");
-> >              exit (1);
-> >          }
-> > }
-> >
-> > int
-> > main (void)
-> > {
-> >      MY_ASSERT_ERRNO (chdir ("/") =3D=3D 0);
-> >      MY_ASSERT_ERRNO (unshare (CLONE_NEWNS) =3D=3D 0);
-> >      MY_ASSERT_ERRNO (mount (NULL, "/", NULL, MS_PRIVATE | MS_REC, NULL) =
-=3D=3D 0);
-> >      MY_ASSERT_ERRNO (mount (NULL, "/tmp", "tmpfs", 0, NULL) =3D=3D 0);
-> >      MY_ASSERT_ERRNO (mkdir ("/tmp/debugfs", 0777) =3D=3D 0);
-> >      mount_debugfs ();
-> >      MY_ASSERT_ERRNO (mount (NULL, "/tmp/debugfs/tracing", "tmpfs", 0, NU=
-LL) =3D=3D 0);
-> >      execlp ("/bin/busybox", "sh", NULL);
-> >      MY_ASSERT (false);
-> > }
-> >
->=20
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
+branch: vfs-6.18.misc
 
+[1/4] namei: move cross-device check to traverse_mounts
+      https://git.kernel.org/vfs/vfs/c/11c2b7ec2e18
+[2/4] namei: remove LOOKUP_NO_XDEV check from handle_mounts
+      https://git.kernel.org/vfs/vfs/c/8b966d00b3ec
+[3/4] namei: move cross-device check to __traverse_mounts
+      https://git.kernel.org/vfs/vfs/c/8ded1fde0827
+[4/4] openat2: don't trigger automounts with RESOLVE_NO_XDEV
+      https://git.kernel.org/vfs/vfs/c/042a60680de4
