@@ -1,222 +1,265 @@
-Received: from m16.mail.163.com (m16.mail.163.com [220.197.31.2])
+Received: from fout-a4-smtp.messagingengine.com (fout-a4-smtp.messagingengine.com [103.168.172.147])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EB6BEAE7;
-	Thu, 18 Sep 2025 12:03:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=220.197.31.2
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11DC22BCF5
+	for <autofs@vger.kernel.org>; Wed, 24 Sep 2025 08:36:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.147
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1758197016; cv=none; b=sqGOZywK+DPXURUIh6EwgXjF48I+poNPQukzxYf6MG9r/QxFzaRIG8iWTQRHCLXOIreaoBQvqk3cNa2gMb1hTyftKJG3cjqk0htpedWMOp2diXFNooC8g2K/VF0bMWw0qH6ou4WQ+V7/VMkIoHq3Pp02+Xhqa7wtkstKE0T8AuI=
+	t=1758702970; cv=none; b=BcQMutDCGriJzxha8HmoJETnS43QlH6o0QQv8aXXR3yhbhVGcuzxjzQcmLItV7kISP2f9ob9H295i5HKYjc0d22LyXkoJoIBleqCXX3m6NzPT+CtUHmwaLaSqKRByRVv9illJcdrvV08tAp87SyYTjV++iDKQ+OI+sxJTXYxeHo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1758197016; c=relaxed/simple;
-	bh=djZwhXTXO1j+sAGYbYim9XwDU0iMuG04gix6QwDmWrA=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=jp2oMYoJNhWmb7cMvV2xX5HXWV8ij2q39hVGq1gp7pRO4lqFKYLOkkfZ6Lz5oOuz2vbmixOmjuL+bKav5KkJwHmQY5QA/k8lFR4vt0h7eP5NBO5o5rlcPEMKfq5oe9yOzc0+3nqN/3DTesjYSAlFz5L/aM007nrraCnnNij2Lpw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com; spf=pass smtp.mailfrom=163.com; dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b=Gut1Ae6f; arc=none smtp.client-ip=220.197.31.2
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=163.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=163.com
+	s=arc-20240116; t=1758702970; c=relaxed/simple;
+	bh=tae1uv93PdXXPXx4CQeR/AHgYrNPj//sqVc/AI49pVQ=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=ZY1DqZuApD7sUmb2H6AAHSwaL2ufjQkVE3UCfRw0gmI6af+/sEYA/d7y6nCnGHuB9vb/tuz8MF+DYEZeAbWDj05spL7eSnIzj56lW0JzV//RHwTNOKyYN95DI5dna+mBMehqfgsWi0AnXyK4TkLFU017B6hNlcGUEC5L2lS5KDc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net; spf=pass smtp.mailfrom=themaw.net; dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b=ZAOaRTPq; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=M77t9xXU; arc=none smtp.client-ip=103.168.172.147
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=themaw.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=163.com header.i=@163.com header.b="Gut1Ae6f"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:To:Subject:Date:Message-Id:MIME-Version; bh=DG
-	nrH6XXEa39c8eaC4+tK2QhtJ3JlgbwfT2F0PLB2sE=; b=Gut1Ae6fhg7PVI/iF1
-	SCLalvk/kNIJ9H7MxvXpgHNBjLu4V1H4rcVhVE9oT+fYPCdT69VxlsxVvOPGsGwP
-	fuXUjjehSPA4Syzk+rdngLkGBYcAubgMpDo3BwQP8USmYOWoaSkjyHXNGFu3+75k
-	e7cp56HKz//nG5FkSfOGB/1S4=
-Received: from localhost.localdomain (unknown [])
-	by gzsmtp4 (Coremail) with SMTP id PygvCgBnRxL69MtozWWPDQ--.64389S2;
-	Thu, 18 Sep 2025 20:03:08 +0800 (CST)
-From: zhouyuhang <zhouyuhang1010@163.com>
-To: raven@themaw.net,
-	brauner@kernel.org
-Cc: autofs@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Zhou Yuhang <zhouyuhang@kylinos.cn>
-Subject: [PATCH] autofs: avoid memleak when autofs_fill_super() fails
-Date: Thu, 18 Sep 2025 20:03:04 +0800
-Message-Id: <20250918120304.1578406-1-zhouyuhang1010@163.com>
-X-Mailer: git-send-email 2.25.1
+	dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b="ZAOaRTPq";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="M77t9xXU"
+Received: from phl-compute-05.internal (phl-compute-05.internal [10.202.2.45])
+	by mailfout.phl.internal (Postfix) with ESMTP id 1D53BEC00D7;
+	Wed, 24 Sep 2025 04:36:06 -0400 (EDT)
+Received: from phl-mailfrontend-01 ([10.202.2.162])
+  by phl-compute-05.internal (MEProxy); Wed, 24 Sep 2025 04:36:06 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
+	:content-transfer-encoding:content-type:content-type:date:date
+	:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to; s=fm3; t=1758702966;
+	 x=1758789366; bh=TjjIkO8RpnaZKq+AbRO2UgAmNa0CF/MYwE3+byatbsA=; b=
+	ZAOaRTPqWQWdTOBbp+RyrLeQqV7Xosi25MoO3OBUKso8QYNPglg8W70U5W3sHk48
+	oMvQqEStU/bx/owf6XbjWOr/PV4Q5nkT7J68ubp9t7irRYs8ZeuMGCujSAF5vntr
+	oceYiK1XKp+ew3ImAA6xWOb2JuscWOVp+fPikG+0vEC5mFQzAUW120kjyCbtKiTy
+	kYwdjR+S/vpq3VJeCxl058W/QMzfoyE4rqb/nNLLDDTFgqLjU/aYrHor7D9MWMjz
+	a3ZTcVF52bUFwzvKzztylv1j0yrjw+FrpuCZwohbqIhO2uDVQSe+kKJ2wz+/fVF3
+	lB0/Tgo/K4spzlwZDvCH2g==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:content-transfer-encoding:content-type
+	:content-type:date:date:feedback-id:feedback-id:from:from
+	:in-reply-to:in-reply-to:message-id:mime-version:references
+	:reply-to:subject:subject:to:to:x-me-proxy:x-me-sender
+	:x-me-sender:x-sasl-enc; s=fm1; t=1758702966; x=1758789366; bh=T
+	jjIkO8RpnaZKq+AbRO2UgAmNa0CF/MYwE3+byatbsA=; b=M77t9xXUzCHtS31Ta
+	RT3oOFyBafhj+ENWX9XHiBEY9dHufpcaMYU2EpnwtdabN5KnAis+LlBkrUCg0rpu
+	rc4H5G6uGIuXFirgVG4NOBYzEZ2FsCLWkgJwoyqCZw+61cY6bYfyeZjbRz2Fhm5a
+	FnTtuidZexVxS0fNYqvT4HVaVR57uemrJFdcZ2Tj0JqOCWQkruXR3P3d8GC7mjB1
+	7rX1yS0f5HAcMu0aNkmwhpXmaN7IO2dunevQNICJZWOwGNkinz0ownzVngTiMZf+
+	2I4kjt63Rkls0iDHBCWWx0lRzOv+Cr9MDfwxYQZLoVjerwQRDnonPp+EWHMkD7kb
+	VJpGg==
+X-ME-Sender: <xms:da3TaHPN5GZ4EvMdAVubtRro7lQQwx9Rjga3rXCXfqST96wNEU0i0w>
+    <xme:da3TaH9rmFjH92GH5oa0lVS6xKOIS7Bid7lHYEFnqUK4f73Ihm_kObK4SDjObbJF4
+    0NVhPpCPycqUmyvMhd5E1PdFBBmS_egP1Q4ID8CMQP0sh3w>
+X-ME-Received: <xmr:da3TaD7V1hjezutTPMp5gsFPjaS4Urp4sENeLR08deIz2eH-6WZvuXp1FPYDpJvYXHxAAcE2zc_DLgTXKIyw5l4U0Zy73WT3IkRmovAtipoBLkSjvI8KukY>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeffedrtdeggdeifedugecutefuodetggdotefrod
+    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpuffrtefokffrpgfnqfghnecuuegr
+    ihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjug
+    hrpefkffggfgfuvfhfhfgjtgfgsehtjeertddtvdejnecuhfhrohhmpefkrghnucfmvghn
+    thcuoehrrghvvghnsehthhgvmhgrfidrnhgvtheqnecuggftrfgrthhtvghrnhepjeeuue
+    etffeugeejheekteeiudefhedvheetjedtjeetleelheekgfeffeeutdfgnecuvehluhhs
+    thgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprhgrvhgvnhesthhhvg
+    hmrgifrdhnvghtpdhnsggprhgtphhtthhopedvpdhmohguvgepshhmthhpohhuthdprhgt
+    phhtthhopeguughishhssehsuhhsvgdruggvpdhrtghpthhtoheprghuthhofhhssehvgh
+    gvrhdrkhgvrhhnvghlrdhorhhg
+X-ME-Proxy: <xmx:da3TaG3IEBjfmok-bl2LWebnlxQsanVr6fyG4qklVXfuPf0ixgSH1Q>
+    <xmx:da3TaCDCeYcjETgoA7fXDKVgxhnrFFbA7fFLa8C_-VYLXpQ0AtlOIw>
+    <xmx:da3TaA1TWGaZbE0K1p0auXpiCG4Viv3sI36g5rt9JB5IkKj-JSO0iQ>
+    <xmx:da3TaEu9yZ93ugaMki8xYUOqwcc_EiFJpMaTzYZURf1t6omxVcum4w>
+    <xmx:dq3TaCmRJFHRQWkt2B22Vu59wr81XXIkhWfBy58vXysT_EqxZ8MmifJW>
+Feedback-ID: i31e841b0:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Wed,
+ 24 Sep 2025 04:36:04 -0400 (EDT)
+Message-ID: <5a0d52c2-2a45-4b8d-a621-31c4fe63ff57@themaw.net>
+Date: Wed, 24 Sep 2025 16:36:01 +0800
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 List-Subscribe: <mailto:autofs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:PygvCgBnRxL69MtozWWPDQ--.64389S2
-X-Coremail-Antispam: 1Uf129KBjvJXoWxZFyUAr48uw48Aw43Xr4xJFb_yoWrKFWrpF
-	43AFy8C3ykJr1UGFs7tFs0qr1fKas3CFy7Gr93W348Ary5Gr4DtF47Jr13XFWxArWkJFyS
-	qrsFyrWYkr9Fy3DanT9S1TB71UUUUU7qnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07j01v3UUUUU=
-X-CM-SenderInfo: 52kr35xxkd0warqriqqrwthudrp/1tbiEQDMJmjL8uxRjAAAsb
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] RFC: autofs-5.1.9 - flag removed entries as stale
+To: David Disseldorp <ddiss@suse.de>, autofs@vger.kernel.org
+References: <20250801152210.15501-2-ddiss@suse.de>
+Content-Language: en-AU
+From: Ian Kent <raven@themaw.net>
+Autocrypt: addr=raven@themaw.net;
+ keydata= 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
+In-Reply-To: <20250801152210.15501-2-ddiss@suse.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-From: Zhou Yuhang <zhouyuhang@kylinos.cn>
+On 1/8/25 23:22, David Disseldorp wrote:
+> This effectively reverts commit 21ce28d ("autofs-5.1.4 - mark removed
+> cache entry negative"), which causes the kernel to stall in autofs_wait
+> for the following workload:
+>
+>    cat > /etc/auto.direct <<EOF
+>    echo "/nfs/share  $mount_args ${NFS_SERVER}:/${NFS_SHARE}"
+>    EOF
+>
+>    setsid --fork automount --debug --foreground &> /automount.log
+>    sleep 1
+>
+>    touch /test.run
+>    setsid --fork /bin/bash -c \
+>      "while [[ -f /test.run ]]; do df -ia >> /test.log; sleep 1; done"
+>    echo "df loop logging to /test.log"
+>
+>    sleep 2
+>    echo "changing and reloading auto.direct"
+>    echo > /etc/auto.direct
+>    killall -HUP automount
+>
+>    sleep 2
+>    echo "unmounting..."
+>    umount /nfs/share || echo "umount failed"
+>
+> The current behaviour sees us hit:
+>    handle_packet_missing_direct:1352: can't find map entry for ()
+> ...which doesn't respond to the kernel, triggering the stall.
+>
+> This approach adds a new MOUNT_FLAG_STALE flag to track removed map
+> entries. While keeping enough state around to respond for the
+> handle_packet_missing_direct case.
+>
+> RFC:
+> - needs further testing (e.g. indirect maps)
+> - I'm not familiar with the codebase so this may be the wrong approach
+> - we may need a background job to purge MOUNT_FLAG_STALE entries?
 
-When autofs_fill_super() fails, kmemleak may detect memleak
-with output similar to the following:
+In the light of the work that I did reviewing the map entry cache pruning
 
-unreferenced object 0xffff8c3e83e1abe0 (size 616):
-  comm "a.out", pid 1451, jiffies 4294715113
-  hex dump (first 32 bytes):
-    80 11 04 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-    ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  ................
-  backtrace (crc f623388e):
-    kmem_cache_alloc_lru_noprof+0x32c/0x440
-    alloc_inode+0x84/0x110
-    create_pipe_files+0x2b/0x290
-    do_pipe2+0x56/0x110
-    __x64_sys_pipe2+0x18/0x20
-    do_syscall_64+0x7f/0x2c0
-    entry_SYSCALL_64_after_hwframe+0x76/0x7e
-unreferenced object 0xffff8c3e8cf5e000 (size 72):
-  comm "a.out", pid 1451, jiffies 4294715113
-  hex dump (first 32 bytes):
-    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  backtrace (crc 494f173f):
-    kmem_cache_alloc_noprof+0x31f/0x410
-    security_inode_alloc+0x45/0x140
-    inode_init_always_gfp+0x20a/0x240
-    alloc_inode+0x42/0x110
-    create_pipe_files+0x2b/0x290
-    do_pipe2+0x56/0x110
-    __x64_sys_pipe2+0x18/0x20
-    do_syscall_64+0x7f/0x2c0
-    entry_SYSCALL_64_after_hwframe+0x76/0x7e
+this patch seems not quite right but it is a good approach and I do like
 
-The memleak occurs because when autofs_fill_super() fails,
-the AUTOFS_SBI_CATATONIC flag is not cleared, which prevents
-autofs_kill_sb()->autofs_catatonic_mode() from cleaning up
-the pipe resources. Additionally, fc->s_fs_info has already been
-set to NULL in sget_fc(), so autofs_free_fc() cannot clean up the
-pipe resources either. Therefore, add explicit cleanup of pipe
-resources in the error paths of autofs_fill_super() to prevent memleak.
+it. I'll see if I can work it into what I've done to the cache pruning
 
-Signed-off-by: Zhou Yuhang <zhouyuhang@kylinos.cn>
----
-The following test code can reproduce the issue:
+without breaking it.
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/mount.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <errno.h>
 
-int main() {
-    int pipefd[2];
-    if (pipe(pipefd) == -1) {
-        perror("pipe creation failed");
-        return 1;
-    }
-    printf("Created anonymous pipe: read fd=%d, write fd=%d\n", pipefd[0], pipefd[1]);
+Ian
 
-    int dup_write_fd = dup(pipefd[1]);
-    if (dup_write_fd == -1) {
-        perror("dup write fd failed");
-        close(pipefd[0]);
-        close(pipefd[1]);
-        return 1;
-    }
-    printf("Duplicated write fd: %d\n", dup_write_fd);
-
-    const char *mount_point = "/mnt/autofs_test";
-    if (mkdir(mount_point, 0755) == -1 && errno != EEXIST) {
-        perror("mkdir mount point failed");
-        close(pipefd[0]);
-        close(pipefd[1]);
-        close(dup_write_fd);
-        return 1;
-    }
-
-    char opts[128];
-    snprintf(opts, sizeof(opts), "fd=%d,pgrp=99999", dup_write_fd);
-    printf("Mount options: %s\n", opts);
-
-    int ret = mount("none", mount_point, "autofs", 0, opts);
-    if (ret == -1) {
-        perror("mount system call failed");
-    } else {
-        printf("Mount succeeded (unexpected)\n");
-        umount(mount_point);
-    }
-
-    close(dup_write_fd);
-    close(pipefd[1]);
-    close(pipefd[0]);
-    printf("Closed all fds\n");
-
-    return ret;
-}
----
- fs/autofs/inode.c | 24 ++++++++++++++++++------
- 1 file changed, 18 insertions(+), 6 deletions(-)
-
-diff --git a/fs/autofs/inode.c b/fs/autofs/inode.c
-index f5c16ffba013..7a2ae9d33096 100644
---- a/fs/autofs/inode.c
-+++ b/fs/autofs/inode.c
-@@ -303,6 +303,7 @@ static int autofs_fill_super(struct super_block *s, struct fs_context *fc)
- 	struct autofs_sb_info *sbi = s->s_fs_info;
- 	struct inode *root_inode;
- 	struct autofs_info *ino;
-+	int ret = -ENOMEM;
- 
- 	pr_debug("starting up, sbi = %p\n", sbi);
- 
-@@ -319,11 +320,11 @@ static int autofs_fill_super(struct super_block *s, struct fs_context *fc)
- 	 */
- 	ino = autofs_new_ino(sbi);
- 	if (!ino)
--		return -ENOMEM;
-+		goto out;
- 
- 	root_inode = autofs_get_inode(s, S_IFDIR | 0755);
- 	if (!root_inode)
--		return -ENOMEM;
-+		goto out_free_ino;
- 
- 	root_inode->i_uid = ctx->uid;
- 	root_inode->i_gid = ctx->gid;
-@@ -332,16 +333,17 @@ static int autofs_fill_super(struct super_block *s, struct fs_context *fc)
- 
- 	s->s_root = d_make_root(root_inode);
- 	if (unlikely(!s->s_root)) {
--		autofs_free_ino(ino);
--		return -ENOMEM;
-+		goto out_free_ino;
- 	}
- 	s->s_root->d_fsdata = ino;
- 
- 	if (ctx->pgrp_set) {
- 		sbi->oz_pgrp = find_get_pid(ctx->pgrp);
--		if (!sbi->oz_pgrp)
--			return invalf(fc, "Could not find process group %d",
-+		if (!sbi->oz_pgrp) {
-+			ret = invalf(fc, "Could not find process group %d",
- 				      ctx->pgrp);
-+			goto out;
-+		}
- 	} else
- 		sbi->oz_pgrp = get_task_pid(current, PIDTYPE_PGID);
- 
-@@ -357,6 +359,16 @@ static int autofs_fill_super(struct super_block *s, struct fs_context *fc)
- 
- 	sbi->flags &= ~AUTOFS_SBI_CATATONIC;
- 	return 0;
-+
-+out_free_ino:
-+	autofs_free_ino(ino);
-+out:
-+	if (sbi->pipe) {
-+		fput(sbi->pipe);
-+		sbi->pipe = NULL;
-+		sbi->pipefd = -1;
-+	}
-+	return ret;
- }
- 
- /*
--- 
-2.27.0
-
+>
+> Signed-off-by: David Disseldorp <ddiss@suse.de>
+> ---
+>   daemon/direct.c     |  8 ++++++--
+>   daemon/indirect.c   |  8 ++++++--
+>   daemon/lookup.c     | 11 ++++-------
+>   include/automount.h |  3 +++
+>   4 files changed, 19 insertions(+), 11 deletions(-)
+>
+> diff --git a/daemon/direct.c b/daemon/direct.c
+> index 42baac8..5e78c40 100644
+> --- a/daemon/direct.c
+> +++ b/daemon/direct.c
+> @@ -1389,8 +1389,12 @@ int handle_packet_missing_direct(struct autofs_point *ap, autofs_packet_missing_
+>   		return 0;
+>   	}
+>   
+> -	/* Check if we recorded a mount fail for this key */
+> -	if (me->status >= monotonic_time(NULL)) {
+> +	/*
+> +	 * Check if we recorded a mount fail for this key, or the entry has
+> +	 * been removed.
+> +	 */
+> +	if (me->status >= monotonic_time(NULL) ||
+> +	    me->flags & MOUNT_FLAG_STALE) {
+>   		ops->send_fail(ap->logopt,
+>   			       ioctlfd, pkt->wait_queue_token, -ENOENT);
+>   		ops->close(ap->logopt, ioctlfd);
+> diff --git a/daemon/indirect.c b/daemon/indirect.c
+> index 7d4aad7..934bb74 100644
+> --- a/daemon/indirect.c
+> +++ b/daemon/indirect.c
+> @@ -798,8 +798,12 @@ int handle_packet_missing_indirect(struct autofs_point *ap, autofs_packet_missin
+>   
+>   	me = lookup_source_mapent(ap, pkt->name, LKP_DISTINCT);
+>   	if (me) {
+> -		/* Check if we recorded a mount fail for this key */
+> -		if (me->status >= monotonic_time(NULL)) {
+> +		/*
+> +		 * Check if we recorded a mount fail for this key, or the entry
+> +		 * has been removed.
+> +		 */
+> +		if (me->status >= monotonic_time(NULL) ||
+> +		    me->flags & MOUNT_FLAG_STALE) {
+>   			ops->send_fail(ap->logopt, ap->ioctlfd,
+>   				       pkt->wait_queue_token, -ENOENT);
+>   			cache_unlock(me->mc);
+> diff --git a/daemon/lookup.c b/daemon/lookup.c
+> index dc77948..ad0b460 100644
+> --- a/daemon/lookup.c
+> +++ b/daemon/lookup.c
+> @@ -1416,15 +1416,12 @@ void lookup_prune_one_cache(struct autofs_point *ap, struct mapent_cache *mc, ti
+>   		if (valid && valid->mc == mc) {
+>   			 /*
+>   			  * We've found a map entry that has been removed from
+> -			  * the current cache so it isn't really valid. Set the
+> -			  * mapent negative to prevent further mount requests
+> +			  * the current cache so it isn't really valid. Flag the
+> +			  * mapent stale to prevent further mount requests
+>   			  * using the cache entry.
+>   			  */
+> -			debug(ap->logopt, "removed map entry detected, mark negative");
+> -			if (valid->mapent) {
+> -				free(valid->mapent);
+> -				valid->mapent = NULL;
+> -			}
+> +			debug(ap->logopt, "removed map entry detected, mark stale");
+> +			valid->flags |= MOUNT_FLAG_STALE;
+>   			cache_unlock(valid->mc);
+>   			valid = NULL;
+>   		}
+> diff --git a/include/automount.h b/include/automount.h
+> index 9548db8..007d020 100644
+> --- a/include/automount.h
+> +++ b/include/automount.h
+> @@ -548,6 +548,9 @@ struct kernel_mod_version {
+>   /* Indicator for applications to ignore the mount entry */
+>   #define MOUNT_FLAG_IGNORE		0x1000
+>   
+> +/* map has been removed, but we can't clean up yet */
+> +#define MOUNT_FLAG_STALE		0x2000
+> +
+>   struct autofs_point {
+>   	pthread_t thid;
+>   	char *path;			/* Mount point name */
