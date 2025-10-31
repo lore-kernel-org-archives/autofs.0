@@ -1,205 +1,136 @@
-Received: from pluto.mpi-klsb.mpg.de (pluto.mpi-klsb.mpg.de [139.19.205.193])
+Received: from fout-b1-smtp.messagingengine.com (fout-b1-smtp.messagingengine.com [202.12.124.144])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1100518B0F
-	for <autofs@vger.kernel.org>; Thu,  2 Oct 2025 10:52:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=139.19.205.193
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCE4C221721
+	for <autofs@vger.kernel.org>; Fri, 31 Oct 2025 01:38:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=202.12.124.144
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1759402378; cv=none; b=QjA8viQo+NX0t9U36spoC026fwV64K25/sacJ59M+jlTvzdSAY6avUI08WlMHJAF2HD/ftjeJ6dI9ogsPimwzG0qYBmwBrKcR3hzTdKW5rQoyZvYhJquOXZHvEhuyOSwp8l+c7/STIwxCpv/sTuGC2qY+EFDVC4Iiw9B0mK/KWA=
+	t=1761874693; cv=none; b=mqqBXUR2wK4qB2D3AGi0+mWQjoIaMbmyiHMg7RYDxIeCtKJYXOqCk1hf8k7TPtrvBVSGdX4SXGsN1uSRnpSp0hTvTisWW9iSToBWV7llpEjCBqK0Qs2dVv8ZxJ2us/3HXaKy49JGUZPVkFLKHJcx/f6WFZ2Vgc3ncHzvPzrqY24=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1759402378; c=relaxed/simple;
-	bh=nmUFmQ0TN2IEmawUWsSaSu1gR7/MFbWQHrIg3iQo7f4=;
-	h=Message-ID:Date:MIME-Version:From:Subject:To:Content-Type; b=ESM/10X/t27a6CRm/k9ukNDRKA/gza+ZMHIZdX9RCeISuJL30rbr4U1c13SRMXEg94HeuqWFjkR9HVxIz5dxO1PbGd5HAAznbYiFHYYoqgv8kYh44lgmXmSTCTsBe12OFR7IeHxpW+p+qdSQvviD0AF2Pw38ji0Nwm6fVkEVNvA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=mpi-klsb.mpg.de; spf=pass smtp.mailfrom=mpi-klsb.mpg.de; dkim=pass (2048-bit key) header.d=mpi-klsb.mpg.de header.i=@mpi-klsb.mpg.de header.b=WtI8uxn1; arc=none smtp.client-ip=139.19.205.193
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=mpi-klsb.mpg.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=mpi-klsb.mpg.de
+	s=arc-20240116; t=1761874693; c=relaxed/simple;
+	bh=FKVJt+I8DL8oi/m2+/QTrHSYCZRVk6ziYeMWIA7w9vA=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=DKyjC3PwvCiSozpJrnsG96xA9LaE8TUlT6x24s67Zd4XOX6MCHs5lNb/yHFj17LIMYAXHhjOCRtjyMObKxu3QbQMgNyppcag9DrwlN4NzDmE+RodbZ6gaSfx5daZ3VqMNVuepTuont2Fl3zsx7k6jHTYayIhyUXmXu4V7zm2o3w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net; spf=pass smtp.mailfrom=themaw.net; dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b=GywfDZlf; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=hS1091Sw; arc=none smtp.client-ip=202.12.124.144
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=themaw.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=themaw.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=mpi-klsb.mpg.de header.i=@mpi-klsb.mpg.de header.b="WtI8uxn1"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=mpi-klsb.mpg.de; s=mail202309; h=Content-Type:To:From:MIME-Version:Date:
-	Message-ID:cc:content-transfer-encoding:content-id:content-description:
-	in-reply-to:references; bh=nmUFmQ0TN2IEmawUWsSaSu1gR7/MFbWQHrIg3iQo7f4=; b=Wt
-	I8uxn1ZFqOhd6e1f82HAeFWPNA8G3c0yjubWu+z3Z1yZkXAEwT07/JohSI2KqG51eVg+eOmguCCg/
-	M6So6HrRznkChUcXkKyamH0re2LySwRUYsF7+YB8Y2Y9RfwfRBLOdLcc/FYgCyFIoaHWfSung3q8M
-	kH1Db5I0hbVgCHiNXzzsP+HyU+s4rQVhDBXxD3Qv0WNqiMg8VzwWJKE5x53p1Dc/vkTPn1nIWFMRL
-	cNEQaOt74J2bYPbLmxAEUZOzQm0pgXe26HrGi+YiwrbvJCoGV3jq0oDi1ebIc3kpylfJ5QoBaCvKP
-	rOGQlnr+ldIUj9fbfBMJ2ZFIXI6OYhXw==;
-Received: from srv-23-0404.mpi-klsb.mpg.de ([139.19.86.27]:41724 helo=max.mpi-klsb.mpg.de)
-	by pluto.mpi-klsb.mpg.de (envelope-from <pcernko@mpi-klsb.mpg.de>) 
-	with esmtps (TLS1.3:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
-	(Exim 4.98.2) id 1v4Gva-00000000r0k-1BUm;
-	Thu, 02 Oct 2025 12:52:52 +0200
-Received: from lotus.mpi-inf.mpg.de ([139.19.228.67]:53916)
-	by max.mpi-klsb.mpg.de (envelope-from <pcernko@mpi-klsb.mpg.de>) 
-	with esmtpsa (TLS1.3:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
-	(Exim 4.96) id 1v4GvZ-002eW7-38;
-	Thu, 02 Oct 2025 12:52:49 +0200
-Message-ID: <67467749-9e0f-4b4c-b840-5a9a8c300671@mpi-klsb.mpg.de>
-Date: Thu, 2 Oct 2025 12:52:49 +0200
+	dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b="GywfDZlf";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="hS1091Sw"
+Received: from phl-compute-05.internal (phl-compute-05.internal [10.202.2.45])
+	by mailfout.stl.internal (Postfix) with ESMTP id ADA3B1D00133;
+	Thu, 30 Oct 2025 21:38:09 -0400 (EDT)
+Received: from phl-mailfrontend-02 ([10.202.2.163])
+  by phl-compute-05.internal (MEProxy); Thu, 30 Oct 2025 21:38:09 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=cc
+	:cc:content-transfer-encoding:content-type:date:date:from:from
+	:in-reply-to:message-id:mime-version:reply-to:subject:subject:to
+	:to; s=fm2; t=1761874689; x=1761961089; bh=FKVJt+I8DL8oi/m2+/QTr
+	HSYCZRVk6ziYeMWIA7w9vA=; b=GywfDZlf8ngcLcvPMFo1OFk8+jOGqvX3S5udu
+	xv/1Y/0lWzqhiDMRfTawNzBkVS08yrGyD63ZMna3GREbeqXQoV/DavvPUdbgyOdf
+	PGWDFB0v6gOvCrS0tyAYNd8nPONIhUOKZgad9BUYNAzypqOTCA4t5UaIoAAeTyVR
+	Y0puFZx73l37/Qe9FyOJXR2d+NUrIROl91/UKa4TVhNGTBIpFe2UXObcwW4Qez9J
+	ep/AJvWA+C9fkKlAwKwjJYctThgwwTVs60C2nFC6my4QeO01eP/xwIv91Ow2wz1w
+	3eVH2USdA24SRuyHpZd0U5vJjyyeXerR66ebGcLKAPcZ/VGKg==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:date:date:feedback-id:feedback-id:from:from
+	:in-reply-to:message-id:mime-version:reply-to:subject:subject:to
+	:to:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=
+	1761874689; x=1761961089; bh=FKVJt+I8DL8oi/m2+/QTrHSYCZRVk6ziYeM
+	WIA7w9vA=; b=hS1091Sw6DzaC+8+0N8Hp/w77uVhsDFJN9mwimSQjWZnt/k2YA+
+	7UrvTK7ZeN0NIZnsgsZa0cF6qAJPI6ID/f2TTAjfv6CyVw8lo+T8plK7/RUpSZG4
+	zN7LyZqPu5mEb4RHgOC/mkyYpobUqgNLbtwG7Tb87zc1Hb3BbxWCrwYwQDGcJYFP
+	Jr2KDJctySUt4UqjUoQFP79fmvmDTUc/8RAslobNamXNIfutEktFY2t34KBaS0LZ
+	c7bnA/mpbvVlNDZ5R6seGtxQSl3tR5vK3tXvhma4wFUI2LuAITz4g5PIjBWURQfl
+	cEZ7x6wg9TxVQIzKDYPq3dmep4zBmAOerIg==
+X-ME-Sender: <xms:ARMEaQpX3CHqMAcvjIkxgSR_zSCm5HjV_3jDSLPC-LBfqK53j4OwUQ>
+    <xme:ARMEaeECDvyAr-08OSCxfSppue4Gn4MTo7rfX8s53HlEpFYQ0NwMsvAlwlZvFu5GK
+    0oPR8_bj39R843cBTehBzVBsaSCC7Jvl8ZSnPVp5NgAWy8>
+X-ME-Received: <xmr:ARMEaSlod-IVo6YwCjJJ5n5PASlUQCT_aEt7qusNDZ37ocf0vv0LOeVYeo0KXhGBaAKQyh2y7ygkAkwwHRpMaX01f2UOEmB4irdz81kiWRooHCZS_kQPfxVefQ>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeffedrtdeggdduieekudelucetufdoteggodetrf
+    dotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfurfetoffkrfgpnffqhgenuceu
+    rghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujf
+    gurhephffvvefufffkofgggfestdekredtredttdenucfhrhhomhepkfgrnhcumfgvnhht
+    uceorhgrvhgvnhesthhhvghmrgifrdhnvghtqeenucggtffrrghtthgvrhhnpedutdfhve
+    ehuefhjefgffegieduhefhtdejkefhvdekteeihfehtddtgffgheduleenucevlhhushht
+    vghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpehrrghvvghnsehthhgvmh
+    grfidrnhgvthdpnhgspghrtghpthhtohepfedpmhhouggvpehsmhhtphhouhhtpdhrtghp
+    thhtohepugguihhsshesshhushgvrdguvgdprhgtphhtthhopehrrghvvghnsehthhgvmh
+    grfidrnhgvthdprhgtphhtthhopegruhhtohhfshesvhhgvghrrdhkvghrnhgvlhdrohhr
+    gh
+X-ME-Proxy: <xmx:ARMEaRmzAjHs1q9LItboZXaw-kVyGuUqlt_ObZfrFkt4G9R0iVqK_A>
+    <xmx:ARMEaTszfH4JhyrzoE8Wav9fGOfYECPyyFe_RhwJr4k_KqQcCxxWMw>
+    <xmx:ARMEaUlT3t-TRPGbqPZOXhOfzWr3pawxzE4mmPunWUb8XIqp5BK24g>
+    <xmx:ARMEaesVnJNHwHflszcPsnjFuKGGTBHrghPA0ow7aWdQP_JLSm4mcg>
+    <xmx:ARMEaWuf-9Mn_6t95sTafkrjce4g7jhXAdgCkBd67cdl8d4-dMdT9ER->
+Feedback-ID: i31e841b0:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
+ 30 Oct 2025 21:38:07 -0400 (EDT)
+From: Ian Kent <raven@themaw.net>
+To: David Disseldorp <ddiss@suse.de>
+Cc: Ian Kent <raven@themaw.net>,
+	autofs mailing list <autofs@vger.kernel.org>
+Subject: Recent reports of a failure to find a direct mount map entry on lookup
+Date: Fri, 31 Oct 2025 09:31:28 +0800
+Message-ID: <20251031013745.11150-1-raven@themaw.net>
+X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 List-Subscribe: <mailto:autofs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-From: Patrick Cernko <pcernko@mpi-klsb.mpg.de>
-Subject: [PATCH] do_reconnect: expiry check of dclist BEFORE lookup using it
-To: autofs@vger.kernel.org
-Content-Language: en-US, de-DE-frami
-Organization: Information Services & Technology, Joint Administration, Max
- Planck Institute for Informatics & Max Planck Institute for Software Systems
-Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-512; boundary="------------ms010606010708080405040007"
-x-ms-reactions: disallow
+Content-Transfer-Encoding: 8bit
 
-This is a cryptographically signed message in MIME format.
+Hi David,
 
---------------ms010606010708080405040007
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: base64
+Here is the patch series I currently have for this problem.
 
-SGkgYXV0b2ZzIGRldmVsb3BlcnMsDQoNCnRoaXMgcGF0Y2ggY2hhbmdlcyB0aGUgYmVoYXZp
-b3Igd2hlbiB0byByZWZyZXNoIExEQVAgU1JWIHJlY29yZHMuIFRoZSBkb2N1bWVudGF0aW9u
-IA0Kc3RhdGVzOg0KDQo+IFRoZSBzZXJ2ZXIgbGlzdCByZXR1cm5lZCBmcm9tIGFuIFNSViBS
-UiBsb29rdXAgaXMgcmVmcmVzaGVkIGFjY29yZGluZyB0byB0aGUgbWluaW11bSB0dGwgZm91
-bmQgaW4gdGhlIFNSViBSUiByZWNvcmRzIG9yIGFmdGVyIG9uZSBob3VyLCB3aGljaGV2ZXIg
-aXMgbGVzcy4NCg0KQnV0IHRoZSBjb2RlIGluIGZhY3QgZG9lcyBub3QgZG8gYW55IHJlZnJl
-c2hpbmcgYXMgbG9uZyBhcyBhdCBsZWFzdCBvbmUgc2VydmVyIGluIHRoZSANCmRjbGlzdCBz
-dGlsbCByZXNwb25kcy4NCg0KVGhpcyBpc3N1ZSBiZWNhbWUgb2J2aW91cyBpbiBvdXIgc2V0
-dXAsIHdoZW4gd2UgaGFkIHRvIGRpc2FibGUgdGhlIGZpcnN0IHR3byBzZXJ2ZXJzOiANCmF1
-dG9mcyBjb250aW51ZWQgdG8gY29udGFjdCBsZGFwLWEgYW5kIGxkYXAtYiwgcnVubmluZyBp
-biB0aW1lb3V0cyAofjVzZWMpIGFuZCANCmZpbmFsbHkgZ290IGFuIGFuc3dlciBmcm9tIGxk
-YXAtYy4gQnV0IGR1ZSB0byB0aGUgdGltZW91dHMgZXZlcnkgbW91bnQgdG9vayA+MTBzZWMg
-DQpyZXN1bHRpbmcgaW4gc2xvdyByZXNwb25zaXZlbmVzcyBmb3IgdGhlIHdob2xlIHN5c3Rl
-bS4gQ2hhbmdpbmcgdGhlIFNSViByZWNvcmRzICh3aXRoIA0KVFRMcyBvZiA3MjAwKSBkaWQg
-bm90IGhlbHAuIEFzIGEgd29ya2Fyb3VuZCB3ZSBoYWQgdG8gc2lnbmFsIGFsbCBjbGllbnQn
-cyBhdXRvbW91bnQgDQpwcm9jZXNzZXMgd2l0aCBIVVAuDQoNClRoZSBjaGFuZ2UgaW52YWxp
-ZGF0ZXMgdGhlIGRjbGlzdCBpZiBleHBpcmVkLiBUaGlzIGZvcmNlcyBhdXRvZnMgdG8gZG8g
-YSBuZXcgU1JWIA0KcmVjb3JkIGxvb2t1cCBiZWZvcmUgZG9pbmcgdGhlIExEQVAgbG9va3Vw
-Lg0KDQpCZXN0IHJlZ2FyZHMsDQotLSANClBhdHJpY2sgQ2VybmtvIDxwY2VybmtvQG1waS1r
-bHNiLm1wZy5kZT4gKzQ5IDY4MSA5MzI1IDU4MTUNCkpvaW50IFNjaWVudGlmaWMgSVQgYW5k
-IFRlY2huaWNhbCBTZXJ2aWNlDQpNYXgtUGxhbmNrLUluc3RpdHV0ZSBmw7xyIEluZm9ybWF0
-aWsgJiBTb2Z0d2FyZXN5c3RlbWUNCg0KDQoNClNpZ25lZC1vZmYtYnk6IFBhdHJpY2sgQ2Vy
-bmtvIDxwY2VybmtvQG1waS1rbHNiLm1wZy5kZT4NCi0tLQ0KICBtb2R1bGVzL2xvb2t1cF9s
-ZGFwLmMgfCAxOCArKysrKysrKysrLS0tLS0tLS0NCiAgMSBmaWxlIGNoYW5nZWQsIDEwIGlu
-c2VydGlvbnMoKyksIDggZGVsZXRpb25zKC0pDQoNCmRpZmYgLS1naXQgYS9tb2R1bGVzL2xv
-b2t1cF9sZGFwLmMgYi9tb2R1bGVzL2xvb2t1cF9sZGFwLmMNCmluZGV4IDUzNDE2YzYuLjQ1
-YTM3NTQgMTAwNjQ0DQotLS0gYS9tb2R1bGVzL2xvb2t1cF9sZGFwLmMNCisrKyBiL21vZHVs
-ZXMvbG9va3VwX2xkYXAuYw0KQEAgLTExNTUsMTcgKzExNTUsMTEgQEAgc3RhdGljIGludCBk
-b19yZWNvbm5lY3QodW5zaWduZWQgbG9nb3B0LA0KICAJCXJldHVybiByZXQ7DQogIAl9DQoN
-Ci0JaWYgKGN0eHQtPmRjbGlzdCkgew0KLQkJZGNydiA9IGZpbmRfZGNfc2VydmVyKGxvZ29w
-dCwgY29ubiwgY3R4dC0+ZGNsaXN0LT51cmksIGN0eHQpOw0KLQkJaWYgKGRjcnYgPT0gTlNT
-X1NUQVRVU19TVUNDRVNTKSB7DQotCQkJbGRhcGluaXRfbXV0ZXhfdW5sb2NrKCk7DQotCQkJ
-cmV0dXJuIGRjcnY7DQotCQl9DQotCX0NCi0NCiAgCXVyaXNfbXV0ZXhfbG9jayhjdHh0KTsN
-CiAgCWlmIChjdHh0LT5kY2xpc3QpIHsNCiAgCQlpZiAoIWNvbm4tPmxkYXAgfHwgY3R4dC0+
-ZGNsaXN0LT5leHBpcmUgPCBtb25vdG9uaWNfdGltZShOVUxMKSkgew0KKyAgICAgICAgICAg
-ICAgICAgICAgICAgIGRlYnVnKGxvZ29wdCwgTU9EUFJFRklYDQorICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgImRjbGlzdCBleHBpcmVkLCByZW1vdmluZyBpdCB0byBmb3JjZSBu
-ZXcgbG9va3VwIik7DQogIAkJCWZyZWVfZGNsaXN0KGN0eHQtPmRjbGlzdCk7DQogIAkJCWN0
-eHQtPmRjbGlzdCA9IE5VTEw7DQogIAkJfQ0KQEAgLTExNzYsNiArMTE3MCwxNCBAQCBzdGF0
-aWMgaW50IGRvX3JlY29ubmVjdCh1bnNpZ25lZCBsb2dvcHQsDQogIAl9DQogIAl1cmlzX211
-dGV4X3VubG9jayhjdHh0KTsNCg0KKwlpZiAoY3R4dC0+ZGNsaXN0KSB7DQorCQlkY3J2ID0g
-ZmluZF9kY19zZXJ2ZXIobG9nb3B0LCBjb25uLCBjdHh0LT5kY2xpc3QtPnVyaSwgY3R4dCk7
-DQorCQlpZiAoZGNydiA9PSBOU1NfU1RBVFVTX1NVQ0NFU1MpIHsNCisJCQlsZGFwaW5pdF9t
-dXRleF91bmxvY2soKTsNCisJCQlyZXR1cm4gZGNydjsNCisJCX0NCisJfQ0KKw0KICAJaWYg
-KCFjdHh0LT51cmkpDQogIAkJZ290byBmaW5kX3NlcnZlcjsNCg0KLS0gDQoyLjM5LjUNCg0K
+I've also tried to describe the cases I think are at play and if they
+are resolved by the series as well as the case I think is problematic.
 
+Please feel free to use these in any way that is useful and any thoughts
+or improvements are welcome.
 
---------------ms010606010708080405040007
-Content-Type: application/pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
+The little evidence I have related to this problem indicates it is
+related to updating (re-reading) autofs mount maps. Review of the
+source code surrounding this map updating shows there are a number
+of cases.
 
-MIAGCSqGSIb3DQEHAqCAMIACAQExDzANBglghkgBZQMEAgMFADCABgkqhkiG9w0BBwEAAKCC
-DU4wggZEMIIELKADAgECAhAV+a5sqo0u1NNveH8e3HsBMA0GCSqGSIb3DQEBCwUAMG8xCzAJ
-BgNVBAYTAkdSMTcwNQYDVQQKDC5IZWxsZW5pYyBBY2FkZW1pYyBhbmQgUmVzZWFyY2ggSW5z
-dGl0dXRpb25zIENBMScwJQYDVQQDDB5IQVJJQ0EgQ2xpZW50IFJTQSBSb290IENBIDIwMjEw
-HhcNMjUwMTAzMTExMzA4WhcNMzkxMjMxMTExMzA3WjBjMQswCQYDVQQGEwJHUjE3MDUGA1UE
-CgwuSGVsbGVuaWMgQWNhZGVtaWMgYW5kIFJlc2VhcmNoIEluc3RpdHV0aW9ucyBDQTEbMBkG
-A1UEAwwSR0VBTlQgUy9NSU1FIFJTQSAxMIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKC
-AYEAq7hur/5vIqMejblfPfZgGY75auSZz5SZ9x1dIIjvJrDBT0lIwQcAAoABJomkuv0kDK36
-2UH+uf9JrOdLBjiKkEh99HQPmT+d1+Ijnnd1aAjiL+2Q4aU16P/snITYJL2ROU46zqmDkdoO
-nCqMCEKSN74gHKDmApYfqXO8wmjmNA62wYHarp7lxgrBr0sk4BxHyKq52z0sWyxsdIy5V1K5
-OOkCNwYupZ9b74LRhelYP5SieNDqU0S6IpQOasVz5IS0vDnqVi2ni67Gbgtb8dBKzH6gbAwG
-ppHoeEFDcvJ042Oxtxt6BGolkUmguyfAgeisRqDjhQi+NfNgkDH81OLBV0eV07twS9axwNvJ
-AtH2SgGiWKrYeuBgVCzs1DFT7sws1KHyLrOdZU0hJQSDfoz/8jwFmXhWoPvQQuWEoo3uvH6L
-sHAo53aDF1aAUmGQ/JC72j7zZH16leJFuWj+t2TK/7YEVHtWluA9TOdx2Lz/SHh0/+pAVicD
-4N/QUWPuBhzPAgMBAAGjggFmMIIBYjASBgNVHRMBAf8ECDAGAQH/AgEAMB8GA1UdIwQYMBaA
-FKDWBz1eJPd7oEQuJFINGaorBJGnMFAGCCsGAQUFBwEBBEQwQjBABggrBgEFBQcwAoY0aHR0
-cDovL2NydC5oYXJpY2EuZ3IvSEFSSUNBLUNsaWVudC1Sb290LTIwMjEtUlNBLmNlcjBEBgNV
-HSAEPTA7MDkGBFUdIAAwMTAvBggrBgEFBQcCARYjaHR0cDovL3JlcG8uaGFyaWNhLmdyL2Rv
-Y3VtZW50cy9DUFMwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMEMEUGA1UdHwQ+MDww
-OqA4oDaGNGh0dHA6Ly9jcmwuaGFyaWNhLmdyL0hBUklDQS1DbGllbnQtUm9vdC0yMDIxLVJT
-QS5jcmwwHQYDVR0OBBYEFOuyLzv9rgLMKkQGXSXNHRIiaLBHMA4GA1UdDwEB/wQEAwIBhjAN
-BgkqhkiG9w0BAQsFAAOCAgEAO964RfbcPCuTKAq2wXsOZxMaaLxITbSOYkt7RMxPw3CzU2qm
-kTQALKbVqC1jUiNQWbkxZpsb8hy9FOHywH1xFmANAypks0Iuh+ovhqP90oFcfhvAfYxV2M0c
-Gga9mTKFHP+QET7HW9pZdyWFZAw5fmdW9Ex+IQmJii0w/sozzwhpVn0OQYkkRV+2ydRa68JZ
-S2NqAPpdaWoseM2X4u5+Jn+H2UO9paobX+ht91K2Ch8xzfREv4RLqBgpHBmkIDVygXNdXsKf
-DHy2hOXxtF6oI1d7ErPGWoBxFc86aUqQlC6pEjb3ug24w+eg1kJj7IufHJ3iRm67Rdw5M1Ol
-WMzxu+DwAKqFJhqes0OL/NOJOTuDCb0bIfVfjl8U0Y0QWCkhoCmNPZQQu6QM6Y/XxnALgRB4
-drA8kip98wSZQmbqptE8oac2ZzLKCHiJlTdBuREsundnpBXdahMSrJ/mYv2pMZLpYkbrkvyh
-orDVeH9t0a5UgPIFqGl8/ZzakJ3RQfr7HvdGur0YWU6KNWvY5BK8qHMRM0b3XtK9xREIGEyc
-hAVReodDIhjrR4fWmjpa006r/UrmSk4bpKrVFVzTYsSK3jy4ri1ExVQp6RI6Ou4ZdbfwOYCu
-I9wweMjpVBuqNzRKrVU/Pvp57gUzm4u+JJRkdioMOoxZrwsUiYr2KIojwTcwggcCMIIFaqAD
-AgECAhAA0DFH3E2mzj1AMMVjv/1SMA0GCSqGSIb3DQEBCwUAMGMxCzAJBgNVBAYTAkdSMTcw
-NQYDVQQKDC5IZWxsZW5pYyBBY2FkZW1pYyBhbmQgUmVzZWFyY2ggSW5zdGl0dXRpb25zIENB
-MRswGQYDVQQDDBJHRUFOVCBTL01JTUUgUlNBIDEwHhcNMjUwODI3MTAzNTMyWhcNMjcwODI3
-MTAzNTMyWjCB3DELMAkGA1UEBhMCREUxDzANBgNVBAgMBkJheWVybjERMA8GA1UEBwwITXVl
-bmNoZW4xIDAeBgNVBAoMF01heC1QbGFuY2stR2VzZWxsc2NoYWZ0MSMwIQYDVQRhDBpMRUlY
-Ry04OTQ1MDBDNUw2VzRBREMxMlA4MjEPMA0GA1UEBAwGQ2VybmtvMRAwDgYDVQQqDAdQYXRy
-aWNrMRcwFQYDVQQDDA5QYXRyaWNrIENlcm5rbzEmMCQGCSqGSIb3DQEJARYXcGNlcm5rb0Bt
-cGkta2xzYi5tcGcuZGUwggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIKAoICAQCrM/8NomLw
-CLQmhCERp6bm3lWEB7LMsSgVsQlnaPR6XVc66i43ddRaL1aoeAtwawEXzKluMWNumGbg0XCe
-BFWYf+ajVH0eKMBrE2/PbFgxbWQXfPJjiXQnb2ZWgwCJqBcuDZC9/SKWyrSfUSfyH9PyHZ8P
-vEcGO1J/ORJtyDMCg7Jhzfrpwx0yIW4zhLBqbciwXlLnFKqlCp108xrNilL2DBkKNo4kkwAi
-FB8Un8EbwHVEdDORb4KknMuEXNtKSsT5Mn5boXsku2lHi30WOGZOxD3o7zpAmNFmThy1W7C+
-D3SIz6nB50erWohhb/b+8bfuIv/cFN9Z/O7KE9bk85a4eeUfoQX7KqHDqTcWXa1eO4SghyI7
-JLZR58WzyngnEnYTlUS9prrUl0nx+DjTQVKUhJUx6m6MEAiL0awfa7dEYIpWgzrEoag0fF4G
-fK7Patm2rDhAT1RzRKpnllJcCacAo83ZvC7Tj8LlkBotPePrMIsnP94i2AU1KOS1uzv8Av21
-9mwa1z5fJhzFcUHRSUDOJlaDt5HBd4G/i1LHOUMmlFpIHtNN9T7eFweF1FjVyS4Fr7Th9vry
-QfiZlmmgRaRUCJDJdBYuZDuJgKpCAnTykCCNwW+8BymgGD/qfZXx5HJnaXmG8E9kaV/kZWVe
-dz2tfW3JgJ61TVFsRRl7AsDuVwIDAQABo4IBtjCCAbIwHwYDVR0jBBgwFoAU67IvO/2uAswq
-RAZdJc0dEiJosEcwSgYIKwYBBQUHAQEEPjA8MDoGCCsGAQUFBzAChi5odHRwOi8vY3J0Lmhh
-cmljYS5nci9IQVJJQ0EtR0VBTlQtU01JTUUtUjEuY2VyME8GA1UdEQRIMEaBF3BjZXJua29A
-bXBpLWtsc2IubXBnLmRlgRZwY2VybmtvQG1waS1pbmYubXBnLmRlgRNwY2VybmtvQG1waS1z
-d3Mub3JnMGMGA1UdIARcMFowCQYHZ4EMAQUDAjAIBgYEAI96AQMwQwYNKwYBBAGBzxEBAQIE
-AjAyMDAGCCsGAQUFBwIBFiRodHRwczovL3JlcG8uaGFyaWNhLmdyL2RvY3VtZW50cy9DUFMw
-HQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMEMD8GA1UdHwQ4MDYwNKAyoDCGLmh0dHA6
-Ly9jcmwuaGFyaWNhLmdyL0hBUklDQS1HRUFOVC1TTUlNRS1SMS5jcmwwHQYDVR0OBBYEFJb7
-TBjIMvXJU16RfTsmTT6AO4VRMA4GA1UdDwEB/wQEAwIFoDANBgkqhkiG9w0BAQsFAAOCAYEA
-ec0PGQ+wIAAgBzkUDYzlNjM/IqzwAIV7cspUu1BbWzpmPhIp2zBKjjaxjX7bAh6eL2s0nFRI
-7CIBMoWbI40P5CKjRzO9UsfpzHTLGF/WS2tScPY1oPbF3nC9H3BRtIRFWkF9c1T+0xcfUSjC
-xrbAoXJwTuWQoyEy5O8J8F5ntHWrltDyIPsKgTx/Nj4ZZKkSG9bw5rm5hGw1YrRZyfL2aaaY
-zSKg19RnmzDyj4BozXos6JQkCNJqmzMlMNed1Jnud0Neofaw8c5VFa/ji12ZJb5rlt0IrFDO
-qTK30vXhCHWuDz+7NBO3zN8yrl7gI2xBa/UgmrD22dtoMRrpxxbNGXgem9lEN9aJtkd9oYrD
-kfI+EqXxBYycSyM7U8EALdXsiXyCJah4yrSZDPa7aHP9hXbpC7zPuwjDDFkekO+/+vBy0Gzu
-jZaxUQIdIPFK8IBh9M6ht/utZ4Us1zQDlqbZXjKUan1q2SSyhhtIk4AqSTxxKNsTq0x6H8Bo
-OeUsRzFgMYIFnjCCBZoCAQEwdzBjMQswCQYDVQQGEwJHUjE3MDUGA1UECgwuSGVsbGVuaWMg
-QWNhZGVtaWMgYW5kIFJlc2VhcmNoIEluc3RpdHV0aW9ucyBDQTEbMBkGA1UEAwwSR0VBTlQg
-Uy9NSU1FIFJTQSAxAhAA0DFH3E2mzj1AMMVjv/1SMA0GCWCGSAFlAwQCAwUAoIIC+DAYBgkq
-hkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yNTEwMDIxMDUyNDlaME8G
-CSqGSIb3DQEJBDFCBEDKWr87+TU5wawmOa9sHBtSiLsOpByry+DccJ7W5NP5/qdcS/XPfBD7
-7KFNoX1/oAWkUnuXaVoGFZFz/diNmj+qMIGGBgkrBgEEAYI3EAQxeTB3MGMxCzAJBgNVBAYT
-AkdSMTcwNQYDVQQKDC5IZWxsZW5pYyBBY2FkZW1pYyBhbmQgUmVzZWFyY2ggSW5zdGl0dXRp
-b25zIENBMRswGQYDVQQDDBJHRUFOVCBTL01JTUUgUlNBIDECEADQMUfcTabOPUAwxWO//VIw
-gYgGCyqGSIb3DQEJEAILMXmgdzBjMQswCQYDVQQGEwJHUjE3MDUGA1UECgwuSGVsbGVuaWMg
-QWNhZGVtaWMgYW5kIFJlc2VhcmNoIEluc3RpdHV0aW9ucyBDQTEbMBkGA1UEAwwSR0VBTlQg
-Uy9NSU1FIFJTQSAxAhAA0DFH3E2mzj1AMMVjv/1SMIIBVwYJKoZIhvcNAQkPMYIBSDCCAUQw
-CwYJYIZIAWUDBAEqMAsGCWCGSAFlAwQBAjAKBggqhkiG9w0DBzANBggqhkiG9w0DAgIBBTAN
-BggqhkiG9w0DAgIBBTAHBgUrDgMCBzANBggqhkiG9w0DAgIBBTAHBgUrDgMCGjALBglghkgB
-ZQMEAgEwCwYJYIZIAWUDBAICMAsGCWCGSAFlAwQCAzALBglghkgBZQMEAgQwCwYJYIZIAWUD
-BAIHMAsGCWCGSAFlAwQCCDALBglghkgBZQMEAgkwCwYJYIZIAWUDBAIKMAsGCSqGSIb3DQEB
-ATALBgkrgQUQhkg/AAIwCAYGK4EEAQsAMAgGBiuBBAELATAIBgYrgQQBCwIwCAYGK4EEAQsD
-MAsGCSuBBRCGSD8AAzAIBgYrgQQBDgAwCAYGK4EEAQ4BMAgGBiuBBAEOAjAIBgYrgQQBDgMw
-DQYJKoZIhvcNAQEBBQAEggIAd+4ZDyJZHo076skncBnsenVUrIHQLf2ZSgvcAsgKXQvcWnKh
-558YW5YRwRamaIY1AAMn5w/XVo7Y2IPATF5N949uH6D6aLgO5EOgEpXBmiM0xXrtL3yJ9Qq4
-eJcCyqOzHsd6dz17ZYOrZZE4DHWJueEFmu+jmd338UtcBwEYiJ8y0DNFPjEkZ/VGQUfYL6fz
-NcgM82McII2PVCrDl8LFm3bt5H6ME25Wqi7lAY649m+F2WDqaIKoPL443a8Zb3Vm7psh/tAd
-suBWNtYDL8CSD1kOI2q22Di1MUkurdx8tahLsaFmHZDzEYL+RTfbB5N3fPMHKXni8rn2vv++
-Hr8wR4Zz+Qy9NWZvcQ8k10aPG6u2kckVNDZ2/QS+h22rsYpNhJ+TcSKsB30qsmUCt6ySb5Qq
-plx84VU/PHbkoAvVUQWrE8nVDqkqYe+EdUsKz+2iZzfxQgskM4SRKer7+Kv3qWBToWM2zzWb
-YAEy6KtPLMb5NaNfkMFblQRotBmTyWWiw4+IX1R6K/BarykD/DA5stU+AFWuNUC86W3rfxjR
-kGhgIBkHmcw/vnZ08jP0P541vCXd8+FBYd/DdyTXaab8znMg52iv0Xo2YD6VdSK2ZbqaH2fj
-GFlo6lv3vyaWneNs3mdoqQ1gEmDOa4oRw3qFXB/KZG3Gosm+FWItRIRH3swAAAAAAAA=
---------------ms010606010708080405040007--
+Indirect mount map entries are far more tolerant of map updates than
+direct mount maps. The reports I have are related to direct mount maps
+so that has been the focus of the code review.
+
+An autofs direct mount can have multiple entries in the master map and
+therefore can consist of multiple maps. So the same direct map entry
+path can be removed from one map and added to another in the same
+update.
+
+This is one case that needs to be handled and problems with this case
+should be fixed by the patches resulting from the code review.
+
+Another case is where a map entry is removed but has a triggered mount
+covering it. Fixes for this case should also be covered buy the patches
+here.
+
+The third case is where a map entry is removed from a map, there are no
+other instances of it, there's no real mount associated with it, but the
+direct mount trigger mount remains mounted following the map update.
+This allows the kernel to send a mount request for a map entry that
+doesn't exist. It results in a fatal error because automount(8) doesn't
+have a way to communicate the failure to the kernel as there's no ioctl
+file handle to do so.
+
+This is I think the case that's been seen here and upstream and remains
+unresolved.
+
+So far I have been unable to work out how a mount trigger can be left
+mounted when a map entry is removed. As a workaround I have improved the
+handling of this case in the mount request code. It now uses a method
+similar to the that used to reconnect to existing mounts at startup to
+open a file handle to send the failure status to the kernel (the last
+two patches). While this method should work almost all of the time it
+can still fail so I still need to work out why the direct mount trigger
+isn't being umounted on map entry removal.
+
+Ian
