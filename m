@@ -1,107 +1,63 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from zeniv.linux.org.uk (zeniv.linux.org.uk [62.89.141.173])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EEBD2FD7A7;
-	Tue, 11 Nov 2025 10:20:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C33734C13D;
+	Tue, 11 Nov 2025 10:24:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=62.89.141.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1762856403; cv=none; b=Y4tzCUeJrW7QdeQpQ/F20lZ0aCYpPV1aADY+LbhQkBT0elWIcLejVl+ShCQNCbFF18f5S2RTE36f/GZpqcipe7/IAnMOQw+OQPIz697Eit8GbJluciaihhtCSGtajOApE/UYSV+iKXi8NzIQb5BxymssQPe3rghHHIh+wQdJyvI=
+	t=1762856678; cv=none; b=InebGtYP4p3uK/6cAZDoMmq7jY1SIvfb04urjGaTkwOQFteHxEaaCo8kFbbzsFePi9Dg0l5bQXbUUwTgZ+sHlnLJzfh5MGQHnH8WZ6doRpGUF+XhzD8YQLXUv8WJN3WhxHZGwXNbg/iBT7EVh7b8m/+Qv4I1/EmTYQw4b18Y9Zc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1762856403; c=relaxed/simple;
-	bh=BmshZqf1TcN87/HY8Wmil4MG8V25/dRU6AtLyHKwAYU=;
+	s=arc-20240116; t=1762856678; c=relaxed/simple;
+	bh=Pk1+Syz8svjSqWJy4uNJdCuzrao8MNj7/eKcIogq9j0=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=au83wpL8nBI0Yt57PI6UtAqczXw9v4vi9kzS8wrXcTVCU/nF5Dl4w1duEAOzu57SGmBzMLyWlzXjHNTV6RZvQ6rtIQD1pinrDApi074MjpUF3z7aTbvpNGoGkHGeYe08htuQtzF164s9SdYCnrR+TNwdJdRM0BLJJKtHKE0uXlo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YrQkFEjz; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=s2mXr7ATqNo/7oX3uSLyFt/yhG5mkHIsjkZqJsF40nLyN0cVGCT8h7U87JGyBIz3GB0hnl+xjBRtUdlBYWJkzLC3RssJsUV+ZlPhqY4iruMN2ST85BgPnv9PcF8MsLz2Muo/4a8ePmTBUxQOpeDmXIZOEtZS3D1l521qtTDj7cc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk; spf=none smtp.mailfrom=ftp.linux.org.uk; dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b=o6Qzcf2I; arc=none smtp.client-ip=62.89.141.173
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ftp.linux.org.uk
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YrQkFEjz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C13ACC19424;
-	Tue, 11 Nov 2025 10:20:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1762856403;
-	bh=BmshZqf1TcN87/HY8Wmil4MG8V25/dRU6AtLyHKwAYU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=YrQkFEjzqmgn6Ctk5g4U/9HVMW8Da6zf836mdQ4iMQXqViKVrVsPKycEIcacmVgHf
-	 /nLScwB++tz4KtFw41BMno0sWRdc2sxhckDERkDqyzD6gM830pRdEf5LbsHtTQJzCG
-	 EuYsJB5y09HEOVLI5keTMqi8ZojpgRBr2aJb8bMfPiCza4idtuyLPaABG+fKpJL84Z
-	 GQmcIp/Vnxdvoyk5jcPuMOJ1FkBaxh4dZXkGsiAd1H+/rtP6Ft4bWX2QR8gIj9jRMU
-	 qcm7eeNIK4RM/LeGKQJ7N+Vz/WI48cU67S7PrJMY90NyPO5rNFOXAs0LoMhFVqfhQG
-	 6myfPvNxhI8ig==
-Date: Tue, 11 Nov 2025 11:19:59 +0100
-From: Christian Brauner <brauner@kernel.org>
-To: Ian Kent <raven@themaw.net>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, 
-	Kernel Mailing List <linux-kernel@vger.kernel.org>, autofs mailing list <autofs@vger.kernel.org>, 
+	dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b="o6Qzcf2I"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=linux.org.uk; s=zeniv-20220401; h=Sender:In-Reply-To:Content-Type:
+	MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=DtPIgSD96T8AdJRouy1+QiaPLo0/0jzawVLRdzPXzUg=; b=o6Qzcf2IXY184EFgFyNAXYdJ2j
+	zPlfASULoRIR3wIAa07ItqSlxPujvDEyfYxt4bnH2O0ZoUU50tm/87l2F/Rss3P1kdlJM8FuCb+Hr
+	T3I1qmat4ypKxfIZWljmxFZ+JYFILG/hzrSnelNAox9D0IQqF/4gC1Fw1rtD0hh0hJjnfs1NmHDUL
+	1R7kveF8XZwN2HikC6u7xo/jfdV3wpCStRjSy4yiZ0zp0kLdG0/zidPUe2dp5eBmfOQg2Rc6LKB4t
+	//rpXJD2TP7roP+OhzGke5Bnl7PBAZgy3mauUIt2t3FfLqkAld3dgc30Wp65Dy7dR3MPmygpZDYVu
+	ErSGIlmA==;
+Received: from viro by zeniv.linux.org.uk with local (Exim 4.98.2 #2 (Red Hat Linux))
+	id 1vIlYB-0000000G7mc-0SbN;
+	Tue, 11 Nov 2025 10:24:35 +0000
+Date: Tue, 11 Nov 2025 10:24:35 +0000
+From: Al Viro <viro@zeniv.linux.org.uk>
+To: Christian Brauner <brauner@kernel.org>
+Cc: Ian Kent <raven@themaw.net>,
+	Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	autofs mailing list <autofs@vger.kernel.org>,
 	linux-fsdevel <linux-fsdevel@vger.kernel.org>
 Subject: Re: [PATCH 2/2] autofs: dont trigger mount if it cant succeed
-Message-ID: <20251111-zunahm-endeffekt-c8fb3f90a365@brauner>
+Message-ID: <20251111102435.GW2441659@ZenIV>
 References: <20251111060439.19593-1-raven@themaw.net>
  <20251111060439.19593-3-raven@themaw.net>
+ <20251111-zunahm-endeffekt-c8fb3f90a365@brauner>
 Precedence: bulk
 X-Mailing-List: autofs@vger.kernel.org
 List-Id: <autofs.vger.kernel.org>
 List-Subscribe: <mailto:autofs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:autofs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20251111060439.19593-3-raven@themaw.net>
+In-Reply-To: <20251111-zunahm-endeffekt-c8fb3f90a365@brauner>
+Sender: Al Viro <viro@ftp.linux.org.uk>
 
-On Tue, Nov 11, 2025 at 02:04:39PM +0800, Ian Kent wrote:
-> If a mount namespace contains autofs mounts, and they are propagation
-> private, and there is no namespace specific automount daemon to handle
-> possible automounting then attempted path resolution will loop until
-> MAXSYMLINKS is reached before failing causing quite a bit of noise in
-> the log.
-> 
-> Add a check for this in autofs ->d_automount() so that the VFS can
-> immediately return an error in this case. Since the mount is propagation
-> private an EPERM return seems most appropriate.
-> 
-> Signed-off-by: Ian Kent <raven@themaw.net>
-> ---
->  fs/autofs/autofs_i.h | 4 ++++
->  fs/autofs/inode.c    | 1 +
->  fs/autofs/root.c     | 8 ++++++++
->  fs/namespace.c       | 6 ++++++
->  include/linux/fs.h   | 1 +
->  5 files changed, 20 insertions(+)
-> 
-> diff --git a/fs/autofs/autofs_i.h b/fs/autofs/autofs_i.h
-> index 23cea74f9933..34533587c66b 100644
-> --- a/fs/autofs/autofs_i.h
-> +++ b/fs/autofs/autofs_i.h
-> @@ -16,6 +16,7 @@
->  #include <linux/wait.h>
->  #include <linux/sched.h>
->  #include <linux/sched/signal.h>
-> +#include <uapi/linux/mount.h>
->  #include <linux/mount.h>
->  #include <linux/namei.h>
->  #include <linux/uaccess.h>
-> @@ -109,11 +110,14 @@ struct autofs_wait_queue {
->  #define AUTOFS_SBI_STRICTEXPIRE 0x0002
->  #define AUTOFS_SBI_IGNORE	0x0004
->  
-> +struct mnt_namespace;
-> +
->  struct autofs_sb_info {
->  	u32 magic;
->  	int pipefd;
->  	struct file *pipe;
->  	struct pid *oz_pgrp;
-> +	struct mnt_namespace *owner;
->  	int version;
->  	int sub_version;
->  	int min_proto;
-> diff --git a/fs/autofs/inode.c b/fs/autofs/inode.c
-> index f5c16ffba013..0a29761f39c0 100644
-> --- a/fs/autofs/inode.c
-> +++ b/fs/autofs/inode.c
-> @@ -251,6 +251,7 @@ static struct autofs_sb_info *autofs_alloc_sbi(void)
->  	sbi->min_proto = AUTOFS_MIN_PROTO_VERSION;
->  	sbi->max_proto = AUTOFS_MAX_PROTO_VERSION;
->  	sbi->pipefd = -1;
-> +	sbi->owner = current->nsproxy->mnt_ns;
+On Tue, Nov 11, 2025 at 11:19:59AM +0100, Christian Brauner wrote:
 
-ns_ref_get()
-Can be called directly on the mount namespace.
+> > +	sbi->owner = current->nsproxy->mnt_ns;
+> 
+> ns_ref_get()
+> Can be called directly on the mount namespace.
+
+... and would leak all mounts in the mount tree, unless I'm missing
+something subtle.
